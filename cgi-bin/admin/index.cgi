@@ -83,7 +83,7 @@ if (check_permissions('asm', 'test123') == 1) {
                 [$_ALL, 'users']                                               # Modules managments
                );
 
- my %PARAMS = ( SORT => $SORT,
+my %LIST_PARAMS = ( SORT => $SORT,
 	       DESC => $DESC,
 	       PG => $PG,
 	       PAGE_ROWS => $PAGE_ROWS,
@@ -129,7 +129,7 @@ if ($functions{$index}) {
   $functions{$index}->();
 }
 else {
-  print "hello $index / $root_index";	
+  message('err', $_ERROR,  "Function not exist ($index / $root_index)");	
 }
 
 print "</td></tr></table>\n";
@@ -173,8 +173,8 @@ sub check_permissions {
 sub form_customers {
   use Customers;	
 
- my $customers = Customers->new($db); 
- my $table = Abills::HTML->table( { width => '100%',
+my $customers = Customers->new($db); 
+my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, '-', '-'],
                                    cols_align => [left, left, right, right, left, center, center, center, center],
@@ -186,27 +186,29 @@ print $table->show();
 print $html->pages($total, "op=users$pages_qs");
 }
 
+
 #**********************************************************
 # account_info
 #**********************************************************
 sub account_info {
+  my ($aacount) = @_;
 
 print << "[END]";
 <form action=$SELF_URL METHOD=POST>
 <input type=hidden name=op value='accounts'>
 <input type=hidden name=chg value='$FORM{chg}'>
 <Table>
-<tr><td>$_NAME:</td><td><input type=text name=name value="$name"></td></tr>
-<tr bgcolor=$_BG1><td>$_DEPOSIT:</td><td>$deposit</td></tr>
-<tr bgcolor=$_BG1><td>$_TAX_NUMBER:</td><td><input type=text name=tax_number value='$tax_number' size=60></td></tr>
-<tr bgcolor=$_BG1><td>$_ACCOUNT:</td><td><input type=text name=bank_account value='$bank_account' size=60></td></tr>
-<tr bgcolor=$_BG1><td>$_BANK_NAME:</td><td><input type=text name=bank_name value='$bank_name' size=60></td></tr>
-<tr bgcolor=$_BG1><td>$_COR_BANK_ACCOUNT:</td><td><input type=text name=cor_bank_account value='$cor_bank_account' size=60></td></tr>
-<tr bgcolor=$_BG1><td>$_BANK_BIC:</td><td><input type=text name=bank_bic value='$bank_bic' size=60></td></tr>
+<tr><td>$_NAME:</td><td><input type=text name=name value="$account->{ACCOUNT_NAME}"></td></tr>
+<tr bgcolor=$_BG1><td>$_DEPOSIT:</td><td>$account->{DEPOSIT}</td></tr>
+<tr bgcolor=$_BG1><td>$_TAX_NUMBER:</td><td><input type=text name=tax_number value='$account->{TAX_NUMBER}' size=60></td></tr>
+<tr bgcolor=$_BG1><td>$_ACCOUNT:</td><td><input type=text name=bank_account value='$account->{BANK_ACCOUNT}' size=60></td></tr>
+<tr bgcolor=$_BG1><td>$_BANK_NAME:</td><td><input type=text name=bank_name value='$account->{BANK_NAME}' size=60></td></tr>
+<tr bgcolor=$_BG1><td>$_COR_BANK_ACCOUNT:</td><td><input type=text name=cor_bank_account value='$account->{COR_BANK_ACCOUNT}' size=60></td></tr>
+<tr bgcolor=$_BG1><td>$_BANK_BIC:</td><td><input type=text name=bank_bic value='$account->{BANK_BIC}' size=60></td></tr>
 </table>
 <input type=submit name=$action[0] value='$action[1]'>
 </form>
-<a href='$SELF_URL?index=11&account_id=$FORM{chg}'>_ADD_USER</a>
+<hr>
 [END]
 }
 
@@ -225,8 +227,6 @@ sub form_accounts {
   use Customers;	
   my $customer = Customers->new($db);
 
-
-  @action = ('add', $_ADD);
 
 if ($FORM{add}) {
   my $account =  $customer->account->add({ NAME => $name,
@@ -258,6 +258,7 @@ elsif($FORM{change}) {
   else {
     message('info', $_INFO, $_CHANGED. " # $name<br>");
    }
+
  }
 elsif($FORM{chg}) {
   $account = $customer->account->info($FORM{chg});
@@ -266,19 +267,13 @@ elsif($FORM{chg}) {
     message('info', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
    }
   else {
-    $name = $account->{name};
-    $deposit = $account->{deposit};
-    $tax_number = $account->{tax_number};
-    $bank_account = $account->{bank_account};
-    $bank_name = $account->{bank_name}; 
-    $cor_bank_account = $account->{cor_bank_account}; 
-    $bank_bic = $account->{cor_bank_account};
-
     message('info', $_INFO, $_CHANGING. " # $_NAME: $name<br>");
-    account_info();
+    @action = ('change', $_CHANGE);
+    account_info($account);
+    print "<a href='$SELF_URL?index=11&account_id=$FORM{chg}'>$_ADD_USER</a>";
+    $FORM{account_id} = $FORM{chg};
+    form_users();
    }
-
-  @action = ('change', $_CHANGE);
  }
 elsif($FORM{del}) {
    $customer->account->del( $FORM{del} );
@@ -286,14 +281,6 @@ elsif($FORM{del}) {
  }
 else {
  account_info();
-}
-
-
-my %PARAMS = ( SORT => $SORT,
-	       DESC => $DESC,
-	       PG => $PG,
-	       PAGE_ROWS => $PAGE_ROWS,
-	      );
 
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
@@ -301,16 +288,23 @@ my $table = Abills::HTML->table( { width => '100%',
                                    cols_align => [left, right, right, center, center],
                                   } );
 
-my ($accounts_list, $total) = $customer->account->list( { %PARAMS } );
+my ($accounts_list, $total) = $customer->account->list( { %LIST_PARAMS } );
 foreach my $line (@$accounts_list) {
-  $table->addrow($line->[0],  $line->[1], $line->[2], 
-    "<a href='$SELF_URL?op=accounts&chg=$line->[3]'>$_CHANGE</a>", $html->button($_DEL, "op=accounts&del=$line->[3]", "$_DEL ?"));
+  $table->addrow($line->[0],  $line->[1], "<a href='$SELF_URL?op=users&account_id=$line->[3]'>$line->[2]</a>", 
+    "<a href='$SELF_URL?op=accounts&chg=$line->[3]'>$_INFO</a>", $html->button($_DEL, "op=accounts&del=$line->[3]", "$_DEL ?"));
 }
 
 print $html->pages($total, "op=users$pages_qs");
 print $table->show();
 print $html->pages($total, "op=users$pages_qs");
+
 }
+
+
+
+}
+
+
 
 #**********************************************************
 # chg_account
@@ -357,17 +351,7 @@ my $result = qq {
 return $result;
 }
 
-#**********************************************************
-# add_customer
-#**********************************************************
-sub add_customer {
 
-
-print "<form action=$SELF_URL>\n
-<input type=hidden name= value=>
-</form>\n";
- 	
-}
 #**********************************************************
 # form_users()
 #**********************************************************
@@ -409,7 +393,13 @@ else {
  if (! defined($user_info->{UID})) {
    my $tariffs_list = $tariffs->list();
    $variant_out = "<select name=tarif_plan>";
-   $info = "<tr><td>$_USER:*</td><td><input type=text name=login value=''></td></tr>\n";
+
+  use Customers;	
+  my $customers = Customers->new($db);
+  my $account = $customers->account->info($FORM{account_id});
+
+   $info = "<tr><td>$_COMPANY:</td><td>$account->{ACCOUNT_NAME}</td></tr>\n".
+           "<tr><td>$_USER:*</td><td><input type=text name=login value=''></td></tr>\n";
 
    foreach my $line (@$tariffs_list) {
      $variant_out .= "<option value=$line->[0]";
@@ -420,7 +410,8 @@ else {
   }
  else {
    $variant_out .= $user_info->{TP_NAME};
-   $info = "<tr><td>$_DEPOSIT:</td><td>$user_info->{DEPOSIT}</td></tr>";
+   $info = "<tr><td>$_DEPOSIT:</td><td>$user_info->{DEPOSIT}</td></tr>\n".
+           "<tr><td>$_COMPANY:</td><td>$user_info->{ACCOUNT_NAME}</td></tr>\n";
   } 
 
 my $disable = ($user_info->{DISABLE} > 0) ? 'checked' : '';
@@ -428,11 +419,11 @@ my $disable = ($user_info->{DISABLE} > 0) ? 'checked' : '';
 $tpl_form = qq{
 <form action=$SELF_URL method=post>
 <input type=hidden name=index value=14>
-<input type=hidden name=account_id value='$user_info->{ACCOUNT_ID}'>
+<input type=hidden name=account_id value='$FORM{account_id}'>
 <input type=hidden name=uid value="$user_info->{UID}">
 <table width=420 cellspacing=0 cellpadding=3>
 $info
-<tr><td>$_ACCOUNT:</td><td>$user_info->{ACCOUNT_NAME}</td></tr>
+
 <tr><td>$_FIO:*</td><td><input type=text name=fio value="$user_info->{FIO}"></td></tr>
 <tr><td>$_PHONE:</td><td><input type=text name=phone value="$user_info->{PHONE}"></td></tr>
 <tr><td>$_ADDRESS:</td><td><input type=text name=address value="$user_info->{ADDRESS}"></td></tr>
@@ -673,13 +664,20 @@ my $table = Abills::HTML->table( { width => '100%',
                                    title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, '-', '-'],
                                    cols_align => [left, left, right, right, left, center, center, center, center],
                                   } );
-my %PARAMS = ( SORT => $SORT,
+my %LIST_PARAMS = ( SORT => $SORT,
 	       DESC => $DESC,
 	       PG => $PG,
 	       PAGE_ROWS => $PAGE_ROWS,
 	      );
 
 my $pages_qs = '';
+
+
+if ($FORM{account_id}) {
+  print "<p><b>$_ACCOUNT:</b> $FORM{account_id}</p>\n";
+  $pages_qs .= "&account_id=$FORM{account_id}";
+  $PARAMS{ACCOUNT_ID} = $FORM{account_id};
+ }  
 
 if ($FORM{debs}) {
   print "<p>$_DEBETERS</p>\n";
@@ -710,7 +708,7 @@ for (my $i=97; $i<123; $i++) {
    $pages_qs .= "&letter=$FORM{letter}";
   } 
 
-my ($users_list, $total) = $users->list( { %PARAMS } );
+my ($users_list, $total) = $users->list( { %LIST_PARAMS } );
 foreach my $line (@$users_list) {
   my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?op=payments&uid=$line->[5]'>$_PAYMENTS</a>" : ''; 
 
@@ -1187,6 +1185,7 @@ $functions{2}=\&form_payments;
 # Fees
 $menu_items{3}{0}=$_FEES;
 $op_names{3}='fees';
+$functions{3}=\&form_fees;
 
 #Reports
 $menu_items{4}{0}=$_REPORTS;
@@ -1440,15 +1439,9 @@ sub form_payments () {
  my ($attr) = @_; 
  
  my $DESCRIBE = $FORM{descr} || '';
+ my $MU = $FORM{er} || 1;
  my $sum = $FORM{sum};
  my $pages_qs = '';
-
- my %PARAMS = ( SORT => $SORT,
-	       DESC => $DESC,
-	       PG => $PG,
-	       PAGE_ROWS => $PAGE_ROWS,
-	      );
- 	
 
  use Finance;
  my $payments = Finance->payments($db, $admin);
@@ -1460,7 +1453,10 @@ if (defined($attr->{USER})) {
   $pages_qs = "&uid=$user->{UID}";
 
   if ($FORM{add} && $FORM{sum})	{
-    $payments->add($user, $sum, { DESCRIBE => $DESCRIBE }  );  
+    my $er = $payments->exchange_info($MU);
+
+    $payments->add($user, $sum, { DESCRIBE => $DESCRIBE,
+    	                            ER => $er->{EX_RATE} }  );  
 
     if ($payments->{errno}) {
       message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
@@ -1468,9 +1464,23 @@ if (defined($attr->{USER})) {
     else {
       message('info', $_PAYMENTS, "$_ADDED");
      }
-  }
+   }
+  elsif($FORM{del} && $FORM{is_js_confirmed}) {
+  	if (! defined($permissions{1}{3})) {
+      message('err', $_ERROR, "[13] $err_strs{13}");
+      return 0;		
+	   }
 
-$PARAMS{UID}=$user->{UID};
+	  $payments->del($user, $FORM{del});
+    if ($payments->{errno}) {
+      message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+     }
+    else {
+      message('info', $_PAYMENTS, "$_DELETED");
+     }
+   }
+
+$LIST_PARAMS{UID}=$user->{UID};
 
 #exchange rate sel
 my ($er, $total) = $payments->exchange_list();
@@ -1501,21 +1511,6 @@ elsif ($FORM{uid}) {
 	 return 0;
  }
 
-if($FORM{del}) {
-	if (! defined($permissions{1}{3})) {
-     message('err', $_ERROR, "[13] $err_strs{13}");
-     return 0;		
-	 }
-
-	$payments->del($FORM{del});
-  if ($payments->{errno}) {
-    message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
-   }
-  else {
-    message('info', $_PAYMENTS, "$_DELETED");
-   }
-}
-
 
 
 if (! defined($permissions{1}{2})) {
@@ -1523,26 +1518,33 @@ if (! defined($permissions{1}{2})) {
 }
 
 
+my $list = $payments->list( { %LIST_PARAMS } );
+
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
                                    cols_align => [right, left, right, right, left, left, right, right, center],
                                   } );
 
-my ($list, $total) = $payments->list( { %PARAMS } );
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{3}) ?  $html->button($_DEL, "op=payments&del=$line->[0]$pages_qs", "$_DEL ?") : ''; 
+  my $delete = ($permissions{1}{3}) ?  $html->button($_DEL, "op=payments&del=$line->[0]&uid=$line->[8]", "$_DEL ?") : ''; 
 
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?op=users&uid=$line->[8]'>$line->[1]</a>", $line->[2], 
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $delete);
 }
 
-
-print "<p>$_TOTAL: $total</p>\n";
 print $html->pages($total, "op=payments$pages_qs");
 print $table->show();
 print $html->pages($total, "op=payments$pages_qs");
+
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   cols_align => [right, right, right, right],
+                                   rows => [ [ "$_TOTAL:", "<b>$payments->{TOTAL}</b>", "$_SUM", "<b>$payments->{SUM}</b>" ] ]
+                                  } );
+print $table->show();
+
 
 
 
@@ -1601,7 +1603,6 @@ elsif($FORM{del}) {
    }
 
 }
-
 	
 print << "[END]";
 <form action=$SELF_URL>
@@ -1616,23 +1617,124 @@ print << "[END]";
 </form>
 [END]
 
-
 my $table = Abills::HTML->table( { width => '640',
                                    border => 1,
                                    title => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", "$_CHANGED", '-', '-'],
                                    cols_align => [left, left, right, center, center],
                                   } );
 
-my ($list, $total) = $finance->exchange_list( {%PARAMS} );
-
+my ($list, $total) = $finance->exchange_list( {%LIST_PARAMS} );
 foreach my $line (@$list) {
   $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], "<a href='$SELF_URL?op=er&chg=$line->[4]'>$_CHANGE</a>", 
      $html->button($_DEL, "op=er&del=$line->[4]", "$_DEL ?"));
 }
 print $table->show();
+}
 
+
+
+#*******************************************************************
+# form_fees
+#*******************************************************************
+sub form_fees  {
+  my ($attr) = @_;
+
+ use Finance;
+ my $fees = Finance->fees($db, $admin);
+
+
+if (defined($attr->{USER})) { 
+  my $user = $attr->{USER};
+  $pages_qs = "&uid=$user->{UID}";
+
+
+
+my $period_form=form_period($period);
+print << "[END]";
+<form action=$SELF>
+<input type=hidden name=uid value='$uid'>
+<input type=hidden name=op value='fees'>
+<table>
+<tr><td>$_USER:</td><td>$login_link</td></tr>
+<tr><td>$_SUM:</td><td><input type=text name=sum value='$sum'></td></tr>
+<tr><td>$_DESCRIBE:</td><td><input type=text name=descr></td></tr>
+$period_form
+</table>
+<input type=submit name=get value='$_GET'>
+</form>
+[END]
+}	
+
+
+if (! defined($permissions{2}{2})) {
+  return 0;
+}
+
+
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
+                                   cols_align => [right, left, right, right, left, left, right, right, center],
+                                  } );
+
+my ($list, $total) = $fees->list( { %LIST_PARAMS } );
+
+foreach my $line (@$list) {
+  my $delete = ($permissions{1}{3}) ?  $html->button($_DEL, "op=fees&del=$line->[0]&uid=$line->[8]", "$_DEL ?") : ''; 
+
+  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?op=users&uid=$line->[8]'>$line->[1]</a>", $line->[2], 
+   $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $delete);
+}
+
+
+print "<p>$_TOTAL: $total</p>\n";
+print $html->pages($total, "op=fees$pages_qs");
+print $table->show();
+print $html->pages($total, "op=fees$pages_qs");
 
 }
+
+
+
+
+#*******************************************************************
+# Search form
+#*******************************************************************
+sub form_search {
+  my ($attr) = @_;
+
+my %SEARCH_TYPES = ('users' => $_USERS,
+                    'payments' => $_PAYMENTS,
+                    'fees' => $_FEES,
+                    'last' => $_LAST_LOGIN,
+
+                    'IP' => 'IP',
+                    'CID' => 'CID',
+                    'FIO' => $_FIO
+);
+
+my $type_select = "<select type=type>\n";
+$type_select = "</select>\n";
+
+my $tpl_form = qq{
+<form action=$SELF_URL>
+<table>
+<tr><td>UID:</td><td><input type=text name=uid value='$FORM{UID}'></td></tr>
+<tr><td>$_TYPE:</td><td>$type_select</td></tr>
+<tr><td>$_DATE:</td><td>
+<table width=100%>
+<tr><td>$_FROM: </td><td>$from_date</td></tr>
+<tr><td>$_TO</td><td>$to_date</td></tr>
+</table>
+</td></tr>
+</table>
+<input type=submit name=search value=$_SEARCH>
+</form>
+};
+
+ print $tpl_form;	
+}
+
 
 #*******************************************************************
 # form_period
