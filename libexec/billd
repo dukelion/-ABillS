@@ -1,0 +1,327 @@
+#!/usr/bin/perl
+# Accounting controll deamon
+# ~AsmodeuS~ (2004.05.03)
+#
+
+use POSIX; 
+use FindBin '$Bin';
+
+my $mkbackuplog=1;
+
+require $Bin.'/Base.pm';
+Base->import();
+require $Bin.'/config.pl';
+require $Bin.'/sql.pl';
+require $Bin.'/nas.pl';
+my $alive_interval = 30;
+
+parse_arguments(@ARGV);
+my $rc  = $db->disconnect;
+
+
+
+#********************************************************************
+# check_lines()
+#********************************************************************
+sub check_lines {
+
+ my $NAS_INFO = nas_params();
+
+ my $sql = "SELECT user_name, INET_NTOA(nas_ip_address),
+ nas_port_id, acct_session_id,
+ INET_NTOA(framed_ip_address),
+ status,
+ acct_input_octets,
+ acct_output_octets,
+ if (lupdated > 0, UNIX_TIMESTAMP() - lupdated, 0)
+ FROM calls
+ WHERE status=1 or status>2
+ ORDER BY nas_ip_address;";
+
+
+ log_print('LOG_SQL', "Checker: $sql");
+ my $q = $db->prepare($sql) || die $db->errstr;
+
+ my $in_byte=0;
+ my $out_byte=0;
+
+ $q ->execute();
+
+ while(my ($user_name, $nas_ip_address, $nas_port_id, $acct_session_id, $framed_ip_address, $status, 
+      $acct_input_octets, $acct_output_octets, $update_interval) = $q->fetchrow()) {
+
+   $in_byte=0;
+   $out_byte=0;
+   my $bytes = '';
+   my $nas_id = $NAS_INFO->{$nas_ip_address};
+   my $nas_type = $NAS_INFO->{nt}{$nas_id};
+   
+# Exppp || radpppd
+      if ($nas_type eq 'exppp'   ||
+          $nas_type eq 'radpppd' || 
+          $nas_type eq 'mpd' ) {
+
+      	if ($update_interval > $alive_interval * 3) {
+      	  $sql = "UPDATE calls SET 
+            status='4'
+            WHERE user_name='$user_name' 
+              and nas_port_id='$nas_port_id' 
+              and acct_session_id='$acct_session_id'
+              and (status=1 or status=3) 
+              and nas_ip_address=INET_ATON('$nas_ip_address');";
+
+          log_print('LOG_SQL', "$sql");
+          $up_q = $db->do($sql) || die $db->errstr;
+         }
+        next;
+       }
+#standart FreeBSD ppp
+      elsif($nas_type eq 'ppp')    { get_stats("$nas_ip_address") if(! defined($stats{$nas_ip_address}));}
+#Get Stats from USR Netserver 8/16
+      elsif($nas_type eq 'USR' )   { get_stats("$nas_ip_address", $nas_port_id);     }
+#Get Stats from Livingston PM25
+      elsif($nas_type eq 'pm25' )  { get_stats("$nas_ip_address", $nas_port_id);       }
+#Get stats from DSL MAx
+      elsif($nas_type eq 'dslmax' ){ get_stats("$nas_ip_address", "$nas_port_id", { user_ip_address => "$framed_ip_address" } ); }
+
+      if (! defined($stats{in}) || $stats{in} < 0) {
+       	print "No such connection $user_name, $nas_ip_address, $nas_port_id\n";
+# Status 4 - Can't find user in NAS
+        $sql = "UPDATE calls SET status=4
+          WHERE user_name='$user_name' and nas_port_id='$nas_port_id' and acct_session_id='$acct_session_id'
+            and (status=1 or status>=4) and nas_ip_address=INET_ATON('$nas_ip_address');";
+       }
+      else {
+        $in_byte=$stats{in};
+        $out_byte=$stats{out};
+
+        if ($in_byte < $acct_input_octets || $in_byte eq '') {
+          $set_status = 4;  # red status
+          log_print('LOG_WARNING', "RED STATUS / NAS: $nas_ip_address PORT: $nas_port_id ($acct_input_octets / $in_byte) '$acct_session_id'");
+         } 
+        else {
+          $set_status = 1;
+          $bytes = " acct_input_octets='$in_byte', acct_output_octets='$out_byte', lupdated=UNIX_TIMESTAMP(), ";
+         }
+            
+            
+        $sql = "UPDATE calls SET 
+           $bytes
+           acct_session_time=UNIX_TIMESTAMP(now())-UNIX_TIMESTAMP(started),
+           status='$set_status'
+           WHERE user_name='$user_name' and nas_port_id='$nas_port_id' and acct_session_id='$acct_session_id'
+           and (status=1 or status>=3) 
+           and nas_ip_address=INET_ATON('$nas_ip_address');";
+       }
+
+      log_print('LOG_SQL', "$sql");
+      $up_q = $db->do($sql) || die $db->errstr;
+      
+    }
+}
+
+
+
+
+#*******************************************************************
+#
+# help()
+#*******************************************************************
+sub help {
+print << "[END]";
+Billing deamon (~AsmodeuS~ 2005) Ver. $conf{version}
+
+-fst fetch stats to database
+-s   spool dir
+-all All short period actions
+-cl  Check lines
+[END]
+
+# -chk check valid users 
+# -mka make allow list
+# -k   kill active user
+# -hu  [variant] - hangup specific user group
+# -sl  show login users
+#
+}
+
+#*******************************************************************
+#
+# parse_arguments()
+#*******************************************************************
+sub parse_arguments {
+    local(@argv) = @_;
+    if ($#argv < 0) {
+        &help;
+     }
+    while ($_ = $argv[0], /^-/) {
+      shift @argv;
+        last if /^--$/;
+        if    (/^-?(chk)$/){ check_activ(); }
+        elsif (/^-?(mka)$/){ mk_allow();    }
+        elsif (/^-?(fst)$/){ fetch_stats(); }
+        elsif (/^-?(all)$/){ fetch_stats(); check_lines(); }
+        elsif (/^-?(sl)$/) { online();      }
+        elsif (/^-?(cl)$/) { check_lines(); }
+        elsif (/^-?(s)$/)  { $spool_dir=$argv[0]; shift @argv;  }
+        elsif (/^-?(k)$/)  { $user=$argv[0]; shift @argv; killuser("$user");   }
+    }
+#    &help if $#argv < 0;
+}
+
+#*******************************************************************
+# Make allow list in sql table - allows
+# mk_allow()
+#*******************************************************************
+sub mk_allow (){
+ log_print('LOG_DEBUG', "Making allow list");
+
+$sql = "delete FROM allows;";
+$q = $db -> do($sql) || die $db->errstr;
+
+
+$sql = qq{
+INSERT INTO allows
+(uid, logins, cure_deposit, kb, hourp, variant, nas, ip, hangup_time, time_limit, traf_limit, filter,
+ netmask)
+ select
+u.id,
+IF (u.logins=0, v.logins, u.logins) AS logins,
+ROUND(u.deposit + u.credit, 2) AS cure_deposit,
+v.kb, v.hourp, u.variant, u.nas,
+IF (u.ip =0, 0, INET_NTOA( u.ip )  ) AS ip,
+IF ( v.dt =  '00:00:00' AND v.ut =  '24:00:00', 0, TIME_TO_SEC( v.ut )  ) AS rest_time,
+  if(v.day_time_limit > 0,
+     v.day_time_limit -
+       sum(if(DATE_FORMAT(log.login , '%Y-%m-%d')=curdate(), log.duration, 0)),
+    if(v.week_time_limit > 0,
+     v.week_time_limit - sum(if((YEAR(curdate())=YEAR(login)) and  WEEK(curdate()) = WEEK(login) , log.duration, 0)),
+      if(v.month_time_limit > 0,
+        v.month_time_limit - sum(log.duration), 0)
+     )
+   ) as time_limit,
+  if(v.day_traf_limit > 0,
+     v.day_traf_limit - sum(if(DATE_FORMAT(log.login , '%Y-%m-%d')=curdate(), sent+recv, 0)),
+    if(v.week_traf_limit > 0,
+      v.week_traf_limit - sum(if((YEAR(curdate())=YEAR(login)) and  WEEK(curdate()) = WEEK(login) , sent+recv, 0)),
+      if(v.month_traf_limit > 0,
+        v.month_traf_limit - sum(log.sent+log.recv), 0)
+     )
+   ) as traf_limit,
+0,
+u.netmask
+FROM users u, variant v
+LEFT  JOIN log ON u.id = log.id AND date_format(login, '%Y-%m')=date_format(curdate(), '%Y-%m')
+WHERE u.variant = v.vrnt
+  AND v.dt < curtime()
+  AND curtime() < v.ut
+  AND (u.deposit + u.credit >0 OR v.hourp + v.kb + v.df + v.abon =0 )
+  AND u.logins >= 0
+  AND (u.expire = '0000-00-00' OR u.expire > curdate())
+  AND (u.activate='0000-00-00' OR u.activate<curdate())
+GROUP BY u.id
+ORDER  BY 1 DESC
+};
+
+#print "\n $sql \n";
+
+$q = $db -> do("$sql") || die $db->errstr;
+}
+
+#*******************************************************************
+# Fetch user stats from temp files
+# fetch_stats()
+#*******************************************************************
+sub fetch_stats () {
+
+#  get_variants_info();
+  log_print('LOG_DEBUG', 'Fetch stats');
+  opendir DIR, $spool_dir or die "Can't open dir '$spool_dir' $!\n";
+    my @contents = grep  !/^\.\.?$/  , readdir DIR;
+  closedir DIR;
+  
+  if ($#contents < 0) {
+     log_print('LOG_DEBUG', "No log files");
+     return 0;
+  }
+  
+  foreach $filename (@contents) {
+    open(FILE, "$spool_dir/$filename") || die "Can't open file $spool_dir/$filename $! ";
+      while(<FILE>) {
+        chop($_);
+        ($param, $val)=split(/:/, $_);
+        $sess_info{$param}=$val;
+        #print "($param, $val) \n";
+       }
+    close(FILE);
+
+    my $user = $sess_info{USER_NAME};
+    my $duration = $sess_info{ACCT_SESSION_TIME} || 0;
+    my $sent = $sess_info{OUTBYTE} || 0;
+    my $recv = $sess_info{INBYTE} || 0;
+    my $login = $sess_info{LOGIN};
+    my $sent2 = $sess_info{OUTBYTE2} || 0;
+    my $recv2 = $sess_info{INBYTE2} || 0;
+
+    $trafic{sent}=$sent;
+    $trafic{recv}=$recv;
+    $trafic{sent2}=$sent2;
+    $trafic{recv2}=$recv2;
+
+    my ($sum, $variant, $time_t, $traf_t) = session_sum("$user", $login, $duration, \%trafic);
+    
+    if ($sum >= 0) {
+      log_print('LOG_DEBUG', "User: $user, Login: $login, Dur: $duration, Traf: s: $sent r: $recv".
+       " s2: $sent2 r2: $recv2, Sum: $sum");
+     }
+    elsif ($sum  == -1 ) {
+       if ($mkbackuplog == 1) {
+         rename("$spool_dir/$filename", "$var_dir/log/back/s$filename") 
+           or die "Can't move file to '$spool_dir' $!\n";
+        }
+       else {
+         $cnt = unlink "$spool_dir/$filename";        	
+        }
+      log_print('LOG_DEBUG', "Less than minimun session trafic and time");
+      next;	
+     }
+    elsif ($sum == -2) {
+      print "User '$user' not in abills system\n";
+      return 0;
+     }
+
+    log_print('LOG_DEBUG', "User: $user v: $variant, time_t: $time_t, traf_t: $traf_t");
+    $ip = $sess_info{FRAMED_IP_ADDRESS} || 0;
+    $CID = $sess_info{CID} || '';
+    $nas_id = $NAS_INFO->{$sess_info{NAS_IP_ADDRESS}} || 0;
+    $session_id = $sess_info{ACCT_SESSION_ID} || '';
+
+    $sql = "INSERT INTO log (id, login, variant, duration, sent, recv, minp, kb,  sum, nas_id, 
+       port_id, ip, CID, sent2, recv2, acct_session_id) ".
+     "VALUES ('$user', FROM_UNIXTIME($login), ".
+     "'$variant', '$duration', '$sent', '$recv', ".
+     "'$time_t', '$traf_t', '$sum', '$nas_id', ".
+     "'$sess_info{NAS_PORT}', INET_ATON('$ip'), '$CID', '$sent2', '$recv2', '$session_id');";
+     
+    log_print('LOG_DEBUG', "$sql");
+   
+    $q = $db->do("$sql;") or die $db->errstr;
+
+     if ($sum > 0) {
+        $sql = "UPDATE users SET deposit=deposit-$sum WHERE id='$user';";
+        log_print('LOG_DEBUG', "$sql");
+        $q = $db->do("$sql;") or die $db->errstr;
+      }
+
+   if ($mkbackuplog == 1) {
+      rename("$spool_dir/$filename", "$var_dir/log/back/$filename") or die "Can't rename file $spool_dir/$filename to $var_dir/log/back/$filename  $!\n";
+    }
+   else {
+      $cnt = unlink "$spool_dir/$filename";
+      next;
+    }
+}
+}
+
+
+
