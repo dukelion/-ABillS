@@ -703,10 +703,9 @@ while(my($ip, $id, $name, $ip_int, $type, $auth, $ip_num, $allow)=$q->fetchrow()
 print "</table></td></tr></table>
 <p><input type=submit name=change value=$_CHANGE> <input type=submit name=default value='$_DEFAULT'>
 </form>\n";
-
-
-	
 }
+
+
 
 #*******************************************************************
 #configure nas servers

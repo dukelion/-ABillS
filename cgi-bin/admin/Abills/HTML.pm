@@ -1,7 +1,7 @@
 package Abills::HTML;
 
 use strict;
-use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
+use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
    @_COLORS
    %FORM
    %COOKIES
@@ -58,7 +58,7 @@ sub new {
   $PG = $FORM{pg} || 0;
   $OP = $FORM{op} || '';
   $PAGE_ROWS = 25;
-  my $prot = ($ENV{HTTPS} =~ /on/i) ? 'https' : 'http' ;
+  my $prot = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http' ;
   $SELF_URL = "$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}";
   $SESSION_IP = $ENV{REMOTE_ADDR} || '0.0.0.0';
   
@@ -170,7 +170,7 @@ sub getCookies {
 #*******************************************************************
 sub menu {
  my $self = shift;
- my ($type, $mp_name, $ex_params, $menu)=@_;
+ my ($type, $mp_name, $ex_params, $menu, $sub_menu)=@_;
  my @menu_captions = sort keys %$menu;
 
  $self->{menu} = "<table width=100%>\n";
@@ -183,14 +183,16 @@ if ($type == 1) {
     $link .= '?'; 
     $link .= "$mp_name=$k&" if ($k ne '');
 
-    $self->{menu} .= "<tr>";
-    if ($FORM{$mp_name} eq $k && $file eq '') {
-      $self->{menu} .= "<td bgcolor=$_COLORS[3]><a href='$link$ex_params'><b>". $menu->{"$line"} ."</b></a></td>";
+
+    if ((defined($FORM{$mp_name}) && $FORM{$mp_name} eq $k) && $file eq '') {
+      $self->{menu} .= "<tr><td bgcolor=$_COLORS[3]><a href='$link$ex_params'><b>". $menu->{"$line"} ."</b></a></td></tr>\n";
+      while(my($k, $v)=each %$sub_menu) {
+      	 $self->{menu} .= "<tr><td bgcolor=$_COLORS[1]>&nbsp;&nbsp;&nbsp;<a href='$SELF_URL?index=$k'>$v</a></td></tr>\n";
+       }
      }
     else {
-      $self->{menu} .= "<td><a href='$link'>". $menu->{"$line"} ."</a></td>";
+      $self->{menu} .= "<tr><td><a href='$link'>". $menu->{"$line"} ."</a></td></tr>\n";
      }
-    $self->{menu} .= "</tr>\n";
    }
 }
 else {

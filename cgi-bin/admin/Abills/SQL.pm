@@ -19,6 +19,7 @@ sub connect {
 
   my $sql = main->connect($dbhost, $dbname, $dbuser, $dbpasswd);
   $self->{db}=$sql->{db};
+  $self->{mysql}=$sql;
   return $self;
 }
 

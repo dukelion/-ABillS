@@ -1,4 +1,4 @@
-package Nas;
+package Shedule;
  
 use vars qw ($db);
 #use strict;
@@ -50,46 +50,78 @@ sub nas_params {
  return \%NAS_INFO;
 }
 
-#**********************************************************
-# Nas list
-#**********************************************************
-sub list {
- my $self = shift;
- my ($attr) = @_;
- 
- my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-
- my $sql="SELECT id, name, nas_identifier, descr, ip,  nas_type, auth_type
-  FROM nas
-  ORDER BY $SORT $DESC;";
-
- my $q = $db->prepare($sql);
- $q ->execute(); 
- my @list = ();
- my $total = $q->rows;
- 
- while(my @nas = $q->fetchrow()) {
-   push @list, \@nas;
-  }
-
-  $self->{list} = \@list;
-  return $self->{list}, $total;
-}
 
 #**********************************************************
-# Add nas server
+# Add new shedule
 # add($self)
 #**********************************************************
 sub add {
  my $self = shift;
- my ($attr) = @_;
-	
+ my ($admin, $attr) = @_;
 
- return 0;	
+ my $descr=(defined($attr->{descr})) ? $attr->{descr} : '';
+
+ my $h=(defined($attr->{h})) ? $attr->{h} : '*';
+ my $d=(defined($attr->{d})) ? $attr->{d} : '*';
+ my $m=(defined($attr->{m})) ? $attr->{m} : '*';
+ my $y=(defined($attr->{y})) ? $attr->{y} : '*';
+ my $count=(defined($attr->{count})) ? int($attr->{count}): 0;
+ my $uid=(defined($attr->{uid})) ? int($attr->{uid}) : 0;
+ my $type=(defined($attr->{type})) ? $attr->{type} : '';
+ my $action=(defined($attr->{action})) ? $attr->{action} : '';
+  
+ $sql = "INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date) 
+        VALUES ('$h', '$d', '$m', '$y', '$uid', '$type', '$action', '$admin->{aid}', now());";
+
+ $q = $db->do($sql) || die $db->strerr;
+
+ if ($db->err == 1062) {
+     $self->{errno} = 7;
+     $self->{errstr} = 'ERROR_DUBLICATE';
+     return $self;
+   }
+ elsif($db->err > 0) {
+     $self->{errno} = 3;
+     $self->{errstr} = 'SQL_ERROR';
+     return $self;
+  }
+
+
+ return $self;	
+}
+
+
+
+
+
+#**********************************************************
+# Add new shedule
+# add($self)
+#**********************************************************
+sub del {
+ my $self = shift;
+ my ($admin) = @_;
+
+  
+  my $id = int($attr->{id});
+  my $sql = "DELETE FROM shedule WHERE id='$id';";
+  my $q = $db->do($sql) || die $db->strerr;
+
+
+ if ($db->err == 1062) {
+     $self->{errno} = 7;
+     $self->{errstr} = 'ERROR_DUBLICATE';
+     return $self;
+   }
+ elsif($db->err > 0) {
+     $self->{errno} = 3;
+     $self->{errstr} = 'SQL_ERROR';
+     return $self;
+  }
+
+
+ return $self;	
 }
 
 

@@ -144,14 +144,16 @@ sub list {
 
  my $q = $db->prepare("select aid, id, name, regdate, gid FROM admins;") || die $db->errstr;
  $q ->execute(); 
- my @admins = ();
- 
- while(my @admin = $q->fetchrow()) {
-   push @admins, \@admin;
+
+ my $total = $q->rows;
+
+ my @list = ();
+ while(my @row = $q->fetchrow()) {
+   push @list, \@row;
  }
 
-  $self->{list} = \@admins;
-  return $self->{list};
+  $self->{list} = \@list;
+  return $self->{list}, $total;
 }
 
 
@@ -174,7 +176,7 @@ sub action_add {
   my ($uid, $actions) = @_;
  
   my $sql = "INSERT INTO admin_actions (aid, ip, datetime, actions, uid) VALUES ('$aid', '$IP', now(), '$actions', '$uid')";
-  print $sql; 
+  #print $sql; 
   my $q = $db->do($sql);
 
   if($db->err > 0) {
