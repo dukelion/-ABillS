@@ -2,6 +2,7 @@
 #
 # POstfix admin interface 
 # ~AsmodeuS~ 2005
+#
 
 
 use Abwconf;
@@ -681,6 +682,7 @@ while(($username, $domain, $descr, $quota, $antivirus, $antispam, $status, $crea
    "<td bgcolor=$scolors[$status]>$status_types[$status]</td><td>$create_date</td><td>$change_date</td><td>$maildir</td>".
    "<td>$bill_id</td><td><a href='$SELF?op=networks&chg=$id'>$_CHANGE</a></td><td>$del_button</td></tr>\n";
 }
+
 
 print "</table>
 </td></tr></table>
