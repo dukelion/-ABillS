@@ -118,8 +118,6 @@ sub change {
      return $self;
    }
 
-  print $sql;
-
   return $self;
 }
 
@@ -151,31 +149,20 @@ sub info {
   my $q = $db->prepare($sql) || die $db->errstr;
   $q ->execute(); 
 
-  if ($account_id == 0 && $q->rows < 1) {
-     $self->{errno} = 4;
-     $self->{errstr} = 'ERROR_WRONG_PASSWORD';
-     return $self;
-   }
-  elsif ($q->rows < 1) {
+  if ($q->rows < 1) {
      $self->{errno} = 2;
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
 
-  my ($name, $deposit, $tax_number, $bank_account, $bank_name, $cor_bank_account, $bank_bic)= $q->fetchrow();
+  ($self->{ACCOUNT_NAME}, 
+   $self->{DEPOST}, 
+   $self->{TAX_NUMBER}, 
+   $self->{BANK_ACCOUNT}, 
+   $self->{BANK_NAME}, 
+   $self->{COR_BANK_ACCOUNT}, 
+   $self->{BANK_BIC})= $q->fetchrow();
     
-  $self->{name}=$name;
-  $self->{deposit}=$deposit;
-  $self->{tax_number} = $tax_number;
-  $self->{bank_account} = "$bank_account";
-  $self->{bank_name} = $bank_name; 
-  $self->{cor_bank_account} = $cor_bank_account; 
-  $self->{cor_bank_account} = $bank_bic;
-  
-  my @users = ();
-
-  $self->{users} = \@users;
-
   return $self;
 }
 
@@ -185,7 +172,7 @@ sub info {
 # List
 #**********************************************************
 sub list {
-  my $self = shift;
+ my $self = shift;
  my ($attr) = @_;
 
  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
@@ -204,9 +191,11 @@ sub list {
 #     LEFT JOIN  variant v ON  (v.vrnt=u.variant) 
 #     $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;";
  
- $q = $db->prepare("SELECT a.name, a.deposit, '', a.id
+   $q = $db->prepare("SELECT a.name, a.deposit, count(u.uid), a.id
     FROM accounts a
-    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;") || die $db->errstr;
+    LEFT JOIN users u ON (u.account_id=a.id)
+    GROUP BY a.id
+    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  $q ->execute(); 
  my @accounts = ();

@@ -146,6 +146,12 @@ sub list {
  if ($attr->{DEBETERS}) {
     $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{FIRST_LETTER}%' " : "WHERE u.id LIKE '$attr->{FIRST_LETTER}%' ";
   }
+
+ # Show debeters
+ if ($attr->{ACCOUNT_ID}) {
+    $WHERE .= ($WHERE ne '') ?  " and u.account_id='$attr->{ACCOUNT_ID}' " : "WHERE u.account_id='$attr->{ACCOUNT_ID}' ";
+  }
+
  
  my $q = $db->prepare("SELECT count(u.id) FROM users u $WHERE");
  
@@ -157,9 +163,10 @@ sub list {
 #     LEFT JOIN  variant v ON  (v.vrnt=u.variant) 
 #     $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;";
  
- $q = $db->prepare("SELECT u.id, u.fio, u.deposit, u.credit, v.name, u.uid 
+ $q = $db->prepare("SELECT u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, v.name, u.uid 
      FROM users u
      LEFT JOIN  variant v ON  (v.vrnt=u.variant) 
+     LEFT JOIN  accounts acct ON  (u.account_id=acct.id) 
      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;") || die $db->errstr;
 
  $q ->execute(); 
