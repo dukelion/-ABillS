@@ -3,7 +3,8 @@
 # get_acct_info
 # hangup
 # check_activity
-
+#
+#
 
 my $PPPCTL = '/usr/sbin/pppctl';
 
@@ -41,6 +42,9 @@ sub hangup {
   }
  elsif ($nas_type eq 'mpd') {
     hangup_mpd($NAS, $PORT);
+  }
+ elsif ($nas_type eq 'pppd') {
+   hangup_pppd($NAS, $PORT);
   }
  else {
     return 1;
@@ -426,6 +430,21 @@ sub stats_pppd  {
   close(FW);
 
 }
+
+
+#*******************************************************************
+# HANGUP pppd
+# hangup_pppd($SERVER, $PORT)
+#*******************************************************************
+sub hangup_pppd {
+ my ($NAS, $id) = @_;
+
+ use FindBin '$Bin';
+ system ("/usr/bin/sudo $Bin/modules/hangup.pl $id");
+ return 0;
+}
+
+
 
 
 1
