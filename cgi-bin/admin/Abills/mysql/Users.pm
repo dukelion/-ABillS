@@ -63,7 +63,7 @@ sub info {
   my $sql = "SELECT u.id, u.fio, u.phone, u.address, u.email, u.activate, u.expire, u.credit, u.reduction, 
             u.variant, u.logins, u.registration, u.disable,
             INET_NTOA(u.ip), INET_NTOA(u.netmask), u.speed, u.filter_id, u.cid, u.comments, u.account_id,
-            if(acct.name IS NULL, 'N/A', 0), u.deposit, tp.name
+            if(acct.name IS NULL, 'N/A', acct.name), if(acct.name IS NULL, u.deposit, acct.deposit), tp.name
      FROM users u
      LEFT JOIN accounts acct ON (u.account_id=acct.id)
      LEFT JOIN variant tp ON (u.variant=tp.vrnt)
@@ -108,9 +108,9 @@ sub info {
    $self->{TP_NAME} )= $q->fetchrow();
    $self->{UID} = $uid;
   
-   if ($self->{ACCOUNT_ID} > 0) {
-     $self->{DEPOSIT} = 'ext_acct';
-    }
+#   if ($self->{ACCOUNT_ID} > 0) {
+#     use Accounts ;
+#    }
 #   $self->test();
   
   return $self;

@@ -18,7 +18,6 @@ $admin_ip='127.0.0.1';
 $message = "";
 @f_message = ();
 
-
 if ($ARGV[0] eq 'monthly') {
   monthly_report();
   backup();
@@ -370,7 +369,7 @@ while(my($login, $email, $variant,  $debet, $sum, $uplimit, $variant_name) = $q 
 #*******************************************************************
 sub backup {
  my $res = `$MYSQLDUMP --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $BACKUP_DIR/stats-$DATE.sql.gz`;
- $message = "Backup created: $res ($BACKUP_DIR/stats-$DATE.sql.gz)";
+ $message .= "Backup created: $res ($BACKUP_DIR/stats-$DATE.sql.gz)";
 }
 
 
@@ -423,7 +422,7 @@ my  $sql = "SELECT s.id, s.h, s.d, s.m, s.y, s.counts, s.type, s.action, s.uid
 #*******************************************************************
 sub logrotate {
  
- $message = "Log rotated";
+ $message .= "Log rotated";
 }
 
 
