@@ -1,0 +1,569 @@
+#!/usr/bin/perl
+# Periodic process
+#
+#
+
+use FindBin '$Bin';
+
+require $Bin .'/config.pl';
+require $Bin .'/Base.pm';
+Base->import();
+require $Bin .'/sql.pl';
+
+if (! $lang) { require "$lang_path/ukraine.pl"; }
+
+$admin_name=$conf{ADMIN_MAIL};
+$admin_ip='127.0.0.1';
+
+$message = "";
+@f_message = ();
+
+
+if ($ARGV[0] eq 'monthly') {
+  monthly_report();
+  backup();
+  logrotate();
+  sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Monthly billing report", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+ }
+elsif ($ARGV[0] eq 'daily') {
+  sheduler();
+  daily_fees();
+  monthly_fees();
+  warning_message();
+  daily_report();
+  sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Daily billing report ($DATE)", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+  
+ } 
+elsif ($ARGV[0] eq 'backup') {
+  backup();	
+ }
+else {
+  print "Arguments (daily|monthly|backup)\n";
+}
+
+#*******************************************************************
+# MOnthly stats
+# monthly_report();
+#*******************************************************************
+sub monthly_report {
+
+$message = "  Статистика роботи клієнтів за місяць ($DATE):\n".
+  "=========================================================\n";
+
+foreach my $line (@WARNING_MSG) {
+  $message .= $line;
+}
+
+$message .= "\n  Рух коштів по рахунках клієнтів: \n".
+"=== На рахунки ==========================================\n";
+
+$q = $db -> prepare ( qq{SELECT count(id), sum(sum), min(sum), avg(sum), max(sum)  FROM payment
+ WHERE date_format(date, '%Y-%m')=date_format(curdate() - INTERVAL 1 MONTH, '%Y-%m')
+ } ) || die $db->errstr;
+$res = $q -> execute();
+
+ ($count, $sum, $min, $avg, $max) = $q -> fetchrow_array ();
+ $message .= "$_COUNT:\t$count\n$_SUM:\t$sum\n\n$_MIN: $min /$_AVG: $avg /$_MAX: $max\n";
+$q -> finish ();
+
+$message .= "\n=== З рахунків ===========================================\n";
+$q = $db -> prepare ( qq{
+ SELECT count(id), sum(sum), min(sum), avg(sum), max(sum) FROM fees
+ WHERE date_format(date, '%Y-%m')=date_format(curdate() - INTERVAL 1 MONTH, '%Y-%m')
+} ) || die $db->errstr;
+$res = $q -> execute();
+
+ ($count, $sum, $min, $avg, $max) = $q -> fetchrow_array();
+ $message .= "$_COUNT:\t$count\n$_SUM:\t$sum\n\n";
+ $message .= "$_MIN: $min /$_AVG: $avg /$_MAX: $max\n";
+
+$message .= "\n\n   Відпрацьовано клієнтами:
+=========================================================\n";
+
+$q = $db -> prepare ( qq{
+select id, count(id), sum(sent + recv), sec_to_time(sum(duration)), sum(sum), sum(duration)
+ FROM log 
+ WHERE date_format(login, '%Y-%m')=date_format(curdate() - INTERVAL 1 MONTH, '%Y-%m')
+ GROUP BY id 
+} ) || die $db->errstr;
+$res = $q -> execute();
+
+my $total_sum = 0;
+my $total_dur_sec = 0;
+my $total_trafic = 0;
+my $total_sessions = 0;
+my $unique_users = 0;
+
+while(($uid, $sessions, $trafic, $duration, $sum, $dur_sec) = $q -> fetchrow_array()) {
+  $total_trafic += $trafic;
+  $message .= sprintf ("%-14s| %4d| %9s| %10s| %8s\n", $uid, $sessions, int2byte($trafic), $duration, $sum);
+  $total_sum += $sum;
+  $total_dur_sec += $dur_sec;
+  $total_sessions += $sessions;
+  $unique_users++;
+}
+
+
+my ($s,$m,$h,$days) = sec2time($total_dur_sec);
+$message .= "=========================================================\n";
+$message .= sprintf ("%s: %4d/%4d| %9s| %s+%02.d:%02.d:%02.d| %-8.2f\n", $_TOTAL, $unique_users, $total_sessions,  int2byte($total_trafic), $days, $h,$m,$s,  $total_sum);
+
+}
+
+
+#*******************************************************************
+# Take month abon payment
+# monthly_take_fee()
+#*******************************************************************
+sub monthly_fees {
+
+my $sql = "SELECT users.id, users.uid,  abon, if(users.activate='0000-00-00', 0, 1)
+    FROM users, variant
+    WHERE users.variant=variant.vrnt
+     and abon > 0
+     and (
+       (users.activate='0000-00-00' and DAYOFMONTH(curdate())=1)
+       OR
+       (users.activate<>'0000-00-00' and 30 - PERIOD_DIFF(curdate(), users.activate) < 1)
+       )
+     and deposit+credit > 0;";
+
+log_print('LOG_SQL', "$sql");
+
+my $q = $db->prepare( $sql ) || die $db->errstr;
+$res = $q->execute ();
+
+if ($q->rows < 1) {
+  return 0;	
+}
+
+my %USERS=();
+my %ACTIVATE=();
+my %LAST_DEPOSIT=();
+
+while(my($login, $uid, $m_abon, $bill_sum, $activate) = $q -> fetchrow_array()) {
+  $USERS{$uid}=$m_abon;
+  $ACTIVATE{$uid} = $activate;
+  $LAST_DEPOSIT{$uid} = $activate;
+};
+
+while(($uid, $sum)=each(%USERS)) {
+  #Set activate time
+  if ($ACTIVATE{$uid} == 1) {
+     my  $activdate = "and activate=curdate() ";
+    }
+
+  get_fees($uid, $sum, "$_MONTH_PAY", { deposit =>  $LAST_DEPOSIT{$uid} });
+}
+
+}
+
+
+#*******************************************************************
+# Take daily fees
+# daily_take_fee();
+#*******************************************************************
+sub daily_fees {
+
+my $sql = qq{
+SELECT users.id, users.uid, df, users.deposit
+FROM users, variant
+WHERE users.variant=variant.vrnt and df > 0 and deposit+credit > 0
+};
+
+log_print('LOG_SQL', "$sql");
+my $q = $db->prepare( $sql ) || die $db->errstr;
+$res = $q->execute ();
+
+my %USERS = ();
+my %LAST_DEPOSIT = ();
+while(my($login, $uid, $d_abon, $deposit) = $q -> fetchrow_array()) {
+  $USERS{$uid}=$d_abon;
+  $LAST_DEPOSIT{$uid}=$deposit;
+};
+
+if ($q->rows == 0) {
+  return 0;	
+}
+
+while(($uid, $sum)=each(%USERS)) {
+  get_fees($uid, $sum, "$_DAY_PAY", { deposit =>  $LAST_DEPOSIT{$uid} });
+}
+
+}
+
+
+
+
+
+#*******************************************************************
+#show dayly report
+# daily_report()
+#*******************************************************************
+sub daily_report {
+
+$message = "  Сьогоднішні попередження сервера статистики::\n".
+  "=========================================================\n";
+
+foreach my $line (@WARNING_MSG) {
+  $message .= $line . "\n";
+}
+
+$message .= "    Закриті вхідні записи:\n".
+            "=========================================================\n";
+$message .= sprintf ("%-14s| %4s|%-20s| %9s| %8s| %19s|\n", $_LOGIN, 'V', 
+     $_NAME, $_DEPOSIT, $_CREDIT, $_LAST_LOGIN);
+$message .= "------------------------------------------------------------------------------------\n";
+
+
+my $q = $db->prepare ( qq{
+SELECT users.id, users.variant, users.credit, users.deposit, variant.uplimit, variant.name, max(l.login)
+FROM users
+  LEFT JOIN variant ON users.variant = variant.vrnt
+  LEFT JOIN log l ON users.id = l.id
+WHERE (deposit+credit<=0 and variant.hourp+variant.kb+variant.df>0) or users.logins < 0
+GROUP BY users.id
+ORDER BY users.id
+}) || die $db->errstr;
+$res = $q -> execute();
+
+
+while(my($login, $variant, $debet, $sum, $uplimit, $variant_name, $last_login) = $q->fetchrow_array()) {
+  $message .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f| %19s|\n", $login, $variant, 
+     $variant_name, $sum, $debet, $last_login);
+}
+
+
+$message .= "\n  Рух коштів по рахунках клієнтів: \n".
+"=== $_PAYMENTS ==========================================\n";
+$message .= sprintf ("%-14s| %8.4f| %20s| %8s| %15s| %19s|\n", $_LOGIN, $_SUM, 
+    $_DESCRIBE, $_ADMIN, 'IP', $_DATE);
+$message .= "-----------------------------------------------------------------------------------------------\n";
+
+$q = $db -> prepare ( qq{
+ sELECT u.id, p.sum, p.dsc, p.ww, p.date, INET_NTOA(p.ip)
+ FROM payment p
+ LEFT JOIN users u ON (u.uid=p.uid)
+ WHERE date_format(date, '%Y-%m-%d')=curdate() - INTERVAL 1 DAY
+ ORDER BY date} ) || die $db->errstr;
+$res = $q -> execute();
+
+while (my($login, $sum, $dsc, $ww, $date, $ip) = $q -> fetchrow_array ()) {
+  $message .= sprintf ("%-14s| %8.4f| %20s| %8s| %15s| %19s|\n", $login, $sum, $describe, $ww, $ip, $date);
+};
+$q -> finish ();
+
+# Daily fees
+$message .= "\n=== $_FEES ===========================================\n";
+$message .= sprintf ("%-14s| %8.4f| %20s| %16s| %15s\n", $_LOGIN, $_SUM, $_DESCRIBE, $_ADMIN, 'IP');
+$message .= "---------------------------------------------------------------------------------\n";
+
+$q = $db -> prepare ( qq{
+ SELECT u.id, f.sum, f.dsc, f.ww, INET_NTOA(f.ip)
+ FROM fees f
+ LEFT JOIN users u ON (u.uid=f.uid)
+ WHERE DATE_FORMAT(f.date, '%Y-%m-%d')=curdate() - INTERVAL 1 DAY
+ ORDER BY f.date
+} ) || die $db->errstr;
+$res = $q -> execute() or die "Bad formed query";
+
+while (my($login, $sum, $describe, $ww, $ip) = $q -> fetchrow_array ()) {
+  $message .= sprintf ("%-14s| %8.4f| %20s| %16s| %15s\n", $login, $sum, 
+    $describe, $ww, $ip);
+};
+#$q -> finish ();
+
+
+# using today
+$q = $db -> prepare ( qq{
+select id, count(id), sum(sent + recv), sec_to_time(sum(duration)), sum(sum), sum(duration)
+ FROM log 
+ WHERE date_format(login, '%Y-%m-%d')=curdate() - INTERVAL 1 DAY
+ GROUP BY id ORDER BY id
+} ) || die $db->errstr;
+$res = $q -> execute();
+
+$message .= "\n\n   Відпрацьовано клієнтами сьогодні:
+=========================================================\n";
+$message .= sprintf ("%-14s| %4d| %12s| %10s| %8s\n", $_LOGIN, $_SESSIONS, 
+    $_TRAFFIC, $_DURATION, $_SUM);
+$message .= "--------------------------------------------------------\n";
+
+my $total_sum = 0;
+my $total_dur_sec = 0;
+my $total_trafic = 0;
+my $total_sessions = 0;
+my $unique_users= 0;
+while(my($login, $sessions, $trafic, $duration, $sum, $dur_sec) = $q -> fetchrow_array()) {
+  $total_sum += $sum;
+  $total_dur_sec += $dur_sec;
+  $total_trafic += $trafic;
+  $total_sessions += $sessions;
+  $unique_users++;
+  $message .= sprintf ("%-14s| %4d| %12s| %10s| %8s\n", $login, $sessions, 
+    int2byte($trafic), $duration, $sum);
+}
+
+
+#print $stats;
+my ($s,$m,$h,$days) = sec2time($total_dur_sec);
+
+$message .= "=========================================================\n";
+$message .= sprintf ("%s:%4d/%4d| %9s| %s+%02.d:%02.d:%02.d| %-8.2f\n", $_TOTAL, 
+    $unique_users, $total_sessions,  int2byte($total_trafic), $days, $h,$m,$s,  $total_sum);
+
+}
+
+
+#*******************************************************************
+#sum Send warning message fro user
+# warning_message()
+#*******************************************************************
+sub warning_message {
+
+my $warning_msg_tpl = '';
+
+
+my $q = $db -> prepare ( qq{
+SELECT users.id, users.email, users.variant, credit, deposit, uplimit, variant.name
+FROM users
+  LEFT JOIN variant ON users.variant = variant.vrnt
+WHERE deposit<uplimit AND uplimit > 0 AND deposit+credit>0
+ORDER BY users.id
+}) || die $db->errstr;
+
+$res = $q -> execute();
+
+ my $wm = sprintf ("%-14s| %4s|%-20s| %9s| %8s|\n", 
+    $_LOGIN, 'VAR', $_VARIANT, $_DEPOSIT, $_CREDIT);
+ $wm .= "---------------------------------------------------------------\n";
+ push @WARNING_MSG, $wm;
+
+while(my($login, $email, $variant,  $debet, $sum, $uplimit, $variant_name) = $q -> fetchrow_array()) {
+
+  my $wm = sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|", 
+    $login, $variant, $variant_name, $sum, $debet);
+
+  push @WARNING_MSG, $wm;
+
+  my $message = "\tШановний користувач $login.\n\n".
+   "Ви працюєте за тарифним планом # $variant ($variant_name).\n".
+   "На Вашому рахунку на даний час залишилось $sum у.о.\n".
+   "Якщо Ваш рахунок стане меншим за допустиму межу входу, \n".
+   "(Кредит $debet у.о.)\n".
+   "Ваш доступ тимчасово буде заблоковано.\n\n";
+
+  $email = ($email eq '') ? "$login\@$conf{USERS_MAIL_DOMAIN}" : $email;
+
+  sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+  log_print('LOG_DEBUG', "Send message $login, $email, $variant, $debet, $sum, $uplimit, $variant_name");
+}
+
+}
+
+#*******************************************************************
+# Make backup
+# backup()
+#*******************************************************************
+sub backup {
+ my $res = `$MYSQLDUMP --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $BACKUP_DIR/stats-$DATE.sql.gz`;
+ $message = "Backup created: $res ($BACKUP_DIR/stats-$DATE.sql.gz)";
+}
+
+
+
+#*******************************************************************
+# Make some action
+# sheduler()
+#*******************************************************************
+sub sheduler {
+#my $system_h = 
+my ($system_d, $system_m, $system_y) = split(/-/, $DATE, 3);
+
+%shedule_type = ('tp' => $_VARIANT, 
+                 'fees' => $_FEES,
+                 'message' => $_MESSAGES
+ );
+
+#Change variant
+my  $sql = "SELECT s.id, s.h, s.d, s.m, s.y, s.counts, s.type, s.action, s.uid
+    FROM shedule s
+    WHERE (DATE_FORMAT(curdate(), '%Y')>=s.y or s.y='*')
+     and  (DATE_FORMAT(curdate(), '%m')>=s.m or s.y='*')
+     and  (DATE_FORMAT(curdate(), '%d')>=s.d or s.d='*');";
+
+  $q = $db->prepare($sql) || die $db->errstr;
+  $q ->execute(); 
+
+  while(my($id, $h, $d, $m, $y, $counts, $type, $action,  $uid)=$q->fetchrow()) {
+      if ($type eq 'fees'){
+        my($sum, $descr)=split(/:/, $action, 2);
+        get_fees($uid, $sum, "$descr ($_SHEDULE)");
+       }
+      elsif($type eq 'tp') {
+        chg_uvariant($uid, -1, $action);
+       }
+
+      if ("$system_d-$system_m-$system_y" eq $DATE) {
+        $sql = "DELETE FROM shedule WHERE id='$id';";
+        my $q = $db->do($sql) || die $db->errstr;
+       }
+   }
+
+}
+
+
+
+#*******************************************************************
+# Log rotate
+# logrotate()
+#*******************************************************************
+sub logrotate {
+ 
+ $message = "Log rotated";
+}
+
+
+
+
+#*******************************************************************
+# Hangup
+# hangup_all()
+#*******************************************************************
+sub hangup_all {
+ $sql = "SELECT c.user_name, INET_NTOA(c.nas_ip_address), INET_NTOA(c.framed_ip_address),
+   c.nas_port_id, c.acct_session_id,  c.acct_input_octets, c.acct_output_octets, c.ex_input_octets, c.ex_output_octets,
+ FROM calls c
+ WHERE c.status=1 or c.status>=3
+ ORDER BY c.nas_ip_address, c.nas_port_id;";
+
+ log_print('LOG_SQL', "$sql");
+
+ $q = $db->prepare($sql)   || die $db->errstr;
+ $q ->execute();
+ 
+ my $total = $q->rows;
+ 
+ while(my($login, $nas_ip_address, $nas_port_id, $acct_session_id,  $framed_ip_address,
+   $acct_input_octets, $acct_output_octets, $ex_input_octets, $ex_output_octets) = $q->fetchrow()) {
+     my $ret = hangup("$nas_ip_address", "$nas_port_id", "", "$acct_session_id");  
+  }
+ 
+ log_print('LOG_DEBUG', "[periodic] hangup all users");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#*******************************************************************
+# returns
+# 1 variant changed
+# 0 variant equal
+# chg_uvariant($uid, $old_variant, $new_variant, $admin)
+#*******************************************************************
+sub chg_uvariant {
+ my ($uid, $old_variant, $new_variant)=@_;
+
+ if ($old_variant eq $new_variant) {
+   return 0;
+ } 
+
+my $q = $db -> prepare("SELECT change_price FROM variant WHERE vrnt='$new_variant';") || die $db->strerr;
+$q -> execute ();
+my ($change_price) = $q -> fetchrow();
+
+if ($change_price  > 0) {
+  get_fees("$uid", "$change_price", "$_CHANGE $_VARIANT");
+ }
+
+
+my $changed = "$_VARIANT: $old_variant->$new_variant";
+my $sql = "INSERT INTO userlog (log, date, ww, ip, uid) 
+   VALUES ('$changed', now(), '$admin_name', INET_ATON('$admin_ip'), '$uid');";
+
+log_print('LOG_SQL', "$sql");
+$q = $db->do($sql) || die $db->strerr;
+$sql = "UPDATE users SET variant='$new_variant' WHERE uid='$uid';";
+log_print('LOG_SQL', "$sql");
+$q = $db->do($sql) || die $db->strerr;
+
+return 1;
+}
+
+
+#*******************************************************************
+# get fees 
+# get_fees($uid, $sum, $describe)
+#*******************************************************************
+sub get_fees {
+ my ($uid, $sum, $describe, $attr) = @_;
+ 
+ my $deposit = 0;
+ my $login = defined($attr->{login}) ? $attr->{login}: '';
+ 
+ if (! defined($attr->{deposit}) ) { 
+   my $sql = "SELECT id, deposit FROM users WHERE uid='$uid';";
+   log_print('LOG_SQL', "$sql");
+
+   my $q = $db -> prepare($sql) || die $db->errstr;
+   $q -> execute();
+
+   if ($q->rows == 0) {
+     @f_message = ("$_USER_NOT_EXIST UID [$uid]");
+     return -1;
+    }
+   ($login, $deposit)=$q -> fetchrow();
+  } 
+ else {
+   $deposut = $attr->{deposit};
+  }
+
+
+ $sql = "UPDATE users set deposit=deposit-$sum WHERE uid='$uid';";
+ log_print('LOG_SQL', "$sql");
+ $db -> do ($sql) || die $db->errstr;
+
+ $sql = "INSERT INTO fees (uid, date, sum, dsc, ww, ip, last_deposit)
+   values ('$uid', NOW(), '$sum', '$describe', '$admin_name', INET_ATON('$admin_ip'), '$deposit');";
+ log_print('LOG_SQL', "$sql");
+ $db -> do ($sql) || die $db->errstr;
+
+ @f_message = ("$_USER: $login",
+               "$_SUM: $sum",
+               "$_DESCRIBE: $describe");
+
+
+ return 1;
+}
