@@ -16,6 +16,11 @@ $VERSION = 2.00;
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
 
+# User name expration
+my $usernameregexp = "^[a-z0-9_][a-z0-9_-]*\$"; # configurable;
+
+my %conf = ();
+$conf{max_username_length} = 10;
 
 my $db;
 my $uid;
@@ -39,47 +44,55 @@ sub new {
 
 
 #**********************************************************
-# Administrator information
+# User information
 # info()
 #**********************************************************
 sub info {
-  my $class = shift;
-  ($aid) = shift;
-  my ($attr) = @_;
-  my $self = { };
-  bless($self, $class);
+  my $self = shift;
+  ($uid) = shift;
 
-  my $WHERE;
-  if (defined($attr->{login}) && defined($attr->{password})) {
-    my $secretkey = (defined($attr->{secretkey}))? $attr->{secretkey} : '';
-    $WHERE = "WHERE id='$attr->{login}' and DECODE(password, '$secretkey')='$attr->{password}'";
-   }
-  else {
-    $WHERE = "WHERE aid='$aid'";
-   }
+  my $sql = "SELECT id, fio, phone, address, email, activate, expire, credit, reduction, 
+            variant, logins, registration, disable,
+            INET_NTOA(ip), INET_NTOA(netmask), speed, filter_id, cid, comments, account_id  
+     FROM users WHERE uid='$uid';";
 
-  my $sql = "SELECT aid, id, name, regdate  FROM admins $WHERE;";
-  my $q = $db->prepare($sql) || die $db->errstr;
+  my $q = $db->prepare($sql);
   $q ->execute(); 
 
-  if ($aid == 0 && $q->rows < 1) {
-     $self->{errno} = 4;
-     $self->{errstr} = 'ERROR_WRONG_PASSWORD';
+  if($db->err > 0) {
+     $self->{errno} = 3;
+     $self->{errstr} = 'SQL_ERROR';
      return $self;
    }
   elsif ($q->rows < 1) {
      $self->{errno} = 2;
-     $self->{errstr} = 'Not exist';
+     $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
 
-  my ($aid, $name, $fio, $registration)= $q->fetchrow();
+  ($self->{LOGIN}, 
+   $self->{FIO}, 
+   $self->{PHONE}, 
+   $self->{ADDRESS}, 
+   $self->{EMAIL}, 
+   $self->{ACTIVATE}, $self->{EXPIRE}, 
+   $self->{CREDIT}, 
+   $self->{REDUCTION}, 
+   $self->{TARIF_PLAN}, 
+   $self->{SIMULTANEONSLY}, 
+   $self->{REGISTRATION}, 
+   $self->{DISABLE}, 
+   $self->{IP}, 
+   $self->{NETMASK}, 
+   $self->{SPEED}, 
+   $self->{FILTER_ID}, 
+   $self->{CID}, 
+   $self->{COMMENTS}, 
+   $self->{ACCOUNT_ID},
+   $self->{DEPOSIT})= $q->fetchrow();
   
-  $self->{aid}=$aid;
-  $self->{name}="$name";
-  $self->{fio} = "$fio";
-  $self->{registration} = "$registration";
-
+  $self->{UID} = $uid;
+  
   return $self;
 }
 
@@ -146,7 +159,175 @@ sub list {
 #**********************************************************
 sub add {
   my $self = shift;
-  $self->{errstr}='test';
+  my ($attr) = @_;
+  
+  my $LOGIN = (defined($attr->{LOGIN})) ? $attr->{LOGIN} : '';
+  my $EMAIL = (defined($attr->{EMAIL})) ? $attr->{EMAIL} : '';
+  my $FIO = (defined($attr->{FIO})) ? $attr->{FIO} : '';
+  my $PHONE = (defined($attr->{PHONE})) ? $attr->{PHONE} : '';
+  my $ADDRESS = (defined($attr->{ADDRESS})) ? $attr->{ADDRESS} : '';
+  my $ACTIVATE = (defined($attr->{ACTIVATE})) ? $attr->{ACTIVATE} : '0000-00-00';
+  my $EXPIRE = (defined($attr->{EXPIRE})) ? $attr->{EXPIRE} : '0000-00-00';
+  my $CREDIT = (defined($attr->{CREDIT})) ? $attr->{CREDIT} : 0;
+  my $REDUCTION  = (defined($attr->{REDUCTION})) ? $attr->{REDUCTION} : 0;
+  my $SIMULTANEONSLY = (defined($attr->{SIMULTANEONSLY})) ? $attr->{SIMULTANEONSLY} : 0;
+  my $COMMENTS = (defined($attr->{COMMENTS})) ? $attr->{COMMENTS} : '';
+  my $ACCOUNT_ID = (defined($attr->{ACCOUNT_ID})) ? $attr->{ACCOUNT_ID} : 0;
+  my $DISABLE = (defined($attr->{DISABLE})) ? $attr->{DISABLE} : 0;
+  
+  my $TARIF_PLAN = (defined($attr->{TARIF_PLAN})) ? $attr->{TARIF_PLAN} : '';
+  my $IP = (defined($attr->{IP})) ? $attr->{IP} : '0.0.0.0';
+  my $NETMASK  = (defined($attr->{NETMASK})) ? $attr->{NETMASK} : '255.255.255.255';
+  my $SPEED = (defined($attr->{SPEED})) ? $attr->{SPEED} : 0;
+  my $FILTER_ID = (defined($attr->{FILTER_ID})) ? $attr->{FILTER_ID} : '';
+  my $CID = (defined($attr->{CID})) ? $attr->{CID} : '';
+
+
+  if ($LOGIN eq '') {
+     $self->{errno} = 8;
+     $self->{errstr} = 'ERROR_ENTER_NAME';
+     return $self;
+   }
+  elsif (length($LOGIN) > $conf{max_username_length}) {
+     $self->{errno} = 9;
+     $self->{errstr} = 'ERROR_SHORT_PASSWORD';
+     return $self;
+   }
+  elsif($LOGIN !~ /$usernameregexp/) {
+     $self->{errno} = 10;
+     $self->{errstr} = 'ERROR_WRONG_NAME';
+     return $self; 	
+   }
+  elsif($EMAIL ne '') {
+    if ($EMAIL !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
+      $self->{errno} = 11;
+      $self->{errstr} = 'ERROR_WRONG_EMAIL';
+      return $self;
+     }
+   }
+    
+  my $sql = "INSERT INTO users (id, fio, phone, address, email, activate, expire, credit, reduction, 
+            variant, logins, registration, disable, ip, netmask, speed, filter_id, cid, comments, account_id)
+           VALUES ('$LOGIN', '$FIO', '$PHONE', \"$ADDRESS\", '$EMAIL', '$ACTIVATE', '$EXPIRE', '$CREDIT', '$REDUCTION', 
+            '$TARIF_PLAN', '$SIMULTANEONSLY', now(),  '$DISABLE', INET_ATON('$IP'), INET_ATON('$NETMASK'), '$SPEED', '$FILTER_ID', LOWER('$CID'), '$COMMENTS', '$ACCOUNT_ID');";
+
+  print "$sql";
+  my $q = $db->do($sql);
+
+    
+  if ($db->err == 1062) {
+     $self->{errno} = 7;
+     $self->{errstr} = 'ERROR_DUBLICATE';
+     return $self;
+   }
+  elsif($db->err > 0) {
+     $self->{errno} = 3;
+     $self->{errstr} = 'SQL_ERROR';
+     return $self;
+   }
+
+  return $self->{result};
+}
+
+
+#**********************************************************
+# add()
+#**********************************************************
+sub change {
+  my $self = shift;
+  my ($uid, $attr) = @_;
+  
+  my %DATA = ();
+
+  $DATA{LOGIN} = (defined($attr->{LOGIN})) ? $attr->{LOGIN} : '';
+  $DATA{EMAIL} = (defined($attr->{EMAIL})) ? $attr->{EMAIL} : '';
+  $DATA{FIO} = (defined($attr->{FIO})) ? $attr->{FIO} : '';
+  $DATA{PHONE} = (defined($attr->{PHONE})) ? $attr->{PHONE} : '';
+  $DATA{ADDRESS} = (defined($attr->{ADDRESS})) ? $attr->{ADDRESS} : '';
+  $DATA{ACTIVATE} = (defined($attr->{ACTIVATE})) ? $attr->{ACTIVATE} : '0000-00-00';
+  $DATA{EXPIRE} = (defined($attr->{EXPIRE})) ? $attr->{EXPIRE} : '0000-00-00';
+  $DATA{CREDIT} = (defined($attr->{CREDIT})) ? $attr->{CREDIT} : 0;
+  $DATA{REDUCTION}  = (defined($attr->{REDUCTION})) ? $attr->{REDUCTION} : 0;
+  $DATA{SIMULTANEONSLY} = (defined($attr->{SIMULTANEONSLY})) ? $attr->{SIMULTANEONSLY} : 0;
+  $DATA{COMMENTS} = (defined($attr->{COMMENTS})) ? $attr->{COMMENTS} : '';
+  $DATA{ACCOUNT_ID} = (defined($attr->{ACCOUNT_ID})) ? $attr->{ACCOUNT_ID} : 0;
+  $DATA{DISABLE} = (defined($attr->{DISABLE})) ? $attr->{DISABLE} : 0;
+    
+  $DATA{TARIF_PLAN} = (defined($attr->{TARIF_PLAN})) ? $attr->{TARIF_PLAN} : '';
+  $DATA{IP} = (defined($attr->{IP})) ? $attr->{IP} : '0.0.0.0';
+  $DATA{NETMASK}  = (defined($attr->{NETMASK})) ? $attr->{NETMASK} : '255.255.255.255';
+  $DATA{SPEED} = (defined($attr->{SPEED})) ? $attr->{SPEED} : 0;
+  $DATA{FILTER_ID} = (defined($attr->{FILTER_ID})) ? $attr->{FILTER_ID} : '';
+  $DATA{CID} = (defined($attr->{CID})) ? $attr->{CID} : '';
+
+
+  if($DATA{EMAIL} ne '') {
+    if ($DATA{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
+      $self->{errno} = 11;
+      $self->{errstr} = 'ERROR_WRONG_EMAIL';
+      return $self;
+     }
+   }
+
+  my $CHANGES = "";
+  my $CHANGES_LOG = "";
+
+  my $q = $db -> prepare("SELECT  id, fio, phone, address, email, activate, expire, 
+  credit, reduction, variant, logins, disable, INET_NTOA(ip), INET_NTOA(netmask), speed,  
+  filter_id, cid, comments, account_id
+     FROM users  WHERE uid=\"$uid\";");
+  $q -> execute ();
+  my %OLD = ();
+
+  ($OLD{LOGIN}, $OLD{FIO}, $OLD{PHONE}, $OLD{ADDRESS}, $OLD{EMAIL}, $OLD{ACTIVATE}, $OLD{EXPIRE}, 
+   $OLD{CREDIT}, $OLD{REDUCTION}, $OLD{TARIF_PLAN}, $OLD{SIMULTANEONSLY}, $OLD{DISABLE}, $OLD{IP}, 
+   $OLD{NETMASK}, $OLD{SPEED}, $OLD{FILTER_ID}, $OLD{CID}, $OLD{COMMENTS}) = $q -> fetchrow();
+
+  while(my($k, $v)=each(%DATA)) {
+     if ($OLD{$k} ne $DATA{$k}){
+        print "$k, $v / $DATA{$k} | $OLD{$k}/<br>";	
+      }
+   }
+
+   
+=comments 
+#  my $sql = "UPDATE users SET 
+#  id='$LOGIN', 
+  fio='$FIO', 
+  phone='$PHONE', 
+  address='$ADDRESS', 
+  email='$EMAIL', 
+  activate='$ACTIVATE', 
+  expire='$EXPIRE', 
+  credit='$CREDIT', 
+  reduction='$REDUCTION', 
+  variant='$TARIF_PLAN', 
+  logins='$SIMULTANEONSLY', 
+  disable='$DISABLE',
+  ip=INET_ATON('IP'), 
+  netmask=INET_ATON('$NETMASK'), 
+  speed='$SPEED', 
+  filter_id='$FILTER_ID', 
+  cid='$CID', 
+  comments='$COMMENTS', 
+  account_id='$ACCOUNT_ID'
+  WHERE uid='$uid';";
+
+  print "$sql";
+=cut
+  #my $q = $db->do($sql);
+
+    
+  if ($db->err == 1062) {
+     $self->{errno} = 7;
+     $self->{errstr} = 'ERROR_DUBLICATE';
+     return $self;
+   }
+  elsif($db->err > 0) {
+     $self->{errno} = 3;
+     $self->{errstr} = 'SQL_ERROR';
+     return $self;
+   }
 
   return $self->{result};
 }

@@ -21,6 +21,7 @@ $conf{username_length}=15;
 
 
 
+
 require "../../language/$html->{language}.pl";
 my %err_strs = (
   1 => $_ERROR,
@@ -30,7 +31,10 @@ my %err_strs = (
   5 => ERROR_WRONG_CONFIRM,     
   6 => ERROR_SHORT_PASSWORD,
   7 => ERROR_DUBLICATE,
-  8 => ERROR_ENTER_NAME
+  8 => ERROR_ENTER_NAME,
+  9 => ERROR_LONG_USERNAME,
+  10 => ERROR_WRONG_NAME,
+  11 => ERROR_WRONG_EMAIL
 );
 
 
@@ -44,15 +48,13 @@ if (defined($FORM{colors})) {
 
 print $html->header();
 
-
-
 my %permissions = ();
 if (check_permissions('asm', 'test123') == 1) {
    exit;
  }
 
  my @sections = ($_USERS, 
-                 $_PAYMENTS, 
+                 _FINANCES, 
                  $_FEES, 
                  $_REPORTS,
                  $_SYSTEM,
@@ -60,13 +62,14 @@ if (check_permissions('asm', 'test123') == 1) {
                 );
 
  my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # Users
-                [$_LIST, $_ADD, $_EXCHANGE_RATE, $_DEL, $_ALL],                # Payments
+                [$_PAYMENTS, $_FEES, $_LIST, $_DEL, $_ALL],                # Payments
                 [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Fees
                 [$_ALL],                                                       # reports view
                 [$_ALL, 'tarif_plans'],                                        # system magment
                 [$_ALL, 'users']                                               # Modules managments
                );
 
+my @action = ('add', $_ADD);
 
 my %op_names = ();
 my %menu_items = ();
@@ -76,6 +79,27 @@ my $root_index = 0;
 
 my %main_menu = ();
 my $navigat_menu = mk_navigator();
+
+
+
+
+######################################
+print "<table border=1>\n";
+while(my($k, $v)=each %FORM) {
+  print "<tr><td>$k</td><td>$v</td></tr>\n";	
+}
+print "<tr bgcolor=$_COLORS[2]><td>index</td><td>$index</td></tr>\n";	
+print "<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
+print "</table>\n";
+######################################
+
+
+
+
+
+
+
+
 
 print "<table border=0 width=100%><tr><td valign=top width=200 bgcolor=$_COLORS[2] rowspan=2><p>\n";
 print $html->menu(1, 'op', "", \%main_menu);
@@ -90,12 +114,6 @@ if ($functions{$index}) {
 else {
   print "hello $index / $root_index";	
 }
-
-#if ($OP eq 'admins') { form_admins(); }
-#if ($OP eq 'system') { system_cfg();  }
-#else {
-# form_admins();
-#}
 
 print "</td></tr></table>\n";
 
@@ -163,6 +181,7 @@ print << "[END]";
 </table>
 <input type=submit name=$action[0] value='$action[1]'>
 </form>
+<a href='$SELF_URL?index=11&account_id=$FORM{chg}'>_ADD_USER</a>
 [END]
 }
 
@@ -231,6 +250,7 @@ elsif($FORM{chg}) {
     $bank_bic = $account->{cor_bank_account};
 
     message('info', $_INFO, $_CHANGING. " # $_NAME: $name<br>");
+    account_info();
    }
 
   @action = ('change', $_CHANGE);
@@ -239,9 +259,9 @@ elsif($FORM{del}) {
    $customer->account->del( $FORM{del} );
    message('info', $_INFO, "$_DELETED # $FORM{del}");
  }
- 
+else {
  account_info();
-
+}
 
 
 
@@ -275,20 +295,242 @@ print $html->pages($total, "op=users$pages_qs");
 
 
 #**********************************************************
+# add_customer
+#**********************************************************
+sub add_customer {
+
+
+print "<form action=$SELF_URL>\n
+<input type=hidden name= value=>
+</form>\n";
+ 	
+}
+#**********************************************************
+# form_users()
+#**********************************************************
+sub user_form {
+ my ($type, $user_info) = @_;
+ my $tpl_form;
+
+if ($type eq 'info') {
+
+
+$tpl_form = qq{<table width=100%>
+       <tr><td>$_LOGIN:</td><td>$login</td></tr>
+       <tr><td>UID:</td><td>$uid</td></tr>
+       <tr><td>$_FIO:</td><td>$fio</td></tr>
+       <tr><td>$_PHONE:</td><td>$phone</td></tr>
+       <tr><td>$_ADDRESS:</td><td>$address</td></tr>
+       <tr><td>E-mail:</td><td>$email</td></tr>
+       <tr><td>$_VARIANT:</td><td>$variant</td></tr>
+       <tr><td>$_CREDIT:</td><td>$credit</td></tr>
+       <tr><td>$_REDUCTION</td><td>$reduction %</td></tr>
+       <tr><td>$_SIMULTANEOUSLY:</td><td>$simultaneously</td></tr>
+       <tr><td>$_ACTIVATE:</td><td>$activate</td></tr>
+       <tr><td>$_EXPIRE:</td><td>$expire</td></tr>
+       <tr><td>$_NAS:</td><td>$NAS_SERVERS{'nas'}</td></tr>
+       <tr><td>IP:</td><td>$ip</td></tr>
+       <tr><td>NETMASK:</td><td>$netmask</td></tr>
+       <tr><td>$_SPEED (Kb)</td><td>$speed</td></tr>
+       <tr><td>$_FILTERS</td><td>$filter_id</td></tr>
+       <tr><td>CID:</td><td>$cid</td></tr>
+<tr><th colspan=2>:$_COMMENTS:</th></tr>
+<tr><th colspan=2>:$comments:</th></tr>
+</table>};
+
+
+
+}
+else { 
+ use Tariffs;
+ my $tariffs = Tariffs->new($db);
+
+ if (! $info) {
+   $info = "<tr><td>$_USER:*</td><td><input type=text name=login value='$login'></td></tr>\n";
+   my $tariffs_list = $tariffs->list();
+   $variant_out = "<select name=variant>";
+
+   foreach my $line (@$tariffs_list) {
+     $variant_out .= "<option value=$line->[0]";
+     $variant_out .= ' selected' if ($line->[0] == $variant);
+     $variant_out .=  ">$line->[0]:$line->[1]\n";
+    }
+   $variant_out .= "</select>";
+  }
+
+
+print "-- $user_info->{SIMULTANEONSLY}---";
+
+$tpl_form = qq{
+<form action=$SELF_URL method=post>
+<input type=hidden name=index value=14>
+<input type=hidden name=account_id value='$user_info->{ACCOUNT_ID}'>
+<input type=hidden name=uid value="$user_info->{UID}">
+<table width=420 cellspacing=0 cellpadding=3>
+$info
+<tr><td>$_FIO:*</td><td><input type=text name=fio value="$user_info->{FIO}"></td></tr>
+<tr><td>$_PHONE:</td><td><input type=text name=phone value="$user_info->{PHONE}"></td></tr>
+<tr><td>$_ADDRESS:</td><td><input type=text name=address value="$user_info->{ADDRESS}"></td></tr>
+<tr><td>E-mail:</td><td><input type=text name=email value="$user_info->{EMAIL}"></td></tr>
+<tr><td colspan=2>&nbsp;</td></tr>
+<tr><td>$_TARIF_PLAN:</td><td valign=center>$variant_out</td></tr>
+<tr><td>$_CREDIT:</td><td><input type=text name=credit value='$user_info->{CREDIT}'></td></tr>
+<tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=simultaneously value='$user_info->{SIMULTANEONSLY}'></td></tr>
+<tr><td>$_ACTIVATE:</td><td><input type=text name=activate value='$user_info->{ACTIVATE}'></td></tr>
+<tr><td>$_EXPIRE:</td><td><input type=text name=expire value='$user_info->{EXPIRE}'></td></tr>
+<tr><td>$_REDUCTION (%):</td><td><input type=text name=reduction value='$user_info->{REDUCATION}'></td></tr>
+<tr><td>IP:</td><td><input type=text name=ip value='$user_info->{IP}'></td></tr>
+<tr><td>Netmask:</td><td><input type=text name=netmask value='$user_info->{NETMASK}'></td></tr>
+<tr><td>$_SPEED (kb):</td><td><input type=text name=speed value='$user_info->{SPEED}'></td></tr>
+<tr><td>$_FILTERS:</td><td><input type=text name=filter_id value='$user_info->{FILTER_ID}'></td></tr>
+<tr><td><b>CID:</b><br></td><td><input title='MAC: [00:40:f4:85:76:f0]
+IP: [10.0.1.1]
+PHONE: [805057395959]' type=text name=cid value='$user_info->{CID}'></td></tr>
+<tr><td>$_DISABLE:</td><td><input type=checkbox name=disable value='yes' $disable></td></tr>
+<tr><th colspan=2>:$_COMMENTS:</th></tr>
+<tr><th colspan=2><textarea name=comments rows=5 cols=45>$comments</textarea></th></tr>
+</table>
+<p>
+<input type=submit name=$action[0] value='$action[1]'>
+</form>
+};
+
+if ($uid) {
+$tpl_form = qq{<table width=600 border=1 cellspacing=1 cellpadding=2><tr><td>
+$tpl_form
+</td><td bgcolor=$_COLORS[3] valign=top width=180>
+
+<table width=100% border=0><tr><td>
+      <li><a href='$SELF?op=stats&uid=$uid'>$_STATS</a>
+      <li><a href='$SELF?op=payments&uid=$uid'>$_PAYMENTS</a>
+      <li><a href='$SELF?op=fees&uid=$uid'>$_FEES</a>
+      <li><a href='$SELF?op=errlog&uid=$uid'>$_ERROR_LOG</a>
+      <li><a href='$SELF?op=sendmsg&uid=$uid'>$_SEND_MAIL</a>
+      <li><a href='$SELF?op=messages&uid=$uid'>$_MESSAGES</a>
+      <li><a href='docs.cgi?docs=accts&uid=$uid'>$_ACCOUNTS</a>
+</td></tr>
+<tr><td> 
+      <br><b>$_CHANGE</b>
+      <li><a href='$SELF?op=users&uid=$uid&passwd=chg'>$_PASSWD</a>
+      <li><a href='$SELF?op=chg_uvariant&uid=$uid'>$_VARIANT</a>
+      <li><a href='$SELF?op=allow_nass&uid=$uid'>$_NASS</a>
+      <li><a href='$SELF?op=bank_info&uid=$uid'>$_BANK_INFO</a>
+      <li><a href='$SELF?op=changes&uid=$uid'>$_LOG</a>
+</td></tr>
+</table>
+</td></tr></table>
+};
+	
+}
+
+
+}
+
+
+return $tpl_form;
+
+}
+
+
+#**********************************************************
 # form_users()
 #**********************************************************
 sub form_users {
 
+my $LOGIN = $FORM{login} || '';
+my  $EMAIL = $FORM{email} || '';
+my  $FIO = $FORM{fio} || '';
+my  $PHONE = $FORM{phone} || '';
+my  $ADDRESS = $FORM{address} || '';
+my  $ACTIVATE = $FORM{activate} || '0000-00-00';
+my  $EXPIRE = $FORM{expire} || '0000-00-00';
+my  $CREDIT = $FORM{credit} || 0;
+my  $REDUCTION = $FORM{reduction} || 0;
+my  $SIMULTANEONSLY = $FORM{simultaneously} || 0;
+my  $COMMENTS  = $FORM{comments} || '';
+
+my  $ACCOUNT_ID = $FORM{account_id} || 0;
+
+$uid = $FORM{uid};
+
  use Users;
  my $users = Users->new($db); 
 
+if ($FORM{add}) {
+  $users->add( { LOGIN => $LOGIN,
+                 EMAIL => $EMAIL,
+                 FIO => $FIO,
+                 PHONE => $PHONE,
+                 ADDRESS => $ADDRESS,
+                 ACTIVATE => $ACTIVATE,
+                 EXPIRE => $EXPIRE,
+                 CREDIT => $CREDIT,
+                 REDUCTION  => $REDUCTION,
+                 SIMULTANEONSLY => $SIMULTANEONSLY,
+                 COMMENTS => $COMMENTS,
+                 ACCOUNT_ID => $ACCOUNT_ID }
+                );  
+
+#  my $TARIF_PLAN = (defined($attr->{TARIF_PLAN})) ? $attr->{TARIF_PLAN} : '';
+#  my $IP = (defined($attr->{IP})) ? $attr->{IP} : '0.0.0.0';
+#  my $NETMASK  = (defined($attr->{NETMASK})) ? $attr->{NETMASK} : '255.255.255.255';
+#  my $SPEED = (defined($attr->{SPEED})) ? $attr->{SPEED} : 0;
+#  my $FILTER_ID = (defined($attr->{FILTER_ID})) ? $attr->{FILTER_ID} : '';
+#  my $CID = (defined($attr->{CID})) ? $attr->{CID} : '';);
+
+  if ($users->{errno}) {
+    message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+    user_form();    
+    return 0;	
+   }
+  else {
+    message('info', $_ADDED, "$_ADDED");
+   }
+}
+elsif ($FORM{change}) {
+  $users->change("$uid", { LOGIN => $LOGIN,
+                 EMAIL => $EMAIL,
+                 FIO => $FIO,
+                 PHONE => $PHONE,
+                 ADDRESS => $ADDRESS,
+                 ACTIVATE => $ACTIVATE,
+                 EXPIRE => $EXPIRE,
+                 CREDIT => $CREDIT,
+                 REDUCTION  => $REDUCTION,
+                 SIMULTANEONSLY => $SIMULTANEONSLY,
+                 COMMENTS => $COMMENTS,
+                 ACCOUNT_ID => $ACCOUNT_ID }
+                );  
+
+#  my $TARIF_PLAN = (defined($attr->{TARIF_PLAN})) ? $attr->{TARIF_PLAN} : '';
+#  my $IP = (defined($attr->{IP})) ? $attr->{IP} : '0.0.0.0';
+#  my $NETMASK  = (defined($attr->{NETMASK})) ? $attr->{NETMASK} : '255.255.255.255';
+#  my $SPEED = (defined($attr->{SPEED})) ? $attr->{SPEED} : 0;
+#  my $FILTER_ID = (defined($attr->{FILTER_ID})) ? $attr->{FILTER_ID} : '';
+#  my $CID = (defined($attr->{CID})) ? $attr->{CID} : '';);
+
+  if ($users->{errno}) {
+    message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+    user_form();    
+    return 0;	
+   }
+  else {
+    message('info', $_CHANGED, "$_CHANGED");
+   }
+}
+elsif($FORM{uid}) {
+  my $user_info = $users->info( $uid );  
+  @action = ('change', $_CHANGE);
+  my $tpl = user_form('test', $user_info);
+  print $tpl;
+  return 0;
+}
 
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, '-', '-'],
                                    cols_align => [left, left, right, right, left, center, center, center, center],
                                   } );
-
 my %PARAMS = ( SORT => $SORT,
 	       DESC => $DESC,
 	       PG => $PG,
@@ -339,8 +581,6 @@ print "<p>$_TOTAL: $total</p>\n";
 print $html->pages($total, "op=users$pages_qs");
 print $table->show();
 print $html->pages($total, "op=users$pages_qs");
-
- 	
 }
 
 #**********************************************************
@@ -538,13 +778,13 @@ sub mk_navigator  {
 # name # parent
 # Users
 $menu_items{1}{0}=$_CUSTOMERS;
-$op_names{1}='custome';
+$op_names{1}='customers';
 $functions{1}=\&form_customers;
 
 
-$menu_items{12}{1}=$_ADD;
-$op_names{12}='users';
-$functions{12}=\&form_users;
+$menu_items{11}{1}=$_ADD;
+$op_names{11}='';
+$functions{11}=\&user_form;
 
 
 $menu_items{13}{1}=$_ACCOUNTS;
@@ -661,7 +901,7 @@ if ($OP ne '' || $index > 0) {
 
 
  if ($FORM{op} eq '') {
-   $OP = $op_names{$FORM{$root_index}};
+   $OP = $op_names{$root_index};
   }
  $FORM{op} = $op_names{$root_index};
 

@@ -252,3 +252,4 @@ $_SYSTEM = 'System configuration';
 $_GENERED_PARRWORD = 'Genered password';
 $_TARIF_PLANS='Tarif plans';
 $_TARIF_PLAN='Tarif plan';
+$_DISABLE='Disable';
