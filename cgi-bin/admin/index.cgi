@@ -289,10 +289,7 @@ else {
 }
 
 
-
-
-
- my %PARAMS = ( SORT => $SORT,
+my %PARAMS = ( SORT => $SORT,
 	       DESC => $DESC,
 	       PG => $PG,
 	       PAGE_ROWS => $PAGE_ROWS,
@@ -310,14 +307,55 @@ foreach my $line (@$accounts_list) {
     "<a href='$SELF_URL?op=accounts&chg=$line->[3]'>$_CHANGE</a>", $html->button($_DEL, "op=accounts&del=$line->[3]", "$_DEL ?"));
 }
 
- 
-
 print $html->pages($total, "op=users$pages_qs");
 print $table->show();
 print $html->pages($total, "op=users$pages_qs");
-
 }
 
+#**********************************************************
+# chg_account
+#**********************************************************
+sub chg_account {
+  my ($user) =@_;
+
+if ($FORM{change})  {
+
+  if ($user->{errno}) {
+    message('info', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
+   }
+  else {
+    message('info', $_ACCOUNT, $_CHANGED. " # $name<br>");
+   }
+}
+
+use Customers;	
+my $customer = Customers->new($db);
+
+
+my $acct_sel = "<select name=account_id>\n";
+$acct_sel .= "<option value='0'>-N/S-\n";
+
+my ($list, $total) = $customer->account->list();
+foreach my $line (@$list) {
+  $acct_sel .= "<option value='$line->[3]'>$line->[0]\n";
+}
+$acct_sel .= "</select>\n";
+
+my $result = qq {
+<form action=$SELF_URL>
+<input type=hidden name=op value=users>
+<input type=hidden name=uid value=$user->{UID}>
+<input type=hidden name=account value=y>
+<Table>
+<tr><td>$_ACCOUNT:</td><td>$user->{ACCOUNT_NAME}</td></tr>
+<tr><td>$_TO:</td><td>$acct_sel</td></tr>
+</table>
+<input type=submit name=change value=$_CHANGE>
+</form> };
+
+
+return $result;
+}
 
 #**********************************************************
 # add_customer
@@ -445,8 +483,8 @@ my $PHONE = $FORM{phone} || 0;
 my $ADDRESS = $FORM{address} || '';
 my $ACTIVATE = $FORM{activate} || '0000-00-00';
 my $EXPIRE = $FORM{expire} || '0000-00-00';
-my $CREDIT = $FORM{credit} || 0;
-my $REDUCTION = $FORM{reduction} || 0;
+my $CREDIT = $FORM{credit} || '0.00';
+my $REDUCTION = $FORM{reduction} || '0.00';
 my $SIMULTANEONSLY = $FORM{simultaneously} || 0;
 my $COMMENTS  = $FORM{comments} || '';
 my $DISABLE = $FORM{disable} || 0;
@@ -539,6 +577,9 @@ if($uid > 0) {
  #Change tariff plan
   elsif ($FORM{chg_tp}) {
     print form_chg_tp($user_info);
+   }
+  elsif ($FORM{account}) {
+    print chg_account($user_info);
    }
   elsif ($FORM{del}) {
     $users->del();
@@ -772,7 +813,7 @@ my $out = "<form action='$SELF'>
 <input type=hidden name=uid  value='$uid'>
 <input type=hidden name=vid  value='$vid'>";
 
-my $table = Abills::HTML->table( { width => '640',
+my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ["$_ALLOW", "ID", "$_NAME", "IP", "$_TYPE", "$_AUTH"],
                                    cols_align => [center, left, left, right, left, left]
