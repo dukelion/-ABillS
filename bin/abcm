@@ -1,0 +1,814 @@
+#!/usr/bin/perl
+
+use POSIX;
+
+($admin_name, $admin_host) = get_aid();
+system "clear";
+use FindBin '$Bin';
+
+
+my $usernameregexp = '^[a-z0-9_][a-z0-9_-]*$';
+my $rad_rows = 8;
+my %variants;
+my @menu = ('Quit', 'New users', 'Add money', 'User info', 'Get money');
+my $WHT = "\x1B[37;1m";
+my $NRM = "\x1B[0m";
+
+
+require $Bin . "/../libexec/config.pl";
+if (! $lang) { require "$lang_path/english.pl"; }
+require $Bin . "/../libexec/Base.pm";
+Base->import();
+require $Bin . "/../libexec/sql2.pl";
+
+
+
+#*******************************************************************
+# Set default values
+# default_values()
+#*******************************************************************
+sub default_values {
+$phone=0;
+$variant = 2;
+$credit = 0;
+$simultaneously = 0;
+$expire = 0;
+$activate = 0;
+$payment_sum=0;
+$phone = 0;
+$reduction = 0;
+$ip = '0.0.0.0';
+$netmask = '255.555.255.255';
+$mac = '00:00:00:00:00:00';
+$speed = 0;
+}
+
+#*******************************************************************
+# Get variant parameters
+# get_variants()
+#*******************************************************************
+sub get_variants {
+
+ $q = $db -> prepare("SELECT vrnt, name FROM variant ORDER BY vrnt ASC;") || die $db->strerr;
+ $q -> execute ();
+  while(my ($vid, $name) = $q->fetchrow()) {
+     $variants{$vid}=$name;
+    }
+  @v_array = sort {$age{$b} <=> $age{$a}
+     ||
+   length($b) <=> length($a)
+     ||
+   $b cmp $a
+  } keys %variants;
+  
+#sort keys %variants;
+}
+
+#*******************************************************************
+#
+# variants()
+#*******************************************************************
+sub variants {
+  local($vid, $vname);
+  print "$_VARIANTS: -\n";
+#  while(($id, $vname)=each(%variants)) {
+  foreach $line (@v_array) {
+     printf(" %4d\t%s\n", $line, $variants{$line});  	
+    }
+
+    while(1) {
+        $vid = &confirm_list("Enter $_VARIANT", 1, "$variant", "");
+        last if (($vid eq &int_valid($vid)) && ( check_variant($vid)));
+     }
+  return $vid, $variants{$vid};	
+}
+
+
+#*******************************************************************
+# check_variant()
+#*******************************************************************
+sub check_variant  {
+ local($vid)=@_;
+ 
+  return $vid if exists($variants{$vid});
+   warn "Variant ``$vid`` not exist\a\n";
+  return 0;
+}
+
+#*******************************************************************
+# expire()
+#*******************************************************************
+sub expire {
+  local($expire);
+    while(1) {
+        $expire = &confirm_list("Enter $_EXPIRE", 1, "0000-00-00", "");
+        last if $expire eq &date_valid($expire);
+     }
+  return $expire;
+}
+
+
+#*******************************************************************
+# activate()
+#*******************************************************************
+sub activate {
+  local($activate);
+    while(1) {
+        $activate = &confirm_list("Enter $_ACTIVATE", 1, "0000-00-00", "");
+        last if $activate eq &date_valid($activate);
+     }
+  return $activate;
+}
+
+
+#*******************************************************************
+# Validate date value
+# date_valid($expire)
+#*******************************************************************
+sub date_valid {
+ local($date)=@_;
+ 
+  return $date if $date =~ /\d+-\d+-\d+/;
+   warn "Not correct data! Must be '0000-00-00'\a\n";
+  return 0;
+}
+
+
+#********************************************************************
+# INteger question and value validate
+# int_question($question, $default_value)
+#********************************************************************
+sub int_question {
+    local($question, $default_value) = @_;
+    
+    local($res);
+
+    while(1) {
+        $res = &confirm_list("Enter $question", 1, "$default_value", "");
+        last if $res eq &int_valid($res);
+     }
+  return $res;
+}
+
+
+#*******************************************************************
+# User name question
+# users_name($name)
+#*******************************************************************
+sub users_name {
+    local($name);
+    while(1) {
+        $name = &confirm_list("Enter username", 1, $usernameregexp, "");
+        last if (&new_users_name_valid($name));
+    }
+    return $name;
+}
+
+#*******************************************************************
+# String vadidate function
+# str_validate($string)
+#*******************************************************************
+sub str_valid {
+    local($string) = @_;
+    return $string if $info !~ /:/;
+    warn "``:'' is not allowed!\a\n";
+    return 0;
+}
+
+#*******************************************************************
+# Integer validate function
+# int_validate($integer);
+#*******************************************************************
+sub int_valid {
+    local($integer) = @_;
+    return $integer if $integer !~ /[a-zA-Z]/;
+    warn "``[a-zA-Z]'' is not allowed!\a\n";
+    return 0;
+}
+
+#*******************************************************************
+# String value question
+# str_question($question, $value)
+#*******************************************************************
+sub str_question {
+    local($question, $value) = @_;
+    local($fullname);
+
+    while(1) {
+        $fullname = &confirm_list("$_ENTER $question", 1, "$value", "");
+        last if $fullname eq &str_valid($fullname);
+    }
+    return $fullname;
+}
+
+
+#********************************************************************
+# new_users_name_valid($username)
+#********************************************************************
+sub new_users_name_valid {
+    local($name) = @_;
+
+    if ($name eq $usernameregexp) { # user/admin just pressed <Return>
+        warn "Please enter a username\a\n";
+        return 0;
+    } elsif (length($name) > 16) {
+        warn "Username is longer than 16 characters.\a\n";
+        return 0;
+    } elsif ($name =~ /[:\n]/) {
+        warn "Username cannot contain colon or newline characters.\a\n";
+        return 0;
+    } elsif ($name !~ /$usernameregexp/) {
+        if ($usernameregexp eq $defaultusernameregexp) {
+            warn "Illegal username.\n" .
+                "Please use only lowercase Roman, decimal, underscore, " .
+                "or hyphen characters.\n" .
+                "Additionally, a username should not start with a hyphen.\a\n";
+        } else {
+            warn "Username doesn't match the regexp /$usernameregexp/\a\n";
+        }
+        return 0;
+    } elsif (defined($username{$name})) {
+        warn "Username ``$name'' already exists!\a\n"; return 0;
+    }
+    return 1;
+}        
+       
+
+#*******************************************************************
+#
+# uniq(@list)
+#*******************************************************************
+sub uniq {
+    local(@list) = @_;
+    local($e, $last, @array);
+
+    foreach $e (sort @list) {
+        push(@array, $e) unless $e eq $last;
+        $last = $e;
+    }
+    return @array;
+}
+
+#********************************************************************
+#
+# confirm_list($message, $allow, $confirm, @list)
+#********************************************************************
+sub confirm_list {
+    local($message, $allow, $confirm, @list) = @_;
+    local($read, $c, $print);
+
+    $print = "$message" if $message;
+    $print .= " " unless $message =~ /\n$/ || $#list == 0;
+
+    $print .= join($", &uniq(@list)); #"
+    $print .= " " unless $message =~ /\n$/ && $#list == 0;
+    print "$print";
+    print "\n" if (length($print) + length($confirm)) > 60;
+    print "[$confirm]: ";
+
+    chop($read = <STDIN>);
+    $read =~ s/^\s*//;
+    $read =~ s/\s*$//;
+    return $confirm if $read eq "";
+    return "$read" if $allow;
+
+    foreach $c (@list) {
+        return $read if $c eq $read;
+    }
+    warn "$read: is not allowed!\a\n";
+    return &confirm_list($message, $allow, $confirm, @list);
+}
+
+#********************************************************************
+# confirm_yn($message, $confirm)
+#********************************************************************
+sub confirm_yn {
+    local($message, $confirm) = @_;
+    local($yes) = '^(yes|YES|y|Y)$';
+    local($no) = '^(no|NO|n|N)$';
+    local($read, $c);
+
+    if ($confirm && ($confirm =~ "$yes" || $confirm == 1)) {
+        $confirm = "y";
+    } else {
+        $confirm = "n";
+    }
+    print "$message (y/n) [$confirm]: ";
+    chop($read = <STDIN>);
+    $read =~ s/^\s*//;
+    $read =~ s/\s*$//;
+    return 1 unless $read;
+
+    if (($confirm eq "y" && $read =~ "$yes") ||
+        ($confirm eq "n" && $read =~ "$no")) {
+        return 1;
+    }
+
+    if ($read !~ "$yes" && $read !~ "$no") {
+        warn "Wrong value. Enter again!\a\n";
+      }
+}        
+
+#*******************************************************************
+#
+# confirm_info()
+#*******************************************************************
+sub confirm_info {
+
+print <<EOF;
+$_USER: $uid
+$_FIO: $fullname
+$_ADDRESS: $address
+$_PHONE:  $phone
+$_VARIANT:  $variant ($vname)
+$_CREDIT:  $credit
+$_SIMULTANEOUSLY: $simultaneously
+$_ACTIVATE:  $activate
+$_EXPIRE:  $expire
+$_SUM: $payment_sum
+$_REDUCTION: $reduction
+$_SPEED: $speed
+IP: $ip
+Netmask: $netmask
+MAC: $mac
+
+
+EOF
+
+ return &confirm_yn("OK?", "yes");
+}
+
+#*******************************************************************
+#SQL Section
+# sql_change_user($uid)
+#*******************************************************************
+sub sql_change_user () {
+ my $uid = shift;
+
+   $q = $db -> prepare("SELECT deposit, fio, address, variant, credit, phone, logins, 
+      activate, expire, reduction, INET_NTOA(ip), INET_NTOA(netmask), speed,MAC
+     FROM users  WHERE uid=\"$uid\";") || die $db->strerr;
+   $q -> execute ();
+   my ($old_deposit, $old_fio, $old_address, $old_variant, $old_credit, $old_phone, $old_simultaneously, 
+      $old_activate, $old_expire, $old_reduction, $old_ip, $old_netmask, $old_speed, $old_mac) = $q -> fetchrow();
+   
+   $changed .= " $_FIO: $fio" if ($old_fio ne $fio);
+   $changed .= " $_VARIANT: $variant" if ($old_variant ne $variant);
+   $changed .= " $_CREDIT: $credit" if ($old_credit ne $credit); 
+   $changed .= " $_DAY_DURATION: $day_dur" if ($old_day_dur ne $day_dur);
+   $changed .= " $_PHONE: $phone" if ($old_phone ne $phone);
+   $changed .= " $_SIMULTANEOUSLY: $simultaneously" if ($old_simultaneously ne $simultaneously);
+   $changed .= " $_EXPIRE: $expire" if ($old_expire ne $expire);
+   $changed .= " $_REDUCTION: $reduction" if ($old_reduction ne $reduction);
+#   $changed .= " $_NAS: $nas" if ($old_nas ne $nas);
+   $changed .= " $_ACTIVATE: " if ($old_activate ne $activate);
+   $changed .= " IP: " if ($old_ip ne $ip);
+   $changed .= " NETMASK: " if ($old_netmask ne $netmask);
+   $changed .= " $_SPEED: " if ($old_speed ne $speed);
+   $changed .= " MAC: " if ($old_mac ne $mac);
+   
+   if (length($changed) > 1) {
+     $changed = "$_CHANGE " .  $changed;
+
+     $sql = "UPDATE users SET 
+       fio='$fio',
+       address='$address',
+       variant='$variant',
+       credit='$credit',
+       phone='$phone',
+       logins='$simultaneously,
+       activate='$activate',
+       expire='$expire',
+       reduction='$reduction',
+       ip=INET_ATON('$ip'),
+       netmask=INET_ATON('$netmask'),
+       speed='$speed',
+       MAC='$mac'
+       WHERE id=\"$uid\";";
+
+     log_print('LOG_DEBUG', $sql);
+     $q = $db->do($sql) || die $db->errstr;
+
+     $q = $db->do("INSERT INTO userlog (uid, log, date, ww) 
+        VALUES ('$uid', '$changed', now(), '$admin_name$admin_host');") || die $db->strerr;
+
+       print_b("$_CHANGED:");
+       print "$changed\n";
+   }
+
+}
+
+
+#*******************************************************************
+# Take fees
+# sql_take_fees($uid, $decribe, $sum)
+#*******************************************************************
+sub sql_take_fees {
+ my ($uid, $decribe, $sum) = @_;
+ 
+ my $sql = "UPDATE users set deposit=deposit-$sum WHERE uid='$uid';";
+ log_print('SQL_DEBUG', "$sql");
+ $db -> do ($sql) || die $db->errstr;
+
+ $sql = "INSERT INTO fees (uid, date, sum, dsc, ww)
+   values ('$uid', NOW(), '$sum', '$describe', '$admin_name <i>($admin_host)');";
+ log_print('DEBUG', "$sql");
+ $db->do($sql) || die $db->errstr;
+
+ print "$_GETED";
+}
+
+#*******************************************************************
+# add payments
+# sql_add_payments
+#*******************************************************************
+sub sql_add_payments  {
+ my ($uid, $decribe, $sum) = shift;
+
+ $q = $db -> prepare("SELECT deposit FROM users WHERE uid='$uid';") || die $db->errstr;
+ $q -> execute();
+ if($q->rows == 1) {
+    $sql = "UPDATE users SET deposit=deposit+$sum WHERE id='$uid';";
+   }
+ else {
+    print_b("$_USER_NOT_EXIST");
+    return 0;
+  }
+ 
+   log_print('LOG_SQL', "$sql");
+   $db ->do($sql) or die $db->errstr;
+   
+   $sql = "INSERT INTO payment (uid, date, sum, dsc, ww) 
+       VALUES ('$uid', now(), '$sum', '$describe', '$admin_name$admin_host');"; 
+   log_print('LOG_SQL', "$sql");
+   $db->do($sql) or die $db->errstr;
+   
+   print_b("$_ADD_PAYMENTS");
+   print "$_USER: $uid $_SUM: $sum\n";
+}
+
+
+#*******************************************************************
+#
+# sql_add_user();
+#*******************************************************************
+sub sql_add_user {
+   $sql = "INSERT INTO users (id, fio, address, phone, activate, expire, credit, reduction, variant, logins, 
+      registration, ip, netmask, speed, MAC)
+       VALUES ('$login', '$fullname', '$address', '$phone', '$activate', '$expire', '$credit', '$reduction', '$variant', 
+         '$simultaneously', now(), INET_ATON('$ip'), INET_ATON('$netmask'), '$speed', '$mac');";
+
+   log_print('LOG_SQL', "$sql");
+   $q = $db->do($sql);
+
+   if ($db->err == 5) {
+     USER_ERR($_USER_EXIST);
+     return 1;
+    }
+   elsif($db->err > 0) {
+     USER_ERR($db->errstr);
+     return 1;
+    }
+   else {
+     print_b($_ADDED);
+     my $uid = get_uid("$login");
+     $q = $db->do("INSERT INTO userlog (uid, log, date, ww) 
+        VALUES ('$uid', '$_ADDED, $_VARIANT #$variant, $_CREDIT $credit', now(), '$admin_name$admin_host');") || die $db->strerr;
+     }
+  return 0;
+}
+
+
+#**********************************************************
+# sql_user_info($uid)
+#**********************************************************
+sub sql_user_info () {
+  my $uid = shift;	
+
+   $q = $db -> prepare("SELECT u.id, u.fio, u.registration, u.variant, u.credit, u.deposit, u.phone, u.logins, 
+      u.expire, u.activate, max(login), u.reduction, INET_NTOA(u.ip), INET_NTOA(u.netmask), u.speed, u.MAC
+   FROM users u 
+   LEFT join log l ON(u.id=l.id) 
+   WHERE u.uid='$uid'
+   GROUP by u.id;") || die $db->strerr;
+   $q -> execute();
+
+   return -1 if ($q->rows == 0);
+
+   ($login, $fullname, $registration, $variant, $credit, $deposit, $phone, $simultaneously, 
+     $activate, $expire, $last_login, $reduction, $ip, $netmask, $speed, $mac) = $q->fetchrow();
+
+print_b("$_USER_INFO:");
+ #&radius_log("$uid");
+ #&show_log("$uid", "", "$logfile");
+ my $logfile = "/usr/abills/var/log/abills.log";
+ show_log("$login", "", "$logfile", 10);
+print << "[END]";
+$_LOGIN: $login
+$_FIO: $fullname
+$_PHONE: $phone
+$_ADDRESS: $address
+$_REGISTRATION: $registration
+
+$_VARIANT: $variant
+$_CREDIT: $credit
+$_DEPOSIT: $deposit
+$_SIMULTANEOUSLY: $simultaneously
+$_ACTIVATE: $activate
+$_EXPIRE: $expire
+$_LAST_LOGIN: $last_login
+$_REDUCTION: $reduction
+
+IP: $ip
+NETMASK: $netmask
+MAC: $mac
+$_SPEED: $speed
+[END]
+
+if ($op == 3) {
+  return &confirm_yn("Change info?", "no");
+ } 
+else {
+  return 0;
+}
+
+}
+
+
+#*******************************************************************
+#
+# menu()
+#*******************************************************************
+sub menu  {
+ print_b("$PROGRAM");
+ print "Admin: $admin_name $admin_host Date: $DATE $TIME\n";
+
+ $i=0;
+ foreach $line (@menu) {
+    print "  [$i] $menu[$i]\n";
+    $i++;
+  }
+
+ $op=&int_question("> ");
+ return $op;
+}
+
+#**********************************************************
+# print bold text
+# print_b($text)
+#**********************************************************
+sub print_b {
+  my $text = shift;	
+  print "$WHT$text$NRM\n";
+}
+
+
+#*******************************************************************
+# Get user info
+# get_info()
+#*******************************************************************
+sub get_info {
+  $uid = &users_name();
+  $fullname = &str_question("$_FIO", "$uid");
+  $address = &str_question("$_ADDRESS", "$address");
+  $phone=&int_question("$_PHONE", "$phone");
+  ($variant, $vname) = &variants();
+#  $day_duration = &int_question("$_DURATION", $day_duration);
+  $credit = &int_question("$_CREDIT", $credit);
+  $simultaneously = &int_question("$_SIMULTANEOUSLY", $simultaneously);
+  $expire = &expire();
+  $activate = &activate();
+  $reduction = &int_question("$_REDUCTION", $reduction);
+# $ip = &net_quetion("IP", $ip);
+# $netmask = &net_question("NETMASK", $netmask);
+# $mac = &mac_question("MAC", $mac);
+  my $res = confirm_info();
+  return $res;
+}
+
+#****************************************************************
+#get admin id and host
+# get_aid()
+#****************************************************************
+sub get_aid  {
+die "Don't run this program as root\n" if (($aid = POSIX::geteuid ()) == 0);
+
+my $user = getpwuid($aid);
+my $tty = qx/ \/usr\/bin\/tty /;
+chomp $tty;
+$tty =~ s/(\/dev\/)([a-z0-9]*)/$2/;
+open (utmp, "/usr/bin/who |");
+while ($line = <utmp>) {
+  chomp $line;
+  ($u, $utty, $mm, $dd, $tt, $h) = split /[ \t]+/, $line;
+  if ($utty eq $tty) {
+    $hostname = $h;
+  };
+};
+close (utmp);
+
+ return $user, $hostname;
+}
+
+
+
+sub online () {
+my $total = 0;
+
+ $sql = "SELECT c.user_name, if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started),
+ INET_NTOA(c.nas_ip_address),
+ c.nas_port_id, c.acct_session_id, SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)),
+ c.acct_input_octets, c.acct_output_octets, c.ex_input_octets, c.ex_output_octets,
+ INET_NTOA(c.framed_ip_address), c.status,
+ u.fio, u.phone, u.variant, u.deposit, u.credit, u.speed, u.uid, c.CID, c.CONNECT_INFO
+ FROM calls c
+  LEFT JOIN users u ON u.id=user_name
+ WHERE c.status=1 or c.status>=3
+ ORDER BY c.nas_ip_address, c.nas_port_id;";
+
+ log_print('LOG_SQL', "$sql");
+
+ $q = $db->prepare($sql)   || die $db->errstr;
+ $q ->execute();
+ 
+ $total = $q->rows;
+ my %dub_logins = ();
+ my %dub_ports = ();
+ my %logined = ();
+  while(my($user_name, $started, $nas_ip_address, $nas_port_id, $acct_session_id, $acct_session_time,
+     $acct_input_octets, $acct_output_octets, $ex_input_octets, $ex_output_octets, $framed_ip_address, 
+     $status,
+     $fio, $phone, $variant, $deposit, $credit, $speed, $uid, $CID, $CONNECT_INFO) = $q->fetchrow()) {
+     $acct_input_octets = int2byte($acct_input_octets);
+     $acct_output_octets = int2byte($acct_output_octets);
+    $logined{"$nas_ip_address"}.="$user_name\n";
+   }
+print "Total: $total
+-------------------------------------------------------------------------------\n";	
+ $server="";
+ while(my($k, $v)=each( %logined )) {
+   if ($server ne "$k") {
+     print_b("Server: $k");
+    }
+   print "$v\n";
+ }
+print "===============================================================================
+> \n";
+
+exit;
+}
+
+&get_variants;
+&default_values();
+
+
+#*******************************************************************
+# console saction
+# help()
+#*******************************************************************
+sub help {
+print << "[END]"
+$PROGRAM
+  -u <user> 	User name
+  -a	  	Add user
+  -online       Show online users
+  -am	  	Put money to bill
+  -r <count>	Last <count> lines from radlog
+  -s <sum>	Money sum
+  -f ""		Full Name
+  -p <num>	Phone
+  -v <num>	Variant
+  -dd <sec>	Day duration. Подається в секундах
+  -d <num>	Credit
+  -so <num>	Simultaneouly
+  -e <YYYY-YY-YY>  Expire
+  -h	  	Help
+
+[END]
+}
+
+
+#********************************************************************
+#
+# parse_arguments(@argv)
+#********************************************************************
+sub parse_arguments {
+    local(@argv) = @_;
+    while ($_ = $argv[0], /^-/) {
+      shift @argv;
+        last if /^--$/;
+        if    (/^-?(u)$/)   { $login = $argv[0]; shift @argv }
+        elsif (/^-?(s)$/)   { $payment_sum = $argv[0]; shift @argv }
+        elsif (/^-?(h)$/)   { help(); }
+        elsif (/^-?(r)$/)   { $radlines = $argv[0]; shift @argv }
+        elsif (/^-?(a)$/)   { $adduser = 'yes'                    }
+        elsif (/^-?(am)$/)  { $addmoney = 'yes'                   }
+        elsif (/^-?(online)$/)  { online();                       }
+	elsif (/^-?(f)$/)   { $fullname = $argv[0]; shift @argv   }
+        elsif (/^-?(r)$/)   { $rad_rows = $argv[0]; shift @argv   }
+        elsif (/^-?(p)$/)   { $phone = $argv[0]; shift @argv      }
+	elsif (/^-?(v)$/)   { $variant = $argv[0]; shift @argv     }
+        elsif (/^-?(dd)$/)  { $day_duration = $argv[0]; shift @argv }
+	elsif (/^-?(so)$/)  { $simultaneously = $argv[0]; shift @argv }
+        elsif (/^-?(d)$/)   { $credit = $argv[0]; shift @argv      }
+	elsif (/^-?(e)$/)   { $expire = $argv[0]; shift @argv     }
+	
+    }
+    #&help if $#argv < 0;
+}
+
+
+if ($#ARGV > -1) {
+ &parse_arguments(@ARGV);
+ 
+ if (! $login) {
+    print_b("NO user name");
+    exit;
+  } 
+ 
+ if ($adduser eq 'yes') {
+   &sql_add_user();
+  } 
+ if($addmoney eq 'yes') {
+   &sql_add_payments("$uid", $payment_sum);
+  }
+ #&radius_log("$uid");
+ #&show_log("$uid", "", "$logfile");
+ my $uid = get_uid($login);
+ $res = &sql_user_info($uid);
+ 
+ if ($res < 0) {
+     print_b("$_USER: ``$login`` $_NOT_EXIST");
+   }
+
+ exit;
+}
+
+
+
+# Interactive section
+START:
+&menu();
+
+print_b(">>>>> $menu[$op]");
+
+if ($op == 1) {
+  $res = get_info();
+  if ($res) {
+    &sql_add_user();
+    $payment_sum = &int_question("$_SUM", $payment_sum);
+    &sql_add_payments("$uid", $payment_sum);
+    &sql_user_info("$uid");
+   }
+  else { 
+     goto START; 
+    };
+}
+# payments
+elsif ($op == 2) {
+  $login = &users_name();
+  $uid = get_uid($login);
+  $res = &sql_user_info("$uid");
+  if ($res == 0) { 
+    $payment_sum = &int_question("$_ENTER $_SUM");
+    $describe = &str_question("$_DESCRIBE", "");
+    &sql_add_payments($uid, "$describe", $payment_sum);
+    &sql_user_info($uid);
+   }
+  else {
+    print_b("$_USER: ``$uid`` $_NOT_EXIST");
+   }
+}
+#User info
+elsif ($op == 3) {
+  $login = &users_name();
+  $uid = get_uid($login);
+  $res = &sql_user_info("$uid");
+  if ($res == 0) {
+    $res = get_info();
+    if ($res) {
+      &sql_change_user("$uid");
+      &sql_user_info("$uid");
+     }
+   }
+  elsif($res == -1) {
+    print_b("$_USER: ``$uid`` $_NOT_EXIST");
+   }
+}
+#take fees
+elsif ($op == 4) {
+  $login = &users_name();
+  $uid = get_uid($login);
+  $sum = &int_question("$_ENTER $_SUM") || 0;
+  $describe = &str_question("$_DESCRIBE", "");
+  &sql_take_fees("$uid", "$decribe", $sum);
+  &sql_user_info("$uid");
+}
+elsif ($op == 0) {
+  exit;	
+}
+goto START;
+
+#$payment_sum = &payment("$uid");
+
+

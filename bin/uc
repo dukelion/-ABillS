@@ -1,0 +1,81 @@
+#!/usr/bin/perl 
+use Socket;
+
+#step by step operations
+if ($#ARGV < 1) {
+ print "
+ENTER Arguments:
+usr_console [hostname] [action] [parameter]\n";
+exit;
+}
+
+$hostname=$ARGV[0];
+$action=$ARGV[1];
+$debug = 0;
+$config = 'uc.conf';
+$pc=0;
+
+print "USR Server: $hostname Action: $action\n";
+open(FILE, "<$config") || die "can't open file $config $!\n";
+ while($line = <FILE>) {
+   chop($line);
+   ($cmd, $w)=split(/\t/, $line, 2);
+   if ( ($cmd eq "[$action]") && ($cmd =~ /^\[/) ) {
+     if ($w =~ /%PARAM%/) {
+       if ($#ARGV < 2) {
+          print "Enter require parameter\n";
+          exit;
+        }
+       $w =~ s/%PARAM%/$ARGV[2]/i;
+      }
+     push @oper, $w;
+     $pc++;
+    }
+   elsif(($cmd ne "") && ($cmd !~ /^\[/)) {
+      push @oper, $line;
+    }
+  }
+close(FILE);
+
+if ($pc < 1) {
+ print "No such command \"$action\" in uc.conf\n";
+ exit;
+}
+
+socket(SH, PF_INET, SOCK_STREAM, getprotobyname('tcp')) || die $!;
+my $dest = sockaddr_in (23, inet_aton("$hostname"));
+connect(SH, $dest) || die $!;
+
+$sock = \*SH;
+$MAXBUF=1024;
+
+
+$input='';
+foreach $line (@oper) {
+
+
+($waitfor, $sendtext)=split(/\t/, $line, 2);
+print " Wait for: $waitfor\n" if ($debug > 0);
+
+  if ($input =~ /$waitfor/i) {
+    $text = $sendtext;
+    print "Send: $text\n" if ($debug > 0);
+    send($sock, "$text\r\n", 0, $dest) or die "Can't send: $!\n";
+    recv($sock, $inbuf, $MAXBUF,0);  
+  };
+
+
+ $input = $inbuf;
+do {
+   recv($sock, $inbuf, $MAXBUF,0);
+   $input .= $inbuf;
+   $len = length($inbuf);
+   alarm 5;
+} while ($len == $MAXBUF);
+
+print "\nGet: " if ($debug > 0);
+print $input;
+}
+
+
+close(SH) ;
