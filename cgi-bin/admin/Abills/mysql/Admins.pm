@@ -167,17 +167,62 @@ sub add {
 
 
 #**********************************************************
-#  log_action()
+#  action_add()
 #**********************************************************
-sub log_action {
+sub action_add {
   my $self = shift;
   my ($uid, $actions) = @_;
  
-  my $sql = "INSERT INTO userlog (aid, ip, datetime, changes, uid) VALUES ('$aid', '$IP', now(), '$actions', '$uid')";
+  my $sql = "INSERT INTO admin_actions (aid, ip, datetime, actions, uid) VALUES ('$aid', '$IP', now(), '$actions', '$uid')";
+  print $sql; 
+  my $q = $db->do($sql);
+
+  if($db->err > 0) {
+     $self->{errno} = 3;
+     $self->{errstr} = 'SQL_ERROR';
+     return $self;
+   }
+
+  return $self;
+}
+
+#**********************************************************
+#  action_del()
+#**********************************************************
+sub action_del {
+  my $self = shift;
+  my ($uid, $action_id) = @_;
+ 
+  my $sql = "DELETE FROM admin_actions WHERE id='$action_id';";
+  print $sql; 
+  my $q = $db->do($sql);
+
+  if($db->err > 0) {
+     $self->{errno} = 3;
+     $self->{errstr} = 'SQL_ERROR';
+     return $self;
+   }
+}
+
+
+#**********************************************************
+#  action_list()
+#**********************************************************
+sub action_list {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my $WHERE = '';
+  my $admin_id;
+  my $uid;
+  
+  my $sql = "SELECT id aid, ip, datetime, actions, uid FROM admin_actions $WHERE;";
   print $sql; 
 
-  # my $q = $db->do($sql);
-
+  my $q = $db->prepare("select aid, id, name, regdate, gid FROM admins;") || die $db->errstr;
+  $q ->execute(); 
+  my @actions = ();
+ 
   if ($db->err == 1062) {
      $self->{errno} = 7;
      $self->{errstr} = 'ERROR_DUBLICATE';
@@ -188,7 +233,16 @@ sub log_action {
      $self->{errstr} = 'SQL_ERROR';
      return $self;
    }
+
+  while(my @action = $q->fetchrow()) {
+    push @actions, \@action;
+   }
+
+  $self->{list} = \@actions;
+  return $self->{list};
 }
+
+
 
 #**********************************************************
 # password()

@@ -3,7 +3,6 @@
 # ~AsmodeuS~ (2004-12-05)
 # asm@asmodeus.com.ua
 
-
 use vars qw($begin_time);
 BEGIN {
 #Check the Time::HiRes module (available from CPAN)
@@ -2233,13 +2232,9 @@ print << "[END]";
 <form action=$SELF>
 <input type=hidden name=uid value='$uid'>
 <input type=hidden name=op value=chg_uvariant>
-<table width=400>
+<table width=400 border=0>
 <tr><td>$_USER:</td><td><a href='$SELF?op=users&chg=$uid'>$login</a></td></tr>
 <tr><td>$_FROM:</td><td bgcolor=$_BG2>$old_variant $vnames{$old_variant} [<a href='$SELF?op=variants&chg=$old_variant' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
-[END]
-
-print << "[END]";
-</td></tr>
 $params
 </form>
 [END]

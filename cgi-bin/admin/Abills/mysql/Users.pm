@@ -25,7 +25,7 @@ $conf{max_username_length} = 10;
 
 my $db;
 my $uid;
-my $aid;
+my $admin;
 #my %DATA = ();
 
 #**********************************************************
@@ -33,7 +33,7 @@ my $aid;
 #**********************************************************
 sub new {
   my $class = shift;
-  ($db, $aid) = @_;
+  ($db, $admin) = @_;
   my $self = { };
   bless($self, $class);
   return $self;
@@ -63,13 +63,15 @@ sub info {
   my $sql = "SELECT u.id, u.fio, u.phone, u.address, u.email, u.activate, u.expire, u.credit, u.reduction, 
             u.variant, u.logins, u.registration, u.disable,
             INET_NTOA(u.ip), INET_NTOA(u.netmask), u.speed, u.filter_id, u.cid, u.comments, u.account_id,
-            if(acct.name IS NULL, 'N/A', 0)
+            if(acct.name IS NULL, 'N/A', 0), u.deposit, tp.name
      FROM users u
      LEFT JOIN accounts acct ON (u.account_id=acct.id)
+     LEFT JOIN variant tp ON (u.variant=tp.vrnt)
      WHERE uid='$uid';";
  
   my $q = $db->prepare($sql);
   $q ->execute(); 
+
 
   if($db->err > 0) {
      $self->{errno} = 3;
@@ -102,11 +104,20 @@ sub info {
    $self->{COMMENTS}, 
    $self->{ACCOUNT_ID},
    $self->{ACCOUNT_NAME},
-   $self->{DEPOSIT})= $q->fetchrow();
+   $self->{DEPOSIT},
+   $self->{TP_NAME} )= $q->fetchrow();
   
-  $self->{UID} = $uid;
+   $self->{UID} = $uid;
+  
+#   $self->test();
   
   return $self;
+}
+
+sub test {
+ my  $self = shift;	
+
+ print "cool";
 }
 
 #**********************************************************
@@ -171,7 +182,7 @@ sub list {
 #**********************************************************
 sub add {
   my $self = shift;
-  my ($admin, $attr) = @_;
+  my ($attr) = @_;
   
   my $LOGIN = (defined($attr->{LOGIN})) ? $attr->{LOGIN} : '';
   my $EMAIL = (defined($attr->{EMAIL})) ? $attr->{EMAIL} : '';
@@ -238,7 +249,7 @@ sub add {
    }
 
   $uid = $db->{'mysql_insertid'};
-  $admin->log_action($uid, "ADD $LOGIN");
+  $admin->action_add($uid, "ADD $LOGIN");
 
   return $self->{result};
 }
@@ -251,7 +262,7 @@ sub add {
 #**********************************************************
 sub change {
   my $self = shift;
-  my ($uid, $admin, $attr) = @_;
+  my ($uid, $attr) = @_;
   
   my %DATA = ();
 
@@ -293,8 +304,12 @@ my %FIELDS = (LOGIN => 'id',
               ACCOUNT_ID => 'account_id',
               DISABLE => 'disable',
               PASSWORD => 'password',
+
               IP => 'ip',
-              NETMASK => 'netmask'
+              NETMASK => 'netmask',
+              TARIF_PLAN=> 'variant',
+              SPEED=> 'speed',
+              CID=> 'cid'
              );
 
   if($DATA{EMAIL} ne '') {
@@ -327,21 +342,25 @@ my %FIELDS = (LOGIN => 'id',
          }
         else {
           $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
-          $CHANGES_QUERY .= "$k='$DATA{$k}',";
+          $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
          }
-
-        $CHANGES_LOG .= "<br>";
      }
    }
-  
-#  print $CHANGES_LOG;
-   
+
+
+if ($CHANGES_QUERY eq '')   {
+  return $self->{result};	
+}
+
+# print $CHANGES_LOG;
+
   chop($CHANGES_QUERY);
   my $sql = "UPDATE users SET $CHANGES_QUERY
     WHERE uid='$uid'";
-  print "$sql";
 
-  $admin->log_action($uid, "$CHANGES_LOG");
+  print "$sql";
+  my $q = $db->do($sql);  
+
 
   if ($db->err == 1062) {
      $self->{errno} = 7;
@@ -354,8 +373,10 @@ my %FIELDS = (LOGIN => 'id',
      return $self;
    }
 
+  $admin->action_add($uid, "$CHANGES_LOG");
   return $self->{result};
 }
+
 
 
 #**********************************************************
@@ -372,6 +393,8 @@ sub del {
      $self->{errstr} = 'SQL_ERROR';
      return $self;
    }
+
+  $admin->action_add($uid, "DELETE");
   return $self->{result};
 }
 

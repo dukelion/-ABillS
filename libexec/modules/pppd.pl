@@ -3,6 +3,11 @@
 #Linux pppd module
 #(Wenger)
 #
+#/etc/sudoers
+#
+#apache   ALL = NOPASSWD: /usr/abills/libexec/modules/pppd.pl
+#
+
 use strict;
 if ($#ARGV < 0) {
   print "No arguments\n pppd.pl hangup [id]\n";
@@ -11,7 +16,7 @@ if ($#ARGV < 0) {
 
 my $rad_detail = '/var/log/radius/radacct/127.0.0.1/';
 
-#if ($ARGV[0] eq 'hangup') { hangup($ARGV[2]); }
+#if ($ARGV[0] eq 'hangup') { hangup($ARGV[1]); }
 
 #*************************************
 # Hangup pppd
@@ -39,7 +44,7 @@ while(<DET>) {
         open(SYS, "/bin/ps ax | /bin/grep \"ipparam $ip\" | /bin/grep -v grep |");
 
         $pid = <SYS>;
-        $pid =~ s/^(\d+).*/$1/;
+        $pid =~ s/^\s+(\d+).*/$1/;
         kill 1, $pid;
         close SYS;
         exit 0;

@@ -26,7 +26,7 @@ require "../../language/$html->{language}.pl";
 my %err_strs = (
   1 => $_ERROR,
   2 => ERROR_NOT_EXIST,
-  3 => $ERR_SQL,
+  3 => ERROR_SQL,
   4 => ERROR_WRONG_PASSWORD,
   5 => ERROR_WRONG_CONFIRM,     
   6 => ERROR_SHORT_PASSWORD,
@@ -34,7 +34,8 @@ my %err_strs = (
   8 => ERROR_ENTER_NAME,
   9 => ERROR_LONG_USERNAME,
   10 => ERROR_WRONG_NAME,
-  11 => ERROR_WRONG_EMAIL
+  11 => ERROR_WRONG_EMAIL,
+  12 => ERROR_ENTER_SUM
 );
 
 
@@ -79,14 +80,6 @@ my $root_index = 0;
 
 my %main_menu = ();
 my $navigat_menu = mk_navigator();
-
-
-
-
-
-
-
-
 
 
 
@@ -313,7 +306,7 @@ print "<form action=$SELF_URL>\n
 # form_users()
 #**********************************************************
 sub user_form {
- my ($type, $user_info) = @_;
+ my ($type, $user_info, $attr) = @_;
  my $tpl_form;
 
 
@@ -346,20 +339,27 @@ $tpl_form = qq{<table width=100%>
 else { 
  use Tariffs;
  my $tariffs = Tariffs->new($db);
-
- if (! $info) {
+ my $info;
+ my $variant_out = '';
+ 
+ if (! defined($user_info->{UID})) {
    $info = "<tr><td>$_USER:*</td><td><input type=text name=login value='$user_info->{LOGIN}'></td></tr>\n";
    my $tariffs_list = $tariffs->list();
-   $variant_out = "<select name=variant>";
+   $variant_out = "<select name=tarif_plan>";
 
    foreach my $line (@$tariffs_list) {
      $variant_out .= "<option value=$line->[0]";
-     $variant_out .= ' selected' if ($line->[0] == $variant);
+     $variant_out .= ' selected' if ($line->[0] == $user_info->{TARIF_PLAN});
      $variant_out .=  ">$line->[0]:$line->[1]\n";
     }
    $variant_out .= "</select>";
   }
+ else {
+   $info = "<tr><td>$_USER:*</td><td><b>$user_info->{LOGIN}</b></td></tr>\n";
+   $variant_out .= $user_info->{TP_NAME};
+  } 
 
+my $disable = ($user_info->{DISABLE} > 0) ? 'checked' : '';
 
 $tpl_form = qq{
 <form action=$SELF_URL method=post>
@@ -387,7 +387,7 @@ $info
 <tr><td><b>CID:</b><br></td><td><input title='MAC: [00:40:f4:85:76:f0]
 IP: [10.0.1.1]
 PHONE: [805057395959]' type=text name=cid value='$user_info->{CID}'></td></tr>
-<tr><td>$_DISABLE:</td><td><input type=checkbox name=disable value='yes' $disable></td></tr>
+<tr><td>$_DISABLE:</td><td><input type=checkbox name=disable value='1' $disable></td></tr>
 <tr><th colspan=2>:$_COMMENTS:</th></tr>
 <tr><th colspan=2><textarea name=comments rows=5 cols=45>$comments</textarea></th></tr>
 </table>
@@ -396,12 +396,16 @@ PHONE: [805057395959]' type=text name=cid value='$user_info->{CID}'></td></tr>
 </form>
 };
 
+
+
+
 if ($uid) {
 $tpl_form = qq{<table width=600 border=1 cellspacing=1 cellpadding=2><tr><td>
 $tpl_form
 </td><td bgcolor=$_COLORS[3] valign=top width=180>
 
 <table width=100% border=0><tr><td>
+      <li><a href='$SELF?op=users&uid=$uid'>$_USER</a>
       <li><a href='$SELF?op=stats&uid=$uid'>$_STATS</a>
       <li><a href='$SELF?op=payments&uid=$uid'>$_PAYMENTS</a>
       <li><a href='$SELF?op=fees&uid=$uid'>$_FEES</a>
@@ -411,18 +415,28 @@ $tpl_form
       <li><a href='docs.cgi?docs=accts&uid=$uid'>$_ACCOUNTS</a>
 </td></tr>
 <tr><td> 
-      <br><b>$_CHANGE</b>
-      <li><a href='$SELF?op=users&uid=$uid&password=chg'>$_PASSWD</a>
-      <li><a href='$SELF?op=chg_uvariant&uid=$uid'>$_VARIANT</a>
-      <li><a href='$SELF?op=account&uid=$uid'>$_ACCOUNT</a>
-      <li><a href='$SELF?op=allow_nass&uid=$uid'>$_NASS</a>
-      <li><a href='$SELF?op=bank_info&uid=$uid'>$_BANK_INFO</a>
-      <li><a href='$SELF?op=changes&uid=$uid'>$_LOG</a>
-      <li><a href='$SELF?op=users&del=y&uid=$uid' onclick=\"return confirmLink(this, '$_USER: $user_info->{LOGIN} / $user_info->{UID} ')\">$_DEL</a>
+      <br><b>$_CHANGE</b>\n};
+
+my %menus = ('password' => $_PASSWD,
+             'chg_tp' =>   $_TARIF_PLAN,
+             'account' =>  $_ACCOUNT,
+             'nas' => $_NAS,
+             'bank_info' => $_BANK_INFO,
+             'changes' => $_LOG
+ );
+ 
+
+while(my($k, $v)=each (%menus) ) {
+  $tpl_form .= "<li><a href='$SELF_URL?op=users&uid=$uid&$k=y'>$v</a>\n";
+}
+
+
+$tpl_form .= "<li><a href='$SELF?op=users&del=y&uid=$uid' onclick=\"return confirmLink(this, '$_USER: $user_info->{LOGIN} / $user_info->{UID} ')\">$_DEL</a>
 </td></tr>
+
 </table>
-</td></tr></table>
-};
+</td></tr></table>\n";
+
 	
 }
 
@@ -442,29 +456,32 @@ print $tpl_form;
 sub form_users {
 
 my $LOGIN = $FORM{login} || '';
-my  $EMAIL = $FORM{email} || '';
-my  $FIO = $FORM{fio} || '';
-my  $PHONE = $FORM{phone} || '';
-my  $ADDRESS = $FORM{address} || '';
-my  $ACTIVATE = $FORM{activate} || '0000-00-00';
-my  $EXPIRE = $FORM{expire} || '0000-00-00';
-my  $CREDIT = $FORM{credit} || 0;
-my  $REDUCTION = $FORM{reduction} || 0;
-my  $SIMULTANEONSLY = $FORM{simultaneously} || 0;
-my  $COMMENTS  = $FORM{comments} || '';
+my $EMAIL = $FORM{email} || '';
+my $FIO = $FORM{fio} || '';
+my $PHONE = $FORM{phone} || 0;
+my $ADDRESS = $FORM{address} || '';
+my $ACTIVATE = $FORM{activate} || '0000-00-00';
+my $EXPIRE = $FORM{expire} || '0000-00-00';
+my $CREDIT = $FORM{credit} || 0;
+my $REDUCTION = $FORM{reduction} || 0;
+my $SIMULTANEONSLY = $FORM{simultaneously} || 0;
+my $COMMENTS  = $FORM{comments} || '';
+my $DISABLE = $FORM{disable} || 0;
 
 my  $ACCOUNT_ID = $FORM{account_id} || 0;
 
 my $IP = $FORM{ip} || '0.0.0.0';
 my $NETMASK = $FORM{netmask} || '255.255.255.255';
+my $TARIF_PLAN = $FORM{tarif_plan} || 0;
+my $SPEED = $FORM{speed} || 0;
 
 $uid = $FORM{uid};
 
  use Users;
- my $users = Users->new($db, $aid); 
+ my $users = Users->new($db, $admin); 
 
 if ($FORM{add}) {
-  $users->add($admin, { LOGIN => $LOGIN,
+  $users->add({ LOGIN => $LOGIN,
                  EMAIL => $EMAIL,
                  FIO => $FIO,
                  PHONE => $PHONE,
@@ -475,15 +492,19 @@ if ($FORM{add}) {
                  REDUCTION  => $REDUCTION,
                  SIMULTANEONSLY => $SIMULTANEONSLY,
                  COMMENTS => $COMMENTS,
-                 ACCOUNT_ID => $ACCOUNT_ID }
-                );  
+                 ACCOUNT_ID => $ACCOUNT_ID, 
+                 DISABLE => $DISABLE,
+                 
+                 TARIF_PLAN => $TARIF_PLAN,
+                 IP => $IP,
+                 NETMASK => $NETMASK,
+                 SPEED => $SPEED,
+                 FILTER_ID => $FILTER_ID,
+                 CID => $CID
+               }
+              );  
 
-#  my $TARIF_PLAN = (defined($attr->{TARIF_PLAN})) ? $attr->{TARIF_PLAN} : '';
-#  my $IP = (defined($attr->{IP})) ? $attr->{IP} : '0.0.0.0';
-#  my $NETMASK  = (defined($attr->{NETMASK})) ? $attr->{NETMASK} : '255.255.255.255';
-#  my $SPEED = (defined($attr->{SPEED})) ? $attr->{SPEED} : 0;
-#  my $FILTER_ID = (defined($attr->{FILTER_ID})) ? $attr->{FILTER_ID} : '';
-#  my $CID = (defined($attr->{CID})) ? $attr->{CID} : '';);
+
 
   if ($users->{errno}) {
     message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
@@ -495,11 +516,6 @@ if ($FORM{add}) {
     form_payments();
     return 0;
    }
-}
-#Change tariff plan
-elsif ($FORM{chg_tp}) {
-  my $change_tp = '';
-  return 0;
 }
 elsif($FORM{password}) {
   my $password = chg_password('users', "$uid");
@@ -521,8 +537,9 @@ elsif($FORM{password}) {
     return 0;	
    }
  }
+
 elsif ($FORM{change}) {
-  $users->change("$uid", $admin, { LOGIN => $LOGIN,
+  $users->change("$uid", { 
                  EMAIL => $EMAIL,
                  FIO => $FIO,
                  PHONE => $PHONE,
@@ -534,17 +551,13 @@ elsif ($FORM{change}) {
                  SIMULTANEONSLY => $SIMULTANEONSLY,
                  COMMENTS => $COMMENTS,
                  ACCOUNT_ID => $ACCOUNT_ID,
+                 DISABLE => $DISABLE,
+                 
                  IP => $IP,
-                 NETMASK => $NETMASK
-                   }
+                 NETMASK => $NETMASK,
+                 SPEED => $SPEED,
+                  }
                 );  
-
-#  my $TARIF_PLAN = (defined($attr->{TARIF_PLAN})) ? $attr->{TARIF_PLAN} : '';
-#  my $IP = (defined($attr->{IP})) ? $attr->{IP} : '0.0.0.0';
-#  my $NETMASK  = (defined($attr->{NETMASK})) ? $attr->{NETMASK} : '255.255.255.255';
-#  my $SPEED = (defined($attr->{SPEED})) ? $attr->{SPEED} : 0;
-#  my $FILTER_ID = (defined($attr->{FILTER_ID})) ? $attr->{FILTER_ID} : '';
-#  my $CID = (defined($attr->{CID})) ? $attr->{CID} : '';);
 
   if ($users->{errno}) {
     message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
@@ -558,8 +571,19 @@ elsif ($FORM{change}) {
 
 if($uid > 0) {
   my $user_info = $users->info( $uid );
+  
+  if ($users->{errno}) {
+    message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+    return 0;
+   }
 
-  if ($FORM{del}) {
+
+  #Change tariff plan
+  if ($FORM{chg_tp}) {
+    print form_chg_tp($user_info);
+    return 0;
+   }
+  elsif ($FORM{del}) {
     $users->del();
     if ($users->{errno}) {
       message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
@@ -631,6 +655,114 @@ print $html->pages($total, "op=users$pages_qs");
 print $table->show();
 print $html->pages($total, "op=users$pages_qs");
 }
+
+
+#*******************************************************************
+# Change user variant form
+# form_chg_vid()
+#*******************************************************************
+sub form_chg_tp {
+ my ($user) = @_;
+
+ my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_VARIANT;
+ my $period = $FORM{period} || 0;
+
+if ($FORM{set}) {
+
+  if ($period == 1) {
+    $FORM{date_m}++;
+    shedule('add', {uid => $user->{UID},
+                    type => 'tp',
+                    action => $new_variant,
+    	            d => $FORM{date_d},
+                    m => $FORM{date_m},
+                    y => $FORM{date_y},
+                    descr => "$message<br>
+                    $_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'"
+                    })
+   }
+  else {
+    $user->change($user->{UID}, {
+                 TARIF_PLAN => $TARIF_PLAN
+                    }
+               );
+    if ($users->{errno}) {
+      message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+     }
+    else {
+      message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
+
+  }
+}
+elsif($FORM{del}) {
+  shedule('del', { uid => $user->{UID},
+   	           id  => $FORM{del}  } );
+# $q = $db->do("DELETE FROM shedule WHERE id='$FORM{del}' and uid='$uid';") || die $db->strerr;
+}
+
+use Tariffs;
+my $tariffs = Tariffs->new($db);
+my $variant_out = '';
+ 
+ my $tariffs_list = $tariffs->list();
+ foreach my $line (@$tariffs_list) {
+   $variant_out .= "<option value=$line->[0]";
+   $variant_out .= ' selected' if ($line->[0] == $user->{TARIF_PLAN});
+   $variant_out .=  ">$line->[0]:$line->[1]\n";
+  }
+
+
+ my $params='';
+ $q = $db->prepare("SELECT id, CONCAT(y, '-', m, '-', d), action FROM shedule WHERE type='tp' and uid='$uid';") || die $db->strerr;
+ $q ->execute();
+ 
+ if ($q->rows > 0) {
+   my($id, $date, $new_variant) = $q -> fetchrow();
+   
+   $params = "<tr><th colspan=2 bgcolor=$_BG0>$_SHEDULE</th></tr>
+              <tr><td>$_DATE:</td><td>$date</td></tr>
+              <tr><td>$_CHANGE:</td><td>$new_variant:$vnames{$new_variant}</td></tr>
+              </table>
+              <input type=hidden name=del value='$id'>
+              <input type=submit name=delete value='$_DEL'>\n";
+  }
+ else {
+    $params .= "<tr><td>$_TO:</td><td><select name=tarif_plan>$variant_out</select></td></tr>";
+    $params .= form_period($period);
+    $params .= "</table><input type=submit name=set value=\"$_CHANGE\">\n";
+
+  }
+
+
+
+
+my $result = "<form action=$SELF_URL>
+<input type=hidden name=uid value='$user->{UID}'>
+<input type=hidden name=chg_tp value=y>
+<input type=hidden name=op value=users>
+<table width=400 border=0>
+<tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TARIF_PLAN} $user->{TP_NAME} [<a href='$SELF?op=variants&chg=$old_variant' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
+$params
+</form>\n";
+
+
+
+ return $result;
+}
+
+
+
+#**********************************************************
+# form_changes();
+#**********************************************************
+sub form_changes {
+ 	
+	
+}
+
+
 
 #**********************************************************
 # form_admins()
@@ -781,7 +913,7 @@ print "<table>
 # chg_password($op, $id)
 #**********************************************************
 sub chg_password {
- my ($op, $id)=@_;
+ my ($op, $id, $attr)=@_;
  print "<h3>$_CHANGE_PASSWD</h3>\n";
 
 if ($FORM{newpassword} eq '') {
@@ -844,29 +976,36 @@ $menu_items{14}{1}=$_USERS;
 $op_names{14}='users';
 $functions{14}=\&form_users;
 
+$menu_items{15}{14}=$_LOG;
+$op_names{15}='changes';
+$functions{15}=\&form_changes;
+
+$menu_items{16}{14}=$_TARIF_PLAN;
+$op_names{16}='chg_tp';
+$functions{16}=\&form_chg_tp;
 
 
 
 
-
-=comments
-$menu_items{14}{1}=$_FEES;
-$op_names{14}='users';
-$functions{14}=\&form_users;
-
-$menu_items{15}{1}=$_LIST;
-$op_names{15}='users';
-$functions{15}=\&form_users;
-
-$menu_items{11}{1}=$_PAYMENTS;
-$op_names{11}='payments';
-$functions{11}=\&form_users;
-=cut
+#=comments
+#$menu_items{14}{1}=$_FEES;
+#$op_names{14}='users';
+#$functions{14}=\&form_users;
+#
+#$menu_items{15}{1}=$_LIST;
+#$op_names{15}='users';
+#$functions{15}=\&form_users;
+#
+#$menu_items{11}{1}=$_PAYMENTS;
+#$op_names{11}='payments';
+#$functions{11}=\&form_users;
+#=cut
 
 
 #Payments
 $menu_items{2}{0}=$_PAYMENTS;
 $op_names{2}='payments';
+$functions{2}=\&form_payments;
 
 # Fees
 $menu_items{3}{0}=$_FEES;
@@ -1053,6 +1192,9 @@ foreach my $parent (@menu_sorted) {
 
 sub sub_menu {
   my $root_index = shift;
+  
+  
+  return 0 if ($root_index < 1);
 
   print "<br><hr>\n";
 my  %new_hash = ();
@@ -1102,7 +1244,23 @@ while((my($findex, $hash)=sort each(%menu_items))) {
 # form_payments
 #**********************************************************
 sub form_payments () {
-	
+ my $DESCRIBE = $FORM{descr} || '';
+ 
+ use Finance;
+ my $finance = Finance->new($db, $admin);
+
+ 
+if ($FORM{add})	 {
+  $finace->payments($uid, { DESCRIBE => $DESCRIBE }
+                );  
+
+  if ($users->{errno}) {
+    message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+   }
+  else {
+    message('info', $_PAYMENTS, "$_ADDED");
+   }
+}
 
 print << "[END]";	
 <form action=$SELF_URL>
@@ -1118,4 +1276,27 @@ print << "[END]";
 
 }
 
+#*******************************************************************
+# form_period
+#*******************************************************************
+sub form_period () {
+ my $period = shift;
+ my @periods = ("$PERIODS[0]", "$_OTHER");
+ my $date_fld = $html->date_fld('date_');
+ my $form_period='';
 
+
+ $form_period .= "<tr><td>$_DATE:</td><td>";
+
+ my $i=0;
+ foreach my $t (@periods) {
+   $form_period .= "<br><br><input type=radio name=period value=$i";
+   $form_period .= " checked" if ($i eq $period);
+   $form_period .= "> $t\n";	
+   $i++;
+ }
+ $form_period .= "$_DATE: $date_fld</td></tr>\n";
+
+
+ return $form_period;	
+}

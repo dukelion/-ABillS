@@ -12,6 +12,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
    $OP
    $SELF_URL
    $SESSION_IP
+   @MONTHES
 );
 
 use Exporter;
@@ -37,6 +38,8 @@ $VERSION = 2.00;
 %EXPORT_TAGS = ();
 
 my $bg;
+my $debug;
+my %log_levels;
 #Hash of url params
 
 
@@ -545,5 +548,87 @@ for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
 
 
 
+#*******************************************************************
+# Make data field
+# date_fld($base_name)
+#*******************************************************************
+sub date_fld  {
+ my $self = shift;
+ my $base_name=shift;
+ 
+ my($sec,$min,$hour,$mday,$mon,$curyear,$wday,$yday,$isdst) = localtime(time);
+
+ my $day = $FORM{$base_name.'d'} || 1;
+ my $month = $FORM{$base_name.'m'} || $mon;
+ my $year = $FORM{$base_name.'y'} || $curyear + 1900;
+
+
+
+# print "$base_name -";
+my $result  = "<SELECT name=". $base_name ."d>";
+for (my $i=1; $i<=31; $i++) {
+   $result .= sprintf("<option value=%.2d", $i);
+   $result .= ' selected' if($day == $i ) ;
+   $result .= ">$i\n";
+ }	
+$result .= '</select>';
+
+
+$result  .= "<SELECT name=". $base_name ."m>";
+
+my $i=0;
+foreach my $line (@MONTHES) {
+   $result .= sprintf("<option value=%.2d", $i);
+   $result .= ' selected' if($month == $i ) ;
+   
+   $result .= ">$line\n";
+   $i++
+}
+
+$result .= '</select>';
+
+$result  .= "<SELECT name=". $base_name ."y>";
+for ($i=2001; $i<=$year; $i++) {
+   $result .= "<option value=$i";
+   $result .= ' selected' if($year eq $i ) ;
+   $result .= ">$i\n";
+ }	
+$result .= '</select>';
+
+return $result ;
+}
+
+#**********************************************************
+# log_print()
+#**********************************************************
+sub log_print {
+ my $self = shift;
+ my ($level, $text) = @_;	
+
+ if($debug < $log_levels{$level}) {
+     return 0;	
+  }
+
+print << "[END]";
+<table width=640 border=0 cellpadding="0" cellspacing="0">
+<tr><td bgcolor=#00000>
+<table width=100% border=0 cellpadding="2" cellspacing="1">
+<tr><td bgcolor=FFFFFF>
+
+<table width=100%>
+<tr bgcolor=$_COLORS[3]><th>
+$level
+</th></tr>
+<tr><td>
+$text
+</td></tr>
+</table>
+
+</td></tr>
+</table>
+</td></tr>
+</table>
+[END]
+}
 
 1
