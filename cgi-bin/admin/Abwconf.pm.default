@@ -1,0 +1,742 @@
+package Abwconf;
+
+use strict;
+use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
+   $SELF
+   $db
+   $debug
+   $BACKUP_DIR
+   $MYSQLDUMP
+   $GZIP
+   $_BG0
+   $_BG1
+   $_BG2
+   $_BG3
+   $_BG4
+   @_COLORS
+   @status_types
+   $language
+   $max_recs
+   @auth_types
+   $_DEFAULT_VARIANT
+   @MONTHES
+   $admin_name
+   $admin_ip
+   $header_text
+
+   %conf
+   %FORM
+   %cookies
+   $sort
+   $desc
+   $pg
+   $op
+);
+
+use Exporter;
+$VERSION = 2.00;
+@ISA = ('Exporter');
+
+@EXPORT = qw( &shuffle 
+   &header
+   &footer
+   &message 
+   &date_fld 
+   &pages
+   &setCookie
+   &getCookies
+   &get_online
+   &mk_unique_value
+   &show_menu
+   &show_title
+   &log_print
+   &html_escape
+   &quote_escape
+   &get_login
+   &css
+   $SELF
+   $db
+   $debug
+   $BACKUP_DIR
+   $ACTION_LOG
+   $MYSQLDUMP
+   $GZIP
+   @auth_types
+   @status_types
+   $_BG0
+   $_BG1
+   $_BG2
+   $_BG3
+   $_BG4
+   @_COLORS
+   $language
+   $max_recs
+   $_DEFAULT_VARIANT
+   @MONTHES
+   $DATE
+   $TIME
+   $admin_name
+   $admin_ip
+   $header_text
+
+   %FORM
+   %cookies
+   $sort
+   $desc
+   $pg
+   $op
+);
+
+@EXPORT_OK = ();
+%EXPORT_TAGS = ();
+
+#Hash of url params
+%FORM = form_parse();
+%cookies = getCookies();
+$sort = $FORM{sort} || 1;
+$desc = ($FORM{desc}) ? 'DESC' : '';
+$pg = $FORM{pg} || 0;
+$op = $FORM{op} || '';
+$language = 'english';
+
+#DB settings
+$conf{dbhost}='localhost';
+$conf{dbname}='abills';
+$conf{dbuser}='abills';
+$conf{dbpasswd}='password';
+
+#Mail configuration
+$conf{ADMIN_MAIL}='admin@your.domain';
+$conf{USERS_MAIL_DOMAIN}='your.domain';
+$conf{MAIL_CHARSET}='windows-1251';
+
+$debug=7; #DEbug mode (SQL)
+@auth_types = ('SQL', 'SYSTEM');
+@status_types = ('Not working', 'Working', 'Reserved', 'Expire');
+
+#Path settings
+my $LIB_PATH='/usr/abills/libexec/';
+$MYSQLDUMP = '/usr/local/mysql/bin/mysqldump';
+$BACKUP_DIR='/usr/abills/backup';
+$GZIP = '/usr/bin/gzip';
+push(@INC, $LIB_PATH);
+my $prot = ($ENV{HTTPS} eq 'ON') ? 'https' : 'http' ;
+$SELF="$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}";
+
+#require 'config.pl';
+
+
+# Color setting
+$_BG0='#FDE302';  #Table captions
+$_BG1='#FFFFFF';   #line 1
+$_BG2='#eeeeee';   #line 3
+$_BG3='#dddddd';   #total
+$_BG4='#E1E1E1';  #table border
+
+@_COLORS = ('#FDE302',  # 0 TH
+            '#FFFFFF',  # 1 TD.1
+            '#eeeeee',  # 2 TD.2
+            '#dddddd',  # 3 TH.sum, TD.sum
+            '#E1E1E1',  # 4 border
+            '#FFFFFF',  # 5
+            '#FFFFFF',  # 6
+            '#000088',  # 7 vlink
+            '#0000A0',  # 8 Link
+            '#000000',  # 9 Text
+            '#FFFFFF',  #10 background
+           ); #border
+
+
+$max_recs = 25;  # Max lines
+$header_text='ABillS';
+$_DEFAULT_VARIANT=2; # Defaul user variant
+
+# Log levels
+my %log_levels = ('LOG_EMERG' => 0,
+  'LOG_ALERT' => 0,
+  'LOG_CRIT' => 0,
+  'LOG_ERR' => 1,
+  'LOG_WARNING' => 0, 
+  'LOG_NOTICE' => 0,
+  'LOG_INFO' => 1,
+  'LOG_DEBUG' => 7,
+  'LOG_SQL' => 6);
+
+
+use DBI;
+
+$db = DBI -> connect("DBI:mysql:database=$conf{dbname};host=$conf{dbhost}", "$conf{dbuser}", "$conf{dbpasswd}") or
+  die "Unable connect to server '$conf{dbhost}:$conf{dbname}' $!\n";
+
+
+
+
+####################################################################
+# Functions
+
+#*******************************************************************
+# log_print($level, $text)
+#*******************************************************************
+sub log_print {
+ my ($level, $text) = @_;	
+
+ if($debug < $log_levels{$level}) {
+     return 0;	
+  }
+
+print << "[END]";
+<table width=640 border=0 cellpadding="0" cellspacing="0">
+<tr><td bgcolor=#00000>
+<table width=100% border=0 cellpadding="2" cellspacing="1">
+<tr><td bgcolor=FFFFFF>
+
+<table width=100%>
+<tr bgcolor=$_BG3><th>
+$level
+</th></tr>
+<tr><td>
+$text
+</td></tr>
+</table>
+
+</td></tr>
+</table>
+</td></tr>
+</table>
+[END]
+}
+
+#*******************************************************************
+# Parse inputs from query
+# form_parse()
+#*******************************************************************
+sub form_parse {
+  my $buffer = '';
+  my $value='';
+  my %FORM = ();
+  
+if ($ENV{'REQUEST_METHOD'} eq "GET") {
+   $buffer= $ENV{'QUERY_STRING'};
+ } elsif ($ENV{'REQUEST_METHOD'} eq "POST") {
+   read(STDIN, $buffer, $ENV{'CONTENT_LENGTH'});
+ }
+
+my @pairs = split(/&/, $buffer);
+
+foreach my $pair (@pairs) {
+   my ($side, $value) = split(/=/, $pair);
+   $value =~ tr/+/ /;
+   $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+   $value =~ s/<!--(.|\n)*-->//g;
+   $value =~ s/<([^>]|\n)*>//g;
+   if (defined($FORM{$side})) {
+     $FORM{$side} .= ", $value";
+    }
+   else {
+     $FORM{$side} = $value;
+    }
+ }
+ return %FORM;
+}
+
+
+#*******************************************************************
+# Show message box
+# message($type, $caption, $message)
+# $type - info, err
+#*******************************************************************
+sub message {
+ my $type = shift; #info; err
+ my $caption = shift;
+ my $message = shift;	
+ my $head = '';
+ 
+ if ($type eq 'err') {
+   $head = "<tr><th bgcolor='#FF0000'>$caption</th></tr>\n";
+  }
+ elsif ($type eq 'info') {
+   $head = "<tr><th bgcolor='$_COLORS[0]'>$caption</th></tr>\n";
+  }  
+ 
+print << "[END]";
+<table width=400 border=0 cellpadding="0" cellspacing="0">
+<tr><td bgcolor=$_COLORS[9]>
+<table width=100% border=0 cellpadding="2" cellspacing="1">
+<tr><td bgcolor=$_COLORS[1]>
+
+<table width=100%>
+$head
+<tr><td bgcolor=$_COLORS[1]>$message</td></tr>
+</table>
+
+</td></tr>
+</table>
+</td></tr>
+</table>
+[END]
+}
+
+
+#*******************************************************************
+# Make pages and count total records
+# pages($field, $table, $where, $argument)
+#*******************************************************************
+sub pages {
+ my ($field, $table, $where, $argument, $pg) = @_;
+
+ my %RESULT=();
+ 
+ my $begin=0;   
+
+ my $q = $db -> prepare("SELECT count($field) FROM $table $where;") || die $db->strerr;
+ $q -> execute ();
+ my ($count) = $q -> fetchrow();
+
+ $RESULT{count} = $count;
+ $RESULT{pages} = '';
+ $begin = ($pg - $max_recs * 3 < 0) ? 0 : $pg - $max_recs * 3 ;
+
+for(my $i=$begin; ($i<=$count && $i < $pg + $max_recs * 10); $i+=$max_recs) {
+   $RESULT{pages} .= ($i == $pg) ? "<b>$i</b>:: " : "<a href='$SELF?$argument&pg=$i'>$i</a>:: ";
+}
+
+ return %RESULT;
+}
+
+
+
+
+#*******************************************************************
+# Make data field
+# date_fld($base_name)
+#*******************************************************************
+sub date_fld  {
+ my $base_name=shift;
+ 
+ my($sec,$min,$hour,$mday,$mon,$curyear,$wday,$yday,$isdst) = localtime(time);
+
+ my $day = $FORM{$base_name.'d'} || 1;
+ my $month = $FORM{$base_name.'m'} || $mon;
+ my $year = $FORM{$base_name.'y'} || $curyear + 1900;
+
+
+
+# print "$base_name -";
+my $result  = "<SELECT name=". $base_name ."d>";
+for (my $i=1; $i<=31; $i++) {
+   $result .= sprintf("<option value=%.2d", $i);
+   $result .= ' selected' if($day == $i ) ;
+   $result .= ">$i\n";
+ }	
+$result .= '</select>';
+
+
+$result  .= "<SELECT name=". $base_name ."m>";
+
+my $i=0;
+foreach my $line (@MONTHES) {
+   $result .= sprintf("<option value=%.2d", $i);
+   $result .= ' selected' if($month == $i ) ;
+   
+   $result .= ">$line\n";
+   $i++
+}
+
+$result .= '</select>';
+
+$result  .= "<SELECT name=". $base_name ."y>";
+for ($i=2001; $i<=$year; $i++) {
+   $result .= "<option value=$i";
+   $result .= ' selected' if($year eq $i ) ;
+   $result .= ">$i\n";
+ }	
+$result .= '</select>';
+
+return $result ;
+}
+
+
+#*******************************************************************
+#Set cookies
+# setCookie($name, $value, $expiration, $path, $domain, $secure);
+#*******************************************************************
+sub setCookie {
+	# end a set-cookie header with the word secure and the cookie will only
+	# be sent through secure connections
+	my($name, $value, $expiration, $path, $domain, $secure) = @_;
+
+	print "Set-Cookie: ";
+	print ($name, "=", $value, "; expires=", $expiration,
+		"; path=", $path, "; domain=", $domain, "; ", $secure, "\n");
+}
+
+
+
+#********************************************************************
+# get cookie values and return hash of it
+#
+# getCookies()
+#********************************************************************
+sub getCookies {
+	# cookies are seperated by a semicolon and a space, this will split
+	# them and return a hash of cookies
+	my(@rawCookies) = split (/; /, $ENV{'HTTP_COOKIE'});
+	my(%cookies);
+
+	foreach(@rawCookies){
+	    my ($key, $val) = split (/=/,$_);
+	    $cookies{$key} = $val;
+	} 
+
+	return %cookies; 
+}
+
+
+#********************************************************************
+#
+# css()
+#********************************************************************
+sub css { 
+
+my $css = "
+<style type=\"text/css\">
+
+body {
+  background-color: $_COLORS[10];
+  color: $_COLORS[9];
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 14px;
+  /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
+}
+
+th.small {
+  color: $_COLORS[9];
+  font-size: 10px;
+  height: 10;
+}
+
+td.small {
+  color: $_COLORS[9];
+  height: 1;
+}
+
+th, li {
+  color: $_COLORS[9];
+  height: 22;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+td {
+  color: $_COLORS[9];
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  height: 20;
+  font-size: 14px;
+}
+
+form {
+  font-family: Tahoma,Verdana,Arial,Helvetica,sans-serif;
+  font-size: 12px;
+}
+
+.button {
+  font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
+  background-color: #003366;
+  color: #fcdc43;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+input, textarea {
+	font-family : Verdana, Arial, sans-serif;
+	font-size : 12px;
+	color : $_COLORS[9];
+	border-color : #9F9F9F;
+	border : 1px solid #9F9F9F;
+	background : $_COLORS[2];
+}
+
+select {
+	font-family : Verdana, Arial, sans-serif;
+	font-size : 12px;
+	color : $_COLORS[9];
+	border-color : #C0C0C0;
+	border : 1px solid #C0C0C0;
+	background : $_COLORS[2];
+}
+
+TABLE.border {
+  border-color : #99CCFF;
+  border-style : solid;
+  border-width : 1px;
+}
+</style>";
+
+
+
+ return $css;
+}
+
+
+
+#*******************************************************************
+# Footer off main page
+# Footer()
+#*******************************************************************
+sub footer {
+  my ($text) = @_;
+  print "<hr><font size=-2>$text</font>\n";
+}
+
+#*******************************************************************
+# Make unique value
+# mk_unique_value($size)
+#*******************************************************************
+sub mk_unique_value {
+   my ($passsize) = @_;
+   my $symbols = "qwertyupasdfghjikzxcvbnmQWERTYUPASDFGHJKLZXCVBNM23456789";
+
+   my $value = '';
+   my $random = '';
+   my $i==0;
+   
+   my $size = length($symbols);
+   srand();
+   for ($i=0;$i<$passsize;$i++) {
+     $random = int(rand($size));
+     $value .= substr($symbols,$random,1);
+    }
+  return $value; 
+}
+
+
+
+#*******************************************************************
+# show_manu(@menu);
+#
+# $type
+#   0 - horizontal  
+#   1 - vertical
+# $ex_params - extended params
+# $mp_name - Menu parameter name
+# $params - hash of menu items
+# menu($type, $params);
+#*******************************************************************
+
+sub show_menu {
+  my ($type, $mp_name, $ex_params, $menu)=@_;
+  my @menu_captions = sort keys %$menu;
+
+  print "<table width=100%>\n";
+
+if ($type == 1) {
+	
+}
+else {
+  print "<tr bgcolor=$_COLORS[0]>\n";
+  
+  foreach my $line (@menu_captions) {
+    my($n, $file, $k)=split(/:/, $line);
+    my $link = ($file eq '') ? "$SELF" : "$file";
+    $link .= '?'; 
+    $link .= "$mp_name=$k&" if ($k ne '');
+
+    print "<th";
+    if ($FORM{$mp_name} eq $k && $file eq '') {
+      print " bgcolor=$_BG3><a href='$link$ex_params'>". $menu->{"$line"} ."</a></th>";
+     }
+    else {
+      print "><a href='$link'>". $menu->{"$line"} ."</a></th>\n";
+     }
+  }
+  print "</tr></table>\n";
+}
+
+
+
+
+}
+
+
+#*******************************************************************
+# Show column  titles
+# Arguments 
+# $sort - sort column
+# $desc - DESC / ASC
+# $pg - page id
+# $caption - array off caption
+#*******************************************************************
+sub show_title  {
+  my ($sort, $desc, $pg, $op, $caption)=@_;
+  my $img='';
+
+  print "<tr bgcolor=$_BG0>";
+  my $i=1;
+  foreach my $line (@$caption) {
+     print "<th>$line ";
+     if ($line ne '-') {
+         if ($sort != $i) {
+             $img = 'sort_none.png';
+           }
+         elsif ($desc eq 'DESC') {
+             $img = 'down_pointer.png';
+             $desc='';
+           }
+         elsif($sort > 0) {
+             $img = 'up_pointer.png';
+             $desc='DESC';
+           }
+         print "<a href='$SELF?op=$op&pg=$pg&sort=$i&desc=$desc'>".
+            "<img src='../img/$img' width=12 height=10 border=0 title=sort></a>";
+       }
+     else {
+         print "$line";
+       }
+
+     print "</th>\n";
+     $i++;
+   }
+ print "</tr>\n";
+
+}
+
+#*******************************************************************
+# html_escape(string)
+# Convert &, < and > codes in text to HTML entities
+#*******************************************************************
+sub html_escape {
+my $tmp = $_[0];
+$tmp =~ s/&/&amp;/g;
+$tmp =~ s/</&lt;/g;
+$tmp =~ s/>/&gt;/g;
+$tmp =~ s/\"/&quot;/g;
+$tmp =~ s/\'/&#39;/g;
+$tmp =~ s/=/&#61;/g;
+return $tmp;
+}
+
+
+#*******************************************************************
+# get_uid($uid)
+#*******************************************************************
+sub get_login {
+ my ($uid) = @_;
+ my $login = '';
+ 
+ my $sql = "SELECT id FROM users WHERE uid='$uid';";
+ my $q = $db -> prepare($sql)  || die $db->strerr;
+ $q -> execute();
+ ($login) = $q -> fetchrow();
+ return $login;
+}
+
+
+
+#*******************************************************************
+# quote_escape(string)
+# Converts ' and " characters in a string into HTML entities
+#*******************************************************************
+sub quote_escape {
+my $tmp = $_[0];
+$tmp =~ s/\"/&quot;/g;
+$tmp =~ s/\'/&#39;/g;
+return $tmp;
+}
+
+#*******************************************************************
+# Get online users
+# get_online()
+#*******************************************************************
+sub get_online {
+ my $time_out = 120;
+ my $online_users = '';
+ my $online_count = 0;
+ my %curuser = ();
+ 
+ my $q = $db->do("DELETE FROM web_online WHERE UNIX_TIMESTAMP()-logtime>$time_out;") || die $db->errstr;
+ 
+ my $sql = "SELECT admin, ip FROM web_online;";
+ $q = $db->prepare($sql) || die $db->errstr;
+ $q ->execute(); 
+
+ $online_count = $q->rows;
+ while(my ($admin, $ip)= $q->fetchrow()) {
+    $online_users .= "$admin - $ip;\n";
+    $curuser{"$admin_name"}="$ip" if ($admin eq $admin_name);
+  }
+
+ if ($curuser{"$admin_name"} ne "$admin_ip") {
+   $q = $db->do("INSERT INTO web_online (admin, ip, logtime)
+     values ('$admin_name', '$admin_ip', UNIX_TIMESTAMP());") || die $db->errstr;
+   $online_users .= "$admin_name - $admin_ip;\n";
+   $online_count++;
+  }
+ 
+  print "<abbr title=\"$online_users\"><a href='$SELF?op=admins' title='$online_users'>Online: $online_count</a></abbr> ";
+}
+
+
+#*******************************************************************
+# heder off main page
+# header()
+#*******************************************************************
+sub header {
+ $admin_name=$ENV{REMOTE_USER};
+ $admin_ip=$ENV{REMOTE_ADDR};
+
+ if ($cookies{colors} ne '') {
+   @_COLORS = split(/, /, $cookies{colors});
+   $_BG0=$_COLORS[0];
+   $_BG1=$_COLORS[1];
+   $_BG2=$_COLORS[2];
+   $_BG3=$_COLORS[3];
+   $_BG4=$_COLORS[4];
+  }
+ 
+ if ($cookies{language} ne '') {
+   $language=$cookies{language};
+  }
+
+
+ my $css = css();
+
+
+print q{<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+ <META HTTP-EQUIV="Cache-Control" content="no-cache">
+ <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+ <meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+ <meta name="Author" content="Asmodeus">
+};
+
+print  $css;
+
+print q{ <script type="text/javascript" language="javascript">
+var confirmMsg  = 'Do you really want delete';
+  function confirmLink(theLink, theSqlQuery)
+{
+    // Confirmation is not required in the configuration file
+    if (confirmMsg == '') {
+        return true;
+    }
+
+    var is_confirmed = confirm(confirmMsg + ' :\n' + theSqlQuery);
+    if (is_confirmed) {
+        theLink.href += '&is_js_confirmed=1';
+    }
+
+    return is_confirmed;
+} // end of the 'confirmLink()' function
+</script>
+<title>~AsmodeuS~ Billing system</title>
+</head>} .
+"<body bgcolor=$_COLORS[10] text=$_COLORS[9] link=$_COLORS[8]  vlink=$_COLORS[7] leftmargin=0 topmargin=0 marginwidth=0 marginheight=0>";
+
+}
+
+
+
+1;
+#END { }
+
