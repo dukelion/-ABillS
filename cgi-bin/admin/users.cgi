@@ -3080,10 +3080,10 @@ else  {
      $bg = ($bg eq $_BG1) ? $_BG2 : $_BG1;
      $total_sent += $sent;
      $total_recv += $recv;
-     $total_sum += $sum;
+     $total_sum += $traff_sum;
      $total_sent2 += $sent2;
      $total_recv2 += $recv2;
-     $total_sum2 += $sum2;
+     $total_sum2 += $traff_sum2;
 
      $sent = int2byte($sent);
      $recv = int2byte($recv);
@@ -3100,9 +3100,10 @@ else  {
    $total_recv=int2byte($total_recv);
    $total_sent=int2byte($total_sent);
    $total_sum=int2byte($total_sum);
+   $total_sum2=int2byte($total_recv2 + $total_sent2);
    $total_recv2=int2byte($total_recv2);
    $total_sent2=int2byte($total_sent2);
-   $total_sum2=int2byte($total_recv2 + $total_sent2);
+
 
 
    print "<tr bgcolor=$_BG3><th>Total</th><th>-</th><td>$total_sent</td><td>$total_recv</td><th>$total_sum</th>".
