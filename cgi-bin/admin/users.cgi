@@ -3148,7 +3148,7 @@ elsif ($FORM{add}) {
      day_time_limit, week_time_limit,  month_time_limit, day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, prepaid_trafic)
       VALUES ('$FORM{vrnt}', '$hour_tarif', '$uplimit', \"$FORM{name}\", 
-        '$end', '$begin', '$day_pay', '$month_pay', '$logins', 
+        '$end', '$begin', '$month_pay', '$day_pay', '$logins', 
         '$day_time_limit', '$week_time_limit',  '$month_time_limit', '$day_traf_limit', '$week_traf_limit',  '$month_traf_limit',
         '$activate_price', '$change_price', '$prepaid_trafic');";
 
