@@ -137,6 +137,7 @@ sub list {
 
   $self->{list} = \@users;
   return $self->{list}, $total;
+
 }
 
 

@@ -12,7 +12,7 @@ use Admins;
 #use Users;
 
 my $html = Abills::HTML->new();
-my $sql = Abills::SQL->connect('mysql', 'localhost', 'stats', 'asm', 'test1r');
+my $sql = Abills::SQL->connect('mysql', 'localhost', 'abills', 'asm', 'test1r');
 my $db = $sql->{db};
 my $admins = Admins->new($db);
 $conf{secretkey}="test12345678901234567890";
@@ -24,11 +24,13 @@ $conf{username_length}=15;
 require "../../language/$html->{language}.pl";
 my %err_strs = (
   1 => $_ERROR,
-  2 => $_NOT_EXIST,
+  2 => ERROR_NOT_EXIST,
   3 => $ERR_SQL,
   4 => ERROR_WRONG_PASSWORD,
   5 => ERROR_WRONG_CONFIRM,     
-  6 => ERROR_SHORT_PASSWORD
+  6 => ERROR_SHORT_PASSWORD,
+  7 => ERROR_DUBLICATE,
+  8 => ERROR_ENTER_NAME
 );
 
 
@@ -82,6 +84,7 @@ print "</td><td bgcolor=$_COLORS[0]>$navigat_menu";
 print "</td></tr><tr><td>";
 
 if ($functions{$index}) {
+  $OP = $op_names{$index};
   $functions{$index}->();
 }
 else {
@@ -89,7 +92,7 @@ else {
 }
 
 #if ($OP eq 'admins') { form_admins(); }
-#if ($OP eq 'system') { system_cfg(); }
+#if ($OP eq 'system') { system_cfg();  }
 #else {
 # form_admins();
 #}
@@ -120,6 +123,155 @@ sub check_permissions {
   return 0;
 }
 
+
+#**********************************************************
+# form_customers
+#**********************************************************
+sub form_customers {
+  use Customers;	
+
+ my $customers = Customers->new($db); 
+ my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, '-', '-'],
+                                   cols_align => [left, left, right, right, left, center, center, center, center],
+                                  } );
+
+
+print $html->pages($total, "op=users$pages_qs");
+print $table->show();
+print $html->pages($total, "op=users$pages_qs");
+}
+
+#**********************************************************
+# account_info
+#**********************************************************
+sub account_info {
+
+print << "[END]";
+<form action=$SELF_URL METHOD=POST>
+<input type=hidden name=op value='accounts'>
+<input type=hidden name=chg value='$FORM{chg}'>
+<Table>
+<tr><td>$_NAME:</td><td><input type=text name=name value="$name"></td></tr>
+<tr bgcolor=$_BG1><td>$_DEPOSIT:</td><td>$deposit</td></tr>
+<tr bgcolor=$_BG1><td>$_TAX_NUMBER:</td><td><input type=text name=tax_number value='$tax_number' size=60></td></tr>
+<tr bgcolor=$_BG1><td>$_ACCOUNT:</td><td><input type=text name=bank_account value='$bank_account' size=60></td></tr>
+<tr bgcolor=$_BG1><td>$_BANK_NAME:</td><td><input type=text name=bank_name value='$bank_name' size=60></td></tr>
+<tr bgcolor=$_BG1><td>$_COR_BANK_ACCOUNT:</td><td><input type=text name=cor_bank_account value='$cor_bank_account' size=60></td></tr>
+<tr bgcolor=$_BG1><td>$_BANK_BIC:</td><td><input type=text name=bank_bic value='$bank_bic' size=60></td></tr>
+</table>
+<input type=submit name=$action[0] value='$action[1]'>
+</form>
+[END]
+}
+
+#**********************************************************
+# form_customers
+#**********************************************************
+sub form_accounts {
+  $name = $FORM{name};
+  $deposit = $FORM{deposit};
+  $tax_number = $FORM{tax_number};
+  $bank_account = $FORM{bank_account};
+  $bank_name = $FORM{bank_name}; 
+  $cor_bank_account = $FORM{cor_bank_account}; 
+  $bank_bic = $FORM{cor_bank_account};
+
+  use Customers;	
+  my $customer = Customers->new($db);
+
+
+  @action = ('add', $_ADD);
+
+if ($FORM{add}) {
+  my $account =  $customer->account->add({ NAME => $name,
+                     TAX_NUMBER => $tax_number,
+                     BANK_ACCOUNT => $bank_account,
+                     BANK_NAME => $bank_name, 
+                     COR_BANK_ACCOUNT => $cor_bank_account,
+                     BANK_BIC => $bank_bic
+           });
+ 
+  if ($account->{errno}) {
+    message('err', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
+   }
+  else {
+    message('info', $_ADDED, "$_ADDED");
+   }
+ }
+elsif($FORM{change}) {
+  $customer->account->change($FORM{chg} , { NAME => $name,
+                     TAX_NUMBER => $tax_number,
+                     BANK_ACCOUNT => $bank_account,
+                     BANK_NAME => $bank_name, 
+                     COR_BANK_ACCOUNT => $cor_bank_account,
+                     BANK_BIC => $bank_bic } );
+
+  if ($account->{errno}) {
+    message('info', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
+   }
+  else {
+    message('info', $_INFO, $_CHANGED. " # $name<br>");
+   }
+ }
+elsif($FORM{chg}) {
+  $account = $customer->account->info($FORM{chg});
+
+  if ($account->{errno}) {
+    message('info', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
+   }
+  else {
+    $name = $account->{name};
+    $deposit = $account->{deposit};
+    $tax_number = $account->{tax_number};
+    $bank_account = $account->{bank_account};
+    $bank_name = $account->{bank_name}; 
+    $cor_bank_account = $account->{cor_bank_account}; 
+    $bank_bic = $account->{cor_bank_account};
+
+    message('info', $_INFO, $_CHANGING. " # $_NAME: $name<br>");
+   }
+
+  @action = ('change', $_CHANGE);
+ }
+elsif($FORM{del}) {
+   $customer->account->del( $FORM{del} );
+   message('info', $_INFO, "$_DELETED # $FORM{del}");
+ }
+ 
+ account_info();
+
+
+
+
+
+
+ my %PARAMS = ( SORT => $SORT,
+	       DESC => $DESC,
+	       PG => $PG,
+	       PAGE_ROWS => $PAGE_ROWS,
+	      );
+
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => [$_NAME, $_DEPOSIT, $_USERS, '-', '-'],
+                                   cols_align => [left, right, right, center, center],
+                                  } );
+
+my ($accounts_list, $total) = $customer->account->list( { %PARAMS } );
+foreach my $line (@$accounts_list) {
+  $table->addrow($line->[0],  $line->[1], $line->[2], 
+    "<a href='$SELF_URL?op=accounts&chg=$line->[3]'>$_CHANGE</a>", $html->button($_DEL, "op=accounts&del=$line->[3]", "$_DEL ?"));
+}
+
+ 
+
+print $html->pages($total, "op=users$pages_qs");
+print $table->show();
+print $html->pages($total, "op=users$pages_qs");
+
+}
 
 
 #**********************************************************
@@ -330,9 +482,9 @@ sub admin_permissions {
    $section_index++;
   }
   
- print "<table>
+print "<table>
  <input type=submit name='set' value=\"$_SET\">
- </form>\n";
+</form>\n";
 	
 }
 
@@ -385,25 +537,38 @@ sub mk_navigator  {
 
 # name # parent
 # Users
-$menu_items{1}{0}=$_USERS;
-$op_names{1}='users';
-$functions{1}=\&form_users;
+$menu_items{1}{0}=$_CUSTOMERS;
+$op_names{1}='custome';
+$functions{1}=\&form_customers;
+
 
 $menu_items{12}{1}=$_ADD;
 $op_names{12}='users';
 $functions{12}=\&form_users;
 
-$menu_items{13}{1}=$_FEES;
-$op_names{13}='users';
-$functions{13}=\&form_users;
 
-$menu_items{14}{1}=$_LIST;
+$menu_items{13}{1}=$_ACCOUNTS;
+$op_names{13}='accounts';
+$functions{13}=\&form_accounts;
+
+$menu_items{14}{1}=$_USERS;
 $op_names{14}='users';
 $functions{14}=\&form_users;
+
+
+=comments
+$menu_items{14}{1}=$_FEES;
+$op_names{14}='users';
+$functions{14}=\&form_users;
+
+$menu_items{15}{1}=$_LIST;
+$op_names{15}='users';
+$functions{15}=\&form_users;
 
 $menu_items{11}{1}=$_PAYMENTS;
 $op_names{11}='payments';
 $functions{11}=\&form_users;
+=cut
 
 
 #Payments

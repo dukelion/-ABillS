@@ -17,7 +17,7 @@ sub connect {
     print "Module '$sql_type' not supported yet";
    }
 
-  my $sql = main->connect('localhost', 'stats', 'asm', 'test1r');
+  my $sql = main->connect($dbhost, $dbname, $dbuser, $dbpasswd);
   $self->{db}=$sql->{db};
   return $self;
 }

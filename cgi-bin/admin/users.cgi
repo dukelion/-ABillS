@@ -156,7 +156,7 @@ elsif ($op eq 'shedule') { form_shedule();}
 elsif ($op eq 'templates'){templates();   }
 elsif ($op eq 'sql_cmd') { sql_cmd();     }
 #elsif ($op eq 'graffic') { profile();   }
-
+elsif ($op eq 'not_ended') { not_ended(); }
 else  { sql_online(); }
 
 if ($begin_time > 0) {
@@ -964,6 +964,7 @@ print "
  <a href='$SELF?op=er'>$_EXCHANGE_RATE</a><br>\n
  <a href='$SELF?op=messages'>$_MESSAGES</a><br>\n
  <a href='$SELF?op=profile'>$_PROFILE</a><br>\n
+ <a href='$SELF?op=not_ended'>Not ended</a><br>\n
  <a href='$SELF?op=templates'>$_TEMPLATES</a><br>\n
  <br>
  <a href='networks.cgi'>$_NETWORKS</a><br>\n
@@ -2778,15 +2779,18 @@ if (! defined($FORM{sort})) {
   $desc = 'DESC';	
 }
 
+$sid = ($FORM{sid}) ? "and acct_session_id='$FORM{sid}'": '';
+   
 
 $sql = "SELECT $lupdate, acct_session_id, nas_id, 
    sum(sent1), sum(recv1), sum(sent2), sum(recv2) 
   FROM s_detail 
-  WHERE uid='$login' 
+  WHERE uid='$login' $sid
   GROUP BY 1 
   ORDER BY $sort $desc
   LIMIT $pg, $max_recs;";
  log_print('LOG_SQL', "Func: $op - $sql:");
+
 
  $q = $db -> prepare($sql) || die $db->strerr;
  $q -> execute ();
@@ -3419,7 +3423,8 @@ for(my $i=0; $i<3; $i++) {
   if ($netss{$i} ne '') {
      @n = split(/\n|;/, $netss{$i});
      foreach my $line (@n) {
-       chomp($line);       
+       chomp($line);
+       next if ($line eq "");
        $body .= "$line $i\n";
      }
    }
@@ -3851,9 +3856,9 @@ if ($FORM{search}) {
      $out = ($rows > 1) ? "<a href='$SELF?op=show_int&b=$session_start_u&e=$s_end'>$session_start</a>" : "$session_start";
      print "<tr bgcolor=$bg><td><a href='$SELF?op=users&uid=$uid'>$login</td> <td align=right>";
 
-#     $sss = "<pre>";
-#        my ($ssum, $vid, $time_tarif, $trafic_tarif) = session_sum("$login", "$session_start_u", $duration_sec, \%ACCT_INFO);
-#        $sss .= "$login, $session_start_u, $duration_sec / $ssum, $vid, $time_tarif, $trafic_tarif</pre>";
+     $sss = "<pre>";
+        my ($ssum, $vid, $time_tarif, $trafic_tarif) = session_sum("$login", "$session_start_u", $duration_sec, \%ACCT_INFO);
+        $sss .= "$login, $session_start_u, $duration_sec / $ssum, $vid, $time_tarif, $trafic_tarif</pre>";
         
      print "$out</td><td align=right>$duration</td><td align=right>$variant</td>
         <TD align=right>$sent</TD><TD align=right>$recv</td><td>$CID</td><td>$NAS_INFO->{name}{$nas_id}</td><td>$ip</td><th align=right>
@@ -4058,7 +4063,8 @@ sub sql_online {
      $q = $db->prepare($sql) || die $db->errstr;
      $q ->execute();
      if ($q->rows() < 1) {
-        $message .= "<p align=center><a href='$SELF?op=sql_online&tolog=$acct_session_id&nas_ip_address=$nas_ip_address&nas_port_id=$nas_port_id'>add to log</a></p>";
+        $message .= "<p align=center>[<a href='$SELF?op=sql_online&tolog=$acct_session_id&nas_ip_address=$nas_ip_address&nas_port_id=$nas_port_id'>add to log</a>]
+           [<a href='$SELF?op=sql_online&del=y&tolog=$acct_session_id&nas_ip_address=$nas_ip_address&nas_port_id=$nas_port_id'>$_DEL</a>]</p>";
        }
      else {
      	my($sid)=$q->fetchrow();
@@ -4091,7 +4097,8 @@ sub sql_online {
    if ($q -> rows() < 1) {
         message('err', $_ERROR, 'NO records');
        }
-     else {
+   else {
+      if(! defined($FORM{del})) {
      	my $ACCT_INFO = ();
      	my($username, $started, $duration,  $input_octets, $output_octets,  
      	  $ex_input_octets, $ex_output_octets,  $connect_term_reason, $framed_ip_address, $lupdated,
@@ -4119,6 +4126,7 @@ sub sql_online {
 
         log_print('LOG_SQL', "$sql");
         $q = $db->do($sql) || die $db->errstr;
+       }
 
      	$sql = "DELETE FROM calls WHERE nas_ip_address=INET_ATON('$FORM{nas_ip_address}')
             and nas_port_id='$FORM{nas_port_id}' and acct_session_id='$FORM{tolog}'";
@@ -4966,6 +4974,7 @@ return 0;
 #*******************************************************************
 sub sql_cmd {
  my $query = $FORM{query} || '';
+ my $rows = $FORM{rows} || 0;
  print "<h3>SQL Commander</h3>\n";
  
 print << "[END]";
@@ -4981,9 +4990,106 @@ print << "[END]";
 [END]
 
 
-if ($FORM{show}) {
+if ($FORM{query}) {
+ my $limit = "";
+
+ if ($sort > 1 && $query !~ /ORDER/ig) {
+   if ($query =~ /LIMIT/gi) {
+     $query =~ s/LIMIT/ ORDER BY $sort $desc LIMIT/i;
+    }   
+   else {
+     $query .= " ORDER BY $sort $desc";
+    }
+  }
+
+ if ($query !~ /LIMIT/ig) {
+   if ($rows > 0) {
+     $query =~ s/;//g;
+     $query .= " LIMIT $rows";
+    }
+   else {
+     $query .= " LIMIT $max_recs";
+    }
+ }
+ 
  print "<Table width=640><tr bgcolor=$_BG3><td>
  $query</td></tr></table>\n";	
+
+ $q = $db->prepare($query) || die $db->errstr;
+ $q ->execute(); 
+ print $_COUNT .": ". $q ->rows();
+ print "<table width=99%>\n";
+ show_title($sort, $desc, "$pg", "$op&query=$query", $q ->{NAME});
+
+ while(my @query_fields = $q->fetchrow()) {
+    $bg = ($bg eq $_BG1) ? $_BG2 : $_BG1;
+    print "<tr bgcolor=$bg>";
+    foreach my $field (@query_fields) {
+      print "<td>$field</td>";
+     }
+    print "</tr>\n";
+  }
+
+ print "</table>\n";
+
+
+
 }
 
+}
+
+
+#**********************************************************
+# Not ended
+#**********************************************************
+
+sub not_ended {
+
+print "<h3>No Ended</h3>\n";
+print "<Table width=99%>\n";
+
+ my $sql = "SELECT c.user_name, if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started),
+ INET_NTOA(c.nas_ip_address),
+ c.nas_port_id, c.acct_session_id, SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)),
+ c.acct_input_octets, c.acct_output_octets, c.ex_input_octets, c.ex_output_octets,
+ INET_NTOA(c.framed_ip_address), c.status,
+ u.fio, u.phone, u.variant, u.deposit, u.credit, u.speed, u.uid, c.CID, c.CONNECT_INFO
+ FROM calls c
+  LEFT JOIN users u ON u.id=user_name
+ WHERE c.status=2
+ ORDER BY c.nas_ip_address, c.nas_port_id;";
+ log_print('LOG_SQL', "$sql");
+
+ $q = $db->prepare($sql)   || die $db->errstr;
+ $q ->execute();
+ my $total = $q->rows;
+ 
+  while(my($user_name, $started, $nas_ip_address, $nas_port_id, $acct_session_id, $acct_session_time,
+     $acct_input_octets, $acct_output_octets, $ex_input_octets, $ex_output_octets, $framed_ip_address, 
+     $status,
+     $fio, $phone, $variant, $deposit, $credit, $speed, $uid, $CID, $CONNECT_INFO) = $q->fetchrow()) {
+
+     $acct_input_octets = int2byte($acct_input_octets);
+     $acct_output_octets = int2byte($acct_output_octets);
+     $ex_input_octets = int2byte($ex_input_octets);
+     $ex_output_octets = int2byte($ex_output_octets);
+
+     $bg = ($bg eq $_BG1) ? $_BG2 : $_BG1;
+     print "<tr bgcolor=$bg><td><a href='$SELF?op=users&uid=$uid' ".
+     "title='$_FIO: $fio\n$_PHONE: $phone\n$_VARIANT: $variant\n$_DEPOSIT: $deposit\n".
+     "$_CREDIT: $credit\n$_SPEED: $speed\nSESSION_ID: $acct_session_id\nCID: $CID\nCONNECT_INFO: $CONNECT_INFO'>$user_name</a></td>
+     <td>$fio</td>
+     <td>$nas_port_id</td>
+     <td>$framed_ip_address</td>
+     <td>$acct_session_time</td><td>$acct_input_octets</td><td>$acct_output_octets</td>
+     <td>$ex_input_octets</td><td>$ex_output_octets</td>";
+    
+     my $zap_button = "<a href='$SELF?op=sql_online&zap=$nas_ip_address+$nas_port_id+$acct_session_id' title='Radzap $user_name'>Z</a>";
+     print "<th>(<a href='$SELF?op=sql_online&ping=$framed_ip_address' title='ping'>P</a>)</th>".
+      "<th>($zap_button)</th>".
+      "<th>(<a href='$SELF?op=sql_online&hangup=$nas_ip_address+$nas_port_id+$acct_session_id' title='hangup'>H</a>)</th></tr>\n";
+    }
+
+
+print "</table>\n";
 }
