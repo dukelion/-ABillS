@@ -729,7 +729,7 @@ sub nas {
  
  my @action = ('add', "$_ADD");
 
- my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'dslmax', 'mpd');
+ my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'pppd', 'dslmax', 'mpd');
  my %nas_descr = ('usr' => "USR Netserver 8/16",
   'pm25' => 'LIVINGSTON portmaster 25',
   'ppp' => 'FreeBSD ppp demon',
@@ -739,6 +739,7 @@ sub nas {
   'radpppd' => 'pppd version 2.3 patch level 5.radius.cbcp',
   'mpd' => 'MPD ',
   'ipcad' => 'IP accounting daemon with Cisco-like ip accounting export',
+  'pppd' => 'pppd + RADIUS plugin (Linux)',
   'other' => 'Other nas server');
 
 if ($FORM{ippools}) {
@@ -1610,7 +1611,7 @@ else {
    }
 
   $trafic_sum = int2byte($trafic_sum);
-  $output .= "<tr bgcolor=$_BG3><th>$_SUM</th><td align=right>$logins_sum</td><th align=right>$trafic_sum</th><td align=right>-</td><th align=right>$money_sum</th>\n".
+  $output .= "<tr bgcolor=$_BG3><th>$_SUM</th><td align=right>$logins_sum</td><th align=right>$trafic_sum</th><td align=right>-</td><td></td><th align=right>$money_sum</th>\n". 
     "</table>\n".
     "</td></tr></table>\n";
 
@@ -1626,8 +1627,9 @@ else {
       $sessions = int($graffic{$i}{sessions} * $midl_sessions);
       $sum = int($graffic{$i}{sum} * $midl_sum);
       $users = int($graffic{$i}{users} * $midl_users);
-      $output .= "<img src='../img/vertgreen.gif' width=6 height=$sessions>".
-         "<img src='../img/vertyellow.gif' width=6 height=$users>".
+
+      $output .= "<img src='../img/vertgreen.gif' width=6 height=$users>". 
+         "<img src='../img/vertyellow.gif' width=6 height=$sessions>". 
          "<img src='../img/vertred.gif' width=7 height=$sum><br>";
      }
     else { 
@@ -3031,7 +3033,7 @@ if ($login ne '') {
     $button = "<A href='$SELF?op=bm&del=log&login=$login&ltime=$ltime&sum=$sum&duration=$uduration'
         onclick=\"return confirmLink(this, '$_USER: $login | $_LOGIN: $ltime | $_SUM: $sum | $_DURATION: $duration')\">$_DEL</a>";
 
-     $out_tr = "<tr bgcolor=$bg><td>$ltime ($rows)</td><td>$duration</td><td>$variant</td>
+    $out_tr = "<tr bgcolor=$bg><td>$ltime ($rows)</td><td>$duration</td><td>$variant</td>
         <TD>$sent</TD><TD>$recv</td><td>$CID</td><td>$ip</td><th>$sum</th><th>(<a href='$SELF?op=sdetail&sid=$sid&uid=$uid' title='Session detalization'>D</a>)</th><td>$button</td></tr>\n";
 
     print "$out_tr";
@@ -3061,7 +3063,7 @@ else  {
 
 
   my @caption = ("$_USER", "$_DURATION", "$_SENT", "$_RECV", "$_SUM", "$_SENT 2", "$_RECV 2", "$_SUM 2");
-  show_title($sort, $desc, "$pg", "$op$qs", \@caption);
+  show_title($sort, $desc, "$pg", "stats&period=$period$show", \@caption);
 
   $sql = "SELECT u.id, SEC_TO_TIME(sum(l.duration)), sum(l.sent), sum(l.recv), sum(l.sent + l.recv), sum(l.sent2), sum(l.recv2), sum(l.sent2 + l.recv2), u.uid
     FROM log l

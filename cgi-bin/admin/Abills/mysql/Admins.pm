@@ -19,6 +19,7 @@ $VERSION = 2.00;
 
 my $db;
 my $aid;
+my $IP;
 
 #**********************************************************
 #
@@ -30,18 +31,6 @@ sub new {
   bless($self, $class);
   return $self;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -119,6 +108,8 @@ sub info {
     $WHERE = "WHERE aid='$aid'";
    }
 
+  $IP = (defined($attr->{IP}))? $attr->{IP} : '0.0.0.0';
+
   my $sql = "SELECT aid, id, name, regdate  FROM admins $WHERE;";
   my $q = $db->prepare($sql) || die $db->errstr;
   $q ->execute(); 
@@ -140,6 +131,7 @@ sub info {
   $self->{name}="$name";
   $self->{fio} = "$fio";
   $self->{registration} = "$registration";
+  $self->{session_ip} = $IP;
 
   return $self;
 }
@@ -173,6 +165,30 @@ sub add {
   return $self->{result};
 }
 
+
+#**********************************************************
+#  log_action()
+#**********************************************************
+sub log_action {
+  my $self = shift;
+  my ($uid, $actions) = @_;
+ 
+  my $sql = "INSERT INTO userlog (aid, ip, datetime, changes, uid) VALUES ('$aid', '$IP', now(), '$actions', '$uid')";
+  print $sql; 
+
+  # my $q = $db->do($sql);
+
+  if ($db->err == 1062) {
+     $self->{errno} = 7;
+     $self->{errstr} = 'ERROR_DUBLICATE';
+     return $self;
+   }
+  elsif($db->err > 0) {
+     $self->{errno} = 3;
+     $self->{errstr} = 'SQL_ERROR';
+     return $self;
+   }
+}
 
 #**********************************************************
 # password()

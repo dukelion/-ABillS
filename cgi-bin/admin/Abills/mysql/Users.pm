@@ -33,7 +33,7 @@ my $aid;
 #**********************************************************
 sub new {
   my $class = shift;
-  $db = shift;
+  ($db, $aid) = @_;
   my $self = { };
   bless($self, $class);
   return $self;
@@ -171,7 +171,7 @@ sub list {
 #**********************************************************
 sub add {
   my $self = shift;
-  my ($attr) = @_;
+  my ($admin, $attr) = @_;
   
   my $LOGIN = (defined($attr->{LOGIN})) ? $attr->{LOGIN} : '';
   my $EMAIL = (defined($attr->{EMAIL})) ? $attr->{EMAIL} : '';
@@ -226,7 +226,6 @@ sub add {
   print "$sql";
   my $q = $db->do($sql);
 
-    
   if ($db->err == 1062) {
      $self->{errno} = 7;
      $self->{errstr} = 'ERROR_DUBLICATE';
@@ -237,6 +236,9 @@ sub add {
      $self->{errstr} = 'SQL_ERROR';
      return $self;
    }
+
+  $uid = $db->{'mysql_insertid'};
+  $admin->log_action($uid, "ADD $LOGIN");
 
   return $self->{result};
 }
@@ -249,7 +251,7 @@ sub add {
 #**********************************************************
 sub change {
   my $self = shift;
-  my ($uid, $attr) = @_;
+  my ($uid, $admin, $attr) = @_;
   
   my %DATA = ();
 
@@ -266,7 +268,9 @@ sub change {
   $DATA{COMMENTS} = $attr->{COMMENTS} if (defined($attr->{COMMENTS}));
   $DATA{ACCOUNT_ID} = $attr->{ACCOUNT_ID} if (defined($attr->{ACCOUNT_ID}));
   $DATA{DISABLE} = $attr->{DISABLE} if (defined($attr->{DISABLE}));
-    
+  $DATA{PASSWORD} = $attr->{PASSWORD} if (defined($attr->{PASSWORD}));
+  my $secretkey = (defined($attr->{secretkey}))? $attr->{secretkey} : '';  
+
   $DATA{TARIF_PLAN} = $attr->{TARIF_PLAN} if (defined($attr->{TARIF_PLAN}));
   $DATA{IP} = $attr->{IP} if (defined($attr->{IP}));
   $DATA{NETMASK}  = $attr->{NETMASK} if (defined($attr->{NETMASK}));
@@ -274,6 +278,24 @@ sub change {
   $DATA{FILTER_ID} = $attr->{FILTER_ID} if (defined($attr->{FILTER_ID}));
   $DATA{CID} = $attr->{CID} if (defined($attr->{CID}));
 
+
+my %FIELDS = (LOGIN => 'id',
+              EMAIL => 'email',
+              FIO => 'fio',
+              PHONE => 'phone',
+              ADDRESS => 'address',
+              ACTIVATE => 'activate',
+              EXPIRE => 'expire',
+              CREDIT => 'credit',
+              REDUCTION => 'rediction',
+              SIMULTANEONSLY => 'logins',
+              COMMENTS => 'comments',
+              ACCOUNT_ID => 'account_id',
+              DISABLE => 'disable',
+              PASSWORD => 'password',
+              IP => 'ip',
+              NETMASK => 'netmask'
+             );
 
   if($DATA{EMAIL} ne '') {
     if ($DATA{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
@@ -295,44 +317,32 @@ sub change {
 
   while(my($k, $v)=each(%DATA)) {
     if ($OLD->{$k} ne $DATA{$k}){
-        $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};<br>";
-        $CHANGES_QUERY .= "$k='$DATA{$k}',";
+        if ($k eq 'PASSWORD') {
+          $CHANGES_LOG .= "$k *->*;";
+          $CHANGES_QUERY .= "$FIELDS{$k}=ENCODE('$DATA{$k}', '$secretkey'),";
+         }
+        elsif($k eq 'IP' || $k eq 'NETMASK') {
+          $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
+          $CHANGES_QUERY .= "$FIELDS{$k}=INET_ATON('$DATA{$k}'),";
+         }
+        else {
+          $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
+          $CHANGES_QUERY .= "$k='$DATA{$k}',";
+         }
+
+        $CHANGES_LOG .= "<br>";
      }
    }
   
-  print $CHANGES_LOG;
+#  print $CHANGES_LOG;
    
   chop($CHANGES_QUERY);
   my $sql = "UPDATE users SET $CHANGES_QUERY
     WHERE uid='$uid'";
-=comments 
-#  id='$LOGIN', 
-  fio='$FIO', 
-  phone='$PHONE', 
-  address='$ADDRESS', 
-  email='$EMAIL', 
-  activate='$ACTIVATE', 
-  expire='$EXPIRE', 
-  credit='$CREDIT', 
-  reduction='$REDUCTION', 
-  variant='$TARIF_PLAN', 
-  logins='$SIMULTANEONSLY', 
-  disable='$DISABLE',
-  ip=INET_ATON('IP'), 
-  netmask=INET_ATON('$NETMASK'), 
-  speed='$SPEED', 
-  filter_id='$FILTER_ID', 
-  cid='$CID', 
-  comments='$COMMENTS', 
-  account_id='$ACCOUNT_ID'
-  WHERE uid='$uid';";
-=cut
   print "$sql";
 
-  #my $q = $db->do($sql);
-  
-  $sql = "INSERT INTO userlog () VALUES ('')";
-    
+  $admin->log_action($uid, "$CHANGES_LOG");
+
   if ($db->err == 1062) {
      $self->{errno} = 7;
      $self->{errstr} = 'ERROR_DUBLICATE';
@@ -349,15 +359,12 @@ sub change {
 
 
 #**********************************************************
-# password()
+# del()
 #**********************************************************
-sub password {
+sub del {
   my $self = shift;
-  my ($password, $attr)=@_;
 
-  my $secretkey = (defined($attr->{secretkey}))? $attr->{secretkey} : '';
-
-  my $sql = "UPDATE users SET password=ENCODE('$password', '$secretkey') WHERE aid='$aid';";
+  my $sql = "DELETE FROM users WHERE uid='$uid';";
   my $q = $db->do($sql); 
 
   if($db->err > 0) {

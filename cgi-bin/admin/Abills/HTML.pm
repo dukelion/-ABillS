@@ -11,6 +11,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
    $PAGE_ROWS
    $OP
    $SELF_URL
+   $SESSION_IP
 );
 
 use Exporter;
@@ -29,6 +30,7 @@ $VERSION = 2.00;
    $PAGE_ROWS
    $OP
    $SELF_URL
+   $SESSION_IP
 );
 
 @EXPORT_OK = ();
@@ -55,7 +57,8 @@ sub new {
   $PAGE_ROWS = 25;
   my $prot = ($ENV{HTTPS} =~ /on/i) ? 'https' : 'http' ;
   $SELF_URL = "$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}";
-
+  $SESSION_IP = $ENV{REMOTE_ADDR} || '0.0.0.0';
+  
   @_COLORS = ('#FDE302',  # 0 TH
             '#FFFFFF',  # 1 TD.1
             '#eeeeee',  # 2 TD.2
@@ -110,6 +113,7 @@ foreach my $pair (@pairs) {
  }
  return %FORM;
 }
+
 
 
 #*******************************************************************

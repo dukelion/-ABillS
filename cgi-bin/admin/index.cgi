@@ -83,15 +83,6 @@ my $navigat_menu = mk_navigator();
 
 
 
-######################################
-print "<table border=1>\n";
-while(my($k, $v)=each %FORM) {
-  print "<tr><td>$k</td><td>$v</td></tr>\n";	
-}
-print "<tr bgcolor=$_COLORS[2]><td>index</td><td>$index</td></tr>\n";	
-print "<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
-print "</table>\n";
-######################################
 
 
 
@@ -104,8 +95,20 @@ print "</table>\n";
 print "<table border=0 width=100%><tr><td valign=top width=200 bgcolor=$_COLORS[2] rowspan=2><p>\n";
 print $html->menu(1, 'op', "", \%main_menu);
 sub_menu($index);
+
+
+######################################
+print "<table border=1>\n";
+while(my($k, $v)=each %FORM) {
+  print "<tr><td>$k</td><td>$v</td></tr>\n";	
+}
+print "<tr bgcolor=$_COLORS[2]><td>index</td><td>$index</td></tr>\n";	
+print "<tr bgcolor=$_COLORS[2]><td>OP</td><td>$OP</td></tr>\n";	
+print "</table>\n";
+######################################
+
 print "</td><td bgcolor=$_COLORS[0]>$navigat_menu";
-print "</td></tr><tr><td>";
+print "</td></tr><tr><td valign=top>";
 
 if ($functions{$index}) {
   $OP = $op_names{$index};
@@ -124,10 +127,11 @@ print "</td></tr></table>\n";
 sub check_permissions {
   my ($login, $password)=@_;
 
-  my $admin = Admins->info(0, {login => "$login", 
-                               password => "$password",
-                               secretkey => $conf{secretkey}
-                               }
+  $admin = Admins->info(0, {login => "$login", 
+                            password => "$password",
+                            secretkey => $conf{secretkey},
+                            IP => $SESSION_IP,
+                             }
                            );
 
   if ($admin->{errno}) {
@@ -414,6 +418,7 @@ $tpl_form
       <li><a href='$SELF?op=allow_nass&uid=$uid'>$_NASS</a>
       <li><a href='$SELF?op=bank_info&uid=$uid'>$_BANK_INFO</a>
       <li><a href='$SELF?op=changes&uid=$uid'>$_LOG</a>
+      <li><a href='$SELF?op=users&del=y&uid=$uid' onclick=\"return confirmLink(this, '$_USER: $user_info->{LOGIN} / $user_info->{UID} ')\">$_DEL</a>
 </td></tr>
 </table>
 </td></tr></table>
@@ -450,13 +455,16 @@ my  $COMMENTS  = $FORM{comments} || '';
 
 my  $ACCOUNT_ID = $FORM{account_id} || 0;
 
+my $IP = $FORM{ip} || '0.0.0.0';
+my $NETMASK = $FORM{netmask} || '255.255.255.255';
+
 $uid = $FORM{uid};
 
  use Users;
- my $users = Users->new($db); 
+ my $users = Users->new($db, $aid); 
 
 if ($FORM{add}) {
-  $users->add( { LOGIN => $LOGIN,
+  $users->add($admin, { LOGIN => $LOGIN,
                  EMAIL => $EMAIL,
                  FIO => $FIO,
                  PHONE => $PHONE,
@@ -484,6 +492,8 @@ if ($FORM{add}) {
    }
   else {
     message('info', $_ADDED, "$_ADDED");
+    form_payments();
+    return 0;
    }
 }
 #Change tariff plan
@@ -493,10 +503,26 @@ elsif ($FORM{chg_tp}) {
 }
 elsif($FORM{password}) {
   my $password = chg_password('users', "$uid");
-  return 0;
-}
+  if ($password ne '0') {
+    $uid = $FORM{password};
+    $users->change("$uid", { PASSWORD => $password, 
+                             secretkey => $conf{secretkey}  });  
+
+    if ($users->{errno}) {
+      message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+      user_form();    
+      return 0;	
+     }
+    else {
+      message('info', $_CHANGED, "$_CHANGED");
+     }
+   }
+  else {
+    return 0;	
+   }
+ }
 elsif ($FORM{change}) {
-  $users->change("$uid", { LOGIN => $LOGIN,
+  $users->change("$uid", $admin, { LOGIN => $LOGIN,
                  EMAIL => $EMAIL,
                  FIO => $FIO,
                  PHONE => $PHONE,
@@ -508,6 +534,8 @@ elsif ($FORM{change}) {
                  SIMULTANEONSLY => $SIMULTANEONSLY,
                  COMMENTS => $COMMENTS,
                  ACCOUNT_ID => $ACCOUNT_ID,
+                 IP => $IP,
+                 NETMASK => $NETMASK
                    }
                 );  
 
@@ -529,10 +557,22 @@ elsif ($FORM{change}) {
 }
 
 if($uid > 0) {
-  my $user_info = $users->info( $uid );  
-  @action = ('change', $_CHANGE);
-  user_form('test', $user_info);
-  return 0;
+  my $user_info = $users->info( $uid );
+
+  if ($FORM{del}) {
+    $users->del();
+    if ($users->{errno}) {
+      message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+     }
+    else {
+      message('info', $_DELETE, "$_DELETED");
+     }
+   }
+  else {
+    @action = ('change', $_CHANGE);
+    user_form('test', $user_info);
+    return 0;
+   }
 }
 
 my $table = Abills::HTML->table( { width => '100%',
@@ -1058,7 +1098,24 @@ while((my($findex, $hash)=sort each(%menu_items))) {
 }
 
 
+#**********************************************************
+# form_payments
+#**********************************************************
+sub form_payments () {
+	
 
+print << "[END]";	
+<form action=$SELF_URL>
+<input type=hidden name=op value=payments>
+<input type=hidden name=uid value=$uid>
+<table>
+<tr><td>$_SUM:</td><td><input type=text name=sum></td></tr>
+<tr><td>$_DESCRIBE:</td><td><input type=text name=descr></td></tr>
+</table>
+<input type=submit name=add value='$_ADD'>
+</form>
+[END]
 
+}
 
 
