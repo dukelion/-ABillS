@@ -1,0 +1,59 @@
+#!/usr/bin/perl
+
+$IFCONFIG='/sbin/ifconfig';
+$PPPCTL='/usr/sbin/pppctl';
+#$debug = 1;
+
+open(IFCONFIG, "$IFCONFIG |") || die "Can't open $IFCONFIG $!";
+ while(<IFCONFIG>) {
+    $ifconfig .= $_;
+  }
+close(IFCONFIG);
+
+ while($ifconfig =~ /tun(.+\n.+\n.+PID.+)/gi) {
+   @ifs = split(/\n/, $1);
+    foreach $line (@ifs) {
+      if ($line =~ /:/) {
+         ($tunnum, $trash)=split(/:/, $line);
+        }
+      elsif ($line =~ m/\d+.\d+.\d+.\d+ --> \d+.\d+.\d+.\d+/g) {
+         $ifcfg = $line;
+         ($inet, $gate, $arrow, $addr, $mask) = split(/ +/, $ifcfg);
+        }
+      elsif ($line =~ /PID/gi) {
+         ($trash, $pid) = split(/PID/, $line);
+         chomp($pid);
+       }
+     }
+    print "$tunnum $addr $pid\n" if ($debug == 1);
+    $num = 3000 + $tunnum;
+
+#    $out = `$PPPCTL /tmp/pppuser$tunnum  ! echo $tunnum USER UPTIME OCTETSIN OCTETSOUT HISADDR`;
+    print show_bytes($tunnum) . "\n";
+  }
+
+
+
+
+sub show_bytes () {
+ my $tunnum = shift;
+
+ open(FILE,  "$PPPCTL /tmp/pppuser$tunnum \"show physical\"|") || die "can't open file $!\n";
+  while (<FILE>) {
+    $out .= $_;
+   }
+ close(FILE);
+
+ while( $out =~ / State(.+)/gi ) {
+    ($prefix, $open, $establish, $portprefix, $port)=split(/ +/, $1);
+  }
+
+ while( $out =~ /(.+) octets/g ) {
+    ($in, $octets, $win, $out, $trash)=split(/ +/, $1);
+  }
+
+ chop($port);
+ $result = "$port $in $out $tunnum";
+ return "$result"
+}
+
