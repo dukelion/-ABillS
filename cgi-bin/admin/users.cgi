@@ -3102,7 +3102,7 @@ else  {
    $total_sum=int2byte($total_sum);
    $total_recv2=int2byte($total_recv2);
    $total_sent2=int2byte($total_sent2);
-   $total_sum2=int2byte($total_sum2);
+   $total_sum2=int2byte($total_recv2 + $total_sent2);
 
 
    print "<tr bgcolor=$_BG3><th>Total</th><th>-</th><td>$total_sent</td><td>$total_recv</td><th>$total_sum</th>".

@@ -22,9 +22,11 @@ my $usernameregexp = "^[a-z0-9_][a-z0-9_-]*\$"; # configurable;
 my %conf = ();
 $conf{max_username_length} = 10;
 
+
 my $db;
 my $uid;
 my $aid;
+#my %DATA = ();
 
 #**********************************************************
 # Init 
@@ -39,8 +41,15 @@ sub new {
 
 
 
-
-
+#**********************************************************
+# get_params()
+#**********************************************************
+sub get_params {
+ my ($attr) = @_;
+ 
+# while(my($k, $v))
+  
+}
 
 
 #**********************************************************
@@ -51,11 +60,14 @@ sub info {
   my $self = shift;
   ($uid) = shift;
 
-  my $sql = "SELECT id, fio, phone, address, email, activate, expire, credit, reduction, 
-            variant, logins, registration, disable,
-            INET_NTOA(ip), INET_NTOA(netmask), speed, filter_id, cid, comments, account_id  
-     FROM users WHERE uid='$uid';";
-
+  my $sql = "SELECT u.id, u.fio, u.phone, u.address, u.email, u.activate, u.expire, u.credit, u.reduction, 
+            u.variant, u.logins, u.registration, u.disable,
+            INET_NTOA(u.ip), INET_NTOA(u.netmask), u.speed, u.filter_id, u.cid, u.comments, u.account_id,
+            if(acct.name IS NULL, 'N/A', 0)
+     FROM users u
+     LEFT JOIN accounts acct ON (u.account_id=acct.id)
+     WHERE uid='$uid';";
+ 
   my $q = $db->prepare($sql);
   $q ->execute(); 
 
@@ -89,6 +101,7 @@ sub info {
    $self->{CID}, 
    $self->{COMMENTS}, 
    $self->{ACCOUNT_ID},
+   $self->{ACCOUNT_NAME},
    $self->{DEPOSIT})= $q->fetchrow();
   
   $self->{UID} = $uid;
@@ -150,7 +163,6 @@ sub list {
 
   $self->{list} = \@users;
   return $self->{list}, $total;
-
 }
 
 
@@ -169,7 +181,7 @@ sub add {
   my $ACTIVATE = (defined($attr->{ACTIVATE})) ? $attr->{ACTIVATE} : '0000-00-00';
   my $EXPIRE = (defined($attr->{EXPIRE})) ? $attr->{EXPIRE} : '0000-00-00';
   my $CREDIT = (defined($attr->{CREDIT})) ? $attr->{CREDIT} : 0;
-  my $REDUCTION  = (defined($attr->{REDUCTION})) ? $attr->{REDUCTION} : 0;
+  my $REDUCTION  = (defined($attr->{REDUCTION})) ? $attr->{REDUCTION} : 0.00;
   my $SIMULTANEONSLY = (defined($attr->{SIMULTANEONSLY})) ? $attr->{SIMULTANEONSLY} : 0;
   my $COMMENTS = (defined($attr->{COMMENTS})) ? $attr->{COMMENTS} : '';
   my $ACCOUNT_ID = (defined($attr->{ACCOUNT_ID})) ? $attr->{ACCOUNT_ID} : 0;
@@ -230,8 +242,10 @@ sub add {
 }
 
 
+
+
 #**********************************************************
-# add()
+# change()
 #**********************************************************
 sub change {
   my $self = shift;
@@ -239,26 +253,26 @@ sub change {
   
   my %DATA = ();
 
-  $DATA{LOGIN} = (defined($attr->{LOGIN})) ? $attr->{LOGIN} : '';
-  $DATA{EMAIL} = (defined($attr->{EMAIL})) ? $attr->{EMAIL} : '';
-  $DATA{FIO} = (defined($attr->{FIO})) ? $attr->{FIO} : '';
-  $DATA{PHONE} = (defined($attr->{PHONE})) ? $attr->{PHONE} : '';
-  $DATA{ADDRESS} = (defined($attr->{ADDRESS})) ? $attr->{ADDRESS} : '';
-  $DATA{ACTIVATE} = (defined($attr->{ACTIVATE})) ? $attr->{ACTIVATE} : '0000-00-00';
-  $DATA{EXPIRE} = (defined($attr->{EXPIRE})) ? $attr->{EXPIRE} : '0000-00-00';
-  $DATA{CREDIT} = (defined($attr->{CREDIT})) ? $attr->{CREDIT} : 0;
-  $DATA{REDUCTION}  = (defined($attr->{REDUCTION})) ? $attr->{REDUCTION} : 0;
-  $DATA{SIMULTANEONSLY} = (defined($attr->{SIMULTANEONSLY})) ? $attr->{SIMULTANEONSLY} : 0;
-  $DATA{COMMENTS} = (defined($attr->{COMMENTS})) ? $attr->{COMMENTS} : '';
-  $DATA{ACCOUNT_ID} = (defined($attr->{ACCOUNT_ID})) ? $attr->{ACCOUNT_ID} : 0;
-  $DATA{DISABLE} = (defined($attr->{DISABLE})) ? $attr->{DISABLE} : 0;
+  $DATA{LOGIN} = $attr->{LOGIN} if (defined($attr->{LOGIN}));
+  $DATA{EMAIL} = $attr->{EMAIL} if (defined($attr->{EMAIL}));
+  $DATA{FIO} =   $attr->{FIO} if (defined($attr->{FIO}));
+  $DATA{PHONE} = $attr->{PHONE} if (defined($attr->{PHONE}));
+  $DATA{ADDRESS} = $attr->{ADDRESS} if (defined($attr->{ADDRESS}));
+  $DATA{ACTIVATE} = $attr->{ACTIVATE} if (defined($attr->{ACTIVATE}));
+  $DATA{EXPIRE} = $attr->{EXPIRE} if (defined($attr->{EXPIRE}));
+  $DATA{CREDIT} = $attr->{CREDIT} if (defined($attr->{CREDIT}));
+  $DATA{REDUCTION}  = $attr->{REDUCTION} if (defined($attr->{REDUCTION}));
+  $DATA{SIMULTANEONSLY} = $attr->{SIMULTANEONSLY} if (defined($attr->{SIMULTANEONSLY}));
+  $DATA{COMMENTS} = $attr->{COMMENTS} if (defined($attr->{COMMENTS}));
+  $DATA{ACCOUNT_ID} = $attr->{ACCOUNT_ID} if (defined($attr->{ACCOUNT_ID}));
+  $DATA{DISABLE} = $attr->{DISABLE} if (defined($attr->{DISABLE}));
     
-  $DATA{TARIF_PLAN} = (defined($attr->{TARIF_PLAN})) ? $attr->{TARIF_PLAN} : '';
-  $DATA{IP} = (defined($attr->{IP})) ? $attr->{IP} : '0.0.0.0';
-  $DATA{NETMASK}  = (defined($attr->{NETMASK})) ? $attr->{NETMASK} : '255.255.255.255';
-  $DATA{SPEED} = (defined($attr->{SPEED})) ? $attr->{SPEED} : 0;
-  $DATA{FILTER_ID} = (defined($attr->{FILTER_ID})) ? $attr->{FILTER_ID} : '';
-  $DATA{CID} = (defined($attr->{CID})) ? $attr->{CID} : '';
+  $DATA{TARIF_PLAN} = $attr->{TARIF_PLAN} if (defined($attr->{TARIF_PLAN}));
+  $DATA{IP} = $attr->{IP} if (defined($attr->{IP}));
+  $DATA{NETMASK}  = $attr->{NETMASK} if (defined($attr->{NETMASK}));
+  $DATA{SPEED} = $attr->{SPEED} if (defined($attr->{SPEED}));
+  $DATA{FILTER_ID} = $attr->{FILTER_ID} if (defined($attr->{FILTER_ID}));
+  $DATA{CID} = $attr->{CID} if (defined($attr->{CID}));
 
 
   if($DATA{EMAIL} ne '') {
@@ -269,29 +283,29 @@ sub change {
      }
    }
 
-  my $CHANGES = "";
+  my $CHANGES_QUERY = "";
   my $CHANGES_LOG = "";
-
-  my $q = $db -> prepare("SELECT  id, fio, phone, address, email, activate, expire, 
-  credit, reduction, variant, logins, disable, INET_NTOA(ip), INET_NTOA(netmask), speed,  
-  filter_id, cid, comments, account_id
-     FROM users  WHERE uid=\"$uid\";");
-  $q -> execute ();
-  my %OLD = ();
-
-  ($OLD{LOGIN}, $OLD{FIO}, $OLD{PHONE}, $OLD{ADDRESS}, $OLD{EMAIL}, $OLD{ACTIVATE}, $OLD{EXPIRE}, 
-   $OLD{CREDIT}, $OLD{REDUCTION}, $OLD{TARIF_PLAN}, $OLD{SIMULTANEONSLY}, $OLD{DISABLE}, $OLD{IP}, 
-   $OLD{NETMASK}, $OLD{SPEED}, $OLD{FILTER_ID}, $OLD{CID}, $OLD{COMMENTS}) = $q -> fetchrow();
-
-  while(my($k, $v)=each(%DATA)) {
-     if ($OLD{$k} ne $DATA{$k}){
-        print "$k, $v / $DATA{$k} | $OLD{$k}/<br>";	
-      }
+  
+  my $OLD = $self->info($uid);
+  if($OLD->{errno}) {
+     $self->{errno} = $OLD->{errno};
+     $self->{errstr} = $OLD->{errstr};
+     return $self;
    }
 
+  while(my($k, $v)=each(%DATA)) {
+    if ($OLD->{$k} ne $DATA{$k}){
+        $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};<br>";
+        $CHANGES_QUERY .= "$k='$DATA{$k}',";
+     }
+   }
+  
+  print $CHANGES_LOG;
    
+  chop($CHANGES_QUERY);
+  my $sql = "UPDATE users SET $CHANGES_QUERY
+    WHERE uid='$uid'";
 =comments 
-#  my $sql = "UPDATE users SET 
 #  id='$LOGIN', 
   fio='$FIO', 
   phone='$PHONE', 
@@ -312,11 +326,12 @@ sub change {
   comments='$COMMENTS', 
   account_id='$ACCOUNT_ID'
   WHERE uid='$uid';";
-
-  print "$sql";
 =cut
-  #my $q = $db->do($sql);
+  print "$sql";
 
+  #my $q = $db->do($sql);
+  
+  $sql = "INSERT INTO userlog () VALUES ('')";
     
   if ($db->err == 1062) {
      $self->{errno} = 7;
@@ -341,10 +356,15 @@ sub password {
   my ($password, $attr)=@_;
 
   my $secretkey = (defined($attr->{secretkey}))? $attr->{secretkey} : '';
-  my $sql = "UPDATE admins SET password=ENCODE('$password', '$secretkey') WHERE aid='$aid';";
+
+  my $sql = "UPDATE users SET password=ENCODE('$password', '$secretkey') WHERE aid='$aid';";
   my $q = $db->do($sql); 
-  #print $sql;
-  #$self->{errno}='test';
+
+  if($db->err > 0) {
+     $self->{errno} = 3;
+     $self->{errstr} = 'SQL_ERROR';
+     return $self;
+   }
   return $self->{result};
 }
 

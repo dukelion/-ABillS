@@ -312,6 +312,7 @@ sub user_form {
  my ($type, $user_info) = @_;
  my $tpl_form;
 
+
 if ($type eq 'info') {
 
 
@@ -337,16 +338,13 @@ $tpl_form = qq{<table width=100%>
 <tr><th colspan=2>:$_COMMENTS:</th></tr>
 <tr><th colspan=2>:$comments:</th></tr>
 </table>};
-
-
-
 }
 else { 
  use Tariffs;
  my $tariffs = Tariffs->new($db);
 
  if (! $info) {
-   $info = "<tr><td>$_USER:*</td><td><input type=text name=login value='$login'></td></tr>\n";
+   $info = "<tr><td>$_USER:*</td><td><input type=text name=login value='$user_info->{LOGIN}'></td></tr>\n";
    my $tariffs_list = $tariffs->list();
    $variant_out = "<select name=variant>";
 
@@ -359,8 +357,6 @@ else {
   }
 
 
-print "-- $user_info->{SIMULTANEONSLY}---";
-
 $tpl_form = qq{
 <form action=$SELF_URL method=post>
 <input type=hidden name=index value=14>
@@ -368,6 +364,7 @@ $tpl_form = qq{
 <input type=hidden name=uid value="$user_info->{UID}">
 <table width=420 cellspacing=0 cellpadding=3>
 $info
+<tr><td>$_ACCOUNT:</td><td>$user_info->{ACCOUNT_NAME}</td></tr>
 <tr><td>$_FIO:*</td><td><input type=text name=fio value="$user_info->{FIO}"></td></tr>
 <tr><td>$_PHONE:</td><td><input type=text name=phone value="$user_info->{PHONE}"></td></tr>
 <tr><td>$_ADDRESS:</td><td><input type=text name=address value="$user_info->{ADDRESS}"></td></tr>
@@ -378,7 +375,7 @@ $info
 <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=simultaneously value='$user_info->{SIMULTANEONSLY}'></td></tr>
 <tr><td>$_ACTIVATE:</td><td><input type=text name=activate value='$user_info->{ACTIVATE}'></td></tr>
 <tr><td>$_EXPIRE:</td><td><input type=text name=expire value='$user_info->{EXPIRE}'></td></tr>
-<tr><td>$_REDUCTION (%):</td><td><input type=text name=reduction value='$user_info->{REDUCATION}'></td></tr>
+<tr><td>$_REDUCTION (%):</td><td><input type=text name=reduction value='$user_info->{REDUCTION}'></td></tr>
 <tr><td>IP:</td><td><input type=text name=ip value='$user_info->{IP}'></td></tr>
 <tr><td>Netmask:</td><td><input type=text name=netmask value='$user_info->{NETMASK}'></td></tr>
 <tr><td>$_SPEED (kb):</td><td><input type=text name=speed value='$user_info->{SPEED}'></td></tr>
@@ -411,8 +408,9 @@ $tpl_form
 </td></tr>
 <tr><td> 
       <br><b>$_CHANGE</b>
-      <li><a href='$SELF?op=users&uid=$uid&passwd=chg'>$_PASSWD</a>
+      <li><a href='$SELF?op=users&uid=$uid&password=chg'>$_PASSWD</a>
       <li><a href='$SELF?op=chg_uvariant&uid=$uid'>$_VARIANT</a>
+      <li><a href='$SELF?op=account&uid=$uid'>$_ACCOUNT</a>
       <li><a href='$SELF?op=allow_nass&uid=$uid'>$_NASS</a>
       <li><a href='$SELF?op=bank_info&uid=$uid'>$_BANK_INFO</a>
       <li><a href='$SELF?op=changes&uid=$uid'>$_LOG</a>
@@ -427,7 +425,8 @@ $tpl_form
 }
 
 
-return $tpl_form;
+#return 
+print $tpl_form;
 
 }
 
@@ -487,6 +486,15 @@ if ($FORM{add}) {
     message('info', $_ADDED, "$_ADDED");
    }
 }
+#Change tariff plan
+elsif ($FORM{chg_tp}) {
+  my $change_tp = '';
+  return 0;
+}
+elsif($FORM{password}) {
+  my $password = chg_password('users', "$uid");
+  return 0;
+}
 elsif ($FORM{change}) {
   $users->change("$uid", { LOGIN => $LOGIN,
                  EMAIL => $EMAIL,
@@ -499,7 +507,8 @@ elsif ($FORM{change}) {
                  REDUCTION  => $REDUCTION,
                  SIMULTANEONSLY => $SIMULTANEONSLY,
                  COMMENTS => $COMMENTS,
-                 ACCOUNT_ID => $ACCOUNT_ID }
+                 ACCOUNT_ID => $ACCOUNT_ID,
+                   }
                 );  
 
 #  my $TARIF_PLAN = (defined($attr->{TARIF_PLAN})) ? $attr->{TARIF_PLAN} : '';
@@ -518,11 +527,11 @@ elsif ($FORM{change}) {
     message('info', $_CHANGED, "$_CHANGED");
    }
 }
-elsif($FORM{uid}) {
+
+if($uid > 0) {
   my $user_info = $users->info( $uid );  
   @action = ('change', $_CHANGE);
-  my $tpl = user_form('test', $user_info);
-  print $tpl;
+  user_form('test', $user_info);
   return 0;
 }
 
@@ -794,6 +803,10 @@ $functions{13}=\&form_accounts;
 $menu_items{14}{1}=$_USERS;
 $op_names{14}='users';
 $functions{14}=\&form_users;
+
+
+
+
 
 
 =comments
