@@ -1,0 +1,120 @@
+#!/usr/bin/perl
+# ppp
+# external script for traffic shapping
+#
+# /etc/ppp/ppp.linkup
+#-------------------------------------------------------------
+# MYADDR:
+# !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR
+#
+# /etc/ppp/ppp.linkdown
+#
+# MYADDR:
+# !bg /usr/abills/libexec/linkupdown down INTERFACE USER HISADDR
+#
+#
+#-------------------------------------------------------------
+# /usr/local/etc/mpd/mpd.conf
+# set iface up-script "/usr/abills/libexec/linkupdown mpd up"
+# set iface down-script "/usr/abills/libexec/linkupdown mpd down"
+
+
+use FindBin '$Bin';
+require $Bin .'/config.pl';
+require $Bin .'/Base.pm';
+Base->import();
+require $Bin .'/sql.pl';
+$IPFW='/sbin/ipfw';
+
+my $debug=0;
+my @START_FW = (3000, 2000, 1000);
+# Arguments
+my ($ACTION, $INTERFACE, $USER, $HISADDR);
+
+#MPD
+if ($ARGV[0] eq 'mpd') {
+ $ACTION=$ARGV[1];
+ $INTERFACE=$ARGV[2];
+ $USER=$ARGV[6];
+ $HISADDR=$ARGV[5];
+ $inum = $INTERFACE;
+ $inum =~ s/ng//;
+}
+# PPP
+else {
+ $ACTION=$ARGV[0];
+ $INTERFACE=$ARGV[1];
+ $USER=$ARGV[2];
+ $HISADDR=$ARGV[3];
+ #my $MYADDR=$ARGV[4];
+ $inum = $INTERFACE;
+ $inum =~ s/tun//;
+} 
+
+ 
+my $FW_ACTIONS = ();
+
+# Flush rules
+  my $fw_nums = "";
+  my $pipe_nums = "";
+  
+  foreach $num (@START_FW) {
+    $fw_num = $num + $inum;
+    $pipe_num = $num + $inum;
+    $fw_nums .= "$fw_num ";
+    $pipe_nums .= "$pipe_num ";
+  }
+  push @FW_ACTIONS, "$IPFW delete $fw_nums";
+  push @FW_ACTIONS, "$IPFW pipe delete $pipe_nums";
+
+
+# Up fw shaper rules
+if ($ACTION eq 'up') {
+  my %speeds = ();
+  my %nets = ();
+
+  $q = $db->prepare("SELECT speed, variant FROM users WHERE id='$USER';") || die $db->errstr;
+  $q -> execute ();
+  ($uspeed, $vid) = $q -> fetchrow();
+  
+  if ($uspeed > 0) {
+    $speeds{0}=int($uspeed);
+   }
+  else {
+    $q = $db->prepare("SELECT id, speed, nets FROM trafic_tarifs WHERE vid='$vid';") || die $db->errstr;
+    $q -> execute ();
+    while(($tt_id, $speed, $nets) = $q -> fetchrow()) {
+       $speeds{$tt_id}=$speed;
+       $nets{$tt_id}=$nets;
+     }
+   }
+
+ # speed apply
+  my $fw_num=0;
+  my $pipe_num=0;
+  while(my ($traf_type, $speed)=each %speeds) {
+    $fw_num = $START_FW[$traf_type] + $inum;
+    $pipe_num = $START_FW[$traf_type] + $inum;
+    if ($speed > 0) {
+       if ($traf_type == 0) {
+         push @FW_ACTIONS, "$IPFW add $fw_num pipe $pipe_num ip from any to any via $INTERFACE";
+         push @FW_ACTIONS, "$IPFW pipe $pipe_num config bw ". $speed ."Kbit/s queue 10Kbytes";
+        }
+       else {
+         push @FW_ACTIONS, "$IPFW add $fw_num pipe $pipe_num ip from $nets{$traf_type} to any via $INTERFACE";
+         push @FW_ACTIONS, "$IPFW pipe $pipe_num config bw ". $speed ."Kbit/s queue 10Kbytes";
+        }
+    }
+  }
+
+ }
+
+#make firewall actions
+foreach $line (@FW_ACTIONS) {
+  if ($debug == 1) {
+    print "$line\n";	
+   }	
+  else {
+    system("$line");
+   }
+}

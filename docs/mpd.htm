@@ -1,0 +1,156 @@
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<title>Abills</title>
+
+<style type="text/css">
+body {
+  background-color: #FFFFFF;
+  color: #000000;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 14px;
+  /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
+}
+
+pre, code {
+    font-family: "Courier New", Courier, monospace;
+}
+
+div.example {
+    background-color: #E2E2E2;
+    color: #000;
+    padding: 0.5em;
+    margin: 1em 2em 1em 1em;
+}
+
+span.indent {
+    padding-left: 1.5em;
+    display: block;
+}
+
+</style>
+</head>
+
+<body bgcolor=FFFFFF>
+<hr>
+<h3>MPD</h3>
+
+<p><a href='http://sourceforge.net/projects/mpd'>http://sourceforge.net/projects/mpd</a></p>
+
+<p><b>soft/kha0s-mpd.tar.gz</b></p>
+<p>Патч ставится после патча boco@ufanet.ru - mpd-3.18-drop-user-1.diff, хотя и 
+полностью независим от него. Предназначен для тех случаев, когда пользователю 
+необходимо предоставить предоплаченый объем траффика. Для удобства и
+универсальности лимит выставляется по аналогии с exppp:</p>
+<p>
+VENDOR          Exppp                           1976<br>
+ATTRIBUTE       Exppp-Traffic-Limit             2       integer Exppp
+</p>
+<p>
+Максимально возможное значение траффика за сессию - 2147483647 байт.
+Проверка счетчиков происходит раз в секунду, что вносит небольшую погрешность.
+Этот интервал можна поменять в самом патче согласно своих предпочтений и 
+ресурсов. При завершении сессии по превышению лимита траффика выставляется
+Acct-Terminate-Cause со значением Session-Timeout для удобства анализа
+статистики по сессиям.
+</p>
+<i>kha0s@ukr.net</i>
+
+
+<p>
+<code>
+cd soft<br />
+tar zxvf kha0s-mpd.tar.gz -C /usr/ports/net/mpd<br />
+cd /usr/ports/net/mpd<br />
+make<br />
+make install<br />
+<br />
+# mpd -b -c 10001
+</code>
+</p>
+<P>mpd.conf</p>
+<div class="example"><p><code>
+default:<br />
+<span class="indent">
+   load pptp0<br />
+   load pptp1<br />
+   load pptp2<br />
+</span>
+<br />
+pptp0:<br />
+<span class="indent">
+   new -i ng0 pptp0 pptp0<br />
+   load pptp_standart<br />
+</span>
+<br />
+pptp1:<br />
+<span class="indent">
+   new -i ng1 pptp1 pptp1<br />
+   load pptp_standart<br />
+</span>
+<br />
+pptp2:<br />
+<span class="indent">
+   new -i ng2 pptp2 pptp2<br />
+   load pptp_standart<br />
+</span>
+<br />
+pptp_standart:<br />
+<span class="indent">
+   set bundle disable multilink<br />
+   set bundle max-logins 1<br />
+   set iface disable on-demand<br />
+   set iface idle 0<br />
+   set iface enable tcpmssfix<br />
+#   set iface up-script /usr/local/etc/mpd/up-script<br />
+#   set iface down-script /usr/local/etc/mpd/down-script<br />
+   set link no pap chap<br />
+   set link enable chap<br />
+   set link keep-alive 10 60<br />
+   set link max-redial -1 <br />
+
+   set ipcp ranges 192.168.168.1/32 192.168.168.128/25<br />
+   set ipcp dns 192.168.168.1 192.168.168.2<br />
+<br />
+   set bundle enable compression<br />
+   set ccp yes mppc<br />
+   set ccp yes mpp-e40<br />
+   set ccp yes mpp-e128<br />
+   set ccp yes mpp-stateless<br />
+<br />
+   set pptp self 192.168.168.1<br />
+   set pptp enable incoming<br />
+   set pptp disable originate<br />
+<br />
+   set radius config /etc/radius.conf<br />
+   set radius me 192.168.168.1<br />
+   set radius acct-update 300<br />
+   set ipcp enable radius-ip<br />
+   set bundle enable radius-auth<br />
+   set bundle enable radius-acct<br />
+   set iface enable radius-idle radius-session radius-mtu radius-route<br />
+   set ccp enable radius<br />
+</span>
+</code></p></div>
+<P>mpd.links</p>
+<div class="example"><p><code>
+pptp0:<br />
+<span class="indent">
+    set link type pptp<br />
+</span>
+<br />
+pptp1:<br />
+<span class="indent">
+    set link type pptp<br />
+</span>
+<br />
+pptp2:<br />
+<span class="indent">
+    set link type pptp<br />
+</span>
+</code></p></div>
+
+<hr>
+</body>
+</html>
