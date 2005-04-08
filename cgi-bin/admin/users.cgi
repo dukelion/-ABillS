@@ -1626,9 +1626,9 @@ else {
       $sum = int($graffic{$i}{sum} * $midl_sum);
       $users = int($graffic{$i}{users} * $midl_users);
 
-      $output .= "<img src='../img/vertgreen.gif' width=6 height=$users>". 
-         "<img src='../img/vertyellow.gif' width=6 height=$sessions>". 
-         "<img src='../img/vertred.gif' width=7 height=$sum><br>";
+      $output .= "<img src='$img_path" . "vertgreen.gif' width=6 height=$users>". 
+         "<img src='$img_path". "vertyellow.gif' width=6 height=$sessions>". 
+         "<img src='$img_path". "vertred.gif' width=7 height=$sum><br>";
      }
     else { 
       print '&nbsp;'; 
@@ -1639,9 +1639,9 @@ else {
 
   $output .= "</tr>
     </table>
-    <img src='../img/vertgreen.gif' width=6 height=8> - $_USERS 
-    <img src='../img/vertyellow.gif' width=6 height=8> - $_LOGINS
-    <img src='../img/vertred.gif' width=6 height=8> - $_SUM\n";
+    <img src='$img_path" . "vertgreen.gif' width=6 height=8> - $_USERS 
+    <img src='$img_path" . "vertyellow.gif' width=6 height=8> - $_LOGINS
+    <img src='$img_path" . "vertred.gif' width=6 height=8> - $_SUM\n";
 
   $output .= "<h3>$_FEES</h3>\n";
 #$debug =10;

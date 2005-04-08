@@ -215,19 +215,20 @@ elsif($acct_status_type == 3) {
 
 ## Experemental Linux alive hangup
 ## Author: Wanger
-#
+#if ($conf{experimentsl} eq 'yes') {
 #  my ($sum, $variant, $time_t, $traf_t) = session_sum("$RAD{USER_NAME}", $ACCT_INFO{LOGIN}, $ACCT_INFO{ACCT_SESSION_TIME}, \%ACCT_INFO);
 #  if ($sum > 0) {
-#     $sql = "SELECT deposit FROM users WHERE id=\"$RAD{USER_NAME}\";";
+#     $sql = "SELECT deposit, credit FROM users WHERE id=\"$RAD{USER_NAME}\";";
 #     log_print('LOG_SQL', "ACCT [$RAD{USER_NAME}] SQL: $sql");
 #     $q = $db->prepare("$sql") || die $db->errstr;
 #     $q -> execute();
-#     my ($d) = $q -> fetchrow();
-#      if (($d - $sum) < 0) {
+#     my ($deposit, $credir) = $q -> fetchrow();
+#      if (($deposit + $credir) - $sum) < 0) {
 #        log_print('LOG_WARNING', "ACCT [$RAD{USER_NAME}] Negative balance ($d - $sum) - kill session($RAD{ACCT_SESSION_ID})");
 #        system ($Bin ."/modules/hangup.pl $RAD{ACCT_SESSION_ID}");
 #       }
 #  }
+#}
 ###
 
   $sql = "UPDATE calls SET

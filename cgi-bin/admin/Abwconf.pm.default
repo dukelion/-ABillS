@@ -23,7 +23,9 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
    $admin_name
    $admin_ip
    $header_text
-
+   $img_path
+   
+   
    %conf
    %FORM
    %cookies
@@ -78,7 +80,8 @@ $VERSION = 2.00;
    $admin_name
    $admin_ip
    $header_text
-
+   $img_path
+   
    %FORM
    %cookies
    $sort
@@ -98,6 +101,7 @@ $desc = ($FORM{desc}) ? 'DESC' : '';
 $pg = $FORM{pg} || 0;
 $op = $FORM{op} || '';
 $language = 'english';
+$img_path='../img/';
 
 #DB settings
 $conf{dbhost}='localhost';
@@ -587,7 +591,7 @@ sub show_title  {
              $desc='DESC';
            }
          print "<a href='$SELF?op=$op&pg=$pg&sort=$i&desc=$desc'>".
-            "<img src='../img/$img' width=12 height=10 border=0 title=sort></a>";
+            "<img src='$img_path" . "$img' width=12 height=10 border=0 title=sort></a>";
        }
      else {
          print "$line";
