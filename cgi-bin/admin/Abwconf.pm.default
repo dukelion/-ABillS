@@ -120,7 +120,7 @@ $MYSQLDUMP = '/usr/local/mysql/bin/mysqldump';
 $BACKUP_DIR='/usr/abills/backup';
 $GZIP = '/usr/bin/gzip';
 push(@INC, $LIB_PATH);
-my $prot = ($ENV{HTTPS} eq 'ON') ? 'https' : 'http' ;
+my $prot = ($ENV{HTTPS} =~ /ON/i) ? 'https' : 'http' ;
 $SELF="$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}";
 
 #require 'config.pl';
@@ -128,9 +128,9 @@ $SELF="$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}";
 
 # Color setting
 $_BG0='#FDE302';  #Table captions
-$_BG1='#FFFFFF';   #line 1
-$_BG2='#eeeeee';   #line 3
-$_BG3='#dddddd';   #total
+$_BG1='#FFFFFF';  #line 1
+$_BG2='#eeeeee';  #line 3
+$_BG3='#dddddd';  #total
 $_BG4='#E1E1E1';  #table border
 
 @_COLORS = ('#FDE302',  # 0 TH
