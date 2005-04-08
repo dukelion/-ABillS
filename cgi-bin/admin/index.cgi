@@ -506,16 +506,24 @@ if($uid > 0) {
     return 0;
    }
 
-
   print  "<table width=100% bgcolor=$_COLORS[2]><tr><td>$_USER:</td>
   <td><a href='$SELF_URL?op=users&uid=$users->{UID}'><b>$users->{LOGIN}</b></td></tr></table>\n";
+  
+  $LIST_PARAMS{UID}=$user_info->{UID};
 
   if($OP eq 'payments') {
     form_payments({ USER => $user_info });
     return 0;
    }
-
-
+  elsif($OP eq 'fees') {
+    form_fees({ USER => $user_info });
+    return 0;
+   }
+  elsif($OP eq 'changes') {
+    form_changes({ USER => $user_info });
+    return 0;
+   }
+  
 
   print "<table width=100% border=1 cellspacing=1 cellpadding=2><tr><td valign=top>\n";
   if($FORM{password}) {
@@ -599,14 +607,14 @@ print "</td><td bgcolor=$_COLORS[3] valign=top width=180>
       <li><a href='docs.cgi?docs=accts&uid=$uid'>$_ACCOUNTS</a>
 </td></tr>
 <tr><td> 
-      <br><b>$_CHANGE</b>\n";
+      <br><b>$_CHANGE</b>
+      <li><a href='$SELF_URL?op=changes&uid=$uid'>$_LOG</a>\n";
 
 my %menus = ('password' => $_PASSWD,
              'chg_tp' =>   $_TARIF_PLAN,
              'account' =>  $_ACCOUNT,
              'nas' => $_NAS,
              'bank_info' => $_BANK_INFO,
-             'changes' => $_LOG
  );
  
 
@@ -659,19 +667,7 @@ elsif ($FORM{add}) {
 }
 
 
-my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, '-', '-'],
-                                   cols_align => [left, left, right, right, left, center, center, center, center],
-                                  } );
-my %LIST_PARAMS = ( SORT => $SORT,
-	       DESC => $DESC,
-	       PG => $PG,
-	       PAGE_ROWS => $PAGE_ROWS,
-	      );
-
 my $pages_qs = '';
-
 
 if ($FORM{account_id}) {
   print "<p><b>$_ACCOUNT:</b> $FORM{account_id}</p>\n";
@@ -708,20 +704,34 @@ for (my $i=97; $i<123; $i++) {
    $pages_qs .= "&letter=$FORM{letter}";
   } 
 
-my ($users_list, $total) = $users->list( { %LIST_PARAMS } );
-foreach my $line (@$users_list) {
+my $list = $users->list( { %LIST_PARAMS } );
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, '-', '-'],
+                                   cols_align => [left, left, right, right, left, center, center, center, center],
+                                   qs => $pages_qs,
+                                   pages => $users->{TOTAL}
+                                  } );
+
+foreach my $line (@$list) {
   my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?op=payments&uid=$line->[5]'>$_PAYMENTS</a>" : ''; 
 
   $table->addrow("<a href='$SELF_URL?op=users&uid=$line->[5]'>$line->[0]</a>", "$line->[1]",
    "$line->[2]", "$line->[3]", "$line->[4]", $payments, "<a href='$SELF_URL?op=stats&uid=$line->[5]'>$_STATS</a>");
 }
-
-
-print "<p>$_TOTAL: $total</p>\n";
-print $html->pages($total, "op=users$pages_qs");
 print $table->show();
-print $html->pages($total, "op=users$pages_qs");
+
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => [right, right],
+                                rows => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
+
+
+
 }
+
+
 
 #*******************************************************************
 # Users and Variant NAS Servers
@@ -846,19 +856,29 @@ sub form_chg_tp {
  my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_VARIANT;
  my $period = $FORM{period} || 0;
 
-if ($FORM{set}) {
+ use Shedule;
+ $shedule = Shedule->new($db, $admin);
 
+if ($FORM{set}) {
   if ($period == 1) {
     $FORM{date_m}++;
-    shedule($admin, {uid => $user->{UID},
-                    type => 'tp',
-                    action => $TARIF_PLAN,
-    	              d => $FORM{date_d},
-                    m => $FORM{date_m},
-                    y => $FORM{date_y},
-                    descr => "$message<br>
-                    $_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'"
-                    })
+    $shedule->add( {UID => $user->{UID},
+                   TYPE => 'tp',
+                   ACTION => $TARIF_PLAN,
+    	             D => $FORM{date_d},
+                   M => $FORM{date_m},
+                   Y => $FORM{date_y},
+                   DEWCRIBE => "$message<br>
+                   $_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'"
+                    });
+
+    if ($shedule->{errno}) {
+      message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+     }
+    else {
+      message('info', $_CHANGED, "$_CHANGED");
+      $user->info($user->{UID});
+    }
    }
   else {
     $user->change($user->{UID}, {
@@ -937,8 +957,55 @@ $params
 # form_changes();
 #**********************************************************
 sub form_changes {
+ my ($attr) = @_; 
+ my $pages_qs = '';
+ 
+ 
+if (defined($attr->{USER})) { 
+  $pages_qs = "&uid=$attr->{USER}->{UID}";
+ }
+elsif ($FORM{uid}) {
+	form_users();
+	return 0;
+ }
+
+if ($FORM{del} && $FORM{is_js_confirmed}) {
+	$admins->action_del( $FORM{del} );
+  if ($admins->{errno}) {
+    message('err', $_ERROR, "[$admins->{errno}] $err_strs{$admins->{errno}}");	
+   }
+  else {
+    message('info', $_DELETED, "$_DELETED [$FORM{del}]");
+   }
+ }
+
  	
-	
+
+#u.id, aa.datetime, aa.actions, a.name, INET_NTOA(aa.ip),  aa.uid, aa.aid, aa.id
+ 	
+my $list = $admins->action_list( { %LIST_PARAMS } );
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => ['#', 'UID',  $_DATE,  $_CHANGE,  $_ADMIN,   'IP', '-'],
+                                   cols_align => [right, left, right, left, left, right, center],
+                                   qs => $pages_qs,
+                                   pages => $admins->{TOTAL}
+                                   
+                                  } );
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "op=changes$pages_qs&del=$line->[0]", "$_DEL ?"); 
+  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?op=users&uid=$line->[6]'>$line->[1]</a>", $line->[2], $line->[3], 
+   $line->[4], $line->[5], $delete);
+}
+
+print $table->show();
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => [right, right],
+                                rows => [ [ "$_TOTAL:", "<b>$admins->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
+
+
 }
 
 
@@ -1223,6 +1290,10 @@ $op_names{80}=sql_browser;
 $menu_items{81}{80}='SQL Browser';
 $menu_items{82}{80}='SQL Backup';
 
+$menu_items{85}{5}=$_SHEDULE;
+$op_names{85}='shedule';
+$functions{85}=\&form_shedule;
+
 
 $menu_items{99}{5}=_FUNCTIONS_LIST;
 $op_names{99}='flist';
@@ -1440,13 +1511,10 @@ sub form_payments () {
  
  my $DESCRIBE = $FORM{descr} || '';
  my $MU = $FORM{er} || 1;
- my $sum = $FORM{sum};
  my $pages_qs = '';
 
  use Finance;
  my $payments = Finance->payments($db, $admin);
-
-
 
 if (defined($attr->{USER})) { 
   my $user = $attr->{USER};
@@ -1455,7 +1523,7 @@ if (defined($attr->{USER})) {
   if ($FORM{add} && $FORM{sum})	{
     my $er = $payments->exchange_info($MU);
 
-    $payments->add($user, $sum, { DESCRIBE => $DESCRIBE,
+    $payments->add($user, $FORM{sum}, { DESCRIBE => $DESCRIBE,
     	                            ER => $er->{EX_RATE} }  );  
 
     if ($payments->{errno}) {
@@ -1479,8 +1547,6 @@ if (defined($attr->{USER})) {
       message('info', $_PAYMENTS, "$_DELETED");
      }
    }
-
-$LIST_PARAMS{UID}=$user->{UID};
 
 #exchange rate sel
 my ($er, $total) = $payments->exchange_list();
@@ -1519,35 +1585,28 @@ if (! defined($permissions{1}{2})) {
 
 
 my $list = $payments->list( { %LIST_PARAMS } );
-
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
                                    cols_align => [right, left, right, right, left, left, right, right, center],
+                                   qs => $pages_qs,
+                                   pages => $payments->{TOTAL}
                                   } );
 
 
 foreach my $line (@$list) {
   my $delete = ($permissions{1}{3}) ?  $html->button($_DEL, "op=payments&del=$line->[0]&uid=$line->[8]", "$_DEL ?") : ''; 
-
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?op=users&uid=$line->[8]'>$line->[1]</a>", $line->[2], 
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $delete);
 }
 
-print $html->pages($total, "op=payments$pages_qs");
-print $table->show();
-print $html->pages($total, "op=payments$pages_qs");
-
-my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   cols_align => [right, right, right, right],
-                                   rows => [ [ "$_TOTAL:", "<b>$payments->{TOTAL}</b>", "$_SUM", "<b>$payments->{SUM}</b>" ] ]
-                                  } );
 print $table->show();
 
-
-
-
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => [right, right, right, right],
+                                rows => [ [ "$_TOTAL:", "<b>$payments->{TOTAL}</b>", "$_SUM", "<b>$payments->{SUM}</b>" ] ]
+                               } );
+print $table->show();
 }
 
 #*******************************************************************
@@ -1618,7 +1677,6 @@ print << "[END]";
 [END]
 
 my $table = Abills::HTML->table( { width => '640',
-                                   border => 1,
                                    title => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", "$_CHANGED", '-', '-'],
                                    cols_align => [left, left, right, center, center],
                                   } );
@@ -1637,25 +1695,64 @@ print $table->show();
 # form_fees
 #*******************************************************************
 sub form_fees  {
-  my ($attr) = @_;
-
+ my ($attr) = @_;
+ my $period = $FORM{period} || 0;
+ 
  use Finance;
  my $fees = Finance->fees($db, $admin);
 
-
-if (defined($attr->{USER})) { 
+if (defined($attr->{USER})) {
   my $user = $attr->{USER};
   $pages_qs = "&uid=$user->{UID}";
 
+  if ($FORM{get} && $FORM{sum}) {
+    # add to shedule
+    if ($period == 1) {
+      use Shedule;
+      $FORM{date_m}++;
+      my $shedule = Shedule->new($db, $admin); 
+      $shedule->add( { DESCRIBE => $DORM{DESCR}, 
+      	               D => $FROM{date_d},
+      	               M => $FORM{date_m},
+      	               Y => $FORM{date_y},
+                       UID => $user->{UID},
+                       TYEP => 'fees',
+                       ACTION => "$FORM{sum}:$FORM{descr}"
+                      } );
+     }
+    #Add now
+    else {
+      $fees->get($user, $FORM{sum}, { DESCRIBE => $FORM{descr} } );  
+      if ($fees->{errno}) {
+        message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
+       }
+      else {
+        message('info', $_PAYMENTS, "$_ADDED");
+       }
+    }
+   }
+  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  	if (! defined($permissions{2}{3})) {
+      message('err', $_ERROR, "[13] $err_strs{13}");
+      return 0;		
+	   }
+
+	  $fees->del($user,  $FORM{del});
+    if ($admins->{errno}) {
+      message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");
+     }
+    else {
+      message('info', $_DELETED, "$_DELETED [$FORM{del}]");
+    }
+   }
 
 
 my $period_form=form_period($period);
 print << "[END]";
-<form action=$SELF>
-<input type=hidden name=uid value='$uid'>
+<form action=$SELF_URL>
+<input type=hidden name=uid value='$user->{UID}'>
 <input type=hidden name=op value='fees'>
 <table>
-<tr><td>$_USER:</td><td>$login_link</td></tr>
 <tr><td>$_SUM:</td><td><input type=text name=sum value='$sum'></td></tr>
 <tr><td>$_DESCRIBE:</td><td><input type=text name=descr></td></tr>
 $period_form
@@ -1664,6 +1761,11 @@ $period_form
 </form>
 [END]
 }	
+elsif ($FORM{uid}) {
+	form_users();
+	return 0;
+ }
+
 
 
 if (! defined($permissions{2}{2})) {
@@ -1671,14 +1773,14 @@ if (! defined($permissions{2}{2})) {
 }
 
 
+my ($list) = $fees->list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
                                    cols_align => [right, left, right, right, left, left, right, right, center],
+                                   qs => $pages_qs,
+                                   pages => $fees->{TOTAL}
                                   } );
-
-my ($list, $total) = $fees->list( { %LIST_PARAMS } );
-
 foreach my $line (@$list) {
   my $delete = ($permissions{1}{3}) ?  $html->button($_DEL, "op=fees&del=$line->[0]&uid=$line->[8]", "$_DEL ?") : ''; 
 
@@ -1686,11 +1788,14 @@ foreach my $line (@$list) {
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $delete);
 }
 
-
-print "<p>$_TOTAL: $total</p>\n";
-print $html->pages($total, "op=fees$pages_qs");
 print $table->show();
-print $html->pages($total, "op=fees$pages_qs");
+
+my $table = Abills::HTML->table( { width => '100%',
+                                   cols_align => [right, right, right, right],
+                                   rows => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM:", "<b>$fees->{SUM}</b>" ] ]
+                                  } );
+print $table->show();
+
 
 }
 
@@ -1737,12 +1842,60 @@ my $tpl_form = qq{
 
 
 #*******************************************************************
+# form_shedule()
+#*******************************************************************
+sub form_shedule {
+
+use Shedule;
+my $shedule = Shedule->new($db, $admin);
+
+if ($FORM{del} && $FORM{is_js_confirmed}) {
+  $shedule->del($FORM{del});
+  if ($admins->{errno}) {
+    message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");
+   }
+  else {
+    message('info', $_DELETED, "$_DELETED [$FORM{del}]");
+   }
+}
+
+
+my $list = $shedule->list( { %LIST_PARAMS } );
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => ["$_HOURS", "$_DAY", "$_MONTH", "$_YEAR", "$_COUNT", "$_USER", "$_VALUE", "$_ADMINS", "$_CREATED", "-"],
+                                   cols_align => [right, right, right, right, right, left, right, right, right, center],
+                                   qs => $pages_qs,
+                                   pages => $shedule->{TOTAL}
+                                  } );
+
+foreach my $line (@$list) {
+  my $delete = ($permissions{1}{3}) ?  $html->button($_DEL, "op=shedule&del=$line->[11]&uid=$line->[10]", "$_DEL ?") : ''; 
+  $table->addrow("<b>$line->[0]</b>", $line->[1], $line->[2], 
+    $line->[3],  $line->[4],  "<a href='$SELF_URL?op=users&uid=$line->[10]'>$line->[5]</a>", "$line->[6]", "$line->[7]", "$line->[8]", $delete);
+}
+
+print $table->show();
+
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => [right, right, right, right],
+                                rows => [ [ "$_TOTAL:", "<b>$shedule->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
+
+
+
+
+
+}
+
+#*******************************************************************
 # form_period
 #*******************************************************************
 sub form_period () {
  my $period = shift;
  my @periods = ("$PERIODS[0]", "$_OTHER");
- my $date_fld = $html->date_fld('date_');
+ my $date_fld = $html->date_fld('date_', { MONTHES => \@MONTHES });
  my $form_period='';
 
 
