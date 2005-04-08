@@ -63,7 +63,7 @@ sub info {
   my $sql = "SELECT u.id, u.fio, u.phone, u.address, u.email, u.activate, u.expire, u.credit, u.reduction, 
             u.variant, u.logins, u.registration, u.disable,
             INET_NTOA(u.ip), INET_NTOA(u.netmask), u.speed, u.filter_id, u.cid, u.comments, u.account_id,
-            if(acct.name IS NULL, 'N/A', acct.name), if(acct.name IS NULL, u.deposit, acct.deposit), tp.name
+            if(acct.name IS NULL, 'N/A', acct.name), if(acct.name IS NULL, u.deposit, acct.deposit), tp.name, u.gid
      FROM users u
      LEFT JOIN accounts acct ON (u.account_id=acct.id)
      LEFT JOIN variant tp ON (u.variant=tp.vrnt)
@@ -105,7 +105,8 @@ sub info {
    $self->{ACCOUNT_ID},
    $self->{ACCOUNT_NAME},
    $self->{DEPOSIT},
-   $self->{TP_NAME} )= $q->fetchrow();
+   $self->{TP_NAME},
+   $self->{GID} )= $q->fetchrow();
    $self->{UID} = $uid;
   
 #   if ($self->{ACCOUNT_ID} > 0) {
@@ -123,6 +124,7 @@ sub info {
 sub list {
  my $self = shift;
  my ($attr) = @_;
+ my @list = ();
 
  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
@@ -152,11 +154,16 @@ sub list {
     $WHERE .= ($WHERE ne '') ?  " and u.account_id='$attr->{ACCOUNT_ID}' " : "WHERE u.account_id='$attr->{ACCOUNT_ID}' ";
   }
 
+ # Show groups
+ if ($attr->{GID}) {
+    $WHERE .= ($WHERE ne '') ?  " and u.gid='$attr->{GID}' " : "WHERE u.gid='$attr->{GID}' ";
+  }
+
  
  my $q = $db->prepare("SELECT count(u.id) FROM users u $WHERE");
  
  $q ->execute(); 
- my ($total) = $q->fetchrow();
+ ($self->{TOTAL}) = $q->fetchrow();
 
 # print "SELECT u.id, u.fio, u.deposit, u.credit, v.name, u.uid 
 #     FROM users u
@@ -170,14 +177,13 @@ sub list {
      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;") || die $db->errstr;
 
  $q ->execute(); 
- my @users = ();
- 
- while(my @user = $q->fetchrow()) {
-   push @users, \@user;
+
+ while(my @row = $q->fetchrow()) {
+   push @list, \@row;
   }
 
-  $self->{list} = \@users;
-  return $self->{list}, $total;
+  $self->{list} = \@list;
+  return $self->{list};
 }
 
 
@@ -201,6 +207,7 @@ sub add {
   my $COMMENTS = (defined($attr->{COMMENTS})) ? $attr->{COMMENTS} : '';
   my $ACCOUNT_ID = (defined($attr->{ACCOUNT_ID})) ? $attr->{ACCOUNT_ID} : 0;
   my $DISABLE = (defined($attr->{DISABLE})) ? $attr->{DISABLE} : 0;
+  my $GID = (defined($attr->{GID})) ? $attr->{GID} : 65535;
   
   my $TARIF_PLAN = (defined($attr->{TARIF_PLAN})) ? $attr->{TARIF_PLAN} : '';
   my $IP = (defined($attr->{IP})) ? $attr->{IP} : '0.0.0.0';
@@ -234,9 +241,9 @@ sub add {
    }
     
   my $sql = "INSERT INTO users (id, fio, phone, address, email, activate, expire, credit, reduction, 
-            variant, logins, registration, disable, ip, netmask, speed, filter_id, cid, comments, account_id)
+            variant, logins, registration, disable, ip, netmask, speed, filter_id, cid, comments, account_id, gid)
            VALUES ('$LOGIN', '$FIO', '$PHONE', \"$ADDRESS\", '$EMAIL', '$ACTIVATE', '$EXPIRE', '$CREDIT', '$REDUCTION', 
-            '$TARIF_PLAN', '$SIMULTANEONSLY', now(),  '$DISABLE', INET_ATON('$IP'), INET_ATON('$NETMASK'), '$SPEED', '$FILTER_ID', LOWER('$CID'), '$COMMENTS', '$ACCOUNT_ID');";
+            '$TARIF_PLAN', '$SIMULTANEONSLY', now(),  '$DISABLE', INET_ATON('$IP'), INET_ATON('$NETMASK'), '$SPEED', '$FILTER_ID', LOWER('$CID'), '$COMMENTS', '$ACCOUNT_ID', '$GID');";
 
   print "$sql";
   my $q = $db->do($sql);
@@ -285,6 +292,7 @@ sub change {
   $DATA{COMMENTS} = $attr->{COMMENTS} if (defined($attr->{COMMENTS}));
   $DATA{ACCOUNT_ID} = $attr->{ACCOUNT_ID} if (defined($attr->{ACCOUNT_ID}));
   $DATA{DISABLE} = $attr->{DISABLE} if (defined($attr->{DISABLE}));
+  $DATA{GID} = $attr->{GID} if (defined($attr->{GID}));
   $DATA{PASSWORD} = $attr->{PASSWORD} if (defined($attr->{PASSWORD}));
   my $secretkey = (defined($attr->{secretkey}))? $attr->{secretkey} : '';  
 
@@ -309,6 +317,7 @@ my %FIELDS = (LOGIN => 'id',
               COMMENTS => 'comments',
               ACCOUNT_ID => 'account_id',
               DISABLE => 'disable',
+              GID => 'gid',
               PASSWORD => 'password',
 
               IP => 'ip',
@@ -354,7 +363,7 @@ my %FIELDS = (LOGIN => 'id',
    }
 
 
-if ($CHANGES_QUERY eq '')   {
+if ($CHANGES_QUERY eq '') {
   return $self->{result};	
 }
 

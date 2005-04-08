@@ -175,8 +175,8 @@ sub action_add {
   my $self = shift;
   my ($uid, $actions) = @_;
  
-  my $sql = "INSERT INTO admin_actions (aid, ip, datetime, actions, uid) VALUES ('$aid', '$IP', now(), '$actions', '$uid')";
-  #print $sql; 
+  my $sql = "INSERT INTO admin_actions (aid, ip, datetime, actions, uid) VALUES ('$aid', INET_ATON('$IP'), now(), '$actions', '$uid')";
+#  print $sql; 
   my $q = $db->do($sql);
 
   if($db->err > 0) {
@@ -193,17 +193,16 @@ sub action_add {
 #**********************************************************
 sub action_del {
   my $self = shift;
-  my ($uid, $action_id) = @_;
+  my ($action_id) = @_;
  
   my $sql = "DELETE FROM admin_actions WHERE id='$action_id';";
-  print $sql; 
   my $q = $db->do($sql);
-
   if($db->err > 0) {
      $self->{errno} = 3;
      $self->{errstr} = 'SQL_ERROR';
      return $self;
    }
+
 }
 
 
@@ -214,33 +213,51 @@ sub action_list {
   my $self = shift;
   my ($attr) = @_;
   
-  my $WHERE = '';
-  my $admin_id;
-  my $uid;
-  
-  my $sql = "SELECT id aid, ip, datetime, actions, uid FROM admin_actions $WHERE;";
-  print $sql; 
+  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+  my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-  my $q = $db->prepare("select aid, id, name, regdate, gid FROM admins;") || die $db->errstr;
-  $q ->execute(); 
-  my @actions = ();
+  my $WHERE = '';
+  my @list = ();
+
+  # UID
+  if ($attr->{UID}) {
+    $WHERE .= ($WHERE ne '') ?  " and aa.uid='$attr->{UID}' " : "WHERE aa.uid='$attr->{UID}' ";
+  }
  
-  if ($db->err == 1062) {
-     $self->{errno} = 7;
-     $self->{errstr} = 'ERROR_DUBLICATE';
-     return $self;
+  my $sql = "SELECT count(*) FROM admin_actions aa $WHERE;";
+  my $q = $db->prepare($sql);
+  $q ->execute(); 
+
+  ($self->{TOTAL}) = $q->fetchrow();
+
+#  print $sql;
+  if ($self->{TOTAL} < 1) {
+    $self->{list} = \@list;
+    return $self->{list};
    }
-  elsif($db->err > 0) {
+
+  $q = $db->prepare("select aa.id, u.id, aa.datetime, aa.actions, a.id, INET_NTOA(aa.ip), aa.uid, aa.aid, aa.id
+      FROM admin_actions aa
+      LEFT JOIN admins a ON (aa.aid=a.aid)
+      LEFT JOIN users u ON (aa.uid=u.uid)
+       $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+  $q ->execute(); 
+ 
+ 
+  if($db->err > 0) {
      $self->{errno} = 3;
      $self->{errstr} = 'SQL_ERROR';
      return $self;
    }
 
-  while(my @action = $q->fetchrow()) {
-    push @actions, \@action;
+  while(my @row = $q->fetchrow()) {
+    push @list, \@row;
    }
 
-  $self->{list} = \@actions;
+
+  $self->{list} = \@list;
   return $self->{list};
 }
 

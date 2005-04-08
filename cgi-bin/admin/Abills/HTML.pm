@@ -386,7 +386,7 @@ sub table {
 
  $self->{table} = "<TABLE $width cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_COLORS[4]>
                <TABLE width=100% cellspacing=1 cellpadding=0 border=0>\n";
- $self->{table} .= (defined($attr->{title})) ? $self->table_title($SORT, $DESC, $PG, $OP, $attr->{title}) : '';
+ $self->{table} .= (defined($attr->{title})) ? $self->table_title($SORT, $DESC, $PG, $OP, $attr->{title}, $attr->{qs}) : '';
  
  if (defined($attr->{cols_align})) {
    $self->{table} .= "<COLGROUP>";
@@ -397,7 +397,10 @@ sub table {
     }
    $self->{table} .= "</COLGROUP>\n";
   }
-
+ 
+ if (defined($attr->{pages})) {
+ 	   $self->{pages} =  $self->pages($attr->{pages}, "op=$OP$attr->{qs}");
+	 } 
  return $self;
 }
 
@@ -428,7 +431,7 @@ sub addrow {
 #*******************************************************************
 sub table_title  {
   my $self = shift;
-  my ($sort, $desc, $pg, $op, $caption)=@_;
+  my ($sort, $desc, $pg, $op, $caption, $qs)=@_;
   my $img='';
 
   $self->{table_title} = "<tr bgcolor=$_COLORS[0]>";
@@ -447,7 +450,7 @@ sub table_title  {
              $img = 'up_pointer.png';
              $desc='DESC';
            }
-         $self->{table_title} .= "<a href='$SELF_URL?op=$op&pg=$pg&sort=$i&desc=$desc'>".
+         $self->{table_title} .= "<a href='$SELF_URL?op=$op$qs&pg=$pg&sort=$i&desc=$desc'>".
             "<img src='../img/$img' width=12 height=10 border=0 title=sort></a>";
        }
      else {
@@ -472,6 +475,11 @@ sub show  {
   $self->{show} .= $self->{table};
   $self->{show} .= $self->{rows}; 
   $self->{show} .= "</table></td></tr></table>\n";
+
+  if (defined($self->{pages})) {
+ 	   $self->{show} =  '<p>'.$self->{pages} . $self->{show} . $self->{pages} .'</p>';
+ 	 } 
+
   return $self->{show};
 }
 
@@ -556,8 +564,10 @@ for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
 #*******************************************************************
 sub date_fld  {
  my $self = shift;
- my $base_name=shift;
+ my ($base_name, $attr) = @_;
  
+ my $MONTHES = $attr->{MONTHES};
+
  my($sec,$min,$hour,$mday,$mon,$curyear,$wday,$yday,$isdst) = localtime(time);
 
  my $day = $FORM{$base_name.'d'} || 1;
@@ -579,7 +589,7 @@ $result .= '</select>';
 $result  .= "<SELECT name=". $base_name ."m>";
 
 my $i=0;
-foreach my $line (@MONTHES) {
+foreach my $line (@$MONTHES) {
    $result .= sprintf("<option value=%.2d", $i);
    $result .= ' selected' if($month == $i ) ;
    
