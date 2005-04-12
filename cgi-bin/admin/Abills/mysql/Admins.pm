@@ -42,7 +42,7 @@ sub get_permissions {
   my $self = shift;
   my %permissions = ();
 
-  $aid = $self->{aid};
+  $aid = $self->{AID};
 
   my $sql = "SELECT section, actions FROM admin_permits WHERE aid='$aid';";
   my $q  = $db->prepare($sql);
@@ -100,9 +100,9 @@ sub info {
   bless($self, $class);
 
   my $WHERE;
-  if (defined($attr->{login}) && defined($attr->{password})) {
-    my $secretkey = (defined($attr->{secretkey}))? $attr->{secretkey} : '';
-    $WHERE = "WHERE id='$attr->{login}' and DECODE(password, '$secretkey')='$attr->{password}'";
+  if (defined($attr->{LOGIN}) && defined($attr->{PASSWORD})) {
+    my $SECRETKEY = (defined($attr->{SECRETKEY}))? $attr->{SECRETKEY} : '';
+    $WHERE = "WHERE id='$attr->{LOGIN}' and DECODE(password, '$SECRETKEY')='$attr->{PASSWORD}'";
    }
   else {
     $WHERE = "WHERE aid='$aid'";
@@ -110,7 +110,7 @@ sub info {
 
   $IP = (defined($attr->{IP}))? $attr->{IP} : '0.0.0.0';
 
-  my $sql = "SELECT aid, id, name, regdate  FROM admins $WHERE;";
+  my $sql = "SELECT aid, id, name, regdate, disable FROM admins $WHERE;";
   my $q = $db->prepare($sql) || die $db->errstr;
   $q ->execute(); 
 
@@ -125,13 +125,14 @@ sub info {
      return $self;
    }
 
-  my ($aid, $name, $fio, $registration)= $q->fetchrow();
-  
-  $self->{aid}=$aid;
-  $self->{name}="$name";
-  $self->{fio} = "$fio";
-  $self->{registration} = "$registration";
-  $self->{session_ip} = $IP;
+  ($self->{AID},
+   $self->{NAME},
+   $self->{FIO},
+   $self->{REGISTRATION},
+   $self->{DISABLE} )= $q->fetchrow();
+
+
+  $self->{SESSION_IP}  = $IP;
 
   return $self;
 }
@@ -142,10 +143,10 @@ sub info {
 sub list {
  my $self = shift;
 
- my $q = $db->prepare("select aid, id, name, regdate, gid FROM admins;") || die $db->errstr;
+ my $q = $db->prepare("select aid, id, name, regdate, disable, gid FROM admins;") || die $db->errstr;
  $q ->execute(); 
 
- my $total = $q->rows;
+ $self->{TOTAL} = $q->rows;
 
  my @list = ();
  while(my @row = $q->fetchrow()) {
@@ -153,7 +154,7 @@ sub list {
  }
 
   $self->{list} = \@list;
-  return $self->{list}, $total;
+  return $self->{list};
 }
 
 
@@ -224,7 +225,12 @@ sub action_list {
   # UID
   if ($attr->{UID}) {
     $WHERE .= ($WHERE ne '') ?  " and aa.uid='$attr->{UID}' " : "WHERE aa.uid='$attr->{UID}' ";
-  }
+   }
+
+  if ($attr->{AID}) {
+    $WHERE .= ($WHERE ne '') ?  " and aa.aid='$attr->{AID}' " : "WHERE aa.aid='$attr->{AID}' ";
+   }
+
  
   my $sql = "SELECT count(*) FROM admin_actions aa $WHERE;";
   my $q = $db->prepare($sql);

@@ -10,8 +10,7 @@ use Exporter;
 $VERSION = 2.00;
 @ISA = ('Exporter');
 
-@EXPORT = qw(
-);
+@EXPORT = qw();
 
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();

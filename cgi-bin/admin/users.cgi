@@ -3853,9 +3853,9 @@ if ($FORM{search}) {
      $out = ($rows > 1) ? "<a href='$SELF?op=show_int&b=$session_start_u&e=$s_end'>$session_start</a>" : "$session_start";
      print "<tr bgcolor=$bg><td><a href='$SELF?op=users&uid=$uid'>$login</td> <td align=right>";
 
-     $sss = "<pre>";
-        my ($ssum, $vid, $time_tarif, $trafic_tarif) = session_sum("$login", "$session_start_u", $duration_sec, \%ACCT_INFO);
-        $sss .= "$login, $session_start_u, $duration_sec / $ssum, $vid, $time_tarif, $trafic_tarif</pre>";
+#     $sss = "<pre>";
+#        my ($ssum, $vid, $time_tarif, $trafic_tarif) = session_sum("$login", "$session_start_u", $duration_sec, \%ACCT_INFO);
+#        $sss .= "$login, $session_start_u, $duration_sec / $ssum, $vid, $time_tarif, $trafic_tarif</pre>";
         
      print "$out</td><td align=right>$duration</td><td align=right>$variant</td>
         <TD align=right>$sent</TD><TD align=right>$recv</td><td>$CID</td><td>$NAS_INFO->{name}{$nas_id}</td><td>$ip</td><th align=right>

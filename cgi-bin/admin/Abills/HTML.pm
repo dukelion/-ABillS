@@ -377,6 +377,11 @@ sub table {
  my $width = (defined($attr->{width})) ? "width=$attr->{width}" : '';
  my $border = (defined($attr->{border})) ? "border=$attr->{border}" : '';
 
+ if (defined($attr->{rowcolor})) {
+     $self->{rowcolor} = $attr->{rowcolor};
+   }  
+
+
  if (defined($attr->{rows})) {
     my $rows = $attr->{rows};
     foreach my $line (@$rows) {
@@ -410,7 +415,12 @@ sub table {
 sub addrow {
   my $self = shift;
   my (@row) = @_;
-  $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
+  if (defined($self->{rowcolor})) {
+    $bg = $self->{rowcolor};
+   }  
+  else {
+  	$bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
+   }
 
   $self->{rows} .= "<tr bgcolor=$bg>";
   foreach my $val (@row) {

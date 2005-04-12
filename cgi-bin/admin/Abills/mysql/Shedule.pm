@@ -90,7 +90,7 @@ sub add {
  my $ACTION=(defined($attr->{ACTION})) ? $attr->{ACTION} : '';
   
  my $sql = "INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date) 
-        VALUES ('$H', '$D', '$M', '$Y', '$UID', '$TYPE', '$ACTION', '$admin->{aid}', now());";
+        VALUES ('$H', '$D', '$M', '$Y', '$UID', '$TYPE', '$ACTION', '$admin->{AID}', now());";
 #print $sql;
  my $q = $db->do($sql);
 

@@ -119,6 +119,7 @@ $_HANGUPED='Hanguped';
 #Other
 $_OTHER='Other';
 $_SQL_BACKUP='SQL backup';
+$_ADMIN='Administrator';
 $_ADMINS='Administrators';
 $_GROUPS='Groups';
 $_CHANGE_PASSWD='Change password';

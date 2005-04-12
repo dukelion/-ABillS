@@ -20,7 +20,9 @@ use Abills::SQL;
 use Abills::HTML;
 use Nas;
 use Admins;
-#use Users;
+
+
+
 
 my $html = Abills::HTML->new();
 my $sql = Abills::SQL->connect('mysql', 'localhost', 'abills', 'asm', 'test1r');
@@ -148,10 +150,10 @@ print '<hr>'. $conf{version};
 sub check_permissions {
   my ($login, $password)=@_;
 
-  $admin = Admins->info(0, {login => "$login", 
-                            password => "$password",
-                            secretkey => $conf{secretkey},
-                            IP => $SESSION_IP,
+  $admin = Admins->info(0, {LOGIN => "$login", 
+                            PASSWORD => "$password",
+                            SECRETKEY => $conf{secretkey},
+                            IP => $SESSION_IP
                              }
                            );
 
@@ -968,6 +970,15 @@ elsif ($FORM{uid}) {
 	form_users();
 	return 0;
  }
+elsif (defined($attr->{ADMIN})) { 
+  $pages_qs = "&aid=$attr->{ADMIN}->{AID}";
+ }
+elsif ($FORM{aid}) {
+	form_admins();
+	return 0;
+ }
+
+
 
 if ($FORM{del} && $FORM{is_js_confirmed}) {
 	$admins->action_del( $FORM{del} );
@@ -1014,11 +1025,7 @@ print $table->show();
 # form_admins()
 #**********************************************************
 sub form_admins {
- print "<h3>$_ADMINS</h3>\n";
 
-my @action = ('add', $_ADD);
-
- 
 if ($FORM{add}) {
   $admin->add();
   if ($admin->{errno}) {
@@ -1036,7 +1043,7 @@ elsif ($FORM{password}) {
   if ($password ne '0') {
     $admin->password($password, { secretkey => $conf{secretkey} } ); 
     if (! $admin->{errno}) {
-       message('info', $_INFO, "$_ADMINS: $admin->{name}<br>$_PASSWD $_CHANGED");
+       message('info', $_INFO, "$_ADMINS: $admin->{NAME}<br>$_PASSWD $_CHANGED");
      }
    }
 
@@ -1049,6 +1056,22 @@ elsif($FORM{chg}) {
      message('err', $_ERROR, $err_strs{$admin->{errno}});	
    }
 }
+elsif($FORM{aid}) {
+  my $admin = $admins->info($FORM{aid});
+	
+  my $table = Abills::HTML->table( { width => '100%',
+                                     rows => [ [ "$_ADMIN:", "<b>$admin->{NAME}</b>" ] ],
+                                     rowcolor => $_COLORS[2]
+                                  } );
+  print $table->show();
+  $LIST_PARAMS{AID} = $admin->{AID};
+
+	if ($OP eq 'changes') {
+		 form_changes({ ADMIN => $admin });
+	 }
+	
+	return 0;
+}
 elsif($FORM{del}) {
   $admin->del($FORM{del});
   if ($admin->{errno}) {
@@ -1056,13 +1079,18 @@ elsif($FORM{del}) {
    }
 }
 
+
+
+my $disable = ($admin->{DISABLE} > 0) ? 'checked' : '';
+
 print << "[END]";
 <form action=$SELF_URL>
 <input type=hidden name=op value=admins>
 <input type=hidden name=chg value='$FORM{chg}'>
 <table>
-<tr><td>ID:</td><td><input type=text name=id value="$admin->{ID}"></td></tr>
+<tr><td>ID:</td><td><input type=text name=id value="$admin->{AID}"></td></tr>
 <tr><td>$_FIO:</td><td><input type=text name=name value="$admin->{NAME}"></td></tr>
+<tr><td>$_DISABLE:</td><td><input type=checkbox name=disable value='1' $disable></td></tr>
 <!-- <tr><td>$_GROUPS:</td><td><input type=text name=name value="$name"></td></tr> -->
 </table>
 <input type=submit name=$action[0] value='$action[1]'>
@@ -1070,17 +1098,20 @@ print << "[END]";
 [END]
 
 
-my $table = Abills::HTML->table( { width => '640',
+my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => ['ID', $_NAME, $_FIO, $_CREATE, $_GROUPS, '-', '-', '-', '-'],
-                                   cols_align => [right, left, left, right, left, center, center, center, center],
+                                   title => ['ID', $_NAME, $_FIO, $_CREATE, $_GROUPS, '-', '-', '-', '-', '-', '-'],
+                                   cols_align => [right, left, left, right, left, center, center, center, center, center, center],
                                   } );
 
-my ($admins_list, $total) = $admins->list();
-foreach my $line (@$admins_list) {
-  $table->addrow(@$line, "<a href='$SELF_URL?op=admins&permissions=y&aid=$line->[0]'>$_PERMISSION</a>", "<a href='$SELF_URL?op=admins&password=y&aid=$line->[0]'>$_PASSWD</a>",
+my $list = $admins->list();
+foreach my $line (@$list) {
+  $table->addrow(@$line, "<a href='$SELF_URL?op=admins&permissions=y&aid=$line->[0]'>$_PERMISSION</a>", 
+   "<a href='$SELF_URL?op=changes&aid=$line->[0]'>$_LOG</a>",
+   "<a href='$SELF_URL?op=admins&password=y&aid=$line->[0]'>$_PASSWD</a>",
    "<a href='$SELF_URL?op=admins&chg=$line->[0]'>$_CHANGE</a>", $html->button($_DEL, "op=admins&del=$line->[0]", "$_DEL ?"));
 }
+
 print $table->show();
 }
 
@@ -1604,7 +1635,8 @@ print $table->show();
 
 $table = Abills::HTML->table( { width => '100%',
                                 cols_align => [right, right, right, right],
-                                rows => [ [ "$_TOTAL:", "<b>$payments->{TOTAL}</b>", "$_SUM", "<b>$payments->{SUM}</b>" ] ]
+                                rows => [ [ "$_TOTAL:", "<b>$payments->{TOTAL}</b>", "$_SUM", "<b>$payments->{SUM}</b>" ] ],
+                                rowcolor => $_COLORS[2]
                                } );
 print $table->show();
 }
@@ -1792,7 +1824,8 @@ print $table->show();
 
 my $table = Abills::HTML->table( { width => '100%',
                                    cols_align => [right, right, right, right],
-                                   rows => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM:", "<b>$fees->{SUM}</b>" ] ]
+                                   rows => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM:", "<b>$fees->{SUM}</b>" ] ],
+                                   rowcolor => $_COLORS[2]
                                   } );
 print $table->show();
 

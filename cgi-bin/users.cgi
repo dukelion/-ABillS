@@ -5,11 +5,13 @@
 my $ftpserver="localhost";
 #-------END_Variables----------
 
-my $LIB_PATH='./admin';
-push(@INC, $LIB_PATH);
+#my $LIB_PATH='./admin';
+#push(@INC, $LIB_PATH);
 
 use lib "./admin";
 use Abwconf;
+#use FindBin '$Bin';
+#print $Bin;
 
 require "Base.pm";
 Base->import();
@@ -445,7 +447,7 @@ sub auth {
  my $ip = "$REMOTE_ADDR/$HTTP_X_FORWARDED_FOR";
 
  
- tie %h, "DB_File", "$sessions", O_RDWR|O_CREAT, 0640, $DB_HASH
+ tie %h, "DB_File",  "$sessions", O_RDWR|O_CREAT, 0640, $DB_HASH
          or die "Cannot open file '$sessions': $!\n";
 
 if ($FORM{op} eq 'logout') {
