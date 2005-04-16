@@ -235,8 +235,10 @@ elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
          #print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
           
          my $radsecret = 'test';
-         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $radsecret, $challenge), 0, 16));
-	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex( substr(encode_mppe_key($recv, $radsecret, $challenge), 0, 16));
+         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
+	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
+
+	       
         }
        else {
          if (check_mschap("$passwd", "$RAD{MS_CHAP_CHALLENGE}", "$RAD{MS_CHAP_RESPONSE}", 
@@ -1038,7 +1040,6 @@ sub encode_mppe_key
 
 #	print length($C) ."$C\n";
 #print "\n$A . ". length($C) ."\n";    
-
 #print length($A . $C);
     return $A . $C;
 }
