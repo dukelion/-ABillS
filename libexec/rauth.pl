@@ -9,6 +9,19 @@ my $begin_time = check_time();
 require $Bin . '/sql.pl';
 
 
+
+=comments
+        MS-CHAP-Challenge = 0x32323738343134393536353333333635
+        MS-CHAP2-Response = 0x010017550ce222cfa39d348b93e93cd26f1a000000000000000026fe1a5e39097393b8a4ade5a466790bbefab075383ec58b
+
+        MS-CHAP2-Success = 0x01533d30424446454530444634373846434335464338453041423939444344453842373341303835373245
+        MS-MPPE-Recv-Key = 0x27ac8322247937ad3010161f1d5bbe5c
+        MS-MPPE-Send-Key = 0x4f835a2babe6f2600a731fd89ef25a38
+        MS-MPPE-Encryption-Policy = 0x00000001
+        MS-MPPE-Encryption-Types = 0x00000006
+=cut
+
+
 ####################################################################
 
 get_radius_params();
@@ -17,6 +30,7 @@ get_radius_params();
 
 if ($ARGV[0] eq 'pre_auth') { 
   pre_auth("$RAD{USER_NAME}");
+  exit 0;
 }
 
 my $nas_num=-1;
@@ -195,27 +209,34 @@ if (defined($RAD{CHAP_PASSWORD}) && defined($RAD{CHAP_CHALLENGE})) {
  }
 #Auth MS-CHAP v1,v2
 elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
-       # Its an MS-CHAP V2 request
-       # See draft-ietf-radius-ms-vsa-01.txt,
-       # draft-ietf-pppext-mschap-v2-00.txt, RFC 2548, RFC3079
-       my ($usersessionkey, $lanmansessionkey, $ms_chap2_success);
-       if (defined($RAD{MS_CHAP2_RESPONSE})) {
+  # Its an MS-CHAP V2 request
+  # See draft-ietf-radius-ms-vsa-01.txt,
+  # draft-ietf-pppext-mschap-v2-00.txt, RFC 2548, RFC3079
+  $RAD{MS_CHAP_CHALLENGE} =~ s/^0x//;
+  my $challenge = pack("H*", $RAD{MS_CHAP_CHALLENGE});
+  my ($usersessionkey, $lanmansessionkey, $ms_chap2_success);
 
-         if(check_mschapv2("$RAD{USER_NAME}", $passwd, "$RAD{MS_CHAP_CHALLENGE}", "$RAD{MS_CHAP2_RESPONSE}", 
-	   \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 0) {
-            $message = "Wrong MS-CHAP2 password";
-            $RAD_PAIRS{'MS-CHAP-Error'}="$message";
-            return 1;
-	  }
+  if (defined($RAD{MS_CHAP2_RESPONSE})) {
+     $RAD{MS_CHAP2_RESPONSE} =~ s/^0x//; 
+     my $rad_response = pack("H*", $RAD{MS_CHAP2_RESPONSE});
+     my ($ident, $flags, $peerchallenge, $reserved, $response) = unpack('C C a16 a8 a24', $rad_response);
+
+     if (check_mschapv2("$RAD{USER_NAME}", $passwd, $challenge, $peerchallenge, $response, $ident,
+ 	    \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 0) {
+         $message = "Wrong MS-CHAP2 password";
+         $RAD_PAIRS{'MS-CHAP-Error'}="$message";
+         return 1;
+	    }
 
          $RAD_PAIRS{'MS-CHAP2-SUCCESS'} = '0x' . bin2hex($ms_chap2_success);
 
-         $RAD{MS_CHAP2_RESPONSE} =~ s/^0x//; 
-         my $response = pack("H*", $RAD{MS_CHAP2_RESPONSE});
-
          my ($send, $recv) = Radius::MSCHAP::mppeGetKeys($usersessionkey, $response, 16);
-         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $passwd), 0, 16));
-	 $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex( substr(encode_mppe_key($recv, $passwd), 0, 16));
+
+         #print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
+          
+         my $radsecret = 'test';
+         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $radsecret, $challenge), 0, 16));
+	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex( substr(encode_mppe_key($recv, $radsecret, $challenge), 0, 16));
         }
        else {
          if (check_mschap("$passwd", "$RAD{MS_CHAP_CHALLENGE}", "$RAD{MS_CHAP_RESPONSE}", 
@@ -227,12 +248,13 @@ elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
         }
 
 
-       $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', $lanmansessionkey, 
-                                                                  $usersessionkey))) . "0000000000000000";
+#       $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', $lanmansessionkey, 
+#														$usersessionkey))) . "0000000000000000";
+
        # 1      Encryption-Allowed 
        # 2      Encryption-Required 
-       $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000002';
-       $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
+       #$RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000002';
+       #$RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
  }
 elsif($authtype == 1) {
   if (check_systemauth("$RAD{USER_NAME}", "$RAD{USER_PASSWORD}") == 0) { 
@@ -794,22 +816,16 @@ sub check_mschap {
 # $sessionkeydest is a ref to a string where the sesiosn key for MPPE will be returned
 sub check_mschapv2
 {
-    my ($username, $pw, $challenge, $rad_response, 
+    my ($username, $pw, $challenge, $peerchallenge, $response, $ident,
 	$usersessionkeydest, $lanmansessionkeydest,  $ms_chap2_success) = @_;
 
 
   use lib $Bin;
   use MSCHAP;
 
-  $rad_response =~ s/^0x//; 
-  $challenge =~ s/^0x//;
-  $challenge = pack("H*", $challenge);
-  $rad_response = pack("H*", $rad_response);
-  my ($ident, $flags, $peerchallenge, $reserved, $response) = unpack('C C a16 a8 a24', $rad_response);
-    
-    my $upw = Radius::MSCHAP::ASCIItoUnicode($pw);
-    return 
-    unless &Radius::MSCHAP::GenerateNTResponse($challenge, $peerchallenge, $username, $upw) 
+  my $upw = Radius::MSCHAP::ASCIItoUnicode($pw);
+  return 
+  unless &Radius::MSCHAP::GenerateNTResponse($challenge, $peerchallenge, $username, $upw) 
 	       eq $response;
 
 
@@ -823,7 +839,7 @@ sub check_mschapv2
    
     $$ms_chap2_success=pack('C a42', $ident,
 			  &Radius::MSCHAP::GenerateAuthenticatorResponseHash
-			  ($$usersessionkeydest, $response, $peerchallenge, $challenge, "$RAD{USER_NAME}"))
+			  ($$usersessionkeydest, $response, $peerchallenge, $challenge, "$username"))
 			  if defined $ms_chap2_success;
 
 
@@ -993,7 +1009,9 @@ sub bin2hex ($) {
 # except there is no tag
 sub encode_mppe_key
 {
- my ($pwdin, $secret) = @_;
+ my ($pwdin, $secret, $challenge) = @_;
+
+# print "$pwdin, $secret, $challenge\n";
 
  eval { require Digest::MD5; };
  if (! $@) {
@@ -1006,7 +1024,9 @@ sub encode_mppe_key
     my $P = pack('C',  length($pwdin)) . $pwdin;
     my $A = pack('n', rand(65535) | 0x8000);
 #    my $c_i = $self->authenticator . $A;     # Ciphertext blocks
+# $self->authenticator
     my $c_i = $A;     # Ciphertext blocks
+#print pack("H*", '3cb6fe01a41e2c56fddac4dd90604df5');
     my $C;                                   # Encrypted result
 
 
@@ -1019,6 +1039,7 @@ sub encode_mppe_key
 #	print length($C) ."$C\n";
 #print "\n$A . ". length($C) ."\n";    
 
+#print length($A . $C);
     return $A . $C;
 }
 
