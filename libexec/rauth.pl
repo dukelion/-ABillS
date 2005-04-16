@@ -234,9 +234,9 @@ elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
 
          #print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
           
-         my $radsecret = 'test';
-         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
-	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
+         #my $radsecret = 'test';
+         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $passwd));
+	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $passwd));
 
 	       
         }
@@ -1011,9 +1011,7 @@ sub bin2hex ($) {
 # except there is no tag
 sub encode_mppe_key
 {
- my ($pwdin, $secret, $challenge) = @_;
-
-# print "$pwdin, $secret, $challenge\n";
+ my ($pwdin, $secret) = @_;
 
  eval { require Digest::MD5; };
  if (! $@) {
