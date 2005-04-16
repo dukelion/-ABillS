@@ -224,7 +224,7 @@ elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
      if (check_mschapv2("$RAD{USER_NAME}", $passwd, $challenge, $peerchallenge, $response, $ident,
  	    \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 0) {
          $message = "Wrong MS-CHAP2 password";
-         $RAD_PAIRS{'MS-CHAP-Error'}="$message";
+         $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
          return 1;
 	    }
 
@@ -242,7 +242,7 @@ elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
          if (check_mschap("$passwd", "$RAD{MS_CHAP_CHALLENGE}", "$RAD{MS_CHAP_RESPONSE}", 
 	           \$usersessionkey, \$lanmansessionkey, \$message) == 0) {
            $message = "Wrong MS-CHAP password";
-           $RAD_PAIRS{'MS-CHAP-Error'}="$message";
+           $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
            return 1;
           }
         }
