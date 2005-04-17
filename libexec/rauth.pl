@@ -209,6 +209,9 @@ if (defined($RAD{CHAP_PASSWORD}) && defined($RAD{CHAP_CHALLENGE})) {
  }
 #Auth MS-CHAP v1,v2
 elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
+  #continue;
+  #close;
+
   # Its an MS-CHAP V2 request
   # See draft-ietf-radius-ms-vsa-01.txt,
   # draft-ietf-pppext-mschap-v2-00.txt, RFC 2548, RFC3079
@@ -234,9 +237,14 @@ elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
 
          #print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
           
-         #my $radsecret = 'test';
-         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $passwd));
-	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $passwd));
+         my $radsecret = 'test';
+#         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $radsecret, $challenge), 0, 16));
+#	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex( substr(encode_mppe_key($recv, $radsecret, $challenge), 0, 16));
+         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
+	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
+
+#         $RAD_PAIRS{'MS-MPPE-Send-Key'}='0x4f835a2babe6f2600a731fd89ef25a38';
+#	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}='0x27ac8322247937ad3010161f1d5bbe5c';
 
 	       
         }
@@ -1011,7 +1019,9 @@ sub bin2hex ($) {
 # except there is no tag
 sub encode_mppe_key
 {
- my ($pwdin, $secret) = @_;
+ my ($pwdin, $secret, $challenge) = @_;
+
+# print "$pwdin, $secret, $challenge\n";
 
  eval { require Digest::MD5; };
  if (! $@) {
