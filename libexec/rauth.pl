@@ -211,6 +211,7 @@ if (defined($RAD{CHAP_PASSWORD}) && defined($RAD{CHAP_CHALLENGE})) {
 elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
   #continue;
   #close;
+  #last;
 
   # Its an MS-CHAP V2 request
   # See draft-ietf-radius-ms-vsa-01.txt,
@@ -272,12 +273,12 @@ elsif($authtype == 1) {
      return 1;    	
    }
  } 
-else {
-  if($passwd ne "$RAD{USER_PASSWORD}") {
-    $message = "Wrong password '$RAD{USER_PASSWORD}'";
-    return 1;
-   }
-}
+#else {
+#  if($passwd ne "$RAD{USER_PASSWORD}") {
+#    $message = "Wrong password '$RAD{USER_PASSWORD}'";
+#    return 1;
+#   }
+#}
 
 
 
@@ -317,7 +318,7 @@ my $time_limit = 0;
 my $traf_limit = 0;
 
      if (($day_time_limit > 0) || ($day_traf_limit > 0)) {
-        $sql = "SELECT $day_time_limit - sum(duration), $day_traf_limit - sum(sent + recv) FROM log
+        $sql = "SELECT $day_time_limit - sum(duration), $day_traf_limit - sum(sent + recv) / 1024 / 1024 FROM log
                  WHERE id='$USER' and DATE_FORMAT(login, '%Y-%m-%d')=curdate()
                  GROUP BY DATE_FORMAT(login, '%Y-%m-%d');";
         $q = $db->prepare($sql) || die $db->errstr;
@@ -334,7 +335,7 @@ my $traf_limit = 0;
        }
      
      if (($week_time_limit > 0) || ($week_traf_limit > 0)) {
-        $sql = "SELECT $week_time_limit - sum(duration), $week_traf_limit - sum(sent+recv) FROM log
+        $sql = "SELECT $week_time_limit - sum(duration), $week_traf_limit - sum(sent+recv)  / 1024 / 1024 FROM log
                  WHERE id='$USER' and (WEEK(login)=WEEK(curdate()) and YEAR(LOGIN)=YEAR(CURDATE()))
                  GROUP BY WEEK(login)=WEEK(curdate()),YEAR(LOGIN)=YEAR(CURDATE());";
       
@@ -352,7 +353,7 @@ my $traf_limit = 0;
        }
 
      if($month_time_limit > 0 || ($month_traf_limit > 0)) {
-        $sql = "SELECT $month_time_limit - sum(duration), $month_traf_limit - sum(sent+recv) FROM log 
+        $sql = "SELECT $month_time_limit - sum(duration), $month_traf_limit - sum(sent+recv)  / 1024 / 1024 FROM log 
            WHERE id='$USER' and DATE_FORMAT(login, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')
            GROUP BY DATE_FORMAT(login, '%Y-%m');";
         
@@ -373,10 +374,10 @@ my $traf_limit = 0;
 
 #10Gb - (1 073 741 824) - global traffic session limit
 #set traffic limit
-     $traf_limit = 10737418240;
+     $traf_limit = 10240;
      for(my $i=0; $i<=$#traf_limits; $i++) {
         if ($traf_limit > $traf_limits[$i]) {
-           $traf_limit = $traf_limits[$i];
+           $traf_limit = int($traf_limits[$i]);
          }
       }
 
@@ -451,7 +452,7 @@ if ($NAS_INFO->{nt}{$nas_num} eq 'exppp') {
 
     #global Traffic
     if ($EX_PARAMS->{traf_limit} > 0) {
-      $RAD_PAIRS{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit};
+      $RAD_PAIRS{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024;
      }
 
     #Local traffic
@@ -485,15 +486,16 @@ if ($NAS_INFO->{nt}{$nas_num} eq 'exppp') {
 =cut
  }
 elsif ($NAS_INFO->{nt}{$nas_num} eq 'mpd') {
-   my $EX_PARAMS = ex_params($vid, "$USER", { attr => $traf_limit,
+   my $EX_PARAMS = ex_params($vid, "$USER", { traf_limit => $traf_limit, 
                                               deposit => $deposit });
+
  
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
-    $RAD_PAIRS{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit};
+    $RAD_PAIRS{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024;
    }
        
-  #Shaper
+#Shaper
 #  if ($uspeed > 0) {
 #    $RAD_PAIRS{'mpd-rule'} = "\"1=pipe %p1 ip from any to any\"";
 #    $RAD_PAIRS{'mpd-pipe'} = "\"1=bw ". $uspeed ."Kbyte/s\"";
@@ -538,7 +540,7 @@ sub ex_params {
  #get traffic limits
 # if ($traf_tarif > 0) {
    my $nets = 0;
-   my $sql = "SELECT id, in_price, out_price, prepaid*1024*1024, speed, LENGTH(nets) FROM trafic_tarifs
+   my $sql = "SELECT id, in_price, out_price, prepaid, speed, LENGTH(nets) FROM trafic_tarifs
              WHERE vid='$vid';";
    my $q = $db->prepare($sql) || die $db->errstr;
    $q ->execute();
@@ -559,8 +561,10 @@ sub ex_params {
 #   return %EX_PARAMS;	
 #  }
 
+
+
 if ($prepaids{0}+$prepaids{1}>0) {
-  $sql = "SELECT sum(sent+recv), sum(sent2+recv2) FROM log 
+  $sql = "SELECT sum(sent+recv) / 1024 / 1024, sum(sent2+recv2) / 1024 / 1024 FROM log 
      WHERE id='$uid' and DATE_FORMAT(login, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')
      GROUP BY DATE_FORMAT(login, '%Y-%m');";
 
@@ -602,17 +606,21 @@ else {
    }
  }
 
-
 #Traffic limit
+
+
 my $trafic_limit = 0;
-if ($trafic_limits{0} > 0) {
+if ($trafic_limits{0} > 0 || $traf_limit > 0) {
   if($trafic_limits{0} > $traf_limit && $traf_limit > 0) {
     $trafic_limit = $traf_limit;
    }
-  else {
+  elsif($trafic_limits{0} > 0) {
     #$trafic_limit = $trafic_limit * 1024 * 1024;
     #1Gb - (1 073 741 824) - global traffic session limit
-    $trafic_limit = ($trafic_limits{0} > 1073741824) ? 1073741824 :  $trafic_limits{0};
+    $trafic_limit = ($trafic_limits{0} > 10240) ? 10240 :  $trafic_limits{0};
+   }
+  else {
+  	$trafic_limit = $traf_limit;
    }
 
   $EX_PARAMS{traf_limit} = int($trafic_limit);

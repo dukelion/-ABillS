@@ -3253,7 +3253,7 @@ print "<form action=$SELF METHOD=POST>
   <tr><td>$_DAY</td><td><input type=text name=day_time_limit value='$day_time_limit'></td></tr> 
   <tr><td>$_WEEK</td><td><input type=text name=week_time_limit value='$week_time_limit'></td></tr>
   <tr><td>$_MONTH</td><td><input type=text name=month_time_limit value='$month_time_limit'></td></tr>
-  <tr><th colspan=2 bgcolor=$_BG0>$_TRAF_LIMIT (bt)</th></tr> 
+  <tr><th colspan=2 bgcolor=$_BG0>$_TRAF_LIMIT (Mb)</th></tr> 
   <tr><td>$_DAY</td><td><input type=text name=day_traf_limit value='$day_traf_limit'></td></tr>
   <tr><td>$_WEEK</td><td><input type=text name=week_traf_limit value='$week_traf_limit'></td></tr>
   <tr><td>$_MONTH</td><td><input type=text name=month_traf_limit value='$month_traf_limit'></td></tr>
