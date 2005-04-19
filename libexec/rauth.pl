@@ -461,19 +461,16 @@ if ($NAS_INFO->{nt}{$nas_num} eq 'exppp') {
   if (defined($EX_PARAMS->{nets})) {
     $RAD_PAIRS{'Exppp-Local-IP-Table'} = "\"$conf{netsfilespath}$vid.nets\"";
    }
-  $v_speed = $EX_PARAMS->{speed};
-
 
   #Shaper
   if ($uspeed > 0) {
     $RAD_PAIRS{'Exppp-Traffic-Shape'} = int($uspeed);
    }
   else {
-    if ($v_speed  > 0) {
+    if ($EX_PARAMS->{speed}  > 0) {
       $RAD_PAIRS{'Exppp-Traffic-Shape'} = $v_speed;
      }
    }
-
 
 =comments
         print "Exppp-Traffic-In-Limit = $trafic_inlimit,";
