@@ -1044,8 +1044,7 @@ sub sql_backup {
   my @contents = grep  !/^\.\.?$/  , readdir DIR;
  closedir DIR;
  
- print "<TABLE width=640 cellspacing=0 cellpadding=0 border=0>
-  <TR><TD bgcolor=$_BG4>
+ print "<TABLE width=640 cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_BG4>
   <TABLE width=100% cellspacing=1 cellpadding=0 border=0>
   <tr bgcolor=$_BG0><th>$_NAME</a></th><th>$_DATE</th><th>$_SIZE</th><th>-</th></tr>\n";
 
@@ -1169,10 +1168,9 @@ print "</table>
 <input type=submit name=$action[0] value='$action[1]'>
 </form>\n";
 
-print "<TABLE width=640 cellspacing=0 cellpadding=0 border=0>
-  <TR><TD bgcolor=$_BG4>
-  <TABLE width=100% cellspacing=1 cellpadding=0 border=0>
-<tr bgcolor=$_BG0><th>ID</th><th>$_NAME</th><th>$_REGISTRATION</th><th>$_PERMISSION</th><th>-</th><th>-</th></tr>\n";
+print "<TABLE width=640 cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_BG4>
+<TABLE width=100% cellspacing=1 cellpadding=0 border=0>
+ <tr bgcolor=$_BG0><th>ID</th><th>$_NAME</th><th>$_REGISTRATION</th><th>$_PERMISSION</th><th>-</th><th>-</th></tr>\n";
 
  $q = $db->prepare("select aid, id, name, regdate, permissions FROM admins;") || die $db->errstr;
  $q ->execute(); 
@@ -1433,8 +1431,7 @@ if ($uid) { $WHERE = "WHERE f.uid=\"$uid\" "; }
 %pages = pages('f.uid', 'fees f', "$WHERE", "op=$op&uid=$uid", "$pg");  
 print $pages{pages};
 
-print "<TABLE width=98% cellspacing=0 cellpadding=0 border=0>
-  <TR><TD bgcolor=$_BG4>
+print "<TABLE width=98% cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_BG4>
   <TABLE width=100% cellspacing=1 cellpadding=0 border=0>
   <COLGROUP>
     <COL align=right span=1>
@@ -1677,8 +1674,7 @@ $total_sum = $assign_sum + $money_sum;
 
 print "<table border=0><tr><td>\n".
       "<a href='$SELF?op=inp&m=y'>$_PER_MONTH</a>
-       <TABLE width=100% cellspacing=0 cellpadding=0 border=0>
-       <TR><TD bgcolor=$_BG4>
+       <TABLE width=100% cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_BG4>
        <TABLE width=100% cellspacing=1 cellpadding=0 border=0>\n";
 
       show_title($sort, "$desc", "$pg", "$op$qs", \@caption);
@@ -4709,13 +4705,7 @@ sub profile {
                      '#10 background'
                     );
  
- my %LANG = ('english' => 'English',
-    'russian' => 'Русский',
-    'ukraine' => 'Українська',
-    'bulgarian' => 'Болгарска');
- 	
- 	
- print "$FORM{colors}";
+print "$FORM{colors}";
 
 print "
 <form action=$SELF>
