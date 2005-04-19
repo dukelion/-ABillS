@@ -20,8 +20,6 @@ require 'messages.pl';
 
 $db=$Abwconf::db;
 
-my $language = 'english';
-require "../language/$language.pl";
 
 
 use DB_File;
@@ -35,17 +33,29 @@ my $sid = $FORM{sid} || 0; # Session ID
 my $passwd = $FORM{passwd} || '';
 my $period = $FORM{period} || 0;
 my $session_timeout = 1800;
-
+my $ln = 'english';
 
 if ((length($cookies{sid})>1) && (! $FORM{passwd})) {
   $sid = $cookies{sid};
 }
 
+if ($FORM{ln}) {
+	$ln = $FORM{ln};
+}
+elsif($cookies{ln}) {
+	$ln = $cookies{ln};
+}
+
+#$ln = $cookies{ln} if ($cookies{ln});
+#my $language = $ln || 'english';
+
+require "../language/". $ln .".pl";
 
 print "Content-type: text/html\n";
 print "Set-Cookie: uid=$uid; path=$web_path; domain=$domain;\n";
 print "Set-Cookie: doc_id=$FORM{doc_id}; path=$web_path; domain=$domain;\n";
-print "Set-Cookie: sid=$sid; path=$web_path; domain=$domain;\n\n";
+print "Set-Cookie: sid=$sid; path=$web_path; domain=$domain;\n";
+print "Set-Cookie: ln=$ln; path=$web_path; domain=$domain;\n\n";
 
 if (($FORM{docs} eq 'print')) {
   ($uid, $sid, $login) = auth("$login", "$passwd", "$sid");
@@ -543,10 +553,24 @@ else {
 #*******************************************************************
 sub login_form {
 print "<form action=$SELF METHOD=post>
-<table>
+<TABLE width=400 cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_BG4>
+<TABLE width=100% cellspacing=1 cellpadding=0 border=0><TR><TD bgcolor=$_BG1>
+<TABLE width=100% cellspacing=0 cellpadding=0 border=0>
 <tr><td>$_LOGIN:</td><td><input type=text name=user></td></tr>
 <tr><td>$_PASSWD:</td><td><input type=password name=passwd></td></tr>
+<tr><td>$_LANGUAGE:</td><td><select name=ln>\n";
+
+while(my($k, $v) = each %LANG) {
+  print "<option value='$k'";
+  print ' selected' if ($k eq $language);
+  print ">$v\n";	
+}
+
+print "</seelct></td></tr>
+<tr><th colspan=2><input type=submit name=logined value=$_ENTER></th></tr>
 </table>
-<input type=submit name=logined value=$_ENTER>
+
+</td></tr></table>
+</td></tr></table>
 </form>\n";
 }
