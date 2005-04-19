@@ -264,8 +264,8 @@ elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
 
        # 1      Encryption-Allowed 
        # 2      Encryption-Required 
-       #$RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000002';
-       #$RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
+       $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000002';
+       $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
  }
 elsif($authtype == 1) {
   if (check_systemauth("$RAD{USER_NAME}", "$RAD{USER_PASSWORD}") == 0) { 
@@ -273,12 +273,12 @@ elsif($authtype == 1) {
      return 1;    	
    }
  } 
-#else {
-#  if($passwd ne "$RAD{USER_PASSWORD}") {
-#    $message = "Wrong password '$RAD{USER_PASSWORD}'";
-#    return 1;
-#   }
-#}
+else {
+  if($passwd ne "$RAD{USER_PASSWORD}") {
+    $message = "Wrong password '$RAD{USER_PASSWORD}'";
+    return 1;
+   }
+}
 
 
 

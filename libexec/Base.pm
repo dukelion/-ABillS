@@ -57,7 +57,7 @@ sub show_log {
       $user =~ s/\[|\]//g;
       if ($uid ne "") {
         if($uid eq $user) {
-      	  push @err_recs, $_;
+       	  push @err_recs, $_;
          }
        }
       else {
@@ -66,12 +66,10 @@ sub show_log {
      }
  close(FILE);
 
- my $total  = 0;
- $total = $#err_recs;
-
+ my $total = $#err_recs;
  my $i = 0;
- for ($i = $total; $i>=$total - $records; $i--) {
-    $output .= $err_recs[$i];
+ for ($i = $total; $i>=$total - $records && $i >= 0; $i--) {
+    $output .= "$err_recs[$i]";
    }
  
  print "$output";
