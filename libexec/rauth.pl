@@ -441,31 +441,28 @@ my $traf_limit = 0;
 
 my $v_speed=0;
 
-
 if ($NAS_INFO->{nt}{$nas_num} eq 'exppp') {
 
   #$traf_tarif 
-  if ($traf_tarif > 0) {
-    my $EX_PARAMS = ex_params($vid, "$USER", { traf_limit => $traf_limit, 
+  my $EX_PARAMS = ex_params($vid, "$USER", { traf_limit => $traf_limit, 
                                             deposit => $deposit });
 
+  #global Traffic
+  if ($EX_PARAMS->{traf_limit} > 0) {
+    $RAD_PAIRS{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024;
+   }
 
-    #global Traffic
-    if ($EX_PARAMS->{traf_limit} > 0) {
-      $RAD_PAIRS{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024;
-     }
-
-    #Local traffic
-    if ($EX_PARAMS->{traf_limit_lo} > 0) {
-      $RAD_PAIRS{'Exppp-LocalTraffic-Limit'} = $EX_PARAMS->{traf_limit_lo};
-     }
+  #Local traffic
+  if ($EX_PARAMS->{traf_limit_lo} > 0) {
+    $RAD_PAIRS{'Exppp-LocalTraffic-Limit'} = $EX_PARAMS->{traf_limit_lo};
+   }
        
-    #Local ip tables
-    if (defined($EX_PARAMS->{nets})) {
-      $RAD_PAIRS{'Exppp-Local-IP-Table'} = "\"$conf{netsfilespath}$vid.nets\"";
-     }
-    $v_speed = $EX_PARAMS->{speed};
-  }
+  #Local ip tables
+  if (defined($EX_PARAMS->{nets})) {
+    $RAD_PAIRS{'Exppp-Local-IP-Table'} = "\"$conf{netsfilespath}$vid.nets\"";
+   }
+  $v_speed = $EX_PARAMS->{speed};
+
 
   #Shaper
   if ($uspeed > 0) {
@@ -486,9 +483,8 @@ if ($NAS_INFO->{nt}{$nas_num} eq 'exppp') {
 =cut
  }
 elsif ($NAS_INFO->{nt}{$nas_num} eq 'mpd') {
-   my $EX_PARAMS = ex_params($vid, "$USER", { traf_limit => $traf_limit, 
+  my $EX_PARAMS = ex_params($vid, "$USER", { traf_limit => $traf_limit, 
                                               deposit => $deposit });
-
  
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
