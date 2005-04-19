@@ -27,6 +27,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
    
    
    %conf
+   %LANG
    %FORM
    %cookies
    $sort
@@ -83,6 +84,7 @@ $VERSION = 2.00;
    $img_path
    
    %FORM
+   %LANG
    %cookies
    $sort
    $desc
@@ -117,6 +119,12 @@ $conf{MAIL_CHARSET}='windows-1251';
 $debug=7; #DEbug mode (SQL)
 @auth_types = ('SQL', 'SYSTEM');
 @status_types = ('Not working', 'Working', 'Reserved', 'Expire');
+
+%LANG = ('english' => 'English',
+    'russian' => 'Русский',
+    'ukraine' => 'Українська',
+    'bulgarian' => 'Болгарска');
+
 
 #Path settings
 my $LIB_PATH='/usr/abills/libexec/';
