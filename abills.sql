@@ -5,6 +5,24 @@
 -- Server version	3.23.53-log
 
 --
+-- Table structure for table 'accounts'
+--
+
+CREATE TABLE accounts (
+  id int(11) unsigned NOT NULL auto_increment,
+  name varchar(100) NOT NULL default '',
+  deposit double(8,6) NOT NULL default '0.000000',
+  tax_number varchar(250) NOT NULL default '',
+  bank_account varchar(250) default NULL,
+  bank_name varchar(150) default NULL,
+  cor_bank_account varchar(150) default NULL,
+  bank_bic varchar(100) default NULL,
+  PRIMARY KEY  (id),
+  UNIQUE KEY id (id),
+  UNIQUE KEY name (name)
+) TYPE=MyISAM;
+
+--
 -- Table structure for table 'acct_orders'
 --
 
@@ -30,6 +48,16 @@ CREATE TABLE actions (
   PRIMARY KEY  (id),
   UNIQUE KEY func (func),
   UNIQUE KEY id (id)
+) TYPE=MyISAM;
+
+--
+-- Table structure for table 'admin_permits'
+--
+
+CREATE TABLE admin_permits (
+  aid smallint(6) unsigned NOT NULL default '0',
+  section smallint(6) unsigned NOT NULL default '0',
+  actions smallint(6) unsigned NOT NULL default '0'
 ) TYPE=MyISAM;
 
 --
@@ -569,9 +597,10 @@ CREATE TABLE variant (
   prepaid_trafic int(10) unsigned NOT NULL default '0',
   change_price float(8,2) unsigned NOT NULL default '0.00',
   activate_price float(8,2) unsigned NOT NULL default '0.00',
+  credit_tresshold double(6,2) NOT NULL default '0.00',
   PRIMARY KEY  (vrnt),
-  UNIQUE KEY vrnt (vrnt),
-  UNIQUE KEY name (name)
+  UNIQUE KEY name (name),
+  UNIQUE KEY vrnt (vrnt)
 ) TYPE=MyISAM;
 
 --

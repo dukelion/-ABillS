@@ -240,3 +240,19 @@ $_BILLING = 'Билинг';
 $_ANTIVIRUS='Антивирус';
 $_ANTISPAM='Антиспам';
 $_FOLDER='Каталог';
+
+
+#==new
+$_LIST='Список';
+$_SA_ONLY = 'Только свои ';
+$_REPORTS = 'Отчёт';
+$_MODULES = 'Модули';
+$_SYSTEM = 'Система';
+$_GENERED_PARRWORD = 'Сгенерировать пароль';
+$_TARIF_PLANS='Тарифные планы';
+$_TARIF_PLAN='Тарифный план';
+$_DISABLE='Отключено';
+$_COMPANY='Корпоративный счёт';
+$_ADD_USER='Добавить пользователя';
+$_CREDIT_TRESSHOLD='Несёмный минимум';
+

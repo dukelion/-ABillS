@@ -3134,6 +3134,7 @@ my $month_traf_limit = $FORM{month_traf_limit} || '0';
 my $activate_price = $FORM{activate_price} || '0.00';
 my $change_price = $FORM{change_price} || '0.00';
 my $prepaid_trafic = $FORM{prepaid_trafic} || '0';
+my $credit_tresshold = $FORM{credit_tresshold} || '0.00';
 
 if(exists $FORM{intervals}) {
    intervals();	
@@ -3142,11 +3143,11 @@ if(exists $FORM{intervals}) {
 elsif ($FORM{add}) {
     $sql = "INSERT INTO variant (vrnt, hourp, uplimit, name, ut, dt, abon, df, logins,
      day_time_limit, week_time_limit,  month_time_limit, day_traf_limit, week_traf_limit,  month_traf_limit,
-     activate_price, change_price, prepaid_trafic)
+     activate_price, change_price, prepaid_trafic, credit_tresshold)
       VALUES ('$FORM{vrnt}', '$hour_tarif', '$uplimit', \"$FORM{name}\", 
         '$end', '$begin', '$month_pay', '$day_pay', '$logins', 
         '$day_time_limit', '$week_time_limit',  '$month_time_limit', '$day_traf_limit', '$week_traf_limit',  '$month_traf_limit',
-        '$activate_price', '$change_price', '$prepaid_trafic');";
+        '$activate_price', '$change_price', '$prepaid_trafic', '$credit_tresshold');";
 
     $q = $db->do($sql);
 
@@ -3179,7 +3180,8 @@ elsif ($FORM{change}) {
    activate_price='$activate_price', 
    change_price='$change_price', 
    prepaid_trafic='$prepaid_trafic',
-   vrnt='$FORM{vrnt}'
+   vrnt='$FORM{vrnt}',
+   credit_tresshold='$credit_tresshold'
   WHERE vrnt='$FORM{chg}';";
 
   $db ->do($sql) or die $db->errstr;
@@ -3207,7 +3209,7 @@ elsif ($FORM{change}) {
 elsif ($FORM{chg}) {
    $sql = "SELECT vrnt, hourp, abon, uplimit, name, df, ut, dt, logins, 
      day_time_limit, week_time_limit,  month_time_limit, day_traf_limit, week_traf_limit,  month_traf_limit,
-     activate_price, change_price, prepaid_trafic 
+     activate_price, change_price, prepaid_trafic, credit_tresshold
      FROM variant 
     WHERE vrnt='$FORM{chg}';";
   
@@ -3215,7 +3217,7 @@ elsif ($FORM{chg}) {
    $q -> execute ();
    ($vrnt, $hour_tarif, $month_pay, $uplimit, $name, $day_pay, $end, $begin, $logins,
      $day_time_limit, $week_time_limit, $month_time_limit, $day_traf_limit, $week_traf_limit,  $month_traf_limit,
-     $activate_price, $change_price, $prepaid_trafic) = $q -> fetchrow();
+     $activate_price, $change_price, $prepaid_trafic, $credit_tresshold) = $q -> fetchrow();
 
    @action = ('change', "$_CHANGE");
    message('info', "$_CHANGING",  "#: [$FORM{chg}]<br>$_NAME: '$name'");
@@ -3256,7 +3258,8 @@ print "<form action=$SELF METHOD=POST>
   <tr><th bgcolor=$_BG0 colspan=2>$_OTHER</th></tr>
   <tr><td>$_ACTIVATE:</td><td><input type=text name=activate_price value='$activate_price'></td></tr>
   <tr><td>$_CHANGE:</td><td><input type=text name=change_price value='$change_price'></td></tr>
-  <tr><td>$_PREPAID (Mb):</td><td><input type=text name=prepaid_trafic value='$prepaid_trafic'></td></tr>
+  <tr><td>$_CREDIT_TRESSHOLD:</td><td><input type=text name=credit_tresshold value='$credit_tresshold'></td></tr>
+<!--  <tr><td>$_PREPAID (Mb):</td><td><input type=text name=prepaid_trafic value='$prepaid_trafic'></td></tr> -->
 </table>
 <input type=submit name='$action[0]' value='$action[1]'>
 </form>\n";

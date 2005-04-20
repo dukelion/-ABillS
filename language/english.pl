@@ -256,3 +256,4 @@ $_TARIF_PLAN='Tarif plan';
 $_DISABLE='Disable';
 $_COMPANY='Company';
 $_ADD_USER='Add user';
+$_CREDIT_TRESSHOLD='Credit Tresshold';

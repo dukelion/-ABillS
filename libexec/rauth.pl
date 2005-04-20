@@ -35,6 +35,8 @@ if ($ARGV[0] eq 'pre_auth') {
 
 my $nas_num=-1;
 my $NAS_INFO = nas_params();
+# Max session tarffic limit  (Mb)
+$conf{MAX_SESSION_TRAFFIC} = 2048; 
 
 if (defined($NAS_INFO->{"$RAD{NAS_IP_ADDRESS}"})) {
    $nas_num = $NAS_INFO->{"$RAD{NAS_IP_ADDRESS}"};
@@ -72,10 +74,11 @@ sub auth {
  log_print('LOG_DEBUG', "AUTH [$RAD{USER_NAME}] $rr");
 
  if($r == 1) {
+    print "Reply-Message = $message,\n";
     access_deny("$RAD{USER_NAME}", "$message", $nas_num);
   }
+
  print $NAS_INFO->{rp}{$nas_num};
- 
  if ($begin_time > 0)  {
    my $end_time = gettimeofday();
    my $gen_time = $end_time - $begin_time;
@@ -96,7 +99,7 @@ sub authentication {
 my $sql = qq{
 select
   u.uid,
-  u.deposit + u.credit,
+  u.deposit + u.credit - v.credit_tresshold,
   if (u.logins=0, v.logins, u.logins) AS logins,
   u.filter_id,
   if(u.ip>0, INET_NTOA(u.ip), 0),
@@ -287,6 +290,8 @@ else {
 
 #Check deposit
 if($tp_payment > 0 && $deposit <= 0) {
+  #undef $RAD_PAIRS;
+  #Reply-Message
   $message = "User don't have money account '$deposit'. Rejected!";
   return 1;
  }
@@ -372,9 +377,10 @@ my $traf_limit = 0;
        }
 
 
-#10Gb - (1 073 741 824) - global traffic session limit
 #set traffic limit
-     $traf_limit = 10240;
+     $traf_limit = $conf{MAX_SESSION_TRAFFIC};
+     #push (@traf_limits, $prepaid_traff) if ($prepaid_traff > 0);
+
      for(my $i=0; $i<=$#traf_limits; $i++) {
         if ($traf_limit > $traf_limits[$i]) {
            $traf_limit = int($traf_limits[$i]);
@@ -397,8 +403,7 @@ my $traf_limit = 0;
                                                   time_limit  => $today_limit  } 
                                           )
             );
-
-     }
+      }
 
 #set time limit
      $time_limit = $today_limit;
@@ -574,14 +579,14 @@ if ($prepaids{0}+$prepaids{1}>0) {
     if ($used[0] < $prepaids{0}) {
       $trafic_limits{0}=$prepaids{0} - $used[0];
      }
-    else {
+    elsif($in_prices{0} + $out_prices{0} > 0) {
       $trafic_limits{0} = ($deposit / (($in_prices{0} + $out_prices{0}) / 2)) * 1024 * 1024;
      }
 
-    if ($used[1] < $prepaids{1}) {
+    if ($used[1]  < $prepaids{1}) {
       $trafic_limits{1}=$prepaids{1} - $used[1];
      }
-    else {
+    elsif($in_prices{1} + $out_prices{1} > 0) {
       $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2)) * 1024 * 1024;
      }
    }
@@ -609,8 +614,8 @@ if ($trafic_limits{0} > 0 || $traf_limit > 0) {
    }
   elsif($trafic_limits{0} > 0) {
     #$trafic_limit = $trafic_limit * 1024 * 1024;
-    #1Gb - (1 073 741 824) - global traffic session limit
-    $trafic_limit = ($trafic_limits{0} > 10240) ? 10240 :  $trafic_limits{0};
+    #2Gb - (2048 * 1024 * 1024 ) - global traffic session limit
+    $trafic_limit = ($trafic_limits{0} > $conf{MAX_SESSION_TRAFFIC}) ? $conf{MAX_SESSION_TRAFFIC} :  $trafic_limits{0};
    }
   else {
   	$trafic_limit = $traf_limit;
@@ -621,8 +626,8 @@ if ($trafic_limits{0} > 0 || $traf_limit > 0) {
 
 #Local Traffic limit
 if ($trafic_limits{1} > 0) {
-  #10Gb - (1 073 741 8240) - local traffic session limit
-  $trafic_limit = ($trafic_limits{1} > 10737418240) ? 10737418240 :  $trafic_limits{1};
+  #10Gb - (10240 * 1024 * 1024) - local traffic session limit
+  $trafic_limit = ($trafic_limits{1} > 10240) ? 10240 :  $trafic_limits{1};
   $EX_PARAMS{traf_limit_lo} = int($trafic_limit);
  }
 
