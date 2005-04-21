@@ -1946,3 +1946,73 @@ sub form_period () {
 
  return $form_period;	
 }
+
+
+
+
+
+
+
+
+
+=comments
+use Abwconf;
+$db=$Abwconf::db;
+use Base; # Modul with base tools
+require 'messages.pl';
+$logfile = 'abills.log';
+$logdebug = 'abills.debug';
+$debug = 1;
+
+# ------------ AUTHORIZATION from MySQL ------------
+use MIME::Base64;
+$ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
+($REMOTE_USER,$REMOTE_PASSWD) = split(/:/,decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));
+if (!authorization($REMOTE_USER,$REMOTE_PASSWD)) {
+    print "WWW-Authenticate: Basic realm=\"Billing system\"\n";
+    print "Status: 401 Unauthorized\n\n";
+    print "Ошибка авторизации!\n";
+    exit;
+    }
+my ($aid,$admin)=authorization($REMOTE_USER,$REMOTE_PASSWD);
+# -------------------------------------------------
+my $web_path='/billing/admin/';
+my $domain = $ENV{SERVER_NAME};
+$conf{passwd_length}=6;
+$conf{username_length}=15;
+print "Content-Type: text/html\n";
+
+
+# --- auhorization($REMOTE_USER,$REMOTE_PASSWD) -------------------
+sub authorization {
+    my $auth=$db->prepare("SELECT aid,login,permissions
+        FROM admins
+        WHERE login='$_[0]'
+        AND password=MD5('$_[1]')") || die $db->errstr;
+    $auth->execute;
+    if($auth->rows == 1){ return $auth->fetchrow; }
+    else { return 0; }
+    }
+# -----------------------------------------------
+
+
+   <Directory "/usr/abills/cgi-bin/admin">
+        RewriteEngine on
+        RewriteCond %{HTTP:Authorization} ^(.*)
+        RewriteRule ^(.*) - [E=HTTP_CGI_AUTHORIZATION:%1]
+        Options Indexes ExecCGI SymLinksIfOwnerMatch
+        AllowOverride none
+        DirectoryIndex index.cgi
+#       order deny,allow
+#       deny from all
+#       AuthType Basic
+#       AuthName "Billing system"
+#       AuthUserFile /usr/abills/cgi-bin/admin/admins
+#       Satisfy Any
+#       require valid-user
+    </Directory>
+
+
+
+
+=cut

@@ -9,7 +9,6 @@ my $begin_time = check_time();
 require $Bin . '/sql.pl';
 
 
-
 =comments
         MS-CHAP-Challenge = 0x32323738343134393536353333333635
         MS-CHAP2-Response = 0x010017550ce222cfa39d348b93e93cd26f1a000000000000000026fe1a5e39097393b8a4ade5a466790bbefab075383ec58b
@@ -71,6 +70,7 @@ sub auth {
    $rr .= "$rs = $ls,\n";	
   }
  print $rr;
+
  log_print('LOG_DEBUG', "AUTH [$RAD{USER_NAME}] $rr");
 
  if($r == 1) {
@@ -117,7 +117,7 @@ select
   day_traf_limit,
   week_traf_limit,
   month_traf_limit,
-  if(v.hourp + v.df + v.abon=0 and tt.price IS NULL, 0, 1),
+  if(v.hourp + v.df + v.abon=0 and sum(tt.in_price + tt.out_price), 0, 1),
   if (count(un.uid) + count(vn.vid) = 0, 0,
     if (count(un.uid)>0, 1, 2)),
   count(tt.id),
@@ -211,65 +211,65 @@ if (defined($RAD{CHAP_PASSWORD}) && defined($RAD{CHAP_CHALLENGE})) {
    }      	 	
  }
 #Auth MS-CHAP v1,v2
-elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
-  #continue;
-  #close;
-  #last;
-
-  # Its an MS-CHAP V2 request
-  # See draft-ietf-radius-ms-vsa-01.txt,
-  # draft-ietf-pppext-mschap-v2-00.txt, RFC 2548, RFC3079
-  $RAD{MS_CHAP_CHALLENGE} =~ s/^0x//;
-  my $challenge = pack("H*", $RAD{MS_CHAP_CHALLENGE});
-  my ($usersessionkey, $lanmansessionkey, $ms_chap2_success);
-
-  if (defined($RAD{MS_CHAP2_RESPONSE})) {
-     $RAD{MS_CHAP2_RESPONSE} =~ s/^0x//; 
-     my $rad_response = pack("H*", $RAD{MS_CHAP2_RESPONSE});
-     my ($ident, $flags, $peerchallenge, $reserved, $response) = unpack('C C a16 a8 a24', $rad_response);
-
-     if (check_mschapv2("$RAD{USER_NAME}", $passwd, $challenge, $peerchallenge, $response, $ident,
- 	    \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 0) {
-         $message = "Wrong MS-CHAP2 password";
-         $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
-         return 1;
-	    }
-
-         $RAD_PAIRS{'MS-CHAP2-SUCCESS'} = '0x' . bin2hex($ms_chap2_success);
-
-         my ($send, $recv) = Radius::MSCHAP::mppeGetKeys($usersessionkey, $response, 16);
-
-         #print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
-          
-         my $radsecret = 'test';
-#         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $radsecret, $challenge), 0, 16));
-#	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex( substr(encode_mppe_key($recv, $radsecret, $challenge), 0, 16));
-         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
-	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
-
-#         $RAD_PAIRS{'MS-MPPE-Send-Key'}='0x4f835a2babe6f2600a731fd89ef25a38';
-#	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}='0x27ac8322247937ad3010161f1d5bbe5c';
-
-	       
-        }
-       else {
-         if (check_mschap("$passwd", "$RAD{MS_CHAP_CHALLENGE}", "$RAD{MS_CHAP_RESPONSE}", 
-	           \$usersessionkey, \$lanmansessionkey, \$message) == 0) {
-           $message = "Wrong MS-CHAP password";
-           $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
-           return 1;
-          }
-        }
-
-
-#       $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', $lanmansessionkey, 
-#														$usersessionkey))) . "0000000000000000";
-
-       # 1      Encryption-Allowed 
-       # 2      Encryption-Required 
-       $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000002';
-       $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
- }
+#elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
+#  #continue;
+#  #close;
+#  #last;
+#
+#  # Its an MS-CHAP V2 request
+#  # See draft-ietf-radius-ms-vsa-01.txt,
+#  # draft-ietf-pppext-mschap-v2-00.txt, RFC 2548, RFC3079
+#  $RAD{MS_CHAP_CHALLENGE} =~ s/^0x//;
+#  my $challenge = pack("H*", $RAD{MS_CHAP_CHALLENGE});
+#  my ($usersessionkey, $lanmansessionkey, $ms_chap2_success);
+#
+#  if (defined($RAD{MS_CHAP2_RESPONSE})) {
+#     $RAD{MS_CHAP2_RESPONSE} =~ s/^0x//; 
+#     my $rad_response = pack("H*", $RAD{MS_CHAP2_RESPONSE});
+#     my ($ident, $flags, $peerchallenge, $reserved, $response) = unpack('C C a16 a8 a24', $rad_response);
+#
+#     if (check_mschapv2("$RAD{USER_NAME}", $passwd, $challenge, $peerchallenge, $response, $ident,
+# 	    \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 0) {
+#         $message = "Wrong MS-CHAP2 password";
+#         $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
+#         return 1;
+#	    }
+#
+#         $RAD_PAIRS{'MS-CHAP2-SUCCESS'} = '0x' . bin2hex($ms_chap2_success);
+#
+#         my ($send, $recv) = Radius::MSCHAP::mppeGetKeys($usersessionkey, $response, 16);
+#
+#         #print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
+#          
+#         my $radsecret = 'test';
+##         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $radsecret, $challenge), 0, 16));
+##	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex( substr(encode_mppe_key($recv, $radsecret, $challenge), 0, 16));
+#         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
+#	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
+#
+##         $RAD_PAIRS{'MS-MPPE-Send-Key'}='0x4f835a2babe6f2600a731fd89ef25a38';
+##	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}='0x27ac8322247937ad3010161f1d5bbe5c';
+#
+#	       
+#        }
+#       else {
+#         if (check_mschap("$passwd", "$RAD{MS_CHAP_CHALLENGE}", "$RAD{MS_CHAP_RESPONSE}", 
+#	           \$usersessionkey, \$lanmansessionkey, \$message) == 0) {
+#           $message = "Wrong MS-CHAP password";
+#           $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
+#           return 1;
+#          }
+#        }
+#
+#
+##       $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', $lanmansessionkey, 
+##														$usersessionkey))) . "0000000000000000";
+#
+#       # 1      Encryption-Allowed 
+#       # 2      Encryption-Required 
+#       $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000002';
+#       $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
+# }
 elsif($authtype == 1) {
   if (check_systemauth("$RAD{USER_NAME}", "$RAD{USER_PASSWORD}") == 0) { 
      $message = "Wrong password '$RAD{USER_PASSWORD}' $authtype";
