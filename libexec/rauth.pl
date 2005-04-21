@@ -117,7 +117,7 @@ select
   day_traf_limit,
   week_traf_limit,
   month_traf_limit,
-  if(v.hourp + v.df + v.abon=0 and sum(tt.in_price + tt.out_price), 0, 1),
+  if(v.hourp + v.df + v.abon=0 and sum(tt.in_price + tt.out_price)=0, 0, 1),
   if (count(un.uid) + count(vn.vid) = 0, 0,
     if (count(un.uid)>0, 1, 2)),
   count(tt.id),
@@ -155,6 +155,8 @@ my($uid, $deposit, $logins, $filter, $ip, $netmask, $vid, $passwd, $uspeed, $cid
    $tp_payment,
    $nas, $traf_tarif, $time_tarif, $filter_id,
    $session_start, $day_begin, $day_of_week, $day_of_year) = $q -> fetchrow();
+
+print "   $tp_payment, $nas, $traf_tarif, ";
 
 #Check allow nas server
 # $nas 1 - See user nas
