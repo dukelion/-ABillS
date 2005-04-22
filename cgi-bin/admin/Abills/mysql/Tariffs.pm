@@ -101,18 +101,26 @@ sub list {
   my $self = shift;
   my ($account_id) = @_;
 
-  my $q = $db->prepare("SELECT vrnt, name FROM variant;") || die $db->strerr;
+#$_NAME,  $_BEGIN,  $_END, $_HOUR_TARIF, $_BYTE_TARIF, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, 
+  # "SELECT vrnt, name,  FROM variant;"
+  my $q = $db->prepare("SELECT v.vrnt, v.name, v.dt, v.ut, v.hourp, if(sum(tt.in_price + tt.out_price)> 0, 1, 0), 
+     v.df, v.abon, v.logins
+    FROM variant v
+    LEFT JOIN trafic_tarifs tt ON (tt.vid=v.vrnt)
+    GROUP BY v.vrnt
+    ORDER BY 1;");
   $q ->execute();
-  my @tarrifs = ();
- 
-  while(my @tarrif = $q->fetchrow()) {
-    push @tarrifs, \@tarrif;
+
+  $self->{TOTAL} = $q->rows;
+
+  my @list = ();
+  while(my @row = $q->fetchrow()) {
+    push @list, \@row;
    }
 
-  $self->{list} = \@tarrifs;
-  return $self->{list};
 
-  return $self;
+  $self->{list} = \@list;
+  return $self->{list};
 }
 
 

@@ -42,17 +42,9 @@ sub get_permissions {
   my $self = shift;
   my %permissions = ();
 
-  $aid = $self->{AID};
-
-  my $sql = "SELECT section, actions FROM admin_permits WHERE aid='$aid';";
+  my $sql = "SELECT section, actions FROM admin_permits WHERE aid='$self->{AID}';";
   my $q  = $db->prepare($sql);
   $q->execute();
-
-  if ($q->rows < 1) {
-     $self->{errno} = 2;
-     $self->{errstr} = 'Not exist';
-     return 0;
-   }
 
   while(my($section, $action)=$q->fetchrow()) {
     $permissions{$section}{$action} = 'y';
@@ -71,13 +63,12 @@ sub set_permissions {
   my $self = shift;
   my ($permissions) = @_;
   
-  $aid = $self->{aid};
-  my $sql = "DELETE FROM admin_permits WHERE aid='$aid';";
+  my $sql = "DELETE FROM admin_permits WHERE aid='$self->{AID}';";
   my $q = $db->do($sql);
 
   while(my($section, $actions_hash)=each %$permissions) {
     while(my($action, $y)=each %$actions_hash) {
-      my $sql = "INSERT INTO admin_permits (aid, section, actions) VALUES ('$aid', '$section', '$action');";
+      my $sql = "INSERT INTO admin_permits (aid, section, actions) VALUES ('$self->{AID}', '$section', '$action');";
       my $q = $db->do($sql);
       #print $sql . "<br>\n";
      }
