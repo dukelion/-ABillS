@@ -464,6 +464,10 @@ print $tpl_form;
 }
 
 
+
+
+
+
 #**********************************************************
 # form_users()
 #**********************************************************
@@ -579,6 +583,9 @@ if($uid > 0) {
   elsif ($FORM{chg_tp}) {
     print form_chg_tp($user_info);
    }
+  elsif ($FORM{services}) {
+  	user_services($user_info);
+   }
   elsif ($FORM{account}) {
     print chg_account($user_info);
    }
@@ -617,6 +624,7 @@ my %menus = ('password' => $_PASSWD,
              'account' =>  $_ACCOUNT,
              'nas' => $_NAS,
              'bank_info' => $_BANK_INFO,
+             'services' => $_SERVICES
  );
  
 
@@ -733,6 +741,59 @@ print $table->show();
 
 }
 
+#**********************************************************
+# user_services
+#**********************************************************
+sub user_services {
+  my ($user) = @_;
+if ($FORM{add}) {
+	
+}
+
+
+ use Tariffs;
+ my $tariffs = Tariffs->new($db);
+ my $variant_out = '';
+ 
+ my $tariffs_list = $tariffs->list();
+ $variant_out = "<select name=servise>";
+
+ foreach my $line (@$tariffs_list) {
+     $variant_out .= "<option value=$line->[0]";
+     $variant_out .= ' selected' if ($line->[0] == $user_info->{TARIF_PLAN});
+     $variant_out .=  ">$line->[0]:$line->[1]\n";
+    }
+  $variant_out .= "</select>";
+
+
+
+print << "[END]";
+<FORM action=$SELF_URL>
+<input type=hidden name=uid value=$user->{UID}>
+<input type=hidden name=op value=users>
+<input type=hidden name=services value=y>
+<table>
+<tr><td>$_SERVICES:</td><td>$variant_out</td></tr>
+<tr><td>$_DESCRIBE:</td><td><input type=text name=descr value="$descr"></td></tr>
+</table>
+<input type=submit name=$action[0] value='$action[1]'>
+</form>
+[END]
+
+
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => [$_SERVISE, $_DATE, $_DESCRIBE, '-', '-'],
+                                   cols_align => [left, right, left, center, center],
+                                   qs => $pages_qs,
+                                   pages => $users->{TOTAL}
+                                  } );
+
+print $table->show();
+
+
+
+}
 
 
 #*******************************************************************
@@ -1020,6 +1081,96 @@ print $table->show();
 }
 
 
+sub template_tp {
+
+my $tpl = qq{
+<form action=$SELF_URL METHOD=POST>
+<input type=hidden name=index value=70>
+<input type=hidden name=chg value=$FORM{chg}>
+<table border=0>
+  <tr><th>#</th><td><input type=text name=vrnt value='$vrnt'></td></tr>
+  <tr><td>$_HOUR_TARIF (1 Hour):</td><td><input type=text name=hour_tarif value='$hour_tarif'></td></tr>
+  <tr><td>$_UPLIMIT:</td><td><input type=text name=uplimit value='$uplimit'></td></tr>
+  <tr><td>$_NAME:</td><td><input type=text name=name value='$name'></td></tr>
+  <tr><td>$_BEGIN:</td><td><input type=text name=begin value='$begin'></td></tr>
+  <tr><td>$_END:</td><td><input type=text name=end value='$end'></td></tr>
+  <tr><td>$_DAY_FEE:</td><td><input type=text name=day_pay value='$day_pay'></td></tr>
+  <tr><td>$_MONTH_FEE:</td><td><input type=text name=month_pay value='$month_pay'></td></tr>
+  <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=logins value='$logins'></td></tr>
+  <tr><th colspan=2 bgcolor=$_BG0>$_TIME_LIMIT (sec)</th></tr> 
+  <tr><td>$_DAY</td><td><input type=text name=day_time_limit value='$day_time_limit'></td></tr> 
+  <tr><td>$_WEEK</td><td><input type=text name=week_time_limit value='$week_time_limit'></td></tr>
+  <tr><td>$_MONTH</td><td><input type=text name=month_time_limit value='$month_time_limit'></td></tr>
+  <tr><th colspan=2 bgcolor=$_BG0>$_TRAF_LIMIT (Mb)</th></tr> 
+  <tr><td>$_DAY</td><td><input type=text name=day_traf_limit value='$day_traf_limit'></td></tr>
+  <tr><td>$_WEEK</td><td><input type=text name=week_traf_limit value='$week_traf_limit'></td></tr>
+  <tr><td>$_MONTH</td><td><input type=text name=month_traf_limit value='$month_traf_limit'></td></tr>
+  <tr><th colspan=2 bgcolor=$_BG0>$_OTHER</th></tr>
+  <tr><td>$_ACTIVATE:</td><td><input type=text name=activate_price value='$activate_price'></td></tr>
+  <tr><td>$_CHANGE:</td><td><input type=text name=change_price value='$change_price'></td></tr>
+  <tr><td>$_CREDIT_TRESSHOLD:</td><td><input type=text name=credit_tresshold value='$credit_tresshold'></td></tr>
+<!--  <tr><td>$_PREPAID (Mb):</td><td><input type=text name=prepaid_trafic value='$prepaid_trafic'></td></tr> -->
+</table>
+<input type=submit name='$action[0]' value='$action[1]'>
+</form>
+};
+
+return $tpl;
+	
+}
+
+#**********************************************************
+# Tarif plans
+# form_tp
+#**********************************************************
+sub form_tp {
+
+ use Tariffs;
+ my $tariffs = Tariffs->new($db);
+ 
+ print template_tp;
+
+
+
+my $list = $tariffs->list();	
+# Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => ['#', $_NAME,  $_BEGIN,  $_END, $_HOUR_TARIF, $_TRAFIC_TARIFS, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, 
+                                     '-', '-', '-', '-'],
+                                   cols_align => [right, left, right, right, right, right, right, right, right, center, center],
+                                   pages => $admins->{TOTAL}
+                                   
+                                  } );
+my $delete = ''; 
+my $change = '';
+
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=70&del=$line->[0]", "$_DEL ?"); 
+    $change = "<a href='$SELF_URL?index=70&chg=$line->[0]'>$_CHANGE</a>";
+   }
+
+  $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=70&chg=$line->[0]'>$line->[1]</a>", $line->[2], $line->[3], 
+   $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], 
+   "<a href='$SELF_URL?index=70&tt=$line->[0]'>$_TRAFIC_TARIFS</a>",
+   "<a href='$SELF_URL?index=70&ti=$line->[0]'>$_INTERVALS</a>",
+   $change,
+   $delete);
+}
+
+print $table->show();
+
+
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => [right, right],
+                                rows => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
+
+	
+}
+
 
 #**********************************************************
 # form_admins()
@@ -1275,6 +1426,12 @@ $menu_items{19}{14}=$_STATS;
 $op_names{19}='';
 $functions{19}=\&user_stats;
 
+$menu_items{20}{14}=$_SERVICES;
+$op_names{20}='services';
+$functions{20}=\&user_services;
+
+
+
 #Payments
 $menu_items{2}{0}=$_PAYMENTS;
 $op_names{2}='payments';
@@ -1314,6 +1471,9 @@ $functions{65}=\&exchange_rate;
 
 
 $menu_items{70}{5}=$_TARIF_PLANS;
+$functions{70}=\&form_tp;
+
+
 $menu_items{71}{70}=$_LIST;
 
 $menu_items{80}{5}='SQL';
@@ -1365,7 +1525,7 @@ if (defined($FORM{op}) && $FORM{op} eq '') {
   }
 $FORM{op} = $op_names{$root_index};
 
-#print "$index $root_index<br>";
+print "$index $root_index<br>";
 if ($root_index > 0) {
   my $ri = $root_index-1;
   if (! defined($permissions{$ri})) {
