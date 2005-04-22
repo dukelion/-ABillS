@@ -525,7 +525,7 @@ if ($res > 0) {
     $action = 'Access';
    }
   else {
-    message('err', "$_ERROR", "$_WRONG_PASSWD $login, $password");
+    message('err', "$_ERROR", "$_WRONG_PASSWD");
     $action = 'Error';
    }
  }
@@ -533,7 +533,7 @@ if ($res > 0) {
 #   return ($pass eq $universal_pass) ? 0 : 1;
 #  }
 else {
-   message('err', "$_ERROR", "$_WRONG_PASSWD $login, $password");
+   message('err', "$_ERROR", "$_WRONG_PASSWD");
    $ret = 0;
    $action = 'Error';
  }

@@ -156,8 +156,6 @@ my($uid, $deposit, $logins, $filter, $ip, $netmask, $vid, $passwd, $uspeed, $cid
    $nas, $traf_tarif, $time_tarif, $filter_id,
    $session_start, $day_begin, $day_of_week, $day_of_year) = $q -> fetchrow();
 
-print "   $tp_payment, $nas, $traf_tarif, ";
-
 #Check allow nas server
 # $nas 1 - See user nas
 #      2 - See variant nas
@@ -213,65 +211,61 @@ if (defined($RAD{CHAP_PASSWORD}) && defined($RAD{CHAP_CHALLENGE})) {
    }      	 	
  }
 #Auth MS-CHAP v1,v2
-#elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
-#  #continue;
-#  #close;
-#  #last;
-#
-#  # Its an MS-CHAP V2 request
-#  # See draft-ietf-radius-ms-vsa-01.txt,
-#  # draft-ietf-pppext-mschap-v2-00.txt, RFC 2548, RFC3079
-#  $RAD{MS_CHAP_CHALLENGE} =~ s/^0x//;
-#  my $challenge = pack("H*", $RAD{MS_CHAP_CHALLENGE});
-#  my ($usersessionkey, $lanmansessionkey, $ms_chap2_success);
-#
-#  if (defined($RAD{MS_CHAP2_RESPONSE})) {
-#     $RAD{MS_CHAP2_RESPONSE} =~ s/^0x//; 
-#     my $rad_response = pack("H*", $RAD{MS_CHAP2_RESPONSE});
-#     my ($ident, $flags, $peerchallenge, $reserved, $response) = unpack('C C a16 a8 a24', $rad_response);
-#
-#     if (check_mschapv2("$RAD{USER_NAME}", $passwd, $challenge, $peerchallenge, $response, $ident,
-# 	    \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 0) {
-#         $message = "Wrong MS-CHAP2 password";
-#         $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
-#         return 1;
-#	    }
-#
-#         $RAD_PAIRS{'MS-CHAP2-SUCCESS'} = '0x' . bin2hex($ms_chap2_success);
-#
-#         my ($send, $recv) = Radius::MSCHAP::mppeGetKeys($usersessionkey, $response, 16);
-#
-#         #print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
-#          
-#         my $radsecret = 'test';
-##         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $radsecret, $challenge), 0, 16));
-##	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex( substr(encode_mppe_key($recv, $radsecret, $challenge), 0, 16));
-#         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
-#	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
-#
-##         $RAD_PAIRS{'MS-MPPE-Send-Key'}='0x4f835a2babe6f2600a731fd89ef25a38';
-##	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}='0x27ac8322247937ad3010161f1d5bbe5c';
-#
-#	       
-#        }
-#       else {
-#         if (check_mschap("$passwd", "$RAD{MS_CHAP_CHALLENGE}", "$RAD{MS_CHAP_RESPONSE}", 
-#	           \$usersessionkey, \$lanmansessionkey, \$message) == 0) {
-#           $message = "Wrong MS-CHAP password";
-#           $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
-#           return 1;
-#          }
-#        }
-#
-#
-##       $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', $lanmansessionkey, 
-##														$usersessionkey))) . "0000000000000000";
-#
-#       # 1      Encryption-Allowed 
-#       # 2      Encryption-Required 
-#       $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000002';
-#       $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
-# }
+elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
+  # Its an MS-CHAP V2 request
+  # See draft-ietf-radius-ms-vsa-01.txt,
+  # draft-ietf-pppext-mschap-v2-00.txt, RFC 2548, RFC3079
+  $RAD{MS_CHAP_CHALLENGE} =~ s/^0x//;
+  my $challenge = pack("H*", $RAD{MS_CHAP_CHALLENGE});
+  my ($usersessionkey, $lanmansessionkey, $ms_chap2_success);
+
+  if (defined($RAD{MS_CHAP2_RESPONSE})) {
+     $RAD{MS_CHAP2_RESPONSE} =~ s/^0x//; 
+     my $rad_response = pack("H*", $RAD{MS_CHAP2_RESPONSE});
+     my ($ident, $flags, $peerchallenge, $reserved, $response) = unpack('C C a16 a8 a24', $rad_response);
+
+     if (check_mschapv2("$RAD{USER_NAME}", $passwd, $challenge, $peerchallenge, $response, $ident,
+ 	    \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 0) {
+         $message = "Wrong MS-CHAP2 password";
+         $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
+         return 1;
+	    }
+
+         $RAD_PAIRS{'MS-CHAP2-SUCCESS'} = '0x' . bin2hex($ms_chap2_success);
+
+         my ($send, $recv) = Radius::MSCHAP::mppeGetKeys($usersessionkey, $response, 16);
+
+         #print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
+          
+         my $radsecret = 'test';
+#         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $radsecret, $challenge), 0, 16));
+#	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex( substr(encode_mppe_key($recv, $radsecret, $challenge), 0, 16));
+         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
+	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
+
+#         $RAD_PAIRS{'MS-MPPE-Send-Key'}='0x4f835a2babe6f2600a731fd89ef25a38';
+#	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}='0x27ac8322247937ad3010161f1d5bbe5c';
+
+	       
+        }
+       else {
+         if (check_mschap("$passwd", "$RAD{MS_CHAP_CHALLENGE}", "$RAD{MS_CHAP_RESPONSE}", 
+	           \$usersessionkey, \$lanmansessionkey, \$message) == 0) {
+           $message = "Wrong MS-CHAP password";
+           $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
+           return 1;
+          }
+        }
+
+
+#       $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', $lanmansessionkey, 
+#														$usersessionkey))) . "0000000000000000";
+
+       # 1      Encryption-Allowed 
+       # 2      Encryption-Required 
+       $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000002';
+       $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
+ }
 elsif($authtype == 1) {
   if (check_systemauth("$RAD{USER_NAME}", "$RAD{USER_PASSWORD}") == 0) { 
      $message = "Wrong password '$RAD{USER_PASSWORD}' $authtype";
@@ -390,7 +384,7 @@ my $traf_limit = 0;
       }
 
      if($traf_limit < 0) {
-       $message = "Rejected! Traffic limit utilized '$traf_limit'";
+       $message = "Rejected! Traffic limit utilized '$traf_limit Mb'";
        return 1;
       }
 
@@ -1068,14 +1062,18 @@ sub decode_mppe_key
 
     my ($p, $c_i, $b_i);
     $b_i = Digest::MD5::md5($secret . $self->authenticator . $A);
+
     while (length($S))
     {
-	$c_i = substr($S, 0, 16, undef);
-	$p .= $c_i ^ $b_i;
-	$b_i = Digest::MD5::md5($secret . $c_i);
+	    $c_i = substr($S, 0, 16, undef);
+	    $p .= $c_i ^ $b_i;
+	    $b_i = Digest::MD5::md5($secret . $c_i);
     }
+
     # Decode the length and strip off the padding NULs
     my ($len, $password) = unpack('Ca*', $p);
     substr($password, $len) = '' if ($len < length($password));
     return $password;
 }
+
+
