@@ -37,6 +37,8 @@ my $NAS_INFO = nas_params();
 # Max session tarffic limit  (Mb)
 $conf{MAX_SESSION_TRAFFIC} = 2048; 
 
+#my $aaa = `echo $ARGV[0] >> /tmp/argvvv`;
+
 if (defined($NAS_INFO->{"$RAD{NAS_IP_ADDRESS}"})) {
    $nas_num = $NAS_INFO->{"$RAD{NAS_IP_ADDRESS}"};
  }
@@ -266,12 +268,14 @@ elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
        $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000002';
        $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
  }
+#End MSchap auth
 elsif($authtype == 1) {
   if (check_systemauth("$RAD{USER_NAME}", "$RAD{USER_PASSWORD}") == 0) { 
      $message = "Wrong password '$RAD{USER_PASSWORD}' $authtype";
      return 1;    	
    }
  } 
+#If don't athorize any above methods auth PAP password
 else {
   if($passwd ne "$RAD{USER_PASSWORD}") {
     $message = "Wrong password '$RAD{USER_PASSWORD}'";

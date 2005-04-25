@@ -363,28 +363,7 @@ sub user_form {
 
 
 if ($type eq 'info') {
-
-$tpl_form = qq{<table width=100%>
-       <tr><td>$_LOGIN:</td><td>$user_info->{LOGIN}</td></tr>
-       <tr><td>UID:</td><td>$user_info->{UID}</td></tr>
-       <tr><td>$_FIO:</td><td>$user_info->{FIO}</td></tr>
-       <tr><td>$_PHONE:</td><td>$user_info->{PHONE}</td></tr>
-       <tr><td>$_ADDRESS:</td><td>$user_info->{ADDRESS}</td></tr>
-       <tr><td>E-mail:</td><td>$user_info->{EMAIL}</td></tr>
-       <tr><td>$_TARIF_PLAN:</td><td>$user_info->{TARIF_PLAN}</td></tr>
-       <tr><td>$_CREDIT:</td><td>$user_info->{CREDIT}</td></tr>
-       <tr><td>$_REDUCTION</td><td>$user_info->{REDUICTION} %</td></tr>
-      <tr><td>$_SIMULTANEOUSLY:</td><td>$user_info->{SIMULTANEONSLY}</td></tr>
-       <tr><td>$_ACTIVATE:</td><td>$user_info->{ACTIVATE}</td></tr>
-       <tr><td>$_EXPIRE:</td><td>$user_info->{EXPIRE}</td></tr>
-       <tr><td>IP:</td><td>$user_info->{IP}</td></tr>
-       <tr><td>NETMASK:</td><td>$user_info->{NETMASK}</td></tr>
-       <tr><td>$_SPEED (Kb)</td><td>$user_info->{SPEED}</td></tr>
-       <tr><td>$_FILTERS</td><td>$user_info->{FILTER_ID}</td></tr>
-       <tr><td>CID:</td><td>$user_info->{CID}</td></tr>
-<tr><th colspan=2>:$_COMMENTS:</th></tr>
-<tr><th colspan=2>$user_info->{COMMENTS}</th></tr>
-</table>};
+  Abills::HTML->tpl_show(templates('user_info'), $user_info);
 }
 else { 
  use Tariffs;
@@ -671,6 +650,8 @@ elsif ($FORM{add}) {
   else {
     message('info', $_ADDED, "$_ADDED '$user_info->{LOGIN}' / [$user_info->{UID}]");
     $user_info = $users->info( $user_info->{UID} );
+    Abills::HTML->tpl_show(templates('user_info'), $user_info);
+    $LIST_PARAMS{UID}=$user_info->{UID};
     form_payments({ USER => $user_info });
     return 0;
    }
@@ -1081,41 +1062,67 @@ print $table->show();
 }
 
 
-sub template_tp {
+sub templates {
+  my ($tpl_name) = @_;
 
-my $tpl = qq{
+if ($tpl_name eq 'user_info') {
+return qq{<table width=100%>
+       <tr><td>$_LOGIN:</td><td>%LOGIN%</td></tr>
+       <tr><td>UID:</td><td>%UID%</td></tr>
+       <tr><td>$_FIO:</td><td>%FIO%</td></tr>
+       <tr><td>$_PHONE:</td><td>%PHONE%</td></tr>
+       <tr><td>$_ADDRESS:</td><td>%ADDRESS%</td></tr>
+       <tr><td>E-mail:</td><td>%EMAIL%</td></tr>
+       <tr><td>$_TARIF_PLAN:</td><td>%TARIF_PLAN%</td></tr>
+       <tr><td>$_CREDIT:</td><td>%CREDIT%</td></tr>
+       <tr><td>$_REDUCTION</td><td>%REDUICTION% %</td></tr>
+       <tr><td>$_SIMULTANEOUSLY:</td><td>%SIMULTANEONSLY%</td></tr>
+       <tr><td>$_ACTIVATE:</td><td>%ACTIVATE%</td></tr>
+       <tr><td>$_EXPIRE:</td><td>%EXPIRE%</td></tr>
+       <tr><td>IP:</td><td>%IP%</td></tr>
+       <tr><td>NETMASK:</td><td>%NETMASK%</td></tr>
+       <tr><td>$_SPEED (Kb)</td><td>%SPEED%</td></tr>
+       <tr><td>$_FILTERS</td><td>%FILTER_ID%</td></tr>
+       <tr><td>CID:</td><td>%CID%</td></tr>
+<tr><th colspan=2>:$_COMMENTS:</th></tr>
+<tr><th colspan=2>%COMMENTS%</th></tr>
+</table>};
+ }
+elsif ($tpl_name eq 'tp') {
+return qq{
 <form action=$SELF_URL METHOD=POST>
 <input type=hidden name=index value=70>
-<input type=hidden name=chg value=$FORM{chg}>
+<input type=hidden name=chg value='%VID%'>
 <table border=0>
-  <tr><th>#</th><td><input type=text name=vrnt value='$vrnt'></td></tr>
-  <tr><td>$_HOUR_TARIF (1 Hour):</td><td><input type=text name=hour_tarif value='$hour_tarif'></td></tr>
-  <tr><td>$_UPLIMIT:</td><td><input type=text name=uplimit value='$uplimit'></td></tr>
-  <tr><td>$_NAME:</td><td><input type=text name=name value='$name'></td></tr>
-  <tr><td>$_BEGIN:</td><td><input type=text name=begin value='$begin'></td></tr>
-  <tr><td>$_END:</td><td><input type=text name=end value='$end'></td></tr>
-  <tr><td>$_DAY_FEE:</td><td><input type=text name=day_pay value='$day_pay'></td></tr>
-  <tr><td>$_MONTH_FEE:</td><td><input type=text name=month_pay value='$month_pay'></td></tr>
-  <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=logins value='$logins'></td></tr>
-  <tr><th colspan=2 bgcolor=$_BG0>$_TIME_LIMIT (sec)</th></tr> 
-  <tr><td>$_DAY</td><td><input type=text name=day_time_limit value='$day_time_limit'></td></tr> 
-  <tr><td>$_WEEK</td><td><input type=text name=week_time_limit value='$week_time_limit'></td></tr>
-  <tr><td>$_MONTH</td><td><input type=text name=month_time_limit value='$month_time_limit'></td></tr>
-  <tr><th colspan=2 bgcolor=$_BG0>$_TRAF_LIMIT (Mb)</th></tr> 
-  <tr><td>$_DAY</td><td><input type=text name=day_traf_limit value='$day_traf_limit'></td></tr>
-  <tr><td>$_WEEK</td><td><input type=text name=week_traf_limit value='$week_traf_limit'></td></tr>
-  <tr><td>$_MONTH</td><td><input type=text name=month_traf_limit value='$month_traf_limit'></td></tr>
-  <tr><th colspan=2 bgcolor=$_BG0>$_OTHER</th></tr>
-  <tr><td>$_ACTIVATE:</td><td><input type=text name=activate_price value='$activate_price'></td></tr>
-  <tr><td>$_CHANGE:</td><td><input type=text name=change_price value='$change_price'></td></tr>
-  <tr><td>$_CREDIT_TRESSHOLD:</td><td><input type=text name=credit_tresshold value='$credit_tresshold'></td></tr>
-<!--  <tr><td>$_PREPAID (Mb):</td><td><input type=text name=prepaid_trafic value='$prepaid_trafic'></td></tr> -->
+  <tr><th>#</th><td><input type=text name=vrnt value='%VID%'></td></tr>
+  <tr><td>$_HOUR_TARIF (1 Hour):</td><td><input type=text name=hour_tarif value='%TIME_TARIF%'></td></tr>
+  <tr><td>$_UPLIMIT:</td><td><input type=text name=uplimit value='%ALERT%'></td></tr>
+  <tr><td>$_NAME:</td><td><input type=text name=name value='%NAME%'></td></tr>
+  <tr><td>$_BEGIN:</td><td><input type=text name=begin value='%BEGIN%'></td></tr>
+  <tr><td>$_END:</td><td><input type=text name=end value='%END%'></td></tr>
+  <tr><td>$_DAY_FEE:</td><td><input type=text name=day_pay value='%DAY_FEE%'></td></tr>
+  <tr><td>$_MONTH_FEE:</td><td><input type=text name=month_pay value='%MONTH_FEE%'></td></tr>
+  <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=logins value='%LOGINS%'></td></tr>
+  <tr><th colspan=2 bgcolor=$_COLORS[0]>$_TIME_LIMIT (sec)</th></tr> 
+  <tr><td>$_DAY</td><td><input type=text name=day_time_limit value='%DAY_TIME_LIMIT%'></td></tr> 
+  <tr><td>$_WEEK</td><td><input type=text name=week_time_limit value='%WEEK_TIME_LIMIT%'></td></tr>
+  <tr><td>$_MONTH</td><td><input type=text name=month_time_limit value='%MONTH_TIME_LIMIT%'></td></tr>
+  <tr><th colspan=2 bgcolor=$_COLORS[0]>$_TRAF_LIMIT (Mb)</th></tr> 
+  <tr><td>$_DAY</td><td><input type=text name=day_traf_limit value='%DAY_TRAF_LIMIT%'></td></tr>
+  <tr><td>$_WEEK</td><td><input type=text name=week_traf_limit value='%WEEK_TRAF_LIMIT%'></td></tr>
+  <tr><td>$_MONTH</td><td><input type=text name=month_traf_limit value='%MONTH_TRAF_LIMIT%'></td></tr>
+  <tr><th colspan=2 bgcolor=$_COLORS[0]>$_OTHER</th></tr>
+  <tr><td>$_ACTIVATE:</td><td><input type=text name=activate_price value='%ACTIVE_PRICE%'></td></tr>
+  <tr><td>$_CHANGE:</td><td><input type=text name=change_price value='%CHANGE_PRICE%'></td></tr>
+  <tr><td>$_CREDIT_TRESSHOLD:</td><td><input type=text name=credit_tresshold value='%CREDIT_TRESSHOLD%'></td></tr>
+  <tr><td>$_AGE ($_DAYS):</td><td><input type=text name=age value='%AGE%'></td></tr>
 </table>
-<input type=submit name='$action[0]' value='$action[1]'>
+<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
 };
+}
 
-return $tpl;
+return 'No such template [$tpl_name]';
 	
 }
 
@@ -1128,23 +1135,37 @@ sub form_tp {
  use Tariffs;
  my $tariffs = Tariffs->new($db);
  
- print template_tp;
+ $tarif_info->{LNG_ACTION}=$_ADD;
+ $tarif_info->{ACTION}='add';
+
+
+if ($FORM{chg}) {
+  $tarif_info = $tariffs->info( $FORM{chg} );
+  if ($users->{errno}) {
+    message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+    return 0;
+   }
+  $tarif_info->{LNG_ACTION}=$_CHANGE;
+  $tarif_info->{ACTION}='change';
+}
 
 
 
-my $list = $tariffs->list();	
+Abills::HTML->tpl_show(templates('tp'), $tarif_info);
+
+
+
+my $list = $tariffs->list({ %LIST_PARAMS });	
 # Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => ['#', $_NAME,  $_BEGIN,  $_END, $_HOUR_TARIF, $_TRAFIC_TARIFS, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, 
+                                   title => ['#', $_NAME,  $_BEGIN,  $_END, $_HOUR_TARIF, $_TRAFIC_TARIFS, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
                                      '-', '-', '-', '-'],
-                                   cols_align => [right, left, right, right, right, right, right, right, right, center, center],
-                                   pages => $admins->{TOTAL}
-                                   
+                                   cols_align => [right, left, right, right, right, right, right, right, right, right, center, center, center, center],
                                   } );
-my $delete = ''; 
-my $change = '';
-
+                                  
+                                  
+my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
     $delete = $html->button($_DEL, "index=70&del=$line->[0]", "$_DEL ?"); 
@@ -1152,7 +1173,7 @@ foreach my $line (@$list) {
    }
 
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?index=70&chg=$line->[0]'>$line->[1]</a>", $line->[2], $line->[3], 
-   $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], 
+   $line->[4], $line->[5], $line->[6], $line->[7], $line->[8], $line->[9], 
    "<a href='$SELF_URL?index=70&tt=$line->[0]'>$_TRAFIC_TARIFS</a>",
    "<a href='$SELF_URL?index=70&ti=$line->[0]'>$_INTERVALS</a>",
    $change,
@@ -1760,8 +1781,6 @@ print << "[END]";
 <input type=submit name=add value='$_ADD'>
 </form>
 [END]
-
-
 }
 elsif ($FORM{uid}) {
 	 form_users();

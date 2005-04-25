@@ -443,6 +443,7 @@ sub table_title  {
   my $self = shift;
   my ($sort, $desc, $pg, $op, $caption, $qs)=@_;
   my $img='';
+  my ($op);
 
   $self->{table_title} = "<tr bgcolor=$_COLORS[0]>";
   my $i=1;
@@ -460,7 +461,15 @@ sub table_title  {
              $img = 'up_pointer.png';
              $desc='DESC';
            }
-         $self->{table_title} .= "<a href='$SELF_URL?op=$op$qs&pg=$pg&sort=$i&desc=$desc'>".
+         
+         if ($FORM{index}) {
+         	  $op="index=$FORM{index}";
+         	}
+         else {
+         	  $op="op=$op&";
+          }
+
+         $self->{table_title} .= "<a href='$SELF_URL?$op$qs&pg=$pg&sort=$i&desc=$desc'>".
             "<img src='../img/$img' width=12 height=10 border=0 title=sort></a>";
        }
      else {
@@ -652,5 +661,37 @@ $text
 </table>
 [END]
 }
+
+#**********************************************************
+# show tamplate
+# tpl_show
+# 
+# template
+# variables_ref
+# atrr [EX_VARIABLES]
+#**********************************************************
+sub tpl_show {
+  my $self = shift;
+  my ($tpl, $variables_ref, $attr) = @_;	
+  
+  while($tpl =~ /\%(\w+)\%/g) {
+#    print "-$1-<br>\n";
+    my $var = $1;
+    if (defined($variables_ref->{$var})) {
+    	$tpl =~ s/\%$var\%/$variables_ref->{$var}/g;
+    }
+#    else {
+#      $tpl =~ s/\%$var\%//g;
+#    }
+  }
+
+	print $tpl;
+}
+
+
+
+
+
+
 
 1
