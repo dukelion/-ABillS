@@ -680,9 +680,9 @@ sub tpl_show {
     if (defined($variables_ref->{$var})) {
     	$tpl =~ s/\%$var\%/$variables_ref->{$var}/g;
     }
-#    else {
-#      $tpl =~ s/\%$var\%//g;
-#    }
+    else {
+      $tpl =~ s/\%$var\%//g;
+    }
   }
 
 	print $tpl;

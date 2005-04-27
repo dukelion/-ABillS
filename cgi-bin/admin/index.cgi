@@ -1075,27 +1075,27 @@ return qq{
 <input type=hidden name=index value=70>
 <input type=hidden name=chg value='%VID%'>
 <table border=0>
-  <tr><th>#</th><td><input type=text name=vrnt value='%VID%'></td></tr>
-  <tr><td>$_NAME:</td><td><input type=text name=name value='%NAME%'></td></tr>
-  <tr><td>$_UPLIMIT:</td><td><input type=text name=uplimit value='%ALERT%'></td></tr>
-  <tr><td>$_BEGIN:</td><td><input type=text name=begin value='%BEGIN%'></td></tr>
-  <tr><td>$_END:</td><td><input type=text name=end value='%END%'></td></tr>
-  <tr><td>$_DAY_FEE:</td><td><input type=text name=day_pay value='%DAY_FEE%'></td></tr>
-  <tr><td>$_MONTH_FEE:</td><td><input type=text name=month_pay value='%MONTH_FEE%'></td></tr>
-  <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=logins value='%LOGINS%'></td></tr>
-  <tr><td>$_HOUR_TARIF (1 Hour):</td><td><input type=text name=hour_tarif value='%TIME_TARIF%'></td></tr>
+  <tr><th>#</th><td><input type=text name=VID value='%VID%'></td></tr>
+  <tr><td>$_NAME:</td><td><input type=text name=NAME value='%NAME%'></td></tr>
+  <tr><td>$_UPLIMIT:</td><td><input type=text name=ALERT value='%ALERT%'></td></tr>
+  <tr><td>$_BEGIN:</td><td><input type=text name=BEGIN value='%BEGIN%'></td></tr>
+  <tr><td>$_END:</td><td><input type=text name=END value='%END%'></td></tr>
+  <tr><td>$_DAY_FEE:</td><td><input type=text name=DAY_FEE value='%DAY_FEE%'></td></tr>
+  <tr><td>$_MONTH_FEE:</td><td><input type=text name=MONTH_FEE value='%MONTH_FEE%'></td></tr>
+  <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEOUSLY value='%SIMULTANEONSLY%'></td></tr>
+  <tr><td>$_HOUR_TARIF (1 Hour):</td><td><input type=text name=TIME_TARIF value='%TIME_TARIF%'></td></tr>
   <tr><th colspan=2 bgcolor=$_COLORS[0]>$_TIME_LIMIT (sec)</th></tr> 
-  <tr><td>$_DAY</td><td><input type=text name=day_time_limit value='%DAY_TIME_LIMIT%'></td></tr> 
-  <tr><td>$_WEEK</td><td><input type=text name=week_time_limit value='%WEEK_TIME_LIMIT%'></td></tr>
-  <tr><td>$_MONTH</td><td><input type=text name=month_time_limit value='%MONTH_TIME_LIMIT%'></td></tr>
+  <tr><td>$_DAY</td><td><input type=text name=DAY_TIME_LIMIT value='%DAY_TIME_LIMIT%'></td></tr> 
+  <tr><td>$_WEEK</td><td><input type=text name=WEEK_TIME_LIMIT value='%WEEK_TIME_LIMIT%'></td></tr>
+  <tr><td>$_MONTH</td><td><input type=text name=MONTH_TIME_LIMIT value='%MONTH_TIME_LIMIT%'></td></tr>
   <tr><th colspan=2 bgcolor=$_COLORS[0]>$_TRAF_LIMIT (Mb)</th></tr> 
-  <tr><td>$_DAY</td><td><input type=text name=day_traf_limit value='%DAY_TRAF_LIMIT%'></td></tr>
-  <tr><td>$_WEEK</td><td><input type=text name=week_traf_limit value='%WEEK_TRAF_LIMIT%'></td></tr>
-  <tr><td>$_MONTH</td><td><input type=text name=month_traf_limit value='%MONTH_TRAF_LIMIT%'></td></tr>
+  <tr><td>$_DAY</td><td><input type=text name=DAY_TRAF_LIMIT value='%DAY_TRAF_LIMIT%'></td></tr>
+  <tr><td>$_WEEK</td><td><input type=text name=WEEK_TRAF_LIMIT value='%WEEK_TRAF_LIMIT%'></td></tr>
+  <tr><td>$_MONTH</td><td><input type=text name=MONTH_TRAF_LIMIT value='%MONTH_TRAF_LIMIT%'></td></tr>
   <tr><th colspan=2 bgcolor=$_COLORS[0]>$_OTHER</th></tr>
-  <tr><td>$_ACTIVATE:</td><td><input type=text name=activate_price value='%ACTIVE_PRICE%'></td></tr>
-  <tr><td>$_CHANGE:</td><td><input type=text name=change_price value='%CHANGE_PRICE%'></td></tr>
-  <tr><td>$_CREDIT_TRESSHOLD:</td><td><input type=text name=credit_tresshold value='%CREDIT_TRESSHOLD%'></td></tr>
+  <tr><td>$_ACTIVATE:</td><td><input type=text name=ACTIV_PRICE value='%ACTIV_PRICE%'></td></tr>
+  <tr><td>$_CHANGE:</td><td><input type=text name=CHANGE_PRICE value='%CHANGE_PRICE%'></td></tr>
+  <tr><td>$_CREDIT_TRESSHOLD:</td><td><input type=text name=CREDIT_TRESSHOLD value='%CREDIT_TRESSHOLD%'></td></tr>
   <tr><td>$_AGE ($_DAYS):</td><td><input type=text name=age value='%AGE%'></td></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
@@ -1204,18 +1204,46 @@ print << "[END]";
 #**********************************************************
 sub form_tp {
 
+ my $VID = $FORM{VID};
+ my $NAME = $FORM{NAME};
+ my $BEGIN = $FORM{BEGIN};
+ my $END = $FORM{END};
+ my $TIME_TARIF = $FORM{TIME_TARIF};
+ my $DAY_FEE = $FORM{DAY_FEE};
+ my $MONTH_FEE = $FORM{MONTH_FEE};
+ my $SIMULTANEONSLY = $FORM{SIMULTANEONSLY}; 
+ my $AGE = $FORM{AGE};
+ my $DAY_TIME_LIMIT = $FORM{DAY_TIME_LIMIT};
+ my $WEEK_TIME_LIMIT = $FORM{WEEK_TIME_LIMIT};
+ my $MONTH_TIME_LIMIT = $FORM{MONTH_TIME_LIMIT};
+ my $DAY_TRAF_LIMIT = $FORM{DAY_TRAF_LIMIT}; 
+ my $WEEK_TRAF_LIMIT = $FORM{WEEK_TRAF_LIMIT}; 
+ my $MONTH_TRAF_LIMIT = $FORM{MONTH_TRAF_LIMIT}; 
+ my $ACTIV_PRICE = $FORM{ACTIV_PRICE};
+ my $CHANGE_PRICE = $FORM{CHANGE_PRICE};
+ my $CREDIT_TRESSHOLD = $FORM{CREDIT_TRESSHOLD};
+ my $ALERT => $FORM{ALERT};
+
+
  use Tariffs;
  my $tariffs = Tariffs->new($db);
- 
+ my $tarif_info;
+
+ $tarif_info = $tariffs->defaults();
  $tarif_info->{LNG_ACTION}=$_ADD;
  $tarif_info->{ACTION}='add';
 
+ 
 if ($FORM{chg}) {
   $tarif_info = $tariffs->info( $FORM{chg} );
-  if ($tarif_info->{errno}) {
+
+
+  if ($tariffs->{errno}) {
     message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
     return 0;
    }
+
+
   $tarif_info->{LNG_ACTION}=$_CHANGE;
   $tarif_info->{ACTION}='change';
 
@@ -1240,9 +1268,35 @@ print "
 	  form_time_intervals( {TP => $tariffs });
     return 0;
    } 
-}
+  elsif($FORM{change}) {
+    $tariffs->change( $FORM{chg}, { 
+                   NAME => $FORM{NAME}, 
+                   BEGIN => $FORM{BEGIN},
+                   END => $FORM{END}, 
+                   TIME_TARIF => $FORM{TIME_TARIF}, 
+                   DAY_FEE => $FORM{DAY_FEE}, 
+                   MONTH_FEE => $FORM{MONTH_FEE}, 
+                   SIMULTANEONSLY => $FORM{SIMULTANEONSLY}, 
+                   AGE => $FORM{AGE},
+                   DAY_TIME_LIMIT => $FORM{DAY_TIME_LIMIT}, 
+                   WEEK_TIME_LIMIT => $FORM{WEEK_TIME_LIMIT}, 
+                   MONTH_TIME_LIMIT => $FORM{MONTH_TIME_LIMIT}, 
+                   DAY_TRAF_LIMIT => $FORM{DAY_TRAF_LIMIT}, 
+                   WEEK_TRAF_LIMIT => $FORM{WEEK_TRAF_LIMIT}, 
+                   MONTH_TRAF_LIMIT => $FORM{MONTH_TRAF_LIMIT}, 
+                   ACTIV_PRICE => $FORM{ACTIV_PRICE},
+                   CHANGE_PRICE => $FORM{CHANGE_PRICE}, 
+                   CREDIT_TRESSHOLD => $FORM{CREDIT_TRESSHOLD},
+                   ALERT => $FORM{ALERT} 
+                  }
+                );  
+   }
+
+
+ }
 elsif($FORM{add}) {
   $tariffs->add( { 
+  	               VID => $VID,
                    NAME => $NAME, 
                    BEGIN => $BEGIN,
                    END => $END, 
@@ -1257,22 +1311,33 @@ elsif($FORM{add}) {
                    DAY_TRAF_LIMIT => $DAY_TRAF_LIMIT, 
                    WEEK_TRAF_LIMIT => $WEEK_TRAF_LIMIT, 
                    MONTH_TRAF_LIMIT => $MONTH_TRAF_LIMIT, 
-                   ACTIVE_PRICE => $ACTIVE_PRICE,    
+                   ACTIV_PRICE => $ACTIV_PRICE,    
                    CHANGE_PRICE => $CHANGE_PRICE, 
                    CREDIT_TRESSHOLD => $CREDIT_TRESSHOLD,
                    ALERT => $ALERT 
                   });
 
-  if ($users->{errno}) {
+  if ($tariffs->{errno}) {
     message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
-    form_tp();
-    return 0;	
+    #form_tp();
+    #return 0;	
    }
   else {
-    message('info', $_ADDED, "$_ADDED '$user_info->{LOGIN}' / [$user_info->{UID}]");
-    return 0;
+    message('info', $_ADDED, "$_ADDED $tariffs->{VID}");
    }
- }
+}
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
+  $tariffs->del($FORM{del});
+
+  if ($tariffs->{errno}) {
+    message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+   }
+  else {
+    message('info', $_DELETE, "$_DELETED");
+   }
+}
+
+
 
 
 

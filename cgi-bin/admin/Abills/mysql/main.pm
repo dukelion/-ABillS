@@ -26,13 +26,18 @@ sub query {
   my ($db, $query, $type, $attr)	= @_;
 
 print "$query ";
+
+  if (defined($attr->{test})) {
+  	 return $self;
+   }
+
 my $q;
 
 if ($type eq 'do') {
   $q = $db->do($query);
 }
 else {
-  $q = $db->prepare($query) || print $db->errstr;
+  $q = $db->prepare($query);
   $q ->execute(); 
   $self->{TOTAL} = $q->rows;
 }
