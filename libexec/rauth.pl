@@ -484,6 +484,8 @@ if ($NAS_INFO->{nt}{$nas_num} eq 'exppp') {
         print "Exppp-LocalTraffic-Out-Limit = $trafic_lo_outlimit,";
 =cut
  }
+###########################################################
+# MPD
 elsif ($NAS_INFO->{nt}{$nas_num} eq 'mpd') {
   my $EX_PARAMS = ex_params($vid, "$USER", { traf_limit => $traf_limit, 
                                               deposit => $deposit });
@@ -505,10 +507,25 @@ elsif ($NAS_INFO->{nt}{$nas_num} eq 'mpd') {
 #      $RAD_PAIRS{'mpd-pipe'} = "1=bw ". $v_speed ."Kbyte/s";
 #     }
 #   }
-
  
   log_print('LOG_DEBUG', "MPD");
  }
+###########################################################
+# pppd + RADIUS plugin (Linux) http://samba.org/ppp/
+elsif ($NAS_INFO->{nt}{$nas_num} eq 'pppd') {
+  my $EX_PARAMS = ex_params($vid, "$USER", { traf_limit => $traf_limit, 
+                                             deposit => $deposit });
+  #global Traffic
+  if ($EX_PARAMS->{traf_limit} > 0) {
+    $RAD_PAIRS{'Session-Octets-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024;
+    $RAD_PAIRS{'Octets-Direction'} = 0;
+   }
+
+  log_print('LOG_DEBUG', "Linux pppd");
+ }
+
+
+
 #####################################################################
    return 0;	
 }

@@ -3521,7 +3521,6 @@ if ($FORM{add}) {
     $sql = "INSERT INTO intervals (vid, day, begin, end, tarif)
      values ('$intervals', '$day', '$begin', '$end', '$tarif');";
     
-    print $sql;
     $db->do($sql) || print $db->errstr;
     if ($db->err == 5) {
        message('err', "$_ERROR", "$_EXIST");

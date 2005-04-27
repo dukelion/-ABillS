@@ -23,36 +23,41 @@ sub connect {
 #**********************************************************
 sub query {
 	my $self = shift;
-  my ($query, $type, $attr)	= @_;
+  my ($db, $query, $type, $attr)	= @_;
 
-  
-#if ($type eq 'do') {
-  my  $q = $self->{db}->prepare($query);
+print "$query ";
+my $q;
+
+if ($type eq 'do') {
+  $q = $db->do($query);
+}
+else {
+  $q = $db->prepare($query) || print $db->errstr;
   $q ->execute(); 
-#}
-#else {
-#  $q = $db->prepare($query);
-#  $q ->execute(); 
-#}
+  $self->{TOTAL} = $q->rows;
+}
 
-if ($self->{db}->err == 1062) {
+if ($db->err == 1062) {
   $self->{errno} = 7;
   $self->{errstr} = 'ERROR_DUBLICATE';
   return $self;
  }
-elsif($self->{db}->err > 0) {
+elsif($db->err > 0) {
   $self->{errno} = 3;
   $self->{errstr} = 'SQL_ERROR';
   return $self;
  }
 
-$self->{rows} = $q->rows;
-if ($q->rows > 0) {
+if ($self->{TOTAL} > 0) {
   my @rows;
   while(my @row = $q->fetchrow()) {
+#   print "---$row[0] -";
    push @rows, \@row;
   }
   $self->{list} = \@rows;
+}
+else {
+	delete $self->{list};
 }
 
   return $self;
