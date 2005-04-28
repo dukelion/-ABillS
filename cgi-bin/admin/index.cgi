@@ -1004,6 +1004,11 @@ print $table->show();
 }
 
 
+
+
+#**********************************************************
+# templates
+#**********************************************************
 sub templates {
   my ($tpl_name) = @_;
 
@@ -1082,7 +1087,7 @@ return qq{
   <tr><td>$_END:</td><td><input type=text name=END value='%END%'></td></tr>
   <tr><td>$_DAY_FEE:</td><td><input type=text name=DAY_FEE value='%DAY_FEE%'></td></tr>
   <tr><td>$_MONTH_FEE:</td><td><input type=text name=MONTH_FEE value='%MONTH_FEE%'></td></tr>
-  <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEOUSLY value='%SIMULTANEONSLY%'></td></tr>
+  <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEOUSLY value='%SIMULTANEOUSLY%'></td></tr>
   <tr><td>$_HOUR_TARIF (1 Hour):</td><td><input type=text name=TIME_TARIF value='%TIME_TARIF%'></td></tr>
   <tr><th colspan=2 bgcolor=$_COLORS[0]>$_TIME_LIMIT (sec)</th></tr> 
   <tr><td>$_DAY</td><td><input type=text name=DAY_TIME_LIMIT value='%DAY_TIME_LIMIT%'></td></tr> 
@@ -1096,7 +1101,7 @@ return qq{
   <tr><td>$_ACTIVATE:</td><td><input type=text name=ACTIV_PRICE value='%ACTIV_PRICE%'></td></tr>
   <tr><td>$_CHANGE:</td><td><input type=text name=CHANGE_PRICE value='%CHANGE_PRICE%'></td></tr>
   <tr><td>$_CREDIT_TRESSHOLD:</td><td><input type=text name=CREDIT_TRESSHOLD value='%CREDIT_TRESSHOLD%'></td></tr>
-  <tr><td>$_AGE ($_DAYS):</td><td><input type=text name=age value='%AGE%'></td></tr>
+  <tr><td>$_AGE ($_DAYS):</td><td><input type=text name=AGE value='%AGE%'></td></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
@@ -1147,21 +1152,21 @@ if($attr->{TP}) {
 
 
 
-my $list = $tarif_plan->ti_list($FORM{ti});
+  my $list = $tarif_plan->ti_list($FORM{ti});
 
-my $table = Abills::HTML->table( { width => '100%',
+  my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, '-',  '-'],
                                    cols_align => ['right', 'left', 'right', 'right', 'right', 'center', 'center'],
                                    qs => $pages_qs,
                                   } );
 
-foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=73$pages_qs&del=$line->[5]", "$line->[5]  $_DEL ?"); 
-  $table->addrow("$line->[0]", $DAY_NAMES[$line->[1]], $line->[2], $line->[3], 
-   $line->[4], '', $delete);
-};
-print $table->show();
+  foreach my $line (@$list) {
+    my $delete = $html->button($_DEL, "index=73$pages_qs&del=$line->[5]", "$line->[5]  $_DEL ?"); 
+    $table->addrow("$line->[0]", $DAY_NAMES[$line->[1]], $line->[2], $line->[3], 
+     $line->[4], '', $delete);
+   };
+  print $table->show();
 
  }
 elsif ($FORM{vid}) {
@@ -1182,11 +1187,10 @@ foreach $line (@DAY_NAMES) {
 }
 
 print << "[END]";
-<form action=$SELF>
+<form action=$SELF_URL>
 <input type=hidden name=index value=73>
 <input type=hidden name=vid value='$FORM{vid}'>
  <TABLE width=400 cellspacing=1 cellpadding=0 border=0>
- <tr><td>$_VARIANT:</td><td>$intervals</td></tr>
  <tr><td>$_DAY:</td><td><select name=day>$days</select></td></tr>
  <tr><td>$_BEGIN:</td><td><input type=text name=begin value='$begin'></td></tr>
  <tr><td>$_END:</td><td><input type=text name=end value='$end'></td></tr>
@@ -1199,32 +1203,73 @@ print << "[END]";
 
 
 #**********************************************************
+# form_traf_tarifs()
+#**********************************************************
+sub form_traf_tarifs {
+  my ($attr) = @_;
+  my $pages_qs = "&vid=$FORM{vid}";
+
+if($attr->{TP}) {
+  my $tarif_plan = $attr->{TP};
+
+  if ($FORM{add}) {
+    $tarif_plan->tt_add( { VID => $FORM{vid},
+    	                     TI_DAY => $FORM{day},
+    	                     TI_BEGIN => $FORM{begin},
+    	                     TI_END => $FORM{end},
+    	                     TI_TARIF => $FORM{tarif} });
+
+    if ($tarif_plan->{errno}) {
+      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
+     }
+    else {
+      message('info', $_INFO, "$_INTERVALS");
+     }
+   }
+  elsif($FORM{del} && $FORM{is_js_confirmed}) {
+    $tarif_plan->tt_del($FORM{del});
+    if ($tarif_plan->{errno}) {
+      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
+     }
+    else {
+      message('info', $_DELETED, "$_DELETED $FORM{del}");
+     }
+   }
+
+
+
+  my $list = $tarif_plan->tt_list($FORM{ti});
+
+  my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, '-',  '-'],
+                                   cols_align => ['right', 'left', 'right', 'right', 'right', 'center', 'center'],
+                                   qs => $pages_qs,
+                                  } );
+
+  foreach my $line (@$list) {
+    my $delete = $html->button($_DEL, "index=73$pages_qs&del=$line->[5]", "$line->[5]  $_DEL ?"); 
+    $table->addrow("$line->[0]", $DAY_NAMES[$line->[1]], $line->[2], $line->[3], 
+     $line->[4], '', $delete);
+   };
+  print $table->show();
+
+ }
+elsif ($FORM{vid}) {
+  $FORM{chg}=$FORM{vid};
+  form_tp();
+  return 0;
+ }
+
+	
+}
+
+
+#**********************************************************
 # Tarif plans
 # form_tp
 #**********************************************************
 sub form_tp {
-
- my $VID = $FORM{VID};
- my $NAME = $FORM{NAME};
- my $BEGIN = $FORM{BEGIN};
- my $END = $FORM{END};
- my $TIME_TARIF = $FORM{TIME_TARIF};
- my $DAY_FEE = $FORM{DAY_FEE};
- my $MONTH_FEE = $FORM{MONTH_FEE};
- my $SIMULTANEONSLY = $FORM{SIMULTANEONSLY}; 
- my $AGE = $FORM{AGE};
- my $DAY_TIME_LIMIT = $FORM{DAY_TIME_LIMIT};
- my $WEEK_TIME_LIMIT = $FORM{WEEK_TIME_LIMIT};
- my $MONTH_TIME_LIMIT = $FORM{MONTH_TIME_LIMIT};
- my $DAY_TRAF_LIMIT = $FORM{DAY_TRAF_LIMIT}; 
- my $WEEK_TRAF_LIMIT = $FORM{WEEK_TRAF_LIMIT}; 
- my $MONTH_TRAF_LIMIT = $FORM{MONTH_TRAF_LIMIT}; 
- my $ACTIV_PRICE = $FORM{ACTIV_PRICE};
- my $CHANGE_PRICE = $FORM{CHANGE_PRICE};
- my $CREDIT_TRESSHOLD = $FORM{CREDIT_TRESSHOLD};
- my $ALERT => $FORM{ALERT};
-
-
  use Tariffs;
  my $tariffs = Tariffs->new($db);
  my $tarif_info;
@@ -1252,7 +1297,7 @@ print "
 <tr><td>$_NAME: <b>$tariffs->{NAME}</b></td></tr>
 <tr><td>ID: $tariffs->{VID}</td></tr>
 <tr bgcolor=$_COLORS[3]><td>
-:: <a href='$SELF_URL?index=70&tt=$tariffs->{VID}'>$_TRAFIC_TARIFS</a> 
+:: <a href='$SELF_URL?index=74&tt=$tariffs->{VID}'>$_TRAFIC_TARIFS</a> 
 :: <a href='$SELF_URL?index=73&vid=$tariffs->{VID}'>$_INTERVALS</a>
 :: <a href='$SELF_URL?index=72&vid=$tariffs->{VID}'>$_NAS</a>
 :: <a href='$SELF_URL?index=14&tp=$tariffs->{VID}'>$_USERS</a>
@@ -1268,15 +1313,20 @@ print "
 	  form_time_intervals( {TP => $tariffs });
     return 0;
    } 
+  elsif($index == 74) {
+	  form_traf_tarifs( {TP => $tariffs });
+    return 0;
+   } 
   elsif($FORM{change}) {
     $tariffs->change( $FORM{chg}, { 
+                   VID => $FORM{VID}, 
                    NAME => $FORM{NAME}, 
                    BEGIN => $FORM{BEGIN},
                    END => $FORM{END}, 
                    TIME_TARIF => $FORM{TIME_TARIF}, 
                    DAY_FEE => $FORM{DAY_FEE}, 
                    MONTH_FEE => $FORM{MONTH_FEE}, 
-                   SIMULTANEONSLY => $FORM{SIMULTANEONSLY}, 
+                   SIMULTANEOUSLY => $FORM{SIMULTANEOUSLY}, 
                    AGE => $FORM{AGE},
                    DAY_TIME_LIMIT => $FORM{DAY_TIME_LIMIT}, 
                    WEEK_TIME_LIMIT => $FORM{WEEK_TIME_LIMIT}, 
@@ -1296,25 +1346,25 @@ print "
  }
 elsif($FORM{add}) {
   $tariffs->add( { 
-  	               VID => $VID,
-                   NAME => $NAME, 
-                   BEGIN => $BEGIN,
-                   END => $END, 
-                   TIME_TARIF => $TIME_TARIF, 
-                   DAY_FEE => $DAY_FEE, 
-                   MONTH_FEE => $MONTH_FEE, 
-                   SIMULTANEONSLY => $SIMULTANEONSLY, 
-                   AGE => $AGE,
-                   DAY_TIME_LIMIT => $DAY_TIME_LIMIT, 
-                   WEEK_TIME_LIMIT => $WEEK_TIME_LIMIT, 
-                   MONTH_TIME_LIMIT => $MONTH_TIME_LIMIT, 
-                   DAY_TRAF_LIMIT => $DAY_TRAF_LIMIT, 
-                   WEEK_TRAF_LIMIT => $WEEK_TRAF_LIMIT, 
-                   MONTH_TRAF_LIMIT => $MONTH_TRAF_LIMIT, 
-                   ACTIV_PRICE => $ACTIV_PRICE,    
-                   CHANGE_PRICE => $CHANGE_PRICE, 
-                   CREDIT_TRESSHOLD => $CREDIT_TRESSHOLD,
-                   ALERT => $ALERT 
+  	               VID => $FORM{VID},
+                   NAME => $FORM{NAME}, 
+                   BEGIN => $FORM{BEGIN},
+                   END => $FORM{END}, 
+                   TIME_TARIF => $FORM{TIME_TARIF}, 
+                   DAY_FEE => $FORM{DAY_FEE}, 
+                   MONTH_FEE => $FORM{MONTH_FEE}, 
+                   SIMULTANEOUSLY => $FORM{SIMULTANEOUSLY}, 
+                   AGE => $FORM{AGE},
+                   DAY_TIME_LIMIT => $FORM{DAY_TIME_LIMIT}, 
+                   WEEK_TIME_LIMIT => $FORM{WEEK_TIME_LIMIT}, 
+                   MONTH_TIME_LIMIT => $FORM{MONTH_TIME_LIMIT}, 
+                   DAY_TRAF_LIMIT => $FORM{DAY_TRAF_LIMIT}, 
+                   WEEK_TRAF_LIMIT => $FORM{WEEK_TRAF_LIMIT}, 
+                   MONTH_TRAF_LIMIT => $FORM{MONTH_TRAF_LIMIT}, 
+                   ACTIV_PRICE => $FORM{ACTIV_PRICE},    
+                   CHANGE_PRICE => $FORM{CHANGE_PRICE}, 
+                   CREDIT_TRESSHOLD => $FORM{CREDIT_TRESSHOLD},
+                   ALERT => $FORM{ALERT} 
                   });
 
   if ($tariffs->{errno}) {

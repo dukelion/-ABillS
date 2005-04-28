@@ -3,6 +3,8 @@ use strict;
 
 #Main SQL function
 
+
+
 use DBI;
 
 sub connect {
@@ -25,7 +27,7 @@ sub query {
 	my $self = shift;
   my ($db, $query, $type, $attr)	= @_;
 
-print "$query ";
+print "<p>$query</p>\n";
 
   if (defined($attr->{test})) {
   	 return $self;
@@ -35,6 +37,7 @@ my $q;
 
 if ($type eq 'do') {
   $q = $db->do($query);
+  $self->{TOTAL} = 0;
 }
 else {
   $q = $db->prepare($query);
@@ -64,8 +67,30 @@ if ($self->{TOTAL} > 0) {
 else {
 	delete $self->{list};
 }
-
   return $self;
+}
+
+
+
+#**********************************************************
+# get_data
+#**********************************************************
+sub get_data {
+	my ($self) =shift;
+	my ($params, $attr) = @_;
+  my %DATA;
+  
+  if(defined($attr->{default})) {
+  	 my $dhr = $attr->{default};
+  	 %DATA = %$dhr;
+   }
+  
+  while(my($k, $v)=each %$params) {
+  	$DATA{$k}=$v;
+#    print "--$k, $v<br>\n";
+   }
+  
+	return %DATA;
 }
 
 

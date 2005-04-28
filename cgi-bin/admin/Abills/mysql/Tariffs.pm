@@ -22,6 +22,29 @@ use main;
 my $db;
 my %DATA;
 
+my %FIELDS = ( VID => 'vrnt', 
+               NAME => 'name',  
+               BEGIN => 'ut',
+               END  => 'dt',  
+               TIME_TARIF  => 'hourp',
+               DAY_FEE => 'df',
+                 MONTH_FEE => 'abon',
+                 SIMULTANEOUSLY => 'logins',
+                 AGE => 'age',
+                 DAY_TIME_LIMIT => 'day_time_limit',
+                 WEEK_TIME_LIMIT => 'week_time_limit',
+                 MONTH_TIME_LIMIT => 'month_time_limit',
+                 DAY_TRAF_LIMIT => 'day_traf_limit',  
+                 WEEK_TRAF_LIMIT => 'week_traf_limit',
+                 MONTH_TRAF_LIMIT => 'month_traf_limit',
+                 ACTIV_PRICE => 'activate_price',
+                 CHANGE_PRICE => 'change_price', 
+                 CREDIT_TRESSHOLD => 'credit_tresshold',
+                 ALERT => 'uplimit'
+             );
+
+
+
 #**********************************************************
 # Init 
 #**********************************************************
@@ -82,25 +105,26 @@ sub ti_list {
 sub defaults {
   my $self = shift;
 
-  $DATA{VID} = 0; 
-  $DATA{NAME} = '';  
-  $DATA{BEGIN} = '00:00:00';
-  $DATA{END}  = '24:00:00';    
-  $DATA{TIME_TARIF}  = 0;
-  $DATA{DAY_FEE} = 0;
-  $DATA{MONTH_FEE} = 0;
-  $DATA{SIMULTANEONSLY} = 0;
-  $DATA{AGE} = 0;
-  $DATA{DAY_TIME_LIMIT} = 0;
-  $DATA{WEEK_TIME_LIMIT} = 0;
-  $DATA{MONTH_TIME_LIMIT} = 0;
-  $DATA{DAY_TRAF_LIMIT} = 0;  
-  $DATA{WEEK_TRAF_LIMIT} = 0; 
-  $DATA{MONTH_TRAF_LIMIT} = 0;
-  $DATA{ACTIV_PRICE} = 0.00;
-  $DATA{CHANGE_PRICE} = 0.00; 
-  $DATA{CREDIT_TRESSHOLD} = 0.00;
-  $DATA{ALERT} = 0;
+  %DATA = ( VID => 0, 
+            NAME => '',  
+            BEGIN => '00:00:00',
+            END  => '24:00:00',    
+            TIME_TARIF => '0.00000',
+            DAY_FEE => '0,00',
+            MONTH_FEE => '0.00',
+            SIMULTANEOUSLY => 0,
+            AGE => 0,
+            DAY_TIME_LIMIT => 0,
+            WEEK_TIME_LIMIT => 0,
+            MONTH_TIME_LIMIT => 0,
+            DAY_TRAF_LIMIT => 0, 
+            WEEK_TRAF_LIMIT => 0, 
+            MONTH_TRAF_LIMIT => 0,
+            ACTIV_PRICE => '0.00',
+            CHANGE_PRICE => '0.00',
+            CREDIT_TRESSHOLD => '0.00',
+            ALERT => 0
+         );   
  
   $self = \%DATA;
   return $self;
@@ -113,26 +137,8 @@ sub defaults {
 sub add {
   my $self = shift;
   my ($attr) = @_;
-  
-  $DATA{VID} = $attr->{VID} if (defined($attr->{VID})); 
-  $DATA{NAME} = $attr->{NAME} if (defined($attr->{NAME}));  
-  $DATA{BEGIN} = $attr->{BEGIN} if (defined($attr->{BEGIN}));
-  $DATA{END}  = $attr->{END} if (defined($attr->{END}));    
-  $DATA{TIME_TARIF}  =  $attr->{TIME_TARID} if (defined($attr->{TIME_TARIF}));
-  $DATA{DAY_FEE} = $attr->{DAY_FEE} if (defined($attr->{DAY_FEE}));
-  $DATA{MONTH_FEE} = $attr->{MONTH_FEE} if (defined($attr->{MONTH_FEE}));
-  $DATA{SIMULTANEONSLY} = $attr->{SIMULTANEONSLY} if (defined($attr->{SIMULTANEONSLY}));
-  $DATA{AGE} = $attr->{AGE} if (defined($attr->{AGE}));
-  $DATA{DAY_TIME_LIMIT} = $attr->{DAY_TIME_LIMIT} if (defined($attr->{DAY_TIME_LIMIT}));
-  $DATA{WEEK_TIME_LIMIT} = $attr->{WEEK_TIME_LIMIT} if (defined($attr->{WEEK_TIME_LIMIT}));
-  $DATA{MONTH_TIME_LIMIT} = $attr->{MONTH_TIME_LIMIT} if (defined($attr->{MONTH_TIME_LIMIT}));
-  $DATA{DAY_TRAF_LIMIT} = $attr->{DAY_TRAF_LIMIT} if (defined($attr->{DAY_TRAF_LIMIT}));  
-  $DATA{WEEK_TRAF_LIMIT} = $attr->{WEEK_TRAF_LIMIT} if (defined($attr->{WEEK_TRAF_LIMIT})); 
-  $DATA{MONTH_TRAF_LIMIT} = $attr->{MONTH_TRAF_LIMIT} if (defined($attr->{MONTH_TRAF_LIMIT}));
-  $DATA{ACTIV_PRICE} = $attr->{ACTIV_PRICE} if (defined($attr->{ACTIV_PRICE}));
-  $DATA{CHANGE_PRICE} = $attr->{CHANGE_PRICE} if (defined($attr->{CHANGE_PRICE})); 
-  $DATA{CREDIT_TRESSHOLD} = $attr->{CREDIT_TRESSHOLD} if (defined($attr->{CREDIT_TRESSHOLD}));
-  $DATA{ALERT} = $attr->{ALERT} if (defined($attr->{ALERT}));
+
+  %DATA = $self->get_data($attr, { default => \%DATA }); 
 
   $self->query($db, "INSERT INTO variant (vrnt, hourp, uplimit, name, ut, dt, abon, df, logins, 
      day_time_limit, week_time_limit,  month_time_limit, 
@@ -147,56 +153,21 @@ sub add {
   return $self;
 }
 
+
+
 #**********************************************************
 # change
 #**********************************************************
 sub change {
   my $self = shift;
   my ($vid, $attr) = @_;
-	
-  $DATA{VID} = $attr->{VID} if (defined($attr->{VID})); 
-  $DATA{NAME} = $attr->{NAME} if (defined($attr->{NAME}));  
-  $DATA{BEGIN} = $attr->{BEGIN} if (defined($attr->{BEGIN}));
-  $DATA{END}  = $attr->{END} if (defined($attr->{END}));    
-  $DATA{TIME_TARIF}  =  $attr->{TIME_TARID} if (defined($attr->{TIME_TARIF}));
-  $DATA{DAY_FEE} = $attr->{DAY_FEE} if (defined($attr->{DAY_FEE}));
-  $DATA{MONTH_FEE} = $attr->{MONTH_FEE} if (defined($attr->{MONTH_FEE}));
-  $DATA{SIMULTANEONSLY} = $attr->{SIMULTANEONSLY} if (defined($attr->{SIMULTANEONSLY}));
-  $DATA{AGE} = $attr->{AGE} if (defined($attr->{AGE}));
-  $DATA{DAY_TIME_LIMIT} = $attr->{DAY_TIME_LIMIT} if (defined($attr->{DAY_TIME_LIMIT}));
-  $DATA{WEEK_TIME_LIMIT} = $attr->{WEEK_TIME_LIMIT} if (defined($attr->{WEEK_TIME_LIMIT}));
-  $DATA{MONTH_TIME_LIMIT} = $attr->{MONTH_TIME_LIMIT} if (defined($attr->{MONTH_TIME_LIMIT}));
-  $DATA{DAY_TRAF_LIMIT} = $attr->{DAY_TRAF_LIMIT} if (defined($attr->{DAY_TRAF_LIMIT}));  
-  $DATA{WEEK_TRAF_LIMIT} = $attr->{WEEK_TRAF_LIMIT} if (defined($attr->{WEEK_TRAF_LIMIT})); 
-  $DATA{MONTH_TRAF_LIMIT} = $attr->{MONTH_TRAF_LIMIT} if (defined($attr->{MONTH_TRAF_LIMIT}));
-  $DATA{ACTIV_PRICE} = $attr->{ACTIV_PRICE} if (defined($attr->{ACTIV_PRICE}));
-  $DATA{CHANGE_PRICE} = $attr->{CHANGE_PRICE} if (defined($attr->{CHANGE_PRICE})); 
-  $DATA{CREDIT_TRESSHOLD} = $attr->{CREDIT_TRESSHOLD} if (defined($attr->{CREDIT_TRESSHOLD}));
-  $DATA{ALERT} = $attr->{ALERT} if (defined($attr->{ALERT}));
-
-	
-	my %FIELDS = ( VID => 'vrnt', 
-                 NAME => 'name',  
-                 BEGIN => 'ut',
-                 END  => 'dt',  
-                 TIME_TARIF  => 'hourp',
-                 DAY_FEE => 'df',
-                 MONTH_FEE => 'abon',
-                 SIMULTANEONSLY => 'logins',
-                 AGE => 'age',
-                 DAY_TIME_LIMIT => 'day_time_limit',
-                 WEEK_TIME_LIMIT => 'week_time_limit',
-                 MONTH_TIME_LIMIT => 'month_time_limit',
-                 DAY_TRAF_LIMIT => 'day_traf_limit',  
-                 WEEK_TRAF_LIMIT => 'week_traf_limit',
-                 MONTH_TRAF_LIMIT => 'month_traf_limit',
-                 ACTIV_PRICE => 'activate_price',
-                 CHANGE_PRICE => 'change_price', 
-                 CREDIT_TRESSHOLD => 'credit_tresshold',
-                 ALERT => 'uplimit'
-             );
-
-
+  
+  %DATA = $self->get_data($attr); 
+ 
+#  while(my($k, $v)=each(%DATA)) {
+#  	 print "$k, $v<br>";
+#   }
+  
   my $CHANGES_QUERY = "";
   my $CHANGES_LOG = "Tarif plan:";
   
@@ -204,9 +175,10 @@ sub change {
 
   while(my($k, $v)=each(%DATA)) {
     if ($OLD->{$k} ne $DATA{$k}){
-          $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
-          $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
-
+      if ($FIELDS{$k}) {
+         $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
+         $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
+       }
      }
    }
 
@@ -215,18 +187,18 @@ if ($CHANGES_QUERY eq '') {
 }
 
 # print $CHANGES_LOG;
-
   chop($CHANGES_QUERY);
-  my $sql = "UPDATE users SET $CHANGES_QUERY
-    WHERE vrnt='$vid'";
-
-  print "$sql";
-
-#my $q = $db->do($sql);  
+  $self->query($db, "UPDATE variant SET $CHANGES_QUERY
+    WHERE vrnt='$vid'", 'do');
+  
+  if ($vid == $DATA{VID}) {
+  	$self->info($vid);
+   }
+  else {
+  	$self->info($DATA{VID});
+   }
+  
 #  $admin->action_add(0, "$CHANGES_LOG");
-
-	
-	
 	return $self;
 }
 
@@ -271,7 +243,7 @@ sub info {
    $self->{TIME_TARIF}, 
    $self->{DAY_FEE}, 
    $self->{MONTH_FEE}, 
-   $self->{SIMULTANEONSLY}, 
+   $self->{SIMULTANEOUSLY}, 
    $self->{AGE},
    $self->{DAY_TIME_LIMIT}, 
    $self->{WEEK_TIME_LIMIT}, 
@@ -322,7 +294,6 @@ sub nas_list {
 	return $self->{list};
 }
 
-
 #**********************************************************
 # list_allow nass
 #**********************************************************
@@ -347,6 +318,23 @@ sub nas_del {
   $self->query($db, "DELETE FROM vid_nas WHERE vid='$self->{VID}';", 'do');
   #$admin->action_add($uid, "DELETE NAS");
   return $self;
+}
+
+#**********************************************************
+# tt_info
+#**********************************************************
+sub  tt_info {
+	my $self = shift;
+	
+}
+
+
+#**********************************************************
+# tt_info
+#**********************************************************
+sub  tt_change {
+  my $self = shift;
+	
 }
 
 

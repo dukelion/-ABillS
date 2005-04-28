@@ -2699,13 +2699,15 @@ sub sdetail {
  $q -> execute ();
 
 
-if ($q->rows < 1) {
+ if ($q->rows < 1) {
    message('err', $_ERROR, "$_NOT_EXIST<br>UID: $uid<br>$_SESSION_ID: $sid");
    return 0;	
  }
 
+ my ($sent, $recv, $sent2, $recv2);
+
  my ($begin, $end, $duration, $variant, $v_name, $sent, $recv, $sent2, $recv2,
-  $ip, $CID, $nas_id, $port_id, $sum, $uid) = $q -> fetchrow();
+  $session_ip, $CID, $nas_id, $port_id, $sum, $uid) = $q -> fetchrow();
 
  $sent = int2byte($sent); 
  $recv = int2byte($recv);  
@@ -2737,7 +2739,7 @@ print << "[END]";
 <tr bgcolor=$_BG1><th colspan=2>&nbsp;</th></tr>
 <tr bgcolor=$_BG1><td>NAS:</td><td>ID: $nas_id<br>IP: $ip<br>TYPE: $NAS_INFO->{nt}{$nas_id}</td></tr>
 <tr bgcolor=$_BG1><td>NAS_PORT:</td><td>$port_id</td></tr>
-<tr bgcolor=$_BG1><td>IP:</td><td>$ip</td></tr>
+<tr bgcolor=$_BG1><td>IP:</td><td>$session_ip</td></tr>
 <tr bgcolor=$_BG1><td>CID:</td><td>$CID</td></tr>
 <tr bgcolor=$_BG0><th align=left>$_SUM:</th><th align=right>$sum</th></tr>
 </table>

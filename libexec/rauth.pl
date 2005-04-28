@@ -24,7 +24,7 @@ require $Bin . '/sql.pl';
 ####################################################################
 
 get_radius_params();
-#test_radius_returns();
+test_radius_returns();
 #####################################################################
 
 if ($ARGV[0] eq 'pre_auth') { 
@@ -320,7 +320,7 @@ if ($logins > 0) {
 my @time_limits=();
 my @traf_limits= ();
 my $time_limit = 0; 
-my $traf_limit = 0;
+my $traf_limit = $conf{MAX_SESSION_TRAFFIC};
 
      if (($day_time_limit > 0) || ($day_traf_limit > 0)) {
         $sql = "SELECT $day_time_limit - sum(duration), $day_traf_limit - sum(sent + recv) / 1024 / 1024 FROM log
@@ -378,7 +378,6 @@ my $traf_limit = 0;
 
 
 #set traffic limit
-     $traf_limit = $conf{MAX_SESSION_TRAFFIC};
      #push (@traf_limits, $prepaid_traff) if ($prepaid_traff > 0);
 
      for(my $i=0; $i<=$#traf_limits; $i++) {
@@ -459,7 +458,7 @@ if ($NAS_INFO->{nt}{$nas_num} eq 'exppp') {
 
   #Local traffic
   if ($EX_PARAMS->{traf_limit_lo} > 0) {
-    $RAD_PAIRS{'Exppp-LocalTraffic-Limit'} = $EX_PARAMS->{traf_limit_lo};
+    $RAD_PAIRS{'Exppp-LocalTraffic-Limit'} = $EX_PARAMS->{traf_limit_lo} * 1024 * 1024 ;
    }
        
   #Local ip tables
@@ -577,14 +576,13 @@ sub ex_params {
 #  }
 
 
-
 if ($prepaids{0}+$prepaids{1}>0) {
   $sql = "SELECT sum(sent+recv) / 1024 / 1024, sum(sent2+recv2) / 1024 / 1024 FROM log 
      WHERE id='$uid' and DATE_FORMAT(login, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')
      GROUP BY DATE_FORMAT(login, '%Y-%m');";
 
-     $q = $db->prepare($sql) || die $db->errstr;
-     $q ->execute();
+  $q = $db->prepare($sql) || die $db->errstr;
+  $q ->execute();
 
   if ($q->rows == 0) {
     $trafic_limits{0}=$prepaids{0};
@@ -597,29 +595,30 @@ if ($prepaids{0}+$prepaids{1}>0) {
       $trafic_limits{0}=$prepaids{0} - $used[0];
      }
     elsif($in_prices{0} + $out_prices{0} > 0) {
-      $trafic_limits{0} = ($deposit / (($in_prices{0} + $out_prices{0}) / 2)) * 1024 * 1024;
+      $trafic_limits{0} = ($deposit / (($in_prices{0} + $out_prices{0}) / 2));
      }
 
     if ($used[1]  < $prepaids{1}) {
       $trafic_limits{1}=$prepaids{1} - $used[1];
      }
     elsif($in_prices{1} + $out_prices{1} > 0) {
-      $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2)) * 1024 * 1024;
+      $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2));
      }
    }
+   
  }
 else {
   if ($in_prices{0}+$out_prices{0} > 0) {
-    $trafic_limits{0} = ($deposit / (($in_prices{0} + $out_prices{0}) / 2)) * 1024 * 1024;
+    $trafic_limits{0} = ($deposit / (($in_prices{0} + $out_prices{0}) / 2));
    }
 
   if ($in_prices{1}+$out_prices{1} > 0) {
-    $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2)) * 1024 * 1024;
+    $trafic_limits{1} = ($deposit / (($in_prices{1} + $out_prices{1}) / 2));
    }
   else {
     $trafic_limits{1} = 0;
    }
- }
+}
 
 #Traffic limit
 
