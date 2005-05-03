@@ -31,6 +31,8 @@ $conf{netsfilespath}='nets';
 $conf{secretkey}="test12345678901234567890";
 $conf{passwd_length}=6;
 $conf{username_length}=15;
+my $domain = '';
+
 my @auth_types = ('SQL', 'System');
 
 require "../../language/$html->{language}.pl";
@@ -50,8 +52,33 @@ my %err_strs = (
   13 => PERMISIION_DENIED
 );
 
+my %permissions = ();
 
-my $domain = '';
+#**********************************************************
+#IF Mod rewrite enabled
+#
+#    <IfModule mod_rewrite.c>
+#        RewriteEngine on
+#        RewriteCond %{HTTP:Authorization} ^(.*)
+#        RewriteRule ^(.*) - [E=HTTP_CGI_AUTHORIZATION:%1]
+#        Options Indexes ExecCGI SymLinksIfOwnerMatch
+#    </IfModule>
+#
+#**********************************************************
+#print "content-type: test/html\n\n";
+if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
+  $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
+  my ($REMOTE_USER,$REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));  
+
+  if (check_permissions("$REMOTE_USER", "$REMOTE_PASSWD") == 1) {
+    print "WWW-Authenticate: Basic realm=\"Billing system\"\n";
+    print "Status: 401 Unauthorized\n\n";
+   }
+}
+else {
+  check_permissions('asm', 'test123');
+}
+
 if (defined($FORM{colors})) {
   my $cook_colors = (defined($FORM{default})) ?  '' : $FORM{colors};
   $html->setCookie('colors', '$cook_colors', "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
@@ -59,40 +86,23 @@ if (defined($FORM{colors})) {
 #$html->setCookie('language', '$FORM{language}', "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{language}));
 #$html->setCookie('opid', "$FORM{opid}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
 
-
-
-#use MIME::Base64;
-if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
-  $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
-  my ($REMOTE_USER,$REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));
-#if (!authorization($REMOTE_USER,$REMOTE_PASSWD)) {
-#    print "WWW-Authenticate: Basic realm=\"Billing system\"\n";
-#    print "Status: 401 Unauthorized\n\n";
-#    print "Ошибка авторизации!\n";
-#    exit;
-#    }
-#my ($aid,$admin)=authorization($REMOTE_USER,$REMOTE_PASSWD);
-}
-
-
-print $html->header();
-
-my %permissions = ();
 #asm test123
 #'mike', 'B6zgB8uh'
-if (check_permissions('asm', 'test123') == 1) {
-   exit;
- }
+if ($admin->{errno}) {
+  message('err', $_ERROR, "Access Deny"); #$err_strs{$admin->{errno}}");
+  exit;
+}
+print $html->header();
 
- my @sections = ($_USERS, 
-                 _FINANCES, 
-                 $_FEES, 
-                 $_REPORTS,
-                 $_SYSTEM,
-                 $_MODULES 
+my @sections = ($_USERS, 
+                _FINANCES, 
+                $_FEES, 
+                $_REPORTS,
+                $_SYSTEM,
+                $_MODULES 
                 );
 
- my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # Users
+my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # Users
                 [$_LIST, $_ADD, $_DEL, $_ALL],                # Payments
                 [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Fees
                 [$_ALL],                                                       # reports view
@@ -113,15 +123,12 @@ my %menu_items = ();
 my %functions = ();
 my $index = $FORM{index} || 0;
 my $root_index = 0;
-
-#my %main_menu = ();
 my ($main_menu, $sub_menu, $navigat_menu) = mk_navigator();
 
 
-
-
-
-print "<table border=0 width=100%><tr><td valign=top width=200 bgcolor=$_COLORS[2] rowspan=2><p>\n";
+print "<table border=0 width=100%>
+<tr bgcolor=$_COLORS[3]><td colspan=2>$_DATE: Admin: <a href='$SELF_URL?index='>$admin->{A_LOGIN}</a> / Online: </td></tr>
+<tr><td valign=top width=200 bgcolor=$_COLORS[2] rowspan=2><p>\n";
 print $html->menu(1, 'op', "", $main_menu, $sub_menu);
 sub_menu($index);
 
@@ -158,6 +165,35 @@ if ($begin_time > 0) {
 print '<hr>'. $conf{version};
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #**********************************************************
 #
 # check_permissions()
@@ -173,7 +209,6 @@ sub check_permissions {
                            );
 
   if ($admin->{errno}) {
-    message('err', $_ERROR, "$err_strs{$admin->{errno}}");
     return 1;
    }
 
@@ -2057,9 +2092,11 @@ $functions{74}=\&form_traf_tarifs;
 
 
 $menu_items{80}{5}='SQL';
-$op_names{80}=sql_browser;
-$menu_items{81}{80}='SQL Browser';
+$functions{80}=\&sql;
+$menu_items{81}{80}='SQL Commander';
+$functions{81}=\&sql_cmd;
 $menu_items{82}{80}='SQL Backup';
+$functions{82}=\&sql_backup;
 
 $menu_items{85}{5}=$_SHEDULE;
 $op_names{85}='shedule';
@@ -2078,7 +2115,7 @@ $menu_items{102}{6}=_MAIL;
 $menu_items{103}{6}=_VoIP;
 $menu_items{104}{6}=_DOCSIS;
 
-
+$menu_items{999}{6}="Test variables";
 $functions{999}=\&test;
 
 my $root_index = 0;
@@ -2108,7 +2145,6 @@ if (defined($FORM{op}) && $FORM{op} eq '') {
   }
 $FORM{op} = $op_names{$root_index};
 
-print "$index $root_index<br>";
 if ($root_index > 0) {
   my $ri = $root_index-1;
   if (! defined($permissions{$ri})) {
@@ -2691,9 +2727,42 @@ print $table->show();
 
 
 
+#**********************************************************
+# sql()
+#**********************************************************
+sub sql {
+
+print << "[END]";
+<a href='$SELF_URL?index=81'>SQL Commander</a> :: 
+<a href='$SELF_URL?index=82'>SQL Backup</a>
+[END]
 
 
+}
 
+
+#**********************************************************
+# sql_cmd()
+#**********************************************************
+sub sql_cmd {
+
+print << "[END]";
+[END]
+
+
+}
+
+
+#**********************************************************
+# sql_backup()
+#**********************************************************
+sub sql_backup {
+
+print << "[END]";
+[END]
+
+
+}
 
 
 
@@ -2701,7 +2770,6 @@ print $table->show();
 # test
 #**********************************************************
 sub test {
- 
   while(my($k, $v)=each %ENV) {
     print "$k - $v<br>\n";	
    }
@@ -2739,33 +2807,10 @@ sub form_period () {
 
 
 #**********************************************************
-# encode_base64 ($;$)
+# decode_base64()
 #**********************************************************
-sub encode_base64 ($;$){
-    my $res = "";
-    my $eol = $_[1];
-    $eol = "\n" unless defined $eol;
-    pos($_[0]) = 0;                          # ensure start at the beginning
-    while ($_[0] =~ /(.{1,45})/gs) {
-        $res .= substr(pack('u', $1), 1);
-        chop($res);
-    }
-    $res =~ tr| -_|AA-Za-z0-9+/|;               # # help emacs
-    # fix padding at the end
-    my $padding = (3 - length($_[0]) % 3) % 3;
-    $res =~ s/.{$padding}$/'=' x $padding/e if $padding;
-    # break encoded string into lines of no more than 76 characters each
-    if (length $eol) {
-        $res =~ s/(.{1,76})/$1$eol/g;
-    }
-    $res;
-}
-
-
-sub decode_base64 ($)
-{
+sub decode_base64 {
     local($^W) = 0; # unpack("u",...) gives bogus warning in 5.00[123]
-
     my $str = shift;
     my $res = "";
 
@@ -2776,7 +2821,8 @@ sub decode_base64 ($)
         my $len = chr(32 + length($1)*3/4); # compute length byte
         $res .= unpack("u", $len . $1 );    # uudecode
     }
-    $res;
+
+    return $res;
 }
 
 
@@ -2784,96 +2830,3 @@ sub decode_base64 ($)
 
 
 
-
-
-=comments
-use Abwconf;
-$db=$Abwconf::db;
-use Base; # Modul with base tools
-require 'messages.pl';
-$logfile = 'abills.log';
-$logdebug = 'abills.debug';
-$debug = 1;
-
-
-
-
-
-
-
-
-..........
-use Abwconf;
-$db=$Abwconf::db;
-use Base; # Modul with base tools
-require 'messages.pl';
-$logfile = 'abills.log';
-$logdebug = 'abills.debug';
-$debug = 1;
-
-# ------------ AUTHORIZATION from MySQL ------------
-use MIME::Base64;
-$ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
-($REMOTE_USER,$REMOTE_PASSWD) = split(/:/,decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));
-if (!authorization($REMOTE_USER,$REMOTE_PASSWD)) {
-    print "WWW-Authenticate: Basic realm=\"Billing system\"\n";
-    print "Status: 401 Unauthorized\n\n";
-    print "Ошибка авторизации!\n";
-    exit;
-    }
-my ($aid,$admin)=authorization($REMOTE_USER,$REMOTE_PASSWD);
-# -------------------------------------------------
-my $web_path='/billing/admin/';
-my $domain = $ENV{SERVER_NAME};
-$conf{passwd_length}=6;
-$conf{username_length}=15;
-print "Content-Type: text/html\n";
-
-....................
-
-
-# ------------ AUTHORIZATION from MySQL ------------
-
-my ($aid,$admin)=authorization($REMOTE_USER,$REMOTE_PASSWD);
-# -------------------------------------------------
-my $web_path='/billing/admin/';
-my $domain = $ENV{SERVER_NAME};
-$conf{passwd_length}=6;
-$conf{username_length}=15;
-print "Content-Type: text/html\n";
-
-
-# --- auhorization($REMOTE_USER,$REMOTE_PASSWD) -------------------
-sub authorization {
-    my $auth=$db->prepare("SELECT aid,login,permissions
-        FROM admins
-        WHERE login='$_[0]'
-        AND password=MD5('$_[1]')") || die $db->errstr;
-    $auth->execute;
-    if($auth->rows == 1){ return $auth->fetchrow; }
-    else { return 0; }
-    }
-# -----------------------------------------------
-
-
-   <Directory "/usr/abills/cgi-bin/admin">
-        RewriteEngine on
-        RewriteCond %{HTTP:Authorization} ^(.*)
-        RewriteRule ^(.*) - [E=HTTP_CGI_AUTHORIZATION:%1]
-        Options Indexes ExecCGI SymLinksIfOwnerMatch
-
-        AllowOverride none
-        DirectoryIndex index.cgi
-#       order deny,allow
-#       deny from all
-#       AuthType Basic
-#       AuthName "Billing system"
-#       AuthUserFile /usr/abills/cgi-bin/admin/admins
-#       Satisfy Any
-#       require valid-user
-    </Directory>
-
-
-
-
-=cut
