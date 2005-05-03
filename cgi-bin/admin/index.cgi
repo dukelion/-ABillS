@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 #use vars qw($begin_time);
 BEGIN {
@@ -32,6 +32,10 @@ $conf{secretkey}="test12345678901234567890";
 $conf{passwd_length}=6;
 $conf{username_length}=15;
 my $domain = '';
+# ?????????
+my $web_path = '';
+my $secure = '';
+#
 
 my @auth_types = ('SQL', 'System');
 
@@ -63,6 +67,7 @@ my %permissions = ();
 #        RewriteRule ^(.*) - [E=HTTP_CGI_AUTHORIZATION:%1]
 #        Options Indexes ExecCGI SymLinksIfOwnerMatch
 #    </IfModule>
+#    Options Indexes ExecCGI FollowSymLinks
 #
 #**********************************************************
 #print "content-type: test/html\n\n";
@@ -269,7 +274,6 @@ print << "[END]";
 #**********************************************************
 sub form_accounts {
   $name = $FORM{name};
-  $deposit = $FORM{deposit};
   $tax_number = $FORM{tax_number};
   $bank_account = $FORM{bank_account};
   $bank_name = $FORM{bank_name}; 
@@ -337,7 +341,7 @@ else {
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => [$_NAME, $_DEPOSIT, $_USERS, '-', '-'],
-                                   cols_align => [left, right, right, center, center],
+                                   cols_align => ['left', 'right', 'right', 'center', 'center'],
                                   } );
 
 my ($accounts_list, $total) = $customer->account->list( { %LIST_PARAMS } );
@@ -442,10 +446,7 @@ sub user_form {
   } 
 
 
-
 Abills::HTML->tpl_show(templates('user_form'), $user_info);
-
-print $tpl_form;
 }
 
 
@@ -705,7 +706,7 @@ my $list = $users->list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, '-', '-'],
-                                   cols_align => [left, left, right, right, left, center, center, center, center],
+                                   cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center', 'center', 'center'],
                                    qs => $pages_qs,
                                    pages => $users->{TOTAL}
                                   } );
@@ -719,7 +720,7 @@ foreach my $line (@$list) {
 print $table->show();
 
 $table = Abills::HTML->table( { width => '100%',
-                                cols_align => [right, right],
+                                cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
                                } );
 print $table->show();
@@ -747,7 +748,7 @@ if ($FORM{add}) {
 
  foreach my $line (@$tariffs_list) {
      $variant_out .= "<option value=$line->[0]";
-     $variant_out .= ' selected' if ($line->[0] == $user_info->{TARIF_PLAN});
+#     $variant_out .= ' selected' if ($line->[0] == $user_info->{TARIF_PLAN});
      $variant_out .=  ">$line->[0]:$line->[1]\n";
     }
   $variant_out .= "</select>";
@@ -761,9 +762,9 @@ print << "[END]";
 <input type=hidden name=services value=y>
 <table>
 <tr><td>$_SERVICES:</td><td>$variant_out</td></tr>
-<tr><td>$_DESCRIBE:</td><td><input type=text name=descr value="$descr"></td></tr>
+<tr><td>$_DESCRIBE:</td><td><input type=text name=S_DESCRIBE value="%S_DESCRIBE%"></td></tr>
 </table>
-<input type=submit name=$action[0] value='$action[1]'>
+<input type=submit name=%ACTION% value='%LNG_ACTION%'>
 </form>
 [END]
 
@@ -771,7 +772,7 @@ print << "[END]";
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => [$_SERVISE, $_DATE, $_DESCRIBE, '-', '-'],
-                                   cols_align => [left, right, left, center, center],
+                                   cols_align => ['left', 'right', 'left', 'center', 'center'],
                                    qs => $pages_qs,
                                    pages => $users->{TOTAL}
                                   } );
@@ -832,7 +833,7 @@ elsif($attr->{TP}) {
 
   if ($FORM{change}) {
     $tarif_plan->nas_add(\@allow);
-    if ($user->{errno}) {
+    if ($tarif_plan->{errno}) {
       message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
      }
     else {
@@ -861,7 +862,7 @@ $op";
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ["$_ALLOW", "ID", "$_NAME", "IP", "$_TYPE", "$_AUTH"],
-                                   cols_align => [center, left, left, right, left, left]
+                                   cols_align => ['center', 'left', 'left', 'right', 'left', 'left']
                                   } );
 
 my $list = $nas->list();
@@ -1030,7 +1031,7 @@ my $list = $admin->action_list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['#', 'UID',  $_DATE,  $_CHANGE,  $_ADMIN,   'IP', '-'],
-                                   cols_align => [right, left, right, left, left, right, center],
+                                   cols_align => ['right', 'left', 'right', 'left', 'left', 'right', 'center'],
                                    qs => $pages_qs,
                                    pages => $admin->{TOTAL}
                                    
@@ -1043,7 +1044,7 @@ foreach my $line (@$list) {
 
 print $table->show();
 $table = Abills::HTML->table( { width => '100%',
-                                cols_align => [right, right],
+                                cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$admin->{TOTAL}</b>" ] ]
                                } );
 print $table->show();
@@ -1331,7 +1332,7 @@ if ($tarif_plan->{errno}) {
 my $i=0;
 foreach $line (@DAY_NAMES) {
   $tarif_plan->{SEL_DAYS} .= "<option value=$i";
-  $tarif_plan->{SEL_DAYS} .= " selected" if ($day == $i);
+  $tarif_plan->{SEL_DAYS} .= " selected" if ($FORM{day} == $i);
   $tarif_plan->{SEL_DAYS} .= ">$line\n";
   $i++;
 }
@@ -1524,7 +1525,7 @@ my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['#', $_NAME,  $_BEGIN,  $_END, $_HOUR_TARIF, $_TRAFIC_TARIFS, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, $_AGE,
                                      '-', '-', '-', '-'],
-                                   cols_align => [right, left, right, right, right, right, right, right, right, right, center, center, center, center],
+                                   cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
                                   } );
                                   
                                   
@@ -1547,7 +1548,7 @@ print $table->show();
 
 
 $table = Abills::HTML->table( { width => '100%',
-                                cols_align => [right, right],
+                                cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
                                } );
 print $table->show();
@@ -1650,7 +1651,7 @@ Abills::HTML->tpl_show(templates('form_admin'), $admin_form);
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['ID', $_NAME, $_FIO, $_CREATE, $_GROUPS, '-', '-', '-', '-', '-', '-'],
-                                   cols_align => [right, left, left, right, left, center, center, center, center, center, center],
+                                   cols_align => ['right', 'left', 'left', 'right', 'left', 'center', 'center', 'center', 'center', 'center', 'center'],
                                   } );
 
 my $list = $admin_form->list();
@@ -1663,7 +1664,7 @@ foreach my $line (@$list) {
 print $table->show();
 
 $table = Abills::HTML->table( { width => '100%',
-                                cols_align => [right, right],
+                                cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$admin_form->{TOTAL}</b>" ] ]
                                } );
 print $table->show();
@@ -1715,7 +1716,7 @@ sub admin_permissions {
  $section_index = 0;
  foreach my $s (@sections) {
    print "<tr bgcolor=$_COLORS[0]><td colspan=3>$section_index: <b>$s</b></td></tr>\n";
-   my $actions_list = @actions[$section_index];
+   my $actions_list = $actions[$section_index];
    my $action_index = 0;
    foreach my $action (@$actions_list) {
       my $checked = (defined($permits{$section_index}{$action_index})) ? 'checked' : '';
@@ -1844,7 +1845,7 @@ Abills::HTML->tpl_show(templates('form_nas'), $nas);
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", '-', '-', '-'],
-                                   cols_align => [center, left, left, right, left, left]
+                                   cols_align => ['center', 'left', 'left', 'right', 'left', 'left']
                                   } );
 
 my $list = $nas->list({ %LIST_PARAMS });
@@ -1860,7 +1861,7 @@ foreach my $line (@$list) {
 print $table->show();
 
 $table = Abills::HTML->table( { width => '100%',
-                                cols_align => [right, right],
+                                cols_align => ['right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$nas->{TOTAL}</b>" ] ]
                                } );
 print $table->show();
@@ -2396,7 +2397,7 @@ my $list = $payments->list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
-                                   cols_align => [right, left, right, right, left, left, right, right, center],
+                                   cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'center'],
                                    qs => $pages_qs,
                                    pages => $payments->{TOTAL}
                                   } );
@@ -2411,7 +2412,7 @@ foreach my $line (@$list) {
 print $table->show();
 
 $table = Abills::HTML->table( { width => '100%',
-                                cols_align => [right, right, right, right],
+                                cols_align => ['right', 'right', 'right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$payments->{TOTAL}</b>", "$_SUM", "<b>$payments->{SUM}</b>" ] ],
                                 rowcolor => $_COLORS[2]
                                } );
@@ -2487,7 +2488,7 @@ print << "[END]";
 
 my $table = Abills::HTML->table( { width => '640',
                                    title => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", "$_CHANGED", '-', '-'],
-                                   cols_align => [left, left, right, center, center],
+                                   cols_align => ['left', 'left', 'right', 'center', 'center'],
                                   } );
 
 my ($list, $total) = $finance->exchange_list( {%LIST_PARAMS} );
@@ -2520,8 +2521,8 @@ if (defined($attr->{USER})) {
       use Shedule;
       $FORM{date_m}++;
       my $shedule = Shedule->new($db, $admin); 
-      $shedule->add( { DESCRIBE => $DORM{DESCR}, 
-      	               D => $FROM{date_d},
+      $shedule->add( { DESCRIBE => $FORM{DESCR}, 
+      	               D => $FORM{date_d},
       	               M => $FORM{date_m},
       	               Y => $FORM{date_y},
                        UID => $user->{UID},
@@ -2562,7 +2563,7 @@ print << "[END]";
 <input type=hidden name=uid value='$user->{UID}'>
 <input type=hidden name=op value='fees'>
 <table>
-<tr><td>$_SUM:</td><td><input type=text name=sum value='$sum'></td></tr>
+<tr><td>$_SUM:</td><td><input type=text name=sum></td></tr>
 <tr><td>$_DESCRIBE:</td><td><input type=text name=descr></td></tr>
 $period_form
 </table>
@@ -2586,7 +2587,7 @@ my ($list) = $fees->list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
-                                   cols_align => [right, left, right, right, left, left, right, right, center],
+                                   cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'center'],
                                    qs => $pages_qs,
                                    pages => $fees->{TOTAL}
                                   } );
@@ -2599,8 +2600,8 @@ foreach my $line (@$list) {
 
 print $table->show();
 
-my $table = Abills::HTML->table( { width => '100%',
-                                   cols_align => [right, right, right, right],
+$table = Abills::HTML->table( { width => '100%',
+                                   cols_align => ['right', 'right', 'right', 'right'],
                                    rows => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM:", "<b>$fees->{SUM}</b>" ] ],
                                    rowcolor => $_COLORS[2]
                                   } );
@@ -2631,6 +2632,9 @@ my %SEARCH_TYPES = ('users' => $_USERS,
 my $type_select = "<select type=type>\n";
 $type_select = "</select>\n";
 
+my $from_date = date_fld('from_');
+my $to_date = date_fld('to_');
+
 my $tpl_form = qq{
 <form action=$SELF_URL>
 <table>
@@ -2639,7 +2643,7 @@ my $tpl_form = qq{
 <tr><td>$_DATE:</td><td>
 <table width=100%>
 <tr><td>$_FROM: </td><td>$from_date</td></tr>
-<tr><td>$_TO</td><td>$to_date</td></tr>
+<tr><td>$_TO:</td><td>$to_date</td></tr>
 </table>
 </td></tr>
 </table>
@@ -2674,7 +2678,7 @@ my $list = $shedule->list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ["$_HOURS", "$_DAY", "$_MONTH", "$_YEAR", "$_COUNT", "$_USER", "$_VALUE", "$_ADMINS", "$_CREATED", "-"],
-                                   cols_align => [right, right, right, right, right, left, right, right, right, center],
+                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'left', 'right', 'right', 'right', 'center'],
                                    qs => $pages_qs,
                                    pages => $shedule->{TOTAL}
                                   } );
@@ -2688,7 +2692,7 @@ foreach my $line (@$list) {
 print $table->show();
 
 $table = Abills::HTML->table( { width => '100%',
-                                cols_align => [right, right, right, right],
+                                cols_align => ['right', 'right', 'right', 'right'],
                                 rows => [ [ "$_TOTAL:", "<b>$shedule->{TOTAL}</b>" ] ]
                                } );
 print $table->show();
