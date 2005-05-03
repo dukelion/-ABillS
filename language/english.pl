@@ -258,3 +258,4 @@ $_COMPANY='Company';
 $_ADD_USER='Add user';
 $_CREDIT_TRESSHOLD='Credit Tresshold';
 $_SERVICES='Services';
+$_FUNCTIONS_LIST='Functions list';

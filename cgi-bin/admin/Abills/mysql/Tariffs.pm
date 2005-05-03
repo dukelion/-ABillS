@@ -22,28 +22,27 @@ use main;
 my $db;
 my %DATA;
 
+
 my %FIELDS = ( VID => 'vrnt', 
                NAME => 'name',  
                BEGIN => 'ut',
                END  => 'dt',  
                TIME_TARIF  => 'hourp',
                DAY_FEE => 'df',
-                 MONTH_FEE => 'abon',
-                 SIMULTANEOUSLY => 'logins',
-                 AGE => 'age',
-                 DAY_TIME_LIMIT => 'day_time_limit',
-                 WEEK_TIME_LIMIT => 'week_time_limit',
-                 MONTH_TIME_LIMIT => 'month_time_limit',
-                 DAY_TRAF_LIMIT => 'day_traf_limit',  
-                 WEEK_TRAF_LIMIT => 'week_traf_limit',
-                 MONTH_TRAF_LIMIT => 'month_traf_limit',
-                 ACTIV_PRICE => 'activate_price',
-                 CHANGE_PRICE => 'change_price', 
-                 CREDIT_TRESSHOLD => 'credit_tresshold',
-                 ALERT => 'uplimit'
+               MONTH_FEE => 'abon',
+               SIMULTANEOUSLY => 'logins',
+               AGE => 'age',
+               DAY_TIME_LIMIT => 'day_time_limit',
+               WEEK_TIME_LIMIT => 'week_time_limit',
+               MONTH_TIME_LIMIT => 'month_time_limit',
+               DAY_TRAF_LIMIT => 'day_traf_limit',  
+               WEEK_TRAF_LIMIT => 'week_traf_limit',
+               MONTH_TRAF_LIMIT => 'month_traf_limit',
+               ACTIV_PRICE => 'activate_price',
+               CHANGE_PRICE => 'change_price', 
+               CREDIT_TRESSHOLD => 'credit_tresshold',
+               ALERT => 'uplimit'
              );
-
-
 
 #**********************************************************
 # Init 
@@ -66,7 +65,7 @@ sub new {
 sub ti_del {
 	my $self = shift;
 	my ($id) = @_;
-	$self->query($db, "DELETE FROM intervals WHERE id='$id';");
+	$self->query($db, "DELETE FROM intervals WHERE id='$id';", 'do');
 	return $self;
 }
 
@@ -79,7 +78,7 @@ sub ti_add {
 	my $self = shift;
 	my ($attr) = @_;
 	$self->query($db, "INSERT INTO intervals (vid, day, begin, end, tarif)
-     values ('$self->{VID}', '$attr->{TI_DAY}', '$attr->{TI_BEGIN}', '$attr->{TI_END}', '$attr->{TI_TARIF}');");
+     values ('$self->{VID}', '$attr->{TI_DAY}', '$attr->{TI_BEGIN}', '$attr->{TI_END}', '$attr->{TI_TARIF}');", 'do');
 	return $self;
 }
 
@@ -95,6 +94,27 @@ sub ti_list {
     FROM intervals WHERE vid='$self->{VID}'");
 
 	return $self->{list};
+}
+
+#**********************************************************
+# tt_defaults
+#**********************************************************
+sub  ti_defaults {
+	my $self = shift;
+	
+	my %TI_DEFAULTS = (
+            TI_DAY => 0,
+            TI_BEGIN => '00:00:00',
+            TI_END => '24:00:00',
+    	      TI_TARIF => 0
+    );
+	
+  while(my($k, $v) = each %TI_DEFAULTS) {
+    $self->{$k}=$v;
+   }	
+	
+  #$self = \%DATA;
+	return $self;
 }
 
 
@@ -234,7 +254,7 @@ sub info {
      return $self;
    }
 
-  my $b = $self->{list}->[0];
+  my $ar = $self->{list}->[0];
   
   ($self->{VID}, 
    $self->{NAME}, 
@@ -255,7 +275,7 @@ sub info {
    $self->{CHANGE_PRICE}, 
    $self->{CREDIT_TRESSHOLD},
    $self->{ALERT}
-  ) = @$b;
+  ) = @$ar;
 
 
   return $self;
@@ -304,7 +324,7 @@ sub nas_add {
  $self->nas_del();
  foreach my $line (@$nas) {
    $self->query($db, "INSERT INTO vid_nas (nas_id, vid)
-        VALUES ('$line', '$self->{VID}');");	
+        VALUES ('$line', '$self->{VID}');", 'do');	
   }
   #$admin->action_add($uid, "NAS ". join(',', @$nas) );
   return $self;
@@ -320,12 +340,70 @@ sub nas_del {
   return $self;
 }
 
+
+#**********************************************************
+# tt_defaults
+#**********************************************************
+sub  tt_defaults {
+	my $self = shift;
+	
+	my %TT_DEFAULTS = (
+      TT_DESCRIBE_0 => '',
+      TT_PRICE_IN_0 => '0.00000',
+      TT_PRICE_OUT_0 => '0.00000',
+      TT_NETS_0 => '0.0.0.0/0',
+      TT_PREPAID_0 => 0,
+      TT_SPEED_0 => 0,
+
+      TT_DESCRIBE_1 => '',
+      TT_PRICE_IN_1 => '0.00000',
+      TT_PRICE_OUT_1 => '0.00000',
+      TT_PRICE_NETS_1 => '',
+      TT_PREPAID_1 => 0,
+      TT_SPEED_1 => 0,
+
+      TT_DESCRIBE_2 => '',
+      TT_PRICE_IN_2 => 0,
+      TT_PRICE_OUT_2 => 0,
+      TT_NETS_2 => '',
+      TT_PREPAID_2 => 0,
+      TT_SPEED_2 => 0
+     );
+	
+  while(my($k, $v) = each %TT_DEFAULTS) {
+    $self->{$k}=$v;
+   }	
+	
+  #$self = \%DATA;
+	return $self;
+}
+
+
+
 #**********************************************************
 # tt_info
 #**********************************************************
-sub  tt_info {
+sub  tt_list {
 	my $self = shift;
 	
+	
+	$self->query($db, "SELECT id, in_price, out_price, descr, prepaid, nets, speed
+  FROM trafic_tarifs WHERE vid='$self->{VID}';");
+
+  my $a_ref = $self->{list};
+
+
+  foreach my $row (@$a_ref) {
+      my ($id, $tarif_in, $tarif_out, $describe, $prepaid, $nets, $speed) = @$row;
+      $self->{'TT_DESCRIBE_'. $id} = $describe;
+      $self->{'TT_PRICE_IN_' . $id} = $tarif_in;
+      $self->{'TT_PRICE_OUT_' . $id} = $tarif_out;
+      $self->{'TT_NETS_'.  $id} = $nets;
+      $self->{'TT_PREPAID_' .$id} = $prepaid;
+      $self->{'TT_SPEED_' .$id} = $speed;
+   }
+	
+	return $self;
 }
 
 
@@ -334,10 +412,57 @@ sub  tt_info {
 #**********************************************************
 sub  tt_change {
   my $self = shift;
-	
+	my ($attr) = @_; 
+  
+  %DATA = $self->get_data($attr, {default => $self->tt_defaults() }); 
+  my $file_path = (defined($attr->{EX_FILE_PATH})) ? $attr->{EX_FILE_PATH} : '';
+
+
+my $body = "";
+my @n = ();
+$/ = chr(0x0d);
+
+my $i=0;
+for($i=0; $i<=2; $i++) {
+  $self->query($db, "REPLACE trafic_tarifs SET 
+    id='$i',
+    descr='". $DATA{'TT_DESCRIBE_' . $i } ."', 
+    in_price='". $DATA{'TT_PRICE_IN_'. $i}  ."',
+    out_price='". $DATA{'TT_PRICE_OUT_'. $i} ."',
+    nets='". $DATA{'TT_NETS_'. $i} ."',
+    prepaid='". $DATA{'TT_PREPAID_'. $i} ."',
+    speed='". $DATA{'TT_SPEED_'. $i} ."',
+    vid='$self->{VID}';", 'do');
+
+
+  if ($DATA{'TT_NETS_'. $i} ne '') {
+     @n = split(/\n|;/, $DATA{'TT_NETS_'. $i});
+     foreach my $line (@n) {
+       chomp($line);
+       next if ($line eq "");
+       $body .= "$line $i\n";
+     }
+   }
+
 }
 
+ $self->create_tt_file("$file_path", "$self->{VID}.nets", "$body");
+		
+}
 
-
+#**********************************************************
+# create_tt_file()
+#**********************************************************
+sub create_tt_file {
+ my ($self, $path, $file_name, $body) = @_;
+ 
+ print "<pre>$body</pre>";
+ 
+ open(FILE, ">$path/$file_name") || die "Can't create file '$path/$file_name' $!\n";
+   print FILE "$body";
+ close(FILE);
+ 
+ return $self;
+}
 
 1

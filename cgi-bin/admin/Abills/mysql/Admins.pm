@@ -16,7 +16,10 @@ $VERSION = 2.00;
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
 
+use main;
+@ISA  = ("main");
 
+my %DATA;
 my $db;
 my $aid;
 my $IP;
@@ -42,14 +45,13 @@ sub get_permissions {
   my $self = shift;
   my %permissions = ();
 
-  my $sql = "SELECT section, actions FROM admin_permits WHERE aid='$self->{AID}';";
-  my $q  = $db->prepare($sql);
-  $q->execute();
+$self->query($db, "SELECT section, actions FROM admin_permits WHERE aid='$self->{AID}';");
+my $a_ref = $self->{list};
 
-  while(my($section, $action)=$q->fetchrow()) {
-    $permissions{$section}{$action} = 'y';
-   }
-
+foreach my $line (@$a_ref) {
+  my($section, $action)=@$line;
+  $permissions{$section}{$action} = 'y';
+ }
   $self->{permissions} = \%permissions;
   return $self->{permissions};
 }
@@ -63,20 +65,27 @@ sub set_permissions {
   my $self = shift;
   my ($permissions) = @_;
   
-  my $sql = "DELETE FROM admin_permits WHERE aid='$self->{AID}';";
-  my $q = $db->do($sql);
-
+  $self->query($db, "DELETE FROM admin_permits WHERE aid='$self->{AID}';", 'do');
   while(my($section, $actions_hash)=each %$permissions) {
     while(my($action, $y)=each %$actions_hash) {
-      my $sql = "INSERT INTO admin_permits (aid, section, actions) VALUES ('$self->{AID}', '$section', '$action');";
-      my $q = $db->do($sql);
-      #print $sql . "<br>\n";
+      $self->query($db, "INSERT INTO admin_permits (aid, section, actions) VALUES ('$self->{AID}', '$section', '$action');", 'do');
      }
    }
-
   return $self->{permissions};
 }
 
+
+#**********************************************************
+# Administrator information
+# info()
+#**********************************************************
+sub auth {
+  my $class = shift;
+  my ($attr) = @_;
+  my $self = { };
+
+  return $self;
+}
 
 
 #**********************************************************
@@ -84,44 +93,43 @@ sub set_permissions {
 # info()
 #**********************************************************
 sub info {
-  my $class = shift;
+  my ($self) = shift;
   ($aid) = shift;
   my ($attr) = @_;
-  my $self = { };
-  bless($self, $class);
 
   my $WHERE;
+  my $PASSWORD = '0'; 
   if (defined($attr->{LOGIN}) && defined($attr->{PASSWORD})) {
     my $SECRETKEY = (defined($attr->{SECRETKEY}))? $attr->{SECRETKEY} : '';
-    $WHERE = "WHERE id='$attr->{LOGIN}' and DECODE(password, '$SECRETKEY')='$attr->{PASSWORD}'";
+    $WHERE = "WHERE id='$attr->{LOGIN}'";
+    $PASSWORD = "if(DECODE(password, '$SECRETKEY')='$attr->{PASSWORD}', 0, 1)";
    }
   else {
     $WHERE = "WHERE aid='$aid'";
    }
 
   $IP = (defined($attr->{IP}))? $attr->{IP} : '0.0.0.0';
+  $self->query($db, "SELECT aid, id, name, regdate, phone, disable, $PASSWORD FROM admins $WHERE;");
 
-  my $sql = "SELECT aid, id, name, regdate, disable FROM admins $WHERE;";
-  my $q = $db->prepare($sql) || die $db->errstr;
-  $q ->execute(); 
-
-  if ($aid == 0 && $q->rows < 1) {
-     $self->{errno} = 4;
-     $self->{errstr} = 'ERROR_WRONG_PASSWORD';
-     return $self;
-   }
-  elsif ($q->rows < 1) {
+  if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
      $self->{errstr} = 'Not exist';
      return $self;
    }
 
-  ($self->{AID},
-   $self->{NAME},
-   $self->{FIO},
-   $self->{REGISTRATION},
-   $self->{DISABLE} )= $q->fetchrow();
+  my $a_ref = $self->{list}->[0];
+  if ($a_ref->[6] == 1) {
+     $self->{errno} = 4;
+     $self->{errstr} = 'ERROR_WRONG_PASSWORD';
+     return $self;
+   }
 
+  ($self->{AID},
+   $self->{A_LOGIN},
+   $self->{A_FIO},
+   $self->{A_REGISTRATION},
+   $self->{A_PHONE},
+   $self->{DISABLE} )= @$a_ref;
 
   $self->{SESSION_IP}  = $IP;
 
@@ -133,19 +141,55 @@ sub info {
 #**********************************************************
 sub list {
  my $self = shift;
+ $self->query($db, "select aid, id, name, regdate, disable, gid FROM admins;");
+ return $self->{list};
+}
 
- my $q = $db->prepare("select aid, id, name, regdate, disable, gid FROM admins;") || die $db->errstr;
- $q ->execute(); 
+#**********************************************************
+# list()
+#**********************************************************
+sub change {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ %DATA = $self->get_data($attr); 
+ 
+ my $CHANGES_QUERY = "";
+ my $CHANGES_LOG = "Tarif plan:";
 
- $self->{TOTAL} = $q->rows;
+ my %FIELDS = (AID =>   'aid',
+           A_LOGIN => 'id',
+           A_FIO => 'name',
+           A_REGISTRATION => 'regdate',
+           A_PHONE => 'phone',
+           DISABLE => 'disable'
+   );
+ my $OLD = $self->info($self->{AID});
 
- my @list = ();
- while(my @row = $q->fetchrow()) {
-   push @list, \@row;
- }
+ while(my($k, $v)=each(%DATA)) {
+    if ($OLD->{$k} ne $DATA{$k}){
+      if ($FIELDS{$k}) {
+         $CHANGES_LOG .= "$k $OLD->{$k}->$DATA{$k};";
+         $CHANGES_QUERY .= "$FIELDS{$k}='$DATA{$k}',";
+       }
+     }
+  }
 
-  $self->{list} = \@list;
-  return $self->{list};
+
+if ($CHANGES_QUERY eq '') {
+  return $self->{result};	
+}
+
+# print $CHANGES_LOG;
+  chop($CHANGES_QUERY);
+  $self->query($db, "UPDATE admins SET $CHANGES_QUERY
+    WHERE aid='$self->{AID}'", 'do');
+#  $admin->action_add(0, "$CHANGES_LOG");
+
+  $self->info($self->{AID});
+  
+  
+	return $self;
 }
 
 
@@ -154,9 +198,23 @@ sub list {
 #**********************************************************
 sub add {
   my $self = shift;
-  $self->{errstr}='test';
+  my ($attr) = @_;
+  %DATA = $self->get_data($attr); 
+  $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable) 
+   VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}');", 'do');
 
-  return $self->{result};
+  return $self;
+}
+
+
+#**********************************************************
+# add()
+#**********************************************************
+sub del {
+  my $self = shift;
+  my ($id) = @_;
+  $self->query($db, "DELETE FROM admins WHERE aid='$id';", 'do');
+  return $self;
 }
 
 
@@ -166,17 +224,7 @@ sub add {
 sub action_add {
   my $self = shift;
   my ($uid, $actions) = @_;
- 
-  my $sql = "INSERT INTO admin_actions (aid, ip, datetime, actions, uid) VALUES ('$aid', INET_ATON('$IP'), now(), '$actions', '$uid')";
-#  print $sql; 
-  my $q = $db->do($sql);
-
-  if($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
-     return $self;
-   }
-
+  $self->query($db, "INSERT INTO admin_actions (aid, ip, datetime, actions, uid) VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$uid')", 'do');
   return $self;
 }
 
@@ -186,15 +234,7 @@ sub action_add {
 sub action_del {
   my $self = shift;
   my ($action_id) = @_;
- 
-  my $sql = "DELETE FROM admin_actions WHERE id='$action_id';";
-  my $q = $db->do($sql);
-  if($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
-     return $self;
-   }
-
+  $self->query($db, "DELETE FROM admin_actions WHERE id='$action_id';", 'do');
 }
 
 
@@ -212,7 +252,6 @@ sub action_list {
 
   my $WHERE = '';
   my @list = ();
-
   # UID
   if ($attr->{UID}) {
     $WHERE .= ($WHERE ne '') ?  " and aa.uid='$attr->{UID}' " : "WHERE aa.uid='$attr->{UID}' ";
@@ -222,43 +261,24 @@ sub action_list {
     $WHERE .= ($WHERE ne '') ?  " and aa.aid='$attr->{AID}' " : "WHERE aa.aid='$attr->{AID}' ";
    }
 
- 
-  my $sql = "SELECT count(*) FROM admin_actions aa $WHERE;";
-  my $q = $db->prepare($sql);
-  $q ->execute(); 
-
-  ($self->{TOTAL}) = $q->fetchrow();
-
-#  print $sql;
-  if ($self->{TOTAL} < 1) {
-    $self->{list} = \@list;
-    return $self->{list};
-   }
-
-  $q = $db->prepare("select aa.id, u.id, aa.datetime, aa.actions, a.id, INET_NTOA(aa.ip), aa.uid, aa.aid, aa.id
+  $self->query($db, "select aa.id, u.id, aa.datetime, aa.actions, a.id, INET_NTOA(aa.ip), aa.uid, aa.aid, aa.id
       FROM admin_actions aa
       LEFT JOIN admins a ON (aa.aid=a.aid)
       LEFT JOIN users u ON (aa.uid=u.uid)
        $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
-  $q ->execute(); 
- 
- 
-  if($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
-     return $self;
-   }
-
-  while(my @row = $q->fetchrow()) {
-    push @list, \@row;
+  
+  
+  my $list = $self->{list};
+  
+  if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT count(*) FROM admin_actions aa $WHERE;");
+    my $a_ref = $self->{list}->[0];
+    ($self->{TOTAL}) = @$a_ref;
    }
 
 
-  $self->{list} = \@list;
-  return $self->{list};
+  return $list;
 }
-
-
 
 #**********************************************************
 # password()
@@ -268,11 +288,9 @@ sub password {
   my ($password, $attr)=@_;
 
   my $secretkey = (defined($attr->{secretkey}))? $attr->{secretkey} : '';
-  my $sql = "UPDATE admins SET password=ENCODE('$password', '$secretkey') WHERE aid='$aid';";
-  my $q = $db->do($sql); 
-  #print $sql;
-  #$self->{errno}='test';
-  return $self->{result};
+  $self->query($db, "UPDATE admins SET password=ENCODE('$password', '$secretkey') WHERE aid='$aid';", 'do');
+
+  return $self;
 }
 
 1

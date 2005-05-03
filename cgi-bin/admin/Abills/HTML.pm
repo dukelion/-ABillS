@@ -441,9 +441,11 @@ sub addrow {
 #*******************************************************************
 sub table_title  {
   my $self = shift;
-  my ($sort, $desc, $pg, $op, $caption, $qs)=@_;
-  my $img='';
+  my ($sort, $desc, $pg, $get_op, $caption, $qs)=@_;
   my ($op);
+  my $img='';
+
+#  print "$sort, $desc, $pg, $op, $caption, $qs";
 
   $self->{table_title} = "<tr bgcolor=$_COLORS[0]>";
   my $i=1;
@@ -466,7 +468,7 @@ sub table_title  {
          	  $op="index=$FORM{index}";
          	}
          else {
-         	  $op="op=$op&";
+         	  $op="op=$get_op";
           }
 
          $self->{table_title} .= "<a href='$SELF_URL?$op$qs&pg=$pg&sort=$i&desc=$desc'>".

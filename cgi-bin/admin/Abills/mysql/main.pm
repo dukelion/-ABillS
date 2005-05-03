@@ -27,7 +27,7 @@ sub query {
 	my $self = shift;
   my ($db, $query, $type, $attr)	= @_;
 
-print "<p>$query</p>\n";
+  print "<p>$query</p>\n" if ($self->{debug});
 
   if (defined($attr->{test})) {
   	 return $self;

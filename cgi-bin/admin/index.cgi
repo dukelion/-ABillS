@@ -16,24 +16,22 @@ BEGIN {
 
 }
 
+#use FindBin '$Bin2';
 use Abills::SQL;
 use Abills::HTML;
 use Nas;
 use Admins;
 
-
-
-
 my $html = Abills::HTML->new();
 my $sql = Abills::SQL->connect('mysql', 'localhost', 'abills', 'asm', 'test1r');
 my $db = $sql->{db};
-my $admins = Admins->new($db);
+my $admin = Admins->new($db);
+
+$conf{netsfilespath}='nets';
 $conf{secretkey}="test12345678901234567890";
 $conf{passwd_length}=6;
 $conf{username_length}=15;
-
-
-
+my @auth_types = ('SQL', 'System');
 
 require "../../language/$html->{language}.pl";
 my %err_strs = (
@@ -55,16 +53,33 @@ my %err_strs = (
 
 my $domain = '';
 if (defined($FORM{colors})) {
- 
   my $cook_colors = (defined($FORM{default})) ?  '' : $FORM{colors};
   $html->setCookie('colors', '$cook_colors', "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
  }
 #$html->setCookie('language', '$FORM{language}', "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{language}));
 #$html->setCookie('opid', "$FORM{opid}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
 
+
+
+#use MIME::Base64;
+if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
+  $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
+  my ($REMOTE_USER,$REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));
+#if (!authorization($REMOTE_USER,$REMOTE_PASSWD)) {
+#    print "WWW-Authenticate: Basic realm=\"Billing system\"\n";
+#    print "Status: 401 Unauthorized\n\n";
+#    print "Ошибка авторизации!\n";
+#    exit;
+#    }
+#my ($aid,$admin)=authorization($REMOTE_USER,$REMOTE_PASSWD);
+}
+
+
 print $html->header();
 
 my %permissions = ();
+#asm test123
+#'mike', 'B6zgB8uh'
 if (check_permissions('asm', 'test123') == 1) {
    exit;
  }
@@ -150,7 +165,7 @@ print '<hr>'. $conf{version};
 sub check_permissions {
   my ($login, $password)=@_;
 
-  $admin = Admins->info(0, {LOGIN => "$login", 
+  $admin->info(0, {LOGIN => "$login", 
                             PASSWORD => "$password",
                             SECRETKEY => $conf{secretkey},
                             IP => $SESSION_IP
@@ -749,22 +764,21 @@ if ($attr->{USER}) {
 
   if ($FORM{change}) {
     $user->nas_add(\@allow);
-    if ($user->{errno}) {
-      message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
-     }
-    else {
+    if (! $user->{errno}) {
       message('info', $_INFO, "$_ALLOW $_NAS: $FORM{ids}");
      }
    }
   elsif($FORM{default}) {
     $user->nas_del();
-    if ($user->{errno}) {
-      message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
-     }
-    else {
+    if (! $user->{errno}) {
       message('info', $_NAS, "$_CHANGED");
      }
    }
+
+  if ($user->{errno}) {
+    message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
+   }
+
 
   my ($nas_servers, $total) = $user->nas_list();
   foreach my $nas_id (@$nas_servers) {
@@ -795,9 +809,9 @@ elsif($attr->{TP}) {
   foreach my $nas_id (@$list) {
      $allow_nas{$nas_id->[0]}='y';
    }
+
   $op = "<input type=hidden name=vid  value='$tarif_plan->{VID}'>
   <input type=hidden name=index  value='$index'>\n";
-
 }
 elsif ($FORM{vid}) {
   $FORM{chg}=$FORM{vid};
@@ -815,8 +829,7 @@ my $table = Abills::HTML->table( { width => '100%',
                                    cols_align => [center, left, left, right, left, left]
                                   } );
 
-my ($list, $total) = $nas->list();
-my @auth_types = ('SQL', 'System');
+my $list = $nas->list();
 
 foreach my $line (@$list) {
   my $checked = (defined($allow_nas{$line->[0]}) || $allow_nas{all}) ? ' checked ' :  '';    
@@ -965,7 +978,7 @@ elsif ($FORM{aid}) {
 
 
 if ($FORM{del} && $FORM{is_js_confirmed}) {
-	$admins->action_del( $FORM{del} );
+	$admin->action_del( $FORM{del} );
   if ($admins->{errno}) {
     message('err', $_ERROR, "[$admins->{errno}] $err_strs{$admins->{errno}}");	
    }
@@ -978,13 +991,13 @@ if ($FORM{del} && $FORM{is_js_confirmed}) {
 
 #u.id, aa.datetime, aa.actions, a.name, INET_NTOA(aa.ip),  aa.uid, aa.aid, aa.id
  	
-my $list = $admins->action_list( { %LIST_PARAMS } );
+my $list = $admin->action_list( { %LIST_PARAMS } );
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['#', 'UID',  $_DATE,  $_CHANGE,  $_ADMIN,   'IP', '-'],
                                    cols_align => [right, left, right, left, left, right, center],
                                    qs => $pages_qs,
-                                   pages => $admins->{TOTAL}
+                                   pages => $admin->{TOTAL}
                                    
                                   } );
 foreach my $line (@$list) {
@@ -996,7 +1009,7 @@ foreach my $line (@$list) {
 print $table->show();
 $table = Abills::HTML->table( { width => '100%',
                                 cols_align => [right, right],
-                                rows => [ [ "$_TOTAL:", "<b>$admins->{TOTAL}</b>" ] ]
+                                rows => [ [ "$_TOTAL:", "<b>$admin->{TOTAL}</b>" ] ]
                                } );
 print $table->show();
 
@@ -1107,6 +1120,111 @@ return qq{
 </form>
 };
 }
+elsif($tpl_name eq 'tt') {
+return qq{ <form action=$SELF_URL method=POST>
+<input type=hidden name=index value='74'>
+<input type=hidden name=vid value='%VID%'>
+<table BORDER=0 CELLSPACING=1 CELLPADDING=0>
+<tr bgcolor=$_COLORS[0]><th>#</th><th>$_BYTE_TARIF IN (1 Mb)</th><th>$_BYTE_TARIF OUT (1 Mb)</th><th>$_PREPAID (Mb)</th><th>$_SPEED (Kbits)</th><th>$_DESCRIBE</th><th>NETS</th></tr>
+<tr><td bgcolor=$_COLORS[0]>0</td>
+<td valign=top><input type=text name='TT_PRICE_IN_0' value='%TT_PRICE_IN_0%'></td>
+<td valign=top><input type=text name='TT_PRICE_OUT_0' value='%TT_PRICE_OUT_0%'></td>
+<td valign=top><input type=text name='TT_PREPAID_0' value='%TT_PREPAID_0%'></td>
+<td valign=top><input type=text name='TT_SPEED_0' value='%TT_SPEED_0%'></td>
+<td valign=top><input type=text name='TT_DESCRIBE_0' value='%TT_DESCRIBE_0%'></td>
+<td><textarea cols=20 rows=4 name='TT_NETS_0'>%TT_NETS_0%</textarea></td></tr>
+
+<tr><td bgcolor=$_COLORS[0]>1</td>
+<td valign=top><input type=text name='TT_PRICE_IN_1' value='%TT_PRICE_IN_1%'></td>
+<td valign=top><input type=text name='TT_PRICE_OUT_1' value='%TT_PRICE_OUT_1%'></td>
+<td valign=top><input type=text name='TT_PREPAID_1' value='%TT_PREPAID_1%'></td>
+<td valign=top><input type=text name='TT_SPEED_1' value='%TT_SPEED_1%'></td>
+<td valign=top><input type=text name='TT_DESCRIBE_1' value='%TT_DESCRIBE_1%'></td>
+<td><textarea cols=20 rows=4 name='TT_NETS_1'>%TT_NETS_1%</textarea></td></tr>
+
+<tr><td bgcolor=$_COLORS[0]>2</td>
+<td valign=top>&nbsp;</td>
+<td valign=top>&nbsp;</td>
+<td valign=top>&nbsp;</td>
+<td valign=top><input type=text name='TT_SPEED_2' value='%TT_SPEED_2%'></td>
+<td valign=top><input type=text name='TT_DESCRIBE_2' value='%TT_DESCRIBE_2%'></td>
+<td><textarea cols=20 rows=4 name='TT_NETS_2'>%TT_NETS_2%</textarea></td></tr>
+
+</table>
+<input type=submit name='change' value='$_CHANGE'>
+</form>\n};
+}
+elsif ($tpl_name eq 'ti') {
+return qq{<form action=$SELF_URL>
+<input type=hidden name=index value=73>
+<input type=hidden name=vid value='%VID%'>
+ <TABLE width=400 cellspacing=1 cellpadding=0 border=0>
+ <tr><td>$_DAY:</td><td><select name=TI_DAY>%SEL_DAYS%</select></td></tr>
+ <tr><td>$_BEGIN:</td><td><input type=text name=TI_BEGIN value='%TI_BEGIN%'></td></tr>
+ <tr><td>$_END:</td><td><input type=text name=TI_END value='%TI_END%'></td></tr>
+ <tr><td>$_HOUR_TARIF<br>(0.00 / 0%):</td><td><input type=text name=TI_TARIF value='%TI_TARIF%'></td></tr>
+</table>
+<input type=submit name=add value='$_ADD'>
+</form>
+};
+}
+elsif ($tpl_name eq 'form_admin') {
+return qq{<form action=$SELF_URL>
+<input type=hidden name=op value=admins>
+<input type=hidden name=aid value='%AID%'>
+<table>
+<tr><td>ID:</td><td><input type=text name=A_LOGIN value="%A_LOGIN%"></td></tr>
+<tr><td>$_FIO:</td><td><input type=text name=A_FIO value="%A_FIO%"></td></tr>
+<tr><td>$_DISABLE:</td><td><input type=checkbox name=DISABLE value='1' %DISABLE%></td></tr>
+<tr><td>$_PHONE:</td><td><input type=text name=A_PHONE value='%A_PHONE%'></td></tr>
+<!-- <tr><td>$_GROUPS:</td><td><input type=text name=name value="$name"></td></tr> -->
+</table>
+<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
+</form>
+};
+}
+elsif ($tpl_name eq 'form_nas') {
+return qq{
+<form action=$SELF_URL METHOD=post>
+<input type=hidden name=index value=60>
+<input type=hidden name=nid value=%NID%>
+<table>
+<tr><td>ID</td><td>%NID%</td></tr>
+<tr><td>IP</td><td><input type=text name=NAS_IP value='%NAS_IP%'></td></tr>
+<tr><td>$_NAME:</td><td><input type=text name=NAS_NAME value="%NAS_NAME%"></td></tr>
+<tr><td>Radius NAS-Identifier:</td><td><input type=text name=NAS_INDENTIFIER value="%NAS_INDENTIFIER%"></td></tr>
+<tr><td>$_DESCRIBE:</td><td><input type=text name=NAS_DESCRIBE value="%NAS_DESCRIBE%"></td></tr>
+<tr><td>$_TYPE:</td><td><select name=NAS_TYPE>%SEL_TYPE%</select></td></tr>
+<tr><td>$_AUTH:</td><td><select name=NAS_AUTH_TYPE>%SEL_AUTH_TYPE%</select></td></tr>
+<tr><th colspan=2>:$_MANAGE:</th></tr>
+<tr><td>IP:PORT:</td><td><input type=text name=NAS_MNG_IP_PORT value="%NAS_MNG_IP_PORT%"></td></tr>
+<tr><td>$_USER:</td><td><input type=text name=NAS_MNG_USER value="%NAS_MNG_USER%"></td></tr>
+<tr><td>$_PASSWD:</td><td><input type=password name=NAS_MNG_PASSWORD value=""></td></tr>
+<tr><th colspan=2>RADIUS $_PARAMS (,)</th></tr>
+<tr><th colspan=2><textarea cols=50 rows=4 name=NAS_RAD_PAIRS>%NAS_RAD_PAIRS%</textarea></th></tr>
+</table>
+<input type=submit name=%ACTION% value='%LNG_ACTION%'>
+</form>
+};
+
+}
+elsif ($tpl_name eq 'form_ip_pools') {
+return qq{
+<form action=$SELF_URL METHOD=post>
+<input type=hidden name=index value=61>
+<input type=hidden name=nid value=%NID%>
+<table>
+<tr><td>FIRST IP:</td><td><input type=text name=NAS_IP_SIP value='%NAS_IP_SIP%'></td></tr>
+<tr><td>COUNT:</td><td><input type=text name=NAS_IP_COUNT value='%NAS_IP_COUNT%'></td></tr>
+</table>
+<input type=submit name=add value="$_ADD">
+</form>
+
+
+};
+
+}
+
 
 return 'No such template [$tpl_name]';
 	
@@ -1121,39 +1239,33 @@ sub form_time_intervals {
   my ($attr) = @_;
   my $pages_qs = "&vid=$FORM{vid}";
   @DAY_NAMES = ("$_ALL", 'Mon', 'Tue', 'Wen', 'The', 'Fri', 'Sat', 'Sun', "$_HOLIDAYS");
+  my $tarif_plan;
 
 if($attr->{TP}) {
-  my $tarif_plan = $attr->{TP};
+  $tarif_plan = $attr->{TP};
 
   if ($FORM{add}) {
-    $tarif_plan->ti_add( { VID => $FORM{vid},
-    	                     TI_DAY => $FORM{day},
-    	                     TI_BEGIN => $FORM{begin},
-    	                     TI_END => $FORM{end},
-    	                     TI_TARIF => $FORM{tarif} });
+    $tarif_plan->ti_add( { VID => $FORM{VID},
+    	                     TI_DAY => $FORM{TI_DAY},
+    	                     TI_BEGIN => $FORM{TI_BEGIN},
+    	                     TI_END => $FORM{TI_END},
+    	                     TI_TARIF => $FORM{TI_TARIF}
+   	 });
 
-    if ($tarif_plan->{errno}) {
-      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
-     }
-    else {
+    if (! $tarif_plan->{errno}) {
       message('info', $_INFO, "$_INTERVALS");
      }
-
    }
   elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $tarif_plan->ti_del($FORM{del});
-    if ($tarif_plan->{errno}) {
-      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
-     }
-    else {
+    if (! $tarif_plan->{errno}) {
       message('info', $_DELETED, "$_DELETED $FORM{del}");
      }
    }
 
-
+ 	$tarif_plan->ti_defaults();
 
   my $list = $tarif_plan->ti_list($FORM{ti});
-
   my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, '-',  '-'],
@@ -1167,7 +1279,7 @@ if($attr->{TP}) {
      $line->[4], '', $delete);
    };
   print $table->show();
-
+  
  }
 elsif ($FORM{vid}) {
   $FORM{chg}=$FORM{vid};
@@ -1175,30 +1287,21 @@ elsif ($FORM{vid}) {
   return 0;
  }
 
+if ($tarif_plan->{errno}) {
+   message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
+ }
+
 
 
 my $i=0;
-my $days = '';
 foreach $line (@DAY_NAMES) {
-  $days .= "<option value=$i";
-  $days .= " selected" if ($day == $i);
-  $days .= ">$line\n";
+  $tarif_plan->{SEL_DAYS} .= "<option value=$i";
+  $tarif_plan->{SEL_DAYS} .= " selected" if ($day == $i);
+  $tarif_plan->{SEL_DAYS} .= ">$line\n";
   $i++;
 }
 
-print << "[END]";
-<form action=$SELF_URL>
-<input type=hidden name=index value=73>
-<input type=hidden name=vid value='$FORM{vid}'>
- <TABLE width=400 cellspacing=1 cellpadding=0 border=0>
- <tr><td>$_DAY:</td><td><select name=day>$days</select></td></tr>
- <tr><td>$_BEGIN:</td><td><input type=text name=begin value='$begin'></td></tr>
- <tr><td>$_END:</td><td><input type=text name=end value='$end'></td></tr>
- <tr><td>$_HOUR_TARIF<br>(0.00 / 0%):</td><td><input type=text name=tarif value='$tarif'></td></tr>
-</table>
-<input type=submit name=add value='$_ADD'>
-</form>
-[END]
+Abills::HTML->tpl_show(templates('ti'), $tarif_plan);
 }
 
 
@@ -1207,17 +1310,34 @@ print << "[END]";
 #**********************************************************
 sub form_traf_tarifs {
   my ($attr) = @_;
-  my $pages_qs = "&vid=$FORM{vid}";
+  my $tarif_plan;
 
+  
 if($attr->{TP}) {
-  my $tarif_plan = $attr->{TP};
+  $tarif_plan = $attr->{TP};
+  $tarif_plan->tt_defaults();
 
-  if ($FORM{add}) {
-    $tarif_plan->tt_add( { VID => $FORM{vid},
-    	                     TI_DAY => $FORM{day},
-    	                     TI_BEGIN => $FORM{begin},
-    	                     TI_END => $FORM{end},
-    	                     TI_TARIF => $FORM{tarif} });
+  if ($FORM{change}) {
+    $tarif_plan->tt_change( { 
+    	TT_DESCRIBE_0 => $FORM{TT_DESCRIBE_0},
+      TT_PRICE_IN_0 => $FORM{TT_PRICE_IN_0},
+      TT_PRICE_OUT_0 => $FORM{TT_PRICE_OUT_0},
+      TT_NETS_0 => $FORM{TT_NETS_0},
+      TT_PREPAID_0 => $FORM{TT_PREPAID_0},
+      TT_SPEED_0 => $FORM{TT_SPEED_0},
+
+      TT_DESCRIBE_1 => $FORM{'TT_DESCRIBE_1'},
+      TT_PRICE_IN_1 => $FORM{TT_PRICE_IN_1},
+      TT_PRICE_OUT_1 => $FORM{TT_PRICE_OUT_1},
+      TT_NETS_1 => $FORM{TT_NETS_1},
+      TT_PREPAID_1 => $FORM{TT_PREPAID_1},
+      TT_SPEED_1 => $FORM{TT_SPEED_1},
+
+      TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
+      TT_NETS_2 => $FORM{TT_NETS_2},
+      TT_SPEED_2 => $FORM{TT_SPEED_2},
+      EX_FILE_PATH => "$conf{netsfilespath}"
+    });
 
     if ($tarif_plan->{errno}) {
       message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
@@ -1226,34 +1346,8 @@ if($attr->{TP}) {
       message('info', $_INFO, "$_INTERVALS");
      }
    }
-  elsif($FORM{del} && $FORM{is_js_confirmed}) {
-    $tarif_plan->tt_del($FORM{del});
-    if ($tarif_plan->{errno}) {
-      message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
-     }
-    else {
-      message('info', $_DELETED, "$_DELETED $FORM{del}");
-     }
-   }
 
-
-
-  my $list = $tarif_plan->tt_list($FORM{ti});
-
-  my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   title => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, '-',  '-'],
-                                   cols_align => ['right', 'left', 'right', 'right', 'right', 'center', 'center'],
-                                   qs => $pages_qs,
-                                  } );
-
-  foreach my $line (@$list) {
-    my $delete = $html->button($_DEL, "index=73$pages_qs&del=$line->[5]", "$line->[5]  $_DEL ?"); 
-    $table->addrow("$line->[0]", $DAY_NAMES[$line->[1]], $line->[2], $line->[3], 
-     $line->[4], '', $delete);
-   };
-  print $table->show();
-
+   my $list = $tarif_plan->tt_list($FORM{ti});
  }
 elsif ($FORM{vid}) {
   $FORM{chg}=$FORM{vid};
@@ -1261,6 +1355,8 @@ elsif ($FORM{vid}) {
   return 0;
  }
 
+
+Abills::HTML->tpl_show(templates('tt'), $tarif_plan);
 	
 }
 
@@ -1282,28 +1378,22 @@ sub form_tp {
 if ($FORM{chg}) {
   $tarif_info = $tariffs->info( $FORM{chg} );
 
-
   if ($tariffs->{errno}) {
     message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
     return 0;
    }
-
-
-  $tarif_info->{LNG_ACTION}=$_CHANGE;
-  $tarif_info->{ACTION}='change';
 
 print "
 <Table width=100% bgcolor=$_COLORS[2]>
 <tr><td>$_NAME: <b>$tariffs->{NAME}</b></td></tr>
 <tr><td>ID: $tariffs->{VID}</td></tr>
 <tr bgcolor=$_COLORS[3]><td>
-:: <a href='$SELF_URL?index=74&tt=$tariffs->{VID}'>$_TRAFIC_TARIFS</a> 
+:: <a href='$SELF_URL?index=74&vid=$tariffs->{VID}'>$_TRAFIC_TARIFS</a> 
 :: <a href='$SELF_URL?index=73&vid=$tariffs->{VID}'>$_INTERVALS</a>
 :: <a href='$SELF_URL?index=72&vid=$tariffs->{VID}'>$_NAS</a>
 :: <a href='$SELF_URL?index=14&tp=$tariffs->{VID}'>$_USERS</a>
 </td></tr>
 </table>\n";
-
 
   if ($index == 72) {
 	  allow_nass( {TP => $tariffs });
@@ -1340,9 +1430,13 @@ print "
                    ALERT => $FORM{ALERT} 
                   }
                 );  
+     if (! $tariffs->{errno}) {
+       message('info', $_CHANGED, "$_CHANGED $tariffs->{VID}");
+      }
    }
 
-
+  $tarif_info->{LNG_ACTION}=$_CHANGE;
+  $tarif_info->{ACTION}='change';
  }
 elsif($FORM{add}) {
   $tariffs->add( { 
@@ -1367,28 +1461,22 @@ elsif($FORM{add}) {
                    ALERT => $FORM{ALERT} 
                   });
 
-  if ($tariffs->{errno}) {
-    message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
-    #form_tp();
-    #return 0;	
-   }
-  else {
+  if (! $tariffs->{errno}) {
     message('info', $_ADDED, "$_ADDED $tariffs->{VID}");
    }
 }
 elsif($FORM{del} && $FORM{is_js_confirmed}) {
   $tariffs->del($FORM{del});
 
-  if ($tariffs->{errno}) {
-    message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
-   }
-  else {
-    message('info', $_DELETE, "$_DELETED");
+  if (! $tariffs->{errno}) {
+    message('info', $_DELETE, "$_DELETED $FORM{del}");
    }
 }
 
 
-
+if ($tariffs->{errno}) {
+    message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+ }
 
 
 Abills::HTML->tpl_show(templates('tp'), $tarif_info);
@@ -1438,77 +1526,91 @@ print $table->show();
 #**********************************************************
 sub form_admins {
 
-if ($FORM{add}) {
-  $admin->add();
-  if ($admin->{errno}) {
-     message('err', $_ERROR, $admin->{errstr});	
-   }
-}
-elsif ($FORM{permissions}) {
-   admin_permissions($FORM{aid});	
-   return 0;
- }
-elsif ($FORM{password}) {
-  $admin = Admins->info($FORM{password});
 
-  my $password = chg_password('admins', "$FORM{aid}");
-  if ($password ne '0') {
-    $admin->password($password, { secretkey => $conf{secretkey} } ); 
-    if (! $admin->{errno}) {
-       message('info', $_INFO, "$_ADMINS: $admin->{NAME}<br>$_PASSWD $_CHANGED");
+my $admin_form = Admins->new($db);
+$admin_form->{ACTION}='add';
+$admin_form->{LNG_ACTION}=$_ADD;
+
+if ($FORM{aid}) {
+  $admin_form->info($FORM{aid});
+
+print "
+<Table width=100% bgcolor=$_COLORS[2]>
+<tr><td>$_NAME: <b>$admin_form->{A_LOGIN}</b></td></tr>
+<tr><td>ID: $admin_form->{AID}</td></tr>
+<tr bgcolor=$_COLORS[3]><td>
+:: <a href='$SELF_URL?op=admins&permissions=y&aid=$admin_form->{AID}'>$_PERMISSION</a> 
+:: <a href='$SELF_URL?index=51&aid=$admin_form->{AID}'>$_LOG</a>
+:: <a href='$SELF_URL?op=admins&password=y&aid=$admin_form->{AID}'>$_PASSWD</a>
+:: <a href='$SELF_URL?index=$index&aid=$admin_form->{AID}'>$_CHANGE</a>
+</td></tr>
+</table>\n";
+
+  if ($FORM{permissions}) {
+    admin_permissions($admin_form);	
+    return 0;
+   }
+  elsif ($FORM{password}) {
+    my $password = chg_password('admins', "$FORM{aid}", { AID => $admin_form->{AID}  });
+    if ($password ne '0') {
+      $admin_form->password($password, { secretkey => $conf{secretkey} } ); 
+      if (! $admin_form->{errno}) {
+        message('info', $_INFO, "$_ADMINS: $admin_form->{NAME}<br>$_PASSWD $_CHANGED");
+      }
      }
+    return 0;
+   }
+  elsif($index == 51) {
+    $LIST_PARAMS{AID}=$admin_form->{AID};  	
+  	form_changes( { ADMIN => $admin_form } );
+  	return 0;
+   }
+  elsif($FORM{change}) {
+    $admin_form->change({
+      A_LOGIN => $FORM{A_LOGIN},
+      A_FIO   => $FORM{A_FIO},
+      DISABLE => $FORM{DISABLE},
+      A_PHONE => $FORM{A_PHONE}	
+ 	  });
+ 	 }
+  else {
+    if (! $admin_form->{errno}) {
+      message('info', $_INFO, "$_CHANGING [$admin_form->{AID}]");
+    }
    }
 
- return 0;
+  $admin_form->{ACTION}='change';
+  $admin_form->{LNG_ACTION}=$_CHANGE;
  }
-elsif($FORM{chg}) {
-  $admin = $admins->info($FORM{chg});
+elsif ($FORM{add}) {
+  $admin_form->add( {
+    A_LOGIN => $FORM{A_LOGIN},
+    A_FIO   => $FORM{A_FIO},
+    DISABLE => $FORM{DISABLE},
+    A_PHONE => $FORM{A_PHONE}	
+    } 
+  );
 
-  if ($admin->{errno}) {
-     message('err', $_ERROR, $err_strs{$admin->{errno}});	
+  if (! $admin_form->{errno}) {
+     message('info', $_INFO, "$_ADDED");	
    }
-}
-elsif($FORM{aid}) {
-  my $admin = $admins->info($FORM{aid});
-	
-  my $table = Abills::HTML->table( { width => '100%',
-                                     rows => [ [ "$_ADMIN:", "<b>$admin->{NAME}</b>" ] ],
-                                     rowcolor => $_COLORS[2]
-                                  } );
-  print $table->show();
-  $LIST_PARAMS{AID} = $admin->{AID};
 
-	if ($OP eq 'changes') {
-		 form_changes({ ADMIN => $admin });
-	 }
-	
-	return 0;
 }
 elsif($FORM{del}) {
-  $admin->del($FORM{del});
-  if ($admin->{errno}) {
-     message('err', $_ERROR, $err_strs{$admin->{errno}});	
+  $admin_form->del($FORM{del});
+  if (! $admin_form->{errno}) {
+     message('info', $_DELETE, "$_DELETED");	
    }
 }
 
 
+if ($admin_form->{errno}) {
+     message('err', $_ERROR, $err_strs{$admin_form->{errno}});	
+ }
 
-my $disable = ($admin->{DISABLE} > 0) ? 'checked' : '';
 
-print << "[END]";
-<form action=$SELF_URL>
-<input type=hidden name=op value=admins>
-<input type=hidden name=chg value='$FORM{chg}'>
-<table>
-<tr><td>ID:</td><td><input type=text name=id value="$admin->{AID}"></td></tr>
-<tr><td>$_FIO:</td><td><input type=text name=name value="$admin->{NAME}"></td></tr>
-<tr><td>$_DISABLE:</td><td><input type=checkbox name=disable value='1' $disable></td></tr>
-<!-- <tr><td>$_GROUPS:</td><td><input type=text name=name value="$name"></td></tr> -->
-</table>
-<input type=submit name=$action[0] value='$action[1]'>
-</form>
-[END]
-
+$admin_form->{DISABLE} = ($admin_form->{DISABLE} > 0) ? 'checked' : '';
+Abills::HTML->tpl_show(templates('form_admin'), $admin_form);
 
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
@@ -1516,14 +1618,19 @@ my $table = Abills::HTML->table( { width => '100%',
                                    cols_align => [right, left, left, right, left, center, center, center, center, center, center],
                                   } );
 
-my $list = $admins->list();
+my $list = $admin_form->list();
 foreach my $line (@$list) {
   $table->addrow(@$line, "<a href='$SELF_URL?op=admins&permissions=y&aid=$line->[0]'>$_PERMISSION</a>", 
    "<a href='$SELF_URL?op=changes&aid=$line->[0]'>$_LOG</a>",
    "<a href='$SELF_URL?op=admins&password=y&aid=$line->[0]'>$_PASSWD</a>",
-   "<a href='$SELF_URL?op=admins&chg=$line->[0]'>$_CHANGE</a>", $html->button($_DEL, "op=admins&del=$line->[0]", "$_DEL ?"));
+   "<a href='$SELF_URL?index=$index&aid=$line->[0]'>$_CHANGE</a>", $html->button($_DEL, "op=admins&del=$line->[0]", "$_DEL ?"));
 }
+print $table->show();
 
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => [right, right],
+                                rows => [ [ "$_TOTAL:", "<b>$admin_form->{TOTAL}</b>" ] ]
+                               } );
 print $table->show();
 }
 
@@ -1537,13 +1644,7 @@ print $table->show();
 # permissions();
 #**********************************************************
 sub admin_permissions {
- my ($aid) = @_;
-
- print "<h3>$_PERMISSION</h3>\n";
-
-
- $admin = Admins->info($aid);
- 
+ my ($admin) = @_;
  my %permits = ();
 
  if (defined($FORM{set})) {
@@ -1562,7 +1663,6 @@ sub admin_permissions {
      message('info', $_INFO, "$_CHANGED");
     }
   }
-
 
  my $p = $admin->get_permissions();
  if ($admin->{errno}) {
@@ -1594,8 +1694,215 @@ sub admin_permissions {
 print "<table>
  <input type=submit name='set' value=\"$_SET\">
 </form>\n";
+}
+
+#**********************************************************
+# form_nas
+#**********************************************************
+sub form_nas {
+  my $nas = Nas->new($db);	
+  $nas->{ACTION}='add';
+  $nas->{LNG_ACTION}=$_ADD;
+
+
+if($FORM{nid}) {
+  $nas->info($FORM{nid}, { SECRETKEY => $conf{secretkey} });
+
+print "<Table width=100% bgcolor=$_COLORS[2]>
+<tr><td>$_NAME: <b>$nas->{NAS_NAME}</b></td></tr>
+<tr><td>ID: $nas->{NID}</td></tr>
+<tr bgcolor=$_COLORS[3]><td>
+:: <a href='$SELF_URL?index=61&nid=$nas->{NID}'>IP POOLs</a> 
+:: <a href='$SELF_URL?index=60&nid=$nas->{NID}'>$_CHANGE</a>
+</td></tr>
+</table>\n";
+
+  if ($index == 61) {
+     form_ip_pools({ NAS => $nas });
+     return 0;  	
+   }
+  elsif ($FORM{change}) {
+  	$nas->change({
+      NAS_NAME => $FORM{NAS_NAME}, 
+      NAS_INDENTIFIER => $FORM{NAS_INDENTIFIER}, 
+      NAS_DESCRIBE => $FORM{NAS_DESCRIBE}, 
+      NAS_IP => $FORM{NAS_IP}, 
+      NAS_TYPE => $FORM{NAS_TYPE}, 
+      NAS_AUTH_TYPE => $FORM{NAS_AUTH_TYPE}, 
+      NAS_MNG_IP_PORT => $FORM{NAS_MNG_IP_PORT}, 
+      NAS_MNG_USER => $FORM{NAS_MNG_USER}, 
+      NAS_MNG_PASSWORD => $FORM{NAS_MNG_PASSWORD}, 
+      NAS_RAD_PAIRS => $FORM{NAS_RAD_PAIRS},
+      SECRETKEY => $conf{secretkey}
+  		});
+    if (! $nas->{errno}) {
+      message('info', $_INFO, "$_CHANGED '$nas->{NAS_NAME}' [$nas->{NID}]");
+     }
+   }
+
+  $nas->{ACTION}='change';
+  $nas->{LNG_ACTION}=$_CHANGE;
+ }
+elsif ($FORM{add}) {
+  $nas->add({
+      NAS_NAME => $FORM{NAS_NAME}, 
+      NAS_INDENTIFIER => $FORM{NAS_INDENTIFIER}, 
+      NAS_DESCRIBE => $FORM{NAS_DESCRIBE}, 
+      NAS_IP => $FORM{NAS_IP}, 
+      NAS_TYPE => $FORM{NAS_TYPE}, 
+      NAS_AUTH_TYPE => $FORM{NAS_AUTH_TYPE}, 
+      NAS_MNG_IP_PORT => $FORM{NAS_MNG_IP_PORT}, 
+      NAS_MNG_USER => $FORM{NAS_MNG_USER}, 
+      NAS_MNG_PASSWORD => $FORM{NAS_MNG_PASSWORD}, 
+      NAS_RAD_PAIRS => $FORM{NAS_RAD_PAIRS},
+      SECRETKEY => $conf{secretkey}
+  		});
+ 
+  if (! $nas->{errno}) {
+    message('info', $_INFO, "$_ADDED '$FORM{NAS_IP}'");
+   }
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  $nas->del($FORM{del});
+  if (! $nas->{errno}) {
+    message('info', $_INFO, "$_DELETED [$FORM{del}]");
+   }
+
+}
+
+if ($nas->{errno}) {
+  message('err', $_ERROR, "$err_strs{$nas->{errno}}");
+ }
+
+
+
+ my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'pppd', 'dslmax', 'mpd');
+ my %nas_descr = ('usr' => "USR Netserver 8/16",
+  'pm25' => 'LIVINGSTON portmaster 25',
+  'ppp' => 'FreeBSD ppp demon',
+  'exppp' => 'FreeBSD ppp demon with extended futures',
+  'dslmax' => 'ASCEND DSLMax',
+  'expppd' => 'pppd deamon with extended futures',
+  'radpppd' => 'pppd version 2.3 patch level 5.radius.cbcp',
+  'mpd' => 'MPD ',
+  'ipcad' => 'IP accounting daemon with Cisco-like ip accounting export',
+  'pppd' => 'pppd + RADIUS plugin (Linux)',
+  'other' => 'Other nas server');
+
+  foreach my $nt (@nas_types) {
+     $nas->{SEL_TYPE} .= "<option value=$nt";
+     $nas->{SEL_TYPE} .= ' selected' if ($nas->{NAS_TYPE} eq $nt);
+     $nas->{SEL_TYPE} .= ">$nt ($nas_descr{$nt})\n";
+   }
+
+  my $i = 0;
+  foreach my $at (@auth_types) {
+     $nas->{SEL_AUTH_TYPE} .= "<option value=$i";
+     $nas->{SEL_AUTH_TYPE} .= ' selected' if ($nas->{NAS_AUTH_TYPE} eq $i);
+     $nas->{SEL_AUTH_TYPE} .= ">$at\n";
+     $i++;
+   }
+
+Abills::HTML->tpl_show(templates('form_nas'), $nas);
+
+    
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", '-', '-', '-'],
+                                   cols_align => [center, left, left, right, left, left]
+                                  } );
+
+my $list = $nas->list({ %LIST_PARAMS });
+
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=60&del=$line->[0]", "$_DEL NAS $line->[2]?"); 
+  $table->addrow($line->[0], $line->[2], $line->[1], 
+    $line->[4], $line->[5], $auth_types[$line->[6]], 
+    "<a href='$SELF_URL?index=61&nid=$line->[0]'>IP POOLs</a>",
+    "<a href='$SELF_URL?index=60&nid=$line->[0]'>$_CHANGE</a>",
+    $delete);
+}
+print $table->show();
+
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => [right, right],
+                                rows => [ [ "$_TOTAL:", "<b>$nas->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
+
+
+}
+
+#**********************************************************
+# form_ip_pools()
+#**********************************************************
+sub form_ip_pools {
+	my ($attr) = @_;
+	my $nas;
+  my ($pages_qs);
+  
+if ($attr->{NAS}) {
+	$nas = $attr->{NAS};
+  if ($FORM{add}) {
+    $nas->ip_pools_add( {
+       NAS_IP_SIP => $FORM{NAS_IP_SIP},
+       NAS_IP_COUNT => $FORM{NAS_IP_COUNT}
+     });
+
+    if (! $nas->{errno}) {
+       message('info', $_INFO, "$_ADDED");
+     }
+   }
+  elsif($FORM{del}) {
+    $nas->ip_pools_del( $FORM{del} );
+
+    if (! $nas->{errno}) {
+       message('info', $_INFO, "$_DELETED");
+     }
+   }
+  $pages_qs = "&nid=$nas->{NID}";
+
+  Abills::HTML->tpl_show(templates('form_ip_pools'), $nas);
+ }
+elsif($FORM{nid}) {
+  form_nas();
+  return 0;
+}
+else {
+  $nas = Nas->new($db);	
+}
+
+if ($nas->{errno}) {
+  message('err', $_ERROR, "$err_strs{$nas->{errno}}");
+ }
+
+
+
+    
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => ["NAS", "$_BEGIN", "$_END", "$_COUNT", '-'],
+                                   cols_align => ['left', 'right', 'right', 'right', 'center'],
+                                   qs => $pages_qs                                   
+                                  } );
+
+my $list = $nas->ip_pools_list({ %LIST_PARAMS });	
+
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[6]", "$_DEL NAS $line->[4]?"); 
+  $table->addrow("<a href='$SELF_URL?index=60&nid=$line->[7]'>$line->[0]</a>", $line->[4], $line->[5], 
+    $line->[3],  $delete);
+}
+print $table->show();
+
+
+
 	
 }
+
+
+
+
 
 #**********************************************************
 # chg_password($op, $id)
@@ -1603,8 +1910,10 @@ print "<table>
 sub chg_password {
  my ($op, $id, $attr)=@_;
  print "<h3>$_CHANGE_PASSWD</h3>\n";
-
- my $hidden_inputs = ($attr->{UID}) ? "<input type=hidden name=uid value='$attr->{UID}'>": '';
+ my $hidden_inputs;
+ 
+ $hidden_inputs = ($attr->{UID}) ? "<input type=hidden name=uid value='$attr->{UID}'>": '';
+ $hidden_inputs = ($attr->{AID}) ? "<input type=hidden name=aid value='$attr->{AID}'>": '';
 
 if ($FORM{newpassword} eq '') {
 
@@ -1720,9 +2029,14 @@ $menu_items{50}{5}=$_ADMINS;
 $op_names{50}='admins';
 $functions{50}=\&form_admins;
 
+$menu_items{51}{50}=$_LOG;
+$functions{51}=\&form_changes;
+
 $menu_items{60}{5}=$_NAS;
-$op_names{60}='nas';
+$functions{60}=\&form_nas;
+
 $menu_items{61}{60}="IP POOLs";
+$functions{61}=\&form_ip_pools;
 $menu_items{62}{60}=$_NAS_STATISTIC;
 
 #exchange_rate
@@ -1752,7 +2066,7 @@ $op_names{85}='shedule';
 $functions{85}=\&form_shedule;
 
 
-$menu_items{99}{5}=_FUNCTIONS_LIST;
+$menu_items{99}{5}=$_FUNCTIONS_LIST;
 $op_names{99}='flist';
 $functions{99}=\&flist;
 
@@ -1763,6 +2077,9 @@ $menu_items{101}{6}=_DOCS;
 $menu_items{102}{6}=_MAIL;
 $menu_items{103}{6}=_VoIP;
 $menu_items{104}{6}=_DOCSIS;
+
+
+$functions{999}=\&test;
 
 my $root_index = 0;
 
@@ -2346,6 +2663,54 @@ print $table->show();
 
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#**********************************************************
+# test
+#**********************************************************
+sub test {
+ 
+  while(my($k, $v)=each %ENV) {
+    print "$k - $v<br>\n";	
+   }
+}
+
+
+
+
+
 #*******************************************************************
 # form_period
 #*******************************************************************
@@ -2373,6 +2738,48 @@ sub form_period () {
 
 
 
+#**********************************************************
+# encode_base64 ($;$)
+#**********************************************************
+sub encode_base64 ($;$){
+    my $res = "";
+    my $eol = $_[1];
+    $eol = "\n" unless defined $eol;
+    pos($_[0]) = 0;                          # ensure start at the beginning
+    while ($_[0] =~ /(.{1,45})/gs) {
+        $res .= substr(pack('u', $1), 1);
+        chop($res);
+    }
+    $res =~ tr| -_|AA-Za-z0-9+/|;               # # help emacs
+    # fix padding at the end
+    my $padding = (3 - length($_[0]) % 3) % 3;
+    $res =~ s/.{$padding}$/'=' x $padding/e if $padding;
+    # break encoded string into lines of no more than 76 characters each
+    if (length $eol) {
+        $res =~ s/(.{1,76})/$1$eol/g;
+    }
+    $res;
+}
+
+
+sub decode_base64 ($)
+{
+    local($^W) = 0; # unpack("u",...) gives bogus warning in 5.00[123]
+
+    my $str = shift;
+    my $res = "";
+
+    $str =~ tr|A-Za-z0-9+=/||cd;            # remove non-base64 chars
+    $str =~ s/=+$//;                        # remove padding
+    $str =~ tr|A-Za-z0-9+/| -_|;            # convert to uuencoded format
+    while ($str =~ /(.{1,60})/gs) {
+        my $len = chr(32 + length($1)*3/4); # compute length byte
+        $res .= unpack("u", $len . $1 );    # uudecode
+    }
+    $res;
+}
+
+
 
 
 
@@ -2380,6 +2787,22 @@ sub form_period () {
 
 
 =comments
+use Abwconf;
+$db=$Abwconf::db;
+use Base; # Modul with base tools
+require 'messages.pl';
+$logfile = 'abills.log';
+$logdebug = 'abills.debug';
+$debug = 1;
+
+
+
+
+
+
+
+
+..........
 use Abwconf;
 $db=$Abwconf::db;
 use Base; # Modul with base tools
@@ -2398,6 +2821,19 @@ if (!authorization($REMOTE_USER,$REMOTE_PASSWD)) {
     print "Ошибка авторизации!\n";
     exit;
     }
+my ($aid,$admin)=authorization($REMOTE_USER,$REMOTE_PASSWD);
+# -------------------------------------------------
+my $web_path='/billing/admin/';
+my $domain = $ENV{SERVER_NAME};
+$conf{passwd_length}=6;
+$conf{username_length}=15;
+print "Content-Type: text/html\n";
+
+....................
+
+
+# ------------ AUTHORIZATION from MySQL ------------
+
 my ($aid,$admin)=authorization($REMOTE_USER,$REMOTE_PASSWD);
 # -------------------------------------------------
 my $web_path='/billing/admin/';
@@ -2425,6 +2861,7 @@ sub authorization {
         RewriteCond %{HTTP:Authorization} ^(.*)
         RewriteRule ^(.*) - [E=HTTP_CGI_AUTHORIZATION:%1]
         Options Indexes ExecCGI SymLinksIfOwnerMatch
+
         AllowOverride none
         DirectoryIndex index.cgi
 #       order deny,allow

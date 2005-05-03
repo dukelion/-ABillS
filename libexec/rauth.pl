@@ -227,27 +227,28 @@ elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
      my ($ident, $flags, $peerchallenge, $reserved, $response) = unpack('C C a16 a8 a24', $rad_response);
 
      if (check_mschapv2("$RAD{USER_NAME}", $passwd, $challenge, $peerchallenge, $response, $ident,
- 	    \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 0) {
+ 	     \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 0) {
          $message = "Wrong MS-CHAP2 password";
          $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
          return 1;
 	    }
 
-         $RAD_PAIRS{'MS-CHAP2-SUCCESS'} = '0x' . bin2hex($ms_chap2_success);
+     $RAD_PAIRS{'MS-CHAP2-SUCCESS'} = '0x' . bin2hex($ms_chap2_success);
 
-         my ($send, $recv) = Radius::MSCHAP::mppeGetKeys($usersessionkey, $response, 16);
+     my ($send, $recv) = Radius::MSCHAP::mppeGetKeys($usersessionkey, $response, 16);
 
-         #print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
-          
-         my $radsecret = 'test';
-#         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $radsecret, $challenge), 0, 16));
+
+# MPPE Sent/Recv Key Not realizet now.
+#        print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
+#        $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $radsecret, $challenge), 0, 16));
 #	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex( substr(encode_mppe_key($recv, $radsecret, $challenge), 0, 16));
-         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
-	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
 
-#         $RAD_PAIRS{'MS-MPPE-Send-Key'}='0x4f835a2babe6f2600a731fd89ef25a38';
+#        my $radsecret = 'test';
+#         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
+#	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
+
+#        $RAD_PAIRS{'MS-MPPE-Send-Key'}='0x4f835a2babe6f2600a731fd89ef25a38';
 #	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}='0x27ac8322247937ad3010161f1d5bbe5c';
-
 	       
         }
        else {
@@ -259,13 +260,12 @@ elsif(defined($RAD{MS_CHAP_CHALLENGE})) {
           }
         }
 
-
-#       $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', $lanmansessionkey, 
-#														$usersessionkey))) . "0000000000000000";
+       $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', $lanmansessionkey, 
+														$usersessionkey))) . "0000000000000000";
 
        # 1      Encryption-Allowed 
        # 2      Encryption-Required 
-       $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000002';
+       $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000001';
        $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
  }
 #End MSchap auth
