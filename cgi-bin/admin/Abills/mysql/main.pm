@@ -45,12 +45,14 @@ else {
   $self->{TOTAL} = $q->rows;
 }
 
-if ($db->err == 1062) {
-  $self->{errno} = 7;
-  $self->{errstr} = 'ERROR_DUBLICATE';
-  return $self;
- }
-elsif($db->err > 0) {
+if($db->err) {
+
+  if ($db->err == 1062) {
+    $self->{errno} = 7;
+    $self->{errstr} = 'ERROR_DUBLICATE';
+    return $self;
+   }
+
   $self->{errno} = 3;
   $self->{errstr} = 'SQL_ERROR';
   return $self;

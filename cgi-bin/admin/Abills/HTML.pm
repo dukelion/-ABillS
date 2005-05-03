@@ -59,7 +59,7 @@ sub new {
   $OP = $FORM{op} || '';
   $PAGE_ROWS = 25;
   my $prot = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http' ;
-  $SELF_URL = "$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}";
+  $SELF_URL = (defined($ENV{HTTP_HOST})) ? "$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}" : '';
   $SESSION_IP = $ENV{REMOTE_ADDR} || '0.0.0.0';
   
   @_COLORS = ('#FDE302',  # 0 TH
@@ -92,6 +92,8 @@ sub form_parse {
   my $value='';
   my %FORM = ();
   
+  return %FORM if (! defined($ENV{'REQUEST_METHOD'}));
+
 if ($ENV{'REQUEST_METHOD'} eq "GET") {
    $buffer= $ENV{'QUERY_STRING'};
  }
@@ -129,8 +131,8 @@ sub setCookie {
 	my $self = shift;
 	my($name, $value, $expiration, $path, $domain, $secure) = @_;
 	print "Set-Cookie: ";
-	print ($name, "=", $value, "; expires=\"", $expiration,
-		"\"; path=", $path, "; domain=", $domain, "; ", $secure, "\n");
+	print $name, "=", $value, "; expires=\"", $expiration,
+		"\"; path=", $path, "; domain=", $domain, "; ", $secure, "\n";
 }
 
 
@@ -141,16 +143,18 @@ sub setCookie {
 # getCookies()
 #********************************************************************
 sub getCookies {
-        my $self = shift;
+  my $self = shift;
 	# cookies are seperated by a semicolon and a space, this will split
 	# them and return a hash of cookies
-	my(@rawCookies) = split (/; /, $ENV{'HTTP_COOKIE'});
 	my(%cookies);
 
-	foreach(@rawCookies){
-	    my ($key, $val) = split (/=/,$_);
-	    $cookies{$key} = $val;
-	} 
+  if (defined($ENV{'HTTP_COOKIE'})) {
+ 	  my(@rawCookies) = split (/; /, $ENV{'HTTP_COOKIE'});
+	  foreach(@rawCookies){
+	     my ($key, $val) = split (/=/,$_);
+	     $cookies{$key} = $val;
+	  } 
+   }
 
 	return %cookies; 
 }

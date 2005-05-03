@@ -9,15 +9,15 @@ sub connect {
   $self->{sql_type} = $sql_type;
   #use lib $lib;
   #unshift(@INC, "Abills/$sql_type/");
-  eval { require main; };
+  eval { require "main.pm"; };
   if (! $@) {
-    main->import();
+    "main"->import();
    }
   else {
     print "Module '$sql_type' not supported yet";
    }
 
-  my $sql = main->connect($dbhost, $dbname, $dbuser, $dbpasswd);
+  my $sql = "main"->connect($dbhost, $dbname, $dbuser, $dbpasswd);
   $self->{db}=$sql->{db};
   $self->{mysql}=$sql;
   return $self;

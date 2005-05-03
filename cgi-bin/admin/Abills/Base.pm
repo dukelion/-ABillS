@@ -89,7 +89,7 @@ sub mk_unique_value {
 
    my $value = '';
    my $random = '';
-   my $i==0;
+   my $i=0;
    
    my $size = length($symbols);
    srand();
@@ -148,7 +148,7 @@ $logout{t} = $logout{ut} - ($login{d} * $day + $dif);
 
  my $s_duration = $logout{t} - $login{t};
 
-my $i = 0;
+ $i = 0;
 
 begin:
   while(my($key, $val) = each(%int)) {
@@ -269,8 +269,8 @@ if (!$count) {
   $first = $array;
 } else {
   $first = $second = $array;
-  $first =~ s/(.*)(\..*)/\1/;
-  $second =~ s/(.*)(\.)(\d\d)(.*)/\3/;
+  $first =~ s/(.*)(\..*)/$1/;
+  $second =~ s/(.*)(\.)(\d\d)(.*)/$3/;
 }
 
 $count = int ((length $first) / 3);
@@ -278,8 +278,8 @@ my $first_length = length $first;
 
 for ($i = 1; $i <= $count; $i++) {
   $tmp = $first;
-  $tmp =~ s/(.*)(\d\d\d$)/\2/;
-  $first =~ s/(.*)(\d\d\d$)/\1/;
+  $tmp =~ s/(.*)(\d\d\d$)/$2/;
+  $first =~ s/(.*)(\d\d\d$)/$1/;
   $first[$i] = $tmp;
 }
 
@@ -292,20 +292,20 @@ if ($count < 4 && $count * 3 < $first_length) {
 
 for ($i = $first_length; $i >=1; $i--) {
   $tmp = 0;
-  for ($j = length (@first[$i]); $j >= 1; $j--) {
+  for ($j = length ($first[$i]); $j >= 1; $j--) {
     if ($j == 3) {
-      $tmp = @first[$i];
-      $tmp =~ s/(^\d)(\d)(\d$)/\1/;
-      $ret .= @hundred[$tmp];
+      $tmp = $first[$i];
+      $tmp =~ s/(^\d)(\d)(\d$)/$1/;
+      $ret .= $hundred[$tmp];
       if ($tmp > 0) {
         $ret .= " ";
       }
     }
     if ($j == 2) {
-      $tmp = @first[$i];
-      $tmp =~ s/(.*)(\d)(\d$)/\2/;
+      $tmp = $first[$i];
+      $tmp =~ s/(.*)(\d)(\d$)/$2/;
       if ($tmp != 1) {  
-        $ret .= @ten[$tmp];
+        $ret .= $ten[$tmp];
         if ($tmp > 0) {
           $ret .= " ";
         }
@@ -313,10 +313,10 @@ for ($i = $first_length; $i >=1; $i--) {
     }
     if ($j == 1) {
       if ($tmp != 1) {
-        $tmp = @first[$i];
-        $tmp =~ s/(.*)(\d$)/\2/;
+        $tmp = $first[$i];
+        $tmp =~ s/(.*)(\d$)/$2/;
         if ((($i == 1) || ($i == 2)) && ($tmp == 1 || $tmp == 2)) {
-          $ret .= @onest[$tmp];
+          $ret .= $onest[$tmp];
           if ($tmp > 0) {
             $ret .= " ";
           }
@@ -328,7 +328,7 @@ for ($i = $first_length; $i >=1; $i--) {
         }
       } else {
         $tmp = $first[$i];
-        $tmp =~ s/(.*)(\d$)/\2/;
+        $tmp =~ s/(.*)(\d$)/$2/;
         $ret .= $tens[$tmp];
         if ($tmp > 0) {
           $ret .= " ";
