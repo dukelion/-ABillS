@@ -122,8 +122,11 @@ $debug=7; #DEbug mode (SQL)
 
 %LANG = ('english' => 'English',
     'russian' => 'Русский',
+    'russian-koi8-r' => 'Russian KOI8-r',
     'ukraine' => 'Українська',
     'bulgarian' => 'Болгарска');
+
+my $lang_charset='windows-1251';
 
 
 #Path settings
@@ -718,7 +721,7 @@ print q{<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
 <head>
  <META HTTP-EQUIV="Cache-Control" content="no-cache">
  <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
- <meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+ <meta http-equiv="Content-Type" content="text/html; charset=$lang_charset">
  <meta name="Author" content="Asmodeus">
 };
 
