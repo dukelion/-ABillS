@@ -258,7 +258,7 @@ sub form_accounts {
   $account->{LNG_ACTION}=$_ADD;
 
 if ($FORM{add}) {
-  $account->add({ NAME => $FORM{ACCOUNT_NAME},
+  $account->add({ ACCOUNT_NAME => $FORM{ACCOUNT_NAME},
                   TAX_NUMBER => $FORM{TAX_NUMBER},
                   BANK_ACCOUNT => $FORM{BANK_ACCOUNT},
                   BANK_NAME => $FORM{BANK_NAME}, 
@@ -271,7 +271,7 @@ if ($FORM{add}) {
    }
  }
 elsif($FORM{change}) {
-  $account->change($FORM{chg} , { NAME => $FORM{ACCOUNT_NAME},
+  $account->change($FORM{chg} , { ACCOUNT_NAME => $FORM{ACCOUNT_NAME},
                    TAX_NUMBER => $FORM{TAX_NUMBER},
                    BANK_ACCOUNT => $FORM{BANK_ACCOUNT},
                    BANK_NAME => $FORM{BANK_NAME}, 
@@ -335,52 +335,6 @@ else {
 
 
 #**********************************************************
-# chg_account
-#**********************************************************
-sub chg_account {
-  my ($user) =@_;
-
-if ($FORM{change})  {
-
-  if ($user->{errno}) {
-    message('info', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
-   }
-  else {
-    message('info', $_ACCOUNT, $_CHANGED. " # $name<br>");
-   }
-}
-
-use Customers;	
-my $customer = Customers->new($db);
-
-
-my $acct_sel = "<select name=account_id>\n";
-$acct_sel .= "<option value='0'>-N/S-\n";
-
-my ($list, $total) = $customer->account->list();
-foreach my $line (@$list) {
-  $acct_sel .= "<option value='$line->[3]'>$line->[0]\n";
-}
-$acct_sel .= "</select>\n";
-
-my $result = qq {
-<form action=$SELF_URL>
-<input type=hidden name=op value=users>
-<input type=hidden name=uid value=$user->{UID}>
-<input type=hidden name=account value=y>
-<Table>
-<tr><td>$_ACCOUNT:</td><td>$user->{ACCOUNT_NAME}</td></tr>
-<tr><td>$_TO:</td><td>$acct_sel</td></tr>
-</table>
-<input type=submit name=change value=$_CHANGE>
-</form> };
-
-
-return $result;
-}
-
-
-#**********************************************************
 # form_users()
 #**********************************************************
 sub user_form {
@@ -390,12 +344,13 @@ sub user_form {
  if (! defined($user_info->{UID})) {
    use Tariffs;
    my $tariffs = Tariffs->new($db);
-
    my $tariffs_list = $tariffs->list();
 
+   
    use Customers;	
    my $customers = Customers->new($db);
    my $account = $customers->account->info($FORM{account_id});
+ 	 $user_info->{ACCOUNT_ID}=$FORM{account_id};
 
    $user_info->{EXDATA} = "<tr><td>$_COMPANY:</td><td>$account->{ACCOUNT_NAME}</td></tr>\n".
            "<tr><td>$_USER:*</td><td><input type=text name=login value=''></td></tr>\n";
@@ -417,8 +372,7 @@ sub user_form {
    $user_info->{LNG_ACTION}=$_CHANGE;
   } 
 
-
-Abills::HTML->tpl_show(templates('user_form'), $user_info);
+Abills::HTML->tpl_show(templates('form_user'), $user_info);
 }
 
 
@@ -453,7 +407,7 @@ my $SPEED = $FORM{speed} || 0;
 my $CID = $FORM{cid} || 0;
 my $FILTER_ID = $FORM{FILTER_ID};
 
-$uid = $FORM{uid};
+my $uid = $FORM{uid};
 
  use Users;
  my $users = Users->new($db, $admin); 
@@ -537,15 +491,26 @@ if($uid > 0) {
       message('info', $_CHANGED, "$_CHANGED");
      }
    }
- #Change tariff plan
+#Change tariff plan
   elsif ($FORM{chg_tp}) {
     print form_chg_tp($user_info);
    }
   elsif ($FORM{services}) {
   	user_services($user_info);
    }
+#change account
   elsif ($FORM{account}) {
-    print chg_account($user_info);
+    use Customers;
+    my $customer = Customers->new($db);
+
+    $user_info->{SEL_ACCOUNTS} = "<select name=account_id>\n";
+    $user_info->{SEL_ACCOUNTS} .= "<option value='0'>-N/S-\n";
+    my ($list, $total) = $customer->account->list();
+    foreach my $line (@$list) {
+      $user_info->{SEL_ACCOUNTS} .= "<option value='$line->[3]'>$line->[0]\n";
+    }
+    $user_info->{SEL_ACCOUNTS} .= "</select>\n";
+    print Abills::HTML->tpl_show(templates('chg_account'), $user_info);
    }
   elsif ($FORM{del}) {
     $users->del();
@@ -924,24 +889,9 @@ my $variant_out = '';
  $q = $db->prepare("SELECT id, CONCAT(y, '-', m, '-', d), action FROM shedule WHERE type='tp' and uid='$uid';") || die $db->strerr;
  $q ->execute();
  
-# if ($q->rows > 0) {
-#   my($id, $date, $new_variant) = $q -> fetchrow();
-#   
-#   $params = "<tr><th colspan=2 bgcolor=$_BG0>$_SHEDULE</th></tr>
-#              <tr><td>$_DATE:</td><td>$date</td></tr>
-#              <tr><td>$_CHANGE:</td><td>$new_variant:$vnames{$new_variant}</td></tr>
-#              </table>
-#              <input type=hidden name=del value='$id'>
-#              <input type=submit name=delete value='$_DEL'>\n";
-#  }
-# else {
-    $params .= "<tr><td>$_TO:</td><td><select name=tarif_plan>$variant_out</select></td></tr>";
-    $params .= form_period($period);
-    $params .= "</table><input type=submit name=set value=\"$_CHANGE\">\n";
-
-#  }
-
-
+ $params .= "<tr><td>$_TO:</td><td><select name=tarif_plan>$variant_out</select></td></tr>";
+ $params .= form_period($period);
+ $params .= "</table><input type=submit name=set value=\"$_CHANGE\">\n";
 
 
 my $result = "<form action=$SELF_URL>
@@ -952,8 +902,6 @@ my $result = "<form action=$SELF_URL>
 <tr><td>$_FROM:</td><td bgcolor=$_BG2>$user->{TARIF_PLAN} $user->{TP_NAME} [<a href='$SELF?op=tp&chg=$user->{TARIF_PLAN}' title='$_VARIANTS'>$_VARIANTS</a>]</td></tr>
 $params
 </form>\n";
-
-
 
  return $result;
 }
@@ -1020,8 +968,6 @@ $table = Abills::HTML->table( { width => '100%',
                                 rows => [ [ "$_TOTAL:", "<b>$admin->{TOTAL}</b>" ] ]
                                } );
 print $table->show();
-
-
 }
 
 
@@ -1033,7 +979,7 @@ print $table->show();
 sub templates {
   my ($tpl_name) = @_;
 
-if ($tpl_name eq 'user_form') {
+if ($tpl_name eq 'form_user') {
 return qq{
 <form action=$SELF_URL method=post>
 <input type=hidden name=index value=14>
@@ -1234,7 +1180,20 @@ return qq{
 </form>
 <hr>
 }
-
+}
+elsif ($tpl_name eq 'chg_account') {
+return qq{
+<form action=$SELF_URL>
+<input type=hidden name=op value=users>
+<input type=hidden name=uid value=%UID%>
+<input type=hidden name=account value=y>
+<Table>
+<tr><td>$_ACCOUNT:</td><td>%ACCOUNT_NAME%</td></tr>
+<tr><td>$_TO:</td><td>%SEL_ACCOUNTS%</td></tr>
+</table>
+<input type=submit name=change value=$_CHANGE>
+</form>
+}
 }
 elsif ($tpl_name eq 'form_ip_pools') {
 return qq{

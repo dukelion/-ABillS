@@ -20,9 +20,6 @@ use main;
 @ISA  = ("main");
 
 my $db;
-# Customer id
-my $aid; 
-
 
 #**********************************************************
 # Init 
@@ -43,7 +40,7 @@ sub add {
   my $self = shift;
   my ($attr) = @_;
 
-  my $name = (defined($attr->{NAME})) ? $attr->{NAME} : '';
+  my $name = (defined($attr->{ACCOUNT_NAME})) ? $attr->{ACCOUNT_NAME} : '';
   
   if ($name eq '') {
     $self->{errno} = 8;
@@ -51,28 +48,10 @@ sub add {
     return $self;
    }
 
-  my $tax_number  = (defined($attr->{TAX_NUMBER})) ? $attr->{TAX_NUMBER} : '';
-  my $bank_account = (defined($attr->{BANK_ACCOUNT})) ? $attr->{BANK_ACCOUNT} : '';
-  my $bank_name = (defined($attr->{BANK_NAME})) ? $attr->{BANK_NAME} : '';
-  my $cor_bank_account = (defined($attr->{COR_BANK_ACCOUNT})) ? $attr->{COR_BANK_ACCOUNT} : '';
-  my $bank_bic = (defined($attr->{BANK_BIC})) ? $attr->{BANK_BIC} : '';
-
-  my $sql = "INSERT INTO accounts (name, tax_number, bank_account, bank_name, cor_bank_account, bank_bic) 
-     VALUES ('$name', '$tax_number', '$bank_account', '$bank_name', '$cor_bank_account', '$bank_bic');";
-  my $q = $db->do($sql); 
-
-  if ($db->err == 1062) {
-     $self->{errno} = 7;
-     $self->{errstr} = 'ERROR_DUBLICATE';
-     return $self;
-   }
-  elsif($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
-     return $self;
-   }
-
-  print $sql;
+  my %DATA = $self->get_data($attr); 
+  $self->query($db, "INSERT INTO accounts (name, tax_number, bank_account, bank_name, cor_bank_account, bank_bic) 
+     VALUES ('$DATA{ACCOUNT_NAME}', '$DATA{TAX_NUMBER}', '$DATA{BANK_ACCOUNT}', '$DATA{BANK_NAME}', '$DATA{COR_BANK_ACCOUNT}', 
+      '$DATA{BANK_BIC}');", 'do');
 
   return $self;
 }
@@ -85,7 +64,7 @@ sub change {
   my $self = shift;
   my ($account_id, $attr) = @_;
 
-  my $name = (defined($attr->{NAME})) ? $attr->{NAME} : '';
+  my $name = (defined($attr->{ACCOUNT_NAME})) ? $attr->{ACCOUNT_NAME} : '';
   
   if ($name eq '') {
     $self->{errno} = 8;

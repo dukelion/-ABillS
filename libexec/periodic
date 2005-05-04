@@ -154,7 +154,7 @@ while(($uid, $sum)=each(%USERS)) {
      my  $activdate = "and activate=curdate() ";
     }
 
-  get_fees($uid, $sum, "$_MONTH_PAY", { deposit =>  $LAST_DEPOSIT{$uid} });
+  get_fees($uid, $sum, "$_DAY_FEE", { deposit =>  $LAST_DEPOSIT{$uid} });
 }
 
 }
@@ -174,7 +174,12 @@ WHERE users.variant=variant.vrnt and df > 0 and deposit+credit > 0
 
 log_print('LOG_SQL', "$sql");
 my $q = $db->prepare( $sql ) || die $db->errstr;
-$res = $q->execute ();
+$q->execute();
+
+if ($q->rows == 0) {
+  return 0;	
+}
+
 
 my %USERS = ();
 my %LAST_DEPOSIT = ();
@@ -183,12 +188,9 @@ while(my($login, $uid, $d_abon, $deposit) = $q -> fetchrow_array()) {
   $LAST_DEPOSIT{$uid}=$deposit;
 };
 
-if ($q->rows == 0) {
-  return 0;	
-}
 
 while(($uid, $sum)=each(%USERS)) {
-  get_fees($uid, $sum, "$_DAY_PAY", { deposit =>  $LAST_DEPOSIT{$uid} });
+  get_fees($uid, $sum, "$_DAY_FEE", { deposit =>  $LAST_DEPOSIT{$uid} });
 }
 
 }
@@ -544,12 +546,12 @@ sub get_fees {
      return -1;
     }
    ($login, $deposit)=$q -> fetchrow();
-  } 
+  }
  else {
-   $deposut = $attr->{deposit};
+   $deposit = $attr->{deposit};
   }
 
-
+ 
  $sql = "UPDATE users set deposit=deposit-$sum WHERE uid='$uid';";
  log_print('LOG_SQL', "$sql");
  $db -> do ($sql) || die $db->errstr;
