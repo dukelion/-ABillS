@@ -67,17 +67,6 @@ CREATE TABLE admin_actions (
   KEY uid (uid)
 ) TYPE=MyISAM;
 
---
--- Table structure for table 'admin_permits'
---
-
-CREATE TABLE admin_permits (
-  aid smallint(6) unsigned NOT NULL default '0',
-  section smallint(6) unsigned NOT NULL default '0',
-  actions smallint(6) unsigned NOT NULL default '0'
-) TYPE=MyISAM;
-
---
 -- Table structure for table 'admins'
 --
 
@@ -659,4 +648,81 @@ INSERT INTO admins VALUES ('kaban','','2004-11-23','',0,6,'add, activ',0,'');
 INSERT INTO admins VALUES ('test','teststs','2005-04-29','NiåÚ¢ò±',0,8,'',0,'623547253723');
 INSERT INTO admins VALUES ('teststsdsdfs','asas','2005-04-29','h(|kê',0,10,'',0,'234523423423');
 INSERT INTO admins VALUES ('tetetet','askdjhasjkdks','2005-04-29','',0,11,'',1,'1235712312');
+
+-- MySQL dump 8.22
+--
+-- Host: localhost    Database: abills
+---------------------------------------------------------
+-- Server version	3.23.53-log
+
+--
+-- Table structure for table 'admin_permits'
+--
+
+CREATE TABLE admin_permits (
+  aid smallint(6) unsigned NOT NULL default '0',
+  section smallint(6) unsigned NOT NULL default '0',
+  actions smallint(6) unsigned NOT NULL default '0'
+) TYPE=MyISAM;
+
+--
+-- Dumping data for table 'admin_permits'
+--
+
+
+INSERT INTO admin_permits VALUES (8,0,2);
+INSERT INTO admin_permits VALUES (10,0,1);
+INSERT INTO admin_permits VALUES (5,0,4);
+INSERT INTO admin_permits VALUES (5,1,1);
+INSERT INTO admin_permits VALUES (5,1,3);
+INSERT INTO admin_permits VALUES (2,3,0);
+INSERT INTO admin_permits VALUES (2,2,3);
+INSERT INTO admin_permits VALUES (2,2,2);
+INSERT INTO admin_permits VALUES (2,2,1);
+INSERT INTO admin_permits VALUES (10,0,0);
+INSERT INTO admin_permits VALUES (1,4,0);
+INSERT INTO admin_permits VALUES (1,2,3);
+INSERT INTO admin_permits VALUES (1,2,2);
+INSERT INTO admin_permits VALUES (1,2,1);
+INSERT INTO admin_permits VALUES (1,2,0);
+INSERT INTO admin_permits VALUES (1,1,2);
+INSERT INTO admin_permits VALUES (1,1,1);
+INSERT INTO admin_permits VALUES (1,1,0);
+INSERT INTO admin_permits VALUES (1,0,6);
+INSERT INTO admin_permits VALUES (1,0,5);
+INSERT INTO admin_permits VALUES (1,0,4);
+INSERT INTO admin_permits VALUES (1,0,3);
+INSERT INTO admin_permits VALUES (0,0,0);
+INSERT INTO admin_permits VALUES (8,0,1);
+INSERT INTO admin_permits VALUES (8,0,0);
+INSERT INTO admin_permits VALUES (2,2,0);
+INSERT INTO admin_permits VALUES (2,1,3);
+INSERT INTO admin_permits VALUES (2,1,2);
+INSERT INTO admin_permits VALUES (2,1,1);
+INSERT INTO admin_permits VALUES (2,1,0);
+INSERT INTO admin_permits VALUES (2,0,6);
+INSERT INTO admin_permits VALUES (2,0,5);
+INSERT INTO admin_permits VALUES (2,0,4);
+INSERT INTO admin_permits VALUES (2,0,3);
+INSERT INTO admin_permits VALUES (2,0,2);
+INSERT INTO admin_permits VALUES (2,0,1);
+INSERT INTO admin_permits VALUES (2,0,0);
+INSERT INTO admin_permits VALUES (1,0,2);
+INSERT INTO admin_permits VALUES (0,0,0);
+INSERT INTO admin_permits VALUES (8,0,3);
+INSERT INTO admin_permits VALUES (8,0,4);
+INSERT INTO admin_permits VALUES (8,0,5);
+INSERT INTO admin_permits VALUES (8,0,6);
+INSERT INTO admin_permits VALUES (10,0,2);
+INSERT INTO admin_permits VALUES (10,0,3);
+INSERT INTO admin_permits VALUES (10,0,4);
+INSERT INTO admin_permits VALUES (11,2,0);
+INSERT INTO admin_permits VALUES (11,2,1);
+INSERT INTO admin_permits VALUES (11,2,2);
+INSERT INTO admin_permits VALUES (2,4,0);
+INSERT INTO admin_permits VALUES (2,4,1);
+INSERT INTO admin_permits VALUES (2,5,0);
+INSERT INTO admin_permits VALUES (2,5,1);
+INSERT INTO admin_permits VALUES (1,0,1);
+INSERT INTO admin_permits VALUES (1,0,0);
 
