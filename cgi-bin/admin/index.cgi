@@ -72,6 +72,7 @@ my %permissions = ();
 #**********************************************************
 #print "Content-type: test/html\n\n";
 if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
+  use Abills::Base;
   $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
   my ($REMOTE_USER,$REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));  
 
@@ -137,7 +138,7 @@ print "<table border=0 width=100%>
 <tr bgcolor=$_COLORS[3]><td colspan=2>$_DATE: Admin: <a href='$SELF_URL?index='>$admin->{A_LOGIN}</a> / Online: </td></tr>
 <tr><td valign=top width=200 bgcolor=$_COLORS[2] rowspan=2><p>\n";
 print $html->menu(1, 'op', "", $main_menu, $sub_menu);
-sub_menu($index);
+my $sub_menus = sub_menu($index);
 
 
 ######################################
@@ -157,6 +158,12 @@ print "</td></tr><tr><td valign=top>";
 
 if ($functions{$index}) {
   $OP = $op_names{$index};
+  
+  while(my($k, $v) = each %$sub_menus ) {
+  	 print "<a  href='$SELF_URL?index=$k'>$v</a> :: ";
+   }
+  print "<br>\n";
+  
   $functions{$index}->();
 }
 else {
@@ -1881,12 +1888,28 @@ foreach my $line (@$list) {
     $line->[3],  $delete);
 }
 print $table->show();
-
-
-
-	
 }
 
+#**********************************************************
+# form_nas_stats()
+#**********************************************************
+sub form_nas_stats {
+my $nas = Nas->new($db);	
+
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => ["NAS", "NAS_PORT", "$_SESSIONS", "$_LAST_LOGIN", "$_AVG", "$_MIN", "$_MAX"],
+                                   cols_align => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                  } );
+my $list = $nas->stats({ %LIST_PARAMS });	
+
+foreach my $line (@$list) {
+  $table->addrow("<a href='$SELF_URL?index=60&nid=$line->[7]'>$line->[0]</a>", 
+     $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], $line->[6] );
+}
+
+print $table->show();
+}
 
 
 
@@ -2021,10 +2044,10 @@ $functions{51}=\&form_changes;
 
 $menu_items{60}{5}=$_NAS;
 $functions{60}=\&form_nas;
-
 $menu_items{61}{60}="IP POOLs";
 $functions{61}=\&form_ip_pools;
 $menu_items{62}{60}=$_NAS_STATISTIC;
+$functions{62}=\&form_nas_stats;
 
 #exchange_rate
 $menu_items{65}{5}=$_EXCHANGE_RATE;
@@ -2215,20 +2238,23 @@ foreach my $parent (@menu_sorted) {
 }
 
 
-
+#**********************************************************
+# sub_menu($root_index)
+#
+#**********************************************************
 sub sub_menu {
   my $root_index = shift;
   
   return 0 if ($root_index < 1);
-
+  
 print "<br><hr>\n";
-my  %new_hash = ();
+my %new_hash = ();
+my %sub_menus = ();
 while((my($findex, $hash)=sort each(%menu_items))) {
   while(my($k, $val)=each %$hash) {
     $new_hash{$k}{$findex}=$val;
    }
 }
-
 
   if (defined($new_hash{$root_index})) {
     $level++;
@@ -2239,6 +2265,7 @@ while((my($findex, $hash)=sort each(%menu_items))) {
       while(my($k, $val)=each %$mi) {
       	$val = ($index eq $k) ?  "<b>$val</b>" : $val;
         print "$prefix $level: <a href='$SELF_URL?index=$k'>$val</a><br>\n";
+        $sub_menus{$k}=$val;
         if (defined($new_hash{$k})) {
       	   $mi = $new_hash{$k};
       	   $level++;
@@ -2261,7 +2288,7 @@ while((my($findex, $hash)=sort each(%menu_items))) {
    }
 
 
-	
+	return \%sub_menus;
 }
 
 
@@ -2760,25 +2787,6 @@ sub form_period () {
 }
 
 
-
-#**********************************************************
-# decode_base64()
-#**********************************************************
-sub decode_base64 {
-    local($^W) = 0; # unpack("u",...) gives bogus warning in 5.00[123]
-    my $str = shift;
-    my $res = "";
-
-    $str =~ tr|A-Za-z0-9+=/||cd;            # remove non-base64 chars
-    $str =~ s/=+$//;                        # remove padding
-    $str =~ tr|A-Za-z0-9+/| -_|;            # convert to uuencoded format
-    while ($str =~ /(.{1,60})/gs) {
-        my $len = chr(32 + length($1)*3/4); # compute length byte
-        $res .= unpack("u", $len . $1 );    # uudecode
-    }
-
-    return $res;
-}
 
 
 
