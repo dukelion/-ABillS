@@ -70,19 +70,28 @@ my %permissions = ();
 #    Options Indexes ExecCGI FollowSymLinks
 #
 #**********************************************************
-#print "content-type: test/html\n\n";
+#print "Content-type: test/html\n\n";
 if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
   $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
   my ($REMOTE_USER,$REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));  
 
   if (check_permissions("$REMOTE_USER", "$REMOTE_PASSWD") == 1) {
     print "WWW-Authenticate: Basic realm=\"Billing system\"\n";
-    print "Status: 401 Unauthorized\n\n";
+    print "Status: 401 Unauthorized\n";
    }
 }
 else {
-  check_permissions('asm', 'test123');
+  check_permissions('asm', 'test1r');
 }
+
+#asm test123
+#'mike', 'B6zgB8uh'
+if ($admin->{errno}) {
+  print "Content-type: test/html\n\n";
+  message('err', $_ERROR, "Access Deny"); #$err_strs{$admin->{errno}}");
+  exit;
+}
+
 
 if (defined($FORM{colors})) {
   my $cook_colors = (defined($FORM{default})) ?  '' : $FORM{colors};
@@ -90,13 +99,6 @@ if (defined($FORM{colors})) {
  }
 #$html->setCookie('language', '$FORM{language}', "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{language}));
 #$html->setCookie('opid', "$FORM{opid}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
-
-#asm test123
-#'mike', 'B6zgB8uh'
-if ($admin->{errno}) {
-  message('err', $_ERROR, "Access Deny"); #$err_strs{$admin->{errno}}");
-  exit;
-}
 print $html->header();
 
 my @sections = ($_USERS, 
@@ -245,118 +247,88 @@ print $html->pages($total, "op=users$pages_qs");
 
 
 #**********************************************************
-# account_info
-#**********************************************************
-sub account_info {
-  my ($aacount) = @_;
-
-print << "[END]";
-<form action=$SELF_URL METHOD=POST>
-<input type=hidden name=op value='accounts'>
-<input type=hidden name=chg value='$FORM{chg}'>
-<Table>
-<tr><td>$_NAME:</td><td><input type=text name=name value="$account->{ACCOUNT_NAME}"></td></tr>
-<tr bgcolor=$_BG1><td>$_DEPOSIT:</td><td>$account->{DEPOSIT}</td></tr>
-<tr bgcolor=$_BG1><td>$_TAX_NUMBER:</td><td><input type=text name=tax_number value='$account->{TAX_NUMBER}' size=60></td></tr>
-<tr bgcolor=$_BG1><td>$_ACCOUNT:</td><td><input type=text name=bank_account value='$account->{BANK_ACCOUNT}' size=60></td></tr>
-<tr bgcolor=$_BG1><td>$_BANK_NAME:</td><td><input type=text name=bank_name value='$account->{BANK_NAME}' size=60></td></tr>
-<tr bgcolor=$_BG1><td>$_COR_BANK_ACCOUNT:</td><td><input type=text name=cor_bank_account value='$account->{COR_BANK_ACCOUNT}' size=60></td></tr>
-<tr bgcolor=$_BG1><td>$_BANK_BIC:</td><td><input type=text name=bank_bic value='$account->{BANK_BIC}' size=60></td></tr>
-</table>
-<input type=submit name=$action[0] value='$action[1]'>
-</form>
-<hr>
-[END]
-}
-
-#**********************************************************
 # form_customers
 #**********************************************************
 sub form_accounts {
-  $name = $FORM{name};
-  $tax_number = $FORM{tax_number};
-  $bank_account = $FORM{bank_account};
-  $bank_name = $FORM{bank_name}; 
-  $cor_bank_account = $FORM{cor_bank_account}; 
-  $bank_bic = $FORM{cor_bank_account};
-
   use Customers;	
   my $customer = Customers->new($db);
+  $account = $customer->account();
 
+  $account->{ACTION}='add';
+  $account->{LNG_ACTION}=$_ADD;
 
 if ($FORM{add}) {
-  my $account =  $customer->account->add({ NAME => $name,
-                     TAX_NUMBER => $tax_number,
-                     BANK_ACCOUNT => $bank_account,
-                     BANK_NAME => $bank_name, 
-                     COR_BANK_ACCOUNT => $cor_bank_account,
-                     BANK_BIC => $bank_bic
+  $account->add({ NAME => $FORM{ACCOUNT_NAME},
+                  TAX_NUMBER => $FORM{TAX_NUMBER},
+                  BANK_ACCOUNT => $FORM{BANK_ACCOUNT},
+                  BANK_NAME => $FORM{BANK_NAME}, 
+                  COR_BANK_ACCOUNT => $FORM{COR_BANK_ACCOUNT},
+                  BANK_BIC => $FORM{BANK_BIC}
            });
  
-  if ($account->{errno}) {
-    message('err', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
-   }
-  else {
+  if (! $account->{errno}) {
     message('info', $_ADDED, "$_ADDED");
    }
  }
 elsif($FORM{change}) {
-  $customer->account->change($FORM{chg} , { NAME => $name,
-                     TAX_NUMBER => $tax_number,
-                     BANK_ACCOUNT => $bank_account,
-                     BANK_NAME => $bank_name, 
-                     COR_BANK_ACCOUNT => $cor_bank_account,
-                     BANK_BIC => $bank_bic } );
+  $account->change($FORM{chg} , { NAME => $FORM{ACCOUNT_NAME},
+                   TAX_NUMBER => $FORM{TAX_NUMBER},
+                   BANK_ACCOUNT => $FORM{BANK_ACCOUNT},
+                   BANK_NAME => $FORM{BANK_NAME}, 
+                   COR_BANK_ACCOUNT => $FORM{COR_BANK_ACCOUNT},
+                   BANK_BIC => $FORM{BANK_BIC} } );
 
-  if ($account->{errno}) {
-    message('info', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
-   }
-  else {
-    message('info', $_INFO, $_CHANGED. " # $name<br>");
+  if (! $account->{errno}) {
+    message('info', $_INFO, $_CHANGED. " # $account->{ACCOUNT_NAME}");
    }
 
  }
 elsif($FORM{chg}) {
-  $account = $customer->account->info($FORM{chg});
+  $account->info($FORM{chg});
 
-  if ($account->{errno}) {
-    message('info', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
-   }
-  else {
+  if (! $account->{errno}) {
     message('info', $_INFO, $_CHANGING. " # $_NAME: $name<br>");
-    @action = ('change', $_CHANGE);
-    account_info($account);
+    $account->{ACTION}='change';
+    $account->{LNG_ACTION}=$_CHANGE;
+    Abills::HTML->tpl_show(templates('form_account'), $account);
     print "<a href='$SELF_URL?index=11&account_id=$FORM{chg}'>$_ADD_USER</a>";
     $FORM{account_id} = $FORM{chg};
     form_users();
    }
  }
 elsif($FORM{del}) {
-   $customer->account->del( $FORM{del} );
+   $account->del( $FORM{del} );
    message('info', $_INFO, "$_DELETED # $FORM{del}");
  }
 else {
- account_info();
 
-my $table = Abills::HTML->table( { width => '100%',
+  Abills::HTML->tpl_show(templates('form_account'), $account);
+
+  my $list = $account->list( { %LIST_PARAMS } );
+  my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => [$_NAME, $_DEPOSIT, $_USERS, '-', '-'],
                                    cols_align => ['left', 'right', 'right', 'center', 'center'],
+                                   pages => $account->{TOTAL},
+                                   qs => $pages_qs
                                   } );
 
-my ($accounts_list, $total) = $customer->account->list( { %LIST_PARAMS } );
-foreach my $line (@$accounts_list) {
-  $table->addrow($line->[0],  $line->[1], "<a href='$SELF_URL?op=users&account_id=$line->[3]'>$line->[2]</a>", 
-    "<a href='$SELF_URL?op=accounts&chg=$line->[3]'>$_INFO</a>", $html->button($_DEL, "op=accounts&del=$line->[3]", "$_DEL ?"));
+  foreach my $line (@$list) {
+    $table->addrow($line->[0],  $line->[1], "<a href='$SELF_URL?op=users&account_id=$line->[3]'>$line->[2]</a>", 
+      "<a href='$SELF_URL?op=accounts&chg=$line->[3]'>$_INFO</a>", $html->button($_DEL, "op=accounts&del=$line->[3]", "$_DEL ?"));
+   }
+  print $table->show();
+
+  $table = Abills::HTML->table( { width => '100%',
+                                cols_align => ['right', 'right'],
+                                rows => [ [ "$_TOTAL:", "<b>$account->{TOTAL}</b>" ] ]
+                               } );
+  print $table->show();
 }
 
-print $html->pages($total, "op=users$pages_qs");
-print $table->show();
-print $html->pages($total, "op=users$pages_qs");
-
-}
-
-
+  if ($account->{errno}) {
+    message('info', $_ERROR, "[$account->{errno}] $err_strs{$account->{errno}}");
+   }
 
 }
 
@@ -1244,6 +1216,26 @@ return qq{
 };
 
 }
+elsif ($tpl_name eq 'form_account') {
+return qq{	
+<form action=$SELF_URL METHOD=POST>
+<input type=hidden name=op value='accounts'>
+<input type=hidden name=chg value='%ACCOUNT_ID%'>
+<Table>
+<tr><td>$_NAME:</td><td><input type=text name=ACCOUNT_NAME value="%ACCOUNT_NAME%"></td></tr>
+<tr bgcolor=$_BG1><td>$_DEPOSIT:</td><td>%DEPOSIT%</td></tr>
+<tr bgcolor=$_BG1><td>$_TAX_NUMBER:</td><td><input type=text name=TAX_NUMBER value='%TAX_NUMBER%' size=60></td></tr>
+<tr bgcolor=$_BG1><td>$_ACCOUNT:</td><td><input type=text name=BANK_ACCOUNT value='%BANK_ACCOUNT%' size=60></td></tr>
+<tr bgcolor=$_BG1><td>$_BANK_NAME:</td><td><input type=text name=BANK_NAME value='%BANK_NAME%' size=60></td></tr>
+<tr bgcolor=$_BG1><td>$_COR_BANK_ACCOUNT:</td><td><input type=text name=COR_BANK_ACCOUNT value='%COR_BANK_ACCOUNT%' size=60></td></tr>
+<tr bgcolor=$_BG1><td>$_BANK_BIC:</td><td><input type=text name=BANK_BIC value='%BANK_BIC%' size=60></td></tr>
+</table>
+<input type=submit name='%ACTION%' value='%LNG_ACTION%'>
+</form>
+<hr>
+}
+
+}
 elsif ($tpl_name eq 'form_ip_pools') {
 return qq{
 <form action=$SELF_URL METHOD=post>
@@ -1845,7 +1837,7 @@ Abills::HTML->tpl_show(templates('form_nas'), $nas);
 my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", '-', '-', '-'],
-                                   cols_align => ['center', 'left', 'left', 'right', 'left', 'left']
+                                   cols_align => ['center', 'left', 'left', 'right', 'left', 'left'],
                                   } );
 
 my $list = $nas->list({ %LIST_PARAMS });
@@ -1919,7 +1911,7 @@ my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
                                    title => ["NAS", "$_BEGIN", "$_END", "$_COUNT", '-'],
                                    cols_align => ['left', 'right', 'right', 'right', 'center'],
-                                   qs => $pages_qs                                   
+                                   qs => $pages_qs              
                                   } );
 
 my $list = $nas->ip_pools_list({ %LIST_PARAMS });	
