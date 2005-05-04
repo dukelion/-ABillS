@@ -25,6 +25,7 @@ $VERSION = 2.00;
   &int2ml
   &show_log
   &mk_unique_value
+  &decode_base64
   %variants
   %intervals
   %int
@@ -461,6 +462,25 @@ sub ppp_acct {
  return %res;
 }
 
+
+#**********************************************************
+# decode_base64()
+#**********************************************************
+sub decode_base64 {
+    local($^W) = 0; # unpack("u",...) gives bogus warning in 5.00[123]
+    my $str = shift;
+    my $res = "";
+
+    $str =~ tr|A-Za-z0-9+=/||cd;            # remove non-base64 chars
+    $str =~ s/=+$//;                        # remove padding
+    $str =~ tr|A-Za-z0-9+/| -_|;            # convert to uuencoded format
+    while ($str =~ /(.{1,60})/gs) {
+        my $len = chr(32 + length($1)*3/4); # compute length byte
+        $res .= unpack("u", $len . $1 );    # uudecode
+    }
+
+    return $res;
+}
 
 
 

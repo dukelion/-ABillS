@@ -22,6 +22,10 @@ my %conf = ();
 $conf{max_username_length} = 10;
 
 
+use main;
+@ISA  = ("main");
+
+
 my $db;
 my $uid;
 my $admin;
@@ -39,18 +43,6 @@ sub new {
 }
 
 
-
-#**********************************************************
-# get_params()
-#**********************************************************
-sub get_params {
- my ($attr) = @_;
- 
-# while(my($k, $v))
-  
-}
-
-
 #**********************************************************
 # User information
 # info()
@@ -59,29 +51,21 @@ sub info {
   my $self = shift;
   ($uid) = shift;
 
-  my $sql = "SELECT u.id, u.fio, u.phone, u.address, u.email, u.activate, u.expire, u.credit, u.reduction, 
+  $self->query($db, "SELECT u.id, u.fio, u.phone, u.address, u.email, u.activate, u.expire, u.credit, u.reduction, 
             u.variant, u.logins, u.registration, u.disable,
             INET_NTOA(u.ip), INET_NTOA(u.netmask), u.speed, u.filter_id, u.cid, u.comments, u.account_id,
             if(acct.name IS NULL, 'N/A', acct.name), if(acct.name IS NULL, u.deposit, acct.deposit), tp.name, u.gid
      FROM users u
      LEFT JOIN accounts acct ON (u.account_id=acct.id)
      LEFT JOIN variant tp ON (u.variant=tp.vrnt)
-     WHERE uid='$uid';";
- 
-  my $q = $db->prepare($sql);
-  $q ->execute(); 
+     WHERE uid='$uid';");
 
-
-  if($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
-     return $self;
-   }
-  elsif ($q->rows < 1) {
+  if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
+  my $ar = $self->{list}->[0];
 
   ($self->{LOGIN}, 
    $self->{FIO}, 
@@ -105,13 +89,9 @@ sub info {
    $self->{ACCOUNT_NAME},
    $self->{DEPOSIT},
    $self->{TP_NAME},
-   $self->{GID} )= $q->fetchrow();
+   $self->{GID} )= @$ar;
    $self->{UID} = $uid;
   
-#   if ($self->{ACCOUNT_ID} > 0) {
-#     use Accounts ;
-#    }
-#   $self->test();
   
   return $self;
 }
@@ -158,31 +138,26 @@ sub list {
     $WHERE .= ($WHERE ne '') ?  " and u.gid='$attr->{GID}' " : "WHERE u.gid='$attr->{GID}' ";
   }
 
- 
- my $q = $db->prepare("SELECT count(u.id) FROM users u $WHERE");
- 
- $q ->execute(); 
- ($self->{TOTAL}) = $q->fetchrow();
-
 # print "SELECT u.id, u.fio, u.deposit, u.credit, v.name, u.uid 
 #     FROM users u
 #     LEFT JOIN  variant v ON  (v.vrnt=u.variant) 
 #     $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;";
  
- $q = $db->prepare("SELECT u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, v.name, u.uid 
+ $self->query($db, "SELECT u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, v.name, u.uid 
      FROM users u
      LEFT JOIN  variant v ON  (v.vrnt=u.variant) 
      LEFT JOIN  accounts acct ON  (u.account_id=acct.id) 
-     $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;") || die $db->errstr;
+     $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
- $q ->execute(); 
+ my $list = $self->{list};
 
- while(my @row = $q->fetchrow()) {
-   push @list, \@row;
-  }
+ if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT count(u.id) FROM users u $WHERE");
+    my $a_ref = $self->{list}->[0];
+    ($self->{TOTAL}) = @$a_ref;
+   }
 
-  $self->{list} = \@list;
-  return $self->{list};
+  return $list;
 }
 
 
@@ -399,14 +374,7 @@ if ($CHANGES_QUERY eq '') {
 sub del {
   my $self = shift;
 
-  my $sql = "DELETE FROM users WHERE uid='$uid';";
-  my $q = $db->do($sql); 
-
-  if($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
-     return $self;
-   }
+  $self->query($db, "DELETE FROM users WHERE uid='$uid';". 'do');
 
   $admin->action_add($uid, "DELETE");
   return $self->{result};
@@ -424,13 +392,10 @@ sub nas_list {
   my $q = $db->prepare($sql) || die $db->strerr;
   $q ->execute();
 
-
-
   if ($q->rows > 0) {
     while(my ($nas) = $q->fetchrow()) {
       push @nas_list, $nas;
      }
-
    }
   else {
     $sql="SELECT nas_id FROM vid_nas WHERE vid='$self->{TARIF_PLAN}';";
