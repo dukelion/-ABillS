@@ -257,3 +257,4 @@ $_ADD_USER='Добавить пользователя';
 $_CREDIT_TRESSHOLD='Несъёмный минимум';
 $_SERVICES='Сервисы';
 $_FUNCTIONS_LIST='Операции';
+$_COMPANY='Компании';

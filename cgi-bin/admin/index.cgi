@@ -1978,7 +1978,7 @@ $op_names{11}='';
 $functions{11}=\&user_form;
 
 
-$menu_items{13}{1}=$_ACCOUNTS;
+$menu_items{13}{1}=$_COMPANY;
 $op_names{13}='accounts';
 $functions{13}=\&form_accounts;
 
