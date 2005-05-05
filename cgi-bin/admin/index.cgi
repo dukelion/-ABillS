@@ -2124,8 +2124,8 @@ if ($root_index > 0) {
   my $ri = $root_index-1;
   if (! defined($permissions{$ri})) {
 	  message('err', $_ERROR, "Access deny");
-	  exit 0;
-  }
+#	  exit 0;
+   }
 }
 
 my %main_menu = ();
