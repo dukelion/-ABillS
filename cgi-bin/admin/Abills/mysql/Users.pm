@@ -29,7 +29,7 @@ use main;
 my $db;
 my $uid;
 my $admin;
-#my %DATA = ();
+my %DATA = ();
 
 #**********************************************************
 # Init 
@@ -93,6 +93,39 @@ sub info {
    $self->{UID} = $uid;
   
   
+  return $self;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub defaults {
+  my $self = shift;
+
+  %DATA = ( LOGIN => '', 
+   FIO => '', 
+   PHONE => '', 
+   ADDRESS => '', 
+   EMAIL => '', 
+   ACTIVATE => '0000-00-00', 
+   EXPIRE => '0000-00-00', 
+   CREDIT => 0, 
+   REDUCTION => '0.00', 
+   TARIF_PLAN => 0, 
+   SIMULTANEONSLY => 0, 
+   DISABLE => 0, 
+   IP => '0.0.0.0', 
+   NETMASK => '255.255.255.255', 
+   SPEED => 0, 
+   FILTER_ID => '', 
+   CID => '', 
+   COMMENTS => '', 
+   ACCOUNT_ID => 0,
+   DEPOSIT => 0,
+   GID => 0 );
+
+ 
+  $self = \%DATA;
   return $self;
 }
 
@@ -374,7 +407,7 @@ if ($CHANGES_QUERY eq '') {
 sub del {
   my $self = shift;
 
-  $self->query($db, "DELETE FROM users WHERE uid='$uid';". 'do');
+  $self->query($db, "DELETE FROM users WHERE uid='$self->{UID}';". 'do');
 
   $admin->action_add($uid, "DELETE");
   return $self->{result};

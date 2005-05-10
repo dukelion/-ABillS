@@ -185,26 +185,10 @@ elsif ($acct_status_type == 2) {
    }
 
   # Delete from session wtmp
-     $sql = "DELETE FROM  calls WHERE
+    $sql = "DELETE FROM  calls WHERE
       acct_session_id=\"$RAD{ACCT_SESSION_ID}\" and 
       user_name=\"$RAD{USER_NAME}\" and 
       nas_ip_address=INET_ATON('$RAD{NAS_IP_ADDRESS}');";
-
-  # Update session wtmp
-  #$sql = "UPDATE calls SET
-  #  status='$ACCT_TYPES{$RAD{ACCT_STATUS_TYPE}}',
-  #  nas_port_id='$ACCT_INFO{NAS_PORT}',
-  #  acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
-  #  acct_input_octets='$ACCT_INFO{INBYTE}',
-  #  acct_output_octets='$ACCT_INFO{OUTBYTE}',
-  #  ex_input_octets='$ACCT_INFO{INBYTE2}',
-  #  ex_output_octets='$ACCT_INFO{OUTBYTE2}',
-  #  framed_ip_address=INET_ATON('$RAD{FRAMED_IP_ADDRESS}'),
-  #  lupdated=UNIX_TIMESTAMP()
-  # WHERE
-  #  acct_session_id=\"$RAD{ACCT_SESSION_ID}\" and 
-  #  user_name=\"$RAD{USER_NAME}\" and 
-  #  nas_ip_address=INET_ATON('$RAD{NAS_IP_ADDRESS}');";
 
     log_print('LOG_SQL', "ACCT [$RAD{USER_NAME}] SQL: $sql");     
     $q = $db->do("$sql") || die $db->errstr;

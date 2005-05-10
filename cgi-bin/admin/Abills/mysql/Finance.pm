@@ -22,6 +22,10 @@ my $usernameregexp = "^[a-z0-9_][a-z0-9_-]*\$"; # configurable;
 my %conf = ();
 $conf{max_username_length} = 10;
 
+use main;
+@ISA  = ("main");
+
+
 
 my $db;
 my $uid;
@@ -224,7 +228,7 @@ sub list {
  $q = $db->prepare("SELECT p.id, u.id, p.date, p.sum, p.dsc, a.name, INET_NTOA(p.ip), p.last_deposit, p.uid 
     FROM payments p
     LEFT JOIN users u ON (u.uid=p.uid)
-    LEFT JOIN admins a ON (a.id=p.aid)
+    LEFT JOIN admins a ON (a.aid=p.aid)
     $WHERE 
     GROUP BY p.id
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;") || die $db->errstr;

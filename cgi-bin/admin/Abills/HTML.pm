@@ -408,7 +408,14 @@ sub table {
   }
  
  if (defined($attr->{pages})) {
- 	   $self->{pages} =  $self->pages($attr->{pages}, "op=$OP$attr->{qs}");
+ 	   my $op;
+ 	   if($FORM{index}) {
+ 	   	 $op = "index=$FORM{index}";
+ 	    }
+ 	   else {
+ 	   	 $op = "op=$OP";
+ 	    }
+ 	   $self->{pages} =  $self->pages($attr->{pages}, "$op$attr->{qs}");
 	 } 
  return $self;
 }

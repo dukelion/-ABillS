@@ -70,13 +70,16 @@ sub show_log {
 
  my $total  = 0;
  $total = $#err_recs;
-
  my $i = 0;
+ my @list;
  for ($i = $total; $i>=$total - $records; $i--) {
-    $output .= $err_recs[$i];
+    #$output .= $err_recs[$i];
+    push @list, $err_recs[$i];
    }
  
- print "$output";
+ #print "$output";
+
+ return \@list;
 } 
 
 

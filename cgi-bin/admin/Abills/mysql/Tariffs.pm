@@ -465,4 +465,49 @@ sub create_tt_file {
  return $self;
 }
 
+
+#**********************************************************
+# holidays_list
+#**********************************************************
+sub holidays_list {
+	my $self = shift;
+  my ($attr) = @_;
+
+  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+
+  $self->query($db, "SELECT day, descr FROM holidays ORDER BY $SORT $DESC;");
+	return $self->{list};
+}
+
+
+#**********************************************************
+# holidays_list
+#**********************************************************
+sub holidays_add {
+	my $self = shift;
+	my ($attr)=@_;
+	
+	$DATA{MONTH} = (defined($attr->{MONTH})) ? $attr->{MONTH} : 1;
+	$DATA{DAY} = (defined($attr->{DAY})) ? $attr->{DAY} : 1;
+	
+	$self->query($db,"INSERT INTO holidays (day)
+       VALUES ('$DATA{MONTH}-$DATA{DAY}');", 'do');
+
+  return $self;
+}
+
+
+#**********************************************************
+# holidays_list
+#**********************************************************
+sub holidays_del {
+	my $self = shift;
+  my ($id) = @_;
+	$self->query($db, "DELETE from holidays WHERE day='$id';", 'do');
+  return $self;
+}
+
+
 1

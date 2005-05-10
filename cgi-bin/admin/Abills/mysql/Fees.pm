@@ -20,6 +20,9 @@ my $db;
 my $uid;
 my $admin;
 #my %DATA = ();
+use main;
+@ISA  = ("main");
+
 
 #**********************************************************
 # Init 
@@ -29,6 +32,7 @@ sub new {
   ($db, $admin) = @_;
   my $self = { };
   bless($self, $class);
+  $self->{debug}=1;
   return $self;
 }
 
@@ -101,24 +105,21 @@ sub del {
   my $self = shift;
   my ($user, $id) = @_;
 
-  
-  my $sql = "SELECT sum from fees WHERE id='$id';";
-  my $q = $db->prepare($sql); 
-  $q ->execute(); 
+  $self->query($db, "SELECT sum from fees WHERE id='$id';");
 
-  if ($q->rows < 1) {
+  if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
-  elsif($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
+  elsif($self->{errno}) {
      return $self;
    }
-  my($sum) = $q->fetchrow();
 
+  my $a_ref = $self->{list}->[0];
+  my($sum) = @$a_ref;
 
+  my $sql;
   if ($user->{ACCOUNT_ID} > 0) {
     $sql = "UPDATE accounts SET deposit=deposit+$sum WHERE id='$user->{ACCOUNT_ID}';";	
    }
@@ -126,21 +127,9 @@ sub del {
     $sql = "UPDATE users SET deposit=deposit+$sum WHERE uid='$user->{UID}';";	
    }
 
-  $q = $db->do($sql); 
-  if($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
-     return $self;
-   }
+  $self->query($db, "$sql", 'do');
 
-  $sql = "DELETE FROM fees WHERE id='$id';";
-  $q = $db->do($sql); 
-
-  if($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
-     return $self;
-   }
+  $self->query($db, "DELETE FROM fees WHERE id='$id';", 'do');
 
   $admin->action_add($user->{UID}, "DELETE FEES SUM: $sum");
   return $self->{result};
@@ -171,27 +160,24 @@ sub list {
     $WHERE .= ($WHERE ne '') ?  " and f.aid='$attr->{AID}' " : "WHERE f.aid='$attr->{AID}' ";
   }
 
- my $q = $db->prepare("SELECT count(f.id), sum(f.sum) FROM fees f $WHERE");
- 
- $q ->execute(); 
- ($self->{TOTAL}, $self->{SUM}) = $q->fetchrow();
-
- $q = $db->prepare("SELECT f.id, u.id, f.date, f.sum, f.dsc, a.name, INET_NTOA(f.ip), f.last_deposit, f.uid 
+ $self->query($db, "SELECT f.id, u.id, f.date, f.sum, f.dsc, a.name, INET_NTOA(f.ip), f.last_deposit, f.uid 
     FROM fees f
     LEFT JOIN users u ON (u.uid=f.uid)
-    LEFT JOIN admins a ON (a.id=f.aid)
+    LEFT JOIN admins a ON (a.aid=f.aid)
     $WHERE 
     GROUP BY f.id
-    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;") || die $db->errstr;
+    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
- $q ->execute(); 
- 
- while(my @row = $q->fetchrow()) {
-   push @list, \@row;
-  }
+  my $list = $self->{list};
 
-  $self->{list} = \@list;
-  return $self->{list};
+
+ $self->query($db, "SELECT count(f.id), sum(f.sum) FROM fees f $WHERE");
+ my $a_ref = $self->{list}->[0];
+
+ ($self->{TOTAL}, 
+  $self->{SUM}) = @$a_ref;
+
+  return $list;
 }
 
 
