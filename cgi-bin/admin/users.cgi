@@ -461,7 +461,6 @@ sub errlog {
   print "<h3>$_ERROR_LOG</h3>\n";
 
   print "<table><tr><td>";
-
   my $logfile = "/usr/abills/var/log/abills.log";
 if ($uid) {
   print "<br><b>$_USER:</b> $login_link<br>
@@ -4116,13 +4115,21 @@ sub sql_online {
         $nas_num = $NAS_INFO->{$nas_ip_address};
         $sql = "INSERT INTO log (id, login, variant, duration, sent, recv, minp, kb,  sum, nas_id, port_id, ".
           "ip, CID, sent2, recv2, acct_session_id) VALUES ('$username', FROM_UNIXTIME($started), ".
-          "'$variant', '$RAD{ACCT_SESSION_TIME}', '$ACCT_INFO{OUTBYTE}', '$ACCT_INFO{INBYTE}', ".
+          "'$variant', '$ACCT_INFO{ACCT_SESSION_TIME}', '$ACCT_INFO{OUTBYTE}', '$ACCT_INFO{INBYTE}', ".
           "'$time_t', '$traf_t', '$sum', '$nas_num', ".
           "'$nas_port_id', INET_ATON('$framed_ip_address'), '$CID', ".
           "'$ACCT_INFO{OUTBYTE2}', '$ACCT_INFO{INBYTE2}',  \"$FORM{tolog}\");";
 
-        log_print('LOG_SQL', "$sql");
-        $q = $db->do($sql) || die $db->errstr;
+       log_print('LOG_SQL', "$sql");
+       $q = $db->do($sql) || die $db->errstr;
+       
+ 
+       if ($sum > 0) {
+         $sql = "UPDATE users SET deposit=deposit-$sum WHERE id='$username';";
+         log_print('LOG_SQL', "$sql");
+         $q = $db->do($sql) || die $db->errstr;
+        }
+      
        }
 
      	$sql = "DELETE FROM calls WHERE nas_ip_address=INET_ATON('$FORM{nas_ip_address}')
