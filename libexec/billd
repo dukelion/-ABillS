@@ -13,7 +13,7 @@ Base->import();
 require $Bin.'/config.pl';
 require $Bin.'/sql.pl';
 require $Bin.'/nas.pl';
-my $alive_interval = 30;
+my $alive_interval = 60;
 
 parse_arguments(@ARGV);
 my $rc  = $db->disconnect;
