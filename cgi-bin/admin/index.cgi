@@ -427,6 +427,10 @@ if($uid > 0) {
     form_payments({ USER => $user_info });
     return 0;
    }
+  elsif($index == 22) {
+  	show_sessions({ USER => $user_info });
+  	return 0;
+   } 
   elsif($OP eq 'fees') {
     form_fees({ USER => $user_info });
     return 0;
@@ -527,7 +531,7 @@ if($uid > 0) {
 print "</td><td bgcolor=$_COLORS[3] valign=top width=180>
 <table width=100% border=0><tr><td>
       <li><a href='$SELF?op=users&uid=$uid'>$_USER</a>
-      <li><a href='$SELF?op=stats&uid=$uid'>$_STATS</a>
+      <li><a href='$SELF?index=22&uid=$uid'>$_STATS</a>
       <li><a href='$SELF?op=payments&uid=$uid'>$_PAYMENTS</a>
       <li><a href='$SELF?op=fees&uid=$uid'>$_FEES</a>
       <li><a href='$SELF?index=40&uid=$uid'>$_ERROR_LOG</a>
@@ -2027,6 +2031,74 @@ foreach my $line (@$list) {
 print $table->show();
 }
 
+
+#**********************************************************
+# stats
+#**********************************************************
+sub show_sessions {
+	my ($attr) = @_;
+
+
+	my $pages_qs;
+ 
+ 
+if (defined($attr->{USER}))	{
+	my $user = $attr->{USER};
+	$pages_qs = "&uid=$user->{UID}";
+	
+}
+elsif($FORM{uid}) {
+	form_users();
+	return 0;
+}	
+	
+use Sessions;
+my $sessions = Sessions->new($db);
+
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
+                                    "CID", "NAS", "IP", "$_SUM", "-", "-"],
+                                   cols_align => ['left', 'right', 'right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
+                                   qs => $pages_qs,
+                                   pages => 100
+                                  } );
+
+my $list = $sessions->list({ %LIST_PARAMS });	
+my $selete = '';
+foreach my $line (@$list) {
+  $delete = '';
+  $table->addrow("<a href='$SELF_URL?index=60&nid=$line->[7]'>$line->[0]</a>", 
+     $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], $line->[6],
+     $line->[7], $line->[10], $line->[9], 
+     "(<a href=$SELF_URL?index=23&uid=$user->{UID}&sid=$line->[11] title='Session Detail'>D</a>)", $delete);
+}
+
+print $table->show();
+}
+
+
+#**********************************************************
+# session_detail
+#**********************************************************
+sub session_detail {
+	my ($attr) = @_;
+	my $pages_qs;
+ 
+if (defined($attr->{USER}))	{
+	my $user = $attr->{USER};
+	$pages_qs = "&uid=$user->{UID}";
+	
+}
+elsif($FORM{uid}) {
+	form_users();
+	return 0;
+}	
+
+	
+}
+
+
 #**********************************************************
 # Reports
 #**********************************************************
@@ -2139,6 +2211,8 @@ my @m = ("1:0:$_CUSTOMERS:form_customers:0:customers:",
  "19:11:$_STATS:stats:0::",
  "20:11:$_SEVICES:user_services:0::",
  "21:11:$_COMPANY:form_users:0::",
+ "22:11:$_STATS:show_sessions:1::",
+ "23:11:$_DEATAIL:session_detail:0::",
 
  "2:0:$_PAYMENTS:form_payments:1:payments:",
  "3:0:$_FEES:form_fees:1:fees:",

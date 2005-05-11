@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # Accounting controll deamon
-# ~AsmodeuS~ (2004.05.03)
+# ~AsmodeuS~ (2005.05.03)
 #
 
 use POSIX; 
