@@ -11,8 +11,8 @@ echo $1
 if [ t$1 = 'tauth' ] ; then
 
   ./rauth.pl \
-     USER_NAME="aa1" \
-     NAS_IP_ADDRESS=192.168.101.17 \
+     USER_NAME="fisha" \
+     NAS_IP_ADDRESS=192.168.101.130 \
      SERVICE_TYPE=Framed-User \
      USER_PASSWORD="test123" \
 #     CALLING_STATION_ID="00:d:61:79:ed:d1"

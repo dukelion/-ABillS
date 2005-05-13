@@ -323,9 +323,11 @@ my $time_limit = 0;
 my $traf_limit = $conf{MAX_SESSION_TRAFFIC};
 
      if (($day_time_limit > 0) || ($day_traf_limit > 0)) {
-        $sql = "SELECT $day_time_limit - sum(duration), $day_traf_limit - sum(sent + recv) / 1024 / 1024 FROM log
-                 WHERE id='$USER' and DATE_FORMAT(login, '%Y-%m-%d')=curdate()
-                 GROUP BY DATE_FORMAT(login, '%Y-%m-%d');";
+        $sql = "SELECT if($day_time_limit > 0, $day_time_limit - sum(duration), 0),
+                       if($day_traf_limit > 0, $day_traf_limit - sum(sent + recv) / 1024 / 1024, 0) FROM log
+            WHERE id='$USER' and DATE_FORMAT(login, '%Y-%m-%d')=curdate()
+            GROUP BY DATE_FORMAT(login, '%Y-%m-%d');";
+
         $q = $db->prepare($sql) || die $db->errstr;
         $q ->execute();
         if ($q->rows == 0) {
@@ -338,9 +340,11 @@ my $traf_limit = $conf{MAX_SESSION_TRAFFIC};
           push (@traf_limits, $traf_limit) if ($day_traf_limit > 0);
          }
        }
-     
+
+
      if (($week_time_limit > 0) || ($week_traf_limit > 0)) {
-        $sql = "SELECT $week_time_limit - sum(duration), $week_traf_limit - sum(sent+recv)  / 1024 / 1024 FROM log
+        $sql = "SELECT if($week_time_limit > 0, $week_time_limit - sum(duration), 0),
+                       if($week_traf_limit > 0, $week_traf_limit - sum(sent+recv)  / 1024 / 1024, 0) FROM log
                  WHERE id='$USER' and (WEEK(login)=WEEK(curdate()) and YEAR(LOGIN)=YEAR(CURDATE()))
                  GROUP BY WEEK(login)=WEEK(curdate()),YEAR(LOGIN)=YEAR(CURDATE());";
       
@@ -358,7 +362,8 @@ my $traf_limit = $conf{MAX_SESSION_TRAFFIC};
        }
 
      if($month_time_limit > 0 || ($month_traf_limit > 0)) {
-        $sql = "SELECT $month_time_limit - sum(duration), $month_traf_limit - sum(sent+recv)  / 1024 / 1024 FROM log 
+        $sql = "SELECT if($month_time_limit > 0, $month_time_limit - sum(duration), 0), 
+                       if($month_traf_limit > 0, $month_traf_limit - sum(sent+recv)  / 1024 / 1024, 0) FROM log 
            WHERE id='$USER' and DATE_FORMAT(login, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')
            GROUP BY DATE_FORMAT(login, '%Y-%m');";
         
@@ -380,8 +385,13 @@ my $traf_limit = $conf{MAX_SESSION_TRAFFIC};
 #set traffic limit
      #push (@traf_limits, $prepaid_traff) if ($prepaid_traff > 0);
 
+
+
+
      for(my $i=0; $i<=$#traf_limits; $i++) {
+        	 print $traf_limits[$i]. "------\n";
         if ($traf_limit > $traf_limits[$i]) {
+
            $traf_limit = int($traf_limits[$i]);
          }
       }

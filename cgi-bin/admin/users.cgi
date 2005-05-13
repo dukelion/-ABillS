@@ -1100,6 +1100,35 @@ if ($FORM{add}) {
     message('info', $_INFO, $_ADDED);
    }
  }
+elsif ($FORM{passwd}) {
+  print "$_CHANGE_PASSWD<p>\n";
+   if($FORM{change}) {
+     if ($FORM{password} eq $FORM{confirm}) {
+       my $sql = "UPDATE admins SET password=ENCODE('$FORM{password}', '$conf{secretkey}')
+         WHERE id='$FORM{passwd}';";
+         
+       #print $sql;
+       $q = $db->do($sql) || die $db->errstr;
+       message('info', $_INFO, $_CHANGED);
+     }
+    else {
+    	message('err', $_ERROR, "$_WRONG_CONFIRM");
+     }
+    }
+   else {
+     print "<form action=$SELF>
+     <input type=hidden name=op value=admins>
+     <input type=hidden name=passwd value=$FORM{id}>
+     <table>
+     <tr><td>ID</td><td>$id</td></tr>
+     <tr><td>$_PASSWD:</td><td><input type=password name=password></td></tr>
+     <tr><td>$_CONFIRM_PASSWD:</td><td><input type=password name=confirm></td></tr>
+     </table>
+     <input type=submit name=change value='$_CHANGE'>
+     </form>";
+     return 0;
+    }
+ } 
 elsif($FORM{change}) {
   $sql = "UPDATE admins SET
     id='$id', 
@@ -1118,24 +1147,6 @@ elsif($FORM{chg}) {
   @action = ('change', "$_CHANGE");
   message('info', $_INFO, "$_CHANGING '$id'");
  }
-elsif ($FORM{passwd}) {
-  print "$_CHANGE_PASSWD<p>\n";
-   if($FORM{change}) {
-      print $_CHANGED;
-    }
-   else {
-     print "<form action=$SELF method=post>
-     <input type=hidden name=op value=admins>
-     <input type=hidden name=passwd value=y>
-     <table>
-     <tr><td>ID</td><td>$id</td></tr>
-     <tr><td>$_PASSWD:</td><td><input type=password name=password></td></tr>
-     <tr><td>$_CONFIRM_PASSWD:</td><td><input type=password name=confirm></td></tr>
-     </table>
-     <input type=submit name=change value='$_CHANGE'>
-     </form>";
-    }
- } 
 elsif ($FORM{del}) {
   $q = $db->do("DELETE FROM admins WHERE aid='$FORM{del}';") || die $db->errstr;
   message('info', $_INFO, "$_DELETED '$del'");
@@ -1947,7 +1958,6 @@ elsif($uid > 0) {
    $q -> execute ();
 
    if ($q->rows < 1) {
-       $login = get_login($uid);
        message('err', "$_ERROR", "$_NOT_EXIST [$uid]");
        return 0;
      };
@@ -1997,7 +2007,17 @@ elsif($uid > 0) {
     
    }
  else {
+   user_list();
+  }
 
+
+}
+
+
+#*******************************************************************
+# user_list
+#*******************************************************************
+sub user_list {
    my $qs = "";
    if ($FORM{debs}) {
      print "<p>$_DEBETERS</p>";
@@ -2068,8 +2088,6 @@ show_title($sort, "$desc", "$pg", "$op$qs", \@caption);
     }
 print "</table>
 </td></tr></table>\n";
-}
-
 
 }
 
@@ -2324,6 +2342,9 @@ print << "[END]";
 [END]
 
 }
+
+
+
 
 #*******************************************************************
 #
@@ -2676,7 +2697,6 @@ if (defined($FORM{m})) {
 #*******************************************************************
 sub sdetail {
   my ($uid, $sid) = @_; 	
- $login=get_login($uid);
 
  $sql = "SELECT l.login as begin, l.login + INTERVAL l.duration SECOND as end, SEC_TO_TIME(l.duration), 
  l.variant, v.name,
@@ -2836,7 +2856,6 @@ if ($q->rows < 1) {
 # stats()
 #*******************************************************************
 sub stats  {
-  my $login = get_login($uid);  
   my $WHERE = '';
   my $GROUP = '';
   
@@ -3877,7 +3896,6 @@ if ($FORM{search}) {
 sub base_state  {
  my ($where,  $period) = @_;
 
- $login = get_login($uid);
  $sql = "SELECT SEC_TO_TIME(min(duration)), SEC_TO_TIME(max(duration)), SEC_TO_TIME(avg(duration)),
   min(sent), max(sent), avg(sent),
   min(recv), max(recv), avg(recv),
@@ -4766,13 +4784,7 @@ while(my($thema, $colors)=each %profiles ) {
  return 0;
 }
 
-#*******************************************************************
-# templates()
-#*******************************************************************
-sub templates () {
- print "<h3>$_TEMPLATES</h3>\n";	
-	
-}
+
 
 #*******************************************************************
 #

@@ -1,5 +1,6 @@
 package Abwconf;
 
+# Web config
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
    $SELF
@@ -24,11 +25,10 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
    $admin_ip
    $header_text
    $img_path
-   
-   
+
    %conf
-   %LANG
    %FORM
+   %LANG
    %cookies
    $sort
    $desc
@@ -82,7 +82,7 @@ $VERSION = 2.00;
    $admin_ip
    $header_text
    $img_path
-   
+
    %FORM
    %LANG
    %cookies
@@ -105,6 +105,9 @@ $op = $FORM{op} || '';
 $language = 'english';
 $img_path='../img/';
 
+#find /home/asmodeus/pppoe/libexec/ /home/asmodeus
+#/pppoe/cgi-bin/ -type f -exec grep -nH '{dbname}=' {}  \;
+
 #DB settings
 $conf{dbhost}='localhost';
 $conf{dbname}='abills';
@@ -113,12 +116,13 @@ $conf{dbpasswd}='password';
 
 #Mail configuration
 $conf{ADMIN_MAIL}='admin@your.domain';
-$conf{USERS_MAIL_DOMAIN}='your.domain';
+$conf{USERS_MAIL_DOMAIN}='admin@your.domain';
 $conf{MAIL_CHARSET}='windows-1251';
 
 $debug=7; #DEbug mode (SQL)
 @auth_types = ('SQL', 'SYSTEM');
 @status_types = ('Not working', 'Working', 'Reserved', 'Expire');
+
 
 %LANG = ('english' => 'English',
     'russian' => 'Русский',
@@ -128,9 +132,8 @@ $debug=7; #DEbug mode (SQL)
 
 my $lang_charset='windows-1251';
 
-
 #Path settings
-my $LIB_PATH='/usr/abills/libexec/';
+my $LIB_PATH='/home/asmodeus/abills/libexec/';
 $MYSQLDUMP = '/usr/local/mysql/bin/mysqldump';
 $BACKUP_DIR='/usr/abills/backup';
 $GZIP = '/usr/bin/gzip';
@@ -143,9 +146,9 @@ $SELF="$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}";
 
 # Color setting
 $_BG0='#FDE302';  #Table captions
-$_BG1='#FFFFFF';  #line 1
-$_BG2='#eeeeee';  #line 3
-$_BG3='#dddddd';  #total
+$_BG1='#FFFFFF';   #line 1
+$_BG2='#eeeeee';   #line 3
+$_BG3='#dddddd';   #total
 $_BG4='#E1E1E1';  #table border
 
 @_COLORS = ('#FDE302',  # 0 TH
@@ -582,8 +585,10 @@ else {
 # $caption - array off caption
 #*******************************************************************
 sub show_title  {
-  my ($sort, $desc, $pg, $op, $caption)=@_;
+  my ($sort, $desc, $pg, $op, $caption, $attr)=@_;
   my $img='';
+
+  $img_path = $attr->{img_path} if ($attr->{img_path});
 
   print "<tr bgcolor=$_BG0>";
   my $i=1;
@@ -602,7 +607,7 @@ sub show_title  {
              $desc='DESC';
            }
          print "<a href='$SELF?op=$op&pg=$pg&sort=$i&desc=$desc'>".
-            "<img src='$img_path" . "$img' width=12 height=10 border=0 title=sort></a>";
+            "<img src='$img_path". "$img' width=12 height=10 border=0 title=sort></a>";
        }
      else {
          print "$line";
@@ -663,10 +668,13 @@ return $tmp;
 # get_online()
 #*******************************************************************
 sub get_online {
+ my ($attr) = @_;
  my $time_out = 120;
  my $online_users = '';
  my $online_count = 0;
  my %curuser = ();
+ 
+ $admin_name = $attr->{admin_name} if (defined($attr->{admin_name}));
  
  my $q = $db->do("DELETE FROM web_online WHERE UNIX_TIMESTAMP()-logtime>$time_out;") || die $db->errstr;
  
@@ -686,8 +694,10 @@ sub get_online {
    $online_users .= "$admin_name - $admin_ip;\n";
    $online_count++;
   }
- 
-  print "<abbr title=\"$online_users\"><a href='$SELF?op=admins' title='$online_users'>Online: $online_count</a></abbr> ";
+  
+  if (! defined($attr->{dont_show})) {
+    print "<abbr title=\"$online_users\"><a href='$SELF?op=admins' title='$online_users'>Online: $online_count</a></abbr> ";
+  }
 }
 
 
@@ -716,7 +726,7 @@ sub header {
  my $css = css();
 
 
-print q{<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
+print qq{<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <head>
  <META HTTP-EQUIV="Cache-Control" content="no-cache">
