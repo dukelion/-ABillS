@@ -116,7 +116,7 @@ $conf{dbpasswd}='password';
 
 #Mail configuration
 $conf{ADMIN_MAIL}='admin@your.domain';
-$conf{USERS_MAIL_DOMAIN}='admin@your.domain';
+$conf{USERS_MAIL_DOMAIN}='your.domain';
 $conf{MAIL_CHARSET}='windows-1251';
 
 $debug=7; #DEbug mode (SQL)
@@ -133,7 +133,7 @@ $debug=7; #DEbug mode (SQL)
 my $lang_charset='windows-1251';
 
 #Path settings
-my $LIB_PATH='/home/asmodeus/abills/libexec/';
+my $LIB_PATH='/usr/abills/libexec/';
 $MYSQLDUMP = '/usr/local/mysql/bin/mysqldump';
 $BACKUP_DIR='/usr/abills/backup';
 $GZIP = '/usr/bin/gzip';
