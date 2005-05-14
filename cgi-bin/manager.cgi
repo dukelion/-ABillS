@@ -55,6 +55,17 @@ if (defined($FORM{language})) {
  }
 print "Set-Cookie: opid=$FORM{opid}; path=$web_path; domain=$domain;\n\n";
 
+my $language = 'english';
+if ($FORM{language}) {
+	$language = $FORM{language};
+}
+elsif($cookies{language}) {
+	$language = $cookies{language};
+}
+
+#$ln = $cookies{ln} if ($cookies{ln});
+#require "../language/". $ln .".pl";
+
 require "../language/$language.pl";
 header();
 
