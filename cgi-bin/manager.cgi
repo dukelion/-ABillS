@@ -151,7 +151,6 @@ sub user_list {
   
   
    %pages = pages('u.id', 'users u', "$WHERE", "op=users&sort=$sort$qs", "$pg");
-   print "<p>$pages{count}</p>";
    print $pages{pages};
 
    $sql = "SELECT u.id, u.fio, u.deposit, u.credit, v.name, u.uid 
