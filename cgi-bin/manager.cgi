@@ -151,7 +151,7 @@ sub user_list {
   
   
    %pages = pages('u.id', 'users u', "$WHERE", "op=users&sort=$sort$qs", "$pg");
-   print "<p><b>$_TOTAL:</b> $pages{count}</p>";
+   print "<p>$pages{count}</p>";
    print $pages{pages};
 
    $sql = "SELECT u.id, u.fio, u.deposit, u.credit, v.name, u.uid 
@@ -974,7 +974,6 @@ elsif($uid > 0) {
    
    ($login, $fio, $address, $email, $registartion, $variant, $credit, $deposit, $phone, $simultaneously, $activate, $expire, 
       $last_login, $reduction, $ip, $netmask, $speed, $filter_id, $cid, $comments) = $q -> fetchrow();
-   #$name = $FORM{chg};
 
     @action = ('change', $_CHANGE);
     require 'mail.pl';
