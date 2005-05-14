@@ -304,14 +304,13 @@ sub online {
   my %curuser = ();
 
  $self->query($db, "DELETE FROM web_online WHERE UNIX_TIMESTAMP()-logtime>$time_out;", 'do');
-
  $self->query($db, "SELECT admin, ip FROM web_online;");
 
  my $online_count = $self->{TOTAL} + 0;
  my $list = $self->{list};
  foreach my $row (@$list) {
 	 $online_users .= "$row->[0] - $row->[1]\n";
-   $curuser{"$row->[0]"}="$row->[1]" if ($row->[0] eq $self->{A_LOGIN} && $row->[1] eq $self->{SESSION_IP});
+   $curuser{"$row->[0]"}="$row->[1]" if ($row->[0] eq $self->{A_LOGIN});
   }
 
  if ($curuser{"$self->{A_LOGIN}"} ne $self->{SESSION_IP}) {

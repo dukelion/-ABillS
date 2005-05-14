@@ -2045,7 +2045,7 @@ sub show_sessions {
 if (defined($attr->{USER}))	{
 	my $user = $attr->{USER};
 	$pages_qs = "&uid=$user->{UID}";
-	
+	$LIST_PARAMS{LOGIN} = $user->{LOGIN};
 }
 elsif($FORM{uid}) {
 	form_users();
@@ -2068,7 +2068,7 @@ my $list = $sessions->list({ %LIST_PARAMS });
 my $selete = '';
 foreach my $line (@$list) {
   $delete = '';
-  $table->addrow("<a href='$SELF_URL?index=60&nid=$line->[7]'>$line->[0]</a>", 
+  $table->addrow("<a href='$SELF_URL?index=11&login=$line->[0]'>$line->[0]</a>", 
      $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], $line->[6],
      $line->[7], $line->[10], $line->[9], 
      "(<a href=$SELF_URL?index=23&uid=$user->{UID}&sid=$line->[11] title='Session Detail'>D</a>)", $delete);
