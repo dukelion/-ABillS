@@ -395,8 +395,14 @@ sub table {
 
  $self->{table} = "<TABLE $width cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_COLORS[4]>
                <TABLE width=100% cellspacing=1 cellpadding=0 border=0>\n";
- $self->{table} .= (defined($attr->{title})) ? $self->table_title($SORT, $DESC, $PG, $OP, $attr->{title}, $attr->{qs}) : '';
- 
+
+ if (defined($attr->{title})) {
+ 	 $self->{table} .= $self->table_title($SORT, $DESC, $PG, $OP, $attr->{title}, $attr->{qs});
+  }
+ elsif(defined($attr->{title_plain})) {
+   $self->{table} .= $self->table_title_plain($attr->{title_plain});
+  }
+
  if (defined($attr->{cols_align})) {
    $self->{table} .= "<COLGROUP>";
    my $cols_align = $attr->{cols_align};
@@ -415,7 +421,11 @@ sub table {
  	   else {
  	   	 $op = "op=$OP";
  	    }
- 	   $self->{pages} =  $self->pages($attr->{pages}, "$op$attr->{qs}");
+ 	   my %ATTR = ();
+ 	   if (defined($attr->{recs_on_page})) {
+ 	   	 $ATTR{recs_on_page}=$attr->{recs_on_page};
+ 	     }
+ 	   $self->{pages} =  $self->pages($attr->{pages}, "$op$attr->{qs}", { %ATTR });
 	 } 
  return $self;
 }
@@ -443,8 +453,26 @@ sub addrow {
 
 
 #*******************************************************************
-# Show table column  titles
+# title_plain($caption)
+# $caption - ref to caption array
+#*******************************************************************
+sub table_title_plain {
+  my $self = shift;
+  my ($caption)=@_;
+  $self->{table_title} = "<tr bgcolor=$_COLORS[0]>";
+	
+  foreach my $line (@$caption) {
+    $self->{table_title} .= "<th class=table_title>$line</th>";
+   }
+	
+  $self->{table_title} .= "</tr>\n";
+  return $self->{table_title};
+}
+
+#*******************************************************************
+# Show table column  titles with wort derectives
 # Arguments 
+# table_title($sort, $desc, $pg, $get_op, $caption, $qs);
 # $sort - sort column
 # $desc - DESC / ASC
 # $pg - page id
@@ -461,7 +489,7 @@ sub table_title  {
   $self->{table_title} = "<tr bgcolor=$_COLORS[0]>";
   my $i=1;
   foreach my $line (@$caption) {
-     $self->{table_title} .= "<th>$line ";
+     $self->{table_title} .= "<th  class=table_title>$line ";
      if ($line ne '-') {
          if ($sort != $i) {
              $img = 'sort_none.png';
@@ -573,7 +601,11 @@ $head
 #*******************************************************************
 sub pages {
  my $self = shift;
- my ($count, $argument) = @_;
+ my ($count, $argument, $attr) = @_;
+
+ if (defined($attr->{recs_on_page})) {
+ 	 $PAGE_ROWS = $attr->{recs_on_page};
+  }
 
  my $begin=0;   
 

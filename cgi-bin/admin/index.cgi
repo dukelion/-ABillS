@@ -31,6 +31,9 @@ $conf{netsfilespath}='nets';
 $conf{secretkey}="test12345678901234567890";
 $conf{passwd_length}=6;
 $conf{username_length}=15;
+$conf{list_max_recs}=25;
+
+
 my $domain = '';
 # ?????????
 my $web_path = '';
@@ -428,7 +431,7 @@ if($uid > 0) {
     return 0;
    }
   elsif($index == 22) {
-  	show_sessions({ USER => $user_info });
+  	form_stats({ USER => $user_info });
   	return 0;
    } 
   elsif($OP eq 'fees') {
@@ -2035,17 +2038,20 @@ print $table->show();
 #**********************************************************
 # stats
 #**********************************************************
-sub show_sessions {
+sub form_stats {
 	my ($attr) = @_;
-
-
 	my $pages_qs;
- 
+  my $uid;
  
 if (defined($attr->{USER}))	{
 	my $user = $attr->{USER};
 	$pages_qs = "&uid=$user->{UID}";
+	$uid = $user->{UID};
 	$LIST_PARAMS{LOGIN} = $user->{LOGIN};
+	if (! defined($FORM{sort})) {
+	  $LIST_PARAMS{SORT}=2;
+	  $LIST_PARAMS{DESC}=DESC;
+   }
 }
 elsif($FORM{uid}) {
 	form_users();
@@ -2055,28 +2061,135 @@ elsif($FORM{uid}) {
 use Sessions;
 my $sessions = Sessions->new($db);
 
-my $table = Abills::HTML->table( { width => '100%',
-                                   border => 1,
-                                   title => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
-                                    "CID", "NAS", "IP", "$_SUM", "-", "-"],
-                                   cols_align => ['left', 'right', 'right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
-                                   qs => $pages_qs,
-                                   pages => 100
-                                  } );
 
+if ($FORM{rows}) {
+  $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
+  $conf{list_max_recs}=$FORM{rows};
+  $pages_qs .= "&rows=$conf{list_max_recs}";
+ }
+
+
+#PEriods totals
+my $list = $sessions->periods_totals({ %LIST_PARAMS });
+my $table = Abills::HTML->table( { width => '100%',
+                                   title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
+                                   cols_align => ['left', 'right', 'right', 'right', 'right'],
+                                   rowcolor => $_COLORS[1]
+                                  } );
+for(my $i = 0; $i < 5; $i++) {
+	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", "$sessions->{'duration_'. $i}",
+	  int2byte($sessions->{'sent_'. $i}), int2byte($sessions->{'recv_'. $i}), $sessions->{'sum_'. $i});
+ }
+print $table->show();
+
+
+print "<form action=$SELF_URL>
+<input type=hidden name=index value='$index'>
+<input type=hidden name=uid value='$uid'>\n";
+
+my $table = Abills::HTML->table( { width => '640',
+	                                 rowcolor => $_COLORS[0],
+                                   title_plain => [ "$_FROM: ", Abills::HTML->date_fld('from', { MONTHES => \@MONTHES} ),
+                                   "$_TO: ", Abills::HTML->date_fld('to', { MONTHES => \@MONTHES } ),
+                                   "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>",
+                                   "<input type=submit name=show value=$_SHOW>"
+                                    ],                                   
+                                  } );
+print $table->show();
+print "</form>\n";
+
+stats_calculation($sessions);
+
+if (defined($FORM{show})) {
+  $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
+  $FORM{fromm}++;
+  $FORM{tom}++;
+  $FORM{fromm} = sprintf("%.2d", $FORM{fromm}++);
+  $FORM{tom} = sprintf("%.2d", $FORM{tom}++);
+  $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
+ }
+elsif ($FORM{period}) {
+	$LIST_PARAMS{PERIOD} = $FORM{period}; 
+	$pages_qs .= "&period=$FORM{period}";
+}
+
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=2;
+  $LIST_PARAMS{DESC}=DESC;
+ }
+
+#Session List
 my $list = $sessions->list({ %LIST_PARAMS });	
-my $selete = '';
+
+$table = Abills::HTML->table( { width => '640',
+	                              rowcolor => $_COLORS[1],
+                                title => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
+                                cols_align => ['right', 'right', 'right', 'right'],
+                                rows => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
+                               } );
+print $table->show();
+
+show_sessions($list, $sessions);
+}
+
+
+#**********************************************************
+# Whow sessions from log
+# show_sessions()
+#**********************************************************
+sub show_sessions {
+ my ($list, $sessions) = @_;
+#Session List
+
+my $table = Abills::HTML->table( { width => '100%',
+                                border => 1,
+                                title => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
+                                "CID", "NAS", "IP", "$_SUM", "-", "-"],
+                                cols_align => ['left', 'right', 'right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
+                                qs => $pages_qs,
+                                pages => $sessions->{TOTAL},
+                                recs_on_page => $LIST_PARAMS{PAGE_ROWS}
+                               } );
+my $delete = '';
 foreach my $line (@$list) {
   $delete = '';
   $table->addrow("<a href='$SELF_URL?index=11&login=$line->[0]'>$line->[0]</a>", 
-     $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], $line->[6],
+     $line->[1], $line->[2],  $line->[3],  int2byte($line->[4]), int2byte($line->[5]), $line->[6],
      $line->[7], $line->[10], $line->[9], 
      "(<a href=$SELF_URL?index=23&uid=$user->{UID}&sid=$line->[11] title='Session Detail'>D</a>)", $delete);
 }
-
 print $table->show();
 }
 
+
+#*******************************************************************
+#
+#*******************************************************************
+sub form_last {
+	
+	
+}
+
+#*******************************************************************
+# WHERE period
+# base_state($where, $period);
+#*******************************************************************
+sub stats_calculation  {
+ my ($sessions) = @_;
+
+$sessions->calculation({ %LIST_PARAMS }); 
+my $table = Abills::HTML->table( { width => '640',
+	                              rowcolor => $_COLORS[1],
+                                title_plain => ["-", "$_MIN", "$_MAX", "$_AVG"],
+                                cols_align => ['left', 'right', 'right', 'right'],
+                                rows => [ [ $_DURATION,  $sessions->{min_dur}, $sessions->{max_dur}, $sessions->{avg_dur} ],
+                                          [ "$_TRAFFIC $_RECV", int2byte($sessions->{min_recv}), int2byte($sessions->{max_recv}), int2byte($sessions->{avg_recv}) ],
+                                          [ "$_TRAFFIC $_SENT", int2byte($sessions->{min_sent}), int2byte($sessions->{max_sent}), int2byte($sessions->{avg_sent}) ],
+                                          [ "$_TRAFFIC $_SUM",  int2byte($sessions->{min_sum}),  int2byte($sessions->{max_sum}),  int2byte($sessions->{avg_sum}) ]
+                                        ]
+                               } );
+print $table->show();
+}
 
 #**********************************************************
 # session_detail
@@ -2208,11 +2321,12 @@ my @m = ("1:0:$_CUSTOMERS:form_customers:0:customers:",
  "16:11:$_TARIF_PLAN:form_chg_tp:0::",
  "17:11:$_PASSWD:password:0:password:",
  "18:11:$_NAS:allow_nass:0::",
- "19:11:$_STATS:stats:0::",
+ "19:11:$_STATS:form_stats:1::",
  "20:11:$_SEVICES:user_services:0::",
  "21:11:$_COMPANY:form_users:0::",
- "22:11:$_STATS:show_sessions:1::",
+ "22:11:$_STATS:form_stats:1::",
  "23:11:$_DEATAIL:session_detail:0::",
+
 
  "2:0:$_PAYMENTS:form_payments:1:payments:",
  "3:0:$_FEES:form_fees:1:fees:",
@@ -2238,6 +2352,7 @@ my @m = ("1:0:$_CUSTOMERS:form_customers:0:customers:",
  
  "85:5:$_SHEDULE:form_shedule:1::",
  "99:5:$_FUNCTIONS_LIST:flist:1::",
+ "100:5:$_SEARCH:form_search:1::",
  
  "6:0:$_MODULES::1:modules:",
  "999:6:$_TEST::1:test:",
@@ -2466,6 +2581,8 @@ sub form_payments () {
  use Finance;
  my $payments = Finance->payments($db, $admin);
 
+
+
 if (defined($attr->{USER})) { 
   my $user = $attr->{USER};
   $pages_qs = "&uid=$user->{UID}";
@@ -2530,6 +2647,11 @@ elsif ($FORM{uid}) {
 if (! defined($permissions{1}{2})) {
   return 0;
 }
+
+	if (! defined($FORM{sort})) {
+	  $LIST_PARAMS{SORT}=1;
+	  $LIST_PARAMS{DESC}=DESC;
+   }
 
 
 my $list = $payments->list( { %LIST_PARAMS } );
@@ -2758,37 +2880,83 @@ print $table->show();
 sub form_search {
   my ($attr) = @_;
 
+my $ip = $FORM{ip} || '0.0.0.0';
 my %SEARCH_TYPES = ('users' => $_USERS,
                     'payments' => $_PAYMENTS,
                     'fees' => $_FEES,
                     'last' => $_LAST_LOGIN,
-
-                    'IP' => 'IP',
-                    'CID' => 'CID',
-                    'FIO' => $_FIO
 );
 
-my $type_select = "<select type=type>\n";
-$type_select = "</select>\n";
+my $SEL_TYPE = "<select type=type>\n";
+while(my($k, $v)=each %SEARCH_TYPES) {
+	$SEL_TYPE .= "<option value=$k";
+	$SEL_TYPE .= ' selected' if ($FORM{type} eq $k);
+	$SEL_TYPE .= ">$v\n";
+}
+$SEL_TYPE .= "</select>\n";
 
-my $from_date = date_fld('from_');
-my $to_date = date_fld('to_');
+
+my $nas = Nas->new($db);
+my $list = $nas->list({ %LIST_PARAMS });
+
+my $SEL_NAS = "<select name=nas>\n";
+
+foreach my $line (@$list) {
+	$SEL_NAS .= "<option value='$line->[0]'";
+	$SEL_NAS .= ' selected' if ($FORM{nas} eq $line->[0]);
+	$SEL_NAS .= ">$line->[1]\n";
+}
+$SEL_NAS .= "</select>\n";
+
+
+my $from_date = Abills::HTML->date_fld('from_', { MONTHES => \@MONTHES });
+my $to_date = Abills::HTML->date_fld('to_', { MONTHES => \@MONTHES} );
 
 my $tpl_form = qq{
 <form action=$SELF_URL>
+<input type=hidden name=index value=100>
 <table>
 <tr><td>UID:</td><td><input type=text name=uid value='$FORM{UID}'></td></tr>
-<tr><td>$_TYPE:</td><td>$type_select</td></tr>
-<tr><td>$_DATE:</td><td>
+<tr><td>WHERE:</td><td>$SEL_TYPE</td></tr>
+<tr><td>$_PERIOD:</td><td>
 <table width=100%>
 <tr><td>$_FROM: </td><td>$from_date</td></tr>
 <tr><td>$_TO:</td><td>$to_date</td></tr>
 </table>
 </td></tr>
+<!-- last SESSION -->
+<tr><td colspan=2><hr></td></tr>
+<tr><td>IP (>,<)</td><td><input type=text name=ip value='$ip'></td></tr>
+<tr><td>CID</td><td><input type=text name=cid value='$cid'></td></tr>
+<tr><td>NAS</td><td>$SEL_NAS</td></tr>
+<tr><td>NAS Port</td><td><input type=text name=nas_port value='$nas_port'></td></tr>
+<!-- last SESSION -->
+<!-- PAYMENTS -->
+<tr><td colspan=2><hr></td></tr>
+<tr><td>$_OPERATOR:</td><td><input type=text name=operator value='$operator'></td></tr>
+<tr><td>$_DESCRIBE (*):</td><td><input type=text name=describe value='$describe'></td></tr>
+<tr><td>$_SUM (<,>):</td><td><input type=text name=sum value='$sum'></td></tr>
+<!-- PAYMENTS END -->
+
+
+<!-- USERS -->
+<tr><td colspan=2><hr></td></tr>
+<tr><td>IP (>,<)</td><td><input type=text name=ip value='$ip'></td></tr>
+<tr><td>$_SPEED:</td><td><input type=text name=speed value='$speed'></td></tr>
+<tr><td>CID</td><td><input type=text name=cid value='$cid'></td></tr>
+<tr><td>$_FIO (*):</td><td><input type=text name=fio value='$fio'></td></tr>
+<tr><td>$_PHONE (*):</td><td><input type=text name=phone value='$phone'></td></tr>
+<!-- USERS END -->
+
+
 </table>
 <input type=submit name=search value=$_SEARCH>
 </form>
 };
+
+
+
+
 
  print $tpl_form;	
 }
