@@ -41,7 +41,8 @@ my %FIELDS = ( VID => 'vrnt',
                ACTIV_PRICE => 'activate_price',
                CHANGE_PRICE => 'change_price', 
                CREDIT_TRESSHOLD => 'credit_tresshold',
-               ALERT => 'uplimit'
+               ALERT => 'uplimit',
+               OCTETS_DIRECTION => 'octets_direction'
              );
 
 #**********************************************************
@@ -121,7 +122,6 @@ sub  ti_defaults {
 #**********************************************************
 # Default values
 #**********************************************************
-
 sub defaults {
   my $self = shift;
 
@@ -143,7 +143,8 @@ sub defaults {
             ACTIV_PRICE => '0.00',
             CHANGE_PRICE => '0.00',
             CREDIT_TRESSHOLD => '0.00',
-            ALERT => 0
+            ALERT => 0,
+            OCTETS_DIRECTION => 0
          );   
  
   $self = \%DATA;
@@ -163,12 +164,12 @@ sub add {
   $self->query($db, "INSERT INTO variant (vrnt, hourp, uplimit, name, ut, dt, abon, df, logins, 
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
-     activate_price, change_price, credit_tresshold, age)
+     activate_price, change_price, credit_tresshold, age, octets_direction)
     values ('$DATA{VID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", '$DATA{END}', '$DATA{BEGIN}', 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{SIMULTANEONSLY}', 
      '$DATA{DAY_TIME_LIMIT}', '$DATA{WEEK_TIME_LIMIT}',  '$DATA{MONTH_TIME_LIMIT}', 
      '$DATA{DAY_TRAF_LIMIT}', '$DATA{WEEK_TRAF_LIMIT}',  '$DATA{MONTH_TRAF_LIMIT}',
-     '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', '$DATA{CREDIT_TRESSHOLD}', '$DATA{AGE}');", 'do' );
+     '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', '$DATA{CREDIT_TRESSHOLD}', '$DATA{AGE}', '$DATA{OCTETS_DIRECTION}');", 'do' );
 
   return $self;
 }
@@ -244,7 +245,7 @@ sub info {
   $self->query($db, "SELECT vrnt, name, dt, ut, hourp, df, abon, logins, age,
       day_time_limit, week_time_limit,  month_time_limit, 
       day_traf_limit, week_traf_limit,  month_traf_limit,
-      activate_price, change_price, credit_tresshold, uplimit
+      activate_price, change_price, credit_tresshold, uplimit, octets_direction
     FROM variant
     WHERE vrnt='$id';");
 
@@ -274,7 +275,8 @@ sub info {
    $self->{ACTIV_PRICE},    
    $self->{CHANGE_PRICE}, 
    $self->{CREDIT_TRESSHOLD},
-   $self->{ALERT}
+   $self->{ALERT},
+   $self->{OCTETS_DIRECTION}
   ) = @$ar;
 
 

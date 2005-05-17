@@ -27,6 +27,18 @@ use main;
 
 
 
+my %FIELDS = (UID  => 'uid', 
+              DATE => 'date', 
+              SUM  => 'sum', 
+              DESCRIBE => 'dsc', 
+              IP   => 'ip',
+              LAST_DEPOSIT => 'last_deposit', 
+              AID  => 'aid',
+              METHOD => 'method'
+             );
+my %DATA;
+
+
 my $db;
 my $uid;
 my $admin;
@@ -40,6 +52,7 @@ sub new {
   ($db, $admin) = @_;
   my $self = { };
   bless($self, $class);
+  $self->{debug}=1;
   return $self;
 }
 
@@ -54,8 +67,6 @@ sub fees {
   return $fees;
 }
 
-
-
 #**********************************************************
 # Init 
 #**********************************************************
@@ -68,25 +79,47 @@ sub payments {
 }
 
 
+
+#**********************************************************
+# Default values
+#**********************************************************
+sub defaults {
+  my $self = shift;
+
+  %DATA = (UID  => 0, 
+           SUM  => '0.00', 
+           DESCRIBE => '', 
+           IP   => '0.0.0.0',
+           LAST_DEPOSIT => '0.00', 
+           AID  => 0,
+           METHOD => 0,
+           ER => 1
+          );
+
+  $self = \%DATA;
+  return $self;
+}
+
+
+
 #**********************************************************
 # add()
 #**********************************************************
 sub add {
   my $self = shift;
-  my ($user, $sum, $attr) = @_;
-  
-  my $DESCRIBE = (defined($attr->{DESCRIBE})) ? $attr->{DESCRIBE} : '';
-  my $ER = (defined($attr->{ER})) ? $attr->{ER} : 1;
+  my ($user, $attr) = @_;
 
-  
-  if ($sum <= 0) {
+  %DATA = $self->get_data($attr); 
+ 
+
+  if ($DATA{SUM} <= 0) {
      $self->{errno} = 12;
      $self->{errstr} = 'ERROR_ENTER_SUM';
      return $self;
    }
   
-  my $sql;
 
+  my $sql;
   if ($user->{ACCOUNT_ID} > 0) {
   	$sql = "SELECT deposit FROM accounts WHERE id='$user->{ACCOUNT_ID}';";
    }
@@ -94,43 +127,28 @@ sub add {
     $sql = "SELECT deposit FROM users WHERE uid='$user->{UID}';";
    }
   
-  my $q = $db -> prepare($sql)|| die $db->errstr;
-  $q -> execute();
-  if ($q->rows == 1) {
-     my ($deposit)=$q -> fetchrow();
-     if ($ER ne '') {
-       $sum = $sum / $ER;
+  $self->query($db, $sql);
+
+  if ($self->{TOTAL} == 1) {
+     my $ar = $self->{list}->[0];
+     my($deposit)=@$ar;
+     
+     if ($DATA{ER} != 1) {
+       $DATA{SUM} = $DATA{SUM} / $DATA{ER};
       }
 
     if ($user->{ACCOUNT_ID} > 0) {
-      $db ->do("UPDATE accounts SET deposit=deposit+$sum WHERE id='$user->{ACCOUNT_ID}';") or
-         die $db->errstr;
+      $self->query($db, "UPDATE accounts SET deposit=deposit+$DATA{SUM} WHERE id='$user->{ACCOUNT_ID}';", 'do');
       }   
     else {
-    	$db ->do("UPDATE users SET deposit=deposit+$sum WHERE uid='$user->{UID}';") or
-         die $db->errstr;
+    	$self->query($db, "UPDATE users SET deposit=deposit+$DATA{SUM} WHERE uid='$user->{UID}';", 'do');
       }
 
-    my $sql = "INSERT INTO payments (uid, date, sum, dsc, ip, last_deposit, aid) 
-           values ('$user->{UID}', now(), $sum, '$DESCRIBE', INET_ATON('$admin->{SESSION_IP}'), '$deposit', '$admin->{AID}');";
-    $db -> do ($sql) or die $db->errstr;
-    if($db->err > 0) {
-       $self->{errno} = 3;
-       $self->{errstr} = 'SQL_ERROR';
-       return $self;
-      }
+    $self->query($db, "INSERT INTO payments (uid, date, sum, dsc, ip, last_deposit, aid, method) 
+           values ('$user->{UID}', now(), $DATA{SUM}, '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$deposit', '$admin->{AID}', '$DATA{METHOD}');", 'do');
   }
 
-  if ($db->err == 1062) {
-     $self->{errno} = 7;
-     $self->{errstr} = 'ERROR_DUBLICATE';
-     return $self;
-   }
-  elsif($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
-     return $self;
-   }
+  return $self if ($self->{errno});
 
 # $admin->log_action($uid, "ADD $LOGIN");
   return $self->{result};
@@ -158,6 +176,7 @@ sub del {
      $self->{errstr} = 'SQL_ERROR';
      return $self;
    }
+
   my($sum) = $q->fetchrow();
 
 
@@ -204,9 +223,13 @@ sub list {
  my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  my $WHERE  = '';
- 
+
  if ($attr->{UID}) {
     $WHERE .= ($WHERE ne '') ?  " and p.uid='$attr->{UID}' " : "WHERE p.uid='$attr->{UID}' ";
+  }
+ elsif ($attr->{LOGIN_EXPR}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{LOGIN_EXPR}' " : "WHERE u.id LIKE '$attr->{LOGIN_EXPR}' ";
   }
  
  if ($attr->{AID}) {
@@ -218,30 +241,24 @@ sub list {
     $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{FIRST_LETTER}%' " : "WHERE u.id LIKE '$attr->{FIRST_LETTER}%' ";
   }
  
- my $q = $db->prepare("SELECT count(p.id), sum(p.sum)  FROM payments p $WHERE");
  
- $q ->execute(); 
- my ($total, $sum) = $q->fetchrow();
- $self->{TOTAL} = $total;
- $self->{SUM} = $sum;
- 
- $q = $db->prepare("SELECT p.id, u.id, p.date, p.sum, p.dsc, a.name, INET_NTOA(p.ip), p.last_deposit, p.uid 
+ $self->query($db, "SELECT p.id, u.id, p.date, p.sum, p.dsc, a.name, INET_NTOA(p.ip), p.last_deposit, p.method, p.uid 
     FROM payments p
     LEFT JOIN users u ON (u.uid=p.uid)
     LEFT JOIN admins a ON (a.aid=p.aid)
     $WHERE 
     GROUP BY p.id
-    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;") || die $db->errstr;
+    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
- $q ->execute(); 
- my @list = ();
- 
- while(my @row = $q->fetchrow()) {
-   push @list, \@row;
-  }
+ my $list = $self->{list};
 
-  $self->{LIST} = \@list;
-  return $self->{LIST};
+ $self->query($db, "SELECT count(p.id), sum(p.sum) FROM payments p
+  LEFT JOIN users u ON (u.uid=p.uid) $WHERE");
+ my $ar = $self->{list}->[0];
+ ( $self->{TOTAL},
+ $self->{SUM} )= @$ar;
+
+ return $list;
 }
 
 

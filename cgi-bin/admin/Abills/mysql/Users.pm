@@ -150,6 +150,13 @@ sub list {
  if ($attr->{FIRST_LETTER}) {
     $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{FIRST_LETTER}%' " : "WHERE u.id LIKE '$attr->{FIRST_LETTER}%' ";
   }
+
+ # Start letter 
+ if ($attr->{LOGIN_EXPR}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{LOGIN_EXPR}' " : "WHERE u.id LIKE '$attr->{LOGIN_EXPR}' ";
+  }
+
  
  # Show users for spec tarifplan 
  if ($attr->{TP}) {

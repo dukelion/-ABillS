@@ -1,3 +1,6 @@
+# 0.24
+$CHARSET = 'windows1251';
+
 @PERIODS=('Today', 'Yesterday', 'Week', 'Month', 'All sessions', 'From activization');
 @MONTHES=('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',  'September', 'October', 'November', 'Decembe');
 @WEEKDAYS=('Hollidays', 'Mo', 'Tu', 'Wn', 'Th', 'Fr', 'Sat', 'Sun');
@@ -260,3 +263,5 @@ $_CREDIT_TRESSHOLD='Credit Tresshold';
 $_SERVICES='Services';
 $_FUNCTIONS_LIST='Functions list';
 $_COMPANY='Company';
+$_OCTETS_DIRECTION='Octets direction';
+$_PAYMENT_METHOD='Payment Method';

@@ -314,7 +314,7 @@ td.small {
 
 th, li {
   color: $_COLORS[9];
-  height: 22;
+  height: 24;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
   font-size: 12px;
 }

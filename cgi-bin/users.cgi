@@ -235,8 +235,9 @@ my $i=1;
 while (my($duration, $sent, $recv, $sent2, $recv2, $ip, $CID) = $q->fetchrow_array()) {
   $sent = int2byte($sent);
   $recv = int2byte($recv);
+  $i++;
   print "<tr bgcolor=$_BG1><td><!--CUR_SESSION_DURATION_BEGIN-->$duration<!--CUR_SESSION_DURATION_END--></td>
-   <td><!--CUR_SESSION_SENt_BEGIN-->$sent<!--CUR_SESSION_DURATION_END--></td><td><!--CUR_SESSION_RECV_BEGIN-->$recv<!--CUR_SESSION_RECV_EN--></td><td>$sent2</td><td>$recv2</td><td>$ip</td><td>$CID</td></tr>\n";
+   <td><!--CUR_SESSION_SENT_BEGIN-->$sent<!--CUR_SESSION_SENT_END--></td><td><!--CUR_SESSION_RECV_BEGIN-->$recv<!--CUR_SESSION_RECV_EN--></td><td>$sent2</td><td>$recv2</td><td>$ip</td><td>$CID</td></tr>\n";
 }
 print "</table>\n</td></tr></table>\n</td></tr></table>\n</td></tr></table><p>\n";
 }

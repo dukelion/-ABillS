@@ -32,7 +32,6 @@ sub new {
   ($db, $admin) = @_;
   my $self = { };
   bless($self, $class);
-  $self->{debug}=1;
   return $self;
 }
 
@@ -152,9 +151,16 @@ sub list {
  my $WHERE  = '';
  my @list = (); 
 
+
  if ($attr->{UID}) {
     $WHERE .= ($WHERE ne '') ?  " and f.uid='$attr->{UID}' " : "WHERE f.uid='$attr->{UID}' ";
   }
+ # Start letter 
+ elsif ($attr->{LOGIN_EXPR}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{LOGIN_EXPR}' " : "WHERE u.id LIKE '$attr->{LOGIN_EXPR}' ";
+  }
+
  
  if ($attr->{AID}) {
     $WHERE .= ($WHERE ne '') ?  " and f.aid='$attr->{AID}' " : "WHERE f.aid='$attr->{AID}' ";
@@ -171,7 +177,8 @@ sub list {
   my $list = $self->{list};
 
 
- $self->query($db, "SELECT count(f.id), sum(f.sum) FROM fees f $WHERE");
+ $self->query($db, "SELECT count(*), sum(f.sum) FROM fees f 
+ LEFT JOIN users u ON (u.uid=f.uid) $WHERE");
  my $a_ref = $self->{list}->[0];
 
  ($self->{TOTAL}, 
