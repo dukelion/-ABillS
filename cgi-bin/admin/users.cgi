@@ -23,7 +23,7 @@ $db=$Abwconf::db;
 use Base; # Modul with base tools
 require 'messages.pl';
 
-$logfile = 'abills.log';
+$logfile = "/usr/abills/var/log/abills.log";
 $logdebug = 'abills.debug';
 $debug = 1;
 
@@ -460,8 +460,8 @@ print "</table>\n";
 sub errlog {
   print "<h3>$_ERROR_LOG</h3>\n";
 
+  print "<p><b>$logfile</b></p>\n";
   print "<table><tr><td>";
-  my $logfile = "/usr/abills/var/log/abills.log";
 if ($uid) {
   print "<br><b>$_USER:</b> $login_link<br>
   <pre>";
@@ -2285,10 +2285,11 @@ sub form_period () {
 # passwd($uid)
 #*******************************************************************
 sub passwd  {
-  my $uid = shift;
-
+ my $uid = shift;
+  
+ print "<br><b>$_USER:</b> $login_link<br>\n";
+  
 if ($FORM{change}) {
-
   if (length($FORM{password}) < $conf{passwd_length}) {
      message('err', $_ERROR, "$ERR_SHORT_PASSWD");
    }
@@ -2310,24 +2311,21 @@ if ($FORM{change}) {
  $q = $db -> prepare($sql)  || die $db->strerr;
  $q -> execute();
  ($passwd)=$q -> fetchrow();
- print "----- $passwd $sql";
+ print "-----$passwd $sql";
 =cut
 
 
 my $gen_passwd = mk_unique_value(8);
 
 print << "[END]";
-<Table border=0 cellspacing="1" cellpadding="1">
-<td><td bgcolor=000000>
-<Table border=0 cellspacing="0" cellpadding="0">
-<td><td bgcolor=FFFFFF>
+<Table border=0 cellspacing="1" cellpadding="1"><td><td bgcolor=000000>
+<Table border=0 cellspacing="0" cellpadding="0"><td><td bgcolor=FFFFFF>
 <form ACTION=$SELF>
 <input type=hidden name=op value=users>
 <input type=hidden name=uid value=$uid>
 <input type=hidden name=passwd value=chg>
 <table>
 <tr><th colspan=2 bgcolor=$_BG0>$_CHANGE_PASSWD</th></tr>
-<tr><td>UID:</td><td>$login_link</td></tr>
 <tr><td>$_GEN_PASSWD:</td><td>$gen_passwd</td></tr>
 <tr><td>$_PASSWD:</td><td><input type=password name=password value='$gen_passwd'></td></tr>
 <tr><td>$_CONFIRM:</td><td><input type=password name=confirm value='$gen_passwd'></td></tr>
