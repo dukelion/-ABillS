@@ -191,7 +191,7 @@ print "<TABLE width=640 cellspacing=0 cellpadding=0 border=0>
 </COLGROUP>
 \n";
 my @caption = ("$_LOGIN", "$_USER", "$_SUM", "$_CREDIT", "$_VARIANT",  '-', '-');
-show_title($sort, "$desc", "$pg", "$op$qs", \@caption, {img_path => 'img/'});
+show_title($sort, "$desc", "$pg", "$op$qs", \@caption, { img_path => 'img/'});
 
    while(($login, $fio, $deposit, $credit, $tp_name,  $uid) = $q -> fetchrow()) {
      $bg = ($bg eq $_BG1) ? $_BG2 : $_BG1;
@@ -1078,7 +1078,6 @@ PHONE: [805057395959]</td><td><input type=text name=cid value='$cid'></td></tr>
 </table>
 <p>
 <input type=submit name=$action[0] value='$action[1]'>
-<input type=submit name=del value='$_DELETE_USER'  onclick="return confirmLink(this, '$_DELETE_USER ID: $uid')">
 </form>
 [END]
 	
