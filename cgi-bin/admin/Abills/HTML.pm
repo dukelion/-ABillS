@@ -719,6 +719,12 @@ sub tpl_show {
   my $self = shift;
   my ($tpl, $variables_ref, $attr) = @_;	
   
+#  my $i=0;
+#  while(my($k, $v)=each %$variables_ref) {
+#  	print "$k $v";
+#   }
+#  return 0;
+  
   while($tpl =~ /\%(\w+)\%/g) {
 #    print "-$1-<br>\n";
     my $var = $1;

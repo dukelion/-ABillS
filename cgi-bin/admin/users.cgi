@@ -2314,7 +2314,6 @@ if ($FORM{change}) {
  print "-----$passwd $sql";
 =cut
 
-
 my $gen_passwd = mk_unique_value(8);
 
 print << "[END]";

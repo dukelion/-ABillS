@@ -35,7 +35,6 @@ $conf{list_max_recs}=25;
 
 
 my $domain = '';
-# ?????????
 my $web_path = '';
 my $secure = '';
 #
@@ -88,8 +87,6 @@ else {
   check_permissions('asm', 'test1r');
 }
 
-#asm test123
-#'mike', 'B6zgB8uh'
 if ($admin->{errno}) {
   print "Content-type: test/html\n\n";
   message('err', $_ERROR, "Access Deny"); #$err_strs{$admin->{errno}}");
@@ -168,7 +165,7 @@ print "<table width=100%>
 <form action=$SELF_URL>
   <tr><th align=left>$_DATE: Admin: <a href='$SELF_URL?index='>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
   <th align=right><input type=hidden name=index value=100>
-  Search: $SEL_TYPE <input type=text name=quick_search value='$FORM{quick_search}'></th></tr>
+  Search: $SEL_TYPE <input type=text name=LOGIN_EXPR value='$FORM{LOGIN_EXPR}'></th></tr>
 </form>
 </table>
 
@@ -1250,6 +1247,26 @@ return qq{
 </form>
 }
 }
+elsif ($tpl_name eq 'form_search') {
+return qq{
+<form action=$SELF_URL>
+<input type=hidden name=index value=100>
+<table>
+<tr><td>$_LOGIN:</td><td><input type=text name=LOGIN_EXPR value='%LOGIN_EXPR%'></td></tr>
+<tr><td>WHERE:</td><td>$SEL_TYPE</td></tr>
+<tr><td>$_PERIOD:</td><td>
+<table width=100%>
+<tr><td>$_FROM: </td><td>%FROM_DATE%</td></tr>
+<tr><td>$_TO:</td><td>%TO_DATE%</td></tr>
+</table>
+</td></tr>
+%SEARCH_FORM%
+</table>
+<input type=submit name=search value=$_SEARCH>
+</form>
+};
+	
+}
 elsif ($tpl_name eq 'form_ip_pools') {
 return qq{
 <form action=$SELF_URL METHOD=post>
@@ -1261,7 +1278,6 @@ return qq{
 </table>
 <input type=submit name=add value="$_ADD">
 </form>
-
 
 };
 
@@ -2907,91 +2923,82 @@ print $table->show();
 sub form_search {
   my ($attr) = @_;
 
-my $ip = $FORM{ip} || '0.0.0.0';
+my %SEARCH_DATA = $admin->get_data(\%FORM);  
 
-
-if ($FORM{quick_search}) {
-  
-	$LIST_PARAMS{LOGIN_EXPR}=$FORM{quick_search};
-  $pages_qs = "&type=$FORM{type}&quick_search=$FORM{quick_search}";
-  if ($FORM{type}) {
-    $functions{$FORM{type}}->();
-   }
-
-  return 0;	
-}
-
-
-
-$SEL_METHOD = "<select name=METHOD>\n";
+my $i=0;
+my $SEL_METHOD = "<select name=METHOD>\n";
 foreach my $line (@PAYMENT_METHODS) {
   $SEL_METHOD .= "<option value=$i";
+	$SEL_METHOD .= ' selected' if ($FORM{METHOD} eq $i);
   $SEL_METHOD .= ">$line\n";
   $i++;
 }
 $SEL_METHOD .= "</select>\n";
 
-
-
 my $nas = Nas->new($db);
 my $list = $nas->list({ %LIST_PARAMS });
-my $SEL_NAS = "<select name=nas>\n";
+my $SEL_NAS = "<select name=NAS>\n";
 foreach my $line (@$list) {
 	$SEL_NAS .= "<option value='$line->[0]'";
-	$SEL_NAS .= ' selected' if ($FORM{nas} eq $line->[0]);
+	$SEL_NAS .= ' selected' if ($FORM{NAS} eq $line->[0]);
 	$SEL_NAS .= ">$line->[1]\n";
 }
 $SEL_NAS .= "</select>\n";
 
-my $from_date = Abills::HTML->date_fld('from_', { MONTHES => \@MONTHES });
-my $to_date = Abills::HTML->date_fld('to_', { MONTHES => \@MONTHES} );
-my $tpl_form = qq{
-<form action=$SELF_URL>
-<input type=hidden name=index value=100>
-<table>
-<tr><td>UID:</td><td><input type=text name=uid value='$FORM{UID}'></td></tr>
-<tr><td>WHERE:</td><td>$SEL_TYPE</td></tr>
-<tr><td>$_PERIOD:</td><td>
-<table width=100%>
-<tr><td>$_FROM: </td><td>$from_date</td></tr>
-<tr><td>$_TO:</td><td>$to_date</td></tr>
-</table>
-</td></tr>
-<!-- last SESSION -->
-<tr><td colspan=2><hr></td></tr>
-<tr><td>IP (>,<)</td><td><input type=text name=ip value='$ip'></td></tr>
-<tr><td>CID</td><td><input type=text name=cid value='$cid'></td></tr>
-<tr><td>NAS</td><td>$SEL_NAS</td></tr>
-<tr><td>NAS Port</td><td><input type=text name=nas_port value='$nas_port'></td></tr>
-<!-- last SESSION -->
+
+my %search_form = ( 
+2 => "
 <!-- PAYMENTS -->
 <tr><td colspan=2><hr></td></tr>
-<tr><td>$_OPERATOR:</td><td><input type=text name=operator value='$operator'></td></tr>
-<tr><td>$_DESCRIBE (*):</td><td><input type=text name=describe value='$describe'></td></tr>
-<tr><td>$_SUM (<,>):</td><td><input type=text name=sum value='$sum'></td></tr>
-<tr><td>$_PAYMENT_METHOD:</td><td>$SEL_METHOD </td></tr>
-<!-- PAYMENTS END -->
+<tr><td>$_OPERATOR:</td><td><input type=text name=A_LOGIN value='%A_LOGIN%'></td></tr>
+<tr><td>$_DESCRIBE (*):</td><td><input type=text name=DESCRIBE value='%DESCRIBE%'></td></tr>
+<tr><td>$_SUM (<,>):</td><td><input type=text name=SUM value='%SUM%'></td></tr>
+<tr><td>$_PAYMENT_METHOD:</td><td>$SEL_METHOD</td></tr>\n",
 
+3 => "
+<!-- FEES -->
+<tr><td colspan=2><hr></td></tr>
+<tr><td>$_OPERATOR:</td><td><input type=text name=operator value='%A_LOGIN%'></td></tr>
+<tr><td>$_DESCRIBE (*):</td><td><input type=text name=describe value='%DESCRIBE%'></td></tr>
+<tr><td>$_SUM (<,>):</td><td><input type=text name=sum value='%SUM%'></td></tr>\n",
+
+11 => "
 <!-- USERS -->
 <tr><td colspan=2><hr></td></tr>
-<tr><td>IP (>,<)</td><td><input type=text name=ip value='$ip'></td></tr>
-<tr><td>$_SPEED:</td><td><input type=text name=speed value='$speed'></td></tr>
-<tr><td>CID</td><td><input type=text name=cid value='$cid'></td></tr>
-<tr><td>$_FIO (*):</td><td><input type=text name=fio value='$fio'></td></tr>
-<tr><td>$_PHONE (*):</td><td><input type=text name=phone value='$phone'></td></tr>
-<!-- USERS END -->
+<tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
+<tr><td>$_SPEED:</td><td><input type=text name=SPEED value='%SPEED%'></td></tr>
+<tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
+<tr><td>$_FIO (*):</td><td><input type=text name=FIO value='%FIO%'></td></tr>
+<tr><td>$_PHONE (*):</td><td><input type=text name=PHONE value='%PHONE%'></td></tr>\n",
+
+41 => "
+<!-- last SESSION -->
+<tr><td colspan=2><hr></td></tr>
+<tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
+<tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
+<tr><td>NAS</td><td>$SEL_NAS</td></tr>
+<tr><td>NAS Port</td><td><input type=text name=NAS_PORT value='%NAS_PORT%'></td></tr>\n"
+);
+
+$SEARCH_DATA{SEARCH_FORM}=$search_form{$FORM{type}};
+$SEARCH_DATA{FROM_DATE} = Abills::HTML->date_fld('from_', { MONTHES => \@MONTHES });
+$SEARCH_DATA{TO_DATE} = Abills::HTML->date_fld('to_', { MONTHES => \@MONTHES} );
+
+Abills::HTML->tpl_show(templates('form_search'), \%SEARCH_DATA);
+
+if ($FORM{type}) {
+	$LIST_PARAMS{LOGIN_EXPR}=$FORM{LOGIN_EXPR};
+	
+  $pages_qs = "&type=$FORM{type}&LOGIN_EXPR=$FORM{LOGIN_EXPR}";
+  if ($FORM{type}) {
+    $functions{$FORM{type}}->();
+   }
+}
 
 
-</table>
-<input type=submit name=search value=$_SEARCH>
-</form>
-};
 
 
 
-
-
- print $tpl_form;	
 }
 
 
