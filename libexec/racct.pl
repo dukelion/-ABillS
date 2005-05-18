@@ -138,9 +138,9 @@ if ($NAS_INFO->{nt}{$nas_num} eq 'exppp') {
 
 if ($acct_status_type == 1) { 
   $sql = "INSERT INTO calls 
-   (status, user_name, started, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
+   (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
     acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO)
-    values ('$acct_status_type', \"$RAD{USER_NAME}\", now(), INET_ATON('$RAD{NAS_IP_ADDRESS}'), 
+    values ('$acct_status_type', \"$RAD{USER_NAME}\", now(), now(), INET_ATON('$RAD{NAS_IP_ADDRESS}'), 
      '$ACCT_INFO{NAS_PORT}', \"$RAD{ACCT_SESSION_ID}\", 0, 0, 0, INET_ATON('$RAD{FRAMED_IP_ADDRESS}'), '$ACCT_INFO{CID}', '$ACCT_INFO{CONNECT_INFO}');";
 
   log_print('LOG_SQL', "ACCT [$RAD{USER_NAME}] SQL: $sql");
