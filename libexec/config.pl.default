@@ -12,6 +12,9 @@ $conf{dbpasswd}='password';
 $conf{ADMIN_MAIL}='info@your.domain';
 $conf{USERS_MAIL_DOMAIN}='your.domain';
 $conf{MAIL_CHARSET}='windows-1251';
+$conf{default_language}='english';
+$conf{default_charset}='windows-1251';
+
 
 #Periodic functions
 $conf{p_admin_mails}=1;  # Send periodic admin reports

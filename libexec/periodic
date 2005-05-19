@@ -9,8 +9,7 @@ require $Bin .'/config.pl';
 require $Bin .'/Base.pm';
 Base->import();
 require $Bin .'/sql.pl';
-
-if (! $lang) { require "$lang_path/ukraine.pl"; }
+require "$lang_path/$conf{default_language}.pl";
 
 $admin_name=$conf{ADMIN_MAIL};
 $admin_ip='127.0.0.1';
@@ -154,7 +153,7 @@ while(($uid, $sum)=each(%USERS)) {
      my  $activdate = "and activate=curdate() ";
     }
 
-  get_fees($uid, $sum, "$_DAY_FEE", { deposit =>  $LAST_DEPOSIT{$uid} });
+  get_fees($uid, $sum, "$_MONTH_FEE", { deposit =>  $LAST_DEPOSIT{$uid} });
 }
 
 }
@@ -191,6 +190,7 @@ while(my($login, $uid, $d_abon, $deposit) = $q -> fetchrow_array()) {
 
 while(($uid, $sum)=each(%USERS)) {
   get_fees($uid, $sum, "$_DAY_FEE", { deposit =>  $LAST_DEPOSIT{$uid} });
+  print "$uid, $sum, $_DAY_FEE\n";
 }
 
 }
