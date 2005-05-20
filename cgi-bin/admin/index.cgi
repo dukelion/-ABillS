@@ -2186,7 +2186,7 @@ if (! $list) {
 	  $LIST_PARAMS{DESC} = 'DESC';
   }
   use Sessions;
-  my $sessions = Sessions->new($db);
+  $sessions = Sessions->new($db);
   $list = $sessions->list({ %LIST_PARAMS });	
 }
 
@@ -2934,6 +2934,7 @@ my %SEARCH_DATA = $admin->get_data(\%FORM);
 
 my $i=0;
 my $SEL_METHOD = "<select name=METHOD>\n";
+  $SEL_METHOD .= "<option value=''>$_ALL\n";
 foreach my $line (@PAYMENT_METHODS) {
   $SEL_METHOD .= "<option value=$i";
 	$SEL_METHOD .= ' selected' if ($FORM{METHOD} eq $i);
@@ -2945,6 +2946,7 @@ $SEL_METHOD .= "</select>\n";
 my $nas = Nas->new($db);
 my $list = $nas->list({ %LIST_PARAMS });
 my $SEL_NAS = "<select name=NAS>\n";
+  $SEL_NAS .= "<option value=''>$_ALL\n";
 foreach my $line (@$list) {
 	$SEL_NAS .= "<option value='$line->[0]'";
 	$SEL_NAS .= ' selected' if ($FORM{NAS} eq $line->[0]);
@@ -2965,9 +2967,9 @@ my %search_form = (
 3 => "
 <!-- FEES -->
 <tr><td colspan=2><hr></td></tr>
-<tr><td>$_OPERATOR:</td><td><input type=text name=operator value='%A_LOGIN%'></td></tr>
-<tr><td>$_DESCRIBE (*):</td><td><input type=text name=describe value='%DESCRIBE%'></td></tr>
-<tr><td>$_SUM (<,>):</td><td><input type=text name=sum value='%SUM%'></td></tr>\n",
+<tr><td>$_OPERATOR (*):</td><td><input type=text name=A_LOGIN value='%A_LOGIN%'></td></tr>
+<tr><td>$_DESCRIBE (*):</td><td><input type=text name=DESCRIBE value='%DESCRIBE%'></td></tr>
+<tr><td>$_SUM (<,>):</td><td><input type=text name=SUM value='%SUM%'></td></tr>\n",
 
 11 => "
 <!-- USERS -->
@@ -2976,7 +2978,8 @@ my %search_form = (
 <tr><td>$_SPEED (>, <):</td><td><input type=text name=SPEED value='%SPEED%'></td></tr>
 <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
 <tr><td>$_FIO (*):</td><td><input type=text name=FIO value='%FIO%'></td></tr>
-<tr><td>$_PHONE (>, <, *):</td><td><input type=text name=PHONE value='%PHONE%'></td></tr>\n",
+<tr><td>$_PHONE (>, <, *):</td><td><input type=text name=PHONE value='%PHONE%'></td></tr>
+<tr><td>$_COMMENTS (*):</td><td><input type=text name=COMMENTS value='%COMMENTS%'></td></tr>\n",
 
 41 => "
 <!-- last SESSION -->
