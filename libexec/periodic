@@ -190,7 +190,6 @@ while(my($login, $uid, $d_abon, $deposit) = $q -> fetchrow_array()) {
 
 while(($uid, $sum)=each(%USERS)) {
   get_fees($uid, $sum, "$_DAY_FEE", { deposit =>  $LAST_DEPOSIT{$uid} });
-  print "$uid, $sum, $_DAY_FEE\n";
 }
 
 }

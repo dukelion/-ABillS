@@ -39,6 +39,7 @@ sub new {
   ($db, $admin) = @_;
   my $self = { };
   bless($self, $class);
+  $self->{debug}=1;
   return $self;
 }
 
@@ -145,7 +146,8 @@ sub list {
 
 
  my $WHERE  = '';
- 
+ my $search_fields = '';
+
  # Start letter 
  if ($attr->{FIRST_LETTER}) {
     $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{FIRST_LETTER}%' " : "WHERE u.id LIKE '$attr->{FIRST_LETTER}%' ";
@@ -157,6 +159,55 @@ sub list {
     $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{LOGIN_EXPR}' " : "WHERE u.id LIKE '$attr->{LOGIN_EXPR}' ";
   }
 
+ if ($attr->{IP}) {
+    if ($attr->{IP} =~ m/\*/g) {
+      my ($i, $first_ip, $last_ip);
+      my @p = split(/\./, $attr->{IP});
+      for ($i=0; $i<4; $i++) {
+
+         if ($p[$i] eq '*') {
+         	 $first_ip .= '0';
+         	 $last_ip .= '255';
+          }
+         else {
+         	 $first_ip .= $p[$i];
+         	 $last_ip .= $p[$i];
+          }
+         if ($i != 3) {
+         	 $first_ip .= '.';
+         	 $last_ip .= '.';
+          }
+       }
+      $WHERE .= ($WHERE ne '') ?  " and (u.ip>=INET_ATON('$first_ip') and u.ip<=INET_ATON('$last_ip'))" : "WHERE (u.ip>=INET_ATON('$first_ip') and u.ip<=INET_ATON('$last_ip')) ";
+     }
+    else {
+      my $value = $self->search_expr($attr->{IP}, 'IP');
+      $WHERE .= ($WHERE ne '') ?  " and u.ip$value " : "WHERE u.ip$value ";
+    }
+  }
+
+ if ($attr->{PHONE}) {
+    my $value = $self->search_expr($attr->{PHONE}, 'INT');
+    $WHERE .= ($WHERE ne '') ?  " and u.phone$value " : "WHERE u.phone$value ";
+  }
+
+
+ if ($attr->{SPEED}) {
+    my $value = $self->search_expr($attr->{SPEED}, 'INT');
+    $WHERE .= ($WHERE ne '') ?  " and u.speed$value " : "WHERE u.speed$value ";
+  }
+
+ if ($attr->{CID}) {
+    $attr->{CID} =~ s/\*/\%/ig;
+    $WHERE .= ($WHERE ne '') ?  " and u.cid LIKE '$attr->{CID}' " : "WHERE u.cid LIKE '$attr->{CID}' ";
+  }
+
+ if ($attr->{FIO}) {
+    $attr->{FIO} =~ s/\*/\%/ig;
+    $WHERE .= ($WHERE ne '') ?  " and u.fio LIKE '$attr->{FIO}' " : "WHERE u.fio LIKE '$attr->{FIO}' ";
+  }
+
+ 
  
  # Show users for spec tarifplan 
  if ($attr->{TP}) {

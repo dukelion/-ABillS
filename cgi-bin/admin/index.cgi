@@ -32,6 +32,9 @@ $conf{secretkey}="test12345678901234567890";
 $conf{passwd_length}=6;
 $conf{username_length}=15;
 $conf{list_max_recs}=25;
+$conf{default_language}='english';
+$conf{default_charset}='windows-1251';
+
 
 
 my $domain = '';
@@ -2178,6 +2181,10 @@ sub show_sessions {
 #Session List
 
 if (! $list) {
+  if (! defined($FORM{sort})) {
+	  $LIST_PARAMS{SORT} = 2;
+	  $LIST_PARAMS{DESC} = 'DESC';
+  }
   use Sessions;
   my $sessions = Sessions->new($db);
   $list = $sessions->list({ %LIST_PARAMS });	
@@ -2965,11 +2972,11 @@ my %search_form = (
 11 => "
 <!-- USERS -->
 <tr><td colspan=2><hr></td></tr>
-<tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
-<tr><td>$_SPEED:</td><td><input type=text name=SPEED value='%SPEED%'></td></tr>
+<tr><td>IP (>, <, *):</td><td><input type=text name=IP value='%IP%' title='Examples:\n 192.168.101.1\n >192.168.0\n 192.168.*.*'></td></tr>
+<tr><td>$_SPEED (>, <):</td><td><input type=text name=SPEED value='%SPEED%'></td></tr>
 <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
 <tr><td>$_FIO (*):</td><td><input type=text name=FIO value='%FIO%'></td></tr>
-<tr><td>$_PHONE (*):</td><td><input type=text name=PHONE value='%PHONE%'></td></tr>\n",
+<tr><td>$_PHONE (>, <, *):</td><td><input type=text name=PHONE value='%PHONE%'></td></tr>\n",
 
 41 => "
 <!-- last SESSION -->
@@ -2987,9 +2994,19 @@ $SEARCH_DATA{TO_DATE} = Abills::HTML->date_fld('to_', { MONTHES => \@MONTHES} );
 Abills::HTML->tpl_show(templates('form_search'), \%SEARCH_DATA);
 
 if ($FORM{type}) {
+
 	$LIST_PARAMS{LOGIN_EXPR}=$FORM{LOGIN_EXPR};
+  $pages_qs = "&type=$FORM{type}";
 	
-  $pages_qs = "&type=$FORM{type}&LOGIN_EXPR=$FORM{LOGIN_EXPR}";
+	while(my($k, $v)=each %FORM) {
+		if ($k =~ /([A-Z0-9]+)/ && $v ne '') {
+		  print "$k, $v<br>";
+		  $LIST_PARAMS{$k}=$v;
+	    $pages_qs .= "&$k=$v";
+		 }
+	 }
+
+
   if ($FORM{type}) {
     $functions{$FORM{type}}->();
    }

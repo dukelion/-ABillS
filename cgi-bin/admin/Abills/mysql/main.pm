@@ -78,7 +78,7 @@ else {
 # get_data
 #**********************************************************
 sub get_data {
-	my ($self) =shift;
+	my $self=shift;
 	my ($params, $attr) = @_;
   my %DATA;
   
@@ -95,5 +95,37 @@ sub get_data {
 	return %DATA;
 }
 
+
+#**********************************************************
+# search_expr($self, $value, $type)
+#
+# type of fields
+# IP -  IP Address
+# INT - integer
+# STR - string
+#**********************************************************
+sub search_expr {
+	my $self=shift;
+ 	my ($value, $type)=@_;
+
+  my $expr = '=';
+  
+  if($type eq 'INT' && $value =~ s/\*//g) {
+  	$expr = '>';
+   }
+  elsif ($value =~ tr/>//d) {
+    $expr = '>';
+   }
+  elsif($value =~ tr/<//d) {
+    $expr = '<';
+   }
+  
+  if ($type eq 'IP') {
+  	$value = "INET_ATON('$value')";
+   }
+ 
+  $value = $expr . $value;
+  return $value;
+}
 
 1
