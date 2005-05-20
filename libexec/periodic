@@ -11,9 +11,6 @@ Base->import();
 require $Bin .'/sql.pl';
 require "$lang_path/$conf{default_language}.pl";
 
-#Take month and day fees from users with negative deposit too
-$conf{negative_deposit}='no';
-
 $admin_name=$conf{ADMIN_MAIL};
 $admin_ip='127.0.0.1';
 

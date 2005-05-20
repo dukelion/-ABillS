@@ -31,6 +31,8 @@ $conf{MINIMUM_SESSION_TRAF}=200; # minimum session trafic for push session to db
 # Minimum pushed session cost.
 # If MINIMUM_SESSION_COST > 0 session sum up to MINIMUM_SESSION_COST value.
 $conf{MINIMUM_SESSION_COST}=0.01; 
+#Take month and day fees from users with negative deposit too
+$conf{negative_deposit}='no';
 
 
 # Exppp options
