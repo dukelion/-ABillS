@@ -160,11 +160,29 @@ sub list {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
     $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{LOGIN_EXPR}' " : "WHERE u.id LIKE '$attr->{LOGIN_EXPR}' ";
   }
-
  
  if ($attr->{AID}) {
     $WHERE .= ($WHERE ne '') ?  " and f.aid='$attr->{AID}' " : "WHERE f.aid='$attr->{AID}' ";
   }
+
+
+ if ($attr->{A_LOGIN}) {
+ 	 $attr->{A_LOGIN} =~ s/\*/\%/ig;
+ 	 $WHERE .= ($WHERE ne '') ?  " and a.id LIKE '$attr->{A_LOGIN}' " : "WHERE a.id LIKE '$attr->{A_LOGIN}' ";
+ }
+
+ # Show debeters
+ if ($attr->{DESCRIBE}) {
+    $attr->{DESCRIBE} =~ s/\*/\%/g;
+    $WHERE .= ($WHERE ne '') ?  " and f.dsc LIKE '$attr->{DESCRIBE}' " : "WHERE f.dsc LIKE '$attr->{DESCRIBE}' ";
+  }
+
+ # Show debeters
+ if ($attr->{SUM}) {
+    my $value = $self->search_expr($attr->{SUM}, 'INT');
+    $WHERE .= ($WHERE ne '') ?  " and f.sum$value " : "WHERE f.sum$value ";
+  }
+
 
  $self->query($db, "SELECT f.id, u.id, f.date, f.sum, f.dsc, a.name, INET_NTOA(f.ip), f.last_deposit, f.uid 
     FROM fees f
@@ -174,11 +192,15 @@ sub list {
     GROUP BY f.id
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
-  my $list = $self->{list};
+
+ return $self->{list}  if ($self->{TOTAL});
+ my $list = $self->{list};
 
 
  $self->query($db, "SELECT count(*), sum(f.sum) FROM fees f 
- LEFT JOIN users u ON (u.uid=f.uid) $WHERE");
+ LEFT JOIN users u ON (u.uid=f.uid) 
+ LEFT JOIN admins a ON (a.aid=f.aid)
+ $WHERE");
  my $a_ref = $self->{list}->[0];
 
  ($self->{TOTAL}, 

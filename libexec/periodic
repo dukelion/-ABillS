@@ -11,6 +11,9 @@ Base->import();
 require $Bin .'/sql.pl';
 require "$lang_path/$conf{default_language}.pl";
 
+#Take month and day fees from users with negative deposit too
+$conf{negative_deposit}='no';
+
 $admin_name=$conf{ADMIN_MAIL};
 $admin_ip='127.0.0.1';
 
@@ -117,6 +120,8 @@ $message .= sprintf ("%s: %4d/%4d| %9s| %s+%02.d:%02.d:%02.d| %-8.2f\n", $_TOTAL
 #*******************************************************************
 sub monthly_fees {
 
+my $negative_deposit = ($conf{negative_deposit} eq 'yes') ? '' : 'and deposit+credit > 0';
+
 my $sql = "SELECT users.id, users.uid,  abon, if(users.activate='0000-00-00', 0, 1)
     FROM users, variant
     WHERE users.variant=variant.vrnt
@@ -126,7 +131,7 @@ my $sql = "SELECT users.id, users.uid,  abon, if(users.activate='0000-00-00', 0,
        OR
        (users.activate<>'0000-00-00' and 30 - PERIOD_DIFF(curdate(), users.activate) < 1)
        )
-     and deposit+credit > 0;";
+     $negative_deposit;";
 
 log_print('LOG_SQL', "$sql");
 
@@ -149,11 +154,13 @@ while(my($login, $uid, $m_abon, $bill_sum, $activate) = $q -> fetchrow_array()) 
 
 while(($uid, $sum)=each(%USERS)) {
   #Set activate time
-  if ($ACTIVATE{$uid} == 1) {
-     my  $activdate = "and activate=curdate() ";
-    }
 
   get_fees($uid, $sum, "$_MONTH_FEE", { deposit =>  $LAST_DEPOSIT{$uid} });
+
+  if ($ACTIVATE{$uid} == 1) {
+     my  $activdate = "and activate=curdate() ";
+     $q = $db->do("UPDATE users SET activate=curdate() WHERE uid='$uid';");
+   }
 }
 
 }
@@ -165,10 +172,12 @@ while(($uid, $sum)=each(%USERS)) {
 #*******************************************************************
 sub daily_fees {
 
+my $negative_deposit = ($conf{negative_deposit} eq 'yes') ? '' : 'and deposit+credit > 0';
+
 my $sql = qq{
 SELECT users.id, users.uid, df, users.deposit
 FROM users, variant
-WHERE users.variant=variant.vrnt and df > 0 and deposit+credit > 0
+WHERE users.variant=variant.vrnt and df > 0 $negative_deposit
 };
 
 log_print('LOG_SQL', "$sql");

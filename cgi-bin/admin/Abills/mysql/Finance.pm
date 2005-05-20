@@ -236,11 +236,26 @@ sub list {
     $WHERE .= ($WHERE ne '') ?  " and p.aid='$attr->{AID}' " : "WHERE p.aid='$attr->{AID}' ";
   }
 
+ if ($attr->{A_LOGIN}) {
+ 	 $attr->{A_LOGIN} =~ s/\*/\%/ig;
+ 	 $WHERE .= ($WHERE ne '') ?  " and a.id LIKE '$attr->{A_LOGIN}' " : "WHERE a.id LIKE '$attr->{A_LOGIN}' ";
+ }
+
  # Show debeters
- if ($attr->{DEBETERS}) {
-    $WHERE .= ($WHERE ne '') ?  " and u.id LIKE '$attr->{FIRST_LETTER}%' " : "WHERE u.id LIKE '$attr->{FIRST_LETTER}%' ";
+ if ($attr->{DESCRIBE}) {
+    $attr->{DESCRIBE} =~ s/\*/\%/g;
+    $WHERE .= ($WHERE ne '') ?  " and p.dsc LIKE '$attr->{DESCRIBE}' " : "WHERE p.dsc LIKE '$attr->{DESCRIBE}' ";
   }
- 
+
+ if ($attr->{SUM}) {
+    my $value = $self->search_expr($attr->{SUM}, 'INT');
+    $WHERE .= ($WHERE ne '') ?  " and p.sum$value " : "WHERE p.sum$value ";
+  }
+
+ if ($attr->{METHOD}) {
+    $WHERE .= ($WHERE ne '') ?  " and p.method='$attr->{METHOD}' " : "WHERE p.method='$attr->{METHOD}' ";
+  }
+   
  
  $self->query($db, "SELECT p.id, u.id, p.date, p.sum, p.dsc, a.name, INET_NTOA(p.ip), p.last_deposit, p.method, p.uid 
     FROM payments p
@@ -249,11 +264,13 @@ sub list {
     $WHERE 
     GROUP BY p.id
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
-
+ 
+ return $self->{list}  if ($self->{TOTAL});
  my $list = $self->{list};
 
  $self->query($db, "SELECT count(p.id), sum(p.sum) FROM payments p
-  LEFT JOIN users u ON (u.uid=p.uid) $WHERE");
+  LEFT JOIN users u ON (u.uid=p.uid)
+  LEFT JOIN admins a ON (a.aid=p.aid) $WHERE");
  my $ar = $self->{list}->[0];
  ( $self->{TOTAL},
  $self->{SUM} )= @$ar;

@@ -202,6 +202,12 @@ sub list {
     $WHERE .= ($WHERE ne '') ?  " and u.cid LIKE '$attr->{CID}' " : "WHERE u.cid LIKE '$attr->{CID}' ";
   }
 
+ if ($attr->{COMMENTS}) {
+ 	$attr->{COMMENTS} =~ s/\*/\%/ig;
+ 	$WHERE .= ($WHERE ne '') ?  " and u.comments LIKE '$attr->{COMMENTS}' " : "WHERE u.comments LIKE '$attr->{COMMENTS}' ";
+  }
+
+
  if ($attr->{FIO}) {
     $attr->{FIO} =~ s/\*/\%/ig;
     $WHERE .= ($WHERE ne '') ?  " and u.fio LIKE '$attr->{FIO}' " : "WHERE u.fio LIKE '$attr->{FIO}' ";
