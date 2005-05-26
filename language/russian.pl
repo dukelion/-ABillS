@@ -263,3 +263,4 @@ $_FUNCTIONS_LIST='Операции';
 $_COMPANY='Компании';
 $_OCTETS_DIRECTION='Направление трафика';
 $_PAYMENT_METHOD='Вид оплаты';
+$_TEST='Тест';

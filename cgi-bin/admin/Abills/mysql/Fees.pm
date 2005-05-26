@@ -193,7 +193,7 @@ sub list {
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
 
- return $self->{list}  if ($self->{TOTAL});
+ return $self->{list}  if ($self->{TOTAL} < 1);
  my $list = $self->{list};
 
 

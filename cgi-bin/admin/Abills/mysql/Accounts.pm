@@ -29,7 +29,7 @@ sub new {
   $db = shift;
   my $self = { };
   bless($self, $class);
-  $self->{debug}=1;
+#  $self->{debug}=1;
   return $self;
 }
 
@@ -164,15 +164,23 @@ sub info {
 sub list {
  my $self = shift;
  my ($attr) = @_;
-
+ my $WHERE = '';
+ 
  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
- $self->query($db, "SELECT a.name, a.deposit, count(u.uid), a.id
+
+ if ($attr->{LOGIN_EXPR}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    $WHERE .= ($WHERE ne '') ?  " and a.name LIKE '$attr->{LOGIN_EXPR}' " : "WHERE a.name LIKE '$attr->{LOGIN_EXPR}' ";
+  }
+
+ $self->query($db, "SELECT a.name, a.deposit, a.registration, count(u.uid), a.id
     FROM accounts a
     LEFT JOIN users u ON (u.account_id=a.id)
+    $WHERE
     GROUP BY a.id
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
  my $list = $self->{list};

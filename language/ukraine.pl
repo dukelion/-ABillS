@@ -264,3 +264,4 @@ $_FUNCTIONS_LIST='Операції';
 $_COMPANY='Компанії';
 $_OCTETS_DIRECTION='Напрямок трафіку';
 $_PAYMENT_METHOD='Тип оплати';
+$_TEST='Тест';

@@ -265,3 +265,4 @@ $_FUNCTIONS_LIST='Functions list';
 $_COMPANY='Company';
 $_OCTETS_DIRECTION='Octets direction';
 $_PAYMENT_METHOD='Payment Method';
+$_TEST='Test';

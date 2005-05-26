@@ -265,7 +265,7 @@ sub list {
     GROUP BY p.id
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
  
- return $self->{list}  if ($self->{TOTAL});
+ return $self->{list}  if ($self->{TOTAL} < 1);
  my $list = $self->{list};
 
  $self->query($db, "SELECT count(p.id), sum(p.sum) FROM payments p

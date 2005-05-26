@@ -39,7 +39,7 @@ sub new {
   ($db, $admin) = @_;
   my $self = { };
   bless($self, $class);
-  $self->{debug}=1;
+  #$self->{debug}=1;
   return $self;
 }
 
@@ -128,6 +128,67 @@ sub defaults {
  
   $self = \%DATA;
   return $self;
+}
+
+
+#**********************************************************
+# groups_list()
+#**********************************************************
+sub groups_list {
+ my $self = shift;
+ my ($attr) = @_;
+ my @list = ();
+
+ my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $self->{debug}=1;
+ 
+ 
+ $self->query($db, "select g.gid, g.name, g.descr, count(u.uid) FROM groups g
+        LEFT JOIN users u ON  (u.gid=g.gid) 
+        GROUP BY g.gid
+        ORDER BY $SORT $DESC");
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT count(*) FROM groups");
+    my $a_ref = $self->{list}->[0];
+    ($self->{TOTAL}) = @$a_ref;
+   }
+
+ return $list;
+}
+
+
+
+#**********************************************************
+# group_add()
+#**********************************************************
+sub group_add {
+ my $self = shift;
+ my ($attr) = @_;
+
+ my ($attr) = @_;
+ %DATA = $self->get_data($attr); 
+
+ $self->query($db, "INSERT INTO groups (gid, name, descr)
+    values ('$DATA{GID}', '$DATA{NAME}', '$DATA{DESCRIBE}');", 'do');
+
+ return $self;
+}
+
+
+
+#**********************************************************
+# group_add()
+#**********************************************************
+sub group_del {
+ my $self = shift;
+ my ($id) = @_;
+
+ $self->query($db, "DELETE FROM groups WHERE gid='$id';", 'do');
+ return $self;
 }
 
 
@@ -311,28 +372,16 @@ sub add {
      }
    }
     
-  my $sql = "INSERT INTO users (id, fio, phone, address, email, activate, expire, credit, reduction, 
+  $self->query($db,  "INSERT INTO users (id, fio, phone, address, email, activate, expire, credit, reduction, 
             variant, logins, registration, disable, ip, netmask, speed, filter_id, cid, comments, account_id, gid)
            VALUES ('$LOGIN', '$FIO', '$PHONE', \"$ADDRESS\", '$EMAIL', '$ACTIVATE', '$EXPIRE', '$CREDIT', '$REDUCTION', 
-            '$TARIF_PLAN', '$SIMULTANEONSLY', now(),  '$DISABLE', INET_ATON('$IP'), INET_ATON('$NETMASK'), '$SPEED', '$FILTER_ID', LOWER('$CID'), '$COMMENTS', '$ACCOUNT_ID', '$GID');";
-
-  print "$sql";
-  my $q = $db->do($sql);
-
-  if ($db->err == 1062) {
-     $self->{errno} = 7;
-     $self->{errstr} = 'ERROR_DUBLICATE';
-     return $self;
-   }
-  elsif($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
-     return $self;
-   }
-
-  $self->{UID} = $db->{'mysql_insertid'};
-  $self->{LOGIN} = $LOGIN;
+            '$TARIF_PLAN', '$SIMULTANEONSLY', now(),  '$DISABLE', INET_ATON('$IP'), INET_ATON('$NETMASK'), '$SPEED', '$FILTER_ID', LOWER('$CID'), '$COMMENTS', '$ACCOUNT_ID', '$GID');", 'do');
   
+  return $self if ($self->{errno});
+  
+  $self->{UID} = $self->{INSERT_ID};
+  $self->{LOGIN} = $LOGIN;
+
   $admin->action_add($uid, "ADD $LOGIN");
 
   return $self;
@@ -471,8 +520,7 @@ if ($CHANGES_QUERY eq '') {
 sub del {
   my $self = shift;
 
-  $self->query($db, "DELETE FROM users WHERE uid='$self->{UID}';". 'do');
-
+  $self->query($db, "DELETE FROM users WHERE uid='$self->{UID}';", 'do');
   $admin->action_add($uid, "DELETE");
   return $self->{result};
 }
@@ -532,15 +580,9 @@ sub nas_add {
 #**********************************************************
 sub nas_del {
   my $self = shift;
-
-  my $sql = "DELETE FROM users_nas WHERE uid='$self->{UID}';";	
-  my $q = $db->do($sql) || die $db->errstr;
-
-  if($db->err > 0) {
-     $self->{errno} = 3;
-     $self->{errstr} = 'SQL_ERROR';
-     return $self;
-   }
+  
+  $self->query($db, "DELETE FROM users_nas WHERE uid='$self->{UID}';", 'do');	
+  return $self if($db->err > 0);
 
   $admin->action_add($uid, "DELETE NAS");
   return $self;

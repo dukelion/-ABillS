@@ -13,20 +13,19 @@ BEGIN {
  else {
     $begin_time = 0;
   }
-
 }
 
-#use FindBin '$Bin2';
-use Abills::SQL;
-use Abills::HTML;
-use Nas;
-use Admins;
 
-my $html = Abills::HTML->new();
-my $sql = Abills::SQL->connect('mysql', 'localhost', 'abills', 'asm', 'test1r');
-my $db = $sql->{db};
-my $admin = Admins->new($db);
 
+#==== config options
+#DB settings
+$conf{dbtype}='mysql';
+$conf{dbhost}='localhost';
+$conf{dbname}='abills';
+$conf{dbuser}='asm';
+$conf{dbpasswd}='test1r';
+
+#
 $conf{netsfilespath}='nets';
 $conf{secretkey}="test12345678901234567890";
 $conf{passwd_length}=6;
@@ -35,16 +34,17 @@ $conf{list_max_recs}=25;
 $conf{default_language}='english';
 $conf{default_charset}='windows-1251';
 
+use POSIX qw(strftime);
+my $DATE = strftime "%Y-%m-%d", localtime(time);
+my $TIME = strftime "%H:%M:%S", localtime(time);
 
 
 my $domain = '';
 my $web_path = '';
 my $secure = '';
-#
-
+# Autheization options
 my @auth_types = ('SQL', 'System');
 
-require "../../language/$html->{language}.pl";
 my %err_strs = (
   1 => $_ERROR,
   2 => ERROR_NOT_EXIST,
@@ -61,6 +61,45 @@ my %err_strs = (
   13 => PERMISIION_DENIED
 );
 
+
+%LANG = ('english' => 'English',
+    'russian' => 'Русский',
+    'russian-koi8-r' => 'Russian KOI8-r',
+    'ukraine' => 'Українська',
+    'bulgarian' => 'Болгарска');
+
+my $lang_charset='windows-1251';
+
+#==== End config
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#use FindBin '$Bin2';
+use Abills::SQL;
+use Abills::HTML;
+use Nas;
+use Admins;
+
+my $html = Abills::HTML->new();
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $db = $sql->{db};
+my $admin = Admins->new($db);
+require "../../language/$html->{language}.pl";
 my %permissions = ();
 
 #**********************************************************
@@ -105,20 +144,12 @@ if (defined($FORM{colors})) {
 #$html->setCookie('opid', "$FORM{opid}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
 print $html->header();
 
-my @sections = ($_USERS, 
-                _FINANCES, 
-                $_FEES, 
-                $_REPORTS,
-                $_SYSTEM,
-                $_MODULES 
-                );
-
 my @actions = ([$_SA_ONLY, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL],  # Users
                [$_LIST, $_ADD, $_DEL, $_ALL],                # Payments
                [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Fees
                [$_ALL],                                                       # reports view
-               [$_ALL, 'tarif_plans'],                                        # system magment
-               [$_ALL, 'users']                                               # Modules managments
+               [$_ALL],                                                       # system magment
+               [$_ALL]                                                        # Modules managments
                );
 
 my %LIST_PARAMS = ( SORT => $SORT,
@@ -139,16 +170,14 @@ my $index = $FORM{index} || 0;
 my $root_index = 0;
 my $pages_qs = '';
 my ($main_menu, $sub_menu, $navigat_menu) = mk_navigator();
-
-
 my ($online_users, $online_count) = $admin->online();
-
-
 my %SEARCH_TYPES = (11 => $_USERS,
                     2 => $_PAYMENTS,
                     3 => $_FEES,
-                    41 => $_LAST_LOGIN
+                    41 => $_LAST_LOGIN,
+                    13 => $_COMPANY
 );
+
 $FORM{type}=11 if (! defined $FORM{type});
 
 my $SEL_TYPE = "<select name=type>\n";
@@ -166,7 +195,7 @@ print "<table width=100%>
 
 <table width=100% border=0>
 <form action=$SELF_URL>
-  <tr><th align=left>$_DATE: Admin: <a href='$SELF_URL?index='>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
+  <tr><th align=left>$_DATE: $DATE $TIME Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"$online_users\"><a href='$SELF_URL?index=50' title='$online_users'>Online: $online_count</a></abbr></th>
   <th align=right><input type=hidden name=index value=100>
   Search: $SEL_TYPE <input type=text name=LOGIN_EXPR value='$FORM{LOGIN_EXPR}'></th></tr>
 </form>
@@ -300,7 +329,7 @@ print $html->pages($total, "op=users$pages_qs");
 sub form_accounts {
   use Customers;	
   my $customer = Customers->new($db);
-  $account = $customer->account();
+  my $account = $customer->account();
 
 if ($FORM{add}) {
   $account->add({ ACCOUNT_NAME => $FORM{ACCOUNT_NAME},
@@ -336,7 +365,7 @@ elsif($FORM{chg}) {
     $account->{ACTION}='change';
     $account->{LNG_ACTION}=$_CHANGE;
     Abills::HTML->tpl_show(templates('form_account'), $account);
-    print "<a href='$SELF_URL?index=12&account_id=$FORM{chg}'>$_ADD_USER</a>";
+    print "<hr><a href='$SELF_URL?index=12&account_id=$FORM{chg}'>$_ADD_USER</a>";
     $FORM{account_id} = $FORM{chg};
     form_users();
    }
@@ -350,15 +379,15 @@ else {
   my $list = $account->list( { %LIST_PARAMS } );
   my $table = Abills::HTML->table( { width => '100%',
                                    border => 1,
-                                   title => [$_NAME, $_DEPOSIT, $_USERS, '-', '-'],
+                                   title => [$_NAME, $_DEPOSIT, $_REGISTRATION, $_USERS, '-', '-'],
                                    cols_align => ['left', 'right', 'right', 'center', 'center'],
                                    pages => $account->{TOTAL},
                                    qs => $pages_qs
                                   } );
 
   foreach my $line (@$list) {
-    $table->addrow($line->[0],  $line->[1], "<a href='$SELF_URL?op=users&account_id=$line->[3]'>$line->[2]</a>", 
-      "<a href='$SELF_URL?index=$index&chg=$line->[3]'>$_INFO</a>", $html->button($_DEL, "index=$index&del=$line->[3]", "$_DEL ?"));
+    $table->addrow($line->[0],  $line->[1], $line->[2], "<a href='$SELF_URL?op=users&account_id=$line->[4]'>$line->[3]</a>", 
+      "<a href='$SELF_URL?index=$index&chg=$line->[4]'>$_INFO</a>",  $html->button($_DEL, "index=$index&del=$line->[4]", "$_DEL ?"));
    }
   print $table->show();
 
@@ -376,16 +405,23 @@ else {
 }
 
 
+
+
+
+#**********************************************************
+# add_account()
+#**********************************************************
 sub add_account {
   my $account;
   $account->{ACTION}='add';
   $account->{LNG_ACTION}=$_ADD;
-
   Abills::HTML->tpl_show(templates('form_account'), $account);
 }
 
+
+
 #**********************************************************
-# form_users()
+# user_form()
 #**********************************************************
 sub user_form {
  my ($type, $user_info, $attr) = @_;
@@ -431,9 +467,88 @@ Abills::HTML->tpl_show(templates('form_user'), $user_info);
 }
 
 
+#**********************************************************
+# form_groups()
+#**********************************************************
+sub form_groups {
+	use Users;
+  my $users = Users->new($db, $admin); 
+
+if ($FORM{add}) {
+  $users->group_add( { %FORM });
+  if (! $users->{errno}) {
+    message('info', $_ADDED, "$_ADDED $users->{GID}");
+   }
+}
+elsif($FORM{change}){
+  $users->group_change( { %FORM });
+  if (! $users->{errno}) {
+    message('info', $_CHANGED, "$_ADDED $users->{GID}");
+   }
+}
+elsif($FORM{chg}){
+  $users->group_info( $FORM{chg} );
+  if (! $users->{errno}) {
+    message('info', $_CHANGED, "$_ADDED $users->{GID}");
+   }
+
+  $users->{ACTION}='change';
+  $users->{LNG_ACTION}=$_CHANGE;
+  Abills::HTML->tpl_show(templates('form_groups'), $users);
+}
+elsif($FORM{del}){
+  $users->group_del( $FORM{del} );
+  if (! $users->{errno}) {
+    message('info', $_DELETED, "$_DELETED $users->{GID}");
+   }
+}
+
+
+if ($users->{errno}) {
+   message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+  }
+
+my $list = $users->groups_list({ %LIST_PARAMS });
+my $table = Abills::HTML->table( { width => '100%',
+                                   border => 1,
+                                   title => [$_ID, $_NAME, $_DESCRIBE, $_USERS, '-', '-', '-', '-'],
+                                   cols_align => ['left', 'left', 'left', 'right', 'center', 'center', 'center', 'center'],
+                                   qs => $pages_qs,
+                                   pages => $users->{TOTAL}
+                                  } );
+
+foreach my $line (@$list) {
+  my $payments = ($permissions{1}) ?  "<a href='$SELF_URL?op=payments&uid=$line->[5]'>$_PAYMENTS</a>" : ''; 
+
+  $table->addrow("$line->[0]", "$line->[1]", "$line->[2]", "$line->[3]", 
+   "<a href='$SELF_URL?index=27&gid=$line->[0]'>$_STATS</a>",
+   "<a href='$SELF_URL?index=27&gid=$line->[0]'>$_STATS</a>",
+   "<a href='$SELF_URL?index=27&chg=$line->[0]'>$_CHANGE</a>",
+   "<a href='$SELF_URL?index=27&del=$line->[0]'>$_DEL</a>");
+}
+print $table->show();
 
 
 
+
+$table = Abills::HTML->table( { width => '100%',
+                                cols_align => ['right', 'right'],
+                                rows => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
+                               } );
+print $table->show();
+}
+
+
+
+#**********************************************************
+# form_users()
+#**********************************************************
+sub add_groups {
+  my $users;
+  $users->{ACTION}='add';
+  $users->{LNG_ACTION}=$_ADD;
+  Abills::HTML->tpl_show(templates('form_groups'), $users); 
+}
 
 #**********************************************************
 # form_users()
@@ -455,27 +570,29 @@ if($uid > 0) {
   <td><a href='$SELF_URL?op=users&uid=$users->{UID}'><b>$users->{LOGIN}</b></td></tr></table>\n";
   
   $LIST_PARAMS{UID}=$user_info->{UID};
+  $pages_qs="&uid=$user_info->{UID}";
 
-  if($OP eq 'payments') {
-    form_payments({ USER => $user_info });
+  # Call Sub functions
+  # 2 payments
+  # 3 fess
+  # 22 stats
+  # 40 error log
+  if($index > 0 && $index != 11 && $index != 100 && $index != 13) {
+  	$functions{$index}->( { USER => $user_info } );
+    #form_payments({ USER => $user_info });
     return 0;
    }
-  elsif($index == 22) {
-  	form_stats({ USER => $user_info });
-  	return 0;
-   } 
-  elsif($OP eq 'fees') {
-    form_fees({ USER => $user_info });
+  elsif ($FORM{del}) {
+    $users->del();
+    if ($users->{errno}) {
+      message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+     }
+    else {
+      message('info', $_DELETE, "$_DELETED");
+     }
     return 0;
    }
-  elsif($index == 40) {
-  	form_error({ USER => $user_info });
-  	return 0;
-   }
-  elsif($OP eq 'changes') {
-    form_changes({ USER => $user_info });
-    return 0;
-   }
+
   
   print "<table width=100% border=1 cellspacing=1 cellpadding=2><tr><td valign=top>\n";
   if($FORM{password}) {
@@ -546,15 +663,6 @@ if($uid > 0) {
     $user_info->{SEL_ACCOUNTS} .= "</select>\n";
     print Abills::HTML->tpl_show(templates('chg_account'), $user_info);
    }
-  elsif ($FORM{del}) {
-    $users->del();
-    if ($users->{errno}) {
-      message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
-     }
-    else {
-      message('info', $_DELETE, "$_DELETED");
-     }
-   }
   else {
     @action = ('change', $_CHANGE);
     user_form('test', $user_info);
@@ -563,10 +671,9 @@ if($uid > 0) {
 
 print "</td><td bgcolor=$_COLORS[3] valign=top width=180>
 <table width=100% border=0><tr><td>
-      <li><a href='$SELF?op=users&uid=$uid'>$_USER</a>
       <li><a href='$SELF?index=22&uid=$uid'>$_STATS</a>
-      <li><a href='$SELF?op=payments&uid=$uid'>$_PAYMENTS</a>
-      <li><a href='$SELF?op=fees&uid=$uid'>$_FEES</a>
+      <li><a href='$SELF?index=2&uid=$uid'>$_PAYMENTS</a>
+      <li><a href='$SELF?index=3&uid=$uid'>$_FEES</a>
       <li><a href='$SELF?index=40&uid=$uid'>$_ERROR_LOG</a>
       <li><a href='$SELF?op=sendmsg&uid=$uid'>$_SEND_MAIL</a>
       <li><a href='$SELF?op=messages&uid=$uid'>$_MESSAGES</a>
@@ -1255,7 +1362,7 @@ return qq{
 <form action=$SELF_URL>
 <input type=hidden name=index value=100>
 <table>
-<tr><td>$_LOGIN:</td><td><input type=text name=LOGIN_EXPR value='%LOGIN_EXPR%'></td></tr>
+<tr><td>$_NAME:</td><td><input type=text name=LOGIN_EXPR value='%LOGIN_EXPR%'></td></tr>
 <tr><td>WHERE:</td><td>$SEL_TYPE</td></tr>
 <tr><td>$_PERIOD:</td><td>
 <table width=100%>
@@ -1281,10 +1388,23 @@ return qq{
 </table>
 <input type=submit name=add value="$_ADD">
 </form>
-
 };
-
 }
+elsif ($tpl_name eq 'form_groups') {
+return qq{
+<form action=$SELF_URL METHOD=post>
+<input type=hidden name=index value=27>
+<input type=hidden name=chg value=%GID%>
+<table>
+<tr><td>GID:</td><td><input type=text name=GID value='%GID%'></td></tr>
+<tr><td>$_NAME:</td><td><input type=text name=NAME value='%NAME%'></td></tr>
+<tr><td>$_DESCRIBE:</td><td><input type=text name=DESCRIBE value='%DESCRIBE%'></td></tr>
+</table>
+<input type=submit name=%ACTION% value="%LNG_ACTION%">
+</form>
+};
+}
+
 
 
 return 'No such template [$tpl_name]';
@@ -1450,10 +1570,11 @@ print "
 <tr><td>$_NAME: <b>$tariffs->{NAME}</b></td></tr>
 <tr><td>ID: $tariffs->{VID}</td></tr>
 <tr bgcolor=$_COLORS[3]><td>
+:: <a href='$SELF_URL?index=70&chg=$tariffs->{VID}'>$_INFO</a> 
 :: <a href='$SELF_URL?index=74&vid=$tariffs->{VID}'>$_TRAFIC_TARIFS</a> 
 :: <a href='$SELF_URL?index=73&vid=$tariffs->{VID}'>$_INTERVALS</a>
 :: <a href='$SELF_URL?index=72&vid=$tariffs->{VID}'>$_NAS</a>
-:: <a href='$SELF_URL?index=14&tp=$tariffs->{VID}'>$_USERS</a>
+:: <a href='$SELF_URL?index=11&chg=$tariffs->{VID}'>$_USERS</a>
 </td></tr>
 </table>\n";
 
@@ -1511,7 +1632,6 @@ $tarif_info->{SEL_OCTETS_DIRECTION} .= "</select>\n";
 Abills::HTML->tpl_show(templates('tp'), $tarif_info);
 
 
-
 my $list = $tariffs->list({ %LIST_PARAMS });	
 # Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
 my $table = Abills::HTML->table( { width => '100%',
@@ -1538,7 +1658,6 @@ foreach my $line (@$list) {
 }
 
 print $table->show();
-
 
 $table = Abills::HTML->table( { width => '100%',
                                 cols_align => ['right', 'right'],
@@ -1603,7 +1722,6 @@ $table = Abills::HTML->table( { width => '640',
                                } );
 print $table->show();
 
-use POSIX qw(strftime); 
 my $year = $FORM{year} || strftime("%Y", localtime(time));
 my $month = $FORM{month} || 0;
 
@@ -1679,7 +1797,6 @@ print "</table>\n</td></tr></table>\n";
 # form_admins()
 #**********************************************************
 sub form_admins {
-
 
 my $admin_form = Admins->new($db);
 $admin_form->{ACTION}='add';
@@ -1825,32 +1942,104 @@ sub admin_permissions {
     message('err', $_ERROR, "$err_strs{$admin->{errno}}");
     return 0;
   }
-
- %permits = %$p;
+ my %permits = %$p;
  
- print "<form action=$SELF_URL METHOD=POST>
+print "<form action=$SELF_URL METHOD=POST>
  <input type=hidden name=index value=50>
  <input type=hidden name=aid value='$FORM{aid}'>
  <input type=hidden name=permissions value=set>
  <table width=640>\n";
- $section_index = 0;
- foreach my $s (@sections) {
-   print "<tr bgcolor=$_COLORS[0]><td colspan=3>$section_index: <b>$s</b></td></tr>\n";
-   my $actions_list = $actions[$section_index];
-   my $action_index = 0;
-   foreach my $action (@$actions_list) {
-      my $checked = (defined($permits{$section_index}{$action_index})) ? 'checked' : '';
-      print "<tr><td align=right>$action_index</td><td>$action</td><td><input type=checkbox name='$section_index". "_$action_index' value='yes' $checked></td></tr>\n";
+
+while(my($k, $v) = each %menu_items ) {
+  if (defined($menu_items{$k}{0})) {
+    print "<tr bgcolor=$_COLORS[0]><td colspan=3>$k: <b>$menu_items{$k}{0}</b></td></tr>\n";
+    $k--;
+    my $actions_list = $actions[$k];
+    my $action_index = 0;
+    foreach my $action (@$actions_list) {
+      my $checked = (defined($permits{$k}{$action_index})) ? 'checked' : '';
+      print "<tr><td align=right>$action_index</td><td>$action</td><td><input type=checkbox name='$k". "_$action_index' value='yes' $checked></td></tr>\n";
       $action_index++;
-    }
-  
-   $section_index++;
-  }
+     }
+   }
+ }
   
 print "<table>
  <input type=submit name='set' value=\"$_SET\">
 </form>\n";
 }
+
+
+
+
+#*******************************************************************
+# 
+# profile()
+#*******************************************************************
+sub admin_profile {
+ my ($admin) = @_;
+
+ my @colors_descr = ('# 0 TH', 
+                     '# 1 TD.1',
+                     '# 2 TD.2',
+                     '# 3 TH.sum, TD.sum',
+                     '# 4 border',
+                     '# 5',
+                     '# 6',
+                     '# 7 vlink',
+                     '# 8 link',
+                     '# 9 Text',
+                     '#10 background'
+                    );
+print "$FORM{colors}";
+
+print "
+<form action=$SELF_URL>
+<input type=hidden name=index value=$index>
+<TABLE width=640 cellspacing=0 cellpadding=0 border=0>
+<tr><TD bgcolor=$_BG4>
+<TABLE width=100% cellspacing=1 cellpadding=0 border=0>
+<tr bgcolor=$_BG1><td colspan=2>$_LANGUAGE:</td>
+<td><select name=language>\n";
+while(my($k, $v) = each %LANG) {
+  print "<option value='$k'";
+  print ' selected' if ($k eq $language);
+  print ">$v\n";	
+}
+
+print "</select></td></tr>
+<tr bgcolor=$_BG1><th colspan=3>&nbsp;</th></tr>
+<tr bgcolor=$_BG0><th colspan=2>$_PARAMS</th><th>$_VALUE</th></tr>\n";
+
+ for($i=0; $i<=10; $i++) {
+   print "<tr bgcolor=FFFFFF><td width=30% bgcolor=$_COLORS[$i]>$i</td><td>$colors_descr[$i]</td><td><input type=text name=colors value='$_COLORS[$i]'></td></tr>\n";
+  } 
+ 
+print "</table>
+</td></tr></table>
+<p><input type=submit name=set value='$_SET'> 
+<input type=submit name=default value='$_DEFAULT'>
+</form>\n";
+   
+my %profiles = ();
+$profiles{'Black'} = "#333333, #000000, #444444, #555555, #777777, #FFFFFF, #FFFFFF, #BBBBBB, #FFFFFF, #EEEEEE, #000000";
+$profiles{'Green'} = "#33AA44, #FFFFFF, #eeeeee, #dddddd, #E1E1E1, #FFFFFF, #FFFFFF, #000088, #0000A0, #000000, #FFFFFF";
+$profiles{'НУ'} = "#FCBB43, #FFFFFF, #eeeeee, #dddddd, #E1E1E1, #FFFFFF, #FFFFFF, #000088, #0000A0, #000000, #FFFFFF";
+$profiles{'Cisco'} = "#99CCCC, #FFFFFF, #FFFFFF, #669999, #669999, #FFFFFF, #FFFFFF, #003399, #003399, #000000, #FFFFFF";
+
+while(my($thema, $colors)=each %profiles ) {
+  print "<a href='$SELF?op=profile&set=set";
+  my @c = split(/, /, $colors);
+  foreach my $line (@c) {
+      $line =~ s/#/%23/ig;
+      print "&colors=$line";
+    }
+  print "'>$thema</a> ::";
+}
+
+ return 0;
+}
+
 
 #**********************************************************
 # form_nas
@@ -1930,8 +2119,6 @@ if ($nas->{errno}) {
   message('err', $_ERROR, "$err_strs{$nas->{errno}}");
  }
 
-
-
  my @nas_types = ('other', 'usr', 'pm25', 'ppp', 'exppp', 'radpppd', 'expppd', 'pppd', 'dslmax', 'mpd');
  my %nas_descr = ('usr' => "USR Netserver 8/16",
   'pm25' => 'LIVINGSTON portmaster 25',
@@ -1985,8 +2172,6 @@ $table = Abills::HTML->table( { width => '100%',
                                 rows => [ [ "$_TOTAL:", "<b>$nas->{TOTAL}</b>" ] ]
                                } );
 print $table->show();
-
-
 }
 
 #**********************************************************
@@ -2278,6 +2463,7 @@ sub form_error {
   my $rows = 100;
   my $logfile = "/usr/abills/var/log/abills.log";
   my $login  = ''; 
+  my $log_type = $FORM{log_type} || '';
 
 if ($attr->{USER}) {
   my $user = $attr->{USER};
@@ -2288,10 +2474,8 @@ elsif($FORM{uid}) {
   return 0;
 }
 
-my $list = show_log("$login", "", "$logfile", $rows);
-my $table = Abills::HTML->table( { width => '100%'
-                                  } );
-
+my ($list, $types, $totals) = show_log("$login", $log_type, "$logfile", $rows);
+my $table = Abills::HTML->table( { width => '100%' } );
 foreach my $line (@$list) {
   if ($line =~ m/LOG_WARNING/i) {
     $line = "<font color=red>$line</font>";
@@ -2299,8 +2483,30 @@ foreach my $line (@$list) {
   
   $table->addrow($line);
 }
-
 print $table->show();
+
+
+my $table = Abills::HTML->table( { width => '100%' } );
+foreach my $line (@$list) {
+  if ($line =~ m/LOG_WARNING/i) {
+    $line = "<font color=red>$line</font>";
+   }
+  $table->addrow($line);
+}
+print $table->show(). "<p>\n";
+
+
+$table = Abills::HTML->table( { width => '100%',
+	                              cols_align => ['right', 'right'] } );
+
+$table->addrow("<a href='$SELF_URL?index=40&$pages_qs'>$_TOTAL:</a>", $totals);
+while(my($k,$v)=each %$types) {
+  $table->addrow("<a href='$SELF_URL?index=40&log_type=$k&$pages_qs'>$k</a>", $v);
+}
+print $table->show();
+
+
+
 }
 
 
@@ -2376,7 +2582,9 @@ my @m = ("1:0:$_CUSTOMERS:form_customers:0:customers:",
  "21:11:$_COMPANY:form_users:0::",
  "22:11:$_STATS:form_stats:1::",
  "23:11:$_DEATAIL:session_detail:0::",
-
+ "27:1:$_GROUPS:form_groups:1::",
+ "28:27:$_ADD:add_groups:1::",
+ "29:27:$_LIST:form_groups:1::",
 
  "2:0:$_PAYMENTS:form_payments:1:payments:",
  "3:0:$_FEES:form_fees:1:fees:",
@@ -2388,6 +2596,7 @@ my @m = ("1:0:$_CUSTOMERS:form_customers:0:customers:",
  "50:5:$_ADMINS:form_admins:1::",
  "51:5:$_LOG:form_changes:1::",
  "52:50:$_PERMISSION:admin_permisions:0::",
+ "53:5:$_PROFILE:admin_profile:1::",
  
  "60:5:$_NAS:form_nas:1::",
  "61:60:IP POOLs:form_ip_pools:1::",
@@ -2406,8 +2615,13 @@ my @m = ("1:0:$_CUSTOMERS:form_customers:0:customers:",
  "99:5:$_FUNCTIONS_LIST:flist:1::",
  "100:5:$_SEARCH:form_search:1::",
  
- "6:0:$_MODULES::1:modules:",
- "999:6:$_TEST::1:test:",
+ "6:0:$_MODULES:modules:1:modules:",
+ "999:6:$_TEST:test:1:test:",
+ "1000:6:$_DOCS ::1:test:",
+ "1001:6:Postfix::1:test:",
+ "1002:6:SQL_COMMANDER::1:test:",
+ "8:0:Profile::1:test:"
+ 
  );
 
 
@@ -2418,9 +2632,7 @@ foreach my $line (@m) {
   $show_submenu{$ID}='y' if ($SHOW_SUBMENU == 1);
   $op_names{$ID}=$OP if ($OP ne '');
 }
-
 my $root_index = 0;
-
 if ($index == 0 && $OP ne '') {
    my %functions_index = reverse(%op_names);
    $index = $functions_index{$OP};
@@ -2633,7 +2845,6 @@ sub form_payments () {
 
 if (defined($attr->{USER})) { 
   my $user = $attr->{USER};
-  $pages_qs = "&uid=$user->{UID}";
   $payments->{UID} = $user->{UID};
 
   if ($FORM{add} && $FORM{SUM})	{
@@ -2715,7 +2926,7 @@ my $table = Abills::HTML->table( { width => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{3}) ?  $html->button($_DEL, "op=payments&del=$line->[0]&uid=$line->[8]", "$_DEL ?") : ''; 
+  my $delete = ($permissions{1}{3}) ?  $html->button($_DEL, "op=payments&del=$line->[0]&uid=$line->[9]", "$_DEL ?") : ''; 
   $table->addrow("<b>$line->[0]</b>", "<a href='$SELF_URL?op=users&uid=$line->[8]'>$line->[1]</a>", $line->[2], 
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $PAYMENT_METHODS[$line->[8]], $delete);
 }
@@ -2824,7 +3035,6 @@ sub form_fees  {
 
 if (defined($attr->{USER})) {
   my $user = $attr->{USER};
-  $pages_qs = "&uid=$user->{UID}";
 
   if ($FORM{get} && $FORM{sum}) {
     # add to shedule

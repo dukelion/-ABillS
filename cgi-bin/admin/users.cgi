@@ -4716,7 +4716,6 @@ if(! defined($permits{activ})) {
 #*******************************************************************
 sub profile {
  my ($admin) = @_;
- print "<h3>$_PROFILE</h3>\n";
 
  my @colors_descr = ('# 0 TH', 
                      '# 1 TD.1',
@@ -4730,7 +4729,6 @@ sub profile {
                      '# 9 Text',
                      '#10 background'
                     );
- 
 print "$FORM{colors}";
 
 print "

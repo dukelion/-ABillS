@@ -47,39 +47,49 @@ my $dif = 79200;
 # show_log($uid, $type, $logfile, $records)
 #*******************************************************************
 sub show_log {
-  my ($uid, $type, $logfile, $records) = @_;
+  my ($login, $type, $logfile, $records, $pg) = @_;
   my $output = ''; 
   my @err_recs = ();
-  
+  my %types = ();
+
   open(FILE, "$logfile") || die "Can't open log file '$logfile' $!\n";
    while(<FILE>) {
 
       my ($date, $time, $log_type, $action, $user, $message)=split(/ /, $_, 6);
-      
+
+      if ($type ne '' && $log_type ne $type) {
+      	#print "0";
+      	next;
+       }
+
       $user =~ s/\[|\]//g;
-      if ($uid ne "") {
-        if($uid eq $user) {
-      	  push @err_recs, $_;
+      if ($login ne "") {
+      	if($login eq $user) {
+     	    push @err_recs, $_;
+     	    $types{$log_type}++;
          }
        }
       else {
-      	 push @err_recs, $_;
+     	  push @err_recs, $_;
+     	  $types{$log_type}++;
        }
      }
  close(FILE);
 
  my $total  = 0;
  $total = $#err_recs;
- my $i = 0;
  my @list;
+ 
+ return (\@list, \%types, $total) if ($total < 1);
+ 
+ my $i = 0;
  for ($i = $total; $i>=$total - $records; $i--) {
-    #$output .= $err_recs[$i];
-    push @list, $err_recs[$i];
+    push @list, "$err_recs[$i]";
    }
  
  #print "$output";
 
- return \@list;
+ return (\@list, \%types, $total);
 } 
 
 

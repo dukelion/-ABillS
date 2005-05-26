@@ -38,6 +38,9 @@ my $q;
 if ($type eq 'do') {
   $q = $db->do($query);
   $self->{TOTAL} = 0;
+  if (defined($db->{'mysql_insertid'})) {
+  	 $self->{INSERT_ID} = $db->{'mysql_insertid'};
+   }
 }
 else {
   $q = $db->prepare($query);
