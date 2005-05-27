@@ -1,0 +1,72 @@
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<title>Abills</title>
+
+<style type="text/css">
+body {
+  background-color: #FFFFFF;
+  color: #000000;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 14px;
+  /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
+}
+
+pre, code {
+    font-family: "Courier New", Courier, monospace;
+}
+
+div.example {
+    background-color: #E2E2E2;
+    color: #000;
+    padding: 0.5em;
+    margin: 1em 2em 1em 1em;
+}
+
+span.indent {
+    padding-left: 1.5em;
+    display: block;
+}
+
+</style>
+</head>
+<body bgcolor=FFFFFF>
+<h3 align=center>Настройка NAS серверов</h3>
+<hr>
+<h3 align=center>Livingston Portmaster 2/3</h3>
+
+<p>
+<code>
+<pre>
+nas1> set all security on
+nas1> set authentic xxx.xxx.xxx.xxx 1812
+nas1> set accounting xxx.xxx.xxx.xxx 1813
+nas1> set secret my_strong_secret
+
+nas1> set snmp on
+nas1> add snmphost writer xxx.xxx.xxx.xxx
+nas1> set snmp writecommunity my_strong_key
+nas1> save all
+</pre>
+</code>
+</p>
+<hr>
+<h3 align=center>GNU Gatekeeper</h3>
+<p>gnugk.ini</p>
+
+<div class="example">
+<p>
+<code>
+[RadAcct]<br />
+Servers=xxx.xxx.xxx.xxx<br />
+LocalInterface=xxx.xxx.xxx.xxx<br />
+SharedSecret=your_radius_key<br />
+RequestTimeout=20000<br />
+AppendCiscoAttributes=1<br />
+IdCacheTimeout=40000<br />
+</code></p></div>
+
+<hr>
+</body>
+</html>

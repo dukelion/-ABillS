@@ -56,7 +56,8 @@ span.indent {
 <br />&nbsp;&nbsp;&nbsp;<a href='mpd.htm'>MPD</a>
 <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='mpd.htm#mpd_pppoe'>PPPoE</a>
 <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='mpd.htm#mpd_pptp'>PPTP</a>
-
+<br /><b><a href='misc.htm'>Дополнительно</a></b>
+<br />&nbsp;&nbsp;&nbsp;<a href='misc.htm#MCH'>MCH</a>
 <br /><b><a href='http://abills.sf.net/forum/'>Forum</a></b>
 <br /><b><a href='#cvs'>CVS</a></b>
 <A NAME="descr"></A>
@@ -66,6 +67,9 @@ span.indent {
 <ul>
 <li>Тарификация по времени</li>
 <li>Тарификация по трафику</li>
+<li>Периодические отчисления (месячная и дневная абонплата)</li>
+<li>Возможность раздельной и совместной тарификации по времени и трафику </li>
+<li>Ограничение доступа в интернет по времени суток</li>
 <li>Система скидок</li>
 <li>Установка минимальной цены сесии</li>
 <li>Работа с неограниченым количеством NAS серверов</li>
@@ -77,10 +81,15 @@ span.indent {
 <li>Разделение трафика на 3 вида (внутрений, внешний, бесплатный) (Только для VPN)</li>
 <li>Ограничение скорости в зависемости от вида трафика (Только для VPN)</li>
 <li>Создание месячных предоплаченых по трафику пакетов</li>
+<li>Дневные, недельные и месячные лимиты по трафику и времени</li>
 <li>Отчёты по работе системы и с остоянию счетов за любой период времени</li>
 <li>Генерация и отправка администратору добовых и месячных отчётов по работе системы</li>
-<li>Лог действий администратора</li>
-<li>Ограничение сесий по количеству трафика (для exppp и mpd)</li>
+<li>Лог действий администратора, менеджера</li>
+<li>Ограничение сесий по количеству общего (in+out) трафика (для exppp, mpd, pppd + RADIUS plugin (Linux)) <font color=red>(new)</font></li>
+<li>WEB нтрефейс с ограничеными возможностями для касиров и сапорта <font color=red>(new)</font></li>
+<li>Несёмный минимум для подключений к NAS серверам <font color=red>(new)</font></li>
+<li>Выписка счётов из пользовательского интерфейса<font color=red> (new)</font></li>
+<li>Обратная связь<font color=red> (new)</font></li>
 </ul>
 </p>
 </pre>
@@ -111,7 +120,7 @@ span.indent {
 </p>
 <pre>Загрузить пакет можно по адресу <A href="http://sourceforge.net/projects/abills/">http://sourceforge.net/projects/abills/</A> </p>
 
-tar zxvf abills-0.23b.tgz
+tar zxvf abills-0.24b.tgz
 cp -Rf abills /usr/
 </pre>
 
@@ -327,13 +336,23 @@ authorize {<br />
 Alias /billing "/usr/abills/cgi-bin/"<br />
 &lt;Directory "/usr/abills/cgi-bin"&gt;<br />
 <span class="indent">
-  Options Indexes ExecCGI<br />
+  &lt;IfModule mod_rewrite.c&gt;<br />
+ <span class="indent">
+     RewriteEngine on<br />
+     RewriteCond %{HTTP:Authorization} ^(.*)<br />
+     RewriteRule ^(.*) - [E=HTTP_CGI_AUTHORIZATION:%1]<br />
+     Options Indexes ExecCGI SymLinksIfOwnerMatch<br />
+  </span>
+  &lt;IfModule&gt;<br />
+
+  Options Indexes ExecCGI FollowSymLinks<br />
   AllowOverride none<br />
   DirectoryIndex users.cgi<br />
   AddHandler cgi-script .cgi<br />
 </span>
 &lt;/Directory&gt;<br />
 <br />
+
 <br />
 &lt;Directory "/usr/abills/cgi-bin/admin"&gt;<br />
 <span class="indent">
@@ -350,6 +369,9 @@ Alias /billing "/usr/abills/cgi-bin/"<br />
 </span>
 &lt;/Directory&gt;<br />
 </code></p></div>
+
+
+
 
 
 <P>Создаём файл <b>/usr/abills/cgi-bin/admin/admins</b> с паролями администратора
@@ -534,8 +556,8 @@ default:<br />
 <br />
 pptp:<br />
 <span class="indent">
- set mtu 1492<br />
- set mru 1492<br />
+ set mtu 1460<br />
+ set mru 1460<br />
  allow mode direct<br />
  enable lqr<br />
  set timeout 6000<br />
