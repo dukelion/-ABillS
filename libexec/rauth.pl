@@ -285,13 +285,8 @@ else {
 
 
 
-
-
-
 #Check deposit
 if($tp_payment > 0 && $deposit <= 0) {
-  #undef $RAD_PAIRS;
-  #Reply-Message
   $message = "User don't have money account '$deposit'. Rejected!";
   return 1;
  }
@@ -301,7 +296,7 @@ if ($logins > 0) {
   $sql = "SELECT count(*) FROM calls WHERE user_name='$USER' and status <> 2;";
   log_print('LOG_SQL', "$sql");
        
-   $q = $db->prepare($sql)   || die $db->errstr;
+   $q = $db->prepare($sql) || die $db->errstr;
    $q ->execute();
   my $total = $q->rows();
   my($active_logins) = $q->fetchrow();
@@ -389,7 +384,6 @@ my $traf_limit = $conf{MAX_SESSION_TRAFFIC};
 
 
      for(my $i=0; $i<=$#traf_limits; $i++) {
-        	 print $traf_limits[$i]. "------\n";
         if ($traf_limit > $traf_limits[$i]) {
 
            $traf_limit = int($traf_limits[$i]);
