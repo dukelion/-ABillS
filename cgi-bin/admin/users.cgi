@@ -4125,7 +4125,12 @@ sub sql_online {
         my ($sum, $variant, $time_t, $traf_t) = session_sum("$username", $started, $ACCT_INFO{ACCT_SESSION_TIME}, \%ACCT_INFO);
         #print "$sum, $variant, $time_t, $traf_t // $login, $started, $duration,  $input_octets, $output_octets,  
      	# $ex_input_octets, $ex_output_octets,  $connect_term_reason, $framed_ip_address, $lupdated";
-
+        
+        if ($sum < 0) {
+        	 message('err', 'Error', 'Wrong end data. Contact admin');
+        	 return 0;
+         }
+        
         log_print('LOG_SQL', "$sql");
         $nas_num = $NAS_INFO->{$nas_ip_address};
         $sql = "INSERT INTO log (id, login, variant, duration, sent, recv, minp, kb,  sum, nas_id, port_id, ".
