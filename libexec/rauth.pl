@@ -476,7 +476,7 @@ if ($NAS_INFO->{nt}{$nas_num} eq 'exppp') {
    }
   else {
     if ($EX_PARAMS->{speed}  > 0) {
-      $RAD_PAIRS{'Exppp-Traffic-Shape'} = $v_speed;
+      $RAD_PAIRS{'Exppp-Traffic-Shape'} = $EX_PARAMS->{speed};
      }
    }
 
