@@ -14,9 +14,7 @@ require $Bin . '/sql.pl';
 
 
 ############################################################
-
 get_radius_params();
-
 
 #if ($RAD{USER_NAME} eq 'petya') {
 #  $conf{debug}=10;

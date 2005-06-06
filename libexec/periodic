@@ -55,7 +55,7 @@ foreach my $line (@WARNING_MSG) {
 }
 
 $message .= "\n  Рух коштів по рахунках клієнтів: \n".
-"=== На рахунки ==========================================\n";
+"=== $_PAYMENTS ==========================================\n";
 
 $q = $db -> prepare ( qq{SELECT count(id), sum(sum), min(sum), avg(sum), max(sum)  FROM payment
  WHERE date_format(date, '%Y-%m')=date_format(curdate() - INTERVAL 1 MONTH, '%Y-%m')
@@ -66,7 +66,7 @@ $res = $q -> execute();
  $message .= "$_COUNT:\t$count\n$_SUM:\t$sum\n\n$_MIN: $min /$_AVG: $avg /$_MAX: $max\n";
 $q -> finish ();
 
-$message .= "\n=== З рахунків ===========================================\n";
+$message .= "\n=== $_FEES ===========================================\n";
 $q = $db -> prepare ( qq{
  SELECT count(id), sum(sum), min(sum), avg(sum), max(sum) FROM fees
  WHERE date_format(date, '%Y-%m')=date_format(curdate() - INTERVAL 1 MONTH, '%Y-%m')
