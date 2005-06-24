@@ -143,7 +143,7 @@ my %USERS=();
 my %ACTIVATE=();
 my %LAST_DEPOSIT=();
 
-while(my($login, $uid, $m_abon, $bill_sum, $activate) = $q -> fetchrow_array()) {
+while(my($login, $uid, $m_abon, $activate) = $q -> fetchrow_array()) {
   $USERS{$uid}=$m_abon;
   $ACTIVATE{$uid} = $activate;
   $LAST_DEPOSIT{$uid} = $activate;

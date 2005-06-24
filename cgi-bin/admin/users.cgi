@@ -4161,6 +4161,9 @@ sub sql_online {
     $message = 'added';
     message('info', $_INFO, $message);
   }
+ 
+ 
+ 
  $sql = "SELECT c.user_name, if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started),
  INET_NTOA(c.nas_ip_address),
  c.nas_port_id, c.acct_session_id, SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)),

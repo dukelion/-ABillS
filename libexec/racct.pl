@@ -92,7 +92,7 @@ sub acct {
 
 # Exppp VENDOR params           
 if ($NAS_INFO->{nt}{$nas_num} eq 'exppp') {
-#reverse byte parameters
+#reverse byte parameters for old version of exppp
   $ACCT_INFO{INBYTE} = $RAD{ACCT_OUTPUT_OCTETS} || 0;             # From client
   $ACCT_INFO{OUTBYTE} =  $RAD{ACCT_INPUT_OCTETS} || 0;            # To client
 
