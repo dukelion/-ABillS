@@ -426,6 +426,7 @@ CREATE TABLE networks (
   mac varchar(18) NOT NULL default '',
   id int(11) unsigned NOT NULL auto_increment,
   status tinyint(2) unsigned NOT NULL default '0',
+  web_control varchar(21) default NULL,
   PRIMARY KEY  (ip,netmask),
   UNIQUE KEY id (id)
 ) TYPE=MyISAM;
