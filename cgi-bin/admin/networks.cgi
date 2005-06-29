@@ -173,7 +173,7 @@ sub networks {
  my $type = $FORM{type} || 0;
  my $mac = $FORM{mac} || '';
  my $status = $FORM{status} || 0;
-
+ my $web_control =  $FORM{web_control} || '';
 
  show_networks();
  
@@ -181,8 +181,8 @@ my @action = ('add', "$_ADD");
 
 if ($FORM{add}) {
   $sql = "INSERT INTO networks 
-   (ip, netmask, domainname, hostname,  descr, changed, type, mac, status) values
-   (INET_ATON('$ip'), INET_ATON('$netmask'), '$domainname', '$hostname', '$descr', now(), '$type', '$mac', '$status');";
+   (ip, netmask, domainname, hostname,  descr, changed, type, mac, status, web_control) values
+   (INET_ATON('$ip'), INET_ATON('$netmask'), '$domainname', '$hostname', '$descr', now(), '$type', '$mac', '$status', '$web_control');";
   $q = $db->do($sql);
     
   if ($db->err == 1062) {
@@ -206,7 +206,8 @@ elsif($FORM{change}) {
    changed=now(), 
    type='$type', 
    mac='$mac',
-   status='$status'
+   status='$status',
+   web_control='$web_control'
    WHERE id='$FORM{chg}';";
   $q = $db->do($sql);
 	
@@ -214,12 +215,12 @@ elsif($FORM{change}) {
 }
 elsif($FORM{chg}) {
 
-  $sql = "SELECT INET_NTOA(ip), INET_NTOA(netmask), domainname, hostname,  descr, changed, type, mac, status 
+  $sql = "SELECT INET_NTOA(ip), INET_NTOA(netmask), domainname, hostname,  descr, changed, type, mac, status, web_control 
      FROM networks WHERE id='$FORM{chg}';";
   my $q = $db->prepare("$sql");
 
   $q->execute();
-  ($ip, $netmask, $domainname, $hostname, $descr, $changed, $type, $mac, $status)  = $q->fetchrow_array();
+  ($ip, $netmask, $domainname, $hostname, $descr, $changed, $type, $mac, $status, $web_control)  = $q->fetchrow_array();
   @action = ('change', "$_CHANGE");
   message('info', $_INFO, "$_CHANGING [$ip/$netmask]");
 }
@@ -269,6 +270,7 @@ print << "[END]";
 <tr><td rowspan=2>DNS</td><td>name</td><td><input type=text name=hostname value="$hostname"></td></tr>
 <tr><td>domain</td><td><input type=text name=domainname value="$domainname"></td></tr>
 <tr><td colspan=2>MAC:</td><td><input type=text name=mac value="$mac"></td></tr>
+<tr><td colspan=2>WEB Control (IP:PORT):</td><td><input type=text name=web_control value='$web_control'></td></tr>
 <tr><td colspan=2>$_CHANGED:</td><td>$changed</td></tr>
 <tr><th colspan=3 bgcolor=$_BG0>$_DESCRIBE:</th></tr>
 <tr><td colspan=3><textarea name=descr cols=70 rows=10>$descr</textarea></td></tr>
@@ -376,7 +378,7 @@ sub show_hosts () {
 
 print "<h3>$_HOSTS</h3>\n";
 $sql = "SELECT id, INET_NTOA(ip), INET_NTOA(netmask), hostname, domainname,   descr, 
-     status, changed, type, mac 
+     status, web_control, changed, type, mac 
      FROM networks WHERE ip>INET_ATON('$host') and ip<INET_ATON('$host')+4294967295-INET_ATON('$netmask')-1
      ORDER BY $sort $desc;";
 
@@ -395,15 +397,17 @@ print "$_TOTAL: $total<br>
     <COL align=center span=2>
   </COLGROUP>\n";
 
- my @caption = ("-", "IP", "NETMASK", "Hostname", "Domain", "$_DESCRIBE", "$_STATUS", "-", "-");
+ my @caption = ("-", "IP", "NETMASK", "Hostname", "Domain", "$_DESCRIBE", "$_STATUS", "-", "-", "-");
  show_title($sort, $desc, "$pg", "$op&$qs", \@caption);
 
-while(($id, $ip, $netmask, $hostname, $domainname,  $descr, $status, $changed, $htype,) = $q->fetchrow_array()) {
+while(($id, $ip, $netmask, $hostname, $domainname,  $descr, $status, $web_control, $changed, $htype,) = $q->fetchrow_array()) {
   $bg = ($bg eq $_BG1) ? $_BG2 : $_BG1;
   my $del_button = "<A href='$SELF?op=networks&del=$id'
         onclick=\"return confirmLink(this, '$_DELETE $host_types[$htype] $ip/$netmask?')\">$_DEL</a>";
   print "<tr bgcolor=$bg><th><img src='../img/$host_types[$htype].gif'></th><td>$ip</td><td>$netmask</td><td><b>$hostname</b></td><td>$domainname</td>".
-   "<td>$descr</td><td bgcolor=$scolors[$status]>$status_types[$status]</td><td><a href='$SELF?op=networks&chg=$id'>$_CHANGE</a></td><td>$del_button</td></tr>\n";
+   "<td>$descr</td><td bgcolor=$scolors[$status]>$status_types[$status]</td>
+   <th>(<a href='http://$web_control' title='WEB control'>W</a>)</th>
+   <td><a href='$SELF?op=networks&chg=$id'>$_CHANGE</a></td><td>$del_button</td></tr>\n";
 }
 
 print "</table>
