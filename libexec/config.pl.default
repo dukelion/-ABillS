@@ -41,7 +41,8 @@ $conf{config_file}='';
 
 # Debug mod 
 $conf{debug}=10;
-$conf{debugmods}='LOG_DEBUG LOG_ALERT LOG_WARNING LOG_ERR LOG_INFO';
+#Log level LOG_DEBUG
+$conf{debugmods}='LOG_ALERT LOG_WARNING LOG_ERR LOG_INFO';
 #show auth and accounting time need Time::HiRes module (available from CPAN)
 $conf{time_check}=1;
 

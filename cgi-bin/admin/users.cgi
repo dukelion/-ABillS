@@ -1029,6 +1029,7 @@ while(my($k, $v)=each( %shedule_type )){
 sub sql_backup {
  print "<h3>$_SQL_BACKUP</h3>\n".
  "<a href='$SELF?op=sql_backup&mk_backup=y'>$_MAKE_BACKAUP</a><br>\n";
+
  
   if ($FORM{mk_backup}) {
     $res = `$MYSQLDUMP --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $BACKUP_DIR/stats-$DATE.sql.gz`;

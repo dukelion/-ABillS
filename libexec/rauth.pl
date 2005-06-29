@@ -185,7 +185,7 @@ if ($cid ne '') {
       my @MAC_DIGITS_NEED=split(/:/, $cid);
       my @MAC_DIGITS_GET=split(/:/, $RAD{CALLING_STATION_ID});
       for(my $i=0; $i<=5; $i++) {
-        if($MAC_DIGITS_NEED[$i] != $MAC_DIGITS_GET[$i]) {
+        if(hex('0x'.$MAC_DIGITS_NEED[$i]) != hex('0x'. $MAC_DIGITS_GET[$i])) {
           $message = "Wrong MAC '$RAD{CALLING_STATION_ID}'";
           return 1;
          }
