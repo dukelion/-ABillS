@@ -36,7 +36,7 @@ $conf{negative_deposit}='no';
 
 
 # Exppp options
-$conf{netsfilespath}='/usr/abills/cgi-bin/dmin/nets/';
+$conf{netsfilespath}='/usr/abills/cgi-bin/admin/nets/';
 $conf{config_file}='';
 
 # Debug mod 
