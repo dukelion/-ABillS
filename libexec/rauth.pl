@@ -136,7 +136,7 @@ select
      WHERE u.variant=v.vrnt
         AND u.id='$USER'
         AND (u.expire='0000-00-00' or u.expire > CURDATE())
-        AND (u.activate='0000-00-00' or u.activate =< CURDATE())
+        AND (u.activate='0000-00-00' or u.activate <= CURDATE())
         AND v.dt < CURTIME()
         AND CURTIME() < v.ut
        GROUP BY u.id
