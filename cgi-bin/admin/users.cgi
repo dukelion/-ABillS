@@ -1032,6 +1032,9 @@ sub sql_backup {
 
  
   if ($FORM{mk_backup}) {
+    print "$MYSQLDUMP --host=$conf{dbhost} --user=\"$conf{dbuser}\" --password=\"****\" $conf{dbname} | $GZIP > $BACKUP_DIR/stats-$DATE.sql.gz<br>";
+
+
     $res = `$MYSQLDUMP --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $BACKUP_DIR/stats-$DATE.sql.gz`;
     print "Backup created: $res ($BACKUP_DIR/stats-$DATE.sql.gz)";
    }

@@ -6,9 +6,6 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
    $SELF
    $db
    $debug
-   $BACKUP_DIR
-   $MYSQLDUMP
-   $GZIP
    $_BG0
    $_BG1
    $_BG2
@@ -60,10 +57,7 @@ $VERSION = 2.00;
    $SELF
    $db
    $debug
-   $BACKUP_DIR
    $ACTION_LOG
-   $MYSQLDUMP
-   $GZIP
    @auth_types
    @status_types
    $_BG0
@@ -134,9 +128,6 @@ my $lang_charset='windows-1251';
 
 #Path settings
 my $LIB_PATH='/usr/abills/libexec/';
-$MYSQLDUMP = '/usr/local/mysql/bin/mysqldump';
-$BACKUP_DIR='/usr/abills/backup';
-$GZIP = '/usr/bin/gzip';
 push(@INC, $LIB_PATH);
 my $prot = ($ENV{HTTPS} =~ /ON/i) ? 'https' : 'http' ;
 $SELF="$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}";
