@@ -119,7 +119,7 @@ select
   day_traf_limit,
   week_traf_limit,
   month_traf_limit,
-  if(v.hourp + v.df + v.abon=0 and sum(tt.in_price + tt.out_price)=0, 0, 1),
+  if(v.hourp + v.df + v.abon=0 and (sum(tt.in_price + tt.out_price)=0 or sum(tt.in_price + tt.out_price)IS NULL), 0, 1),
   if (count(un.uid) + count(vn.vid) = 0, 0,
     if (count(un.uid)>0, 1, 2)),
   count(tt.id),
