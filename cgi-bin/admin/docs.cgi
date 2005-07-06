@@ -50,7 +50,7 @@ show_menu(0, 'docs', "", \%main_menu);
 print "<center>\n";
 
 
-if ($docs eq 'templates') {  templates(); }
+if ($docs eq 'templates') {  templates({ PATH => $path }); }
 elsif ($docs eq 'accts')  {  accounts("$uid", "$login"); }
 elsif ($docs eq 'params') {  params(); }
 else  { params();  }

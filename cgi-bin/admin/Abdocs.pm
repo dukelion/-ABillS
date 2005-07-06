@@ -365,7 +365,10 @@ print << "[END]";
 # templates($type)
 #*******************************************************************
 sub templates  {
-  my $type = shift;
+  my ($attr) = @_;
+  
+  my $tpl_path = ($attr->{PATH}) ? $attr->{PATH} . $tpl_path  : $tpl_path;
+  
   my $template = '';
   
   
@@ -387,7 +390,7 @@ elsif($FORM{show}) {
     close(FILE);
   }
  else {
-    message('info', _INFO, "$_NOT_EXIST");
+    message('info', _INFO, "$_NOT_EXIST '$tpl_path/$FORM{show}.tpl'");
    }
 }
 

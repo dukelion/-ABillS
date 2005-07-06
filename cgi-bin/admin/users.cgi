@@ -3,6 +3,7 @@
 # ~AsmodeuS~ (2004-12-05)
 # asm@asmodeus.com.ua
 
+
 use vars qw($begin_time);
 BEGIN {
 #Check the Time::HiRes module (available from CPAN)
@@ -19,6 +20,7 @@ BEGIN {
 require 'config.pl';
 #$foreground=1;
 use Abwconf;
+use Abdocs;
 $db=$Abwconf::db;
 use Base; # Modul with base tools
 require 'messages.pl';
