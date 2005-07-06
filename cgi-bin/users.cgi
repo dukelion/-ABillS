@@ -469,6 +469,7 @@ if ($FORM{op} eq 'logout') {
   return 0;
  }
 elsif (length($sid) > 1) {
+
   if (defined($h{$sid})) {
     ($uid, $time, $login, $ip)=split(/:/, $h{$sid});
     my $cur_time = time;

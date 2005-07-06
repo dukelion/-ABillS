@@ -343,12 +343,14 @@ Alias /billing "/usr/abills/cgi-bin/"<br />
      RewriteRule ^(.*) - [E=HTTP_CGI_AUTHORIZATION:%1]<br />
      Options Indexes ExecCGI SymLinksIfOwnerMatch<br />
   </span>
-  &lt;IfModule&gt;<br />
+  &lt;/IfModule&gt;<br />
 
   Options Indexes ExecCGI FollowSymLinks<br />
   AllowOverride none<br />
   DirectoryIndex users.cgi<br />
   AddHandler cgi-script .cgi<br />
+  Order allow,deny<br />
+  Allow from all<br />
 </span>
 &lt;/Directory&gt;<br />
 <br />
@@ -356,7 +358,7 @@ Alias /billing "/usr/abills/cgi-bin/"<br />
 <br />
 &lt;Directory "/usr/abills/cgi-bin/admin"&gt;<br />
 <span class="indent">
-  Options Indexes ExecCGI<br />
+  Options Indexes ExecCGI SymLinksIfOwnerMatch<br />
   AllowOverride none<br />
   DirectoryIndex users.cgi<br />
   order deny,allow<br />
@@ -499,7 +501,7 @@ pppoe-in:   # Метка (индентификатор правил) <br />
 <p>
 <code>
 MYADDR:<br />
- !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR<br />
+  !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR<br />
 </code></p></div>
 
 
@@ -507,7 +509,7 @@ MYADDR:<br />
 <div class="example">
 <p>
 <code>
-MYADDR:
+MYADDR:<br />
  !bg /usr/abills/libexec/linkupdown down INTERFACE USER HISADDR
 </code></p></div>
 
