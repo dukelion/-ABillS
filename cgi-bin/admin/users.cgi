@@ -4134,7 +4134,7 @@ sub sql_online {
         
         if ($sum < 0) {
         	 message('err', 'Error', 'Wrong end data. Contact admin<br>'.
-        	 USER_NAME: $username<br> 
+        	 "USER_NAME: $username<br> 
         	 START: $started<br>
         	 DURATION: $duration<br>
         	 INPUT: $input_octets<br> 
