@@ -4133,7 +4133,19 @@ sub sql_online {
      	# $ex_input_octets, $ex_output_octets,  $connect_term_reason, $framed_ip_address, $lupdated";
         
         if ($sum < 0) {
-        	 message('err', 'Error', 'Wrong end data. Contact admin');
+        	 message('err', 'Error', 'Wrong end data. Contact admin<br>'.
+        	 USER_NAME: $username<br> 
+        	 START: $started<br>
+        	 DURATION: $duration<br>
+        	 INPUT: $input_octets<br> 
+        	 OUTPUT: $output_octets<br>
+     	     EX_INPUT: $ex_input_octets<br> 
+     	     EX_OUTPUT:$ex_output_octets<br>
+     	     IP: $framed_ip_address<br>
+     	     LAST_UPDATES: $lupdated<br>
+  	       PORT_ID: $nas_port_id<br>
+  	       NAS_IP: $nas_ip_address<br>
+  	       CID: $CID<br>");
         	 return 0;
          }
         

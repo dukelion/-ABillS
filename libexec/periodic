@@ -244,7 +244,7 @@ while(my($login, $variant, $debet, $sum, $uplimit, $variant_name, $last_login) =
 
 $message .= "\n  Рух коштів по рахунках клієнтів: \n".
 "=== $_PAYMENTS ==========================================\n";
-$message .= sprintf ("%-14s| %8.4f| %20s| %8s| %15s| %19s|\n", $_LOGIN, $_SUM, 
+$message .= sprintf ("%-14s| %13s| %20s| %8s| %15s| %19s|\n", $_LOGIN, $_SUM, 
     $_DESCRIBE, $_ADMIN, 'IP', $_DATE);
 $message .= "-----------------------------------------------------------------------------------------------\n";
 
@@ -263,7 +263,7 @@ $q -> finish ();
 
 # Daily fees
 $message .= "\n=== $_FEES ===========================================\n";
-$message .= sprintf ("%-14s| %8.4f| %20s| %16s| %15s\n", $_LOGIN, $_SUM, $_DESCRIBE, $_ADMIN, 'IP');
+$message .= sprintf ("%-14s| %13s| %20s| %16s| %15s\n", $_LOGIN, $_SUM, $_DESCRIBE, $_ADMIN, 'IP');
 $message .= "---------------------------------------------------------------------------------\n";
 
 $q = $db -> prepare ( qq{
@@ -280,6 +280,7 @@ while (my($login, $sum, $describe, $ww, $ip) = $q -> fetchrow_array ()) {
     $describe, $ww, $ip);
 };
 #$q -> finish ();
+
 
 
 # using today
