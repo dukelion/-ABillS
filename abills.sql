@@ -8,6 +8,9 @@
 -- Table structure for table 'accounts'
 --
 
+create database abills5;
+use abills5;
+
 CREATE TABLE accounts (
   id int(11) unsigned NOT NULL auto_increment,
   name varchar(100) NOT NULL default '',
