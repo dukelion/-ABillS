@@ -4132,20 +4132,26 @@ sub sql_online {
         #print "$sum, $variant, $time_t, $traf_t // $login, $started, $duration,  $input_octets, $output_octets,  
      	# $ex_input_octets, $ex_output_octets,  $connect_term_reason, $framed_ip_address, $lupdated";
         
+        my $session_info = "<table width=100%>
+        <tr><td>USER_NAME</td><td>$username</td></tr>
+        <tr><td>START:</td><td> $started</td></tr>
+        <tr><td>DURATION:</td><td> $duration</td></tr>
+        <tr><td>INPUT:</td><td> $input_octets</td></tr>
+        <tr><td>OUTPUT:</td><td> $output_octets</td></tr>
+     	  <tr><td>EX_INPUT:</td><td> $ex_input_octets</td></tr>
+     	  <tr><td>EX_OUTPUT:</td><td>$ex_output_octets</td></tr>
+     	  <tr><td>IP:</td><td> $framed_ip_address</td></tr>
+     	  <tr><td>LAST_UPDATES:</td><td> $lupdated</td></tr>
+  	    <tr><td>PORT_ID:</td><td> $nas_port_id</td></tr>
+  	    <tr><td>NAS_IP:</td><td> $nas_ip_address</td></tr>
+  	    <tr><td>CID:</td><td> $CID</td></tr>
+        <tr><td>$_SUM:</td><td>$sum</td></tr>
+        <tr><td>$_TARIF_PLAN:</td><td>$variant</td></tr>
+       </table>\n";
+        
+        
         if ($sum < 0) {
-        	 message('err', 'Error', 'Wrong end data. Contact admin<br>'.
-        	 "USER_NAME: $username<br> 
-        	 START: $started<br>
-        	 DURATION: $duration<br>
-        	 INPUT: $input_octets<br> 
-        	 OUTPUT: $output_octets<br>
-     	     EX_INPUT: $ex_input_octets<br> 
-     	     EX_OUTPUT:$ex_output_octets<br>
-     	     IP: $framed_ip_address<br>
-     	     LAST_UPDATES: $lupdated<br>
-  	       PORT_ID: $nas_port_id<br>
-  	       NAS_IP: $nas_ip_address<br>
-  	       CID: $CID<br>");
+        	 message('err', 'Error', 'Wrong end data. Contact admin<br>'. $session_info);
         	 return 0;
          }
         
@@ -4167,6 +4173,10 @@ sub sql_online {
          log_print('LOG_SQL', "$sql");
          $q = $db->do($sql) || die $db->errstr;
         }
+
+       $message = "$_ADED to log $session_info";
+       message('info', $_INFO, $message);
+
       
        }
 
@@ -4174,10 +4184,11 @@ sub sql_online {
             and nas_port_id='$FORM{nas_port_id}' and acct_session_id='$FORM{tolog}'";
         log_print('LOG_SQL', "$sql");
         $q = $db->do($sql) || die $db->errstr;
-      }
 
-    $message = 'added';
-    message('info', $_INFO, $message);
+      $message = "$_DELETED";
+      message('info', $_INFO, $message);
+
+      }
   }
  
  
