@@ -124,6 +124,13 @@ sub account {
    '2:msgs', $_MESSAGES,
    '1:stats', $_STATS
    );
+ 
+ 
+
+ 
+ if ($conf{user_chg_passwd} eq 'yes') {
+ 	 $main_menu{'5:passwd'}="$_PASSWD";
+  }
 
  my @menu_keys = sort keys %main_menu;
 
@@ -156,6 +163,9 @@ sub account {
       	show_user_accounts($uid);
        }
    }
+  elsif($op eq 'passwd') {
+  	 chg_password($uid);
+   }
   else {
     #$login = get_login($uid);
     user_stats($login);
@@ -163,6 +173,52 @@ sub account {
 }
 
 
+
+#*******************************************************************
+# chg_password($uid);
+#*******************************************************************
+sub chg_password {
+ my ($uid) = @_;
+
+print "<h3>$_PASSWD</h3>\n";
+
+
+if ($FORM{change}) {
+  if (length($FORM{password}) < $conf{passwd_length}) {
+     message('err', $_ERROR, "$ERR_SHORT_PASSWD");
+   }
+  elsif ($FORM{password} ne $FORM{confirm}) {
+     message('err', $_ERROR, "$ERR_WRONG_CONFIRM");
+   }
+  else {
+    my $sql = "UPDATE users SET password=ENCODE('$FORM{password}', '$conf{secretkey}')
+       WHERE uid='$uid';";
+    log_print('LOG_SQL', $sql);
+     $q = $db->do($sql) || die $db->strerr;
+    message('info', $_CHANGE_PASSWD, "$_CHANGED");
+   }
+  return 0;	
+}
+
+
+print << "[END]";
+<form action=$SELF METHOD=POST>
+<input type=hidden name=op value=passwd>
+<input type=hidden name=uid value=$uid>
+
+<TABLE width=400 cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_BG4>
+<TABLE width=100% cellspacing=1 cellpadding=0 border=0><TR><TD bgcolor=$_BG1>
+<TABLE width=100% cellspacing=0 cellpadding=0 border=0>
+<tr><td>$_PASSWD:</td><td><input type=password name=password value=''></td></tr>
+<tr><td>$_CONFIRM:</td><td><input type=password name=confirm value=''></td></tr>
+</table>
+</td></tr></table>
+</td></tr></table>
+</table>
+<input type=submit name=change value='$_CHANGE'>
+</form>
+[END]
+}
 
 #*******************************************************************
 # user_stats($uid)
