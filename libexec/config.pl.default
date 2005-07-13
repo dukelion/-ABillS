@@ -33,6 +33,8 @@ $conf{MINIMUM_SESSION_TRAF}=200; # minimum session trafic for push session to db
 $conf{MINIMUM_SESSION_COST}=0.01; 
 #Take month and day fees from users with negative deposit too
 $conf{negative_deposit}='no';
+#User can modify self password if using SQL auth
+$conf{user_chg_passwd}='yes';
 
 
 # Exppp options
