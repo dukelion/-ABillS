@@ -128,7 +128,13 @@ select
   UNIX_TIMESTAMP(),
   UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
   DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
-  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()))
+  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+  if(v.dt < v.ut,
+    if(v.dt < CURTIME() and v.ut > CURTIME(), 1, 0),
+      if((v.dt < CURTIME() or (CURTIME() > '0:00:00' and CURTIME() < v.ut ))
+       and
+       (CURTIME() < '23:00:00' or v.ut > CURTIME()  ),
+     1, 0 ))
      FROM users u, variant v
      LEFT JOIN  trafic_tarifs tt ON (tt.vid=u.variant)
      LEFT JOIN users_nas un ON (un.uid = u.uid)
@@ -137,8 +143,6 @@ select
         AND u.id='$USER'
         AND (u.expire='0000-00-00' or u.expire > CURDATE())
         AND (u.activate='0000-00-00' or u.activate <= CURDATE())
-        AND v.dt < CURTIME()
-        AND CURTIME() < v.ut
        GROUP BY u.id
 };
 
@@ -156,7 +160,15 @@ my($uid, $deposit, $logins, $filter, $ip, $netmask, $vid, $passwd, $uspeed, $cid
    $day_traf_limit,  $week_traf_limit,  $month_traf_limit, 
    $tp_payment,
    $nas, $traf_tarif, $time_tarif, $filter_id,
-   $session_start, $day_begin, $day_of_week, $day_of_year) = $q -> fetchrow();
+   $session_start, $day_begin, $day_of_week, $day_of_year, $allow_period) = $q -> fetchrow();
+
+#Check allow period
+# 1 - allow
+# 0 - deny
+if ($allow_period == 0) {
+   $message = "Not allow period";
+   return 1;
+}
 
 #Check allow nas server
 # $nas 1 - See user nas

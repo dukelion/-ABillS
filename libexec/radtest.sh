@@ -14,7 +14,7 @@ if [ t$1 = 'tauth' ] ; then
      USER_NAME="aa1" \
      NAS_IP_ADDRESS=192.168.101.17 \
      SERVICE_TYPE=Framed-User \
-     USER_PASSWORD="cool" \
+     USER_PASSWORD="test123" \
 #     CALLING_STATION_ID="00:d:61:79:ed:d1"
 
 #     MS_CHAP_CHALLENGE=0x32323738343134393536353333333635 \
