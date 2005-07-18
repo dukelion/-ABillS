@@ -89,7 +89,8 @@ if ($FORM{uid}) {
   $login_link = "<a href=\"$SELF?op=users&chg=$uid\">$login</a>";
 }
 
-my %main_menu = ('1::users', $_USERS);
+my %main_menu = ('1::users' => $_USERS,
+                 '6::sql_online' => 'Online');
 
 print "<table width=100% border=0 cellspacing=0 cellpadding=0>
 <tr><td bgcolor=$_COLORS[9]>
@@ -110,17 +111,24 @@ print "</tr></table>
 <center>\n";
 
 
-if ($op eq 'payments') { form_payments();   }
-elsif($op eq 'stats')  { stats();           }
-elsif($op eq 'errlog') { errlog();      }
-elsif($op eq 'chg_uvariant') { form_chg_vid();   }
-elsif ($op eq 'profile') { profile();     }
+if ($op eq 'payments')      { form_payments(); }
+elsif($op eq 'stats')       { stats();         }
+elsif($op eq 'errlog')      { errlog();        }
+elsif($op eq 'sql_online')  { sql_online();    }
+elsif($op eq 'chg_uvariant'){ form_chg_vid();  }
+elsif ($op eq 'profile') { profile();          }
 else {
  users();
 }
 
 
 
+if ($begin_time > 0) {
+  my $end_time = gettimeofday;
+  my $gen_time = $end_time - $begin_time;
+  $conf{version} .= " (Generation time: $gen_time)";
+}
+footer("v. $conf{version}");
 
 
 
@@ -1382,9 +1390,298 @@ while(my($thema, $colors)=each %profiles ) {
 
 
 
-sub login_form {
-	
 
+#*******************************************************************
+# Show online users
+# sql_online()
+#*******************************************************************
+sub sql_online {
+ print "<h3>". $_ONLINE ."</h3>\n";	
+ my $year = strftime("%Y", localtime(time));
+ 
+ my $NAS_INFO = nas_params();
+ if ($FORM{ping}) {
+    my $res = `ping -c 5 $FORM{ping}`;
+    message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
+   }
+ elsif ($FORM{hangup}) {
+     my ($nas_ip_address, $nas_port_id, $acct_session_id) = split(/ /, $FORM{hangup}, 3);
+
+     require "nas.pl";
+     my $ret = hangup("$nas_ip_address", "$nas_port_id", "", "$acct_session_id");
+     
+     if ($ret == 0) {
+        $msg = "<table width=100%>\n".
+         "<tr><th colspan=2 align=left>$_HANGUPED</th></tr>".
+         "<tr><td>$_NAS:</td><td>$nas_ip_address</td></tr>".
+         "<tr><td>$_PORT:</td><td>$nas_port_id</td></tr>".
+         "<tr><td>SESSION_ID:</td><td>$acct_session_id</td></tr>".
+         "</table>\n";
+         sleep 3;
+      }
+     elsif ($ret == 1) {
+     	$msg = 'NOT supported yet';
+      }
+     message('info', $_INFO, "$msg");
+   }
+  elsif ($FORM{zap}) {
+     ($nas_ip_address, $nas_port_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
+     $sql = "UPDATE calls SET status=2 
+       WHERE nas_ip_address=INET_ATON('$nas_ip_address')
+       and nas_port_id='$nas_port_id' and acct_session_id='$acct_session_id';";
+
+     log_print('LOG_SQL', "$sql");
+     $q = $db->do($sql) || die $db->errstr;
+     $message = "<table width=100%>\n".
+     "<tr><th colspan=2 align=left>$_CLOSED</th></tr>".
+     "<tr><td>$_NAS:</td><td>$nas_ip_address</td></tr>".
+     "<tr><td>$_PORT:</td><td>$nas_port_id</td></tr>".
+     "<tr><td>SESSION_ID:</td><td>$acct_session_id</td></tr>".
+     "</table>\n";
+
+     my $nas_id = $NAS_INFO->{"$nas_ip_address"};
+     $sql = "SELECT id FROM log WHERE acct_session_id='$acct_session_id'
+       and port_id='$nas_port_id' and nas_id='$nas_id';";
+
+     log_print('LOG_SQL', "$sql");
+     $q = $db->prepare($sql) || die $db->errstr;
+     $q ->execute();
+     if ($q->rows() < 1) {
+        $message .= "<p align=center>[<a href='$SELF?op=sql_online&tolog=$acct_session_id&nas_ip_address=$nas_ip_address&nas_port_id=$nas_port_id'>add to log</a>]
+           [<a href='$SELF?op=sql_online&del=y&tolog=$acct_session_id&nas_ip_address=$nas_ip_address&nas_port_id=$nas_port_id'>$_DEL</a>]</p>";
+       }
+     else {
+     	my($sid)=$q->fetchrow();
+        print "$sid \n";
+        #my ($sum, $variant, $time_t, $traf_t) = session_sum("$RAD{USER_NAME}", $ACCT_INFO{LOGIN}, $ACCT_INFO{ACCT_SESSION_TIME}, \%ACCT_INFO);
+       }
+
+     message('info', $_INFO, $message);
+   }
+ elsif($FORM{tolog}) {
+   $sql = "SELECT user_name, UNIX_TIMESTAMP(started), acct_session_time, 
+   acct_input_octets,
+   acct_output_octets,
+   ex_input_octets,
+   ex_output_octets,
+   connect_term_reason,
+   INET_NTOA(framed_ip_address),
+   lupdated,
+   nas_port_id,
+   INET_NTOA(nas_ip_address),
+      CID
+      FROM calls 
+      WHERE nas_ip_address=INET_ATON('$FORM{nas_ip_address}')
+       and nas_port_id='$FORM{nas_port_id}' and acct_session_id='$FORM{tolog}';";
+
+
+   log_print('LOG_SQL', "$sql");
+   $q = $db->prepare($sql) || die $db->errstr;
+   $q ->execute();
+   if ($q -> rows() < 1) {
+        message('err', $_ERROR, 'NO records');
+       }
+   else {
+      if(! defined($FORM{del})) {
+     	my $ACCT_INFO = ();
+     	my($username, $started, $duration,  $input_octets, $output_octets,  
+     	  $ex_input_octets, $ex_output_octets,  $connect_term_reason, $framed_ip_address, $lupdated,
+  	  $nas_port_id, $nas_ip_address, $CID)=$q->fetchrow();
+
+
+          $ACCT_INFO{INBYTE} = $input_octets || 0;
+          $ACCT_INFO{OUTBYTE} = $output_octets || 0;
+          $ACCT_INFO{INBYTE2} = $ex_input_octets || 0;
+          $ACCT_INFO{OUTBYTE2} =  $ex_output_octets || 0;
+          $ACCT_INFO{ACCT_SESSION_TIME}  = $lupdated - $started;
+          
+        my ($sum, $variant, $time_t, $traf_t) = session_sum("$username", $started, $ACCT_INFO{ACCT_SESSION_TIME}, \%ACCT_INFO);
+        #print "$sum, $variant, $time_t, $traf_t // $login, $started, $duration,  $input_octets, $output_octets,  
+     	# $ex_input_octets, $ex_output_octets,  $connect_term_reason, $framed_ip_address, $lupdated";
+        
+        my $session_info = "<table width=100%>
+        <tr><td>USER_NAME</td><td>$username</td></tr>
+        <tr><td>START:</td><td> $started</td></tr>
+        <tr><td>DURATION:</td><td> $duration</td></tr>
+        <tr><td>INPUT:</td><td> $input_octets</td></tr>
+        <tr><td>OUTPUT:</td><td> $output_octets</td></tr>
+     	  <tr><td>EX_INPUT:</td><td> $ex_input_octets</td></tr>
+     	  <tr><td>EX_OUTPUT:</td><td>$ex_output_octets</td></tr>
+     	  <tr><td>IP:</td><td> $framed_ip_address</td></tr>
+     	  <tr><td>LAST_UPDATES:</td><td> $lupdated</td></tr>
+  	    <tr><td>PORT_ID:</td><td> $nas_port_id</td></tr>
+  	    <tr><td>NAS_IP:</td><td> $nas_ip_address</td></tr>
+  	    <tr><td>CID:</td><td> $CID</td></tr>
+        <tr><td>$_SUM:</td><td>$sum</td></tr>
+        <tr><td>$_TARIF_PLAN:</td><td>$variant</td></tr>
+       </table>\n";
+        
+        
+        if ($sum < 0) {
+        	 message('err', 'Error', 'Wrong end data. Contact admin<br>'. $session_info);
+        	 return 0;
+         }
+        
+        log_print('LOG_SQL', "$sql");
+        $nas_num = $NAS_INFO->{$nas_ip_address};
+        $sql = "INSERT INTO log (id, login, variant, duration, sent, recv, minp, kb,  sum, nas_id, port_id, ".
+          "ip, CID, sent2, recv2, acct_session_id) VALUES ('$username', FROM_UNIXTIME($started), ".
+          "'$variant', '$ACCT_INFO{ACCT_SESSION_TIME}', '$ACCT_INFO{OUTBYTE}', '$ACCT_INFO{INBYTE}', ".
+          "'$time_t', '$traf_t', '$sum', '$nas_num', ".
+          "'$nas_port_id', INET_ATON('$framed_ip_address'), '$CID', ".
+          "'$ACCT_INFO{OUTBYTE2}', '$ACCT_INFO{INBYTE2}',  \"$FORM{tolog}\");";
+
+       log_print('LOG_SQL', "$sql");
+       $q = $db->do($sql) || die $db->errstr;
+       
+ 
+       if ($sum > 0) {
+         $sql = "UPDATE users SET deposit=deposit-$sum WHERE id='$username';";
+         log_print('LOG_SQL', "$sql");
+         $q = $db->do($sql) || die $db->errstr;
+        }
+
+       $message = "$_ADED to log $session_info";
+       message('info', $_INFO, $message);
+
+      
+       }
+
+     	$sql = "DELETE FROM calls WHERE nas_ip_address=INET_ATON('$FORM{nas_ip_address}')
+            and nas_port_id='$FORM{nas_port_id}' and acct_session_id='$FORM{tolog}'";
+        log_print('LOG_SQL', "$sql");
+        $q = $db->do($sql) || die $db->errstr;
+
+      $message = "$_DELETED";
+      message('info', $_INFO, $message);
+
+      }
+  }
+ 
+ 
+ 
+ $sql = "SELECT c.user_name, if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started),
+ INET_NTOA(c.nas_ip_address),
+ c.nas_port_id, c.acct_session_id, SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)),
+ c.acct_input_octets, c.acct_output_octets, c.ex_input_octets, c.ex_output_octets,
+ INET_NTOA(c.framed_ip_address), c.status,
+ u.fio, u.phone, u.variant, u.deposit, u.credit, u.speed, u.uid, c.CID, c.CONNECT_INFO
+ FROM calls c
+  LEFT JOIN users u ON u.id=user_name
+ WHERE c.status=1 or c.status>=3
+ ORDER BY c.nas_ip_address, c.nas_port_id;";
+
+ log_print('LOG_SQL', "$sql");
+
+ $q = $db->prepare($sql)   || die $db->errstr;
+ $q ->execute();
+ 
+ $total = $q->rows;
+ my %dub_logins = ();
+ my %dub_ports = ();
+ 
+  while(my($user_name, $started, $nas_ip_address, $nas_port_id, $acct_session_id, $acct_session_time,
+     $acct_input_octets, $acct_output_octets, $ex_input_octets, $ex_output_octets, $framed_ip_address, 
+     $status,
+     $fio, $phone, $variant, $deposit, $credit, $speed, $uid, $CID, $CONNECT_INFO) = $q->fetchrow()) {
+     $acct_input_octets = int2byte($acct_input_octets);
+     $acct_output_octets = int2byte($acct_output_octets);
+
+    if (defined($dub_logins{"$user_name"})) {
+      $bg='#FFFF00';
+       }
+    elsif (defined($dub_ports{$nas_ip_address}{$nas_port_id}) && $nas_port_id != 0) {
+       $bg='#00FF40';
+      }
+    elsif ($status > 3) {
+       $bg='#FF0000';
+      }
+    else {
+      $bg = ($bg eq $_BG1) ? $_BG2 : $_BG1;
+     }
+    
+     $dub_ports{$nas_ip_address}{$nas_port_id}=$user_name;
+     $dub_logins{"$user_name"}++;
+
+     $nas{$nas_ip_address} .= "<tr bgcolor=$bg><td><a href='$SELF?op=users&uid=$uid' ".
+     "title='$_FIO: $fio\n$_PHONE: $phone\n$_VARIANT: $variant\n$_DEPOSIT: $deposit\n".
+     "$_CREDIT: $credit\n$_SPEED: $speed\nSESSION_ID: $acct_session_id\nCID: $CID\nCONNECT_INFO: $CONNECT_INFO'>$user_name</a></td>
+     <td>$fio</td>
+     <td>$nas_port_id</td>
+     <td>$framed_ip_address</td>
+     <td>$acct_session_time</td><td>$acct_input_octets</td><td>$acct_output_octets</td>".
+     "<!-- <td>$acct_session_id</td>-->";
+    
+      if ($conf{ex_trafic} eq 'yes') {
+         $ex_input_octets = int2byte($ex_input_octets);
+         $ex_output_octets = int2byte($ex_output_octets);
+         $nas{$nas_ip_address} .= "<td>$ex_input_octets</td><td>$ex_output_octets</td>";
+       }
+    
+     my $zap_button = "<a href='$SELF?op=sql_online&zap=$nas_ip_address+$nas_port_id+$acct_session_id' title='Radzap $user_name'>Z</a>";
+     $nas{$nas_ip_address} .= "<th>(<a href='$SELF?op=sql_online&ping=$framed_ip_address' title='ping'>P</a>)</th>".
+      "<th>($zap_button)</th>".
+      "<th>(<a href='$SELF?op=sql_online&hangup=$nas_ip_address+$nas_port_id+$acct_session_id' title='hangup'>H</a>)</th></tr>\n";
+     $users_count{$nas_ip_address}++ ; # = (defined($users{$nas_ip_address})) ? $users_count{$nas_ip_address}+1 : 1;
+    }
+
+print "$_TOTAL: $total<br>
+ <TABLE width=95% cellspacing=0 cellpadding=0 border=0>
+ <TR><TD bgcolor=$_BG4>
+ <TABLE width=100% cellspacing=1 cellpadding=0 border=0>
+ <tr bgcolor=$_BG0><th>$_LOGIN</th><th>$_FIO</th><th>PORT</th><th>IPs</th><th>$_DURATION</th><th width=50>IN</th><th width=50>OUT</th>";
+
+     if ($conf{ex_trafic} eq 'yes') {
+       print "<th>exIN</th><th>exOUT</th>";
+       $colspan = 9;
+       $align=7;
+      }
+    else {
+       $colspan = 7;
+       $align=5;
+     }
+print "<!-- <th>SID</th> --><th>-</th><th>-</th><th>-</th></tr>\n".
+ "<COLGROUP width=20>
+    <COL align=left span=2>
+    <COL align=right span=$align>
+    <COL align=center span=3>
+  </COLGROUP>\n";
+
+my $names = $NAS_INFO->{name};
+my %NAS_IDS = reverse %$NAS_INFO;
+
+while(($k, $v)=each %$names) {
+   print  "<tr><th align=left class=small colspan=$colspan bgcolor=$_BG0>&nbsp; $k:$NAS_INFO->{name}{$k} / $NAS_IDS{$k} / $NAS_INFO->{nt}{$k} / $users_count{$NAS_IDS{$k}}</th></tr>\n".
+       "$nas{$NAS_IDS{$k}}\n";
+ }
+
+ print "</table></td></tr></table>\n";
+
+print << "[END]";
+<table>
+<tr><td bgcolor=#FF0000 width=16>&nbsp;</td><td>Suspicion session</td></tr>
+<tr><td bgcolor=#00FF00 width=16>&nbsp;</td><td>Dublicate ports</td></tr>
+<tr><td bgcolor=#FFFF00 width=16>&nbsp;</td><td>Simultaneously logins</td></tr>
+</table> 
+[END]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+sub login_form {
 print << "[END]"
 <form action=$SELF_URL>
 <TABLE width=400 cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_BG4>
@@ -1407,5 +1704,4 @@ print "</seelct></td></tr>
 </td></tr></table>
 </form>
 [END]
-
 }
