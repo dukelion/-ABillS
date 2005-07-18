@@ -4297,8 +4297,9 @@ print << "[END]";
 <tr><td bgcolor=#FFFF00 width=16>&nbsp;</td><td>Simultaneously logins</td></tr>
 </table> 
 [END]
-
 }
+
+
 
 #*******************************************************************
 # Internet card manager
