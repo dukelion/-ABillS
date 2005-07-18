@@ -205,6 +205,7 @@ print << "[END]";
 <form action=$SELF METHOD=POST>
 <input type=hidden name=op value=passwd>
 <input type=hidden name=uid value=$uid>
+<input type=hidden name=sid value=$sid>
 
 <TABLE width=400 cellspacing=0 cellpadding=0 border=0><TR><TD bgcolor=$_BG4>
 <TABLE width=100% cellspacing=1 cellpadding=0 border=0><TR><TD bgcolor=$_BG1>
