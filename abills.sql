@@ -1,15 +1,12 @@
--- MySQL dump 8.22
+-- MySQL dump 9.11
 --
 -- Host: localhost    Database: stats
----------------------------------------------------------
--- Server version	3.23.53-log
+-- ------------------------------------------------------
+-- Server version	4.0.24
 
 --
--- Table structure for table 'accounts'
+-- Table structure for table `accounts`
 --
-
-create database abills5;
-use abills5;
 
 CREATE TABLE accounts (
   id int(11) unsigned NOT NULL auto_increment,
@@ -26,7 +23,7 @@ CREATE TABLE accounts (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'acct_orders'
+-- Table structure for table `acct_orders`
 --
 
 CREATE TABLE acct_orders (
@@ -39,7 +36,7 @@ CREATE TABLE acct_orders (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'actions'
+-- Table structure for table `actions`
 --
 
 CREATE TABLE actions (
@@ -54,7 +51,7 @@ CREATE TABLE actions (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'admin_permits'
+-- Table structure for table `admin_permits`
 --
 
 CREATE TABLE admin_permits (
@@ -64,7 +61,7 @@ CREATE TABLE admin_permits (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'admins'
+-- Table structure for table `admins`
 --
 
 CREATE TABLE admins (
@@ -76,12 +73,12 @@ CREATE TABLE admins (
   aid smallint(6) unsigned NOT NULL auto_increment,
   permissions varchar(60) NOT NULL default '',
   PRIMARY KEY  (aid),
-  UNIQUE KEY id (id),
-  UNIQUE KEY aid (aid)
+  UNIQUE KEY aid (aid),
+  UNIQUE KEY id (id)
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'bill'
+-- Table structure for table `bill`
 --
 
 CREATE TABLE bill (
@@ -90,7 +87,7 @@ CREATE TABLE bill (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'calls'
+-- Table structure for table `calls`
 --
 
 CREATE TABLE calls (
@@ -115,7 +112,7 @@ CREATE TABLE calls (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'config'
+-- Table structure for table `config`
 --
 
 CREATE TABLE config (
@@ -125,7 +122,7 @@ CREATE TABLE config (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'docs_acct'
+-- Table structure for table `docs_acct`
 --
 
 CREATE TABLE docs_acct (
@@ -142,7 +139,7 @@ CREATE TABLE docs_acct (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'dunes'
+-- Table structure for table `dunes`
 --
 
 CREATE TABLE dunes (
@@ -154,7 +151,7 @@ CREATE TABLE dunes (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'exchange_rate'
+-- Table structure for table `exchange_rate`
 --
 
 CREATE TABLE exchange_rate (
@@ -167,7 +164,7 @@ CREATE TABLE exchange_rate (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'fees'
+-- Table structure for table `fees`
 --
 
 CREATE TABLE fees (
@@ -187,7 +184,7 @@ CREATE TABLE fees (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'filters'
+-- Table structure for table `filters`
 --
 
 CREATE TABLE filters (
@@ -199,7 +196,7 @@ CREATE TABLE filters (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'groups'
+-- Table structure for table `groups`
 --
 
 CREATE TABLE groups (
@@ -212,7 +209,7 @@ CREATE TABLE groups (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'holidays'
+-- Table structure for table `holidays`
 --
 
 CREATE TABLE holidays (
@@ -222,7 +219,7 @@ CREATE TABLE holidays (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'icards'
+-- Table structure for table `icards`
 --
 
 CREATE TABLE icards (
@@ -238,7 +235,7 @@ CREATE TABLE icards (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'intervals'
+-- Table structure for table `intervals`
 --
 
 CREATE TABLE intervals (
@@ -251,7 +248,7 @@ CREATE TABLE intervals (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'ippools'
+-- Table structure for table `ippools`
 --
 
 CREATE TABLE ippools (
@@ -263,7 +260,7 @@ CREATE TABLE ippools (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'log'
+-- Table structure for table `log`
 --
 
 CREATE TABLE log (
@@ -288,7 +285,7 @@ CREATE TABLE log (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'mail_access'
+-- Table structure for table `mail_access`
 --
 
 CREATE TABLE mail_access (
@@ -300,7 +297,7 @@ CREATE TABLE mail_access (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'mail_aliases'
+-- Table structure for table `mail_aliases`
 --
 
 CREATE TABLE mail_aliases (
@@ -316,7 +313,7 @@ CREATE TABLE mail_aliases (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'mail_boxes'
+-- Table structure for table `mail_boxes`
 --
 
 CREATE TABLE mail_boxes (
@@ -341,7 +338,7 @@ CREATE TABLE mail_boxes (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'mail_domains'
+-- Table structure for table `mail_domains`
 --
 
 CREATE TABLE mail_domains (
@@ -356,7 +353,7 @@ CREATE TABLE mail_domains (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'mail_transport'
+-- Table structure for table `mail_transport`
 --
 
 CREATE TABLE mail_transport (
@@ -366,7 +363,7 @@ CREATE TABLE mail_transport (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'message_types'
+-- Table structure for table `message_types`
 --
 
 CREATE TABLE message_types (
@@ -377,7 +374,7 @@ CREATE TABLE message_types (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'messages'
+-- Table structure for table `messages`
 --
 
 CREATE TABLE messages (
@@ -396,7 +393,7 @@ CREATE TABLE messages (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'nas'
+-- Table structure for table `nas`
 --
 
 CREATE TABLE nas (
@@ -415,7 +412,7 @@ CREATE TABLE nas (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'networks'
+-- Table structure for table `networks`
 --
 
 CREATE TABLE networks (
@@ -435,7 +432,7 @@ CREATE TABLE networks (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'payment'
+-- Table structure for table `payment`
 --
 
 CREATE TABLE payment (
@@ -455,7 +452,7 @@ CREATE TABLE payment (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 's_detail'
+-- Table structure for table `s_detail`
 --
 
 CREATE TABLE s_detail (
@@ -474,7 +471,7 @@ CREATE TABLE s_detail (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'shedule'
+-- Table structure for table `shedule`
 --
 
 CREATE TABLE shedule (
@@ -495,7 +492,7 @@ CREATE TABLE shedule (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'trafic_tarifs'
+-- Table structure for table `trafic_tarifs`
 --
 
 CREATE TABLE trafic_tarifs (
@@ -513,7 +510,7 @@ CREATE TABLE trafic_tarifs (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'userlog'
+-- Table structure for table `userlog`
 --
 
 CREATE TABLE userlog (
@@ -530,7 +527,7 @@ CREATE TABLE userlog (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'users'
+-- Table structure for table `users`
 --
 
 CREATE TABLE users (
@@ -568,7 +565,7 @@ CREATE TABLE users (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'users_nas'
+-- Table structure for table `users_nas`
 --
 
 CREATE TABLE users_nas (
@@ -578,17 +575,17 @@ CREATE TABLE users_nas (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'variant'
+-- Table structure for table `variant`
 --
 
 CREATE TABLE variant (
   vrnt smallint(5) unsigned NOT NULL default '0',
-  hourp float(10,5) default '0.00000',
-  abon float(10,2) default '0.00',
-  kb float(10,5) default '0.00000',
+  hourp float(10,5) unsigned NOT NULL default '0.00000',
+  abon float(10,2) unsigned NOT NULL default '0.00',
+  kb float(10,5) unsigned default '0.00000',
   uplimit float(10,2) default '0.00',
   name varchar(40) NOT NULL default 'без╕менний',
-  df float(10,2) default NULL,
+  df float(10,2) unsigned default NULL,
   ut time NOT NULL default '24:00:00',
   dt time NOT NULL default '00:00:00',
   logins tinyint(4) NOT NULL default '0',
@@ -601,14 +598,14 @@ CREATE TABLE variant (
   prepaid_trafic int(10) unsigned NOT NULL default '0',
   change_price float(8,2) unsigned NOT NULL default '0.00',
   activate_price float(8,2) unsigned NOT NULL default '0.00',
-  credit_tresshold double(6,2) NOT NULL default '0.00',
+  credit_tresshold double(6,2) unsigned NOT NULL default '0.00',
   PRIMARY KEY  (vrnt),
   UNIQUE KEY name (name),
   UNIQUE KEY vrnt (vrnt)
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'vid_nas'
+-- Table structure for table `vid_nas`
 --
 
 CREATE TABLE vid_nas (
@@ -618,7 +615,7 @@ CREATE TABLE vid_nas (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table 'web_online'
+-- Table structure for table `web_online`
 --
 
 CREATE TABLE web_online (
