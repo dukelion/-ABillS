@@ -115,7 +115,8 @@ select
   v.month_time_limit,
   if(v.day_time_limit=0 and v.dt='0:00:00' AND v.ut='24:00:00',
    UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
-  TIME_TO_SEC(v.ut)-TIME_TO_SEC(curtime())) as today_limit,
+  if(curtime() < v.ut, TIME_TO_SEC(v.ut)-TIME_TO_SEC(curtime()), TIME_TO_SEC('23:00:00')-TIME_TO_SEC(curtime())) 
+    ) as today_limit,
   day_traf_limit,
   week_traf_limit,
   month_traf_limit,
