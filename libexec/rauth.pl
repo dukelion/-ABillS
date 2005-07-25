@@ -117,6 +117,7 @@ select
    UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
   if(curtime() < v.ut, TIME_TO_SEC(v.ut)-TIME_TO_SEC(curtime()), TIME_TO_SEC('23:00:00')-TIME_TO_SEC(curtime())) 
     ) as today_limit,
+    
   day_traf_limit,
   week_traf_limit,
   month_traf_limit,
@@ -419,6 +420,9 @@ my $traf_limit = $conf{MAX_SESSION_TRAFFIC};
                                                   time_limit  => $today_limit  } 
                                           )
             );
+
+
+
       }
 
 #set time limit
@@ -753,7 +757,7 @@ sub remaining_time {
            }
           #print "Int Begin: $int_begin Int duration: $int_duration Int prepaid: $int_prepaid Prise: $price\n";
 
-
+ 
 
           if ($int_prepaid >= $int_duration) {
             $deposit -= ($int_duration / 3600 * $price);
@@ -764,9 +768,11 @@ sub remaining_time {
           elsif($int_prepaid <= $int_duration) {
             $deposit =  0;          	
             $session_start += $int_prepaid;
-            $remaining_time += $int_duration;
+            $remaining_time += $int_prepaid;
+            #print "-!! $remaining_time $int_prepaid $int_duration  \n";
             #print "DL '$deposit' ($int_prepaid <= $int_duration) $session_start\n";
            }
+          
          
         }
 
