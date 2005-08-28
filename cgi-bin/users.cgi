@@ -225,21 +225,22 @@ print << "[END]";
 # user_stats($uid)
 #*******************************************************************
 sub user_stats {
- my $uid = shift;
+ my $u_name = shift;
  my $show = '';
  
-$sql = "select u.variant, u.credit, u.deposit, u.speed, v.name, u.activate, u.expire
+$sql = "select u.uid, u.variant, u.credit, u.deposit, u.speed, v.name, u.activate, u.expire
  from users u,  variant v 
- where u.variant=v.vrnt and u.id='$uid'";
+ where u.variant=v.vrnt and u.id='$u_name'";
 
 my $q = $db->prepare("$sql");
 $q->execute();
-my ($variant, $debt, $money, $speed, $v_name, $activate, $expire) = $q->fetchrow_array();
+my ($uid, $variant, $debt, $money, $speed, $v_name, $activate, $expire) = $q->fetchrow_array();
 $q->finish;
 
 my $q = $db->prepare("select date, sum from payment where uid='$uid' ORDER BY date DESC LIMIT 1;");
 $q->execute();
 my ($pdate, $psum) = $q->fetchrow_array() if ($q->rows > 0);
+
 $q->finish;
 
 my $speed = ($speed > 0) ? "<tr bgcolor=$_BG1><td><b>$_SPEED:</b></td><td>$speed Kbit/set</td></tr>\n" : '' ;
@@ -247,7 +248,7 @@ my $speed = ($speed > 0) ? "<tr bgcolor=$_BG1><td><b>$_SPEED:</b></td><td>$speed
 print "<TABLE width=400 cellspacing=0 cellpadding=0 border=0>
   <TR><TD bgcolor=$_BG4>
   <TABLE width=100% cellspacing=1 cellpadding=0 border=0>
-<tr bgcolor=$_BG1><td><b>$_USER:</b></td><td>$uid</td></tr>
+<tr bgcolor=$_BG1><td><b>$_USER:</b></td><td>$u_name</td></tr>
 <tr bgcolor=$_BG1><td><b>$_CREDIT:</b></td><td align=right><!--CREDIT_BEGIN-->$debt<!--CREDIT_END--></td></tr>
 <tr bgcolor=$_BG1><td><b>$_BALANCE:</b></td><td align=right><!--DEPOSIT_BEGIN-->$money<!--DEPOSIT_END--></td></tr>
 <tr bgcolor=$_BG1><td><b>$_VARIANT:</b></td><td>$variant ($v_name)</td></tr>
@@ -270,7 +271,7 @@ $sql = "SELECT SEC_TO_TIME(acct_session_time),
  INET_NTOA(framed_ip_address),
  CID
  from calls 
- WHERE user_name='$uid' and (status=1 or status>=3);";
+ WHERE user_name='$u_name' and (status=1 or status>=3);";
  
 $q = $db->prepare("$sql");
 $q->execute();
@@ -318,7 +319,7 @@ print "</table>\n</td></tr></table>\n</td></tr></table>\n</td></tr></table><p>\n
   SEC_TO_TIME(sum(if(date_format(login, '%Y-%m')=date_format(curdate(), '%Y-%m'), duration, 0))),
   
   sum(sent), sum(recv), SEC_TO_TIME(sum(duration))
-FROM log WHERE id='$uid';") || die $db->strerr;
+FROM log WHERE id='$u_name';") || die $db->strerr;
   $q -> execute ();
  print "<table width=640 border=0 cellspacing=0 cellpadding=0><tr><td bgcolor=000000>
  <table width=100% border=0 cellspacing=1 cellpadding=2><tr><td bgcolor=FFFFFF>\n";
@@ -382,7 +383,7 @@ print "<form action=$SELF>
  <td><input type=submit name=show value=$_SHOW></td></tr></table>
  </form>\n";
 
-my $WHERE = "WHERE id='$uid' ";
+my $WHERE = "WHERE id='$u_name' ";
 
 if (defined($FORM{show})) {
   $show = "&show=y&rows=$max_recs&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
