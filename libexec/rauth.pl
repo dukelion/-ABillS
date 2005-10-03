@@ -222,7 +222,7 @@ if ($cid ne '') {
 #Auth chap
 if (defined($RAD{CHAP_PASSWORD}) && defined($RAD{CHAP_CHALLENGE})) {
   if (check_chap("$RAD{CHAP_PASSWORD}", "$passwd", "$RAD{CHAP_CHALLENGE}", 0) == 0) {
-    $message = "Wrong CHAP password '$passwd'";
+    $message = "Wrong CHAP password";
     return 1;
    }      	 	
  }

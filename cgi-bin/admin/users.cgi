@@ -4038,7 +4038,7 @@ sub sql_online {
     message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
    }
  elsif ($FORM{hangup}) {
-     my ($nas_ip_address, $nas_port_id, $acct_session_id) = split(/ /, $FORM{hangup}, 3);
+     my ($nas_ip_address, $nas_port_id, $acct_session_id, $user) = split(/ /, $FORM{hangup}, 4);
 
      require "nas.pl";
      my $ret = hangup("$nas_ip_address", "$nas_port_id", "", "$acct_session_id");
@@ -4051,6 +4051,10 @@ sub sql_online {
          "<tr><td>SESSION_ID:</td><td>$acct_session_id</td></tr>".
          "</table>\n";
          sleep 3;
+        open(FILE, ">>$conf{hanguplog}" ) || print "Can't open file '$conf{hanguplog}' $!";
+          print FILE "$DATE:$admin_name:$admin_ip:$user\n";
+        close(FILE);
+        
       }
      elsif ($ret == 1) {
      	$msg = 'NOT supported yet';
@@ -4257,7 +4261,7 @@ sub sql_online {
      my $zap_button = "<a href='$SELF?op=sql_online&zap=$nas_ip_address+$nas_port_id+$acct_session_id' title='Radzap $user_name'>Z</a>";
      $nas{$nas_ip_address} .= "<th>(<a href='$SELF?op=sql_online&ping=$framed_ip_address' title='ping'>P</a>)</th>".
       "<th>($zap_button)</th>".
-      "<th>(<a href='$SELF?op=sql_online&hangup=$nas_ip_address+$nas_port_id+$acct_session_id' title='hangup'>H</a>)</th></tr>\n";
+      "<th>(<a href='$SELF?op=sql_online&hangup=$nas_ip_address+$nas_port_id+$acct_session_id+$user_name' title='hangup'>H</a>)</th></tr>\n";
      $users_count{$nas_ip_address}++ ; # = (defined($users{$nas_ip_address})) ? $users_count{$nas_ip_address}+1 : 1;
     }
 
