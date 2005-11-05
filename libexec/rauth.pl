@@ -301,7 +301,7 @@ else {
 
 #Check deposit
 if($tp_payment > 0 && $deposit <= 0) {
-  $message = "User don't have money account '$deposit'. Rejected!";
+  $message = "User don't have money on account '$deposit'. Rejected!";
   return 1;
  }
 
