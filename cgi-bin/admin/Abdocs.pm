@@ -281,10 +281,10 @@ if ($FORM{pre}) {
     $TPL_INFO{SUM}=$FORM{sum};
   
     $TPL_INFO{DATE}=$date;
-    $TPL_INFO{ORDER}= "<tr><td align=right>1</td><td>$orders[$FORM{orders}]</td><td align=center>$unit</td><td align=right>$count</td><td  align=right>$FORM{sum}</td><td  align=right>$FORM{sum}</td></tr>".
+    $TPL_INFO{ORDER}= "<table><tr><td align=right>1</td><td>$orders[$FORM{orders}]</td><td align=center>$unit</td><td align=right>$count</td><td  align=right>$FORM{sum}</td><td  align=right>$FORM{sum}</td></tr>".
                    "<tr><td align=right colspan=2 rowspan=3>&nbsp;</td><td colspan=2>Разом без ПДВ</td><td  colspan=2 align=right>$FORM{sum}</td></tr>".
-                   "<td colspan=2>ПДВ:</td><td  colspan=2 align=right>-</td></tr>".
-                   "<td colspan=2>Всього з ПДВ:</td><td colspan=2 align=right>$FORM{sum}</td></tr>";
+                   "<td colspan=2>ПДВ:</td><td  colspan=2 align=right>-</td></tr>\n".
+                   "<td colspan=2>Всього з ПДВ:</td><td colspan=2 align=right>$FORM{sum}</td></tr></table>\n";
 
     $TPL_INFO{EXPIRE_DATE}=strftime("%d.%m.%Y", localtime(time  + 86400 * $expire_time ));
     $mn = strftime("%m", localtime(time)) -1;
