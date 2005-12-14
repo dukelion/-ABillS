@@ -281,7 +281,7 @@ if ($FORM{pre}) {
     $TPL_INFO{SUM}=$FORM{sum};
   
     $TPL_INFO{DATE}=$date;
-    $TPL_INFO{ORDER}= "<table><tr><td align=right>1</td><td>$orders[$FORM{orders}]</td><td align=center>$unit</td><td align=right>$count</td><td  align=right>$FORM{sum}</td><td  align=right>$FORM{sum}</td></tr>".
+    $TPL_INFO{ORDER}= "<tr><td align=right>1</td><td>$orders[$FORM{orders}]</td><td align=center>$unit</td><td align=right>$count</td><td  align=right>$FORM{sum}</td><td  align=right>$FORM{sum}</td></tr>".
                    "<tr><td align=right colspan=2 rowspan=3>&nbsp;</td><td colspan=2>Разом без ПДВ</td><td  colspan=2 align=right>$FORM{sum}</td></tr>".
                    "<td colspan=2>ПДВ:</td><td  colspan=2 align=right>-</td></tr>\n".
                    "<td colspan=2>Всього з ПДВ:</td><td colspan=2 align=right>$FORM{sum}</td></tr></table>\n";
@@ -485,9 +485,9 @@ sub print_version  {
   $TPL_INFO{SUM}=$sum;
   $TPL_INFO{DATE}=sprintf("%.2d-%.2d-%d", $day, $month, $year);
   $TPL_INFO{ORDER}="<tr><td align=right>1</td><td>$order</td><td align=center>$units[$unit]</td><td align=right>$count</td><td  align=right>$sum</td><td  align=right>$sum</td></tr>".
-                   "<tr><td align=right colspan=2 rowspan=3>&nbsp;</td><td colspan=2>Разом без ПДВ</td><td  colspan=2 align=right>$sum</td></tr>".
-                   "<td colspan=2>ПДВ:</td><td  colspan=2 align=right>-</td></tr>".
-                   "<td colspan=2>Всього з ПДВ:</td><td colspan=2 align=right>$sum</td></tr>";
+                   "<tr><td align=right colspan=2 rowspan=3>&nbsp;</td><td colspan=2><b>Разом без ПДВ</b></td><td  colspan=2 align=right>$sum</td></tr>".
+                   "<td colspan=2><b>ПДВ:</b></td><td  colspan=2 align=right>-</td></tr>".
+                   "<td colspan=2><b>Всього з ПДВ:</b></td><td colspan=2 align=right>$sum</td></tr>";
   $TPL_INFO{EXPIRE_DATE}=$expire;
   $month--;
   my $date = "$day ". @MONTHES_LIT[$month] ." $year р.", localtime(time);
