@@ -6,10 +6,10 @@
 #
 # exacct_program ACCT_STATUS_TYPE NAS_IP_ADDRESS NAS_PORT
 #
-# ACCT_STATUS_TYPE:
-#   0 - Start
-#   1 - Stop
-#   2 - alive
+#  ACCT_STATUS_TYPE:
+#    0 - Start
+#    1 - Stop
+#    2 - alive
 
 
 if [ w$3 != w ] ; then 
