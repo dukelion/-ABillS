@@ -5,33 +5,20 @@
 -- Server version	4.0.24
 
 --
--- Table structure for table `accounts`
---
-
-CREATE TABLE accounts (
-  id int(11) unsigned NOT NULL auto_increment,
-  name varchar(100) NOT NULL default '',
-  deposit double(8,6) NOT NULL default '0.000000',
-  tax_number varchar(250) NOT NULL default '',
-  bank_account varchar(250) default NULL,
-  bank_name varchar(150) default NULL,
-  cor_bank_account varchar(150) default NULL,
-  bank_bic varchar(100) default NULL,
-  PRIMARY KEY  (id),
-  UNIQUE KEY id (id),
-  UNIQUE KEY name (name)
-) TYPE=MyISAM;
-
---
 -- Table structure for table `acct_orders`
 --
+
+
+drop database abills5;
+create database abills5;
+use abills5;
 
 CREATE TABLE acct_orders (
   aid int(11) NOT NULL default '0',
   orders varchar(200) NOT NULL default '',
   counts int(10) unsigned NOT NULL default '0',
   unit tinyint(3) unsigned NOT NULL default '0',
-  price float(8,2) unsigned NOT NULL default '0.00',
+  price double(10,2) unsigned NOT NULL default '0.00',
   KEY aid (aid)
 ) TYPE=MyISAM;
 
@@ -48,16 +35,6 @@ CREATE TABLE actions (
   PRIMARY KEY  (id),
   UNIQUE KEY func (func),
   UNIQUE KEY id (id)
-) TYPE=MyISAM;
-
---
--- Table structure for table `admin_permits`
---
-
-CREATE TABLE admin_permits (
-  aid smallint(6) unsigned NOT NULL default '0',
-  section smallint(6) unsigned NOT NULL default '0',
-  actions smallint(6) unsigned NOT NULL default '0'
 ) TYPE=MyISAM;
 
 --
@@ -78,15 +55,6 @@ CREATE TABLE admins (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table `bill`
---
-
-CREATE TABLE bill (
-  id varchar(20) default NULL,
-  sum float(10,2) default NULL
-) TYPE=MyISAM;
-
---
 -- Table structure for table `calls`
 --
 
@@ -97,11 +65,11 @@ CREATE TABLE calls (
   nas_ip_address int(11) unsigned NOT NULL default '0',
   nas_port_id int(6) unsigned default NULL,
   acct_session_id varchar(25) NOT NULL default '',
-  acct_session_time int(11) NOT NULL default '0',
-  acct_input_octets int(11) NOT NULL default '0',
-  acct_output_octets int(11) NOT NULL default '0',
-  ex_input_octets int(11) NOT NULL default '0',
-  ex_output_octets int(11) NOT NULL default '0',
+  acct_session_time int(11) unsigned NOT NULL default '0',
+  acct_input_octets int(11) unsigned NOT NULL default '0',
+  acct_output_octets int(11) unsigned NOT NULL default '0',
+  ex_input_octets int(11) unsigned NOT NULL default '0',
+  ex_output_octets int(11) unsigned NOT NULL default '0',
   connect_term_reason int(4) NOT NULL default '0',
   framed_ip_address int(11) unsigned NOT NULL default '0',
   lupdated int(11) unsigned NOT NULL default '0',
@@ -157,7 +125,7 @@ CREATE TABLE dunes (
 CREATE TABLE exchange_rate (
   money varchar(30) NOT NULL default '',
   short_name varchar(30) NOT NULL default '',
-  rate double(8,4) NOT NULL default '0.0000',
+  rate double(12,4) NOT NULL default '0.0000',
   changed date default NULL,
   UNIQUE KEY short_name (short_name),
   UNIQUE KEY money (money)
@@ -173,7 +141,7 @@ CREATE TABLE fees (
   dsc varchar(80) default NULL,
   ww varchar(40) NOT NULL default '',
   ip int(11) unsigned NOT NULL default '0',
-  last_deposit double(7,6) NOT NULL default '0.000000',
+  last_deposit double(14,6) NOT NULL default '0.000000',
   uid int(11) unsigned NOT NULL default '0',
   aid smallint(6) unsigned NOT NULL default '0',
   id int(11) unsigned NOT NULL auto_increment,
@@ -196,19 +164,6 @@ CREATE TABLE filters (
 ) TYPE=MyISAM;
 
 --
--- Table structure for table `groups`
---
-
-CREATE TABLE groups (
-  gid tinyint(4) unsigned NOT NULL default '0',
-  name varchar(12) NOT NULL default '',
-  descr varchar(200) NOT NULL default '',
-  PRIMARY KEY  (gid),
-  UNIQUE KEY name (name),
-  UNIQUE KEY gid (gid)
-) TYPE=MyISAM;
-
---
 -- Table structure for table `holidays`
 --
 
@@ -225,11 +180,11 @@ CREATE TABLE holidays (
 CREATE TABLE icards (
   id int(10) unsigned NOT NULL auto_increment,
   prefix varchar(4) NOT NULL default '',
-  nominal float(8,2) NOT NULL default '0.00',
+  nominal double(10,2) unsigned NOT NULL default '0.00',
   variant smallint(6) NOT NULL default '0',
   period smallint(5) unsigned NOT NULL default '0',
   expire date NOT NULL default '0000-00-00',
-  changes float(8,2) NOT NULL default '0.00',
+  changes double(10,2) NOT NULL default '0.00',
   password varchar(16) NOT NULL default '0',
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
@@ -272,7 +227,7 @@ CREATE TABLE log (
   recv int(10) unsigned NOT NULL default '0',
   minp float(10,2) NOT NULL default '0.00',
   kb float(10,2) NOT NULL default '0.00',
-  sum double(10,6) NOT NULL default '0.000000',
+  sum double(14,6) NOT NULL default '0.000000',
   port_id smallint(5) unsigned NOT NULL default '0',
   nas_id tinyint(3) unsigned NOT NULL default '0',
   ip int(10) unsigned NOT NULL default '0',
@@ -441,7 +396,7 @@ CREATE TABLE payment (
   dsc varchar(80) default NULL,
   ww varchar(40) NOT NULL default '',
   ip int(11) unsigned NOT NULL default '0',
-  last_deposit double(7,6) NOT NULL default '0.000000',
+  last_deposit double(14,6) NOT NULL default '0.000000',
   uid int(11) unsigned NOT NULL default '0',
   aid smallint(6) unsigned NOT NULL default '0',
   id int(11) unsigned NOT NULL auto_increment,
@@ -502,8 +457,8 @@ CREATE TABLE trafic_tarifs (
   price float(8,5) NOT NULL default '0.00000',
   vid smallint(5) unsigned NOT NULL default '0',
   prepaid int(11) unsigned default '0',
-  in_price float(8,5) default '0.00000',
-  out_price float(8,5) default '0.00000',
+  in_price double(14,5) unsigned NOT NULL default '0.00000',
+  out_price double(14,5) unsigned NOT NULL default '0.00000',
   speed int(10) unsigned NOT NULL default '0',
   UNIQUE KEY vid_id (vid,id),
   KEY vid (vid)
@@ -536,9 +491,9 @@ CREATE TABLE users (
   phone bigint(16) unsigned NOT NULL default '0',
   activate date NOT NULL default '0000-00-00',
   expire date NOT NULL default '0000-00-00',
-  deposit double(7,6) NOT NULL default '0.000000',
+  deposit double(15,6) NOT NULL default '0.000000',
   credit double(6,2) NOT NULL default '0.00',
-  reduction double(3,2) NOT NULL default '0.00',
+  reduction double(5,2) NOT NULL default '0.00',
   variant tinyint(4) unsigned NOT NULL default '0',
   logins tinyint(3) unsigned NOT NULL default '0',
   nas int(10) unsigned NOT NULL default '0',
@@ -580,12 +535,12 @@ CREATE TABLE users_nas (
 
 CREATE TABLE variant (
   vrnt smallint(5) unsigned NOT NULL default '0',
-  hourp float(10,5) unsigned NOT NULL default '0.00000',
-  abon float(10,2) unsigned NOT NULL default '0.00',
-  kb float(10,5) unsigned default '0.00000',
-  uplimit float(10,2) default '0.00',
+  hourp double(14,5) unsigned NOT NULL default '0.00000',
+  abon double(10,2) unsigned NOT NULL default '0.00',
+  kb double(14,5) unsigned NOT NULL default '0.00000',
+  uplimit double(10,2) NOT NULL default '0.00',
   name varchar(40) NOT NULL default 'без╕менний',
-  df float(10,2) unsigned default NULL,
+  df double(10,2) unsigned NOT NULL default '0.00',
   ut time NOT NULL default '24:00:00',
   dt time NOT NULL default '00:00:00',
   logins tinyint(4) NOT NULL default '0',
@@ -596,9 +551,9 @@ CREATE TABLE variant (
   week_traf_limit int(10) unsigned NOT NULL default '0',
   month_traf_limit int(10) unsigned NOT NULL default '0',
   prepaid_trafic int(10) unsigned NOT NULL default '0',
-  change_price float(8,2) unsigned NOT NULL default '0.00',
-  activate_price float(8,2) unsigned NOT NULL default '0.00',
-  credit_tresshold double(6,2) unsigned NOT NULL default '0.00',
+  change_price double(10,2) unsigned NOT NULL default '0.00',
+  activate_price double(10,2) unsigned NOT NULL default '0.00',
+  credit_tresshold double(8,2) unsigned NOT NULL default '0.00',
   PRIMARY KEY  (vrnt),
   UNIQUE KEY name (name),
   UNIQUE KEY vrnt (vrnt)
