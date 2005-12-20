@@ -9,10 +9,6 @@
 --
 
 
-drop database abills5;
-create database abills5;
-use abills5;
-
 CREATE TABLE acct_orders (
   aid int(11) NOT NULL default '0',
   orders varchar(200) NOT NULL default '',
