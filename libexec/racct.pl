@@ -119,7 +119,7 @@ if ($NAS_INFO->{nt}{$nas_num} eq 'exppp') {
    if ($#contents > 0) {
       my $res = "";
       foreach my $file (@contents) {
-         if (-x "$extern_acct_dir/$file") {
+         if ((-x "$extern_acct_dir/$file") && (-f "$extern_acct_dir/$file")) {
            # ACCT_STATUS IP_ADDRESS NAS_PORT
            $res = `$extern_acct_dir/$file $acct_status_type $ACCT_INFO{NAS_IP_ADDRESS} $ACCT_INFO{NAS_PORT}`;
            log_print('LOG_DEBUG', "External accounting program '$file' pairs '$res'");

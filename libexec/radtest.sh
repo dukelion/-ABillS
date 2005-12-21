@@ -35,9 +35,9 @@ elif [ t$1 = 'tacct' ]; then
    echo "Accounting test";
   ./racct.pl \
       ACCT_SESSION_ID=sessin_82762626 \
-      USER_NAME="andy" \
+      USER_NAME="aa1" \
       FRAMED_IP_ADDRESS=192.168.101.200 \
-      NAS_IP_ADDRESS=192.168.101.1 \
+      NAS_IP_ADDRESS=192.168.101.17 \
       NAS_PORT=10 \
       ACCT_STATUS_TYPE=Stop \
       ACCT_SESSION_TIME=1000 \
