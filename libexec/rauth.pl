@@ -666,7 +666,7 @@ if ($trafic_limits{0} > 0 || $traf_limit > 0) {
 if ($trafic_limits{1} > 0) {
   #10Gb - (10240 * 1024 * 1024) - local traffic session limit
   #4096 
-  $trafic_limit = ($trafic_limits{1} > 10240) ? 4096 :  $trafic_limits{1};
+  $trafic_limit = ($trafic_limits{1} > 4096) ? 4096 :  $trafic_limits{1};
   $EX_PARAMS{traf_limit_lo} = ($trafic_limit < 1 && $trafic_limit > 0) ? 1 : int($trafic_limit);
  }
 
