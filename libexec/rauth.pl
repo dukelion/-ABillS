@@ -563,7 +563,7 @@ sub ex_params {
  my %EX_PARAMS = ();
  $EX_PARAMS{speed}=0;
  $EX_PARAMS{traf_limit}=0;
- $EX_PARAMS{traf_limit_lo}=0;
+ $EX_PARAMS{traf_limit_lo}=4096;
 
  my %prepaids = ();
  my %speeds = ();
