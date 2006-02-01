@@ -115,7 +115,7 @@ select
   v.month_time_limit,
   if(v.day_time_limit=0 and v.dt='0:00:00' AND v.ut='24:00:00',
    UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
-  if(curtime() < v.ut, TIME_TO_SEC(v.ut)-TIME_TO_SEC(curtime()), TIME_TO_SEC('23:00:00')-TIME_TO_SEC(curtime())) 
+  if(curtime() < v.ut, TIME_TO_SEC(v.ut)-TIME_TO_SEC(curtime()), TIME_TO_SEC('24:00:00')-TIME_TO_SEC(curtime())) 
     ) as today_limit,
     
   day_traf_limit,
@@ -131,12 +131,21 @@ select
   UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
   DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
   DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
-  if(v.dt < v.ut,
+  /* if(v.dt < v.ut,
     if(v.dt < CURTIME() and v.ut > CURTIME(), 1, 0),
       if((v.dt < CURTIME() or (CURTIME() > '0:00:00' and CURTIME() < v.ut ))
        and
        (CURTIME() < '23:00:00' or v.ut > CURTIME()  ),
-     1, 0 ))
+     1, 0 )) */
+    if(v.dt < v.ut,
+    if(v.dt < CURTIME() and v.ut > CURTIME(), 1, 0),
+    if(
+        (CURTIME() > '00:00:00' AND CURTIME() < v.ut)
+        OR
+        (CURTIME() < '24:00:00' AND CURTIME() > v.dt)
+        ,1,0
+      )
+    )
      FROM users u, variant v
      LEFT JOIN  trafic_tarifs tt ON (tt.vid=u.variant)
      LEFT JOIN users_nas un ON (un.uid = u.uid)

@@ -237,7 +237,7 @@ else {
 
 
 
-#detalization for Exppp
+#detalization 
 if ($conf{s_detalization} eq 'yes') {
   $sql = "INSERT into s_detail (acct_session_id, nas_id, uid, acct_status, last_update, 
     sent1, recv1, sent2, recv2, id)
