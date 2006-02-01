@@ -523,6 +523,10 @@ elsif ($NAS_INFO->{nt}{$nas_num} eq 'mpd') {
   if ($EX_PARAMS->{traf_limit} > 0) {
     $RAD_PAIRS{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit} * 1024 * 1024;
    }
+  
+  if ($RAD_PAIRS{'Session-Timeout'} > 604800)    {
+  	 $RAD_PAIRS{'Session-Timeout'}=604800;
+   }
        
 #Shaper
 #  if ($uspeed > 0) {
