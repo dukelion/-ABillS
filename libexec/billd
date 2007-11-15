@@ -1,336 +1,871 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 # Accounting controll deamon
-# ~AsmodeuS~ (2005.05.03)
-#
+# ~AsmodeuS~ (2007.05.23)
+# Work only with Dv module
 
-use POSIX; 
+
+
+use vars  qw(%RAD %conf @MODULES $db $DATE $GZIP $MYSQLDUMP %ADMIN_REPORT $IPFW
+ $IFCONFIG
+ @START_FW
+ $SNMPWALK
+ $SNMPSET
+ 
+ $db
+ 
+ $base_dir
+ );
+use strict;
+
 use FindBin '$Bin';
+require $Bin . '/config.pl';
+unshift(@INC, $Bin . "/../Abills/", $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
 
-my $mkbackuplog=1;
+require "Abills/defs.conf";
+require "Abills/nas.pl";
+require Abills::Base;
+Abills::Base->import();
+my $begin_time = check_time();
 
-require $Bin.'/Base.pm';
-Base->import();
-require $Bin.'/config.pl';
-require $Bin.'/sql.pl';
-require $Bin.'/nas.pl';
-my $alive_interval = 60;
-my $hanguplimit = 3500000000;
+my $debug=0;
+my $debug_output = '';
+my $ARGV = parse_arguments(\@ARGV);
 
-parse_arguments(@ARGV);
-my $rc  = $db->disconnect;
+if (defined($ARGV->{debug})) {
+  $debug=$ARGV->{debug} || 1;
+  print "Debug mode $debug\n";
+}
+elsif(defined($ARGV->{help})){
+  print "Help:
+CHECK exist connections
+  checkppp    - check Active ppp on FreeBSD session and disconnect unknown ip
+  checkpppd   - check Active pppd on Linux session and disconnect unknown ip
+  checkmikro  - check Active ppp on Mikrotik session and disconnect unknown ip.
+CHECK speed
+  checkspeed  - check cure speed for user on FreeBSD NAS. Arguments NAS_ID=xx
+  checkspeed_mikro - check cure speed for user on Mikrotik. Arguments NAS_ID=xx
+CHECK connection Alive
+  checklines  - Check alive connections
 
-
-
-#********************************************************************
-# check_lines()
-#********************************************************************
-sub check_lines {
-
- my $NAS_INFO = nas_params();
-
- my $sql = "SELECT user_name, INET_NTOA(nas_ip_address),
- nas_port_id, acct_session_id,
- INET_NTOA(framed_ip_address),
- status,
- acct_input_octets,
- acct_output_octets,
- if (lupdated > 0, UNIX_TIMESTAMP() - lupdated, 0),
- ex_input_octets,
- ex_output_octets
- FROM calls
- WHERE status=1 or status>2
- ORDER BY nas_ip_address;";
-
-
- log_print('LOG_SQL', "Checker: $sql");
- my $q = $db->prepare($sql) || die $db->errstr;
-
- my $in_byte=0;
- my $out_byte=0;
-
- $q ->execute();
-
- while(my ($user_name, $nas_ip_address, $nas_port_id, $acct_session_id, $framed_ip_address, $status, 
-      $acct_input_octets, $acct_output_octets, $update_interval,
-      $acct_input_octets_ext, $acct_output_octets_ext,) = $q->fetchrow()) {
-
-   $in_byte=0;
-   $out_byte=0;
-   my $bytes = '';
-   my $nas_id = $NAS_INFO->{$nas_ip_address};
-   my $nas_type = $NAS_INFO->{nt}{$nas_id};
-   
-# Exppp || radpppd
-      if ($acct_input_octets_ext > $hanguplimit || $acct_output_octets_ext > $hanguplimit) {
-       my $ret = hangup("$nas_ip_address", "$nas_port_id", "", "$acct_session_id");
-       print "Hangup '$user_name' $acct_input_octets, $acct_output_octets, $acct_input_octets_ext, $acct_output_octets_ext\n"; 
-      }     
-
-      if ($nas_type eq 'exppp'   ||
-          $nas_type eq 'radpppd' || 
-          $nas_type eq 'mpd' ) {
-
-      	if ($update_interval > $alive_interval * 3) {
-      	  $sql = "UPDATE calls SET 
-            status='4'
-            WHERE user_name='$user_name' 
-              and nas_port_id='$nas_port_id' 
-              and acct_session_id='$acct_session_id'
-              and (status=1 or status=3) 
-              and nas_ip_address=INET_ATON('$nas_ip_address');";
-
-          log_print('LOG_SQL', "$sql");
-          $up_q = $db->do($sql) || die $db->errstr;
-         }
-        next;
-       }
-#standart FreeBSD ppp
-      elsif($nas_type eq 'ppp')    { get_stats("$nas_ip_address") if(! defined($stats{$nas_ip_address}));}
-#Get Stats from USR Netserver 8/16
-      elsif($nas_type eq 'USR' )   { get_stats("$nas_ip_address", $nas_port_id);     }
-#Get Stats from Livingston PM25
-      elsif($nas_type eq 'pm25' )  { get_stats("$nas_ip_address", $nas_port_id);       }
-#Get stats from DSL MAx
-      elsif($nas_type eq 'dslmax' ){ get_stats("$nas_ip_address", "$nas_port_id", { user_ip_address => "$framed_ip_address" } ); }
-
-      if (! defined($stats{in}) || $stats{in} < 0) {
-       	print "No such connection $user_name, $nas_ip_address, $nas_port_id\n";
-# Status 4 - Can't find user in NAS
-        $sql = "UPDATE calls SET status=4
-          WHERE user_name='$user_name' and nas_port_id='$nas_port_id' and acct_session_id='$acct_session_id'
-            and (status=1 or status>=4) and nas_ip_address=INET_ATON('$nas_ip_address');";
-       }
-      else {
-        $in_byte=$stats{in};
-        $out_byte=$stats{out};
-
-        if ($in_byte < $acct_input_octets || $in_byte eq '') {
-          $set_status = 4;  # red status
-          log_print('LOG_WARNING', "RED STATUS / NAS: $nas_ip_address PORT: $nas_port_id ($acct_input_octets / $in_byte) '$acct_session_id'");
-         } 
-        else {
-          $set_status = 1;
-          $bytes = " acct_input_octets='$in_byte', acct_output_octets='$out_byte', lupdated=UNIX_TIMESTAMP(), ";
-         }
-            
-            
-        $sql = "UPDATE calls SET 
-           $bytes
-           acct_session_time=UNIX_TIMESTAMP(now())-UNIX_TIMESTAMP(started),
-           status='$set_status'
-           WHERE user_name='$user_name' and nas_port_id='$nas_port_id' and acct_session_id='$acct_session_id'
-           and (status=1 or status>=3) 
-           and nas_ip_address=INET_ATON('$nas_ip_address');";
-       }
-
-      log_print('LOG_SQL', "$sql");
-      $up_q = $db->do($sql) || die $db->errstr;
-      
-    }
+  debug       - debug mode
+  NAS_IDS=... - Make actions for NAS
+\n";
+  exit;
 }
 
 
 
+require Abills::SQL;
+Abills::SQL->import();
+require Users;
+Users->import();
+require Admins;
+Admins->import();
 
-#*******************************************************************
-#
-# help()
-#*******************************************************************
-sub help {
-print << "[END]";
-Billing deamon (~AsmodeuS~ 2005) Ver. $conf{version}
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+$db = $sql->{db};
+my $admin = Admins->new($db, \%conf);
+$admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 
--fst fetch stats to database
--s   spool dir
--all All short period actions
--cl  Check lines
-[END]
+my $default_alive_interval = 120;
+my $exppp_hanguplimit = 3500000000;
+my $error_alive_count = $conf{ERROR_ALIVE_COUNT} || 5;
 
-# -chk check valid users 
-# -mka make allow list
-# -k   kill active user
-# -hu  [variant] - hangup specific user group
-# -sl  show login users
-#
+
+if ($admin->{errno}) {
+	print  $admin->{errno};
+	exit 0;
 }
 
-#*******************************************************************
-#
-# parse_arguments()
-#*******************************************************************
-sub parse_arguments {
-    local(@argv) = @_;
-    if ($#argv < 0) {
-        &help;
-     }
-    while ($_ = $argv[0], /^-/) {
-      shift @argv;
-        last if /^--$/;
-        if    (/^-?(chk)$/){ check_activ(); }
-        elsif (/^-?(mka)$/){ mk_allow();    }
-        elsif (/^-?(fst)$/){ fetch_stats(); }
-        elsif (/^-?(all)$/){ fetch_stats(); check_lines(); }
-        elsif (/^-?(sl)$/) { online();      }
-        elsif (/^-?(cl)$/) { check_lines(); }
-        elsif (/^-?(s)$/)  { $spool_dir=$argv[0]; shift @argv;  }
-        elsif (/^-?(k)$/)  { $user=$argv[0]; shift @argv; killuser("$user");   }
-    }
-#    &help if $#argv < 0;
+my %LIST_PARAMS = ();
+require Dv_Sessions;
+my $sessions = Dv_Sessions->new($db, $admin, \%conf);
+require Nas;
+my $nas = Nas->new($db, \%conf);
+#my %stats = ();
+
+
+$LIST_PARAMS{NAS_IDS}   = $ARGV->{NAS_IDS} || undef;
+$LIST_PARAMS{PAGE_ROWS} = 100000;
+$LIST_PARAMS{DISABLE}   = 0;
+
+if (defined($ARGV->{checkppp}))     { check_ppp();              }
+elsif (defined($ARGV->{checkpppd})){	check_ppp({ LINUX => 1 });}
+elsif (defined($ARGV->{checkspeed})){	check_speed();            }
+elsif (defined($ARGV->{checkspeed_mikro}))   { check_speed_mikro();  }
+elsif (defined($ARGV->{checkmikro})){	check_mikro();            }
+else {
+  check_lines();
 }
 
-#*******************************************************************
-# Make allow list in sql table - allows
-# mk_allow()
-#*******************************************************************
-sub mk_allow (){
- log_print('LOG_DEBUG', "Making allow list");
 
-$sql = "delete FROM allows;";
-$q = $db -> do($sql) || die $db->errstr;
-
-
-$sql = qq{
-INSERT INTO allows
-(uid, logins, cure_deposit, kb, hourp, variant, nas, ip, hangup_time, time_limit, traf_limit, filter,
- netmask)
- select
-u.id,
-IF (u.logins=0, v.logins, u.logins) AS logins,
-ROUND(u.deposit + u.credit, 2) AS cure_deposit,
-v.kb, v.hourp, u.variant, u.nas,
-IF (u.ip =0, 0, INET_NTOA( u.ip )  ) AS ip,
-IF ( v.dt =  '00:00:00' AND v.ut =  '24:00:00', 0, TIME_TO_SEC( v.ut )  ) AS rest_time,
-  if(v.day_time_limit > 0,
-     v.day_time_limit -
-       sum(if(DATE_FORMAT(log.login , '%Y-%m-%d')=curdate(), log.duration, 0)),
-    if(v.week_time_limit > 0,
-     v.week_time_limit - sum(if((YEAR(curdate())=YEAR(login)) and  WEEK(curdate()) = WEEK(login) , log.duration, 0)),
-      if(v.month_time_limit > 0,
-        v.month_time_limit - sum(log.duration), 0)
-     )
-   ) as time_limit,
-  if(v.day_traf_limit > 0,
-     v.day_traf_limit - sum(if(DATE_FORMAT(log.login , '%Y-%m-%d')=curdate(), sent+recv, 0)),
-    if(v.week_traf_limit > 0,
-      v.week_traf_limit - sum(if((YEAR(curdate())=YEAR(login)) and  WEEK(curdate()) = WEEK(login) , sent+recv, 0)),
-      if(v.month_traf_limit > 0,
-        v.month_traf_limit - sum(log.sent+log.recv), 0)
-     )
-   ) as traf_limit,
-0,
-u.netmask
-FROM users u, variant v
-LEFT  JOIN log ON u.id = log.id AND date_format(login, '%Y-%m')=date_format(curdate(), '%Y-%m')
-WHERE u.variant = v.vrnt
-  AND v.dt < curtime()
-  AND curtime() < v.ut
-  AND (u.deposit + u.credit >0 OR v.hourp + v.kb + v.df + v.abon =0 )
-  AND u.logins >= 0
-  AND (u.expire = '0000-00-00' OR u.expire > curdate())
-  AND (u.activate='0000-00-00' OR u.activate<curdate())
-GROUP BY u.id
-ORDER  BY 1 DESC
-};
-
-#print "\n $sql \n";
-
-$q = $db -> do("$sql") || die $db->errstr;
-}
-
-#*******************************************************************
-# Fetch user stats from temp files
-# fetch_stats()
-#*******************************************************************
-sub fetch_stats () {
-
-#  get_variants_info();
-  log_print('LOG_DEBUG', 'Fetch stats');
-  opendir DIR, $spool_dir or die "Can't open dir '$spool_dir' $!\n";
-    my @contents = grep  !/^\.\.?$/  , readdir DIR;
-  closedir DIR;
-  
-  if ($#contents < 0) {
-     log_print('LOG_DEBUG', "No log files");
-     return 0;
+ if ($begin_time > 0 && $debug > 0)  {
+   Time::HiRes->import(qw(gettimeofday));
+   my $end_time = gettimeofday();
+   my $gen_time = $end_time - $begin_time;
+   printf(" GT: %2.5f\n", $gen_time);
   }
-  
-  foreach $filename (@contents) {
-    open(FILE, "$spool_dir/$filename") || die "Can't open file $spool_dir/$filename $! ";
-      while(<FILE>) {
-        chop($_);
-        ($param, $val)=split(/:/, $_);
-        $sess_info{$param}=$val;
-        #print "($param, $val) \n";
-       }
-    close(FILE);
 
-    my $user = $sess_info{USER_NAME};
-    my $duration = $sess_info{ACCT_SESSION_TIME} || 0;
-    my $sent = $sess_info{OUTBYTE} || 0;
-    my $recv = $sess_info{INBYTE} || 0;
-    my $login = $sess_info{LOGIN};
-    my $sent2 = $sess_info{OUTBYTE2} || 0;
-    my $recv2 = $sess_info{INBYTE2} || 0;
 
-    $trafic{sent}=$sent;
-    $trafic{recv}=$recv;
-    $trafic{sent2}=$sent2;
-    $trafic{recv2}=$recv2;
+#***********************************************************
+# check_lines
+#***********************************************************
+sub check_lines {
+	require Billing;
+	Billing->import();
 
-    my ($sum, $variant, $time_t, $traf_t) = session_sum("$user", $login, $duration, \%trafic);
+  $sessions->{debug}=1 if ($debug > 2);
+	$sessions->online( { 
+		                   #%LIST_PARAMS, 
+		                   ALL    => 1, 
+		                   FIELDS => [0, 1, 2, 3, 4, 5, 6, 7, 8, 26] 
+		               } );	
+	
+  print "==> check_lines\n" if ($debug > 1);
+	
+	my $online = $sessions->{nas_sorted};
+  my $nas_list = $nas->list({ %LIST_PARAMS });
+  my %NAS  = ();
+
+  require Acct;
+  Acct->import();
+  my $Acct = Acct->new($db, \%conf);
+
+
+  foreach my $nas_row (@$nas_list) {
+    #If ipcad NAS all checks make in traff2sql 
+    #next if ($nas_row->[4] eq 'ipcad');
     
-    if ($sum >= 0) {
-      log_print('LOG_DEBUG', "User: $user, Login: $login, Dur: $duration, Traf: s: $sent r: $recv".
-       " s2: $sent2 r2: $recv2, Sum: $sum");
-     }
-    elsif ($sum  == -1 ) {
-       if ($mkbackuplog == 1) {
-         rename("$spool_dir/$filename", "$var_dir/log/back/s$filename") 
-           or die "Can't move file to '$spool_dir' $!\n";
-        }
-       else {
-         $cnt = unlink "$spool_dir/$filename";        	
-        }
-      log_print('LOG_DEBUG', "Less than minimun session trafic and time");
-      next;	
-     }
-    elsif ($sum == -2) {
-      print "User '$user' not in abills system\n";
-      return 0;
-     }
+    my $l = $online->{$nas_row->[0]};
+    print "NAS IP: $nas_row->[3]\n NAS_TYPE: $nas_row->[4]\n STATUS: $nas_row->[6]\n Alive: $nas_row->[8]/\n " if ($debug > 0);
+    $NAS{NAS_ID}    = $nas_row->[0];
+    $NAS{NAS_IP}    = $nas_row->[3];
+    $NAS{NAS_TYPE}  = $nas_row->[4];
+    $NAS{NAS_ALIVE} = $nas_row->[8] || 0;
+    $NAS{NAS_MNG_IP_PORT}  = $nas_row->[9];
+    $NAS{NAS_MNG_USER}     = $nas_row->[10]; 
+    $NAS{NAS_MNG_PASSWORD} = $nas_row->[11]; 
 
-    log_print('LOG_DEBUG', "User: $user v: $variant, time_t: $time_t, traf_t: $traf_t");
-    $ip = $sess_info{FRAMED_IP_ADDRESS} || 0;
-    $CID = $sess_info{CID} || '';
-    $nas_id = $NAS_INFO->{$sess_info{NAS_IP_ADDRESS}} || 0;
-    $session_id = $sess_info{ACCT_SESSION_ID} || '';
+    foreach my $line (@$l) {
+	    my $acct_input_octets       = $line->[5];
+	    my $acct_output_octets      = $line->[6];
+	    my $acct_input_octets_ext   = $line->[7];
+	    my $acct_output_octets_ext  = $line->[8];
+	    my $nas_port_id             = $line->[2];
+	    my $acct_session_id         = $line->[22];
 
-    $sql = "INSERT INTO log (id, login, variant, duration, sent, recv, minp, kb,  sum, nas_id, 
-       port_id, ip, CID, sent2, recv2, acct_session_id) ".
-     "VALUES ('$user', FROM_UNIXTIME($login), ".
-     "'$variant', '$duration', '$sent', '$recv', ".
-     "'$time_t', '$traf_t', '$sum', '$nas_id', ".
-     "'$sess_info{NAS_PORT}', INET_ATON('$ip'), '$CID', '$sent2', '$recv2', '$session_id');";
-     
-    log_print('LOG_DEBUG', "$sql");
+      #hangup connaction if max ext traffic reached
+      if ($acct_input_octets_ext > $exppp_hanguplimit || $acct_output_octets_ext > $exppp_hanguplimit) {
+        my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID      => "$acct_session_id",
+        	                                                      FRAMED_IP_ADDRESS    => int2ip($line->[3]),
+        	                                                      ACCT_TERMINATE_CAUSE => 15,
+        	                                                      });
+
+        print "Hangup '$line->[0]' $acct_input_octets, $acct_output_octets, $acct_input_octets_ext, $acct_output_octets_ext, Session-ID: $acct_session_id\n"; 
+        next;
+       }     
+
+
+      #Get stats from nas servers which don't support rad Alive
+      my $external_stats = get_stats(\%NAS, $line->[2]);
+
+
+      if ( $NAS{NAS_ALIVE} > 0 
+           && ( $line->[17] > $NAS{NAS_ALIVE} * $error_alive_count )) {
+
+         if($line->[17] > ($NAS{NAS_ALIVE} * $error_alive_count * 2) ) {
+           
+           my $ACCT_INFO = $sessions->online_info({ NAS_ID          => $nas_row->[0],
+                                                    NAS_PORT        => $line->[2],
+                                                    ACCT_SESSION_ID => $acct_session_id
+                                                  });
+
+           
+           $ACCT_INFO->{INBYTE}            = $acct_input_octets;
+           $ACCT_INFO->{OUTBYTE}           = $acct_output_octets;
+           $ACCT_INFO->{INBYTE2}           = $acct_input_octets_ext;
+           $ACCT_INFO->{OUTBYTE2}          = $acct_output_octets_ext;
+           $ACCT_INFO->{ACCT_STATUS_TYPE}  = 'Stop';
+           $ACCT_INFO->{ACCT_SESSION_TIME} = $line->[9];
+           $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
+
+           my $r = $Acct->accounting($ACCT_INFO, \%NAS);
+           my $info = '';
+           
+           if ($debug > 0) {
+           	 foreach my $k (sort keys %$ACCT_INFO) {
+ 	  	          $info .= sprintf("%-28s | %-30s |\n", $k, (defined($ACCT_INFO->{$k})) ? $ACCT_INFO->{$k} : '' );
+	           }
+
+             $info .= sprintf("%-28s\n", '----------------------------------------------------');
+
+	           foreach my $k (sort keys %$Acct) {
+ 		           $info .= sprintf("%-28s | %-30s |\n", $k, (defined($Acct->{$k})) ? $Acct->{$k} : '' );
+  	         }
+            }
+
+           if ($NAS{NAS_TYPE} eq 'ipcad') {
+     	        my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID      => "$acct_session_id",
+              	                                                      FRAMED_IP_ADDRESS    => int2ip($line->[3]),
+              	                                                      ACCT_TERMINATE_CAUSE => $ACCT_INFO->{ACCT_TERMINATE_CAUSE}
+           	                                                      });
+            }
+
+           print "Error: Session Calculate / Login: $line->[0], Last Alive: $line->[17], Session-ID: $acct_session_id\n$info"; # if ( $debug == 1 );
+          }
+         else {
+           print "Error: Lost Alive / Login: $line->[0], Last Alive: $line->[16], Session-ID: $acct_session_id\n"; # if ( $debug == 1 );
+           $sessions->zap($nas_row->[0], $line->[2], $acct_session_id);
+          }
+       } 
+      elsif (defined($external_stats->{error})) {
+      	print "Error:  Login: $line->[0], NAS-IP: $NAS{NAS_IP}, Port: $line->[2], Session-ID: $acct_session_id\n" if ($debug == 1);
+      	$sessions->online_update({ USER_NAME       => $line->[0],
+      		                         ACCT_SESSION_ID => $acct_session_id,
+      		                         STATUS          => 5
+      		                      });
+       }
+      elsif (defined($external_stats->{in})) {
+        $sessions->online_update({ USER_NAME => $line->[0], ACCT_SESSION_ID => $acct_session_id, %$external_stats });
+       }
+      
+      # periodic check deposit stats
+      if ($conf{periodic_check}) {
+        my %RAD = (USER_NAME        => "$line->[0]",
+                  SESSION_START     => time - time2sec($line->[4]),
+                  ACCT_SESSION_TIME => time2sec($line->[4]),
+                  INBYTE         => $line->[5],
+                  OUTBYTE        => $line->[6],
+                  INBYTE2        => $line->[7],
+                  OUTBYTE2       => $line->[8]);
+
+        my $Billing = Billing->new($db, \%conf);	
+        my $self;
+
+        ($self->{UID}, 
+         $self->{SUM}, 
+         $self->{BILL_ID}, 
+         $self->{TARIF_PLAN}, 
+         $self->{TIME_TARIF}, 
+         $self->{TRAF_TARIF}) = $Billing->session_sum("$RAD{USER_NAME}", 
+                                                    $RAD{SESSION_START}, 
+                                                    $RAD{ACCT_SESSION_TIME}, 
+                                                    \%RAD);
+
+
+
+        next if ($self->{UID} < 1);
+        
+        print "> Login: $RAD{USER_NAME} START: $RAD{SESSION_START} DURATION: $RAD{ACCT_SESSION_TIME}\n".
+         "UID: $self->{UID} SUM: $self->{SUM} BILL_ID: $self->{BILL_ID} TARIF_PLAN: $self->{TARIF_PLAN} TRAF_TARIF: $self->{TRAF_TARIF}\n" if ($debug == 1);
+
+        
+        if ( ($Billing->{PAYMENT_TYPE}==0) && ($line->[14] + $line->[15] <= $self->{SUM}) ) {
+           my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_IS      => $acct_session_id,
+           	                                                       FRAMED_IP_ADDRESS    => int2ip($line->[3]),
+           	                                                       ACCT_TERMINATE_CAUSE => 15,
+           	                                                       debug                => $debug
+           	                                                      });
+           print "Hanguped Login: $RAD{USER_NAME} DEPOSIT: $line->[14] CREDIT: $line->[15] SESSION_SUM: $self->{SUM} SESSION_ID: $acct_session_id\n"; # if ($debug == 1);
+          }
+       }
+     }
+   }
+}
+
+#**********************************************************
+# Ceck current speed for exppp
+#**********************************************************
+sub check_speed_mikro {		
+  #Get speed
+  
+  
+  $LIST_PARAMS{TYPE}    ='mikrotik';
+  my $list = $nas->list({ %LIST_PARAMS });
+
+  foreach my $line (@$list) {
+    my %info_hash = ();
+    my %NAS       = ();
+
+    $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9]\n" if ($debug > 2);
+    
+    $NAS{NAS_ID}    = $line->[0];
+    $NAS{NAS_IP}    = $line->[3];
+    $NAS{NAS_TYPE}  = $line->[4];
+    $NAS{NAS_ALIVE} = $line->[8] || 0;
+    $NAS{NAS_MNG_IP_PORT}  = $line->[9];
+    $NAS{NAS_MNG_USER}     = $line->[10]; 
+    $NAS{NAS_MNG_PASSWORD} = $line->[11]; 
    
-    $q = $db->do("$sql;") or die $db->errstr;
+    if ($NAS{NAS_MNG_USER} eq '') {
+    	$debug_output .= "Skiped Not defined control user NAS_ID: $NAS{NAS_ID}\n" if ($debug > 1);
+    	next;
+     }
+   
+   
+   
+    my ($ip, $mng_port)=split(/:/, $NAS{NAS_MNG_IP_PORT}, 2);
+    my $cmds = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$NAS{NAS_MNG_USER} ".
+      "$NAS{NAS_MNG_USER}\@$ip  \"/queue  simple  print\" ";
 
-     if ($sum > 0) {
-        $sql = "UPDATE users SET deposit=deposit-$sum WHERE id='$user';";
-        log_print('LOG_DEBUG', "$sql");
-        $q = $db->do("$sql;") or die $db->errstr;
+    my $output = '';
+    $debug_output .= $cmds."\n" if ($debug > 3);
+	  open(CMD, "$cmds |") || die "Can't open '$cmds' $!";
+      while (my $l = <CMD>) {
+        $output .= $l;
+       }   
+    close(CMD)	;
+
+
+    my @parts = split(/[\r]\n[\r]\n/, $output);
+
+    # key1 interface; key2 rule number; value speed
+    my %rule_speed = ();
+
+    foreach my $part (@parts) {
+      my $params = parse_fw($part);
+      if ($params->{'limit-at'} && $params->{'limit-at'} =~ /(\d+)\/(\d+)/) {
+        $rule_speed{$params->{'item'}}{IN}=$1;
+        $rule_speed{$params->{'item'}}{OUT}=$2;
+       }
+
+      if ($debug > 5) {
+        while(my($key, $val)=each %$params ) {
+      	   $debug_output .= "INTERFACE: $key\n";
+      	   while(my($direction, $value)=each %$val) {
+      	     $debug_output .= "  $direction SPEED: $value\n";
+      	    }
+         }
+       }
+     }
+   
+    if ($debug > 4) {
+      while(my($key, $val) = each %rule_speed ) {
+    	  $debug_output .= "INTERFACE: $key\n";
+     	  while(my($direction, $value)=each %$val) {
+      	  $debug_output .= "  $direction:\t$value\n";
+      	 }
+       }
+     }
+      
+  }
+
+
+  print $debug_output;
+}
+
+
+#*****************************************************
+# Parse fw params
+#*****************************************************
+sub parse_fw {
+  my ($part) = @_;
+  my $result = '';
+  my %params = ();
+
+  $part =~ s/"|//g;
+  if ($part =~ / (\d+)/) {
+    $params{item} = $1;
+   }
+
+  while($part =~ / ([a-zA-Z\-]+)=([a-zA-Z\-\.0-9\/<>_]+)/g) {
+    my $key = $1;
+    my $val = $2;
+    $params{"$key"}=$val;
+   }
+
+  return \%params;
+}
+
+#**********************************************************
+# Ceck current speed for exppp
+#**********************************************************
+sub check_speed {		
+	
+	if (! $ARGV->{NAS_ID}) {
+		print "NAS not specify\n";
+		exit;
+	 }
+	
+#Get IPFW speed rules
+	my $result = `$IPFW show; $IPFW pipe show`;
+	my @rules = split(/\n/, $result);
+	# key1 interface; key2 rule number; value speed
+	my %rule_speed = ();
+	my %interfaces = ();
+	my %speeds_rotations = ('Kbit' => 1,
+	                        'Mbit' => 1000);
+	
+	#Parce all ipfw rules
+	foreach my $line (@rules) {
+     #Parce ipfw pipe rules
+     if ($line =~ /(\d+):\s+(\S+) (\w+)/) {
+       my $speed = $2 * $speeds_rotations{$3};
+       if (defined($interfaces{$1})) {
+         $rule_speed{$interfaces{$1}}{int($1)} = "$speed";
+        }
+     	}
+	   # parce ipfw show
+	   elsif ($line =~ /(\d+).+[tun|ng](\d+)/) {
+	     $interfaces{$1}=$2;
+	    }
+	 }
+
+#====
+
+  #debug 
+  if ($debug > 0) {
+    print "Show rules\n" if ($debug > 1);
+    while(my($iface, $rules)=each %rule_speed) {
+  	  print "Interface: $iface\n" if ($debug > 1);
+  	  
+  	  foreach my $line ( sort keys %$rules ) {
+  	 	  # ID -> Speed
+  	 	  print " $line -> $rules->{$line}\n" if ($debug == 2);
+  	   }
+     }
+   }
+
+	$sessions->online( { %LIST_PARAMS, 
+		                   NAS_ID => $ARGV->{NAS_ID}, 
+		                   FIELDS => [0,2,11,13]   
+		               } );	
+
+
+	my $online = $sessions->{nas_sorted};
+  my $nas_list = $nas->list({ %LIST_PARAMS  });
+
+  #my %TP_ARR = ();
+  my %USER_IFACES=();
+  my %TP_HASH = ();
+
+  my $NAS_TYPE = '';
+  foreach my $nas_row (@$nas_list) {
+    next if (! $online->{$nas_row->[0]});
+
+    $NAS_TYPE = $nas_row->[4];
+
+    my $l = $online->{$nas_row->[0]};
+    foreach my $line (@$l) {
+                           #IFACE : TP : SPEED  :IP
+       print "$line->[0] IF:$line->[1] TP:$line->[2] SPEED:$line->[3] IP:$line->[5]\n" if ($debug > 1);
+       $USER_IFACES{$line->[0]}="$line->[1]:$line->[2]:$line->[3]:$line->[5]";
+       $TP_HASH{$line->[2]}=1;
+     }
+  }
+
+
+
+  require Billing;
+  Billing->import();
+  my $Billing = Billing->new($db, \%conf);
+  my $user = $Billing->get_timeinfo();
+
+  require Tariffs;
+  Tariffs->import();
+  my $tariffs = Tariffs->new($db, $admin);
+  my %speeds = ();
+  
+  
+  #GET TP speed
+  foreach my $tp (keys (%TP_HASH)) {
+  	print "TP: $tp\n" if ($debug == 2);
+  
+    my ($remaining_time, $ret_attr); 
+
+    ($user->{TIME_INTERVALS},
+     $user->{INTERVAL_TIME_TARIF}, 
+     $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($tp);
+
+    ($remaining_time, $ret_attr) = $Billing->remaining_time(0, {
+    	    TIME_INTERVALS      => $user->{TIME_INTERVALS},
+          INTERVAL_TIME_TARIF => $user->{INTERVAL_TIME_TARIF},
+          INTERVAL_TRAF_TARIF => $user->{INTERVAL_TRAF_TARIF},
+          SESSION_START       => $user->{SESSION_START},
+          DAY_BEGIN           => $user->{DAY_BEGIN},
+          DAY_OF_WEEK         => $user->{DAY_OF_WEEK},
+          DAY_OF_YEAR         => $user->{DAY_OF_YEAR},
+          REDUCTION           => 0,
+          POSTPAID            => 1
+         });
+
+#    print "RT: $remaining_time\n"  if ($debug == 1);
+    my %TT_IDS = %$ret_attr;
+
+
+    if (keys %TT_IDS > 0) {
+      #Get intervals
+      while(my($k, $v)=each( %TT_IDS)) {
+ 	      print " INTERVAL: $k, $v\n" if ($debug == 2);
+        
+        if ($k eq 'TT' || $k eq 'FIRST_INTERVAL') {
+ 	        my $list = $tariffs->tt_list({ TI_ID => $v });
+ 	        foreach my $line (@$list)  {
+ 	      	  print "   $line->[0] IN: $line->[4] OUT: $line->[5]\n" if ($debug == 2);
+ 	      	  $speeds{$tp}{IN}{$line->[0]}="$line->[4]";
+ 	      	  $speeds{$tp}{OUT}{$line->[0]}="$line->[5]";
+   	      }
+         }
+      }
+    }
+  
+   }
+
+
+  
+ 
+  my $debug_outputs = '';
+  my $cmd_debug='';
+
+  if ($debug > 1) {
+  	$cmd_debug='debug';
+   }
+  
+  while(my($user, $other)=each %USER_IFACES) {
+  	 my($IFACE, $TP, $SPEED, $IP)=split(/:/, $other);
+
+  	 $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED\n";
+
+     #No shaper definition
+     if (! $rule_speed{$IFACE}) {
+        $debug_outputs .= "  ! No interface\n";	
+        print $debug_outputs if ($debug > 0); 
+
+        $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+                  	NAS_TYPE => $NAS_TYPE,
+                  	debug    => ( $debug > 1) ? ' debug' : undef 
+                  	});
+
+        next;
       }
 
-   if ($mkbackuplog == 1) {
-      rename("$spool_dir/$filename", "$var_dir/log/back/$filename") or die "Can't rename file $spool_dir/$filename to $var_dir/log/back/$filename  $!\n";
-    }
-   else {
-      $cnt = unlink "$spool_dir/$filename";
-      next;
-    }
-}
+  	 
+     if ($SPEED > 0)  {
+     	  my $fw_num = $START_FW[0] + $IFACE * 2;
+     	  $debug_outputs .= " IN:  0, $SPEED ipfw: $fw_num / $rule_speed{$IFACE}{$fw_num}\n".
+     	                    " OUT: 0, $SPEED ipfw: ". $rule_speed{$IFACE}{$fw_num + 1} ."\n";
+        
+     	  if ($SPEED != $rule_speed{$IFACE}{$fw_num} || $SPEED != $rule_speed{$IFACE}{$fw_num + 1} ) {
+           $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+           	 NAS_TYPE => $NAS_TYPE,
+           	 debug    => ( $debug > 1) ? ' debug' : undef });
+           next;
+     	   }
+
+     	}
+  	 elsif(defined($speeds{$TP})) {
+  	 	 $debug_outputs .= " IN:  ";
+
+  	 	       while(my($k, $v)=each %{ $speeds{$TP}{OUT} }) {
+  	 	       	  next if ($v == 0);
+  	 	       	  my $fw_num = $START_FW[$k] + $IFACE * 2;
+  	 	       	  $debug_outputs .= "  $k, $v ipfw: $fw_num";
+  	 	       	  if (! $rule_speed{$IFACE}{$fw_num}) {
+                  $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+                  	 NAS_TYPE => $NAS_TYPE,
+                  	 debug    => ( $debug > 1) ? ' debug' : undef });
+                  goto ENDWHILE;
+                  next;
+  	 	       	   }
+  	 	       	  else {
+  	 	       	    $debug_outputs .= "/ $rule_speed{$IFACE}{$fw_num}\n";
+     	            
+     	            if ($rule_speed{$IFACE}{$fw_num} != $v) {
+                    $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+                    	NAS_TYPE => $NAS_TYPE,
+                    	debug    => ( $debug > 1) ? ' debug' : undef });
+                    goto ENDWHILE;
+                    next;
+     	             }
+                 }
+  	 	        }
+
+   	 	 $debug_outputs .= " OUT: ";
+  	 	       while(my($k, $v)=each %{ $speeds{$TP}{OUT} }) {
+  	 	       	  next if ($v == 0);
+  	 	       	  my $fw_num = $START_FW[$k] + $IFACE * 2 + 1 ;
+  	 	       	  $debug_outputs .= "  $k, $v ipfw: $fw_num";
+
+  	 	       	  if (! defined($rule_speed{$IFACE}{$fw_num})) {
+                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+                    	NAS_TYPE => $NAS_TYPE,
+                    	debug    => ( $debug > 1) ? ' debug' : undef });
+                   next;
+  	 	       	   }
+  	 	       	  else {
+  	 	       	    $debug_outputs .= "/ $rule_speed{$IFACE}{$fw_num}\n";
+     	            
+     	            if ($rule_speed{$IFACE}{$fw_num} != $v) {
+                    $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+                    	 NAS_TYPE => $NAS_TYPE,
+                    	 debug => ( $debug > 1) ? ' debug' : undef });
+                    next;
+     	             }
+    	 	       	 }
+  	 	        }
+
+  	  }
+  	 else {
+  	 	 $debug_outputs .= " IN:  N/S (TP: $TP)\n";
+  	  }
+
+  	 ENDWHILE:
+  	 print $debug_outputs if ($debug == 2); 
+   }
+
+
+
+
 }
 
+#**********************************************************
+# check Active ppp session and disconnect unknown ip
+# Params 
+#   IFACE_ID
+#    USER_NAME
+#    USER_IP
+#
+#    NAS_TYPE    
+#    NAS_IP
+#**********************************************************
+sub check_speed_change {
+	my ( 
+	  $USER_NAME,
+	  $IFACE_ID,
+	  $USER_IP,
+
+	  $attr) = @_;
+
+	my $NAS_TYPE = ($attr->{NAS_TYPE}) ? $attr->{NAS_TYPE} : '';
+  my $cmd_debug = ($attr->{debug}) ? 'debug' : '';
+  
+  
+  my $cmds = "$Bin/linkupdown down tun$IFACE_ID $USER_NAME $USER_IP $cmd_debug;".
+             "$Bin/linkupdown up tun$IFACE_ID $USER_NAME $USER_IP $cmd_debug";
+
+  if ($NAS_TYPE eq 'mpd4' || $NAS_TYPE eq 'mpd') {
+     $cmds = "$Bin/linkupdown mpd down ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;".
+             "$Bin/linkupdown mpd up ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;";
+   }
+
+  my $cmd=`$cmds`;
+	
+	
+	return $cmd;
+}
+
+#**********************************************************
+# check Active FreeBSD ppp session and disconnect unknown ip
+#**********************************************************
+sub check_ppp {
+  my ($attr) = @_;
+  my $ip_pid_hash = get_if_info($attr);
+  get_db_info($ip_pid_hash);
+
+
+while(my($ip_address, $info)=each %$ip_pid_hash) {
+  my($pid, $iface)=split(/:/, $info, 2);
+  if ($conf{DV_PPP_UNCHECKED}) {
+    next if ($ip_address =~ /$conf{DV_PPP_UNCHECKED}/);
+   }
+  
+  my $res = '';  
+  if ($pid > 0) {
+    $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete`;
+    # /sbin/ifconfig tun$iface delete
+   }
+  else {
+    $res = `/sbin/ifconfig tun$iface delete`;
+   }
+
+  print "Killed IP: $ip_address PID: '$pid' -- $res\n";  
+
+  get_pid_info($pid);
+}
+
+}
+
+#**********************************************************
+#Get ipaddreses of active sessions
+#**********************************************************
+sub get_db_info {
+ my ($ip_pid_hash) = @_;
+ my $list = $sessions->online({ FIELDS => [3] });	
+ foreach my $line (@$list) {
+   delete $ip_pid_hash->{int2ip("$line->[0]")};
+  }
+}
+
+
+#**********************************************************
+#Get pid info
+#**********************************************************
+sub get_pid_info {
+ my ($pid, $attr) = @_;
+ my $log_file='/var/log/ppp.log';
+
+ print "\nShow log file info:\n";
+ open(FILE, "<$log_file") || die "Can't open log file '$log_file' $! " ;
+   while(<FILE>) {
+     if (/\[$pid\]/) {
+       print $_;
+      }
+    }
+ close(FILE);
+}
+
+#**********************************************************
+# Get tun interface info
+#**********************************************************
+sub get_if_info {
+ my ($attr)   =  shift;
+ my $res      = '';
+ my $count    = 0;
+ my $ifconfig = '';
+
+ my %ip_pid_hash = ();
+
+#For linux
+if ($attr->{LINUX}) {
+  open (IFC, "/sbin/ip addr list |") || die "Can't open file '/sbin/ip addr list' $!"; 
+    while (my $l = <IFC>) { 
+      if($l =~ /inet (\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}) peer (\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\/\d+ scope global ppp(\d+)$/gi) { 
+        my $tunnum = $3; 
+        my $pid    = 0; 
+        my $addr   = $2; 
+
+        $pid = `cat /var/run/ppp$3.pid`; 
+        chomp($pid); 
+
+        print "$tunnum $addr $pid\n" if ($debug > 0); 
+        $ip_pid_hash{"$addr"}="$pid:$tunnum"; 
+      } 
+     }
+  close(IFC); 
+ }
+#For FreeBSD
+else {
+  open (IFC, "$IFCONFIG |") || die "Can't open file '$IFCONFIG' $!";
+    while (my $l = <IFC>) {
+      $ifconfig .= $l;
+     }
+  close(IFC);
+
+  while($ifconfig =~ /tun(\d+): (.+\n\s.+\n\s.*[\n\sa-zA-Z0-9]+\n)/gi) {
+    my $tunnum = $1;
+    my $res    = $2;
+
+    my $pid    = 0;
+    my $addr   = '0.0.0.0';
+
+    my @ifs = split(/\n/, $res);
+
+    foreach my $line (@ifs) {
+      print $tunnum.'-'.$line."\n" if ($debug > 1);
+      if ($line =~ /^(\d+)/) {
+         $tunnum=$1;
+        }
+      elsif ($line =~ m/\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3} --> (\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})/g) {
+         $addr = $1;
+        }
+      elsif ($line =~ /PID (\d+)/gi) {
+         $pid = $1;
+         #chomp($pid);
+         #chop($pid);
+       }
+     }
+    print "$tunnum $addr $pid\n" if ($debug == 1);
+    $ip_pid_hash{"$addr"}="$pid:$tunnum";
+   }
+ }
+
+  return \%ip_pid_hash;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub check_mikro {
+  my ($attr) = @_;	
+	
+  $LIST_PARAMS{TYPE}    ='mikrotik';
+  my $list = $nas->list({ %LIST_PARAMS });
+
+  foreach my $line (@$list) {
+    my %info_hash = ();
+    my %NAS       = ();
+
+    $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9] $line->[12]\n" if ($debug > 2);
+    
+    $NAS{NAS_ID}    = $line->[0];
+    $NAS{NAS_IP}    = $line->[3];
+    $NAS{NAS_TYPE}  = $line->[4];
+    $NAS{NAS_ALIVE} = $line->[8] || 0;
+    $NAS{NAS_MNG_IP_PORT}  = $line->[9];
+    $NAS{NAS_MNG_USER}     = $line->[10]; 
+    $NAS{NAS_MNG_PASSWORD} = $line->[11]; 
+   
+    if ($NAS{NAS_MNG_USER} eq '') {
+    	$debug_output .= "Skiped Not defined control user NAS_ID: $NAS{NAS_ID}\n" if ($debug > 1);
+    	next;
+     }
+   
+   
+   
+    my ($ip, $mng_port)=split(/:/, $NAS{NAS_MNG_IP_PORT}, 2);
+    my $cmds = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$NAS{NAS_MNG_USER} ".
+      "$NAS{NAS_MNG_USER}\@$ip  \"/ppp active print\" ";
+
+    my $output = '';
+	  open(CMD, "$cmds |") || die "Can't open '$cmds' $!";
+      while (my $l = <CMD>) {
+        $output .= $l;
+       }   
+    close(CMD)	;
+
+    $debug_output .= $cmds if ($debug > 3);
+    #$debug_output .= $output if ($debug > 3);
+
+    #Analize MK otput
+    #
+    #   NAME         SERVICE CALLER-ID         ADDRESS         UPTIME   ENCODING
+    #0 R test         pptp    192.168.202.4     10.0.0.10       28m7s    MPPE128...
+
+    my @rows = split(/\n/, $output);
+    foreach my $line (@rows) {
+    	if ($line =~ / (\d+) (\S) (\S+)\s+(\S+)\s+(\S+)\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+/) {
+    		my $iface = $1;
+    		my $state = $2;
+    		my $username  = $3;
+    		my $service   = $4;
+    		my $cid       = $5;
+    		my $ip        = $6;
+		
+    		$info_hash{$ip}=$username;
+    		
+    		print "IF: $iface:$state USERNAME: $username SERVICE: $service CID: $cid IP: $ip\n" if ($debug > 2);
+    	 }
+     }
+  
+    get_db_info(\%info_hash);
+    
+    while(my($ip, $user) = each %info_hash) {
+    	print "$ip, $user\n" if ($debug > 1);
+
+      my $ret = hangup(\%NAS, "0", "$user", { ACCT_SESSION_ID   => "",
+        	                                    FRAMED_IP_ADDRESS => $ip
+        	                                   });
+
+       print "Hangup '$user' IP: $ip Session-ID: \n"; 
+     }
+    
+  }  	
+	
+	print $debug_output;
+	
+	#return \%info_hash;
+}
+
+__END__
 
 

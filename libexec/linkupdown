@@ -1,9 +1,10 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 # ppp
 # external script for traffic shapping
 #
-# /etc/ppp/ppp.linkup
 #-------------------------------------------------------------
+# /etc/ppp/ppp.linkup
+#
 # MYADDR:
 # !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR
 #
@@ -12,109 +13,536 @@
 # MYADDR:
 # !bg /usr/abills/libexec/linkupdown down INTERFACE USER HISADDR
 #
-#
 #-------------------------------------------------------------
 # /usr/local/etc/mpd/mpd.conf
+#
 # set iface up-script "/usr/abills/libexec/linkupdown mpd up"
 # set iface down-script "/usr/abills/libexec/linkupdown mpd down"
+#-------------------------------------------------------------
+# For Linux
+# 
+# Add to /etc/ppp/ip-up.local 
+# /usr/abills/libexec/linkupdown pppd up $1 'username' $4
+#
+# Add to /etc/ppp/ip-down.local 
+# /usr/abills/libexec/linkupdown pppd down $1 'username' $4
+#
 
 
-use FindBin '$Bin';
-require $Bin .'/config.pl';
-require $Bin .'/Base.pm';
-Base->import();
-require $Bin .'/sql.pl';
-$IPFW='/sbin/ipfw';
+
 
 my $debug=0;
-my @START_FW = (3000, 2000, 1000);
+
+$debug=1 if ($ARGV[$#ARGV] eq 'debug');
+
+#If not anought arguments
+if ( $#ARGV < 3 ) {
+ print qq{Not anought argumets:
+ Example:
+----------------------------------------------------------------
+For IPN
+  $conf{IPN_FW_START_RULE}="/usr/abills/libexec/linkupdown ipn up INTERFACE %LOGIN% %IP%";
+  $conf{IPN_FW_STOP_RULE}="/usr/abills/libexec/linkupdown ipn down INTERFACE %LOGIN% %IP%";
+
+----------------------------------------------------------------
+ /etc/ppp/ppp.linkup
+ MYADDR:
+   !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR
+
+ /etc/ppp/ppp.linkdown
+ MYADDR:
+   !bg /usr/abills/libexec/linkupdown down INTERFACE USER HISADDR
+
+----------------------------------------------------------------
+ /usr/local/etc/mpd/mpd.conf
+   set iface up-script "/usr/abills/libexec/linkupdown mpd up"
+   set iface down-script "/usr/abills/libexec/linkupdown mpd down"
+----------------------------------------------------------------
+ For Linux:
+ (Work only with user static IP address)
+ Add to /etc/ppp/ip-up.local 
+   /usr/abills/libexec/linkupdown pppd up \$1 'username' \$4
+
+ Add to /etc/ppp/ip-down.local 
+   /usr/abills/libexec/linkupdown pppd down \$1 'username' \$4
+ 
+ For mikrotik:
+ 
+  /usr/abills/libexec/linkupdown mikrotik up INTERFACE USER HISADD
+  /usr/abills/libexec/linkupdown mikrotik down INTERFACE USER HISADD
+
+DEBUG: $debug
+};
+exit 0;
+}
+
+
+use vars  qw(%RAD %conf $db @START_FW);
+use strict;
+
+use FindBin '$Bin';
+require $Bin . '/config.pl';
+#use lib '../', "../Abills/$conf{dbtype}";
+unshift(@INC, $Bin . '/../', $Bin ."/../Abills/$conf{dbtype}");
+require Abills::Base;
+Abills::Base->import();
+my $begin_time = check_time();
+
+require Abills::SQL;
+my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $db = $sql->{db};
+
+require Billing;
+Billing->import();
+my $Billing = Billing->new($db, \%conf);
+
+
+
+my $CLIENT_IP = 'any';
+
+
+
+my $IPFW='/sbin/ipfw';
+#my @START_FW = (3000, 2000, 1000);
+
 # Arguments
-my ($ACTION, $INTERFACE, $USER, $HISADDR);
+my ($ACTION, $INTERFACE, $USER, $HISADDR, $inum);
 
 #MPD
 if ($ARGV[0] eq 'mpd') {
- $ACTION=$ARGV[1];
- $INTERFACE=$ARGV[2];
- $USER=$ARGV[6];
- $HISADDR=$ARGV[5];
- $inum = $INTERFACE;
- $inum =~ s/ng//;
+  $ACTION   = $ARGV[1];
+  $INTERFACE= $ARGV[2];
+  $USER     = $ARGV[6];
+  $HISADDR  = $ARGV[5];
+  $inum     = $INTERFACE;
+  $inum     =~ s/ng//;
 }
-# PPP
+#pppd
+elsif ($ARGV[0] eq 'ipn') {
+  $ACTION   = $ARGV[1];
+  $INTERFACE= $ARGV[2];
+  $USER     = $ARGV[3];
+  $HISADDR  = $ARGV[4];
+  $CLIENT_IP = $HISADDR;	
+	my ($n1, $n2, $n3, $n4) = split(/\./, $HISADDR, 4);
+  $inum  = $n4;
+}
+elsif($ARGV[0] eq 'pppd' || $ARGV[0] eq 'mikrotik') {
+  $ACTION   =$ARGV[1];
+  $INTERFACE=$ARGV[2];
+  $USER     =$ARGV[3];
+  $HISADDR  =$ARGV[4];
+  $inum     = $INTERFACE;
+  if(! ($inum =~ s/ppp//)) {
+  	$inum = 0;
+   }
+ }
+# FreeBSD PPP
 else {
- $ACTION=$ARGV[0];
- $INTERFACE=$ARGV[1];
- $USER=$ARGV[2];
- $HISADDR=$ARGV[3];
- #my $MYADDR=$ARGV[4];
- $inum = $INTERFACE;
- $inum =~ s/tun//;
+  $ACTION=$ARGV[0];
+  $INTERFACE=$ARGV[1];
+  $USER=$ARGV[2];
+  $HISADDR=$ARGV[3];
+  $inum = $INTERFACE;
+  $inum =~ s/tun//;
 } 
 
- 
-my $FW_ACTIONS = ();
 
+require Admins;
+Admins->import();
+require Dv;
+Dv->import();
+
+
+my $admin = Admins->new($db);
+$admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
+my $Dv = Dv->new($db, $admin, \%conf); 
+
+
+my @FW_ACTIONS = ();
 # Flush rules
-  my $fw_nums = "";
-  my $pipe_nums = "";
+  my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
   
-  foreach $num (@START_FW) {
-    $fw_num = $num + $inum;
-    $pipe_num = $num + $inum;
-    $fw_nums .= "$fw_num ";
-    $pipe_nums .= "$pipe_num ";
+  foreach my $num (@START_FW) {
+    $fw_num =     $num + $inum * 2;
+    $pipe_num =   $num + $inum * 2;
+    $fw_nums .=   ' ' . ($fw_num)   .' '. ($fw_num +1);
+    $pipe_nums .= ' ' . ($pipe_num) .' '. ($pipe_num+1);
   }
-  push @FW_ACTIONS, "$IPFW delete $fw_nums";
-  push @FW_ACTIONS, "$IPFW pipe delete $pipe_nums";
 
+my %LIST_PARAMS = ();
+
+if ($ARGV[0] eq 'pppd') {
+	push @FW_ACTIONS, "/sbin/tc qdisk del dev $INTERFACE";
+	$LIST_PARAMS{IP}=$HISADDR;
+} 
+else {
+  push @FW_ACTIONS, "$IPFW -f delete $fw_nums";
+  push @FW_ACTIONS, "$IPFW -f pipe delete $pipe_nums";
+  $LIST_PARAMS{LOGIN} = "$USER";
+}
 
 # Up fw shaper rules
 if ($ACTION eq 'up') {
   my %speeds = ();
-  my %nets = ();
-
-  $q = $db->prepare("SELECT speed, variant FROM users WHERE id='$USER';") || die $db->errstr;
-  $q -> execute ();
-  ($uspeed, $vid) = $q -> fetchrow();
+  my %nets   = ();
+  my %expr   = ();
   
-  if ($uspeed > 0) {
-    $speeds{0}=int($uspeed);
+  my $user = $Dv->info(0, { %LIST_PARAMS });
+
+  if(defined($Dv->{errno})) {
+     print "[$Dv->{errno}] $Dv->{errstr}\n";
+     exit 1;
+   }
+  elsif($Dv->{TOTAL} < 1) {
+    print "$USER - Not exist\n";
+    exit 1;
+   }
+
+
+
+  if ($user->{SPEED} > 0) {
+    $speeds{0}{IN}=int($user->{SPEED});
+    $speeds{0}{OUT}=int($user->{SPEED});
    }
   else {
-    $q = $db->prepare("SELECT id, speed, nets FROM trafic_tarifs WHERE vid='$vid';") || die $db->errstr;
-    $q -> execute ();
-    while(($tt_id, $speed, $nets) = $q -> fetchrow()) {
-       $speeds{$tt_id}=$speed;
-       $nets{$tt_id}=$nets;
-     }
+
+    ($user->{TIME_INTERVALS},
+     $user->{INTERVAL_TIME_TARIF}, 
+     $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($user->{TP_ID});
+
+    my ($remaining_time, $ret_attr) = $Billing->remaining_time($user->{DEPOSIT}, {
+    	    TIME_INTERVALS      => $user->{TIME_INTERVALS},
+          INTERVAL_TIME_TARIF => $user->{INTERVAL_TIME_TARIF},
+          INTERVAL_TRAF_TARIF => $user->{INTERVAL_TRAF_TARIF},
+          SESSION_START       => $user->{SESSION_START},
+          DAY_BEGIN           => $user->{DAY_BEGIN},
+          DAY_OF_WEEK         => $user->{DAY_OF_WEEK},
+          DAY_OF_YEAR         => $user->{DAY_OF_YEAR},
+          REDUCTION           => $user->{REDUCTION},
+          POSTPAID            => 1,
+          GET_INTERVAL        => 1,
+          debug               => ($debug > 0) ? 1 : undef
+         });
+
+#    print "RT: $remaining_time\n"  if ($debug == 1);
+    my %TT_IDS = %$ret_attr;
+
+
+    if (keys %TT_IDS > 0) {
+    	
+      require Tariffs;
+      Tariffs->import();
+      my $tariffs = Tariffs->new($db, \%conf, $admin);
+
+      #Get intervals
+      while(my($k, $v)=each( %TT_IDS)) {
+        print "$k, $v\n" if ($debug > 0);
+        $user->{TI_ID}=$v;
+ 	      my $list = $tariffs->tt_list({ TI_ID => $v });
+ 	      foreach my $line (@$list)  {
+ 	    	  $speeds{$line->[0]}{IN}="$line->[4]";
+ 	    	  $speeds{$line->[0]}{OUT}="$line->[5]";
+ 	    	  $nets{$line->[0]}="$line->[7]";
+ 	    	  $expr{$line->[0]}="$line->[8]" if (length($line->[8]) > 5);
+ 	    	  #print "$line->[0] $line->[4]\n";
+ 	      }
+      }
+    }
+  
    }
 
  # speed apply
-  my $fw_num=0;
-  my $pipe_num=0;
-  while(my ($traf_type, $speed)=each %speeds) {
-    $fw_num = $START_FW[$traf_type] + $inum;
-    $pipe_num = $START_FW[$traf_type] + $inum;
-    if ($speed > 0) {
-       if ($traf_type == 0) {
-         push @FW_ACTIONS, "$IPFW add $fw_num pipe $pipe_num ip from any to any via $INTERFACE";
-         push @FW_ACTIONS, "$IPFW pipe $pipe_num config bw ". $speed ."Kbit/s queue 10Kbytes";
+  my $fw_num_in    =0;
+  my $fw_num_out   =0;
+  my $pipe_num_in  =0;
+  my $pipe_num_out =0;
+  
+  
+print "Expresion:================================\n" if ($debug > 0);
+  my $RESULT = $Billing->expression($Dv->{UID}, \%expr, { START_PERIOD => $Dv->{ACCOUNT_ACTIVATE}, 
+  	                                                      debug        => $debug } );
+print "\nEND: =====================================\n" if ($debug > 0);
+  
+  if (! $RESULT->{SPEED}) {
+    $speeds{0}{IN}=$RESULT->{SPEED_IN} if($RESULT->{SPEED_IN});
+    $speeds{0}{OUT}=$RESULT->{SPEED_OUT} if($RESULT->{SPEED_OUT});
+   }
+  else {
+  	$speeds{0}{IN}=$RESULT->{SPEED};
+  	$speeds{0}{OUT}=$RESULT->{SPEED};
+   }
+
+  if ($ARGV[0] eq 'mikrotik') {
+    mikrotik({ SPEEDS => \%speeds,
+    	         NETS   => \%nets });
+    	         
+  	exit;
+   }
+
+  foreach my $traf_type (sort keys %speeds) {
+    my $speed = $speeds{$traf_type};
+
+    $fw_num_in  = $START_FW[$traf_type] + $inum * 2;
+    $fw_num_out = $START_FW[$traf_type] + $inum * 2 + 1;
+    $pipe_num_in  = $START_FW[$traf_type] + $inum * 2 ;
+    $pipe_num_out = $START_FW[$traf_type] + $inum * 2 + 1;
+    
+    my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN}  : 0;
+    my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} : 0;
+
+ 	  my @nets_arr = ();
+ 	  if ($nets{$traf_type}) {
+ 	    $nets{$traf_type} =~ s/[\r]?\n//g;
+ 	    $nets{$traf_type} =~ s/;/,/g;
+ 	    @nets_arr = split(/;|,/, $nets{$traf_type});
+	   }
+
+
+    #Linux tc shaper
+    if ($ARGV[0] eq 'mikrotik' ) {
+    	mikrotik({ 
+    		  SPEED_IN  => $speed_in,
+    		  SPEED_OUT => $speed_out,
+    		  NETS_ID   => undef,
+    		  NETS      => \@nets_arr 
+    		 });
+     }
+    elsif ($ARGV[0] eq 'pppd') {
+       # In
+      if ($speed_in > 0) {
+        if ($traf_type == 0) {
+          push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
+          push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_in";
+          push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10";
+         }
+        else {
+          push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
+          push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_out";
+          push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10";
+         }
+       }
+
+      if ($speed_out > 0) {
+        if ($traf_type == 0) {
+          push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
+          push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_in";
+          push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10";
+         }
+        else {
+          push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
+          push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_out";
+          push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10";
+         }
+       }
+      
+     }
+    #FreeBSD ipfw pipe shaper
+    else {
+     if ($speed_in > 0) {
+    	  #In;
+        if ($traf_type == 0) {
+          # In
+          push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to any via $INTERFACE in";
+          push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue 10Kbytes";
+         }
+        else {
+          #ipfw tables
+          if ($#nets_arr > 5) {
+             my $table_number = $user->{TI_ID};
+
+             my $result = `$IPFW table $table_number list`;
+             if ($result eq '') {
+               foreach my $line (@nets_arr) {
+               	  push @FW_ACTIONS, "$IPFW table $table_number add $line";
+                }
+              }
+            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to table\\($table_number\\) via $INTERFACE in";
+           }
+          else {
+            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to $nets{$traf_type} via $INTERFACE in";
+           }
+            push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue 10Kbytes";
+         }
+       }
+      else {
+      	
         }
-       else {
-         push @FW_ACTIONS, "$IPFW add $fw_num pipe $pipe_num ip from $nets{$traf_type} to any via $INTERFACE";
-         push @FW_ACTIONS, "$IPFW pipe $pipe_num config bw ". $speed ."Kbit/s queue 10Kbytes";
+      
+      if ($speed_out > 0) {
+        if ($traf_type == 0) {
+          push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to $CLIENT_IP via $INTERFACE out";
+          push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue 10Kbytes";
+         }
+        else {
+          #User ipfw table if more then 5 networks
+          if ($#nets_arr > 5) {
+             my $table_number = $user->{TI_ID};
+
+             my $result = `$IPFW table $table_number list`;
+             if ($result eq '') {
+               foreach my $line (@nets_arr) {
+               	  push @FW_ACTIONS, "$IPFW table $table_number add $line";
+                }
+              }
+            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from table\\($table_number\\) to $CLIENT_IP via $INTERFACE out";
+           }
+          else {
+            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $nets{$traf_type} to $CLIENT_IP via $INTERFACE out";
+           }
+
+
+          push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue 10Kbytes";
+         }
+       }
+      else {
+      	
         }
+
+
     }
+    
   }
 
  }
 
 #make firewall actions
-foreach $line (@FW_ACTIONS) {
+foreach my $line (@FW_ACTIONS) {
   if ($debug == 1) {
     print "$line\n";	
    }	
   else {
     system("$line");
    }
+}
+
+
+
+#**********************************************************
+# Manage mikrotik bandwidth
+# 3 type of actions
+#  up
+#  down 
+#  check
+#**********************************************************
+sub mikrotik {
+	my ($attr)=@_;
+
+  my $name = "ads-pptp-test";
+  my $interface = "<pptp-test>";
+  my $speed_in  = 512000;
+  my $speed_out = 512000;
+  my $cmd = '';
+
+if ($ACTION eq 'up') {
+  $cmd = "name=\"$name\" dst-address=0.0.0.0/0 interface=$interface
+      parent=none direction=both priority=8 queue=default-small/default-small
+      limit-at=$speed_in/$speed_out max-limit=$speed_in/$speed_out
+      total-queue=default-small";
+ }
+elsif($ACTION eq 'down') {
+  $cmd = "remove [ find name=$name ]";
+	
+}
+  
+
+
+  my $result .= `ssh admin_ssh\@192.168.101.10 "$cmd"`;
+}
+
+#**********************************************************
+# Manage mikrotik bandwidth
+# 3 type of actions
+#  up
+#  down 
+#  check
+#**********************************************************
+sub mikrotik_ext {
+	my ($attr)=@_;
+
+	
+	my $speeds = $attr->{SPEEDS};
+	my $nets   = $attr->{NETS};
+
+	my @commands = ();
+  $INTERFACE="<pptp-aa1>";
+
+  foreach my $traf_type (sort keys %$speeds) {
+    my $speed = $speeds->{$traf_type};
+    
+    my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN} * 1024 : 0;
+    my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT}* 1024 : 0;
+    if ($traf_type == 0) {
+      #Upload
+      push  @commands, " /queue simple add direction=upload name=\\\"". $INTERFACE.'_OUT'. "\\\" dst-address=0.0.0.0/0 interface=$INTERFACE parent=none priority=8 queue=default-small/default-small limit-at=$speed_out max-limit=$speed_out total-queue=default-small ";
+      #Download
+      push  @commands, " /queue simple add direction=download name=\\\"". $INTERFACE.'_IN'. "\\\" dst-address=0.0.0.0/0 interface=$INTERFACE parent=none priority=8 queue=default-small/default-small limit-at=$speed_in max-limit=$speed_in total-queue=default-small ";
+      next;
+     }
+
+
+ 	  my @nets_arr = ();
+ 	  if ($nets->{$traf_type}) {
+ 	    $nets->{$traf_type} =~ s/[\r]?\n//g;
+ 	    $nets->{$traf_type} =~ s/;/,/g;
+ 	    @nets_arr = split(/;|,/, $nets->{$traf_type});
+	   }
+
+    # Describe  / $address / speed (IN / OUT)
+    # Make address list
+    my $address_list_name = "TT_".$traf_type;
+
+    foreach my $address (@nets_arr) {
+   	  push @commands, qq{ /ip firewall address-list add list=$address_list_name address=$address };
+     }
+
+    # Make marks
+    my $mark_name=$address_list_name. "_mark";
+    push @commands,  qq{ /ip firewall mangle add address-list=$address_list_name action=mark-connection new-connection-mark=$mark_name chain=prerouting comment=$mark_name };
+
+    push @commands,  qq{ /queue tree add name=$mark_name parent=$INTERFACE max-limit=$speed_in/$speed_out packet-mark=$mark_name priority=8 };
+
+  }
+
+#Make ssh command	
+	my $result = '';
+	foreach my $cmd (@commands)  {
+		print "$cmd\n" if ($debug > 0);
+    $result .= `ssh admin\@192.168.101.10 "$cmd"`;
+	 }
+
+  print $result;
+
+}
+
+
+
+#
+# get user info 
+# /queue simple print interface=<pptp-aa1>
+# /queue simple remove [ find  interface=<pptp-aa1> ]
+
+#*****************************************************
+# Parse fw params
+#*****************************************************
+sub parse_fw {
+  my ($part) = @_;
+  my $result = '';
+  my %params = ();
+
+  $part =~ s/"|//g;
+  if ($part =~ / (\d+)/) {
+    $params{item} = $1;
+   }
+
+  while($part =~ / ([a-zA-Z\-]+)=([a-zA-Z\-\.0-9\/<>_]+)/g) {
+    my $key = $1;
+    my $val = $2;
+    $result .= "$key // $val\n";
+    $params{"$key"}=$val;
+   }
+
+  print "\n---\n". $result if ($debug > 0);
+
+  return \%params;
 }
