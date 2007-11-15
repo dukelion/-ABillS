@@ -92,7 +92,7 @@ my $debug = " URI: $ENV{URI}
     print STDERR "$MESSAGE";
     #Make error log 
     
-    my $query = "INSERT INTO sharing_log
+    my $query = "INSERT INTO sharing_errors
       (datetime, uid, username, file_and_path,
       client_name,
       ip,
