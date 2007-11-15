@@ -8,12 +8,14 @@ use vars qw(%conf);
 
 
 #Main debug section
-my $prog= join ' ',$0,@ARGV;
-my $a = `echo "Begin" >> /tmp/sharing_env`;
-my $aa = '';
-while(my ($k, $v)=each %ENV) {
-  $aa .= "$k - $v\n";
-}
+#my $prog= join ' ',$0,@ARGV;
+#my $a = `echo "Begin" >> /tmp/sharing_env`;
+#my $aa = '';
+#while(my ($k, $v)=each %ENV) {
+#  $aa .= "$k - $v\n";
+#}
+
+
 
 
 #***************************************************
@@ -21,6 +23,7 @@ my $user   = $ENV{USER} || '';
 my $passwd = $ENV{PASS} || '';
 my $ip     = $ENV{IP}   || '0.0.0.0';
 my $COOKIE = $ENV{COOKIE} || '';
+my $URL    = $ENV{URI} || '';
 
 #**************************************************************
 # DECLARE VARIABLES                                                           #
@@ -56,7 +59,7 @@ if ($COOKIE ne '') {
   foreach(@rawCookies){
     my ($key, $val) = split (/=/,$_);
     $cookies{$key} = $val;
-  }
+   }
 }
 
 my $sth;
@@ -79,7 +82,7 @@ my $debug = " URI: $ENV{URI}
  ===EXT
  $aa
  === \n";
-$a = `echo "$debug" >> /tmp/sharing_env`;
+ $a = `echo "$debug" >> /tmp/sharing_env`;
 
 
   if (auth()) {
@@ -87,6 +90,17 @@ $a = `echo "$debug" >> /tmp/sharing_env`;
    }
   else {
     print STDERR "$MESSAGE";
+    #Make error log 
+    
+    my $query = "INSERT INTO sharing_log
+      (datetime, uid, username, file_and_path,
+      client_name,
+      ip,
+      client_command)
+    VALUE (now(), 0, $user, $URL, '', INET_ATON($ip), '')";
+
+    my $sth = $dbh->do($query);
+
     exit 1;
   }
 }
@@ -225,7 +239,6 @@ my ( $deposit ) = $sth->fetchrow_array();
 
 
 # /vids/video_506/video/200704/rtr20070403-2315_c.avi
-my $URL = $ENV{URI};
 my $request_path = '';
 my $request_file = '';
 

@@ -12,7 +12,7 @@
 # See the file 'Changes' in the distrution archive.                         #
 #                                                                           #
 #############################################################################
-# 	$Id: Radius.pm,v 1.2 2007/11/15 09:29:37 abills Exp $
+# 	$Id: Radius.pm,v 1.2.2.1 2007/11/15 11:05:21 abills Exp $
 
 
 package Radius;

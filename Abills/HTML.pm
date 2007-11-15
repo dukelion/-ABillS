@@ -724,7 +724,7 @@ sub header {
  my $REFRESH = ($FORM{REFRESH}) ? "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$FORM{REFRESH}; URL=$ENV{REQUEST_URI}\"/>\n" : '';
 
 $self->{header} .= qq{
-<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
  $REFRESH
@@ -1240,6 +1240,30 @@ $head
 
 
 #*******************************************************************
+# Preformated test
+#*******************************************************************
+sub pre {
+ my $self = shift;
+ my ($message) = @_;
+ 
+ 
+my $output = qq{
+<pre>
+ $message
+</pre>
+};
+
+  if (defined($self->{NO_PRINT})) {
+  	$self->{OUTPUT}.=$output;
+  	return $output;
+   }
+	else { 
+ 	  print $output;
+	 }
+
+}
+
+#*******************************************************************
 # Make pages and count total records
 # pages($count, $argument)
 #*******************************************************************
@@ -1703,8 +1727,6 @@ PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'>
   print $output;
 
 }
-
-
 
 
 

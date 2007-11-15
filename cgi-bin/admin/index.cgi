@@ -2506,7 +2506,8 @@ if ($nas->{errno}) {
   'dlink_pb'  => 'Dlink IP-MAC-Port Binding',
   'other'     => 'Other nas server',
   'chillispot'=> 'Chillispot (www.chillispot.org)',
-  'vlan'      => 'Vlan managment'
+  'vlan'      => 'Vlan managment',
+  'qbridge'   => 'Q-BRIDGE'
  );
 
 

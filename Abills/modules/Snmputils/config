@@ -9,7 +9,10 @@ $web_interface    = 1;
                    );
 
 
-%PERIODIC = (daily   => [ 'snmputils_dlink_pb' ]);
+#%PERIODIC = (daily   => [ 'snmputils_dlink_pb', 'snmputils_qbridge' ]);
+
+%PERIODIC = (daily   => [ 'snmputils_periodic' ]);
+
 
 
 1

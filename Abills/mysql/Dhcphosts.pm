@@ -256,7 +256,9 @@ sub host_defaults {
    MAC            => '00:00:00:00:00:00', 
    EXPIRE         => '0000-00-00', 
    IP             => '0.0.0.0',
-   COMMENTS       => ''
+   COMMENTS       => '',
+   VID            => 0,
+   NAS            => 0
   );
 
  
@@ -274,11 +276,12 @@ sub host_add {
 
   my %DATA = $self->get_data($attr); 
 
-  $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, forced, disable, expire, comments) 
+  $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, 
+    forced, disable, expire, comments, vid, nas) 
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
       INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}', '$DATA{DISABLE}',
       '$DATA{EXPIRE}',
-      '$DATA{COMMENTS}');", 'do');
+      '$DATA{COMMENTS}', '$DATA{VID}', '$DATA{NAS}');", 'do');
 
 
   
@@ -328,7 +331,9 @@ sub host_info {
    forced,
    disable,
    expire,
-   comments
+   vid,
+   comments,
+   nas
   FROM dhcphosts_hosts
   WHERE id='$id';");
 
@@ -347,7 +352,9 @@ sub host_info {
    $self->{FORCED},
    $self->{DISABLE},
    $self->{EXPIRE},
-   $self->{COMMENTS}
+   $self->{VID},
+   $self->{COMMENTS},
+   $self->{NAS}
    ) = @{ $self->{list}->[0] };
   return $self;
 };
@@ -371,7 +378,9 @@ sub host_change {
    FORCED      => 'forced',
    DISABLE     => 'disable',
    COMMENTS    => 'comments',
-   EXPIRE      => 'expire'
+   EXPIRE      => 'expire',
+   VID         => 'vid',
+   NAS         => 'nas'
   );
 
 

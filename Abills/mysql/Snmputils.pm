@@ -53,9 +53,14 @@ sub snmputils_nas_ipmac {
  @WHERE_RULES = ();
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db,   "SELECT un.nas_id, un.uid, INET_NTOA(d.ip), d.mac,
-     if(u.company_id > 0, cb.deposit, ub.deposit), d.comments
-     FROM (users u, users_nas un, dhcphosts_hosts d)
+ $self->query($db,   "SELECT un.nas_id, 
+     un.uid, 
+     INET_NTOA(d.ip), 
+     d.mac,
+     if(u.company_id > 0, cb.deposit, ub.deposit), 
+     d.comments,
+     d.vid
+   FROM (users u, users_nas un, dhcphosts_hosts d)
      LEFT JOIN bills ub ON (u.bill_id = ub.id)
      LEFT JOIN companies company ON  (u.company_id=company.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
