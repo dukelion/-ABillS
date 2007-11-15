@@ -502,14 +502,16 @@ return qq{
 elsif ($tpl_name eq 'form_search') {
 return qq{
 <div class='noprint'>
+
 <form action='$SELF_URL' METHOD='POST'>
 <input type='hidden' name='index' value='$index'>
 %HIDDEN_FIELDS%
 <TABLE>
+
 <TR bgcolor='$_COLORS[0]'><TH colspan='2' align='right'>$_SEARCH</TH></TR>
-<TR><TD>$_LOGIN:</TD><TD><input type='text' name='LOGIN_EXPR' value='%LOGIN_EXPR%'></TD></TR>
 %SEL_TYPE%
-<TR><TD>$_PERIOD:</TD><TD>
+<TR><TD>$_LOGIN:</TD><TD><input type='text' name='LOGIN_EXPR' value='%LOGIN_EXPR%'></TD></TR>
+<tr><TD>$_PERIOD:</TD><TD>
 <TABLE width='100%'>
 <TR><TD>$_FROM: </TD><TD>%FROM_DATE%</TD></TR>
 <TR><TD>$_TO:</TD><TD>%TO_DATE%</TD></TR>
@@ -531,25 +533,21 @@ return qq{
 <!-- USERS -->
 <tr><td colspan='2'><hr/></td></tr>
 <tr><td colspan='2'>
-<table>
-<tr><td colspan='2'>$_FIO (*):</td><td><input type='text' name='FIO' value='%FIO%'/></td></tr>
-<tr><td colspan='2'>$_PHONE (>, <, *):</td><td><input type='text' name='PHONE' value='%PHONE%'/></td></tr>
-<tr><td colspan='2'>$_COMMENTS (*):</td><td><input type='text' name='COMMENTS' value='%COMMENTS%'/></td></tr>
-<tr><td colspan='2'>$_GROUP:</td><td>%GROUPS_SEL%</td></tr>
-<tr><td colspan='2'>$_DEPOSIT (>, <):</td><td><input type='text' name='DEPOSIT' value='%DEPOSIT%'/></td></tr>
+<table border=0>
+<tr><td colspan='2'>$_FIO (*):</td><td><input type='text' name='FIO' value='%FIO%'/></td><th bgcolor='$_COLORS[0]' colspan='2'>$_ADDRESS:</th></tr>
+<tr><td colspan='2'>$_CONTRACT_ID (*):</td><td><input type='text' name='CONTRACT_ID' value='%CONTRACT_ID%'/></td><td bgcolor='$_COLORS[2]'>$_ADDRESS_STREET:</td><td><input type='text' name='ADDRESS_STREET' value='%ADDRESS_STREET%'/></td></tr>
+<tr><td colspan='2'>$_PHONE (>, <, *):</td><td><input type='text' name='PHONE' value='%PHONE%'/></td><td  bgcolor='$_COLORS[2]'>$_ADDRESS_BUILD:</td><td><input type='text' name='ADDRESS_BUILD' value='%ADDRESS_BUILD%'/></td> </tr>
+<tr><td colspan='2'>$_COMMENTS (*):</td><td><input type='text' name='COMMENTS' value='%COMMENTS%'/></td><td bgcolor='$_COLORS[2]'>$_ADDRESS_FLAT:</td><td><input type='text' name='ADDRESS_FLAT' value='%ADDRESS_FLAT%'/></td></tr>
+<tr><td colspan='2'>$_GROUP:</td><td>%GROUPS_SEL%</td><td bgcolor='$_COLORS[2]'>$_CITY:</td><td><input type='text' name='CITY' value='%CITY%'/></td></tr>
+<tr><td colspan='2'>$_DEPOSIT (>, <):</td><td><input type='text' name='DEPOSIT' value='%DEPOSIT%'/></td><td bgcolor='$_COLORS[2]'>$_ZIP:</td><td> <input type='text' name='ZIP' value='%ZIP%'  size='8' /></td></tr>
 
 <tr><td colspan='2'>BILL ID (>, <):</td><td><input type='text' name='BILL_ID' value='%BILL_ID%'/></td></tr>
 
-<tr><td colspan='2'>$_CREDIT (>, <):</td><td><input type='text' name='CREDIT' value='%CREDIT%'/></td></tr>
-<tr><td colspan='2'>$_PAYMENTS $_DATE ((>, <) YYYY-MM-DD):</td><td><input type='text' name='PAYMENTS' value='%PAYMENTS%'/></td></tr>
+<tr><td colspan='2'>$_CREDIT (>, <):</td><td><input type='text' name='CREDIT' value='%CREDIT%'/></td><th colspan='2' bgcolor=$_COLORS[0]>$_PASPORT</th></tr>
+<tr><td colspan='2'>$_PAYMENTS $_DATE ((>, <) YYYY-MM-DD):</td><td><input type='text' name='PAYMENTS' value='%PAYMENTS%'/></td><TD bgcolor='$_COLORS[2]'>$_NUM:</TD><TD><input type=text name=PASPORT_NUM value="%PASPORT_NUM%"></TD></tr>
 
-<tr bgcolor=$_COLORS[2]><td rowspan=3>$_ADDRESS:</td><td>$_ADDRESS_STREET:</td><td><input type='text' name='ADDRESS_STREET' value='%ADDRESS_STREET%'/></td></tr>
-<tr bgcolor=$_COLORS[2]><td>$_ADDRESS_BUILD:</td><td><input type='text' name='ADDRESS_BUILD' value='%ADDRESS_BUILD%'/></td></tr>
-<tr bgcolor=$_COLORS[2]><td>$_ADDRESS_FLAT:</td><td><input type='text' name='ADDRESS_FLAT' value='%ADDRESS_FLAT%'/></td></tr>
-
-<tr><td colspan='2'>$_DISABLE:</td><td><input type='checkbox' name='DISABLE' value='1'/></td></tr>
-<tr><td colspan='2'>$_CONTRACT_ID (*):</td><td><input type='text' name='CONTRACT_ID' value='%CONTRACT_ID%'/></td></tr>
-<tr><td colspan='2'>$_REGISTRATION (<>):</td><td><input type='text' name='REGISTRATION' value='%REGISTRATION%'/></td></tr>
+<tr><td colspan='2'>$_DISABLE:</td><td><input type='checkbox' name='DISABLE' value='1'/></td><TD bgcolor='$_COLORS[2]'>$_DATE:</TD><TD><input type=text name=PASPORT_DATE value="%PASPORT_DATE%"></TD></tr>
+<tr><td colspan='2'>$_REGISTRATION (<>):</td><td><input type='text' name='REGISTRATION' value='%REGISTRATION%'/></td><TD bgcolor='$_COLORS[2]'>$_GRANT:</TD><TD><input type=text name=PASPORT_GRANT value='%PASPORT_GRANT%'></TD></tr>
 <tr><td colspan='2'>$_ACTIVATE (<>):</td><td><input type='text' name='ACTIVATE' value='%ACTIVATE%'/></td></tr>
 <tr><td colspan='2'>$_EXPIRE (<>):</td><td><input type='text' name='EXPIRE' value='%EXPIRE%'/></td></tr>
 </table>
