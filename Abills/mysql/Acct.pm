@@ -320,7 +320,7 @@ else {
    }
 
 #detalization for Exppp
-if ($conf->{s_detalization} eq 'yes') {
+if ($conf->{s_detalization}) {
    $RAD->{INTERIUM_INBYTE}=0 if (! defined($RAD->{INTERIUM_INBYTE}));
    $RAD->{INTERIUM_OUTBYTE}=0 if (! defined($RAD->{INTERIUM_OUTBYTE}));
    $RAD->{INTERIUM_INBYTE2}=0 if (! defined($RAD->{INTERIUM_INBYTE2}));
