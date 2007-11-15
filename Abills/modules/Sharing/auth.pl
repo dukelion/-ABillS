@@ -97,7 +97,7 @@ my $debug = " URI: $ENV{URI}
       client_name,
       ip,
       client_command)
-    VALUE (now(), 0, '$user', '$URL', '', INET_ATON('$ip'), '$MESSAGE')";
+    values (now(), 0, '$user', '$URL', '', INET_ATON('$ip'), '$MESSAGE')";
 
     my $sth = $dbh->do($query);
 
