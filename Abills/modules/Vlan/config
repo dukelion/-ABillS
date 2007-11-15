@@ -1,0 +1,10 @@
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = ("01:0:VLANs:vlan_users_list:"       => 11,
+                   "02:0:VLAN:vlan_user:UID"           => 20
+                   );
+
+
+ 
+%PERIODIC = (daily   => [ 'vlan_create' ] );
+
+1
