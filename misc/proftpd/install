@@ -1,0 +1,7 @@
+:DEFAULT:DEFAULT_HOMEDIR=/home/ftp:Authentification Users root dir
+:PARAMS=FREEBSD:proftpd_enable="YES"  >> [/etc/]/rc.conf
+::exec:mkdir /home/ftp
+proftpd.conf      > [/usr/local/etc/]/proftpd.conf
+proftpd_anon.conf > [/usr/local/etc/]/proftpd_anon.conf
+:PARAMS=Anonymous:Include /usr/local/etc/proftpd_anon.conf >> [/usr/local/etc/]/proftpd.conf
+

@@ -1,0 +1,10 @@
+user = %dbuser%
+password = %dbpasswd%
+dbname = %dbname%
+hosts = %dbhost%
+query = SELECT goto FROM mail_aliases WHERE address='%s'
+# < 2.2.0
+#table = mail_aliases
+#select_field = goto
+#where_field = address
+

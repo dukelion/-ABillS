@@ -1,0 +1,13 @@
+user = %dbuser%
+password = %dbpasswd%
+hosts = %dbhost%
+dbname = %dbname%
+query = SELECT domain FROM mail_domains WHERE domain='%s' AND backup_mx='0' AND status='0'
+#  < 2.2.0
+#table = mail_domains
+#select_field = domain
+#where_field = domain
+
+
+
+

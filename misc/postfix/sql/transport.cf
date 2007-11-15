@@ -1,0 +1,10 @@
+user = %dbuser%
+password = %dbpasswd%
+dbname = %dbname%
+hosts = %dbhost%
+query = SELECT transport FROM mail_domains WHERE domain='%d'
+#For version < 2.2.0
+#table = mail_transport
+#select_field = transport
+#where_field = domain
+
