@@ -3870,7 +3870,22 @@ my $SEL_TYPE = $html->form_select('type',
  	                                NO_ID      => 1
  	                                #EX_PARAMS => 'onChange="selectstype()"'
  	                               });
-$SEARCH_DATA{SEL_TYPE}  = "<tr><td>WHERE:</td><td>$SEL_TYPE</td></tr>\n" if ($index == 7);
+#$SEARCH_DATA{SEL_TYPE}  = "<tr><td>WHERE:</td><td>$SEL_TYPE</td></tr>\n" if ($index == 7);
+
+if ($index == 7) {
+	$SEARCH_DATA{SEL_TYPE}="<tr><td colspan=2>\n<table width=100%><tr>";
+	
+	while(my($k, $v) = each %SEARCH_TYPES ) {
+		$SEARCH_DATA{SEL_TYPE}.= "<th";
+		$SEARCH_DATA{SEL_TYPE}.= " bgcolor=$_COLORS[0]" if ($FORM{type} eq $k);
+		$SEARCH_DATA{SEL_TYPE}.= "><a href='$SELF_URL?index=$index&search=1&type=$k'>$v</a></th>\n";
+	 }
+
+$SEARCH_DATA{SEL_TYPE}.="</tr>
+</table>\n</td></tr>\n";
+
+}
+
 
 $html->tpl_show(templates('form_search'), \%SEARCH_DATA);
 
