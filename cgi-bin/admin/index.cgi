@@ -3460,7 +3460,7 @@ $payments->{SEL_ER} .= "</select>\n";
 
 
 $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
-                                { SELECTED      => $day_id,
+                                { SELECTED      => $FORM{METHOD} || '',
  	                                SEL_ARRAY     => \@PAYMENT_METHODS,
  	                                ARRAY_NUM_ID  => 1
  	                               });
@@ -3835,21 +3835,19 @@ elsif ($attr->{TPL}) {
 	#defined();
  }
 else {
-
-
-my $SEL_METHOD =  $html->form_select('METHOD', 
-                                { SELECTED      => $day_id,
+  $FORM{SEL_METHOD} =  $html->form_select('METHOD', 
+                                { SELECTED      => $FORM{METHOD} || '',
  	                                SEL_ARRAY     => \@PAYMENT_METHODS,
- 	                                ARRAY_NUM_ID  => 'y',
+ 	                                ARRAY_NUM_ID  => 1,
                                   SEL_OPTIONS   => { '' => $_ALL }
  	                               });
 
-my $group_sel = sel_groups();
-my %search_form = ( 
-   2  => 'form_search_payments',
-   3  => 'form_search_fees',
-   11 => 'form_search_users'
-  );
+  my $group_sel = sel_groups();
+  my %search_form = ( 
+     2  => 'form_search_payments',
+     3  => 'form_search_fees',
+     11 => 'form_search_users'
+    );
 
 
 
