@@ -1,0 +1,49 @@
+--***************************************************************************
+--***************************************************************************
+
+  CORPORAT-MIB
+  
+  DEFINITIONS ::= BEGIN
+
+
+  IMPORTS
+    enterprises FROM RFC1155-SMI;
+
+
+  --*************************************************************************
+  -- Define the enterprise number as allocated by the internet authority
+  patton OBJECT IDENTIFIER ::= { enterprises 1768 }
+
+  --*************************************************************************
+  --*************************************************************************
+  -- the overall structure of the MIB
+  --*************************************************************************
+  --*************************************************************************
+  mfr2         OBJECT IDENTIFIER ::= { patton  2 }
+  authenticate OBJECT IDENTIFIER ::= { patton  3 }
+  listener     OBJECT IDENTIFIER ::= { patton  4 }
+  calldialin   OBJECT IDENTIFIER ::= { patton  5 }
+  testmanager  OBJECT IDENTIFIER ::= { patton  6 }
+  installation OBJECT IDENTIFIER ::= { patton  7 }
+  dropinsert   OBJECT IDENTIFIER ::= { patton  8 }
+  calldialout  OBJECT IDENTIFIER ::= { patton  9 }
+  framerelay   OBJECT IDENTIFIER ::= { patton 12 }
+  filterip     OBJECT IDENTIFIER ::= { patton 13 }
+  genroute     OBJECT IDENTIFIER ::= { patton 14 }
+  dax          OBJECT IDENTIFIER ::= { patton 15 }
+  dsp          OBJECT IDENTIFIER ::= { patton 16 }
+  alarm        OBJECT IDENTIFIER ::= { patton 18 }
+  model3120    OBJECT IDENTIFIER ::= { patton 20 }
+  dnis         OBJECT IDENTIFIER ::= { patton 24 }
+  ppp          OBJECT IDENTIFIER ::= { patton 27 }
+  location     OBJECT IDENTIFIER ::= { patton 28 }
+  modem        OBJECT IDENTIFIER ::= { patton 29 }
+  sysMgmt      OBJECT IDENTIFIER ::= { patton 32 }
+
+  box          OBJECT IDENTIFIER ::= { model3120  1 }
+  fwdroute     OBJECT IDENTIFIER ::= { model3120  2 }
+  syslog       OBJECT IDENTIFIER ::= { model3120  7 }
+  flash        OBJECT IDENTIFIER ::= { model3120  8 }
+  fconfig      OBJECT IDENTIFIER ::= { model3120 13 }
+
+  END

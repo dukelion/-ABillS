@@ -1,0 +1,24 @@
+$web_interface    = 1;
+
+
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = ("1:0:BSR 1000:Bsr1000_Docsis_modems:"           => 8,
+                   "2:1:log:Bsr1000_log:"              => 8,
+                   "3:1:event:Bsr1000_Docsis_events:"           => 8
+                   );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1

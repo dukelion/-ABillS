@@ -1,0 +1,308 @@
+#!/usr/bin/perl
+# Periodic payments web interface
+#
+
+
+
+
+require "Abon.pm";
+Abon->import();
+my $Abon = Abon->new($db, $admin, $conf);
+my @PERIODS = ($_DAY, $_MONTH, $_YEAR);
+
+#*******************************************************************
+# Change user variant form
+# form_chg_vid()
+#*******************************************************************
+sub abon_user {
+
+ if ($FORM{change}) {
+    $Abon->user_tariff_change({ %FORM });  
+    if (! $Abon->{errno}){
+    	 $html->message('info', $_INFO, "$_CHANGED");
+     }
+    else {
+    	$html->message('err', $_ERROR, "[$Abon->{errno}] $err_strs{$Abon->{errno}}");	
+     }
+  }
+ 
+
+my $list = $Abon->user_tariff_list($FORM{UID});
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_ABON",
+                            title      => ['-', $_NAME, $_SUM, $_PERIOD, $_DATE ],
+                            cols_align => ['left', 'right', 'left', 'center', 'center'],
+                            qs         => $pages_qs,
+                           });
+
+
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
+   }
+
+  $table->addrow($html->form_input('IDS', "$line->[0]", { TYPE => 'CHECKBOX', 
+  	                                                      STATE => ($line->[5] == 1) ? 1 : undef   }),
+     "$line->[1]",
+     "$line->[2]", 
+     $PERIODS[$line->[3]], 
+     "$line->[4]"
+
+   );
+ }
+
+
+print $html->form_main({ CONTENT => $table->show(),
+	                 HIDDEN  => { index  => "$index", UID => $FORM{UID}  },
+	                 SUBMIT  => { change => "$_CHANGE"} 
+	                });
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub abon_user_list {
+ my ($attr) = @_;
+ 
+ 
+ if ($attr->{ABON_ID}) {
+   $LIST_PARAMS{ABON_ID} = $FORM{ABON_ID};
+  }
+ elsif($FORM{ABON_ID}) {
+   $FORM{subf}=$index;
+   abon_tariffs();
+   return 0;
+  }
+
+
+
+ my $list = $Abon->user_list({ %LIST_PARAMS });
+ my $table = $html->table( { width     => '100%',
+                             caption    => "$_ABON",
+                             title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, $_DATE],
+                             cols_align => ['left', 'right', 'left', 'right'],
+                             qs         => $pages_qs,
+                             pages      => $Abon->{TOTAL}
+                           });
+
+
+my $delete = '';
+foreach my $line (@$list) {
+#  if ($permissions{4}{1}) {
+#    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?" }); 
+#   }
+  $table->addrow($html->button("$line->[0]", "index=15&UID=$line->[4]"), 
+     "$line->[1]", 
+     $line->[2], 
+     $line->[3]
+   );
+ }
+print $table->show();
+
+
+$table = $html->table({ width      => '100%',
+                        cols_align => ['right', 'right'],
+                        rows       => [ [ "$_TOTAL:", "$Abon->{TOTAL}" ] ]
+                       });
+print $table->show();
+
+
+}
+
+#*******************************************************************
+# Change user variant form
+# abon_tariffs()
+#*******************************************************************
+sub abon_tariffs {
+  
+#  $Abon = $Abon->defaults();
+  $Abon->{ACTION}='add';
+  $Abon->{ACTION_LNG}=$_ADD;
+  my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
+  
+  if ($FORM{add}) {
+    $Abon->tariff_add({ %FORM });  
+    if (! $Abon->{errno}){
+    	 $html->message('info', $_INFO, "$_ADDED");
+     }
+   }
+  elsif ($FORM{ABON_ID}) {
+    $Abon = $Abon->tariff_info($FORM{ABON_ID});  
+
+    if (! $Abon->{errno}){
+    	#$html->message('info', $_INFO, "$_CHANGING");
+    	$FORM{PERIOD}=$Abon->{PERIOD} if (! defined($FORM{PERIOD}));
+      $Abon->{ACTION}='change';
+      $Abon->{ACTION_LNG}=$_CHANGE;
+     }
+
+
+    if ($tariffs->{errno}) {
+       $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+       return 0;
+     }
+
+    $pages_qs .= "&ABON_ID=$FORM{ABON_ID}";
+    $LIST_PARAMS{ABON_ID} = $FORM{ABON_ID};
+    my %F_ARGS = ( ABON_ID => $Abon );
+    $Abon->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('ABON_ID', 
+                                          { 
+ 	                                          SELECTED  => $FORM{ABON_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Abon->tariff_list(),
+ 	                                          MULTI_ARRAY_KEY   => 5,
+ 	                                          MULTI_ARRAY_VALUE => 0,
+ 	                                          NO_ID             => 1
+ 	                                        }),
+	                       HIDDEN  => { index => "$index" },
+	                       SUBMIT  => { show   => "$_SHOW"} 
+	                        });
+  
+    func_menu({ 
+  	       'ID' =>   $Abon->{ID}, 
+  	        $_NAME => $Abon->{NAME_SEL}
+  	          }, 
+  	        { 	 },
+  	 {
+  		 f_args => { %F_ARGS }
+  	 });
+
+    if ($FORM{subf}) {
+     	return 0;
+     }
+    elsif($FORM{change}) {
+      $Abon->tariff_change({ %FORM });  
+      if (! $Abon->{errno}){
+      	 $html->message('info', $_INFO, "$_CHANGED");
+       }
+     }
+   }
+  elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+    $Abon->tariff_del($FORM{del});
+    if (! $Abon->{errno}){
+    	 $html->message('info', $_INFO, "$_DELETED");
+     }
+   }
+
+  if ($Abon->{errno}){
+  	$html->message('err', $_ERROR, "[$Abon->{errno}] $err_strs{$Abon->{errno}}");	
+   }
+
+
+  $Abon->{PERIOD_SEL} = $html->form_select('PERIOD', 
+                                          { 
+ 	                                          SELECTED  => $FORM{PERIOD},
+ 	                                          SEL_ARRAY => \@PERIODS,
+ 	                                          ARRAY_NUM_ID => 'y'
+ 	                                          
+ 	                                        });
+
+  $Abon->{PAYMENT_TYPE_SEL} =  $html->form_select('PAYMENT_TYPE', 
+                                { SELECTED      => $Abon->{PAYMENT_TYPE} || $FORM{PAYMENT_TYPE},
+ 	                                SEL_ARRAY     => [$_PREPAID, $_POSTPAID],
+ 	                                ARRAY_NUM_ID  => 'y'
+ 	                               });
+
+  $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);
+
+ my $list = $Abon->tariff_list();
+ my $table = $html->table( { width     => '100%',
+                            caption    => "$_ABON",
+                            title      => [$_NAME, $_SUM, $_PERIOD, $_PAYMENT_TYPE, $_USERS, '-', '-'],
+                            cols_align => ['left', 'right', 'left', 'right', 'center', 'center'],
+                            qs         => $pages_qs,
+                           });
+
+
+my $delete = '';
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL $line->[0]?" }); 
+   }
+  $table->addrow($html->button("$line->[0]", "index=$index&ABON_ID=$line->[5]"), 
+     "$line->[1]", 
+     $PERIODS[$line->[2]], 
+     $Payment_Types[$line->[3]], 
+     $html->button("$line->[4]", "index=". ($index-2). "&ABON_ID=$line->[5]"), 
+     $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[5]"), 
+     $delete
+   );
+ }
+
+
+print $table->show();
+  
+}
+
+
+#**********************************************************
+# daily_fees
+#**********************************************************
+sub abon_periodic {
+  
+  require Fees;
+  Fees->import();
+  
+  
+  my $fees = Fees->new($db, $admin, \%conf);
+  my $list = $Abon->periodic_list({ %LIST_PARAMS });
+
+ #at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
+ # u.id, at.id, at.name,
+ # if(c.name IS NULL, b.deposit, cb.deposit),
+ # if(u.company_id > 0, c.credit, u.credit),
+ # disable,
+ # at.id 
+ my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+ $m--;
+
+ foreach my $line (@$list) {
+  if (defined($line->[7])) {
+     my %user = (
+       UID     => $line->[2],
+       BILL_ID => $line->[3]
+      );
+
+    my %PARAMS = ( DESCRIBE => "ABON: [$line->[10]] $line->[6]" );
+    $PARAMS{DATE}=$DATE if ($DATE ne '');
+
+    if(($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
+     	#Get day fee
+     	if ($line->[0] == 0) {
+         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+         $Abon->user_tariff_update({ UID => "$line->[2]", TP_ID => "$line->[10]", DATE => $DATE, });
+
+         #print "$line->[0] Day fee<Br>\n"; 
+       }
+    	#Get month fee
+    	elsif ($line->[0] == 1 && ($d == 1)) {
+         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+         $Abon->user_tariff_update({ UID => "$line->[2]", DATE => $DATE, TP_ID => "$line->[10]" });
+         #print "Month Fee $d<Br>\n"; 
+       }
+  	  # Yesr fee
+  	  elsif ($line->[0] == 2 && ($m == 0 && $d == 1)) {
+         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+         $Abon->user_tariff_update({ UID => "$line->[2]", DATE => $DATE, TP_ID => "$line->[10]" });
+         #print "Year fee $m $d<Br>\n"; 
+       }
+     }
+
+   }
+  else {
+    print "[ $line->[2] ] $line->[4] - Don't have money account\n";
+   }
+
+
+
+
+  }
+
+}
+
+
+
+
+1
+

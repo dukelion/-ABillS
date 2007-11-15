@@ -1,0 +1,58 @@
+#!/bin/sh
+# Traf stats
+# trafstats [Interface] 
+#
+
+
+if [ w$2 = w ]; then
+ echo "trafdstats [nasid] [Interface] debug";
+ exit 0;
+fi;
+
+# IF_NAME - interface name
+IF_NAME=$2;
+NAS_ID=$1;
+
+TRAFFIC2SQL=/usr/abills/libexec/traffic2sql
+
+if [ w$3 = wdebug  ]; then
+  DEBUG="debug=1";
+fi;
+
+if [ w$4 != w ]; then
+  TRAFFIC2SQL=$4;
+fi;
+
+#Temporary log path
+# default 
+# LOG_PATH='/usr/abills/var/log/ipn/'
+LOG_PATH='/usr/abills/var/log/ipn/';
+
+
+#IPcad dump
+if [ w$2 = wipcad ]; then
+  #/usr/local/bin/ipcad
+  IPCAD_SERVER_IP=127.0.0.1;
+
+  /usr/bin/rsh ${IPCAD_SERVER_IP} dump > /dev/null
+  /usr/bin/rsh ${IPCAD_SERVER_IP} clear ip accounting > /dev/null
+  sleep 15
+  mv /var/ipcad/ipcad.dump ${LOG_PATH}
+  ${TRAFFIC2SQL} ${NAS_ID} ${IF_NAME} ${DEBUG} log=${LOG_PATH}/ipcad.dump
+  exit
+fi;
+
+# Freebsd trafd
+/usr/local/bin/trafsave ${IF_NAME}
+sleep 15
+/usr/local/bin/traflog -n -i ${IF_NAME} > ${LOG_PATH}trafd_${NAS_ID}_${IF_NAME}
+/bin/rm -f /usr/local/var/trafd/trafd.${IF_NAME}
+
+#/home/asmodeus/abills2/libexec/traffic2sql ${NAS_ID} ${IF_NAME}
+#echo "${TRAFFIC2SQL} ${NAS_ID} ${IF_NAME} ${DEBUG}";
+
+${TRAFFIC2SQL} ${NAS_ID} ${IF_NAME} ${DEBUG}
+
+
+
+

@@ -1,0 +1,19 @@
+$web_interface    = 1;
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = (
+                   "1:0:File archive:filearch_main:"     => 6,
+                   "2:1:Video:filearch_video:"           => 6,
+                   "3:2:_ACTORS:filearch_video_actors:"  => 6,
+                   "4:2:_GENRES:filearch_video_genres:"  => 6,
+                   "6:1:$_CHAPTERS:filearch_chapters:"   => 6
+                   );
+
+
+
+%USER_FUNCTION_LIST = ("1:0:Video:filearch_user_video:" => 0
+                       );
+
+                   
+
+
+1

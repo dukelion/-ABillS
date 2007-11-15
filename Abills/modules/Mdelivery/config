@@ -1,0 +1,20 @@
+$web_interface    = 1;
+@useraccount_menu = ('Dialup_VPN');
+
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = ("01:0:Mail Delivery:mdelivery_main:"  => 5,
+                   "02:1:$_LIST:mdelivery_list:"         => 5
+                   );
+
+#%USER_FUNCTION_LIST = ("01:0:Dialup / VPN:dv_user_info:"     => 0,
+#                       "02:1:$_INFO:dv_user_info:"           => 0,
+#                       "03:1:$_STATS:dv_user_stats:"         => 0
+#                      );
+#$USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if (defined($conf{dv_user_chg_tp}));
+
+
+ 
+%PERIODIC = (daily   => ['mdelivery_periodic']);
+
+
+1

@@ -1,0 +1,887 @@
+--***************************************************************************
+--***************************************************************************
+
+  PRODUCT-MIB DEFINITIONS ::= BEGIN
+
+
+  IMPORTS
+    DisplayString    FROM RFC1213-MIB
+    IpAddress        FROM RFC1155-SMI
+    Gauge            FROM RFC1155-SMI
+    OBJECT-TYPE      FROM RFC-1212
+    TRAP-TYPE        FROM RFC-1215
+
+    box              FROM CORPORAT-MIB
+    syslog           FROM CORPORAT-MIB
+    flash            FROM CORPORAT-MIB
+    fconfig          FROM CORPORAT-MIB;
+
+  Index ::= INTEGER(1..2147483647)
+
+
+  --*************************************************************************
+  --*************************************************************************
+  --                         BOX
+  --*************************************************************************
+  --*************************************************************************
+
+  boxIdleTime OBJECT-TYPE
+    SYNTAX      INTEGER (0..100)
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION
+                "This is an indication of the amount of system CPU power
+                which is not being utilized by the Model 3120.  The
+                return value is a percentage of free CPU cycles since
+                the last time the variable was read."
+    ::= { box 1 }
+
+  boxCPUCritical OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "Each second is divided into 100 time slices.  If a
+                time slice passes in which all of the CPU power was
+                used to handle the system, then this count is incremented
+                by one."
+    ::= { box 2 }
+
+  boxCPUWarning OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "Each second is divided into 100 time slices.  If a
+                time slice passes in which only 10 percent of the CPU
+                power was excess, then this count is incremented by one."
+    ::= { box 3 }
+
+  boxAction OBJECT-TYPE
+    SYNTAX      INTEGER {
+                  storeConfig(1),
+                  hardReset(2),
+                  forceDefaultConfig(3),
+                  forceDebugging(4)
+                }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "Writing to this variable will cause the system to store
+                all of the mandatory configuration information into the
+                non-volatile Flash PROM.  Any configuration information
+                which was stored in the Flash PROM will be lost.  The data
+                actually written to this variable is irrelivant"
+    ::= { box 4 }
+
+  boxSnmpVersion OBJECT-TYPE
+    SYNTAX      INTEGER {
+                  snmpv1(1),
+                  snmpv2(2),
+                  both(3)
+                }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "Defines the SNMP version that is supported."
+    ::= { box 5 }
+
+  boxSnmpMasterPassword OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..64))
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "Superuser password for SNMP and HTTP."
+    ::= { box 6 }
+
+  boxSnmpMonitorPassword OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..64))
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "Monitoring user password for SNMP and HTTP."
+    ::= { box 7 }
+
+  boxSnmpVerifyPassword OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..64))
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "Verification for either of the two passwords above.  This
+                 must be set before setting the above passwords as a
+                 check on the entry."
+    ::= { box 23 }
+
+  --*************************************************************************
+  -- Ethernet IP address settings
+
+  boxEther OBJECT IDENTIFIER ::= { box 8 }
+
+  boxEtherATechnique OBJECT-TYPE
+    SYNTAX      INTEGER {
+                  disable(0),
+                  static(1)
+                }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "How to obtain the primary ethernet IP address for the
+                 first ethernet port.  If set to static then a primary
+                 and secondary address can be set below."
+    ::= { boxEther 1 }
+
+  boxEtherAPrimaryIpAddress OBJECT-TYPE
+    SYNTAX      IpAddress
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "The primary ethernet IP address (valid only if technique is static)."
+    ::= { boxEther 2 }
+
+  boxEtherAPrimaryIpMask OBJECT-TYPE
+    SYNTAX      IpAddress
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "The primary ethernet IP mask (valid only if technique is static)."
+    ::= { boxEther 3 }
+
+  boxEtherASecondaryIpAddress OBJECT-TYPE
+    SYNTAX      IpAddress
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "The secondary ethernet IP address (valid only if technique is static)."
+    ::= { boxEther 4 }
+
+  boxEtherASecondaryIpMask OBJECT-TYPE
+    SYNTAX      IpAddress
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "The secondary ethernet IP mask (valid only if technique is static)."
+    ::= { boxEther 5 }
+
+  boxEtherAState OBJECT-TYPE
+    SYNTAX      INTEGER {
+                  notInstalled(0),
+                  noLinkIndication(1),
+                  adminOff(2),
+                  linkIndication10M(3),
+                  linkIndication10Duplex(4),
+                  linkIndication100M(5),
+                  linkIndication100Duplex(6)
+                }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "Indicates that the ethernet interface is up and usable.
+                 This is driven by the detection of ethernet Link Indication"
+    ::= { boxEther 7 }
+
+  boxEtherBTechnique OBJECT-TYPE
+    SYNTAX      INTEGER {
+                  disable(0),
+                  static(1)
+                }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "How to obtain the primary ethernet IP address for the
+                 first ethernet port.  If set to static then a primary
+                 and secondary address can be set below."
+    ::= { boxEther 21 }
+
+  boxEtherBPrimaryIpAddress OBJECT-TYPE
+    SYNTAX      IpAddress
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "The primary ethernet IP address (valid only if technique is static)."
+    ::= { boxEther 22 }
+
+  boxEtherBPrimaryIpMask OBJECT-TYPE
+    SYNTAX      IpAddress
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "The primary ethernet IP mask (valid only if technique is static)."
+    ::= { boxEther 23 }
+
+  boxEtherBSecondaryIpAddress OBJECT-TYPE
+    SYNTAX      IpAddress
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "The secondary ethernet IP address (valid only if technique is static)."
+    ::= { boxEther 24 }
+
+  boxEtherBSecondaryIpMask OBJECT-TYPE
+    SYNTAX      IpAddress
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "The secondary ethernet IP mask (valid only if technique is static)."
+    ::= { boxEther 25 }
+
+  boxEtherBState OBJECT-TYPE
+    SYNTAX      INTEGER {
+                  notInstalled(0),
+                  noLinkIndication(1),
+                  adminOff(2),
+                  linkIndication10M(3),
+                  linkIndication10Duplex(4),
+                  linkIndication100M(5),
+                  linkIndication100Duplex(6)
+                }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "Indicates that the ethernet interface is up and usable.
+                 This is driven by the detection of ethernet Link Indication"
+    ::= { boxEther 27 }
+
+boxEtherAPrimaryIpFilters OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..64))
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "A maximum of 10 IP Filters to be applied to this interface."
+
+    ::= { boxEther 28 }
+
+boxEtherASecondaryIpFilters OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..64))
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "A maximum of 10 IP Filters to be applied to this interface."
+    ::= { boxEther 29 }
+
+boxEtherBPrimaryIpFilters OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..64))
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "A maximum of 10 IP Filters to be applied to this interface."
+    ::= { boxEther 30 }
+
+boxEtherBSecondaryIpFilters OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..64))
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "A maximum of 10 IP Filters to be applied to this interface."
+    ::= { boxEther 31 }
+
+
+
+  --*************************************************************************
+  boxManufactureDatecode OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..16))
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The manufacture datecode/serial number."
+    ::= { box 11 }
+
+  boxManufacturePcbRevision OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The revision of the PCB."
+    ::= { box 12 }
+
+  boxManufactureGeneralInfo OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..512))
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "Any string data held in the general
+                 manufacture notes area."
+    ::= { box 13 }
+
+  boxFeatureEnableKey OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..32))
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "An encoded string sequence used to enable
+                 payable features."
+    ::= { box 14 }
+
+  boxDetectedMemory OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The total bytes of DRAM memory detected
+                 in the system."
+    ::= { box 15 }
+
+  --*************************************************************************
+  -- Packet holding message blocks table
+
+  boxBufferTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF BoxBufferEntry
+    ACCESS      not-accessible
+    STATUS      mandatory
+    DESCRIPTION "Table enumerating the packet holding message
+                 blocks in the system."
+    ::= { box 16 }
+
+  boxBufferEntry OBJECT-TYPE
+    SYNTAX       BoxBufferEntry
+    ACCESS       not-accessible
+    STATUS       mandatory
+    DESCRIPTION  "An entry in the table of packet holding message
+                  blocks."
+    INDEX        { boxBufferSize }
+    ::= { boxBufferTable 1 }
+
+  BoxBufferEntry ::=
+    SEQUENCE {
+      boxBufferSize             Index,
+      boxBufferCount            INTEGER,
+      boxBuffersFree            INTEGER,
+      boxCountBufferTaskWait    INTEGER,
+      boxCountBufferUnavailable INTEGER
+    }
+
+  boxBufferSize OBJECT-TYPE
+    SYNTAX      Index
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The size in bytes of the buffer."
+    ::= { boxBufferEntry 1 }
+
+  boxBufferCount OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The number of buffers of this size in the system."
+    ::= { boxBufferEntry 2 }
+
+  boxBuffersFree OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The number of buffers of this size which are
+                 currently free for use."
+    ::= { boxBufferEntry 3 }
+
+  boxCountBufferTaskWait OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The number of times a task has waited for this
+                 buffer size."
+    ::= { boxBufferEntry 4 }
+
+  boxCountBufferUnavailable OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The number of times one of these buffers was
+                 unavailable."
+    ::= { boxBufferEntry 5 }
+
+  boxMsgBlksConfigured OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The number of message blocks on the system."
+    ::= { box 17 }
+
+  boxMsgBlksFree OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The number of message blocks which are currently
+                 free for use."
+    ::= { box 18 }
+
+  boxCountMsgBlkTaskWait OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The number of times a task has waited for a message
+                 block."
+    ::= { box 19 }
+
+  boxCountMsgBlkUnavailable OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The number of times a message block was unavailable."
+    ::= { box 20 }
+
+  boxHeapSize OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The size of the operating system heap memory."
+    ::= { box 21 }
+
+  boxHeapFreeSpace OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The amount of operating system heap memory
+                 currently free."
+    ::= { box 22 }
+
+  boxHeapLargestSpace OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The largest continuous memory block in the memory heap"
+    ::= { box 24 }
+
+  boxBackgroundFlag OBJECT-TYPE
+    SYNTAX      INTEGER{
+                  disableGraphics(0),
+                  enableGraphics(1),
+                  disableWeb(2)
+                }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "Flag to control web pages.  Turn off graphics,
+                 turn on graphics, and disable web completely
+                 for security purposes."
+    ::= { box 25 }
+
+  boxBlockIcmpRedirects OBJECT-TYPE
+    SYNTAX      INTEGER{
+                  allowRedirects(0),
+                  stopRedirects(1)
+                }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "This object provides a way to inhibit the reception of
+                 ICMP redirect message.  Allowing reception of these
+                 messages is generally considered a security breach."
+    ::= { box 26 }
+
+  boxNetbiosUdpBridging OBJECT-TYPE
+    SYNTAX      INTEGER{
+                  doNotPassNetbiosBroadcasts(0),
+                  passNetbiosBroadcasts(1)
+                }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "This object enables the passing of broadcast UDP packets
+                 with a port of 137 and 138 from the other interfaces to
+                 the local LAN interface.  Netbios uses these packets to
+                 communicate with WINS servers.  A WINS server can work
+                 without this option enabled, but the remote PC will 
+                 appear to be ON THE LAN"
+    ::= { box 27 }
+
+  boxOEM OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "Unique vendor number necessary to display appropriate
+				 vendor graphics and text."
+    ::= { box 28 }
+
+  boxLicenseFlag OBJECT-TYPE
+    SYNTAX      INTEGER{
+                  no(0),
+                  yes(1)
+                }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "Controls license display."
+    ::= { box 29 }
+
+  boxMonitorPrivilege OBJECT-TYPE
+    SYNTAX      INTEGER{
+                  none(0),
+                  readonly(2),
+                  writeUser(18),
+                  writeUserIp(50),
+                  writeUserIpWan(114),
+                  writeUserIpWanSystem(242),
+                  writeUserIpWanSystemUpload(498)
+                }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "A bit mask which determines the parts of the MIB tree
+                 which will be accessable to the monitor administrator."
+    ::= { box 30 }
+
+  boxTemperature OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The internal temperature in the box in degrees celsius."
+    ::= { box 31 }
+
+
+  boxMaxTemperature OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The highest internal temperature that has been seen in
+                 the box in degrees celsius."
+    ::= { box 32 }
+
+  boxWebRefreshRate   OBJECT-TYPE
+  	SYNTAX      INTEGER {
+				none(0),
+				rate5sec(5),
+				rate10sec(10),
+				rate15sec(15),
+				rate30sec(30),
+				rate1min(60),
+				rate2min(120),
+				rate3min(180),
+				rate5min(300)
+				}
+	  ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION ""
+    ::= { box 33 }
+
+  boxRefreshRateNumber   OBJECT-TYPE
+  	SYNTAX      INTEGER
+	  ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION ""
+    ::= { box 34 }
+
+  boxAlarmTemperature OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "If the box registers a temperature greater than this an alarm will
+                 will be reported."
+    ::= { box 35 }
+
+  boxCommonCodeRevision OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..64))
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "This is the common code base revision number."
+    ::= { box 65 }
+
+  boxEgressGroupOneVer OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE (0..16))
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION ""
+    ::= { box 67 }
+
+
+  --*************************************************************************
+  --*************************************************************************
+  --                         SYSLOG
+  --*************************************************************************
+  --*************************************************************************
+  SyslogPriority ::=
+    INTEGER {
+      priorityVerbose(5),
+      priorityDebug(10),
+      priorityInfo(20),
+      priorityOddity(40),
+      priorityService(60),
+      prioritySystem(80),
+      priorityDisable(1000)
+    }
+
+  syslogDeamonIP OBJECT-TYPE
+    SYNTAX      IpAddress
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "The IP address of a host system which is running a
+                 syslog deamon.  System messages with a priority
+                 greater than or equal to syslogDeamonPriority will
+                 be sent to this IP address."
+    ::= { syslog 1 }
+
+  syslogTrapIP OBJECT-TYPE
+    SYNTAX      IpAddress
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "The IP address of a host system which is running a
+                 SNMP trap deamon.  System messages with a priority
+                 greater than or equal to syslogTrapPriority will
+                 be sent to this IP address."
+    ::= { syslog 2 }
+
+  syslogDeamonPriority OBJECT-TYPE
+    SYNTAX      SyslogPriority
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "System messages which have a priority equal to or
+                 greater than this setting will be sent to the
+                 syslog deamon defined by syslogDeamonIP"
+    ::= { syslog 3 }
+
+  syslogConsolePriority OBJECT-TYPE
+    SYNTAX      SyslogPriority
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "System messages which have a priority equal to or
+                 greater than this setting will be printed directly
+                 to the RS-232 configuration port.  Messages will
+                 be printed regardless of the current operating state
+                 of the RS-232 configuration port.  If a manager is
+                 logged into the RS-232 port using PPP then syslog
+                 messages are not packed into PPP packets."
+    ::= { syslog 4 }
+
+  syslogFlashPriority OBJECT-TYPE
+    SYNTAX      INTEGER {
+                  prioritySystem(80),
+                  priorityDisable(1000)
+                }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "System messages which have a priority equal to or
+                 greater than this setting will be permenantly
+                 stored in the Flash PROM.  Some maximum number
+                 of messages may be stored in the Flash PROM before
+                 this storage area must be cleared."
+    ::= { syslog 5 }
+
+  syslogTrapPriority OBJECT-TYPE
+    SYNTAX      SyslogPriority
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "System messages which have a priority equal to or
+                 greater than this setting will be sent to the
+                 SNMP trap deamon defined by syslogTrapIP"
+    ::= { syslog 6 }
+
+  syslogTablePriority OBJECT-TYPE
+    SYNTAX      SyslogPriority
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "System messages which have a priority equal to or
+                 greater than this setting will be temporarily
+                 stored in the RAM of the unit.  A maximum number
+                 of messages is kept in the RAM and old messages are
+                 aged out.  All messages are lost during a reboot."
+    ::= { syslog 7 }
+
+  syslogFlashClear OBJECT-TYPE
+    SYNTAX  INTEGER {
+      syslogFlashOK(0),
+      syslogFlashFull(1),
+      syslogFlashClear(2)
+      }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "Setting this variable to syslogFlashClear will cause
+                 the erasing of any system messages which have been
+                 saved in the Flash.  On reading this variable will
+                 indicate if the syslog Flash is rejecting messages
+                 because it is full."
+    ::= { syslog 8 }
+
+
+  syslogCallTrace OBJECT-TYPE
+    SYNTAX  INTEGER {
+      disable(0),
+      enable(1),
+      dump(2)
+      }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "Enabling this will activate the call tracing utility.
+                 This is a powerful debugging utility which will log
+                 every single function call and return.  At the death
+                 of a box the call trace will be printed out and
+                 can be sent to tech support.  This utility will
+                 take a large amount of CPU power."
+    ::= { syslog 9 }
+
+  syslogUnixFacility OBJECT-TYPE
+    SYNTAX  INTEGER {
+      disable(0),
+      user(1),
+      mail(2),
+      daemon(3),
+      auth(4),
+      syslog(5),
+      lpr(6),
+      news(7),
+      uucp(8),
+      cron(9),
+      authpriv(10),
+      ftp(11),
+      local0(16),
+      local1(17),
+      local2(18),
+      local3(19),
+      local4(20),
+      local5(21),
+      local6(22),
+      local7(23)
+      }
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "This setting is used when syslog messages are send to a unix type
+                 syslog deamon.  In this case the message will include the facility
+                 and priority coding."
+    ::= { syslog 11 }
+
+  syslogFlashTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SyslogFlashEntry
+    ACCESS      not-accessible
+    STATUS      mandatory
+    DESCRIPTION "Table of saved system log messages."
+    ::= { syslog 10 }
+
+  syslogFlashEntry OBJECT-TYPE
+    SYNTAX       SyslogFlashEntry
+    ACCESS       not-accessible
+    STATUS       mandatory
+    DESCRIPTION  "An entry in the table of saved system log messages."
+    INDEX        { slfIndex }
+    ::= { syslogFlashTable 1 }
+
+  SyslogFlashEntry ::=
+    SEQUENCE {
+      slfIndex       Index,
+      slfTick        INTEGER,
+      slfMessage     DisplayString
+    }
+
+  slfIndex OBJECT-TYPE
+    SYNTAX      Index
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The index into the list of stored Flash syslog messages.
+                 This number is guarenteed to increase as time increases.
+                 The Tick object may repeat as the messages may be from
+                 different reboots."
+    ::= { syslogFlashEntry 1 }
+
+  slfTick OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The time stamp in 100ms intervals of the stored message."
+    ::= { syslogFlashEntry 2 }
+
+  slfMessage OBJECT-TYPE
+    SYNTAX      DisplayString
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "Stored system log message."
+    ::= { syslogFlashEntry 3 }
+
+  syslogTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SyslogEntry
+    ACCESS      not-accessible
+    STATUS      mandatory
+    DESCRIPTION "Table of saved system log messages."
+    ::= { syslog 20 }
+
+  syslogEntry OBJECT-TYPE
+    SYNTAX       SyslogEntry
+    ACCESS       not-accessible
+    STATUS       mandatory
+    DESCRIPTION  "An entry in the table of saved system log messages."
+    INDEX        { slIndex }
+    ::= { syslogTable 1 }
+
+  SyslogEntry ::=
+    SEQUENCE {
+      slIndex       Index,
+      slTick        INTEGER,
+      slMessage     DisplayString
+    }
+
+  slIndex OBJECT-TYPE
+    SYNTAX      Index
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The index into the list of stored syslog messages.
+                 This number is guarenteed to increase as time increases.
+                 The Tick object may repeat as the messages may be from
+                 the same instant in time."
+    ::= { syslogEntry 1 }
+
+  slTick OBJECT-TYPE
+    SYNTAX      INTEGER
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "The time stamp in 100ms intervals of the stored message."
+    ::= { syslogEntry 2 }
+
+  slMessage OBJECT-TYPE
+    SYNTAX      DisplayString
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION "Stored system log message."
+    ::= { syslogEntry 3 }
+
+  syslogStatusChange TRAP-TYPE
+    ENTERPRISE syslog
+    VARIABLES  { slMessage }
+    DESCRIPTION
+       "This TRAP indicates that a new message has been added to the
+        volatile syslog table. This TRAP is only generated if the
+        priority of the message added is at least syslogTrapPriority."
+    ::= 7
+
+  --*************************************************************************
+  --*************************************************************************
+  --                         FLASH
+  --*************************************************************************
+  --*************************************************************************
+
+  flStateGoodInFileFix OBJECT-TYPE
+    SYNTAX Gauge
+    ACCESS     read-only
+    STATUS mandatory
+    DESCRIPTION ""
+    ::= {flash 1}
+  flInvalidState OBJECT-TYPE
+    SYNTAX Gauge
+    ACCESS     read-only
+    STATUS mandatory
+    DESCRIPTION ""
+    ::= {flash 2}
+  flStorageRebuild OBJECT-TYPE
+    SYNTAX Gauge
+    ACCESS     read-only
+    STATUS mandatory
+    DESCRIPTION ""
+    ::= {flash 3}
+  flUnalignedSize OBJECT-TYPE
+    SYNTAX Gauge
+    ACCESS     read-only
+    STATUS mandatory
+    DESCRIPTION ""
+    ::= {flash 4}
+
+
+  --*************************************************************************
+  --*************************************************************************
+  --                           FLASH CONFIGURATION
+  --*************************************************************************
+  --*************************************************************************
+  -- Table of configuration items stored in flash
+
+  fconfigTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF FconfigEntry
+    ACCESS      not-accessible
+    STATUS      mandatory
+    DESCRIPTION "Table of flash entries that define the
+                 configuration of the 3120.  These will
+                 be saved to a file and read from a file
+                 for easy configuration settings."
+    ::= { fconfig 1 }
+
+  fconfigEntry OBJECT-TYPE
+    SYNTAX       FconfigEntry
+    ACCESS       not-accessible
+    STATUS       mandatory
+    DESCRIPTION  "An entry of a configuration ID."
+    INDEX        { fconfigId }
+    ::= { fconfigTable 1 }
+
+  FconfigEntry ::=
+    SEQUENCE {
+      fconfigId   Index,
+      fconfigData OCTET STRING
+    }
+
+  fconfigId OBJECT-TYPE
+    SYNTAX      Index
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "The storage ID for a given task."
+    ::= { fconfigEntry 1 }
+
+  fconfigData OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (0..65535))
+    ACCESS      read-write
+    STATUS      mandatory
+    DESCRIPTION "The data from flash that needs to be
+                 saved for storage to a file in hex."
+    ::= { fconfigEntry 2 }
+
+
+  --*************************************************************************
+
+  END

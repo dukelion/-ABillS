@@ -1,0 +1,1306 @@
+#/usr/bin/perl
+# BSR1000 functions
+
+
+
+use SNMP_Session;
+use SNMP_util;
+use BER;
+
+use Carp;
+use CGI::Carp;
+
+
+#iso.3.6.1.2.1.3.1.1.1.2.1. show ip
+# Byte
+# iso.3.6.1.2.1.2.2.1.10.1
+#
+# iso.3.6.1.2.1.5.7.0
+# iso.3.6.1.2.1.10.127.1.3.3.1.10.1
+# iso.3.6.1.2.1.10.127.1.3.4.1.7.2.17
+#
+# iso.3.6.1.2.1.10.127.7.1.4.1.2.2.37
+#
+# iso.3.6.1.2.1.10.127.7.1.4.1.4.2.57
+#
+# Time
+# iso.3.6.1.2.1.10.127.7.1.4.1.3.2.23
+#
+# MAC
+# iso.3.6.1.2.1.3.1.1.2.2.1.10.0.2.12
+# iso.3.6.1.2.1.4.22.1.2.2.10.0.2.95
+
+
+$debug =0;
+
+my %info_oids = ('Events'          => '1.3.6.1.2.1.69.1.5.8.1',
+ 
+              'Syslog'               => '1.3.6.1.4.1.4981.3.9.1.2',
+              'Flap_Modems'          => '1.3.6.1.4.1.4981.6.1.1.2.1',
+              'Spectrum_Groups'      => '1.3.6.1.4.1.4981.6.1.2.5.1',
+              'UpstreamChannelEntry' => '1.3.6.1.4.1.4981.2.1.2.1',
+#Docsis
+              'Downstream'           => '1.3.6.1.2.1.10.127.1.1.1',
+              'Upstream'             => '1.3.6.1.2.1.10.127.1.1.2',
+              'Signal Quality'       => '1.3.6.1.2.1.10.127.1.1.4.1',
+              'Cable modem Status'   => '1.3.6.1.2.1.10.127.1.3.3.1',
+              'Modulation_table'     => '1.3.6.1.2.1.10.127.1.3.5',
+              'Reg type'             => '1.3.6.1.2.1.10.127.21.3.1'
+
+              );
+
+
+#DocsIfCmtsServiceEntry  '1.3.6.1.2.1.10.127.1.3.4.1.2';
+
+my %loaded_mibs = ();
+
+my %OIDS_HASH = 
+  (
+    'iso' => '1',
+    'org' => '1.3',
+    'dod' => '1.3.6',
+    'internet' => '1.3.6.1',
+    'directory' => '1.3.6.1.1',
+    'mgmt' => '1.3.6.1.2',
+    'mib-2' => '1.3.6.1.2.1',
+    'system' => '1.3.6.1.2.1.1',
+    'sysDescr' => '1.3.6.1.2.1.1.1.0',
+    'sysObjectID' => '1.3.6.1.2.1.1.2.0',
+    'sysUpTime' => '1.3.6.1.2.1.1.3.0',
+    'sysUptime' => '1.3.6.1.2.1.1.3.0',
+    'sysContact' => '1.3.6.1.2.1.1.4.0',
+    'sysName' => '1.3.6.1.2.1.1.5.0',
+    'sysLocation' => '1.3.6.1.2.1.1.6.0',
+    'sysServices' => '1.3.6.1.2.1.1.7.0',
+    'interfaces' => '1.3.6.1.2.1.2',
+    'ifNumber' => '1.3.6.1.2.1.2.1.0',
+    'ifTable' => '1.3.6.1.2.1.2.2',
+    'ifEntry' => '1.3.6.1.2.1.2.2.1',
+    'ifIndex' => '1.3.6.1.2.1.2.2.1.1',
+    'ifInOctets' => '1.3.6.1.2.1.2.2.1.10',
+    'ifInUcastPkts' => '1.3.6.1.2.1.2.2.1.11',
+    'ifInNUcastPkts' => '1.3.6.1.2.1.2.2.1.12',
+    'ifInDiscards' => '1.3.6.1.2.1.2.2.1.13',
+    'ifInErrors' => '1.3.6.1.2.1.2.2.1.14',
+    'ifInUnknownProtos' => '1.3.6.1.2.1.2.2.1.15',
+    'ifOutOctets' => '1.3.6.1.2.1.2.2.1.16',
+    'ifOutUcastPkts' => '1.3.6.1.2.1.2.2.1.17',
+    'ifOutNUcastPkts' => '1.3.6.1.2.1.2.2.1.18',
+    'ifOutDiscards' => '1.3.6.1.2.1.2.2.1.19',
+    'ifDescr' => '1.3.6.1.2.1.2.2.1.2',
+    'ifOutErrors' => '1.3.6.1.2.1.2.2.1.20',
+    'ifOutQLen' => '1.3.6.1.2.1.2.2.1.21',
+    'ifSpecific' => '1.3.6.1.2.1.2.2.1.22',
+    'ifType' => '1.3.6.1.2.1.2.2.1.3',
+    'ifMtu' => '1.3.6.1.2.1.2.2.1.4',
+    'ifSpeed' => '1.3.6.1.2.1.2.2.1.5',
+    'ifPhysAddress' => '1.3.6.1.2.1.2.2.1.6',
+    'ifAdminHack' => '1.3.6.1.2.1.2.2.1.7',  
+    'ifAdminStatus' => '1.3.6.1.2.1.2.2.1.7',
+    'ifOperHack' => '1.3.6.1.2.1.2.2.1.8',             
+    'ifOperStatus' => '1.3.6.1.2.1.2.2.1.8',
+    'ifLastChange' => '1.3.6.1.2.1.2.2.1.9',
+    'at' => '1.3.6.1.2.1.3',
+    'atTable' => '1.3.6.1.2.1.3.1',
+    'atEntry' => '1.3.6.1.2.1.3.1.1',
+    'atIfIndex' => '1.3.6.1.2.1.3.1.1.1',
+    'atPhysAddress' => '1.3.6.1.2.1.3.1.1.2',
+    'atNetAddress' => '1.3.6.1.2.1.3.1.1.3',
+    'ip' => '1.3.6.1.2.1.4',
+    'ipForwarding' => '1.3.6.1.2.1.4.1',
+    'ipOutRequests' => '1.3.6.1.2.1.4.10',
+    'ipOutDiscards' => '1.3.6.1.2.1.4.11',
+    'ipOutNoRoutes' => '1.3.6.1.2.1.4.12',
+    'ipReasmTimeout' => '1.3.6.1.2.1.4.13',
+    'ipReasmReqds' => '1.3.6.1.2.1.4.14',
+    'ipReasmOKs' => '1.3.6.1.2.1.4.15',
+    'ipReasmFails' => '1.3.6.1.2.1.4.16',
+    'ipFragOKs' => '1.3.6.1.2.1.4.17',
+    'ipFragFails' => '1.3.6.1.2.1.4.18',
+    'ipFragCreates' => '1.3.6.1.2.1.4.19',
+    'ipDefaultTTL' => '1.3.6.1.2.1.4.2',
+    'ipAddrTable' => '1.3.6.1.2.1.4.20',
+    'ipAddrEntry' => '1.3.6.1.2.1.4.20.1',
+    'ipAdEntAddr' => '1.3.6.1.2.1.4.20.1.1',
+    'ipAdEntIfIndex' => '1.3.6.1.2.1.4.20.1.2',
+    'ipAdEntNetMask' => '1.3.6.1.2.1.4.20.1.3',
+    'ipAdEntBcastAddr' => '1.3.6.1.2.1.4.20.1.4',
+    'ipAdEntReasmMaxSize' => '1.3.6.1.2.1.4.20.1.5',
+    'ipRouteTable' => '1.3.6.1.2.1.4.21',
+    'ipRouteEntry' => '1.3.6.1.2.1.4.21.1',
+    'ipRouteDest' => '1.3.6.1.2.1.4.21.1.1',
+    'ipRouteAge' => '1.3.6.1.2.1.4.21.1.10',
+    'ipRouteMask' => '1.3.6.1.2.1.4.21.1.11',
+    'ipRouteMetric5' => '1.3.6.1.2.1.4.21.1.12',
+    'ipRouteInfo' => '1.3.6.1.2.1.4.21.1.13',
+    'ipRouteIfIndex' => '1.3.6.1.2.1.4.21.1.2',
+    'ipRouteMetric1' => '1.3.6.1.2.1.4.21.1.3',
+    'ipRouteMetric2' => '1.3.6.1.2.1.4.21.1.4',
+    'ipRouteMetric3' => '1.3.6.1.2.1.4.21.1.5',
+    'ipRouteMetric4' => '1.3.6.1.2.1.4.21.1.6',
+    'ipRouteNextHop' => '1.3.6.1.2.1.4.21.1.7',
+    'ipRouteType' => '1.3.6.1.2.1.4.21.1.8',
+    'ipRouteProto' => '1.3.6.1.2.1.4.21.1.9',
+    'ipNetToMediaTable' => '1.3.6.1.2.1.4.22',
+    'ipNetToMediaEntry' => '1.3.6.1.2.1.4.22.1',
+    'ipNetToMediaIfIndex' => '1.3.6.1.2.1.4.22.1.1',
+    'ipNetToMediaPhysAddress' => '1.3.6.1.2.1.4.22.1.2',
+    'ipNetToMediaNetAddress' => '1.3.6.1.2.1.4.22.1.3',
+    'ipNetToMediaType' => '1.3.6.1.2.1.4.22.1.4',
+    'ipRoutingDiscards' => '1.3.6.1.2.1.4.23',
+    'ipInReceives' => '1.3.6.1.2.1.4.3',
+    'ipInHdrErrors' => '1.3.6.1.2.1.4.4',
+    'ipInAddrErrors' => '1.3.6.1.2.1.4.5',
+    'ipForwDatagrams' => '1.3.6.1.2.1.4.6',
+    'ipInUnknownProtos' => '1.3.6.1.2.1.4.7',
+    'ipInDiscards' => '1.3.6.1.2.1.4.8',
+    'ipInDelivers' => '1.3.6.1.2.1.4.9',
+    'icmp' => '1.3.6.1.2.1.5',
+    'icmpInMsgs' => '1.3.6.1.2.1.5.1',
+    'icmpInTimestamps' => '1.3.6.1.2.1.5.10',
+    'icmpInTimestampReps' => '1.3.6.1.2.1.5.11',
+    'icmpInAddrMasks' => '1.3.6.1.2.1.5.12',
+    'icmpInAddrMaskReps' => '1.3.6.1.2.1.5.13',
+    'icmpOutMsgs' => '1.3.6.1.2.1.5.14',
+    'icmpOutErrors' => '1.3.6.1.2.1.5.15',
+    'icmpOutDestUnreachs' => '1.3.6.1.2.1.5.16',
+    'icmpOutTimeExcds' => '1.3.6.1.2.1.5.17',
+    'icmpOutParmProbs' => '1.3.6.1.2.1.5.18',
+    'icmpOutSrcQuenchs' => '1.3.6.1.2.1.5.19',
+    'icmpInErrors' => '1.3.6.1.2.1.5.2',
+    'icmpOutRedirects' => '1.3.6.1.2.1.5.20',
+    'icmpOutEchos' => '1.3.6.1.2.1.5.21',
+    'icmpOutEchoReps' => '1.3.6.1.2.1.5.22',
+    'icmpOutTimestamps' => '1.3.6.1.2.1.5.23',
+    'icmpOutTimestampReps' => '1.3.6.1.2.1.5.24',
+    'icmpOutAddrMasks' => '1.3.6.1.2.1.5.25',
+    'icmpOutAddrMaskReps' => '1.3.6.1.2.1.5.26',
+    'icmpInDestUnreachs' => '1.3.6.1.2.1.5.3',
+    'icmpInTimeExcds' => '1.3.6.1.2.1.5.4',
+    'icmpInParmProbs' => '1.3.6.1.2.1.5.5',
+    'icmpInSrcQuenchs' => '1.3.6.1.2.1.5.6',
+    'icmpInRedirects' => '1.3.6.1.2.1.5.7',
+    'icmpInEchos' => '1.3.6.1.2.1.5.8',
+    'icmpInEchoReps' => '1.3.6.1.2.1.5.9',
+    'tcp' => '1.3.6.1.2.1.6',
+    'tcpRtoAlgorithm' => '1.3.6.1.2.1.6.1',
+    'tcpInSegs' => '1.3.6.1.2.1.6.10',
+    'tcpOutSegs' => '1.3.6.1.2.1.6.11',
+    'tcpRetransSegs' => '1.3.6.1.2.1.6.12',
+    'tcpConnTable' => '1.3.6.1.2.1.6.13',
+    'tcpConnEntry' => '1.3.6.1.2.1.6.13.1',
+    'tcpConnState' => '1.3.6.1.2.1.6.13.1.1',
+    'tcpConnLocalAddress' => '1.3.6.1.2.1.6.13.1.2',
+    'tcpConnLocalPort' => '1.3.6.1.2.1.6.13.1.3',
+    'tcpConnRemAddress' => '1.3.6.1.2.1.6.13.1.4',
+    'tcpConnRemPort' => '1.3.6.1.2.1.6.13.1.5',
+    'tcpInErrs' => '1.3.6.1.2.1.6.14',
+    'tcpOutRsts' => '1.3.6.1.2.1.6.15',
+    'tcpRtoMin' => '1.3.6.1.2.1.6.2',
+    'tcpRtoMax' => '1.3.6.1.2.1.6.3',
+    'tcpMaxConn' => '1.3.6.1.2.1.6.4',
+    'tcpActiveOpens' => '1.3.6.1.2.1.6.5',
+    'tcpPassiveOpens' => '1.3.6.1.2.1.6.6',
+    'tcpAttemptFails' => '1.3.6.1.2.1.6.7',
+    'tcpEstabResets' => '1.3.6.1.2.1.6.8',
+    'tcpCurrEstab' => '1.3.6.1.2.1.6.9',
+    'udp' => '1.3.6.1.2.1.7',
+    'udpInDatagrams' => '1.3.6.1.2.1.7.1',
+    'udpNoPorts' => '1.3.6.1.2.1.7.2',
+    'udpInErrors' => '1.3.6.1.2.1.7.3',
+    'udpOutDatagrams' => '1.3.6.1.2.1.7.4',
+    'udpTable' => '1.3.6.1.2.1.7.5',
+    'udpEntry' => '1.3.6.1.2.1.7.5.1',
+    'udpLocalAddress' => '1.3.6.1.2.1.7.5.1.1',
+    'udpLocalPort' => '1.3.6.1.2.1.7.5.1.2',
+    'egp' => '1.3.6.1.2.1.8',
+    'egpInMsgs' => '1.3.6.1.2.1.8.1',
+    'egpInErrors' => '1.3.6.1.2.1.8.2',
+    'egpOutMsgs' => '1.3.6.1.2.1.8.3',
+    'egpOutErrors' => '1.3.6.1.2.1.8.4',
+    'egpNeighTable' => '1.3.6.1.2.1.8.5',
+    'egpNeighEntry' => '1.3.6.1.2.1.8.5.1',
+    'egpNeighState' => '1.3.6.1.2.1.8.5.1.1',
+    'egpNeighStateUps' => '1.3.6.1.2.1.8.5.1.10',
+    'egpNeighStateDowns' => '1.3.6.1.2.1.8.5.1.11',
+    'egpNeighIntervalHello' => '1.3.6.1.2.1.8.5.1.12',
+    'egpNeighIntervalPoll' => '1.3.6.1.2.1.8.5.1.13',
+    'egpNeighMode' => '1.3.6.1.2.1.8.5.1.14',
+    'egpNeighEventTrigger' => '1.3.6.1.2.1.8.5.1.15',
+    'egpNeighAddr' => '1.3.6.1.2.1.8.5.1.2',
+    'egpNeighAs' => '1.3.6.1.2.1.8.5.1.3',
+    'egpNeighInMsgs' => '1.3.6.1.2.1.8.5.1.4',
+    'egpNeighInErrs' => '1.3.6.1.2.1.8.5.1.5',
+    'egpNeighOutMsgs' => '1.3.6.1.2.1.8.5.1.6',
+    'egpNeighOutErrs' => '1.3.6.1.2.1.8.5.1.7',
+    'egpNeighInErrMsgs' => '1.3.6.1.2.1.8.5.1.8',
+    'egpNeighOutErrMsgs' => '1.3.6.1.2.1.8.5.1.9',
+    'egpAs' => '1.3.6.1.2.1.8.6',
+    'transmission' => '1.3.6.1.2.1.10',
+    'frame-relay' => '1.3.6.1.2.1.10.32',
+    'frDlcmiTable' => '1.3.6.1.2.1.10.32.1',
+    'frDlcmiEntry' => '1.3.6.1.2.1.10.32.1.1',
+    'frDlcmiIfIndex' => '1.3.6.1.2.1.10.32.1.1.1',
+    'frDlcmiState' => '1.3.6.1.2.1.10.32.1.1.2',
+    'frDlcmiAddress' => '1.3.6.1.2.1.10.32.1.1.3',
+    'frDlcmiAddressLen' => '1.3.6.1.2.1.10.32.1.1.4',
+    'frDlcmiPollingInterval' => '1.3.6.1.2.1.10.32.1.1.5',
+    'frDlcmiFullEnquiryInterval' => '1.3.6.1.2.1.10.32.1.1.6',
+    'frDlcmiErrorThreshold' => '1.3.6.1.2.1.10.32.1.1.7',
+    'frDlcmiMonitoredEvents' => '1.3.6.1.2.1.10.32.1.1.8',
+    'frDlcmiMaxSupportedVCs' => '1.3.6.1.2.1.10.32.1.1.9',
+    'frDlcmiMulticast' => '1.3.6.1.2.1.10.32.1.1.10',
+    'frCircuitTable' => '1.3.6.1.2.1.10.32.2',
+    'frCircuitEntry' => '1.3.6.1.2.1.10.32.2.1',
+    'frCircuitIfIndex' => '1.3.6.1.2.1.10.32.2.1.1',
+    'frCircuitDlci' => '1.3.6.1.2.1.10.32.2.1.2',
+    'frCircuitState' => '1.3.6.1.2.1.10.32.2.1.3',
+    'frCircuitReceivedFECNs' => '1.3.6.1.2.1.10.32.2.1.4',
+    'frCircuitReceivedBECNs' => '1.3.6.1.2.1.10.32.2.1.5',
+    'frCircuitSentFrames' => '1.3.6.1.2.1.10.32.2.1.6',
+    'frCircuitSentOctets' => '1.3.6.1.2.1.10.32.2.1.7',
+    'frOutOctets' => '1.3.6.1.2.1.10.32.2.1.7',
+    'frCircuitReceivedFrames' => '1.3.6.1.2.1.10.32.2.1.8',
+    'frCircuitReceivedOctets' => '1.3.6.1.2.1.10.32.2.1.9',
+    'frInOctets' => '1.3.6.1.2.1.10.32.2.1.9',
+    'frCircuitCreationTime' => '1.3.6.1.2.1.10.32.2.1.10',
+    'frCircuitLastTimeChange' => '1.3.6.1.2.1.10.32.2.1.11',
+    'frCircuitCommittedBurst' => '1.3.6.1.2.1.10.32.2.1.12',
+    'frCircuitExcessBurst' => '1.3.6.1.2.1.10.32.2.1.13',
+    'frCircuitThroughput' => '1.3.6.1.2.1.10.32.2.1.14',
+    'frErrTable' => '1.3.6.1.2.1.10.32.3',
+    'frErrEntry' => '1.3.6.1.2.1.10.32.3.1',
+    'frErrIfIndex' => '1.3.6.1.2.1.10.32.3.1.1',
+    'frErrType' => '1.3.6.1.2.1.10.32.3.1.2',
+    'frErrData' => '1.3.6.1.2.1.10.32.3.1.3',
+    'frErrTime' => '1.3.6.1.2.1.10.32.3.1.4',
+    'frame-relay-globals' => '1.3.6.1.2.1.10.32.4',
+    'frTrapState' => '1.3.6.1.2.1.10.32.4.1',
+    'snmp' => '1.3.6.1.2.1.11',
+    'snmpInPkts' => '1.3.6.1.2.1.11.1',
+    'snmpInBadValues' => '1.3.6.1.2.1.11.10',
+    'snmpInReadOnlys' => '1.3.6.1.2.1.11.11',
+    'snmpInGenErrs' => '1.3.6.1.2.1.11.12',
+    'snmpInTotalReqVars' => '1.3.6.1.2.1.11.13',
+    'snmpInTotalSetVars' => '1.3.6.1.2.1.11.14',
+    'snmpInGetRequests' => '1.3.6.1.2.1.11.15',
+    'snmpInGetNexts' => '1.3.6.1.2.1.11.16',
+    'snmpInSetRequests' => '1.3.6.1.2.1.11.17',
+    'snmpInGetResponses' => '1.3.6.1.2.1.11.18',
+    'snmpInTraps' => '1.3.6.1.2.1.11.19',
+    'snmpOutPkts' => '1.3.6.1.2.1.11.2',
+    'snmpOutTooBigs' => '1.3.6.1.2.1.11.20',
+    'snmpOutNoSuchNames' => '1.3.6.1.2.1.11.21',
+    'snmpOutBadValues' => '1.3.6.1.2.1.11.22',
+    'snmpOutGenErrs' => '1.3.6.1.2.1.11.24',
+    'snmpOutGetRequests' => '1.3.6.1.2.1.11.25',
+    'snmpOutGetNexts' => '1.3.6.1.2.1.11.26',
+    'snmpOutSetRequests' => '1.3.6.1.2.1.11.27',
+    'snmpOutGetResponses' => '1.3.6.1.2.1.11.28',
+    'snmpOutTraps' => '1.3.6.1.2.1.11.29',
+    'snmpInBadVersions' => '1.3.6.1.2.1.11.3',
+    'snmpEnableAuthenTraps' => '1.3.6.1.2.1.11.30',
+    'snmpInBadCommunityNames' => '1.3.6.1.2.1.11.4',
+    'snmpInBadCommunityUses' => '1.3.6.1.2.1.11.5',
+    'snmpInASNParseErrs' => '1.3.6.1.2.1.11.6',
+    'snmpInTooBigs' => '1.3.6.1.2.1.11.8',
+    'snmpInNoSuchNames' => '1.3.6.1.2.1.11.9',
+    'ifName' => '1.3.6.1.2.1.31.1.1.1.1',
+    'ifInMulticastPkts' => '1.3.6.1.2.1.31.1.1.1.2',
+    'ifInBroadcastPkts' => '1.3.6.1.2.1.31.1.1.1.3',
+    'ifOutMulticastPkts' => '1.3.6.1.2.1.31.1.1.1.4',
+    'ifOutBroadcastPkts' => '1.3.6.1.2.1.31.1.1.1.5',
+    'ifHCInOctets' => '1.3.6.1.2.1.31.1.1.1.6',
+    'ifHCInUcastPkts' => '1.3.6.1.2.1.31.1.1.1.7',
+    'ifHCInMulticastPkts' => '1.3.6.1.2.1.31.1.1.1.8',
+    'ifHCInBroadcastPkts' => '1.3.6.1.2.1.31.1.1.1.9',
+    'ifHCOutOctets' => '1.3.6.1.2.1.31.1.1.1.10',
+    'ifHCOutUcastPkts' => '1.3.6.1.2.1.31.1.1.1.11',
+    'ifHCOutMulticastPkts' => '1.3.6.1.2.1.31.1.1.1.12',
+    'ifHCOutBroadcastPkts' => '1.3.6.1.2.1.31.1.1.1.13',
+    'ifLinkUpDownTrapEnable' => '1.3.6.1.2.1.31.1.1.1.14',
+    'ifHighSpeed' => '1.3.6.1.2.1.31.1.1.1.15',
+    'ifPromiscuousMode' => '1.3.6.1.2.1.31.1.1.1.16',
+    'ifConnectorPresent' => '1.3.6.1.2.1.31.1.1.1.17',
+    'ifAlias' => '1.3.6.1.2.1.31.1.1.1.18',
+    'ifCounterDiscontinuityTime' => '1.3.6.1.2.1.31.1.1.1.19',
+    'experimental' => '1.3.6.1.3',
+    'private' => '1.3.6.1.4',
+    'enterprises' => '1.3.6.1.4.1',
+  );
+
+
+
+
+my $CMTS_prompt         = (defined($conf{BSR1000_PROMPT})) ? $conf{BSR1000_PROMPT} : 'catv0';
+my $CMTS_terminal_lines = 100;
+
+use Nas;
+my $nas = Nas->new($db, \%conf);
+
+my %bsr1000_commands = ('show cable modem'    => '',
+                        'show running-config' => '',
+                        'show version'        => '',
+                        'show memory information' => '',
+                        'show log'            => '',
+                        'show pool'           => '',
+                        'show tcp brief'      => '',
+                        'show tcp statistics' => '',
+                        'show interface cable 0/0 upstream' => '',
+                        'show cable flap-list' => '',
+                        'show clock'           => '',
+                        'show process'        => '',
+                        'show cable spectrum-group' => '',
+                        'show cable resource-manager' => '');
+
+
+                          
+#**********************************************************
+#
+#**********************************************************
+sub Bsr1000_online () {
+
+  if ($FORM{NAS_ID}) {
+    $nas->info( { NAS_ID => $FORM{NAS_ID}	} );
+    $pages_qs.="&NAS_ID=$FORM{NAS_ID}";
+    Bsr1000_cmd();
+   }
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_NAS",
+                            border     => 1,
+                            title      => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_STATUS", '-', '-'],
+                            cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'center'],
+                                  });
+my $list = $nas->list({ %LIST_PARAMS, TYPE =>  'bsr1000' });
+
+
+foreach my $line (@$list) {
+  $table->addrow($line->[0], 
+    $line->[1], 
+    $line->[2], 
+    $line->[3], $line->[4], 
+    $status[$line->[6]],
+    $html->button("MODEMS", "index=$index&NAS_ID=$line->[0]&command=show cable modem"),
+    $html->button("Commands", "index=$index&NAS_ID=$line->[0]")
+   );
+}
+print $table->show();
+}
+
+
+
+#**********************************************************
+# Bsr1000_cmd
+#**********************************************************
+sub Bsr1000_cmd {
+
+  if(length($FORM{command})>0){
+    $nas->info({ NAS_ID => $FORM{NAS_ID}});
+
+    require 'Abills/nas.pl';
+
+
+    my @commands = ( "Password:\t$nas->{NAS_MNG_PASSWORD}",
+                     "$CMTS_prompt\tenable",
+                     "Password:\t$nas->{NAS_MNG_PASSWORD}",
+                     "$CMTS_prompt\tset terminal lines $CMTS_terminal_lines",
+                     "$CMTS_prompt\t$FORM{command}",
+                     "$CMTS_prompt\t",
+                     "\texit"
+      );
+
+    my $result = telnet_cmd("$nas->{NAS_MNG_IP_PORT}", \@commands, { debug => 1 });
+    my $total=0;
+    my @rows = split(/\n/, $result);
+
+    if($FORM{command} eq 'show cable modem') {
+    	my $table = $html->table({ width       => '100%',
+                                 border      => 1,
+                                 title_plain => ['Interface', 'Prim Sid', 'Connect state', 'Timing Offset', 'Rec Power', 'Ip Address', 'Mac Address', '-', '-', '-'],
+                                 cols_align  => ['right', 'center', 'right', 'left', 'left', 'center'],
+                                 #qs          => $pages_qs,
+                                 caption     => 'Modems'
+                                  } );
+ 
+     my %interfaces = ();
+     foreach my $line (@rows) {
+
+       if($line =~ /Cable\s+(\d\/\d\/U\d)\s(\d+)\s+([a-z]+)\s+(\d+)\s+(\d+)\s+([0-9.]+)\s+([0-9a-f.]+)/) {
+
+         $table->{rowcolor} = (defined($FORM{SID}) && $FORM{SID} == $2) ? $_COLORS[0] : undef;
+
+         $table->addrow($1, $2, $3, $4, $5, $6, $7,
+         $html->button("D", "index=$index$pages_qs&SID=$2&command=show cable modem detail $2", { TITLE => 'Detail' }),
+         $html->button("P", "index=$index$pages_qs&SID=$2&command=ping $6", { TITLE => 'Ping'   }),
+         $html->button("H", "index=$index$pages_qs&SID=$2&command=clear cable modem $7 reset",  { TITLE => 'Hangup' })
+         );
+         
+         $interfaces{"$1"}++;
+         $total++;
+        }
+      }
+     print $table->show();
+
+     $table = $html->table( {
+     	                        width    => '100%',
+                              cols_align => ['right', 'right'],
+                              rows => [ ["$_TOTAL:", "<b>$total</b>" ] ]
+                               } );
+     while(my($k, $v)=each %interfaces){
+          $table->addrow($k, $v);
+      }
+     print $table->show();
+
+     }
+    elsif ($FORM{command} =~ /show cable modem detail/) {
+
+      if ($result =~ /Unable to locate the cable modem for sid/g) {
+       	 $html->message('err', $_ERROR, "Unable to locate the cable modem for sid $FORM{SID}");
+       }
+      else {
+  	     $table = $html->table( {
+     	                        width    => '500',
+                              cols_align => ['right', 'right'],
+                               } );
+        foreach my $line (@rows) {
+          #$line =~ /(\S+)\s+(\w+)/;
+          if ($line =~ /\t|##|--|Equalization|\d{2}/) {
+            my($k, $v)=split(/\t/, $line, 2);
+            $table->addrow($k, $v);
+           }
+         }
+        print $table->show();
+      }
+
+      $FORM{command}='show cable modem';
+      Bsr1000_cmd();
+     }
+    else {
+      $result =~s/\n/<br>/g;
+      $html->message('info', $_INFO, "<code>$result</code>");
+      if ($FORM{command} =~ /ping|clear cable modem|show cable modem detail/) {
+        $FORM{command}='show cable modem';
+        Bsr1000_cmd();
+        return 0;
+      }
+    }
+  }
+
+print  $html->form_main({ CONTENT => "Command: ". $html->form_input('command', "$FORM{command}"),
+  	                      HIDDEN  => { index   => "$index",
+  	                      	           NAS_ID  => "$FORM{NAS_ID}"  
+  	                      	          },
+	                        SUBMIT  => { go   => "$_SHOW"} 
+	                        });
+
+ $table = $html->table({ caption => 'Commands',
+  	                      width => '100%',
+                          border => 1,
+                          title => ["_COMMAND", "_HELP"],
+                          cols_align => ['left', 'left']
+                         });
+    
+  foreach my $k (sort keys %bsr1000_commands) {
+     $table->addrow($html->button("$k", "index=$index&NAS_ID=$FORM{NAS_ID}&command=$k"), $bsr1000_commands{$k});
+   }
+  print $table->show();
+
+
+ #show cable modem
+
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub Bsr1000_log {
+
+
+    	my $table = $html->table({ width       => '100%',
+                                 border      => 1,
+                                 title_plain => ['-', '-'],
+                                 cols_align  => ['left', 'left'],
+                                 #qs          => $pages_qs,
+                                 caption     => 'LOG'
+                               });
+
+
+my $list = $nas->list({ %LIST_PARAMS, TYPE =>  'bsr1000' });
+
+
+
+foreach my $line (@$list) {
+  $table->{rowcolor}=$_COLORS[0];
+  $table->addrow("$line->[0]:<b>$line->[1]</b>:$line->[3]") ;
+  $table->{rowcolor}=undef;
+  my @arr = snmpwalk("$line->[11]\@$line->[3]", '1.3.6.1.4.1.4981.3.9.1.2');
+  for( my $i=$#arr; $i>=0; $i--) {
+    $table->addrow($arr[$i]);
+  }
+}
+
+print $table->show();
+
+
+my %info = (
+'rdnSyslogSize' => '',
+'rdnSyslogMaxSize' => '', 
+'rdnSyslogServerEnable'  => '',
+#rdnSyslogServerTable
+#   rdnSyslogServerAddress  
+#   rdnSyslogServerStatus
+'rdnSyslogSeverity'  => '',
+'rdnSyslogConsoleSeverity' =>  '',
+'rdnSyslogClear'  => '', 
+'rdnSyslogTrapSeverity' => ''
+);
+  
+	
+	
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub Bsr1000_info {
+	
+	
+	
+	
+	
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub Bsr1000_Docsis_modems {
+	
+   my %fields = (
+#            docsIfCmtsCmStatusIndex               => '1',
+            docsIfCmtsCmStatusMacAddress          => '2',
+            docsIfCmtsCmStatusIpAddress           => '3',
+            docsIfCmtsCmStatusDownChannelIfIndex  => '4',
+            docsIfCmtsCmStatusUpChannelIfIndex    => '5',
+            docsIfCmtsCmStatusRxPower             => '6',
+            docsIfCmtsCmStatusTimingOffset        => '7',
+            docsIfCmtsCmStatusEqualizationData    => '8',
+
+            docsIfCmtsCmStatusValue               => '9',
+            docsIfCmtsCmStatusUnerroreds          => '10',
+            docsIfCmtsCmStatusCorrecteds          => '11',
+            docsIfCmtsCmStatusUncorrectables      => '12',
+            docsIfCmtsCmStatusSignalNoise         => '13',
+            docsIfCmtsCmStatusMicroreflections    => '14'   
+           );
+	
+
+my $OIDS_EXINFO = snmputils_load_mibs(['DOCS-IF-MIB' ]);
+
+#if ($FORM{Client}) {
+#	my %info = ();
+#
+#  use Users;
+#  my $users = Users->new($db, $admin, \%conf); 
+#  
+#  my $list = $users->list({ COMMENTS => '%cisco_air:'. $FORM{MAC} .'%'  });
+#  #cisco_air:00:11:95:e9:3b:2e
+#  $info{MAC} = $FORM{MAC};
+#  if ($users->{TOTAL} > 0) {
+#	  $info{LOGIN} = $html->button("$list->[0]->[0]", "index=11&UID=$list->[0]->[5]");
+#	 }
+#  else {
+#	  $info{LOGIN} = "Check comment for cisco_air:MAC";
+#	 }
+#  
+#  $Nas->info({ NAS_ID => $FORM{NAS_ID} });
+#
+#  foreach my $key (keys %fields) {
+#	 	$info{$key} = snmpget("$Nas->{NAS_MNG_PASSWORD}\@$Nas->{NAS_IP}", $fields{$key}. '.1.7.119.108.97.110.119.101.112.'. $FORM{Client});
+#	 	print "$key: $fields{$key}.1.7.119.108.97.110.119.101.112.$FORM{Client} = $info{$key}<br>" if ($debug == 1);
+#	 	$info{$key} = data_convert($key, $info{$key});
+#	 }
+#
+#	$html->tpl_show(_include('snmputils_cisco_air_client_info', 'Snmputils'), \%info);
+#	return 0;
+#}
+
+
+my @default_fields = ('docsIfCmtsCmStatusMacAddress',
+                      'docsIfCmtsCmStatusIpAddress',
+                      'docsIfCmtsCmStatusDownChannelIfIndex',
+                      'docsIfCmtsCmStatusUpChannelIfIndex',
+                      'docsIfCmtsCmStatusValue',
+                      'docsIfCmtsCmStatusSignalNoise',
+                      'docsIfCmtsCmStatusRxPower',
+                      'docsIfCmtsCmStatusTimingOffset'
+                      );
+
+
+if ($FORM{fields}) {
+  @default_fields = split(/, /, $FORM{fields});
+}
+
+
+
+$table = $html->table({ width       => '100%',
+                        caption     => "BSR 1000",
+                        border      => 1,
+                        title       => [@default_fields, '-', '-'],
+                        cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 
+                          'center', 'center'],
+                      });
+
+my $total_sessions = 0;
+my $oid_prefix = '1.3.6.1.2.1.10.127.1.3.3.1.';
+
+
+my $list = $nas->list({ %LIST_PARAMS, TYPE =>  'bsr1000' });
+foreach my $line (@$list) {
+  my $total_users = 0;
+  my $total_active = 0;
+  my %info  = ();
+  my %result = ();
+
+
+  foreach my $field (@default_fields) {
+    my @arr = snmpwalk("$line->[11]\@$line->[3]", $oid_prefix . $fields{$field});
+    
+    print "$field <b>$oid_prefix$fields{$field}</b><br>" if ($debug == 1);
+    
+    foreach my $line (@arr) {
+      if ($line =~ /^(\d+):(.+)/) {
+      	$result{$field}{$1}=$2;
+        print "$field // $line<br> // $1 / $2 <br>" if ($debug == 1);
+       }
+     }
+   }
+
+
+
+  my @MAC_ARR = keys %{ $result{ $default_fields[0] } } ;
+  
+  $table->{rowcolor}=$_COLORS[0];
+  $table->{extra}="colspan='". ($#default_fields + 2) ."' class='small'";
+  $table->addrow("$line->[0]:<b>$line->[1]</b>:$line->[3]");
+
+  $total_sessions += $#MAC_ARR + 1;
+
+  undef($table->{rowcolor});
+  undef($table->{extra});
+
+    foreach my $k ( @MAC_ARR ) {
+      #my @arr = ();
+      push @{ $info{$result{docsIfCmtsCmStatusDownChannelIfIndex}{$k}}{$result{docsIfCmtsCmStatusUpChannelIfIndex}{$k}} }, $k;
+
+      $total_active++ if ($result{docsIfCmtsCmStatusValue}{$k} == 6);
+
+      foreach my $ft (@default_fields) {
+        $result{$ft}{$k} = data_convert($ft, $result{$ft}{$k}, { OIDS_EXINFO => $OIDS_EXINFO });
+      	#push @arr, $result{$ft}{$k};
+       }
+    	
+#    	$table->addrow(#$html->button("<CODE>$mac</CODE>", "index=$index&NAS_TYPE=bsr1000&Client=$k&NAS_ID=$line->[0]"), 
+#                     @arr,
+#    	               "(". $html->button('H', "index=$index&hangup=$k", { TITLE => 'Hangup' }). ")"
+#                     );
+     }
+#last;
+
+
+
+$table = $html->table( { width      => '100%',
+                         caption    => "$_SESSIONS", 
+                         title      => ["UP", "DOWN", "MAC", "IP", "$_STATE", "Noise", "Rx Power", "$_DURATION", '-', '-'],
+                         cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'center', 'center'],
+                         qs         => $pages_qs             
+                      } );
+
+
+while(my ($up_channel, $up_chanell_hash) = each %info) {
+
+  my @down_channels = sort keys %$up_chanell_hash;
+
+  for (my $i=0; $i<=$#down_channels; $i++) {
+     $total_users += $#{ $info{$up_channel}{$down_channels[$i]} } + 1;
+   }
+
+   my $up_channel_name = snmpget("$line->[11]\@$line->[3]", "1.3.6.1.2.1.2.2.1.2.$up_channel");
+   my $down_channel_name = snmpget("$line->[11]\@$line->[3]", "1.3.6.1.2.1.2.2.1.2.$down_channels[0]");
+   $table->addtd(
+             $table->td($up_channel_name, { rowspan => $total_users  } ),
+             $table->td($down_channel_name, { bgcolor => $_COLORS[1], rowspan => $#{ $info{$up_channel}{$down_channels[0]} } + 1  }), 
+             $table->td($result{docsIfCmtsCmStatusMacAddress}{$info{$up_channel}{$down_channels[0]}[0]}),
+             $table->td($result{docsIfCmtsCmStatusIpAddress}{$info{$up_channel}{$down_channels[0]}[0]}),
+             $table->td($result{docsIfCmtsCmStatusValue}{$info{$up_channel}{$down_channels[0]}[0]}),
+             $table->td($result{docsIfCmtsCmStatusSignalNoise}{$info{$up_channel}{$down_channels[0]}[0]}),
+             $table->td($result{docsIfCmtsCmStatusRxPower}{$info{$up_channel}{$down_channels[0]}[0]}),
+             $table->td($result{docsIfCmtsCmStatusTimingOffset}{$info{$up_channel}{$down_channels[0]}[0]}),
+             $table->td($html->button('(P)', "")),
+             $table->td($html->button('(H)', ""))
+
+      );
+
+   for(my $i=1;  $i<=$#{ $info{$up_channel}{$down_channels[0]} }; $i++) { 
+     $table->addrow(
+             $result{docsIfCmtsCmStatusMacAddress}{$info{$up_channel}{$down_channels[0]}[$i]},
+             $result{docsIfCmtsCmStatusIpAddress}{$info{$up_channel}{$down_channels[0]}[$i]},
+             $result{docsIfCmtsCmStatusValue}{$info{$up_channel}{$down_channels[0]}[$i]},
+             $result{docsIfCmtsCmStatusSignalNoise}{$info{$up_channel}{$down_channels[0]}[$i]},
+             $result{docsIfCmtsCmStatusRxPower}{$info{$up_channel}{$down_channels[0]}[$i]},
+             $result{docsIfCmtsCmStatusTimingOffset}{$info{$up_channel}{$down_channels[0]}[$i]},
+             $html->button('(P)', ""),
+             $html->button('(H)', "")
+
+            );  
+    }
+
+
+  for (my $down_channel=1; $down_channel<=$#down_channels; $down_channel++) {
+      $down_channel_name = snmpget("$line->[11]\@$line->[3]", "1.3.6.1.2.1.2.2.1.2.$down_channels[$down_channel]");
+      
+      $table->addtd( $table->td($down_channel_name, 
+                     { bgcolor => $_COLORS[1], rowspan => $#{ $info{$up_channel}{$down_channels[$down_channel]} } + 1  }), 
+             $table->td($result{docsIfCmtsCmStatusMacAddress}{$info{$up_channel}{$down_channels[$down_channel]}[$i]}),
+             $table->td($result{docsIfCmtsCmStatusIpAddress}{$info{$up_channel}{$down_channels[$down_channel]}[0]}),
+             $table->td($result{docsIfCmtsCmStatusValue}{$info{$up_channel}{$down_channels[$down_channel]}[0]}),
+             $table->td($result{docsIfCmtsCmStatusSignalNoise}{$info{$up_channel}{$down_channels[$down_channel]}[0]}),
+             $table->td($result{docsIfCmtsCmStatusRxPower}{$info{$up_channel}{$down_channels[$down_channel]}[0]}),
+             $table->td($result{docsIfCmtsCmStatusTimingOffset}{$info{$up_channel}{$down_channels[$down_channel]}[0]}),
+             
+             $table->td($html->button('(P)', "")),
+             $table->td($html->button('(H)', ""))
+
+           );  
+
+      for(my $i=1;  $i<=$#{ $info{$up_channel}{$down_channels[$down_channel]} }; $i++) { 
+        $table->addrow($result{docsIfCmtsCmStatusMacAddress}{$info{$up_channel}{$down_channels[$down_channel]}[$i]},
+             $result{docsIfCmtsCmStatusIpAddress}{$info{$up_channel}{$down_channels[$down_channel]}[$i]},
+             $result{docsIfCmtsCmStatusValue}{$info{$up_channel}{$down_channels[$down_channel]}[$i]},
+             $result{docsIfCmtsCmStatusSignalNoise}{$info{$up_channel}{$down_channels[$down_channel]}[$i]},
+             $result{docsIfCmtsCmStatusRxPower}{$info{$up_channel}{$down_channels[$down_channel]}[$i]},
+             $result{docsIfCmtsCmStatusTimingOffset}{$info{$up_channel}{$down_channels[$down_channel]}[$i]},
+             
+             $html->button('(P)', ""),
+             $html->button('(H)', "")
+            );  
+       }
+
+   }
+
+ 
+}
+print $table->show();
+
+$table = $html->table({ width       => '100%',
+                        rowcolor    => $_COLORS[3],
+                        cols_align  => ['right', 'left', 'right', 'right', 'center'],    
+                        rows        => [ ["$_TOTAL:", "$_USERS:", "$total_users", "Online:", "$total_active" ]]
+                      });
+
+print $table->show();
+
+
+}
+
+
+#  snmp_form_footer(\%fields, \@default_fields,  
+#    { OIDS_EXINFO =>  $OIDS_EXINFO });
+
+	
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub Bsr1000_Docsis_events {
+ 
+
+  my @MIBs = (     'DOCS-IF-MIB',
+                   'DOCS-CABLE-DEVICE-MIB',
+                   'DOCS-IF-EXT-MIB');
+
+  foreach my $line (@MIBs) {
+    next if (! -f "../../Abills/MIBs/$line");
+    my($ret, $oid_hash, $oid_ex) = snmpMIB_to_OID("../../Abills/MIBs/$line");
+  }
+
+my %AUTO_ASIGN = ('docsDevEvLevel' => {1 => 'emergency',
+                                       2 => 'alert',
+                                       3 => 'critical',
+                                       4 => 'error',
+                                       5 => 'warning',
+                                       6 => 'notice',
+                                       7 => 'information',
+                                       8 => 'debug' }
+                  );
+ 
+ 
+my $table = $html->table({ width       => '100%',
+                           border      => 1,
+                           title_plain => ['-', '-'],
+                           cols_align  => ['left', 'left'],
+                           #qs          => $pages_qs,
+                           caption     => 'LOG'
+                         });
+
+
+my $list = $nas->list({ %LIST_PARAMS, TYPE =>  'bsr1000' });
+
+foreach my $line (@$list) {
+    my %result = &snmpwalkhash("$line->[11]\@$line->[3]", \&my_simple_hash, '1.3.6.1.2.1.69.1.5.8.1');
+    my @CAPTION = keys %result;
+    my @RES_ARR = sort { $a <=> $b } keys %{ $result{"$CAPTION[0]"} };
+    
+  
+    if ($SNMP_Session::errmsg) {
+       print $html->message('err', $_ERROR, "$FORM{TYPE}<br>$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
+     }
+
+    $table = $html->table({ width      => '100%',
+                            caption     => "$_RESULT: $SNMP_COMMUNITY",
+                            border      => 1,
+                            title       => ['index', @CAPTION],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center']
+                           });
+      
+
+    for(my $i=$#RES_ARR; $i>=0; $i--) {
+       my $k = $RES_ARR[$i];
+       my @arr = ($k);
+       foreach my $ft (@CAPTION) {
+         #$result{$ft}{$k} = data_convert($ft, $result{$ft}{$k});
+        if  ($ft eq 'docsDevEvLastTime'  || $ft eq 'docsDevEvFirstTime') {
+        	#(my $str = shift) =~ s/([a-fA-F0-9]{2})/chr(hex $result{$ft}{$k})/eg;
+          
+        	my($year, $year2, $month, $day, $hour, $minute, $seconds, $sec_dec)= unpack "%CCCCCCCC", $result{$ft}{$k};
+        	$result{$ft}{$k} = ($year*256 + $year2)."-$month-$day $hour:$minute:$seconds.$sec_dec";
+         }
+        
+        $result{$ft}{$k}="$AUTO_ASIGN{$ft}{$result{$ft}{$k}} ($result{$ft}{$k})" if ($AUTO_ASIGN{$ft});
+       	push @arr, ($OIDS_EXINFO{$ft}{ACCESS} eq 'read-write') ? $html->button("$result{$ft}{$k}", "index=$index&change=y&SNMP_INDEX=$k&SNMP_OID=$OIDS_HASH{$ft}$page_qs") : $result{$ft}{$k};
+        }
+       $table->addrow(@arr);
+       $rows_count++;
+     }
+}
+
+
+print $table->show();
+
+	
+}
+
+
+sub my_simple_hash {
+        my ($h_ref, $host, $name, $oid, $inst, $value) = @_;
+        $inst =~ s/^\.+//;
+        if ($name =~/ifPhysAddress/)
+        {
+                my $mac = '';
+                map { $mac .= sprintf("%02X:",$_) } unpack "CCCCCC", $value;
+                $value = $mac;
+        }
+        $h_ref->{$name}->{$inst} = $value;
+}
+
+
+
+sub snmputils_load_mibs  {
+ my ($mib_array, $attr) = @_;
+
+ my %OIDS_EXINFO = ();
+
+  foreach my $line (@$mib_array) {
+    next if (! -f "../../Abills/MIBs/$line");
+    my($ret, $oid_hash, $oid_ex) = snmpMIB_to_OID_extended("../../Abills/MIBs/$line");
+
+    print "MIBS: $line Loaded<br> " if ($debug == 1);
+
+    while(my($k, $v)=each %$oid_hash) {
+  	  $OIDS_EXINFO{$k}{DESCRIBE}=$oid_ex->{$k}{DESCRIPTION} if ($oid_ex->{$k}{DESCRIPTION});
+  	  $OIDS_EXINFO{$k}{ACCESS}=$oid_ex->{$k}{ACCESS} if ($oid_ex->{$k}{ACCESS});
+  	  $OIDS_EXINFO{$k}{SYNTAX}=$oid_ex->{$k}{SYNTAX} if ($oid_ex->{$k}{SYNTAX});
+  	  $OIDS_EXINFO{$k}{MIB}="$line" if (! $OIDS_EXINFO{$k}{MIB});
+  	  snmpmapOID("$k", "$v");
+     }
+   }
+  
+  return \%OIDS_EXINFO;
+}
+
+
+
+#
+# Read in the passed MIB file, parsing it
+# for their text-to-OID mappings
+#
+sub snmpMIB_to_OID_extended ($) {
+  my($arg) = @_;
+  my($quote, $buf, $var, $code, $val, $tmp, $tmpv, $strt);
+  my($ret, $pass, $pos, $need2pass, $cnt, %prev);
+  my(%Link) = (
+    'org' => 'iso',
+    'dod' => 'org',
+    'internet' => 'dod',
+    'directory' => 'internet',
+    'mgmt' => 'internet',
+    'mib-2' => 'mgmt',
+    'experimental' => 'internet',
+    'private' => 'internet',
+    'enterprises' => 'private',
+  );
+
+
+
+
+
+
+
+
+  #my %OIDS_HASH = ();
+  my %OIDS_EX = ();
+  
+  if (!open(MIB, $arg)) {
+    carp "snmpMIB_to_OID: Can't open $arg: $!"
+      unless ($SNMP_Session::suppress_warnings > 1);
+    return -1;
+  }
+  print "snmpMIB_to_OID: loading $arg\n" if $SNMP_util::Debug;
+  $ret = 0;
+  $pass = 0;
+  $need2pass = 1;
+  $cnt = 0;
+  $pos = tell(MIB);
+  
+  my %DESCRIBE_OIDS = ();
+  #my @MIB_ARRAY =
+  my $MIB_NAME;
+  
+  while($need2pass) {
+    while(<MIB>) {
+      s/--.*--//g;	# throw away comments (-- anything --)
+      s/--.*//;		# throw away comments (-- anything EOL)
+      if ($quote) {
+	      next unless /"/;
+	      $quote = 0;
+       }
+      chop;
+#
+#	$buf = "$buf $_";
+# Previous line removed (and following replacement)
+# suggested by Brian Reichert, reichert@numachi.com
+#
+      $buf .= ' ' . $_;
+      $buf =~ s/\s+/ /g;
+
+ if ($buf =~ / DEFINITIONS ::= BEGIN/) {
+
+  if ($buf =~ /(\S+) DEFINITIONS/) {
+    $MIB_NAME = $1;
+    #print "$MIB_NAME\n";
+   }
+  
+	if ($pass == 0 && $need2pass) {
+	  seek(MIB, $pos, 0);
+	  $buf = "";
+	  $pass = 1;
+	  $need2pass = 0;
+	  $cnt = 0;
+	  next;
+	}
+	$need2pass = 0;
+	$pass = 0;
+	$pos = tell(MIB);
+	undef %Link;
+	undef %prev;
+	%Link = (
+	  'org' => 'iso',
+	  'dod' => 'org',
+	  'internet' => 'dod',
+	  'directory' => 'internet',
+	  'mgmt' => 'internet',
+	  'mib-2' => 'mgmt',
+	  'experimental' => 'internet',
+	  'private' => 'internet',
+	  'enterprises' => 'private',
+	);
+	$buf = "";
+	next;
+ }
+elsif ($buf =~ /FROM (\S+)/) {
+	 if (! $loaded_mibs{$1}) {
+	   print "FROM $1\n" if ($debug == 1);
+	  }
+	 $buf =~ s/FROM $1//;
+ }
+
+#print $buf."\n";
+
+ if ($buf =~ /DESCRIPTION.+"(.+)"+/g) {
+ 	 $DESCRIBE_OIDS{DESCRIPTION}=$1;
+ 	 #print "DESCRIPTION: <b>$DESCRIBE_OIDS{DESCRIPTION}</b>\n";
+ 	 #next;
+  }
+ elsif ($buf =~ /ACCESS (\S+)/) {
+   $DESCRIBE_OIDS{ACCESS}=$1;
+   $buf =~ s/ACCESS $1//;
+ 	 next;
+   #print "MAX-ACCESS <b>$DESCRIBE_OIDS{ACCESS}</b>\n";
+  }
+ elsif ($buf =~ /(\S+) OBJECT-TYPE/) {
+   $DESCRIBE_OIDS{'OBJECT-TYPE'}=$1;
+   #print "OBJECT-TYPE <b>$DESCRIBE_OIDS{'OBJECT-TYPE'}</b>\n";
+   #next;
+  }
+ elsif ($buf =~ /SYNTAX (\w+)/) {
+ 	 #print "$buf<br>";
+ 	 $DESCRIBE_OIDS{'SYNTAX'}=$1;
+   $buf =~ s/ SYNTAX .*//;
+ 	 next;
+  }
+
+      $buf =~ s/OBJECT-TYPE/OBJECT IDENTIFIER/;
+      $buf =~ s/OBJECT-IDENTITY/OBJECT IDENTIFIER/;
+      $buf =~ s/OBJECT-GROUP/OBJECT IDENTIFIER/;
+      $buf =~ s/MODULE-IDENTITY/OBJECT IDENTIFIER/;
+      $buf =~ s/ IMPORTS .*\;//;
+      $buf =~ s/ SEQUENCE {.*}//;
+
+      $buf =~ s/ [\w-]+ ::= OBJECT IDENTIFIER//;
+      $buf =~ s/ OBJECT IDENTIFIER .* ::= {/ OBJECT IDENTIFIER ::= {/;
+      $buf =~ s/".*"//;
+
+#
+
+
+  if ($buf =~ /"/) {
+	  $quote = 1;
+    }
+#      	print "----- $buf.\n";
+
+      if ($buf =~ / ([\w\-]+) OBJECT IDENTIFIER ::= {([^}]+)}/) {
+      	
+
+	$var = $1;
+	$buf = $2;
+#print "$var  // $buf.
+#      	DESCRIPTION: <b>$DESCRIBE_OIDS{DESCRIPTION}</b>
+#      	MAX-ACCESS <b>$DESCRIBE_OIDS{ACCESS}</b>
+#      	OBJECT-TYPE <b>$DESCRIBE_OIDS{'OBJECT-TYPE'}</b>
+#
+#";
+#
+     
+	undef $val;
+	$buf =~ s/ +$//;
+	($code, $val) = split(' ', $buf, 2);
+
+  $OIDS_EX{$var}{SYNTAX}=$DESCRIBE_OIDS{SYNTAX};
+  $OIDS_EX{$var}{ACCESS}=$DESCRIBE_OIDS{ACCESS};
+  $OIDS_EX{$var}{DESCRIPTION}=$DESCRIBE_OIDS{DESCRIPTION};
+  
+ 
+  %DESCRIBE_OIDS=();
+  
+	if (!defined($val) || (length($val) <= 0)) {
+	  #$SNMP_util::OIDS{$var} = $code;
+	  $OIDS_HASH{$var} = $code;
+	  $cnt++;
+	  print "'$var' => '$code'\n" if $SNMP_util::Debug;
+	} else {
+	  $strt = $code;
+	  while($val =~ / /) {
+	    ($tmp, $val) = split(' ', $val, 2);
+	    if ($tmp =~ /([\w\-]+)\((\d+)\)/) {
+	      $tmp = $1;
+	      if (exists($OIDS_HASH{$strt})) {
+		$tmpv = "$OIDS_HASH{$strt}.$2";
+	      } else {
+		$tmpv = $2;
+	      }
+	      $Link{$tmp} = $strt;
+	      if (!exists($prev{$tmp}) && exists($OIDS_HASH{$tmp})) {
+		if ($tmpv ne $OIDS_HASH{$tmp}) {
+		  $strt = "$strt.$tmp";
+		  $OIDS_HASH{$strt} = $tmpv;
+		  $cnt++;
+		}
+	      } else {
+		$prev{$tmp} = 1;
+		$OIDS_HASH{$tmp} = $tmpv;
+		$cnt++;
+		$strt = $tmp;
+	      }
+	    }
+	  }
+
+	  if (!exists($OIDS_HASH{$strt})) {
+	    if ($pass) {
+	      carp "snmpMIB_to_OID: $arg: \"$strt\" prefix unknown, load the parent MIB first.\n"
+		unless ($SNMP_Session::suppress_warnings > 1);
+		print "snmpMIB_to_OID: $arg: \"$strt\" prefix unknown, load the parent MIB first.<br>\n";
+	    } else {
+		$need2pass = 1;
+	    }
+	  }
+	  $Link{$var} = $strt;
+	  if (exists($OIDS_HASH{$strt})) {
+	    $val = "$OIDS_HASH{$strt}.$val";
+	  }
+	  if (!exists($prev{$var}) && exists($OIDS_HASH{$var})) {
+	    if ($val ne $OIDS_HASH{$var}) {
+	      $var = "$strt.$var";
+	    }
+	  }
+
+	  $OIDS_HASH{$var} = $val;
+	  $prev{$var} = 1;
+	  $cnt++;
+
+	  print "'$var' => '$val'\n" if $SNMP_util::Debug;
+	}
+	undef $buf;
+      }
+    }
+
+    if ($pass == 0 && $need2pass) {
+      seek(MIB, $pos, 0);
+      $buf = "";
+      $pass = 1;
+      $cnt = 0;
+    } else {
+      $ret += $cnt;
+      $need2pass = 0;
+    }
+  }
+  close(MIB);
+  $RevNeeded = 1;
+  
+  $loaded_mibs{$MIB_NAME}=1;
+  
+  return ($ret, \%OIDS_HASH, \%OIDS_EX);
+}
+
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub snmp_form_footer {
+	my ($fields, $active_fields, $attr) = @_;
+
+
+
+  #if ($attr->{OIDS_EXINFO});
+ 
+
+my $table2 = $html->table({ width => '100%' });
+my @arr = ();
+foreach my $name ( sort keys %$fields) {
+  my $ex_info = ($attr->{OIDS_EXINFO}->{$name}{DESCRIBE}) ?  " ($attr->{OIDS_EXINFO}->{$name}{ACCESS})<br>$attr->{OIDS_EXINFO}->{$name}{DESCRIBE}" : '';
+  push @arr, $html->form_input('fields', "$name", { TYPE => 'checkbox', STATE => (in_array($name, $active_fields)) ? 1 : undef  }). " <b>$name</b>$ex_info";
+
+  if ($#arr > 2) {
+    $table2->addrow(@arr);
+    @arr = ();
+  }
+}
+
+if ($#arr > -1 ) {
+  $table2->addrow(@arr);
+ }
+
+
+
+
+my $table = $html->table( { width       => '100%',
+                         title_plain => [ 
+                                           "$_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
+                                           $html->form_input('SHOW',  $_SHOW, { TYPE => 'SUBMIT'})  
+                                         ],
+                          cols_align => ['center:noprint', 'center:noprint'],
+                       });
+
+print  $output .= $html->form_main({ CONTENT => $table2->show(). $table->show(),
+	                                   HIDDEN  => { index         =>  "$index",
+	                                   	            NAS_TYPE      =>  "$FORM{NAS_TYPE}",
+	                                   	            NAS_HOST      =>  "$FORM{NAS_HOST}",
+	                                   	            NAS_COMMUNITY =>  "$FORM{NAS_COMMUNITY}"
+	                                   	           },
+	                                   METHOD  => 'GET'
+                                   });
+
+	
+}
+
+
+
+#***********************************************************
+#
+#**********************************************************
+sub data_convert  {
+	my ($name, $data, $attr) = @_;
+	
+	my $ret = '';
+        if($attr->{OIDS_EXINFO} && $attr->{OIDS_EXINFO}{$name}{SYNTAX} eq 'MacAddress'){
+           $ret = join(':', unpack("H2H2H2H2H2H2", $data));
+         }
+#Cisco Section
+	      elsif ($name eq 'docsIfCmtsCmStatusValue') {
+	      	my %status = ( 1 => 'other',
+                         2 => 'ranging',
+                         3 => 'rangingAborted',
+                         4 => 'rangingComplete',
+                         5 => 'ipComplete',
+                         6 => 'registrationComplete',
+                         7 => 'accessDenied');
+
+	      	$ret = $status{$data};
+	       }
+	      elsif ($name eq 'cDot11ClientIpAddress') {
+           $ret = int2ip(unpack("N4", $data));
+         }
+        elsif ($name eq 'cDot11ClientParentAddress') {
+        	$ret = join(':', unpack("H2H2H2H2H2H2", $data));
+        	#$ret = join(':', unpack("H*", $data));
+         }
+        elsif ($name eq 'ClinetUpTime') {
+      	  $ret = sec2time($data, { str => 1});
+         }
+        elsif ($name eq 'cDot11ClientDataRateSet') {
+          my @arr = unpack("C*", $data);
+          for(my $i; $i<$#arr; $i++) {
+          	 $arr[$i]=$arr[$i]/2;
+           }
+          $ret = join(", ", @arr). ' Mbps';
+         }
+        elsif ($name eq 'cDot11ClientCurrentTxRateSet' || $name eq 'ClientCurrentTxRateSet') {
+          $ret = (hex((unpack("H2", $data)) ) / 2) . " Mbps";
+         }
+        elsif ($name eq 'cDot11ClientAssociationState') {
+          $ret = $association_state[$data];
+         }
+        else {
+        	$ret = $data;
+         }
+	
+	return $ret;
+}
+
+
+
+
+
+
+
+
+1
+

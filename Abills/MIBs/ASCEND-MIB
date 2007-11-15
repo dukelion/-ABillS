@@ -1,0 +1,1546 @@
+--			Ascend Enterprise MIB
+--
+--			Ascend Communications, Inc
+--			1275 Harbor Bay Pkwy
+--			Alameda, CA 94502
+--			+1 510 769 6001
+--			info@ascend.com
+--
+--		Copyright (c) 1993-1997 Ascend Communications, Inc.
+--		All rights reserved.
+--
+-- CVS ID:      $Id: ASCEND-MIB,v 1.2 2007/11/15 09:29:38 abills Exp $
+--
+-- 01 Dec 93:	Initial release
+-- 18 Aug 94:	Added status and console groups
+-- 22 Mar 95:	Added systemStatus, event, callStatus, and sessionStatus groups
+-- 13 Apr 95:	Shortened some object names to under 32 chars.
+-- 15 Aug 95:	rc  Added eventDisconnectReason, eventConnectProgress, and
+--		    baudRateChanged(6).
+-- 28 Aug 95:	rc  Added serviceModem(37) to hostStatusDataSvc.
+-- 07 Sep 95:	rc  Added sysMibVersionNum, sysMibMinorRevNum, and radiusGroup.
+-- 07 Nov 95:	rc  Added pppCloseNoNcpsOpened(47), pppCloseUnknownMpBundle(48),
+--		    pppCloseMpAddChanFail(49).
+-- 16 Nov 95:	rc  Added prIPXNCPOpened(80).
+-- 18 Dec 95:	rc  Added virtualConnect(16), prModemOutdialCallUp(50),
+--		    tsClosedVirtualConnect(29), tsVirtualConnectDestroyed(30).
+-- 29 Jan 95:	Added additional enums to eventDisconnectReason
+-- 12 Jan 96:   les Added eventCallCharge.
+-- 18 Jan 96:   les Added eventCalledPartyID, eventCallingPartyID,
+--		    eventInOctets, eventOutOctets.
+-- 14 Feb 96:   rc  Added requestByRadiusClient(150).
+-- 20 Apr 96:   kh  Added radAuthHostIPAddress, radAuthCurrentServerFlag,
+--		    radAcctHostIPAddress and radAcctCurrentServerFlag.
+-- 23 Apr 96:   kh  changed radius CurrentServerFlag's to read-write in
+--                  order to allow user to select current server.
+-- 13 Jun 96:   cag Added sysConfigTftpCmd options 3, 4 & 5.
+-- 14 Jun 96:   cag Added product subcategory information to define MAX/PIPE
+--                  models returned by sysObjectID.
+-- 18 Sep 96:   pj  Added mCastGroup
+-- 27 Sep 96:	cag Added sysConfigTftpCmd option 6: load code.
+-- 15 Oct 96:   kh  Added prBACPOpening and prBACPOpened
+-- 17 Oct 96:   rm  Added callStatusType in the callStatusTable
+-- 17 Oct 96:   rm  Added the lanModemGroup
+-- 25 Oct 96:   rm  Added eventCurrentActiveCalls, ....
+-- 29 Oct 96:   rm  Added eventMultiLinkID
+-- 06 Nov 96:   rm  Added busyLanModem, busyLanModemTable sub-group, suspectTrapState
+-- 05 Dec 96:   rm  Added call[Current|Total][Analog|Digital|FrameRelay][Outgoing|Incoming]
+-- 26 Dec 96:   rm  Added sysAbsoluteCurrentTime read-write variable
+-- 07 Jan 97:   rm  Added slotMdmItemStatus and slotMdmItemStatusChar
+-- 15 Jan 97:   rm  Added sessionActiveTable
+-- 16 Jan 97:   rm  Defined new slotType values for TNT
+-- 22 Jan 97:   rm  Added sysReset
+-- 28 Jan 97:   rm  Added callActiveTable
+-- 07 Feb 97:   rm  Added sysLoadName
+-- 22 Mar 97:   jh  Added sysAuthPreference
+-- 19 Feb 97:   dl  Added mppActiveStatsTable
+-- 20 Feb 97:   rm  Added mechanism to kill sessions
+-- 21 Feb 97:   rm  Commented ranges as SunNet Manager does not like it!
+-- 11 Mar 97:   rm  separated the eventGroup, callStatusGroup, sessionStatusGroup,
+--                  lanModemGroup, radiusGroup, mCastGroup, slotMdmTable
+--                  Refer to event.mib, call.mib, session.mib lmodem.mib,
+--                           radius.mib mcast.mib
+-- 02 Apr 97:   lcs Refer to firewall.mib,
+--			     add firewallGroup ::= { ascend 16 }
+-- 16 Apr 97:	dba Added additional enums to eventDisconnectReason
+-- 23 Apr 97:   rm  Added sysProm subgroup
+-- 07 Jul 97:   rm  Added wanDialoutPkt subgroup
+-- 01 Aug 97:   rm  Added powerSupply subgroup
+-- 04 Aug 97:   rm  Added multiShelf subgroup
+-- 28 Aug 97:   rm  Created advancedAgent
+-- 02 Oct 97:   kn  EOI-12553: Back out the changes made on 8/28/97 and
+--                  rename wanInfo to adavancedAgent 
+-- 21 Jan 98:   rm  Added sysLastRestartReason
+-- 02 Feb 98:   kn  Added sysOID for DSLPipe products
+-- 09 Feb 98:   kn  Added sysOID for dslTnt and Pipeline85
+-- 11 Feb 98:   kn  Added sysOID for Pipeline50LS56
+-- 31 Mar 98:   kc  Added additional enums to eventDisconnectReason
+
+
+ASCEND-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+	enterprises
+	    FROM RFC1155-SMI
+	IpAddress
+	    FROM RFC1155-SMI
+	TimeTicks
+	    FROM RFC1155-SMI
+	OBJECT-TYPE
+	    FROM RFC-1212;
+
+	-- If any of the MIB compilers have problems with the DisplayString
+	-- or PhysAddress, uncomment the next two lines.
+
+    DisplayString	::=	OCTET STRING
+    -- PhysAddress	::=	OCTET STRING
+				
+	--
+	-- The Ascend Communications enterprise OID.
+	--
+
+    ascend		OBJECT IDENTIFIER ::= {	 enterprises 529 }
+
+
+	--
+	-- Groups in the Ascend Enterprise mib
+	--
+
+    products		OBJECT IDENTIFIER ::= { ascend 1 }
+
+    slots		OBJECT IDENTIFIER ::= { ascend 2 }
+
+    hostTypes		OBJECT IDENTIFIER ::= { ascend 3 }
+
+    advancedAgent 	OBJECT IDENTIFIER ::= { ascend 4 }
+
+    lanTypes		OBJECT IDENTIFIER ::= { ascend 5 }
+
+    doGroup		OBJECT IDENTIFIER ::= { ascend 6 }
+
+    hostStatus		OBJECT IDENTIFIER ::= { ascend 7 }
+
+    console		OBJECT IDENTIFIER ::= { ascend 8 }
+
+    systemStatusGroup	OBJECT IDENTIFIER ::= { ascend 9 }
+
+    eventGroup		OBJECT IDENTIFIER ::= { ascend 10 }
+
+    callStatusGroup	OBJECT IDENTIFIER ::= { ascend 11 }
+
+    sessionStatusGroup	OBJECT IDENTIFIER ::= { ascend 12 }
+
+    radiusGroup		OBJECT IDENTIFIER ::= { ascend 13 }
+
+    mCastGroup          OBJECT IDENTIFIER ::= { ascend 14 }
+
+    lanModemGroup       OBJECT IDENTIFIER ::= { ascend 15 }
+
+    firewallGroup	OBJECT IDENTIFIER ::= { ascend 16 }
+
+    wanDialoutPkt	OBJECT IDENTIFIER ::= { ascend 17 }
+
+    powerSupply		OBJECT IDENTIFIER ::= { ascend 18 }
+
+    multiShelf		OBJECT IDENTIFIER ::= { ascend 19 }
+
+    miscGroup		OBJECT IDENTIFIER ::= { ascend 20 }
+
+
+	-- Ascend products.
+	--
+	-- Each Ascend product family is Assigned an Object Identifier.
+	-- This is the identifier stored in the MIB-II system group
+	-- item sysObjectID to identify the product to a network manager.
+	-- If product family specific items need to be defined they should
+	-- be defined in the appropriate product family subtree
+
+    multiband		OBJECT IDENTIFIER ::= { products 1 }
+
+    max			OBJECT IDENTIFIER ::= { products 2 }
+
+    pipeline		OBJECT IDENTIFIER ::= { products 3 }
+
+    max-tnt		OBJECT IDENTIFIER ::= { products 4 }
+
+    dslTnt		OBJECT IDENTIFIER ::= { products 5 }
+
+	-- Ascend max product family.
+	--
+	-- There are several products in the MAX family.  This is the
+	-- identifier that enumerates the individual products.
+
+    max200		OBJECT IDENTIFIER ::= { max 1 }
+
+    max1800		OBJECT IDENTIFIER ::= { max 2 }
+
+    max2000		OBJECT IDENTIFIER ::= { max 3 }
+
+    max4000		OBJECT IDENTIFIER ::= { max 4 }
+
+    max4002		OBJECT IDENTIFIER ::= { max 5 }
+
+    max4004		OBJECT IDENTIFIER ::= { max 6 }
+
+    max6000		OBJECT IDENTIFIER ::= { max 7 }
+
+
+	-- Ascend pipeline product family.
+	--
+	-- There are several products in the PIPELINE family.  This is
+	-- the identifier that enumerates the individual products.
+
+    pipe15		OBJECT IDENTIFIER ::= { pipeline 1 }
+
+    pipe25		OBJECT IDENTIFIER ::= { pipeline 2 }
+
+    pipe25Px            OBJECT IDENTIFIER ::= { pipeline 3 }
+
+    pipe25Fx            OBJECT IDENTIFIER ::= { pipeline 4 }
+
+    pipe50		OBJECT IDENTIFIER ::= { pipeline 5 }
+
+    pipe75		OBJECT IDENTIFIER ::= { pipeline 6 }
+
+    pipe130             OBJECT IDENTIFIER ::= { pipeline 7 }
+
+    pipe400		OBJECT IDENTIFIER ::= { pipeline 8 }
+
+    pipe220		OBJECT IDENTIFIER ::= { pipeline 9 }
+
+	-- sysOID for DSLPipe CPE products in the PIPELINE family
+    
+    dslPipeAcap  	OBJECT IDENTIFIER ::= { pipeline 10 }
+
+    dslPipeS		OBJECT IDENTIFIER ::= { pipeline 11 }
+
+    dslPipe2S		OBJECT IDENTIFIER ::= { pipeline 12 }
+
+	-- sysOID for DSLPipe COE products in the PIPELINE family
+    
+    dslPipeAdslCoeC	OBJECT IDENTIFIER ::= { pipeline 13 }
+
+    dslPipeSdslCoe	OBJECT IDENTIFIER ::= { pipeline 14 }
+
+    dslPipeSdslCoe2S	OBJECT IDENTIFIER ::= { pipeline 15 }
+
+	-- sysOID for more Pipeline Products 
+    
+    pipe85		OBJECT IDENTIFIER ::= { pipeline 16 }
+
+    pipe50LS56		OBJECT IDENTIFIER ::= { pipeline 17 }
+
+
+	-- Ascend max-tnt product family.
+	--
+	-- There is only a single product in the MAX-TNT family.
+        -- As more products are added future qualification will
+        -- be performed.
+
+
+	-- Ascend slot management group
+	--
+	-- This group contains the MIB variables used to determine the
+	-- number of slots supported by the device and the type of slot
+	-- card currently installed.
+
+    slotNumber		OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The number of slots, fixed or removable, supported
+			by this device."
+	::= { slots 1 }
+
+
+	-- The slot table
+	--
+	-- This table contains slotNumber entries describing each slot
+	-- 
+
+    slotTable		OBJECT-TYPE
+	SYNTAX		SEQUENCE OF SlotEntry
+	ACCESS		not-accessible
+	STATUS		mandatory
+	DESCRIPTION	"A list of slot entries.  The number of entries is
+			given by the value slotNumber."
+	::= { slots 2 }
+
+    slotEntry		OBJECT-TYPE
+	SYNTAX		SlotEntry
+	ACCESS		not-accessible
+	STATUS		mandatory
+	DESCRIPTION	"A slot entry containing objects to describe the
+			slot."
+	INDEX		{ slotIndex }
+	::= { slotTable 1 }
+
+    SlotEntry ::=
+	SEQUENCE {
+	    slotIndex
+		INTEGER,
+	    slotName
+		DisplayString,
+	    slotType
+		INTEGER,
+	    slotFixed
+		INTEGER,
+	    slotItems
+		INTEGER,
+	    slotSpecific
+		OBJECT IDENTIFIER,
+	    slotSerialNumber
+		INTEGER,
+	    slotStatus
+		INTEGER,
+	    slotLastChange
+		TimeTicks
+	}
+
+    slotIndex		OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"A unique value for each slot.	It's value ranges
+			between 1 and the value slotNumber."
+	::= { slotEntry 1 }
+
+   slotName		OBJECT-TYPE
+	SYNTAX		DisplayString
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The ASCII representation of the name of the card
+			in the indexed slot.  The name is the same name
+			displayed on the Main Edit Menu less the menu
+			number.	 The value 'Empty' is used when there is
+			no slot present.  The value 'Not Avail' is used when
+			the card in the slot has failed Post."
+	::= { slotEntry 2 }
+
+    slotType		OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    other( 1 ),		   -- none of the following
+			    empty( 2 ),		   -- empty slot
+			    sysT1( 3 ),		   -- motherboard
+			    slotT1( 4 ),	   -- slot card
+			    sysE1( 5 ),		   -- motherboard
+			    slotE1( 6 ),	   -- slot card
+			    bri( 7 ),		   -- basic rate interface
+			    s56-2( 8 ),		   -- 2 wire switched 56
+			    s56-4( 9 ),		   -- 4 wire switched 56
+			    dualHost( 10 ),	   -- 2 port Plus
+			    quadHost( 11 ),	   -- 4 port Plus
+			    aim2( 12 ),		   -- 2 port Max slot card
+			    aim6( 13 ),		   -- 6 port Max slot card
+			    ethernet( 14 ),	   -- ethernet
+			    ethernetData( 15 ),	   -- ethernet aux HDLC card
+			    slotBriTE( 16 ),	   -- BRI TE card for the MAX
+			    slotBriNT( 17 ),	   -- BRI NT card for the MAX
+			    lanModem( 18 ),	   -- LAN MODEM slot card
+			    serialWan( 19 ),	   -- Serial WAN slot card
+			    v110( 20 ),		   -- V.110 slot card
+			    slotBriLT( 21 ),	   -- BRI LT card for the MAX
+			    lanModemP( 22 ),	   -- programmable V.34 LAN MODEM
+                                                   -- slot card 8 ports
+			    lanModemP12( 23 ),	   -- programmable V.34 LAN MODEM
+                                                   -- slot card 12 ports
+                            pots( 24 ),            -- Plain Old Telephone Service
+                                                   -- ports
+                            analogModem( 25 ),	   -- Analog Modem slot card (TNT)
+						   -- (obsoleted by analogModem2 )
+			    lanModemP48( 26 ),	   -- programmable V.34 LAN MODEM
+                                                   --  slot card 48 ports (TNT)
+			    router( 27 ),	   -- dedicated router card (TNT)
+			    unchanT1( 28 ),	   -- unchannelized T1 card (TNT)
+			    t3( 29 ),		   -- DS3 interface card (TNT)
+			    hssi( 30 ),		   -- High Speed Serial Interface
+						   --  card (TNT)
+                            primaryNailedT1( 31 ), -- Primary Nailed T1
+                            primaryNailed56( 32 ), -- Primary Nailed 56
+                            dig-8modem( 33 ),      -- MAX slot card with eight
+						   -- 56K digital modems.
+                            dig-12modem( 34 ),     -- MAX slot card with twelve
+						   -- 56K digital modems.
+                            dig-16modem( 35 ),     -- MAX slot card with sixteen
+						   -- 56K digital modems.
+                            dig-48modem( 36 ),     -- TNT slot card with forty-
+						   -- eight 56K digital modems.
+                            phs-8v32modem( 37 ),   -- MAX slot card with eight
+						   -- V.32 PHS modems. 
+                            phs-12v32modem( 38 ),  -- MAX slot card with twelve
+						   -- V.32 PHS modems. 
+                            phs-16v32modem( 39 ),  -- MAX slot card with sixteen
+						   -- V.32 PHS modems. 
+                            sdsl( 40 ),   	   -- TNT slot card with #
+						   -- SDSL lines
+                            cap-adsl( 41 ),        -- TNT slot card with #
+						   -- CAP ADSL lines
+                            dmt-adsl( 42 ),  	   -- TNT slot card with #
+						   -- DMT ADSL lines
+                            idsl( 43 ),   	   -- TNT slot card with #
+						   -- ISDN DSL lines
+			    unchanE1( 44 ),	   -- TNT unchannelized E1 card
+                            analogModem2( 45 ),	   -- TNT new Analog Modem 
+                                                   -- slot card
+			    voip-8dsp( 46 ),	   -- MAX slot card with 
+                                                   -- 8 VOIP DSPs
+			    voip-12dsp( 47 ),	   -- MAX slot card with 
+                                                   -- 12 VOIP DSPs
+			    voip-16dsp( 48 ),	   -- MAX slot card with 
+                                                   -- 16 VOIP DSPs
+                            csmx( 49 ),            -- TNT csm/3 based modem 
+                                                   -- slot card
+                            uds3( 50 ),   	   -- TNT unchannelized DS3 
+                                                   -- slot card
+			    ethernet10-100( 51 ),  -- TNT 10/100BaseT Ethernet
+                                                   -- slot card
+                            ds3-atm( 52 ),   	   -- TNT DS3 ATM card
+                            ethernet2( 53 ),       -- TNT Ethernet Ver:2 Card
+			    ethernetData2( 54 ),   -- TNT HDLC2 card
+                            sdsl-data( 55 ),	   -- TNT SDSL data card
+                            sdsl-voice( 57 )	   -- TNT SDSL voice card
+			}
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The type of card in the indexed slot."
+	::= { slotEntry 3 }
+
+    slotFixed		OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    fixed( 1 ),
+			    removable( 2 )
+			}
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The value 1 if the slot is not removable and 2 if
+			the slot is removable."
+	::= { slotEntry 4 }
+
+    slotItems		OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"A count of the number of 'items' contained on this
+			slot.  An 'item' is a 'port' for host slots or a
+			'line' for network slots."
+	::= { slotEntry 5 }
+
+    slotSpecific	OBJECT-TYPE
+	SYNTAX		OBJECT IDENTIFIER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"A reference to MIB definitions specific to the
+			hardware in this slot.	Contains the object
+			identifier { 0 0 } if there is no slot specific
+			information for the current slot type."
+	::= { slotEntry 6 }
+
+    slotSerialNumber	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The TNT slot card's serial number.
+
+			 The serial number is reported as 0 if the slot card
+			 does not have a serial number, if the card did not
+			 boot, or if the slot is empty.
+
+			  The serial number is reported as 7777777 if the 
+			  slot card does not support serialization.
+
+			 The serial number is reported as 0 for platforms
+			 other than TNT."
+	::= { slotEntry 7 }
+
+
+    slotStatus	OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    operStateDown( 1 ),
+			    operStateUp( 2 ),
+			    operStateDiag( 3 ),
+			    operStateCoreDump( 4 ),
+			    operStateLoading( 5 ),
+			    operStatePost( 6 ),
+			    operStateNone( 7 )
+			}
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The current status of the TNT slot card
+			 For non-TNT systems operStateNone is always reported."
+	::= { slotEntry 8 }
+
+    slotLastChange	OBJECT-TYPE
+	SYNTAX		TimeTicks
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The value of sysUpTime at the time the TNT slot card
+			 entered its current state.
+
+			 For non-TNT systems 0 is always reported."
+	::= { slotEntry 9 }
+
+
+
+	-- slot item table
+	--
+	-- Each slot contains 1 or more 'items' that map to an interface
+	-- number.  The slotItemTable defines the mapping between item
+	-- number and interface.
+
+    slotItemTable	OBJECT-TYPE
+	SYNTAX		SEQUENCE OF SlotItemEntry
+	ACCESS		not-accessible
+	STATUS		mandatory
+	DESCRIPTION	"A list of slot item entries.  Each slot contains
+			slotItems entries, indexed by slotItemSlotIndex and
+			by slotItemIndex"
+	::= { slots 3 }
+
+    slotItemEntry	OBJECT-TYPE
+	SYNTAX		SlotItemEntry
+	ACCESS		not-accessible
+	STATUS		mandatory
+	DESCRIPTION	"A slot entry containing the starting interface and
+			number of interfaces used by the indexed slot/item."
+	INDEX		{ slotItemSlotIndex, slotItemIndex }
+	::= { slotItemTable 1 }
+
+
+    SlotItemEntry ::=
+	SEQUENCE {
+	    slotItemSlotIndex
+		INTEGER,
+	    slotItemIndex
+		INTEGER,
+	    slotItemFirstIf
+		INTEGER,
+	    slotItemIfCount
+		INTEGER,
+	    slotItemSpecific
+		OBJECT IDENTIFIER,
+	    slotItemStatus
+		INTEGER
+	}
+
+    slotItemSlotIndex	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"A unique value for each each slot.  The slot
+			identified by a particular value of this index
+			is the same slot as identified by the same value of
+			slotIndex."
+	::= { slotItemEntry 1 }
+
+    slotItemIndex	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"A unique value for each item in each slot.  It's
+			value ranges between 1 and the value slotItems in
+			the slot indexed by the same value as
+			slotItemSlotIndex."
+	::= { slotItemEntry 2 }
+
+    slotItemFirstIf	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The interface number associated with the indexed
+			item on the indexed slot.  May be set to 0 if the
+			slot/item is not associated with any interface."
+	::= { slotItemEntry 3 }
+
+    slotItemIfCount	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The number of interfaces associated with the
+			indexed item on the indexed slot.  Typically set
+			to 1 for host slots and the number of channels on
+			network (WAN) slots.  May be set to 0 when the item
+			is not associated with an interface."
+	::= { slotItemEntry 4 }
+
+    slotItemSpecific	OBJECT-TYPE
+	SYNTAX		OBJECT IDENTIFIER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"A reference to MIB definitions specific to the
+			indexed item on the indexed slot. Contains the
+			object identifier { 0 0 } if there is no item
+			specific information for the indexed item."
+	::= { slotItemEntry 5 }
+
+    slotItemStatus	OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    statusOther( 1 ),
+			    slotItemNotRunning( 2 ),
+			    briLinkNotStuffed( 3 ),
+			    briLinkDisabled( 4 ),
+			    briDown( 5 ),
+			    briNotInit( 6 ),
+			    briNotInitWithL2( 7 ),
+			    briPInit( 8 ),
+			    briMInit( 9 )
+			}
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The current status of this item in this slot."
+	::= { slotItemEntry 6 }
+
+
+	-- The slot IF table
+	--
+	-- An interface to slot/item lookup table.  This table contains one
+	-- entry per interface and the contents of the table are the slot
+	-- and item associated with the index.	Items not related to a
+	-- specific slot, e.g. console ports, are also mapped here.
+	-- Note: multiple intefaces can point to the same slot/item.
+
+    slotIfTable		OBJECT-TYPE
+	SYNTAX		SEQUENCE OF SlotIfEntry
+	ACCESS		not-accessible
+	STATUS		mandatory
+	DESCRIPTION	"A list of interfaces and the slot/item entry that
+			the interface is associated with."
+	::= { slots 4 }
+
+    slotIfEntry		OBJECT-TYPE
+	SYNTAX		SlotIfEntry
+	ACCESS		not-accessible
+	STATUS		mandatory
+	DESCRIPTION	"A slot interface entry containing the slot and item
+			that the interface is associated with."
+	INDEX		{ slotIfIndex }
+	::= { slotIfTable 1 }
+
+    SlotIfEntry ::=
+	SEQUENCE {
+	    slotIfIndex
+		INTEGER,
+	    slotIfSlotIndex
+		INTEGER,
+	    slotIfItemIndex
+		INTEGER
+	}
+
+    slotIfIndex		OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The interface index, ranging from 1 to the number
+			of interfaces specified in the MIB-II variable
+			ifNumber. The interface identified by a particular
+			value of this index is the same interface as
+			identified by the same value of ifIndex."
+	::= { slotIfEntry 1 }
+
+    slotIfSlotIndex		OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The slot index, ranging from 0 to the number
+			of slots specified in slotNumber.  When zero the
+			interface references an item in the console group
+			of this MIB.  Otherwise the slot identified by a
+			particular value of this index is the same slot as
+			identified by the same value of slotIndex."
+	::= { slotIfEntry 2 }
+
+    slotIfItemIndex	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The item index, ranging from 1 to the number
+			of items supported on the slot indicated by
+			slotIfSlotIndex.  When slotIfSlotIndex is non-zero
+			the number of items supported is specified in
+			slotItems for the slot entry index by slotIfSlotIndex.
+			The item identified by a particular value of this
+			index is the same item as identified by the same
+			value of  slotItemIndex."
+	::= { slotIfEntry 3 }
+
+
+	-- Ascend Host types
+	--
+	-- Each Ascend host type is assigned an object ID.  These ids are
+	-- the root of MIB subtrees containing host specific information.
+	-- These subtrees, when required, are described in separate files.
+
+    hostTypeAny		OBJECT IDENTIFIER ::= { hostTypes 1 }
+    hostTypeDual	OBJECT IDENTIFIER ::= { hostTypes 2 }
+    hostTypeQuad	OBJECT IDENTIFIER ::= { hostTypes 3 }
+    hostTypeAim2	OBJECT IDENTIFIER ::= { hostTypes 4 }
+    hostTypeAim6	OBJECT IDENTIFIER ::= { hostTypes 5 }
+
+
+	-- Ascend LAN types
+	--
+	-- Each Ascend LAN type is assigned an object ID.  These ids are
+	-- the root of MIB subtrees containing LAN specific information.
+	-- These subtrees, when required, are described in separate files.
+
+    lanTypeAny		OBJECT IDENTIFIER ::= { lanTypes 1 }
+    lanTypeEthernet	OBJECT IDENTIFIER ::= { lanTypes 2 }
+    lanTypeEtherData	OBJECT IDENTIFIER ::= { lanTypes 3 }
+
+	-- Ascend Do Group
+	--
+	-- This group implements the Ascend action commands.  The action
+	-- is performed on the indicated slot/item.  To implement this
+	-- the do commands are treated as a table indexed by slot and item.
+
+    doTable		OBJECT-TYPE
+	SYNTAX		SEQUENCE OF DoEntry
+	ACCESS		not-accessible
+	STATUS		mandatory
+	DESCRIPTION	"A list of do entries."
+	::= { doGroup 1 }
+
+    doEntry		OBJECT-TYPE
+	SYNTAX		DoEntry
+	ACCESS		not-accessible
+	STATUS		mandatory
+	DESCRIPTION	"An entry containing all of the action (do) commands
+			and the slot and item index."
+	INDEX		{ doSlotIndex, doItemIndex }
+	::= { doTable 1 }
+
+    DoEntry ::=
+	SEQUENCE {
+	    doSlotIndex
+		INTEGER,
+	    doItemIndex
+		INTEGER,
+	    doDial
+		INTEGER,
+	    doHangUp
+		INTEGER,
+	    doAnswer
+		INTEGER,
+	    doExtendBW
+		INTEGER,
+	    doContractBW
+		INTEGER,
+	    doBegEndRemoteLB
+		INTEGER,
+	    doBegEndBERT
+		INTEGER,
+	    doResynchronize
+		INTEGER
+	}
+
+    doSlotIndex		OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The index of the slot containing the item for which
+			an action is desired.  The valid range is 1 through
+			the value slotNumber."
+	::= { doEntry 1 }
+
+    doItemIndex		OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The item number on the indexed slot for which an
+			action is desired.  The valid range is 1 through
+			the value slotItems in the slotTable when indexed by
+			a value equal to doSlotIndex."
+	::= { doEntry 2 }
+
+    doDial		OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    valid( 1 ),
+			    notValid( 2 )
+			}
+	ACCESS		read-write
+	STATUS		mandatory
+	DESCRIPTION	"When read returns valid if the indexed slot/item
+			can dial a call.  Writing any value will cause
+			a call to be placed when valid, otherwise the write
+			is ignored."
+	::= { doEntry 3 }
+
+    doHangUp		OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    valid( 1 ),
+			    notValid( 2 )
+			}
+	ACCESS		read-write
+	STATUS		mandatory
+	DESCRIPTION	"When read returns valid if the indexed slot/item
+			can terminate a call.  Writing any value will cause
+			the call to be terminated when valid, otherwise the
+			write is ignored."
+	::= { doEntry 4 }
+
+    doAnswer		OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    valid( 1 ),
+			    notValid( 2 )
+			}
+	ACCESS		read-write
+	STATUS		mandatory
+	DESCRIPTION	"When read returns valid if the indexed slot/item
+			can answer a call.  Writing any value will cause
+			the call to be answered when valid, otherwise the
+			write is ignored."
+	::= { doEntry 5 }
+
+    doExtendBW	OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    valid( 1 ),
+			    notValid( 2 )
+			}
+	ACCESS		read-write
+	STATUS		mandatory
+	DESCRIPTION	"When read returns valid if the indexed slot/item
+			can extend bandwidth.  Writing any value will cause
+			bandwidth to be extended when valid, otherwise the
+			write is ignored."
+	::= { doEntry 6 }
+
+    doContractBW	OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    valid( 1 ),
+			    notValid( 2 )
+			}
+	ACCESS		read-write
+	STATUS		mandatory
+	DESCRIPTION	"When read returns valid if the indexed slot/item
+			can contract bandwidth.	 Writing any value will cause
+			bandwidth to be contracted when valid, otherwise the
+			write is ignored."
+	::= { doEntry 7 }
+
+    doBegEndRemoteLB	OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    valid( 1 ),
+			    notValid( 2 )
+			}
+	ACCESS		read-write
+	STATUS		mandatory
+	DESCRIPTION	"When read returns valid if the indexed slot/item
+			can enter or exit remote loopback.  Writing any
+			value will cause the current remote loopback state
+			to be toggled when valid, otherwise the write is
+			ignored."
+	::= { doEntry 8 }
+
+    doBegEndBERT	OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    valid( 1 ),
+			    notValid( 2 )
+			}
+	ACCESS		read-write
+	STATUS		mandatory
+	DESCRIPTION	"When read returns valid if the indexed slot/item
+			can enter or exit BERT test mode.  Writing any
+			value will cause the current BERT test state
+			to be toggled when valid, otherwise the write is
+			ignored."
+	::= { doEntry 9 }
+
+    doResynchronize	OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    valid( 1 ),
+			    notValid( 2 )
+			}
+	ACCESS		read-write
+	STATUS		mandatory
+	DESCRIPTION	"When read returns valid if the indexed slot/item
+			can issue a resynchronize command.  Writing any
+			value will cause a resynchronize command to be
+			issued when valid, otherwise the write is
+			ignored."
+	::= { doEntry 10 }
+
+
+	-- Ascend Status Group
+	--
+	-- This group displays the status of a session when indexed by
+	-- slot and item.  No such item is returned if the slot/item
+	-- does not reference something that identifies a session.
+
+    hostStatusTable	OBJECT-TYPE
+	SYNTAX		SEQUENCE OF HostStatusEntry
+	ACCESS		not-accessible
+	STATUS		mandatory
+	DESCRIPTION	"A table of host port status entries.  A host port
+			status entry potentialy exists for every slot/item.
+			Host port status entries are only meaningful for
+			slot/items that reference a host port.	When indexed
+			by other slot/items NO SUCH NAME will be returned."
+	::= { hostStatus 1 }
+
+    hostStatusEntry	OBJECT-TYPE
+	SYNTAX		HostStatusEntry
+	ACCESS		not-accessible
+	STATUS		mandatory
+	DESCRIPTION	"An entry containing the host port status of the
+			indexed slot/item."
+	INDEX		{ hostStatusSlotIndex, hostStatusItemIndex }
+	::= { hostStatusTable 1 }
+
+    HostStatusEntry ::=
+	SEQUENCE {
+	    hostStatusSlotIndex
+		INTEGER,
+	    hostStatusItemIndex
+		INTEGER,
+	    hostStatusLocalName
+		OCTET STRING,
+	    hostStatusDialNum
+		OCTET STRING,
+	    hostStatusCallType
+		INTEGER,
+	    hostStatusCallMgm
+		INTEGER,
+	    hostStatusDataSvc
+		INTEGER,
+	    hostStatusCallState
+		INTEGER,
+	    hostStatusRemName
+		OCTET STRING,
+	    hostStatusChannels
+		INTEGER,
+	    hostStatusDuration
+		INTEGER
+	}
+
+    hostStatusSlotIndex	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"A unique value for each slot. The slot identified
+			by a particular value of this index is the same slot
+			as identified by the same value of slotIndex."
+	::= { hostStatusEntry 1 }
+
+
+    hostStatusItemIndex	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"Index to each item defined for each slot. Since
+			entries in this table are only valid for host ports
+			an item number is a port number within the indexed
+			slot."
+	::= { hostStatusEntry 2 }
+
+    hostStatusLocalName	OBJECT-TYPE
+	SYNTAX		OCTET STRING
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The name from the current call profile of the indexed
+			host slot and port."
+	::= { hostStatusEntry 3 }
+
+    hostStatusDialNum	OBJECT-TYPE
+	SYNTAX		OCTET STRING
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The phone number from the current call profile of the
+			indexed host slot and port."
+	::= { hostStatusEntry 4 }
+
+    hostStatusCallType	OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    aim( 1 ),
+			    bonding( 2 ),
+			    one-channel( 3 ),
+			    two-channel( 4 ),
+			    ft1( 5 ),
+			    ft1Aim( 6 ),
+			    ft1BandO( 7 )
+			}
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The type of call from the current call profile of the
+			indexed host slot and port."
+	::= { hostStatusEntry 5 }
+
+    hostStatusCallMgm	OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    none( 1 ),
+			    manual( 2 ),
+			    static( 3 ),
+			    dynamic( 4 ),
+			    delta( 5 ),
+			    one-of-8( 6 ),
+			    one-of-40( 7 ),
+			    mode1( 8 ),
+			    mode2( 9 ),
+			    mode3( 10 ),
+			    mode0( 11 )
+			}
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The call management protocol from the current
+			call profile for the indexed host slot and port.
+			Call management is only meaningful for calls using
+			an inverse multiplexing protocol."
+	::= { hostStatusEntry 6 }
+
+    hostStatusDataSvc	OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    serviceVoice( 1 ),
+			    service56KR( 2 ),
+			    service56K( 3 ),
+			    service64K( 4 ),
+			    service384KR( 5 ),
+			    service384K-H0( 6 ),
+			    service1536K( 7 ),
+			    service1536KR( 8 ),
+			    service128K( 9 ),
+			    service192K( 10 ),
+			    service256K( 11 ),
+			    service320K( 12 ),
+			    service384K( 13 ),
+			    service448K( 14 ),
+			    service512K( 15 ),
+			    service576K( 16 ),
+			    service640K( 17 ),
+			    service704K( 18 ),
+			    service768K( 19 ),
+			    service832K( 20 ),
+			    service896K( 21 ),
+			    service960K( 22 ),
+			    service1024K( 23 ),
+			    service1088K( 24 ),
+			    service1152K( 25 ),
+			    service1216K( 26 ),
+			    service1280K( 27 ),
+			    service1344K( 28 ),
+			    service1408K( 29 ),
+			    service1472K( 30 ),
+			    service1600K( 31 ),
+			    service1664K( 32 ),
+			    service1728K( 33 ),
+			    service1792K( 34 ),
+			    service1856K( 35 ),
+			    service1920K( 36 ),
+			    serviceModem( 37 ),
+			    serviceV110-24-56K( 38 ),
+			    serviceV110-48-56K( 39 ),
+			    serviceV110-96-56K( 40 ),
+			    serviceV110-192-56K( 41 ),
+			    serviceV110-384-56K( 42 ),
+			    serviceV110-24-56KR( 43 ),
+			    serviceV110-48-56KR( 44 ),
+			    serviceV110-96-56KR( 45 ),
+			    serviceV110-192-56KR( 46 ),
+			    serviceV110-384-56KR( 47 ),
+			    serviceV110-24-64K( 48 ),
+			    serviceV110-48-64K( 49 ),
+			    serviceV110-96-64K( 50 ),
+			    serviceV110-192-64K( 51 ),
+			    serviceV110-384-64K( 52 ),
+			    serviceV110-24-64KR( 53 ),
+			    serviceV110-48-64KR( 54 ),
+			    serviceV110-96-64KR( 55 ),
+			    serviceV110-192-64KR( 56 ),
+			    serviceV110-384-64KR( 57 )
+			}
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The type of service from the current call profile
+			for the indexed host slot and port."
+	::= { hostStatusEntry 7 }
+
+    hostStatusCallState	OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    other( 1 ),
+			    answering( 2 ),
+			    calling( 3 ),
+			    clearing( 4 ),
+			    localLoop( 5 ),
+			    handshake( 6 ),
+			    idle( 7 ),
+			    online( 8 ),
+			    loopMast( 9 ),
+			    loopSlav( 10 ),
+			    bertMast( 11 ),
+			    bertSlav( 12 ),
+			    remoteMg( 13 ),
+			    ringing ( 14 ), 
+			    setupAdd( 15 ), 
+			    setupHnd( 16 ), 
+			    setupRem( 17 )
+			}
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"Shows the current state of the current call for the 
+			indexed host slot and port.  The returned value will
+			indicates the same state displayed in a call status
+			window for the port."
+	::= { hostStatusEntry 8 }
+
+    hostStatusRemName	OBJECT-TYPE
+	SYNTAX		OCTET STRING
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The value displayed on the 4th line of the call
+			status menu.  When the hostStatusCallType is aim( 1 ) 
+			this value is the name of the host port on the far
+			end of a connection, or the far-end system name if
+			the host port has not been named.  An empty string
+			is returned when there is no call active or when
+			aim( 1 ) is not being used."
+	::= { hostStatusEntry 9 }
+
+    hostStatusChannels	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The number of channels in use by the call as
+			displayed on the third line of the call status
+			menu for the indexed slot and port."
+	::= { hostStatusEntry 10 }
+
+    hostStatusDuration	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The duration of the call associated with the
+			indexed host slot and port, measured in seconds."
+	::= { hostStatusEntry 11 }
+
+
+	-- Ascend Console Group
+	--
+	-- This group maps the console interfaces to their SNMP interface
+	-- number and points to the appropriate management MIB object
+	-- for the console type.  Multiple consoles may exist, e.g
+	-- a palmtop port is a console port.
+
+    consoleNumber	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The number of consoles supported by this device."
+	::= { console 1 }
+
+	-- The console table
+	--
+	-- This table contains consoleNumber entries describing each
+	-- console port.
+
+    consoleTable	OBJECT-TYPE
+	SYNTAX		SEQUENCE OF ConsoleEntry
+	ACCESS		not-accessible
+	STATUS		mandatory
+	DESCRIPTION	"A list of console entries."
+	::= { console 2 }
+
+    consoleEntry	OBJECT-TYPE
+	SYNTAX		ConsoleEntry
+	ACCESS		not-accessible
+	STATUS		mandatory
+	DESCRIPTION	"An entry containing objects that describe the
+			indexed console port."
+	INDEX		{ consoleIndex }
+	::= { consoleTable 1 }
+
+    ConsoleEntry ::=
+	SEQUENCE {
+	    consoleIndex
+		INTEGER,
+	    consoleIf
+		INTEGER,
+	    consoleType
+		INTEGER,
+	    consoleSecurity
+		INTEGER,
+	    consoleSpecific
+		OBJECT IDENTIFIER
+	}
+
+    consoleIndex	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"A unique value for each console.  It's value ranges
+			between 1 and the value consoleNumber.	This is the
+			index into the console table to identify a
+			particular console."
+	::= { consoleEntry 1 }
+
+    consoleIf		OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The interface number associated with the indexed
+			console.  This number can be used to index into
+			the interface (and other) tables to obtain detailed
+			console status."
+	::= { consoleEntry 2 }
+
+    consoleType		OBJECT-TYPE
+	SYNTAX		INTEGER {
+			    other( 1 ),		-- none of the following
+			    primary( 2 ),	-- Primary VT100 console
+			    secondary( 3 ),	-- VT100 console in palmtop port
+			    palmtop( 4 ),	-- palmtop console
+			    inactive( 5 ),	-- inactive/unused session
+			    remote( 6 )		-- active remote session
+			}
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The type of console in the indexed entry.  When
+			no console is plugged into a console port the
+			value inactive(5) is returned.	The value remote(6)
+			indicates a console initiated via remote management
+			or TELNET session."
+	::= { consoleEntry 3 }
+
+    consoleSecurity	OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The security profile, in the range of 1 through
+			the number of profiles supported by the unit, of
+			the indexed console.  The default security profile
+			is profile number 1."
+	::= { consoleEntry 4 }
+
+    consoleSpecific	OBJECT-TYPE
+	SYNTAX		OBJECT IDENTIFIER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"A reference to MIB definitions specific to the
+			console port. Contains the object identifier { 0 0 }
+			if there is no console specific information for the
+			indexed console."
+	::= { consoleEntry 5 }
+
+
+	--
+	-- Ascend System Status group
+	--
+	-- This group contains general information regarding the system
+	-- as a whole.	This information provided by this group can be
+	-- viewed as an extension of the system group under MIB-II.
+	--
+
+    sysAbsoluteStartupTime  OBJECT-TYPE
+--	SYNTAX		INTEGER (1..'7fffffff'h)
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The time system startup up in seconds since
+			 January 1, 1990.  This value in concert with
+			 'sysSecsSinceStartup' below can be used to
+			 compute the current time in seconds since 1/1/90."
+	::= { systemStatusGroup 1 }
+
+    sysSecsSinceStartup OBJECT-TYPE
+--	SYNTAX		INTEGER (1..'7fffffff'h)
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The number of seconds since system startup."
+	::= { systemStatusGroup 2 }
+
+    sysMibVersionNum   OBJECT-TYPE
+--	SYNTAX		INTEGER (1..'7fffffff'h)
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"Version number of this private MIB. Versions
+			 numbers start at 1 and increment by 1 for
+			 every major revision.  Major revisions are
+			 additions/deletions to this MIB."
+	::= { systemStatusGroup 3 }
+
+    sysMibMinorRevNum  OBJECT-TYPE
+--	SYNTAX		INTEGER (1..'7fffffff'h)
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"Value represents the minor revision number
+			 of this MIB.  Minor revision numbers start
+			 at 0 and increment by 1 for each revision.
+			 Minor revisions are textual or comment changes."
+	::= { systemStatusGroup 4 }
+
+
+    sysConfigTftp OBJECT IDENTIFIER ::= { systemStatusGroup 5 }
+
+    sysConfigTftpCmd OBJECT-TYPE
+	SYNTAX	INTEGER {
+		    save( 1 ),		-- save configuration
+		    restore( 2 ),	-- restore configuration
+		    saveAll( 3 ),	-- save ALL config options
+		    saveMib( 4 ),	-- save config w/MIB numbers
+		    saveAllMib( 5 ),	-- save ALL config w/MIB numbers
+		    loadCode( 6 )	-- load a code image
+		}
+	ACCESS	read-write
+	STATUS	mandatory
+	DESCRIPTION
+	   "This variable instructs the system to perform the specified
+	    tftp operation."
+	::= { sysConfigTftp 1 }
+
+    sysConfigTftpStatus OBJECT-TYPE
+	SYNTAX	INTEGER {
+		    ok( 1 ),			-- tftp operation succeeded
+		    notFound( 2 ),		-- file not found
+		    access( 3 ),		-- access violation
+		    noSpace( 4 ),		-- no disk space to write file
+		    badOp( 5 ),			-- bad tftp operation 
+		    badTid( 6 ),		-- unknown transfer ID
+		    exists( 7 ),		-- file already exists
+		    noSuchUser( 8 ),		-- no such user
+		    parameter( 9 ),		-- parameter error
+		    busy( 10 ),			-- tftp server cannot handle request
+		    noResources( 11 ),		-- no memory for request
+		    timeout( 12 ),		-- timed out
+		    unrecoverable( 13 ),	-- unrecoverable error
+		    tooManyRetries( 14 ),	-- too many retries
+		    createFile( 15 ),		-- create file
+		    openFile( 16 ),		-- open file
+		    inProgress( 17 )		-- get/put request in progress
+		}
+	ACCESS	read-only
+	STATUS	mandatory
+	DESCRIPTION
+	   "This variable indicates the status of a save or restore operation
+	    through tftp."
+	::= { sysConfigTftp 2 }
+
+    sysConfigTftpHostAddr OBJECT-TYPE
+	SYNTAX	IpAddress
+	ACCESS	read-write
+	STATUS	mandatory
+	DESCRIPTION
+	   "This variable indicates the host address where the configuration 
+	    file is saved to or restored from through tftp."
+	::= { sysConfigTftp 3 }
+
+    sysConfigTftpFilename OBJECT-TYPE
+	SYNTAX	DisplayString
+	ACCESS	read-write
+	STATUS	mandatory
+	DESCRIPTION
+	   "This variable indicates the file name of the configuration file to 
+	    save to or restore from a SNMP host through tftp."
+	::= { sysConfigTftp 4 }
+
+    sysConfigTftpPort OBJECT-TYPE
+	SYNTAX	INTEGER
+	ACCESS	read-write
+	STATUS	mandatory
+	DESCRIPTION
+	   "This variable indicates the port # to use when starting a TSAVE
+	    TRESTORE command.  Normally this would be port 69, but we need
+	    to allow the Java Console to override this in case the Console
+	    workstation has a TFTP server already running."
+	::= { sysConfigTftp 5 }
+
+
+    sysConfigRadius OBJECT IDENTIFIER ::= { systemStatusGroup 6 }
+
+    sysConfigRadiusCmd OBJECT-TYPE
+	SYNTAX	INTEGER {
+		    all( 1 ),		-- all configuration
+		    routes( 2 ),	-- bridge/ip/ipx routes configuration
+		    pools( 3 ),		-- ip address pool configuration
+		    nailed( 4 ),	-- permanent and nailed configuration
+		    temrsrv( 5 )	-- term server banners
+		}
+	ACCESS	read-write
+	STATUS	mandatory
+	DESCRIPTION
+	   "This variable instructs the system to re-read its RADIUS 
+	    configuration. This variable will return a general error if
+	    RADIUS is not configured of if sysConfigRadiusStatus has a
+	    value of processing(2)."
+	::= { sysConfigRadius 1 }
+
+    sysConfigRadiusStatus OBJECT-TYPE
+	SYNTAX	INTEGER {
+		    init( 1 ),		-- configuration has not started
+		    processing( 2 ),	-- configuration is in progress
+		    timeout( 3 ),	-- configuration request timed-out
+		    error( 4 ),		-- configuration received other error
+		    complete( 5 )	-- configuration complete sucessfully
+		}
+	ACCESS	read-only
+	STATUS	mandatory
+	DESCRIPTION
+	   "This variable indicates the status of the last RADIUS configuration
+	    retrieval. This includes the boot time retrieval."
+	::= { sysConfigRadius 2 }
+
+    sysAbsoluteCurrentTime  OBJECT-TYPE
+--	SYNTAX		INTEGER (1..'7fffffff'h)
+	SYNTAX		INTEGER
+	ACCESS		read-write
+	STATUS		mandatory
+	DESCRIPTION	"The current system time in seconds since
+			 January 1, 1990. Changing this value may 
+                         result in a change of sysAbsoluteStartupTime
+                         and not of sysSecsSinceStartup. The following
+                         relationship holds:
+                         sysAbsoluteCurrentTime - sysAbsoluteStartupTime = sysSecsSinceStartup."
+	::= { systemStatusGroup 7 }
+
+    sysReset            OBJECT-TYPE
+	SYNTAX		INTEGER {
+                        no-op( 1 ),
+                        reset( 2 ) 
+                        }
+	ACCESS		read-write
+	STATUS		mandatory
+	DESCRIPTION	"The reset takes effect after 1 minute."
+	::= { systemStatusGroup 8 }
+
+    sysLoadName         OBJECT-TYPE
+	SYNTAX		DisplayString
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	"The name of the load which is currently running."
+	::= { systemStatusGroup 9 }
+
+    sysAuthPreference   OBJECT-TYPE
+	SYNTAX		INTEGER {
+                        no-op(1),
+                        local-first(2),
+                        remote-first(3),
+                        remote-no(4)
+                        }
+	ACCESS		read-write
+	STATUS		mandatory
+	DESCRIPTION	
+           "An incoming call can be authenticated using a local profile
+	    or one from an authentication server such as RADIUS or TACACS.
+	    local-first means authenticate from a local profile first,
+	    and if that fails, try the authentication server.
+	    remote-first means get a profile from the authentication
+	    server and authenticate from that and if that fails,
+	    try to authenticate from a local profile.
+	    remote-no is the same as remote-first except if the external
+	    authentication server NACKs the request, then the connection
+	    will be denied, i.e. no search of the local profiles will be
+	    made."
+	::= { systemStatusGroup 10 }
+
+--
+--  system security PROM subgroup of systemStatusGroup
+--
+    sysSPROM	OBJECT IDENTIFIER ::= { systemStatusGroup 11 }
+
+    sysSPROMSerialNumber   OBJECT-TYPE
+	SYNTAX   	   INTEGER
+	ACCESS		   read-only
+	STATUS		   mandatory
+	DESCRIPTION	
+           "The serial number as stored in the security PROM.
+            The same value is also returned as part of sysName."
+	::= { sysSPROM 1 }
+
+    sysSPROMOptions1       OBJECT-TYPE
+	SYNTAX   	   INTEGER
+	ACCESS		   read-only
+	STATUS		   mandatory
+	DESCRIPTION	
+           "The various bit positions are:
+           (2 ** 0)  - rs366Enabled
+           (2 ** 1)  - dChannelEnabled
+           (2 ** 2)  - autoDBAEnabled
+           (2 ** 3)  - bondingEnabled
+           (2 ** 4)  - aimEnabled
+           (2 ** 5)  - v25bisEnabled
+           (2 ** 6)  - x21Enabled
+           (2 ** 7)  - switchedEnabled
+           (2 ** 8)  - mrateEnabled
+           (2 ** 9)  - pbxEnabled
+           (2 ** 10) - pcbusEnabled
+           (2 ** 11) - bridgingEnabled
+           (2 ** 12) - pipeHxEnabled
+           (2 ** 13) - frameRelayEnabled
+           (2 ** 14) - maxLinkClientEnabled
+           (2 ** 15) - dataCallEnabled
+           (2 ** 16) - dualSlotT1Enabled
+           (2 ** 17) - r2SignalingEnabled
+           (2 ** 18) - domesticEnabled
+           (2 ** 19) - modemTSDialoutEnabled
+           (2 ** 20) - pipePxEnabled
+           (2 ** 21) - firewallsEnabled
+           (2 ** 22) - serialPortT1_CSU_Enabled
+           (2 ** 23) - pipePotsEnabled
+           (2 ** 24) - forceMultibandPlatformSimulationEnabled
+           (2 ** 25) - k56SlotCardOnlyEnabled
+           (2 ** 26) - networkManagementEnabled
+           (2 ** 27) - advancedAgentEnabled (DEPRECATED)
+           (2 ** 28) - phsSupportEnabled
+           (2 ** 29) - selectoolsEnabled
+           (2 ** 30) - routingProtocolsDisabled
+           (2 ** 31) - tunnelProtocolsDisabled."
+	::= { sysSPROM 2 }
+
+    sysSPROMOptions2       OBJECT-TYPE
+	SYNTAX   	   INTEGER
+	ACCESS		   read-only
+	STATUS		   mandatory
+	DESCRIPTION	
+           "Reserved for future use."
+	::= { sysSPROM 3 }
+
+    sysSPROMCountries1     OBJECT-TYPE
+	SYNTAX   	   INTEGER
+	ACCESS		   read-only
+	STATUS		   mandatory
+	DESCRIPTION	
+           "The various bit positions are:
+           (2 ** 0)  -    FranceIsdn
+           (2 ** 1)  -    UKIsdn
+           (2 ** 2)  -    BelgiumIsdn
+           (2 ** 3)  -    JapanIsdn
+           (2 ** 4)  -    AustraliaIsdn
+           (2 ** 5)  -    GermanIsdn
+           (2 ** 6)  -    UKDpnss
+           (2 ** 7)  -    SwissIsdn
+           (2 ** 8)  -    GloBandIsdn
+           "
+	::= { sysSPROM 4 }
+
+    resetStat	OBJECT IDENTIFIER ::= { systemStatusGroup 12 }
+
+    resetStatEther	   OBJECT-TYPE
+	SYNTAX   	   INTEGER
+	ACCESS		   read-write
+	STATUS		   mandatory
+	DESCRIPTION	   "Clear Ethernet statistics."
+	::= { resetStat 1 }
+
+    resetStatWAN	   OBJECT-TYPE
+	SYNTAX		   INTEGER
+	ACCESS		   read-write
+	STATUS		   mandatory
+	DESCRIPTION	   "Clear specified interface's WAN statistics."
+	::= { resetStat 2 }
+
+    resetStatAll	   OBJECT-TYPE
+	SYNTAX		   INTEGER
+	ACCESS		   read-write
+	STATUS		   mandatory
+	DESCRIPTION	   "Clear all WAN statistics."
+	::= { resetStat 3 }
+
+    sysLastRestartReason OBJECT-TYPE
+	SYNTAX		INTEGER
+	ACCESS		read-only
+	STATUS		mandatory
+	DESCRIPTION	
+           "The error code for the previous box restart. The error codes
+            are identical to ones obtained via fatal-history from the
+            debug monitor screen."
+	::= { systemStatusGroup 13 }
+
+END

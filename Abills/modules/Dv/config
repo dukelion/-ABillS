@@ -1,0 +1,48 @@
+$web_interface    = 1;
+@useraccount_menu = ('Dialup_VPN');
+
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = ("01:0:Dialup / VPN:dv_users_list:"  => 11,
+                   "02:0:Dialup / VPN:dv_user:UID"            => 20,
+                   "03:2:$_TARIF_PLANS:dv_chg_tp:UID"         => 11,
+                   "04:2:$_STATS:dv_stats:UID"                => 11,
+                   "05:2:$_ERROR:dv_error:UID"                => 11,
+                   "06:0:Dialup / VPN:null:"               => 5,
+                   "07:6:$_TARIF_PLANS:dv_tp:"             => 5,
+                   "08:7:$_ADD:dv_tp:"                     => 5,
+                   "09:7:$_INTERVALS:form_intervals:TP_ID" => 5,
+                   "10:7:$_NASS:form_nas_allow:TP_ID"      => 5,
+                   "11:7:$_USERS:dv_users_list:TP_ID"      => 5,
+                   "11:7:$_GROUPS:form_tp_groups:"         => 5,
+                   "13:0:Dialup / VPN:null:"               => 4,
+                   "14:13:$_ERROR:dv_error:"               => 4,
+                   "15:13:$_LAST:dv_sessions:"             => 4,
+                   "16:13:$_USED:dv_use:"                  => 4,
+                   "17:16:$_MONTH:dv_use_allmonthes:"      => 4,
+                   "18:0:Dialup / VPN:dv_online:"          => 8,
+                   "20:1:$_USERS $_ADD:dv_wizard_user:"   => 11
+
+                   );
+
+if (in_array('Cards', \@MODULES)) {
+  $FUNCTIONS_LIST{"21:1:$_ICARDS:dv_cards:"} = 11;
+} 
+ 
+
+
+
+%USER_FUNCTION_LIST = ("01:0:Dialup / VPN:dv_user_info:"     => 0,
+                       "03:1:$_STATS:dv_user_stats:"         => 0
+                      );
+
+
+$USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if ($conf{DV_USER_CHG_TP});
+
+
+# 
+%PERIODIC = (daily   => [ 'dv_daily_fees', 'dv_users_warning_messages' ],
+             monthly => [ 'dv_monthly_fees', 'dv_periodic_logrotate' ],
+             report  => [ 'dv_report'       ]);
+
+
+1

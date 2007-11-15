@@ -1,0 +1,160 @@
+#/usr/bin/perl
+# Mail delivery
+
+my %MAIL_PRIORITY = (2 => 'High', 
+                      3 => 'Normal', 
+                      4 => 'Low');
+
+
+require "Mdelivery.pm";
+Mdelivery->import();
+my $Mdelivery = Mdelivery->new($db, $admin, $conf);
+
+
+#*******************************************************************
+# Mail delivery
+# mdelivery_main()
+#*******************************************************************
+sub mdelivery_main {
+ my $period = $FORM{period} || 0;
+ 
+ 
+ if ($FORM{sent}) {
+   $FORM{DATE}="$FORM{date_Y}-". ($FORM{date_M}+1) ."-$FORM{date_D}" if ($period != 0);
+   $Mdelivery->add({ %FORM });
+   if (! $Mdelivery->{errno}) {
+     $html->message('info', $_INFO, "$_SENDED");
+    }
+  }
+  
+ $Mdelivery->{PERIOD_FORM}=form_period($period);
+ $Mdelivery->{PRIORITY_SEL}=$html->form_select('PRIORITY', 
+                                { SELECTED  => $FORM{PRIORITY},
+ 	                                SEL_HASH  => \%MAIL_PRIORITY
+ 	                               });
+
+ $Mdelivery->{EXTRA} = "<tr><td>$_TO:</td><td bgcolor='$_COLORS[2]'>". sel_groups() ."</td></tr>\n";
+
+ $html->tpl_show(templates('mail_form'), $Mdelivery); 
+}
+
+
+#*******************************************************************
+# Mail delivery
+# mdelivery_main()
+#*******************************************************************
+sub mdelivery_list {
+ 
+ 
+if ($FORM{info}) {
+  $Mdelivery->info($FORM{info});
+  if ($Mdelivery->{errno}) {
+    $html->message('err', $_ERROR, "[$Mdelivery->{errno}] $err_strs{$Mdelivery->{errno}}");
+   }
+
+  $Mdelivery->{PRIORITY}="$Mdelivery->{PRIORITY} ($MAIL_PRIORITY{$Mdelivery->{PRIORITY}})";
+  $html->tpl_show(_include('mdelivery_form', 'Mdelivery'), $Mdelivery); 
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  $Mdelivery->del($FORM{del});
+  if ($Mdelivery->{errno}) {
+    $html->message('err', $_ERROR, "[$Mdelivery->{errno}] $err_strs{$Mdelivery->{errno}}");
+   }
+  else {
+    $html->message('info', $_DELETED, "$_DELETED [$FORM{del}]");
+   }
+}
+  
+
+ my $list = $Mdelivery->list({ %LIST_PARAMS });  
+ my $table = $html->table({ width      => '100%',
+                            caption    => $_LIST,
+                            title      => ["ID", "$_DATE", "$_SUBJECT", "$_FROM", "$_ADMIN",  "$_ADDED", "$_SIZE", "$_STATUS", '-', '-'],
+                            cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'center', 'center', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $Mdelivery->{TOTAL}
+                          });
+
+ foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]]?" });
+
+  $table->addrow("$line->[0]", 
+    $line->[1], 
+    $line->[2], 
+    $line->[3],  
+    $line->[4],  
+    $line->[5], 
+    $line->[6], 
+    $line->[7], 
+    $html->button($_INFO, "index=$index&info=$line->[0]"),
+    $delete);
+}
+print $table->show();
+
+
+$table = $html->table({ width      => '100%',
+                        cols_align => ['right', 'right', 'right', 'right'],
+                        rows       => [ [ "$_TOTAL:", "$Mdelivery->{TOTAL}" ] ]
+                      });
+print $table->show();
+
+}
+
+
+#*******************************************************************
+# Mail delivery
+# mdelivery_main()
+#*******************************************************************
+sub mdelivery_periodic {
+ 
+ 
+use Users;
+my $users = Users->new($db, $admin, \%conf); 
+
+$LIST_PARAMS{STATUS}=0;
+$LIST_PARAMS{DATE}=$DATE;
+ 
+my $list = $Mdelivery->list({ %LIST_PARAMS });
+my @ids;
+foreach my $line (@$list) {
+ 	push @ids, $line->[0];
+}
+
+
+foreach my $line (@ids) {
+	$Mdelivery->info($line);
+
+  $LIST_PARAMS{GID}=$Mdelivery->{GID} if ($Mdelivery->{GID} > 0);
+  $LIST_PARAMS{UID}=$Mdelivery->{UID} if ($Mdelivery->{UID} > 0);
+  $LIST_PARAMS{PAGE_ROWS}=1000000;
+  
+  my $user_list = $users->list({ %LIST_PARAMS });
+  foreach $u (@$user_list) {
+  	 my $mail = ($u->[7] ne '') ? $u->[7] : $u->[0] .'@'. $conf{USERS_MAIL_DOMAIN};
+     $Mdelivery->{SENDER} = ($Mdelivery->{SENDER} ne '') ? $Mdelivery->{SENDER} : $conf{ADMIN_MAIL};
+  	 #print "$Mdelivery->{SENDER}, $mail, $Mdelivery->{SUBJECT}, $Mdelivery->{TEXT},  $conf{MAIL_CHARSET}, $Mdelivery->{PRIORITY}, ($MAIL_PRIORITY{$Mdelivery->{PRIORITY}})<br>";
+
+     sendmail("$Mdelivery->{SENDER}", 
+          "$mail", 
+          "$Mdelivery->{SUBJECT}", 
+          "$Mdelivery->{TEXT}", 
+          "$conf{MAIL_CHARSET}", 
+          "$Mdelivery->{PRIORITY} ($MAIL_PRIORITY{$Mdelivery->{PRIORITY}})");
+
+   }
+ 
+ $Mdelivery->change({ ID => $line });
+}
+
+
+
+
+
+}
+
+
+
+
+
+1
+

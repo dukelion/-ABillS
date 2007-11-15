@@ -1,0 +1,151 @@
+#!/usr/bin/perl
+# Squid
+
+
+require "Abills/nas.pl";
+use Abills::Base;
+use Socket;
+
+
+
+#*******************************************************************
+# 
+# 
+#*******************************************************************
+sub squid_monitor {
+
+   $conf{SQUID_HOST}=$FORM{SQUID_HOST} if ($FORM{SQUID_HOST});
+   $conf{SQUID_PORT}=$FORM{SQUID_PORT} if ($FORM{SQUID_PORT});
+   $conf{SQUID_CACHEMGR_PASSWD}=$FORM{SQUID_CACHEMGR_PASSWD} if ($FORM{SQUID_CACHEMGR_PASSWD});
+   $conf{SQUID_RESOLVIP}=1 if ($FORM{SQUID_RESOLVIP});
+
+my $table = $html->table( { width       => '100%',
+                            title_plain => [ "HOST: ".        $html->form_input('SQUID_HOST', "$conf{SQUID_HOST}"),
+                                             "PORT: ".        $html->form_input('SQUID_PORT', "$conf{SQUID_PORT}", { SIZE => 5 }),
+                                             "$_PASSWD: ".    $html->form_input('SQUID_CACHEMGR_PASSWD', "", {TYPE => 'PASSWORD'}),
+                                             "RESOLV IP: ".   $html->form_input('SQUID_RESOLVIP', "1", { TYPE => 'CHECKBOX', STATE => ($FORM{SQUID_RESOLVIP}) ? 1 : undef  }),
+                                             "$_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
+                                             $html->form_input('SHOW',  $_SHOW, {TYPE => 'SUBMIT'})  
+                                            ],
+                           });
+
+
+print $html->form_main({ CONTENT => $table->show(),
+	                       HIDDEN  => { index =>  "$index" },
+	                       METHOD  => 'GET'
+                        });
+     
+     
+   if (! $conf{SQUID_HOST}) {
+   	  return 0;
+    }
+
+   my $server_info = '';
+    my @commands = ("-\tGET cache_object://localhost/active_requests HTTP/1.0\r\n");
+    $commands[0].="Authorization: Basic ". encode_base64("cachemgr:$conf{SQUID_CACHEMGR_PASSWD}") if ($conf{SQUID_CACHEMGR_PASSWD} ne '');
+    $commands[0].="\r\n";
+
+    my $total_sessions=0;
+    my $total_users=0;
+   
+    
+    my $result = telnet_cmd2("$conf{SQUID_HOST}:$conf{SQUID_PORT}", \@commands);
+
+ 
+    my @rows = split(/\n\n/, $result);
+
+    #print "<textarea cols=80 rows=50>$rows[0]\n----\n\n$result</textarea>"; 
+    
+    
+   
+    if ($rows[0] !~ /HTTP\/1.0 200 OK/) {
+    	my ($header, $body)=split(/\r\n\r\n/, $rows[0]);
+      $html->message('err', $ERROR, "Can't Connect '$conf{SQUID_HOST}:$conf{SQUID_PORT}'
+      <br/><pre>$header</pre>");    
+     }
+    else {
+      foreach my $client (@rows) {
+      	 my @client_infO_array = split(/\n/, $client);
+
+      	 my %info_hash = ();
+      	 foreach $line (@client_infO_array) {
+      	 	 my ($l, $r)=split(/ /, $line, 2);
+      	 	 $l =~ tr/ |\t//d;
+      	 	 $info_hash{"$l"}=$r;
+      	  }
+
+      	  ($addr, $port) = split(/:/, $info_hash{"peer:"});
+      	  my $connection_id = $info_hash{'Connection:'};
+          
+          $server_info = $info_hash{'Server:'} if ($info_hash{'Server:'});
+          
+      	  $info_hash{'out.offset'} =~ /(\d+), out.size (\d+)/;
+      
+          $sessions{$addr}{$connection_id}{Size}=$2;
+          $sessions{$addr}{$connection_id}{Url}=$info_hash{"uri"};
+
+          $info_hash{'start'} =~ /(\d+)\.(\d+) \((\d+)\.(\d+) seconds ago\)/;
+          $sessions{$addr}{$connection_id}{Start}=$3;
+       }
+     }
+
+
+
+
+
+
+
+$table = $html->table( { width       => '100%',
+                         caption     => "$conf{SQUID_HOST}:$conf{SQUID_PORT} ($server_info)",
+                         border      => 1,
+                         title       => ["IP", "URL", "$_SIZE", "$_TIME", "-"],
+                         cols_align  => ['left', 'left', 'right', 'right', 'center'],
+                         qs          => $pages_qs
+                           });
+my $user_info;
+if ($conf{SQUID_IP_USERS}) {
+  require Dv_Sessions;
+  Dv_Sessions->import();
+  my $sessions = $sessions->new($db, $admin, \%conf);
+
+  
+
+  $user_info = " ()";
+}
+
+while(my($ip, $v)=each %sessions) {
+  
+	$ip = gethostbyaddr(inet_aton($ip), AF_INET) || $ip if ($conf{SQUID_RESOLVIP});
+
+  $table->addtd( $table->td("<b>$ip</b>$user_info", { bgcolor => $_COLORS[3] }), $table->td('', { colspan => 4, bgcolor => $_COLORS[3]  })  );
+  $total_users++;
+
+  while(my($session_id, $v2)= each %$v ) {
+    $table->addrow('', 
+      ($v2->{Url} !~ /:443/) ? $html->button(substr($v2->{Url}, 0, 50), "", { GLOBAL_URL => "$v2->{Url}", ex_params => "TARGET=\"A$ip\"" }) : $v2->{Url}, 
+      int2byte($v2->{Size}), 
+      sec2time($v2->{Start}, { str => 1 }),
+      ''
+      );
+     $total_sessions++;
+   }
+}
+
+print $table->show();
+
+
+$table = $html->table({ width       => '100%',
+                        rowcolor    => $_COLORS[3],
+                        cols_align  => ['right', 'left', 'right', 'right', 'center'],    
+                        rows        => [ ["$_TOTAL:", "$_USERS:", "$total_users", "$_SESSIONS:", "$total_sessions" ]]
+                      });
+
+print $table->show();
+
+}
+
+
+
+
+1
+

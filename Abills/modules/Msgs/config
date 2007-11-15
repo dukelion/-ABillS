@@ -1,0 +1,35 @@
+$web_interface    = 1;
+
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = ("01:0:$_MESSAGES:msgs_admin:UID"     => 15,
+                   "02:0:$_MESSAGES:msgs_admin:"        => 5,
+                   "03:2:$_CHAPTERS:msgs_chapters:"     => 5,
+                   "04:2:$_ADMINS:msgs_admins:"         => 5,
+                    );
+
+%USER_FUNCTION_LIST = ();
+
+require "Abills/modules/Msgs/webinterface";
+
+if (defined($user->{UID})) {
+  my $count=msgs_new({ UID => $UID });
+  if ($count ne '') {
+    $USER_FUNCTION_LIST{"01:0:$_MESSAGES $count:msgs_user:defaultindex"} = 0;
+   }
+  else {
+    $USER_FUNCTION_LIST{"01:0:$_MESSAGES:msgs_user:"} = 0;
+   }
+ }
+elsif(defined($admin->{AID})) {
+  my $count=msgs_new({ AID => $admin->{AID} });
+  $FUNCTIONS_LIST{"10:0:$_MESSAGES $count:msgs_admin:"}=6;
+  $FUNCTIONS_LIST{"12:10:$_ADD:msgs_admin_add:"}=6;
+  $FUNCTIONS_LIST{"12:10:$_SHEDULE:msgs_shedule:"}=6;
+ }   
+
+#%QUICK_SHOW=();
+
+
+
+
+1

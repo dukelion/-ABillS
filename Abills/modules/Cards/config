@@ -1,0 +1,28 @@
+$web_interface    = 1;
+
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = ("01:0:Card System:null:"             => 5,
+                   "03:1:$_DILLERS:cards_dillers:"      => 5,
+                   "04:1:BRUTE FORCE:cards_bruteforce:" => 5,
+                   "05:1:$_ICARDS:cards_main:"          => 5,
+                   "06:5:$_ADD:cards_add:"              => 5,
+                   "07:0:Cards:cards_user_payment:UID"  => 2,
+                   "08:0:Cards:cards_report:"           => 4,
+#                   "09:8:$_USERS:cards_report:"         => 4,
+#                   "10:8:$_PAYMENTS:cards_report:"      => 4,
+                   "11:8:$_DILLERS:cards_report_dillers:"   => 4
+                   );
+
+%USER_FUNCTION_LIST = ("01:0:$_ICARDS:cards_user_payment:"  => 0,
+                       );
+
+#$USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if (defined($conf{dv_user_chg_tp}));
+
+
+# 
+#%PERIODIC = (daily   => [ 'dv_daily_fees', 'dv_users_warning_messages' ],
+#             monthly => [ 'dv_monthly_fees' ],
+#             report  => [ 'dv_report'       ]);
+
+
+1

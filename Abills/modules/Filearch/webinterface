@@ -1,0 +1,992 @@
+#!/usr/bin/perl
+# Squid
+
+
+$conf{DOWNLOADS}='%INFO% [ <a href="ftp://ftp.yes.ko.if.ua/Video/Movies/%FOLDER%/%FILE%">FTP</a> ]
+[ <a href="http://ftp.yes.ko.if.ua/ftp/Video/Movies/%FOLDER%/%FILE%">HTTP</a> ]
+[ <a href="file:\\\ftp.yes.ko.if.ua\Share\Video\Movies\%FOLDER%\%FILE%">SMB</a> ]';
+
+=commnets
+#Windows Media Player
+<Asx Version = "3.0" >
+<Param Name = "Name" />
+
+<Entry>
+<Title>scary_movie_2.avi</Title>
+<Ref href = "\\lanmediaservice.com\4\scary_movie_2\scary_movie_2.avi"/>
+</Entry>
+</Asx>
+
+
+#Light Alloy
+
+\\lanmediaservice.com\4\scary_movie_2\scary_movie_2.avi
+>N scary_movie_2.avi
+
+#Media Player Classic
+MPCPLAYLIST
+1,type,0
+1,filename,\\lanmediaservice.com\4\scary_movie_2\scary_movie_2.avi
+
+
+=cut
+
+require "Filearch.pm";
+Filearch->import();
+my $Filearch = Filearch->new($db, $admin, \%conf);
+
+require "Abills/nas.pl";
+use Abills::Base;
+use Socket;
+
+# require "Abills/modules/Filearch$module{$index}/Filesearcher.pm";
+
+require "Abills/modules/Filearch/Filesearcher.pm";
+Filesearcher->import();
+
+
+my %langs = ('Русский дублированный'            => 0,
+             'Русский профессиональный перевод' => 1,
+             'Русский любительский перевод'     => 2,
+             'Русский'                          => 3);
+
+my @VIDEO_STATE = ("$_NEW", "$_WATCHED", "$_FAVORIT");
+ 
+           
+           
+
+
+
+#terminator
+#http://www.kinopoisk.ru/index.php?level=7&m_act%5Bwhat%5D=item&from=forma&m_act%5Bfind%5D=Achtung%2Cfertig+Charliei&m_act%5Bid%5D=0
+
+
+#*******************************************************************
+# 
+#*******************************************************************
+sub filearch_chapters {
+  $Filearch->{ACTION}='add';
+  $Filearch->{LNG_ACTION}=$_ADD;
+
+	if ($FORM{add}) {
+  
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_ADDED ");	
+    return 0;
+   }
+ }
+elsif ($FORM{change}) {
+  
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGED ");	
+    return 0;
+   }
+ }
+elsif ($FORM{chg}) {
+  
+  $Filearch->{ACTION}='change';
+  $Filearch->{LNG_ACTION}=$_CHANGE;
+
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+    return 0;
+   }
+  
+  $html->tpl_show(_include('filearch_files', 'Filearch'), { %$Filearch });
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+	$Filearch->file_del($FORM{del});
+
+  if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_DELETED $FORM{del}");	
+    return 0;
+   }
+ }
+
+
+if ($Filearch->{errno}) {
+  $html->message('err', $_ERROR, "[$Filearch->{errno}] $err_strs{$Filearch->{errno}}");	
+  return 0;
+ }
+	
+}
+
+#*******************************************************************
+# 
+# 
+#*******************************************************************
+sub filearch_main {
+  $Filearch->{ACTION}='add';
+  $Filearch->{LNG_ACTION}=$_ADD;
+
+if ($FORM{add}) {
+  $Filearch->file_add({ %FORM });
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_ADDED ");	
+    return 0;
+   }
+ }
+elsif ($FORM{change}) {
+  $Filearch->file_change({ %FORM });
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGED ");	
+    return 0;
+   }
+ }
+elsif ($FORM{chg}) {
+  $Filearch->chapter_info({ ID => $FORM{ID} });
+
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+    return 0;
+   }
+  
+  $Filearch->{ACTION}='change';
+  $Filearch->{LNG_ACTION}=$_CHANGE;
+  $html->tpl_show(_include('filearch_file', 'Filearch'), { %$Filearch });
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+	$Filearch->file_del($FORM{del});
+
+  if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_DELETED $FORM{del}");	
+    return 0;
+   }
+ }
+
+
+if ($Filearch->{errno}) {
+  $html->message('err', $_ERROR, "[$Filearch->{errno}] $err_strs{$Filearch->{errno}}");	
+  return 0;
+ }
+
+
+
+
+
+print $html->letters_list();
+if ($FORM{letter}) {
+  $LIST_PARAMS{FILENAME} = "$FORM{letter}*";
+  $pages_qs .= "&letter=$FORM{letter}";
+ }
+
+my $list = $Filearch->file_list({ %LIST_PARAMS });
+
+$table = $html->table( { width       => '100%',
+                         caption     => "$_ARCHIVE",
+                         border      => 1,
+                         title       => ['-', "$_FILE", "$_FOLDER", "$_NAME", "$_SIZE", "$_DATE", "CHECKSUM",
+                                          "-", "-", "-"],
+                         cols_align  => ['left', 'left', 'right', 'right', 'center'],
+                         qs          => $pages_qs,
+                         pages       => $Filearch->{TOTAL}
+                       });
+
+
+  foreach my $line (@$list) {
+    my ($type, $search_string);
+    if ($line->[6] =~ /ed2k/) {
+    	($type, $search_string)=split(/\|/, $line->[6], 2);
+     } 
+    
+
+ 		$table->addrow(
+ 		      $html->form_input("IDS", $line->[0], {TYPE => 'checkbox'}), 
+ 		      $html->button($line->[1], "index=$index&ID=$line->[0]"), 
+  		    $line->[2],
+  		    $line->[3],
+  		    $line->[4],
+  		    $line->[5],
+  		    $line->[6],
+  		    $html->button("VIDEO", "index=". ($index + 1) ."&ID=$line->[0]"), 
+  		    $html->button("$_SHOW", "index=$index&chg=$line->[0]"), 
+  		    $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+  		  );
+   }
+
+
+
+print $table->show();
+$table = $html->table({ width       => '100%',
+                        cols_align  => [ 'left', 'right'],    
+                        rows        => [ ["$_TOTAL:", "$Filearch->{TOTAL}" ] ]
+                      });
+
+print $table->show();
+
+}
+
+
+#*******************************************************************
+# 
+# 
+#*******************************************************************
+sub filearch_video_chapters {
+
+if ($FORM{add}) {
+  $Filearch->video_add({ %FORM });
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_ADDED ");	
+    return 0;
+   }
+ }
+elsif ($FORM{change}) {
+  $Filearch->video_change({ %FORM });
+	#if (! $Filearch->{errno}) {
+  #  $html->message('info', $_INFO, "$_CHANGED ");	
+  # }
+ }
+elsif ($FORM{ID}) {
+  $Filearch->video_info($FORM{ID});
+
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+   }
+
+  $Filearch->{ACTION}='change';
+  $Filearch->{LNG_ACTION}=$_CHANGE;
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+	$Filearch->video_del($FORM{del});
+
+  if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_DELETED $FORM{del}");	
+    return 0;
+   }
+ }
+
+
+if ($Filearch->{errno}) {
+  $html->message('err', $_ERROR, "[$Filearch->{errno}] $err_strs{$Filearch->{errno}}");	
+  return 0;
+ }
+
+=comments
+
+
+ 
+ 
+Biography 
+Film-Noir 
+Game-Show 
+News 
+Reality-TV 
+Sci-Fi 
+Short 
+Sport 
+Talk-Show 
+War 
+Western 
+
+
+=cut
+}
+
+
+#*******************************************************************
+# 
+# 
+#*******************************************************************
+sub filearch_video {
+  $Filearch->{ACTION}='add';
+  $Filearch->{LNG_ACTION}=$_ADD;
+
+
+
+my $genres_list = $Filearch->genres_list();
+
+
+  NEXT_FILE:
+
+  if (defined($FORM{NEXT_FILE})) {
+  	$Filearch->video_next({ ID =>  $FORM{NEXT_FILE} });
+  	$FORM{ID}=$Filearch->{ID};
+  	$FORM{external_db}=$Filearch->{FILENAME};
+   }
+
+  print $html->button($_NEW, "&index=$index&extdb_type=$FORM{extdb_type}&NEXT_FILE=". int($FORM{ID}) );
+
+if ($FORM{add}) {
+  $Filearch->video_add({ %FORM });
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_ADDED ");	
+    return 0;
+   }
+ }
+elsif ($FORM{external_db}) {
+
+  
+  my $type = $FORM{extdb_type} || 'sr'; 
+	my $name =$FORM{external_db};
+	if($name =~ /(.+)(\.avi|\.mpg|\.vob)/) {
+		$name = $1;
+	 }
+
+  $name =~ s/(\.cd(\d+))//;
+  $name =~ s/\./ /g;
+	
+	#$html->message('info', $_INFO, "$type ");
+
+
+
+  print $html->form_main({ CONTENT => $html->form_input('external_db', "$name", { SIZE => 40 }).
+  	                            $html->form_select('extdb_type', {
+  	                            	          SELECTED          => $type,
+ 	                                          SEL_ARRAY         => [ keys %SEARCH_EXPRESSiONS ],
+ 	                                          NO_ID             => 1
+  	                            	                  }),
+  	                         
+                           HIDDEN  => { index => $index,
+                            	          ID    => $FORM{ID} },
+                           SUBMIT  => { show  => $_SEARCH   }
+                         });
+
+  ##
+    my $res = web_request($SEARCH_EXPRESSiONS{$type}{SEARCH_LINK}.$name);
+    $table = $html->table( { width       => '600',
+                             caption     => "$_RESULT",
+                             title_plain => ['-', $_NAME, "$_YEAR", "$_GENRE" ],
+                           });  
+     
+  
+   #print "<textarea cols=80 rows=10>$res</textarea>";
+    $res =~ s/<\/TR>/<\/TR>\n/g;
+
+    if ($res =~ /HTTP\/1.\d 302/) {
+ 	    $link='';
+ 	    while($res =~ /Location: (.+)\r\n/g) {
+        $link = $1;
+       }
+
+      my $year = '';
+      my $genre = '';
+
+      if ($link !~ /^http:/) {
+          $SEARCH_EXPRESSiONS{$type}{SEARCH_LINK} =~ /http:\/\/([a-zA-Z.-]+)\//;
+          my $host = $1; 
+          $link="http://$host".$link;
+       }
+
+
+ 	    $table->addrow($html->form_input('EXT_CHECK', "$link" , 
+    	   { TYPE => 'radio', OUTPUT2RETURN => 1 }), 
+    	   $html->button("$name", '', { GLOBAL_URL => $link  } ),
+   	     $year,
+   	     $genre
+   	   );
+     }
+    else {
+    while ($res =~ /$SEARCH_EXPRESSiONS{$type}{SEARCH}/g) {
+#     print "<textarea cols=80 rows=5>1)$1\n2) $2\n3) $3\n4) $4</textarea>";
+
+      my $link = $SEARCH_EXPRESSiONS{$type}{INFO_PAGE};
+      my $id = $1;
+      my $name = $2;
+      my $year = $3 || ''; 
+      my $genre = $4 || '';
+
+      $link =~ s/%ID%/$id/g;
+
+ 	    $table->addrow($html->form_input('EXT_CHECK', "$link" , 
+    	   { TYPE => 'radio', OUTPUT2RETURN => 1 }), 
+    	   $html->button("$name", '', { GLOBAL_URL => $link  } ),
+   	     $year,
+   	     $genre
+   	   );
+     }
+    }
+    print $html->form_main({ CONTENT => $table->show(),
+                             HIDDEN  => { index      => $index,
+                            	            ID         => $FORM{ID},
+                            	            extdb_type => $type 
+                            	           },
+                            SUBMIT  => { show  => $_SHOW  }
+                           });
+   
+   
+ 
+ }
+elsif ($FORM{change}) {
+  $Filearch->file_change({ ID => $FORM{ID}, NAME => $FORM{NAME} });
+
+  $Filearch->video_change({ %FORM });
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGED ");	
+    $FORM{NEXT_FILE}=$FORM{ID};
+    goto NEXT_FILE;
+   }
+ }
+elsif ($FORM{ID}) {
+  $Filearch->video_info($FORM{ID});
+  
+  $conf{DOWNLOADS}=~s/%FOLDER%/$Filearch->{PATH}/g;
+  $conf{DOWNLOADS}=~s/%FILE%/$Filearch->{FILENAME}/g;
+
+  $Filearch->{DOWNLOAD}=$conf{DOWNLOADS};
+
+
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+   }
+
+  $Filearch->{ACTION}='change';
+  $Filearch->{LNG_ACTION}=$_CHANGE;
+  
+  my $INFO;
+  if ($FORM{EXT_CHECK}) {
+    if ($FORM{EXT_CHECK} =~ /search=/) {
+      my $search_ret = filearch_ext_check({ LINK => $FORM{EXT_CHECK} });
+      if (ref $search_ret eq 'HASH') {
+   	    $INFO = $search_ret;
+       }
+     }
+    else {
+	    my $res = web_request("$FORM{EXT_CHECK}", {'TimeOut' => 60 }); 
+      $INFO = parse_info($res, { EXPRESSIONS => $SEARCH_EXPRESSiONS{$FORM{extdb_type}}{GET_INFO} });
+     }
+   }
+
+  if ($Filearch->{CHECKSUM} =~ /ed2k/) {
+    my ($type, $key)=split(/\|/, $Filearch->{CHECKSUM}, 2);
+    $Filearch->{EXT_CHECK}='http://www.sharereactor.ru' . $html->form_input('EXT_CHECK', 
+         "http://www.sharereactor.ru/cgi-bin/mzsearch.cgi?search=$key", { EX_PARAMS => 'SIZE="70"' }).
+         $html->form_input('GET', 
+         "$_GET", { TYPE => 'SUBMIT' });
+   }
+
+  
+  $Filearch->{SIZE}=int2byte($Filearch->{SIZE});
+  
+  
+  if (! $Filearch->{COVER} && $INFO->{COVER} !~ /http/i) {
+     $SEARCH_EXPRESSiONS{$FORM{extdb_type}}{INFO_PAGE}=~/http:\/\/([a-zA-Z0-9.-]+)\//i;
+     $INFO->{COVER}='http://'. $1 .'/'. $INFO->{COVER};
+   }
+
+  if (! $Filearch->{COVER} && $INFO->{COVER_SMALL} !~ /http/i) {
+     $SEARCH_EXPRESSiONS{$FORM{extdb_type}}{INFO_PAGE}=~/http:\/\/([a-zA-Z0-9.-]+)\//i;
+     $INFO->{COVER_SMALL}='http://'. $1 .'/'. $INFO->{COVER_SMALL};
+   }
+
+
+  foreach my $line (@$genres_list) {
+    my $status = (  defined($Filearch->{GENRE_HASH}{"$line->[4]"}) || defined($INFO->{GENRE_HASH}{"$line->[2]"}) || defined($INFO->{GENRE_HASH}{"$line->[3]"})) ? 'checked' : '';
+    $Filearch->{GENRES}.=$html->form_input('GENRES', "$line->[4]", { TYPE => 'checkbox', EX_PARAMS => " $status" })."$line->[0]<br>\n";
+   }
+
+  $html->tpl_show(_include('filearch_video_add', 'Filearch'), { %$Filearch, %$INFO });
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+	$Filearch->video_del($FORM{del});
+
+  if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_DELETED $FORM{del}");	
+    return 0;
+   }
+ }
+
+
+if ($Filearch->{errno}) {
+  $html->message('err', $_ERROR, "[$Filearch->{errno}] $err_strs{$Filearch->{errno}}");	
+  return 0;
+ }
+
+
+
+
+$Filearch->{GENRES_SEL}=$html->form_select('GENRE', 
+                                          { 
+ 	                                          SELECTED          => $FORM{GENRE},
+ 	                                          SEL_MULTI_ARRAY   => [['', '', '', ''], @$genres_list],
+ 	                                          MULTI_ARRAY_KEY   => 4,
+ 	                                          MULTI_ARRAY_VALUE => 0,
+ 	                                          NO_ID             => 1
+ 	                                        }),
+
+
+
+
+
+form_search({ TPL => 1 });
+$html->tpl_show(_include('filearch_video_search', 'Filearch'), { %$Filearch, %$INFO });
+
+print $html->letters_list({ EXPR => 'А-Я' });
+if ($FORM{letter}) {
+  $LIST_PARAMS{NAME} = "$FORM{letter}*";
+  $pages_qs .= "&letter=$FORM{letter}";
+ }
+
+#WIHOUT_INFO => 1;
+
+my $list = $Filearch->video_list({ %LIST_PARAMS, %FORM });
+
+$table = $html->table( { width       => '100%',
+                         caption     => "Video",
+                         border      => 1,
+                         title       => ['-', "$_NAME", "$_YEAR", "$_GENRE", "$_QUALITY", "$_FORMAT",
+                                           "$_SIZE", "$_ADDED", "-", "-", "-"],
+                         cols_align  => ['center', 'left', 'right', 'left', 'left', 'right', 'right', 
+                            'center:noprint', 'center:noprint'],
+                         qs          => $pages_qs,
+                         pages       => $Filearch->{TOTAL}
+                       });
+
+
+  foreach my $line (@$list) {
+    my ($type, $search_string);
+    if ($line->[6] =~ /ed2k/) {
+    	($type, $search_string)=split(/\|/, $line->[6], 2);
+     } 
+    
+    my $parent = ($line->[16] > 0) ? ' ('. $html->button($_PARENT, "index=$index&ID=$line->[16]") .')' : '';
+ 		$table->addrow(
+ 		      $html->form_input("IDS", $line->[0], {TYPE => 'checkbox'}), 
+ 		      $html->button($line->[1], "index=$index&ID=$line->[0]") . $parent, 
+  		    $line->[2],
+  		    $line->[3],
+  		    $line->[4],
+  		    $line->[5],
+  		    int2byte($line->[6]),
+          $line->[7],
+  		    $html->button('Internet DB', "index=$index$pages_qs&external_db=$line->[9]&ID=$line->[0]"),
+  		    $html->button("$_SHOW", "index=$index&ID=$line->[0]"), 
+  		    $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }),
+  		  );
+   }
+#  		    "<a href=\"http://www.sharereactor.ru/cgi-bin/mzsearch.cgi?search=$search_string\" terget='_new'>show</a>",
+
+
+print $table->show();
+$table = $html->table({ width       => '100%',
+                        cols_align  => [ 'left', 'right'],    
+                        rows        => [ ["$_TOTAL:", "$Filearch->{TOTAL}" ] ]
+                      });
+
+print $table->show();
+
+
+
+
+}
+
+
+
+
+#*******************************************************************
+# 
+# 
+#*******************************************************************
+sub filearch_user_video {
+
+
+if ($FORM{ID}) {
+  $Filearch->video_info($FORM{ID});
+  $Filearch->{SIZE}=int2byte($Filearch->{SIZE});
+  $Filearch->{IMG}="<img src='$Filearch->{COVER}' alt='$Filearch->{NAME}'>" if($Filearch->{COVER});
+
+  my $download = $conf{DOWNLOADS};
+  $download=~s/%FOLDER%/$Filearch->{PATH}/g;
+  $download=~s/%FILE%/$Filearch->{FILENAME}/g;
+  $download=~s/%INFO%//g;
+  $Filearch->{DOWNLOAD}=$download;
+  
+  if ($Filearch->{ACTORS_HASH}) {
+    while(my($k, $v)=each( %{ $Filearch->{ACTORS_HASH} }) ){
+       $Filearch->{ACTORS}.="$v, ";
+     }
+   }
+
+  if ($Filearch->{GENRE_HASH}) {
+    while(my($k, $v)=each( %{ $Filearch->{GENRE_HASH} }) ){
+       $Filearch->{GENRE}.="$v, ";
+     }
+   }
+  
+  if ($Filearch->{PARTS}) {
+    foreach my $line ( @{ $Filearch->{PARTS} } ) {
+       
+       $download=$conf{DOWNLOADS};
+       $download=~s/%FOLDER%/$line->[10]/g;
+       $download=~s/%FILE%/$line->[9]/g;
+       $download=~s/%INFO%/$line->[15]/g;
+
+       $Filearch->{DOWNLOAD}.=  '<br>' . $download;
+     }
+  }
+  
+  $html->tpl_show(_include('filearch_video_info', 'Filearch'), $Filearch);
+ }
+elsif ($FORM{IDS}) {
+  $Filearch->video_check({ UID => $user->{UID}, %FORM  });
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+   }
+
+  $Filearch->{SIZE}=int2byte($Filearch->{SIZE});
+ }
+
+
+if ($Filearch->{errno}) {
+  $html->message('err', $_ERROR, "[$Filearch->{errno}] $err_strs{$Filearch->{errno}}");	
+  return 0;
+ }
+
+
+
+my $genres_list = $Filearch->genres_list();
+
+$Filearch->{GENRES_SEL}=$html->form_select('GENRE', 
+                                          { 
+ 	                                          SELECTED          => $FORM{GENRE},
+ 	                                          SEL_MULTI_ARRAY   => [['', '', '', ''], @$genres_list],
+ 	                                          MULTI_ARRAY_KEY   => 4,
+ 	                                          MULTI_ARRAY_VALUE => 0,
+ 	                                          NO_ID             => 1
+ 	                                        }),
+
+
+
+$Filearch->{STATE_SEL}=$html->form_select('STATE', 
+                                          { 
+ 	                                          SELECTED          => $FORM{STATE},
+ 	                                          SEL_ARRAY         => \@VIDEO_STATE ,
+ 	                                          ARRAY_NUM_ID      => 1,
+ 	                                          NO_ID             => 1
+ 	                                        }),
+
+
+$html->tpl_show(_include('filearch_video_search', 'Filearch'), { %$Filearch, %FORM }, {  OUTPUT2RETURN => 1 });
+
+if ($FORM{search}) {
+  $pages_qs = "&search=y";
+
+	while(my($k, $v)=each %FORM) {
+		if ($k =~ /([A-Z0-9]+)/ && $v ne '' && $k ne '__BUFFER') {
+		  $LIST_PARAMS{$k}=$v;
+	    $pages_qs .= "&$k=$v";
+		 }
+	 }
+}
+
+
+
+print $html->letters_list({ EXPR => 'А-Я' });
+if ($FORM{letter}) {
+  $LIST_PARAMS{NAME} = "$FORM{letter}*";
+  $pages_qs .= "&letter=$FORM{letter}";
+ }
+
+
+my $list = $Filearch->video_list({ %LIST_PARAMS, PARENT => 0 });
+
+$table = $html->table( { width       => '100%',
+                         caption     => "Video",
+                         border      => 1,
+                         title       => ['-', "$_NAME", "$_YEAR", "$_GENRE", "$_QUALITY", "$_FORMAT",
+                                           "$_SIZE", "$_ADDED", "$_STATE", "-" ],
+                         cols_align  => ['center', 'left', 'right', 'left', 'left', 'right', 'right', 
+                            'center:noprint' ],
+                         qs          => $pages_qs,
+                         pages       => $Filearch->{TOTAL}
+                       });
+
+$pages_qs .= "&pg=$FORM{pg}" if ($FORM{pg});
+
+  foreach my $line (@$list) {
+    my ($type, $search_string);
+    if ($line->[6] =~ /ed2k/) {
+    	($type, $search_string)=split(/\|/, $line->[6], 2);
+     } 
+    
+    # Set color for active
+ 		
+ 		$table->{rowcolor} = ($line->[0] eq $FORM{ID} ) ? $_COLORS[0] : undef;      
+ 		
+ 		$table->addrow(
+ 		      $html->form_input("IDS", $line->[0], {TYPE => 'checkbox', OUTPUT2RETURN => 1 }), 
+ 		      $html->button($line->[1], "index=$index&ID=$line->[0]$pages_qs"), 
+  		    $line->[2],
+  		    $line->[3],
+  		    $line->[4],
+  		    $line->[5],
+  		    int2byte($line->[6]),
+          $line->[7],
+          $VIDEO_STATE[$line->[8]],
+  		    $html->button("$_SHOW", "index=$index&ID=$line->[0]$pages_qs"), 
+  		  );
+   }
+
+
+my $table_navigat = $html->table({ width       => '100%',
+                                   title_plain => [
+                                   $Filearch->{STATE_SEL} . $html->form_input('SET', $_CHANGE, { TYPE => 'SUBMIT', OUTPUT2RETURN => 1 })
+                                   ]
+                                 });
+
+print $html->form_main({ 'CONTENT' => $table->show({ OUTPUT2RETURN => 1 }). $table_navigat->show({ OUTPUT2RETURN => 1 }),
+                         'HIDDEN'  => { index => $index }
+                       });
+
+$table = $html->table({ width       => '100%',
+                        cols_align  => [ 'left', 'right'],    
+                        rows        => [ ["$_TOTAL:", "$Filearch->{TOTAL}" ] ]
+                      });
+
+print $table->show();
+
+}
+
+#*******************************************************************
+# 
+# 
+#*******************************************************************
+sub filearch_video_actors {
+  $Filearch->{ACTION}='add';
+  $Filearch->{LNG_ACTION}=$_ADD;
+
+	
+if ($FORM{add}) {
+  $Filearch->actors_add({ %FORM });
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_ADDED");	
+   }
+ }
+elsif ($FORM{change}) {
+  $Filearch->actors_change({ %FORM });
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+   }
+ }
+elsif ($FORM{ID}) {
+  $Filearch->actors_info($FORM{ID});
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+   }
+  $Filearch->{ACTION}='change';
+  $Filearch->{LNG_ACTION}=$_CHANGE;
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
+  $Filearch->actors_del($FORM{del});
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+   }
+ }
+
+if ($Filearch->{errno}) {
+  $html->message('err', $_ERROR, "[$Filearch->{errno}] $err_strs{$Filearch->{errno}}");	
+  return 0;
+ }
+
+
+$html->tpl_show(_include('filearch_video_actors', 'Filearch'), $Filearch);
+
+print $html->letters_list();
+if ($FORM{letter}) {
+  $LIST_PARAMS{NAME} = "$FORM{letter}*";
+  $pages_qs .= "&letter=$FORM{letter}";
+ }
+
+my $list = $Filearch->actors_list({ %LIST_PARAMS });
+
+$table = $html->table( { width       => '100%',
+                         caption     => "Video",
+                         border      => 1,
+                         title       => ['-', "$_NAME", "$_ORIGIN_NAME", "$_FILMS", "-", "-" ],
+                         cols_align  => ['center', 'left', 'left', 'right', 'center:noprint', 'center:noprint' ],
+                         qs          => $pages_qs,
+                         pages       => $Filearch->{TOTAL}
+                       });
+
+
+foreach $line (@$list) {
+  $table->addrow( $line->[0],
+  		          $line->[1],
+  		          $line->[2],
+  		          $html->button("$line->[3]", "index=". ($index-1) ."&search=y&ACTOR_ID=$line->[0]"), 
+  		          $html->button("$_SHOW", "index=$index&ID=$line->[0]"), 
+  		          $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+  		        );
+ }
+
+print $table->show();
+$table = $html->table({ width       => '100%',
+                        cols_align  => [ 'left', 'right'],    
+                        rows        => [ ["$_TOTAL:", "$Filearch->{TOTAL}" ] ]
+                      });
+
+print $table->show();
+	
+}
+
+
+#*******************************************************************
+# 
+# 
+#*******************************************************************
+sub filearch_video_genres {
+  $Filearch->{ACTION}='add';
+  $Filearch->{LNG_ACTION}=$_ADD;
+
+if ($FORM{add}) {
+  $Filearch->genres_add({ %FORM });
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_ADDED");	
+   }
+ }
+elsif ($FORM{change}) {
+  $Filearch->genres_change({ %FORM });
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+   }
+ }
+elsif ($FORM{ID}) {
+  $Filearch->genres_info($FORM{ID});
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+   }
+  $Filearch->{ACTION}='change';
+  $Filearch->{LNG_ACTION}=$_CHANGE;
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
+  $Filearch->genres_del($FORM{del});
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+   }
+ }
+
+if ($Filearch->{errno}) {
+  $html->message('err', $_ERROR, "[$Filearch->{errno}] $err_strs{$Filearch->{errno}}");	
+  return 0;
+ }
+
+
+$html->tpl_show(_include('filearch_video_genres', 'Filearch'), $Filearch);
+my $list = $Filearch->genres_list({ %LIST_PARAMS });
+
+$table = $html->table( { width       => '100%',
+                         caption     => "$_GENRES",
+                         border      => 1,
+                         title       => ["$_NAME", "$_COUNT", "ShareReaktor", "ImDB", "-", "-" ],
+                         cols_align  => ['left',  'right', 'left', 'left', 'center:noprint', 'center:noprint' ],
+                         qs          => $pages_qs,
+                       });
+
+foreach my $line (@$list)  {
+  $table->addrow( $line->[0],
+    		          $line->[1],
+  	  	          $line->[2],
+  		            $line->[3],
+  		            $html->button("$_SHOW", "index=$index&ID=$line->[4]"), 
+  		           $html->button($_DEL, "index=$index$pages_qs&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+  		           );
+ }
+
+print $table->show();
+$table = $html->table({ width       => '100%',
+                        cols_align  => [ 'left', 'right'],    
+                        rows        => [ ["$_TOTAL:", "$Filearch->{TOTAL}" ] ]
+                      });
+
+print $table->show();
+}
+
+#*******************************************************************
+# 
+#*******************************************************************
+sub filearch_ext_check {
+  my ($attr)=@_;
+  #my $INFO='';
+  return sr_search('', { LINK => $attr->{LINK} }) if ($attr->{LINK} =~ /www.sharereactor.ru/);
+  
+  #return $INFO;
+}
+
+
+
+
+
+
+#*******************************************************************
+# 
+#*******************************************************************
+sub filearch_chapters {
+
+  $Filearch->{debug}=1;
+  $Filearch->{ACTION}='add';
+  $Filearch->{LNG_ACTION}=$_ADD;
+
+
+if ($FORM{add}) {
+  $Filearch->chapter_add({ %FORM });
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_ADDED");	
+   }
+ }
+elsif ($FORM{change}) {
+  $Filearch->chapter_change({ %FORM });
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+   }
+ }
+elsif ($FORM{ID}) {
+  $Filearch->chapter_info($FORM{ID});
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+   }
+  $Filearch->{ACTION}='change';
+  $Filearch->{LNG_ACTION}=$_CHANGE;
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
+	$Filearch->chapter_del($FORM{del});
+	if (! $Filearch->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING ");	
+   }
+ }
+
+if ($Filearch->{errno}) {
+  $html->message('err', $_ERROR, "[$Filearch->{errno}] $err_strs{$Filearch->{errno}}");	
+  return 0;
+ }	
+
+
+$Filearch->{TYPE_SEL}=$html->form_select('TYPE', {
+  	                           	          SELECTED          => $type,
+ 	                                        SEL_ARRAY         => [ 'Video', 'MP3', 'Files' ],
+ 	                                        NO_ID             => 1
+  	                                    }),
+
+
+$html->tpl_show(_include('filearch_chapters', 'Filearch'), $Filearch);
+my $list = $Filearch->chapters_list({ %LIST_PARAMS });
+
+$table = $html->table( { width       => '100%',
+                         caption     => "$_CHAPTERS",
+                         border      => 1,
+                         title       => ["ID", "$_NAME", "$_TYPE", "$_FOLDER", '-', '-' ],
+                         cols_align  => ['right', 'left', 'left', 'center:noprint', 'center:noprint' ],
+                         qs          => $pages_qs,
+                       });
+
+foreach my $line (@$list)  {
+  $table->addrow( $line->[0],
+    		          $line->[1],
+  	  	          $line->[2],
+  	  	          $line->[3],
+  		            $html->button("$_SHOW", "index=$index&ID=$line->[0]"), 
+  		           $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+  		           );
+ }
+
+print $table->show();
+$table = $html->table({ width       => '100%',
+                        cols_align  => [ 'left', 'right'],    
+                        rows        => [ ["$_TOTAL:", "$Filearch->{TOTAL}" ] ]
+                      });
+
+print $table->show();
+  	
+}
+
+
+1
+
