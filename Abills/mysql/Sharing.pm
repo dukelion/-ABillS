@@ -1794,4 +1794,205 @@ sub tt_del {
 }
 
 
+
+
+#**********************************************************
+# tt_info
+#**********************************************************
+sub errors_list {
+	my $self = shift;
+	my ($attr) = @_;
+	
+	
+	
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
+ $self->{SEARCH_FIELDS} = '';
+ $self->{SEARCH_FIELDS_COUNT}=0;
+
+ undef @WHERE_RULES;
+ push @WHERE_RULES, "u.uid = sharing.uid";
+ 
+
+ # Start letter 
+ if ($attr->{FIRST_LETTER}) {
+    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+  }
+ elsif ($attr->{LOGIN}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
+  }
+ # Login expresion
+ elsif ($attr->{LOGIN_EXPR}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+  }
+ 
+
+ if ($attr->{IP}) {
+    if ($attr->{IP} =~ m/\*/g) {
+      my ($i, $first_ip, $last_ip);
+      my @p = split(/\./, $attr->{IP});
+      for ($i=0; $i<4; $i++) {
+
+         if ($p[$i] eq '*') {
+           $first_ip .= '0';
+           $last_ip .= '255';
+          }
+         else {
+           $first_ip .= $p[$i];
+           $last_ip .= $p[$i];
+          }
+         if ($i != 3) {
+           $first_ip .= '.';
+           $last_ip .= '.';
+          }
+       }
+      push @WHERE_RULES, "(sharing.ip>=INET_ATON('$first_ip') and sharing.ip<=INET_ATON('$last_ip'))";
+     }
+    else {
+      my $value = $self->search_expr($attr->{IP}, 'IP');
+      push @WHERE_RULES, "sharing.ip$value";
+    }
+
+    $self->{SEARCH_FIELDS} = 'INET_NTOA(sharing.ip), ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{PHONE}) {
+    my $value = $self->search_expr($attr->{PHONE}, 'INT');
+    push @WHERE_RULES, "u.phone$value";
+  }
+
+
+ if ($attr->{DEPOSIT}) {
+    my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
+    push @WHERE_RULES, "u.deposit$value";
+  }
+
+ if ($attr->{SPEED}) {
+    my $value = $self->search_expr($attr->{SPEED}, 'INT');
+    push @WHERE_RULES, "u.speed$value";
+
+    $self->{SEARCH_FIELDS} .= 'sharing.speed, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{PORT}) {
+    my $value = $self->search_expr($attr->{PORT}, 'INT');
+    push @WHERE_RULES, "sharing.port$value";
+
+    $self->{SEARCH_FIELDS} .= 'sharing.port, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{CID}) {
+    $attr->{CID} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "sharing.cid LIKE '$attr->{CID}'";
+    $self->{SEARCH_FIELDS} .= 'sharing.cid, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{COMMENTS}) {
+   $attr->{COMMENTS} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "u.comments LIKE '$attr->{COMMENTS}'";
+  }
+
+
+ if ($attr->{FIO}) {
+    $attr->{FIO} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "u.fio LIKE '$attr->{FIO}'";
+  }
+
+ # Show users for spec tarifplan 
+ if (defined($attr->{TP_ID})) {
+    push @WHERE_RULES, "sharing.tp_id='$attr->{TP_ID}'";
+  }
+
+ # Show debeters
+ if ($attr->{DEBETERS}) {
+    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+  }
+
+ # Show debeters
+ if ($attr->{COMPANY_ID}) {
+    push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";
+  }
+
+ # Show groups
+ if ($attr->{GID}) {
+    push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  }
+
+#Activate
+ if ($attr->{ACTIVATE}) {
+   #my $value = $self->search_expr("$attr->{ACTIVATE}", 'INT');
+   push @WHERE_RULES, "(u.activate='0000-00-00' or u.activate$attr->{ACTIVATE})"; 
+ }
+
+#Expire
+ if ($attr->{EXPIRE}) {
+   #my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
+   push @WHERE_RULES, "(u.expire='0000-00-00' or u.expire$attr->{EXPIRE})"; 
+ }
+
+#DIsable
+ if (defined($attr->{DISABLE})) {
+   push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
+ }
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+ $self->query($db, "SELECT datetime,
+   uid,
+   username,
+   file_and_path,
+   client_name,
+   INET_NTOA(ip),
+   client_command
+     FROM (sharing_errors)
+     $WHERE 
+     GROUP BY u.uid
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(u.id) FROM (users u, sharing_main sharing) $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+
+	
+	return $self->{list};
+}
+
+
+
+#**********************************************************
+# Time_intervals
+# ti_add
+#**********************************************************
+sub errors_del {
+	my $self = shift;
+  my ($attr) = @_;
+
+  my %DATA = $self->get_data($attr, { default => $self->tt_defaults() }); 
+
+	$self->query($db, "DELETE FROM sharing_trafic_tarifs 
+	 WHERE  tp_id='$attr->{TI_ID}'  and id='$attr->{TT_ID}' ;", 'do');
+
+
+	return $self;
+}
+
+
+
+
 1
