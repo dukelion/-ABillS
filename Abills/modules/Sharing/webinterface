@@ -346,76 +346,76 @@ elsif (defined($FORM{TP_ID})) {
 # Analize error log
 #**********************************************************
 sub sharing_error {
-	$conf{SHARING_APACHE_ERROR_LOG} = '/usr/log/httpd/error_log' if (! $conf{SHARING_APACHE_ERROR_LOG});
-
-  if ($FORM{UID}) {
-    my $user_info = $users->info( $FORM{UID} );
-	  $LIST_PARAMS{LOGIN}=$user_info->{LOGIN};
-   }
-	
-
-	my @error_log_arr = ();
-	my $total_lines = 0;
-	my $log_size    = 0;
-	
-	if ($conf{SHARING_APACHE_ERROR_LOG} !~ /ssh/) {
-	   $log_size = -s $conf{SHARING_APACHE_ERROR_LOG};
-	 }
-
-	open(LOG_FILE, "$conf{SHARING_APACHE_ERROR_LOG}") || print $html->message('err', $_ERROR, "Can't open file '$conf{SHARING_APACHE_ERROR_LOG}' ");
-	  while(<LOG_FILE>)  {
-      if(/\[(.+)\] \[(\S+)\] \[client (\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\] (.+)/) {
-
-        if ($LIST_PARAMS{LOGIN}) {
-          my $message = $4;          
-     		  my $user = '';
-     		  if ($message =~ /user (\S+):/) {
-   		   	  $user = $1;
-		       }
-          next if ($user !~ /^$LIST_PARAMS{LOGIN}$/i || $user eq '');f:
-         }
-
-        push @error_log_arr, $_;
-        $total_lines++;
-        $log_size += length($_);
-       }
-	   }
-	close(LOG_FILE);
-
-  my $table = $html->table( { width      => '100%',
-                            caption    => "$_ERROR",
-                            border     => 1,
-                            title      => [$_DATE, $_USER, $_TYPE, 'IP', $_MESSAGE ],
-                            cols_align => ['right', 'center', 'right', 'left', 'right', 'center:noprint'],
-                            qs         => $pages_qs,
-                            pages      => $total_lines
-                           });
-
-
-	for(my $i=$total_lines - $PG; $i>=($total_lines - $PG) - $PAGE_ROWS && $i >=0; $i-- ) {
-
-	  #[Mon Jun 25 17:00:52 2007] [error] [client 192.168.202.4] Directory index forbidden by rule: /usr/music/
-		if ($error_log_arr[$i] =~ /\[(.+)\] \[(\S+)\] \[client (\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\] (.+)/ ) {
-		  my $date   = $1; 
-		  my $type   = $2; 
-		  my $client = $3; 
-		  my $message= $4;
-		  my $user   = '';
-		  
-		  if ($message =~ /user (\S+):/) {
-		  	 $user = $1;
-		  	 $message =~ s/user (\S+)://;
-		   }
-
-		  $table->addrow("$date", 
-		    ($user ne '') ? $html->button($user, "index=7&type=11&search=1&LOGIN_EXPR=$user") : '', 
-		    $type, 
-		    $client, 
-		    $message);
-		 }
-	 }
-	
-	print $table->show();
+#	$conf{SHARING_APACHE_ERROR_LOG} = '/usr/log/httpd/error_log' if (! $conf{SHARING_APACHE_ERROR_LOG});
+#
+#  if ($FORM{UID}) {
+#    my $user_info = $users->info( $FORM{UID} );
+#	  $LIST_PARAMS{LOGIN}=$user_info->{LOGIN};
+#   }
+#	
+#
+#	my @error_log_arr = ();
+#	my $total_lines = 0;
+#	my $log_size    = 0;
+#	
+#	if ($conf{SHARING_APACHE_ERROR_LOG} !~ /ssh/) {
+#	   $log_size = -s $conf{SHARING_APACHE_ERROR_LOG};
+#	 }
+#
+#	open(LOG_FILE, "$conf{SHARING_APACHE_ERROR_LOG}") || print $html->message('err', $_ERROR, "Can't open file '$conf{SHARING_APACHE_ERROR_LOG}' ");
+#	  while(<LOG_FILE>)  {
+#      if(/\[(.+)\] \[(\S+)\] \[client (\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\] (.+)/) {
+#
+#        if ($LIST_PARAMS{LOGIN}) {
+#          my $message = $4;          
+#     		  my $user = '';
+#     		  if ($message =~ /user (\S+):/) {
+#   		   	  $user = $1;
+#		       }
+#          next if ($user !~ /^$LIST_PARAMS{LOGIN}$/i || $user eq '');f:
+#         }
+#
+#        push @error_log_arr, $_;
+#        $total_lines++;
+#        $log_size += length($_);
+#       }
+#	   }
+#	close(LOG_FILE);
+#
+#  my $table = $html->table( { width      => '100%',
+#                            caption    => "$_ERROR",
+#                            border     => 1,
+#                            title      => [$_DATE, $_USER, $_TYPE, 'IP', $_MESSAGE ],
+#                            cols_align => ['right', 'center', 'right', 'left', 'right', 'center:noprint'],
+#                            qs         => $pages_qs,
+#                            pages      => $total_lines
+#                           });
+#
+#
+#	for(my $i=$total_lines - $PG; $i>=($total_lines - $PG) - $PAGE_ROWS && $i >=0; $i-- ) {
+#
+#	  #[Mon Jun 25 17:00:52 2007] [error] [client 192.168.202.4] Directory index forbidden by rule: /usr/music/
+#		if ($error_log_arr[$i] =~ /\[(.+)\] \[(\S+)\] \[client (\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\] (.+)/ ) {
+#		  my $date   = $1; 
+#		  my $type   = $2; 
+#		  my $client = $3; 
+#		  my $message= $4;
+#		  my $user   = '';
+#		  
+#		  if ($message =~ /user (\S+):/) {
+#		  	 $user = $1;
+#		  	 $message =~ s/user (\S+)://;
+#		   }
+#
+#		  $table->addrow("$date", 
+#		    ($user ne '') ? $html->button($user, "index=7&type=11&search=1&LOGIN_EXPR=$user") : '', 
+#		    $type, 
+#		    $client, 
+#		    $message);
+#		 }
+#	 }
+#	
+#	print $table->show();
 
 
 $table = $html->table( { width      => '100%',
