@@ -52,3 +52,13 @@ CREATE TABLE `sharing_trafic_tarifs` (
  `expression` varchar(255) NOT NULL default '',
   UNIQUE KEY `id` (`id`,`tp_id`)
 ) COMMENT='Sharing Traffic Class';
+
+CREATE TABLE `sharing_errors` (
+  `datetime` datetime NOT NULL default '0000-00-00 00:00:00',
+  `uid` int(10) unsigned NOT NULL default '0',
+  `username` varchar(20) NOT NULL default '',
+  `file_and_path` varchar(200) NOT NULL default '',
+  `client_name` varchar(127) NOT NULL default '',
+  `ip` int(10) unsigned NOT NULL default '0',
+  `client_command` varchar(250) NOT NULL default ''
+) COMMENT='Sharing errors';
