@@ -348,10 +348,10 @@ elsif (defined($FORM{TP_ID})) {
 sub sharing_error {
 #	$conf{SHARING_APACHE_ERROR_LOG} = '/usr/log/httpd/error_log' if (! $conf{SHARING_APACHE_ERROR_LOG});
 #
-#  if ($FORM{UID}) {
-#    my $user_info = $users->info( $FORM{UID} );
-#	  $LIST_PARAMS{LOGIN}=$user_info->{LOGIN};
-#   }
+  if ($FORM{UID}) {
+    my $user_info = $users->info( $FORM{UID} );
+	  $LIST_PARAMS{LOGIN}=$user_info->{LOGIN};
+   }
 #	
 #
 #	my @error_log_arr = ();
@@ -416,6 +416,34 @@ sub sharing_error {
 #	 }
 #	
 #	print $table->show();
+
+
+
+$Sharing->{debug}=1;
+my $list = $Sharing->errors_list( { %LIST_PARAMS } );
+
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "Sharing",
+                            border     => 1,
+                            title      => [$_DATE, "$_LOGIN", "$_FILE", "client_name", "IP", "$_ERROR" ],
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'center', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $Sharing->{TOTAL}
+                           });
+
+foreach my $line (@$list) {
+ 
+  $table->addrow(
+   "$line->[0]",
+   $html->button("$line->[2]", "index=15&UID=$line->[1]"), 
+   "$line->[2]", 
+   "$line->[3]", 
+   "$line->[4]", 
+   "$line->[5]"
+   );
+}
+print $table->show();
 
 
 $table = $html->table( { width      => '100%',
