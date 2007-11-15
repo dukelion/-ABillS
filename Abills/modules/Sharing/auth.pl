@@ -225,7 +225,6 @@ $sth->execute();
 my ( $deposit ) = $sth->fetchrow_array();
 
 
-
 #Get file info
 # это позволяет по ид новости определить имена файлов и открытость-закрытость их для всех
 #SELECT typo3.tx_t3labtvarchive_slideshow,
@@ -283,7 +282,7 @@ if ($sth->rows() > 0) {
     my ( $used_traffic ) = $sth->fetchrow_array();
 
 
-    $prepaid_traffic = $prepaid_traffic * 1024 * 1024;
+    $prepaid_traffic = ($prepaid_traffic == 0) ? $month_traf_limit :  $prepaid_traffic * 1024 * 1024;
 
     $deposit = $deposit +  $credit;
 
