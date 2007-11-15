@@ -1,0 +1,2 @@
+MYADDR:
+ !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR

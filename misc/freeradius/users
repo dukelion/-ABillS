@@ -1,0 +1,2 @@
+DEFAULT Auth-Type = Accept
+  Exec-Program-Wait = "/usr/abills/libexec/rauth.pl"

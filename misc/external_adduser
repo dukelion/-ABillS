@@ -1,0 +1,71 @@
+#!/usr/bin/perl -w        
+# Add system user
+# Example of external script that 
+#   adding users to unix system
+#   make maildrop dirs
+#
+# Add next string to /etc/sudoers:
+#
+# www   ALL = NOPASSWD: /usr/abills/misc/external_adduser
+# 
+#***********************************************************
+
+use FindBin '$Bin';
+unshift(@INC, $Bin . '/../');
+require Abills::Base;
+Abills::Base->import();
+
+my $debug = 0;
+my $args = parse_arguments(\@ARGV);
+if ($args->{debug}) {
+	$debug = 1;
+}
+
+my $HOMEDIR_PREFIX = "/usr/home";
+my $GROUP = "230";
+my $SHELL = "/usr/local/bin/dialupsh";
+
+
+if (! $args->{LOGIN}) {
+	print "0:ERROR=No username";
+	exit;
+}
+
+
+my $USER_NAME = $args->{LOGIN};
+my $FIO       = $args->{FIO} || '';
+my $PASSWORD  = $args->{PASSWORD} || '';
+
+
+#**********************************************************
+#
+#**********************************************************
+sub add_systemuser {
+
+
+my $cmd = "/usr/bin/pw useradd -n $USER_NAME -c \"$FIO\" \
+            -d $HOMEDIR_PREFIX/$USER_NAME \
+            -g $GROUP\
+            -s $SHELL -h -; /usr/bin/passwd $USER_NAME $PASSWORD";
+
+ print $cmd if ($debug > 0);
+
+ print "1:User Added";
+}
+
+#**********************************************************
+# Make maildrop dir
+#**********************************************************
+sub maildrop_dir {
+
+ my $DOMAIN_NAME = $args->{DOMAINNAME} || '';
+#Make maildrop dir
+ $cmd = "/usr/bin/su -u vmail -fm vmail -c 'maildirmake /var/spool/virtual/$DOMAIN_NAME/$USER_NAME'; 
+  /usr/bin/su -u vmail -fm vmail -c 'maildirmake -f Spam /var/spool/virtual/$DOMAIN_NAME/$USER_NAME';";
+
+ print $cmd if ($debug > 0);
+ my $result = `$cmd`;
+
+ print "1:Dir maked '/var/spool/virtual/$USER_NAME\@$DOMAIN_NAME'";
+
+}

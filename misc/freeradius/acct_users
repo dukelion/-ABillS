@@ -1,0 +1,8 @@
+DEFAULT Acct-Status-Type == Start
+   Exec-Program = "/usr/abills/libexec/racct.pl"
+
+DEFAULT Acct-Status-Type == Alive
+   Exec-Program = "/usr/abills/libexec/racct.pl"
+
+DEFAULT Acct-Status-Type == Stop
+   Exec-Program = "/usr/abills/libexec/racct.pl"

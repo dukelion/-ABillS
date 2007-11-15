@@ -1,0 +1,312 @@
+#!/usr/bin/perl -w 
+# Auto configure service
+
+
+use vars  qw(%RAD %conf $db %AUTH
+ %RAD_REQUEST %RAD_REPLY %RAD_CHECK
+ $DATE $TIME
+ %auth_mod
+ $begin_time
+ $nas);
+
+
+use strict;
+use FindBin '$Bin';
+require $Bin . '/../libexec/config.pl';
+require $Bin . '/../Abills/Base.pm';
+Abills::Base->import();
+
+my $debug=0;
+my $ARGV = parse_arguments(\@ARGV);
+
+
+
+if ($ARGV->{debug}) {
+  $debug=int($ARGV->{debug});
+  print "Debug mode: $debug\n";
+}
+
+$conf{DATE}=$DATE;
+$conf{TIME}=$TIME;
+$conf{OS}=`uname`;
+
+if ($ARGV->{help}) {
+  print "Auto configuration script
+   ./autoconf [parameters]
+  PROGRAMS=[PROGRAMS,...] - Program names (postfix,freeradius,exppp)
+  -f                      - Force mode. Rewrite exists files withot prompt
+  PARAMS=                 - Extended parameters
+    FREEBSD               - OS FreeBSD make startup config
+  CHANGE_PATH             - Change path for instalation files.
+  
+  FILES                   - Configure only selected files
+  debug                   - Debug level
+                            1 short debug
+                            2 full debug
+                            3 emulate mode
+  INFORMATION:
+   OS: $conf{OS}
+  \n";
+ }
+elsif ($ARGV->{PROGRAMS}) {
+  my @programs = split(/,/, $ARGV->{PROGRAMS});
+  
+  foreach my $program (@programs) {
+  	print "  PROGRAM: $program\n" if ($debug > 1);
+  	if (! -f $Bin."/$program/install") {
+  		print "Can't find program configuration '$Bin/$program/install'\n";
+  		exit 0;
+  	 }
+  	elsif ($debug < 6) {
+  	  check_install("$program");
+  	 }
+   }
+}
+
+#**********************************************************
+# Postfix autoconf
+#**********************************************************
+sub check_install {
+ my ($program)=@_;
+
+ 
+ my $install_file = $Bin . "/$program/install";
+
+ my @files = ();
+ open(FILE, "< $install_file") || die "Can't open file '$install_file'  $!";
+   while(<FILE>) {
+      next if (/^#/);
+      push @files, $_;
+    }
+ close(FILE);
+
+ my %DEFAULT_VALUE = ();
+ my %DEFAULT_DESCRIBE = ();
+
+ foreach my $file (@files) {
+ 
+ 	my $config_body = '';
+	my $type   = '';
+ 	my $folder = '';
+ 	my $dest   = '';
+ 	#Reg expression
+ 	print $file if ($debug > 4);
+ 	
+
+ 	# :DEFAULT:DEFAULT_VALUE_NAME=DEFAULT_VALUE_VALUE:DESCRIBE
+ 	if ($file =~ /^:DEFAULT:(.+)/) {
+    my $value = $1;
+ 		if ($value =~ /(\S+)=(.+|):(.+)/) {
+ 			my $name     = $1;
+ 			my $value    = $2;
+ 			my $describe = $3;
+ 			
+ 			print "DEFAULT: $name / $value / $describe \n" if ($debug > 2);
+ 			$DEFAULT_DESCRIBE{"$name"}=$describe;
+ 			$DEFAULT_VALUE{"$name"}=$value;
+ 		 }
+ 	  next;
+ 	 }
+ 	#Execute some command
+ 	#:PARAMS_NAME=PARAMS_VALUE:exec COMMAND
+ 	elsif ($file =~ /^:(\S{0,100}):exec:(.+)/) {
+ 		my $param  = $1;
+    my $value  = $2;
+ 		
+ 		my $param_name = '' ;
+ 		my $param_value = '';
+    if ($param) {
+      ($param_name, $param_value)=split(/=/, $param, 2);
+     }
+
+    if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
+      $config_body = "$value\n";
+     }  		
+    elsif (! $param) {
+    	$config_body = "$value\n";
+     }
+
+    #my $res = system("$config_body");
+    print "EXECUTE: $config_body\n" if ($debug > 1);
+    my $res = system("$config_body");
+   	print "RESULT: $res\n" if ($debug > 1);
+    next;
+   } 
+ 	elsif ($file =~ /^:(\S{0,100}):(.+) (>{1,2}) +\[(\S+)\]\/(.+)/) {
+ 		my $params  = $1;
+ 		#my $param_value = $2;
+ 		my $param_name = '' ;
+ 		my $param_value = '';
+ 		my $value  = $2;
+ 		$type   = $3;
+ 	  $folder = $4;
+ 	  $dest   = $5;
+    
+    $value =~ s/\\n/\n/g;
+    
+    my %PARAMS_HASH =  ();
+    if ($params) {
+      my @params_arr = split(/,/, $params);
+      foreach my $param ( @params_arr ) {
+        ($param_name, $param_value)=split(/=/, $param, 2);
+        $PARAMS_HASH{$param_name}=$param_value;
+       }
+     }
+
+    
+    
+    if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
+      #If result is file
+      if ($value =~ /^FILE=(\S+)/) {
+      	$config_body = get_file($Bin."/$program/".$1);
+       }
+      else {
+      	$config_body = "$value\n";
+       }
+     }  		
+    elsif (! $params) {
+    	$config_body = "$value\n";
+     }
+    else {
+    	next;
+     }
+ 		
+ 	 }
+	elsif($file =~ /^(\S+) +([>]{1,2}) +\[(\S+)\]\/(.+)/) {
+ 	  my $config = $1;
+ 	  $type   = $2;
+ 	  $folder = $3;
+ 	  $dest   = $4;
+
+    $config_body = get_file($Bin."/$program/$config");
+   }
+  else {
+ 	  next;
+   }
+
+   
+   while($config_body =~ /%([A-Z\_0-9]+)%/g) {
+   	 my $VARIABLE = $1;
+   	 if (! $conf{$VARIABLE}) {
+   	   print $DEFAULT_DESCRIBE{"$VARIABLE"}."\n" if ($DEFAULT_DESCRIBE{"$VARIABLE"});
+   	   print " $VARIABLE";
+   	   print ' ['. $DEFAULT_VALUE{"$VARIABLE"}. ']' if ($DEFAULT_VALUE{"$VARIABLE"});
+   	   print ": ";
+   	   my $read = '';
+       chop($read = <STDIN>);
+       $read =~ s/^\s*//;
+       $read =~ s/\s*$//;
+       #print "$VARIABLE  / $read\n";
+ 	     if ($read eq '' && $DEFAULT_VALUE{"$VARIABLE"}) {
+ 	     	 $conf{$VARIABLE} = $DEFAULT_VALUE{"$VARIABLE"};
+ 	      }
+ 	     else {
+ 	       $conf{$VARIABLE}=$read;
+ 	      }
+ 	    }
+    }
+   
+    while(my($key, $val) = each %conf) {
+      $config_body =~ s/%$key%/$val/g;
+     }
+
+ 	  #Copy config
+    if (! -d $folder ) {
+    	mkdir($folder);
+    	print "mkdir $folder\n" if ($debug == 2);
+     }
+
+    if ($debug == 3) {
+      
+     }
+    else {
+      #print "$type$folder/$dest";
+      if($type eq '>>') {
+      	#Check fo existing record in file
+      	
+        my $dest_body = '';
+        open(FILE, "$folder/$dest") || die "Can't open file '$folder/$dest'  $!";
+ 	        while(<FILE>){
+ 	        	$dest_body .= $_;
+ 	         }
+        close(FILE);
+        
+        $dest_body =~ s/\n|\r//g;
+        my $check_body = $config_body;
+        $check_body =~ s/\n|\r//g; 
+        $check_body =~ s/\$/\\\$/g; 
+        
+        if($dest_body =~ m/$check_body/sg ) {
+        	print "File: $folder/$dest\n Skipp. Parameters exists\n\n";
+        	if ($debug == 2) {
+        	  print $config_body;
+        	 }
+ 	      	next;
+         }
+       }
+      elsif ( -e "$folder/$dest" && ! defined($ARGV->{'-f'}) ) {
+      	if (! confirm_yn("File: $folder/$dest exist oweride: ", "y")) {
+      		print "Skiped...\n";
+      		next;
+      	 }
+       }
+
+      open(FILE, "$type$folder/$dest") || die "Can't open file '$type$folder/$dest'  $!";
+ 	      print FILE $config_body;
+      close(FILE);
+     }
+
+ }
+
+
+}
+
+#********************************************************************
+# Get file content
+#********************************************************************
+sub get_file {
+	my ($file, $attr)=@_;
+	
+  print "Get content: $file\n" if ($debug > 0);
+  my $content = '';
+  #Open local config
+  open(FILE, "< $file") || die "Can't open file '$file'  $!";
+    while(<FILE>) {
+      $content .= $_;
+     }
+  close(FILE);
+
+	return $content;
+}
+
+#********************************************************************
+# confirm_yn($message, $confirm)
+#********************************************************************
+sub confirm_yn {
+    my($message, $confirm) = @_;
+    my $yes = '^(yes|YES|y|Y)$';
+    my $no = '^(no|NO|n|N)$';
+    my $read;
+    my $c;
+
+    if ($confirm && ($confirm =~ "$yes" || $confirm == 1)) {
+        $confirm = "y";
+    } else {
+        $confirm = "n";
+    }
+    print "$message (y/n) [$confirm]: ";
+    chop($read = <STDIN>);
+    $read =~ s/^\s*//;
+    $read =~ s/\s*$//;
+    return 1 unless $read;
+
+    if (($confirm eq "y" && $read =~ "$yes") ||
+        ($confirm eq "n" && $read =~ "$no")) {
+        return 1;
+    }
+
+    if ($read !~ "$yes" && $read !~ "$no") {
+        warn "Wrong value. Enter again!\a\n";
+      }
+}
+

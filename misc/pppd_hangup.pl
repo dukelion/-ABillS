@@ -5,7 +5,7 @@
 #
 #/etc/sudoers
 #
-#apache   ALL = NOPASSWD: /usr/abills/libexec/modules/pppd.pl
+#apache   ALL = NOPASSWD: /usr/abills/misc/pppd_hangup.pl
 #
 
 use strict;

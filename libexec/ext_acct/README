@@ -1,0 +1,6 @@
+External accounting program folder
+
+exacct_program ACCT_STATUS_TYPE NAS_IP_ADDRESS NAS_PORT NAS_TYPE
+
+MUST RETURN radius parameters to stdout
+example: NAS_PORT=0 USER_NAME=testuser

@@ -1,0 +1,3 @@
+:PARAMS=FREEBSD:mysql_enable="YES"  >> [/etc/]/rc.conf
+:PARAMS=FREEBSD:my.cnf              >> [/etc/]/my.cnf
+
