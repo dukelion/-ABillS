@@ -41,7 +41,7 @@ sub new {
   if ($CONF->{DELETE_USER}) {
     $self->del($CONF->{DELETE_USER}, '', '', '', { DELETE_USER => $CONF->{DELETE_USER} });
    }
-  
+ 
   return $self;
 }
 
@@ -625,24 +625,25 @@ sub prepaid_rest {
 	$CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
 	
 	#Get User TP and intervals
-  $self->query($db, "select tt.id, i.begin, i.end, 
-    if(u.activate<>'0000-00-00', u.activate, DATE_FORMAT(curdate(), '%Y-%m-01')), 
-     tt.prepaid, 
-    u.id, tp.octets_direction, 
-    u.uid, 
-    sharing.tp_id, 
-    tp.name
+  $self->query($db, "select tt.id,
+    if(u.activate<>'0000-00-00', u.activate, DATE_FORMAT(curdate(), '%Y-%m-01')),
+     tt.prepaid,
+     u.id, 
+     tp.octets_direction,
+     u.uid,
+     sm.tp_id,
+     tp.name
   from (users u,
-        sharing_main dv,
+        sharing_main sm,
         tarif_plans tp,
-        intervals i,
-        sharing_trafic_tarifs tt)
+        sharing_trafic_tarifs tt
+        )
 WHERE
-     u.uid=sharing.uid
- and sharing.tp_id=tp.id
- and tp.id=i.tp_id
- and i.id=tt.interval_id
+     u.uid=sm.uid
+ and sm.tp_id=tp.id
+ and tp.id=tt.tp_id
  and u.uid='$attr->{UID}'
+ and tp.module='Sharing'
  ORDER BY 1
  ");
 
@@ -651,47 +652,28 @@ WHERE
   }
 
 
- my %rest = (0 => 
-             1 => );
+ my %rest = (0 => 0, 
+             1 => 0 );
  
 
  
  foreach my $line (@{ $self->{list} } ) {
-   $rest{$line->[0]} = $line->[4];
+   $rest{$line->[0]} = $line->[2];
   }
 
 
  $self->{INFO_LIST}=$self->{list};
- my $login = $self->{INFO_LIST}->[0]->[5];
+ my $login = $self->{INFO_LIST}->[0]->[3];
 
  return 1 if ($attr->{INFO_ONLY});
- 
- my $octets_direction = "sent + recv";
- my $octets_direction2 = "sent2 + recv2";
- my $octets_online_direction = "acct_input_octets + acct_output_octets";
- my $octets_online_direction2 = "ex_input_octets + ex_output_octets";
- 
- if ($self->{INFO_LIST}->[0]->[6] == 1) {
-   $octets_direction = "recv";
-   $octets_direction2 = "recv2";
-   $octets_online_direction = "acct_input_octets";
-   $octets_online_direction2 = "ex_input_octets";
-  }
- elsif ($self->{INFO_LIST}->[0]->[6] == 2) {
-   $octets_direction = "sent";
-   $octets_direction2 = "sent2";
-   $octets_online_direction = "acct_output_octets";
-   $octets_online_direction2 = "ex_output_octets";
-  }
  
  #Check sessions
  #Get using traffic
  $self->query($db, "select  
-  $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE},
-  $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}
+  $rest{0} - sum(recv + sent) / $CONF->{MB_SIZE}
  FROM sharing_log
- WHERE uid='$attr->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]'
- GROUP BY uid
+ WHERE username='$login' and DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[1]'
+ GROUP BY username
  ;");
 
  if ($self->{TOTAL} > 0) {
@@ -700,19 +682,19 @@ WHERE
     ) =  @{ $self->{list}->[0] };
   }
 
- #Check online
- $self->query($db, "select 
-  $rest{0} - sum($octets_online_direction) / $CONF->{MB_SIZE},
-  $rest{1} - sum($octets_online_direction2) / $CONF->{MB_SIZE}
- FROM sharing_calls
- WHERE user_name='$login' 
- GROUP BY user_name ;");
-
- if ($self->{TOTAL} > 0) {
-   ($rest{0}, 
-    $rest{1} 
-    ) =  @{ $self->{list}->[0] };
-  }
+# #Check online
+# $self->query($db, "select 
+#  $rest{0} - sum($octets_online_direction) / $CONF->{MB_SIZE},
+#  $rest{1} - sum($octets_online_direction2) / $CONF->{MB_SIZE}
+# FROM sharing_calls
+# WHERE user_name='$login' 
+# GROUP BY user_name ;");
+#
+# if ($self->{TOTAL} > 0) {
+#   ($rest{0}, 
+#    $rest{1} 
+#    ) =  @{ $self->{list}->[0] };
+#  }
  
  $self->{REST}=\%rest;
   
