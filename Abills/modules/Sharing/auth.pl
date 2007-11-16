@@ -97,7 +97,7 @@ my $debug = " URI: $ENV{URI}
       client_name,
       ip,
       client_command)
-    values (now(), 0, '$user', '$URL', '', INET_ATON('$ip'), '$MESSAGE')";
+    values (now(), 0, '$user', '$URL', '', INET_ATON('$ip'), \"$MESSAGE\")";
 
     my $z = `echo "$query" >> /tmp/q`;
 
