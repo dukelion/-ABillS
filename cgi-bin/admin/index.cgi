@@ -3864,6 +3864,7 @@ elsif($search_form{$FORM{type}}) {
    }
 	
 	$SEARCH_DATA{SEARCH_FORM} = $html->tpl_show(templates($search_form{$FORM{type}}), { %info, %FORM, GROUPS_SEL => $group_sel }, { notprint => 1 });
+	$SEARCH_DATA{SEARCH_FORM} .= "<input type='hidden' name='type' value='$FORM{type}'>";
  }
 
 $SEARCH_DATA{FROM_DATE} = $html->date_fld('FROM_', { MONTHES => \@MONTHES });
