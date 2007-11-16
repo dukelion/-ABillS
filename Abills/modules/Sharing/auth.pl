@@ -198,6 +198,11 @@ my $query = "select
 $sth = $dbh->prepare($query);
 $sth->execute();
 
+if ($sth->rows() < 1) {
+	$MESSAGE = "[$user] Not exist or account may be expire - Rejected\n";
+	return 0;
+}
+
 my (
   $unix_date, 
   $day_begin,
@@ -227,17 +232,6 @@ $sth->execute();
 my ( $deposit ) = $sth->fetchrow_array();
 
 
-#Get file info
-# это позволяет по ид новости определить имена файлов и открытость-закрытость их для всех
-#SELECT typo3.tx_t3labtvarchive_slideshow,
-#       typo3.tx_t3labtvarchive_fullversion,
-#       typo3.tx_t3labtvarchive_openslide,
-#       typo3.tx_t3labtvarchive_openfull
-#FROM  typo3.tt_news
-#WHERE  typo3.uid = $news_id;
-#  14:21:35: это позволяет определить сервер скачивания и путь до файла 
-#$select * FROM tx_t3labtvarchive_files WHERE filename = $filename
-
 
 # /vids/video_506/video/200704/rtr20070403-2315_c.avi
 my $request_path = '';
@@ -259,6 +253,7 @@ if ($sth->rows() > 0) {
   # Payment traffic
   if ($priority == 0) {
   	#Get prepaid traffic and price
+  	my $WHERE = ($activate ne  '0000-00-00'  ) ? " and DATE_FORMAT(start, '%Y-%m-%d')": "";
     $sth = $dbh->prepare( "SELECT prepaid, in_price, out_price, prepaid, in_speed, out_speed
      FROM sharing_trafic_tarifs 
      WHERE tp_id='$tp_id'
@@ -277,7 +272,7 @@ if ($sth->rows() > 0) {
      FROM sharing_log sl, sharing_priority sp
      WHERE 
      sl.url=sp.file
-     and sl.username='$user'";
+     and sl.username='$user' $WHERE";
 
     $sth = $dbh->prepare($query);
     $sth->execute();

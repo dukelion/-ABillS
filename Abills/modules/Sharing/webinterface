@@ -419,7 +419,6 @@ sub sharing_error {
 
 
 
-$Sharing->{debug}=1;
 my $list = $Sharing->errors_list( { %LIST_PARAMS } );
 
 
@@ -823,33 +822,29 @@ elsif($FORM{DATE}) {
 }
 
 #Show rest of prepaid traffic
-#if ($Sharing->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
-#	#Prepaid: period, traffic_type
-#  
-#
-#  my $list = $Sharing->{INFO_LIST};
-#
-#  my $table = $html->table( { caption     => "$_PREPAID",
-#	                            width       => '100%',
-#                              title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
-#                              cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
-#                              rowcolor    => $_COLORS[1]
-#                           } );
-#	
-#	foreach my $line  (@$list) {
-#	  $table->addrow(
-#	    $line->[0], 
-#      $line->[1], 
-#      $line->[2], 
-#      $line->[3], 
-#      $line->[4],
-#      ($line->[4] > 0 && $Sharing->{REST}->{$line->[0]} > 0) ? $Sharing->{REST}->{$line->[0]} : 0,
-#      ($line->[4] > 0 && $Sharing->{REST}->{$line->[0]} < 0) ? abs($Sharing->{REST}->{$line->[0]}) : 0
-#     );
-#   }
-#
-#  print $table->show();	 
-#}
+if ($Sharing->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
+	#Prepaid: period, traffic_type
+  my $list = $Sharing->{INFO_LIST};
+
+  my $table = $html->table( { caption     => "$_PREPAID",
+	                            width       => '100%',
+                              title_plain => ["$_TRAFF $_TYPE", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
+                              cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+                              rowcolor    => $_COLORS[1]
+                           } );
+	
+	foreach my $line  (@$list) {
+	  $table->addrow(
+	    $line->[0], 
+      $line->[1], 
+      $line->[2], 
+      ($line->[2] > 0 && $Sharing->{REST}->{$line->[0]} > 0) ? $Sharing->{REST}->{$line->[0]} : 0,
+      ($line->[2] > 0 && $Sharing->{REST}->{$line->[0]} < 0) ? abs($Sharing->{REST}->{$line->[0]}) : 0
+     );
+   }
+
+  print $table->show();	 
+}
 
 
 
