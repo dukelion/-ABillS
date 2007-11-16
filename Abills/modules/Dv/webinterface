@@ -167,15 +167,10 @@ sub dv_users_list {
    return 0;
   }
  
- my $group_sel = sel_groups();
- form_search({ SEARCH_FORM =>  	
- 	"<tr><td colspan=2><hr></td></tr>
-   <tr><td>$_GROUP:</td><td>$group_sel</td></tr>
-   <tr><td>IP (>,<):</td><td><input type='text' name='IP' value='%IP%'></td></tr>
-   <tr><td>CID:</td><td><input type='text' name='CID' value='%CID%'></td></tr>
-   <tr><td>$_PORT (>,<):</td><td><input type='text' name='PORT' value='%PORT%'></td></tr>
-   \n"
-  });
+ $FORM{GROUP_SEL} = sel_groups();
+ form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_users_search', 'Dv'),
+ 	                                            { %FORM },
+ 	                                            { notprint => 1 })    });
 
 
  print $html->letters_list({ pages_qs => $pages_qs  }); 
@@ -918,7 +913,7 @@ if (! $list) {
   }
 
   my $nas = Nas->new($db, \%conf);
-  my $SEL_NAS = $html->form_select('NAS_ID', 
+  $sessions->{SEL_NAS} = $html->form_select('NAS_ID', 
                                           { 
  	                                          SELECTED          => $FORM{NAS_ID},
  	                                          SEL_MULTI_ARRAY   => [['', $_ALL], @{ $nas->list({ %LIST_PARAMS }) } ],
@@ -926,7 +921,7 @@ if (! $list) {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
-  my $TERMINATE_CAUSE_SEL = $html->form_select('TERMINATE_CAUSE', 
+  $sessions->{TERMINATE_CAUSE_SEL} = $html->form_select('TERMINATE_CAUSE', 
                                           { 
  	                                          SELECTED          => $FORM{TERMINATE_CAUSE},
  	                                          SEL_HASH          => {
@@ -959,22 +954,21 @@ if (! $list) {
  	                                        });
 
 
-  form_search({ SEARCH_FORM =>  	
-  	"<tr><td colspan=2><hr></td></tr>
-     <tr><td>SUM (>,<)</td><td><input type=text name=SUM value='%SUM%'></td></tr>
-     <tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
-     <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
-     <tr><td>NAS</td><td>$SEL_NAS</td></tr>
-     <tr><td>NAS Port</td><td><input type=text name=NAS_PORT value='%NAS_PORT%'></td></tr>
-  	 <tr><td>$_HANGUP $_STATUS:</td><td>$TERMINATE_CAUSE_SEL</td></tr>\n"
- });
+  form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_sessions_search', 'Dv'),
+ 	                                            { %FORM, %$sessions },
+ 	                                            { notprint => 1 })  	
+                                            });
 
   $sessions = Dv_Sessions->new($db, $admin, \%conf);
+  
   $list = $sessions->list({ %LIST_PARAMS });	
 }
 
 
-return 0 if ($sessions->{TOTAL} < 1);
+if ($sessions->{TOTAL} < 1) {
+	$html->message('info', $_INFO, "$_NO_RECORD");
+	return 0;
+}
 
 
 
@@ -991,7 +985,6 @@ my $table = $html->table( { width   => '100%',
                          } );
 
 my $delete = '';
-
 use Billing;
 my $Billing = Billing->new($db, \%conf);	
 

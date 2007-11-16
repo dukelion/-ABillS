@@ -19,15 +19,16 @@ $web_interface    = 1;
                    "15:13:$_LAST:dv_sessions:"             => 4,
                    "16:13:$_USED:dv_use:"                  => 4,
                    "17:16:$_MONTH:dv_use_allmonthes:"      => 4,
-                   "18:0:Dialup / VPN:dv_online:"          => 8,
-                   "20:1:$_USERS $_ADD:dv_wizard_user:"   => 11
-
+                   "18:0:Dialup / VPN:dv_online:"          => 8
+                   
                    );
 
-if (in_array('Cards', \@MODULES)) {
-  $FUNCTIONS_LIST{"21:1:$_ICARDS:dv_cards:"} = 11;
-} 
- 
+if ($permissions{0}{1}) {
+  $FUNCTIONS_LIST{"20:1:$_USERS $_ADD:dv_wizard_user:"} = 11;
+  if (in_array('Cards', \@MODULES)) {
+    $FUNCTIONS_LIST{"21:1:$_ICARDS:dv_cards:"} = 11;
+   }   
+}
 
 
 
