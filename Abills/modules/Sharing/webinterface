@@ -437,9 +437,9 @@ foreach my $line (@$list) {
   $table->addrow(
    "$line->[0]",
    $html->button("$line->[2]", "index=15&UID=$line->[1]"), 
-   "$line->[2]", 
    "$line->[3]", 
    "$line->[4]", 
+   "$line->[5]",
    "$line->[5]"
    );
 }
