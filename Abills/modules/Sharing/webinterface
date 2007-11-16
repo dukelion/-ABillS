@@ -418,7 +418,8 @@ sub sharing_error {
 #	print $table->show();
 
 
-
+$LIST_PARAMS{SORT}=1;
+$LIST_PARAMS{DESC}=DESC;
 my $list = $Sharing->errors_list( { %LIST_PARAMS } );
 
 
