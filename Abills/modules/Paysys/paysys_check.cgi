@@ -231,12 +231,24 @@ elsif($FORM{LMI_HASH}) {
 	 }
   else {
     #Add payments
-    my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
+    my $er = 1;
+    
+    
+    if ($FORM{LMI_PAYEE_PURSE} =~ /^(\S)/ ) {
+      my $payment_unit = 'WM'.$1;
+      $payments->exchange_info(0, { SHORT_NAME => "$payment_unit"  });
+      if ($payments->{TOTAL} > 0) {
+      	$er = $payments->{ER_RATE};
+       }
+     }
+    
+    #my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
     $payments->add($user, {SUM          => $FORM{LMI_PAYMENT_AMOUNT},
     	                     DESCRIBE     => 'Webmoney', 
     	                     METHOD       => '2', 
   	                       EXT_ID       => $FORM{LMI_PAYMENT_NO}, 
-  	                       ER           => $er->{ER_RATE} } );  
+  	                       ER           => $er
+  	                       } );  
 
     if ($payments->{errno}) {
       $info = "PAYMENT ERROR: $payments->{errno}\n";
