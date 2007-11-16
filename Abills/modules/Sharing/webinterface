@@ -459,7 +459,10 @@ $table = $html->table( { width      => '100%',
 #                         rows       => [ [ "$_TOTAL:", "$total_lines" ],
 #                                         [ "$_SIZE:", int2byte($log_size)     ] 
 #                                        ]
-                        } );
+#                        } );
+
+
+
 print $table->show();
 
 }
