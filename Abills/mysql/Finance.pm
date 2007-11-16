@@ -142,9 +142,18 @@ sub exchange_change {
 #**********************************************************
 sub exchange_info {
 	my $self = shift;
-  my ($id) = @_;
+  my ($id, $attr) = @_;
 
-  $self->query($db, "SELECT money, short_name, rate FROM exchange_rate WHERE id='$id';");
+
+  my $WHERE = '';
+  if ($attr->{SHORT_NAME}) {
+  	$WHERE = "short_name='$attr->{SHORT_NAME}'";
+   }
+  else {
+  	$WHERE = "id='$id'";
+   }
+
+  $self->query($db, "SELECT money, short_name, rate FROM exchange_rate WHERE $WHERE;");
   
   return $self if ($self->{TOTAL} < 1);
   

@@ -632,7 +632,8 @@ sub prepaid_rest {
      tp.octets_direction,
      u.uid,
      sm.tp_id,
-     tp.name
+     tp.name,
+     tp.month_traf_limit
   from (users u,
         sharing_main sm,
         tarif_plans tp,
