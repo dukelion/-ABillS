@@ -797,6 +797,12 @@ sub list {
    push @WHERE_RULES, "l.nas_id='$attr->{NAS_ID}'";
   }
 
+ if ($attr->{SUM}) {
+   my $value = $self->search_expr($attr->{SUM}, 'INT');
+   push @WHERE_RULES, "l.sum$value";
+  }
+
+
 #NAS ID
  if ($attr->{CID}) {
    if($attr->{CID}) {

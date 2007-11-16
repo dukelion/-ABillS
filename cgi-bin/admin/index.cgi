@@ -1137,7 +1137,12 @@ print "</ul></td></tr>
 </td></tr></table>\n";
   return 0;
 }
-elsif ($FORM{add}) {
+elsif ( $FORM{add}) {
+  if (! $permissions{0}{1} ) {
+    $html->message('err', $_ERROR, "Access Deny");  	
+  	return 0;
+   }
+
   my $user_info = $users->add({ %FORM });  
   
   if ($users->{errno}) {
@@ -3155,7 +3160,6 @@ my @m = (
  "0:0::null:::",
  "1:0:$_CUSTOMERS:form_users:::",
  "11:1:$_LOGINS:form_users:::",
- "24:11:$_ADD:user_form:::",
  "13:1:$_COMPANY:form_companies:::",
  "14:13:$_ADD:add_company:::",
  "25:13:$_LIST:form_companies:::",
@@ -3223,6 +3227,7 @@ my @m = (
  );
 
 
+push @m, "24:11:$_ADD:user_form:::" if ($permissions{0}{1} );
 push @m, "58:50:$_GROUPS:form_admins_groups:AID::" if ($admin->{GID} == 0);
 
 foreach my $line (@m) {
@@ -3835,13 +3840,6 @@ elsif ($attr->{TPL}) {
 	#defined();
  }
 else {
-  $FORM{SEL_METHOD} =  $html->form_select('METHOD', 
-                                { SELECTED      => $FORM{METHOD} || '',
- 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
- 	                                ARRAY_NUM_ID  => 1,
-                                  SEL_OPTIONS   => { '' => $_ALL }
- 	                               });
-
   my $group_sel = sel_groups();
   my %search_form = ( 
      2  => 'form_search_payments',
@@ -3856,6 +3854,15 @@ if (defined($attr->{SEARCH_FORM})) {
 	$SEARCH_DATA{SEARCH_FORM} = $attr->{SEARCH_FORM}
  } 
 elsif($search_form{$FORM{type}}) {
+  if ($FORM{type} == 2) {
+    $info{SEL_METHOD} =  $html->form_select('METHOD', 
+                                { SELECTED      => $FORM{METHOD} || '',
+ 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
+ 	                                ARRAY_NUM_ID  => 1,
+                                  SEL_OPTIONS   => { '' => $_ALL }
+ 	                               });
+   }
+	
 	$SEARCH_DATA{SEARCH_FORM} = $html->tpl_show(templates($search_form{$FORM{type}}), { %info, %FORM, GROUPS_SEL => $group_sel }, { notprint => 1 });
  }
 
