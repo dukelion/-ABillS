@@ -1909,7 +1909,7 @@ sub errors_list {
 
 
 	
-	return $self->{list};
+	return $list;
 }
 
 

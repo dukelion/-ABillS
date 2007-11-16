@@ -448,9 +448,17 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "$total_lines" ],
-                                         [ "$_SIZE:", int2byte($log_size)     ] 
+                         rows       => [ [ "$_TOTAL:", "$Sharing->{TOTAL}" ]
                                         ]
+                        } );
+
+
+
+#$table = $html->table( { width      => '100%',
+#                         cols_align => ['right', 'right'],
+#                         rows       => [ [ "$_TOTAL:", "$total_lines" ],
+#                                         [ "$_SIZE:", int2byte($log_size)     ] 
+#                                        ]
                         } );
 print $table->show();
 
