@@ -1679,7 +1679,15 @@ print $table->show();
 sub form_intervals {
   my ($attr) = @_;
 
-  @DAY_NAMES = ("$_ALL", 'Sun', 'Mon', 'Tue', 'Wen', 'The', 'Fri', 'Sat', "$_HOLIDAYS");
+  @DAY_NAMES = ("$_ALL", 
+                "$WEEKDAYS[7]",
+                "$WEEKDAYS[1]", 
+                "$WEEKDAYS[2]", 
+                "$WEEKDAYS[3]", 
+                "$WEEKDAYS[4]", 
+                "$WEEKDAYS[5]", 
+                "$WEEKDAYS[6]", 
+                "$_HOLIDAYS");
 
   my %visual_view = ();
   my $tarif_plan;
@@ -1908,9 +1916,9 @@ else {
   my $day_id = $FORM{day} || $tarif_plan->{TI_DAY};
 
   $tarif_plan->{SEL_DAYS} = $html->form_select('TI_DAY', 
-                                { SELECTED   => $day_id,
- 	                                SEL_ARRAY  => \@DAY_NAMES,
- 	                                ARRAY_NUM_ID  => 'y'
+                                { SELECTED      => $day_id || $FORM{TI_DAY},
+ 	                                SEL_ARRAY     => \@DAY_NAMES,
+ 	                                ARRAY_NUM_ID  => 1
  	                               });
   $html->tpl_show(templates('ti'), $tarif_plan);
 }

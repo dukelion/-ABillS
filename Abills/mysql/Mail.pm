@@ -166,7 +166,7 @@ sub mbox_info {
 	my $self = shift;
 	my ($attr) = @_;
 	
-	$WHERE = ($attr->{UID}) ? "and mb.uid='$attr->{UID}'" : '';
+	my $WHERE = ($attr->{UID}) ? "and mb.uid='$attr->{UID}'" : '';
 	
   $self->query($db, "SELECT mb.username,  mb.domain_id, md.domain, mb.descr, mb.maildir, mb.create_date, 
    mb.change_date, 
@@ -922,6 +922,8 @@ sub spam_awl_del {
   my ($attr) = @_;
 
   if ($attr->{TYPE})  {
+    $WHERE = '';
+
     if ($attr->{TYPE} eq 'USER') {
       $attr->{VALUE} =~ s/\*/\%/ig;
       $WHERE = "username LIKE '$attr->{VALUE}'";
