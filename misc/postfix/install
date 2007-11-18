@@ -36,4 +36,5 @@ local.cf           > [/usr/local/etc/mail/spamassassin]/local.cf
 :AMAVIS=1:FILE=amavis_main.cf     >> [/usr/local/etc/postfix]/main.cf
 :AMAVIS=1:FILE=amavis_master.cf   >> [/usr/local/etc/postfix]/master.cf
 :PARAMS=FREEBSD,AMAVIS=1:amavisd_enable="YES"\namavisd_ram="512m" >> [/etc]/rc.conf
+:PARAMS=FREEBSD,CLAMAV=1:clamav_clamd_enable="YES"\nclamav_freshclam_enable="YES" >> [/etc]/rc.conf
 
