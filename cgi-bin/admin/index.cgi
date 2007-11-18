@@ -1706,6 +1706,7 @@ if(defined($attr->{TP})) {
     $tarif_plan->ti_add( { %FORM });
     if (! $tarif_plan->{errno}) {
       $html->message('info', $_INFO, "$_INTERVALS $_ADDED");
+      $tarif_plan->ti_defaults();
      }
    }
   elsif($FORM{change}) {
@@ -1732,6 +1733,10 @@ if(defined($attr->{TP})) {
    }
   else {
  	 	$tarif_plan->ti_defaults();
+   }
+
+  if ($tarif_plan->{errno}) {
+    $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $tarif_plan->{errstr}");	
    }
 
   my $list = $tarif_plan->ti_list({ %LIST_PARAMS });
