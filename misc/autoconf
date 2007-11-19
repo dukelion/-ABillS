@@ -12,6 +12,13 @@ use vars  qw(%RAD %conf $db %AUTH
 
 use strict;
 use FindBin '$Bin';
+
+if(! -f $Bin . '/../libexec/config.pl') {
+  print "System main configuration\n";
+
+ exit;
+}
+
 require $Bin . '/../libexec/config.pl';
 require $Bin . '/../Abills/Base.pm';
 Abills::Base->import();
