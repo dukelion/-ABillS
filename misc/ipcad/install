@@ -1,9 +1,9 @@
 :DEFAULT:IPCAD_INTERFACE=:IPCAD listen interface
 :DEFAULT:IPCAD_NETFLOW_EXPORT_IP=127.0.0.1:Destination machine IP for netflow export
 :DEFAULT:IPCAD_NETFLOW_EXPORT_PORT=9996:Destination machine PORT for netflow export
-:PARAMS=FREEBSD:ipcad_enable="YES"  >> [/etc/]/rc.conf
+:OS=FREEBSD:ipcad_enable="YES"  >> [/etc/]/rc.conf
 ::exec:mkdir /var/ipcad/ 
-:PARAMS=FREEBSD:#Allow ipfw operation without password for webserver user\n www   ALL = NOPASSWD: /sbin/ipfw >> [/usr/local/etc]/sudoers 
+:OS=FREEBSD:#Allow ipfw operation without password for webserver user\n www   ALL = NOPASSWD: /sbin/ipfw >> [/usr/local/etc]/sudoers 
 :PARAMS=LINUX:#Allow iptables operation without password for webserver user\n www   ALL = NOPASSWD: /sbin/iptables >> [/usr/local/etc]/sudoers
 ipcad.conf   > [/usr/local/etc]/ipcad.conf
 
