@@ -1,3 +1,3 @@
-:PARAMS=FREEBSD:pptpd_enable="YES"  >> [/etc/]/rc.conf
-:PARAMS=FREEBSD:noipparam > [/usr/local/etc]/pptpd.conf
+:OS=FREEBSD:pptpd_enable="YES"  >> [/etc/]/rc.conf
+:OS=FREEBSD:noipparam > [/usr/local/etc]/pptpd.conf
 
