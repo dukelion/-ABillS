@@ -16,5 +16,5 @@ mpd.conf           > [/usr/local/etc/mpd4]/mpd.conf
 #:TUNEL_TYPE=L2TP:mpd_l2tp.conf > [/usr/local/etc/mpd4]/mpd.conf
 #mpd_l2tp.conf > [/usr/local/etc/mpd4]/mpd.conf
 mpd.links          > [/usr/local/etc/mpd4]/mpd.links
-:PARAMS=FREEBSD:mpd_enable="YES"  >> [/etc]/rc.conf
+:OS=FREEBSD:mpd_enable="YES"  >> [/etc]/rc.conf
 #radius.conf        > [/etc]/radius.conf
