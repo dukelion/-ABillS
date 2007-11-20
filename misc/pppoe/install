@@ -1,6 +1,6 @@
-:PARAMS=FREEBSD:pppoed_enable="YES"\npppoed_flags="-l pppoe-in"\npppoed_interface="%PPPOE_INTERFACE%"  >> [/etc]/rc.conf
-:PARAMS=FREEBSD:#ABillS  > [/var/log]/pppoed.log
-:PARAMS=FREEBSD:!pppoed\n*.* >> [/etc]/syslog.conf
-:PARAMS=FREEBSD:exec:killall -1 syslogd
+:OS=FREEBSD:pppoed_enable="YES"\npppoed_flags="-l pppoe-in"\npppoed_interface="%PPPOE_INTERFACE%"  >> [/etc]/rc.conf
+:OS=FREEBSD:#ABillS  > [/var/log]/pppoed.log
+:OS=FREEBSD:!pppoed\n*.* >> [/etc]/syslog.conf
+:OS=FREEBSD:exec:killall -1 syslogd
  
 
