@@ -41,7 +41,9 @@ if ($ARGV->{help}) {
   print "Auto configuration script
    ./autoconf [parameters]
   PROGRAMS=[PROGRAMS,...] - Program names (postfix,freeradius,exppp)
+  INFO=[PROGRAMS,...]     - Program information (postfix,freeradius,exppp)
   -f                      - Force mode. Rewrite exists files withot prompt
+  OS=										  - Operation system
   PARAMS=                 - Extended parameters
     FREEBSD               - OS FreeBSD make startup config
   CHANGE_PATH             - Change path for instalation files.
@@ -55,8 +57,19 @@ if ($ARGV->{help}) {
    OS: $conf{OS}
   \n";
  }
+elsif (defined($ARGV->{INFO})) {
+  my @programs = ();
+  if ($ARGV->{INFO}) {
+    @programs = split(/,/, $ARGV->{INFO});
+   }
+
+  foreach my $program (@programs) {
+    programs_info("$program"); 
+   }
+ }
 elsif ($ARGV->{PROGRAMS}) {
   my @programs = split(/,/, $ARGV->{PROGRAMS});
+  
   
   foreach my $program (@programs) {
   	print "  PROGRAM: $program\n" if ($debug > 1);
@@ -68,6 +81,93 @@ elsif ($ARGV->{PROGRAMS}) {
   	  check_install("$program");
   	 }
    }
+}
+
+
+#**********************************************************
+# Program Info
+#**********************************************************
+sub programs_info {
+	my ($program)=@_;
+	print "Programs information: $program\n";
+
+ my $install_file = $Bin . "/$program/install";
+
+ my @files = ();
+ open(FILE, "< $install_file") || die "Can't open file '$install_file'  $!";
+   while(<FILE>) {
+      next if (/^#/);
+      push @files, $_;
+    }
+ close(FILE);
+
+
+ my %DEFAULT_VALUE = ();
+ my %DEFAULT_DESCRIBE = ();
+
+ my %PARAMS_VALUES = ();
+ my %PARAMS_HASH =  ();
+
+foreach my $file (@files) {
+  if ($file =~ /^:DEFAULT:(.+)/) {
+     my $value = $1;
+ 		 if ($value =~ /(\S+)=(.+|):(.+)/) {
+ 			 my $name     = $1;
+ 			 my $value    = $2;
+ 			 my $describe = $3;
+ 			
+ 			 print "DEFAULT: $name / $value / $describe \n" if ($debug > 2);
+ 			 $DEFAULT_DESCRIBE{"$name"}=$describe;
+ 			 $DEFAULT_VALUE{"$name"}=$value;
+ 		  }
+ 	   next;
+ 	 }
+  elsif ($file =~ /^:(\S{0,100}):(.+) (>{1,2}) +\[(\S+)\]\/(.+)/) {
+ 		my $params  = $1;
+ 		#my $param_value = $2;
+ 		my $param_name = '' ;
+ 		my $param_value = '';
+ 		my $value  = $2;
+    
+    $value =~ s/\\n/\n/g;
+    
+
+    if ($params) {
+      my @params_arr = split(/,/, $params);
+      foreach my $param ( @params_arr ) {
+        ($param_name, $param_value)=split(/=/, $param, 2);
+        $PARAMS_HASH{$param_name}=$param_value;
+       }
+     }
+
+    
+    
+#    if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
+#      #If result is file
+#      if ($value =~ /^FILE=(\S+)/) {
+#      	$config_body = get_file($Bin."/$program/".$1);
+#       }
+#      else {
+#      	$config_body = "$value\n";
+#       }
+#     }  		
+#    elsif (! $params) {
+#    	$config_body = "$value\n";
+#     }
+#    else {
+#    	next;
+#     }
+ 		
+ 	 }
+}
+
+	while(my($key, $value) = each  %PARAMS_HASH) {
+		print "$key ($value) \t"; 
+		print " - ". $DEFAULT_DESCRIBE{$key} if ($DEFAULT_DESCRIBE{$key});
+		print "\n";
+	 }
+
+	return 0;
 }
 
 #**********************************************************
@@ -91,29 +191,28 @@ sub check_install {
  my %DEFAULT_DESCRIBE = ();
 
  foreach my $file (@files) {
- 
- 	my $config_body = '';
-	my $type   = '';
- 	my $folder = '';
- 	my $dest   = '';
- 	#Reg expression
- 	print $file if ($debug > 4);
+   my $config_body = '';
+	 my $type   = '';
+ 	 my $folder = '';
+ 	 my $dest   = '';
+ 	 #Reg expression
+ 	 print $file if ($debug > 4);
  	
 
- 	# :DEFAULT:DEFAULT_VALUE_NAME=DEFAULT_VALUE_VALUE:DESCRIBE
- 	if ($file =~ /^:DEFAULT:(.+)/) {
-    my $value = $1;
- 		if ($value =~ /(\S+)=(.+|):(.+)/) {
- 			my $name     = $1;
- 			my $value    = $2;
- 			my $describe = $3;
+ 	 # :DEFAULT:DEFAULT_VALUE_NAME=DEFAULT_VALUE_VALUE:DESCRIBE
+ 	 if ($file =~ /^:DEFAULT:(.+)/) {
+     my $value = $1;
+ 		 if ($value =~ /(\S+)=(.+|):(.+)/) {
+ 			 my $name     = $1;
+ 			 my $value    = $2;
+ 			 my $describe = $3;
  			
- 			print "DEFAULT: $name / $value / $describe \n" if ($debug > 2);
- 			$DEFAULT_DESCRIBE{"$name"}=$describe;
- 			$DEFAULT_VALUE{"$name"}=$value;
- 		 }
- 	  next;
- 	 }
+ 			 print "DEFAULT: $name / $value / $describe \n" if ($debug > 2);
+ 			 $DEFAULT_DESCRIBE{"$name"}=$describe;
+ 			 $DEFAULT_VALUE{"$name"}=$value;
+ 		  }
+ 	   next;
+ 	  }
  	#Execute some command
  	#:PARAMS_NAME=PARAMS_VALUE:exec COMMAND
  	elsif ($file =~ /^:(\S{0,100}):exec:(.+)/) {
