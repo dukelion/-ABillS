@@ -13,7 +13,7 @@ use vars  qw(%RAD %conf $db %AUTH
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 0.7;
+my $VERSION = 0.8;
 
 if(! -f $Bin . '/../libexec/config.pl') {
   print "System main configuration\n";
@@ -66,15 +66,17 @@ if ($ARGV->{debug}) {
 
 $conf{DATE}=$DATE;
 $conf{TIME}=$TIME;
-$conf{OS}=`uname`;
+$conf{OS}=uc(`uname`);
+
+print $conf{OS};
 
 if ($ARGV->{help}) {
   print "Auto configuration script Version: $VERSION
-   ./autoconf [parameters]
+ ./autoconf [parameters]
   PROGRAMS=[PROGRAMS,...] - Program names (postfix,freeradius,exppp)
   INFO=[PROGRAMS,...]     - Program information (postfix,freeradius,exppp)
   -f                      - Force mode. Rewrite exists files withot prompt
-  OS=										  - Operation system
+  OS=                     - Operation system
   PARAMS=                 - Extended parameters
     FREEBSD               - OS FreeBSD make startup config
   CHANGE_PATH             - Change path for instalation files.
