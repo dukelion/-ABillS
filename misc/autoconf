@@ -15,8 +15,37 @@ use FindBin '$Bin';
 
 if(! -f $Bin . '/../libexec/config.pl') {
   print "System main configuration\n";
+  my %mk_config = ();
+  if (! confirm_yn("Can't find config '/usr/abills/lobexec/config.pl': Make it ?: ", "y")) {
+     print "Skiped...\n";
+    }
+   else {
+     while(my($k, $v) = each %mk_config ) {
+       print "$k [$v]: ";
+       my $read = '';
+       chop($read = <STDIN>);
+       $read =~ s/^\s*//;
+       $read =~ s/\s*$//;
+       #print "$VARIABLE  / $read\n";
+       if ($read eq '') {
+         #$mk_config{$VARIABLE} = $DEFAULT_VALUE{"$VARIABLE"};
+        }
+       else {
+         $mk_config{$k}=$read;
+       }
+      }
+     
+     #Print result
+     while(my($k, $v) = each %mk_config ) {
+     	 print "$k: $v\n";
+      }
 
- exit;
+     if (! confirm_yn("Make config: ", "y")) {
+       print "Skiped...\n";
+      }
+    }
+
+  exit;
 }
 
 require $Bin . '/../libexec/config.pl';
