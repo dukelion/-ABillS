@@ -14,8 +14,9 @@ use strict;
 use FindBin '$Bin';
 
 my $VERSION = 0.9;
+my $config_file = $Bin . '/../libexec/config.pl';
 
-if(! -f $Bin . '/../libexec/config.pl') {
+if(! -f $config_file ) {
   print "System main configuration\n";
   my %mk_config = ('dbhost'  => 'localhost',
      'dbname'  => 'abills',
@@ -23,7 +24,9 @@ if(! -f $Bin . '/../libexec/config.pl') {
      'dbpasswd'=> 'sqlpassword'
     );
 
-  if (! confirm_yn("Can't find config '/usr/abills/lobexec/config.pl': Make it ?: ", "y")) {
+  
+
+  if (! confirm_yn("Can't find config '$config_file': Make it ?: ", "y")) {
      print "Skiped...\n";
     }
    else {
@@ -47,8 +50,30 @@ if(! -f $Bin . '/../libexec/config.pl') {
      	 print "$k: $v\n";
       }
 
-     if (! confirm_yn("Make config: ", "y")) {
+     if (! confirm_yn("Make config: $config_file ", "y")) {
        print "Skiped...\n";
+      }
+     else {
+     	 #Open config
+     	 my $config_text = '';
+
+
+
+     	 open(FILE, "< $config_file".'.default') || die "Can't open file '$config_file.default' $!\n";
+     	   while(<FILE>) {
+     	   	 $config_text .= $_;
+     	    }
+     	 close(FILE);
+       
+       while(my($k, $v) = each %mk_config ) {
+     	   $config_text =~ s/\{$k\}\=\'\S+\'/\{$k\}\=\'$v\'/g;
+        }
+
+     	 open(FILE, ">$config_file") || die "Can't open file '$config_file.default' $!\n";
+     	   print FILE $config_text;
+     	 close(FILE);
+
+     	 print "Config file maked...\n";
       }
     }
 
