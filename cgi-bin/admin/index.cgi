@@ -3,20 +3,20 @@
 # http://www.maani.us/charts/index.php
 #use vars qw($begin_time);
 BEGIN {
- my $libpath = '../../';
+  my $libpath = '../../';
  
- $sql_type='mysql';
- unshift(@INC, $libpath ."Abills/$sql_type/");
- unshift(@INC, $libpath);
- unshift(@INC, $libpath . 'libexec/');
- unshift(@INC, $libpath . 'Abills/');
+  $sql_type='mysql';
+  unshift(@INC, $libpath ."Abills/$sql_type/");
+  unshift(@INC, $libpath);
+  unshift(@INC, $libpath . 'libexec/');
+  unshift(@INC, $libpath . 'Abills/');
 
- eval { require Time::HiRes; };
- if (! $@) {
+  eval { require Time::HiRes; };
+  if (! $@) {
     Time::HiRes->import(qw(gettimeofday));
     $begin_time = gettimeofday();
    }
- else {
+  else {
     $begin_time = 0;
   }
 }
@@ -28,7 +28,7 @@ require "Abills/defs.conf";
 require "Abills/templates.pl";
 
 #
-#==== End config
+#====End config
 
 
 
