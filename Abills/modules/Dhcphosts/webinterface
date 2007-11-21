@@ -9,6 +9,7 @@ my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
 use Abills::Base;
 use Socket;
 
+use Nas;
 
 my $Nas = Nas->new($db, \%conf);
 
