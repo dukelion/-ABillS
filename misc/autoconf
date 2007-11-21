@@ -13,6 +13,8 @@ use vars  qw(%RAD %conf $db %AUTH
 use strict;
 use FindBin '$Bin';
 
+my $VERSION = 0.7;
+
 if(! -f $Bin . '/../libexec/config.pl') {
   print "System main configuration\n";
   my %mk_config = ();
@@ -67,7 +69,7 @@ $conf{TIME}=$TIME;
 $conf{OS}=`uname`;
 
 if ($ARGV->{help}) {
-  print "Auto configuration script
+  print "Auto configuration script Version: $VERSION
    ./autoconf [parameters]
   PROGRAMS=[PROGRAMS,...] - Program names (postfix,freeradius,exppp)
   INFO=[PROGRAMS,...]     - Program information (postfix,freeradius,exppp)
