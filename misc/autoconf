@@ -13,11 +13,16 @@ use vars  qw(%RAD %conf $db %AUTH
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 0.8;
+my $VERSION = 0.9;
 
 if(! -f $Bin . '/../libexec/config.pl') {
   print "System main configuration\n";
-  my %mk_config = ();
+  my %mk_config = ('dbhost'  => 'localhost',
+     'dbname'  => 'abills',
+     'dbuser'  => 'abills',
+     'dbpasswd'=> 'sqlpassword'
+    );
+
   if (! confirm_yn("Can't find config '/usr/abills/lobexec/config.pl': Make it ?: ", "y")) {
      print "Skiped...\n";
     }
