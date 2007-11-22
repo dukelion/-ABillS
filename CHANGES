@@ -1,4 +1,24 @@
+=====0.40=====
+  * 25.11.2007 
+MYSQL
+
+  ALTER TABLE dhcphosts_hosts ADD column `vid` smallint(6) unsigned NOT NULL default '0';
+  ALTER TABLE dhcphosts_hosts ADD column `nas` smallint(6) unsigned NOT NULL default '0';
+  ALTER TABLE dhcphosts_hosts ADD column `option_82` tinyint(1) unsigned NOT NULL default '0';
+
+
 =====0.37=====
+  * 5.11.2007 
+
+MYSQL
+   ALTER TABLE `users_pi` ADD COLUMN `zip` varchar(7) NOT NULL default '';
+   ALTER TABLE `users_pi` ADD COLUMN `city` varchar(20) NOT NULL default '';
+
+  * 21.10.2007 
+
+MYSQL
+   ALTER TABLE `admins` ADD COLUMN  `email` varchar(35) NOT NULL default '';
+
   * 19.10.2007 
 
 MYSQL
