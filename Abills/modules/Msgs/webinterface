@@ -729,7 +729,7 @@ sub msgs_new {
 
     $Msgs->messages_new({ %SHOW_PARAMS });
 
-    if ($Msgs->{OPENED} > 0) {
+    if ($Msgs->{OPENED} && $Msgs->{OPENED} > 0) {
       return "($Msgs->{UNREAD}/$Msgs->{TODAY}/$Msgs->{OPENED})";
      }
    }
