@@ -283,8 +283,6 @@ sub form_info {
   		return 0;
   	 }
   	elsif ($FORM{change}) {
-      print "Content-Type: text/html\n\n";
-
       $user->pi_change({  %FORM, UID => $user->{UID} });
       if (! $user->{errno}) {
         $html->message('info', $_CHANGED, "$_CHANGED");
