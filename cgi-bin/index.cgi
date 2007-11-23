@@ -273,6 +273,26 @@ $html->test() if ($conf{debugmods} =~ /LOG_DEBUG/);
 # form_stats
 #**********************************************************
 sub form_info {
+  
+  if ($conf{user_chg_pi}) {
+  	if ($FORM{chg}) {
+  		$user->pi();
+  		$user->{ACTION}='change';
+  		$user->{LNG_ACTION}=$_CHANGE;
+  		$html->tpl_show(templates('client_chg_form'), $user);
+  		return 0;
+  	 }
+  	elsif ($FORM{change}) {
+      print "Content-Type: text/html\n\n";
+
+      $user->pi_change({  %FORM, UID => $user->{UID} });
+      if (! $user->{errno}) {
+        $html->message('info', $_CHANGED, "$_CHANGED");
+       }
+  	 }
+   }
+
+
   $user->pi();
   
   use Finance;
@@ -285,6 +305,15 @@ sub form_info {
   $user->{PAYMENT_DATE}=$list->[0]->[2];
   $user->{PAYMENT_SUM}=$list->[0]->[3];
   $html->tpl_show(templates('client_info'), $user);
+
+  if ($conf{user_chg_pi}) {
+    $html->form_main({ CONTENT => $html->form_input('chg', "$_CHANGE", { TYPE => 'SUBMIT', OUTPUT2RETURN => 1 } ),
+	                     HIDDEN  => { 
+	                                 sid   => $sid,
+	                                 index => "$index"
+	                    }});
+  	
+   }
 }
 
 
