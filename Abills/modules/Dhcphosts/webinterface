@@ -408,7 +408,7 @@ sub dhcphosts_hosts {
 	  #$table->{rowcolor}=$_COLORS[$i];
     $table->addrow(
 	    $line->[0], 
-	    $html->button($line->[1], "index=15&UID=$line->[12]"),
+	    $html->button($line->[1], "index=15&UID=$line->[12]&MODULE=Dhcphosts"),
 	    $line->[2],
 	    $line->[3],
 	    $line->[5].": ".$line->[4],
