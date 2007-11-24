@@ -28,7 +28,8 @@ use main;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
-  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+
+  #$WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
   
   $admin->{MODULE}='Extfin';
 #  $CONF->{MAX_USERNAME_LENGTH} = 10 if (! defined($CONF->{MAX_USERNAME_LENGTH}));
@@ -279,6 +280,7 @@ sub payment_deed {
  
  my %PAYMENT_DEED = ();
  my @WHERE_RULES_DV = ();
+  @WHERE_RULES = ();
  my %NAMES=();
 
  if ($attr->{DATE_FROM}) {

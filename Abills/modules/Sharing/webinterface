@@ -1456,6 +1456,7 @@ sub sharing_user  {
     my $user_info = $users->info( $FORM{UID} );
 	  $LIST_PARAMS{LOGIN}=$user_info->{LOGIN};
 
+    $Sharing->{debug}=1;
     $Sharing->samba_info({ %LIST_PARAMS });
 
     #my $info = '';
