@@ -1453,9 +1453,10 @@ sub sharing_user  {
 
   $Sharing->{DISABLE}=($Sharing->{DISABLE} == 1) ? ' checked' : '';
   if ($conf{SHARING_SAMBA_ADD}) {
-    $Sharing->samba_info({ });
     my $user_info = $users->info( $FORM{UID} );
 	  $LIST_PARAMS{LOGIN}=$user_info->{LOGIN};
+
+    $Sharing->samba_info({ %LIST_PARAMS });
 
     #my $info = '';
     if ($Sharing->{TOTAL} < 1)  {
