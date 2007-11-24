@@ -657,7 +657,7 @@ foreach my $line (@$list) {
   $INFO{DOMAINNAME} = ($Dhcphosts->{DOMAINNAME}) ? "option domain-name-servers $Dhcphosts->{DNS};" : undef;
   
   $INFO{ROUTERS}    = "option routers $Dhcphosts->{ROUTERS};" if ($Dhcphosts->{ROUTERS} ne '0.0.0.0');
-  $INFO{DATETIME}   = "$DATE $TIME";
+  $INFO{DATETIME}   = "$DATE $TIME / Dhcphosts";
   
   $INFO{NETWORK_NAME} = $Dhcphosts->{NAME};
   $INFO{BLOCK_NETWORK}= $Dhcphosts->{BLOCK_NETWORK};
@@ -730,7 +730,6 @@ foreach my $line (@$list) {
 
 if ($attr->{reconfig} || $FORM{reconfig} ) {
 	$conf{DHCPHOSTS_CONFIG} = "/usr/local/etc/dhcpd.conf" if (! $conf{DHCPHOSTS_CONFIG}) ;
-  
   
   my $tpl = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), 
                             \%INFO, 
