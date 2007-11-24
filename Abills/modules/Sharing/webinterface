@@ -1400,6 +1400,16 @@ sub sharing_user  {
 	elsif($FORM{set}) {
     $Sharing->change({ %FORM });
     if (! $Sharing->{errno}) {
+      if($conf{SHARING_SAMBA_ADD}) {
+      	$users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
+      	
+      	my $cmd = $conf{SHARING_SAMBA_ADD};
+      	$cmd =~ s/\%USERNAME\%/$users->{LOGIN}/;
+      	$cmd =~ s/\%PASSWORD\%/$users->{PASSWORD}/;
+      	my $a = `$cmd`;
+      	print "<textarea rows=6 cols=70>$a</textarea>\n";
+       }
+
       $html->message('info', $_INFO, "$_CHANGED");	
      }
    }
