@@ -542,7 +542,7 @@ foreach my $line (@$list) {
    }
   
   $table->addrow(
-   $html->button("$line->[0]", "index=15&UID=$line->[7+$Sharing->{SEARCH_FIELDS_COUNT}]"), 
+   $html->button("$line->[0]", "index=15&UID=$line->[7+$Sharing->{SEARCH_FIELDS_COUNT}]&MODULE=Sharing"), 
    "$line->[1]",
    "$line->[2]", 
    "$line->[3]", 

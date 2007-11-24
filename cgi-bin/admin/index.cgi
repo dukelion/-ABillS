@@ -993,7 +993,7 @@ if(defined($attr->{USER})) {
   my $service_func_index = 0;
   foreach my $key ( sort keys %menu_items) {
 	  if (defined($menu_items{$key}{20})) {
-	  	$service_func_index=$key if ($service_func_index == 0);
+	  	$service_func_index=$key if (($FORM{MODULE} && $FORM{MODULE} eq $module{$key} || ! $FORM{MODULE}) && $service_func_index == 0);
 		  $service_menu .= '<li>'. $html->button($menu_items{$key}{20}, "UID=$user_info->{UID}&index=$key");
 	   }
    }

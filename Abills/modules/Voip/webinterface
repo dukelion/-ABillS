@@ -203,7 +203,7 @@ my $table = $html->table( { width => '100%',
 foreach my $line (@$list) {
   my $payments = ($permissions{1}) ?  $html->button($_PAYMENTS, "index=2&UID=$line->[7]") : ''; 
 
-  $table->addrow($html->button($line->[0], "index=11&UID=$line->[7]"), "$line->[1]",
+  $table->addrow($html->button($line->[0], "index=11&UID=$line->[7]&MODULE=Voip"), "$line->[1]",
    "$line->[2]", "$line->[3]", "$line->[4]", "$status[$line->[5]]", 
    "$line->[6]",
    $payments);

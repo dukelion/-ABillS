@@ -528,7 +528,7 @@ elsif ($Mail->{TOTAL} == 1) {
 
     $table->addrow($html->button($line->[0], "index=$index&MBOX_ID=$line->[14]&UID=$line->[13]"), 
        "$line->[1]",
-       $html->button($line->[2], "index=11&UID=$line->[13]"),
+       $html->button($line->[2], "index=11&UID=$line->[13]&MODULE=Mail"),
       "$line->[3]", 
       "$line->[4]", 
       "$line->[5]", 
