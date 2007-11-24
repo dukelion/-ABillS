@@ -1452,7 +1452,18 @@ sub sharing_user  {
 	} 
 
   $Sharing->{DISABLE}=($Sharing->{DISABLE} == 1) ? ' checked' : '';
-  $Sharing->{SAMBA_ADD} = "<tr><td>SAMBA:</td><td><input type=checkbox name=SAMBA value=1 checked></td></tr>\n" if ($conf{SHARING_SAMBA_ADD});
+  if ($conf{SHARING_SAMBA_ADD}) {
+    $Sharing->samba_info({ });
+    my $user_info = $users->info( $FORM{UID} );
+	  $LIST_PARAMS{LOGIN}=$user_info->{LOGIN};
+
+    #my $info = '';
+    if ($Sharing->{TOTAL} < 1)  {
+      $info = '[Not Active]';
+     }
+
+    $Sharing->{SAMBA_ADD} = "<tr><td>SAMBA:</td><td><input type=checkbox name=SAMBA value=1 checked> $info</td></tr>\n";
+   }
 
   $html->tpl_show(_include('sharing_user', 'Sharing'), $Sharing);
 

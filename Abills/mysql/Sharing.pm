@@ -1015,6 +1015,23 @@ WHERE
 # User information
 # info()
 #**********************************************************
+sub samba_info {
+	my $self = shift;
+	my ($attr) = @_;
+
+  $self->query($db, "SELECT *
+     FROM user
+   WHERE username='$attr->{LOGIN}';");
+
+
+  return $self;
+}
+
+
+#**********************************************************
+# User information
+# info()
+#**********************************************************
 sub info {
   my $self = shift;
   my ($uid, $attr) = @_;
