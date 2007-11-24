@@ -109,6 +109,11 @@ sub vlan_user {
  	$Vlan->{UID}=$FORM{UID};	  
   
   if ($FORM{add}) {
+    if (! $permissions{0}{1} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+  	  return 0;
+     }
+
     if ($FORM{IP} ne '0.0.0.0') {
       my $INFO = vlan_get_net($FORM{IP}, "$FORM{NETMASK}");
       if ($FORM{IP} ne $INFO->{IF_IP}) {
@@ -161,12 +166,16 @@ sub vlan_user {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
 	  $Vlan = $Vlan->defaults();
 
-	  $Vlan->{ACTION}='add';
-	  $Vlan->{LNG_ACTION}=$_ACTIVATE;
+    if ($permissions{0}{1}) {
+	    $Vlan->{ACTION}='add';
+	    $Vlan->{LNG_ACTION}=$_ACTIVATE;
+	   }
 	 }
 	else {
-	  $Vlan->{ACTION}='set';
-	  $Vlan->{LNG_ACTION}=$_CHANGE;
+    if ($permissions{0}{4}) {
+  	  $Vlan->{ACTION}='set';
+	    $Vlan->{LNG_ACTION}=$_CHANGE;
+	   }
 	} 
 
 
