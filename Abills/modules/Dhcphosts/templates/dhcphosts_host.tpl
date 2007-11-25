@@ -14,7 +14,7 @@
 <tr><td>$_COMMENTS:</td><td><input type=text name=COMMENTS value='%COMMENTS%'></td></tr>
 
 <tr><th colspan=2><input type=checkbox name=OPTION_82 value='%OPTION_82%'> Option 82 </th></tr>
-<tr><td>$_PORT:</td><td><input type=text name=PORT value='%PORT%'></td></tr>
+<tr><td>$_PORT (1,2,5):</td><td><input type=text name=PORTS value='%PORTS%'></td></tr>
 <tr><td>VLAN ID:</td><td><input type=text name=VID value='%VID%'></td></tr>
 <tr><td>$_SWITCH:</td><td>%SWITCH_SEL%</td></tr>
 
