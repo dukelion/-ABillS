@@ -277,11 +277,11 @@ sub host_add {
   my %DATA = $self->get_data($attr); 
 
   $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, 
-    forced, disable, expire, comments, vid, nas) 
+    forced, disable, expire, comments, vid, nas, ports) 
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
       INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}', '$DATA{DISABLE}',
       '$DATA{EXPIRE}',
-      '$DATA{COMMENTS}', '$DATA{VID}', '$DATA{NAS}');", 'do');
+      '$DATA{COMMENTS}', '$DATA{VID}', '$DATA{NAS}', '$DATA{PORTS}');", 'do');
 
 
   
@@ -333,7 +333,8 @@ sub host_info {
    expire,
    vid,
    comments,
-   nas
+   nas,
+   ports
   FROM dhcphosts_hosts
   WHERE id='$id';");
 
@@ -354,7 +355,8 @@ sub host_info {
    $self->{EXPIRE},
    $self->{VID},
    $self->{COMMENTS},
-   $self->{NAS}
+   $self->{NAS},
+   $self->{PORTS}
    ) = @{ $self->{list}->[0] };
   return $self;
 };
@@ -380,7 +382,8 @@ sub host_change {
    COMMENTS    => 'comments',
    EXPIRE      => 'expire',
    VID         => 'vid',
-   NAS         => 'nas'
+   NAS         => 'nas',
+   PORTS       => 'ports'
   );
 
 

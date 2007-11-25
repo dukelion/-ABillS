@@ -59,7 +59,9 @@ sub snmputils_nas_ipmac {
      d.mac,
      if(u.company_id > 0, cb.deposit, ub.deposit), 
      d.comments,
-     d.vid
+     d.vid,
+     d.ports,
+     d.nas
    FROM (users u, users_nas un, dhcphosts_hosts d)
      LEFT JOIN bills ub ON (u.bill_id = ub.id)
      LEFT JOIN companies company ON  (u.company_id=company.id)

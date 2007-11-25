@@ -480,7 +480,7 @@ sub snmputils_qbridge {
                                                      SWITCH_INFO    => $SWITCH_INFO,
 	                                                 });
 
-  my %SERVER_MAC = (); #Now active in server
+  my %SERVER_MAC    = (); #Now active in server
   my %MUST_ACTIVATE = (); #Need to be active
   if ($ACTIVE_MAC->{MAC}) {
      # IP -> MAC
@@ -497,9 +497,9 @@ sub snmputils_qbridge {
       $user_ports = $1;
  	   }
 
- 	  $debug_output .= "$line->[0], UID: $line->[1] IP: $line->[2] MAC: $line->[3] PORT: $user_ports\n" if ($debug > 2);
-    if ($line->[4] >= 0) {
-      $MUST_ACTIVATE{$line->[3]}="$line->[2]:$user_ports";
+ 	  $debug_output .= "$line->[0], UID: $line->[1] IP: $line->[2] MAC: $line->[3] VID: $line->[6] PORT: $line->[7] NAS: $line->[8]\n" if ($debug > 2);
+    if ( $line->[4] >= 0 && ($line->[8] == 0 || $line->[8] == $NAS_ID) ) {
+      $MUST_ACTIVATE{"$line->[6]-$line->[3]"}="$line->[7]";
      }
     else {
     	$debug_output .= " Negative deposit\n" if ($debug > 2);
@@ -507,27 +507,60 @@ sub snmputils_qbridge {
    }
 
 
-  while(my($ip, $mac)=each %SERVER_MAC) {
-     	    $debug_output .= "IP: $ip MAC: $mac" if ($debug > 0);
-     	    if ($MUST_ACTIVATE{$mac}) {
-     	       delete $MUST_ACTIVATE{$mac};
-     	       delete $SERVER_MAC{$ip};
+  while(my($vid_mac, $mac)=each %SERVER_MAC) {
+     	    my ($vid, $m)=split(/-/, $vid_mac, 2);
+     	    my $VM = $vid.'-'.$mac;
+     	    $debug_output .= "Server VID: '$VM' MAC: $mac" if ($debug > 0);
+     	    
+     	    if ($MUST_ACTIVATE{$VM}) {
+     	       delete $MUST_ACTIVATE{$VM};
+     	       delete $SERVER_MAC{$VM};
      	       $debug_output .= " Skip...\n" if ($debug > 0);
            }
           else {
        	    if ($debug < 3) {
-       	      my $message = snmputils_zyxel_smf_del({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
-            	                                       DEL            => $ip,
-     	                                               SWITCH_INFO    => $SWITCH_INFO,
-     	                                               MAC            => $mac,
-     	                                               DEBUG          => $debug
-     	                                          });
-
+              
+              my $message = snmputils_zyxel_smf_state({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
+     	                                          STATE          => 2,
+     	                                          PORT_ID        => 0,
+     	                                          SWITCH_INFO    => $SWITCH_INFO,
+     	                                          VLAN           => $vid,
+     	                                          MAC            => $mac,
+     	                                          DEBUG          => $debug
+     	                                       });
              }
           	$debug_output .= " Delete\n" if ($debug > 0);
            }
    }
 
+#Must active
+      $debug_output .= "Add to server:\n" if ($debug > 0);
+      while(my($vid_mac, $port)=each %MUST_ACTIVATE) {
+     	    $debug_output .= "$vid_mac Port: $port\n" if ($debug > 0);
+          my ($vid, $mac) = split(/-/, $vid_mac, 2);
+
+          #Don't add mac to 0 vid
+          if ($vid == 0 || $port == 0) {
+          	$debug_output .= "Error: VID: $vid Port: $port Skip\n" if ($debug > 0);
+          	#print  ;
+          	next;
+           }
+
+   	      if ($debug < 3) {
+     	       my $message = snmputils_zyxel_smf_add({  
+    	         SNMP_COMMUNITY => $SNMP_COMMUNITY,
+               PORT_ID        => $port,
+               MAC            => "$mac",
+     	         SWITCH_INFO    => $SWITCH_INFO,
+     	         VLAN           => $vid,
+     	         STATE          => 3,
+     	         DEBUG          => $debug
+     	       });
+      	
+   	      	
+            $debug_output .= "! $message\n";
+           }
+       }
 
   
 
@@ -794,7 +827,8 @@ sub snmputils_dlink_pb_add {
   #     my @ar =  unpack("A2A2A2A2", sprintf("%.8x",  $port_binding));
   #
   #     printf("\n%.32b\n",  $port_binding);
-  print $port_list;
+
+  #print $port_list;
   my $port_count = $#{ $sw_info->{PORT_STATE} };
 
   $port_list=~s/ //g;
@@ -821,7 +855,7 @@ sub snmputils_dlink_pb_add {
 
   my $port_binding = '';
   foreach my $c (@ar) {
-    print "$c:";
+    #print "$c:";
     $port_binding .= chr(hex($c));
    }
      
@@ -1432,7 +1466,7 @@ sub snmputils_smf_list {
  	  	 }
 
       my @mac_arr = split(/\./, $mac, 6);
-      my @mac_hex = split();
+      my @mac_hex = ();
       foreach my $val (@mac_arr) {
       	push @mac_hex, sprintf("%.2x", $val);
        }
@@ -1440,13 +1474,12 @@ sub snmputils_smf_list {
  	  	$info{MAC}{$vlan.'-'.$mac}=join(':', @mac_hex);
 
       my $string = unpack("B32",  $port);
-      if ($debug > 0) {
-     	  my $hex_val = join(':', unpack("H2H2H2H2", pack("B32", $string)));
-     	  
-        if ( $string =~ m/1/g ) {
-      	  $info{PORT}{$vlan.'-'.$mac}=pos($string);
-      	 }
-       }
+   	  #my $hex_val = join(':', unpack("H2H2H2H2", pack("B32", $string)));
+     	
+      if ( $string =~ m/1/g ) {
+     	  $info{PORT}{$vlan.'-'.$mac}=pos($string);
+     	 }
+
       
      }
     #Binding Address
@@ -1475,7 +1508,7 @@ sub snmputils_zyxel_smf_add {
 
 	my $ip   = $attr->{IP}   || '0.0.0.0';
   #my $port = $attr->{PORT} || 0;
-  my $port_list = $attr->{PORT_ID} || '';
+  my $port_list = $attr->{PORT_ID} || 1;
   my $mac    = $attr->{MAC}   || 0;
   my $vlan   = $attr->{VLAN}  || 0;
   my $active = $attr->{STATE} || 0;
@@ -1503,13 +1536,13 @@ sub snmputils_zyxel_smf_add {
   #my @port_array = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   my @port_array = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-
+  $port_list = 1 if( $port_list eq '0' );
   $port_array[$port_list-1]=1;
   
   my @ar = unpack("H2H2", pack("B16", join("", @port_array)));
   my $port_binding = '';
   foreach my $c (@ar) {
-    print "$c:";
+    #print "$c:";
     $port_binding .= chr(hex($c));
    }
 
