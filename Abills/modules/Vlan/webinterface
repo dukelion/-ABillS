@@ -542,6 +542,15 @@ sub vlan_dhcp {
   	 print $cmd."\n";
     }  
   }
+ else {
+   my $cmd = "$conf{DHCPHOSTS_RECONFIGURE}"; 
+
+   system($cmd);
+   
+   if ($debug > 2) {
+  	 print $cmd."\n";
+    }  
+  }
 
   $DEBUG .= $debug_output;	
 	return $debug_output;
