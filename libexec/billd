@@ -751,7 +751,9 @@ else {
      }
   close(IFC);
 
-  while($ifconfig =~ /tun(\d+): (.+\n\s.+\n\s.*[\n\sa-zA-Z0-9]+\n)/gi) {
+#  while($ifconfig =~ /tun(\d+): (.+\n\s.+\n\s.*[\n\sa-zA-Z0-9]+\n)/gi) {
+  while($ifconfig =~ /tun(\d+): (.+\n\s.+[\n\s.]+[\n\sa-zA-Z0-9]+\n)/gi) {
+  
     my $tunnum = $1;
     my $res    = $2;
 
@@ -774,8 +776,14 @@ else {
          #chop($pid);
        }
      }
-    print "$tunnum $addr $pid\n" if ($debug == 1);
-    $ip_pid_hash{"$addr"}="$pid:$tunnum";
+
+    if ($addr eq '0.0.0.0') {
+      next;
+     }
+    else {  
+      $ip_pid_hash{"$addr"}="$pid:$tunnum";
+     }
+    print "$tunnum $addr $pid\n" if ($debug > 0);
    }
  }
 
