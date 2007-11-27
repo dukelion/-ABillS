@@ -8,7 +8,6 @@ use strict;
 
 
 
-
 use FindBin '$Bin';
 require $Bin . '/config.pl';
 unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
@@ -89,7 +88,8 @@ elsif($ARGV[0] eq 'getinfo') {
 		 print " $line\n";
 	  }
   }
- print "TOTAL: $stats{TOTAL} ADDED: $stats{ADDED}\n";
+ 
+  print "TOTAL: $stats{TOTAL} ADDED: $stats{ADDED}\n";
 }
 elsif (defined($params->{'GET_DUBS'})) {
   my $path = ($params->{GET_DUBS} eq '') ? '.' : $params->{GET_DUBS};
@@ -263,7 +263,7 @@ sub make_ed2k_hash {
 }
 
 #**********************************************************
-#
+# Ge physical file location
 #**********************************************************
 sub getfiles {
   my $dir = shift;
@@ -285,11 +285,9 @@ foreach my $file (@contents) {
   exit if ($recursive == $rec_level && $recursive != 0 );
 
   if (! -l $file && -d $file ) {
-    #print "> $_ \n";
     $rec_level++;
     #print "Recurs Level: $rec_level\n";
     &getfiles($file);
-    #recode($_);
    }
   elsif ($file) {
     $stats{TOTAL}++;
@@ -301,41 +299,19 @@ foreach my $file (@contents) {
    	$filename =~ s/$conf{FILEARCH_PATH}//;
   	$dir  = dirname($filename);
   	$filename =~ s/$dir\///;
-  	$dir =~ s/^\///;
+  	$dir  =~ s/^\///;
+  	$size = 0;
     
     if (defined($FILEHASH->{"$filename"}{"$dir"})) {
     	 print "Skip $dir / $filename\n" if ($debug > 1);
     	 next;
      }
     
-    #my $date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
-    $blocks = int($size / BLOCKSIZE);
-    $blocks++ if ($size % BLOCKSIZE > 0);
-    my @blocks_hashes = ();
+    my $filehash = '';
+    if ($conf{ED2K}) {
+      ($dir, $filename, $size, $filehash) = make_ed2k_hash($file);
+  	 }
 
-    my $ctx = Digest::MD4->new;   
-    open(FILE, "$file") || die "Can't open '$file' $!";
-    binmode(FILE);
-    my $data;    
-    for (my $b=0; $b < $blocks; $b++) {
-
-       my $len =  BLOCKSIZE;
-       $len = $size % BLOCKSIZE if ($b == $blocks - 1); 
-       
-       my $ADDRESS = ($b * BLOCKSIZE);
-       seek(FILE, $ADDRESS, 0) or die "seek:$!";
-       read(FILE, $data, $len);
-       $ctx->add($data);
-       $blocks_hashes[$b]=$ctx->digest;
-       print " hash block $b: ". bin2hex($blocks_hashes[$b]) ."\n" if ($debug > 1);
-     }
-    close(FILE);
-
-
-    $ctx->add(@blocks_hashes);
-    my $filehash = $ctx->hexdigest;
-    #$filehash =~ tr/[a-z]/[A-Z]/;
-  	
   	print "D: $dir F: $filename H: $filehash S: $size \n" if ($debug > 0);
   	
 
@@ -366,7 +342,9 @@ foreach my $file (@contents) {
 
 
 
-
+#**********************************************************
+#
+#**********************************************************
 sub dirname {
     my($x) = @_;
     if ( $x !~ s@[/\\][^/\\]+$@@ ) {
@@ -476,4 +454,6 @@ sub post_info {
 
 }
 
+
+1
 
