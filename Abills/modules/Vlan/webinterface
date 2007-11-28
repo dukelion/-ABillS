@@ -277,6 +277,7 @@ my $list = $Nas->list({ PAGE_ROWS => 100000,
  	                      NAS_IDS   => ($attr->{NAS_IDS}) ? $attr->{NAS_IDS} : undef 
 	                    });
 
+my %NAS_COMMANDS = ();
 
 foreach my $line (@$list) {
   my @commands = ();
@@ -408,7 +409,7 @@ foreach my $line (@$list) {
     if ($NAS_ID > 0) {
       my $ACCT_TERMINATE_CAUSE = $attr->{ACCT_TERMINATE_CAUSE} || 6;
       $Ipn->acct_stop({ SESSION_ID => '', 
-  	                ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
+  	                    ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
     }
 
 	  push @commands, "$IFCONFIG vlan$vlan_id destroy";
@@ -505,6 +506,7 @@ sub vlan_dhcp {
   my ($attr) = @_;
 
   $attr->{INFO}{DATETIME}="$DATE $TIME / Vlan";
+
   my $main_tpl = $html->tpl_show(
                                _include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), 
                                $attr->{INFO},
