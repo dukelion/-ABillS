@@ -1,7 +1,7 @@
 =====0.40=====
   * 25.11.2007 
 MYSQL
-
+  ALTER TABLE dhcphosts_hosts ADD column `ports` varchar(100) NOT NULL default '';
   ALTER TABLE dhcphosts_hosts ADD column `vid` smallint(6) unsigned NOT NULL default '0';
   ALTER TABLE dhcphosts_hosts ADD column `nas` smallint(6) unsigned NOT NULL default '0';
   ALTER TABLE dhcphosts_hosts ADD column `option_82` tinyint(1) unsigned NOT NULL default '0';
