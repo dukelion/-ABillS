@@ -1438,7 +1438,7 @@ sub list {
      FROM (users u, sharing_main sharing)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON (u.bill_id = b.id)
-     LEFT JOIN tarif_plans tp ON (tp.id=sharing.tp_id) 
+     LEFT JOIN tarif_plans tp ON (tp.id=sharing.tp_id and tp.module='Sharing') 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $WHERE 
