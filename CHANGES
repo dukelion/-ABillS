@@ -1,4 +1,20 @@
 =====0.40=====
+
+  * 28.11.2007 
+MYSQL
+  ALTER TABLE sharing_main ADD COLUMN  `extra_byte` int(11) unsigned NOT NULL default '0';
+  
+  CREATE TABLE `sharing_additions` (
+    `id` smallint(6) NOT NULL auto_increment,
+    `name` varchar(25) NOT NULL default '',
+    `quantity` int(11) unsigned NOT NULL default '0',
+    `price` int(11) default NULL,
+    `tp_id` smallint(6) unsigned NOT NULL default '0',
+    PRIMARY KEY  (`id`),
+    UNIQUE KEY `id` (`id`)
+  ) COMMENT='Sharing Additions';
+
+
   * 25.11.2007 
 MYSQL
   ALTER TABLE dhcphosts_hosts ADD column `ports` varchar(100) NOT NULL default '';
