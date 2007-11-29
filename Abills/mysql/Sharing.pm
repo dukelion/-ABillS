@@ -2043,7 +2043,7 @@ sub additions_change {
   my $old_info = $self->additions_info($attr->{ID});
 
   $admin->{MODULE}=$MODULE;
-  $self->changes($admin, { CHANGE_PARAM => 'UID',
+  $self->changes($admin, { CHANGE_PARAM => 'ID',
                    TABLE        => 'sharing_additions',
                    FIELDS       => \%FIELDS,
                    OLD_INFO     => $old_info,
