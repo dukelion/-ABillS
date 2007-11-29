@@ -2038,8 +2038,9 @@ sub additions_change {
                 PRICE          => 'price'
              );
   
+  print $attr->{ID};
 
-  my $old_info = $self->info($attr->{ID});
+  my $old_info = $self->additions_info($attr->{ID});
 
   $admin->{MODULE}=$MODULE;
   $self->changes($admin, { CHANGE_PARAM => 'UID',
