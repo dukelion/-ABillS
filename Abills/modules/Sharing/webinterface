@@ -1719,7 +1719,8 @@ if (defined($FORM{tt})) {
      }
    }
   elsif($FORM{change}) {
-    $FORM{TI_ID}=$FORM{tt};
+
+    $Sharing->{debug}=1;
     $Sharing->additions_change({ %FORM });
 
     if(! $Sharing->{errno}) {
@@ -1727,10 +1728,13 @@ if (defined($FORM{tt})) {
      }
    }
  	elsif(defined($FORM{chg})) {
-    $Sharing->additions_info({ TP_ID => $FORM{tt}, TT_ID => $FORM{chg} });
+    
+
+    $Sharing->additions_info($FORM{chg}, { TP_ID => $FORM{tt} });
     if(! $Sharing->{errno}) {
       $html->message('info', $_INFO, "$_CHANGING");  	
      }
+
     $Sharing->{ACTION}='change';
     $Sharing->{LNG_ACTION}=$_CHANGE;
    }
