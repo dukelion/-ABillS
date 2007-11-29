@@ -1068,7 +1068,8 @@ sub info {
    sharing.cid,
    sharing.disable,
    sharing.type,
-   tp.gid
+   tp.gid,
+   sharing.extra_byte
      FROM sharing_main sharing
      LEFT JOIN tarif_plans tp ON (sharing.tp_id=tp.id and tp.module='Sharing')
    $WHERE;");
@@ -1091,7 +1092,8 @@ sub info {
    $self->{CID},
    $self->{DISABLE},
    $self->{TYPE},
-   $self->{TP_GID}
+   $self->{TP_GID},
+   $self->{EXTRA_TRAFIC}
   )= @{ $self->{list}->[0] };
   
   
@@ -1115,7 +1117,7 @@ sub defaults {
    SPEED          => 0, 
    FILTER_ID      => '', 
    CID            => '',
-   TYPE           => 0 
+   TYPE           => 0
   );
  
   $self = \%DATA;
@@ -1196,7 +1198,8 @@ sub change {
               CID              => 'cid',
               UID              => 'uid',
               FILTER_ID        => 'filter_id',
-              TYPE             => 'type'
+              TYPE             => 'type',
+              EXTRA_TRAFIC     => 'extra_byte'
              );
   
   if (! $attr->{CALLBACK}) {
@@ -1932,6 +1935,192 @@ sub errors_del {
 }
 
 
+#**********************************************************
+# User information
+# info()
+#**********************************************************
+sub additions_info {
+  my $self = shift;
+  my ($id, $attr) = @_;
+
+  
+  $self->query($db, "SELECT id, 
+   tp_id, 
+   name, 
+   quantity, 
+   price
+     FROM sharing_additions
+   WHERE id='$id';");
+
+  $self->{TP_GID} = 0;
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+
+  ($self->{ID},
+   $self->{TP_ID}, 
+   $self->{NAME}, 
+   $self->{QUANTITY}, 
+   $self->{PRICE}
+  )= @{ $self->{list}->[0] };
+  
+  
+  return $self;
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub additions_defaults {
+  my $self = shift;
+
+  my %DATA = (
+   ID             => 0,
+   TP_ID          => 0, 
+   QUANTITY       => 0, 
+   NAME           => '', 
+   PRICE          => 0 
+  );
+ 
+  $self = \%DATA;
+  return $self;
+}
+
+
+#**********************************************************
+# add()
+#**********************************************************
+sub additions_add {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %DATA = $self->get_data($attr, { default => defaults() }); 
+  
+  $self->query($db,  "INSERT INTO sharing_additions (
+             tp_id, 
+             name,
+             quantity, 
+             price
+              )
+        VALUES (
+        '$DATA{TP_ID}', 
+        '$DATA{NAME}',
+        '$DATA{QUANTITY}',
+        '$DATA{PRICE}'
+         );", 'do');
+
+  return $self if ($self->{errno});
+  $admin->action_add("$DATA{UID}", "ACTIVE");
+  return $self;
+}
+
+
+
+
+#**********************************************************
+# change()
+#**********************************************************
+sub additions_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+ 
+  my %FIELDS = (ID             => 'id',
+                name           => 'name',
+                TP_ID          => 'tp_id',
+                QUANTITY       => 'quantity',
+                PRICE          => 'price'
+             );
+  
+
+  my $old_info = $self->info($attr->{ID});
+
+  $admin->{MODULE}=$MODULE;
+  $self->changes($admin, { CHANGE_PARAM => 'UID',
+                   TABLE        => 'sharing_additions',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $old_info,
+                   DATA         => $attr
+                  } );
+ 
+
+  return $self->{result};
+}
+
+
+
+#**********************************************************
+# Delete user info from all tables
+#
+# del(attr);
+#**********************************************************
+sub additions_del {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "DELETE from sharing_additions WHERE id='$self->{ID}';", 'do');
+
+  $admin->action_add($uid, "DELETE");
+  return $self->{result};
+}
+
+
+
+
+#**********************************************************
+# list()
+#**********************************************************
+sub additions_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
+ $self->{SEARCH_FIELDS} = '';
+ $self->{SEARCH_FIELDS_COUNT}=0;
+
+ undef @WHERE_RULES;
+ if ($attr->{TP_ID}) {
+    my $value = $self->search_expr($attr->{TP_ID}, 'INT');
+    push @WHERE_RULES, "tp_id$value";
+  }
+
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+ $self->query($db, "SELECT id, 
+      name,
+      quantity, 
+      price, 
+      tp_id
+     FROM sharing_additions
+     $WHERE 
+     GROUP BY id
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(*) FROM sharing_additions $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+  return $list;
+}
 
 
 1
+

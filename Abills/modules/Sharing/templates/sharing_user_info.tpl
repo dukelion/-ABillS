@@ -9,6 +9,7 @@
 <tr bgcolor='$_COLORS[1]'><td>CID:</td><td>%CID%</td></tr>
 <tr bgcolor='$_COLORS[1]'><td>$_DISABLE:</td><td>%DISABLE%</td></tr>
 <tr bgcolor='$_COLORS[1]'><td>$_TYPE:</td><td>%TYPE_SEL%</td></tr>
+<tr bgcolor='$_COLORS[1]'><td>$_EXTRA_TRAFIC (Mb.):</td><td>%EXTRA_TRAFIC%</td></tr>
 </table>
 
 </td></tr>

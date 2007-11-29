@@ -7,6 +7,7 @@ CREATE TABLE `sharing_main` (
   `speed` int(10) unsigned NOT NULL default '0',
   `filter_id` varchar(15) NOT NULL default '',
   `logins` tinyint(3) unsigned NOT NULL default '0',
+  `extra_byte` int(11) unsigned NOT NULL default '0',
   KEY `uid` (`uid`)
 ) COMMENT='Sharing main info';
 

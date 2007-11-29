@@ -155,7 +155,7 @@ my $table = $html->table( { width      => '100%',
                             border     => 1,
                             title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, 
                              $_AGE, $_GROUP,
-                                    '-', '-', '-'],
+                                    '-', '-', '-', '-'],
                             cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
                                   } );
 
@@ -182,6 +182,7 @@ foreach my $line (@$list) {
    $line->[8], 
    $line->[9],
    $html->button($_TRAFIC_TARIFS, "index=". ($index + 2) ."&subf=". ($index + 2) ."&TRAFFIC=$line->[0]&TP_ID=$line->[0]"),
+   $html->button($_EXTRA_TRAFIC, "index=". ($index + 3) ."&subf=". ($index + 3) ."&TRAFFIC=$line->[0]&TP_ID=$line->[0]"),
    $change,
    $delete);
 }
@@ -1247,6 +1248,12 @@ print $html->tpl_show(templates('chg_tp'), $Tariffs);
 #**********************************************************
 sub sharing_user_chg_tp {
 
+
+ if ($FORM{BUY}) {
+ 	 sharing_addition_buy();
+ 	 return 0;
+  }
+
  my $user;
  my $shedule = Shedule->new($db, $admin, \%conf);
  my $period = $FORM{period} || 0;
@@ -1374,6 +1381,9 @@ elsif($FORM{del}) {
    $Tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME}";
 
    $html->tpl_show(templates('chg_tp'), $Tariffs);
+   
+   
+   sharing_addition_buy();
 }
 
 #*******************************************************************
@@ -1683,6 +1693,321 @@ sub sharing_registration  {
 
 	return 0;
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub sharing_additions {
+	my ($attr) = @_;
+
+
+  $Sharing->{ACTION}='add';
+  $Sharing->{LNG_ACTION}=$_ADD;
+ 
+  
+if (defined($FORM{tt})) {
+  #$Sharing = $attr->{TP};
+  $Sharing->additions_defaults();
+  $Sharing->{TI_ID} = $FORM{tt};
+
+
+
+  if($FORM{add}) {
+    $Sharing->additions_add({ %FORM });
+    if(! $Sharing->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");
+     }
+   }
+  elsif($FORM{change}) {
+    $FORM{TI_ID}=$FORM{tt};
+    $Sharing->additions_change({ %FORM });
+
+    if(! $Sharing->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED"); 
+     }
+   }
+ 	elsif(defined($FORM{chg})) {
+    $Sharing->additions_info({ TP_ID => $FORM{tt}, TT_ID => $FORM{chg} });
+    if(! $Sharing->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");  	
+     }
+    $Sharing->{ACTION}='change';
+    $Sharing->{LNG_ACTION}=$_CHANGE;
+   }
+  elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) ) {
+    $Sharing->additions_del({ TI_ID => $FORM{tt}, TT_ID => $FORM{del} });
+    if(! $Sharing->{errno}) {
+    	$html->message('info', $_INFO, "$_DELETED"); 
+     }
+   }
+
+  if ($Sharing->{errno}) {
+    $html->message('err', $_ERROR, "[$Sharing->{errno}] $err_strs{$Sharing->{errno}}");	
+   }
+
+   my $list = $Sharing->additions_list({ TP_ID => $FORM{TP_ID}, form => 'yes' });
+   $Sharing->{TT_ID}=$Sharing->{TOTAL} if (! defined($FORM{chg}));
+ }
+elsif($attr->{TP}) {
+  #$Sharing = $attr->{TP};
+  $Sharing->additions_defaults();
+
+  if ($FORM{change}) {
+
+    
+    $Sharing->tt_change( { 
+    	TT_DESCRIBE_0  => $FORM{TT_DESCRIBE_0},
+      TT_PRICE_IN_0  => $FORM{TT_PRICE_IN_0},
+      TT_PRICE_OUT_0 => $FORM{TT_PRICE_OUT_0},
+      TT_NETS_0      => $FORM{TT_NETS_0},
+      TT_PREPAID_0   => $FORM{TT_PREPAID_0},
+      TT_SPEED_0     =>     $FORM{TT_SPEED_0},
+
+      TT_DESCRIBE_1  => $FORM{'TT_DESCRIBE_1'},
+      TT_PRICE_IN_1  => $FORM{TT_PRICE_IN_1},
+      TT_PRICE_OUT_1 => $FORM{TT_PRICE_OUT_1},
+      TT_NETS_1      => $FORM{TT_NETS_1},
+      TT_PREPAID_1   => $FORM{TT_PREPAID_1},
+      TT_SPEED_1     => $FORM{TT_SPEED_1},
+
+      TT_DESCRIBE_2 => $FORM{TT_DESCRIBE_2},
+      TT_NETS_2     => $FORM{TT_NETS_2},
+      TT_SPEED_2    => $FORM{TT_SPEED_2},
+
+    });
+
+
+    if ($Sharing->{errno}) {
+      my $messages = "($Sharing->{errstr})" if($Sharing->{errstr});
+      $html->message('err', $_ERROR, "[$Sharing->{errno}] $err_strs{$Sharing->{errno}} $message");	
+     }
+    else {
+      $html->message('info', $_INFO, "$_INTERVALS");
+     }
+   }
+
+   my $list = $Sharing->tt_list({ TP_ID => $FORM{TP_ID} });
+ }
+elsif (defined($FORM{TP_ID})) {
+  $FORM{subf}=$index;
+  sharing_tp();
+  return 0;
+ }
+
+
+
+
+  
+       my $table = $html->table({ width       => '100%',
+                                   title_plain => ["#", "$_NAME", "$_TRAFFIC", "$_SUM", "-", "-"],
+                                   cols_align  => ['right', 'left', 'right', 'right', 'center', 'center'],
+                                   caption     => "$_EXTRA_TRAFFIC"
+                                  } );
+
+       my $list_tt = $Sharing->additions_list({ TP_ID => $FORM{TP_ID} });
+       foreach my $line (@$list_tt) {
+
+          $table->addrow($line->[0], 
+           $line->[1], 
+           $line->[2], 
+           $line->[3], 
+           $html->button($_CHANGE, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&chg=$line->[0]"),
+           $html->button($_DEL, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" } ));
+        }
+
+       print $table->show();
+  
+       $html->tpl_show(_include('sharing_addition', 'Sharing'), $Sharing);	
+	
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub sharing_addition_buy {
+  #print "content-Type: text/html\n\n";  
+  #$Sharing->{debug}=1;
+
+
+  $user_si = $Sharing->info($LIST_PARAMS{UID});
+	my $list = $Sharing->additions_list({ TP_ID => $user_si->{TP_ID} });
+
+
+	if ($Sharing->{TOTAL} > 0) {
+    if ($FORM{BUY}) {
+    	$Sharing->additions_info($FORM{ID});
+    	if ($Sharing->{PRICE} > $user->{DEPOSIT}) {
+    		$html->message('err', $_ERROR, "[15] $err_strs{15} / $Sharing->{PRICE} > $user_info->{DEPOSIT}");	
+    	 }
+    	else {
+    		my $mb    = $Sharing->{QUANTITY};
+        my $price = $Sharing->{PRICE};
+
+    		$Sharing->change({ UID          => $user_si->{UID}, 
+    			                 EXTRA_TRAFIC => $user_si->{EXTRA_TRAFIC} + $mb  
+    			               });
+
+	    	if (! $Sharing->{errno}) {
+      		$html->message('info', $_ADDED, "$_ADDED:  $mb Mb.");	
+	        my $fees = Fees->new($db, $admin, $CONF);
+          $fees->take($user, $price, { DESCRIBE  => "$_EXTRA_TRAFIC" });  
+       	 }
+
+    	 }
+    	
+     }
+
+
+    $html->form_main({ CONTENT => "$_EXTRA_TRAFIC: ". $html->form_select('ID', 
+                                          { 
+ 	                                          SELECTED          => 0,
+ 	                                          SEL_MULTI_ARRAY   => $list,
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        }),
+	                                          HIDDEN  => { index => "$index" },
+	                                          SUBMIT  => { BUY  => "$_BUY" } 
+	                        });
+	
+	 }
+	
+}
+
+
+
+#**********************************************************
+# monthly_fees
+#**********************************************************
+sub sharing_periodic_monthly_fees {
+ my ($attr) = @_;
+
+ my $debug = $attr->{DEBUG} || 0;
+ my $debug_output = '';
+ $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
+
+ use Users;
+ my $users = Users->new($db, $admin, \%conf); 
+ $Tariffs->{debug}=1;
+ my $list = $Tariffs->list({ MODULE => 'Sharing',  %LIST_PARAMS });
+
+
+ $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+ my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+ $m--;
+ 
+ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
+
+
+ foreach my $line (@$list) {
+ 	 if ($line->[6] > 0) {
+ 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11]\n" if ($debug > 1);
+
+	   my $ulist = $Sharing->list({ 
+         ACTIVATE   => ">=$ADMIN_REPORT{DATE}",
+         EXPIRE     => "<$ADMIN_REPORT{DATE}",
+         DISABLE    => '0',
+         TP_ID      => $line->[0],
+         SORT       => 1,
+         PAGE_ROWS  => 100000
+ 	   	 });
+
+#u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
+#      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
+
+     foreach my $u (@$ulist) {
+       print " Login: $u->[0] TP_ID: $u->[9] Fees: $line->[6] REDUCTION: $u->[13]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 4); 	
+       
+       if ($u->[12] > 0 && defined($u->[2])) {
+          my %user = (
+            ACCOUNT_ID => $u->[7],
+            UID        => $u->[6],
+            BILL_ID    => $u->[12]   
+           );
+          
+          #Make sum 
+          my $sum = $line->[6];
+
+          if ($line->[11] == 1 && $u->[13] > 0) {
+            $sum = $sum * (100 - $u->[13]) / 100;
+           }
+       
+          
+          #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
+          if($line->[4] == 1 || $u->[2] + $u->[3] > 0 || $line->[12] == 1) {
+#                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] /$DATE $d == 1\n"; 	
+            #take fees in first day of month
+            if ($u->[10] eq '0000-00-00' and $d == 1) {
+              if ($debug > 4) {
+                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+               }
+              else {
+                $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE" } );  
+               }
+             }
+            # If activation set to monthly fees taken throught 30 days
+            elsif($u->[10] ne '0000-00-00') {
+              my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[10], 3);
+              $activate_m--;
+              my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
+              if ($date_unixtime - $active_unixtime > 30 * 86400) {
+                if ($debug > 4) {
+                  $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+                 }
+                else {
+                  $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE" } );
+                  $users->change($u->[6], { 
+                	                        UID      => $u->[6],
+                	                        ACTIVATE => $ADMIN_REPORT{DATE} } 
+                 	             );
+                 }
+               }
+               #print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+             }
+           }
+        }
+       else {
+      	 print "[ $u->[6] ] $u->[0] - Don't have money account\n";
+        }
+ 	  }
+  }
+}
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub sharing_periodic_logrotate {
+	
+	
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub sharing_periodic {
+	
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

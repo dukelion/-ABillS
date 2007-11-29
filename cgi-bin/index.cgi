@@ -945,6 +945,12 @@ if (defined($FORM{DATE})) {
 #*******************************************************************
 sub form_fees {
 	
+	
+	if (! $FORM{sort}) {
+		$LIST_PARAMS{SORT}=1;
+		$LIST_PARAMS{DESC}='DESC';
+	 }
+	
 my $fees = Finance->fees($db, $admin, \%conf);
 my $list = $fees->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',

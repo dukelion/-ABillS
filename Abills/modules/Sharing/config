@@ -1,5 +1,3 @@
-#$web_interface    = 1;
-# Iner_ID : Main or Sub or if -1 user menu func list
 
 %FUNCTIONS_LIST = ("1:0:Sharing:sharing_users_list:"    => 11,
                    "2:0:Sharing:sharing_user:UID"       => 20,
@@ -11,7 +9,8 @@
                    "20:0:Sharing:null:"                 => 5,
                    "21:20:$_TARIF_PLANS:sharing_tp:"    => 5,
                    "22:21:$_GROUPS:form_tp_groups:"     => 5,
-                   "23:21:$_TRAFIC_TARIFS:sharing_traffic_tariffs:TP_ID"    => 5,
+                   "23:21:$_TRAFIC_TARIFS:sharing_traffic_tariffs:TP_ID" => 5,
+                   "24:21:Ext $_TRAFFIC:sharing_additions:TP_ID"       => 5,
                    "30:0:Sharing:sharing_online:"       => 8
                    
                    ); 
@@ -19,8 +18,16 @@
 
  
 %USER_FUNCTION_LIST = ("01:0:Sharing:sharing_user_info:"         => 0,
-                       "03:1:$_STATS:sharing_user_stats:"        => 0
+                       "03:1:$_STATS:sharing_user_stats:"        => 0,
+                       # "04:1:$_TRAFFIC:sharing_addition_buy:"    => 0
                        );
+
+%PERIODIC = (
+             #daily   => [ 'dv_daily_fees',   'dv_users_warning_messages' ],
+             monthly => [ 'sharing_periodic_logrotate', 'sharing_periodic_monthly_fees', 'sharing_periodic' ],
+             #report  => [ 'dv_report'       ]
+             );
+
 
 $USER_FUNCTION_LIST{"02:1:$_TARIF_PLAN:sharing_user_chg_tp:"}=0 if ($conf{SHARING_USER_CHG_TP});
 

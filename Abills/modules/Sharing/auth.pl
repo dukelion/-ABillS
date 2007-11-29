@@ -185,7 +185,8 @@ my $query = "select
   u.reduction,
   sharing.tp_id,
   tp.payment_type,
-  tp.month_traf_limit
+  tp.month_traf_limit,
+  sharing.extra_byte
      FROM (users u, sharing_main sharing, tarif_plans tp)
      WHERE
         u.uid=sharing.uid
@@ -216,7 +217,8 @@ my (
   $reduction,
   $tp_id,
   $payment_type,
-  $month_traf_limit
+  $month_traf_limit,
+  $extra_trafic
   ) = $sth->fetchrow_array();
 
 
@@ -280,7 +282,7 @@ if ($sth->rows() > 0) {
 
 
     $prepaid_traffic = (defined($prepaid_traffic) && $prepaid_traffic == 0) ? $prepaid_traffic * 1024 * 1024 : $month_traf_limit * 1024 * 1024;
-
+    $prepaid_traffic =  $prepaid_traffic + $extra_trafic;
     $deposit = $deposit +  $credit;
 
     my $rest_traffic = 0;

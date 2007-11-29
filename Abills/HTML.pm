@@ -1263,6 +1263,26 @@ my $output = qq{
 
 }
 
+# Preformated test
+#*******************************************************************
+sub b {
+ my $self = shift;
+ my ($message) = @_;
+ 
+ 
+my $output = "<b>$message</b>";
+
+  #if (defined($self->{NO_PRINT})) {
+  #	$self->{OUTPUT}.=$output;
+  	return $output;
+  # }
+	#else { 
+ 	#  print $output;
+	# }
+
+}
+
+
 #*******************************************************************
 # Make pages and count total records
 # pages($count, $argument)
