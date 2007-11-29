@@ -1727,8 +1727,6 @@ if (defined($FORM{tt})) {
      }
    }
  	elsif(defined($FORM{chg})) {
-    
-
     $Sharing->additions_info($FORM{chg}, { TP_ID => $FORM{tt} });
     if(! $Sharing->{errno}) {
       $html->message('info', $_INFO, "$_CHANGING");  	
