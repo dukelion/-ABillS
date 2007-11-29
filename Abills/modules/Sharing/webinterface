@@ -535,7 +535,7 @@ my $table = $html->table( { width      => '100%',
                            });
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Sharing->{SEARCH_FIELDS_COUNT}]) : ''; 
+  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[7+$Sharing->{SEARCH_FIELDS_COUNT}]) : ''; 
   
   my @fields_array  = ();
   for(my $i=0; $i<$Sharing->{SEARCH_FIELDS_COUNT}; $i++){
@@ -551,7 +551,7 @@ foreach my $line (@$list) {
    "$status[$line->[5]]",
    @fields_array, 
    $payments, 
-   $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[6+$Sharing->{SEARCH_FIELDS_COUNT}])
+   $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[7+$Sharing->{SEARCH_FIELDS_COUNT}])
 
    );
 }
