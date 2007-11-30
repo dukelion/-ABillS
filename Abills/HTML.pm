@@ -38,8 +38,8 @@ $VERSION = 2.00;
    $index
    $pages_qs
    $domain
-   $web_path
    $secure
+   $web_path
    $SORT
    $DESC
    $PG
@@ -52,7 +52,7 @@ $VERSION = 2.00;
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
 
-my $bg;
+my $bg='';
 my $debug;
 my %log_levels;
 my $IMG_PATH;
@@ -949,23 +949,25 @@ sub addrow {
   my $self = shift;
   my (@row) = @_;
 
-
-
-  if (defined($self->{rowcolor})) {
+  if ($self->{rowcolor}) {
     $bg = $self->{rowcolor};
    }  
   else {
   	$bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
    }
   
-  my $extra=(defined($self->{extra})) ? $self->{extra} : '';
+  my $extra=($self->{extra}) ? $self->{extra} : '';
 
   $row_number++;
   
   $self->{rows} .= "<tr bgcolor=\"$bg\"  onmouseover=\"setPointer(this, $row_number, 'over', '$bg', '$_COLORS[3]', '$_COLORS[0]');\" onmouseout=\"setPointer(this, $row_number, 'out', '$bg', '$_COLORS[3]', '$_COLORS[0]');\" onmousedown=\"setPointer(this, $row_number, 'click', '$bg', '$_COLORS[3]', '$_COLORS[0]');\">";
+  
   foreach my $val (@row) {
-     $self->{rows} .= "<TD bgcolor=\"$bg\" $extra>$val</TD>";
+     $self->{rows} .= "<TD bgcolor=\"$bg\" $extra>";
+     $self->{rows} .= $val if($val);
+     $self->{rows} .= "</TD>";
    }
+
   $self->{rows} .= "</TR>\n";
   return $self->{rows};
 }

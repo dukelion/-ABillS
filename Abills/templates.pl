@@ -68,8 +68,8 @@ return qq{
 <div class='header'>
 <form action='$SELF_URL'>
 <table width='100%' border='0'>
-  <tr><th align='left'>$_DATE: %DATE% %TIME% Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"%ONLINE_USERS%\"><a href='$SELF_URL?index=50' title='%ONLINE_USERS%'>Online: %ONLINE_COUNT%</a></abbr></th>  <th align='right'><input type='hidden' name='index' value='7'/><input type='hidden' name='search' value='y'/>
-  Search: %SEL_TYPE% <input type='text' name='LOGIN_EXPR' value='$FORM{LOGIN_EXPR}'/> 
+  <tr><th align='left'>$_DATE: %DATE% %TIME% Admin: <a href='$SELF_URL?index=53'>$admin->{A_LOGIN}</a> / Online: <abbr title=\"%ONLINE_USERS%\"><a href='$SELF_URL?index=50' title='%ONLINE_USERS%'>Online: %ONLINE_COUNT%</a></abbr></th>  <th align='right'><input type='hidden' name='index' value='7'/><input type='hidden' name='search' value='1'/>
+  Search: %SEL_TYPE% <input type='text' name='LOGIN_EXPR' value=''/> 
   (<b><a href='#' onclick=\"window.open('help.cgi?index=$index&amp;FUNCTION=$functions{$index}','help',
     'height=550,width=450,resizable=0,scrollbars=yes,menubar=no, status=yes');\">?</a></b>)</th></tr>
 </table>
@@ -83,7 +83,7 @@ return qq{
 }
 elsif ($tpl_name eq 'footer') {
 return qq{
-  <tr class=\"FOOTER\"><td colspan='2'><hr/> ABillS $conf{version}</td></tr>
+  <tr class=\"FOOTER\"><td colspan='2'><hr/> ABillS %VERSION%</td></tr>
  };
  }
 elsif ($tpl_name eq 'form_pi') {
