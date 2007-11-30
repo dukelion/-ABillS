@@ -989,8 +989,9 @@ sub web_session_add {
   $self->query($db, "DELETE  FROM web_users_sessions WHERE uid='$attr->{UID}';", 'do');	
 
 	$self->query($db, "INSERT INTO web_users_sessions 
-	      (uid, datetime, login, remote_addr, sid) VALUES 
-	      ('$attr->{UID}', UNIX_TIMESTAMP(), '$attr->{LOGIN}', INET_ATON('$attr->{REMOTE_ADDR}'), '$attr->{SID}');", 'do');	
+	      (uid, datetime, login, remote_addr, sid, ext_info) VALUES 
+	      ('$attr->{UID}', UNIX_TIMESTAMP(), '$attr->{LOGIN}', INET_ATON('$attr->{REMOTE_ADDR}'), '$attr->{SID}',
+	      '$attr->{EXT_INFO}');", 'do');	
 	
 	return $self;
 }

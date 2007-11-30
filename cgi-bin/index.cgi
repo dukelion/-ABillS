@@ -640,7 +640,8 @@ if (defined($res) && $res > 0) {
     $user->web_session_add({ UID         => $user->{UID},
     	                       SID         => $sid,
     	                       LOGIN       => $login,
-    	                       REMOTE_ADDR => $REMOTE_ADDR
+    	                       REMOTE_ADDR => $REMOTE_ADDR,
+    	                       EXT_INFO    => $ENV{HTTP_USER_AGENT}
     	                     });
 
     $action = 'Access';

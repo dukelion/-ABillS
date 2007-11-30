@@ -1277,8 +1277,15 @@ foreach my $nas_row (@$nas_list) {
 
     my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap'}). ")";
     my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[9]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup'} ) .")";
-    my $user_info =  "$_FIO: $line->[1]\n$_PHONE: $line->[10]\n$_TARIF_PLAN: $line->[11]\n$_DEPOSIT: $line->[12]\n".
-     "$_CREDIT: $line->[13]\n$_SPEED: $line->[14]\nSESSION_ID: $line->[9]\nCID: $line->[15]\nCONNECT_INFO: $line->[16]";
+
+    my $user_info =  ''; 
+
+#"$_FIO: $line->[1]\n";
+#                     "$_PHONE: $line->[10]\n".
+#                     "$_TARIF_PLAN: $line->[11]\n".
+#                     "$_DEPOSIT: $line->[12]\n".
+#                     "$_CREDIT: $line->[13]\n$_SPEED: $line->[14]\n".
+#                     "SESSION_ID: $line->[9]\nCID: $line->[15]\nCONNECT_INFO: $line->[16]";
 
     $table->addrow($html->button($line->[0], "index=11&UID=$line->[8]", { TITLE => "$user_info"}), 
       $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], 
@@ -1299,7 +1306,7 @@ my $output = $total . $table->show();
 
 $table = $html->table( { width       => '100%',
                          title_plain => [ 
-                                           "$_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
+                                           "$_REFRESH (sec): ".   $html->form_input('REFRESH', int(($FORM{REFRESH}) ? $FORM{REFRESH} : 0 ), { SIZE => 4 } ),
                                            $html->form_input('SHOW',  $_SHOW, { TYPE => 'SUBMIT'})  
                                          ],
                           cols_align => ['center:noprint', 'center:noprint'],

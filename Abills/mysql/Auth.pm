@@ -865,7 +865,7 @@ sub check_bill_account() {
   my $self = shift;
 
 #get sum from bill account
-   $self->query($db, "SELECT deposit FROM bills WHERE id='$self->{BILL_ID}';");
+   $self->query($db, "SELECT ROUND(deposit, 2) FROM bills WHERE id='$self->{BILL_ID}';");
    if($self->{errno}) {
   	  return $self;
      }

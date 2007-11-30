@@ -1,4 +1,4 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl -w
 # 
 # http://www.maani.us/charts/index.php
 #use vars qw($begin_time);
@@ -37,19 +37,24 @@ require "Abills/templates.pl";
 
 
 
-#use vars qw(%conf 
-#  %FUNCTIONS_LIST
-#  @PAYMENT_METHODS  
-#  
-#  @state_colors
-#  %permissions
-#
-#  $REMOTE_USER
-#  $REMOTE_PASSWD
-#
-#  $html
-# 
-#  $begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST $UID $user $admin $sid);
+use vars qw(%conf 
+  %FUNCTIONS_LIST
+  @PAYMENT_METHODS  
+  
+  @state_colors
+  %permissions
+
+  $REMOTE_USER
+  $REMOTE_PASSWD
+
+  $domain
+  $secure
+
+  $html
+ 
+  $begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST 
+  $index
+  $UID $user $admin $sid);
 #
 #use strict;
 
@@ -107,6 +112,7 @@ else {
   check_permissions('$REMOTE_USER');
 }
 
+$index = 0;
 $html = Abills::HTML->new({ CONF     => \%conf, 
 	                          NO_PRINT => 0, 
 	                          PATH     => '../',
@@ -137,7 +143,9 @@ if ($admin->{errno}) {
 
 
 #Operation system ID
-$html->setCookie('OP_SID', "$FORM{OP_SID}", "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
+if ($FORM{OP_SID}) {
+  $html->setCookie('OP_SID', $FORM{OP_SID}, "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
+}
 
 #Admin Web_options
 if ($FORM{AWEB_OPTIONS}) {
@@ -227,7 +235,7 @@ foreach my $m (@MODULES) {
     my $v = $FUNCTIONS_LIST{$line};
 
     $module_fl{"$ID"}=$maxnumber;
-    $menu_args{$maxnumber}=$ARGS if ($ARGS ne '');
+    $menu_args{$maxnumber}=$ARGS if ($ARGS && $ARGS ne '');
  
     #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB}<br>";
     
@@ -433,7 +441,7 @@ if ($begin_time > 0) {
   my $end_time = gettimeofday;
   my $gen_time = $end_time - $begin_time;
   my $uptime   = `uptime`;
-  $conf{version} .= " (GT: $gen_time) <b class='noprint'>UP: $uptime</b>";
+  $admin{VERSION} = $conf{version} . " (GT: $gen_time) <b class='noprint'>UP: $uptime</b>";
 }
 
 print "</td></tr>";
@@ -441,11 +449,6 @@ $html->tpl_show(templates('footer'), $admin);
 print "</table>\n";
 #print ';
 $html->test();
-
-
-
-
-
 
 
 
@@ -522,7 +525,7 @@ sub check_permissions {
 #**********************************************************
 sub form_start {
 
-return 0 if ($FORM{'xml'} == 1);
+return 0 if ($FORM{'xml'} && $FORM{'xml'} == 1);
 
 my  %new_hash = ();
 
@@ -537,10 +540,10 @@ my $h = $new_hash{0};
 my @last_array = ();
 
 my @menu_sorted = sort {
-   $h->{$b} <=> $h->{$a}
-     ||
-   length($a) <=> length($b)
-     ||
+   #$h->{$b} <=> $h->{$a}
+   #  ||
+   #length($a) <=> length($b)
+   #  ||
    $a cmp $b
 } keys %$h;
 
@@ -2019,7 +2022,7 @@ my ($sec,$min,$hour,$mday,$mon, $gyear,$gwday,$yday,$isdst) = gmtime($curtime);
 print "<br><TABLE width=\"400\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">
 <tr><TD bgcolor=\"$_COLORS[4]\">
 <TABLE width=\"100%\" cellspacing=1 cellpadding=0 border=0>
-<tr bgcolor=\"$_COLORS[0]\"><th>". $html->button(' << ', "index=75&month=$p_month&year=$p_year"). "</th><th colspan=5>$MONTHES[$month] $yeayeayeayear</th><th>". $html->button(' >> ', "index=75&month=$n_month&year=$n_year") ."</th></tr>
+<tr bgcolor=\"$_COLORS[0]\"><th>". $html->button(' << ', 'index=75&month='.$p_month. '&year='.$p_year). "</th><th colspan=5>$MONTHES[$month] $year</th><th>". $html->button(' >> ', "index=75&month=$n_month&year=$n_year") ."</th></tr>
 <tr bgcolor=\"$_COLORS[0]\"><th>$WEEKDAYS[1]</th><th>$WEEKDAYS[2]</th><th>$WEEKDAYS[3]</th>
 <th>$WEEKDAYS[4]</th><th>$WEEKDAYS[5]</th>
 <th><font color=\"#FF0000\">$WEEKDAYS[6]</font></th><th><font color=#FF0000>$WEEKDAYS[7]</font></th></tr>\n";
@@ -2358,8 +2361,9 @@ sub admin_profile {
                      '#10 background'
                     );
 
-print "$FORM{colors} ". $html->{language};
-
+if ($FORM{colors}) {
+  print "$FORM{colors} ". $html->{language};
+}
 
 my $REFRESH=$admin->{WEB_OPTIONS}{REFRESH} || 60;
 my $ROWS=$admin->{WEB_OPTIONS}{PAGE_ROWS} || $PAGE_ROWS;
@@ -4043,6 +4047,7 @@ elsif ($FORM{SHOW}){
   my ($module, $file)=split(/:/, $FORM{SHOW}, 2);
   $file =~ s/.tpl//;
 
+  $prefix = '';
   my $realfilename = "$prefix/Abills/modules/$module/lng_$html->{language}.pl";
   my $lang_file;
   my $prefix = '../..';
@@ -4580,7 +4585,7 @@ if ($Tariffs->{errno}) {
  }
 
 
-$Tariffs->{USER_CHG_TP} = ($tarrifs->{USER_CHG_TP}) ? 'checked' : '';
+$Tariffs->{USER_CHG_TP} = ($Tarrifs->{USER_CHG_TP}) ? 'checked' : '';
 $html->tpl_show(templates('form_tp_group'), $Tarrifs);
 
 
