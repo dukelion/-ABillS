@@ -1170,7 +1170,7 @@ sub button {
   my $self = shift;
   my ($name, $params, $attr)=@_;
 
-  my $ex_attr = (defined($attr->{ex_params})) ? $attr->{ex_params} : '';
+  my $ex_attr = ($attr->{ex_params}) ? $attr->{ex_params} : '';
 
   
   $params = ($attr->{GLOBAL_URL})? $attr->{GLOBAL_URL} : "$SELF_URL?$params";
@@ -1186,7 +1186,7 @@ sub button {
             'width=640, height=480');\"" if ( $attr->{NEW_WINDOW} );
 
   
-  my $message = (defined($attr->{MESSAGE})) ? " onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
+  my $message = ($attr->{MESSAGE}) ? " onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
   my $button = "<a href=\"$params\"$ex_attr$message>$name</a>";
 
   return $button;
