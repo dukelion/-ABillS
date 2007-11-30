@@ -441,7 +441,7 @@ if ($begin_time > 0) {
   my $end_time = gettimeofday;
   my $gen_time = $end_time - $begin_time;
   my $uptime   = `uptime`;
-  $admin{VERSION} = $conf{version} . " (GT: $gen_time) <b class='noprint'>UP: $uptime</b>";
+  $admin->{VERSION} = $conf{version} . " (GT: $gen_time) <b class='noprint'>UP: $uptime</b>";
 }
 
 print "</td></tr>";
