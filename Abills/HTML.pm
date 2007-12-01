@@ -964,7 +964,7 @@ sub addrow {
   
   foreach my $val (@row) {
      $self->{rows} .= "<TD bgcolor=\"$bg\" $extra>";
-     $self->{rows} .= $val if($val);
+     $self->{rows} .= $val if(defined($val));
      $self->{rows} .= "</TD>";
    }
 
