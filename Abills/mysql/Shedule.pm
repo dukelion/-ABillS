@@ -44,7 +44,7 @@ sub info {
  my ($attr) = @_;
  
  @WHERE_RULES =();
- 
+
  if ($attr->{UID}) {
     push @WHERE_RULES, "s.uid='$attr->{UID}'";
   }
@@ -59,7 +59,7 @@ sub info {
  
 
 
- $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
  
 
@@ -146,7 +146,7 @@ sub list {
  
 
 
- $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if($#WHERE_RULES > -1);
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
   
  $self->query($db, "SELECT s.h, s.d, s.m, s.y, s.counts, u.id, s.type, s.action, s.module, a.id, s.date, a.aid, s.uid, s.id  
     FROM shedule s
