@@ -455,6 +455,9 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
 
 ######################
 # MPD
+elsif ($NAS->{NAS_TYPE} eq 'mpd4' && $RAD_PAIRS->{'Session-Timeout'} > 604800) {
+	$RAD_PAIRS->{'Session-Timeout'}=604800;
+ }
 elsif ($NAS->{NAS_TYPE} eq 'mpd') {
   my $EX_PARAMS = $self->ex_traffic_params({ 
   	                                        traf_limit => $traf_limit, 
