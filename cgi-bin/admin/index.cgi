@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # 
 # http://www.maani.us/charts/index.php
 #use vars qw($begin_time);
