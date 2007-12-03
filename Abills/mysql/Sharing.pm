@@ -624,6 +624,8 @@ sub prepaid_rest {
 	
 	$CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
 	
+	$self->{debug}=1;
+	
 	#Get User TP and intervals
   $self->query($db, "select tt.id,
     if(u.activate<>'0000-00-00', u.activate, DATE_FORMAT(curdate(), '%Y-%m-01')),
@@ -634,7 +636,7 @@ sub prepaid_rest {
      sm.tp_id,
      tp.name,
      tp.month_traf_limit,
-     sm.ext_byte
+     sm.extra_byte
   from (users u,
         sharing_main sm,
         tarif_plans tp,
@@ -658,7 +660,7 @@ WHERE
              1 => 0 );
  
 
- 
+
  foreach my $line (@{ $self->{list} } ) {
    $rest{$line->[0]} = $line->[2];
   }
@@ -669,7 +671,8 @@ WHERE
 
  return 1 if ($attr->{INFO_ONLY});
  
- my $extra_traffic = $self->{INFO_LIST}->[0]->[9];
+
+ $self->{EXTRA_TRAFIC} = $self->{INFO_LIST}->[0]->[9];  
  
  #Check sessions
  #Get using traffic
@@ -682,9 +685,12 @@ WHERE
 
  if ($self->{TOTAL} > 0) {
    ($rest{0}, 
-    $rest{1} 
     ) =  @{ $self->{list}->[0] };
   }
+
+if ( $rest{0} < 0 ) {
+	$self->{EXTRA_TRAFIC} = $self->{EXTRA_TRAFIC} - abs($rest{0});
+}
 
 # #Check online
 # $self->query($db, "select 

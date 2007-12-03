@@ -846,6 +846,17 @@ if ($Sharing->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
    }
 
   print $table->show();	 
+  
+
+  my $table = $html->table( { caption     => "$_EXTRA_TRAFIC",
+	                            width       => '100%',
+                              cols_align  => ['left', 'right'],
+                              rowcolor    => $_COLORS[1],
+                              rows        => [["$_REST (Mb):", $Sharing->{EXTRA_TRAFIC} ] ]
+                           } );
+
+  print $table->show();	 
+  
 }
 
 
