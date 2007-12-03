@@ -633,7 +633,8 @@ sub prepaid_rest {
      u.uid,
      sm.tp_id,
      tp.name,
-     tp.month_traf_limit
+     tp.month_traf_limit,
+     sm.ext_byte
   from (users u,
         sharing_main sm,
         tarif_plans tp,
@@ -667,6 +668,8 @@ WHERE
  my $login = $self->{INFO_LIST}->[0]->[3];
 
  return 1 if ($attr->{INFO_ONLY});
+ 
+ my $extra_traffic = $self->{INFO_LIST}->[0]->[9];
  
  #Check sessions
  #Get using traffic
