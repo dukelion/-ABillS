@@ -98,8 +98,7 @@ return qq{
 <TR><TD>$_FIO:*</TD><TD><input type=text name=FIO value="%FIO%"></TD></TR>
 <TR><TD>$_PHONE:</TD><TD><input type=text name=PHONE value="%PHONE%"></TD></TR>
 <TR><TD>$_ADDRESS_STREET:</TD><TD><input type=text name=ADDRESS_STREET value="%ADDRESS_STREET%"></TD></TR>
-<TR><TD>$_ADDRESS_BUILD:</TD><TD><input type=text name=ADDRESS_BUILD value="%ADDRESS_BUILD%"></TD></TR>
-<TR><TD>$_ADDRESS_FLAT:</TD><TD><input type=text name=ADDRESS_FLAT value="%ADDRESS_FLAT%"></TD></TR>
+<TR><TD>$_ADDRESS_BUILD:</TD><TD><input type=text name=ADDRESS_BUILD value="%ADDRESS_BUILD%"> $_ADDRESS_FLAT:<input type=text name=ADDRESS_FLAT value="%ADDRESS_FLAT%" size=8></TD></TR>
 <TR><TD>$_CITY:</TD><TD><input type=text name=CITY value="%CITY%"> $_ZIP: <input type=text name=ZIP value="%ZIP%" size=8></TD></TR>
 <TR><TD>E-mail:</TD><TD><input type=text name=EMAIL value="%EMAIL%"></TD></TR>
 <TR><TD>$_CONTRACT_ID:</TD><TD><input type=text name=CONTRACT_ID value="%CONTRACT_ID%"></TD></TR>
@@ -131,7 +130,9 @@ return qq{
 %EXDATA%
 <TR><TD colspan=2>&nbsp;</TD></TR>
 
-<TR><TD>$_CREDIT:</TD><TD><input type=text name=CREDIT value='%CREDIT%'></TD></TR>
+<TR><TD>$_CREDIT:</TD><TD><input type=text name='CREDIT' value='%CREDIT%' size=8> 
+$_DATE: <input type=text name='CREDIT_DATE' value='%CREDIT_DATE%' size=10>
+</TD></TR>
 <TR><TD>$_GROUPS:</TD><TD>%GID%:%G_NAME%</TD></TR>
 <TR><TD>$_ACTIVATE:</TD><TD><input type=text name=ACTIVATE value='%ACTIVATE%'></TD></TR>
 <TR><TD>$_EXPIRE:</TD><TD><input type=text name=EXPIRE value='%EXPIRE%'></TD></TR>
