@@ -281,7 +281,7 @@ if ($sth->rows() > 0) {
     my ( $used_traffic ) = $sth->fetchrow_array();
 
 
-    $prepaid_traffic = (defined($prepaid_traffic) && $prepaid_traffic == 0) ? $prepaid_traffic * 1024 * 1024 : $month_traf_limit * 1024 * 1024;
+    $prepaid_traffic = (defined($prepaid_traffic) && $prepaid_traffic > 0) ? $prepaid_traffic * 1024 * 1024 : $month_traf_limit * 1024 * 1024;
     $prepaid_traffic =  $prepaid_traffic + $extra_trafic if ($extra_trafic > 0);
     $deposit = $deposit +  $credit;
 
