@@ -282,7 +282,7 @@ if ($sth->rows() > 0) {
 
 
     $prepaid_traffic = (defined($prepaid_traffic) && $prepaid_traffic > 0) ? $prepaid_traffic * 1024 * 1024 : $month_traf_limit * 1024 * 1024;
-    $prepaid_traffic =  $prepaid_traffic + $extra_trafic if ($extra_trafic > 0);
+    $prepaid_traffic =  $prepaid_traffic + $extra_trafic * 1048576 if ($extra_trafic > 0);
     $deposit = $deposit +  $credit;
 
     my $rest_traffic = 0;
@@ -302,7 +302,7 @@ if ($sth->rows() > 0) {
      }
 
     if ($deposit > 0) {
-    	$rest_traffic = $rest_traffic + $deposit * $in_price * 1024 * 1024;
+    	$rest_traffic = $rest_traffic + $deposit * $in_price * 1048576;
      }
 
     if ($size > $rest_traffic) {
