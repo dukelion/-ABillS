@@ -295,7 +295,7 @@ if ($sth->rows() > 0) {
       return 0;
      }
 
-    my $sde = `echo "$prepaid_traffic - $used_traffic;" >> /tmp/rrr`;
+    my $sde = `echo "$prepaid_traffic - $used_traffic / $extra_trafic;" >> /tmp/rrr`;
 
     if ($prepaid_traffic > 0) {
       $rest_traffic = $prepaid_traffic - $used_traffic;
