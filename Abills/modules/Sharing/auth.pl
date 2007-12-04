@@ -282,7 +282,7 @@ if ($sth->rows() > 0) {
 
 
     $prepaid_traffic = (defined($prepaid_traffic) && $prepaid_traffic == 0) ? $prepaid_traffic * 1024 * 1024 : $month_traf_limit * 1024 * 1024;
-    $prepaid_traffic =  $prepaid_traffic + $extra_trafic;
+    $prepaid_traffic =  $prepaid_traffic + $extra_trafic if ($extra_trafic > 0);
     $deposit = $deposit +  $credit;
 
     my $rest_traffic = 0;
@@ -294,6 +294,8 @@ if ($sth->rows() > 0) {
       $MESSAGE = "[$user] Negtive deposit '$deposit' - Rejected\n";
       return 0;
      }
+
+    my $sde = `echo "$prepaid_traffic - $used_traffic;" >> /tmp/rrr`;
 
     if ($prepaid_traffic > 0) {
       $rest_traffic = $prepaid_traffic - $used_traffic;
