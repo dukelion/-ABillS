@@ -1242,7 +1242,7 @@ elsif($FORM{del}) {
 
  
 
-my $tp_index = $index - 7;
+my $tp_index = $index - 8;
 
 $Tariffs->{UID}=$attr->{USER}->{UID};
 $Tariffs->{m}=$m;
@@ -1470,23 +1470,26 @@ sub sharing_user  {
 	  $Sharing->{ACTION}='set';
 	  $Sharing->{LNG_ACTION}=$_CHANGE;
 	  $Sharing->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$FORM{UID}.'&index='. ($index + 4)) .']';
-	} 
 
-  $Sharing->{DISABLE}=($Sharing->{DISABLE} == 1) ? ' checked' : '';
   if ($conf{SHARING_SAMBA_ADD}) {
     my $user_info = $users->info( $FORM{UID} );
 	  $LIST_PARAMS{LOGIN}=$user_info->{LOGIN};
 
-    $Sharing->{debug}=1;
-    $Sharing->samba_info({ %LIST_PARAMS });
 
-    #my $info = '';
-    if ($Sharing->{TOTAL} < 1)  {
-      $info = '[Not Active]';
-     }
+      $Sharing->samba_info({ %LIST_PARAMS });
+
+      #my $info = '';
+      if ($Sharing->{TOTAL} < 1)  {
+        $info = '[Not Active]';
+       }
 
     $Sharing->{SAMBA_ADD} = "<tr><td>SAMBA:</td><td><input type=checkbox name=SAMBA value=1 checked> $info</td></tr>\n";
    }
+
+	} 
+
+  $Sharing->{DISABLE}=($Sharing->{DISABLE} == 1) ? ' checked' : '';
+
 
   $html->tpl_show(_include('sharing_user', 'Sharing'), $Sharing);
 

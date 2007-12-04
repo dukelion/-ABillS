@@ -350,3 +350,4 @@ $_CITY='City';
 $_ZIP='Zip';
 $_FINANCES='Finances';
 $_PASSWORD_RECOVERY='Password recovery';
+$_BILL_INFO='Billing server info';

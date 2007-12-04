@@ -2,9 +2,10 @@
 #Periodic process
 
 use vars  qw(%RAD %conf @MODULES $db $html $DATE $GZIP 
-$MYSQLDUMP 
-%ADMIN_REPORT 
-$DEBUG);
+  $MYSQLDUMP 
+  %ADMIN_REPORT 
+  $DEBUG
+ );
 
 
 #use strict;
