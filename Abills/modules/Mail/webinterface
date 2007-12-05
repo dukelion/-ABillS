@@ -619,7 +619,12 @@ sub mail_user_boxes {
 
 
   if ($Mail->{errno}) {
-    $html->message('err', $_ERROR, "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
+    if ($Mail->{errno} == 7) {
+    	$html->message('err', $_ERROR, "E-Mail $_EXIST");	
+     }
+    else {
+      $html->message('err', $_ERROR, "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
+     }
     return 0;
    }
   #elsif(! $FORM{MBOX_ID}) {
