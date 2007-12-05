@@ -69,6 +69,7 @@ my @reports = ();
 
 #make periodic oparation only for selected modules
 if ($args->{MODULES}) {
+	@monthly_functions = ();
 	$args->{MODULES}=~s/ //g;
 	@MODULES = split(/,/, $args->{MODULES});
 }
@@ -476,8 +477,9 @@ sub backup {
     return 0;
   }
 
- #print "$MYSQLDUMP --host=$conf{dbhost} --user=\"$conf{dbuser}\" --password=\"$conf{dbpasswd}\" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz";
- my $res = `$MYSQLDUMP -v --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz`;
+ #print qq{ $MYSQLDUMP -v --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" --ignore-table="$conf{dbname}.ipn_traf_detail" --ignore-table="$conf{dbname}.s_detail" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz };
+
+ my $res = `$MYSQLDUMP -v --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz`;
  #print $res;
  #my $message .= "Backup created: $res ($conf{BACKUP_DIR}/stats-$DATE.sql.gz)";
 }

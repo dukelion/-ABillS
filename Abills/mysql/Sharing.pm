@@ -1355,19 +1355,17 @@ sub list {
     push @WHERE_RULES, "u.deposit$value";
   }
 
+ if ($attr->{EXTRA_BYTE}) {
+    my $value = $self->search_expr($attr->{EXTRA_BYTE}, 'INT');
+    push @WHERE_RULES, "sharing.extra_byte$value";
+  }
+
+
  if ($attr->{SPEED}) {
     my $value = $self->search_expr($attr->{SPEED}, 'INT');
     push @WHERE_RULES, "u.speed$value";
 
     $self->{SEARCH_FIELDS} .= 'sharing.speed, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-  }
-
- if ($attr->{PORT}) {
-    my $value = $self->search_expr($attr->{PORT}, 'INT');
-    push @WHERE_RULES, "sharing.port$value";
-
-    $self->{SEARCH_FIELDS} .= 'sharing.port, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
@@ -2040,7 +2038,7 @@ sub additions_change {
   
  
   my %FIELDS = (ID             => 'id',
-                name           => 'name',
+                NAME           => 'name',
                 TP_ID          => 'tp_id',
                 QUANTITY       => 'quantity',
                 PRICE          => 'price'
