@@ -144,7 +144,8 @@ sub msgs_admin_add {
        foreach my $line (@$list) {
           $FORM{UID}=$line->[5+$users->{SEARCH_FIELDS_COUNT}];
           $Msgs->message_add({ %FORM, 
-          	                   IP => $admin->{SESSION_IP} });
+          	                   IP => $admin->{SESSION_IP} 
+          	                 });
         }
        $message = "$_TOTAL: $users->{TOTAL}";
 
@@ -532,8 +533,9 @@ sub msgs_user {
      	                          UID  => $LIST_PARAMS{UID} });
 
  	   $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
- 	 	               ID        => $FORM{ID},
- 	 	               USER_READ => "0000-00-00 00:00:00"});
+ 	 	                         ID        => $FORM{ID},
+ 	 	                         USER_READ => "0000-00-00 00:00:00"
+ 	 	                       });
 
      $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
     }
@@ -570,13 +572,19 @@ sub msgs_user {
      
      $Msgs->{MESSAGE}=convert($Msgs->{MESSAGE}, { text2html => 1 });
      $Msgs->{SUBJECT}=convert($Msgs->{SUBJECT}, { text2html => 1 });
-
+   
      $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
-  	 $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
- 	 	               ID        => $FORM{ID},
- 	 	               USER_READ => "$DATE $TIME"});
 
- 	 	 
+
+     my $state =  $FORM{STATE} || 0;
+  	 $Msgs->message_change({ UID         => $LIST_PARAMS{UID},
+ 	 	                         ID          => $FORM{ID},
+ 	 	                         USER_READ   => "$DATE $TIME",
+ 	 	                         STATE       => $state,
+ 	 	                         CLOSED_DATE => ($state > 0) ? $DATE : undef,
+ 	 	                         DONE_DATE   => ($state > 1) ? $DATE : undef
+ 	 	                        });
+	 	 
  	  }
 
 
@@ -586,7 +594,7 @@ sub msgs_user {
    $Msgs->{CHAPTER_SEL} = $html->form_select('CHAPTER', 
                                           { 
  	                                          SELECTED          => $Msgs->{CHAPTER},
- 	                                          SEL_MULTI_ARRAY   => $Msgs->chapters_list(),
+ 	                                          SEL_MULTI_ARRAY   => $Msgs->chapters_list({ INNER_CHAPTER => 0 }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -600,7 +608,10 @@ sub msgs_user {
 
   
   $LIST_PARAMS{ADMIN_READ} = '>0000-00-00 00:00:00';
-  my  $list = $Msgs->messages_list({ %LIST_PARAMS, SORT => '11, 5 DESC' });  
+  $LIST_PARAMS{SORT}       =  '11, 5 DESC';
+  $LIST_PARAMS{INNER_MSG}  =  0;
+
+  my  $list = $Msgs->messages_list({ %LIST_PARAMS });  
 
   my $table = $html->table( { width        => '100%',
                               caption      => "$_MESSAGES",
@@ -666,23 +677,16 @@ sub msgs_chapters {
    } 
   
 
-  
-  print $html->form_main({ CONTENT => "$_NAME: ". $html->form_input('NAME', "$Msgs->{NAME}"),
-	                         HIDDEN  => { index            => "$index",
-	                       	              ID							 => $Msgs->{ID}  },
-	                         SUBMIT  => { $Msgs->{ACTION}  => "$Msgs->{ACTION_LNG}"} 
-	                        });
+  $Msgs->{INNER_CHAPTER} = ($Msgs->{INNER_CHAPTER}) ? ' checked' : '';
 
-
- 
-  
+  $html->tpl_show(_include('msgs_chapter', 'Msgs'), $Msgs);  
   
   my $list = $Msgs->chapters_list({ %LIST_PARAMS });
   
   
   my $table = $html->table( { width      => '100%',
                               caption    => "$_CHAPTERS",
-                              title      => ['#', "$_NAME", "$_MESSAGES", "-", "-"],
+                              title      => ['#', "$_NAME", "$_INNER", "$_MESSAGES", "-", "-"],
                               cols_align => ['left', 'left', 'right', 'center:noprint', 'center:noprint'],
                               qs         => $pages_qs,
                            });
@@ -691,10 +695,11 @@ sub msgs_chapters {
 foreach my $line (@$list) {
   $table->addrow(
     $line->[0], 
-     $line->[1], 
-     $html->button($line->[2], ""),
-     $html->button("$_CHANGE", "index=$index&chg=$line->[0]"),
-     $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
+    $line->[1], 
+    $bool_vals[$line->[2]], 
+    $html->button($line->[3], ""),
+    $html->button("$_CHANGE", "index=$index&chg=$line->[0]"),
+    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
    );
 }
 
@@ -711,8 +716,11 @@ sub msgs_new {
 
   my   %SHOW_PARAMS = ();
   if ($attr->{UID}) {
-    %SHOW_PARAMS = (UID       => $UID, 
-                    USER_READ => '0000-00-00 00:00:00');
+    %SHOW_PARAMS = (UID         => $UID, 
+                    USER_READ   => '0000-00-00 00:00:00',
+                    ADMIN_READ  => '>0000-00-00 00:00:00',
+                    INNER_MSG   => 0
+                   );
 
     $Msgs->messages_new({ %SHOW_PARAMS });
 
@@ -720,6 +728,7 @@ sub msgs_new {
       return "($Msgs->{UNREAD})";
      }
 
+    return '';
    }
   elsif ($attr->{AID}) {
     %SHOW_PARAMS = (ADMIN_READ => '0000-00-00 00:00:00');
