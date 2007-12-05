@@ -73,11 +73,16 @@ sub mbox_add {
     ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}'));", 'do');
 	
 	
-	$self->domain_info({ MAIL_DOMAIN_ID => $DATA{DOMAIN_ID} });
-	
+	if ($DATA{DOMAIN_ID}) {
+	  $self->domain_info({ MAIL_DOMAIN_ID => $DATA{DOMAIN_ID} });
+   }
+	else {
+    $self->{DOMAIN}='';
+	 }
+
 	$self->{USER_EMAIL} = $DATA{USERNAME}.'@'.$self->{DOMAIN};
 	
-  $admin->action_add($DATA{UID}, "ADD $DATA{USER_EMAIL}");
+  $admin->action_add($DATA{UID}, "ADD $self->{USER_EMAIL}");
 	
 	return $self;
 }
@@ -244,7 +249,8 @@ sub mbox_list {
 	      mb.antivirus, 
 	      mb.antispam, mb.status, 
 	      mb.create_date, mb.change_date, mb.expire, mb.maildir, 
-	      mb.uid, mb.id
+	      mb.uid, 
+	      mb.id
         FROM mail_boxes mb
         LEFT JOIN mail_domains md ON  (md.id=mb.domain_id)
         LEFT JOIN users u ON  (mb.uid=u.uid) 
