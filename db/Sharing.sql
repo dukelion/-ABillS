@@ -63,3 +63,12 @@ CREATE TABLE `sharing_errors` (
   `ip` int(10) unsigned NOT NULL default '0',
   `client_command` varchar(250) NOT NULL default ''
 ) COMMENT='Sharing errors';
+
+
+CREATE TABLE `sharing_priority` (
+  `server` varchar(60) default NULL,
+  `file` varchar(250) NOT NULL default '',
+  `size` int(10) unsigned NOT NULL default '0',
+  `priority` tinyint(3) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`file`)
+) COMMENT='Sharing file priority';

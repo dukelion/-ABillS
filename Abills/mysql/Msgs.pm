@@ -39,15 +39,15 @@ sub messages_new {
   my $self = shift;
   my ($attr) = @_;
 
+
  my @WHERE_RULES = ();
  my $fields = '';
  
  if ($attr->{USER_READ}) {
-   push @WHERE_RULES, "m.user_read='$attr->{USER_READ}'"; 
+   push @WHERE_RULES, "m.user_read='$attr->{USER_READ}' AND admin_read>'0000-00-00 00:00:00' AND m.inner_msg='0'"; 
    $fields='count(*)';
   }
- 
- if ($attr->{ADMIN_READ}) {
+ elsif ($attr->{ADMIN_READ}) {
  	 $fields = "sum(if(admin_read='0000-00-00 00:00:00', 1, 0)), 
  	  sum(if(plan_date=curdate(), 1, 0)),
  	  sum(if(state = 0, 1, 0))
@@ -62,7 +62,6 @@ sub messages_new {
  if ($attr->{CHAPTERS}) {
    push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})"; 
   }
-
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
 
@@ -97,7 +96,11 @@ sub messages_list {
   }
  
  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(m.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(m.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+   push @WHERE_RULES, "(date_format(m.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(m.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+  }
+
+ if (defined($attr->{INNER_MSG})) {
+ 	 push @WHERE_RULES, "m.inner_msg='$attr->{INNER_MSG}'"; 
   }
 
  if ($attr->{PLAN_FROM_DATE}) {
@@ -247,7 +250,7 @@ sub message_add {
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
-   priority, lock_msg, plan_date, plan_time, user_read, admin_read)
+   priority, lock_msg, plan_date, plan_time, user_read, admin_read, inner_msg)
     values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
         '$DATA{REPLY}',
         '$admin->{AID}',
@@ -258,7 +261,8 @@ sub message_add {
         '$DATA{PLAN_DATE}',
         '$DATA{PLAN_TIME}',
         '$DATA{USER_READ}',
-        '$DATA{ADMIN_READ}'
+        '$DATA{ADMIN_READ}',
+        '$DATA{INNER_MSG}'
         );", 'do');
 
 	return $self;
@@ -335,7 +339,8 @@ sub message_info {
   m.done_date,
   m.user_read,
   m.admin_read,
-  m.resposible
+  m.resposible,
+  m.inner_msg
     FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN users u ON (m.uid=u.uid)
@@ -375,7 +380,8 @@ sub message_info {
    $self->{DONE_DATE},
    $self->{USER_READ},
  	 $self->{ADMIN_READ},
- 	 $self->{RESPOSIBLE}
+ 	 $self->{RESPOSIBLE},
+ 	 $self->{INNER_MSG}
   )= @{ $self->{list}->[0] };
 	
 	return $self;
@@ -409,8 +415,11 @@ sub message_change {
                 DONE_DATE   => 'done_date',
                 USER_READ   => 'user_read',
  	              ADMIN_READ  => 'admin_read',
- 	              RESPOSIBLE  => 'resposible'
+ 	              RESPOSIBLE  => 'resposible',
+ 	              INNER_MSG   => 'inner_msg'
              );
+
+  #print "!! $attr->{STATE} !!!";
 
   $self->changes($admin,  { CHANGE_PARAM => 'ID',
                    TABLE        => 'msgs_messages',
@@ -445,13 +454,17 @@ sub chapters_list {
  if($attr->{CHAPTERS}) {
 	 push @WHERE_RULES, "mc.id IN ($attr->{CHAPTERS})"; 
   }
+
+ if(defined($attr->{INNER_CHAPTER})) {
+	 push @WHERE_RULES, "mc.inner_chapter IN ($attr->{INNER_CHAPTER})"; 
+  }
+
  
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db,   "SELECT mc.id, mc.name, count(*)
+  $self->query($db,   "SELECT mc.id, mc.name, mc.inner_chapter
     FROM msgs_chapters mc
-    LEFT JOIN msgs_messages m ON (mc.id=m.chapter)
     $WHERE
     GROUP BY mc.id 
     ORDER BY $SORT $DESC;");
@@ -482,8 +495,8 @@ sub chapter_add {
   %DATA = $self->get_data($attr, { default => \%DATA }); 
  
 
-  $self->query($db, "insert into msgs_chapters (name)
-    values ('$DATA{NAME}');", 'do');
+  $self->query($db, "insert into msgs_chapters (name, inner_chapter)
+    values ('$DATA{NAME}', '$DATA{INNER_CHAPTER}');", 'do');
 
 	return $self;
 }
@@ -518,7 +531,7 @@ sub chapter_info {
 	my ($id, $attr) = @_;
 
 
-  $self->query($db, "SELECT id,  name
+  $self->query($db, "SELECT id,  name, inner_chapter
     FROM msgs_chapters 
   WHERE id='$id'");
 
@@ -529,7 +542,8 @@ sub chapter_info {
    }
 
   ($self->{ID}, 
-   $self->{NAME}
+   $self->{NAME},
+   $self->{INNER_CHAPTER}
   )= @{ $self->{list}->[0] };
 
 	return $self;
@@ -543,8 +557,11 @@ sub chapter_change {
   my $self = shift;
   my ($attr) = @_;
   
-  my %FIELDS = (ID          => 'id',
-                NAME        => 'name'
+  $attr->{INNER_CHAPTER} = ($attr->{INNER_CHAPTER}) ? 1 : 0;
+  
+  my %FIELDS = (ID            => 'id',
+                NAME          => 'name',
+                INNER_CHAPTER => 'inner_chapter'
              );
 
 

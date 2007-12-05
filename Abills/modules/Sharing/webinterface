@@ -1903,7 +1903,7 @@ sub sharing_periodic_monthly_fees {
 
  use Users;
  my $users = Users->new($db, $admin, \%conf); 
- $Tariffs->{debug}=1;
+ #$Tariffs->{debug}=1;
  my $list = $Tariffs->list({ MODULE => 'Sharing',  %LIST_PARAMS });
 
 
