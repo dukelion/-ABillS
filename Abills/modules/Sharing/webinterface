@@ -848,7 +848,7 @@ if ($Sharing->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
   print $table->show();	 
   
 
-  my $table = $html->table( { caption     => "$_EXTRA_TRAFIC",
+  $table = $html->table( { caption     => "$_EXTRA_TRAFIC",
 	                            width       => '100%',
                               cols_align  => ['left', 'right'],
                               rowcolor    => $_COLORS[1],
@@ -1931,12 +1931,12 @@ sub sharing_periodic_monthly_fees {
 #      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
 
      foreach my $u (@$ulist) {
-       print " Login: $u->[0] TP_ID: $u->[9] Fees: $line->[6] REDUCTION: $u->[13]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 4); 	
+       print " Login: $u->[0] TP_ID: $u->[10] Fees: $line->[6] REDUCTION: $u->[14]  $u->[2] $u->[3] $u->[11] - $u->[11]\n" if ($debug > 4); 	
        
-       if ($u->[12] > 0 && defined($u->[2])) {
+       if ($u->[13] > 0 && defined($u->[2])) {
           my %user = (
             ACCOUNT_ID => $u->[7],
-            UID        => $u->[6],
+            UID        => $u->[7],
             BILL_ID    => $u->[12]   
            );
           
@@ -1961,8 +1961,9 @@ sub sharing_periodic_monthly_fees {
                }
              }
             # If activation set to monthly fees taken throught 30 days
-            elsif($u->[10] ne '0000-00-00') {
-              my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[10], 3);
+            elsif($u->[11] ne '0000-00-00') {
+              my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[11], 3);
+
               $activate_m--;
               my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
               if ($date_unixtime - $active_unixtime > 30 * 86400) {
@@ -1971,8 +1972,8 @@ sub sharing_periodic_monthly_fees {
                  }
                 else {
                   $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE" } );
-                  $users->change($u->[6], { 
-                	                        UID      => $u->[6],
+                  $users->change($u->[7], { 
+                	                        UID      => $u->[7],
                 	                        ACTIVATE => $ADMIN_REPORT{DATE} } 
                  	             );
                  }
@@ -1982,7 +1983,7 @@ sub sharing_periodic_monthly_fees {
            }
         }
        else {
-      	 print "[ $u->[6] ] $u->[0] - Don't have money account\n";
+      	 print "[ $u->[7] ] $u->[0] - Don't have money account\n";
         }
  	  }
   }
@@ -2007,8 +2008,29 @@ sub sharing_periodic_logrotate {
 #
 #**********************************************************
 sub sharing_periodic {
+ my ($attr) = @_;
+ 
+ my $debug = $attr->{DEBUG} || 0;
+ my $debug_output = '';
+ $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
+
+	my $ulist = $Sharing->list({ 
+         EXPIRE     => "$ADMIN_REPORT{DATE}",
+         DISABLE    => '0',
+         SORT       => 1,
+         PAGE_ROWS  => 100000,
+         EXTRA_BYTE => ">0"
+ 	   	 });
+
+
+  foreach my $u (@$ulist) {
+      $debug_output .= "LOGIN: $u->[0] ($u->[8]) EXTRA_BYTE:  DEPOSIT: EXPIRE: " if ($debug > 2);
+
+
+    }
 	
-	
+  $DEBUG .= $debug_output;
+  return $debug_output;
 }
 
 
