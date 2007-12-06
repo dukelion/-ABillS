@@ -1870,7 +1870,7 @@ sub sharing_addition_buy {
     if ($FORM{BUY}) {
     	$Sharing->additions_info($FORM{ID});
     	if ($Sharing->{PRICE} > $user->{DEPOSIT}) {
-    		$html->message('err', $_ERROR, "[15] $err_strs{15} / $Sharing->{PRICE} > $user_info->{DEPOSIT}");	
+    		$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT / $Sharing->{PRICE} > $user_info->{DEPOSIT}");	
     	 }
     	else {
     		my $mb    = $Sharing->{QUANTITY};
@@ -2031,7 +2031,7 @@ sub sharing_periodic {
  my $debug_output = '';
  $debug_output .= "Expire perid calculation\n" if ($debug > 1);
 
- $Sharing->{debug}=1;
+ #$Sharing->{debug}=1;
 
 	my $ulist = $Sharing->list({ 
          EXPIRE       => "$ADMIN_REPORT{DATE}",
@@ -2055,9 +2055,9 @@ sub sharing_periodic {
 	
   $DEBUG .= $debug_output;
   
-  print $debug_output;
+  #print $debug_output;
 
-  exit ;
+  #exit ;
   return $debug_output;
 }
 
