@@ -1572,7 +1572,9 @@ elsif($FORM{DATE}) {
 }
 
 #Show rest of prepaid traffic
-if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
+if ($sessions->prepaid_rest({ 
+	                            UID => $LIST_PARAMS{UID} 
+	                           })) {
 	#Prepaid: period, traffic_type
   
 
@@ -1599,6 +1601,8 @@ if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
 
   print $table->show();	 
 }
+
+
 
 
 
