@@ -240,6 +240,7 @@ $ERR_WRONG_PASSWD='Wrong password';
 $ERR_WRONG_CONFIRM='Wrong Confirmation';
 $ERR_NAME_TOOLONG='Login is too long';
 $ERR_WRONG_DATA="Wrong data input";
+$ERR_SMALL_DEPOSIT='Small Deposit';
 
 
 #Mail section
