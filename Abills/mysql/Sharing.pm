@@ -587,8 +587,8 @@ sub periods_totals {
    SEC_TO_TIME(sum(if(date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m'), duration, 0))),
   
    sum(sent), sum(recv), SEC_TO_TIME(sum(duration))
-   FROM (sharing_log sl,  sharing_priority sp)
-   WHERE sl.url = sp.file
+   FROM (sharing_log sl)
+   LEFT join  sharing_priority sp ON (sl.url = sp.file)   
    $WHERE;");
 
   ($self->{sent_0}, 
@@ -677,9 +677,10 @@ WHERE
  #Get using traffic
  $self->query($db, "select  
   $rest{0} - sum(recv + sent) / $CONF->{MB_SIZE}
- FROM sharing_log
- WHERE username='$login' and DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[1]'
- GROUP BY username
+ FROM sharing_log sl 
+ INNER JOIN sharing_priority sp ON (sl.url = sp.file)
+ WHERE sl.username='$login' and DATE_FORMAT(sl.start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[1]'
+ GROUP BY sl.username
  ;");
 
  if ($self->{TOTAL} > 0) {
@@ -1359,6 +1360,10 @@ sub list {
  if ($attr->{EXTRA_TRAFIC}) {
     my $value = $self->search_expr($attr->{EXTRA_TRAFIC}, 'INT');
     push @WHERE_RULES, "sharing.extra_byte$value";
+    
+    $self->{SEARCH_FIELDS} .= 'sharing.extra_byte, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+
   }
 
 
@@ -1416,8 +1421,9 @@ sub list {
 
 #Expire
  if ($attr->{EXPIRE}) {
-   #my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
-   push @WHERE_RULES, "(u.expire='0000-00-00' or u.expire$attr->{EXPIRE})"; 
+   my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
+   #push @WHERE_RULES, "(u.expire='0000-00-00' or u.expire$attr->{EXPIRE})"; 
+   push @WHERE_RULES, "(u.expire$value)"; 
  }
 
 #DIsable

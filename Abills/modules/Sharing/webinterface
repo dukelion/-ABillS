@@ -743,6 +743,8 @@ if ($FORM{rows}) {
  }
 
 
+
+
 if (! $LIST_PARAMS{UID} && $FORM{LOGIN_EXPR}) {
   #my $users = Users->new($db, $admin, \%conf); 
   my $list = $users->list( { LOGIN_EXPR => $FORM{LOGIN_EXPR} } );
@@ -2027,7 +2029,9 @@ sub sharing_periodic {
  
  my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
- $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
+ $debug_output .= "Expire perid calculation\n" if ($debug > 1);
+
+ $Sharing->{debug}=1;
 
 	my $ulist = $Sharing->list({ 
          EXPIRE       => "$ADMIN_REPORT{DATE}",
@@ -2039,12 +2043,21 @@ sub sharing_periodic {
 
 
   foreach my $u (@$ulist) {
-      $debug_output .= "LOGIN: $u->[0] ($u->[8]) EXTRA_BYTE:  DEPOSIT: EXPIRE: " if ($debug > 2);
-
-
-    }
+    my $extra_traffic = $u->[7];
+    $debug_output .= "LOGIN: $u->[0] ($u->[8]) EXTRA_BYTE: $extra_traffic  DEPOSIT: $u->[2] ACTIVATE: $u->[12] EXPIRE: $u->[13] " if ($debug > 2);
+    #Get traffic
+    $Sharing->sessions_list({ LOGIN     => $u->[0], 
+    	                        FROM_DATE => $u->[12],
+    	                        TO_DATE   => $u->[13] 
+    	                      });	
+    $debug_output .= "TRAFFIC: ". ($Sharing->{TRAFFIC_OUT}+$Sharing->{TRAFFIC_IN}) if ($debug > 2);
+   }
 	
   $DEBUG .= $debug_output;
+  
+  print $debug_output;
+
+  exit ;
   return $debug_output;
 }
 

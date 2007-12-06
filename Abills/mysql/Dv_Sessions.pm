@@ -649,7 +649,8 @@ WHERE
    $rest{$line->[0]} = $line->[4];
   }
 
- 
+
+
  $self->{INFO_LIST}=$self->{list};
  my $login = $self->{INFO_LIST}->[0]->[5];
  my $traffic_transfert = $self->{INFO_LIST}->[0]->[10];
@@ -676,15 +677,25 @@ WHERE
 
  #Traffic transfert
  if ($traffic_transfert > 0) {
+
+   my $WHERE = '';
+
+   if ($attr->{FROM_DATE}) {
+     $WHERE  = "date_format(l.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.start, '%Y-%m-%d')<='$attr->{TO_DATE}'";
+    }
+   else {
+     $WHERE  = "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]' - INTERVAL $traffic_transfert MONTH 
+       and DATE_FORMAT(start, '%Y-%m-%d')<='$self->{INFO_LIST}->[0]->[3]'";
+    }
+
+
  	 #Get using traffic
    $self->query($db, "select  
      if($rest{0} > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
      if($rest{0} > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, 0)
    FROM dv_log
    WHERE uid='$attr->{UID}'  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
-    (
-     DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]' - INTERVAL $traffic_transfert MONTH 
-     and DATE_FORMAT(start, '%Y-%m-%d')<='$self->{INFO_LIST}->[0]->[3]'
+    (  $WHERE
       ) 
    GROUP BY uid
    ;");

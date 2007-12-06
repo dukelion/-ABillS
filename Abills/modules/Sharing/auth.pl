@@ -145,6 +145,7 @@ if ($cookies{sid}) {
  }
 
 
+
 #Passwd Auth
 if ( $auth == 0 ) {
 #check password
@@ -239,18 +240,25 @@ my ( $deposit ) = $sth->fetchrow_array();
 my $request_path = '';
 my $request_file = '';
 
-if ($URL =~ /\/vids(\S+)\/(\S+)$/) {
- $request_path = $1;
- $request_file = $2;
-}
+#if ($URL =~ /\/vids(\S+)\/(\S+)$/) {
+#if ($URL =~ /([A-Za-z0-9\.\-\_ \[\]]+)\/([A-Za-z0-9\.\-\_ \[\]]+)$/) {
+#  $request_path = $1;
+#  $request_file = $2;
+#}
+#$query  = "select server, priority, filesize from lenta.tx_t3labtvarchive_files 
+# WHERE path='$request_path' and filename='$request_file';";
 
-$query  = "select server, priority, filesize from lenta.tx_t3labtvarchive_files 
- WHERE path='$request_path' and filename='$request_file';";
+$query  = "SELECT server, priority, size FROM sharing_priority WHERE file='$URL'";
 
 $sth = $dbh->prepare($query);
 $sth->execute();
+
+#my $ww =  `echo "SELECT server, priority, size FROM sharing_priority WHERE file='$URL' " > /tmp/sharing_env`;
+
 if ($sth->rows() > 0) {
   my ( $server, $priority, $size  ) = $sth->fetchrow_array();
+
+
   
   # Payment traffic
   if ($priority == 0) {
@@ -295,7 +303,7 @@ if ($sth->rows() > 0) {
       return 0;
      }
 
-    my $sde = `echo "$prepaid_traffic - $used_traffic / $extra_trafic;" >> /tmp/rrr`;
+    my $sde = `echo "FILESIZE: $size / $prepaid_traffic - $used_traffic / $extra_trafic;" >> /tmp/rrr`;
 
     if ($prepaid_traffic > 0) {
       $rest_traffic = $prepaid_traffic - $used_traffic;
