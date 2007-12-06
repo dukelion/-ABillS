@@ -847,7 +847,7 @@ if ($Sharing->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
 
   print $table->show();	 
   
-
+if ($Sharing->{EXTRA_TRAFIC}) {
   $table = $html->table( { caption     => "$_EXTRA_TRAFIC",
 	                            width       => '100%',
                               cols_align  => ['left', 'right'],
@@ -856,7 +856,9 @@ if ($Sharing->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
                            } );
 
   print $table->show();	 
-  
+ }
+
+
 }
 
 
@@ -1077,6 +1079,19 @@ if ($Sharing->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
    }
 
   print $table->show();	 
+  
+  
+  if ($Sharing->{EXTRA_TRAFIC}) {
+    $table = $html->table( { caption     => "$_EXTRA_TRAFIC",
+	                            width       => '100%',
+                              cols_align  => ['left', 'right'],
+                              rowcolor    => $_COLORS[1],
+                              rows        => [["$_REST (Mb):", $Sharing->{EXTRA_TRAFIC} ] ]
+                           } );
+
+    print $table->show();	 
+  }
+
 }
 
 
@@ -1375,7 +1390,7 @@ elsif($FORM{del}) {
    $Tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $user->{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ TP_GID => $user->{TP_GID} }),
+ 	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ TP_GID => $user->{TP_GID}, MODULE => 'Sharing' }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -2015,11 +2030,11 @@ sub sharing_periodic {
  $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
 
 	my $ulist = $Sharing->list({ 
-         EXPIRE     => "$ADMIN_REPORT{DATE}",
-         DISABLE    => '0',
-         SORT       => 1,
-         PAGE_ROWS  => 100000,
-         EXTRA_BYTE => ">0"
+         EXPIRE       => "$ADMIN_REPORT{DATE}",
+         DISABLE      => '0',
+         SORT         => 1,
+         PAGE_ROWS    => 100000,
+         EXTRA_TRAFIC => ">0"
  	   	 });
 
 

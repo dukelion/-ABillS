@@ -1236,11 +1236,12 @@ sub change {
 
        use POSIX qw(strftime);
        my $EXPITE_DATE = strftime( "%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}) );
-       #"curdate() + $tariffs->{AGE} days";
-       $user->change($attr->{UID}, { EXPIRE => $EXPITE_DATE, UID => $attr->{UID} });
+       my $ACTIVATE_DATE = strftime( "%Y-%m-%d", localtime(time) );
+       $user->change($attr->{UID}, { EXPIRE   => $EXPITE_DATE, 
+       	                             ACTIVATE => $ACTIVATE_DATE,
+       	                             UID      => $attr->{UID} 
+       	                           });
      }
-
-
    }
 
   $admin->{MODULE}=$MODULE;
@@ -1355,8 +1356,8 @@ sub list {
     push @WHERE_RULES, "u.deposit$value";
   }
 
- if ($attr->{EXTRA_BYTE}) {
-    my $value = $self->search_expr($attr->{EXTRA_BYTE}, 'INT');
+ if ($attr->{EXTRA_TRAFIC}) {
+    my $value = $self->search_expr($attr->{EXTRA_TRAFIC}, 'INT');
     push @WHERE_RULES, "sharing.extra_byte$value";
   }
 

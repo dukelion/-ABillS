@@ -2867,6 +2867,11 @@ if ($attr->{PERIOD_FORM}) {
  	                                                     });
 	}
 
+  if ($attr->{EX_INPUTS}) {
+  	foreach my $line (@{ $attr->{EX_INPUTS} }) {
+       push @rows, $line;
+     }
+   }
 
 	$table = $html->table( { width    => '100%',
 	                         rowcolor => $_COLORS[1],

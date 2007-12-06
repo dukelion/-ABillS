@@ -972,7 +972,7 @@ if ($sessions->{TOTAL} < 1) {
 
 
 
-my $table = $html->table( { width   => '100%',
+my $table = $html->table( { width      => '100%',
                             caption    => "$_SESSIONS",
                             border     => 1,
                             title      => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
@@ -1078,7 +1078,17 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
   	        	                 USERS => "$_USERS" }, 
   	        PERIOD_FORM		=> 1,
   	        FIELDS        => { %CAPTIONS_HASH },
-  	        XML           => 1
+  	        XML           => 1,
+  	        EX_INPUTS     => [ $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
+ 	                                                               SEL_HASH   => {'' => 'Auto', 
+ 	                                                               	              'Bt' => 'Bt',
+ 	                                                               	              'Kb' => 'Kb', 
+ 	                                                               	              'Mb' => 'Mb', 
+ 	                                                               	              'Gb' => 'Gb'
+ 	                                                               	             },
+ 	                                                               NO_ID       => 1
+                                                                } )
+                               ]
   	       });
 
 
@@ -1102,7 +1112,7 @@ if (defined($FORM{DATE})) {
                                    title      => ["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
                                    cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
                                    qs         => $pages_qs             
-                               } );
+                                });
 
   if ($FORM{EX_PARAMS} && $FORM{EX_PARAMS} eq 'HOURS') {
 
@@ -1111,10 +1121,10 @@ if (defined($FORM{DATE})) {
       $table_sessions->addrow("<b>$line->[0]</b>", 
         $line->[1], 
         $line->[2], 
-        int2byte($line->[3]),  
-        int2byte($line->[4]),  
+        int2byte($line->[3], { DIMENSION => $FORM{DIMENSION} }),  
+        int2byte($line->[4], { DIMENSION => $FORM{DIMENSION} }),  
         $line->[5], 
-        "<b>$line->[6]</b>" );
+        $html->b($line) );
 
       $AVG{USERS}    = $line->[1] if ($AVG{USERS} < $line->[1]);
       $AVG{TRAFFIC}  = $line->[3] if ($AVG{TRAFFIC} < $line->[3]);
@@ -1154,8 +1164,8 @@ if (defined($FORM{DATE})) {
       $table_sessions->addrow("<b>$line->[0]</b>", 
         $html->button("$line->[1]", "index=15&UID=$line->[7]&DATE=$line->[0]"), 
         $line->[2], 
-        int2byte($line->[3]),  
-        int2byte($line->[4]),  
+        int2byte($line->[3], { DIMENSION => $FORM{DIMENSION} }),  
+        int2byte($line->[4], { DIMENSION => $FORM{DIMENSION} }),  
         $line->[5], 
         "<b>$line->[6]</b>" );
      }
@@ -1166,10 +1176,10 @@ else {
   #Used Traffic
   my @caption = ();  
   
-  
   my %fields_hash = (); 
+  my @fields_arr  = ();
   if ($FORM{FIELDS}) {
-  	my @fields_arr = split(/, /, $FORM{FIELDS});
+  	@fields_arr = split(/, /, $FORM{FIELDS});
    	foreach my $line (@fields_arr) {
    		$fields_hash{$line}=1;
    	 }
@@ -1213,8 +1223,13 @@ else {
     
     if ($FORM{FIELDS}) {
       for(my $i=0; $i<=$#caption; $i++) {
-        push @rows, $line->[$i];
-        #print $fields_hash{}
+        if ($fields_arr[$i] =~ /TRAFFIC/) {
+          push @rows, int2byte($line->[$i], { DIMENSION => $FORM{DIMENSION} });
+         }
+        else {
+          push @rows, $line->[$i];
+         }
+
       }
      }
     else {
@@ -1222,10 +1237,10 @@ else {
        ($FORM{TYPE} eq 'USER') ? "index=11&UID=$line->[7]" : "index=$index&$type=$line->[0]$pages_qs"), 
        $line->[1], 
        $line->[2], 
-       int2byte($line->[3]),  
-       int2byte($line->[4]),  
+       int2byte($line->[3], { DIMENSION => $FORM{DIMENSION} }),  
+       int2byte($line->[4], { DIMENSION => $FORM{DIMENSION} }),  
        $line->[5], 
-       "<b>$line->[6]</b>" );
+       $html->b($line->[6]) );
 
       $AVG{USERS}    = $line->[1] if ($AVG{USERS} < $line->[1]);
       $AVG{TRAFFIC}  = $line->[3] if ($AVG{TRAFFIC} < $line->[3]);
@@ -1271,22 +1286,23 @@ $output = $html->make_charts({
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
-                         rows       => [ [ "$_USERS: <b>$sessions->{USERS}</b>",
-                                           "$_SESSIONS: <b>$sessions->{SESSIONS}</b>", 
-                                           "$_TRAFFIC: <b>". int2byte($sessions->{TRAFFIC}) ."</b><BR>".
-                                           "$_TRAFFIC IN: <b>". int2byte($sessions->{TRAFFIC_IN}) ."</b><BR>".
-                                           "$_TRAFFIC OUT: <b>". int2byte($sessions->{TRAFFIC_OUT}) ."</b>"
+                         rows       => [ [ "$_USERS: ". $html->b( $sessions->{USERS} ),
+                                           "$_SESSIONS: ". $html->b( $sessions->{SESSIONS} ), 
+                                           "$_TRAFFIC: ". $html->b( int2byte($sessions->{TRAFFIC}) ) ."<BR>".
+                                           "$_TRAFFIC IN: ". $html->b( int2byte($sessions->{TRAFFIC_IN}) ) ."<BR>".
+                                           "$_TRAFFIC OUT: ". $html->b( int2byte($sessions->{TRAFFIC_OUT}) ) 
                                            , 
                                            
-                                           "$_TRAFFIC 2: <b>". int2byte($sessions->{TRAFFIC_2}) ."</b><br>".
-                                           "$_TRAFFIC 2 IN: <b>". int2byte($sessions->{TRAFFIC_2_IN}) ."</b><BR>".
-                                           "$_TRAFFIC 2 OUT: <b>". int2byte($sessions->{TRAFFIC_2_OUT}) ."</b>"
-                                           , 
+                                           "$_TRAFFIC 2: ". $html->b(int2byte($sessions->{TRAFFIC_2})) ."<br>".
+                                           "$_TRAFFIC 2 IN: ". $html->b( int2byte($sessions->{TRAFFIC_2_IN}) ) ."<BR>".
+                                           "$_TRAFFIC 2 OUT: ". $html->b( int2byte($sessions->{TRAFFIC_2_OUT}) )
+                                          , 
                                            
-                                           "$_DURATION: <b>$sessions->{DURATION}</b>", 
-                                           "$_SUM: <b>$sessions->{SUM}</b>" ] ],
+                                           "$_DURATION: ". $html->b($sessions->{DURATION}), 
+                                           "$_SUM: ". $html->b($sessions->{SUM}) ] ],
                          rowcolor   => $_COLORS[2]
                                } );
+
 print $table_sessions->show() . $table->show(). $output;
 
 
@@ -1519,9 +1535,13 @@ $table = $html->table( { width       => '100%',
                          rows        => [[ "$_FROM: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                           "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                           $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
- 	                                                                          SEL_ARRAY  => ['Auto', 'Kb', 'Mb', 'Gb']
-                              	                                           }
-                              	                             ),
+ 	                                                               SEL_HASH   => {'' => 'Auto', 
+ 	                                                               	              'Kb' => 'Kb', 
+ 	                                                               	              'Mb' => 'Mb', 
+ 	                                                               	              'Gb' => 'Gb'
+ 	                                                               	             },
+ 	                                                               NO_ID       => 1
+                                                                } ),
                                           "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit' })
                                          ]],                                   
@@ -1717,9 +1737,13 @@ $table = $html->table({ width       => '100%',
                         rows        => [[ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                          "$_TO: ",   $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                           $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
- 	                                                                          SEL_ARRAY  => ['Auto', 'Kb', 'Mb', 'Gb']
-                              	                                           }
-                              	                             ),
+ 	                                                               SEL_HASH   => {'' => 'Auto', 
+ 	                                                               	              'Kb' => 'Kb', 
+ 	                                                               	              'Mb' => 'Mb', 
+ 	                                                               	              'Gb' => 'Gb'
+ 	                                                               	             },
+ 	                                                               NO_ID       => 1
+                                                                } ),
                                          "$_ROWS: ", $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
                                          $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
                                         ]],                                   
