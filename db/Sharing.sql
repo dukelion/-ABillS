@@ -65,7 +65,6 @@ CREATE TABLE `sharing_errors` (
 ) COMMENT='Sharing errors';
 
 
-
 CREATE TABLE `sharing_priority` (
   `server` varchar(60) default NULL,
   `file` varchar(250) NOT NULL default '',
@@ -75,5 +74,5 @@ CREATE TABLE `sharing_priority` (
   `id` int(11) unsigned NOT NULL auto_increment,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `server` (`server`,`file`)
+  KEY `file` (`file`)
 ) COMMENT='Sharing file priority';
