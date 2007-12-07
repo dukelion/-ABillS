@@ -55,6 +55,7 @@ sub dhcphosts_mac_block_show {
    $ethers_content .= "$conf{DHCPHOSTS_IPGUARD_TYPE}\n\n" if ($conf{DHCPHOSTS_IPGUARD_TYPE});
 
    my @pair_status = ('ACCEPT', 'DENY');
+   #$Dhcphosts->{debug}=1;
    my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS, 
    	                                   PAGE_ROWS     => 1000000
                                      });
@@ -65,11 +66,13 @@ sub dhcphosts_mac_block_show {
       if ($conf{DHCPHOSTS_IPGUARD_TYPE} && $conf{DHCPHOSTS_IPGUARD_TYPE} eq 'ipsentinel') {
 	      my $ip = $line->[2];   
 	      my $status = ($line->[10] == 1 || $line->[13] == 1 ) ? 1 : 0;
+
 	      #Block
 	      if (! defined($line->[1])) {
 	      	print "Warning: IP: $ip MAC: $line->[6] Record don't have users\n";
 	      	next;
 	       }
+
 	      if ($status == 1 ) {
 	        $ethers_content .= "$ip $line->[6] # $line->[1] $pair_status[$status]\n";
 	       }
@@ -81,7 +84,7 @@ sub dhcphosts_mac_block_show {
 	    else {
 	      my $ip = ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2]; 
 	    	if ($line->[10] != 1 || $line->[13] != 1) {
-	    	  $ethers_content .= "$line->[6] $ip #  $line->[1] $line->[1]\n";
+	    	  $ethers_content .= "$line->[6] $ip # Login: $line->[1]\n";
          }
 	     }
     };
