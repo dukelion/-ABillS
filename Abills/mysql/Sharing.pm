@@ -2013,7 +2013,7 @@ sub additions_add {
   my $self = shift;
   my ($attr) = @_;
   
-  my %DATA = $self->get_data($attr, { default => defaults() }); 
+  my %DATA = $self->get_data($attr, { default => additions_defaults() }); 
   
   $self->query($db,  "INSERT INTO sharing_additions (
              tp_id, 
@@ -2029,7 +2029,7 @@ sub additions_add {
          );", 'do');
 
   return $self if ($self->{errno});
-  $admin->action_add("$DATA{UID}", "ACTIVE");
+  #$admin->action_add("$DATA{UID}", "ACTIVE");
   return $self;
 }
 
@@ -2051,8 +2051,6 @@ sub additions_change {
                 PRICE          => 'price'
              );
   
-  print $attr->{ID};
-
   my $old_info = $self->additions_info($attr->{ID});
 
   $admin->{MODULE}=$MODULE;
@@ -2080,7 +2078,7 @@ sub additions_del {
 
   $self->query($db, "DELETE from sharing_additions WHERE id='$self->{ID}';", 'do');
 
-  $admin->action_add($uid, "DELETE");
+  #$admin->action_add($uid, "DELETE");
   return $self->{result};
 }
 
@@ -2136,5 +2134,215 @@ sub additions_list {
 }
 
 
+
+
+
+
+
+
+#**********************************************************
+# User information
+# info()
+#**********************************************************
+sub priority_info {
+  my $self = shift;
+  my ($id, $attr) = @_;
+
+  
+  $self->query($db, "SELECT server,
+   file,
+   size,
+   priority,
+   datetime
+     FROM sharing_priority
+   WHERE id='$id';");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+
+  (
+   $self->{SERVER},
+   $self->{FILE}, 
+   $self->{SIZE}, 
+   $self->{PRIORITY}, 
+   $self->{DATE}
+  )= @{ $self->{list}->[0] };
+  
+  
+  return $self;
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub priority_defaults {
+  my $self = shift;
+
+  my %DATA = (
+   SERVET         => 0,
+   FILE           => 0, 
+   SIZE           => 0, 
+   PRIORITY       => 0
+  );
+ 
+  $self = \%DATA;
+  return $self;
+}
+
+
+#**********************************************************
+# add()
+#**********************************************************
+sub priority_add {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %DATA = $self->get_data($attr, { default => priority_defaults() }); 
+  
+  $self->query($db,  "INSERT INTO sharing_priority (server,
+   file,
+   size,
+   priority,
+   datetime
+              )
+        VALUES (
+        '$DATA{SERVER}', 
+        '$DATA{FILE}',
+        '$DATA{SIZE}',
+        '$DATA{PRIORITY}',
+        '$DATA{DATE}'
+         );", 'do');
+
+  return $self if ($self->{errno});
+  #$admin->action_add("$DATA{UID}", "ACTIVE");
+  return $self;
+}
+
+
+
+
+#**********************************************************
+# change()
+#**********************************************************
+sub priority_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+ 
+  my %FIELDS = (ID             => 'id',
+                SERVER         => 'server',
+                FILE           => 'file',
+                SIZE           => 'size',
+                PRIORITY       => 'priority',
+                DATE           => 'date'
+             );
+  
+  my $old_info = $self->priority_info($attr->{ID});
+
+  $admin->{MODULE}=$MODULE;
+  $self->changes($admin, { CHANGE_PARAM => 'ID',
+                   TABLE        => 'sharing_additions',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $old_info,
+                   DATA         => $attr
+                  } );
+ 
+
+  return $self->{result};
+}
+
+
+
+#**********************************************************
+# Delete user info from all tables
+#
+# del(attr);
+#**********************************************************
+sub priority_del {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my $WHERE = '';
+
+  if ($attr->{IDS}) {
+  	$WHERE = "id IN ($attr->{IDS})";
+   }
+  else {
+  	$WHERE = "id='$attr->{ID}'";
+    }
+
+  $self->query($db, "DELETE from sharing_priority WHERE $WHERE;", 'do');
+
+  return $self->{result};
+}
+
+
+
+
+#**********************************************************
+# list()
+#**********************************************************
+sub priority_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+ $self->{SEARCH_FIELDS} = '';
+ $self->{SEARCH_FIELDS_COUNT}=0;
+
+ undef @WHERE_RULES;
+ if ($attr->{SIZE}) {
+    my $value = $self->search_expr($attr->{SIZE}, 'INT');
+    push @WHERE_RULES, "size$value";
+  }
+
+ if ($attr->{PRIORITY}) {
+    my $value = $self->search_expr($attr->{PRIORITY}, 'INT');
+    push @WHERE_RULES, "priority$value";
+  }
+
+ if ($attr->{FILE}) {
+    $attr->{FILE} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "file='$attr->{FILE}'";
+  }
+
+ if ($attr->{SERVER}) {
+    $attr->{SERVER} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "server='$attr->{SERVER}'";
+  }
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+ $self->query($db, "SELECT server, 
+      file,
+      size, 
+      priority, 
+      datetime,
+      id
+     FROM sharing_priority
+     $WHERE 
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(*) FROM sharing_priority $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+  return $list;
+}
 1
 
