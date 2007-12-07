@@ -70,5 +70,6 @@ CREATE TABLE `sharing_priority` (
   `file` varchar(250) NOT NULL default '',
   `size` int(10) unsigned NOT NULL default '0',
   `priority` tinyint(3) unsigned NOT NULL default '0',
+  `datetime` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`file`)
 ) COMMENT='Sharing file priority';

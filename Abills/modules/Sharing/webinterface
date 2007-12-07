@@ -2076,7 +2076,7 @@ sub sharing_periodic {
 
 
 #***********************************************************
-# dv_sheduler
+# sharing_sheduler
 #***********************************************************
 sub sharing_sheduler {
 	my ($type, $action, $uid)=@_;
@@ -2094,6 +2094,40 @@ sub sharing_sheduler {
 
 
 
+#***********************************************************
+# sharing_sheduler
+#***********************************************************
+sub sharing_priority {
+	#my ($type, $action, $uid)=@_;
+
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_PRIORITY",
+                            border     => 1,
+                            title      => ["Server", "$_FILE", "$_SIZE", "$_PRIORITY", "$_DATE", '-', '-' ],
+                            cols_align => ['left', 'left', 'right', 'right', 'right', 'center', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $Sharing->{TOTAL}
+                           });
+
+foreach my $line (@$list) {
+ 
+  $table->addrow(
+   "$line->[0]",
+   "$line->[1]", 
+   "$line->[2]", 
+   "$line->[3]", 
+   "$line->[4]",
+   "$line->[5]"
+   );
+}
+print $table->show();
+
+
+
+
+
+}
 
 
 
