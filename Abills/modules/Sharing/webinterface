@@ -804,7 +804,7 @@ $table = $html->table( { width       => '100%',
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { sid   => "$sid",
 	                                    index => "$index",
-	                                    UID   => "$UID" }});
+	                                    UID   => $LIST_PARAMS{UID} }});
 
 
 
@@ -851,11 +851,11 @@ if ($Sharing->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
   
 if ($Sharing->{EXTRA_TRAFIC}) {
   $table = $html->table( { caption     => "$_EXTRA_TRAFIC",
-	                            width       => '100%',
-                              cols_align  => ['left', 'right'],
-                              rowcolor    => $_COLORS[1],
-                              rows        => [["$_REST (Mb):", $Sharing->{EXTRA_TRAFIC} ] ]
-                           } );
+	                         width       => '100%',
+                           cols_align  => ['left', 'right'],
+                           rowcolor    => $_COLORS[1],
+                           rows        => [["$_REST (Mb):", $Sharing->{EXTRA_TRAFIC} ]]
+                        } );
 
   print $table->show();	 
  }
