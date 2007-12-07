@@ -2075,6 +2075,20 @@ sub sharing_periodic {
 
 
 
+#***********************************************************
+# dv_sheduler
+#***********************************************************
+sub sharing_sheduler {
+	my ($type, $action, $uid)=@_;
+
+  my $user = $Sharing->info($uid);  	
+  if ($type eq 'tp') {
+    $Sharing->change({UID   => $uid, 
+          	          TP_ID => $action 
+          	        });
+   }
+
+}
 
 
 
