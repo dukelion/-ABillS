@@ -2100,6 +2100,59 @@ sub sharing_sheduler {
 sub sharing_priority {
 	#my ($type, $action, $uid)=@_;
 
+  $Sharing->{ACTION}='add';
+  $Sharing->{LNG_ACTION}=$_ADD;
+  
+  if($FORM{add}) {
+    $Sharing->priority_add({ %FORM });
+    if(! $Sharing->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");
+     }
+   }
+  elsif($FORM{change}) {
+
+    $Sharing->priority_change({ %FORM });
+
+    if(! $Sharing->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED"); 
+     }
+   }
+ 	elsif($FORM{chg}) {
+    $Sharing->priority_info($FORM{chg}, { TP_ID => $FORM{tt} });
+    if(! $Sharing->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");  	
+     }
+
+    $Sharing->{ACTION}='change';
+    $Sharing->{LNG_ACTION}=$_CHANGE;
+   }
+  elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) ) {
+    my %DEL = ();
+
+    if ($FORM{IDS}) {
+    	$DEL{IDS} = $FORM{IDS};
+     }
+    else {
+      $DEL{ID} = $FORM{del};
+     }
+   
+
+    $Sharing->priority_del({ %DEL });
+
+    if(! $Sharing->{errno}) {
+    	$html->message('info', $_INFO, "$_DELETED"); 
+     }
+   }
+
+  if ($Sharing->{errno}) {
+    $html->message('err', $_ERROR, "[$Sharing->{errno}] $err_strs{$Sharing->{errno}}");	
+   }
+
+
+$html->tpl_show(_include('sharing_priority', 'Sharing'), $Sharing);
+
+
+my $list = $Sharing->priority_list({ %LIST_PARAMS });
 
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PRIORITY",
@@ -2107,20 +2160,49 @@ my $table = $html->table( { width      => '100%',
                             title      => ["Server", "$_FILE", "$_SIZE", "$_PRIORITY", "$_DATE", '-', '-' ],
                             cols_align => ['left', 'left', 'right', 'right', 'right', 'center', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $Sharing->{TOTAL}
+                            pages      => $Sharing->{TOTAL},
+                            header     => "<script language=\"JavaScript\" type=\"text/javascript\">
+<!-- 
+function CheckAllINBOX() {
+  for (var i = 0; i < document.file_list.elements.length; i++) {
+    if(document.file_list.elements[i].type == 'checkbox' && document.file_list.elements[i].name == 'IDS'){
+      document.file_list.elements[i].checked =         !(document.file_list.elements[i].checked);
+    }
+  }
+}
+//-->
+</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n"
                            });
 
 foreach my $line (@$list) {
  
   $table->addrow(
-   "$line->[0]",
-   "$line->[1]", 
-   "$line->[2]", 
-   "$line->[3]", 
-   "$line->[4]",
-   "$line->[5]"
+    $html->form_input('IDS', "$line->[5]", { TYPE => 'checkbox' }) ."$line->[0]",
+    "$line->[1]", 
+    "$line->[2]", 
+    "$line->[3]", 
+    "$line->[4]",
+    $html->button($_CHANGE, "index=$index&chg=$line->[5]"),
+    $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL $line->[1]?" })
    );
 }
+
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }). 
+	                       $html->form_input('del', "$_DEL", { TYPE => 'submit', MESSAGE => "$_DEL $line->[1]?" }),
+                         HIDDEN  => { index => $index,
+                         	            is_js_confirmed => 1
+	                       	              },
+                     	   NAME    => 'file_list'
+                       });
+
+
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Sharing->{TOTAL}) ] ]
+                     } );
+
 print $table->show();
 
 
@@ -2137,6 +2219,18 @@ print $table->show();
 
 
 1
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
