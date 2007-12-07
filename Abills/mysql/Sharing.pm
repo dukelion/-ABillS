@@ -1216,7 +1216,7 @@ sub change {
    }
 
   my $old_info = $self->info($attr->{UID});
-  if ($old_info->{TP_ID} != $attr->{TP_ID}) {
+  if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
      $tariffs->info($attr->{TP_ID});
      

@@ -24,7 +24,7 @@
 
 %PERIODIC = (
              #daily   => [ 'dv_daily_fees',   'dv_users_warning_messages' ],
-             monthly => [ 'sharing_periodic_logrotate', 'sharing_periodic_monthly_fees', 'sharing_periodic' ],
+             monthly  => [ 'sharing_periodic_logrotate', 'sharing_periodic_monthly_fees', 'sharing_periodic' ],
              #report  => [ 'dv_report'       ]
              );
 

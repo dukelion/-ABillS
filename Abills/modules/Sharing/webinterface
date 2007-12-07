@@ -1948,7 +1948,7 @@ sub sharing_periodic_monthly_fees {
 #      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
 
      foreach my $u (@$ulist) {
-       print " Login: $u->[0] TP_ID: $u->[10] Fees: $line->[6] REDUCTION: $u->[14]  $u->[2] $u->[3] $u->[11] - $u->[11]\n" if ($debug > 4); 	
+       $debug_output .= " Login: $u->[0] TP_ID: $u->[10] Fees: $line->[6] REDUCTION: $u->[14]  $u->[2] $u->[3] $u->[11] - $u->[11]\n" if ($debug > 4);
        
        if ($u->[13] > 0 && defined($u->[2])) {
           my %user = (
@@ -2016,8 +2016,16 @@ sub sharing_periodic_monthly_fees {
 #
 #**********************************************************
 sub sharing_periodic_logrotate {
-	
-	
+	my ($attr) = @_;
+  my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+  $debug_output .= "Log rotate\n" if ($debug > 1);
+
+
+
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
 }
 
 
@@ -2031,9 +2039,7 @@ sub sharing_periodic {
  my $debug_output = '';
  $debug_output .= "Expire perid calculation\n" if ($debug > 1);
 
- #$Sharing->{debug}=1;
-
-	my $ulist = $Sharing->list({ 
+ my $ulist = $Sharing->list({ 
          EXPIRE       => "$ADMIN_REPORT{DATE}",
          DISABLE      => '0',
          SORT         => 1,
@@ -2046,18 +2052,23 @@ sub sharing_periodic {
     my $extra_traffic = $u->[7];
     $debug_output .= "LOGIN: $u->[0] ($u->[8]) EXTRA_BYTE: $extra_traffic  DEPOSIT: $u->[2] ACTIVATE: $u->[12] EXPIRE: $u->[13] " if ($debug > 2);
     #Get traffic
-    $Sharing->sessions_list({ LOGIN     => $u->[0], 
-    	                        FROM_DATE => $u->[12],
-    	                        TO_DATE   => $u->[13] 
-    	                      });	
-    $debug_output .= "TRAFFIC: ". ($Sharing->{TRAFFIC_OUT}+$Sharing->{TRAFFIC_IN}) if ($debug > 2);
+    #$Sharing->sessions_list({ LOGIN     => $u->[0], 
+    #	                        FROM_DATE => $u->[12],
+    #	                        TO_DATE   => $u->[13] 
+    #	                      });	
+
+    $Sharing->prepaid_rest({ UID => $u->[8] });
+
+    my $overquota = abs($Sharing->{REST}->{0});
+    $debug_output .= "OVERQUOTA: $overquota\n" if ($debug > 2);
+    if ($overquota > 0) {
+   		$Sharing->change({ UID          => $u->[8], 
+  			                 EXTRA_TRAFIC => $extra_traffic - $overquota
+   			               });
+     }
    }
 	
   $DEBUG .= $debug_output;
-  
-  #print $debug_output;
-
-  #exit ;
   return $debug_output;
 }
 
