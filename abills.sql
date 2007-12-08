@@ -717,6 +717,7 @@ CREATE TABLE `web_users_sessions` (
   `login` varchar(20) NOT NULL default '',
   `remote_addr` int(11) unsigned NOT NULL default '0',
   `sid` varchar(32) NOT NULL default '',
+  `ext_info` varchar(200) NOT NULL default '',
   PRIMARY KEY  (`sid`),
   UNIQUE KEY `sid` (`sid`)
 ) COMMENT='User Web Sessions';
