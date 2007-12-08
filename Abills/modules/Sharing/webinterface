@@ -1,7 +1,6 @@
 # Sharing web functions
 
 
-
 use Sharing;
 use Tariffs;
 use Shedule;
