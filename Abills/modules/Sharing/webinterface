@@ -1313,7 +1313,29 @@ sub sharing_user_chg_tp {
 
 
 if ($FORM{set}) {
-  if ($period == 1 && $conf{SHARING_USER_CHG_TP_SHEDULE}) {
+  if ($conf{DV_USER_CHG_TP_NPERIOD}) {
+  	 # Get next month
+  	 my ($Y, $M, $D)=split(/-/, $DATE, 3);
+     $M++;
+     if ($M == 13) {
+       $M = 1;
+       $Y++;
+      }
+
+    $FORM{date_M}++;    
+    $shedule->add( {UID     => $LIST_PARAMS{UID},
+                   TYPE     => 'tp',
+                   ACTION   => $FORM{TP_ID},
+    	             D        => '01',
+                   M        => $M,
+                   Y        => $Y,
+                   DESCRIBE => "$message<br>
+                   $_FROM: '$Y-$M-$D'",
+                   MODULE   => 'Sharing'
+                 } );
+  	
+   }
+  elsif ($period == 1 && $conf{SHARING_USER_CHG_TP_SHEDULE}) {
   	use POSIX;
     
     my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
@@ -1369,7 +1391,7 @@ elsif($FORM{del}) {
   $shedule->info( {UID      => $user->{UID},
                    TYPE     => 'tp',
                    DESCRIBE => "$message\n$_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
-                   MODULE   => 'Dv'
+                   MODULE   => 'Sharing'
                    });
 
 
