@@ -1,9 +1,9 @@
-#ABillS pppd config
+#ABillS pppd config MSChap2 with MPPE
 # for ppp using patch from http://www.koptev.ru/docs/mppe_mppc/
 # DATE: %DATE% %TIME%
 plugin radius.so
 plugin radattr.so
-logfile /var/log/pptpd
+logfile /var/log/pppd.log
 debug
 require-mschap-v2
 refuse-mschap
@@ -13,6 +13,7 @@ refuse-pap
 nodeflate
 novj
 novjccomp
+nobsdcomp
 #require mppe
 #mppe-stateful
 #ms-dns ***.***.***.***
