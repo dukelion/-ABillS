@@ -11,6 +11,7 @@ CREATE TABLE `dhcphosts_hosts` (
   `expire` date NOT NULL default '0000-00-00',
   `seen` int(1) NOT NULL default '0',
   `comments` varchar(250) NOT NULL default '',
+  `ports` varchar(100) NOT NULL DEFAULT '',
   `vid` smallint(6) unsigned NOT NULL default '0',
   `nas` smallint(6) unsigned NOT NULL default '0',
   `option_82` tinyint(1) unsigned NOT NULL default '0',
