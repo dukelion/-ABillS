@@ -4,7 +4,8 @@ $web_interface    = 1;
 #Iner_ID : Main or Sub or if -1 user menu func list
 
 %FUNCTIONS_LIST = ("01:0:E-MAIL $_LIST:mail_users_list:" => 11,
-                   "02:0:E-MAIL:mail_users_list:UID"     => 20,
+                   "02:1:$_ADD:mail_wizard:"             => 11,
+                   "03:0:E-MAIL:mail_users_list:UID"     => 20,
                    "11:0:E-MAIL:null:"                   => 5,
                    "12:11:$_DOMAINS:mail_domains:"       => 5,
                    "13:11:$_ACCESS:mail_access:"         => 5,

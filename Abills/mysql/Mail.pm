@@ -72,6 +72,9 @@ sub mbox_add {
     '$DATA{ANTIVIRUS}', '$DATA{ANTISPAM}', '$DATA{EXPIRE}', 
     ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}'));", 'do');
 	
+	return $self if ($self->{errno});
+	
+	$self->{MBOX_ID}=$self->{INSERT_ID};
 	
 	if ($DATA{DOMAIN_ID}) {
 	  $self->domain_info({ MAIL_DOMAIN_ID => $DATA{DOMAIN_ID} });

@@ -620,7 +620,7 @@ sub mail_user_boxes {
 
   if ($Mail->{errno}) {
     if ($Mail->{errno} == 7) {
-    	$html->message('err', $_ERROR, "E-Mail $_EXIST");	
+    	$html->message('err', $_ERROR, "$FORM{USERNAME} E-Mail $_EXIST");	
      }
     else {
       $html->message('err', $_ERROR, "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
@@ -975,6 +975,246 @@ foreach my $t (@access_actions) {
 #**********************************************************
 #
 #**********************************************************
+sub mail_wizard {
+	my ($attr) = @_;
+
+  my $fees     = Finance->fees($db, $admin, \%conf);
+  my $payments = Finance->payments($db, $admin, \%conf);
+  my $users    = Users->new($db, $admin, \%conf); 
+
+  my %add_values = ();
+
+  if ($FORM{add}) {
+
+  	foreach my $k ( sort %FORM) {
+      if ($k =~ m/[A-Z]+/ && $k !~ /__|[a-z]/) {
+        $k =~ s/%22//g;
+        my ($id, $main_key)=split(/\./, $k, 2);
+        $add_values{$id}{$main_key}=$FORM{$k};
+       }
+  	 }
+
+    #print $table->show();
+    # Password
+    $add_values{1}{GID} = $admin->{GID} if ($admin->{GID});
+    my $user=$users->add({ %{$add_values{1}} });
+    my $message = '';
+    if (! $user->{errno}) {
+   	  $UID = $user->{UID};
+   	  $user = $user->info($UID);
+      
+      #2 
+      if (defined($FORM{'2.newpassword'}) && $FORM{'2.newpassword'} ne '') {
+        if (length($FORM{'2.newpassword'}) < $conf{PASSWD_LENGTH}) {
+          $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{6}");
+         }
+        elsif ($FORM{'2.newpassword'} eq $FORM{'2.confirm'}) {
+          $add_values{2}{PASSWORD}=$FORM{'2.newpassword'};
+          $add_values{2}{UID}=$UID;
+          $add_values{2}{DISABLE}=$FORM{'1.DISABLE'};
+         }
+        elsif($FORM{'2.newpassword'} ne $FORM{'2.confirm'}) {
+          $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{5}");
+         }
+
+        $user->change($UID, { %{$add_values{2}} });
+        
+        if ($conf{external_useradd}) {
+          if (! _external($conf{external_useradd}, { LOGIN => $add_values{1}{LOGIN}, %{$add_values{2}} }) ) {
+       	    return 0;
+           }
+         }
+       }
+      
+      #3 personal info
+      $user->pi_add({ UID => "$UID", %{$add_values{3}} });
+
+      #5 Payments section
+      if ($FORM{'5.SUM'}) {
+        if($FORM{'5.SUM'} + 0 > 0) {
+          my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
+          $payments->add($user, { %{$add_values{5}}, ER => $er->{ER_RATE} } );  
+          if ($payments->{errno}) {
+            $html->message('err', "-- $_PAYMENTS : $_ERROR", "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+            return 0;
+           }
+          else {
+            $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
+           }
+         }
+        elsif($FORM{'5.SUM'} + 0 < 0) {
+          my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
+          
+          
+          $fees->take($user, abs($FORM{'5.SUM'}), { DESCRIBE => 'MIGRATION',  ER => $er->{ER_RATE} } );  
+
+          if ($fees->{errno}) {
+            $html->message('err', "$_ERROR : $_FEES", "[$fees->{errno}] $err_strs{$fees->{errno}}");	
+            return 0;
+           }
+          else {
+            $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
+           }
+         }
+       }
+  
+      # Add E-Mail account
+      #if (in_array('Mail', \@MODULES) && $FORM{'6.USERNAME'}) {
+        require "Abills/modules/Mail/webinterface";
+        my $Mail = Mail->new($db, $admin, \%conf);
+        
+        $FORM{'6.newpassword'} = $FORM{'6.PASSWORD'} if ($FORM{'6.PASSWORD'});
+
+        $Mail->mbox_add({ UID => "$UID", 
+        	                %{$add_values{6}}, 
+        	                PASSWORD => $FORM{'6.newpassword'} 
+        	             });
+
+        if ($Mail->{errno}) {
+          $html->message('err', "E-MAIL : $_ERROR", "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
+          return 0;
+         }
+        else {
+        	$Mail->{EMAIL_ADDR} = $Mail->{USERNAME} . '@' . $Mail->{DOMAIN};
+        	$Mail->{PASSWORD}=$FORM{'6.newpassword'};
+         }
+       #}
+      
+      # Info
+      my $pi = $user->pi({ UID => $UID });
+      $user  = $user->info($UID);
+      $Mail  = $Mail->mbox_info({ MBOX_ID => $Mail->{MBOX_ID} });
+     	$Mail->{EMAIL_ADDR} = $Mail->{USERNAME} . '@' . $Mail->{DOMAIN};
+      
+      if (! $attr->{SHORT_REPORT}) {
+        $FORM{ex_message}=$message;
+        $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
+        $html->tpl_show(templates('user_info'), { %$user, %$pi } );
+        $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail);
+       }
+
+      return $UID;
+    }
+   else {
+     $html->message('err', "[$users->{errno}] $err_strs{$users->{errno}}", "$_LOGIN: '$add_values{1}{LOGIN}'");	
+     return 0 if ($attr->{SHORT_REPORT});
+    }
+   
+  } 
+
+
+  my $users_defaults = $users->defaults();
+  $users_defaults->{DISABLE}=($users_defaults->{DISABLE} == 1) ? ' checked' : '';
+  $users_defaults->{GID} = sel_groups();
+  if (! $attr->{NO_EXTRADATA}) {
+    $users_defaults->{EXDATA}=$html->tpl_show(templates('form_user_exdata'), 
+       { CREATE_BILL  => ' checked' }, 
+       { notprint     => 1 });
+   }
+  
+  $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
+                                { SELECTED      => $FORM{METHOD} || undef,
+ 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
+ 	                                ARRAY_NUM_ID  => 1
+ 	                               });
+  $payments->{SUM} = '0.00';
+
+  my $er = $payments->exchange_list();
+  $payments->{SEL_ER} = "<select name=ER>\n";
+  $payments->{SEL_ER} .= "<option value=''>\n";
+  foreach my $line (@$er) {
+    $payments->{SEL_ER} .= "<option value=$line->[4]";
+    $payments->{SEL_ER} .= ">$line->[1] : $line->[2]\n";
+   }
+  $payments->{SEL_ER} .= "</select>\n";
+ 	             
+ my $password_form;                           
+ $password_form->{GEN_PASSWORD}=mk_unique_value(8);
+ my %tpls = (
+	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults,    { notprint => 1 }),  
+	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { notprint => 1 }),
+	            "3:$_INFO::"     => templates('form_pi'), 
+ 	            "5:$_PAYMENTS::" => $html->tpl_show(templates('form_payments'), $payments,      { notprint => 1 }),
+             );
+ 
+ #If mail module added
+ if (in_array('Mail', \@MODULES)) {
+   require "Abills/modules/Mail/webinterface";
+   my $Mail = Mail->new($db, $admin, \%conf);
+
+   $Mail->{PASSWORD} = qq{  
+	<tr><td>$_PASSWD:</td><td><input type="password" id="text_pma_pw_mail" name="newpassword" title="$_PASSWD" onchange="pred_password.value = 'userdefined';" /></td></tr>
+  <tr><td>$_CONFIRM_PASSWD:</td><td><input type="password" name="confirm" id="text_pma_pw2_mail" title="$_CONFIRM" onchange="pred_password.value = 'userdefined';" /></td></tr>
+  <tr><td>  <input type="button" id="button_generate_password_mail" value="$_GET $_USER $_PASSWD" onclick="CopyInputField('text_pma_pw', 'generated_pw_mail');" />
+          <input type="button" id="button_copy_password_mail" value="Copy" onclick="CopyInputField('generated_pw_mail', 'text_pma_pw_mail'); CopyInputField('generated_pw_mail', 'text_pma_pw2_mail')" />
+    </td><td><input type="text" name="generated_pw" id="generated_pw_mail" /></td></tr>
+     };
+
+   $Mail->{DOMAINS_SEL}=$html->form_select('DOMAIN_ID', 
+                                { 
+ 	                                SELECTED          => $Mail->{DOMAIN_ID},
+ 	                                SEL_MULTI_ARRAY   => $Mail->domain_list(),
+ 	                                MULTI_ARRAY_KEY   => 8,
+ 	                                MULTI_ARRAY_VALUE => 0,
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
+ 	                                NO_ID             => 1
+ 	                               });
+
+   $Mail->{SEND_MAIL}=1;
+
+   $tpls{"6:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { notprint => 1 });
+  } 
+ 
+ if ($attr->{TPLS}) {
+   while(my($k, $v)=each %{ $attr->{TPLS} } ) {
+   	  $tpls{$k}=$v;
+   	  #print "$k, $v<br>";   	
+     }
+  }
+
+	my $wizard;
+	
+  my $template='';
+  my @sorted_templates = sort keys %tpls;;
+ 
+ foreach my $key (@sorted_templates) {
+     my($n, $descr, $pre, $post)=split(/:/, $key, 4);
+
+     $template .= "<tr bgcolor=\"$_COLORS[0]\"><th>$descr</th></tr>\n";
+     #$wizard = $pre;
+     my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { notprint => 'y' });
+     $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
+     $sub_tpl =~ s/(<input .*?index.*?>)//gi;
+     $sub_tpl =~ s/name=([A-Z_]+)/name=$n.$1/gi;
+     $sub_tpl =~ s/name="([A-Z_]+)"/name=$n.$1/gi;
+     $sub_tpl =~ s/name='([A-Z_]+)'/name=$n.$1/gi;
+
+     $template .= "<tr><th align=\"center\">". $sub_tpl . "</th></tr>\n";
+   }
+
+
+
+  $template =~ s/(<form .*?>)//gi;
+  $template =~ s/<\/form>//ig;
+  $template =~ s/(<input .*?type=submit.*?>)//gi;
+  $template =~ s/<hr>//gi;
+  
+#  print "<textarea cols=120 rows=3>$1 / $2 / $3</textarea><br>\n";
+
+
+
+  $template = "<table width=\"100%\">$template</table>\n";
+  if ($attr->{OUTPUT2RETURN}) {
+    return $template;	
+   }
+
+  print $html->form_main({ CONTENT => $template,
+  	                       HIDDEN  => { index => "$index" },
+	                         SUBMIT  => { add   => "$_ADD"  } 
+	                        });
+	
+}
+	
 
 
 
