@@ -1281,7 +1281,9 @@ sub sharing_user_chg_tp {
  	 return 0;
   }
 
- my $user;
+
+ my $user_sharing;
+
  my $shedule = Shedule->new($db, $admin, \%conf);
  my $period = $FORM{period} || 0;
  
@@ -1291,9 +1293,9 @@ sub sharing_user_chg_tp {
   }
 
  if(defined($LIST_PARAMS{UID})) {
-   $user = $attr->{USER};
-   $user = $Sharing->info($LIST_PARAMS{UID});
-   if($user->{TOTAL} < 1) {
+   $user_sharing = $attr->{USER};
+   $user_sharing = $Sharing->info($LIST_PARAMS{UID});
+   if($user_sharing->{TOTAL} < 1) {
  	   $html->message('info', $_INFO, "$_NOT_ACTIVE");
  	   return 0;
     }
@@ -1304,7 +1306,7 @@ sub sharing_user_chg_tp {
   }
 
  #Get TP groups
- $Tariffs->tp_group_info($user->{TP_GID});
+ $Tariffs->tp_group_info($user_sharing->{TP_GID});
  
  if (! $Tariffs->{USER_CHG_TP} && $Tariffs->{TOTAL} > 0) {
  	  $html->message('err', $_ERROR, "$_NOT_ALLOW / $Tariffs->{USER_CHG_TP} /");
@@ -1313,20 +1315,30 @@ sub sharing_user_chg_tp {
 
 
 if ($FORM{set}) {
-  if ($conf{DV_USER_CHG_TP_NPERIOD}) {
-  	 # Get next month
-  	 my ($Y, $M, $D)=split(/-/, $DATE, 3);
-     $M++;
-     if ($M == 13) {
-       $M = 1;
-       $Y++;
+  if ($conf{SHARING_USER_CHG_TP_NPERIOD}) {
+
+     my $Y;
+     my $M;
+     my $D;
+     if ($user->{EXPIRE} eq '0000-00-00') {
+       # Get next month
+       ($Y, $M, $D)=split(/-/, $DATE, 3);
+       $M++;
+       if ($M == 13) {
+         $M = 1;
+         $Y++;
+        }
+       $D='01';
+      }
+     else {
+       ($Y, $M, $D)=split(/-/, $user->{EXPIRE}, 3);
       }
 
     $FORM{date_M}++;    
     $shedule->add( {UID     => $LIST_PARAMS{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
-    	             D        => '01',
+    	             D        => $D,
                    M        => $M,
                    Y        => $Y,
                    DESCRIBE => "$message<br>
@@ -1362,25 +1374,25 @@ if ($FORM{set}) {
      }
     else {
       $html->message('info', $_CHANGED, "$_CHANGED");
-      $user->info($user->{UID});
+      $user_sharing->info($user->{UID});
     }
    }
   else {
     $FORM{UID}=$LIST_PARAMS{UID};
-    $user->change({ %FORM });
+    $user_sharing->change({ %FORM });
 
     if ($user->{errno}) {
-      $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");
+      $html->message('err', $_ERROR, "[$user_sharing->{errno}] $err_strs{$user_sharing->{errno}}");
      }
     else {
       $html->message('info', $_CHANGED, "$_CHANGED");
-      $user->info($user->{UID});
+      $user_sharing->info($user->{UID});
     }
   }
 }
 elsif($FORM{del}) {
   $shedule->del( { UID => $LIST_PARAMS{UID},
-   	               ID  => $FORM{SHEDULE_ID}  } 
+   	           ID  => $FORM{SHEDULE_ID}  } 
    	            );
 
   $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
@@ -1388,7 +1400,7 @@ elsif($FORM{del}) {
 
 
 
-  $shedule->info( {UID      => $user->{UID},
+  $shedule->info( {UID      => $user_sharing->{UID},
                    TYPE     => 'tp',
                    DESCRIBE => "$message\n$_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
                    MODULE   => 'Sharing'
@@ -1427,7 +1439,7 @@ elsif($FORM{del}) {
    $Tariffs->{UID}=$attr->{USER}->{UID};
    $Tariffs->{m}=$m;
    $Tariffs->{TP_ID}   = $user->{TP_ID};
-   $Tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME}";
+   $Tariffs->{TP_NAME} = "$user_sharing->{TP_ID}:$user_sharing->{TP_NAME}";
 
    $html->tpl_show(templates('chg_tp'), $Tariffs);
    
