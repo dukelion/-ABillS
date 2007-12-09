@@ -2848,7 +2848,7 @@ sub dv_wizard_user {
   $dv_defaults->{DISABLE}=($dv_defaults->{DISABLE} == 1) ? ' checked' : '';
   
   $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
-                                { SELECTED      => $day_id,
+                                { SELECTED      => $FORM{METHOD} || undef,
  	                                SEL_ARRAY     => \@PAYMENT_METHODS,
  	                                ARRAY_NUM_ID  => 'y'
  	                               });
