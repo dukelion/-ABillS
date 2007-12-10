@@ -1315,7 +1315,7 @@ sub sharing_user_chg_tp {
 
 
 if ($FORM{set}) {
-  if ($conf{SHARING_USER_CHG_TP_NPERIOD}) {
+  if ($conf{SHARING_USER_CHG_TP_NPERIOD} && $user_sharing->{TP_ID} > 0) {
 
      my $Y;
      my $M;
@@ -1708,7 +1708,7 @@ sub sharing_registration  {
        }
       
       #4 Dv
-      $conf{SHARING_DEFAULT_TP} = 0 if (! $conf{SHARING_DEFAULT_TP});
+      $conf{SHARING_DEFAULT_TP} = if (! $conf{SHARING_DEFAULT_TP});
    	  $Sharing->add({ UID   => $UID, 
    	  	              TP_ID => $FORM{TP_ID} || $conf{SHARING_DEFAULT_TP}
    	  	             });
