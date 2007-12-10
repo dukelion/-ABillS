@@ -1347,7 +1347,7 @@ if ($FORM{set}) {
                  } );
   	
    }
-  elsif ($period == 1 && $conf{SHARING_USER_CHG_TP_SHEDULE}) {
+  elsif ($period == 1 && $conf{SHARING_USER_CHG_TP_SHEDULE} && $user_sharing->{TP_ID} > 0) {
   	use POSIX;
     
     my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
