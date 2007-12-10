@@ -1708,7 +1708,7 @@ sub sharing_registration  {
        }
       
       #4 Dv
-      $conf{SHARING_DEFAULT_TP} = if (! $conf{SHARING_DEFAULT_TP});
+      $conf{SHARING_DEFAULT_TP} = 0 if (! $conf{SHARING_DEFAULT_TP});
    	  $Sharing->add({ UID   => $UID, 
    	  	              TP_ID => $FORM{TP_ID} || $conf{SHARING_DEFAULT_TP}
    	  	             });
