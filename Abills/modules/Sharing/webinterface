@@ -1379,6 +1379,7 @@ if ($FORM{set}) {
    }
   else {
     $FORM{UID}=$LIST_PARAMS{UID};
+    $user_sharing->{debug}=1;
     $user_sharing->change({ %FORM });
 
     if ($user->{errno}) {
@@ -1392,7 +1393,7 @@ if ($FORM{set}) {
 }
 elsif($FORM{del}) {
   $shedule->del( { UID => $LIST_PARAMS{UID},
-   	           ID  => $FORM{SHEDULE_ID}  } 
+   	               ID  => $FORM{SHEDULE_ID}  } 
    	            );
 
   $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
