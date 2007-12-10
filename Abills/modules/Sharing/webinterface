@@ -1386,7 +1386,7 @@ if ($FORM{set}) {
       $html->message('err', $_ERROR, "[$user_sharing->{errno}] $err_strs{$user_sharing->{errno}}");
      }
     else {
-      $html->message('info', $_CHANGED, "$_CHANGED");
+      $html->message('info', $_CHANGED, "$_CHANGED --");
       $user_sharing->info($user->{UID});
     }
   }
