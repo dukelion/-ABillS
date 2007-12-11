@@ -4372,17 +4372,43 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 #*******************************************************************
 sub form_webserver_info {
 
+
+  my $web_error_log = "/var/log/httpd/abills-error.log";
+
 	my $table = $html->table( {
 		                         caption     => 'WEB server info',
 		                         width       => '600',
                              title_plain => ["$_NAME", "$_VALUE", "-"],
                              cols_align  => ['left', 'left', 'center']
-                                  } );
+                          } );
 
  foreach my $k (sort keys %ENV) {
     $table->addrow($k, $ENV{$k}, '');
   }
-	print $table->show();
+ print $table->show();
+ 
+
+ my $table = $html->table( {
+		                         caption     => '/var/log/httpd/abills-error.log',
+		                         width       => '100%',
+                             title_plain => ["$_DATE", "$_ERROR", "CLIENT", "LOG"],
+                             cols_align  => ['left', 'left', 'center']
+                          } );
+
+ if ( -f $web_error_log) {
+   open(LOG_FILE, "/usr/bin/tail -100 $web_error_log |") or print $html->message('err', $_ERROR, "Can't open file $!"); 
+     while(<LOG_FILE>) {
+       if (/\[(.+)\] \[(\S+)\] \[client (.+)\] (.+)/) {
+         $table->addrow($1, $2, $3, $4);
+        }
+       else {
+       	 $table->addrow('', '', '', $_);
+        }
+      }
+   close(LOG_FILE);
+
+   print $table->show();
+  }
 }
 
 #*******************************************************************
