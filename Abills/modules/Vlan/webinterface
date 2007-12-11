@@ -278,7 +278,7 @@ my $list = $Nas->list({ PAGE_ROWS => 100000,
 	                    });
 
 my %NAS_COMMANDS = ();
-my $NAS_ID = 0;
+#my $NAS_ID = 0;
 
 
 foreach my $line (@$list) {
@@ -298,6 +298,7 @@ foreach my $line (@$list) {
   	next;
    }
   
+  my $NAS_ID =        = $line->[0];
   my $nas_mng_ip_port = $line->[9];
   my $nas_mng_user    = $line->[10];
 
@@ -401,11 +402,11 @@ foreach my $line (@$list) {
   # Delete not allow vlans
   while(my($vlan_id, $ip) = each %$vlans_info) {
 	  $debug_output .= "DELETED VLAN $vlan_id, $ip\n" if ($debug > 3);
-    if ($NAS_ID > 0) {
-      my $ACCT_TERMINATE_CAUSE = $attr->{ACCT_TERMINATE_CAUSE} || 6;
-      $Ipn->acct_stop({ SESSION_ID => '', 
-  	                    ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
-    }
+    #if ($NAS_ID > 0) {
+    #  my $ACCT_TERMINATE_CAUSE = $attr->{ACCT_TERMINATE_CAUSE} || 6;
+    #  $Ipn->acct_stop({ SESSION_ID => '', 
+  	#                    ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
+    #}
 
 	  push @commands, "$IFCONFIG vlan$vlan_id destroy";
 	  push @client_interfaces_unused, "vlan$INFO{VLAN_ID}";
@@ -431,6 +432,7 @@ foreach my $line (@$list) {
   if ($INFO{SUBNETS}) {
     vlan_dhcp({ NAS_MNG_IP_PORT => $nas_mng_ip_port,
   	            NAS_MNG_USER    => $nas_mng_user,
+  	            NAS_ID          => $NAS_ID,
   	            INFO            => \%INFO  });
    }
  
@@ -511,13 +513,18 @@ sub vlan_dhcp {
   my $main_tpl = $html->tpl_show(
                                _include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), 
                                $attr->{INFO},
-                               { notprint => 'yes' }
+                               { notprint => 1 }
                                );
 
 
 
   # DHCP Section
-  my $DHCPCONF  = '/usr/local/etc/dhcpd.conf';
+  my $dhcp_sufix = '';
+  if ($attr->{NAS_MNG_IP_PORT}) {
+  	$dhcp_sufix = '';
+   }
+
+  my $DHCPCONF  = '/usr/local/etc/dhcpd'. $dhcp_sufix .".conf';
   $attr->{INFO}{DATETIME}="DATE: $DATE $TIME";
   my $debug_output='';
   my $dhcp_conf = $html->tpl_show($main_tpl, $attr->{INFO}, { notprint => 'yes' });
