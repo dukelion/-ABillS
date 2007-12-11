@@ -1211,10 +1211,13 @@ sub change {
               EXTRA_TRAFIC     => 'extra_byte'
              );
  
-  print "<br>$attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID} /// ";
+
  
 
   my $old_info = $self->info($attr->{UID});
+
+  print "<br>$attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID} /// ";
+
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
      $tariffs->info($attr->{TP_ID});
