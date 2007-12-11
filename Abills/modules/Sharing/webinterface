@@ -1379,12 +1379,9 @@ if ($FORM{set}) {
    }
   else {
     $FORM{UID}=$LIST_PARAMS{UID};
-    print "Content-Type: text/html\n\n";
-    $user_sharing->{debug}=1;
-    print "//----    $FORM{TP_ID}               --- //";
     $user_sharing->change({ %FORM });
 
-    if ($user->{errno}) {
+    if ($user_sharing->{errno}) {
       $html->message('err', $_ERROR, "[$user_sharing->{errno}] $err_strs{$user_sharing->{errno}}");
      }
     else {
