@@ -1154,7 +1154,7 @@ sub add {
        
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE}) {
          
-         print "$user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE}";
+
          
          $self->{errno}=15;
        	 return $self; 
@@ -1216,7 +1216,6 @@ sub change {
 
   my $old_info = $self->info($attr->{UID});
 
-  print "<br>$attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID} /// ";
 
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
@@ -1257,9 +1256,6 @@ sub change {
                    DATA         => $attr
                   } );
 
-
-  print "/! $attr->{TP_ID} !/";
-  
 
   return $self->{result};
 }
