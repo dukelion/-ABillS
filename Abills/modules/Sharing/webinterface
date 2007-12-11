@@ -1379,6 +1379,7 @@ if ($FORM{set}) {
    }
   else {
     $FORM{UID}=$LIST_PARAMS{UID};
+    print "Content-Type: text/html\n\n";
     $user_sharing->{debug}=1;
     $user_sharing->change({ %FORM });
 
