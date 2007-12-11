@@ -3905,9 +3905,14 @@ if ($index == 7) {
 	$SEARCH_DATA{SEL_TYPE}="<tr><td colspan=2>\n<table width=100%><tr>";
 	
 	while(my($k, $v) = each %SEARCH_TYPES ) {
-		$SEARCH_DATA{SEL_TYPE}.= "<th";
-		$SEARCH_DATA{SEL_TYPE}.= " bgcolor=$_COLORS[0]" if ($FORM{type} eq $k);
-		$SEARCH_DATA{SEL_TYPE}.= "><a href='$SELF_URL?index=$index&search=1&type=$k'>$v</a></th>\n";
+    if ($k == 11 || $k == 13 || $permissions{($k-1)}) {
+		  $SEARCH_DATA{SEL_TYPE}.= "<th";
+		  $SEARCH_DATA{SEL_TYPE}.= " bgcolor=$_COLORS[0]" if ($FORM{type} eq $k);
+		  $SEARCH_DATA{SEL_TYPE}.= "><a href='$SELF_URL?index=$index&search=1&type=$k'>$v</a></th>\n";
+ 		 }
+    #else {
+    #	print "$k / '$permissions{$k}' ";
+    # }
 	 }
 
 $SEARCH_DATA{SEL_TYPE}.="</tr>
