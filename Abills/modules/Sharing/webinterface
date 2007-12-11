@@ -940,30 +940,6 @@ if (defined($attr->{USER}))	{
 #}	
 
 
-if ($FORM{del} && $FORM{is_js_confirmed}) {
-	if(! defined($permissions{3}{1})) {
-     $html->message('err', $_ERROR, 'ACCESS DENY');
-     return 0;
-	 } 
-
-	my ($UID, $session_id, $nas_id, $session_start_date, $session_start_time, $sum, $login)=split(/ /, $FORM{del}, 7);
-	$sessions->del($UID, $session_id, $nas_id, "$session_start_date $session_start_time");
-  if (! $sessions->{errno})	 {
-  	my $table = $html->table( { 
-	                          width => '100%',
-                            rows  => [["$_LOGIN",        $login ],
-                                     ['SESSION_ID',      $session_id ],
-                                     ['NAS_ID',          $nas_id ],
-                                     ['SESSION_START',   "$session_start_date $session_start_time" ],
-                                     [$_SUM, $sum]
-                                    ]
-                           } );
-  	
-  	$html->message('info', $_DELETED, $table->show());
-    form_back_money('log', $sum, { UID => $UID }); #
-    return 0;
-   }
-}
 
 if ($sessions->{errno})	 {
 	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
@@ -993,8 +969,6 @@ if (! $LIST_PARAMS{UID} && $FORM{LOGIN_EXPR}) {
 
   $pages_qs .= "&UID=$LIST_PARAMS{UID}";
 }
-
-
 
 
 my $list =  $Sharing->periods_totals({ LOGIN => $user->{LOGIN} });
