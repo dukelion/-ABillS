@@ -521,7 +521,7 @@ sub vlan_dhcp {
   # DHCP Section
   my $dhcp_sufix = '';
   if ($attr->{NAS_MNG_IP_PORT}) {
-  	$dhcp_sufix = '';
+  	$dhcp_sufix = '_'.$NAS_ID;
    }
 
   my $DHCPCONF  = '/usr/local/etc/dhcpd'. $dhcp_sufix .".conf';
