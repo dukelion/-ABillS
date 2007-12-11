@@ -1381,7 +1381,7 @@ if ($FORM{set}) {
     $FORM{UID}=$LIST_PARAMS{UID};
     print "Content-Type: text/html\n\n";
     $user_sharing->{debug}=1;
-    pritn "//----    $FORM{TP_ID}               --- //";
+    print "//----    $FORM{TP_ID}               --- //";
     $user_sharing->change({ %FORM });
 
     if ($user->{errno}) {
