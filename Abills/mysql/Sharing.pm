@@ -1210,10 +1210,9 @@ sub change {
               TYPE             => 'type',
               EXTRA_TRAFIC     => 'extra_byte'
              );
-  
-  if (! $attr->{CALLBACK}) {
-  	$attr->{CALLBACK}=0;
-   }
+ 
+  print "<br>$attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID} /// ";
+ 
 
   my $old_info = $self->info($attr->{UID});
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
