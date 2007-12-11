@@ -1245,6 +1245,8 @@ sub change {
      }
    }
 
+  
+
   $admin->{MODULE}=$MODULE;
   $self->changes($admin, { CHANGE_PARAM => 'UID',
                    TABLE        => 'sharing_main',
@@ -1254,7 +1256,7 @@ sub change {
                   } );
 
 
-  
+  print "/ $attr->{TP_ID} /";
   
 
   return $self->{result};
