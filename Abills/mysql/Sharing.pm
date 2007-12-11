@@ -565,7 +565,7 @@ sub periods_totals {
 
  
  if($attr->{LOGIN})  {
-   $WHERE .= " and username='$attr->{LOGIN}' ";
+   $WHERE .= "WHERE username='$attr->{LOGIN}' ";
   }
 
 
