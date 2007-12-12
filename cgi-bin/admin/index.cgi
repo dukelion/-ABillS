@@ -1258,6 +1258,11 @@ elsif ($FORM{MULTIUSER}) {
 }
 
 
+if (! $permissions{0}{2}) {
+	return 0;
+}
+
+
 
 if ($FORM{COMPANY_ID}) {
   print "<p><b>$_COMPANY:</b> $FORM{COMPANY_ID}</p>\n";
@@ -1296,6 +1301,7 @@ elsif ($users->{TOTAL} == 1) {
 	form_users({  USER => user_info($list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}]) });
 	return 0;
 }
+
 
 #User list
 my $table = $html->table( { width      => '100%',

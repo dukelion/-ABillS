@@ -157,6 +157,11 @@ print $html->tpl_show(templates('chg_tp'), $tariffs);
 sub dv_users_list {
  my ($attr)=@_;
 
+ if (! $permissions{0}{2}) {
+	 return 0;
+  }
+
+
  if ($attr->{TP}) {
    $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
    #$pages_qs .= "&TP_ID=$FORM{TP_ID}";
