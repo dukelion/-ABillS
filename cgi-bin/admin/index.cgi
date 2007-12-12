@@ -490,7 +490,8 @@ sub check_permissions {
   my %PARAMS = ( LOGIN     => "$login", 
                  PASSWORD  => "$password",
                  SECRETKEY => $conf{secretkey},
-                 IP        => $ENV{REMOTE_ADDR} || '0.0.0.0');
+                 IP        => $ENV{REMOTE_ADDR} || '0.0.0.0'
+                );
 
 
   $admin->info(0, { %PARAMS } );
@@ -540,11 +541,7 @@ my $h = $new_hash{0};
 my @last_array = ();
 
 my @menu_sorted = sort {
-   #$h->{$b} <=> $h->{$a}
-   #  ||
-   #length($a) <=> length($b)
-   #  ||
-   $a cmp $b
+  $a cmp $b
 } keys %$h;
 
 my $table2 = $html->table({ width    => '100%',
@@ -561,11 +558,13 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
   my $prefix = '';
   $table->{rowcolor}=$_COLORS[0];      
 
-  next if (! defined($permissions{($parent-1)}));  
+  if (! defined($permissions{($parent-1)})) {
+  	next;
+   }
 
   if ($parent != 0) {
     $table = $html->table({ width       => '200',
-                            title_plain => [ $html->button("<b>$val</b>", "index=$parent") ],
+                            title_plain => [ $html->button($html->b($val), "index=$parent") ],
                             border      => 1,
                             cols_align  => ['left']
                           });
