@@ -635,19 +635,23 @@ sub prepaid_rest {
      sm.tp_id,
      tp.name,
      tp.month_traf_limit,
-     sm.extra_byte
+     sm.extra_byte,
+     count(sa.tp_id)   
   from (users u,
         sharing_main sm,
         tarif_plans tp,
         sharing_trafic_tarifs tt
         )
-WHERE
+  LEFT JOIN sharing_additions sa ON (tp.id=sa.tp_id) 
+ WHERE
      u.uid=sm.uid
  and sm.tp_id=tp.id
  and tp.id=tt.tp_id
  and u.uid='$attr->{UID}'
  and tp.module='Sharing'
+ GROUP BY 1
  ORDER BY 1
+
  ");
 
  if($self->{TOTAL} < 1) {
@@ -1600,7 +1604,7 @@ elsif($attr->{DATE}) {
   sl.microseconds
   
   FROM (sharing_log sl)
-  LEFT join  sharing_priority sp ON (sl.url = sp.file)
+  LEFT join sharing_priority sp ON (sl.url = sp.file)
   $WHERE
   ORDER BY $SORT $DESC
   LIMIT $PG, $PAGE_ROWS;

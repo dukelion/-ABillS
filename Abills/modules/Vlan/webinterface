@@ -279,6 +279,7 @@ my $list = $Nas->list({ PAGE_ROWS => 100000,
 
 my %NAS_COMMANDS = ();
 #my $NAS_ID = 0;
+my %DHCP_SUBNETS = () ;
 
 
 foreach my $line (@$list) {
@@ -350,6 +351,11 @@ foreach my $line (@$list) {
                                { notprint => 'yes' }
                                );
 
+      $DHCP_SUBNETS{"$nas_mng_ip_port"} .= $html->tpl_show(
+                               _include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
+                               \%INFO,
+                               { notprint => 'yes' }
+                               );
       #$INFO{SUBNETS} .= $html->tpl_show($subnets, \%INFO, { notprint => 'yes' });
      }
 

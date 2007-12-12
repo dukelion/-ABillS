@@ -609,6 +609,11 @@ sub form_companies {
   my $company = $customer->company();
 
 if ($FORM{add}) {
+  if (! $permissions{0}{1} ) {
+    $html->message('err', $_ERROR, "Access Deny");  	
+    return 0;
+   }
+
   $company->add({ %FORM });
  
   if (! $company->{errno}) {
@@ -616,6 +621,10 @@ if ($FORM{add}) {
    }
  }
 elsif($FORM{change}) {
+  if (! $permissions{0}{4} ) {
+    $html->message('err', $_ERROR, "Access Deny");  	
+    return 0;
+   }
 
   $company->change({ %FORM });
 
@@ -651,8 +660,10 @@ elsif($FORM{COMPANY_ID}) {
 
   #Sub functions
   if (! $FORM{subf}) {
-    $company->{ACTION}='change';
-    $company->{LNG_ACTION}=$_CHANGE;
+    if ($permissions{0}{4} ) {
+      $company->{ACTION}='change';
+      $company->{LNG_ACTION}=$_CHANGE;
+     }
     $company->{DISABLE} = ($company->{DISABLE} > 0) ? 'checked' : '';
     $html->tpl_show(templates('form_company'), $company);
   }
@@ -811,7 +822,11 @@ $html->tpl_show(templates('form_user'), $user_info);
 sub form_groups {
 
 if ($FORM{add}) {
-  if ($LIST_PARAMS{GID} || $LIST_PARAMS{GIDS}) {
+  if (! $permissions{0}{1} ) {
+    $html->message('err', $_ERROR, "Access Deny");  	
+    return 0;
+   }
+  elsif ($LIST_PARAMS{GID} || $LIST_PARAMS{GIDS}) {
     $html->message('err', $_ERROR, "Access Deny");
    }
   else {
@@ -822,6 +837,11 @@ if ($FORM{add}) {
    }
 }
 elsif($FORM{change}){
+  if (! $permissions{0}{4} ) {
+    $html->message('err', $_ERROR, "Access Deny");  	
+    return 0;
+   }
+
   $users->group_change($FORM{chg}, { %FORM });
   if (! $users->{errno}) {
     $html->message('info', $_CHANGED, "$_CHANGED $users->{GID}");
@@ -850,8 +870,13 @@ elsif(defined($FORM{GID})){
 #    if (! $users->{errno}) {
 #      $html->message('info', $_CHANGED, "$_CHANGING $users->{GID}");
 #     }
-    $users->{ACTION}='change';
-    $users->{LNG_ACTION}=$_CHANGE;
+    
+    if ($permissions{0}{4} ) {
+      $users->{ACTION}='change';
+      $users->{LNG_ACTION}=$_CHANGE;
+      return 0;
+     }
+
     $html->tpl_show(templates('form_groups'), $users);
   }
  
@@ -945,12 +970,22 @@ sub user_pi {
   my $user = $attr->{USER};
 
  if($FORM{add}) {
+   if (! $permissions{0}{1} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+    }
+
  	 my $user_pi = $user->pi_add({ %FORM });
    if (! $user_pi->{errno}) {
     $html->message('info', $_ADDED, "$_ADDED");	
    }
   }
  elsif($FORM{change}) {
+   if (! $permissions{0}{4} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+    }
+
  	 my $user_pi = $user->pi_change({ %FORM });
    if (! $user_pi->{errno}) {
     $html->message('info', $_CHAGED, "$_CHANGED");	
@@ -963,11 +998,12 @@ sub user_pi {
 
 
   my $user_pi = $user->pi();
-  if($user_pi->{TOTAL} < 1) {
+
+  if($user_pi->{TOTAL} < 1 && $permissions{0}{1}) {
   	$user_pi->{ACTION}='add';
    	$user_pi->{LNG_ACTION}=$_ADD;
    }
-  else {
+  elsif($permissions{0}{4}) {
  	  $user_pi->{ACTION}='change';
 	  $user_pi->{LNG_ACTION}=$_CHANGE;
    }
@@ -1005,9 +1041,15 @@ if(defined($attr->{USER})) {
   form_passwd({ USER => $user_info}) if (defined($FORM{newpassword}));
 
   if ($FORM{change}) {
+    if (! $permissions{0}{4} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	print "</td></table>\n";
+    	return 0;
+     }
+
     $user_info->change($user_info->{UID}, { %FORM } );
     if ($user_info->{errno}) {
-      $html->message('err', $_ERROR, "-- [$user_info->{errno}] $err_strs{$user_info->{errno}}");	
+      $html->message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
       user_form();    
       print "</td></table>\n";
       return 0;	
@@ -1029,7 +1071,14 @@ if(defined($attr->{USER})) {
     return 0;
    }
   else {
-    @action = ('change', $_CHANGE);
+    
+    if (! $permissions{0}{4}) {
+      @action = ();
+     }
+    else {
+      @action = ('change', $_CHANGE);
+     }
+
     user_form($user_info);
     
     #$service_func_index
@@ -1080,9 +1129,6 @@ if(defined($attr->{USER})) {
 ##     $functions{$index}->();
 ##   }
 }
-    
-    
-    
     
     
     user_pi({ USER => $user_info });
@@ -3184,7 +3230,7 @@ my @m = (
  "1:0:$_CUSTOMERS:form_users:::",
  "11:1:$_LOGINS:form_users:::",
  "13:1:$_COMPANY:form_companies:::",
- "14:13:$_ADD:add_company:::",
+
  "25:13:$_LIST:form_companies:::",
  "15:11:$_INFO:form_users:UID::",
  "22:15:$_LOG:form_changes:UID::",
@@ -3198,7 +3244,7 @@ my @m = (
 
  "12:15:$_GROUP:user_group:UID::",
  "27:1:$_GROUPS:form_groups:::",
- "28:27:$_ADD:add_groups:::",
+
  "29:27:$_LIST:form_groups:::",
  "30:15:$_USER_INFO:user_pi:UID::",
  "31:15:Send e-mail:form_sendmail:UID::",
@@ -3249,8 +3295,12 @@ my @m = (
  "99:9:$_FUNCTIONS_LIST:flist:::",
  );
 
+if ($permissions{0}{1}) {
+  push @m, "24:11:$_ADD:user_form:::" ;
+  push @m, "14:13:$_ADD:add_company:::";
+  push @m, "28:27:$_ADD:add_groups:::";
+}
 
-push @m, "24:11:$_ADD:user_form:::" if ($permissions{0}{1} );
 push @m, "58:50:$_GROUPS:form_admins_groups:AID::" if ($admin->{GID} == 0);
 
 foreach my $line (@m) {

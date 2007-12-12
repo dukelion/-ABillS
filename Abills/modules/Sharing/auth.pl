@@ -187,8 +187,10 @@ my $query = "select
   sharing.tp_id,
   tp.payment_type,
   tp.month_traf_limit,
-  sharing.extra_byte
+  sharing.extra_byte,
+  count(sa.tp_id)
      FROM (users u, sharing_main sharing, tarif_plans tp)
+     LEFT JOIN sharing_additions sa ON (tp.id=sa.tp_id) 
      WHERE
         u.uid=sharing.uid
         AND sharing.tp_id=tp.id
@@ -219,7 +221,8 @@ my (
   $tp_id,
   $payment_type,
   $month_traf_limit,
-  $extra_trafic
+  $extra_trafic,
+  $extra_traffic_count
   ) = $sth->fetchrow_array();
 
 
@@ -290,7 +293,7 @@ if ($sth->rows() > 0) {
 
 
     $prepaid_traffic = (defined($prepaid_traffic) && $prepaid_traffic > 0) ? $prepaid_traffic * 1024 * 1024 : $month_traf_limit * 1024 * 1024;
-    $prepaid_traffic =  $prepaid_traffic + $extra_trafic * 1048576 if ($extra_trafic > 0);
+    $prepaid_traffic =  $prepaid_traffic + $extra_trafic * 1048576 if ($extra_trafic > 0 && $extra_traffic_count > 0);
     $deposit = $deposit +  $credit;
 
     my $rest_traffic = 0;
@@ -366,5 +369,6 @@ sub web_auth {
 #SELECT
 # server,  CONCAT(path, filename ),  filesize,  priority
 #FROM lenta.tx_t3labtvarchive_files
+
 
 exit 0;
