@@ -697,7 +697,7 @@ if ( $self->{EXTRA_TRAFIC_USE} > 0 && $rest{0} < 0 ) {
 	$self->{EXTRA_TRAFIC} = $self->{EXTRA_TRAFIC} - abs($rest{0});
  }
 else {
-  $Sharing->{EXTRA_TRAFIC}=undef;
+  $self->{EXTRA_TRAFIC}=undef;
 }
 
 # #Check online
