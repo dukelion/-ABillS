@@ -107,7 +107,8 @@ print $table->show();
 #**********************************************************
 sub vlan_user {
  	$Vlan->{UID}=$FORM{UID};	  
-  
+  $Vlan->{debug}=1;
+
   if ($FORM{add}) {
     if (! $permissions{0}{1} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
@@ -129,7 +130,11 @@ sub vlan_user {
      }
    }
 	elsif($FORM{set}) {
-    if ($FORM{IP} ne '0.0.0.0') {
+    if (! $permissions{0}{4} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+  	  return 0;
+     }
+    elsif ($FORM{IP} ne '0.0.0.0') {
       my $INFO = vlan_get_net($FORM{IP}, "$FORM{NETMASK}");
       if ($FORM{IP} ne $INFO->{IF_IP}) {
         print $html->message('info', $_CHANGE, "IP $FORM{IP} -> $INFO->{IF_IP}");
@@ -157,7 +162,7 @@ sub vlan_user {
 
   my $user = $Vlan->info($FORM{UID});
 
-  if ($Vlan->{IP} ne '0.0.0.0') {
+  if ($Vlan->{IP} && $Vlan->{IP} ne '0.0.0.0') {
     my $INFO = vlan_get_net($Vlan->{IP}, "$Vlan->{NETMASK}");
     $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
    }
@@ -187,7 +192,7 @@ sub vlan_user {
   my $Nas = Nas->new($db, \%conf);
   $Vlan->{NAS_LIST} = $html->form_select('NAS_ID', 
                                          { 
- 	                                          SELECTED          => $FORM{NAS_ID},
+ 	                                          SELECTED          => $Vlan->{NAS_ID} || 0,
  	                                          SEL_MULTI_ARRAY   => $Nas->list({ TYPE      => 'vlan', 
  	                                          	                                PAGE_ROWS => 1000 }),
  	                                          MULTI_ARRAY_KEY   => 0,
@@ -217,10 +222,15 @@ sub vlan_get_net {
 
   my @ip_decs = split(/\./, $ip, 4);
   #Make subnetworks
+  if ($ip_decs[3] == 0) {
+    $ip = "$ip_decs[0]\.$ip_decs[1]\.$ip_decs[2]\.1";
+   }
 
   my $netip_num = ip2int("$ip_decs[0]\.$ip_decs[1]\.$ip_decs[2]\.0"); 
   my $addr_count = ip2int('255.255.255.255') - ip2int($netmask) - 1;
   my $user_ip_int = ip2int($ip);
+
+ $debug = 4;
 
   while($user_ip_int + $addr_count + 2 > $netip_num ) {
   	if ($user_ip_int > $netip_num && $user_ip_int < $netip_num + $addr_count + 2) {
@@ -299,7 +309,7 @@ foreach my $line (@$list) {
   	next;
    }
   
-  my $NAS_ID =        = $line->[0];
+  my $NAS_ID          = $line->[0];
   my $nas_mng_ip_port = $line->[9];
   my $nas_mng_user    = $line->[10];
 
@@ -436,6 +446,8 @@ foreach my $line (@$list) {
 
   #Make DHCP Nets  
   if ($INFO{SUBNETS}) {
+    $INFO{SUBNETS} = $DHCP_SUBNETS{"$nas_mng_ip_port"};
+
     vlan_dhcp({ NAS_MNG_IP_PORT => $nas_mng_ip_port,
   	            NAS_MNG_USER    => $nas_mng_user,
   	            NAS_ID          => $NAS_ID,
@@ -525,18 +537,23 @@ sub vlan_dhcp {
 
 
   # DHCP Section
-  my $dhcp_sufix = '';
+  my $DHCPCONF  = $conf{DHCPHOSTS_CONFIG} || '/usr/local/etc/dhcpd.conf';
+  #my $dhcp_sufix = '';
   if ($attr->{NAS_MNG_IP_PORT}) {
-  	$dhcp_sufix = '_'.$NAS_ID;
+  	my $dhcp_sufix = '_'.$attr->{NAS_ID};
+  	$DHCPCONF = "$conf{TPL_DIR}/dhcpd.conf$dhcp_sufix";
    }
 
-  my $DHCPCONF  = '/usr/local/etc/dhcpd'. $dhcp_sufix .".conf';
+  
+  
+
   $attr->{INFO}{DATETIME}="DATE: $DATE $TIME";
+
   my $debug_output='';
-  my $dhcp_conf = $html->tpl_show($main_tpl, $attr->{INFO}, { notprint => 'yes' });
+  my $dhcp_conf = $html->tpl_show($main_tpl, $attr->{INFO}, { notprint => 1 });
   #Make dhcp conf and relaod DHCP
   
-  $debug_output .= $dhcp_conf if ($debug > 4);
+  $debug_output .= "$DHCPCONF\n" . $dhcp_conf if ($debug > 4);
   
   open(FILE, ">$DHCPCONF") || die "Can't open file '$DHCPCONF' $!\n";
     if ($debug < 5) {
@@ -545,28 +562,26 @@ sub vlan_dhcp {
   close(FILE);
 
 
-
+ my $cmd = '';
  if ($attr->{NAS_MNG_IP_PORT}) {
-   my $cmd = "/usr/bin/scp -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} $DHCPCONF ".
-      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT}:$DHCPCONF; ".
+   my $DHCPCONF_REMOTE = $conf{DHCPHOSTS_CONFIG};
+   $cmd = "/usr/bin/scp -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} $DHCPCONF ".
+      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT}:$DHCPCONF_REMOTE; ".
              "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
       "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"sudo /usr/local/etc/rc.d/isc-dhcpd restart\""; 
-
-   system($cmd);
-   
-   if ($debug > 2) {
-  	 print $cmd."\n";
-    }  
   }
  else {
-   my $cmd = "$conf{DHCPHOSTS_RECONFIGURE}"; 
-
-   system($cmd);
-   
-   if ($debug > 2) {
-  	 print $cmd."\n";
-    }  
+   $cmd = "$conf{DHCPHOSTS_RECONFIGURE}"; 
   }
+ 
+ if ($debug < 5) {
+   system($cmd);
+  }
+
+ if ($debug > 2) {
+	 print $cmd."\n";
+  }  
+
 
   $DEBUG .= $debug_output;	
 	return $debug_output;
@@ -585,15 +600,15 @@ sub vlan_pppoe_relay {
 # PPPoE Server
 # Delete unused
   my $cmd = '';
-  
-  foreach my $if ( @{ $attr->{CLIENT_INTERFACES_UNUSED} } ) {
+  my $if = '';
+  foreach $if ( @{ $attr->{CLIENT_INTERFACES_UNUSED} } ) {
     print "if [ -f /var/run/pppoed_". $if .".pid ]; then sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ";
     $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ";
    }
 
 # Add interfaces
 
-  foreach my $if ( keys %{ $attr->{CLIENT_INTERFACES} } ) {
+  foreach $if ( keys %{ $attr->{CLIENT_INTERFACES} } ) {
     #$cmd .= "if [ ! -f /var/run/pppoed_". $if .".pid ]; then sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; fi; ";
     $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ".
      " sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; ";
