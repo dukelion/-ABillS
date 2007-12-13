@@ -107,7 +107,6 @@ print $table->show();
 #**********************************************************
 sub vlan_user {
  	$Vlan->{UID}=$FORM{UID};	  
-  $Vlan->{debug}=1;
 
   if ($FORM{add}) {
     if (! $permissions{0}{1} ) {
@@ -230,7 +229,6 @@ sub vlan_get_net {
   my $addr_count = ip2int('255.255.255.255') - ip2int($netmask) - 1;
   my $user_ip_int = ip2int($ip);
 
- $debug = 4;
 
   while($user_ip_int + $addr_count + 2 > $netip_num ) {
   	if ($user_ip_int > $netip_num && $user_ip_int < $netip_num + $addr_count + 2) {
@@ -353,7 +351,7 @@ foreach my $line (@$list) {
       $INFO{NETWORK_MASK} = $INFO{VLAN_IF_NETMASK};
       $INFO{RANGE}    = "range $first_ip $last_ip;";
       $INFO{ROUTERS}  = "option routers $INFO{VLAN_IF_IP};";
-      $INFO{DESCRIBE} = "Vlan ID: $INFO{VLAN_ID} LOGIN: $INFO{LOGIN}";
+      $INFO{DESCRIBE} = "Vlan ID: $INFO{VLAN_ID} PARENT: $parent_interface LOGIN: $INFO{LOGIN}";
 
       $INFO{SUBNETS} .= $html->tpl_show(
                                _include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
@@ -540,7 +538,7 @@ sub vlan_dhcp {
   my $DHCPCONF  = $conf{DHCPHOSTS_CONFIG} || '/usr/local/etc/dhcpd.conf';
   #my $dhcp_sufix = '';
   if ($attr->{NAS_MNG_IP_PORT}) {
-  	my $dhcp_sufix = '_'.$attr->{NAS_ID};
+  	my $dhcp_sufix = '_'.$attr->{NAS_MNG_IP_PORT};
   	$DHCPCONF = "$conf{TPL_DIR}/dhcpd.conf$dhcp_sufix";
    }
 
