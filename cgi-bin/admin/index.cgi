@@ -116,6 +116,7 @@ $index = 0;
 $html = Abills::HTML->new({ CONF     => \%conf, 
 	                          NO_PRINT => 0, 
 	                          PATH     => '../',
+	                          CHARSET  => $conf{default_charset},
 	                          %{ $admin->{WEB_OPTIONS} } });
 
 require "../../language/$html->{language}.pl";
