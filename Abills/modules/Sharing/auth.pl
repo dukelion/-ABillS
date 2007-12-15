@@ -306,7 +306,7 @@ if ($sth->rows() > 0) {
       return 0;
      }
 
-    my $sde = `echo "FILESIZE: $size / $prepaid_traffic - $used_traffic / $extra_trafic;" >> /tmp/rrr`;
+    my $sde = `echo "$ENV{USER} / FILESIZE: $size / $prepaid_traffic - $used_traffic / $extra_trafic;" >> /tmp/rrr`;
 
     if ($prepaid_traffic > 0) {
       $rest_traffic = $prepaid_traffic - $used_traffic;

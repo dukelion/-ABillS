@@ -1865,11 +1865,18 @@ elsif (defined($FORM{TP_ID})) {
 #
 #**********************************************************
 sub sharing_addition_buy {
+  my ($attr) = @_;
   #print "content-Type: text/html\n\n";  
   #$Sharing->{debug}=1;
 
 
   $user_si = $Sharing->info($LIST_PARAMS{UID});
+  
+  if (! $user_si->{TP_ID}) {
+
+  	return 0;
+   }
+  
 	my $list = $Sharing->additions_list({ TP_ID => $user_si->{TP_ID} });
 
 

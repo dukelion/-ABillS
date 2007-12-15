@@ -1,12 +1,16 @@
 $web_interface    = 1;
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("01:0:Extfin:exfin_export_customers"      => 1
-
+%FUNCTIONS_LIST = ("01:0:Extfin:extfin_export_customers"      => 1,
+                   "02:01:$_FEES:extfin_paids"                => 1,
+                   "05:0:Extfin:null"                         => 4,
+                   "06:5:$_PAYMENT_DEED:extfin_report_deeds"  => 4, 
+                   "07:5:_PAYDS:extfin_report_paids"          => 4
                    );
 
 
-#%PERIODIC = (daily   => 'dv_daily_fees',
-#             monthly => 'dv_monthly_fees');
+%PERIODIC = (
+             monthly => [ 'extfin_monthly_summary', 'extfin_periodic_paids' ]
+             );
 
 
 1

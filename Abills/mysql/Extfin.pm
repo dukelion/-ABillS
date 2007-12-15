@@ -280,7 +280,7 @@ sub payment_deed {
  
  my %PAYMENT_DEED = ();
  my @WHERE_RULES_DV = ();
-  @WHERE_RULES = ();
+ @WHERE_RULES = ();
  my %NAMES=();
 
  if ($attr->{DATE_FROM}) {
@@ -291,7 +291,7 @@ sub payment_deed {
    push @WHERE_RULES, "DATE_FORMAT(f.date, '%Y-%m')='$attr->{MONTH}'";
    push @WHERE_RULES_DV, "DATE_FORMAT(dv.start, '%Y-%m')='$attr->{MONTH}'";
   }
- 
+
  
  my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
  my $WHERE_DV = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES_DV)  : '';
@@ -358,10 +358,197 @@ sub payment_deed {
   $self->{PAYMENT_DEED}=\%PAYMENT_DEED;
   $self->{NAMES}=\%NAMES;
 
-	
-	
-	
 	return $self;
+}
+
+
+
+#**********************************************************
+# make
+#**********************************************************
+sub summary_add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "INSERT INTO extfin_reports (period, bill_id, sum, date, aid)
+  VALUES ('$DATA{PERIOD}', '$DATA{BILL_ID}', '$DATA{SUM}', '$DATA{DATE}', '$DATA{AID}');", 'do');
+
+  return $self;
+}
+
+
+#**********************************************************
+# del
+#**********************************************************
+sub summary_del {
+  my $self = shift;
+  my ($attr) = @_;
+ 
+  $self->query($db, "DELTE FROM extfin_reports WHERE id='$attr->{ID}';", 'do');
+ 
+  return $self;
+}
+
+
+#**********************************************************
+# Show full reports
+#**********************************************************
+sub fin_full_reports {
+  my $self = shift;
+  my ($attr) = @_;
+
+ @WHERE_RULES = ();
+ my %NAMES=();
+
+ if ($attr->{DATE_FROM}) {
+ 	 push @WHERE_RULES, "r.period>='$attr->{DATE_FROM}' AND report.period<='$attr->{DATE_TO}'";
+  }
+ elsif ($attr->{MONTH}) {
+   push @WHERE_RULES, "DATE_FORMAT(report.period, '%Y-%m')='$attr->{MONTH}'";
+  }
+
+
+ my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
+
+ $self->query($db, "SELECT report.id, report.period, report.bill_id,
+   report.sum,
+   if(u.company_id > 0, company.name,
+          if(pi.fio<>'', pi.fio, u.id)),
+                         if(u.company_id > 0, company.name,
+                            if(pi.fio<>'', pi.fio, u.id)),
+  if(u.company_id > 0, 1, 0),
+  if(u.company_id > 0, company.vat, 0),
+
+  report.date,
+  report.aid,
+  u.uid
+
+     FROM extfin_reports report
+     LEFT JOIN users u ON (report.bill_id = u.bill_id)
+     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+     LEFT JOIN companies company ON  (u.company_id=company.id)
+    
+     WHERE $WHERE
+     GROUP BY 1
+     ORDER BY $SORT $DESC 
+     LIMIT 10
+   ;");
+
+
+
+  return $self;
+}
+
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "INSERT INTO extfin_paids 
+   (date, sum, describe, uid, aid, status)
+  VALUES ('$DATA{DATE}', '$DATA{SUM}', '$DATA{DESCRIBE}', '$DATA{UID}', '$DATA{AID}', '$DATA{STATUS}');", 'do');
+
+  return $self;
+}
+
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_change {
+  my $self = shift;
+  my ($attr) = @_;
+
+	my %FIELDS = ('ID'    => 'id', 
+	              'DATE'  => 'date', 
+	              'SUM'   => 'sum', 
+	              'DESCRIBE' => 'describe', 
+	              'UID'      => 'uid', 
+	              'AID'      => 'aid', 
+	              'STATUS'   => 'status'
+	              );
+
+
+ 	$self->changes($admin, { CHANGE_PARAM => 'ID',
+	                TABLE        => 'extfin_paids',
+	                FIELDS       => \%FIELDS,
+	                OLD_INFO     => $self->paid_info($attr),
+	                DATA         => $attr
+		              } );
+	
+
+  return $self;
+}
+
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_del {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "DELETE FROM extfin_paids 
+    WHERE id='$attr->{ID}';", 'do');
+
+  return $self;
+}
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_info {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "SELECT date, sum, describe, uid, aid, status
+   FROM extfin_paids WHERE id='$attr->{ID}';");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  ($self->{DATE}, 
+   $self->{SUM}, 
+   $self->{DESCRIBE}, 
+   $self->{UID}, 
+   $self->{AID},
+   $self->{STATUS}
+  ) = @{ $self->{list}->[0] };
+	
+  return $self;
+}
+
+
+
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paids_list {
+  my $self = shift;
+  my ($attr) = @_;
+
+  
+
+  return $self;
+}
+
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_reports {
+  my $self = shift;
+  my ($attr) = @_;
+
+
+  return $self;
 }
 
 1

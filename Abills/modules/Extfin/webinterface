@@ -93,7 +93,7 @@ sub exfin_export_customers {
     
     #$Extfin->{debug}=1;
     
-    my $self = $Extfin->payment_deed({ %LIST_PARAMS });
+    my $list = $Extfin->payment_deed({ %LIST_PARAMS });
 
     my $table = $html->table({ width      => '100%',
                                caption    => "PAYMENT_DEED $_DATE: $LIST_PARAMS{DATE_FROM}/$LIST_PARAMS{DATE_TO}",
@@ -166,7 +166,162 @@ sub exfin_export_customers {
 
 
 
+#**********************************************************
+#
+#**********************************************************
+sub extfin_monthly_summary {
+ my ($attr) = @_;
 
+ my $debug = $attr->{DEBUG} || 0;
+ my $debug_output = '';
+ 
+ $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+ my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+ 
+
+ if ($m == 1) {
+ 	 $m=12;
+ 	 $y--;
+  }
+ else {
+   $m--;
+  }
+ 
+ my $period = "$y-$m";
+ 
+ $debug_output .= "Extfin make summary. Period: $period\n" if ($debug > 1);
+
+ my $list = $Extfin->payment_deed({ MONTH => "$period" });
+
+  #                              title      => ['ID', $_NAME, $_TYPE, "$_SUM", "$_VAT", "$_TOTAL" ],
+
+
+
+
+ foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
+   my($name, $type, $vat)=split(/\|/, $Extfin->{NAMES}{$id});
+   my $total = $Extfin->{PAYMENT_DEED}{$id} + $Extfin->{PAYMENT_DEED}{$id} * ($vat / 100);
+     
+     # $table->addrow($id,
+     #  $name,
+     #  $type,
+     #  $Extfin->{PAYMENT_DEED}{$id},
+     #  $vat,
+     #  $total
+     # );
+      
+   $debug_output .= "PERIOD: $period BILL_ID: $id SUM: $Extfin->{PAYMENT_DEED}{$id} DATE: $DATE" if ($debug > 2);
+   if ($debug < 5) {
+     $Extfin->summary_add({
+      	  PERIOD  => $period,
+      	  BILL_ID => $id, 
+      	  SUM     => $Extfin->{PAYMENT_DEED}{$id}, 
+      	  DATE    => "$DATE", 
+      	  AID     => $admins->{AID}'
+      	 });
+      }
+  }
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub  extfin_periodic_paids {
+  my ($attr) = @_;
+
+  my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+  $debug_output .= "Extfin periodic paids\n" if ($debug > 1);
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub extfin_paids {
+
+  if ($FORM{add}) {
+    if (! $permissions{0}{1} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+     }
+
+    $Extfin->paid_add({ %FORM });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");	
+     }
+   }
+	elsif($FORM{set}) {
+    if (! $permissions{0}{4} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+     }
+
+    $Extfin->change({ %FORM });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+   }
+	elsif($FORM{del}) {
+    $Extfin->del();
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+	 }
+
+  if ($Extfin->{errno}) {
+    $html->message('err', $_ERROR, "[$Extfin->{errno}] $err_strs{$Extfin->{errno}}");
+   }
+
+ $html->tpl_show(_include('extfin_form_paid', 'Extfin'), $Extfin);
+
+ form_search({ SEARCH_FORM => $html->tpl_show(_include('extfin_search_paids', 'Extfin'),
+ 	                                            { %FORM },
+ 	                                            { notprint => 1 })    });
+
+
+my $list = $Extfin->paids_list({ %LIST_PARAMS });	
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_FEES",
+                            border     => 1,
+                            title      => ['#', $_NAME,  $_SUM, $_DESCRIBE, $_DATE, $_ADMIN, $_STATUS, '-', '-', '-'],
+                            cols_align => ['right', 'left', 'right', 'left', 'right', 'left', 'center:noprint', 'center:noprint', 'center:noprint', 'center:noprint'],
+                                  } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    #$change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[0]");
+   }
+  $table->addrow($html->b($line->[0]), 
+   $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
+   $line->[2], 
+   $line->[3], 
+   $line->[4], 
+   $line->[5], 
+   $line->[6], 
+   $change
+   );
+}
+
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$Extfin->{TOTAL}</b>" ] ]
+                     } );
+print $table->show();
+
+	
+	
+}
 
 
 1

@@ -497,7 +497,8 @@ sub session_sum {
     u.company_id,
     tp.payment_type,
     tp.octets_direction,
-    tp.traffic_transfer_period
+    tp.traffic_transfer_period,
+    tp.neg_deposit_filter_id
    FROM (users u, 
       dv_main dv, 
       tarif_plans tp)
@@ -526,11 +527,13 @@ sub session_sum {
    $self->{COMPANY_ID},
    $self->{PAYMENT_TYPE},
    $self->{OCTETS_DIRECTION},
-   $self->{TRAFFIC_TRANSFER_PERIOD}
+   $self->{TRAFFIC_TRANSFER_PERIOD},
+   $self->{NEG_DEPOSIT_FILTER}
   ) = @{ $self->{list}->[0] };
  }
 
  $self->{TP_ID}=$attr->{TP_ID} if (defined($attr->{TP_ID}));
+
 
  if ($attr->{USER_INFO}) {
  	
@@ -592,6 +595,7 @@ if ($self->{COMPANY_ID} > 0) {
   ($self->{BILL_ID}, $self->{VAT})= @{ $self->{list}->[0] };
   $sum = $sum + ((100 + $self->{COMPANY_VAT}) / 100) if ($self->{COMPANY_VAT});
 }
+
 
   return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_ID}, 0, 0;
 }
