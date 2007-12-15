@@ -504,8 +504,10 @@ sub paid_info {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "SELECT date, sum, describe, uid, aid, status
-   FROM extfin_paids WHERE id='$attr->{ID}';");
+  $self->query($db, "SELECT date, sum, describe, uid, aid, 
+  status, status_date, type
+   FROM extfin_paids, extfin_paids_types pt
+  WHERE id='$attr->{ID}';");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
