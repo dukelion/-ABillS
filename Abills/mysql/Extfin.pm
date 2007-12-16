@@ -520,7 +520,9 @@ sub paid_info {
    $self->{DESCRIBE}, 
    $self->{UID}, 
    $self->{AID},
-   $self->{STATUS}
+   $self->{STATUS},
+   $self->{STATUS_DATE},
+   $self->{TYPE},
   ) = @{ $self->{list}->[0] };
 	
   return $self;
@@ -536,7 +538,15 @@ sub paids_list {
   my $self = shift;
   my ($attr) = @_;
 
-  
+ $WHERE = '';
+
+ $self->query($db, "SELECT p.date, p.sum, p.describe, p.uid, p.id, 
+  p.status, p.status_date, pt.name, p.aid, p.type_id
+   FROM extfin_paids p, extfin_paids_types pt, admins a
+  WHERE 
+  p.type_id=pt.id and p.aid=a.aid
+  $WHERE;");
+
 
   return $self;
 }
@@ -552,5 +562,104 @@ sub paid_reports {
 
   return $self;
 }
+
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_type_add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "INSERT INTO extfin_paids_types 
+   (name)
+  VALUES ('$DATA{SUM}');", 'do');
+
+  return $self;
+}
+
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_types_change {
+  my $self = shift;
+  my ($attr) = @_;
+
+	my %FIELDS = ('ID'    => 'id', 
+	              'NAME'  => 'name'
+	              );
+
+
+ 	$self->changes($admin, { CHANGE_PARAM => 'ID',
+	                TABLE        => 'extfin_paids_types',
+	                FIELDS       => \%FIELDS,
+	                OLD_INFO     => $self->paid_types_info($attr),
+	                DATA         => $attr
+		              } );
+	
+
+  return $self;
+}
+
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_types_del {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "DELETE FROM extfin_paids_types 
+    WHERE id='$attr->{ID}';", 'do');
+
+  return $self;
+}
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_types_info {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "SELECT id, name
+   FROM extfin_paids_types
+  WHERE id='$attr->{ID}';");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  ($self->{ID}, 
+   $self->{NAME}
+  ) = @{ $self->{list}->[0] };
+	
+  return $self;
+}
+
+
+
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paids_list {
+  my $self = shift;
+  my ($attr) = @_;
+
+ $self->query($db, "SELECT id, name
+   FROM extfin_paids_types
+  $WHERE
+  ORDER BY $SORT $DESC
+  LIMIT $PG $ROWS_PAGES;");
+
+
+  return $self;
+}
+
+
 
 1

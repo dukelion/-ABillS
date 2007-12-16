@@ -117,7 +117,7 @@ sub user_status {
 
   $self->query($db, "$sql", 'do');
 	
-	my $a = `echo "==ACTIVE $sql" >> /tmp/ipn.log`;
+#	my $a = `echo "==ACTIVE $sql" >> /tmp/ipn.log`;
 	
  return $self;
 }
@@ -1114,11 +1114,11 @@ sub online_alive {
     and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')
     ;");
   
-  my $a = `echo "SELECT count(*) FROM dv_calls
-   WHERE  user_name = '$attr->{LOGIN}'  
-    and acct_session_id='$attr->{SESSION_ID}'
-    and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')
-    ;" >> /tmp/ipn.log`;
+#  my $a = `echo "SELECT count(*) FROM dv_calls
+#   WHERE  user_name = '$attr->{LOGIN}'  
+#    and acct_session_id='$attr->{SESSION_ID}'
+#    and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')
+#    ;" >> /tmp/ipn.log`;
   
   if ($self->{TOTAL} > 0) {
     my $sql = "UPDATE dv_calls SET  lupdated=UNIX_TIMESTAMP(),
@@ -1130,7 +1130,7 @@ sub online_alive {
     $self->query($db, $sql, 'do' );
     $self->{TOTAL} = 1;
     
-    my $a = `echo "==ALIVE $sql" >> /tmp/ipn.log`;
+#    my $a = `echo "==ALIVE $sql" >> /tmp/ipn.log`;
    }
 
   return $self;	
