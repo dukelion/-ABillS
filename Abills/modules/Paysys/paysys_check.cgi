@@ -77,7 +77,7 @@ payments();
 
 
 #debug
-my $a=`echo "-----\n$output2\n-$status \n"  >> /tmp/test_paysys`;
+#my $a=`echo "-----\n$output2\n-$status \n"  >> /tmp/test_paysys`;
 #print "//".$output2;
 
 
