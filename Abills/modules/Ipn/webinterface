@@ -1630,7 +1630,7 @@ sub ipn_change_status {
   my $speed_out=0;
    
   $num = 0;
-  if ($attr->{UID} && $conf{IPN_FW_RULE_UID)) {
+  if ($attr->{UID} && $conf{IPN_FW_RULE_UID}) {
   	$num = $attr->{UID};
    }
   else {
@@ -2559,15 +2559,6 @@ foreach my $line (@$list)   {
 }
 
 1
-
-
-
-
-n $debug_output;
-}
-
-1
-
 
 
 
