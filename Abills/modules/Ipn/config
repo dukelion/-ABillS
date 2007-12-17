@@ -14,7 +14,7 @@
                    "29:25:$_MONTH:ipn_use_allmonthes:"       => 4,
                    "30:0:IP Net:null:"                       => 5,
                    "31:30:IP Net comps:ipn_comps:"           => 5,
-                   "32:30:IPFW:ipn_ipfw:"                    => 5
+                   #"32:30:IPFW:ipn_ipfw:"                    => 5
                    );
 
 if ($conf{IPN_DETAIL}) {

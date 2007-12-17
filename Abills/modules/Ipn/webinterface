@@ -1518,7 +1518,8 @@ sub ipn_user_activate {
   elsif ($FORM{LOGOUT}) {
   	 ipn_change_status({ STATUS                => 'HANGUP',
   	 	                   FRAMED_IP_ADDRESS     => $ip,
-  	 	                   ACCT_TERMINATE_CAUSE  => 1
+  	 	                   ACCT_TERMINATE_CAUSE  => 1,
+  	 	                   UID                   => $UID
   	 	         	 	     });
      $html->message('info', $_INFO, "$_DISABLE IP: $ip");
    }
@@ -1580,7 +1581,8 @@ sub ipn_user_activate {
        $line->[2],  
        $online_ip,  
        $line->[4], 
-       int2byte($line->[5]), int2byte($line->[6]),
+       int2byte($line->[5]), 
+       int2byte($line->[6]),
        $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]&REMOTE_ADDR=$online_ip")
        )  if ($line->[11] == $LIST_PARAMS{UID} );
     }
@@ -1627,9 +1629,16 @@ sub ipn_change_status {
   my $speed_in=0;
   my $speed_out=0;
    
+  $num = 0;
+  if ($attr->{UID} && $conf{IPN_FW_RULE_UID)) {
+  	$num = $attr->{UID};
+   }
+  else {
+    my @ip_array = split(/\./, $ip, 4);
+    $num = $ip_array[3];
+   }
 
-  my @ip_array = split(/\./, $ip, 4);
-  my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
+  my $rule_num = $conf{IPN_FW_FIRST_RULE} + $num;
   my $cmd;
 
 	if ($STATUS eq 'ONLINE_ENABLE'){
@@ -1972,7 +1981,8 @@ sub ipn_user_add {
                    CONNECT_INFO      => 'ADMIN_ACTIVATE',
                    NAS_ID            => $FORM{NAS_ID},
                    TP                => $FORM{TP_ID},
-                   NAS_PORT          => $comp_number );
+                   NAS_PORT          => $comp_number,
+                   UID               => $UID );
      
        $Ipn->user_status({ %DATA });
        ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
@@ -2051,48 +2061,48 @@ sub ipn_user_add {
 }
 
 
-#**********************************************************
+##**********************************************************
+##
+##**********************************************************
+#sub ipn_ipfw {
+#	
+#my $fw = "00010       71       3320 deny log logamount 100 tcp from any to any 25 via rl0
+#01101       93       9935 deny ip from 192.168.0.101 to any via rl0
+#01102      270      17456 deny ip from 192.168.0.102 to any via rl0
+#01103        5        994 deny ip from 192.168.0.103 to any via rl0
+#01104        0          0 deny ip from 192.168.0.104 to any via rl0
+#01105       53       3026 deny ip from 192.168.0.105 to any via rl0
+#01106        6       1092 deny ip from 192.168.0.106 to any via rl0
+#01107       84       8657 deny ip from 192.168.0.107 to any via rl0
+#01108        5        994 deny ip from 192.168.0.108 to any via rl0
+#01109      755      47240 deny ip from 192.168.0.109 to any via rl0
+#01110        5       1175 deny ip from 192.168.0.110 to any via rl0
+#01111      443      29484 deny ip from 192.168.0.111 to any via rl0
+#01112       86       7552 deny ip from 192.168.0.112 to any via rl0
+#50000    54112   19223594 count ip from any to any in recv tun0
+#50001    56557    5803097 count ip from any to any out xmit tun0
+#65535 43820756 9909262975 allow ip from any to any
+#";
 #
-#**********************************************************
-sub ipn_ipfw {
-	
-my $fw = "00010       71       3320 deny log logamount 100 tcp from any to any 25 via rl0
-01101       93       9935 deny ip from 192.168.0.101 to any via rl0
-01102      270      17456 deny ip from 192.168.0.102 to any via rl0
-01103        5        994 deny ip from 192.168.0.103 to any via rl0
-01104        0          0 deny ip from 192.168.0.104 to any via rl0
-01105       53       3026 deny ip from 192.168.0.105 to any via rl0
-01106        6       1092 deny ip from 192.168.0.106 to any via rl0
-01107       84       8657 deny ip from 192.168.0.107 to any via rl0
-01108        5        994 deny ip from 192.168.0.108 to any via rl0
-01109      755      47240 deny ip from 192.168.0.109 to any via rl0
-01110        5       1175 deny ip from 192.168.0.110 to any via rl0
-01111      443      29484 deny ip from 192.168.0.111 to any via rl0
-01112       86       7552 deny ip from 192.168.0.112 to any via rl0
-50000    54112   19223594 count ip from any to any in recv tun0
-50001    56557    5803097 count ip from any to any out xmit tun0
-65535 43820756 9909262975 allow ip from any to any
-";
-
-my @rows = split(/\n/, $fw);
-
-
-$table = $html->table( { width       => '100%',
-                            caption     => "ipfw",
-                            border      => 1,
-                            title       => ["$_NUM", "$_IN", "$_OUT", "$_TYPE", "-"],
-                            cols_align  => ['right', 'right', 'center'],
-                           });
-
-
-foreach my $row (@rows) {
-	my ($num, $in, $out,  $type, $protocol, $other)=split(/ +/, $row, 6);
-	$table->addrow($num, $in, $out,  $type, $protocol, $other);
-}
-
-print	 $table->show();
-	
-}
+#my @rows = split(/\n/, $fw);
+#
+#
+#$table = $html->table( { width       => '100%',
+#                         caption     => "ipfw",
+#                         border      => 1,
+#                         title       => ["$_NUM", "$_IN", "$_OUT", "$_TYPE", "-"],
+#                         cols_align  => ['right', 'right', 'center'],
+#                     });
+#
+#
+#foreach my $row (@rows) {
+#	my ($num, $in, $out,  $type, $protocol, $other)=split(/ +/, $row, 6);
+#	$table->addrow($num, $in, $out,  $type, $protocol, $other);
+#}
+#
+#print	 $table->show();
+#	
+#}
 
 #**********************************************************
 #
@@ -2465,13 +2475,96 @@ sub ipn_detail_rotate {
     $Ipn->ipn_detail_rotate({ 
     	                        # TYPES  => [ 'SESSION_DETAILS', 'SESSION_INTERVALS'],
   	                          PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} });
-    $debug_output = "Make IPN details rotate\n" if ($debug > 0);
+    $debug_output .= "Make IPN details rotate\n" if ($debug > 0);
    }
 
   $DEBUG .= $debug_output;
   return $debug_output;
 }
 
+
+#**********************************************************
+# ipn_detail_rotate
+#**********************************************************
+sub ipn_periodic_session_restart {
+	my ($attr) = @_;
+  my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+
+
+#Get online
+$sessions->{debug}=1;
+my $list = $sessions->online({ NAS_TYPE eq 'ipcad' });
+
+foreach my $line (@$list)   {
+
+
+  my($ip, $login, $nas_id, $nas_ip, $connect_info, $uid);
+  my $nas ;
+  #Hangup and activate
+  if ($FORM{LOGOUT}) {
+  	 ipn_change_status({ STATUS                => 'HANGUP',
+  	 	                   FRAMED_IP_ADDRESS     => $ip,
+  	 	                   ACCT_TERMINATE_CAUSE  => 1,
+  	 	                   UID                   => $uid
+  	 	         	 	     });
+     $debug_output .= "$_DISABLE IP: $ip\n" if ($debug > 1);
+   }  
+
+  
+  #Activate
+  if ($FORM{ACTIVE}) {
+    use Auth;
+    if (int($nas_id) < 1) {
+      $debug_output .= "Unknown NAS\n";  	
+     }
+    else {
+      my $user  = $users->info( $LIST_PARAMS{UID} );
+      $nas->info({ NAS_ID => $nas_id });
+      
+      my %DATA = (ACCT_STATUS_TYPE   => 1, 
+                  USER_NAME          => $login, 
+                  SESSION_START      => 0, 
+                  ACCT_SESSION_ID    => mk_unique_value(10), 
+                  FRAMED_IP_ADDRESS  => $ip, 
+                  NAS_ID             => $nas_id,
+                  NAS_IP_ADDRESS     => $nas_ip,
+                  TP                 => 0,
+                  CALLING_STATION_ID => $ip,
+                  CONNECT_INFO       => $connect_info,
+                  UID                => $uid
+                 );
+    
+    my $Auth = Auth->new($db, \%conf);
+    my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, 
+                                         $nas, 
+                                         { SECRETKEY => $conf{secretkey} }
+                                         );
+
+    if ($r == 1) {
+       $debug_output .= "$RAD_PAIRS->{'Reply-Message'}";
+    	 return 0;
+     }
+     
+     
+     $Ipn->user_status({ %DATA });
+     ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
+    }
+   }
+
+  }
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
+
+1
+
+
+
+
+n $debug_output;
+}
 
 1
 
