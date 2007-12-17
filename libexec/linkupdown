@@ -154,7 +154,7 @@ require Dv;
 Dv->import();
 
 
-my $admin = Admins->new($db);
+my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 my $Dv = Dv->new($db, $admin, \%conf); 
 
@@ -162,13 +162,28 @@ my $Dv = Dv->new($db, $admin, \%conf);
 my @FW_ACTIONS = ();
 # Flush rules
   my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
+
+  my $user = undef;
   
+  if ($ARGV[0] eq 'ipn') {
+    if ($conf{IPN_FW_RULE_UID}) {
+      $user = $Dv->info(0, { LOGIN => $USER });
+      $inum = $user->{UID};
+     }
+    $conf{IPN_FW_FIRST_RULE}=$conf{IPN_FW_FIRST_RULE}-10000;
+
+    $START_FW[0]=$START_FW[0]+$conf{IPN_FW_FIRST_RULE};
+    $START_FW[1]=$START_FW[1]+$conf{IPN_FW_FIRST_RULE};
+    $START_FW[2]=$START_FW[2]+$conf{IPN_FW_FIRST_RULE};
+   }
+
   foreach my $num (@START_FW) {
-    $fw_num =     $num + $inum * 2;
-    $pipe_num =   $num + $inum * 2;
-    $fw_nums .=   ' ' . ($fw_num)   .' '. ($fw_num +1);
-    $pipe_nums .= ' ' . ($pipe_num) .' '. ($pipe_num+1);
-  }
+     $fw_num =     $num + $inum * 2;
+     $pipe_num =   $num + $inum * 2;
+     $fw_nums .=   ' ' . ($fw_num)   .' '. ($fw_num +1);
+     $pipe_nums .= ' ' . ($pipe_num) .' '. ($pipe_num+1);
+   }
+
 
 my %LIST_PARAMS = ();
 
@@ -188,7 +203,9 @@ if ($ACTION eq 'up') {
   my %nets   = ();
   my %expr   = ();
   
-  my $user = $Dv->info(0, { %LIST_PARAMS });
+  if (! defined($user)) {
+    $user = $Dv->info(0, { %LIST_PARAMS });
+   }
 
   if(defined($Dv->{errno})) {
      print "[$Dv->{errno}] $Dv->{errstr}\n";

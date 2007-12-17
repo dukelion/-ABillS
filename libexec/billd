@@ -40,12 +40,14 @@ elsif(defined($ARGV->{help})){
 CHECK exist connections
   checkppp    - check Active ppp on FreeBSD session and disconnect unknown ip
   checkpppd   - check Active pppd on Linux session and disconnect unknown ip
+  check_pptpd - chack Active PoPToP deamon on Linux
   checkmikro  - check Active ppp on Mikrotik session and disconnect unknown ip.
 CHECK speed
   checkspeed  - check cure speed for user on FreeBSD NAS. Arguments NAS_ID=xx
   checkspeed_mikro - check cure speed for user on Mikrotik. Arguments NAS_ID=xx
 CHECK connection Alive
   checklines  - Check alive connections
+  -d          - deamon mode
 
   debug       - debug mode
   NAS_IDS=... - Make actions for NAS
@@ -92,6 +94,7 @@ $LIST_PARAMS{DISABLE}   = 0;
 if (defined($ARGV->{checkppp}))     { check_ppp();              }
 elsif (defined($ARGV->{checkpppd})){	check_ppp({ LINUX => 1 });}
 elsif (defined($ARGV->{checkspeed})){	check_speed();            }
+elsif (defined($ARGV->{check_pptpd}))        { check_pptpd();            }
 elsif (defined($ARGV->{checkspeed_mikro}))   { check_speed_mikro();  }
 elsif (defined($ARGV->{checkmikro})){	check_mikro();            }
 else {
@@ -106,6 +109,15 @@ else {
    printf(" GT: %2.5f\n", $gen_time);
   }
 
+
+#***********************************************************
+# Deamon Mode
+#***********************************************************
+sub deamon {
+	
+	
+	
+}
 
 #***********************************************************
 # check_lines
@@ -659,6 +671,47 @@ sub check_speed_change {
 	
 	
 	return $cmd;
+}
+
+
+#**********************************************************
+# Check Active pptpd deamons
+# Kill All pptpd without parent
+#**********************************************************
+sub check_pptpd {
+  my ($attr) = @_;
+  
+  #my $ps = 'ps axj | grep pp';
+  my $ps = 'ps axj';
+  my %procs_hash = ();
+  open(PROCS, "$ps |") || die "Can't open file '$ps' $!\n";
+    while(<PROCS>) {
+      #LINUX
+    	if (/^(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(.+)/) {
+    	  $procs_hash{$2}{$1}="$10";
+    	  print "$2 - $3 / $10his	\n";
+    	 }
+    	#FreeBSD
+    	#USER   PID  PPID  PGID   SID JOBC STAT  TT       TIME COMMAND
+    	elsif (/^(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.+)$/) {
+    	  $procs_hash{$2}{$3}="$10";
+    	  print "$2 - $3 / $10his	\n";
+       }
+     
+     }
+  close(PROCS);
+
+  while(my($pid, $sec_hash)=each %procs_hash) {
+  	print "PID: $pid\n";
+  	while(my($ppid, $name)= each %$sec_hash) {
+  		 print "   $ppid\n";
+  		 if (! defined($procs_hash{$ppid})) {
+  		 	  print "Can't find parent PID: $pid PPID: $ppid NAME: $name\n";
+  		 	  # my $res = `/bin/kill -9 $pid;`;
+  		  }
+  	 }
+   }
+
 }
 
 #**********************************************************
