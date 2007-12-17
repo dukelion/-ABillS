@@ -131,15 +131,15 @@ if ($uid > 0) {
   my $default_index = 30;
   
   #Quick Amon Alive Update
-  if ($ENV{HTTP_USER_AGENT} =~ /^AMon / && $FORM{ALIVE}) {
- 	  require "Abills/modules/Ipn/webinterface";
+  #if ($ENV{HTTP_USER_AGENT} =~ /^AMon / && $FORM{ALIVE}) {
+ 	#  require "Abills/modules/Ipn/webinterface";
 
-    print $html->header();
-    $OUTPUT{BODY}="$html->{OUTPUT}";
-    ipn_user_activate();
-    print $html->tpl_show(templates('users_start'), \%OUTPUT);
- 	  exit;
-   }
+  #  print $html->header();
+  #  $OUTPUT{BODY}="$html->{OUTPUT}";
+  #  ipn_user_activate();
+  #  print $html->tpl_show(templates('users_start'), \%OUTPUT);
+ 	#  exit;
+  # }
 
   
   
