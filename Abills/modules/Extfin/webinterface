@@ -166,79 +166,79 @@ sub exfin_export_customers {
 
 
 
-#**********************************************************
+##**********************************************************
+##
+##**********************************************************
+#sub extfin_monthly_summary {
+# my ($attr) = @_;
 #
-#**********************************************************
-sub extfin_monthly_summary {
- my ($attr) = @_;
-
- my $debug = $attr->{DEBUG} || 0;
- my $debug_output = '';
- 
- $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
- my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
- 
-
- if ($m == 1) {
- 	 $m=12;
- 	 $y--;
-  }
- else {
-   $m--;
-  }
- 
- my $period = "$y-$m";
- 
- $debug_output .= "Extfin make summary. Period: $period\n" if ($debug > 1);
-
- my $list = $Extfin->payment_deed({ MONTH => "$period" });
-
-  #                              title      => ['ID', $_NAME, $_TYPE, "$_SUM", "$_VAT", "$_TOTAL" ],
-
-
-
-
- foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
-   my($name, $type, $vat)=split(/\|/, $Extfin->{NAMES}{$id});
-   my $total = $Extfin->{PAYMENT_DEED}{$id} + $Extfin->{PAYMENT_DEED}{$id} * ($vat / 100);
-     
-     # $table->addrow($id,
-     #  $name,
-     #  $type,
-     #  $Extfin->{PAYMENT_DEED}{$id},
-     #  $vat,
-     #  $total
-     # );
-      
-   $debug_output .= "PERIOD: $period BILL_ID: $id SUM: $Extfin->{PAYMENT_DEED}{$id} DATE: $DATE" if ($debug > 2);
-   if ($debug < 5) {
-     $Extfin->summary_add({
-      	  PERIOD  => $period,
-      	  BILL_ID => $id, 
-      	  SUM     => $Extfin->{PAYMENT_DEED}{$id}, 
-      	  DATE    => "$DATE", 
-      	  AID     => $admins->{AID}'
-      	 });
-      }
-  }
-
-  $DEBUG .= $debug_output;
-  return $debug_output;
-}
-
-#**********************************************************
+# my $debug = $attr->{DEBUG} || 0;
+# my $debug_output = '';
+# 
+# $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+# my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+# 
 #
-#**********************************************************
-sub  extfin_periodic_paids {
-  my ($attr) = @_;
+# if ($m == 1) {
+# 	 $m=12;
+# 	 $y--;
+#  }
+# else {
+#   $m--;
+#  }
+# 
+# my $period = "$y-$m";
+# 
+# $debug_output .= "Extfin make summary. Period: $period\n" if ($debug > 1);
+#
+# my $list = $Extfin->payment_deed({ MONTH => "$period" });
+#
+#  #                              title      => ['ID', $_NAME, $_TYPE, "$_SUM", "$_VAT", "$_TOTAL" ],
+#
+#
+#
+#
+# foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
+#   my($name, $type, $vat)=split(/\|/, $Extfin->{NAMES}{$id});
+#   my $total = $Extfin->{PAYMENT_DEED}{$id} + $Extfin->{PAYMENT_DEED}{$id} * ($vat / 100);
+#     
+#     # $table->addrow($id,
+#     #  $name,
+#     #  $type,
+#     #  $Extfin->{PAYMENT_DEED}{$id},
+#     #  $vat,
+#     #  $total
+#     # );
+#      
+#   $debug_output .= "PERIOD: $period BILL_ID: $id SUM: $Extfin->{PAYMENT_DEED}{$id} DATE: $DATE" if ($debug > 2);
+#   if ($debug < 5) {
+#     $Extfin->summary_add({
+#      	  PERIOD  => $period,
+#      	  BILL_ID => $id, 
+#      	  SUM     => $Extfin->{PAYMENT_DEED}{$id}, 
+#      	  DATE    => "$DATE", 
+#      	  AID     => $admins->{AID}'
+#      	 });
+#      }
+#  }
+#
+#  $DEBUG .= $debug_output;
+#  return $debug_output;
+#}
 
-  my $debug = $attr->{DEBUG} || 0;
-  my $debug_output = '';
-  $debug_output .= "Extfin periodic paids\n" if ($debug > 1);
-
-  $DEBUG .= $debug_output;
-  return $debug_output;
-}
+##**********************************************************
+##
+##**********************************************************
+#sub  extfin_periodic_paids {
+#  my ($attr) = @_;
+#
+#  my $debug = $attr->{DEBUG} || 0;
+#  my $debug_output = '';
+#  $debug_output .= "Extfin periodic paids\n" if ($debug > 1);
+#
+#  $DEBUG .= $debug_output;
+#  return $debug_output;
+#}
 
 
 #**********************************************************

@@ -642,24 +642,4 @@ sub paid_types_info {
 
 
 
-
-#**********************************************************
-# fees
-#**********************************************************
-sub paids_list {
-  my $self = shift;
-  my ($attr) = @_;
-
- $self->query($db, "SELECT id, name
-   FROM extfin_paids_types
-  $WHERE
-  ORDER BY $SORT $DESC
-  LIMIT $PG $ROWS_PAGES;");
-
-
-  return $self;
-}
-
-
-
 1
