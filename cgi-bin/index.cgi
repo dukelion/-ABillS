@@ -870,7 +870,7 @@ print $table->show();
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right', 'right', 'right'],
                         rows       => [ [ "$_TOTAL:", $html->b($payments->{TOTAL}), 
-                                          "$_SUM", $html->($payments->{SUM}) 
+                                          "$_SUM", $html->b($payments->{SUM}) 
                                        ] ],
                         rowcolor   => $_COLORS[2]
                       });
