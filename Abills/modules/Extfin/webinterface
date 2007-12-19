@@ -166,15 +166,15 @@ sub exfin_export_customers {
 
 
 
-##**********************************************************
-##
-##**********************************************************
-#sub extfin_monthly_summary {
-# my ($attr) = @_;
+#**********************************************************
 #
-# my $debug = $attr->{DEBUG} || 0;
-# my $debug_output = '';
-# 
+#**********************************************************
+sub extfin_monthly_summary {
+ my ($attr) = @_;
+
+ my $debug = $attr->{DEBUG} || 0;
+ my $debug_output = '';
+ 
 # $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
 # my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
 # 
@@ -222,23 +222,23 @@ sub exfin_export_customers {
 #      }
 #  }
 #
-#  $DEBUG .= $debug_output;
-#  return $debug_output;
-#}
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
 
-##**********************************************************
-##
-##**********************************************************
-#sub  extfin_periodic_paids {
-#  my ($attr) = @_;
+#**********************************************************
 #
-#  my $debug = $attr->{DEBUG} || 0;
-#  my $debug_output = '';
-#  $debug_output .= "Extfin periodic paids\n" if ($debug > 1);
-#
-#  $DEBUG .= $debug_output;
-#  return $debug_output;
-#}
+#**********************************************************
+sub  extfin_periodic_paids {
+  my ($attr) = @_;
+
+  my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+  $debug_output .= "Extfin periodic paids\n" if ($debug > 1);
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
 
 
 #**********************************************************
@@ -257,19 +257,19 @@ sub extfin_paids {
       $html->message('info', $_INFO, "$_ADDED");	
      }
    }
-	elsif($FORM{set}) {
+	elsif($FORM{change}) {
     if (! $permissions{0}{4} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
     	return 0;
      }
 
-    $Extfin->change({ %FORM });
+    $Extfin->paid_change({ %FORM });
     if (! $Extfin->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
      }
    }
 	elsif($FORM{del}) {
-    $Extfin->del();
+    $Extfin->paid_del({ ID => $FORM{del}  });
     if (! $Extfin->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
      }
@@ -321,6 +321,72 @@ print $table->show();
 
 	
 	
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub extfin_paids_types {
+
+  if ($FORM{add}) {
+    if (! $permissions{0}{1} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+     }
+
+    $Extfin->paid_type_add({ %FORM });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");	
+     }
+   }
+	elsif($FORM{change}) {
+    if (! $permissions{0}{4} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+     }
+
+    $Extfin->paid_type_change({ %FORM });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+   }
+	elsif($FORM{del}) {
+    $Extfin->paid_type_del();
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+	 }
+
+  if ($Extfin->{errno}) {
+    $html->message('err', $_ERROR, "[$Extfin->{errno}] $err_strs{$Extfin->{errno}}");
+   }
+
+ $html->tpl_show(_include('extfin_paid_type', 'Extfin'), $Extfin);
+
+
+my $list = $Extfin->paids_list({ %LIST_PARAMS });	
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_TYPES",
+                            border     => 1,
+                            title      => ['#', $_NAME,  $_PARIODIC, '-', '-'],
+                            cols_align => ['right', 'left', 'center', 'center:noprint', 'center:noprint'],
+                         } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    #$change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[0]");
+   }
+  $table->addrow($html->b($line->[0]), 
+   $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
+   $line->[2], 
+   $change
+   );
+}
+
+print $table->show();
+
 }
 
 
