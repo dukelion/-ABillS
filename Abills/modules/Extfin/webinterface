@@ -415,7 +415,7 @@ my $table = $html->table( { width      => '100%',
                             caption    => "PAYMENT_DEED $_DATE: $period",
                             border     => 1,
                             title      => ['#', $_PERIOD,  'BILL ID', $_NAME, $_TYPE, "$_SUM",  "$_VAT" ],
-                            cols_align => ['right', 'left', 'left', 'right', 'left', 'center',  'center', 'center:noprint', 'center:noprint'],
+                            cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'right', 'center',  'center', 'center:noprint', 'center:noprint'],
                          } );
 
 foreach my $line (@$list) {
