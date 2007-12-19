@@ -572,8 +572,8 @@ sub paid_type_add {
   my ($attr) = @_;
 
   $self->query($db, "INSERT INTO extfin_paids_types 
-   (name)
-  VALUES ('$DATA{SUM}');", 'do');
+   (name, periodic)
+  VALUES ('$DATA{SUM}', '$DATA{PERIODIC}');", 'do');
 
   return $self;
 }
@@ -582,12 +582,13 @@ sub paid_type_add {
 #**********************************************************
 # fees
 #**********************************************************
-sub paid_types_change {
+sub paid_type_change {
   my $self = shift;
   my ($attr) = @_;
 
-	my %FIELDS = ('ID'    => 'id', 
-	              'NAME'  => 'name'
+	my %FIELDS = ('ID'       => 'id', 
+	              'NAME'     => 'name',
+	              'PERIODIC' => 'periodic'
 	              );
 
 
@@ -606,7 +607,7 @@ sub paid_types_change {
 #**********************************************************
 # fees
 #**********************************************************
-sub paid_types_del {
+sub paid_type_del {
   my $self = shift;
   my ($attr) = @_;
 
@@ -619,11 +620,11 @@ sub paid_types_del {
 #**********************************************************
 # fees
 #**********************************************************
-sub paid_types_info {
+sub paid_type_info {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "SELECT id, name
+  $self->query($db, "SELECT id, name, periodic
    FROM extfin_paids_types
   WHERE id='$attr->{ID}';");
 
@@ -634,12 +635,30 @@ sub paid_types_info {
    }
 
   ($self->{ID}, 
-   $self->{NAME}
+   $self->{NAME},
+   $self->{PERIODIC}
   ) = @{ $self->{list}->[0] };
 	
   return $self;
 }
 
 
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_types_list {
+  my $self = shift;
+  my ($attr) = @_;
+
+
+ $WHERE = '';
+
+ $self->query($db, "SELECT name, periodic
+   FROM extfin_paids_types
+  ");
+
+
+  return $self;
+}
 
 1
