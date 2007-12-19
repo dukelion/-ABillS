@@ -2061,16 +2061,18 @@ if ($FORM{set}) {
          $Y++;
         }
        $D='01';
+       $M = sprintf("%02.d", $m);
       }
      else {
        ($Y, $M, $D)=split(/-/, $user->{EXPIRE}, 3);
       }
+    
 
 
     $shedule->add( {UID     => $LIST_PARAMS{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
-    	             D        => '01',
+    	             D        => $D,
                    M        => $M,
                    Y        => $Y,
                    DESCRIBE => "$message<br>
