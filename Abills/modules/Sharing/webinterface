@@ -1120,6 +1120,46 @@ sub sharing_user_info {
   
   $Sharing->{STATUS} = $status[$Sharing->{DISABLE}];
   $html->tpl_show(_include('sharing_user_info', 'Sharing'), $Sharing);
+  
+  
+  #Show rest traffic
+if ($Sharing->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
+	#Prepaid: period, traffic_type
+  my $list = $Sharing->{INFO_LIST};
+
+  my $table = $html->table( { caption     => "$_PREPAID",
+	                            width       => '100%',
+                              title_plain => ["$_TRAFF $_TYPE", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
+                              cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+                              rowcolor    => $_COLORS[1]
+                           } );
+	
+	foreach my $line  (@$list) {
+	  $table->addrow(
+	    $line->[0], 
+      $line->[1], 
+      $line->[2], 
+      ($line->[2] > 0 && $Sharing->{REST}->{$line->[0]} > 0) ? $Sharing->{REST}->{$line->[0]} : 0,
+      ($line->[2] > 0 && $Sharing->{REST}->{$line->[0]} < 0) ? abs($Sharing->{REST}->{$line->[0]}) : 0
+     );
+   }
+
+  print $table->show();	 
+  
+if ($Sharing->{EXTRA_TRAFIC}) {
+  $table = $html->table( { caption     => "$_EXTRA_TRAFIC",
+	                         width       => '100%',
+                           cols_align  => ['left', 'right'],
+                           rowcolor    => $_COLORS[1],
+                           rows        => [["$_REST (Mb):", $Sharing->{EXTRA_TRAFIC} ]]
+                        } );
+
+  print $table->show();	 
+ }
+
+
+}
+  
 }
 
 
@@ -1382,10 +1422,12 @@ elsif($FORM{del}) {
 
 
   if ($shedule->{TOTAL} > 0) {
+    $Tariffs->info( $shedule->{ACTION}, { MODULE => 'Sharing' } ),
+
   	$table = $html->table( { width      => '100%',
   		                       caption    => "$_SHEDULE",
                              cols_align => ['left', 'left'],
-                             rows       => [ [ "$_TARIF_PLAN:", "# $shedule->{ACTION}"   ],
+                             rows       => [ [ "$_TARIF_PLAN:", "# $shedule->{ACTION} : $Tariffs->{NAME}"   ],
                                              [ "$_DATE:",   "$shedule->{D}-$shedule->{M}-$shedule->{Y}" ],
                                              [ "$_ADDED:",  "$shedule->{DATE}"         ],
                                              [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  

@@ -1,12 +1,5 @@
-$web_interface    = 1;
-#Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:0:DUNES:dunes_list:"  => 6
                    );
 
-#%USER_FUNCTION_LIST = ("01:0:Dialup / VPN:dv_user_info:"     => 0,
-#                       "02:1:$_INFO:dv_user_info:"           => 0,
-#                       "03:1:$_STATS:dv_user_stats:"         => 0
-#                      );
-
-
 1
+

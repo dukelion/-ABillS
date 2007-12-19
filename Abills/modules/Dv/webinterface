@@ -2048,14 +2048,25 @@ sub dv_user_chg_tp {
 if ($FORM{set}) {
   if ($conf{DV_USER_CHG_TP_NPERIOD}) {
   	 # Get next month
-  	 my ($Y, $M,$D)=split(/-/, $DATE, 3);
-     $M++;
-     if ($M == 13) {
-       $M = 1;
-       $Y++;
+     my $Y;
+     my $M;
+     my $D;
+
+     if ($user->{EXPIRE} eq '0000-00-00') {
+       # Get next month
+       ($Y, $M, $D)=split(/-/, $DATE, 3);
+       $M++;
+       if ($M == 13) {
+         $M = 1;
+         $Y++;
+        }
+       $D='01';
+      }
+     else {
+       ($Y, $M, $D)=split(/-/, $user->{EXPIRE}, 3);
       }
 
-    $FORM{date_M}++;    
+
     $shedule->add( {UID     => $LIST_PARAMS{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
