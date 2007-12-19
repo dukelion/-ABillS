@@ -449,8 +449,9 @@ sub paid_add {
   my %DATA = $self->get_data($attr); 
 
   $self->query($db, "INSERT INTO extfin_paids 
-   (date, sum, describe, uid, aid, status)
-  VALUES ('$DATA{DATE}', '$DATA{SUM}', '$DATA{DESCRIBE}', '$DATA{UID}', '$DATA{AID}', '$DATA{STATUS}');", 'do');
+   (date, sum, describe, uid, aid, status, type)
+  VALUES ('$DATA{DATE}', '$DATA{SUM}', '$DATA{DESCRIBE}', '$DATA{UID}', '$DATA{AID}', 
+  '$DATA{STATUS}', '$DATA{TYPE}');", 'do');
 
   return $self;
 }
@@ -469,7 +470,8 @@ sub paid_change {
 	              'DESCRIBE' => 'describe', 
 	              'UID'      => 'uid', 
 	              'AID'      => 'aid', 
-	              'STATUS'   => 'status'
+	              'STATUS'   => 'status',
+	              'TYPE'     => 'type'
 	              );
 
 
