@@ -370,8 +370,10 @@ sub summary_add {
   my $self = shift;
   my ($attr) = @_;
 
+  my %DATA = $self->get_data($attr); 
+
   $self->query($db, "INSERT INTO extfin_reports (period, bill_id, sum, date, aid)
-  VALUES ('$DATA{PERIOD}', '$DATA{BILL_ID}', '$DATA{SUM}', '$DATA{DATE}', '$DATA{AID}');", 'do');
+  VALUES ('$DATA{PERIOD}', '$DATA{BILL_ID}', '$DATA{SUM}', '$DATA{DATE}', '$admin->{AID}');", 'do');
 
   return $self;
 }
@@ -393,7 +395,7 @@ sub summary_del {
 #**********************************************************
 # Show full reports
 #**********************************************************
-sub fin_full_reports {
+sub extfin_report_deeds {
   my $self = shift;
   my ($attr) = @_;
 
@@ -404,20 +406,18 @@ sub fin_full_reports {
  	 push @WHERE_RULES, "r.period>='$attr->{DATE_FROM}' AND report.period<='$attr->{DATE_TO}'";
   }
  elsif ($attr->{MONTH}) {
-   push @WHERE_RULES, "DATE_FORMAT(report.period, '%Y-%m')='$attr->{MONTH}'";
+   push @WHERE_RULES, "report.period='$attr->{MONTH}'";
   }
 
 
  my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db, "SELECT report.id, report.period, report.bill_id,
-   report.sum,
    if(u.company_id > 0, company.name,
           if(pi.fio<>'', pi.fio, u.id)),
-                         if(u.company_id > 0, company.name,
-                            if(pi.fio<>'', pi.fio, u.id)),
-  if(u.company_id > 0, 1, 0),
-  if(u.company_id > 0, company.vat, 0),
+   if(u.company_id > 0, 1, 0),
+   report.sum,
+   if(u.company_id > 0, company.vat, 0),
 
   report.date,
   report.aid,
@@ -431,12 +431,11 @@ sub fin_full_reports {
      WHERE $WHERE
      GROUP BY 1
      ORDER BY $SORT $DESC 
-     LIMIT 10
    ;");
 
 
 
-  return $self;
+  return $self->{list};
 }
 
 
@@ -446,6 +445,8 @@ sub fin_full_reports {
 sub paid_add {
   my $self = shift;
   my ($attr) = @_;
+
+  my %DATA = $self->get_data($attr); 
 
   $self->query($db, "INSERT INTO extfin_paids 
    (date, sum, describe, uid, aid, status)
@@ -570,6 +571,8 @@ sub paid_reports {
 sub paid_type_add {
   my $self = shift;
   my ($attr) = @_;
+
+  my %DATA = $self->get_data($attr); 
 
   $self->query($db, "INSERT INTO extfin_paids_types 
    (name, periodic)

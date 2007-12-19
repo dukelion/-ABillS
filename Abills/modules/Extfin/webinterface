@@ -175,53 +175,43 @@ sub extfin_monthly_summary {
  my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
  
-# $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
-# my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
-# 
-#
-# if ($m == 1) {
-# 	 $m=12;
-# 	 $y--;
-#  }
-# else {
-#   $m--;
-#  }
-# 
-# my $period = "$y-$m";
-# 
-# $debug_output .= "Extfin make summary. Period: $period\n" if ($debug > 1);
-#
-# my $list = $Extfin->payment_deed({ MONTH => "$period" });
-#
-#  #                              title      => ['ID', $_NAME, $_TYPE, "$_SUM", "$_VAT", "$_TOTAL" ],
-#
-#
-#
-#
-# foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
-#   my($name, $type, $vat)=split(/\|/, $Extfin->{NAMES}{$id});
-#   my $total = $Extfin->{PAYMENT_DEED}{$id} + $Extfin->{PAYMENT_DEED}{$id} * ($vat / 100);
-#     
-#     # $table->addrow($id,
-#     #  $name,
-#     #  $type,
-#     #  $Extfin->{PAYMENT_DEED}{$id},
-#     #  $vat,
-#     #  $total
-#     # );
-#      
-#   $debug_output .= "PERIOD: $period BILL_ID: $id SUM: $Extfin->{PAYMENT_DEED}{$id} DATE: $DATE" if ($debug > 2);
-#   if ($debug < 5) {
-#     $Extfin->summary_add({
-#      	  PERIOD  => $period,
-#      	  BILL_ID => $id, 
-#      	  SUM     => $Extfin->{PAYMENT_DEED}{$id}, 
-#      	  DATE    => "$DATE", 
-#      	  AID     => $admins->{AID}'
-#      	 });
-#      }
-#  }
-#
+ $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+ my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+ 
+
+ if ($m == 1) {
+ 	 $m=12;
+ 	 $y--;
+  }
+ else {
+   $m--;
+  }
+ 
+ $m = sprintf("%02.d", $m);
+ my $period = "$y-$m";
+ 
+ $debug_output .= "Extfin make summary. Period: $period\n" if ($debug > 1);
+ $Extfin->{debug}=1;
+
+ my $list = $Extfin->payment_deed({ MONTH => "$period" });
+
+ foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
+   my($name, $type, $vat)=split(/\|/, $Extfin->{NAMES}{$id});
+   my $total = $Extfin->{PAYMENT_DEED}{$id} + $Extfin->{PAYMENT_DEED}{$id} * ($vat / 100);
+      
+   $debug_output .= "PERIOD: $period BILL_ID: $id SUM: $Extfin->{PAYMENT_DEED}{$id} DATE: $DATE\n" if ($debug > 2);
+   if ($debug < 5) {
+     $Extfin->{debug}=1;
+     $Extfin->summary_add({
+      	  PERIOD  => $period,
+      	  BILL_ID => $id, 
+      	  SUM     => $Extfin->{PAYMENT_DEED}{$id}, 
+      	  DATE    => "$DATE", 
+      	  AID     => $admins->{AID}
+      	 });
+      }
+  }
+
   $DEBUG .= $debug_output;
   return $debug_output;
 }
@@ -389,6 +379,59 @@ print $table->show();
 
 }
 
+#**********************************************************
+# 
+#**********************************************************
+sub extfin_report_deeds {
 
+
+my @MONTH_ARR = ('');
+my ($Y, $M, $D)=split(/-/, $DATE, 3);
+for(my $i=1; $i<13; $i++) {
+	my $m = sprintf("%02.d", $i);
+	push @MONTH_HASH, "$Y-$m";
+}
+
+
+	  reports({ DATE          => $FORM{DATE}, 
+  	        PERIOD_FORM		=> 1,
+  	        FIELDS        => { %CAPTIONS_HASH },
+  	        XML           => 1,
+  	        EX_INPUTS     => [ $html->form_select('MONTH', { SELECTED   => $FORM{MONTH},
+ 	                                                           SEL_ARRAY  => \@MONTH_HASH,
+ 	                                                           NO_ID      => 1
+                                                          } )
+                               ]
+  	       });
+
+
+my $period = $FORM{MONTH} || "$Y-$M";
+
+#$LIST_PARAMS{DATE_FROM}/$LIST_PARAMS{DATE_TO}
+
+my $list = $Extfin->extfin_report_deeds({ %LIST_PARAMS, MONTH => $period  });
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "PAYMENT_DEED $_DATE: $period",
+                            border     => 1,
+                            title      => ['#', $_PERIOD,  'BILL ID', $_NAME, $_TYPE, "$_SUM",  "$_VAT" ],
+                            cols_align => ['right', 'left', 'left', 'right', 'left', 'center',  'center', 'center:noprint', 'center:noprint'],
+                         } );
+
+foreach my $line (@$list) {
+  $table->addrow($line->[0], 
+   $line->[1],
+   $line->[2], 
+   $line->[3],
+   $line->[4], 
+   $line->[5],
+   $line->[6], 
+   );
+}
+
+print $table->show();
+
+	
+}
 1
 
