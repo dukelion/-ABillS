@@ -393,7 +393,7 @@ for(my $i=1; $i<13; $i++) {
 }
 
 
-	  reports({ DATE          => $FORM{DATE}, 
+	reports({ DATE          => $FORM{DATE}, 
   	        PERIOD_FORM		=> 1,
   	        FIELDS        => { %CAPTIONS_HASH },
   	        XML           => 1,
@@ -416,6 +416,7 @@ my $table = $html->table( { width      => '100%',
                             border     => 1,
                             title      => ['#', $_PERIOD,  'BILL ID', $_NAME, $_TYPE, "$_SUM",  "$_VAT" ],
                             cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'right', 'center',  'center', 'center:noprint', 'center:noprint'],
+                            ID         => 'EXTFIN_PAYMENT_DEED',
                          } );
 
 foreach my $line (@$list) {
