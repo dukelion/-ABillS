@@ -1520,7 +1520,7 @@ sub ipn_user_activate {
   	 ipn_change_status({ STATUS                => 'HANGUP',
   	 	                   FRAMED_IP_ADDRESS     => $ip,
   	 	                   ACCT_TERMINATE_CAUSE  => 1,
-  	 	                   UID                   => $UID
+  	 	                   UID                   => $LIST_PARAMS{UID}
   	 	         	 	     });
      $html->message('info', $_INFO, "$_DISABLE IP: $ip");
    }

@@ -16,7 +16,7 @@ my $Extfin = Extfin->new($db, $admin, \%conf);
 # Contragents
 # Nachisleniya
 # Snyatiya
-sub exfin_export_customers {
+sub extfin_export_customers {
 	my ($attr) = @_;
   
   my $aaa = `echo "1C - $ENV{HTTP_USER_AGENT}" >> /tmp/user_agent`;
