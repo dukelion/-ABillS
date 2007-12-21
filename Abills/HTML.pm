@@ -381,7 +381,7 @@ sub form_select {
  	  my $H = $attr->{SEL_OPTIONS};
 	  while(my($k, $v) = each %$H) {
      $self->{SELECT} .= "<option value='$k'";
-     $self->{SELECT} .=' selected' if ($k eq $attr->{SELECTED});
+     $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
      $self->{SELECT} .= ">$v\n";	
      }
    }
@@ -393,7 +393,7 @@ sub form_select {
 	  foreach my $v (@$H) {
       my $id = (defined($attr->{ARRAY_NUM_ID})) ? $i : $v;
       $self->{SELECT} .= "<option value='$id'";
-      $self->{SELECT} .= ' selected' if (($i eq $attr->{SELECTED}) || ($v eq $attr->{SELECTED}) );
+      $self->{SELECT} .= ' selected' if ($attr->{SELECTED} && ( ($i eq $attr->{SELECTED}) || ($v eq $attr->{SELECTED}) ) );
       $self->{SELECT} .= ">$v\n";
       $i++;
      }
@@ -1028,10 +1028,14 @@ sub td {
   my $td = '';
 
   if ($attr->{TH}) {
-  	$td = "<TH $extra>$value</TH>";
+  	$td = "<TH $extra>";
+  	$td .= $value if (defined($value));
+  	$td .= "</TH>";
    }
   else {
-    $td = "<TD $extra>$value</TD>";
+    $td = "<TD $extra>";
+   	$td .= $value if (defined($value));
+  	$td .= "</TD>";
    }
 
   return $td;
@@ -1517,7 +1521,7 @@ foreach my $line (@alphabet) {
 
   for (my $i=$first; $i<=$last; $i++) {
     my $l = chr($i);
-    if ($FORM{letter} eq $l) {
+    if ($FORM{letter} && $FORM{letter} eq $l) {
       $letters .= "<b>$l </b>\n";
      }
     else {

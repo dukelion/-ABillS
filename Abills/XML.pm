@@ -246,7 +246,7 @@ sub form_select {
  	  my $H = $attr->{SEL_OPTIONS};
 	  while(my($k, $v) = each %$H) {
      $self->{SELECT} .= "<option value='$k'";
-     $self->{SELECT} .=' selected="1"' if ($k eq $attr->{SELECTED});
+     $self->{SELECT} .=' selected="1"' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
      $self->{SELECT} .= ">$v</option>\n";	
      }
    }
@@ -258,7 +258,7 @@ sub form_select {
 	  foreach my $v (@$H) {
       my $id = (defined($attr->{ARRAY_NUM_ID})) ? $i : $v;
       $self->{SELECT} .= "<option value='$id'";
-      $self->{SELECT} .= ' selected="1"' if (($i eq $attr->{SELECTED}) || ($v eq $attr->{SELECTED}) );
+      $self->{SELECT} .= ' selected="1"' if (defined($attr->{SELECTED}) && ( ($i eq $attr->{SELECTED}) || ($v eq $attr->{SELECTED}) ) );
       $self->{SELECT} .= ">$v</option>\n";
       $i++;
      }
@@ -613,7 +613,7 @@ sub header {
  my $admin_ip=$ENV{REMOTE_ADDR};
  $self->{header} = "Content-Type: text/xml\n\n";
 # my @_C;
- if ($COOKIES{colors} ne '') {
+ if ($COOKIES{colors} && $COOKIES{colors} ne '') {
    @_COLORS = split(/, /, $COOKIES{colors});
 #    @_C = split(/, /, $COOKIES{colors});
   }
@@ -869,10 +869,15 @@ sub td {
 
   my $td = '';
   if ($attr->{TH}) {
-  	$td = "<TH $extra>$value</TH>";
+  	$td = "<TH $extra>";
+   	$td .= $value if (defined($value));
+  	$td .= "</TH>";
+
    }
   else {
-    $td = "<TD$extra>$value</TD>";
+    $td = "<TD$extra>";
+   	$td .= $value if (defined($value));
+  	$td .= "</TD>";
    }
   return $td;
 }
@@ -1201,6 +1206,27 @@ sub test {
 
 
 #**********************************************************
+# b();
+#**********************************************************
+sub b {
+ my ($self) = shift; 
+ my ($text) = @_;
+
+ return $text;
+}
+
+#**********************************************************
+# b();
+#**********************************************************
+sub p {
+ my ($self) = shift; 
+ my ($text) = @_;
+
+ return $text;
+}
+
+
+#**********************************************************
 # letters_list();
 #**********************************************************
 sub letters_list {
@@ -1212,7 +1238,7 @@ sub letters_list {
 my $output = $self->button('All ', "index=$index");
 for (my $i=97; $i<123; $i++) {
   my $l = chr($i);
-  if ($FORM{letter} eq $l) {
+  if ($FORM{letter} && $FORM{letter} eq $l) {
      $output .= "<b>$l </b>";
    }
   else {
