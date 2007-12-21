@@ -241,6 +241,8 @@ foreach my $m (@MODULES) {
     #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB}<br>";
     
     if($SUB > 0) {
+    	my $dd = `     echo "$maxnumber | $module_fl{$SUB} | $SUB  | $NAME" >> /tmp/tttt `;
+
       $menu_items{$maxnumber}{$module_fl{$SUB}}=$NAME;
      } 
     else {
@@ -384,7 +386,7 @@ if ($admin->{WEB_OPTIONS}{qm} && ! $FORM{xml}) {
 #print "\n\n\n --------------\n$admin->{QUICK_MENU}\n\n\n --------------\n";
 
 $html->tpl_show(templates('header'), $admin);
-print $admin->{QUICK_MENU};
+print $admin->{QUICK_MENU} if ($admin->{QUICK_MENU});
 
 print "<tr  class='MENU'><td valign='top' width='18%' bgcolor='$_COLORS[2]' rowspan='2' class='noprint'>
 $menu_text
@@ -787,7 +789,7 @@ sub user_form {
    	 $user_info->{GID} = sel_groups();
     }
    elsif ($admin->{GID}) {
-   	 $user_info->{GID} .= "<input type='hidden' name='GID' value='$admin->{GID}'/>";
+   	 $user_info->{GID} .=  $html->form_input('GID', "$admin->{GID}", { TYPE => 'hidden' }); 
     }
    else {
    	 $user_info->{GID} = sel_groups();
@@ -2074,7 +2076,7 @@ my ($sec,$min,$hour,$mday,$mon, $gyear,$gwday,$yday,$isdst) = gmtime($curtime);
 print "<br><TABLE width=\"400\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">
 <tr><TD bgcolor=\"$_COLORS[4]\">
 <TABLE width=\"100%\" cellspacing=1 cellpadding=0 border=0>
-<tr bgcolor=\"$_COLORS[0]\"><th>". $html->button(' << ', 'index=75&month='.$p_month. '&year='.$p_year). "</th><th colspan=5>$MONTHES[$month] $year</th><th>". $html->button(' >> ', "index=75&month=$n_month&year=$n_year") ."</th></tr>
+<tr bgcolor=\"$_COLORS[0]\"><th>". $html->button(' << ', 'index=75&month='.$p_month. '&year='.$p_year). "</th><th colspan='5'>$MONTHES[$month] $year</th><th>". $html->button(' >> ', "index=75&month=$n_month&year=$n_year") ."</th></tr>
 <tr bgcolor=\"$_COLORS[0]\"><th>$WEEKDAYS[1]</th><th>$WEEKDAYS[2]</th><th>$WEEKDAYS[3]</th>
 <th>$WEEKDAYS[4]</th><th>$WEEKDAYS[5]</th>
 <th><font color=\"#FF0000\">$WEEKDAYS[6]</font></th><th><font color=#FF0000>$WEEKDAYS[7]</font></th></tr>\n";
@@ -2856,7 +2858,7 @@ if ($FORM{MONTH}) {
  }
 elsif($FORM{allmonthes}) {
 	$type='MONTH';
-	$pages_qs="&allmonthes=y";
+	$pages_qs="&allmonthes=1";
  }
 else {
 	($y, $m, $d)=split(/-/, $DATE, 3);
@@ -3125,7 +3127,7 @@ else{
 #
 #**********************************************************
 sub report_payments_month {
-	$FORM{allmonthes}='y';
+	$FORM{allmonthes}=1;
   report_payments();
 }
 
@@ -3164,7 +3166,8 @@ if (defined($FORM{DATE})) {
   	                      caption    => "$_PAYMENTS", 
                           title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT],
                           cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
-                          qs         => $pages_qs
+                          qs         => $pages_qs,
+                          ID         => 'PAYMENTS'
                          });
 
   foreach my $line (@$list) {
@@ -3198,7 +3201,8 @@ else{
 	                        caption    => $_PAYMENTS, 
                           title      => \@CAPTION,
                           cols_align => ['right', 'right', 'right'],
-                          qs         => $pages_qs
+                          qs         => $pages_qs,
+                          ID         => 'PAYMENTS'
                         });
 
 
@@ -3206,10 +3210,9 @@ else{
 
   foreach my $line (@$list) {
     $table->addrow(
-    
       ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') ? @PAYMENT_METHODS[$line->[0]] : $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
       $line->[1], 
-     "<b>$line->[2]</b>" );
+      $html->b($line->[2]) );
    }
 
 
@@ -3219,7 +3222,7 @@ else{
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right', 'right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$payments->{TOTAL}</b>", "$_SUM", "<b>$payments->{SUM}</b>" ] ],
+                           rows       => [ [ "$_TOTAL:", $html->b($payments->{TOTAL}), "$_SUM", $html->b($payments->{SUM}) ] ],
                            rowcolor   => $_COLORS[2]
                                } );
   print $table->show();
@@ -3412,7 +3415,7 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
         my $checked = undef;
         if (defined($qm{$k})) { 
         	$checked = 1;  
-        	$val = "<b>$val</b>";
+        	$val = $html->b($val);
          }
 
         
@@ -3583,14 +3586,15 @@ my $table = $html->table( { width      => '100%',
                             title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', '-'],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $payments->{TOTAL}
+                            pages      => $payments->{TOTAL},
+                            ID         => 'PAYMENTS'
                            } );
 
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 
 foreach my $line (@$list) {
   my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[10]$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
-  $table->addrow("<b>$line->[0]</b>", 
+  $table->addrow($html->b($line->[0]), 
   $html->button($line->[1], "index=15&UID=$line->[10]"), 
   $line->[2], 
   $line->[3], 
@@ -3607,7 +3611,7 @@ print $table->show();
 
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right', 'right', 'right'],
-                        rows       => [ [ "$_TOTAL:", "<b>$payments->{TOTAL}</b>", "$_SUM", "<b>$payments->{SUM}</b>" ] ],
+                        rows       => [ [ "$_TOTAL:", $html->b($payments->{TOTAL}), "$_SUM", $html->b($payments->{SUM}) ] ],
                         rowcolor   => $_COLORS[2]
                       });
 print $table->show();
@@ -3673,7 +3677,10 @@ my $table = $html->table( { width      => '640',
 
 my $list = $finance->exchange_list( {%LIST_PARAMS} );
 foreach my $line (@$list) {
-  $table->addrow($line->[0], $line->[1], $line->[2], $line->[3], 
+  $table->addrow($line->[0], 
+     $line->[1], 
+     $line->[2], 
+     $line->[3], 
      $html->button($_CHANGE, "index=65&chg=$line->[4]"), 
      $html->button($_DEL, "index=65&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]]?" } ));
 }
@@ -3821,8 +3828,9 @@ my $table = $html->table( { width      => '100%',
                             title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $fees->{TOTAL}
-                                  } );
+                            pages      => $fees->{TOTAL},
+                            ID         => 'FEES'
+                        } );
 
 
 $pages_qs .= "&subf=2" if (! $FORM{subf});
@@ -3830,15 +3838,22 @@ foreach my $line (@$list) {
   my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[8]$pages_qs", 
    { MESSAGE => "$_DEL ID: $line->[0]?" }) : ''; 
 
-  $table->addrow("<b>$line->[0]</b>", $html->button($line->[1], "index=15&UID=$line->[8]"), $line->[2], 
-   $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]", $delete);
+  $table->addrow($html->b($line->[0]), 
+  $html->button($line->[1], "index=15&UID=$line->[8]"), 
+  $line->[2], 
+  $line->[3], 
+  $line->[4],  
+  "$line->[5]", 
+  "$line->[6]", 
+  "$line->[7]", 
+  $delete);
 }
 
 print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right', 'right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM:", "<b>$fees->{SUM}</b>" ] ],
+                         rows       => [ [ "$_TOTAL:", $html->b($fees->{TOTAL}), "$_SUM:", $html->b($fees->{SUM}) ] ],
                          rowcolor   => $_COLORS[2]
                                   } );
 print $table->show();
@@ -3910,7 +3925,10 @@ if (defined($attr->{SIMPLE})) {
 
 	my $SEARCH_FIELDS = $attr->{SIMPLE};
 	while(my($k, $v)=each( %$SEARCH_FIELDS )) {
-	  $SEARCH_DATA{SEARCH_FORM}.="<tr><td>$k:</td><td><input type=\"text\" name=\"$v\" value=\"%". $v ."%\"/></td></tr>\n";
+	  $SEARCH_DATA{SEARCH_FORM}.="<tr><td>$k:</td><td>";
+	  $SEARCH_DATA{SEARCH_FORM}.=$html->form_input("$v", '%'. $v .'%');
+	  $SEARCH_DATA{SEARCH_FORM}.="</td></tr>\n";
+
 	 }
 
   $html->tpl_show(templates('form_search_simple'), \%SEARCH_DATA);
@@ -3942,8 +3960,8 @@ elsif($search_form{$FORM{type}}) {
  	                               });
    }
 	
-	$SEARCH_DATA{SEARCH_FORM} = $html->tpl_show(templates($search_form{$FORM{type}}), { %info, %FORM, GROUPS_SEL => $group_sel }, { notprint => 1 });
-	$SEARCH_DATA{SEARCH_FORM} .= "<input type='hidden' name='type' value='$FORM{type}'>";
+	$SEARCH_DATA{SEARCH_FORM} =  $html->tpl_show(templates($search_form{$FORM{type}}), { %info, %FORM, GROUPS_SEL => $group_sel }, { notprint => 1 });
+	$SEARCH_DATA{SEARCH_FORM} .= $html->form_input('type', "$FORM{type}", { TYPE => 'hidden' });
  }
 
 $SEARCH_DATA{FROM_DATE} = $html->date_fld('FROM_', { MONTHES => \@MONTHES });
@@ -3958,13 +3976,15 @@ my $SEL_TYPE = $html->form_select('type',
 #$SEARCH_DATA{SEL_TYPE}  = "<tr><td>WHERE:</td><td>$SEL_TYPE</td></tr>\n" if ($index == 7);
 
 if ($index == 7) {
-	$SEARCH_DATA{SEL_TYPE}="<tr><td colspan=2>\n<table width=100%><tr>";
+	$SEARCH_DATA{SEL_TYPE}="<tr><td colspan='2'>\n<table width='100%'><tr>";
 	
 	while(my($k, $v) = each %SEARCH_TYPES ) {
     if ($k == 11 || $k == 13 || $permissions{($k-1)}) {
 		  $SEARCH_DATA{SEL_TYPE}.= "<th";
 		  $SEARCH_DATA{SEL_TYPE}.= " bgcolor=$_COLORS[0]" if ($FORM{type} eq $k);
-		  $SEARCH_DATA{SEL_TYPE}.= "><a href='$SELF_URL?index=$index&search=1&type=$k'>$v</a></th>\n";
+		  $SEARCH_DATA{SEL_TYPE}.= '>';
+		  $SEARCH_DATA{SEL_TYPE}.= $html->button($v, "index=$index&search=1&type=$k");
+		  $SEARCH_DATA{SEL_TYPE}.="</th>\n";
  		 }
     #else {
     #	print "$k / '$permissions{$k}' ";
@@ -4449,7 +4469,7 @@ sub form_webserver_info {
  print $table->show();
  
 
- my $table = $html->table( {
+ $table = $html->table( {
 		                         caption     => '/var/log/httpd/abills-error.log',
 		                         width       => '100%',
                              title_plain => ["$_DATE", "$_ERROR", "CLIENT", "LOG"],
