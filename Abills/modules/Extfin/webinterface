@@ -376,6 +376,67 @@ foreach my $line (@$list) {
 }
 
 print $table->show();
+}
+
+
+#**********************************************************
+# 
+#**********************************************************
+sub extfin_report_deeds {
+
+
+
+if ($FORM{show}) {
+  if ($FORM{xml}) {
+    print "Content-Type: text/xml\n\n";
+    print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
+   }
+  elsif($FORM{qindex}) {
+    print "Content-Type: text/html\n\n";
+   }
+ }
+
+my @MONTH_ARR = ('');
+my ($Y, $M, $D)=split(/-/, $DATE, 3);
+for(my $i=1; $i<13; $i++) {
+	my $m = sprintf("%02.d", $i);
+	push @MONTH_ARR, "$Y-$m";
+}
+
+
+	reports({ DATE          => $FORM{DATE}, 
+  	        PERIOD_FORM		=> 1,
+   	        XML           => 1,
+  	        EX_INPUTS     => [ $html->form_select('MONTH', { SELECTED   => $FORM{MONTH},
+ 	                                                           SEL_ARRAY  => \@MONTH_HASH,
+ 	                                                           NO_ID      => 1
+                                                          } )
+                               ]
+ 	       });
+
+my $list = $Extfin->extfin_report_paids({ %LIST_PARAMS, MONTH => $period  });
+
+$table = $html->table( { width      => '100%',
+                         caption    => "PAYMENT_DEED $_DATE: $period",
+                         border     => 1,
+                         title      => ['#', $_PERIOD,  $_SUM, $_NAME, $_TYPE, "$_SUM",  "$_VAT" ],
+                         cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'right', 'center',  'center', 'center:noprint', 'center:noprint'],
+                         ID         => 'EXTFIN_PAYMENT_DEED',
+                      } );
+
+foreach my $line (@$list) {
+  $table->addrow($line->[0], 
+   $line->[1],
+   $line->[2], 
+   $line->[3],
+   $line->[4], 
+   $line->[5],
+   $line->[6], 
+   );
+}
+
+print $table->show();
+
 
 }
 
@@ -385,25 +446,62 @@ print $table->show();
 sub extfin_report_deeds {
 
 
+
+if ($FORM{show}) {
+  if ($FORM{xml}) {
+    print "Content-Type: text/xml\n\n";
+    print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
+   }
+  elsif($FORM{qindex}) {
+    print "Content-Type: text/html\n\n";
+   }
+ }
+
 my @MONTH_ARR = ('');
 my ($Y, $M, $D)=split(/-/, $DATE, 3);
 for(my $i=1; $i<13; $i++) {
 	my $m = sprintf("%02.d", $i);
-	push @MONTH_HASH, "$Y-$m";
+	push @MONTH_ARR, "$Y-$m";
 }
 
 
-	reports({ DATE          => $FORM{DATE}, 
-  	        PERIOD_FORM		=> 1,
-  	        FIELDS        => { %CAPTIONS_HASH },
-  	        XML           => 1,
-  	        EX_INPUTS     => [ $html->form_select('MONTH', { SELECTED   => $FORM{MONTH},
- 	                                                           SEL_ARRAY  => \@MONTH_HASH,
- 	                                                           NO_ID      => 1
-                                                          } )
-                               ]
-  	       });
+#	reports({ DATE          => $FORM{DATE}, 
+#  	        PERIOD_FORM		=> 1,
+#  	        XML           => 1,
+#  	        EX_INPUTS     => [ $html->form_select('MONTH', { SELECTED   => $FORM{MONTH},
+# 	                                                           SEL_ARRAY  => \@MONTH_HASH,
+# 	                                                           NO_ID      => 1
+#                                                          } )
+#                               ]
+#  	       });
 
+
+if (! $FORM{xml}) {
+  my $table = $html->table( { width       => '100%',
+	                       rowcolor    => $_COLORS[0],
+                         rows        => [[ "$_FROM: ",   $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                           "$_TO: ",     $html->date_fld('to', { MONTHES => \@MONTHES } ),
+                                           "$_PERIOD: ", $html->form_select('MONTH', { SELECTED   => $FORM{MONTH},
+ 	                                                           SEL_ARRAY  => \@MONTH_ARR,
+ 	                                                           NO_ID      => 1
+                                                          } ),
+                                          "XML: ",  $html->form_input('xml', 1, { TYPE => 'checkbox' } ),
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' })
+                                         ]],                                   
+                      });
+
+  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { 
+	                                    qindex => "$index"
+	                                     }
+	                       });
+
+
+}
+
+
+#$LIST_PARAMS{DATE_FROM}
+#$LIST_PARAMS{DATE_TO} 
 
 my $period = $FORM{MONTH} || "$Y-$M";
 
@@ -411,7 +509,7 @@ my $period = $FORM{MONTH} || "$Y-$M";
 
 my $list = $Extfin->extfin_report_deeds({ %LIST_PARAMS, MONTH => $period  });
 
-my $table = $html->table( { width      => '100%',
+$table = $html->table( { width      => '100%',
                             caption    => "PAYMENT_DEED $_DATE: $period",
                             border     => 1,
                             title      => ['#', $_PERIOD,  'BILL ID', $_NAME, $_TYPE, "$_SUM",  "$_VAT" ],
