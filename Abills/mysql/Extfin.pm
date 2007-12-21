@@ -401,11 +401,11 @@ sub extfin_report_deeds {
  @WHERE_RULES = ();
  my %NAMES=();
 
- if ($attr->{DATE_FROM}) {
- 	 push @WHERE_RULES, "r.period>='$attr->{DATE_FROM}' AND report.period<='$attr->{DATE_TO}'";
-  }
- elsif ($attr->{MONTH}) {
+ if ($attr->{MONTH}) {
    push @WHERE_RULES, "report.period='$attr->{MONTH}'";
+  }
+ elsif ($attr->{DATE_FROM}) {
+ 	 push @WHERE_RULES, "report.period>='$attr->{DATE_FROM}' AND report.period<='$attr->{DATE_TO}'";
   }
 
 
