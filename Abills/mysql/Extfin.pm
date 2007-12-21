@@ -1,5 +1,5 @@
 package Extfin;
-# Users manage functions
+# External finance manage functions
 #
 
 use strict;
@@ -16,7 +16,7 @@ $VERSION = 2.00;
 %EXPORT_TAGS = ();
 
 # User name expration
-my $usernameregexp = "^[a-z0-9_][a-z0-9_-]*\$"; # configurable;
+#my $usernameregexp = "^[a-z0-9_][a-z0-9_-]*\$"; # configurable;
 
 use main;
 @ISA  = ("main");
@@ -32,11 +32,10 @@ sub new {
   #$WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
   
   $admin->{MODULE}='Extfin';
-#  $CONF->{MAX_USERNAME_LENGTH} = 10 if (! defined($CONF->{MAX_USERNAME_LENGTH}));
-  
-  if (defined($CONF->{USERNAMEREGEXP})) {
-  	$usernameregexp=$CONF->{USERNAMEREGEXP};
-   }
+  #  $CONF->{MAX_USERNAME_LENGTH} = 10 if (! defined($CONF->{MAX_USERNAME_LENGTH}));
+  #if (defined($CONF->{USERNAMEREGEXP})) {
+  #	$usernameregexp=$CONF->{USERNAMEREGEXP};
+  # }
 
   my $self = { };
 
@@ -541,17 +540,76 @@ sub paids_list {
   my $self = shift;
   my ($attr) = @_;
 
- $WHERE = '';
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
+ my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 100;
+
+ $self->{SEARCH_FIELDS} = '';
+ $self->{SEARCH_FIELDS_COUNT}=0;
+ 
+ undef @WHERE_RULES;
+ my $search_fields = '';
+
+ # Start letter 
+ if ($attr->{FIRST_LETTER}) {
+    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+  }
+ elsif ($attr->{LOGIN}) {
+    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
+  }
+ # Login expresion
+ elsif ($attr->{LOGIN_EXPR}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+  }
+ 
+ if ($attr->{SUM}) {
+    my $value = $self->search_expr($attr->{SUM}, 'INT');
+    push @WHERE_RULES, "p.sum$value";
+  }
+
+ if ($attr->{STATUS}) {
+    my $value = $self->search_expr($attr->{STATE}, 'INT');
+    push @WHERE_RULES, "p.status$value";
+  }
+
+ if ($attr->{TYPE}) {
+    my $value = $self->search_expr($attr->{TYPE}, 'INT');
+    push @WHERE_RULES, "p.type_id$value";
+  }
+
+ if ($attr->{DESCRIBE}) {
+    $attr->{DESCRIBE} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "p.descr LIKE '$attr->{DESCRIBE}'";
+  }
+
+
+ 
+ $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
 
  $self->query($db, "SELECT p.date, p.sum, p.describe, p.uid, p.id, 
   p.status, p.status_date, pt.name, p.aid, p.type_id
    FROM extfin_paids p, extfin_paids_types pt, admins a
   WHERE 
   p.type_id=pt.id and p.aid=a.aid
-  $WHERE;");
+  $WHERE
+  ORDER BY $SORT $DESC 
+  LIMIT $PG, $PAGE_ROWS;");
 
 
-  return $self;
+  my $list = $self->{list};
+
+  if ($self->{TOTAL} > 0 || $PG > 0) {
+    $self->query($db, "SELECT count(id), sum(sum)
+     FROM extfin_paids p, extfin_paids_types pt
+    WHERE p.type_id=pt.id 
+    $WHERE;");
+   }
+  
+  ($self->{TOTAL}, $self->{SUN}) = @{ $self->{list}->[0] };
+
+  return $list;
 }
 
 
@@ -562,8 +620,75 @@ sub paid_reports {
   my $self = shift;
   my ($attr) = @_;
 
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
+ my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 100;
 
-  return $self;
+ $self->{SEARCH_FIELDS} = '';
+ $self->{SEARCH_FIELDS_COUNT}=0;
+ 
+ undef @WHERE_RULES;
+ my $search_fields = '';
+
+ # Start letter 
+ if ($attr->{FIRST_LETTER}) {
+    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+  }
+ elsif ($attr->{LOGIN}) {
+    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
+  }
+ # Login expresion
+ elsif ($attr->{LOGIN_EXPR}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+  }
+ 
+ if ($attr->{SUM}) {
+    my $value = $self->search_expr($attr->{SUM}, 'INT');
+    push @WHERE_RULES, "p.sum$value";
+  }
+
+ if ($attr->{STATUS}) {
+    my $value = $self->search_expr($attr->{STATE}, 'INT');
+    push @WHERE_RULES, "p.status$value";
+  }
+
+ if ($attr->{TYPE}) {
+    my $value = $self->search_expr($attr->{TYPE}, 'INT');
+    push @WHERE_RULES, "p.type_id$value";
+  }
+
+ if ($attr->{DESCRIBE}) {
+    $attr->{DESCRIBE} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "p.descr LIKE '$attr->{DESCRIBE}'";
+  }
+
+
+ 
+ $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
+
+ $self->query($db, "SELECT p.date, p.sum, p.describe, p.uid, p.id, 
+  p.status, p.status_date, pt.name, p.aid, p.type_id
+   FROM extfin_paids p, extfin_paids_types pt, admins a
+  WHERE 
+  p.type_id=pt.id and p.aid=a.aid
+  $WHERE
+  ORDER BY $SORT $DESC 
+  LIMIT $PG, $PAGE_ROWS;");
+
+
+  my $list = $self->{list};
+if ($self->{TOTAL} > 0 || $PG > 0) {
+  $self->query($db, "SELECT count(id), sum(sum)
+   FROM extfin_paids p, extfin_paids_types pt
+  WHERE p.type_id=pt.id 
+  $WHERE;");
+  
+  ($self->{TOTAL}, $self->{SUN}) = @{ $self->{list}->[0] };
+}
+
+  return $list;
 }
 
 

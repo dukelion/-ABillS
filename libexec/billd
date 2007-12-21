@@ -10,7 +10,8 @@ use vars  qw(%RAD %conf @MODULES $db $DATE $GZIP $MYSQLDUMP %ADMIN_REPORT $IPFW
  @START_FW
  $SNMPWALK
  $SNMPSET
- 
+
+ $var_dir
  $db
  
  $base_dir
@@ -30,6 +31,9 @@ my $begin_time = check_time();
 my $debug=0;
 my $debug_output = '';
 my $ARGV = parse_arguments(\@ARGV);
+my $log_dir = $var_dir.'/log';
+exit if(make_pid($log_dir."/billd.pid") == 1);
+
 
 if (defined($ARGV->{debug})) {
   $debug=$ARGV->{debug} || 1;
@@ -109,6 +113,7 @@ else {
    printf(" GT: %2.5f\n", $gen_time);
   }
 
+make_pid($log_dir."/billd.pid", 'clean');
 
 #***********************************************************
 # Deamon Mode
@@ -933,6 +938,58 @@ sub check_mikro {
 	
 	#return \%info_hash;
 }
+
+
+#**********************************************************
+# Check running program
+#**********************************************************
+sub make_pid {
+  my ($pid_file, $attr) = @_;
+  
+  if ($attr && $attr eq 'clean') {
+  	unlink($pid_file);
+  	return 0;
+   }
+  
+  if (-f $pid_file) {
+  	open(PIDFILE, "$pid_file") || die "Can't open pid file '$pid_file' $!\n";
+  	  my @pids = <PIDFILE>;
+  	close(PIDFILE);
+    
+    my $pid = $pids[0];
+    if(verify($pid)) {
+     	print "Proccess running PID: $pid\n";
+   	  return 1;
+     }
+   }
+  
+  my $traffic2sql_pid = $$;  
+	open(PIDFILE, ">$pid_file") || die "Can't open pid file '$pid_file' $!\n";
+	  print PIDFILE $traffic2sql_pid;
+	close(PIDFILE);    
+  
+  return 0;
+}
+
+#**********************************************************
+# Check running program
+#**********************************************************
+sub verify {
+    my ($pid) = @_;
+
+    my $me = $$;  # = $self->{verify};
+
+    my @ps = split m|$/|, qx/ps -fp $pid/
+           || die "ps utility not available: $!";
+    s/^\s+// for @ps;   # leading spaces confuse us
+
+    no warnings;    # hate that deprecated @_ thing
+    my $n = split(/\s+/, $ps[0]);
+    @ps = split /\s+/, $ps[1], $n;
+
+    return ($ps[0]) ? 1 : 0;
+}
+
 
 __END__
 
