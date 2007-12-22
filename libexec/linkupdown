@@ -170,7 +170,7 @@ my @FW_ACTIONS = ();
       $user = $Dv->info(0, { LOGIN => $USER });
       $inum = $user->{UID};
      }
-    $conf{IPN_FW_FIRST_RULE}=$conf{IPN_FW_FIRST_RULE}-10000;
+    $conf{IPN_FW_FIRST_RULE}=$conf{IPN_FW_FIRST_RULE};
 
     $START_FW[0]=$START_FW[0]+$conf{IPN_FW_FIRST_RULE};
     $START_FW[1]=$START_FW[1]+$conf{IPN_FW_FIRST_RULE};
