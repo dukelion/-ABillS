@@ -379,77 +379,82 @@ print $table->show();
 }
 
 
+##**********************************************************
+## 
+##**********************************************************
+#sub extfin_report_deeds {
+#
+#
+#
+#if ($FORM{show}) {
+#  if ($FORM{xml}) {
+#    print "Content-Type: text/xml\n\n";
+#    print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
+#   }
+#  elsif($FORM{qindex}) {
+#    print "Content-Type: text/html\n\n";
+#   }
+# }
+#
+#my @MONTH_ARR = ('');
+#my ($Y, $M, $D)=split(/-/, $DATE, 3);
+#for(my $i=1; $i<13; $i++) {
+#	my $m = sprintf("%02.d", $i);
+#	push @MONTH_ARR, "$Y-$m";
+#}
+#
+#
+#	reports({ DATE          => $FORM{DATE}, 
+#  	        PERIOD_FORM		=> 1,
+#   	        XML           => 1,
+#  	        EX_INPUTS     => [ $html->form_select('MONTH', { SELECTED   => $FORM{MONTH},
+# 	                                                           SEL_ARRAY  => \@MONTH_HASH,
+# 	                                                           NO_ID      => 1
+#                                                          } )
+#                               ]
+# 	       });
+#
+#my $list = $Extfin->extfin_report_paids({ %LIST_PARAMS, MONTH => $period  });
+#
+#$table = $html->table( { width      => '100%',
+#                         caption    => "PAYMENT_DEED $_DATE: $period",
+#                         border     => 1,
+#                         title      => ['#', $_PERIOD,  $_SUM, $_NAME, $_TYPE, "$_SUM",  "$_VAT" ],
+#                         cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'right', 'center',  'center', 'center:noprint', 'center:noprint'],
+#                         ID         => 'EXTFIN_PAYMENT_DEED',
+#                      } );
+#
+#foreach my $line (@$list) {
+#  $table->addrow($line->[0], 
+#   $line->[1],
+#   $line->[2], 
+#   $line->[3],
+#   $line->[4], 
+#   $line->[5],
+#   $line->[6], 
+#   );
+#}
+#
+#print $table->show();
+#
+#
+#}
+
 #**********************************************************
 # 
 #**********************************************************
 sub extfin_report_deeds {
 
 
-
-if ($FORM{show}) {
-  if ($FORM{xml}) {
-    print "Content-Type: text/xml\n\n";
-    print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
-   }
-  elsif($FORM{qindex}) {
-    print "Content-Type: text/html\n\n";
-   }
- }
-
-my @MONTH_ARR = ('');
 my ($Y, $M, $D)=split(/-/, $DATE, 3);
-for(my $i=1; $i<13; $i++) {
-	my $m = sprintf("%02.d", $i);
-	push @MONTH_ARR, "$Y-$m";
-}
 
-
-	reports({ DATE          => $FORM{DATE}, 
-  	        PERIOD_FORM		=> 1,
-   	        XML           => 1,
-  	        EX_INPUTS     => [ $html->form_select('MONTH', { SELECTED   => $FORM{MONTH},
- 	                                                           SEL_ARRAY  => \@MONTH_HASH,
- 	                                                           NO_ID      => 1
-                                                          } )
-                               ]
- 	       });
-
-my $list = $Extfin->extfin_report_paids({ %LIST_PARAMS, MONTH => $period  });
-
-$table = $html->table( { width      => '100%',
-                         caption    => "PAYMENT_DEED $_DATE: $period",
-                         border     => 1,
-                         title      => ['#', $_PERIOD,  $_SUM, $_NAME, $_TYPE, "$_SUM",  "$_VAT" ],
-                         cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'right', 'center',  'center', 'center:noprint', 'center:noprint'],
-                         ID         => 'EXTFIN_PAYMENT_DEED',
-                      } );
-
-foreach my $line (@$list) {
-  $table->addrow($line->[0], 
-   $line->[1],
-   $line->[2], 
-   $line->[3],
-   $line->[4], 
-   $line->[5],
-   $line->[6], 
-   );
-}
-
-print $table->show();
-
-
-}
-
-#**********************************************************
-# 
-#**********************************************************
-sub extfin_report_deeds {
-
-
-
-if ($FORM{show}) {
+if ($FORM{show} || $FORM{qindex}) {
   if ($FORM{MONTH}) {
   	$LIST_PARAMS{MONTH}=$FORM{MONTH};
+   }
+  elsif($FORM{PERIOD} && $FORM{PERIOD} =~ /(\d{2})\.(\d{2})\.(\d{4})-(\d{2})\.(\d{2})\.(\d{4})/) {
+    $LIST_PARAMS{DATE_FROM}="$3-$2";
+    $LIST_PARAMS{DATE_TO}="$6-$5";
    }
   elsif ($FORM{FROM_M}) {
     $FORM{FROM_M} = sprintf("%.2d", $FORM{FROM_M}+1);
@@ -466,9 +471,11 @@ if ($FORM{show}) {
     print "Content-Type: text/html\n\n";
    }
  }
+else {
+	$LIST_PARAMS{MONTH}="$Y-$M";
+}
 
 my @MONTH_ARR = ('');
-my ($Y, $M, $D)=split(/-/, $DATE, 3);
 for(my $i=1; $i<13; $i++) {
 	my $m = sprintf("%02.d", $i);
 	push @MONTH_ARR, "$Y-$m";
@@ -500,7 +507,7 @@ if (! $FORM{xml}) {
 
 }
 
-
+#$Extfin->{debug}=1;
 my $list = $Extfin->extfin_report_deeds({ %LIST_PARAMS  });
 
 if ($Extfin->{errno}) {
@@ -516,8 +523,14 @@ $table = $html->table( { width      => '100%',
                          } );
 
 foreach my $line (@$list) {
+  my $date = $line->[1];
+  
+  if ($line->[1] =~ /\d{2}(\d{2})\-(\d{2})/ ) {
+  	$date = "01.$2.$1";
+   }
+  
   $table->addrow($line->[0], 
-   $line->[1],
+   $date,
    $line->[2], 
    $line->[3],
    $line->[4], 
