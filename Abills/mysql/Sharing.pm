@@ -680,7 +680,6 @@ sub prepaid_rest {
  
  #Check sessions
  #Get using traffic
- $self->{debug}=1;
  $self->query($db, "select  
   $rest{0} - sum(sl.recv + sl.sent) / $CONF->{MB_SIZE}
  FROM sharing_log sl 
