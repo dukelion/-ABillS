@@ -680,6 +680,7 @@ sub prepaid_rest {
  
  #Check sessions
  #Get using traffic
+ $self->{debug}=1;
  $self->query($db, "select  
   $rest{0} - sum(sl.recv + sl.sent) / $CONF->{MB_SIZE}
  FROM sharing_log sl 
@@ -702,20 +703,6 @@ else {
   $self->{EXTRA_TRAFIC}=undef;
 }
 
-# #Check online
-# $self->query($db, "select 
-#  $rest{0} - sum($octets_online_direction) / $CONF->{MB_SIZE},
-#  $rest{1} - sum($octets_online_direction2) / $CONF->{MB_SIZE}
-# FROM sharing_calls
-# WHERE user_name='$login' 
-# GROUP BY user_name ;");
-#
-# if ($self->{TOTAL} > 0) {
-#   ($rest{0}, 
-#    $rest{1} 
-#    ) =  @{ $self->{list}->[0] };
-#  }
- 
  $self->{REST}=\%rest;
   
  return 1;
