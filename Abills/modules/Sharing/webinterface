@@ -2207,6 +2207,9 @@ sub sharing_priority {
 
 $html->tpl_show(_include('sharing_priority', 'Sharing'), $Sharing);
 
+form_search({ SIMPLE    => { $_FILE => "FILE" }
+           });
+
 
 my $list = $Sharing->priority_list({ %LIST_PARAMS });
 
