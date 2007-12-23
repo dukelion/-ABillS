@@ -39,17 +39,17 @@ sub hangup {
  $nas_type = $NAS->{NAS_TYPE};
 
  if ($nas_type eq 'exppp') {
-    hangup_exppp($NAS, $PORT, $attr);
+   hangup_exppp($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'pm25') {
-    hangup_pm25($NAS, $PORT, $attr);
+   hangup_pm25($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'radpppd') {
-    hangup_radpppd($NAS, $PORT, $attr);
+   hangup_radpppd($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'mikrotik') {
-    radius_disconnect($NAS, $PORT, $USER);
-    #hangup_mikrotik_telnet($NAS, $PORT, $USER);
+   radius_disconnect($NAS, $PORT, $USER);
+   #hangup_mikrotik_telnet($NAS, $PORT, $USER);
   }
  elsif ($nas_type eq 'usr') {
    hangup_snmp($NAS, $PORT, { OID   => '.1.3.6.1.4.1.429.4.10.13.'. $PORT,
@@ -57,26 +57,26 @@ sub hangup {
    	                          VALUE => 9 });
   }
  elsif ($nas_type eq 'cisco')  {
- 	  hangup_cisco($NAS, $PORT, { USER => $USER });
+ 	 hangup_cisco($NAS, $PORT, { USER => $USER });
   }
  elsif ($nas_type eq 'mpd') {
-    hangup_mpd($NAS, $PORT);
+   hangup_mpd($NAS, $PORT);
   }
  elsif ($nas_type eq 'mpd4') {
-    hangup_mpd4($NAS, $PORT, $attr);
+   hangup_mpd4($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'ipcad') {
-    hangup_ipcad($NAS, $PORT, $USER, $attr);
+   hangup_ipcad($NAS, $PORT, $USER, $attr);
   }
  elsif ($nas_type eq 'patton')  {
- 	  hangup_patton29xx($NAS, $PORT, $attr);
+ 	 hangup_patton29xx($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'pppd' || $nas_type eq 'lepppd') {
    hangup_pppd($NAS, $PORT, $attr);
   }
  else {
-    return 1;
-   }
+   return 1;
+  }
 
   return 0;
 }
@@ -483,7 +483,7 @@ sub hangup_ipcad {
 
   my $ip  = $attr->{FRAMED_IP_ADDRESS};
   my @ip_array = split(/\./, $ip, 4);
-  my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
+  my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $ip_array[3];
 
   $cmd =~ s/\%IP/$ip/g;
   #$cmd =~ s/\%MASK/$netmask/g;
