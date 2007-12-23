@@ -1578,7 +1578,7 @@ elsif($attr->{DATE}) {
   sl.connectionstatus,
   sl.url,
   sl.bytescontent,
-  if(sp.priority IS NULL, 0, 1),
+  if(sp.priority IS NULL, 1, 0),
   sl.statusbeforeredir,
   sl.statusafterredir,
   sl.remoteport,
