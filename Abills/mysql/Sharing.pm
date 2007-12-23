@@ -681,10 +681,12 @@ sub prepaid_rest {
  #Check sessions
  #Get using traffic
  $self->query($db, "select  
-  $rest{0} - sum(recv + sent) / $CONF->{MB_SIZE}
+  $rest{0} - sum(sl.recv + sl.sent) / $CONF->{MB_SIZE}
  FROM sharing_log sl 
  INNER JOIN sharing_priority sp ON (sl.url = sp.file)
- WHERE sl.username='$login' and DATE_FORMAT(sl.start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[1]'
+ WHERE sl.username='$login' 
+ and DATE_FORMAT(sl.start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[1]'
+ and sp.priority='0'
  GROUP BY sl.username
  ;");
 
