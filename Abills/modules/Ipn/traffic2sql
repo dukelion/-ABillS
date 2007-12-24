@@ -372,7 +372,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
            defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && 
             $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0)  {
          my @ip_array = split(/\./, $ip_addr, 4);
-         my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
+         my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $ip_array[3];
 
          print "$DATE $TIME Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug>0);
          my $netmask = 32;
