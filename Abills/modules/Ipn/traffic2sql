@@ -394,7 +394,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
     	my $last_alive = $cut_time - $connect_update;
     	if ($last_alive > $conf{IPN_AMON_ALIVE} * 3) {
         my @ip_array = split(/\./, $ip_addr, 4);
-        my $rule_num = $conf{IPN_FW_FIRST_RULE} + $ip_array[3];
+        my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $ip_array[3];
     		print "$DATE $TIME Hangup AMON ALIVE: $last_alive UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug > 0);
 
         my $netmask = 32;
