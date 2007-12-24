@@ -535,7 +535,7 @@ sub vlan_dhcp {
 
 
   # DHCP Section
-  my $DHCPCONF  = $conf{DHCPHOSTS_CONFIG} || '/usr/local/etc/dhcpd.conf';
+  my $DHCPCONF  = ($conf{DHCPHOSTS_CONFIG}) ?  $conf{DHCPHOSTS_CONFIG} :  '/usr/local/etc/dhcpd.conf';
   #my $dhcp_sufix = '';
   if ($attr->{NAS_MNG_IP_PORT}) {
   	my $dhcp_sufix = '_'.$attr->{NAS_MNG_IP_PORT};
