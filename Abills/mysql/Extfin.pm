@@ -315,7 +315,6 @@ sub payment_deed {
      WHERE u.uid=f.uid and $WHERE
      GROUP BY 1
      ORDER BY $SORT $DESC 
-     LIMIT 10
    ;");
 
   foreach my $line (@{ $self->{list} } ) {
@@ -411,25 +410,24 @@ sub extfin_report_deeds {
 
  my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db, "SELECT report.id, report.period, report.bill_id,
-   if(u.company_id > 0, company.name,
-          if(pi.fio<>'', pi.fio, u.id)),
-   if(u.company_id > 0, 1, 0),
+ $self->query($db, "SELECT report.id,
+   report.period,
+   report.bill_id,
+   IF(company.name is not null, company.name,
+    IF(pi.fio<>'', pi.fio, u.id)),
+   IF(company.name is not null, 1, 0),
    report.sum,
-   if(u.company_id > 0, company.vat, 0),
-
-  report.date,
-  report.aid,
-  u.uid
-
-     FROM extfin_reports report
-     LEFT JOIN users u ON (report.bill_id = u.bill_id)
-     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-     LEFT JOIN companies company ON  (u.company_id=company.id)
-    
-     WHERE $WHERE
-     GROUP BY 1
-     ORDER BY $SORT $DESC 
+   IF(company.name is not null, company.vat, 0),
+   report.date,
+   report.aid, u.uid
+  FROM extfin_reports report
+  INNER JOIN bills b ON (report.bill_id = b.id)
+  LEFT JOIN users u ON (b.id = u.bill_id)
+  LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+  LEFT JOIN companies company ON (b.id=company.bill_id)
+  WHERE $WHERE
+   GROUP BY 1
+  ORDER BY $SORT $DESC 
    ;");
 
 
