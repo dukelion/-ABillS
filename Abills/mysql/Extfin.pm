@@ -314,8 +314,7 @@ sub payment_deed {
 
      WHERE u.uid=f.uid and $WHERE
      GROUP BY 1
-     ORDER BY $SORT $DESC 
-   ;");
+     ORDER BY $SORT $DESC ;");
 
   foreach my $line (@{ $self->{list} } ) {
   	$PAYMENT_DEED{$line->[0]}=$line->[1];
@@ -336,8 +335,6 @@ sub payment_deed {
      FROM (users u, dv_log dv)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN companies company ON  (u.company_id=company.id)
-
-
      WHERE u.uid=dv.uid and $WHERE_DV
      GROUP BY 1
      ORDER BY 2 DESC
@@ -350,6 +347,9 @@ sub payment_deed {
   	  #Name|Type|VAT
   	  $NAMES{$line->[0]}="$line->[2]|$line->[4]|$line->[5]";
   	 }
+    else {
+    	$PAYMENT_DEED{$line->[0]}+=$line->[1];
+     }
    }
 
 
