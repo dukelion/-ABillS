@@ -170,12 +170,12 @@ sub check_lines {
 	    my $acct_output_octets_ext  = $line->[8];
 	    my $nas_port_id             = $line->[2];
 	    my $acct_session_id         = $line->[22];
-
+     
       #hangup connaction if max ext traffic reached
       if ($acct_input_octets_ext > $exppp_hanguplimit || $acct_output_octets_ext > $exppp_hanguplimit) {
         my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID      => "$acct_session_id",
         	                                                      FRAMED_IP_ADDRESS    => int2ip($line->[3]),
-        	                                                      ACCT_TERMINATE_CAUSE => 15,
+        	                                                      ACCT_TERMINATE_CAUSE => 15
         	                                                      });
 
         print "Hangup '$line->[0]' $acct_input_octets, $acct_output_octets, $acct_input_octets_ext, $acct_output_octets_ext, Session-ID: $acct_session_id\n"; 
@@ -288,6 +288,7 @@ sub check_lines {
            my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_IS      => $acct_session_id,
            	                                                       FRAMED_IP_ADDRESS    => int2ip($line->[3]),
            	                                                       ACCT_TERMINATE_CAUSE => 15,
+           	                                                       UID                  => $self->{UID},
            	                                                       debug                => $debug
            	                                                      });
            print "Hanguped Login: $RAD{USER_NAME} DEPOSIT: $line->[14] CREDIT: $line->[15] SESSION_SUM: $self->{SUM} SESSION_ID: $acct_session_id\n"; # if ($debug == 1);

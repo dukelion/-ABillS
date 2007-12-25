@@ -482,8 +482,18 @@ sub hangup_ipcad {
   my $cmd = $conf{IPN_FW_STOP_RULE};
 
   my $ip  = $attr->{FRAMED_IP_ADDRESS};
-  my @ip_array = split(/\./, $ip, 4);
-  my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $ip_array[3];
+  
+  my $num = 0;
+  if ($attr->{UID} && $conf{IPN_FW_RULE_UID}) {
+  	$num = $attr->{UID};
+   }
+  else {
+    my @ip_array = split(/\./, $ip, 4);
+    $num = $ip_array[3];
+   }
+
+  my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $num;
+
 
   $cmd =~ s/\%IP/$ip/g;
   #$cmd =~ s/\%MASK/$netmask/g;

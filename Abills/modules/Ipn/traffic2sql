@@ -372,7 +372,17 @@ elsif($total_user_sum > 0 && $uid > 0) {
            defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && 
             $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0)  {
          my @ip_array = split(/\./, $ip_addr, 4);
-         my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $ip_array[3];
+         
+         my $num = 0;
+         if ($conf{IPN_FW_RULE_UID}) {
+  	       $num = $uid;
+          }
+         else {
+           my @ip_array = split(/\./, $ip, 4);
+           $num = $ip_array[3];
+          }
+
+         my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $num;
 
          print "$DATE $TIME Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug>0);
          my $netmask = 32;
@@ -393,8 +403,17 @@ elsif($total_user_sum > 0 && $uid > 0) {
     	my $cut_time = time();
     	my $last_alive = $cut_time - $connect_update;
     	if ($last_alive > $conf{IPN_AMON_ALIVE} * 3) {
-        my @ip_array = split(/\./, $ip_addr, 4);
-        my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $ip_array[3];
+        my $num = 0;
+        if ($conf{IPN_FW_RULE_UID}) {
+ 	       $num = $uid;
+         }
+        else {
+          my @ip_array = split(/\./, $ip, 4);
+          $num = $ip_array[3];
+         }
+
+        my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $num;
+
     		print "$DATE $TIME Hangup AMON ALIVE: $last_alive UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug > 0);
 
         my $netmask = 32;
