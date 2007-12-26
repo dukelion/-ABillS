@@ -388,9 +388,11 @@ elsif($total_user_sum > 0 && $uid > 0) {
          my $netmask = 32;
 
          my $cmd = $conf{IPN_FW_STOP_RULE};
+         
          $cmd =~ s/\%IP/$ip_addr/g;
          $cmd =~ s/\%NUM/$rule_num/g;
          $cmd =~ s/\%MASK/$netmask/g;
+         $cmd =~ s/\%LOGIN/$login/g;
 
          print "$cmd" if ($debug>0); 
          system("$cmd");
@@ -422,6 +424,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
         $cmd =~ s/\%IP/$ip_addr/g;
         $cmd =~ s/\%NUM/$rule_num/g;
         $cmd =~ s/\%MASK/$netmask/g;
+        $cmd =~ s/\%LOGIN/$login/g;
 
         print "$cmd" if ($debug>0); 
         system("$cmd");
