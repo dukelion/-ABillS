@@ -19,7 +19,7 @@ my $Extfin = Extfin->new($db, $admin, \%conf);
 sub extfin_export_customers {
 	my ($attr) = @_;
   
-  my $aaa = `echo "1C - $ENV{HTTP_USER_AGENT}" >> /tmp/user_agent`;
+#  my $aaa = `echo "1C - $ENV{HTTP_USER_AGENT}" >> /tmp/user_agent`;
   
   $Extfin->{ACTION}='get';
   $Extfin->{ACTION_LNG}=$_GET;
@@ -318,6 +318,10 @@ print $table->show();
 #**********************************************************
 sub extfin_paids_types {
 
+  $Extfin->{ACTION}='add';
+  $Extfin->{ACTION_LNG}=$_ADD;
+
+
   if ($FORM{add}) {
     if (! $permissions{0}{1} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
@@ -340,6 +344,19 @@ sub extfin_paids_types {
       $html->message('info', $_INFO, "$_CHANGED");	
      }
    }
+	elsif($FORM{change}) {
+    if (! $permissions{0}{4} ) {
+      $html->message('err', $_ERROR, "Access Deny");  	
+    	return 0;
+     }
+
+    $Extfin->paid_type_info({ %FORM });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+    $Extfin->{ACTION}='get';
+    $Extfin->{ACTION_LNG}=$_GET;
+   }
 	elsif($FORM{del}) {
     $Extfin->paid_type_del();
     if (! $Extfin->{errno}) {
@@ -351,10 +368,11 @@ sub extfin_paids_types {
     $html->message('err', $_ERROR, "[$Extfin->{errno}] $err_strs{$Extfin->{errno}}");
    }
 
+ $Extfin->{PERIODIC}=' checked' if ($Extfin->{PERIODIC});
  $html->tpl_show(_include('extfin_paid_type', 'Extfin'), $Extfin);
 
-
-my $list = $Extfin->paids_list({ %LIST_PARAMS });	
+$Extfin->{debug}=1;
+my $list = $Extfin->paid_types_list({ %LIST_PARAMS });	
 my $table = $html->table( { width      => '100%',
                             caption    => "$_TYPES",
                             border     => 1,
@@ -366,12 +384,14 @@ my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
     $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
-    #$change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[0]");
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[0]");
    }
+
   $table->addrow($html->b($line->[0]), 
    $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
    $line->[2], 
-   $change
+   $change,
+   $delete
    );
 }
 

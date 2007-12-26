@@ -603,9 +603,10 @@ sub paids_list {
      FROM extfin_paids p, extfin_paids_types pt
     WHERE p.type_id=pt.id 
     $WHERE;");
+    ($self->{TOTAL}, $self->{SUN}) = @{ $self->{list}->[0] };
    }
   
-  ($self->{TOTAL}, $self->{SUN}) = @{ $self->{list}->[0] };
+  
 
   return $list;
 }
@@ -785,8 +786,10 @@ sub paid_types_list {
    FROM extfin_paids_types
   ");
 
+ my $list = $self->{list};
 
-  return $self;
+
+  return $list;
 }
 
 1
