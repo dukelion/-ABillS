@@ -778,6 +778,10 @@ sub dhcphosts_reconfigure {
   	print $html->message('err', $_ERROR, "Can't find reconfiguration command ". '"$conf{DHCPHOSTS_RECONFIGURE}"');
   	return 0;
    }
+  
+  if ($conf{DHCPHOSTS_IPGUARD_TYPE}) {
+  	dhcphosts_mac_block_make();
+   }
  
   my $res = `$conf{DHCPHOSTS_RECONFIGURE}`;
   print $res if ($debug > 1);
