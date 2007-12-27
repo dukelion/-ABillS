@@ -56,7 +56,7 @@ sub dhcphosts_mac_block_show {
 
    my @pair_status = ('ACCEPT', 'DENY');
    #$Dhcphosts->{debug}=1;
-   my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS, 
+   my $list = $Dhcphosts->hosts_list({ STATUS        => $LIST_PARAMS{STATUS}, 
    	                                   PAGE_ROWS     => 1000000
                                      });
    
