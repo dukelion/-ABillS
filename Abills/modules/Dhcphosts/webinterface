@@ -784,8 +784,7 @@ sub dhcphosts_reconfigure {
   	dhcphosts_mac_block_make();
    }
  
-  print $conf{DHCPHOSTS_RECONFIGURE};
- 
+
   my $res = `$conf{DHCPHOSTS_RECONFIGURE}`;
   print $res if ($debug > 1);
 
