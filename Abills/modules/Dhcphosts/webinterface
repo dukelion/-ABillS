@@ -780,8 +780,11 @@ sub dhcphosts_reconfigure {
    }
   
   if ($conf{DHCPHOSTS_IPGUARD_TYPE}) {
+  	
   	dhcphosts_mac_block_make();
    }
+ 
+  print $conf{DHCPHOSTS_RECONFIGURE};
  
   my $res = `$conf{DHCPHOSTS_RECONFIGURE}`;
   print $res if ($debug > 1);
