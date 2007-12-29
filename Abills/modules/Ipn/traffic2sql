@@ -378,7 +378,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
   	       $num = $uid;
           }
          else {
-           my @ip_array = split(/\./, $ip, 4);
+           my @ip_array = split(/\./, $ip_addr, 4);
            $num = $ip_array[3];
           }
 
@@ -410,7 +410,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
  	       $num = $uid;
          }
         else {
-          my @ip_array = split(/\./, $ip, 4);
+          my @ip_array = split(/\./, $ip_addr, 4);
           $num = $ip_array[3];
          }
 
