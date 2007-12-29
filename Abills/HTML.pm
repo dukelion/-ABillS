@@ -736,15 +736,11 @@ $self->{header} .= qq{
 };
 
 $self->{header} .= $css;
-$self->{header} .= 
-" <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"$PRINTCSS\" />
- <script src=\"$JAVASCRIPT\" type=\"text/javascript\" language=\"javascript\"></script>\n".
-
-q{ 
+$self->{header} .= " <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"$PRINTCSS\" />
+  <script src=\"$JAVASCRIPT\" type=\"text/javascript\" language=\"javascript\"></script>
 <title>$title</title>
 </head>
-} .
-"\n<body style=\"margin: 0\" bgcolor=\"$_COLORS[10]\" text=\"$_COLORS[9]\" link=\"$_COLORS[8]\"  vlink=\"$_COLORS[7]\">\n";
+<body style=\"margin: 0\" bgcolor=\"$_COLORS[10]\" text=\"$_COLORS[9]\" link=\"$_COLORS[8]\"  vlink=\"$_COLORS[7]\">\n";
 
  return $self->{header};
 }
