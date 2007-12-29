@@ -720,7 +720,7 @@ sub header {
  }
 
  my $css = css();
-
+ my $title = ($CONF->{WEB_TITLE}) ? $CONF->{WEB_TITLE} : "AsmodeuS~ Billing System";
  my $REFRESH = ($FORM{REFRESH}) ? "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$FORM{REFRESH}; URL=$ENV{REQUEST_URI}\"/>\n" : '';
 
 $self->{header} .= qq{
@@ -740,10 +740,8 @@ $self->{header} .=
 " <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"$PRINTCSS\" />
  <script src=\"$JAVASCRIPT\" type=\"text/javascript\" language=\"javascript\"></script>\n".
 
- $CONF->{WEB_TITLE} = '~AsmodeuS~ Billing System' if (! $CONF->{WEB_TITLE});
-
 q{ 
-<title>$CONF->{WEB_TITLE}</title>
+<title>$title</title>
 </head>
 } .
 "\n<body style=\"margin: 0\" bgcolor=\"$_COLORS[10]\" text=\"$_COLORS[9]\" link=\"$_COLORS[8]\"  vlink=\"$_COLORS[7]\">\n";
