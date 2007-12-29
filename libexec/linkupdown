@@ -300,6 +300,10 @@ print "\nEND: =====================================\n" if ($debug > 0);
   foreach my $traf_type (sort keys %speeds) {
     my $speed = $speeds{$traf_type};
 
+    if (! $START_FW[$traf_type]) {
+       $START_FW[$traf_type]=$START_FW[0]+$traf_type*1000;
+     }
+
     $fw_num_in  = $START_FW[$traf_type] + $inum * 2;
     $fw_num_out = $START_FW[$traf_type] + $inum * 2 + 1;
     $pipe_num_in  = $START_FW[$traf_type] + $inum * 2 ;
