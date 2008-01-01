@@ -1143,6 +1143,13 @@ sub ipn_detail_rotate {
   my $self = shift;
 	my ($attr) = @_;
 
+#CREATE TABLE IF NOT EXISTS ipn_traf_detail_2 LIKE ipn_traf_detail;
+#CREATE TABLE IF NOT EXISTS ipn_traf_detail_backup LIKE ipn_traf_detail;
+#DROP TABLE IF EXISTS ipn_traf_detail_backup2;
+#RENAME TABLE ipn_traf_detail_backup TO ipn_traf_detail_backup2, ipn_traf_detail 
+#TO  ipn_traf_detail_backup, ipn_traf_detail_2 TO ipn_traf_detail;
+
+
   $self->query($db, "DELETE LOW_PRIORITY  from ipn_traf_detail
 WHERE f_time - INTERVAL $attr->{PERIOD} DAY;", 'do');
 	
