@@ -2014,7 +2014,7 @@ print $table->show();
 #**********************************************************
 sub dv_user_chg_tp {
 
- my $user;
+# my $user;
  my $shedule = Shedule->new($db, $admin, \%conf);
  my $period = $FORM{period} || 0;
  
@@ -2024,12 +2024,14 @@ sub dv_user_chg_tp {
   }
 
  if(defined($LIST_PARAMS{UID})) {
-   $user = $attr->{USER};
+   #$user = $attr->{USER};
+   my $expire = $user->{EXPIRE};
    $user = $Dv->info($LIST_PARAMS{UID});
    if($user->{TOTAL} < 1) {
  	   $html->message('info', $_INFO, "$_NOT_ACTIVE");
  	   return 0;
     }
+   $user->{EXPIRE}=$expire;
   }
  else {
  	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
@@ -2061,7 +2063,7 @@ if ($FORM{set}) {
          $Y++;
         }
        $D='01';
-       $M = sprintf("%02.d", $m);
+       $M = sprintf("%02.d", $M);
       }
      else {
        ($Y, $M, $D)=split(/-/, $user->{EXPIRE}, 3);
