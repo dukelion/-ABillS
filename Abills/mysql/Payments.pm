@@ -1,5 +1,5 @@
 package Payments;
-# Finance module
+# Payments Finance module
 #
 
 use strict;
@@ -95,6 +95,16 @@ sub add {
      $self->{errstr} = 'ERROR_ENTER_SUM';
      return $self;
    }
+  
+  if ($DATA{CHECK_EXT_ID}) {
+    $self->query($db, "SELECT uid FROM payments WHERE ext_id='$DATA{CHECK_EXT_ID}';", 'do');
+    if ($self->{TOTAL} > 0) {
+      $self->{errno}=7;
+      $self->{errstr}='ERROR_DUBLICATE';
+      return $self;	
+     }
+   }
+  
   
   if ($user->{BILL_ID} > 0) {
     if ($DATA{ER} != 1) {
