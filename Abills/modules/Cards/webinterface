@@ -615,7 +615,7 @@ sub cards_user_payment () {
     $Cards->cards_info({ %FORM });
    
    if ($Cards->{error}) {
-     $html->message('err', $_ERROR, "$ERR_SUPPORT");	
+     $html->message('err', $_ERROR, "$ERR_SUPPORT / $ERR_SUPPORT");	
      return 0;
     }
 	 elsif (int($Cards->{BRUTE_COUNT}) >= $BRUTE_LIMIT) {
@@ -631,7 +631,7 @@ sub cards_user_payment () {
 	 	 $Cards->bruteforce_add({ UID => $LIST_PARAMS{UID}, PIN => $FORM{PIN} });
 	  }
 	 elsif ($Cards->{STATUS} != 0) {
-	   $html->message('err', $_ERROR, "$_CARD $status[$Cards->{STATUS}]");
+	   $html->message('err', $_ERROR, "$status[$Cards->{STATUS}]");
 	   return 0;
 	  }
    
@@ -639,9 +639,10 @@ sub cards_user_payment () {
    
    
    
-   $payments->add($user, { SUM     => $Cards->{SUM},
-                           METHOD  => 2, 
-                           EXT_ID  => "$Cards->{SERIAL}$Cards->{NUMBER}"
+   $payments->add($user, { SUM          => $Cards->{SUM},
+                           METHOD       => 2, 
+                           EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
+                           CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
                          });  
 
    
@@ -668,7 +669,9 @@ sub cards_user_payment () {
      
      return 0;
     }
-   
+   elsif ($payments->{errno} == 7) {
+	   $html->message('err', $_ERROR, "$status[2]");
+    }
 	 }
 	
 	$html->tpl_show(_include('cards_payment_add', 'Cards'), $Cards);
