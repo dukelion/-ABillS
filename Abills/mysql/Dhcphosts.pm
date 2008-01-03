@@ -592,6 +592,16 @@ sub hosts_list {
     push @WHERE_RULES, "u.disable='$attr->{USER_DISABLE}'";
   }
 
+  # Deposit chech
+  my $extra_db     = ''; 
+  my $extra_fields = '';
+  if ($attr->{DHCPHOSTS_DEPOSITCHECK}) {
+  	$extra_db = 'LEFT JOIN bills b ON (u.bill_id = b.id)
+     LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)'; 
+    $extra_fields = ', if(company.id IS NULL, b.deposit, cb.deposit) + u.credit';
+   }
+
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
@@ -599,9 +609,11 @@ sub hosts_list {
     h.id, u.id, INET_NTOA(h.ip), h.hostname, n.name, h.network, h.mac, h.expire, h.forced, 
       h.blocktime, h.disable, seen, h.uid,
       if ((u.expire <> '0000-00-00' && curdate() > u.expire) || (h.expire <> '0000-00-00' && curdate() > h.expire), 1, 0)
+      $extra_fields
      FROM (dhcphosts_hosts h)
      left join dhcphosts_networks n on h.network=n.id
      left join users u on h.uid=u.uid
+     $extra_db
      $WHERE
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 

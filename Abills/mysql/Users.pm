@@ -629,7 +629,7 @@ sub list {
      FROM users u
      LEFT JOIN payments p ON (u.uid = p.uid)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-     LEFT JOIN bills b ON u.bill_id = b.id
+     LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      GROUP BY u.uid     
