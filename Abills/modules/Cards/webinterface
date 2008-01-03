@@ -637,8 +637,6 @@ sub cards_user_payment () {
    
    $user->info($LIST_PARAMS{UID});
    
-   
-   
    $payments->add($user, { SUM          => $Cards->{SUM},
                            METHOD       => 2, 
                            EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
@@ -647,7 +645,6 @@ sub cards_user_payment () {
 
    
    if (! $payments->{errno}) {
-     
      $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $Cards->{SUM}");
      $Cards->cards_change({ PIN      => "$FORM{PIN}", 
      	                      STATUS   => 2, 
@@ -666,10 +663,12 @@ sub cards_user_payment () {
         $user_new->info( $Cards->{UID} );
         $user_new->del();
       }
-     
+
+     #$db->commit();
      return 0;
     }
    elsif ($payments->{errno} == 7) {
+	   $db->rollback();
 	   $html->message('err', $_ERROR, "$status[2]");
     }
 	 }
