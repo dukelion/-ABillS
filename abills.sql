@@ -434,6 +434,7 @@ CREATE TABLE `msgs_admins` (
 CREATE TABLE `msgs_chapters` (
   `id` smallint(6) unsigned NOT NULL auto_increment,
   `name` varchar(20) NOT NULL default '',
+  `inner_chapter` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
