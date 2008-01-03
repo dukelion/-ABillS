@@ -105,6 +105,8 @@ sub add {
      }
    }
   
+  #$db->{AutoCommit}=0; 
+
   
   if ($user->{BILL_ID} > 0) {
     if ($DATA{ER} != 1) {
@@ -119,9 +121,10 @@ sub add {
     
     $self->query($db, "INSERT INTO payments (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, method, ext_id) 
            values ('$user->{UID}', '$user->{BILL_ID}', now(), '$DATA{SUM}', '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}', '$DATA{METHOD}', '$DATA{EXT_ID}');", 'do');
-    
+
+
     if ($CONF->{payment_chg_activate} && $user->{ACTIVATE} ne '0000-00-00') {
-      $user->change($user->{UID}, { UID => $user->{UID}, 
+      $user->change($user->{UID}, { UID      => $user->{UID}, 
       	                            ACTIVATE => "$admin->{DATE}",
       	                            EXPIRE   => '0000-00-00' });
      }
@@ -131,6 +134,9 @@ sub add {
     $self->{errno}=14;
     $self->{errstr}='No Bill';
   }
+  
+  #$db->commit;
+  #$db->rollback;
   
   return $self;
 }
