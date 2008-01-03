@@ -57,7 +57,8 @@ sub dhcphosts_mac_block_show {
    my @pair_status = ('ACCEPT', 'DENY');
    #$Dhcphosts->{debug}=1;
    my $list = $Dhcphosts->hosts_list({ STATUS        => $LIST_PARAMS{STATUS}, 
-   	                                   PAGE_ROWS     => 1000000
+   	                                   PAGE_ROWS     => 1000000,
+   	                                   DHCPHOSTS_DEPOSITCHECK => $conf{DHCPHOSTS_DEPOSITCHECK}
                                      });
    
 	 foreach my $line (@$list) {
@@ -74,17 +75,25 @@ sub dhcphosts_mac_block_show {
 	       }
 
 	      if ($status == 1 ) {
-	        $ethers_content .= "$ip $line->[6] # $line->[1] $pair_status[$status]\n";
+	        $ethers_content .= "$ip $line->[6] # $line->[1] $pair_status[$status]";
 	       }
 	      #Allow
 	      else {
-	      	$ethers_content .= "$ip\@!$line->[6] # $line->[1] $pair_status[$status]\n";
+	      	$ethers_content .= "$ip\@!$line->[6] # $line->[1] $pair_status[$status]";
 	       }
+
+	      if ($conf{DHCPHOSTS_DEPOSITCHECK}) {
+	      	$ethers_content .= " D: $line->[14]";
+	       }
+        
+        $ethers_content .= "\n";
 	     }
 	    else {
 	      my $ip = ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2]; 
 	    	if ($line->[10] != 1 || $line->[13] != 1) {
-	    	  $ethers_content .= "$line->[6] $ip # Login: $line->[1]\n";
+	    	  $ethers_content .= "$line->[6] $ip # Login: $line->[1]";
+	    	  $ethers_content .= " D: $line->[14]" if ($conf{DHCPHOSTS_DEPOSITCHECK});
+	    	  $ethers_content .= "\n";
          }
 	     }
     };
@@ -709,10 +718,13 @@ foreach my $line (@$list) {
   $INFO->{NETWORK}='';
   $list = $Dhcphosts->hosts_list({ NETWORK   => $NET_ID, 
   	                               STATUS    => 0, 
-  	                               PAGE_ROWS => 100000 
+  	                               PAGE_ROWS => 100000,
+  	                               DHCPHOSTS_DEPOSITCHECK => $conf{DHCPHOSTS_DEPOSITCHECK}
   	                             });
 
   foreach my $line (@$list) {
+    next if ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[14] <= 0);
+    
     $INFO{HOSTS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_host', 'Dhcphosts',), { 
     	  MAC      => $line->[6],
         IP       => $line->[2],
