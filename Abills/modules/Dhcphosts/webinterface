@@ -723,7 +723,7 @@ foreach my $line (@$list) {
   	                             });
 
   foreach my $line (@$list) {
-    next if ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[14] <= 0);
+    #next if ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[14] <= 0);
     
     $INFO{HOSTS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_host', 'Dhcphosts',), { 
     	  MAC      => $line->[6],
