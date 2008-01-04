@@ -50,7 +50,7 @@ if ($FORM{set}) {
   if ($period == 1) {
 
  	  use POSIX;
-
+    $FORM{date_M}++;
     my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
     
     if ($seltime <= time()) {
@@ -58,7 +58,6 @@ if ($FORM{set}) {
       return 0;
      }
 
-    $FORM{date_M}++;
     $shedule->add( {UID     => $user->{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
