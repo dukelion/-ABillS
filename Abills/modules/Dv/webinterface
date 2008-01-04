@@ -2572,10 +2572,16 @@ sub dv_sheduler {
 
   my $user = $Dv->info($uid);  	
   if ($type eq 'tp') {
-    $Dv->change({UID   => $uid, 
-    	           TP_ID => $action });
+    $Dv->change({ UID   => $uid, 
+    	            TP_ID => $action 
+    	          });
+
+    if ($Dv->{errno} && $Dv->{errno} == 15) {
+    	return $Dv->{errno};
+     }
    }
 
+  return 0;
 }
 
 

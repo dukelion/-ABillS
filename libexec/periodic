@@ -2,7 +2,7 @@
 #Periodic process
 
 use vars  qw(%RAD %conf @MODULES $db $html $DATE $GZIP 
-  $MYSQLDUMP 
+  $MYSQLDUMP
   %ADMIN_REPORT 
   $DEBUG
  );
@@ -240,11 +240,13 @@ my %shedule_type = ('tp'      => $_TARIF_PLAN,
  Fees->import();
  my $fees = Fees->new($db, $admin, \%conf);
 
-
  my $list = $shedule->list({ Y => $Y,
  	                           M => $M,
  	                           D => $D, 
- 	                           PAGE_ROWS => 100000 });
+ 	                           PAGE_ROWS => 100000 
+ 	                         });
+
+ my $ret = 0;
 
  $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-12s| %-8s| %-14s|%-14s|\n", "$_LOGIN", "$_MODULES", "$_TYPE", "$_VALUE", "$_ADMIN");
  $ADMIN_REPORT{SHEDULE}.= "---------------------------------------------------------\n";
@@ -253,17 +255,25 @@ my %shedule_type = ('tp'      => $_TARIF_PLAN,
     	 my $user = $users->info( $line->[12] );
     	 my ($sum, $descr) = split(/:/, $line->[7], 2);
     	 #my $module = $line->[8];
-    	 $fees->take($user, $sum, { DESCRIBE => "$_SHEDULE: $descr" } );  
+    	 $fees->take($user, $sum, { DESCRIBE => "$_SHEDULE: $descr" } );
+    	 $ret = 0;
      }
    #Required modules
    elsif ($line->[8] ne '') {
     	 my $function = lc  $line->[8] . "_sheduler";
-    	 $function->($line->[6], "$line->[7]", $line->[12]);
-     }
- 	 $shedule->del({ ID => $line->[13] });
+    	 $ret = $function->($line->[6], "$line->[7]", $line->[12]);
+    }
 
-	  $ADMIN_REPORT{SHEDULE}.=sprintf("%-14s| %-12s| %-8s| %-14s|\n", 
+   my $text = sprintf("%-14s| %-12s| %-8s| %-14s| %-14s|", 
 	    $line->[5], $line->[8], $line->[6], $line->[7], $line->[9]);
+
+   if ($ret > 0) {
+     $text .= ($err_strs{$ret}) ? $err_strs{$ret} : 'Error '. $ret;
+    }
+
+	 $shedule->del({ ID => $line->[13] });
+   $DEBUG .= $text ."\n" if ($debug > 1);
+   $ADMIN_REPORT{SHEDULE}.=$text ."\n";
   } 
 
 }
