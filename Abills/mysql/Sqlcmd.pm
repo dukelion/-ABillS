@@ -47,10 +47,32 @@ sub info {
  
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 0;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my $DATE = $attr->{DATE} || '0000-00-00';
 
  my $type = $attr->{TYPE} || '';
  
   if ($type eq 'showtables') {
+    
+    if ($attr->{ACTION} && $attr->{ACTION} eq 'ROTATE') {
+    	$DATE =~ s/-/\_/g;
+ 	    # CREATE TABLE LIKE work from version 4.1
+
+      my $version = $self->db_version();
+      if ($version < 4.1) {
+      	$self->{errno}=1;
+      	$self->{errstr}="MYSQL: $version. Version Lower 4.1 not support RENAME Syntax";
+      	return $self;
+       }
+
+ 	    my @tables_arr = split(/, /, $attr->{TABLES});
+      foreach my $table (@tables_arr) {
+        print "CREATE TABLE IF NOT EXISTS ". $table ."_2 LIKE $table ;".
+        "RENAME TABLE $table TO $table". "_$DATE, $table". "_2 TO $table;";
+        my $sth = $db->do( "CREATE TABLE IF NOT EXISTS ". $table ."_2 LIKE $table ;");
+        $sth = $db->do( "RENAME TABLE $table TO $table". "_$DATE, $table". "_2 TO $table;");
+       }
+     }
+    
     
     my $sth = $db->prepare( "SHOW TABLE STATUS FROM $CONF->{dbname}" );
     $sth->execute();
@@ -92,7 +114,6 @@ sub info {
     return $list;
   }
 
-
   
   return $self;
 }
@@ -105,72 +126,6 @@ sub maintenance  {
 	
 	
 }
-
-
-
-#**********************************************************
-# add()
-#**********************************************************
-sub add {
-  my $self = shift;
-  my ($attr) = @_;
-  
-  %DATA = $self->get_data($attr); 
-
-  $self->query($db,  "INSERT INTO dv_main (uid, registration, tp_id, 
-             logins, disable, ip, netmask, speed, filter_id, cid)
-        VALUES ('$DATA{UID}', now(),
-        '$DATA{TARIF_PLAN}', '$DATA{SIMULTANEONSLY}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
-        INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'));", 'do');
-  
-  return $self if ($self->{errno});
-  
- 
-  $admin->action_add($DATA{UID}, "ADDED");
-  return $self;
-}
-
-
-
-
-#**********************************************************
-# change()
-#**********************************************************
-sub change {
-  my $self = shift;
-  my ($attr) = @_;
-  
-  my %FIELDS = ();
-
-
-	$self->changes($admin,  { CHANGE_PARAM => 'UID',
-		               TABLE        => 'dv_main',
-		               FIELDS       => \%FIELDS,
-		               OLD_INFO     => $self->info($attr->{UID}),
-		               DATA         => $attr
-		              } );
-
-  return $self->{result};
-}
-
-
-
-#**********************************************************
-# Delete user info from all tables
-#
-# del(attr);
-#**********************************************************
-sub del {
-  my $self = shift;
-  my ($attr) = @_;
-
-  $self->query($db, "DELETE from dv_main WHERE uid='$self->{UID}';", 'do');
-
-  return $self->{result};
-}
-
-
-
 
 #**********************************************************
 # list()

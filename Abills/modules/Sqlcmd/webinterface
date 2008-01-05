@@ -2,14 +2,9 @@
 # Some code are use from mysqlreport (http://hackmysql.com/mysqlreport)
 #
 
-
-
 require "Sqlcmd.pm";
 Sqlcmd->import();
 my $Sqlcmd = Sqlcmd->new($db, $admin, \%conf);
-
-
-
 
 my (%DMS_vals, %Com_vals);
 my ($stat_name, $stat_val, $stat_label);
@@ -20,8 +15,6 @@ my (%stats, %vars); # SHOW STATUS, SHOW VARIABLES
 # sqlcmd
 #**********************************************************
 sub sqlcmd {
- 
- 
  
 my $FORM2  = ();
 my @pairs = split(/&/, $FORM{__BUFFER});
@@ -188,14 +181,25 @@ sub sqlcmd_tables {
 	#SHOW TABLE STATUS FROM abills;
   #$table{size} = Index_length + Data_length
   
-  my $list = $Sqlcmd->info({ TYPE => 'showtables', %LIST_PARAMS, %FORM });
+  my $list = $Sqlcmd->info({ TYPE => 'showtables', 
+  	                         DATE => $DATE, 
+  	                         %LIST_PARAMS, 
+  	                         %FORM });
 
   if ($Sqlcmd->{errno}) {
-    $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}}");	
+    $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}} $Sqlcmd->{errstr}");	
     return 0;
    }
-
-
+  
+  if ($FORM{ACTION} && $FORM{ACTION} eq 'ROTATE') {
+    my @tables_arr = split(/, /, $FORM{TABLES});
+    my $message = '';
+    $DATE =~ s/-/\_/g;
+    foreach my $table (@tables_arr) {
+    	 $message .= "$table => $table". '_'. $DATE . ', ';
+     }
+    $html->message('info', "ROTATE", "$message");	
+   }
   
 
   my @ACTIVE_FIELDS = ('Name', 
@@ -313,10 +317,11 @@ $table3->addtd(  $table->td("$_ACTION:" .
                  $html->form_select('ACTION', 
                                     { 
  	                                   SELECTED    => $FORM{ACTION},
- 	                                   SEL_ARRAY   => [ 'ANALYZE',  'BACKUP', 'CHECK', 'CHECKSUM', 'OPTIMIZE', 'REPAIR', 'RESTORE' ],
+ 	                                   SEL_ARRAY   => [ 'ROTATE', 'ANALYZE',  'BACKUP', 'CHECK', 'CHECKSUM', 'OPTIMIZE', 'REPAIR', 'RESTORE' ],
                                      NO_ID       => 1,
                                      SEL_OPTIONS => {'', ''}
- 	                                  }), { colspan => 2} ),
+ 	                                  }), { colspan => 2 } 
+ 	                                  	),
  	               $table->td("$_VALUE:". $html->form_input('VALUE', "$FORM{VALUE}"), { colspan => 2 })
                );
 

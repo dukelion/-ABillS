@@ -302,7 +302,7 @@ sub del {
 
   $self->query($db, "DELETE from dv_main WHERE uid='$self->{UID}';", 'do');
 
-  $admin->action_add($uid, "DELETE");
+  $admin->action_add($self->{UID}, "DELETE");
   return $self->{result};
 }
 

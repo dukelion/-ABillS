@@ -86,6 +86,20 @@ sub disconnect {
   return $self;
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub db_version {
+	my $self = shift;
+  my ($attr)	= @_;
+
+  my $version = $db->get_info( 18 ); 
+  if ($version =~ /^(\d+\.\d+)/) {
+   	$version = $1;
+   }
+
+  return $version;
+}
 
 #**********************************************************
 #  do
@@ -107,11 +121,25 @@ sub query {
    }
 
 my $q;
-#print "$query<br>";
+
+my @Array = ();
+# check bind params
+if ($attr->{Bind}) {
+  foreach my $Data (@{ $attr->{Bind} }) {
+    if (ref($Data) eq 'SCALAR') {
+      push(@Array, $$Data);
+     }
+    else  {
+      $self->{errno} = 7;
+      $self->{errstr} = "No SCALAR param in Bind!";
+      return $self;
+     }
+   }
+ }
 
 if (defined($type) && $type eq 'do') {
 #  print $query;
-  $q = $db->do($query);
+  $q = $db->do($query, undef, @Array);
   if (defined($db->{'mysql_insertid'})) {
   	 $self->{INSERT_ID} = $db->{'mysql_insertid'};
    }
@@ -128,19 +156,35 @@ else {
      return $self->{errno};
    }
   #print $query;
-  $q ->execute(); 
-
-  if($db->err) {
-     $self->{errno} = 3;
-
-     $self->{sql_errno}=$db->err;
-     $self->{sql_errstr}=$db->errstr;
-     $self->{errstr}=$db->errstr;
-     return $self->{errno};
-   }
   
+  if ($attr->{MULTI_QUERY}) {
+    foreach my $line ( @{ $attr->{MULTI_QUERY} } ) {
+      $q ->execute( @$line );
+      if($db->err) {
+        $self->{errno} = 3;
+
+        $self->{sql_errno}=$db->err;
+        $self->{sql_errstr}=$db->errstr;
+        $self->{errstr}=$db->errstr;
+        return $self->{errno};
+       }
+     }
+   }
+  else {
+    $q ->execute();
+    if($db->err) {
+      $self->{errno} = 3;
+
+      $self->{sql_errno}=$db->err;
+      $self->{sql_errstr}=$db->errstr;
+      $self->{errstr}=$db->errstr;
+      return $self->{errno};
+     }
+    $self->{TOTAL} = $q->rows;
+  }
+
   $self->{Q}=$q;
-  $self->{TOTAL} = $q->rows;
+
 #  $self->{NUM_OF_FIELDS} = $q->{NUM_OF_FIELDS};
 }
 
@@ -162,16 +206,15 @@ if($db->err) {
 if ($self->{TOTAL} > 0) {
   my @rows;
   while(my @row = $q->fetchrow()) {
-   push @rows, \@row;
+    push @rows, \@row;
   }
   $self->{list} = \@rows;
-}
+ }
 else {
 	delete $self->{list};
 }
 
  $self->{query_count}++;
-
  return $self;
 }
 
