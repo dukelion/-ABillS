@@ -63,10 +63,10 @@ sub dhcphosts_mac_block_show {
    
 	 foreach my $line (@$list) {
 	    next if ($line->[6] eq '');
-	    
+
+      my $status = ($line->[10] == 1 || $line->[13] == 1 ) ? 1 : 0;	    
       if ($conf{DHCPHOSTS_IPGUARD_TYPE} && $conf{DHCPHOSTS_IPGUARD_TYPE} eq 'ipsentinel') {
 	      my $ip = $line->[2];   
-	      my $status = ($line->[10] == 1 || $line->[13] == 1 ) ? 1 : 0;
 
 	      #Block
 	      if (! defined($line->[1])) {
@@ -74,8 +74,10 @@ sub dhcphosts_mac_block_show {
 	      	next;
 	       }
 
-	      if ($status == 1 ) {
-	        $ethers_content .= "$ip $line->[6] # $line->[1] $pair_status[$status]";
+        #Deny
+
+	      if ($status == 1 || ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[14] <= 0)) {
+	        $ethers_content .= "$ip $line->[6] # $line->[1] $pair_status[1]";
 	       }
 	      #Allow
 	      else {
@@ -90,7 +92,10 @@ sub dhcphosts_mac_block_show {
 	     }
 	    else {
 	      my $ip = ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2]; 
-	    	if ($line->[10] != 1 || $line->[13] != 1) {
+	    	#Allow
+	    	if ($status == 0 ) {
+	    	  next if ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[14] <= 0);
+
 	    	  $ethers_content .= "$line->[6] $ip # Login: $line->[1]";
 	    	  $ethers_content .= " D: $line->[14]" if ($conf{DHCPHOSTS_DEPOSITCHECK});
 	    	  $ethers_content .= "\n";
