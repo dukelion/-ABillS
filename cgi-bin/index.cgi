@@ -438,7 +438,7 @@ if ($conf{PASSWORDLESS_ACCESS}) {
     if ($sessions->{TOTAL} > 0) {
       $login   = $list->[0]->[0];
       $ret     = $list->[0]->[11];
-      $time    = time;
+      #$time    = time;
       $sid     = mk_unique_value(14);
       $action  = 'Access';
       $user->info($ret);

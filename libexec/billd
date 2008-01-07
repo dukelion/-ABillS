@@ -32,7 +32,6 @@ my $debug=0;
 my $debug_output = '';
 my $ARGV = parse_arguments(\@ARGV);
 my $log_dir = $var_dir.'/log';
-exit if(make_pid($log_dir."/billd.pid") == 1);
 
 
 if (defined($ARGV->{debug})) {
@@ -59,6 +58,7 @@ CHECK connection Alive
   exit;
 }
 
+exit if(! $ARGV->{checkppp} && make_pid($log_dir."/billd.pid") == 1);
 
 
 require Abills::SQL;

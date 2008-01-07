@@ -447,7 +447,7 @@ sub paid_add {
 
   $self->query($db, "INSERT INTO extfin_paids 
    (date, sum, describe, uid, aid, status, type)
-  VALUES ('$DATA{DATE}', '$DATA{SUM}', '$DATA{DESCRIBE}', '$DATA{UID}', '$DATA{AID}', 
+  VALUES (now(), '$DATA{SUM}', '$DATA{DESCRIBE}', '$DATA{UID}', '$DATA{AID}', 
   '$DATA{STATUS}', '$DATA{TYPE}');", 'do');
 
   return $self;
@@ -702,7 +702,7 @@ sub paid_type_add {
 
   $self->query($db, "INSERT INTO extfin_paids_types 
    (name, periodic)
-  VALUES ('$DATA{SUM}', '$DATA{PERIODIC}');", 'do');
+  VALUES ('$DATA{NAME}', '$DATA{PERIODIC}');", 'do');
 
   return $self;
 }
@@ -721,10 +721,12 @@ sub paid_type_change {
 	              );
 
 
+  $attr->{PERIODIC}=0 if (! $attr->{PERIODIC});
+
  	$self->changes($admin, { CHANGE_PARAM => 'ID',
 	                TABLE        => 'extfin_paids_types',
 	                FIELDS       => \%FIELDS,
-	                OLD_INFO     => $self->paid_types_info($attr),
+	                OLD_INFO     => $self->paid_type_info($attr),
 	                DATA         => $attr
 		              } );
 	
@@ -782,7 +784,7 @@ sub paid_types_list {
 
  $WHERE = '';
 
- $self->query($db, "SELECT name, periodic
+ $self->query($db, "SELECT id, name, periodic
    FROM extfin_paids_types
   ");
 
