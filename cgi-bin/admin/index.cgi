@@ -834,7 +834,7 @@ if ($FORM{add}) {
   else {
     $users->group_add( { %FORM });
     if (! $users->{errno}) {
-      $html->message('info', $_ADDED, "$_ADDED [$users->{GID}]");
+      $html->message('info', $_ADDED, "$_ADDED [$FORM{GID}]");
      }
    }
 }
@@ -868,22 +868,24 @@ elsif(defined($FORM{GID})){
  
 
   #Sub functions
-  if (! $FORM{subf}) {
+  #if (! $FORM{subf}) {
 #    if (! $users->{errno}) {
 #      $html->message('info', $_CHANGED, "$_CHANGING $users->{GID}");
 #     }
-    
-    if ($permissions{0}{4} ) {
-      $users->{ACTION}='change';
-      $users->{LNG_ACTION}=$_CHANGE;
+
+  
+    if (! $permissions{0}{4} ) {
       return 0;
      }
 
+    $users->{ACTION}='change';
+    $users->{LNG_ACTION}=$_CHANGE;
+
     $html->tpl_show(templates('form_groups'), $users);
-  }
+  #}
  
   return 0;
-}
+ }
 elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) && $permissions{0}{5}){
   $users->group_del( $FORM{del} );
   if (! $users->{errno}) {
