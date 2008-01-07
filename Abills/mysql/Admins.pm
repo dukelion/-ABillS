@@ -44,7 +44,9 @@ sub new {
 sub admins_groups_list {
 	my $self = shift;
 	my ($attr) = @_;
-	
+
+	$WHERE = '';
+
 	if ($attr->{ALL}) {
 
 	 }
@@ -207,6 +209,7 @@ sub list {
  my ($attr) = @_;
 
  @WHERE_RULES = ();
+ 
  if ($attr->{GIDS}) {
  	 push @WHERE_RULES, "a.gid IN ($attr->{GIDS})";
   }
