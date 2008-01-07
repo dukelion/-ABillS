@@ -2242,9 +2242,8 @@ print $table->show();
 sub form_admins_groups {
   my ($attr) = @_; 
 
- 
   if(! defined($attr->{ADMIN})) {
-    $FORM{subf}=52;
+    $FORM{subf}=58;
     form_admins();
     return 0;	
    }
