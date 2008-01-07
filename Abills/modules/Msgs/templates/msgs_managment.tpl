@@ -12,7 +12,7 @@
 
 <TR><TD>&nbsp;</TD></TR>
 <TR><TD><b>$_STATE:</b> </TD></TR>
-<TR><TD>%STATE_SEL%</TD></TR>
+<TR><TD>%STATE_NAME%</TD></TR>
 <TR><TD><b>$_PRIORITY:</b> </TD></TR>
 <TR><TD>%PRIORITY_SEL%</TD></TR>
 <TR><TD><b>$_EXECUTION:</b></TD></TR>

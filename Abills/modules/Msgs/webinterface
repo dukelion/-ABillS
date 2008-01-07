@@ -241,8 +241,6 @@ sub msgs_admin {
 
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
-
-
  
   if ($FORM{change}) {
     if ($FORM{STATE} > 0) {
@@ -262,11 +260,12 @@ sub msgs_admin {
  	  $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
  	 	                        ID        => $FORM{ID},
  	 	                        USER_READ => "0000-00-00 00:00:00",
- 	 	                        ADMIN_READ=> "$DATE $TIME"
+ 	 	                        ADMIN_READ=> "$DATE $TIME",
+ 	 	                        STATE     => $FORM{STATE} || undef
  	 	                      });
-
-    goto MSG_LABEL;
+    $FORM{chg} = $FORM{ID};
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
+    goto MSG_LABEL;
    }
   elsif ($FORM{chg}) {
     
@@ -277,10 +276,12 @@ sub msgs_admin {
     	$html->message('info', $_INFO, "$_DELETED [$FORM{reply_del}] ") if (! $Msgs->{errno});  	
      }    
     
-    
     $Msgs->message_info($FORM{chg});
     $Msgs->{ACTION}='reply';
     $Msgs->{ACTION_LNG}=$_REPLY;
+    
+    $Msgs->{STATE_NAME}=$msg_status[$Msgs->{STATE}];
+
 
     $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
                                           { 
@@ -317,8 +318,7 @@ sub msgs_admin {
     $Msgs->{EXT_INFO}=$html->tpl_show(_include('msgs_managment', 'Msgs'), 
       $Msgs, { notprint => 1 } );
 
-
-    
+   
     #$Msgs->{THREADS} = $html->button($Msgs->{SUBJECT}. " ($_DATE: $Msgs->{DATE}) ", "");
     #if ($Msgs->{REPLIES_COUNT} > 0) {
     #	foreach my $line (@{ $Msgs->{REPLIES_COUNT} }) {
