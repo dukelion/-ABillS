@@ -305,6 +305,22 @@ sub extfin_paids {
  $html->tpl_show(_include('extfin_form_paid', 'Extfin'), $Extfin);
 
  
+my $list = $Extfin->paid_types_list({ %LIST_PARAMS });	
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_PERIOD",
+                            border     => 1,
+                            title      => ['#', $_NAME,  $_SUM ],
+                            cols_align => [ 'right', 'left', 'right' ],
+                        } );
+ 
+ foreach my $line (@$list) {
+  $table->addrow($html->b($line->[0]), 
+   $line->[1], 
+   $line->[2]
+   );
+}
+
+ 
 
  if (! $LIST_PARAMS{UID}) {
    form_search({ SEARCH_FORM => $html->tpl_show(_include('extfin_search_paids', 'Extfin'),
@@ -318,7 +334,7 @@ my $table = $html->table( { width      => '100%',
                             border     => 1,
                             title      => ['#', $_NAME,  $_SUM, $_DESCRIBE, $_DATE, $_ADMIN, $_STATUS, '-', '-', '-'],
                             cols_align => ['right', 'left', 'right', 'left', 'right', 'left', 'center:noprint', 'center:noprint', 'center:noprint', 'center:noprint'],
-                                  } );
+                        } );
 
 my ($delete, $change);
 foreach my $line (@$list) {
