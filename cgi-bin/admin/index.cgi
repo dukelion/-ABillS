@@ -2270,7 +2270,7 @@ my $table = $html->table( { width      => '100%',
                             caption    => $_GROUP,
                             border     => 1,
                             title      => ['ID', $_NAME, '-' ],
-                            cols_align => ['right', 'left', 'center' ],
+                            cols_align => ['left', 'left', 'center' ],
                         } );
 
 my $list = $admin->admins_groups_list({ AID => $LIST_PARAMS{AID}  });
@@ -2299,10 +2299,6 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       SUBMIT  => { change   => "$_CHANGE"
 	                       	           } 
 	                     });
-
-
-
-
 }
 
 
