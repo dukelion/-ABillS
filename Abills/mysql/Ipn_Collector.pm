@@ -94,7 +94,7 @@ sub user_ips {
 		 0,
 		 tp.octets_direction,
 		 u.reduction,
-		 CONNECT_INFO
+		 ''
 		 FROM (users u, dv_main dv)
 		 LEFT JOIN companies c ON (u.company_id=c.id)
 		 LEFT JOIN bills b ON (u.bill_id=b.id)
