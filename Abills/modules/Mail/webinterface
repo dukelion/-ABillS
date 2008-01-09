@@ -1182,7 +1182,7 @@ sub mail_wizard {
 
      $template .= "<tr bgcolor=\"$_COLORS[0]\"><th>$descr</th></tr>\n";
      #$wizard = $pre;
-     my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { notprint => 'y' });
+     my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { notprint => 1 });
      $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
      $sub_tpl =~ s/(<input .*?index.*?>)//gi;
      $sub_tpl =~ s/name=([A-Z_]+)/name=$n.$1/gi;
