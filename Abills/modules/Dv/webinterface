@@ -2838,13 +2838,25 @@ sub dv_wizard_user {
 
         $Mail->mbox_add({ UID => "$UID", 
         	                %{$add_values{6}}, 
-        	                PASSWORD => $FORM{'6.newpassword'} 
+        	                PASSWORD => $FORM{'6.newpassword'},
+        	                
         	             });
 
         if ($Mail->{errno}) {
           $html->message('err', "E-MAIL : $_ERROR", "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
           return 0;
          }
+        elsif ($FORM{'6.SEND_MAIL'}) {
+      	  my $message =  $html->tpl_show(_include('mail_test_msg', 'Mail'), $Mail, { notprint => 1 });
+      	  sendmail("$conf{ADMIN_MAIL}", 
+      	   "$Mail->{USER_EMAIL}", 
+      	   "Test mail", 
+      	   "$message", 
+      	   "$conf{MAIL_CHARSET}", 
+      	   "");
+        
+         }
+
        }
       
       # Info
@@ -2885,7 +2897,7 @@ sub dv_wizard_user {
   $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
                                 { SELECTED      => $FORM{METHOD} || undef,
  	                                SEL_ARRAY     => \@PAYMENT_METHODS,
- 	                                ARRAY_NUM_ID  => 'y'
+ 	                                ARRAY_NUM_ID  => 1
  	                               });
   $payments->{SUM} = '0.00';
 
@@ -2930,6 +2942,8 @@ sub dv_wizard_user {
     </td><td><input type="text" name="generated_pw" id="generated_pw_mail" /></td></tr>
      };
 
+   $Mail->{SEND_MAIL}='checked';
+
    $Mail->{DOMAINS_SEL}=$html->form_select('DOMAIN_ID', 
                                 { 
  	                                SELECTED          => $Mail->{DOMAIN_ID},
@@ -2941,7 +2955,7 @@ sub dv_wizard_user {
  	                               });
 
 
-    $tpls{"6:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { notprint => 'y' });
+    $tpls{"6:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { notprint => 1 });
   } 
  
  if ($attr->{TPLS}) {
