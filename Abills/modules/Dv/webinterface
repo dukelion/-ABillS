@@ -567,7 +567,7 @@ elsif ($FORM{hangup}) {
   $html->message('info', $_INFO, "$message");
  }
 if ($FORM{zapall}) {
-  $sessions->zap(0, 0, 0, { ALL => 'y' });
+  $sessions->zap(0, 0, 0, { ALL => 1 });
   $html->message('info', $_INFO, "Zapped all sessions");
  }
 elsif($FORM{zap}) {
@@ -739,12 +739,12 @@ foreach my $field_id (@ACTIVE_FIELDS) {
 $form_link = '';
 my $cure = '';
 if($FORM{ZAPED}) {
-	$LIST_PARAMS{ZAPED}='yes';
+	$LIST_PARAMS{ZAPED}=1;
 	$form_link = $html->button("On line", "index=$index");
 	$cure = 'Zap';
  } 
 else {
- 	$sessions->online( { ZAPED => 'yes' } );	
+ 	$sessions->online( { ZAPED => 1 } );	
  	$form_link = $html->button("$_ZAPED", "index=$index&ZAPED=yes"). " ($sessions->{TOTAL})";
  	$cure='Online';
 }
@@ -1066,7 +1066,7 @@ print $table->show();
 #**********************************************************
 sub dv_use_allmonthes {
 
-  $FORM{allmonthes}='y';
+  $FORM{allmonthes}=1;
   dv_use();
 }
 
@@ -1925,7 +1925,7 @@ print $html->form_main({ CONTENT => $html->form_select('PERIOD',
                                           { 
  	                                          SELECTED  => $FORM{PERIOD},
  	                                          SEL_HASH  => \%ORDERS,
- 	                                          NO_ID     => 'y'
+ 	                                          NO_ID     => 1
  	                                        }) .
  	                                                                                                                                                                                                                                                "SESSION_ID:".
  	                                        
@@ -1934,7 +1934,7 @@ print $html->form_main({ CONTENT => $html->form_select('PERIOD',
                                           	SELECTED    => "$FORM{SESSION_ID}",
  	                                          SEL_OPTIONS => { $FORM{SESSION_ID} => "$FORM{SESSION_ID}",
  	                                          	                             '0' => "$_ALL" },
- 	                                          NO_ID       => 'y'
+ 	                                          NO_ID       => 1
  	                                        })
  	                                        
  	                                        
@@ -2443,7 +2443,7 @@ foreach my $line (@$list) {
     $USER_INFO{DEPOSIT}, 
     $USER_INFO{CREDIT});
   
-  my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { notprint => 'yes' });
+  my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { notprint => 1 });
 
   sendmail("$conf{ADMIN_MAIL}", 
               "$email", 
@@ -2512,7 +2512,7 @@ if (defined($FORM{tt})) {
    }
 
 
-  my $list = $tarif_plan->tt_list({ TI_ID => $FORM{tt}, form => 'yes' });
+  my $list = $tarif_plan->tt_list({ TI_ID => $FORM{tt}, form => 1 });
   $tarif_plan->{TT_ID}=$tarif_plan->{TOTAL} if (! defined($FORM{chg}));
   
  
@@ -2839,7 +2839,6 @@ sub dv_wizard_user {
         $Mail->mbox_add({ UID => "$UID", 
         	                %{$add_values{6}}, 
         	                PASSWORD => $FORM{'6.newpassword'},
-        	                
         	             });
 
         if ($Mail->{errno}) {
@@ -2888,7 +2887,7 @@ sub dv_wizard_user {
   if (! $attr->{NO_EXTRADATA}) {
     $users_defaults->{EXDATA}=$html->tpl_show(templates('form_user_exdata'), 
        { CREATE_BILL  => ' checked' }, 
-       { notprint => 'y' });
+       { notprint => 1 });
    }
   
   my $dv_defaults = $Dv->defaults();
@@ -2922,11 +2921,11 @@ sub dv_wizard_user {
  my $password_form;                           
  $password_form->{GEN_PASSWORD}=mk_unique_value(8);
  my %tpls = (
-	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults, { notprint => 'y' }),  
-	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { notprint => 'y' }),
+	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults, { notprint => 1 }),  
+	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { notprint => 1 }),
 	            "3:$_INFO::"     => templates('form_pi'), 
-	            "4:Dialup/VPN::" => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults, { notprint => 'y' }),
- 	            "5:$_PAYMENTS::" => $html->tpl_show(templates('form_payments'), $payments, { notprint => 'y' }),
+	            "4:Dialup/VPN::" => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults, { notprint => 1 }),
+ 	            "5:$_PAYMENTS::" => $html->tpl_show(templates('form_payments'), $payments, { notprint => 1 }),
              );
  
  #If mail module added
@@ -2975,7 +2974,7 @@ sub dv_wizard_user {
 
      $template .= "<tr bgcolor=\"$_COLORS[0]\"><th>$descr</th></tr>\n";
      #$wizard = $pre;
-     my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { notprint => 'y' });
+     my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { notprint => 1 });
      $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
      $sub_tpl =~ s/(<input .*?index.*?>)//gi;
      $sub_tpl =~ s/name=([A-Z_]+)/name=$n.$1/gi;
