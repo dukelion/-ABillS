@@ -240,7 +240,15 @@ sub extfin_paids {
   $Extfin->{ACTION}='add';
   $Extfin->{ACTION_LNG}=$_ADD;
 
-  if ($FORM{add}) {
+
+  if ($FORM{PERIODIC}) {
+    $Extfin->paid_periodic_add({ %FORM });
+    if (! $Extfin->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+  	
+   }
+  elsif ($FORM{add}) {
     if (! $permissions{0}{1} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
     	return 0;
@@ -305,20 +313,29 @@ sub extfin_paids {
  $html->tpl_show(_include('extfin_form_paid', 'Extfin'), $Extfin);
 
  
-my $list = $Extfin->paid_types_list({ %LIST_PARAMS });	
-my $table = $html->table( { width      => '100%',
+my $list = $Extfin->paid_periodic_list({ PERIODIC => 1, UID => $LIST_PARAMS{UID} });	
+my $table = $html->table( { width      => '400',
                             caption    => "$_PERIOD",
                             border     => 1,
-                            title      => ['#', $_NAME,  $_SUM ],
-                            cols_align => [ 'right', 'left', 'right' ],
+                            title      => ['#', $_NAME,  $_SUM, $_ADMIN, $_DATE ],
+                            cols_align => [ 'right', 'left', 'right', 'left', 'right' ],
                         } );
  
  foreach my $line (@$list) {
-  $table->addrow($html->b($line->[0]), 
+  $table->addrow($html->form_input('IDS', "$line->[0]", { TYPE  => 'checkbox', 
+  	                                                      STATE => ($line->[2]) ? ' checked' : '' }) . $html->b($line->[0]), 
    $line->[1], 
-   $line->[2]
+   $html->form_input("SUM_$line->[0]", ($line->[2]) ? $line->[2] : '0.00', { SIZE => '10' }),
+   $line->[3], 
+   $line->[4]
    );
 }
+
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+                         HIDDEN  => { index     => "$index"       },
+	                       SUBMIT  => { PERIODIC  => "$_CHANGE" } 
+	                     });
 
  
 
@@ -329,7 +346,7 @@ my $table = $html->table( { width      => '100%',
   }
 
 my $list = $Extfin->paids_list({ %LIST_PARAMS });	
-my $table = $html->table( { width      => '100%',
+$table = $html->table( { width      => '100%',
                             caption    => "$_FEES",
                             border     => 1,
                             title      => ['#', $_NAME,  $_SUM, $_DESCRIBE, $_DATE, $_ADMIN, $_STATUS, '-', '-', '-'],
