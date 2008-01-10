@@ -454,6 +454,63 @@ sub paid_add {
 }
 
 
+
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_periodic_add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my %DATA = $self->get_data($attr); 
+
+  $self->query($db, "INSERT INTO extfin_paids_periodic 
+   (uid, type, sum, date, aid)
+  VALUES ('$DATA{UID}', '$DATA{TYPE}', '$DATA{SUM}', now(), $admin->{AID}));", 'do');
+
+  return $self;
+}
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_periodic_list {
+  my $self = shift;
+  my ($attr) = @_;
+
+ $WHERE = '';
+ undef @WHERE_RULES;
+
+ if ($attr->{UID}) {
+   push @WHERE_RULES, "pp.uid='$attr->{UID}'";
+  }
+
+ if ($attr->{PERIODIC}) {
+ 	 push @WHERE_RULES, "pt.periodic='$attr->{PERIODIC}'";
+  }
+
+ 
+ $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
+
+
+ $self->query($db, "SELECT pt.id, pt.name, if(pp.id IS NULL, 0, pp.sum), a.id, pp.date, pp.aid
+   FROM extfin_paids_types pt
+   join LEFT extfin_paids_periodic pp on (pt.id=pp.id)
+   join LEFT admins a on (pt.aid=a.aid)
+   $WHERE
+  ");
+
+ my $list = $self->{list};
+
+
+  return $list;
+
+  return $self;
+}
+
+
+
 #**********************************************************
 # fees
 #**********************************************************
@@ -784,8 +841,13 @@ sub paid_types_list {
 
  $WHERE = '';
 
+ if ($attr->{PERIODIC}) {
+ 	 $WHERE = "WHERE periodic='$attr->{PERIODIC}'";
+  }
+
  $self->query($db, "SELECT id, name, periodic
    FROM extfin_paids_types
+   $WHERE
   ");
 
  my $list = $self->{list};
