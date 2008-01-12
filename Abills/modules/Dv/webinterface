@@ -308,7 +308,7 @@ sub dv_user {
 	else {
 	  $Dv->{ACTION}='set';
 	  $Dv->{LNG_ACTION}=$_CHANGE;
-	  $Dv->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$FORM{UID}.'&index='. ($index + 1)) .']';
+	  $Dv->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. ($index + 1)) .']';
 	} 
 
   $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';

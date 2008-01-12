@@ -507,7 +507,7 @@ print $table->show();
 # ipn_use_all_monthes();
 #**********************************************************
 sub ipn_use_users_allmonthes {
-  $FORM{allmonthes}='y';
+  $FORM{allmonthes}=1;
   ipn_use_users();
 }
 
@@ -519,7 +519,7 @@ sub ipn_use_users {
 
   reports({ DATE       => $FORM{DATE}, 
   	        REPORT     => '',
-  	        SHOW_HOURS => 'Y',
+  	        SHOW_HOURS => 1,
    	        EX_PARAMS  => { HOURS => "$_HOURS",
             	              USERS => "$_USERS" } 
   	       });
@@ -892,7 +892,7 @@ if (defined($FORM{DATE})) {
    $LIST_PARAMS{INTERVAL_TYPE} = 2;
 
    if ($FORM{EX_PARAMS} == 1) {
-      $LIST_PARAMS{HOSTS}='y';
+      $LIST_PARAMS{HOSTS}=1;
       $Ipn->reports({ %LIST_PARAMS });
 
       my $list = $Ipn->{HOSTS_LIST_FROM};
@@ -928,19 +928,19 @@ if (defined($FORM{DATE})) {
     }
 
    elsif ($FORM{EX_PARAMS} == 2) {
-      $LIST_PARAMS{PORTS}='y';
+      $LIST_PARAMS{PORTS}=1;
       $Ipn->reports({ %LIST_PARAMS });
 
       my $list = $Ipn->{PORTS_LIST_FROM};
-      $table_sessions = $html->table( { width => '100%',
-	                              caption => "$_FROM", 
-                                title =>["IP", "$_SUM", "PACKEDGE"],
-                                cols_align => ['left', 'right', 'right'],
-                                qs => $pages_qs             
-                               } );
+      $table_sessions = $html->table( { width      => '100%',
+	                                      caption    => "$_FROM", 
+                                        title      =>["IP", "$_SUM", "PACKEDGE"],
+                                        cols_align => ['left', 'right', 'right'],
+                                        qs         => $pages_qs             
+                                     } );
 
       foreach my $line (@$list) {
-        $table_sessions->addrow("<b>$line->[0]</b>", 
+        $table_sessions->addrow($html->($line->[0]), 
           int2byte($line->[1]), 
           $line->[2]
          );
@@ -949,14 +949,14 @@ if (defined($FORM{DATE})) {
       print $table_sessions->show();
       $list = $Ipn->{PORTS_LIST_TO};
       $table_sessions = $html->table( { width => '100%',
-	                              caption => "$_TO", 
-                                title =>["IP", "$_SUM", "PACKEDGE"],
-                                cols_align => ['left', 'right', 'right'],
-                                qs => $pages_qs             
+	                                      caption => "$_TO", 
+                                        title =>["IP", "$_SUM", "PACKEDGE"],
+                                        cols_align => ['left', 'right', 'right'],
+                                        qs => $pages_qs             
                                } );
 
       foreach my $line (@$list) {
-        $table_sessions->addrow("<b>$line->[0]</b>", 
+        $table_sessions->addrow($html->b($line->[0]), 
           int2byte($line->[1]), 
           $line->[2]
          );
@@ -1402,8 +1402,9 @@ sub ipn_user_activate {
   my $ip = '0.0.0.0';
   my $IP_INPUT = '';
 
-  my $Dv       = Dv->new($db, $admin, \%conf);  
+  my $Dv = Dv->new($db, $admin, \%conf);  
   $Dv->info( $LIST_PARAMS{UID} );
+  
   
   if (! $user->{UID})  {
      $ENV{REMOTE_ADDR} = $Dv->{IP} if ($Dv->{IP} ne '0.0.0.0');
@@ -1496,7 +1497,7 @@ sub ipn_user_activate {
                   TP                 => 0,
                   CALLING_STATION_ID => $ip,
                   CONNECT_INFO       => $FORM{CONNECT_INFO},
-                  UID                => $LIST_PARAMS{UID}
+                  UID                => $LIST_PARAMS{UID},
                  );
 
     
@@ -1513,6 +1514,8 @@ sub ipn_user_activate {
      
      
      $Ipn->user_status({ %DATA });
+     $DATA{FILTER_ID}=$RAD_PAIRS->{'Filter-Id'} || '';
+     
      ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
     }
    }
@@ -1520,7 +1523,8 @@ sub ipn_user_activate {
   	 ipn_change_status({ STATUS                => 'HANGUP',
   	 	                   FRAMED_IP_ADDRESS     => $ip,
   	 	                   ACCT_TERMINATE_CAUSE  => 1,
-  	 	                   UID                   => $LIST_PARAMS{UID}
+  	 	                   UID                   => $LIST_PARAMS{UID},
+  	 	                   FILTER_ID             => ""
   	 	         	 	     });
      $html->message('info', $_INFO, "$_DISABLE IP: $ip");
    }
@@ -1625,14 +1629,16 @@ sub ipn_change_status {
 	my $STATUS          = $attr->{STATUS} || '';
   my $USER_NAME       = $attr->{USER_NAME} || '';
   my $ACCT_SESSION_ID = $attr->{ACCT_SESSION_ID} || '';
+  my $FILTER_ID       = $attr->{FILTER_ID} || '';
   #my $PORT            = $attr->{NAS_PORT} || 0;
+  my $UID             = $attr->{UID} || 0;
     
   my $speed_in=0;
   my $speed_out=0;
 
   $num = 0;
-  if ($attr->{UID} && $conf{IPN_FW_RULE_UID}) {
-  	$num = $attr->{UID};
+  if ($UID && $conf{IPN_FW_RULE_UID}) {
+  	$num = $UID;
    }
   else {
     my @ip_array = split(/\./, $ip, 4);
@@ -1642,7 +1648,7 @@ sub ipn_change_status {
   my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $num;
   my $cmd;
 
-	if ($STATUS eq 'ONLINE_ENABLE'){
+	if ($STATUS eq 'ONLINE_ENABLE') {
      $cmd = $conf{IPN_FW_START_RULE};
      $html->message('info', $_INFO, "$_ENABLE IP: $ip");
      $sessions->online_update({ USER_NAME       => $USER_NAME,
@@ -1689,9 +1695,24 @@ sub ipn_change_status {
   $cmd =~ s/\%SPEED_OUT/$speed_out/g if ($speed_out > 0);
   $cmd =~ s/\%LOGIN/$USER_NAME/g;
   #print "$cmd";
-
   system($cmd);
+  
+  
+  if ($conf{IPN_FILTER} && ($STATUS ne 'ONLINE_ENABLE' || ($STATUS eq 'ONLINE_ENABLE' && $FILTER_ID ne '') ) ) {
+  	$FILTER_ID = "''" if ($FILTER_ID eq '');
+
+  	$cmd = "$conf{IPN_FILTER}";
+    $cmd =~ s/\%STATUS/$STATUS/g;
+    $cmd =~ s/\%IP/$ip/g;
+    $cmd =~ s/\%LOGIN/$USER_NAME/g;
+    $cmd =~ s/\%FILTER_ID/$FILTER_ID/g;
+    $cmd =~ s/\%UID/$UID/g;
+    print $cmd;
+
+    system($cmd);
+   }
 }
+
 
 
 #**********************************************************
@@ -1983,7 +2004,8 @@ sub ipn_user_add {
                    NAS_ID            => $FORM{NAS_ID},
                    TP                => $FORM{TP_ID},
                    NAS_PORT          => $comp_number,
-                   UID               => $UID );
+                   UID               => $UID,
+                   FILTER_ID         => "" );
      
        $Ipn->user_status({ %DATA });
        ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
@@ -2495,22 +2517,24 @@ sub ipn_periodic_session_restart {
 
 #Get online
 $sessions->{debug}=1;
-my $list = $sessions->online({ NAS_TYPE eq 'ipcad' });
+my $list = $sessions->online({ NAS_TYPE eq 'ipcad', FIELDS => [ 0,17, 23, 19, 12, 18, 27 ] });
 
 foreach my $line (@$list)   {
 
+  
 
-  my($ip, $login, $nas_id, $nas_ip, $connect_info, $uid);
+  my($login, $ip, $nas_id, $nas_ip, $connect_info, $uid, $filter_id);
   my $nas ;
   #Hangup and activate
   if ($FORM{LOGOUT}) {
   	 ipn_change_status({ STATUS                => 'HANGUP',
   	 	                   FRAMED_IP_ADDRESS     => $ip,
   	 	                   ACCT_TERMINATE_CAUSE  => 1,
-  	 	                   UID                   => $uid
+  	 	                   UID                   => $uid,
+  	 	                   FILTER_ID             => "$filter_id"
   	 	         	 	     });
      $debug_output .= "$_DISABLE IP: $ip\n" if ($debug > 1);
-   }  
+   } 
 
   
   #Activate
@@ -2533,7 +2557,7 @@ foreach my $line (@$list)   {
                   TP                 => 0,
                   CALLING_STATION_ID => $ip,
                   CONNECT_INFO       => $connect_info,
-                  UID                => $uid
+                  UID                => $uid,
                  );
     
     my $Auth = Auth->new($db, \%conf);
@@ -2547,6 +2571,9 @@ foreach my $line (@$list)   {
     	 return 0;
      }
      
+     $DATA{FILTER_ID}=$RAD_PAIRS->{'Filter-Id'} || '';     
+     
+     #print "//// $DATA{FILTER_ID}=$RAD_PAIRS->{Filter-Id} || '';  /////   ";
      
      $Ipn->user_status({ %DATA });
      ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });

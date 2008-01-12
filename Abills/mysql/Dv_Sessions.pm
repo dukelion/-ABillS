@@ -131,7 +131,8 @@ sub online {
    'c.nas_id',
    'UNIX_TIMESTAMP()-c.lupdated',
    'c.acct_session_time',
-   'c.lupdated - UNIX_TIMESTAMP(c.started)'
+   'c.lupdated - UNIX_TIMESTAMP(c.started)',
+   'dv.filter_id'
    );
 
 
