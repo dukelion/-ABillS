@@ -774,6 +774,10 @@ sub paid_reports {
     my $value = $self->search_expr($attr->{TYPE}, 'INT');
     push @WHERE_RULES, "p.type_id$value";
   }
+ 
+ if ($attr->{FIELDS}) {
+   push @WHERE_RULES, "p.type_id IN ($attr->{FIELDS})";
+  }
 
  if ($attr->{DESCRIBE}) {
     $attr->{DESCRIBE} =~ s/\*/\%/ig;

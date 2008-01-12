@@ -489,7 +489,7 @@ sub extfin_paids_types {
 
 my $list = $Extfin->paid_types_list({ %LIST_PARAMS });	
 my $table = $html->table( { width      => '100%',
-                            caption    => "$_TYPES",
+                            caption    => "$_TYPE",
                             border     => 1,
                             title      => ['#', $_NAME,  $_PARIOD, '-', '-'],
                             cols_align => ['right', 'left', 'center', 'center:noprint', 'center:noprint'],
@@ -693,6 +693,15 @@ sub extfin_report_paids {
 #                     '9:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
 #                     '6:DURATION'        => $_DURATION,
 #                     '7:SUM'             => $_SUM);
+
+my %CAPTIONS_HASH = ();
+  
+
+my $list = $Extfin->paid_types_list({ %LIST_PARAMS });	
+foreach my $line (@$list) {
+	$CAPTIONS_HASH{"$line->[0]:$line->[0]"}="$line->[1]";
+}
+
 
   reports({ DATE          => $FORM{DATE}, 
   	        REPORT        => '',
