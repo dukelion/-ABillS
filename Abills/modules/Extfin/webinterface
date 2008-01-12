@@ -346,27 +346,28 @@ my $table = $html->table( { width      => '80%',
                             cols_align => [ 'right', 'left', 'right', 'left', 'right' ],
                         } );
  
- foreach my $line (@$list) {
- $table->addrow($html->form_input('IDS', "$line->[0]", { TYPE  => 'checkbox',
+ if ($Extfin->{TOTAL} > 0) {
+   foreach my $line (@$list) {
+     $table->addrow($html->form_input('IDS', "$line->[0]", { TYPE  => 'checkbox',
   	                                                     STATE => ($line->[2] > 0) ? 1 : undef
   	                                                   }) . $html->b($line->[0]), 
-   $line->[1], 
-   $html->form_input("SUM_$line->[0]", ($line->[2]) ? $line->[2] : '0.00', { SIZE => '10' }),
-   $html->form_input("COMMENTS_$line->[0]", ($line->[2]) ? $line->[3] : '', { SIZE => '50' }),
-   $line->[4], 
-   $line->[5]
-   );
-}
+     $line->[1], 
+     $html->form_input("SUM_$line->[0]", ($line->[2]) ? $line->[2] : '0.00', { SIZE => '10' }),
+     $html->form_input("COMMENTS_$line->[0]", ($line->[2]) ? $line->[3] : '', { SIZE => '50' }),
+     $line->[4], 
+     $line->[5]
+    );
+  }
 
 
-print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
                          HIDDEN  => { index     => "$index",
                          	            UID       => $LIST_PARAMS{UID}
                          	                   },
 	                       SUBMIT  => { PERIODIC  => "$_CHANGE" } 
 	                     });
 
- 
+ }
 
  if (! $LIST_PARAMS{UID}) {
    form_search({ SEARCH_FORM => $html->tpl_show(_include('extfin_search_paids', 'Extfin'),
