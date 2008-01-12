@@ -485,6 +485,27 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
+ if ($attr->{PASPORT_DATE}) {
+    $attr->{PASPORT_DATE} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "pi.pasport_date LIKE '$attr->{PASPORT_DATE}' ";
+    $self->{SEARCH_FIELDS} .= 'pi.pasport_date, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{PASPORT_NUM}) {
+    $attr->{PASPORT_NUM} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "pi.pasport_num LIKE '$attr->{PASPORT_NUM}' ";
+    $self->{SEARCH_FIELDS} .= 'pi.pasport_num, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{PASPORT_GRANT}) {
+    $attr->{PASPORT_GRANT} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "pi.pasport_grant LIKE '$attr->{PASPORT_GRANT}' ";
+    $self->{SEARCH_FIELDS} .= 'pi.pasport_grant, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
  if ($attr->{ADDRESS_BUILD}) {
     $attr->{ADDRESS_BUILD} =~ s/\*/\%/ig;
     push @WHERE_RULES, "pi.address_build LIKE '$attr->{ADDRESS_BUILD}'";

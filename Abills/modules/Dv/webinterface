@@ -185,9 +185,6 @@ sub dv_users_list {
   } 
 
 
-
-
-
 my $list = $Dv->list( { %LIST_PARAMS } );
 
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-');
@@ -253,7 +250,7 @@ print $table->show();
 # user_dv
 #**********************************************************
 sub dv_user {
- 	$Dv->{UID}=$FORM{UID};	  
+ 	$Dv->{UID}=$FORM{UID} || $LIST_PARAMS{UID} ;	  
   
   if ($FORM{add}) {
     if (! $permissions{0}{1} ) {
@@ -288,7 +285,7 @@ sub dv_user {
     $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
    }
 
-  my $user = $Dv->info($FORM{UID});
+  my $user = $Dv->info($Dv->{UID});
 
   if($user->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);

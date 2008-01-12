@@ -420,10 +420,6 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
- if ($attr->{PHONE}) {
-    my $value = $self->search_expr($attr->{PHONE}, 'INT');
-    push @WHERE_RULES, "u.phone$value";
-  }
 
 
  if ($attr->{DEPOSIT}) {
@@ -451,6 +447,13 @@ sub list {
     $attr->{CID} =~ s/\*/\%/ig;
     push @WHERE_RULES, "dv.cid LIKE '$attr->{CID}'";
     $self->{SEARCH_FIELDS} .= 'dv.cid, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{FILTER_ID}) {
+    $attr->{FILTER_ID} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "dv.filter_id LIKE '$attr->{FILTER_ID}'";
+    $self->{SEARCH_FIELDS} .= 'dv.filter_id, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
