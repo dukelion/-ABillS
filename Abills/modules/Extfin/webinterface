@@ -349,7 +349,7 @@ my $table = $html->table( { width      => '80%',
  if ($Extfin->{TOTAL} > 0) {
    foreach my $line (@$list) {
      $table->addrow($html->form_input('IDS', "$line->[0]", { TYPE  => 'checkbox',
-  	                                                     STATE => ($line->[2] > 0) ? 1 : undef
+  	                                                        STATE => ($line->[2] > 0) ? 1 : undef
   	                                                   }) . $html->b($line->[0]), 
      $line->[1], 
      $html->form_input("SUM_$line->[0]", ($line->[2]) ? $line->[2] : '0.00', { SIZE => '10' }),
@@ -388,7 +388,7 @@ $table = $html->table( { width      => '100%',
                          caption    => "$_FEES",
                          border     => 1,
                          title      => ['#', $_DATE, $_USER, $_SUM, $_TYPE, $_DESCRIBE,  $_ADMIN, $_STATUS, "$_CLOSED $_DATE", 'EXT ID', '-', '-' ],
-                         cols_align => ['right', 'left', 'right', 'left', 'right', 'left', 'center', 'right', 'center:noprint', 'center:noprint'],
+                         cols_align => ['right', 'left', 'left', 'right', 'left', 'left', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint'],
                          pages      => $Extfin->{TOTAL},
                          qs         => $pages_qs,
                         } );
