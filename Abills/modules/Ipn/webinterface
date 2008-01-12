@@ -1699,7 +1699,7 @@ sub ipn_change_status {
   
   
   if ($conf{IPN_FILTER} && ($STATUS ne 'ONLINE_ENABLE' || ($STATUS eq 'ONLINE_ENABLE' && $FILTER_ID ne '') ) ) {
-  	$FILTER_ID = "''" if ($FILTER_ID eq '');
+  	#$FILTER_ID = "" if ($FILTER_ID eq '');
 
   	$cmd = "$conf{IPN_FILTER}";
     $cmd =~ s/\%STATUS/$STATUS/g;
@@ -1707,7 +1707,6 @@ sub ipn_change_status {
     $cmd =~ s/\%LOGIN/$USER_NAME/g;
     $cmd =~ s/\%FILTER_ID/$FILTER_ID/g;
     $cmd =~ s/\%UID/$UID/g;
-    print $cmd;
 
     system($cmd);
    }
