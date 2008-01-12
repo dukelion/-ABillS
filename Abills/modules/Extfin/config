@@ -6,7 +6,7 @@ $web_interface    = 1;
                    "05:0:Extfin:extfin_paids_types"           => 5,
                    "09:0:Extfin:null"                         => 4,
                    "10:9:$_PAYMENT_DEED:extfin_report_deeds"  => 4, 
-                   "11:10:_PAYDS:extfin_report_paids"          => 4
+                   "11:9:$_FEES:extfin_report_paids"         => 4
                    );
 
 

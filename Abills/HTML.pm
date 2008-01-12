@@ -1329,14 +1329,20 @@ sub date_fld  {
  my $MONTHES = $attr->{MONTHES};
 
  my($sec,$min,$hour,$mday,$mon,$curyear,$wday,$yday,$isdst) = localtime(time);
-
- my $day = $FORM{$base_name.'D'} || 1;
+ 
+ if ($attr->{DATE}) {
+ 	 my ($y, $m, $d)=split(/-/, $attr->{DATE});
+ 	 $mday=$d;
+  }
+ else {
+   $mday=1;
+  }
+ 
+ my $day = $FORM{$base_name.'D'} || $mday;
  my $month = $FORM{$base_name.'M'} || $mon;
  my $year = $FORM{$base_name.'Y'} || $curyear + 1900;
 
 
-
-# print "$base_name -";
 my $result  = "<SELECT name=". $base_name ."D>";
 for (my $i=1; $i<=31; $i++) {
    $result .= sprintf("<option value=%.2d", $i);
@@ -1356,16 +1362,15 @@ foreach my $line (@$MONTHES) {
    $result .= ">$line\n";
    $i++
 }
-
 $result .= '</select>';
 
 $result  .= "<SELECT name=". $base_name ."Y>";
-for ($i=2001; $i<=$curyear + 1900+2; $i++) {
+for ($i=2002; $i<=$curyear + 1900+2; $i++) {
    $result .= "<option value=$i";
    $result .= ' selected' if($year eq $i ) ;
    $result .= ">$i\n";
  }	
-$result .= '</select>';
+$result .= '</select>'."\n";
 
 return $result ;
 }

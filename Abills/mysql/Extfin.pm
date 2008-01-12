@@ -92,7 +92,6 @@ sub customers_list {
 
  
  undef @WHERE_RULES;
- my $search_fields = '';
 
  # Start letter 
  if ($attr->{FIRST_LETTER}) {
@@ -444,11 +443,13 @@ sub paid_add {
   my ($attr) = @_;
 
   my %DATA = $self->get_data($attr); 
+  
+  my $status_date = ($DATA{STATUS} && $DATA{STATUS} > 0) ?  'now()' : '0000-00-00';
 
   $self->query($db, "INSERT INTO extfin_paids 
-   (date, sum, describe, uid, aid, status, type)
-  VALUES (now(), '$DATA{SUM}', '$DATA{DESCRIBE}', '$DATA{UID}', '$DATA{AID}', 
-  '$DATA{STATUS}', '$DATA{TYPE}');", 'do');
+   (date, sum, comments, uid, aid, status, type_id, ext_id, status_date)
+  VALUES ('$DATA{DATE}', '$DATA{SUM}', '$DATA{DESCRIBE}', '$DATA{UID}', '$admin->{AID}', 
+  '$DATA{STATUS}', '$DATA{TYPE}', '$DATA{EXT_ID}', $status_date);", 'do');
 
   return $self;
 }
@@ -464,13 +465,35 @@ sub paid_periodic_add {
   my ($attr) = @_;
 
   my %DATA = $self->get_data($attr); 
-
-  $self->query($db, "INSERT INTO extfin_paids_periodic 
-   (uid, type, sum, date, aid)
-  VALUES ('$DATA{UID}', '$DATA{TYPE}', '$DATA{SUM}', now(), $admin->{AID}));", 'do');
+  my @ids_arr = split(/, /, $DATA{IDS});
+  
+  $self->paid_periodic_del({ UID => $DATA{UID} });
+  
+  foreach my $id (@ids_arr) {
+    $self->query($db, "INSERT INTO extfin_paids_periodic 
+      (uid, type_id, comments, sum, date, aid)
+    VALUES ('$DATA{UID}', '$id',  '". $DATA{'COMMENTS_'.$id} ."', '". $DATA{'SUM_'.$id} ."', 
+     now(), '$admin->{AID}');", 'do');
+   }
 
   return $self;
 }
+
+#**********************************************************
+# fees
+#**********************************************************
+sub paid_periodic_del {
+  my $self = shift;
+  my ($attr) = @_;
+
+ 
+  $self->query($db, "DELETE FROM extfin_paids_periodic 
+   WHERE uid='$attr->{UID}';", 'do');
+
+  return $self;
+}
+
+
 
 #**********************************************************
 # fees
@@ -482,23 +505,28 @@ sub paid_periodic_list {
  $WHERE = '';
  undef @WHERE_RULES;
 
+ my $JOIN_WHERE = '';
  if ($attr->{UID}) {
-   push @WHERE_RULES, "pp.uid='$attr->{UID}'";
+   $JOIN_WHERE = " AND pp.uid='$attr->{UID}'";
   }
 
- if ($attr->{PERIODIC}) {
- 	 push @WHERE_RULES, "pt.periodic='$attr->{PERIODIC}'";
+ if ($attr->{SUM}) {
+   #my $value = $self->search_expr($attr->{SUM}, 'INT');
+ 	 push @WHERE_RULES, "pp.sum$attr->{SUM}";
   }
 
  
- $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
+ $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : '';
 
 
- $self->query($db, "SELECT pt.id, pt.name, if(pp.id IS NULL, 0, pp.sum), a.id, pp.date, pp.aid
+ $self->query($db, "SELECT pt.id, pt.name, if(pp.id IS NULL, 0, pp.sum), 
+   pp.comments,
+   a.id, 
+   pp.date, pp.aid, pp.uid
    FROM extfin_paids_types pt
-   join LEFT extfin_paids_periodic pp on (pt.id=pp.id)
-   join LEFT admins a on (pt.aid=a.aid)
-   $WHERE
+   LEFT join extfin_paids_periodic pp on (pt.id=pp.type_id $JOIN_WHERE)
+   LEFT join admins a on (pp.aid=a.aid)
+   WHERE pt.periodic='1' $WHERE
   ");
 
  my $list = $self->{list};
@@ -518,15 +546,19 @@ sub paid_change {
   my $self = shift;
   my ($attr) = @_;
 
-	my %FIELDS = ('ID'    => 'id', 
-	              'DATE'  => 'date', 
-	              'SUM'   => 'sum', 
-	              'DESCRIBE' => 'describe', 
-	              'UID'      => 'uid', 
-	              'AID'      => 'aid', 
-	              'STATUS'   => 'status',
-	              'TYPE'     => 'type'
+	my %FIELDS = (ID       => 'id', 
+	              DATE     => 'date', 
+	              SUM      => 'sum', 
+	              DESCRIBE => 'comments', 
+	              UID      => 'uid', 
+	              AID      => 'aid', 
+	              STATUS   => 'status',
+	              TYPE     => 'type_id',
+	              EXT_ID   => 'ext_id',
+	              STATUS_DATE => 'status_date'
 	              );
+
+  $attr->{STATUS} = 0 if (! $attr->{STATUS});
 
 
  	$self->changes($admin, { CHANGE_PARAM => 'ID',
@@ -561,9 +593,9 @@ sub paid_info {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "SELECT date, sum, describe, uid, aid, 
-  status, status_date, type
-   FROM extfin_paids, extfin_paids_types pt
+  $self->query($db, "SELECT date, sum, comments, uid, aid, 
+  status, status_date, type_id, ext_id
+   FROM extfin_paids
   WHERE id='$attr->{ID}';");
 
   if ($self->{TOTAL} < 1) {
@@ -580,6 +612,7 @@ sub paid_info {
    $self->{STATUS},
    $self->{STATUS_DATE},
    $self->{TYPE},
+   $self->{EXT_ID}
   ) = @{ $self->{list}->[0] };
 	
   return $self;
@@ -604,7 +637,6 @@ sub paids_list {
  $self->{SEARCH_FIELDS_COUNT}=0;
  
  undef @WHERE_RULES;
- my $search_fields = '';
 
  # Start letter 
  if ($attr->{FIRST_LETTER}) {
@@ -634,21 +666,50 @@ sub paids_list {
     push @WHERE_RULES, "p.type_id$value";
   }
 
- if ($attr->{DESCRIBE}) {
-    $attr->{DESCRIBE} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "p.descr LIKE '$attr->{DESCRIBE}'";
+ if ($attr->{UID}) {
+    my $value = $self->search_expr($attr->{UID}, 'INT');
+    push @WHERE_RULES, "p.uid$value";
   }
 
 
- 
- $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
+ if ($attr->{DESCRIBE}) {
+    $attr->{DESCRIBE} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "p.comments LIKE '$attr->{DESCRIBE}'";
+  }
 
- $self->query($db, "SELECT p.date, p.sum, p.describe, p.uid, p.id, 
-  p.status, p.status_date, pt.name, p.aid, p.type_id
-   FROM extfin_paids p, extfin_paids_types pt, admins a
+ if ($attr->{DATE}) {
+    push @WHERE_RULES, "p.date='$attr->{DATE}'";
+  }
+ elsif ($attr->{INTERVAL}) {
+ 	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+   push @WHERE_RULES, "date_format(p.date, '%Y-%m-%d')>='$from' and date_format(p.date, '%Y-%m-%d')<='$to'";
+  }
+# elsif (defined($attr->{MONTH})) {
+# 	 push @WHERE_RULES, "date_format(p.date, '%Y-%m')='$attr->{MONTH}'";
+#   $date = "date_format(p.date, '%Y-%m-%d')";
+#  } 
+# else {
+# 	 $date = "date_format(p.date, '%Y-%m')";
+#  }
+ 
+ my $GROUP = '';
+ 
+ if ($attr->{GROUP}) {
+ 	 $GROUP = "GROUP BY $attr->{GROUP}";
+  }
+ 
+ $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : '';
+
+ $self->query($db, "SELECT p.id, p.date, u.id, p.sum, pt.name, p.comments, a.id, p.status, 
+    p.status_date,  p.ext_id, p.uid, p.aid, p.type_id
+   FROM extfin_paids p, 
+        users u,
+        extfin_paids_types pt, 
+        admins a
   WHERE 
-  p.type_id=pt.id and p.aid=a.aid
+  p.type_id=pt.id and p.uid=u.uid and p.aid=a.aid
   $WHERE
+  $GROUP
   ORDER BY $SORT $DESC 
   LIMIT $PG, $PAGE_ROWS;");
 
@@ -656,11 +717,11 @@ sub paids_list {
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0 || $PG > 0) {
-    $self->query($db, "SELECT count(id), sum(sum)
+    $self->query($db, "SELECT count(p.id), sum(sum)
      FROM extfin_paids p, extfin_paids_types pt
     WHERE p.type_id=pt.id 
     $WHERE;");
-    ($self->{TOTAL}, $self->{SUN}) = @{ $self->{list}->[0] };
+    ($self->{TOTAL}, $self->{SUM}) = @{ $self->{list}->[0] };
    }
   
   
@@ -685,7 +746,6 @@ sub paid_reports {
  $self->{SEARCH_FIELDS_COUNT}=0;
  
  undef @WHERE_RULES;
- my $search_fields = '';
 
  # Start letter 
  if ($attr->{FIRST_LETTER}) {
@@ -721,28 +781,45 @@ sub paid_reports {
   }
 
 
+ my $date='p.date';
+
+ if ($attr->{DATE}) {
+    push @WHERE_RULES, "p.date='$attr->{DATE}'";
+  }
+ elsif ($attr->{INTERVAL}) {
+ 	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+   push @WHERE_RULES, "date_format(p.date, '%Y-%m-%d')>='$from' and date_format(p.date, '%Y-%m-%d')<='$to'";
+  }
+ elsif (defined($attr->{MONTH})) {
+ 	 push @WHERE_RULES, "date_format(p.date, '%Y-%m')='$attr->{MONTH}'";
+   $date = "date_format(p.date, '%Y-%m-%d')";
+  } 
+ else {
+ 	 $date = "date_format(p.date, '%Y-%m')";
+  }
  
  $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
 
- $self->query($db, "SELECT p.date, p.sum, p.describe, p.uid, p.id, 
-  p.status, p.status_date, pt.name, p.aid, p.type_id
-   FROM extfin_paids p, extfin_paids_types pt, admins a
-  WHERE 
-  p.type_id=pt.id and p.aid=a.aid
+ $self->query($db, "SELECT $date, 
+   sum(if(p.status=0, 0, 1)), 
+   sum(if(p.status=0, 0, p.sum)), 
+   count(p.id), 
+   sum(p.sum)
+   FROM extfin_paids p
   $WHERE
+  GROUP BY 1
   ORDER BY $SORT $DESC 
   LIMIT $PG, $PAGE_ROWS;");
 
 
   my $list = $self->{list};
-if ($self->{TOTAL} > 0 || $PG > 0) {
-  $self->query($db, "SELECT count(id), sum(sum)
-   FROM extfin_paids p, extfin_paids_types pt
-  WHERE p.type_id=pt.id 
-  $WHERE;");
-  
-  ($self->{TOTAL}, $self->{SUN}) = @{ $self->{list}->[0] };
-}
+
+  if ($self->{TOTAL} > 0 || $PG > 0) {
+    $self->query($db, "SELECT count(p.id), sum(sum)
+     FROM extfin_paids p
+    $WHERE;");
+    ($self->{TOTAL}, $self->{SUN}) = @{ $self->{list}->[0] };
+   }
 
   return $list;
 }
