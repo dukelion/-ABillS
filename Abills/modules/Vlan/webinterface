@@ -11,8 +11,8 @@ my $debug = 0;
 
 $conf{VLAN_IF_CREATE}="$IFCONFIG vlan%VLAN_ID% create vlan %VLAN_ID% vlandev %PARENT_INTERFACE% up";
 $conf{VLAN_IF_IP}="$IFCONFIG vlan%VLAN_ID% inet %VLAN_IF_IP% netmask %VLAN_IF_NETMASK%";
-$conf{VLAN_IF_DELETE}="$IFCONFIG vlan%VLAN_ID% delete %VLAN_IF_IP%";
-
+$conf{VLAN_IP_DELETE}="$IFCONFIG vlan%VLAN_ID% delete %VLAN_IF_IP%";
+$conf{VLAN_IF_DESTROY}="$IFCONFIG vlan%VLAN_ID% destroy";
 
 #**********************************************************
 # user_vlan
@@ -372,10 +372,12 @@ foreach my $line (@$list) {
      }
 
     if (! $vlans_info->{$INFO{VLAN_ID}}) {
-      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $INFO{PARENT_INTERFACE} up";
+      push @commands, _parse($conf{VLAN_IF_CREATE}, \%INFO);
+      #"$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $INFO{PARENT_INTERFACE} up";
      
       if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
-        push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
+        push @commands, _parse($conf{VLAN_IF_IP}, \%INFO);
+        #"$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
        }
 
       #Start PPPOE
@@ -392,10 +394,12 @@ foreach my $line (@$list) {
       #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} destroy";
       #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface";
       if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
-        push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
+        push @commands, _parse($conf{VLAN_IP_DELETE}, \%INFO); 
+        #"$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
        }
       else {
-        push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} delete $INFO{VLAN_IF_IP}";
+        push @commands, _parse($conf{VLAN_IF_DELETE}, \%INFO);
+        #"$IFCONFIG vlan$INFO{VLAN_ID} delete $INFO{VLAN_IF_IP}";
        }
 
       $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Changed\n" if ($debug > 0);
@@ -426,8 +430,9 @@ foreach my $line (@$list) {
   	#                    ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
     #}
 
-	  push @commands, "$IFCONFIG vlan$vlan_id destroy";
-	  push @client_interfaces_unused, "vlan$INFO{VLAN_ID}";
+	  push @commands, _parse($conf{VLAN_VLAN_DESTROY}, { VLAN_ID => $vlan_id });
+	  #"$IFCONFIG vlan$vlan_id destroy";
+	  push @client_interfaces_unused, "vlan$vlan_id";
   }
 
 
@@ -641,5 +646,17 @@ sub vlan_pppoe_relay {
 	return $debug_output;
 }
 
+#**********************************************************
+# _parse($string, \%HASH_REF);
+#**********************************************************
+sub _parse {
+	my ($string, $HASH_REF) = @_;
+	
+	while(my($k, $v)=%$HASH_REF) {
+		$string =~ s/\%$k\%/$v/g;   
+	 }
+
+	return $string;
+}
 1
 
