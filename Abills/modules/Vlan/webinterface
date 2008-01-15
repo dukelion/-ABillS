@@ -9,6 +9,9 @@ my $SUDO = '/usr/local/bin/sudo';
 my $debug = 0;
 
 
+$conf{VLAN_IF_CREATE}="$IFCONFIG vlan%VLAN_ID% create vlan %VLAN_ID% vlandev %PARENT_INTERFACE% up";
+$conf{VLAN_IF_IP}="$IFCONFIG vlan%VLAN_ID% inet %VLAN_IF_IP% netmask %VLAN_IF_NETMASK%";
+$conf{VLAN_IF_DELETE}="$IFCONFIG vlan%VLAN_ID% delete %VLAN_IF_IP%";
 
 
 #**********************************************************
@@ -344,14 +347,15 @@ foreach my $line (@$list) {
 #    	next;
 #     }
 
-
+    
+    $INFO{PARENT_INTERFACE}=$parent_interface;
     if ($INFO{DHCP} == 1 && $INFO{VLAN_IF_IP} ne '0.0.0.0') {
       my ($first_ip, $last_ip)=split(/ - /, $line->[6]);
       $INFO{NETWORK}  = int2ip(ip2int($INFO{VLAN_IF_IP}) - 1);
       $INFO{NETWORK_MASK} = $INFO{VLAN_IF_NETMASK};
       $INFO{RANGE}    = "range $first_ip $last_ip;";
       $INFO{ROUTERS}  = "option routers $INFO{VLAN_IF_IP};";
-      $INFO{DESCRIBE} = "Vlan ID: $INFO{VLAN_ID} PARENT: $parent_interface LOGIN: $INFO{LOGIN}";
+      $INFO{DESCRIBE} = "Vlan ID: $INFO{VLAN_ID} PARENT: $INFO{PARENT_INTERFACE} LOGIN: $INFO{LOGIN}";
 
       $INFO{SUBNETS} .= $html->tpl_show(
                                _include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
@@ -368,7 +372,7 @@ foreach my $line (@$list) {
      }
 
     if (! $vlans_info->{$INFO{VLAN_ID}}) {
-      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface up";
+      push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $INFO{PARENT_INTERFACE} up";
      
       if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
         push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
