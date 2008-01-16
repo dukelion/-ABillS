@@ -1060,8 +1060,18 @@ sub snmputils_dlink_ip_mac_port{
     return 0;
    }
   elsif($FORM{UPDATE}) {
-  	my $info = snmputils_dlink_pb({ NAS_ID  => $FORM{NAS_ID}, 
-  		                              DEBUG   => $debug });
+    $Nas->info({ NAS_ID => $FORM{NAS_ID} });
+
+    my %CONF_HASH = (  NAS_ID       => $Nas->{NAS_ID},
+                       MNG_PASSWORD => $Nas->{NAS_MNG_PASSWORD},
+                       MNG_HOST     => $Nas->{NAS_IP},
+                       RAD_PAIRS    => $Nas->{NAS_RAD_PAIRS},
+                       DEBUG        => $debug
+                     );
+
+
+  	
+  	my $info = snmputils_dlink_pb({ %CONF_HASH });
   	print "<pre>$info</pre>";
    }
 
