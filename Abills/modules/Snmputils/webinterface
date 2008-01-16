@@ -2728,7 +2728,7 @@ sub snmp_info_form {
 
   $info{TYPE_SEL}=$html->form_select('TYPE', 
                                           { 
- 	                                          SELECTED    => $FORM{TYPE},
+ 	                                          SELECTED    => $FORM{TYPE} || 'dlink_ip_mac_port',
  	                                          SEL_HASH    => {'system'            => 'RFC1213-MIB System information',
  	                                          	              'interfaces'        => 'IF-MIB:ifTable',
                                                             'ipNetToMediaTable' => 'RFC1158-MIB:ipNetToMediaTable',
