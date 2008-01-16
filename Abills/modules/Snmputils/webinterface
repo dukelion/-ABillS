@@ -358,7 +358,7 @@ $info{NAS_TYPES} = $html->form_select('NAS_TYPE',
                                                        'zyxel_smf'     => 'Zyxel Static MAC Forwarding',
                                                        'mikrotik_info' => "Mikrotik $_INFO"
  	                                          	        },
-                                       NO_ID   => 1
+                                       NO_ID       => 1
                                      });
 
 
@@ -1060,8 +1060,8 @@ sub snmputils_dlink_ip_mac_port{
     return 0;
    }
   elsif($FORM{UPDATE}) {
-  	my $info = snmputils_dlink_pb({ NAS_IDS => $FORM{NAS_ID}, 
-  		                              DEBUG   => 1 });
+  	my $info = snmputils_dlink_pb({ NAS_ID  => $FORM{NAS_ID}, 
+  		                              DEBUG   => $debug });
   	print "<pre>$info</pre>";
    }
 
@@ -1254,7 +1254,7 @@ sub snmputils_dlink_ip_mac_port{
  
  
   $table = $html->table({ width       => '100%',
-                          caption     => "$_DISABLED",
+                          caption     => "$_DISABLE",
                           border      => 1,
                           title       => ["$_USER", "ID", "$_PORT", "MAC", "VID", "-"],
                           cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
@@ -2725,11 +2725,11 @@ sub snmp_info_form {
                                                             'ipRoutingTable'    => 'RFC1158-MIB:ipRoutingTable',
                                                             'tcpConnTable'      => 'RFC1213-MIB:tcpConnTable',
                                                             'udpTable'          => 'RFC1213-MIB:udpTable',
-                                                            'dlink_ip_mac_port' => 'D-Link IP MAC Port Binding',
                                                             'zyxel_smf'         => 'Zyxel Static MAC Forwarding ',
+                                                            'dlink_ip_mac_port' => 'D-Link IP MAC Port Binding',
                                                             'cisco_air'         => 'Cisco Aironet Asociation'
  	                                          	              },
-                                       NO_ID   => 1
+                                           NO_ID   => 1
                                      });
   
  
@@ -2822,6 +2822,13 @@ if ($FORM{change}) {
   $html->tpl_show(_include('snmputils_set', 'Snmputils'), { %info, %FORM });
  }
 else {
+  $info{DEBUG_SEL} = $html->form_select('DEBUG', 
+                                          { 
+ 	                                          SELECTED    => $FORM{DEBUG} || 0,
+ 	                                          SEL_ARRAY   => [ 0, 1, 2, 3, 4, 5 ],	
+ 	                                          NO_ID       => 1
+                                          }); 
+                                     
   $html->tpl_show(_include('snmputils_main', 'Snmputils'), { %info, %FORM });	
 }
 
