@@ -1,4 +1,3 @@
-$web_interface    = 1;
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = (
                    "2:0:SNMP _BINDING:snmputils_binding:UID" => 15,
@@ -8,8 +7,6 @@ $web_interface    = 1;
                    
                    );
 
-
-#%PERIODIC = (daily   => [ 'snmputils_dlink_pb', 'snmputils_qbridge' ]);
 
 %PERIODIC = (daily   => [ 'snmputils_periodic' ]);
 
