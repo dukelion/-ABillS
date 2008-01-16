@@ -7,6 +7,7 @@
 <tr><td>SNMP OID:</td><td><input type='text' name='SNMP_OID' value='%SNMP_OID%'></td></tr>
 <tr><td>$_TYPE:</td><td>%TYPE_SEL%</td></tr>
 <tr><td>MIBS:</td><td>%MIBS%</td></tr>
+<tr><td>DEBUG:</td><td>%DEBUG_SEL%</td></tr>
 </table>
 <input type='submit' name='SHOW' value='$_SHOW'>
 </FORM>
