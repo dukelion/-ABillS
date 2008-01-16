@@ -581,7 +581,7 @@ sub snmputils_qbridge {
 sub snmputils_dlink_pb {
 	my ($attr) = @_;
 	
-	my $debug = $attr->{DEBUG} || 0;
+	my $debug        = $attr->{DEBUG} || 0;
   my $NAS_ID       = $attr->{NAS_ID};  # line->[0];
   my $MNG_PASSWORD = $attr->{MNG_PASSWORD}; # line->[11];
   my $MNG_HOST     = $attr->{MNG_HOST}; # $line->[9];
@@ -674,7 +674,7 @@ sub snmputils_dlink_pb {
      #Active ports
      
      my @ports_arr = split(/,/, $ports);
-     $debug_output .= "Active port: ";
+     $debug_output .= "Active port: " if ($debug > 1);
      foreach my $port (@ports_arr) {
        
        if ($debug < 3) {
@@ -1054,9 +1054,8 @@ sub snmputils_dlink_ip_mac_port{
   my $message = '';
   
   if ($FORM{TEST}) {
-    print "<pre>";
-    print  snmputils_dlink_pb({ DEBUG => $FORM{DEBUG} });
-    print "</pre>";
+    my $info = snmputils_dlink_pb({ DEBUG => $FORM{DEBUG} });
+    $html->pre($info);
     return 0;
    }
   elsif($FORM{UPDATE}) {
@@ -1072,7 +1071,7 @@ sub snmputils_dlink_ip_mac_port{
 
   	
   	my $info = snmputils_dlink_pb({ %CONF_HASH });
-  	print "<pre>$info</pre>";
+  	$html->pre($info);
    }
 
 
@@ -1299,6 +1298,7 @@ print $html->form_main({ CONTENT => '',
 	                       	            NAS_HOST      =>  $FORM{NAS_HOST},
 	                       	            NAS_COMMUNITY =>  $FORM{NAS_COMMUNITY},
 	                       	            NAS_ID        =>  $FORM{NAS_ID},
+	                       	            DEBUG         =>  $forM{DEBUG},
 	                       	            SHOW          =>  1
 	                                   	           },
 	                                    SUBMIT  => { UPDATE   => "$_REFRESH"
