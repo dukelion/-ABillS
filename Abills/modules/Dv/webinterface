@@ -2795,6 +2795,7 @@ sub dv_wizard_user {
         if($FORM{'5.SUM'} + 0 > 0) {
           my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
           $payments->add($user, { %{$add_values{5}}, ER => $er->{ER_RATE} } );  
+
           if ($payments->{errno}) {
             $html->message('err', "-- $_PAYMENTS : $_ERROR", "[$payments->{errno}] $err_strs{$payments->{errno}}");	
             return 0;
