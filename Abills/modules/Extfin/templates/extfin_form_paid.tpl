@@ -8,6 +8,7 @@
 <TR><TD>$_SUM:</TD><TD><input type=text name='SUM' value='%SUM%'></TD></TR>
 <TR><TD>$_DESCRIBE:</TD><TD><input type=text name=DESCRIBE value='%DESCRIBE%'></TD></TR>
 <TR><TD>$_TYPE:</TD><TD>%TYPE_SEL%</TD></TR>
+<TR><TD>$_ACCOUNT:</TD><TD>%MACCOUNT_SEL%</TD></TR>
 <TR><TD>$_DATE:</TD><TD>%DATE_LIST%</TD></TR>
 <TR><TD>$_CLOSED:</TD><TD><input type=checkbox name=STATUS value=1 %STATUS%></TD></TR>
 <TR><TD colspan=2><hr size=1></TD></TR>

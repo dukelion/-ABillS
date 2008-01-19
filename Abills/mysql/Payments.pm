@@ -89,7 +89,6 @@ sub add {
 
   %DATA = $self->get_data($attr); 
  
-
   if ($DATA{SUM} <= 0) {
      $self->{errno} = 12;
      $self->{errstr} = 'ERROR_ENTER_SUM';
