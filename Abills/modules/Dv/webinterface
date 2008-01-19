@@ -2859,7 +2859,7 @@ sub dv_wizard_user {
       # Info
       my $dv = $Dv->info($UID);
       my $pi = $user->pi({ UID => $UID });
-      $user  = $user->info($UID);
+      $user  = $user->info($UID, { SHOW_PASSWORD => 1 });
       
       
       if (! $attr->{SHORT_REPORT}) {

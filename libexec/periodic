@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #Periodic process
 
-use vars  qw(%RAD %conf @MODULES $db $html $DATE $GZIP 
+use vars  qw(%RAD %conf @MODULES $db $html $DATE $TIME $GZIP 
   $MYSQLDUMP
   %ADMIN_REPORT 
   $DEBUG
@@ -52,6 +52,9 @@ use POSIX qw(mktime strftime);
 my $YESTERDAY = (strftime "%Y-%m-%d", localtime(time - 86400));
 
 %ADMIN_REPORT = (DATE => $DATE);
+$admin->{DATE}=$DATE;
+$admin->{TIME}=$TIME;
+
 my $args = parse_arguments(\@ARGV);
 $ADMIN_REPORT{HOSTNAME}=hostname();
 
@@ -150,6 +153,7 @@ my($Y, $M, $D);
 
      #$YESTERDAY=$args->{DATE};
      $ADMIN_REPORT{DATE} = $args->{DATE};
+     $admin->{DATE}=$args->{DATE};
    }
   
   if (defined($args->{NO_USERS_WARNINGS})) {

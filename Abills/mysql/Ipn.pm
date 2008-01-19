@@ -1143,17 +1143,72 @@ sub ipn_detail_rotate {
   my $self = shift;
 	my ($attr) = @_;
   
-  my $version = $self->db_version();
-# > 4.1
-#CREATE TABLE IF NOT EXISTS ipn_traf_detail_2 LIKE ipn_traf_detail;
-#CREATE TABLE IF NOT EXISTS ipn_traf_detail_backup LIKE ipn_traf_detail;
-#DROP TABLE IF EXISTS ipn_traf_detail_backup2;
-#RENAME TABLE ipn_traf_detail_backup TO ipn_traf_detail_backup2, ipn_traf_detail 
-#TO  ipn_traf_detail_backup, ipn_traf_detail_2 TO ipn_traf_detail;
+ my  ($Y, $M, $D) = split(/-/, $admin->{DATE}, 3); 
 
-  $self->query($db, "DELETE from ipn_traf_detail WHERE f_time - INTERVAL $attr->{PERIOD} DAY;", 'do');
+ my $version = $self->db_version();
+ #Detail Daily rotate
+ if ($version > 4.1 ) {
+ 	my $DATE = $admin->{DATE};
+ 	$DATE =~ s/-/_/g;
 
-	return $self;
+ 	my @rq = (
+    'CREATE TABLE IF NOT EXISTS ipn_traf_detail_new LIKE ipn_traf_detail;',
+    'RENAME TABLE 
+      ipn_traf_detail TO ipn_traf_detail_'. $DATE .
+      ', ipn_traf_detail_new TO ipn_traf_detail;'
+      );
+
+  foreach my $query (@rq) {
+    $self->query($db, "$query", 'do'); 
+   }
+  }
+ else {
+   $self->query($db, "DELETE from ipn_traf_detail WHERE f_time < f_time - INTERVAL $attr->{PERIOD} DAY;", 'do');
+  }
+
+ #IPN log rotate
+ if ($version > 4.1 && $D == 1) {
+   
+   my @rq = (
+    'CREATE TABLE IF NOT EXISTS ipn_log_new LIKE ipn_log;',
+    'INSERT INTO ipn_log_new (
+         uid,
+         start,
+         stop,
+         traffic_class,
+         traffic_in,
+         traffic_out,
+         session_id,
+         sum
+    ) 
+    SELECT uid, min(start), max(start), traffic_class, sum(traffic_in), sum(traffic_out),  session_id, sum(sum) FROM ipn_log 
+      WHERE start < start - INTERVAL '. $attr->{PERIOD} .' DAY GROUP BY uid, session_id, traffic_class',
+
+    'INSERT INTO ipn_log_new (
+         uid,
+         start,
+         stop,
+         traffic_class,
+         traffic_in,
+         traffic_out,
+         session_id,
+         sum
+    ) 
+      SELECT uid, start, stop, traffic_class, traffic_in, traffic_out,  session_id, sum FROM ipn_log 
+      WHERE start>=start - INTERVAL '. $attr->{PERIOD} .' DAY GROUP BY uid, session_id, traffic_class',
+    'DROP TABLE IF EXISTS ipn_log_backup;',
+    'RENAME TABLE 
+      ipn_log  TO ipn_log_backup, 
+      ipn_log_new TO ipn_log;'
+      );
+
+   foreach my $query (@rq) {
+     $self->query($db, "$query", 'do');
+    }
+
+  }
+
+ return $self;
 }
 
 #*******************************************************************

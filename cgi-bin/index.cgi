@@ -814,7 +814,7 @@ my $table = $html->table( { width      => '100%',
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
 
-  $table->addrow("<b>$line->[0]</b>", $html->button($line->[1], "index=15&UID=$line->[8]"), $line->[2], 
+  $table->addrow($html->b($line->[0]), $html->button($line->[1], "index=15&UID=$line->[8]"), $line->[2], 
    $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
 }
 
@@ -822,7 +822,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right', 'right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM:", "<b>$fees->{SUM}</b>" ] ],
+                         rows       => [ [ "$_TOTAL:", $html->b($fees->{TOTAL}), "$_SUM:", $html->b($fees->{SUM}) ] ],
                          rowcolor   => $_COLORS[2]
                       } );
 print $table->show();
