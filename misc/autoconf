@@ -13,7 +13,7 @@ use vars  qw(%RAD %conf $db %AUTH
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 0.9;
+my $VERSION = 1.0;
 my $config_file = $Bin . '/../libexec/config.pl';
 
 if(! -f $config_file ) {
@@ -100,7 +100,11 @@ $conf{OS}=uc(`uname`);
 
 print $conf{OS};
 
-if ($ARGV->{help}) {
+if ($ARGV->{CSUM}) {
+   checksum();
+   exit;
+ }
+elsif ($ARGV->{help}) {
   print "Auto configuration script Version: $VERSION
  ./autoconf [parameters]
   PROGRAMS=[PROGRAMS,...] - Program names (postfix,freeradius,exppp)
@@ -112,6 +116,13 @@ if ($ARGV->{help}) {
   CHANGE_PATH             - Change path for instalation files.
   
   FILES                   - Configure only selected files
+
+  CSUM                    - Compare checksum
+  CSUM_UPDATE=[file,...]  - Update checksum
+  CSUM_FILE=[file]        - Checksum summary file. Default checksum.db
+  CSUM_DIR=[dir,...]      - Make checksum for all dir files
+  CSUM_FILES=[file,...]    - Make checksum for files
+
   debug                   - Debug level
                             1 short debug
                             2 full debug
@@ -479,3 +490,55 @@ sub confirm_yn {
       }
 }
 
+
+#***********************************************
+#
+# Make file checksum
+#***********************************************
+sub make_checksum { 
+  use DB_File;
+  #$filename => "chacksum_type:checksum:filedate_time:permisions"; 
+  my %hash = ();
+  my @files = ();
+
+  my $flags="O_CREAT|O_RDWR"; 
+  my $mode='0700';
+  my $DB_HASH;
+  
+  if ($ARGV->{CSUM_FILES}) {
+     @files = split(/,/, $ARGV->{CSUM_FILES});
+   }
+  elsif ($ARGV->{CSUM_DIRS}) {
+    @files = get_files($ARGV->{CSUM_DIRS});
+   }
+
+  my $checksum_type='md5';
+  my ($checksum, $filedate_time, $permisions);
+  my $updated = "$DATE $TIME";
+  my $checksum_file = $ARGV->{CHECKSUM_FILE} || 'checksum.db';
+  print $checksum_file if ($debug > 0);
+
+  my $db = tie %hash,  'DB_File', $checksum_file, $flags, $mode, $DB_HASH
+  or die "Cannot open file '$checksum_file': $!\n"; ;
+
+  #Update checksum file
+  if ($ARGV->{CSUM_UPDATE}) {
+    foreach my $file (@files) {
+      print $file ."\n" if ($debug > 0 );
+      my $value = "$checksum_type:$checksum:$filedate_time:$permisions:$updated";
+      #my $status = $db->put($file, $value);
+      if ($debug > 4) { next }
+      $hash{$file}=$value;
+
+     }  
+   }
+  #compre with checksum file
+  else {
+    while(my($k, $v)=each(%hash)) {
+      print "$k, $v";
+     }
+   }
+  
+  undef $db;
+  untie %hash ;
+}
