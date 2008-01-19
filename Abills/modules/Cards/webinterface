@@ -383,7 +383,7 @@ sub cards_bruteforce () {
 	 print $table->show();	
  	 $table = $html->table( { width      => '100%',
                             cols_align => ['right', 'right'],
-                            rows       => [ [ "$_TOTAL:", "<b>$Cards->{TOTAL}</b>" ] ]
+                            rows       => [ [ "$_TOTAL:", $html->b($Cards->{TOTAL}) ] ]
                         } );
    print $table->show();	
 
@@ -413,7 +413,7 @@ sub cards_bruteforce () {
 	
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Cards->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($Cards->{TOTAL}) ] ]
                         } );
   print $table->show();	
 
@@ -431,11 +431,11 @@ sub cards_users_add  {
 
   if ($FORM{create}) {
       my $export = '';
-    	my $begin = $FORM{BEGIN} || 0;
-  	  my $count = $FORM{COUNT} || 0;
+    	my $begin  = $FORM{BEGIN} || 0;
+  	  my $count  = $FORM{COUNT} || 0;
   	  my $LOGIN_NUMBER = $FORM{LOGIN_BEGIN} || 0;
-  	  my $SERIAL = $FORM{SERIAL} || '';
-  	  my $generated = 0;
+  	  my $SERIAL     = $FORM{SERIAL} || '';
+  	  my $generated  = 0;
       my $DATA_ARRAY = ();
 
       if ($FORM{LOGIN_FILE}) {
@@ -656,10 +656,6 @@ sub cards_user_payment () {
      
      if ($Cards->{UID} > 0) {
         my $user_new = Users->new($db, $admin, \%conf);
-        #$user_new->change($user_new->{UID}, { 
-        #                                 	UID      => $Cards->{UID},
-       	#                                  DISABLE  => 1 
-       	#                                  });
         $user_new->info( $Cards->{UID} );
         $user_new->del();
       }
