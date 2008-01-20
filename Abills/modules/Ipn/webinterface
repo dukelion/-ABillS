@@ -2491,13 +2491,23 @@ sub ipn_detail_rotate {
   # Clean s_detail table
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
 
-  if ($d == 1 && $conf{IPN_DETAIL_CLEAN_PERIOD}) {
+  if ($d == 1) {
     $DEBUG .= "Make log rotate\n" if ($debug > 0);
 
-    $Ipn->ipn_detail_rotate({ 
-    	                        # TYPES  => [ 'SESSION_DETAILS', 'SESSION_INTERVALS'],
-  	                          PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} });
+    $Ipn->ipn_log_rotate({ 
+    	                        DETAIL => 1,
+    	                        LOG    => 1,
+  	                          PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} 
+  	                      });
+
     $debug_output .= "Make IPN details rotate\n" if ($debug > 0);
+   }
+  elsif ($conf{IPN_DETAIL}) {
+    $Ipn->ipn_log_rotate({ 
+    	                        DETAIL => 1,
+  	                          PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} 
+  	                      });
+  	
    }
 
   $DEBUG .= $debug_output;
@@ -2506,7 +2516,7 @@ sub ipn_detail_rotate {
 
 
 #**********************************************************
-# ipn_detail_rotate
+# ipn_periodic_session_restart
 #**********************************************************
 sub ipn_periodic_session_restart {
 	my ($attr) = @_;
