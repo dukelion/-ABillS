@@ -521,6 +521,8 @@ sub backup {
    $DEBUG .= "Backup created: $res ($conf{BACKUP_DIR}/stats-$DATE.sql.gz)" if ($debug > 1);
   }
 
+
+ return if ($D > 1) ;
  #Move rotate tables
  $DEBUG .= "Move rotate tables" if ($debug > 1);
  $admin->query($db, "SHOW variables");
@@ -553,5 +555,5 @@ sub backup {
 
   }
 
-
+  return;
 }

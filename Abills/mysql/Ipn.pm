@@ -1138,16 +1138,15 @@ sub online_alive {
 
 #*******************************************************************
 # Delete information from detail table
+# and log table
 #*******************************************************************
-sub ipn_detail_rotate {
+sub ipn_log_rotate {
   my $self = shift;
 	my ($attr) = @_;
   
- my  ($Y, $M, $D) = split(/-/, $admin->{DATE}, 3); 
-
  my $version = $self->db_version();
  #Detail Daily rotate
- if ($version > 4.1 ) {
+ if ($attr->{DETAIL} && $version > 4.1 ) {
  	my $DATE = $admin->{DATE};
  	$DATE =~ s/-/_/g;
 
@@ -1167,8 +1166,7 @@ sub ipn_detail_rotate {
   }
 
  #IPN log rotate
- if ($version > 4.1 && $D == 1) {
-   
+ if ($attr->{LOG} && $version > 4.1) {
    my @rq = (
     'CREATE TABLE IF NOT EXISTS ipn_log_new LIKE ipn_log;',
     'INSERT INTO ipn_log_new (
