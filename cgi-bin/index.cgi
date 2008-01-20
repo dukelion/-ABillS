@@ -140,8 +140,10 @@ if ($uid > 0) {
  	    }
     my $aa = `echo "$text\n=====\n" >> /tmp/amon`;
     print $html->header();
-    $OUTPUT{BODY}="$html->{OUTPUT}";
+
+    $LIST_PARAMS{LOGIN}=$user->{LOGIN};
     ipn_user_activate();
+    $OUTPUT{BODY}=$html->{OUTPUT};    
     print $html->tpl_show(templates('users_start'), \%OUTPUT);
  	  exit;
    }
@@ -279,7 +281,6 @@ else {
 }
 
 
-#print $html->header({ CHARSET => $CHARSET });
 print $html->header();
 $OUTPUT{BODY}="$html->{OUTPUT}";
 print $html->tpl_show(templates('users_start'), \%OUTPUT);
