@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #Periodic process
 
-use vars  qw(%RAD %conf @MODULES $db $html $DATE $TIME $GZIP 
+use vars  qw(%RAD %conf @MODULES $db $html $DATE $TIME $GZIP $TAR
   $MYSQLDUMP
   %ADMIN_REPORT 
   $DEBUG
@@ -474,7 +474,7 @@ sub logrotate {
         }
       }
 
-     $cmd = 'gzip -c '. $logfile. ' > '. $logfile . '.1.gz && >'. $logfile ;
+     $cmd = '$GZIP -c '. $logfile. ' > '. $logfile . '.1.gz && >'. $logfile ;
      $DEBUG .= $cmd."\n" if ($args->{DEBUG} && $args->{DEBUG} > 3);
      my $r = `$cmd`;
    }
@@ -492,15 +492,66 @@ sub backup {
     return 0;
   }
 
+ $admin->query($db, "SHOW TABLE STATUS");
+ my @ignore_tables_arr = ("--ignore-table=\"$conf{dbname}.ipn_traf_detail\"",
+                          "--ignore-table=\"$conf{dbname}.s_detail\"" );
+
+ my @tables = ();
+ foreach my $table (@{ $admin->{list} }) {
+    if ($table->[0] =~ /(\S+)_\d{4}_\d{2}_\d{2}/){
+      if ($table->[1] eq 'MyISAM') {
+        push @tables, $table->[0];
+       }
+      if ($table->[0] =~ /^ipn_traf_detail|^s_detail/) {
+        push @ignore_tables_arr, " --ignore-table=\"$conf{dbname}.$table->[0]\"";
+       }
+     }
+  } 
+
+ my $ignore_tables = join(' ', @ignore_tables_arr);
+
+
  $DEBUG .= "DB backup\n" if ($debug > 1);
  #print qq{ $MYSQLDUMP -v --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" --ignore-table="$conf{dbname}.ipn_traf_detail" --ignore-table="$conf{dbname}.s_detail" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz };
- my $cmd = qq{ $MYSQLDUMP -v --ignore-table="$conf{dbname}.ipn_traf_detail" --ignore-table="$conf{dbname}.s_detail" --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz };
+ my $cmd = qq{ $MYSQLDUMP -v $ignore_tables --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz };
   
  $DEBUG .= $cmd."\n" if ($debug > 1);
  if ($debug < 5) {
    my $res = `$cmd`;
+   $DEBUG .= "Backup created: $res ($conf{BACKUP_DIR}/stats-$DATE.sql.gz)" if ($debug > 1);
   }
 
- #print $res;
- #my $message .= "Backup created: $res ($conf{BACKUP_DIR}/stats-$DATE.sql.gz)";
+ #Move rotate tables
+ $DEBUG .= "Move rotate tables" if ($debug > 1);
+ $admin->query($db, "SHOW variables");
+ my %vars = ();
+ foreach my $var (@{ $admin->{list} }) {
+    $vars{$var->[0]}=$var->[1];
+  }
+
+ if ($#tables > -1) {
+   if (! -d "$conf{BACKUP_DIR}/$DATE") {
+     if(! mkdir ("$conf{BACKUP_DIR}/$DATE")) {
+   	   print "Can't Create file rotate backup dir '$conf{BACKUP_DIR}/$DATE' $!\n";
+      }
+    }
+
+   foreach my $table (@tables) {
+   	my $cmd = qq{ $TAR -c -f - $vars{datadir}/$conf{dbname}/$table.* | $GZIP  > $conf{BACKUP_DIR}/$DATE/$table.gz };
+    my $res = '';
+    if ($debug < 5) {
+      $res = `$cmd`;
+      $admin->query($db, "DROP TABLE $table;", 'do');
+     }
+
+    $DEBUG .= $vars{datadir}."/$conf{dbname}/$table.* -> $conf{BACKUP_DIR}/$DATE/$table".".gz ($res)\n" if ($debug > 2);
+    $DEBUG .= "$cmd\n" if ($debug > 4);
+ 
+
+    
+   } 
+
+  }
+
+
 }
