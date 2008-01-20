@@ -88,7 +88,7 @@ if (defined($FORM{search})) {
 
   $table = $html->table( { width    => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ ["$_TOTAL:", "<b>$Ipn->{TOTAL}</b>" ] ]
+                         rows       => [ ["$_TOTAL:", $html->b($Ipn->{TOTAL}) ] ]
                        } );
   print $table->show();
 
@@ -799,11 +799,11 @@ else {
 
 $table = $html->table( { width => '100%',
 	    cols_align => ['right', 'right', 'right', 'right', 'right'],
-	          rows => [ [ "$_USERS: <b>". int2byte($total_tunnel) ."</b>", 
-	                      "IN: <b>". int2byte($totals{TRAFFIC_IN}) ."</b>",
-                        "OUT: <b>".   int2byte($totals{TRAFFIC_OUT}). "</b>", 
-                        "TRAFFIC: <b>". int2byte($totals{TRAFFIC_IN}+$totals{TRAFFIC_OUT}) ."</b>", 
-                        "SUM: <b>".   $totals{SUM} ."</b>"
+	          rows => [ [ '$_USERS: '. $html->b(int2byte($total_tunnel)), 
+	                      'IN: '     . $html->b(int2byte($totals{TRAFFIC_IN})),
+                        'OUT: '    . $html->b(int2byte($totals{TRAFFIC_OUT})), 
+                        'TRAFFIC: '. $html->b(int2byte($totals{TRAFFIC_IN}+$totals{TRAFFIC_OUT})), 
+                        'SUM: '    . $html->b($totals{SUM})
                         ] ],
                         rowcolor => $_COLORS[2]
                                } );
@@ -847,7 +847,7 @@ sub ipn_use {
                                } );
 
       foreach my $line (@$list) {
-        $table_sessions->addrow("<b>$line->[0]</b>", 
+        $table_sessions->addrow($html->b($line->[0]), 
           int2byte($line->[1]), 
           $line->[2]
          );
@@ -873,7 +873,7 @@ return 0;
   reports({ DATE       => $FORM{DATE}, 
   	        REPORT     => '',
   	        EX_PARAMS  => \%EX_PARAMS,
-  	        SHOW_HOURS => 'Y'
+  	        SHOW_HOURS => 1
   	       });
 
 
@@ -904,7 +904,7 @@ if (defined($FORM{DATE})) {
                                } );
 
       foreach my $line (@$list) {
-        $table_sessions->addrow("<b>$line->[0]</b>", 
+        $table_sessions->addrow($html->b($line->[0]), 
           int2byte($line->[1]), 
           $line->[2]
          );
@@ -920,7 +920,7 @@ if (defined($FORM{DATE})) {
                                } );
 
       foreach my $line (@$list) {
-        $table_sessions->addrow("<b>$line->[0]</b>", 
+        $table_sessions->addrow($html->b($line->[0]), 
           int2byte($line->[1]), 
           $line->[2]
          );
@@ -978,7 +978,7 @@ if (defined($FORM{DATE})) {
 
 
     foreach my $line (@$list) {
-      $table_sessions->addrow("<b>$line->[0]</b>", 
+      $table_sessions->addrow($html->b($line->[0]), 
         int2byte($line->[1]), 
         int2byte($line->[2]), 
         int2byte($line->[3]),  
@@ -1030,11 +1030,11 @@ else {
 
 $table = $html->table( { width => '100%',
 	    cols_align => ['right', 'right', 'right', 'right', 'right'],
-	    rows => [ [ "IN: <b>". int2byte($total_in) ."</b>",
-                                            "OUT: <b>". int2byte($total_out). "</b>", 
-                                            "TUNEL: <b>". int2byte($total_tunnel) ."</b>", 
-                                            "SUM: <b>". int2byte($total_sum) ."</b>", 
-                                            "PACKAGES: <b>$total_package</b>" 
+	    rows => [ [ 'IN: '. $html->b( int2byte($total_in) ),
+                                            'OUT: '   . $html->b( int2byte($total_out) ), 
+                                            'TUNEL: ' . $html->b( int2byte($total_tunnel)), 
+                                            'SUM: '   . $html->b( int2byte($total_sum) ), 
+                                            'PACKAGES:'.  $html->b($total_package) 
                                            ] ],
                                 rowcolor => $_COLORS[2]
                                } );
@@ -1368,7 +1368,7 @@ my $table = $html->table({ width      => '100%',
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ ["$_TOTAL:", "<b>$sessions->{TOTAL}</b>" ] ]
+                         rows       => [ ["$_TOTAL:", $html->b($sessions->{TOTAL}) ] ]
                      } );
 print $table->show();
 }
@@ -1474,8 +1474,10 @@ sub ipn_user_activate {
   		$html->message('err', $_ERROR, "[$Ipn->{errno}] $err_strs{$Ipn->{errno}}");
   	 }
   	else {
+
   		$html->message('info', $_INFO, "ALIVED");
   	 } 
+
   	return 0;
    }
   elsif ($FORM{ACTIVE}) {
@@ -1588,7 +1590,7 @@ sub ipn_user_activate {
        $line->[4], 
        int2byte($line->[5]), 
        int2byte($line->[6]),
-       $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]&REMOTE_ADDR=$online_ip")
+       $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]&REMOTE_ADDR=$online_ip&sid=$FORM{sid}")
        )  if ($line->[11] == $LIST_PARAMS{UID} );
     }
 
@@ -1793,7 +1795,7 @@ foreach my $nas_row (@$nas_list) {
   my $total = $#{@$l} + 1;  
   $table->{rowcolor}=$_COLORS[0];
   $table->{extra}="colspan='8' class='small'";
-  $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[3]:$_TOTAL: $total" );
+  $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]). ":$nas_row->[3]:$_TOTAL: $total" );
   
   foreach my $line (@$l) {
     undef($table->{rowcolor});
@@ -2525,7 +2527,7 @@ sub ipn_periodic_session_restart {
 
 
 #Get online
-$sessions->{debug}=1;
+#$sessions->{debug}=1;
 my $list = $sessions->online({ NAS_TYPE eq 'ipcad', FIELDS => [ 0,17, 23, 19, 12, 18, 27 ] });
 
 foreach my $line (@$list)   {
