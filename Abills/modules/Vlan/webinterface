@@ -9,10 +9,10 @@ my $SUDO = '/usr/local/bin/sudo';
 my $debug = 0;
 
 
-$conf{VLAN_IF_CREATE}="$IFCONFIG vlan%VLAN_ID% create vlan %VLAN_ID% vlandev %PARENT_INTERFACE% up";
-$conf{VLAN_IF_IP}="$IFCONFIG vlan%VLAN_ID% inet %VLAN_IF_IP% netmask %VLAN_IF_NETMASK%";
-$conf{VLAN_IP_DELETE}="$IFCONFIG vlan%VLAN_ID% delete %VLAN_IF_IP%";
-$conf{VLAN_IF_DESTROY}="$IFCONFIG vlan%VLAN_ID% destroy";
+$conf{VLAN_IF_CREATE}=$IFCONFIG . ' vlan%VLAN_ID% create vlan %VLAN_ID% vlandev %PARENT_INTERFACE% up' if (! $conf{VLAN_IF_CREATE});
+$conf{VLAN_IF_IP}=$IFCONFIG . ' vlan%VLAN_ID% inet %VLAN_IF_IP% netmask %VLAN_IF_NETMASK%' if (! $conf{VLAN_IF_IP}); 
+$conf{VLAN_IP_DELETE}=$IFCONFIG . ' vlan%VLAN_ID% delete %VLAN_IF_IP%' if (! $conf{VLAN_IP_DELETE});
+$conf{VLAN_IF_DESTROY}=$IFCONFIG . ' vlan%VLAN_ID% destroy' if (! $conf{VLAN_IF_DESTROY});
 
 #**********************************************************
 # user_vlan
@@ -278,10 +278,11 @@ sub vlan_create {
   my ($attr) = @_;	
 
 
+  $| = 1;
+
 $debug = $attr->{DEBUG} || 0;
 my $debug_output = '';
   
-#Get nas servers TYPE: dlink_pb
 my $list = $Nas->list({ PAGE_ROWS => 100000, 
  	                      TYPE      => 'vlan', 
  	                      DISABLE   => 0,
@@ -327,7 +328,6 @@ foreach my $line (@$list) {
   	                           PARENT_IF       => $parent_interface
   	                          });
   
-
   
   foreach my $line (@$vlan_list) {
   #Port
@@ -371,10 +371,12 @@ foreach my $line (@$list) {
       #$INFO{SUBNETS} .= $html->tpl_show($subnets, \%INFO, { notprint => 'yes' });
      }
 
+
+
     if (! $vlans_info->{$INFO{VLAN_ID}}) {
       push @commands, _parse($conf{VLAN_IF_CREATE}, \%INFO);
       #"$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $INFO{PARENT_INTERFACE} up";
-     
+
       if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
         push @commands, _parse($conf{VLAN_IF_IP}, \%INFO);
         #"$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
@@ -419,7 +421,6 @@ foreach my $line (@$list) {
     }
 
    }
-
 
   # Delete not allow vlans
   while(my($vlan_id, $ip) = each %$vlans_info) {
@@ -493,21 +494,21 @@ sub vlan_info {
   if ($attr->{NAS_MNG_IP_PORT}) {
   	$IFCONFIG_CMD = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} $attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"$IFCONFIG\"";
    }
-	
+
+
 	print $IFCONFIG_CMD."\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 2);
-	open(IFCONFIG, "$IFCONFIG_CMD |") || die "Can't open '$IFCONFIG_CMD' $!";
+	open(IFCONFIG, "$IFCONFIG_CMD | ") || die "Can't open '$IFCONFIG_CMD' $!";
     while (my $l = <IFCONFIG>) {
       $ifconfig .= $l;
      }  
   close(IFCONFIG)	;
 
-
- while($ifconfig =~ /vlan(\d+): .+\n[\s+inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).+\n]{0,1}(\s.*[\n\sa-zA-Z0-9]+\n\s.*\n\s.*\n\s.*\n)/gi ) {
-   my  $ip        = '0.0.0.0';
-   my  $if_num    = $1;
-   my  $res       = $2;
-   my  $res2      = $3 || '';
-   my  $parent_if = '';
+  while($ifconfig =~ m/vlan(\d+): .+\n[\s+inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).+\n]{0,1}(\s.*[\n\sa-zA-Z0-9]+\n\s.*\n\s.*\n\s.*\n)/gi ) {
+    my  $ip        = '0.0.0.0';
+    my  $if_num    = $1;
+    my  $res       = $2;
+    my  $res2      = $3 || '';
+    my  $parent_if = '';
 
    if ($res =~ /\s+inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).+/ ) {
      $ip   = $1;
@@ -521,6 +522,8 @@ sub vlan_info {
 
    print "Vlan: $if_num IP: $ip Parent: '$parent_if'\n$res\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 4);
   }
+
+
 
  
   return \%VLANS;
@@ -652,7 +655,7 @@ sub vlan_pppoe_relay {
 sub _parse {
 	my ($string, $HASH_REF) = @_;
 	
-	while(my($k, $v)=%$HASH_REF) {
+	while(my($k, $v)= each %$HASH_REF) {
 		$string =~ s/\%$k\%/$v/g;   
 	 }
 
