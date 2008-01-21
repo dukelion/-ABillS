@@ -117,7 +117,7 @@ return qq{
 elsif ($tpl_name eq 'form_user_exdata') {
 return qq{
    <tr bgcolor="$_COLORS[2]"><td>$_USER:*</td><td><input type="text" name="LOGIN" value=""></td></tr>
-   <tr><td>$_BILL:</td><td><input type="checkbox" name="CREATE_BILL" %CREATE_BILL% value='1'> $_CREATE</td></tr>
+   <tr><td>$_BILL:</td><td><input type="checkbox" name="CREATE_BILL" value='1' %CREATE_BILL%> $_CREATE</td></tr>
   };
  }
 elsif ($tpl_name eq 'form_user') {
@@ -139,6 +139,7 @@ $_DATE: <input type=text name='CREDIT_DATE' value='%CREDIT_DATE%' size=10>
 <TR><TD>$_REDUCTION (%):</TD><TD><input type=text name=REDUCTION value='%REDUCTION%'></TD></TR>
 <TR><TD>$_DISABLE:</TD><TD><input type=checkbox name=DISABLE value='1' %DISABLE%></TD></TR>
 <TR><TD>$_REGISTRATION</TD><TD>%REGISTRATION%</TD></TR>
+<TR><td colspan='2'>%PASSWORD%</TD></TR>
 </TABLE>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
