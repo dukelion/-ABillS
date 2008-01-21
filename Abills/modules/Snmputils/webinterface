@@ -676,7 +676,6 @@ sub snmputils_dlink_pb {
      my @ports_arr = split(/,/, $ports);
      $debug_output .= "Active port: " if ($debug > 1);
      foreach my $port (@ports_arr) {
-       
        if ($debug < 3) {
          my $message =  snmputils_dlink_pb_state({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
      	                                             STATE          => 2,
@@ -687,7 +686,20 @@ sub snmputils_dlink_pb {
         }
        $debug_output .= "$port," if ($debug > 1);
       }
-    $debug_output .= "\n";
+
+     $debug_output .= "\n";
+     
+     #Unblock ports  
+     while(my($mac, $val) = each %$BLOCK_MAC) {    
+       my $message = snmputils_dlink_pb_del({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
+     	                                        DEL            => 'block',
+     	                                        SWITCH_INFO    => $SWITCH_INFO,
+     	                                        MAC            => $mac,
+     	                                        DEBUG          => $debug
+     	                                      });
+       $debug_output .= "$message\n" if ($debug > 1);
+      }
+
     }
 
   $DEBUG = $debug_output;
@@ -936,7 +948,7 @@ sub snmputils_dlink_pb_del {
 
 	if ($attr->{DEL} eq 'block') {
     if(snmpset($SNMP_COMMUNITY, $oid_prefix. "1.$attr->{MAC}", "integer", "3")) {
-   	  $message = "$_DELETED $FORM{MAC}";
+   	  $message = "$_DELETED $attr->{MAC}";
      }
    }
   #delete from binding list
@@ -1075,6 +1087,11 @@ sub snmputils_dlink_ip_mac_port{
    }
 
 
+  if ($SNMP_COMMUNITY eq '@') {
+  	$html->message('err', $_ERROR, 'No SNMP community');
+  	return 0;
+   }
+
   my $SWITCH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
   my $oid_prefix=$SWITCH_INFO->{oid_prefix};
@@ -1092,7 +1109,7 @@ sub snmputils_dlink_ip_mac_port{
           MAC            => $FORM{MAC},
      	    SWITCH_INFO    => $SWITCH_INFO,
      	    ACL_IP_MAC     => $FORM{ACL_IP_MAC},
-     	    DEBUG          => $FORM{DEBUG}
+     	    DEBUG          => $debug
      	});
      print $html->message('info', $_INFO, "$message");
    }
@@ -1101,7 +1118,7 @@ sub snmputils_dlink_ip_mac_port{
      	                                         STATE          => $FORM{state},
      	                                         PORT           => $FORM{PORT},
      	                                         SWITCH_INFO    => $SWITCH_INFO,
-     	                                         DEBUG          => $FORM{DEBUG}
+     	                                         DEBUG          => $debug
      	                                       });
      $SWITCH_INFO = snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
      print $html->message('info', $_INFO, "$message");
@@ -1119,7 +1136,7 @@ sub snmputils_dlink_ip_mac_port{
      	                                     DEL            => $FORM{del},
      	                                     SWITCH_INFO    => $SWITCH_INFO,
      	                                     MAC            => $FORM{MAC},
-     	                                     DEBUG          => $FORM{DEBUG}
+     	                                     DEBUG          => $debug
      	                                   });
  
     print $html->message('info', $_DELETED, "$message");
@@ -1172,15 +1189,12 @@ sub snmputils_dlink_ip_mac_port{
   
   my($ACTIVE_MAC, $BLOCK_MAC) = snmputils_dlink_pb_list({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
                                                           SWITCH_INFO    => $SWITCH_INFO,
-                                                          DEBUG          => $FORM{DEBUG}
+                                                          DEBUG          => $debug
 	                                                      });
 
 
   foreach my $line (@{ $SWITCH_INFO->{PORT_STATE} }) {
   	my ($port, $state) = split(/:/, $line, 2);
-  	#my @ip_arr = @{ $info{PORT}{$port} };
-  	#@ip_arr = () if ()
-  	#my $ips_count  = $#ip_arr;
     push @ports, $port;
   	
     $table->addtd(
@@ -1298,10 +1312,10 @@ print $html->form_main({ CONTENT => '',
 	                       	            NAS_HOST      =>  $FORM{NAS_HOST},
 	                       	            NAS_COMMUNITY =>  $FORM{NAS_COMMUNITY},
 	                       	            NAS_ID        =>  $FORM{NAS_ID},
-	                       	            DEBUG         =>  $forM{DEBUG},
+	                       	            DEBUG         =>  $debug,
 	                       	            SHOW          =>  1
-	                                   	           },
-	                                    SUBMIT  => { UPDATE   => "$_REFRESH"
+	                                   },
+	                                    SUBMIT        => { UPDATE   => "$_REFRESH"
 	                       	           }
                                    });
  
