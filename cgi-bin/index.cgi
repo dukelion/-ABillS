@@ -124,8 +124,6 @@ $user=Users->new($db, $admin, \%conf);
 
 my %uf_menus = ();
 
-#print "Content-Type: text/html\n\n";
-
 if ($uid > 0) {
   $UID = $uid;
   my $default_index = 30;
@@ -134,13 +132,14 @@ if ($uid > 0) {
   # $ENV{HTTP_USER_AGENT} =~ /^AMon /
   if ($FORM{ALIVE}) {
  	  require "Abills/modules/Ipn/webinterface";
- 	  my $text = '';
- 	  while(my($k, $v)=each %FORM) {
- 	    $text .= "$k, $v\n";
- 	    }
-    my $aa = `echo "$text\n=====\n" >> /tmp/amon`;
-    print $html->header();
 
+# 	  my $text = '';
+# 	  while(my($k, $v)=each %FORM) {
+# 	    $text .= "$k, $v\n";
+# 	    }
+#    my $aa = `echo "$text\n=====\n" >> /tmp/amon`;
+
+    print $html->header();
     $LIST_PARAMS{LOGIN}=$user->{LOGIN};
     ipn_user_activate();
     $OUTPUT{BODY}=$html->{OUTPUT};    
