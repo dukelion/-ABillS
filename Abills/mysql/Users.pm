@@ -784,7 +784,7 @@ sub add {
   	$self->change($self->{UID}, { 
   		 DISABLE => int($DATA{DISABLE}),
   		 UID     => $self->{UID},
-  		 create  => 'yes' });
+  		 create  => 1 });
 
   }
 

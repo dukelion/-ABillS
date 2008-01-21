@@ -196,7 +196,7 @@ my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTI
                [$_LIST, $_ADD, $_CHANGE, $_DEL],                              # system magment
                [$_ALL],                                                       # Modules managments
                [$_SEARCH],                                                    # Search
-               [$_MONITORING],
+               [$_MONITORING, $_HANGUP],
                [$_PROFILE],
                );
 
@@ -702,7 +702,7 @@ else {
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$company->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($company->{TOTAL}) ] ]
                        } );
   print $table->show();
 }
@@ -730,7 +730,7 @@ print "<tr bgcolor=\"$_COLORS[3]\"><td colspan=\"2\">\n";
 my $menu;
 while(my($name, $v)=each %$items) {
   my ($subf, $ext_url)=split(/:/, $v, 2);
-  $menu .= (defined($FORM{subf}) && $FORM{subf} eq $subf) ? "::". $html->button("<b>$name</b>", "index=$index&$ext_url&subf=$subf"): "::". $html->button($name, "index=$index&$ext_url&subf=$subf");
+  $menu .= (defined($FORM{subf}) && $FORM{subf} eq $subf) ? "::". $html->button($html->b($name), "index=$index&$ext_url&subf=$subf"): "::". $html->button($name, "index=$index&$ext_url&subf=$subf");
 }
 
 print "$menu</td></tr>
@@ -795,7 +795,7 @@ sub user_form {
    	 $user_info->{GID} = sel_groups();
     }
 
-   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata'), undef, { notprint => 'y' });
+   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata'), { CREATE_BILL => ' checked' }, { notprint => 1 });
 
    $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? ' checked' : '';
    $user_info->{ACTION}='add';
@@ -811,7 +811,12 @@ sub user_form {
    $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? ' checked' : '';
    $user_info->{ACTION}='change';
    $user_info->{LNG_ACTION}=$_CHANGE;
+   if ($permissions{0}{3}) {
+   	 $user_info->{PASSWORD} = ($FORM{SHOW_PASSWORD}) ? "$_PASSWD: '$user_info->{PASSWORD}'" : $html->button("$_SHOW $_PASSWD", "index=$index&UID=$FORM{UID}&SHOW_PASSWORD=1");
+    }
   } 
+
+
 
 $html->tpl_show(templates('form_user'), $user_info);
 
@@ -911,7 +916,7 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
   my $delete = (defined($permissions{0}{5})) ?  $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" }) : ''; 
 
-  $table->addrow("<b>$line->[0]</b>", "$line->[1]", "$line->[2]", 
+  $table->addrow($html->b($line->[0]), "$line->[1]", "$line->[2]", 
    $html->button($line->[3], "index=27&GID=$line->[0]&subf=15"), 
    $html->button($_INFO, "index=27&GID=$line->[0]"),
    $delete);
@@ -921,7 +926,7 @@ print $table->show();
 
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right'],
-                        rows       => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
+                        rows       => [ [ "$_TOTAL:", $html->b($users->{TOTAL}) ] ]
                       });
 print $table->show();
 }
@@ -946,14 +951,15 @@ sub add_groups {
 #**********************************************************
 sub user_info {
   my ($UID)=@_;
-	my $user_info = $users->info( $UID );
+
+	my $user_info = $users->info( $UID , { %FORM });
   
   
   $table = $html->table({ width      => '100%',
   	                      rowcolor   => $_COLORS[2],
   	                      border     => 0,
                           cols_align => ['left:noprint'],
-                          rows       => [ [ "$_USER: ". $html->button("<b>$user_info->{LOGIN}</b>", "index=15&UID=$user_info->{UID}") ] ]
+                          rows       => [ [ "$_USER: ". $html->button($html->b($user_info->{LOGIN}), "index=15&UID=$user_info->{UID}") ] ]
                         });
   print $table->show();
  
@@ -1042,7 +1048,7 @@ if(defined($attr->{USER})) {
    }
   #
   
-  form_passwd({ USER => $user_info}) if (defined($FORM{newpassword}));
+  form_passwd({ USER => $user_info }) if (defined($FORM{newpassword}));
 
   if ($FORM{change}) {
     if (! $permissions{0}{4} ) {
@@ -1161,11 +1167,8 @@ $service_menu
 </ul><ul>\n";
 
 
-
-
 my %userform_menus = (
              22 =>  $_LOG,
-             17 =>  $_PASSWD,
              21 =>  $_COMPANY,
              12 =>  $_GROUP,
              18 =>  $_NAS,
@@ -1173,13 +1176,18 @@ my %userform_menus = (
              19	=>  $_BILL
              );
 
+
+$userform_menus{17}=$_PASSWD if ($permissions{0}{3});
+
+
+
 while(my($k, $v)=each %uf_menus) {
 	$userform_menus{$k}=$v;
 }
 
 while(my($k, $v)=each (%userform_menus) ) {
   my $url =  "index=$k&UID=$user_info->{UID}";
-  my $a = (defined($FORM{$k})) ? "<b>$v</b>" : $v;
+  my $a = (defined($FORM{$k})) ? $html->b($v) : $v;
   print "<li>" . $html->button($a,  "$url");
 }
 
@@ -1212,7 +1220,7 @@ elsif ( $FORM{add}) {
         }
      }
 
-    $user_info = $users->info( $user_info->{UID} );
+    $user_info = $users->info( $user_info->{UID}, { SHOW_PASSWORD => 1 } );
     $html->tpl_show(templates('user_info'), $user_info);
 
     $LIST_PARAMS{UID}=$user_info->{UID};
@@ -1270,7 +1278,7 @@ if (! $permissions{0}{2}) {
 
 
 if ($FORM{COMPANY_ID}) {
-  print "<p><b>$_COMPANY:</b> $FORM{COMPANY_ID}</p>\n";
+  print '<p>'. $html->b("$_COMPANY:") .  $FORM{COMPANY_ID}. "</p>\n";
   $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
   $LIST_PARAMS{COMPANY_ID} = $FORM{COMPANY_ID};
  }  
@@ -1278,7 +1286,7 @@ if ($FORM{COMPANY_ID}) {
 if ($FORM{debs}) {
   print "<p>$_DEBETERS</p>\n";
   $pages_qs .= "&debs=$FORM{debs}";
-  $LIST_PARAMS{DEBETERS} = 'y';
+  $LIST_PARAMS{DEBETERS} = 1;
  }  
 
  print $html->letters_list({ pages_qs => $pages_qs  }); 
@@ -1303,7 +1311,7 @@ if ($users->{errno}) {
 elsif ($users->{TOTAL} == 1) {
 	$FORM{index} = 15;
 	$FORM{UID}=$list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
-	form_users({  USER => user_info($list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}]) });
+	form_users({  USER => user_info($list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}], { %FORM }) });
 	return 0;
 }
 
@@ -1359,7 +1367,7 @@ foreach my $line (@$list) {
 
 my $table2 = $html->table( { width      => '100%',
                              cols_align => ['right', 'right'],
-                             rows       => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
+                             rows       => [ [ "$_TOTAL:", $html->b($users->{TOTAL}) ] ]
                           });
 
 
@@ -1561,7 +1569,7 @@ elsif($attr->{TP}) {
   
   my $list = $tarif_plan->nas_list();
   foreach my $nas_id (@$list) {
-     $allow_nas{$nas_id->[0]}='y';
+     $allow_nas{$nas_id->[0]}=1;
    }
 
   $EX_HIDDEN_PARAMS{TP_ID}=$tarif_plan->{TP_ID};
@@ -1635,7 +1643,7 @@ sub form_bills {
 
   $user->{SEL_BILLS} =  "<select name='BILL_ID'>\n";
   $user->{SEL_BILLS} .= "<option value='0'>-N/S-\n";
-  my $list = $bills->list({  COMPANY_ONLY => 'y',
+  my $list = $bills->list({  COMPANY_ONLY => 1,
   	                         UID   => $user->{UID} });
 
   foreach my $line (@$list) {
@@ -1711,7 +1719,7 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }); 
 
-  $table->addrow("<b>$line->[0]</b>",
+  $table->addrow($html->b($line->[0]),
     $html->button($line->[1], "index=15&UID=$line->[7]"), 
     $line->[2], 
     $line->[3], 
@@ -1726,7 +1734,7 @@ foreach my $line (@$list) {
 print $table->show();
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$admin->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($admin->{TOTAL}) ] ]
                        } );
 print $table->show();
 }
@@ -1829,7 +1837,7 @@ if(defined($attr->{TP})) {
     
     $table->addtd(
                   $table->td($line->[0], { rowspan => ($line->[5] > 0) ? 2 : 1 } ), 
-                  $table->td("<b>$DAY_NAMES[$line->[1]]</b>"), 
+                  $table->td($html->b($DAY_NAMES[$line->[1]])), 
                   $table->td($line->[2]), 
                   $table->td($line->[3]), 
                   $table->td($line->[4]), 
@@ -1859,7 +1867,7 @@ if(defined($attr->{TP})) {
            $line->[4], 
            $line->[5], 
            $line->[6], 
-           convert($line->[7], { text2html => 'yes'  }),
+           convert($line->[7], { text2html => 1  }),
            $html->button($_CHANGE, "index=$index$pages_qs&tt=$TI_ID&chg=$line->[0]"),
            $html->button($_DEL, "index=$index$pages_qs&tt=$TI_ID&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" } ));
         }
@@ -2038,14 +2046,14 @@ foreach my $line (@$list) {
 	$m--;
   $delete = $html->button($_DEL, "index=75&del=$line->[0]", { MESSAGE => "$_DEL ?" }); 
   $table->addrow("$d $MONTHES[$m]", $line->[1], $delete);
-  #$hollidays{$m}{$d}='y';
+  #$hollidays{$m}{$d}=1;
 }
 
 print $table->show();
 
 $table = $html->table( { width      => '640',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$holidays->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($holidays->{TOTAL}) ] ]
                                } );
 print $table->show();
 
@@ -2231,7 +2239,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$admin_form->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($admin_form->{TOTAL}) ] ]
                      } );
 print $table->show();
 }
@@ -2325,7 +2333,7 @@ sub form_admin_permissions {
      if ($v eq 'yes') {
        my($section_index, $action_index)=split(/_/, $k);
        
-       $permits{$section_index}{$action_index}='y' if ($section_index >= 0);
+       $permits{$section_index}{$action_index}=1 if ($section_index >= 0);
       }
     }
    $admin->set_permissions(\%permits);
@@ -2357,7 +2365,7 @@ my $table = $html->table( { width       => '400',
 while(my($k, $v) = each %menu_items ) {
   if (defined($menu_items{$k}{0}) && $k > 0) {
   	$table->{rowcolor}=$_COLORS[0];
-  	$table->addrow("$k:", "<b>$menu_items{$k}{0}</b>", '');
+  	$table->addrow("$k:", $html->b($menu_items{$k}{0}), '');
     $k--;
     my $actions_list = $actions[$k];
     my $action_index = 0;
@@ -2635,7 +2643,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$nas->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($nas->{TOTAL}) ] ]
                      } );
 print $table->show();
 }
@@ -2814,22 +2822,24 @@ sub form_passwd {
  }
 
 
+$conf{passwd_length}=8 if (! $conf{passwd_length});
+
 if ($FORM{newpassword} eq '') {
 
-}
+ }
 elsif (length($FORM{newpassword}) < $conf{passwd_length}) {
   $html->message('err', $_ERROR,  "$ERR_SHORT_PASSWD");
-}
+ }
 elsif ($FORM{newpassword} eq $FORM{confirm}) {
   $FORM{PASSWORD} = $FORM{newpassword};
-}
+  }
 elsif($FORM{newpassword} ne $FORM{confirm}) {
   $html->message('err', $_ERROR, $err_strs{5});
 }
 
 #$password_form->{GEN_PASSWORD}=mk_unique_value(8);
 $password_form->{PW_CHARS}="abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
-$password_form->{PW_LENGTH}=8;
+$password_form->{PW_LENGTH}=$conf{passwd_length};
 $password_form->{ACTION}='change';
 $password_form->{LNG_ACTION}="$_CHANGE";
 $html->tpl_show(templates('form_password'), $password_form);
@@ -2872,9 +2882,6 @@ else {
 	  $LIST_PARAMS{GID}=$FORM{GID};
     $pages_qs="&GID=$FORM{GID}";
    }
-
-  #$user->{GROUPS_SEL} = sel_groups();
-  #$html->tpl_show(templates('groups_sel'), $user);
 }
 
 my @rows = ();
@@ -2972,7 +2979,7 @@ if (defined($FORM{DATE})) {
 
 	  while(my($k, $v)=each(%$EP)) {
      	if ($FORM{EX_PARAMS} eq $k) {
-        $EX_PARAMS .= " <b>$v</b> ";
+        $EX_PARAMS .= ' '.$html->b($v);
         $LIST_PARAMS{$k}=1;
         #$pages_qs .="&EX_PARAMS=$k";
 
@@ -2991,7 +2998,7 @@ if (defined($FORM{DATE})) {
 
   my $days = '';
   for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? " <b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}%s%s", $y, $m, $i, 
+     $days .= ($d == $i) ? ' '. $html->b($i) : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}%s%s", $y, $m, $i, 
        (defined($FORM{GID})) ? "&GID=$FORM{GID}" : '', 
        (defined($FORM{UID})) ? "&UID=$FORM{UID}" : '' ));
    }
@@ -3005,7 +3012,7 @@ if (defined($FORM{DATE})) {
     my(undef, $h)=split(/ /, $FORM{HOUR}, 2);
     my $hours = '';
     for (my $i=0; $i<24; $i++) {
-    	$hours .= ($h == $i) ? " <b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&HOUR=%d-%02.f-%02.f+%02.f&EX_PARAMS=$FORM{EX_PARAMS}$pages_qs", $y, $m, $d, $i));
+    	$hours .= ($h == $i) ? $html->b($i) : ' '.$html->button($i, sprintf("index=$index&HOUR=%d-%02.f-%02.f+%02.f&EX_PARAMS=$FORM{EX_PARAMS}$pages_qs", $y, $m, $d, $i));
      }
 
  	  $LIST_PARAMS{HOUR}="$FORM{HOUR}";
@@ -3038,7 +3045,7 @@ if (defined($FORM{DATE})) {
 #
 #**********************************************************
 sub report_fees_month {
-	$FORM{allmonthes}='y';
+	$FORM{allmonthes}=1;
   report_fees();
 }
 
@@ -3066,7 +3073,7 @@ if (defined($FORM{DATE})) {
                                });
 
   foreach my $line (@$list) {
-   $table_fees->addrow("<b>$line->[0]</b>", 
+   $table_fees->addrow($html->b($line->[0]), 
      $html->button($line->[1], "index=15&subf=3&DATE=$line->[0]&UID=$line->[8]"),  
       $line->[2],
       $line->[3], 
@@ -3102,7 +3109,7 @@ else{
 
   $list = $fees->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table_fees->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), $line->[1], "<b>$line->[2]</b>" );
+    $table_fees->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), $line->[1], $html->b($line->[2]) );
    }
 
 
@@ -3111,7 +3118,7 @@ else{
   print $table_fees->show();	
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right', 'right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$fees->{TOTAL}</b>", "$_SUM", "<b>$fees->{SUM}</b>" ] ],
+                           rows       => [ [ "$_TOTAL:", $html->b($fees->{TOTAL}), "$_SUM", $html->b($fees->{SUM}) ] ],
                            rowcolor   => $_COLORS[2]
                           });
   print $table->show();
@@ -3168,7 +3175,7 @@ if (defined($FORM{DATE})) {
                          });
 
   foreach my $line (@$list) {
-   $table->addrow("<b>$line->[0]</b>", 
+   $table->addrow($html->b($line->[0]), 
       $html->button($line->[1], "index=15&DATE=$LIST_PARAMS{DATE}&UID=$line->[10]"),  
       $line->[2],
       $line->[3], 
@@ -3398,7 +3405,7 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
 
   next if (! defined($permissions{($parent-1)}));  
 
-  $table->addrow("$level:", "$parent >> ". $html->button("<b>$val</b>", "index=$parent"). "<<", '') if ($parent != 0);
+  $table->addrow("$level:", "$parent >> ". $html->button($html->b($val), "index=$parent"). "<<", '') if ($parent != 0);
 
   if (defined($new_hash{$parent})) {
     $table->{rowcolor}=undef;
@@ -4062,7 +4069,7 @@ my $table = $html->table( { width      => '100%',
 
 foreach my $line (@$list) {
   my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[13]", { MESSAGE =>  "$_DEL [$line->[13]]?" }) : '-'; 
-  $table->addrow("<b>$line->[0]</b>", $line->[1], $line->[2], 
+  $table->addrow($html->b($line->[0]), $line->[1], $line->[2], 
     $line->[3],  $line->[4],  
     $html->button($line->[5], "index=15&UID=$line->[12]"), 
     "$line->[6]", 
@@ -4076,7 +4083,7 @@ print $table->show();
 
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right', 'right', 'right'],
-                        rows       => [ [ "$_TOTAL:", "<b>$shedule->{TOTAL}</b>" ] ]
+                        rows       => [ [ "$_TOTAL:", $html->b($shedule->{TOTAL}) ] ]
                        });
 print $table->show();
 
@@ -4255,7 +4262,7 @@ foreach my $module (@MODULES) {
 }
 
 #while(my($k, $v) = each %templates) {
-#  $table->addrow("<b>$k</b>", "$v", $html->button($_CHANGE, "index=$index&tpl_name=$k"));
+#  $table->addrow($html->b($k), "$v", $html->button($_CHANGE, "index=$index&tpl_name=$k"));
 #}
 
 print $table->show();
@@ -4641,7 +4648,7 @@ if(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5}
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$users->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($users->{TOTAL}) ] ]
                         } );
   print $table->show();
 
@@ -4734,7 +4741,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$Tariffs->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($Tariffs->{TOTAL}) ] ]
                                } );
 print $table->show();
 }

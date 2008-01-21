@@ -2828,9 +2828,10 @@ sub dv_wizard_user {
        }
       
       # Add E-Mail account
+      my $Mail;
       if (in_array('Mail', \@MODULES) && $FORM{'6.USERNAME'}) {
         require "Abills/modules/Mail/webinterface";
-        my $Mail = Mail->new($db, $admin, \%conf);
+        $Mail = Mail->new($db, $admin, \%conf);
         
         $FORM{'6.newpassword'} = $FORM{'6.PASSWORD'} if ($FORM{'6.PASSWORD'});
 
@@ -2838,6 +2839,7 @@ sub dv_wizard_user {
         	                %{$add_values{6}}, 
         	                PASSWORD => $FORM{'6.newpassword'},
         	             });
+        $Mail->{PASSWORD}=$FORM{'6.newpassword'};
 
         if ($Mail->{errno}) {
           $html->message('err', "E-MAIL : $_ERROR", "[$Mail->{errno}] $err_strs{$Mail->{errno}}");	
@@ -2853,7 +2855,8 @@ sub dv_wizard_user {
       	   "");
         
          }
-
+        $Mail = $Mail->mbox_info({ MBOX_ID => $Mail->{MBOX_ID} });
+       	$Mail->{EMAIL_ADDR} = $Mail->{USERNAME} . '@' . $Mail->{DOMAIN};
        }
       
       # Info
@@ -2867,6 +2870,7 @@ sub dv_wizard_user {
         $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
         $html->tpl_show(templates('user_info'), { %$user, %$pi } );
         $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
+        $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail) if ($Mail);
        }
 
       return $UID;

@@ -55,7 +55,7 @@ sub mail_spam_awl {
    }
   my $table2 = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($Mail->{TOTAL}) ] ]
                        } );
 
  $table->addtd( $table->td("$_TYPE:" .
@@ -192,7 +192,7 @@ sub mail_spam_lists {
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($Mail->{TOTAL}) ] ]
                        } );
   print $table->show();
 	
@@ -268,7 +268,7 @@ sub mail_spamassassin_conf {
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($Mail->{TOTAL}) ] ]
                        } );
   print $table->show();
 
@@ -400,7 +400,7 @@ sub mail_spamassassin {
 
 #  $table = $html->table( { width      => '100%',
 #                           cols_align => ['right', 'right'],
-#                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+#                           rows       => [ [ "$_TOTAL:", $html->b($Mail->{TOTAL}) ] ]
 #                       } );
 #  print $table->show();
 
@@ -542,7 +542,7 @@ elsif ($Mail->{TOTAL} == 1) {
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($Mail->{TOTAL}) ] ]
                        } );
   print $table->show();
 
@@ -729,7 +729,7 @@ sub mail_domains {
 
   foreach my $line (@$list) {
     $delete = $html->button($_DEL, "index=$index&del=$line->[8]", { MESSAGE => "$_DEL \\'$line->[0]\\'?" }); 
-    $table->addrow("<b>$line->[0]</b>", "$line->[1]",
+    $table->addrow($html->b($line->[0]), "$line->[1]",
      "$status[$line->[2]]", 
      "$bool_vals[$line->[3]]", 
      "$line->[4]",  
@@ -742,7 +742,7 @@ sub mail_domains {
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($Mail->{TOTAL}) ] ]
                        } );
 
   print $table->show();
@@ -812,7 +812,7 @@ sub mail_aliases {
 
   $table = $html->table( { width => '100%',
                                 cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+                                rows => [ [ "$_TOTAL:", $html->b($Mail->{TOTAL}) ] ]
                                } );
   print $table->show();
 
@@ -879,7 +879,7 @@ sub mail_transport {
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($Mail->{TOTAL}) ] ]
                        } );
   print $table->show();
 
@@ -947,7 +947,7 @@ sub mail_access {
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Mail->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($Mail->{TOTAL}) ] ]
                        } );
   print $table->show();
 
@@ -1198,10 +1198,6 @@ sub mail_wizard {
   $template =~ s/<\/form>//ig;
   $template =~ s/(<input .*?type=submit.*?>)//gi;
   $template =~ s/<hr>//gi;
-  
-#  print "<textarea cols=120 rows=3>$1 / $2 / $3</textarea><br>\n";
-
-
 
   $template = "<table width=\"100%\">$template</table>\n";
   if ($attr->{OUTPUT2RETURN}) {
