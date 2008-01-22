@@ -257,11 +257,18 @@ sub msgs_admin {
    }
   elsif ($FORM{reply}) {
     $Msgs->message_reply_add({ %FORM, IP => $admin->{SESSION_IP} });
+     %params = ();
+     $params{STATE}       = $FORM{STATE}if ($FORM{STATE});
+     my $state=$FORM{STATE};
+ 	 	 $params{CLOSED_DATE} = $DATE       if ($state > 0);
+ 	 	 $params{DONE_DATE}   = $DATE       if ($state > 1);
+
+
  	  $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
  	 	                        ID        => $FORM{ID},
  	 	                        USER_READ => "0000-00-00 00:00:00",
  	 	                        ADMIN_READ=> "$DATE $TIME",
- 	 	                        STATE     => $FORM{STATE} || undef
+ 	 	                        %params
  	 	                      });
     $FORM{chg} = $FORM{ID};
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
@@ -491,7 +498,7 @@ print $html->form_main({ CONTENT => $table->show(),
 
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right'],
-                        rows       => [ [ "$_TOTAL:", "<b>$Msgs->{TOTAL}</b>" ] ]
+                        rows       => [ [ "$_TOTAL:", $html->b($Msgs->{TOTAL}) ] ]
                       });
 print $table->show();
 }
@@ -534,7 +541,7 @@ sub msgs_user {
 
  	   $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
  	 	                         ID        => $FORM{ID},
- 	 	                         USER_READ => "0000-00-00 00:00:00"
+ 	 	                         ADMIN_READ => "0000-00-00 00:00:00"
  	 	                       });
 
      $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
@@ -575,16 +582,18 @@ sub msgs_user {
    
      $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
 
+     %params = ();
+     $params{STATE}       = $FORM{STATE}if ($FORM{STATE});
+     my $state=$FORM{STATE};
+ 	 	 $params{CLOSED_DATE} = $DATE       if ($state > 0);
+ 	 	 $params{DONE_DATE}   = $DATE       if ($state > 1);
 
-     my $state =  $FORM{STATE} || 0;
+
   	 $Msgs->message_change({ UID         => $LIST_PARAMS{UID},
  	 	                         ID          => $FORM{ID},
  	 	                         USER_READ   => "$DATE $TIME",
- 	 	                         STATE       => $state,
- 	 	                         CLOSED_DATE => ($state > 0) ? $DATE : undef,
- 	 	                         DONE_DATE   => ($state > 1) ? $DATE : undef
+ 	 	                         %params
  	 	                        });
-	 	 
  	  }
 
 
@@ -625,7 +634,7 @@ sub msgs_user {
 foreach my $line (@$list) {
 #  my $state = '<img src="img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[5] eq '');
   $table->addrow(
-    ($line->[14] ne '0000-00-00 00:00:00') ? $line->[2] : "<b>$line->[2]</b>", 
+    ($line->[14] ne '0000-00-00 00:00:00') ? $line->[2] : $html->b($line->[2]), 
     $line->[3],
     $line->[4],
     $msg_status[$line->[5]],
