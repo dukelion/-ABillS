@@ -584,7 +584,7 @@ sub mail_user_boxes {
 	elsif($FORM{set}) {
     #password section
     if ($FORM{newpassword}) {
-      if (length($FORM{newpassword}) < $conf{passwd_length}) {
+      if (length($FORM{newpassword}) < $conf{PASSWD_LENGTH}) {
         $html->message('err', $_ERROR,  "$ERR_SHORT_PASSWD");
        }
       elsif ($FORM{newpassword} eq $FORM{confirm}) {

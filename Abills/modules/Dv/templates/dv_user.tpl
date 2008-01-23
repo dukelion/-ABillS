@@ -12,6 +12,7 @@
 <tr><td>$_PORT:</td><td><input type=text name='PORT' value='%PORT%'>
 <tr><td>Callback:</td><td><input type='checkbox' name='CALLBACK' value='1' %CALLBACK%>
 <tr><td>$_DISABLE:</td><td><input type='checkbox' name='DISABLE' value='1' %DISABLE%></td></tr>
+<tr><td colspan='2'>%REGISTRATION_INFO%</td></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%' class='noprint'>
 </form>
