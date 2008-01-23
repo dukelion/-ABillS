@@ -2822,12 +2822,12 @@ sub form_passwd {
  }
 
 
-$conf{passwd_length}=8 if (! $conf{passwd_length});
+$conf{PASSWD_LENGTH}=8 if (! $conf{PASSWD_LENGTH});
 
 if ($FORM{newpassword} eq '') {
 
  }
-elsif (length($FORM{newpassword}) < $conf{passwd_length}) {
+elsif (length($FORM{newpassword}) < $conf{PASSWD_LENGTH}) {
   $html->message('err', $_ERROR,  "$ERR_SHORT_PASSWD");
  }
 elsif ($FORM{newpassword} eq $FORM{confirm}) {
@@ -2839,7 +2839,7 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
 
 #$password_form->{GEN_PASSWORD}=mk_unique_value(8);
 $password_form->{PW_CHARS}="abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
-$password_form->{PW_LENGTH}=$conf{passwd_length};
+$password_form->{PW_LENGTH}=$conf{PASSWD_LENGTH};
 $password_form->{ACTION}='change';
 $password_form->{LNG_ACTION}="$_CHANGE";
 $html->tpl_show(templates('form_password'), $password_form);
