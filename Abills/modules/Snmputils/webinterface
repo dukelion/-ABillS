@@ -767,10 +767,24 @@ sub snmputils_dlink_pb_version {
   	  $RESULT{oid_prefix} = '.1.3.6.1.4.1.171.12.23.';
   	  $RESULT{oid_sufix} = {'STATE'  => '3.2.1.2',
   	                'IP'     => '4.1.1.1',
-                    'MAC'    => '4.1.1.2',
-                    'MAKE'   => '4.1.1.3',
-                    'PORT'   => '4.1.1.4' };
+                        'MAC'    => '4.1.1.2',
+                        'MAKE'   => '4.1.1.3',
+                        'PORT'   => '4.1.1.4' };
      }
+    elsif ($RESULT{version} =~ /DGS-36/) {
+          $RESULT{oid_prefix} = '.1.3.6.1.4.1.171.12.23.';
+          $RESULT{oid_sufix} = {'STATE'  => '3.2.1.2',
+                    'IP'     => '4.1.2.1',
+                    'MAC'    => '4.1.2.2',
+                    'MAKE'   => '4.1.2.4',
+                    'PORT'   => '4.1.2.3',
+
+                    'ENABLE_MODE' => '3.2.1.2',
+                    'LOGIN_MODE'  => '1.2.0',
+                    'ACL_IP_MAC'  => '1.1.0' 
+                            };
+     }
+
     else {
  	    $RESULT{firmware}  = snmpget($SNMP_COMMUNITY, ".1.3.6.1.2.1.16.19.2.0");
       $RESULT{firmware2}  = snmpget($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.12.11.1.9.4.1.8.1");
