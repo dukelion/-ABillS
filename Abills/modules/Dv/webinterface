@@ -238,7 +238,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$Dv->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->($Dv->{TOTAL}) ] ]
                         } );
 print $table->show();
 
@@ -252,7 +252,34 @@ print $table->show();
 sub dv_user {
  	$Dv->{UID}=$FORM{UID} || $LIST_PARAMS{UID} ;	  
   
-  if ($FORM{add}) {
+  
+  if ($FORM{REGISTRATION_INFO}) {
+      
+     # Info
+     my $user = Users->new($db, $admin, \%conf); 
+     my $dv = $Dv->info($Dv->{UID});
+     my $pi = $user->pi({ UID => $Dv->{UID} });
+     $user  = $user->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
+ 
+     $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
+     $html->tpl_show(templates('user_info'), { %$user, %$pi } );
+     $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
+
+
+     if (in_array('Mail', \@MODULES)) {
+       require "Abills/modules/Mail/webinterface";
+       my $Mail = Mail->new($db, $admin, \%conf);
+
+       my $list = $Mail->mbox_list({ UID => $Dv->{UID} });
+       foreach my $line (@$list) {
+    	   $Mail->{EMAIL_ADDR} = $line->[0] . '@' . $line->[1];
+    	   $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail);
+    	  }
+     }
+
+     return 0;
+   }
+  elsif ($FORM{add}) {
     if (! $permissions{0}{1} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
     	return 0;
@@ -313,7 +340,7 @@ sub dv_user {
 
   $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
   $user->{CALLBACK}=($user->{CALLBACK} == 1) ? ' checked' : '';
- 
+  $Dv->{REGISTRATION_INFO}=$html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1");
   
   
   $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
@@ -482,7 +509,7 @@ foreach my $line (@$list) {
   	undef($table->{rowcolor});
    }
   
-  $table->addrow("<b>$line->[0]</b>", 
+  $table->addrow($html->($line->[0]), 
    $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
    $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], 
    $line->[5], 
@@ -499,7 +526,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$tariffs->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->($tariffs->{TOTAL}) ] ]
                      } );
 print $table->show();
 
@@ -1129,7 +1156,7 @@ if (defined($FORM{DATE})) {
 
  	  my $list = $sessions->reports({ %LIST_PARAMS });
     foreach my $line (@$list) {
-      $table_sessions->addrow("<b>$line->[0]</b>", 
+      $table_sessions->addrow($html->($line->[0]), 
         $line->[1], 
         $line->[2], 
         int2byte($line->[3], { DIMENSION => $FORM{DIMENSION} }),  
@@ -1172,13 +1199,13 @@ if (defined($FORM{DATE})) {
   else {
     my $list = $sessions->reports({ %LIST_PARAMS });
     foreach my $line (@$list) {
-      $table_sessions->addrow("<b>$line->[0]</b>", 
+      $table_sessions->addrow($html->($line->[0]), 
         $html->button("$line->[1]", "index=15&UID=$line->[7]&DATE=$line->[0]"), 
         $line->[2], 
         int2byte($line->[3], { DIMENSION => $FORM{DIMENSION} }),  
         int2byte($line->[4], { DIMENSION => $FORM{DIMENSION} }),  
         $line->[5], 
-        "<b>$line->[6]</b>" );
+        $html->($line->[6]) );
      }
   }
 
@@ -1997,7 +2024,7 @@ my $table = $html->table({ width      => '100%',
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ ["$_TOTAL:", "<b>$sessions->{TOTAL}</b>" ] ]
+                         rows       => [ ["$_TOTAL:", $html->($sessions->{TOTAL}) ] ]
                        } );
 print $table->show();
 
@@ -3021,8 +3048,6 @@ sub dv_registration  {
 	 }
 	else {
 		$html->message('info', $_INFO, "$_REGISTRATION");
-
-		#$html->message('err', $_ERROR, "$_REGISTRATION");
 	 }
 	
   $html->tpl_show(_include('dv_registration', 'Dv'), $Dv);
