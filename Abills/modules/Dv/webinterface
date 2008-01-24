@@ -261,7 +261,6 @@ sub dv_user {
      my $pi = $user->pi({ UID => $Dv->{UID} });
      $user  = $user->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
  
-     $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
      $html->tpl_show(templates('user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
      $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
 
