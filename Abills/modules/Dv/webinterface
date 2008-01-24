@@ -262,7 +262,7 @@ sub dv_user {
      $user  = $user->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
  
      $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
-     $html->tpl_show(templates('user_info'), { %$user, %$pi } );
+     $html->tpl_show(templates('user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
      $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
 
 
@@ -2882,6 +2882,7 @@ sub dv_wizard_user {
       	   "");
         
          }
+
         $Mail = $Mail->mbox_info({ MBOX_ID => $Mail->{MBOX_ID} });
        	$Mail->{EMAIL_ADDR} = $Mail->{USERNAME} . '@' . $Mail->{DOMAIN};
        }
@@ -2895,7 +2896,7 @@ sub dv_wizard_user {
       if (! $attr->{SHORT_REPORT}) {
         $FORM{ex_message}=$message;
         $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
-        $html->tpl_show(templates('user_info'), { %$user, %$pi } );
+        $html->tpl_show(templates('user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
         $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
         $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail) if ($Mail);
        }
