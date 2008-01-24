@@ -40,7 +40,8 @@ require "Abills/templates.pl";
 use vars qw(%conf 
   %FUNCTIONS_LIST
   @PAYMENT_METHODS  
-  
+  @EX_PAYMENT_METHODS  
+
   @state_colors
   %permissions
 
@@ -3143,6 +3144,8 @@ sub report_payments {
 
   my %METHODS_HASH = ();
   
+  push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+  
   for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
   	$METHODS_HASH{"$i:$i"}="$PAYMENT_METHODS[$i]";
    }
@@ -3191,7 +3194,7 @@ else{
   my @CAPTION = ("$_DATE", "$_COUNT", $_SUM);
   if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
   	$CAPTION[0]=$_PAYMENT_METHOD;
-  }
+   }
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'USER') {
   	$CAPTION[0]=$_USERS;
   	$type="search=1&LOGIN_EXPR";
@@ -3214,7 +3217,7 @@ else{
 
   foreach my $line (@$list) {
     $table->addrow(
-      ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') ? @PAYMENT_METHODS[$line->[0]] : $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
+      ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') ? $PAYMENT_METHODS[$line->[0]] : $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
       $line->[1], 
       $html->b($line->[2]) );
    }
@@ -3548,7 +3551,7 @@ $payments->{SEL_ER} .= "</select>\n";
 # 	                                SEL_OPTIONS       => { 0 => '-N/S-'}
 # 	                               });
 
-
+push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
 $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
                                 { SELECTED      => $FORM{METHOD} || '',
@@ -3956,6 +3959,7 @@ if (defined($attr->{SEARCH_FORM})) {
  } 
 elsif($search_form{$FORM{type}}) {
   if ($FORM{type} == 2) {
+    push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
     $info{SEL_METHOD} =  $html->form_select('METHOD', 
                                 { SELECTED      => $FORM{METHOD} || '',
  	                                SEL_ARRAY     => \@PAYMENT_METHODS,

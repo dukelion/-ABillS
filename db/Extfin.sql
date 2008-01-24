@@ -16,18 +16,6 @@ CREATE TABLE `extfin_paids` (
 
 
 
-CREATE TABLE `extfin_money_accounts` (
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `date` date NOT NULL default '0000-00-00',
-  `name` varchar(60)  NOT NULL default '',
-  `comments` varchar(200) NOT NULL default '',
-  `expire` date NOT NULL default '0000-00-00',
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `name` (`name`)
-) COMMENT='Extfin Money accounts list';
-
-
 CREATE TABLE `extfin_paids_periodic` (
   `id` int(11) unsigned NOT NULL auto_increment,
   `uid` int(11) unsigned NOT NULL default '0',

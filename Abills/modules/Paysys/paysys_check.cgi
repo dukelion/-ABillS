@@ -53,6 +53,13 @@ my $payments = Finance->payments($db, $admin, \%conf);
 my $users = Users->new($db, $admin, \%conf); 
 
 
+#SMS proxy
+# Need other header
+if($FORM{smsid}) {
+  smsproxy();
+  exit;
+ }
+
 print "Content-Type: text/html\n\n";
 
 eval { require Digest::MD5; };
@@ -96,6 +103,33 @@ sub payments {
   	print "Unknown payment system";
   	#$output2 .= "Unknown payment system"; 
    }
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub smsproxy {
+
+
+ $FORM{smsid}="1174921221.133533";
+ $FORM{num}="1171&";
+ $FORM{operator}="MÒS_Moskva&";
+ $FORM{user_id}="891612345XX&";
+ $FORT{cost}="3.098&";
+ $FORM{msg}="xxx";
+
+
+ my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{msg}" });
+if ($list) {
+	print "smsid: $FORM{smsid}\n";
+  print "status: reply\n"
+  print "Content-Type:text/plain\n\n";
+  print "$message";
+ }
+else {
+	
+}
+
 }
 
 

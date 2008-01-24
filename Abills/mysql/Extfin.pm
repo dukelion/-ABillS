@@ -474,7 +474,7 @@ sub paid_periodic_add {
     $self->query($db, "INSERT INTO extfin_paids_periodic 
       (uid, type_id, comments, sum, date, aid, maccount_id)
     VALUES ('$DATA{UID}', '$id',  '". $DATA{'COMMENTS_'.$id} ."', '". $DATA{'SUM_'.$id} ."', 
-     now(), '$admin->{AID}', '$DATA{MACCOUNT_ID}');", 'do');
+     now(), '$admin->{AID}', '". $DATA{'MACCOUNT_ID_'. $id} ."');", 'do');
    }
 
   return $self;
@@ -703,15 +703,14 @@ sub paids_list {
  
  $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : '';
 
- $self->query($db, "SELECT p.id, p.date, u.id, p.sum, pt.name, p.comments,  ma.name, a.id, p.status, 
+ $self->query($db, "SELECT p.id, p.date, u.id, p.sum, pt.name, p.comments, p.maccount_id, a.id, p.status, 
     p.status_date,  p.ext_id, p.uid, p.aid, p.type_id
    FROM (extfin_paids p, 
         users u,
-        extfin_paids_types pt, 
         admins a)
-  LEFT JOIN extfin_money_accounts ma ON (p.maccount_id=ma.id)
+   LEFT JOIN extfin_paids_types pt ON (p.type_id=pt.id)
   WHERE 
-  p.type_id=pt.id and p.uid=u.uid and p.aid=a.aid
+  p.uid=u.uid and p.aid=a.aid
   $WHERE
   $GROUP
   ORDER BY $SORT $DESC 
@@ -722,9 +721,9 @@ sub paids_list {
 
   if ($self->{TOTAL} > 0 || $PG > 0) {
     $self->query($db, "SELECT count(p.id), sum(sum)
-     FROM extfin_paids p, extfin_paids_types pt
-    WHERE p.type_id=pt.id 
-    $WHERE;");
+     FROM (extfin_paids p, admins a)
+    LEFT JOIN extfin_paids_types pt ON (p.type_id=pt.id)
+    WHERE p.aid=a.aid $WHERE;");
     ($self->{TOTAL}, $self->{SUM}) = @{ $self->{list}->[0] };
    }
   
@@ -774,8 +773,8 @@ sub paid_reports {
     push @WHERE_RULES, "p.status$value";
   }
 
- if ($attr->{TYPE}) {
-    my $value = $self->search_expr($attr->{TYPE}, 'INT');
+ if ($attr->{PAYMENT_TYPE}) {
+    my $value = $self->search_expr($attr->{PAIDS_TYPE}, 'INT');
     push @WHERE_RULES, "p.type_id$value";
   }
  
@@ -788,8 +787,18 @@ sub paid_reports {
     push @WHERE_RULES, "p.descr LIKE '$attr->{DESCRIBE}'";
   }
 
-
  my $date='p.date';
+
+ if($attr->{TYPE} && $attr->{TYPE} eq 'PAYMENT_METHOD') {
+    $date = "p.maccount_id";
+  }
+ elsif ($attr->{TYPE} && $attr->{TYPE} eq 'PAYMENT_TYPE') {
+ 	  $date = "p.type_id";
+  }
+ elsif ($attr->{TYPE} && $attr->{TYPE} eq 'USER') {
+ 	  $date = "u.id";
+  }
+
 
  if ($attr->{DATE}) {
     push @WHERE_RULES, "p.date='$attr->{DATE}'";
@@ -806,15 +815,16 @@ sub paid_reports {
  	 $date = "date_format(p.date, '%Y-%m')";
   }
  
- $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
+ $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : '';
 
  $self->query($db, "SELECT $date, 
    sum(if(p.status=0, 0, 1)), 
    sum(if(p.status=0, 0, p.sum)), 
    count(p.id), 
-   sum(p.sum)
-   FROM extfin_paids p
-  $WHERE
+   sum(p.sum),
+   p.uid
+   FROM extfin_paids p, users u
+  WHERE p.uid=u.uid
   GROUP BY 1
   ORDER BY $SORT $DESC 
   LIMIT $PG, $PAGE_ROWS;");
@@ -942,119 +952,119 @@ sub paid_types_list {
 }
 
 
-#**********************************************************
-# fees
-#**********************************************************
-sub paid_maccount_add {
-  my $self = shift;
-  my ($attr) = @_;
-
-  my %DATA = $self->get_data($attr); 
-
-
-  $self->query($db, "INSERT INTO extfin_money_accounts 
-   (date, name, comments,  expire )
-  VALUES (now(), '$DATA{NAME}', '$DATA{COMMENTS}', '$DATA{EXPIRE}');", 'do');
-
-  return $self;
-}
-
-
-#**********************************************************
-# fees
-#**********************************************************
-sub paid_maccount_change {
-  my $self = shift;
-  my ($attr) = @_;
-
-	my %FIELDS = ('ID'       => 'id', 
-	              'NAME'     => 'name',
-	              'COMMENTS' => 'comments',
-	              EXPIRE    => 'expire',
-	              DATE       => 'date'
-	              );
-
-
-  $attr->{PERIODIC}=0 if (! $attr->{PERIODIC});
-
- 	$self->changes($admin, { CHANGE_PARAM => 'ID',
-	                TABLE        => 'extfin_money_accounts',
-	                FIELDS       => \%FIELDS,
-	                OLD_INFO     => $self->paid_maccount_info($attr),
-	                DATA         => $attr
-		              } );
-	
-
-  return $self;
-}
-
-
-#**********************************************************
-# fees
-#**********************************************************
-sub paid_maccount_del {
-  my $self = shift;
-  my ($attr) = @_;
-
-  $self->query($db, "DELETE FROM extfin_money_accounts
-    WHERE id='$attr->{ID}';", 'do');
-
-  return $self;
-}
-
-
-
-#**********************************************************
-# fees
-#**********************************************************
-sub paid_maccount_info {
-  my $self = shift;
-  my ($attr) = @_;
-
-  $self->query($db, "SELECT id, name, date, comments, expire
-   FROM extfin_money_accounts
-  WHERE id='$attr->{ID}';");
-
-  if ($self->{TOTAL} < 1) {
-     $self->{errno} = 2;
-     $self->{errstr} = 'ERROR_NOT_EXIST';
-     return $self;
-   }
-
-  ($self->{ID}, 
-   $self->{NAME},
-   $self->{DATE},
-   $self->{COMMENTS},
-   $self->{EXPIRE}
-  ) = @{ $self->{list}->[0] };
-	
-  return $self;
-}
-
-
-#**********************************************************
-# fees
-#**********************************************************
-sub paid_maccount_list {
-  my $self = shift;
-  my ($attr) = @_;
-
-
- $WHERE = '';
-
- if ($attr->{EXPIRE}) {
- 	 $WHERE = "WHERE expire='$attr->{EXPIRE}'";
-  }
-
- $self->query($db, "SELECT id, name, comments, date, expire
-   FROM extfin_money_accounts
-   $WHERE
-  ");
-
- my $list = $self->{list};
-
-  return $list;
-}
+##**********************************************************
+## fees
+##**********************************************************
+#sub paid_maccount_add {
+#  my $self = shift;
+#  my ($attr) = @_;
+#
+#  my %DATA = $self->get_data($attr); 
+#
+#
+#  $self->query($db, "INSERT INTO extfin_money_accounts 
+#   (date, name, comments,  expire )
+#  VALUES (now(), '$DATA{NAME}', '$DATA{COMMENTS}', '$DATA{EXPIRE}');", 'do');
+#
+#  return $self;
+#}
+#
+#
+##**********************************************************
+## fees
+##**********************************************************
+#sub paid_maccount_change {
+#  my $self = shift;
+#  my ($attr) = @_;
+#
+#	my %FIELDS = ('ID'       => 'id', 
+#	              'NAME'     => 'name',
+#	              'COMMENTS' => 'comments',
+#	              EXPIRE    => 'expire',
+#	              DATE       => 'date'
+#	              );
+#
+#
+#  $attr->{PERIODIC}=0 if (! $attr->{PERIODIC});
+#
+# 	$self->changes($admin, { CHANGE_PARAM => 'ID',
+#	                TABLE        => 'extfin_money_accounts',
+#	                FIELDS       => \%FIELDS,
+#	                OLD_INFO     => $self->paid_maccount_info($attr),
+#	                DATA         => $attr
+#		              } );
+#	
+#
+#  return $self;
+#}
+#
+#
+##**********************************************************
+## fees
+##**********************************************************
+#sub paid_maccount_del {
+#  my $self = shift;
+#  my ($attr) = @_;
+#
+#  $self->query($db, "DELETE FROM extfin_money_accounts
+#    WHERE id='$attr->{ID}';", 'do');
+#
+#  return $self;
+#}
+#
+#
+#
+##**********************************************************
+## fees
+##**********************************************************
+#sub paid_maccount_info {
+#  my $self = shift;
+#  my ($attr) = @_;
+#
+#  $self->query($db, "SELECT id, name, date, comments, expire
+#   FROM extfin_money_accounts
+#  WHERE id='$attr->{ID}';");
+#
+#  if ($self->{TOTAL} < 1) {
+#     $self->{errno} = 2;
+#     $self->{errstr} = 'ERROR_NOT_EXIST';
+#     return $self;
+#   }
+#
+#  ($self->{ID}, 
+#   $self->{NAME},
+#   $self->{DATE},
+#   $self->{COMMENTS},
+#   $self->{EXPIRE}
+#  ) = @{ $self->{list}->[0] };
+#	
+#  return $self;
+#}
+#
+#
+##**********************************************************
+## fees
+##**********************************************************
+#sub paid_maccount_list {
+#  my $self = shift;
+#  my ($attr) = @_;
+#
+#
+# $WHERE = '';
+#
+# if ($attr->{EXPIRE}) {
+# 	 $WHERE = "WHERE expire='$attr->{EXPIRE}'";
+#  }
+#
+# $self->query($db, "SELECT id, name, comments, date, expire
+#   FROM extfin_money_accounts
+#   $WHERE
+#  ");
+#
+# my $list = $self->{list};
+#
+#  return $list;
+#}
 
 
 

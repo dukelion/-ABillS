@@ -1,6 +1,6 @@
 :OS=FREEBSD:apache22_enable="YES"  >> [/etc/]/rc.conf
 :OS=FREEBSD:Include etc/apache22/abills_httpd.conf >> [/usr/local/etc/apache22]/httpd.conf 
-:OS=FREEBSD:exec:chown www /usr/abills/cgi-bin /usr/abills/cgi-bin/admin
+:OS=FREEBSD:exec:chown www /usr/abills/cgi-bin /usr/abills/cgi-bin/admin /usr/abills/Abills/templates
 ::exec:/usr/abills/misc/sslcerts.sh apache
 ::exec:mkdir /var/log/httpd
 abills_httpd.conf > [/usr/local/etc/apache22]/abills_httpd.conf

@@ -305,9 +305,8 @@ sub reports {
   }
 
  if ($attr->{METHODS}) {
-    push @WHERE_RULES, "p.method IN ('$attr->{METHODS}') ";
+    push @WHERE_RULES, "p.method IN ($attr->{METHODS}) ";
   }
-
  
  if(defined($attr->{DATE})) {
    push @WHERE_RULES, "date_format(p.date, '%Y-%m-%d')='$attr->{DATE}'";
@@ -340,7 +339,7 @@ sub reports {
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
-  $self->query($db, "SELECT $date, count(*), sum(p.sum) 
+  $self->query($db, "- SELECT $date, count(*), sum(p.sum) 
       FROM (payments p)
       LEFT JOIN users u ON (u.uid=p.uid)
       $WHERE 
