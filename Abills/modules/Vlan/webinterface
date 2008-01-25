@@ -504,14 +504,14 @@ sub vlan_info {
      }  
   close(IFCONFIG)	;
 
-  while($ifconfig =~ m/vlan(\d+): .+\n[\s+inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).+\n]{0,1}(\s.*[\n\sa-zA-Z0-9]+\n\s.*\n\s.*\n\s.*\n)/gi ) {
+  while($ifconfig =~ m/vlan(\d+): .+\n((\s+inet \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}.+\n)?\s.*[\n\sa-zA-Z0-9]+\n\s.*\n\s.*\n\s.*\n)/gi ) {
     my  $ip        = '0.0.0.0';
     my  $if_num    = $1;
     my  $res       = $2;
     my  $res2      = $3 || '';
     my  $parent_if = '';
 
-   if ($res =~ /\s+inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).+/ ) {
+   if ($res2 =~ /\s+inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).+/ ) {
      $ip   = $1;
     }
 
