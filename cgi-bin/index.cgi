@@ -114,9 +114,12 @@ my $passwd = $FORM{passwd} || '';
 my @m = (
    "10:0:$_LOGOUT:logout:::",
    "30:0:$_USER_INFO:form_info:::",
-   "40:0:$_FINANCES:form_payments:::",
-   "41:40:$_FEES:form_fees:::"
    );
+
+if ($conf{user_finance_menu}) {
+   push @m, "40:0:$_FINANCES:form_payments:::";
+   push @m, "41:40:$_FEES:form_fees:::";
+}
 
 $user=Users->new($db, $admin, \%conf); 
 
