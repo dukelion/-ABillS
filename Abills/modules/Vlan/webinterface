@@ -318,7 +318,8 @@ foreach my $line (@$list) {
 
   my $vlan_list = $Vlan->list({ DISABLE   => 0,
 	                              PAGE_ROWS => 100000,
-	                              NAS_ID    => $line->[0] 
+	                              NAS_ID    => $line->[0],
+	                              SORT      => 4
 	                             });
 
   my $sudo = ($nas_mng_ip_port ne '') ? $SUDO : '';
