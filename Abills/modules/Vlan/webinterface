@@ -396,7 +396,7 @@ foreach my $line (@$list) {
       #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} destroy";
       #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface";
       if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
-        push @commands, _parse($conf{VLAN_IP_DELETE}, \%INFO); 
+        push @commands, _parse($conf{VLAN_IF_IP}, \%INFO); 
         #"$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
        }
       else {
