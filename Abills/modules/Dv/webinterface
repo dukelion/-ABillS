@@ -238,7 +238,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->($Dv->{TOTAL}) ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($Dv->{TOTAL}) ] ]
                         } );
 print $table->show();
 
@@ -508,7 +508,7 @@ foreach my $line (@$list) {
   	undef($table->{rowcolor});
    }
   
-  $table->addrow($html->($line->[0]), 
+  $table->addrow($html->b($line->[0]), 
    $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
    $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], 
    $line->[5], 
@@ -525,7 +525,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->($tariffs->{TOTAL}) ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($tariffs->{TOTAL}) ] ]
                      } );
 print $table->show();
 
@@ -1155,7 +1155,7 @@ if (defined($FORM{DATE})) {
 
  	  my $list = $sessions->reports({ %LIST_PARAMS });
     foreach my $line (@$list) {
-      $table_sessions->addrow($html->($line->[0]), 
+      $table_sessions->addrow($html->b($line->[0]), 
         $line->[1], 
         $line->[2], 
         int2byte($line->[3], { DIMENSION => $FORM{DIMENSION} }),  
@@ -1198,13 +1198,13 @@ if (defined($FORM{DATE})) {
   else {
     my $list = $sessions->reports({ %LIST_PARAMS });
     foreach my $line (@$list) {
-      $table_sessions->addrow($html->($line->[0]), 
+      $table_sessions->addrow($html->b($line->[0]), 
         $html->button("$line->[1]", "index=15&UID=$line->[7]&DATE=$line->[0]"), 
         $line->[2], 
         int2byte($line->[3], { DIMENSION => $FORM{DIMENSION} }),  
         int2byte($line->[4], { DIMENSION => $FORM{DIMENSION} }),  
         $line->[5], 
-        $html->($line->[6]) );
+        $html->b($line->[6]) );
      }
   }
 
@@ -2023,7 +2023,7 @@ my $table = $html->table({ width      => '100%',
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ ["$_TOTAL:", $html->($sessions->{TOTAL}) ] ]
+                         rows       => [ ["$_TOTAL:", $html->b($sessions->{TOTAL}) ] ]
                        } );
 print $table->show();
 

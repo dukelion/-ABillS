@@ -940,7 +940,7 @@ if (defined($FORM{DATE})) {
                                      } );
 
       foreach my $line (@$list) {
-        $table_sessions->addrow($html->($line->[0]), 
+        $table_sessions->addrow($html->b($line->[0]), 
           int2byte($line->[1]), 
           $line->[2]
          );
