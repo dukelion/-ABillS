@@ -613,14 +613,20 @@ sub vlan_pppoe_relay {
   my $cmd = '';
   my $if = '';
   foreach $if ( @{ $attr->{CLIENT_INTERFACES_UNUSED} } ) {
-    print "if [ -f /var/run/pppoed_". $if .".pid ]; then sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ";
+    if($debug > 0) {
+      $debug_output .= "Delete $if\n" ;	  
+     }
+
     $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ";
    }
 
 # Add interfaces
 
   foreach $if ( sort keys %{ $attr->{CLIENT_INTERFACES} } ) {
-    #$cmd .= "if [ ! -f /var/run/pppoed_". $if .".pid ]; then sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; fi; ";
+    if($debug > 0) {
+      $debug_output .= "Create $if\n" ;	  
+     }
+
     $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ".
      " sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; ";
    }
@@ -638,10 +644,9 @@ sub vlan_pppoe_relay {
 #     $cmd = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
 #       "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"sudo killall pppoe-relay; sudo $cmd\"";
 #    }
-  
-  $debug_output = $cmd."\n" if ($debug > 3);
- 
-  my $out= '';
+
+  my $out= '';  
+  $debug_output .= $cmd."\n" if ($debug > 3);
   $out = system($cmd) if ($debug < 5);
   $debug_output .= $out."\n" if ($debug > 4);
   
