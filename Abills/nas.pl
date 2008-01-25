@@ -57,7 +57,7 @@ sub hangup {
    	                          VALUE => 9 });
   }
  elsif ($nas_type eq 'cisco')  {
- 	 hangup_cisco($NAS, $PORT, { USER => $USER });
+ 	 hangup_cisco($NAS, $PORT, { USER => $USER, %attr });
   }
  elsif ($nas_type eq 'mpd') {
    hangup_mpd($NAS, $PORT);
@@ -538,10 +538,37 @@ if ($NAS->{NAS_MNG_USER}) {
   my $cisco_user=$NAS->{NAS_MNG_USER};
 # использование: NAS-IP-Address NAS-Port SQL-User-Name
 
+  if ($PORT > 0) {
+    $|=1;
+    $command = "(/bin/sleep 5; /bin/echo 'y') | /usr/bin/rsh -4 -l $cisco_user $NAS->{NAS_IP} clear line $PORT";
+    log_print('LOG_DEBUG', "$command");
+    $exec = `$command`;
+    return $exec;
+   }
 
-  $command = "/usr/bin/rsh -l $cisco_user $NAS->{NAS_IP} show users | grep -i \" \$1 \" | awk '{print \$1}';";
+  $command = "/usr/bin/rsh -l $cisco_user $NAS->{NAS_IP} show users | grep -i \" $user \" ";
+#| awk '{print \$1}';";
   log_print('LOG_DEBUG', "$command");
-  my $VIRTUALINT=`$command`;
+  my $out=`$command`;
+
+  if ( $out eq '') {
+    print 'Can\'t get VIRTUALINT. Check permissions';
+    return 'Can\'t get VIRTUALINT. Check permissions';
+   }
+
+
+  my $VIRTUALINT;
+
+  if ($out =~ /\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\S+)/) { 
+    $VIRTUALINT=$1; 
+    $tty=$2; 
+    $line=$3;
+    $cuser=$4;
+    $chost=$5;
+
+    print "$VIRTUALINT, $tty, $line, $cuser, $chost";
+  }
+
   $command = "echo $VIRTUALINT echo  | sed -e \"s/[[:alpha:]]*\\([[:digit:]]\\{1,\\}\\)/\\1/\"";
   log_print('LOG_DEBUG', "$command");
   $PORT=`$command`;
