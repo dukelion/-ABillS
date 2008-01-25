@@ -431,7 +431,7 @@ foreach my $line (@$list) {
   	#                    ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
     #}
 
-	  push @commands, _parse($conf{VLAN_VLAN_DESTROY}, { VLAN_ID => $vlan_id });
+	  push @commands, _parse($conf{VLAN_IF_DESTROY}, { VLAN_ID => $vlan_id });
 	  #"$IFCONFIG vlan$vlan_id destroy";
 	  push @client_interfaces_unused, "vlan$vlan_id";
   }
