@@ -7,7 +7,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
 
 use Exporter;
-$VERSION = 2.00;
+$VERSION = 2.01;
 @ISA = ('Exporter');
 
 @EXPORT = qw();
@@ -28,8 +28,6 @@ use main;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
-
-  #$WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
   
   $admin->{MODULE}='Extfin';
   #  $CONF->{MAX_USERNAME_LENGTH} = 10 if (! defined($CONF->{MAX_USERNAME_LENGTH}));
