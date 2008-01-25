@@ -401,8 +401,9 @@ foreach my $line (@$list) {
         #"$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
        }
       else {
-        push @commands, _parse($conf{VLAN_IF_DELETE}, \%INFO);
+        push @commands, _parse($conf{VLAN_IP_DELETE}, \%INFO);
         #"$IFCONFIG vlan$INFO{VLAN_ID} delete $INFO{VLAN_IF_IP}";
+        $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Deleted\n" if ($debug > 0);
        }
 
       $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Changed\n" if ($debug > 0);
@@ -415,7 +416,7 @@ foreach my $line (@$list) {
       else {
     	  push @client_interfaces_unused, "vlan$INFO{VLAN_ID}";
        }
-
+      
      }
     else {
 	    delete $vlans_info->{$INFO{VLAN_ID}};
@@ -426,12 +427,6 @@ foreach my $line (@$list) {
   # Delete not allow vlans
   while(my($vlan_id, $ip) = each %$vlans_info) {
 	  $debug_output .= "DELETED VLAN $vlan_id, $ip\n" if ($debug > 3);
-    #if ($NAS_ID > 0) {
-    #  my $ACCT_TERMINATE_CAUSE = $attr->{ACCT_TERMINATE_CAUSE} || 6;
-    #  $Ipn->acct_stop({ SESSION_ID => '', 
-  	#                    ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
-    #}
-
 	  push @commands, _parse($conf{VLAN_IF_DESTROY}, { VLAN_ID => $vlan_id });
 	  #"$IFCONFIG vlan$vlan_id destroy";
 	  push @client_interfaces_unused, "vlan$vlan_id";
