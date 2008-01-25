@@ -346,21 +346,24 @@ sub extfin_paids {
 
  $html->tpl_show(_include('extfin_form_paid', 'Extfin'), $Extfin);
 
- 
- my $list = $Extfin->paid_periodic_list({ PERIODIC => 1, UID => $LIST_PARAMS{UID} });	
+ if (! $LIST_PARAMS{UID}) {
+   form_search({ SEARCH_FORM => $html->tpl_show(_include('extfin_search_paids', 'Extfin'),
+ 	                                            { %FORM },
+ 	                                            { notprint => 1 })    });
+  }
+ else {
+   my $list = $Extfin->paid_periodic_list({ PERIODIC => 1, UID => $LIST_PARAMS{UID} });	
 
+   if ($Extfin->{TOTAL} > 0) {
 
-if ($Extfin->{TOTAL} > 0) {
-
-  my $table = $html->table( { width      => '80%',
+   my $table = $html->table( { width      => '80%',
                               caption    => "$_PERIOD",
                               border     => 1,
                               title      => [ '#', 	"$_TYPE", "$_SUM", "$_DESCRIBE", "$_ACCOUNT", "$_ADMIN", "$_DATE" ]
  	                         });
 
 
-foreach my $line (@$list) {
-
+   foreach my $line (@$list) {
      my $MACCOUNT=$html->form_select('MACCOUNT_ID_'.$line->[0], 
                                           { 
  	                                          SELECTED      => $line->[4] || 0,
@@ -378,26 +381,20 @@ foreach my $line (@$list) {
      $line->[5],
      $line->[6]
     );
-  }
+   }
 
 
-  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-                         HIDDEN  => { index     => "$index",
-                         	            UID       => $LIST_PARAMS{UID}
+   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+                            HIDDEN  => { index     => "$index",
+                            	            UID       => $LIST_PARAMS{UID}
                          	                   },
-	                       SUBMIT  => { PERIODIC  => "$_CHANGE" } 
-	                     });
+	                          SUBMIT  => { PERIODIC  => "$_CHANGE" } 
+	                       });
+    }
 
- }
-
- if (! $LIST_PARAMS{UID}) {
-   form_search({ SEARCH_FORM => $html->tpl_show(_include('extfin_search_paids', 'Extfin'),
- 	                                            { %FORM },
- 	                                            { notprint => 1 })    });
-  }
- else {
  	 $pages_qs="&UID=$LIST_PARAMS{UID}";
   }
+
 
 if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=1;
@@ -423,7 +420,7 @@ foreach my $line (@$list) {
 
   $table->addrow($html->b($line->[0]), 
    $html->button($line->[1], "index=$index&chg=$line->[0]"),
-   $html->button($line->[2], "index=15&UID=$line->[10]"), 
+   $html->button($line->[2], "index=15&UID=$line->[11]&MODULE=Extfin"), 
    $line->[3],
    $line->[4], 
    $line->[5], 
