@@ -339,7 +339,7 @@ sub reports {
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
-  $self->query($db, "- SELECT $date, count(*), sum(p.sum) 
+  $self->query($db, "SELECT $date, count(*), sum(p.sum) 
       FROM (payments p)
       LEFT JOIN users u ON (u.uid=p.uid)
       $WHERE 
