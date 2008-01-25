@@ -319,7 +319,7 @@ foreach my $line (@$list) {
   my $vlan_list = $Vlan->list({ DISABLE   => 0,
 	                              PAGE_ROWS => 100000,
 	                              NAS_ID    => $line->[0],
-	                              SORT      => 4
+	                              SORT      => 5
 	                             });
 
   my $sudo = ($nas_mng_ip_port ne '') ? $SUDO : '';
@@ -464,7 +464,7 @@ foreach my $line (@$list) {
    }
  
   #Make PPPoE Realy
-  if (keys %client_interfaces > 0) {
+  if (scalar keys %client_interfaces > 0) {
     vlan_pppoe_relay({ CLIENT_INTERFACES => \%client_interfaces,
   	                   NAS_MNG_IP_PORT   => $nas_mng_ip_port,
   	                   NAS_MNG_USER      => $nas_mng_user,
@@ -619,7 +619,7 @@ sub vlan_pppoe_relay {
 
 # Add interfaces
 
-  foreach $if ( keys %{ $attr->{CLIENT_INTERFACES} } ) {
+  foreach $if ( sort keys %{ $attr->{CLIENT_INTERFACES} } ) {
     #$cmd .= "if [ ! -f /var/run/pppoed_". $if .".pid ]; then sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; fi; ";
     $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ".
      " sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; ";
