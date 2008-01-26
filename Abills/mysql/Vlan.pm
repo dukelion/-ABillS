@@ -306,7 +306,16 @@ sub list {
  if (defined($attr->{DISABLE})) {
    push @WHERE_RULES, "vlan.disable='$attr->{DISABLE}'"; 
  }
- 
+
+ my $GROUP_BY = "GROUP BY u.uid";
+
+ if (defined($attr->{VLAN_GROUP})) {
+   $GROUP_BY = "GROUP BY vlan.vlan_id";
+   $self->{SEARCH_FIELDS} = 'max(INET_NTOA(vlan.ip)), ';
+   $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
 
@@ -332,7 +341,7 @@ sub list {
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $WHERE 
-     GROUP BY u.uid
+     $GROUP_BY
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  return $self if($self->{errno});
