@@ -400,6 +400,7 @@ foreach my $line (@$list) {
       if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
         push @commands, _parse($conf{VLAN_IF_IP}, \%INFO); 
         #"$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
+        $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Changed\n" if ($debug > 0);
        }
       else {
         push @commands, _parse($conf{VLAN_IP_DELETE}, \%INFO);
@@ -407,7 +408,7 @@ foreach my $line (@$list) {
         $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Deleted\n" if ($debug > 0);
        }
 
-      $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Changed\n" if ($debug > 0);
+
       delete $vlans_info->{$INFO{VLAN_ID}};
       
       #Start PPPOE
