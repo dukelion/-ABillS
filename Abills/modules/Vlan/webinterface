@@ -405,7 +405,7 @@ foreach my $line (@$list) {
       else {
         push @commands, _parse($conf{VLAN_IP_DELETE}, { VLAN_IF_IP => $vlans_info->{$INFO{VLAN_ID}}, VLAN_ID => $INFO{VLAN_ID} });
         #"$IFCONFIG vlan$INFO{VLAN_ID} delete $INFO{VLAN_IF_IP}";
-        $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Deleted\n" if ($debug > 0);
+        $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $vlans_info->{$INFO{VLAN_ID}} Deleted\n" if ($debug > 0);
        }
 
 
