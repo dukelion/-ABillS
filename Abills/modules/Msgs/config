@@ -1,10 +1,9 @@
-$web_interface    = 1;
-
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:0:$_MESSAGES:msgs_admin:UID"     => 15,
                    "02:0:$_MESSAGES:msgs_admin:"        => 5,
                    "03:2:$_CHAPTERS:msgs_chapters:"     => 5,
                    "04:2:$_ADMINS:msgs_admins:"         => 5,
+                   "08:0:$_MESSAGES:msgs_reports:"      => 4
                     );
 
 %USER_FUNCTION_LIST = ();

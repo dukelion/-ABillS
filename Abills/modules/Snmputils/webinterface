@@ -1364,7 +1364,7 @@ sub snmputils_dlink_pb_monitor {
     
     $table->{rowcolor}=$_COLORS[0];
     $table->{extra}="colspan='5' class='small'";
-    $table->addrow("$line->[0]:<b>$line->[1]</b>:$line->[3] " );
+    $table->addrow("$line->[0]:". $html->b($line->[1]) .":$line->[3] " );
 
     undef($table->{rowcolor});
     undef($table->{extra});
@@ -2149,7 +2149,7 @@ foreach my $line (@$list) {
   $table->{rowcolor}=$_COLORS[0];
   $table->{eowcolor}=$_COLORS[0];
   $table->{extra}="colspan='". ($#CAPTION + 2) ."' class='small'";
-  $table->addrow("$line->[0]:<b>$line->[1]</b>/$version, $serie, $firmware/:$line->[3] (". 
+  $table->addrow("$line->[0]:". $html->b($line->[1]) ."/$version, $serie, $firmware/:$line->[3] (". 
   $html->button('WEB', "", { GLOBAL_URL => "http://$line->[3]" }) 
    ."):$_TOTAL: ". ( $#MAC_ARR + 1 ) );
 
@@ -2561,7 +2561,7 @@ foreach my $line (@$list) {
   
   $table->{rowcolor}=$_COLORS[0];
   $table->{extra}="colspan='". ($#default_fields + 2) ."' class='small'";
-  $table->addrow("$line->[0]:<b>$line->[1]</b>:$line->[3] ");
+  $table->addrow("$line->[0]:". $html->b($line->[1]) .":$line->[3] ");
   $page_qs .= "&NAS_ID=$line->[0]";
   $total_sessions += $#MAC_ARR + 1;
 
@@ -2623,7 +2623,7 @@ my $table2 = $html->table({ width => '100%' });
 my @arr = ();
 foreach my $name ( sort keys %$fields) {
   my $ex_info = ($attr->{OIDS_EXINFO}->{$name}{DESCRIBE}) ?  " ($attr->{OIDS_EXINFO}->{$name}{ACCESS})<br>$attr->{OIDS_EXINFO}->{$name}{DESCRIBE}" : '';
-  push @arr, $html->form_input('fields', "$name", { TYPE => 'checkbox', STATE => (in_array($name, $active_fields)) ? 1 : undef  }). " <b>$name</b>$ex_info";
+  push @arr, $html->form_input('fields', "$name", { TYPE => 'checkbox', STATE => (in_array($name, $active_fields)) ? 1 : undef  }). ' '.$html->b($name) ."$ex_info";
 
   if ($#arr > 2) {
     $table2->addrow(@arr);
@@ -2971,7 +2971,7 @@ if ($FORM{SHOW}) {
   	                        width      => '100%',
                             cols_align => ['right', 'right'],
                             rowcolor   => $_COLORS[0],
-                            rows       => [ ["$_TOTAL:", "<b>$rows_count</b>" ] ]
+                            rows       => [ ["$_TOTAL:", $html->b($rows_count) ] ]
                         } );
   print $table->show();
    	

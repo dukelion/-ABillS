@@ -734,7 +734,7 @@ foreach my $line (@$list) {
   	        EX_PARAMS     => { DATE  => "$_DATE",
   	        	                 USERS => "$_USERS" }, 
   	        PERIOD_FORM		=> 1,
-  	        EXT_TYPE      => { PAYMENT_METHOD => $_PAYMENT_METHOD, PAYMENT_TYPE => $_TYPE },
+  	        EXT_TYPE      => { PAYMENT_METHOD => $_PAYMENT_METHOD, PAYMENT_TYPE => $_TYPE, ADMINS => $_ADMINS },
   	        FIELDS        => { %CAPTIONS_HASH },
   	        XML           => 1,
   	       });
@@ -826,7 +826,7 @@ else {
     my $firth_field = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
     if ($FORM{TYPE}) {
       if ($FORM{TYPE} eq 'USER') {
-        $firth_field = $html->button($line->[0], "index=11&UID=$line->[5]");   	 	
+        $firth_field = $html->button($line->[0], "index=15&UID=$line->[5]");   	 	
    	   }
       elsif($FORM{TYPE} eq 'PAYMENT_METHOD') {
      	  $firth_field = $html->button($PAYMENT_METHODS[$line->[0]], "index=11&UID=$line->[0]");   	 	
@@ -834,6 +834,10 @@ else {
       elsif($FORM{TYPE} eq 'PAYMENT_TYPE') {
      	  $firth_field = $html->button($CAPTIONS_HASH{"$line->[0]:$line->[0]"}, "index=11&UID=$line->[0]");   	 	
        }
+      elsif($FORM{TYPE} eq 'ADMINS') {
+     	  $firth_field = $line->[0];   	 	
+       }
+
      }
 
   	
@@ -844,9 +848,9 @@ else {
        $line->[4]
        );
 
-      $AVG{COUNT}      = $line->[1] if ($AVG{USERS} < $line->[1]);
-      $AVG{SUM}        = $line->[3] if ($AVG{TRAFFIC} < $line->[3]);
-      $AVG{CLOSED_SUM} = time2sec($line->[5]) if ($AVG{DURATION} < time2sec($line->[5]));
+      $AVG{COUNT}      = $line->[1] if ($AVG{COUNT} < $line->[1]);
+      $AVG{SUM}        = $line->[3] if ($AVG{SUM} < $line->[3]);
+      $AVG{CLOSED_SUM} = time2sec($line->[5]) if ($AVG{CLOSED_SUM} < $line->[5]);
 
       if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
       	 $num = $3;

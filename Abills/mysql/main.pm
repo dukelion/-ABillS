@@ -125,16 +125,21 @@ my $q;
 my @Array = ();
 # check bind params
 if ($attr->{Bind}) {
+  
   foreach my $Data (@{ $attr->{Bind} }) {
-    if (ref($Data) eq 'SCALAR') {
-      push(@Array, $$Data);
-     }
-    else  {
-      $self->{errno} = 7;
-      $self->{errstr} = "No SCALAR param in Bind!";
-      return $self;
-     }
+    push(@Array, $Data);
+    #print ref(\$Data);
+#    if (ref($Data) eq 'SCALAR') {
+#      push(@Array, $$Data);
+#     }
+#    else  {
+#      $self->{errno} = 7;
+#      $self->{errstr} = "No SCALAR param in Bind!";
+#      return $self;
+#     }
+
    }
+
  }
 
 if (defined($type) && $type eq 'do') {

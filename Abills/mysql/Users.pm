@@ -472,9 +472,10 @@ sub list {
   }
 
  if ($attr->{EMAIL}) {
-    push @WHERE_RULES, "pi.email='$attr->{EMAIL}'";
-    #$self->{SEARCH_FIELDS} = 'pi.phone, ';
-    #$self->{SEARCH_FIELDS_COUNT}++;
+    $attr->{EMAIL} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "pi.email LIKE '$attr->{EMAIL}'";
+    $self->{SEARCH_FIELDS} = 'pi.email, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
   }
 
 

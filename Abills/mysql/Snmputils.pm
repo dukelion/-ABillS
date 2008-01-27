@@ -57,7 +57,7 @@ sub snmputils_nas_ipmac {
      un.uid, 
      INET_NTOA(d.ip), 
      d.mac,
-     if(u.company_id > 0, cb.deposit, ub.deposit), 
+     if(u.company_id > 0, cb.deposit+u.credit, ub.deposit+u.credit), 
      d.comments,
      d.vid,
      d.ports,

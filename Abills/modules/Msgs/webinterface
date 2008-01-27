@@ -26,8 +26,6 @@ sub msgs_admins {
 my @privilages_arr = ('READ', 'WRITE', 'ADD', 'ALL');
   
 if ($FORM{change}) {
-	
-	
 	$Msgs->admin_change({ %FORM });
   if (! $Msgs->{errno}) {
     $html->message('info', $_INFO, "$_CHANGED");  	
@@ -138,6 +136,11 @@ sub msgs_admin_add {
 
   if ($FORM{send}) {
     #Add group 
+#    while(my ($k, $v) =each %{ $FORM{FILE_UPLOAD}  } ) {
+#    	print "$k, $v<br>";
+#     }
+# 
+
     my $message='';
     if  (! $FORM{INNER_MSG} && ( $FORM{GID} || ($FORM{GID} == 0 && $FORM{UID} == 0 ) ) ) {
        my $list = $users->list({ GID => $FORM{GID}, PAGE_ROWS => 100000 });
@@ -158,8 +161,23 @@ sub msgs_admin_add {
       	                   IP => $admin->{SESSION_IP} 
       	                 });
      }
-   
-    $html->message('info', $_INFO, "$_SENDED $message") if (! $Msgs->{errno});  	
+
+    if (! $Msgs->{errno}) {
+
+      #Add attachment
+      if ($FORM{FILE_UPLOAD}) {
+        $Msgs->attachment_add({ 
+          MSG_ID       => $Msgs->{INSERT_ID},
+          CONTENT      => $FORM{FILE_UPLOAD}{Contents},
+          FILESIZE     => $FORM{FILE_UPLOAD}{Size},
+          FILENAME     => $FORM{FILE_UPLOAD}{filename},
+          CONTENT_TYPE => $FORM{FILE_UPLOAD}{'Content-Type'},
+          UID          => $FORM{UID}
+         });
+       }
+
+      $html->message('info', $_INFO, "$_SENDED $message") 
+     }
    }
 #  elsif ($FORM{change}) {
 #    if ($FORM{STATE} > 0) {
@@ -257,6 +275,24 @@ sub msgs_admin {
    }
   elsif ($FORM{reply}) {
     $Msgs->message_reply_add({ %FORM, IP => $admin->{SESSION_IP} });
+
+     if (! $Msgs->{errno}) {
+       #Add attachment
+       if ($FORM{FILE_UPLOAD}) {
+         $Msgs->attachment_add({ 
+           MSG_ID       => $Msgs->{INSERT_ID},
+           CONTENT      => $FORM{FILE_UPLOAD}{Contents},
+           FILESIZE     => $FORM{FILE_UPLOAD}{Size},
+           FILENAME     => $FORM{FILE_UPLOAD}{filename},
+           CONTENT_TYPE => $FORM{FILE_UPLOAD}{'Content-Type'},
+           UID          => $user->{UID},
+           MESSAGE_TYPE  => 1
+          });
+        }      
+     }
+
+
+
      %params = ();
      $params{STATE}       = $FORM{STATE}if ($FORM{STATE});
      my $state=$FORM{STATE};
@@ -322,6 +358,7 @@ sub msgs_admin {
  	                                        }); 
     
     $Msgs->{MSG_CLOSED_DATE}=$html->form_input('MSG_CLOSED_DATE', "");
+    $Msgs->{INNER_MSG} = $bool_vals[$Msgs->{INNER_MSG}];
     $Msgs->{EXT_INFO}=$html->tpl_show(_include('msgs_managment', 'Msgs'), 
       $Msgs, { notprint => 1 } );
 
@@ -342,7 +379,9 @@ sub msgs_admin {
           CAPTION  => convert($line->[5], { text2html => 1 }),
           PERSON   =>	$line->[3],
       	  MESSAGE  => convert($line->[2], { text2html => 1 }),
-      	  DELETE   => $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
+      	  DELETE   =>  $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }),
+      	  ATTACHMENT =>  ($line->[7]) ? "$_ATTACHMENT: ". $html->button("$line->[7]", "qindex=$index&ATTACHMENT=$line->[9]", { TARGET => '_new' }). " ($_SIZE: ". int2byte($line->[8]) .')' : ''
+      	  
       	  }, { notprint => 1 } );
      }
     
@@ -354,7 +393,10 @@ sub msgs_admin {
     $Msgs->{MESSAGE}=convert($Msgs->{MESSAGE}, { text2html => 1 });
     $Msgs->{SUBJECT}=convert($Msgs->{SUBJECT}, { text2html => 1 });
     
-    
+    if ($Msgs->{FILENAME}) {
+      $Msgs->{ATTACHMENT}="$_ATTACHMENT: ". $html->button("$Msgs->{FILENAME}", "qindex=$index&ATTACHMENT=$Msgs->{ATTACHMENT_ID}", { TARGET => '_new' }). " ($_SIZE: ". int2byte($Msgs->{FILESIZE}) .')';
+     }  
+
     $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
     
     if ( $Msgs->{RESPOSIBLE} == 0 || $Msgs->{RESPOSIBLE} == $admin->{AID} ) {
@@ -365,6 +407,13 @@ sub msgs_admin {
     
     return 0;
     #$html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	
+   }
+  elsif ($FORM{ATTACHMENT}) {
+  	$Msgs->attachment_info({ ID => $FORM{ATTACHMENT} });
+  	print "Content-Type: $Msgs->{CONTENT_TYPE}\n\n";
+  	
+  	print "$Msgs->{CONTENT}";
+  	return 0;
    }
   elsif ($FORM{del}) {
     $Msgs->message_del({ ID => $FORM{del}, UID => $UID  });
@@ -467,8 +516,16 @@ function CheckAllINBOX() {
 foreach my $line (@$list) {
   my $state = ($line->[5]==0) ? $html->b($msg_status[$line->[5]]) : $msg_status[$line->[5]];
   $state .= '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[15] eq '0000-00-00 00:00:00');
-  
-  
+  my $priority = '';
+  if ($line->[8] == 4) {
+ 	  $priority = "<font color='$_COLORS[6]'>$priority[$line->[8]]</font>";
+ 	 }
+  elsif ($line->[8] == 0) {
+ 	  $priority = "<font color='$_COLORS[8]'>$priority[$line->[8]]</font>";
+ 	 }
+ 	else {
+ 		$priority = $priority[$line->[8]];
+ 	 }
 
   $table->addrow(
    $line->[0] . ( ($A_PRIVILEGES{$line->[17]} > 2 || $#A_CHAPTER == -1) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ), 
@@ -479,7 +536,7 @@ foreach my $line (@$list) {
    $state,
    $line->[6],      
    $line->[7],      
-   $priority[$line->[8]],
+   $priority,
    $line->[9],
    $html->button("$_SHOW", "index=$index&chg=$line->[0]&UID=$line->[10]"),
    ( ($A_PRIVILEGES{$line->[17]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL $line->[0]?" }): '') 
@@ -531,7 +588,21 @@ sub msgs_user {
    	                    IP        => $ENV{'REMOTE_ADDR'},
    	                    %FORM 
    	                  });
-   $html->message('info', $_INFO, "$_SENDED") if (! $Msgs->{errno});  	
+ 
+   if (! $Msgs->{errno}) {
+     #Add attachment
+     if ($FORM{FILE_UPLOAD}) {
+        $Msgs->attachment_add({ 
+          MSG_ID       => $Msgs->{INSERT_ID},
+          CONTENT      => $FORM{FILE_UPLOAD}{Contents},
+          FILESIZE     => $FORM{FILE_UPLOAD}{Size},
+          FILENAME     => $FORM{FILE_UPLOAD}{filename},
+          CONTENT_TYPE => $FORM{FILE_UPLOAD}{'Content-Type'},
+          UID          => $user->{UID}
+         });
+       }      
+     $html->message('info', $_INFO, "$_SENDED");
+   }
  	}
  elsif ($FORM{ID}) {
    if ($FORM{reply}) {
@@ -544,7 +615,22 @@ sub msgs_user {
  	 	                         ADMIN_READ => "0000-00-00 00:00:00"
  	 	                       });
 
-     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
+     if (! $Msgs->{errno}) {
+       #Add attachment
+       if ($FORM{FILE_UPLOAD}) {
+         $Msgs->attachment_add({ 
+           MSG_ID       => $Msgs->{INSERT_ID},
+           CONTENT      => $FORM{FILE_UPLOAD}{Contents},
+           FILESIZE     => $FORM{FILE_UPLOAD}{Size},
+           FILENAME     => $FORM{FILE_UPLOAD}{filename},
+           CONTENT_TYPE => $FORM{FILE_UPLOAD}{'Content-Type'},
+           UID          => $user->{UID},
+           ESSAGE_TYPE  => 1
+          });
+        }      
+
+     $html->message('info', $_INFO, "$_REPLY");  
+     }
     }
 
 
@@ -580,6 +666,11 @@ sub msgs_user {
      $Msgs->{MESSAGE}=convert($Msgs->{MESSAGE}, { text2html => 1 });
      $Msgs->{SUBJECT}=convert($Msgs->{SUBJECT}, { text2html => 1 });
    
+    if ($Msgs->{FILENAME}) {
+      $Msgs->{ATTACHMENT}="$_ATTACHMENT: ". $html->button("$Msgs->{FILENAME}", "qindex=$index&sid=$sid&ATTACHMENT=$Msgs->{ATTACHMENT_ID}", { TARGET => '_new' }). " ($_SIZE: ". int2byte($Msgs->{FILESIZE}) .')';
+     }  
+     
+   
      $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
 
      %params = ();
@@ -599,6 +690,19 @@ sub msgs_user {
 
  	 #return 0;
   }
+ elsif ($FORM{ATTACHMENT}) {
+  	$Msgs->attachment_info({ ID => $FORM{ATTACHMENT}, UID => $user->{UID} });
+  	if ($Msgs->{TOTAL}==0) {
+  		print "Content-Type: text/html\n\n";
+  		print "Error: Can't find attachment\n";
+  		return 0;
+  	 }
+  	print "Content-Type: $Msgs->{CONTENT_TYPE}\n\n";
+  	
+  	print "$Msgs->{CONTENT}";
+  	return 0;
+   }
+
  else {
    $Msgs->{CHAPTER_SEL} = $html->form_select('CHAPTER', 
                                           { 
@@ -888,11 +992,181 @@ if ($#table_rows > -1) {
 }
 
 print $table->show();
-
-
-	
 	
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub msgs_reports {
+	my %CAPTIONS_HASH = ();
+  
+  reports({ DATE          => $FORM{DATE}, 
+  	        REPORT        => '',
+  	        EX_PARAMS     => { DATE   => "$_DATE",
+  	        	                 USERS  => "$_USERS",
+  	        	                 ADMINS => "$_ADMINS" }, 
+  	        PERIOD_FORM		=> 1,
+  	        EXT_TYPE      => { ADMINS => $_ADMINS },
+  	        FIELDS        => { %CAPTIONS_HASH },
+  	        XML           => 1,
+  	       });
+
+
+my ($table_sessions);
+my $output = '';
+
+my %DATA_HASH = ();
+my %CHART = ();
+my %AVG = (COUNT    => 0,
+           MAKED    => 0,
+           UNMAKED  => 0);
+
+my $graph_type='';
+
+
+#Day reposrt
+if (defined($FORM{DATE})) {
+ if (! defined($FORM{sort})) {
+   $LIST_PARAMS{SORT}=1;
+   $LIST_PARAMS{DESC}=DESC;
+  }
+
+  my $list = $Msgs->messages_list({ %LIST_PARAMS });	
+  $table_sessions = $html->table( { width      => '100%',
+                                    caption    => "$_FEES",
+                                    border     => 1,
+                                    title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", 
+                               "$_ADMIN", "$_PRIORITY", "$_EXECUTION" ],
+                                    cols_align => ['right', 'left', 'left', 'left', 'right', 'left', 'center', 'right', 'center:noprint', 'center:noprint'],
+                                  } );
+
+  my ($delete, $change);
+  foreach my $line (@$list) {
+#    if ($permissions{4}{1}) {
+#      $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
+#      $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[10]");
+#     }
+
+    my $priority = '';
+    if ($line->[8] == 4) {
+ 	    $priority = "<font color='$_COLORS[6]'>$priority[$line->[8]]</font>";
+ 	   }
+    elsif ($line->[8] == 0) {
+ 	    $priority = "<font color='$_COLORS[8]'>$priority[$line->[8]]</font>";
+   	 }
+ 	  else {
+ 		  $priority = $priority[$line->[8]];
+ 	   }
+
+
+    $table_sessions->addrow($html->b($line->[0]), 
+     $html->button($line->[1], "index=15&UID=$line->[10]"),
+     $line->[2], 
+     $line->[3],
+     $line->[4], 
+     ($line->[5] == 0 ) ? $html->b($msg_status[$line->[5]]) : $msg_status[$line->[5]], 
+     $line->[6],  
+     $line->[7], 
+     $priority, 
+     $line->[9], 
+#     $change,
+#     $delete
+     );
+  }
+
+ }
+else {
+  my %fields_hash = (); 
+  my @fields_arr  = ();
+	my @caption = ("$_DATE", "$msg_status[0]", "$msg_status[1]", "$msg_status[2]", "$_COUNT"); 
+  
+  if ($FORM{TYPE}) {
+    if ($FORM{TYPE} eq 'ADMINS') {
+  	  $caption[0]=$_ADMINS;
+  	 }
+    elsif ($FORM{TYPE} eq 'USER') {
+  	  $caption[0]=$_USERS;
+     }
+   }
+  
+  $table_sessions = $html->table({ width      => '100%',
+	                                 caption    => "$_FEES", 
+                                   title      => \@caption,
+                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                   qs         => $pages_qs             
+                               } );
+
+
+  $graph_type='month_stats';
+  my $num = 0;
+  
+  my $list = $Msgs->messages_reports({ %LIST_PARAMS });
+  
+  foreach my $line (@$list) {
+    my $firth_field = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
+    if ($FORM{TYPE}) {
+      if ($FORM{TYPE} eq 'USER') {
+        $firth_field = $html->button($line->[0], "index=15&UID=$line->[5]");   	 	
+   	   }
+      elsif($FORM{TYPE} eq 'ADMINS') {
+     	  $firth_field = "$line->[0]";   	 	
+       }
+     }
+
+  	
+ 	  @rows = ($firth_field,
+       $line->[1], 
+       $line->[2], 
+       $line->[3],  
+       $line->[4]
+       );
+
+    $AVG{COUNT}      = $line->[4] if ($AVG{COUNT} < $line->[4]);
+    $AVG{MAKED}        = $line->[2] if ($AVG{MAKED} < $line->[2]);
+    $AVG{UNMAKED} = time2sec($line->[3]) if ($AVG{UNMAKED} < $line->[3]);
+
+    if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+    	 $num = $3;
+      }
+    elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+    	 $CHART{X_LINE}[$num]=$line->[0];
+     	 $num++;
+     }
+     
+    $DATA_HASH{COUNT}[$num]       = $line->[4];      
+    $DATA_HASH2{MAKED}[$num]        = $line->[2];
+    $DATA_HASH2{UNMAKED}[$num] = $line->[3];
+
+    $table_sessions->addrow(@rows);
+   }
+
+
+$output = $html->make_charts({  
+	 PERIOD     => $graph_type,
+	 DATA       => \%DATA_HASH2,
+	 AVG        => \%AVG,
+	 TYPE       => ['area', 'area'],
+	 TRANSITION => 1,
+   OUTPUT2RETURN => 1
+  });
+
+
+}
+
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                         rows       => [ [ "$msg_status[0]: ". $html->b( $Msgs->{OPEN} ), 
+                                           "$msg_status[1]: ". $html->b( $Msgs->{UNMAKED} ), 
+                                           "$msg_status[2]: ". $html->b( $Msgs->{MAKED} ), 
+                                           "$_COUNT: ". $html->b( $Msgs->{TOTAL} ),
+                                        ] ],
+                         rowcolor   => $_COLORS[2]
+                               } );
+
+print $table_sessions->show() . $table->show(). $output;
+	
+}
 1
 

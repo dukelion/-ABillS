@@ -787,16 +787,21 @@ sub paid_reports {
 
  my $date='p.date';
 
- if($attr->{TYPE} && $attr->{TYPE} eq 'PAYMENT_METHOD') {
-    $date = "p.maccount_id";
-  }
- elsif ($attr->{TYPE} && $attr->{TYPE} eq 'PAYMENT_TYPE') {
- 	  $date = "p.type_id";
-  }
- elsif ($attr->{TYPE} && $attr->{TYPE} eq 'USER') {
- 	  $date = "u.id";
-  }
+ if ($attr->{TYPE}) {
+   if($attr->{TYPE} eq 'PAYMENT_METHOD') {
+     $date = "p.maccount_id";
+    }
+   elsif ($attr->{TYPE} eq 'PAYMENT_TYPE') {
+ 	   $date = "p.type_id";
+    }
+   elsif ($attr->{TYPE} eq 'USER') {
+ 	   $date = "u.id";
+    }
+   elsif ($attr->{TYPE} eq 'ADMINS') {
+ 	   $date = "a.id";
+    }
 
+  }
 
  if ($attr->{DATE}) {
     push @WHERE_RULES, "p.date='$attr->{DATE}'";
@@ -821,19 +826,19 @@ sub paid_reports {
    count(p.id), 
    sum(p.sum),
    p.uid
-   FROM extfin_paids p, users u
-  WHERE p.uid=u.uid
+   FROM extfin_paids p, users u, admins a
+  WHERE p.uid=u.uid and p.aid=a.aid $WHERE
   GROUP BY 1
-  ORDER BY $SORT $DESC 
-  LIMIT $PG, $PAGE_ROWS;");
+  ORDER BY $SORT $DESC ");
+#  LIMIT $PG, $PAGE_ROWS;");
 
 
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0 || $PG > 0) {
     $self->query($db, "SELECT count(p.id), sum(sum)
-     FROM extfin_paids p
-    $WHERE;");
+     FROM extfin_paids p, admins a
+    WHERE p.aid=a.aid $WHERE;");
     ($self->{TOTAL}, $self->{SUN}) = @{ $self->{list}->[0] };
    }
 
