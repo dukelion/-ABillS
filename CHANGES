@@ -1,4 +1,42 @@
 =====0.40=====
+  * 27.01.2008
+Дополнения в [[abills:docs:msgs:ru|Msgs]]
+  * Возможность прикреплять файлы к сообщениям.
+  * Отчёты 
+
+MYSQL
+  CREATE TABLE `msgs_attachments` (
+    `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+    `message_id` bigint(20) NOT NULL DEFAULT '0',
+    `filename` varchar(250) DEFAULT NULL,
+    `content_size` varchar(30) DEFAULT NULL,
+    `content_type` varchar(250) DEFAULT NULL,
+    `content` longblob NOT NULL,
+    `create_time` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+    `create_by` int(11) NOT NULL DEFAULT '0',
+    `change_time` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+    `change_by` int(11) NOT NULL DEFAULT '0',
+    `message_type` tinyint(2) NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`),
+    KEY `article_attachment_article_id` (`message_id`)
+  ) COMMENT='Messages Attachment table';
+
+  * 25.01.2008
+Включение меню Finance (Денежные операции) в акаунте пользователя
+  $conf{user_finance_menu}=1;
+   
+
+  * 24.01.2008
+Дополнение типов оплаты собственными через опцию
+   @EX_PAYMENT_METHODS = ('webmoney', 'rupay', 'Счёт н 453');
+
+  * 23.01.2008
+Просмотр пароля пользователя администратором\\
+Выписка карты подключения для пользователя для уже заведённого пользователя (Логин, Пароль...)\\
+Дополнение [[abills:docs:msgs:ru|Msgs]]\\
+Добавление комутаторов Zyxel в [[http://abills.net.ua/wiki/doku.php?id=abills:docs:modules:snmputils:ru|Snmputils]]\\
+
+
   * 06.12.2007
 MYSQL
   ALTER TABLE `sharing_main` CHANGE COLUMN  `extra_byte` `extra_byte` double(15,2) unsigned NOT NULL default '0.00';
