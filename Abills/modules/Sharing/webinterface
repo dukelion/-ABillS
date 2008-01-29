@@ -2138,12 +2138,19 @@ sub sharing_sheduler {
 	my ($type, $action, $uid)=@_;
 
   my $user = $Sharing->info($uid);  	
+  $Sharing->{debug}=1;
   if ($type eq 'tp') {
     $Sharing->change({UID   => $uid, 
           	          TP_ID => $action 
           	        });
+
+    if ($Sharing->{errno} && $Sharing->{errno} == 15) {
+    	return $Sharing->{errno};
+     }
+
    }
 
+  return 0;
 }
 
 
