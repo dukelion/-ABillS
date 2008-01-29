@@ -605,10 +605,12 @@ sub msgs_user {
    }
  	}
  elsif ($FORM{ID}) {
+
    if ($FORM{reply}) {
      $Msgs->message_reply_add({ %FORM, 
      	                          IP   => $admin->{SESSION_IP},
-     	                          UID  => $LIST_PARAMS{UID} });
+     	                          UID  => $LIST_PARAMS{UID} 
+     	                         });
 
  	   $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
  	 	                         ID        => $FORM{ID},
@@ -639,7 +641,7 @@ sub msgs_user {
    $Msgs->{ACTION}='reply';
    $Msgs->{ACTION_LNG}=$_REPLY;
 
- 	 if ($Msgs->{TOTAL} > 0) {
+ 	 if ($Msgs->{ID} && $Msgs->{ID} > 0) {
  	   
  	  my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID} });
 
