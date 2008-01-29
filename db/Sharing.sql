@@ -76,3 +76,15 @@ CREATE TABLE `sharing_priority` (
   UNIQUE KEY `id` (`id`),
   KEY `file` (`file`)
 ) COMMENT='Sharing file priority';
+
+
+CREATE TABLE `sharing_additions` (
+  `id` smallint(6) NOT NULL auto_increment,
+  `name` varchar(25) NOT NULL default '',
+  `quantity` int(11) unsigned NOT NULL default '0',
+  `price` double(14,2) default NULL,
+  `tp_id` smallint(6) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `id` (`id`)
+) COMMENT='Sharing Additions';
+

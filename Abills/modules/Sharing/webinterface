@@ -172,7 +172,7 @@ foreach my $line (@$list) {
   	undef($table->{rowcolor});
    }
   
-  $table->addrow("<b>$line->[0]</b>", 
+  $table->addrow($html->b($line->[0]), 
    $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
    $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], 
    $line->[5], 
@@ -190,7 +190,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$Tariffs->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($Tariffs->{TOTAL}) ] ]
                      } );
 
 print $table->show();
@@ -558,7 +558,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$Sharing->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($Sharing->{TOTAL}) ] ]
                         } );
 print $table->show();
 	
@@ -1664,7 +1664,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$total</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($total) ] ]
                      } );
 
 print $table->show();
