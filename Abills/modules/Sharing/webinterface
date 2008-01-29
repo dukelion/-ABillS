@@ -1329,6 +1329,8 @@ sub sharing_user_chg_tp {
 
 
 if ($FORM{set}) {
+ 	use POSIX;
+
   if ($conf{SHARING_USER_CHG_TP_NPERIOD} && $user_sharing->{TP_ID} > 0) {
 
      my $Y;
@@ -1348,8 +1350,9 @@ if ($FORM{set}) {
        ($Y, $M, $D)=split(/-/, $user->{EXPIRE}, 3);
       }
 
-    $FORM{date_M}++;    
-    $shedule->add( {UID     => $LIST_PARAMS{UID},
+    my $seltime = POSIX::mktime(0, 0, 0, $D, $M, ($Y - 1900));
+    if ($seltime > time()) {
+      $shedule->add( {UID     => $LIST_PARAMS{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
     	             D        => $D,
@@ -1359,11 +1362,22 @@ if ($FORM{set}) {
                    $_FROM: '$Y-$M-$D'",
                    MODULE   => 'Sharing'
                  } );
-  	
+     }	
+    else {
+ 	    $FORM{UID}=$LIST_PARAMS{UID};
+      $user_sharing->change({ %FORM });
+
+      if ($user_sharing->{errno}) {
+        $html->message('err', $_ERROR, "[$user_sharing->{errno}] $err_strs{$user_sharing->{errno}}");
+       }
+      else {
+        $html->message('info', $_CHANGED, "$_CHANGED");
+        $user_sharing->info($user_sharing->{UID});
+       }
+     }
    }
   elsif ($period == 1 && $conf{SHARING_USER_CHG_TP_SHEDULE} && $user_sharing->{TP_ID} > 0) {
-  	use POSIX;
-    
+   
     my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
     
     if ($seltime <= time()) {

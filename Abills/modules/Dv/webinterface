@@ -2070,6 +2070,8 @@ sub dv_user_chg_tp {
 
 
 if ($FORM{set}) {
+	use POSIX;
+
   if ($conf{DV_USER_CHG_TP_NPERIOD}) {
   	 # Get next month
      my $Y;
@@ -2091,9 +2093,9 @@ if ($FORM{set}) {
        ($Y, $M, $D)=split(/-/, $user->{EXPIRE}, 3);
       }
     
-
-
-    $shedule->add( {UID     => $LIST_PARAMS{UID},
+    my $seltime = POSIX::mktime(0, 0, 0, $D, $M, ($Y - 1900));
+    if ($seltime > time()) {
+      $shedule->add( {UID     => $LIST_PARAMS{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
     	             D        => $D,
@@ -2103,10 +2105,21 @@ if ($FORM{set}) {
                    $_FROM: '$Y-$M-$D'",
                    MODULE   => 'Dv'
                  } );
-  	
+     }	
+    else {
+ 	    $FORM{UID}=$LIST_PARAMS{UID};
+      $user->change({ %FORM });
+
+      if ($user->{errno}) {
+        $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");
+       }
+      else {
+        $html->message('info', $_CHANGED, "$_CHANGED");
+        $user->info($user->{UID});
+       }
+     }
    }
   elsif ($period == 1 && $conf{DV_USER_CHG_TP_SHEDULE}) {
-  	use POSIX;
     
     my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
     
@@ -2145,7 +2158,7 @@ if ($FORM{set}) {
     else {
       $html->message('info', $_CHANGED, "$_CHANGED");
       $user->info($user->{UID});
-    }
+     }
   }
 }
 elsif($FORM{del}) {
