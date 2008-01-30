@@ -47,10 +47,10 @@ use Finance;
 
 
 $html = Abills::HTML->new( { IMG_PATH => 'img/',
-	                           NO_PRINT => 1,
-	                           CONF     => \%conf,
-	                           CHARSET  => $conf{default_charset}
-	                          });
+	                     NO_PRINT => 1,
+	                     CONF     => \%conf,
+	                     CHARSET  => $conf{default_charset}
+	                    });
 
 my $sql = Abills::SQL->connect($conf{dbtype}, 
                                $conf{dbhost}, 

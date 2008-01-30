@@ -75,8 +75,6 @@ sub new {
   $IMG_PATH = (defined($attr->{IMG_PATH})) ? $attr->{IMG_PATH} : '../img/';
   $CONF = $attr->{CONF} if (defined($attr->{CONF}));
 
-  #$CONF = $attr->{CONF} if (defined($attr->{CONF}));
-
   my $self = { };
   bless($self, $class);
 
@@ -104,11 +102,12 @@ sub new {
   	$PAGE_ROWS = int($attr->{PAGE_ROWS});
    }
   else {
- 	 	$PAGE_ROWS = 25;
+ 	$PAGE_ROWS = 25;
    }
 
   if ($attr->{PATH}) {
- 	  $self->{PATH}=$attr->{PATH};
+    $self->{PATH}=$attr->{PATH};
+    $IMG_PATH = $self->{PATH}.'img';
    }
 
   $domain = $ENV{SERVER_NAME};
@@ -157,8 +156,8 @@ sub new {
 
   if (defined($FORM{xml})) {
     require Abills::XML;
-    $self = Abills::XML->new( { IMG_PATH  => 'img/',
-	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1 
+    $self = Abills::XML->new( { IMG_PATH  => $IMG_PATH,
+	                        NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1 
 	                            
 	                            });
   }
@@ -710,14 +709,11 @@ sub header {
  my $JAVASCRIPT = "functions.js"; 
  my $PRINTCSS = "print.css";
 
- if ($attr->{PATH}) {
- 	 $JAVASCRIPT = "$attr->{PATH}$JAVASCRIPT";
- 	 $PRINTCSS = "$attr->{PATH}$PRINTCSS";
+ if($self->{PATH}) {
+   $JAVASCRIPT = "$self->{PATH}$JAVASCRIPT";
+   $PRINTCSS = "$self->{PATH}$PRINTCSS";
   }
- elsif($self->{PATH}) {
- 	 $JAVASCRIPT = "$self->{PATH}$JAVASCRIPT";
- 	 $PRINTCSS = "$self->{PATH}$PRINTCSS";
- }
+
 
  my $css = css();
  my $title = ($CONF->{WEB_TITLE}) ? $CONF->{WEB_TITLE} : "AsmodeuS~ Billing System";
