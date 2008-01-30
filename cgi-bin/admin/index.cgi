@@ -121,8 +121,6 @@ $html = Abills::HTML->new({ CONF     => \%conf,
 	                          %{ $admin->{WEB_OPTIONS} } });
 
 require "../../language/$html->{language}.pl";
-print "Content-Type: text/html\n\n";
-print "$conf{WEB_IMG_SCRIPT_PATH}";
 
 if ($admin->{errno}) {
   print "Content-type: text/html\n\n";
