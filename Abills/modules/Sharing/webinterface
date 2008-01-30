@@ -1350,12 +1350,13 @@ if ($FORM{set}) {
        ($Y, $M, $D)=split(/-/, $user->{EXPIRE}, 3);
       }
 
-    my $seltime = POSIX::mktime(0, 0, 0, $D, $M, ($Y - 1900));
+    my $seltime = POSIX::mktime(0, 0, 0, $D, $M-1, ($Y - 1900));
+
     if ($seltime > time()) {
       $shedule->add( {UID     => $LIST_PARAMS{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
-    	             D        => $D,
+    	           D        => $D,
                    M        => $M,
                    Y        => $Y,
                    DESCRIBE => "$message<br>
@@ -1364,8 +1365,9 @@ if ($FORM{set}) {
                  } );
      }	
     else {
- 	    $FORM{UID}=$LIST_PARAMS{UID};
-      $user_sharing->change({ %FORM });
+      $FORM{UID}=$LIST_PARAMS{UID};
+      $user_sharing->change({ UID   => $LIST_PARAMS{UID},
+                              TP_ID => $FORM{TP_ID} });
 
       if ($user_sharing->{errno}) {
         $html->message('err', $_ERROR, "[$user_sharing->{errno}] $err_strs{$user_sharing->{errno}}");
