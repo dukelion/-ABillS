@@ -108,21 +108,21 @@ sub payments {
 #**********************************************************
 #
 #**********************************************************
-sub smsproxy {
+sub smsproxy_payments {
 
 
  $FORM{smsid}="1174921221.133533";
  $FORM{num}="1171&";
  $FORM{operator}="MÒS_Moskva&";
  $FORM{user_id}="891612345XX&";
- $FORT{cost}="3.098&";
+ $FORM{cost}="3.098&";
  $FORM{msg}="xxx";
 
 
  my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{msg}" });
 if ($list) {
 	print "smsid: $FORM{smsid}\n";
-  print "status: reply\n"
+  print "status: reply\n";
   print "Content-Type:text/plain\n\n";
   print "$message";
  }

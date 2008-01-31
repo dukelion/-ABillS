@@ -2,10 +2,6 @@
 # Paysys System
 
 
-
-
-#use Paysys;
-
 eval { require Paysys; };
 if (! $@) {
    Paysys->import();
@@ -20,7 +16,9 @@ else {
 
 my $Paysys = Paysys->new($db, $admin, \%conf);
 my %PAY_SYSTEMS = (1 => "Webmoney",
-                   2 => "RUpay");
+                   2 => "RUpay",
+                   3 => "SMSProxy"
+                  );
 
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
@@ -38,14 +36,22 @@ sub paysys_payment {
 	elsif($FORM{PAYMENT_SYSTEM} == 2) {
      paysys_rupay();
 	 }
+	elsif($FORM{PAYMENT_SYSTEM} == 3) {
+     paysys_smsproxy();
+	 }
 	else {
 	  my %info = ();
+	  print "Content-Type: text/html\n\n";
+	  
+	  print "aaa";
 	  $info{OPERATION_ID}   = mk_unique_value(8, {  SYMBOLS => '0123456789' });
 	  my %PAY_SYSTEM_ACCOUNTS = (1 => 'PAYSYS_WEBMONEY_ACCOUNTS',
-	                             2 => 'PAYSYS_RUPAY_ID' );
+	                             2 => 'PAYSYS_RUPAY_ID',
+	                             3 => 'PAYSYS_SMSPROXY' );
 	  
 	  while(my($k, $v) = each %PAY_SYSTEMS) {
 	  	delete $PAY_SYSTEMS{$k} if (! $conf{$PAY_SYSTEM_ACCOUNTS{$k}});
+	  	print "$k, $v<br>";
 	   }
 	  
 	  
@@ -318,6 +324,44 @@ $html->tpl_show(_include('paysys_webmoney_add', 'Paysys'), \%info);
 
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_smsproxy {
+	
+	my %info = ();
+	
+if ($FORM{CODE}) {
+	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID}");
+ }
+#elsif ($FORM{TRUE}) {
+#   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OPERATION_ID}", UID => $LIST_PARAMS{UID} });
+#
+#   if ($Paysys->{TOTAL} > 0) {
+#	    $html->message('info', $_INFO, "$_TRANSACTION_PROCESSING $_SUM: $list->[0][3] ID: $FORM{OPERATION_ID}");
+#	   }
+#    else {
+#    	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
+#     }
+#
+#  return 0;
+# }
+#	
+#
+#$info{SUM_VAL_SEL}=$html->form_select('sum_val', 
+#                                    { 
+# 	                                      SELECTED  => $FORM{sum_val},
+# 	                                      SEL_ARRAY => [USD, EUR, UAH, RUR],
+# 	                                      NO_ID     => 1
+#                                     });
+#
+#	$info{OPERATION_ID}  = $FORM{OPERATION_ID};  
+#  $info{SUM}       = $FORM{SUM};
+#  $info{DESCRIBE}  = $FORM{DESCRIBE};
+#
+  $html->tpl_show(_include('paysys_smsproxy_add', 'Paysys'), \%info);
+}
 
 #**********************************************************
 #
