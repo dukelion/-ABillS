@@ -22,6 +22,7 @@ CREATE TABLE `ipn_log` (
   `interval_id` int(11) unsigned NOT NULL default '0',
   `sum` double(15,6) unsigned NOT NULL default '0.000000',
   `session_id` char(25) NOT NULL default '',
+  KEY uid_traffic_class (uid, traffic_class),
   KEY `uid` (`uid`)
 ) COMMENT='Ipn log traffic class';
 
