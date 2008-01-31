@@ -2308,8 +2308,12 @@ sub priority_list {
   }
 
  if ($attr->{FILE}) {
-    $attr->{FILE} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "file='$attr->{FILE}'";
+    if($attr->{FILE} =~ s/\*/\%/ig) {
+      push @WHERE_RULES, "file LIKE '$attr->{FILE}'";
+     }
+    else {
+      push @WHERE_RULES, "file='$attr->{FILE}'";
+     }
   }
 
  if ($attr->{SERVER}) {
