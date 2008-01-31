@@ -248,8 +248,13 @@ my $request_file = '';
 #  $request_path = $1;
 #  $request_file = $2;
 #}
-#$query  = "select server, priority, filesize from lenta.tx_t3labtvarchive_files 
+#$query  = "select server, priority, filesize from lenta.tx_t3labtvarchive_files
+ 
 # WHERE path='$request_path' and filename='$request_file';";
+
+if ($conf{SHARING_RMURL_PREFIX}) {
+  $URL =~ s/$conf{SHARING_RMURL_PREFIX}//;
+}
 
 $query  = "SELECT server, priority, size FROM sharing_priority WHERE file='$URL'";
 
