@@ -97,9 +97,11 @@ CREATE TABLE `dv_log_intervals` (
   `duration` int(11) unsigned NOT NULL default '0',
   `traffic_type` tinyint(4) unsigned NOT NULL default '0',
   `sum` double(14,6) unsigned NOT NULL default '0.000000',
-  `acct_session_id` varchar(25) NOT NULL default ''
-);
-
+  `acct_session_id` varchar(25) NOT NULL default '',
+  `added` timestamp(14) NOT NULL,
+  KEY `acct_session_id` (`acct_session_id`),
+  KEY `session_interval` (`acct_session_id`,`interval_id`)
+) ;
 
 
 CREATE TABLE `companies` (
