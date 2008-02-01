@@ -1943,13 +1943,6 @@ sub ipn_user_add {
  my $list = $Ipn->comps_list({ %LIST_PARAMS });
  my %allow_comps = ();
 	 
- foreach my $line (@$list) {
-   $allow_comp**********
-sub ipn_comps {
-
-  $Ipn->{ACTION}='add';
-	$Ipn->{ACTION_LNG}="$_ADD";
-
 if ($FORM{add}) {
 	$Ipn->comps_add({ %FORM });
    if($Ipn->{errno}) {
@@ -2135,9 +2128,6 @@ sub ipn_user_add {
  if ($Ipn->{TOTAL} > 0) {
 	 
  	 my $session_list=$sessions->online( { %LIST_PARAMS } );	
-
-
-
    foreach my $line (@$session_list) {
    	  if (defined($allow_comps{int2ip($line->[3])})) {
    	      delete $allow_comps{int2ip($line->[3])};
