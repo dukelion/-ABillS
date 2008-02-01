@@ -9,6 +9,7 @@ use Shedule;
 
 my $Sharing = Sharing->new($db, $admin, \%conf);
 my $Tariffs = Tariffs->new($db, \%conf, $admin);
+my $fees    = Fees->new($db, $admin, \%conf);
 
 my $sessions = '';
 
