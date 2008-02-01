@@ -440,11 +440,11 @@ sub paid_add {
   my $self = shift;
   my ($attr) = @_;
 
-  my %DATA = $self->get_data($attr); 
-  
-  my $status_date = ($DATA{STATUS} && $DATA{STATUS} > 0) ?  'now()' : '0000-00-00';
+  my %DATA = $self->get_data($attr, { default => { DESCRIBE => '',
+                                                   STATUS   => 0 
+  	                                             } }); 
 
-$self->{debug}=1;
+  my $status_date = ($DATA{STATUS} && $DATA{STATUS} > 0) ?  'now()' : '0000-00-00';
   $self->query($db, "INSERT INTO extfin_paids 
    (date, sum, comments, uid, aid, status, type_id, ext_id, status_date, maccount_id)
   VALUES ('$DATA{DATE}', '$DATA{SUM}', '$DATA{DESCRIBE}', '$DATA{UID}', '$admin->{AID}', 
