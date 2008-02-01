@@ -1944,6 +1944,82 @@ sub ipn_user_add {
  my %allow_comps = ();
 	 
  foreach my $line (@$list) {
+   $allow_comp**********
+sub ipn_comps {
+
+  $Ipn->{ACTION}='add';
+	$Ipn->{ACTION_LNG}="$_ADD";
+
+if ($FORM{add}) {
+	$Ipn->comps_add({ %FORM });
+   if($Ipn->{errno}) {
+      $html->message('err', $_ERROR, "[$Ipn->{errno}] $err_strs{$Ipn->{errno}}");
+   }
+  else {
+	  $html->message('info', $_INFO, "$_ADDED");
+   }
+}
+elsif ($FORM{change}) {
+	$Ipn->comps_change({ %FORM });
+
+  if($Ipn->{errno}) {
+      $html->message('err', $_ERROR, "[$Ipn->{errno}] $err_strs{$Ipn->{errno}}");
+   }
+  else {
+  	$html->message('info', $_INFO, "$_CHANGED");
+   }
+}
+elsif ($FORM{chg}) {
+	$Ipn->comps_info($FORM{chg});
+	$html->message('info', $_INFO, "$_CHANGING");
+	
+  $Ipn->{ACTION}='change';
+	$Ipn->{ACTION_LNG}=$_CHANGE;
+}
+elsif ($FORM{del}){
+	$Ipn->comps_del( $FORM{del} );
+	$html->message('info', $_INFO, "$_DELETED");
+}
+
+
+$html->tpl_show(_include('ipn_comps', 'Ipn'), $Ipn);	
+
+my $list = $Ipn->comps_list({ %LIST_PARAMS });
+my $table = $html->table( { width      => '100%',
+                            caption    => "Computers",
+                            border     => 1,
+                            title      => ["$_NUM", "$_NAME", "IP", "MAC", '-', '-' ],
+                            cols_align => ['right', 'left', 'right', 'right', 'center', 'center'],
+                            qs         => $pages_qs,
+                           } );
+
+foreach $line (@$list) {
+	$table->addrow(
+	 $line->[0],
+	 $line->[1],
+	 $line->[2],
+	 $line->[3],
+	 $html->button($_CHANGE, "index=$index&chg=$line->[4]"),
+	 $html->button($_DEL, "index=$index&$pages_qs&del=$line->[4]", { MESSAGE => "$_DEL '$line->[1]?" })
+	);
+}
+
+
+
+
+print $table->show();
+
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub ipn_user_add {
+ 
+ my $list = $Ipn->comps_list({ %LIST_PARAMS });
+ my %allow_comps = ();
+	 
+ foreach my $line (@$list) {
    $allow_comps{$line->[2]}="$line->[0]:$line->[1]";
   }
 
@@ -2499,7 +2575,7 @@ sub ipn_detail_rotate {
     $Ipn->ipn_log_rotate({ 
     	                        DETAIL => 1,
     	                        LOG    => 1,
-  	                          PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} 
+  	                          PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} || 30 
   	                      });
 
     $debug_output .= "Make IPN details rotate\n" if ($debug > 0);
