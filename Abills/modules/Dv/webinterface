@@ -397,11 +397,6 @@ elsif (defined($FORM{TP_ID})) {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }),
 	                                          HIDDEN  => { index => "$index" },
-	                                          SUBMIT  => { show  =>                SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS }),
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
- 	                                        }),
-	                                          HIDDEN  => { index => "$index" },
 	                                          SUBMIT  => { show  => "$_SHOW" } 
 	                        });
   
@@ -1084,7 +1079,42 @@ foreach my $line (@$list) {
         $html->button("D", "index=$index&UID=$line->[12]&SESSION_ID=$line->[11]", { TITLE => "$_DETAIL" } )
       . ")", 
      $delete);
-      PERIOD_FORM		=> 1,
+}
+
+print $table->show();
+}
+
+
+#**********************************************************
+# dv_use_all_monthes();
+#**********************************************************
+sub dv_use_allmonthes {
+
+  $FORM{allmonthes}=1;
+  dv_use();
+}
+
+
+#**********************************************************
+# dv_use();
+#**********************************************************
+sub dv_use {
+
+my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,  	
+                     '2:USERS'           => $_USERS,
+                     '3:SESSIONS'        => $_SESSIONS,
+                     '4:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
+                     '5:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT",
+                     '8:TRAFFIC_SUM'     => $_TRAFFIC,
+                     '9:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
+                     '6:DURATION'        => $_DURATION,
+                     '7:SUM'             => $_SUM);
+
+  reports({ DATE          => $FORM{DATE}, 
+  	        REPORT        => '',
+  	        EX_PARAMS     => { HOURS => "$_HOURS",
+  	        	                 USERS => "$_USERS" }, 
+  	        PERIOD_FORM		=> 1,
   	        FIELDS        => { %CAPTIONS_HASH },
   	        XML           => 1,
   	        EX_INPUTS     => [ $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
@@ -3041,4 +3071,5 @@ sub dv_registration  {
 
 
 1
+
 
