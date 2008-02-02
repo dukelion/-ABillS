@@ -13,7 +13,7 @@ use vars  qw(%RAD %conf $db %AUTH
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 1.1;
+my $VERSION = 1.2;
 my $config_file = $Bin . '/../libexec/config.pl';
 
 if(! -f $config_file ) {
@@ -72,6 +72,8 @@ if(! -f $config_file ) {
      	 close(FILE);
 
      	 print "Config file maked...\n";
+
+      if (! confirm_yn("Make ABillS mysql user account: ", "y")) {
          print "Check DB configuretion\n";
 
          my $read;
@@ -90,6 +92,7 @@ if(! -f $config_file ) {
          else {
            print $res;
           }
+        }
       }
     }
 

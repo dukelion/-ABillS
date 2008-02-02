@@ -397,6 +397,11 @@ elsif (defined($FORM{TP_ID})) {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }),
 	                                          HIDDEN  => { index => "$index" },
+	                                          SUBMIT  => { show  =>                SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        }),
+	                                          HIDDEN  => { index => "$index" },
 	                                          SUBMIT  => { show  => "$_SHOW" } 
 	                        });
   
@@ -563,7 +568,8 @@ elsif ($FORM{hangup}) {
   require "Abills/nas.pl";
   
   my $ret = hangup($nas, "$nas_port_id", "$user_name", { ACCT_SESION_ID    => "$acct_session_id",
-  	                                                     FRAMED_IP_ADDRESS => "$FORM{FRAMED_IP_ADDRESS}" });
+  	                                                     FRAMED_IP_ADDRESS => "$FORM{FRAMED_IP_ADDRESS}",
+  	                                                     UID               => $FORM{UID} });
 
   if ($ret == 0) {
     my $table = $html->table( { width   => '100%',
@@ -848,7 +854,7 @@ foreach my $nas_row (@$nas_list) {
 
     if ($line->[$#ACTIVE_FIELDS + 9] > 3)  { $table->{rowcolor}='#FF0000';    }
     my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+".$line->[$#ACTIVE_FIELDS + 12]."+". $line->[($#ACTIVE_FIELDS + 13)], { TITLE => 'Zap' }) . ")";
-    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[$#ACTIVE_FIELDS + 13]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->[$#ACTIVE_FIELDS+2]&hangup=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]+$line->[$#ACTIVE_FIELDS + 11]", { TITLE => 'Hangup' }). ")";
+    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[$#ACTIVE_FIELDS + 13]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->[$#ACTIVE_FIELDS+2]&hangup=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]+$line->[$#ACTIVE_FIELDS + 11]&UID=$line->[$#ACTIVE_FIELDS+3]", { TITLE => 'Hangup' }). ")";
 
 
     $table->addrow(@rows,
@@ -1078,42 +1084,7 @@ foreach my $line (@$list) {
         $html->button("D", "index=$index&UID=$line->[12]&SESSION_ID=$line->[11]", { TITLE => "$_DETAIL" } )
       . ")", 
      $delete);
-}
-
-print $table->show();
-}
-
-
-#**********************************************************
-# dv_use_all_monthes();
-#**********************************************************
-sub dv_use_allmonthes {
-
-  $FORM{allmonthes}=1;
-  dv_use();
-}
-
-
-#**********************************************************
-# dv_use();
-#**********************************************************
-sub dv_use {
-
-my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,  	
-                     '2:USERS'           => $_USERS,
-                     '3:SESSIONS'        => $_SESSIONS,
-                     '4:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
-                     '5:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT",
-                     '8:TRAFFIC_SUM'     => $_TRAFFIC,
-                     '9:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
-                     '6:DURATION'        => $_DURATION,
-                     '7:SUM'             => $_SUM);
-
-  reports({ DATE          => $FORM{DATE}, 
-  	        REPORT        => '',
-  	        EX_PARAMS     => { HOURS => "$_HOURS",
-  	        	                 USERS => "$_USERS" }, 
-  	        PERIOD_FORM		=> 1,
+      PERIOD_FORM		=> 1,
   	        FIELDS        => { %CAPTIONS_HASH },
   	        XML           => 1,
   	        EX_INPUTS     => [ $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
