@@ -426,7 +426,7 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
 elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
   #$traf_tarif 
   my $EX_PARAMS = $self->ex_traffic_params( { 
-  	                                        traf_limit => $traf_limit, 
+  	                                    traf_limit => $traf_limit, 
                                             deposit    => $self->{DEPOSIT},
                                             MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
 
