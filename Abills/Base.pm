@@ -517,18 +517,20 @@ for ($i = $first_length; $i >=1; $i--) {
     
   }
 
+  $ret .= ' ';
   if ($tmp == 1) {
-    $ret .= $ones[$i - 1] . " ";
+    $ret .= ($ones[$i - 1])? $ones[$i - 1]  : $money_unit_names->[0] ; 
   }
   elsif ($tmp > 1 && $tmp < 5) {
-    $ret .= $twos[$i - 1] . " ";
+    $ret .= ($twos[$i - 1]) ? $twos[$i - 1] : $money_unit_names->[0];
   }
   elsif ($tmp > 4) {
-    $ret .= $fifth[$i - 1] . " ";
+    $ret .= ($fifth[$i - 1]) ? $fifth[$i - 1] : $money_unit_names->[0] ;
   }
   else {
-    $ret .= $fifth[0] . " ";
+    $ret .= ($fifth[0]) ? $fifth[0] : $money_unit_names->[0];
   }
+  $ret .= ' ';
 }
 
 

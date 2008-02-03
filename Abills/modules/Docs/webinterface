@@ -373,7 +373,7 @@ sub docs_print {
      TEN              => \@ten,
      TENS             => \@tens,
      HUNDRED          => \@hundred,
-     MONEY_UNIT_NAMES => \@money_unit_names
+     MONEY_UNIT_NAMES => $conf{MONEY_UNIT_NAMES} || \@money_unit_names
   	  });
 	
 	my $template = $type;
