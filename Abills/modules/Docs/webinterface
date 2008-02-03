@@ -359,7 +359,7 @@ sub docs_print {
 	
 	if (defined(@MONTHES_LIT) && $ATTR->{DATE}) {
     my ($y, $m, $d)=split(/-/, $ATTR->{DATE}, 3);
-    $ATTR->{FROM_DATE_LIT} = "$d ". @MONTHES_LIT[int($m)-1] ." $y $_YEAR";
+    $ATTR->{FROM_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
    }
 
   

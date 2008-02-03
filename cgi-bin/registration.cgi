@@ -108,26 +108,35 @@ foreach my $m (@REGISTRATION) {
 sub password_recovery {
   
   if ($FORM{SEND}) {
+    
+    if (($FORM{EMAIL} && $FORM{EMAIL} =~ m/\*/) || ($FORM{LOGIN} && $FORM{LOGIN} =~ m/\*/)) {
+    	$html->message('err', $_ERROR, "$ERR_WRONG_DATA");
+      return 0;
+     }
+
     my $list = $users->list({ %FORM });
 	
   	if ($users->{TOTAL} > 0) {
   		my @u = @$list;
 	    my $message = '';
 	    my $email = $FORM{EMAIL} || '';
+      my $uid = $line->[5];
       if ($FORM{LOGIN}) {
       	$email = $u[0][7];
        }
+      
+      if ($FORM{EMAIL}) {
+        $uid = $line->[6];
+       }
+     
 
 	    foreach my $line (@u) {
-	       $users->info($line->[5], { SHOW_PASSWORD => 1 });
+	       $users->info($line->[($FORM{EMAIL}) ? 6 : 5 ], { SHOW_PASSWORD => 1 });
     	   $message .= "$_LOGIN:   $users->{LOGIN}\n".
 	                   "$_PASSWD: $users->{PASSWORD}\n".
 	                   "================================================\n";
-
-#	       print $message."\n\n";            
-
 	     }
-	   
+
 	   $message = $html->tpl_show(templates('passwd_recovery'), 
 	                                                    { MESSAGE => $message }, 
 	                                                    { OUTPUT2RETURN => 1 });
@@ -144,7 +153,7 @@ sub password_recovery {
 		  return 0;
 	   }
 	  else {
-		  $html->message('err', $_ERROR, "$_NOT_FOUND");
+		  $html->message('err', $_ERROR, "$_NOT_EXIST");
 	   }
 	}
 	

@@ -23,6 +23,7 @@ BEGIN {
 }
 
 
+
 require "config.pl";
 use Abills::Base;
 use Abills::SQL;
@@ -110,21 +111,32 @@ sub payments {
 #**********************************************************
 sub smsproxy_payments {
 
+# $FORM{smsid}="1174921221.133533";
+# $FORM{num}="1171&";
+# $FORM{operator}="MÒS_Moskva&";
+# $FORM{user_id}="891612345XX&";
+# $FORM{cost}="3.098&";
+# $FORM{msg}="xxx";
 
- $FORM{smsid}="1174921221.133533";
- $FORM{num}="1171&";
- $FORM{operator}="MÒS_Moskva&";
- $FORM{user_id}="891612345XX&";
- $FORM{cost}="3.098&";
- $FORM{msg}="xxx";
+ #Info section  
+ $Paysys->add({ SYSTEM_ID      => 3, 
+ 	              DATETIME       => "$DATE $TIME", 
+ 	              SUM            => "$FORM{cost}",
+  	            UID            => "", 
+                IP             => "",
+                TRANSACTION_ID => "",
+                INFO           => "ID: $FORM{smsid}, NUM: $FORM{num}, OPERATOR: $FORM{operator}, USER_ID: $FORM{user_id}, MSG: $FORM{msg}, STATUS:"
+               });
+
+ my $code = mk_unique_value(8);
 
 
- my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{msg}" });
 if ($list) {
 	print "smsid: $FORM{smsid}\n";
   print "status: reply\n";
   print "Content-Type:text/plain\n\n";
-  print "$message";
+  print $conf{PAYSYS_SMSPROXY_MSG} if ($conf{PAYSYS_SMSPROXY_MSG});
+  print " CODE: $code";
  }
 else {
 	
