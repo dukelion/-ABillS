@@ -239,7 +239,7 @@ else {
                            cols_align => ['right', 'right','right','right', 'right', 'left', 
                               'right', 'right', 'left', 'center:noprint', 'center:noprint'],
                            qs         => $pages_qs,
-                           pages      => $Cards->{SERIA}
+                           pages      => $Cards->{SERIAL}
                                });
 
 
