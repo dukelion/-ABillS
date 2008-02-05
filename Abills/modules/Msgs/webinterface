@@ -142,11 +142,14 @@ sub msgs_admin_add {
 # 
 
     my $message='';
-    if  (! $FORM{INNER_MSG} && ( $FORM{GID} || ($FORM{GID} == 0 && $FORM{UID} == 0 ) ) ) {
+
+    if  (! $FORM{INNER_MSG} && (defined($FORM{GID}) || ($FORM{GID} == 0 && $FORM{UID} == 0 ) ) ) {
+    	 print "Total send";
        my $list = $users->list({ GID => $FORM{GID}, PAGE_ROWS => 100000 });
        foreach my $line (@$list) {
           $FORM{UID}=$line->[5+$users->{SEARCH_FIELDS_COUNT}];
           $Msgs->message_add({ %FORM, 
+          	                   ADMIN_READ => (! $FORM{INNER_MSG}) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
           	                   IP => $admin->{SESSION_IP} 
           	                 });
         }
