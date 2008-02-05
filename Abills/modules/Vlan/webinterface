@@ -340,9 +340,11 @@ foreach my $line (@$list) {
     $INFO{VLAN_ID}    = $line->[4];
     $INFO{VLAN_IF_IP} = $line->[11];
     $INFO{DHCP}       = $line->[8];
-    $INFO{VLAN_IF_NETMASK} = $line->[10];
     $INFO{PPPOE}      = $line->[9];
    
+    if (($INFO{VLAN_IF_NETMASK} && $line->[10] ne '255.255.255.255') || ! $INFO{VLAN_IF_NETMASK}) {
+      $INFO{VLAN_IF_NETMASK} = $line->[10];
+     }
     
 #    if ($INFO{VLAN_IF_IP} eq '0.0.0.0') {
 #    	$debug_output .= "!!! No IP for user '$line->[0]' Vlan [$INFO{VLAN_ID}] ";
