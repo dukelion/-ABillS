@@ -119,10 +119,10 @@ if ($ARGV[0] eq 'mpd') {
 }
 #pppd
 elsif ($ARGV[0] eq 'ipn') {
-  $ACTION   = $ARGV[1];
-  $INTERFACE= $ARGV[2];
-  $USER     = $ARGV[3];
-  $HISADDR  = $ARGV[4];
+  $ACTION    = $ARGV[1];
+  $INTERFACE = $ARGV[2];
+  $USER      = $ARGV[3];
+  $HISADDR   = $ARGV[4];
   $CLIENT_IP = $HISADDR;	
 	my ($n1, $n2, $n3, $n4) = split(/\./, $HISADDR, 4);
   $inum  = $n4;
@@ -139,14 +139,17 @@ elsif($ARGV[0] eq 'pppd' || $ARGV[0] eq 'mikrotik') {
  }
 # FreeBSD PPP
 else {
-  $ACTION=$ARGV[0];
-  $INTERFACE=$ARGV[1];
-  $USER=$ARGV[2];
-  $HISADDR=$ARGV[3];
-  $inum = $INTERFACE;
-  $inum =~ s/tun//;
+  $ACTION    = $ARGV[0];
+  $INTERFACE = $ARGV[1];
+  $USER      = $ARGV[2];
+  $HISADDR   = $ARGV[3];
+  $inum      = $INTERFACE;
+  $inum      =~ s/tun//;
 } 
 
+
+my $via_if_in  = ($INTERFACE ne '-') ? "via $INTERFACE in" : '';
+my $via_if_out = ($INTERFACE ne '-') ? "via $INTERFACE out" : '';
 
 require Admins;
 Admins->import();
@@ -364,7 +367,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
     	  #In;
         if ($traf_type == 0) {
           # In
-          push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to any via $INTERFACE in";
+          push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to any $via_if_in";
           push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue 10Kbytes";
          }
         else {
@@ -378,10 +381,10 @@ print "\nEND: =====================================\n" if ($debug > 0);
                	  push @FW_ACTIONS, "$IPFW table $table_number add $line";
                 }
               }
-            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to table\\($table_number\\) via $INTERFACE in";
+            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to table\\($table_number\\) $via_if_in";
            }
           else {
-            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to $nets{$traf_type} via $INTERFACE in";
+            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to $nets{$traf_type} $via_if_in";
            }
             push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue 10Kbytes";
          }
@@ -392,7 +395,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
       
       if ($speed_out > 0) {
         if ($traf_type == 0) {
-          push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to $CLIENT_IP via $INTERFACE out";
+          push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to $CLIENT_IP $via_if_out";
           push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue 10Kbytes";
          }
         else {
@@ -406,10 +409,10 @@ print "\nEND: =====================================\n" if ($debug > 0);
                	  push @FW_ACTIONS, "$IPFW table $table_number add $line";
                 }
               }
-            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from table\\($table_number\\) to $CLIENT_IP via $INTERFACE out";
+            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from table\\($table_number\\) to $CLIENT_IP $via_if_out";
            }
           else {
-            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $nets{$traf_type} to $CLIENT_IP via $INTERFACE out";
+            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $nets{$traf_type} to $CLIENT_IP $via_if_out";
            }
 
 
