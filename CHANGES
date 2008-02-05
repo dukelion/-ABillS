@@ -1,4 +1,15 @@
 =====0.40=====
+ * 02.02.2008
+  ALTER TABLE paysys_log add COLUMN `code` blob NOT NULL;
+
+ * 27.01.2008
+
+  ALTER TABLE ipn_log add key uid_traffic_class (uid, traffic_class);
+  
+  ALTER TABLE dv_log_intervals add column `added` timestamp(14) NOT NULL;
+  ALTER TABLE dv_log_intervals add  KEY `acct_session_id` (`acct_session_id`);
+  ALTER TABLE dv_log_intervals add KEY `session_interval` (`acct_session_id`,`interval_id`);
+
   * 27.01.2008
 Дополнения в [[abills:docs:msgs:ru|Msgs]]
   * Возможность прикреплять файлы к сообщениям.
