@@ -392,7 +392,7 @@ foreach my $line (@$list) {
     	  push @client_interfaces_unused, "vlan$INFO{VLAN_ID}";
        }
 
-      $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Created\n" if ($debug > 0);
+      $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP}/$INFO{VLAN_IF_NETMASK} Created\n" if ($debug > 0);
      }
     elsif ($vlans_info->{$INFO{VLAN_ID}} && $vlans_info->{$INFO{VLAN_ID}} ne $INFO{VLAN_IF_IP}) {
       #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} destroy";
