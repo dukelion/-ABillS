@@ -768,7 +768,7 @@ if($FORM{ZAPED}) {
 	$cure = 'Zap';
  } 
 else {
- 	$sessions->online( { ZAPED => 1 } );	
+ 	$sessions->online( { ZAPED => 1, COUNT => 1 } );	
  	$form_link = $html->button("$_ZAPED", "index=$index&ZAPED=yes"). " ($sessions->{TOTAL})";
  	$cure='Online';
 }
@@ -804,7 +804,7 @@ foreach my $nas_row (@$nas_list) {
   my $total = $#{@$l} + 1;  
   $table->{rowcolor}=$_COLORS[0];
   $table->{extra}="colspan='". ($#CAPTION +1 ) . "' class='small'";
-  $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[3]:$_TOTAL: $total" );
+  $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]) .":$nas_row->[3]:$_TOTAL: $total" );
   
   
 
