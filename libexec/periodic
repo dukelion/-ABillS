@@ -33,7 +33,7 @@ require Abills::HTML;
 Abills::HTML->import();
 $html = Abills::HTML->new({ CONF => \%conf });
 
-my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
 my $db = $sql->{db};
 my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
