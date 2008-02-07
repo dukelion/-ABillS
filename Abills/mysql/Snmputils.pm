@@ -188,7 +188,22 @@ sub snmputils_binding_list {
    push @WHERE_RULES, "b.binding LIKE '$attr->{BINDING}'";
   }
  elsif($attr->{IDS}) {
-   push @WHERE_RULES, "b.binding IN ($attr->{IDS})";
+   #push @WHERE_RULES, "b.binding IN ($attr->{IDS})";
+   
+   $self->query($db,   "SELECT u.id, b.binding,  b.params, b.comments, b.id, 
+            b.uid,
+            if(u.company_id > 0, cb.deposit+u.credit, ub.deposit+u.credit), 
+            from (snmputils_binding b)
+            INNER JOIN users u ON (b.uid = u.uid)
+            LEFT JOIN bills ub ON (u.bill_id = ub.id)
+            LEFT JOIN companies company ON  (u.company_id=company.id)
+            LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+            WHERE b.binding IN ($attr->{IDS})
+            ORDER BY $SORT $DESC
+            LIMIT $PG, $PAGE_ROWS;");
+      
+    my $list = $self->{list};
+    return $list;
   }
  
 
@@ -208,10 +223,10 @@ sub snmputils_binding_list {
   }
 
 
- 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db,   "SELECT u.id, b.binding,  b.params, b.comments, b.id, b.uid
+
+ $self->query($db,   "SELECT u.id, b.binding,  b.params, b.comments, b.id, b.uid, 
             from (snmputils_binding b)
             LEFT JOIN users u ON (u.uid = b.uid)
             $WHERE
