@@ -192,7 +192,7 @@ sub snmputils_binding_list {
    
    $self->query($db,   "SELECT u.id, b.binding,  b.params, b.comments, b.id, 
             b.uid,
-            if(u.company_id > 0, cb.deposit+u.credit, ub.deposit+u.credit), 
+            if(u.company_id > 0, cb.deposit+u.credit, ub.deposit+u.credit)
             from (snmputils_binding b)
             INNER JOIN users u ON (b.uid = u.uid)
             LEFT JOIN bills ub ON (u.bill_id = ub.id)
