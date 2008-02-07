@@ -103,6 +103,21 @@ sub online {
 	my $self = shift;
 	my ($attr) = @_;
 
+  my $WHERE = '';
+
+  if ($attr->{COUNT}) {
+  	if ($attr->{ZAPED}) {
+  		$WHERE = 'WHERE c.status=2';
+  	 }
+    else {
+  		$WHERE = 'WHERE c.status=1 or c.status>=3';
+     }
+
+  	$self->query($db, "SELECT  count(*) FROM dv_calls c $WHERE;");
+    $self->{TOTAL} = $self->{list}->[0][0];
+
+  	return $self;
+   }
 
   my @FIELDS_ALL = (
    'c.user_name',
@@ -166,7 +181,7 @@ sub online {
   } 
  
  if (defined($attr->{USER_NAME})) {
- 	 push @WHERE_RULES, "c.user_name='$attr->{USER_NAME}'";
+ 	 push @WHERE_RULES, "c.user_name LIKE '$attr->{USER_NAME}'";
   }
 
  # Show groups
@@ -187,10 +202,11 @@ sub online {
   }
  
  if ($attr->{FILTER}) {
- 	 push @WHERE_RULES, "$FIELDS_ALL[$attr->{FILTER_FIELD}]='$attr->{FILTER}'";
+ 	 push @WHERE_RULES, ($attr->{FILTER} =~ s/\*/\%/g) ? "$FIELDS_ALL[$attr->{FILTER_FIELD}] LIKE '$attr->{FILTER}'" : "$FIELDS_ALL[$attr->{FILTER_FIELD}]='$attr->{FILTER}'";
   }
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
 
  $self->query($db, "SELECT  $fields
  
@@ -241,8 +257,6 @@ sub online {
  my $nas_id_field = $#RES_FIELDS+10;
  
  foreach my $line (@$list) {
-
-    
  	  $dub_logins{$line->[0]}++;
  	  $dub_ports{$line->[$nas_id_field]}{$line->[$port_id]}++;
     
@@ -252,7 +266,6 @@ sub online {
      }
 
     push( @{ $nas_sorted{"$line->[$nas_id_field]"} }, [ @fields ]);
-
   }
  
  
