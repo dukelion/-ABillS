@@ -226,7 +226,7 @@ sub snmputils_binding_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
- $self->query($db,   "SELECT u.id, b.binding,  b.params, b.comments, b.id, b.uid, 
+ $self->query($db,   "SELECT u.id, b.binding,  b.params, b.comments, b.id, b.uid 
             from (snmputils_binding b)
             LEFT JOIN users u ON (u.uid = b.uid)
             $WHERE
