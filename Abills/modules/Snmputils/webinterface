@@ -1275,7 +1275,7 @@ if ($debug > 4) {
   print "$sort / $SORT_COLUMNS{$sort} /";
   foreach my $line (sort @entries) {
     my ($value, $ip) = split(/ /, $line, 2);
-    print "'$value', '$ip'<br>";
+    print "'$value', '$ip' $ACTIVE_MAC->{LOGIN}{"$ip"} <br>";
     my @arr = (
              $table->td($ACTIVE_MAC->{LOGIN}{"$ip"}),
              $table->td($ACTIVE_MAC->{MULTIPORTS}{"$ip"},  { colspan => 2 } ),
@@ -1292,7 +1292,7 @@ if ($debug > 4) {
 }
 
 
-  $table->addtd(['', '']);
+  $table->addtd(('', ''));
 
   #while(my($ip, $ports) = each %{ $ACTIVE_MAC->{MULTIPORTS} } ) {
   foreach my $ip (sort keys %{ $ACTIVE_MAC->{MULTIPORTS} } ) {
