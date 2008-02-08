@@ -1284,8 +1284,9 @@ if ($debug > 4) {
              $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&index=$index&PORT=$port&state=". (($state == 2) ? 3 : 2) )),
              $table->td($html->button($_DEL, "index=$index&del=$ip&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
       );
+    $table->addtd(@arr);
    }
-  $table->addtd(@arr);
+  
 }
 
 
