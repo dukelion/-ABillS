@@ -79,7 +79,7 @@ my $error_alive_count = $conf{ERROR_ALIVE_COUNT} || 5;
 
 
 if ($admin->{errno}) {
-  print "AID: $conf{SYSTEM_ADMIN_ID} [$admin->{errno}] $admin->{errstr}\n"
+  print "AID: $conf{SYSTEM_ADMIN_ID} [$admin->{errno}] $admin->{errstr}\n";
   exit 0;
 }
 
