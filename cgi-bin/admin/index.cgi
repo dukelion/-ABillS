@@ -2189,10 +2189,15 @@ elsif ($FORM{add}) {
    }
 }
 elsif($FORM{del}) {
-  $admin_form->del($FORM{del});
-  if (! $admin_form->{errno}) {
-     $html->message('info', $_DELETE, "$_DELETED");	
-   }
+	if ($FORM{del} == $conf{SYSTEM_ADMIN_ID}) {
+		$html->message('err', $_ERROR, "Can't delete system admin. Check ". '$conf{SYSTEM_ADMIN_ID}=1;');	
+	 }
+  else { 
+  	$admin_form->del($FORM{del});
+    if (! $admin_form->{errno}) {
+      $html->message('info', $_DELETE, "$_DELETED");	
+    }
+   } 
 }
 
 
