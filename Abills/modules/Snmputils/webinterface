@@ -1186,7 +1186,9 @@ sub snmputils_dlink_ip_mac_port{
   
   print $table->show();
 
-  my $pages_qs = "&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1";
+  my $pages_qs = "&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&";
+  $pages_qs .= ($debug) ? "DEBUG=$debug" : '';
+
 #Port section  
   $table = $html->table({ width       => '100%',
                           caption     => "IP-MAC-Port Binding",
