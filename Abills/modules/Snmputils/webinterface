@@ -1272,10 +1272,10 @@ sub snmputils_dlink_ip_mac_port{
 
 
 if ($debug > 4) {
-  print "$sort / $SORT_COLUMNS{$sort} /";
+  print "$sort / $SORT_COLUMNS{$sort} /<br>";
   foreach my $line (sort @entries) {
     my ($value, $ip) = split(/ /, $line, 2);
-    print "'$value', '$ip' ". $ACTIVE_MAC->{LOGIN}{"$ip"}." <br>";
+    print "value: '$value', IP: '$ip' ". $ACTIVE_MAC->{LOGIN}{"$ip"}." <br>";
     my @arr = (
              $table->td($ACTIVE_MAC->{LOGIN}{"$ip"}),
              $table->td($ACTIVE_MAC->{MULTIPORTS}{"$ip"},  { colspan => 2 } ),
