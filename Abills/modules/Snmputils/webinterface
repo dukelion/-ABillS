@@ -1285,7 +1285,11 @@ if ($debug > 4) {
              $table->td($html->button($_DEL, "index=$index&del=$ip&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
       );
    }
+  $table->addtd(@arr);
 }
+
+
+  $table->addtd(['', '']);
 
   #while(my($ip, $ports) = each %{ $ACTIVE_MAC->{MULTIPORTS} } ) {
   foreach my $ip (sort keys %{ $ACTIVE_MAC->{MULTIPORTS} } ) {
@@ -1389,7 +1393,7 @@ sub snmputils_dlink_pb_monitor {
   my $table = $html->table({ width       => '100%',
                              caption     => "$_DISABLED",
                              border      => 1,
-                             title       => ["$_USER", "$_DEPOSIT + $_CREDIT", "ID", "$_PORT", "MAC", "VID", "-"],
+                             title       => ["$_USER", "$_DEPOSIT + $_CREDIT", "ID", "$_PORT", "MAC", "VID", '-', '-'],
                              cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                            });
 
