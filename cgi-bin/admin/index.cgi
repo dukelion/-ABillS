@@ -2703,7 +2703,7 @@ my $table = $html->table( { width      => '100%',
                             border     => 1,
                             title      => ["NAS", "$_BEGIN", "$_END", "$_COUNT", '-'],
                             cols_align => ['left', 'right', 'right', 'right', 'center'],
-                            qs         => $pages_qs              
+                            qs         => $pages_qs
                            });
 
 

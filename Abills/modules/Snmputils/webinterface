@@ -1078,7 +1078,7 @@ sub snmputils_dlink_ip_mac_port{
   my $debug = $FORM{DEBUG} || 0;
   my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
   my $message = '';
-  
+
   if ($FORM{TEST}) {
     my $info = snmputils_dlink_pb({ DEBUG => $FORM{DEBUG} });
     $html->pre($info);
@@ -1186,13 +1186,14 @@ sub snmputils_dlink_ip_mac_port{
   
   print $table->show();
 
-
+  my $pages_qs = "index=$index&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1";
 #Port section  
   $table = $html->table({ width       => '100%',
                           caption     => "IP-MAC-Port Binding",
                           border      => 1,
                           title       => ["$_USER", "$_PORT", "$_STATE", "IP", "MAC", "$_STATUS", "_MODE", "-", "-"],
                           cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+                          qs          => $pages_qs              
                       });
 
 
@@ -1210,7 +1211,7 @@ sub snmputils_dlink_ip_mac_port{
   foreach my $line (@{ $SWITCH_INFO->{PORT_STATE} }) {
   	my ($port, $state) = split(/:/, $line, 2);
     push @ports, $port;
-  	
+
     $table->addtd(
              $table->td('-'),
              $table->td($port,    { rowspan => 1 } ),
@@ -1260,6 +1261,7 @@ sub snmputils_dlink_ip_mac_port{
  
   my @entries = ();
   my $sort = $FORM{sort} || 1;
+  
   my %SORT_COLUMNS = ( 1 => 'LOGIN',
                        2 => 'MULTIPORTS',
                        3 => 'IP',
