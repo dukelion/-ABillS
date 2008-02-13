@@ -401,8 +401,7 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
        
   #Local ip tables
   if (defined($EX_PARAMS->{nets})) {
-    my $DV_EXPPP_NETFILES = (defined($CONF->{DV_EXPPP_NETFILES})) ? $CONF->{DV_EXPPP_NETFILES} : '';
-    $RAD_PAIRS->{'Exppp-Local-IP-Table'} = "\"$DV_EXPPP_NETFILES$self->{TT_INTERVAL}.nets\"";
+    $RAD_PAIRS->{'Exppp-Local-IP-Table'} = (defined($CONF->{DV_EXPPP_NETFILES})) ? "\"$CONF->{DV_EXPPP_NETFILES}$self->{TT_INTERVAL}.nets\"" : "\"$self->{TT_INTERVAL}.nets\"";
    }
 
 #Radius Shaper for exppp
@@ -426,7 +425,7 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
 elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
   #$traf_tarif 
   my $EX_PARAMS = $self->ex_traffic_params( { 
-  	                                    traf_limit => $traf_limit, 
+  	                                        traf_limit => $traf_limit, 
                                             deposit    => $self->{DEPOSIT},
                                             MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
 
@@ -460,13 +459,13 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd4' && $RAD_PAIRS->{'Session-Timeout'} > 604800) {
  }
 elsif ($NAS->{NAS_TYPE} eq 'mpd') {
   my $EX_PARAMS = $self->ex_traffic_params({ 
-  	                                        traf_limit => $traf_limit, 
-                                            deposit => $self->{DEPOSIT},
+  	                                        traf_limit          => $traf_limit, 
+                                            deposit             => $self->{DEPOSIT},
                                             MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
-    $RAD_PAIRS->{'Exppp-Traffic-Limit'} = $EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
+    $RAD_PAIRS->{'Exppp-Traffic-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE});
    }
   # MPD have some problem with long time out value max timeout set to 7 days
   if ($RAD_PAIRS->{'Session-Timeout'} > 604800)    {
@@ -497,7 +496,7 @@ elsif ($NAS->{NAS_TYPE} eq 'pppd' or ($NAS->{NAS_TYPE} eq 'lepppd')) {
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
-    $RAD_PAIRS->{'Session-Octets-Limit'} = $EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
+    $RAD_PAIRS->{'Session-Octets-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE});
     $RAD_PAIRS->{'Octets-Direction'} = $self->{OCTETS_DIRECTION};
    }
 
@@ -539,7 +538,6 @@ if( defined($CONF->{MAC_AUTO_ASSIGN}) &&
        $self->{CID} eq '' && 
        (defined($RAD->{CALLING_STATION_ID}) && $RAD->{CALLING_STATION_ID} =~ /:/ && $RAD->{CALLING_STATION_ID} !~ /\// )
       ) {
-#  print "ADD MAC___\n";
   $self->query($db, "UPDATE dv_main SET cid='$RAD->{CALLING_STATION_ID}'
      WHERE uid='$self->{UID}';", 'do');
  }
@@ -550,7 +548,7 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
      WHERE uid='$self->{UID}';", 'do');
  }
 
-
+#chack TP Radius Pairs
   if ($self->{TP_RAD_PAIRS}) {
     my @p = split(/,/, $self->{TP_RAD_PAIRS});
     foreach my $line (@p) {
