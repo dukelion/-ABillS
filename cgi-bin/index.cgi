@@ -3,6 +3,8 @@
 #
 #
 
+
+
 use vars qw($begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST $UID $user $admin 
 $sid
 
@@ -149,62 +151,11 @@ if ($uid > 0) {
     print $html->tpl_show(templates('users_start'), \%OUTPUT);
  	  exit;
    }
-
-  
   
   push @m, "17:0:$_PASSWD:form_passwd:::" if($conf{user_chg_passwd});
 
-  foreach my $line (@m) {
-	  my ($ID, $PARENT, $NAME, $FUNTION_NAME, $SHOW_SUBMENU, $OP)=split(/:/, $line);
-    $menu_items{$ID}{$PARENT}=$NAME;
-    $menu_names{$ID} = $NAME;
-    $functions{$ID}  = $FUNTION_NAME if ($FUNTION_NAME  ne '');
-    $maxnumber=$ID if ($maxnumber < $ID);
-   }
+  mk_menu();
 
-  foreach my $m (@MODULES) {
-  	require "Abills/modules/$m/config";
-    my %module_fl=();
-
-    #next if (keys %USER_FUNCTION_LIST < 1);
-    my @sordet_module_menu = sort keys %USER_FUNCTION_LIST;
-
-    foreach my $line (@sordet_module_menu) {
-      $maxnumber++;
-      my($ID, $SUB, $NAME, $FUNTION_NAME, $ARGS)=split(/:/, $line, 5);
-      $ID = int($ID);
-      my $v = $USER_FUNCTION_LIST{$line};
-
-      $module_fl{"$ID"}=$maxnumber;
-      #$fl .= "$FUNTION_NAME $maxnumber\n";
-      
-      if ($index < 1 && $ARGS eq 'defaultindex') {
-        $default_index=$maxnumber;
-        $index=$default_index;
-       }
-      elsif ($ARGS ne '' && $ARGS ne 'defaultindex') {
-        $menu_args{$maxnumber}=$ARGS;
-       }
-      #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB} PARENT: $v<br/>";
-     
-      if($SUB > 0) {
-        $menu_items{$maxnumber}{$module_fl{$SUB}}=$NAME;
-       } 
-      else {
-        $menu_items{$maxnumber}{$v}=$NAME;
-        if ($SUB == -1) {
-          $uf_menus{$maxnumber}=$NAME;
-         }
-      }
-
-      $menu_names{$maxnumber} = $NAME;
-      $functions{$maxnumber}  = $FUNTION_NAME if ($FUNTION_NAME  ne '');
-      $module{$maxnumber}     = $m;
-    }
-
-    %USER_FUNCTION_LIST = ();
-  }
-  
   $html->{SID}=$sid;
   (undef, $OUTPUT{MENU}) = $html->menu(\%menu_items, \%menu_args, undef, 
      { EX_ARGS         => "&sid=$sid", 
@@ -264,6 +215,8 @@ if ($uid > 0) {
    }
 
 
+
+
   $OUTPUT{BODY}=$html->{OUTPUT};
   $html->{OUTPUT}='';
   if ($conf{AMON_UPDATE}  && $ENV{HTTP_USER_AGENT} =~ /AMon \[(\S+)\]/) {
@@ -292,8 +245,71 @@ $html->test() if ($conf{debugmods} =~ /LOG_DEBUG/);
 
 
 #==========================================================
+#
+#==========================================================
+sub mk_menu {
+ 
+  $maxnumber  = 0;
+  
+  foreach my $line (@m) {
+	  my ($ID, $PARENT, $NAME, $FUNTION_NAME, $SHOW_SUBMENU, $OP)=split(/:/, $line);
+    $menu_items{$ID}{$PARENT}=$NAME;
+    $menu_names{$ID} = $NAME;
+    $functions{$ID}  = $FUNTION_NAME if ($FUNTION_NAME  ne '');
+    $maxnumber=$ID if ($maxnumber < $ID);
+   }
 
+  foreach my $m (@MODULES) {
 
+    if(my $return = do "Abills/modules/$m/config") {
+     }
+#                 warn "couldn't parse Abills/modules/$m/config: $@" if $@;
+#                 warn "couldn't do Abills/modules/$m/config: $!"    unless defined $return;
+#                 warn "couldn't run "."Abills/modules/$m/config"       unless $return;
+#       }
+
+#  	require "Abills/modules/$m/config";
+    my %module_fl=();
+
+    next if (keys %USER_FUNCTION_LIST < 1);
+    my @sordet_module_menu = sort keys %USER_FUNCTION_LIST;
+
+    foreach my $line (@sordet_module_menu) {
+      $maxnumber++;
+      my($ID, $SUB, $NAME, $FUNTION_NAME, $ARGS)=split(/:/, $line, 5);
+      $ID = int($ID);
+      my $v = $USER_FUNCTION_LIST{$line};
+
+      $module_fl{"$ID"}=$maxnumber;
+      #$fl .= "$FUNTION_NAME $maxnumber\n";
+      
+      if ($index < 1 && $ARGS eq 'defaultindex') {
+        $default_index=$maxnumber;
+        $index=$default_index;
+       }
+      elsif ($ARGS ne '' && $ARGS ne 'defaultindex') {
+        $menu_args{$maxnumber}=$ARGS;
+       }
+      #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB} PARENT: $v<br/>";
+     
+      if($SUB > 0) {
+        $menu_items{$maxnumber}{$module_fl{$SUB}}=$NAME;
+       } 
+      else {
+        $menu_items{$maxnumber}{$v}=$NAME;
+        if ($SUB == -1) {
+          $uf_menus{$maxnumber}=$NAME;
+         }
+      }
+
+      $menu_names{$maxnumber} = $NAME;
+      $functions{$maxnumber}  = $FUNTION_NAME if ($FUNTION_NAME  ne '');
+      $module{$maxnumber}     = $m;
+    }
+
+    %USER_FUNCTION_LIST = ();
+  }
+}
 
 #**********************************************************
 # form_stats
