@@ -343,8 +343,8 @@ foreach my $line (@$list) {
     $INFO{DHCP}       = $line->[8];
     $INFO{PPPOE}      = $line->[9];
    
-    if (($INFO{VLAN_IF_NETMASK} && $line->[10] ne '255.255.255.255') || ! $INFO{VLAN_IF_NETMASK}) {
-      $INFO{VLAN_IF_NETMASK} = $line->[10];
+    if (($INFO{VLAN_IF_NETMASK} && $line->[12] ne '255.255.255.255') || ! $INFO{VLAN_IF_NETMASK}) {
+      $INFO{VLAN_IF_NETMASK} = $line->[12];
      }
     
 #    if ($INFO{VLAN_IF_IP} eq '0.0.0.0') {
