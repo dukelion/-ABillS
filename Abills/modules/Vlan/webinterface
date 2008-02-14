@@ -333,7 +333,7 @@ foreach my $line (@$list) {
   
   foreach my $line (@$vlan_list) {
   #Port
-    $debug_output .= "$line->[0]: VLAN ID: $line->[4] IP: $line->[11]/$line->[5] NETMASK: $line->[6]".
+    $debug_output .= "$line->[0]: VLAN ID: $line->[4] IP: $line->[11]/$line->[12] NETMASK: $line->[6]".
        " USER IPs: $line->[6] DHCP: $line->[8] PPPoE: $line->[9]\n" if ($debug > 2); 
 
     $INFO{VLAN_IF_NETMASK} = '';

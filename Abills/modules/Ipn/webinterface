@@ -1,4 +1,3 @@
-#/usr/bin/perl
 # IPN web functions
 
 
@@ -1669,9 +1668,8 @@ sub ipn_change_status {
                                });
 	 }
 	elsif ($STATUS eq 'HANGUP') {
-     my $ACCT_TERMINATE_CAUSE = $attr->{ACCT_TERMINATE_CAUSE} || 6;
      $Ipn->acct_stop({ %FORM, 
-     	                 ACCT_TERMINATE_CAUSE => $ACCT_TERMINATE_CAUSE });
+     	                 ACCT_TERMINATE_CAUSE => $attr->{ACCT_TERMINATE_CAUSE} || 6 });
 
      $cmd = $conf{IPN_FW_STOP_RULE};
 

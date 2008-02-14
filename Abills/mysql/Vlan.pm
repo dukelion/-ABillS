@@ -311,8 +311,8 @@ sub list {
 
  if (defined($attr->{VLAN_GROUP})) {
    $GROUP_BY = "GROUP BY vlan.vlan_id";
-   $self->{SEARCH_FIELDS} = 'max(INET_NTOA(vlan.ip)), ';
-   $self->{SEARCH_FIELDS_COUNT}++;
+   $self->{SEARCH_FIELDS} = 'max(INET_NTOA(vlan.ip)), min(INET_NTOA(vlan.netmask)),';
+   $self->{SEARCH_FIELDS_COUNT}+=2;
   }
 
 

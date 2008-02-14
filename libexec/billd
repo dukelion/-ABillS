@@ -752,7 +752,7 @@ while(my($ip_address, $info)=each %$ip_pid_hash) {
 
   print "Killed IP: $ip_address PID: '$pid' -- $res\n";  
 
-  get_pid_info($pid);
+  get_pid_info($pid) if -f "/var/log/ppp.log";
 }
 
 }

@@ -33,7 +33,7 @@
 
 my $debug=0;
 
-$debug=1 if ($ARGV[$#ARGV] eq 'debug');
+$debug=1 if ($#ARGV > -1 && $ARGV[$#ARGV] eq 'debug');
 
 #If not anought arguments
 if ( $#ARGV < 3 ) {
@@ -41,8 +41,8 @@ if ( $#ARGV < 3 ) {
  Example:
 ----------------------------------------------------------------
 For IPN
-  $conf{IPN_FW_START_RULE}="/usr/abills/libexec/linkupdown ipn up INTERFACE %LOGIN% %IP%";
-  $conf{IPN_FW_STOP_RULE}="/usr/abills/libexec/linkupdown ipn down INTERFACE %LOGIN% %IP%";
+  \$conf{IPN_FW_START_RULE}="/usr/abills/libexec/linkupdown ipn up INTERFACE %LOGIN% %IP%";
+  \$conf{IPN_FW_STOP_RULE}="/usr/abills/libexec/linkupdown ipn down INTERFACE %LOGIN% %IP%";
 
 ----------------------------------------------------------------
  /etc/ppp/ppp.linkup
@@ -126,6 +126,11 @@ elsif ($ARGV[0] eq 'ipn') {
   $CLIENT_IP = $HISADDR;	
 	my ($n1, $n2, $n3, $n4) = split(/\./, $HISADDR, 4);
   $inum  = $n4;
+
+  if ($INTERFACE eq 'getif') {
+    $INTERFACE = `/sbin/route -n get $HISADDR | /usr/bin/grep interface: | /usr/bin/awk '{print \$2}'`;
+   }
+
 }
 elsif($ARGV[0] eq 'pppd' || $ARGV[0] eq 'mikrotik') {
   $ACTION   =$ARGV[1];
@@ -173,7 +178,7 @@ my @FW_ACTIONS = ();
       $user = $Dv->info(0, { LOGIN => $USER });
       $inum = $user->{UID};
      }
-    $conf{IPN_FW_FIRST_RULE}=$conf{IPN_FW_FIRST_RULE};
+    $conf{IPN_FW_FIRST_RULE}=$conf{IPN_FW_FIRST_RULE} || 20000;
 
     $START_FW[0]=$START_FW[0]+$conf{IPN_FW_FIRST_RULE};
     $START_FW[1]=$START_FW[1]+$conf{IPN_FW_FIRST_RULE};
