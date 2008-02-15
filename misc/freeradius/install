@@ -1,6 +1,8 @@
+:DEFAULT:RLM_PERL=1:Configure RLM_PERL
 users            > [/usr/local/etc/raddb]/users
 acct_users       > [/usr/local/etc/raddb]/acct_users
-radiusd.conf     > [/usr/local/etc/raddb]/radiusd.conf  
+radiusd.conf     > [/usr/local/etc/raddb]/radiusd.conf 
+:RLM_PERL=1:FILE=rlm_perl.conf       > [/usr/local/etc/raddb]/radiusd.conf 
 eap.conf         > [/usr/local/etc/raddb]/eap.conf 
 clients.conf     > [/usr/local/etc/raddb]/clients.conf
 :OS=FREEBSD:radiusd_enable="YES"  >> [/etc/]/rc.conf
