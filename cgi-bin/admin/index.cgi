@@ -416,11 +416,12 @@ if ($functions{$index}) {
   
   if(defined($FORM{UID}) && $FORM{UID} > 0) {
   	my $ui = user_info($FORM{UID});
+
   	if($ui->{errno}==2) {
   		$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
   	 }
-    elsif ($admin->{GID} > 0 && $ui->{GID} != $admin->{GID}) {
-    	$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
+    elsif ($admin->{GIDS} &&  $admin->{GIDS} !~ /$ui->{GID}/ ) {
+    	$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST $admin->{GIDS} / $ui->{GID}")
      }
   	else {
   	  $functions{$index}->({ USER => $ui });

@@ -59,6 +59,7 @@ sub info {
 
   my $WHERE;
     
+   
   if (defined($attr->{LOGIN}) && defined($attr->{PASSWORD})) {
     $WHERE = "WHERE u.id='$attr->{LOGIN}' and DECODE(u.password, '$CONF->{secretkey}')='$attr->{PASSWORD}'";
     if (defined($attr->{ACTIVATE})) {
@@ -446,7 +447,6 @@ sub list {
  $self->{SEARCH_FIELDS} = '';
  $self->{SEARCH_FIELDS_COUNT}=0;
 
- 
  undef @WHERE_RULES;
  my $search_fields = '';
 
@@ -545,7 +545,7 @@ sub list {
   }
 
  if ($attr->{REGISTRATION}) {
-    my $value = $self->search_expr("'$attr->{REGISTRATION}'", 'INT');
+    my $value = $self->search_expr("$attr->{REGISTRATION}", 'INT');
     push @WHERE_RULES, "u.registration$value";
     $self->{SEARCH_FIELDS} .= 'u.registration, ';
     $self->{SEARCH_FIELDS_COUNT}++;
