@@ -19,9 +19,10 @@ my $config_file = $Bin . '/../libexec/config.pl';
 if(! -f $config_file ) {
   print "System main configuration\n";
   my %mk_config = ('dbhost'  => 'localhost',
-     'dbname'  => 'abills',
-     'dbuser'  => 'abills',
-     'dbpasswd'=> 'sqlpassword'
+     'dbname'    => 'abills',
+     'dbuser'    => 'abills',
+     'dbpasswd'  => 'sqlpassword',
+     'ADMIN_MAIL'=> ''
     );
 
   
@@ -30,7 +31,10 @@ if(! -f $config_file ) {
      print "Skiped...\n";
     }
    else {
-     while(my($k, $v) = each %mk_config ) {
+#     while(my($k, $v) = each %mk_config ) {
+ 
+    foreach my $k ( sort keys %mk_config ) {
+       my $v = $mk_config{$k};
        print "$k [$v]: ";
        my $read = '';
        chop($read = <STDIN>);

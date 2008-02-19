@@ -62,17 +62,17 @@ if ($FORM{QUERY} && ! $FORM{xml}) {
                              } );
 
   #Syntax hightligth
-  my @syntax = ('SELECT', 'FROM', 'WHERE', 'MIN', 'MAX', 'AVG', 'SUM', 'IF',
+  my @syntax = ('SELECT', 'FROM', 'WHERE', 'HAVING', 'MIN', 'MAX', 'AVG', 'SUM', 'IF',
             'INSERT', 'UPDATE', 'INTO', 'VALUES', 
             'GROUP BY', 'ORDER BY', 'LIMIT',
-            'DATE_FORMAT', 'LEFT JOIN', 'ON', 'AND', 'EXPLAIN', 'ALTER', 'TABLE',
+            'DATE_FORMAT', 'LEFT JOIN', 'ON', 'AND', 'EXPLAIN', 'ALTER', 'CREATE', 'TABLE',
             'ADD', 'COLUMN', 'UNSIGNED', 'NOT', 'NULL', 'DEFAULT', 'INTERVAL', 'COUNT'
             );
  
   my @types = ('INT', 'VARCHAR', 'SMALLINT', 'CHAR', 'TINYINT', 'DOUBLE');
   my @func =  ('CURDATE()', 'NOW()');
 
-  my @division = ('FROM', 'WHERE', 'LEFT JOIN', 'GROUP BY', 'ORDER BY', 'LIMIT');
+  my @division = ('FROM', 'WHERE', 'HAVING', 'LEFT JOIN', 'GROUP BY', 'ORDER BY', 'LIMIT');
 
   foreach my $query ( @{ $Sqlcmd->{EXECUTED_QUERY} } ) {
     foreach my $s (@division) {

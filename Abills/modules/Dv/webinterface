@@ -2133,8 +2133,8 @@ if ($FORM{set}) {
     $shedule->add( {UID     => $LIST_PARAMS{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
-    	             D        => $FORM{date_D},
-                   M        => $FORM{date_M},
+    	             D        => sprintf("%02.d", $FORM{date_D}),
+                   M        => sprintf("%02.d", $FORM{date_M}),
                    Y        => $FORM{date_Y},
                    DESCRIBE => "$message<br>
                    $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",

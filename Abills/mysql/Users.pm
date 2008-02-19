@@ -629,8 +629,6 @@ sub list {
  
  
  
- $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
- 
 #Show last paymenst
  if ($attr->{PAYMENTS}) {
 
@@ -639,10 +637,14 @@ sub list {
     $self->{SEARCH_FIELDS} .= 'max(p.date), ';
     $self->{SEARCH_FIELDS_COUNT}++;
 
-   my $HAVING = ($#WHERE_RULES > -1) ?  "HAVING " . join(' and ', @WHERE_RULES) : '';
+
+
+
+    my $HAVING = ($#WHERE_RULES > -1) ?  "HAVING " . join(' and ', @WHERE_RULES) : '';
+
 
    
-   $self->query($db, "SELECT u.id, 
+    $self->query($db, "SELECT u.id, 
        pi.fio, if(company.id IS NULL, b.deposit, cb.deposit), u.credit, u.disable, 
        $self->{SEARCH_FIELDS}
        u.uid, 
@@ -650,7 +652,8 @@ sub list {
        pi.email, 
        u.activate, 
        u.expire,
-       u.gid
+       u.gid,
+       b.deposit
      FROM users u
      LEFT JOIN payments p ON (u.uid = p.uid)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
@@ -678,6 +681,7 @@ sub list {
      $self->query($db, "SELECT count(DISTINCT u.uid) FROM users u 
        LEFT JOIN payments p ON (u.uid = p.uid)
        LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+       LEFT JOIN bills b ON (u.bill_id = b.id)
       $WHERE;");
 
       ($self->{TOTAL}) = @{ $self->{list}->[0] };
@@ -685,6 +689,9 @@ sub list {
 
  	  return $list
   }
+ 
+ 
+ $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
  
  $self->query($db, "SELECT u.id, 
       pi.fio, if(company.id IS NULL, b.deposit, cb.deposit), u.credit, u.disable, 

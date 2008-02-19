@@ -117,6 +117,27 @@ sub smsproxy_payments {
 # $FORM{user_id}="891612345XX&";
 # $FORM{cost}="3.098&";
 # $FORM{msg}="xxx";
+ my $skey = $FORM{skey};
+ my $prefix = $FORM{prefix};
+ my %prefix_keys = ();
+
+ my @keys_arr = split(/,/, $conf{PAYSYS_SMSPROXY_KEYS});
+ 
+ foreach my $line (@keys_arr) {
+   my($prefix, $key)=split(/:/, $line);
+   $prefix_keys{$prefix}=$key;  
+  }
+
+ $md5->reset;
+ $md5->add($prefix_keys{$prefix});
+ my $digest = $md5->hexdigest();
+
+ #Unknown service
+ if ($digest ne $skey) {
+   
+   return 0;
+  }
+
 
  #Info section  
  $Paysys->add({ SYSTEM_ID      => 3, 
