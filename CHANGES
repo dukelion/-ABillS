@@ -1,4 +1,8 @@
 =====0.40=====
+ * 08.02.2008
+Отображение депозита для заблокированых пользователей Snmputils
+  ALTER TABLE snmputils_binding add KEY `uid` (`uid`);
+
  * 02.02.2008
   ALTER TABLE paysys_log add COLUMN `code` blob NOT NULL;
 
