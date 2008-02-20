@@ -181,7 +181,7 @@ sub auth {
   elsif ($self->{TOTAL} < 1) {
     $self->{errno} = 2;
     $self->{errstr} = 'ERROR_NOT_EXIST';
-    $RAD_PAIRS{'Reply-Message'}="Number not exist '$RAD->{USER_NAME}'";
+    $RAD_PAIRS{'Reply-Message'}="Caller Number Not Exist '$RAD->{USER_NAME}'";
     return 1, \%RAD_PAIRS;
    }
 
