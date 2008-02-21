@@ -1272,7 +1272,6 @@ if ($#GROUP_RULES > -1) {
   $size = 'sum(size)';
  } 
 
- $self->{debug}=1;
  
  $self->query($db, "SELECT  s_time,	f_time,
   INET_NTOA(src_addr),
