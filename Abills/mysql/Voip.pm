@@ -140,11 +140,11 @@ sub defaults {
   my $self = shift;
 
   %DATA = (
-   TP_ID => 0, 
-   NUMBER => 0, 
-   DISABLE => 0, 
-   IP => '0.0.0.0', 
-   CID => '',
+   TP_ID    => 0, 
+   NUMBER   => 0, 
+   DISABLE  => 0, 
+   IP       => '0.0.0.0', 
+   CID      => '',
   );
 
  
@@ -240,8 +240,15 @@ sub user_list {
  my ($attr) = @_;
  my @list = ();
 
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
  
- my $search_fields = '';
+ $self->{SEARCH_FIELDS} = '';
+ $self->{SEARCH_FIELDS_COUNT}=0;
+
  undef @WHERE_RULES;
  push @WHERE_RULES, "u.uid = service.uid";
  
@@ -316,12 +323,15 @@ sub user_list {
            $last_ip .= '.';
           }
        }
-      push @WHERE_RULES, "(u.ip>=INET_ATON('$first_ip') and u.ip<=INET_ATON('$last_ip'))";
+      push @WHERE_RULES, "(service.ip>=INET_ATON('$first_ip') and service.ip<=INET_ATON('$last_ip'))";
      }
     else {
       my $value = $self->search_expr($attr->{IP}, 'IP');
-      push @WHERE_RULES, "u.ip$value";
+      push @WHERE_RULES, "service.ip$value";
     }
+
+    $self->{SEARCH_FIELDS} = 'INET_NTOA(service.ip), ';
+    $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{PHONE}) {
@@ -338,8 +348,18 @@ sub user_list {
 
  if ($attr->{CID}) {
     $attr->{CID} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "voip_main.cid LIKE '$attr->{CID}'";
+    push @WHERE_RULES, "service.cid LIKE '$attr->{CID}'";
+    $self->{SEARCH_FIELDS} .= 'service.cid, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
   }
+
+ if ($attr->{PASSWORD}) {
+    $self->{SEARCH_FIELDS} .= "DECODE(u.password, '$CONF->{secretkey}'), ";
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+
+
 
  if ($attr->{COMMENTS}) {
    $attr->{COMMENTS} =~ s/\*/\%/ig;
@@ -368,8 +388,11 @@ sub user_list {
   }
 
  # Show groups
- if ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
 #Activate
@@ -403,6 +426,7 @@ sub user_list {
       pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, tp.name, 
       u.disable, 
       service.number,
+      $self->{SEARCH_FIELDS}
       u.uid, u.company_id, pi.email, service.tp_id, u.activate, u.expire, u.bill_id
      FROM (users u, voip_main service)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)

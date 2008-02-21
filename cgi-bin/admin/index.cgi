@@ -242,7 +242,7 @@ foreach my $m (@MODULES) {
     #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB}<br>";
     
     if($SUB > 0) {
-    	my $dd = `     echo "$maxnumber | $module_fl{$SUB} | $SUB  | $NAME" >> /tmp/tttt `;
+    #	my $dd = `     echo "$maxnumber | $module_fl{$SUB} | $SUB  | $NAME" >> /tmp/tttt `;
 
       $menu_items{$maxnumber}{$module_fl{$SUB}}=$NAME;
      } 

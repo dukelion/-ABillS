@@ -756,9 +756,7 @@ elsif(defined($RAD->{MS_CHAP_CHALLENGE})) {
      my $rad_response = pack("H*", $RAD->{MS_CHAP2_RESPONSE});
      my ($ident, $flags, $peerchallenge, $reserved, $response) = unpack('C C a16 a8 a24', $rad_response);
 
-      
 
-     
      if (check_mschapv2(($RAD_PAIRS{'Callback-Number'}) ? "$RAD_PAIRS{'Callback-Number'}:$RAD->{USER_NAME}" : $RAD->{USER_NAME},
        $self->{PASSWD}, $challenge, $peerchallenge, $response, $ident,
  	     \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 1) {
@@ -795,10 +793,6 @@ elsif(defined($RAD->{MS_CHAP_CHALLENGE})) {
            return 1, \%RAD_PAIRS;
           }
         }
-
-#       $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', $lanmansessionkey, 
-#														$usersessionkey))) . "0000000000000000";
-
        # 1      Encryption-Allowed 
        # 2      Encryption-Required 
        $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000001';
@@ -1110,8 +1104,6 @@ else {
 }
 
 #Traffic limit
-
-
 my $trafic_limit = 0;
 #2Gb - (2048 * 1024 * 1024 ) - global traffic session limit
 if (defined($trafic_limits{0}) && $trafic_limits{0} > 0  && $trafic_limits{0} < $EX_PARAMS{traf_limit}) {
@@ -1147,14 +1139,11 @@ sub get_ip {
  my ($nas_num, $nas_ip) = @_;
 
 #get ip pool
- $self->query($db, "SELECT ippools.ip, ippools.counts 
-  FROM ippools
+ $self->query($db, "SELECT ippools.ip, ippools.counts FROM ippools
   WHERE ippools.nas='$nas_num';");
 
  if ($self->{TOTAL} < 1)  {
-#     $self->{errno}=1;
-#     $self->{errstr}='No ip pools';
-     return 0;	
+   return 0;	
   }
 
  my %pools = ();
@@ -1164,7 +1153,7 @@ sub get_ip {
     my $count = $line->[1];
 
     for(my $i=$sip; $i<=$sip+$count; $i++) {
-       $pools{$i}=undef;
+       $pools{$i}=1;
      }
    }
 
@@ -1183,7 +1172,9 @@ sub get_ip {
      }
    }
  
- my ($assign_ip, undef) = each(%pools);
+ my @ips_arr = keys %pools;
+ my $assign_ip = ($#ips_arr > -1) ? $ips_arr[rand ($#ips_arr+1)] : undef;
+
  if ($assign_ip) {
    $assign_ip = int2ip($assign_ip);
    return $assign_ip; 	
