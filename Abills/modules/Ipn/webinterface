@@ -2243,7 +2243,7 @@ my $table = $html->table( { width       => '400',
   $table = $html->table( { width       => '100%',
                            caption     => "$_TRAFIC_TARIFS",
                            border      => 1,
-                           title_plain => ["ID", "$_TYPE", "IP", "$_PREPAID", "$_IN", "$_OUT",  '-' ],
+                           title_plain => ["ID", "$_TYPE", "IP", "$_PORT", "$_PREPAID", "$_IN", "$_OUT",  '-' ],
                            cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                            qs          => $pages_qs,
                        } );
@@ -2260,14 +2260,16 @@ my $table = $html->table( { width       => '400',
 	foreach my $line ( @{ $Ipn_Collector->{ZONES_IDS} }) {
 		$last_byte = 0;
 		my $networks = '';
+		my $ports = '';
 		foreach my $address ( @{ $Ipn_Collector->{ZONES}{$line}{A} } ){
 			my $adr_hash = \%{ $address };
 
       my $a_ip  = $$adr_hash{'IP'}; 
       my $a_msk = $$adr_hash{'Mask'}; 
       my $a_neg = $$adr_hash{'Neg'}; 
-      my $a_ports_ref = \@{$$adr_hash{'Ports'}};
+      #my $a_ports_ref = \@{$$adr_hash{'Ports'}};
 
+      $ports    .= join(',' , @{ $$adr_hash{'Ports'} });
 			$networks .= int2ip($a_ip)."/". int2ip($a_msk).'<br>'; # ", $a_neg<br>";
 	   }
 
@@ -2276,6 +2278,7 @@ my $table = $html->table( { width       => '400',
     $table->addrow($line, 
       $tt_names{$line},
       $networks,
+      $ports,
       $Ipn_Collector->{ZONES}{$line}{PREPAID_TSUM},
       $Ipn_Collector->{ZONES}{$line}{PriceIn},
       $Ipn_Collector->{ZONES}{$line}{PriceOut},
