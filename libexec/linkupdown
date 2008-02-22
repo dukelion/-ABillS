@@ -398,7 +398,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
        }
       else {
         #if speed 0 (UNlime) make only allow rules
-        push @FW_ACTIONS, "$IPFW add $fw_num_in allow ip from $CLIENT_IP to table\\($table_number\\) $via_if_in";      	
+        push @FW_ACTIONS, "$IPFW add $fw_num_in allow ip from $CLIENT_IP to $nets{$traf_type} $via_if_in";      	
        }
       
       if ($speed_out > 0) {
@@ -417,7 +417,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
                	  push @FW_ACTIONS, "$IPFW table $table_number add $line";
                 }
               }
-            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from table\\($table_number\\) to $CLIENT_IP $via_if_out";
+             push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from table\\($table_number\\) to $CLIENT_IP $via_if_out";
            }
           else {
             push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $nets{$traf_type} to $CLIENT_IP $via_if_out";
@@ -429,7 +429,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
        }
      	#if speed 0 (UNlime) make only allow rules
       else {
-         push @FW_ACTIONS, "$IPFW add $fw_num_out allow ip from table\\($table_number\\) to $CLIENT_IP $via_if_out";
+         push @FW_ACTIONS, "$IPFW add $fw_num_out allow ip from $nets{$traf_type} to $CLIENT_IP $via_if_out";
        }
 
 
