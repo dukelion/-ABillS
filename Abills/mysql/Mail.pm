@@ -265,7 +265,7 @@ sub mbox_list {
 
   my $list = $self->{list};
 
-  if ($self->{TOTAL} >= $attr->{PAGE_ROWS}) {
+  if ($self->{TOTAL} >= $attr->{PAGE_ROWS} || $PG > 0 ) {
     $self->query($db, "SELECT count(*) FROM mail_boxes mb $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
