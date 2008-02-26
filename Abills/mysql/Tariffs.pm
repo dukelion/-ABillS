@@ -27,6 +27,7 @@ my %FIELDS = ( TP_ID            => 'id',
                MONTH_FEE        => 'month_fee',
                REDUCTION_FEE    => 'reduction_fee',
                POSTPAID_FEE     => 'postpaid_fee',
+               EXT_BILL_ACCOUNT => 'ext_bill_account',
                SIMULTANEOUSLY   => 'logins',
                AGE              => 'age',
                DAY_TIME_LIMIT   => 'day_time_limit',
@@ -59,9 +60,7 @@ sub new {
   ($db, $CONF, $admin) = @_;
   my $self = { };
   bless($self, $class);
-
-#  $self->{debug}=1;
-  
+ 
   return $self;
 }
 
@@ -358,6 +357,7 @@ sub defaults {
             MONTH_FEE        => '0.00',
             REDUCTION_FEE    => 0,
             POSTPAID_FEE     => 0,
+            EXT_BILL_ACCOUNT => 0,
             SIMULTANEOUSLY   => 0,
             AGE              => 0,
             DAY_TIME_LIMIT   => 0,
@@ -399,7 +399,7 @@ sub add {
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
   $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, 
-     month_fee, day_fee, reduction_fee, postpaid_fee,
+     month_fee, day_fee, reduction_fee, postpaid_fee, ext_bill_account,
      logins, 
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
@@ -407,8 +407,8 @@ sub add {
      max_session_duration, filter_id, payment_type, min_session_cost, rad_pairs, 
      traffic_transfer_period, neg_deposit_filter_id, gid, module)
     values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
-     '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', '$DATA{POSTPAID_FEE}', 
-     '$DATA{SIMULTANEONSLY}', 
+     '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', '$DATA{POSTPAID_FEE}', '$DATA{EXT_BILL_ACCOUNT}',
+     '$DATA{SIMULTANEOUSLY}', 
      '$DATA{DAY_TIME_LIMIT}', '$DATA{WEEK_TIME_LIMIT}',  '$DATA{MONTH_TIME_LIMIT}', 
      '$DATA{DAY_TRAF_LIMIT}', '$DATA{WEEK_TRAF_LIMIT}',  '$DATA{MONTH_TRAF_LIMIT}',
      '$DATA{ACTIV_PRICE}', '$DATA{CHANGE_PRICE}', '$DATA{CREDIT_TRESSHOLD}', '$DATA{AGE}', '$DATA{OCTETS_DIRECTION}',
@@ -435,8 +435,9 @@ sub change {
   	 $FIELDS{CHG_TP_ID}='id';
    }
  
-  $attr->{REDUCTION_FEE}=0 if (! $attr->{REDUCTION_FEE});
-  $attr->{POSTPAID_FEE}=0 if (! $attr->{POSTPAID_FEE});
+  $attr->{REDUCTION_FEE}=0    if (! $attr->{REDUCTION_FEE});
+  $attr->{POSTPAID_FEE}=0     if (! $attr->{POSTPAID_FEE});
+  $attr->{EXT_BILL_ACCOUNT}=0 if (! $attr->{EXT_BILL_ACCOUNT});
  
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
@@ -492,7 +493,9 @@ sub info {
   my $WHERE = ($#WHERE_RULES > -1) ? " and " . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db, "SELECT id, name, hourp, day_fee, month_fee, reduction_fee, postpaid_fee, logins, age,
+  $self->query($db, "SELECT id, name, hourp, 
+      day_fee, month_fee, reduction_fee, postpaid_fee, ext_bill_account,
+      logins, age,
       day_time_limit, week_time_limit,  month_time_limit, 
       day_traf_limit, week_traf_limit,  month_traf_limit,
       activate_price, change_price, credit_tresshold, uplimit, octets_direction, 
@@ -521,6 +524,7 @@ sub info {
    $self->{MONTH_FEE}, 
    $self->{REDUCTION_FEE}, 
    $self->{POSTPAID_FEE}, 
+   $self->{EXT_BILL_ACCOUNT}, 
    $self->{SIMULTANEOUSLY}, 
    $self->{AGE},
    $self->{DAY_TIME_LIMIT}, 
@@ -574,9 +578,6 @@ sub list {
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
- 
- 
-
  $self->query($db, "SELECT tp.id, 
     tp.name, 
     if(sum(i.tarif) is NULL or sum(i.tarif)=0, 0, 1), 
@@ -588,8 +589,8 @@ sub list {
     tp_g.name,
     tp.rad_pairs,
     tp.reduction_fee,
-    tp.postpaid_fee
-    
+    tp.postpaid_fee,
+    tp.ext_bill_account
     FROM (tarif_plans tp)
     LEFT JOIN intervals i ON (i.tp_id=tp.id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)

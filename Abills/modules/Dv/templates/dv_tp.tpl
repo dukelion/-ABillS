@@ -20,6 +20,9 @@
 
   <tr><td>$_REDUCTION:</td><td><input type=checkbox name=REDUCTION_FEE value=1 %REDUCTION_FEE%></td></tr>
   <tr><td>$_POSTPAID:</td><td><input type=checkbox name=POSTPAID_FEE value=1 %POSTPAID_FEE%></td></tr>
+  
+  %EXT_BILL_ACCOUNT%
+  
 <!--   <tr><td>$_GROUP:</td><td>%GROUP_SEL%</td></tr> -->
 <!--  <tr><td>$_HOUR_TARIF (1 Hour):</td><td><input type=text name=TIME_TARIF value='%TIME_TARIF%'></td></tr> -->
   <tr><th colspan=2 bgcolor=$_COLORS[0]>$_TIME_LIMIT (sec)</th></tr> 

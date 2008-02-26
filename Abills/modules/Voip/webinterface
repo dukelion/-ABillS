@@ -134,7 +134,7 @@ $tariffs->{TP_ID} = $user->{TP_ID};
 $tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
 
 
-print $html->tpl_show(templates('chg_tp'), $tariffs);
+print $html->tpl_show(templates('form_chg_tp'), $tariffs);
 
 }
 
@@ -681,7 +681,7 @@ print $table->show();
  	                                ARRAY_NUM_ID  => 1
  	                               });
 
-  $html->tpl_show(templates('ti'), $tarif_plan);
+  $html->tpl_show(templates('form_ti'), $tarif_plan);
 }
 
 #**********************************************************

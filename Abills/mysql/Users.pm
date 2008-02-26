@@ -20,9 +20,10 @@ my $usernameregexp = "^[a-z0-9_][a-z0-9_-]*\$"; # configurable;
 
 use main;
 @ISA  = ("main");
-
-
 my $uid;
+
+
+
 #**********************************************************
 # Init 
 #**********************************************************
@@ -102,6 +103,7 @@ sub info {
    if(c.name IS NULL, 'N/A', c.name), 
    if(c.name IS NULL, 0, c.vat),
    if(c.name IS NULL, b.uid, cb.uid),
+   if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id)
    $password
      FROM users u
      LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -133,9 +135,24 @@ sub info {
    $self->{COMPANY_NAME},
    $self->{COMPANY_VAT},
    $self->{BILL_OWNER},
+   $self->{EXT_BILL_ID},
    $self->{PASSWORD}
  )= @{ $self->{list}->[0] };
-  
+ 
+ if ($CONF->{EXT_BILL_ACCOUNT} && $self->{EXT_BILL_ID} > 0) {
+ 	 $self->query($db, "SELECT b.deposit, b.uid
+     FROM bills b WHERE id='$self->{EXT_BILL_ID}';");
+
+   if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+    }
+
+   ($self->{EXT_BILL_DEPOSIT},
+    $self->{EXT_BILL_OWNER}
+    )= @{ $self->{list}->[0] };
+  } 
  
   return $self;
 }
@@ -314,7 +331,9 @@ sub defaults {
    COMPANY_ID     => 0,
    GID            => 0,
    DISABLE        => 0,
-   PASSWORD       => '');
+   PASSWORD       => '',
+   BILL_ID        => 0,
+   EXT_BILL_ID    => 0);
  
   $self = \%DATA;
   return $self;
@@ -637,9 +656,6 @@ sub list {
     $self->{SEARCH_FIELDS} .= 'max(p.date), ';
     $self->{SEARCH_FIELDS_COUNT}++;
 
-
-
-
     my $HAVING = ($#WHERE_RULES > -1) ?  "HAVING " . join(' and ', @WHERE_RULES) : '';
 
 
@@ -692,14 +708,13 @@ sub list {
  
  
  $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
- 
  $self->query($db, "SELECT u.id, 
       pi.fio, if(company.id IS NULL, b.deposit, cb.deposit), u.credit, u.disable, 
       $self->{SEARCH_FIELDS}
       u.uid, u.company_id, pi.email, u.activate, u.expire
      FROM users u
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-     LEFT JOIN bills b ON u.bill_id = b.id
+     LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
@@ -723,19 +738,6 @@ sub list {
   return $list;
 }
 
-
-#**********************************************************
-# Add to deposit
-#**********************************************************
-sub add2deposit {
-	my $self = shift;
-	my ($sum) = @_;
-	
- $self->query($db, "UPDATE users SET deposit=deposit+$sum 
-     WHERE uid='$self->{UID}';");
-
-  return $self;	
-}
 
 #**********************************************************
 # add()
@@ -779,7 +781,7 @@ sub add {
            now(),  '$DATA{DISABLE}', 
            '$DATA{COMPANY_ID}', '$DATA{GID}', 
            ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}')
-            );", 'do');
+           );", 'do');
   
   return $self if ($self->{errno});
   
@@ -788,15 +790,14 @@ sub add {
 
   $admin->action_add("$self->{UID}", "ADD $DATA{LOGIN}");
 
-
-
   if ($attr->{CREATE_BILL}) {
   	#print "create bill";
   	$self->change($self->{UID}, { 
-  		 DISABLE => int($DATA{DISABLE}),
-  		 UID     => $self->{UID},
-  		 create  => 1 });
-
+  		 DISABLE     => int($DATA{DISABLE}),
+  		 UID         => $self->{UID},
+  		 CREATE_BILL => 1,
+  		 CREATE_EXT_BILL  => $attr->{CREATE_EXT_BILL} });
+    
   }
 
   return $self;
@@ -824,12 +825,13 @@ sub change {
               DISABLE     => 'disable',
               GID         => 'gid',
               PASSWORD    => 'password',
-              BILL_ID     => 'bill_id'
+              BILL_ID     => 'bill_id',
+              EXT_BILL_ID => 'ext_bill_id'
              );
 
   my $old_info = $self->info($attr->{UID});
   
-  if($attr->{create}){
+  if($attr->{CREATE_BILL}) {
   	 use Bills;
   	 my $Bill = Bills->new($db, $admin, $CONF);
   	 $Bill->create({ UID => $self->{UID} });
@@ -838,12 +840,35 @@ sub change {
        $self->{errstr} =  $Bill->{errstr};
        return $self;
       }
-     #$DATA{BILL_ID}=$Bill->{BILL_ID};
      $attr->{BILL_ID}=$Bill->{BILL_ID};
      $attr->{DISABLE}=$old_info->{DISABLE};
+     
+     if ($attr->{CREATE_EXT_BILL}) {
+    	 $Bill->create({ UID => $self->{UID} });
+       if($Bill->{errno}) {
+         $self->{errno}  = $Bill->{errno};
+         $self->{errstr} =  $Bill->{errstr};
+         return $self;
+        }
+       $attr->{EXT_BILL_ID}=$Bill->{BILL_ID};
+      }
    }
-  
-  
+  elsif ($attr->{CREATE_EXT_BILL}) {
+
+  	   use Bills;
+  	   my $Bill = Bills->new($db, $admin, $CONF);
+    	 $Bill->create({ UID => $self->{UID} });
+       $attr->{DISABLE}=$old_info->{DISABLE};
+
+       if($Bill->{errno}) {
+         $self->{errno}  = $Bill->{errno};
+         $self->{errstr} =  $Bill->{errstr};
+         return $self;
+        }
+       #$DATA{BILL_ID}=$Bill->{BILL_ID};
+       $attr->{EXT_BILL_ID}=$Bill->{BILL_ID};
+   }
+ 
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users',
 		                FIELDS       => \%FIELDS,

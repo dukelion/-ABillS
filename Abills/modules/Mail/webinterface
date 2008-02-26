@@ -1089,7 +1089,7 @@ sub mail_wizard {
       if (! $attr->{SHORT_REPORT}) {
         $FORM{ex_message}=$message;
         $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
-        $html->tpl_show(templates('user_info'), { %$user, %$pi } );
+        $html->tpl_show(templates('form_user_info'), { %$user, %$pi } );
         $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail);
        }
 

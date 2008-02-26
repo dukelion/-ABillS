@@ -1281,7 +1281,7 @@ $Tariffs->{TP_ID} = $user->{TP_ID};
 $Tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
 
 
-print $html->tpl_show(templates('chg_tp'), $Tariffs);
+print $html->tpl_show(templates('form_chg_tp'), $Tariffs);
 }
 
 
@@ -1474,7 +1474,7 @@ elsif($FORM{del}) {
    $Tariffs->{TP_ID}   = $user->{TP_ID};
    $Tariffs->{TP_NAME} = "$user_sharing->{TP_ID}:$user_sharing->{TP_NAME}";
 
-   $html->tpl_show(templates('chg_tp'), $Tariffs);
+   $html->tpl_show(templates('form_chg_tp'), $Tariffs);
    
    
    sharing_addition_buy();

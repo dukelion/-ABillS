@@ -228,7 +228,7 @@ if ($uid > 0) {
    }
   
   
-  $OUTPUT{BODY}=$html->tpl_show(templates('users_main'), \%OUTPUT);
+  $OUTPUT{BODY}=$html->tpl_show(templates('form_client_main'), \%OUTPUT);
 
 }
 else {
@@ -238,7 +238,7 @@ else {
 
 print $html->header();
 $OUTPUT{BODY}="$html->{OUTPUT}";
-print $html->tpl_show(templates('users_start'), \%OUTPUT);
+print $html->tpl_show(templates('form_client_start'), \%OUTPUT);
 
 
 $html->test() if ($conf{debugmods} =~ /LOG_DEBUG/);
@@ -321,7 +321,7 @@ sub form_info {
   		$user->pi();
   		$user->{ACTION}='change';
   		$user->{LNG_ACTION}=$_CHANGE;
-  		$html->tpl_show(templates('client_chg_form'), $user);
+  		$html->tpl_show(templates('form_chg_client_info'), $user);
   		return 0;
   	 }
   	elsif ($FORM{change}) {
@@ -343,7 +343,11 @@ sub form_info {
   
   $user->{PAYMENT_DATE}=$list->[0]->[2];
   $user->{PAYMENT_SUM}=$list->[0]->[3];
-  $html->tpl_show(templates('client_info'), $user);
+  if ($conf{EXT_BILL_ACCOUNT} && $user->{EXT_BILL_ID} > 0) {
+    $user->{EXT_DATA}=$html->tpl_show(templates('form_ext_bill'), 
+                                             $user, { OUTPUT2RETURN => 1 });
+   }
+  $html->tpl_show(templates('form_client_info'), $user);
 
   if ($conf{user_chg_pi}) {
     $html->form_main({ CONTENT => $html->form_input('chg', "$_CHANGE", { TYPE => 'SUBMIT', OUTPUT2RETURN => 1 } ),
@@ -393,7 +397,7 @@ sub form_login {
  	                                SEL_HASH  => \%LANG,
  	                                NO_ID     => 1 });
 
- $OUTPUT{BODY} = $html->tpl_show(templates('form_user_login'), \%first_page);
+ $OUTPUT{BODY} = $html->tpl_show(templates('form_client_login'), \%first_page);
 }
 
 #*******************************************************************
@@ -867,7 +871,7 @@ my $list = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID'],
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left'],
                             qs         => $pages_qs,
                             pages      => $payments->{TOTAL}
@@ -877,7 +881,7 @@ $pages_qs .= "&subf=2" if (! $FORM{subf});
 
 foreach my $line (@$list) {
   $table->addrow($html->b($line->[0]), 
-  $html->button($line->[1], "index=15&UID=$line->[10]"), 
+  $html->button($line->[1], "index=15&UID=$line->[11]"), 
   $line->[2], 
   $line->[3], 
   $line->[4],  
@@ -886,6 +890,7 @@ foreach my $line (@$list) {
   "$line->[7]", 
   $PAYMENT_METHODS[$line->[8]], 
   "$line->[9]", 
+  "$line->[10]", 
   );
 }
 

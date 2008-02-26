@@ -143,7 +143,7 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
  
   $table->addrow($line->[0],
-    $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
+    $html->button("$line->[1]", "index=15&UID=$line->[7]"), 
     "$line->[2]", 
     "$line->[3]", 
     "$PAY_SYSTEMS{$line->[4]}", 

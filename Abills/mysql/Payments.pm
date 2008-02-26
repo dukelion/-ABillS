@@ -106,6 +106,7 @@ sub add {
   
   #$db->{AutoCommit}=0; 
 
+  $user->{BILL_ID} = $attr->{BILL_ID} if ($attr->{BILL_ID});
   
   if ($user->{BILL_ID} > 0) {
     if ($DATA{ER} != 1) {
@@ -259,7 +260,7 @@ sub list {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT p.id, u.id, p.date, p.sum, p.dsc, if(a.name is null, 'Unknown', a.name),  
-      INET_NTOA(p.ip), p.last_deposit, p.method, p.ext_id, p.uid 
+      INET_NTOA(p.ip), p.last_deposit, p.method, p.ext_id, p.bill_id, p.uid 
     FROM payments p
     LEFT JOIN users u ON (u.uid=p.uid)
     LEFT JOIN admins a ON (a.aid=p.aid)

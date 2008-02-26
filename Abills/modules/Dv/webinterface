@@ -144,7 +144,7 @@ $tariffs->{TP_ID} = $user->{TP_ID};
 $tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
 
 
-print $html->tpl_show(templates('chg_tp'), $tariffs);
+print $html->tpl_show(templates('form_chg_tp'), $tariffs);
 
 
 }
@@ -261,7 +261,7 @@ sub dv_user {
      my $pi = $user->pi({ UID => $Dv->{UID} });
      $user  = $user->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
  
-     $html->tpl_show(templates('user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
+     $html->tpl_show(templates('form_user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
      $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
 
 
@@ -363,6 +363,8 @@ sub dv_tp {
  $tarif_info->{ACTION}='ADD_TP';
 
 
+
+
 if($FORM{ADD_TP}) {
   $FORM{TP_ID} = $FORM{CHG_TP_ID};
   
@@ -439,36 +441,28 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
 }
 
 
+
 if ($tariffs->{errno}) {
     $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
  }
 
-my $i=0;
-$tarif_info->{SEL_OCTETS_DIRECTION} = "<select name=OCTETS_DIRECTION>\n";
-foreach my $line (@Octets_Direction) {
-  $tarif_info->{SEL_OCTETS_DIRECTION} .= "<option value=$i";
-  $tarif_info->{SEL_OCTETS_DIRECTION} .= ' selected' if ($tarif_info->{OCTETS_DIRECTION} eq $i);
-  $tarif_info->{SEL_OCTETS_DIRECTION} .= ">$Octets_Direction[$i]\n";
-  $i++;
-}
-$tarif_info->{SEL_OCTETS_DIRECTION} .= "</select>\n";
+
+#my $i=0;
+$tarif_info->{SEL_OCTETS_DIRECTION} = $html->form_select('OCTETS_DIRECTION', 
+                                          { 
+ 	                                          SELECTED    => $tarif_info->{OCTETS_DIRECTION},
+ 	                                          SEL_ARRAY   => \@Octets_Direction,
+ 	                                          NUM_ID      => 1
+ 	                                        });
+
+$tarif_info->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE', 
+                                          { 
+ 	                                          SELECTED    => $tarif_info->{PAYMENT_TYPE},
+ 	                                          SEL_ARRAY   => \@Payment_Types,
+ 	                                          NUM_ID      => 1
+ 	                                        });
 
 
-
-
-$i=0;
-
-$tarif_info->{PAYMENT_TYPE_SEL} = "<select name=PAYMENT_TYPE>\n";
-foreach my $line (@Payment_Types) {
-  $tarif_info->{PAYMENT_TYPE_SEL} .= "<option value=$i";
-  $tarif_info->{PAYMENT_TYPE_SEL} .= ' selected' if ($tarif_info->{PAYMENT_TYPE} eq $i);
-  $tarif_info->{PAYMENT_TYPE_SEL} .= ">$Payment_Types[$i]\n";
-  $i++;
-}
-$tarif_info->{PAYMENT_TYPE_SEL} .= "</select>\n";
-
-$tarif_info->{REDUCTION_FEE} = ($tarif_info->{REDUCTION_FEE}) ? 'checked' : '';
-$tarif_info->{POSTPAID_FEE} = ($tarif_info->{POSTPAID_FEE}) ? 'checked' : '';
 
 $tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID', 
                                           { 
@@ -477,11 +471,16 @@ $tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID',
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
+$tarif_info->{REDUCTION_FEE} = ($tarif_info->{REDUCTION_FEE}) ? 'checked' : '';
+$tarif_info->{POSTPAID_FEE} = ($tarif_info->{POSTPAID_FEE}) ? 'checked' : '';
+
+if ($conf{EXT_BILL_ACCOUNT}) {
+  my $checked = ($tarif_info->{EXT_BILL_ACCOUNT}) ? ' checked' : '';
+  $tarif_info->{EXT_BILL_ACCOUNT}="<tr><td>$_EXTRA $_BILL:</td><td><input type=checkbox name='EXT_BILL_ACCOUNT' value=1 $checked></td></tr>";
+}
 
 
 $html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
-
-
 
 my $list = $tariffs->list({ %LIST_PARAMS });	
 # Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
@@ -2214,7 +2213,7 @@ elsif($FORM{del}) {
    $tariffs->{TP_ID}   = $user->{TP_ID};
    $tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME}";
 
-   $html->tpl_show(templates('chg_tp'), $tariffs);
+   $html->tpl_show(templates('form_chg_tp'), $tariffs);
 }
 
 
@@ -2279,52 +2278,64 @@ sub dv_daily_fees {
 
  foreach my $line (@$list) {
  	 if ($line->[5] > 0) {
- 	   $debug_output .= "TP ID: $line->[0] DF: $line->[5] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] \n" if ($debug > 1);
  	   $LIST_PARAMS{TP}=$line->[0];
+     my $TP_ID = $line->[0];
+
+ 	   $debug_output .= "TP ID: $TP_ID DF: $line->[5] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL: $line->[13]\n" if ($debug > 1);
+
  	   my $ulist = $Dv->list({
          ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
          EXPIRE    => ">'$ADMIN_REPORT{DATE}'",
          DISABLE   => 0,
-         TP_ID     => $line->[0],
+         TP_ID     => $TP_ID,
          SORT      => 1,
          PAGE_ROWS => 100000
  	   	 });
 
-#     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
-#      u.uid, u.account_id, u.email, u.tp_id
-     foreach my $u (@$ulist) {
-        if ($u->[12] > 0 && defined($u->[2])) {
-          my %user = (
-             ACCOUNT_ID => $u->[7],
-             UID        => $u->[6],
-             BILL_ID    => $u->[12],
-             REDUCTION  => $u->[13]  
-           );
-          
 
-          #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
+     foreach my $u (@$ulist) {
+     	  #Check bill id and deposit 
+        my %user = (
+             ACCOUNT_ID => $u->[8],
+             UID        => $u->[7],
+             BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
+             REDUCTION  => $reduction
+           );
+
+        if ($u->[13] > 0 && defined($u->[2])) {
+          #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[13]\n"; 	
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
           if($u->[2] + $u->[3] > 0 || $line->[4] == 1 || $line->[12] == 1 ) {
              #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
              my $sum = $line->[5];
              # IF TP have PARIODIC PAYMENTS USER reduction
-             if ($line->[11] == 1 && $u->[13] > 0) {
-               $sum = $sum * (100 - $u->[13]) / 100;
+             if ($line->[11] == 1 && $user{REDUCTION} > 0) {
+               $sum = $sum * (100 - $user{REDUCTION}) / 100;
               }
 
-             my %PARAMS = ( DESCRIBE => "$_DAY_FEE" );
+             my %PARAMS = ( DESCRIBE => "$_DAY_FEE ($TP_ID)" );
              $PARAMS{DATE}=$DATE if ($DATE ne '');
 
              if ($debug > 4) {
-                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
               }
              else {
                $fees->take(\%user, $sum, { %PARAMS } );
+               if ($fees->{errno}) {
+               	 print "Error: [$fees->{errno}] $fees->{errstr} ";
+               	 if ($fees->{errno} == 14 ) {
+               	 	 print "[ $user{UID} ] $u->[0] - Don't have money account";
+               	  }
+               	 print "\n";
+               	}
+               elsif($debug > 1) {
+                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $reduction\n";
+                }
               }
            }
         }
        else {
-       	  print "[ $u->[6] ] $u->[0] - Don't have money account\n";
+       	  print "[ $user{UID} ] $u->[0] - Don't have money account\n";
         }
 
       }
@@ -2363,14 +2374,14 @@ sub dv_monthly_fees {
 
 
  foreach my $line (@$list) {
+ 	 my $TP_ID = $line->[0];
  	 if ($line->[6] > 0) {
- 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11]\n" if ($debug > 1);
-
+ 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL_ID: $line->[13]\n" if ($debug > 1);
 	   my $ulist = $Dv->list({ 
          ACTIVATE   => ">=$ADMIN_REPORT{DATE}",
          EXPIRE     => "<$ADMIN_REPORT{DATE}",
          DISABLE    => '0',
-         TP_ID      => $line->[0],
+         TP_ID      => $TP_ID,
          SORT       => 1,
          PAGE_ROWS  => 100000
  	   	 });
@@ -2379,20 +2390,22 @@ sub dv_monthly_fees {
 #      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
 
      foreach my $u (@$ulist) {
-       print " Login: $u->[0] TP_ID: $u->[9] Fees: $line->[6] REDUCTION: $u->[13]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 4); 	
-       
-       if ($u->[12] > 0 && defined($u->[2])) {
-          my %user = (
-            ACCOUNT_ID => $u->[7],
-            UID        => $u->[6],
-            BILL_ID    => $u->[12]   
+       print " Login: $u->[0] ($u->[7])  TP_ID: $u->[10] Fees: $line->[6] REDUCTION: $u->[14]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 4); 	
+       #Check bill id and deposit 
+       my %user = (
+            ACCOUNT_ID => $u->[8],
+            UID        => $u->[7],
+            BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
+            REDUCTION  => $u->[14],
+            ACTIVATE   => $u->[11]
            );
-          
+       
+       if ($u->[13] > 0 && defined($u->[2])) {
           #Make sum 
           my $sum = $line->[6];
 
-          if ($line->[11] == 1 && $u->[13] > 0) {
-            $sum = $sum * (100 - $u->[13]) / 100;
+          if ($line->[11] == 1 && $user{REDUCTION} > 0) {
+            $sum = $sum * (100 - $user{REDUCTION}) / 100;
            }
 
           
@@ -2400,30 +2413,42 @@ sub dv_monthly_fees {
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
           if($line->[4] == 1 || $u->[2] + $u->[3] > 0 || $line->[12] == 1) {
 #                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] /$DATE $d == 1\n"; 	
+
             #take fees in first day of month
-            if ($u->[10] eq '0000-00-00' and $d == 1) {
+            if ($user{ACTIVATE} eq '0000-00-00' and $d == 1) {
               if ($debug > 4) {
-                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                }
               else {
-                $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE" } );  
+                $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE ($TP_ID)" } );  
+                $debug_output .= " $u->[0]  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
                }
              }
             # If activation set to monthly fees taken throught 30 days
-            elsif($u->[10] ne '0000-00-00') {
-              my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[10], 3);
+            elsif($user{ACTIVATE} ne '0000-00-00') {
+              my ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
               $activate_m--;
               my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
               if ($date_unixtime - $active_unixtime > 30 * 86400) {
                 if ($debug > 4) {
-                  $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+                  $debug_output .= " $u->[0] UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
                  }
                 else {
-                  $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE" } );
-                  $users->change($u->[6], { 
-                	                        UID      => $u->[6],
+                  $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE ($TP_ID)" } );
+                  $debug_output .= " $u->[0] UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
+                  if ($fees->{errno}) {
+                  	print "Error: [$fees->{errno}] $fees->{errstr} ";
+                  	if ($fees->{errno} == 14 ) {
+               	 	     print "[ $user{UID} ] $u->[0] - Don't have money account";
+               	     }
+               	    print "\n";
+               	   }
+                  else {
+                    $users->change($user{UID}, { 
+                	                        UID      => $user{UID},
                 	                        ACTIVATE => $ADMIN_REPORT{DATE} } 
                  	             );
+                   }
                  }
                }
                #print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
@@ -2431,7 +2456,7 @@ sub dv_monthly_fees {
            }
         }
        else {
-      	 print "[ $u->[6] ] $u->[0] - Don't have money account\n";
+      	 print "[ $user{UID} ] $u->[0] - Don't have money account\n";
         }
  	  }
   }
@@ -2909,7 +2934,7 @@ sub dv_wizard_user {
       if (! $attr->{SHORT_REPORT}) {
         $FORM{ex_message}=$message;
         $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
-        $html->tpl_show(templates('user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
+        $html->tpl_show(templates('form_user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
         $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
         $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail) if ($Mail);
        }
@@ -2928,9 +2953,12 @@ sub dv_wizard_user {
   $users_defaults->{DISABLE}=($users_defaults->{DISABLE} == 1) ? ' checked' : '';
   $users_defaults->{GID} = sel_groups();
   if (! $attr->{NO_EXTRADATA}) {
-    $users_defaults->{EXDATA}=$html->tpl_show(templates('form_user_exdata'), 
-       { CREATE_BILL  => ' checked' }, 
-       { notprint => 1 });
+    $users_defaults->{EXDATA}=   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
+    $users_defaults->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
+    
+#    $html->tpl_show(templates('form_user_exdata'), 
+#       { CREATE_BILL  => ' checked' }, 
+#       { notprint => 1 });
    }
   
   my $dv_defaults = $Dv->defaults();

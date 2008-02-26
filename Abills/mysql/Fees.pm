@@ -63,6 +63,8 @@ sub take {
      return $self;
    }
   
+  $user->{BILL_ID} = $attr->{BILL_ID} if ($attr->{BILL_ID});
+  
   if ($user->{BILL_ID} > 0) {
     $Bill->info( { BILL_ID => $user->{BILL_ID} } );
     
@@ -206,7 +208,7 @@ sub list {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT f.id, u.id, f.date, f.sum, f.dsc, if(a.name is NULL, 'Unknown', a.name), 
-              INET_NTOA(f.ip), f.last_deposit, f.uid 
+              INET_NTOA(f.ip), f.last_deposit, f.bill_id, f.uid
     FROM fees f
     LEFT JOIN users u ON (u.uid=f.uid)
     LEFT JOIN admins a ON (a.aid=f.aid)

@@ -137,7 +137,7 @@ sub password_recovery {
 	                   "================================================\n";
 	     }
 
-	   $message = $html->tpl_show(templates('passwd_recovery'), 
+	   $message = $html->tpl_show(templates('msg_passwd_recovery'), 
 	                                                    { MESSAGE => $message }, 
 	                                                    { OUTPUT2RETURN => 1 });
 
@@ -157,5 +157,5 @@ sub password_recovery {
 	   }
 	}
 	
-	$html->tpl_show(templates('forgot_passwd'), undef);
+	$html->tpl_show(templates('form_forgot_passwd'), undef);
 }
