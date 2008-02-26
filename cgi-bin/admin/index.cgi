@@ -413,8 +413,9 @@ if ($functions{$index}) {
 
  	 	require "Abills/modules/$module{$index}/webinterface";
    }
-  
-  if(defined($FORM{UID}) && $FORM{UID} > 0) {
+
+ 	  
+  if($FORM{UID} && $FORM{UID} > 0) {
   	my $ui = user_info($FORM{UID});
 
   	if($ui->{errno}==2) {
@@ -432,7 +433,7 @@ if ($functions{$index}) {
   	form_start();
    }
   else {
-     $functions{$index}->();
+    $functions{$index}->();
    }
 }
 else {
@@ -795,18 +796,23 @@ sub user_form {
    	 $user_info->{GID} = sel_groups();
     }
 
-   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata'), { CREATE_BILL => ' checked' }, { notprint => 1 });
+   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
+
+   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
 
    $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? ' checked' : '';
    $user_info->{ACTION}='add';
    $user_info->{LNG_ACTION}=$_ADD;
   }
  else {
-   $user_info->{EXDATA} = "
-            <tr><td colspan='2'><input type='hidden' name='UID' value=\"$FORM{UID}\"/></td></tr>
-            <tr><td>$_DEPOSIT:</td><td>$user_info->{DEPOSIT}</td></tr>
-            <tr><td>$_COMPANY:</td><td>". $html->button($user_info->{COMPANY_NAME}, "index=13&COMPANY_ID=$user_info->{COMPANY_ID}") ."</td></tr>
-            <tr><td>BILL_ID:</td><td>%BILL_ID%</td></tr>\n";
+   $user_info->{EXDATA} = $html->tpl_show(templates('form_user_exdata'), 
+                                          $user_info, { notprint => 1 });
+
+   if ($conf{EXT_BILL_ACCOUNT} && $user_info->{EXT_BILL_ID}) {
+     $user_info->{EXDATA} .= $html->tpl_show(templates('form_ext_bill'), 
+                                             $user_info, { notprint => 1 });
+    }
+
 
    $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? ' checked' : '';
    $user_info->{ACTION}='change';
@@ -816,10 +822,7 @@ sub user_form {
     }
   } 
 
-
-
 $html->tpl_show(templates('form_user'), $user_info);
-
 }
 
 
@@ -870,14 +873,6 @@ elsif(defined($FORM{GID})){
      $_PAYMENTS => "2:GID=$users->{GID}",
      $_FEES     => "3:GID=$users->{GID}",
   	 });
- 
-
-  #Sub functions
-  #if (! $FORM{subf}) {
-#    if (! $users->{errno}) {
-#      $html->message('info', $_CHANGED, "$_CHANGING $users->{GID}");
-#     }
-
   
     if (! $permissions{0}{4} ) {
       return 0;
@@ -1035,7 +1030,6 @@ if(defined($attr->{USER})) {
     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
     return 0;
    }
-
   print "<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"2\"><tr><td valign=\"top\" align=\"center\">\n";
   #Make service menu
   my $service_menu = '';
@@ -1221,7 +1215,7 @@ elsif ( $FORM{add}) {
      }
 
     $user_info = $users->info( $user_info->{UID}, { SHOW_PASSWORD => 1 } );
-    $html->tpl_show(templates('user_info'), $user_info);
+    $html->tpl_show(templates('form_user_info'), $user_info);
 
     $LIST_PARAMS{UID}=$user_info->{UID};
     $index=2;
@@ -1440,7 +1434,7 @@ sub user_group {
   my ($attr) = @_;
   my $user = $attr->{USER};
   $user->{SEL_GROUPS} = sel_groups();
-  $html->tpl_show(templates('chg_group'), $user);
+  $html->tpl_show(templates('form_chg_group'), $user);
 }
 
 #**********************************************************
@@ -1461,7 +1455,7 @@ sub user_company {
  	                                SEL_OPTIONS       => { 0 => '-N/S-'}
  	                               });
 
-$html->tpl_show(templates('chg_company'), $user_info);
+$html->tpl_show(templates('form_chg_company'), $user_info);
 }
 
 #**********************************************************
@@ -1640,24 +1634,49 @@ sub form_bills {
   
   use Bills;
   my  $bills = Bills->new($db);
-
-  $user->{SEL_BILLS} =  "<select name='BILL_ID'>\n";
-  $user->{SEL_BILLS} .= "<option value='0'>-N/S-\n";
   my $list = $bills->list({  COMPANY_ONLY => 1,
   	                         UID   => $user->{UID} });
 
+  my %BILLS_HASH = ();
+
   foreach my $line (@$list) {
     if($line->[3] ne '') {
-      $user->{SEL_BILLS} .= "<option value='$line->[0]'>$line->[0] : <font color='EE44EE'>$line->[3]</font> :$line->[1]\n";
+      $BILLS_HASH{$line->[0]}="$line->[0] : <font color='EE44EE'>$line->[3]</font> :$line->[1]";
      }
     elsif($line->[2] ne '') {
-    	$user->{SEL_BILLS} .= "<option value='$line->[0]'> >> $line->[0] : Personal :$line->[1]\n";
+    	$BILLS_HASH{$line->[0]}=">> $line->[0] : Personal :$line->[1]";
      }
    }
 
+  $user->{SEL_BILLS} .= $html->form_select('BILL_ID', 
+                                { SELECTED   => '',
+ 	                                SEL_HASH   => {'' => '', %BILLS_HASH },
+ 	                                NO_ID      => 1
+ 	                               });
 
-  $user->{SEL_BILLS} .= "</select>\n";
-  $html->tpl_show(templates('chg_bill'), $user);
+  $user->{CREATE_BILL}=' checked' if ($user->{BILL_ID} < 1);
+  $user->{BILL_TYPE} = $_PRIMARY;
+  $user->{CREATE_BILL_TYPE} = 'CREATE_BILL';
+  $html->tpl_show(templates('form_chg_bill'), $user);
+
+  if ($conf{EXT_BILL_ACCOUNT}) {
+    $html->tpl_show(templates('form_chg_bill'), {
+    	   BILL_ID          => $user->{EXT_BILL_ID},
+    	   BILL_TYPE        => $_EXTRA,
+    	   CREATE_BILL_TYPE => 'CREATE_EXT_BILL',
+    	   LOGIN            => $user->{LOGIN},
+    	   CREATE_BILL      => ($user->{EXT_BILL_ID} < 1) ? ' checked'  : '',
+    	   SEL_BILLS        => $user->{SEL_BILLS},
+    	   UID              => $user->{UID},
+    	   SEL_BILLS        => $html->form_select('EXT_BILL_ID', 
+                                { SELECTED   => '',
+ 	                                SEL_HASH   => {'' => '', %BILLS_HASH },
+ 	                                NO_ID      => 1
+ 	                               })
+ 
+    	  });
+   }
+
 }
 
 
@@ -1701,7 +1720,7 @@ $search_params{MODULES_SEL} = $html->form_select('MODULE',
 
 
 form_search({ HIDDEN_FIELDS => $LIST_PARAMS{AID},
-	            SEARCH_FORM   => $html->tpl_show(templates('history_search'), \%search_params, { notprint => 1 })
+	            SEARCH_FORM   => $html->tpl_show(templates('form_history_search'), \%search_params, { notprint => 1 })
 	           });
 
 
@@ -1993,7 +2012,7 @@ else {
  	                                SEL_ARRAY     => \@DAY_NAMES,
  	                                ARRAY_NUM_ID  => 1
  	                               });
-  $html->tpl_show(templates('ti'), $tarif_plan);
+  $html->tpl_show(templates('form_ti'), $tarif_plan);
 }
 
 }
@@ -2844,7 +2863,7 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
 
 #$password_form->{GEN_PASSWORD}=mk_unique_value(8);
 $password_form->{PW_CHARS}="abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
-$password_form->{PW_LENGTH}=$conf{PASSWD_LENGTH};
+$password_form->{PW_LENGTH}=$conf{PASSWD_LENGTH}+2;
 $password_form->{ACTION}='change';
 $password_form->{LNG_ACTION}="$_CHANGE";
 $html->tpl_show(templates('form_password'), $password_form);
@@ -3486,13 +3505,20 @@ sub form_payments () {
  my $payments = Finance->payments($db, $admin, \%conf);
 
 
-
  return 0 if (! defined ($permissions{1}));
+
+ my %BILL_ACCOUNTS = ();
 
 
 if (defined($attr->{USER})) { 
   my $user = $attr->{USER};
   $payments->{UID} = $user->{UID};
+
+  if ($conf{EXT_BILL_ACCOUNT}) {
+    $BILL_ACCOUNTS{$user->{BILL_ID}} = "$_PRIMARY : $user->{BILL_ID}" if ($user->{BILL_ID}); 
+    $BILL_ACCOUNTS{$user->{EXT_BILL_ID}} = "$_EXTRA : $user->{EXT_BILL_ID}" if ($user->{EXT_BILL_ID}); 
+   }
+
 
   if($user->{BILL_ID} < 1) {
     form_bills({ USER => $user });
@@ -3539,6 +3565,7 @@ if (defined($attr->{USER})) {
 my $er = $payments->exchange_list();
   $payments->{SEL_ER} = "<select name='ER'>\n";
   $payments->{SEL_ER} .= "<option value=''></option>\n";
+
 foreach my $line (@$er) {
   $payments->{SEL_ER} .= "<option value='$line->[4]'";
   $payments->{SEL_ER} .= ">$line->[1] : $line->[2]";
@@ -3567,6 +3594,17 @@ $payments->{SEL_METHOD} =  $html->form_select('METHOD',
 
 if (defined ($permissions{1}{1})) {
    $payments->{OP_SID} = mk_unique_value(16);
+   
+   if ($conf{EXT_BILL_ACCOUNT}) {
+     $payments->{EXT_DATA} = "<tr><td>$_BILL:</td><td>". $html->form_select('BILL_ID', 
+                                { SELECTED     => $FORM{BILL_ID} || $attr->{USER}->{BILL_ID},
+ 	                                SEL_HASH     => \%BILL_ACCOUNTS,
+ 	                                NO_ID        => 1
+ 	                               }).
+ 	                             "</td></tr>\n";
+    }
+
+   
    $html->tpl_show(templates('form_payments'), $payments);
  }
 }
@@ -3578,7 +3616,7 @@ elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
 elsif($FORM{UID}) {
 	form_users();
 	return 0;
-}	
+ }	
 elsif($index != 7) {
 	form_search();
 }
@@ -3594,7 +3632,8 @@ my $list = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', '-'],
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, 
+                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", '-'],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $payments->{TOTAL},
@@ -3604,9 +3643,9 @@ my $table = $html->table( { width      => '100%',
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[10]$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[11]$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
   $table->addrow($html->b($line->[0]), 
-  $html->button($line->[1], "index=15&UID=$line->[10]"), 
+  $html->button($line->[1], "index=15&UID=$line->[11]"), 
   $line->[2], 
   $line->[3], 
   $line->[4],  
@@ -3615,6 +3654,7 @@ foreach my $line (@$list) {
   "$line->[7]", 
   $PAYMENT_METHODS[$line->[8]], 
   "$line->[9]", 
+  ($conf{EXT_BILL_ACCOUNT}) ? $BILL_ACCOUNTS{$line->[10]} : "$line->[10]",
   $delete);
 }
 
@@ -3709,12 +3749,19 @@ sub form_fees  {
  my $period = $FORM{period} || 0;
  
  return 0 if (! defined ($permissions{2}));
- 
+
  use Finance;
  my $fees = Finance->fees($db, $admin, \%conf);
 
-if (defined($attr->{USER})) {
+ my %BILL_ACCOUNTS = ();
+
+if ($attr->{USER}) {
   my $user = $attr->{USER};
+
+  if ($conf{EXT_BILL_ACCOUNT}) {
+    $BILL_ACCOUNTS{$attr->{USER}->{BILL_ID}} = "$_PRIMARY : $attr->{USER}->{BILL_ID}" if ($attr->{USER}->{BILL_ID}); 
+    $BILL_ACCOUNTS{$attr->{USER}->{EXT_BILL_ID}} = "$_EXTRA : $attr->{USER}->{EXT_BILL_ID}" if ($attr->{USER}->{EXT_BILL_ID}); 
+   }
 
   if($user->{BILL_ID} < 1) {
     form_bills({ USER => $user });
@@ -3742,7 +3789,7 @@ if (defined($attr->{USER})) {
       	               Y        => $FORM{date_Y},
                        UID      => $user->{UID},
                        TYPE     => 'fees',
-                       ACTION   => "$FORM{SUM}:$FORM{DESCRIBE}"
+                       ACTION   => ( $conf{EXT_BILL_ACCOUNT} ) ? "$FORM{SUM}:$FORM{DESCRIBE}:BILL_ID=$FORM{BILL_ID}" : "$FORM{SUM}:$FORM{DESCRIBE}"
                       } );
 
       if ($shedule->{errno}) {
@@ -3807,25 +3854,34 @@ if (defined($attr->{USER})) {
     }
     $fees->{SEL_ER} .= "</select>\n";
 
+    if ($conf{EXT_BILL_ACCOUNT}) {
+       $fees->{EXT_DATA} = "<tr><td>$_BILL:</td><td>". $html->form_select('BILL_ID', 
+                                { SELECTED     => $FORM{BILL_ID} || $attr->{USER}->{BILL_ID},
+ 	                                SEL_HASH     => \%BILL_ACCOUNTS,
+ 	                                NO_ID        => 1
+ 	                               }).
+ 	                             "</td></tr>\n";
+      }
+
     $html->tpl_show(templates('form_fees'), $fees);
    }	
 
 
-
 }
 elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
+	print "33333333333";
 	$FORM{subf}=$index;
 	form_admins();
 	return 0;
  }
 elsif($FORM{UID}) {
 	form_users();
+	print "222222222222222222";
 	return 0;
 }
 elsif($index != 7) {
 	form_search();
 }
-
 
 if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=1;
@@ -3836,8 +3892,8 @@ my $list = $fees->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_FEES",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, '-'],
-                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'center:noprint'],
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, "$_BILLS", '-'],
+                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $fees->{TOTAL},
                             ID         => 'FEES'
@@ -3846,17 +3902,18 @@ my $table = $html->table( { width      => '100%',
 
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
-  my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[8]$pages_qs", 
+  my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[9]$pages_qs", 
    { MESSAGE => "$_DEL ID: $line->[0]?" }) : ''; 
 
   $table->addrow($html->b($line->[0]), 
-  $html->button($line->[1], "index=15&UID=$line->[8]"), 
+  $html->button($line->[1], "index=15&UID=$line->[9]"), 
   $line->[2], 
   $line->[3], 
   $line->[4],  
   "$line->[5]", 
   "$line->[6]", 
-  "$line->[7]", 
+  "$line->[7]",
+  ($BILL_ACCOUNTS{$line->[8]}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
   $delete);
 }
 
@@ -4631,6 +4688,8 @@ if(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5}
    $users->bruteforce_del({ LOGIN => $FORM{del} });
    $html->message('info', $_INFO, "$_DELETED # $FORM{del}");
  }
+	
+	$LIST_PARAMS{LOGIN} = $FORM{LOGIN} if ($FORM{LOGIN});
 	
   my $list = $users->bruteforce_list( { %LIST_PARAMS } );
   my $table = $html->table( { width      => '100%',
