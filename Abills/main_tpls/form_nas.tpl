@@ -1,0 +1,25 @@
+<div class='noprint'>
+<form action=$SELF_URL METHOD=post>
+<input type=hidden name='index' value='60'>
+<input type=hidden name='NAS_ID' value='%NAS_ID%'>
+<TABLE>
+<TR><TD>ID</TD><TD>%NAS_ID%</TD></TR>
+<TR><TD>IP</TD><TD><input type=text name=NAS_IP value='%NAS_IP%'></TD></TR>
+<TR><TD>$_NAME:</TD><TD><input type=text name=NAS_NAME value='%NAS_NAME%'></TD></TR>
+<TR><TD>Radius NAS-Identifier:</TD><TD><input type=text name=NAS_INDENTIFIER value='%NAS_INDENTIFIER%'></TD></TR>
+<TR><TD>$_DESCRIBE:</TD><TD><input type=text name=NAS_DESCRIBE value='%NAS_DESCRIBE%'></TD></TR>
+<TR><TD>$_TYPE:</TD><TD>%SEL_TYPE%</TD></TR>
+<TR><TD>$_AUTH:</TD><TD>%SEL_AUTH_TYPE%</TD></TR>
+<TR><TD>External Accounting:</TD><TD>%NAS_EXT_ACCT%</TD></TR>
+<TR><TD>Alive (sec.):</TD><TD><input type=text name=NAS_ALIVE value='%NAS_ALIVE%'></TD></TR>
+<TR><TD>$_DISABLE:</TD><TD><input type=checkbox name=NAS_DISABLE value=1 %NAS_DISABLE%></TD></TR>
+<TR><th colspan=2>:$_MANAGE:</th></TR>
+<TR><TD>IP:PORT:</TD><TD><input type=text name=NAS_MNG_IP_PORT value='%NAS_MNG_IP_PORT%'></TD></TR>
+<TR><TD>$_USER:</TD><TD><input type=text name=NAS_MNG_USER value='%NAS_MNG_USER%'></TD></TR>
+<TR><TD>$_PASSWD:</TD><TD><input type=password name=NAS_MNG_PASSWORD value=''></TD></TR>
+<TR><th colspan=2>RADIUS $_PARAMS (,)</th></TR>
+<TR><th colspan=2><textarea cols=50 rows=4 name=NAS_RAD_PAIRS>%NAS_RAD_PAIRS%</textarea></th></TR>
+</TABLE>
+<input type=submit name=%ACTION% value='%LNG_ACTION%'>
+</form>
+</div>
