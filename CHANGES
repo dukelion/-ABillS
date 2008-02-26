@@ -1,13 +1,40 @@
 =====0.40=====
+26.02.2008
+  * добавлена  возможность автоматически создавать файл пользователей для Asterisk. Опция 
+  $conf{VOIP_ASTERISK_USERS}='/usr/abills/Abills/templates/users.conf';
+
+MySQL
+
+  ALTER TABLE voip_main DROP PRIMARY KEY;
+  ALTER TABLE voip_main ADD PRIMARY KEY (`number`);
+  ALTER TABLE voip_main ADD KEY `uid` (`uid`);
+
+  * Добавлена возможность прикреплять пользователю два денежных счёта. Основной и дополнительный. \\ 
+Основной счёт может служить для отчислений за использованные услуги при Dialup/VPN подключениях, 
+дополнительный использоваться для абон. платы. \\
+Для включения возможности получать дополнительный денежный счёт, нужно прописать в конфигурационном файле: 
+  $conf{EXT_BILL_ACCOUNT}=1;
+
+Для снятия денег с дополнительного счёта нужно поставить галочку в / System configuration/ Dialup / VPN/ Tarif plans/ -> Extra Money account\\
+MySQL
+
+  ALTER TABLE companies ADD COLUMN `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE users ADD COLUMN `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE tarif_plans ADD COLUMN  `ext_bill_account` tinyint(1) unsigned NOT NULL DEFAULT '0';
+  
+  * Перенесены системные шаблоны в отдельный каталог
+
  * 08.02.2008
-Отображение депозита для заблокированых пользователей Snmputils
+Отображение депозита для заблокированых пользователей Snmputils\\
+MYSQL
   ALTER TABLE snmputils_binding add KEY `uid` (`uid`);
 
  * 02.02.2008
+MYSQL
   ALTER TABLE paysys_log add COLUMN `code` blob NOT NULL;
 
  * 27.01.2008
-
+MYSQL
   ALTER TABLE ipn_log add key uid_traffic_class (uid, traffic_class);
   
   ALTER TABLE dv_log_intervals add column `added` timestamp(14) NOT NULL;
