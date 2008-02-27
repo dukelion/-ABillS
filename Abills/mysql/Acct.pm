@@ -54,7 +54,7 @@ sub accounting {
  my $self = shift;
  my ($RAD, $NAS)=@_;
  
-
+ $self->{SUM} = 0;
  my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
  my $SESSION_START = (defined($RAD->{SESSION_START}) && $RAD->{SESSION_START} > 0) ?  "FROM_UNIXTIME($RAD->{SESSION_START})" : "FROM_UNIXTIME(UNIX_TIMESTAMP())";
 
@@ -261,7 +261,7 @@ elsif ($acct_status_type == 2) {
      and user_name=\"$RAD->{USER_NAME}\" 
      and nas_id='$NAS->{NAS_ID}';", 'do');
      
-}
+ }
 #Alive status 3
 elsif($acct_status_type eq 3) {
   $self->{SUM}=0 if (! $self->{SUM}); 
@@ -487,33 +487,6 @@ sub rt_billing {
    }
 	
 }
-
-#**********************************************************
-# start
-#**********************************************************
-sub start {
-	my ($RAD, $NAS)=@_;
-	
-}
-
-
-#**********************************************************
-# start
-#**********************************************************
-sub stop {
-	my ($RAD, $NAS)=@_;
-	
-}
-
-#**********************************************************
-# start
-#**********************************************************
-sub alive {
-	my ($RAD, $NAS)=@_;
-	
-}
-
-
 
 
 1

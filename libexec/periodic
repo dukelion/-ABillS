@@ -353,7 +353,7 @@ $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n",
 my $fees = Finance->fees($db, $admin, \%conf);
 
 
-# Daily fees
+# Daily fees report
 $ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8s| %20s| %12s| %15s| %8s\n", $_LOGIN, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT);
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
 
@@ -362,13 +362,12 @@ $list = $fees->list( { %LIST_PARAMS } );
 foreach my $line (@$list) {
 #SELECT f.id, u.id, f.date, f.sum, f.dsc, a.name, INET_NTOA(f.ip), f.last_deposit, f.uid 
   $ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8.4f| %20s| %12s| %15s| %8.4f\n", 
-    $line->[1], 
+    ($line->[1]) ? $line->[1] : "!Unknown", 
     $line->[3], 
     $line->[4], 
     $line->[5], 
     $line->[6],
     $line->[7]);
-    
 }
 
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";

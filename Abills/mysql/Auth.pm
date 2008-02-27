@@ -699,7 +699,8 @@ sub authentication {
   u.bill_id,
   u.credit,
   u.activate,
-  u.reduction
+  u.reduction,
+  u.ext_bill_id
      FROM users u
      WHERE 
         u.id='$RAD->{USER_NAME}'
@@ -728,7 +729,8 @@ sub authentication {
      $self->{BILL_ID},
      $self->{CREDIT},
      $self->{ACCOUNT_ACTIVATE},
-     $self->{REDUCTION}
+     $self->{REDUCTION},
+     $self->{EXT_BILL_ID}
     ) = @{ $self->{list}->[0] };
 
 
@@ -859,10 +861,12 @@ if($self->{errno}) {
 sub check_bill_account() {
   my $self = shift;
 
-#get sum from bill account
-   $self->query($db, "SELECT ROUND(deposit, 2) FROM bills WHERE id='$self->{BILL_ID}';");
-   if($self->{errno}) {
-  	  return $self;
+
+  if ($CONF->{EXT_BILL_ACCOUNT}) {
+    $self->query($db, "SELECT id, ROUND(deposit, 2) FROM bills 
+     WHERE id='$self->{BILL_ID}' or id='$self->{EXT_BILL_ID}';");
+    if($self->{errno}) {
+      return $self;
      }
     elsif ($self->{TOTAL} < 1) {
       $self->{errno}=2;
@@ -870,8 +874,29 @@ sub check_bill_account() {
       return $self;
      }
 
-   ($self->{DEPOSIT}) = $self->{list}->[0]->[0];
+    foreach my $l (@{ $self->{list} })  {
+      if ($l->[0] == $self->{EXT_BILL_ID}) {
+        $self->{EXT_BILL_DEPOSIT} = $l->[1];
+       }
+      else {
+      	$self->{DEPOSIT} = $l->[1];
+       }
+  	 } 
+   }
+  else {
+#get sum from bill account
+    $self->query($db, "SELECT ROUND(deposit, 2) FROM bills WHERE id='$self->{BILL_ID}';");
+    if($self->{errno}) {
+      return $self;
+     }
+    elsif ($self->{TOTAL} < 1) {
+      $self->{errno}=2;
+      $self->{errstr}="Bill account Not Exist";
+      return $self;
+     }
 
+    ($self->{DEPOSIT}) = $self->{list}->[0]->[0];
+   }
   return $self;
 }
 

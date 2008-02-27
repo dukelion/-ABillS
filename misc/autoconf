@@ -151,6 +151,7 @@ elsif ($ARGV->{help}) {
                             1 short debug
                             2 full debug
                             3 emulate mode
+  BACKUP                  - Backup old configuration files (add .bak extention)
   INFORMATION:
    OS: $conf{OS}
   \n";
@@ -450,9 +451,14 @@ sub check_install {
        }
       elsif ( -e "$folder/$dest" && ! defined($ARGV->{'-f'}) ) {
       	if (! confirm_yn("File: $folder/$dest exist oweride: ", "y")) {
-      		print "Skiped...\n";
-      		next;
+      	  print "Skiped...\n";
+      	  next;
       	 }
+        elsif ($ARGV->{BACKUP}) {
+          print "Make backup '$folder/$dest.bak'\n" if ($debug > 0);
+          system("cp -R -pi $folder/$dest $folder/$dest.bak") == 0
+              or die "external cp command status was $?";
+         }
        }
 
       open(FILE, "$type$folder/$dest") || die "Can't open file '$type$folder/$dest'  $!";

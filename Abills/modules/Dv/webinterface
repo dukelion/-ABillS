@@ -2313,8 +2313,10 @@ sub dv_daily_fees {
                $sum = $sum * (100 - $user{REDUCTION}) / 100;
               }
 
-             my %PARAMS = ( DESCRIBE => "$_DAY_FEE ($TP_ID)" );
-             $PARAMS{DATE}=$DATE if ($DATE ne '');
+             my %PARAMS = ( 
+               DESCRIBE => "$_DAY_FEE ($TP_ID)",
+               DATE     => "$ADMIN_REPORT{DATE} $TIME" );
+
 
              if ($debug > 4) {
                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
@@ -2415,12 +2417,16 @@ sub dv_monthly_fees {
 #                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] /$DATE $d == 1\n"; 	
 
             #take fees in first day of month
+            my %PARAMS = (DESCRIBE => "$_MONTH_FEE ($TP_ID)",
+                          DATE     => $ADMIN_REPORT{DATE} );  
+
+
             if ($user{ACTIVATE} eq '0000-00-00' and $d == 1) {
               if ($debug > 4) {
                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                }
               else {
-                $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE ($TP_ID)" } );  
+                $fees->take(\%user, $sum, { %PARAMS } );  
                 $debug_output .= " $u->[0]  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
                }
              }
@@ -2434,7 +2440,7 @@ sub dv_monthly_fees {
                   $debug_output .= " $u->[0] UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
                  }
                 else {
-                  $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE ($TP_ID)" } );
+                  $fees->take(\%user, $sum, { %PARAMS } );
                   $debug_output .= " $u->[0] UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
                   if ($fees->{errno}) {
                   	print "Error: [$fees->{errno}] $fees->{errstr} ";
