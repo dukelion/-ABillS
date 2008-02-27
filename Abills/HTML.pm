@@ -716,7 +716,7 @@ sub header {
 
 
  my $css = css();
- my $title = ($CONF->{WEB_TITLE}) ? $CONF->{WEB_TITLE} : "AsmodeuS~ Billing System";
+ my $title = ($CONF->{WEB_TITLE}) ? $CONF->{WEB_TITLE} : "~AsmodeuS~ Billing System";
  my $REFRESH = ($FORM{REFRESH}) ? "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$FORM{REFRESH}; URL=$ENV{REQUEST_URI}\"/>\n" : '';
 
 $self->{header} .= qq{
