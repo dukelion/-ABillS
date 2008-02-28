@@ -654,8 +654,8 @@ sub dhcphosts_config {
   my ($attr) = @_;
 
   if (! $attr->{NETWORKS}) {
-  	$html->message('err', $_ERROR, "$ERR_WRONG_DATA");
-  	return 0;
+     $html->message('err', $_ERROR, "$ERR_WRONG_DATA. Select NETWORK ");
+     return 0;
    }
 
   my %INFO = ();

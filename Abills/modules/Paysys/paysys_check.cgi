@@ -45,8 +45,43 @@ my $db = $sql->{db};
 #Operation status
 my $status = '';
 
-my $Paysys = Paysys->new($db, undef, \%conf);
+#Check allow ips
+if ($conf{PAYSYS_IPS}) {
+	$conf{PAYSYS_IPS}=~s/ //g;
+	@ips_arr = split(/,/, $conf{PAYSYS_IPS});
+	
+	#Default DENY FROM all
+	my $allow = 0;
+	foreach my $ip (@ips_arr) {
+		#Deny address
+		if ($ip =~ /^!/  && $ip =~ /$ENV{REMOTE_ADDR}$/) {
+      last;
+		 }
+		#allow address
+		elsif ($ENV{REMOTE_ADDR} =~ /^$ip/) {
+			$allow=1;
+			last;
+		 }
+	  #allow from all networks
+	  elsif ($ip eq '0.0.0.0') {
+	  	$allow=1;
+	  	last;
+	   }
+	 }
 
+  #Address not allow
+  #Send info mail to admin
+  if (! $allow) {
+  	print "Content-Type: text/html\n\n";
+  	print "Error: IP '$ENV{REMOTE_ADDR}' DENY by System";
+    sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "ABillS - Paysys", 
+              "IP '$ENV{REMOTE_ADDR}' DENY by System", "$conf{MAIL_CHARSET}", "2 (High)");
+  	exit;
+   } 
+}
+
+
+my $Paysys = Paysys->new($db, undef, \%conf);
 my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 my $payments = Finance->payments($db, $admin, \%conf);
@@ -101,7 +136,7 @@ sub payments {
   	rupay_payments();
    }
   else {
-  	print "Unknown payment system";
+  	print "Error: Unknown payment system";
   	#$output2 .= "Unknown payment system"; 
    }
 }
@@ -146,7 +181,8 @@ sub smsproxy_payments {
   	            UID            => "", 
                 IP             => "",
                 TRANSACTION_ID => "",
-                INFO           => "ID: $FORM{smsid}, NUM: $FORM{num}, OPERATOR: $FORM{operator}, USER_ID: $FORM{user_id}, MSG: $FORM{msg}, STATUS:"
+                INFO           => "ID: $FORM{smsid}, NUM: $FORM{num}, OPERATOR: $FORM{operator}, USER_ID: $FORM{user_id}, MSG: $FORM{msg}, STATUS:",
+                PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
  my $code = mk_unique_value(8);
@@ -209,7 +245,8 @@ if ($FORM{rupay_action} eq 'add') {
   	             UID            => $FORM{user_field_UID}, 
                  IP             => $FORM{user_field_IP},
                  TRANSACTION_ID => $FORM{rupay_order_id},
-                 INFO           => "STATUS, $status\n$info"
+                 INFO           => "STATUS, $status\n$info",
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
  } 
 #Add paymets
@@ -246,7 +283,8 @@ elsif ($FORM{rupay_action} eq 'update') {
   	             UID            => $FORM{user_field_UID}, 
                  IP             => $FORM{user_field_IP},
                  TRANSACTION_ID => $FORM{rupay_order_id},
-                 INFO           => "STATUS, $status\n$info"
+                 INFO           => "STATUS, $status\n$info",
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
   $output2 .= "Paysys:".$Paysys->{errno} if ($Paysys->{errno});
@@ -336,7 +374,8 @@ elsif($FORM{LMI_HASH}) {
   	             UID            => $FORM{UID}, 
                  IP             => $FORM{IP},
                  TRANSACTION_ID => $FORM{LMI_PAYMENT_NO},
-                 INFO           => "STATUS, $status\n$info"
+                 INFO           => "STATUS, $status\n$info",
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
   $output2 .= "Paysys:".$Paysys->{errno} if ($Paysys->{errno});
