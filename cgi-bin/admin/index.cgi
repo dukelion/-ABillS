@@ -1343,7 +1343,10 @@ foreach my $line (@$list) {
 
   my @fields_array  = ();
   for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++){
-     push @fields_array, $table->td($line->[5+$i]);
+    if ($conf{EXT_BILL_ACCOUNT} && $i == 0) {
+      $line->[5] = ($line->[5] < 0) ? "<font color='$_COLORS[6]'>$line->[5]</font>" : $line->[5];
+     }
+    push @fields_array, $table->td($line->[5+$i]);
    }
 
 
