@@ -80,14 +80,16 @@ if ($FORM{info}) {
 
   $Paysys->{INFO}=$table->show();
 
-  $table = $html->table( { width => '500',
+  $table = $html->table( { width   => '500',
+  	                       caption => $_INFO,
                            rows => [ [ "ID",            $Paysys->{ID}       ],
                                      [ "$_LOGIN",       $Paysys->{LOGIN}    ],
                                      [ "$_DATE",        $Paysys->{DATETIME} ],
                                      [ "$_SUM",         $Paysys->{SUM}      ],
                                      [ "$_PAY_SYSTEM",  $PAY_SYSTEMS{$Paysys->{SYSTEM_ID}}        ],
                                      [ "$_TRANSACTION", $Paysys->{TRANSACTION_ID}  ],
-                                     [ "IP",            $Paysys->{IP}       ],
+                                     [ "$_USER IP",     $Paysys->{IP}       ],
+                                     [ "PAYSYS IP",     $Paysys->{PAYSYS_IP}],
                                      [ "$_INFO",        $Paysys->{INFO}     ]
                                     ]
                         } );
