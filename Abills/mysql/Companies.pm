@@ -50,11 +50,13 @@ sub add {
 
   my %DATA = $self->get_data($attr); 
   $self->query($db, "INSERT INTO companies (name, tax_number, bank_account, bank_name, cor_bank_account, 
-     bank_bic, disable, credit, address, phone, vat, contract_id) 
+     bank_bic, disable, credit, address, phone, vat, contract_id,
+     bill_id, ext_bill_id) 
      VALUES ('$DATA{COMPANY_NAME}', '$DATA{TAX_NUMBER}', '$DATA{BANK_ACCOUNT}', '$DATA{BANK_NAME}', '$DATA{COR_BANK_ACCOUNT}', 
       '$DATA{BANK_BIC}', '$DATA{DISABLE}', '$DATA{CREDIT}',
       '$DATA{ADDRESS}', '$DATA{PHONE}',
-      '$DATA{VAT}', '$DATA{CONTRACT_ID}'
+      '$DATA{VAT}', '$DATA{CONTRACT_ID}',
+      '$DATA{BILL_ID}', '$DATA{EXT_BILL_ID}'
       );", 'do');
 
   return $self;
@@ -69,19 +71,44 @@ sub change {
   my ($attr) = @_;
 
 
-  if($attr->{create}) {
+  my $old_info = $self->info($attr->{COMPANY_ID});
+
+  if($attr->{CREATE_BILL}) {
   	 use Bills;
-  	 my $Bill = Bills->new($db, $admin);
-  	 $Bill->create({ COMPANY_ID => $attr->{COMPANY_ID} });
+  	 my $Bill = Bills->new($db, $admin, $CONF);
+  	 $Bill->create({ COMPANY_ID => $self->{COMPANY_ID} });
      if($Bill->{errno}) {
        $self->{errno}  = $Bill->{errno};
        $self->{errstr} =  $Bill->{errstr};
        return $self;
       }
      $attr->{BILL_ID}=$Bill->{BILL_ID};
+     $attr->{DISABLE}=$old_info->{DISABLE};
+     
+     if ($attr->{CREATE_EXT_BILL}) {
+    	 $Bill->create({ COMPANY_ID => $self->{COMPANY_ID} });
+       if($Bill->{errno}) {
+         $self->{errno}  = $Bill->{errno};
+         $self->{errstr} =  $Bill->{errstr};
+         return $self;
+        }
+       $attr->{EXT_BILL_ID}=$Bill->{BILL_ID};
+      }
    }
+  elsif ($attr->{CREATE_EXT_BILL}) {
+  	   use Bills;
+  	   my $Bill = Bills->new($db, $admin, $CONF);
+    	 $Bill->create({ COMPANY_ID => $self->{COMPANY_ID} });
+       $attr->{DISABLE}=$old_info->{DISABLE};
 
-
+       if($Bill->{errno}) {
+         $self->{errno}  = $Bill->{errno};
+         $self->{errstr} =  $Bill->{errstr};
+         return $self;
+        }
+       #$DATA{BILL_ID}=$Bill->{BILL_ID};
+       $attr->{EXT_BILL_ID}=$Bill->{BILL_ID};
+   }
  
  my %FIELDS = (
    COMPANY_NAME   => 'name', 
@@ -93,6 +120,7 @@ sub change {
    DISABLE        => 'disable',
    CREDIT         => 'credit',
    BILL_ID        => 'bill_id',
+   EXT_BILL_ID    => 'ext_bill_id',
    COMPANY_ID     => 'id',
    ADDRESS        => 'address',
    PHONE          => 'phone',
@@ -103,7 +131,7 @@ sub change {
 	$self->changes($admin, { CHANGE_PARAM => 'COMPANY_ID',
 		               TABLE        => 'companies',
 		               FIELDS       => \%FIELDS,
-		               OLD_INFO     => $self->info($attr->{COMPANY_ID}),
+		               OLD_INFO     => $old_info,
 		               DATA         => $attr
 		              } );
 
@@ -133,9 +161,10 @@ sub info {
   my ($company_id) = @_;
 
   $self->query($db, "SELECT c.id, c.name, c.credit, c.tax_number, c.bank_account, c.bank_name, 
-  c.cor_bank_account, c.bank_bic, c.disable, c.bill_Id, b.deposit,
+  c.cor_bank_account, c.bank_bic, c.disable, c.bill_id, b.deposit,
   c.address, c.phone,
-  c.vat, contract_id
+  c.vat, contract_id,
+  c.ext_bill_id
     FROM companies c
     LEFT JOIN bills b ON (c.bill_id=b.id)
     WHERE c.id='$company_id';");
@@ -160,9 +189,27 @@ sub info {
    $self->{ADDRESS},
    $self->{PHONE},
    $self->{VAT},
-   $self->{CONTRACT_ID}
+   $self->{CONTRACT_ID},
+   $self->{EXT_BILL_ID}
    ) = @{ $self->{list}->[0] };
-    
+  
+  
+   if ($CONF->{EXT_BILL_ACCOUNT} && $self->{EXT_BILL_ID} > 0) {
+ 	 $self->query($db, "SELECT b.deposit, b.uid
+     FROM bills b WHERE id='$self->{EXT_BILL_ID}';");
+
+   if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+    }
+
+   ($self->{EXT_BILL_DEPOSIT},
+    $self->{EXT_BILL_OWNER}
+    )= @{ $self->{list}->[0] };
+  } 
+
+  
   return $self;
 }
 

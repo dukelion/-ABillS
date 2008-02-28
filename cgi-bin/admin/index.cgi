@@ -668,6 +668,13 @@ elsif($FORM{COMPANY_ID}) {
       $company->{LNG_ACTION}=$_CHANGE;
      }
     $company->{DISABLE} = ($company->{DISABLE} > 0) ? 'checked' : '';
+    
+    if ($conf{EXT_BILL_ACCOUNT} && $company->{EXT_BILL_ID}) {
+      $company->{EXDATA} = $html->tpl_show(templates('form_ext_bill'), $company, { notprint => 1 });
+     }
+
+
+
     $html->tpl_show(templates('form_company'), $company);
   }
 
@@ -761,6 +768,11 @@ sub add_company {
   my $company;
   $company->{ACTION}='add';
   $company->{LNG_ACTION}=$_ADD;
+  
+  #$company->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
+  #$company->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
+
+  
   $html->tpl_show(templates('form_company'), $company);
 }
 
@@ -1644,7 +1656,8 @@ sub form_bills {
   use Bills;
   my  $bills = Bills->new($db);
   my $list = $bills->list({  COMPANY_ONLY => 1,
-  	                         UID   => $user->{UID} });
+  	                         UID          => $user->{UID} 
+  	                      });
 
   my %BILLS_HASH = ();
 
@@ -1663,7 +1676,8 @@ sub form_bills {
  	                                NO_ID      => 1
  	                               });
 
-  $user->{CREATE_BILL}=' checked' if ($user->{BILL_ID} < 1);
+
+  $user->{CREATE_BILL}=' checked' if (! $FORM{COMPANY_ID} && $user->{BILL_ID} < 1);
   $user->{BILL_TYPE} = $_PRIMARY;
   $user->{CREATE_BILL_TYPE} = 'CREATE_BILL';
   $html->tpl_show(templates('form_chg_bill'), $user);
@@ -1674,7 +1688,7 @@ sub form_bills {
     	   BILL_TYPE        => $_EXTRA,
     	   CREATE_BILL_TYPE => 'CREATE_EXT_BILL',
     	   LOGIN            => $user->{LOGIN},
-    	   CREATE_BILL      => ($user->{EXT_BILL_ID} < 1) ? ' checked'  : '',
+    	   CREATE_BILL      => (! $FORM{COMPANY_ID} && $user->{EXT_BILL_ID} < 1) ? ' checked'  : '',
     	   SEL_BILLS        => $user->{SEL_BILLS},
     	   UID              => $user->{UID},
     	   SEL_BILLS        => $html->form_select('EXT_BILL_ID', 
