@@ -1,4 +1,11 @@
 =====0.40=====
+28.02.2008
+  * Paysys. Добавлено внесение IP адреса робота платёжной системы уведомляющего о платеже.
+  * Добавлена возможность блокирования/разрешения уведомлений о платеже для определенных IP адресов. Опция:
+   $conf{PAYSYS_IPS}="0.0.0.0";
+MySQL
+  ALTER TABLE  paysys_log ADD COLUMN `paysys_ip` int(11) unsigned NOT NULL DEFAULT '0';
+
 26.02.2008
   * добавлена  возможность автоматически создавать файл пользователей для Asterisk. Опция 
   $conf{VOIP_ASTERISK_USERS}='/usr/abills/Abills/templates/users.conf';
@@ -21,10 +28,14 @@ MySQL
   ALTER TABLE companies ADD COLUMN `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE users ADD COLUMN `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE tarif_plans ADD COLUMN  `ext_bill_account` tinyint(1) unsigned NOT NULL DEFAULT '0';
-  
+  ALTER TABLE bills DROP KEY `uid`;
+  ALTER TABLE bills ADD KEY `uid` (`uid`,`company_id`);
+
+
+
   * Перенесены системные шаблоны в отдельный каталог
 
- * 08.02.2008
+  * 08.02.2008
 Отображение депозита для заблокированых пользователей Snmputils\\
 MYSQL
   ALTER TABLE snmputils_binding add KEY `uid` (`uid`);
