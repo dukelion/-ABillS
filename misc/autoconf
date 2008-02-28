@@ -2,18 +2,16 @@
 # Auto configure service
 
 
-use vars  qw(%RAD %conf $db %AUTH
- %RAD_REQUEST %RAD_REPLY %RAD_CHECK
+use vars  qw(%conf $db
  $DATE $TIME
- %auth_mod
  $begin_time
- $nas);
+ );
 
 
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 1.2;
+my $VERSION = 1.3;
 my $config_file = $Bin . '/../libexec/config.pl';
 
 if(! -f $config_file ) {
@@ -120,6 +118,7 @@ if ($ARGV->{debug}) {
 $conf{DATE}=$DATE;
 $conf{TIME}=$TIME;
 $conf{OS}=uc(`uname`);
+$conf{WORK_DIR}=$Bin;
 
 print $conf{OS};
 
@@ -172,8 +171,8 @@ elsif ($ARGV->{PROGRAMS}) {
   
   foreach my $program (@programs) {
   	print "  PROGRAM: $program\n" if ($debug > 1);
-  	if (! -f $Bin."/$program/install") {
-  		print "Can't find program configuration '$Bin/$program/install'\n";
+  	if (! -f $conf{WORK_DIR}."/$program/install") {
+  		print "Can't find program configuration '$conf{WORK_DIR}/$program/install'\n";
   		exit 0;
   	 }
   	elsif ($debug < 6) {
@@ -201,7 +200,7 @@ sub programs_info {
  close(FILE);
 
 
- my %DEFAULT_VALUE = ();
+ my %DEFAULT_VALUE = (WORK_DIR => $conf{WORK_DIR});
  my %DEFAULT_DESCRIBE = ();
 
  my %PARAMS_VALUES = ();
@@ -276,7 +275,7 @@ sub check_install {
  my ($program)=@_;
 
  
- my $install_file = $Bin . "/$program/install";
+ my $install_file = $conf{WORK_DIR} . "/$program/install";
 
  my @files = ();
  open(FILE, "< $install_file") || die "Can't open file '$install_file'  $!";
@@ -333,8 +332,36 @@ sub check_install {
 
     #my $res = system("$config_body");
     print "EXECUTE: $config_body\n" if ($debug > 1);
-    my $res = system("$config_body");
+    my $exec_cmd = '';
+    my $exec_params_name = '';
+
+    if ($config_body =~ /^(\S+)\=(.+)/) {
+    	$exec_params_name = $1;
+    	$exec_cmd = $2;
+     }
+    else {
+    	$exec_cmd = $config_body;
+     }
+
+    $exec_cmd = _parse($exec_cmd, \%DEFAULT_VALUE, \%DEFAULT_DESCRIBE); 
+    my $exec_file = '';
+ 
+    if ($exec_cmd =~ /(\S+)/) {
+    	$exec_file = $1;
+     }
+  
+
+    if (! -x $exec_file ) {
+    	print "File '$exec_file' not exist or not executeble\n";
+    	return 0;
+     }
+
+    my $res = `$exec_cmd`;
    	print "RESULT: $res\n" if ($debug > 1);
+   	if ($exec_params_name ne '') {
+   		$DEFAULT_VALUE{$exec_params_name}=$res;
+   	 }
+   	
     next;
    } 
  	elsif ($file =~ /^:(\S{0,100}):(.+) (>{1,2}) +\[(\S+)\]\/(.+)/) {
@@ -363,7 +390,7 @@ sub check_install {
     if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
       #If result is file
       if ($value =~ /^FILE=(\S+)/) {
-      	$config_body = get_file($Bin."/$program/".$1);
+      $config_body = get_file($DEFAULT_VALUE{WORK_DIR}."/$program/".$1);
        }
       else {
       	$config_body = "$value\n";
@@ -383,37 +410,14 @@ sub check_install {
  	  $folder = $3;
  	  $dest   = $4;
 
-    $config_body = get_file($Bin."/$program/$config");
+    $config_body = get_file($conf{WORK_DIR}."/$program/$config");
    }
   else {
  	  next;
    }
 
    
-   while($config_body =~ /%([A-Z\_0-9]+)%/g) {
-   	 my $VARIABLE = $1;
-   	 if (! $conf{$VARIABLE}) {
-   	   print $DEFAULT_DESCRIBE{"$VARIABLE"}."\n" if ($DEFAULT_DESCRIBE{"$VARIABLE"});
-   	   print " $VARIABLE";
-   	   print ' ['. $DEFAULT_VALUE{"$VARIABLE"}. ']' if ($DEFAULT_VALUE{"$VARIABLE"});
-   	   print ": ";
-   	   my $read = '';
-       chop($read = <STDIN>);
-       $read =~ s/^\s*//;
-       $read =~ s/\s*$//;
-       #print "$VARIABLE  / $read\n";
- 	     if ($read eq '' && $DEFAULT_VALUE{"$VARIABLE"}) {
- 	     	 $conf{$VARIABLE} = $DEFAULT_VALUE{"$VARIABLE"};
- 	      }
- 	     else {
- 	       $conf{$VARIABLE}=$read;
- 	      }
- 	    }
-    }
-   
-    while(my($key, $val) = each %conf) {
-      $config_body =~ s/%$key%/$val/g;
-     }
+  $config_body = _parse($config_body, \%DEFAULT_VALUE, \%DEFAULT_DESCRIBE); 
 
  	  #Copy config
     if (! -d $folder ) {
@@ -572,3 +576,42 @@ sub make_checksum {
   undef $db;
   untie %hash ;
 }
+
+#**********************************************************
+# Parse parameters
+#**********************************************************
+sub _parse {
+  my( $parameter, 
+      $DEFAULT_VALUE,
+      $DEFAULT_DESCRIBE ) = @_;
+
+  while($parameter =~ /%([A-Z\_0-9]+)%/g) {
+   	 my $VARIABLE = $1;
+   	 if (! $conf{$VARIABLE}) {
+   	   print $DEFAULT_DESCRIBE->{"$VARIABLE"}."\n" if ($DEFAULT_DESCRIBE->{"$VARIABLE"});
+   	   print " $VARIABLE";
+   	   print ' ['. $DEFAULT_VALUE->{"$VARIABLE"}. ']' if (defined($DEFAULT_VALUE->{"$VARIABLE"}));
+   	   print ": ";
+   	   my $read = '';
+       chop($read = <STDIN>);
+       $read =~ s/^\s*//;
+       $read =~ s/\s*$//;
+       #print "$VARIABLE  / $read\n";
+ 	     if ($read eq '' && defined($DEFAULT_VALUE->{"$VARIABLE"})) {
+ 	     	 $conf{$VARIABLE} = $DEFAULT_VALUE->{"$VARIABLE"};
+ 	      }
+ 	     else {
+ 	       $conf{$VARIABLE}=$read;
+ 	      }
+ 	    }
+    }
+   
+    while(my($key, $val) = each %conf) {
+      $parameter =~ s/%$key%/$val/g;
+     }
+ 
+  return $parameter;
+}
+
+
+1

@@ -2299,7 +2299,7 @@ sub dv_daily_fees {
              ACCOUNT_ID => $u->[8],
              UID        => $u->[7],
              BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
-             REDUCTION  => $reduction
+             REDUCTION  => $u->[14]
            );
 
         if ($u->[13] > 0 && defined($u->[2])) {
@@ -2331,7 +2331,7 @@ sub dv_daily_fees {
                	 print "\n";
                	}
                elsif($debug > 1) {
-                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $reduction\n";
+                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                 }
               }
            }

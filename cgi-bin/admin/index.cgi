@@ -1292,12 +1292,6 @@ if ($FORM{debs}) {
 
 my $list = $users->list( { %LIST_PARAMS } );
 
-my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-');
-for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++){
-	push @TITLE, '-';
-	$TITLE[5+$i] = "$_SEARCH";
-}
-
 if ($users->{errno}) {
   $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
   return 0;
@@ -1305,16 +1299,28 @@ if ($users->{errno}) {
 elsif ($users->{TOTAL} == 1) {
 	$FORM{index} = 15;
 	$FORM{UID}=$list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
-	form_users({  USER => user_info($list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}], { %FORM }) });
+	form_users({  USER => user_info($list->[0]->[5 + $users->{SEARCH_FIELDS_COUNT}], { %FORM }) });
 	return 0;
 }
+
+
+my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-');
+for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++) {
+	push @TITLE, '-';
+	$TITLE[5+$i] = "$_SEARCH";
+}
+
+if ($conf{EXT_BILL_ACCOUNT}) {
+	$TITLE[5] = "$_EXTRA $_DEPOSIT";
+}
+
 
 
 #User list
 my $table = $html->table( { width      => '100%',
                             caption    => $_USERS,
                             title      => \@TITLE,
-                            cols_align => ['left', 'left', 'right', 'right', 'center', 'center:noprint', 'center:noprint'],
+                            cols_align => ['left', 'left', 'right', 'right', 'center', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $users->{TOTAL},
                             header     => ($permissions{0}{7}) ? "<script language=\"JavaScript\" type=\"text/javascript\">

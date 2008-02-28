@@ -12,9 +12,12 @@
 :DEFAULT:MPD_NETFLOW_SOURCE_PORT=9990:port binding to make NetFlow datagrams originate from a specific source.
 :DEFAULT:MPD_CONTROL_PASSWORD=secret:PPP control password
 :DEFAULT:FOR_RADIUS_IP=127.0.0.1:Ip address for radius server request
+:DEFAULT:FIRST_INTERFACE=0:First interface number
+:DEFAULT:INTERFACE_COUNT=100:Create interfaces
+:DEFAULT:INTERFACE_TYPE=pptp:Interface type pptp, l2tp
+:OS=FREEBSD:exec:INTERFACES=%WORK_DIR%/mpd/if_create.sh -conf -s %FIRST_INTERFACE% -c %INTERFACE_COUNT% -t %INTERFACE_TYPE%
 mpd.conf           > [/usr/local/etc/mpd4]/mpd.conf
-#:TUNEL_TYPE=L2TP:mpd_l2tp.conf > [/usr/local/etc/mpd4]/mpd.conf
-#mpd_l2tp.conf > [/usr/local/etc/mpd4]/mpd.conf
+:OS=FREEBSD:exec:IF_LINKS=%WORK_DIR%/mpd/if_create.sh -links -s %FIRST_INTERFACE% -c %INTERFACE_COUNT% -t %INTERFACE_TYPE%
 mpd.links          > [/usr/local/etc/mpd4]/mpd.links
 :OS=FREEBSD:mpd_enable="YES"  >> [/etc]/rc.conf
 #radius.conf        > [/etc]/radius.conf

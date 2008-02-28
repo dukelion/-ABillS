@@ -463,6 +463,8 @@ sub list {
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+ my $EXT_TABLES = '';
+
  $self->{SEARCH_FIELDS} = '';
  $self->{SEARCH_FIELDS_COUNT}=0;
 
@@ -482,6 +484,19 @@ sub list {
     push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
   }
  
+ if ($CONF->{EXT_BILL_ACCOUNT}) {
+    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL, ext_b.deposit, ext_cb.deposit), ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+    if ($attr->{EXT_BILL_ID}) {
+      my $value = $self->search_expr($attr->{EXT_BILL_ID}, 'INT');
+      push @WHERE_RULES, "if(company.id IS NULL, ext_b.id, ext_cb.id)$value";
+     }
+    $EXT_TABLES = "
+            LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
+            LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
+  }
+
+
 
  if ($attr->{PHONE}) {
     my $value = $self->search_expr($attr->{PHONE}, 'INT');
@@ -553,7 +568,6 @@ sub list {
     $self->{SEARCH_FIELDS} .= 'pi.zip, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
-
 
 
  if ($attr->{CONTRACT_ID}) {
@@ -661,7 +675,8 @@ sub list {
 
    
     $self->query($db, "SELECT u.id, 
-       pi.fio, if(company.id IS NULL, b.deposit, cb.deposit), u.credit, u.disable, 
+       pi.fio, 
+       if(company.id IS NULL, b.deposit, cb.deposit), u.credit, u.disable, 
        $self->{SEARCH_FIELDS}
        u.uid, 
        u.company_id, 
@@ -676,6 +691,7 @@ sub list {
      LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     $EXT_TABLES
      GROUP BY u.uid     
      $HAVING 
 
@@ -717,6 +733,7 @@ sub list {
      LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     $EXT_TABLES
      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  return $self if($self->{errno});
@@ -731,6 +748,7 @@ sub list {
      LEFT JOIN bills b ON u.bill_id = b.id
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     $EXT_TABLES
     $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
