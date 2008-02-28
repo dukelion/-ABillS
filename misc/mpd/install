@@ -2,6 +2,7 @@
 :DEFAULT:RADIUS_AUTH_PORT=1812:Radius auth port
 :DEFAULT:RADIUS_ACCT_SERVER=127.0.0.1:Radius accounting ip
 :DEFAULT:RADIUS_ACCT_PORT=1813:Radius accounting port
+:DEFAULT:RAD_ACCT_ALIVE=300:Radius Alive period. Recomended 300 sec
 :DEFAULT:MPD_CONSOLE_IP=127.0.0.1:Mpd console IP
 :DEFAULT:MPD_CONSOLE_PORT=5005:Mpd console port
 :DEFAULT:MPD_CONSOLE_USER=admin:Mpd console user
