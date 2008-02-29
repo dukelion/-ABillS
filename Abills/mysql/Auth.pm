@@ -213,7 +213,7 @@ if ($self->{PAYMENT_TYPE} == 0) {
   $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
 
   #Check EXT_BILL_ACCOUNT
-  if ($self->{EXT_BILL_ACCOUNT}) {
+  if ($self->{EXT_BILL_ACCOUNT} &&  $self->{EXT_BILL_DEPOSIT} < 0) {
   	$self->{DEPOSIT} = $self->{EXT_BILL_DEPOSIT}+$self->{CREDIT};
    }
 
