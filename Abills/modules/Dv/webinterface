@@ -2361,7 +2361,7 @@ sub dv_monthly_fees {
 
  my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
- $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
+ $debug_output .= "Monthly pariodic payments\n" if ($debug > 1);
 
  use Users;
  my $users = Users->new($db, $admin, \%conf); 
@@ -2379,9 +2379,10 @@ sub dv_monthly_fees {
  	 my $TP_ID = $line->[0];
  	 if ($line->[6] > 0) {
  	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL_ID: $line->[13]\n" if ($debug > 1);
+	   #$Dv->{debug}=1;
 	   my $ulist = $Dv->list({ 
-         ACTIVATE   => ">=$ADMIN_REPORT{DATE}",
-         EXPIRE     => "<$ADMIN_REPORT{DATE}",
+         ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
+         EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
          DISABLE    => '0',
          TP_ID      => $TP_ID,
          SORT       => 1,
@@ -2410,7 +2411,6 @@ sub dv_monthly_fees {
             $sum = $sum * (100 - $user{REDUCTION}) / 100;
            }
 
-          
           
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
           if($line->[4] == 1 || $u->[2] + $u->[3] > 0 || $line->[12] == 1) {
@@ -2441,7 +2441,7 @@ sub dv_monthly_fees {
                  }
                 else {
                   $fees->take(\%user, $sum, { %PARAMS } );
-                  $debug_output .= " $u->[0] UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
+                  $debug_output .= " $u->[0] UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} CHANGE ACTIVATE\n" if ($debug > 0);
                   if ($fees->{errno}) {
                   	print "Error: [$fees->{errno}] $fees->{errstr} ";
                   	if ($fees->{errno} == 14 ) {
