@@ -494,13 +494,13 @@ sub list {
 
 #Activate
  if ($attr->{ACTIVATE}) {
-   #my $value = $self->search_expr("$attr->{ACTIVATE}", 'INT');
+   my $value = $self->search_expr("$attr->{ACTIVATE}", 'INT');
    push @WHERE_RULES, "(u.activate='0000-00-00' or u.activate$attr->{ACTIVATE})"; 
  }
 
 #Expire
  if ($attr->{EXPIRE}) {
-   #my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
+   my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
    push @WHERE_RULES, "(u.expire='0000-00-00' or u.expire$attr->{EXPIRE})"; 
  }
 

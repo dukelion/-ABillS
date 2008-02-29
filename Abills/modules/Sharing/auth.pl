@@ -271,7 +271,7 @@ if ($sth->rows() > 0) {
   # Payment traffic
   if ($priority == 0) {
   	#Get prepaid traffic and price
-  	my $WHERE = ($activate ne  '0000-00-00'  ) ? " and DATE_FORMAT(start, '%Y-%m-%d')": "";
+  	my $WHERE = ($activate ne  '0000-00-00'  ) ? " and DATE_FORMAT(start, '%Y-%m-%d')>='$activate'": "";
     $sth = $dbh->prepare( "SELECT prepaid, in_price, out_price, prepaid, in_speed, out_speed
      FROM sharing_trafic_tarifs 
      WHERE tp_id='$tp_id'
@@ -311,7 +311,7 @@ if ($sth->rows() > 0) {
       return 0;
      }
 
-    my $sde = `echo "$ENV{USER} / FILESIZE: $size / $prepaid_traffic - $used_traffic / $extra_trafic;" >> /tmp/rrr`;
+    my $sde = `echo "$ENV{USER} / FILESIZE: $size / $prepaid_traffic - $used_traffic / $extra_trafic; $query" >> /tmp/rrr`;
 
     if ($prepaid_traffic > 0) {
       $rest_traffic = $prepaid_traffic - $used_traffic;
@@ -322,7 +322,7 @@ if ($sth->rows() > 0) {
      }
 
     if ($size > $rest_traffic) {
- 	    $MESSAGE = "[$user] Download file too large (Rest: $rest_traffic b) - Rejected\n";
+ 	    $MESSAGE = "[$user] Download file too large (Size: $size Rest: $rest_traffic b) - Rejected\n";
       return 0;
      }
 
