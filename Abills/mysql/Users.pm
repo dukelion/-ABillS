@@ -103,7 +103,7 @@ sub info {
    if(c.name IS NULL, 'N/A', c.name), 
    if(c.name IS NULL, 0, c.vat),
    if(c.name IS NULL, b.uid, cb.uid),
-   if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id)
+   if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id),
    $password
      FROM users u
      LEFT JOIN bills b ON (u.bill_id=b.id)
