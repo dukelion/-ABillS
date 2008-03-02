@@ -4192,16 +4192,9 @@ sub form_templates {
   
   
   my $sys_templates = '../../Abills/modules';
+  my $main_templates_dir = '../../Abills/main_tpls/';
   my $template = '';
   my %info = ();
-
-
-  my %main_templates = ('user_warning' => USER_WARNING,
-                        'invoce'       => INVOCE,
-                        'admin_report' => ADMIN_REPORT,
-                        'account'      => ACCOUNT,
-                        'user_info'    => USER_INFO);
-
 
 $info{ACTION_LNG}=$_CHANGE;
 
@@ -4210,9 +4203,10 @@ if ($FORM{create}) {
    my ($module, $file)=split(/:/, $FORM{create}, 2);
    $info{TPL_NAME} = "$module"._."$file";
   
+   my $filename = ($module) ? "$sys_templates/$module/templates/$file" : "$main_templates_dir/$file";
  
-   if (-f  "$sys_templates/$module/templates/$file" ) {
-	  open(FILE, "$sys_templates/$module/templates/$file") || $html->message('err', $_ERROR, "Can't open file '$sys_templates/$module/templates/$file' $!\n");;
+   if (-f  $filename ) {
+	  open(FILE, $filename) || $html->message('err', $_ERROR, "Can't open file '$filename' $!\n");;
   	  while(<FILE>) {
 	    	$info{TEMPLATE} .= $_;
 	    }	 
@@ -4225,25 +4219,32 @@ elsif ($FORM{SHOW}){
   my ($module, $file)=split(/:/, $FORM{SHOW}, 2);
   $file =~ s/.tpl//;
 
-  $prefix = '';
-  my $realfilename = "$prefix/Abills/modules/$module/lng_$html->{language}.pl";
-  my $lang_file;
-  my $prefix = '../..';
-  if (-f $realfilename) {
-    $lang_file =  $realfilename;
-   }
-  elsif (-f "$prefix/Abills/modules/$module/lng_english.pl") {
-   	$lang_file = "$prefix/Abills/modules/$module/lng_english.pl";
-   }
+  if ($module) {
+    my $realfilename = "$prefix/Abills/modules/$module/lng_$html->{language}.pl";
+    my $lang_file;
+    my $prefix = '../..';
+    if (-f $realfilename) {
+      $lang_file =  $realfilename;
+     }
+    elsif (-f "$prefix/Abills/modules/$module/lng_english.pl") {
+   	  $lang_file = "$prefix/Abills/modules/$module/lng_english.pl";
+     }
 
-  if ($lang_file ne '') {
-    require $lang_file;
+    if ($lang_file ne '') {
+      require $lang_file;
+     }
    }
-
   
   
-  print "<center>"; 
-  $html->tpl_show(_include("$file", "$module"), { LNG_ACTION => $_ADD },  ); 
+  print "<center>";
+
+  if ($module) {
+    $html->tpl_show(_include("$file", "$module"), { LNG_ACTION => $_ADD },  ); 
+   }
+  else {
+    $html->tpl_show(templates("$file"), { LNG_ACTION => $_ADD }, );  	
+   } 
+
   print "</center>\n";
 	
 	return 0;
@@ -4283,7 +4284,7 @@ elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
   else {
   	$html->message('del', $_DELETED, "$_ERROR");
    }
-}
+ }
 elsif($FORM{tpl_name}) {
   if (-f  "$conf{TPL_DIR}/$FORM{tpl_name}" ) {
 	  open(FILE, "$conf{TPL_DIR}/$FORM{tpl_name}") || $html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");;
@@ -4319,14 +4320,54 @@ print << "[END]";
 
 
 my $table = $html->table( { width       => '600',
-                            title_plain => ["FILE", "$_SIZE", "-", "-", "-"],
-                            cols_align  => ['left', 'left', 'center', 'center', 'center']
+                            title_plain => ["FILE", "$_SIZE (Byte)", "$_DATE", "$_DESCRIBE",  "-", "-", "-"],
+                            cols_align  => ['left', 'right', 'right', 'left', 'center', 'center']
                          } );
 
+use POSIX qw(strftime);
 
-foreach my $module (@MODULES) {
+
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='7' class='small'";
+$table->addrow("$_PRIMARY: ($main_templates_dir) ");
+if (-d $main_templates_dir ) {
+    opendir DIR, "$main_templates_dir" or die "Can't open dir '$sys_templates/main_tpls' $!\n";
+      my @contents = grep  !/^\.\.?$/  , readdir DIR;
+    closedir DIR;
+
+    $table->{rowcolor}=undef;
+    $table->{extra}=undef;
+
+    foreach my $file (sort @contents) {
+      next if (-d "$main_templates_dir".$file);
+
+      ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+        $blksize,$blocks);
+
+      if (-f "$conf{TPL_DIR}/$module"."_$file") {
+        ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+         $blksize,$blocks)=stat("$conf{TPL_DIR}/$module"."_$file");
+        $mtime = strftime "%Y-%m-%d", localtime($mtime);
+       }
+      else {
+ 	      ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+         $blksize,$blocks)=stat("$main_templates_dir".$file);
+        $mtime = strftime "%Y-%m-%d", localtime($mtime);
+       }
+
+      
+      $table->addrow("$file", $size, $mtime, $describe,
+         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }),
+         (-f "$conf{TPL_DIR}/_$file") ? $html->button($_CHANGE, "index=$index&tpl_name="."_$file") : $html->button($_CREATE, "index=$index&create=:$file"),
+         (-f "$conf{TPL_DIR}/_$file") ? $html->button($_DEL, "index=$index&del=". "_$file", { MESSAGE => "$_DEL \\'$file\\'" }) : '');
+     }
+
+ }
+
+
+foreach my $module (sort @MODULES) {
 	$table->{rowcolor}=$_COLORS[0];
-	$table->{extra}="colspan='5' class='small'";
+	$table->{extra}="colspan='7' class='small'";
 	
 	$table->addrow("$module ($sys_templates/$module/templates)");
 	if (-d "$sys_templates/$module/templates" ) {
@@ -4336,11 +4377,24 @@ foreach my $module (@MODULES) {
     $table->{rowcolor}=undef;
     $table->{extra}=undef;
 
-    foreach my $file (@contents) {
+    foreach my $file (sort @contents) {
       next if (-d "$sys_templates/$module/templates/".$file);
 
-      my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$sys_templates/$module/templates/".$file);
-      $table->addrow("$file", $size, 
+      my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+        $blksize,$blocks);
+
+      if (-f "$conf{TPL_DIR}/$module"."_$file") {
+        ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+         $blksize,$blocks)=stat("$conf{TPL_DIR}/$module"."_$file");
+        $mtime = strftime "%Y-%m-%d", localtime($mtime);
+       }
+      else {
+ 	      ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+         $blksize,$blocks)=stat("$sys_templates/$module/templates/".$file);
+        $mtime = strftime "%Y-%m-%d", localtime($mtime);
+       }
+
+      $table->addrow("$file", $size, $mtime, $describe,
          $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }),
          (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_CHANGE, "index=$index&tpl_name=$module"."_$file") : $html->button($_CREATE, "index=$index&create=$module:$file"),
          (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file" }) : '');

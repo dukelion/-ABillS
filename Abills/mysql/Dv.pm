@@ -104,7 +104,10 @@ sub info {
    dv.disable,
    dv.callback,
    dv.port,
-   tp.gid
+   tp.gid,
+   tp.month_fee,
+   tp.postpaid_fee,
+   tp.payment_type
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
    $WHERE;");
@@ -128,7 +131,10 @@ sub info {
    $self->{DISABLE},
    $self->{CALLBACK},
    $self->{PORT},
-   $self->{TP_GID}
+   $self->{TP_GID},
+   $self->{MONTH_ABON},
+   $self->{POSTPAID_ABON}, 
+   $self->{PAYMENT_TYPE}
   )= @{ $self->{list}->[0] };
   
   

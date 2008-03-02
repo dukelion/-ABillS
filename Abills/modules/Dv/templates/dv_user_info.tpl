@@ -10,6 +10,7 @@
 <tr bgcolor='$_COLORS[1]'><td>$_SPEED (kb):</td><td>%SPEED%</td></tr>
 <tr bgcolor='$_COLORS[1]'><td>CID:</td><td>%CID%</td></tr>
 <tr bgcolor='$_COLORS[1]'><td>$_STATUS:</td><td>%STATUS%</td></tr>
+<tr bgcolor='$_COLORS[1]'><td>$_ABON:</td><td>%ABON_DATE%</td></tr>
 </table>
 
 </td></tr>

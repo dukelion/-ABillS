@@ -311,16 +311,16 @@ sub dv_user {
     $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
    }
 
-  my $user = $Dv->info($Dv->{UID});
+  $Dv->info($Dv->{UID});
 
-  if($user->{TOTAL} < 1) {
+  if($Dv->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
 	  $Dv = $Dv->defaults();
 	  
 	  
     $Dv->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
- 	                                          SELECTED          => $user->{TP_ID},
+ 	                                          SELECTED          => $Dv->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
@@ -335,11 +335,34 @@ sub dv_user {
 	  $Dv->{ACTION}='set';
 	  $Dv->{LNG_ACTION}=$_CHANGE;
 	  $Dv->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. ($index + 1)) .']';
+
+    # Get next payment period
+    if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{DISABLE} && ! $users->{DISABLE} &&
+        ($users->{DEPOSIT} > 0 || 
+         $Dv->{POSTPAID_ABON} || 
+         $Dv->{PAYMENT_TYPE} == 1 )) {
+      if ($users->{ACTIVATE} ne '0000-00-00') {
+        my ($Y, $M, $D)=split(/-/, $users->{ACTIVATE}, 3);
+        $M--;
+        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400) );
+       }
+      else {
+        my ($Y, $M, $D)=split(/-/, $DATE, 3);
+        $M++;
+        if ($M == 13) {
+          $M = 1;
+          $Y++;
+         }
+        $D='01';
+        $M = sprintf("%02.d", $M);
+        $Dv->{ABON_DATE} = "$Y-$M-$D";
+       }
+      }
 	} 
 
-  $user->{DISABLE}=($user->{DISABLE} == 1) ? ' checked' : '';
-  $user->{CALLBACK}=($user->{CALLBACK} == 1) ? ' checked' : '';
-  $Dv->{REGISTRATION_INFO}=$html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1");
+  $Dv->{DISABLE}          = ($Dv->{DISABLE} == 1) ? ' checked' : '';
+  $Dv->{CALLBACK}         = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
+  $Dv->{REGISTRATION_INFO}= $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1");
   
   
   $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
@@ -2094,6 +2117,7 @@ if ($FORM{set}) {
       }
     
     my $seltime = POSIX::mktime(0, 0, 0, $D, $M, ($Y - 1900));
+
     if ($seltime > time()) {
       $shedule->add( {UID     => $LIST_PARAMS{UID},
                    TYPE     => 'tp',
@@ -2221,9 +2245,9 @@ elsif($FORM{del}) {
 # dv_user_info
 #**********************************************************
 sub dv_user_info {
-  my $user = $Dv->info($LIST_PARAMS{UID});
+  $Dv->info($LIST_PARAMS{UID});
   
-  if ($user->{TOTAL} < 1) {
+  if ($Dv->{TOTAL} < 1) {
   	$html->message('info', $_INFO, "$_NOT_ACTIVE");
     return 0;	
   }
@@ -2232,6 +2256,30 @@ sub dv_user_info {
   if ($conf{DV_USER_CHG_TP}) {
     $Dv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid );
    }
+
+  # Get next payment period
+  if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{DISABLE} && ! $user->{DISABLE} &&
+        ($user->{DEPOSIT} > 0 || 
+         $Dv->{POSTPAID_ABON} || 
+         $Dv->{PAYMENT_TYPE} == 1 )) {
+    if ($user->{ACTIVATE} ne '0000-00-00') {
+      my ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
+      $M--;
+      $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400) );
+     }
+    else {
+      my ($Y, $M, $D)=split(/-/, $DATE, 3);
+      $M++;
+      if ($M == 13) {
+        $M = 1;
+        $Y++;
+       }
+      $D='01';
+      $M = sprintf("%02.d", $M);
+      $Dv->{ABON_DATE} = "$Y-$M-$D";
+     }
+  }
+
   $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
 }
 
