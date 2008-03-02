@@ -148,7 +148,7 @@ if ($uid > 0) {
     $LIST_PARAMS{LOGIN}=$user->{LOGIN};
     ipn_user_activate();
     $OUTPUT{BODY}=$html->{OUTPUT};    
-    print $html->tpl_show(templates('users_start'), \%OUTPUT);
+    print $html->tpl_show(templates('form_client_start'), \%OUTPUT);
  	  exit;
    }
   
