@@ -3116,12 +3116,13 @@ if (defined($FORM{DATE})) {
   	                            caption    => "$_FEES", 
                                 title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT],
                                 cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
-                                qs         => $pages_qs
+                                qs         => $pages_qs,
+                                ID         => 'REPORT_FEES'
                                });
 
   foreach my $line (@$list) {
    $table_fees->addrow($html->b($line->[0]), 
-     $html->button($line->[1], "index=15&subf=3&DATE=$line->[0]&UID=$line->[8]"),  
+     $html->button($line->[1], "index=15&subf=3&DATE=$line->[0]&UID=$line->[9]"),  
       $line->[2],
       $line->[3], 
       $line->[4],  
@@ -3220,12 +3221,12 @@ if (defined($FORM{DATE})) {
                           title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT],
                           cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
                           qs         => $pages_qs,
-                          ID         => 'PAYMENTS'
+                          ID         => 'REPORT_PAYMENTS'
                          });
 
   foreach my $line (@$list) {
    $table->addrow($html->b($line->[0]), 
-      $html->button($line->[1], "index=15&DATE=$LIST_PARAMS{DATE}&UID=$line->[10]"),  
+      $html->button($line->[1], "index=15&DATE=$LIST_PARAMS{DATE}&UID=$line->[11]"),  
       $line->[2],
       $line->[3], 
       $line->[4],  
@@ -3663,7 +3664,7 @@ my $table = $html->table( { width      => '100%',
                             ID         => 'PAYMENTS'
                            } );
 
-$pages_qs .= "&subf=2" if (! $FORM{subf});
+my $pages_qs .= "&subf=2" if (! $FORM{subf});
 
 foreach my $line (@$list) {
   my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[11]$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
