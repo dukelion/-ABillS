@@ -346,7 +346,8 @@ sub cards_add {
  }
 
   $Cards->{DILLERS_SEL} = cards_dillers_sel();
-	$Cards->{CARDS_TYPE}=$html->tpl_show(_include('cards_payment', 'Cards'), $Cards, { notprint => 'y' });
+	$Cards->{CARDS_TYPE}=$html->tpl_show(_include('cards_payment', 'Cards'), $Cards, { notprint => 1 });
+	$Cards->{TYPE_CAPTION}=$_PAYMENTS;
 	$html->tpl_show(_include('cards_add', 'Cards'), $Cards);
 }
 
