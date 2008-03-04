@@ -30,6 +30,7 @@ $VERSION = 2.00;
   &test_radius_returns
   &sendmail
   &in_array
+  &tpl_parse
  );
 
 @EXPORT_OK = ();
@@ -706,5 +707,19 @@ sub test_radius_returns {
 #  log_print('LOG_DEBUG', "$test");
   return $test;
 }
+
+#**********************************************************
+# tpl_parse($string, \%HASH_REF);
+#**********************************************************
+sub tpl_parse {
+	my ($string, $HASH_REF) = @_;
+	
+	while(my($k, $v)= each %$HASH_REF) {
+		$string =~ s/\%$k\%/$v/g;   
+	 }
+
+	return $string;
+}
+
 
 1;
