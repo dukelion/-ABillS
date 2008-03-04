@@ -75,7 +75,6 @@ sub dhcphosts_mac_block_show {
 	       }
 
         #Deny
-
 	      if ($status == 1 || ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[14] <= 0)) {
 	        $ethers_content .= "$ip $line->[6] # $line->[1] $pair_status[1]";
 	       }
@@ -312,9 +311,12 @@ sub dhcphosts_networks {
 	   }
 	 }
   elsif ($FORM{change}) {
-	  $FORM{MASK} = ip2int($FORM{MASK});
-	  $FORM{NETWORK} = ip2int($FORM{NETWORK});
-    $FORM{ROUTERS} = ip2int($FORM{ROUTERS});
+	  $FORM{MASK}           = ip2int($FORM{MASK});
+	  $FORM{NETWORK}        = ip2int($FORM{NETWORK});
+    $FORM{ROUTERS}        = ip2int($FORM{ROUTERS});
+	  $FORM{IP_RANGE_FIRST} = ip2int($FORM{IP_RANGE_FIRST});
+    $FORM{IP_RANGE_LAST}  = ip2int($FORM{IP_RANGE_LAST});
+
 
 	  $Dhcphosts->network_change({ %FORM });
     
@@ -345,7 +347,10 @@ sub dhcphosts_networks {
 
 
    $Dhcphosts->{DISABLE}=' checked' if($Dhcphosts->{DISABLE});
-   $html->tpl_show(_include('dhcphosts_network', 'Dhcphosts'), $Dhcphosts);
+   my $net_defaults = $Dhcphosts->network_defaults();
+   
+   
+   $html->tpl_show(_include('dhcphosts_network', 'Dhcphosts'), { %$net_defaults, %$Dhcphosts });
    my $list = $Dhcphosts->networks_list({ %LIST_PARAMS });
 
    my $table = $html->table( { width      => '100%',
@@ -659,7 +664,6 @@ sub dhcphosts_config {
    }
 
   my %INFO = ();
-
 #  my @networks = split(/, /, $attr->{NETWORKS});
 #foreach my $NET_ID (@networks) {
   my $list = $Dhcphosts->networks_list({ DISABLE => 0 });  
@@ -682,7 +686,9 @@ foreach my $line (@$list) {
   $INFO{NETWORK}      = $Dhcphosts->{NETWORK};
   $INFO{NETWORK_MASK} = $Dhcphosts->{MASK};
   $INFO{DESCRIBE}     = $Dhcphosts->{NAME};
-
+  if ($Dhcphosts->{IP_RANGE_FIRST} ne '0.0.0.0') {
+    $INFO{RANGE}        = "range $Dhcphosts->{IP_RANGE_FIRST} $Dhcphosts->{IP_RANGE_LAST};";
+   }
 
   #Add static route
   my $list = $Dhcphosts->routes_list({ NET_ID => $NET_ID });  
@@ -753,7 +759,7 @@ if ($attr->{reconfig} || $FORM{reconfig} ) {
   
   my $tpl = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), 
                             \%INFO, 
-                            { notprint => 'yes' }
+                            { notprint => 1 }
                            );	 
 
 	open(FILE, ">$conf{DHCPHOSTS_CONFIG}") || print "Can't open file '$conf{DHCPHOSTS_CONFIG}' $!";
