@@ -1,13 +1,14 @@
-# Create %DATETIME%
+# Create by ABillS DATE: %DATETIME%
 #
-#option domain-name %DOMAINNAME%;
-#option domain-name-servers %DNS%;
 default-lease-time 86400;
 max-lease-time 172800;
 ddns-update-style none;
 lease-file-name \"/var/db/dhcpd/dhcpd.leases\";
+%DNS%
+%DOMAINNAME%
 
 
+#Static route
 option ms-classless-static-routes code 249 = array of integer 8;
 option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;
 log-facility local7;
