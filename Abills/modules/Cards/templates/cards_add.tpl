@@ -2,7 +2,7 @@
 <input type='hidden' name='index' value='$index'>
 
 <table>
-<tr bgcolor='$_COLORS[0]'><th colspan=2>$_SERIAL:</th></tr>
+<tr bgcolor='$_COLORS[0]' align='right'><th colspan=2>$_ICARDS : %TYPE_CAPTION%</th></tr>
 <tr><td>$_SERIAL:</td><td><input type='text' name='SERIAL' value='%SERIAL%'></td></tr>
 <tr><td>$_BEGIN:</td><td><input type=text name='BEGIN' value='%BEGIN%'></td></tr>
 <tr><td>$_COUNT:</td><td><input type=text name='COUNT' value='%COUNT%'></td></tr>
