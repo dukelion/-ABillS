@@ -85,6 +85,34 @@ sub routes_list {
 };
 
 
+#**********************************************************
+# host_defaults()
+#**********************************************************
+sub network_defaults {
+  my $self = shift;
+
+  my %DATA = (
+   ID              => '0',
+   NAME            => 'DHCP_NET',
+   NETWORK         => '0.0.0.0',   
+   MASK            => '255.555.555.0',
+   BLOCK_NETWORK   =>  0,
+   BLOCK_MASK      =>  0,
+   DOMAINNAME      => '',
+   DNS             => '',
+   COORDINATOR     => '',
+   PHONE           => '',
+   ROUTERS         => '',
+   DISABLE         => 0,
+   IP_RANGE_FIRST  => '0.0.0.0',
+   IP_RANGE_LAST   => '0.0.0.0'
+  );
+
+ 
+  $self = \%DATA;
+  return $self;
+}
+
 
 #**********************************************************
 # network_add()
@@ -95,10 +123,14 @@ sub network_add {
   
 
   $self->query($db,"INSERT INTO dhcphosts_networks 
-     (name,network,mask, routers, coordinator, phone, dns, suffix, disable) 
+     (name,network,mask, routers, coordinator, phone, dns, suffix, disable,
+      ip_range_first, ip_range_last) 
      VALUES('$attr->{NAME}', INET_ATON('$attr->{NETWORK}'), INET_ATON('$attr->{MASK}'), INET_ATON('$attr->{ROUTERS}'),
        '$attr->{COORDINATOR}', '$attr->{PHONE}', '$attr->{DNS}', '$attr->{DOMAINNAME}',
-       '$attr->{DISABLE}')", 'do');
+       '$attr->{DISABLE}',
+       INET_ATON('$attr->{IP_RANGE_FIRST}'),
+       INET_ATON('$attr->{IP_RANGE_LAST}')
+       )", 'do');
 
   return $self;
 }
@@ -125,19 +157,20 @@ sub network_change {
 
  
  my %FIELDS = (
-   ID            => 'id',
-   NAME          => 'name',
-   NETWORK       => 'network',   
-   MASK          => 'mask',
-   BLOCK_NETWORK => 'block_network',
-   BLOCK_MASK    => 'block_mask',
-   DOMAINNAME    => 'suffix',
-   DNS           => 'dns',
-   COORDINATOR   => 'coordinator',
-   PHONE         => 'phone',
-   ROUTERS       => 'routers',
-   DISABLE       => 'disable'
-
+   ID              => 'id',
+   NAME            => 'name',
+   NETWORK         => 'network',   
+   MASK            => 'mask',
+   BLOCK_NETWORK   => 'block_network',
+   BLOCK_MASK      => 'block_mask',
+   DOMAINNAME      => 'suffix',
+   DNS             => 'dns',
+   COORDINATOR     => 'coordinator',
+   PHONE           => 'phone',
+   ROUTERS         => 'routers',
+   DISABLE         => 'disable',
+   IP_RANGE_FIRST  => 'ip_range_first',
+   IP_RANGE_LAST   => 'ip_range_last'
    );
 
 	$self->changes($admin, { CHANGE_PARAM => 'ID',
@@ -171,7 +204,9 @@ sub network_info {
    dns,
    coordinator,
    phone,
-   disable
+   disable,
+   INET_NTOA(ip_range_first),
+   INET_NTOA(ip_range_last)
   FROM dhcphosts_networks
 
   WHERE id='$id';");
@@ -193,7 +228,9 @@ sub network_info {
    $self->{DNS},
    $self->{COORDINATOR},
    $self->{PHONE},
-   $self->{DISABLE}
+   $self->{DISABLE},
+   $self->{IP_RANGE_FIRST},
+   $self->{IP_RANGE_LAST}
    ) = @{ $self->{list}->[0] };
     
     
