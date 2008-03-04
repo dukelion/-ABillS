@@ -1,4 +1,14 @@
 =====0.40=====
+04.03.2008
+  * в модуле Dhcphosts добавлена возможность задавать автоматически выдаваемые адреса для сети.
+  * Удалена опция $conf{DHCPHOSTS_IPGUARD_TYPE}=""; . Добавлено две новые опции $conf{DHCPHOSTS_IPGUARD_DENY_TPL}=””; $conf{DHCPHOSTS_IPGUARD_ACCEPT_TPL}=””;
+
+
+MySQL
+  ALTER TABLE dhcphosts_networks ADD COLUMN `ip_range_first` int(11) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE dhcphosts_networks ADD COLUMN  `ip_range_last` int(11) unsigned NOT NULL DEFAULT '0';
+
+
 02.03.2008
   * Улутшен редактор шаблонов (/ System configuration/ MISC/ Template/).
   * В сервисе Dv информация о пользователе добавлено поле показывающее дату следующего снятие абонплаты (/ Customers/ Logins/ Information/ Services/ Dialup / VPN/). 
