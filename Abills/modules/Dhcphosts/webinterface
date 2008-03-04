@@ -48,14 +48,9 @@ sub dhcphosts_mac_block_show {
    my ($attr) = @_;
    my $debug = $attr->{DEBUG} || 0;
 
-   
-   $LIST_PARAMS{STATUS}=0 if (! $conf{DHCPHOSTS_IPGUARD_TYPE} || ($conf{DHCPHOSTS_IPGUARD_TYPE} && $conf{DHCPHOSTS_IPGUARD_TYPE} ne 'ipsentinel' ));
-
-   my $ethers_content = "# $DATE $TIME\n# CONFIG FOR: ";
-   $ethers_content .= "$conf{DHCPHOSTS_IPGUARD_TYPE}\n\n" if ($conf{DHCPHOSTS_IPGUARD_TYPE});
+   my $ethers_content = "# $DATE $TIME\n# ABillS IPGuard CONFIG: \n";
 
    my @pair_status = ('ACCEPT', 'DENY');
-   #$Dhcphosts->{debug}=1;
    my $list = $Dhcphosts->hosts_list({ STATUS        => $LIST_PARAMS{STATUS}, 
    	                                   PAGE_ROWS     => 1000000,
    	                                   DHCPHOSTS_DEPOSITCHECK => $conf{DHCPHOSTS_DEPOSITCHECK}
@@ -81,28 +76,34 @@ sub dhcphosts_mac_block_show {
       my $status = ($line->[10] == 1 || $line->[13] == 1 ) ? 1 : 0;	    
 
       #DENY
+      my %INFO = (
+            IP      => ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2],
+      	    MAC     => $line->[6],
+      	    LOGIN   => $line->[1],
+      	    DEPOSIT => ($conf{DHCPHOSTS_DEPOSITCHECK}) ? " D: $line->[14]" : '',
+      	    UID     => $line->[12],
+      	    EXPIRE  => $line->[7]
+        ); 
+      
       if ($status == 1 || ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[14] <= 0)) {
+         next if ($DENY_TEMPLATE eq '');
          $ethers_content .= tpl_parse($DENY_TEMPLATE, {  
-         	                            IP      => ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2],
-      	                              MAC     => $line->[6],
-      	                              LOGIN   => $line->[1],
       	                              STATUS  => $pair_status[1],
-      	                  	          DEPOSIT => ($conf{DHCPHOSTS_DEPOSITCHECK}) ? " D: $line->[14]" : ''
-      	                         }); 
+       	                  	          %INFO
+          	                         });
        }
       #Allow
       else {
+        next if ($ACCEPT_TEMPLATE eq '');
         $ethers_content .= tpl_parse($ACCEPT_TEMPLATE, {  
-        	                            IP      => ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2],
-      	                              MAC     => $line->[6],
-      	                              LOGIN   => $line->[1],
       	                              STATUS  => $pair_status[$status],
-      	                              DEPOSIT => ($conf{DHCPHOSTS_DEPOSITCHECK}) ? " D: $line->[14]" : ''
+      	                              %INFO
       	                         }); 
       	
        }
-      
+
       $ethers_content .= "\n";
+      
     };
 
   $ethers_content .= $html->tpl_show(_include('dhcphosts_ipguard_static', 'Dhcphosts'), 
@@ -127,7 +128,7 @@ sub dhcphosts_mac_block_make {
 	$debug_output = "$attr->{ETHER_CONTENT}\n" if ($debug > 1);
 	$DEBUG .= $debug_output;
 	
-	if ($debug > 2) {
+	if ($debug > 4) {
 		
 		return 1;
 	 }
@@ -196,7 +197,8 @@ sub dhcphosts_monitor {
  my $table = $html->table({ width      => '100%',
                      			  caption    => "$_HOSTS",
 				                    title      => ["$_USER", 'IP', "$_START", "MAC", "$_HOSTS",  "abandoned","-","-", '-'],
-				                    cols_align => ['left', 'right', 'right', 'right', 'left', 'center:noprint', 'center:noprint','center:noprint', 'center:noprint' ]
+				                    cols_align => ['left', 'right', 'right', 'right', 'left', 'center:noprint', 'center:noprint','center:noprint', 'center:noprint' ],
+				                    ID         => 'MONITOR_DHCP'
                           });
 
  $table->{rowcolor}=$_COLORS[0];
@@ -803,11 +805,7 @@ sub dhcphosts_reconfigure {
   	return 0;
    }
   
-  if ($conf{DHCPHOSTS_IPGUARD_TYPE}) {
-  	
-  	dhcphosts_mac_block_make();
-   }
- 
+ 	dhcphosts_mac_block_make();
 
   my $res = `$conf{DHCPHOSTS_RECONFIGURE}`;
   print $res if ($debug > 1);
