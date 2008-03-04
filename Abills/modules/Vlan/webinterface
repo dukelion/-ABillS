@@ -668,5 +668,6 @@ sub _parse {
 
 	return $string;
 }
+
 1
 

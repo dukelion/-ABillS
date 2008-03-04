@@ -60,46 +60,49 @@ sub dhcphosts_mac_block_show {
    	                                   PAGE_ROWS     => 1000000,
    	                                   DHCPHOSTS_DEPOSITCHECK => $conf{DHCPHOSTS_DEPOSITCHECK}
                                      });
+
+   #Get Templates default for IP Guard
+   my $DENY_TEMPLATE   =  ($conf{DHCPHOSTS_IPGUARD_DENY_TPL}) ? $conf{DHCPHOSTS_IPGUARD_DENY_TPL} : '';
+   my $ACCEPT_TEMPLATE =  ($conf{DHCPHOSTS_IPGUARD_ACCEPT_TPL}) ? $conf{DHCPHOSTS_IPGUARD_ACCEPT_TPL} : '%MAC% %IP% # %LOGIN%; %STATUS%; %DEPOSIT%'; 
    
 	 foreach my $line (@$list) {
-	    next if ($line->[6] eq '');
+      #Block
+      if ($line->[6] eq '') {
+        next;
+       }
+	    elsif (! defined($line->[1])) {
+	     	print "Warning: IP: $ip MAC: $mac Record don't have users\n";
+	     	next;
+	     }
 
+
+
+      #Chack status
       my $status = ($line->[10] == 1 || $line->[13] == 1 ) ? 1 : 0;	    
-      if ($conf{DHCPHOSTS_IPGUARD_TYPE} && $conf{DHCPHOSTS_IPGUARD_TYPE} eq 'ipsentinel') {
-	      my $ip = $line->[2];   
 
-	      #Block
-	      if (! defined($line->[1])) {
-	      	print "Warning: IP: $ip MAC: $line->[6] Record don't have users\n";
-	      	next;
-	       }
-
-        #Deny
-	      if ($status == 1 || ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[14] <= 0)) {
-	        $ethers_content .= "$ip $line->[6] # $line->[1] $pair_status[1]";
-	       }
-	      #Allow
-	      else {
-	      	$ethers_content .= "$ip\@!$line->[6] # $line->[1] $pair_status[$status]";
-	       }
-
-	      if ($conf{DHCPHOSTS_DEPOSITCHECK}) {
-	      	$ethers_content .= " D: $line->[14]";
-	       }
-        
-        $ethers_content .= "\n";
-	     }
-	    else {
-	      my $ip = ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2]; 
-	    	#Allow
-	    	if ($status == 0 ) {
-	    	  next if ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[14] <= 0);
-
-	    	  $ethers_content .= "$line->[6] $ip # Login: $line->[1]";
-	    	  $ethers_content .= " D: $line->[14]" if ($conf{DHCPHOSTS_DEPOSITCHECK});
-	    	  $ethers_content .= "\n";
-         }
-	     }
+      #DENY
+      if ($status == 1 || ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[14] <= 0)) {
+         $ethers_content .= tpl_parse($DENY_TEMPLATE, {  
+         	                            IP      => ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2],
+      	                              MAC     => $line->[6],
+      	                              LOGIN   => $line->[1],
+      	                              STATUS  => $pair_status[1],
+      	                  	          DEPOSIT => ($conf{DHCPHOSTS_DEPOSITCHECK}) ? " D: $line->[14]" : ''
+      	                         }); 
+       }
+      #Allow
+      else {
+        $ethers_content .= tpl_parse($ACCEPT_TEMPLATE, {  
+        	                            IP      => ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2],
+      	                              MAC     => $line->[6],
+      	                              LOGIN   => $line->[1],
+      	                              STATUS  => $pair_status[$status],
+      	                              DEPOSIT => ($conf{DHCPHOSTS_DEPOSITCHECK}) ? " D: $line->[14]" : ''
+      	                         }); 
+      	
+       }
+      
+      $ethers_content .= "\n";
     };
 
   $ethers_content .= $html->tpl_show(_include('dhcphosts_ipguard_static', 'Dhcphosts'), 
@@ -265,7 +268,7 @@ sub leaseparse {
       if (/^lease (\d+\.\d+\.\d+\.\d+)/) {
          $ip = $1; 
          $list{$ip}{ip}=sprintf("%-17s", $ip);
-         $ips_hash{$ip}=$list{$ip}{ip};
+         #$ips_hash{$ip}=$list{$ip}{ip};
        }
       elsif (/^\s*client-hostname "(.*)";/) {
       	 $list{$ip}{'client-hostname'}=sprintf("%-17s", $1);
@@ -716,8 +719,7 @@ foreach my $line (@$list) {
     chop $routes;
     chop $routes;
     $routes.=";";
-  
-    # MS routes: adds extras to supplement routers option
+   # MS routes: adds extras to supplement routers option
     $INFO{NET_ROUTES}="option ms-classless-static-routes $routes\n";
 
     # RFC3442 routes: overrides routers option
@@ -743,8 +745,7 @@ foreach my $line (@$list) {
         LOGIN    => $line->[1],
         HOSTNAME => $line->[3]
     	}, { notprint => 1 });
-   }
-  
+   }  
     $INFO{SUBNETS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
                                    \%INFO, 
                                    { notprint => 'yes' });	 
