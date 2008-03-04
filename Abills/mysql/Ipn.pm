@@ -1182,6 +1182,20 @@ sub ipn_log_rotate {
     SELECT uid, min(start), max(start), traffic_class, sum(traffic_in), sum(traffic_out),  session_id, sum(sum) FROM ipn_log 
       WHERE start < start - INTERVAL '. $attr->{PERIOD} .' DAY GROUP BY uid, session_id, traffic_class',
 
+    'INSERT INTO ipn_log_new (
+         uid,
+         start,
+         stop,
+         traffic_class,
+         traffic_in,
+         traffic_out,
+         session_id,
+         sum
+    ) 
+    SELECT uid, min(start), max(start), traffic_class, sum(traffic_in), sum(traffic_out),  session_id, sum(sum) FROM ipn_log 
+      WHERE start >= start - INTERVAL '. $attr->{PERIOD} .' DAYS',
+
+
     'DROP TABLE IF EXISTS ipn_log_backup;',
     'RENAME TABLE 
       ipn_log  TO ipn_log_backup, 
