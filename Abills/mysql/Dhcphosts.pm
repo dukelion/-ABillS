@@ -95,7 +95,7 @@ sub network_defaults {
    ID              => '0',
    NAME            => 'DHCP_NET',
    NETWORK         => '0.0.0.0',   
-   MASK            => '255.555.555.0',
+   MASK            => '255.255.255.0',
    BLOCK_NETWORK   =>  0,
    BLOCK_MASK      =>  0,
    DOMAINNAME      => '',
@@ -121,15 +121,17 @@ sub network_add {
   my $self=shift;
   my ($attr)=@_;
   
+  my %DATA = $self->get_data($attr, { default => network_defaults() }); 
+
 
   $self->query($db,"INSERT INTO dhcphosts_networks 
      (name,network,mask, routers, coordinator, phone, dns, suffix, disable,
       ip_range_first, ip_range_last) 
-     VALUES('$attr->{NAME}', INET_ATON('$attr->{NETWORK}'), INET_ATON('$attr->{MASK}'), INET_ATON('$attr->{ROUTERS}'),
-       '$attr->{COORDINATOR}', '$attr->{PHONE}', '$attr->{DNS}', '$attr->{DOMAINNAME}',
-       '$attr->{DISABLE}',
-       INET_ATON('$attr->{IP_RANGE_FIRST}'),
-       INET_ATON('$attr->{IP_RANGE_LAST}')
+     VALUES('$DATA{NAME}', INET_ATON('$DATA{NETWORK}'), INET_ATON('$DATA{MASK}'), INET_ATON('$DATA{ROUTERS}'),
+       '$DATA{COORDINATOR}', '$DATA{PHONE}', '$DATA{DNS}', '$DATA{DOMAINNAME}',
+       '$DATA{DISABLE}',
+       INET_ATON('$DATA{IP_RANGE_FIRST}'),
+       INET_ATON('$DATA{IP_RANGE_LAST}')
        )", 'do');
 
   return $self;
