@@ -473,16 +473,16 @@ if ($tariffs->{errno}) {
 #my $i=0;
 $tarif_info->{SEL_OCTETS_DIRECTION} = $html->form_select('OCTETS_DIRECTION', 
                                           { 
- 	                                          SELECTED    => $tarif_info->{OCTETS_DIRECTION},
- 	                                          SEL_ARRAY   => \@Octets_Direction,
- 	                                          NUM_ID      => 1
+ 	                                          SELECTED     => $tarif_info->{OCTETS_DIRECTION},
+ 	                                          SEL_ARRAY    => \@Octets_Direction,
+ 	                                          ARRAY_NUM_ID => 1
  	                                        });
 
 $tarif_info->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE', 
                                           { 
- 	                                          SELECTED    => $tarif_info->{PAYMENT_TYPE},
- 	                                          SEL_ARRAY   => \@Payment_Types,
- 	                                          NUM_ID      => 1
+ 	                                          SELECTED     => $tarif_info->{PAYMENT_TYPE},
+ 	                                          SEL_ARRAY    => \@Payment_Types,
+ 	                                          ARRAY_NUM_ID => 1
  	                                        });
 
 
