@@ -4,8 +4,6 @@ default-lease-time 86400;
 max-lease-time 172800;
 ddns-update-style none;
 lease-file-name \"/var/db/dhcpd/dhcpd.leases\";
-%DNS%
-%DOMAINNAME%
 
 
 #Static route
