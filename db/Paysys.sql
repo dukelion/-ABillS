@@ -8,6 +8,7 @@ CREATE TABLE `paysys_log` (
   `info` text NOT NULL,
   `ip` int(11) unsigned NOT NULL default '0',
   `code` blob NOT NULL,
+  `paysys_ip` int(11) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `ps_transaction_id` (`transaction_id`)

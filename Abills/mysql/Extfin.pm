@@ -668,6 +668,12 @@ sub paids_list {
     push @WHERE_RULES, "p.type_id$value";
   }
 
+ if (defined($attr->{PAYMENT_METHOD})) {
+    my $value = $self->search_expr($attr->{PAYMENT_METHOD}, 'INT');
+    push @WHERE_RULES, "p.maccount_id$value";
+  }
+
+
  if ($attr->{UID}) {
     my $value = $self->search_expr($attr->{UID}, 'INT');
     push @WHERE_RULES, "p.uid$value";
@@ -738,6 +744,7 @@ sub paids_list {
 sub paid_reports {
   my $self = shift;
   my ($attr) = @_;
+ 
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
@@ -779,6 +786,13 @@ sub paid_reports {
  
  if ($attr->{FIELDS}) {
    push @WHERE_RULES, "p.type_id IN ($attr->{FIELDS})";
+  }
+
+ if ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'";
+  }
+ elsif ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
   }
 
  if ($attr->{DESCRIBE}) {
@@ -838,9 +852,9 @@ sub paid_reports {
 
   if ($self->{TOTAL} > 0 || $PG > 0) {
     $self->query($db, "SELECT count(p.id), sum(sum)
-     FROM extfin_paids p, admins a
-    WHERE p.aid=a.aid $WHERE;");
-    ($self->{TOTAL}, $self->{SUN}) = @{ $self->{list}->[0] };
+     FROM extfin_paids p, admins a, users u 
+    WHERE p.uid=u.uid and p.aid=a.aid $WHERE;");
+    ($self->{TOTAL}, $self->{SUM}) = @{ $self->{list}->[0] };
    }
 
   return $list;

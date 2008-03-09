@@ -5,5 +5,6 @@ CREATE TABLE `snmputils_binding` (
   `params` varchar(20) NOT NULL default '',
   `id` int(11) unsigned NOT NULL auto_increment,
   UNIQUE KEY `binding` (`binding`),
-  UNIQUE KEY `id` (`id`)
+  UNIQUE KEY `id` (`id`),
+  KEY `uid` (`uid`),
 ) COMMENT='Snmputils binding' ;

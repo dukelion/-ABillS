@@ -295,6 +295,7 @@ elsif ($FORM{rupay_action} eq 'update') {
 }
 
 #**********************************************************
+# https://merchant.webmoney.ru/conf/guide.asp
 #
 #**********************************************************
 sub wm_payments {

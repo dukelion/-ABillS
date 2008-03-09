@@ -178,7 +178,7 @@ if (defined($args->{monthly})) {
     $ADMIN_REPORT{GT} = sprintf(" GT: %2.5f", $gen_time);
    }
   if (! $args->{NO_ADM_REPORT}) {
-    my $message = $html->tpl_show(templates('admin_report_month'), \%ADMIN_REPORT, { notprint => 'yes' });
+    my $message = $html->tpl_show(templates('admin_report_month'), \%ADMIN_REPORT, { notprint => 1 });
     sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "$ADMIN_REPORT{HOSTNAME}: Monthly billing report", 
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
    }
@@ -198,7 +198,7 @@ elsif (defined($args->{daily})) {
   }
 
   if (! $args->{NO_ADM_REPORT}) {
-    my $message = $html->tpl_show(templates('admin_report_day'), \%ADMIN_REPORT, { notprint => 'yes' });
+    my $message = $html->tpl_show(templates('admin_report_day'), \%ADMIN_REPORT, { notprint => 1 });
     sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "$ADMIN_REPORT{HOSTNAME}: Daily billing report ($YESTERDAY)", 
              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
    }

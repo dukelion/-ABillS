@@ -753,6 +753,276 @@ my $graph_type='';
 
 
 #Day reposrt
+if (defined($FORM{DATE}) || defined($FORM{PAYMENT_METHOD})) {
+ if (! defined($FORM{sort})) {
+   $LIST_PARAMS{SORT}=1;
+   $LIST_PARAMS{DESC}=DESC;
+  }
+
+  $LIST_PARAMS{PAYMENT_METHOD}=$FORM{PAYMENT_METHOD} if(defined($FORM{PAYMENT_METHOD}));
+
+
+  my $list = $Extfin->paids_list({ %LIST_PARAMS });	
+  $table_sessions = $html->table( { width      => '100%',
+                                    caption    => "$_FEES",
+                                    border     => 1,
+                                    title      => ['#', $_DATE, $_USER, $_SUM, $_TYPE, $_DESCRIBE,  "$_PAYMENT_METHOD", $_ADMIN, $_STATUS, "$_CLOSED $_DATE", 'EXT ID', '-', '-' ],
+                                    cols_align => ['right', 'left', 'right', 'left', 'right', 'left', 'center', 'right', 'center:noprint', 'center:noprint'],
+                                  } );
+
+  my ($delete, $change);
+  foreach my $line (@$list) {
+    if ($permissions{4}{1}) {
+      $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
+      $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[11]");
+     }
+
+    $table_sessions->addrow($html->b($line->[0]), 
+     $html->button($line->[1], "index=$index&chg=$line->[0]"),
+     $html->button($line->[2], "index=15&UID=$line->[11]&MODULE=Extfin"), 
+     $line->[3],
+     $line->[4], 
+     $line->[5], 
+     $PAYMENT_METHODS[$line->[6]],
+     $line->[7], 
+     ($line->[8]) ? "$_CLOSED" : '', 
+     $line->[9], 
+     $change,
+     $delete
+     );
+  }
+
+ }
+else {
+  #Used Traffic
+
+  my %fields_hash = (); 
+  my @fields_arr  = ();
+	my @caption = ("$_DATE", "$_CLOSED", "$_CLOSED $_SUM", "$_COUNT", "$_SUM"); 
+  
+  if ($FORM{TYPE}) {
+    if ($FORM{TYPE} eq 'PAYMENT_METHOD') {
+  	  $caption[0]=$_PAYMENT_METHOD;
+  	  push @caption, "$_PAYMENTS $_COUNT", "$_PAYMENTS $_SUM", "$_RESULT";
+     }
+    elsif ($FORM{TYPE} eq 'PAYMENT_TYPE') {
+  	  $caption[0]=$_TYPE;
+     }
+    elsif ($FORM{TYPE} eq 'USER') {
+  	  $caption[0]=$_USERS;
+     }
+   }
+  
+
+  
+
+
+  $table_sessions = $html->table({ width      => '100%',
+	                                 caption    => "$_FEES", 
+                                   title      => \@caption,
+                                   cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                                   qs         => $pages_qs             
+                               } );
+
+
+  $graph_type='month_stats';
+  my $num = 0;
+  
+  my $list = $Extfin->paid_reports({ %LIST_PARAMS });
+  my %PAIDS_HASH = ();
+  
+  foreach my $line (@$list) {
+    my $firth_field = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
+
+    if ($FORM{TYPE}) {
+      if ($FORM{TYPE} eq 'USER') {
+        $firth_field = $html->button($line->[0], "index=15&UID=$line->[5]");   	 	
+   	   }
+      elsif($FORM{TYPE} eq 'PAYMENT_METHOD') {
+     	  $firth_field = $html->button($PAYMENT_METHODS[$line->[0]], "index=$index&PAYMENT_METHOD=$line->[0]$pages_qs");
+ 	   	  $PAIDS_HASH{$line->[0]} = [
+          $line->[1], 
+          $line->[2], 
+          $line->[3],  
+          $line->[4]
+        ];
+       }
+      elsif($FORM{TYPE} eq 'PAYMENT_TYPE') {
+     	  $firth_field = $html->button($CAPTIONS_HASH{"$line->[0]:$line->[0]"}, "index=$index&PAYMENT_TYPE=$line->[0]");   	 	
+       }
+      elsif($FORM{TYPE} eq 'ADMINS') {
+     	  $firth_field = $line->[0];   	 	
+       }
+
+     }
+ 	
+
+      $AVG{COUNT}      = $line->[1] if ($AVG{COUNT} < $line->[1]);
+      $AVG{SUM}        = $line->[3] if ($AVG{SUM} < $line->[3]);
+      $AVG{CLOSED_SUM} = time2sec($line->[5]) if ($AVG{CLOSED_SUM} < $line->[5]);
+
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+      	$num = $3;
+       }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+      	$CHART{X_LINE}[$num]=$line->[0];
+        $num++;
+       }
+     
+     $DATA_HASH{COUNT}[$num]       = $line->[1];      
+     $DATA_HASH2{SUM}[$num]        = $line->[3];
+     $DATA_HASH2{CLOSED_SUM}[$num] = $line->[5];
+
+     if ($FORM{TYPE} ne 'PAYMENT_METHOD') {
+  	   @rows = ($firth_field,
+         $line->[1], 
+         $line->[2], 
+         $line->[3],  
+         $line->[4]
+        );
+      }
+
+     $table_sessions->addrow(@rows);
+   }
+
+if($FORM{TYPE} eq 'PAYMENT_METHOD') {
+  #Get paymets data
+  use Finance;
+  my $payments = Finance->payments($db, $admin, \%conf);
+  my $list = $payments->reports({ %LIST_PARAMS });
+  my %PAYMENTS_HASH = ();
+  foreach my $line (@$list) {
+  	push @{ $PAYMENTS_HASH{$line->[0]} }, $line->[1], $line->[2] ;
+   }
+  
+  #Show date
+  my $paids_total    = 0;
+  my $payments_total = 0;
+  my $result_total   = 0;
+
+  for (my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+	  my $paids_sum = ($PAIDS_HASH{$i}->[1]) ? $PAIDS_HASH{$i}->[1] : 0.00;
+    
+
+    
+    my $result_sum = $PAYMENTS_HASH{$i}->[1] - $paids_sum;
+
+	  $table_sessions->addrow($html->button($PAYMENT_METHODS[$i], "index=$index&PAYMENT_METHOD=$line->[0]$pages_qs"), 
+	   @{ ($PAIDS_HASH{$i}->[2]) ? $PAIDS_HASH{$i} : [ '0', '0.00', '0', '0.00' ] },
+
+	   ($PAYMENTS_HASH{$i}->[0]) ? $PAYMENTS_HASH{$i}->[0] : 0,
+	   ($PAYMENTS_HASH{$i}->[1]) ? $PAYMENTS_HASH{$i}->[1] : '0.00',
+	   sprintf("%.2f", $result_sum),
+	   );
+
+    $paids_total    += $paids_sum;
+    $payments_total += $PAYMENTS_HASH{$i}->[1];
+    $result_total   += $result_sum;
+    $Extfin->{TOTAL}+= $PAYMENTS_HASH{$i}->[0] + $PAIDS_HASH{$i}->[1];
+   }
+
+   my $table3 = $html->table( { width      => '100%',
+                         caption    => $_RESULT,
+                         cols_align => ['right', 'right', 'right', 'right' ],
+                         rows       => [ [ "$_PAYMENTS: ". $html->b( sprintf("%.2f", $payments_total) ),
+                                           "$_FEES: ".     $html->b( sprintf("%.2f", $paids_total)  ), 
+                                           "$_RESULT: ".   $html->b( sprintf("%.2f", $result_total) )
+                                        ] ],
+                         rowcolor   => $_COLORS[2]
+                               } );
+
+   $Extfin->{SUM}=$result_total;
+   print $table3->show();
+
+}
+
+
+$output = $html->make_charts({  
+	 PERIOD     => $graph_type,
+	 DATA       => \%DATA_HASH2,
+	 AVG        => \%AVG,
+	 TYPE       => ['area', 'area'],
+	 TRANSITION => 1,
+   OUTPUT2RETURN => 1
+  });
+
+
+}
+
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right', 'right', 'right' ],
+                         rows       => [ [ "$_COUNT: ". $html->b( $Extfin->{TOTAL} ),
+                                           "$_SUM: ". $html->b( $Extfin->{SUM} ), 
+                                        ] ],
+                         rowcolor   => $_COLORS[2]
+                               } );
+
+print $table_sessions->show() . $table->show(). $output;
+
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub extfin_sum {
+
+#my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,  	
+#                     '2:USERS'           => $_USERS,
+#                     '3:SESSIONS'        => $_SESSIONS,
+#                     '4:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
+#                     '5:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT",
+#                     '8:TRAFFIC_SUM'     => $_TRAFFIC,
+#                     '9:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
+#                     '6:DURATION'        => $_DURATION,
+#                     '7:SUM'             => $_SUM);
+
+my %CAPTIONS_HASH = ();
+  
+
+my $list = $Extfin->paid_types_list({ 
+	                                    %LIST_PARAMS });	
+foreach my $line (@$list) {
+	$CAPTIONS_HASH{"$line->[0]:$line->[0]"}="$line->[1]";
+}
+
+  $FORM{TYPE} = 'PAYMENT_METHOD';
+
+  my %METHODS_HASH = ();
+  push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+  
+  for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+  	$METHODS_HASH{"$i:$i"}="$PAYMENT_METHODS[$i]";
+   }
+
+  reports({ DATE          => $FORM{DATE}, 
+  	        REPORT        => '',
+  	        EX_PARAMS     => { DATE  => "$_DATE",
+  	        	                 USERS => "$_USERS" 
+  	        	                 }, 
+  	        PERIOD_FORM		=> 1,
+  	        EXT_TYPE      => { PAYMENT_METHOD => $_PAYMENT_METHOD, 
+  	        	                 PAYMENT_TYPE   => $_TYPE, 
+  	        	                 ADMINS         => $_ADMINS 
+  	        	                 },
+  	        FIELDS        => { %CAPTIONS_HASH },
+  	        XML           => 1,
+  	       });
+
+
+my ($table_sessions);
+my $output = '';
+
+my %DATA_HASH = ();
+my %CHART = ();
+my %AVG = (COUNT    => 0,
+           SUM      => 0,
+           CLOSED   => 0);
+
+my $graph_type='';
+
+
+#Day reposrt
 if (defined($FORM{DATE})) {
  if (! defined($FORM{sort})) {
    $LIST_PARAMS{SORT}=1;
@@ -797,6 +1067,7 @@ else {
   my @fields_arr  = ();
 	my @caption = ("$_DATE", "$_CLOSED", "$_CLOSED $_SUM", "$_COUNT", "$_SUM"); 
   
+ 
   if ($FORM{TYPE}) {
     if ($FORM{TYPE} eq 'PAYMENT_METHOD') {
   	  $caption[0]=$_PAYMENT_METHOD;
@@ -820,7 +1091,9 @@ else {
   $graph_type='month_stats';
   my $num = 0;
   
-  my $list = $Extfin->paid_reports({ %LIST_PARAMS });
+  
+  
+  my $list = $Extfin->paid_reports({ %LIST_PARAMS, TYPE => 'PAYMENT_METHOD' });
   
   foreach my $line (@$list) {
     my $firth_field = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
@@ -892,6 +1165,15 @@ $table = $html->table( { width      => '100%',
 print $table_sessions->show() . $table->show(). $output;
 
 }
+
+
+
+
+
+
+
+
+
 
 
 

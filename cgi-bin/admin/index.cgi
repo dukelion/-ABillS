@@ -1257,7 +1257,8 @@ elsif ($FORM{MULTIUSER}) {
   	foreach my $uid (@multiuser_arr) {
   		if ($FORM{DEL} && $FORM{MU_DEL}) {
   	    my $user_info = $users->info( $uid );
-  	    $user_info->del();
+  	    #$user_info->del();
+        user_del({ USER => $user_info });
 
         if ($users->{errno}) {
           $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
@@ -1271,7 +1272,7 @@ elsif ($FORM{MULTIUSER}) {
   			 }
   		 }
   	 }
-    $html->message('info', $_MULTIUSER_OP, "$_TOTAL: $#multiuser_arr IDS: $FORM{IDS}");
+    $html->message('info', $_MULTIUSER_OP, "$_TOTAL: ". $#multiuser_arr+1 ." IDS: $FORM{IDS}");
    }
 	
 }
@@ -3196,7 +3197,8 @@ sub report_payments {
   for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
   	$METHODS_HASH{"$i:$i"}="$PAYMENT_METHODS[$i]";
    }
-  
+
+
 
   reports({ DATE        => $FORM{DATE}, 
   	        REPORT      => '',
@@ -3213,7 +3215,7 @@ sub report_payments {
   use Finance;
   
   my $payments = Finance->payments($db, $admin, \%conf);
-  
+ 
 if (defined($FORM{DATE})) {
   $list  = $payments->list( { %LIST_PARAMS } );
   $table = $html->table({ width      => '100%',

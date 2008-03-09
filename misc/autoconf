@@ -20,7 +20,8 @@ if(! -f $config_file ) {
      'dbname'    => 'abills',
      'dbuser'    => 'abills',
      'dbpasswd'  => 'sqlpassword',
-     'ADMIN_MAIL'=> ''
+     'ADMIN_MAIL'=> '',
+     'WEB_TITLE' => ''
     );
 
   

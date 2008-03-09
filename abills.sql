@@ -52,8 +52,7 @@ CREATE TABLE `bills` (
   `company_id` int(11) unsigned NOT NULL default '0',
   `registration` date NOT NULL default '0000-00-00',
   PRIMARY KEY  (`id`),
-  UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `uid` (`uid`,`company_id`)
+  KEY `uid` (`uid`,`company_id`)
 ) ;
 
 # --------------------------------------------------------
@@ -120,6 +119,7 @@ CREATE TABLE `companies` (
   `phone` varchar(20) NOT NULL default '',
   `vat` double(5,2) unsigned NOT NULL default '0.00',
   `contract_id` varchar(10) NOT NULL default '',
+  `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
@@ -659,10 +659,11 @@ CREATE TABLE `tarif_plans` (
   `gid` smallint(6) unsigned NOT NULL default '0',
   `neg_deposit_filter_id` varchar(15) NOT NULL default '',
   `tp_id` int(11) unsigned NOT NULL auto_increment,
+  `ext_bill_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`,`module`),
   UNIQUE KEY `tp_id` (`tp_id`),
   KEY `name` (`name`)
-) TYPE=MyISAM COMMENT='Dialup & VPN Tarif plans';
+) COMMENT='Dialup & VPN Tarif plans';
 
 
 CREATE TABLE `tp_groups` (
@@ -726,9 +727,10 @@ CREATE TABLE `users` (
   `disable` tinyint(1) unsigned NOT NULL default '0',
   `company_id` int(11) unsigned NOT NULL default '0',
   `bill_id` int(11) unsigned NOT NULL default '0',
+  `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`uid`),
   UNIQUE KEY `id` (`id`)
-)  ;
+);
 
 
 CREATE TABLE `web_users_sessions` (
