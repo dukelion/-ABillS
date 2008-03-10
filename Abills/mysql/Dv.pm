@@ -186,7 +186,7 @@ sub add {
        my $user = Users->new($db, $admin, $CONF);
        $user->info($DATA{UID});
        
-       if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE}) {
+       if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0) {
          
          print "$user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE}";
          
