@@ -916,7 +916,7 @@ sub del {
                   'users_nas', 
                   'users',
                   'users_pi');
-
+  $self->{info}='';
   foreach my $table (@clear_db) {
      $self->query($db, "DELETE from $table WHERE uid='$self->{UID}';", 'do');
      $self->{info} .= "$table, ";
