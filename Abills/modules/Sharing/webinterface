@@ -1289,7 +1289,7 @@ print $html->tpl_show(templates('form_chg_tp'), $Tariffs);
 # sharing_user_info
 #**********************************************************
 sub sharing_user_chg_tp {
-
+  my ($attr) = @_;
 
  if ($FORM{BUY}) {
  	 sharing_addition_buy();
@@ -1357,7 +1357,7 @@ if ($FORM{set}) {
       $shedule->add( {UID     => $LIST_PARAMS{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
-    	           D        => $D,
+    	             D        => $D,
                    M        => $M,
                    Y        => $Y,
                    DESCRIBE => "$message<br>
@@ -1367,15 +1367,49 @@ if ($FORM{set}) {
      }	
     else {
       $FORM{UID}=$LIST_PARAMS{UID};
-      $user_sharing->change({ UID   => $LIST_PARAMS{UID},
-                              TP_ID => $FORM{TP_ID} });
+      
+      if ($user_sharing->{TP_ID} == $FORM{TP_ID}) {
 
-      if ($user_sharing->{errno}) {
-        $html->message('err', $_ERROR, "[$user_sharing->{errno}] $err_strs{$user_sharing->{errno}}");
+      	my $user = Users->new($db, $admin, \%conf);
+      	
+      	my $tariffs = Tariffs->new($db, \%conf, $admin);
+        $tariffs->info($FORM{TP_ID});
+      
+        if($tariffs->{CHANGE_PRICE} > 0) {
+          $user->info($LIST_PARAMS{UID});
+       
+          if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{CHANGE_PRICE}) {
+            $html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
+            return 0;           }
+          else {
+            my $fees = Fees->new($db, $admin, \%conf);
+            $fees->take($user, $tariffs->{CHANGE_PRICE}, { DESCRIBE  => "$_CHANGE TP [$FORM{TP_ID}]" });  
+           }
+         }
+
+        if ($tariffs->{AGE} > 0) {
+          use POSIX qw(strftime);
+          my $EXPITE_DATE = strftime( "%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}) );
+          my $ACTIVATE_DATE = strftime( "%Y-%m-%d", localtime(time) );
+          $user->change($attr->{UID}, { EXPIRE   => $EXPITE_DATE, 
+       	                                ACTIVATE => $ACTIVATE_DATE,
+       	                                UID      => $LIST_PARAMS{UID} 
+       	                           });
+         }
+
+        $html->message('info', $_INFO, "$_ACTIVATE");
        }
       else {
-        $html->message('info', $_CHANGED, "$_CHANGED");
-        $user_sharing->info($user_sharing->{UID});
+        $user_sharing->change({ UID   => $LIST_PARAMS{UID},
+                                TP_ID => $FORM{TP_ID} });
+
+        if ($user_sharing->{errno}) {
+          $html->message('err', $_ERROR, "[$user_sharing->{errno}] $err_strs{$user_sharing->{errno}}");
+         }
+        else {
+          $html->message('info', $_CHANGED, "$_CHANGED");
+          $user_sharing->info($user_sharing->{UID});
+        }
        }
      }
    }
