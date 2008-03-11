@@ -1226,7 +1226,7 @@ sub change {
        	 return $self; 
         }
        my $fees = Fees->new($db, $admin, $CONF);
-       $fees->take($user, $tariffs->{CHANGE_PRICE}, { DESCRIBE  => "CHANGE TP" });  
+       $fees->take($user, $tariffs->{CHANGE_PRICE}, { DESCRIBE  => "CHANGE TP [$attr->{TP_ID}]" });  
       }
 
      if ($tariffs->{AGE} > 0) {

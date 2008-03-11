@@ -8,7 +8,7 @@ disable_vrfy_command = yes
 smtpd_helo_required = yes
 
 smtpd_helo_restrictions =       permit_mynetworks, 
-#                      permit_sasl_authenticated,
+                      permit_sasl_authenticated,
                       reject_invalid_hostname, 
                       reject_unknown_hostname,
                       reject_non_fqdn_hostname
