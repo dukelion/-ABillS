@@ -41,8 +41,13 @@ $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 
 
 if ($admin->{errno}) {
-	print  $admin->{errno};
-	exit 0;
+  if($admin->{errno} == 2) {
+    print "Can't find system administrator. ID $conf{SYSTEM_ADMIN_ID}\n";
+   }
+  else {
+    print "$admin->{errno} $admin->{errstr}\n";
+   }
+  exit 0;
 }
 
 my $users = Users->new($db, $admin, \%conf); 
