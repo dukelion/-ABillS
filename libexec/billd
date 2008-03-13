@@ -413,10 +413,11 @@ sub parse_fw {
 #**********************************************************
 sub check_speed {		
 	
-	if (! $ARGV->{NAS_ID}) {
-		print "NAS not specify\n";
-		exit;
-	 }
+  if (! $ARGV->{NAS_ID}) {
+    print "NAS not specify. Example:\n";
+    print "# billd checkspeed NAS_ID=8\n";
+    exit;
+   }
 	
 #Get IPFW speed rules
 	my $result = `$IPFW show; $IPFW pipe show`;
