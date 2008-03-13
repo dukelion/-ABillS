@@ -109,7 +109,7 @@ sub add {
   $user->{BILL_ID} = $attr->{BILL_ID} if ($attr->{BILL_ID});
   
   if ($user->{BILL_ID} > 0) {
-    if ($DATA{ER} != 1) {
+    if ($DATA{ER} && $DATA{ER} != 1) {
       $DATA{SUM} = $DATA{SUM} / $DATA{ER} if (defined($DATA{ER}));
      }
 
