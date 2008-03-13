@@ -325,7 +325,6 @@ sub check_install {
  	elsif ($file =~ /^:(\S{0,100}):exec:(.+)/) {
  		my $param  = $1;
     my $value  = $2;
-    print "$param , $value";
  		
  		my $param_name = '' ;
  		my $param_value = '';

@@ -181,7 +181,7 @@ sub dhcphosts_monitor {
     $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
    }
   else {
-    $html->message('err', $_ERROR,  "$ERR_WRONG_DATA");
+    $html->message('err', $_ERROR,  "$ERR_WRONG_DATA: IP");
    }
  }
 
@@ -554,8 +554,11 @@ sub dhcphosts_user {
 
   if ($FORM{add}) {
     if ($FORM{MAC} !~ /[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/i) {
-      $html->message('err', $_ERROR, "WRONG MAC ");
+      $html->message('err', $_ERROR, "$ERR_WRONG_DATA: MAC ");
       #00:19:5b:4f:98:7a	
+     }
+    elsif(! $FORM{HOSTNAME}) {
+      $html->message('err', $_ERROR, "$ERR_WRONG_DATA: $_HOSTS_HOSTNAME  ");
      }	
     else {
       $Dhcphosts->host_add({ %FORM });

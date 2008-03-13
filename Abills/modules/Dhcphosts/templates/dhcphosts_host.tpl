@@ -1,4 +1,4 @@
-<FORM action=$SELF_URL MATHOD=POST>
+<FORM action='$SELF_URL' MATHOD='POST'>
 <input type=hidden name=index value=$index>
 <input type=hidden name=UID value=$FORM{UID}>
 <input type=hidden name=ID value=$FORM{chg}>
