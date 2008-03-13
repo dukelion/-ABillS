@@ -76,7 +76,7 @@ if(! -f $config_file ) {
 
      	 print "Config file maked...\n";
 
-      if (! confirm_yn("Make ABillS mysql user account: ", "y")) {
+      if (! confirm_yn("Make ABillS mysql user account: ", "n")) {
          print "Check DB configuretion\n";
 
          my $read;
@@ -85,11 +85,19 @@ if(! -f $config_file ) {
          print "mysql path [$mysql]: ";
          chop($read = <STDIN>);
          $mysql = $read if ($read ne '');        
-         $res = `$mysql -u root -D $mk_config{db_name} -e "select version();"`; 
+         $res = `$mysql -u root -D $mk_config{dbname} -e "select version();"`; 
          if ($res =~ /Unknown database/) {
            if (confirm_yn("Your DB not configure for ABillS using. Configure? ", "y")) {
               print "Make users\n";
+              my $add_mysql_user = "USE mysql;".
+                 "INSERT INTO user (Host, User, Password) VALUES ('$mk_config{dbhost}','$mk_config{dbuser}', password('$mk_config{dbpasswd}'));".
+                 "INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, Lock_tables_priv, Create_tmp_table_priv) VALUES ('$mk_config{dbhost}', '$mk_config{dbname}', '$mk_config{dbuser}', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'); ".
+                 "CREATE DATABASE $mk_config{dbname};".
+                 "flush privileges;";
+
+              $res = `$mysql -u root -D $mk_config{db_name} -e "$add_mysql_user"`;
               print "Upload Main Dump and modules\n";
+              $res = `$mysql -u root -D $mk_config{db_name} < ../abills.sql`;
             } 
           }
          else {
@@ -317,6 +325,7 @@ sub check_install {
  	elsif ($file =~ /^:(\S{0,100}):exec:(.+)/) {
  		my $param  = $1;
     my $value  = $2;
+    print "$param , $value";
  		
  		my $param_name = '' ;
  		my $param_value = '';
@@ -330,6 +339,10 @@ sub check_install {
     elsif (! $param) {
     	$config_body = "$value\n";
      }
+    else {
+      next;
+     }
+
 
     #my $res = system("$config_body");
     print "EXECUTE: $config_body\n" if ($debug > 1);
@@ -352,7 +365,7 @@ sub check_install {
      }
   
 
-    if (! -x $exec_file ) {
+    if ($exec_file =~ /\// &&  ! -x $exec_file ) {
     	print "File '$exec_file' not exist or not executeble\n";
     	return 0;
      }
