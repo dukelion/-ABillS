@@ -52,17 +52,17 @@ sub tpl_content {
 sub templates {
   my ($tpl_name) = @_;
 
-  if (-f "../../Abills/templates/_"."$tpl_name".".tpl") {
-    return tpl_content("../../Abills/templates/_". "$tpl_name".".tpl");
+  if (-f "$Bin/../../Abills/templates/_"."$tpl_name".".tpl") {
+    return tpl_content("$Bin/../../Abills/templates/_". "$tpl_name".".tpl");
    }
-  elsif (-f "../Abills/templates/_"."$tpl_name".".tpl") {
-    return tpl_content("../Abills/templates/_"."$tpl_name".".tpl");
+  elsif (-f "$Bin/../Abills/templates/_"."$tpl_name".".tpl") {
+    return tpl_content("$Bin/../Abills/templates/_"."$tpl_name".".tpl");
    }
-  elsif (-f "../../Abills/main_tpls/$tpl_name".".tpl") {
-    return tpl_content("../../Abills/main_tpls/$tpl_name".".tpl");
+  elsif (-f "$Bin/../../Abills/main_tpls/$tpl_name".".tpl") {
+    return tpl_content("$Bin/../../Abills/main_tpls/$tpl_name".".tpl");
    }
-  elsif (-f "../Abills/main_tpls/$tpl_name".".tpl") {
-    return tpl_content("../Abills/main_tpls/$tpl_name".".tpl");
+  elsif (-f "$Bin/../Abills/main_tpls/$tpl_name".".tpl") {
+    return tpl_content("$Bin/../Abills/main_tpls/$tpl_name".".tpl");
    }
   
   return "No such template [$tpl_name]";
