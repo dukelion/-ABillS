@@ -585,7 +585,7 @@ sub dhcphosts_user {
      }
 	 }
   elsif ($FORM{chg}) {
-	  $Dhcphosts->host_info( $FORM{chg} );
+    $Dhcphosts->host_info( $FORM{chg} );
 
     $FORM{NETWORK}=$Dhcphosts->{NETWORK};
     $Dhcphosts->{ACTION}='change';
@@ -620,6 +620,14 @@ sub dhcphosts_user {
                                           });
 
   $Dhcphosts->{DISABLE}=' checked' if($Dhcphosts->{DISABLE});
+
+  if (! $Dhcphosts->{OPTION_82}) {
+    $Dhcphosts->{INPUT_STATE}=" DISABLED STYLE='background-color: $_COLORS[3]'";
+    $Dhcphosts->{OPTION_82}='';
+   }
+  else {
+    $Dhcphosts->{OPTION_82}=' checked';
+   }
   
   $Dhcphosts->{SWITCH_SEL} = $html->form_select('NAS_ID',
                                           {
@@ -627,6 +635,7 @@ sub dhcphosts_user {
                                                   SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list() } ],
                                                   MULTI_ARRAY_KEY   => 0,
                                                   MULTI_ARRAY_VALUE => 1,
+                                                  EX_PARAMS         => (! $Dhcphosts->{OPTION_82}) ? "DISABLED STYLE='background-color: $_COLORS[3]'" : ''
                                            });
 
 

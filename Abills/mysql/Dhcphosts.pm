@@ -104,6 +104,7 @@ sub network_defaults {
    PHONE           => '',
    ROUTERS         => '',
    DISABLE         => 0,
+   OPTION_82       => 0,
    IP_RANGE_FIRST  => '0.0.0.0',
    IP_RANGE_LAST   => '0.0.0.0'
   );
@@ -297,7 +298,8 @@ sub host_defaults {
    IP             => '0.0.0.0',
    COMMENTS       => '',
    VID            => 0,
-   NAS            => 0
+   NAS            => 0,
+   OPTION_82      => 0
   );
 
  
@@ -316,11 +318,11 @@ sub host_add {
   my %DATA = $self->get_data($attr); 
 
   $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, 
-    forced, disable, expire, comments, vid, nas, ports) 
+    forced, disable, expire, comments, option_82, vid, nas, ports) 
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
       INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}', '$DATA{DISABLE}',
       '$DATA{EXPIRE}',
-      '$DATA{COMMENTS}', '$DATA{VID}', '$DATA{NAS}', '$DATA{PORTS}');", 'do');
+      '$DATA{COMMENTS}', '$DATA{OPTION_82}', '$DATA{VID}', '$DATA{NAS}', '$DATA{PORTS}');", 'do');
 
 
   
@@ -370,6 +372,7 @@ sub host_info {
    forced,
    disable,
    expire,
+   option_82,
    vid,
    comments,
    nas,
@@ -392,6 +395,7 @@ sub host_info {
    $self->{FORCED},
    $self->{DISABLE},
    $self->{EXPIRE},
+   $self->{OPTION_82},
    $self->{VID},
    $self->{COMMENTS},
    $self->{NAS},
@@ -420,11 +424,13 @@ sub host_change {
    DISABLE     => 'disable',
    COMMENTS    => 'comments',
    EXPIRE      => 'expire',
+   OPTION_82   => 'option_82',
    VID         => 'vid',
    NAS         => 'nas',
    PORTS       => 'ports'
   );
 
+  $attr->{OPTION_82} = ($attr->{OPTION_82}) ? 1 : 0;
 
 
 	$self->changes($admin, { CHANGE_PARAM => 'ID',
