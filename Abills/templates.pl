@@ -1,4 +1,7 @@
 # Base ABIllS Templates Managments
+
+use FindBin '$Bin';
+
 #**********************************************************
 # templates
 #**********************************************************
@@ -52,7 +55,7 @@ sub tpl_content {
 sub templates {
   my ($tpl_name) = @_;
 
-  if (-f "$Bin/../../Abills/templates/_"."$tpl_name".".tpl") {
+  if (-f $Bin."/../../Abills/templates/_"."$tpl_name".".tpl") {
     return tpl_content("$Bin/../../Abills/templates/_". "$tpl_name".".tpl");
    }
   elsif (-f "$Bin/../Abills/templates/_"."$tpl_name".".tpl") {
