@@ -85,7 +85,7 @@ if(! -f $config_file ) {
          print "mysql path [$mysql]: ";
          chop($read = <STDIN>);
          $mysql = $read if ($read ne '');        
-         $res = `$mysql -u root -D $mk_config{dbname} -e "select version();"`; 
+         $res = `$mysql -u root -e "select version();"`; 
          if ($res =~ /Unknown database/) {
            if (confirm_yn("Your DB not configure for ABillS using. Configure? ", "y")) {
               print "Make users\n";
@@ -95,7 +95,7 @@ if(! -f $config_file ) {
                  "CREATE DATABASE $mk_config{dbname};".
                  "flush privileges;";
 
-              $res = `$mysql -u root -D $mk_config{db_name} -e "$add_mysql_user"`;
+              $res = `$mysql -u root -e "$add_mysql_user"`;
               print "Upload Main Dump and modules\n";
               $res = `$mysql -u root -D $mk_config{db_name} < ../abills.sql`;
             } 
