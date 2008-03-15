@@ -19,7 +19,8 @@ CREATE TABLE `dhcphosts_hosts` (
   `ip_range_last` int(11) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `cid` (`ip`),
-  UNIQUE KEY `mac` (`mac`)
+  UNIQUE KEY `mac` (`mac`),
+  UNIQUE KEY `host_network` (`hostname`,`network`)
 ) COMMENT='Dhcphosts hosts';
 
 
