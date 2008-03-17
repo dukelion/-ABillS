@@ -3644,7 +3644,7 @@ elsif($FORM{UID}) {
 	return 0;
  }	
 elsif($index != 7) {
-	form_search();
+	form_search({ HIDDEN_FIELDS => { subf => ($FORM{subf}) ? $FORM{subf} : undef } });
 }
 
 
@@ -3895,18 +3895,16 @@ if ($attr->{USER}) {
 
 }
 elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
-	print "33333333333";
 	$FORM{subf}=$index;
 	form_admins();
 	return 0;
  }
 elsif($FORM{UID}) {
 	form_users();
-	print "222222222222222222";
 	return 0;
 }
 elsif($index != 7) {
-	form_search();
+	form_search({ HIDDEN_FIELDS => { subf => ($FORM{subf}) ? $FORM{subf} : undef } });
 }
 
 if (! defined($FORM{sort})) {
@@ -4014,6 +4012,8 @@ if (defined($attr->{HIDDEN_FIELDS})) {
 	 }
 }
 
+ $SEARCH_DATA{HIDDEN_FIELDS}.=$html->form_input("GID", "$FORM{GID}", { TYPE => 'hidden', OUTPUT2RETURN => 1 })  if ($FORM{GID});
+
 
 if (defined($attr->{SIMPLE})) {
 
@@ -4022,7 +4022,6 @@ if (defined($attr->{SIMPLE})) {
 	  $SEARCH_DATA{SEARCH_FORM}.="<tr><td>$k:</td><td>";
 	  $SEARCH_DATA{SEARCH_FORM}.=$html->form_input("$v", '%'. $v .'%');
 	  $SEARCH_DATA{SEARCH_FORM}.="</td></tr>\n";
-
 	 }
 
   $html->tpl_show(templates('form_search_simple'), \%SEARCH_DATA);

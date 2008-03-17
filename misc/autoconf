@@ -96,6 +96,7 @@ if(! -f $config_file ) {
                  "flush privileges;";
 
               $res = `$mysql -u root -e "$add_mysql_user"`;
+              print $res;
               print "Upload Main Dump and modules\n";
               $res = `$mysql -u root -D $mk_config{db_name} < ../abills.sql`;
             } 
