@@ -1018,10 +1018,13 @@ if (! $list) {
  	                                            { %FORM, %$sessions },
  	                                            { notprint => 1 })  	
                                             });
-
-  $sessions = Dv_Sessions->new($db, $admin, \%conf);
-  
-  $list = $sessions->list({ %LIST_PARAMS });	
+  if ($FORM{search}) { 
+    $sessions = Dv_Sessions->new($db, $admin, \%conf);
+    $list = $sessions->list({ %LIST_PARAMS });	
+   }
+  else {
+    return 0;
+   }
 }
 
 
