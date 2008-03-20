@@ -30,8 +30,7 @@ if(! -f $config_file ) {
      print "Skiped...\n";
     }
    else {
-#     while(my($k, $v) = each %mk_config ) {
- 
+
     foreach my $k ( sort keys %mk_config ) {
        my $v = $mk_config{$k};
        print "$k [$v]: ";
@@ -86,7 +85,7 @@ if(! -f $config_file ) {
          chop($read = <STDIN>);
          $mysql = $read if ($read ne '');        
          $res = `$mysql -u root -e "select version();"`; 
-         if ($res =~ /Unknown database/) {
+         if ($res !~ /Unknown database/) {
            if (confirm_yn("Your DB not configure for ABillS using. Configure? ", "y")) {
               print "Make users\n";
               my $add_mysql_user = "USE mysql;".
@@ -105,6 +104,15 @@ if(! -f $config_file ) {
            print $res;
           }
         }
+#Make periodic records in cron
+     if (read_file('/etc/crontab') !~ /abills/  && ! confirm_yn("Make Cron records: ", "n")) {
+        my $crontab_content = "*/5  *  *  *  *  root   /usr/abills/libexec/billd -all\n".
+                              "1    0  *  *  *  root   /usr/abills/libexec/periodic daily\n".
+                              "1    0  *  *  *  root   /usr/abills/libexec/periodic monthly\n";
+
+        write_file('/etc/crontab', $crontab_content);
+     	 } 
+
       }
     }
 
@@ -627,5 +635,35 @@ sub _parse {
   return $parameter;
 }
 
+
+#**********************************************************
+# Read file
+#**********************************************************
+sub read_file {
+	my ($filename) = @_;
+	my $content = '';
+	open(FILE, "$filename") || die "Can't open file '$filename' $!";
+	  while(<FILE>) {
+      $content .= $_;	  	
+	   }
+	close(FILE);
+
+	return $content;
+}
+
+#**********************************************************
+# Write file
+#**********************************************************
+sub write_file {
+	my ($filename, $content, $mode) = @_;
+
+ $mode = ($mode) ? $mode : '>';
+
+	open(FILE, "$mode$filename") || die "Can't open file '$filename' $!";
+    print FILE  $content;
+	close(FILE);
+
+	return $content;
+}
 
 1

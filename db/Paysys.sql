@@ -12,4 +12,4 @@ CREATE TABLE `paysys_log` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `ps_transaction_id` (`transaction_id`)
-) COMMENT='Paysys';
+) COMMENT='Paysys log';
