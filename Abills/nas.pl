@@ -57,7 +57,7 @@ sub hangup {
    	                          VALUE => 9 });
   }
  elsif ($nas_type eq 'cisco')  {
- 	 hangup_cisco($NAS, $PORT, { USER => $USER, %attr });
+ 	 hangup_cisco($NAS, $PORT, { USER => $USER, %$attr });
   }
  elsif ($nas_type eq 'mpd') {
    hangup_mpd($NAS, $PORT);
@@ -580,25 +580,14 @@ else {
 #SNMP version
   my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
 
-  $command = "/usr/bin/which snmpset";
+  $command = "$SNMPWALK -On -v 1 -c \"$SNMP_COM\" $NAS->{NAS_IP} .1.3.6.1.2.1.4.21.1.2.$attr->{FRAMED_IP_ADDRESS} | awk '{print \$3}'";
   log_print('LOG_DEBUG', "$command");
-  my $SNMPSET=`$command`;
-  $SNMPSET =~ s/\n//;
-
-  $command = "finger \@$NAS->{NAS_IP} | awk '{print \$1 \" \" \$2}' | grep $user\"\$\" | awk '{print \$1}' | sed s/Vi/Virtual-Access/g";
-  log_print('LOG_DEBUG', "$command");
-  my $INTNAME=`$command`;
-  $INTNAME =~ s/\n//;
-
-  $command = "$SNMPWALK -v 1 -c \"$SNMP_COM\" -O n $NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.2 | grep $INTNAME\"\$\" | awk '{print \$1}' | sed s/.1.3.6.1.2.1.2.2.1.2.//g";
-  log_print('LOG_DEBUG', "$command");
-
   my $INTNUM=`$command`;
   $INTNUM =~ s/\n//;
-
-  $command = "$SNMPSET -v 1 -c \"$SNMP_COM\" $NAS->{NAS_IP} 1.3.6.1.2.1.2.2.1.7.$INTNUM i 2 > /dev/null 2>&1";
+  $command = "$SNMPSET -v 1 -c \"$SNMP_COM\" $NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.7.$INTNUM i 2 > /dev/null 2>\&1";
   log_print('LOG_DEBUG', "$command");
   $exec=`$command`;
+
 }
 
  return $exec;
