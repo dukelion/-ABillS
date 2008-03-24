@@ -708,10 +708,7 @@ sub list {
      $HAVING 
 
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
-
    return $self if($self->{errno});
-
-
 
    my $list = $self->{list};
 
@@ -750,9 +747,10 @@ sub list {
 
  return $self if($self->{errno});
 
-
+ 
 
  my $list = $self->{list};
+
 
  if ($self->{TOTAL} > 0) {
     $self->query($db, "SELECT count(u.id) FROM users u 
