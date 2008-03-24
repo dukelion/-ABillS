@@ -14,6 +14,10 @@ else {
 
 
 
+use Finance;
+my $payments = Finance->payments($db, $admin, \%conf);
+
+
 
 my $Paysys = Paysys->new($db, $admin, \%conf);
 my %PAY_SYSTEMS = (1 => "Webmoney",
@@ -23,6 +27,262 @@ my %PAY_SYSTEMS = (1 => "Webmoney",
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
 
+
+#**********************************************************
+# Import fomfile
+#**********************************************************
+sub paysys_import_form {
+  my @import_types = split(/,/, $conf{PAYSYS_IMPORT_RULES});
+
+
+	if ($FORM{IMPORT}) {
+      my $import_expr = '';
+      my $BINDING_FIELD = '';
+
+      if (defined($FORM{IMPORT_TYPE})) {
+      	$import_expr   = $conf{'PAYSYS_IMPORT_EXPRATION_'. $FORM{IMPORT_TYPE}};
+      	$BINDING_FIELD = $conf{'PAYSYS_IMPORT_BINDING_'.$FORM{IMPORT_TYPE}};
+       }
+      #else {
+      #	
+      # }
+
+  
+      
+
+      $import_expr=~s/ //g;
+      $import_expr=~s/\n//g;
+      my ($expration, $columns)=split(/:/, $import_expr);
+      my @EXPR_IDS = split(/,/, $columns);
+
+      my @DATA_ARR = ();
+      my @BINDING_IDS = ();      
+      my $total_count = 0;
+      my $total_sum = 0;
+
+      
+      #Confirmation
+      if ($FORM{IDS}) {
+     	 
+      	 my @IDS =  split(/, /, $FORM{IDS});
+       	 for (my $i=0; $i<=$#IDS; $i++) {
+       	 	 my $ID = $IDS[$i];
+       	 	 my %DATA_HASH = (
+       	 	   PAYSYS_EXT_ID => $ID,
+       	 	   PHONE         => $FORM{'PHONE_'.$ID},
+       	 	   FIO           => $FORM{'FIO_'.$ID},
+       	 	   SUM           => $FORM{'SUM_'.$ID},
+       	 	   DATE          => $FORM{'DATE_'.$ID},
+       	 	   TYPE          => $FORM{'TYPE_'.$ID},
+       	 	   PAYMENT_METHOD => $FORM{'PAYMENT_METHOD_'.$ID},
+       	 	   DESCRIBE      => $FORM{'DESCRIBE_'.$ID},
+       	 	   ADDRESS       => $FORM{'ADDRESS_'.$ID}
+       	 	   );
+           push @DATA_ARR, { %DATA_HASH };
+           push @BINDING_IDS, $DATA_HASH{$BINDING_FIELD};
+    	    }
+       }
+      #Get data from file
+      elsif($FORM{FILE_DATA}) {
+
+	      #$expration = '^(.+)\t(.+)\t(\d{2}\.\d{2}\.\d{2})';
+	      print "/$expration/";
+	      
+      	my @rows = split(/[\r]{0,1}\n/, $FORM{"FILE_DATA"}{'Contents'});
+       
+        foreach my $line (@rows) {
+        	 my %DATA_HASH = ();
+        	 #my @params = split(/\t/, $line);
+
+           #next if ($#params < $#EXPR_IDS);
+           if (my @res = ($line =~ /$expration/)) {
+           	 for (my $i=0; $i<=$#res; $i++) {
+           	 	 #print "$EXPR_IDS[$i] / $res[$i]<br>";
+               next if ($EXPR_IDS[$i] eq 'UNDEF');
+               $DATA_HASH{$EXPR_IDS[$i]}=$res[$i];
+               $DATA_HASH{$EXPR_IDS[$i]} =~ s/-//g if ($EXPR_IDS[$i] eq 'PHONE');
+               $DATA_HASH{$EXPR_IDS[$i]} =~ s/,/\./g if ($EXPR_IDS[$i] eq 'SUM');
+        	    }
+             push @DATA_ARR, { %DATA_HASH };
+             
+             push @BINDING_IDS, $DATA_HASH{$BINDING_FIELD} if ($DATA_HASH{$BINDING_FIELD});
+             
+            }
+
+#           for ( my $i = 0; $i<=$#params; $i++) {
+#              next if ($EXPR_IDS[$i] eq 'UNDEF');
+#              $DATA_HASH{$EXPR_IDS[$i]}=$params[$i];
+#              $DATA_HASH{$EXPR_IDS[$i]} =~ s/-//g if ($EXPR_IDS[$i] eq 'USER_PHONE');
+#            }
+        }
+        
+        my $table2 = $html->table({ width  => '100%',
+                                rows   => [ [$_NAME,   $FORM{FILE_DATA}{filename} ],
+                                            [$_TOTAL,  $#DATA_ARR+1 ],
+                                            ["$_SIZE", $FORM{FILE_DATA}{Size}  ]
+                                           ]
+                               });
+ 
+        print $table2->show();
+
+       }
+
+		my $table = $html->table( { width      => '100%',
+                            caption    => "Import",
+                            border     => 1,
+                            title      => ['ID', "$_FIO", "$_PHONE", "$_CONTRACT_ID", "$_SUM", 
+                            "$_DATE", "$_BANK $_ACCOUNT", "$_TYPE", "$_ADDRESS", "$_DESCRIBE", '-', '-'],
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            ID         => 'PAYSYS_IMPORT_LIST',
+                            header     => "<script language=\"JavaScript\" type=\"text/javascript\">
+<!-- 
+function CheckAllINBOX() {
+  for (var i = 0; i < document.FORM_IMPORT.elements.length; i++) {
+    if(document.FORM_IMPORT.elements[i].type == 'checkbox' && document.FORM_IMPORT.elements[i].name == 'IDS'){
+      document.FORM_IMPORT.elements[i].checked =         !(document.FORM_IMPORT.elements[i].checked);
+    }
+  }
+}
+//-->
+</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n"
+
+                           });
+       push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+       my $ids = join(', ', @BINDING_IDS);
+
+
+       my $users = Users->new($db, $admin, \%conf); 
+	     my $list = $users->list({ $BINDING_FIELD => $ids });
+
+       my $binding_hash = ();
+       foreach my $line (@$list) {
+       	 $binding_hash{$line->[5]}="$line->[6]:$line->[0]:line->[1]";
+        }
+
+   	   my %HIDDEN_HASH = ();
+
+       if ($FORM{PAYMENTS}) {
+ 	         for ( my $i = 0; $i<=$#DATA_ARR; $i++) {
+         	   my $ID = $DATA_ARR[$i]->{PAYSYS_EXT_ID} || $i;
+
+             if ($binding_hash{$DATA_ARR[$i]->{$BINDING_FIELD}}) {
+                my($uid, $login, $fio)=split(/:/, $binding_hash{$DATA_ARR[$i]->{$BINDING_FIELD}});
+                my $user = $users->info($uid);
+                $payments->add($user, {SUM  => $DATA_ARR[$i]->{SUM},
+ 	                     DESCRIBE     => $DATA_ARR[$i]->{DESCRIBE}, 
+ 	                     METHOD       => $DATA_ARR[$i]->{PAYMENT_METHOD}, 
+                       EXT_ID       => "$DATA_ARR[$i]->{DATE}.$ID",
+                       CHECK_EXT_ID => "$DATA_ARR[$i]->{DATE}.$ID"
+                        } );  
+               }
+       	     else {
+       	       $html->message('err', $_ERROR, "$_NOT_EXIST $BINDING_FIELD - $DATA_ARR[$i]->{$BINDING_FIELD} ");
+       	      }
+    	
+         
+             $total_count++;
+             $total_sum += $DATA_ARR[$i]->{SUM};
+          }
+
+           return 0;
+        }
+     	 else {
+     	   #Draw table        
+         for ( my $i = 0; $i<=$#DATA_ARR; $i++) {
+       	   my $ID = $DATA_ARR[$i]->{PAYSYS_EXT_ID} || $i;
+  
+       	   my $PAYMENT_METHOD_SEL =  $html->form_select('PAYMENT_METHOD_'.$ID, 
+                                { SELECTED      => $DATA_ARR[$i]->{PAYMENT_METHOD} || '',
+ 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
+ 	                                ARRAY_NUM_ID  => 1
+ 	                               });
+           my $info = ''; 
+           if ($binding_hash{$DATA_ARR[$i]->{$BINDING_FIELD}}) {
+              my($uid, $login, $fio)=split(/:/, $binding_hash{$DATA_ARR[$i]->{$BINDING_FIELD}});
+              $info = "$_LOGIN: ".$html->button($login, "&index=11&UID=$uid", { TARGET => $uid });
+              $table->{rowcolor}=undef;
+            }
+       	   else {
+       	     $table->{rowcolor}=$_COLORS[6];
+       	    }
+      	
+           $table->addrow(
+              $html->form_input(IDS, $ID, { TYPE => 'checkbox' }) .  $ID,
+              $html->form_input('FIO_'.$ID, $DATA_ARR[$i]->{FIO} || '', { SIZE => 40}) . "$info", 
+              $html->form_input('PHONE_'.$ID, $DATA_ARR[$i]->{PHONE} || '', { SIZE => 12}),
+              $html->form_input('CONTRACT_ID_'.$ID, ($DATA_ARR[$i]->{CONTRACT_ID}) ? $DATA_ARR[$i]->{CONTRACT_ID} : '', , { SIZE => 12}),
+              $DATA_ARR[$i]->{SUM},
+              $DATA_ARR[$i]->{DATE},
+              $DATA_ARR[$i]->{BANK_ACCOUNT},
+              $PAYMENT_METHOD_SEL,
+              $DATA_ARR[$i]->{ADDRESS},
+              $html->form_input('DESCRIBE_'.$ID, $DATA_ARR[$i]->{DESCRIBE} || '')
+             );
+          
+           $HIDDEN_HASH{'SUM_'.$ID}=$DATA_ARR[$i]->{SUM};
+           $HIDDEN_HASH{'DATE_'.$ID}=$DATA_ARR[$i]->{DATE};
+           $HIDDEN_HASH{'BANK_ACCOUNT_'.$ID}=$DATA_ARR[$i]->{BANK_ACCOUNT};
+           $HIDDEN_HASH{'ADDRESS_'.$ID}=$DATA_ARR[$i]->{ADDRESS};
+         
+         
+           $total_count++;
+           $total_sum += $DATA_ARR[$i]->{SUM};
+          }
+        }
+
+       print $html->form_main({ CONTENT => $table->show() .
+       	                   $html->form_input('PAYMENTS', 1, { TYPE => 'checkbox' }) . " $_PAYMENTS ",
+  	                       HIDDEN  => { index  => "$index",
+  	                       	            OP_SID => $op_sid,
+  	                       	            %HIDDEN_HASH
+  	                       	           },
+	                         SUBMIT  => { 
+	                         	            IMPORT  => "IMPORT" 
+	                         	           },
+	                         NAME    => 'FORM_IMPORT'
+	                        });
+
+      $table = $html->table( { width      => '100%',
+                               cols_align => ['right', 'right'],
+                               rows       => [ [ "$_TOTAL:", "$total_count", "$_SUM", $total_sum ] ]
+                            } );
+      print $table->show();
+
+
+	 }
+
+
+
+  $info{IMPORT_TYPE_SEL} = $html->form_select('IMPORT_TYPE', 
+                                      { 
+ 	                                      SELECTED     => $FORM{IMPORT_TYPE},
+ 	                                      SEL_ARRAY    => \@import_types,
+ 	                                      ARRAY_NUM_ID => 1
+                                       });
+
+
+	$html->tpl_show(_include('paysys_file_import', 'Paysys'), \%info);
+}
+
+
+#**********************************************************
+# Import from POP3 mail box
+#**********************************************************
+sub paysys_import_pop3 {
+	
+	
+}
+
+
+#**********************************************************
+# Main iport  parser
+#**********************************************************
+sub paysys_import {
+	
+	
+}
 
 
 #**********************************************************

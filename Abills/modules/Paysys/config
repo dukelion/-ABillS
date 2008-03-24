@@ -3,11 +3,13 @@ $web_interface    = 1;
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = (
                    #"01:0:Paysys:paysys_webmoney:UID"     => 2,
-                   "02:0:Paysys:paysys_log:"              => 4
+                   "02:0:Paysys:paysys_log:"              => 4,
+                   "03:0:Import:paysys_import_form:"      => 2
                    );
 
 %USER_FUNCTION_LIST = ("01:0:Paysys:paysys_payment:"  => 40,
                        "02:1:$_LOG:paysys_user_log:"  => 40
+                       
                        );
 
 

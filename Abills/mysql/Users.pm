@@ -499,8 +499,14 @@ sub list {
 
 
  if ($attr->{PHONE}) {
-    my $value = $self->search_expr($attr->{PHONE}, 'INT');
-    push @WHERE_RULES, "pi.phone$value";
+    if ($attr->{PHONE} =~ /, /) {
+      push @WHERE_RULES, "pi.phone IN ($attr->{PHONE})";
+     }
+    else {
+      my $value = $self->search_expr($attr->{PHONE}, 'INT');
+      push @WHERE_RULES, "pi.phone$value";
+     }
+
     $self->{SEARCH_FIELDS} = 'pi.phone, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
@@ -571,8 +577,14 @@ sub list {
 
 
  if ($attr->{CONTRACT_ID}) {
-    $attr->{CONTRACT_ID} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.contract_id LIKE '$attr->{CONTRACT_ID}'";
+    if ($attr->{CONTRACT_ID} =~ /, /) {
+      push @WHERE_RULES, "pi.phone IN ($attr->{CONTRACT_ID})";
+     }
+    else {
+      $attr->{CONTRACT_ID} =~ s/\*/\%/ig;
+      push @WHERE_RULES, "pi.contract_id LIKE '$attr->{CONTRACT_ID}'";
+     }
+
     $self->{SEARCH_FIELDS} .= 'pi.contract_id, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
