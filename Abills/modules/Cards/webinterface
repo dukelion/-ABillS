@@ -604,9 +604,9 @@ sub cards_users_gen_confim {
 #**********************************************************
 sub cards_user_payment () {
 	
-  if (! defined($user)) {
+  #if (! $user) {
    	$user = Users->new($db, $admin, \%conf);
-   }
+  # }
 
 	
 	if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_OLDSTYLE})) {
@@ -639,7 +639,7 @@ sub cards_user_payment () {
 	    $html->message('err', $_ERROR, "$status[$Cards->{STATUS}]");
 	    return 0;
 	   }
-   
+  
    $user->info($LIST_PARAMS{UID});
    
    $payments->add($user, { SUM          => $Cards->{SUM},
