@@ -102,6 +102,7 @@ sub paysys_import_form {
                next if ($EXPR_IDS[$i] eq 'UNDEF');
                $DATA_HASH{$EXPR_IDS[$i]}=$res[$i];
                $DATA_HASH{$EXPR_IDS[$i]} =~ s/-//g if ($EXPR_IDS[$i] eq 'PHONE');
+               $DATA_HASH{$EXPR_IDS[$i]} =~ s/-//g if ($EXPR_IDS[$i] eq 'CONTRACT_ID');
                $DATA_HASH{$EXPR_IDS[$i]} =~ s/,/\./g if ($EXPR_IDS[$i] eq 'SUM');
         	    }
              push @DATA_ARR, { %DATA_HASH };
