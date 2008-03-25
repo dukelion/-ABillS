@@ -129,7 +129,7 @@ sub paysys_import_form {
        }
 
 		my $table = $html->table( { width      => '100%',
-                            caption    => "Import",
+                            caption    => "$_PRE Import - $import_types[$FORM{IMPORT_TYPE}]",
                             border     => 1,
                             title      => ['ID', "$_FIO", "$_PHONE", "$_CONTRACT_ID", "$_SUM", 
                             "$_DATE", "$_BANK $_ACCOUNT", "$_TYPE", "$_ADDRESS", "$_DESCRIBE", '-', '-'],
