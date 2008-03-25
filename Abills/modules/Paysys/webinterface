@@ -36,8 +36,11 @@ sub paysys_import_form {
 
 
 	if ($FORM{IMPORT}) {
-      my $import_expr = '';
-      my $BINDING_FIELD = '';
+				
+      my $import_expr = '(\d+)\t(.+)\t(\d+)\t(\S+)\t([0-9.,]+)\t(\d{2}-\d{2}-\d{4})\t(.+)\t(.+):
+       ID, FIO, PHONE, CONTRACT_ID, SUM, DATE, ADDRESS, DESCRIBE';
+
+      my $BINDING_FIELD = 'CONTRACT_ID';
 
       if (defined($FORM{IMPORT_TYPE})) {
       	$import_expr   = $conf{'PAYSYS_IMPORT_EXPRATION_'. $FORM{IMPORT_TYPE}};
