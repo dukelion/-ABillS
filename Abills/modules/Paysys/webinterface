@@ -212,7 +212,7 @@ function CheckAllINBOX() {
 
            if ($binding_hash{$DATA_ARR[$i]->{$BINDING_FIELD}}) {
               my($uid, $login, $fio)=split(/:/, $binding_hash{$DATA_ARR[$i]->{$BINDING_FIELD}});
-              $info = "$_LOGIN: ".$html->button($login, "&index=11&UID=$uid", { TARGET => $uid });
+              $info = $html->button($fio, "&index=11&UID=$uid", { TARGET => $uid }) . "/$login/$uid";
               $table->{rowcolor}=undef;
             }
        	   else {
