@@ -477,7 +477,7 @@ sub hangup_ipcad {
   Ipn->import();
   my $Ipn      = Ipn->new($db, \%conf);
   
-  $Ipn->acct_stop({ %$attr, SESSION_ID => $attr->{ACCT_SESION_ID} });
+  $Ipn->acct_stop({ %$attr, SESSION_ID => $attr->{ACCT_SESSION_ID} });
 
   my $cmd = $conf{IPN_FW_STOP_RULE};
 
@@ -665,8 +665,8 @@ sub hangup_mpd4 {
   my ($NAS, $PORT, $attr) = @_;
 
   my $ctl_port = "pptp$PORT";
-  if ($attr->{ACCT_SESION_ID}) {
-  	if($attr->{ACCT_SESION_ID} =~ /\d+\-(.+)/) {
+  if ($attr->{ACCT_SESSION_ID}) {
+  	if($attr->{ACCT_SESSION_ID} =~ /\d+\-(.+)/) {
   	  $ctl_port = $1;
 
   	 }
