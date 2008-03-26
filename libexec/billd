@@ -291,7 +291,7 @@ sub check_lines {
               next;
            	}
 
-           my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_IS      => $acct_session_id,
+           my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID      => $acct_session_id,
            	                                                       FRAMED_IP_ADDRESS    => int2ip($line->[3]),
            	                                                       ACCT_TERMINATE_CAUSE => 15,
            	                                                       UID                  => $self->{UID},

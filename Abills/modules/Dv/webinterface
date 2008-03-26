@@ -584,7 +584,7 @@ elsif ($FORM{hangup}) {
 
   require "Abills/nas.pl";
   
-  my $ret = hangup($nas, "$nas_port_id", "$user_name", { ACCT_SESION_ID    => "$acct_session_id",
+  my $ret = hangup($nas, "$nas_port_id", "$user_name", { ACCT_SESSION_ID   => "$acct_session_id",
   	                                                     FRAMED_IP_ADDRESS => "$FORM{FRAMED_IP_ADDRESS}",
   	                                                     UID               => $FORM{UID} });
 
