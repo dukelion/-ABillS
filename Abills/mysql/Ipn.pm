@@ -1168,7 +1168,8 @@ sub ipn_log_rotate {
  #IPN log rotate
  if ($attr->{LOG} && $version > 4.1) {
    my @rq = (
-    'CREATE TABLE IF NOT EXISTS ipn_log_new LIKE ipn_log;',
+    'DROP TABLE IF EXISTS ipn_log_new;',
+    'CREATE TABLE ipn_log_new LIKE ipn_log;',
 #    'INSERT INTO ipn_log_new (
 #         uid,
 #         start,
@@ -1193,14 +1194,14 @@ sub ipn_log_rotate {
          sum
     ) 
     SELECT uid, start, start, traffic_class, traffic_in, traffic_out,  session_id, sum FROM ipn_log 
-      WHERE start >= \'$admin->{DATE}\' - INTERVAL '. $attr->{PERIOD} .' DAY; ',
+      WHERE start >= \''. $admin->{DATE} .'\' - INTERVAL '. $attr->{PERIOD} .' DAY; ',
 
 
     'DROP TABLE IF EXISTS ipn_log_backup;',
     'RENAME TABLE 
       ipn_log  TO ipn_log_backup, 
       ipn_log_new TO ipn_log;',
-    'DELETE FROM ipn_log_backup  WHERE start >= \'$admin->{DATE}\' - INTERVAL '. $attr->{PERIOD} .' DAY; '
+    'DELETE FROM ipn_log_backup  WHERE start >= \''. $admin->{DATE}. '\' - INTERVAL '. $attr->{PERIOD} .' DAY; '
       );
 
    foreach my $query (@rq) {
