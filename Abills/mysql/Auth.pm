@@ -302,6 +302,7 @@ else {
 #my @traf_limits = ();
 my $time_limit  = $self->{TIME_LIMIT}; 
 my $traf_limit  = $MAX_SESSION_TRAFFIC;
+my @direction_sum = ('sent + recv', 'recv', 'sent');
 
 push @time_limits, $self->{MAX_SESSION_DURATION} if ($self->{MAX_SESSION_DURATION} > 0);
 
@@ -317,7 +318,7 @@ foreach my $line (@periods) {
         my $session_time_limit=$traf_limit;
         my $session_traf_limit=$traf_limit;
         $self->query($db, "SELECT if(". $self->{$line . '_TIME_LIMIT'} ." > 0, ". $self->{$line . '_TIME_LIMIT'} ." - sum(duration), 0),
-                                  if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - sum(sent + recv) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE}, 0) 
+                                  if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - sum($direction_sum[$self->{OCTETS_DIRECTION}]) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE}, 0) 
             FROM dv_log
             WHERE uid='$self->{UID}' and $SQL_params{$line}
             GROUP BY uid;");
