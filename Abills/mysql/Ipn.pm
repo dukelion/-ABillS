@@ -1193,14 +1193,14 @@ sub ipn_log_rotate {
          sum
     ) 
     SELECT uid, start, start, traffic_class, traffic_in, traffic_out,  session_id, sum FROM ipn_log 
-      WHERE start >= start - INTERVAL '. $attr->{PERIOD} .' DAY; ',
+      WHERE start >= \'$admin->{DATE}\' - INTERVAL '. $attr->{PERIOD} .' DAY; ',
 
 
     'DROP TABLE IF EXISTS ipn_log_backup;',
     'RENAME TABLE 
       ipn_log  TO ipn_log_backup, 
       ipn_log_new TO ipn_log;',
-    'DELETE FROM ipn_log_backup  WHERE start >= start - INTERVAL '. $attr->{PERIOD} .' DAY; '
+    'DELETE FROM ipn_log_backup  WHERE start >= \'$admin->{DATE}\' - INTERVAL '. $attr->{PERIOD} .' DAY; '
       );
 
    foreach my $query (@rq) {
