@@ -412,7 +412,7 @@ sub check_install {
     if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
       #If result is file
       if ($value =~ /^FILE=(\S+)/) {
-      $config_body = get_file($DEFAULT_VALUE{WORK_DIR}."/$program/".$1);
+      $config_body = get_file($conf{WORK_DIR}."/$program/".$1);
        }
       else {
       	$config_body = "$value\n";
