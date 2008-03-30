@@ -58,6 +58,9 @@ sub accounting {
  my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
  my $SESSION_START = (defined($RAD->{SESSION_START}) && $RAD->{SESSION_START} > 0) ?  "FROM_UNIXTIME($RAD->{SESSION_START})" : "FROM_UNIXTIME(UNIX_TIMESTAMP())";
 
+ $RAD{ACCT_INPUT_GIGAWORDS}  = 0 if (! $RAD{ACCT_INPUT_GIGAWORDS});
+ $RAD{ACCT_OUTPUT_GIGAWORDS} = 0 if (! $RAD{ACCT_OUTPUT_GIGAWORDS});
+
 #   print "aaa $acct_status_type '$RAD->{ACCT_STATUS_TYPE}'  /$RAD->{SESSION_START}/"; 
 #my $a=`echo "test $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}}"  >> /tmp/12211 `;
  
@@ -87,6 +90,8 @@ if ($acct_status_type == 1) {
     if ($RAD->{X_ASCEND_DATA_RATE} && $RAD->{X_ASCEND_XMIT_RATE}) {
       $RAD->{CONNECT_INFO}="$RAD->{X_ASCEND_DATA_RATE} / $RAD->{X_ASCEND_XMIT_RATE}";
      }
+
+Acct-Input-Gigawords
 
     # 
     my $sql = "INSERT INTO dv_calls
@@ -157,13 +162,17 @@ elsif ($acct_status_type == 2) {
         sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
         bill_id,
-        terminate_cause) 
+        terminate_cause,
+        acct_input_gigawords,
+        acct_output_gigawords) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{SUM}', '$NAS->{NAS_ID}',
         '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
         '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
         '$self->{BILL_ID}',
-        '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
+        '$RAD->{ACCT_TERMINATE_CAUSE}',
+         '$RAD{ACCT_OUTPUT_GIGAWORDS}',
+         '$RAD{ACCT_INPUT_GIGAWORDS}');", 'do');
    }
   elsif ($conf->{rt_billing}) {
     $self->rt_billing($RAD, $NAS);
@@ -233,13 +242,17 @@ elsif ($acct_status_type == 2) {
       $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
           ip, CID, sent2, recv2, acct_session_id, 
           bill_id,
-          terminate_cause) 
+          terminate_cause,
+          acct_input_gigawords,
+          acct_output_gigawords ) 
           VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
           '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', '$self->{SUM}', '$NAS->{NAS_ID}',
           '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
           '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
           '$self->{BILL_ID}',
-          '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
+          '$RAD->{ACCT_TERMINATE_CAUSE}',
+          '$RAD{ACCT_OUTPUT_GIGAWORDS}',
+          '$RAD{ACCT_INPUT_GIGAWORDS}');", 'do');
  
       if ($self->{errno}) {
         my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
@@ -277,7 +290,9 @@ elsif($acct_status_type eq 3) {
       ex_output_octets='$RAD->{OUTBYTE2}',
       framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
       lupdated=UNIX_TIMESTAMP(),
-      sum=sum+$self->{SUM}
+      sum=sum+$self->{SUM},
+      acct_input_gigawords='$RAD{ACCT_INPUT_GIGAWORDS}',
+      acct_input_gigawords='$RAD{ACCT_OUTPUT_GIGAWORDS}'
     WHERE
       acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
       user_name=\"$RAD->{USER_NAME}\" and
