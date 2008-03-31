@@ -66,7 +66,7 @@ if(! -f $config_file ) {
      	 close(FILE);
        
        while(my($k, $v) = each %mk_config ) {
-     	   $config_text =~ s/\{$k\}\=\'\S+\'/\{$k\}\=\'$v\'/g;
+     	   $config_text =~ s/\{$k\}\=\'\S{0,50}\'/\{$k\}\=\'$v\'/g;
         }
 
      	 open(FILE, ">$config_file") || die "Can't open file '$config_file.default' $!\n";
