@@ -91,8 +91,6 @@ if ($acct_status_type == 1) {
       $RAD->{CONNECT_INFO}="$RAD->{X_ASCEND_DATA_RATE} / $RAD->{X_ASCEND_XMIT_RATE}";
      }
 
-Acct-Input-Gigawords
-
     # 
     my $sql = "INSERT INTO dv_calls
      (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
