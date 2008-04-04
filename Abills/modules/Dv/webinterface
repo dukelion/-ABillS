@@ -1127,18 +1127,22 @@ sub dv_use {
 
 my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,  	
                      '2:USERS'           => $_USERS,
-                     '3:SESSIONS'        => $_SESSIONS,
-                     '4:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
-                     '5:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT",
-                     '8:TRAFFIC_SUM'     => $_TRAFFIC,
-                     '9:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
-                     '6:DURATION'        => $_DURATION,
-                     '7:SUM'             => $_SUM);
+                     '3:USERS_FIO'       => $_FIO,
+                     '4:SESSIONS'        => $_SESSIONS,
+                     '5:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
+                     '6:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT",
+                     '7:TRAFFIC_SUM'     => $_TRAFFIC,
+                     '8:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
+                     '9:DURATION'        => $_DURATION,
+                     '99:SUM'            => $_SUM);
+
+#  $FORM{FIELDS} = 'DATE, USERS_COUNT, SESSIONS, TRAFFIC_SUM, TRAFFIC_2_SUM, DURATION, SUM' if (! $FORM{FIELDS});
 
   reports({ DATE          => $FORM{DATE}, 
   	        REPORT        => '',
   	        EX_PARAMS     => { HOURS => "$_HOURS",
-  	        	                 USERS => "$_USERS" }, 
+  	        	                 USERS => "$_USERS"
+  	        	                 }, 
   	        PERIOD_FORM		=> 1,
   	        FIELDS        => { %CAPTIONS_HASH },
   	        XML           => 1,
@@ -1155,6 +1159,7 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
   	       });
 
 
+
 my ($tables_sessions);
 my $output = '';
 
@@ -1169,6 +1174,9 @@ my $graph_type='';
 
 #Day reposrt
 if (defined($FORM{DATE})) {
+
+  print "aaaaaaaaaaa";
+
   #Used Traffic
   $table_sessions = $html->table({ width      => '100%',
 	                                 caption    => "$_SESSIONS", 
