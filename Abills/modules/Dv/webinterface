@@ -1175,8 +1175,6 @@ my $graph_type='';
 #Day reposrt
 if (defined($FORM{DATE})) {
 
-  print "aaaaaaaaaaa";
-
   #Used Traffic
   $table_sessions = $html->table({ width      => '100%',
 	                                 caption    => "$_SESSIONS", 
@@ -1296,6 +1294,9 @@ else {
       for(my $i=0; $i<=$#caption; $i++) {
         if ($fields_arr[$i] =~ /TRAFFIC/) {
           push @rows, int2byte($line->[$i], { DIMENSION => $FORM{DIMENSION} });
+         }
+        elsif ($fields_arr[$i] =~ /USERS/ || $fields_arr[$i] =~ /USERS_FIO/) {
+          push @rows, $html->button("$line->[$i]", "index=11&UID=". ($line->[$#fields_arr+1]));
          }
         else {
           push @rows, $line->[$i];
