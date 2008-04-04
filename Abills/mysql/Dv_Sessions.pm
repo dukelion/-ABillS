@@ -1031,7 +1031,8 @@ sub reports {
 
 
  my @FIELDS_ARR = ('DATE', 
-                   'USERS', 
+                   'USERS',
+                   'USERS_FIO',
                    'SESSIONS', 
                    'TRAFFIC_RECV', 
                    'TRAFFIC_SENT',
@@ -1043,15 +1044,19 @@ sub reports {
 
  $self->{REPORT_FIELDS} = {DATE            => '',  	
                            USERS           => 'u.id',
+                           USERS_FIO       => 'u.fio',
                            SESSIONS        => 'count(l.uid)',
                            TRAFFIC_SUM     => 'sum(l.sent + 4294967296 * acct_output_gigawords + l.recv + 4294967296 * acct_input_gigawords)',
                            TRAFFIC_2_SUM   => 'sum(l.sent2 + l.recv2)',
                            DURATION        => 'sec_to_time(sum(l.duration))',
                            SUM             => 'sum(l.sum)',
                            TRAFFIC_RECV    => 'sum(l.recv)',
-                           TRAFFIC_SENT    => 'sum(l.sent)'
+                           TRAFFIC_SENT    => 'sum(l.sent)',
+                           USERS_COUNT     => 'count(DISTINCT l.uid)'
                           };
  
+ 
+ my $EXT_TABLE = 'users';
 
  # Show groups
  if ($attr->{GIDS}) {
@@ -1115,15 +1120,23 @@ if ($attr->{FIELDS}) {
 
   foreach my $line (@fields_array) {
   	$get_fields_hash{$line}=1;
+    if ($line eq 'USERS_FIO') {
+        $EXT_TABLE = 'users_pi';
+        $date = 'u.fio';
+     }
+
    }
   
   foreach my $k (@FIELDS_ARR) {
-    push @show_fields, $self->{REPORT_FIELDS}{$k} if ($get_fields_hash{$k});
-  }
+    if ($get_fields_hash{$k}) {
+      push @show_fields, $self->{REPORT_FIELDS}{$k} ;
+     }
+  } 
 
   $fields = join(', ', @show_fields)
 }
  
+
  
  
  if(defined($attr->{DATE})) {
@@ -1133,7 +1146,7 @@ if ($attr->{FIELDS}) {
     sum(l.sent + 4294967296 * acct_output_gigawords + l.recv + 4294967296 * acct_input_gigawords), 
      sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
       FROM dv_log l
-      LEFT JOIN users u ON (u.uid=l.uid)
+      LEFT JOIN $EXT_TABLE u ON (u.uid=l.uid)
       $WHERE 
       GROUP BY 1 
       ORDER BY $SORT $DESC");
@@ -1142,7 +1155,7 @@ if ($attr->{FIELDS}) {
    	$self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
     sum(l.sent + 4294967296 * acct_output_gigawords + l.recv + 4294967296 * acct_input_gigawords), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
       FROM dv_log l
-      LEFT JOIN users u ON (u.uid=l.uid)
+      LEFT JOIN $EXT_TABLE u ON (u.uid=l.uid)
       $WHERE 
       GROUP BY l.uid 
       ORDER BY $SORT $DESC");
@@ -1153,7 +1166,7 @@ if ($attr->{FIELDS}) {
   $self->query($db, "select $fields,
       l.uid
        FROM dv_log l
-       LEFT JOIN users u ON (u.uid=l.uid)
+       LEFT JOIN $EXT_TABLE u ON (u.uid=l.uid)
        $WHERE    
        GROUP BY 1 
        ORDER BY $SORT $DESC;");
@@ -1179,7 +1192,7 @@ if ($attr->{FIELDS}) {
       sec_to_time(sum(l.duration)), 
       sum(l.sum)
        FROM dv_log l
-       LEFT JOIN users u ON (u.uid=l.uid)
+       LEFT JOIN $EXT_TABLE u ON (u.uid=l.uid)
        $WHERE;");
 
  

@@ -4,7 +4,7 @@
 
 use DBI;
 use strict;
-use vars qw(%conf);
+use vars qw(%conf $DATE $TIME);
 
 
 #Main debug section
@@ -311,7 +311,7 @@ if ($sth->rows() > 0) {
       return 0;
      }
 
-    my $sde = `echo "$ENV{USER} / FILESIZE: $size / $prepaid_traffic - $used_traffic / $extra_trafic; $query" >> /tmp/rrr`;
+    my $sde = `echo "$DATE $TIME: $ENV{USER} / FILESIZE: $size / $prepaid_traffic - $used_traffic / $extra_trafic; $query" >> /tmp/rrr`;
 
     if ($prepaid_traffic > 0) {
       $rest_traffic = $prepaid_traffic - $used_traffic;
