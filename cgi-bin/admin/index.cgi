@@ -4422,26 +4422,46 @@ print $table->show();
 # form_period
 #*******************************************************************
 sub form_period  {
- my ($period) = @_;
+ my ($period, $attr) = @_;
 
 
- my @periods = ("$_NOW", "$_DATE");
+ my @periods = ("$_NOW", "$_NEXT_PERIOD", "$_DATE");
  my $date_fld = $html->date_fld('date_', { MONTHES => \@MONTHES });
  my $form_period='';
 
- $form_period .= "<tr><td>$_DATE:</td><td>";
+ $form_period .= "<tr><td rowspan=3>$_DATE:</td><td>";
+ 
+ $form_period .= $html->form_input('period', "0", { TYPE          => "radio", 
+   	                                                STATE         => 1, 
+   	                                                OUTPUT2RETURN => 1
+ 	                                                  }). "$periods[0]";
+ 
+ 
+ $form_period .= "</td></tr>\n";
 
  my $i=0;
- foreach my $t (@periods) {
-   $form_period .= "<BR/><BR/>";
-   $form_period .= $html->form_input('period', "$i", { TYPE          => "radio", 
+ for(my $i=1; $i<=$#periods; $i++) {
+   my $period_name = $periods[$i];
+
+   my $period = $html->form_input('period', "$i", { TYPE          => "radio", 
    	                                                   STATE         => ($i eq $period) ? 1 : undef, 
    	                                                   OUTPUT2RETURN => 1
    	                                                  });
-   $form_period .= "$t ";
-   $i++;
+
+
+   if ($i == 1) {
+     next if (! $attr->{ABON_DATE});
+     $period .= "$period_name ($attr->{ABON_DATE})" ;
+    }
+   elsif($i == 2) {
+
+     $period .= "$period_name $date_fld"   	
+    }
+
+   $form_period .= "<tr><td>$period</td></tr>\n";
  }
- $form_period .= " $date_fld</td></tr>\n";
+
+ 
 
 
  return $form_period;	

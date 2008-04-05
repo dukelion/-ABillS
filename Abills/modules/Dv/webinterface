@@ -45,12 +45,47 @@ sub dv_chg_tp {
 
  my $shedule = Shedule->new($db, $admin, \%conf);
 
+
+
+if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{DISABLE} && ! $users->{DISABLE} &&
+        ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
+         $Dv->{POSTPAID_ABON} || 
+         $Dv->{PAYMENT_TYPE} == 1 )) {
+
+      if ($users->{ACTIVATE} ne '0000-00-00') {
+        my ($Y, $M, $D)=split(/-/, $users->{ACTIVATE}, 3);
+        $M--;
+        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400) );
+       }
+      else {
+        my ($Y, $M, $D)=split(/-/, $DATE, 3);
+        $M++;
+        if ($M == 13) {
+          $M = 1;
+          $Y++;
+         }
+        $D='01';
+        $M = sprintf("%02.d", $M);
+        $Dv->{ABON_DATE} = "$Y-$M-$D";
+       }
+ }
+
+
+
+
 if ($FORM{set}) {
 
-  if ($period == 1) {
+  if ($period > 0) {
 
+    if ($period == 1) {
+      ($FORM{date_Y}, $FORM{date_M}, $FORM{date_D})=split(/-/, $Dv->{ABON_DATE}, 3);
+     }
+    else {
+    	$FORM{date_M}++;
+     }
+   
  	  use POSIX;
-    $FORM{date_M}++;
+    
     my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
     
     if ($seltime <= time()) {
@@ -129,7 +164,7 @@ elsif($FORM{del}) {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
-   $tariffs->{PARAMS} .= form_period($period);	
+   $tariffs->{PARAMS} .= form_period($period, { ABON_DATE => $Dv->{ABON_DATE} });	
    $tariffs->{ACTION}='set';
    $tariffs->{LNG_ACTION}=$_CHANGE;
   }
@@ -337,8 +372,9 @@ sub dv_user {
 	  $Dv->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. ($index + 1)) .']';
 
     # Get next payment period
-    if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{DISABLE} && ! $users->{DISABLE} &&
-        ($users->{DEPOSIT} > 0 || 
+    
+    if ($Dv->{MONTH_ABON} > 0 &&  ! $Dv->{DISABLE} && ! $users->{DISABLE} &&
+        ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
          $Dv->{POSTPAID_ABON} || 
          $Dv->{PAYMENT_TYPE} == 1 )) {
       if ($users->{ACTIVATE} ne '0000-00-00') {
@@ -1180,7 +1216,8 @@ if (defined($FORM{DATE})) {
 	                                 caption    => "$_SESSIONS", 
                                    title      => ["$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM],
                                    cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
-                                   qs         => $pages_qs             
+                                   qs         => $pages_qs,
+                                   ID         => 'DV_REPORTS_SESSIONS'
                                 });
 
   if ($FORM{EX_PARAMS} && $FORM{EX_PARAMS} eq 'HOURS') {
@@ -1277,7 +1314,8 @@ else {
 	                                 caption    => "$_SESSIONS", 
                                    title      => \@caption,
                                    cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
-                                   qs         => $pages_qs             
+                                   qs         => $pages_qs,
+                                   ID         => 'DV_REPORTS_SESSIONS'
                                } );
 
 
@@ -1358,10 +1396,10 @@ $output = $html->make_charts({
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
-                         rows       => [ [ "$_USERS: ". $html->b( $sessions->{USERS} ),
-                                           "$_SESSIONS: ". $html->b( $sessions->{SESSIONS} ), 
-                                           "$_TRAFFIC: ". $html->b( int2byte($sessions->{TRAFFIC}) ) ."<BR>".
-                                           "$_TRAFFIC IN: ". $html->b( int2byte($sessions->{TRAFFIC_IN}) ) ."<BR>".
+                         rows       => [ [ "$_USERS: ".       $html->b( $sessions->{USERS} ),
+                                           "$_SESSIONS: ".    $html->b( $sessions->{SESSIONS} ), 
+                                           "$_TRAFFIC: ".     $html->b( int2byte($sessions->{TRAFFIC}) ) ."<BR>".
+                                           "$_TRAFFIC IN: ".  $html->b( int2byte($sessions->{TRAFFIC_IN}) ) ."<BR>".
                                            "$_TRAFFIC OUT: ". $html->b( int2byte($sessions->{TRAFFIC_OUT}) ) 
                                            , 
                                            
@@ -1441,10 +1479,11 @@ print $html->form_main({ CONTENT => "$_LOGIN (*): " . $html->form_input('LOGIN_E
 	                                                                   
 
 	                                                                   
-my $table = $html->table( { caption => "$_LOG",
+my $table = $html->table( { caption => "$_ERROR",
 	                          width   => '100%',
 	                          pages   => $totals,
-	                          qs      => $pages_qs
+	                          qs      => $pages_qs,
+	                          ID      => 'DV_ERRORS'
 	                         } );
 
 foreach my $line (@$list) {
@@ -2015,7 +2054,8 @@ if ($sessions->{TOTAL} > 0) {
                              border     => 1,
                              title      => ["$_INTERVAL", "$_TRAFFIC", "$_SENT", "$_RECV", "$_DURATION", "$_SUM"],
                              cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
-                             qs         => $pages_qs
+                             qs         => $pages_qs,
+                             ID         => 'DV_SESSION_DETAIL'
                           } );
 
   foreach my $line (@$list) {
@@ -2271,7 +2311,7 @@ sub dv_user_info {
 
   # Get next payment period
   if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{DISABLE} && ! $user->{DISABLE} &&
-        ($user->{DEPOSIT} > 0 || 
+        ($user->{DEPOSIT}+$user->{CREDIT} > 0 || 
          $Dv->{POSTPAID_ABON} || 
          $Dv->{PAYMENT_TYPE} == 1 )) {
     if ($user->{ACTIVATE} ne '0000-00-00') {

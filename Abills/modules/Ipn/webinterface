@@ -1646,7 +1646,8 @@ sub ipn_change_status {
     $num = $ip_array[3];
    }
 
-  my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $num;
+  my $rule_num = $conf{IPN_FW_FIRST_RULE} || 20000 ;
+  $rule_num = $rule_num + 10000 + $num;
   my $cmd;
 
 	if ($STATUS eq 'ONLINE_ENABLE') {

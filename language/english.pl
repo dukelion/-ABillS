@@ -90,6 +90,7 @@ $_CONFIRM='Confirmation';
 $_ENTER='Enter';
 $_BALANCE='Balance';
 $_PERIOD='Period';
+$_NEXT_PERIOD='Next account period';
 $_SENT='Sent';
 $_RECV='Received';
 $_LAST_PAYMENT='Late payment';
