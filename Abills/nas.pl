@@ -492,7 +492,8 @@ sub hangup_ipcad {
     $num = $ip_array[3];
    }
 
-  my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $num;
+  my $rule_num = $conf{IPN_FW_FIRST_RULE} || 20000;
+  $rule_num = $rule_num + 10000 + $num;
 
 
   $cmd =~ s/\%IP/$ip/g;
