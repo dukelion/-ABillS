@@ -1521,7 +1521,9 @@ sub ipn_user_activate {
     }
    }
   elsif ($FORM{LOGOUT}) {
+  	 my $user  = $users->info( $LIST_PARAMS{UID} );
   	 ipn_change_status({ STATUS                => 'HANGUP',
+  	 	                   USER_NAME             => $user->{LOGIN}, 
   	 	                   FRAMED_IP_ADDRESS     => $ip,
   	 	                   ACCT_TERMINATE_CAUSE  => 1,
   	 	                   UID                   => $LIST_PARAMS{UID},
@@ -2540,6 +2542,7 @@ foreach my $line (@$list)   {
   #Hangup and activate
   if ($FORM{LOGOUT}) {
   	 ipn_change_status({ STATUS                => 'HANGUP',
+  	 	                   USER_NAME             => "$login",
   	 	                   FRAMED_IP_ADDRESS     => $ip,
   	 	                   ACCT_TERMINATE_CAUSE  => 1,
   	 	                   UID                   => $uid,
