@@ -660,6 +660,7 @@ CREATE TABLE `tarif_plans` (
   `neg_deposit_filter_id` varchar(15) NOT NULL default '',
   `tp_id` int(11) unsigned NOT NULL auto_increment,
   `ext_bill_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `credit` double(10,2) unsigned NOT NULL DEFAULT '0.00',
   PRIMARY KEY  (`id`,`module`),
   UNIQUE KEY `tp_id` (`tp_id`),
   KEY `name` (`name`)

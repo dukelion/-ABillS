@@ -1,12 +1,20 @@
 =====0.40=====
+06.04.2008 
+  * Добавлена возможность автоматического создания группы должников. В группу заносятся пользователи у которых депозит ниже указанного в конфигурации и последняя оплата старше определённого количества дней. При включении  пользователя в эту группу система автоматически добавляет комментарии с указанием даты добавлении. Если указанная группа не существует система пытается её создать. При погашении долга пользователя автоматически удаляется из группы вместе с комментарием.\\
+Опция конфигурации: **$conf{DEBETORS_GROUP}="GROUP_ID:DEPOSIT:LAST_PAYNMENT_DAYS";** (Пример: $conf{DEBETORS_GROUP}='500:0:20';)
+  * Добавлена возможность установки кредитного лимита тарифного плана. Кредитный лимит тарифного плана имеет более низкий приоритет чем кредитный лимит пользователя.
+MySQL
+  ALTER TABLE tarif_plans ADD COLUMN `credit` double(10,2) unsigned NOT NULL DEFAULT '0.00';
+
 04.03.2008
   * в модуле Dhcphosts добавлена возможность задавать автоматически выдаваемые адреса для сети.
   * Удалена опция $conf{DHCPHOSTS_IPGUARD_TYPE}=""; . Добавлено две новые опции $conf{DHCPHOSTS_IPGUARD_DENY_TPL}=””; $conf{DHCPHOSTS_IPGUARD_ACCEPT_TPL}=””;
 
 
 MySQL
+  ALTER TABLE dhcphosts_hosts ADD UNIQUE KEY `host_network` (`hostname`,`network`);
   ALTER TABLE dhcphosts_networks ADD COLUMN `ip_range_first` int(11) unsigned NOT NULL DEFAULT '0';
-  ALTER TABLE dhcphosts_networks ADD COLUMN  `ip_range_last` int(11) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE dhcphosts_networks ADD COLUMN `ip_range_last` int(11) unsigned NOT NULL DEFAULT '0';
 
 
 02.03.2008
