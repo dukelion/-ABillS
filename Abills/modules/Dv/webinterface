@@ -223,9 +223,20 @@ sub dv_users_list {
 my $list = $Dv->list( { %LIST_PARAMS } );
 
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-');
+my @EX_TITLE_ARR  = split(/, /, $Dv->{SEARCH_FIELDS});
+
+my %SEARCH_TITLES = ('INET_NTOA(dv.ip)' => 'IP',
+                     'dv.speed'         => $_SPEED,
+                     'dv.port'          => $_PORT,
+                     'dv.cid'           => 'CID',
+                     'dv.filter_id'     => 'Filter ID',
+                     'tp.name'          => "$_TARIF_PLAN"
+                   );
+
+
 for(my $i=0; $i<$Dv->{SEARCH_FIELDS_COUNT}; $i++){
 	push @TITLE, '-';
-	$TITLE[6+$i] = "$_SEARCH";
+	$TITLE[6+$i] = $SEARCH_TITLES{$EX_TITLE_ARR[$i]} || "$_SEARCR";
 }
 
 if ($Dv->{errno}) {
@@ -2396,16 +2407,19 @@ sub dv_daily_fees {
      foreach my $u (@$ulist) {
      	  #Check bill id and deposit 
         my %user = (
+             LOGIN      => $u->[0],
              ACCOUNT_ID => $u->[8],
              UID        => $u->[7],
              BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
-             REDUCTION  => $u->[14]
-           );
+             REDUCTION  => $u->[14],
+             DEPOSIT    => $u->[2],
+             CREDIT     => ($u->[3]) ? $u->[3] : $line->[14]
+          );
 
-        if ($u->[13] > 0 && defined($u->[2])) {
+        if ($u->[13] > 0 && defined($user{DEPOSIT})) {
           #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[13]\n"; 	
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
-          if($u->[2] + $u->[3] > 0 || $line->[4] == 1 || $line->[12] == 1 ) {
+          if($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $line->[12] == 1 ) {
              #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
              my $sum = $line->[5];
              # IF TP have PARIODIC PAYMENTS USER reduction
@@ -2426,7 +2440,7 @@ sub dv_daily_fees {
                if ($fees->{errno}) {
                	 print "Error: [$fees->{errno}] $fees->{errstr} ";
                	 if ($fees->{errno} == 14 ) {
-               	 	 print "[ $user{UID} ] $u->[0] - Don't have money account";
+               	 	 print "[ $user{UID} ] $user{LOGIN} - Don't have money account";
                	  }
                	 print "\n";
                	}
@@ -2437,7 +2451,7 @@ sub dv_daily_fees {
            }
         }
        else {
-       	  print "[ $user{UID} ] $u->[0] - Don't have money account\n";
+       	  print "[ $user{UID} ] $user{LOGIN} - Don't have money account\n";
         }
 
       }
@@ -2478,7 +2492,7 @@ sub dv_monthly_fees {
  foreach my $line (@$list) {
  	 my $TP_ID = $line->[0];
  	 if ($line->[6] > 0) {
- 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL_ID: $line->[13]\n" if ($debug > 1);
+ 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL_ID: $line->[13] CREDIT: $line->[14]\n" if ($debug > 1);
 	   #$Dv->{debug}=1;
 	   my $ulist = $Dv->list({ 
          ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
@@ -2496,14 +2510,18 @@ sub dv_monthly_fees {
        print " Login: $u->[0] ($u->[7])  TP_ID: $u->[10] Fees: $line->[6] REDUCTION: $u->[14]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 4); 	
        #Check bill id and deposit 
        my %user = (
+            LOGIN      => $u->[0],  
             ACCOUNT_ID => $u->[8],
             UID        => $u->[7],
             BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
             REDUCTION  => $u->[14],
-            ACTIVATE   => $u->[11]
+            ACTIVATE   => $u->[11],
+            DEPOSIT    => $u->[2],
+            CREDIT     => ($u->[3]) ? $u->[3] : $line->[14]
            );
        
-       if ($u->[13] > 0 && defined($u->[2])) {
+       #Check bill ID and deposit
+       if ($user{BILL_ID} > 0 && defined($u->[2])) {
           #Make sum 
           my $sum = $line->[6];
 
@@ -2513,7 +2531,7 @@ sub dv_monthly_fees {
 
           
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
-          if($line->[4] == 1 || $u->[2] + $u->[3] > 0 || $line->[12] == 1) {
+          if($line->[4] == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $line->[12] == 1) {
 #                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] /$DATE $d == 1\n"; 	
 
             #take fees in first day of month
@@ -2537,15 +2555,15 @@ sub dv_monthly_fees {
               my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
               if ($date_unixtime - $active_unixtime > 30 * 86400) {
                 if ($debug > 4) {
-                  $debug_output .= " $u->[0] UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+                  $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                  }
                 else {
                   $fees->take(\%user, $sum, { %PARAMS } );
-                  $debug_output .= " $u->[0] UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} CHANGE ACTIVATE\n" if ($debug > 0);
+                  $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} CHANGE ACTIVATE\n" if ($debug > 0);
                   if ($fees->{errno}) {
                   	print "Error: [$fees->{errno}] $fees->{errstr} ";
                   	if ($fees->{errno} == 14 ) {
-               	 	     print "[ $user{UID} ] $u->[0] - Don't have money account";
+               	 	     print "[ $user{UID} ] $user{LOGIN} - Don't have money account";
                	     }
                	    print "\n";
                	   }
@@ -2557,12 +2575,12 @@ sub dv_monthly_fees {
                    }
                  }
                }
-               #print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+               #print "   $user{LOGIN} $line->[6] $user{DEPOSIT} $USER{CREDIT} $u->[10] - $u->[11]\n"; 	
              }
            }
         }
        else {
-      	 print "[ $user{UID} ] $u->[0] - Don't have money account\n";
+      	 print "[ $user{UID} ] $user{LOGIN} - Don't have money account\n";
         }
  	  }
   }

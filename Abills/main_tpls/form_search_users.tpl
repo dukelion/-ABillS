@@ -12,12 +12,13 @@
 <tr><td colspan='2'>BILL ID (>, <):</td><td><input tabindex='9' type='text' name='BILL_ID' value='%BILL_ID%'/></td></tr>
 
 <tr><td colspan='2'>$_CREDIT (>, <):</td><td><input tabindex='10' type='text' name='CREDIT' value='%CREDIT%'/></td><th colspan='2' bgcolor=$_COLORS[0]>$_PASPORT</th></tr>
-<tr><td colspan='2'>$_PAYMENTS $_DATE ((>, <) YYYY-MM-DD):</td><td><input  tabindex='11' type='text' name='PAYMENTS' value='%PAYMENTS%'/></td><TD bgcolor='$_COLORS[2]'>$_NUM:</TD><TD><input  tabindex='25' type=text name=PASPORT_NUM value='%PASPORT_NUM%'></TD></tr>
+<tr><td rowspan=2>$_PAYMENTS</td><td>$_DATE ((>, <) YYYY-MM-DD):</td><td><input  tabindex='11' type='text' name='PAYMENTS' value='%PAYMENTS%'/></td><TD bgcolor='$_COLORS[2]'>$_NUM:</TD><TD><input  tabindex='25' type=text name=PASPORT_NUM value='%PASPORT_NUM%'></TD></tr>
+<tr><td>$_DAYS (>, <):</td><td><input  tabindex='12' type='text' name='PAYMENT_DAYS' value='%PAYMENT_DAYS%'/></td><TD bgcolor='$_COLORS[2]'>$_DATE:</TD><TD><input  tabindex='26' type=text name=PASPORT_DATE value='%PASPORT_DATE%'></TD></tr>
 
-<tr><td colspan='2'>$_DISABLE:</td><td><input  tabindex='12' type='checkbox' name='DISABLE' value='1'/></td><TD bgcolor='$_COLORS[2]'>$_DATE:</TD><TD><input  tabindex='26' type=text name=PASPORT_DATE value='%PASPORT_DATE%'></TD></tr>
 <tr><td colspan='2'>$_REGISTRATION (<>):</td><td><input  tabindex='13' type='text' name='REGISTRATION' value='%REGISTRATION%'/></td><TD bgcolor='$_COLORS[2]'>$_GRANT:</TD><TD><input  tabindex='27' type=text name=PASPORT_GRANT value='%PASPORT_GRANT%'></TD></tr>
 <tr><td colspan='2'>$_ACTIVATE (<>):</td><td><input  tabindex='14' type='text' name='ACTIVATE' value='%ACTIVATE%'/></td></tr>
 <tr><td colspan='2'>$_EXPIRE (<>):</td><td><input  tabindex='15' type='text' name='EXPIRE' value='%EXPIRE%'/></td></tr>
 <tr><td colspan='2'>E-Mail (*):</td><td><input  tabindex='16' type='text' name='EMAIL' value='%EMAIL%'/></td></tr>
+<tr><td colspan='2'>$_DISABLE:</td><td><input  tabindex='18' type='checkbox' name='DISABLE' value='1'/></td></tr>
 </table>
 </td></tr>

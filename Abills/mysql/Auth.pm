@@ -100,7 +100,8 @@ sub dv_auth {
   dv.port,
   tp.traffic_transfer_period,
   tp.neg_deposit_filter_id,
-  tp.ext_bill_account
+  tp.ext_bill_account,
+  tp.credit
 
      FROM (dv_main dv, tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
@@ -145,7 +146,8 @@ sub dv_auth {
      $self->{PORT},
      $self->{TRAFFIC_TRANSFER_PERIOD},
      $self->{NEG_DEPOSIT_FILTER_ID},
-     $self->{EXT_BILL_ACCOUNT}
+     $self->{EXT_BILL_ACCOUNT},
+     $self->{TP_CREDIT}
     ) = @{ $self->{list}->[0] };
 
 #DIsable
@@ -210,6 +212,10 @@ my $ATTR;
 
 #Chack Company account if ACCOUNT_ID > 0
 if ($self->{PAYMENT_TYPE} == 0) {
+  #if not defined user credit use TP credit
+  $self->{CREDIT} = $self->{TP_CREDIT} if ($self->{CREDIT});
+  
+  
   $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
 
   #Check EXT_BILL_ACCOUNT
