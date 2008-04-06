@@ -268,16 +268,9 @@ sub search_expr {
   if($type eq 'INT' && $value =~ s/\*//g) {
   	$expr = '>';
    }
-  elsif ($value =~ s/^<>//) {
-    $expr = '<>';
-   }
-  elsif ($value =~ tr/^>//d) {
-    $expr = '>';
-   }
-  elsif($value =~ tr/^<//d) {
-    $expr = '<';
-   }
-  
+  elsif( $value =~ s/^([<>=]{1,2})// ) {
+    $expr = $1;
+   }  
 
   
   if ($type eq 'IP') {

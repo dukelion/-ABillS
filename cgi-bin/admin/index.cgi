@@ -1318,14 +1318,32 @@ elsif ($users->{TOTAL} == 1) {
 
 
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-');
+my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$_EXTRA $_DEPOSIT",
+                  'max(p.date)'       => "$_PAYMENTS $_DATE",
+                  'pi.email'          => 'E-Mail', 
+                  'pi.address_street' => $_ADDRESS, 
+                  'pi.pasport_date'   => "$_PASPORT $_DATE", 
+                  'pi.pasport_num'    => "$_PASPORT $_NUM", 
+                  'pi.pasport_grant'  => "$_PASPORT $_GRANT", 
+                  'pi.address_build'  => "$_ADDRESS_BUILD", 
+                  'pi.address_flat'   => "$_ADDRESS_FLAT", 
+                  'pi.city'           => "$_CITY", 
+                  'pi.zip'            => "$_ZIP", 
+                  'pi.contract_id'    => "$_CONTRACT_ID", 
+                  'u.registration'    => "$_REGISTRATION", 
+                  'pi.comments'       => "$_COMMENTS", 
+                  'if(company.id IS NULL,b.id,cb.id)' => 'BILL ID', 
+                  'u.activate'        => "$_ACTIVATE", 
+                  'u.expire'          => "$_EXPIRE"
+                   );
+
+my @EX_TITLE_ARR  = split(/, /, $users->{SEARCH_FIELDS});
+
 for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++) {
 	push @TITLE, '-';
-	$TITLE[5+$i] = "$_SEARCH";
+	$TITLE[5+$i] = $SEARCH_TITLES{$EX_TITLE_ARR[$i]} || "$_SEARCR";
 }
 
-if ($conf{EXT_BILL_ACCOUNT}) {
-	$TITLE[5] = "$_EXTRA $_DEPOSIT";
-}
 
 
 
@@ -4502,7 +4520,7 @@ sub form_dictionary {
   		  
   	 }
 
-    open(FILE, ">../../language/$sub_dict.pl" )  ;
+    open(FILE, ">../../language/$sub_dict.pl" ) || print "Can't open file '../../language/$sub_dict.pl' $!\n";  ;
       print FILE "$out";
 	  close(FILE);
 

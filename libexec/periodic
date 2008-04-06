@@ -63,10 +63,9 @@ $admin->{TIME}=$TIME;
 my $args = parse_arguments(\@ARGV);
 $ADMIN_REPORT{HOSTNAME}=hostname();
 
-#print $DATE;
-
 my @daily_functions=(
-                     'admin_report_daily'
+                     'admin_report_daily',
+                     ($conf{DEBETORS_GROUP}) ? 'debetors_group_create' : undef
                      );
 
 my @monthly_functions = ('admin_report_monthly',
@@ -95,7 +94,6 @@ if ($args->{DEBUG}) {
   $debug = $args->{DEBUG} || 0;
   $DEBUG = '';
 }
-
 
 
 
@@ -560,4 +558,78 @@ sub backup {
   }
 
   return;
+}
+
+
+#*******************************************************************
+# Create debeters group
+# debeters_group_create()
+#*******************************************************************
+sub debetors_group_create {
+
+
+  my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS) = split(/:/, $conf{DEBETORS_GROUP}, 3);  
+
+  #Check group if not exist create it
+  $users->group_info($GID);
+  if ($users->{TOTAL} < 1) {
+  	
+  	print "DEBETORS Group [$GID] not Exist. Create it";
+    $users->group_add({ GID        => $GID,
+    	                  G_NAME     => $_DEBETORS, 
+    	                  G_DESCRIBE => $_DEBETORS 
+    	                  });
+
+   }
+  
+  #Add to debetors group  
+  $DEBUG .= "Add to debetors group\n" if ($debug > 1);
+  my $list = $users->list({  
+                           GID          => "<>$GID",
+  	                       PAYMENT_DAYS => "<$LAST_PAYMENTS_DAYS",
+  	                       DEPOSIT      => "<=$DEPOSIT",               
+  	                       PAGE_ROWS    => 100000
+  	                      });
+
+  foreach my $line (@$list) {
+  	$DEBUG .= "$line->[0] ($line->[7]) DEPOSIT: $line->[2] CREDIT: $line->[3] LAST_PAYMENT: $line->[6]\n"if ($debug > 0);
+    if ($debug < 5) {
+    	$users->change($line->[7], { GID => $GID,
+    		                           UID => $line->[7] 
+    		                           });
+      
+      $users->pi_change({ 
+      	         UID      => $line->[7],
+      	         COMMENTS => "$_GROUP $_DEBETORS: $DATE $TIME" });
+     } 
+   }
+
+  #Flush from debetors group
+  $list = $users->list({  
+                           GID          => "$GID",
+  	                       DEPOSIT      => ">$DEPOSIT",
+  	                       COMMENTS     => '*',
+  	                       PAGE_ROWS    => 100000
+  	                      });
+
+  $DEBUG .= "Delete from debetors Group\n" if ($debug > 1) ;
+  foreach my $line (@$list) {
+  	$DEBUG .= "$line->[0] ($line->[7]) DEPOSIT: $line->[2] CREDIT: $line->[3] LAST_PAYMENT: $line->[6]\n"if ($debug > 0);
+  	
+  	my $comments = "$line->[6]";
+
+  	$comments =~ s/$_GROUP $_DEBETORS: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}//gi;
+    if ($debug < 5) {
+    	$users->change($line->[7], { GID => 0,
+    		                           UID => $line->[7] 
+    		                           });
+      
+      $users->pi_change({ 
+      	         UID      => $line->[7],
+      	         COMMENTS => "$comments" });
+     } 
+   }
+
+
+  return 0;
 }

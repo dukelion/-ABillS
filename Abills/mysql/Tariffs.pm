@@ -49,7 +49,8 @@ my %FIELDS = ( TP_ID            => 'id',
                TRAFFIC_TRANSFER_PERIOD => 'traffic_transfer_period',
                NEG_DEPOSIT_FILTER_ID   => 'neg_deposit_filter_id',
                TP_GID           => 'gid',
-               MODULE           => 'module'
+               MODULE           => 'module',
+               CREDIT           => 'credit'
              );
 
 #**********************************************************
@@ -379,9 +380,8 @@ sub defaults {
             TRAFFIC_TRANSFER_PERIOD => 0,
             NEG_DEPOSUT_FILTER_ID   => '',
             TP_GID           => 0,
-            MODULE           => ''
-            
-            
+            MODULE           => '',
+            CREDIT           => 0
          );   
  
   $self = \%DATA;
@@ -405,7 +405,7 @@ sub add {
      day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, credit_tresshold, age, octets_direction,
      max_session_duration, filter_id, payment_type, min_session_cost, rad_pairs, 
-     traffic_transfer_period, neg_deposit_filter_id, gid, module)
+     traffic_transfer_period, neg_deposit_filter_id, gid, module, credit)
     values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', '$DATA{POSTPAID_FEE}', '$DATA{EXT_BILL_ACCOUNT}',
      '$DATA{SIMULTANEOUSLY}', 
@@ -416,7 +416,8 @@ sub add {
      '$DATA{PAYMENT_TYPE}', '$DATA{MIN_SESSION_COST}', '$DATA{RAD_PAIRS}', 
      '$DATA{TRAFFIC_TRANSFER_PERIOD}',
      '$DATA{NEG_DEPOSIT_FILTER_ID}',
-     '$DATA{TP_GID}', '$DATA{MODULE}');", 'do' );
+     '$DATA{TP_GID}', '$DATA{MODULE}',
+     '$DATA{CREDIT}');", 'do' );
 
 
   return $self;
@@ -506,7 +507,9 @@ sub info {
       rad_pairs,
       traffic_transfer_period,
       gid,
-      neg_deposit_filter_id
+      neg_deposit_filter_id,
+      module,
+      credit
     FROM tarif_plans
     WHERE id='$id'$WHERE;");
 
@@ -547,6 +550,7 @@ sub info {
    $self->{TP_GID},
    $self->{NEG_DEPOSIT_FILTER_ID},
    $self->{MODULE},
+   $self->{CREDIT},
    $self->{TP_ID_CTR}
   ) = @{ $self->{list}->[0] };
 
@@ -590,7 +594,8 @@ sub list {
     tp.rad_pairs,
     tp.reduction_fee,
     tp.postpaid_fee,
-    tp.ext_bill_account
+    tp.ext_bill_account,
+    tp.credit
     FROM (tarif_plans tp)
     LEFT JOIN intervals i ON (i.tp_id=tp.id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)

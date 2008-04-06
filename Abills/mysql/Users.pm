@@ -300,7 +300,6 @@ my %FIELDS = (EMAIL          => 'email',
               PASPORT_GRANT  => 'pasport_grant',
               ZIP            => 'zip',
               CITY           => 'city'
-              
              );
 
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
@@ -386,7 +385,7 @@ sub group_info {
  
  $self->query($db, "select g.name, g.descr FROM groups g WHERE g.gid='$gid';");
 
- return $self if ($self->{errno});
+ return $self if ($self->{errno} || $self->{TOTAL} < 1);
 
  ($self->{G_NAME},
  	$self->{G_DESCRIBE}) = @{ $self->{list}->[0] };
@@ -485,11 +484,11 @@ sub list {
   }
  
  if ($CONF->{EXT_BILL_ACCOUNT}) {
-    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL, ext_b.deposit, ext_cb.deposit), ';
+    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit), ';
     $self->{SEARCH_FIELDS_COUNT}++;
     if ($attr->{EXT_BILL_ID}) {
       my $value = $self->search_expr($attr->{EXT_BILL_ID}, 'INT');
-      push @WHERE_RULES, "if(company.id IS NULL, ext_b.id, ext_cb.id)$value";
+      push @WHERE_RULES, "if(company.id IS NULL,ext_b.id,ext_cb.id)$value";
      }
     $EXT_TABLES = "
             LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
@@ -617,9 +616,9 @@ sub list {
 
  if ($attr->{BILL_ID}) {
     my $value = $self->search_expr($attr->{BILL_ID}, 'INT');
-    push @WHERE_RULES, "if(company.id IS NULL, b.id, cb.id)$value";
+    push @WHERE_RULES, "if(company.id IS NULL,b.id,cb.id)$value";
 
-    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL, b.id, cb.id), ';
+    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,b.id,cb.id), ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }    
 
@@ -643,7 +642,8 @@ sub list {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
   }
  elsif ($attr->{GID}) {
-   push @WHERE_RULES, "u.gid='$attr->{GID}'";
+   my $value = $self->search_expr($attr->{GID}, 'INT');
+   push @WHERE_RULES, "u.gid$value";
   }
 
 
@@ -675,12 +675,22 @@ sub list {
  
  
 #Show last paymenst
- if ($attr->{PAYMENTS}) {
+ if ($attr->{PAYMENTS} || $attr->{PAYMENT_DAYS}) {
+    if($attr->{PAYMENTS}) {
+      my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
+      push @WHERE_RULES, "max(p.date)$value";
+      $self->{SEARCH_FIELDS} .= 'max(p.date), ';
+      $self->{SEARCH_FIELDS_COUNT}++;
+     }
+    elsif($attr->{PAYMENT_DAYS}) {
+      my $value = "curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY";
+      $value =~ s/([<>=]{1,2})//g;
+      $value = $1 . $value;
 
-    my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
-    push @WHERE_RULES, "max(p.date)$value";
-    $self->{SEARCH_FIELDS} .= 'max(p.date), ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+      push @WHERE_RULES, "max(p.date)$value";
+      $self->{SEARCH_FIELDS} .= 'max(p.date), ';
+      $self->{SEARCH_FIELDS_COUNT}++;
+     }
 
     my $HAVING = ($#WHERE_RULES > -1) ?  "HAVING " . join(' and ', @WHERE_RULES) : '';
 
@@ -713,9 +723,16 @@ sub list {
    my $list = $self->{list};
 
    if ($self->{TOTAL} > 0) {
-     
-     my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
-     $WHERE_RULES[$#WHERE_RULES]="p.date$value";
+     if ($attr->{PAYMENT}) {
+       my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
+       $WHERE_RULES[$#WHERE_RULES]="p.date$value";
+      }
+     elsif($attr->{PAYMENT_DAYS}) {
+      my $value = "curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY";
+      $value =~ s/([<>=]{1,2})//g;
+      $value = $1 . $value;
+      $WHERE_RULES[$#WHERE_RULES]="p.date$value";
+      }
     
      $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
     
@@ -734,7 +751,7 @@ sub list {
  
  $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
  $self->query($db, "SELECT u.id, 
-      pi.fio, if(company.id IS NULL, b.deposit, cb.deposit), u.credit, u.disable, 
+      pi.fio, if(company.id IS NULL,b.deposit,cb.deposit), u.credit, u.disable, 
       $self->{SEARCH_FIELDS}
       u.uid, u.company_id, pi.email, u.activate, u.expire
      FROM users u

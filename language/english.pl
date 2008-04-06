@@ -355,3 +355,4 @@ $_PASSWORD_RECOVERY='Password recovery';
 $_BILL_INFO='Billing server info';
 $_PRIMARY='Primary';
 $_EXTRA='Extra';
+$_DEBETORS='Debetors';
