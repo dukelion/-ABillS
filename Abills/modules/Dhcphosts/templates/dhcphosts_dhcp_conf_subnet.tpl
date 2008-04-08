@@ -14,4 +14,6 @@
    %ROUTERS%
    %NET_ROUTES%
    %NET_ROUTES_RFC3442%
+   
+   %OPTION82_POOLS%
   }

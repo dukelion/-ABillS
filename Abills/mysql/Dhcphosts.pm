@@ -298,7 +298,7 @@ sub host_defaults {
    IP             => '0.0.0.0',
    COMMENTS       => '',
    VID            => 0,
-   NAS            => 0,
+   NAS_ID         => 0,
    OPTION_82      => 0
   );
 
@@ -322,7 +322,7 @@ sub host_add {
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
       INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}', '$DATA{DISABLE}',
       '$DATA{EXPIRE}',
-      '$DATA{COMMENTS}', '$DATA{OPTION_82}', '$DATA{VID}', '$DATA{NAS}', '$DATA{PORTS}');", 'do');
+      '$DATA{COMMENTS}', '$DATA{OPTION_82}', '$DATA{VID}', '$DATA{NAS_ID}', '$DATA{PORTS}');", 'do');
 
 
   
@@ -398,9 +398,10 @@ sub host_info {
    $self->{OPTION_82},
    $self->{VID},
    $self->{COMMENTS},
-   $self->{NAS},
+   $self->{NAS_ID},
    $self->{PORTS}
    ) = @{ $self->{list}->[0] };
+
   return $self;
 };
 
@@ -426,12 +427,11 @@ sub host_change {
    EXPIRE      => 'expire',
    OPTION_82   => 'option_82',
    VID         => 'vid',
-   NAS         => 'nas',
+   NAS_ID      => 'nas',
    PORTS       => 'ports'
   );
 
   $attr->{OPTION_82} = ($attr->{OPTION_82}) ? 1 : 0;
-
 
 	$self->changes($admin, { CHANGE_PARAM => 'ID',
 		               TABLE        => 'dhcphosts_hosts',
@@ -648,11 +648,40 @@ sub hosts_list {
    }
 
 
+  if ($attr->{OPTION_82}) {
+    my $value = $self->search_expr("$attr->{OPTION_82}", 'INT');
+    push @WHERE_RULES, "h.option_82$value";
+    $self->{SEARCH_FIELDS} .= 'h.option_82, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+  if ($attr->{PORTS}) {
+    $attr->{PORTS} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "h.ports LIKE '$attr->{PORTS}'";
+    $self->{SEARCH_FIELDS} .= 'h.ports, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+  if ($attr->{NAS_ID}) {
+    my $value = $self->search_expr("$attr->{NAS_ID}", 'INT');
+    push @WHERE_RULES, "h.nas$value";
+    $self->{SEARCH_FIELDS} .= 'h.nas, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+  if ($attr->{VID}) {
+    my $value = $self->search_expr("$attr->{VID}", 'INT');
+    push @WHERE_RULES, "h.vid$value";
+    $self->{SEARCH_FIELDS} .= 'h.vid, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db, "SELECT 
     h.id, u.id, INET_NTOA(h.ip), h.hostname, n.name, h.network, h.mac, h.expire, h.forced, 
-      h.blocktime, h.disable, seen, h.uid,
+      h.blocktime, h.disable, $self->{SEARCH_FIELDS} seen, h.uid,
       if ((u.expire <> '0000-00-00' && curdate() > u.expire) || (h.expire <> '0000-00-00' && curdate() > h.expire), 1, 0)
       $extra_fields
      FROM (dhcphosts_hosts h)
