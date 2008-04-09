@@ -3120,10 +3120,25 @@ sub report_fees_month {
 #
 #**********************************************************
 sub report_fees {
+
+  push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
+  
+  for(my $i=0; $i<=$#FEES_METHODS; $i++) {
+  	$METHODS_HASH{"$i:$i"}="$FEES_METHODS[$i]";
+   }
+
+
   reports({ DATE        => $FORM{DATE}, 
   	        REPORT      => '',
-            PERIOD_FORM => 1
+            PERIOD_FORM => 1,
+  	        FIELDS      => { %METHODS_HASH },
+  	        EXT_TYPE    => { METHOD => $_TYPE }
+
   	         });
+
+  if ($FORM{FIELDS}) {
+  	$LIST_PARAMS{METHODS}=$FORM{FIELDS};
+   }
 
   $LIST_PARAMS{PAGE_ROWS}=1000000;
   use Finance;
@@ -3156,7 +3171,7 @@ else{
   my @TITLE = ("$_DATE", "$_COUNT", $_SUM);
   if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
   	$TITLE[0]=$_PAYMENT_METHOD;
-  }
+   }
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'USER') {
   	$TITLE[0]=$_USERS;
   	$type="search=1&LOGIN_EXPR";
@@ -3165,19 +3180,26 @@ else{
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'HOURS')  {
     $TITLE[0]=$_HOURS;
    }
+  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD')  {
+    $TITLE[0]=$_TYPE;
+   }
 
 
   $table_fees = $html->table({ width      => '100%',
 	                             caption    => $_FEES, 
                                title      => \@TITLE,
                                cols_align => ['right', 'right', 'right'],
-                               qs         => $pages_qs
+                               qs         => $pages_qs,
+                               ID         => 'REPORT_FEES'
                                });
 
 
   $list = $fees->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    $table_fees->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), $line->[1], $html->b($line->[2]) );
+    $table_fees->addrow(
+    ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD') ? $PAYMENT_METHODS[$line->[0]] : $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
+    $line->[1], 
+    $html->b($line->[2]) );
    }
 
 
@@ -3230,7 +3252,7 @@ sub report_payments {
   	$LIST_PARAMS{METHODS}=$FORM{FIELDS};
    }
 
-  $LIST_PARAMS{PAGE_ROWS}=10000;
+  $LIST_PARAMS{PAGE_ROWS}=1000000;
   use Finance;
   
   my $payments = Finance->payments($db, $admin, \%conf);
@@ -3277,7 +3299,7 @@ else{
                           title      => \@CAPTION,
                           cols_align => ['right', 'right', 'right'],
                           qs         => $pages_qs,
-                          ID         => 'PAYMENTS'
+                          ID         => 'REPORT_PAYMENTS'
                         });
 
 
@@ -3299,7 +3321,8 @@ else{
                            cols_align => ['right', 'right', 'right', 'right'],
                            rows       => [ [ "$_TOTAL:", $html->b($payments->{TOTAL}), "$_SUM", $html->b($payments->{SUM}) ] ],
                            rowcolor   => $_COLORS[2]
-                               } );
+                       } );
+
   print $table->show();
 }
 
@@ -3693,7 +3716,7 @@ foreach my $line (@$list) {
   $html->button($line->[1], "index=15&UID=$line->[11]"), 
   $line->[2], 
   $line->[3], 
-  $line->[4] . ( ($line->[11]) ? ' ('. $html->b($line->[12]) .') ' : '' ), 
+  $line->[4] . ( ($line->[12] ) ? ' ('. $html->b($line->[12]) .') ' : '' ), 
   "$line->[5]", 
   "$line->[6]", 
   "$line->[7]", 
@@ -3799,6 +3822,10 @@ sub form_fees  {
  my $fees = Finance->fees($db, $admin, \%conf);
 
  my %BILL_ACCOUNTS = ();
+
+ my @FEES_METHODS = ();
+ push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
+
 
 if ($attr->{USER}) {
   my $user = $attr->{USER};
@@ -3908,8 +3935,7 @@ if ($attr->{USER}) {
  	                             "</td></tr>\n";
       }
     
-    my @FEES_METHODS = ();
-    push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
+
 
     $fees->{SEL_METHOD} =  $html->form_select('METHOD', 
                                 { SELECTED      => $FORM{METHOD} || '',
@@ -3944,7 +3970,7 @@ my $list = $fees->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_FEES",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, "$_BILLS", '-'],
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_TYPE, $_ADMINS, 'IP',  $_DEPOSIT, "$_BILLS", '-'],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $fees->{TOTAL},
@@ -3954,18 +3980,19 @@ my $table = $html->table( { width      => '100%',
 
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
-  my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[9]$pages_qs", 
+  my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]&UID=$line->[10]$pages_qs", 
    { MESSAGE => "$_DEL ID: $line->[0]?" }) : ''; 
 
   $table->addrow($html->b($line->[0]), 
   $html->button($line->[1], "index=15&UID=$line->[9]"), 
   $line->[2], 
   $line->[3], 
-  $line->[4],  
-  "$line->[5]", 
+  $line->[4] . ( ($line->[11] ) ? ' ('. $html->b($line->[11]) .') ' : '' ), 
+  $FEES_METHODS[$line->[5]], 
   "$line->[6]", 
   "$line->[7]",
-  ($BILL_ACCOUNTS{$line->[8]}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
+  "$line->[7]",
+  ($BILL_ACCOUNTS{$line->[9]}) ? $BILL_ACCOUNTS{$line->[9]} : "$line->[8]",
   $delete);
 }
 
@@ -3975,7 +4002,7 @@ $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right', 'right', 'right'],
                          rows       => [ [ "$_TOTAL:", $html->b($fees->{TOTAL}), "$_SUM:", $html->b($fees->{SUM}) ] ],
                          rowcolor   => $_COLORS[2]
-                                  } );
+                     } );
 print $table->show();
 
 
