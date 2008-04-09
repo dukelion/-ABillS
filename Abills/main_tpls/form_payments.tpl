@@ -12,7 +12,7 @@
 <TR><TD colspan=2>$_EXCHANGE_RATE:</TD><TD>%SEL_ER%</TD></TR>
 <TR><TD colspan=3><hr size=1></TD></TR>
 <TR><TD colspan=2>$_PAYMENT_METHOD:</TD><TD>%SEL_METHOD%</TD></TR>
-<TR><TD colspan=2>ID:</TD><TD><input type=text name='EXT_ID' value='%EXT_ID%'></TD></TR>
+<TR><TD colspan=2>EXT ID:</TD><TD><input type=text name='EXT_ID' value='%EXT_ID%'></TD></TR>
 %EXT_DATA%
 </TABLE>
 <input type=submit name=add value='$_ADD'>
