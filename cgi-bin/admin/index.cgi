@@ -3125,7 +3125,7 @@ sub report_fees {
             PERIOD_FORM => 1
   	         });
 
-  $LIST_PARAMS{PAGE_ROWS}=10000;
+  $LIST_PARAMS{PAGE_ROWS}=1000000;
   use Finance;
   my $fees = Finance->fees($db, $admin, \%conf);
 
@@ -3641,7 +3641,7 @@ if (defined ($permissions{1}{1})) {
    $payments->{OP_SID} = mk_unique_value(16);
    
    if ($conf{EXT_BILL_ACCOUNT}) {
-     $payments->{EXT_DATA} = "<tr><td>$_BILL:</td><td>". $html->form_select('BILL_ID', 
+     $payments->{EXT_DATA} = "<tr><td colspan=2>$_BILL:</td><td>". $html->form_select('BILL_ID', 
                                 { SELECTED     => $FORM{BILL_ID} || $attr->{USER}->{BILL_ID},
  	                                SEL_HASH     => \%BILL_ACCOUNTS,
  	                                NO_ID        => 1
@@ -3886,7 +3886,7 @@ if ($attr->{USER}) {
   	 $fees->{SHEDULE}=$html->button($_SHEDULE, "index=85&UID=$user->{UID}"); 
    }
   
-  $fees->{PERIOD_FORM}=form_period($period);
+  $fees->{PERIOD_FORM}=form_period($period, { TD_EXDATA  => 'colspan=2' });
   if (defined ($permissions{2}{1})) {
     #exchange rate sel
     my $er = $fees->exchange_list();
@@ -3900,13 +3900,22 @@ if ($attr->{USER}) {
     $fees->{SEL_ER} .= "</select>\n";
 
     if ($conf{EXT_BILL_ACCOUNT}) {
-       $fees->{EXT_DATA} = "<tr><td>$_BILL:</td><td>". $html->form_select('BILL_ID', 
+       $fees->{EXT_DATA} = "<tr><td colspan=2>$_BILL:</td><td>". $html->form_select('BILL_ID', 
                                 { SELECTED     => $FORM{BILL_ID} || $attr->{USER}->{BILL_ID},
  	                                SEL_HASH     => \%BILL_ACCOUNTS,
  	                                NO_ID        => 1
  	                               }).
  	                             "</td></tr>\n";
       }
+    
+    my @FEES_METHODS = ();
+    push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
+
+    $fees->{SEL_METHOD} =  $html->form_select('METHOD', 
+                                { SELECTED      => $FORM{METHOD} || '',
+ 	                                SEL_ARRAY     => \@FEES_METHODS,
+ 	                                ARRAY_NUM_ID  => 1
+ 	                               });
 
     $html->tpl_show(templates('form_fees'), $fees);
    }	
@@ -4072,6 +4081,16 @@ elsif($search_form{$FORM{type}}) {
                                   SEL_OPTIONS   => { '' => $_ALL }
  	                               });
    }
+  elsif ($FORM{type} == 3) {
+    push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
+    $info{SEL_METHOD} =  $html->form_select('METHOD', 
+                                { SELECTED      => $FORM{METHOD} || '',
+ 	                                SEL_ARRAY     => \@FEES_METHODS,
+ 	                                ARRAY_NUM_ID  => 1,
+                                  SEL_OPTIONS   => { '' => $_ALL }
+ 	                               });
+   }
+
 	
 	$SEARCH_DATA{SEARCH_FORM} =  $html->tpl_show(templates($search_form{$FORM{type}}), { %info, %FORM, GROUPS_SEL => $group_sel }, { notprint => 1 });
 	$SEARCH_DATA{SEARCH_FORM} .= $html->form_input('type', "$FORM{type}", { TYPE => 'hidden' });
@@ -4448,7 +4467,8 @@ sub form_period  {
  my $date_fld = $html->date_fld('date_', { MONTHES => \@MONTHES });
  my $form_period='';
 
- $form_period .= "<tr><td rowspan=3>$_DATE:</td><td>";
+ $form_period .= "<tr><td ". (($attr->{TD_EXDATA}) ? $attr->{TD_EXDATA} : '' ) .
+  " rowspan=". ( ($attr->{ABON_DATE}) ? 3 : 2 ) .">$_DATE:</td><td>";
  
  $form_period .= $html->form_input('period', "0", { TYPE          => "radio", 
    	                                                STATE         => 1, 

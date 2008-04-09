@@ -59,6 +59,8 @@ sub add {
       '$DATA{BILL_ID}', '$DATA{EXT_BILL_ID}'
       );", 'do');
 
+  $self->{COMPANY_ID} = $self->{INSERT_ID};
+
   return $self;
 }
 
