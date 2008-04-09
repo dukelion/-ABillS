@@ -213,6 +213,12 @@ sub list {
     push @WHERE_RULES, "p.dsc LIKE '$attr->{DESCRIBE}' ";
   }
 
+ if ($attr->{INNER_DESCRIBE}) {
+    $attr->{INNER_DESCRIBE} =~ s/\*/\%/g;
+    push @WHERE_RULES, "p.inner_describe LIKE '$attr->{INNER_DESCRIBE}'";
+  }
+
+
  if ($attr->{SUM}) {
     my $value = $self->search_expr($attr->{SUM}, 'INT');
     push @WHERE_RULES, "p.sum$value ";
