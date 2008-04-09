@@ -3693,7 +3693,7 @@ foreach my $line (@$list) {
   $html->button($line->[1], "index=15&UID=$line->[11]"), 
   $line->[2], 
   $line->[3], 
-  $line->[4],  
+  $line->[4] . ( ($line->[11]) ? ' ('. $html->b($line->[12]) .') ' : '' ), 
   "$line->[5]", 
   "$line->[6]", 
   "$line->[7]", 

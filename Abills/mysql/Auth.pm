@@ -213,7 +213,7 @@ my $ATTR;
 #Chack Company account if ACCOUNT_ID > 0
 if ($self->{PAYMENT_TYPE} == 0) {
   #if not defined user credit use TP credit
-  $self->{CREDIT} = $self->{TP_CREDIT} if ($self->{CREDIT});
+  $self->{CREDIT} = $self->{TP_CREDIT} if (! $self->{CREDIT});
   
   
   $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
