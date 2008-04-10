@@ -1262,23 +1262,29 @@ my $output = qq{
 
 }
 
-# Preformated test
+#*******************************************************************
+# Mark Bold
 #*******************************************************************
 sub b {
  my $self = shift;
  my ($message) = @_;
  
  
-my $output = "<b>$message</b>";
+ my $output = "<b>$message</b>";
 
-  #if (defined($self->{NO_PRINT})) {
-  #	$self->{OUTPUT}.=$output;
-  	return $output;
-  # }
-	#else { 
- 	#  print $output;
-	# }
+ return $output;
+}
 
+#*******************************************************************
+# Mark text
+#*******************************************************************
+sub color_mark {
+ my $self = shift;
+ my ($message, $color) = @_;
+ 
+ my $output = "<font color=$color>$message</font>";
+
+ return $output;
 }
 
 
@@ -1751,6 +1757,7 @@ PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'>
   print $output;
 
 }
+
 
 
 

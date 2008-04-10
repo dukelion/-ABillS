@@ -84,7 +84,12 @@ if ($acct_status_type == 1) {
     #Get TP_ID
     $self->query($db, "SELECT dv.tp_id FROM (users u, dv_main dv)
      WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';");
-    ($self->{TP_ID})= @{ $self->{list}->[0] };
+    if ($self->{TOTAL} > 0) {
+      ($self->{TP_ID})= @{ $self->{list}->[0] };
+     }
+    else {
+    	$RAD->{USER_NAME}='! '.$RAD->{USER_NAME};
+     }
     
     #Get connection speed 
     if ($RAD->{X_ASCEND_DATA_RATE} && $RAD->{X_ASCEND_XMIT_RATE}) {

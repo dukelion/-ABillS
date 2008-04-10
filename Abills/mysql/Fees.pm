@@ -45,6 +45,30 @@ sub new {
 
 
 #**********************************************************
+#
+#**********************************************************
+sub defaults {
+  my $self = shift;
+
+  my %DATA = (
+   UID             => 0, 
+   BILL_ID         => 0,
+   SUM             => 0.00,
+   DESCRIBE        => '',
+   SESSION_IP      => 0.0.0.0,
+   DEPOSIT         => 0.00,
+   AID             => 0,
+   COMPANY_VAT     => 0,
+   INNER_DESCRIBE  => '',
+   METHOD          => 0
+  );
+
+ 
+  $self = \%DATA;
+  return $self;
+}
+
+#**********************************************************
 # Take sum from bill account
 # take()
 #**********************************************************
@@ -53,7 +77,7 @@ sub take {
   my ($user, $sum, $attr) = @_;
   
   
-  %DATA = $self->get_data($attr);
+  %DATA = $self->get_data($attr, { default => defaults() });
   my $DESCRIBE = (defined($attr->{DESCRIBE})) ? $attr->{DESCRIBE} : '';
   my $DATE  =  (defined($attr->{DATE})) ? "'$attr->{DATE}'" : 'now()';
   
