@@ -296,15 +296,16 @@ sub send_radius_request {
 
   $r->send_packet($request_type) and $type = $r->recv_packet();
 
-  if( ! defined($type) ) {
-    $agi->verbose("No responce from RADIUS server", 3);
-    $agi->set_variable('RADIUS_Status', 'NoResponce');
-    $agi->hangup();
-   }
-  elsif ($r->get_error() ne 'ENONE') {
-  	syslog('LOG_ERR', "RAD response: $type /Error ".$r->get_error() );
+
+  if ($r->get_error() ne 'ENONE') {
+    syslog('LOG_ERR', "RAD response: $type /Error ".$r->get_error() );
     $agi->verbose("RAD server error: ".$r->get_error(), 3);
     $agi->set_variable('RADIUS_Status', 'Error');
+    $agi->hangup();
+   }
+  elsif( ! defined($type) ) {
+    $agi->verbose("Wrong responce from RADIUS server. Check secret key.", 3);
+    $agi->set_variable('RADIUS_Status', 'NoResponce');
     $agi->hangup();
    }
 
