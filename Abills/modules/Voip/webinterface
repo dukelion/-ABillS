@@ -1160,7 +1160,7 @@ elsif($FORM{zap}) {
   
  
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
-  	                NAS_ID => $nas->{NAS_ID} });  
+  	                NAS_ID          => $nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
     $message .= "<p align=\"center\">[". $html->button('add to log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id"). "]
