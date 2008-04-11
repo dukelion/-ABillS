@@ -435,8 +435,8 @@ sub session_detail {
   l.tp_id,
   tp.name,
 
-  l.sent + 4294967296 * lacct_input_gigawords,
-  l.recv + 4294967296 * acct_output_gigawords,
+  l.sent + 4294967296 * l.acct_input_gigawords,
+  l.recv + 4294967296 * l.acct_output_gigawords,
   l.sent2,
   l.recv2,
 
