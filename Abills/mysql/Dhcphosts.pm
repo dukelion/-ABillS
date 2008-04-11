@@ -549,6 +549,7 @@ sub hosts_list {
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  undef @WHERE_RULES;
+ $self->{SEARCH_FIELDS}='';
  if ($attr->{ID}) {
    push @WHERE_RULES, "h.id='$attr->{ID}'"; 
   }
