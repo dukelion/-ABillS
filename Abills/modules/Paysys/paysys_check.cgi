@@ -3,7 +3,11 @@
 #
 
 
-use vars qw($begin_time %FORM %LANG $CHARSET @MODULES);
+use vars qw($begin_time %FORM %LANG 
+$DATE $TIME
+$CHARSET 
+@MODULES);
+
 BEGIN {
  my $libpath = '../';
  
@@ -92,7 +96,7 @@ my $users = Users->new($db, $admin, \%conf);
 #SMS proxy
 # Need other header
 if($FORM{smsid}) {
-  smsproxy();
+  smsproxy_payments();
   exit;
  }
 
@@ -116,6 +120,11 @@ while(my($k, $v)=each %FORM) {
  	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
 }
 
+
+
+bankomats_obmen();
+
+exit;
 payments();
 
 
@@ -135,11 +144,123 @@ sub payments {
   elsif($FORM{rupay_action}) {
   	rupay_payments();
    }
+  #PTR Sign IO
+  elsif($FORM{sign}) {
+  	bankomats_obmen();
+   }
   else {
   	print "Error: Unknown payment system";
   	#$output2 .= "Unknown payment system"; 
    }
 }
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub bankomats_obmen {
+
+
+$FORM{id}=223;
+$FORM{key}=764;
+$FORM{type}=1;
+$FORM{timestamp}='23.11.2006 13:10:23';
+$FORM{amount}='123.45';
+
+  $FORM{sign}='3DFSR546EWTE546ETRTR5SDFXCV54SDFG64MFG456WQE';
+
+  $md5->reset;
+
+	$md5->add($FORM{id}); 
+	$md5->add($FORM{key});
+  $md5->add($FORM{type});
+  $md5->add($FORM{timestamp}); 
+  $md5->add($FORM{amount});
+
+  my $CHECKSUM = uc($md5->hexdigest());	
+  
+  print "<code>$FORM{sign}<br>\n$CHECKSUM</code>\n";
+
+
+my $status;
+my $uid = 0;
+
+if ($CHECKSUM eq $FORM{sign}) {
+
+  my $user = $users->info($FORM{key});
+
+  if ($user->{errno}) {
+	  $status = 7; 
+   }
+  elsif ($user->{TOTAL} < 0) {
+	  $status =  4;
+	  $uid = $user->{UID};
+   }
+  else {
+
+    #Add payments
+    $payments->add($user, {SUM          => $FORM{rupay_sum},
+    	                     DESCRIBE     => 'Bankomat', 
+    	                     METHOD       => '2', 
+  	                       EXT_ID       => 'PS4:$FORM{id}', 
+  	                       CHECK_EXT_ID => 'PS4:$FORM{id}' } );  
+
+    if ($payments->{errno} == 7) {
+      $status = 8;  	
+     }
+    elsif ($payments->{errno}) {
+      $status = 4;
+     }
+    else {
+    	$status = 0;
+     }    
+	 }
+ }
+else {
+	$status = 5;
+}
+
+
+my %status_hash = (0	=> 'Success	Успех',
+1 => 'Wrong format	Неправильный формат вызова',
+2	=> 'Excess of payment value 	Превышено допустимое значение переносимых средств',
+3	=> 'Excess number of payments	Превышено допустимое количество зачислений денежных средств',
+4	=> 'Client is blocked	Клиент заблокирован на зачисление денежных средств',
+5	=> 'Failed witness a signature	Контрольная сумма не верна',
+6	=> 'Unknown terminal	Неизвестный источник сообщений',
+7	=> 'Unknown error	Неизвестная ошибка',
+8	=> 'Double request	Повторный запрос (платеж с таким id и test=N уже обрабатывался)',
+9	=> 'Key Info mismatch	Несоответствие между ключем и информацией'
+);
+
+
+$Paysys->{debug}=1;
+
+
+    $Paysys->add({ SYSTEM_ID      => 4, 
+ 	              DATETIME       => "'$DATE $TIME'", 
+ 	              SUM            => "$FORM{amount}",
+  	            UID            => "$uid", 
+                IP             => '0.0.0.0',
+                TRANSACTION_ID => "$FORM{id}",
+                INFO           => "KEY: $FORM{key} TYPE: $FORM{type} PS_TIME: $FORM{timestamp} STATUS: $status $status_hash{$status}",
+                PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+               });
+
+
+#Replay
+$FORM{id}=$FORM{id};
+$FORM{code}=$status;
+$FORM{text}=$status_hash{$status};
+$FORM{amount}=$FORM{amount};
+$FORM{sign}='3478ERHFJE3RF3874J3RGER7U345TJRE90T8';
+
+}
+
+
+
 
 #**********************************************************
 #
@@ -158,47 +279,47 @@ sub smsproxy_payments {
 
  my @keys_arr = split(/,/, $conf{PAYSYS_SMSPROXY_KEYS});
  
- foreach my $line (@keys_arr) {
-   my($prefix, $key)=split(/:/, $line);
-   $prefix_keys{$prefix}=$key;  
-  }
-
- $md5->reset;
- $md5->add($prefix_keys{$prefix});
- my $digest = $md5->hexdigest();
-
- #Unknown service
- if ($digest ne $skey) {
-   
-   return 0;
-  }
-
-
- #Info section  
- $Paysys->add({ SYSTEM_ID      => 3, 
- 	              DATETIME       => "$DATE $TIME", 
- 	              SUM            => "$FORM{cost}",
-  	            UID            => "", 
-                IP             => "",
-                TRANSACTION_ID => "",
-                INFO           => "ID: $FORM{smsid}, NUM: $FORM{num}, OPERATOR: $FORM{operator}, USER_ID: $FORM{user_id}, MSG: $FORM{msg}, STATUS:",
-                PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
-               });
-
- my $code = mk_unique_value(8);
-
-
-if ($list) {
-	print "smsid: $FORM{smsid}\n";
-  print "status: reply\n";
-  print "Content-Type:text/plain\n\n";
-  print $conf{PAYSYS_SMSPROXY_MSG} if ($conf{PAYSYS_SMSPROXY_MSG});
-  print " CODE: $code";
- }
-else {
-	
-}
-
+# foreach my $line (@keys_arr) {
+#   my($prefix, $key)=split(/:/, $line);
+#   $prefix_keys{$prefix}=$key;  
+#  }
+#
+# $md5->reset;
+# $md5->add($prefix_keys{$prefix});
+# my $digest = $md5->hexdigest();
+#
+# #Unknown service
+# if ($digest ne $skey) {
+#   
+#   return 0;
+#  }
+#
+#
+# #Info section  
+# $Paysys->add({ SYSTEM_ID      => 3, 
+# 	              DATETIME       => "$DATE $TIME", 
+# 	              SUM            => "$FORM{cost}",
+#  	            UID            => "", 
+#                IP             => "0.0.0.0",
+#                TRANSACTION_ID => "",
+#                INFO           => "ID: $FORM{smsid}, NUM: $FORM{num}, OPERATOR: $FORM{operator}, USER_ID: $FORM{user_id}, MSG: $FORM{msg}, STATUS:",
+#                PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+#               });
+#
+# my $code = mk_unique_value(8);
+#
+#
+#if ($list) {
+#	print "smsid: $FORM{smsid}\n";
+#  print "status: reply\n";
+#  print "Content-Type:text/plain\n\n";
+#  print $conf{PAYSYS_SMSPROXY_MSG} if ($conf{PAYSYS_SMSPROXY_MSG});
+#  print " CODE: $code";
+# }
+#else {
+#	
+#}
+#
 }
 
 
