@@ -588,12 +588,16 @@ sub debetors_group_create {
   my $list = $users->list({  
                            GID          => "<>$GID",
   	                       PAYMENT_DAYS => "<$LAST_PAYMENTS_DAYS",
-  	                       DEPOSIT      => "<=$DEPOSIT",               
+  	                       DEPOSIT      => "<=$DEPOSIT",
+                               COMMENTS     => '*',               
   	                       PAGE_ROWS    => 100000
   	                      });
 
   foreach my $line (@$list) {
-  	$DEBUG .= "$line->[0] ($line->[7]) DEPOSIT: $line->[2] CREDIT: $line->[3] LAST_PAYMENT: $line->[6]\n"if ($debug > 0);
+
+  	$DEBUG .= "$line->[0] ($line->[7]) DEPOSIT: $line->[2] CREDIT: $line->[3] LAST_PAYMENT: $line->[7]\n"if ($debug > 0);
+    my $comments = "$line->[6]";
+
     if ($debug < 5) {
     	$users->change($line->[7], { GID => $GID,
     		                           UID => $line->[7] 
@@ -601,9 +605,10 @@ sub debetors_group_create {
       
       $users->pi_change({ 
       	         UID      => $line->[7],
-      	         COMMENTS => "$_GROUP $_DEBETORS: $DATE $TIME" });
+      	         COMMENTS => "$comments $_GROUP $_DEBETORS: $DATE $TIME" });
      } 
    }
+
 
   #Flush from debetors group
   $list = $users->list({  
@@ -615,7 +620,7 @@ sub debetors_group_create {
 
   $DEBUG .= "Delete from debetors Group\n" if ($debug > 1) ;
   foreach my $line (@$list) {
-  	$DEBUG .= "$line->[0] ($line->[7]) DEPOSIT: $line->[2] CREDIT: $line->[3] LAST_PAYMENT: $line->[6]\n"if ($debug > 0);
+  	$DEBUG .= "$line->[0] ($line->[7]) DEPOSIT: $line->[2] CREDIT: $line->[3] LAST_PAYMENT: $line->[5]\n"if ($debug > 0);
   	
   	my $comments = "$line->[6]";
 
