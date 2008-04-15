@@ -387,7 +387,10 @@ elsif($total_user_sum > 0 && $uid > 0) {
          print "$DATE $TIME Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug>0);
          my $netmask = 32;
 
-         my $cmd = $conf{IPN_FW_STOP_RULE};
+         
+         my $cmd = $conf{IPN_FW_STOP_RULE} || '';
+         
+         print 'Error: Not defined stop rules. Check $conf{IPN_FW_STOP_RULE}' if ($cmd eq '');
          
          $cmd =~ s/\%IP/$ip_addr/g;
          $cmd =~ s/\%NUM/$rule_num/g;
@@ -420,7 +423,10 @@ elsif($total_user_sum > 0 && $uid > 0) {
 
         my $netmask = 32;
 
-        my $cmd = $conf{IPN_FW_STOP_RULE};
+        my $cmd = $conf{IPN_FW_STOP_RULE} || '';
+
+        print 'Error: Not defined stop rules. Check $conf{IPN_FW_STOP_RULE}' if ($cmd eq '');
+
         $cmd =~ s/\%IP/$ip_addr/g;
         $cmd =~ s/\%NUM/$rule_num/g;
         $cmd =~ s/\%MASK/$netmask/g;
