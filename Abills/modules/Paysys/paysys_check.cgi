@@ -99,6 +99,11 @@ if($FORM{smsid}) {
   smsproxy_payments();
   exit;
  }
+elsif( $FORM{txn_id} ) {
+	paysys_osmp();
+}
+
+
 
 print "Content-Type: text/html\n\n";
 
@@ -122,7 +127,7 @@ while(my($k, $v)=each %FORM) {
 
 
 
-bankomats_obmen();
+paysys_osmp();
 
 exit;
 payments();
@@ -146,7 +151,7 @@ sub payments {
    }
   #PTR Sign IO
   elsif($FORM{sign}) {
-  	bankomats_obmen();
+  	paysys_osmp();
    }
   else {
   	print "Error: Unknown payment system";
@@ -160,7 +165,7 @@ sub payments {
 #**********************************************************
 #
 #**********************************************************
-sub bankomats_obmen {
+sub paysys_osmp {
 
 
 $FORM{id}=223;
@@ -180,6 +185,18 @@ $FORM{amount}='123.45';
   $md5->add($FORM{amount});
 
   my $CHECKSUM = uc($md5->hexdigest());	
+
+
+#
+#<?xml version="1.0" encoding="UTF-8"?>
+#<response>
+#<osmp_txn_id></osmp_txn_id>
+#<prv_txn></prv_txn>
+#<result></result>
+#<comment></comment>
+#</response>
+
+
   
   print "<code>$FORM{sign}<br>\n$CHECKSUM</code>\n";
 
