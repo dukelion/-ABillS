@@ -295,7 +295,7 @@ elsif($acct_status_type eq 3) {
       lupdated=UNIX_TIMESTAMP(),
       sum=sum+$self->{SUM},
       acct_input_gigawords='$RAD->{ACCT_INPUT_GIGAWORDS}',
-      acct_input_gigawords='$RAD->{ACCT_OUTPUT_GIGAWORDS}'
+      acct_output_gigawords='$RAD->{ACCT_OUTPUT_GIGAWORDS}'
     WHERE
       acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
       user_name=\"$RAD->{USER_NAME}\" and
@@ -320,7 +320,9 @@ elsif($acct_status_type eq 3) {
     ex_output_octets='$RAD->{OUTBYTE2}',
     framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
     lupdated=UNIX_TIMESTAMP(),
-    sum=sum+$self->{SUM}
+    sum=sum+$self->{SUM},
+    acct_input_gigawords='$RAD->{ACCT_INPUT_GIGAWORDS}',
+    acct_output_gigawords='$RAD->{ACCT_OUTPUT_GIGAWORDS}'
    WHERE
     acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
     user_name=\"$RAD->{USER_NAME}\" and
