@@ -43,6 +43,9 @@ sub new {
   if (! defined($CONF->{KBYTE_SIZE})) {
   	 $CONF->{KBYTE_SIZE}=1024;
   	}
+  
+  $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
+
   $Billing = Billing->new($db, $CONF);
 
 
@@ -308,7 +311,12 @@ else {
 #my @traf_limits = ();
 my $time_limit  = $self->{TIME_LIMIT}; 
 my $traf_limit  = $MAX_SESSION_TRAFFIC;
-my @direction_sum = ('sent + recv', 'recv', 'sent');
+
+my @direction_sum = (
+  "sum(sent + recv) / $CONF->{MB_SIZE} + acct_output_gigawords * 4096 + acct_input_gigawords * 4096",
+  "sum(recv) / $CONF->{MB_SIZE} + acct_input_gigawords * 4096",
+  "sum(sent) / $CONF->{MB_SIZE} + acct_output_gigawords * 4096"
+ );
 
 push @time_limits, $self->{MAX_SESSION_DURATION} if ($self->{MAX_SESSION_DURATION} > 0);
 
@@ -324,7 +332,7 @@ foreach my $line (@periods) {
         my $session_time_limit=$traf_limit;
         my $session_traf_limit=$traf_limit;
         $self->query($db, "SELECT if(". $self->{$line . '_TIME_LIMIT'} ." > 0, ". $self->{$line . '_TIME_LIMIT'} ." - sum(duration), 0),
-                                  if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - sum($direction_sum[$self->{OCTETS_DIRECTION}]) / $CONF->{KBYTE_SIZE} / $CONF->{KBYTE_SIZE}, 0) 
+                                  if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - $direction_sum[$self->{OCTETS_DIRECTION}], 0) 
             FROM dv_log
             WHERE uid='$self->{UID}' and $SQL_params{$line}
             GROUP BY uid;");
