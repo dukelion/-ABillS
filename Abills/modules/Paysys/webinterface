@@ -34,7 +34,6 @@ my @status = ('ENABLE', 'DISABLE', 'USED');
 sub paysys_import_form {
   my @import_types = split(/,/, $conf{PAYSYS_IMPORT_RULES});
 
-
 	if ($FORM{IMPORT}) {
 				
       my $import_expr = '(\d+)\t(.+)\t(\d+)\t(\S+)\t([0-9.,]+)\t(\d{2}-\d{2}-\d{4})\t(.+)\t(.+):
