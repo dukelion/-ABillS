@@ -174,8 +174,8 @@ elsif ($acct_status_type == 2) {
         '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
         '$self->{BILL_ID}',
         '$RAD->{ACCT_TERMINATE_CAUSE}',
-         '$RAD->{ACCT_OUTPUT_GIGAWORDS}',
-         '$RAD->{ACCT_INPUT_GIGAWORDS}');", 'do');
+        '$RAD->{ACCT_INPUT_GIGAWORDS}',
+        '$RAD->{ACCT_OUTPUT_GIGAWORDS}');", 'do');
    }
   elsif ($conf->{rt_billing}) {
     $self->rt_billing($RAD, $NAS);
@@ -184,13 +184,17 @@ elsif ($acct_status_type == 2) {
       $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb, sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
         bill_id,
-        terminate_cause) 
+        terminate_cause,
+        acct_input_gigawords,
+        acct_output_gigawords) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', $self->{CALLS_SUM}+$self->{SUM}, '$NAS->{NAS_ID}',
         '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
         '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
         '$self->{BILL_ID}',
-        '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
+        '$RAD->{ACCT_TERMINATE_CAUSE}',
+        '$RAD->{ACCT_INPUT_GIGAWORDS}',
+        '$RAD->{ACCT_OUTPUT_GIGAWORDS}');", 'do');
      }      
     else {
       #$self->{errstr}    = "ACCT [$RAD->{USER_NAME}] Can't find sessions $RAD->{ACCT_SESSION_ID}";
@@ -254,8 +258,8 @@ elsif ($acct_status_type == 2) {
           '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
           '$self->{BILL_ID}',
           '$RAD->{ACCT_TERMINATE_CAUSE}',
-          '$RAD->{ACCT_OUTPUT_GIGAWORDS}',
-          '$RAD->{ACCT_INPUT_GIGAWORDS}');", 'do');
+          '$RAD->{ACCT_INPUT_GIGAWORDS}',
+          '$RAD->{ACCT_OUTPUT_GIGAWORDS}');", 'do');
  
       if ($self->{errno}) {
         my $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";

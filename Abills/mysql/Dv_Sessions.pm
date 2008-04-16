@@ -363,7 +363,10 @@ sub online_info {
       CONNECT_INFO,
       acct_session_id,
       nas_id,
-      started
+      started,
+      acct_input_gigawords 
+      acct_output_gigawords 
+ 
       FROM dv_calls 
    $WHERE 
    ");
@@ -391,7 +394,9 @@ sub online_info {
    $self->{CONNECT_INFO},
    $self->{ACCT_SESSION_ID},
    $self->{NAS_ID},
-   $self->{ACCT_SESSION_STARTED}
+   $self->{ACCT_SESSION_STARTED},
+   $self->{ACCT_INPUT_GIGAWORDS},
+   $self->{ACCT_OUTPUT_GIGAWORDS}
     )= @{ $self->{list}->[0] };
 
 
