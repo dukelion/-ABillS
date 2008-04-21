@@ -932,7 +932,8 @@ CREATE TABLE `help` (
 CREATE TABLE `web_online` (
   `admin` varchar(15) NOT NULL default '',
   `ip` varchar(15) NOT NULL default '',
-  `logtime` int(11) unsigned NOT NULL default '0'
+  `logtime` int(11) unsigned NOT NULL default '0',
+  `page_index` int unsigned NOT NULL Default 0
 ) ;
     
 
