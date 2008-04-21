@@ -153,6 +153,7 @@ else {
 } 
 
 
+$INTERFACE=~s/\n//;
 my $via_if_in  = ($INTERFACE ne '-') ? "via $INTERFACE in" : '';
 my $via_if_out = ($INTERFACE ne '-') ? "via $INTERFACE out" : '';
 
