@@ -20,5 +20,6 @@
 <tr><td colspan='2'>$_EXPIRE (<>):</td><td><input  tabindex='15' type='text' name='EXPIRE' value='%EXPIRE%'/></td></tr>
 <tr><td colspan='2'>E-Mail (*):</td><td><input  tabindex='16' type='text' name='EMAIL' value='%EMAIL%'/></td></tr>
 <tr><td colspan='2'>$_DISABLE:</td><td><input  tabindex='18' type='checkbox' name='DISABLE' value='1'/></td></tr>
+%INFO_FIELDS%
 </table>
 </td></tr>

@@ -1060,7 +1060,6 @@ if (! $list) {
 
  	                                        });
 
-
   form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_sessions_search', 'Dv'),
  	                                            { %FORM, %$sessions },
  	                                            { notprint => 1 })  	
@@ -1740,6 +1739,11 @@ dv_stats_calculation($sessions);
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	
 
+if ($sessions->{TOTAL} < 1) {
+	$html->message('info', $_INFO, "$_NO_RECORD");
+	return 0;
+}
+
 $table = $html->table( { caption     => "$_SUM",
 	                       width       => '100%',
 	                       rowcolor    => $_COLORS[1],
@@ -2010,7 +2014,6 @@ my %ACCT_TERMINATE_CAUSES = (
                     );
 
 my %ACCT_TERMINATE_CAUSES_VALUE = reverse %ACCT_TERMINATE_CAUSES;
-
 
 $sessions->session_detail({ %FORM });
 
