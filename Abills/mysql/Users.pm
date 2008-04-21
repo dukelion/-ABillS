@@ -884,7 +884,7 @@ if ($self->{TOTAL} > 0) {
 
  
 
- my $list = $self->{list};
+ $list = $self->{list};
 
 
  if ($self->{TOTAL} > 0) {
