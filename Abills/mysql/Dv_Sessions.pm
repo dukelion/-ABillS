@@ -443,6 +443,10 @@ sub session_detail {
   l.sent + 4294967296 * acct_output_gigawords, 
   l.recv + 4294967296 * acct_input_gigawords,
 
+  l.sent2, 
+  l.recv2,
+
+
   INET_NTOA(l.ip),
   l.CID,
   l.nas_id,

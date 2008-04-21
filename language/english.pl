@@ -358,3 +358,6 @@ $_EXTRA='Extra';
 $_DEBETORS='Debetors';
 
 $_INNER='Inner';
+$_INFO_FIELDS='Information fields';
+$_MISC='Misc';
+$_DV='Internet';

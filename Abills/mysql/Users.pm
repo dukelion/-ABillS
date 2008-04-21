@@ -91,6 +91,8 @@ sub info {
   	$password="DECODE(u.password, '$CONF->{secretkey}')";
    }
 
+
+
   $self->query($db, "SELECT u.uid,
    u.gid, 
    g.name,
@@ -201,9 +203,33 @@ sub pi_add {
       return $self;
      }
    }
-    
+
+#Info fields
+  my $info_fields = '';
+  my $info_fields_val = '';
+
+	my $list = $self->config_list({ PARAM => 'ifu*'});
+  if ($self->{TOTAL} > 0) {
+    my @info_fields_arr = ();
+    my @info_fields_val = ();
+
+    foreach my $line (@$list) {
+      if ($line->[0] =~ /ifu(\S+)/) {
+    	  push @info_fields_arr, $1;
+        push @info_fields_val, "'$attr->{$1}'";
+      }
+
+     }
+    $info_fields = ', '. join(', ', @info_fields_arr) if ($#info_fields_arr > -1);
+    $info_fields_val = ', '. join(', ', @info_fields_val) if ($#info_fields_arr > -1);
+   }
+
+
+
+
   $self->query($db,  "INSERT INTO users_pi (uid, fio, phone, address_street, address_build, address_flat, 
-          email, contract_id, comments, pasport_num, pasport_date,  pasport_grant, zip, city)
+          email, contract_id, comments, pasport_num, pasport_date,  pasport_grant, zip, 
+          city $info_fields)
            VALUES ('$DATA{UID}', '$DATA{FIO}', '$DATA{PHONE}', \"$DATA{ADDRESS_STREET}\", 
             \"$DATA{ADDRESS_BUILD}\", \"$DATA{ADDRESS_FLAT}\",
             '$DATA{EMAIL}', '$DATA{CONTRACT_ID}',
@@ -213,7 +239,7 @@ sub pi_add {
             '$DATA{PASPORT_GRANT}',
             '$DATA{ZIP}',
             '$DATA{CITY}'
-             );", 'do');
+            $info_fields_val );", 'do');
   
   return $self if ($self->{errno});
   
@@ -233,6 +259,29 @@ sub pi {
   
   my $UID = ($attr->{UID}) ? $attr->{UID} : $self->{UID};
   
+
+#Make info fields use
+  my $info_fields = '';
+  my @info_fields_arr = ();
+
+	my $list = $self->config_list({ PARAM => 'ifu*'});
+  if ($self->{TOTAL} > 0) {
+    my %info_fields_hash = ();
+
+    foreach my $line (@$list) {
+      if ($line->[0] =~ /ifu(\S+)/) {
+    	  push @info_fields_arr, $1;
+        $info_fields_hash{$1}="$line->[1]";
+      }
+     }
+    $info_fields = ', '. join(', ', @info_fields_arr) if ($#info_fields_arr > -1);
+
+    $self->{INFO_FIELDS_ARR}  = \@info_fields_arr;
+    $self->{INFO_FIELDS_HASH} = \%info_fields_hash;
+   }
+
+
+  
   
   $self->query($db, "SELECT pi.fio, 
   pi.phone, 
@@ -247,6 +296,7 @@ sub pi {
   pi.pasport_grant,
   pi.zip,
   pi.city
+  $info_fields
     FROM users_pi pi
     WHERE pi.uid='$UID';");
 
@@ -256,8 +306,8 @@ sub pi {
      return $self;
    }
 
-
-
+  my @INFO_ARR = ();
+	  
   ($self->{FIO}, 
    $self->{PHONE}, 
    $self->{ADDRESS_STREET}, 
@@ -270,10 +320,12 @@ sub pi {
    $self->{PASPORT_DATE},
    $self->{PASPORT_GRANT},
    $self->{ZIP},
-   $self->{CITY}
+   $self->{CITY},
+   @INFO_ARR
   )= @{ $self->{list}->[0] };
 	
-	
+	$self->{INFO_FIELDS_VAL} = \@INFO_ARR;
+
 	return $self;
 }
 
@@ -301,6 +353,20 @@ my %FIELDS = (EMAIL          => 'email',
               ZIP            => 'zip',
               CITY           => 'city'
              );
+
+	my $list = $self->config_list({ PARAM => 'ifu*'});
+  if ($self->{TOTAL} > 0) {
+    foreach my $line (@$list) {
+      if ($line->[0] =~ /ifu(\S+)/) {
+        my $field_name = $1;
+        $FIELDS{$field_name}="$field_name";
+        my ($type, $name)=split(/:/, $line->[1]);
+        if ($type == 4) {
+        	$attr->{$field_name} = 0 if (! $attr->{$field_name});
+         }
+      }
+     }
+   }
 
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users_pi',
@@ -657,6 +723,12 @@ sub list {
    $self->{SEARCH_FIELDS_COUNT}++;
  }
 
+#DIsable
+ if ($attr->{DISABLE}) {
+   push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
+ }
+
+
 #Expire
  if ($attr->{EXPIRE}) {
    my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
@@ -667,12 +739,58 @@ sub list {
    $self->{SEARCH_FIELDS_COUNT}++;
  }
 
-#DIsable
- if ($attr->{DISABLE}) {
-   push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
+#Info fields
+my $list = $self->config_list({ PARAM => 'ifu*'});
+
+
+if ($self->{TOTAL} > 0) {
+    foreach my $line (@$list) {
+      if ($line->[0] =~ /ifu(\S+)/) {
+        my $field_name = $1;
+        my ($type, $name)=split(/:/, $line->[1]);
+
+        if (defined($attr->{$field_name}) && $type == 4) {
+     	    push @WHERE_RULES, 'pi.'. $field_name ."='$attr->{$field_name}'"; 
+  
+          #$self->{SEARCH_FIELDS} .= 'pi.'. $field_name. ', ';
+          #$self->{SEARCH_FIELDS_COUNT}++;
+         }
+        #Skip for bloab
+        elsif ($type == 5) {
+        	next;
+         }
+        elsif ($attr->{$field_name}) {
+          if ($type == 1) {
+        	  my $value = $self->search_expr("$attr->{$field_name}", 'INT');
+            push @WHERE_RULES, "(pi.". $field_name. "$value)"; 
+           }
+          elsif ($type == 2)  {
+          	push @WHERE_RULES, "(pi.$field_name=$attr->{$field_name})"; 
+            $self->{SEARCH_FIELDS} .= "$field_name" . '_list.name, ';
+            $self->{SEARCH_FIELDS_COUNT}++;
+            
+            $EXT_TABLES .= "
+            LEFT JOIN $field_name" ."_list ON (pi.$field_name = $field_name" ."_list.id)";
+
+            
+          	next;
+           }
+          else {
+    	      $attr->{$field_name} =~ s/\*/\%/ig;
+            push @WHERE_RULES, "pi.$field_name LIKE '$attr->{$field_name}'"; 
+           }
+
+          $self->{SEARCH_FIELDS} .= "pi.$field_name, ";
+          $self->{SEARCH_FIELDS_COUNT}++;
+         }
+
+       }
+     }
+  $self->{EXTRA_FIELDS}=$list;
  }
+
  
- 
+
  
 #Show last paymenst
  if ($attr->{PAYMENTS} || $attr->{PAYMENT_DAYS}) {
@@ -913,6 +1031,11 @@ sub change {
        #$DATA{BILL_ID}=$Bill->{BILL_ID};
        $attr->{EXT_BILL_ID}=$Bill->{BILL_ID};
    }
+ 
+  #Make extrafields use
+ 
+  
+ 
  
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users',
@@ -1204,5 +1327,264 @@ sub web_session_del {
 
 	return $self;
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub info_field_add {
+  my $self = shift;	
+	my ($attr) = @_;
+
+	my @column_types = (" varchar(120) not null default ''",
+	                    " int(11) NOT NULL default '0'",
+	                    " smallint unsigned NOT NULL default '0' ",
+	                    " text not null ",
+	                    " tinyint(11) NOT NULL default '0' ",
+	                    " content longblob NOT NULL",
+	                    " varchar(100) not null default ''",
+	                    );
+	
+	$attr->{FIELD_TYPE} = 0 if (! $attr->{FIELD_TYPE});
+	
+
+	my $column_type = $column_types[$attr->{FIELD_TYPE}];
+	my $field_prefix = 'ifu';
+
+  #Add field to table
+  if ($attr->{COMPANY_ADD}) {
+  	$field_prefix='ifc';
+  	$self->query($db, "ALTER TABLE companies ADD COLUMN _". $attr->{FIELD_ID} ." $column_type;", 'do');
+   }	
+	else {
+	  $self->query($db, "ALTER TABLE users_pi ADD COLUMN _". $attr->{FIELD_ID}." $column_type;", 'do');
+   }
+
+  if (! $self->{errno}) {
+    if ($attr->{FIELD_TYPE}==2) {
+       $self->query($db, "CREATE TABLE _$attr->{FIELD_ID}_list (
+       id smallint unsigned NOT NULL primary key auto_increment,
+       name varchar(120) not null default 0
+       );", 'do');    	
+     }
+      $self->config_add({ PARAM => $field_prefix. "_$attr->{FIELD_ID}", 
+  	                      VALUE => "$attr->{FIELD_TYPE}:$attr->{NAME}"
+  	                    });
+
+   }
+
+	return $self;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub info_field_del {
+  my $self = shift;	
+	my ($attr) = @_;
+	
+
+  my $sql = '';	
+	if ($attr->{SECTION} eq 'ifc') {
+    $sql="ALTER TABLE companies DROP COLUMN $attr->{FIELD_ID};";
+   }
+  else {
+  	$sql="ALTER TABLE users_pi DROP COLUMN $attr->{FIELD_ID};";
+   }
+
+  $self->query($db,  $sql, 'do');
+
+  if (! $self->{errno} ||  $self->{errno} == 3) {
+  	$self->config_del("$attr->{SECTION}$attr->{FIELD_ID}");
+   }
+
+	return $self;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub info_list_add {
+  my $self = shift;	
+	my ($attr) = @_;
+	
+  $self->query($db,  "INSERT INTO $attr->{LIST_TABLE} (name) VALUES ('$attr->{NAME}');", 'do');
+
+	return $self;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub info_list_del {
+  my $self = shift;	
+	my ($attr) = @_;
+	
+  $self->query($db,  "DELETE FROM $attr->{LIST_TABLE} WHERE id='$attr->{ID}';", 'do');
+
+	return $self;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub info_lists_list {
+  my $self = shift;	
+	my ($attr) = @_;
+
+  $self->query($db,  "SELECt id, name FROM $attr->{LIST_TABLE} ;");
+
+	return $self->{list};
+}
+
+
+#**********************************************************
+# info_list__info()
+#**********************************************************
+sub info_list_info {
+ my $self = shift;
+ my ($id, $attr) = @_;
+ 
+ $self->query($db, "select id, name FROM $attr->{LIST_TABLE} WHERE id='$id';");
+
+ return $self if ($self->{errno} || $self->{TOTAL} < 1);
+
+ ($self->{ID},
+ 	$self->{NAME}) = @{ $self->{list}->[0] };
+
+ return $self;
+}
+
+
+#**********************************************************
+# info_list_change()
+#**********************************************************
+sub info_list_change {
+  my $self = shift;
+  my ($id, $attr) = @_;
+  
+  my %FIELDS = (ID         => 'id',
+                NAME       => 'name'
+             );
+
+  print "---- $id ----";
+
+  my $old_info = $self->info_list_info($id, { LIST_TABLE => $attr->{LIST_TABLE} });
+
+	$self->changes($admin, { CHANGE_PARAM => 'ID',
+		                TABLE        => $attr->{LIST_TABLE},
+		                FIELDS       => \%FIELDS,
+		                OLD_INFO     => $old_info,
+		                DATA         => $attr
+		              } );
+
+  return $self->{result};
+}
+
+
+#**********************************************************
+# groups_list()
+#**********************************************************
+sub config_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+ my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my @WHERE_RULES = ();
+
+ if ($attr->{PARAM}) {
+    $attr->{PARAM} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "param LIKE '$attr->{PARAM}'";
+  }
+ 
+ if ($attr->{VALUE}) {
+    $attr->{VALUE} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "value LIKE '$attr->{VALUE}'";
+  }
+
+ my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
+ 
+ $self->query($db, "SELECT param, value FROM config $WHERE ORDER BY $SORT $DESC");
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT count(*) FROM config $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+ return $list;
+}
+
+
+#**********************************************************
+# config_info()
+#**********************************************************
+sub config_info {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ $self->query($db, "select param, info FROM config WHERE param='$attr->{PARAM}';");
+
+ return $self if ($self->{errno} || $self->{TOTAL} < 1);
+
+ ($self->{PARAM},
+ 	$self->{NAME}) = @{ $self->{list}->[0] };
+
+ return $self;
+}
+
+#**********************************************************
+# group_info()
+#**********************************************************
+sub config_change {
+ my $self = shift;
+ my ($param, $attr) = @_;
+
+ my %FIELDS = (PARAM    => 'param',
+               NAME     => 'value');
+
+ $self->changes($admin, { CHANGE_PARAM => 'PARAM',
+		               TABLE        => 'config',
+		               FIELDS       => \%FIELDS,
+		               OLD_INFO     => $self->config_info({ PARAMS => $param }),
+		               DATA         => $attr
+		              } );
+
+
+ return $self;
+}
+
+
+
+#**********************************************************
+# group_add()
+#**********************************************************
+sub config_add {
+ my $self = shift;
+ my ($attr) = @_;
+
+ $self->query($db, "INSERT INTO config (param, value) values ('$attr->{PARAM}', '$attr->{VALUE}');", 'do');
+
+ return $self;
+}
+
+
+
+#**********************************************************
+# group_add()
+#**********************************************************
+sub config_del {
+ my $self = shift;
+ my ($id) = @_;
+
+ $self->query($db, "DELETE FROM config WHERE param='$id';", 'do');
+ return $self;
+}
+
+
 
 1

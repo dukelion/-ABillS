@@ -63,7 +63,7 @@ elif [ t$1 = 'tacct' ]; then
   if [ t$2 = 'tStart' ]; then
    echo Start;
    ./racct.pl \
-        USER_NAME="aa1" \
+        USER_NAME="test" \
         SERVICE_TYPE=Framed-User \
         FRAMED_PROTOCOL=PPP \
         FRAMED_IP_ADDRESS=10.0.0.1 \
@@ -81,7 +81,7 @@ elif [ t$1 = 'tacct' ]; then
    elif [ t$2 = 'tStop' ] ; then
       echo Stop;
       ./racct.pl \
-        USER_NAME="aa1" \
+        USER_NAME="test" \
         SERVICE_TYPE=Framed-User \
         FRAMED_PROTOCOL=PPP \
         FRAMED_IP_ADDRESS=10.0.0.1 \
@@ -93,8 +93,8 @@ elif [ t$1 = 'tacct' ]; then
         ACCT_STATUS_TYPE=Stop \
         ACCT_SESSION_ID="83419_AA11118757979" \
         ACCT_DELAY_TIME=0 \
-        ACCT_INPUT_OCTETS=1000 \
-        ACCT_INPUT_GIGAWORDS=0 \
+        ACCT_INPUT_OCTETS=1345980000 \
+        ACCT_INPUT_GIGAWORDS=1 \
         ACCT_INPUT_PACKETS=125 \
         ACCT_OUTPUT_OCTETS=1000 \
         EXPPP_ACCT_LOCALINPUT_OCTETS=12000000 \

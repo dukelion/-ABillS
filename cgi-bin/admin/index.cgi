@@ -673,7 +673,35 @@ elsif($FORM{COMPANY_ID}) {
       $company->{EXDATA} = $html->tpl_show(templates('form_ext_bill'), $company, { notprint => 1 });
      }
 
+#Info fields
+    my $i=0; 
+    foreach my $field_id ( @{ $company->{INFO_FIELDS_ARR} } ) {
+      my($type, $name)=split(/:/, $company->{INFO_FIELDS_HASH}->{$field_id});
 
+      my $input = '';
+      if ($type == 2) {
+        $input = $html->form_select("$field_id", 
+                                { SELECTED          => $company->{INFO_FIELDS_VAL}->[$i],
+ 	                                SEL_MULTI_ARRAY   => $users->info_lists_list( { LIST_TABLE => $field_id.'_list' }), 
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
+ 	                                NO_ID             => 1
+ 	                               });
+    	
+       }
+      elsif ($type == 4) {
+    	  $input = $html->form_input($field_id, 1, { TYPE  => checkbox,  
+    		                                           STATE => ($company->{INFO_FIELDS_VAL}->[$i]) ? 1 : undef  });
+       }
+      else {
+    	  $input = $html->form_input($field_id, "$company->{INFO_FIELDS_VAL}->[$i]", { SIZE => 40 });
+       }
+    
+  	  $company->{INFO_FIELDS}.= "<tr><td>$name:</td><td>$input</td></tr>\n";
+
+      $i++;
+     }
 
     $html->tpl_show(templates('form_company'), $company);
   }
@@ -772,6 +800,38 @@ sub add_company {
   #$company->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
   #$company->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
 
+  my $list = $users->config_list({ PARAM => 'ifc*'});
+
+  foreach my $line (@$list) {
+    my $field_id       = '';
+
+    if ($line->[0] =~ /ifc(\S+)/) {
+    	$field_id = $1;
+     }
+
+    my($type, $name)=split(/:/, $line->[1]);
+    my $input = '';
+    if ($type == 2) {
+        $input = $html->form_select("$field_id", 
+                                { SELECTED          => undef,
+ 	                                SEL_MULTI_ARRAY   => $users->info_lists_list( { LIST_TABLE => $field_id.'_list' }), 
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
+ 	                                NO_ID             => 1
+ 	                               });
+    	
+      }
+     elsif ($type == 4) {
+   	  $input = $html->form_input($field_id, 1, { TYPE  => checkbox,  
+   		                                           STATE => ($company->{INFO_FIELDS_VAL}->[$i]) ? 1 : undef  });
+      }
+     else {
+   	   $input = $html->form_input($field_id, "$company->{INFO_FIELDS_VAL}->[$i]", { SIZE => 40 });
+      }
+    
+  	  $company->{INFO_FIELDS}.= "<tr><td>$name:</td><td>$input</td></tr>\n";
+   }
   
   $html->tpl_show(templates('form_company'), $company);
 }
@@ -1024,6 +1084,39 @@ sub user_pi {
  	  $user_pi->{ACTION}='change';
 	  $user_pi->{LNG_ACTION}=$_CHANGE;
    }
+
+
+   
+  my $i=0; 
+  foreach my $field_id ( @{ $user_pi->{INFO_FIELDS_ARR} } ) {
+    my($type, $name)=split(/:/, $user_pi->{INFO_FIELDS_HASH}->{$field_id});
+
+    my $input = '';
+    if ($type == 2) {
+      $input = $html->form_select("$field_id", 
+                                { SELECTED          => $user_pi->{INFO_FIELDS_VAL}->[$i],
+ 	                                SEL_MULTI_ARRAY   => $user->info_lists_list( { LIST_TABLE => $field_id.'_list' }), 
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
+ 	                                NO_ID             => 1
+ 	                               });
+    	
+     }
+    elsif ($type == 4) {
+    	$input = $html->form_input($field_id, 1, { TYPE  => checkbox,  
+    		                                         STATE => ($user_pi->{INFO_FIELDS_VAL}->[$i]) ? 1 : undef  });
+     }
+    else {
+    	$input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]", { SIZE => 40 });
+     }
+    
+  	$user_pi->{INFO_FIELDS}.= "<tr><td>$name:</td><td>$input</td></tr>\n";
+
+    $i++;
+   }
+
+
   
   $index=30;
   $html->tpl_show(templates('form_pi'), $user_pi);
@@ -1145,7 +1238,6 @@ if(defined($attr->{USER})) {
 ##     $functions{$index}->();
 ##   }
 }
-    
     
     user_pi({ USER => $user_info });
    }
@@ -1337,6 +1429,24 @@ my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$
                   'u.expire'          => "$_EXPIRE"
                    );
 
+
+
+if ($users->{EXTRA_FIELDS}) {
+  foreach my $line (@{ $users->{EXTRA_FIELDS} }) {
+    if ($line->[0] =~ /ifu(\S+)/) {
+      my $field_id = $1;
+      my ($type, $name)=split(/:/, $line->[1]);
+      if ($type == 2) {
+        $SEARCH_TITLES{$field_id.'_list.name'}=$name;
+       }
+      else {
+        $SEARCH_TITLES{'pi.'.$field_id}=$name;
+       }
+     }
+   }
+}
+
+
 my @EX_TITLE_ARR  = split(/, /, $users->{SEARCH_FIELDS});
 
 for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++) {
@@ -1354,6 +1464,7 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['left', 'left', 'right', 'right', 'center', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $users->{TOTAL},
+                            ID         => 'USERS_LIST',
                             header     => ($permissions{0}{7}) ? "<script language=\"JavaScript\" type=\"text/javascript\">
 <!-- 
 function CheckAllINBOX() {
@@ -3386,12 +3497,14 @@ my @m = (
  
  "85:5:$_SHEDULE:form_shedule:::",
  "86:5:$_BRUTE_ATACK:form_bruteforce:::",
- "90:5:MISC:null:::",
+ "90:5:$_MISC:null:::",
  "91:90:$_TEMPLATES:form_templates:::",
  "92:90:$_DICTIONARY:form_dictionary:::",
  "93:90:Config:form_config:::",
  "94:90:WEB server:form_webserver_info:::",
  "95:90:$_SQL_BACKUP:form_sql_backup:::",
+ "96:90:$_INFO_FIELDS:form_info_fields:::",
+ "97:96:$_LIST:form_info_lists:::",
  "6:0:$_OTHER:null:::",
   
  "7:0:$_SEARCH:form_search:::",
@@ -4117,6 +4230,49 @@ elsif($search_form{$FORM{type}}) {
                                   SEL_OPTIONS   => { '' => $_ALL }
  	                               });
    }
+  elsif ($FORM{type} == 11) {
+
+    my $i=0; 
+    my $list = $users->config_list({ PARAM => 'ifu*'  });
+
+    foreach my $line (@$list) {
+      my $field_id       = '';
+      if ($line->[0] =~ /ifu(\S+)/) {
+    	  $field_id = $1;
+       }
+
+      my($type, $name)=split(/:/, $line->[1]);
+
+      my $input = '';
+      if ($type == 2) {
+        $input = $html->form_select("$field_id", 
+                                { SELECTED          => $FORM{$field_id},
+ 	                                SEL_MULTI_ARRAY   => $users->info_lists_list( { LIST_TABLE => $field_id.'_list' }), 
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
+ 	                                NO_ID             => 1
+ 	                               });
+    	
+       }
+      elsif ($type == 5) {
+      	 next;
+       }
+      elsif ($type == 4) {
+    	  $input = $html->form_input($field_id, 1, { TYPE  => checkbox,  
+    		                                           STATE => ($FORM{$field_id}) ? 1 : undef  });
+       }
+      else {
+    	  $input = $html->form_input($field_id, "$FORM{$field_id}", { SIZE => 40 });
+       }
+
+      $info{INFO_FIELDS}.= "<tr><td colspan=2>$name:</td><td>$input</td></tr>\n";
+
+      $i++;
+     }
+
+  	#<tr><td colspan='2'>$_DISABLE:</td><td><input  tabindex='18' type='checkbox' name='DISABLE' value='1'/></td></tr>
+   }
 
 	
 	$SEARCH_DATA{SEARCH_FORM} =  $html->tpl_show(templates($search_form{$FORM{type}}), { %info, %FORM, GROUPS_SEL => $group_sel }, { notprint => 1 });
@@ -4171,7 +4327,7 @@ if ($FORM{search}) {
    }	 
 	
 	while(my($k, $v)=each %FORM) {
-		if ($k =~ /([A-Z0-9]+)/ && $v ne '' && $k ne '__BUFFER') {
+		if ($k =~ /([A-Z0-9]+|_[a-z0-9]+)/ && $v ne '' && $k ne '__BUFFER') {
 		  #print "$k, $v<br>";
 		  $LIST_PARAMS{$k}=$v;
 	    $pages_qs .= "&$k=$v";
@@ -5002,6 +5158,243 @@ sub _external {
     return 0;
    }
 }
+
+#**********************************************************
+# Information fields
+#**********************************************************
+sub form_info_fields {
+	
+	if ($FORM{USERS_ADD}) {
+		$users->info_field_add({ %FORM  });
+		if (! $users->{errno}) {
+			$html->message('info', $_INFO, "$_ADDED: $FORM{FIELD_ID} - $FORM{NAME}");
+		 }
+	 }
+	elsif ($FORM{COMPANY_ADD}) {
+		$users->info_field_add({ %FORM  });
+		if (! $users->{errno}) {
+			$html->message('info', $_INFO, "$_ADDED: $FORM{FIELD_ID} - $FORM{NAME}");
+		 }
+	 }
+	elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+		$users->info_field_del({ SECTION => $FORM{del}, %FORM });
+		if (! $users->{errno}) {
+			$html->message('info', $_INFO, "$_DELETED: $FORM{FIELD_ID}");
+		 }
+	 }
+
+  if ($users->{errno}) {
+    $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
+   }
+
+
+  my @fields_types = ('String', 'Integer', $_LIST, $_TEXT, 'Flag', 'Blob', 'PCRE');
+
+  my $fields_type_sel = $html->form_select('FIELD_TYPE', 
+                                { SELECTED   => $FORM{field_type},
+ 	                                SEL_ARRAY  => \@fields_types, 
+ 	                                NO_ID      => 1,
+ 	                                ARRAY_NUM_ID => 1
+ 	                               });
+
+
+	my $list = $users->config_list({ PARAM => 'ifu*'});
+	
+  my $table = $html->table( { width      => '450',
+                              caption    => "$_INFO_FIELDS - $_USERS",
+                              border     => 1,
+                              title      => [$_NAME, 'SQL field', $_TYPE,  '-'],
+                              cols_align => ['left', 'left', 'left', 'center', 'center' ],
+                           } );
+
+
+  foreach my $line (@$list) {
+    my $field_name       = '';
+
+    if ($line->[0] =~ /ifu(\S+)/) {
+    	$field_name = $1;
+     }
+
+    my($field_type, $name)=split(/:/, $line->[1]);
+
+    $table->addrow($name,  
+      $field_name, 
+      ($field_type == 2) ? $html->button($fields_types[$field_type], "index=". ($index + 1) ."&LIST_TABLE=$field_name".'_list') : $fields_types[$field_type],  
+      (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=ifu&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name?" }) : ''
+      );
+   }
+
+  $table->addrow($html->form_input('NAME', ''),  
+      $html->form_input('FIELD_ID', ''),  
+      $fields_type_sel, 
+      $html->form_input('USERS_ADD', $_ADD, {  TYPE => 'SUBMIT' })
+      );
+
+
+   print $html->form_main({ CONTENT => $table->show(),
+	                          HIDDEN  => { index => $index,
+	                       	              },
+	                       	  NAME    => 'users_fields'
+                         });
+
+
+  $list = $users->config_list({ PARAM => 'ifc*'});
+  $table = $html->table( { width      => '450',
+                           caption    => "$_INFO_FIELDS - $_COMPANIES",
+                           border     => 1,
+                           title      => [$_NAME, 'SQL field', $_TYPE,  '-'],
+                           cols_align => ['left', 'left', 'left', 'center', 'center' ],
+                           } );
+
+
+  foreach my $line (@$list) {
+    my $field_name       = '';
+
+    if ($line->[0] =~ /ifc(\S+)/) {
+    	$field_name = $1;
+     }
+
+    my($field_type, $name)=split(/:/, $line->[1]);
+
+    $table->addrow($name,  
+      $field_name, 
+      ($field_type == 2) ? $html->button($fields_types[$field_type], "index=". ($index + 1) ."&LIST_TABLE=$field_name".'_list') : $fields_types[$field_type], 
+      (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=ifc&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name ?" }) : ''
+      );
+   }
+
+  $table->addrow($html->form_input('NAME', ''),  
+      $html->form_input('FIELD_ID', ''),  
+      $fields_type_sel, 
+      $html->form_input('COMPANY_ADD', $_ADD, {  TYPE => 'SUBMIT' })
+      );
+
+
+   print $html->form_main({ CONTENT => $table->show(),
+	                          HIDDEN  => { index => $index,
+	                       	              },
+	                       	  NAME    => 'company_fields'
+                         });
+
+	
+}
+
+#**********************************************************
+# Information lists
+#**********************************************************
+sub form_info_lists {
+
+  @ACTIONS = ('add', $_ADD);
+  
+	if ($FORM{add}) {
+		$users->info_list_add({ %FORM  });
+		if (! $users->{errno}) {
+			$html->message('info', $_INFO, "$_ADDED: $FORM{FIELD_ID} - $FORM{NAME}");
+		 }
+	 }
+	elsif ($FORM{change}) {
+		
+		print "$FORM{chg} // ";
+		$users->info_list_change($FORM{chg}, { ID => $FORM{chg}, %FORM  });
+		if (! $users->{errno}) {
+			$html->message('info', $_INFO, "$_CHANGED: $FORM{ID}");
+		 }
+	 }
+	elsif ($FORM{chg}) {
+	
+		$users->info_list_info($FORM{chg},  {  %FORM  });
+		if (! $users->{errno}) {
+			$html->message('info', $_INFO, "$_CHANGE: $FORM{chg}");
+			@ACTIONS = ('change', $_CHANGE);
+		 }
+	 }
+	elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+		$users->info_list_del({ ID => $FORM{del}, %FORM });
+		if (! $users->{errno}) {
+			$html->message('info', $_INFO, "$_DELETED: $FORM{FIELD_ID}");
+		 }
+	 }
+
+  if ($users->{errno}) {
+    $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
+   }
+
+
+	
+  my $list = $users->config_list({ PARAM => 'if*',
+  	                               VALUE => '2:*'});
+
+  my %lists_hash = ();
+
+
+  foreach my $line (@$list) {
+    my $field_name       = '';
+
+    if ($line->[0] =~ /if[u|c](\S+)/) {
+    	$field_name = $1;
+     }
+
+    my($field_type, $name)=split(/:/, $line->[1]);
+    $lists_hash{$field_name.'_list'}=$name;
+   }
+
+
+
+  my $lists_sel = $html->form_select('LIST_TABLE', 
+                                { SELECTED   => $FORM{LIST_TABLE},
+ 	                                SEL_HASH   => \%lists_hash, 
+ 	                                NO_ID      => 1,
+ 	                               });
+
+  my $table = $html->table( { width      => '100%',
+  	                        rows       => [[ $lists_sel, $html->form_input('SHOW', $_SHOW, {TYPE => 'submit' }) ]]
+  	                       });
+
+
+  print $html->form_main({ CONTENT => $table->show(),
+	                         HIDDEN  => { index  => $index,
+ 	                       	              },
+	                       	 NAME    => 'tables_list'
+                         });
+
+
+	if ($FORM{LIST_TABLE}) {
+     my $table = $html->table( { width      => '450',
+                           caption    => "$_LIST",
+                           border     => 1,
+                           title      => ['#', $_NAME, '-', '-'],
+                           cols_align => ['right', 'left', 'center', 'center' ],
+                           ID         => 'LIST'
+                           } );
+
+     $list = $users->info_lists_list({ %FORM }); 
+
+     foreach my $line (@$list) {
+       $table->addrow($line->[0],  
+         $line->[1],
+         $html->button($_CHANGE, "index=$index&LIST_TABLE=$FORM{LIST_TABLE}&chg=$line->[0]"), 
+         (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&LIST_TABLE=$FORM{LIST_TABLE}&del=$line->[0]", { MESSAGE => "$_DEL $line->[0] / $line->[1]?" }) : ''
+        );
+      }
+
+     $table->addrow($users->{ID},  
+        $html->form_input('NAME', "$users->{NAME}", { SIZE => 80 }),  
+        $html->form_input("$ACTIONS[0]", "$ACTIONS[1]", {  TYPE => 'SUBMIT' })
+      );
+
+
+     print $html->form_main({ CONTENT => $table->show(),
+	                          HIDDEN  => { index      => $index,
+	                          	           chg        => $FORM{chg},
+	                          	           LIST_TABLE => $FORM{LIST_TABLE}
+	                       	              },
+	                       	  NAME    => 'list_add'
+                         });
+	
+ }
+}
+
+
 
 
 1

@@ -173,6 +173,10 @@ foreach my $line (@$list) {
     $sent2 = $RAD->{INTERIUM_OUTBYTE1} || 0; 
     $recv2 = $RAD->{INTERIUM_INBYTE1}  || 0;
    }
+  elsif ($RAD->{ACCT_INPUT_GIGAWORDS} || $RAD->{ACCT_OUTPUT_GIGAWORDS}) {
+    $recv = $recv + $RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296;
+    $sent = $sent + $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296;
+   }
 
 if ($prepaid{0} + $prepaid{1} > 0) {
   #Get traffic from begin of month
@@ -216,7 +220,6 @@ if ($prepaid{0} + $prepaid{1} > 0) {
       }   
    }
 
- 
    if ($CONF->{rt_billing}) {
    	 $used_traffic->{TRAFFIC_IN}     += int($RAD->{INBYTE} / $CONF->{MB_SIZE}); 
    	 $used_traffic->{TRAFFIC_OUT}    += int($RAD->{OUTBYTE} / $CONF->{MB_SIZE});
@@ -224,8 +227,8 @@ if ($prepaid{0} + $prepaid{1} > 0) {
    	 $used_traffic->{TRAFFIC_OUT_2}  += int($RAD->{OUTBYTE2} / $CONF->{MB_SIZE});
     }
    elsif ($RAD->{ACCT_INPUT_GIGAWORDS}) {
-      $recv = $recv + $RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296;
-      $sent = $sent + $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296;
+     $recv = $recv + $RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296;
+     $sent = $sent + $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296;
     }
 
    $used_traffic->{ONLINE}=0;

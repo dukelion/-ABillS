@@ -118,6 +118,7 @@ if ($acct_status_type == 1) {
 # Stop status
 elsif ($acct_status_type == 2) {
 
+
   my $Billing = Billing->new($db, $conf);	
 
   if ( $NAS->{NAS_EXT_ACCT} || $NAS->{NAS_TYPE} eq 'ipcad') {

@@ -16,8 +16,12 @@ $VERSION = 3.00;
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
 
+use Users;
+
 use main;
 @ISA  = ("main");
+
+my $users;
 
 
 #**********************************************************
@@ -28,7 +32,11 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
-  #$self->{debug}=1;
+
+
+  $users = Users->new($db, $admin, $CONF); 
+
+
   return $self;
 }
 
@@ -48,15 +56,39 @@ sub add {
     return $self;
    }
 
+
+#Info fields
+  my $info_fields = '';
+  my $info_fields_val = '';
+
+	my $list = $users->config_list({ PARAM => 'ifc*'});
+  if ($users->{TOTAL} > 0) {
+    my @info_fields_arr = ();
+    my @info_fields_val = ();
+
+    foreach my $line (@$list) {
+      if ($line->[0] =~ /ifc(\S+)/) {
+    	  push @info_fields_arr, $1;
+        push @info_fields_val, "'$attr->{$1}'";
+      }
+
+     }
+    $info_fields = ', '. join(', ', @info_fields_arr);
+    $info_fields_val = ', '. join(', ', @info_fields_val);
+   }
+
+
   my %DATA = $self->get_data($attr); 
   $self->query($db, "INSERT INTO companies (name, tax_number, bank_account, bank_name, cor_bank_account, 
      bank_bic, disable, credit, address, phone, vat, contract_id,
-     bill_id, ext_bill_id) 
+     bill_id, ext_bill_id
+     $info_fields) 
      VALUES ('$DATA{COMPANY_NAME}', '$DATA{TAX_NUMBER}', '$DATA{BANK_ACCOUNT}', '$DATA{BANK_NAME}', '$DATA{COR_BANK_ACCOUNT}', 
       '$DATA{BANK_BIC}', '$DATA{DISABLE}', '$DATA{CREDIT}',
       '$DATA{ADDRESS}', '$DATA{PHONE}',
       '$DATA{VAT}', '$DATA{CONTRACT_ID}',
       '$DATA{BILL_ID}', '$DATA{EXT_BILL_ID}'
+      $info_fields_val
       );", 'do');
 
   $self->{COMPANY_ID} = $self->{INSERT_ID};
@@ -130,6 +162,25 @@ sub change {
    CONTRACT_ID    => 'contract_id'
    );
 
+
+	my $list = $users->config_list({ PARAM => 'ifc*'});
+  if ($users->{TOTAL} > 0) {
+    foreach my $line (@$list) {
+      if ($line->[0] =~ /ifc(\S+)/) {
+        my $field_name = $1;
+        $FIELDS{$field_name}="$field_name";
+        my ($type, $name)=split(/:/, $line->[1]);
+        if ($type == 4) {
+        	$attr->{$field_name} = 0 if (! $attr->{$field_name});
+         }
+      }
+     }
+   }
+
+
+
+
+
 	$self->changes($admin, { CHANGE_PARAM => 'COMPANY_ID',
 		               TABLE        => 'companies',
 		               FIELDS       => \%FIELDS,
@@ -162,11 +213,33 @@ sub info {
   my $self = shift;
   my ($company_id) = @_;
 
+#Make info fields use
+  my $info_fields = '';
+  my @info_fields_arr = ();
+
+	my $list = $users->config_list({ PARAM => 'ifc*'});
+  if ($users->{TOTAL} > 0) {
+    my %info_fields_hash = ();
+
+    foreach my $line (@$list) {
+      if ($line->[0] =~ /ifc(\S+)/) {
+    	  push @info_fields_arr, $1;
+        $info_fields_hash{$1}="$line->[1]";
+      }
+     }
+    $info_fields = ', '. join(', ', @info_fields_arr) if ($#info_fields_arr > -1);
+
+    $self->{INFO_FIELDS_ARR}  = \@info_fields_arr;
+    $self->{INFO_FIELDS_HASH} = \%info_fields_hash;
+   
+   }
+
   $self->query($db, "SELECT c.id, c.name, c.credit, c.tax_number, c.bank_account, c.bank_name, 
   c.cor_bank_account, c.bank_bic, c.disable, c.bill_id, b.deposit,
   c.address, c.phone,
   c.vat, contract_id,
   c.ext_bill_id
+  $info_fields
     FROM companies c
     LEFT JOIN bills b ON (c.bill_id=b.id)
     WHERE c.id='$company_id';");
@@ -176,6 +249,8 @@ sub info {
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
+
+  my @INFO_ARR = ();
 
   ($self->{COMPANY_ID}, 
    $self->{COMPANY_NAME}, 
@@ -192,9 +267,11 @@ sub info {
    $self->{PHONE},
    $self->{VAT},
    $self->{CONTRACT_ID},
-   $self->{EXT_BILL_ID}
+   $self->{EXT_BILL_ID},
+   @INFO_ARR
    ) = @{ $self->{list}->[0] };
   
+   $self->{INFO_FIELDS_VAL} = \@INFO_ARR;
   
    if ($CONF->{EXT_BILL_ACCOUNT} && $self->{EXT_BILL_ID} > 0) {
  	 $self->query($db, "SELECT b.deposit, b.uid

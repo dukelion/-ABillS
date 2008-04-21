@@ -151,7 +151,7 @@ if (defined($type) && $type eq 'do') {
 }
 else {
   #print $query;
-  $q = $db->prepare($query) || die $db->errstr;
+  $q = $db->prepare($query); # || die $db->errstr;
   if($db->err) {
      $self->{errno} = 3;
      $self->{sql_errno}=$db->err;
@@ -204,7 +204,7 @@ if($db->err) {
    }
 
   $self->{errno} = 3;
-  $self->{errstr} = 'SQL_ERROR' . $self->{db}->strerr;
+  $self->{errstr} = 'SQL_ERROR'; # . ( ($self->{db}->strerr) ? $self->{db}->strerr : '' );
   return $self;
  }
 
