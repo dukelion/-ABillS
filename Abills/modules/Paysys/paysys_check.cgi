@@ -168,61 +168,93 @@ sub payments {
 sub paysys_osmp {
 
 
-$FORM{id}=223;
-$FORM{key}=764;
-$FORM{type}=1;
-$FORM{timestamp}='23.11.2006 13:10:23';
-$FORM{amount}='123.45';
+ print "Content-Type: text/xml\n\n";
 
-  $FORM{sign}='3DFSR546EWTE546ETRTR5SDFXCV54SDFG64MFG456WQE';
+=comments
+https://service.someprovider.ru:8443/payment_app.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
+=cut
 
-  $md5->reset;
+$FORM{command}='check';
+$FORM{txn_id}=223;
+$FORM{account}=223;
+$FORM{sum}=223;
+$FORM{txn_date}=20050815120133;
 
-	$md5->add($FORM{id}); 
-	$md5->add($FORM{key});
-  $md5->add($FORM{type});
-  $md5->add($FORM{timestamp}); 
-  $md5->add($FORM{amount});
-
-  my $CHECKSUM = uc($md5->hexdigest());	
-
-
-#
-#<?xml version="1.0" encoding="UTF-8"?>
-#<response>
-#<osmp_txn_id></osmp_txn_id>
-#<prv_txn></prv_txn>
-#<result></result>
-#<comment></comment>
-#</response>
+my $comments = '';
+my %status_hash = (0	=> 'Success',
+1 => 'Wrong format',
+2	=> 'Excess of payment value',
+3	=> 'Excess number of payments',
+4	=> 'Client is blocked',
+5	=> 'Failed witness a signature',
+6	=> 'Unknown terminal',
+7	=> 'Unknown error',
+8	=> 'Double request',
+9	=> 'Key Info mismatch'
+);
 
 
+my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
+
+#Check user account
+if ($FORM{command} eq 'check') {
+
+  my $user = $users->list({ $CHECK_FIELD => $FORM{account} });
+
+  if ($user->{errno}) {
+	  $status = 7; 
+   }
+  elsif ($user->{TOTAL} < 1) {
+	  $status =  7;
+	  $comments = 'User Not Exist';
+   }
+  else {
+    $status = 0; 
+   }
+
+if ($status > 0) {
+  $comments = $status_hash{$status} if ($comments eq '');
+}
+
+print << "[END]";
+<?xml version="1.0" encoding="UTF-8"?> 
+<response><osmp_txn_id>$FORM{txn_id}</osmp_txn_id>
+<result>$status</result>
+<comment>$comments</comment>
+</response>
+[END]
+
+}
+#https://service.someprovider.ru:8443/payment_app.cgi?command=pay&txn_id=1234567&txn_date=20050815120133&account=0957835959&sum=10.45
+elsif ($command eq 'pay') {
+
+  my $user;
   
-  print "<code>$FORM{sign}<br>\n$CHECKSUM</code>\n";
-
-
-my $status;
-my $uid = 0;
-
-if ($CHECKSUM eq $FORM{sign}) {
-
-  my $user = $users->info($FORM{key});
+  if ($CHECK_FIELD eq 'UID') {
+    $user = $users->info($FORM{account});
+   }
+  else {
+    my $list = $users->list({ $CHECK_FIELD => $FORM{account} })
+    if (! $user->{errno} || $users->{TOTAL} < 1 ) {
+      $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+      $user = $users->info($uid); 
+     }
+   }
 
   if ($user->{errno}) {
 	  $status = 7; 
    }
   elsif ($user->{TOTAL} < 0) {
 	  $status =  4;
-	  $uid = $user->{UID};
    }
   else {
-
+    $uid = $user->{UID};
     #Add payments
-    $payments->add($user, {SUM          => $FORM{rupay_sum},
-    	                     DESCRIBE     => 'Bankomat', 
+    $payments->add($user, {SUM          => $FORM{sum},
+    	                     DESCRIBE     => 'OSMP', 
     	                     METHOD       => '2', 
-  	                       EXT_ID       => 'PS4:$FORM{id}', 
-  	                       CHECK_EXT_ID => 'PS4:$FORM{id}' } );  
+  	                       EXT_ID       => 'PS4:$FORM{txn_id}', 
+  	                       CHECK_EXT_ID => 'PS4:$FORM{txn_id}' } );  
 
     if ($payments->{errno} == 7) {
       $status = 8;  	
@@ -234,45 +266,34 @@ if ($CHECKSUM eq $FORM{sign}) {
     	$status = 0;
      }    
 	 }
- }
-else {
-	$status = 5;
-}
 
 
-my %status_hash = (0	=> 'Success	Успех',
-1 => 'Wrong format	Неправильный формат вызова',
-2	=> 'Excess of payment value 	Превышено допустимое значение переносимых средств',
-3	=> 'Excess number of payments	Превышено допустимое количество зачислений денежных средств',
-4	=> 'Client is blocked	Клиент заблокирован на зачисление денежных средств',
-5	=> 'Failed witness a signature	Контрольная сумма не верна',
-6	=> 'Unknown terminal	Неизвестный источник сообщений',
-7	=> 'Unknown error	Неизвестная ошибка',
-8	=> 'Double request	Повторный запрос (платеж с таким id и test=N уже обрабатывался)',
-9	=> 'Key Info mismatch	Несоответствие между ключем и информацией'
-);
-
-
-$Paysys->{debug}=1;
-
-
-    $Paysys->add({ SYSTEM_ID      => 4, 
+    $Paysys->add({ SYSTEM_ID   => 4, 
  	              DATETIME       => "'$DATE $TIME'", 
- 	              SUM            => "$FORM{amount}",
+ 	              SUM            => "$FORM{sum}",
   	            UID            => "$uid", 
                 IP             => '0.0.0.0',
-                TRANSACTION_ID => "$FORM{id}",
-                INFO           => "KEY: $FORM{key} TYPE: $FORM{type} PS_TIME: $FORM{timestamp} STATUS: $status $status_hash{$status}",
+                TRANSACTION_ID => "$FORM{txn_id}",
+                INFO           => "TYPE: $FORM{command} PS_TIME: $FORM{$FORM{txn_date}} STATUS: $status $status_hash{$status}",
                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
 
-#Replay
-$FORM{id}=$FORM{id};
-$FORM{code}=$status;
-$FORM{text}=$status_hash{$status};
-$FORM{amount}=$FORM{amount};
-$FORM{sign}='3478ERHFJE3RF3874J3RGER7U345TJRE90T8';
+print << "[END]";
+<?xml version="1.0" encoding="UTF-8"?> 
+<response><osmp_txn_id>$FORM{txn_id}</osmp_txn_id>
+<result>$status</result> 
+<prv_txn>$Paysys->{INSERT_ID}</prv_txn> 
+<sum>$FORM{sum}</sum> 
+<result>$status</result> 
+<comment>$comments</comment> 
+</response> 
+[END]
+}
+ 
+
+
+
 
 }
 
@@ -286,7 +307,7 @@ sub smsproxy_payments {
 
 # $FORM{smsid}="1174921221.133533";
 # $FORM{num}="1171&";
-# $FORM{operator}="MТS_Moskva&";
+# $FORM{operator}="MС“_Moskva&";
 # $FORM{user_id}="891612345XX&";
 # $FORM{cost}="3.098&";
 # $FORM{msg}="xxx";
@@ -327,8 +348,8 @@ sub smsproxy_payments {
 #
 #
 #if ($list) {
-#	print "smsid: $FORM{smsid}\n";
-#  print "status: reply\n";
+#	print "smsid:В $FORM{smsid}\n";
+#  print "status:В reply\n";
 #  print "Content-Type:text/plain\n\n";
 #  print $conf{PAYSYS_SMSPROXY_MSG} if ($conf{PAYSYS_SMSPROXY_MSG});
 #  print " CODE: $code";
