@@ -887,7 +887,7 @@ if ($self->{TOTAL} > 0) {
  $list = $self->{list};
 
 
- if ($self->{TOTAL} > 0) {
+ if ($self->{TOTAL} == $PAGE_ROWS || $PG > 0) {
     $self->query($db, "SELECT count(u.id) FROM users u 
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
