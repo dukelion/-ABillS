@@ -436,7 +436,7 @@ sub dhcphosts_hosts {
 	  #$table->{rowcolor}=$_COLORS[$i];
     $table->addrow(
 	    $line->[0], 
-	    $html->button($line->[1], "index=15&UID=". $line->[12+$Dhcphosts->{SEARCH_FIELDS_COUNT}]."&MODULE=Dhcphosts"),
+	    $html->button($line->[1], "index=15&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]."&MODULE=Dhcphosts"),
 	    $line->[2],
 	    $line->[3],
 	    $line->[5].": ".$line->[4],
@@ -444,8 +444,8 @@ sub dhcphosts_hosts {
 	    $line->[10]."/".$line->[8],
 	    $line->[9],
 	    $line->[7],
-	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=". $line->[12+$Dhcphosts->{SEARCH_FIELDS_COUNT}]),
-	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=". $line->[12+$Dhcphosts->{SEARCH_FIELDS_COUNT}], { MESSAGE => "$_DEL $line->[0]?" })
+	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]),
+	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}], { MESSAGE => "$_DEL $line->[0]?" })
      );
 	   $i++;
    };
