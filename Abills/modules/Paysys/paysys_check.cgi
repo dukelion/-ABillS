@@ -125,11 +125,6 @@ while(my($k, $v)=each %FORM) {
  	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
 }
 
-
-
-paysys_osmp();
-
-exit;
 payments();
 
 
@@ -149,10 +144,6 @@ sub payments {
   elsif($FORM{rupay_action}) {
   	rupay_payments();
    }
-  #PTR Sign IO
-  elsif($FORM{sign}) {
-  	paysys_osmp();
-   }
   else {
   	print "Error: Unknown payment system";
   	#$output2 .= "Unknown payment system"; 
@@ -169,43 +160,37 @@ sub paysys_osmp {
 
 
  print "Content-Type: text/xml\n\n";
+# print "Content-Type: text/html\n\n";
+  
 
-=comments
-https://service.someprovider.ru:8443/payment_app.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
-=cut
-
-$FORM{command}='check';
-$FORM{txn_id}=223;
-$FORM{account}=223;
-$FORM{sum}=223;
-$FORM{txn_date}=20050815120133;
 
 my $comments = '';
 my %status_hash = (0	=> 'Success',
-1 => 'Wrong format',
-2	=> 'Excess of payment value',
-3	=> 'Excess number of payments',
-4	=> 'Client is blocked',
+1 => 'Temporary error',
+4	=> 'Wrong client indentifier',
 5	=> 'Failed witness a signature',
 6	=> 'Unknown terminal',
-7	=> 'Unknown error',
+7	=> 'Payments deny',
+300	=> 'Unknown error',
 8	=> 'Double request',
 9	=> 'Key Info mismatch'
 );
 
 
+my $command = $FORM{command};
 my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
 
 #Check user account
-if ($FORM{command} eq 'check') {
+#https://service.someprovider.ru:8443/payment_app.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
+if ($command eq 'check') {
 
-  my $user = $users->list({ $CHECK_FIELD => $FORM{account} });
+  my $list = $users->list({ $CHECK_FIELD => $FORM{account} });
 
-  if ($user->{errno}) {
-	  $status = 7; 
+  if ($users->{errno}) {
+	  $status = 300; 
    }
-  elsif ($user->{TOTAL} < 1) {
-	  $status =  7;
+  elsif ($users->{TOTAL} < 1) {
+	  $status =  4;
 	  $comments = 'User Not Exist';
    }
   else {
@@ -229,35 +214,40 @@ print << "[END]";
 elsif ($command eq 'pay') {
 
   my $user;
-  
+  my $payments_id = 0;
+
   if ($CHECK_FIELD eq 'UID') {
     $user = $users->info($FORM{account});
    }
   else {
-    my $list = $users->list({ $CHECK_FIELD => $FORM{account} })
-    if (! $user->{errno} || $users->{TOTAL} < 1 ) {
-      $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+    my $list = $users->list({ $CHECK_FIELD => $FORM{account} });
+
+    if (! $users->{errno} && $users->{TOTAL} > 0 ) {
+
+      $uid = $list->[0]->[4+$users->{SEARCH_FIELDS_COUNT}];
       $user = $users->info($uid); 
+
      }
    }
 
-  if ($user->{errno}) {
-	  $status = 7; 
+  if ($users->{errno}) {
+	  $status = 300; 
+	  $comments='Dublicate Request';
    }
-  elsif ($user->{TOTAL} < 0) {
+  elsif ($users->{TOTAL} < 1) {
 	  $status =  4;
    }
   else {
-    $uid = $user->{UID};
     #Add payments
     $payments->add($user, {SUM          => $FORM{sum},
     	                     DESCRIBE     => 'OSMP', 
     	                     METHOD       => '2', 
-  	                       EXT_ID       => 'PS4:$FORM{txn_id}', 
-  	                       CHECK_EXT_ID => 'PS4:$FORM{txn_id}' } );  
+  	                       EXT_ID       => "$FORM{txn_id}",
+  	                       CHECK_EXT_ID => "$FORM{txn_id}" } );  
+
 
     if ($payments->{errno} == 7) {
-      $status = 8;  	
+      $status = 300;  	
      }
     elsif ($payments->{errno}) {
       $status = 4;
@@ -265,8 +255,6 @@ elsif ($command eq 'pay') {
     else {
     	$status = 0;
      }    
-	 }
-
 
     $Paysys->add({ SYSTEM_ID   => 4, 
  	              DATETIME       => "'$DATE $TIME'", 
@@ -278,12 +266,20 @@ elsif ($command eq 'pay') {
                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
+    $payments_id = $Paysys->{INSERT_ID};
+	 }
+
+if ($status > 0) {
+  $comments = $status_hash{$status} if ($comments eq '');
+}
+
+
 
 print << "[END]";
 <?xml version="1.0" encoding="UTF-8"?> 
 <response><osmp_txn_id>$FORM{txn_id}</osmp_txn_id>
 <result>$status</result> 
-<prv_txn>$Paysys->{INSERT_ID}</prv_txn> 
+<prv_txn>$payments_id</prv_txn> 
 <sum>$FORM{sum}</sum> 
 <result>$status</result> 
 <comment>$comments</comment> 
@@ -293,7 +289,7 @@ print << "[END]";
  
 
 
-
+exit;
 
 }
 
