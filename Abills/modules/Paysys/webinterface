@@ -88,7 +88,7 @@ sub paysys_import_form {
       #Get data from file
       elsif($FORM{FILE_DATA}) {
 
-	      #$expration = '';
+
 	      print "/$expration/";
 	      
       	my @rows = split(/[\r]{0,1}\n/, $FORM{"FILE_DATA"}{'Contents'});
@@ -180,8 +180,8 @@ function CheckAllINBOX() {
                 $payments->add($user, { SUM  => $DATA_ARR[$i]->{SUM},
  	                     DESCRIBE     => $DATA_ARR[$i]->{DESCRIBE}, 
  	                     METHOD       => $DATA_ARR[$i]->{PAYMENT_METHOD}, 
-                       EXT_ID       => "$DATA_ARR[$i]->{DATE}.$ID",
-                       CHECK_EXT_ID => "$DATA_ARR[$i]->{DATE}.$ID"
+                       EXT_ID       => "$DATA_ARR[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
+                       CHECK_EXT_ID => "$DATA_ARR[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"
                         } );
 
 
