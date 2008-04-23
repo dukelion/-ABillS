@@ -2395,7 +2395,7 @@ sub dv_daily_fees {
  	   $LIST_PARAMS{TP}=$line->[0];
      my $TP_ID = $line->[0];
 
- 	   $debug_output .= "TP ID: $TP_ID DF: $line->[5] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL: $line->[13]\n" if ($debug > 1);
+ 	   $debug_output .= "TP ID: $TP_ID DF: $line->[5] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL: $line->[13] CREDIT: $line->[14]\n" if ($debug > 1);
 
  	   my $ulist = $Dv->list({
          ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
@@ -2416,11 +2416,12 @@ sub dv_daily_fees {
              BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
              REDUCTION  => $u->[14],
              DEPOSIT    => $u->[2],
-             CREDIT     => ($u->[3]) ? $u->[3] : $line->[14]
+             CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14]
           );
 
         if ($u->[13] > 0 && defined($user{DEPOSIT})) {
           #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[13]\n"; 	
+
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
           if($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $line->[12] == 1 ) {
              #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
@@ -2520,7 +2521,7 @@ sub dv_monthly_fees {
             REDUCTION  => $u->[14],
             ACTIVATE   => $u->[11],
             DEPOSIT    => $u->[2],
-            CREDIT     => ($u->[3]) ? $u->[3] : $line->[14]
+            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14]
            );
        
        #Check bill ID and deposit
