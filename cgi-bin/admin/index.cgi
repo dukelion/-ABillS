@@ -1086,7 +1086,7 @@ sub user_pi {
    }
 
 
-   
+  #Info fields
   my $i=0; 
   foreach my $field_id ( @{ $user_pi->{INFO_FIELDS_ARR} } ) {
     my($type, $name)=split(/:/, $user_pi->{INFO_FIELDS_HASH}->{$field_id});
