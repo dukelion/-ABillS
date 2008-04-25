@@ -92,6 +92,18 @@ my $payments = Finance->payments($db, $admin, \%conf);
 
 my $users = Users->new($db, $admin, \%conf); 
 
+eval { require Digest::MD5; };
+if (! $@) {
+   Digest::MD5->import();
+  }
+else {
+   print "Content-Type: text/html\n\n";
+   print "Can't load 'Digest::MD5' check http://www.cpan.org";
+   exit;
+ }
+
+my $md5 = new Digest::MD5;
+
 
 #SMS proxy
 # Need other header
@@ -100,23 +112,12 @@ if($FORM{smsid}) {
   exit;
  }
 elsif( $FORM{txn_id} ) {
-	paysys_osmp();
+	osmp_payments();
 }
 
 
 
 print "Content-Type: text/html\n\n";
-
-eval { require Digest::MD5; };
-if (! $@) {
-   Digest::MD5->import();
-  }
-else {
-   print "Can't load 'Digest::MD5' check http://www.cpan.org";
-   exit;
- }
-
-my $md5 = new Digest::MD5;
 
 
 #DEbug
@@ -156,7 +157,7 @@ sub payments {
 #**********************************************************
 #
 #**********************************************************
-sub paysys_osmp {
+sub osmp_payments {
 
 
  print "Content-Type: text/xml\n\n";
@@ -301,39 +302,50 @@ exit;
 #**********************************************************
 sub smsproxy_payments {
 
+
+#https//demo.abills.net.ua:9443/paysys_check.cgi?skey=827ccb0eea8a706c4c34a16891f84e7b&smsid=1208992493215&num=1171&operator=Tester&user_id=1234567890&cost=1.5&msg=%20Test_messages
+
 # $FORM{smsid}="1174921221.133533";
 # $FORM{num}="1171&";
 # $FORM{operator}="Mѓ_Moskva&";
 # $FORM{user_id}="891612345XX&";
 # $FORM{cost}="3.098&";
 # $FORM{msg}="xxx";
- my $skey = $FORM{skey};
+ my $skey   = $FORM{skey};
  my $prefix = $FORM{prefix};
  my %prefix_keys = ();
 
+ print "Content-Type: text/plain\n\n";
+
+
  my @keys_arr = split(/,/, $conf{PAYSYS_SMSPROXY_KEYS});
- 
-# foreach my $line (@keys_arr) {
-#   my($prefix, $key)=split(/:/, $line);
-#   $prefix_keys{$prefix}=$key;  
-#  }
-#
-# $md5->reset;
-# $md5->add($prefix_keys{$prefix});
-# my $digest = $md5->hexdigest();
-#
-# #Unknown service
-# if ($digest ne $skey) {
-#   
-#   return 0;
-#  }
-#
-#
-# #Info section  
+ my $service_key = '';
+ foreach my $line (@keys_arr) {
+   my($prefix, $key)=split(/:/, $line);
+   $prefix_keys{$prefix}=$key;  
+   $service_key = $key;
+  }
+
+
+
+ $md5->reset;
+ $md5->add($service_key);
+ my $digest = $md5->hexdigest();
+
+
+ print "$digest ne $skey\n";
+#Unknown service
+ if ($digest ne $skey) {
+   
+   return 0;
+  }
+
+
+#Info section  
 # $Paysys->add({ SYSTEM_ID      => 3, 
 # 	              DATETIME       => "$DATE $TIME", 
 # 	              SUM            => "$FORM{cost}",
-#  	            UID            => "", 
+#  	             UID            => "", 
 #                IP             => "0.0.0.0",
 #                TRANSACTION_ID => "",
 #                INFO           => "ID: $FORM{smsid}, NUM: $FORM{num}, OPERATOR: $FORM{operator}, USER_ID: $FORM{user_id}, MSG: $FORM{msg}, STATUS:",
