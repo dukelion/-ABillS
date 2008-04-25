@@ -64,9 +64,10 @@ my $args = parse_arguments(\@ARGV);
 $ADMIN_REPORT{HOSTNAME}=hostname();
 
 my @daily_functions=(
-                     'admin_report_daily',
-                     ($conf{DEBETORS_GROUP}) ? 'debetors_group_create' : undef
+                     'admin_report_daily'
                      );
+
+push @daily_functions, 'debetors_group_create' if ($conf{DEBETORS_GROUP});
 
 my @monthly_functions = ('admin_report_monthly',
                          'backup',
