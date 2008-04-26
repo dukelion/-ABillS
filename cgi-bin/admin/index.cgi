@@ -3965,7 +3965,7 @@ if ($attr->{USER}) {
       $FORM{SUM} = $FORM{SUM} / $FORM{ER};
     }
 
-    if ($period == 1) {
+    if ($period == 2) {
 
       $FORM{date_M}++;
       $shedule->add( { DESCRIBE => $FORM{DESCR}, 
