@@ -606,6 +606,8 @@ sub paysys_smsproxy {
 	my %info = ();
 	
 if ($FORM{CODE}) {
+	print "Content-Type: text/html\n\n";
+	$Paysys->{debug}=1;
 	my $list = $Paysys->info({ CODE => "$FORM{CODE}", UID => 0  });
 
   if ($Paysys->{TOTAL} > 0) {
@@ -630,19 +632,24 @@ if ($FORM{CODE}) {
 		    $html->message('err', $_ERROR, "$_NOT_EXIST");
 	     }
 	    else {
+        $payments->{debug}=1;
         $payments->add($user, {SUM  => $Paysys->{SUM},
  	                     DESCRIBE     => 'SMSProxy', 
  	                     METHOD       => '2', 
-                       EXT_ID       => $INFO_HASH{ID},
-                       CHECK_EXT_ID => $INFO_HASH{ID}
+                       EXT_ID       => $Paysys->{TRANSACTION_ID},
+                       CHECK_EXT_ID => $Paysys->{TRANSACTION_ID}
                         } );  
 
-        if ($payments->{errno}) {
-          $info = "PAYMENT ERROR: $payments->{errno}\n";
+        if ($payments->{errno} == 7) {
+          $html->message('err', $_ERROR, "$_EXIST");
+          return 0;
+         }
+        elsif ($payments->{errno}) {
+          $html->message('err', $_ERROR, "$_ERROR ID: $Paysys->{TRANSACTION_ID}");
          }
         else {
     	    $status = "Added $payments->{INSERT_ID}\n";
-          $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $INFO_HASH{ID}");
+          $html->message('info', $_INFO, "$_ADDED $_SUM: $Paysys->{SUM} ID: $INFO_HASH{ID}");
           if ($conf{PAYSYS_EMAIL_NOTICE}) {
              	my $message = "\n".
    	         	 "System: SMS PROXY\n".
@@ -651,7 +658,7 @@ if ($FORM{CODE}) {
 	        	   "\n".
        	       "\n".
 	      	     "ID: $Paysys->{INFO}\n".
-	      	     "$_SUM: $list->[0][3]\n";
+	      	     "$_SUM: $Paysys->{SUM}\n";
 
               sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Webmoney Add", 
                 "$message", "$conf{MAIL_CHARSET}", "2 (High)");

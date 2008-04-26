@@ -247,6 +247,7 @@ elsif ($command eq 'pay') {
   	                       CHECK_EXT_ID => "$FORM{txn_id}" } );  
 
 
+    #Exists
     if ($payments->{errno} == 7) {
       $status = 300;  	
      }
@@ -305,67 +306,66 @@ sub smsproxy_payments {
 
 #https//demo.abills.net.ua:9443/paysys_check.cgi?skey=827ccb0eea8a706c4c34a16891f84e7b&smsid=1208992493215&num=1171&operator=Tester&user_id=1234567890&cost=1.5&msg=%20Test_messages
 
-# $FORM{smsid}="1174921221.133533";
-# $FORM{num}="1171&";
-# $FORM{operator}="Mѓ_Moskva&";
-# $FORM{user_id}="891612345XX&";
-# $FORM{cost}="3.098&";
-# $FORM{msg}="xxx";
+
+ my $sms_num = $FORM{num} || 0;
+ my $cost    = $FORM{cost} || 0;
  my $skey   = $FORM{skey};
  my $prefix = $FORM{prefix};
  my %prefix_keys = ();
 
- print "Content-Type: text/plain\n\n";
-
-
  my @keys_arr = split(/,/, $conf{PAYSYS_SMSPROXY_KEYS});
  my $service_key = '';
  foreach my $line (@keys_arr) {
-   my($prefix, $key)=split(/:/, $line);
-   $prefix_keys{$prefix}=$key;  
-   $service_key = $key;
+   my($num, $key)=split(/:/, $line);
+   if ($num eq $sms_num) {
+     $prefix_keys{$num}=$key;  
+     $service_key = $key;
+    }
   }
-
-
 
  $md5->reset;
  $md5->add($service_key);
  my $digest = $md5->hexdigest();
 
 
- print "$digest ne $skey\n";
-#Unknown service
+ print "smsid: $FORM{smsid}\n";
+ print "status: reply\n";
+ print "Content-Type:text/plain\n\n";
+
+ 
+
  if ($digest ne $skey) {
-   
+   print "Wrong key!\n";
    return 0;
   }
 
 
+my $code = mk_unique_value(8);
 #Info section  
-# $Paysys->add({ SYSTEM_ID      => 3, 
-# 	              DATETIME       => "$DATE $TIME", 
-# 	              SUM            => "$FORM{cost}",
-#  	             UID            => "", 
-#                IP             => "0.0.0.0",
-#                TRANSACTION_ID => "",
-#                INFO           => "ID: $FORM{smsid}, NUM: $FORM{num}, OPERATOR: $FORM{operator}, USER_ID: $FORM{user_id}, MSG: $FORM{msg}, STATUS:",
-#                PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
-#               });
-#
-# my $code = mk_unique_value(8);
-#
-#
-#if ($list) {
-#	print "smsid: $FORM{smsid}\n";
-#  print "status: reply\n";
-#  print "Content-Type:text/plain\n\n";
-#  print $conf{PAYSYS_SMSPROXY_MSG} if ($conf{PAYSYS_SMSPROXY_MSG});
-#  print " CODE: $code";
-# }
-#else {
-#	
-#}
-#
+ my ($transaction_id, $m_secs)=split(/\./, $FORM{smsid}, 2);
+ 
+ $Paysys->add({ SYSTEM_ID      => 3, 
+ 	              DATETIME       => "'$DATE $TIME'", 
+ 	              SUM            => "$cost",
+ 	              UID            => "", 
+                IP             => "0.0.0.0",
+                TRANSACTION_ID => "$transaction_id",
+                INFO           => "ID: $FORM{smsid}, NUM: $FORM{num}, OPERATOR: $FORM{operator}, USER_ID: $FORM{user_id}",
+                PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+                CODE           => $code
+               });
+
+
+  if ($Paysys->{errno} == 7) {
+    print "Request dublicated\n";
+    return 0;
+   }
+
+
+
+  print $conf{PAYSYS_SMSPROXY_MSG} if ($conf{PAYSYS_SMSPROXY_MSG});
+  print " CODE: $code";
+
 }
 
 
@@ -411,7 +411,7 @@ if ($FORM{rupay_action} eq 'add') {
   	             SUM            => $FORM{rupay_sum},
   	             UID            => $FORM{user_field_UID}, 
                  IP             => $FORM{user_field_IP},
-                 TRANSACTION_ID => $FORM{rupay_order_id},
+                 TRANSACTION_ID => "$FORM{rupay_order_id}",
                  INFO           => "STATUS, $status\n$info",
                  PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
@@ -449,7 +449,7 @@ elsif ($FORM{rupay_action} eq 'update') {
   	             SUM            => $FORM{rupay_sum},
   	             UID            => $FORM{user_field_UID}, 
                  IP             => $FORM{user_field_IP},
-                 TRANSACTION_ID => $FORM{rupay_order_id},
+                 TRANSACTION_ID => "$FORM{rupay_order_id}",
                  INFO           => "STATUS, $status\n$info",
                  PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
@@ -541,7 +541,7 @@ elsif($FORM{LMI_HASH}) {
   	             SUM            => $FORM{LMI_PAYMENT_AMOUNT},
   	             UID            => $FORM{UID}, 
                  IP             => $FORM{IP},
-                 TRANSACTION_ID => $FORM{LMI_PAYMENT_NO},
+                 TRANSACTION_ID => "$FORM{LMI_PAYMENT_NO}",
                  INFO           => "STATUS, $status\n$info",
                  PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
