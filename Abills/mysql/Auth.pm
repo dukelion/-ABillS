@@ -424,7 +424,7 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
        
   #Local ip tables
   if (defined($EX_PARAMS->{nets})) {
-    $RAD_PAIRS->{'Exppp-Local-IP-Table'} = (defined($CONF->{DV_EXPPP_NETFILES})) ? "\"$CONF->{DV_EXPPP_NETFILES}$self->{TT_INTERVAL}.nets\"" : "\"$self->{TT_INTERVAL}.nets\"";
+    $RAD_PAIRS->{'Exppp-Local-IP-Table'} = (defined($CONF->{DV_EXPPP_NETFILES})) ? "$CONF->{DV_EXPPP_NETFILES}$self->{TT_INTERVAL}.nets" : "$self->{TT_INTERVAL}.nets";
    }
 
 #Radius Shaper for exppp

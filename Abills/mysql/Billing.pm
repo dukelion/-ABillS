@@ -47,8 +47,8 @@ sub traffic_calculations {
 	my $self = shift;
 	my ($RAD)=@_;
 	
-  my $sent = $RAD->{OUTBYTE}   || 0; #from server
-  my $recv = $RAD->{INBYTE}    || 0;  #to server
+  my $sent = $RAD->{OUTBYTE}   || 0;  #default from server
+  my $recv = $RAD->{INBYTE}    || 0;  #default to server
   my $sent2 = $RAD->{OUTBYTE2} || 0; 
   my $recv2 = $RAD->{INBYTE2}  || 0;
 
