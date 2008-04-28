@@ -3150,7 +3150,7 @@ sub dv_wizard_user {
     	
        }
       elsif ($type == 4) {
-      	$input = $html->form_input($field_id, 1, { TYPE  => checkbox, STATE => ($FORM{$field_id}) ? 1 : undef  });
+      	$input = $html->form_input($field_id, 1, { TYPE  => 'checkbox', STATE => ($FORM{$field_id}) ? 1 : undef  });
        }
       else {
     	  $input = $html->form_input($field_id, "", { SIZE => 40 });
