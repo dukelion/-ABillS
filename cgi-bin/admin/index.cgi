@@ -691,7 +691,7 @@ elsif($FORM{COMPANY_ID}) {
     	
        }
       elsif ($type == 4) {
-    	  $input = $html->form_input($field_id, 1, { TYPE  => checkbox,  
+    	  $input = $html->form_input($field_id, 1, { TYPE  => 'checkbox',  
     		                                           STATE => ($company->{INFO_FIELDS_VAL}->[$i]) ? 1 : undef  });
        }
       else {
@@ -823,7 +823,7 @@ sub add_company {
     	
       }
      elsif ($type == 4) {
-   	  $input = $html->form_input($field_id, 1, { TYPE  => checkbox,  
+   	  $input = $html->form_input($field_id, 1, { TYPE  => 'checkbox',  
    		                                           STATE => ($company->{INFO_FIELDS_VAL}->[$i]) ? 1 : undef  });
       }
      else {
@@ -1104,7 +1104,7 @@ sub user_pi {
     	
      }
     elsif ($type == 4) {
-    	$input = $html->form_input($field_id, 1, { TYPE  => checkbox,  
+    	$input = $html->form_input($field_id, 1, { TYPE  => 'checkbox',  
     		                                         STATE => ($user_pi->{INFO_FIELDS_VAL}->[$i]) ? 1 : undef  });
      }
     else {
@@ -4259,7 +4259,7 @@ elsif($search_form{$FORM{type}}) {
       	 next;
        }
       elsif ($type == 4) {
-    	  $input = $html->form_input($field_id, 1, { TYPE  => checkbox,  
+    	  $input = $html->form_input($field_id, 1, { TYPE  => 'checkbox',  
     		                                           STATE => ($FORM{$field_id}) ? 1 : undef  });
        }
       else {

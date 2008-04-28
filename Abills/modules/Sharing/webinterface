@@ -2146,6 +2146,7 @@ sub sharing_periodic {
  my $debug_output = '';
  $debug_output .= "Expire perid calculation\n" if ($debug > 1);
 
+
  my $ulist = $Sharing->list({ 
          EXPIRE       => "$ADMIN_REPORT{DATE}",
          DISABLE      => '0',
@@ -2154,6 +2155,10 @@ sub sharing_periodic {
          EXTRA_TRAFIC => ">0"
  	   	 });
 
+  if ($Sharing->{errno}) {
+    print "[$Sharing->{errno}] $Sharing->{errstr}\n";
+    exit;
+   }
 
   foreach my $u (@$ulist) {
     my $extra_traffic = $u->[7];
