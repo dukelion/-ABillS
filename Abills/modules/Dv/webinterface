@@ -2942,7 +2942,6 @@ sub dv_wizard_user {
 
   	foreach my $k ( sort %FORM) {
       if ($k =~ m/^[0-9]+\.[_a-zA-Z0-9]+$/) { #  && $k !~ /__|[a-z]/) {
-        print "$k<br>";
         $k =~ s/%22//g;
         my ($id, $main_key)=split(/\./, $k, 2);
         $add_values{$id}{$main_key}=$FORM{$k};

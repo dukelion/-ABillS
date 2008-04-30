@@ -147,6 +147,8 @@ sub network_del {
 
   $self->query($db, "DELETE FROM dhcphosts_networks where id='$id';", 'do');
 
+  $self->query($db, "DELETE FROM dhcphosts_hosts where network='$id';", 'do');
+
   return $self;
 };
 
@@ -318,11 +320,12 @@ sub host_add {
   my %DATA = $self->get_data($attr); 
 
   $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, 
-    forced, disable, expire, comments, option_82, vid, nas, ports) 
+    forced, disable, expire, comments, option_82, vid, nas, ports, boot_file) 
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
       INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}', '$DATA{DISABLE}',
       '$DATA{EXPIRE}',
-      '$DATA{COMMENTS}', '$DATA{OPTION_82}', '$DATA{VID}', '$DATA{NAS_ID}', '$DATA{PORTS}');", 'do');
+      '$DATA{COMMENTS}', '$DATA{OPTION_82}', '$DATA{VID}', '$DATA{NAS_ID}', '$DATA{PORTS}',
+      '$DATA{BOOT_FILE}');", 'do');
 
 
   
@@ -376,7 +379,8 @@ sub host_info {
    vid,
    comments,
    nas,
-   ports
+   ports,
+   boot_file
   FROM dhcphosts_hosts
   WHERE id='$id';");
 
@@ -399,7 +403,8 @@ sub host_info {
    $self->{VID},
    $self->{COMMENTS},
    $self->{NAS_ID},
-   $self->{PORTS}
+   $self->{PORTS},
+   $self->{BOOT_FILE}
    ) = @{ $self->{list}->[0] };
 
   return $self;
@@ -428,7 +433,8 @@ sub host_change {
    OPTION_82   => 'option_82',
    VID         => 'vid',
    NAS_ID      => 'nas',
-   PORTS       => 'ports'
+   PORTS       => 'ports',
+   BOOT_FILE   => 'boot_file'
   );
 
   $attr->{OPTION_82} = ($attr->{OPTION_82}) ? 1 : 0;
@@ -584,8 +590,6 @@ sub hosts_list {
    push @WHERE_RULES, "h.mac LIKE '$attr->{MAC}'"; 
   }
 
- 	
-
  if ($attr->{NETWORK}) {
    push @WHERE_RULES, "h.network='$attr->{NETWORK}'"; 
   }
@@ -678,6 +682,13 @@ sub hosts_list {
     $self->{SEARCH_FIELDS} .= 'h.vid, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
+
+  if ($attr->{BOOT_FILE}) {
+    $attr->{BOOT_FILE} =~ s/\*/\%/g;
+    push @WHERE_RULES, "h.boot_file LIKE '$attr->{BOOT_FILE}'"; 
+    $self->{SEARCH_FIELDS} .= 'h.boot_file, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+   }
 
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';

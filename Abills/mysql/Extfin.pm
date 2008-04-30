@@ -292,19 +292,25 @@ sub payment_deed {
  my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
  my $WHERE_DV = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES_DV)  : '';
 
+ my $info_fields = '';
+ my $info_fields_count = 0;
+ if ($attr->{INFO_FIELDS}) {
+  	my @info_arr = split(/, /, $attr->{INFO_FIELDS});
+    $info_fields = ', '. join(', ', @info_arr);
+    $info_fields_count = $#info_arr;
+  }
+
 
  #Get fees
  $self->query($db, "SELECT
- if(u.company_id > 0, company.bill_id, u.bill_id),
- sum(f.sum),
-     if(u.company_id > 0, company.name,
-          if(pi.fio<>'', pi.fio, u.id)),
-                         if(u.company_id > 0, company.name,
-                            if(pi.fio<>'', pi.fio, u.id)),
+  if(u.company_id > 0, company.bill_id, u.bill_id),
+  sum(f.sum),
+  if(u.company_id > 0, company.name, if(pi.fio<>'', pi.fio, u.id)),
+  if(u.company_id > 0, company.name, if(pi.fio<>'', pi.fio, u.id)),
   if(u.company_id > 0, 1, 0),
   if(u.company_id > 0, company.vat, 0),
   u.uid,
-  max(date)
+  max(date) $info_fields
      FROM (users u, fees f)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN companies company ON  (u.company_id=company.id)
@@ -317,18 +323,21 @@ sub payment_deed {
   	$PAYMENT_DEED{$line->[0]}=$line->[1];
  	  #Name|Type|VAT
  	  $NAMES{$line->[0]}="$line->[2]|$line->[4]|$line->[5]";
+ 	  if ($info_fields_count > 0) {
+ 	    for (my $i=0; $i<=$info_fields_count; $i++) {
+ 	       $NAMES{$line->[0]}.="|". $line->[8+$i];
+ 	     }
+ 	   }
    }
 	
  $self->query($db, "SELECT
  if(u.company_id > 0, company.bill_id, u.bill_id),
  sum(dv.sum),
- if(u.company_id > 0, company.name,
-          if(pi.fio<>'', pi.fio, u.id)),
-                         if(u.company_id > 0, company.name,
-                            if(pi.fio<>'', pi.fio, u.id)),
+ if(u.company_id > 0, company.name, if(pi.fio<>'', pi.fio, u.id)),
+ if(u.company_id > 0, company.name, if(pi.fio<>'', pi.fio, u.id)),
   if(u.company_id > 0, 1, 0),
   if(u.company_id > 0, company.vat, 0),
-  u.uid
+  u.uid $info_fields
      FROM (users u, dv_log dv)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN companies company ON  (u.company_id=company.id)
@@ -343,6 +352,12 @@ sub payment_deed {
   	  $PAYMENT_DEED{$line->[0]}+=$line->[1];
   	  #Name|Type|VAT
   	  $NAMES{$line->[0]}="$line->[2]|$line->[4]|$line->[5]";
+  	  
+   	  if ($info_fields_count > 0) {
+  	    for (my $i=0; $i<=$info_fields_count; $i++) {
+  	       $NAMES{$line->[0]}.="|". $line->[8+$i];
+ 	      }
+ 	     }
   	 }
     else {
     	$PAYMENT_DEED{$line->[0]}+=$line->[1];

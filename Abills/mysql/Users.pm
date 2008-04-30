@@ -226,7 +226,6 @@ sub pi_add {
 
 
 
-  $self->{debug}=1;
   $self->query($db,  "INSERT INTO users_pi (uid, fio, phone, address_street, address_build, address_flat, 
           email, contract_id, comments, pasport_num, pasport_date,  pasport_grant, zip, 
           city $info_fields)

@@ -22,7 +22,7 @@ sub extfin_export_customers {
 #  my $aaa = `echo "1C - $ENV{HTTP_USER_AGENT}" >> /tmp/user_agent`;
   
   $Extfin->{ACTION}='get';
-  $Extfin->{ACTION_LNG}=$_GET;
+  $Extfin->{ACTION_LNG}=$_SHOW;
   
  
   my ($Y, $M, $D)=split(/-/, $DATE);
@@ -90,8 +90,9 @@ sub extfin_export_customers {
       $LIST_PARAMS{MONTH}=$FORM{MONTH};
      }
     
+    $LIST_PARAMS{INFO_FIELDS} = $FORM{INFO_FIELDS};
 
-    
+   
     my $list = $Extfin->payment_deed({ %LIST_PARAMS });
 
     my $table = $html->table({ width      => '100%',
@@ -104,14 +105,15 @@ sub extfin_export_customers {
 
 
     foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
-      my($name, $type, $vat)=split(/\|/, $Extfin->{NAMES}{$id});
+      my($name, $type, $vat, @info_arr)=split(/\|/, $Extfin->{NAMES}{$id});
       my $total = $Extfin->{PAYMENT_DEED}{$id} + $Extfin->{PAYMENT_DEED}{$id} * ($vat / 100);
       $table->addrow($id,
        $name,
        $type,
        $Extfin->{PAYMENT_DEED}{$id},
        $vat,
-       $total
+       $total,
+       @info_arr
       );
      }
 
@@ -158,6 +160,24 @@ sub extfin_export_customers {
   
   $Extfin->{DATE_FROM}=$html->date_fld('FROM_', { MONTHES => \@MONTHES} );
   $Extfin->{DATE_TO}=$html->date_fld('TO_', { MONTHES => \@MONTHES } );
+
+  #Info fields
+  my $if_list = $users->config_list({ PARAM => 'ifu*'  });
+  foreach my $line (@$if_list) {
+    my $field_id       = '';
+    if ($line->[0] =~ /ifu(\S+)/) {
+  	  $field_id = $1;
+     }
+
+    my($type, $name)=split(/:/, $line->[1]);
+
+    my $input = '';
+ 	  $Extfin->{INFO_FIELDS} .= $html->form_input('INFO_FIELDS', $field_id, { TYPE  => 'checkbox',  
+ 		                                        STATE => ($FORM{$field_id}) ? 1 : undef  });
+    $Extfin->{INFO_FIELDS} .= " $name<br>\n";
+   }
+  
+    
   
   $html->tpl_show(_include('extfin_export_customers', 'Extfin'), $Extfin);
 }
@@ -344,6 +364,8 @@ sub extfin_paids {
 
  $Extfin->{DATE_LIST} = $html->date_fld('DATE_', { MONTHES => \@MONTHES, DATE => $Extfin->{DATE} || $DATE } );
 
+
+
  $html->tpl_show(_include('extfin_form_paid', 'Extfin'), $Extfin);
 
  if (! $LIST_PARAMS{UID}) {
@@ -503,6 +525,7 @@ sub extfin_paids_types {
   if ($Extfin->{errno}) {
     $html->message('err', $_ERROR, "[$Extfin->{errno}] $err_strs{$Extfin->{errno}}");
    }
+
 
  $Extfin->{PERIODIC}=' checked' if ($Extfin->{PERIODIC});
  $html->tpl_show(_include('extfin_paid_type', 'Extfin'), $Extfin);

@@ -9,6 +9,9 @@
 
 </td></tr>
 <tr><td>$_TYPE:</td><td>%TYPE_SEL%</td></tr>
+
+<tr><td>$_INFO_FIELDS:</td><td>%INFO_FIELDS%</td></tr>
+
 <tr><td>XML:</td><td><input type=checkbox name=xml value=1></td></tr>
 <tr><td>$_ROWS:</td><td><input type=text name=PAGE_ROWS value='$PAGE_ROWS'></td></tr>
 </table>

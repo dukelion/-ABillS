@@ -39,6 +39,7 @@ samechanged('same');
 <tr><td>$_HOSTS_NETWORKS:</td><td>%NETWORKS_SEL%</td></tr>
 <tr><td>IP:</td><td><input type=text name=IP value='%IP%'></td></tr>			
 <tr><td>$_HOSTS_MAC:<BR>(00:00:00:00:00:00)</td><td><input type=text name=MAC value='%MAC%'></td></tr>
+<tr><td>$_FILE:</td><td><input type=text name=BOOT_FILE value='%BOOT_FILE%'></td></tr>
 <tr><td>$_EXPIRE:</td><td><input type=text name=EXPIRE value='%EXPIRE%'></td></tr>
 <tr><td>$_EXPIRE:</td><td><input type=text name=EXPIRE value='%EXPIRE%'></td></tr>
 <tr><td>$_DISABLE:</td><td><input type=checkbox name=DISABLE value='1' %DISABLE%></td></tr>
