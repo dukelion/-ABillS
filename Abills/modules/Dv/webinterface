@@ -2363,7 +2363,7 @@ sub dv_user_info {
   
   if ($conf{DV_ISG}) {
   	#$Dv->{ISG_CID_CUR}='	0013.7727.ad33';
-  	$Dv->{ISG_CID_CUR}='0013.7727.ad34';
+  	$Dv->{ISG_CID_CUR}='0013.7727.ad33';
   	if ($FORM{activate}) {
       $Dv->change({ UID   => $LIST_PARAMS{UID}, 
       	            CID   => $Dv->{ISG_CID_CUR}
@@ -2413,6 +2413,7 @@ sub dv_user_info {
   }
 
   if ($conf{DV_ISG} && $Dv->{CID} ne $Dv->{ISG_CID_CUR} ) {
+    $html->message('info', $_INFO, "$_NOT_ACTIVE");
     print $html->form_main({ CONTENT => '',
   	                         HIDDEN  => { index => "$index",
   	                         	            CID   => "$Dv->{ISG_CID_CUR}",
