@@ -162,7 +162,8 @@ my $debug = 0;
   #Speeds
 
   my %speeds = ();
-  my %expr = ();
+  my %expr   = ();
+  my %names  = ();
 
   if ($self->{SPEED} > 0) {
     $speeds{0}{IN}=int($self->{SPEED});
@@ -200,15 +201,15 @@ my $debug = 0;
 
       #Get intervals
       while(my($k, $v)=each( %TT_IDS)) {
-        print "$k, $v\n" if ($debug > 0);
-        $conf->{TI_ID}=$v;
+        print "> $k, $v\n" if ($debug > 0);
+ 	      next if ($k ne 'TT');
  	      my $list = $tariffs->tt_list({ TI_ID => $v });
  	      foreach my $line (@$list)  {
  	    	  $speeds{$line->[0]}{IN}="$line->[4]";
  	    	  $speeds{$line->[0]}{OUT}="$line->[5]";
- 	    	  #$nets{$line->[0]}="$line->[7]";
+ 	    	  $names{$line->[0]}= ($line->[6]) ? "$line->[6]" : "Service_$line->[0]";
  	    	  $expr{$line->[0]}="$line->[8]" if (length($line->[8]) > 5);
- 	    	  #print "$line->[0] $line->[4]\n";
+ 	    	  #print "$line->[0] $line->[6] $line->[4]\n";
  	      }
       }
     }
@@ -239,8 +240,8 @@ print "\nEND: =====================================\n" if ($debug > 0);
     my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN}  : 0;
     my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} : 0;
 
-    $RAD_PAIRS{'Cisco-Account-Info'} = "Nservice-external";
-    $RAD_PAIRS{'Cisco-Service-Info'} = "Nservice-external";
+    $RAD_PAIRS{'Cisco-Account-Info'} = "$names{$traf_type}";
+    $RAD_PAIRS{'Cisco-Service-Info'} = "$names{$traf_type}";
     
     
     my $speed_in_rule = '';
