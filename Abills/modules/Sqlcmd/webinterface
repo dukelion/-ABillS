@@ -65,7 +65,7 @@ if ($FORM{QUERY} && ! $FORM{xml}) {
   my @syntax = ('SELECT', 'FROM', 'WHERE', 'HAVING', 'MIN', 'MAX', 'AVG', 'SUM', 'IF',
             'INSERT', 'UPDATE', 'INTO', 'VALUES', 
             'GROUP BY', 'ORDER BY', 'LIMIT',
-            'DATE_FORMAT', 'LEFT JOIN', 'ON', 'AND', 'EXPLAIN', 'ALTER', 'CREATE', 'TABLE',
+            'DATE_FORMAT', 'LEFT JOIN', 'INNER JOIN', 'ON', 'AND', 'EXPLAIN', 'ALTER', 'CREATE', 'TABLE',
             'DROP', 'ADD', "PRIMARY", "KEY", "AUTO_INCREMENT", 'COLUMN', 'UNSIGNED', 'NOT', 'NULL', 'DEFAULT', 'INTERVAL', 'COUNT'
             );
  
