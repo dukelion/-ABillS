@@ -535,6 +535,7 @@ if (defined($res) && $res > 0) {
   if ($user->{TOTAL} > 0) {
     $sid = mk_unique_value(16);
     $ret = $user->{UID};
+    $user->{REMOTE_ADDR}=$REMOTE_ADDR;
     $user->web_session_add({ UID         => $user->{UID},
     	                       SID         => $sid,
     	                       LOGIN       => $login,
