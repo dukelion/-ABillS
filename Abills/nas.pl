@@ -581,14 +581,18 @@ else {
 #SNMP version
   my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
 
-  $command = "$SNMPWALK -On -v 1 -c \"$SNMP_COM\" $NAS->{NAS_IP} .1.3.6.1.2.1.4.21.1.2.$attr->{FRAMED_IP_ADDRESS} | awk '{print \$4 }'";
-  log_print('LOG_DEBUG', "$command");
-  my $INTNUM=`$command`;
-  $INTNUM =~ s/\n//;
-  $command = "$SNMPSET -v 1 -c \"$SNMP_COM\" $NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.7.$INTNUM i 2 > /dev/null 2>\&1";
-  log_print('LOG_DEBUG', "$command");
-  $exec=`$command`;
-
+  #$command = "$SNMPWALK -On -v 1 -c \"$SNMP_COM\" $NAS->{NAS_IP} .1.3.6.1.2.1.4.21.1.2.$attr->{FRAMED_IP_ADDRESS} | awk '{print \$4 }'";
+  #log_print('LOG_DEBUG', "$command");
+  #my $INTNUM=`$command`;
+  
+  my $INTNUM = snmpget("$SNMP_COM\@$NAS->{NAS_IP}", ".1.3.6.1.2.1.4.21.1.2.$attr->{FRAMED_IP_ADDRESS}");
+  log_print('LOG_DEBUG', "SNMP: $SNMP_COM\@$NAS->{NAS_IP} .1.3.6.1.2.1.4.21.1.2.$attr->{FRAMED_IP_ADDRESS}");
+  
+  #$INTNUM =~ s/\n//;
+  #$command = "$SNMPSET -v 1 -c \"$SNMP_COM\" $NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.7.$INTNUM i 2 > /dev/null 2>\&1";
+  $exec = snmpset("$SNMP_COM\@$NAS->{NAS_IP}", ".1.3.6.1.2.1.2.2.1.7.$INTNUM", 'integer', 2);
+  log_print('LOG_DEBUG', "SNMP: $SNMP_COM\@$NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.7.$INTNUM integer 2");
+  #$exec=`$command`;
 }
 
  return $exec;
