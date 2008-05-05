@@ -12,10 +12,11 @@ if [ t$1 = 'tauth' ] ; then
 
   ./rauth.pl \
         SERVICE_TYPE=VPN \
-        USER_NAME="0013.7727.ad3"\
         NAS_IP_ADDRESS=10.10.10.1 \
-        CALLING_STATION_ID="00-0D-88-42-87-7E"\
-         USER_PASSWORD="123456"
+        CALLING_STATION_ID="0013.7727.ad33"\
+         USER_PASSWORD="123456"\
+        USER_NAME="0013.7727.ad33"
+
 #        CHAP_PASSWORD="0x5acd1cc26b6f8bf084fb616925769362af"
 
 #        USER_PASSWORD="test12345"\
