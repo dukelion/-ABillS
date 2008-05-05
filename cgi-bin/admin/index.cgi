@@ -3077,11 +3077,29 @@ if ($attr->{FIELDS}) {
 
   $LIST_PARAMS{FIELDS}=$FORM{FIELDS};
   $pages_qs="&FIELDS=$FORM{FIELDS}";
-  
+
+  my $table2 = $html->table({ width => '100%' });
+  my @arr = ();
+  my $i=0;
+
   foreach my $line (sort keys %{ $attr->{FIELDS} }) {
   	my ($id, $k)=split(/:/, $line);
-  	$FIELDS .= $html->form_input("FIELDS", $k, { TYPE => 'checkbox', STATE => (defined($fields_hash{$k})) ? 'checked' : undef }). " $attr->{FIELDS}{$line}";
+  	
+  	push @arr, $html->form_input("FIELDS", $k, { TYPE => 'checkbox', STATE => (defined($fields_hash{$k})) ? 'checked' : undef }). " $attr->{FIELDS}{$line}";
+  	$i++;
+  	if ($#arr > 1) {
+      $table2->addrow(@arr);
+      @arr = ();
+     }
    }
+
+  if ($#arr > -1 ) {
+    $table2->addrow(@arr);
+   }
+
+
+  $FIELDS .= $table2->show();
+  
  }  
 
 
@@ -4104,7 +4122,7 @@ foreach my $line (@$list) {
   $FEES_METHODS[$line->[5]], 
   "$line->[6]", 
   "$line->[7]",
-  "$line->[7]",
+  "$line->[8]",
   ($BILL_ACCOUNTS{$line->[9]}) ? $BILL_ACCOUNTS{$line->[9]} : "$line->[8]",
   $delete);
 }

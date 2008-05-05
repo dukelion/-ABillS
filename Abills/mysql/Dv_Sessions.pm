@@ -1124,14 +1124,22 @@ if ($attr->{FIELDS}) {
 	my @show_fields = ();
   my %get_fields_hash = ();
 
+ 
+
 
   foreach my $line (@fields_array) {
   	$get_fields_hash{$line}=1;
     if ($line eq 'USERS_FIO') {
-        $EXT_TABLE = 'users_pi';
-        $date = 'u.fio';
+      $EXT_TABLE = 'users_pi';
+      $date = 'u.fio';
      }
-
+    elsif ($line =~ /_(\S+)/) {
+      #$date = 'u._'.$1;
+      my $f = '_'.$1;
+      push @FIELDS_ARR, $f;
+      $self->{REPORT_FIELDS}{$f}='u.'.$f;
+      $EXT_TABLE = 'users_pi';
+     }
    }
   
   foreach my $k (@FIELDS_ARR) {
