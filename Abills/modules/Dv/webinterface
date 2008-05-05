@@ -1180,7 +1180,51 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
                      '7:TRAFFIC_SUM'     => $_TRAFFIC,
                      '8:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
                      '9:DURATION'        => $_DURATION,
-                     '99:SUM'            => $_SUM);
+                     '91:SUM'            => $_SUM);
+
+
+    my $i=1; 
+    my $list = $users->config_list({ PARAM => 'ifu*'  });
+    my %INFO_LISTS = (); 
+
+
+    foreach my $line (@$list) {
+      my $field_id       = '';
+      if ($line->[0] =~ /ifu(\S+)/) {
+    	  $field_id = $1;
+       }
+
+      my($type, $name)=split(/:/, $line->[1]);
+
+      $CAPTIONS_HASH{(90+$i).':'.$field_id}=$name;
+
+#      my $input = '';
+      if ($type == 2) {
+      	print "info: ";
+        
+        my $list = $users->info_lists_list( { LIST_TABLE => $field_id.'_list' });
+        foreach my $line (@$list) {
+          $INFO_LISTS{$field_id}{$line->[0]}=$line->[1];
+         }
+    	
+       }
+#      elsif ($type == 5) {
+#      	 next;
+#       }
+#      elsif ($type == 4) {
+#    	  $input = $html->form_input($field_id, 1, { TYPE  => 'checkbox',  
+#    		                                           STATE => ($FORM{$field_id}) ? 1 : undef  });
+#       }
+#      else {
+#    	  $input = $html->form_input($field_id, "$FORM{$field_id}", { SIZE => 40 });
+#       }
+#
+#      $info{INFO_FIELDS}.= "<tr><td colspan=2>$name:</td><td>$input</td></tr>\n";
+
+      $i++;
+     }
+
+
 
 #  $FORM{FIELDS} = 'DATE, USERS_COUNT, SESSIONS, TRAFFIC_SUM, TRAFFIC_2_SUM, DURATION, SUM' if (! $FORM{FIELDS});
 
@@ -1300,12 +1344,16 @@ else {
    		$fields_hash{$line}=1;
    	 }
 
+    my $i = 0;
     foreach my $line (sort keys %CAPTIONS_HASH) {
       my($k, $val)=split(/:/, $line);
 
       if ($fields_hash{$val}) {
   	    push @caption, $CAPTIONS_HASH{$line};
+  	    $fields_arr[$i]=$val;
+  	    $i++;
   	   }
+      
      }
    }
   else {
@@ -1346,10 +1394,12 @@ else {
         elsif ($fields_arr[$i] =~ /USERS/ || $fields_arr[$i] =~ /USERS_FIO/) {
           push @rows, $html->button("$line->[$i]", "index=11&UID=". ($line->[$#fields_arr+1]));
          }
+        elsif ($fields_arr[$i] =~ /^_/ && ref ($INFO_LISTS{$fields_arr[$i]}) eq 'HASH' ) {
+        	push @rows, ($INFO_LISTS{$fields_arr[$i]}{$line->[$i]}) ? $INFO_LISTS{$fields_arr[$i]}{$line->[$i]} : '';
+         }
         else {
           push @rows, $line->[$i];
          }
-
       }
      }
     else {
