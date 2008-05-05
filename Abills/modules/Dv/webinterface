@@ -17,7 +17,6 @@ my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
 my %FORM_BASE = ();
 
-
 #*******************************************************************
 # Change user variant form
 # form_chg_vid()
@@ -2361,6 +2360,23 @@ elsif($FORM{del}) {
 # dv_user_info
 #**********************************************************
 sub dv_user_info {
+  
+  if ($conf{DV_ISG}) {
+  	#$Dv->{ISG_CID_CUR}='	0013.7727.ad33';
+  	$Dv->{ISG_CID_CUR}='0013.7727.ad34';
+  	if ($FORM{activate}) {
+      $Dv->change({ UID   => $LIST_PARAMS{UID}, 
+      	            CID   => $Dv->{ISG_CID_CUR}
+    	            });
+  	  if (! $Dv->{errno}) {
+  	  	$html->message('info', $_INFO, "$_ACTIVATE CID: $Dv->{ISG_CID_CUR}");
+  	   }
+  	  else {
+  	  	$html->message('err', $_ACTIVATE, "$_ERROR CID: $Dv->{ISG_CID_CUR}");
+  	   }
+  	 } 
+   }
+  
   $Dv->info($LIST_PARAMS{UID});
   
   if ($Dv->{TOTAL} < 1) {
@@ -2396,7 +2412,24 @@ sub dv_user_info {
      }
   }
 
+  if ($conf{DV_ISG} && $Dv->{CID} ne $Dv->{ISG_CID_CUR} ) {
+    print $html->form_main({ CONTENT => '',
+  	                         HIDDEN  => { index => "$index",
+  	                         	            CID   => "$Dv->{ISG_CID_CUR}",
+  	                         	            sid   => $sid    },
+	                           SUBMIT  => { activate => "$_ACTIVATE"  } 
+ 	                         });
+  	
+  	$Dv->{CID}= $Dv->{ISG_CID_CUR};
+  	$Dv->{IP} = $user->{REMOTE_ADDR};
+  	$Dv->{STATUS} = $html->color_mark($_NOT_ACTIVE, $_COLORS[6]);
+   }
+
+
   $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
+  
+
+  
 }
 
 
