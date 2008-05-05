@@ -885,7 +885,7 @@ sub check_bill_account() {
   my $self = shift;
 
 
-  if ($CONF->{EXT_BILL_ACCOUNT}) {
+  if ($CONF->{EXT_BILL_ACCOUNT} && $self->{EXT_BILL_ID}) {
     $self->query($db, "SELECT id, ROUND(deposit, 2) FROM bills 
      WHERE id='$self->{BILL_ID}' or id='$self->{EXT_BILL_ID}';");
     if($self->{errno}) {
@@ -893,12 +893,12 @@ sub check_bill_account() {
      }
     elsif ($self->{TOTAL} < 1) {
       $self->{errno}=2;
-      $self->{errstr}="Bill account Not Exist";
+      $self->{errstr}="Ext Bill account Not Exist";
       return $self;
      }
 
     foreach my $l (@{ $self->{list} })  {
-      if ($l->[0] == $self->{EXT_BILL_ID}) {
+      if ($self->{EXT_BILL_ID} && $l->[0] == $self->{EXT_BILL_ID}) {
         $self->{EXT_BILL_DEPOSIT} = $l->[1];
        }
       else {
