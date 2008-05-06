@@ -2431,20 +2431,19 @@ sub dv_user_info {
   if ($conf{DV_ISG}) {
     if ($Dv->{CID} ne $Dv->{ISG_CID_CUR}) {
       $html->message('info', $_INFO, "$_NOT_ACTIVE");
-      print $html->form_main({ CONTENT => '',
-  	                         HIDDEN  => { index => "$index",
+      $html->form_main({ CONTENT => '',
+  	                     HIDDEN  => { index => "$index",
   	                         	            CID   => "$Dv->{ISG_CID_CUR}",
   	                         	            sid   => $sid    },
-	                           SUBMIT  => { activate => "$_ACTIVATE"  } 
- 	                         });
+	                       SUBMIT  => { activate => "$_ACTIVATE"  } 
+ 	                      });
   	
   	  $Dv->{CID}= $Dv->{ISG_CID_CUR};
   	  $Dv->{IP} = $user->{REMOTE_ADDR};
   	  $Dv->{STATUS} = $html->color_mark($_NOT_ACTIVE, $_COLORS[6]);
   	 }
 
-    #$Dv->{SPEED} = 
-    $html->form_main({ CONTENT => $html->form_select('SPEED', 
+    $Dv->{SPEED} = $html->form_main({ CONTENT => "$_SPEED: ".$html->form_select('SPEED', 
                                           { 
  	                                          SELECTED     => $FORM{SPEED},
  	                                          SEL_ARRAY    => ['', '128b/s, 3000 sec', '512b/s, 3000 sec', '2048b/s, 3000 sec'],
