@@ -2370,7 +2370,7 @@ sub dv_user_info {
   	
   	
   	#get mac from NAS
-  	my $result = `/usr/bin/rsh -l snake 77.87.152.66 show arp`;
+  	#my $result = `/usr/bin/rsh -l snake 77.87.152.66 show arp`;
 
   	my @arr = split(/\n/, $result);
   	foreach my $line (@arr) {
