@@ -3840,16 +3840,14 @@ my $table = $html->table( { width      => '100%',
                            } );
 
 my $pages_qs .= "&subf=2" if (! $FORM{subf});
-my $index_shift = ($conf{EXT_BILL_ACCOUNT}) ? 1 : 0 ;
-
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=2&del=$line->[0]&UID=". $line->[10 + $index_shift] ."$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=2&del=$line->[0]&UID=". $line->[11] ."$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
 
   $table->addrow($html->b($line->[0]), 
-  $html->button($line->[1], "index=15&UID=$line->[10 + $index_shift ]"), 
+  $html->button($line->[1], "index=15&UID=$line->[11]"), 
   $line->[2], 
   $line->[3], 
-  $line->[4] . ( ($line->[11 + $index_shift] ) ? ' ('. $html->b($line->[11 + $index_shift ]) .') ' : '' ), 
+  $line->[4] . ( ($line->[12] ) ? ' ('. $html->b($line->[12]) .') ' : '' ), 
   "$line->[5]", 
   "$line->[6]", 
   "$line->[7]", 
@@ -4113,16 +4111,15 @@ my $table = $html->table( { width      => '100%',
 
 
 $pages_qs .= "&subf=2" if (! $FORM{subf});
-my $index_shift = ($conf{EXT_BILL_ACCOUNT}) ? 1 : 0 ;
 foreach my $line (@$list) {
-  my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs&UID=".$line->[8+$index_shift], 
+  my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=3&del=$line->[0]&UID=".$line->[10], 
    { MESSAGE => "$_DEL ID: $line->[0]?" }) : ''; 
 
   $table->addrow($html->b($line->[0]), 
-  $html->button($line->[1], "index=15&UID=".$line->[8+$index_shift]), 
+  $html->button($line->[1], "index=15&UID=".$line->[10]), 
   $line->[2], 
   $line->[3], 
-  $line->[4] . ( ($line->[10+$index_shift] ) ? ' ('. $html->b($line->[10+$index_shift]) .') ' : '' ), 
+  $line->[4] . ( ($line->[11] ) ? ' ('. $html->b($line->[11]) .') ' : '' ), 
   $FEES_METHODS[$line->[5]], 
   "$line->[6]", 
   "$line->[7]",
