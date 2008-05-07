@@ -557,10 +557,10 @@ sub make_pid {
   	  my @pids = <PIDFILE>;
   	close(PIDFILE);
     
-    my $pid = $pids[0];
-    if(verify($pid)) {
-     	print "Proccess running PID: $pid\n";
-   	  return 1;
+    my $pid = int($pids[0]);
+    if($pid > 0 && verify($pid)) {
+      print "Proccess running PID: $pid\n";
+      return 1;
      }
    }
   
