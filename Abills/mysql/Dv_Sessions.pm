@@ -661,18 +661,17 @@ WHERE
   }
 
 
- my %rest = (0 => 
-             1 => );
- 
- foreach my $line (@{ $self->{list} } ) {
-   $rest{$line->[0]} = $line->[4];
-  }
-
-
 
  $self->{INFO_LIST}=$self->{list};
  my $login = $self->{INFO_LIST}->[0]->[5];
  my $traffic_transfert = $self->{INFO_LIST}->[0]->[10];
+
+ my %rest = (0 => 0,
+             1 => 0 );
+ 
+ foreach my $line (@{ $self->{list} } ) {
+   $rest{$line->[0]} = ($traffic_transfert > 2) ? $line->[4] * ($traffic_transfert - 1) : $line->[4];
+  }
 
  return 1 if ($attr->{INFO_ONLY});
  
@@ -711,7 +710,7 @@ WHERE
  	 #Get using traffic
    $self->query($db, "select  
      if($rest{0} > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
-     if($rest{0} > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, 0)
+     if($rest{1} > sum($octets_direction2) / $CONF->{MB_SIZE}, $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, 0)
    FROM dv_log
    WHERE uid='$attr->{UID}'  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
     (  $WHERE

@@ -264,6 +264,9 @@ if ($ACTION eq 'up') {
       #Get intervals
       while(my($k, $v)=each( %TT_IDS)) {
         print "$k, $v\n" if ($debug > 0);
+
+        next if ($k ne 'FIRST_INTERVAL');
+
         $user->{TI_ID}=$v;
  	      my $list = $tariffs->tt_list({ TI_ID => $v });
  	      foreach my $line (@$list)  {

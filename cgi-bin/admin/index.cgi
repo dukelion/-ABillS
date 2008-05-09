@@ -3467,7 +3467,6 @@ my @m = (
  "11:1:$_LOGINS:form_users:::",
  "13:1:$_COMPANY:form_companies:::",
 
- "25:13:$_LIST:form_companies:::",
  "15:11:$_INFO:form_users:UID::",
  "22:15:$_LOG:form_changes:UID::",
  "17:15:$_PASSWD:form_passwd:UID::",
@@ -3481,7 +3480,6 @@ my @m = (
  "12:15:$_GROUP:user_group:UID::",
  "27:1:$_GROUPS:form_groups:::",
 
- "29:27:$_LIST:form_groups:::",
  "30:15:$_USER_INFO:user_pi:UID::",
  "31:15:Send e-mail:form_sendmail:UID::",
 
@@ -4037,11 +4035,29 @@ if ($attr->{USER}) {
    }
 
 
-  $shedule->list({ UID  => $user->{UID},
-                   TYPE => 'fees' });
+  my $list = $shedule->list({ UID  => $user->{UID},
+                              TYPE => 'fees' });
   
   if ($shedule->{TOTAL} > 0) {
-  	 $fees->{SHEDULE}=$html->button($_SHEDULE, "index=85&UID=$user->{UID}"); 
+  	 #$fees->{SHEDULE}=$html->button($_SHEDULE, "index=85&UID=$user->{UID}"); 
+     my $table2 = $html->table( { width      => '100%',
+                            caption     => "$_SHEDULE",
+                            border      => 1,
+                            title_plain => ['#', $_DATE, $_SUM, '-'],
+                            cols_align  => ['right', 'right', 'right', 'left',  'center:noprint'],
+                            qs          => $pages_qs,
+                            ID          => 'USER_SHEDULE'
+                        } );
+
+     foreach my $line (@$list) {
+     	 my ($sum, undef) = split(/:/, $line->[7]);
+     	   my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=85&del=$line->[13]", 
+           { MESSAGE => "$_DEL ID: $line->[13]?" }) : ''; 
+
+     	 $table2->addrow($line->[13], "$line->[3]-$line->[2]-$line->[1]", sprintf('%.2f', $sum), $delete);
+      }
+     
+     $fees->{SHEDULE}=$table2->show();
    }
   
   $fees->{PERIOD_FORM}=form_period($period, { TD_EXDATA  => 'colspan=2' });
