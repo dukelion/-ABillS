@@ -3,7 +3,6 @@
 <input type=hidden name=UID value='%UID%'>
 <input type=hidden name=index value='$index'>
 <input type=hidden name=subf value='$FORM{subf}'>
-%SHEDULE%
 <TABLE border=0>
 <TR><TH align=right colspan=3 bgcolor=$_COLORS[0]>$_FEES</TH></TR>
 <TR><TD colspan=2>$_SUM:</TD><TD><input type='text' name='SUM'></TD></TR>
@@ -13,6 +12,8 @@
 <TR><TD colspan=2>$_EXCHANGE_RATE:</TD><TD>%SEL_ER%</TD></TR>
 %PERIOD_FORM%
 %EXT_DATA%
+
+<TR><TD align=right colspan=3>%SHEDULE%</TD></TR>
 </TABLE>
 <input type=submit name='take' value='$_TAKE'>
 </form>
