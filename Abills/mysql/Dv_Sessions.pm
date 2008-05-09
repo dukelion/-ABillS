@@ -670,7 +670,7 @@ WHERE
              1 => 0 );
  
  foreach my $line (@{ $self->{list} } ) {
-   $rest{$line->[0]} = ($traffic_transfert > 2) ? $line->[4] * ($traffic_transfert - 1) : $line->[4];
+   $rest{$line->[0]} = $line->[4] * $traffic_transfert;
   }
 
  return 1 if ($attr->{INFO_ONLY});
