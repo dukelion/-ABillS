@@ -635,7 +635,7 @@ sub prepaid_rest {
 	#Get User TP and intervals
   $self->query($db, "select tt.id, i.begin, i.end, 
     if(u.activate<>'0000-00-00', u.activate, DATE_FORMAT(curdate(), '%Y-%m-01')), 
-     tt.prepaid, 
+    tt.prepaid, 
     u.id, 
     tp.octets_direction, 
     u.uid, 
@@ -670,8 +670,9 @@ WHERE
              1 => 0 );
  
  foreach my $line (@{ $self->{list} } ) {
-   $rest{$line->[0]} = $line->[4] * $traffic_transfert;
+   $rest{$line->[0]} = $line->[4];
   }
+
 
  return 1 if ($attr->{INFO_ONLY});
  
@@ -695,7 +696,6 @@ WHERE
 
  #Traffic transfert
  if ($traffic_transfert > 0) {
-
    my $WHERE = '';
 
    if ($attr->{FROM_DATE}) {
@@ -706,11 +706,10 @@ WHERE
        and DATE_FORMAT(start, '%Y-%m-%d')<='$self->{INFO_LIST}->[0]->[3]'";
     }
 
-
  	 #Get using traffic
    $self->query($db, "select  
-     if($rest{0} > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
-     if($rest{1} > sum($octets_direction2) / $CONF->{MB_SIZE}, $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, 0)
+     if($rest{0} * $traffic_transfert > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0} * $traffic_transfert - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
+     if($rest{1} * $traffic_transfert > sum($octets_direction2) / $CONF->{MB_SIZE}, $rest{1} * $traffic_transfert - sum($octets_direction2) / $CONF->{MB_SIZE}, 0)
    FROM dv_log
    WHERE uid='$attr->{UID}'  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
     (  $WHERE
