@@ -1,0 +1,38 @@
+#Block pkg section
+
+
+#Block all mail except server
+
+add 10 allow tcp from 127.0.0.1 to 127.0.0.1  dst-port 25
+add 11 allow tcp from any to %MAIL_SERVER_IP% dst-port 25
+add 12 allow tcp from %MAIL_SERVER_IP% to any dst-port 25
+add 15 reset log tcp from any to any dst-port 25
+
+#Skip redirect IP to divert rules
+add 50000 skipto 65010 ip from %REDIRECT_IP% to any via %VPN_INTERFACE%
+add 50000 skipto 65010 ip from any to %REDIRECT_IP% via %VPN_INTERFACE%
+
+
+#Allow acces to billing withot VPN
+add 64010 allow tcp from me 9443 to any via %VPN_INTERFACE% 
+add 64011 allow tcp from any to me 9443 via %VPN_INTERFACE%
+
+#Allow VPN Connect
+add 65000 allow tcp from me 1723 to any via %VPN_INTERFACE%
+add 65001 allow tcp from any to me 1723 via %VPN_INTERFACE%
+#reset Other traffic
+add 65012 reset log tcp from any to any via %VPN_INTERFACE%
+add 65013 deny log udp from any to any via %VPN_INTERFACE%
+
+#NAT configuration
+add 65010 divert 8668 ip4 from any to any via %EXTERNAL_INTERFACE%
+
+#Extrnal interface Netbios BLOCK
+add 65100 deny udp from any 135-139 to any via rl0 # netbios низя
+add 65100 deny tcp from any 135-139,445 to any via  rl0 # netbios низя
+add 65100 deny udp from any to any 135-139 via rl0 # netbios низя
+add 65100 deny tcp from any to any 135-139,445 via rl0 # netbios
+
+
+
+

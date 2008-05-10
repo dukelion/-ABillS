@@ -1,0 +1,3 @@
+:OS=FREEBSD:firewall_enable="YES"\nfirewall_type="/etc/fw.conf"\nnatd_enable="YES"\nnatd_interface="%EXTERNAL_INTERFACE%" >> [/etc/]/rc.conf
+:OS=FREEBSD:ipfw_allow_gre > [/etc]/fw.conf
+
