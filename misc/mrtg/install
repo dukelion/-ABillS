@@ -1,4 +1,4 @@
-:OS=FREEBSD:*/5     *       *       *       *       root  /usr/local/bin/mrtg /usr/local/etc/mrtg/mrtg.cfg >> [/etc]/crontab
+:OS=FREEBSD: */5     *       *       *       *       root  /usr/local/bin/mrtg /usr/local/etc/mrtg/mrtg.cfg >> [/etc]/crontab
 mrtg.cfg > [/usr/local/etc/mrtg]/mrtg.cfg 
 :OS=FREEBSD:exec:mkdir /usr/abills/webreports; chown www /usr/abills/webreports; chown www /usr/local/etc/mrtg/
 :OS=FREEBSD:exec:indexmaker /usr/local/etc/mrtg/mrtg.cfg > /usr/abills/webreports/index.html
