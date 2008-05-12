@@ -110,7 +110,7 @@ if(! -f $config_file ) {
                               "1    0  *  *  *  root   /usr/abills/libexec/periodic daily\n".
                               "1    0  *  *  *  root   /usr/abills/libexec/periodic monthly\n";
 
-        write_file('/etc/crontab', $crontab_content);
+        write_file('/etc/crontab', $crontab_content, '>>');
      	 } 
 
       }
@@ -525,7 +525,7 @@ sub confirm_yn {
     my $read;
     my $c;
 
-    if ($confirm && ($confirm =~ "$yes" || $confirm == 1)) {
+    if ($confirm && ($confirm =~ "$yes")) {
         $confirm = "y";
     } else {
         $confirm = "n";
