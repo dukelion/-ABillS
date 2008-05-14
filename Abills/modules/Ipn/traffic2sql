@@ -263,7 +263,7 @@ if ($Ipn->{INTERIM}{$ip}) {
      	  my $prepaid = $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PREPAID_TSUM};
      	  if ($debug > 1) {
           print "Prepaid traffic: $prepaid CLASS: $k USED: $used_traffic->{$k}{TRAFFIC_SUM}\n";
-        }
+         }
 
 # print "$used_traffic->{$k}{TRAFFIC_OUT} + $used_traffic->{$k}{TRAFFIC_IN} + ($in + $out) / $conf{MB_SIZE}\n";
 # print $OCTETS_DIRECTION."\n";
@@ -288,8 +288,8 @@ if ($Ipn->{INTERIM}{$ip}) {
       }
 
      
-     $sum_in = $in / $conf{MB_SIZE} * $price_in if ($price_in > 0); 
-     $sum_out = $out / $conf{MB_SIZE} * $price_out if ($price_out > 0);
+     $sum_in += $in / $conf{MB_SIZE} * $price_in if ($price_in > 0); 
+     $sum_out += $out / $conf{MB_SIZE} * $price_out if ($price_out > 0);
 
      my $traf_class_sum = $sum_in + $sum_out;
      $total_user_sum += $traf_class_sum ;
