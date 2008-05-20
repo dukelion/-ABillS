@@ -28,8 +28,8 @@ sub dv_chg_tp {
 
  if(defined($attr->{USER})) {
    $user = $attr->{USER};
-   $user = $Dv->info($user->{UID});
-   if($user->{TOTAL} < 1) {
+   $Dv = $Dv->info($user->{UID});
+   if($Dv->{TOTAL} < 1) {
  	   $html->message('info', $_INFO, "$_NOT_ACTIVE");
  	   return 0;
     }
@@ -92,7 +92,7 @@ if ($FORM{set}) {
       return 0;
      }
 
-    $shedule->add( {UID     => $user->{UID},
+    $shedule->add( {UID     => $Dv->{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
     	             D        => $FORM{date_D},
@@ -108,31 +108,59 @@ if ($FORM{set}) {
      }
     else {
       $html->message('info', $_CHANGED, "$_CHANGED");
-      $user->info($user->{UID});
+      $Dv->info($Dv->{UID});
     }
    }
   else {
-    $user->change({ %FORM });
+    $Dv->change({ %FORM });
 
-    if ($user->{errno}) {
-      $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
+    if ($Dv->{errno}) {
+      $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");	
      }
     else {
+      if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+        
+        my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
+
+        my $message = ''; 
+
+        if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
+        	$message = "$_MONTH_ALIGNMENT, ";
+ 	        my ($y, $m, $d)=split(/-/, $DATE, 3);
+          my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+          
+          $conf{START_PERIOD_DAY} = 1  if (! $conf{START_PERIOD_DAY});
+          
+          $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1));
+         }
+       
+        $message .= "$_MONTH_FEE: $sum ($FORM{TP_ID})";
+        $fees->take($users, $sum, { DESCRIBE  => $message, METHOD => 1 });  
+        
+        if ($fees->{errno}) {
+        	$html->message('err', $_ERROR, "$fees->{errno}");	
+          }
+        else {
+          $html->message('info', $_INFO, $message);	
+         }
+       }
+
+    	
       $html->message('info', $_CHANGED, "$_CHANGED");
-      $user->info($user->{UID});
+      $Dv->info($Dv->{UID});
     }
 
   }
 }
 elsif($FORM{del}) {
-  $shedule->del( { UID => $user->{UID},
+  $shedule->del( { UID => $Dv->{UID},
    	               ID  => $FORM{SHEDULE_ID}  } 
    	            );
 
   $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
 }
 
-  $shedule->info( {UID      => $user->{UID},
+  $shedule->info( {UID      => $Dv->{UID},
                    TYPE     => 'tp',
                    DESCRIBE => "$message\n$_FROM: '$FORM{date_y}-$FORM{date_m}-$FORM{date_d}'",
                    MODULE   => 'Dv'
@@ -157,7 +185,7 @@ elsif($FORM{del}) {
  else {
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
- 	                                          SELECTED          => $user->{TP_ID},
+ 	                                          SELECTED          => $Dv->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
@@ -174,8 +202,8 @@ my $tp_index = $index + 4;
 
 $tariffs->{UID}=$attr->{USER}->{UID};
 $tariffs->{m}=$m;
-$tariffs->{TP_ID} = $user->{TP_ID};
-$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
+$tariffs->{TP_ID} = $Dv->{TP_ID};
+$tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$Dv->{TP_ID}", { TITLE => "$_TP" } ). "]";
 
 
 print $html->tpl_show(templates('form_chg_tp'), $tariffs);
@@ -301,10 +329,10 @@ sub dv_user {
   if ($FORM{REGISTRATION_INFO}) {
       
      # Info
-     my $user = Users->new($db, $admin, \%conf); 
+     my $users = Users->new($db, $admin, \%conf); 
      my $dv = $Dv->info($Dv->{UID});
      my $pi = $user->pi({ UID => $Dv->{UID} });
-     $user  = $user->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
+     my $user  = $users->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
  
      $html->tpl_show(templates('form_user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
      $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
@@ -330,7 +358,38 @@ sub dv_user {
      }
 
     $Dv->add({ %FORM });
+
     if (! $Dv->{errno}) {
+    	#Make month feee
+      if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+        
+        my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
+
+        my $users = Users->new($db, $admin, \%conf); 
+        my $user  = $users->info($Dv->{UID});
+
+
+        my $message = ''; 
+
+        if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
+        	$message = "$_MONTH_ALIGNMENT, ";
+ 	        my ($y, $m, $d)=split(/-/, $DATE, 3);
+          my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+          $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
+          $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1));
+         }
+       
+        $message .= "$_MONTH_FEE: $sum ($FORM{TP_ID})";
+        $fees->take($users, $sum, { DESCRIBE  => $message, METHOD => 1 });  
+        
+        if ($fees->{errno}) {
+        	$html->message('err', $_ERROR, "$fees->{errno}");	
+          }
+        else {
+          $html->message('info', $_INFO, $message);	
+         }
+       }
+
       $html->message('info', $_INFO, "$_ADDED");	
      }
    }
@@ -342,7 +401,7 @@ sub dv_user {
 
     $Dv->change({ %FORM });
     if (! $Dv->{errno}) {
-      $html->message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "- $_CHANGED");	
      }
    }
 	elsif($FORM{del}) {
@@ -540,18 +599,34 @@ $tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID',
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
-$tarif_info->{REDUCTION_FEE} = ($tarif_info->{REDUCTION_FEE}) ? 'checked' : '';
-$tarif_info->{POSTPAID_FEE} = ($tarif_info->{POSTPAID_FEE}) ? 'checked' : '';
+
+
+my $nas = Nas->new($db, \%conf);
+
+$tarif_info->{IP_POOLS_SEL} = $html->form_select('IPPOOL', 
+                                          { 
+ 	                                          SELECTED          => $tarif_info->{IPPOOL},
+ 	                                          SEL_MULTI_ARRAY   => [[ '', ''],  @{ $nas->ip_pools_list({ %LIST_PARAMS })	 } ],
+ 	                                          MULTI_ARRAY_KEY   => 8,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+
+
+$tarif_info->{REDUCTION_FEE}   = ($tarif_info->{REDUCTION_FEE})   ? 'checked' : '';
+$tarif_info->{POSTPAID_FEE}    = ($tarif_info->{POSTPAID_FEE})    ? 'checked' : '';
+$tarif_info->{PERIOD_ALIGNMENT}= ($tarif_info->{PERIOD_ALIGNMENT}) ? 'checked' : ''; 
 
 if ($conf{EXT_BILL_ACCOUNT}) {
   my $checked = ($tarif_info->{EXT_BILL_ACCOUNT}) ? ' checked' : '';
-  $tarif_info->{EXT_BILL_ACCOUNT}="<tr><td>$_EXTRA $_BILL:</td><td><input type=checkbox name='EXT_BILL_ACCOUNT' value=1 $checked></td></tr>";
+  $tarif_info->{EXT_BILL_ACCOUNT}="<tr><td>$_EXTRA $_BILL:</td><td><input type='checkbox' name='EXT_BILL_ACCOUNT' value='1' $checked></td></tr>\n";
 }
 
 
 $html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
 
 my $list = $tariffs->list({ %LIST_PARAMS });	
+
 # Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
 my $table = $html->table( { width      => '100%',
                             caption    => "$_TARIF_PLANS",
@@ -560,6 +635,7 @@ my $table = $html->table( { width      => '100%',
                              $_AGE, $_GROUP,
                                     '-', '-', '-'],
                             cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
+                            ID         => 'TARIF_PLANS'
                                   } );
 
 my ($delete, $change);
@@ -1231,6 +1307,8 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
   	        REPORT        => '',
   	        EX_PARAMS     => { HOURS => "$_HOURS",
   	        	                 USERS => "$_USERS"
+  	        	                 }, 
+  	        EXT_TYPE      => { TP    => "$_TARIF_PLANS"
   	        	                 }, 
   	        PERIOD_FORM		=> 1,
   	        FIELDS        => { %CAPTIONS_HASH },
@@ -2549,7 +2627,8 @@ sub dv_daily_fees {
 
              my %PARAMS = ( 
                DESCRIBE => "$_DAY_FEE ($TP_ID)",
-               DATE     => "$ADMIN_REPORT{DATE} $TIME" );
+               DATE     => "$ADMIN_REPORT{DATE} $TIME",
+               METHOD   => 1 );
 
 
              if ($debug > 4) {
@@ -2582,8 +2661,6 @@ sub dv_daily_fees {
   $DEBUG .= $debug_output;
   return $debug_output;
 }
-
-
 
 
 
@@ -2656,10 +2733,13 @@ sub dv_monthly_fees {
 
             #take fees in first day of month
             my %PARAMS = (DESCRIBE => "$_MONTH_FEE ($TP_ID)",
-                          DATE     => $ADMIN_REPORT{DATE} );  
+                          DATE     => $ADMIN_REPORT{DATE},
+                          METHOD   => 1 );  
 
 
-            if ($user{ACTIVATE} eq '0000-00-00' and $d == 1) {
+            $START_PERIOD_DAY = ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} : 1;
+
+            if ($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) {
               if ($debug > 4) {
                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                }
@@ -2705,6 +2785,17 @@ sub dv_monthly_fees {
  	  }
   }
 }
+
+  $debug_output .= "Max use calculation\n" if ($debug > 1);
+  
+  $list = $tariffs->list({ MIN_USE => '>0' });
+
+  foreach my $line (@$list) {
+    $debug_output .= "TP $line->[0] MIN USE: $line->[15]\n" if ($debug > 1);
+	  #get stats from Dv
+	  
+	  #Take Fees
+   }   
 
   $DEBUG .= $debug_output;
   return $debug_output;
@@ -3135,7 +3226,31 @@ sub dv_wizard_user {
         $html->message('err', "Dv:$_ERROR", "Dv Modules [$Dv->{errno}] $err_strs{$Dv->{errno}}");	
         return 0;
        }
-      
+      else {
+ 	      if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+        
+          my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
+          my $message = ''; 
+
+          if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
+          	$message = "$_MONTH_ALIGNMENT, ";
+ 	          my ($y, $m, $d)=split(/-/, $DATE, 3);
+            my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+            $conf{START_PERIOD_DAY}=1 if (! $conf{START_PERIOD_DAY});
+            $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1 ));
+           }
+       
+          $message .= "$_MONTH_FEE: $sum ($FORM{'4.TP_ID'})";
+          $fees->take($user, $sum, { DESCRIBE  => $message, METHOD => 1 });  
+        
+          if ($fees->{errno}) {
+        	  $html->message('err', $_ERROR, "$fees->{errno}");	
+        	  return 0;
+           }
+         }
+       }
+
+
       # Add E-Mail account
       my $Mail;
       if (in_array('Mail', \@MODULES) && $FORM{'6.USERNAME'}) {

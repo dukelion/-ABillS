@@ -17,6 +17,7 @@
   <tr><th colspan=2 bgcolor=$_COLORS[0]>$_ABON</th></tr> 
   <tr><td>$_DAY_FEE:</td><td><input type=text name=DAY_FEE value='%DAY_FEE%'></td></tr>
   <tr><td>$_MONTH_FEE:</td><td><input type=text name=MONTH_FEE value='%MONTH_FEE%'></td></tr>
+  <tr><td>$_MONTH_ALIGNMENT:</td><td><input type=checkbox name='PERIOD_ALIGNMENT' value='1' %PERIOD_ALIGNMENT%></td></tr>
 
   <tr><td>$_REDUCTION:</td><td><input type=checkbox name=REDUCTION_FEE value=1 %REDUCTION_FEE%></td></tr>
   <tr><td>$_POSTPAID:</td><td><input type=checkbox name=POSTPAID_FEE value=1 %POSTPAID_FEE%></td></tr>
@@ -44,10 +45,11 @@
   <tr><td>$_AGE ($_DAYS):</td><td><input type=text name=AGE value='%AGE%'></td></tr>
   <tr><td>$_PAYMENT_TYPE:</td><td>%PAYMENT_TYPE_SEL%</td></tr>
   <tr><td>$_MIN_SESSION_COST:</td><td><input type=text name=MIN_SESSION_COST value='%MIN_SESSION_COST%'></td></tr>
+  <tr><td>$_MIN_USE:</td><td><input type=text name=MIN_USE value='%MIN_USE%'></td></tr>
 
   <tr><td>$_TRAFFIC_TRANSFER_PERIOD:</td><td><input type=text name=TRAFFIC_TRANSFER_PERIOD value='%TRAFFIC_TRANSFER_PERIOD%'></td></tr>
   <tr><td>$_NEG_DEPOSIT_FILTER_ID:</td><td><input type=text name=NEG_DEPOSIT_FILTER_ID value='%NEG_DEPOSIT_FILTER_ID%'></td></tr>
-  
+  <tr><td>IP Pool:</td><td>%IP_POOLS_SEL%</td></tr>
   <tr><th colspan=2>RADIUS Parameters (,)</th></tr>
   <tr><th colspan=2><textarea cols=50 rows=4 name=RAD_PAIRS>%RAD_PAIRS%</textarea></th></tr>
 </table>

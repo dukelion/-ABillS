@@ -196,6 +196,13 @@ sub extfin_monthly_summary {
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
  
+ $conf{START_PERIOD_DAY} = 1 if (!$conf{START_PERIOD_DAY});
+
+ if ($d != $conf{START_PERIOD_DAY}) {
+   $DEBUG .= $debug_output;
+   return $debug_output;
+  }
+
 
  if ($m == 1) {
  	 $m=12;
@@ -242,8 +249,10 @@ sub  extfin_periodic_paids {
   my $debug_output = '';
   
   my ($Y, $M, $D) = split(/-/, $ADMIN_REPORT{DATE}, 3);
+ 
+  $conf{START_PERIOD_DAY} = 1 if (!$conf{START_PERIOD_DAY});
 
-  if ($D != 1) {
+  if ($D != $conf{START_PERIOD_DAY}) {
     $DEBUG .= $debug_output;
     return $debug_output;
    }
