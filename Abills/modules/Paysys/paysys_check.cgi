@@ -92,6 +92,16 @@ my $payments = Finance->payments($db, $admin, \%conf);
 
 my $users = Users->new($db, $admin, \%conf); 
 
+
+
+if( $FORM{txn_id} ) {
+	osmp_payments();
+}
+
+
+
+print "Content-Type: text/html\n\n";
+
 eval { require Digest::MD5; };
 if (! $@) {
    Digest::MD5->import();
@@ -103,21 +113,6 @@ else {
  }
 
 my $md5 = new Digest::MD5;
-
-
-#SMS proxy
-# Need other header
-if($FORM{smsid}) {
-  smsproxy_payments();
-  exit;
- }
-elsif( $FORM{txn_id} ) {
-	osmp_payments();
-}
-
-
-
-print "Content-Type: text/html\n\n";
 
 
 #DEbug
@@ -144,6 +139,10 @@ sub payments {
    }
   elsif($FORM{rupay_action}) {
   	rupay_payments();
+   }
+  elsif($FORM{smsid}) {
+    smsproxy_payments();
+    exit;
    }
   else {
   	print "Error: Unknown payment system";
@@ -327,14 +326,12 @@ sub smsproxy_payments {
  $md5->add($service_key);
  my $digest = $md5->hexdigest();
 
+ print "smsid: $FORM{smsid}\n";
 
- print "smsid: $FORM{smsid}\n";
- print "status: reply\n";
- print "Content-Type:text/plain\n\n";
-
- 
 
  if ($digest ne $skey) {
+   print "status:ignore\n";
+   print "content-type: text/plain\n\n";
    print "Wrong key!\n";
    return 0;
   }
@@ -357,12 +354,15 @@ my $code = mk_unique_value(8);
 
 
   if ($Paysys->{errno} == 7) {
+    print "status:ignore\n";
+    print "content-type: text/plain\n\n";
     print "Request dublicated\n";
     return 0;
    }
 
 
-
+  print "status:ignore\n";
+  print "content-type: text/plain\n\n";
   print $conf{PAYSYS_SMSPROXY_MSG} if ($conf{PAYSYS_SMSPROXY_MSG});
   print " CODE: $code";
 
