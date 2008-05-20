@@ -313,6 +313,8 @@ CREATE TABLE `ippools` (
   `nas` smallint(5) unsigned NOT NULL default '0',
   `ip` int(10) unsigned NOT NULL default '0',
   `counts` int(10) unsigned NOT NULL default '0',
+  `name` varchar(25) NOT NULL,
+  `priority` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `nas` (`nas`,`ip`)
 ) ;
@@ -664,10 +666,13 @@ CREATE TABLE `tarif_plans` (
   `tp_id` int(11) unsigned NOT NULL auto_increment,
   `ext_bill_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `credit` double(10,2) unsigned NOT NULL DEFAULT '0.00',
+  `ippool` int(11) NOT NULL DEFAULT '0',
+  `period_alignment` tinyint(1) NOT NULL DEFAULT '0',
+  `min_use` double(14,2) unsigned NOT NULL DEFAULT '0.00',
   PRIMARY KEY  (`id`,`module`),
   UNIQUE KEY `tp_id` (`tp_id`),
   KEY `name` (`name`)
-) COMMENT='Dialup & VPN Tarif plans';
+) COMMENT='Tarif plans';
 
 
 CREATE TABLE `tp_groups` (
