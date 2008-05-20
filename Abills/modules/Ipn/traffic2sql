@@ -268,7 +268,9 @@ if ($Ipn->{INTERIM}{$ip}) {
 # print "$used_traffic->{$k}{TRAFFIC_OUT} + $used_traffic->{$k}{TRAFFIC_IN} + ($in + $out) / $conf{MB_SIZE}\n";
 # print $OCTETS_DIRECTION."\n";
 # print "$used_traffic->{$k}{TRAFFIC_SUM} < $prepaid\n";
+        #Check lost of prepaid traffic in log
         if ($used_traffic->{$k}{TRAFFIC_SUM} < $prepaid) {
+        	#if online have more then log + online make last traffic calculation
           if ($used_traffic->{$k}{TRAFFIC_SUM} + $online / $conf{MB_SIZE} > $prepaid ) {
             my $not_prepaid = ($used_traffic->{$k}{TRAFFIC_SUM} * $conf{MB_SIZE} + $online ) - $prepaid * $conf{MB_SIZE};
     

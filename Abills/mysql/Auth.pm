@@ -104,7 +104,8 @@ sub dv_auth {
   tp.traffic_transfer_period,
   tp.neg_deposit_filter_id,
   tp.ext_bill_account,
-  tp.credit
+  tp.credit,
+  tp.ippool
 
      FROM (dv_main dv, tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
@@ -150,7 +151,8 @@ sub dv_auth {
      $self->{TRAFFIC_TRANSFER_PERIOD},
      $self->{NEG_DEPOSIT_FILTER_ID},
      $self->{EXT_BILL_ACCOUNT},
-     $self->{TP_CREDIT}
+     $self->{TP_CREDIT},
+     $self->{TP_IPPOOL}
     ) = @{ $self->{list}->[0] };
 
 #DIsable
@@ -240,7 +242,7 @@ if ($self->{PAYMENT_TYPE} == 0) {
         $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
        }
       else {
-        my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}");
+        my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{TP_IPPOOL} });
         if ($ip eq '-1') {
           $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS})";
           return 1, $RAD_PAIRS;
@@ -382,7 +384,7 @@ foreach my $line (@periods) {
    $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
   }
  else {
-   my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}");
+   my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{TP_IPPOOL} });
    if ($ip eq '-1') {
      $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS})";
      return 1, $RAD_PAIRS;
@@ -1179,7 +1181,8 @@ if (defined($trafic_limits{1}) && $trafic_limits{1} > 0) {
 #*******************************************************************
 # returns:
 #
-#   -1 - No free adddress
+#   -2 - No Free Address in TP pool
+#   -1 - No free address in nas pool
 #    0 - No address pool using nas servers ip address
 #   192.168.101.1 - assign ip address
 #
@@ -1187,26 +1190,44 @@ if (defined($trafic_limits{1}) && $trafic_limits{1} > 0) {
 #*******************************************************************
 sub get_ip {
  my $self = shift;
- my ($nas_num, $nas_ip) = @_;
+ my ($nas_num, $nas_ip, $attr) = @_;
 
 #get ip pool
+ my $WHERE = '';
+ 
+ if ($attr->{TP_IPPOOL}) {
+ 	 $WHERE = "ippools.id='$attr->{TP_IPPOOL}'";
+  }
+ else {
+ 	 $WHERE = "ippools.nas='$nas_num'";
+  }
+
  $self->query($db, "SELECT ippools.ip, ippools.counts FROM ippools
-  WHERE ippools.nas='$nas_num';");
+  WHERE $WHERE ORDER BY ippools.priority;");
+
+
 
  if ($self->{TOTAL} < 1)  {
    return 0;	
   }
 
- my %pools = ();
+ 
+ my @pools_arr = ();
  my $list = $self->{list};
+
  foreach my $line (@$list) {
+ 
     my $sip   = $line->[0]; 
     my $count = $line->[1];
+    my %pools = ();
 
     for(my $i=$sip; $i<=$sip+$count; $i++) {
-       $pools{$i}=1;
+      $pools{$i}=1;
      }
-   }
+
+    push @pools_arr, \%pools;
+  }
+
 
 #get active address and delete from pool
  $self->query($db, "SELECT framed_ip_address
@@ -1216,14 +1237,22 @@ sub get_ip {
  $list = $self->{list};
  $self->{USED_IPS}=0;
 
- foreach my $ip (@$list) {
-   if(exists($pools{$ip->[0]})) {
-      delete($pools{$ip->[0]});
-      $self->{USED_IPS}++;
+
+
+ my %pool = %{ $pools_arr[0] };
+ 
+ for(my $i=0; $i<=$#pools_arr; $i++) {
+  %pool = %{ $pools_arr[0] };
+  foreach my $ip (@$list) {
+    if(exists($pool{$ip->[0]})) {
+       delete($pool{$ip->[0]});
+       $self->{USED_IPS}++;
      }
    }
- 
- my @ips_arr = keys %pools;
+  last if (scalar(keys %{ %pool }) > 0);
+  }
+
+ my @ips_arr = keys %pool;
  my $assign_ip = ($#ips_arr > -1) ? $ips_arr[rand ($#ips_arr+1)] : undef;
 
  if ($assign_ip) {
@@ -1231,7 +1260,12 @@ sub get_ip {
    return $assign_ip; 	
   }
  else { # no addresses available in pools
-   return -1;
+   if ($attr->{TP_POOLS}) {
+   	 $self->get_ip($nas_num, $nas_ip); 
+    }
+   else {
+     return -1;
+    }
   }
 
  return 0;

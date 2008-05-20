@@ -2836,10 +2836,7 @@ sub form_ip_pools {
 if ($attr->{NAS}) {
 	$nas = $attr->{NAS};
   if ($FORM{add}) {
-    $nas->ip_pools_add({
-       NAS_IP_SIP   => $FORM{NAS_IP_SIP},
-       NAS_IP_COUNT => $FORM{NAS_IP_COUNT}-1
-     });
+    $nas->ip_pools_add({ %FORM  });
 
     if (! $nas->{errno}) {
        $html->message('info', $_INFO, "$_ADDED");
@@ -2875,19 +2872,23 @@ if ($nas->{errno}) {
 my $table = $html->table( { width      => '100%',
                             caption    => "IP POOLs",
                             border     => 1,
-                            title      => ["NAS", "$_BEGIN", "$_END", "$_COUNT", '-'],
+                            title      => ["NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", '-'],
                             cols_align => ['left', 'right', 'right', 'right', 'center'],
-                            qs         => $pages_qs
+                            qs         => $pages_qs,
+                            ID         => 'IP_POOLS'
                            });
 
 
 my $list = $nas->ip_pools_list({ %LIST_PARAMS });	
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[6]", { MESSAGE => "$_DEL NAS $line->[4]?" }); 
-  $table->addrow($html->button($line->[0], "index=60&NAS_ID=$line->[7]"), 
-    $line->[4], 
-    $line->[5], 
-    $line->[3],  
+  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[8]", { MESSAGE => "$_DEL NAS $line->[4]?" }); 
+
+  $table->addrow($html->button($line->[0], "index=60&NAS_ID=$line->[9]"), 
+    $line->[1],
+    $line->[6], 
+    $line->[7], 
+    $line->[4],  
+    $line->[5],  
     $delete);
 }
 
@@ -4241,7 +4242,7 @@ else {
     );
 
 
-
+$FORM{type}=11 if ($FORM{type} == 15);
 
 if (defined($attr->{SEARCH_FORM})) {
 	$SEARCH_DATA{SEARCH_FORM} = $attr->{SEARCH_FORM}
@@ -4265,7 +4266,8 @@ elsif($search_form{$FORM{type}}) {
                                   SEL_OPTIONS   => { '' => $_ALL }
  	                               });
    }
-  elsif ($FORM{type} == 11) {
+  elsif ($FORM{type} == 11 || $FORM{type} == 15) {
+    $FORM{type}=11;
 
     my $i=0; 
     my $list = $users->config_list({ PARAM => 'ifu*'  });

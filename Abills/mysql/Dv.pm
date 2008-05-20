@@ -180,19 +180,23 @@ sub add {
 
   if ($DATA{TP_ID} > 0) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
-     $tariffs->info($DATA{TP_ID});
+
+     $self->{TP_INFO}=$tariffs->info($DATA{TP_ID});
      
+
+     #Take activation price
      if($tariffs->{ACTIV_PRICE} > 0) {
        my $user = Users->new($db, $admin, $CONF);
        $user->info($DATA{UID});
        
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0) {
          
-         print "$user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE}";
+         #print "$user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE}";
          
          $self->{errno}=15;
        	 return $self; 
         }
+
        my $fees = Fees->new($db, $admin, $CONF);
        $fees->take($user, $tariffs->{ACTIV_PRICE}, { DESCRIBE  => "ACTIV TP" });  
       }
@@ -254,7 +258,10 @@ sub change {
   my $old_info = $self->info($attr->{UID});
   if ($old_info->{TP_ID} != $attr->{TP_ID}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
-     $tariffs->info($attr->{TP_ID});
+     
+     
+     
+     $self->{TP_INFO}=$tariffs->info($attr->{TP_ID});
      
      if($tariffs->{CHANGE_PRICE} > 0) {
        my $user = Users->new($db, $admin, $CONF);

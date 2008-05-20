@@ -241,8 +241,10 @@ sub ip_pools_list {
  
  my $WHERE = (defined($self->{NAS_ID})) ? "and pool.nas='$self->{NAS_ID}'" : '' ;
 
- $self->query($db, "SELECT nas.name, pool.ip, pool.ip + pool.counts, pool.counts,
-    INET_NTOA(pool.ip), INET_NTOA(pool.ip + pool.counts), pool.id, pool.nas
+ $self->query($db, "SELECT nas.name, pool.name, 
+   pool.ip, pool.ip + pool.counts, pool.counts,     pool.priority,
+    INET_NTOA(pool.ip), INET_NTOA(pool.ip + pool.counts), 
+    pool.id, pool.nas
     FROM ippools pool, nas 
     WHERE pool.nas=nas.id
     $WHERE  ORDER BY $SORT $DESC");
@@ -261,8 +263,10 @@ sub ip_pools_add {
  my ($attr) = @_;
  my %DATA = $self->get_data($attr); 
  
- $self->query($db, "INSERT INTO ippools (nas, ip, counts) 
-   VALUES ('$self->{NAS_ID}', INET_ATON('$DATA{NAS_IP_SIP}'), '$DATA{NAS_IP_COUNT}')", 'do');
+ $self->query($db, "INSERT INTO ippools (nas, ip, counts, name, priority) 
+   VALUES ('$DATA{NAS_ID}', INET_ATON('$DATA{NAS_IP_SIP}'), '$DATA{NAS_IP_COUNT}',
+   '$DATA{POOL_NAME}', '$DATA{POOL_PRIORITY}')", 'do');
+
  return 0;	
 }
 

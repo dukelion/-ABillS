@@ -50,7 +50,11 @@ my %FIELDS = ( TP_ID            => 'id',
                NEG_DEPOSIT_FILTER_ID   => 'neg_deposit_filter_id',
                TP_GID           => 'gid',
                MODULE           => 'module',
-               CREDIT           => 'credit'
+               CREDIT           => 'credit',
+               IPPOOL           => 'ippool',
+               PERIOD_ALIGNMENT => 'period_alignment',
+               MIN_USE          => 'min_use'
+
              );
 
 #**********************************************************
@@ -381,7 +385,11 @@ sub defaults {
             NEG_DEPOSUT_FILTER_ID   => '',
             TP_GID           => 0,
             MODULE           => '',
-            CREDIT           => 0
+            CREDIT           => 0,
+            IPPOOL           => '0',
+            PERIOD_ALIGNMENT => '0',
+            MIN_USE          => '0.00'
+
          );   
  
   $self = \%DATA;
@@ -405,7 +413,11 @@ sub add {
      day_traf_limit, week_traf_limit,  month_traf_limit,
      activate_price, change_price, credit_tresshold, age, octets_direction,
      max_session_duration, filter_id, payment_type, min_session_cost, rad_pairs, 
-     traffic_transfer_period, neg_deposit_filter_id, gid, module, credit)
+     traffic_transfer_period, neg_deposit_filter_id, gid, module, credit,
+     ippool,
+     period_alignment,
+     min_use
+     )
     values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', '$DATA{POSTPAID_FEE}', '$DATA{EXT_BILL_ACCOUNT}',
      '$DATA{SIMULTANEOUSLY}', 
@@ -417,7 +429,11 @@ sub add {
      '$DATA{TRAFFIC_TRANSFER_PERIOD}',
      '$DATA{NEG_DEPOSIT_FILTER_ID}',
      '$DATA{TP_GID}', '$DATA{MODULE}',
-     '$DATA{CREDIT}');", 'do' );
+     '$DATA{CREDIT}',
+     '$DATA{IPPOOL}',
+     '$DATA{PERIOD_ALIGNMENT}', 
+     '$DATA{MIN_USE}'
+     );", 'do' );
 
 
   return $self;
@@ -439,7 +455,9 @@ sub change {
   $attr->{REDUCTION_FEE}=0    if (! $attr->{REDUCTION_FEE});
   $attr->{POSTPAID_FEE}=0     if (! $attr->{POSTPAID_FEE});
   $attr->{EXT_BILL_ACCOUNT}=0 if (! $attr->{EXT_BILL_ACCOUNT});
+  $attr->{PERIOD_ALIGNMENT}=0 if (! $attr->{PERIOD_ALIGNMENT});
  
+
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
 		                FIELDS       => \%FIELDS,
@@ -491,10 +509,12 @@ sub info {
     push @WHERE_RULES, "tp.tp_id='$attr->{TP_ID}'"; 
    }
 
+
+
   my $WHERE = ($#WHERE_RULES > -1) ? " and " . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db, "SELECT id, name, hourp, 
+  $self->query($db, "SELECT id, name,
       day_fee, month_fee, reduction_fee, postpaid_fee, ext_bill_account,
       logins, age,
       day_time_limit, week_time_limit,  month_time_limit, 
@@ -509,7 +529,10 @@ sub info {
       gid,
       neg_deposit_filter_id,
       module,
-      credit
+      credit,
+      ippool,
+      period_alignment,
+      min_use
     FROM tarif_plans
     WHERE id='$id'$WHERE;");
 
@@ -522,7 +545,6 @@ sub info {
   
   ($self->{TP_ID}, 
    $self->{NAME}, 
-   $self->{TIME_TARIF}, 
    $self->{DAY_FEE}, 
    $self->{MONTH_FEE}, 
    $self->{REDUCTION_FEE}, 
@@ -551,8 +573,13 @@ sub info {
    $self->{NEG_DEPOSIT_FILTER_ID},
    $self->{MODULE},
    $self->{CREDIT},
-   $self->{TP_ID_CTR}
+   $self->{IPPOOL},
+   $self->{PERIOD_ALIGNMENT}, 
+   $self->{MIN_USE}
+
   ) = @{ $self->{list}->[0] };
+
+
 
 
   return $self;
@@ -580,6 +607,12 @@ sub list {
    push @WHERE_RULES, "tp.module='$attr->{MODULE}'"; 
   }
 
+ if (defined($attr->{TP_ID})) {
+    my $val = $self->search_expr($attr->{MIN_USE}, 'INT');  	
+    push @WHERE_RULES, "tp.min_use='$val'"; 
+   }
+
+
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db, "SELECT tp.id, 
@@ -595,7 +628,8 @@ sub list {
     tp.reduction_fee,
     tp.postpaid_fee,
     tp.ext_bill_account,
-    tp.credit
+    tp.credit,
+    tp.min_use
     FROM (tarif_plans tp)
     LEFT JOIN intervals i ON (i.tp_id=tp.id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
