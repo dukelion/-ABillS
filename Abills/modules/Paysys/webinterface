@@ -606,7 +606,6 @@ sub paysys_smsproxy {
 	my %info = ();
 	
 if ($FORM{CODE}) {
-	print "Content-Type: text/html\n\n";
 	my $list = $Paysys->info({ CODE => "$FORM{CODE}", UID => 0  });
 
   if ($Paysys->{TOTAL} > 0) {
