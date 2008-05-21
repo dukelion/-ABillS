@@ -1326,9 +1326,13 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
   	       });
 
 
+$LIST_PARAMS{TP_ID}=$FORM{TP_ID} if ($FORM{TP_ID});
+
 
 my ($tables_sessions);
 my $output = '';
+
+my %TP_NAMES = ();
 
 my %DATA_HASH = ();
 my %CHART = ();
@@ -1439,6 +1443,14 @@ else {
     	$caption[0]="$_USER";
   	  $caption[1]="$_LOGINS";
      }
+    elsif ($FORM{TYPE} eq 'TP') {
+    	$caption[0]="$_TARIF_PLAN";
+    	my $list = $tariffs->list();
+    	
+    	foreach my $line (@$list) {
+    		$TP_NAMES{$line->[0]}=$line->[1];
+    	 }
+     }
    }
 
   
@@ -1474,14 +1486,27 @@ else {
         elsif ($fields_arr[$i] =~ /^_/ && ref ($INFO_LISTS{$fields_arr[$i]}) eq 'HASH' ) {
         	push @rows, ($INFO_LISTS{$fields_arr[$i]}{$line->[$i]}) ? $INFO_LISTS{$fields_arr[$i]}{$line->[$i]} : '';
          }
+        elsif ($fields_arr[$i] eq 'TP') {
+        	push @rows, $TP_NAMES{$line->[$i]};
+         }
         else {
           push @rows, $line->[$i];
          }
       }
      }
     else {
-    	 @rows = ($html->button("$line->[0]", 
-       ($FORM{TYPE} eq 'USER') ? "index=11&UID=$line->[7]" : "index=$index&$type=$line->[0]$pages_qs"), 
+    	 my $button = '';
+    	 if ($FORM{TYPE} eq 'USER') {
+    	 	 $button = $html->button("$line->[0]", "index=11&UID=$line->[7]");
+    	  }
+    	 elsif ($FORM{TYPE} eq 'TP') {
+    	 	 $button = $line->[0].'. ' .$html->button($TP_NAMES{$line->[0]}, "index=$index&TP_ID=$line->[0]$pages_qs");
+    	  }
+    	 else {
+    	 	 $button = $html->button("$line->[0]", "index=$index&$type=$line->[0]$pages_qs");
+    	  }
+    	  
+    	 @rows = ($button, 
        $line->[1], 
        $line->[2], 
        int2byte($line->[3], { DIMENSION => $FORM{DIMENSION} }),  
@@ -2786,13 +2811,20 @@ sub dv_monthly_fees {
   }
 }
 
-  $debug_output .= "Max use calculation\n" if ($debug > 1);
+  $debug_output .= "Min use calculation\n" if ($debug > 1);
   
   $list = $tariffs->list({ MIN_USE => '>0' });
 
   foreach my $line (@$list) {
     $debug_output .= "TP $line->[0] MIN USE: $line->[15]\n" if ($debug > 1);
 	  #get stats from Dv
+	  my $sessions_list = $sessions->reports({ TP_ID    => $line->[0],
+	  	                                       INTERVAL => "$DATE/$DATE"
+	  	                                      });
+	  
+	  foreach my $l (@$sessions_list) {
+	  	print "$l->[0] - $l->[6]\n" if ($debug > 1);
+	   }
 	  
 	  #Take Fees
    }   
