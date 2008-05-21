@@ -1071,6 +1071,9 @@ sub reports {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
  
+ if ($attr->{TP_ID}) {
+ 	 push @WHERE_RULES, " l.tp_id='$attr->{TP_ID}'";
+  }
  
  if(defined($attr->{DATE})) {
    push @WHERE_RULES, " date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'";
@@ -1078,11 +1081,17 @@ sub reports {
  elsif ($attr->{INTERVAL}) {
  	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
    push @WHERE_RULES, "date_format(l.start, '%Y-%m-%d')>='$from' and date_format(l.start, '%Y-%m-%d')<='$to'";
+
+   $attr->{TYPE} = '' if (! $attr->{TYPE});
+
    if ($attr->{TYPE} eq 'HOURS') {
      $date = "date_format(l.start, '%H')";
     }
    elsif ($attr->{TYPE} eq 'DAYS') {
      $date = "date_format(l.start, '%Y-%m-%d')";
+    }
+   elsif ($attr->{TYPE} eq 'TP') {
+     $date = "l.tp_id";
     }
    else {
      $date = "u.id";   	
@@ -1174,6 +1183,9 @@ if ($attr->{FIELDS}) {
       ORDER BY $SORT $DESC");
    #$WHERE = "WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'"; 
     }
+  }
+ elsif ($attr->{TP}) {
+ 	 print "TP";
   }
  else {
   $self->query($db, "select $fields,

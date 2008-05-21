@@ -353,10 +353,10 @@ my $code = mk_unique_value(8);
                });
 
 
-  if ($Paysys->{errno} == 7) {
+  if ($Paysys->{errno} && $Paysys->{errno} == 7) {
     print "status:ignore\n";
     print "content-type: text/plain\n\n";
-    print "Request dublicated\n";
+    print "Request dublicated $FORM{smsid}\n";
     return 0;
    }
 

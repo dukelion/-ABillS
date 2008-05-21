@@ -607,9 +607,9 @@ sub list {
    push @WHERE_RULES, "tp.module='$attr->{MODULE}'"; 
   }
 
- if (defined($attr->{TP_ID})) {
+ if (defined($attr->{MIN_USE})) {
     my $val = $self->search_expr($attr->{MIN_USE}, 'INT');  	
-    push @WHERE_RULES, "tp.min_use='$val'"; 
+    push @WHERE_RULES, "tp.min_use$val"; 
    }
 
 
