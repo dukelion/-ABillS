@@ -607,7 +607,6 @@ sub paysys_smsproxy {
 	
 if ($FORM{CODE}) {
 	print "Content-Type: text/html\n\n";
-	$Paysys->{debug}=1;
 	my $list = $Paysys->info({ CODE => "$FORM{CODE}", UID => 0  });
 
   if ($Paysys->{TOTAL} > 0) {
@@ -632,7 +631,6 @@ if ($FORM{CODE}) {
 		    $html->message('err', $_ERROR, "$_NOT_EXIST");
 	     }
 	    else {
-        $payments->{debug}=1;
         $payments->add($user, {SUM  => $Paysys->{SUM},
  	                     DESCRIBE     => 'SMSProxy', 
  	                     METHOD       => '2', 
@@ -640,7 +638,7 @@ if ($FORM{CODE}) {
                        CHECK_EXT_ID => $Paysys->{TRANSACTION_ID}
                         } );  
 
-        if ($payments->{errno} == 7) {
+        if ($payments->{errno} && $payments->{errno} == 7) {
           $html->message('err', $_ERROR, "$_EXIST");
           return 0;
          }
