@@ -987,12 +987,13 @@ sub mail_wizard {
   if ($FORM{add}) {
 
   	foreach my $k ( sort %FORM) {
-      if ($k =~ m/[A-Z]+/ && $k !~ /__|[a-z]/) {
+      if ($k =~ m/^[0-9]+\.[_a-zA-Z0-9]+$/) { 
         $k =~ s/%22//g;
         my ($id, $main_key)=split(/\./, $k, 2);
         $add_values{$id}{$main_key}=$FORM{$k};
        }
   	 }
+
 
     #print $table->show();
     # Password
@@ -1105,11 +1106,16 @@ sub mail_wizard {
 
   my $users_defaults = $users->defaults();
   $users_defaults->{DISABLE}=($users_defaults->{DISABLE} == 1) ? ' checked' : '';
+  
   $users_defaults->{GID} = sel_groups();
   if (! $attr->{NO_EXTRADATA}) {
-    $users_defaults->{EXDATA}=$html->tpl_show(templates('form_user_exdata'), 
-       { CREATE_BILL  => ' checked' }, 
-       { notprint     => 1 });
+    $users_defaults->{EXDATA}  =   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
+    $users_defaults->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
+
+
+#    $users_defaults->{EXDATA}=$html->tpl_show(templates('form_user_exdata'), 
+#       { CREATE_BILL  => ' checked' }, 
+#       { notprint     => 1 });
    }
   
   $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
@@ -1130,6 +1136,45 @@ sub mail_wizard {
  	             
  my $password_form;                           
  $password_form->{GEN_PASSWORD}=mk_unique_value(8);
+
+ #Info fields
+  my %pi_form = ();
+   
+  my $i=0; 
+  
+  my $list = $users->config_list({ PARAM => 'ifu*'});
+
+  foreach my $line (@$list) {
+    my $field_id   = '';
+    if ($line->[0] =~ /ifu(\S+)/) {
+    	$field_id = $1;
+      my($type, $name)=split(/:/, $line->[1]);
+
+      my $input = '';
+      if ($type == 2) {
+        $input = $html->form_select("$field_id", 
+                                { SELECTED          => $FORM{$field_id},
+ 	                                SEL_MULTI_ARRAY   => $users->info_lists_list( { LIST_TABLE => $field_id.'_list' }), 
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
+ 	                                NO_ID             => 1
+ 	                               });
+    	
+       }
+      elsif ($type == 4) {
+      	$input = $html->form_input($field_id, 1, { TYPE  => 'checkbox', STATE => ($FORM{$field_id}) ? 1 : undef  });
+       }
+      else {
+    	  $input = $html->form_input($field_id, "", { SIZE => 40 });
+       }
+    
+  	  $pi_form{INFO_FIELDS}.= "<tr><td>$name:</td><td>$input</td></tr>\n";
+      $i++;
+     }
+   }
+
+
  my %tpls = (
 	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults,    { notprint => 1 }),  
 	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { notprint => 1 }),
@@ -1164,6 +1209,9 @@ sub mail_wizard {
 
    $tpls{"6:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { notprint => 1 });
   } 
+ 
+ 
+ 
  
  if ($attr->{TPLS}) {
    while(my($k, $v)=each %{ $attr->{TPLS} } ) {
