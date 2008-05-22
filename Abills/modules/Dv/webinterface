@@ -331,7 +331,7 @@ sub dv_user {
      # Info
      my $users = Users->new($db, $admin, \%conf); 
      my $dv = $Dv->info($Dv->{UID});
-     my $pi = $user->pi({ UID => $Dv->{UID} });
+     my $pi = $users->pi({ UID => $Dv->{UID} });
      my $user  = $users->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
  
      $html->tpl_show(templates('form_user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );

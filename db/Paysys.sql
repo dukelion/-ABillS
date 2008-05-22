@@ -4,7 +4,7 @@ CREATE TABLE `paysys_log` (
   `datetime` datetime NOT NULL default '0000-00-00 00:00:00',
   `sum` double(10,2) unsigned NOT NULL default '0.00',
   `uid` int(11) unsigned NOT NULL default '0',
-  `transaction_id` int(11) unsigned NOT NULL default '0',
+  `transaction_id` varchar(15) NOT NULL DEFAULT '',
   `info` text NOT NULL,
   `ip` int(11) unsigned NOT NULL default '0',
   `code` blob NOT NULL,
