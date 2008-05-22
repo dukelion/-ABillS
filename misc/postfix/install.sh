@@ -38,7 +38,7 @@ fi
 
 if [ x"$1" = xADD_VMAIL_USER ]; then
    USER=vmail
-   UID=1005
+   USER_ID=1005
    GROUP=vmail
    GID=1005
 #Linux 
@@ -50,7 +50,7 @@ if [ x"$1" = xADD_VMAIL_USER ]; then
       /usr/sbin/groupadd -g ${GID} ${GROUP}
     fi;
 
-    /usr/sbin/useradd -c "VMAIL" -d /nonexistent -s /sbin/nologin -u ${UID} -g ${GID} ${USER}
+    /usr/sbin/useradd -c "VMAIL" -d /nonexistent -s /sbin/nologin -u ${USER_ID} -g ${GID} ${USER}
 
   else  
 
@@ -71,7 +71,7 @@ if [ x"$1" = xADD_VMAIL_USER ]; then
         if /usr/sbin/pw user show "${USER}" 2>/dev/null; then
                 echo "You already have a user \"${USER}\", so I will use it."
         else
-                if /usr/sbin/pw useradd ${USER} -u ${UID} -g ${GROUP} -h - -d /var/spool/virtual/ -s ${NOLOGIN} -c "vMail System"; then
+                if /usr/sbin/pw useradd ${USER} -u ${USER_ID} -g ${GROUP} -h - -d /var/spool/virtual/ -s ${NOLOGIN} -c "vMail System"; then
                         echo "Added user \"${USER}\"."
                 else
                         echo "Adding user \"${USER}\" failed..."
