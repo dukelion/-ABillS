@@ -3229,7 +3229,7 @@ sub dv_wizard_user {
           $payments->add($user, { %{$add_values{5}}, ER => $er->{ER_RATE} } );  
 
           if ($payments->{errno}) {
-            $html->message('err', "-- $_PAYMENTS : $_ERROR", "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+            $html->message('err', "$_PAYMENTS : $_ERROR", "[$payments->{errno}] $err_strs{$payments->{errno}}");	
             return 0;
            }
           else {
@@ -3347,7 +3347,7 @@ sub dv_wizard_user {
   
   
   if (! $attr->{NO_EXTRADATA}) {
-    $users_defaults->{EXDATA}=   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
+    $users_defaults->{EXDATA}  =   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
     $users_defaults->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
     
 #    $html->tpl_show(templates('form_user_exdata'), 
