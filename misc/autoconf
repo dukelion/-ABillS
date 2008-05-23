@@ -116,7 +116,10 @@ if(! -f $config_file ) {
       }
     }
 
-  exit;
+  
+  if (! confirm_yn("Continue configuration [y]: ", "y")) {
+    exit;
+   }
 }
 
 require $Bin . '/../libexec/config.pl';

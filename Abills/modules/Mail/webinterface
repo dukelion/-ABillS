@@ -810,10 +810,10 @@ sub mail_aliases {
    }
   print $table->show();
 
-  $table = $html->table( { width => '100%',
-                                cols_align => ['right', 'right'],
-                                rows => [ [ "$_TOTAL:", $html->b($Mail->{TOTAL}) ] ]
-                               } );
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", $html->b($Mail->{TOTAL}) ] ]
+                         } );
   print $table->show();
 
   $Mail->{DISABLE}=' checked' if($Mail->{DISABLE} == 1);
