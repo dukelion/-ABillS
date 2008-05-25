@@ -737,6 +737,7 @@ CREATE TABLE `users` (
   `company_id` int(11) unsigned NOT NULL default '0',
   `bill_id` int(11) unsigned NOT NULL default '0',
   `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `credit_date` date default '0000-00-00',
   PRIMARY KEY  (`uid`),
   UNIQUE KEY `id` (`id`)
 );
