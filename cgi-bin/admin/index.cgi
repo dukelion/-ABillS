@@ -1406,6 +1406,10 @@ elsif ($users->{TOTAL} == 1) {
 	$FORM{UID}=$list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
 	form_users({  USER => user_info($list->[0]->[5 + $users->{SEARCH_FIELDS_COUNT}], { %FORM }) });
 	return 0;
+ }
+elsif ($users->{TOTAL} == 0) {
+  $html->message('err', $_ERROR, "$_NOT_EXIST");	
+	return 0;
 }
 
 
@@ -1426,8 +1430,9 @@ my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$
                   'pi.comments'       => "$_COMMENTS", 
                   'if(company.id IS NULL,b.id,cb.id)' => 'BILL ID', 
                   'u.activate'        => "$_ACTIVATE", 
-                  'u.expire'          => "$_EXPIRE"
-                   );
+                  'u.expire'          => "$_EXPIRE",
+                  'u.credit_date'     => "$_CREDIT $_DATE"
+                    );
 
 
 

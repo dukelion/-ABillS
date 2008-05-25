@@ -4,7 +4,7 @@
 <TR bgcolor='$_COLORS[2]'><TD><b>$_LOGIN:</b></TD><TD>%LOGIN%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD><b>$_DEPOSIT:</b></TD><TD>%DEPOSIT%</TD></TR>
 %EXT_DATA%
-<TR bgcolor='$_COLORS[1]'><TD><b>$_CREDIT:</b></TD><TD>%CREDIT%</TD></TR>
+<TR bgcolor='$_COLORS[1]'><TD><b>$_CREDIT:</b> $_DATE: %CREDIT_DATE%</TD><TD>%CREDIT%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD><b>$_REDUCTION:</b></TD><TD>%REDUCTION% %</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD><b>$_FIO:</b></TD><TD>%FIO%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD><b>$_PHONE:</b></TD><TD>%PHONE%</TD></TR>

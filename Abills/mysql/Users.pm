@@ -106,6 +106,7 @@ sub info {
    if(c.name IS NULL, 0, c.vat),
    if(c.name IS NULL, b.uid, cb.uid),
    if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id),
+   credit_date
    $password
      FROM users u
      LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -138,6 +139,7 @@ sub info {
    $self->{COMPANY_VAT},
    $self->{BILL_OWNER},
    $self->{EXT_BILL_ID},
+   $self->{CREDIT_DATE},
    $self->{PASSWORD}
  )= @{ $self->{list}->[0] };
  
@@ -671,6 +673,14 @@ sub list {
     push @WHERE_RULES, "u.credit$value";
   }
 
+ if ($attr->{CREDIT_DATE}) {
+    my $value = $self->search_expr($attr->{CREDIT_DATE}, 'INT');
+    push @WHERE_RULES, "u.credit_date$value";
+    $self->{SEARCH_FIELDS} .= 'u.credit_date,';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+
 
  if ($attr->{COMMENTS}) {
   	$attr->{COMMENTS} =~ s/\*/\%/ig;
@@ -858,8 +868,9 @@ if ($self->{TOTAL} > 0) {
        LEFT JOIN users_pi pi ON (u.uid = pi.uid)
        LEFT JOIN bills b ON (u.bill_id = b.id)
       $WHERE;");
-
-      ($self->{TOTAL}) = @{ $self->{list}->[0] };
+      if ($self->{TOTAL} > 0) {
+        ($self->{TOTAL}) = @{ $self->{list}->[0] };
+       }
     }
 
  	  return $list
@@ -938,11 +949,11 @@ sub add {
   
   $DATA{DISABLE} = int($DATA{DISABLE});
   $self->query($db,  "INSERT INTO users (id, activate, expire, credit, reduction, 
-           registration, disable, company_id, gid, password)
+           registration, disable, company_id, gid, password, credit_date)
            VALUES ('$DATA{LOGIN}', '$DATA{ACTIVATE}', '$DATA{EXPIRE}', '$DATA{CREDIT}', '$DATA{REDUCTION}', 
            now(),  '$DATA{DISABLE}', 
            '$DATA{COMPANY_ID}', '$DATA{GID}', 
-           ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}')
+           ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}', '$DATA{CREDIT_DATE}')
            );", 'do');
   
   return $self if ($self->{errno});
@@ -988,7 +999,8 @@ sub change {
               GID         => 'gid',
               PASSWORD    => 'password',
               BILL_ID     => 'bill_id',
-              EXT_BILL_ID => 'ext_bill_id'
+              EXT_BILL_ID => 'ext_bill_id',
+              CREDIT_DATE => 'credit_date'
              );
 
   my $old_info = $self->info($attr->{UID});
@@ -1065,6 +1077,8 @@ sub del {
                   'users_nas', 
                   'users',
                   'users_pi');
+
+
   $self->{info}='';
   foreach my $table (@clear_db) {
      $self->query($db, "DELETE from $table WHERE uid='$self->{UID}';", 'do');
