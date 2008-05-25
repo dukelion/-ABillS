@@ -64,6 +64,7 @@ my $args = parse_arguments(\@ARGV);
 $ADMIN_REPORT{HOSTNAME}=hostname();
 
 my @daily_functions=(
+                     'credit_operation',
                      'admin_report_daily'
                      );
 
@@ -562,6 +563,32 @@ sub backup {
   return;
 }
 
+#*******************************************************************
+# Reset credit
+# 
+#*******************************************************************
+sub credit_operation {
+	$DEBUG .= "Reset Credit\n" if ($debug > 1);
+
+  my $list = $users->list({  
+                           CREDIT_DATE  => "$DATE",
+                           CREDIT       => '>0',
+  	                       PAGE_ROWS    => 1000000
+  	                      });
+	
+  foreach my $line (@$list) {
+  	$DEBUG .= "$line->[0] ($line->[7]) DEPOSIT: $line->[2] CREDIT: $line->[3] CREDIT_DATE: $line->[6]\n"if ($debug > 0);
+
+    if ($debug < 5) {
+    	$users->change($line->[7], { CREDIT      => 0,
+    		                           CREDIT_DATE => '0000-00-00',
+    		                           UID         => $line->[7]
+    		                           });
+     }
+  }
+	
+ return 0;
+}
 
 #*******************************************************************
 # Create debeters group
