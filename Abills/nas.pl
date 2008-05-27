@@ -65,6 +65,12 @@ sub hangup {
  elsif ($nas_type eq 'mpd4') {
    hangup_mpd4($NAS, $PORT, $attr);
   }
+ elsif ($nas_type eq 'mpd5') {
+   hangup_mpd5($NAS, $PORT, $attr);
+  }
+ elsif ($nas_type eq 'openvpn') {
+   hangup_openvpn($NAS, $PORT, $USER);
+  } 
  elsif ($nas_type eq 'ipcad') {
    hangup_ipcad($NAS, $PORT, $USER, $attr);
   }
@@ -514,6 +520,22 @@ sub hangup_ipcad {
 
 
 #*******************************************************************
+# hangup_openvpn 
+#*******************************************************************
+sub hangup_openvpn {
+  my ($NAS, $PORT, $USER_NAME, $attr) = @_;
+
+ my @commands=(">INFO:OpenVPN Management Interface Version 1 -- type 'help' for more info\tkill $USER",
+               "SUCCESS: common name '$USER' found, 1 client(s) killed\texit");
+
+ my $result = telnet_cmd("$NAS->{NAS_MNG_IP_PORT}", \@commands);
+ log_print('LOG_DEBUG', "$result");
+
+ return 0; 
+}
+
+
+#*******************************************************************
 # HANGUP Cisco
 # hangup_cisco($SERVER, $PORT)
 #
@@ -685,6 +707,16 @@ sub hangup_mpd4 {
                 "\] \texit");
 
   my $result = telnet_cmd("$NAS->{NAS_MNG_IP_PORT}", \@commands);
+  return 0;
+}
+
+#*******************************************************************
+# HANGUP MPD
+# hangup_mpd5($SERVER, $PORT)
+#*******************************************************************
+sub hangup_mpd5 {
+  my ($NAS, $PORT, $attr) = @_;
+
   return 0;
 }
 
@@ -896,9 +928,10 @@ sub stats_patton29xx {
 	   }
   }
 
-
-
   return %stats;
 }
+
+
+
 
 1

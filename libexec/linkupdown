@@ -117,7 +117,14 @@ if ($ARGV[0] eq 'mpd') {
   $inum     = $INTERFACE;
   $inum     =~ s/ng//;
 }
-#pppd
+#OpenVPN
+elsif ($ARGV[0] eq 'openvpn') {
+  $ACTION    = $ARGV[1];
+  $INTERFACE = $ARGV[2];
+  $USER      = $ARGV[6];
+  $HISADDR   = $ARGV[5];
+  $inum      = (! ($INTERFACE =~ s/tap//)) ? 100+8 : $INTERFACE+100;
+} 
 elsif ($ARGV[0] eq 'ipn') {
   $ACTION    = $ARGV[1];
   $INTERFACE = $ARGV[2];
