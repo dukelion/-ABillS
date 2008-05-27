@@ -3206,7 +3206,7 @@ sub dv_cards {
   	 	  $FORM{'1.PASSWORD'}=$line->{PASSWORD};
   	 	  $FORM{'1.CREATE_BILL'}=1;
         
-        $line->{UID} = dv_wizard_user({ SHORT_REPORT => 1 });
+        $line->{UID} = dv_wizard_user({ SHORT_REPORT => 1, SKIP_ERRORS => $FORM{SKIP_ERRORS}  });
        
   	 	  if ( $line->{UID} < 1) {
   	 	  	 $html->message('err', "$_ERROR", "$_LOGIN: '$line->{LOGIN}'");
@@ -3215,7 +3215,6 @@ sub dv_cards {
   	 	  else {
   	 	    #Confim card creation
   	 	    $added_count++;
-  	 	    print " .";
   	 	    $table->addrow("$FORM{'1.LOGIN'}", "$UID", "$FORM{ex_message}");
   	 	  	if(cards_users_gen_confim({ %$line, SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  }) == 0) {
   	 	  		 return 0;
@@ -3261,9 +3260,13 @@ sub dv_wizard_user {
     $add_values{1}{GID} = $admin->{GID} if ($admin->{GID});
     my $user=$users->add({ %{$add_values{1}} });
     my $message = '';
-    if (! $user->{errno}) {
+    if (! $user->{errno} || $attr->{SKIP_ERRORS}) {
    	  $UID = $user->{UID};
    	  $user = $user->info($UID);
+      
+      if ($user->{errno}) {
+  	    $html->message('err', "[$users->{errno}] $err_strs{$users->{errno}}", "$_LOGIN: '$add_values{1}{LOGIN}'");	
+       }
       
       #2 
       if (defined($FORM{'2.newpassword'}) && $FORM{'2.newpassword'} ne '') {
