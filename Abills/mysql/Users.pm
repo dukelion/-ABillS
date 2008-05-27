@@ -953,7 +953,7 @@ sub add {
            VALUES ('$DATA{LOGIN}', '$DATA{ACTIVATE}', '$DATA{EXPIRE}', '$DATA{CREDIT}', '$DATA{REDUCTION}', 
            now(),  '$DATA{DISABLE}', 
            '$DATA{COMPANY_ID}', '$DATA{GID}', 
-           ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}', '$DATA{CREDIT_DATE}')
+           ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}'), '$DATA{CREDIT_DATE}'
            );", 'do');
   
   return $self if ($self->{errno});
