@@ -580,9 +580,6 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
 #*******************************************************************
 sub cards_users_gen_confim {
   my ($attr) = @_;
-  
-  
-  #print "$attr->{LOGIN},  $attr->{PASSWORD}, $attr->{SERIA}, $attr->{DILLER_ID}/<br>";
 
   $Cards->cards_add({ %$attr });
   if ($Cards->{errno}) {
