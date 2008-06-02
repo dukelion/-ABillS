@@ -106,15 +106,16 @@ sub paysys_import_form {
        	 for (my $i=0; $i<=$#IDS; $i++) {
        	 	 my $ID = $IDS[$i];
        	 	 my %DATA_HASH = (
-       	 	   PAYSYS_EXT_ID => $ID,
-       	 	   PHONE         => $FORM{'PHONE_'.$ID},
-       	 	   FIO           => $FORM{'FIO_'.$ID},
-       	 	   SUM           => $FORM{'SUM_'.$ID},
-       	 	   DATE          => $FORM{'DATE_'.$ID},
-       	 	   TYPE          => $FORM{'TYPE_'.$ID},
+       	 	   PAYSYS_EXT_ID  => $ID,
+       	 	   PHONE          => $FORM{'PHONE_'.$ID},
+       	 	   FIO            => $FORM{'FIO_'.$ID},
+       	 	   SUM            => $FORM{'SUM_'.$ID},
+       	 	   DATE           => $FORM{'DATE_'.$ID},
+       	 	   TYPE           => $FORM{'TYPE_'.$ID},
        	 	   PAYMENT_METHOD => $FORM{'PAYMENT_METHOD_'.$ID},
-       	 	   DESCRIBE      => $FORM{'DESCRIBE_'.$ID},
-       	 	   ADDRESS       => $FORM{'ADDRESS_'.$ID}
+       	 	   DESCRIBE       => $FORM{'DESCRIBE_'.$ID},
+       	 	   ADDRESS        => $FORM{'ADDRESS_'.$ID},
+       	 	   $BINDING_FIELD => $FORM{$BINDING_FIELD.'_'.$ID}
        	 	   );
            push @DATA_ARR, { %DATA_HASH };
            push @BINDING_IDS, $DATA_HASH{$BINDING_FIELD};
@@ -177,7 +178,7 @@ sub paysys_import_form {
                             caption    => "$_PRE Import - $import_types[$FORM{IMPORT_TYPE}]",
                             border     => 1,
                             title      => ['ID', "$_FIO", "$_PHONE", "$_CONTRACT_ID", "$_SUM", 
-                            "$_DATE", "$_BANK $_ACCOUNT", "$_TYPE", "$_ADDRESS", "$_DESCRIBE", '-', '-'],
+                            "$_DATE", "$_BANK $_ACCOUNT", "$_TYPE", "$_ADDRESS", "$_DESCRIBE", '_BINDING', '-'],
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             ID         => 'PAYSYS_IMPORT_LIST',
@@ -201,9 +202,16 @@ function CheckAllINBOX() {
 
        my $ids = join(', ', @BINDING_IDS);
        my $users = Users->new($db, $admin, \%conf); 
-	     my $list  = $users->list({ PHONE => '>1',  PAGE_ROWS => 100000 });
+	     #$users->{debug}=1;
+	     $ids =~ s/, /', '/g;
+	     my $list  = $users->list({ $BINDING_FIELD => "list:'$ids'",  
+	     	                          PAGE_ROWS      => 1000000 
+	     	                        });
+
+       my $binding_field_id = ($BINDING_FIELD eq 'LOGIN')  ? 0 : 5;
+
        foreach my $line (@$list) {
-       	 $binding_hash{$line->[5]}="$line->[6]:$line->[0]:$line->[1]";
+       	 $binding_hash{$line->[$binding_field_id]}="$line->[6]:". (lc($line->[0])). ":$line->[1]";
         }
 
    	   my %HIDDEN_HASH = ();
@@ -301,7 +309,8 @@ function CheckAllINBOX() {
               $DATA_ARR[$i]->{BANK_ACCOUNT},
               $PAYMENT_METHOD_SEL,
               $DATA_ARR[$i]->{ADDRESS},
-              $html->form_input('DESCRIBE_'.$ID, $DATA_ARR[$i]->{DESCRIBE} || '')
+              $html->form_input('DESCRIBE_'.$ID, $DATA_ARR[$i]->{DESCRIBE} || ''),
+              $html->form_input($BINDING_FIELD.'_'.$ID, $DATA_ARR[$i]->{$BINDING_FIELD} || '')
              );
           
            $HIDDEN_HASH{'SUM_'.$ID}=$DATA_ARR[$i]->{SUM};
