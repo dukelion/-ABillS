@@ -328,7 +328,7 @@ function CheckAllINBOX() {
         }
 
        print $html->form_main({ CONTENT => $table->show() .
-       	                   $html->form_input($attr->{TYPE}, 1, { TYPE => 'checkbox' }), # . ( ($attr->{TYPE} && $attr->{TYPE} eq 'FEES' ) ? "$_FEES" : " $_PAYMENTS " ),
+       	                   $html->form_input($attr->{TYPE}, 1, { TYPE => 'checkbox' }) . ( ($attr->{TYPE} && $attr->{TYPE} eq 'FEES' ) ? "$_FEES" : " $_PAYMENTS " ),
   	                       HIDDEN  => { index       => "$index",
   	                       	            OP_SID      => $op_sid,
   	                       	            IMPORT_TYPE => $FORM{IMPORT_TYPE},
