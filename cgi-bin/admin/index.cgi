@@ -5208,10 +5208,15 @@ sub _external {
 sub form_info_fields {
 	
 	if ($FORM{USERS_ADD}) {
-		$users->info_field_add({ %FORM  });
-		if (! $users->{errno}) {
-			$html->message('info', $_INFO, "$_ADDED: $FORM{FIELD_ID} - $FORM{NAME}");
+		if (length($FORM{FIELD_ID}) > 15) {
+			$html->message('err', $_ERROR, "$ERR_WRONG_DATA");
 		 }
+		else {
+		  $users->info_field_add({ %FORM  });
+		  if (! $users->{errno}) {
+			  $html->message('info', $_INFO, "$_ADDED: $FORM{FIELD_ID} - $FORM{NAME}");
+		   }
+     }
 	 }
 	elsif ($FORM{COMPANY_ADD}) {
 		$users->info_field_add({ %FORM  });

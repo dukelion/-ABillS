@@ -4,7 +4,8 @@ $web_interface    = 1;
 %FUNCTIONS_LIST = (
                    #"01:0:Paysys:paysys_webmoney:UID"     => 2,
                    "02:0:Paysys:paysys_log:"              => 4,
-                   "03:0:Import:paysys_import_form:"      => 2
+                   "03:0:Import:paysys_import_payments:"  => 2,
+                   "04:0:Import:paysys_import_fees:"      => 3
                    );
 
 %USER_FUNCTION_LIST = ("01:0:Paysys:paysys_payment:"  => 40,
