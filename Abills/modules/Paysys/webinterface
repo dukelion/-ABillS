@@ -115,7 +115,7 @@ sub paysys_import_form {
        	 	   PAYMENT_METHOD => $FORM{'PAYMENT_METHOD_'.$ID},
        	 	   DESCRIBE       => $FORM{'DESCRIBE_'.$ID},
        	 	   ADDRESS        => $FORM{'ADDRESS_'.$ID},
-       	 	   #$BINDING_FIELD => $FORM{$BINDING_FIELD.'_'.$ID}
+       	 	   $BINDING_FIELD => $FORM{$BINDING_FIELD.'_'.$ID}
        	 	   );
            push @DATA_ARR, { %DATA_HASH };
            push @BINDING_IDS, $DATA_HASH{$BINDING_FIELD};
