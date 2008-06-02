@@ -211,7 +211,7 @@ function CheckAllINBOX() {
        my $binding_field_id = ($BINDING_FIELD eq 'LOGIN')  ? 0 : 5;
 
        foreach my $line (@$list) {
-       	 $binding_hash{$line->[$binding_field_id]}="$line->[6]:". (lc($line->[0])). ":$line->[1]";
+       	 $binding_hash{lc($line->[$binding_field_id])}="$line->[6]:$line->[0]:$line->[1]";
         }
 
    	   my %HIDDEN_HASH = ();
@@ -220,8 +220,8 @@ function CheckAllINBOX() {
  	         for ( my $i = 0; $i<=$#DATA_ARR; $i++) {
          	   
          	   my $ID = $DATA_ARR[$i]->{PAYSYS_EXT_ID} || $i;
-             if ($binding_hash{$DATA_ARR[$i]->{$BINDING_FIELD}}) {
-                my($uid, $login, $fio)=split(/:/, $binding_hash{$DATA_ARR[$i]->{$BINDING_FIELD}});
+             if ($binding_hash{lc($DATA_ARR[$i]->{$BINDING_FIELD})}) {
+                my($uid, $login, $fio)=split(/:/, $binding_hash{lc($DATA_ARR[$i]->{$BINDING_FIELD})});
                 my $user = $users->info($uid);
                 $payments->add($user, { SUM  => $DATA_ARR[$i]->{SUM},
  	                     DESCRIBE     => $DATA_ARR[$i]->{DESCRIBE}, 
@@ -290,8 +290,8 @@ function CheckAllINBOX() {
  	                               });
            my $info = ''; 
 
-           if ($binding_hash{$DATA_ARR[$i]->{$BINDING_FIELD}}) {
-              my($uid, $login, $fio)=split(/:/, $binding_hash{$DATA_ARR[$i]->{$BINDING_FIELD}});
+           if ($binding_hash{lc($DATA_ARR[$i]->{$BINDING_FIELD})}) {
+              my($uid, $login, $fio)=split(/:/, $binding_hash{lc($DATA_ARR[$i]->{$BINDING_FIELD})});
               $info = $html->button($fio, "&index=11&UID=$uid", { TARGET => $uid }) . "/$login/$uid";
               $table->{rowcolor}=undef;
             }
