@@ -115,7 +115,7 @@ sub paysys_import_form {
        	 	   PAYMENT_METHOD => $FORM{'PAYMENT_METHOD_'.$ID},
        	 	   DESCRIBE       => $FORM{'DESCRIBE_'.$ID},
        	 	   ADDRESS        => $FORM{'ADDRESS_'.$ID},
-       	 	   $BINDING_FIELD => $FORM{$BINDING_FIELD.'_'.$ID}
+       	 	   #$BINDING_FIELD => $FORM{$BINDING_FIELD.'_'.$ID}
        	 	   );
            push @DATA_ARR, { %DATA_HASH };
            push @BINDING_IDS, $DATA_HASH{$BINDING_FIELD};
@@ -210,7 +210,7 @@ function CheckAllINBOX() {
 
        $binding_field_id = 0;
        if ($BINDING_FIELD eq 'LOGIN') {
-         $binding_field_id =   ? 0 : 5;
+         $binding_field_id = 0;
         }
 
        foreach my $line (@$list) {
@@ -306,7 +306,7 @@ function CheckAllINBOX() {
               $html->form_input(IDS, $ID, { TYPE => 'checkbox' }) .  $ID,
               $html->form_input('FIO_'.$ID, $DATA_ARR[$i]->{FIO} || '', { SIZE => 40}) . "$info", 
               $html->form_input('PHONE_'.$ID, $DATA_ARR[$i]->{PHONE} || '', { SIZE => 12}),
-              $html->form_input('CONTRACT_ID_'.$ID, ($DATA_ARR[$i]->{CONTRACT_ID}) ? $DATA_ARR[$i]->{CONTRACT_ID} : '', , { SIZE => 12}),
+              $html->form_input('CONTRACT_ID_'. $ID, $DATA_ARR[$i]->{CONTRACT_ID} || '', { SIZE => 12 }),
               $DATA_ARR[$i]->{SUM},
               $DATA_ARR[$i]->{DATE} || $FORM{DATE},
               $DATA_ARR[$i]->{BANK_ACCOUNT},
@@ -316,10 +316,10 @@ function CheckAllINBOX() {
               $html->form_input($BINDING_FIELD.'_'.$ID, $DATA_ARR[$i]->{$BINDING_FIELD} || '')
              );
           
-           $HIDDEN_HASH{'SUM_'.$ID}=$DATA_ARR[$i]->{SUM};
-           $HIDDEN_HASH{'DATE_'.$ID}=$DATA_ARR[$i]->{DATE} || $FORM{DATE};
-           $HIDDEN_HASH{'BANK_ACCOUNT_'.$ID}=$DATA_ARR[$i]->{BANK_ACCOUNT};
-           $HIDDEN_HASH{'ADDRESS_'.$ID}=$DATA_ARR[$i]->{ADDRESS};
+           $HIDDEN_HASH{'SUM_'.$ID}         = $DATA_ARR[$i]->{SUM};
+           $HIDDEN_HASH{'DATE_'.$ID}        = $DATA_ARR[$i]->{DATE} || $FORM{DATE};
+           $HIDDEN_HASH{'BANK_ACCOUNT_'.$ID}= $DATA_ARR[$i]->{BANK_ACCOUNT};
+           $HIDDEN_HASH{'ADDRESS_'.$ID}     = $DATA_ARR[$i]->{ADDRESS};
          
          
            $total_count++;
@@ -328,7 +328,7 @@ function CheckAllINBOX() {
         }
 
        print $html->form_main({ CONTENT => $table->show() .
-       	                   $html->form_input($attr->{TYPE}, 1, { TYPE => 'checkbox' }) . ( ($attr->{TYPE} && $attr->{TYPE} eq 'FEES' ) ? "$_FEES" : " $_PAYMENTS " ),
+       	                   $html->form_input($attr->{TYPE}, 1, { TYPE => 'checkbox' }), # . ( ($attr->{TYPE} && $attr->{TYPE} eq 'FEES' ) ? "$_FEES" : " $_PAYMENTS " ),
   	                       HIDDEN  => { index       => "$index",
   	                       	            OP_SID      => $op_sid,
   	                       	            IMPORT_TYPE => $FORM{IMPORT_TYPE},
