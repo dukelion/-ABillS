@@ -208,10 +208,13 @@ function CheckAllINBOX() {
 	     	                          PAGE_ROWS      => 1000000 
 	     	                        });
 
-       my $binding_field_id = ($BINDING_FIELD eq 'LOGIN')  ? 0 : 5;
+       $binding_field_id = 0;
+       if ($BINDING_FIELD eq 'LOGIN') {
+         $binding_field_id =   ? 0 : 5;
+        }
 
        foreach my $line (@$list) {
-       	 $binding_hash{lc($line->[$binding_field_id])}="$line->[6]:$line->[0]:$line->[1]";
+       	 $binding_hash{lc($line->[$binding_field_id])}=$line->[5+$users->{SEARCH_FIELDS_COUNT}].":$line->[0]:$line->[1]";
         }
 
    	   my %HIDDEN_HASH = ();
