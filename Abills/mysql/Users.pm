@@ -542,7 +542,13 @@ sub list {
     push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
   }
  elsif ($attr->{LOGIN}) {
-    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
+    if ($attr->{LOGIN} =~ /^list:(.+)/) {
+    	my $logins = $1;
+    	push @WHERE_RULES, "u.id IN ($logins)";
+     }
+    else {
+      push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
+     }
   }
  # Login expresion
  elsif ($attr->{LOGIN_EXPR}) {
