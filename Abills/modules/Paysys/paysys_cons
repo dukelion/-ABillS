@@ -1,0 +1,349 @@
+#!/usr/bin/perl -w
+# PaySys Console
+# Console interface for payments and fees import
+
+
+use vars qw($begin_time %FORM %LANG
+$DATE $TIME
+$CHARSET
+@MODULES);
+
+
+
+BEGIN {
+ my $libpath = '../../../';
+
+ $sql_type='mysql';
+ unshift(@INC, $libpath ."Abills/$sql_type/");
+ unshift(@INC, $libpath);
+ unshift(@INC, $libpath . 'libexec/');
+
+ eval { require Time::HiRes; };
+ if (! $@) {
+    Time::HiRes->import(qw(gettimeofday));
+    $begin_time = gettimeofday();
+   }
+ else {
+    $begin_time = 0;
+  }
+}
+
+use FindBin '$Bin';
+
+require $Bin . '/../../../libexec/config.pl';
+
+
+use Abills::Base;
+use Abills::SQL;
+use Abills::HTML;
+use Users;
+use Paysys;
+use Finance;
+use Admins;
+
+my $html = Abills::HTML->new();
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $db = $sql->{db};
+#Operation status
+
+my $admin    = Admins->new($db, \%conf);
+$admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
+my $payments = Finance->payments($db, $admin, \%conf);
+my $fees     = Finance->fees($db, $admin, \%conf);
+my $Paysys   = Paysys->new($db, $admin, \%conf);
+my $status   = '';
+my $debug    = 0;
+
+#Arguments
+my $ARGV = parse_arguments(\@ARGV);
+
+if ($#ARGV < 0) {
+	help();
+	exit;
+}
+
+if ($ARGV->{DEBUG}) {
+	$debug=$ARGV->{DEBUG};
+	print "DEBUG: $debug\n";
+}
+
+$DATE = $ARGV->{DATE} if ($ARGV->{DATE});
+
+if ($ARGV->{TYPE}) {
+	if ($ARGV->{TYPE} eq  'PAYMENTS') {
+		paysys_import_payments();
+	 }
+	elsif ($ARGV->{TYPE} eq  'FEES') {
+		paysys_import_fees();
+	 }
+}
+
+
+
+#**********************************************************
+# Import fees from_file
+#**********************************************************
+sub paysys_import_form {
+  my ($attr) = @_;
+	
+	my @import_types = ();
+  if ($attr->{IMPORT_RULES}) {
+    @import_types = split(/,/, $attr->{IMPORT_RULES});
+   }
+
+  my $table ;
+
+			
+  #Default import extration	
+  my $import_expr = ($attr->{IMPORT_EXPR}) ? $attr->{IMPORT_EXPR} : '(\d+)\t(.+)\t(\d+)\t(\S+)\t([0-9.,]+)\t(\d{2}-\d{2}-\d{4})\t(.+)\t(.+):ID, FIO, PHONE, CONTRACT_ID, SUM, DATE, ADDRESS, DESCRIBE';
+
+  #Default Binding field
+  my $BINDING_FIELD = ($attr->{BINDING_FIELDS}) ? $attr->{BINDING_FIELDS} : 'CONTRACT_ID';
+
+  if (defined($attr->{IMPORT_RULE})) {
+    	$import_expr   = $conf{'PAYSYS_IMPORT_EXPRATION_'. $attr->{IMPORT_RULE}};
+    	$BINDING_FIELD = $conf{'PAYSYS_IMPORT_BINDING_'.$attr->{IMPORT_RULE}} if ($conf{'PAYSYS_IMPORT_BINDING_'.$attr->{IMPORT_RULE}});
+    }
+
+  my ($DATA_ARR, $BINDING_IDS);
+  my %binding_hash = ();      
+  my $total_count  = 0;
+  my $total_sum    = 0;
+	my $total_added_count = 0;
+  my $total_added_sum   = 0;
+
+	
+	if (! $ARGV->{FILE}) {
+		print "Select file!!!\n";
+		exit;
+	 }
+
+	my $content = '';
+	my $filename = $ARGV->{FILE};
+	open(FILE, "$filename") || die "Can't open file '$filename' $!\n";
+	  while(<FILE>) {
+	  	$content .= $_;
+	   }
+	close(FILE);
+  
+  ($DATA_ARR, $BINDING_IDS)=payasys_import_parse($content, $import_expr, $BINDING_FIELD);
+
+
+#Make users binding hash
+
+       my $ids = join(', ', @$BINDING_IDS);
+
+       my $users = Users->new($db, $admin, \%conf); 
+	     #$users->{debug}=1;
+	     $ids =~ s/, /', '/g;
+	     my $list  = $users->list({ $BINDING_FIELD => "list:'$ids'",  
+	     	                          PAGE_ROWS      => 1000000 
+	     	                        });
+
+       $binding_field_id = 0;
+       if ($BINDING_FIELD eq 'LOGIN') {
+         $binding_field_id = 0;
+        }
+
+       foreach my $line (@$list) {
+       	 $binding_hash{lc($line->[$binding_field_id])}=$line->[5+$users->{SEARCH_FIELDS_COUNT}].":$line->[0]:$line->[1]";
+        }
+
+
+for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
+
+  my $ID = $DATA_ARR->[$i]->{PAYSYS_EXT_ID} || $i;
+  
+  if ($binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})}) {
+       my($uid, $login, $fio)=split(/:/, $binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})});
+
+       next if ($DATA_ARR->[$i]->{SUM} == 0);
+
+       my $user = $users->info($uid);
+
+
+
+       if ($ARGV->{TYPE} eq 'PAYMENTS') {
+           if ($debug < 5) {
+              $payments->{debug}=1;
+              $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
+                       DESCRIBE     => $DATA_ARR->[$i]->{DESCRIBE} || '', 
+ 	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 0, 
+                       EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$attr->{IMPORT_RULE}.$ID",
+                       CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$attr->{IMPORT_RULE}.$ID",
+                       INNER_DESCRIBE => $DATA_ARR->[$i]->{INNER_DESCRIBE} || ''
+                        } );
+
+            }
+           if ($payments->{errno} && $payments->{errno} == 7) {
+             print "ERROR: $_EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$ID\n";
+            }
+         }
+        elsif ($ARGV->{TYPE} eq 'FEES') {
+          if ($debug < 5) {
+            
+            $fees->take($user,  $DATA_ARR->[$i]->{SUM}, { 
+                                 DESCRIBE      => $DATA_ARR->[$i]->{DESCRIBE}, 
+                                 INNER_DESRIBE => $DATA_ARR->[$i]->{EXT_ID}, 
+ 	                 #    METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD}, 
+                   #    EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
+                   #    CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"
+                        } );
+           }
+
+          if ($fees->{errno} && $fees->{errno} == 7) {
+           	print  "ERROR: EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$ID\n";
+           }
+         }
+
+
+        $total_added_count++;
+        $total_added_sum+=$DATA_ARR->[$i]->{SUM};
+        }
+       else {
+         print "ERROR: NOT_EXIST $BINDING_FIELD - $DATA_ARR->[$i]->{$BINDING_FIELD} / $DATA_ARR->[$i]->{SUM}\n ";
+        }
+
+    $total_count++;
+    $total_sum+=$DATA_ARR->[$i]->{SUM};
+
+   }
+
+  print "
+  TOTAL: $total_count SUM: $total_sum
+  ADDED: $total_added_count SUM: $total_added_sum\n";
+
+}
+
+#**********************************************************
+# Import fees from_file
+#**********************************************************
+sub paysys_import_fees {
+
+ paysys_import_form({ TYPE           => 'FEES',
+ 	                    BINDING_FIELDS => $conf{PAYSYS_FEES_BINDING},
+                      IMPORT_EXPR    => $conf{PAYSYS_FEES_IMPORT},
+                      IMPORT_RULES   => FEES
+                    });
+
+}
+
+#**********************************************************
+# Import fees from_file
+#**********************************************************
+sub paysys_import_payments {
+
+ paysys_import_form({ TYPE          => 'PAYMENTS',
+ 	                    IMPORT_RULE   => $ARGV->{IMPORT_RULE},
+                      IMPORT_RULES  => $conf{PAYSYS_IMPORT_RULES}
+                    });
+
+
+}
+
+
+#**********************************************************
+# Parce file
+#**********************************************************
+sub payasys_import_parse {
+	my ($content, $import_expr, $BINDING_FIELD) = @_; 
+  my @DATA_ARR = (); 
+  my @BINDING_IDS = ();	     
+
+  
+  $import_expr=~s/ //g;
+  $import_expr=~s/\n//g;
+  my ($expration, $columns)=split(/:/, $import_expr);
+  my @EXPR_IDS = split(/,/, $columns);
+  
+  print "Expration: $expration\nColumns: $columns\n";	     
+  my @rows = split(/[\r]{0,1}\n/, $content);
+  
+       
+        foreach my $line (@rows) {
+        	 my %DATA_HASH = ();
+           #next if ($#params < $#EXPR_IDS);
+           if (my @res = ($line =~ /$expration/)) {
+           	 for (my $i=0; $i<=$#res; $i++) {
+           	 	 print "$EXPR_IDS[$i] / $res[$i]\n" if ($debug > 5);
+               next if ($EXPR_IDS[$i] eq 'UNDEF');
+
+               $DATA_HASH{$EXPR_IDS[$i]}=$res[$i];
+
+               if ($EXPR_IDS[$i] eq 'PHONE') {
+                 $DATA_HASH{$EXPR_IDS[$i]} =~ s/-//g;
+                }
+               elsif ($EXPR_IDS[$i] eq 'CONTRACT_ID') {
+                 $DATA_HASH{$EXPR_IDS[$i]} =~ s/-//g ;
+                }
+               elsif ($EXPR_IDS[$i] eq 'SUM') {
+                 $DATA_HASH{$EXPR_IDS[$i]} =~ s/,/\./g;
+                }
+               elsif ($EXPR_IDS[$i] eq 'DATE' && $DATA_HASH{$EXPR_IDS[$i]} =~ /^(\d{2})[.-](\d{2})[.-](\d{4})$/) {
+                 $DATA_HASH{$EXPR_IDS[$i]} = "$3-$2-$1";
+                }
+               
+        	    }
+
+             push @DATA_ARR, { %DATA_HASH };
+             
+             push @BINDING_IDS, $DATA_HASH{$BINDING_FIELD} if ($DATA_HASH{$BINDING_FIELD});
+            }
+           else {
+            print "'$line'<br>\n";	
+           }
+        }
+
+  return \@DATA_ARR, \@BINDING_IDS;
+}
+
+#**********************************************************
+# Import from POP3 mail box
+#**********************************************************
+sub paysys_import_pop3 {
+	
+	
+}
+
+
+#**********************************************************
+# Main iport  parser
+#**********************************************************
+sub paysys_import {
+	
+	
+}
+
+#**********************************************************
+# Main iport  parser
+#**********************************************************
+sub help {
+	
+	my @import_types = ();
+	if ($conf{PAYSYS_IMPORT_RULES}) {
+	  @import_rules_arr = split(/,/, $conf{PAYSYS_IMPORT_RULES}) ;
+   }
+
+  my $import_rules = '';
+ 
+  for(my $i=0; $i<=$#import_rules_arr; $i++) {
+    $import_rules .= "      $i - $import_rules_arr[$i]\n";
+   }
+
+print << "[END]"
+Paysys console interface:
+
+  TYPE=[PAYMENST|FEES] - Operation TYPE
+  IMPORT_RULE=         - for payments import type id
+$import_rules    
+  FILE=                - Import FILE
+  DATE=                - Import Date
+  DEBUG=1,2..5         - Debug Mode                 
+  help                 - this help
+
+[END]
+	
+}
+
+
+1
