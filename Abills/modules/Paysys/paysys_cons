@@ -165,10 +165,11 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
 
        if ($ARGV->{TYPE} eq 'PAYMENTS') {
            if ($debug < 5) {
-              $payments->{debug}=1;
+              #$payments->{debug}=1;
               $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
                        DESCRIBE     => $DATA_ARR->[$i]->{DESCRIBE} || '', 
  	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 0, 
+ 	                     DATE         => $DATA_ARR->[$i]->{DATE} || undef, 
                        EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$attr->{IMPORT_RULE}.$ID",
                        CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$attr->{IMPORT_RULE}.$ID",
                        INNER_DESCRIBE => $DATA_ARR->[$i]->{INNER_DESCRIBE} || ''
@@ -275,6 +276,9 @@ sub payasys_import_parse {
                 }
                elsif ($EXPR_IDS[$i] eq 'CONTRACT_ID') {
                  $DATA_HASH{$EXPR_IDS[$i]} =~ s/-//g ;
+                }
+               elsif ($EXPR_IDS[$i] eq 'LOGIN') {
+                 $DATA_HASH{$EXPR_IDS[$i]} =~ s/ //g ;
                 }
                elsif ($EXPR_IDS[$i] eq 'SUM') {
                  $DATA_HASH{$EXPR_IDS[$i]} =~ s/,/\./g;
