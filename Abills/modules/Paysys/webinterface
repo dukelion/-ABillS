@@ -194,8 +194,10 @@ sub paysys_import_form {
                 my($uid, $login, $fio)=split(/:/, $binding_hash{$DATA_ARR->[$i]->{$BINDING_FIELD}});
                 my $user = $users->info($uid);
                 $fees->take($user, $DATA_ARR->[$i]->{SUM}, { 
- 	                     DESCRIBE     => $DATA_ARR->[$i]->{DESCRIBE}, 
- 	                     INNER_DESRIBE => $DATA_ARR->[$i]->{EXT_ID}, 
+ 	                     DESCRIBE      => $DATA_ARR->[$i]->{DESCRIBE} || '', 
+ 	                     INNER_DESRIBE => $DATA_ARR->[$i]->{EXT_ID} || '', 
+ 	                     DATE          => $DATA_ARR->[$i]->{DATE} || undef, 
+ 	                     INNER_DESRIBE => '',
  	                 #    METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD}, 
                    #    EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
                    #    CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"

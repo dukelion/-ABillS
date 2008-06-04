@@ -186,6 +186,8 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
             $fees->take($user,  $DATA_ARR->[$i]->{SUM}, { 
                                  DESCRIBE      => $DATA_ARR->[$i]->{DESCRIBE}, 
                                  INNER_DESRIBE => $DATA_ARR->[$i]->{EXT_ID}, 
+          	                     DATE          => $DATA_ARR->[$i]->{DATE} || undef, 
+          	                     INNER_DESRIBE => '',
  	                 #    METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD}, 
                    #    EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
                    #    CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"
@@ -202,7 +204,7 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
         $total_added_sum+=$DATA_ARR->[$i]->{SUM};
         }
        else {
-         print "ERROR: NOT_EXIST $BINDING_FIELD - $DATA_ARR->[$i]->{$BINDING_FIELD} / $DATA_ARR->[$i]->{SUM}\n ";
+         print "ERROR: NOT_EXIST $BINDING_FIELD - $DATA_ARR->[$i]->{$BINDING_FIELD} / $DATA_ARR->[$i]->{DATE} / $DATA_ARR->[$i]->{SUM}\n ";
         }
 
     $total_count++;
