@@ -119,9 +119,11 @@ sub add {
       return $self;
      }
     
+    my $date = ($DATA{DATE}) ? "'$DATA{DATE}'" : 'now()';
+    
     $self->query($db, "INSERT INTO payments (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, method, ext_id,
            inner_describe) 
-           values ('$user->{UID}', '$user->{BILL_ID}', now(), '$DATA{SUM}', '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}', '$DATA{METHOD}', 
+           values ('$user->{UID}', '$user->{BILL_ID}', $date, '$DATA{SUM}', '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}', '$DATA{METHOD}', 
            '$DATA{EXT_ID}', '$DATA{INNER_DESCRIBE}');", 'do');
 
 
