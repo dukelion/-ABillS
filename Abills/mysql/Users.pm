@@ -649,8 +649,10 @@ sub list {
 
 
  if ($attr->{CONTRACT_ID}) {
-    if ($attr->{CONTRACT_ID} =~ /, /) {
-      push @WHERE_RULES, "pi.phone IN ($attr->{CONTRACT_ID})";
+
+    if ($attr->{CONTRACT_ID} =~ /^list:(.+)/) {
+      my $contract_id = $1;
+      push @WHERE_RULES, "pi.contract_id IN ($contract_id)";
      }
     else {
       $attr->{CONTRACT_ID} =~ s/\*/\%/ig;
