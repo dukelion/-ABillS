@@ -191,7 +191,7 @@ if ($FORM{AWEB_OPTIONS}) {
 
 #===========================================================
 my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP],  # Users
-               [$_LIST, $_ADD, $_DEL, $_ALL],                                 # Payments
+               [$_LIST, $_ADD, $_DEL, $_ALL, $_DATE],                                 # Payments
                [$_LIST, $_GET, $_DEL, $_ALL],                                 # Fees
                [$_LIST, $_DEL],                                               # reports view
                [$_LIST, $_ADD, $_CHANGE, $_DEL],                              # system magment
@@ -3796,7 +3796,7 @@ $payments->{SEL_METHOD} =  $html->form_select('METHOD',
 
 
 
-if (defined ($permissions{1}{1})) {
+if (defined($permissions{1}{1})) {
    $payments->{OP_SID} = mk_unique_value(16);
    
    if ($conf{EXT_BILL_ACCOUNT}) {
@@ -3809,6 +3809,11 @@ if (defined ($permissions{1}{1})) {
     }
 
    
+   if ($permissions{1}{4}) {
+   	 $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>". $html->form_input('DATE', "$DATE $TIME"). "</td></tr>\n";
+    }
+
+
    $html->tpl_show(templates('form_payments'), $payments);
  }
 }
@@ -3989,9 +3994,23 @@ if ($attr->{USER}) {
     }
 
     if ($period == 2) {
+  	  use POSIX;
+      my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
 
       $FORM{date_M}++;
-      $shedule->add( { DESCRIBE => $FORM{DESCR}, 
+      my $FEES_DATE = "$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}";
+
+      if ($seltime - 86400 <= time()) {
+        $fees->take($user, $FORM{SUM}, { %FORM, DATE => $FEES_DATE } );  
+        if ($fees->{errno}) {
+          $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
+         }
+        else {
+        	$html->message('info', $_PAYMENTS, "$_TAKE SUM: $fees->{SUM} $_DATE: $FEES_DATE");
+         }
+       }
+      else { 
+        $shedule->add( { DESCRIBE => $FORM{DESCR}, 
       	               D        => $FORM{date_D},
       	               M        => $FORM{date_M},
       	               Y        => $FORM{date_Y},
@@ -4000,12 +4019,13 @@ if ($attr->{USER}) {
                        ACTION   => ( $conf{EXT_BILL_ACCOUNT} ) ? "$FORM{SUM}:$FORM{DESCRIBE}:BILL_ID=$FORM{BILL_ID}" : "$FORM{SUM}:$FORM{DESCRIBE}"
                       } );
 
-      if ($shedule->{errno}) {
-        $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
-       }
-      else {
-  	    $html->message('info', $_SHEDULE, "$_ADDED");
-       }
+        if ($shedule->{errno}) {
+          $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+         }
+        else {
+  	      $html->message('info', $_SHEDULE, "$_ADDED");
+         }
+      }
      }
     #Add now
     else {
