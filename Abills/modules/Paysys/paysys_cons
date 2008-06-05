@@ -161,18 +161,28 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
 
        my $user = $users->info($uid);
 
+       my $describe = $DATA_ARR->[$i]->{DESCRIBE} || ''; 
+       my $inner_describe = $DATA_ARR->[$i]->{INNER_DESCRIBE} || '';
+       
+       if ($describe ne '' && $ARGV->{DECODE}) {
+       	 $describe = convert($describe, { $ARGV->{DECODE} => 1 });
+        }
 
+       if ($inner_describe ne '' && $ARGV->{DECODE}) {
+       	 $inner_describe = convert($inner_describe, { $ARGV->{DECODE} => 1 });
+        }
+       
 
        if ($ARGV->{TYPE} eq 'PAYMENTS') {
            if ($debug < 5) {
               #$payments->{debug}=1;
               $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
-                       DESCRIBE     => $DATA_ARR->[$i]->{DESCRIBE} || '', 
+                       DESCRIBE     => $describe, 
  	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 0, 
  	                     DATE         => $DATA_ARR->[$i]->{DATE} || undef, 
                        EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$attr->{IMPORT_RULE}.$ID",
                        CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$attr->{IMPORT_RULE}.$ID",
-                       INNER_DESCRIBE => $DATA_ARR->[$i]->{INNER_DESCRIBE} || ''
+                       INNER_DESCRIBE => $inner_describe
                         } );
 
             }
@@ -184,10 +194,10 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
           if ($debug < 5) {
             
             $fees->take($user,  $DATA_ARR->[$i]->{SUM}, { 
-                                 DESCRIBE      => $DATA_ARR->[$i]->{DESCRIBE}, 
+                                 DESCRIBE      => $describe, 
                                  INNER_DESRIBE => $DATA_ARR->[$i]->{EXT_ID}, 
           	                     DATE          => $DATA_ARR->[$i]->{DATE} || undef, 
-          	                     INNER_DESRIBE => '',
+          	                     INNER_DESCRIBE => $inner_describe,
  	                 #    METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD}, 
                    #    EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
                    #    CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"
@@ -344,7 +354,14 @@ Paysys console interface:
 $import_rules    
   FILE=                - Import FILE
   DATE=                - Import Date
-  DEBUG=1,2..5         - Debug Mode                 
+  DEBUG=1,2..5         - Debug Mode
+  DECODE=              - Decode from other charsets
+    win2koi 
+    koi2win
+    win2iso
+    iso2win
+    win2dos
+    dos2win
   help                 - this help
 
 [END]
