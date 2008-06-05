@@ -143,7 +143,7 @@ sub paysys_import_form {
 	     	                          PAGE_ROWS      => 1000000 
 	     	                        });
 
-       $binding_field_id = 0;
+       $binding_field_id = 5;
        if ($BINDING_FIELD eq 'LOGIN') {
          $binding_field_id = 0;
         }
