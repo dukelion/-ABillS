@@ -83,7 +83,7 @@ sub user_ips {
   
   if ($CONF->{IPN_STATIC_IP}) {
 	  $sql="select u.uid, dv.ip, u.id, 
-	   '',
+	   if(calls.acct_session_id, calls.acct_session_id, ''),
 	   0,
 	   0,
 	   dv.tp_id, 
@@ -100,6 +100,7 @@ sub user_ips {
 		 LEFT JOIN bills b ON (u.bill_id=b.id)
 		 LEFT JOIN bills cb ON (c.bill_id=cb.id)
 		 LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
+		 LEFT JOIN dv_calls calls ON (dv.uid=calls.uid)
 		 WHERE u.uid=dv.uid 
 		  and dv.ip > 0 and u.disable=0 and dv.disable=0;";
    }
