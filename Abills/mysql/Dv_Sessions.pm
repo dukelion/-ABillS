@@ -1142,8 +1142,8 @@ if ($attr->{FIELDS}) {
       $EXT_TABLE = 'users_pi';
       $date = 'u.fio';
      }
-    elsif ($line =~ /_(\S+)/) {
-      #$date = 'u._'.$1;
+    elsif ($line =~ /^_(\S+)/) {
+      #$date = 
       my $f = '_'.$1;
       push @FIELDS_ARR, $f;
       $self->{REPORT_FIELDS}{$f}='u.'.$f;
