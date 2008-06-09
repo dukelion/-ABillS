@@ -1249,13 +1249,14 @@ sub dv_use {
 my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,  	
                      '2:USERS'           => $_USERS,
                      '3:USERS_FIO'       => $_FIO,
-                     '4:SESSIONS'        => $_SESSIONS,
-                     '5:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
-                     '6:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT",
-                     '7:TRAFFIC_SUM'     => $_TRAFFIC,
-                     '8:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
-                     '9:DURATION'        => $_DURATION,
-                     '91:SUM'            => $_SUM);
+                     '4:TP'              => $_TARIF_PLAN,
+                     '5:SESSIONS'        => $_SESSIONS,
+                     '6:TRAFFIC_RECV'    => "$_TRAFFIC $_RECV",
+                     '7:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT",
+                     '8:TRAFFIC_SUM'     => $_TRAFFIC,
+                     '9:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
+                     '91:DURATION'        => $_DURATION,
+                     '92:SUM'            => $_SUM);
 
 
     my $i=1; 
@@ -1273,7 +1274,6 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
 
       $CAPTIONS_HASH{(90+$i).':'.$field_id}=$name;
 
-#      my $input = '';
       if ($type == 2) {
       	print "info: ";
         
@@ -1439,6 +1439,8 @@ else {
    }
   else {
   	@caption = ("$_DATE", "$_USERS", "$_SESSIONS", "$_TRAFFIC ", "$_TRAFFIC 2", $_DURATION, $_SUM); 
+   }
+
     if ($FORM{TYPE} eq 'USER') {
     	$caption[0]="$_USER";
   	  $caption[1]="$_LOGINS";
@@ -1451,7 +1453,6 @@ else {
     		$TP_NAMES{$line->[0]}=$line->[1];
     	 }
      }
-   }
 
   
   
@@ -1486,8 +1487,8 @@ else {
         elsif ($fields_arr[$i] =~ /^_/ && ref ($INFO_LISTS{$fields_arr[$i]}) eq 'HASH' ) {
         	push @rows, ($INFO_LISTS{$fields_arr[$i]}{$line->[$i]}) ? $INFO_LISTS{$fields_arr[$i]}{$line->[$i]} : '';
          }
-        elsif ($fields_arr[$i] eq 'TP') {
-        	push @rows, $TP_NAMES{$line->[$i]};
+        elsif ($fields_arr[$i] =~ 'TP') {
+        	push @rows, $button = $line->[0].'. ' .$html->button($TP_NAMES{$line->[0]}, "index=$index&TP_ID=$line->[0]$pages_qs");
          }
         else {
           push @rows, $line->[$i];
