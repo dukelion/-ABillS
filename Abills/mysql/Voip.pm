@@ -964,4 +964,187 @@ sub tp_info {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#**********************************************************
+# route_add
+#**********************************************************
+sub trunk_add {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  %DATA = $self->get_data($attr); 
+
+  $self->query($db,  "INSERT INTO voip_routes (prefix, parent, name, disable, date,
+        gateway_id,
+        descr) 
+        VALUES ('$DATA{ROUTE_PREFIX}', '$DATA{PARENT_ID}',  '$DATA{ROUTE_NAME}', '$DATA{DISABLE}', now(),
+        '$DATA{GATEWAY_ID}',
+        '$DATA{DESCRIBE}');", 'do');
+
+
+  return $self if ($self->{errno});
+
+#  $admin->action_add($DATA{UID}, "ADDED", { MODULE => 'voip'});
+ 
+  return $self;
+}
+
+
+#**********************************************************
+# Route information
+# route_info()
+#**********************************************************
+sub trunk_info {
+  my $self = shift;
+  my ($id, $attr) = @_;
+
+  $self->query($db, "SELECT 
+   id,
+   prefix,
+   parent,
+   name,
+   date,
+   disable,
+   descr,
+   gateway_id
+     FROM voip_routes
+   WHERE id='$id';");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  ($self->{ROUTE_ID},
+   $self->{ROUTE_PREFIX}, 
+   $self->{PARENT_ID}, 
+   $self->{ROUTE_NAME}, 
+   $self->{DATE},
+   $self->{DISABLE},
+   $self->{DESCRIBE},
+   $self->{GATEWAY_ID}
+  )= @{ $self->{list}->[0] };
+  
+  
+  
+  
+  return $self;
+}
+
+#**********************************************************
+# route_del
+#**********************************************************
+sub trunk_del {
+  my $self = shift;
+  my ($id) = @_;
+  
+  $self->query($db,  "DELETE FROM voip_routes WHERE id='$id';", 'do');
+  return $self if ($self->{errno});
+
+#  $admin->action_add($DATA{UID}, "ADDED", { MODULE => 'voip'});
+ 
+  return $self;
+}
+
+#**********************************************************
+# route_change()
+#**********************************************************
+sub trunk_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %FIELDS = (ROUTE_ID        => 'id',
+   							PARENT_ID       => 'parent',
+                DISABLE        => 'disable',
+                ROUTE_PREFIX   => 'prefix',
+                ROUTE_NAME     => 'name',
+                DESCRIBE       => 'descr',
+                GATEWAY_ID     => 'gateway_id'
+                
+             );
+
+
+  $self->changes($admin,  { CHANGE_PARAM => 'ROUTE_ID',
+                   TABLE        => 'voip_routes',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $self->route_info($attr->{ROUTE_ID}),
+                   DATA         => $attr
+                  } );
+
+  return $self->{result};
+}
+
+
+
+
+#**********************************************************
+# route_list()
+#**********************************************************
+sub trunk_list {
+ my $self = shift;
+ my ($attr) = @_;
+ my @list = ();
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
+ undef @WHERE_RULES;
+
+ if ($attr->{ROUTE_PREFIX}) {
+   $attr->{ROUTE_PREFIX} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "r.prefix LIKE '$attr->{ROUTE_PREFIX}'";
+  }
+
+ if ($attr->{DESCRIBE}) {
+   $attr->{DESCRIBE} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "r.descr LIKE '$attr->{DESCRIBE}'";
+  }
+
+ if ($attr->{ROUTE_NAME}) {
+   $attr->{ROUTE_NAME} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "r.name LIKE '$attr->{ROUTE_NAME}'";
+  }
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
+ $self->query($db, "SELECT r.prefix, r.name, r.disable, r.date, r.gateway_id, r.id, r.parent
+     FROM voip_routes r
+     $WHERE 
+     ORDER BY $SORT $DESC 
+     LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(r.id) FROM voip_routes r $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+  return $list;
+}
+
+
 1

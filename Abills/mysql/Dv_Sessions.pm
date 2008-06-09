@@ -1038,13 +1038,14 @@ sub reports {
  my @FIELDS_ARR = ('DATE', 
                    'USERS',
                    'USERS_FIO',
+                   'TP',
                    'SESSIONS', 
                    'TRAFFIC_RECV', 
                    'TRAFFIC_SENT',
                    'TRAFFIC_SUM', 
                    'TRAFFIC_2_SUM', 
                    'DURATION', 
-                   'SUM'
+                   'SUM',
                    );
 
  $self->{REPORT_FIELDS} = {DATE            => '',  	
@@ -1057,7 +1058,8 @@ sub reports {
                            SUM             => 'sum(l.sum)',
                            TRAFFIC_RECV    => 'sum(l.recv)',
                            TRAFFIC_SENT    => 'sum(l.sent)',
-                           USERS_COUNT     => 'count(DISTINCT l.uid)'
+                           USERS_COUNT     => 'count(DISTINCT l.uid)',
+                           TP              => 'l.tp_id'
                           };
  
  
@@ -1157,8 +1159,6 @@ if ($attr->{FIELDS}) {
 
   $fields = join(', ', @show_fields)
 }
- 
-
  
  
  if(defined($attr->{DATE})) {
