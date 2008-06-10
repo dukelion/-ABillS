@@ -245,12 +245,15 @@ else {
      	}
      chop($query_params);
 
-     $self->query($db, "SELECT id,
-      prefix,
-      gateway_id,
-      disable
-     FROM voip_routes
-      WHERE prefix in ($query_params)
+     $self->query($db, "SELECT r.id,
+      r.prefix,
+      r.gateway_id,
+      r.disable,
+      t.protocol,
+      t.path
+     FROM voip_routes r
+     LEFT JOIN trunks t ON (r.trunk=t.id) 
+      WHERE r.prefix in ($query_params)
       ORDER BY 2 DESC LIMIT 1;");
 
     if ($self->{TOTAL} < 1) {
@@ -262,7 +265,9 @@ else {
     ($self->{ROUTE_ID},
      $self->{PREFIX},
      $self->{GATEWAY_ID}, 
-     $self->{ROUTE_DISABLE}
+     $self->{ROUTE_DISABLE},
+     $self->{TRUNK_PROTOCOL},
+     $self->{TRUNK_PATH}
     )= @{ $self->{list}->[0] };
   
     if ($self->{ROUTE_DISABLE} == 1) {
@@ -296,10 +301,52 @@ else {
 
          #$RAD_PAIRS{'h323-credit-time'}=$session_timeout;
        }
+  
+#Make trunk data for asterisk  
+if ($NAS->{NAS_TYPE} eq 'asterisk' and $self->{TRUNK_PROTOCOL}) {
+#    if ( $self->{TRUNK_PROTOCOL} eq "Local" ) {
+#        $dialstring = "Local/"
+#          . $route->{prepend}
+#          . $phone . "\@"
+#          . $trunkdata->{path} . "/n";
+#        return $dialstring;
+#    }
+#    elsif (  $self->{TRUNK_PROTOCOL} eq "IAX2" ) {
+#        $dialstring =
+#          "IAX2/" . $trunkdata->{path} . "/" . $route->{prepend} . $phone;
+#        return $dialstring;
+#    }
+#    elsif (  $self->{TRUNK_PROTOCOL} eq "Zap" ) {
+#        $dialstring =
+#          "Zap/" . $trunkdata->{path} . "/" . $route->{prepend} . $phone;
+#        return $dialstring;
+#    }
+#    elsif (  $self->{TRUNK_PROTOCOL} eq "SIP" ) {
+#        $dialstring =
+#          "SIP/" . $route->{prepend} . $phone . "\@" . $trunkdata->{path};
+#        return $dialstring;
+#    }
+#    elsif (  $self->{TRUNK_PROTOCOL} eq "OH323" ) {
+#        $dialstring =
+#          "OH323/" . $trunkdata->{path} . "/" . $route->{prepend} . $phone;
+#        return $dialstring;
+#    }
+#    elsif (  $self->{TRUNK_PROTOCOL} eq "OOH323C" ) {
+#        $dialstring =
+#          "OOH323C/" . $route->{prepend} . $phone . "\@" . $trunkdata->{path};
+#        return $dialstring;
+#    }
+#    elsif (  $self->{TRUNK_PROTOCOL} eq "H323" ) {
+#        $dialstring =
+#          "H323/" . $route->{prepend} . $phone . "\@" . $trunkdata->{path};
+#        return $dialstring;
+#    }
+    $RAD_PAIRS{'session-protocol'}=$self->{TRUNK_PROTOCOL};
+    
+ }    
        
-       
-         #Make start record in voip_calls
 
+  #Make start record in voip_calls
   my $SESSION_START = 'now()';
 
   $self->query($db, "INSERT INTO voip_calls 

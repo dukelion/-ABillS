@@ -31,7 +31,7 @@ my $MODULE='Dv';
 
 my %SEARCH_PARAMS = (TP_ID => 0, 
    SIMULTANEONSLY => 0, 
-   DISABLE        => 0, 
+   STATUS        => 0, 
    IP             => '0.0.0.0', 
    NETMASK        => '255.255.255.255', 
    SPEED          => 0, 
@@ -128,7 +128,7 @@ sub info {
    $self->{SPEED}, 
    $self->{FILTER_ID}, 
    $self->{CID},
-   $self->{DISABLE},
+   $self->{STATUS},
    $self->{CALLBACK},
    $self->{PORT},
    $self->{TP_GID},
@@ -152,7 +152,7 @@ sub defaults {
   my %DATA = (
    TP_ID     => 0, 
    SIMULTANEONSLY => 0, 
-   DISABLE        => 0, 
+   STATUS         => 0, 
    IP             => '0.0.0.0', 
    NETMASK        => '255.255.255.255', 
    SPEED          => 0, 
@@ -216,7 +216,7 @@ sub add {
              callback,
              port)
         VALUES ('$DATA{UID}', now(),
-        '$DATA{TP_ID}', '$DATA{SIMULTANEONSLY}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
+        '$DATA{TP_ID}', '$DATA{SIMULTANEONSLY}', '$DATA{STATUS}', INET_ATON('$DATA{IP}'), 
         INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'),
         '$DATA{CALLBACK}',
         '$DATA{PORT}');", 'do');
@@ -239,7 +239,7 @@ sub change {
 
   
   my %FIELDS = (SIMULTANEONSLY => 'logins',
-              DISABLE          => 'disable',
+              STATUS          => 'disable',
               IP               => 'ip',
               NETMASK          => 'netmask',
               TP_ID            => 'tp_id',
@@ -256,11 +256,9 @@ sub change {
    }
 
   my $old_info = $self->info($attr->{UID});
-  if ($old_info->{TP_ID} != $attr->{TP_ID}) {
+  if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
-     
-     
-     
+
      $self->{TP_INFO}=$tariffs->info($attr->{TP_ID});
      
      if($tariffs->{CHANGE_PRICE} > 0) {
@@ -285,6 +283,10 @@ sub change {
        $user->change($attr->{UID}, { EXPIRE => $EXPITE_DATE, UID => $attr->{UID} });
      }
    }
+  elsif ($old_info->{STATUS} == 2 && $attr->{STATUS} == 0) {
+    my $tariffs = Tariffs->new($db, $CONF, $admin);
+    $self->{TP_INFO}=$tariffs->info($old_info->{TP_ID});
+   }
 
   $admin->{MODULE}=$MODULE;
   $self->changes($admin, { CHANGE_PARAM => 'UID',
@@ -295,10 +297,10 @@ sub change {
                   } );
 
 
-  
+  $self->info($attr->{UID});
   
 
-  return $self->{result};
+  return $self;
 }
 
 
@@ -483,8 +485,8 @@ sub list {
  # Show users for spec tarifplan 
  if (defined($attr->{TP_ID})) {
     push @WHERE_RULES, "dv.tp_id='$attr->{TP_ID}'";
-    $self->{SEARCH_FIELDS} .= 'tp.name, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+    #$self->{SEARCH_FIELDS} .= 'tp.name, ';
+    #$self->{SEARCH_FIELDS_COUNT}++;
   }
 
  # Show debeters
@@ -518,8 +520,8 @@ sub list {
  }
 
 #DIsable
- if (defined($attr->{DISABLE})) {
-   push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
+ if (defined($attr->{STATUS})) {
+   push @WHERE_RULES, "dv.disable='$attr->{STATUS}'"; 
  }
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
@@ -528,7 +530,7 @@ sub list {
       pi.fio, if(u.company_id > 0, cb.deposit, b.deposit), 
       u.credit, 
       tp.name, 
-      u.disable, 
+      dv.disable, 
       $self->{SEARCH_FIELDS}
       u.uid, 
       u.company_id, 
