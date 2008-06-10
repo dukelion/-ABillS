@@ -16,6 +16,8 @@ my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
 my %FORM_BASE = ();
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
+
 
 #*******************************************************************
 # Change user variant form
@@ -46,7 +48,7 @@ sub dv_chg_tp {
 
 
 
-if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{DISABLE} && ! $users->{DISABLE} &&
+if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{STATUS} && ! $users->{DISABLE} &&
         ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
          $Dv->{POSTPAID_ABON} || 
          $Dv->{PAYMENT_TYPE} == 1 )) {
@@ -118,31 +120,9 @@ if ($FORM{set}) {
       $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");	
      }
     else {
+      #Take fees
       if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-        
-        my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
-
-        my $message = ''; 
-
-        if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
-        	$message = "$_MONTH_ALIGNMENT, ";
- 	        my ($y, $m, $d)=split(/-/, $DATE, 3);
-          my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
-          
-          $conf{START_PERIOD_DAY} = 1  if (! $conf{START_PERIOD_DAY});
-          
-          $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1));
-         }
-       
-        $message .= "$_MONTH_FEE: $sum ($FORM{TP_ID})";
-        $fees->take($users, $sum, { DESCRIBE  => $message, METHOD => 1 });  
-        
-        if ($fees->{errno}) {
-        	$html->message('err', $_ERROR, "$fees->{errno}");	
-          }
-        else {
-          $html->message('info', $_INFO, $message);	
-         }
+        dv_get_month_fee($Dv);
        }
 
     	
@@ -233,7 +213,16 @@ sub dv_users_list {
    return 0;
   }
  
+ 
  $FORM{GROUP_SEL} = sel_groups();
+ $FORM{STATUS_SEL}   = $html->form_select('STATUS', 
+                                          { 
+ 	                                          SELECTED     => $FORM{STATUS},
+ 	                                          SEL_ARRAY    => \@service_status,
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+
+ 
  form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_users_search', 'Dv'),
  	                                            { %FORM },
  	                                            { notprint => 1 })    });
@@ -300,7 +289,7 @@ foreach my $line (@$list) {
    "$line->[2]", 
    "$line->[3]", 
    "$line->[4]", 
-   "$status[$line->[5]]",
+   "$service_status[$line->[5]]",
    @fields_array, 
    $payments, 
    $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}])
@@ -361,34 +350,36 @@ sub dv_user {
 
     if (! $Dv->{errno}) {
     	#Make month feee
-      if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-        
-        my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
+    	dv_get_month_fee($Dv) if (! $FORM{STATUS});
 
-        my $users = Users->new($db, $admin, \%conf); 
-        my $user  = $users->info($Dv->{UID});
-
-
-        my $message = ''; 
-
-        if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
-        	$message = "$_MONTH_ALIGNMENT, ";
- 	        my ($y, $m, $d)=split(/-/, $DATE, 3);
-          my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
-          $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
-          $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1));
-         }
-       
-        $message .= "$_MONTH_FEE: $sum ($FORM{TP_ID})";
-        $fees->take($users, $sum, { DESCRIBE  => $message, METHOD => 1 });  
-        
-        if ($fees->{errno}) {
-        	$html->message('err', $_ERROR, "$fees->{errno}");	
-          }
-        else {
-          $html->message('info', $_INFO, $message);	
-         }
-       }
+#      if (! $FORM{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+#        
+#        my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
+#
+#        my $users = Users->new($db, $admin, \%conf); 
+#        my $user  = $users->info($Dv->{UID});
+#
+#
+#        my $message = ''; 
+#
+#        if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
+#        	$message = "$_MONTH_ALIGNMENT, ";
+# 	        my ($y, $m, $d)=split(/-/, $DATE, 3);
+#          my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+#          $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
+#          $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1));
+#         }
+#       
+#        $message .= "$_MONTH_FEE: $sum ($FORM{TP_ID})";
+#        $fees->take($users, $sum, { DESCRIBE  => $message, METHOD => 1 });  
+#        
+#        if ($fees->{errno}) {
+#        	$html->message('err', $_ERROR, "$fees->{errno}");	
+#          }
+#        else {
+#          $html->message('info', $_INFO, $message);	
+#         }
+#       }
 
       $html->message('info', $_INFO, "$_ADDED");	
      }
@@ -400,6 +391,9 @@ sub dv_user {
      }
 
     $Dv->change({ %FORM });
+
+    dv_get_month_fee($Dv) if (! $FORM{STATUS});
+
     if (! $Dv->{errno}) {
       $html->message('info', $_INFO, "- $_CHANGED");	
      }
@@ -441,8 +435,7 @@ sub dv_user {
 	  $Dv->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. ($index + 1)) .']';
 
     # Get next payment period
-    
-    if ($Dv->{MONTH_ABON} > 0 &&  ! $Dv->{DISABLE} && ! $users->{DISABLE} &&
+    if ($Dv->{MONTH_ABON} > 0 &&  ! $Dv->{STATUS} && ! $users->{DISABLE} &&
         ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
          $Dv->{POSTPAID_ABON} || 
          $Dv->{PAYMENT_TYPE} == 1 )) {
@@ -465,7 +458,13 @@ sub dv_user {
       }
 	} 
 
-  $Dv->{DISABLE}          = ($Dv->{DISABLE} == 1) ? ' checked' : '';
+  $Dv->{STATUS_SEL}          = $html->form_select('STATUS', 
+                                          { 
+ 	                                          SELECTED     => $Dv->{STATUS},
+ 	                                          SEL_ARRAY    => \@service_status,
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+
   $Dv->{CALLBACK}         = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
   $Dv->{REGISTRATION_INFO}= $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1");
   
@@ -2480,21 +2479,27 @@ sub dv_user_info {
   	foreach my $line (@arr) {
       if ($line =~ /$user->{REMOTE_ADDR}\s+\-\s+(\S+)/) {
       	$Dv->{ISG_CID_CUR}=$1;
-      	
        }
   	 }
  	
-  	if ($FORM{activate}) {
-      $Dv->change({ UID   => $LIST_PARAMS{UID}, 
-      	            CID   => $Dv->{ISG_CID_CUR}
+   }
+  
+  if ($FORM{activate}) {
+     $Dv->change({ UID    => $LIST_PARAMS{UID}, 
+     	             STATUS => 0,
+     	             CID    => ($Dv->{ISG_CID_CUR})  ? $Dv->{ISG_CID_CUR} : undef 
     	            });
   	  if (! $Dv->{errno}) {
   	  	$html->message('info', $_INFO, "$_ACTIVATE CID: $Dv->{ISG_CID_CUR}");
+
+  	  	dv_get_month_fee($Dv) if (! $Dv->{STATUS});
   	   }
   	  else {
   	  	$html->message('err', $_ACTIVATE, "$_ERROR CID: $Dv->{ISG_CID_CUR}");
+  	  	
+  	  	
   	   }
-  	 } 
+  
    }
   
   $Dv->info($LIST_PARAMS{UID});
@@ -2504,13 +2509,21 @@ sub dv_user_info {
     return 0;	
   }
   
-  $Dv->{STATUS}    = $status[$Dv->{DISABLE}];
+  if ($Dv->{STATUS} == 2) {
+    $Dv->{STATUS}    = $html->color_mark($service_status[$Dv->{STATUS}], $_COLORS[6]). ' '.
+      $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1");
+   }  
+  else {
+  	$Dv->{STATUS}    = $service_status[$Dv->{STATUS}];
+   }
+  
+  
   if ($conf{DV_USER_CHG_TP}) {
     $Dv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid );
    }
 
   # Get next payment period
-  if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{DISABLE} && ! $user->{DISABLE} &&
+  if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{STATUS} && ! $user->{DISABLE} &&
         ($user->{DEPOSIT}+$user->{CREDIT} > 0 || 
          $Dv->{POSTPAID_ABON} || 
          $Dv->{PAYMENT_TYPE} == 1 )) {
@@ -2534,17 +2547,17 @@ sub dv_user_info {
 
   if ($conf{DV_ISG}) {
     if ($Dv->{CID} ne $Dv->{ISG_CID_CUR} || $Dv->{CID} eq '') {
-      $html->message('info', $_INFO, "$_NOT_ACTIVE");
+      $html->message('info', $_INFO, "CID $_NOT_ACTIVE ");
       $html->form_main({ CONTENT => '',
   	                     HIDDEN  => { index => "$index",
   	                         	            CID   => "$Dv->{ISG_CID_CUR}",
   	                         	            sid   => $sid    },
-	                       SUBMIT  => { activate => "$_ACTIVATE"  } 
+	                       SUBMIT  => { activate_cid => "$_ACTIVATE"  } 
  	                      });
   	
   	  $Dv->{CID}= $Dv->{ISG_CID_CUR};
   	  $Dv->{IP} = $user->{REMOTE_ADDR};
-  	  $Dv->{STATUS} = $html->color_mark($_NOT_ACTIVE, $_COLORS[6]);
+  	  $Dv->{CID} .= $html->color_mark($_NOT_ACTIVE, $_COLORS[6]);
   	 }
 
     $Dv->{SPEED} = $html->form_main({ CONTENT => "$_SPEED: ".$html->form_select('SPEED', 
@@ -3329,7 +3342,7 @@ sub dv_wizard_user {
         return 0;
        }
       else {
- 	      if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+ 	      if (! $add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
         
           my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
           my $message = ''; 
@@ -3396,6 +3409,7 @@ sub dv_wizard_user {
         $FORM{ex_message}=$message;
         $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
         $html->tpl_show(templates('form_user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
+        $dv->{STATUS}=$service_status[$dv->{STATUS}];
         $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
         $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail) if ($Mail);
        }
@@ -3426,8 +3440,13 @@ sub dv_wizard_user {
    }
   
   my $dv_defaults = $Dv->defaults();
-  $dv_defaults->{DISABLE}=($dv_defaults->{DISABLE} == 1) ? ' checked' : '';
-  
+  $dv_defaults->{STATUS_SEL}=$html->form_select('STATUS', 
+                                          { 
+ 	                                          SELECTED     => $FORM{STATUS} || undef,
+ 	                                          SEL_ARRAY    => \@service_status,
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+
   $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
                                 { SELECTED      => $FORM{METHOD} || undef,
  	                                SEL_ARRAY     => \@PAYMENT_METHODS,
@@ -3598,6 +3617,44 @@ sub dv_registration  {
 	return 0;
 }
 
+
+#**********************************************************
+#
+#Make month feee
+#**********************************************************
+sub dv_get_month_fee {
+  my ($Dv) = @_;
+
+  if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+        
+        my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
+
+        my $users = Users->new($db, $admin, \%conf); 
+        my $user  = $users->info($Dv->{UID});
+
+
+        my $message = ''; 
+
+        if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
+        	$message = "$_MONTH_ALIGNMENT, ";
+ 	        my ($y, $m, $d)=split(/-/, $DATE, 3);
+          my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+          $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
+          $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1));
+         }
+       
+        $message .= "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{TP_ID})";
+        $fees->take($users, $sum, { DESCRIBE  => $message, METHOD => 1 });  
+        
+        if ($fees->{errno}) {
+        	$html->message('err', $_ERROR, "$fees->{errno}");	
+          }
+        else {
+          $html->message('info', $_INFO, $message);	
+         }
+       }
+
+}
 
 
 1
