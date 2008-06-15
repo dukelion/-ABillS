@@ -9,6 +9,9 @@ $_ROUTE='Route';
 $_GATEWAY='Gateway';
 $_NUMBER='Number';
 
+$_FAILOVER_TRUNK='Failover Trunk';
+$_PROTOCOL='Protocol';
+$_PROVIDER = 'Provider';
 
 $_ALLOW_ANSWER='Allow answer';
 $_ALLOW_CALLS='Allow Calls';

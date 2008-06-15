@@ -312,8 +312,11 @@ print $table->show();
 # user_dv
 #**********************************************************
 sub dv_user {
+ 	my ($attr) = @_;
+
  	$Dv->{UID}=$FORM{UID} || $LIST_PARAMS{UID} ;	  
   
+  print $attr->{USER}->{ACTIVATE} ;
   
   if ($FORM{REGISTRATION_INFO}) {
       
@@ -350,37 +353,8 @@ sub dv_user {
 
     if (! $Dv->{errno}) {
     	#Make month feee
+    	$Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
     	dv_get_month_fee($Dv) if (! $FORM{STATUS});
-
-#      if (! $FORM{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-#        
-#        my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
-#
-#        my $users = Users->new($db, $admin, \%conf); 
-#        my $user  = $users->info($Dv->{UID});
-#
-#
-#        my $message = ''; 
-#
-#        if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
-#        	$message = "$_MONTH_ALIGNMENT, ";
-# 	        my ($y, $m, $d)=split(/-/, $DATE, 3);
-#          my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
-#          $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
-#          $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1));
-#         }
-#       
-#        $message .= "$_MONTH_FEE: $sum ($FORM{TP_ID})";
-#        $fees->take($users, $sum, { DESCRIBE  => $message, METHOD => 1 });  
-#        
-#        if ($fees->{errno}) {
-#        	$html->message('err', $_ERROR, "$fees->{errno}");	
-#          }
-#        else {
-#          $html->message('info', $_INFO, $message);	
-#         }
-#       }
-
       $html->message('info', $_INFO, "$_ADDED");	
      }
    }
@@ -391,7 +365,7 @@ sub dv_user {
      }
 
     $Dv->change({ %FORM });
-
+    $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
     dv_get_month_fee($Dv) if (! $FORM{STATUS});
 
     if (! $Dv->{errno}) {
@@ -413,8 +387,7 @@ sub dv_user {
 
   if($Dv->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
-	  $Dv = $Dv->defaults();
-	  
+	  #$Dv = $Dv->defaults();
 	  
     $Dv->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
@@ -467,9 +440,44 @@ sub dv_user {
 
   $Dv->{CALLBACK}         = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
   $Dv->{REGISTRATION_INFO}= $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1");
+
+
+  #Join Service
+  if($attr->{USER}->{COMPANY_ID}) {
+    my $list  = $Dv->list({ JOIN_SERVICE => 1, 
+                            COMPANY_ID   => $attr->{USER}->{COMPANY_ID}   
+                         });
+
+    $Dv->{JOIN_SERVICES_SEL}= $html->form_select('JOIN_SERVICE', 
+                                          { 
+ 	                                          SELECTED          => $Dv->{JOIN_SERVICE},
+ 	                                          SEL_MULTI_ARRAY   => [['', '', '', '', '', '', '', 0], [$_MAIN, '', '', '', '', '', '', 1], @$list ],
+ 	                                          MULTI_ARRAY_KEY   => $Dv->{SEARCH_FIELDS_COUNT} + 6,
+ 	                                          MULTI_ARRAY_VALUE => 0,
+ 	                                          NO_ID             => undef
+ 	                                          
+ 	                                        });
+
+     if ($Dv->{JOIN_SERVICE} == 1) {
+   	   my $list = $Dv->list({ JOIN_SERVICE => '>1', 
+                              COMPANY_ID   => $attr->{USER}->{COMPANY_ID} ,
+                              PAGE_ROWS    => 1000
+                             });
+
+       foreach my $line (@$list) {
+     	   $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&index=15&UID=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) . ' ';
+        }
+      }
+     elsif($Dv->{JOIN_SERVICE}  > 1) {
+     	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_MAIN", "index=15&UID=$Dv->{JOIN_SERVICE}");
+      }
+
+ 	 $Dv->{JOIN_SERVICE} = $html->tpl_show(_include('dv_user_join_service', 'Dv'), $Dv, { OUTPUT2RETURN => 1 });
+ 	}                                    
+ 	                                        
+ 	                                        
   
-  
-  $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
+  $html->tpl_show(_include('dv_user', 'Dv'), { %{ $Dv->defaults() }, %$Dv });
 }
 
 
@@ -3343,25 +3351,9 @@ sub dv_wizard_user {
        }
       else {
  	      if (! $add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-        
-          my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
-          my $message = ''; 
-
-          if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
-          	$message = "$_MONTH_ALIGNMENT, ";
- 	          my ($y, $m, $d)=split(/-/, $DATE, 3);
-            my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
-            $conf{START_PERIOD_DAY}=1 if (! $conf{START_PERIOD_DAY});
-            $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1 ));
-           }
-       
-          $message .= "$_MONTH_FEE: $sum ($FORM{'4.TP_ID'})";
-          $fees->take($user, $sum, { DESCRIBE  => $message, METHOD => 1 });  
-        
-          if ($fees->{errno}) {
-        	  $html->message('err', $_ERROR, "$fees->{errno}");	
-        	  return 0;
-           }
+          $Dv->{UID}=$UID;
+          $Dv->{ACTIVATE}=$add_values{1}{ACTIVATE};
+          dv_get_month_fee($Dv);
          }
        }
 
@@ -3623,36 +3615,80 @@ sub dv_registration  {
 #Make month feee
 #**********************************************************
 sub dv_get_month_fee {
-  my ($Dv) = @_;
+  my ($Dv, $attr) = @_;
 
   if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-        
-        my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
 
-        my $users = Users->new($db, $admin, \%conf); 
-        my $user  = $users->info($Dv->{UID});
+     my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
 
+     my $users = Users->new($db, $admin, \%conf); 
+     my $user  = $users->info($Dv->{UID});
 
-        my $message = ''; 
+     my $message = ''; 
+     #Current Month
+     my ($y, $m, $d)=split(/-/, $DATE, 3);
+     my ($active_y, $active_m, $active_d)=split(/-/, $Dv->{ACTIVATE}, 3);	 
 
         if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
         	$message = "$_MONTH_ALIGNMENT, ";
- 	        my ($y, $m, $d)=split(/-/, $DATE, 3);
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+
+          if ($Dv->{ACTIVATE} ne '0000-00-00') {
+            $days_in_month=($active_m!=2?(($active_m%2)^($active_m>7))+30:(!($active_y%400)||!($active_y%4)&&($active_y%25)?29:28)); 
+            $d = $active_d;
+           }
+
           $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
           $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1));
          }
        
-        $message .= "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{TP_ID})";
-        $fees->take($users, $sum, { DESCRIBE  => $message, METHOD => 1 });  
         
-        if ($fees->{errno}) {
-        	$html->message('err', $_ERROR, "$fees->{errno}");	
-          }
-        else {
-          $html->message('info', $_INFO, $message);	
+        $periods = 0;
+        if ($active_m > 0 && $active_m < $m) {
+        	$periods = $m - $active_m;
          }
-       }
+        elsif ($active_m > 0 && ( $active_m > $m  && $active_y < $y)) {
+        	$periods = 12 - $active_m + $m; 
+         }
+        
+        $message .= "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{TP_ID})";
+
+        for (my $i=0; $i<=$periods; $i++) {
+
+          if ($active_m+$i > 12) {
+          	$active_m=0;
+          	$active_y=$activate_y+$i;
+           }
+          
+          $m = sprintf("%.2d", $active_m+$i);
+
+          if ( $i > 0 ) {
+  	        $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
+            $message = "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{TP_ID})";
+            $DATE    = "$active_y-$m-01";
+            $TIME    = "00:00:00";
+           }
+          elsif ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT} && $Dv->{ACTIVATE} ne '0000-00-00'){
+            $DATE    = "$active_y-$m-01";
+            $TIME    = "00:00:00";
+           }
+          
+          $fees->take($users, $sum, { DESCRIBE  => $message, 
+        	                            METHOD    => 1, 
+        	                            DATE      => "$DATE $TIME"
+        	                           });  
+        
+          if ($fees->{errno}) {
+        	  $html->message('err', $_ERROR, "[$fees->{errno}] ");	
+           }
+          else {
+            $html->message('info', $_INFO, $message);	
+           }
+         }
+
+
+      }
+
 
 }
 

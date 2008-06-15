@@ -20,8 +20,9 @@ $web_interface    = 1;
                    "16:14:$_LAST:voip_sessions:"             => 4,
                    "17:14:$_USED:voip_use:"                  => 4,
                    "18:16:$_MONTH:voip_use_allmonthes:"      => 4,
-                   "19:0:VoIP:voip_online:"                  => 8,
-                   "20:19:Gatekeeper:voip_gk_console:"       => 8,
+                   "19:6:Trunks:voip_trunks:"                => 4,
+                   "20:0:VoIP:voip_online:"                  => 8,
+                   "21:20:Gatekeeper:voip_gk_console:"       => 8,
 
                    );
 

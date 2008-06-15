@@ -214,6 +214,8 @@ elsif  ($admin->{GID} > 0) {
 @action    = ('add', $_ADD);
 @bool_vals = ($_NO, $_YES);
 @PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus');
+@status = ("$_ENABLE", "$_DISABLE");
+
 
 my %menu_items  = ();
 my %menu_names  = ();
@@ -2595,7 +2597,7 @@ sub admin_profile {
                      '# 3 TH.sum, TD.sum',
                      '# 4 border',
                      '# 5',
-                     '# 6',
+                     '# 6 Error, Warning',
                      '# 7 vlink',
                      '# 8 link',
                      '# 9 Text',

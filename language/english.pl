@@ -363,3 +363,5 @@ $_INNER='Inner';
 $_INFO_FIELDS='Information fields';
 $_MISC='Misc';
 $_DV='Internet';
+$_JOIN_SERVICE='Join Service';
+$_MAIN='Main';

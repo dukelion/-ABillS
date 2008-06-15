@@ -127,14 +127,18 @@ elif [ t$1 = 'tvoip' ] ; then
    echo Auth;
    ./rauth.pl NAS_IP_ADDRESS="192.168.202.15" \
      NAS_PORT_TYPE="Virtual" \
-     NAS_IDENTIFIER="ASMODEUSGK" \
+     NAS_IDENTIFIER="" \
      CLIENT_IP_ADDRESS="192.168.101.17" \
      CISCO_AVPAIR="h323-ivr-out=terminal-alias:100;" \
      SERVICE_TYPE="Login-User" \
      CHAP_CHALLENGE="0x43a28c01" \
      USER_NAME="200" \
+     CALLING_STATION_ID="3456"\
      FRAMED_IP_ADDRESS="192.168.101.23" \
-     HUNTGROUP_NAME="voips" 
+     CALLED_STATION_ID="3007363" \
+     H323_CONF_ID="h323-conf-id=16000 647BEE1D 80F000A F453DBFD"\
+     H323_CALL_ORIGIN="h323-call-origin=originate"
+#     HUNTGROUP_NAME="voips" 
 
 #     CHAP_PASSWORD="0x06a8f3fb0ab5f4a8e90a590686c845c456" \
  

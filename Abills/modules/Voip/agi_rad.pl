@@ -162,6 +162,7 @@ else {
 }
 
 # Radius Session timeout 
+
 if (defined($rad_response{'h323-credit-time'}) && $rad_response{'h323-credit-time'} < $data{'session_timeout'}){
   $data{'h323-credit-time'}=int($rad_response{'h323-credit-time'}); 
  } 
@@ -194,7 +195,9 @@ $rad_acct_attributes{'Acct-Session-Id'}  = $data{'sessionid'};
 send_radius_request(ACCOUNTING_REQUEST, \%rad_acct_attributes);
 my $rewrittennumber = $data{'called'};
 my $protocol = $conf{VOIP_AGI_PROTOCOL} || 'SIP';
+$protocol = $rad_acct_attributes{'session-protocol'} if ($rad_acct_attributes{'session-protocol'});
 my $dialstring = "$protocol/".$rewrittennumber; #."\@";
+$dialstring = $rad_acct_attributes{'ext-hop-ip'} if ($rad_acct_attributes{'ext-hop-ip'});
 
 my %peer = ( 'type'    => '',
              'host'    => '',

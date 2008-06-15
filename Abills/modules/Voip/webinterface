@@ -8,7 +8,7 @@ my $Voip = Voip->new($db, $admin, \%conf);
 my $sessions = Voip_Sessions->new($db, \%conf);
 
 
-my $MODULE = (defined($module{$index})) ? $module{$index} : 'Voip';
+my $MODULE = ($module{$index}) ? $module{$index} : 'Voip';
 
 
 my $debug = 0;
@@ -317,12 +317,14 @@ if (defined($attr->{TP})) {
       $html->message('info', $_INFO, "$_ADDED");
      }
 	 }
-  elsif ($FORM{export}) {
-  	
-   }
   elsif ($FORM{import}) {
   	
    }
+	elsif($FORM{export_rp}) {
+		print "Content-Type: text/plain\n\n";
+	  $LIST_PARAMS{PAGE_ROWS}=100000;
+	
+	 }
 	elsif($FORM{clear}) {
 		
  	 }
@@ -337,13 +339,15 @@ else {
    $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");
   }
   
-  
+  my $pages_qs='';
+
 #  my $Voip_tp = $Voip->tp_info( $FORM{TP_ID} );
   my $list = $Voip_tp->ti_list({ %LIST_PARAMS });
-  my @caption = ($_PREFIX, $_ROUTES, "$_STATUS");
+  my @caption = ($_PREFIX, $_ROUTES, "$_STATUS", 'TRUNK');
   my @aligns = ('left', 'left', 'center');
   my @interval_ids = ();
   my $intervals=0;
+
   foreach my $line (@$list) {
     push @caption, "$_SUM (Min): $line->[1] / $line->[2]-$line->[3]";
     push @aligns,  'center';
@@ -351,29 +355,22 @@ else {
    }
   $intervals = $Voip_tp->{TOTAL};
 
-
-  form_search({ 
-     SIMPLE        => {$_PREFIX   => "ROUTE_PREFIX",
-                       $_NAME     => "ROUTE_NAME",
-                       $_DISABLE  => "DISABLE",
-                       $_DESCRIBE => "DESCRIBE",
-                       $_GATEWAY  => "GATEWAY_SEL",
-                       $_SUM      => "PRICE"},
-
-     HIDDEN_FIELDS => { TP_ID      => $FORM{TP_ID} }
-   });
-
-
-
 $list = $Voip->rp_list({ %LIST_PARAMS });
 my %prices = ();
+my %trunks = ();
 foreach my $line (@$list) {
   #print "-- $line->[0] / $line->[1] / $line->[2] / $line->[3] <br>\n";  
   $prices{"$line->[0]"}{"$line->[1]"}=$line->[3];
-
+  $trunks{"$line->[0]"}{"$line->[1]"}=$line->[4];
 }
 
 
+
+
+my ($delete, $change);
+my $price = 0;
+my @export_arr = ();
+my $TRUNKS_MARR = $Voip->trunk_list();	
 
 
 $pages_qs .= "&routes=$FORM{routes}";
@@ -384,31 +381,76 @@ my $table = $html->table( { width      => '100%',
                             border     => 1,
                             title      => \@caption,
                             cols_align => \@aligns,
-                            qs         => $pages_qs,
+                            qs         => $pages_qs."&TP_ID=$FORM{TP_ID}",
                             pages      => $Voip->{TOTAL},
                             ID         => 'VOIP_ROUTES_PRICES',
+                            header     => $html->button($_EXPORT, "export_rp=1&qindex=$index&TP_ID=$FORM{TP_ID}&routes=$FORM{routes}", { ex_params => 'TARGET=_new'})
                          } );
 
-my ($delete, $change);
-my $price = 0;
+
+
+
 foreach my $line (@$list) {
   my @l=();
   for(my $i = 0; $i<$intervals; $i++) { 
-  	  if (defined($prices{"$interval_ids[$i]"}{"$line->[5]"})) {
-        $price = $prices{$interval_ids[$i]}{$line->[5]};
-  	    }
+  	  
+  	  if (defined($prices{"$interval_ids[$i]"}{"$line->[4]"})) {
+        $price = $prices{$interval_ids[$i]}{$line->[4]};
+  	   }
       else {
-        $price = "N/P";
-        $price .= " $interval_ids[$i] $line->[5] -0" if ($debug > 0);
+        $price = "0.00";
+        $price .= " $interval_ids[$i] $line->[4] -0" if ($debug > 0);
        }
-      push @l, $html->form_input("p_$line->[5]". '_' . "$interval_ids[$i]", "$price", {SIZE => 10 });
 
-      #"<input type='text' name='p_$line->[5]". '_' . "$interval_ids[$i]' value='$price' size=10>"; 
-    }
-  $table->addrow("$line->[0]",  "$line->[1]", $status[$line->[2]], @l);
+      if ($FORM{export_rp}) {
+        push @l,  $price;
+       }
+      else {
+        push @l, $html->form_input("p_$line->[4]". '_' . "$interval_ids[$i]", "$price", {SIZE => 10 });
+       }
+   }
+
+  if ($FORM{export_rp}) {
+    push @export_arr, [ $line->[0], $line->[1], $status[$line->[2]], $line->[3], @l ];
+   }
+  else {
+  	my $trunk_sel = $html->form_select("t_$line->[4]". '_' . "$interval_ids[$i]", 
+                                { SELECTED     => $trunks{"$interval_ids[$i]"}{"$line->[4]"},
+ 	                                SEL_MULTI_ARRAY   => [[0, '-'], @{ $TRUNKS_MARR } ],
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                                NO_ID             => 1
+ 	                               });
+
+  	
+  	$table->addrow("$line->[0]",  "$line->[1]", $status[$line->[2]], $trunk_sel, @l);
+   }
 }
 
 
+if ($FORM{export_rp}) {
+	foreach my $rows (@export_arr) {
+		foreach my $row (@$rows) {
+			print "$row\t";
+		 }
+	  print "\n";
+	 }
+
+  return 0;	
+}
+
+
+  form_search({ 
+     SIMPLE        => {$_PREFIX   => "ROUTE_PREFIX",
+                       $_NAME     => "ROUTE_NAME",
+                       $_DISABLE  => "DISABLE",
+                       $_DESCRIBE => "DESCRIBE",
+                       $_GATEWAY  => "GATEWAY_SEL",
+                       $_SUM      => "PRICE"},
+
+     HIDDEN_FIELDS => { TP_ID      => $FORM{TP_ID},
+     	                  routes     => $FORM{routes} }
+   });
 
 
 ###
@@ -490,7 +532,6 @@ foreach my $line (@$list) {
 my $table2 = $html->table( { width      => '100%',
                              cols_align => ['right', 'right'],
                              rows       => [ [  $html->form_input('change', $_CHANGE, { TYPE => 'submit' }),
-	                                              $html->form_input('export', $_EXPORT, { TYPE => 'submit' }),
 	                                              "$_FILE: ". $html->form_input('ROUTE_FILE', "ROUTE_FILE", { TYPE => 'FILE' }) .
 	                                                $html->form_input('import', $_IMPORT, { TYPE => 'submit' })
 	                                             ] ]
@@ -669,7 +710,7 @@ for(my $i=0; $i<9; $i++) {
     }
   
   
-  $table->addtd("<td>$DAY_NAMES[$i]</td>", @hours);
+  $table->addtd($table->td($DAY_NAMES[$i]), @hours);
 }
 
 
@@ -690,7 +731,7 @@ print $table->show();
 #**********************************************************
 sub voip_tp {
  my ($attr) = @_;
- my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
+ my @Payment_Types = ($_PREPAID, $_POSTPAID); 
 
  $Voip_tp = $Voip->tp_defaults();
  $Voip_tp->{LNG_ACTION}=$_ADD;
@@ -703,13 +744,19 @@ if($FORM{ADD_TP}) {
     $html->message('info', $_ADDED, "$_ADDED $Voip->{TP_ID}");
    }
  }
-elsif (defined($FORM{TP_ID})) {
+elsif ($FORM{TP_ID}) {
   $Voip_tp = $Voip->tp_info( $FORM{TP_ID} );
 
   if ($Voip_tp->{errno}) {
     $html->message('err', $_ERROR, "[$Voip_tp->{errno}] $err_strs{$Voip->{errno}}");	
     return 0;
    }
+  
+  if ($FORM{qindex}) {
+  	voip_tp_routes({ TP => $Voip_tp });
+  	return 0;
+   }
+
 
   $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
   $LIST_PARAMS{TP} = $FORM{TP_ID};
@@ -720,7 +767,7 @@ elsif (defined($FORM{TP_ID})) {
   	         $_NAME => $Voip_tp->{NAME}
   	       }, 
   	{ 
-#  	 $_INFO          => ":TP_ID=$Voip_tp->{TP_ID}",
+  	  $_INFO          => ":TP_ID=$Voip_tp->{TP_ID}",
 #     $_USERS         => "11:TP_ID=$Voip_tp->{TP_ID}",
 #     $_INTERVALS     => "73:TP_ID=$Voip_tp->{TP_ID}",
 #     $_NAS           => "18:TP_ID=$Voip_tp->{TP_ID}"
@@ -749,7 +796,7 @@ elsif (defined($FORM{TP_ID})) {
   $Voip_tp->{ACTION}='change';
 
  }
-elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
   $Voip->tp_del($FORM{del});
 
   if (! $Voip->{errno}) {
@@ -768,7 +815,7 @@ if ($Voip->{errno}) {
 $Voip_tp->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE', 
                                 { SELECTED      => $Voip_tp->{PAYMENT_TYPE},
  	                                SEL_ARRAY     => \@Payment_Types,
- 	                                ARRAY_NUM_ID  => 'y'
+ 	                                ARRAY_NUM_ID  => 1
  	                               });
 
 #$Voip_tp = $Voip;
@@ -805,7 +852,9 @@ foreach my $line (@$list) {
   $table->addrow($html->b($line->[0]), 
   $html->button("$line->[1]", "index=$index&TP_ID=$line->[0]"), 
    $bool_vals[$line->[2]], $Payment_Types[$line->[3]], $line->[4], 
-   $line->[5], $line->[6], $line->[7],
+   $line->[5], 
+   $line->[6], 
+   $line->[7],
    $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[0]"),
    $change,
    $delete);
@@ -821,7 +870,113 @@ print $table->show();
 	
 }
 
+#**********************************************************
+# 
+# voip_trunks
+#**********************************************************
+sub voip_trunks {
+  $Voip->{ACTION}='add';
+  $Voip->{LNG_ACTION}=$_ADD;
+ 
+if($FORM{add}) {
+  $Voip->trunk_add( { %FORM });
+  if (! $Voip->{errno}) {
+    $html->message('info', $_ADDED, "$_ADDED $Voip->{TRUNK_ID}");
+   }
+ }
+elsif($FORM{change}) {
+  $Voip->trunk_change({ %FORM });
+  if (! $Voip->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGED");	
+   }
+ }
+elsif($FORM{chg}) {
+  $Voip->trunk_info($FORM{chg});
+  if (! $Voip->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING");	
+   }
 
+  $Voip->{ACTION}='change';
+  $Voip->{LNG_ACTION}=$_CHANGE;
+ }
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+  $Voip->trunk_del($FORM{del});
+  if (! $Voip->{errno}) {
+    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
+   }
+}
+
+if ($Voip->{errno}) {
+   $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
+   return 0;
+ }
+
+$Voip->{DISABLE}=' checked' if($Voip->{DISABLE} == 1);
+$Voip->{FAILOVER_TRUNK_SEL}= $html->form_select('FAILOVER_TRUNK', 
+                                          { 
+ 	                                          SELECTED          => $Voip->{FAILOVER_TRUNK},
+ 	                                          SEL_MULTI_ARRAY   => [[0, '-'], @{ $Voip->trunk_list() } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          NO_ID             => 1
+ 	                                        });
+
+$Voip->{PROTOCOL_SEL}= $html->form_select('PROTOCOL', 
+                                          { 
+                                            SELECTED      => $Voip->{PROTOCOL},
+ 	                                          SEL_ARRAY     => [ 'SIP', 'IAX2', 'ZAP', 'H323' ],
+ 	                                          });
+
+
+
+$html->tpl_show(_include('voip_trunk', 'Voip'), $Voip);
+
+
+##
+my  %new_hash = ();
+my  %phone_prefix = ();
+
+my $list = $Voip->trunk_list({ %LIST_PARAMS });	
+
+
+
+my $table = $html->table( { width      => '100%',
+	                          caption    => "Trunks",
+                            border     => 1,
+                            title      => ['ID', $_NAME, $_PROTOCOL, "VOIP $_PROVIDER", "$_FAILOVER_TRUNK",  '-', '-'],
+                            cols_align => ['left', 'left', 'left', 'left', 'left', 'center', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $Voip->{TOTAL},
+                            ID         => 'VOIP_TRUNKS',
+                        } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+   if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGe => "$_DEL '$line->[0]'?" }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]");
+   }
+
+   $table->addrow($line->[0], 
+            $line->[1], 
+            $line->[2], 
+            $line->[3], 
+            $line->[4], 
+            $change,
+            $delete);
+
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Voip->{TOTAL}) ] ]
+                     } );
+
+print $table->show();
+
+	
+}
 
 #**********************************************************
 # Tarif plans
@@ -882,7 +1037,7 @@ if($FORM{add_route}) {
    
     while(my ($par_key, $name) = each ( %$h )) {
       $menu_navigator =  $html->button("$name", "index=$index&ROUTE_ID=$root_index") . $menu_navigator;
-      $tree{$root_index}='y';
+      $tree{$root_index}=1;
       if ($par_key > 0) {
         $root_index = $par_key;
         $h = $route_items{$par_key};
@@ -922,8 +1077,8 @@ $html->tpl_show(_include('voip_route', 'Voip'), $Voip);
 my %SEARCH_FIELDS = ($_PREFIX   => "ROUTE_PREFIX",
                      $_NAME     => "ROUTE_NAME",
                      $_DISABLE  => "DISABLE",
-                     $_DESCRIBE => "DESCRIBE",
-                     $_GATEWAY  => "GATEWAY_SEL");
+                     $_DESCRIBE => "DESCRIBE"
+                     );
 
 $output .= form_search({ 
   SIMPLE        => \%SEARCH_FIELDS,
@@ -981,7 +1136,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->($Voip->{TOTAL}) ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($Voip->{TOTAL}) ] ]
                      } );
 
 print $table->show();
@@ -1929,12 +2084,12 @@ my $price = 0;
 foreach my $line (@$list) {
   my @l=();
   for(my $i = 0; $i<$intervals; $i++) { 
-  	  if (defined($prices{"$interval_ids[$i]"}{"$line->[5]"})) {
-        $price = $prices{$interval_ids[$i]}{$line->[5]};
+  	  if (defined($prices{"$interval_ids[$i]"}{"$line->[4]"})) {
+        $price = $prices{$interval_ids[$i]}{$line->[4]};
   	    }
       else {
-        $price = "N/P";
-        $price .= " $interval_ids[$i] $line->[5] -0" if ($debug > 0);
+        $price = "0.00";
+        $price .= " $interval_ids[$i] $line->[4] -0" if ($debug > 0);
        }
       push @l, $price;
     }

@@ -1,11 +1,42 @@
 =====0.40=====
 
-06.06.2008
+16.06.2008\\
+MySQL:
+  ALTER TABLE dv_main ADD COLUMN `join_service` int(11) unsigned NOT NULL DEFAULT '0';
+
+
+Добавлены транки для модуля VoIP. Транки присваиваются в зависимости от направления и цены.
+
+MySQL:
+
+  ALTER TABLE `voip_route_prices` ADD `trunk` SMALLINT UNSIGNED NOT NULL DEFAULT '0';
+  
+  CREATE TABLE IF NOT EXISTS `voip_trunks` (
+    `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+    `name` char(20) NOT NULL,
+    `trunkprefix` char(20) DEFAULT NULL,
+    `protocol` char(10) NOT NULL,
+    `provider_ip` char(80) NOT NULL,
+    `removeprefix` char(20) DEFAULT NULL,
+    `secondusedreal` smallint(5) unsigned DEFAULT '0',
+    `secondusedcarrier` smallint(5) unsigned DEFAULT '0',
+    `secondusedratecard` smallint(5) unsigned DEFAULT '0',
+    `failover_trunk` smallint(5) unsigned NOT NULL DEFAULT '0',
+    `addparameter` char(120) DEFAULT NULL,
+    `provider_name` char(120) DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `name` (`name`)
+   ) ;
+
+10.06.2008\\
+Добалено 3 статуса сервиса для модуля Dv (Активно, Блокировано, Не активизировано).  Добавлена возможность пользователям самостоятельно активизировать свой уже зарегистрированный аккаунт. При активации аккаунта с месячной абон. платой система автоматически снимает её в зависисмости от правил тарифного плана. Пользователю разрешено менять статус только с 'Не активизирован' на  'Активно'.
+
+06.06.2008\\
 Добавлена возможность вносить оплаты произвольной датой. Операция разрешается  в меню привелегий администратора.\\
 Добавлена возможность вносить снятие денег задним числом\\
 Добавлена к модулю Paysys консольная утилита paysys_cons разрешающая вносить оплаты и снятия денег из текстового файла. Имеется возможность задавать формат файла и указывать поле прикрепления.
 
-26.05.2008
+26.05.2008\\
 Добавлен отчёт - наработка по тарифных планах.\\
 
 Добавленна функция установки даты истечения кредита. В день истечения кредита обнуляются данные по сумме кредита.

@@ -96,7 +96,7 @@ sub info {
   $self->query($db, "SELECT dv.uid, dv.tp_id, 
    tp.name, 
    dv.logins, 
-    INET_NTOA(dv.ip), 
+   INET_NTOA(dv.ip), 
    INET_NTOA(dv.netmask), 
    dv.speed, 
    dv.filter_id, 
@@ -107,7 +107,8 @@ sub info {
    tp.gid,
    tp.month_fee,
    tp.postpaid_fee,
-   tp.payment_type
+   tp.payment_type,
+   dv.join_service
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
    $WHERE;");
@@ -134,7 +135,8 @@ sub info {
    $self->{TP_GID},
    $self->{MONTH_ABON},
    $self->{POSTPAID_ABON}, 
-   $self->{PAYMENT_TYPE}
+   $self->{PAYMENT_TYPE},
+   $self->{JOIN_SERVICE}
   )= @{ $self->{list}->[0] };
   
   
@@ -159,11 +161,14 @@ sub defaults {
    FILTER_ID      => '', 
    CID            => '',
    CALLBACK       => 0,
-   PORT           => 0
+   PORT           => 0,
+   JOIN_SERVICE   => 0
   );
 
  
-  $self = \%DATA;
+ 
+
+  $self = \%DATA ;
   return $self;
 }
 
@@ -214,12 +219,13 @@ sub add {
              filter_id, 
              cid,
              callback,
-             port)
+             port,
+             join_service)
         VALUES ('$DATA{UID}', now(),
         '$DATA{TP_ID}', '$DATA{SIMULTANEONSLY}', '$DATA{STATUS}', INET_ATON('$DATA{IP}'), 
         INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'),
         '$DATA{CALLBACK}',
-        '$DATA{PORT}');", 'do');
+        '$DATA{PORT}', '$DATA{JOIN_SERVICE}');", 'do');
 
   return $self if ($self->{errno});
   $admin->action_add("$DATA{UID}", "ACTIVE");
@@ -248,7 +254,8 @@ sub change {
               UID              => 'uid',
               FILTER_ID        => 'filter_id',
               CALLBACK         => 'callback',
-              PORT             => 'port'
+              PORT             => 'port',
+              JOIN_SERVICE     => 'join_service'
              );
   
   if (! $attr->{CALLBACK}) {
@@ -287,6 +294,8 @@ sub change {
     my $tariffs = Tariffs->new($db, $CONF, $admin);
     $self->{TP_INFO}=$tariffs->info($old_info->{TP_ID});
    }
+
+  $attr->{JOIN_SERVICE} = ($attr->{JOIN_SERVICE}) ? $attr->{JOIN_SERVICE} : 0;
 
   $admin->{MODULE}=$MODULE;
   $self->changes($admin, { CHANGE_PARAM => 'UID',
@@ -439,6 +448,14 @@ sub list {
  if ($attr->{DEPOSIT}) {
     my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
     push @WHERE_RULES, "u.deposit$value";
+  }
+
+ if ($attr->{JOIN_SERVICE}) {
+    my $value = $self->search_expr($attr->{JOIN_SERVICE}, 'INT');
+    push @WHERE_RULES, "dv.join_service$value";
+    $self->{SEARCH_FIELDS} .= 'dv.join_service, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+
   }
 
  if ($attr->{SPEED}) {

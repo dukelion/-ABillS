@@ -479,10 +479,8 @@ sub route_add {
   %DATA = $self->get_data($attr); 
 
   $self->query($db,  "INSERT INTO voip_routes (prefix, parent, name, disable, date,
-        gateway_id,
         descr) 
         VALUES ('$DATA{ROUTE_PREFIX}', '$DATA{PARENT_ID}',  '$DATA{ROUTE_NAME}', '$DATA{DISABLE}', now(),
-        '$DATA{GATEWAY_ID}',
         '$DATA{DESCRIBE}');", 'do');
 
 
@@ -509,8 +507,7 @@ sub route_info {
    name,
    date,
    disable,
-   descr,
-   gateway_id
+   descr
      FROM voip_routes
    WHERE id='$id';");
 
@@ -526,8 +523,7 @@ sub route_info {
    $self->{ROUTE_NAME}, 
    $self->{DATE},
    $self->{DISABLE},
-   $self->{DESCRIBE},
-   $self->{GATEWAY_ID}
+   $self->{DESCRIBE}
   )= @{ $self->{list}->[0] };
   
   
@@ -564,8 +560,6 @@ sub route_change {
                 ROUTE_PREFIX   => 'prefix',
                 ROUTE_NAME     => 'name',
                 DESCRIBE       => 'descr',
-                GATEWAY_ID     => 'gateway_id'
-                
              );
 
 
@@ -615,7 +609,7 @@ sub routes_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db, "SELECT r.prefix, r.name, r.disable, r.date, r.gateway_id, r.id, r.parent
+ $self->query($db, "SELECT r.prefix, r.name, r.disable, r.date, r.id, r.parent
      FROM voip_routes r
      $WHERE 
      ORDER BY $SORT $DESC 
@@ -646,14 +640,17 @@ sub rp_add {
 		 while(my($k, $v)=each %$attr) {
 		 	  if($k =~ /^p_/) {
 		 	    my($trash, $route, $interval)=split(/_/, $k, 3);
-		 	    $value .= "('$route', '$interval', '$v', now()),";
+		 	    my(undef, $trunk, undef)=split(/_/, $k, 3);
+		 	    
+		 	    my $trunk = $attr->{"t_". $route ."_" . $interval} || 0;
+		 	    $value .= "('$route', '$interval', '$v', now(), '$trunk'),";
 		     }
 
 		  }
 
   chop($value);
   
- $self->query($db, "REPLACE INTO voip_route_prices (route_id, interval_id, price, date) VALUES
+ $self->query($db, "REPLACE INTO voip_route_prices (route_id, interval_id, price, date, trunk) VALUES
   $value;", 'do');
 
  return $self if($self->{errno});
@@ -687,7 +684,7 @@ sub rp_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db, "SELECT rp.interval_id, rp.route_id, rp.date, rp.price
+ $self->query($db, "SELECT rp.interval_id, rp.route_id, rp.date, rp.price, rp.trunk
      FROM voip_route_prices rp 
      $WHERE 
      ORDER BY $SORT $DESC 
@@ -991,12 +988,27 @@ sub trunk_add {
   
   %DATA = $self->get_data($attr); 
 
-  $self->query($db,  "INSERT INTO voip_routes (prefix, parent, name, disable, date,
-        gateway_id,
-        descr) 
-        VALUES ('$DATA{ROUTE_PREFIX}', '$DATA{PARENT_ID}',  '$DATA{ROUTE_NAME}', '$DATA{DISABLE}', now(),
-        '$DATA{GATEWAY_ID}',
-        '$DATA{DESCRIBE}');", 'do');
+
+  $self->query($db,  "INSERT INTO voip_trunks (	name,
+	trunkprefix,
+	protocol,
+	provider_ip,
+	removeprefix,
+	secondusedreal,
+	secondusedcarrier,
+	secondusedratecard,
+	failover_trunk,
+	addparameter,
+	provider_name
+ ) 
+        VALUES ('$DATA{NAME}', '$DATA{TRUNKPREFIX}',  '$DATA{PROTOCOL}', '$DATA{PROVIDER_IP}', '$DATA{REMOVEPREFIX}',
+        '$DATA{SECONDUSEDREAL}',
+        '$DATA{SECONDUSEDCARRIER}',
+        '$DATA{SECONDUSEDRATECARD}',
+        '$DATA{FAILOVER_TRUNK}',
+        '$DATA{ADDPARAMETER}',
+        '$DATA{PROVIDER_NAME}'
+        );", 'do');
 
 
   return $self if ($self->{errno});
@@ -1016,15 +1028,18 @@ sub trunk_info {
   my ($id, $attr) = @_;
 
   $self->query($db, "SELECT 
-   id,
-   prefix,
-   parent,
    name,
-   date,
-   disable,
-   descr,
-   gateway_id
-     FROM voip_routes
+	trunkprefix,
+	protocol,
+	provider_ip,
+	removeprefix,
+	secondusedreal,
+	secondusedcarrier,
+	secondusedratecard,
+	failover_trunk,
+	addparameter,
+	provider_name
+     FROM voip_trunks
    WHERE id='$id';");
 
   if ($self->{TOTAL} < 1) {
@@ -1033,14 +1048,17 @@ sub trunk_info {
      return $self;
    }
 
-  ($self->{ROUTE_ID},
-   $self->{ROUTE_PREFIX}, 
-   $self->{PARENT_ID}, 
-   $self->{ROUTE_NAME}, 
-   $self->{DATE},
-   $self->{DISABLE},
-   $self->{DESCRIBE},
-   $self->{GATEWAY_ID}
+  ($self->{NAME}, 
+  $self->{TRUNKPREFIX},  
+  $self->{PROTOCOL}, 
+  $self->{PROVIDER_IP}, 
+  $self->{REMOVEPREFIX},
+  $self->{SECONDUSEDREAL},
+  $self->{SECONDUSEDCARRIER},
+  $self->{SECONDUSEDRATECARD},
+  $self->{FAILOVER_TRUNK},
+  $self->{ADDPARAMETER},
+  $self->{PROVIDER_NAME}
   )= @{ $self->{list}->[0] };
   
   
@@ -1056,7 +1074,7 @@ sub trunk_del {
   my $self = shift;
   my ($id) = @_;
   
-  $self->query($db,  "DELETE FROM voip_routes WHERE id='$id';", 'do');
+  $self->query($db,  "DELETE FROM voip_trunks WHERE id='$id';", 'do');
   return $self if ($self->{errno});
 
 #  $admin->action_add($DATA{UID}, "ADDED", { MODULE => 'voip'});
@@ -1070,22 +1088,26 @@ sub trunk_del {
 sub trunk_change {
   my $self = shift;
   my ($attr) = @_;
-  
-  my %FIELDS = (ROUTE_ID        => 'id',
-   							PARENT_ID       => 'parent',
-                DISABLE        => 'disable',
-                ROUTE_PREFIX   => 'prefix',
-                ROUTE_NAME     => 'name',
-                DESCRIBE       => 'descr',
-                GATEWAY_ID     => 'gateway_id'
-                
+
+my %FIELDS = (ID             => 'id',
+              NAME           => 'name', 
+              TRUNKPREFIX    => 'trunkprefix',  
+              PROTOCOL       => 'protocol',
+              PROVIDER_IP    => 'provider_ip',
+              REMOVEPREFIX   => 'removeprefix',
+              SECONDUSEDREAL => 'secondusedreal',
+              SECONDUSEDCARRIER   => 'secondusedcarrier',
+              SECONDUSEDRATECARD   => 'secondusedratecard',
+              FAILOVER_TRUNK    => 'failover_trunk',
+              ADDPARAMETER   => 'addparameter',
+              PROVIDER_NAME  => 'provider_name'
              );
 
 
-  $self->changes($admin,  { CHANGE_PARAM => 'ROUTE_ID',
-                   TABLE        => 'voip_routes',
+  $self->changes($admin,  { CHANGE_PARAM => 'ID',
+                   TABLE        => 'voip_trunks',
                    FIELDS       => \%FIELDS,
-                   OLD_INFO     => $self->route_info($attr->{ROUTE_ID}),
+                   OLD_INFO     => $self->trunk_info($attr->{ID}),
                    DATA         => $attr
                   } );
 
@@ -1109,27 +1131,11 @@ sub trunk_list {
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
 
- undef @WHERE_RULES;
+ @WHERE_RULES = ();
+ my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
- if ($attr->{ROUTE_PREFIX}) {
-   $attr->{ROUTE_PREFIX} =~ s/\*/\%/ig;
-   push @WHERE_RULES, "r.prefix LIKE '$attr->{ROUTE_PREFIX}'";
-  }
-
- if ($attr->{DESCRIBE}) {
-   $attr->{DESCRIBE} =~ s/\*/\%/ig;
-   push @WHERE_RULES, "r.descr LIKE '$attr->{DESCRIBE}'";
-  }
-
- if ($attr->{ROUTE_NAME}) {
-   $attr->{ROUTE_NAME} =~ s/\*/\%/ig;
-   push @WHERE_RULES, "r.name LIKE '$attr->{ROUTE_NAME}'";
-  }
-
- $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
-
- $self->query($db, "SELECT r.prefix, r.name, r.disable, r.date, r.gateway_id, r.id, r.parent
-     FROM voip_routes r
+ $self->query($db, "SELECT id, name, protocol, provider_name, failover_trunk
+      FROM voip_trunks
      $WHERE 
      ORDER BY $SORT $DESC 
      LIMIT $PG, $PAGE_ROWS;");
@@ -1139,7 +1145,7 @@ sub trunk_list {
  my $list = $self->{list};
 
  if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(r.id) FROM voip_routes r $WHERE");
+    $self->query($db, "SELECT count(id) FROM voip_trunks $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 

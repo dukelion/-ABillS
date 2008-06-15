@@ -3,6 +3,7 @@
 <input type=hidden name='UID' value='$FORM{UID}'>
 <table width=420 cellspacing='0' cellpadding='3'>
 <tr><td>$_TARIF_PLAN:</td><th  align='left' valign='middle'>[%TP_ID%] %TP_NAME% %CHANGE_TP_BUTTON%</th></tr>
+%JOIN_SERVICE%
 <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEONSLY value='%SIMULTANEONSLY%'></td></tr>
 <tr><td>IP:</td><td><input type=text name=IP value='%IP%'></td></tr>
 <tr><td>Netmask:</td><td><input type=text name=NETMASK value='%NETMASK%'></td></tr>
@@ -12,6 +13,7 @@
 <tr><td>$_PORT:</td><td><input type=text name='PORT' value='%PORT%'>
 <tr><td>Callback:</td><td><input type='checkbox' name='CALLBACK' value='1' %CALLBACK%>
 <tr><td>$_STATUS:</td><td>%STATUS_SEL%</td></tr>
+
 <tr><td>$_ABON:</td><td>%ABON_DATE%</td></tr>
 <tr><td colspan='2'>%REGISTRATION_INFO%</td></tr>
 </table>

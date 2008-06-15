@@ -116,7 +116,12 @@ if(! -f $config_file ) {
       }
     }
 
-  
+
+  if (! -d '/usr/abills/backup' ) {
+    my $ret = `mkdir /usr/abills/backup`;
+    $ret = `chown www /usr/abills/backup`;
+   } 
+ 
   if (! confirm_yn("Continue configuration [y]: ", "y")) {
     exit;
    }

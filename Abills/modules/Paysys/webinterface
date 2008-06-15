@@ -166,7 +166,7 @@ sub paysys_import_form {
  	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 0, 
  	                     DATE         => $DATA_ARR->[$i]->{DATE} || undef, 
                        EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
-                       CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"
+                       CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
                        INNER_DESRIBE => ''
                         } );
 

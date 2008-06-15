@@ -513,7 +513,7 @@ sub menu () {
     my $ex_params = (defined($menu_args->{$root_index}) && defined($FORM{$menu_args->{$root_index}})) ? '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}" : '';
     
     $menu_navigator =  " ". $self->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
-    $tree{$root_index}='y';
+    $tree{$root_index}=1;
     if ($par_key > 0) {
       $root_index = $par_key;
       $h = $menu_items->{$par_key};

@@ -200,6 +200,7 @@ CREATE TABLE `dv_main` (
   `disable` tinyint(1) unsigned NOT NULL default '0',
   `callback` tinyint(1) unsigned NOT NULL default '0',
   `port` int(11) unsigned NOT NULL default '0',
+  `join_service` int(11) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`uid`),
   KEY `tp_id` (`tp_id`)
 ) ;
@@ -873,6 +874,7 @@ CREATE TABLE `voip_route_prices` (
   `interval_id` int(11) unsigned NOT NULL default '0',
   `price` double(15,5) unsigned NOT NULL default '0.00000',
   `date` date NOT NULL default '0000-00-00',
+  `trunk` SMALLINT UNSIGNED NOT NULL DEFAULT '0',
   UNIQUE KEY `route_id` (`route_id`,`interval_id`)
 ) ;
 
@@ -921,6 +923,23 @@ CREATE TABLE `voip_tps` (
 ) ;
 
 
+
+CREATE TABLE IF NOT EXISTS `voip_trunks` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `name` char(20) NOT NULL,
+  `trunkprefix` char(20) DEFAULT NULL,
+  `protocol` char(10) NOT NULL,
+  `provider_ip` char(80) NOT NULL,
+  `removeprefix` char(20) DEFAULT NULL,
+  `secondusedreal` smallint(5) unsigned DEFAULT '0',
+  `secondusedcarrier` smallint(5) unsigned DEFAULT '0',
+  `secondusedratecard` smallint(5) unsigned DEFAULT '0',
+  `failover_trunk` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `addparameter` char(120) DEFAULT NULL,
+  `provider_name` char(120) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ;
 
 CREATE TABLE `help` (
   `function` varchar(20) NOT NULL default '',
