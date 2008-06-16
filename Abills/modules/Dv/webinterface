@@ -2652,9 +2652,9 @@ sub dv_daily_fees {
      	  #Check bill id and deposit 
         my %user = (
              LOGIN      => $u->[0],
-             UID        => $u->[6],
-             BILL_ID    => ($line->[13] > 0) ? $u->[14] : $u->[12],
-             REDUCTION  => $u->[13],
+             UID        => $u->[7],
+             BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
+             REDUCTION  => $u->[14],
              DEPOSIT    => $u->[2],
              CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14]
           );
@@ -2783,16 +2783,16 @@ sub dv_monthly_fees {
        
        my %user = (
             LOGIN      => $u->[0],  
-            UID        => $u->[6],
-            BILL_ID    => ($line->[13] > 0) ? $u->[14] : $u->[12],
-            REDUCTION  => $u->[13],
-            ACTIVATE   => $u->[10],
+            UID        => $u->[7],
+            BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
+            REDUCTION  => $u->[14],
+            ACTIVATE   => $u->[11],
             DEPOSIT    => $u->[2],
             CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14]
            );
        
        #Check bill ID and deposit
-       if ($user{BILL_ID} > 0 && defined($u->[2])) {
+       if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
          my %FEES_PARAMS = (
                             DATE     => $ADMIN_REPORT{DATE},
                             METHOD   => 1 );  
@@ -2823,7 +2823,7 @@ sub dv_monthly_fees {
                  }
                 else {
                   $fees->take(\%user, $sum, { %FEES_PARAMS } );  
-                  $debug_output .= " $u->[0]  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
+                  $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
                  }
                }
              }
@@ -2851,7 +2851,7 @@ sub dv_monthly_fees {
                  }
                 else {
                   $fees->take(\%user, $sum, { %FEES_PARAMS } );  
-                  $debug_output .= " $u->[0]  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
+                  $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
                  }
                }
              # If activation set to monthly fees taken throught 30 days

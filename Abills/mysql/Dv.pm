@@ -502,8 +502,8 @@ sub list {
  # Show users for spec tarifplan 
  if (defined($attr->{TP_ID})) {
     push @WHERE_RULES, "dv.tp_id='$attr->{TP_ID}'";
-    #$self->{SEARCH_FIELDS} .= 'tp.name, ';
-    #$self->{SEARCH_FIELDS_COUNT}++;
+    $self->{SEARCH_FIELDS} .= 'tp.name, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  # Show debeters
