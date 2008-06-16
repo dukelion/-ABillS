@@ -3295,7 +3295,7 @@ if (defined($FORM{DATE})) {
 
   foreach my $line (@$list) {
    $table_fees->addrow($html->b($line->[0]), 
-     $html->button($line->[1], "index=15&subf=3&DATE=$line->[0]&UID=$line->[9]"),  
+     $html->button($line->[1], "index=15&subf=3&DATE=$line->[0]&UID=$line->[10]"),  
       $line->[2],
       $line->[3], 
       $line->[4],  
