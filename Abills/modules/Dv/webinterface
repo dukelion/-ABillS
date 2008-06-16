@@ -384,6 +384,7 @@ sub dv_user {
 
   $Dv->info($Dv->{UID});
 
+
   if($Dv->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
 	  #$Dv = $Dv->defaults();
@@ -430,6 +431,7 @@ sub dv_user {
       }
 	} 
 
+
   $Dv->{STATUS_SEL}          = $html->form_select('STATUS', 
                                           { 
  	                                          SELECTED     => $Dv->{STATUS},
@@ -439,6 +441,7 @@ sub dv_user {
 
   $Dv->{CALLBACK}         = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
   $Dv->{REGISTRATION_INFO}= $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1");
+
 
 
   #Join Service
@@ -471,12 +474,17 @@ sub dv_user {
      	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_MAIN", "index=15&UID=$Dv->{JOIN_SERVICE}");
       }
 
- 	 $Dv->{JOIN_SERVICE} = $html->tpl_show(_include('dv_user_join_service', 'Dv'), $Dv, { OUTPUT2RETURN => 1 });
- 	}                                    
- 	                                        
- 	                                        
+
+ 	   $Dv->{JOIN_SERVICE} = $html->tpl_show(_include('dv_user_join_service', 'Dv'), $Dv, { OUTPUT2RETURN => 1 });
+ 	 }                                    
+ 	else {
+ 		$Dv->{JOIN_SERVICE}='';
+ 	}                                        
+
   
-  $html->tpl_show(_include('dv_user', 'Dv'), { %{ $Dv->defaults() }, %$Dv });
+  $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
+  
+  return 0; 
 }
 
 
