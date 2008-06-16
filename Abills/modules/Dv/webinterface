@@ -315,8 +315,7 @@ sub dv_user {
  	my ($attr) = @_;
 
  	$Dv->{UID}=$FORM{UID} || $LIST_PARAMS{UID} ;	  
-  
-  print $attr->{USER}->{ACTIVATE} ;
+
   
   if ($FORM{REGISTRATION_INFO}) {
       
