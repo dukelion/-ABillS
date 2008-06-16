@@ -899,7 +899,7 @@ elsif($FORM{chg}) {
   $Voip->{ACTION}='change';
   $Voip->{LNG_ACTION}=$_CHANGE;
  }
-elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
   $Voip->trunk_del($FORM{del});
   if (! $Voip->{errno}) {
     $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
@@ -953,7 +953,7 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
    if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGe => "$_DEL '$line->[0]'?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
     $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]");
    }
 
