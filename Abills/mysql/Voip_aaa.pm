@@ -304,36 +304,41 @@ else {
 #Make trunk data for asterisk  
 if ($NAS->{NAS_TYPE} eq 'asterisk' and $self->{TRUNK_PROTOCOL}) {
 	  $self->{prepend} = '';
+    
+    my $number = $RAD->{'CALLED_STATION_ID'};
+    if ($self->{REMOVEPREFIX}) {
+    	$number =~ s/^$self->{REMOVEPREFIX}//;
+     }
 
     if ( $self->{TRUNK_PROTOCOL} eq "Local" ) {
         $RAD_PAIRS{'next-hop-ip'} = "Local/"
           . $self->{prepend}
-          . $RAD->{'CALLED_STATION_ID'} . "\@"
+          . $number . "\@"
           . $self->{TRUNK_PROVIDER} . "/n";
     }
     elsif (  $self->{TRUNK_PROTOCOL} eq "IAX2" ) {
         $RAD_PAIRS{'next-hop-ip'} =
-          "IAX2/" . $self->{TRUNK_PROVIDER} . "/" . $self->{prepend} . $RAD->{'CALLED_STATION_ID'};
+          "IAX2/" . $self->{TRUNK_PROVIDER} . "/" . $self->{prepend} . $number;
      }
     elsif (  $self->{TRUNK_PROTOCOL} eq "Zap" ) {
         $RAD_PAIRS{'next-hop-ip'} =
-          "Zap/" . $self->{TRUNK_PROVIDER} . "/" . $self->{prepend} . $RAD->{'CALLED_STATION_ID'};
+          "Zap/" . $self->{TRUNK_PROVIDER} . "/" . $self->{prepend} . $number;
     }
     elsif (  $self->{TRUNK_PROTOCOL} eq "SIP" ) {
         $RAD_PAIRS{'next-hop-ip'} =
-          "SIP/" . $self->{prepend} . $RAD->{'CALLED_STATION_ID'} . "\@" . $self->{TRUNK_PROVIDER};
+          "SIP/" . $self->{prepend} . $number . "\@" . $self->{TRUNK_PROVIDER};
      }
     elsif (  $self->{TRUNK_PROTOCOL} eq "OH323" ) {
         $RAD_PAIRS{'next-hop-ip'} =
-          "OH323/" . $self->{TRUNK_PROVIDER} . "/" . $self->{prepend} . $RAD->{'CALLED_STATION_ID'};
+          "OH323/" . $self->{TRUNK_PROVIDER} . "/" . $self->{prepend} . $number;
     }
     elsif (  $self->{TRUNK_PROTOCOL} eq "OOH323C" ) {
         $RAD_PAIRS{'next-hop-ip'} =
-          "OOH323C/" . $self->{prepend} . $RAD->{'CALLED_STATION_ID'} . "\@" . $self->{TRUNK_PROVIDER};
+          "OOH323C/" . $self->{prepend} . $number . "\@" . $self->{TRUNK_PROVIDER};
     }
     elsif (  $self->{TRUNK_PROTOCOL} eq "H323" ) {
         $RAD_PAIRS{'next-hop-ip'} =
-          "H323/" . $self->{prepend} . $RAD->{'CALLED_STATION_ID'} . "\@" . $self->{TRUNK_PROVIDER};
+          "H323/" . $self->{prepend} . $number . "\@" . $self->{TRUNK_PROVIDER};
     }
 
     $RAD_PAIRS{'session-protocol'}=$self->{TRUNK_PROTOCOL};
@@ -390,7 +395,10 @@ sub get_intervals {
   $self->query($db, "SELECT i.day, TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), 
     rp.price, i.id, rp.route_id,
     if (t.protocol IS NULL, '', t.protocol),
-    if (t.protocol IS NULL, '', t.provider_ip)
+    if (t.protocol IS NULL, '', t.provider_ip),
+    if (t.protocol IS NULL, '', t.addparameter),
+    if (t.protocol IS NULL, '', t.removeprefix),
+    if (t.protocol IS NULL, '', t.failover_trunk)
       from intervals i, voip_route_prices rp
       LEFT JOIN voip_trunks t ON (rp.trunk=t.id)       
       where
@@ -411,6 +419,9 @@ sub get_intervals {
      $periods_time_tarif{$line->[4]} = $line->[3];
      $self->{TRUNK_PROTOCOL}=$line->[6];
      $self->{TRUNK_PROVIDER}=$line->[7];
+     $self->{ADDPARAMETER}=$line->[8];
+     $self->{REMOVEPREFIX}=$line->[9];
+     $self->{failover_trunk}=$line->[10];
     }
   $self->{TIME_PERIODS}=\%time_periods;
   $self->{PERIODS_TIME_TARIF}=\%periods_time_tarif;

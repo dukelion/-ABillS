@@ -640,7 +640,6 @@ sub rp_add {
 		 while(my($k, $v)=each %$attr) {
 		 	  if($k =~ /^p_/) {
 		 	    my($trash, $route, $interval)=split(/_/, $k, 3);
-		 	    my(undef, $trunk, undef)=split(/_/, $k, 3);
 		 	    
 		 	    my $trunk = $attr->{"t_". $route ."_" . $interval} || 0;
 		 	    $value .= "('$route', '$interval', '$v', now(), '$trunk'),";

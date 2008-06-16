@@ -135,7 +135,7 @@ elif [ t$1 = 'tvoip' ] ; then
      USER_NAME="200" \
      CALLING_STATION_ID="3456"\
      FRAMED_IP_ADDRESS="192.168.101.23" \
-     CALLED_STATION_ID="3007363" \
+     CALLED_STATION_ID="001363" \
      H323_CONF_ID="h323-conf-id=16000 647BEE1D 80F000A F453DBFD"\
      H323_CALL_ORIGIN="h323-call-origin=originate"
 #     HUNTGROUP_NAME="voips" 

@@ -2644,7 +2644,7 @@ sub dv_daily_fees {
          DISABLE   => 0,
          TP_ID     => $TP_ID,
          SORT      => 1,
-         PAGE_ROWS => 100000
+         PAGE_ROWS => 1000000
  	   	 });
 
 
@@ -2652,16 +2652,15 @@ sub dv_daily_fees {
      	  #Check bill id and deposit 
         my %user = (
              LOGIN      => $u->[0],
-             ACCOUNT_ID => $u->[8],
-             UID        => $u->[7],
-             BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
-             REDUCTION  => $u->[14],
+             UID        => $u->[6],
+             BILL_ID    => ($line->[13] > 0) ? $u->[14] : $u->[12],
+             REDUCTION  => $u->[13],
              DEPOSIT    => $u->[2],
              CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14]
           );
 
-        if ($u->[13] > 0 && defined($user{DEPOSIT})) {
-          #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[13]\n"; 	
+        if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
+          #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $user{DEPOSIT} / $u->[3] / BILL_ID: $user->{BILL_ID}\n"; 	
 
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
           if($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $line->[12] == 1 ) {
@@ -2768,27 +2767,26 @@ sub dv_monthly_fees {
       }
  	   
  	   
-	   #$Dv->{debug}=1;
 	   my $ulist = $Dv->list({ 
          ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
          EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
          DISABLE    => '0',
          TP_ID      => $TP_ID,
          SORT       => 1,
-         PAGE_ROWS  => 100000
+         PAGE_ROWS  => 1000000
  	   	 });
 
 
      foreach my $u (@$ulist) {
        $debug_output .= " Login: $u->[0] ($u->[7])  TP_ID: $u->[10] Fees: $line->[6] REDUCTION: $u->[14]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 3); 	
        #Check bill id and deposit 
+       
        my %user = (
             LOGIN      => $u->[0],  
-            ACCOUNT_ID => $u->[8],
-            UID        => $u->[7],
-            BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
-            REDUCTION  => $u->[14],
-            ACTIVATE   => $u->[11],
+            UID        => $u->[6],
+            BILL_ID    => ($line->[13] > 0) ? $u->[14] : $u->[12],
+            REDUCTION  => $u->[13],
+            ACTIVATE   => $u->[10],
             DEPOSIT    => $u->[2],
             CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14]
            );
