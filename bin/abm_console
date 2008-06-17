@@ -78,9 +78,14 @@ sub dv_users {
   Dv->import();
   my $Dv = Dv->new($db, $admin, \%conf);
 
+  if ($ARGV->{CONTRACT_ID}) {
+    my $list = $user->list({ CONTRACT_ID => $ARGV->{CONTRACT_ID} });
+    $ARGV->{DV_USER}=$list->[0]->[0];
+   }
+
   $user->info(0, { LOGIN => $ARGV->{DV_USER} });
 
-  print "UID: $user->{UID}\n";
+  print "LOGIN: $user->{LOGIN} UID: $user->{UID}\n";
 	
 	if ($ARGV->{add}) {
 		
