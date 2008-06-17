@@ -55,7 +55,7 @@ my $fees = Fees->new($db, $admin, \%conf);
 
 my $ARGV = parse_arguments(\@ARGV);
 my $language = ($ARGV->{language}) ? $ARGV->{language} : 'russian';
-require "../language/$language.pl";
+require $Bin ."/../language/$language.pl";
 
 if ($ARGV->{DV_USER}) {
 	dv_users();
@@ -63,7 +63,7 @@ if ($ARGV->{DV_USER}) {
 elsif ($ARGV->{LOGIN}) {
 	
  }
-elsif ($ARGV->{LOGPARCE}) {
+elsif ($ARGV->{LOGPARSE}) {
   ppp_log_parser( $ARGV );
 }
 
