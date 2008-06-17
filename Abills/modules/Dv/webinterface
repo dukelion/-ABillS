@@ -3648,7 +3648,7 @@ sub dv_get_month_fee {
          }
        
         
-        $periods = 0;
+        my $periods = 0;
         if ($active_m > 0 && $active_m < $m) {
         	$periods = $m - $active_m;
          }
@@ -3662,7 +3662,7 @@ sub dv_get_month_fee {
 
           if ($active_m+$i > 12) {
           	$active_m=0;
-          	$active_y=$activate_y+$i;
+          	$active_y=$active_y+$i;
            }
           
           $m = sprintf("%.2d", $active_m+$i);
@@ -3676,6 +3676,10 @@ sub dv_get_month_fee {
           elsif ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT} && $Dv->{ACTIVATE} ne '0000-00-00'){
             $DATE    = "$active_y-$m-01";
             $TIME    = "00:00:00";
+            
+
+            $users->change($Dv->{UID}, { ACTIVATE => '0000-00-00',
+            	                           UID      => $Dv->{UID} });
            }
           
           $fees->take($users, $sum, { DESCRIBE  => $message, 
