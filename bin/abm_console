@@ -1,14 +1,18 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 
 
-use vars  qw(%RAD %conf $db %AUTH
- %RAD_REQUEST %RAD_REPLY %RAD_CHECK 
- %auth_mod
- $begin_time
- $nas);
+use vars  qw($db %AUTH %conf $sql $DATE $TIME
+  $begin_time %LANG $CHARSET @MODULES %FUNCTION_LIST
+  
+  $index
+  $UID $user $admin $sid
+ );
 
-use strict;
+
+
+
+#use strict;
 use FindBin '$Bin';
 require $Bin . '/../libexec/config.pl';
 unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
@@ -17,16 +21,84 @@ require Abills::Base;
 Abills::Base->import();
 $begin_time = check_time();
 
+require "Abills/defs.conf";
+require "Abills/templates.pl";
+
 
 if ($#ARGV == -1) {
 	help();
 	exit 0; 
 }
 
-my $args = parse_arguments(\@ARGV);
 
-ppp_log_parser( $args );
+require Abills::SQL;
+my $sql = Abills::SQL->connect($conf{dbtype}, 
+                               $conf{dbhost}, 
+                               $conf{dbname}, 
+                               $conf{dbuser}, 
+                               $conf{dbpasswd},
+                               { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
+my $db = $sql->{db};
 
+require Admins;
+Admins->import();
+$admin = Admins->new($db, \%conf);
+$admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
+require Users;
+Users->import();
+my $user=Users->new($db, $admin, \%conf); 
+
+require Fees;
+Fees->import();
+my $fees = Fees->new($db, $admin, \%conf);
+
+
+my $ARGV = parse_arguments(\@ARGV);
+my $language = ($ARGV->{language}) ? $ARGV->{language} : 'russian';
+require "../language/$language.pl";
+
+if ($ARGV->{DV_USER}) {
+	dv_users();
+ }
+elsif ($ARGV->{LOGIN}) {
+	
+ }
+elsif ($ARGV->{LOGPARCE}) {
+  ppp_log_parser( $ARGV );
+}
+
+
+#************************************************
+#
+#************************************************
+sub dv_users {
+	my ($attr) = @_;
+	
+  require  Dv;
+  Dv->import();
+  my $Dv = Dv->new($db, $admin, \%conf);
+
+  $user->info(0, { LOGIN => $ARGV->{DV_USER} });
+
+  print "UID: $user->{UID}\n";
+	
+	if ($ARGV->{add}) {
+		
+	 }
+	elsif ($ARGV->{change}) {
+		$Dv->change({ UID => $user->{UID}, %{ $ARGV } });
+    
+    if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+      $Dv->{ACTIVATE}= ($ARGV->{ACTIVATE}) ? $ARGV->{ACTIVATE} : $user->{ACTIVATE};
+      dv_get_month_fee($Dv);
+     }
+
+		if (! $Dv->{errno}) {
+			 print "Change\n";
+		 }
+	 }
+	
+}
 
 #************************************************
 #
@@ -84,13 +156,158 @@ sub ppp_log_parser {
 
 }
 
+
+
+sub dv_get_month_fee {
+  my ($Dv, $attr) = @_;
+
+  if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+
+     my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
+
+     my $users = Users->new($db, $admin, \%conf); 
+     my $user  = $users->info($Dv->{UID});
+
+     my $message = ''; 
+     #Current Month
+     my ($y, $m, $d)=split(/-/, $DATE, 3);
+    
+     my ($active_y, $active_m, $active_d)=split(/-/, $Dv->{ACTIVATE}, 3);	 
+
+        if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
+        	$message = "$_MONTH_ALIGNMENT, ";
+          my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+
+          if ($Dv->{ACTIVATE} ne '0000-00-00') {
+            $days_in_month=($active_m!=2?(($active_m%2)^($active_m>7))+30:(!($active_y%400)||!($active_y%4)&&($active_y%25)?29:28)); 
+            $d = $active_d;
+           }
+
+          $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
+          $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1));
+         }
+       
+        
+        my $periods = 0;
+        if ($active_m > 0 && $active_m < $m) {
+        	$periods = $m - $active_m;
+         }
+        elsif ($active_m > 0 && ( $active_m > $m  && $active_y < $y)) {
+        	$periods = 12 - $active_m + $m; 
+         }
+        
+        $message .= "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{TP_ID})";
+
+        for (my $i=0; $i<=$periods; $i++) {
+
+          if ($active_m+$i > 12) {
+          	$active_m=0;
+          	$active_y=$active_y+$i;
+           }
+          
+          $m = sprintf("%.2d", $active_m+$i);
+
+          if ( $i > 0 ) {
+  	        $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
+            $message = "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{TP_ID})";
+            $DATE    = "$active_y-$m-01";
+            $TIME    = "00:00:00";
+           }
+          elsif ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT} && $Dv->{ACTIVATE} ne '0000-00-00'){
+            $DATE    = "$active_y-$m-01";
+            $TIME    = "00:00:00";
+            
+            $users->change($Dv->{UID}, { ACTIVATE => '0000-00-00',
+            	                           UID      => $Dv->{UID} });
+
+           }
+          
+          $fees->take($users, $sum, { DESCRIBE  => $message, 
+        	                            METHOD    => 1, 
+        	                            DATE      => "$DATE $TIME"
+        	                           });  
+        
+          if ($fees->{errno}) {
+        	  print "[$fees->{errno}] \n";	
+           }
+          else {
+            print $message."\n";	
+           }
+         }
+
+
+      }
+}
+
+#**********************************************************
 #
+#**********************************************************
+sub mk_menu {
+    my %module_fl=();
+    my %menu_names = ();
+    my %module     = ();
+    my %functions  = ();
+    my %uf_menus   = ();
+    my %menu_args  = ();
+    my %menu_items = ();
+  
+    my $maxnumber  = 0;   
+
+foreach my $m (@MODULES) {
+    if(my $return = do "Abills/modules/$m/config") {
+     }
+
+    next if (keys %FUNCTION_LIST < 1);
+    my @sordet_module_menu = sort keys %FUNCTION_LIST;
+
+    foreach my $line (@sordet_module_menu) {
+      $maxnumber++;
+      my($ID, $SUB, $NAME, $FUNTION_NAME, $ARGV)=split(/:/, $line, 5);
+      $ID = int($ID);
+      my $v = $FUNCTION_LIST{$line};
+
+      $module_fl{"$ID"}=$maxnumber;
+      #$fl .= "$FUNTION_NAME $maxnumber\n";
+      $menu_args{$maxnumber}=$ARGV;
+      #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB} PARENT: $v<br/>";
+     
+      if($SUB > 0) {
+        $menu_items{$maxnumber}{$module_fl{$SUB}}=$NAME;
+       } 
+      else {
+        $menu_items{$maxnumber}{$v}=$NAME;
+        if ($SUB == -1) {
+          $uf_menus{$maxnumber}=$NAME;
+         }
+      }
+
+      $menu_names{$maxnumber} = $NAME;
+      $functions{$maxnumber}  = $FUNTION_NAME if ($FUNTION_NAME  ne '');
+      $module{$maxnumber}     = $m;
+    }
+
+    %FUNCTION_LIST = ();
+  }
+}
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
 sub help {
 print << "[END]";
 abm_console console ABillS managment
-  USER - Get session info from /var/log/ppp.log for user USER
-  PID  - Get INfo for PID
+  ACTION=- some user actions (add,del,change,info(default))
+  LOGIN= - show user info
+
+  USER   - Get session info from /var/log/ppp.log for user USER
+  PID    - Get INfo for PID
 
 [END]
 
 }
+
+
+1
