@@ -213,12 +213,14 @@ sub dv_get_month_fee {
             $DATE    = "$active_y-$m-01";
             $TIME    = "00:00:00";
            }
-          elsif ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT} && $Dv->{ACTIVATE} ne '0000-00-00'){
-            $DATE    = "$active_y-$m-01";
+          elsif ($Dv->{ACTIVATE} ne '0000-00-00'){
+            $DATE    = "$active_y-$m-$active_d";
             $TIME    = "00:00:00";
-            
-            $users->change($Dv->{UID}, { ACTIVATE => '0000-00-00',
-            	                           UID      => $Dv->{UID} });
+            if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) { 
+              $users->change($Dv->{UID}, { ACTIVATE => '0000-00-00',
+            	                         UID      => $Dv->{UID} });
+
+             }
 
            }
           
