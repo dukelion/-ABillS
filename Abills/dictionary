@@ -253,4 +253,15 @@ ATTRIBUTE       h323-connect-time       28      string  Cisco
 ATTRIBUTE       h323-disconnect-time    29      string  Cisco
 ATTRIBUTE       h323-credit-time				102     string  Cisco
 ATTRIBUTE       h323-return-code				103     string  Cisco
+#SIP Attributes
+ATTRIBUTE       call-id                 141     string	Cisco
+ATTRIBUTE       session-protocol        142     string	Cisco
+ATTRIBUTE       method                  143     string	Cisco
+ATTRIBUTE       prev-hop-via            144     string	Cisco
+ATTRIBUTE       prev-hop-ip             145     string	Cisco
+ATTRIBUTE       incoming-req-uri        146     string	Cisco
+ATTRIBUTE       outgoing-req-uri        147     string	Cisco
+ATTRIBUTE       next-hop-ip             148     string	Cisco
+ATTRIBUTE       next-hop-dn             149     string	Cisco
+ATTRIBUTE       sip-hdr                 150     string	Cisco
 
