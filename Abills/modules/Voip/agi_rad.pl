@@ -185,6 +185,25 @@ if ($data{return_code} != 0 && $data{return_code} != 13) {
 $agi->set_autohangup($data{'session_timeout'}) if $data{'session_timeout'} > 0;
 
 
+if ($debug > 0) {
+  $agi->verbose("RAD Pairs:");
+  while(my( $k,$v) = each %rad_response) {
+    $agi->verbose("$k = $v");
+   }
+}
+#Make calling string 
+
+my $rewrittennumber = $data{'called'};
+my $protocol = $conf{VOIP_AGI_PROTOCOL} || 'SIP';
+$protocol = $rad_response{'session-protocol'} if ($rad_response{'session-protocol'});
+my $dialstring = "$protocol/".$rewrittennumber; #."\@";
+$dialstring = $rad_response{'next-hop-ip'} if ($rad_response{'next-hop-ip'});
+
+$agi->set_variable('LCRSTRING1', $dialstring);
+$agi->set_variable('TIMELIMIT', $data{'session_timeout'});
+$agi->set_variable('OPTIONS', '');
+
+
 
 #Accountin request
 my %rad_acct_attributes = %rad_attributes;
@@ -193,11 +212,8 @@ $rad_acct_attributes{'Acct-Status-Type'} = "Start";
 $rad_acct_attributes{'Acct-Delay-Time'}  = 0;
 $rad_acct_attributes{'Acct-Session-Id'}  = $data{'sessionid'};
 send_radius_request(ACCOUNTING_REQUEST, \%rad_acct_attributes);
-my $rewrittennumber = $data{'called'};
-my $protocol = $conf{VOIP_AGI_PROTOCOL} || 'SIP';
-$protocol = $rad_acct_attributes{'session-protocol'} if ($rad_acct_attributes{'session-protocol'});
-my $dialstring = "$protocol/".$rewrittennumber; #."\@";
-$dialstring = $rad_acct_attributes{'ext-hop-ip'} if ($rad_acct_attributes{'ext-hop-ip'});
+
+$agi->verbose("Dial: $dialstring ");
 
 my %peer = ( 'type'    => '',
              'host'    => '',
@@ -237,7 +253,7 @@ $agi->exec('Dial', $dialstring);
   my $call_length    = $agi->get_variable('DIALEDTIME') + 0 + $conf{'VOIP_TIMESHIFT'};
   my $delay_time     = $call_length - $session_length;
   my $sip_msg_code   = $agi->get_variable('SIPLASTERRORCODE')+0;
-  my $channel_state  = $agi->exec('GetChannelState','');  
+  my $channel_state  = ''; #$agi->exec('GetChannelState','');  
   my $disconnect_cause = $agi->get_variable('DIALSTATUS');
   
 syslog('debug', "Disconnect cause: $disconnect_cause CHANNEL STATE: $channel_state SIP MSG CODE: $sip_msg_code");
@@ -253,7 +269,9 @@ syslog('debug', "Disconnect cause: $disconnect_cause CHANNEL STATE: $channel_sta
 
   my $currenttime = time();
   $rad_acct_attributes{'h323-setup-time'}      = sec2date($currenttime - $call_length - $delay_time);
-  if ($session_length > 0) {$rad_acct_attributes{'h323-connect-time'} = sec2date($currenttime - $session_length);}
+  if ($session_length > 0) {
+    $rad_acct_attributes{'h323-connect-time'} = sec2date($currenttime - $session_length);
+   }
   else { $rad_acct_attributes{'h323-connect-time'} = sec2date(0); }
   $rad_acct_attributes{'h323-disconnect-time'}     = sec2date($currenttime);
   $rad_acct_attributes{'h323-disconnect-cause'}    = 16;
