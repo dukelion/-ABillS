@@ -181,6 +181,7 @@ foreach my $line (@$list) {
 if ($prepaid{0} + $prepaid{1} > 0) {
   #Get traffic from begin of month
   $used_traffic = $self->get_traffic({ UID    => $self->{UID},
+  	                                   UIDS   => $self->{UIDS},
  	                                     PERIOD => $traffic_period
    	                                  });
 
@@ -201,6 +202,7 @@ if ($prepaid{0} + $prepaid{1} > 0) {
     
     # Traffic transfer
     my $transfer_traffic=$self->get_traffic({ UID      => $self->{UID},
+    	                                        UIDS     => $self->{UIDS},
                                               INTERVAL => $interval,
                                               TP_ID    => $tp
                                             });
@@ -329,12 +331,17 @@ sub get_traffic {
   	$period .= " AND tp_id='$attr->{TP_ID}'";
    }
 
+  my $WHERE = "='$attr->{UID}'";
+  if ($attr->{UIDS}) {
+  	$WHERE = "IN ($attr->{UIDS})";
+   }
+
   $self->query($db, "SELECT sum(sent)  / $CONF->{MB_SIZE} + acct_output_gigawords * 4096,  
                             sum(recv)  / $CONF->{MB_SIZE} + acct_input_gigawords * 4096, 
                             sum(sent2) / $CONF->{MB_SIZE}, 
                             sum(recv2) / $CONF->{MB_SIZE}
        FROM dv_log 
-       WHERE uid='$attr->{UID}' and ($period)
+       WHERE uid $WHERE and ($period)
        GROUP BY uid;");
 
   if ($self->{TOTAL} > 0) {
@@ -350,46 +357,6 @@ sub get_traffic {
 	return \%result;
 }
 
-#**********************************************************
-# Get traffic from some period
-# UID     - user id
-# PERIOD  - start period
-# 
-# Return traffic recalculation by MB 
-#
-#**********************************************************
-sub get_traffic_tt{
-	my ($self, $attr) = @_;
-
-	my %result = (
-	   TRAFFIC_OUT   => 0, 
-     TRAFFIC_IN    => 0,
-     TRAFFIC_OUT_2 => 0,
-     TRAFFIC_IN_2  => 0
-	);
-  
-  my $period = ($attr->{PERIOD}) ? $attr->{PERIOD} : "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')";
-
-  $self->query($db, "SELECT sum(sent)  / $CONF->{MB_SIZE},  
-                            sum(recv)  / $CONF->{MB_SIZE}, 
-                            sum(sent2) / $CONF->{MB_SIZE}, 
-                            sum(recv2) / $CONF->{MB_SIZE}
-       FROM dv_log 
-       WHERE uid='$attr->{UID}' and ($period)
-       GROUP BY uid;");
-
-  if ($self->{TOTAL} > 0) {
-    ($result{TRAFFIC_OUT}, 
-     $result{TRAFFIC_IN},
-     $result{TRAFFIC_OUT_2},
-     $result{TRAFFIC_IN_2}
-    )=@{ $self->{list}->[0] };
-  }
-  
-  $self->{PERIOD_TRAFFIC}=\%result;
-  
-	return \%result;
-}
 
 #**********************************************************
 # Calculate session sum
@@ -413,7 +380,6 @@ sub session_sum {
      $attr) = @_;
 
  my $sum = 0;
- my ($TP_ID);
 
  my $sent  = $RAD->{OUTBYTE} || 0; #from server
  my $recv  = $RAD->{INBYTE}  || 0;  #to server
@@ -471,6 +437,7 @@ sub session_sum {
    FROM tarif_plans tp
    WHERE tp.id='$attr->{TP_ID}';");
 
+
    if($self->{errno}) {
      return -3, 0, 0, 0, 0, 0;
     }
@@ -479,11 +446,13 @@ sub session_sum {
      return -5, 0, 0, 0, 0, 0;	
     }
 
-  ($self->{MIN_SESSION_COST},
-   $self->{PAYMENT_TYPE},
-   $self->{OCTETS_DIRECTION},
-   $self->{TRAFFIC_TRANSFER_PERIOD}
-  ) = @{ $self->{list}->[0] };
+   $self->{TP_ID}=$attr->{TP_ID};
+
+   ( $self->{MIN_SESSION_COST},
+     $self->{PAYMENT_TYPE},
+     $self->{OCTETS_DIRECTION},
+     $self->{TRAFFIC_TRANSFER_PERIOD}
+    ) = @{ $self->{list}->[0] };
 
   }
  else {
@@ -502,7 +471,8 @@ sub session_sum {
     tp.payment_type,
     tp.octets_direction,
     tp.traffic_transfer_period,
-    tp.neg_deposit_filter_id
+    tp.neg_deposit_filter_id,
+    dv.join_service
    FROM (users u, 
       dv_main dv, 
       tarif_plans tp)
@@ -532,15 +502,15 @@ sub session_sum {
    $self->{PAYMENT_TYPE},
    $self->{OCTETS_DIRECTION},
    $self->{TRAFFIC_TRANSFER_PERIOD},
-   $self->{NEG_DEPOSIT_FILTER}
+   $self->{NEG_DEPOSIT_FILTER},
+   $self->{JOIN_SERVICE}
   ) = @{ $self->{list}->[0] };
  }
 
- $self->{TP_ID}=$attr->{TP_ID} if (defined($attr->{TP_ID}));
+ 
 
 
  if ($attr->{USER_INFO}) {
- 	
  	 return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_ID}, 0, 0;
   }
 
@@ -574,7 +544,9 @@ if(! defined($self->{NO_TPINTERVALS})) {
      }
    
     if( $i == 0 && defined($periods_traf_tarif->{$k}) && $periods_traf_tarif->{$k} > 0) {
-   	    $sum  += $self->traffic_calculations({ %$RAD, SESSION_START => $SESSION_START });
+   	    $sum  += $self->traffic_calculations({ %$RAD, 
+   	    	                                     SESSION_START => $SESSION_START, 
+   	    	                                     UIDS          => $self->{UIDS} });
    	    last;
      }
    }
@@ -1296,6 +1268,7 @@ sub expression {
              }
             else {
   	      	  $counters = $self->get_traffic({ UID    => $UID,
+  	      	  	                               UID    => $attr->{UIDS},
      	                                         PERIOD => $start_period
    	                                          }) if (! $counters->{TRAFFIC_IN});
              }

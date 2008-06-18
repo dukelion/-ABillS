@@ -66,7 +66,7 @@ sub dv_auth {
      return 1, $RAD_PAIRS;
   }
   
-  my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 2048;
+  my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 4096;
  
   $self->query($db, "select  if (dv.logins=0, tp.logins, dv.logins) AS logins,
   if(dv.filter_id != '', dv.filter_id, tp.filter_id),
@@ -105,7 +105,8 @@ sub dv_auth {
   tp.neg_deposit_filter_id,
   tp.ext_bill_account,
   tp.credit,
-  tp.ippool
+  tp.ippool,
+  dv.join_service
 
      FROM (dv_main dv, tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
@@ -152,7 +153,8 @@ sub dv_auth {
      $self->{NEG_DEPOSIT_FILTER_ID},
      $self->{EXT_BILL_ACCOUNT},
      $self->{TP_CREDIT},
-     $self->{TP_IPPOOL}
+     $self->{TP_IPPOOL},
+     $self->{JOIN_SERVICE}
     ) = @{ $self->{list}->[0] };
 
 #DIsable
@@ -165,6 +167,86 @@ elsif (( $RAD_PAIRS->{'Callback-Number'} || $RAD_PAIRS->{'Ascend-Callback'} ) &&
   return 1, $RAD_PAIRS;
 }
 
+
+# Make join service operations
+if ($self->{JOIN_SERVICE}) {
+
+ if ($self->{JOIN_SERVICE} > 1) {
+  $self->query($db, "select  
+  if ($self->{LOGINS}>0, $self->{LOGINS}, tp.logins) AS logins,
+  if('$self->{FILTER}' != '', '$self->{FILTER}', tp.filter_id),
+  dv.tp_id,
+  tp.day_time_limit,
+  tp.week_time_limit,
+  tp.month_time_limit,
+  UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
+
+  tp.day_traf_limit,
+  tp.week_traf_limit,
+  tp.month_traf_limit,
+  tp.octets_direction,
+
+  if (count(un.uid) + count(tp_nas.tp_id) = 0, 0,
+    if (count(un.uid)>0, 1, 2)),
+  tp.max_session_duration,
+  tp.payment_type,
+  tp.credit_tresshold,
+  tp.rad_pairs,
+  count(i.id),
+  tp.age,
+  tp.traffic_transfer_period,
+  tp.neg_deposit_filter_id,
+  tp.ext_bill_account,
+  tp.credit,
+  tp.ippool
+     FROM (dv_main dv, tarif_plans tp)
+     LEFT JOIN users_nas un ON (un.uid = dv.uid)
+     LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.id)
+     LEFT JOIN intervals i ON (tp.id = i.tp_id)
+     WHERE dv.tp_id=tp.id
+         AND dv.uid='$self->{JOIN_SERVICE}'
+     GROUP BY dv.uid;");
+	
+	  if($self->{errno}) {
+  	$RAD_PAIRS->{'Reply-Message'}='SQL error';
+  	return 1, $RAD_PAIRS;
+   }
+  elsif ($self->{TOTAL} < 1) {
+    $RAD_PAIRS->{'Reply-Message'}="Service not allow";
+    return 1, $RAD_PAIRS;
+   }
+
+    (
+     $self->{LOGINS}, 
+     $self->{FILTER}, 
+     $self->{TP_ID}, 
+     $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT}, $self->{TIME_LIMIT},
+     $self->{DAY_TRAF_LIMIT},  $self->{WEEK_TRAF_LIMIT},   $self->{MONTH_TRAF_LIMIT}, $self->{OCTETS_DIRECTION},
+     $self->{NAS}, 
+     $self->{MAX_SESSION_DURATION},
+     $self->{PAYMENT_TYPE},
+     $self->{CREDIT_TRESSHOLD},
+     $self->{TP_RAD_PAIRS},
+     $self->{INTERVALS},
+     $self->{ACCOUNT_AGE},
+     $self->{TRAFFIC_TRANSFER_PERIOD},
+     $self->{NEG_DEPOSIT_FILTER_ID},
+     $self->{EXT_BILL_ACCOUNT},
+     $self->{TP_CREDIT},
+     $self->{TP_IPPOOL},
+    ) = @{ $self->{list}->[0] };
+    $self->{UIDS} = "$self->{JOIN_SERVICE}";
+   }
+  else {
+    $self->{UIDS} = "$self->{UID}";
+   }
+
+  $self->query($db, "SELECT uid FROM dv_main WHERE join_service='$self->{JOIN_SERVICE}';");
+  foreach my $line ( @{ $self->{list} }) {
+  	$self->{UIDS} .= ", $line->[0]";
+   }
+
+}
 
 #Check allow nas server
 # $nas 1 - See user nas
@@ -220,7 +302,6 @@ if ($self->{PAYMENT_TYPE} == 0) {
   #if not defined user credit use TP credit
   $self->{CREDIT} = $self->{TP_CREDIT} if ($self->{CREDIT} == 0);
  
-#  print "/$self->{CREDIT} /\n"; 
   
   $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
 
@@ -330,15 +411,22 @@ my %SQL_params = (
                   MONTH => "date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m')" 
                   );
 
+my $WHERE = "='$self=>{UID}'";
+if ($self->{UIDS}) {
+  $WHERE = " IN ($self->{UIDS})";
+}
+
 foreach my $line (@periods) {
      if (($self->{$line . '_TIME_LIMIT'} > 0) || ($self->{$line . '_TRAF_LIMIT'} > 0)) {
         my $session_time_limit=$traf_limit;
         my $session_traf_limit=$traf_limit;
+ 
         $self->query($db, "SELECT if(". $self->{$line . '_TIME_LIMIT'} ." > 0, ". $self->{$line . '_TIME_LIMIT'} ." - sum(duration), 0),
-                                  if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - $direction_sum[$self->{OCTETS_DIRECTION}], 0) 
+                                  if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - $direction_sum[$self->{OCTETS_DIRECTION}], 0),
+                                  1
             FROM dv_log
-            WHERE uid='$self->{UID}' and $SQL_params{$line}
-            GROUP BY uid;");
+            WHERE uid $WHERE and $SQL_params{$line}
+            GROUP BY 3;");
 
         if ($self->{TOTAL} == 0) {
           push (@time_limits, $self->{$line . '_TIME_LIMIT'}) if ($self->{$line . '_TIME_LIMIT'} > 0);
@@ -1018,6 +1106,7 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
 
   my $start_period = ($self->{ACCOUNT_ACTIVATE} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACCOUNT_ACTIVATE}'" : undef;
   my $used_traffic=$Billing->get_traffic({ UID    => $self->{UID},
+  	                                       UIDS   => $self->{UIDS},
                                            PERIOD => $start_period });
 
   #Make trafiic sum only for diration
@@ -1054,6 +1143,7 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
     
     # Traffic transfer
     my $transfer_traffic=$Billing->get_traffic({ UID      => $self->{UID},
+    	                                           UIDS     => $self->{UIDS},
                                                  INTERVAL => $interval,
                                                  TP_ID    => $tp
                                                });

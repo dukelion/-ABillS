@@ -83,10 +83,11 @@ if ($acct_status_type == 1) {
     
   if ($self->{list}->[0]->[0] < 1) {
     #Get TP_ID
-    $self->query($db, "SELECT dv.tp_id FROM (users u, dv_main dv)
+    $self->query($db, "SELECT u.uid, dv.tp_id FROM (users u, dv_main dv)
      WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';");
     if ($self->{TOTAL} > 0) {
-      ($self->{TP_ID})= @{ $self->{list}->[0] };
+      ($self->{UID},
+       $self->{TP_ID})= @{ $self->{list}->[0] };
      }
     else {
     	$RAD->{USER_NAME}='! '.$RAD->{USER_NAME};
@@ -100,7 +101,8 @@ if ($acct_status_type == 1) {
     # 
     my $sql = "INSERT INTO dv_calls
      (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
-      acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id, tp_id)
+      acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id, tp_id,
+      uid)
        values ('$acct_status_type', 
       \"$RAD->{USER_NAME}\", 
       $SESSION_START, 
@@ -112,7 +114,7 @@ if ($acct_status_type == 1) {
       '$RAD->{CALLING_STATION_ID}', 
       '$RAD->{CONNECT_INFO}', 
       '$NAS->{NAS_ID}',
-      '$self->{TP_ID}');";
+      '$self->{TP_ID}', '$self->{UID}');";
     $self->query($db, "$sql", 'do');
   }
  }

@@ -1,21 +1,33 @@
 #!/bin/sh
+# Test radius inputs and outputs
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
+VERSION=0.01
 
-
-echo $1 
+USER_NAME=test
+USER_PASSWORD=123456
+NAS_IP_ADDRESS=127.0.0.1
 
 echo `pwd -P`;
+echo $1 
+
+
+echo -n "USER_NAME (${USER_NAME}): "
+read _input
+if [ w${_input} != w ]; then
+  USER_NAME=${_input}
+fi;
+
 
 if [ t$1 = 'tauth' ] ; then
 
   ./rauth.pl \
         SERVICE_TYPE=VPN \
-        NAS_IP_ADDRESS=10.10.10.1 \
+        NAS_IP_ADDRESS=${NAS_IP_ADDRESS} \
         CALLING_STATION_ID="0013.7727.ad33"\
-         USER_PASSWORD="123456"\
-        USER_NAME="0013.7727.ad33"
+        USER_PASSWORD="${USER_PASSWORD}"\
+        USER_NAME="${USER_NAME}"
 
 #        CHAP_PASSWORD="0x5acd1cc26b6f8bf084fb616925769362af"
 
