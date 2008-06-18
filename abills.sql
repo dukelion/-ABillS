@@ -84,8 +84,10 @@ CREATE TABLE `dv_calls` (
   `acct_output_gigawords` smallint(4) unsigned NOT NULL default '0',
   `ex_input_octets_gigawords` smallint(4) unsigned NOT NULL default '0',
   `ex_output_octets_gigawords` smallint(4) unsigned NOT NULL default '0',
+  `uid` int(11) unsigned NOT NULL default '0',
   KEY `user_name` (`user_name`),
-  KEY `acct_session_id` (`acct_session_id`)
+  KEY `acct_session_id` (`acct_session_id`),
+  KEY `uid` (`uid`)
 );
 
 
