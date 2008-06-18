@@ -674,8 +674,11 @@ sub prepaid_rest {
 
  return 1 if ($attr->{INFO_ONLY});
  
+ 
 
  $self->{EXTRA_TRAFIC} = $self->{INFO_LIST}->[0]->[9];  
+ 
+
  $self->{EXTRA_TRAFIC_USE} = $self->{INFO_LIST}->[0]->[10];  
  
  #Check sessions
@@ -695,14 +698,16 @@ sub prepaid_rest {
     ) =  @{ $self->{list}->[0] };
   }
 
+
 if ( $self->{EXTRA_TRAFIC_USE} > 0 && $rest{0} < 0 ) {
 	$self->{EXTRA_TRAFIC} = $self->{EXTRA_TRAFIC} - abs($rest{0});
  }
-else {
-  $self->{EXTRA_TRAFIC}=undef;
-}
+#else {
+#  $self->{EXTRA_TRAFIC}=undef;
+#}
 
  $self->{REST}=\%rest;
+ 
   
  return 1;
 }
