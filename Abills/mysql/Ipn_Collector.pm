@@ -100,7 +100,7 @@ sub user_ips {
 		 LEFT JOIN bills b ON (u.bill_id=b.id)
 		 LEFT JOIN bills cb ON (c.bill_id=cb.id)
 		 LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
-		 LEFT JOIN dv_calls calls ON (dv.uid=calls.uid)
+		 LEFT JOIN dv_calls calls ON (u.id=calls.user_name)
 		 WHERE u.uid=dv.uid 
 		  and dv.ip > 0 and u.disable=0 and dv.disable=0;";
    }
