@@ -770,7 +770,8 @@ my $table = $html->table( { caption     => "$_PERIOD",
 	                          width       => '100%',
                             title_plain => ["$_PERIOD", "$_DURATION", "$_RECV", "$_SEND",  "$_SUM"],
                             cols_align  => ['left', 'right', 'right', 'right', 'right'],
-                            rowcolor    => $_COLORS[1]
+                            rowcolor    => $_COLORS[1],
+                            EXT_ID      => "SHARING_STATS_PERIODS"
                            } );
 
 
@@ -849,16 +850,17 @@ if ($Sharing->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
 
   print $table->show();	 
   
-if ($Sharing->{EXTRA_TRAFIC}) {
-  $table = $html->table( { caption     => "$_EXTRA_TRAFIC",
-	                         width       => '100%',
-                           cols_align  => ['left', 'right'],
-                           rowcolor    => $_COLORS[1],
-                           rows        => [["$_REST (Mb):", $Sharing->{EXTRA_TRAFIC} ]]
-                        } );
-
-  print $table->show();	 
- }
+  if ($Sharing->{EXTRA_TRAFIC}) {
+    $table = $html->table( { caption     => "$_EXTRA_TRAFIC",
+	                           width       => '100%',
+                             cols_align  => ['left', 'right'],
+                             rowcolor    => $_COLORS[1],
+                             rows        => [["$_REST (Mb):", $Sharing->{EXTRA_TRAFIC} ]],
+                             ID          => 'EXTRA_TAFIC'
+                             
+                          } );
+    print $table->show();	 
+   }
 
 
 }

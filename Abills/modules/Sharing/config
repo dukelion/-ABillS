@@ -11,7 +11,7 @@
                    "22:21:$_GROUPS:form_tp_groups:"     => 5,
                    "23:21:$_TRAFIC_TARIFS:sharing_traffic_tariffs:TP_ID" => 5,
                    "24:21:Ext $_TRAFFIC:sharing_additions:TP_ID"       => 5,
-                   "25:20:$_PRIORITY:sharing_priority:"       => 5,
+                   "25:20:$_PRIORITY:sharing_priority:" => 5,
                    "30:0:Sharing:sharing_online:"       => 8
                    
                    ); 
