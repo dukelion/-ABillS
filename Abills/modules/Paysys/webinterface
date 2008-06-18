@@ -715,11 +715,20 @@ if ($FORM{CODE}) {
 		    $html->message('err', $_ERROR, "$_NOT_EXIST");
 	     }
 	    else {
+        #Exchange rate
+        my $er = 1;
+        $payments->exchange_info(0, { SHORT_NAME => "SMSPROXY"  });
+        if ($payments->{TOTAL} > 0) {
+      	  $er = $payments->{ER_RATE};
+         }
+    
+        
         $payments->add($user, {SUM  => $Paysys->{SUM},
  	                     DESCRIBE     => 'SMSProxy', 
  	                     METHOD       => '2', 
                        EXT_ID       => $Paysys->{TRANSACTION_ID},
-                       CHECK_EXT_ID => $Paysys->{TRANSACTION_ID}
+                       CHECK_EXT_ID => $Paysys->{TRANSACTION_ID},
+                       ER           => $er
                         } );  
 
         if ($payments->{errno} && $payments->{errno} == 7) {

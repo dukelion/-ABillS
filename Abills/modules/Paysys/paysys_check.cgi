@@ -306,20 +306,28 @@ sub smsproxy_payments {
 #https//demo.abills.net.ua:9443/paysys_check.cgi?skey=827ccb0eea8a706c4c34a16891f84e7b&smsid=1208992493215&num=1171&operator=Tester&user_id=1234567890&cost=1.5&msg=%20Test_messages
 
 
- my $sms_num = $FORM{num} || 0;
- my $cost    = $FORM{cost} || 0;
- my $skey   = $FORM{skey};
- my $prefix = $FORM{prefix};
- my %prefix_keys = ();
+ my $sms_num     = $FORM{num} || 0;
+ my $cost        = $FORM{cost} || 0;
+ my $skey        = $FORM{skey}  || '';
+ my $prefix      = $FORM{prefix} || '';
 
- my @keys_arr = split(/,/, $conf{PAYSYS_SMSPROXY_KEYS});
+ my %prefix_keys = ();
  my $service_key = '';
- foreach my $line (@keys_arr) {
-   my($num, $key)=split(/:/, $line);
-   if ($num eq $sms_num) {
-     $prefix_keys{$num}=$key;  
-     $service_key = $key;
+ 
+ if ($conf{PAYSYS_SMSPROXY_KEYS} && $conf{PAYSYS_SMSPROXY_KEYS} =~ /:/) {
+   my @keys_arr = split(/,/, $conf{PAYSYS_SMSPROXY_KEYS});
+
+   foreach my $line (@keys_arr) {
+     my($num, $key)=split(/:/, $line);
+     if ($num eq $sms_num) {
+       $prefix_keys{$num}=$key;  
+       $service_key = $key;
+      }
     }
+  }
+ else {
+   $prefix_keys{$sms_num}=$conf{PAYSYS_SMSPROXY_KEYS};  
+   $service_key = $conf{PAYSYS_SMSPROXY_KEYS};
   }
 
  $md5->reset;
@@ -341,6 +349,19 @@ my $code = mk_unique_value(8);
 #Info section  
  my ($transaction_id, $m_secs)=split(/\./, $FORM{smsid}, 2);
  
+ my $er = 1;
+ $payments->exchange_info(0, { SHORT_NAME => "SMSPROXY"  });
+ if ($payments->{TOTAL} > 0) {
+  	$er = $payments->{ER_RATE};
+   }
+
+ if ($payments->{errno}) {
+   print "status:ignore\n";
+   print "content-type: text/plain\n\n";
+   print "PAYMENT ERROR: $payments->{errno}!\n";
+   return 0;
+  }
+ 
  $Paysys->add({ SYSTEM_ID      => 3, 
  	              DATETIME       => "'$DATE $TIME'", 
  	              SUM            => "$cost",
@@ -361,7 +382,7 @@ my $code = mk_unique_value(8);
    }
 
 
-  print "status:ignore\n";
+  print "status:reply\n";
   print "content-type: text/plain\n\n";
   print $conf{PAYSYS_SMSPROXY_MSG} if ($conf{PAYSYS_SMSPROXY_MSG});
   print " CODE: $code";
