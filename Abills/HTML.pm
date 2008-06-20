@@ -1559,9 +1559,9 @@ sub make_charts {
 	  $PATH =~ s/img//;
    }
 
-  if (! -f $PATH. "charts.swf") {
-  	 return 0;
-   }
+#  if (! -f $PATH. "charts.swf") {
+#     return 0;
+#   }
   
   my $suffix = ($attr->{SUFFIX}) ? $attr->{SUFFIX} : '';
 
@@ -1569,7 +1569,8 @@ sub make_charts {
   my $DATA = $attr->{DATA};
   my $ex_params = '';
 
-  return 0 if(scalar keys  %$DATA == 0);
+
+  return  if(scalar keys  %$DATA == 0);
 
   if ($attr->{TRANSITION} && $CONF->{CHART_ANIMATION}) {
     my $random = int(rand(@chart_transition));
@@ -1753,7 +1754,7 @@ PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'>
 	if ($attr->{OUTPUT2RETURN}) {
 		 return $output;
 	  }
-	
+
   print $output;
 
 }
