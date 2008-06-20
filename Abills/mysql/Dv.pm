@@ -541,6 +541,10 @@ sub list {
    push @WHERE_RULES, "dv.disable='$attr->{STATUS}'"; 
  }
  
+ if (defined($attr->{LOGIN_STATUS})) {
+   push @WHERE_RULES, "u.disable='$attr->{LOGIN_STATUS}'"; 
+  }
+
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT u.id, 

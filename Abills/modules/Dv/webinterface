@@ -2650,7 +2650,8 @@ sub dv_daily_fees {
  	   my $ulist = $Dv->list({
          ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
          EXPIRE    => ">'$ADMIN_REPORT{DATE}'",
-         DISABLE   => 0,
+         STATUS    => 0,
+         LOGIN_STATUS => 0,
          TP_ID     => $TP_ID,
          SORT      => 1,
          PAGE_ROWS => 1000000
@@ -2779,7 +2780,8 @@ sub dv_monthly_fees {
 	   my $ulist = $Dv->list({ 
          ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
          EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
-         DISABLE    => '0',
+         STATUS     => 0,
+         LOGIN_STATUS => 0,
          TP_ID      => $TP_ID,
          SORT       => 1,
          PAGE_ROWS  => 1000000
