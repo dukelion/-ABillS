@@ -397,7 +397,7 @@ my $time_limit  = $self->{TIME_LIMIT};
 my $traf_limit  = $MAX_SESSION_TRAFFIC;
 
 my @direction_sum = (
-  "sum(sent + recv) / $CONF->{MB_SIZE} + sum(acct_output_gigawords) * 4096 + sim(acct_input_gigawords) * 4096",
+  "sum(sent + recv) / $CONF->{MB_SIZE} + sum(acct_output_gigawords) * 4096 + sum(acct_input_gigawords) * 4096",
   "sum(recv) / $CONF->{MB_SIZE} + sum(acct_input_gigawords) * 4096",
   "sum(sent) / $CONF->{MB_SIZE} + sum(acct_output_gigawords) * 4096"
  );
