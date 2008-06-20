@@ -178,7 +178,10 @@ foreach my $line (@$list) {
     $sent = $sent + $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296;
    }
 
+
 if ($prepaid{0} + $prepaid{1} > 0) {
+  
+  print "AAAAAAAAAAAAAAAA\n";
   #Get traffic from begin of month
   $used_traffic = $self->get_traffic({ UID    => $self->{UID},
   	                                   UIDS   => $self->{UIDS},
@@ -336,13 +339,16 @@ sub get_traffic {
   	$WHERE = "IN ($attr->{UIDS})";
    }
 
-  $self->query($db, "SELECT sum(sent)  / $CONF->{MB_SIZE} + acct_output_gigawords * 4096,  
-                            sum(recv)  / $CONF->{MB_SIZE} + acct_input_gigawords * 4096, 
+  $self->{debug}=1;
+
+  $self->query($db, "SELECT sum(sent)  / $CONF->{MB_SIZE} + sum(acct_output_gigawords) * 4096,  
+                            sum(recv)  / $CONF->{MB_SIZE} + sum(acct_input_gigawords) * 4096, 
                             sum(sent2) / $CONF->{MB_SIZE}, 
-                            sum(recv2) / $CONF->{MB_SIZE}
+                            sum(recv2) / $CONF->{MB_SIZE},
+                            1
        FROM dv_log 
        WHERE uid $WHERE and ($period)
-       GROUP BY uid;");
+       GROUP BY 5;");
 
   if ($self->{TOTAL} > 0) {
     ($result{TRAFFIC_OUT}, 
@@ -459,7 +465,6 @@ sub session_sum {
   $self->query($db, "SELECT 
     u.uid,
     tp.id, 
-    tp.hourp,
     UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')),
     DAYOFWEEK(FROM_UNIXTIME($SESSION_START)),
     DAYOFYEAR(FROM_UNIXTIME($SESSION_START)),
@@ -490,7 +495,6 @@ sub session_sum {
   
   ($self->{UID}, 
    $self->{TP_ID}, 
-   $self->{MAIN_TIME_TARIF}, 
    $self->{DAY_BEGIN}, 
    $self->{DAY_OF_WEEK}, 
    $self->{DAY_OF_YEAR}, 
@@ -508,6 +512,47 @@ sub session_sum {
  }
 
  
+ if ($self->{JOIN_SERVICE}) {
+ 	 if ($self->{JOIN_SERVICE} > 1) {
+       $self->query($db, "SELECT 
+        tp.id, 
+        tp.min_session_cost,
+        tp.payment_type,
+        tp.octets_direction,
+        tp.traffic_transfer_period,
+        tp.neg_deposit_filter_id
+       FROM ( dv_main dv,  tarif_plans tp)
+       WHERE dv.tp_id=tp.id 
+       and dv.uid='$self->{JOIN_SERVICE}';");
+	
+     if($self->{errno}) {
+       return -3, 0, 0, 0, 0, 0;
+      }
+     #user not found
+     elsif ($self->{TOTAL} < 1) {
+       return -2, 0, 0, 0, 0, 0;	
+      }
+
+     (
+      $self->{TP_ID}, 
+      $self->{MIN_SESSION_COST},
+      $self->{PAYMENT_TYPE},
+      $self->{OCTETS_DIRECTION},
+      $self->{TRAFFIC_TRANSFER_PERIOD},
+      $self->{NEG_DEPOSIT_FILTER}
+     ) = @{ $self->{list}->[0] };
+
+     $self->{UIDS} = "$self->{JOIN_SERVICE}";
+    }
+   else {
+     $self->{UIDS} = "$self->{UID}";
+    }
+
+   $self->query($db, "SELECT uid FROM dv_main WHERE join_service='$self->{JOIN_SERVICE}';");
+   foreach my $line ( @{ $self->{list} }) {
+  	 $self->{UIDS} .= ", $line->[0]";
+   }
+ }
 
 
  if ($attr->{USER_INFO}) {
@@ -529,6 +574,7 @@ sub session_sum {
  my @sd = @{ $self->{TIME_DIVISIONS_ARR} };
  $self->{TI_ID} = 0;
 
+
 if(! defined($self->{NO_TPINTERVALS})) {
   if($#sd < 0) {
    	print "Not allow start period" if ($self->{debug});
@@ -547,7 +593,9 @@ if(! defined($self->{NO_TPINTERVALS})) {
    	    $sum  += $self->traffic_calculations({ %$RAD, 
    	    	                                     SESSION_START => $SESSION_START, 
    	    	                                     UIDS          => $self->{UIDS} });
+        print "$self->{UIDS} / ------------------------";
    	    last;
+
      }
    }
 }
@@ -999,7 +1047,6 @@ sub remaining_time {
 
   # Time check
   # $session_start
-
      $count++;
 
      my $cur_int = $time_intervals->{$tarif_day};

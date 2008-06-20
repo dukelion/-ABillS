@@ -224,7 +224,7 @@ elsif ($command eq 'pay') {
 
     if (! $users->{errno} && $users->{TOTAL} > 0 ) {
 
-      $uid = $list->[0]->[4+$users->{SEARCH_FIELDS_COUNT}];
+      my $uid = $list->[0]->[4+$users->{SEARCH_FIELDS_COUNT}];
       $user = $users->info($uid); 
 
      }
@@ -232,7 +232,6 @@ elsif ($command eq 'pay') {
 
   if ($users->{errno}) {
 	  $status = 300; 
-	  $comments='Dublicate Request';
    }
   elsif ($users->{TOTAL} < 1) {
 	  $status =  4;
@@ -242,13 +241,13 @@ elsif ($command eq 'pay') {
     $payments->add($user, {SUM          => $FORM{sum},
     	                     DESCRIBE     => 'OSMP', 
     	                     METHOD       => '2', 
-  	                       EXT_ID       => "$FORM{txn_id}",
-  	                       CHECK_EXT_ID => "$FORM{txn_id}" } );  
+  	                     EXT_ID       => "OSMP:$FORM{txn_id}",
+  	                     CHECK_EXT_ID => "OSMP:$FORM{txn_id}" } );  
 
 
     #Exists
-    if ($payments->{errno} == 7) {
-      $status = 300;  	
+    if ($payments->{errno} && $payments->{errno} == 7) {
+      $status = 8;  	
      }
     elsif ($payments->{errno}) {
       $status = 4;
@@ -257,17 +256,19 @@ elsif ($command eq 'pay') {
     	$status = 0;
      }    
 
+
     $Paysys->add({ SYSTEM_ID   => 4, 
  	              DATETIME       => "'$DATE $TIME'", 
  	              SUM            => "$FORM{sum}",
-  	            UID            => "$uid", 
+  	            UID            => "$user->{UID}", 
                 IP             => '0.0.0.0',
-                TRANSACTION_ID => "$FORM{txn_id}",
-                INFO           => "TYPE: $FORM{command} PS_TIME: $FORM{$FORM{txn_date}} STATUS: $status $status_hash{$status}",
+                TRANSACTION_ID => "OSMP:$FORM{txn_id}",
+                INFO           => "TYPE: $FORM{command} PS_TIME: ".
+  (($FORM{txn_date}) ? $FORM{txn_date} : '' ) ." STATUS: $status $status_hash{$status}",
                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
-    $payments_id = $Paysys->{INSERT_ID};
+    $payments_id = ($Paysys->{INSERT_ID}) ? $Paysys->{INSERT_ID} : 0;
 	 }
 
 if ($status > 0) {
@@ -282,7 +283,6 @@ print << "[END]";
 <result>$status</result> 
 <prv_txn>$payments_id</prv_txn> 
 <sum>$FORM{sum}</sum> 
-<result>$status</result> 
 <comment>$comments</comment> 
 </response> 
 [END]

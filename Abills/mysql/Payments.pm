@@ -66,6 +66,7 @@ sub defaults {
            BILL_ID      => 0, 
            SUM          => '0.00', 
            DESCRIBE     => '', 
+           INNER_DESCRIBE => '',
            IP           => '0.0.0.0',
            LAST_DEPOSIT => '0.00', 
            AID          => 0,
@@ -87,7 +88,7 @@ sub add {
   my $self = shift;
   my ($user, $attr) = @_;
 
-  %DATA = $self->get_data($attr); 
+  %DATA = $self->get_data($attr, { default => defaults() }); 
  
   if ($DATA{SUM} <= 0) {
      $self->{errno} = 12;

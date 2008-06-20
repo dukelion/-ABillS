@@ -1798,6 +1798,8 @@ if (! $LIST_PARAMS{UID} && $FORM{LOGIN_EXPR}) {
 
 
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
+
+
 my $table = $html->table( { caption     => "$_PERIOD",
 	                          width       => '100%',
                             title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
@@ -2488,7 +2490,7 @@ sub dv_user_info {
   	
   	
   	#get mac from NAS
-  	my $result = `/usr/bin/rsh -l snake 77.87.152.66 show arp`;
+  	#my $result = `/usr/bin/rsh -l snake 77.87.152.66 show arp`;
 
   	my @arr = split(/\n/, $result);
   	foreach my $line (@arr) {

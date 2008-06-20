@@ -83,11 +83,16 @@ if ($acct_status_type == 1) {
     
   if ($self->{list}->[0]->[0] < 1) {
     #Get TP_ID
-    $self->query($db, "SELECT u.uid, dv.tp_id FROM (users u, dv_main dv)
+    $self->query($db, "SELECT u.uid, dv.tp_id, dv.join_service FROM (users u, dv_main dv)
      WHERE u.uid=dv.uid and u.id='$RAD->{USER_NAME}';");
     if ($self->{TOTAL} > 0) {
       ($self->{UID},
-       $self->{TP_ID})= @{ $self->{list}->[0] };
+       $self->{TP_ID},
+       $self->{JOIN_SERVICE})= @{ $self->{list}->[0] };
+       
+       if ($self->{JOIN_SERVICE}) {
+       	 $self->{TP_ID}=undef;
+        }
      }
     else {
     	$RAD->{USER_NAME}='! '.$RAD->{USER_NAME};
@@ -132,7 +137,8 @@ elsif ($acct_status_type == 2) {
        ex_input_octets,
        ex_output_octets,
        tp_id,
-       sum
+       sum,
+       uid
     FROM dv_calls 
     WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
 
@@ -383,7 +389,8 @@ sub rt_billing {
    if($RAD->{INBYTE2}  >= ex_input_octets, $RAD->{INBYTE2}  - ex_input_octets, ex_input_octets),
    if($RAD->{OUTBYTE2} >= ex_output_octets, $RAD->{OUTBYTE2} - ex_output_octets, ex_output_octets),
    acct_session_id,
-   sum
+   sum,
+   tp_id
    FROM dv_calls 
   WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
 
@@ -404,6 +411,7 @@ sub rt_billing {
    $RAD->{INTERIUM_INBYTE1},
    $RAD->{INTERIUM_OUTBYTE1},
    $RAD->{ACCT_SESSION_ID},
+   $RAD->{TP_ID},
    $self->{CALLS_SUM}
    ) = @{ $self->{list}->[0] };
 
@@ -432,8 +440,9 @@ sub rt_billing {
                                                 	 INTERIUM_OUTBYTE  => $RAD->{INTERIUM_OUTBYTE},
                                                    INTERIUM_INBYTE   => $RAD->{INTERIUM_INBYTE},
                                                    INTERIUM_OUTBYTE1 => $RAD->{INTERIUM_INBYTE1},
-                                                   INTERIUM_INBYTE1  => $RAD->{INTERIUM_OUTBYTE1}
+                                                   INTERIUM_INBYTE1  => $RAD->{INTERIUM_OUTBYTE1},
 
+                                                   TP_ID => $self->{TP_ID}
                                                 	},
                                                 { FULL_COUNT => 1 }
                                                 );
