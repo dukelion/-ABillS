@@ -135,7 +135,7 @@ sub check_lines {
 	$sessions->online( { 
 		                   #%LIST_PARAMS, 
 		                   ALL    => 1, 
-		                   FIELDS => [0, 1, 2, 3, 4, 5, 6, 7, 8, 26] 
+		                   FIELDS => [0, 1, 2, 3, 4, 5, 6, 7, 8, 26, 29] 
 		               } );	
 	
   print "==> check_lines\n" if ($debug > 1);
@@ -148,6 +148,8 @@ sub check_lines {
   Acct->import();
   my $Acct = Acct->new($db, \%conf);
 
+
+  my %JOIN_SERVICE_STATS = ();
 
   foreach my $nas_row (@$nas_list) {
     #If ipcad NAS all checks make in traff2sql 
@@ -171,8 +173,9 @@ sub check_lines {
 	    my $acct_input_octets_ext   = $line->[7];
 	    my $acct_output_octets_ext  = $line->[8];
 	    my $nas_port_id             = $line->[2];
-	    my $acct_session_id         = $line->[22];
-      my $uid                     = $line->[12];
+	    my $acct_session_id         = $line->[23];
+      my $uid                     = $line->[13];
+      my $join_service            = $line->[10];
 
       #hangup connaction if max ext traffic reached
       if ($acct_input_octets_ext > $exppp_hanguplimit || $acct_output_octets_ext > $exppp_hanguplimit) {
@@ -252,15 +255,35 @@ sub check_lines {
         $sessions->online_update({ USER_NAME => $line->[0], ACCT_SESSION_ID => $acct_session_id, %$external_stats });
        }
       
+      
+     
       # periodic check deposit stats
       if ($conf{periodic_check}) {
-        my %RAD = (USER_NAME        => "$line->[0]",
-                  SESSION_START     => time - time2sec($line->[4]),
-                  ACCT_SESSION_TIME => time2sec($line->[4]),
-                  INBYTE         => $line->[5],
-                  OUTBYTE        => $line->[6],
-                  INBYTE2        => $line->[7],
-                  OUTBYTE2       => $line->[8]);
+        
+        my %RAD = (USER_NAME         => "$line->[0]",
+                   SESSION_START     => time - time2sec($line->[4]),
+                   ACCT_SESSION_TIME => time2sec($line->[4]),
+                   INBYTE            => $line->[5],
+                   OUTBYTE           => $line->[6],
+                   INBYTE2           => $line->[7],
+                   OUTBYTE2          => $line->[8],
+                   ACCT_INPUT_GIGAWORDS  => 0,
+                   ACCT_OUTPUT_GIGAWORDS => 0
+                   );
+
+        # Join Service operation
+        if ($join_service) {
+           if (! $JOIN_SERVICE_STATS{$join_service}) {
+             foreach my $line (@{ $sessions->online_join_services() }) {
+               $JOIN_SERVICE_STATS{$line->[0]}{INBYTE}=$line->[1];
+               $JOIN_SERVICE_STATS{$line->[0]}{OUTBYTE}=$line->[2];
+             }
+            }
+
+           $RAD{INBYTE} = $JOIN_SERVICE_STATS{$join_service}{INBYTE} || 0;
+           $RAD{OUTBYTE}= $JOIN_SERVICE_STATS{$join_service}{OUTBYTE} || 0;
+         }
+
 
         my $Billing = Billing->new($db, \%conf);	
         my $self;
@@ -275,7 +298,6 @@ sub check_lines {
                                                     $RAD{ACCT_SESSION_TIME}, 
                                                     \%RAD);
 
-
         next if ($self->{UID} < 1);
         
         print "> Login: $RAD{USER_NAME} START: $RAD{SESSION_START} DURATION: $RAD{ACCT_SESSION_TIME}\n".
@@ -283,10 +305,10 @@ sub check_lines {
 
         
         if ( ($Billing->{PAYMENT_TYPE} == 0) 
-                             && ($line->[14] + $line->[15] <= $self->{SUM}) ) {
+                             && ($line->[15] + $line->[16] <= $self->{SUM}) ) {
 
            #Neg deposit filter
-           if ($Billing->{NEG_DEPOSIT_FILTER} ne '' && $line->[14] + $line->[15] < 0) {
+           if ($Billing->{NEG_DEPOSIT_FILTER} ne '' && $line->[15] + $line->[16] < 0) {
               print "Skip with neg deposit filter '$Billing->{NEG_DEPOSIT_FILTER}'\n" if ($debug > 1);
               next;
            	}

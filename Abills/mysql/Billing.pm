@@ -180,8 +180,6 @@ foreach my $line (@$list) {
 
 
 if ($prepaid{0} + $prepaid{1} > 0) {
-  
-  print "AAAAAAAAAAAAAAAA\n";
   #Get traffic from begin of month
   $used_traffic = $self->get_traffic({ UID    => $self->{UID},
   	                                   UIDS   => $self->{UIDS},
@@ -338,8 +336,6 @@ sub get_traffic {
   if ($attr->{UIDS}) {
   	$WHERE = "IN ($attr->{UIDS})";
    }
-
-  $self->{debug}=1;
 
   $self->query($db, "SELECT sum(sent)  / $CONF->{MB_SIZE} + sum(acct_output_gigawords) * 4096,  
                             sum(recv)  / $CONF->{MB_SIZE} + sum(acct_input_gigawords) * 4096, 
@@ -593,7 +589,6 @@ if(! defined($self->{NO_TPINTERVALS})) {
    	    $sum  += $self->traffic_calculations({ %$RAD, 
    	    	                                     SESSION_START => $SESSION_START, 
    	    	                                     UIDS          => $self->{UIDS} });
-        print "$self->{UIDS} / ------------------------";
    	    last;
 
      }

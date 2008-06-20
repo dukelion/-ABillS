@@ -150,7 +150,9 @@ sub online {
    'UNIX_TIMESTAMP()-c.lupdated',
    'c.acct_session_time',
    'c.lupdated - UNIX_TIMESTAMP(c.started)',
-   'dv.filter_id'
+   'dv.filter_id',
+   'c.uid',
+   'c.join_service'
    );
 
 
@@ -281,7 +283,21 @@ sub online {
  return $self->{list};	
 }
 
-
+#**********************************************************
+# online_del()
+#********************************************************** 
+sub online_join_services {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ $self->query($db, "SELECT  join_service, 
+   sum(c.acct_input_octets) + 4294967296 * sum(acct_input_gigawords), 
+   sum(c.acct_output_octets) + 4294967296 * sum(acct_output_gigawords) 
+ FROM dv_calls c
+ GROUP BY join_service;");
+ 
+  return $self->{list};
+}
 
 #**********************************************************
 # online_del()

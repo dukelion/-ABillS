@@ -83,13 +83,39 @@ elif [ t$1 = 'tacct' ]; then
         FRAMED_IP_NETMASK=0.0.0.0 \
         CISCO_AVPAIR="connect-progress=LAN Ses Up"\
         CISCO_AVPAIR="client-mac-address=0001.29d2.2695"\
-        NAS_IP_ADDRESS=192.168.202.15 \
+        NAS_IP_ADDRESS=127.0.0.1 \
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Start \
         ACCT_SESSION_ID="83419_AA11118757979" \
 
 #        CALLING_STATION_ID="192.168.101.4" \
+
+   elif [ t$2 = 'tAlive' ] ; then
+            echo Alive;
+      ./racct.pl \
+        USER_NAME="${USER_NAME}" \
+        SERVICE_TYPE=Framed-User \
+        FRAMED_PROTOCOL=PPP \
+        FRAMED_IP_ADDRESS=10.0.0.1 \
+        FRAMED_IP_NETMASK=0.0.0.0 \
+        CALLING_STATION_ID="192.168.101.4" \
+        NAS_IP_ADDRESS=127.0.0.1 \
+        NAS_IDENTIFIER="media.intranet" \
+        NAS_PORT_TYPE=Virtual \
+        ACCT_STATUS_TYPE=Interim-Update \
+        ACCT_SESSION_ID="83419_AA11118757979" \
+        ACCT_DELAY_TIME=0 \
+        ACCT_INPUT_OCTETS=1345980000 \
+        ACCT_INPUT_GIGAWORDS=0 \
+        ACCT_INPUT_PACKETS=125 \
+        ACCT_OUTPUT_OCTETS=1000 \
+        EXPPP_ACCT_LOCALINPUT_OCTETS=12000000 \
+        EXPPP_ACCT_LOCALOUTPUT_OCTETS=13000000 \
+        ACCT_OUTPUT_GIGAWORDS=0 \
+        ACCT_OUTPUT_GIGAWORDS=0 \
+        ACCT_OUTPUT_PACKETS=0 \
+        ACCT_SESSION_TIME=100 
 
    elif [ t$2 = 'tStop' ] ; then
       echo Stop;

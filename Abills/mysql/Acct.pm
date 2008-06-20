@@ -91,7 +91,11 @@ if ($acct_status_type == 1) {
        $self->{JOIN_SERVICE})= @{ $self->{list}->[0] };
        
        if ($self->{JOIN_SERVICE}) {
-       	 $self->{TP_ID}=undef;
+       	 if ($self->{JOIN_SERVICE} == 1) {
+       	 	 $self->{JOIN_SERVICE}=$self->{UID};
+       	  }
+       	 
+       	 $self->{TP_ID}='';
         }
      }
     else {
@@ -100,14 +104,14 @@ if ($acct_status_type == 1) {
     
     #Get connection speed 
     if ($RAD->{X_ASCEND_DATA_RATE} && $RAD->{X_ASCEND_XMIT_RATE}) {
-      $RAD->{CONNECT_INFO}="$RAD->{X_ASCEND_DATA_RATE} / $RAD->{X_ASCEND_XMIT_RATE}";
+        $RAD->{CONNECT_INFO}="$RAD->{X_ASCEND_DATA_RATE} / $RAD->{X_ASCEND_XMIT_RATE}";
      }
 
     # 
     my $sql = "INSERT INTO dv_calls
      (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
       acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id, tp_id,
-      uid)
+      uid, join_service)
        values ('$acct_status_type', 
       \"$RAD->{USER_NAME}\", 
       $SESSION_START, 
@@ -119,7 +123,8 @@ if ($acct_status_type == 1) {
       '$RAD->{CALLING_STATION_ID}', 
       '$RAD->{CONNECT_INFO}', 
       '$NAS->{NAS_ID}',
-      '$self->{TP_ID}', '$self->{UID}');";
+      '$self->{TP_ID}', '$self->{UID}',
+      '$self->{JOIN_SERVICE}');";
     $self->query($db, "$sql", 'do');
   }
  }
