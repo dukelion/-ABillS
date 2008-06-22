@@ -143,7 +143,8 @@ sub info {
    $self->{PASSWORD}
  )= @{ $self->{list}->[0] };
  
- if ($CONF->{EXT_BILL_ACCOUNT} && $self->{EXT_BILL_ID} > 0) {
+ 
+ if ($CONF->{EXT_BILL_ACCOUNT} && $self->{EXT_BILL_ID} && $self->{EXT_BILL_ID} > 0) {
  	 $self->query($db, "SELECT b.deposit, b.uid
      FROM bills b WHERE id='$self->{EXT_BILL_ID}';");
 
@@ -181,7 +182,8 @@ sub defaults_pi {
    PASPORT_DATE   => '0000-00-00',
    PASPORT_GRANT  => '',
    ZIP            => '',
-   CITY           => ''
+   CITY           => '',
+   CREDIT_DATE    => '0000-00-00'
   );
  
   $self = \%DATA;

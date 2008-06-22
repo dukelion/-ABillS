@@ -228,8 +228,57 @@ sub del {
 }
 
 
+
 #**********************************************************
-# Add nas server
+# NAS IP Pools
+# 
+#**********************************************************
+sub nas_ip_pools_list {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ 
+ my $WHERE_NAS = ($self->{NAS_ID}) ? "AND np.nas_id='$self->{NAS_ID}'" : '' ;
+
+ $self->query($db, "SELECT if (np.nas_id IS NULL, 0, 1),
+   n.name, pool.name, 
+   pool.ip, pool.ip + pool.counts, pool.counts,     pool.priority,
+    INET_NTOA(pool.ip), INET_NTOA(pool.ip + pool.counts), 
+    pool.id, pool.nas
+    FROM ippools pool
+    LEFT JOIN  nas_ippools np ON (np.pool_id=pool.id $WHERE_NAS)
+    LEFT JOIN nas n ON (n.id=np.nas_id)
+      ORDER BY $SORT $DESC");
+
+
+ return $self->{list};	
+}
+
+#**********************************************************
+# NAS IP Pools
+# 
+#**********************************************************
+sub nas_ip_pools_set {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ 
+ $self->query($db, "DELETE FROM nas_ippools WHERE nas_id='$self->{NAS_ID}'", 'do');
+
+ foreach my $id ( split(/, /, $attr->{ids})) {
+   $self->query($db, "INSERT INTO nas_ippools (pool_id, nas_id) 
+    VALUES ('$id', '$attr->{NAS_ID}');", 'do');
+  }
+
+ return $self->{list};	
+}
+
+#**********************************************************
+# IP pools list
 # add($self)
 #**********************************************************
 sub ip_pools_list {

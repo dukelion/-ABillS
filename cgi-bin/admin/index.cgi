@@ -2850,6 +2850,27 @@ if ($attr->{NAS}) {
        $html->message('info', $_INFO, "$_ADDED");
      }
    }
+  elsif($FORM{change}) {
+    $nas->ip_pools_change({ %FORM });
+
+    if (! $nas->{errno}) {
+       $html->message('info', $_INFO, "$_CHANGED");
+     }
+   }
+  elsif($FORM{chg}) {
+    $nas->ip_pools_info($FORM{chg});
+
+    if (! $nas->{errno}) {
+       $html->message('info', $_INFO, "$_CHANGING");
+     }
+   }
+  elsif($FORM{set}) {
+    $nas->nas_ip_pools_set({ %FORM });
+
+    if (! $nas->{errno}) {
+       $html->message('info', $_INFO, "$_CHANGED");
+     }
+   }
   elsif($FORM{del} && $FORM{is_js_confirmed} ) {
     $nas->ip_pools_del( $FORM{del} );
 
@@ -2875,8 +2896,45 @@ if ($nas->{errno}) {
  }
 
 
+#my $list = $nas->nas_ip_pools_list({ %LIST_PARAMS });	
+#my $table = $html->table( { width      => '100%',
+#                            caption    => "NAS IP POOLs",
+#                            border     => 1,
+#                            title      => ['', "NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", '-'],
+#                            cols_align => ['right', 'left', 'right', 'right', 'right', 'center'],
+#                            qs         => $pages_qs,
+#                            pages      => $payments->{TOTAL},
+#                            ID         => 'NAS_IP_POOLS'
+#                           });
+#
+#
+#
+#foreach my $line (@$list) {
+#  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[9]", { MESSAGE => "$_DEL NAS $line->[5]?" }); 
+#
+#  $table->addrow(
+#    $html->form_input('ids', $line->[9], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef }),
+#    $html->button($line->[1], "index=60&NAS_ID=$line->[10]"), 
+#    $line->[2],
+#    $line->[7], 
+#    $line->[8], 
+#    $line->[5],  
+#    $line->[6],  
+#    $delete);
+#}
+#
+#
+#print $html->form_main({  CONTENT => $table->show(),
+#	                        HIDDEN  => { index  => "$index",
+#                                       NAS_ID => "$FORM{NAS_ID}",
+#                                     },
+#	                        SUBMIT  => { set   => "$_SET"
+#	                       	           } });
+#
+#
+#return 0;
 
-    
+
 my $table = $html->table( { width      => '100%',
                             caption    => "IP POOLs",
                             border     => 1,

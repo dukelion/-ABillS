@@ -40,6 +40,34 @@ sub new {
   return $self;
 }
 
+
+#**********************************************************
+# defauls user settings
+#**********************************************************
+sub defaults {
+  my $self = shift;
+
+  %DATA = ( 
+ COMPANY_NAME  => '',
+ TAX_NUMBER    => '',
+ BANK_ACCOUNT  => '',
+ BANK_NAME     => '',
+ COR_BANK_ACCOUNT  => '',
+ BANK_BIC    => '',
+ DISABLE     => 0,
+ CREDIT      => '',
+ ADDRESS     => '',
+ PHONE       => '',
+ VAT         => '',
+ CONTRACT_ID => '',
+ BILL_ID     => 0,
+ EXT_BILL_ID => 0
+ );
+ 
+  $self = \%DATA;
+  return $self;
+}
+
 #**********************************************************
 # Add
 #**********************************************************
@@ -78,7 +106,7 @@ sub add {
    }
 
 
-  my %DATA = $self->get_data($attr); 
+  my %DATA = $self->get_data($attr, { default => defaults() }); 
   $self->query($db, "INSERT INTO companies (name, tax_number, bank_account, bank_name, cor_bank_account, 
      bank_bic, disable, credit, address, phone, vat, contract_id,
      bill_id, ext_bill_id
@@ -110,7 +138,7 @@ sub change {
   if($attr->{CREATE_BILL}) {
   	 use Bills;
   	 my $Bill = Bills->new($db, $admin, $CONF);
-  	 $Bill->create({ COMPANY_ID => $self->{COMPANY_ID} });
+  	 $Bill->create({ COMPANY_ID => $self->{COMPANY_ID}, UID => 0 });
      if($Bill->{errno}) {
        $self->{errno}  = $Bill->{errno};
        $self->{errstr} =  $Bill->{errstr};
@@ -300,18 +328,26 @@ sub info {
 sub list {
  my $self = shift;
  my ($attr) = @_;
- my $WHERE = '';
+
  
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ undef @WHERE_RULES;
+
+ if ($attr->{CONTRACT_ID}) {
+   $attr->{CONTRACT_ID} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "c.contract_id LIKE '$attr->{CONTRACT_ID}%'";
+ }
 
 
  if ($attr->{LOGIN_EXPR}) {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    $WHERE .= ($WHERE ne '') ?  " and c.name LIKE '$attr->{LOGIN_EXPR}' " : "WHERE c.name LIKE '$attr->{LOGIN_EXPR}' ";
+    push @WHERE_RULES, (($WHERE ne '') ?  " and c.name LIKE '$attr->{LOGIN_EXPR}' " : "WHERE c.name LIKE '$attr->{LOGIN_EXPR}' ");
   }
+
+ my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
 
  $self->query($db, "SELECT c.name, b.deposit, c.registration, count(u.uid), c.disable, c.id, c.disable, c.bill_id
     FROM companies  c
@@ -324,6 +360,8 @@ sub list {
 
     $self->query($db, "SELECT count(c.id) FROM companies c $WHERE;");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
+
+print $self->{TOTAL};
 
 return $list;
 }
