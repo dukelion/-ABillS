@@ -59,7 +59,6 @@ sub create {
 	my ($attr) = @_;
 
   my %DATA = $self->get_data($attr, { default => defaults() }); 
-
   $self->query($db, "INSERT INTO bills (deposit, uid, company_id, registration) 
     VALUES ('$DATA{DEPOSIT}', '$DATA{UID}', '$DATA{COMPANY_ID}', now());", 'do');	
 
