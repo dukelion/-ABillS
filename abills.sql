@@ -306,12 +306,6 @@ CREATE TABLE `intervals` (
   UNIQUE KEY `tp_intervals` (`tp_id`,`begin`,`day`)
 )  ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `ippools`
-#
-
 CREATE TABLE `ippools` (
   `id` int(10) unsigned NOT NULL auto_increment,
   `nas` smallint(5) unsigned NOT NULL default '0',
@@ -321,13 +315,7 @@ CREATE TABLE `ippools` (
   `priority` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `nas` (`nas`,`ip`)
-) ;
-
-# --------------------------------------------------------
-
-#
-# Структура таблиці `dv_log`
-#
+)  ;
 
 CREATE TABLE `dv_log` (
   `start` datetime NOT NULL default '0000-00-00 00:00:00',
@@ -527,11 +515,14 @@ CREATE TABLE `nas` (
   PRIMARY KEY  (`id`)
 ) COMMENT='Nas servers list';
 
-# --------------------------------------------------------
 
-#
-# Структура таблиці `netflow_address`
-#
+
+CREATE TABLE `nas_ippools` (
+  `pool_id` int(10) unsigned NOT NULL default 0,
+  `nas_id` smallint(5) unsigned NOT NULL default '0',
+  UNIQUE KEY `nas` (`nas_id`,`pool_id`)
+)  ;
+
 
 CREATE TABLE `netflow_address` (
   `client_ip` int(11) unsigned NOT NULL default '0',
