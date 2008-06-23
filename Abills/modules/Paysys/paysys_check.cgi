@@ -306,6 +306,8 @@ sub smsproxy_payments {
 #https//demo.abills.net.ua:9443/paysys_check.cgi?skey=827ccb0eea8a706c4c34a16891f84e7b&smsid=1208992493215&num=1171&operator=Tester&user_id=1234567890&cost=1.5&msg=%20Test_messages
 
 
+
+
  my $sms_num     = $FORM{num} || 0;
  my $cost        = $FORM{cost} || 0;
  my $skey        = $FORM{skey}  || '';
