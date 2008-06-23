@@ -334,7 +334,7 @@ sub list {
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
- undef @WHERE_RULES;
+ @WHERE_RULES = ();
 
  if ($attr->{CONTRACT_ID}) {
    $attr->{CONTRACT_ID} =~ s/\*/\%/ig;
@@ -344,10 +344,12 @@ sub list {
 
  if ($attr->{LOGIN_EXPR}) {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, (($WHERE ne '') ?  " and c.name LIKE '$attr->{LOGIN_EXPR}' " : "WHERE c.name LIKE '$attr->{LOGIN_EXPR}' ");
+    push @WHERE_RULES,  "c.name LIKE '$attr->{LOGIN_EXPR}'";
   }
 
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
+
+
 
  $self->query($db, "SELECT c.name, b.deposit, c.registration, count(u.uid), c.disable, c.id, c.disable, c.bill_id
     FROM companies  c
@@ -358,10 +360,10 @@ sub list {
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
  my $list = $self->{list};
 
-    $self->query($db, "SELECT count(c.id) FROM companies c $WHERE;");
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
-
-print $self->{TOTAL};
+    if ($self->{TOTAL} > 0 || $PG > 0) {
+      $self->query($db, "SELECT count(c.id) FROM companies c $WHERE;");
+      ($self->{TOTAL}) = @{ $self->{list}->[0] };
+     }
 
 return $list;
 }
