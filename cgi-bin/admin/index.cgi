@@ -2840,9 +2840,14 @@ print $table->show();
 sub form_ip_pools {
 	my ($attr) = @_;
 	my $nas;
+
+  $nas->{ACTION}='add';
+  $nas->{LNG_ACTION}="$_ADD";
+
   
 if ($attr->{NAS}) {
 	$nas = $attr->{NAS};
+
   if ($FORM{add}) {
     $nas->ip_pools_add({ %FORM  });
 
@@ -2851,7 +2856,9 @@ if ($attr->{NAS}) {
      }
    }
   elsif($FORM{change}) {
-    $nas->ip_pools_change({ %FORM });
+    $nas->ip_pools_change({ %FORM, 
+    	                      ID => $FORM{chg},
+    	                      NAS_IP_SIP_INT => ip2int($FORM{NAS_IP_SIP}) });
 
     if (! $nas->{errno}) {
        $html->message('info', $_INFO, "$_CHANGED");
@@ -2862,6 +2869,8 @@ if ($attr->{NAS}) {
 
     if (! $nas->{errno}) {
        $html->message('info', $_INFO, "$_CHANGING");
+       $nas->{ACTION}='change';
+       $nas->{LNG_ACTION}="$_CHANGE";
      }
    }
   elsif($FORM{set}) {
@@ -2899,43 +2908,45 @@ if ($nas->{errno}) {
 
 
 
-#my $list = $nas->nas_ip_pools_list({ %LIST_PARAMS });	
-#my $table = $html->table( { width      => '100%',
-#                            caption    => "NAS IP POOLs",
-#                            border     => 1,
-#                            title      => ['', "NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", '-'],
-#                            cols_align => ['right', 'left', 'right', 'right', 'right', 'center'],
-#                            qs         => $pages_qs,
-#                            pages      => $payments->{TOTAL},
-#                            ID         => 'NAS_IP_POOLS'
-#                           });
-#
-#
-#
-#foreach my $line (@$list) {
-#  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[9]", { MESSAGE => "$_DEL NAS $line->[5]?" }); 
-#
-#  $table->addrow(
-#    $html->form_input('ids', $line->[9], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef }),
-#    $html->button($line->[1], "index=60&NAS_ID=$line->[10]"), 
-#    $line->[2],
-#    $line->[7], 
-#    $line->[8], 
-#    $line->[5],  
-#    $line->[6],  
-#    $delete);
-#}
-#
-#
-#print $html->form_main({  CONTENT => $table->show(),
-#	                        HIDDEN  => { index  => "$index",
-#                                       NAS_ID => "$FORM{NAS_ID}",
-#                                     },
-#	                        SUBMIT  => { set   => "$_SET"
-#	                       	           } });
-#
-#
-#return 0;
+my $list = $nas->nas_ip_pools_list({ %LIST_PARAMS });	
+my $table = $html->table( { width      => '100%',
+                            caption    => "NAS IP POOLs",
+                            border     => 1,
+                            title      => ['', "NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", '-', '-'],
+                            cols_align => ['right', 'left', 'right', 'right', 'right', 'center', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $payments->{TOTAL},
+                            ID         => 'NAS_IP_POOLS'
+                           });
+
+
+
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[9]", { MESSAGE => "$_DEL NAS $line->[5]?" }); 
+  my $change = $html->button($_CHANGE, "index=61$pages_qs&chg=$line->[9]"); 
+
+  $table->addrow(
+    $html->form_input('ids', $line->[9], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef }),
+    $html->button($line->[1], "index=60&NAS_ID=$line->[10]"), 
+    $line->[2],
+    $line->[7], 
+    $line->[8], 
+    $line->[5],  
+    $line->[6],  
+    $change,
+    $delete);
+}
+
+
+print $html->form_main({  CONTENT => $table->show(),
+	                        HIDDEN  => { index  => "$index",
+                                       NAS_ID => "$FORM{NAS_ID}",
+                                     },
+	                        SUBMIT  => { set   => "$_SET"
+	                       	           } });
+
+
+return 0;
 
 
 my $table = $html->table( { width      => '100%',

@@ -277,6 +277,69 @@ sub nas_ip_pools_set {
  return $self->{list};	
 }
 
+
+#**********************************************************
+# NAS IP Pools
+# 
+#**********************************************************
+sub ip_pools_info {
+ my $self = shift;
+ my ($id) = @_;
+ 
+ my $WHERE = '';
+
+ $self->query($db, "SELECT id, INET_NTOA(ip), counts, name, priority
+   FROM ippools  WHERE id='$id';");
+
+ if(defined($self->{errno})) {
+   return $self;
+  }
+ elsif($self->{TOTAL} < 1) {
+   $self->{errstr}="ERROR_NOT_EXIST";
+   $self->{errno}=2;
+   return $self;
+  }
+
+ ( $self->{ID},
+   $self->{NAS_IP_SIP},
+   $self->{NAS_IP_COUNT}, 
+   $self->{POOL_NAME}, 
+   $self->{POOL_PRIORITY},
+   $self->{NAS_IP_SIP_INT}
+   ) = @{ $self->{list}->[0] };
+
+ return $self;	
+}
+
+
+#**********************************************************
+# NAS IP Pools
+# 
+#**********************************************************
+sub ip_pools_change {
+ my $self = shift;
+ my ($attr) = @_; 
+
+
+ my %FIELDS = (ID => 'id', 
+  POOL_NAME       => 'name', 
+  NAS_IP_COUNT    => 'counts', 
+  POOL_PRIORITY   => 'priority', 
+  NAS_IP_SIP_INT  => 'ip'
+ );
+
+
+	$self->changes($admin, { CHANGE_PARAM => 'ID',
+		                TABLE        => 'ippools',
+		                FIELDS       => \%FIELDS,
+		                OLD_INFO     => $self->ip_pools_info($attr->{ID}),
+		                DATA         => $attr
+		              } );
+
+  
+  return $self;
+}
+
 #**********************************************************
 # IP pools list
 # add($self)
@@ -291,7 +354,7 @@ sub ip_pools_list {
  my $WHERE = (defined($self->{NAS_ID})) ? "and pool.nas='$self->{NAS_ID}'" : '' ;
 
  $self->query($db, "SELECT nas.name, pool.name, 
-   pool.ip, pool.ip + pool.counts, pool.counts,     pool.priority,
+   pool.ip, pool.ip + pool.counts, pool.counts, pool.priority,
     INET_NTOA(pool.ip), INET_NTOA(pool.ip + pool.counts), 
     pool.id, pool.nas
     FROM ippools pool, nas 

@@ -1284,31 +1284,34 @@ sub get_ip {
 
 #get ip pool
  my $WHERE = '';
- 
+
  if ($attr->{TP_IPPOOL}) {
- 	 $WHERE = "ippools.id='$attr->{TP_IPPOOL}'";
+   $self->query($db, "SELECT ippools.ip, ippools.counts, ippools.id FROM ippools
+     WHERE ippools.id='$attr->{TP_IPPOOL}'
+     ORDER BY ippools.priority;");
   }
  else {
- 	 $WHERE = "ippools.nas='$nas_num'";
+   $self->query($db, "SELECT ippools.ip, ippools.counts, ippools.id FROM ippools, nas_ippools
+     WHERE ippools.id=nas_ippools.pool_id AND nas_ippools.nas_id='$nas_num'
+     ORDER BY ippools.priority;");
   }
-
- $self->query($db, "SELECT ippools.ip, ippools.counts FROM ippools
-  WHERE $WHERE ORDER BY ippools.priority;");
-
-
 
  if ($self->{TOTAL} < 1)  {
    return 0;	
   }
 
  
- my @pools_arr = ();
- my $list = $self->{list};
+ my @pools_arr      = ();
+ my $list           = $self->{list};
+ my @used_pools_arr = ();
 
  foreach my $line (@$list) {
  
     my $sip   = $line->[0]; 
     my $count = $line->[1];
+    my $id    = $line->[2];
+
+    push @used_pools_arr, $id;
     my %pools = ();
 
     for(my $i=$sip; $i<=$sip+$count; $i++) {
@@ -1318,11 +1321,12 @@ sub get_ip {
     push @pools_arr, \%pools;
   }
 
+ my $used_pools = join(', ', @used_pools_arr); 
 
 #get active address and delete from pool
- $self->query($db, "SELECT framed_ip_address
-  FROM dv_calls 
-  WHERE nas_ip_address=INET_ATON('$nas_ip') and (status=1 or status>=3);");
+ $self->query($db, "SELECT  c.framed_ip_address
+  FROM (dv_calls c, nas_ippools np) 
+  WHERE c.nas_id=np.nas_id AND np.pool_id in ( $used_pools ) AND (status=1 or status>=3);");
 
  $list = $self->{list};
  $self->{USED_IPS}=0;
