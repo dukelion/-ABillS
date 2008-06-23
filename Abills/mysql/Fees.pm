@@ -80,6 +80,7 @@ sub take {
   %DATA = $self->get_data($attr, { default => defaults() });
   my $DESCRIBE = ($attr->{DESCRIBE}) ? $attr->{DESCRIBE} : '';
   my $DATE  =  ($attr->{DATE}) ? "'$attr->{DATE}'" : 'now()';
+  $DATA{INNER_DESCRIBE} = '' if (! $DATA{INNER_DESCRIBE}) ;
   
   if ($sum <= 0) {
      $self->{errno} = 12;
