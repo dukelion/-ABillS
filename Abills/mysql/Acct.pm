@@ -416,8 +416,8 @@ sub rt_billing {
    $RAD->{INTERIUM_INBYTE1},
    $RAD->{INTERIUM_OUTBYTE1},
    $RAD->{ACCT_SESSION_ID},
-   $RAD->{TP_ID},
-   $self->{CALLS_SUM}
+   $self->{CALLS_SUM},
+   $self->{TP_ID}
    ) = @{ $self->{list}->[0] };
 
   # Giga word check  
