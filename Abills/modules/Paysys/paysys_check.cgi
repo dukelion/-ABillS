@@ -338,7 +338,7 @@ sub smsproxy_payments {
 
 
  if ($digest ne $skey) {
-   print "status:ignore\n";
+   print "status:reply\n";
    print "content-type: text/plain\n\n";
    print "Wrong key!\n";
    return 0;
@@ -356,7 +356,7 @@ my $code = mk_unique_value(8);
    }
 
  if ($payments->{errno}) {
-   print "status:ignore\n";
+   print "status:reply\n";
    print "content-type: text/plain\n\n";
    print "PAYMENT ERROR: $payments->{errno}!\n";
    return 0;
@@ -375,7 +375,7 @@ my $code = mk_unique_value(8);
 
 
   if ($Paysys->{errno} && $Paysys->{errno} == 7) {
-    print "status:ignore\n";
+    print "status:reply\n";
     print "content-type: text/plain\n\n";
     print "Request dublicated $FORM{smsid}\n";
     return 0;
