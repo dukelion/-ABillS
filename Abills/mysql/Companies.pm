@@ -338,7 +338,7 @@ sub list {
 
  if ($attr->{CONTRACT_ID}) {
    $attr->{CONTRACT_ID} =~ s/\*/\%/ig;
-   push @WHERE_RULES, "c.contract_id LIKE '$attr->{CONTRACT_ID}%'";
+   push @WHERE_RULES, "c.contract_id LIKE '$attr->{CONTRACT_ID}'";
  }
 
 
