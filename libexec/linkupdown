@@ -99,7 +99,7 @@ my $Billing = Billing->new($db, \%conf);
 
 
 my $CLIENT_IP = 'any';
-
+my $fw_step = 1000;
 
 
 my $IPFW='/sbin/ipfw';
@@ -186,7 +186,7 @@ my @FW_ACTIONS = ();
       $user = $Dv->info(0, { LOGIN => $USER });
       $inum = $user->{UID};
      }
-    $conf{IPN_FW_FIRST_RULE}=$conf{IPN_FW_FIRST_RULE} || 20000;
+    $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
 
     $START_FW[0]=$START_FW[0]+$conf{IPN_FW_FIRST_RULE};
     $START_FW[1]=$START_FW[1]+$conf{IPN_FW_FIRST_RULE};
@@ -231,8 +231,20 @@ if ($ACTION eq 'up') {
     print "$USER - Not exist\n";
     exit 1;
    }
+ 
 
 
+#JOIN Service
+$conf{JOIN_SERVICE_FW_FIRST_RULE} = 40000;
+
+
+if ($user->{JOIN_SERVICE}) {
+ 	if ($user->{JOIN_SERVICE} > 1) {
+  	$user = $Dv->info($user->{JOIN_SERVICE});
+   }   
+
+  $user->{JOIN_SERVICE}=$user->{UID}	
+}
 
   if ($user->{SPEED} > 0) {
     $speeds{0}{IN}=int($user->{SPEED});
@@ -316,19 +328,26 @@ print "\nEND: =====================================\n" if ($debug > 0);
   	exit;
    }
   
-  #Make speed
+  #Make speed rules
   foreach my $traf_type (sort keys %speeds) {
     my $speed = $speeds{$traf_type};
 
     if (! $START_FW[$traf_type]) {
-       $START_FW[$traf_type]=$START_FW[0]+$traf_type*1000;
+       $START_FW[$traf_type]=$START_FW[0]+$traf_type*$fw_step;
      }
 
     $fw_num_in    = $START_FW[$traf_type] + $inum * 2;
     $fw_num_out   = $START_FW[$traf_type] + $inum * 2 + 1;
-    $pipe_num_in  = $START_FW[$traf_type] + $inum * 2 ;
-    $pipe_num_out = $START_FW[$traf_type] + $inum * 2 + 1;
-    
+
+    if ($user->{JOIN_SERVICE}) {
+      $pipe_num_in = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $user->{JOIN_SERVICE} * 2 + $traf_type * $fw_step;
+      $pipe_num_out = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $user->{JOIN_SERVICE} * 2 + 1 + $traf_type * $fw_step ;
+     }
+    else {
+      $pipe_num_in  = $START_FW[$traf_type] + $inum * 2 ;
+      $pipe_num_out = $START_FW[$traf_type] + $inum * 2 + 1;
+     }
+
     my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN}  : 0;
     my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} : 0;
 
@@ -386,7 +405,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
         if ($traf_type == 0) {
           # In
           push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to any $via_if_in";
-          push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue 10Kbytes";
+          push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue 10Kbytes mask dst-ip 0x00000000";
          }
         else {
           #ipfw tables
@@ -414,8 +433,8 @@ print "\nEND: =====================================\n" if ($debug > 0);
       
       if ($speed_out > 0) {
         if ($traf_type == 0) {
-          push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to $CLIENT_IP $via_if_out";
-          push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue 10Kbytes";
+            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to $CLIENT_IP $via_if_out";
+            push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue 10Kbytes mask dst-ip 0x00000000";
          }
         else {
           #User ipfw table if more then 5 networks
