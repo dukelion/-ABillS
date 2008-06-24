@@ -124,13 +124,7 @@ if ($FORM{info}) {
   $Cards->{DILLERS_SEL}='';	
  }
 else {
-$Cards->{DILLERS_SEL}=$html->form_select('DILLER_ID', { 
- 	                                         SELECTED          => $user->{DILLER_ID},
- 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0, SORT => 2, PAGE_ROWS => 10000 }) }],
- 	                                         MULTI_ARRAY_KEY   => 0,
- 	                                         MULTI_ARRAY_VALUE => 1,
- 	                                         NO_ID             => 1,
- 	                                        });
+  $Cards->{DILLERS_SEL}=cards_dillers_sel();
 }
 
 
@@ -214,7 +208,8 @@ function CheckAllINBOX() {
   	                       HIDDEN  => { index  => "$index",
   	                       	            SERIA  => $FORM{SERIA},
   	                       	            OP_SID => $op_sid,
-  	                       	            info   => $FORM{info}
+  	                       	            info   => $FORM{info},
+  	                       	            UID    => $FORM{UID}
   	                       	           },
 	                         SUBMIT  => { 
 	                         	            change  => "$_CHANGE" 
@@ -297,6 +292,7 @@ else {
 sub cards_add {
 
   $Cards->defaults();
+
 
   if ($FORM{create}) {
 
@@ -687,7 +683,7 @@ sub cards_dillers_sel {
  	                                         SELECTED          => $FORM{DILLER_ID},
  	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0, SORT => 2,  PAGE_ROWS => 10000 }) }],
  	                                         MULTI_ARRAY_KEY   => 0,
- 	                                         MULTI_ARRAY_VALUE => 1,
+ 	                                         MULTI_ARRAY_VALUE => 2,
  	                                         NO_ID             => 1,
  	                                        });
 
@@ -1059,6 +1055,135 @@ sub cards_report_seria {
 
    print $table->show();	
 	
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_diller_face {
+ 
+
+  $Cards->cards_diller_info({ UID => $user->{UID} });
+
+
+  
+  
+  if ($Cards->{TOTAL} < 1) {
+     print "Content-Type: text/html\n\n";
+     print "$_NOT_EXIST";
+     exit; 	
+   }
+
+  $pages_qs = "&UID=$user->{UID}";
+  $LIST_PARAMS{DILLER_ID}=$user->{Cards->{ID}};
+  $Cards->{DISABLE} = $status[$Cards->{DISABLE}];
+  $html->tpl_show(_include('cards_diller_info', 'Cards'), $Cards);  
+  cards_main();
+ 
+  return 0;
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_diller {
+ 	$Cards->{ACTION}='add';
+ 	$Cards->{LNG_ACTION}=$_ADD;
+
+
+if (! $FORM{SERIA}) {
+  if ($FORM{add}) {
+    $Cards->cards_diller_add({ %FORM });
+    if (! $Cards->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");	
+     }
+  }
+elsif ($FORM{change}) {
+  $Cards->cards_diller_change({ %FORM });
+  if (! $Cards->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGED");	
+   }
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  $Cards->cards_diller_del({ ID => $FORM{del} });
+  if (! $Cards->{errno}) {
+    $html->message('info', $_INFO, "$_DELETED");	
+   }
+ }
+}
+
+if ($Cards->{errno}) {
+  $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
+ }
+
+  $Cards->cards_diller_info({ %FORM });
+  if ($Cards->{TOTAL} > 0) {
+    #if (! $Cards->{errno}) {
+    # $html->message('info', $_INFO, "$_CHANGING");	
+    # }
+ 	  $Cards->{ACTION}='change';
+ 	  $Cards->{LNG_ACTION}=$_CHANGE;
+ 	  
+    $pages_qs = "&UID=$FORM{UID}";
+    $LIST_PARAMS{DILLER_ID}=$Cards->{ID};
+
+    cards_main();
+   }
+
+
+	$Cards->{DISABLE} = ($Cards->{DISABLE} == 1)? 'checked' : '';
+	$html->tpl_show(_include('cards_dillers', 'Cards'), $Cards);
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_dillers_list {
+	
+ 
+ #
+
+  my $list = $Cards->cards_dillers_list({ %LIST_PARAMS });
+	$table = $html->table( { width      => '100%',
+                           caption    => "$_DILLERS",
+                           title      => ['ID', "$_NAME", "$_ADDRESS", "E-Mail", "$_REGISTRATION", "$_PERCENTAGE", "$_STATE", 
+                              "$_COUNT",  "$_ENABLE" ],
+                           cols_align => ['right', 'left', 'left',  'left', 'right', 'right', 'right', 'right', 
+                            ],
+                           qs         => $pages_qs,
+                           pages      => $Cards->{TOTAL}
+                          });
+
+
+  foreach $line (@$list) {
+   	$table->addrow($line->[0],  
+  	    $html->button($line->[1], "index=15&UID=$line->[10]"),
+  		  $line->[2],
+        $line->[3],
+  		  $line->[4],
+  		  $line->[5],
+  		  $status[$line->[6]],
+  		  $line->[7],
+  		  $line->[8],
+  		  #$html->button($_INFO, "index=$index$pages_qs&info=$line->[0]"),
+  		  #$html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]"),
+  		  #$html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+		   );
+    }
+
+  print $table->show();
+  
+  
+ 	 $table = $html->table( { width      => '100%',
+                            cols_align => ['right', 'right'],
+                            rows       => [ [ "$_TOTAL:", $html->b($Cards->{TOTAL}) ] ]
+                        });
+   print $table->show();	
+
+
 }
 
 1

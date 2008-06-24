@@ -162,7 +162,7 @@ if ($self->{DISABLE}) {
   $RAD_PAIRS->{'Reply-Message'}="Service Disable";
   return 1, $RAD_PAIRS;
  }
-elsif ($self->{TP_ID} < 1) {
+elsif (! $self->{JOIN_SERVICE} && $self->{TP_ID} < 1) {
   $RAD_PAIRS->{'Reply-Message'}="No Tarif Selected";
   return 1, $RAD_PAIRS;
  }

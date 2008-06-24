@@ -10,7 +10,9 @@ $web_interface    = 1;
                    "08:0:Cards:cards_report:"           => 4,
 #                   "09:8:$_USERS:cards_report:"         => 4,
 #                   "10:8:$_PAYMENTS:cards_report:"      => 4,
-                   "11:8:$_DILLERS:cards_report_dillers:"   => 4
+                   "11:8:$_DILLERS:cards_report_dillers:" => 4,
+                   "12:0:$_DILLERS:cards_dillers_list:"   => 1,
+                   "13:0:$_DILLERS:cards_diller:UID"        => 15,
                    );
 
 %USER_FUNCTION_LIST = ("01:0:$_ICARDS:cards_user_payment:"  => 0,
