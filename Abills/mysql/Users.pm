@@ -536,6 +536,8 @@ sub list {
  $self->{SEARCH_FIELDS} = '';
  $self->{SEARCH_FIELDS_COUNT}=0;
 
+
+
  undef @WHERE_RULES;
  my $search_fields = '';
 
@@ -570,8 +572,6 @@ sub list {
             LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
   }
 
-
-
  if ($attr->{PHONE}) {
     if ($attr->{PHONE} =~ /, /) {
       push @WHERE_RULES, "pi.phone IN ($attr->{PHONE})";
@@ -581,7 +581,7 @@ sub list {
       push @WHERE_RULES, "pi.phone$value";
      }
 
-    $self->{SEARCH_FIELDS} = 'pi.phone, ';
+    $self->{SEARCH_FIELDS} .= 'pi.phone, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
@@ -591,6 +591,7 @@ sub list {
     $self->{SEARCH_FIELDS} = 'pi.email, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
+
 
 
  if ($attr->{ADDRESS_STREET}) {
