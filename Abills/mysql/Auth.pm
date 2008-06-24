@@ -177,7 +177,7 @@ if ($self->{JOIN_SERVICE}) {
 
  if ($self->{JOIN_SERVICE} > 1) {
   $self->query($db, "select  
-  if ($self->{LOGINS}>0, $self->{LOGINS}, tp.logins) AS logins,
+  if (0>0, 0, tp.logins) AS logins,
   if('$self->{FILTER}' != '', '$self->{FILTER}', tp.filter_id),
   dv.tp_id,
   tp.day_time_limit,
