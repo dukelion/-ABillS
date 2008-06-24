@@ -224,7 +224,7 @@ elsif ($command eq 'pay') {
 
     if (! $users->{errno} && $users->{TOTAL} > 0 ) {
 
-      my $uid = $list->[0]->[4+$users->{SEARCH_FIELDS_COUNT}];
+      my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
       $user = $users->info($uid); 
 
      }
