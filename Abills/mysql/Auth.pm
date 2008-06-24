@@ -108,12 +108,12 @@ sub dv_auth {
   tp.ippool,
   dv.join_service
 
-     FROM (dv_main dv, tarif_plans tp)
+     FROM (dv_main dv)
+     LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
      LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.id)
      LEFT JOIN intervals i ON (tp.id = i.tp_id)
-     WHERE dv.tp_id=tp.id
-         AND dv.uid='$self->{UID}'
+     WHERE dv.uid='$self->{UID}'
      GROUP BY dv.uid;");
 
 
@@ -160,6 +160,10 @@ sub dv_auth {
 #DIsable
 if ($self->{DISABLE}) {
   $RAD_PAIRS->{'Reply-Message'}="Service Disable";
+  return 1, $RAD_PAIRS;
+ }
+elsif ($self->{TP_ID} < 1) {
+  $RAD_PAIRS->{'Reply-Message'}="No Tarif Selected";
   return 1, $RAD_PAIRS;
  }
 elsif (( $RAD_PAIRS->{'Callback-Number'} || $RAD_PAIRS->{'Ascend-Callback'} ) && $self->{CALLBACK} != 1){
