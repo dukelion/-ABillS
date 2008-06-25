@@ -177,6 +177,7 @@ sub check_lines {
       my $uid                     = $line->[13];
       my $join_service            = $line->[10];
 
+
       #hangup connaction if max ext traffic reached
       if ($acct_input_octets_ext > $exppp_hanguplimit || $acct_output_octets_ext > $exppp_hanguplimit) {
         my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID      => "$acct_session_id",
@@ -195,9 +196,10 @@ sub check_lines {
 
 
       if ( $NAS{NAS_ALIVE} > 0 
-           && ( $line->[17] > $NAS{NAS_ALIVE} * $error_alive_count )) {
+           && ( $line->[18] > $NAS{NAS_ALIVE} * $error_alive_count )) {
 
-         if($line->[17] > ($NAS{NAS_ALIVE} * $error_alive_count * 2) ) {
+
+         if($line->[18] > ($NAS{NAS_ALIVE} * $error_alive_count * 2) ) {
            
            my $ACCT_INFO = $sessions->online_info({ NAS_ID          => $nas_row->[0],
                                                     NAS_PORT        => $line->[2],
@@ -236,11 +238,11 @@ sub check_lines {
            	                                                      });
             }
 
-           print "Error: Session Calculate / Login: $line->[0], Last Alive: $line->[17], Session-ID: $acct_session_id\n$info"; # if ( $debug == 1 );
+           print "Error: Session Calculate / Login: $line->[0], Last Alive: $line->[18], Session-ID: $acct_session_id\n$info"; # if ( $debug == 1 );
            next;
           }
          else {
-           print "Error: Lost Alive / Login: $line->[0], Last Alive: $line->[16], Session-ID: $acct_session_id\n"; # if ( $debug == 1 );
+           print "Error: Lost Alive / Login: $line->[0], Last Alive: $line->[18], Session-ID: $acct_session_id\n"; # if ( $debug == 1 );
            $sessions->zap($nas_row->[0], $line->[2], $acct_session_id);
           }
        } 
@@ -303,7 +305,6 @@ sub check_lines {
         print "> Login: $RAD{USER_NAME} START: $RAD{SESSION_START} DURATION: $RAD{ACCT_SESSION_TIME}\n".
          "UID: $self->{UID} SUM: $self->{SUM} BILL_ID: $self->{BILL_ID} TARIF_PLAN: $self->{TARIF_PLAN} TRAF_TARIF: $self->{TRAF_TARIF}\n" if ($debug == 1);
 
-        
         if ( ($Billing->{PAYMENT_TYPE} == 0) 
                              && ($line->[15] + $line->[16] <= $self->{SUM}) ) {
 
@@ -319,7 +320,7 @@ sub check_lines {
            	                                                       UID                  => $self->{UID},
            	                                                       debug                => $debug
            	                                                      });
-           print "Hanguped Login: $RAD{USER_NAME} DEPOSIT: $line->[14] CREDIT: $line->[15] SESSION_SUM: $self->{SUM} SESSION_ID: $acct_session_id\n"; # if ($debug == 1);
+           print "Hanguped Login: $RAD{USER_NAME} DEPOSIT: $line->[15] CREDIT: $line->[16] SESSION_SUM: $self->{SUM} SESSION_ID: $acct_session_id\n"; # if ($debug == 1);
           }
        }
      }

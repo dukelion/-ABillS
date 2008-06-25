@@ -70,8 +70,8 @@ sub dv_auth {
   
   my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 4096;
  
-  $self->query($db, "select  if (dv.logins=0, tp.logins, dv.logins) AS logins,
-  if(dv.filter_id != '', dv.filter_id, tp.filter_id),
+  $self->query($db, "select  if (dv.logins=0, if(tp.logins is null, 0, tp.logins), dv.logins) AS logins,
+  if(dv.filter_id != '', dv.filter_id, if(tp.filter_id is null, '', tp.filter_id)),
   if(dv.ip>0, INET_NTOA(dv.ip), 0),
   INET_NTOA(dv.netmask),
   dv.tp_id,
@@ -178,8 +178,9 @@ elsif (( $RAD_PAIRS->{'Callback-Number'} || $RAD_PAIRS->{'Ascend-Callback'} ) &&
 if ($self->{JOIN_SERVICE}) {
 
  if ($self->{JOIN_SERVICE} > 1) {
+  
   $self->query($db, "select  
-  if (0>0, 0, tp.logins) AS logins,
+  if ($self->{LOGINS}>0, $self->{LOGINS}, tp.logins) AS logins,
   if('$self->{FILTER}' != '', '$self->{FILTER}', tp.filter_id),
   dv.tp_id,
   tp.day_time_limit,

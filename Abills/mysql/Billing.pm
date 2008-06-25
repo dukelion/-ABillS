@@ -475,10 +475,9 @@ sub session_sum {
     tp.neg_deposit_filter_id,
     dv.join_service
    FROM (users u, 
-      dv_main dv, 
-      tarif_plans tp)
-   WHERE dv.tp_id=tp.id 
-   and dv.uid=u.uid
+      dv_main dv) 
+   LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id )
+   WHERE dv.uid=u.uid
    and u.id='$USER_NAME';");
  
    if($self->{errno}) {
