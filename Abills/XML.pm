@@ -1149,7 +1149,7 @@ sub tpl_show {
   my $self = shift;
   my ($tpl, $variables_ref, $attr) = @_;	
   
-  my $tpl_name = '';
+  my $tpl_name = $attr->{ID} || '';
   
   my $xml_tpl = "<INFO name=\"$tpl_name\">\n";  
   
