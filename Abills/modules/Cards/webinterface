@@ -2,6 +2,7 @@
 
 
 
+
 eval { require Cards; };
 if (! $@) {
   Cards->import();
@@ -12,6 +13,7 @@ else {
  }
 
 use Payments;
+use Fees;
 use Tariffs;
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $payments = Payments->new($db, $admin, \%conf);
@@ -1057,17 +1059,18 @@ sub cards_report_seria {
 	
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub cards_diller_stats {
+	
+}
 
 #**********************************************************
 #
 #**********************************************************
 sub cards_diller_face {
- 
-
   $Cards->cards_diller_info({ UID => $user->{UID} });
-
-
-  
   
   if ($Cards->{TOTAL} < 1) {
      print "Content-Type: text/html\n\n";
@@ -1075,12 +1078,22 @@ sub cards_diller_face {
      exit; 	
    }
 
+
+  if ($user->{DEPOSIT} + $user->{CREDIT} > 0) {
+  	cards_diller_add();
+   }
+  else {
+  	$html->message('info', $_INFO, "$ERR_SMALL_DEPOSIT");
+   }
+
   $pages_qs = "&UID=$user->{UID}";
   $LIST_PARAMS{DILLER_ID}=$user->{Cards->{ID}};
   $Cards->{DISABLE} = $status[$Cards->{DISABLE}];
-  $html->tpl_show(_include('cards_diller_info', 'Cards'), $Cards);  
-  cards_main();
- 
+  $html->tpl_show(_include('cards_diller_info', 'Cards'), { %$Cards, %$user }, { ID => 'DILLER_INFO' });  
+#  cards_main();
+
+
+
   return 0;
 }
 
@@ -1136,7 +1149,92 @@ if ($Cards->{errno}) {
 
 	$Cards->{DISABLE} = ($Cards->{DISABLE} == 1)? 'checked' : '';
 	$html->tpl_show(_include('cards_dillers', 'Cards'), $Cards);
+
 }
+
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_diller_add {
+ 	$Cards->{ACTION}='add';
+ 	$Cards->{LNG_ACTION}=$_ADD;
+
+
+if ($FORM{add}) {
+          my $list = $Cards->cards_list({ SERIA  => '', 
+     	                                    PAGE_ROWS    => 1,
+     	                                    SORT    => 1,
+     	                                    DESC    => 'DESC'
+    	                                       });
+     	    my $serial = 0;
+     	    my $count = $FORM{COUNT} || 1;
+
+     	    if ($Cards->{TOTAL} > 0) {
+     	    	 $serial = $list->[0]->[0];
+     	    	 
+     	     }                                   
+
+      $serial++;
+
+      $FORM{CARDS_PAYMENT_PIN_LENGTH} = 8 if (! $FORM{CARDS_PAYMENT_PIN_LENGTH});
+     	my $table = $html->table( { width      => '100%',
+                           caption    => "$_ICARDS",
+                           title      => ["$_SERIAL", "PIN", "$_SUM", "$_EXPIRE", "$_DATE", "$_DILLER" ],
+                           cols_align => ['left', 'right', 'right', 'left', 'right',  'left' ],
+                           ID         => 'GEN_CARDS'
+                          });
+
+
+
+      for (my $i=$serial; $i<$serial+$count; $i++) {
+          my $pin = mk_unique_value($FORM{CARDS_PAYMENT_PIN_LENGTH}, { SYMBOLS => '1234567890' });
+  	 	    $i = sprintf("%s%.11d", $FORM{SERIAL}, $i);
+  	 	    my $EXPIRE_DATE = '0000-00-00';
+  	 	    my $DILLER_ID = '';
+          $Cards->cards_add({ SERIAL    => "",
+        	                    NUMBER    => "$i",
+            	                PIN       => "$pin",
+           	                  SUM       => "$FORM{SUM}",
+        	                    STATUS    => 0,
+        	                    EXPIRE    => "$EXPIRE_DATE",
+        	                    DILLER_ID => $DILLER_ID
+        	                  });
+
+          if ($Cards->{errno}) {
+       	    $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
+       	    return 0;
+           }
+	        else {
+	        	#Take fees
+	        	my $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - 10)));
+	        	my $fees = Finance->fees($db, $admin, \%conf);
+
+       	
+        	  $fees->take($user, $sum,
+        	  	            {  DESCRIBE     => "$_ICARDS",
+                           METHOD       => 0, 
+                           EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
+                           CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
+                         });  
+
+        	$table->addrow($i, $pin, $FORM{SUM}, $EXPIRE_DATE, "$DATE $TIME", "$DILLER");
+
+            
+        }
+
+
+	   }
+     print $table->show();		  
+	  }
+	
+
+
+
+	$html->tpl_show(_include('cards_dillers_cod_gen', 'Cards'), { COUNT => 1, SUM => 0.00, %$Cards},
+	 { ID => 'CARD_GEN' });
+}
+
 
 #**********************************************************
 #
@@ -1147,7 +1245,7 @@ sub cards_dillers_list {
  #
 
   my $list = $Cards->cards_dillers_list({ %LIST_PARAMS });
-	$table = $html->table( { width      => '100%',
+	my $table = $html->table( { width      => '100%',
                            caption    => "$_DILLERS",
                            title      => ['ID', "$_NAME", "$_ADDRESS", "E-Mail", "$_REGISTRATION", "$_PERCENTAGE", "$_STATE", 
                               "$_COUNT",  "$_ENABLE" ],
