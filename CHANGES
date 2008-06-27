@@ -1,8 +1,16 @@
 =====0.40=====
 
+26.06.2008\\
+Добавлен в систему интерфейс дилера где дилер сможет себе сам формировать карточки оплат
+MySQL:
+  ALTER TABLE cards_dillers ADD `uid` int(11) unsigned NOT NULL default '0';
+  ALTER TABLE cards_dillers DROP key name;
+
+
 21.06.2008\\
 Дозменена  концепция пулов серверов доступа. Теперь они создаются как независимые объекты и потом присваиваются серверам доступа. При подключении система просматривает заняте адреса на всех серверах доступа использующих данный пул.
 **Обязательно обновите пулы серверов доступа**
+MySQL:
   CREATE TABLE `nas_ippools` (
     `pool_id` int(10) unsigned NOT NULL default 0,
     `nas_id` smallint(5) unsigned NOT NULL default '0',
