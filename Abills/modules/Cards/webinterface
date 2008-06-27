@@ -1233,6 +1233,9 @@ sub cards_diller_add {
 
 
 if ($FORM{add}) {
+     print $html->header();
+
+
           my $list = $Cards->cards_list({ SERIA  => '', 
      	                                    PAGE_ROWS    => 1,
      	                                    SORT    => 1,
@@ -1280,7 +1283,7 @@ if ($FORM{add}) {
                            EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
                            CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
                          });  
-
+            
             $html->tpl_show(_include('cards_check', 'Cards'), 
             { PIN         => $pin,
             	NUMBER      => $i,
