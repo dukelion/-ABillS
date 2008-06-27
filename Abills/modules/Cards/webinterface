@@ -1156,7 +1156,9 @@ sub cards_diller_face {
 
 
   if ($user->{DEPOSIT} + $user->{CREDIT} > 0) {
-  	cards_diller_add();
+  	if (cards_diller_add() > 0) {
+  	  return 0;	
+  	 }
    }
   else {
   	$html->message('info', $_INFO, "$ERR_SMALL_DEPOSIT");
@@ -1247,13 +1249,6 @@ if ($FORM{add}) {
       $serial++;
 
       $FORM{CARDS_PAYMENT_PIN_LENGTH} = 8 if (! $FORM{CARDS_PAYMENT_PIN_LENGTH});
-     	my $table = $html->table( { width      => '100%',
-                           caption    => "$_ICARDS",
-                           title      => ["$_SERIAL", "PIN", "$_SUM", "$_EXPIRE", "$_DATE", "$_DILLER" ],
-                           cols_align => ['left', 'right', 'right', 'left', 'right',  'left' ],
-                           ID         => 'GEN_CARDS'
-                          });
-
 
 
       for (my $i=$serial; $i<$serial+$count; $i++) {
@@ -1286,14 +1281,21 @@ if ($FORM{add}) {
                            CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
                          });  
 
-          	$table->addrow($i, $pin, $FORM{SUM}, $EXPIRE_DATE, "$DATE $TIME", "$diller->{ID}");
+            $html->tpl_show(_include('cards_check', 'Cards'), 
+            { PIN         => $pin,
+            	NUMBER      => $i,
+            	EXPIRE_DATE => ($EXPIRE_DATE ne '0000-00-00') ? $EXPIRE_DATE : '' ,
+            	DATE        => "$DATE $TIME",
+            	SUM         => sprintf("%.2f", $FORM{SUM}),
+            	DILLER_ID   => $diller->{ID}
+            	 } );
 
             
         }
 
 
 	   }
-     print $table->show();		  
+     return 1;
 	  }
 	
 
@@ -1301,6 +1303,8 @@ if ($FORM{add}) {
 
 	$html->tpl_show(_include('cards_dillers_cod_gen', 'Cards'), { COUNT => 1, SUM => 0.00, %$Cards},
 	 { ID => 'CARD_GEN' });
+	
+	return 0;
 }
 
 
