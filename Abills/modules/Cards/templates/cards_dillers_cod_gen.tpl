@@ -1,5 +1,5 @@
-<form action='$SELF_URL' METHOD='POST'>
-<input type='hidden' name='index' value='$index'>
+<form action='$SELF_URL' METHOD='POST' TARGET=New>
+<input type='hidden' name='qindex' value='$index'>
 <input type='hidden' name='UID' value='$FORM{UID}'>
 <input type='hidden' name='sid' value='$sid'>
 <table width=600>
