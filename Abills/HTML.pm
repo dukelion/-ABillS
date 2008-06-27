@@ -1437,7 +1437,7 @@ sub tpl_show {
   if($attr->{OUTPUT2RETURN}) {
 		return $tpl;
 	 }
-  elsif (defined($attr->{notprint}) || ($self->{NO_PRINT} && $self->{NO_PRINT} == 1)) {
+  elsif ($attr->{notprint} || $self->{NO_PRINT}) {
   	$self->{OUTPUT} .= $tpl;
   	return $tpl;
    }
