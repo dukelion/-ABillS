@@ -461,7 +461,7 @@ sub dv_user {
  	                                        });
 
      if ($Dv->{JOIN_SERVICE} == 1) {
-   	   my $list = $Dv->list({ JOIN_SERVICE => '>1', 
+   	   my $list = $Dv->list({ JOIN_SERVICE => $Dv->{UID}, 
                               COMPANY_ID   => $attr->{USER}->{COMPANY_ID} ,
                               PAGE_ROWS    => 1000
                              });
@@ -2803,7 +2803,7 @@ sub dv_monthly_fees {
            );
        
        #Check bill ID and deposit
-       if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
+       if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {
          my %FEES_PARAMS = (
                             DATE     => $ADMIN_REPORT{DATE},
                             METHOD   => 1 );  
