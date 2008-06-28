@@ -454,7 +454,7 @@ sub check_speed {
 	#Parce all ipfw rules
 	foreach my $line (@rules) {
      #Parce ipfw pipe rules
-     if ($line =~ /(\d+):\s+(\S+) (\w+)/) {
+     if ($line =~ /^(\d+):\s+(\S+) (\w+)/) {
        my $speed = $2 * $speeds_rotations{$3};
        if (defined($interfaces{$1})) {
          $rule_speed{$interfaces{$1}}{int($1)} = "$speed";
