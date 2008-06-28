@@ -5,9 +5,13 @@
 
 
 
-require "Abon.pm";
-Abon->import();
-my $Abon = Abon->new($db, $admin, $conf);
+
+use Abon;
+use Fees;
+
+
+my $Abon = Abon->new($db, $admin, \%conf);
+my $fees     = Fees->new($db, $admin, \%conf);
 my @PERIODS = ($_DAY, $_MONTH, $_YEAR);
 
 #*******************************************************************
@@ -17,13 +21,58 @@ my @PERIODS = ($_DAY, $_MONTH, $_YEAR);
 sub abon_user {
 
  if ($FORM{change}) {
-    $Abon->user_tariff_change({ %FORM });  
-    if (! $Abon->{errno}){
-    	 $html->message('info', $_INFO, "$_CHANGED");
+    my @new_arr  = ();
+    my @ids_arr  = split(/, /, $FORM{IDS});
+    my %ids_hash = ();
+    
+    foreach my $k (@ids_arr) {
+    	$ids_hash{$k}=1;
      }
-    else {
-    	$html->message('err', $_ERROR, "[$Abon->{errno}] $err_strs{$Abon->{errno}}");	
+
+
+    my $list = $Abon->user_tariff_list($FORM{UID});
+    
+    foreach my $line (@$list) {
+    	if ($ids_hash{$line->[0]} && $line->[5]) {
+    	  delete $ids_hash{$line->[0]} ;
+    	 }
      }
+
+
+    @new_arr = keys %ids_hash;
+    my $count = 0;
+    if ($#new_arr > -1) {
+      my $list = $Abon->tariff_list({ IDS => join(', ', @new_arr) });  
+
+
+      
+      foreach my $line (@$list) {
+        if(($users->{CREDIT} + $users->{DEPOSIT}) > $line->[1] || $line->[3]) {
+          my %PARAMS = ( DESCRIBE => "ABON: [$line->[5]] $line->[0]",
+                         METHOD   => 1  );
+      
+
+          $fees->take($users, $line->[1], { %PARAMS } ); 
+          $Abon->user_tariff_update({ UID   => "$users->{UID}", 
+        	                            TP_ID => "$line->[5]", 
+        	                            DATE  => $DATE, });
+          $count++;
+         }
+        else {
+      	  $html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
+         }
+       }
+     }
+    
+
+      $Abon->user_tariff_change({ %FORM }) ;  
+      if (! $Abon->{errno}){
+    	   $html->message('info', $_INFO, "$_CHANGED");
+       }
+      else {
+    	  $html->message('err', $_ERROR, "[$Abon->{errno}] $err_strs{$Abon->{errno}}");	
+       }
+
   }
  
 
@@ -241,11 +290,6 @@ print $table->show();
 #**********************************************************
 sub abon_periodic {
   
-  require Fees;
-  Fees->import();
-  
-  
-  my $fees = Fees->new($db, $admin, \%conf);
   my $list = $Abon->periodic_list({ %LIST_PARAMS });
 
  #at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
@@ -264,7 +308,8 @@ sub abon_periodic {
        BILL_ID => $line->[3]
       );
 
-    my %PARAMS = ( DESCRIBE => "ABON: [$line->[10]] $line->[6]" );
+    my %PARAMS = ( DESCRIBE => "ABON: [$line->[10]] $line->[6]",
+                   METHOD    => 1  );
     $PARAMS{DATE}=$DATE if ($DATE ne '');
 
     if(($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
