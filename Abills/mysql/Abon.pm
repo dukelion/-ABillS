@@ -169,13 +169,18 @@ sub tariff_del {
 sub tariff_list {
  my $self = shift;
  my ($attr) = @_;
-# undef @WHERE_RULES;
-# push @WHERE_RULES, "u.uid = service.uid";
-# $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ @WHERE_RULES = ();
+
+ if ($attr->{IDS}) {
+    push @WHERE_RULES, "id IN ($attr->{IDS})";
+  }
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT name, price, period, payment_type, count(ul.uid), id 
      FROM abon_tariffs
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
+     $WHERE
      GROUP BY abon_tariffs.id
      ORDER BY $SORT $DESC;");
 
