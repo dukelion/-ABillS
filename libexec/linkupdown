@@ -209,7 +209,7 @@ if ($ARGV[0] eq 'pppd') {
 } 
 else {
   push @FW_ACTIONS, "$IPFW -f delete $fw_nums";
-  push @FW_ACTIONS, "$IPFW -f pipe delete $pipe_nums";
+  #push @FW_ACTIONS, "$IPFW -f pipe delete $pipe_nums";
   $LIST_PARAMS{LOGIN} = "$USER";
 }
 
@@ -235,7 +235,7 @@ if ($ACTION eq 'up') {
 
 
 #JOIN Service
-$conf{JOIN_SERVICE_FW_FIRST_RULE} = 40000;
+$conf{JOIN_SERVICE_FW_FIRST_RULE} = 40000 if (! $conf{JOIN_SERVICE_FW_FIRST_RULE});
 
 
 if ($user->{JOIN_SERVICE}) {

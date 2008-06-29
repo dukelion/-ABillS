@@ -86,6 +86,8 @@ if ($admin->{errno}) {
 my %LIST_PARAMS = ();
 require Dv_Sessions;
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
+require Dv;
+my $Dv = Dv->new($db, $admin, \%conf);
 require Nas;
 my $nas = Nas->new($db, \%conf);
 #my %stats = ();
@@ -442,6 +444,7 @@ sub check_speed {
     exit;
    }
 	
+	$conf{JOIN_SERVICE_FW_FIRST_RULE} = 40000 if (! $conf{JOIN_SERVICE_FW_FIRST_RULE});
 #Get IPFW speed rules
 	my $result = `$IPFW show; $IPFW pipe show`;
 	my @rules = split(/\n/, $result);
@@ -450,6 +453,8 @@ sub check_speed {
 	my %interfaces = ();
 	my %speeds_rotations = ('Kbit' => 1,
 	                        'Mbit' => 1000);
+	                        
+  my %pipe_rules = ();
 	
 	#Parce all ipfw rules
 	foreach my $line (@rules) {
@@ -459,6 +464,9 @@ sub check_speed {
        if (defined($interfaces{$1})) {
          $rule_speed{$interfaces{$1}}{int($1)} = "$speed";
         }
+     	 else {
+     	 	 $pipe_rules{$1}=$speed;
+     	  }
      	}
 	   # parce ipfw show
 	   elsif ($line =~ /(\d+).+[tun|ng](\d+)/) {
@@ -481,9 +489,10 @@ sub check_speed {
      }
    }
 
+  $sessions->{debug}=1 if ($debug > 4);
 	$sessions->online( { %LIST_PARAMS, 
 		                   NAS_ID => $ARGV->{NAS_ID}, 
-		                   FIELDS => [0,2,11,13]   
+		                   FIELDS => [0, 2, 11, 13, 29]   
 		               } );	
 
 
@@ -503,9 +512,19 @@ sub check_speed {
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
                            #IFACE : TP : SPEED  :IP
-       print "$line->[0] IF:$line->[1] TP:$line->[2] SPEED:$line->[3] IP:$line->[5]\n" if ($debug > 1);
-       $USER_IFACES{$line->[0]}="$line->[1]:$line->[2]:$line->[3]:$line->[5]";
-       $TP_HASH{$line->[2]}=1;
+       my $tp = 0;
+       if ($line->[4] > 0) {
+          $Dv->info($line->[4]);
+          $tp = $Dv->{TP_ID};
+        }
+       else {
+         $tp = $line->[2];
+        }
+      
+       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] IP:$line->[6]\n" if ($debug > 1);
+       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[4]:$line->[6]";
+
+       $TP_HASH{$tp}=1;
      }
   }
 
@@ -559,6 +578,7 @@ sub check_speed {
  	      	  print "   $line->[0] IN: $line->[4] OUT: $line->[5]\n" if ($debug == 2);
  	      	  $speeds{$tp}{IN}{$line->[0]}="$line->[4]";
  	      	  $speeds{$tp}{OUT}{$line->[0]}="$line->[5]";
+
    	      }
          }
       }
@@ -577,12 +597,15 @@ sub check_speed {
    }
   
   while(my($user, $other)=each %USER_IFACES) {
-  	 my($IFACE, $TP, $SPEED, $IP)=split(/:/, $other);
+  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
 
-  	 $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED\n";
+  	 $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
 
+     if ($JOIN_SERVICE > 0) {
+     	 
+      }
      #No shaper definition
-     if (! $rule_speed{$IFACE}) {
+     elsif (! $rule_speed{$IFACE}) {
         $debug_outputs .= "  ! No interface\n";	
         print $debug_outputs if ($debug > 0); 
 
@@ -600,10 +623,26 @@ sub check_speed {
      	  $debug_outputs .= " IN:  0, $SPEED ipfw: $fw_num / $rule_speed{$IFACE}{$fw_num}\n".
      	                    " OUT: 0, $SPEED ipfw: ". $rule_speed{$IFACE}{$fw_num + 1} ."\n";
         
-     	  if ($SPEED != $rule_speed{$IFACE}{$fw_num} || $SPEED != $rule_speed{$IFACE}{$fw_num + 1} ) {
+
+      	
+      	if ($JOIN_SERVICE > 0) {
+      	  my $pipe_in = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2;
+      	  my $pipe_out = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2 + 1;
+ 
+          if ($pipe_rules{$pipe_in} != $SPEED || $pipe_rules{$pipe_out} != $SPEED) {
+            $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+            	 NAS_TYPE => $NAS_TYPE,
+            	 debug    => ( $debug > 1) ? ' debug' : undef 
+           	 });
+            }
+      	  
+          next;
+     	   }
+     	  elsif ($SPEED != $rule_speed{$IFACE}{$fw_num} || $SPEED != $rule_speed{$IFACE}{$fw_num + 1} ) {
            $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
            	 NAS_TYPE => $NAS_TYPE,
-           	 debug    => ( $debug > 1) ? ' debug' : undef });
+           	 debug    => ( $debug > 1) ? ' debug' : undef 
+           	 });
            next;
      	   }
 
@@ -611,7 +650,23 @@ sub check_speed {
   	 elsif(defined($speeds{$TP})) {
   	 	 $debug_outputs .= " IN:  ";
 
-  	 	       while(my($k, $v)=each %{ $speeds{$TP}{OUT} }) {
+      	if ($JOIN_SERVICE > 0) {
+      	  my $pipe_in = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2;
+      	  my $pipe_out = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2 + 1;
+ 
+          if (! $pipe_rules{$pipe_in} ||  ! $pipe_rules{$pipe_out} || $pipe_rules{$pipe_in} != $speeds{$TP}{IN}{0} || int($pipe_rules{$pipe_out}) != $speeds{$TP}{OUT}{0}) {
+            $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+            	 NAS_TYPE => $NAS_TYPE,
+            	 debug    => ( $debug > 1) ? ' debug' : undef 
+           	 });
+            }
+          next;
+     	   }
+
+
+#IN SPEED
+             # Class, $speed
+  	 	       while(my($k, $v)=each %{ $speeds{$TP}{IN} }) {
   	 	       	  next if ($v == 0);
   	 	       	  my $fw_num = $START_FW[$k] + $IFACE * 2;
   	 	       	  $debug_outputs .= "  $k, $v ipfw: $fw_num";
@@ -693,7 +748,6 @@ sub check_speed_change {
 
 	my $NAS_TYPE = ($attr->{NAS_TYPE}) ? $attr->{NAS_TYPE} : '';
   my $cmd_debug = ($attr->{debug}) ? 'debug' : '';
-  
   
   my $cmds = "$Bin/linkupdown down tun$IFACE_ID $USER_NAME $USER_IP $cmd_debug;".
              "$Bin/linkupdown up tun$IFACE_ID $USER_NAME $USER_IP $cmd_debug";
