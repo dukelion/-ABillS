@@ -854,7 +854,7 @@ sub user_form {
 
    if ($FORM{COMPANY_ID}) {
      use Customers;	
-     my $customers = Customers->new($db);
+     my $customers = Customers->new($db, $admin, \%conf);
      my $company = $customers->company->info($FORM{COMPANY_ID});
  	   $user_info->{COMPANY_ID}=$FORM{COMPANY_ID};
      $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td>". $html->button($company->{COMPANY_NAME}, "index=13&COMPANY_ID=$company->{COMPANY_ID}"). "</td></tr>\n";
@@ -1602,18 +1602,44 @@ sub user_company {
  my ($attr) = @_;
  my $user_info = $attr->{USER};
  use Customers;
- my $customer = Customers->new($db);
+ my $customer = Customers->new($db, $admin, \%conf);
+ my $company  = $customer->company();
 
- $user_info->{SEL_COMPANIES} = $html->form_select('COMPANY_ID', 
-                                { 
- 	                                SELECTED          => $FORM{COMPANY_ID},
- 	                                SEL_MULTI_ARRAY   => $customer->company->list({ PAGE_ROWS => 2000 }),
- 	                                MULTI_ARRAY_KEY   => 5,
- 	                                MULTI_ARRAY_VALUE => 0,
- 	                                SEL_OPTIONS       => { 0 => '-N/S-'}
- 	                               });
 
-$html->tpl_show(templates('form_chg_company'), $user_info);
+
+form_search({ SIMPLE        => { $_COMPANY => 'COMPANY_NAME' },
+	            HIDDEN_FIELDS => { UID       => $FORM{UID} }
+	           });
+
+
+my $list  = $company->list({ %LIST_PARAMS });
+my $table = $html->table( { width      => '100%',
+                            border     => 1,
+                            title      => ["$_NAME", "$_DEPOSIT",  '-'],
+                            cols_align => ['right', 'left', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $company->{TOTAL}
+                           });
+
+  $table->addrow($_DEFAULT,
+    '',
+    $html->button("$_ADD", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=0"), 
+    );
+
+
+foreach my $line (@$list) {
+  $table->addrow($line->[0],
+    $line->[1],
+    $html->button("$_ADD", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=$line->[5]"), 
+    );
+}
+
+
+print $table->show();
+
+
+
+
 }
 
 #**********************************************************

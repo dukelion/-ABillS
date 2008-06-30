@@ -341,6 +341,11 @@ sub list {
    push @WHERE_RULES, "c.contract_id LIKE '$attr->{CONTRACT_ID}'";
  }
 
+ if ($attr->{COMPANY_NAME}) {
+   $attr->{COMPANY_NAME}=~ s/\*/\%/ig;
+   push @WHERE_RULES, "c.name LIKE '$attr->{COMPANY_NAME}'";
+ }
+
 
  if ($attr->{LOGIN_EXPR}) {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;

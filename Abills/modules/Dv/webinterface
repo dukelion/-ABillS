@@ -3513,6 +3513,7 @@ sub dv_wizard_user {
      }
    }
  
+ $dv_defaults->{JOIN_SERVICE}='';
  my %tpls = (
 	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults, { notprint => 1 }),  
 	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { notprint => 1 }),
@@ -3633,6 +3634,12 @@ sub dv_get_month_fee {
      my $users = Users->new($db, $admin, \%conf); 
      my $user  = $users->info($Dv->{UID});
 
+     if ($Dv->{TP_INFO}->{EXT_BILL_ACCOUNT})  {
+     	 $user->{BILL_ID}=$user->{EXT_BILL_ID} if ($user->{EXT_BILL_ID});
+      }
+
+
+
      my $message = ''; 
      #Current Month
      my ($y, $m, $d)=split(/-/, $DATE, 3);
@@ -3651,6 +3658,7 @@ sub dv_get_month_fee {
           $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1));
          }
        
+        return 0 if ($sum == 0);
         
         my $periods = 0;
         if ($active_m > 0 && $active_m < $m) {
@@ -3683,7 +3691,7 @@ sub dv_get_month_fee {
             
             if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
               $users->change($Dv->{UID}, { ACTIVATE => '0000-00-00',
-            	                           UID      => $Dv->{UID} });
+              	                           UID      => $Dv->{UID} });
              }
            }
           
