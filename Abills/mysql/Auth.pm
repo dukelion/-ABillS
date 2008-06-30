@@ -1350,7 +1350,7 @@ sub get_ip {
        $self->{USED_IPS}++;
      }
    }
-  last if (scalar(keys %{ %pool }) > 0);
+  last if (scalar(keys %pool ) > 0);
   }
 
  my @ips_arr = keys %pool;
