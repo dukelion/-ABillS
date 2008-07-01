@@ -16,7 +16,7 @@ else {
 
 use Finance;
 my $payments = Finance->payments($db, $admin, \%conf);
-my $fees = Finance->payments($db, $admin, \%conf);
+my $fees = Finance->fees($db, $admin, \%conf);
 
 
 my $Paysys = Paysys->new($db, $admin, \%conf);
