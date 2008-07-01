@@ -126,7 +126,7 @@ $pages_qs .= "&QUERY=$FORM{QUERY}";
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Sqlcmd->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($Sqlcmd->{TOTAL}) ] ]
                         } );
 
   print $table->show();

@@ -836,7 +836,9 @@ if ($self->{TOTAL} > 0) {
    
     $self->query($db, "SELECT u.id, 
        pi.fio, 
-       if(company.id IS NULL, b.deposit, cb.deposit), u.credit, u.disable, 
+       if(company.id IS NULL, b.deposit, cb.deposit), 
+       if(u.company_id=0, u.credit, 
+          if (u.credit=0, company.credit, u.credit)), u.disable, 
        $self->{SEARCH_FIELDS}
        u.uid, 
        u.company_id, 
@@ -890,7 +892,10 @@ if ($self->{TOTAL} > 0) {
  
  $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
  $self->query($db, "SELECT u.id, 
-      pi.fio, if(company.id IS NULL,b.deposit,cb.deposit), u.credit, u.disable, 
+      pi.fio, if(company.id IS NULL,b.deposit,cb.deposit), 
+             if(u.company_id=0, u.credit,
+      if (u.credit=0, company.credit, u.credit)),
+      u.disable, 
       $self->{SEARCH_FIELDS}
       u.uid, u.company_id, pi.email, u.activate, u.expire
      FROM users u

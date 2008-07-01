@@ -157,7 +157,7 @@ foreach my $query (@QUERY_ARRAY) {
 
 	next if (length($query) < 5);
 
-  my $q = $db->prepare("$query", { "mysql_use_result" => 1  } ) || die $db->errstr;
+  my $q = $db->prepare("$query",  { "mysql_use_result" => ($query !~ /!SELECT/gi ) ? 0 : 1   } ) || die $db->errstr;
   if($db->err) {
      $self->{errno} = 3;
      $self->{sql_errno}=$db->err;
@@ -167,6 +167,7 @@ foreach my $query (@QUERY_ARRAY) {
      return $self->{errno};
    }
   $q->execute(); 
+
 
   if($db->err) {
      $self->{errno} = 3;
@@ -184,6 +185,7 @@ foreach my $query (@QUERY_ARRAY) {
    $self->{MYSQL_MAX_LENGTH}    = $q->{mysql_max_length};
    $self->{MYSQL_IS_KEY}        = $q->{mysql_is_key};
    $self->{MYSQL_TYPE_NAME}     = $q->{mysql_type_name};
+
 
    $self->{TOTAL} = $q->rows;
 
