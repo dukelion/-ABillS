@@ -12,7 +12,7 @@ $_DATE: <input type=text name='CREDIT_DATE' value='%CREDIT_DATE%' size=10>
 <TR><TD>$_ACTIVATE:</TD><TD><input type=text name=ACTIVATE value='%ACTIVATE%'></TD></TR>
 <TR><TD>$_EXPIRE:</TD><TD><input type=text name=EXPIRE value='%EXPIRE%'></TD></TR>
 <TR><TD>$_REDUCTION (%):</TD><TD><input type=text name=REDUCTION value='%REDUCTION%'></TD></TR>
-<TR><TD>$_DISABLE:</TD><TD><input type=checkbox name=DISABLE value='1' %DISABLE%></TD></TR>
+<TR><TD>$_DISABLE:</TD><TD><input type=checkbox name=DISABLE value='1' %DISABLE%> %DISABLE_MARK%</TD></TR>
 <TR><TD>$_REGISTRATION</TD><TD>%REGISTRATION%</TD></TR>
 <TR><td colspan='2'>%PASSWORD%</TD></TR>
 </TABLE>
