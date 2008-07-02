@@ -204,6 +204,8 @@ sub add {
 
        my $fees = Fees->new($db, $admin, $CONF);
        $fees->take($user, $tariffs->{ACTIV_PRICE}, { DESCRIBE  => "ACTIV TP" });  
+
+       $tariffs->{ACTIV_PRICE}=0;
       }
    }
 
@@ -263,15 +265,33 @@ sub change {
    }
 
   my $old_info = $self->info($attr->{UID});
+  
+  
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
 
      $self->{TP_INFO}=$tariffs->info($attr->{TP_ID});
      
-     if($tariffs->{CHANGE_PRICE} > 0) {
-       my $user = Users->new($db, $admin, $CONF);
-       $user->info($attr->{UID});
+     my $user = Users->new($db, $admin, $CONF);
+
+     $user->info($attr->{UID});
+     
+     if ($old_info->{STATUS} == 2 && (defined($attr->{STATUS}) && $attr->{STATUS} == 0) && $tariffs->{ACTIV_PRICE} > 0) {
        
+       
+       if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0 && $tariffs->{POSTPAID_FEE} == 0) {
+        
+         $self->{errno}=15;
+       	 return $self; 
+        }
+
+       my $fees = Fees->new($db, $admin, $CONF);
+       $fees->take($user, $tariffs->{ACTIV_PRICE}, { DESCRIBE  => "ACTIV TP" });  
+
+       $tariffs->{ACTIV_PRICE}=0;
+      }
+     elsif($tariffs->{CHANGE_PRICE} > 0) {
+      
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{CHANGE_PRICE}) {
          $self->{errno}=15;
        	 return $self; 

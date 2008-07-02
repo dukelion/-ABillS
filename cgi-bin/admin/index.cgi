@@ -874,7 +874,11 @@ sub user_form {
 
    $user_info->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
 
-   $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? ' checked' : '';
+   if ($user_info->{DISABLE} > 0) {
+     $user_info->{DISABLE} = ' checked';
+     $user_info->{DISABLE_MARK} = $html->color_mark($html->b($_DISABLE), $_COLORS[6]);
+    } 
+    
    $user_info->{ACTION}='add';
    $user_info->{LNG_ACTION}=$_ADD;
   }
@@ -888,7 +892,11 @@ sub user_form {
     }
 
 
-   $user_info->{DISABLE} = ($user_info->{DISABLE} > 0) ? ' checked' : '';
+   if ($user_info->{DISABLE} > 0) {
+     $user_info->{DISABLE} = ' checked';
+     $user_info->{DISABLE_MARK} = $html->color_mark($html->b($_DISABLE), $_COLORS[6]);
+    } 
+
    $user_info->{ACTION}='change';
    $user_info->{LNG_ACTION}=$_CHANGE;
    if ($permissions{0}{3}) {

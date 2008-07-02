@@ -121,7 +121,7 @@ if ($FORM{set}) {
      }
     else {
       #Take fees
-      if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+      if ($Dv->{TP_INFO}->{MONTH_FEE} > 0 && ! $Dv->{STATUS}) {
         dv_get_month_fee($Dv);
        }
 
@@ -368,13 +368,13 @@ sub dv_user {
     dv_get_month_fee($Dv) if (! $FORM{STATUS});
 
     if (! $Dv->{errno}) {
-      $html->message('info', $_INFO, "- $_CHANGED");	
+      $html->message('info', $_INFO, "$_CHANGED");	
      }
    }
 	elsif($FORM{del}) {
     $Dv->del();
     if (! $Dv->{errno}) {
-      $html->message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_DELETED");	
      }
 	 }
 
@@ -3626,6 +3626,21 @@ sub dv_registration  {
 #**********************************************************
 sub dv_get_month_fee {
   my ($Dv, $attr) = @_;
+
+
+  if ($Dv->{TP_INFO}->{ACTIV_PRICE}) {
+    my $users = Users->new($db, $admin, \%conf); 
+    my $user  = $users->info($Dv->{UID});
+
+    $fees->{debug}=1;
+    $fees->take($user, $Dv->{TP_INFO}->{ACTIV_PRICE}, 
+                              { DESCRIBE  => "$_ACTIVATE $_TARIF_PLAN", 
+   	                            DATE      => "$DATE $TIME"
+  	                           });  
+
+    $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN");	
+   }
+
 
   if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
 
