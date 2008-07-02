@@ -541,6 +541,7 @@ sub session_sum {
     }
    else {
      $self->{UIDS} = "$self->{UID}";
+     $self->{JOIN_SERVICE} = $self->{UID};
     }
 
    $self->query($db, "SELECT uid FROM dv_main WHERE join_service='$self->{JOIN_SERVICE}';");
