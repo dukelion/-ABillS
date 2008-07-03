@@ -183,7 +183,7 @@ sub add {
   my %DATA = $self->get_data($attr, { default => defaults() }); 
 
 
-  if ($DATA{TP_ID} > 0) {
+  if ($DATA{TP_ID} > 0 && ! $DATA{STATUS}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
 
      $self->{TP_INFO}=$tariffs->info($DATA{TP_ID});
