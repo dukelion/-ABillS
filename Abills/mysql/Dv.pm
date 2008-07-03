@@ -182,7 +182,6 @@ sub add {
   
   my %DATA = $self->get_data($attr, { default => defaults() }); 
 
-
   if ($DATA{TP_ID} > 0 && ! $DATA{STATUS}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
 
@@ -247,7 +246,7 @@ sub change {
 
   
   my %FIELDS = (SIMULTANEONSLY => 'logins',
-              STATUS          => 'disable',
+              STATUS           => 'disable',
               IP               => 'ip',
               NETMASK          => 'netmask',
               TP_ID            => 'tp_id',
