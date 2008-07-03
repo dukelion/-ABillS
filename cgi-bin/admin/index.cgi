@@ -3437,7 +3437,6 @@ else{
                                ID         => 'REPORT_FEES'
                                });
 
-
   $list = $fees->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
     $table_fees->addrow(
