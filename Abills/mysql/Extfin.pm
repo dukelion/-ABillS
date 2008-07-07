@@ -320,6 +320,8 @@ sub payment_deed {
      ORDER BY $SORT $DESC ;");
 
   foreach my $line (@{ $self->{list} } ) {
+        next if (! $line->[0]);
+
   	$PAYMENT_DEED{$line->[0]}=$line->[1];
  	  #Name|Type|VAT
  	  $NAMES{$line->[0]}="$line->[2]|$line->[4]|$line->[5]";

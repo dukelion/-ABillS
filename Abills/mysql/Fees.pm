@@ -90,7 +90,7 @@ sub take {
   
   $user->{BILL_ID} = $attr->{BILL_ID} if ($attr->{BILL_ID});
   
-  if ($user->{BILL_ID} > 0) {
+  if ($user->{BILL_ID} && $user->{BILL_ID} > 0) {
     $Bill->info( { BILL_ID => $user->{BILL_ID} } );
     
     if ($user->{COMPANY_VAT}) {

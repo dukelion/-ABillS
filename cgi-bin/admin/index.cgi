@@ -4071,7 +4071,8 @@ sub form_fees  {
 
  my %BILL_ACCOUNTS = ();
 
- my @FEES_METHODS = ();
+
+ my @FEES_METHODS = ('Разовые', 'Абон. плата', 'Штраф');
  push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
 
 

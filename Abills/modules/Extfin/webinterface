@@ -221,6 +221,7 @@ sub extfin_monthly_summary {
 
  foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
    my($name, $type, $vat)=split(/\|/, $Extfin->{NAMES}{$id});
+   $vat = 0 if (! $vat);
    my $total = $Extfin->{PAYMENT_DEED}{$id} + $Extfin->{PAYMENT_DEED}{$id} * ($vat / 100);
       
    $debug_output .= "PERIOD: $period BILL_ID: $id SUM: $Extfin->{PAYMENT_DEED}{$id} DATE: $DATE\n" if ($debug > 2);
