@@ -3721,7 +3721,7 @@ sub dv_get_month_fee {
         	$message = "$_MONTH_ALIGNMENT, ";
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
-          if ($Dv->{ACTIVATE} ne '0000-00-00') {
+          if ($Dv->{ACTIVATE} && $Dv->{ACTIVATE} ne '0000-00-00') {
             $days_in_month=($active_m!=2?(($active_m%2)^($active_m>7))+30:(!($active_y%400)||!($active_y%4)&&($active_y%25)?29:28)); 
             $d = $active_d;
            }
@@ -3757,7 +3757,7 @@ sub dv_get_month_fee {
             $DATE    = "$active_y-$m-01";
             $TIME    = "00:00:00";
            }
-          elsif ($Dv->{ACTIVATE} ne '0000-00-00'){
+          elsif ($Dv->{ACTIVATE} && $Dv->{ACTIVATE} ne '0000-00-00'){
             $DATE    = "$active_y-$m-$active_d";
             $TIME    = "00:00:00";
             
@@ -3766,7 +3766,7 @@ sub dv_get_month_fee {
               	                           UID      => $Dv->{UID} });
              }
            }
-          
+         
           $fees->take($users, $sum, { DESCRIBE  => $message, 
         	                            METHOD    => 1, 
         	                            DATE      => "$DATE $TIME"
