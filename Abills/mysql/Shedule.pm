@@ -155,6 +155,7 @@ sub list {
    $WHERE
   LIMIT $PG, $PAGE_ROWS");
 
+ my $list = $self->{list};
 
  if ($self->{TOTAL} > 0) {
    $self->query($db, "SELECT count(*)   FROM shedule s
@@ -167,7 +168,7 @@ sub list {
     )= @{ $self->{list}->[0] };
   }
 
-  return $self->{list};
+  return $list;
 }
 
 
