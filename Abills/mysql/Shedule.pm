@@ -155,6 +155,18 @@ sub list {
    $WHERE
   LIMIT $PG, $PAGE_ROWS");
 
+
+ if ($self->{TOTAL} > 0) {
+   $self->query($db, "SELECT count(*)   FROM shedule s
+      LEFT JOIN users u ON (u.uid=s.uid)
+      LEFT JOIN admins a ON (a.aid=s.aid) 
+     $WHERE
+    LIMIT $PG, $PAGE_ROWS");
+ 
+   ($self->{TOTAL}
+    )= @{ $self->{list}->[0] };
+  }
+
   return $self->{list};
 }
 
