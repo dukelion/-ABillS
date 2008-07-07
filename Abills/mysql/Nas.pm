@@ -242,7 +242,7 @@ sub nas_ip_pools_list {
  
  my $WHERE_NAS = ($self->{NAS_ID}) ? "AND np.nas_id='$self->{NAS_ID}'" : '' ;
 
- $self->query($db, "SELECT if (np.nas_id IS NULL, 0, 1),
+ $self->query($db, "SELECT if (np.nas_id IS NULL, 0, np.nas_id),
    n.name, pool.name, 
    pool.ip, pool.ip + pool.counts, pool.counts,     pool.priority,
     INET_NTOA(pool.ip), INET_NTOA(pool.ip + pool.counts), 

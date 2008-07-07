@@ -171,6 +171,7 @@ if ($uid > 0) {
   $OUTPUT{DATE}=$DATE;
   $OUTPUT{TIME}=$TIME;
   $OUTPUT{LOGIN}=$login;
+  $OUTPUT{IP}=$user->{REMOTE_ADDR};
 
   $pages_qs="&UID=$user->{UID}&sid=$sid";
   $LIST_PARAMS{UID}=$user->{UID};
