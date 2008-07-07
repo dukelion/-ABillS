@@ -2512,7 +2512,7 @@ sub dv_user_info {
     print "Content-Type: text/html\n\n";
     print $isg_cmd;
 
-    my $result = `$isq_cmd`;
+    my $result = `$isg_cmd`;
 
     #echo "User-Name=\"test\",cisco-avpair=\"subscriber:command=account-logon\",Cisco-Account-Info=\"S79.124.98.3\"" | /usr/local/bin/radclient -x 77.87.152.66:1700 coa cisco555
 
