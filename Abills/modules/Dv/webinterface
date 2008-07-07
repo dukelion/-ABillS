@@ -2540,6 +2540,9 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
         my($key, $val)=split(/ = /, $line);
 
         $val =~ s/\"//g;
+        $key =~ s/\t//g;
+        $key =~ s/ //g;
+        
       	$RAD_PAIRS{$key}=$val;
         if ($val =~ /\$MA(\S+)/) {
       	  $Dv->{ISG_CID_CUR}=$1;
