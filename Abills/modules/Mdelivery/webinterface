@@ -112,8 +112,8 @@ use Users;
 my $users = Users->new($db, $admin, \%conf); 
 
 $LIST_PARAMS{STATUS}=0;
-$LIST_PARAMS{DATE}=$DATE;
- 
+$LIST_PARAMS{DATE}="<=$DATE";
+
 my $list = $Mdelivery->list({ %LIST_PARAMS });
 my @ids;
 foreach my $line (@$list) {
@@ -121,19 +121,21 @@ foreach my $line (@$list) {
 }
 
 
+
 foreach my $line (@ids) {
 	$Mdelivery->info($line);
 
-  $LIST_PARAMS{GID}=$Mdelivery->{GID} if ($Mdelivery->{GID} > 0);
-  $LIST_PARAMS{UID}=$Mdelivery->{UID} if ($Mdelivery->{UID} > 0);
+  $LIST_PARAMS{GID}=$Mdelivery->{GID} if ($Mdelivery->{GID} && $Mdelivery->{GID} > 0);
+  $LIST_PARAMS{UID}=$Mdelivery->{UID} if ($Mdelivery->{UID} && $Mdelivery->{UID} > 0);
   $LIST_PARAMS{PAGE_ROWS}=1000000;
-  
+ 
   my $user_list = $users->list({ %LIST_PARAMS });
-  foreach $u (@$user_list) {
-  	 my $mail = ($u->[7] ne '') ? $u->[7] : $u->[0] .'@'. $conf{USERS_MAIL_DOMAIN};
-     $Mdelivery->{SENDER} = ($Mdelivery->{SENDER} ne '') ? $Mdelivery->{SENDER} : $conf{ADMIN_MAIL};
-  	 #print "$Mdelivery->{SENDER}, $mail, $Mdelivery->{SUBJECT}, $Mdelivery->{TEXT},  $conf{MAIL_CHARSET}, $Mdelivery->{PRIORITY}, ($MAIL_PRIORITY{$Mdelivery->{PRIORITY}})<br>";
 
+
+  foreach $u (@$user_list) {
+  	 my $mail = ($u->[$users->{SEARCH_FIELDS_COUNT} + 7] ne '') ? $u->[$users->{SEARCH_FIELDS_COUNT} + 7] : $u->[0] .'@'. $conf{USERS_MAIL_DOMAIN};
+     $Mdelivery->{SENDER} = ($Mdelivery->{SENDER} ne '') ? $Mdelivery->{SENDER} : $conf{ADMIN_MAIL};
+#  	 print "$Mdelivery->{SENDER}, $mail, $Mdelivery->{SUBJECT}, $Mdelivery->{TEXT},  $conf{MAIL_CHARSET}, $Mdelivery->{PRIORITY}, ($MAIL_PRIORITY{$Mdelivery->{PRIORITY}})<br>";
      sendmail("$Mdelivery->{SENDER}", 
           "$mail", 
           "$Mdelivery->{SUBJECT}", 
@@ -143,7 +145,7 @@ foreach my $line (@ids) {
 
    }
  
- $Mdelivery->change({ ID => $line });
+  $Mdelivery->change({ ID => $line });
 }
 
 
