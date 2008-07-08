@@ -90,8 +90,6 @@ sub info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
-
   ($self->{ID},
    $self->{DATE},
    $self->{SUBJECT},
@@ -102,7 +100,7 @@ sub info {
    $self->{PRIORITY},
    $self->{USER}, 
    $self->{GROUP}
- )= @$ar;
+ )= @{ $self->{list}->[0] };
   
   
   return $self;
@@ -186,7 +184,8 @@ sub list {
   }
 
  if ($attr->{DATE}) {
-    push @WHERE_RULES, "md.date='$attr->{DATE}'";
+    my $value = $self->search_expr($attr->{DATE}, 'INT');
+    push @WHERE_RULES, "md.date$value";
   }
 
 
