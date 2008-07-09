@@ -161,8 +161,7 @@ sub list {
    $self->query($db, "SELECT count(*)   FROM shedule s
       LEFT JOIN users u ON (u.uid=s.uid)
       LEFT JOIN admins a ON (a.aid=s.aid) 
-     $WHERE
-    LIMIT $PG, $PAGE_ROWS");
+     $WHERE");
  
    ($self->{TOTAL}
     )= @{ $self->{list}->[0] };
