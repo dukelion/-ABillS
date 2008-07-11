@@ -95,6 +95,7 @@ if ($conf{PAYSYS_PASSWD}) {
   if ($REMOTE_PASSWD ne $password || $REMOTE_USER ne $user) {
     print "WWW-Authenticate: Basic realm=\"Billing system\"\n";
     print "Status: 401 Unauthorized\n";
+    exit;
    }
   }
 }
