@@ -92,14 +92,19 @@ if ($conf{PAYSYS_PASSWD}) {
   $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
   my ($REMOTE_USER,$REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));  
 
-  if ($REMOTE_PASSWD ne $password || $REMOTE_USER ne $user) {
+#  print "Content-Type: text/html\n\n";
+#  print "($REMOTE_PASSWD ne $password || $REMOTE_USER ne $user)";
+
+  if ((! $REMOTE_PASSWD) || ($REMOTE_PASSWD && $REMOTE_PASSWD ne $password) 
+    || (! $REMOTE_USER) || ($REMOTE_USER && $REMOTE_USER ne $user)) {
     print "WWW-Authenticate: Basic realm=\"Billing system\"\n";
     print "Status: 401 Unauthorized\n";
+    print "Content-Type: text/html\n\n";
+    print "Access Deny";
     exit;
    }
   }
 }
-	
 
 
 

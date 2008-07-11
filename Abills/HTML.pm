@@ -203,15 +203,20 @@ if (! defined($ENV{CONTENT_TYPE}) || $ENV{CONTENT_TYPE} !~ /boundary/ ) {
 
   foreach my $pair (@pairs) {
     my ($side, $value) = split(/=/, $pair);
-    $value =~ tr/+/ /;
-    $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
-    $value =~ s/<!--(.|\n)*-->//g;
-    $value =~ s/<([^>]|\n)*>//g;
+    if ($value) {
+      $value =~ tr/+/ /;
+      $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+      $value =~ s/<!--(.|\n)*-->//g;
+      $value =~ s/<([^>]|\n)*>//g;
 
-    #Check quotes
-    $value =~ s/"/\\"/g;
-    $value =~ s/'/\\'/g;
-   
+      #Check quotes
+      $value =~ s/"/\\"/g;
+      $value =~ s/'/\\'/g;
+    }
+    else {
+      $value = '';
+     }
+
     if (defined($FORM{$side})) {
       $FORM{$side} .= ", $value";
      }
