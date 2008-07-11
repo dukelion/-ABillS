@@ -649,7 +649,7 @@ my $table = $html->table( { width      => '100%',
                              $_AGE, $_GROUP,
                                     '-', '-', '-'],
                             cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
-                            ID         => 'TARIF_PLANS'
+                            ID         => 'DV_TARIF_PLANS'
                                   } );
 
 my ($delete, $change);
