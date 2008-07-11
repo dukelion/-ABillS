@@ -1,0 +1,904 @@
+package Iptv;
+# Iptv  managment functions
+#
+
+
+
+use strict;
+use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION);
+
+use Exporter;
+$VERSION = 2.00;
+@ISA = ('Exporter');
+
+@EXPORT = qw();
+
+@EXPORT_OK = ();
+%EXPORT_TAGS = ();
+
+use main;
+@ISA  = ("main");
+
+use Tariffs;
+use Users;
+use Fees;
+
+
+
+my $uid;
+
+my $MODULE='Iptv';
+
+#**********************************************************
+# Init 
+#**********************************************************
+sub new {
+  my $class = shift;
+  ($db, $admin, $CONF) = @_;
+  $admin->{MODULE}=$MODULE;
+  my $self = { };
+  
+  bless($self, $class);
+  
+  if ($CONF->{DELETE_USER}) {
+    $self->{UID}=$CONF->{DELETE_USER};
+    $self->del({ UID => $CONF->{DELETE_USER} });
+   }
+  
+  return $self;
+}
+
+
+
+
+#**********************************************************
+# User information
+# info()
+#**********************************************************
+sub user_info {
+  my $self = shift;
+  my ($uid, $attr) = @_;
+
+  if(defined($attr->{LOGIN})) {
+    use Users;
+    my $users = Users->new($db, $admin, $CONF);   
+    $users->info(0, {LOGIN => "$attr->{LOGIN}"});
+    if ($users->{errno}) {
+       $self->{errno} = 2;
+       $self->{errstr} = 'ERROR_NOT_EXIST';
+       return $self; 
+     }
+
+    $uid              = $users->{UID};
+    $self->{DEPOSIT}  = $users->{DEPOSIT};
+    $self->{ACCOUNT_ACTIVATE} = $users->{ACTIVATE};
+    $WHERE =  "WHERE service.uid='$uid'";
+   }
+  
+  
+  $WHERE =  "WHERE service.uid='$uid'";
+  
+  
+  $self->query($db, "SELECT service.uid, service.tp_id, 
+   tp.name, 
+   service.filter_id, 
+   service.cid,
+   service.disable,
+   tp.gid,
+   tp.month_fee,
+   tp.postpaid_fee,
+   tp.payment_type
+     FROM iptv_main service
+     LEFT JOIN tarif_plans tp ON (service.tp_id=tp.id)
+   $WHERE;");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+
+  ($self->{UID},
+   $self->{TP_ID}, 
+   $self->{TP_NAME}, 
+   $self->{FILTER_ID}, 
+   $self->{STATUS},
+   $self->{TP_GID},
+   $self->{MONTH_ABON},
+   $self->{POSTPAID_ABON}, 
+   $self->{PAYMENT_TYPE},
+   $self->{JOIN_SERVICE}
+  )= @{ $self->{list}->[0] };
+  
+  
+  return $self;
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub defaults {
+  my $self = shift;
+
+  my %DATA = (
+   TP_ID     => 0, 
+   SIMULTANEONSLY => 0, 
+   STATUS         => 0, 
+   IP             => '0.0.0.0', 
+   NETMASK        => '255.255.255.255', 
+   SPEED          => 0, 
+   FILTER_ID      => '', 
+   CID            => '',
+   CALLBACK       => 0,
+   PORT           => 0,
+   JOIN_SERVICE   => 0
+  );
+
+ 
+ 
+
+  $self = \%DATA ;
+  return $self;
+}
+
+
+#**********************************************************
+# add()
+#**********************************************************
+sub user_add {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %DATA = $self->get_data($attr, { default => defaults() }); 
+
+  if ($DATA{TP_ID} > 0 && ! $DATA{STATUS}) {
+     my $tariffs = Tariffs->new($db, $CONF, $admin);
+
+     $self->{TP_INFO}=$tariffs->info($DATA{TP_ID});
+     
+
+     #Take activation price
+     if($tariffs->{ACTIV_PRICE} > 0) {
+       my $user = Users->new($db, $admin, $CONF);
+       $user->info($DATA{UID});
+       
+       if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0) {
+         
+         #print "$user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE}";
+         
+         $self->{errno}=15;
+       	 return $self; 
+        }
+
+       my $fees = Fees->new($db, $admin, $CONF);
+       $fees->take($user, $tariffs->{ACTIV_PRICE}, { DESCRIBE  => "ACTIV TP" });  
+
+       $tariffs->{ACTIV_PRICE}=0;
+      }
+   }
+
+
+
+  $self->query($db,  "INSERT INTO iptv_main (uid, registration, 
+             tp_id, 
+             disable, 
+             filter_id 
+             )
+        VALUES ('$DATA{UID}', now(),
+        '$DATA{TP_ID}', '$DATA{STATUS}',
+        '$DATA{FILTER_ID}',
+         );", 'do');
+
+  return $self if ($self->{errno});
+  $admin->action_add("$DATA{UID}", "ACTIVE");
+  return $self;
+}
+
+
+
+
+#**********************************************************
+# change()
+#**********************************************************
+sub user_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+
+  
+  my %FIELDS = (SIMULTANEONSLY => 'logins',
+              STATUS           => 'disable',
+              IP               => 'ip',
+              NETMASK          => 'netmask',
+              TP_ID            => 'tp_id',
+              UID              => 'uid',
+              FILTER_ID        => 'filter_id',
+             );
+  
+  if (! $attr->{CALLBACK}) {
+  	$attr->{CALLBACK}=0;
+   }
+
+  my $old_info = $self->user_info($attr->{UID});
+  
+  
+  if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
+     my $tariffs = Tariffs->new($db, $CONF, $admin);
+
+     $self->{TP_INFO}=$tariffs->info($attr->{TP_ID});
+     
+     my $user = Users->new($db, $admin, $CONF);
+
+     $user->info($attr->{UID});
+     
+     if ($old_info->{STATUS} == 2 && (defined($attr->{STATUS}) && $attr->{STATUS} == 0) && $tariffs->{ACTIV_PRICE} > 0) {
+       
+       
+       if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0 && $tariffs->{POSTPAID_FEE} == 0) {
+        
+         $self->{errno}=15;
+       	 return $self; 
+        }
+
+       my $fees = Fees->new($db, $admin, $CONF);
+       $fees->take($user, $tariffs->{ACTIV_PRICE}, { DESCRIBE  => "ACTIV TP" });  
+
+       $tariffs->{ACTIV_PRICE}=0;
+      }
+     elsif($tariffs->{CHANGE_PRICE} > 0) {
+      
+       if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{CHANGE_PRICE}) {
+         $self->{errno}=15;
+       	 return $self; 
+        }
+
+       my $fees = Fees->new($db, $admin, $CONF);
+       $fees->take($user, $tariffs->{CHANGE_PRICE}, { DESCRIBE  => "CHANGE TP" });  
+      }
+
+     if ($tariffs->{AGE} > 0) {
+       my $user = Users->new($db, $admin, $CONF);
+
+       use POSIX qw(strftime);
+       my $EXPITE_DATE = strftime( "%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}) );
+       #"curdate() + $tariffs->{AGE} days";
+       $user->change($attr->{UID}, { EXPIRE => $EXPITE_DATE, UID => $attr->{UID} });
+     }
+   }
+  elsif ($old_info->{STATUS} == 2 && $attr->{STATUS} == 0) {
+    my $tariffs = Tariffs->new($db, $CONF, $admin);
+    $self->{TP_INFO}=$tariffs->info($old_info->{TP_ID});
+   }
+
+  $attr->{JOIN_SERVICE} = ($attr->{JOIN_SERVICE}) ? $attr->{JOIN_SERVICE} : 0;
+
+  $admin->{MODULE}=$MODULE;
+  $self->changes($admin, { CHANGE_PARAM => 'UID',
+                   TABLE        => 'iptv_main',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $old_info,
+                   DATA         => $attr
+                  } );
+
+
+  $self->info($attr->{UID});
+  
+
+  return $self;
+}
+
+
+
+#**********************************************************
+# Delete user info from all tables
+#
+# del(attr);
+#**********************************************************
+sub user_del {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "DELETE from iptv_main WHERE uid='$self->{UID}';", 'do');
+
+  $admin->action_add($self->{UID}, "DELETE");
+  return $self->{result};
+}
+
+
+
+
+#**********************************************************
+# list()
+#**********************************************************
+sub user_list {
+ my $self = shift;
+ my ($attr) = @_;
+ my @list = ();
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
+ $self->{SEARCH_FIELDS} = '';
+ $self->{SEARCH_FIELDS_COUNT}=0;
+
+ undef @WHERE_RULES;
+ push @WHERE_RULES, "u.uid = service.uid";
+ 
+# if ($attr->{USERS_WARNINGS}) {
+#   $self->query($db, "SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
+#         FROM (users u,
+#               dv_main dv,
+#               bills b,
+#               tarif_plans tp)
+#         LEFT JOIN users_pi pi ON u.uid = pi.uid
+#         WHERE
+#               u.uid=dv.uid
+#           and u.bill_id=b.id
+#           and dv.tp_id = tp.id
+#           and b.deposit<tp.uplimit AND tp.uplimit > 0 AND b.deposit+u.credit>0
+#         GROUP BY u.uid
+#         ORDER BY u.id;");
+#
+#
+#   return $self if ($self->{errno});
+#   
+#   my $list = $self->{list};
+#   return $list;
+#  }
+# elsif($attr->{CLOSED}) {
+#   $self->query($db, "SELECT u.id, pi.fio, if(company.id IS NULL, b.deposit, b.deposit), 
+#      u.credit, tp.name, u.disable, 
+#      u.uid, u.company_id, u.email, u.tp_id, if(l.start is NULL, '-', l.start)
+#     FROM ( users u, bills b )
+#     LEFT JOIN users_pi pi ON u.uid = dv.uid
+#     LEFT JOIN tarif_plans tp ON  (tp.id=u.tp_id) 
+#     LEFT JOIN companies company ON  (u.company_id=company.id) 
+#     LEFT JOIN dv_log l ON  (l.uid=u.uid) 
+#     WHERE  
+#        u.bill_id=b.id
+#        and (b.deposit+u.credit-tp.credit_tresshold<=0
+#        and tp.hourp+tp.df+tp.abon>=0)
+#        or (
+#        (u.expire<>'0000-00-00' and u.expire < CURDATE())
+#        AND (u.activate<>'0000-00-00' and u.activate > CURDATE())
+#        )
+#        or u.disable=1
+#     GROUP BY u.uid
+#     ORDER BY $SORT $DESC;");
+#
+#   my $list = $self->{list};
+#   return $list;
+#  }
+
+ # Start letter 
+ if ($attr->{FIRST_LETTER}) {
+    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+  }
+ elsif ($attr->{LOGIN}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
+  }
+ # Login expresion
+ elsif ($attr->{LOGIN_EXPR}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+  }
+ 
+
+# if ($attr->{IP}) {
+#    if ($attr->{IP} =~ m/\*/g) {
+#      my ($i, $first_ip, $last_ip);
+#      my @p = split(/\./, $attr->{IP});
+#      for ($i=0; $i<4; $i++) {
+#
+#         if ($p[$i] eq '*') {
+#           $first_ip .= '0';
+#           $last_ip .= '255';
+#          }
+#         else {
+#           $first_ip .= $p[$i];
+#           $last_ip .= $p[$i];
+#          }
+#         if ($i != 3) {
+#           $first_ip .= '.';
+#           $last_ip .= '.';
+#          }
+#       }
+#      push @WHERE_RULES, "(dv.ip>=INET_ATON('$first_ip') and dv.ip<=INET_ATON('$last_ip'))";
+#     }
+#    else {
+#      my $value = $self->search_expr($attr->{IP}, 'IP');
+#      push @WHERE_RULES, "dv.ip$value";
+#    }
+#
+#    $self->{SEARCH_FIELDS} = 'INET_NTOA(dv.ip), ';
+#    $self->{SEARCH_FIELDS_COUNT}++;
+#  }
+
+
+
+ if ($attr->{DEPOSIT}) {
+    my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
+    push @WHERE_RULES, "u.deposit$value";
+  }
+
+ if ($attr->{FILTER_ID}) {
+    $attr->{FILTER_ID} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "service.filter_id LIKE '$attr->{FILTER_ID}'";
+    $self->{SEARCH_FIELDS} .= 'service.filter_id, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{COMMENTS}) {
+   $attr->{COMMENTS} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "u.comments LIKE '$attr->{COMMENTS}'";
+  }
+
+
+ if ($attr->{FIO}) {
+    $attr->{FIO} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "u.fio LIKE '$attr->{FIO}'";
+  }
+
+ # Show users for spec tarifplan 
+ if (defined($attr->{TP_ID})) {
+    push @WHERE_RULES, "service.tp_id='$attr->{TP_ID}'";
+    $self->{SEARCH_FIELDS} .= 'tp.name, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ # Show debeters
+ if ($attr->{DEBETERS}) {
+    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+  }
+
+ # Show debeters
+ if ($attr->{COMPANY_ID}) {
+    push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";
+  }
+
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+  }
+
+#Activate
+ if ($attr->{ACTIVATE}) {
+   my $value = $self->search_expr("$attr->{ACTIVATE}", 'INT');
+   push @WHERE_RULES, "(u.activate='0000-00-00' or u.activate$attr->{ACTIVATE})"; 
+ }
+
+#Expire
+ if ($attr->{EXPIRE}) {
+   my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
+   push @WHERE_RULES, "(u.expire='0000-00-00' or u.expire$attr->{EXPIRE})"; 
+ }
+
+#DIsable
+ if (defined($attr->{STATUS})) {
+   push @WHERE_RULES, "service.disable='$attr->{STATUS}'"; 
+ }
+ 
+ if (defined($attr->{LOGIN_STATUS})) {
+   push @WHERE_RULES, "u.disable='$attr->{LOGIN_STATUS}'"; 
+  }
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+ $self->query($db, "SELECT u.id, 
+      pi.fio, if(u.company_id > 0, cb.deposit, b.deposit), 
+      u.credit, 
+      tp.name, 
+      service.disable, 
+      $self->{SEARCH_FIELDS}
+      u.uid, 
+      u.company_id, 
+      pi.email, 
+      service.tp_id, 
+      u.activate, 
+      u.expire, 
+      if(u.company_id > 0, company.bill_id, u.bill_id),
+      u.reduction,
+      if(u.company_id > 0, company.ext_bill_id, u.ext_bill_id)
+     FROM (users u, iptv_main service)
+     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+     LEFT JOIN bills b ON (u.bill_id = b.id)
+     LEFT JOIN tarif_plans tp ON (tp.id=service.tp_id) 
+     LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     $WHERE 
+     GROUP BY u.uid
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(u.id) FROM (users u, iptv_main service) $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+  return $list;
+}
+
+
+
+
+#**********************************************************
+# User information
+# info()
+#**********************************************************
+sub channel_info {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $WHERE =  "WHERE id='$attr->{ID}'";
+  
+  
+  $self->query($db, "SELECT id,
+   name,
+   num,
+   port,
+   comments,
+   disable
+     FROM iptv_channels
+   $WHERE;");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+
+  ($self->{ID},
+   $self->{NAME}, 
+   $self->{NUMBER}, 
+   $self->{PORT}, 
+   $self->{DESCRIBE},
+   $self->{DISABLE}
+  )= @{ $self->{list}->[0] };
+  
+  
+  return $self;
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub channel_defaults {
+  my $self = shift;
+
+  my %DATA = (
+   ID            => 0, 
+   NAME          => '', 
+   NUMBER        => 0, 
+   PORT          => 0, 
+   DESCRIBE      => '', 
+   DISABLE       => 0
+  );
+
+ 
+ 
+
+  $self = \%DATA ;
+  return $self;
+}
+
+
+#**********************************************************
+# add()
+#**********************************************************
+sub channel_add {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %DATA = $self->get_data($attr, { default => channel_defaults() }); 
+
+  $self->query($db,  "INSERT INTO iptv_channels (   name,
+   num,
+   port,
+   comments,
+   disable
+             )
+        VALUES (
+   '$DATA{NAME}', 
+   '$DATA{NUMBER}', 
+   '$DATA{PORT}', 
+   '$DATA{DESCRIBE}',
+   '$DATA{DISABLE}'
+         );", 'do');
+
+  return $self if ($self->{errno});
+
+  #$admin->action_add("$DATA{UID}", "ACTIVE");
+  return $self;
+}
+
+
+
+
+#**********************************************************
+# change()
+#**********************************************************
+sub channel_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+
+  
+  my %FIELDS = (   ID            => 'id', 
+   NAME          => 'name', 
+   NUMBER        => 'num', 
+   PORT          => 'port', 
+   DESCRIBE      => 'comments', 
+   DISABLE       => 'disable'
+
+             );
+  
+
+  my $old_info = $self->channel_info({ ID => $attr->{ID} });
+
+  $admin->{MODULE}=$MODULE;
+  $self->changes($admin, { CHANGE_PARAM => 'ID',
+                   TABLE        => 'iptv_channels',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $old_info,
+                   DATA         => $attr
+                  } );
+
+  return $self if ($self->{errno});
+
+  $self->channel_info({ ID => $attr->{ID} });
+  
+
+  return $self;
+}
+
+
+
+#**********************************************************
+# Delete user info from all tables
+#
+# del(attr);
+#**********************************************************
+sub channel_del {
+  my $self = shift;
+  my ($id) = @_;
+
+  $self->query($db, "DELETE from iptv_channels WHERE id='$id';", 'do');
+
+  #$admin->action_add($self->{UID}, "DELETE");
+  return $self->{result};
+}
+
+
+
+
+#**********************************************************
+# list()
+#**********************************************************
+sub channel_list {
+ my $self = shift;
+ my ($attr) = @_;
+ my @list = ();
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+ undef @WHERE_RULES;
+
+
+ # Start letter 
+ if ($attr->{NAME}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "name='$attr->{NAME}'";
+  }
+ 
+ if ($attr->{DESCRIBE}) {
+    $attr->{DESCRIBE} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "comments LIKE '$attr->{DESCRIBE}'";
+  }
+ 
+ if ($attr->{NUMBER}) {
+    my $value = $self->search_expr($attr->{NUMBER}, 'INT');
+    push @WHERE_RULES, "number$value";
+  }
+
+ if ($attr->{PORT}) {
+    my $value = $self->search_expr($attr->{PORT}, 'INT');
+    push @WHERE_RULES, "port$value";
+  }
+
+#DIsable
+ if (defined($attr->{DISABLE})) {
+   push @WHERE_RULES, "disable='$attr->{DISABLE}'"; 
+ }
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+ 
+ $self->query($db, "SELECT num, name,   comments, port,
+   disable, id
+     FROM iptv_channels
+     $WHERE 
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(*) FROM iptv_channels $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+  return $list;
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub tp_defaults {
+  my $self = shift;
+
+  my %DATA = (
+   ID            => 0, 
+   NAME          => '', 
+   NUMBER        => 0, 
+   PORT          => 0, 
+   DESCRIBE      => '', 
+   DISABLE       => 0
+  );
+
+ 
+ 
+
+  $self = \%DATA ;
+  return $self;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#**********************************************************
+# add()
+#**********************************************************
+sub channel_ti_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %DATA = $self->get_data($attr); 
+
+
+  $self->query($db,  "DELETE FROM iptv_ti_channels WHERE interval_id='$attr->{INTERVAL_ID}'", 'do'),
+
+  my @ids = split(/, /, $attr->{IDS});
+
+  foreach my $id (@ids) {
+    $self->query($db,  "INSERT INTO iptv_ti_channels 
+     ( interval_id, channel_id)
+        VALUES ( '$DATA{INTERVAL_ID}',  '$id');", 'do');
+   }
+
+  return $self if ($self->{errno});
+
+  #$admin->action_add("$DATA{UID}", "ACTIVE");
+  return $self;
+}
+
+
+
+
+
+#**********************************************************
+# list()
+#**********************************************************
+sub channel_ti_list {
+ my $self = shift;
+ my ($attr) = @_;
+ my @list = ();
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+ undef @WHERE_RULES;
+
+
+ # Start letter 
+ if ($attr->{NAME}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "name='$attr->{NAME}'";
+  }
+ 
+ if ($attr->{DESCRIBE}) {
+    $attr->{DESCRIBE} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "comments LIKE '$attr->{DESCRIBE}'";
+  }
+ 
+ if ($attr->{NUMBER}) {
+    my $value = $self->search_expr($attr->{NUMBER}, 'INT');
+    push @WHERE_RULES, "number$value";
+  }
+
+ if ($attr->{PORT}) {
+    my $value = $self->search_expr($attr->{PORT}, 'INT');
+    push @WHERE_RULES, "port$value";
+  }
+
+#DIsable
+ if (defined($attr->{DISABLE})) {
+   push @WHERE_RULES, "disable='$attr->{DISABLE}'"; 
+ }
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+ $self->query($db, "SELECT if (ic.channel_id IS NULL, 0, 1),
+   num, name,   comments, port,
+   disable, id
+     FROM iptv_channels
+     LEFT JOIN iptv_ti_channels ic ON (id=ic.channel_id and ic.interval_id='$attr->{TI}')
+     $WHERE
+     ORDER BY $SORT $DESC ;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(*), sum(if (ic.channel_id IS NULL, 0, 1)) 
+     FROM iptv_channels
+     LEFT JOIN iptv_ti_channels ic ON (id=ic.channel_id and ic.interval_id='$attr->{TI}')
+     $WHERE
+    ");
+
+    ($self->{TOTAL}, $self->{ACTIVE}) = @{ $self->{list}->[0] };
+   }
+
+  return $list;
+}
+
+1
+
