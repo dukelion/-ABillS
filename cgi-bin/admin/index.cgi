@@ -1960,7 +1960,7 @@ print $table->show();
 sub form_intervals {
   my ($attr) = @_;
 
-  @DAY_NAMES = ("$_ALL", 
+  my @DAY_NAMES = ("$_ALL", 
                 "$WEEKDAYS[7]",
                 "$WEEKDAYS[1]", 
                 "$WEEKDAYS[2]", 

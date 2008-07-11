@@ -85,6 +85,23 @@ if ($conf{PAYSYS_IPS}) {
 }
 
 
+if ($conf{PAYSYS_PASSWD}) {
+	my($user, $password)=split(/:/, $conf{PAYSYS_PASSWD});
+	
+	if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
+  $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
+  my ($REMOTE_USER,$REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));  
+
+  if ($REMOTE_PASSWD ne $password || $REMOTE_USER ne $user) {
+    print "WWW-Authenticate: Basic realm=\"Billing system\"\n";
+    print "Status: 401 Unauthorized\n";
+   }
+  }
+}
+	
+
+
+
 my $Paysys = Paysys->new($db, undef, \%conf);
 my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });

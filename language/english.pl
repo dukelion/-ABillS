@@ -365,3 +365,4 @@ $_MISC='Misc';
 $_DV='Internet';
 $_JOIN_SERVICE='Join Service';
 $_MAIN='Main';
+$_CHANNELS='Chanells';
