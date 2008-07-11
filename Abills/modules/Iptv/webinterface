@@ -1,0 +1,1631 @@
+#/usr/bin/perl
+# Iptv web functions
+
+use Iptv;
+use Tariffs;
+
+
+my $tariffs  = Tariffs->new($db, \%conf, $admin);
+my $Iptv = Iptv->new($db, $admin, \%conf);
+
+
+my $MODULE = ($module{$index}) ? $module{$index} : 'Iptv';
+
+
+my $debug = 0;
+my @status = ($_ENABLE, $_DISABLE);
+
+
+#*******************************************************************
+# Change user variant form
+# form_chg_vid()
+#*******************************************************************
+sub iptv_chg_tp {
+ my ($attr) = @_;
+
+ my $user;
+
+ if(defined($attr->{USER})) {
+   $user = $attr->{USER};
+   $user = $Iptv->user_info($user->{UID});
+   if($user->{TOTAL} < 1) {
+ 	   $html->message('info', $_INFO, $_NOT_ACTIVE);
+ 	   return 0;
+    }
+  }
+ else {
+ 	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
+ 	 return 0;
+  }
+
+ my $period = $FORM{period} || 0;
+
+ use Shedule;
+ $shedule = Shedule->new($db, $admin);
+
+if ($FORM{set}) {
+  if ($period == 1) {
+    $FORM{date_M}++;
+    $shedule->add( {UID => $user->{UID},
+                   TYPE => 'tp',
+                   ACTION => $FORM{TP_ID},
+    	             D => $FORM{date_D},
+                   M => $FORM{date_M},
+                   Y => $FORM{date_Y},
+                   DESCRIBE => "$message<br>
+                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                   MODULE => 'Iptv'
+                    });
+
+    if ($shedule->{errno}) {
+      $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_CHANGED");
+      $user->user_info($user->{UID});
+    }
+   }
+  else {
+    $user->user_change({ %FORM });
+
+    if ($users->{errno}) {
+      $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_CHANGED");
+      $user->user_info($user->{UID});
+    }
+
+  }
+}
+elsif($FORM{del}) {
+  $shedule->del( { UID => $user->{UID},
+   	               ID  => $FORM{SHEDULE_ID}  } 
+   	            );
+
+  $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
+}
+
+my $tariffs;
+
+
+
+  $shedule->info( {UID     => $user->{UID},
+                   TYPE    => 'tp',
+                   MODULE  => 'Iptv'
+                   });
+
+
+  if ($shedule->{TOTAL} > 0) {
+  	$table = $html->table( { width   => '100%',
+  		                       caption => "$_SHEDULE",
+                             cols_align => ['left', 'left'],
+                             rows => [ [ "$_TARIF_PLAN:", "$shedule->{ACTION}"   ],
+                                       [ "$_DATE:",   "$shedule->{D}-$shedule->{M}-$shedule->{Y}" ],
+                                       [ "$_ADMIN:",  "$shedule->{ADMIN_NAME}" ],
+                                       [ "$_ADDED:",  "$shedule->{DATE}"     ],
+                                       [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  
+                                      ]
+                               } );
+
+  	$tariffs->{TARIF_PLAN_SEL} = $table->show(). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", {TYPE => 'HIDDEN' });
+  	$tariffs->{ACTION}='del';
+  	$tariffs->{LNG_ACTION}=$_DEL;
+  }
+ else {
+   $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED  => $user->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Iptv->tp_list({ MODULE => 'Iptv' }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+   $tariffs->{PARAMS} .= form_period($period);	
+   $tariffs->{ACTION}='set';
+   $tariffs->{LNG_ACTION}=$_CHANGE;
+  }
+
+ 
+
+my $tp_index = $index + 4;
+
+$tariffs->{UID}=$attr->{USER}->{UID};
+$tariffs->{m}=$m;
+$tariffs->{TP_ID} = $user->{TP_ID};
+$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
+
+
+print $html->tpl_show(templates('form_chg_tp'), $tariffs);
+
+}
+
+
+
+
+
+
+
+
+
+#**********************************************************
+# user_iptv
+#**********************************************************
+sub iptv_users_list {
+
+
+
+ if($FORM{TP_ID}) {
+   $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
+   $pages_qs .= "&TP_ID=$FORM{TP_ID}";
+  }
+
+
+
+ print $html->letters_list({ pages_qs => $pages_qs  }); 
+
+ if ($FORM{letter}) {
+   $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
+   $pages_qs .= "&letter=$FORM{letter}";
+  } 
+
+
+my $list = $Iptv->user_list( { %LIST_PARAMS } );
+
+my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, $_NUMBER, '-');
+for(my $i=0; $i<$Iptv->{SEARCH_FIELDS_COUNT}; $i++){
+	push @TITLE, '-';
+	$TITLE[7+$i] = "$_SEARCH";
+}
+
+
+if ($Iptv->{errno}) {
+  $html->message('err', $_ERROR, "[$Iptv->{errno}] $err_strs{$Iptv->{errno}}");	
+  return 0;
+ }
+elsif ($Iptv->{TOTAL} == 1) {
+	form_users({  USER => user_info($list->[0]->[7]) });
+	return 0;
+}
+
+
+
+
+my $table = $html->table( { width      => '100%',
+                            border     => 1,
+                            caption    => 'IPTV',
+                            title      => \@TITLE,
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'left', 'center', 'center', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $Iptv->{TOTAL}
+                         } );
+
+foreach my $line (@$list) {
+  my $payments = ($permissions{1}) ?  $html->button($_PAYMENTS, "index=2&UID=". ($line->[7+$Iptv->{SEARCH_FIELDS_COUNT}])) : ''; 
+  my @fields_array  = ();
+  for(my $i=0; $i<$Iptv->{SEARCH_FIELDS_COUNT}; $i++){
+     push @fields_array, $line->[7+$i];
+   }
+
+
+  $table->addrow($html->button($line->[0], "index=15&UID=". ($line->[7+$Iptv->{SEARCH_FIELDS_COUNT}]) ."&MODULE=Iptv"), 
+     "$line->[1]",
+     "$line->[2]", 
+     "$line->[3]", 
+     "$line->[4]", 
+     $status[$line->[5]], 
+     "$line->[6]",
+     @fields_array,
+     $payments
+   );
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Iptv->{TOTAL}) ] ]
+                     } );
+print $table->show();
+
+return 0;
+}
+
+
+#**********************************************************
+# user_dv
+#**********************************************************
+sub iptv_user {
+ 	$Iptv->{UID}=$FORM{UID};	  
+  
+  if ($FORM{add}) {
+    $Iptv->user_add({ %FORM });
+    if (! $Iptv->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");	
+     }
+
+    if ($conf{VOIP_ASTERISK_USERS}) {
+    	iptv_mk_users_conf();
+     }
+   }
+	elsif($FORM{set}) {
+    $Iptv->user_change({ %FORM });
+    if (! $Iptv->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+
+    if ($conf{VOIP_ASTERISK_USERS}) {
+    	iptv_mk_users_conf();
+     }
+   }
+	elsif($FORM{del}) {
+    $Iptv->user_del();
+    if (! $Iptv->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+	 }
+
+  my $user = $Iptv->user_info($FORM{UID});
+
+  if($user->{TOTAL} < 1) {
+	  $html->message('info', $_INFO, $_NOT_ACTIVE);
+	  $user = $Iptv->defaults();
+	  $user->{ACTION}='add';
+	  $user->{LNG_ACTION}=$_ACTIVATE;
+	  
+	  
+    $user->{TP_ID}=$html->form_select('TP_ID', 
+                                         { 
+ 	                                          SELECTED          => $user->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Iptv'}),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+	 }
+	else {
+	  $user->{ACTION}='set';
+	  $user->{LNG_ACTION}=$_CHANGE;
+    $user->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='. $FORM{UID}.'&index='. ($index + 1)) .']';
+	 } 
+
+  $user->{DISABLE} = ($user->{DISABLE} == 1) ?  ' checked' : '';
+ 
+  $html->tpl_show(_include('iptv_user', 'Iptv'), $user);
+}
+
+
+
+#**********************************************************
+# Time intervals
+# form_intervals()
+#**********************************************************
+sub iptv_nas {
+  $FORM{subf}=18;
+  iptv_tp();
+}
+
+
+#**********************************************************
+# Time intervals
+# form_intervals()
+#**********************************************************
+sub iptv_ti_channels {
+	my ($attr) = @_;
+
+my $Iptv_tp;
+if (defined($attr->{TP})) {
+	$Iptv_tp = $attr->{TP};
+
+	if ($FORM{change}) {
+		 $Iptv->channel_ti_change({ %FORM });
+     if (! $Iptv->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");
+     }
+	 }
+}
+else {
+ 	iptv_tp({ f => 'iptv_ti_channels' });
+ 	return 0;
+}
+
+
+ if ($Iptv->{errno}) {
+   $html->message('err', $_ERROR, "[$Iptv->{errno}] $err_strs{$Iptv->{errno}}");
+  }
+  
+  my $pages_qs='';
+
+my ($delete, $change);
+
+
+$pages_qs .= "&channels=$FORM{channels}";
+$list = $Iptv->channel_ti_list({ %LIST_PARAMS, 
+	                  TI     => $FORM{channels}, 
+	                  STATUS => 0 
+	                });	
+
+my $table = $html->table( { width      => '100%',
+                            caption    => $_CHANNELS,
+                            border     => 1,
+                            title      => ['#', $_NUM, $_NAME, $_DESCRIBE  ],
+                            cols_align => ['right', 'left', 'left', 'right'],
+                            qs         => $pages_qs."&TP_ID=$FORM{TP_ID}",
+                            #pages      => $Iptv->{TOTAL},
+                            ID         => 'IPTV_INTERVAL_CHANNELS',
+                         } );
+
+
+
+
+foreach my $line (@$list) {
+  $table->addrow(
+  $html->form_input('IDS', "$line->[6]", { TYPE => 'checkbox', STATE => $line->[0] || undef } ).
+    $line->[1], 
+    $line->[2],
+    $line->[3],
+    $line->[4],
+    );
+}
+
+
+
+  form_search({ 
+     SIMPLE        => {$_NUM      => "NUMBER",
+                       $_NAME     => "ROUTE_NAME",
+                       $_DISABLE  => "DISABLE",
+                       $_DESCRIBE => "DESCRIBE",
+                       $_PORT => "PORT"
+                       },
+
+     HIDDEN_FIELDS => { TP_ID      => $FORM{TP_ID},
+     	                  channels   => $FORM{channels} 
+     	                  }
+   });
+
+
+
+
+print $html->form_main({ CONTENT => $table->show(),
+                         HIDDEN  => { TP_ID       => "$FORM{TP_ID}",
+	                                    index       => "$index",
+	                                    channels    => "$FORM{channels}",  
+	                                    INTERVAL_ID => "$FORM{channels}"
+	                                     },
+                         SUBMIT  => { change  => "$_CHANGE" } 	                       
+	                      });
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Iptv->{TOTAL}), "$_ACTIV:", $html->b($Iptv->{ACTIVE}), ] ]
+                      } );
+print $table->show();
+
+	
+}
+
+#**********************************************************
+# Time intervals
+# form_intervals()
+#**********************************************************
+sub iptv_intervals {
+  my ($attr) = @_;
+
+
+
+
+  my @DAY_NAMES = ("$_ALL",   $WEEKDAYS[1],
+  $WEEKDAYS[2],
+  $WEEKDAYS[3],
+  $WEEKDAYS[4],
+  $WEEKDAYS[5],
+  $WEEKDAYS[6],
+  $WEEKDAYS[7],
+ "$_HOLIDAYS");
+  my %visual_view = ();
+  my $tarif_plan;
+
+  
+
+if(defined($attr->{TP})) {
+  $tarif_plan = $attr->{TP};
+ 	$tarif_plan->{ACTION}='add';
+ 	$tarif_plan->{LNG_ACTION}=$_ADD;
+
+  if($FORM{channels}) {
+  	iptv_ti_channels({ TP => $attr->{TP} });
+   } 
+  elsif ($FORM{add}) {
+    $tarif_plan->ti_add( { %FORM });
+    if (! $tarif_plan->{errno}) {
+      $html->message('info', $_INFO, "$_INTERVALS $_ADDED");
+     }
+   }
+  elsif($FORM{change}) {
+    $tarif_plan->ti_change( $FORM{TI_ID}, { %FORM } );
+
+    if (! $tarif_plan->{errno}) {
+      $html->message('info', $_INFO, "$_INTERVALS $_CHANGED [$tarif_plan->{TI_ID}]");
+     }
+   }
+  elsif(defined($FORM{chg})) {
+  	$tarif_plan->ti_info( $FORM{chg} );
+    if (! $tarif_plan->{errno}) {
+      $html->message('info', $_INFO, "$_INTERVALS $_CHANGE [$FORM{chg}]");
+     }
+
+ 	 	$tarif_plan->{ACTION}='change';
+ 	 	$tarif_plan->{LNG_ACTION}=$_CHANGE;
+   }
+  elsif($FORM{del} && $FORM{is_js_confirmed}) {
+    $tarif_plan->ti_del($FORM{del});
+    if (! $tarif_plan->{errno}) {
+      $html->message('info', $_DELETED, "$_DELETED $FORM{del}");
+     }
+   }
+  else {
+ 	 	$tarif_plan->ti_defaults();
+   }
+
+  my $list = $tarif_plan->ti_list({ %LIST_PARAMS });
+  my $table = $html->table( { width      => '100%',
+  	                          caption    => $_INTERVALS,
+                              border     => 1,
+                              title      => ['#', $_DAYS, $_BEGIN, $_END, '-', '-', '-',  '-'],
+                              cols_align => ['left', 'left', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
+                              qs         => $pages_qs,
+                              caption    => $_INTERVALS,
+                              ID         => 'IPTV_INTERVALS'
+                         } );
+
+  my $color="AAA000";
+  foreach my $line (@$list) {
+
+    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]] ?" }); 
+    $color = sprintf("%06x", hex('0x'. $color) + 7000);
+     
+    #day, $hour|$end = color
+    my ($h_b, $m_b, $s_b)=split(/:/, $line->[2], 3);
+    my ($h_e, $m_e, $s_e)=split(/:/, $line->[3], 3);
+
+     push ( @{$visual_view{$line->[1]}}, "$h_b|$h_e|$color|$line->[0]")  ;
+
+    if (($FORM{tt} eq $line->[0]) || ($FORM{chg} eq $line->[0])) {
+       $table->{rowcolor}=$_COLORS[0];      
+     }
+    else {
+    	 undef($table->{rowcolor});
+     }
+    
+    $table->addtd(
+                  $table->td($line->[0], { rowspan => ($line->[5] > 0) ? 2 : 1 } ), 
+                  $table->td($html->b($DAY_NAMES[$line->[1]])), 
+                  $table->td($line->[2]), 
+                  $table->td($line->[3]), 
+                  $table->td($html->button("$_CHANNELS", "index=$index$pages_qs&channels=$line->[0]")),
+                  $table->td($html->button("$_CHANGE", "index=$index$pages_qs&chg=$line->[0]")),
+                  $table->td($delete),
+                  $table->td("&nbsp;", { bgcolor => '#'. $color, rowspan => ($line->[5] > 0) ? 2 : 1 })
+     );
+
+     
+   };
+  print $table->show();
+  
+ }
+elsif (defined($FORM{TP_ID})) {
+  $FORM{subf}=$index;
+  iptv_tp();
+  return 0;
+ }
+
+
+
+
+if ($tarif_plan->{errno}) {
+   $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $tarif_plan->{errstr}");	
+ }
+
+
+
+$table = $html->table( { width       => '100%',
+	                       title_plain => [$_DAYS, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14,15,16,17,18, 19, 20, 21, 22, 23],
+                         caption     => "$_INTERVALS",
+                         rowcolor    => $_COLORS[1]
+                      } );
+
+
+
+for(my $i=0; $i<9; $i++) {
+  my @hours = ();
+
+  my ($h_b, $h_e, $color, $p);
+  my $link = "&nbsp;";
+  for(my $h=0; $h<24; $h++) {
+
+  	 if(defined($visual_view{$i})) {
+  	   $day_periods = $visual_view{$i};
+
+       foreach my $line (@$day_periods) {
+     	   #print "$i -- $line    <br>\n";
+     	   ($h_b, $h_e, $color, $p)=split(/\|/, $line, 4);
+     	   if (($h >= $h_b) && ($h < $h_e)) {
+#     	   	 print "$i // $h => $h_b && $h <= $h_e // $color <br> \n";
+  	   	   $tdcolor = '#'.$color;
+  	 	     $link = $html->button('#', "index=$index&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}&chg=$p");
+  	 	     last;
+  	 	    }
+  	     else {
+  	 	     $link = "&nbsp;";
+  	 	     $tdcolor = $_COLORS[1];
+  	      }
+       }
+     }
+  	 else {
+  	 	 $link = "&nbsp;";
+  	 	 $tdcolor = $_COLORS[1];
+  	  }
+     
+     
+  	 push(@hours, $table->td("$link", { align => 'center', bgcolor => $tdcolor }) );
+    }
+  
+  
+  $table->addtd($table->td($DAY_NAMES[$i]), @hours);
+}
+
+
+print $table->show();
+
+  $tarif_plan->{SEL_DAYS} = $html->form_select('TI_DAY', 
+                                { SELECTED      => $day_id,
+ 	                                SEL_ARRAY     => \@DAY_NAMES,
+ 	                                ARRAY_NUM_ID  => 1
+ 	                               });
+
+
+  $html->tpl_show(_include('iptv_ti', 'Iptv'), $tarif_plan);
+
+}
+
+
+#**********************************************************
+# Tarif plans
+# form_tp
+#**********************************************************
+sub iptv_tp {
+ 
+ my $tarif_info;
+ my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
+
+ $tarif_info = $tariffs->defaults();
+ $tarif_info->{LNG_ACTION}=$_ADD;
+ $tarif_info->{ACTION}='ADD_TP';
+
+
+
+if($FORM{ADD_TP}) {
+  $FORM{TP_ID} = $FORM{CHG_TP_ID};
+  
+  if ($FORM{TP_ID} < 1) {
+  	$html->message('err', $_ERROR, "$_ERROR ID = 0");
+   }
+  else {
+   $tariffs->add( { %FORM, MODULE => 'Iptv' });
+   if (! $tariffs->{errno}) {
+     $html->message('info', $_ADDED, "$_ADDED $tariffs->{TP_ID}");
+    }
+  }
+ }
+elsif (defined($FORM{TP_ID})) {
+ 
+  $tarif_info = $tariffs->info( $FORM{TP_ID} );
+
+  if ($tariffs->{errno}) {
+    $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+    return 0;
+   }
+
+  $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
+  $LIST_PARAMS{TP} = $FORM{TP_ID};
+  %F_ARGS = ( TP => $tariffs );
+  
+  $tariffs->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        }),
+	                                          HIDDEN  => { index => "$index" },
+	                                          SUBMIT  => { show  => "$_SHOW" } 
+	                        });
+  
+  func_menu({ 
+  	         'ID' =>   $tariffs->{TP_ID}, 
+  	         $_NAME => $tariffs->{NAME_SEL}
+  	       }, 
+  	{ 
+  	 },
+  	{
+  		f_args => { %F_ARGS }
+  	 });
+
+  if ($FORM{subf}) {
+
+  	return 0;
+   }
+  elsif($FORM{change}) {
+    $tariffs->change( $FORM{TP_ID}, { %FORM, MODULE => 'Iptv'  } );  
+     
+    if (! $tariffs->{errno}) {
+       $html->message('info', $_CHANGED, "$_CHANGED $tariffs->{TP_ID}");
+     }
+   }
+
+  $tarif_info->{LNG_ACTION}=$_CHANGE;
+  $tarif_info->{ACTION}='change';
+
+ }
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+  $tariffs->del($FORM{del});
+
+  if (! $tariffs->{errno}) {
+    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
+   }
+}
+
+
+
+if ($tariffs->{errno}) {
+    $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+ }
+
+
+$tarif_info->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE', 
+                                          { 
+ 	                                          SELECTED     => $tarif_info->{PAYMENT_TYPE},
+ 	                                          SEL_ARRAY    => \@Payment_Types,
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+
+
+
+$tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID', 
+                                          { 
+ 	                                          SELECTED          => $tarif_info->{TP_GID},
+ 	                                          SEL_MULTI_ARRAY   => [[ '', ''],  @{ $tariffs->tp_group_list( ) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+
+$tarif_info->{REDUCTION_FEE}   = ($tarif_info->{REDUCTION_FEE})   ? 'checked' : '';
+$tarif_info->{POSTPAID_FEE}    = ($tarif_info->{POSTPAID_FEE})    ? 'checked' : '';
+$tarif_info->{PERIOD_ALIGNMENT}= ($tarif_info->{PERIOD_ALIGNMENT}) ? 'checked' : ''; 
+
+if ($conf{EXT_BILL_ACCOUNT}) {
+  my $checked = ($tarif_info->{EXT_BILL_ACCOUNT}) ? ' checked' : '';
+  $tarif_info->{EXT_BILL_ACCOUNT}="<tr><td>$_EXTRA $_BILL:</td><td><input type='checkbox' name='EXT_BILL_ACCOUNT' value='1' $checked></td></tr>\n";
+}
+
+
+$html->tpl_show(_include('iptv_tp', 'Iptv'), $tarif_info);
+
+my $list = $tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });	
+
+# Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_TARIF_PLANS",
+                            border     => 1,
+                            title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_SIMULTANEOUSLY, 
+                             $_AGE, $_GROUP,
+                                    '-', '-', '-'],
+                            cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
+                            ID         => 'IPTV_TARIF_PLANS'
+                                  } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[0]");
+   }
+  
+  if($FORM{TP_ID} eq $line->[0]) {
+  	$table->{rowcolor}=$_COLORS[0];
+   }
+  else {
+  	undef($table->{rowcolor});
+   }
+  
+  $table->addrow($html->b($line->[0]), 
+   $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
+   $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], 
+   $line->[5], 
+   $line->[6], 
+   $line->[7], 
+   $line->[8], 
+   $line->[9],
+   $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[0]"),
+   $change,
+   $delete);
+}
+
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($tariffs->{TOTAL}) ] ]
+                     } );
+print $table->show();
+
+}
+
+
+#**********************************************************
+# Tarif plans
+# iptv_routes
+#**********************************************************
+sub iptv_channels {
+ 
+  $Iptv->{ACTION}='add';
+  $Iptv->{LNG_ACTION}=$_ADD;
+ 
+if($FORM{add}) {
+  $Iptv->channel_add( { %FORM });
+  if (! $Iptv->{errno}) {
+    $html->message('info', $_ADDED, "$_ADDED '$FORM{NAME}' ");
+   }
+ }
+elsif($FORM{change}) {
+  $Iptv->channel_change({ %FORM });
+  if (! $Iptv->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGED");	
+   }
+ }
+elsif($FORM{chg}) {
+  $Iptv->channel_info({ %FORM, ID => $FORM{chg} });
+  if (! $Iptv->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGED");	
+    
+    $Iptv->{ACTION}='change';
+    $Iptv->{LNG_ACTION}=$_CHANGE;
+   }
+ }
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+  $Iptv->channel_del($FORM{del});
+  if (! $Iptv->{errno}) {
+    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
+   }
+}
+
+if ($Iptv->{errno}) {
+   $html->message('err', $_ERROR, "[$Iptv->{errno}] $err_strs{$Iptv->{errno}}");	
+   return 0;
+ }
+
+$Iptv->{DISABLE}=' checked' if($Iptv->{DISABLE} == 1);
+$html->tpl_show(_include('iptv_channel', 'Iptv'), $Iptv);
+
+
+
+my %SEARCH_FIELDS = ($_NUM      => "NUMBER",
+                     $_NAME     => "ROUTE_NAME",
+                     $_DISABLE  => "DISABLE",
+                     $_DESCRIBE => "DESCRIBE",
+                     $_PORT => "PORT"
+                     );
+
+$output .= form_search({ 
+  SIMPLE        => \%SEARCH_FIELDS,
+ });
+
+
+my $list = $Iptv->channel_list({ %LIST_PARAMS });	
+
+
+my $table = $html->table( { width      => '100%',
+	                          caption    => "$_CHANNELS",
+                            border     => 1,
+                            title      => [$_NUM, $_NAME, $_DESCRIBE, "$_PORT", $_STATUS, '-', '-'],
+                            cols_align => ['right', 'left', 'left', 'right', 'center', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $Iptv->{TOTAL},
+                            ID         => 'IPTV_CHANNELS',
+                            header     => ''
+                        } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+   if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL $line->[1] / $line->[2]?" }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[5]");
+   }
+
+   $table->addrow($line->[0], 
+            $line->[1], 
+            $line->[2], 
+            $line->[3], 
+            $status[$line->[4]], 
+            $change,
+            $delete);
+
+}
+print $table->show();
+
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Iptv->{TOTAL}) ] ]
+                     } );
+
+print $table->show();
+
+ 
+}
+  
+#*******************************************************************
+# online users
+#*******************************************************************
+sub iptv_online {
+
+my $nas = Nas->new($db, \%conf);
+
+
+my $message;
+
+
+if ($FORM{ping}) {
+  if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
+    my $res = `/sbin/ping -c 5 $FORM{ping}`;
+    $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
+   }
+  else {
+    $html->message('err', $_ERROR,  "$ERR_WRONG_DATA");
+   }
+ }
+elsif ($FORM{hangup}) {
+  my ($nas_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
+  $nas->info( { NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
+  
+  if ($nas->{errno}) {
+    $html->message('err', $_NAS, "$nas->{errstr}");
+  	return 0;
+   }
+
+  $nas_port_id = 0;
+  require "Abills/nas.pl";
+  my $ret = hangup($nas, "$nas_port_id", "", "$acct_session_id");
+  
+  
+  if ($ret == 0) {
+     my $table = $html->table( { width => '100%',
+                                caption => $_HANGUPED,
+                                rows => [ [ "$_NAS ID",   $nas_id],
+                                          [ "$_NAS IP",   $nas->{NAS_IP} ],
+                                          [ "$_PORT",     $nas_port_id   ],
+                                          [ "SESSION_ID", $acct_session_id ],
+                                          [ "", $ret ] ]
+                               } );
+     
+     $message = $table->show();
+     sleep 3;
+     
+     weblog('hangup', "$user_name");
+   }
+  elsif ($ret == 1) {
+   	$message = 'NAS NOT supported yet';
+   }
+
+  $html->message('info', $_INFO, "$message");
+ }
+elsif($FORM{zap}) {
+  my  ($nas_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
+  $sessions->zap($nas_id, $acct_session_id);
+
+  if ($sessions->{errno}) {
+  	 $html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
+  	 return 0;
+   }
+
+  $nas->info({NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
+  $message = "<table width=100%>
+     <tr><th colspan=2 align=left>$_CLOSED</th></tr>
+     <tr><td>$_NAS:</td><td>$nas->{NAS_IP} / $nas->{NAS_INDENTIFIER}</td></tr>
+     <tr><td>$_PORT:</td><td>$nas_port_id</td></tr>
+     <tr><td>SESSION_ID:</td><td>$acct_session_id</td></tr>
+     </table>\n";
+
+  
+ 
+  $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
+  	                NAS_ID          => $nas->{NAS_ID} });  
+  
+  if ($sessions->{TOTAL} < 1) {
+    $message .= "<p align=\"center\">[". $html->button('add to log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id"). "]
+        [". $html->button("$_DEL", "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id"). "]</p>";
+   }
+  else {
+  	$message = "$_EXIST";
+  	$sessions->online_del({ NAS_ID          => $nas_id,
+                            ACCT_SESSION_ID => $acct_session_id
+                         });
+
+   }
+
+  $html->message('info', $_INFO, $message);
+}
+elsif($FORM{tolog}) {
+  my $ACCT_INFO = $sessions->online_info({ NAS_ID          => $FORM{nas_id},
+                                           ACCT_SESSION_ID => $FORM{tolog}
+                                         });
+
+  if ($ACCT_INFO->{TOTAL} < 1) {
+    $html->message('err', $_ERROR, "$_NOT_EXIST");	
+    return 0;
+   }
+
+  require Iptv_aaa;
+  $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
+  
+
+  $nas->info({NAS_ID    => $ACCT_INFO->{NAS_ID},
+              SECRETKEY => $conf{secretkey}});
+
+  Iptv_aaa->import();
+  my $Acct = Iptv_aaa->new($db, \%conf);
+  my $r = $Acct->accounting($ACCT_INFO, $nas, \%conf);
+
+  if ($Acct->{errno}) {
+    $html->message('err', $_ERROR, "[$Acct->{errno}] $Acct->{errstr}");	
+   }
+  else {
+  	my $table = $html->table( { width => '100%'} );
+  	while(my($k, $v)=each %$ACCT_INFO) {
+ 		    $table->addrow($k, $v);
+  	  }
+  	while(my($k, $v)=each %$Acct) {
+ 		    $table->addrow($k, $v);
+  	  }
+  	$html->message('info', $_ADDED, $table->show());	
+   }
+  
+  $sessions->online_del({ NAS_ID          => $ACCT_INFO->{NAS_ID},
+                          ACCT_SESSION_ID => $ACCT_INFO->{ACCT_SESSION_ID}
+                        });
+ }
+elsif($FORM{del} || $FORM{dellist}) {
+  if ($FORM{dellist}) {
+    my @sessions_list = split(/, /, $FORM{dellist});
+    $sessions->online_del({ SESSIONS_LIST => \@sessions_list });
+    $FORM{del} = $FORM{dellist};
+   }
+  else {
+    $sessions->online_del({
+   	            NAS_ID          => $FORM{nas_id},
+                ACCT_SESSION_ID => $FORM{del}
+                           });
+   }
+
+  if (! $sessions->{errno}) {
+    my $table = $html->table( { width => '100%',
+                                rows => [ [ "NAS_ID",          $FORM{nas_id}     ],
+                                          [ "ACCT_SESSION_ID", $FORM{del}        ]
+                                        ]
+                               } );
+    
+    $html->message('info', $_DELETED, $table->show());	
+   }
+
+}
+
+
+
+$form_link = '';
+my $cure = '';
+
+
+if($FORM{ZAPED}) {
+	$LIST_PARAMS{ZAPED}='yes';
+	$form_link = $html->button('On line', "index=$index");
+	$cure = 'Zap';
+ } 
+else {
+ 	$sessions->online( { ZAPED => 'yes' } );	
+ 	$form_link = $html->button($_ZAPED, "index=$index&ZAPED=yes"). " ($sessions->{TOTAL})";
+	$cure = 'Online';
+}
+
+$sessions->online( { %LIST_PARAMS } );	
+my $dub_ports = $sessions->{dub_ports};
+my $dub_logins = $sessions->{dub_logins};
+ 
+my $table = $html->table( { caption    => "$cure",
+	                          width      => '100%',
+                            title      => ["$_USER", "$_FIO", "CALLING_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
+                            cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
+                            qs         => $pages_qs,
+                           });
+
+
+ 
+my $bg;
+my $online = $sessions->{nas_sorted};
+
+my $nas_list = $nas->list();
+
+foreach my $nas_row (@$nas_list) {
+  next if (! defined($online->{$nas_row->[0]}));
+
+  $table->{rowcolor}=$_COLORS[0];
+  $table->{extra}="colspan=\"9\" class=\"small\"";
+  $table->addrow("$nas_row->[0]:<b>$nas_row->[1]</b>:$nas_row->[4]" );
+
+
+
+  my $l = $online->{$nas_row->[0]};
+  foreach my $line (@$l) {
+    undef($table->{rowcolor});
+    undef($table->{extra});
+    #print "$line->[0]<br>";
+    if (defined($dub_logins->{$line->[0]}))                   { $bg='#FFFF00';    }
+#    elsif (defined($dub_ports->{$nas_row->[4]}{$line->[2]})) { $bg='#00FF40';    }
+    elsif ($line->[9] == 3)                                   { $bg='#FF0000';    }
+    else {  $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];    }
+
+    my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap'}). ")";
+    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[9]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup'} ) .")";
+
+    my $user_info =  ''; 
+
+#"$_FIO: $line->[1]\n";
+#                     "$_PHONE: $line->[10]\n".
+#                     "$_TARIF_PLAN: $line->[11]\n".
+#                     "$_DEPOSIT: $line->[12]\n".
+#                     "$_CREDIT: $line->[13]\n$_SPEED: $line->[14]\n".
+#                     "SESSION_ID: $line->[9]\nCID: $line->[15]\nCONNECT_INFO: $line->[16]";
+
+    $table->addrow($html->button($line->[0], "index=11&UID=$line->[8]", { TITLE => "$user_info"}), 
+      $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], 
+     "(". $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'Ping'}). ")",
+     "$zap",
+     "$hangup");
+  }
+}
+
+my $table2 = $html->table( { width      => '100%',
+                             cols_align => ['right', 'right', 'right'],
+                             rows       => [ [ "$_TOTAL:", $html->b($sessions->{TOTAL}), "$form_link" ] ]
+                         } );
+
+
+my $total = $table2->show();
+my $output = $total . $table->show();
+
+$table = $html->table( { width       => '100%',
+                         title_plain => [ 
+                                           "$_REFRESH (sec): ".   $html->form_input('REFRESH', int(($FORM{REFRESH}) ? $FORM{REFRESH} : 0 ), { SIZE => 4 } ),
+                                           $html->form_input('SHOW',  $_SHOW, { TYPE => 'SUBMIT'})  
+                                         ],
+                          cols_align => ['center:noprint', 'center:noprint'],
+                           });
+
+if ($FORM{ZAPED}) {
+  $output = $html->form_main({ CONTENT => $output,
+	                       HIDDEN  => { index => "$index",
+	                       	            ZAPED => 1 },
+	                       SUBMIT  => { go    => "$_DEL" },
+	                       METHOD  => 'GET'
+                        });
+ }
+else {
+  $output .= $html->form_main({ CONTENT => $table->show(),
+	                              HIDDEN  => { index =>  "$index" },
+	                              METHOD  => 'GET'
+                        });
+
+  $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want zap all sessions ?" });
+ }
+
+
+print  $output;
+		
+}
+
+
+
+
+
+
+#**********************************************************
+# iptv_use_all_monthes();
+#**********************************************************
+sub iptv_use_allmonthes {
+
+  $FORM{allmonthes}='y';
+  iptv_use();
+}
+
+
+#**********************************************************
+# dv_use();
+#**********************************************************
+sub iptv_use {
+  reports({ DATE   => $FORM{DATE}, 
+  	        REPORT => '' });
+
+my ($tables_sessions, $table_fees);
+
+#Day reposrt
+if (defined($FORM{DATE})) {
+  #Used Fraffic
+  $table_sessions = $html->table( { width      => '100%',
+	                                  caption    => "$_SESSIONS", 
+                                    title      => ["$_DATE", "$_USERS", "$_SESSIONS", $_DURATION, $_SUM],
+                                    cols_align => ['right', 'left', 'right', 'right', 'right'],
+                                    qs         => $pages_qs             
+                               } );
+
+  my $list = $sessions->reports({ %LIST_PARAMS });
+  foreach my $line (@$list) {
+    $table_sessions->addrow($html->b($line->[0]), 
+      $html->button("$line->[1]", "index=11&subf=22&UID=$line->[5]&DATE=$line->[0]"), 
+       $line->[2], $line->[3],  $html->b($line->[4]) );
+   }
+
+ }
+else {
+  #Used Traffic
+  $table_sessions = $html->table( { width      => '100%',
+	                                  caption    => "$_SESSIONS", 
+                                    title      =>["$_DATE", "$_USERS", "$_SESSIONS", $_DURATION, $_SUM],
+                                    cols_align => ['right', 'right', 'right', 'right', 'right'],
+                                    qs         => $pages_qs             
+                               } );
+
+
+  my $list = $sessions->reports({ %LIST_PARAMS });
+  foreach my $line (@$list) {
+    $table_sessions->addrow(
+    $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
+       $line->[1], $line->[2], $line->[3], $html->b($line->[4]) );
+   }
+
+}
+
+
+
+$table = $html->table( { width      => '100%',
+                         caption    => $_SESSIONS,
+                         cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                         rows       => [ [ "$_USERS: ".     $html->b($sessions->{USERS}),
+                                            "$_SESSIONS: ". $html->b($sessions->{SESSIONS}), 
+                                            "$_DURATION: ". $html->b($sessions->{DURATION}), 
+                                            "$_SUM: ".      $html->b($sessions->{SUM}) ] ],
+                         rowcolor   => $_COLORS[2]
+                     } );
+
+
+print $table_sessions->show() . $table->show();
+
+}
+
+
+
+#**********************************************************
+# dv_error
+#**********************************************************
+sub iptv_error {
+	my ($attr) = @_;
+  my $PAGE_ROWS = 100;
+  $conf{LOGFILE} = "/usr/abills/var/log/abills.iptv";
+  my $login  = ''; 
+
+
+if ($attr->{USER}) {
+  my $user = $attr->{USER};
+  $login = $user->{LOGIN};
+}
+elsif ($FORM{LOGIN_EXPR}) {
+  $login = $FORM{LOGIN_EXPR};
+  $pages_qs .= "&LOGIN_EXPR=$FORM{LOGIN_EXPR}";
+ }
+elsif($FORM{UID}) {
+  iptv_users();
+  return 0;
+}
+
+
+
+if (! -f $conf{LOGFILE}) {
+	$html->message('info', $_INFO, "'$conf{LOGFILE}' $_NOT_EXIST");
+	return 0;
+}
+
+
+if (defined($FORM{LOG_TYPE})) {
+	$pages_qs .= "&LOG_TYPE=$FORM{LOG_TYPE}";
+}
+
+my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      => $FORM{DATE},
+	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
+	                                                                   PG        => $PG,
+	                                                                   PAGE_ROWS => $PAGE_ROWS });
+	                                                                   
+
+print $html->form_main({ CONTENT => "$_LOGIN: " . $html->form_input('LOGIN_EXPR', "$FORM{LOGIN_EXPR}"),
+	                       HIDDEN  => { sid   => "$sid",
+	                                    index => "$index",
+	                                    UID   => "$UID"   },
+	                       SUBMIT  => { show  => "$_SHOW" }
+	                      
+	                      });
+	                                                                   
+
+	                                                                   
+my $table = $html->table( { caption => "$_LOG",
+	                          width   => '100%',
+	                          pages   => $totals,
+	                          qs      => $pages_qs
+	                         } );
+
+foreach my $line (@$list) {
+  if ($line =~ m/LOG_WARNING/i) {
+     $line = "<font color='#FF0000'>$line</font>";
+   }
+
+#  if ($line =~ m/LOG_WARNING/i) {
+#    $table->{rowcolor}='#FF0000';
+#   } 
+#  else {
+#  	$table->{rowcolor}=undef;
+#   }  
+
+  $table->addrow($line);
+}
+print $table->show();
+
+
+$table = $html->table({ 
+                        width      => '100%',
+                        cols_align => ['right', 'right'] 
+                        });
+
+$table->addrow($html->button("$_TOTAL", "index=$index&$pages_qs"), $totals);
+while(my($k,$v)=each %$types) {
+  $table->addrow($html->button($k, "index=$index&LOG_TYPE=$k$pages_qs"), $v);
+}
+print $table->show();
+
+}
+
+
+
+#**********************************************************
+# iptv_user_info
+#**********************************************************
+sub iptv_user_info {
+  my $user = $Iptv->user_info($LIST_PARAMS{UID});
+  
+  if ($user->{TOTAL} < 1) {
+  	$html->message('info', $_INFO, "$_NOT_ACTIVE");
+    return 0;	
+  }
+  
+  $html->tpl_show(_include('iptv_user_info', 'Iptv'), $Iptv);
+}
+
+#**********************************************************
+# iptv_user_routes
+#**********************************************************
+sub iptv_user_channels {
+
+  my $user = $Iptv->user_info($LIST_PARAMS{UID});
+  
+  require Tariffs;
+  Tariffs->import();
+  my $Iptv_tp = Tariffs->new($db, \%conf);
+
+	my $list = $Iptv_tp->ti_list({ TP_ID => $user->{TP_ID}  });
+  my @caption = ($_PREFIX, $_ROUTES, "$_STATUS");
+  my @aligns = ('left', 'left', 'center');
+  my @interval_ids = ();
+  my $intervals=0;
+  foreach my $line (@$list) {
+    push @caption, "$_SUM (Min): $line->[1] / $line->[2]-$line->[3]";
+    push @aligns,  'center';
+    push @interval_ids, $line->[0];
+   }
+  $intervals = $Iptv_tp->{TOTAL};
+
+
+#  form_search({ 
+#     SIMPLE        => {$_PREFIX   => "ROUTE_PREFIX",
+#                       $_NAME     => "ROUTE_NAME",
+#                       $_DISABLE  => "DISABLE",
+#                       $_DESCRIBE => "DESCRIBE",
+#                       $_GATEWAY  => "GATEWAY_SEL",
+#                       $_SUM      => "PRICE"},
+#
+#     HIDDEN_FIELDS => { TP_ID      => $FORM{TP_ID} }
+#   });
+
+
+
+$list = $Iptv->rp_list({ %LIST_PARAMS });
+my %prices = ();
+foreach my $line (@$list) {
+  #print "-- $line->[0] / $line->[1] / $line->[2] / $line->[3] <br>\n";  
+  $prices{"$line->[0]"}{"$line->[1]"}=$line->[3];
+}
+
+
+
+
+$pages_qs .= "&routes=$FORM{routes}";
+$list = $Iptv->routes_list({ %LIST_PARAMS });	
+
+my $table = $html->table( { width      => '100%',
+                            caption    => $_ROUTES,
+                            border     => 1,
+                            title      => \@caption,
+                            cols_align => \@aligns,
+                            qs         => $pages_qs,
+                            pages      => $Iptv->{TOTAL},
+                            ID         => 'IPTV_CHANNELS',
+                         } );
+
+my ($delete, $change);
+my $price = 0;
+foreach my $line (@$list) {
+  my @l=();
+  for(my $i = 0; $i<$intervals; $i++) { 
+  	  if (defined($prices{"$interval_ids[$i]"}{"$line->[4]"})) {
+        $price = $prices{$interval_ids[$i]}{$line->[4]};
+  	    }
+      else {
+        $price = "0.00";
+        $price .= " $interval_ids[$i] $line->[4] -0" if ($debug > 0);
+       }
+      push @l, $price;
+    }
+  $table->addrow("$line->[0]",  "$line->[1]", $status[$line->[2]], @l);
+ }
+
+
+ print $table->show();
+
+}
+
+
+#**********************************************************
+# daily_fees
+#**********************************************************
+sub iptv_daily_fees {
+ 
+ require Tariffs;
+ Tariffs->import();
+ my $tariffs = Tariffs->new($db, $conf);
+
+ require Fees;
+ Fees->import();
+ my $fees = Fees->new($db, $admin, $conf);
+
+ my $list = $tariffs->list({ %LIST_PARAMS });
+
+ foreach my $line (@$list) {
+ 	 if ($line->[5] > 0) {
+# 	   print "$line->[0] $line->[6]\n";
+ 	   $LIST_PARAMS{TP}=$line->[0];
+
+ 	   my $ulist = $Dv->list({ 
+         ACTIVATE => "<=$DATE",
+         EXPIRE => ">$DATE",
+         DISABLE => '0',
+         TP => $line->[0]
+ 	   	 });
+
+#     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
+#      u.uid, u.account_id, u.email, u.tp_id
+     foreach my $u (@$ulist) {
+        my %user = (
+            ACCOUNT_ID => $u->[7],
+            UID => $u->[6],
+            BILL_ID => $u->[12]  
+         );
+#          print " $u->[0] $line->[6] $u->[2] $u->[3]\n"; 	
+
+        if($line->[5] > 0
+            || $conf{negative_deposit} eq 'yes'
+            || $u->[2] + $u->[3] > 0 ) {
+          $fees->take(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE" } );  
+         }
+      }
+
+ 	  }
+  }
+
+
+
+
+}
+
+
+
+
+
+#**********************************************************
+# monthly_fees
+#**********************************************************
+sub iptv_monthly_fees {
+ require Tariffs;
+ Tariffs->import();
+ my $tariffs = Tariffs->new($db);
+
+ require Fees;
+ Fees->import();
+ my $fees = Fees->new($db, $admin);
+
+ my $list = $tariffs->list({ %LIST_PARAMS });
+
+ #print "$y, $m, $d\n";
+
+ $m--;
+ 
+my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
+ 
+ foreach my $line (@$list) {
+ 	 if ($line->[6] > 0) {
+# 	   print "$line->[0] $line->[7]\n";
+ 	   $LIST_PARAMS{TP}=$line->[0];
+
+ 	   my $ulist = $users->list({ 
+         ACTIVATE => "<=$DATE",
+         EXPIRE => ">$DATE",
+         DISABLE => '0',
+         TP => $line->[0]
+ 	   	 });
+#u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
+#      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
+
+
+     foreach my $u (@$ulist) {
+          my %user = (
+            ACCOUNT_ID => $u->[7],
+            UID => $u->[6],
+            BILL_ID => $u->[12]   
+           );
+
+        if ($u->[10] eq '0000-00-00' and $d == 1) {
+#          print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+          if($line->[4] > 0 
+              || $conf{negative_deposit} eq 'yes'
+              || $u->[2] + $u->[3] > 0 ) {
+            $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );  
+           }
+         }
+        elsif($u->[10] ne '0000-00-00') {
+          my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[10], 3);
+          $activate_m--;
+          my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
+
+          if ($date_unixtime - $active_unixtime > 30 * 86400) {
+            #my $aa = (strftime "%Y-%m-%d", localtime($active_unixtime));
+            $fees->take(\%user, $line->[7], { DESCRIBE => "$_MONTH_FEE" } );
+            $users->change($u->[6], { ACTIVATE => $DATE } );
+           }
+#          print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
+         }
+
+      }
+
+ 	  }
+  }
+}
+
+
+#**********************************************************
+# user_warnings
+# 
+#**********************************************************
+sub iptv_users_warning_messages {
+
+my %LIST_PARAMS = (USERS_WARNINGS => 'y' ) ;
+my $list = $Iptv->list( { %LIST_PARAMS } );
+
+$ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_TARIF_PLAN, $_DEPOSIT, $_CREDIT).
+   "---------------------------------------------------------------\n";
+return 0 if ($Dv->{TOTAL} < 1);
+my %USER_INFO = ();
+
+foreach my $line (@$list) {
+  #u.id, u.email, u.tp_id, u.credit, u.deposit, tp.name, tp.uplimit
+
+  $USER_INFO{LOGIN}=$line->[0];
+  $USER_INFO{TP_NAME}=$line->[5];
+  $USER_INFO{TP_ID}=$line->[2];
+  $USER_INFO{DEPOSIT}=$line->[4];
+  $USER_INFO{CREDIT}=$line->[3];
+  
+  my $email = ((! defined($line->[1])) || $line->[1] eq '') ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : "$line->[1]";
+  
+ 
+  $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
+  $USER_INFO{LOGIN}, $USER_INFO{TP_ID}, $USER_INFO{TP_NAME},  $USER_INFO{DEPOSIT}, $USER_INFO{CREDIT});
+  
+  my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { notprint => 'yes' });
+
+  sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+}
+
+$ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
+$_TOTAL: $Dv->{TOTAL}\n";
+
+
+}
+
+
+
+#***********************************************************
+# iptv_sheduler
+#***********************************************************
+sub iptv_sheduler {
+	my ($type, $action, $uid)=@_;
+
+  my $user = $Iptv->user_info($uid);  	
+  if ($type eq 'tp') {
+    $Iptv->user_change({UID   => $uid, 
+    	                  TP_ID => $action });
+   }
+
+}
+
+
+#***********************************************************
+# Add asterisk user
+#***********************************************************
+sub iptv_mk_users_conf {
+ my ($attr) = @_;
+
+my $content = "#ABILLS users config\n#DATE: $DATE $TIME\n\n";
+
+
+my $list = $Iptv->user_list({ PAGE_ROWS => 100000, 
+	                            CID       => '*',
+	                            PASSWORD  => 1 
+	                          });
+
+foreach my $line (@$list) {
+  my %info = ( LOGIN     => $line->[0],
+               FIO       => $line->[1],
+               NUMBER    => $line->[6],
+               CALLER_ID => $line->[7],
+               PASSWORD  => $line->[8],         
+               );
+
+
+  $content .=  $html->tpl_show(_include('iptv_users_conf', 'Iptv'), \%info, { OUTPUT2RETURN => 1 });
+}
+
+open(FILE, ">$conf{VOIP_ASTERISK_USERS}") || $html->message('err', $_ERROR, "Can't open file '$conf{VOIP_ASTERISK_USERS}' $!");
+  print FILE "$content\n";
+close(FILE);
+
+}
+
+#***********************************************************
+# iptv_report
+#***********************************************************
+sub iptv_report {
+	my ($type, $attr)=@_;
+  my $REPORT = "Module: Iptv\n";
+  
+  %LIST_PARAMS = %{$attr->{LIST_PARAMS}} if (defined($attr->{LIST_PARAMS}));
+
+ 
+  return $REPORT;
+}
+
+
+1
+

@@ -1,0 +1,44 @@
+$web_interface    = 1;
+#@useraccount_menu = ('Dialup_VPN');
+
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = ("01:0:IPTV:iptv_users_list:"       => 11,
+                   "02:0:IPTV:iptv_user:UID"                 => 20,
+                   "03:2:$_TARIF_PLANS:iptv_chg_tp:UID"      => 11,
+                   "06:0:IPTV:null:"                         => 5,
+                   "07:6:$_TARIF_PLANS:iptv_tp:"             => 5,
+                   "08:7:$_ADD:iptv_tp:"                     => 5,
+                   "09:7:$_INTERVALS:iptv_intervals:TP_ID"   => 5,
+#                   "10:7:$_NASS:iptv_nas:TP_ID"              => 5,
+                   "11:6:$_CHANNELS:iptv_channels:"              => 5,
+                   "13:7:$_USERS:iptv_users_list:TP_ID"      => 5,
+                   "20:0:IPTV:iptv_online:"                  => 8,
+
+                   );
+
+%USER_FUNCTION_LIST = ("01:0:IPTV:iptv_user_info:"           => 0,
+                       "03:1:$_ROUTES:iptv_user_channels:"   => 0
+                      );
+
+%PERIODIC = ( report  => [ 'iptv_report' ]);
+
+#daily   => [ 'iptv_daily_fees' ],
+#monthly => [ 'iptv_monthly_fees' ],
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1
