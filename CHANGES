@@ -1,5 +1,12 @@
 =====0.40=====
 
+
+12.07.2008\\
+Доработаны права администраторов. Добавлена возможность включать определённые модули для администраторов. 
+MySQL:
+ INSERT INTO `admin_permits` (`aid`, `section`, `actions`, `module`)
+   VALUES (1,4,4,'');
+
 30.06.2008\\
 MySQL:
   ALTER TABLE users add key company_id (company_id);
@@ -25,6 +32,7 @@ MySQL:
 18.06.2008\\
 Добавлена возможность использовать совместный сервис несколькими логинами.\\
 Данная функция доступна только пользователям привязанным к компании и разрешает использовать параметры одного тарифного плана несколькими пользователями.
+
 MySQL:
   ALTER TABLE dv_calls ADD COLUMN`join_service` int(11) unsigned NOT NULL default '0';
 
@@ -79,7 +87,8 @@ MySQL:
   ALTER TABLE users ADD COLUMN `credit_date` date default '0000-00-00';
 
 
-22.05.2008
+22.05.2008\\
+
 MySQL
   ALTER TABLE paysys_log change COLUMN transaction_id transaction_id varchar(15) NOT NULL DEFAULT ''
 21.05.2008 
