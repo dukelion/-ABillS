@@ -70,7 +70,7 @@ if ($LIST_PARAMS{UID}) {
 	docs_account();
 	return 0 if ($FORM{'print'});
  }
-elsif($FORM{del} ) {
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
   $Docs->docs_invoice_del($FORM{del});
   if(! $Docs->{errno}) {
     $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
@@ -165,7 +165,7 @@ if ($LIST_PARAMS{UID} || $FORM{UID}) {
 	docs_account();
 	return 0 if ($FORM{'print'});
  }
-elsif(defined($FORM{del})) {
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed} ) {
   $Docs->account_del($FORM{del});
   if(! $Docs->{errno}) {
     $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
@@ -317,7 +317,7 @@ sub docs_account {
      $html->message('info', "$_INFO", "$_CHANGING N: [$FORM{chg}]");
     }
   }
- elsif(defined($FORM{del})) {
+ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
    $Docs->account_del($FORM{del});
    if(! $Docs->{errno}) {
      $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
