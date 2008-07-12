@@ -203,6 +203,9 @@ my %status_hash = (0	=> 'Success',
 my $command = $FORM{command};
 my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
 
+$FORM{account} =~ s/^0+//g;
+
+
 #Check user account
 #https://service.someprovider.ru:8443/payment_app.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
 if ($command eq 'check') {
