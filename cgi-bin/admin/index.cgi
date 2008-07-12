@@ -194,7 +194,7 @@ my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTI
                [$_LIST, $_ADD, $_DEL, $_ALL, $_DATE],                                 # Payments
                [$_LIST, $_GET, $_DEL, $_ALL],                                 # Fees
                [$_LIST, $_DEL],                                               # reports view
-               [$_LIST, $_ADD, $_CHANGE, $_DEL],                              # system magment
+               [$_LIST, $_ADD, $_CHANGE, $_DEL, $_ADMINS],                    # system magment
                [$_ALL],                                                       # Modules managments
                [$_SEARCH],                                                    # Search
                [$_MONITORING, $_HANGUP],
@@ -968,7 +968,7 @@ elsif(defined($FORM{GID})){
  
   return 0;
  }
-elsif(defined($FORM{del}) && defined($FORM{is_js_confirmed}) && $permissions{0}{5}){
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed} && $permissions{0}{5}){
   $users->group_del( $FORM{del} );
   if (! $users->{errno}) {
     $html->message('info', $_DELETED, "$_DELETED $users->{GID}");
@@ -2228,13 +2228,14 @@ if ($FORM{add}) {
   $add_month++;
 
   $holidays->holidays_add({MONTH => $add_month, 
-  	              DAY => $add_day
-  	             });
+  	                       DAY   => $add_day
+  	                      });
+
   if (! $holidays->{errno}) {
     $html->message('info', $_INFO, "$_ADDED");	
    }
 }
-elsif($FORM{del}){
+elsif($FORM{del} && $FORM{is_js_confirmed}){
   $holidays->holidays_del($FORM{del});
 
   if (! $holidays->{errno}) {
@@ -2402,7 +2403,7 @@ elsif ($FORM{add}) {
      $html->message('info', $_INFO, "$_ADDED");	
    }
 }
-elsif($FORM{del}) {
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
 	if ($FORM{del} == $conf{SYSTEM_ADMIN_ID}) {
 		$html->message('err', $_ERROR, "Can't delete system admin. Check ". '$conf{SYSTEM_ADMIN_ID}=1;');	
 	 }
@@ -3606,14 +3607,6 @@ my @m = (
  "45:44:$_MONTH:report_fees_month:::",
 
  "5:0:$_SYSTEM:null:::",
- "50:5:$_ADMINS:form_admins:::",
- "51:50:$_LOG:form_changes:AID::",
- "52:50:$_PERMISSION:form_admin_permissions:AID::",
- "54:50:$_PASSWD:form_passwd:AID::",
- "55:50:$_FEES:form_fees:AID::",
- "56:50:$_PAYMENTS:form_payments:AID::",
- "57:50:$_CHANGE:form_admins:AID::",
-
  
  "59:5:$_LOG:form_changes:::",
   
@@ -3644,6 +3637,17 @@ my @m = (
  "53:9:$_PROFILE:admin_profile:::",
  "99:9:$_FUNCTIONS_LIST:flist:::",
  );
+
+
+if ($permissions{4}{4}) {
+  push @m, "50:5:$_ADMINS:form_admins:::";
+  push @m, "51:50:$_LOG:form_changes:AID::";
+  push @m, "52:50:$_PERMISSION:form_admin_permissions:AID::";
+  push @m, "54:50:$_PASSWD:form_passwd:AID::";
+  push @m, "55:50:$_FEES:form_fees:AID::";
+  push @m, "56:50:$_PAYMENTS:form_payments:AID::";
+  push @m, "57:50:$_CHANGE:form_admins:AID::";
+}
 
 if ($permissions{0}{1}) {
   push @m, "24:11:$_ADD:user_form:::" ;
@@ -4024,7 +4028,7 @@ elsif($FORM{chg}) {
     $html->message('info', $_EXCHANGE_RATE, "$_CHANGING");
    }
 }
-elsif($FORM{del}) {
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
 	$finance->exchange_del("$FORM{del}");
   if ($finance->{errno}) {
     $html->message('err', $_ERROR, "[$finance->{errno}] $err_strs{$finance->{errno}}");	
@@ -5129,7 +5133,7 @@ if ($FORM{mk_backup}) {
    my $res = `$MYSQLDUMP --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/abills-$DATE.sql.gz`;
    $html->message('info', $_INFO, "Backup created: $res ($conf{BACKUP_DIR}/abills-$DATE.sql.gz)");
  }
-elsif($FORM{del}) {
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
   my $status = unlink("$conf{BACKUP_DIR}/$FORM{del}");
   $html->message('info', $_INFO, "$_DELETED : $conf{BACKUP_DIR}/$FORM{del} [$status]");
 }
@@ -5176,7 +5180,7 @@ sub weblog {
 sub form_bruteforce {
 	
 	
-if(defined($FORM{del}) && defined($FORM{is_js_confirmed})  && $permissions{0}{5} ) {
+if(defined($FORM{del}) && $FORM{is_js_confirmed} && $permissions{0}{5} ) {
    $users->bruteforce_del({ LOGIN => $FORM{del} });
    $html->message('info', $_INFO, "$_DELETED # $FORM{del}");
  }

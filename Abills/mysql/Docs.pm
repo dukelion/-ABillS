@@ -442,9 +442,15 @@ sub account_info {
    d.created, 
    d.uid, 
    d.id
-
+   pi.fio,
+   pi.address_street,
+   pi.address_build,
+   pi.address_flat,
+   pi.phone,
+   pi.contract_id
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
+    LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     WHERE d.id=o.acct_id and d.id='$id' $WHERE
     GROUP BY d.id;");
@@ -454,13 +460,24 @@ sub account_info {
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
-
   ($self->{ACCT_ID}, 
    $self->{DATE}, 
    $self->{CUSTOMER}, 
    $self->{SUM},
    $self->{PHONE},
-   $self->{VAT}
+   $self->{VAT},
+   $self->{LOGIN}, 
+   $self->{ADMIN}, 
+   $self->{CREATED}, 
+   $self->{UID},
+   $self->{DOC_ID},
+   $self->{FIO},
+
+   $self->{ADDRESS_STREET}, 
+   $self->{ADDRESS_BUILD}, 
+   $self->{ADDRESS_FLAT}, 
+   $self->{PHONE},
+   $self->{CONTRACT_ID},
   )= @{ $self->{list}->[0] };
 	
   
