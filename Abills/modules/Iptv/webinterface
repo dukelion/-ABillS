@@ -86,10 +86,6 @@ elsif($FORM{del}) {
   $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
 }
 
-my $tariffs;
-
-
-
   $shedule->info( {UID     => $user->{UID},
                    TYPE    => 'tp',
                    MODULE  => 'Iptv'
@@ -116,7 +112,7 @@ my $tariffs;
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED  => $user->{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $Iptv->tp_list({ MODULE => 'Iptv' }),
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Iptv' }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -243,9 +239,9 @@ sub iptv_user {
       $html->message('info', $_INFO, "$_ADDED");	
      }
 
-    if ($conf{VOIP_ASTERISK_USERS}) {
-    	iptv_mk_users_conf();
-     }
+    #if ($conf{VOIP_ASTERISK_USERS}) {
+    #	iptv_mk_users_conf();
+    # }
    }
 	elsif($FORM{set}) {
     $Iptv->user_change({ %FORM });
@@ -1326,17 +1322,15 @@ sub iptv_user_channels {
   my $Iptv_tp = Tariffs->new($db, \%conf);
 
 	my $list = $Iptv_tp->ti_list({ TP_ID => $user->{TP_ID}  });
-  my @caption = ($_PREFIX, $_ROUTES, "$_STATUS");
-  my @aligns = ('left', 'left', 'center');
   my @interval_ids = ();
-  my $intervals=0;
-  foreach my $line (@$list) {
-    push @caption, "$_SUM (Min): $line->[1] / $line->[2]-$line->[3]";
-    push @aligns,  'center';
-    push @interval_ids, $line->[0];
-   }
-  $intervals = $Iptv_tp->{TOTAL};
 
+  if ($Iptv_tp->{TOTAL} < 1) {
+     $html->message('info', $_INFO, "$_NOT_EXIST");
+     return 0;
+   }
+
+  my $intervals=$Iptv_tp->{TOTAL}; 
+  $LIST_PARAMS{TI}=$list->[0]->[0];
 
 #  form_search({ 
 #     SIMPLE        => {$_PREFIX   => "ROUTE_PREFIX",
@@ -1350,25 +1344,13 @@ sub iptv_user_channels {
 #   });
 
 
-
-$list = $Iptv->rp_list({ %LIST_PARAMS });
-my %prices = ();
-foreach my $line (@$list) {
-  #print "-- $line->[0] / $line->[1] / $line->[2] / $line->[3] <br>\n";  
-  $prices{"$line->[0]"}{"$line->[1]"}=$line->[3];
-}
-
-
-
-
-$pages_qs .= "&routes=$FORM{routes}";
-$list = $Iptv->routes_list({ %LIST_PARAMS });	
+$list = $Iptv->channel_ti_list({ %LIST_PARAMS });	
 
 my $table = $html->table( { width      => '100%',
-                            caption    => $_ROUTES,
+                            caption    => $_CHANNELS,
                             border     => 1,
-                            title      => \@caption,
-                            cols_align => \@aligns,
+                            title      => ['#', $_NUM, $_NAME, $_DESCRIBE  ],
+                            cols_align => ['right', 'left', 'left', 'right'],
                             qs         => $pages_qs,
                             pages      => $Iptv->{TOTAL},
                             ID         => 'IPTV_CHANNELS',
@@ -1377,18 +1359,12 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 my $price = 0;
 foreach my $line (@$list) {
-  my @l=();
-  for(my $i = 0; $i<$intervals; $i++) { 
-  	  if (defined($prices{"$interval_ids[$i]"}{"$line->[4]"})) {
-        $price = $prices{$interval_ids[$i]}{$line->[4]};
-  	    }
-      else {
-        $price = "0.00";
-        $price .= " $interval_ids[$i] $line->[4] -0" if ($debug > 0);
-       }
-      push @l, $price;
-    }
-  $table->addrow("$line->[0]",  "$line->[1]", $status[$line->[2]], @l);
+  $table->addrow(  
+    $status[$line->[5]], 
+    $line->[2],
+    $line->[3],
+    $line->[4]
+   );
  }
 
 

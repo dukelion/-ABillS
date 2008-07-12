@@ -17,7 +17,7 @@ $web_interface    = 1;
                    );
 
 %USER_FUNCTION_LIST = ("01:0:IPTV:iptv_user_info:"           => 0,
-                       "03:1:$_ROUTES:iptv_user_channels:"   => 0
+                       "03:1:$_CHANNELS:iptv_user_channels:"   => 0
                       );
 
 %PERIODIC = ( report  => [ 'iptv_report' ]);
