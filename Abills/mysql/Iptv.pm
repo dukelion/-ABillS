@@ -189,7 +189,7 @@ sub user_add {
              )
         VALUES ('$DATA{UID}', now(),
         '$DATA{TP_ID}', '$DATA{STATUS}',
-        '$DATA{FILTER_ID}',
+        '$DATA{FILTER_ID}'
          );", 'do');
 
   return $self if ($self->{errno});
@@ -284,7 +284,7 @@ sub user_change {
                   } );
 
 
-  $self->info($attr->{UID});
+  $self->user_info($attr->{UID});
   
 
   return $self;
@@ -872,6 +872,10 @@ sub channel_ti_list {
  if (defined($attr->{DISABLE})) {
    push @WHERE_RULES, "disable='$attr->{DISABLE}'"; 
  }
+
+ if (defined($attr->{DISABLE})) {
+    push @WHERE_RULES, "disable='$attr->{DISABLE}'"; 
+  }
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
