@@ -214,11 +214,11 @@ sub dv_users_list {
   }
  
  
- $FORM{GROUP_SEL} = sel_groups();
+ $FORM{GROUP_SEL}    = sel_groups();
  $FORM{STATUS_SEL}   = $html->form_select('STATUS', 
                                           { 
  	                                          SELECTED     => $FORM{STATUS},
- 	                                          SEL_ARRAY    => \@service_status,
+ 	                                          SEL_ARRAY    => ['', @service_status ],
  	                                          ARRAY_NUM_ID => 1
  	                                        });
 
