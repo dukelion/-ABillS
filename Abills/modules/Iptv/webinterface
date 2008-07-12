@@ -192,6 +192,8 @@ if ($Iptv->{errno}) {
   return 0;
  }
 elsif ($Iptv->{TOTAL} == 1) {
+	$FORM{MODULE}='Iptv';
+	$FORM{UID}=$list->[0]->[$Iptv->{SEARCH_FIELDS_COUNT} + 6];
 	form_users({  USER => user_info($list->[0]->[$Iptv->{SEARCH_FIELDS_COUNT} + 6]) });
 	return 0;
 }
