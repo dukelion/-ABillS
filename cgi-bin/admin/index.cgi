@@ -227,6 +227,8 @@ fl();
 my %USER_SERVICES = ();
 #Add modules
 foreach my $m (@MODULES) {
+	next if (! $admin->{MODULES}{$m});
+	
 	require "Abills/modules/$m/config";
   my %module_fl=();
 
@@ -2549,12 +2551,12 @@ sub form_admin_permissions {
 
  if (defined($FORM{set})) {
    while(my($k, $v)=each(%FORM)) {
-     if ($v eq 'yes') {
-       my($section_index, $action_index)=split(/_/, $k);
-       
-       $permits{$section_index}{$action_index}=1 if ($section_index >= 0);
-      }
+       if ($v eq 'yes') {
+         my($section_index, $action_index)=split(/_/, $k, 2);
+         $permits{$section_index}{$action_index}=1 if ($section_index >= 0);
+        }
     }
+
    $admin->set_permissions(\%permits);
 
    if ($admin->{errno}) {
@@ -2575,13 +2577,16 @@ sub form_admin_permissions {
  
 
 my $table = $html->table( { width       => '400',
-                            border      => 1,
-                            title_plain => ['ID', $_NAME, ''],
-                            cols_align  => ['right', 'left', 'center'],
+                             border      => 1,
+                             caption     => "$_PERMISSION",
+                             title_plain => ['ID', $_NAME, ''],
+                             cols_align  => ['right', 'left', 'center'],
                         } );
 
 
-while(my($k, $v) = each %menu_items ) {
+foreach my $k ( sort keys %menu_items ) {
+  my $v = $menu_items{$k};
+  
   if (defined($menu_items{$k}{0}) && $k > 0) {
   	$table->{rowcolor}=$_COLORS[0];
   	$table->addrow("$k:", $html->b($menu_items{$k}{0}), '');
@@ -2592,7 +2597,7 @@ while(my($k, $v) = each %menu_items ) {
     foreach my $action (@$actions_list) {
 
       $table->addrow("$action_index", "$action", 
-       $html->form_input($k."_$action_index", 'yes', { TYPE          => 'checkbox',
+      $html->form_input($k."_$action_index", 'yes', { TYPE          => 'checkbox',
        	                                               OUTPUT2RETURN => 1,
        	                                               STATE         => (defined($permits{$k}{$action_index})) ? '1' : undef  
        	                                              })  
@@ -2602,9 +2607,29 @@ while(my($k, $v) = each %menu_items ) {
      }
    }
  }
+
+my $table2 = $html->table( { width       => '400',
+                            border      => 1,
+                            caption     => "$_MODULES",
+                            title_plain => [$_NAME, ''],
+                            cols_align  => ['right', 'left', 'center'],
+                        } );
+
+
+my $i=0;
+foreach my $name (sort @MODULES) {
+  	$table2->addrow("$name", 
+  	  	$html->form_input("0_". $i. "_". $name, 'yes', { TYPE          => 'checkbox',
+       	                                 OUTPUT2RETURN => 1,
+       	                                 STATE         => ($admin->{MODULES}{$name}) ? '1' : undef  
+       	                                    })
+       	                                   );
+   $i++;
+ }
   
   
-print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }).
+	                        $table2->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { index => '50',
                                       AID   => "$FORM{AID}",
                                       subf  => "$FORM{subf}"

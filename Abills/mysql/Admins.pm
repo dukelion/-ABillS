@@ -88,11 +88,14 @@ sub get_permissions {
   my $self = shift;
   my %permissions = ();
 
-$self->query($db, "SELECT section, actions FROM admin_permits WHERE aid='$self->{AID}';");
+$self->query($db, "SELECT section, actions, module FROM admin_permits WHERE aid='$self->{AID}';");
 
 foreach my $line (@{ $self->{list} }) {
-  my($section, $action)=@$line;
+  my($section, $action, $module)=@$line;
   $permissions{$section}{$action} = 'y';
+  if ($module) {
+  	$self->{MODULES}{$module}=1;
+   }
  }
 
   $self->{permissions} = \%permissions;
@@ -111,7 +114,9 @@ sub set_permissions {
   $self->query($db, "DELETE FROM admin_permits WHERE aid='$self->{AID}';", 'do');
   while(my($section, $actions_hash)=each %$permissions) {
     while(my($action, $y)=each %$actions_hash) {
-      $self->query($db, "INSERT INTO admin_permits (aid, section, actions) VALUES ('$self->{AID}', '$section', '$action');", 'do');
+    	my ($perms, $module)=split(/_/, $action);
+      $self->query($db, "INSERT INTO admin_permits (aid, section, actions, module) 
+      VALUES ('$self->{AID}', '$section', '$perms', '$module');", 'do');
      }
    }
   return $self->{permissions};
