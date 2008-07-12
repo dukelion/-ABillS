@@ -175,12 +175,13 @@ for(my $i=0; $i<$Iptv->{SEARCH_FIELDS_COUNT}; $i++){
 }
 
 
+
 if ($Iptv->{errno}) {
   $html->message('err', $_ERROR, "[$Iptv->{errno}] $err_strs{$Iptv->{errno}}");	
   return 0;
  }
 elsif ($Iptv->{TOTAL} == 1) {
-	form_users({  USER => user_info($list->[0]->[7]) });
+	form_users({  USER => user_info($list->[0]->[$Iptv->{SEARCH_FIELDS} + 6]) });
 	return 0;
 }
 
@@ -197,14 +198,15 @@ my $table = $html->table( { width      => '100%',
                          } );
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  $html->button($_PAYMENTS, "index=2&UID=". ($line->[7+$Iptv->{SEARCH_FIELDS_COUNT}])) : ''; 
+  my $payments = ($permissions{1}) ?  $html->button($_PAYMENTS, "index=2&UID=". ($line->[$Iptv->{SEARCH_FIELDS} + 6])) : ''; 
+
   my @fields_array  = ();
   for(my $i=0; $i<$Iptv->{SEARCH_FIELDS_COUNT}; $i++){
      push @fields_array, $line->[7+$i];
    }
 
 
-  $table->addrow($html->button($line->[0], "index=15&UID=". ($line->[7+$Iptv->{SEARCH_FIELDS_COUNT}]) ."&MODULE=Iptv"), 
+  $table->addrow($html->button($line->[0], "index=15&UID=". ($line->[$Iptv->{SEARCH_FIELDS} + 6]) ."&MODULE=Iptv"), 
      "$line->[1]",
      "$line->[2]", 
      "$line->[3]", 

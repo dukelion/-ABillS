@@ -435,15 +435,19 @@ sub user_list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
- if ($attr->{COMMENTS}) {
-   $attr->{COMMENTS} =~ s/\*/\%/ig;
-   push @WHERE_RULES, "u.comments LIKE '$attr->{COMMENTS}'";
-  }
-
 
  if ($attr->{FIO}) {
     $attr->{FIO} =~ s/\*/\%/ig;
     push @WHERE_RULES, "u.fio LIKE '$attr->{FIO}'";
+  }
+
+
+ if ($attr->{COMMENTS}) {
+   $attr->{COMMENTS} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "u.comments LIKE '$attr->{COMMENTS}'";
+   
+   $self->{SEARCH_FIELDS} .= 'service.comments, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  # Show users for spec tarifplan 
