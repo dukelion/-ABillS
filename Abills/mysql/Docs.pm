@@ -441,7 +441,7 @@ sub account_info {
    a.name, 
    d.created, 
    d.uid, 
-   d.id
+   d.id,
    pi.fio,
    pi.address_street,
    pi.address_build,

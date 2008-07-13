@@ -3664,7 +3664,7 @@ my @m = (
  );
 
 
-if ($permissions{4}{4}) {
+if ($permissions{4} && $permissions{4}{4}) {
   push @m, "50:5:$_ADMINS:form_admins:::";
   push @m, "51:50:$_LOG:form_changes:AID::";
   push @m, "52:50:$_PERMISSION:form_admin_permissions:AID::";

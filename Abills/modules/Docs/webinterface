@@ -217,7 +217,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$Docs->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($Docs->{TOTAL}) ] ]
                       } );
 
 
@@ -234,6 +234,9 @@ sub docs_account {
  $Docs->{DATE}=$DATE;
 
 
+
+ #$Docs->{debug}=1;
+ #print "aaaaaaaaa";
  if ($FORM{create}) {
    if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	   $html->message('err', $_ERROR, "$_EXIST");

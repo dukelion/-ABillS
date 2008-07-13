@@ -1,5 +1,4 @@
 package Dhcphosts;
-# Special thanx for dreamer_538
 #
 # DHCP server managment and user control
 #
