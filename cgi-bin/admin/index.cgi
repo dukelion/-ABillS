@@ -945,6 +945,7 @@ elsif(defined($FORM{GID})){
   $users->group_info( $FORM{GID} );
 
   $LIST_PARAMS{GID}=$users->{GID};
+  delete $LIST_PARAMS{GIDS};
   $pages_qs="&GID=$users->{GID}&subf=$FORM{subf}";
 
   func_menu({ 
