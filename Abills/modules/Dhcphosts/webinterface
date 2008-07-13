@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 # Dhcphosts
-# Special thanx for dreamer_538
-#require "Abills/nas.pl";
+
 
 use Dhcphosts;
 my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
@@ -188,11 +187,12 @@ sub dhcphosts_monitor {
  
  #Get info from dhcpd.leased 
  my $dhcp_hash = leaseparse($conf{DHCPHOSTS_LEASES});
- #Get user info from DB
 
- my $hosts_list = $Dhcphosts->hosts_list({ IPS       => join(", ",  keys %$dhcp_hash), 
- 	                                         PAGE_ROWS => 100000 
- 	                                       });
+ #Get user info from DB
+ $LIST_PARAMS{PAGE_ROWS}=100000;
+ $LIST_PARAMS{IPS}      = join(", ",  keys %$dhcp_hash); 
+ 
+ my $hosts_list = $Dhcphosts->hosts_list({ %LIST_PARAMS });
  
  my $table = $html->table({ width      => '100%',
                      			  caption    => "$_HOSTS",
