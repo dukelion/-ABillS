@@ -261,6 +261,8 @@ sub docs_account {
     
        $html->message('info', "$_ADDED", "$_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE}");
        $Docs->account_info($Docs->{DOC_ID}, { UID => $LIST_PARAMS{UID} });
+       ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{SUM});
+
        my $list = $Docs->{ORDERS};
        my $i=0;
 
@@ -292,6 +294,7 @@ sub docs_account {
    $Docs->account_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
 
    if ($Docs->{TOTAL} > 0) {
+   	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{SUM});
      $Docs->{FROM_DATE_LIT}='';
      my $list = $Docs->{ORDERS};
      my $i=0;

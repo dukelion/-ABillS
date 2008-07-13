@@ -3169,7 +3169,7 @@ $html->tpl_show(templates('form_password'), $password_form);
 
 #**********************************************************
 #
-# FIELDS => FIELDS_HASH
+# Report main interface
 #**********************************************************
 sub reports {
  my ($attr) = @_;
@@ -3200,6 +3200,7 @@ else {
   if ($FORM{GID}) {
 	  $LIST_PARAMS{GID}=$FORM{GID};
     $pages_qs="&GID=$FORM{GID}";
+    delete $LIST_PARAMS{GIDS};
    }
 }
 
