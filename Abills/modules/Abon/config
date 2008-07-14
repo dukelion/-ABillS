@@ -2,7 +2,8 @@ $web_interface    = 1;
 
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:0:$_ABON:abon_user_list:"             => 11,
-                   "02:0:$_ABON:abon_user:UID"               => 20,
+                   "02:0:$_ABON:abon_user_list:COMPANY_ID"   => 13,
+                   "03:0:$_ABON:abon_user:UID"               => 20,
                    "06:0:$_ABON:abon_tariffs:"               => 5
                    #"07:6:$_USERS:abon_user_list:ABON_ID"    => 5
                    );

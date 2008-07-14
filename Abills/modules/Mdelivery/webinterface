@@ -1,5 +1,5 @@
-#/usr/bin/perl
 # Mail delivery
+
 
 my %MAIL_PRIORITY = (2 => 'High', 
                       3 => 'Normal', 

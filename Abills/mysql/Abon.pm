@@ -212,6 +212,11 @@ sub user_list {
     push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
   }
 
+ if ($attr->{COMPANY_ID}) {
+    push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";
+  }
+
+
  if ($attr->{GIDS}) {
     push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
   }

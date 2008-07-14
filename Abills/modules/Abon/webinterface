@@ -130,6 +130,7 @@ sub abon_user_list {
    return 0;
   }
 
+ $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
 
 
  my $list = $Abon->user_list({ %LIST_PARAMS });
@@ -138,7 +139,8 @@ sub abon_user_list {
                              title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, $_DATE],
                              cols_align => ['left', 'right', 'left', 'right'],
                              qs         => $pages_qs,
-                             pages      => $Abon->{TOTAL}
+                             pages      => $Abon->{TOTAL},
+                             ID         => "ABON_USERS"
                            });
 
 
@@ -158,7 +160,7 @@ print $table->show();
 
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right'],
-                        rows       => [ [ "$_TOTAL:", "$Abon->{TOTAL}" ] ]
+                        rows       => [ [ "$_TOTAL:", $html->b($Abon->{TOTAL}) ] ]
                        });
 print $table->show();
 

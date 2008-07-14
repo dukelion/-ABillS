@@ -814,9 +814,12 @@ if ($self->{TOTAL} > 0) {
  
 #Show last paymenst
  if ($attr->{PAYMENTS} || $attr->{PAYMENT_DAYS}) {
+    
+    my @HAVING_RULES = ();
     if($attr->{PAYMENTS}) {
       my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
-      push @WHERE_RULES, "max(p.date)$value";
+      push @WHERE_RULES, "p.date$value";
+      push @HAVING_RULES, "max(p.date)$value";
       $self->{SEARCH_FIELDS} .= 'max(p.date), ';
       $self->{SEARCH_FIELDS_COUNT}++;
      }
@@ -825,12 +828,13 @@ if ($self->{TOTAL} > 0) {
       $value =~ s/([<>=]{1,2})//g;
       $value = $1 . $value;
 
-      push @WHERE_RULES, "max(p.date)$value";
+      push @WHERE_RULES, "p.date$value";
+      push @HAVING_RULES, "max(p.date)$value";
       $self->{SEARCH_FIELDS} .= 'max(p.date), ';
       $self->{SEARCH_FIELDS_COUNT}++;
      }
 
-    my $HAVING = ($#WHERE_RULES > -1) ?  "HAVING " . join(' and ', @WHERE_RULES) : '';
+    my $HAVING = ($#WHERE_RULES > -1) ?  "HAVING " . join(' and ', @HAVING_RULES) : '';
 
 
    

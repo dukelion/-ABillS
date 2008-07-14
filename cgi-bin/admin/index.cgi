@@ -2620,7 +2620,7 @@ my $table2 = $html->table( { width       => '400',
 my $i=0;
 foreach my $name (sort @MODULES) {
   	$table2->addrow("$name", 
-  	  	$html->form_input("0_". $i. "_". $name, 'yes', { TYPE          => 'checkbox',
+  	  	$html->form_input("9_". $i. "_". $name, 'yes', { TYPE          => 'checkbox',
        	                                 OUTPUT2RETURN => 1,
        	                                 STATE         => ($admin->{MODULES}{$name}) ? '1' : undef  
        	                                    })
