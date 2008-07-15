@@ -203,7 +203,7 @@ if (! defined($ENV{CONTENT_TYPE}) || $ENV{CONTENT_TYPE} !~ /boundary/ ) {
 
   foreach my $pair (@pairs) {
     my ($side, $value) = split(/=/, $pair);
-    if ($value) {
+    if (defined($value)) {
       $value =~ tr/+/ /;
       $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
       $value =~ s/<!--(.|\n)*-->//g;
