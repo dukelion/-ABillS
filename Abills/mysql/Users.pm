@@ -106,7 +106,8 @@ sub info {
    if(c.name IS NULL, 0, c.vat),
    if(c.name IS NULL, b.uid, cb.uid),
    if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id),
-   credit_date,
+   u.credit_date,
+   if(c.name IS NULL, 0, c.credit)
    $password
      FROM users u
      LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -140,6 +141,7 @@ sub info {
    $self->{BILL_OWNER},
    $self->{EXT_BILL_ID},
    $self->{CREDIT_DATE},
+   $self->{COMPANY_CREDIT},
    $self->{PASSWORD}
  )= @{ $self->{list}->[0] };
  
