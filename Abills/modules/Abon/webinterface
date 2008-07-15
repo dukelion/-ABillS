@@ -136,7 +136,7 @@ sub abon_user_list {
  my $list = $Abon->user_list({ %LIST_PARAMS });
  my $table = $html->table( { width     => '100%',
                              caption    => "$_ABON",
-                             title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, $_DATE],
+                             title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, $_SUM, $_PERIOD, $_DATE],
                              cols_align => ['left', 'right', 'left', 'right'],
                              qs         => $pages_qs,
                              pages      => $Abon->{TOTAL},
@@ -146,13 +146,16 @@ sub abon_user_list {
 
 my $delete = '';
 foreach my $line (@$list) {
-#  if ($permissions{4}{1}) {
-#    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?" }); 
-#   }
-  $table->addrow($html->button("$line->[0]", "index=15&UID=$line->[4]"), 
+  
+  #if ($permissions{0}{1}) {
+  #  $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?" }); 
+  # }
+  $table->addrow($html->button("$line->[0]", "index=15&UID=$line->[6]"), 
      "$line->[1]", 
      $line->[2], 
-     $line->[3]
+     $line->[3],
+     $PERIODS[$line->[4]],
+     $line->[5]
    );
  }
 print $table->show();
