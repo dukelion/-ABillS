@@ -231,7 +231,8 @@ sub user_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT u.id, pi.fio, at.name, ul.date, u.uid, at.id
+ $self->query($db, "SELECT u.id, pi.fio, at.name, at.price, at.period,
+     ul.date, u.uid, at.id
      FROM (users u, abon_user_list ul, abon_tariffs at)
      LEFT JOIN users_pi pi ON u.uid = pi.uid
      $WHERE
