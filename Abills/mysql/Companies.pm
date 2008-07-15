@@ -197,7 +197,7 @@ sub change {
       if ($line->[0] =~ /ifc(\S+)/) {
         my $field_name = $1;
         $FIELDS{$field_name}="$field_name";
-        my ($type, $name)=split(/:/, $line->[1]);
+        my ($position, $type, $name)=split(/:/, $line->[1]);
         if ($type == 4) {
         	$attr->{$field_name} = 0 if (! $attr->{$field_name});
          }
@@ -245,7 +245,7 @@ sub info {
   my $info_fields = '';
   my @info_fields_arr = ();
 
-	my $list = $users->config_list({ PARAM => 'ifc*'});
+	my $list = $users->config_list({ PARAM => 'ifc*', SORT => 2 });
   if ($users->{TOTAL} > 0) {
     my %info_fields_hash = ();
 

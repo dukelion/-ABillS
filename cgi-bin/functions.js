@@ -138,7 +138,7 @@ function confirmLink(theLink, theSqlQuery)
 {
     // Confirmation is not required in the configuration file
     // or browser is Opera (crappy js implementation)
-    if (confirmMsg == '' || typeof(window.opera) != 'undefined') {
+    if (confirmMsg == '') { // || typeof(window.opera) != 'undefined') {
         return true;
     }
 

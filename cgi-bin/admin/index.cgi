@@ -804,7 +804,7 @@ sub add_company {
   #$company->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
   #$company->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
 
-  my $list = $users->config_list({ PARAM => 'ifc*'});
+  my $list = $users->config_list({ PARAM => 'ifc*', SORT => 2 });
 
   foreach my $line (@$list) {
     my $field_id       = '';
@@ -813,7 +813,7 @@ sub add_company {
     	$field_id = $1;
      }
 
-    my($type, $name)=split(/:/, $line->[1]);
+    my($position, $type, $name)=split(/:/, $line->[1]);
     my $input = '';
     if ($type == 2) {
         $input = $html->form_select("$field_id", 
@@ -950,7 +950,7 @@ elsif(defined($FORM{GID})){
 
   func_menu({ 
   	         'ID'   => $users->{GID}, 
-  	         $_NAME =>$users->{G_NAME}
+  	         $_NAME => $users->{G_NAME}
   	       }, 
   	{ 
      $_CHANGE   => ":GID=$users->{GID}",
@@ -1102,7 +1102,7 @@ sub user_pi {
   #Info fields
   my $i=0; 
   foreach my $field_id ( @{ $user_pi->{INFO_FIELDS_ARR} } ) {
-    my($type, $name)=split(/:/, $user_pi->{INFO_FIELDS_HASH}->{$field_id});
+    my($position, $type, $name)=split(/:/, $user_pi->{INFO_FIELDS_HASH}->{$field_id});
 
     my $input = '';
     if ($type == 2) {
@@ -2387,6 +2387,8 @@ if ($FORM{AID}) {
 #    return 0;
 #   }
   form_passwd({ ADMIN => $admin_form}) if (defined($FORM{newpassword}));
+
+
 
   if ($FORM{subf}) {
    	return 0;
@@ -4435,7 +4437,7 @@ elsif($search_form{$FORM{type}}) {
     $FORM{type}=11;
 
     my $i=0; 
-    my $list = $users->config_list({ PARAM => 'ifu*'  });
+    my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2  });
 
     foreach my $line (@$list) {
       my $field_id       = '';
@@ -4443,7 +4445,7 @@ elsif($search_form{$FORM{type}}) {
     	  $field_id = $1;
        }
 
-      my($type, $name)=split(/:/, $line->[1]);
+      my($position, $type, $name)=split(/:/, $line->[1]);
 
       my $input = '';
       if ($type == 2) {
@@ -5405,13 +5407,13 @@ sub form_info_fields {
  	                               });
 
 
-	my $list = $users->config_list({ PARAM => 'ifu*'});
+	my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2});
 	
   my $table = $html->table( { width      => '450',
                               caption    => "$_INFO_FIELDS - $_USERS",
                               border     => 1,
-                              title      => [$_NAME, 'SQL field', $_TYPE,  '-'],
-                              cols_align => ['left', 'left', 'left', 'center', 'center' ],
+                              title      => [$_NAME, 'SQL field', $_TYPE, $_PRIORITY, '-'],
+                              cols_align => ['left', 'left', 'left', 'right', 'center', 'center' ],
                            } );
 
 
@@ -5422,18 +5424,20 @@ sub form_info_fields {
     	$field_name = $1;
      }
 
-    my($field_type, $name)=split(/:/, $line->[1]);
+    my($position, $field_type, $name)=split(/:/, $line->[1]);
 
     $table->addrow($name,  
       $field_name, 
       ($field_type == 2) ? $html->button($fields_types[$field_type], "index=". ($index + 1) ."&LIST_TABLE=$field_name".'_list') : $fields_types[$field_type],  
-      (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=ifu&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name?" }) : ''
+      $position,
+      (defined($permissions{4}{3})) ? $html->button($_DEL, "index=$index&del=ifu&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name?" }) : ''
       );
    }
 
   $table->addrow($html->form_input('NAME', ''),  
       $html->form_input('FIELD_ID', ''),  
       $fields_type_sel, 
+      $html->form_input('POSITION', 0),  
       $html->form_input('USERS_ADD', $_ADD, {  TYPE => 'SUBMIT' })
       );
 
@@ -5445,12 +5449,12 @@ sub form_info_fields {
                          });
 
 
-  $list = $users->config_list({ PARAM => 'ifc*'});
+  $list = $users->config_list({ PARAM => 'ifc*', SORT => 2 });
   $table = $html->table( { width      => '450',
                            caption    => "$_INFO_FIELDS - $_COMPANIES",
                            border     => 1,
-                           title      => [$_NAME, 'SQL field', $_TYPE,  '-'],
-                           cols_align => ['left', 'left', 'left', 'center', 'center' ],
+                           title      => [$_NAME, 'SQL field', $_TYPE, $_PRIORITY, '-'],
+                           cols_align => ['left', 'left', 'left', 'right', 'center', 'center' ],
                            } );
 
 
@@ -5461,18 +5465,20 @@ sub form_info_fields {
     	$field_name = $1;
      }
 
-    my($field_type, $name)=split(/:/, $line->[1]);
+    my($position, $field_type, $name)=split(/:/, $line->[1]);
 
     $table->addrow($name,  
       $field_name, 
       ($field_type == 2) ? $html->button($fields_types[$field_type], "index=". ($index + 1) ."&LIST_TABLE=$field_name".'_list') : $fields_types[$field_type], 
-      (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=ifc&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name ?" }) : ''
+      $position,
+      (defined($permissions{4}{3})) ? $html->button($_DEL, "index=$index&del=ifc&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name ?" }) : ''
       );
    }
 
   $table->addrow($html->form_input('NAME', ''),  
       $html->form_input('FIELD_ID', ''),  
       $fields_type_sel, 
+      $html->form_input('POSITION', 0),  
       $html->form_input('COMPANY_ADD', $_ADD, {  TYPE => 'SUBMIT' })
       );
 
@@ -5541,7 +5547,7 @@ sub form_info_lists {
     	$field_name = $1;
      }
 
-    my($field_type, $name)=split(/:/, $line->[1]);
+    my($position, $field_type, $name)=split(/:/, $line->[1]);
     $lists_hash{$field_name.'_list'}=$name;
    }
 

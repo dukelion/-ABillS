@@ -35,7 +35,8 @@ CREATE TABLE `iptv_channels` (
   `comments` text NOT NULL,
   `disable` tinyint(2) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`)
+  UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `num` (`num`)
 ) COMMENT='IPTV channels';
 
 CREATE TABLE `iptv_ti_channels` (

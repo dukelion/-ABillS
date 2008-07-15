@@ -212,7 +212,7 @@ sub pi_add {
   my $info_fields = '';
   my $info_fields_val = '';
 
-	my $list = $self->config_list({ PARAM => 'ifu*'});
+	my $list = $self->config_list({ PARAM => 'ifu*', SORT => 2 });
   if ($self->{TOTAL} > 0) {
     my @info_fields_arr = ();
     my @info_fields_val = ();
@@ -267,7 +267,7 @@ sub pi {
   my $info_fields = '';
   my @info_fields_arr = ();
 
-	my $list = $self->config_list({ PARAM => 'ifu*'});
+	my $list = $self->config_list({ PARAM => 'ifu*', SORT => 2 });
   if ($self->{TOTAL} > 0) {
     my %info_fields_hash = ();
 
@@ -363,7 +363,7 @@ my %FIELDS = (EMAIL          => 'email',
       if ($line->[0] =~ /ifu(\S+)/) {
         my $field_name = $1;
         $FIELDS{$field_name}="$field_name";
-        my ($type, $name)=split(/:/, $line->[1]);
+        my ($position, $type, $name)=split(/:/, $line->[1]);
         if ($type == 4) {
         	$attr->{$field_name} = 0 if (! $attr->{$field_name});
          }
@@ -760,14 +760,14 @@ sub list {
  }
 
 #Info fields
-my $list = $self->config_list({ PARAM => 'ifu*'});
+my $list = $self->config_list({ PARAM => 'ifu*', SORT => 2 });
 
 
 if ($self->{TOTAL} > 0) {
     foreach my $line (@$list) {
       if ($line->[0] =~ /ifu(\S+)/) {
         my $field_name = $1;
-        my ($type, $name)=split(/:/, $line->[1]);
+        my ($position, $type, $name)=split(/:/, $line->[1]);
 
         if (defined($attr->{$field_name}) && $type == 4) {
      	    push @WHERE_RULES, 'pi.'. $field_name ."='$attr->{$field_name}'"; 
@@ -815,7 +815,7 @@ if ($self->{TOTAL} > 0) {
 #Show last paymenst
  if ($attr->{PAYMENTS} || $attr->{PAYMENT_DAYS}) {
     
-    my @HAVING_RULES = ();
+    my @HAVING_RULES = @WHERE_RULES;
     if($attr->{PAYMENTS}) {
       my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
       push @WHERE_RULES, "p.date$value";
@@ -1400,7 +1400,7 @@ sub info_field_add {
        );", 'do');    	
      }
       $self->config_add({ PARAM => $field_prefix. "_$attr->{FIELD_ID}", 
-  	                      VALUE => "$attr->{FIELD_TYPE}:$attr->{NAME}"
+  	                      VALUE => "$attr->{POSITION}:$attr->{FIELD_TYPE}:$attr->{NAME}"
   	                    });
 
    }
@@ -1468,7 +1468,7 @@ sub info_lists_list {
   my $self = shift;	
 	my ($attr) = @_;
 
-  $self->query($db,  "SELECt id, name FROM $attr->{LIST_TABLE} ;");
+  $self->query($db,  "SELECT id, name FROM $attr->{LIST_TABLE} ORDER BY name;");
 
 	return $self->{list};
 }
@@ -1502,8 +1502,6 @@ sub info_list_change {
   my %FIELDS = (ID         => 'id',
                 NAME       => 'name'
              );
-
-  print "---- $id ----";
 
   my $old_info = $self->info_list_info($id, { LIST_TABLE => $attr->{LIST_TABLE} });
 
