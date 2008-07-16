@@ -3573,11 +3573,11 @@ sub dv_wizard_user {
  
  $dv_defaults->{JOIN_SERVICE}='';
  my %tpls = (
-	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults, { notprint => 1 }),  
-	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { notprint => 1 }),
-	            "3:$_INFO::"     => $html->tpl_show(templates('form_pi'), \%pi_form, { notprint => 1 }), 
-	            "4:Dialup/VPN::" => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults, { notprint => 1 }),
- 	            "5:$_PAYMENTS::" => $html->tpl_show(templates('form_payments'), $payments, { notprint => 1 }),
+	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults,    { notprint => 1, ID => 'FORM_USER'     }),  
+	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { notprint => 1, ID => 'FORM_PASSWORD' }),
+	            "3:$_INFO::"     => $html->tpl_show(templates('form_pi'), \%pi_form,            { notprint => 1, ID => 'FORM_PI'       }), 
+	            "4:Dialup/VPN::" => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults,    { notprint => 1, ID => 'DV_USER'       }),
+ 	            "5:$_PAYMENTS::" => $html->tpl_show(templates('form_payments'), $payments,      { notprint => 1, ID => 'FORM_PAYMENTS' }),
              );
  
  #If mail module added
@@ -3606,7 +3606,7 @@ sub dv_wizard_user {
  	                               });
 
 
-    $tpls{"6:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { notprint => 1 });
+    $tpls{"6:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { notprint => 1, ID => 'MAIL_BOX' });
   } 
  
  if ($attr->{TPLS}) {
@@ -3626,7 +3626,7 @@ sub dv_wizard_user {
 
      $template .= "<tr bgcolor=\"$_COLORS[0]\"><th>$descr</th></tr>\n";
      #$wizard = $pre;
-     my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { notprint => 1 });
+     my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { notprint => 1, ID => "$descr" });
      $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
      $sub_tpl =~ s/(<input .*?index.*?>)//gi;
      $sub_tpl =~ s/name=([A-Z_]+)/name=$n.$1/gi;
@@ -3673,7 +3673,7 @@ sub dv_registration  {
 		$html->message('info', $_INFO, "$_REGISTRATION");
 	 }
 	
-  $html->tpl_show(_include('dv_registration', 'Dv'), $Dv);
+  $html->tpl_show(_include('dv_registration', 'Dv'), $Dv, { ID => 'DV_REGISTRATION' });
 	return 0;
 }
 
@@ -3773,7 +3773,7 @@ sub dv_get_month_fee {
         	                           });  
         
           if ($fees->{errno}) {
-        	  $html->message('err', $_ERROR, "[$fees->{errno}] ");	
+        	  $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}");	
            }
           else {
             $html->message('info', $_INFO, $message);	
