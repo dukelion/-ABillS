@@ -10,6 +10,7 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME
  );
 
 
+my $version = 0.1;
 
 
 #use strict;
@@ -163,8 +164,26 @@ sub ppp_log_parser {
 
 
 
+#**********************************************************
+#
+#Make month feee
+#**********************************************************
 sub dv_get_month_fee {
   my ($Dv, $attr) = @_;
+
+
+  if ($Dv->{TP_INFO}->{ACTIV_PRICE}) {
+    my $users = Users->new($db, $admin, \%conf); 
+    my $user  = $users->info($Dv->{UID});
+
+    $fees->take($user, $Dv->{TP_INFO}->{ACTIV_PRICE}, 
+                              { DESCRIBE  => "$_ACTIVATE $_TARIF_PLAN", 
+   	                            DATE      => "$DATE $TIME"
+  	                           });  
+
+    print "$_ACTIVATE $_TARIF_PLAN";	
+   }
+
 
   if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
 
@@ -173,25 +192,31 @@ sub dv_get_month_fee {
      my $users = Users->new($db, $admin, \%conf); 
      my $user  = $users->info($Dv->{UID});
 
+     if ($Dv->{TP_INFO}->{EXT_BILL_ACCOUNT})  {
+     	 $user->{BILL_ID}=$user->{EXT_BILL_ID} if ($user->{EXT_BILL_ID});
+      }
+
+
+
      my $message = ''; 
      #Current Month
      my ($y, $m, $d)=split(/-/, $DATE, 3);
-    
      my ($active_y, $active_m, $active_d)=split(/-/, $Dv->{ACTIVATE}, 3);	 
 
         if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
         	$message = "$_MONTH_ALIGNMENT, ";
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
-          if ($Dv->{ACTIVATE} ne '0000-00-00') {
+          if ($Dv->{ACTIVATE} && $Dv->{ACTIVATE} ne '0000-00-00') {
             $days_in_month=($active_m!=2?(($active_m%2)^($active_m>7))+30:(!($active_y%400)||!($active_y%4)&&($active_y%25)?29:28)); 
             $d = $active_d;
            }
 
           $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
-          $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY} - 1));
+          $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
          }
        
+        return 0 if ($sum == 0);
         
         my $periods = 0;
         if ($active_m > 0 && $active_m < $m) {
@@ -218,32 +243,33 @@ sub dv_get_month_fee {
             $DATE    = "$active_y-$m-01";
             $TIME    = "00:00:00";
            }
-          elsif ($Dv->{ACTIVATE} ne '0000-00-00'){
+          elsif ($Dv->{ACTIVATE} && $Dv->{ACTIVATE} ne '0000-00-00'){
             $DATE    = "$active_y-$m-$active_d";
             $TIME    = "00:00:00";
-            if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) { 
+            
+            if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
               $users->change($Dv->{UID}, { ACTIVATE => '0000-00-00',
-            	                         UID      => $Dv->{UID} });
-
+              	                           UID      => $Dv->{UID} });
              }
-
            }
-          
+         
           $fees->take($users, $sum, { DESCRIBE  => $message, 
         	                            METHOD    => 1, 
         	                            DATE      => "$DATE $TIME"
         	                           });  
         
           if ($fees->{errno}) {
-        	  print "[$fees->{errno}] \n";	
+        	  print "[$fees->{errno}] $fees->{errstr} ";	
            }
           else {
-            print $message."\n";	
+            print "$message";	
            }
          }
 
 
       }
+
+
 }
 
 #**********************************************************
