@@ -4,6 +4,7 @@
 use Sharing;
 use Tariffs;
 use Shedule;
+use Fees;
 #use Nas;
 
 
@@ -2025,7 +2026,7 @@ sub sharing_periodic_monthly_fees {
 
  my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
- $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
+ $debug_output .= "Monthly pariodic payments\n" if ($debug > 1);
 
  use Users;
  my $users = Users->new($db, $admin, \%conf); 
@@ -2043,7 +2044,6 @@ sub sharing_periodic_monthly_fees {
  foreach my $line (@$list) {
  	 if ($line->[6] > 0) {
  	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11]\n" if ($debug > 1);
-
 	   my $ulist = $Sharing->list({ 
          ACTIVATE   => ">=$ADMIN_REPORT{DATE}",
          EXPIRE     => "<$ADMIN_REPORT{DATE}",
@@ -2061,47 +2061,54 @@ sub sharing_periodic_monthly_fees {
        
        if ($u->[13] > 0 && defined($u->[2])) {
           my %user = (
-            ACCOUNT_ID => $u->[7],
+            LOGIN      => $u->[0],
             UID        => $u->[7],
-            BILL_ID    => $u->[12]   
+            BILL_ID    => $u->[13],   
+            REDUCTION  => $u->[14],
+            ACTIVATE   => $u->[11],
+            DEPOSIT    => $u->[2],
+            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14]
            );
-          
+
+
           #Make sum 
           my $sum = $line->[6];
 
-          if ($line->[11] == 1 && $u->[13] > 0) {
-            $sum = $sum * (100 - $u->[13]) / 100;
+          if ($line->[11] == 1 && $u->[14] > 0) {
+            $sum = $sum * (100 - $u->[14]) / 100;
            }
        
-          
+         
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
-          if($line->[4] == 1 || $u->[2] + $u->[3] > 0 || $line->[12] == 1) {
+          if($line->[4] == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $line->[12] == 1) {
 #                print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11] /$DATE $d == 1\n"; 	
             #take fees in first day of month
-            if ($u->[10] eq '0000-00-00' and $d == 1) {
+            if ($user{ACTIVATE} eq '0000-00-00' and $d == 1) {
               if ($debug > 4) {
-                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                }
               else {
                 $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE" } );  
+                $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
                }
              }
             # If activation set to monthly fees taken throught 30 days
-            elsif($u->[11] ne '0000-00-00') {
-              my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[11], 3);
+            elsif($user{ACTIVATE} ne '0000-00-00') {
+              my ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
 
               $activate_m--;
               my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
               if ($date_unixtime - $active_unixtime > 30 * 86400) {
                 if ($debug > 4) {
-                  $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $u->[13]\n";
+                  $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                  }
                 else {
                   $fees->take(\%user, $sum, { DESCRIBE => "$_MONTH_FEE" } );
-                  $users->change($u->[7], { 
-                	                        UID      => $u->[7],
+                  $users->change($user{UID}, { 
+                	                        UID      => $user{UID},
                 	                        ACTIVATE => $ADMIN_REPORT{DATE} } 
                  	             );
+                  $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} CHANGE: ACTIVATE\n" if ($debug > 0);
                  }
                }
                #print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
