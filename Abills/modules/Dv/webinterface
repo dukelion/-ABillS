@@ -2834,7 +2834,7 @@ sub dv_monthly_fees {
         }
       }
  	   
- 	   
+ 	   $Dv->{debug}=1;
 	   my $ulist = $Dv->list({ 
          ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
          EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
@@ -2957,7 +2957,7 @@ sub dv_monthly_fees {
           }
         }
        else {
-      	 print "[ $user{UID} ] $user{LOGIN} - Don't have money account\n";
+      	 print "[ $user{UID} ] Don't have money account\n";
         }
  	  }
   }
