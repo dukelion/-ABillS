@@ -20,10 +20,12 @@ $web_interface    = 1;
                        "03:1:$_CHANNELS:iptv_user_channels:"   => 0
                       );
 
-%PERIODIC = ( report  => [ 'iptv_report' ]);
+%PERIODIC = ( report  => [ 'iptv_report' ],
+              monthly => [ 'iptv_monthly_fees' ]
+            );
 
 #daily   => [ 'iptv_daily_fees' ],
-#monthly => [ 'iptv_monthly_fees' ],
+
 
 
 
