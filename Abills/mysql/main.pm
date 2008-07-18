@@ -67,7 +67,7 @@ sub connect {
   my ($dbhost, $dbname, $dbuser, $dbpasswd, $attr) = @_;
   bless($self, $class);
   #$self->{debug}=1;
-  $self->{db} = DBI->connect("DBI:mysql:database=$dbname;host=$dbhost", "$dbuser", "$dbpasswd") or die 
+  $self->{db} = DBI->connect("DBI:mysql:database=$dbname;host=$dbhost", "$dbuser", "$dbpasswd") or print 
        "Unable connect to server '$dbhost:$dbname'\n";
   
   #For mysql 5 or highter
