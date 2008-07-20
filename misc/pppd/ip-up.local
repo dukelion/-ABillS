@@ -11,7 +11,7 @@
 #       $6      the parameter specified by the 'ipparam' option to pppd
 #
 
-AWK=${AWK};
+AWK=/usr/bin/awk;
 
 debug=0;
 
