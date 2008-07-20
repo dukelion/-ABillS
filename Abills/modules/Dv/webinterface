@@ -635,7 +635,9 @@ if ($conf{EXT_BILL_ACCOUNT}) {
   my $checked = ($tarif_info->{EXT_BILL_ACCOUNT}) ? ' checked' : '';
   $tarif_info->{EXT_BILL_ACCOUNT}="<tr><td>$_EXTRA $_BILL:</td><td><input type='checkbox' name='EXT_BILL_ACCOUNT' value='1' $checked></td></tr>\n";
 }
-
+else {
+	$tarif_info->{EXT_BILL_ACCOUNT}='';
+}
 
 $html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
 
