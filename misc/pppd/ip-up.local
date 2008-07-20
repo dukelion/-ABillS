@@ -11,14 +11,15 @@
 #       $6      the parameter specified by the 'ipparam' option to pppd
 #
 
+AWK=${AWK};
 
 debug=0;
 
 if [ -f /var/run/radattr.$1 ]
    then
-   DOWNSPEED=`/bin/awk  '/PPPD-Downstream-Speed-Limit/ {print $2}'  /var/run/radattr.$1`
-   UPSPEED=`/bin/awk  '/PPPD-Upstream-Speed-Limit/ {print $2}'  /var/run/radattr.$1`
-   FILTERS=`/bin/awk  '/Filter-Id/ {print $2}'  /var/run/radattr.$1`
+   DOWNSPEED=`${AWK}  '/PPPD-Downstream-Speed-Limit/ {print $2}'  /var/run/radattr.$1`
+   UPSPEED=`${AWK}  '/PPPD-Upstream-Speed-Limit/ {print $2}'  /var/run/radattr.$1`
+   FILTERS=`${AWK}  '/Filter-Id/ {print $2}'  /var/run/radattr.$1`
 
    if [ w${debug} = w1 ] ; then
      echo "Debug mode"
@@ -31,8 +32,7 @@ if [ -f /var/run/radattr.$1 ]
     /sbin/tc qdisc del dev $1 ingress > /dev/null
 
 ##### speed server->client
-   if [ "$UPSPEED" != "0" ] ;
-   then
+   if [ "$UPSPEED" != "0" ] ; then
      /sbin/tc qdisc add dev $1 root handle 1: htb default 20 r2q 1
      /sbin/tc class add dev $1 parent 1: classid 1:1 htb rate ${UPSPEED}kbit burst 4k
      /sbin/tc class add dev $1 parent 1:1 classid 1:10 htb rate ${UPSPEED}kbit burst 4k prio 1
@@ -43,21 +43,19 @@ if [ -f /var/run/radattr.$1 ]
      /sbin/tc filter add dev $1 parent 1:0 protocol ip prio 10 u32 match ip protocol 1 0xff flowid 1:10
 
 #     /sbin/tc filter add dev $1 parent 1: protocol ip prio 10 u32 match ip protocol 6 0xff match u8 0x05 0x0f at 0 match u160x0000 0xffc0 at 2 match u8 0x10 0xff at 33 flowid 1:10
-   fi 
+   fi ;
 
 ##### speed client->server
-   if [ "$DOWNSPEED" != "0" ] ;
-   then
+   if [ "$DOWNSPEED" != "0" ] ; then
      /sbin/tc qdisc add dev $1 handle ffff: ingress
      /sbin/tc filter add dev $1 parent ffff: protocol ip prio 50 u32 match ip src 0.0.0.0/0 police rate ${DOWNSPEED}kbit burst 12k drop flowid :1
-   fi
+   fi;
 
 #### Filters
-  if [ w$FILTERS != w ] ;
-  then
+   if [ w${FILTERS} != w ] ; then
+     #Put there filters rule
+     echo "Filter: ${FILTERS}"
+   fi;
 
-
-  fi;
-
- fi
+ fi;
 

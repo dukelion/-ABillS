@@ -3678,7 +3678,7 @@ if ($permissions{4} && $permissions{4}{4}) {
   push @m, "57:50:$_CHANGE:form_admins:AID::";
 }
 
-if ($permissions{0}{1}) {
+if ($permissions{0} && $permissions{0}{1}) {
   push @m, "24:11:$_ADD:user_form:::" ;
   push @m, "14:13:$_ADD:add_company:::";
   push @m, "28:27:$_ADD:add_groups:::";
