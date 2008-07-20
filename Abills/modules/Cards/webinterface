@@ -1235,6 +1235,12 @@ sub cards_diller_add {
 if ($FORM{add}) {
      print $html->header();
 
+     if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
+   	   $html->message('err', $_ERROR, "$_EXIST");
+   	   print "$_ICARDS $_EXIST ";
+   	   exit;
+      }
+
 
           my $list = $Cards->cards_list({ SERIA  => '', 
      	                                    PAGE_ROWS    => 1,
@@ -1303,8 +1309,9 @@ if ($FORM{add}) {
 	
 
 
-
-	$html->tpl_show(_include('cards_dillers_cod_gen', 'Cards'), { COUNT => 1, SUM => 0.00, %$Cards},
+  $Cards->{OP_SID} = mk_unique_value(16);
+	$html->tpl_show(_include('cards_dillers_cod_gen', 'Cards'), 
+	 { COUNT => 1, SUM => 0.00, %$Cards},
 	 { ID => 'CARD_GEN' });
 	
 	return 0;
