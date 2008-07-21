@@ -3543,11 +3543,11 @@ sub dv_wizard_user {
   
   my $list = $users->config_list({ PARAM => 'ifu*'});
 
-  foreach my $line (@$list) {
+  foreach my $line (sort @$list) {
     my $field_id   = '';
     if ($line->[0] =~ /ifu(\S+)/) {
     	$field_id = $1;
-      my($type, $name)=split(/:/, $line->[1]);
+      my($position, $type, $name)=split(/:/, $line->[1]);
 
       my $input = '';
       if ($type == 2) {
