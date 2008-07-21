@@ -1322,14 +1322,10 @@ if ($FORM{add}) {
 #
 #**********************************************************
 sub cards_dillers_list {
-	
- 
- #
-
   my $list = $Cards->cards_dillers_list({ %LIST_PARAMS });
 	my $table = $html->table( { width      => '100%',
                            caption    => "$_DILLERS",
-                           title      => ['ID', "$_NAME", "$_ADDRESS", "E-Mail", "$_REGISTRATION", "$_PERCENTAGE", "$_STATE", 
+                           title      => ['ID', "$_LOGIN", "$_NAME", "$_ADDRESS", "E-Mail", "$_REGISTRATION", "$_PERCENTAGE", "$_STATE", 
                               "$_COUNT",  "$_ENABLE" ],
                            cols_align => ['right', 'left', 'left',  'left', 'right', 'right', 'right', 'right', 
                             ],
@@ -1345,9 +1341,10 @@ sub cards_dillers_list {
         $line->[3],
   		  $line->[4],
   		  $line->[5],
-  		  $status[$line->[6]],
-  		  $line->[7],
+  		  $line->[6],
+  		  $status[$line->[7]],
   		  $line->[8],
+  		  $line->[9],
   		  #$html->button($_INFO, "index=$index$pages_qs&info=$line->[0]"),
   		  #$html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]"),
   		  #$html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
