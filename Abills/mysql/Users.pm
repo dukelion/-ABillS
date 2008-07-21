@@ -729,7 +729,7 @@ sub list {
  if ($attr->{GIDS}) {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
   }
- elsif ($attr->{GID}) {
+ elsif (defined($attr->{GID}) && $attr->{GID} >= 0) {
    my $value = $self->search_expr($attr->{GID}, 'INT');
    push @WHERE_RULES, "u.gid$value";
   }

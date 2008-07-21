@@ -592,7 +592,10 @@ sub periods_totals {
  my ($attr) = @_;
  my $WHERE = '';
  
- if($attr->{UID})  {
+ if ($attr->{LIST_UIDS}) {
+   push @WHERE_RULES, "l.uid IN ($attr->{LIST_UIDS})";
+  }
+ elsif($attr->{UID})  {
    $WHERE .= ($WHERE ne '') ?  " and uid='$attr->{UID}' " : "WHERE uid='$attr->{UID}' ";
   }
 
@@ -983,9 +986,14 @@ sub calculation {
 
   @WHERE_RULES = ();
 #Login
-  if ($attr->{UID}) {
+  
+  
+ if ($attr->{LIST_UIDS}) {
+   push @WHERE_RULES, "l.uid IN ($attr->{LIST_UIDS})";
+  }
+ elsif ($attr->{UID}) {
   	push @WHERE_RULES, "l.uid='$attr->{UID}'";
-   }
+  }
 
 if($attr->{INTERVAL}) {
  	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
