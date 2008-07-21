@@ -1058,7 +1058,7 @@ sub user_pi {
   my ($attr) = @_;
 
   my $user = $attr->{USER};
-
+  
  if($FORM{add}) {
    if (! $permissions{0}{1} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
@@ -1076,6 +1076,7 @@ sub user_pi {
     	return 0;
     }
 
+
  	 my $user_pi = $user->pi_change({ %FORM });
    if (! $user_pi->{errno}) {
     $html->message('info', $_CHAGED, "$_CHANGED");	
@@ -1085,7 +1086,6 @@ sub user_pi {
   if ($user_pi->{errno}) {
     $html->message('err', $_ERROR, "[$user_pi->{errno}] $err_strs{$user_pi->{errno}}");	
    }
-
 
   my $user_pi = $user->pi();
 
@@ -1101,7 +1101,7 @@ sub user_pi {
 
   #Info fields
   my $i=0; 
-  foreach my $field_id ( sort @{ $user_pi->{INFO_FIELDS_ARR} } ) {
+  foreach my $field_id ( @{ $user_pi->{INFO_FIELDS_ARR} } ) {
     my($position, $type, $name)=split(/:/, $user_pi->{INFO_FIELDS_HASH}->{$field_id});
 
     my $input = '';
