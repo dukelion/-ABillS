@@ -662,7 +662,8 @@ foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
 }
 
 
-  #Flush from debetors group
+#Flush from debetors group
+$DEBUG .= "Delete from debetors Group\n" if ($debug > 1) ;
 foreach my $DEBETOR_GID (sort { $b <=> $a } keys %DEBETORS_GIDS) {
 
 	my $val = $USERS_GIDS{$DEBETORS_GIDS{$DEBETOR_GID}};
@@ -678,7 +679,6 @@ foreach my $DEBETOR_GID (sort { $b <=> $a } keys %DEBETORS_GIDS) {
 
 
 
-  $DEBUG .= "Delete from debetors Group\n" if ($debug > 1) ;
   foreach my $line (@$list) {
     my $uid           = $line->[5  + $users->{SEARCH_FIELDS_COUNT}];
     my $gid           = $line->[10 + $users->{SEARCH_FIELDS_COUNT}];
