@@ -1152,14 +1152,21 @@ if(defined($attr->{USER})) {
   #Make service menu
   my $service_menu = '';
   my $service_func_index = 0;
+  my $service_func_menu = '';
   foreach my $key ( sort keys %menu_items) {
 	  if (defined($menu_items{$key}{20})) {
 	  	$service_func_index=$key if (($FORM{MODULE} && $FORM{MODULE} eq $module{$key} || ! $FORM{MODULE}) && $service_func_index == 0);
 		  $service_menu .= '<li>'. $html->button($menu_items{$key}{20}, "UID=$user_info->{UID}&index=$key");
 	   }
+  
+   	if ($service_func_index > 0 && $menu_items{$key}{$service_func_index}) {
+	  	 $service_func_menu .= $html->button($menu_items{$key}{$service_func_index}, "UID=$user_info->{UID}&index=$key") .' :: ';
+ 	 	 }
+
    }
   #
   
+ 
   form_passwd({ USER => $user_info }) if (defined($FORM{newpassword}));
 
   if ($FORM{change}) {
@@ -1226,30 +1233,11 @@ if(defined($attr->{USER})) {
        }
     
     print "<TABLE width='100%'>
-      <tr bgcolor='$_COLORS[0]'><TH align='right'>$module{$service_func_index}</TH></tr>
+      <TR bgcolor='$_COLORS[0]'><TH align='right'>$module{$service_func_index}</TH></TR>
+      <TR bgcolor='$_COLORS[2]'><TH align='right'>$service_func_menu</TH></TR>
     </TABLE>\n";
   
     $functions{$service_func_index}->({ USER => $user_info });
-
-##  if(defined($FORM{UID}) && $FORM{UID} > 0) {
-##  	my $ui = user_info($FORM{UID});
-##  	if($ui->{errno}==2) {
-##  		$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
-##  	 }
-##    elsif ($admin->{GID} > 0 && $ui->{GID} != $admin->{GID}) {
-##    	$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
-##     }
-##  	else {
-##  	  $functions{$index}->({ USER => $ui });
-##  	  #$LIST_PARAMS{LOGIN} = '11111';
-##  	}
-##   }
-##  elsif ($index == 0) {
-##  	form_start();
-##   }
-##  else {
-##     $functions{$index}->();
-##   }
 }
     
     user_pi({ USER => $user_info });

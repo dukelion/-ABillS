@@ -592,8 +592,8 @@ sub periods_totals {
  my ($attr) = @_;
  my $WHERE = '';
  
- if ($attr->{LIST_UIDS}) {
-   push @WHERE_RULES, "l.uid IN ($attr->{LIST_UIDS})";
+ if ($attr->{UIDS}) {
+   $WHERE .= "WHERE uid IN ($attr->{UIDS})";
   }
  elsif($attr->{UID})  {
    $WHERE .= ($WHERE ne '') ?  " and uid='$attr->{UID}' " : "WHERE uid='$attr->{UID}' ";
@@ -716,6 +716,13 @@ WHERE
    $octets_online_direction2 = "ex_output_octets";
   }
 
+ my $uid="uid='$attr->{UID}'";
+ if ($attr->{UIDS}) {
+ 	  $uid="uid IN ($attr->{UIDS})";
+  }
+
+
+
  #Traffic transfert
  if ($traffic_transfert > 0) {
    my $WHERE = '';
@@ -728,12 +735,15 @@ WHERE
        and DATE_FORMAT(start, '%Y-%m-%d')<='$self->{INFO_LIST}->[0]->[3]'";
     }
 
+
+
+
  	 #Get using traffic
    $self->query($db, "select  
      if($rest{0} * $traffic_transfert > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0} * $traffic_transfert - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
      if($rest{1} * $traffic_transfert > sum($octets_direction2) / $CONF->{MB_SIZE}, $rest{1} * $traffic_transfert - sum($octets_direction2) / $CONF->{MB_SIZE}, 0)
    FROM dv_log
-   WHERE uid='$attr->{UID}'  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
+   WHERE $uid  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
     (  $WHERE
       ) 
    GROUP BY uid
@@ -760,7 +770,7 @@ WHERE
   $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE},
   $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}
  FROM dv_log
- WHERE uid='$attr->{UID}' and DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]'
+ WHERE $uid and DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]'
  GROUP BY uid
  ;");
 
@@ -823,7 +833,10 @@ sub list {
                                  RECV            => 'l.recv2');
  
 #UID
- if ($attr->{UID}) {
+ if ($attr->{UIDS}) {
+   push @WHERE_RULES, "l.uid IN ($attr->{UIDS})";
+  }
+ elsif ($attr->{UID}) {
     push @WHERE_RULES, "l.uid='$attr->{UID}'";
   }
  elsif ($attr->{LOGIN_EXPR}) {
@@ -988,8 +1001,8 @@ sub calculation {
 #Login
   
   
- if ($attr->{LIST_UIDS}) {
-   push @WHERE_RULES, "l.uid IN ($attr->{LIST_UIDS})";
+ if ($attr->{UIDS}) {
+   push @WHERE_RULES, "l.uid IN ($attr->{UIDS})";
   }
  elsif ($attr->{UID}) {
   	push @WHERE_RULES, "l.uid='$attr->{UID}'";
