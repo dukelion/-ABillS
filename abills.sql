@@ -426,6 +426,7 @@ CREATE TABLE `msgs_admins` (
   `aid` smallint(6) unsigned NOT NULL default '0',
   `chapter_id` int(11) unsigned NOT NULL default '0',
   `priority` tinyint(4) unsigned NOT NULL default '0',
+  `email_notify` tinyint(4) unsigned NOT NULL default '0',
   UNIQUE KEY `aid` (`aid`,`chapter_id`)
 ) COMMENT='Msgs admins';
 
