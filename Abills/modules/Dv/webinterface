@@ -1772,6 +1772,41 @@ if ($sessions->{errno})	 {
  }
 
 
+#Join Service
+  if($users->{COMPANY_ID}) {
+     $Dv->info($FORM{UID});
+
+     if ($Dv->{JOIN_SERVICE}) {
+       if ($Dv->{JOIN_SERVICE} == 1) {
+   	   my $list = $Dv->list({ JOIN_SERVICE => $Dv->{UID}, 
+                              COMPANY_ID   => $attr->{USER}->{COMPANY_ID} ,
+                              PAGE_ROWS    => 1000
+                             });
+
+         foreach my $line (@$list) {
+     	   $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&index=$index&UID=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) . ' :: ';
+     	   push @uids, $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6];
+        }
+      
+         $LIST_PARAMS{UIDS}=$FORM{UID} .',' .join(', ', @uids);
+        }
+       elsif($Dv->{JOIN_SERVICE}  > 1) {
+       	 $Dv->{JOIN_SERVICES_USERS} .= $html->button("$_MAIN", "index=$index&UID=$Dv->{JOIN_SERVICE}") .' :: ';
+        }
+
+       my $table = $html->table( { 
+	                          width => '100%',
+                            rows  => [
+                                  ["$_JOIN_SERVICE:",  $Dv->{JOIN_SERVICES_USERS} ]
+                                    ]
+                           } );
+
+       print $table->show();
+ }
+	   
+ 	 }                                    
+
+
 if ($FORM{rows}) {
   $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
   $conf{list_max_recs}=$FORM{rows};
@@ -1865,7 +1900,8 @@ elsif($FORM{DATE}) {
 
 #Show rest of prepaid traffic
 if ($sessions->prepaid_rest({ 
-	                            UID => $LIST_PARAMS{UID} 
+	                            UID  => $LIST_PARAMS{UID},
+	                            UIDS => $LIST_PARAMS{UIDS}
 	                           })) {
 	#Prepaid: period, traffic_type
   
@@ -1981,6 +2017,31 @@ if ($sessions->{errno})	{
 	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
  }
 
+#Join Service
+  if($users->{COMPANY_ID}) {
+     $Dv->info($FORM{UID});
+
+     if ($Dv->{JOIN_SERVICE} == 1) {
+   	   my $list = $Dv->list({ JOIN_SERVICE => $Dv->{UID}, 
+                              COMPANY_ID   => $attr->{USER}->{COMPANY_ID} ,
+                              PAGE_ROWS    => 1000
+                             });
+
+       foreach my $line (@$list) {
+     	   $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&index=15&UID=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) . ' ';
+     	   push @uids, $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6];
+        }
+      
+       $LIST_PARAMS{UIDS}=$FORM{UID} .',' .join(', ', @uids);
+      }
+     elsif($Dv->{JOIN_SERVICE}  > 1) {
+     	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_MAIN", "index=15&UID=$Dv->{JOIN_SERVICE}");
+      }
+
+     print "$_LOGIN: $Dv->{JOIN_SERVICES_USERS}";
+ 	   
+ 	 }
+
 
 if ($FORM{rows}) {
   $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
@@ -2078,7 +2139,7 @@ elsif (defined($FORM{PERIOD})) {
 }
 
 #Show rest of prepaid traffic
-if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
+if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID}, UIDS => $LIST_PARAMS{UIDS} })) {
 	#Prepaid: period, traffic_type
   
 
