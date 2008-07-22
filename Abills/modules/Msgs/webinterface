@@ -35,8 +35,11 @@ elsif ($FORM{chg}) {
   
   my $a_list = $Msgs->admins_list({ AID => $FORM{AID} });
   my %A_PRIVILEGES = ();
+  my %A_MAIL_SEND  = ();
+  
   foreach my $line (@$a_list) {
   	$A_PRIVILEGES{$line->[5]}=$line->[2];
+  	$A_MAIL_SEND{$line->[5]}=$line->[6];
   	$Msgs->{ADMIN}=$line->[0];
    }
   
@@ -47,8 +50,8 @@ elsif ($FORM{chg}) {
 
   my $list = $Msgs->chapters_list({ AID => $FORM{AID} });
   my $table = $html->table({ width      => '100%',
-                             title      => ['ID', "$_CHAPTERS", "$_ACCESS" ],
-                             cols_align => ['right', 'left', 'center' ],
+                             title      => ['ID', "$_CHAPTERS", "$_ACCESS", 'E-mail' ],
+                             cols_align => ['right', 'left', 'center', 'center' ],
                            });
   
  
@@ -63,7 +66,9 @@ elsif ($FORM{chg}) {
     $table->addrow($line->[0] . $html->form_input('IDS', "$line->[0]", { TYPE => 'checkbox', 
     	  STATE => (defined($A_PRIVILEGES{$line->[0]})) ? 1 : undef }),
         $line->[1],
-        $privileges
+        $privileges,
+        $html->form_input('EMAIL_NOTIFY_'. $line->[0], 1, { TYPE => 'checkbox', 
+    	  STATE => ($A_MAIL_SEND{$line->[0]}) ? 1 : undef }),
      );
    }
   
@@ -82,39 +87,41 @@ my $list = $Msgs->admins_list({ %LIST_PARAMS });
   
   my $table = $html->table( { width      => '100%',
                               caption    => "$_ADMINS",
-                              title      => [$_ADMIN, "$_CHAPTERS", "_PRIORITY", "$_MESSAGES", "-"],
-                              cols_align => ['left', 'left', 'right', 'center:noprint' ],
+                              title      => [$_ADMIN, "$_CHAPTERS", "$_PERMISSION", "$_MESSAGES", 'E-mail', "-"],
+                              cols_align => ['left', 'left', 'center', 'right', 'center', 'center:noprint' ],
                               qs         => $pages_qs,
+                              ID         => 'MSGS_ADMINS'
                            });
 
 my %A_PRIVILEGES = ();
 foreach my $line (@$list) {
-  push @{ $A_PRIVILEGES{$line->[0]} }, "$line->[1]|$line->[2]|$line->[3]|$line->[4]|$line->[5]";
+  push @{ $A_PRIVILEGES{$line->[0]} }, "$line->[1]|$line->[2]|$line->[3]|$line->[4]|$line->[5]}|$line->[6]";
 }
 
 foreach my $admin (sort keys %A_PRIVILEGES) {
   my $rows = $#{ $A_PRIVILEGES{$admin} };
   my @arr = @{ $A_PRIVILEGES{$admin} };
 
-  my ($chapter_name, $privilege, $msgs, $aid, $chapter_id) = split(/\|/, $arr[0] );
+  my ($chapter_name, $privilege, $msgs, $aid, $chapter_id, $mail_send) = split(/\|/, $arr[0] );
 
   $table->addtd(
                   $table->td($admin, { rowspan => ($rows > 0) ? $rows+1 : 1 } ),
                   $table->td($chapter_name), 
                   $table->td($privilages_arr[$privilege]), 
                   $table->td($msgs), 
+                  $table->td($bool_vals[$mail_send]), 
                   $table->td($html->button("$_CHANGE", "index=$index&chg=$aid&AID=$aid"), { rowspan => ($rows > 0) ? $rows+1 : 1 })
       );
 
 
   if ($rows > 0) {
     for(my $i=1; $i<=$rows; $i++) { 
-      my ($chapter_name, $privilege, $msgs, $aid, $chapter_id) = split(/\|/, $arr[$i] );
+      my ($chapter_name, $privilege, $msgs, $aid, $chapter_id, $mail_send) = split(/\|/, $arr[$i] );
       $table->addrow(
        $chapter_name, 
        $privilages_arr[$privilege],
        $msgs,
-       
+       $bool_vals[$mail_send]
       );
     }
    }
@@ -150,7 +157,7 @@ sub msgs_admin_add {
           $FORM{UID}=$line->[5+$users->{SEARCH_FIELDS_COUNT}];
           $Msgs->message_add({ %FORM, 
           	                   ADMIN_READ => (! $FORM{INNER_MSG}) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
-          	                   IP => $admin->{SESSION_IP} 
+          	                   IP         => $admin->{SESSION_IP} 
           	                 });
         }
        $message = "$_TOTAL: $users->{TOTAL}";
@@ -161,7 +168,7 @@ sub msgs_admin_add {
     else {
       $Msgs->message_add({ %FORM, 
       	                   ADMIN_READ => (! $FORM{INNER_MSG}) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
-      	                   IP => $admin->{SESSION_IP} 
+      	                   IP         => $admin->{SESSION_IP} 
       	                 });
      }
 
@@ -179,7 +186,23 @@ sub msgs_admin_add {
          });
        }
 
-      $html->message('info', $_INFO, "$_SENDED $message") 
+      $html->message('info', $_INFO, "$_SENDED $message");
+      
+      if ($users->{EMAIL}) {
+      	$ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
+        my $site =  $1 || '';
+    	 
+       	my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
+           { SITE => $site, DATE => $DATE, TIME => $TIME }, { OUTPUT2RETURN => 1 } );
+
+        sendmail("AbillS <$conf{ADMIN_MAIL}>",
+          "$users->{EMAIL}",
+          "$conf{WEB_TITLE} - $_NEW_MESSAGE",
+          "$message",
+          "$conf{MAIL_CHARSET}",
+          undef);
+       }
+
      }
    }
 #  elsif ($FORM{change}) {
@@ -288,7 +311,7 @@ sub msgs_admin {
            FILESIZE     => $FORM{FILE_UPLOAD}{Size},
            FILENAME     => $FORM{FILE_UPLOAD}{filename},
            CONTENT_TYPE => $FORM{FILE_UPLOAD}{'Content-Type'},
-           UID          => $user->{UID},
+           UID          => $FORM{UID},
            MESSAGE_TYPE  => 1
           });
         }      
@@ -311,6 +334,25 @@ sub msgs_admin {
  	 	                      });
     $FORM{chg} = $FORM{ID};
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
+    
+    $users->pi({ UID => $FORM{UID} });
+    
+    if ($users->{EMAIL}) {
+    	 $ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
+       my $site =  $1 || '';
+    	 
+    	 my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
+           { SITE => $site, DATE => $DATE, TIME => $TIME }, { OUTPUT2RETURN => 1 } );
+    	 
+       sendmail("AbillS <$conf{ADMIN_MAIL}>",
+          "$users->{EMAIL}",
+          "$conf{WEB_TITLE} - $_NEW_MESSAGE",
+          "$message",
+          "$conf{MAIL_CHARSET}",
+          undef);
+
+     }
+    
     goto MSG_LABEL;
    }
   elsif ($FORM{chg}) {
@@ -362,8 +404,10 @@ sub msgs_admin {
     
     $Msgs->{MSG_CLOSED_DATE}=$html->form_input('MSG_CLOSED_DATE', "");
     $Msgs->{INNER_MSG} = $bool_vals[$Msgs->{INNER_MSG}];
+
     $Msgs->{EXT_INFO}=$html->tpl_show(_include('msgs_managment', 'Msgs'), 
       $Msgs, { notprint => 1 } );
+
 
    
     #$Msgs->{THREADS} = $html->button($Msgs->{SUBJECT}. " ($_DATE: $Msgs->{DATE}) ", "");
@@ -375,23 +419,45 @@ sub msgs_admin {
     
     my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID} });
 
+    my $reply = '';
+    if ($Msgs->{TOTAL} == 0)  {
+       $reply = $Msgs->{MESSAGE};
+      }
+
     foreach my $line (@$list) {
+
+      if ($FORM{QUOTING} && $FORM{QUOTING} == $line->[0]) {
+         $reply = $line->[2];
+       }
+      
+      $line->[2]=~ s/> (.+)/<font color='$_COLORS[8]'> > \1 <\/font>/g;
+
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
           REPLY_ID => $line->[0],
           DATE     => $line->[1],
           CAPTION  => convert($line->[5], { text2html => 1 }),
           PERSON   =>	$line->[3],
       	  MESSAGE  => convert($line->[2], { text2html => 1 }),
-      	  DELETE   =>  $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }),
+      	  QUOTING  => $html->button($_QUOTING, "&index=$index&chg=$FORM{chg}&UID=$FORM{UID}&QUOTING=$line->[0]"),
+      	  DELETE   => $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }),
       	  ATTACHMENT =>  ($line->[7]) ? "$_ATTACHMENT: ". $html->button("$line->[7]", "qindex=$index&ATTACHMENT=$line->[9]", { TARGET => '_new' }). " ($_SIZE: ". int2byte($line->[8]) .')' : ''
       	  
       	  }, { notprint => 1 } );
      }
+
     
+    if ($reply ne '') {
+    	#$reply =~ s/>/>> /g;
+
+      #if (! $&) {
+  	    $reply =~ s/^/> /g;
+  	    $reply =~ s/\n/> /g;
+  	  # }
+     }
 
 
     $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), 
-      { %$Msgs, REPLY => '' }, { notprint => 1 });
+      { %$Msgs, REPLY_TEXT => $reply }, { notprint => 1 });
     
     $Msgs->{MESSAGE}=convert($Msgs->{MESSAGE}, { text2html => 1 });
     $Msgs->{SUBJECT}=convert($Msgs->{SUBJECT}, { text2html => 1 });
@@ -605,6 +671,26 @@ sub msgs_user {
          });
        }      
      $html->message('info', $_INFO, "$_SENDED");
+
+     my $list = $Msgs->admins_list({ EMAIL_NOTIFY   => 1,
+     	                               CHAPTEr_ID     => $FORM{CHAPTER}
+     	                              });     
+     foreach my $line (@$list) {
+        next if (! $line->[7]);
+        
+     	  $ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
+        my $site =  $1 || '';
+
+      	my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
+           { SITE => $site, DATE => $DATE, TIME => $TIME }, { OUTPUT2RETURN => 1 } );
+    	 
+        sendmail("AbillS <$conf{ADMIN_MAIL}>",
+          "$line->[7]",
+          "$conf{WEB_TITLE} - $_NEW_MESSAGE",
+          "$message",
+          "$conf{MAIL_CHARSET}",
+          undef);
+      }
    }
  	}
  elsif ($FORM{ID}) {
@@ -635,6 +721,28 @@ sub msgs_user {
         }      
 
      $html->message('info', $_INFO, "$_REPLY");  
+     
+     my $list = $Msgs->admins_list({ EMAIL_NOTIFY   => 1,
+     	                               CHAPTEr_ID     => $FORM{CHAPTER}
+     	                              });     
+     foreach my $line (@$list) {
+        next if (! $line->[7]);
+        
+      	$ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
+        my $site =  $1 || '';
+
+       	my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
+           { SITE => $site, DATE => $DATE, TIME => $TIME }, { OUTPUT2RETURN => 1 } );
+
+
+        sendmail("AbillS <$conf{ADMIN_MAIL}>",
+          "$line->[7]",
+          "$conf{WEB_TITLE} - $_NEW_MESSAGE",
+          "$message",
+          "$conf{MAIL_CHARSET}",
+          undef);
+      }
+   
      }
     }
 
@@ -647,22 +755,35 @@ sub msgs_user {
  	 if ($Msgs->{ID} && $Msgs->{ID} > 0) {
  	   
  	  my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID} });
+    my $reply = '';
 
     foreach my $line (@$list) {
+    	
+      if ($FORM{QUOTING} && $FORM{QUOTING} == $line->[0]) {
+         $reply = $line->[2];
+       }
+      
+      $line->[2]=~ s/> (.+)/<font color='$_COLORS[8]'> > \1 <\/font>/g;
+
+    	
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
           REPLY_ID => $line->[0],
           DATE     => $line->[1],
           CAPTION  => convert($line->[5], { text2html => 1 }),
           PERSON   =>	$line->[3],
-      	  MESSAGE  => convert($line->[2], { text2html => 1 })
+      	  MESSAGE  => convert($line->[2], { text2html => 1 }),
+      	  QUOTING  => $html->button($_QUOTING, "index=$index&QUOTING=$line->[0]&ID=$FORM{ID}&sid=$sid"),
       	  }, { OUTPUT2RETURN => 1 } );
      }
     
+    if ($reply ne '') {
+      $reply =~ s/^/> /g;
+  	  $reply =~ s/\n/> /g;
+     }
 
     if ($Msgs->{STATE} < 2) {
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), 
-       { %$Msgs, REPLY => '' }, { OUTPUT2RETURN => 1 });
-
+       { %$Msgs, REPLY_TEXT => $reply }, { OUTPUT2RETURN => 1 });
       }
     else {
       $html->message('info', $_INFO, "$msg_status[$Msgs->{STATE}] $_DATE: $Msgs->{CLOSED_DATE}");  	
@@ -729,6 +850,8 @@ sub msgs_user {
   $LIST_PARAMS{SORT}       =  '11, 5 DESC';
   $LIST_PARAMS{INNER_MSG}  =  0;
 
+  #print "Content-type: text/html\n\n";
+  #$Msgs->{debug}=1;
   my  $list = $Msgs->messages_list({ %LIST_PARAMS });  
 
   my $table = $html->table( { width        => '100%',

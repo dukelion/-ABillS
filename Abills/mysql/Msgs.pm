@@ -596,13 +596,28 @@ sub admins_list {
   @WHERE_RULES = ();
  
  if($attr->{AID}) {
-	 push @WHERE_RULES, "a.aid='$attr->{AID}'"; 
+	 push @WHERE_RULES, "ma.aid='$attr->{AID}'"; 
   }
+
+ if($attr->{EMAIL_NOTIFY}) {
+	 push @WHERE_RULES, "ma.email_notify='$attr->{EMAIL_NOTIFY}'"; 
+  }
+
+ if($attr->{EMAIL}) {
+ 	 $attr->{EMAIL} =~ s/\*/\%/ig;
+	 push @WHERE_RULES, "a.email LIKE '$attr->{EMAIL}'"; 
+  }
+
+ if($attr->{CHAPTER_ID}) {
+   my $value = $self->search_expr($attr->{CHAPTER_ID}, 'INT');
+ 	 push @WHERE_RULES, "ma.chapter_id$value"; 
+  }
+ 
  
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db, "SELECT a.id, mc.name, ma.priority, 0, a.aid, if(ma.chapter_id IS NULL, 0, ma.chapter_id)
+  $self->query($db, "SELECT a.id, mc.name, ma.priority, 0, a.aid, if(ma.chapter_id IS NULL, 0, ma.chapter_id), ma.email_notify, a.email
     FROM admins a 
     LEFT join msgs_admins ma ON (a.aid=ma.aid)
     LEFT join msgs_chapters mc ON (ma.chapter_id=mc.id)
@@ -637,8 +652,8 @@ sub admin_change {
   
   my @chapters = split(/, /, $attr->{IDS});
   foreach my $id (@chapters) {
-    $self->query($db, "insert into msgs_admins (aid, chapter_id, priority)
-      values ('$DATA{AID}', '$id','". $DATA{'PRIORITY_'. $id}."');", 'do');
+    $self->query($db, "insert into msgs_admins (aid, chapter_id, priority, email_notify)
+      values ('$DATA{AID}', '$id','". $DATA{'PRIORITY_'. $id}."','". $DATA{'EMAIL_NOTIFY_'. $id}."');", 'do');
    }
 
 	return $self;
@@ -770,6 +785,11 @@ sub messages_reply_list {
    my $value = $self->search_expr($attr->{STATE}, 'INT');
    push @WHERE_RULES, "m.state$value"; 
   }
+
+ if ($attr->{ID}) {
+   my $value = $self->search_expr($attr->{ID}, 'INT');
+   push @WHERE_RULES, "mr.id$value"; 
+  }
  
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
@@ -783,7 +803,8 @@ sub messages_reply_list {
     INET_NTOA(mr.ip),
     ma.filename,
     ma.content_size,
-    ma.id
+    ma.id,
+    mr.uid
     FROM (msgs_reply mr)
     LEFT JOIN users u ON (mr.uid=u.uid)
     LEFT JOIN admins a ON (mr.aid=a.aid)
