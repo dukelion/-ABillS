@@ -1,3 +1,3 @@
 :OS=FREEBSD:mysql_enable="YES"  >> [/etc/]/rc.conf
-:OS=FREEBSD:my.cnf              >> [/etc/]/my.cnf
+my.cnf                          > [/etc/]/my.cnf
 
