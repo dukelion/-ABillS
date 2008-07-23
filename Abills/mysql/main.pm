@@ -239,6 +239,7 @@ sub get_data {
   
   while(my($k, $v)=each %$params) {
   	 next if (! $params->{$k} && defined($DATA{$k})) ;
+  	 $v =~ s/^ +|[ \n]+$//g if ($v);
   	 $DATA{$k}=$v;
      #print "--$k, '$v'<br>\n";
    }
