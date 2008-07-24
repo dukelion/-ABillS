@@ -1279,7 +1279,7 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
     my $list = $users->config_list({ PARAM => 'ifu*'  });
     my %INFO_LISTS = (); 
 
-    $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
+    
 
     foreach my $line (@$list) {
       my $field_id       = '';
@@ -1292,8 +1292,6 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
       $CAPTIONS_HASH{(90+$i).':'.$field_id}=$name;
 
       if ($type == 2) {
-      	print "info: ";
-        
         my $list = $users->info_lists_list( { LIST_TABLE => $field_id.'_list' });
         foreach my $line (@$list) {
           $INFO_LISTS{$field_id}{$line->[0]}=$line->[1];
@@ -1309,6 +1307,7 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
 
   reports({ DATE          => $FORM{DATE}, 
   	        REPORT        => '',
+  	        HIDDEN        => ($FORM{COMPANY_ID}) ? { COMPANY_ID => $FORM{COMPANY_ID} } : undef,
   	        EX_PARAMS     => { HOURS => "$_HOURS",
   	        	                 USERS => "$_USERS"
   	        	                 }, 
@@ -1332,6 +1331,11 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
 
 $LIST_PARAMS{TP_ID}=$FORM{TP_ID} if ($FORM{TP_ID});
 
+if ($FORM{COMPANY_ID}) {
+ 	$LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
+  $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
+ }
+
 
 my ($tables_sessions);
 my $output = '';
@@ -1345,7 +1349,6 @@ my %AVG = (MONEY    => 0,
            DURATION => 0);
 
 my $graph_type='';
-
 
 #Day reposrt
 if (defined($FORM{DATE})) {
