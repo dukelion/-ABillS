@@ -1149,6 +1149,7 @@ sub cards_diller_face {
   $Cards->cards_diller_info({ UID => $user->{UID} });
   
   if ($Cards->{TOTAL} < 1) {
+     $html->setCookie('sid', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
      print "Content-Type: text/html\n\n";
      print "$_NOT_EXIST";
      exit; 	
