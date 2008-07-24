@@ -2508,6 +2508,7 @@ sub ipn_detail_rotate {
     $debug_output .= "Make IPN details rotate\n" if ($debug > 0);
    }
   elsif ($conf{IPN_DETAIL}) {
+    $debug_output .= "Ipn rotate daily details\n" if ($debug > 0);
     $Ipn->ipn_log_rotate({ 
     	                        DETAIL => 1,
   	                          PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} 
