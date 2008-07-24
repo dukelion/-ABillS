@@ -1771,24 +1771,26 @@ if ($sessions->{errno})	 {
 	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
  }
 
-
 #Join Service
   if($users->{COMPANY_ID}) {
      $Dv->info($FORM{UID});
 
      if ($Dv->{JOIN_SERVICE}) {
        if ($Dv->{JOIN_SERVICE} == 1) {
-   	   my $list = $Dv->list({ JOIN_SERVICE => $Dv->{UID}, 
-                              COMPANY_ID   => $attr->{USER}->{COMPANY_ID} ,
-                              PAGE_ROWS    => 1000
-                             });
+         my @uids = ();
+   	     my $list = $Dv->list({ JOIN_SERVICE => $Dv->{UID}, 
+                                COMPANY_ID   => $attr->{USER}->{COMPANY_ID} ,
+                                PAGE_ROWS    => 10000
+                               });
 
          foreach my $line (@$list) {
-     	   $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&index=$index&UID=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) . ' :: ';
-     	   push @uids, $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6];
-        }
+     	     $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&index=$index&UID=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) . ' :: ';
+     	     push @uids, $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6];
+     	     print "///". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6];
+          }
       
-         $LIST_PARAMS{UIDS}=$FORM{UID} .',' .join(', ', @uids);
+         $LIST_PARAMS{UIDS}=$FORM{UID};
+         $LIST_PARAMS{UIDS} .= ',' .join(', ', @uids) if ($#uids > -1);
         }
        elsif($Dv->{JOIN_SERVICE}  > 1) {
        	 $Dv->{JOIN_SERVICES_USERS} .= $html->button("$_MAIN", "index=$index&UID=$Dv->{JOIN_SERVICE}") .' :: ';
@@ -1802,7 +1804,7 @@ if ($sessions->{errno})	 {
                            } );
 
        print $table->show();
- }
+    }
 	   
  	 }                                    
 
@@ -2018,11 +2020,11 @@ if ($sessions->{errno})	{
  }
 
 #Join Service
-  if($users->{COMPANY_ID}) {
-     $Dv->info($FORM{UID});
+  if($user->{COMPANY_ID}) {
+     $Dv->info($UID);
 
      if ($Dv->{JOIN_SERVICE} == 1) {
-   	   my $list = $Dv->list({ JOIN_SERVICE => $Dv->{UID}, 
+   	   my $list = $Dv->list({ JOIN_SERVICE => $UID, 
                               COMPANY_ID   => $attr->{USER}->{COMPANY_ID} ,
                               PAGE_ROWS    => 1000
                              });
@@ -2032,13 +2034,22 @@ if ($sessions->{errno})	{
      	   push @uids, $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6];
         }
       
-       $LIST_PARAMS{UIDS}=$FORM{UID} .',' .join(', ', @uids);
+       $LIST_PARAMS{UIDS} = $UID;
+       $LIST_PARAMS{UIDS}.= ',' .join(', ', @uids) if ($#uids > -1);
       }
      elsif($Dv->{JOIN_SERVICE}  > 1) {
      	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_MAIN", "index=15&UID=$Dv->{JOIN_SERVICE}");
       }
 
-     print "$_LOGIN: $Dv->{JOIN_SERVICES_USERS}";
+     my $table = $html->table( { 
+	                          width => '100%',
+                            rows  => [
+                                  ["$_JOIN_SERVICE:",  $Dv->{JOIN_SERVICES_USERS} ]
+                                    ]
+                           } );
+
+     print $table->show();
+
  	   
  	 }
 
@@ -2121,7 +2132,8 @@ $table = $html->table({ width       => '100%',
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { sid   => "$sid",
 	                                    index => "$index",
-	                                    UID   => "$UID" }});
+	                                    UID   => "$UID",
+	                                    UIDS  => "$FORM{UIDS}" }});
 
 
 
@@ -2139,7 +2151,10 @@ elsif (defined($FORM{PERIOD})) {
 }
 
 #Show rest of prepaid traffic
-if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID}, UIDS => $LIST_PARAMS{UIDS} })) {
+if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID}, 
+	                            UIDS => $LIST_PARAMS{UIDS} 
+	                            })) {
+
 	#Prepaid: period, traffic_type
   
 
