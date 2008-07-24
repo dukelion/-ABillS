@@ -2029,22 +2029,32 @@ if ($sessions->{errno})	{
                               PAGE_ROWS    => 1000
                              });
 
+       $Dv->{JOIN_SERVICES_USERS} = (! $FORM{JOIN_STATS}) ? $html->b($_ALL) .' :: ' :
+  	    $html->button("$_ALL", "&sid=$sid&index=$index&JOIN_STATS=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) . ' ::';
+
        foreach my $line (@$list) {
-     	   $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&index=15&UID=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) . ' ';
+     	   if ($FORM{JOIN_STATS} && $FORM{JOIN_STATS}==$line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) {
+     	     $Dv->{JOIN_SERVICES_USERS} .=  $html->b($line->[0]). ' :: ';
+     	     $UID = $FORM{JOIN_STATS};
+     	    }
+     	   else {
+     	     $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&sid=$sid&index=$index&JOIN_STATS=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) . ' ::';
+          }
+
      	   push @uids, $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6];
         }
       
        $LIST_PARAMS{UIDS} = $UID;
-       $LIST_PARAMS{UIDS}.= ',' .join(', ', @uids) if ($#uids > -1);
+       $LIST_PARAMS{UIDS}.= ',' .join(', ', @uids) if ($#uids > -1 && ! $FORM{JOIN_STATS});
       }
      elsif($Dv->{JOIN_SERVICE}  > 1) {
-     	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_MAIN", "index=15&UID=$Dv->{JOIN_SERVICE}");
+     	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_MAIN", "index=$index&UID=$Dv->{JOIN_SERVICE}");
       }
 
      my $table = $html->table( { 
 	                          width => '100%',
                             rows  => [
-                                  ["$_JOIN_SERVICE:",  $Dv->{JOIN_SERVICES_USERS} ]
+                                  ["$_JOIN_SERVICE: ",  $Dv->{JOIN_SERVICES_USERS} ]
                                     ]
                            } );
 
