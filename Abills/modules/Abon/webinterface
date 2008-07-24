@@ -132,7 +132,6 @@ sub abon_user_list {
 
  $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
 
-
  my $list = $Abon->user_list({ %LIST_PARAMS });
  my $table = $html->table( { width     => '100%',
                              caption    => "$_ABON",
