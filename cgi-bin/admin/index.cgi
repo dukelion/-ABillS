@@ -3816,7 +3816,8 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
 
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { index        => "$index",
-	                       	            AWEB_OPTIONS => 1
+	                       	            AWEB_OPTIONS => 1,
+	                       	            
                                      },
 	                       SUBMIT  => { quick_set => "$_SET"
 	                       	           } });
