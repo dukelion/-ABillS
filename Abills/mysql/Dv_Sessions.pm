@@ -206,6 +206,7 @@ sub online {
  	 push @WHERE_RULES, "nas_id='$attr->{NAS_ID}'";
   }
  
+ 
  if ($attr->{FILTER}) {
  	 push @WHERE_RULES, ($attr->{FILTER} =~ s/\*/\%/g) ? "$FIELDS_ALL[$attr->{FILTER_FIELD}] LIKE '$attr->{FILTER}'" : "$FIELDS_ALL[$attr->{FILTER_FIELD}]='$attr->{FILTER}'";
   }
