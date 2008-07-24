@@ -784,10 +784,11 @@ WHERE
  #Check online
  $self->query($db, "select 
   $rest{0} - sum($octets_online_direction) / $CONF->{MB_SIZE},
-  $rest{1} - sum($octets_online_direction2) / $CONF->{MB_SIZE}
+  $rest{1} - sum($octets_online_direction2) / $CONF->{MB_SIZE},
+  1
  FROM dv_calls
- WHERE user_name='$login' 
- GROUP BY user_name ;");
+ WHERE $uid
+ GROUP BY 3;");
 
  if ($self->{TOTAL} > 0) {
    ($rest{0}, 
