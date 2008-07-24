@@ -236,19 +236,18 @@ sub user_list {
      FROM (users u, abon_user_list ul, abon_tariffs at)
      LEFT JOIN users_pi pi ON u.uid = pi.uid
      $WHERE
-     GROUP BY u.id
+     GROUP BY ul.uid, ul.tp_id
      ORDER BY $SORT $DESC
      LIMIT $PG, $PAGE_ROWS;");
  my $list = $self->{list};
 
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(DISTINCT u.uid)
+    $self->query($db, "SELECT count(u.uid)
      FROM (users u, abon_user_list ul, abon_tariffs at)
      $WHERE");
 
-    my $a_ref = $self->{list}->[0];
-    ($self->{TOTAL}) = @$a_ref;
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 
 

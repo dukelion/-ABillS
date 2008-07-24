@@ -1279,15 +1279,15 @@ if ($FORM{add}) {
            }
 	        else {
 	        	#Take fees
-	        	my $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - 10)));
+	        	my $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $diller->{PERCENTAGE})));
 	        	my $fees = Finance->fees($db, $admin, \%conf);
 
        	
         	  $fees->take($user, $sum,
         	  	            {  DESCRIBE     => "$_ICARDS",
-                           METHOD       => 0, 
-                           EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
-                           CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
+                             METHOD       => 0, 
+                             EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
+                             CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
                          });  
             
             $html->tpl_show(_include('cards_check', 'Cards'), 
