@@ -741,12 +741,13 @@ WHERE
  	 #Get using traffic
    $self->query($db, "select  
      if($rest{0} * $traffic_transfert > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0} * $traffic_transfert - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
-     if($rest{1} * $traffic_transfert > sum($octets_direction2) / $CONF->{MB_SIZE}, $rest{1} * $traffic_transfert - sum($octets_direction2) / $CONF->{MB_SIZE}, 0)
+     if($rest{1} * $traffic_transfert > sum($octets_direction2) / $CONF->{MB_SIZE}, $rest{1} * $traffic_transfert - sum($octets_direction2) / $CONF->{MB_SIZE}, 0),
+     1
    FROM dv_log
    WHERE $uid  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
     (  $WHERE
       ) 
-   GROUP BY uid
+   GROUP BY 3
    ;");
 
 
@@ -768,10 +769,11 @@ WHERE
  #Get using traffic
  $self->query($db, "select  
   $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE},
-  $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}
+  $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE},
+  1
  FROM dv_log
  WHERE $uid and DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]'
- GROUP BY uid
+ GROUP BY 3
  ;");
 
  if ($self->{TOTAL} > 0) {
