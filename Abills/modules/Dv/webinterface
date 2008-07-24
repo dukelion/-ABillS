@@ -1271,7 +1271,7 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
                      '7:TRAFFIC_SENT'    => "$_TRAFFIC $_SENT",
                      '8:TRAFFIC_SUM'     => $_TRAFFIC,
                      '9:TRAFFIC_2_SUM'   => $_TRAFFIC." 2",
-                     '91:DURATION'        => $_DURATION,
+                     '91:DURATION'       => $_DURATION,
                      '92:SUM'            => $_SUM);
 
 
@@ -1279,6 +1279,7 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
     my $list = $users->config_list({ PARAM => 'ifu*'  });
     my %INFO_LISTS = (); 
 
+    $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
 
     foreach my $line (@$list) {
       my $field_id       = '';
@@ -1286,7 +1287,7 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
     	  $field_id = $1;
        }
 
-      my($type, $name)=split(/:/, $line->[1]);
+      my($position, $type, $name)=split(/:/, $line->[1]);
 
       $CAPTIONS_HASH{(90+$i).':'.$field_id}=$name;
 
@@ -1299,19 +1300,6 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
          }
     	
        }
-#      elsif ($type == 5) {
-#      	 next;
-#       }
-#      elsif ($type == 4) {
-#    	  $input = $html->form_input($field_id, 1, { TYPE  => 'checkbox',  
-#    		                                           STATE => ($FORM{$field_id}) ? 1 : undef  });
-#       }
-#      else {
-#    	  $input = $html->form_input($field_id, "$FORM{$field_id}", { SIZE => 40 });
-#       }
-#
-#      $info{INFO_FIELDS}.= "<tr><td colspan=2>$name:</td><td>$input</td></tr>\n";
-
       $i++;
      }
 
@@ -2921,7 +2909,6 @@ sub dv_monthly_fees {
         }
       }
  	   
- 	   $Dv->{debug}=1;
 	   my $ulist = $Dv->list({ 
          ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
          EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
@@ -3872,6 +3859,7 @@ sub dv_get_month_fee {
 
 
 }
+
 
 
 1
