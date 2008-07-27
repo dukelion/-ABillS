@@ -5132,7 +5132,7 @@ sub sel_groups {
  	                                SEL_MULTI_ARRAY   => $users->groups_list({ GIDS => ($admin->{GIDS}) ? $admin->{GIDS} : undef }),
  	                                MULTI_ARRAY_KEY   => 0,
  	                                MULTI_ARRAY_VALUE => 1,
- 	                                SEL_OPTIONS       => ($admin->{GIDS}) ?  undef : { 0 => '-N/S-' }
+ 	                                SEL_OPTIONS       => ($admin->{GIDS}) ?  undef : { '' => "$_ALL" }
  	                               });
    }
 
