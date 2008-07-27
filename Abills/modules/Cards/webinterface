@@ -1337,7 +1337,7 @@ sub cards_dillers_list {
 
   foreach $line (@$list) {
    	$table->addrow($line->[0],  
-  	    $html->button($line->[1], "index=15&UID=$line->[10]"),
+  	    $html->button($line->[1], "index=15&UID=$line->[10]&MODULE=Cards"),
   		  $line->[2],
         $line->[3],
   		  $line->[4],

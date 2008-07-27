@@ -927,6 +927,7 @@ CREATE TABLE IF NOT EXISTS `voip_trunks` (
   `protocol` char(10) NOT NULL,
   `provider_ip` char(80) NOT NULL,
   `removeprefix` char(20) DEFAULT NULL,
+  `addprefix` char(20) DEFAULT NULL,
   `secondusedreal` smallint(5) unsigned DEFAULT '0',
   `secondusedcarrier` smallint(5) unsigned DEFAULT '0',
   `secondusedratecard` smallint(5) unsigned DEFAULT '0',

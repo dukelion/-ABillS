@@ -960,24 +960,6 @@ sub tp_info {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #**********************************************************
 # route_add
 #**********************************************************
@@ -993,6 +975,7 @@ sub trunk_add {
 	protocol,
 	provider_ip,
 	removeprefix,
+	addprefix,
 	secondusedreal,
 	secondusedcarrier,
 	secondusedratecard,
@@ -1000,7 +983,9 @@ sub trunk_add {
 	addparameter,
 	provider_name
  ) 
-        VALUES ('$DATA{NAME}', '$DATA{TRUNKPREFIX}',  '$DATA{PROTOCOL}', '$DATA{PROVIDER_IP}', '$DATA{REMOVEPREFIX}',
+        VALUES ('$DATA{NAME}', '$DATA{TRUNKPREFIX}',  '$DATA{PROTOCOL}', '$DATA{PROVIDER_IP}', 
+        '$DATA{REMOVE_PREFIX}',
+        '$DATA{ADD_PREFIX}',
         '$DATA{SECONDUSEDREAL}',
         '$DATA{SECONDUSEDCARRIER}',
         '$DATA{SECONDUSEDRATECARD}',
@@ -1032,6 +1017,7 @@ sub trunk_info {
 	protocol,
 	provider_ip,
 	removeprefix,
+	addprefix,
 	secondusedreal,
 	secondusedcarrier,
 	secondusedratecard,
@@ -1051,7 +1037,8 @@ sub trunk_info {
   $self->{TRUNKPREFIX},  
   $self->{PROTOCOL}, 
   $self->{PROVIDER_IP}, 
-  $self->{REMOVEPREFIX},
+  $self->{REMOVE_PREFIX},
+  $self->{ADD_PREFIX},
   $self->{SECONDUSEDREAL},
   $self->{SECONDUSEDCARRIER},
   $self->{SECONDUSEDRATECARD},
@@ -1059,9 +1046,6 @@ sub trunk_info {
   $self->{ADDPARAMETER},
   $self->{PROVIDER_NAME}
   )= @{ $self->{list}->[0] };
-  
-  
-  
   
   return $self;
 }
@@ -1093,7 +1077,8 @@ my %FIELDS = (ID             => 'id',
               TRUNKPREFIX    => 'trunkprefix',  
               PROTOCOL       => 'protocol',
               PROVIDER_IP    => 'provider_ip',
-              REMOVEPREFIX   => 'removeprefix',
+              REMOVE_PREFIX  => 'removeprefix',
+              ADD_PREFIX     => 'add_prefix',
               SECONDUSEDREAL => 'secondusedreal',
               SECONDUSEDCARRIER   => 'secondusedcarrier',
               SECONDUSEDRATECARD   => 'secondusedratecard',

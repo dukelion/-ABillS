@@ -430,7 +430,7 @@ sub msgs_admin {
          $reply = $line->[2];
        }
       
-      $line->[2]=~ s/> (.+)/<font color='$_COLORS[8]'> > \1 <\/font>/g;
+      $line->[2]=~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
 
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
           REPLY_ID => $line->[0],
@@ -763,7 +763,7 @@ sub msgs_user {
          $reply = $line->[2];
        }
       
-      $line->[2]=~ s/> (.+)/<font color='$_COLORS[8]'> > \1 <\/font>/g;
+      $line->[2]=~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
 
     	
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {

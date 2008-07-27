@@ -310,6 +310,10 @@ if ($NAS->{NAS_TYPE} eq 'asterisk' and $self->{TRUNK_PROTOCOL}) {
     	$number =~ s/^$self->{REMOVEPREFIX}//;
      }
 
+    if ($self->{ADDPREFIX}) {
+    	$number = $self->{ADDPREFIX}. $number;
+     }
+
     if ( $self->{TRUNK_PROTOCOL} eq "Local" ) {
         $RAD_PAIRS{'next-hop-ip'} = "Local/"
           . $self->{prepend}
@@ -398,6 +402,7 @@ sub get_intervals {
     if (t.protocol IS NULL, '', t.provider_ip),
     if (t.protocol IS NULL, '', t.addparameter),
     if (t.protocol IS NULL, '', t.removeprefix),
+    if (t.protocol IS NULL, '', t.addprefix),
     if (t.protocol IS NULL, '', t.failover_trunk)
       from intervals i, voip_route_prices rp
       LEFT JOIN voip_trunks t ON (rp.trunk=t.id)       
@@ -417,11 +422,12 @@ sub get_intervals {
      $time_periods{$line->[0]}{$line->[1]} = "$line->[4]:$line->[2]";
      #$periods_time_tarif{INTERVAL_ID} = "INTERVAL_PRICE";
      $periods_time_tarif{$line->[4]} = $line->[3];
-     $self->{TRUNK_PROTOCOL}=$line->[6];
-     $self->{TRUNK_PROVIDER}=$line->[7];
-     $self->{ADDPARAMETER}=$line->[8];
-     $self->{REMOVEPREFIX}=$line->[9];
-     $self->{failover_trunk}=$line->[10];
+     $self->{TRUNK_PROTOCOL}= $line->[6];
+     $self->{TRUNK_PROVIDER}= $line->[7];
+     $self->{ADDPARAMETER}  = $line->[8];
+     $self->{REMOVEPREFIX}  = $line->[9];
+     $self->{ADDPREFIX}     = $line->[9];
+     $self->{FAILOVER_TRUNK}= $line->[11];
     }
   $self->{TIME_PERIODS}=\%time_periods;
   $self->{PERIODS_TIME_TARIF}=\%periods_time_tarif;
