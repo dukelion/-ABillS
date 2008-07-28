@@ -5,15 +5,16 @@ use DBI;
 use strict;
 
 use vars  qw(%conf $db  $begin_time );
+use FindBin '$Bin';
 
-require "../libexec/config.pl";
-require "../Abills/Base.pm";
+require $Bin."/../libexec/config.pl";
+require $Bin."/../Abills/Base.pm";
 Abills::Base->import();
 
 
 
 my $attr = parse_arguments(\@ARGV);
-my $VERSION = 0.10; # 2008.06.13
+my $VERSION = 0.11; # 2008.06.13
 my $debug = $attr->{DEBUG} || 0;
 
 
