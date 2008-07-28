@@ -6,7 +6,7 @@ use Tariffs;
 use Fees;
 
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
-my $Iptv = Iptv->new($db, $admin, \%conf);
+my $Iptv     = Iptv->new($db, $admin, \%conf);
 my $fees     = Fees->new($db, $admin, \%conf);
 
 my $MODULE = ($module{$index}) ? $module{$index} : 'Iptv';

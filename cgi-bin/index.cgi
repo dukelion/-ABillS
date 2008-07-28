@@ -365,28 +365,6 @@ sub form_info {
 
 
 
-##*******************************************************************
-## WHERE period
-## base_state($where, $period);
-##*******************************************************************
-#sub stats_calculation  {
-#  my ($sessions) = @_;
-#
-#$sessions->calculation({ %LIST_PARAMS }); 
-#my $table = $html->table( { width => '640',
-#	                          rowcolor => $_COLORS[1],
-#                            title_plain => ["-", "$_MIN", "$_MAX", "$_AVG"],
-#                            cols_align => ['left', 'right', 'right', 'right'],
-#                            rows => [ [ $_DURATION,  $sessions->{min_dur}, $sessions->{max_dur}, $sessions->{avg_dur} ],
-#                                          [ "$_TRAFFIC $_RECV", int2byte($sessions->{min_recv}), int2byte($sessions->{max_recv}), int2byte($sessions->{avg_recv}) ],
-#                                          [ "$_TRAFFIC $_SENT", int2byte($sessions->{min_sent}), int2byte($sessions->{max_sent}), int2byte($sessions->{avg_sent}) ],
-#                                          [ "$_TRAFFIC $_SUM",  int2byte($sessions->{min_sum}),  int2byte($sessions->{max_sum}),  int2byte($sessions->{avg_sum}) ]
-#                                        ]
-#                               } );
-#print $table->show();
-#}
-
-
 #**********************************************************
 # form_login  
 #**********************************************************
@@ -411,7 +389,7 @@ sub auth_radius {
   my $check_access = $conf{check_access};
  
   #check password throught ftp access
-  if ($conf{check_access}{NAS_IP} =~ /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):21/) {
+  if ($conf{check_access} && $conf{check_access}{NAS_IP} =~ /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):21/) {
   	my $ftpserver = $1;
     if ($res < 1) {
       eval { require Net::FTP; };
@@ -520,7 +498,7 @@ else {
    }
   
   #check password from RADIUS SERVER if defined $conf{check_access}
-  if (defined($conf{check_access})) {
+  if ($conf{check_access}) {
     $res = auth_radius("$login", "$password")
    }
   #check password direct from SQL
@@ -646,9 +624,181 @@ sub logout {
 }
 
 
+##**********************************************************
+##
+## FIELDS => FIELDS_HASH
+##**********************************************************
+#sub reports {
+# my ($attr) = @_;
+# 
+#my $EX_PARAMS; 
+#my ($y, $m, $d);
+#$type='DATE';
+#
+#if ($FORM{MONTH}) {
+#  $LIST_PARAMS{MONTH}=$FORM{MONTH};
+#	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
+# }
+#elsif($FORM{allmonthes}) {
+#	$type='MONTH';
+#	$pages_qs="&allmonthes=y";
+# }
+#else {
+#	($y, $m, $d)=split(/-/, $DATE, 3);
+#	$LIST_PARAMS{MONTH}="$y-$m";
+#	$pages_qs="&MONTH=$LIST_PARAMS{MONTH}";
+#}
+#
+#
+#if ($LIST_PARAMS{UID}) {
+#	 $pages_qs.="&UID=$LIST_PARAMS{UID}";
+# }
+#else {
+#  if ($FORM{GID}) {
+#	  $LIST_PARAMS{GID}=$FORM{GID};
+#    $pages_qs="&GID=$FORM{GID}";
+#   }
+#
+#  #$user->{GROUPS_SEL} = sel_groups();
+#  #$html->tpl_show(templates('groups_sel'), $user);
+#}
+#
+#my @rows = ();
+#
+#my $FIELDS='';
+#
+#if ($attr->{FIELDS}) {
+#  my %fields_hash = (); 
+#  if (defined($FORM{FIELDS})) {
+#  	my @fileds_arr = split(/, /, $FORM{FIELDS});
+#   	foreach my $line (@fileds_arr) {
+#   		$fields_hash{$line}=1;
+#   	 }
+#   }
+#
+#  $LIST_PARAMS{FIELDS}=$FORM{FIELDS};
+#  $pages_qs="&FIELDS=$FORM{FIELDS}";
+#  
+#  foreach my $line (sort keys %{ $attr->{FIELDS} }) {
+#  	my ($id, $k)=split(/:/, $line);
+#  	$FIELDS .= $html->form_input("FIELDS", $k, { TYPE => 'checkbox', STATE => (defined($fields_hash{$k})) ? 'checked' : undef }). " $attr->{FIELDS}{$line}";
+#   }
+# }  
+#
+#
+#if ($attr->{PERIOD_FORM}) {
+#	$table = $html->table( { width    => '100%',
+#	                         rowcolor => $_COLORS[1],
+#                           rows     => [["$_FROM: ",   $html->date_fld('from', { MONTHES => \@MONTHES} ),
+#                                          "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ), 
+# 	                                        ($attr->{XML}) ? 
+# 	                                        $html->form_input('NO_MENU', 1, { TYPE => 'hidden' }).
+# 	                                        $html->form_input('xml', 1, { TYPE => 'checkbox' })."XML" : '',
+#
+#                                          $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 }) ]
+#                                         ],                                   
+#                      });
+# 
+#  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }).$FIELDS,
+#	                         HIDDEN  => { 
+#	                                    ($attr->{HIDDEN}) ? %{ $attr->{HIDDEN} } : undef,
+#	                                    index => "$index"
+#	                                    }});
+#
+#  if (defined($FORM{show})) {
+#    $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
+#    $FORM{fromM}++;
+#    $FORM{toM}++;
+#    $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
+#    $FORM{toM} = sprintf("%.2d", $FORM{toM}++);
+#
+#    $LIST_PARAMS{TYPE}=$FORM{TYPE};
+#    $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
+#   }
+#	
+#}
+#
+#
+#
+#
+#
+#
+#if (defined($FORM{DATE})) {
+#  ($y, $m, $d)=split(/-/, $FORM{DATE}, 3);	
+#
+#  $LIST_PARAMS{DATE}="$FORM{DATE}";
+#  $pages_qs .="&DATE=$LIST_PARAMS{DATE}";
+#
+#  if (defined($attr->{EX_PARAMS})) {
+#   	my $EP = $attr->{EX_PARAMS};
+#
+#	  while(my($k, $v)=each(%$EP)) {
+#     	if ($FORM{EX_PARAMS} eq $k) {
+#        $EX_PARAMS .= " <b>$v</b> ";
+#        $LIST_PARAMS{$k}=1;
+#        #$pages_qs .="&EX_PARAMS=$k";
+#
+#     	  if ($k eq 'HOURS') {
+#    	  	 undef $attr->{SHOW_HOURS};
+#	       } 
+#     	 }
+#     	else {
+#     	  $EX_PARAMS .= '::'. $html->button($v, "index=$index$pages_qs&EX_PARAMS=$k");
+#     	 }
+#	  }
+#  
+#  }
+#
+#
+#
+#  my $days = '';
+#  for ($i=1; $i<=31; $i++) {
+#     $days .= ($d == $i) ? " <b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}%s%s", $y, $m, $i, 
+#       (defined($FORM{GID})) ? "&GID=$FORM{GID}" : '', 
+#       (defined($FORM{UID})) ? "&UID=$FORM{UID}" : '' ));
+#   }
+#  
+#  
+#  @rows = ([ "$_YEAR:",  $y ],
+#           [ "$_MONTH:", $MONTHES[$m-1] ], 
+#           [ "$_DAY:",   $days ]);
+#  
+#  if ($attr->{SHOW_HOURS}) {
+#    my(undef, $h)=split(/ /, $FORM{HOUR}, 2);
+#    my $hours = '';
+#    for (my $i=0; $i<24; $i++) {
+#    	$hours .= ($h == $i) ? " <b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&HOUR=%d-%02.f-%02.f+%02.f&EX_PARAMS=$FORM{EX_PARAMS}$pages_qs", $y, $m, $d, $i));
+#     }
+#
+# 	  $LIST_PARAMS{HOUR}="$FORM{HOUR}";
+#
+#  	push @rows, [ "$_HOURS", $hours ];
+#   }
+#
+#  if ($attr->{EX_PARAMS}) {
+#    push @rows, [' ', $EX_PARAMS];
+#   }  
+#
+#
+#  
+#  
+#  
+#
+#  $table = $html->table({ width       => '100%',
+#                           rowcolor   => $_COLORS[1],
+#                           cols_align => ['right', 'left'],
+#                           rows       => [ @rows ]
+#                         });
+#
+#  print $table->show();
+#
+#}
+#
+#}
+
 #**********************************************************
 #
-# FIELDS => FIELDS_HASH
+# Report main interface
 #**********************************************************
 sub reports {
  my ($attr) = @_;
@@ -663,7 +813,7 @@ if ($FORM{MONTH}) {
  }
 elsif($FORM{allmonthes}) {
 	$type='MONTH';
-	$pages_qs="&allmonthes=y";
+	$pages_qs="&allmonthes=1";
  }
 else {
 	($y, $m, $d)=split(/-/, $DATE, 3);
@@ -679,10 +829,8 @@ else {
   if ($FORM{GID}) {
 	  $LIST_PARAMS{GID}=$FORM{GID};
     $pages_qs="&GID=$FORM{GID}";
+    delete $LIST_PARAMS{GIDS};
    }
-
-  #$user->{GROUPS_SEL} = sel_groups();
-  #$html->tpl_show(templates('groups_sel'), $user);
 }
 
 my @rows = ();
@@ -700,42 +848,84 @@ if ($attr->{FIELDS}) {
 
   $LIST_PARAMS{FIELDS}=$FORM{FIELDS};
   $pages_qs="&FIELDS=$FORM{FIELDS}";
-  
+
+  my $table2 = $html->table({ width => '100%' });
+  my @arr = ();
+  my $i=0;
+
   foreach my $line (sort keys %{ $attr->{FIELDS} }) {
   	my ($id, $k)=split(/:/, $line);
-  	$FIELDS .= $html->form_input("FIELDS", $k, { TYPE => 'checkbox', STATE => (defined($fields_hash{$k})) ? 'checked' : undef }). " $attr->{FIELDS}{$line}";
+  	
+  	push @arr, $html->form_input("FIELDS", $k, { TYPE => 'checkbox', STATE => (defined($fields_hash{$k})) ? 'checked' : undef, OUTPUT2RETURN => 1 }). " $attr->{FIELDS}{$line}";
+  	$i++;
+  	if ($#arr > 1) {
+      $table2->addrow(@arr);
+      @arr = ();
+     }
    }
+
+  if ($#arr > -1 ) {
+    $table2->addrow(@arr);
+   }
+
+
+  $FIELDS .= $table2->show({ OUTPUT2RETURN => 1 });
+  
  }  
 
 
 if ($attr->{PERIOD_FORM}) {
+	
+	my @rows = ("$_FROM: ",   $html->date_fld('FROM_', { MONTHES => \@MONTHES} ),
+              "$_TO: ",    $html->date_fld('TO_', { MONTHES => \@MONTHES } ) );
+	
+		if (! $attr->{NO_GROUP}) {
+	  push @rows, "$_TYPE:",   $html->form_select('TYPE', 
+                                                     { SELECTED     => $FORM{TYPE},
+ 	                                                     SEL_HASH     => { DAYS  => $_DAYS, 
+ 	                                                                       USER  => $_USERS, 
+ 	                                                                       HOURS => $_HOURS,
+ 	                                                                       ($attr->{EXT_TYPE}) ? %{ $attr->{EXT_TYPE} } : ''
+ 	                                                                      },
+ 	                                                     NO_ID        => 1
+ 	                                                     });
+	}
+
+
+  if ($attr->{EX_INPUTS}) {
+  	foreach my $line (@{ $attr->{EX_INPUTS} }) {
+       push @rows, $line;
+     }
+   }
+
 	$table = $html->table( { width    => '100%',
 	                         rowcolor => $_COLORS[1],
-                           rows     => [["$_FROM: ",   $html->date_fld('from', { MONTHES => \@MONTHES} ),
-                                          "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ), 
+                           rows     => [[@rows, 
  	                                        ($attr->{XML}) ? 
- 	                                        $html->form_input('NO_MENU', 1, { TYPE => 'hidden' }).
- 	                                        $html->form_input('xml', 1, { TYPE => 'checkbox' })."XML" : '',
+ 	                                          $html->form_input('NO_MENU', 1, { TYPE => 'hidden' }).
+ 	                                          $html->form_input('xml', 1, { TYPE => 'checkbox', OUTPUT2RETURN => 1 })."XML" : '',
 
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 }) ]
                                          ],                                   
                       });
  
+  
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }).$FIELDS,
 	                         HIDDEN  => { 
-	                                    ($attr->{HIDDEN}) ? %{ $attr->{HIDDEN} } : undef,
-	                                    index => "$index"
+	                                     
+	                                     'index' => "$index",
+	                                     ($attr->{HIDDEN}) ? %{ $attr->{HIDDEN} } : undef
 	                                    }});
 
   if (defined($FORM{show})) {
-    $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
-    $FORM{fromM}++;
-    $FORM{toM}++;
-    $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
-    $FORM{toM} = sprintf("%.2d", $FORM{toM}++);
+    $pages_qs .= "&show=y&FROM_D=$FORM{FROM_D}&FROM_M=$FORM{FROM_M}&FROM_Y=$FORM{FROM_Y}&TO_D=$FORM{TO_D}&TO_M=$FORM{TO_M}&TO_Y=$FORM{TO_Y}";
+    $FORM{FROM_M}++;
+    $FORM{TO_M}++;
+    $FORM{FROM_M} = sprintf("%.2d", $FORM{FROM_M}++);
+    $FORM{TO_M} = sprintf("%.2d", $FORM{TO_M}++);
 
     $LIST_PARAMS{TYPE}=$FORM{TYPE};
-    $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}/$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
    }
 	
 }
@@ -756,7 +946,7 @@ if (defined($FORM{DATE})) {
 
 	  while(my($k, $v)=each(%$EP)) {
      	if ($FORM{EX_PARAMS} eq $k) {
-        $EX_PARAMS .= " <b>$v</b> ";
+        $EX_PARAMS .= ' '.$html->b($v);
         $LIST_PARAMS{$k}=1;
         #$pages_qs .="&EX_PARAMS=$k";
 
@@ -775,7 +965,7 @@ if (defined($FORM{DATE})) {
 
   my $days = '';
   for ($i=1; $i<=31; $i++) {
-     $days .= ($d == $i) ? " <b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}%s%s", $y, $m, $i, 
+     $days .= ($d == $i) ? ' '. $html->b($i) : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}%s%s", $y, $m, $i, 
        (defined($FORM{GID})) ? "&GID=$FORM{GID}" : '', 
        (defined($FORM{UID})) ? "&UID=$FORM{UID}" : '' ));
    }
@@ -789,7 +979,7 @@ if (defined($FORM{DATE})) {
     my(undef, $h)=split(/ /, $FORM{HOUR}, 2);
     my $hours = '';
     for (my $i=0; $i<24; $i++) {
-    	$hours .= ($h == $i) ? " <b>$i </b>" : ' '.$html->button($i, sprintf("index=$index&HOUR=%d-%02.f-%02.f+%02.f&EX_PARAMS=$FORM{EX_PARAMS}$pages_qs", $y, $m, $d, $i));
+    	$hours .= ($h == $i) ? $html->b($i) : ' '.$html->button($i, sprintf("index=$index&HOUR=%d-%02.f-%02.f+%02.f&EX_PARAMS=$FORM{EX_PARAMS}$pages_qs", $y, $m, $d, $i));
      }
 
  	  $LIST_PARAMS{HOUR}="$FORM{HOUR}";
@@ -812,7 +1002,7 @@ if (defined($FORM{DATE})) {
                            rows       => [ @rows ]
                          });
 
-  print $table->show();
+  print $table->show({ OUTPUT2RETURN => 1 });
 
 }
 

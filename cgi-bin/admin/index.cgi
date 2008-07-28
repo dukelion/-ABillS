@@ -754,6 +754,65 @@ else {
 }
 
 
+
+#**********************************************************
+# Functions menu
+#**********************************************************
+sub form_companie_admins {
+ my ($attr) = @_;
+
+ my $customer = Customers->new($db, $admin, \%conf);
+ my $company = $customer->company();
+
+
+ if ($FORM{change}) {
+    $company->admins_change({ %FORM });
+    if (! $user->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");
+     }
+   }
+ if ($user->{errno}) {
+   $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
+  }
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_ADMINS",
+                            border     => 1,
+                            title      => ["$_ALLOW", "$_LOGIN", "$_FIO"],
+                            cols_align => ['right', 'left', 'left' ],
+                            qs         => $pages_qs,
+                            ID         => 'COMPANY_ADMINS'
+                           });
+
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=2;
+ }
+
+
+my $list = $company->admins_list({ COMPANY_ID => $FORM{COMPANY_ID}, 
+	                                 PAGE_ROWS  => 10000 });
+
+foreach my $line (@$list) {
+  $table->addrow($html->form_input('IDS', "$line->[3]", 
+                                                   { TYPE          => 'checkbox',
+  	                                                 OUTPUT2RETURN => 1,
+       	                                             STATE         => ($line->[0]) ? 1 : undef
+       	                                          }), 
+    $html->button($line->[1], "index=15&UID=$line->[3]"), 
+    $line->[2]
+    );
+}
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { index      => $index, 
+	                       	            COMPANY_ID => $FORM{COMPANY_ID} },
+	                       SUBMIT  => { change   => "$_CHANGE"
+	                       	           } });
+
+
+}
+
+
 #**********************************************************
 # Functions menu
 #**********************************************************
@@ -1766,7 +1825,8 @@ my $table = $html->table( { width      => '100%',
                             border     => 1,
                             title      => ["$_ALLOW", "$_NAME", 'NAS-Identifier', "IP", "$_TYPE", "$_AUTH"],
                             cols_align => ['right', 'left', 'left', 'right', 'left', 'left'],
-                            qs         => $pages_qs
+                            qs         => $pages_qs,
+                            ID         => 'NAS_ALLOW'
                            });
 
 if (! defined($FORM{sort})) {
@@ -1775,7 +1835,7 @@ if (! defined($FORM{sort})) {
 
 
 my $list = $nas->list({ %LIST_PARAMS, 
-	                      PAGE_ROWS => 1000 });
+	                      PAGE_ROWS => 100000 });
 
 foreach my $line (@$list) {
   $table->addrow(" $line->[0]". $html->form_input('ids', "$line->[0]", 
@@ -3598,6 +3658,7 @@ my @m = (
  "1:0:$_CUSTOMERS:form_users:::",
  "11:1:$_LOGINS:form_users:::",
  "13:1:$_COMPANY:form_companies:::",
+ "16:13:$_ADMIN:form_companie_admins:COMPANY_ID::",
 
  "15:11:$_INFO:form_users:UID::",
  "22:15:$_LOG:form_changes:UID::",

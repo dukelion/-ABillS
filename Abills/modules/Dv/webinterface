@@ -1305,9 +1305,15 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
 
 #  $FORM{FIELDS} = 'DATE, USERS_COUNT, SESSIONS, TRAFFIC_SUM, TRAFFIC_2_SUM, DURATION, SUM' if (! $FORM{FIELDS});
 
+  my %HIDDEN = ();
+
+  $HIDDEN{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
+  $HIDDEN{sid}=$sid if ($FORM{sid}); 
+
+
   reports({ DATE          => $FORM{DATE}, 
   	        REPORT        => '',
-  	        HIDDEN        => ($FORM{COMPANY_ID}) ? { COMPANY_ID => $FORM{COMPANY_ID} } : undef,
+  	        HIDDEN        => \%HIDDEN,
   	        EX_PARAMS     => { HOURS => "$_HOURS",
   	        	                 USERS => "$_USERS"
   	        	                 }, 
@@ -1583,15 +1589,18 @@ $table = $html->table( { width      => '100%',
                          rowcolor   => $_COLORS[2]
                                } );
 
-print $table_sessions->show() . $table->show(). $output;
+print $table_sessions->show() . $table->show();
 
+$table = $html->table({ rows => [[ $output  ]] });
+print $table->show();
 
 $html->make_charts({  
 	 PERIOD     => $graph_type,
 	 DATA       => \%DATA_HASH,
 	 AVG        => \%AVG,
 	 TYPE       => ['column', 'line'],
-	 TRANSITION => 1
+	 TRANSITION => 1,
+
   });
 
 
@@ -1993,16 +2002,14 @@ print $table->show();
 #**********************************************************
 sub dv_user_stats {
 
-	if (! defined($FORM{sort})) {
-	  $LIST_PARAMS{SORT}=2;
-	  $LIST_PARAMS{DESC}=DESC;
-   }
 
-  if(defined($FORM{SESSION_ID})) {
+
+ if(defined($FORM{SESSION_ID})) {
   	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
   	dv_session_detail({ LOGIN => $LIST_PARAMS{LOGIN} });
   	return 0;
   }
+
 
 
 if ($sessions->{errno})	{
@@ -2011,6 +2018,29 @@ if ($sessions->{errno})	{
 
 #Join Service
   if($user->{COMPANY_ID}) {
+
+     if ($FORM{COMPANY_ID}) {
+     	  $users=Users->new($db, $admin, \%conf); 
+     	  dv_use();
+     	  return 0;
+     	}
+
+     use Customers;	
+
+     my $customer = Customers->new($db, $admin, \%conf);
+     my $company = $customer->company();
+
+print "Content-type: text/html\n\n";
+     $company->{debug}=1;
+     my $ulist = $company->admins_list({ COMPANY_ID => $user->{COMPANY_ID}, 
+	                                       UID        => $UID });
+
+
+     if ($company->{TOTAL} > 0 && $ulist->[0]->[0] > 0) {
+     	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_COMPANY", "&sid=$sid&index=$index&COMPANY_ID=$user->{COMPANY_ID}").' ::';
+
+      }
+
      $Dv->info($UID);
 
      if ($Dv->{JOIN_SERVICE} == 1) {
@@ -2019,7 +2049,7 @@ if ($sessions->{errno})	{
                               PAGE_ROWS    => 1000
                              });
 
-       $Dv->{JOIN_SERVICES_USERS} = (! $FORM{JOIN_STATS}) ? $html->b($_ALL) .' :: ' :
+       $Dv->{JOIN_SERVICES_USERS} .= (! $FORM{JOIN_STATS}) ? $html->b("$_ALL $_USERS") .' :: ' :
   	    $html->button("$_ALL", "&sid=$sid&index=$index&JOIN_STATS=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) . ' ::';
 
        foreach my $line (@$list) {
@@ -2038,7 +2068,7 @@ if ($sessions->{errno})	{
        $LIST_PARAMS{UIDS}.= ',' .join(', ', @uids) if ($#uids > -1 && ! $FORM{JOIN_STATS});
       }
      elsif($Dv->{JOIN_SERVICE}  > 1) {
-     	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_MAIN", "index=$index&UID=$Dv->{JOIN_SERVICE}");
+     	 $Dv->{JOIN_SERVICES_USERS} .= $html->button("$_MAIN", "index=$index&UID=$Dv->{JOIN_SERVICE}");
       }
 
      my $table = $html->table( { 

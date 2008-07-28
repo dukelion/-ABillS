@@ -375,6 +375,62 @@ return $list;
 
 
 
+#**********************************************************
+# List
+#**********************************************************
+sub admins_list {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ my @WHERE_RULES = ();
+ my $WHERE = '';
+
+
+ if ($attr->{UID}) {
+ 	 push @WHERE_RULES, "u.uid='$attr->{UID}'";
+  }
+
+ $WHERE = ' AND ' . join(' and ', @WHERE_RULES) if   ($#WHERE_RULES > -1); 
+
+ $self->query($db, "SELECT if(ca.uid is null, 0, 1), u.id, pi.fio, u.uid
+    FROM (companies  c, users u)
+    LEFT JOIN companie_admins ca ON (ca.uid=u.uid)
+    LEFT JOIN users_pi pi ON (pi.uid=u.uid)
+    WHERE u.company_id=c.id AND c.id='$attr->{COMPANY_ID}' $WHERE
+    ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ my $list = $self->{list};
+
+ return $list;
+}
+
+
+
+#**********************************************************
+# List
+#**********************************************************
+sub admins_change {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ 
+ my @ADMINS = split(/, /, $attr->{IDS});
+
+ $self->query($db, "DELETE FROM companie_admins WHERE company_id='$attr->{COMPANY_ID}';", 'do');
+
+
+ foreach my $uid (@ADMINS) {
+   $self->query($db, "INSERT INTO companie_admins (company_id, uid)
+    VALUES ('$attr->{COMPANY_ID}', '$uid');", 'do');
+  }
+
+ return $self;
+}
+
 
 
 1

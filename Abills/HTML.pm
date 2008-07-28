@@ -1755,12 +1755,13 @@ PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'>
 <br>
 ";
 
-  if (defined($self->{NO_PRINT})) {
+
+	if ($attr->{OUTPUT2RETURN}) {
+		 return $output;
+   }
+  elsif (defined($self->{NO_PRINT})) {
   	$self->{OUTPUT}.=$output;
   	return $output;
-   }
-	elsif ($attr->{OUTPUT2RETURN}) {
-		 return $output;
    }
 
   print $output;
