@@ -126,19 +126,20 @@ CREATE TABLE `companies` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
-) ;
+) COMMENT='Companies';
 
-# --------------------------------------------------------
 
-#
-# Структура таблиці `config`
-#
+CREATE TABLE `companie_admins` (
+  `company_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `uid` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`company_id`,`uid`)
+) COMMENT='Companie Super Users';
 
 CREATE TABLE `config` (
   `param` varchar(20) NOT NULL default '',
   `value` varchar(200) NOT NULL default '',
   UNIQUE KEY `param` (`param`)
-) ;
+) COMMENT='System config' ;
 
 CREATE TABLE `docs_acct` (
   `id` int(11) unsigned NOT NULL auto_increment,

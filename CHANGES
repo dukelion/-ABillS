@@ -1,5 +1,16 @@
 =====0.40=====
 
+29.07.2008\\
+Добавлена возможность создавать супер пользователя компании. Суперпользователь может просматривать отчёты по всем пользователям компании.\\
+
+MySQL:
+  CREATE TABLE `companie_admins` (
+    `company_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `uid` int(10) unsigned NOT NULL DEFAULT '0',
+    PRIMARY KEY (`company_id`,`uid`)
+  ) COMMENT='Companie Super Users';
+
+
 25.07.2008\\
 Дополнен модуль Voip. Добавлена возможность редактирования префиксов в зависимости о транка.
 MySQL:  
