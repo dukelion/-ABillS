@@ -1045,15 +1045,14 @@ sub check_company_account () {
     return $self;
    }
 
-  my $a_ref = $self->{list}->[0];
 
   ($self->{BILL_ID},
    $self->{DISABLE},
    $self->{COMPANY_CREDIT}
-    ) = @$a_ref;
+    ) = @{ $self->{list}->[0]  };
 
   
-  $self->{CREDIT}+=$self->{COMPANY_CREDIT};
+  $self->{CREDIT}=$self->{COMPANY_CREDIT} if ($self->{CREDIT} == 0);
 
 
   return $self;

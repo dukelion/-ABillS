@@ -8,6 +8,7 @@ my $Voip = Voip->new($db, $admin, \%conf);
 my $sessions = Voip_Sessions->new($db, \%conf);
 
 
+
 my $MODULE = ($module{$index}) ? $module{$index} : 'Voip';
 
 
@@ -242,13 +243,18 @@ sub voip_user {
  	$Voip->{UID}=$FORM{UID};	  
   
   if ($FORM{add}) {
-    $Voip->user_add({ %FORM });
-    if (! $Voip->{errno}) {
-      $html->message('info', $_INFO, "$_ADDED");	
+    if ($FORM{NUMBER} < 1) {
+      $html->message('err', $_ERROR, "$ERR_WRONG_DATA $_NUMBER");	
      }
-
-    if ($conf{VOIP_ASTERISK_USERS}) {
-    	voip_mk_users_conf();
+    else { 
+    	$Voip->user_add({ %FORM });
+      if (! $Voip->{errno}) {
+        $html->message('info', $_INFO, "$_ADDED");	
+       }
+  
+      if ($conf{VOIP_ASTERISK_USERS}) {
+      	voip_mk_users_conf();
+       }
      }
    }
 	elsif($FORM{set}) {
@@ -267,6 +273,11 @@ sub voip_user {
       $html->message('info', $_INFO, "$_CHANGED");	
      }
 	 }
+
+  if ($Voip->{errno}) {
+    $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");
+   }
+
 
   my $user = $Voip->user_info($FORM{UID});
 
@@ -2482,15 +2493,17 @@ my $content = "#ABILLS users config\n#DATE: $DATE $TIME\n\n";
 
 my $list = $Voip->user_list({ PAGE_ROWS => 100000, 
 	                            CID       => '*',
-	                            PASSWORD  => 1 
+	                            PASSWORD  => 1,
+	                            IP        => '>=0'
 	                          });
 
 foreach my $line (@$list) {
   my %info = ( LOGIN     => $line->[0],
                FIO       => $line->[1],
                NUMBER    => $line->[6],
-               CALLER_ID => $line->[7],
-               PASSWORD  => $line->[8],         
+               CALLER_ID => $line->[$Voip->{SEARCH_FIELDS_COUNT}+5],
+               PASSWORD  => $line->[$Voip->{SEARCH_FIELDS_COUNT}+6],
+               HOST      => ($line->[$Voip->{SEARCH_FIELDS_COUNT}+4] eq '0.0.0.0') ? 'dynamic' : $line->[$Voip->{SEARCH_FIELDS_COUNT}+4]         
                );
 
 
