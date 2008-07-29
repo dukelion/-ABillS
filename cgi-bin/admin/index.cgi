@@ -4907,6 +4907,8 @@ sub form_period  {
  $form_period .= "<tr><td ". (($attr->{TD_EXDATA}) ? $attr->{TD_EXDATA} : '' ) .
   " rowspan=". ( ($attr->{ABON_DATE}) ? 3 : 2 ) .">$_DATE:</td><td>";
  
+ #$form_period .= "<tr><td rowspan=3>$_DATE:</td><td>";
+ 
  $form_period .= $html->form_input('period', "0", { TYPE          => "radio", 
    	                                                STATE         => 1, 
    	                                                OUTPUT2RETURN => 1
@@ -4915,13 +4917,12 @@ sub form_period  {
  
  $form_period .= "</td></tr>\n";
 
- my $i=0;
  for(my $i=1; $i<=$#periods; $i++) {
    my $period_name = $periods[$i];
 
    my $period = $html->form_input('period', "$i", { TYPE          => "radio", 
-   	                                                   STATE         => ($i eq $period) ? 1 : undef, 
-   	                                                   OUTPUT2RETURN => 1
+   	                                                STATE         => ($i eq $period) ? 1 : undef, 
+   	                                                OUTPUT2RETURN => 1
    	                                                  });
 
 
@@ -4930,7 +4931,6 @@ sub form_period  {
      $period .= "$period_name ($attr->{ABON_DATE})" ;
     }
    elsif($i == 2) {
-
      $period .= "$period_name $date_fld"   	
     }
 
