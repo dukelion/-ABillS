@@ -47,12 +47,15 @@ sub dv_chg_tp {
  my $shedule = Shedule->new($db, $admin, \%conf);
 
 
+  
+#if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
+#        ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
+#         $Dv->{POSTPAID_ABON} || 
+#         $Dv->{PAYMENT_TYPE} == 1 )) {
 
-if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{STATUS} && ! $users->{DISABLE} &&
-        ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
-         $Dv->{POSTPAID_ABON} || 
-         $Dv->{PAYMENT_TYPE} == 1 )) {
-
+if ( ! $Dv->{STATUS} && ! $users->{DISABLE} &&
+        ($users->{DEPOSIT}+$users->{CREDIT} > 0  
+         )) {
       if ($users->{ACTIVATE} ne '0000-00-00') {
         my ($Y, $M, $D)=split(/-/, $users->{ACTIVATE}, 3);
         $M--;
@@ -73,7 +76,6 @@ if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{STATUS} && ! $users->{DISABLE} &&
 
 
 
-
 if ($FORM{set}) {
 
   if ($period > 0) {
@@ -84,7 +86,7 @@ if ($FORM{set}) {
     else {
     	$FORM{date_M}++;
      }
-   
+   print "--- $FORM{date_Y}, $FORM{date_M}, $FORM{date_D} // $Dv->{ABON_DATE}-- ";
  	  use POSIX;
     
     my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
@@ -2413,13 +2415,11 @@ sub dv_user_chg_tp {
 
  if(defined($LIST_PARAMS{UID})) {
    #$user = $attr->{USER};
-   my $expire = $user->{EXPIRE};
-   $user = $Dv->info($LIST_PARAMS{UID});
-   if($user->{TOTAL} < 1) {
+   $Dv = $Dv->info($LIST_PARAMS{UID});
+   if($Dv->{TOTAL} < 1) {
  	   $html->message('info', $_INFO, "$_NOT_ACTIVE");
  	   return 0;
     }
-   $user->{EXPIRE}=$expire;
   }
  else {
  	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
@@ -2427,7 +2427,7 @@ sub dv_user_chg_tp {
   }
 
  #Get TP groups
- $tariffs->tp_group_info($user->{TP_GID});
+ $tariffs->tp_group_info($Dv->{TP_GID});
  
  if (! $tariffs->{USER_CHG_TP}) {
  	  $html->message('err', $_ERROR, "$_NOT_ALLOW");
@@ -2444,22 +2444,23 @@ if ($FORM{set}) {
      my $M;
      my $D;
 
-     if ($user->{EXPIRE} eq '0000-00-00') {
+     if ($user->{ACTIVATE} eq '0000-00-00') {
        # Get next month
        ($Y, $M, $D)=split(/-/, $DATE, 3);
-       $M++;
-       if ($M == 13) {
-         $M = 1;
-         $Y++;
-        }
        $D='01';
-       $M = sprintf("%02.d", $M);
       }
      else {
-       ($Y, $M, $D)=split(/-/, $user->{EXPIRE}, 3);
+       ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
       }
+
+     $M++;
+     if ($M == 13) {
+         $M = 1;
+         $Y++;
+       }
+     $M = sprintf("%02.d", $M);
     
-    my $seltime = POSIX::mktime(0, 0, 0, $D, $M, ($Y - 1900));
+     my $seltime = POSIX::mktime(0, 0, 0, $D, $M, ($Y - 1900));
 
     if ($seltime > time()) {
       $shedule->add( {UID     => $LIST_PARAMS{UID},
@@ -2475,14 +2476,14 @@ if ($FORM{set}) {
      }	
     else {
  	    $FORM{UID}=$LIST_PARAMS{UID};
-      $user->change({ %FORM });
+      $Dv->change({ %FORM });
 
       if ($user->{errno}) {
-        $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");
+        $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
        }
       else {
         $html->message('info', $_CHANGED, "$_CHANGED");
-        $user->info($user->{UID});
+        $Dv->info($user->{UID});
        }
      }
    }
@@ -2512,19 +2513,19 @@ if ($FORM{set}) {
      }
     else {
       $html->message('info', $_CHANGED, "$_CHANGED");
-      $user->info($user->{UID});
+      $Dv->info($user->{UID});
     }
    }
   else {
     $FORM{UID}=$LIST_PARAMS{UID};
-    $user->change({ %FORM });
+    $Dv->change({ %FORM });
 
-    if ($user->{errno}) {
-      $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");
+    if ($Dv->{errno}) {
+      $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
      }
     else {
       $html->message('info', $_CHANGED, "$_CHANGED");
-      $user->info($user->{UID});
+      $Dv->info($Dv->{UID});
      }
   }
 }
@@ -2564,8 +2565,8 @@ elsif($FORM{del}) {
  else {
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
- 	                                          SELECTED          => $user->{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ TP_GID => $user->{TP_GID} }),
+ 	                                          SELECTED          => $Dv->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ TP_GID => $Dv->{TP_GID} }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -2577,8 +2578,8 @@ elsif($FORM{del}) {
 
    $tariffs->{UID}=$attr->{USER}->{UID};
    $tariffs->{m}=$m;
-   $tariffs->{TP_ID}   = $user->{TP_ID};
-   $tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME}";
+   $tariffs->{TP_ID}   = $Dv->{TP_ID};
+   $tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME}";
 
    $html->tpl_show(templates('form_chg_tp'), $tariffs);
 }
