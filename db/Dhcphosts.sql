@@ -15,8 +15,6 @@ CREATE TABLE `dhcphosts_hosts` (
   `vid` smallint(6) unsigned NOT NULL default '0',
   `nas` smallint(6) unsigned NOT NULL default '0',
   `option_82` tinyint(1) unsigned NOT NULL default '0',
-  `ip_range_first` int(11) unsigned NOT NULL DEFAULT '0',
-  `ip_range_last` int(11) unsigned NOT NULL DEFAULT '0',
   `boot_file` VARCHAR( 150 ) NOT NULL default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `cid` (`ip`),

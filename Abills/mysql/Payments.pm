@@ -252,7 +252,8 @@ sub list {
   }
 
  if ($attr->{EXT_ID}) {
- 	 push @WHERE_RULES, "p.ext_id='$attr->{EXT_ID}'";
+   $attr->{EXT_ID} =~ s/\*/\%/g;
+   push @WHERE_RULES, "p.ext_id LIKE '$attr->{EXT_ID}'";
   }
 
  if ($attr->{ID}) {

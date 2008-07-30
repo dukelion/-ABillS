@@ -67,7 +67,7 @@ sub snmputils_nas_ipmac {
      LEFT JOIN companies company ON  (u.company_id=company.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
             WHERE u.uid=un.uid
-               and un.uid=d.uid and un.nas_id='$attr->{NAS_ID}'
+               and un.uid=d.uid and d.nas='$attr->{NAS_ID}'
                and u.disable=0
             ORDER BY $SORT $DESC
             LIMIT $PG, $PAGE_ROWS;");
@@ -192,7 +192,8 @@ sub snmputils_binding_list {
    
    $self->query($db,   "SELECT u.id, b.binding,  b.params, b.comments, b.id, 
             b.uid,
-            if(u.company_id > 0, cb.deposit+u.credit, ub.deposit+u.credit)
+            if(u.company_id > 0, cb.deposit+u.credit, ub.deposit+u.credit),
+            u.disable
             from (snmputils_binding b)
             INNER JOIN users u ON (b.uid = u.uid)
             LEFT JOIN bills ub ON (u.bill_id = ub.id)
