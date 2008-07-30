@@ -2451,9 +2451,15 @@ if ($FORM{AID}) {
   $admin_form->{LNG_ACTION}=$_CHANGE;
  }
 elsif ($FORM{add}) {
-  $admin_form->add({ %FORM });
-  if (! $admin_form->{errno}) {
-     $html->message('info', $_INFO, "$_ADDED");	
+  
+  if (! $FORM{A_LOGIN}) {
+      $html->message('err', $_ERROR, "$ERR_WRONG_DATA $_ADMIN $_LOGIN");  	
+    }
+  else {
+    $admin_form->add({ %FORM });
+    if (! $admin_form->{errno}) {
+       $html->message('info', $_INFO, "$_ADDED");	
+     }
    }
 }
 elsif($FORM{del} && $FORM{is_js_confirmed}) {
