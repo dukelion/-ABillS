@@ -48,14 +48,11 @@ sub dv_chg_tp {
 
 
   
-#if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
-#        ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
-#         $Dv->{POSTPAID_ABON} || 
-#         $Dv->{PAYMENT_TYPE} == 1 )) {
+if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
+        ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
+         $Dv->{POSTPAID_ABON} || 
+         $Dv->{PAYMENT_TYPE} == 1 )) {
 
-if ( ! $Dv->{STATUS} && ! $users->{DISABLE} &&
-        ($users->{DEPOSIT}+$users->{CREDIT} > 0  
-         )) {
       if ($users->{ACTIVATE} ne '0000-00-00') {
         my ($Y, $M, $D)=split(/-/, $users->{ACTIVATE}, 3);
         $M--;
@@ -86,7 +83,7 @@ if ($FORM{set}) {
     else {
     	$FORM{date_M}++;
      }
-   print "--- $FORM{date_Y}, $FORM{date_M}, $FORM{date_D} // $Dv->{ABON_DATE}-- ";
+    #print "--- $FORM{date_Y}, $FORM{date_M}, $FORM{date_D} // $Dv->{ABON_DATE}-- ";
  	  use POSIX;
     
     my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
