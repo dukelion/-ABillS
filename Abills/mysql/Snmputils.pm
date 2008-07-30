@@ -67,7 +67,7 @@ sub snmputils_nas_ipmac {
      LEFT JOIN companies company ON  (u.company_id=company.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
             WHERE u.uid=un.uid
-               and un.uid=d.uid and d.nas='$attr->{NAS_ID}'
+               and un.uid=d.uid and (d.nas='$attr->{NAS_ID}' or un.nas_id='$attr->{NAS_ID}')
                and u.disable=0
             ORDER BY $SORT $DESC
             LIMIT $PG, $PAGE_ROWS;");
