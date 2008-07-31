@@ -2,7 +2,7 @@
 :DEFAULT:AMAVIS=1:Configure Amavis
 :DEFAULT:OS=FREEBSD:Operation system
 main.cf            > [/usr/local/etc/postfix]/main.cf
-sql/aliases.cf         > [/usr/local/etc/postfix]/sql2/aliases.cf
+sql/aliases.cf         > [/usr/local/etc/postfix]/sql/aliases.cf
 sql/access.cf          > [/usr/local/etc/postfix]/sql/access.cf    
 sql/virtual_domains.cf > [/usr/local/etc/postfix]/sql/virtual_domains.cf
 sql/relay_domains.cf   > [/usr/local/etc/postfix]/sql/relay_domains.cf
