@@ -119,7 +119,8 @@ if(! -f $config_file ) {
 
   if (! -d '/usr/abills/backup' ) {
     my $ret = `mkdir /usr/abills/backup`;
-    $ret = `chown www /usr/abills/backup`;
+    $ret = `chown www /usr/abills/backup /usr/abills/cgi-bin/ /usr/abills/Abills/templates/`;
+    
    } 
  
   if (! confirm_yn("Continue configuration [y]: ", "y")) {
@@ -449,11 +450,26 @@ sub check_install {
    
   $config_body = _parse($config_body, \%DEFAULT_VALUE, \%DEFAULT_DESCRIBE); 
 
- 	  #Copy config
+    #Copy config
     if (! -d $folder ) {
-    	mkdir($folder);
+    	if (! mkdir($folder))  {
+          print "Can't Create '$folder' Error: $!\n";
+          exit;
+         }
     	print "mkdir $folder\n" if ($debug == 2);
      }
+
+    if ( "$folder/$dest" =~ m/(\S+)\/([a-zA-Z0-9\-\.\_]+)$/) {
+       my $desc_folder=$1;
+       if (! -d $desc_folder ) {
+         if (! mkdir($desc_folder))  {
+           print "Can't Create '$desc_folder' Error: $!\n";
+           exit;
+          }
+         print "mkdir $desc_folder\n" if ($debug == 2);
+        }
+     }
+
 
     if ($debug == 3) {
       
