@@ -42,4 +42,5 @@ local.cf           > [/usr/local/etc/mail/spamassassin]/local.cf
 :AMAVIS=1:FILE=amavis_master.cf   >> [/usr/local/etc/postfix]/master.cf
 :OS=FREEBSD,AMAVIS=1:amavisd_enable="YES"\namavisd_ram="512m" >> [/etc]/rc.conf
 :OS=FREEBSD,CLAMAV=1:clamav_clamd_enable="YES"\nclamav_freshclam_enable="YES" >> [/etc]/rc.conf
+:OS=FREEBSD,CLAMAV=1:exec:a=`grep vscan:*:110:clamav /etc/group` ; if [ w$a != w ]; then cp /etc/group /etc/group_back && /bin/cat /etc/group_back | /usr/bin/sed 's/vscan:\*:110:/vscan:\*:110:clamav/' > /etc/group; fi; > [/dev]/null
 
