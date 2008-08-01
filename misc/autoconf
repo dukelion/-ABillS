@@ -108,7 +108,7 @@ if(! -f $config_file ) {
      if (read_file('/etc/crontab') !~ /abills/  && ! confirm_yn("Make Cron records: ", "n")) {
         my $crontab_content = "*/5  *  *  *  *  root   /usr/abills/libexec/billd -all\n".
                               "1    0  *  *  *  root   /usr/abills/libexec/periodic daily\n".
-                              "1    0  *  *  *  root   /usr/abills/libexec/periodic monthly\n";
+                              "1    1  *  *  *  root   /usr/abills/libexec/periodic monthly\n";
 
         write_file('/etc/crontab', $crontab_content, '>>');
      	 } 
