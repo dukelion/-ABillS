@@ -652,7 +652,7 @@ sub dhcphosts_user {
 #**********************************************************
 sub dhcphosts_network_sel {
 	
-  my $list=$Dhcphosts->networks_list();
+  my $list=$Dhcphosts->networks_list({ PAGE_ROWS => 10000, SORT => 2 });
   if ($Hosts->{errno}) {
    	print $html->message('err', $_ERROR, "[$Hosts->{errno}] $err_strs{$Hosts->{errno}}");
    	return 0;
@@ -697,7 +697,10 @@ sub dhcphosts_config {
 #  my @networks = split(/, /, $attr->{NETWORKS});
 #foreach my $NET_ID (@networks) {
 
-my $list = $Dhcphosts->networks_list({ DISABLE => 0 });  
+my $list = $Dhcphosts->networks_list({ DISABLE   => 0, 
+	                                     PAGE_ROWS => 10000, 
+	                                     SORT      => 2  
+	                                     });  
   
 foreach my $line (@$list) {
   my $NET_ID = $line->[0];
