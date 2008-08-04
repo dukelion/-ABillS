@@ -1147,8 +1147,9 @@ sub ipn_log_rotate {
  my $version = $self->db_version();
  #Detail Daily rotate
  if ($attr->{DETAIL} && $version > 4.1 ) {
- 	my $DATE = $admin->{DATE};
- 	$DATE =~ s/-/_/g;
+ 	#my $DATE = $admin->{DATE};
+ 	#$DATE =~ s/-/_/g;
+        my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));
 
  	my @rq = (
     'CREATE TABLE IF NOT EXISTS ipn_traf_detail_new LIKE ipn_traf_detail;',
