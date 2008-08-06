@@ -11,12 +11,18 @@ use Socket;
 #**********************************************************
 sub netlist_ip_calc {
 
+  my $mask = 0b0000000000000000000000000000001;
 
+
+
+  if (! $FORM{MASK} && $FORM{MASK_BITS}) {
+    $FORM{MASK} = int2ip( 4294967296 - sprintf("%d<br>", $mask << (32  - $FORM{MASK_BITS})) );
+   }
 
   $Netlist->{MASK_SEL}=$html->form_select('MASK', 
                                           { 
  	                                          SELECTED    => $FORM{MASK},
- 	                                          SEL_ARRAY   => [ 
+ 	                                          SEL_ARRAY   => [ '',
  	                                          '255.0.0.0', 	            
 
  	                                          '255.128.0.0',
@@ -47,17 +53,14 @@ sub netlist_ip_calc {
  	                                        });
 
 
-  my $mask = 0b0000000000000000000000000000001;
+#  my @ar =  unpack("C2C2C2C2", pack("B32",  $mask ));
+#  my $i = 1;
+#  foreach my $line (@ar) {
+#  	$Netlist->{'IP_D'.$i}=$line;
+#  	print $Netlist->{'IP_D'.$i} .": <br>";
+#    $i++;
+#   }
   
-#  #print "$mask<br>";
-#  #my @ar =  unpack("C2C2C2C2", pack("B32",  $mask ));
-#  #my $i = 1;
-#  #foreach my $line (@ar) {
-#  #	$Netlist->{'IP_D'.$i}=$line;
-#  #	print $Netlist->{'IP_D'.$i};
-#  #  $i++;
-#  # }
-#  
 #  
 #  
   my @SUBNET_NUMBER = ();
@@ -105,7 +108,11 @@ if ($FORM{SHOW}) {
   
   my $ip_prefix = "$FORM{IP_D1}\.$FORM{IP_D2}\.$FORM{IP_D3}";
   my $int = ip2int("$ip_prefix\.0");
-  
+ 
+  if ($FORM{MASK_BITS}) {
+     
+   }
+ 
   if ($FORM{MASK} =~ /\.0$/ && $FORM{MASK} !~ /255\.0$/) {
   	$ip_prefix = "$FORM{IP_D1}\.$FORM{IP_D2}\.0";
   	$int = ip2int("$ip_prefix\.0\.0");

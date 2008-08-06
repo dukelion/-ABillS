@@ -268,7 +268,7 @@ sub  extfin_periodic_paids {
     
     $Extfin->paid_add({ TYPE        => $line->[0],
     	                  SUM         => $line->[2],
-    	                  DESCRIB  => "$_PERIOD: $line->[3] ",
+    	                  DESCRIB     => "$_PERIOD: $line->[3] ",
     	                  MACCOUNT_ID => "$_PERIOD: $line->[4] ",
                         UID         => $line->[8],
                         DATE        => "$ADMIN_REPORT{DATE}",
