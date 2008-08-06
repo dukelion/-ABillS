@@ -280,8 +280,8 @@ sub payment_deed {
  my %NAMES=();
 
  if ($attr->{DATE_FROM}) {
- 	  push @WHERE_RULES, "f.date>='$attr->{DATE_FROM}' AND f.date<='$attr->{DATE_TO}'";
- 	  push @WHERE_RULES_DV, "dv.start>='$attr->{DATE_FROM}' AND dv.start<='$attr->{DATE_TO}'";
+ 	  push @WHERE_RULES, "DATE_FORMAT(f.date, '%Y-%m-%d')>='$attr->{DATE_FROM}' AND DATE_FORMAT(f.date, '%Y-%m-%d')<='$attr->{DATE_TO}'";
+ 	  push @WHERE_RULES_DV, "DATE_FORMAT(dv.start, '%Y-%m-%d')>='$attr->{DATE_FROM}' AND DATE_FORMAT(dv.start, '%Y-%m-%d')<='$attr->{DATE_TO}'";
    }
  elsif ($attr->{MONTH}) {
    push @WHERE_RULES, "DATE_FORMAT(f.date, '%Y-%m')='$attr->{MONTH}'";
