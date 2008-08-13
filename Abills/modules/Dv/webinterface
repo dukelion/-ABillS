@@ -3576,6 +3576,10 @@ sub dv_wizard_user {
         $dv->{STATUS}=$service_status[$dv->{STATUS}];
         $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
         $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail) if ($Mail);
+
+        if (in_array('Docs', \@MODULES) ) {
+          $html->message('info', $_INFO, "$_PRINT ". $html->button("$_CONTRACT", "qindex=15&UID=$UID&PRINT_CONTRACT=$UID". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new'  }) );
+         }
        }
 
       return $UID;

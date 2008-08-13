@@ -8,15 +8,17 @@ use FindBin '$Bin';
 sub _include {
   my ($tpl, $module, $attr) = @_;
   my $result = '';
-
+  
+  
+  
   if (-f '../../Abills/templates/'. $module . '_' . $tpl . '.tpl') {
-    return tpl_content('../../Abills/templates/'. $module . '_' . $tpl . '.tpl');
+    return ($FORM{pdf}) ? '../../Abills/templates/'. $module . '_' . $tpl . '.tpl' : tpl_content('../../Abills/templates/'. $module . '_' . $tpl . '.tpl');
    }
   elsif (-f '../Abills/templates/'. $module . '_' . $tpl .'.tpl') {
-    return tpl_content('../Abills/templates/'. $module . '_' . $tpl. '.tpl');
+    return ($FORM{pdf}) ? '../Abills/templates/'. $module . '_' . $tpl. '.tpl' : tpl_content('../Abills/templates/'. $module . '_' . $tpl. '.tpl');
    }
   elsif (-f $Bin .'/../Abills/templates/'. $module . '_' . $tpl .'.tpl') {
-    return tpl_content($Bin .'/../Abills/templates/'. $module . '_' . $tpl .'.tpl');
+    return ($FORM{pdf}) ? $Bin .'/../Abills/templates/'. $module . '_' . $tpl .'.tpl' : tpl_content($Bin .'/../Abills/templates/'. $module . '_' . $tpl .'.tpl');
    }
   elsif (defined($module)) {
     $tpl	= "modules/$module/templates/$tpl";
@@ -25,7 +27,7 @@ sub _include {
   foreach my $prefix (@INC) {
      my $realfilename = "$prefix/Abills/$tpl.tpl";
      if (-f $realfilename) {
-        return tpl_content($realfilename);
+        return ($FORM{pdf}) ? $realfilename :  tpl_content($realfilename);
       }
    }
 
@@ -37,7 +39,7 @@ sub _include {
 # templates
 #**********************************************************
 sub tpl_content {
-  my ($filename) = @_;
+  my ($filename, $attr) = @_;
   my $tpl_content = '';
   
   open(FILE, "$filename") || die "Can't open file '$filename' $!";

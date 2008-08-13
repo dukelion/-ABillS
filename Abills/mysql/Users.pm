@@ -234,11 +234,11 @@ sub pi_add {
 
 
   $self->query($db,  "INSERT INTO users_pi (uid, fio, phone, address_street, address_build, address_flat, 
-          email, contract_id, comments, pasport_num, pasport_date,  pasport_grant, zip, 
+          email, contract_id, contract_date, comments, pasport_num, pasport_date,  pasport_grant, zip, 
           city $info_fields)
            VALUES ('$DATA{UID}', '$DATA{FIO}', '$DATA{PHONE}', \"$DATA{ADDRESS_STREET}\", 
             \"$DATA{ADDRESS_BUILD}\", \"$DATA{ADDRESS_FLAT}\",
-            '$DATA{EMAIL}', '$DATA{CONTRACT_ID}',
+            '$DATA{EMAIL}', '$DATA{CONTRACT_ID}', '$DATA{CONTRACT_DATE}',
             '$DATA{COMMENTS}',
             '$DATA{PASPORT_NUM}',
             '$DATA{PASPORT_DATE}',
@@ -296,6 +296,7 @@ sub pi {
   pi.address_flat,
   pi.email,  
   pi.contract_id,
+  pi.contract_date,
   pi.comments,
   pi.pasport_num,
   pi.pasport_date,
@@ -321,6 +322,7 @@ sub pi {
    $self->{ADDRESS_FLAT}, 
    $self->{EMAIL}, 
    $self->{CONTRACT_ID},
+   $self->{CONTRACT_CONTRACT},
    $self->{COMMENTS},
    $self->{PASPORT_NUM},
    $self->{PASPORT_DATE},
@@ -353,6 +355,7 @@ my %FIELDS = (EMAIL          => 'email',
               COMMENTS       => 'comments',
               UID            => 'uid',
               CONTRACT_ID    => 'contract_id',
+              CONTRACT_DATE  => 'contract_date',
               PASPORT_NUM    => 'pasport_num',
               PASPORT_DATE   => 'pasport_date',
               PASPORT_GRANT  => 'pasport_grant',
@@ -653,7 +656,6 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
-
  if ($attr->{CONTRACT_ID}) {
 
     if ($attr->{CONTRACT_ID} =~ /^list:(.+)/) {
@@ -668,6 +670,15 @@ sub list {
     $self->{SEARCH_FIELDS} .= 'pi.contract_id, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
+
+ if ($attr->{CONTRACT_DATE}) {
+    my $value = $self->search_expr("$attr->{CONTRACT_DATE}", 'INT');
+    push @WHERE_RULES, "(pi.contract_date$value)"; 
+
+    $self->{SEARCH_FIELDS} .= 'pi.contract_date, ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
 
  if ($attr->{REGISTRATION}) {
     my $value = $self->search_expr("$attr->{REGISTRATION}", 'INT');

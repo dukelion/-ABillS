@@ -5,6 +5,26 @@ use Docs;
 my $Docs = Docs->new($db, $admin, \%conf);
 
 #**********************************************************
+# docs_print
+#**********************************************************
+sub docs_contract {
+	
+	if ($FORM{UID}) {
+		$Docs = $users->pi({ UID => $FORM{UID} });
+		require "../../Abills/modules/Docs/lng_$conf{default_language}.pl";
+    my ($y, $m, $d)=split(/-/, (($users->{CONTRACT_DATE}) ? $users->{CONTRACT_DATE} : $DATE ) , 3);
+    $Docs->{CONTRACT_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
+    
+    $Docs->{ADDRESS_FULL}="$Docs->{ADDRESS_STREET}, $Docs->{ADDRESS_BUILD}/$Docs->{ADDRESS_FLAT}"; 
+		
+		docs_print('contract', { %$admin, %$Docs });
+	 }
+
+	
+}
+
+
+#**********************************************************
 # docs_invoice_add
 # Order array format
 # NAME|UNIT|COUNT|PRICE
@@ -126,7 +146,8 @@ my $table = $html->table( { width      => '100%',
                             title      => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, '-', '-'],
                             cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center'],
                             qs         => $pages_qs,
-                            pages      => $Docs->{TOTAL}
+                            pages      => $Docs->{TOTAL},
+                            ID         => 'DOCS_INVOCE'
                           });
 
 
@@ -190,13 +211,20 @@ if (! defined($FORM{sort})) {
   $LIST_PARAMS{DESC}='DESC';
 }
 
+
+if ($conf{DOCS_PDF_PRINT}) {
+	$pages_qs .= "&pdf=1";
+}
+
 my $list = $Docs->accounts_list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             border     => 1,
+                            caption    => "$_ACCOUNTS",
                             title      => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, '-', '-'],
                             cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $Docs->{TOTAL}
+                            pages      => $Docs->{TOTAL},
+                            ID         => 'DOCS_ACCOUNTS_LIST'
                           });
 
 
@@ -232,8 +260,6 @@ return 0;
 sub docs_account {
  $Docs->account_defaults();		
  $Docs->{DATE}=$DATE;
-
-
 
  #$Docs->{debug}=1;
  #print "aaaaaaaaa";
@@ -272,11 +298,16 @@ sub docs_account {
    	       $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[3]*$line->[4]));
         }
 
+       if ($conf{DOCS_PDF_PRINT}) {
+       	$html->message('info', $_ADDED, "$_ACCOUNT $_ADDED. ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }));
+       	 return 0;
+        }
+
       
        #print $html->header() if ($FORM{qindex});
        if( $user->{UID} ) {
-         $FORM{qindex}=$index;
-         $html->{NO_PRINT}=undef;
+         $FORM{qindex}    = $index;
+         $html->{NO_PRINT}= undef;
 
          docs_print('account', $Docs);
          exit;
@@ -293,6 +324,15 @@ sub docs_account {
  elsif(defined($FORM{print})){
    $Docs->account_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
 
+
+   
+   if ($conf{DOCS_VAT_INCLUDE}) {
+   	 $Docs->{ORDER_TOTAL_SUM_VAT} = sprintf("%.2f", $Docs->{SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
+   	 $Docs->{TOTAL_SUM_WITHOUT_VAT}=sprintf("%.2f",$Docs->{SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
+   	 $Docs->{VAT}=sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
+    }
+
+
    if ($Docs->{TOTAL} > 0) {
    	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{SUM});
      $Docs->{FROM_DATE_LIT}='';
@@ -301,8 +341,21 @@ sub docs_account {
      foreach my $line (@$list) {
    	   $i++;
    	   $Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", 
-   	     $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[3]*$line->[4]));
+   	     $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[2]*$line->[4]));
+   	   
+   	   $Docs->{ORDER_NUM}   = $i;
+       $Docs->{ORDER_NAME}  = $line->[1];
+       $Docs->{ORDER_COUNT} = $line->[2];
+       $Docs->{ORDER_PRICE} = $line->[4];
+       $Docs->{ORDER_SUM}   = $line->[2]*$line->[4];
+       
+       $Docs->{ORDER_PRICE_WITHOUT_VAT} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[3]);
+       $Docs->{ORDER_SUM_WITHOUT_VAT}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[2]*$line->[4] - ($line->[2]*$line->[4]) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[2]*$line->[4]);
       }
+
+     $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
+     
+  
      docs_print('account', $Docs);
     }
    else {
@@ -331,19 +384,22 @@ sub docs_account {
   }
 	
 	if(! $user->{UID}  ) {
-  	$Docs->{FORM_ACCT_ID} = "<tr><td>N:</td><td><input type='text' name='ACCT_ID' value='%ACCT_ID%'></td></tr>\n";
+  	$Docs->{FORM_ACCT_ID} = "<tr><td>$_ACCOUNT $_NUM:</td><td><input type='text' name='ACCT_ID' value='%ACCT_ID%'></td></tr>\n";
    }
 
   $Docs->{SEL_ORDER} .= $html->form_select('ORDERS', 
                                     { 
  	                                   SELECTED    => $FORM{ORDERS},
- 	                                   SEL_ARRAY   => ['Internet service'],
+ 	                                   SEL_ARRAY   => ($conf{DOCS_ORDERS})? $conf{DOCS_ORDERS} : [$_DV],
                                      NO_ID       => 1
  	                                  });
 
   #$Docs->{COMPANY_VAT}=$user->{COMPANY_VAT}.' %';
-  $Docs->{OP_SID} = mk_unique_value(16);
-  $html->tpl_show(_include('docs_account_add', 'Docs'), $Docs);
+  $Docs->{OP_SID}  = mk_unique_value(16);
+  $users->pi({  $users->{UID} });
+
+  $Docs->{CUSTOMER}=$users->{FIO};
+  $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users });
 }
 
 
@@ -383,11 +439,20 @@ sub docs_print {
   	  });
 	
 	my $template = $type;
-	print $html->header() if ($FORM{qindex});
-	$html->tpl_show(_include("docs_$template", 'Docs'), $ATTR);
+  print $html->header() if ($FORM{qindex});
+  $users->pi({  $users->{UID} });
+	$html->tpl_show(_include("docs_$template", 'Docs'), { %$ATTR, %$users });
+
 }
 
 
-
+#**********************************************************
+#
+#**********************************************************
+sub docs_acts {
+	
+	
+	
+}
 1
 

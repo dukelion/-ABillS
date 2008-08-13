@@ -1,19 +1,21 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
+# ABillS Console manager solution
+#
 
 
-
-use vars  qw($db %AUTH %conf $sql $DATE $TIME
+use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
   $begin_time %LANG $CHARSET @MODULES %FUNCTION_LIST
-  
+  %permissions
   $index
   $UID $user $admin $sid
+  %LIST_PARAMS
  );
 
-
-my $version = 0.1;
-
-
 #use strict;
+
+my $version = 0.2;
+
+
 use FindBin '$Bin';
 require $Bin . '/../libexec/config.pl';
 unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
@@ -25,8 +27,7 @@ $begin_time = check_time();
 require "Abills/defs.conf";
 require "Abills/templates.pl";
 
-
-if ($#ARGV == -1) {
+if ($#ARGV > -1 && $ARGV[0] eq 'help') {
 	help();
 	exit 0; 
 }
@@ -44,19 +45,84 @@ my $db = $sql->{db};
 require Admins;
 Admins->import();
 $admin = Admins->new($db, \%conf);
-$admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
+
+
+my $ARGV = parse_arguments(\@ARGV);
+my $retries          = 0;
+my $max_acccess_rets = 3;
+my $language         = 'english';
+
+%permissions = ();
+
+my $admin_info    = get_admin_info(); 
+my $REMOTE_USER   = $admin_info->{USERNAME} || '';
+my $REMOTE_PASSWD = $admin_info->{PASSWD}   || '';
+
+
+if ($ARGV->{language}) {
+	$language = $ARGV->{language};
+ }
+elsif($admin_info->{LANGUAGE}) {
+	$language = $admin_info->{LANGUAGE};
+}	
+	
+require $Bin ."/../language/$language.pl";
+@status = ("$_ENABLE", "$_DISABLE");
+
+
 require Users;
 Users->import();
-my $user=Users->new($db, $admin, \%conf); 
+my $users=Users->new($db, $admin, \%conf); 
 
 require Fees;
 Fees->import();
 my $fees = Fees->new($db, $admin, \%conf);
 
+require Payments;
+Payments->import();
+my $payments = Payments->new($db, $admin, \%conf);
 
-my $ARGV = parse_arguments(\@ARGV);
-my $language = ($ARGV->{language}) ? $ARGV->{language} : 'russian';
-require $Bin ."/../language/$language.pl";
+require  Dv;
+Dv->import();
+my $Dv = Dv->new($db, $admin, \%conf);
+
+
+if ($#ARGV == -1) {
+  while($retries < $max_acccess_rets) {
+    my $res =  check_permissions("$REMOTE_USER", "$REMOTE_PASSWD");
+    if ($res == 1) {
+  	  print "Wrong Password!!!\n";
+  	  $retries++;
+     }
+    else {
+      print "$_ADMIN: $admin->{A_FIO}. $_DATE: $DATE $TIME\n";
+      last;
+     }
+
+    print "$_ADMIN: ";
+	  chop($REMOTE_USER   = <STDIN>);
+	  print "$_PASSWD: ";
+    chop($REMOTE_PASSWD = <STDIN>);
+   }
+
+  while(1) {
+  	my $input = '';
+  	print "$_USER > ";
+  	chop($input = <STDIN>);
+  	
+  	if ($input eq '?') {
+  		console_help();
+  	 }
+  	elsif($input =~ /exit|q|quit/) {
+  		exit;
+  	 }
+    else {
+    	$LIST_PARAMS{LOGIN_EXPR}=$input;
+      form_users();
+     }
+   }
+}
+
 
 if ($ARGV->{DV_USER}) {
 	dv_users();
@@ -75,27 +141,23 @@ elsif ($ARGV->{LOGPARSE}) {
 sub dv_users {
 	my ($attr) = @_;
 	
-  require  Dv;
-  Dv->import();
-  my $Dv = Dv->new($db, $admin, \%conf);
-
   if ($ARGV->{CONTRACT_ID}) {
-    my $list = $user->list({ CONTRACT_ID => $ARGV->{CONTRACT_ID} });
+    my $list = $users->list({ CONTRACT_ID => $ARGV->{CONTRACT_ID} });
     $ARGV->{DV_USER}=$list->[0]->[0];
    }
 
-  $user->info(0, { LOGIN => $ARGV->{DV_USER} });
+  $users->info(0, { LOGIN => $ARGV->{DV_USER} });
 
-  print "LOGIN: $user->{LOGIN} UID: $user->{UID}\n";
+  print "LOGIN: $users->{LOGIN} UID: $users->{UID}\n";
 	
 	if ($ARGV->{add}) {
 		
 	 }
 	elsif ($ARGV->{change}) {
-		$Dv->change({ UID => $user->{UID}, %{ $ARGV } });
+		$Dv->change({ UID => $users->{UID}, %{ $ARGV } });
     
     if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-      $Dv->{ACTIVATE}= ($ARGV->{ACTIVATE}) ? $ARGV->{ACTIVATE} : $user->{ACTIVATE};
+      $Dv->{ACTIVATE}= ($ARGV->{ACTIVATE}) ? $ARGV->{ACTIVATE} : $users->{ACTIVATE};
       dv_get_month_fee($Dv);
      }
 
@@ -323,7 +385,88 @@ foreach my $m (@MODULES) {
   }
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub get_admin_info {
+ my ($login) = @_;
+ my %admin_info = ();
+ my $content = '';
+ 
+ if (-f "$ENV{HOME}/.abm") {
+   open(FILE, "$ENV{HOME}/.abm") or die "Can't open file '$ENV{HOMEDIR}/.abm' $! \n";
+     while (<FILE>) {
+       $content .= $_;
+      }
+   close(FILE)
+  }
 
+  my @rows = split(/\n/, $content);
+
+  foreach my $line (@rows) {
+    my ($k, $v) = split(/=/, $line, 2);
+    $k =~ s/ //g;
+    $v =~ s/ //g;
+    $admin_info{$k}=$v;
+  }
+
+
+ return \%admin_info;
+}
+
+
+#**********************************************************
+#
+# check_permissions()
+#**********************************************************
+sub check_permissions {
+  my ($login, $password, $attr)=@_;
+
+
+  $login =~ s/"/\\"/g;
+  $login =~ s/'/\''/g;
+  $password =~ s/"/\\"/g;
+  $password =~ s/'/\\'/g;
+
+  my $ip = '127.0.0.1';
+  
+  if ($ENV{SSH_CLIENT} =~ /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/) {
+    $ip=$1;
+  }
+  
+
+  my %PARAMS = ( LOGIN     => "$login", 
+                 PASSWORD  => "$password",
+                 SECRETKEY => $conf{secretkey},
+                 IP        => $ip
+                );
+
+
+  $admin->info(0, { %PARAMS } );
+
+  
+
+  if ($admin->{errno}) {
+    return 1;
+   }
+  elsif($admin->{DISABLE} == 1) {
+  	$admin->{errno}=2;
+  	$admin->{errstr} = 'DISABLED';
+  	return 2;
+   }
+  
+  if ($admin->{WEB_OPTIONS}) {
+    my @WO_ARR = split(/;/, $admin->{WEB_OPTIONS}	);
+    foreach my $line (@WO_ARR) {
+    	my ($k, $v)=split(/=/, $line);
+    	$admin->{WEB_OPTIONS}{$k}=$v;
+     }
+   }
+  
+  %permissions = %{ $admin->get_permissions() };
+
+  return 0;
+}
 
 
 #**********************************************************
@@ -337,6 +480,215 @@ abm_console console ABillS managment
 
   USER   - Get session info from /var/log/ppp.log for user USER
   PID    - Get INfo for PID
+
+[END]
+
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub dv_user_main {
+	my($uid)=@_;
+	print ">> $_DV\n";
+
+  $Dv->info($user->{UID});
+
+print << "[END]";
+=========================
+$_TARIF_PLAN: [$Dv->{TP_ID}] $Dv->{TP_NAME}
+$_SIMULTANEOUSLY: $Dv->{SIMULTANEONSLY}
+IP: $Dv->{IP}
+MASK: $Dv->{NETMASK}
+$_SPEED: $Dv->{SPEED}
+Filter-ID: $Dv->{FILTER_ID}
+CID: $Dv->{CID}
+$_STATUS: $Dv->{STATUS}
+Callback: $Dv->{CALLBACK}
+$_PORT: $Dv->{PORT}
+$_JOIN_SERVICE: $Dv->{JOIN_SERVICE}
+=========================
+[END]
+
+  my @params = ("<-:SUM",
+                );
+
+  my $FORM   = form_parse(\@params, $Dv); 
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub user_info {
+ 	my ($uid) = @_;
+
+ 	$user = $users->info($uid);
+
+ 	print "$_USER: $user->{LOGIN} (". (($user->{FIO}) ? $user->{FIO} : ''). ") $user->{UID}\n".
+ 	  "$_DEPOSIT: $user->{DEPOSIT}\n".
+ 	  "$_CREDIT:  $user->{CREDIT}\n".
+ 	  "$_STATUS: ". $status[$user->{DISABLE}]."\n";
+
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub form_users {
+  my ($attr)=@_;
+
+  my @user_functions = ("<-:help",
+                        "EXIT:exit");
+                        #"$_INFO:user_pi");
+
+
+  push @user_functions, "$_CHANGE:form_users" if ($permissions{0});
+  push @user_functions, "$_PAYMENTS:form_payments" if ($permissions{1});
+  push @user_functions, "$_FEES:form_fees" if ($permissions{3});
+  push @user_functions, "$_DV:dv_user_main" if (in_array('Dv', \@MODULES) );
+
+  my $list = $users->list( { %LIST_PARAMS } );
+
+  if ($users->{TOTAL} == 1) {
+    my $uid = $list->[0]->[6];
+    user_info($uid);
+    print "$_FUNCTIONS_LIST: \n"; 
+    
+    while(1) {
+      
+      for($i=0; $i<=$#user_functions; $i++) {
+      	 my ($function_name, $function)=split(/:/, $user_functions[$i], 2);
+      	 print " [$i] $function_name\n";
+       }
+
+    	my $input = '';
+    	print "$_USER: $user->{LOGIN}> ";
+  	  chop($input = <STDIN>);
+  	  chomp $input;
+      if ($input eq '') {
+      	
+       }
+      elsif ($input =~ /exit|quite|q/ || $input == 1) {
+      	return 0;
+       }
+      elsif (int($input) =~ /(\d+)/){
+     	  my $function_id = $1;
+     	  if ($user_functions[$function_id]) {
+     	    my ($function_name, $function)=split(/:/, $user_functions[$function_id], 2);
+    	    $function->();
+    	   }
+       }
+       user_info($uid);
+     }
+   }
+  elsif ($users->{TOTAL} < 1) {
+  	print "$_ERROR: '$LIST_PARAMS{LOGIN_EXPR}' $_NOT_EXIST\n";
+   }
+  else {
+    foreach my $line (@$list) {
+  	   print "$line->[0], $line->[1], $line->[2], $line->[3], ". $status[$line->[4]] ."\n";
+     }
+   }
+
+  return 0;
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub form_fees {
+  my ($attr) = @_;
+
+  print ">> $_FEES:\n";
+  my @params = ("$_SUM (0.00):SUM",
+                "$_DESCRIBE:DESCRIBE",
+                "$_CONFIRM (y/n):CONFIRM"
+                );
+
+  my $FORM   = form_parse(\@params);
+
+  if ($FORM->{CONFIRM}) {
+  	$fees->take($user, $FORM->{SUM}, { %$FORM });
+  	if (! $fees->{errno}) {
+  		print "$_ADDED $_SUM: $FORM->{SUM} ID: $fees->{INSERT_ID}\n";
+  	 }
+    else {
+    	print "$_ERROR: [$fees->{errno}]\n"; #$err_strs{$payments->{errno}}":
+     }
+   }
+ 
+
+  return 0;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub form_payments {
+  my ($attr) = @_;
+
+  print ">> $_PAYMENTS:\n";
+
+  my @params = ("$_SUM (0.00):SUM",
+                "$_DESCRIBE:DESCRIBE",
+                "$_CONFIRM (y/n):CONFIRM"
+                );
+
+  my $FORM   = form_parse(\@params);
+
+  if ($FORM->{CONFIRM}) {
+  	$payments->add($user, { %$FORM });
+  	if (! $payments->{errno}) {
+  		print "$_ADDED $_SUM: $FORM->{SUM} ID: $payments->{INSERT_ID}\n";
+  	 }
+    else {
+    	print "$_ERROR: [$payments->{errno}]\n"; #$err_strs{$payments->{errno}}":
+     }
+   }
+ 
+
+  return 0;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub form_parse {
+  my ($keys, $attr) = @_;
+  my %values = ();
+  foreach my $k (@$keys) {
+  	my($describe, $key)=split(/:/, $k);
+  	print "$describe:";
+  	my $val = '';
+  	chop($val = <STDIN>);
+  	
+  	if ($key eq 'CONFIRM' && $val =~ /n/) {
+  		
+  	 }
+  	else {
+  	  $values{$key}=$val;
+  	 }
+  	
+   }  
+
+  return \%values;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub console_help {
+print << "[END]";
+ABM Console Help. Version: $version:
+ s           - user search menu
+ exit|q|quit - exit
 
 [END]
 

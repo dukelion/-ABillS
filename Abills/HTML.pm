@@ -86,13 +86,13 @@ sub new {
 
   $self->{colors} = $attr->{colors} if (defined($attr->{colors}));
  
-  %FORM = form_parse();
+  %FORM    = form_parse();
   %COOKIES = getCookies();
 
-  $SORT = $FORM{sort} || 1;
-  $DESC = ($FORM{desc}) ? 'DESC' : '';
-  $PG = $FORM{pg} || 0;
-  $OP = $FORM{op} || '';
+  $SORT    = $FORM{sort} || 1;
+  $DESC    = ($FORM{desc}) ? 'DESC' : '';
+  $PG      = $FORM{pg} || 0;
+  $OP      = $FORM{op} || '';
   $self->{CHARSET}=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
    
   if ($FORM{PAGE_ROWS}) {
@@ -102,7 +102,7 @@ sub new {
   	$PAGE_ROWS = int($attr->{PAGE_ROWS});
    }
   else {
- 	$PAGE_ROWS = 25;
+ 	  $PAGE_ROWS = 25;
    }
 
   if ($attr->{PATH}) {
@@ -154,10 +154,28 @@ sub new {
     $self->{language} = $CONF->{default_language} || 'english';
    }
 
-  if (defined($FORM{xml})) {
+  if (defined($FORM{pdf})) {
+   eval { require PDF::API2; };
+   if (! $@) {
+     PDF::API2->import();
+     require Abills::PDF;
+     $self = Abills::PDF->new( { IMG_PATH  => $IMG_PATH,
+      	                         NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1 
+	                            
+	                            });
+    }
+   else {
+     print "Can't load 'PDF::API2'. Get it from http://cpan.org $@";
+     exit; #return 0;
+    }
+
+
+  	
+   }
+  elsif (defined($FORM{xml})) {
     require Abills::XML;
     $self = Abills::XML->new( { IMG_PATH  => $IMG_PATH,
-	                        NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1 
+	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1 
 	                            
 	                            });
   }
@@ -165,10 +183,6 @@ sub new {
 
   return $self;
 }
-
-
-
-
 
 
 #*******************************************************************
@@ -1426,7 +1440,6 @@ $text
 sub tpl_show {
   my $self = shift;
   my ($tpl, $variables_ref, $attr) = @_;	
-  
 
   while($tpl =~ /\%(\w+)\%/g) {
 #    print "-$1-<br>\n";

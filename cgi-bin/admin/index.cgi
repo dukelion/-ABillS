@@ -276,7 +276,6 @@ $users = Users->new($db, $admin, \%conf);
 # Show only function results whithout main windows
 if ($FORM{qindex}) {
   $index = $FORM{qindex};
-
   if(defined($module{$index})) {
     my $lang_file = '';
     foreach my $prefix (@INC) {
@@ -1190,6 +1189,11 @@ sub user_pi {
 
 
   
+  if (in_array('Docs', \@MODULES) ) {
+    $user_pi->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new'  }) ;
+   }
+
+  
   $index=30;
   $html->tpl_show(templates('form_pi'), $user_pi);
 }
@@ -1200,6 +1204,12 @@ sub user_pi {
 sub form_users {
   my ($attr)=@_;
 
+  if ($FORM{PRINT_CONTRACT}) {
+    require "Abills/modules/Docs/webinterface";
+    docs_contract();
+  	return 0;
+   }
+
 if(defined($attr->{USER})) {
 
   my $user_info = $attr->{USER};
@@ -1207,6 +1217,7 @@ if(defined($attr->{USER})) {
     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
     return 0;
    }
+
   print "<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"2\"><tr><td valign=\"top\" align=\"center\">\n";
   #Make service menu
   my $service_menu = '';
@@ -2397,6 +2408,8 @@ print "</table>\n</td></tr></table>\n";
 # form_admins()
 #**********************************************************
 sub form_admins {
+
+
 
 my $admin_form = Admins->new($db, \%conf);
 $admin_form->{ACTION}='add';
@@ -4695,6 +4708,8 @@ if ($FORM{create}) {
 	    }	 
 	  close(FILE);
    }
+
+  show_tpl_info($filename);
  }
 elsif ($FORM{SHOW}){
 	print $html->header();
@@ -4778,6 +4793,7 @@ elsif($FORM{tpl_name}) {
     $info{TPL_NAME} = $FORM{tpl_name};
     $html->message('info', $_CHAMGE, "$_CHANGE: $FORM{tpl_name}");
    }
+
 
   
 }
@@ -4891,13 +4907,77 @@ foreach my $module (sort @MODULES) {
 #}
 
 print $table->show();
-
-
-
-
-
 }
 
+
+
+#**********************************************************
+#
+#**********************************************************
+sub show_tpl_info {
+  my ($filename) = @_;
+
+  $filename =~ s/\.tpl$//;
+  my $table = $html->table( { width       => '600',
+  	                          caption     => "$_INFO - '$filename'",
+                              title_plain => ["$_NAME", "$_DESCRIBE", "$_PARAMS"],
+                              cols_align  => ['left', 'left', 'left']
+                           } );
+
+
+  my $tpl_params = tpl_describe("$filename");
+  foreach my $key (sort keys %$tpl_params) {
+    $table->addrow('%'.$key.'%',
+                   $tpl_params->{$key}->{DESCRIBE},
+                   $tpl_params->{$key}->{PARAMS}
+                   );  	
+   }
+  
+  print $table->show();
+  
+ }
+ 
+#**********************************************************
+# Get template describe. Variables and other
+# tpl describe file format
+# TPL_VARIABLE:TPL_VARIABLE_DESCRIBE:DESCRIBE_LANG:PARAMS
+#**********************************************************
+sub tpl_describe {
+	my ($tpl_name, $attr) = @_;
+	my $filename   = $tpl_name.'.dsc';
+	my $content    = '';
+  my %TPL_DESCRIBE = ();
+
+  if (! -f $filename) {
+  	print $html->message('info', "$_INFO", "$_INFO $_NOT_EXIST ($filename)");
+  	return \%TPL_DESCRIBE;
+   }
+
+	open(FILE, "$filename") or die "Can't open file '$filename' $!\n";
+	  while(<FILE>) {
+	  	$content .= $_;
+	   }
+	
+ 	my @rows = split(/\n/, $content);
+  
+  foreach my $line (@rows) {
+  	if ($line =~ /^#/) {
+  		next;
+  	 }
+  	elsif($line =~ /^(\S+):(.+):(\S+):(\S{0,200})/) {
+    	my $name    = $1;
+    	my $describe= $2;
+    	my $lang    = $3;
+    	my $params  = $4;
+    	next if ($attr->{LANG} && $attr->{LANG} ne $lang);
+    	$TPL_DESCRIBE{$name}{DESCRIBE}=$describe;
+    	$TPL_DESCRIBE{$name}{LANG}    =$lang;
+    	$TPL_DESCRIBE{$name}{PARAMS}  =$params;
+     }
+   }
+
+   return \%TPL_DESCRIBE;
+}
 
 #*******************************************************************
 # form_period

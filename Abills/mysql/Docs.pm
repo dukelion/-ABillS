@@ -28,10 +28,12 @@ sub new {
   my $self = { };
   bless($self, $class);
 
-  #if ($CONF->{DELETE_USER}) {
-  #  $self->{UID}=$CONF->{DELETE_USER};
-  #  $self->del({ UID => $CONF->{DELETE_USER} });
-  # }
+  if ($CONF->{DELETE_USER}) {
+    $self->{UID}=$CONF->{DELETE_USER};
+    $self->del({ UID => $CONF->{DELETE_USER} });
+   }
+
+  $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD}=30 if (! $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD});
 
 #  $self->{debug}=1;
   return $self;
@@ -254,8 +256,14 @@ sub docs_invoice_del {
 	my $self = shift;
 	my ($id, $attr) = @_;
 
-   $self->query($db, "DELETE FROM docs_invoice_orders WHERE acct_id='$id'", 'do');
-   $self->query($db, "DELETE FROM docs_invoice WHERE id='$id'", 'do');
+  if ($id == 0 && $attr->{UID}) {
+    #$self->query($db, "DELETE FROM docs_acct_orders WHERE acct_id='$id'", 'do');
+    #$self->query($db, "DELETE FROM docs_acct WHERE uid='$id'", 'do');
+   }
+  else {
+    $self->query($db, "DELETE FROM docs_invoice_orders WHERE acct_id='$id'", 'do');
+    $self->query($db, "DELETE FROM docs_invoice WHERE id='$id'", 'do');
+   }
 
 	return $self;
 }
@@ -415,8 +423,14 @@ sub account_del {
 	my $self = shift;
 	my ($id, $attr) = @_;
 
-  $self->query($db, "DELETE FROM docs_acct_orders WHERE acct_id='$id'", 'do');
-  $self->query($db, "DELETE FROM docs_acct WHERE id='$id'", 'do');
+  if ($id == 0 && $attr->{UID}) {
+    #$self->query($db, "DELETE FROM docs_acct_orders WHERE acct_id='$id'", 'do');
+    #$self->query($db, "DELETE FROM docs_acct WHERE uid='$id'", 'do');
+   }
+  else {
+    $self->query($db, "DELETE FROM docs_acct_orders WHERE acct_id='$id'", 'do');
+    $self->query($db, "DELETE FROM docs_acct WHERE id='$id'", 'do');
+   }
 
 	return $self;
 }
@@ -447,7 +461,9 @@ sub account_info {
    pi.address_build,
    pi.address_flat,
    pi.phone,
-   pi.contract_id
+   pi.contract_id,
+   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day
+   
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
@@ -478,6 +494,7 @@ sub account_info {
    $self->{ADDRESS_FLAT}, 
    $self->{PHONE},
    $self->{CONTRACT_ID},
+   $self->{EXPIRE_DATE}
   )= @{ $self->{list}->[0] };
 	
   

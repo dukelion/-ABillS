@@ -4,17 +4,16 @@
 use DBI;
 use strict;
 
-use vars  qw(%conf $db  $begin_time );
-use FindBin '$Bin';
+use vars  qw(%conf $db  $begin_time $DATE $TIME );
 
-require $Bin."/../libexec/config.pl";
-require $Bin."/../Abills/Base.pm";
+require "../libexec/config.pl";
+require "../Abills/Base.pm";
 Abills::Base->import();
 
 
 
 my $attr = parse_arguments(\@ARGV);
-my $VERSION = 0.11; # 2008.06.13
+my $VERSION = 0.12; # 2008.06.13
 my $debug = $attr->{DEBUG} || 0;
 
 
@@ -46,7 +45,28 @@ if ( $conf{dbcharset} ) {
 
 
 if ($attr->{IP}) {
-	push @WHERE_RULES, "(src_addr=INET_ATON('$attr->{IP}') or dst_addr=INET_ATON('$attr->{IP}') )"; 
+	my @ips_arr = split(/,/, $attr->{IP});
+	my @ip_q = ();
+	foreach my $ip (sort @ips_arr) {
+    if ($ip =~ /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/(\d{1,2})/) {
+      my $ip   = $1;
+      my $bits = $2;
+      my $mask = 0b1111111111111111111111111111111;
+
+      $mask = int(sprintf("%d", $mask >> ($bits - 1)));
+      my $last_ip = ip2int($ip) | $mask;
+      my $first_ip = $last_ip - $mask;
+      print "IP FROM: ". int2ip($first_ip) ." TO: ". int2ip($last_ip). "\n" if ($debug > 2);
+    	push @ip_q, "( 
+    	              (src_addr>='$first_ip' and src_addr<='$last_ip' )
+    	              or (dst_addr>='$first_ip' and dst_addr<='$last_ip' )  )"; 
+     }
+	  elsif ($ip =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
+	    push @ip_q, "(src_addr=INET_ATON('$ip') or dst_addr=INET_ATON('$ip') )"; 
+	   }
+   }
+
+   push @WHERE_RULES, '(' . join(' or ', @ip_q) . ')';
 }
 
 if ($attr->{START_DATE}) {
@@ -56,12 +76,14 @@ if ($attr->{START_DATE}) {
 	 }
 }
 
-if ($attr->{FINISH_DATE}) {
-	push @WHERE_RULES, "s_time <= '$attr->{FINISH_DATE}'";
-	if ($attr->{FINISH_DATE} =~ /(\d{4})-(\d{2})-(\d{2})/) {
-	  $FINISH_DATE = "$1$2$3";
-	 }
+if (! $attr->{FINISH_DATE}) {
+  $attr->{FINISH_DATE}=$DATE;
 }
+push @WHERE_RULES, "s_time <= '$attr->{FINISH_DATE}'";
+if ($attr->{FINISH_DATE} =~ /(\d{4})-(\d{2})-(\d{2})/) {
+  $FINISH_DATE = "$1$2$3";
+ }
+
 
 
 my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
@@ -79,6 +101,9 @@ while (my ($table) = $q->fetchrow_array()) {
    }
 }
 
+if ($LIST_PARAMS{START_DATE} eq $DATE) {
+  push @tables, 'ipn_traf_detail';
+}
 
 foreach my $table (@tables) {
   my $date ;
@@ -130,7 +155,8 @@ print "=================SUM: $total\n";
 sub help {
 	
 print << "[END]";
-	IP          - SOME IP
+	IP          - SOME IP (192.168.0.1,192.168,10.0/24,192.168.0.1,192.168.11,2)
+
 	START_DATE  - Start Date (YYYY-MM-DD) 
 	FINISH_DATE - Finish Date (YYYY-MM-DD) 
 

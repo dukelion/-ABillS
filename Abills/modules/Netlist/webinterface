@@ -16,7 +16,7 @@ sub netlist_ip_calc {
 
 
   if (! $FORM{MASK} && $FORM{MASK_BITS}) {
-    $FORM{MASK} = int2ip( 4294967296 - sprintf("%d<br>", $mask << (32  - $FORM{MASK_BITS})) );
+    $FORM{MASK} = int2ip( 4294967296 - sprintf("%d", $mask << (32  - $FORM{MASK_BITS})) );
    }
 
   $Netlist->{MASK_SEL}=$html->form_select('MASK', 
