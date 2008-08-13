@@ -1,4 +1,12 @@
 =====0.40=====
+12.08.2008\\
+Добавлено поле дата договора.
+MySQL:
+  ALTER TABLE users_pi ADD COLUMN `contract_date` date NOT NULL;
+  ALTER TABLE admins ADD COLUMN `comments` text NOT NULL;
+
+
+
 30.07.2008\\
 Была изменена логика добавления данных для управления коммутаторами [[http://abills.net.ua/wiki/doku.php?id=abills:docs:modules:snmputils:ru|Snmputils]] 
 

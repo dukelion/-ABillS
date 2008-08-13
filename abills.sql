@@ -33,6 +33,7 @@ CREATE TABLE `admins` (
   `phone` varchar(16) NOT NULL default '',
   `web_options` text NOT NULL,
   `email` varchar(35) NOT NULL default '',
+  `comments` text NOT NULL,
   PRIMARY KEY  (`aid`),
   UNIQUE KEY `aid` (`aid`),
   UNIQUE KEY `id` (`id`)
@@ -785,6 +786,7 @@ CREATE TABLE `users_pi` (
   `address_flat` varchar(10) NOT NULL default '',
   `comments` text NOT NULL,
   `contract_id` varchar(10) NOT NULL default '',
+  `contract_date` date NOT NULL,
   `pasport_num` varchar(16) NOT NULL default '',
   `pasport_date` date NOT NULL default '0000-00-00',
   `pasport_grant` varchar(100) NOT NULL default '',
