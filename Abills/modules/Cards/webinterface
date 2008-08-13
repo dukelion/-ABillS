@@ -27,7 +27,6 @@ my @status = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
 #**********************************************************
 sub cards_main {
 
-
 if ($FORM{change}) {
   my @ORDERS  = ();    
   my $list;
@@ -111,7 +110,7 @@ if ($FORM{change}) {
    }
 }
 elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
-  $Cards->cards_del({ SERIA => $FORM{SERIA}, 
+  $Cards->cards_del({ SERIA  => $FORM{SERIA}, 
   	                  NUMBER => $FORM{ID}  
   	                 });
   if (! $Cards->{errno}) {
@@ -188,7 +187,7 @@ function CheckAllINBOX() {
   		  $status[$line->[4]],
   		  $line->[5],
   		  $line->[6],
-  		  $line->[7],
+  		  $html->button($line->[7], "index=15&UID=$line->[15]"),
   		  $line->[8],
   		  $line->[9],
   		  $line->[10],
