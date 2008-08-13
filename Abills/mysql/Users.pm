@@ -322,7 +322,7 @@ sub pi {
    $self->{ADDRESS_FLAT}, 
    $self->{EMAIL}, 
    $self->{CONTRACT_ID},
-   $self->{CONTRACT_CONTRACT},
+   $self->{CONTRACT_DATE},
    $self->{COMMENTS},
    $self->{PASPORT_NUM},
    $self->{PASPORT_DATE},
