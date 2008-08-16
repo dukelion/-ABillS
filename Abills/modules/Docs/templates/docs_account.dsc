@@ -1,25 +1,20 @@
-
-FIO:Наименование клиента:russian:x=130;y=673
-PHONE:Номер телефона клиента:russian:x=0;y=0
-DATE:Дата создания счета:russian:x=335;y=730
-NUMBER:Номер счёта:russian:x=245;y=730
-FROM_DATE_LIT:Дата прописью:russian:x=;y=
-ORDER:Товар. Табичная часть:russian:x=;y=
-SUM:Сума товара:russian:(x=455;y=442)
-VAT:Процентная ставка налога:russian:
-SUM_LIT:Сума прописью:russian:x=192;y=420;
-EXPIRE_DATE:Дата окончания действия счета:russian:x=158;y=576
-
-#Order Section
-ORDER_NUM:Порядковый номер товара:russian:(x=60;y=515)
-ORDER_NAME:Название услуги, товара:russian:(x=105;y=515)
-ORDER_COUNT:Количество едениц товара:russian:(x=255;y=515)
-ORDER_PRICE:Цена за шт.:russian:
-ORDER_SUM:Сума по товару:russian:
-ORDER_PRICE_WITHOUT_VAT:Цена товара без налога:russian:(x=328;y=515)
-ORDER_SUM_WITHOUT_VAT:Сума товара без налога:russian:(x=455;y=515)
+NUMBER:Номер Счета-фактуры:russian:(x=275;y=719;)
+#MONTH_LIT:Поточный месяц порписью и год:russian:(x=255;y=685;)
+FIO:Ф.И.О./официальное название для юр.лица (платильщики):russian:(x=105;y=645;)
+CONTRACT_ID:Номер Договора:russian:(x=127;y=623;)
+CONTRACT_DATE:Дата контракта:russian:(x=200;y=623;)
+EXPIRE_DATE:Счет действителен до:russian:(x=150;y=542,x=125;y=251;)
+#DEPOSIT:Остаток на начало периода на лицевом счету:russian:(x=500;y=503;)
+#MONTH_FEE:Месячная абонплата:russian:(x=500;y=435;)
+#OVERQUOTA:Дополнительная плата за сверхлимитный трафик, грн с налогами:russian:(x=500;y=409;)
+#SERVICES:Допольнительные услуги, грн с НДС:russian:russian:(x=500;y=388;)
+#REDUCTION_SUM:Знижка на послуги з ПДВ, грн:russian:(x=500;y=364;)
+SUM:Рекомендованная к оплате сумма, грн с НДС:russian:(x=500;y=349,x=500;y=297;) 
+ORDER_TOTAL_SUM_VAT:Сума налога заказа за товар:russian:(x=140;y=285;)
+SUM_LIT:Всего сумма рекомендована к оплате пропись.:russian:x=295;y=262;)
+FROM_DATE_LIT:Дата создания:rissian:(x=358;y=719;)
+#PAYMENT_MONTH:всего оплачено за период:russian:(x=500;y=480;)
 
 
-ORDER_TOTAL_SUM_VAT:Сума налога заказа за товар:russian:(x=455;y=455,x=461;y=420)
-TOTAL_SUM_WITHOUT_VAT:Всего, без налога:russian:(x=455;y=467)
+
 

@@ -48,20 +48,21 @@ sub defaults {
   my $self = shift;
 
   %DATA = ( 
- COMPANY_NAME  => '',
- TAX_NUMBER    => '',
- BANK_ACCOUNT  => '',
- BANK_NAME     => '',
- COR_BANK_ACCOUNT  => '',
- BANK_BIC    => '',
- DISABLE     => 0,
- CREDIT      => '',
- ADDRESS     => '',
- PHONE       => '',
- VAT         => '',
- CONTRACT_ID => '',
- BILL_ID     => 0,
- EXT_BILL_ID => 0
+ COMPANY_NAME    => '',
+ TAX_NUMBER      => '',
+ BANK_ACCOUNT    => '',
+ BANK_NAME       => '',
+ COR_BANK_ACCOUNT=> '',
+ BANK_BIC        => '',
+ DISABLE         => 0,
+ CREDIT          => '',
+ ADDRESS         => '',
+ PHONE           => '',
+ VAT             => '',
+ CONTRACT_ID     => '',
+ CONTRACT_DATE   => '0000-00-00',
+ BILL_ID         => 0,
+ EXT_BILL_ID     => 0
  );
  
   $self = \%DATA;
@@ -108,13 +109,13 @@ sub add {
 
   my %DATA = $self->get_data($attr, { default => defaults() }); 
   $self->query($db, "INSERT INTO companies (name, tax_number, bank_account, bank_name, cor_bank_account, 
-     bank_bic, disable, credit, address, phone, vat, contract_id,
+     bank_bic, disable, credit, address, phone, vat, contract_id, contract_date,
      bill_id, ext_bill_id
      $info_fields) 
      VALUES ('$DATA{COMPANY_NAME}', '$DATA{TAX_NUMBER}', '$DATA{BANK_ACCOUNT}', '$DATA{BANK_NAME}', '$DATA{COR_BANK_ACCOUNT}', 
       '$DATA{BANK_BIC}', '$DATA{DISABLE}', '$DATA{CREDIT}',
       '$DATA{ADDRESS}', '$DATA{PHONE}',
-      '$DATA{VAT}', '$DATA{CONTRACT_ID}',
+      '$DATA{VAT}', '$DATA{CONTRACT_ID}', '$DATA{CONTRACT_DATE}',
       '$DATA{BILL_ID}', '$DATA{EXT_BILL_ID}'
       $info_fields_val
       );", 'do');
@@ -187,7 +188,8 @@ sub change {
    ADDRESS        => 'address',
    PHONE          => 'phone',
    VAT            => 'vat',
-   CONTRACT_ID    => 'contract_id'
+   CONTRACT_ID    => 'contract_id',
+   CONTRACT_DATE  => 'contract_date',
    );
 
 
@@ -265,7 +267,7 @@ sub info {
   $self->query($db, "SELECT c.id, c.name, c.credit, c.tax_number, c.bank_account, c.bank_name, 
   c.cor_bank_account, c.bank_bic, c.disable, c.bill_id, b.deposit,
   c.address, c.phone,
-  c.vat, contract_id,
+  c.vat, contract_id, contract_DATE,
   c.ext_bill_id
   $info_fields
     FROM companies c
@@ -295,6 +297,7 @@ sub info {
    $self->{PHONE},
    $self->{VAT},
    $self->{CONTRACT_ID},
+   $self->{CONTRACT_DATE},
    $self->{EXT_BILL_ID},
    @INFO_ARR
    ) = @{ $self->{list}->[0] };

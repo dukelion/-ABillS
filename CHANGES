@@ -1,4 +1,9 @@
 =====0.40=====
+16.08.2008\\
+Добавлено поле дата договора в компани.
+MySQL:
+  ALTER TABLE companies ADD COLUMN `contract_date` date NOT NULL;
+
 12.08.2008\\
 Добавлено поле дата договора.
 MySQL:

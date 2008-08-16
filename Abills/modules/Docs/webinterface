@@ -8,6 +8,7 @@ my $Docs = Docs->new($db, $admin, \%conf);
 # docs_print
 #**********************************************************
 sub docs_contract {
+  my ($attr) = @_;
 	
 	if ($FORM{UID}) {
 		$Docs = $users->pi({ UID => $FORM{UID} });
@@ -17,7 +18,7 @@ sub docs_contract {
     
     $Docs->{ADDRESS_FULL}="$Docs->{ADDRESS_STREET}, $Docs->{ADDRESS_BUILD}/$Docs->{ADDRESS_FLAT}"; 
 		
-		docs_print('contract', { %$admin, %$Docs });
+		docs_print('contract', { %$admin, %$Docs, %$attr });
 	 }
 
 	
@@ -258,6 +259,8 @@ return 0;
 # docs_account
 #**********************************************************
 sub docs_account {
+ my ($attr) = @_;
+
  $Docs->account_defaults();		
  $Docs->{DATE}=$DATE;
 
@@ -292,6 +295,7 @@ sub docs_account {
        my $list = $Docs->{ORDERS};
        my $i=0;
 
+
        foreach my $line (@$list) {
    	     $i++;
    	     $Docs->{ORDER} .= sprintf("<tr><td align='right'>%d</td><td>%s</td><td align='right'>%d</td><td align='right'>%d</td><td align='right'>%.2f</td><td align='right'>%.2f</td></tr>\n", 
@@ -323,8 +327,6 @@ sub docs_account {
   }
  elsif(defined($FORM{print})){
    $Docs->account_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
-
-
    
    if ($conf{DOCS_VAT_INCLUDE}) {
    	 $Docs->{ORDER_TOTAL_SUM_VAT} = sprintf("%.2f", $Docs->{SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
@@ -353,6 +355,7 @@ sub docs_account {
        $Docs->{ORDER_SUM_WITHOUT_VAT}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[2]*$line->[4] - ($line->[2]*$line->[4]) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[2]*$line->[4]);
       }
 
+     
      $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
      
   
@@ -422,6 +425,11 @@ sub docs_print {
 	if (defined(@MONTHES_LIT) && $ATTR->{DATE}) {
     my ($y, $m, $d)=split(/-/, $ATTR->{DATE}, 3);
     $ATTR->{FROM_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
+    
+    $ATTR->{DAY}=$d;
+    $ATTR->{MONTH_LIT}=$MONTHES_LIT[int($m)-1];
+    $ATTR->{YEAR}=$y;
+    $ATTR->{DATE_EURO_STANDART}="$d.$m.$y";
    }
 
   
@@ -440,9 +448,9 @@ sub docs_print {
 	
 	my $template = $type;
   print $html->header() if ($FORM{qindex});
-  $users->pi({  $users->{UID} });
-	$html->tpl_show(_include("docs_$template", 'Docs'), { %$ATTR, %$users });
-
+  
+  $users->pi({  UID => $Docs->{UID} });
+	$html->tpl_show(_include("docs_$template", 'Docs', { pdf => $FORM{pdf} }), { %$ATTR, %$users });
 }
 
 

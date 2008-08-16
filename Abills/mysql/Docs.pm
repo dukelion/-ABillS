@@ -400,9 +400,20 @@ sub account_add {
   return $self if($self->{errno});
   $self->{DOC_ID}=$self->{INSERT_ID};
 
-  $self->query($db, "INSERT INTO docs_acct_orders (acct_id, orders, counts, unit, price)
-      values ($self->{DOC_ID}, \"$DATA{ORDERS}\", '$DATA{COUNTS}', '$DATA{UNIT}',
- '$DATA{SUM}')", 'do');
+  if ($attr->{IDS}) {
+  	my @ids_arr = split(/, /, $attr->{IDS});
+
+  	foreach my $id (@ids_arr) {
+      $self->query($db, "INSERT INTO docs_acct_orders (acct_id, orders, counts, unit, price)
+         values (". $self->{'DOC_ID_'.$id}.", \"". $DATA{'ORDERS_'. $id}."\", '". $DATA{'COUNTS_'.$id}."', '". $DATA{'UNIT_'.$id} ."',
+       '". $DATA{'SUM_'.$id}."')", 'do');
+  	 }
+   }
+  else {
+    $self->query($db, "INSERT INTO docs_acct_orders (acct_id, orders, counts, unit, price)
+       values ($self->{DOC_ID}, \"$DATA{ORDERS}\", '$DATA{COUNTS}', '$DATA{UNIT}',
+    '$DATA{SUM}')", 'do');
+   } 
 
   return $self if($self->{errno});
   

@@ -703,7 +703,7 @@ sub header {
  my $admin_name=$ENV{REMOTE_USER};
  my $admin_ip=$ENV{REMOTE_ADDR};
 
- $self->{header} = "Content-type:application/pdf\n";
+ $self->{header} = "Content-type: application/pdf\n";
  $self->{header}.= "Content-disposition: inline; name=".rand(32768).".pdf\n\n";
 
  return $self->{header};
@@ -1326,7 +1326,7 @@ sub tpl_show {
   my $self = shift;
   my ($filename, $variables_ref, $attr) = @_;	
   
-  $filename        =~ s/\.tpl$//;
+  $filename        =~ s/\.[a-z]{3}$//;
   my $tpl_describe = tpl_describe($filename);
   $filename        = $filename.'.pdf';
   my $pdf          = PDF::API2->open($filename);
@@ -1360,7 +1360,6 @@ for my $key (sort keys %$tpl_describe) {
 
   if ( $tpl_describe->{$key}{PARAMS} =~ /\((.+)\)/ ) {
     @patterns = split(/,/,  $1);
-    print "hello";
    }
   else {
     push @patterns, $tpl_describe->{$key}{PARAMS};
@@ -1780,7 +1779,7 @@ sub tpl_describe {
   	if ($line =~ /^#/) {
   		next;
   	 }
-  	elsif($line =~ /^(\S+):(.+):(\S+):(\S{0,200})/) {
+  	elsif($line =~ /^(\S+):(.+):(\S+):(\S{0,500})/) {
     	my $name    = $1;
     	my $describe= $2;
     	my $lang    = $3;

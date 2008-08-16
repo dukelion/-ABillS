@@ -9,23 +9,23 @@ sub _include {
   my ($tpl, $module, $attr) = @_;
   my $result = '';
   
+  my $sufix = ($attr->{pdf}) ? '.pdf' : '.tpl';
   
-  
-  if (-f '../../Abills/templates/'. $module . '_' . $tpl . '.tpl') {
-    return ($FORM{pdf}) ? '../../Abills/templates/'. $module . '_' . $tpl . '.tpl' : tpl_content('../../Abills/templates/'. $module . '_' . $tpl . '.tpl');
+  if (-f '../../Abills/templates/'. $module . '_' . $tpl . $sufix) {
+    return ($FORM{pdf}) ? '../../Abills/templates/'. $module . '_' . $tpl . $sufix : tpl_content('../../Abills/templates/'. $module . '_' . $tpl . $sufix);
    }
-  elsif (-f '../Abills/templates/'. $module . '_' . $tpl .'.tpl') {
-    return ($FORM{pdf}) ? '../Abills/templates/'. $module . '_' . $tpl. '.tpl' : tpl_content('../Abills/templates/'. $module . '_' . $tpl. '.tpl');
+  elsif (-f '../Abills/templates/'. $module . '_' . $tpl .$prefix) {
+    return ($FORM{pdf}) ? '../Abills/templates/'. $module . '_' . $tpl. '.tpl' : tpl_content('../Abills/templates/'. $module . '_' . $tpl. $sufix);
    }
-  elsif (-f $Bin .'/../Abills/templates/'. $module . '_' . $tpl .'.tpl') {
-    return ($FORM{pdf}) ? $Bin .'/../Abills/templates/'. $module . '_' . $tpl .'.tpl' : tpl_content($Bin .'/../Abills/templates/'. $module . '_' . $tpl .'.tpl');
+  elsif (-f $Bin .'/../Abills/templates/'. $module . '_' . $tpl .$sufix) {
+    return ($FORM{pdf}) ? $Bin .'/../Abills/templates/'. $module . '_' . $tpl .$sufix : tpl_content($Bin .'/../Abills/templates/'. $module . '_' . $tpl .$sufix);
    }
   elsif (defined($module)) {
     $tpl	= "modules/$module/templates/$tpl";
    }
 
   foreach my $prefix (@INC) {
-     my $realfilename = "$prefix/Abills/$tpl.tpl";
+     my $realfilename = "$prefix/Abills/$tpl$sufix";
      if (-f $realfilename) {
         return ($FORM{pdf}) ? $realfilename :  tpl_content($realfilename);
       }

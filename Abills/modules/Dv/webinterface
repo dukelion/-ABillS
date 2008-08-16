@@ -3438,6 +3438,31 @@ sub dv_wizard_user {
   my $payments = Finance->payments($db, $admin, \%conf);
   my $users    = Users->new($db, $admin, \%conf); 
 
+
+  if ($FORM{PRINT_CONTRACT}) {
+    require "Abills/modules/Docs/webinterface";
+    
+    $Dv->info($FORM{UID});
+    
+    $tariffs->info($Dv->{TP_ID});
+    
+    
+    #Order1 Section
+    $Dv->{ORDER_NUM}   = 1;
+    $Dv->{ORDER_NAME}  = $_ABON;
+    $Dv->{ORDER_COUNT} = 1;
+    $Dv->{ORDER_PRICE} = $tariffs->{MONTH_FEE};
+    $Dv->{ORDER_SUM}   = $tariffs->{MONTH_FEE};
+    $Dv->{ORDER_PRICE_WITHOUT_VAT} = $tariffs->{MONTH_FEE};
+    $Dv->{ORDER_SUM_WITHOUT_VAT}   = $tariffs->{MONTH_FEE};
+
+    
+    
+    docs_contract({ %$Dv });
+  	return 0;
+   }
+
+
   my %add_values = ();
 
   if ($FORM{add}) {
@@ -3578,7 +3603,7 @@ sub dv_wizard_user {
         $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail) if ($Mail);
 
         if (in_array('Docs', \@MODULES) ) {
-          $html->message('info', $_INFO, "$_PRINT ". $html->button("$_CONTRACT", "qindex=15&UID=$UID&PRINT_CONTRACT=$UID". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new'  }) );
+          $html->message('info', $_INFO, "$_PRINT ". $html->button("$_CONTRACT", "qindex=$index&UID=$UID&PRINT_CONTRACT=$UID". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new'  }) );
          }
        }
 

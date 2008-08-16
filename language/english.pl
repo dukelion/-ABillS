@@ -215,7 +215,7 @@ $_MONEY = 'Money';
 $_REPLY = 'Reply';
 
 $_BANK_INFO='BANK';
-$_TAX_NUMBER='Indetificator';
+$_TAX_NUMBER='Indetificator ';
 $_BANK_NAME='Bank name';
 $_COR_BANK_ACCOUNT='Cor acct';
 $_BANK_BIC='BIK';
