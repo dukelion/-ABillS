@@ -270,7 +270,7 @@ sub docs_account {
    if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	   $html->message('err', $_ERROR, "$_EXIST");
     }
-   elsif ($FORM{SUM} < 0.01) {
+   elsif (! $FORM{SUM_1} && $FORM{SUM} < 0.01) {
      $html->message('err', "$_ERROR", $_WRONG_SUM);
     }
    elsif(! $LIST_PARAMS{UID}) {
