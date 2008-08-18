@@ -294,7 +294,7 @@ sub dv_get_month_fee {
 
           if ($active_m+$i > 12) {
           	$active_m=0;
-          	$active_y=$active_y+$i;
+          	$active_y=$active_y+1;
            }
           
           $m = sprintf("%.2d", $active_m+$i);

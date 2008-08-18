@@ -405,7 +405,7 @@ sub account_add {
 
   	foreach my $id (@ids_arr) {
       $self->query($db, "INSERT INTO docs_acct_orders (acct_id, orders, counts, unit, price)
-         values (". $self->{'DOC_ID_'.$id}.", \"". $DATA{'ORDERS_'. $id}."\", '". $DATA{'COUNTS_'.$id}."', '". $DATA{'UNIT_'.$id} ."',
+         values (". $self->{'DOC_ID'}.", \"". $DATA{'ORDERS_'. $id}."\", '". $DATA{'COUNTS_'.$id}."', '". $DATA{'UNIT_'.$id} ."',
        '". $DATA{'SUM_'.$id}."')", 'do');
   	 }
    }

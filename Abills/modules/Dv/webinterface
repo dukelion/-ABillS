@@ -3439,29 +3439,29 @@ sub dv_wizard_user {
   my $users    = Users->new($db, $admin, \%conf); 
 
 
-  if ($FORM{PRINT_CONTRACT}) {
+
+  if ($FORM{print}) {
     require "Abills/modules/Docs/webinterface";
-    
-    $Dv->info($FORM{UID});
-    
-    $tariffs->info($Dv->{TP_ID});
-    
-    
-    #Order1 Section
-    $Dv->{ORDER_NUM}   = 1;
-    $Dv->{ORDER_NAME}  = $_ABON;
-    $Dv->{ORDER_COUNT} = 1;
-    $Dv->{ORDER_PRICE} = $tariffs->{MONTH_FEE};
-    $Dv->{ORDER_SUM}   = $tariffs->{MONTH_FEE};
-    $Dv->{ORDER_PRICE_WITHOUT_VAT} = $tariffs->{MONTH_FEE};
-    $Dv->{ORDER_SUM_WITHOUT_VAT}   = $tariffs->{MONTH_FEE};
-
-    
-    
-    docs_contract({ %$Dv });
-  	return 0;
-   }
-
+    if ($FORM{PRINT_CONTRACT}) {
+#    $Dv->info($FORM{UID});
+#    $tariffs->info($Dv->{TP_ID});
+#    
+#    
+#    #Order1 Section
+#    $Dv->{ORDER_NUM}   = 1;
+#    $Dv->{ORDER_NAME}  = $_ABON;
+#    $Dv->{ORDER_COUNT} = 1;
+#    $Dv->{ORDER_PRICE} = $tariffs->{MONTH_FEE};
+#    $Dv->{ORDER_SUM}   = $tariffs->{MONTH_FEE};
+#    $Dv->{ORDER_PRICE_WITHOUT_VAT} = $tariffs->{MONTH_FEE};
+#    $Dv->{ORDER_SUM_WITHOUT_VAT}   = $tariffs->{MONTH_FEE};
+     docs_contract({ %$Dv });
+    } 
+   else {
+     docs_account();
+    }
+   return 0;
+  }
 
   my %add_values = ();
 
@@ -3593,6 +3593,7 @@ sub dv_wizard_user {
       my $pi = $user->pi({ UID => $UID });
       $user  = $user->info($UID, { SHOW_PASSWORD => 1 });
       
+     
       
       if (! $attr->{SHORT_REPORT}) {
         $FORM{ex_message}=$message;
@@ -3605,6 +3606,37 @@ sub dv_wizard_user {
         if (in_array('Docs', \@MODULES) ) {
           $html->message('info', $_INFO, "$_PRINT ". $html->button("$_CONTRACT", "qindex=$index&UID=$UID&PRINT_CONTRACT=$UID". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new'  }) );
          }
+        
+        #If docs module enable make account
+        if (in_array('Docs', \@MODULES)) {
+          $tariffs->info($dv->{TP_ID});
+          $LIST_PARAMS{UID} = $UID;
+          print "/$tariffs->{MONTH_FEE} + $tariffs->{ACTIV_PRICE} > 0/";
+
+          if ($tariffs->{MONTH_FEE} + $tariffs->{ACTIV_PRICE} > 0) {
+            require "Abills/modules/Docs/lng_$html->{language}.pl";
+            require "Abills/modules/Docs/webinterface";
+
+            $FORM{DATE}      = $DATE;
+            $FORM{CUSTOMER}  = $pi->{FIO} || '-';
+            $FORM{PHONE}     = $pi->{PHONE};
+            $FORM{UID}       = $UID;
+
+            $FORM{'IDS'}     = '1, 2';
+            $FORM{'ORDERS_1'}= "$_DV";
+            $FORM{'COUNTS_1'}= 1;
+            $FORM{'UNIT_1'}  = 0;
+            $FORM{'SUM_1'}   = $tariffs->{MONTH_FEE};
+
+            $FORM{'ORDERS_2'}= "$_ACTIVATE";
+            $FORM{'COUNTS_2'}= 1;  
+            $FORM{'UNIT_2'}  = 0;
+            $FORM{'SUM_2'}   = $tariffs->{ACTIV_PRICE};
+
+            $FORM{'create'}  = 1;
+        	  docs_account();
+        	}
+        }
        }
 
       return $UID;
@@ -3880,7 +3912,7 @@ sub dv_get_month_fee {
 
           if ($active_m+$i > 12) {
           	$active_m=0;
-          	$active_y=$active_y+$i;
+          	$active_y=$active_y+1;
            }
           
           $m = sprintf("%.2d", $active_m+$i);
