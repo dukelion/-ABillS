@@ -1387,7 +1387,7 @@ for my $key (sort keys %$tpl_describe) {
 
     my $font = $pdf->corefont($font_name, -encode => "$encode");
     my $page = $pdf->openpage($page);
-    my $txt=$page->text;
+    my $txt  = $page->text;
     $txt->font($font,$font_size);
 
     next if ($x == 0 && $y == 0);
