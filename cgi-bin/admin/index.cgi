@@ -4838,7 +4838,12 @@ if (-d $main_templates_dir ) {
     $table->{extra}=undef;
 
     foreach my $file (sort @contents) {
-      next if (-d "$main_templates_dir".$file);
+      if (-d "$main_templates_dir".$file) {
+      	next;
+       } 
+      elsif ($file !~ /\.tpl$/) {
+      	next;
+       }
 
       ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
         $blksize,$blocks);
@@ -4871,8 +4876,9 @@ foreach my $module (sort @MODULES) {
 	$table->addrow("$module ($sys_templates/$module/templates)");
 	if (-d "$sys_templates/$module/templates" ) {
     opendir DIR, "$sys_templates/$module/templates" or die "Can't open dir '$sys_templates/$module/templates' $!\n";
-      my @contents = grep  !/^\.\.?$/  , readdir DIR;
+      my @contents = grep  !/^\.\.?$/ && /\.tpl$/  , readdir DIR;
     closedir DIR;
+
     $table->{rowcolor}=undef;
     $table->{extra}=undef;
 
