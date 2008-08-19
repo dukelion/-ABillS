@@ -1190,7 +1190,7 @@ my $Billing = Billing->new($db, \%conf);
 
 
 foreach my $line (@$list) {
-  if ($permissions{3}{1}) {
+  if ($permissions{3}{1} && $LIST_PARAMS{UID}) {
     $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", 
        { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?" }
       );
@@ -2400,7 +2400,7 @@ print $table->show();
 # dv_user_info
 #**********************************************************
 sub dv_user_chg_tp {
-
+  my ($attr) = @_;
 # my $user;
  my $shedule = Shedule->new($db, $admin, \%conf);
  my $period = $FORM{period} || 0;
@@ -2515,15 +2515,76 @@ if ($FORM{set}) {
    }
   else {
     $FORM{UID}=$LIST_PARAMS{UID};
-    $Dv->change({ %FORM });
 
-    if ($Dv->{errno}) {
-      $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
+    $Dv->{ABON_DATE}=undef;
+    if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE}) {
+    	  #&&
+        #($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
+        # $Dv->{POSTPAID_ABON} || 
+        # $Dv->{PAYMENT_TYPE} == 1 )) {
+      if ($user->{ACTIVATE} ne '0000-00-00') {
+        my ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
+        $M--;
+        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400) );
+       }
+      else {
+        my ($Y, $M, $D)=split(/-/, $DATE, 3);
+        $M++;
+        if ($M == 13) {
+          $M = 1;
+          $Y++;
+         }
+        $D='01';
+        $M = sprintf("%02.d", $M);
+        $Dv->{ABON_DATE} = "$Y-$M-$D";
+       }
+    }
+
+
+    
+
+    if ($Dv->{ABON_DATE}) {
+      
+      ($FORM{date_Y}, $FORM{date_M}, $FORM{date_D})=split(/-/, $Dv->{ABON_DATE}, 3);
+      #print "--- $FORM{date_Y}, $FORM{date_M}, $FORM{date_D} // $Dv->{ABON_DATE}-- ";
+ 	    use POSIX;
+    
+      my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
+    
+      if ($seltime <= time()) {
+        $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}, $FORM{date_M}, $FORM{date_Y}  )/". $seltime . "-" . time());
+        return 0;
+       }
+
+      $shedule->add( {UID     => $LIST_PARAMS{UID},
+                     TYPE     => 'tp',
+                     ACTION   => $FORM{TP_ID},
+    	               D        => $FORM{date_D},
+                     M        => $FORM{date_M},
+                     Y        => $FORM{date_Y},
+                     DESCRIBE => "$message<br>
+                     $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                     MODULE   => 'Dv'
+                    });
+
+      if ($shedule->{errno}) {
+        $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+       }
+      else {
+        $html->message('info', $_CHANGED, "$_CHANGED");
+       }
      }
     else {
-      $html->message('info', $_CHANGED, "$_CHANGED");
-      $Dv->info($Dv->{UID});
+      $Dv->change({ %FORM });
+      if ($Dv->{errno}) {
+        $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
+       }
+      else {
+        $html->message('info', $_CHANGED, "$_CHANGED");
+       }
      }
+
+    $Dv->info($Dv->{UID});
   }
 }
 elsif($FORM{del}) {
@@ -3439,7 +3500,6 @@ sub dv_wizard_user {
   my $users    = Users->new($db, $admin, \%conf); 
 
 
-
   if ($FORM{print}) {
     require "Abills/modules/Docs/webinterface";
     if ($FORM{PRINT_CONTRACT}) {
@@ -3604,14 +3664,13 @@ sub dv_wizard_user {
         $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail) if ($Mail);
 
         if (in_array('Docs', \@MODULES) ) {
-          $html->message('info', $_INFO, "$_PRINT ". $html->button("$_CONTRACT", "qindex=$index&UID=$UID&PRINT_CONTRACT=$UID". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new'  }) );
+          $html->message('info', $_INFO, "$_PRINT ". $html->button("$_CONTRACT", "qindex=$index&UID=$UID&PRINT_CONTRACT=$UID&print=1". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new'  }) );
          }
         
         #If docs module enable make account
         if (in_array('Docs', \@MODULES)) {
           $tariffs->info($dv->{TP_ID});
           $LIST_PARAMS{UID} = $UID;
-          print "/$tariffs->{MONTH_FEE} + $tariffs->{ACTIV_PRICE} > 0/";
 
           if ($tariffs->{MONTH_FEE} + $tariffs->{ACTIV_PRICE} > 0) {
             require "Abills/modules/Docs/lng_$html->{language}.pl";
@@ -3903,7 +3962,7 @@ sub dv_get_month_fee {
         	$periods = $m - $active_m;
          }
         elsif ($active_m > 0 && ( $active_m > $m  && $active_y < $y)) {
-        	$periods = 12 - $active_m + $m; 
+        	$periods = 12 - $active_m + $m - 1; 
          }
         
         $message .= "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{TP_ID})";
