@@ -3682,15 +3682,17 @@ sub dv_wizard_user {
             $FORM{UID}       = $UID;
 
             $FORM{'IDS'}     = '1, 2';
-            $FORM{'ORDERS_1'}= "$_DV";
-            $FORM{'COUNTS_1'}= 1;
+            $FORM{'ORDER_1'}= "$_DV";
+            $FORM{'COUNT_1'}= 1;
             $FORM{'UNIT_1'}  = 0;
             $FORM{'SUM_1'}   = $tariffs->{MONTH_FEE};
 
-            $FORM{'ORDERS_2'}= "$_ACTIVATE";
-            $FORM{'COUNTS_2'}= 1;  
-            $FORM{'UNIT_2'}  = 0;
-            $FORM{'SUM_2'}   = $tariffs->{ACTIV_PRICE};
+            if ($tariffs->{ACTIV_PRICE}) {
+              $FORM{'ORDER_2'}= "$_ACTIVATE";
+              $FORM{'COUNT_2'}= 1;  
+              $FORM{'UNIT_2'}  = 0;
+              $FORM{'SUM_2'}   = $tariffs->{ACTIV_PRICE};
+             }
 
             $FORM{'create'}  = 1;
         	  docs_account();
@@ -3715,7 +3717,7 @@ sub dv_wizard_user {
   
   
   if (! $attr->{NO_EXTRADATA}) {
-    $users_defaults->{EXDATA}  =   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
+    $users_defaults->{EXDATA}  =  $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
     $users_defaults->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
     
 #    $html->tpl_show(templates('form_user_exdata'), 

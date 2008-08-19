@@ -413,12 +413,14 @@ sub account_add {
   	my @ids_arr = split(/, /, $attr->{IDS});
 
   	foreach my $id (@ids_arr) {
+      $DATA{'COUNTS_'.$id} = 1 if (! $DATA{'COUNTS_'.$id});
       $self->query($db, "INSERT INTO docs_acct_orders (acct_id, orders, counts, unit, price)
          values (". $self->{'DOC_ID'}.", \"". $DATA{'ORDER_'. $id}."\", '". $DATA{'COUNTS_'.$id}."', '". $DATA{'UNIT_'.$id} ."',
        '". $DATA{'SUM_'.$id}."')", 'do');
   	 }
    }
   else {
+    $DATA{COUNTS} = 1 if (! $DATA{COUNTS});
     $self->query($db, "INSERT INTO docs_acct_orders (acct_id, orders, counts, unit, price)
        values ($self->{DOC_ID}, \"$DATA{ORDER}\", '$DATA{COUNTS}', '$DATA{UNIT}',
     '$DATA{SUM}')", 'do');
