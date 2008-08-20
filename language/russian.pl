@@ -325,3 +325,5 @@ $_PAYMENT_DELETED="Оплата удалена";
 $_COR_BANK_ACCOUNT="Коресп. счет";
 $_MAX_SESSION_DURATION="Макc. время сессии";
 $_HANGUPED="Отключен";
+$_ABON_DISTRIBUTION='Распределение абонплаты';
+

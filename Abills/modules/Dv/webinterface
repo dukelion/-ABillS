@@ -626,9 +626,11 @@ $tarif_info->{IP_POOLS_SEL} = $html->form_select('IPPOOL',
 
 
 
-$tarif_info->{REDUCTION_FEE}   = ($tarif_info->{REDUCTION_FEE})   ? 'checked' : '';
-$tarif_info->{POSTPAID_FEE}    = ($tarif_info->{POSTPAID_FEE})    ? 'checked' : '';
-$tarif_info->{PERIOD_ALIGNMENT}= ($tarif_info->{PERIOD_ALIGNMENT}) ? 'checked' : ''; 
+$tarif_info->{REDUCTION_FEE}    = ($tarif_info->{REDUCTION_FEE})   ? 'checked' : '';
+$tarif_info->{POSTPAID_FEE}     = ($tarif_info->{POSTPAID_FEE})    ? 'checked' : '';
+$tarif_info->{PERIOD_ALIGNMENT} = ($tarif_info->{PERIOD_ALIGNMENT}) ? 'checked' : ''; 
+$tarif_info->{ABON_DISTRIBUTION}= ($tarif_info->{ABON_DISTRIBUTION}) ? 'checked' : ''; 
+
 
 if ($conf{EXT_BILL_ACCOUNT}) {
   my $checked = ($tarif_info->{EXT_BILL_ACCOUNT}) ? ' checked' : '';
