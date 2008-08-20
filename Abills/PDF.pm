@@ -1398,7 +1398,7 @@ for my $key (sort keys %$tpl_describe) {
     	$text = $variables_ref->{$key};
      }
     else {
-    	$text = "'$key: $x/$y'";
+    	$text = ''; #"'$key: $x/$y'";
      }
 
     $txt->text($text);
