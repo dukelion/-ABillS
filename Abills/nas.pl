@@ -48,8 +48,11 @@ sub hangup {
    hangup_radpppd($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'mikrotik') {
-   radius_disconnect($NAS, $PORT, $USER);
+   hangup_radius($NAS, $PORT, $USER);
    #hangup_mikrotik_telnet($NAS, $PORT, $USER);
+  }
+ elsif ($nas_type eq 'chillispot') {
+   hangup_radius($NAS, $PORT, $USER);
   }
  elsif ($nas_type eq 'usr') {
    hangup_snmp($NAS, $PORT, { OID   => '.1.3.6.1.4.1.429.4.10.13.'. $PORT,
@@ -428,12 +431,12 @@ sub hangup_snmp {
 }
 
 #*******************************************************************
-# hangup_radius_disconnect
+# hangup_hangup_radius
 # 
 # Radius-Disconnect messages
 # rfc2882
 #*******************************************************************
-sub radius_disconnect {
+sub hangup_radius {
   my ($NAS, $PORT, $USER) = @_;
  
   my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
@@ -450,10 +453,7 @@ sub radius_disconnect {
 
 
 #*******************************************************************
-# hangup_radius_disconnect
-# 
-# Radius-Disconnect messages
-# rfc2882
+# hangup_mikrotik_telnet
 #*******************************************************************
 sub hangup_mikrotik_telnet {
   my ($NAS_IP, $PORT, $USER) = @_;
@@ -471,10 +471,7 @@ sub hangup_mikrotik_telnet {
 
 
 #*******************************************************************
-# hangup_radius_disconnect
-# 
-# Radius-Disconnect messages
-# rfc2882
+# hangup_ipcad
 #*******************************************************************
 sub hangup_ipcad {
   my ($NAS_IP, $PORT, $USER_NAME, $attr) = @_;
