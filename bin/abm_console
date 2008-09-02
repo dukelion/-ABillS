@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl 
 # ABillS Console manager solution
 #
 
@@ -13,7 +13,7 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
 
 #use strict;
 
-my $version = 0.2;
+my $version = 0.3;
 
 
 use FindBin '$Bin';
@@ -404,6 +404,7 @@ sub get_admin_info {
   my @rows = split(/\n/, $content);
 
   foreach my $line (@rows) {
+    next    if ($line =~ /^#/);
     my ($k, $v) = split(/=/, $line, 2);
     $k =~ s/ //g;
     $v =~ s/ //g;

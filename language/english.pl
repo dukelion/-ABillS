@@ -299,6 +299,7 @@ $_ADDRESS_BUILD='Build';
 $_ADDRESS_FLAT='Flat';
 $_CONTRACT_ID='Contract Number';
 $_CONTRACT='Contract';
+$_CONTRACTS='COntracts';
 $_NOT_ACTIVE='Not Active';
 $_REFRESH='Refresh';
 $_ROUTES='Routes';
