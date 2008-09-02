@@ -321,7 +321,12 @@ sub dv_get_month_fee {
         	                           });  
         
           if ($fees->{errno}) {
-        	  print "[$fees->{errno}] $fees->{errstr} ";	
+            if ($fees->{errno} == 14) {
+              print "Error: $_BILLS $_NOT_EXISTS\n";
+             }
+            else {
+       	      print "[$fees->{errno}] $fees->{errstr} ";	
+             }
            }
           else {
             print "$message";	
@@ -618,7 +623,12 @@ sub form_fees {
   		print "$_ADDED $_SUM: $FORM->{SUM} ID: $fees->{INSERT_ID}\n";
   	 }
     else {
-    	print "$_ERROR: [$fees->{errno}]\n"; #$err_strs{$payments->{errno}}":
+      if ($fees->{errno} == 14) {
+        print "$_ERROR: $_BILLS $_NOT_EXISTS\n";
+       }
+      else {
+        print "$_ERROR: [$fees->{errno}]\n"; #$err_strs{$payments->{errno}}":
+       }
      }
    }
  
@@ -648,10 +658,14 @@ sub form_payments {
   		print "$_ADDED $_SUM: $FORM->{SUM} ID: $payments->{INSERT_ID}\n";
   	 }
     else {
-    	print "$_ERROR: [$payments->{errno}]\n"; #$err_strs{$payments->{errno}}":
+      if ($payments->{errno} == 14) {
+        print "Error: $_BILLS $_NOT_EXISTS\n";
+       }
+      else {
+    	  print "$_ERROR: [$payments->{errno}]\n"; #$err_strs{$payments->{errno}}":      }
+       }
      }
    }
- 
 
   return 0;
 }
