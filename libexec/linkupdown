@@ -27,6 +27,15 @@
 # Add to /etc/ppp/ip-down.local 
 # /usr/abills/libexec/linkupdown pppd down $1 'username' $4
 #
+# IPN Linux:
+# /usr/local/bin/sudo /usr/abills/libexec/linkupdown ipn up eth0 %LOGIN %IP
+# /usr/local/bin/sudo /usr/abills/libexec/linkupdown ipn down eth0 %LOGIN %IP
+#
+# IPN FreeBSD
+# /usr/local/bin/sudo /usr/abills/libexec/linkupdown ipn up fxp0 %LOGIN %IP
+# /usr/local/bin/sudo /usr/abills/libexec/linkupdown ipn down fxp0 %LOGIN %IP
+# 
+#
 
 
 
@@ -91,6 +100,8 @@ my $begin_time = check_time();
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
+my $OS = '';
+
 
 require Billing;
 Billing->import();
@@ -138,6 +149,11 @@ elsif ($ARGV[0] eq 'ipn') {
     $INTERFACE = `/sbin/route -n get $HISADDR | /usr/bin/grep interface: | /usr/bin/awk '{print \$2}'`;
    }
 
+  if ($INTERFACE =~ /eth/) {
+  	$OS = 'Linux';
+   }
+
+
 }
 elsif($ARGV[0] eq 'pppd' || $ARGV[0] eq 'mikrotik') {
   $ACTION   =$ARGV[1];
@@ -174,8 +190,10 @@ my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 my $Dv = Dv->new($db, $admin, \%conf); 
 
+my %LIST_PARAMS = ();
+my @FW_ACTIONS  = ();
 
-my @FW_ACTIONS = ();
+
 # Flush rules
   my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
 
@@ -194,22 +212,26 @@ my @FW_ACTIONS = ();
    }
 
   foreach my $num (@START_FW) {
-     $fw_num =     $num + $inum * 2;
-     $pipe_num =   $num + $inum * 2;
-     $fw_nums .=   ' ' . ($fw_num)   .' '. ($fw_num +1);
-     $pipe_nums .= ' ' . ($pipe_num) .' '. ($pipe_num+1);
+    $fw_num     = $num + $inum * 2;
+    $pipe_num   = $num + $inum * 2;
+    $fw_nums   .= ' ' . ($fw_num)   .' '. ($fw_num +1);
+    $pipe_nums .= ' ' . ($pipe_num) .' '. ($pipe_num+1);
    }
 
 
-my %LIST_PARAMS = ();
+
 
 if ($ARGV[0] eq 'pppd') {
 	push @FW_ACTIONS, "/sbin/tc qdisk del dev $INTERFACE";
 	$LIST_PARAMS{IP}=$HISADDR;
-} 
+ } 
 else {
-  push @FW_ACTIONS, "$IPFW -f delete $fw_nums";
-  #push @FW_ACTIONS, "$IPFW -f pipe delete $pipe_nums";
+  if ($OS eq 'Linux') {
+   }
+  else {
+    push @FW_ACTIONS, "$IPFW -f delete $fw_nums";
+    #push @FW_ACTIONS, "$IPFW -f pipe delete $pipe_nums";
+   }
   $LIST_PARAMS{LOGIN} = "$USER";
 }
 
@@ -224,7 +246,7 @@ if ($ACTION eq 'up') {
    }
 
   if(defined($Dv->{errno})) {
-     print "[$Dv->{errno}] $Dv->{errstr}\n";
+     print "Error: User not exist ([$Dv->{errno}] $Dv->{errstr})\n";
      exit 1;
    }
   elsif($Dv->{TOTAL} < 1) {
@@ -359,7 +381,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
 	   }
 
 
-    #Linux tc shaper
+    #Mikrotik tc shaper
     if ($ARGV[0] eq 'mikrotik' ) {
     	mikrotik({ 
     		  SPEED_IN  => $speed_in,
@@ -369,30 +391,52 @@ print "\nEND: =====================================\n" if ($debug > 0);
     		 });
      }
     #Linux shaper
-    elsif ($ARGV[0] eq 'pppd') {
-       # In
+    elsif ($ARGV[0] eq 'pppd' || $OS eq 'Linux') {
+      # In
       if ($speed_in > 0) {
+
         if ($traf_type == 0) {
           push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
           push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_in";
+        
+          if ( $ARGV[0] eq 'ipn' ) {
+            push @FW_ACTIONS, "/sbin/tc filter add dev $INTERFACE protocol ip parent $fw_num_out:10 prio 1 u32 match ip dst $CLIENT_IP flowid 1:10";
+           }
+        
           push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10";
          }
         else {
           push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
           push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_out";
+
+          if ( $ARGV[0] eq 'ipn' ) {
+            push @FW_ACTIONS, "/sbin/tc filter add dev $INTERFACE protocol ip parent $fw_num_out:10 prio 1 u32 match ip dst $CLIENT_IP flowid 1:10";
+           }
+
           push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10";
          }
        }
 
+      #OUT
       if ($speed_out > 0) {
         if ($traf_type == 0) {
           push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
           push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_in";
+
+          if ( $ARGV[0] eq 'ipn' ) {
+            push @FW_ACTIONS, "/sbin/tc filter add dev $INTERFACE protocol ip parent $fw_num_out:10 prio 1 u32 match ip src $CLIENT_IP flowid 1:10";
+           }
+
           push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10";
          }
         else {
           push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
           push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_out";
+
+          if ( $ARGV[0] eq 'ipn' ) {
+            push @FW_ACTIONS, "/sbin/tc filter add dev $INTERFACE protocol ip parent $fw_num_out:10 prio 1 u32 match ip src $CLIENT_IP flowid 1:10";
+           }
+
           push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10";
          }
        }
