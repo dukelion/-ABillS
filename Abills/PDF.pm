@@ -1350,11 +1350,7 @@ sub tpl_show {
         'Keywords'     => ""
     ); 
 
-  #$pdf->mediabox(100,100, 100,100);
-
 for my $key (sort keys %$tpl_describe) { 
-	#print "$key $tpl_describe->{$key}{PARAMS}\n" if ($debug > 0);
-  #$page->mediabox($w,$h);
   
   my @patterns = ();
 
@@ -1367,8 +1363,8 @@ for my $key (sort keys %$tpl_describe) {
 
 
   foreach my $pattern (@patterns) {
-    my $x=0; 
-    my $y=0;
+    my $x         = 0; 
+    my $y         = 0;
     my $page      = 1;
     my $font_size = 10;
     my $font_name = 'Verdana';
@@ -1377,7 +1373,7 @@ for my $key (sort keys %$tpl_describe) {
 
     $x = $1    if ($pattern =~ /x=(\d+)/);
     $y = $1    if ($pattern =~ /y=(\d+)/);
-    $page = $1 if ($pattern =~ /page=(\d+)/);
+    $page       = $1 if ($pattern =~ /page=(\d+)/);
     $font_size  = $1 if ($pattern =~ /font_size=(\d+)/);
     $font_name  = $1 if ($pattern =~ /font_name=(\S+)/);
     $encode     = $1 if ($pattern =~ /encode=(\S+)/);
@@ -1408,19 +1404,12 @@ for my $key (sort keys %$tpl_describe) {
 
 #$txt->compress();
 
-  #$pdf->saveas('pdf/helloworld.pdf');
+  $pdf->saveas("$attr->{SAVE_AS}") if ($attr->{SAVE_AS});
+
   $tpl = $pdf->stringify();
   $pdf->end;
  
   print $tpl;
-
-
-
-
-
-
-
-
 
 
   if($attr->{OUTPUT2RETURN}) {
