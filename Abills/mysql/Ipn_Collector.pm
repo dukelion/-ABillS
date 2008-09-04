@@ -259,7 +259,7 @@ sub traffic_agregate_users {
         DST_IP   => $DATA->{DST_IP},
         SRC_PORT => $DATA->{SRC_PORT} || 0,
         DST_PORT => $DATA->{DST_PORT} || 0,
-        PROTOCOL => 0,
+        PROTOCOL => $DATA->{PROTOCOL} || 0, 
         SIZE     => $DATA->{SIZE},
         NAS_ID   => $DATA->{NAS_ID} || 0,
         UID      => $DATA->{UID},
