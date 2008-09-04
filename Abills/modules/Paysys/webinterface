@@ -172,7 +172,7 @@ sub paysys_import_form {
 
 
                 if ($payments->{errno} && $payments->{errno} == 7) {
-                	$html->message('err', $_ERROR, "$_EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$ID");
+                	$html->message('err', $_ERROR, "$_EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID");
                  }
                 else {
                   $total_count++;
@@ -205,7 +205,7 @@ sub paysys_import_form {
 
 
                 if ($payments->{errno} && $payments->{errno} == 7) {
-                	$html->message('err', $_ERROR, "$_EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$ID");
+                	$html->message('err', $_ERROR, "$_EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID");
                  }
                 else {
                   $total_count++;
