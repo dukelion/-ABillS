@@ -523,12 +523,34 @@ sub docs_print {
   
   $users->pi({  UID => $Docs->{UID} });
 	$html->tpl_show(_include("docs_$template", 'Docs', { pdf => $FORM{pdf} }), { %$ATTR, %$users });
-	
-	
-	print "---- $Docs->{UID} ----";
-	
 }
 
+
+#**********************************************************
+# Make multiuser documents
+#**********************************************************
+sub docs_summary {
+	
+	my $list = $users->list({ DEPOSIT    => '<0',
+		                        DISABLE    => 0,
+		                        PAGE_ROWS  => 1000000   });
+	my @MULTI_ARR = ();
+
+	foreach my $line (@$list) {
+    #print "-$line->[0], $line->[1], $line->[3], $line->[4]<br>";
+    
+    push @MULTI_ARR, { FIO     => $line->[1], 
+    	                 DEPOSIT => $line->[2],
+    	                 CREDIT  => $line->[3],
+    	                 SUM     => $line->[2],
+    	                 SUM_VAT => ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", $line->[2] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE})) : 0.00
+    	                };
+	 }
+
+  $html->tpl_show(_include("docs_multi_invoice", 'Docs', 
+                                     { pdf         => $FORM{pdf} }), 
+                                     { MULTI_PRINT => \@MULTI_ARR });
+}
 
 #**********************************************************
 #

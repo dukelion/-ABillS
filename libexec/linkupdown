@@ -393,27 +393,46 @@ print "\nEND: =====================================\n" if ($debug > 0);
     #Linux shaper
     elsif ($ARGV[0] eq 'pppd' || $OS eq 'Linux') {
       # In
+      my $s_in = $speed_out;
+      my $s_out = $speed_in;
+      if ($traf_type == 0) {
+        $s_in = $speed_in;
+        $s_out = $speed_out;
+      } 
+
+#      my $NEWRATE = текущий рейт класса 1:10 - $s_in
+#      my $OLDRATE = текущий рейт класса 1:10 + $s_in
+
+
+
       if ($speed_in > 0) {
 
         if ($traf_type == 0) {
-          push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
-          push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_in";
         
           if ( $ARGV[0] eq 'ipn' ) {
-            push @FW_ACTIONS, "/sbin/tc filter add dev $INTERFACE protocol ip parent $fw_num_out:10 prio 1 u32 match ip dst $CLIENT_IP flowid 1:10";
+            push @FW_ACTIONS, "/sbin/tc class change dev $INTERFACE parent 1:1 classid 1:10 htb rate 100Mibit ceil 100Mibit";
+            push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent 1:1 classid 1:$fw_num_out htb rate ${s_in}Kibit";
+            push @FW_ACTIONS, "/sbin/tc filter add dev $INTERFACE parent 1: protocol ip prio 1 u32 match ip dst $CLIENT_IP flowid 1:$fw_num_out";
+            push @FW_ACTIONS, "/sbin/tc filter add dev $INTERFACE parent ffff: protocol ip prio 2 u32 match ip src $CLIENT_IP police rate ${s_out}Kibit burst 20k drop flowid :1";
            }
-        
-          push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10";
+          else {
+            push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
+            push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_in";
+            push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10";
+           }
          }
         else {
-          push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
-          push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_out";
-
           if ( $ARGV[0] eq 'ipn' ) {
-            push @FW_ACTIONS, "/sbin/tc filter add dev $INTERFACE protocol ip parent $fw_num_out:10 prio 1 u32 match ip dst $CLIENT_IP flowid 1:10";
+          	push @FW_ACTIONS, "/sbin/tc filter del dev $INTERFACE parent 1: protocol ip prio 1 u32 match ip dst $CLIENT_IP flowid 1:$fw_num_out";
+            push @FW_ACTIONS, "/sbin/tc filter del dev $INTERFACE parent ffff: protocol ip prio 2 u32 match ip src $CLIENT_IP police rate ${s_out}Kibit burst 20k drop flowid :1";
+            push @FW_ACTIONS, "/sbin/tc class del dev $INTERFACE parent 1:1 classid 1:$fw_num_out htb rate ${s_in}Kibit";
+            push @FW_ACTIONS, "/sbin/tc class change dev $INTERFACE parent 1:1 classid 1:10 htb rate 100Mibit ceil 100Mibit";
            }
-
-          push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10";
+          else {
+            push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE root handle $fw_num_out: htb default 10";
+            push @FW_ACTIONS, "/sbin/tc class add dev $INTERFACE parent $fw_num_out: classid 1:10 htb rate $speed_out";
+            push @FW_ACTIONS, "/sbin/tc qdisc add dev $INTERFACE parent $fw_num_out:10 handle 10: sfq perturb 10"; 
+           }
          }
        }
 
