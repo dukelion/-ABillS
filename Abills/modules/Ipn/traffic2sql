@@ -521,7 +521,7 @@ while( <LOG> ) {
 		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $11 ); 
 
         $DATA{SIZE}     = $12;
-        $DATA{PROTOCOL} = $9
+        $DATA{PROTOCOL} = $9;
 	$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
 	$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
 	#$DATA{NAS_ID}=$NAS_ID;
