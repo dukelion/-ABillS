@@ -3,7 +3,7 @@ $web_interface    = 1;
 %FUNCTIONS_LIST = ("01:-1:$_DOCS:null:UID"                    => 15,
                    "02:1:$_ACCOUNTS:docs_accounts_list:UID"   => 15,
                    "03:2:$_ADD:docs_account:UID"              => 15,
-                   "04:1:$_INVOICES:docs_invoice:ID"          => 15,
+                   "04:1:$_INVOICES:docs_invoice:UID"         => 15,
                    "06:1:$_ACTS:docs_acts:UID"                => 15,
                    "09:0:$_DOCS:docs_summary:"                => 5,
                    "10:0:$_DOCS:docs_accounts_list:"          => 6,
