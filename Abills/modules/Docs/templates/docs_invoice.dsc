@@ -1,8 +1,8 @@
 NUMBER:Номер Счета-фактуры:russian:(x=275;y=719;)
 MONTH_LIT:Поточный месяц порписью и год:russian:(x=255;y=685;)
 FIO:Ф.И.О./официальное название для юр.лица (платильщики):russian:(x=105;y=645,x=200;y=578;page=2)
-CONTRACT_ID:Номер Договора:russian:(x=127;y=623;)
-CONTRACT_DATE:Дата контракта:russian:(x=200;y=623;)
+CONTRACT_ID:Номер Договора:russian:(x=127;y=623,x=420;y=462;page=2)
+CONTRACT_DATE:Дата контракта:russian:(x=200;y=623,x=225;y=452;page=2)
 EXPIRE_DATE:Счет действителен до:russian:(x=150;y=542,x=125;y=251;)
 #DEPOSIT:Остаток на начало периода на лицевом счету:russian:(x=500;y=503;)
 #MONTH_FEE:Месячная абонплата:russian:(x=500;y=435;)
@@ -10,13 +10,14 @@ EXPIRE_DATE:Счет действителен до:russian:(x=150;y=542,x=125;y=251;)
 #SERVICES:Допольнительные услуги, грн с НДС:russian:russian:(x=500;y=388;)
 #REDUCTION_SUM:Знижка на послуги з ПДВ, грн:russian:(x=500;y=364;)
 TOTAL_SUM:Рекомендованная к оплате сумма, грн с НДС:russian:(x=500;y=351,x=500;y=297,x=360;y=601;page=2,x=360;y=612;page=2) 
-ORDER_TOTAL_SUM_VAT:Сума налога заказа за товар:russian:(x=140;y=285;)
+ORDER_TOTAL_SUM_VAT:Сума налога заказа за товар:russian:(x=140;y=285,x=360;y=452;page=2;)
 SUM_LIT:Всего сумма рекомендована к оплате пропись.:russian:(x=300;y=263,x=205;y=487;page=2)
 FROM_DATE_LIT:Дата создания:rissian:(x=358;y=719;)
 #PAYMENT_MONTH:всего оплачено за период:russian:(x=500;y=480;)
-NUMBER:Номер счёта:russian:(x=280;y=719,x=355;y=696;page=2,x=180;y=452;page=2)
-DATE:Дата создания счета:russian:(x=355;y=719,x=180;y=672;page=2,x=295;y=452;page=2)
-ORDER_TOTAL_SUM_VAT:Сума налога заказа за товар:russian:(x=140;y=285,x=440;y=452;page=2)
+NUMBER:Номер счёта:russian:(x=280;y=719,x=355;y=696;page=2,)
+DATE:Дата создания счета:russian:(x=355;y=719,x=180;y=672;page=2,)
+
+
 
 
 
@@ -53,7 +54,7 @@ ORDER_PRICE_WITHOUT_VAT_2:Цена товара без налога:russian:(x=0;y=0)
 ORDER_SUM_WITHOUT_VAT_2:Сума товара без налога:russian:(x=0;y=0)
 
 
-#ORDER_TOTAL_SUM_VAT:Сума налога заказа за товар:russian:(x=446;y=432,x=490;y=390,x=445;y=413;page=2)
+#ORDER_TOTAL_SUM_VAT:Сума налога заказа за товар:russian:(x=446;y=432,x=490;y=390,x=325;y=452;page=2)
 #TOTAL_SUM_WITHOUT_VAT:Всего, без налога:russian:(x=446;y=447;)
 
 
