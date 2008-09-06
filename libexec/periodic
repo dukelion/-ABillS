@@ -570,19 +570,21 @@ sub backup {
 sub credit_operation {
 	$DEBUG .= "Reset Credit\n" if ($debug > 1);
 
+
+  $conf{MAX_STABLE_CREDIT}=0 if (! $conf{MAX_STABLE_CREDIT});
   my $list = $users->list({  
                            CREDIT_DATE  => "$DATE",
-                           CREDIT       => '>0',
+                           CREDIT       => '>$conf{MAX_STABLE_CREDIT}',
   	                       PAGE_ROWS    => 1000000
   	                      });
-	
+
   foreach my $line (@$list) {
-  	$DEBUG .= "$line->[0] ($line->[7]) DEPOSIT: $line->[2] CREDIT: $line->[3] CREDIT_DATE: $line->[6]\n"if ($debug > 0);
+  	$DEBUG .= "$line->[0] (". $line->[5 +  $users->{SEARCH_FIELDS_COUNT}] .") DEPOSIT: $line->[2] CREDIT: $line->[3] CREDIT_DATE: $line->[6]\n"if ($debug > 0);
 
     if ($debug < 5) {
-    	$users->change($line->[7], { CREDIT      => 0,
+    	$users->change($line->[5 + $users->{SEARCH_FIELDS_COUNT}], { CREDIT      => $conf{MAX_STABLE_CREDIT} ,
     		                           CREDIT_DATE => '0000-00-00',
-    		                           UID         => $line->[7]
+    		                           UID         => $line->[5 + $users->{SEARCH_FIELDS_COUNT}]
     		                           });
      }
   }

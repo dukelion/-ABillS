@@ -11,12 +11,11 @@ sub _include {
   
   my $sufix = ($attr->{pdf}) ? '.pdf' : '.tpl';
   
-  $tpl = '' if (! $tpl);
-  
+
   if (-f '../../Abills/templates/'. $module . '_' . $tpl . $sufix) {
     return ($FORM{pdf}) ? '../../Abills/templates/'. $module . '_' . $tpl . $sufix : tpl_content('../../Abills/templates/'. $module . '_' . $tpl . $sufix);
    }
-  elsif (-f '../Abills/templates/'. $module . '_' . $tpl .$prefix) {
+  elsif (-f '../Abills/templates/'. $module . '_' . $tpl .$sufix) {
     return ($FORM{pdf}) ? '../Abills/templates/'. $module . '_' . $tpl. '.tpl' : tpl_content('../Abills/templates/'. $module . '_' . $tpl. $sufix);
    }
   elsif (-f $Bin .'/../Abills/templates/'. $module . '_' . $tpl .$sufix) {

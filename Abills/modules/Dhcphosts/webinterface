@@ -34,7 +34,7 @@ if ($FORM{MAKE}) {
  }
 
 	my $ethers_content =  $html->tpl_show(_include('dhcphosts_ipguard_static', 'Dhcphosts'), 
-                                                           undef, { notprint => 1 });
+                                                           {}, { notprint => 1 });
   $html->tpl_show(_include('dhcphosts_ipguard', 'Dhcphosts'), { ETHER_CONTENT => "$ethers_content",
 	 	                                                           });
 
