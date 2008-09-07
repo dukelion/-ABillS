@@ -1,5 +1,5 @@
 package Abills::PDF;
-#HTML 
+#PDF outputs
 
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
@@ -60,7 +60,9 @@ my $CONF;
 
 
 
-my $row_number = 0;
+my $row_number      = 0;
+my $tmp_path        = '/tmp/';
+my $pdf_result_path = '../cgi-bin/admin/';
 
 
 
@@ -1314,6 +1316,56 @@ sub get_pdf {
   return $pdf;
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub multi_tpls {
+	my ($tpl, $MULTI_ARR, $attr) = @_;	
+
+  my $multi_pdf          = PDF::API2->new;
+
+  $tmp_path        = $attr->{TMP_PATH}       if ($attr->{TMP_PATH});
+  $pdf_result_path = $attr->{PDF_RESULT_PATH}if ($attr->{PDF_RESULT_PATH});
+
+
+
+  for(my $i=0; $i <= 10; $i++ ) {
+    push @{ $MULTI_ARR }, { FIO     => 'fio'.$i,
+                       DEPOSIT => '00.00'.$i,
+                       CREDIT  => 0.00+$i,
+                       SUM     => 10.00+$i
+                     };
+
+   }
+
+  my $num = 0;
+  my $rand_num = rand(32768);
+  foreach my $line (@$MULTI_ARR) {
+    my $single_tpl = tpl_show($tpl, { DOC_NUMBER => $num }, 
+                                    { MULTI_DOCS => $MULTI_ARR, 
+  	                                       }); 
+
+    my $page_count  = $single_tpl->pages;
+  	$single_tpl->saveas($tmp_path .'/single.'.$rand_num.'.pdf');
+    
+    ##Multidocs section
+    print "Document: $num Pages: $page_count ================================\n" if ($debug > 0);
+    $num++;
+    my $main_tpl = PDF::API2->open($tmp_path.'/single'.$rand_num.'.pdf');
+
+    for(my $i=1; $i<=$page_count; $i++) {
+      my $page = $multi_pdf->importpage($main_tpl, $i);
+     }
+   }
+
+	#unlink($tmp_path.'/single'.$rand_num.'.pdf');
+
+  $multi_pdf->saveas($pdf_result_path.'/'. $tpl.'.pdf');
+  	                                       
+}
+
+
 #**********************************************************
 # show tamplate
 # tpl_show
@@ -1365,26 +1417,34 @@ for my $key (sort keys %$tpl_describe) {
   foreach my $pattern (@patterns) {
     my $x         = 0; 
     my $y         = 0;
-    my $page      = 1;
+    my $doc_page  = 1;
     my $font_size = 10;
     my $font_name = 'Verdana';
+    my $font_color;
     my $encode    = 'windows-1251';
     my $align     = '';
 
-    $x = $1    if ($pattern =~ /x=(\d+)/);
-    $y = $1    if ($pattern =~ /y=(\d+)/);
-    $page       = $1 if ($pattern =~ /page=(\d+)/);
+    $x          = $1 if ($pattern =~ /x=(\d+)/);
+    $y          = $1 if ($pattern =~ /y=(\d+)/);
+    $doc_page   = $1 if ($pattern =~ /page=(\d+)/);
     $font_size  = $1 if ($pattern =~ /font_size=(\d+)/);
     $font_name  = $1 if ($pattern =~ /font_name=(\S+)/);
+    $font_color = $1 if ($pattern =~ /font_color=(\d+)/);
     $encode     = $1 if ($pattern =~ /encode=(\S+)/);
     $align      = $1 if ($align   =~ /align=(\S+)/);
     
  
 
     my $font = $pdf->corefont($font_name, -encode => "$encode");
-    my $page = $pdf->openpage($page);
+    my $page = $pdf->openpage($doc_page);
     my $txt  = $page->text;
     $txt->font($font,$font_size);
+
+    if ($font_color) {
+      $txt->fillcolor($font_color);
+      $txt->fillstroke($font_color);
+     }
+
 
     next if ($x == 0 && $y == 0);
     $txt->translate($x,$y);
@@ -1404,7 +1464,11 @@ for my $key (sort keys %$tpl_describe) {
 
 #$txt->compress();
 
-  $pdf->saveas("$attr->{SAVE_AS}") if ($attr->{SAVE_AS});
+if ($attr->{MULTI_DOCS}) {
+  return $pdf ; 	
+}
+
+$pdf->saveas("$attr->{SAVE_AS}") if ($attr->{SAVE_AS});
 
   $tpl = $pdf->stringify();
   $pdf->end;

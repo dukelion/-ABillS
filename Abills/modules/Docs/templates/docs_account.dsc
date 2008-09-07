@@ -1,8 +1,8 @@
 #Account
 FIO:Наименование клиента:russian:(x=130;y=684,x=200;y=562;page=2)
 PHONE:Номер телефона клиента:russian:x=0;y=0
-DATE:Дата создания счета:russian:(x=350;y=753,x=180;y=674;)
-NUMBER:Номер счёта:russian:(x=250;y=753,x=355;y=701;)
+DATE:Дата создания счета:russian:(x=350;y=753)
+NUMBER:Номер счёта:russian:(x=250;y=753)
 FROM_DATE_LIT:Дата прописью:russian:x=;y=
 ORDER:Товар. Табличная часть:russian:x=;y=
 TOTAL_SUM:Полная стоимость товара:russian:(x=446;y=418,x=354;y=602;page=2,x=354;y=588;page=2)

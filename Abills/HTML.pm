@@ -1,5 +1,5 @@
 package Abills::HTML;
-#HTML 
+#HTML output
 
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
@@ -153,24 +153,25 @@ sub new {
   else {
     $self->{language} = $CONF->{default_language} || 'english';
    }
+ 
+  #Make  PDF output
+  if ($FORM{pdf} || $attr->{pdf}) {
+    $FORM{pdf}=1;
 
-  if (defined($FORM{pdf})) {
-   eval { require PDF::API2; };
-   if (! $@) {
-     PDF::API2->import();
-     require Abills::PDF;
-     $self = Abills::PDF->new( { IMG_PATH  => $IMG_PATH,
+    eval { require PDF::API2; };
+    if (! $@) {
+      PDF::API2->import();
+      require Abills::PDF;
+      $self = Abills::PDF->new( { IMG_PATH  => $IMG_PATH,
       	                         NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1 
 	                            
 	                            });
-    }
-   else {
-     print "Can't load 'PDF::API2'. Get it from http://cpan.org $@";
-     exit; #return 0;
-    }
+     }
+    else {
+      print "Can't load 'PDF::API2'. Get it from http://cpan.org $@";
+      exit; #return 0;
+     }
 
-
-  	
    }
   elsif (defined($FORM{xml})) {
     require Abills::XML;
