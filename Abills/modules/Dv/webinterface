@@ -2716,7 +2716,7 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
         if ($val =~ /\$MA(\S+)/) {
       	  $Dv->{ISG_CID_CUR}=$1;
       	 }
-  	    elsif ($val =~ /S(\S+)) {
+  	    elsif ($val =~ /S(\S+)/) {
   	    	$Dv->{ISG_CID_CUR}=$1;
   	     }
   	 }
