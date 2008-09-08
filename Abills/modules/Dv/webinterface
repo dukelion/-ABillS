@@ -2516,6 +2516,11 @@ if ($FORM{set}) {
     }
    }
   else {
+    if ($user->{CREDIT} + $user->{DEPOSIT} < 0) {
+    	$html->message('err', "$_ERROR", "$ERR_SMALL_DEPOSIT - $_DEPOSIT: $user->{DEPOSIT} $_CREDIT: $user->{CREDIT}");
+    	return 0;
+     }
+    
     $FORM{UID}=$LIST_PARAMS{UID};
 
     $Dv->{ABON_DATE}=undef;
@@ -2578,11 +2583,18 @@ if ($FORM{set}) {
      }
     else {
       $Dv->change({ %FORM });
+
       if ($Dv->{errno}) {
-        $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
+        $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");	
        }
       else {
-        $html->message('info', $_CHANGED, "$_CHANGED");
+        #Take fees
+        if ($Dv->{TP_INFO}->{MONTH_FEE} > 0 && ! $Dv->{STATUS}) {
+          dv_get_month_fee($Dv);
+         }
+
+    	  $html->message('info', $_CHANGED, "$_CHANGED");
+        $Dv->info($Dv->{UID});
        }
      }
 
