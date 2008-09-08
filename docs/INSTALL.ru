@@ -14,6 +14,7 @@
   # make
   # make install
 
+====Версия 1.хх====
 После успешной установки правим файлы:\\
 **/usr/local/radiusd/etc/raddb/users**\\
 
@@ -58,7 +59,58 @@
   # mschap
   }
 
+====Версия 2.xx====
 
+в **raddb/radiusd.conf** в секции ''modules'':
+
+  exec auth {                                                   
+     program = "/usr/abills/libexec/rauth.pl"       
+     wait = yes                                           
+     input_pairs = request                                 
+     shell_escape = yes                                   
+     output = no                                           
+     output_pairs = reply                                 
+  }                                                             
+  
+  exec acc {                                                   
+     program = "/usr/abills/libexec/racct.pl"       
+     wait = yes                                           
+     input_pairs = request                                 
+     shell_escape = yes                                   
+     output = no                                           
+     output_pairs = reply                                 
+  }
+
+ в секции ''exec''\\
+ Код:
+
+
+  exec {                                                       
+     wait = yes                                           
+     input_pairs = request                                 
+     shell_escape = yes                                   
+     output = none                                         
+     output_pairs = reply                                 
+  }
+
+в нужной конфигурации из ''sites-enabled''\\
+Код:
+
+  preacct {                                               
+     preprocess                                     
+     acc                         
+  }
+  
+  authorize {                                                     
+     preprocess                                                       
+     files                   
+     auth
+  }
+
+в **raddb/users** \\
+Код:
+
+  DEFAULT Auth-Type = Accept
 
 
 

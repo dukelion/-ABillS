@@ -2694,8 +2694,8 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
         Cisco-Account-Info = "N1SERVICE_406_L4R;224;;0;0;0;0"
         Cisco-Account-Info = "N1PBHK_SERVICE;224;;0;0;0;0"
         Cisco-Account-Info = "$MA0018.f3f8.f85a"
-        Cisco-Command-Code = "\0040"
         Cisco-Account-Info = "S79.124.98.3"
+        Cisco-Command-Code = "\0040"
         Cisco-AVPair = "sg-version=1.0"
         NAS-Port = 0
         NAS-Port-Id = "nas-port:0.0.0.0:0/0/2/1416"
@@ -2716,6 +2716,9 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
         if ($val =~ /\$MA(\S+)/) {
       	  $Dv->{ISG_CID_CUR}=$1;
       	 }
+  	    elsif ($val =~ /S(\S+)) {
+  	    	$Dv->{ISG_CID_CUR}=$1;
+  	     }
   	 }
  	
  	  if ($RAD_PAIRS{'Error-Cause'}) {
