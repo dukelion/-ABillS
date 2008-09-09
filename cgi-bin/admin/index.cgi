@@ -4079,8 +4079,10 @@ foreach my $line (@$list) {
 print $table->show();
 
 $table = $html->table({ width      => '100%',
-                        cols_align => ['right', 'right', 'right', 'right'],
-                        rows       => [ [ "$_TOTAL:", $html->b($payments->{TOTAL}), "$_SUM", $html->b($payments->{SUM}) ] ],
+                        cols_align => ['right', 'right', 'right', 'right', 'right', 'right' ],
+                        rows       => [ [ "$_TOTAL:", $html->b($payments->{TOTAL}), 
+                                          "$_USERS:", $html->b($payments->{TOTAL_USERS}), 
+                                          "$_SUM",    $html->b($payments->{SUM}) ] ],
                         rowcolor   => $_COLORS[2]
                       });
 print $table->show();
@@ -4384,8 +4386,11 @@ foreach my $line (@$list) {
 print $table->show();
 
 $table = $html->table( { width      => '100%',
-                         cols_align => ['right', 'right', 'right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($fees->{TOTAL}), "$_SUM:", $html->b($fees->{SUM}) ] ],
+                         cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($fees->{TOTAL}), 
+                                           "$_USERS:", $html->b($fees->{TOTAL_USERS}),
+                                           "$_SUM:",   $html->b($fees->{SUM})
+                                             ] ],
                          rowcolor   => $_COLORS[2]
                      } );
 print $table->show();
