@@ -255,13 +255,14 @@ sub list {
  my $list = $self->{list};
 
 if ($self->{TOTAL} > 0 || $PG > 0 ) {
- $self->query($db, "SELECT count(*), sum(f.sum) FROM fees f 
+ $self->query($db, "SELECT count(*), sum(f.sum), count(DISTINCT f.uid) FROM fees f 
   LEFT JOIN users u ON (u.uid=f.uid) 
   LEFT JOIN admins a ON (a.aid=f.aid)
  $WHERE");
 
  ($self->{TOTAL}, 
-  $self->{SUM}) = @{ $self->{list}->[0] };
+  $self->{SUM},
+  $self->{TOTAL_USERS}) = @{ $self->{list}->[0] };
 }
 
   return $list;

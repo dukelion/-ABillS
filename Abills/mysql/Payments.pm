@@ -285,12 +285,13 @@ sub list {
  return $self->{list}  if ($self->{TOTAL} < 1);
  my $list = $self->{list};
 
- $self->query($db, "SELECT count(p.id), sum(p.sum) FROM payments p
+ $self->query($db, "SELECT count(p.id), sum(p.sum), count(DISTINCT p.uid) FROM payments p
   LEFT JOIN users u ON (u.uid=p.uid)
   LEFT JOIN admins a ON (a.aid=p.aid) $WHERE");
 
  ( $self->{TOTAL},
-   $self->{SUM} )= @{ $self->{list}->[0] };
+   $self->{SUM},
+   $self->{TOTAL_USERS} )= @{ $self->{list}->[0] };
 
  return $list;
 }

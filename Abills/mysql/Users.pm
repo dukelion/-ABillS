@@ -672,8 +672,7 @@ sub list {
   }
 
  if ($attr->{CONTRACT_DATE}) {
-    my $value = $self->search_expr("$attr->{CONTRACT_DATE}", 'INT');
-    push @WHERE_RULES, "(pi.contract_date$value)"; 
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{CONTRACT_DATE}", 'INT', 'pi.contract_date') };
 
     $self->{SEARCH_FIELDS} .= 'pi.contract_date, ';
     $self->{SEARCH_FIELDS_COUNT}++;
@@ -681,26 +680,22 @@ sub list {
 
 
  if ($attr->{REGISTRATION}) {
-    my $value = $self->search_expr("$attr->{REGISTRATION}", 'INT');
-    push @WHERE_RULES, "u.registration$value";
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{REGISTRATION}", 'INT', 'u.registration') };
     $self->{SEARCH_FIELDS} .= 'u.registration, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
 
  if ($attr->{DEPOSIT}) {
-    my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
-    push @WHERE_RULES, "b.deposit$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'b.deposit') }; 
   }
 
  if ($attr->{CREDIT}) {
-    my $value = $self->search_expr($attr->{CREDIT}, 'INT');
-    push @WHERE_RULES, "u.credit$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{CREDIT}, 'INT', 'u.credit') };
   }
 
  if ($attr->{CREDIT_DATE}) {
-    my $value = $self->search_expr($attr->{CREDIT_DATE}, 'INT');
-    push @WHERE_RULES, "u.credit_date$value";
+    push @WHERE_RULES,  @{ $self->search_expr($attr->{CREDIT_DATE}, 'INT', 'u.credit_date') };
     $self->{SEARCH_FIELDS} .= 'u.credit_date,';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
@@ -708,8 +703,8 @@ sub list {
 
 
  if ($attr->{COMMENTS}) {
-  	$attr->{COMMENTS} =~ s/\*/\%/ig;
- 	  push @WHERE_RULES, "pi.comments LIKE '$attr->{COMMENTS}'";
+    $attr->{COMMENTS} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "pi.comments LIKE '$attr->{COMMENTS}'";
     $self->{SEARCH_FIELDS} .= 'pi.comments, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }    
