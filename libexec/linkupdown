@@ -102,6 +102,10 @@ my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $c
 my $db = $sql->{db};
 my $OS = '';
 
+if  ($ARGV[$#ARGV-1] =~ /^OS=(\S+)/ || $ARGV[$#ARGV] =~ /^OS=(\S+)/ ){
+  $OS=$1;
+}
+
 
 require Billing;
 Billing->import();
