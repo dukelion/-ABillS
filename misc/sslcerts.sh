@@ -12,6 +12,7 @@ days=730;
 DATE=`date`;
 CERT_TYPE=$1;
 CERT_USER="";
+VERSION=0.2;
 
 if [ w$1 = w ] ; then
   echo "Create SSL Certs and SSH keys ";
@@ -68,12 +69,25 @@ if [ w${CERT_TYPE} = wssh ]; then
     id_dsa_file=id_dsa;
   else
     id_dsa_file=id_dsa.$2;
-  fi; 
+  fi;
+  
+  USER=$2; 
    
   ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}${id_dsa_file}"
 
+  echo -n "Upload file to remote host (y/n):"
+  read UPLOAD=
+  if [ w${UPLOAD} = wy ]; then
+    echo -n "Enter host: "
+    read HOST=
+    
+    ssh ${USER}@${HOST} "mkdir ~/.ssh"
+    scp ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOST}:~/.ssh/authorized_keys
+  fi;
+
+
   echo 
-  echo "Copy ${CERT_PATH}${id_dsa_file}.pub to REMOTE_HOST User home dir (/home/username/.ssh/authorized_keys) "
+  echo "Copy ${CERT_PATH}${id_dsa_file}.pub to REMOTE_HOST User home dir (/home/${USER}/.ssh/authorized_keys) "
   echo 
 
 #Apache Certs
