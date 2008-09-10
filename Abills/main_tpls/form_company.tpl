@@ -15,7 +15,7 @@
 <TR bgcolor=$_COLORS[0] align=right><TH colspan=2>$_BANK_INFO</th></tr>
 <TR bgcolor=$_COLORS[2]><TD>$_TAX_NUMBER:</TD><TD><input type=text name=TAX_NUMBER value='%TAX_NUMBER%' size=60></TD></TR>
 <TR bgcolor=$_COLORS[2]><TD>$_ACCOUNT:</TD><TD><input type=text name=BANK_ACCOUNT value='%BANK_ACCOUNT%' size=60></TD></TR>
-<TR bgcolor=$_COLORS[2><TD>$_BANK_NAME:</TD><TD><input type=text name=BANK_NAME value='%BANK_NAME%' size=60></TD></TR>
+<TR bgcolor='$_COLORS[2]'><TD>$_BANK_NAME:</TD><TD><input type=text name=BANK_NAME value='%BANK_NAME%' size=60></TD></TR>
 <TR bgcolor=$_COLORS[2]><TD>$_COR_BANK_ACCOUNT:</TD><TD><input type=text name=COR_BANK_ACCOUNT value='%COR_BANK_ACCOUNT%' size=60></TD></TR>
 <TR bgcolor=$_COLORS[2]><TD>$_BANK_BIC:</TD><TD><input type=text name=BANK_BIC value='%BANK_BIC%' size=60></TD></TR>
 <TR><TD>$_CONTRACT_ID:</TD><TD><input type=text name=CONTRACT_ID value='%CONTRACT_ID%'> $_DATE: <input type=text name=CONTRACT_DATE value='%CONTRACT_DATE%'></TD></TR>
