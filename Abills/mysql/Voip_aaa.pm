@@ -240,11 +240,13 @@ else {
 
      # Get route
      my $query_params = '';
+
      
      for (my $i=1; $i<=length($RAD->{'CALLED_STATION_ID'}); $i++) { 
      	 $query_params .= '\''. substr($RAD->{'CALLED_STATION_ID'}, 0, $i) . '\','; 
      	}
      chop($query_params);
+
 
      $self->query($db, "SELECT r.id,
       r.prefix,
@@ -277,6 +279,7 @@ else {
     #Get intervals and prices
     if ($RAD->{H323_CALL_ORIGIN} == 1) {
        $self->get_intervals();
+
        if ($self->{TOTAL} < 1) {
          $RAD_PAIRS{'Reply-Message'}="No price for route prefix '$self->{PREFIX}' number '". $RAD->{'CALLED_STATION_ID'} ."'";
          return 1, \%RAD_PAIRS;
@@ -306,8 +309,8 @@ if ($NAS->{NAS_TYPE} eq 'asterisk' and $self->{TRUNK_PROTOCOL}) {
 	  $self->{prepend} = '';
     
     my $number = $RAD->{'CALLED_STATION_ID'};
-    if ($self->{REMOVEPREFIX}) {
-    	$number =~ s/^$self->{REMOVEPREFIX}//;
+    if ($self->{REMOVE_PREFIX}) {
+    	$number =~ s/^$self->{REMOVE_PREFIX}//;
      }
 
     if ($self->{ADDPREFIX}) {
@@ -395,7 +398,6 @@ sub get_intervals {
 	my $self = shift;
 	my ($attr) = @_;
 	
-	
   $self->query($db, "SELECT i.day, TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), 
     rp.price, i.id, rp.route_id,
     if (t.protocol IS NULL, '', t.protocol),
@@ -425,8 +427,8 @@ sub get_intervals {
      $self->{TRUNK_PROTOCOL}= $line->[6];
      $self->{TRUNK_PROVIDER}= $line->[7];
      $self->{ADDPARAMETER}  = $line->[8];
-     $self->{REMOVEPREFIX}  = $line->[9];
-     $self->{ADDPREFIX}     = $line->[9];
+     $self->{REMOVE_PREFIX} = $line->[9];
+     $self->{ADDPREFIX}     = $line->[10];
      $self->{FAILOVER_TRUNK}= $line->[11];
     }
   $self->{TIME_PERIODS}=\%time_periods;
