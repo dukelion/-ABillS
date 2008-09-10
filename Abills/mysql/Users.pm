@@ -60,8 +60,6 @@ sub info {
 
   my $WHERE;
    
-  $self->{debug} =1;
-   
   if (defined($attr->{LOGIN}) && defined($attr->{PASSWORD})) {
     $WHERE = "WHERE u.id='$attr->{LOGIN}' and DECODE(u.password, '$CONF->{secretkey}')='$attr->{PASSWORD}'";
     if (defined($attr->{ACTIVATE})) {
