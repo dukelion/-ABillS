@@ -13,9 +13,10 @@ Abills::Base->import();
 
 
 my $attr = parse_arguments(\@ARGV);
-my $VERSION = 0.12; # 2008.06.13
+my $VERSION = 0.13; 
 my $debug = $attr->{DEBUG} || 0;
 
+my $PAGE_ROWS = $attr->{PAGE_ROWS} || 1000000;
 
 if (defined($attr->{'help'})) {
    help();
@@ -70,16 +71,19 @@ if ($attr->{IP}) {
 }
 
 if ($attr->{START_DATE}) {
-	push @WHERE_RULES, "s_time >= '$attr->{START_DATE}'";
+        my  $s_time = ($attr->{START_DATE} =~ /^\d{4}-\d{2}-\d{2}$/) ? 'DATE_FORMAT(s_time, \'%Y-%m-%d\')' : 's_time' ;
+	push @WHERE_RULES, "$s_time >= '$attr->{START_DATE}'";
 	if ($attr->{START_DATE} =~ /(\d{4})-(\d{2})-(\d{2})/) {
 	  $START_DATE = "$1$2$3";
 	 }
 }
-
 if (! $attr->{FINISH_DATE}) {
   $attr->{FINISH_DATE}=$DATE;
 }
-push @WHERE_RULES, "s_time <= '$attr->{FINISH_DATE}'";
+
+my  $s_time = ($attr->{FINISH_DATE} =~ /^\d{4}-\d{2}-\d{2}$/) ? 'DATE_FORMAT(s_time, \'%Y-%m-%d\')' : 's_time' ;
+
+push @WHERE_RULES, "$s_time <= '$attr->{FINISH_DATE}'";
 if ($attr->{FINISH_DATE} =~ /(\d{4})-(\d{2})-(\d{2})/) {
   $FINISH_DATE = "$1$2$3";
  }
@@ -121,7 +125,8 @@ foreach my $table (@tables) {
     s_time,
     nas_id,
     uid FROM $table 
-    $WHERE";
+    $WHERE
+    LIMIT $PAGE_ROWS";
 
 print "$sql\n" if ($debug > 0);  
 print "DATE: $date =============================================\n";
@@ -164,7 +169,10 @@ print << "[END]";
 	  tab_delimeter
 	  standart (default)
 
+        PAGE_ROWS   - Select row count
 	help        - This help
+        DEBUG=[1-5] - Debug mode
+       
 	
 [END]
 

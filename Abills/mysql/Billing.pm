@@ -1271,7 +1271,7 @@ sub interval_sum {
 
 
 #**********************************************************
-#
+# Extretions formul 
 #**********************************************************
 sub expression {
   my ($self, $UID, $expr, $attr) = @_;
@@ -1292,13 +1292,13 @@ sub expression {
   	  my @expresions_array = split(/;/, $expresion_text);
   	  
   	  foreach my $expresion (@expresions_array) {
-  	    print "$id, $expresion\n" if ($debug > 0);
+  	    print "ID: $id EXPR: $expresion\n" if ($debug > 0);
   	    my($left, $right)=split(/=/, $expresion);
   	  
   	    if($left =~ /([A-Z0-9_]+)(<|>)([0-9\.]+)/) {
-    	    $ex{ARGUMENT}=$1;
-    	    $ex{EXPR}=$2;
-  	      $ex{PARAMENTER}=$3;
+    	    $ex{ARGUMENT}  = $1;
+    	    $ex{EXPR}      = $2;
+  	      $ex{PARAMENTER}= $3;
   	      
           #$CONF->{KBYTE_SIZE} = 1;
   	      print "ARGUMENT: $ex{ARGUMENT} EXP: '$ex{EXPR}' PARAMENTER: $ex{PARAMENTER}\n" if ($debug > 0); 
@@ -1310,7 +1310,7 @@ sub expression {
              }
             else {
   	      	  $counters = $self->get_traffic({ UID    => $UID,
-  	      	  	                               UID    => $attr->{UIDS},
+  	      	  	                               UIDS   => $attr->{UIDS},
      	                                         PERIOD => $start_period
    	                                          }) if (! $counters->{TRAFFIC_IN});
              }
@@ -1320,11 +1320,11 @@ sub expression {
              }
             
             if($ex{EXPR} eq '<' && $counters->{$ex{ARGUMENT}}  <=  $ex{PARAMENTER}) {
-             	print "--$ex{EXPR} $ex{RES}/$ex{RES_VAL}/ \n" if ($debug > 0);
+             	print "EXPR: $ex{EXPR} RES: $ex{RES} RES VAL: $ex{RES_VAL}\n" if ($debug > 0);
              	$RESULT = get_result($right);
              }
             elsif($ex{EXPR} eq '>' && $counters->{$ex{ARGUMENT}} >=  $ex{PARAMENTER}) {
-            	print "--$ex{EXPR} $counters->{$ex{ARGUMENT}} \n" if ($debug > 0);
+            	print "EXPR: $ex{EXPR} ARGUMENT: $counters->{$ex{ARGUMENT}}\n" if ($debug > 0);
             	$RESULT = get_result($right);
              }
             else {

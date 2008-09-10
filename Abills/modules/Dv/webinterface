@@ -46,7 +46,6 @@ sub dv_chg_tp {
 
  my $shedule = Shedule->new($db, $admin, \%conf);
 
-
   
 if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
         ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 

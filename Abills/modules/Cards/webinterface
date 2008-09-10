@@ -643,7 +643,7 @@ sub cards_user_payment () {
 
    
    if (! $payments->{errno}) {
-     $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $Cards->{SUM}");
+     $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $Cards->{SUM} $_DEPOSIT: ". ($user->{DEPOSIT} + $Cards->{SUM}));
      $Cards->cards_change({ PIN      => "$FORM{PIN}", 
      	                      STATUS   => 2, 
      	                      DATETIME => "$DATE $TIME",
@@ -651,7 +651,13 @@ sub cards_user_payment () {
      	                      NUMBER   => $Cards->{NUMBER},
      	                      UID      => $user->{UID}
      	                    });	
-     
+
+     #Make external script
+     if ($conf{CARDS_PAYMENTS_EXTERNAL})  {
+      	_external("$conf{CARDS_PAYMENTS_EXTERNAL}", { %$Cards, %$user  });
+      }
+
+     #Disable universal card after payment
      if ($Cards->{UID} > 0) {
         my $user_new = Users->new($db, $admin, \%conf);
         $user_new->info( $Cards->{UID} );
@@ -1362,6 +1368,39 @@ sub cards_dillers_list {
 
 
 }
+
+
+
+#**********************************************************
+# Make external operations
+#**********************************************************
+sub _external {
+	my ($file, $attr) = @_;
+  
+  if (! -f $file) {
+  	$html->message('err', "$_ERROR", "$_FILE: '$file' $_NOT_EXIST");
+  	return 0;
+   }
+  
+  my $arguments = '';
+  while(my ($k, $v) = each %$attr) {
+  	if ($k ne '__BUFFER' && $k =~ /[A-Z0-9_]/) {
+  		$arguments .= " $k=\"$v\"";
+  	 }
+   }
+
+  my $result = `$file $arguments`;
+  my ($num, $message)=split(/:/, $result, 2);
+  if ($num == 1) {
+   	$html->message('info', "_EXTERNAL $_ADDED", "$message");
+   	return 1;
+   }
+  else {
+ 	  $html->message('err', "_EXTERNAL $_ERROR", "[$num] $message");
+    return 0;
+   }
+}
+
 
 1
 

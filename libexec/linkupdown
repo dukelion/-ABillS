@@ -402,33 +402,38 @@ print "\nEND: =====================================\n" if ($debug > 0);
 		my $act = ($ACTION eq 'up') ? 'add' : 'del';
 		my $tc = "/sbin/tc";
 		my $flowid = $speed_in > 0 ? sprintf("%x",$fw_num_out) : '';
+		my $drop = $speed_out > 0 ? "police rate $speed_out"."Kibit burst 12k drop" : '';
 		my $prio = 65535 - $traf_type;
 		if ($flowid) {
 			push @FW_ACTIONS, "$tc class $act dev $INTERFACE parent 1: classid 1:$flowid htb rate $speed_in"."Kibit";
+			
 		 }
 
 		if (@nets_arr) {
 			foreach my $ip_full (@nets_arr) {
 				if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/{0,1}(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,2}):{0,1}(\S{0,200})/ ) {
 					push @FW_ACTIONS, "$tc filter $act dev $INTERFACE protocol ip parent 1: prio $prio u32 match ip src $2/$3 match ip dst $CLIENT_IP/32 flowid 1:$flowid";
+			    push @FW_ACTIONS, "$tc filter $act dev $INTERFACE protocol ip parent ffff: prio $prio u32 match ip src $CLIENT_IP/32 match ip dst $2/$3 $drop flowid :1";
+					
 				 }
 			 }
 		 }
 		else {
 			push @FW_ACTIONS, "$tc filter $act dev $INTERFACE protocol ip parent 1: prio $prio u32 match ip dst $CLIENT_IP/32 flowid 1:$flowid";
+			push @FW_ACTIONS, "$tc filter $act dev $INTERFACE protocol ip parent ffff: prio $prio u32 match ip src $CLIENT_IP/32 $drop flowid :1";
 		 }
 
 		if ($speed_out > 0)	{
-			if (@nets_arr) {
-				foreach my $ip_full (@nets_arr)	{
-					if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/{0,1}(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,2}):{0,1}(\S{0,200})/ ) {
-						push @FW_ACTIONS, "$tc filter $act dev $INTERFACE protocol ip parent ffff: prio $prio match ip src $CLIENT_IP/32 match ip dst $2/$3 police rate $speed_out"."Kibit burst 12k drop flowid :1";
-  				 }
-				 }
-			 }
-			else {
-				push @FW_ACTIONS, "$tc filter $act dev $INTERFACE protocol ip parent ffff: prio $prio match ip src $CLIENT_IP/32 police rate $speed_out"."Kibit burst 12k drop flowid :1";
-			}
+#			if (@nets_arr) {
+#				foreach my $ip_full (@nets_arr)	{
+#					if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/{0,1}(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,2}):{0,1}(\S{0,200})/ ) {
+#						push @FW_ACTIONS, "$tc filter $act dev $INTERFACE protocol ip parent ffff: prio $prio match ip src $CLIENT_IP/32 match ip dst $2/$3 police rate $speed_out"."Kibit burst 12k drop flowid :1";
+#  				 }
+#				 }
+#			 }
+#			else {
+#				push @FW_ACTIONS, "$tc filter $act dev $INTERFACE protocol ip parent ffff: prio $prio match ip src $CLIENT_IP/32 police rate $speed_out"."Kibit burst 12k drop flowid :1";
+#			}
 		}
 	}
 
