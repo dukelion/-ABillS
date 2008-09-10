@@ -1306,7 +1306,7 @@ sub expression {
 
   	      	
             if ($self->{PERIOD_TRAFFIC}) {
-            	 $counters = $self->{PERIOD_TRAFFIC};
+            	$counters = $self->{PERIOD_TRAFFIC};
              }
             else {
   	      	  $counters = $self->get_traffic({ UID    => $UID,
@@ -1322,10 +1322,12 @@ sub expression {
             if($ex{EXPR} eq '<' && $counters->{$ex{ARGUMENT}}  <=  $ex{PARAMENTER}) {
              	print "EXPR: $ex{EXPR} RES: $ex{RES} RES VAL: $ex{RES_VAL}\n" if ($debug > 0);
              	$RESULT = get_result($right);
+             	$RESULT->{$ex{ARGUMENT}}=$counters->{$ex{ARGUMENT}};
              }
             elsif($ex{EXPR} eq '>' && $counters->{$ex{ARGUMENT}} >=  $ex{PARAMENTER}) {
             	print "EXPR: $ex{EXPR} ARGUMENT: $counters->{$ex{ARGUMENT}}\n" if ($debug > 0);
             	$RESULT = get_result($right);
+            	$RESULT->{$ex{ARGUMENT}}=$counters->{$ex{ARGUMENT}};
              }
             else {
             	print "No hits!\n" if ($debug > 0);
@@ -1334,10 +1336,12 @@ sub expression {
              }
   	       }
 
-       }
-     }
+        }
+      }
+     #$RESULT->{TRAFFIC_IN}=$counters->{TRAFFIC_IN};
+     #$RESULT->{TRAFFIC_OUT}=$counters->{TRAFFIC_OUT};
     }
-   }
+  }
 	
 	return $RESULT;
 }
