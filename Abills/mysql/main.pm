@@ -264,34 +264,38 @@ sub search_expr {
   my $self=shift;
   my ($value, $type, $field, $attr)=@_;
 
-  my $expr = '=';
- 
+
   my @val_arr     = split(/,/, $value);  
   my @result_arr  = ();
 
-  foreach my $value (@val_arr) { 
-    if($type eq 'INT' && $value =~ s/\*//g) {
+  foreach my $v (@val_arr) { 
+    my $expr = '=';
+
+    if($type eq 'INT' && $v =~ s/\*//g) {
       $expr = '>';
      }
-    elsif( $value =~ s/^([<>=]{1,2})// ) {
+    elsif( $v =~ s/^([<>=]{1,2})// ) {
       $expr = $1;
      }  
   
     if ($type eq 'IP') {
-      $value = "INET_ATON('$value')";
+      $v = "INET_ATON('$v')";
      }
     else {
-      $value="'$value'";
+      $value="'$v'";
      }
 
-    $value = $expr . $value;
+    $value = $expr . $v;
     
-    push @result_arr, "$field$value";
+    
+    push @result_arr, "$field$value" if ($field);
    }
 
   if ($field) {
     return \@result_arr; 
    }
+
+#  print "$expr- $value \n";
 
   return $value;
 }

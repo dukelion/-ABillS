@@ -2974,6 +2974,7 @@ sub dv_monthly_fees {
 
  use Users;
  my $users = Users->new($db, $admin, \%conf); 
+ $tariffs->{debug}=1;
  my $list = $tariffs->list({ %LIST_PARAMS });
 
 
@@ -3169,6 +3170,11 @@ sub dv_monthly_fees {
 #	  
 #	  #Take Fees
 #   }   
+
+  #Make traffic recalculation
+  if ($d == 1) {
+  	
+   }
 
   $DEBUG .= $debug_output;
   return $debug_output;

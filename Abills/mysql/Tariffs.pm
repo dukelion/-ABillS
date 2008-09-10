@@ -53,7 +53,8 @@ my %FIELDS = ( TP_ID            => 'id',
                CREDIT           => 'credit',
                IPPOOL           => 'ippool',
                PERIOD_ALIGNMENT => 'period_alignment',
-               MIN_USE          => 'min_use'
+               MIN_USE          => 'min_use',
+               ABON_DISTRIBUTION=> 'abon_distribution'
 
              );
 
@@ -388,7 +389,8 @@ sub defaults {
             CREDIT           => 0,
             IPPOOL           => '0',
             PERIOD_ALIGNMENT => '0',
-            MIN_USE          => '0.00'
+            MIN_USE          => '0.00',
+            ABON_DISTRIBUTION=> 0
 
          );   
  
@@ -416,7 +418,8 @@ sub add {
      traffic_transfer_period, neg_deposit_filter_id, gid, module, credit,
      ippool,
      period_alignment,
-     min_use
+     min_use,
+     abon_distribution
      )
     values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', '$DATA{POSTPAID_FEE}', '$DATA{EXT_BILL_ACCOUNT}',
@@ -432,7 +435,8 @@ sub add {
      '$DATA{CREDIT}',
      '$DATA{IPPOOL}',
      '$DATA{PERIOD_ALIGNMENT}', 
-     '$DATA{MIN_USE}'
+     '$DATA{MIN_USE}',
+     '$DATA{ABON_DISTRIBUTION}'
      );", 'do' );
 
 
@@ -452,11 +456,11 @@ sub change {
   	 $FIELDS{CHG_TP_ID}='id';
    }
  
-  $attr->{REDUCTION_FEE}=0    if (! $attr->{REDUCTION_FEE});
-  $attr->{POSTPAID_FEE}=0     if (! $attr->{POSTPAID_FEE});
-  $attr->{EXT_BILL_ACCOUNT}=0 if (! $attr->{EXT_BILL_ACCOUNT});
-  $attr->{PERIOD_ALIGNMENT}=0 if (! $attr->{PERIOD_ALIGNMENT});
- 
+  $attr->{REDUCTION_FEE}=0     if (! $attr->{REDUCTION_FEE});
+  $attr->{POSTPAID_FEE}=0      if (! $attr->{POSTPAID_FEE});
+  $attr->{EXT_BILL_ACCOUNT}=0  if (! $attr->{EXT_BILL_ACCOUNT});
+  $attr->{PERIOD_ALIGNMENT}=0  if (! $attr->{PERIOD_ALIGNMENT});
+  $attr->{ABON_DISTRIBUTION}=0 if (! $attr->{ABON_DISTRIBUTION});
 
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
@@ -532,7 +536,8 @@ sub info {
       credit,
       ippool,
       period_alignment,
-      min_use
+      min_use,
+      abon_distribution
     FROM tarif_plans
     WHERE id='$id'$WHERE;");
 
@@ -575,7 +580,8 @@ sub info {
    $self->{CREDIT},
    $self->{IPPOOL},
    $self->{PERIOD_ALIGNMENT}, 
-   $self->{MIN_USE}
+   $self->{MIN_USE},
+   $self->{ABON_DISTRIBUTION}
 
   ) = @{ $self->{list}->[0] };
 
@@ -629,7 +635,8 @@ sub list {
     tp.postpaid_fee,
     tp.ext_bill_account,
     tp.credit,
-    tp.min_use
+    tp.min_use,
+    tp.abon_distribution
     FROM (tarif_plans tp)
     LEFT JOIN intervals i ON (i.tp_id=tp.id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
