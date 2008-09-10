@@ -667,6 +667,7 @@ CREATE TABLE `tarif_plans` (
   `ippool` int(11) NOT NULL DEFAULT '0',
   `period_alignment` tinyint(1) NOT NULL DEFAULT '0',
   `min_use` double(14,2) unsigned NOT NULL DEFAULT '0.00',
+  `abon_distribution` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`,`module`),
   UNIQUE KEY `tp_id` (`tp_id`),
   KEY `name` (`name`)
