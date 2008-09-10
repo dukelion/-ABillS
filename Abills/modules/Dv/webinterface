@@ -2032,7 +2032,6 @@ if ($sessions->{errno})	{
      my $company = $customer->company();
 
 print "Content-type: text/html\n\n";
-     $company->{debug}=1;
      my $ulist = $company->admins_list({ COMPANY_ID => $user->{COMPANY_ID}, 
 	                                       UID        => $UID });
 
@@ -2974,7 +2973,6 @@ sub dv_monthly_fees {
 
  use Users;
  my $users = Users->new($db, $admin, \%conf); 
- $tariffs->{debug}=1;
  my $list = $tariffs->list({ %LIST_PARAMS });
 
 
@@ -2997,6 +2995,7 @@ sub dv_monthly_fees {
  foreach my $line (@$list) {
  	 my $TP_ID       = $line->[0];
  	 my $min_use     = $line->[15];
+ 	 my $abon_distrib= $line->[16];
  	 my $postpaid    = $line->[4];
    my $tp_postpaid = $line->[12];
    my $month_fee   = $line->[6];
@@ -3005,8 +3004,8 @@ sub dv_monthly_fees {
 
    #Monthfee & min use
  	 if ($month_fee > 0 || $min_use > 0) {
- 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL_ID: $line->[13] CREDIT: $line->[14] MIN_USE: $min_use\n" if ($debug > 1);
-	   
+ 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL_ID: $line->[13] CREDIT: $line->[14] MIN_USE: $min_use ABON_DISTR: $abon_distrib\n" if ($debug > 1);
+
  	   #get used  traffic for min use functions
      if ($min_use > 0 ) {
        my $report_list = $sessions->reports({ 
@@ -3018,6 +3017,12 @@ sub dv_monthly_fees {
  	  	   $used_traffic{$l->[7]}=$l->[6];
         }
       }
+
+     if ($abon_distrib) {
+     	 my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28)); 
+     	 $month_fee = $month_fee / $days_in_month;
+      }    
+
  	   
 	   my $ulist = $Dv->list({ 
          ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
@@ -3097,6 +3102,8 @@ sub dv_monthly_fees {
 
               #take fees in first day of month
               $FEES_PARAMS{DESCRIBE}="$_MONTH_FEE ($TP_ID)";  
+              
+              $FEES_PARAMS{DESCRIBE} .= " - $_ABON_DISTRIBUTION" if ($abon_distrib);
 
               if ($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) {
                 if ($debug > 4) {
