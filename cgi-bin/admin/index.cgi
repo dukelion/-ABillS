@@ -679,7 +679,7 @@ elsif($FORM{COMPANY_ID}) {
 #Info fields
     my $i=0; 
     foreach my $field_id ( @{ $company->{INFO_FIELDS_ARR} } ) {
-      my($type, $name)=split(/:/, $company->{INFO_FIELDS_HASH}->{$field_id});
+      my($position, $type, $name)=split(/:/, $company->{INFO_FIELDS_HASH}->{$field_id});
 
       my $input = '';
       if ($type == 2) {

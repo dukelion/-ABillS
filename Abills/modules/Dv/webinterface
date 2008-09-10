@@ -2590,6 +2590,8 @@ if ($FORM{set}) {
         #Take fees
         if ($Dv->{TP_INFO}->{MONTH_FEE} > 0 && ! $Dv->{STATUS}) {
           dv_get_month_fee($Dv);
+          $user->change($user->{UID}, { ACTIVATE => "$DATE",
+          	                            UID      => $user->{UID} })
          }
 
     	  $html->message('info', $_CHANGED, "$_CHANGED");
