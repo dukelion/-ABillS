@@ -76,11 +76,12 @@ if [ w${CERT_TYPE} = wssh ]; then
   ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}${id_dsa_file}"
 
   echo -n "Upload file to remote host (y/n):"
-  read UPLOAD=
+  read UPLOAD
   if [ w${UPLOAD} = wy ]; then
     echo -n "Enter host: "
-    read HOST=
+    read HOST
     
+    echo "Make upload to: ${HOST} "
     ssh ${USER}@${HOST} "mkdir ~/.ssh"
     scp ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOST}:~/.ssh/authorized_keys
   fi;
