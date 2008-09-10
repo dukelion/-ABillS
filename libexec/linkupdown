@@ -168,6 +168,8 @@ elsif($ARGV[0] eq 'pppd' || $ARGV[0] eq 'mikrotik') {
   if(! ($inum =~ s/ppp//)) {
   	$inum = 0;
    }
+  $OS = 'Linux';
+
  }
 # FreeBSD PPP
 else {
@@ -240,7 +242,7 @@ else {
 }
 
 # Up fw shaper rules
-if ($ACTION eq 'up') {
+if ($ACTION eq 'up' || $OS eq 'Linux') {
   my %speeds = ();
   my %nets   = ();
   my %expr   = ();
@@ -396,9 +398,8 @@ print "\nEND: =====================================\n" if ($debug > 0);
      }
     #Linux shaper
 
-   elsif ($OS eq 'Linux')
-	 {
-		my $act = $ACTION eq 'up' ? 'add' : 'del';
+   elsif ($OS eq 'Linux') {
+		my $act = ($ACTION eq 'up') ? 'add' : 'del';
 		my $tc = "/sbin/tc";
 		my $flowid = $speed_in > 0 ? sprintf("%x",$fw_num_out) : '';
 		my $prio = 65535 - $traf_type;
