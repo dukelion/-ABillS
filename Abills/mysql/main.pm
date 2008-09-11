@@ -282,7 +282,7 @@ sub search_expr {
       $v = "INET_ATON('$v')";
      }
     else {
-      $value="'$v'";
+      $v="'$v'";
      }
 
     $value = $expr . $v;
