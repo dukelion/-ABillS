@@ -987,4 +987,44 @@ sub paid_types_list {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub extfin_debetors {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $WHERE = '';
+
+
+  $self->query($db, "SELECT '', u.id, pi.contract_id,
+   pi.fio,
+   pi.contract_date,
+   '',
+   \@A:=if(company.id IS NULL,b.deposit,cb.deposit),
+   
+   if(DATEDIFF(CURDATE(), f.date) < 32, \@A, ''),
+   if(DATEDIFF(CURDATE(), f.date) > 33 and DATEDIFF(CURDATE(), f.date) < 54 , \@A, ''),
+   if(DATEDIFF(CURDATE(), f.date) > 65 and DATEDIFF(CURDATE(), f.date) < 96 , \@A, ''),
+   if(DATEDIFF(CURDATE(), f.date) > 97 and DATEDIFF(CURDATE(), f.date) < 183 , \@A, ''),
+   if(DATEDIFF(CURDATE(), f.date) > 184 and DATEDIFF(CURDATE(), f.date) < 365 , \@A, ''),
+   if(DATEDIFF(CURDATE(), f.date) > 365 , \@A, ''),
+   u.uid
+  FROM (users u, fees f)
+     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+     LEFT JOIN bills b ON (u.bill_id = b.id)
+     LEFT JOIN companies company ON  (u.company_id=company.id)
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+
+WHERE u.uid=f.uid and 
+(f.last_deposit >=0 and f.last_deposit-sum<0)
+GROUP BY f.uid
+ORDER BY f.date DESC;");
+
+  my $list = $self->{list};
+
+
+  return $list;
+}
+
 1
