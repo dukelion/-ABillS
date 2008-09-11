@@ -3159,7 +3159,7 @@ sub dv_monthly_fees {
 #=====================================
 
   #Make traffic recalculation for expration
-  #if ($d == 1) {
+if ($d == 1) {
   $list = $tariffs->list({ %LIST_PARAMS });
   $debug_output .= "-- Total month price\n";
   use Billing;
@@ -3244,7 +3244,7 @@ sub dv_monthly_fees {
       }
    } 	
   	
-  # }
+ }
 
   $DEBUG .= $debug_output;
   return $debug_output;
