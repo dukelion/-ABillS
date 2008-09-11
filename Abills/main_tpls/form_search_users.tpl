@@ -20,7 +20,7 @@
 <tr><td colspan='2'>$_ACTIVATE (<>):</td><td><input  tabindex='14' type='text' name='ACTIVATE' value='%ACTIVATE%'/></td></tr>
 <tr><td colspan='2'>$_EXPIRE (<>):</td><td><input  tabindex='15' type='text' name='EXPIRE' value='%EXPIRE%'/></td></tr>
 <tr><td colspan='2'>E-Mail (*):</td><td><input  tabindex='16' type='text' name='EMAIL' value='%EMAIL%'/></td></tr>
-<tr><td colspan='2'>$_DISABLE:</td><td><input  tabindex='18' type='checkbox' name='DISABLE' value='1'/></td></tr>
+<tr><td colspan='2'>$_DISABLE:</td><td>$_YES: <input  tabindex='18' type='radio' name='DISABLE' value='1'/> $_NO<input  tabindex='18' type='radio' name='DISABLE' value='0'/></td></tr>
 %INFO_FIELDS%
 </table>
 </td></tr>
