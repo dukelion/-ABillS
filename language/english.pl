@@ -358,6 +358,9 @@ $_CLOSED_SUCCESSFUL='closed successful';
 $_CITY='City';
 $_ZIP='Zip';
 $_FINANCES='Finances';
+
+$_FINE='Fine';
+$_ONE_TIME='One time';
 $_PASSWORD_RECOVERY='Password recovery';
 $_BILL_INFO='Billing server info';
 $_PRIMARY='Primary';

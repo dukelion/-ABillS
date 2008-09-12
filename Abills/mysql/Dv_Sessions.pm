@@ -773,7 +773,8 @@ WHERE
   $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE},
   1
  FROM dv_log
- WHERE $uid and DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]'
+ WHERE $uid and tp_id='$self->{INFO_LIST}->[0]->[8]'
+  and DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]'
  GROUP BY 3
  ;");
 
