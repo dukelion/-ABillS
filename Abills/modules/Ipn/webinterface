@@ -2313,7 +2313,7 @@ if ($FORM{RECALCULATE}) {
 		my $TP_ID = 0;
 		my $user  = $users->info( $LIST_PARAMS{UID} );
 
-    if ($FORM{TP_ID}) {
+    if (! $FORM{TP_ID}) {
       my $Dv    = Dv->new($db, $admin, \%conf);    
       $Dv->info($LIST_PARAMS{UID});
       $TP_ID=$Dv->{TP_ID};
