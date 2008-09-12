@@ -2301,8 +2301,6 @@ sub ipn_recalculate {
 
 
 if ($FORM{RECALCULATE}) {
-#  $FORM{FROM_M} = sprintf("%.2d", $FORM{FROM_M}+1);
-#  $FORM{TO_M} = sprintf("%.2d", $FORM{TO_M}+1);
   $LIST_PARAMS{INTERVAL} = "$FORM{FROM_Y}-". sprintf("%.2d", $FORM{FROM_M}+1) ."-$FORM{FROM_D}/$FORM{TO_Y}-". sprintf("%.2d", $FORM{TO_M}+1) ."-$FORM{TO_D}";
 
 	$Ipn->recalculate({ %LIST_PARAMS });
@@ -2459,7 +2457,7 @@ if ($FORM{RECALCULATE}) {
        	  $Ipn->traffic_recalc_bill({ SUM     => $recalculte, 
        		                            BILL_ID => $user->{BILL_ID} });
 
-          print $html->$message('info', $_RECALCULATE, "$_SUM: $recalculte");
+          print $html->$message('info', $_RECALCULATE, "$_SUM: $recalculte, $_TARIF_PLAN: $TP_ID");
          }
        }
 
