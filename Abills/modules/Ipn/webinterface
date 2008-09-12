@@ -1544,7 +1544,7 @@ sub ipn_user_activate {
 
 
   
-  my %ACTION = ( ACTIVE => "$_ACTIVATE" ); 
+  my @ACTION = ( 'ACTIVE', "$_ACTIVATE" ); 
   my %HIDDEN = ();
 #  my $nas = '';
 
@@ -1571,9 +1571,9 @@ sub ipn_user_activate {
 
     if ($online_ip eq $ip && $user->{UID}) {
        if ($line->[11] == $LIST_PARAMS{UID}) {
-         $ACTION{LOGOUT}= "$_HANGUP";    	
+         @ACTION=('LOGOUT', "$_HANGUP");    	
          $HIDDEN{SESSION_ID} = $line->[21];
-         delete $ACTION{ACTIVE};
+         #delete $ACTION{ACTIVE};
          if ($line->[17] == 11) {
        	   $html->message('err', $_ERROR, "$_DISABLE");
        	   return 0;
@@ -1595,25 +1595,28 @@ sub ipn_user_activate {
        )  if ($line->[11] == $LIST_PARAMS{UID} );
     }
 
-    $online_session = $table->show();	
+    $online_session = $table->show({ OUTPUT2RETURN => 1 });	
    } 
   else {
-    $ACTION{ACTIVE}="$_ACTIVATE";    
+    @ACTION = ('ACTIVE', "$_ACTIVATE");    
    }
 
 
 $HIDDEN{sid}=$html->{SID} if ($html->{SID});
-$HIDDEN{ACCT_INTERIUM_INTERVAL}=120;
 
-print $html->form_main({ CONTENT => "IP: $ip $IP_INPUT (". $nas_id .") ", 
-                     HIDDEN  => { index   => "$index",
-                     	            UID     => $LIST_PARAMS{UID},
-                     	            %HIDDEN
-                     	           },
-	                   SUBMIT  => { %ACTION } 
-	                 });
+$html->tpl_show(_include('ipn_form_active', 'Ipn'), { IP             => $ip,
+	                                                    IP_INPUT_FORM  => $IP_INPUT,
+	                                                    NAS_ID         => $nas_id,
+	                                                    UID            => $LIST_PARAMS{UID},
+	                                                    ACCT_INTERIUM_INTERVAL => $conf{AMON_INTERIUM_UPDATE} || 120,
+	                                                    ACTION         => $ACTION[0],
+	                                                    ACTION_LNG     => $ACTION[1],
+	                                                    ONLINE         => $online_session,
+	                                                    %HIDDEN
+	                                                    });
 
-print $online_session;
+
+
 }
 
 #**********************************************************
