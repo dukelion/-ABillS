@@ -2308,10 +2308,20 @@ if ($FORM{RECALCULATE}) {
 	$Ipn->recalculate({ %LIST_PARAMS });
 	
 	if ($Ipn->{TOTAL} > 0) {
-    my $Dv    = Dv->new($db, $admin, \%conf);    
-    my $user  = $users->info( $LIST_PARAMS{UID} );
-    $Dv->info($LIST_PARAMS{UID});
-    $tariffs->info( $Dv->{TP_ID} );
+		
+		my $TP_ID = 0;
+		my $user  = $users->info( $LIST_PARAMS{UID} );
+
+    if ($FORM{TP_ID}) {
+      my $Dv    = Dv->new($db, $admin, \%conf);    
+      $Dv->info($LIST_PARAMS{UID});
+      $TP_ID=$Dv->{TP_ID};
+     }
+    else {
+    	$TP_ID=$FORM{TP_ID};
+     }
+
+    $tariffs->info( $TP_ID );
     $OCTETS_DIRECTION = $tariffs->{OCTETS_DIRECTION};
   
     my $table = $html->table( { caption     => "$_RECALCULATE",
@@ -2330,6 +2340,14 @@ if ($FORM{RECALCULATE}) {
     	my $time_interval = $line->[6];
     	my $traffic_class = $line->[1];
     	 if (! defined($TIME_INTERVALS{$line->[6]}) ) {
+         #if log don't have time_interval mark
+         if (! $ti_interval) {
+              my $ti_list = $tariffs->ti_list({ TP_ID => $TP_ID });
+              foreach my $line (@$ti_list) {
+                 $time_interval =  $line->[0];
+               }
+            }
+
     	   my $tt_list = $tariffs->tt_list({ TI_ID => $time_interval });
 
          foreach my $tt_line ( @$tt_list ) {
@@ -2421,7 +2439,7 @@ if ($FORM{RECALCULATE}) {
     	   );
        
        if ($FORM{ACTION}) {
-          $Ipn->traffic_recalc({ UID           => "$LIST_PARAMS{UID}",
+          $Ipn->traffic_recalc({  UID           => "$LIST_PARAMS{UID}",
                                   START         => "$line->[0]",
                                   TRAFFIC_CLASS => "$traffic_class",
                                   IN            => "$line->[2]",
@@ -2461,10 +2479,22 @@ if ($FORM{RECALCULATE}) {
 }
 
 
+
+
+
+
 $table = $html->table( { width    => '100%',
 	                       rowcolor => $_COLORS[0],
                          rows     => [ [  "$_RECALCULATE:",                                   "$_FROM: ", $html->date_fld('FROM_', { MONTHES => \@MONTHES} ),
                                    "$_TO: ", $html->date_fld('TO_', { MONTHES => \@MONTHES } ),
+                                   "$_TARIF_PLAN:". $html->form_select('TP_ID', 
+                                    { 
+ 	                                   SELECTED          => $FORM{TP_ID},
+ 	                                   SEL_MULTI_ARRAY   => [[ '', ''], @{ $tariffs->list() }],
+ 	                                   MULTI_ARRAY_KEY   => 0,
+ 	                                   MULTI_ARRAY_VALUE => 1,
+ 	                                  }),
+
                                    $html->form_select('ACTION', 
                                     { 
  	                                   SELECTED          => $FORM{ACTION} || 0,
