@@ -645,10 +645,8 @@ if ($FORM{show} || $FORM{qindex}) {
     $LIST_PARAMS{DATE_TO}="$6-$5";
    }
   elsif ($FORM{FROM_M}) {
-    $FORM{FROM_M} = sprintf("%.2d", $FORM{FROM_M}+1);
-    $FORM{TO_M}   = sprintf("%.2d", $FORM{TO_M}+1);
-    $LIST_PARAMS{DATE_FROM}="$FORM{FROM_Y}-$FORM{FROM_M}";
-    $LIST_PARAMS{DATE_TO}="$FORM{TO_Y}-$FORM{TO_M}";
+    $LIST_PARAMS{DATE_FROM}="$FORM{FROM_Y}-". sprintf("%.2d", $FORM{FROM_M}+1);
+    $LIST_PARAMS{DATE_TO}="$FORM{TO_Y}-". sprintf("%.2d", $FORM{TO_M}+1);
    }
 
   if ($FORM{xml}) {
@@ -687,13 +685,14 @@ if (! $FORM{xml}) {
                       });
 
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                       HIDDEN  => { 
-	                                    qindex => "$index"
+	                         HIDDEN  => { 
+	                                      qindex => "$index"
 	                                     }
 	                       });
 
 
 }
+
 
 my $list = $Extfin->extfin_report_deeds({ %LIST_PARAMS  });
 
