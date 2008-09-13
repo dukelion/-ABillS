@@ -6,3 +6,4 @@ radiusd.conf     > [/usr/local/etc/raddb]/radiusd.conf
 eap.conf         > [/usr/local/etc/raddb]/eap.conf 
 clients.conf     > [/usr/local/etc/raddb]/clients.conf
 :OS=FREEBSD:radiusd_enable="YES"  >> [/etc/]/rc.conf
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/radiusd restart
