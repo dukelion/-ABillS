@@ -1,3 +1,4 @@
 :OS=FREEBSD:mysql_enable="YES"  >> [/etc/]/rc.conf
 my.cnf                          > [/etc/]/my.cnf
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/mysql-server start
 
