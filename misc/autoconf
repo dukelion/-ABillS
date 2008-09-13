@@ -14,6 +14,8 @@ use FindBin '$Bin';
 my $VERSION = 1.3;
 my $config_file = $Bin . '/../libexec/config.pl';
 
+$conf{OS}=uc(`uname`);
+
 if(! -f $config_file ) {
   print "System main configuration\n";
   my %mk_config = ('dbhost'  => 'localhost',
@@ -76,15 +78,43 @@ if(! -f $config_file ) {
      	 print "Config file maked...\n";
 
       if (! confirm_yn("Make ABillS mysql user account: ", "n")) {
+
+         #Check mysql running
+         my $proc_list = `ps ax`;
+
+         if ($proc_list !~  /mysql/) {
+           print "MySQL Not running\n";
+           check_install("mysql");
+          }
+
+
+         if ($conf{OS} eq 'FREEBSD') {
+
+
+          }
+         #Other OS
+         else {
+
+          }
+
          print "Check DB configuretion\n";
 
          my $read;
          my $res;
          my $mysql='/usr/local/bin/mysql';
-         print "mysql path [$mysql]: ";
+         print "MySQL path [$mysql]: ";
          chop($read = <STDIN>);
-         $mysql = $read if ($read ne '');        
-         $res = `$mysql -u root -e "select version();"`; 
+         $mysql = $read if ($read ne '');
+
+         my $mysql_root_user = 'root';
+         my $mysql_root_passwd = '';
+         print "MySQL root user [$mysql_root_user]: ";
+         $mysql_root_user = $read if ($read ne '');
+
+         print "MySQL root user [$mysql_root_passwd]: ";
+         $mysql_root_passwd = $read if ($read ne '');
+        
+         $res = `$mysql -u $mysql_root_user --password=$mysql_root_passwd -e "select version();"`; 
          if ($res !~ /Unknown database/) {
            if (confirm_yn("Your DB not configure for ABillS using. Configure? ", "y")) {
               print "Make users\n";
@@ -94,10 +124,10 @@ if(! -f $config_file ) {
                  "CREATE DATABASE $mk_config{dbname};".
                  "flush privileges;";
 
-              $res = `$mysql -u root -e "$add_mysql_user"`;
+              $res = `$mysql -u $mysql_root_user --password=$mysql_root_passwd -e "$add_mysql_user"`;
               print $res;
               print "Upload Main Dump and modules\n";
-              $res = `$mysql -u root -D $mk_config{dbname} < ../abills.sql`;
+              $res = `$mysql -u mysql_root_user --password=$mysql_root_passwd -D $mk_config{dbname} < ../abills.sql`;
             } 
           }
          else {
@@ -144,7 +174,6 @@ if ($ARGV->{debug}) {
 
 $conf{DATE}=$DATE;
 $conf{TIME}=$TIME;
-$conf{OS}=uc(`uname`);
 $conf{WORK_DIR}=$Bin;
 
 print $conf{OS};
@@ -299,7 +328,7 @@ foreach my $file (@files) {
 # Postfix autoconf
 #**********************************************************
 sub check_install {
- my ($program)=@_;
+ my ($program, $attr)=@_;
 
  
  my $install_file = $conf{WORK_DIR} . "/$program/install";
