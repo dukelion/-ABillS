@@ -1203,7 +1203,15 @@ sub button {
             'width=640, height=480');\"" if ( $attr->{NEW_WINDOW} );
 
   
-  my $message = ($attr->{MESSAGE}) ? " onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"" : '';
+  my $message = '';
+  
+  if ($attr->{MESSAGE}) {
+  	$attr->{MESSAGE} =~ s/'/\\'/g;
+  	$attr->{MESSAGE} =~ s/"/\\'/g;
+  	
+  	$message = " onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"";
+   }
+
   my $button = "<a href=\"$params\"$ex_attr$message>$name</a>";
 
   return $button;
