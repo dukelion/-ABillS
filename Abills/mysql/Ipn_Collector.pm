@@ -841,7 +841,7 @@ sub is_client_ip($) {
 sub is_exist($$) {
   my ($arrayref, $elem) = @_;
   # anee nienie iono, n?eoaai, ?oi yeaiaio a iaai iiiaaaao
-  if ($#{@$arrayref} == -1) { return 1; }
+  if ($#{ $arrayref } == -1) { return 1; }
     
   foreach my $e (@$arrayref) {
     if ($e eq $elem) { return 1; }
