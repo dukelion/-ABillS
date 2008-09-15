@@ -379,12 +379,14 @@ print "\nEND: =====================================\n" if ($debug > 0);
     my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN}  : 0;
     my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} : 0;
 
- 	  my @nets_arr = ('0.0.0.0/0');
+ 	  my @nets_arr = ();
  	  if ($nets{$traf_type}) {
  	    $nets{$traf_type} =~ s/[\r]?\n//g;
  	    $nets{$traf_type} =~ s/;/,/g;
  	    @nets_arr = split(/;|,/, $nets{$traf_type});
 	   }
+
+    @nets_arr = ('0.0.0.0/0') if (@nets_arr < 0);
 
     #Mikrotik tc shaper
     if ($ARGV[0] eq 'mikrotik' ) {
