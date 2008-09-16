@@ -351,6 +351,10 @@ sub changes {
           $CHANGES_QUERY .= "$FIELDS->{$k}=ENCODE('$DATA{$k}', '$CONF->{secretkey}'),";
          }
         elsif($k eq 'IP' || $k eq 'NETMASK') {
+          if ($DATA{$k} !~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
+            $DATA{$k} = '0.0.0.0' ;
+           }
+          
           $CHANGES_LOG .= "$k $OLD_DATA->{$k}->$DATA{$k};";
           $CHANGES_QUERY .= "$FIELDS->{$k}=INET_ATON('$DATA{$k}'),";
          }

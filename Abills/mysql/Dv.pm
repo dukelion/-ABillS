@@ -263,6 +263,7 @@ sub change {
   	$attr->{CALLBACK}=0;
    }
 
+  
   my $old_info = $self->info($attr->{UID});
   
   
