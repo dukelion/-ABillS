@@ -397,11 +397,10 @@ sub form_select {
 	$self->{SELECT} = "<select name=\"$name\" $ex_params>\n";
   
   if (defined($attr->{SEL_OPTIONS})) {
- 	  my $H = $attr->{SEL_OPTIONS};
-	  while(my($k, $v) = each %$H) {
-     $self->{SELECT} .= "<option value='$k'";
-     $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
-     $self->{SELECT} .= ">$v\n";	
+    foreach my $k (sort values ( %{ $attr->{SEL_OPTIONS} } ) ) {
+      $self->{SELECT} .= "<option value='$k'";
+      $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
+      $self->{SELECT} .= ">". $attr->{SEL_OPTIONS}->{$k} ."\n";	
      }
    }
   
