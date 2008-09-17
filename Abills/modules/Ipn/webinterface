@@ -34,8 +34,6 @@ sub ipn_detail {
  	              HIDDEN_FIELDS => { UID => $FORM{UID}  }
   	          });
 
- 
-
  if (! $FORM{sort}) {
  	 $LIST_PARAMS{SORT}=1;
  	 $LIST_PARAMS{DESC}='DESC';

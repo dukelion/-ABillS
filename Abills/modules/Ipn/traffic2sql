@@ -520,12 +520,12 @@ while( <LOG> ) {
 		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $10 );
 		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $11 ); 
 
-        $DATA{SIZE}     = $12;
-        $DATA{PROTOCOL} = $9;
-	$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
-	$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
-	#$DATA{NAS_ID}=$NAS_ID;
-	$DATA{IF_NAME}  = '0';
+    $DATA{SIZE}     = $12;
+    $DATA{PROTOCOL} = $9;
+	  $DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
+	  $DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
+	  #$DATA{NAS_ID}=$NAS_ID;
+	  $DATA{IF_NAME}  = '0';
     $Ipn->traffic_agregate_users({ %DATA });
  	 }
  	#trafdlog analize
