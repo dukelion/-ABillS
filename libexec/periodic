@@ -580,7 +580,7 @@ sub credit_operation {
   	                      });
 
   foreach my $line (@$list) {
-  	$DEBUG .= "$line->[0] (". $line->[5 +  $users->{SEARCH_FIELDS_COUNT}] .") DEPOSIT: $line->[2] CREDIT: $line->[3] CREDIT_DATE: $line->[6]\n"if ($debug > 0);
+  	$DEBUG .= "$line->[0] (". $line->[5 +  $users->{SEARCH_FIELDS_COUNT}] .") DEPOSIT: $line->[2] CREDIT: $line->[3] CREDIT_DATE: ". $line->[4+$users->{SEARCH_FIELDS_COUNT}] ."\n" if ($debug > 0);
 
     if ($debug < 5) {
     	$users->change($line->[5 + $users->{SEARCH_FIELDS_COUNT}], { CREDIT      => $conf{MAX_STABLE_CREDIT} ,

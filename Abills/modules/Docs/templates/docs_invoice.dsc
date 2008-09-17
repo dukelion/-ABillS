@@ -14,8 +14,8 @@ ORDER_TOTAL_SUM_VAT:Сума налога заказа за товар:russian:(x=140;y=285,x=360;y=452
 SUM_LIT:Всего сумма рекомендована к оплате пропись.:russian:(x=300;y=263,x=205;y=487;page=2)
 FROM_DATE_LIT:Дата создания:rissian:(x=358;y=719;)
 #PAYMENT_MONTH:всего оплачено за период:russian:(x=500;y=480;)
-NUMBER:Номер счёта:russian:(x=280;y=719,x=355;y=696;page=2,)
-DATE:Дата создания счета:russian:(x=355;y=719,x=180;y=672;page=2,)
+NUMBER:Номер счёта:russian:(x=280;y=719,x=355;y=696;page=2;)
+DATE:Дата создания счета:russian:(x=355;y=719,x=180;y=672;page=2;)
 
 
 
