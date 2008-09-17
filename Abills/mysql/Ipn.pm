@@ -16,6 +16,8 @@ $VERSION = 2.00;
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
 
+
+use Abills::Base;
 use main;
 @ISA  = ("main");
 
@@ -1223,6 +1225,7 @@ sub user_detail {
 	my ($attr) = @_;
   my $list;
 
+
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
@@ -1233,6 +1236,7 @@ sub user_detail {
   my @GROUP_RULES = (); 
 
 
+ 
 if ($attr->{INTERVAL}) {
   my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
   push @WHERE_RULES, "date_format(s_time, '%Y-%m-%d')>='$from' and date_format(f_time, '%Y-%m-%d')<='$to'";
@@ -1246,13 +1250,68 @@ if (defined($attr->{SRC_PORT}) && $attr->{SRC_PORT} =~ /^\d+$/) {
    push @WHERE_RULES, "src_port='$attr->{SRC_PORT}'";
  }
 
-if ($attr->{DST_IP}) {
-   push @WHERE_RULES, "dst_addr=INET_ATON('$attr->{DST_IP}')";
- }
+
+
 
 if ($attr->{DST_IP}) {
-   push @WHERE_RULES, "dst_addr=INET_ATON('$attr->{DST_IP}')";
- }
+  my @ips_arr = split(/,/, $attr->{DST_IP});
+  my @ip_q = ();
+  foreach my $ip (sort @ips_arr) {
+    if ($ip =~ /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/(\d{1,2})/) {
+      my $ip   = $1;
+      my $bits = $2;
+      my $mask = 0b1111111111111111111111111111111;
+
+      $mask = int(sprintf("%d", $mask >> ($bits - 1)));
+      my $last_ip = ip2int($ip) | $mask;
+      my $first_ip = $last_ip - $mask;
+      print "IP FROM: ". int2ip($first_ip) ." TO: ". int2ip($last_ip). "\n" if ($debug > 2);
+        push @ip_q, "(
+                       (dst_addr>='$first_ip' and dst_addr<='$last_ip' )  
+                      )";
+     }
+          elsif ($ip =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
+            push @ip_q, "dst_addr=INET_ATON('$ip')";
+           }
+   }
+
+   push @WHERE_RULES, '(' . join(' or ', @ip_q) . ')';
+}
+
+
+
+if ($attr->{SRC_IP}) {
+  my @ips_arr = split(/,/, $attr->{SRC_IP});
+  my @ip_q = ();
+  foreach my $ip (sort @ips_arr) {
+    if ($ip =~ /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/(\d{1,2})/) {
+      my $ip   = $1;
+      my $bits = $2;
+      my $mask = 0b1111111111111111111111111111111;
+
+      $mask = int(sprintf("%d", $mask >> ($bits - 1)));
+      my $last_ip = ip2int($ip) | $mask;
+      my $first_ip = $last_ip - $mask;
+      print "IP FROM: ". int2ip($first_ip) ." TO: ". int2ip($last_ip). "\n" if ($debug > 2);
+        push @ip_q, "(
+                       (src_addr>='$first_ip' and src_addr<='$last_ip' )  
+                      )";
+     }
+          elsif ($ip =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
+            push @ip_q, "src_addr=INET_ATON('$ip')";
+           }
+   }
+
+   push @WHERE_RULES, '(' . join(' or ', @ip_q) . ')';
+}
+
+#if ($attr->{DST_IP}) {
+#   push @WHERE_RULES, "dst_addr=INET_ATON('$attr->{DST_IP}')";
+# }
+
+#if ($attr->{SRC_IP}) {
+#   push @WHERE_RULES, "src_addr=INET_ATON('$attr->{SRC_IP}')";
+# }
 
 if (defined($attr->{DST_PORT}) && $attr->{DST_PORT} =~ /^\d+$/ ) {
    push @WHERE_RULES, "dst_port='$attr->{DST_PORT}'";
