@@ -54,7 +54,7 @@ sub accounting {
  my $self = shift;
  my ($RAD, $NAS)=@_;
  
- $self->{SUM} = 0 if (! $self->{SUM});
+ $self->{SUM} = 0; # if (! $self->{SUM});
  my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
  my $SESSION_START = (defined($RAD->{SESSION_START}) && $RAD->{SESSION_START} > 0) ?  "FROM_UNIXTIME($RAD->{SESSION_START})" : "FROM_UNIXTIME(UNIX_TIMESTAMP())";
 
