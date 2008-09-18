@@ -910,10 +910,10 @@ if (defined($FORM{DATE})) {
       print $table_sessions->show();
       $list = $Ipn->{HOSTS_LIST_TO};
       $table_sessions = $html->table( { width => '100%',
-	                              caption => "$_TO", 
-                                title =>["IP", "$_SUM", "PACKEDGE"],
-                                cols_align => ['left', 'right', 'right'],
-                                qs => $pages_qs             
+	                              caption       => "$_TO", 
+                                title         => ["IP", "$_SUM", "PACKEDGE"],
+                                cols_align    => ['left', 'right', 'right'],
+                                qs            => $pages_qs             
                                } );
 
       foreach my $line (@$list) {

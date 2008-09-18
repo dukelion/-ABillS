@@ -393,17 +393,20 @@ elsif($total_user_sum > 0 && $uid > 0) {
          
          #If session online hangup it
          if ( $session_id ) {
-           print 'Error: Not defined stop rules. Check $conf{IPN_FW_STOP_RULE}' if ($cmd eq '');
-         
-           $cmd =~ s/\%IP/$ip_addr/g;
-           $cmd =~ s/\%NUM/$rule_num/g;
-           $cmd =~ s/\%MASK/$netmask/g;
-           $cmd =~ s/\%LOGIN/$login/g;
+           if ($cmd eq '') {
+             print 'Error: Not defined stop rules. Check $conf{IPN_FW_STOP_RULE}';
+            }
+           else {
+             $cmd =~ s/\%IP/$ip_addr/g;
+             $cmd =~ s/\%NUM/$rule_num/g;
+             $cmd =~ s/\%MASK/$netmask/g;
+             $cmd =~ s/\%LOGIN/$login/g;
 
-           print "$cmd" if ($debug>0); 
-           system("$cmd");
-           $Ipn->acct_stop({ SESSION_ID           => $session_id,
-         	                 ACCT_TERMINATE_CAUSE => 10 });
+             print "$cmd" if ($debug>0); 
+             system("$cmd");
+             $Ipn->acct_stop({ SESSION_ID           => $session_id,
+         	                     ACCT_TERMINATE_CAUSE => 10 });
+            }
          	}
      }
     #AMon 
@@ -424,7 +427,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
 
         my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $num;
 
-    		print "$DATE $TIME Hangup AMON ALIVE: $last_alive UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug > 0);
+    		print "$DATE $TIME Hangup. Lost AMON ALIVE: $last_alive UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug > 0);
 
         my $netmask = 32;
 
