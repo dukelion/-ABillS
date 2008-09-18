@@ -309,11 +309,11 @@ if ($NAS->{NAS_TYPE} eq 'asterisk' and $self->{TRUNK_PROTOCOL}) {
 	  $self->{prepend} = '';
     
     my $number = $RAD->{'CALLED_STATION_ID'};
-    if ($self->{REMOVE_PREFIX}) {
+    if (defined($self->{REMOVE_PREFIX})) {
     	$number =~ s/^$self->{REMOVE_PREFIX}//;
      }
 
-    if ($self->{ADDPREFIX}) {
+    if (defined($self->{ADDPREFIX})) {
     	$number = $self->{ADDPREFIX}. $number;
      }
 

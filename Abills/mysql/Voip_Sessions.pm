@@ -486,7 +486,7 @@ elsif($attr->{DATE}) {
  $self->query($db, "SELECT 
  u.id, 
  l.start, 
- sEC_TO_TIME(l.duration), 
+ SEC_TO_TIME(l.duration), 
  l.tp_id,
  l.calling_station_id, 
  l.called_station_id,
