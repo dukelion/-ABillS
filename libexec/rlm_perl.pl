@@ -113,14 +113,6 @@ sub accounting {
 	return RLM_MODULE_OK;
 }
 
-# Function to handle post_auth
-#sub post_auth {
-#	# For debugging purposes only
-#	&log_request_attributes;
-#	&test_call('post_auth');
-#	return RLM_MODULE_OK;
-#}
-
 
 #**********************************************************
 # 

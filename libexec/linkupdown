@@ -102,6 +102,8 @@ my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $c
 my $db = $sql->{db};
 my $OS = '';
 
+
+print "$ARGV[$#ARGV-1]\n";
 if  ($ARGV[$#ARGV-1] =~ /^OS=(\S+)/ || $ARGV[$#ARGV] =~ /^OS=(\S+)/ ){
   $OS=$1;
 }
@@ -400,6 +402,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
     #Linux shaper
 
     elsif ($OS eq 'Linux') {
+
       my $tc = "/sbin/tc";
       my $flowid = $speed_in > 0 ? sprintf("%x",$fw_num_out) : '';
       my $drop = $speed_out > 0 ? "police rate $speed_out"."Kibit burst 12k drop" : '';
