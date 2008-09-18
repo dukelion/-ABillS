@@ -13,7 +13,7 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
 
 #use strict;
 
-my $version = 0.3;
+my $version = 0.4;
 
 
 use FindBin '$Bin';
@@ -532,10 +532,25 @@ sub user_info {
 
  	$user = $users->info($uid);
 
- 	print "$_USER: $user->{LOGIN} (". (($user->{FIO}) ? $user->{FIO} : ''). ") $user->{UID}\n".
+ 	print "$_USER: $user->{LOGIN} (". ( ($user->{FIO}) ? $user->{FIO} : ''  ). ") $user->{UID}\n".
  	  "$_DEPOSIT: $user->{DEPOSIT}\n".
  	  "$_CREDIT:  $user->{CREDIT}\n".
  	  "$_STATUS: ". $status[$user->{DISABLE}]."\n";
+
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub form_pi {
+ 	my ($uid) = @_;
+
+ 	$user = $users->pi($uid);
+
+ 	print "$_FIO: ". ( ($user->{FIO}) ? $user->{FIO} : ''  ). "\n".
+ 	  "$_ADDRESS:   $user->{ADDRESS_STREET}, $user->{ADDRESS_BUILD}/$user->{ADDRESS_FLAT}\n".
+ 	  "$_CONTRACT:  $user->{CONTRACT_ID} $user->{CONTRACT_DATE}\n";
 
 }
 
@@ -550,6 +565,7 @@ sub form_users {
                         #"$_INFO:user_pi");
 
 
+  push @user_functions, "$_USER_INFO:form_pi";
   push @user_functions, "$_CHANGE:form_users" if ($permissions{0});
   push @user_functions, "$_PAYMENTS:form_payments" if ($permissions{1});
   push @user_functions, "$_FEES:form_fees" if ($permissions{3});
@@ -558,7 +574,7 @@ sub form_users {
   my $list = $users->list( { %LIST_PARAMS } );
 
   if ($users->{TOTAL} == 1) {
-    my $uid = $list->[0]->[6];
+    my $uid = $list->[0]->[5 + $users->{SEARCH_FIELDS_COUNT}];
     user_info($uid);
     print "$_FUNCTIONS_LIST: \n"; 
     
