@@ -397,7 +397,7 @@ sub form_select {
 	$self->{SELECT} = "<select name=\"$name\" $ex_params>\n";
   
   if (defined($attr->{SEL_OPTIONS})) {
-    foreach my $k (sort values ( %{ $attr->{SEL_OPTIONS} } ) ) {
+    foreach my $k (keys ( %{ $attr->{SEL_OPTIONS} } ) ) {
       $self->{SELECT} .= "<option value='$k'";
       $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
       $self->{SELECT} .= ">". $attr->{SEL_OPTIONS}->{$k} ."\n";	
@@ -436,7 +436,9 @@ sub form_select {
 	  	@H = sort keys %{ $attr->{SEL_HASH} };
 	  }
 	  else {
-	    @H = keys %{ $attr->{SEL_HASH} };
+	    @H = sort {
+             $attr->{SEL_HASH}->{$a} cmp $attr->{SEL_HASH}->{$b}
+           } keys %{ $attr->{SEL_HASH} }; 
      }
     
     
