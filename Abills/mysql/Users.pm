@@ -793,7 +793,7 @@ if ($self->{TOTAL} > 0) {
             push @WHERE_RULES, "(pi.". $field_name. "$value)"; 
            }
           elsif ($type == 2)  {
-          	push @WHERE_RULES, "(pi.$field_name=$attr->{$field_name})"; 
+          	push @WHERE_RULES, "(pi.$field_name='$attr->{$field_name}')"; 
             $self->{SEARCH_FIELDS} .= "$field_name" . '_list.name, ';
             $self->{SEARCH_FIELDS_COUNT}++;
             
