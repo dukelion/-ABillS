@@ -11,10 +11,16 @@ use vars  qw(%conf $db
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 1.3;
+my $VERSION = 1.5;
 my $config_file = $Bin . '/../libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
+$conf{WORK_DIR}=$Bin;
+my $debug=5;
+require $Bin . '/../Abills/Base.pm';
+Abills::Base->import();
+
+my $ARGV = parse_arguments(\@ARGV);
 
 if(! -f $config_file ) {
   print "System main configuration\n";
@@ -81,6 +87,7 @@ if(! -f $config_file ) {
 
          #Check mysql running
          my $proc_list = `ps ax`;
+         print $proc_list;
 
          if ($proc_list !~  /mysql/) {
            print "MySQL Not running\n";
@@ -109,9 +116,11 @@ if(! -f $config_file ) {
          my $mysql_root_user = 'root';
          my $mysql_root_passwd = '';
          print "MySQL root user [$mysql_root_user]: ";
+         chop($read = <STDIN>);
          $mysql_root_user = $read if ($read ne '');
 
-         print "MySQL root user [$mysql_root_passwd]: ";
+         print "\nMySQL root password [$mysql_root_passwd]: ";
+         chop($read = <STDIN>);
          $mysql_root_passwd = $read if ($read ne '');
         
          $res = `$mysql -u $mysql_root_user --password=$mysql_root_passwd -e "select version();"`; 
@@ -124,10 +133,10 @@ if(! -f $config_file ) {
                  "CREATE DATABASE $mk_config{dbname};".
                  "flush privileges;";
 
-              $res = `$mysql -u $mysql_root_user --password=$mysql_root_passwd -e "$add_mysql_user"`;
+              $res = `$mysql -u $mysql_root_user --password='$mysql_root_passwd' -e "$add_mysql_user"`;
               print $res;
               print "Upload Main Dump and modules\n";
-              $res = `$mysql -u mysql_root_user --password=$mysql_root_passwd -D $mk_config{dbname} < ../abills.sql`;
+              $res = `$mysql -u $mysql_root_user --password='$mysql_root_passwd' -D $mk_config{dbname} < ../abills.sql`;
             } 
           }
          else {
@@ -159,11 +168,6 @@ if(! -f $config_file ) {
 }
 
 require $Bin . '/../libexec/config.pl';
-require $Bin . '/../Abills/Base.pm';
-Abills::Base->import();
-
-my $debug=0;
-my $ARGV = parse_arguments(\@ARGV);
 
 
 
