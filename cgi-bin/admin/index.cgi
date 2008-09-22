@@ -213,7 +213,7 @@ elsif  ($admin->{GID} > 0) {
 #Global Vars
 @action    = ('add', $_ADD);
 @bool_vals = ($_NO, $_YES);
-@PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus');
+@PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus', "$_CORRECTION");
 @status = ("$_ENABLE", "$_DISABLE");
 
 
