@@ -375,3 +375,5 @@ $_JOIN_SERVICE='Join Service';
 $_MAIN='Main';
 $_CHANNELS='Channels';
 $_ABON_DISTRIBUTION='Abon. paymets distribution';
+
+$_CORRECTION='correction';
