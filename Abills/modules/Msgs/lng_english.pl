@@ -6,4 +6,4 @@ $_HIDE='Hide';
 $_INNER='Inner message';
 $_QUOTING='Quoting';
 $_NEW_MESSAGE='New message';
-
+$_RUN_TIME='Run time';

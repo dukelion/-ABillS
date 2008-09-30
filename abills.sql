@@ -154,7 +154,7 @@ CREATE TABLE `docs_acct` (
   `aid` smallint(6) unsigned NOT NULL default '0',
   `vat` double(5,2) unsigned NOT NULL default '0.00',
   PRIMARY KEY  (`id`)
-) ;
+) COMMENT='Docs Accounts'  ;
 
 CREATE TABLE `docs_acct_orders` (
   `acct_id` int(11) unsigned NOT NULL default '0',
@@ -163,7 +163,7 @@ CREATE TABLE `docs_acct_orders` (
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
   KEY `aid` (`acct_id`)
-) ;
+)  COMMENT='Docs Accounts Orders' ;
 
 
 CREATE TABLE `docs_invoice` (
@@ -180,7 +180,7 @@ CREATE TABLE `docs_invoice` (
   `by_proxy_person` varchar(15) NOT NULL default '',
   `by_proxy_date` date NOT NULL default '0000-00-00',
   PRIMARY KEY  (`id`)
-);
+)  COMMENT='Docs invoices';
 
 CREATE TABLE `docs_invoice_orders` (
   `invoice_id` int(11) unsigned NOT NULL default '0',
@@ -189,7 +189,29 @@ CREATE TABLE `docs_invoice_orders` (
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
   KEY `invoice_id` (`invoice_id`)
-);
+) COMMENT='Docs invoices orders';
+
+
+CREATE TABLE `docs_tax_invoices` (
+  `id` int(11) unsigned NOT NULL auto_increment,
+  `date` date NOT NULL default '0000-00-00',
+  `created` datetime NOT NULL default '0000-00-00 00:00:00',
+  `tax_invoice_id` int(10) unsigned NOT NULL default '0',
+  `uid` int(11) unsigned NOT NULL default '0',
+  `aid` smallint(6) unsigned NOT NULL default '0',
+  `vat` double(5,2) unsigned NOT NULL default '0.00',
+  PRIMARY KEY  (`id`)
+) COMMENT='Docs Accounts'  ;
+
+CREATE TABLE `docs_tax_invoice_orders` (
+  `tax_invice_id` int(11) unsigned NOT NULL default '0',
+  `orders` varchar(200) NOT NULL default '',
+  `counts` int(10) unsigned NOT NULL default '0',
+  `unit` tinyint(3) unsigned NOT NULL default '0',
+  `price` double(10,2) unsigned NOT NULL default '0.00',
+  KEY `aid` (`acct_id`)
+) COMMENT='Docs Accounts Orders' ;
+
 
 CREATE TABLE `dv_main` (
   `uid` int(11) unsigned NOT NULL auto_increment,
@@ -495,6 +517,7 @@ CREATE TABLE `msgs_reply` (
   `caption` varchar(40) NOT NULL default '',
   `ip` int(11) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
+  run_time int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `main_msg` (`main_msg`)

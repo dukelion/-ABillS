@@ -6,6 +6,7 @@
 :OS=FREEBSD:#Allow ipfw operation without password for webserver user\n www   ALL = NOPASSWD: /sbin/ipfw >> [/usr/local/etc]/sudoers 
 :PARAMS=LINUX:#Allow iptables operation without password for webserver user\n www   ALL = NOPASSWD: /sbin/iptables >> [/usr/local/etc]/sudoers
 ipcad.conf   > [/usr/local/etc]/ipcad.conf
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/ipcad restart
 
 
 

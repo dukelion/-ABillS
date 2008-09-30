@@ -184,6 +184,7 @@ $_ACCOUNTS= 'Accounts';
 $_ACCOUNT='Account';
 $_INVOICE='Invoice';
 $_INVOICES='Invoices';
+$_TAX_INVOICE='Tax invoice';
 $_ACTS='Acts';
 $_ACT='Act';
 $_CREATE='Create';

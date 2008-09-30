@@ -300,7 +300,15 @@ sub host_defaults {
    COMMENTS       => '',
    VID            => 0,
    NAS_ID         => 0,
-   OPTION_82      => 0
+   OPTION_82      => 0,
+   HOSTNAME       => '', 
+   NETWORK        => 0, 
+   BLOCKTIME      => '', 
+   FORCED         => '',
+   DISABLE        => '',
+   EXPIRE         => '',
+   PORTS          => '',
+   BOOT_FILE      => ''
   );
 
  
@@ -316,7 +324,7 @@ sub host_add {
   my $self=shift;
   my ($attr)=@_;
 
-  my %DATA = $self->get_data($attr); 
+  my %DATA = $self->get_data($attr, { default => host_defaults() }); 
 
   $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, 
     forced, disable, expire, comments, option_82, vid, nas, ports, boot_file) 
@@ -328,7 +336,7 @@ sub host_add {
 
 
   
-  $admin->action_add($DATA{DATA}, "ADD $DATA{IP}/$DATA{MAC}");
+  $admin->action_add($DATA{UID}, "ADD $DATA{IP}/$DATA{MAC}");
 
   return $self;
 }
@@ -379,7 +387,8 @@ sub host_info {
    comments,
    nas,
    ports,
-   boot_file
+   boot_file, 
+   changed
   FROM dhcphosts_hosts
   WHERE id='$id';");
 
@@ -403,7 +412,7 @@ sub host_info {
    $self->{COMMENTS},
    $self->{NAS_ID},
    $self->{PORTS},
-   $self->{BOOT_FILE}
+   $self->{BOOT_FILE},
    ) = @{ $self->{list}->[0] };
 
   return $self;
@@ -433,7 +442,8 @@ sub host_change {
    VID         => 'vid',
    NAS_ID      => 'nas',
    PORTS       => 'ports',
-   BOOT_FILE   => 'boot_file'
+   BOOT_FILE   => 'boot_file',
+#   CHANGED     => 'changed'
   );
 
   $attr->{OPTION_82} = ($attr->{OPTION_82}) ? 1 : 0;
@@ -567,26 +577,23 @@ sub hosts_list {
  }
 
  if ($attr->{LOGIN_EXPR}) {
-   $attr->{LOGIN_EXPR} =~ s/\*/\%/g;
-   push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'"; 
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN_EXPR}", 'STR', 'u.id') };
   }
 
  if ($attr->{GIDS}) {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
   }
  elsif ($attr->{GID}) {
-   push @WHERE_RULES, "u.gid=$attr->{GID}"; 
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
 
  if ($attr->{HOSTNAME}) {
-   $attr->{HOSTNAME} =~ s/\*/\%/g;
-   push @WHERE_RULES, "h.hostname LIKE '$attr->{HOSTNAME}'"; 
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{HOSTNAME}", 'STR', 'h.hostname') };
   }
  
  if ($attr->{MAC}) {
-   $attr->{MAC} =~ s/\*/\%/g;
-   push @WHERE_RULES, "h.mac LIKE '$attr->{MAC}'"; 
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{MAC}", 'STR', 'h.mac') };
   }
 
  if ($attr->{NETWORK}) {
@@ -625,14 +632,12 @@ sub hosts_list {
       push @WHERE_RULES, "(h.ip>=INET_ATON('$first_ip') and h.ip<=INET_ATON('$last_ip'))";
      }
     else {
-      my $value = $self->search_expr($attr->{IP}, 'IP');
-      push @WHERE_RULES, "h.ip$value";
+      push @WHERE_RULES, @{ $self->search_expr("$attr->{IP}", 'STR', 'h.ip') };
     }
   }
 
   if ($attr->{EXPIRE}) {
-    my $value = $self->search_expr($attr->{EXPIRE}, 'INT');
-    push @WHERE_RULES, "h.expire$value";
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{EXPIRE}", 'INT', 'h.expire') };
   }
 
   if (defined($attr->{STATUS})) {
@@ -662,8 +667,7 @@ sub hosts_list {
   }
 
   if ($attr->{PORTS}) {
-    $attr->{PORTS} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "h.ports LIKE '$attr->{PORTS}'";
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{PORTS}", 'STR', 'h.ports') };
     $self->{SEARCH_FIELDS} .= 'h.ports, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
@@ -676,15 +680,13 @@ sub hosts_list {
   }
 
   if ($attr->{VID}) {
-    my $value = $self->search_expr("$attr->{VID}", 'INT');
-    push @WHERE_RULES, "h.vid$value";
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{VID}", 'INT', 'h.vid') };
     $self->{SEARCH_FIELDS} .= 'h.vid, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
   if ($attr->{BOOT_FILE}) {
-    $attr->{BOOT_FILE} =~ s/\*/\%/g;
-    push @WHERE_RULES, "h.boot_file LIKE '$attr->{BOOT_FILE}'"; 
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{BOOT_FILE}", 'STR', 'h.boot_file') };
     $self->{SEARCH_FIELDS} .= 'h.boot_file, ';
     $self->{SEARCH_FIELDS_COUNT}++;
    }

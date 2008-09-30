@@ -103,8 +103,8 @@ sub user_info {
   #Chack Company account if ACCOUNT_ID > 0
   $self->check_company_account() if ($self->{COMPANY_ID} > 0);
 
+  $self->check_bill_account();
 
-$self->check_bill_account();
 if($self->{errno}) {
   $RAD_PAIRS{'Reply-Message'}=$self->{errstr};
   return 1, \%RAD_PAIRS;
@@ -136,6 +136,7 @@ sub auth {
    }
 
   $RAD_PAIRS{'User-Name'}=$self->{USER_NAME};
+  $RAD->{USER_NAME}=$self->{USER_NAME};
 
 #DIsable
 if ($self->{DISABLE} ||  $self->{DV_DISABLE} || $self->{USER_DISABLE}) {
@@ -143,7 +144,7 @@ if ($self->{DISABLE} ||  $self->{DV_DISABLE} || $self->{USER_DISABLE}) {
   return 1, \%RAD_PAIRS;
 }
 
-$self->{PAYMENT_TYPE}=0;
+
 if ($self->{PAYMENT_TYPE} == 0) {
   $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}; #-$self->{CREDIT_TRESSHOLD};
   #Check deposit
@@ -265,13 +266,23 @@ print "\nEND: =====================================\n" if ($debug > 0);
 
   }
   
-  
   return 0, \%RAD_PAIRS;
 }
 
 
 
 
+#**********************************************************
+#
+# Make TP RAD pairs
+#**********************************************************
+sub make_tp {
+  my $self = shift;
+  my ($RAD, $NAS) = @_;
+
+	
+	return 0, \%RAD_PAIRS;
+}
 
 
 1

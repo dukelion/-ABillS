@@ -1460,7 +1460,10 @@ for my $key (sort keys %$tpl_describe) {
     $txt->text($text);
   }
 
+  
 }
+
+
 
 #$txt->compress();
 
@@ -1468,7 +1471,11 @@ if ($attr->{MULTI_DOCS}) {
   return $pdf ; 	
 }
 
-$pdf->saveas("$attr->{SAVE_AS}") if ($attr->{SAVE_AS});
+if ($attr->{SAVE_AS}) {
+  $pdf->saveas("$attr->{SAVE_AS}") ;
+  $pdf->end;
+  return 0;
+}
 
   $tpl = $pdf->stringify();
   $pdf->end;

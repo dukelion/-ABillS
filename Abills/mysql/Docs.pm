@@ -561,10 +561,248 @@ sub account_change {
 
 
 
+#**********************************************************
+# Del documents
+#**********************************************************
+sub del {
+ my $self = shift;
+
+}
 
 
+#**********************************************************
+# accounts_list
+#**********************************************************
+sub tax_invoice_list {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
 
+ @WHERE_RULES = ("d.id=o.acct_id");
+ 
+ if($attr->{LOGIN_EXPR}) {
+ 	 require Users;
+	 push @WHERE_RULES, $self->search_expr($attr->{UID}, 'INT', 'd.uid');
+  }
+
+ if ($attr->{FROM_DATE}) {
+    push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+  }
+
+ if ($attr->{DOC_ID}) {
+    push @WHERE_RULES, $self->search_expr($attr->{DOC_ID}, 'INT', 'd.acct_id');
+  }
+
+ if ($attr->{SUM}) {
+    push @WHERE_RULES, $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts');
+  }
+
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+  }
+
+ 
+ #DIsable
+ if ($attr->{UID}) {
+   push @WHERE_RULES, $self->search_expr($attr->{UID}, 'INT', 'd.uid');
+ }
+ 
+
+ $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
+
+
+  $self->query($db,   "SELECT d.acct_id, d.date, d.customer,  sum(o.price * o.counts), u.id, a.name, d.created, d.uid, d.id
+    FROM (docs_acct d, docs_acct_orders o)
+    LEFT JOIN users u ON (d.uid=u.uid)
+    LEFT JOIN admins a ON (d.aid=a.aid)
+    $WHERE
+    GROUP BY d.acct_id 
+    ORDER BY $SORT $DESC
+    LIMIT $PG, $PAGE_ROWS;");
+
+
+ return $self->{list}  if ($self->{TOTAL} < 1);
+ my $list = $self->{list};
+
+
+ $self->query($db, "SELECT count(*)
+    FROM (docs_acct d, docs_acct_orders o)    
+    LEFT JOIN users u ON (d.uid=u.uid)
+    $WHERE");
+
+ ($self->{TOTAL}) = @{ $self->{list}->[0] };
+
+	return $list;
+}
+
+
+#**********************************************************
+# Bill
+#**********************************************************
+sub tax_invoice_add {
+	my $self = shift;
+	my ($attr) = @_;
+  
+ 
+  %DATA = $self->get_data($attr, { default => \%DATA }); 
+  $DATA{DATE}    = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
+  $DATA{ACCT_ID} = ($attr->{ACCT_ID}) ? $attr->{ACCT_ID}  : $self->docs_nextid({ TYPE => 'ACCOUNT' });
+
+  $self->query($db, "insert into docs_tax_invoices (tax_invoice_id, date, created, aid, uid)
+      values ('$DATA{DOC_ID}', $DATA{DATE}, now(), \"$admin->{AID}\", \"$DATA{UID}\");", 'do');
+ 
+  return $self if($self->{errno});
+  $self->{DOC_ID}=$self->{INSERT_ID};
+
+  if ($attr->{IDS}) {
+  	my @ids_arr = split(/, /, $attr->{IDS});
+
+  	foreach my $id (@ids_arr) {
+      $DATA{'COUNTS_'.$id} = 1 if (! $DATA{'COUNTS_'.$id});
+      $self->query($db, "INSERT INTO docs_tax_invoice_orders (tax_invoice_id, orders, counts, unit, price)
+         values (". $self->{'DOC_ID'}.", \"". $DATA{'ORDER_'. $id}."\", '". $DATA{'COUNTS_'.$id}."', '". $DATA{'UNIT_'.$id} ."',
+       '". $DATA{'SUM_'.$id}."')", 'do');
+  	 }
+   }
+
+  return $self if($self->{errno});
+  
+  $self->{DOC_ID}=$DATA{DOC_ID};
+  $self->tax_invoice_info($self->{DOC_ID});
+
+	return $self;
+}
+
+
+#**********************************************************
+# Bill
+#**********************************************************
+sub tax_invoice_del {
+	my $self = shift;
+	my ($id, $attr) = @_;
+
+  if ($id == 0 && $attr->{UID}) {
+    #$self->query($db, "DELETE FROM docs_acct_orders WHERE acct_id='$id'", 'do');
+    #$self->query($db, "DELETE FROM docs_acct WHERE uid='$id'", 'do');
+   }
+  else {
+    $self->query($db, "DELETE FROM docs_tax_invoice_orders WHERE acct_id='$id'", 'do');
+    $self->query($db, "DELETE FROM docs_tax_invoices WHERE id='$id'", 'do');
+   }
+
+	return $self;
+}
+
+#**********************************************************
+# Bill
+#**********************************************************
+sub tax_invoice_info {
+	my $self = shift;
+	my ($id, $attr) = @_;
+
+  $WHERE = ($attr->{UID}) ? "and d.uid='$attr->{UID}'" : '';  
+  
+
+  $self->query($db, "SELECT d.acct_id, 
+   d.date, 
+   sum(o.price * o.counts), 
+   if(d.vat>0, FORMAT(sum(o.price * o.counts) / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)),
+   u.id, 
+   a.name, 
+   d.created, 
+   d.uid, 
+   d.id,
+   pi.fio,
+   pi.address_street,
+   pi.address_build,
+   pi.address_flat,
+   pi.phone,
+   c.contract_id,
+   c.contract_date,
+   c.company_id,
+   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day
+   
+    FROM (docs_acct d, docs_acct_orders o)
+    LEFT JOIN users u ON (d.uid=u.uid)
+    LEFT JOIN users_pi pi ON (pi.uid=u.uid)
+    LEFT JOIN companies c ON (c.id=u.company_id)
+    LEFT JOIN admins a ON (d.aid=a.aid)
+    WHERE d.id=o.acct_id and d.id='$id' $WHERE
+    GROUP BY d.id;");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno}  = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  ($self->{DOC_ID}, 
+   $self->{DATE}, 
+   $self->{TOTAL_SUM},
+   $self->{VAT},
+   $self->{LOGIN}, 
+   $self->{ADMIN}, 
+   $self->{CREATED}, 
+   $self->{UID},
+   $self->{DOC_ID},
+   $self->{FIO},
+
+   $self->{ADDRESS_STREET}, 
+   $self->{ADDRESS_BUILD}, 
+   $self->{ADDRESS_FLAT}, 
+   $self->{PHONE},
+   $self->{CONTRACT_ID},
+   $self->{CONTRACT_DATE},
+   $self->{COMPANY_NAMA},
+   $self->{EXPIRE_DATE}
+  )= @{ $self->{list}->[0] };
+	
+  
+  if ($self->{TOTAL} > 0) {
+    $self->{NUMBER}=$self->{ACCT_ID};
+ 
+    $self->query($db, "SELECT acct_id, orders, counts, unit, price
+     FROM docs_tax_invoice_orders WHERE acct_id='$id'");
+  
+    $self->{ORDERS}=$self->{list};
+   }
+
+	return $self;
+}
+
+
+#**********************************************************
+# change()
+#**********************************************************
+sub tax_invoice_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %FIELDS = (DOC_ID      => 'doc_id',
+                COMPANY_ID  => 'company_id',
+                DATE        => 'date',
+                SUM         => 'sum',
+                ID          => 'id',
+                UID         => 'uid'
+             );
+
+
+  $self->changes($admin,  { CHANGE_PARAM => 'ID',
+                   TABLE        => 'docs_tax_invoices',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $self->tax_invoice_info($attr->{DOC_ID}),
+                   DATA         => $attr
+                  } );
+
+  return $self->{result};
+}
 
 
 1

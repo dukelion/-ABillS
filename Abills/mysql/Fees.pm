@@ -174,32 +174,34 @@ sub list {
  undef @WHERE_RULES;
 
  if ($attr->{UID}) {
-    push @WHERE_RULES, "f.uid='$attr->{UID}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'f.uid') };
   }
  # Start letter 
  elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
   }
+
+
+ if ($attr->{BILL_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{BILL_ID}, 'INT', 'f.bill_id') };
+  }
+
  
  if ($attr->{AID}) {
-    push @WHERE_RULES, "f.aid='$attr->{AID}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'INT', 'f.aid') };
   }
 
  if ($attr->{A_LOGIN}) {
- 	 $attr->{A_LOGIN} =~ s/\*/\%/ig;
- 	 push @WHERE_RULES, "a.id LIKE '$attr->{A_LOGIN}'";
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{A_LOGIN}, 'STR', 'a.id') };
  }
 
  # Show debeters
  if ($attr->{DESCRIBE}) {
-    $attr->{DESCRIBE} =~ s/\*/\%/g;
-    push @WHERE_RULES, "f.dsc LIKE '$attr->{DESCRIBE}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'f.dsc') };
   }
 
  if ($attr->{INNER_DESCRIBE}) {
-    $attr->{INNER_DESCRIBE} =~ s/\*/\%/g;
-    push @WHERE_RULES, "f.inner_describe LIKE '$attr->{INNER_DESCRIBE}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{INNER_DESCRIBE}, 'STR', 'f.inner_describe') };
   }
 
  if ($attr->{METHODS}) {
@@ -207,8 +209,7 @@ sub list {
   }
 
  if ($attr->{SUM}) {
-    my $value = $self->search_expr($attr->{SUM}, 'INT');
-    push @WHERE_RULES, "f.sum$value";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'f.sum') };
   }
 
  # Show groups
@@ -250,7 +251,9 @@ sub list {
     GROUP BY f.id
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
- $self->{SUM} = '0.00';
+ $self->{SUM}        = '0.00';
+ $self->{TOTAL_USERS}= 0;
+
  return $self->{list}  if ($self->{TOTAL} < 1);
  my $list = $self->{list};
 

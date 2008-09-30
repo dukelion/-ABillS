@@ -274,7 +274,11 @@ sub search_expr {
     if($type eq 'INT' && $v =~ s/\*//g) {
       $expr = '>';
      }
-    elsif( $v =~ s/^([<>=]{1,2})// ) {
+    elsif ($type eq 'STR') {
+    	$expr = ' LIKE ';
+    	$v =~ s/\*/\%/g;
+     }
+    elsif ( $v =~ s/^([<>=]{1,2})// ) {
       $expr = $1;
      }  
   
@@ -287,11 +291,20 @@ sub search_expr {
 
     $value = $expr . $v;
     
-    
     push @result_arr, "$field$value" if ($field);
    }
 
   if ($field) {
+  
+  	if ($attr->{EXT_FIELD}) {
+      $self->{SEARCH_FIELDS} .= '$field, ';
+      $self->{SEARCH_FIELDS_COUNT}++;
+  	 }	
+  
+  	if ($type ne 'INT') {
+  		return [ '('. join(' or ', @result_arr)  .')']; 
+  	 }
+
     return \@result_arr; 
    }
 

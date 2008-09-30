@@ -1,4 +1,5 @@
 :OS=FREEBSD:flow_capture_enable="YES"\nflow_capture_datadir="/usr/abills/var/log/ipn/"\nflow_capture_port="9996"\nflow_capture_flags="-S 5 -n 287 -N 0 -d 5"  >> [/etc/]/rc.conf
 ::exec:mkdir /usr/abills/var/log/ipn/
 :OS=FREEBSD:exec:chown flowtools /usr/abills/var/log/ipn/
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/flow_capture restart
 

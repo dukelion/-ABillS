@@ -157,8 +157,8 @@ elsif($FORM{del}) {
                                             ]
                                } );
   	$tariffs->{TARIF_PLAN_SEL} = $table->show(). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", {TYPE => 'HIDDEN' });
-  	$tariffs->{ACTION}='del';
-  	$tariffs->{LNG_ACTION}=$_DEL;
+  	$tariffs->{ACTION}         = 'del';
+  	$tariffs->{LNG_ACTION}     = $_DEL;
   }
  else {
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
@@ -2995,7 +2995,7 @@ sub dv_monthly_fees {
 
  foreach my $line (@$list) {
  	 my $TP_ID       = $line->[0];
- 	 my $min_use     = $line->[15];
+ 	 my $min_use_sum = $line->[15];
  	 my $abon_distrib= $line->[16];
  	 my $postpaid    = $line->[4];
    my $tp_postpaid = $line->[12];
@@ -3004,11 +3004,11 @@ sub dv_monthly_fees {
    my %used_traffic = ();
 
    #Monthfee & min use
- 	 if ($month_fee > 0 || $min_use > 0) {
- 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL_ID: $line->[13] CREDIT: $line->[14] MIN_USE: $min_use ABON_DISTR: $abon_distrib\n" if ($debug > 1);
+ 	 if ($month_fee > 0 || $min_use_sum > 0) {
+ 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL_ID: $line->[13] CREDIT: $line->[14] MIN_USE: $min_use_sum ABON_DISTR: $abon_distrib\n" if ($debug > 1);
 
  	   #get used  traffic for min use functions
-     if ($min_use > 0 ) {
+     if ($min_use_sum > 0 ) {
        my $report_list = $sessions->reports({ 
              INTERVAL   => "$pre_month_begin/$pre_month_end",
              TP_ID      => $TP_ID,
@@ -3061,9 +3061,25 @@ sub dv_monthly_fees {
          $START_PERIOD_DAY = ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} : 1;
 
          #Min use 
-         if ($min_use > 0 && $d == $START_PERIOD_DAY) {
+         if ($min_use_sum > 0 && $d == $START_PERIOD_DAY) {
+           #Check activation dae
+           if ($user{ACTIVATE} ne '0000-00-00') {
+             	 my (undef, $ativated_m, $activated_d)=split(/:/, $user{ACTIVATE}, 3);
+             	 my $days_in_month=($ativated_m!=2?(($ativated_m%2)^($ativated_m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28)); 
+     	         $min_use_sum = sprintf("%.2f", $min_use_sum / $days_in_month * ($days_in_month - $activated_d + $START_PERIOD_DAY));
+           	}
 
            my $used = ($used_traffic{$user{UID}}) ? $used_traffic{$user{UID}} : 0;
+
+           #Get Fees sum for min_user
+           if ($conf{MIN_USE_FEES_CONSIDE})	{
+       	     $fees->list({ UID     => $user{UID},
+       	     	             METHODS => "$conf{MIN_USE_FEES_CONSIDE}" 
+       	     	             });
+       	     $used += $fees->{SUM} if ($fees->{TOTAL_SUM});
+            }
+
+           
            $debug_output .=  "  USED: $used\n" if ($debug > 3);
            #Make payments
            next if ($used >= $min_use);
