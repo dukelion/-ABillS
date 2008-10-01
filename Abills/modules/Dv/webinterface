@@ -2691,7 +2691,7 @@ sub dv_user_info {
     my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
 
     print "Content-Type: text/html\n\n";
-    print $isg_cmd;
+    print "<!-- $isg_cmd -->";
 
     my $result = `$isg_cmd`;
 
