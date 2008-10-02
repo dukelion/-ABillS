@@ -189,7 +189,7 @@ sub list {
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
  
  undef @WHERE_RULES;
@@ -198,8 +198,7 @@ sub list {
     push @WHERE_RULES, "p.uid='$attr->{UID}' ";
   }
  elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}' ";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{$attr->{LOGIN_EXPR}}, 'STR', 'u.id') };
   }
  
  if ($attr->{AID}) {
@@ -207,24 +206,20 @@ sub list {
   }
 
  if ($attr->{A_LOGIN}) {
- 	 $attr->{A_LOGIN} =~ s/\*/\%/ig;
- 	 push @WHERE_RULES,  "a.id LIKE '$attr->{A_LOGIN}' ";
- }
+ 	 push @WHERE_RULES,  @{ $self->search_expr($attr->{$attr->{A_LOGIN}}, 'STR', 'a.id') };
+  }
 
  if ($attr->{DESCRIBE}) {
-    $attr->{DESCRIBE} =~ s/\*/\%/g;
-    push @WHERE_RULES, "p.dsc LIKE '$attr->{DESCRIBE}' ";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{$attr->{DESCRIBE}}, 'STR', 'p.dsc') };
   }
 
  if ($attr->{INNER_DESCRIBE}) {
-    $attr->{INNER_DESCRIBE} =~ s/\*/\%/g;
-    push @WHERE_RULES, "p.inner_describe LIKE '$attr->{INNER_DESCRIBE}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{$attr->{INNER_DESCRIBE}}, 'STR', 'p.inner_describe') };
   }
 
 
  if ($attr->{SUM}) {
-    my $value = $self->search_expr($attr->{SUM}, 'INT');
-    push @WHERE_RULES, "p.sum$value ";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'p.sum') };
   }
 
  if ($attr->{METHOD}) {
@@ -247,18 +242,19 @@ sub list {
     push @WHERE_RULES, "(date_format(p.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(p.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
   }
 
- if ($attr->{COMPANY_ID}) {
- 	 push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";
+ if ($attr->{BILL_ID}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{BILL_ID}", 'INT', 'p.bill_id') };
+  }
+ elsif ($attr->{COMPANY_ID}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
   }
 
  if ($attr->{EXT_ID}) {
-   $attr->{EXT_ID} =~ s/\*/\%/g;
-   push @WHERE_RULES, "p.ext_id LIKE '$attr->{EXT_ID}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{EXT_ID}, 'INT', 'p.ext_id') };
   }
 
  if ($attr->{ID}) {
- 	 my $value = $self->search_expr("$attr->{ID}", 'INT');
- 	 push @WHERE_RULES, "p.id$value";
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{ID}", 'INT', 'p.id') };
   }
 
  # Show groups

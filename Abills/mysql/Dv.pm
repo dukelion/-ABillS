@@ -455,8 +455,7 @@ sub list {
       push @WHERE_RULES, "(dv.ip>=INET_ATON('$first_ip') and dv.ip<=INET_ATON('$last_ip'))";
      }
     else {
-      my $value = $self->search_expr($attr->{IP}, 'IP');
-      push @WHERE_RULES, "dv.ip$value";
+      push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'dv.ip') };
     }
 
     $self->{SEARCH_FIELDS} = 'INET_NTOA(dv.ip), ';
@@ -466,44 +465,35 @@ sub list {
 
 
  if ($attr->{DEPOSIT}) {
-    my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
-    push @WHERE_RULES, "u.deposit$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'u.deposit') };
   }
 
  if ($attr->{JOIN_SERVICE}) {
-    my $value = $self->search_expr($attr->{JOIN_SERVICE}, 'INT');
-    push @WHERE_RULES, "dv.join_service$value";
-    $self->{SEARCH_FIELDS} .= 'dv.join_service, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-
+   push @WHERE_RULES, @{ $self->search_expr($attr->{JOIN_SERVICE}, 'INT', 'dv.join_service') } ;
+   $self->{SEARCH_FIELDS} .= 'dv.join_service, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{SPEED}) {
-    my $value = $self->search_expr($attr->{SPEED}, 'INT');
-    push @WHERE_RULES, "u.speed$value";
-
-    $self->{SEARCH_FIELDS} .= 'dv.speed, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{SPEED}, 'INT', 'dv.speed') };
+   $self->{SEARCH_FIELDS} .= 'dv.speed, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{PORT}) {
-    my $value = $self->search_expr($attr->{PORT}, 'INT');
-    push @WHERE_RULES, "dv.port$value";
-
-    $self->{SEARCH_FIELDS} .= 'dv.port, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PORT}, 'INT', 'dv.port') };
+   $self->{SEARCH_FIELDS} .= 'dv.port, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{CID}) {
-    $attr->{CID} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "dv.cid LIKE '$attr->{CID}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'STR', 'dv.cid') };
     $self->{SEARCH_FIELDS} .= 'dv.cid, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{FILTER_ID}) {
-    $attr->{FILTER_ID} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "dv.filter_id LIKE '$attr->{FILTER_ID}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{FILTER_ID}, 'STR', 'dv.filter_id') };
     $self->{SEARCH_FIELDS} .= 'dv.filter_id, ';
     $self->{SEARCH_FIELDS_COUNT}++;
   }
@@ -515,25 +505,31 @@ sub list {
 
 
  if ($attr->{FIO}) {
-    $attr->{FIO} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.fio LIKE '$attr->{FIO}'";
+   $attr->{FIO} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "u.fio LIKE '$attr->{FIO}'";
   }
 
  # Show users for spec tarifplan 
  if (defined($attr->{TP_ID})) {
-    push @WHERE_RULES, "dv.tp_id='$attr->{TP_ID}'";
-    $self->{SEARCH_FIELDS} .= 'tp.name, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'dv.tp_id') };
+   $self->{SEARCH_FIELDS} .= 'tp.name, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if (defined($attr->{TP_CREDIT})) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{TP_CREDIT}, 'INT', 'tp.credit') };
+   $self->{SEARCH_FIELDS} .= 'tp.credit, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  # Show debeters
  if ($attr->{DEBETERS}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+   push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
   }
 
  # Show debeters
  if ($attr->{COMPANY_ID}) {
-    push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
   }
 
  # Show groups
@@ -597,7 +593,9 @@ sub list {
  my $list = $self->{list};
 
  if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(u.id) FROM (users u, dv_main dv) $WHERE");
+    $self->query($db, "SELECT count(u.id) FROM (users u, dv_main dv) 
+    LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
+    $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 

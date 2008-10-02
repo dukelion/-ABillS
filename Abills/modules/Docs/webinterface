@@ -580,8 +580,8 @@ sub docs_tax_invoice {
                       });
 
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                         HIDDEN  => { 
-	                                      create => "1"
+	                         HIDDEN  => { COMPANY_ID => "$_COMPNAY_ID",
+	                                      create     => "1"
 	                                     }
 	                       });
 

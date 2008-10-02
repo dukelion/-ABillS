@@ -650,6 +650,7 @@ elsif($FORM{COMPANY_ID}) {
 
   $company->info($FORM{COMPANY_ID});
   $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
+  $LIST_PARAMS{BILL_ID}=$company->{BILL_ID};
   $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
 
   func_menu({ 
@@ -3935,7 +3936,6 @@ if (defined($attr->{USER})) {
     $BILL_ACCOUNTS{$user->{EXT_BILL_ID}} = "$_EXTRA : $user->{EXT_BILL_ID}" if ($user->{EXT_BILL_ID}); 
    }
 
-
   if($user->{BILL_ID} < 1) {
     form_bills({ USER => $user });
     return 0;
@@ -4039,7 +4039,8 @@ elsif($FORM{UID}) {
 	return 0;
  }	
 elsif($index != 7) {
-	form_search({ HIDDEN_FIELDS => { subf => ($FORM{subf}) ? $FORM{subf} : undef } });
+	form_search({ HIDDEN_FIELDS => { subf => ($FORM{subf}) ? $FORM{subf} : undef,
+		                               COMPANY_ID => $FORM{COMPANY_ID}  } });
 }
 
 
@@ -4047,6 +4048,8 @@ if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=1;
   $LIST_PARAMS{DESC}=DESC;
  }
+
+
 
 
 my $list = $payments->list( { %LIST_PARAMS } );
@@ -4075,7 +4078,7 @@ foreach my $line (@$list) {
   "$line->[7]", 
   $PAYMENT_METHODS[$line->[8]], 
   "$line->[9]", 
-  ($conf{EXT_BILL_ACCOUNT}) ? $BILL_ACCOUNTS{$line->[10]} : "$line->[10]",
+  ($conf{EXT_BILL_ACCOUNT} && $attr->{USER}) ? $BILL_ACCOUNTS{$line->[10]} : "$line->[10]",
   $delete);
 }
 
@@ -4347,7 +4350,8 @@ elsif($FORM{UID}) {
 	return 0;
 }
 elsif($index != 7) {
-	form_search({ HIDDEN_FIELDS => { subf => ($FORM{subf}) ? $FORM{subf} : undef } });
+	form_search({ HIDDEN_FIELDS => { subf       => ($FORM{subf}) ? $FORM{subf} : undef,
+		                               COMPANY_ID => $FORM{COMPANY_ID} } });
 }
 
 if (! defined($FORM{sort})) {

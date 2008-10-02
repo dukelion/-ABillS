@@ -4,6 +4,7 @@
 <input type=hidden name=subf value=$FORM{subf}>
 <input type=hidden name=OP_SID value=%OP_SID%>
 <input type=hidden name=UID value=%UID%>
+
 <TABLE>
 <TR><TH align=right colspan=3 bgcolor=$_COLORS[0]>$_PAYMENTS</TH></TR>
 <TR><TD colspan=2>$_SUM:</TD><TD><input type=text name=SUM></TD></TR>

@@ -2877,7 +2877,7 @@ sub dv_daily_fees {
 	my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
 
- $debug_output .= "Daily pariodic payments\n" if ($debug > 1);
+ $debug_output .= "Daily periodic payments\n" if ($debug > 1);
 
  my $list = $tariffs->list({ %LIST_PARAMS });
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
@@ -2896,20 +2896,22 @@ sub dv_daily_fees {
          LOGIN_STATUS => 0,
          TP_ID     => $TP_ID,
          SORT      => 1,
-         PAGE_ROWS => 1000000
+         PAGE_ROWS => 1000000,
+         TP_CREDIT => '>=0'
  	   	 });
 
 
      foreach my $u (@$ulist) {
      	  #Check bill id and deposit 
-        my %user = (
-             LOGIN      => $u->[0],
-             UID        => $u->[7],
-             BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
-             REDUCTION  => $u->[14],
-             DEPOSIT    => $u->[2],
-             CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14]
-          );
+         my %user = (
+            LOGIN      => $u->[0],  
+            UID        => $u->[8],
+            BILL_ID    => ($line->[14] > 0) ? $u->[16] : $u->[14],
+            REDUCTION  => $u->[15],
+            ACTIVATE   => $u->[12],
+            DEPOSIT    => $u->[2],
+            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[7]
+           );
 
         if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
           #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $user{DEPOSIT} / $u->[3] / BILL_ID: $user->{BILL_ID}\n"; 	
@@ -2970,7 +2972,7 @@ sub dv_monthly_fees {
 
  my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
- $debug_output .= "Monthly pariodic payments\n" if ($debug > 1);
+ $debug_output .= "Monthly periodic payments\n" if ($debug > 1);
 
  use Users;
  my $users = Users->new($db, $admin, \%conf); 
@@ -3008,6 +3010,7 @@ sub dv_monthly_fees {
  	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL_ID: $line->[13] CREDIT: $line->[14] MIN_USE: $min_use_sum ABON_DISTR: $abon_distrib\n" if ($debug > 1);
 
  	   #get used  traffic for min use functions
+ 	   my %processed_users = ();
      if ($min_use_sum > 0 ) {
        my $report_list = $sessions->reports({ 
              INTERVAL   => "$pre_month_begin/$pre_month_end",
@@ -3024,7 +3027,7 @@ sub dv_monthly_fees {
      	 $month_fee = $month_fee / $days_in_month;
       }    
 
- 	   
+
 	   my $ulist = $Dv->list({ 
          ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
          EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
@@ -3032,9 +3035,9 @@ sub dv_monthly_fees {
          LOGIN_STATUS => 0,
          TP_ID      => $TP_ID,
          SORT       => 1,
-         PAGE_ROWS  => 1000000
+         PAGE_ROWS  => 1000000,
+         TP_CREDIT  => '>=0'
  	   	 });
-
 
      foreach my $u (@$ulist) {
        $debug_output .= " Login: $u->[0] ($u->[7])  TP_ID: $u->[10] Fees: $line->[6] REDUCTION: $u->[14]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 3); 	
@@ -3042,12 +3045,13 @@ sub dv_monthly_fees {
        
        my %user = (
             LOGIN      => $u->[0],  
-            UID        => $u->[7],
-            BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
-            REDUCTION  => $u->[14],
-            ACTIVATE   => $u->[11],
+            UID        => $u->[8],
+            BILL_ID    => ($line->[14] > 0) ? $u->[16] : $u->[14],
+            REDUCTION  => $u->[15],
+            ACTIVATE   => $u->[12],
             DEPOSIT    => $u->[2],
-            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14]
+            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[7],
+            COMPANY_ID => $u->[7]
            );
        
        #Check bill ID and deposit
@@ -3059,17 +3063,40 @@ sub dv_monthly_fees {
        
          my $sum = 0;
          $START_PERIOD_DAY = ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} : 1;
-
+         
+         #***************************************************************
          #Min use 
          if ($min_use_sum > 0 && $d == $START_PERIOD_DAY) {
            #Check activation dae
+           
+
            if ($user{ACTIVATE} ne '0000-00-00') {
-             	 my (undef, $ativated_m, $activated_d)=split(/:/, $user{ACTIVATE}, 3);
-             	 my $days_in_month=($ativated_m!=2?(($ativated_m%2)^($ativated_m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28)); 
+             	 my ($activated_y, $activated_m, $activated_d)=split(/-/, $user{ACTIVATE}, 3);
+             	 my $days_in_month=($activated_m!=2?(($activated_m%2)^($activated_m>7))+30:(!($activated_y%400)||!($activated_y%4)&&($activated_y%25)?29:28)); 
      	         $min_use_sum = sprintf("%.2f", $min_use_sum / $days_in_month * ($days_in_month - $activated_d + $START_PERIOD_DAY));
            	}
 
            my $used = ($used_traffic{$user{UID}}) ? $used_traffic{$user{UID}} : 0;
+           $FEES_PARAMS{DESCRIBE}="$_MIN_USE"; 
+           #summary for all company users with same tarif plan
+           if ($processed_users{$user{COMPANY_ID}}) {
+           	 next;
+            }
+
+           if ($user{COMPANY_ID}) {
+             my $company_users = $ulist = $Dv->list({ TP_ID      => $line->[0],
+                                                      COMPANY_ID => $user{COMPANY_ID}
+         	                                        });
+             my @UIDS = ();
+             foreach my $c_user ( @$company_users ) {
+         	      push @UIDS, $c_user->[0];
+         	      $used += $used_traffic{$user{UID}} if ($used_traffic{$user{UID}});
+         	      $processed_users{$user{COMPANY_ID}}++;
+              }
+
+             $min_use_sum = $min_use_sum * $processed_users{$user{COMPANY_ID}};
+             $FEES_PARAMS{DESCRIBE} .= "$_COMPANY $_LOGINS: ". join(', ', @UIDS);
+            }
 
            #Get Fees sum for min_user
            if ($conf{MIN_USE_FEES_CONSIDE})	{
@@ -3079,20 +3106,22 @@ sub dv_monthly_fees {
        	     $used += $fees->{SUM} if ($fees->{TOTAL_SUM});
             }
 
+ 
            
            $debug_output .=  "  USED: $used\n" if ($debug > 3);
            #Make payments
-           next if ($used >= $min_use);
+           next if ($used >= $min_use_sum);
+
+           
        
-           $sum = $min_use - $used;
+           $sum = $min_use_sum - $used;
            if ($line->[11] == 1 && $user{REDUCTION} > 0) {
              $sum = $sum * (100 - $user{REDUCTION}) / 100;
             }
            
-           $FEES_PARAMS{DESCRIBE}="$_MIN_USE"; 
            
            if($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $tp_postpaid == 1) {
-              if ($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) {
+              if ($d == $START_PERIOD_DAY) {
                 if ($debug > 4) {
                   $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                  }
@@ -3104,6 +3133,7 @@ sub dv_monthly_fees {
              }
             
           }
+         #***************************************************************
          #Month Fee
          else {
            #Make sum 
@@ -3174,12 +3204,14 @@ sub dv_monthly_fees {
 
 #=====================================
 
-  #Make traffic recalculation for expration
+#Make traffic recalculation for expration
 if ($d == 1) {
   $list = $tariffs->list({ %LIST_PARAMS });
   $debug_output .= "-- Total month price\n";
   use Billing;
   my $Billing = Billing->new($db, $CONF);
+
+  #my %$processed_users = ();
   
   foreach my $tp_line (@$list) {
      #$tariffs->{debug}=1;
@@ -3194,15 +3226,19 @@ if ($d == 1) {
        my %expr_hash = ();
      	 foreach my $tt ( @$tt_list ) {
      	 	 my $expression = $tt->[8];
-     	 	 next if ($expression !~ /MONTH_TRAFFIC_SUM/);
+     	 	 next if ($expression !~ /MONTH_TRAFFIC_/);
          
-         $expression =~ s/MONTH_TRAFFIC_SUM/TRAFFIC_SUM/g;
+         $expression =~ s/MONTH_TRAFFIC/TRAFFIC/g;
 
          $debug_output .= "TP: $tp_line->[0] TI: $ti->[0] TT: $tt->[0]\n";
          $debug_output .= "  Expr: $expression\n" if ($debug > 3);
          
          $expr_hash{$tt->[0]} = $expression;
+         
+
      	  }
+
+       next if (! defined($expr_hash{0}));
 
    	   $ulist = $Dv->list({ 
            ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
@@ -3211,26 +3247,53 @@ if ($d == 1) {
            LOGIN_STATUS => 0,
            TP_ID      => $tp_line->[0],
            SORT       => 1,
-           PAGE_ROWS  => 1000000
+           PAGE_ROWS  => 1000000,
+           TP_CREDIT  => '>=0',
+           COMPANY_ID => '>=0',
  	     	 });
 
        foreach my $u (@$ulist) {
-          my %user = (
+
+         %user = (
             LOGIN      => $u->[0],  
-            UID        => $u->[7],
-            BILL_ID    => ($tp_line->[13] > 0) ? $u->[15] : $u->[13],
-            REDUCTION  => $u->[14],
-            #ACTIVATE   => $u->[11],
-            ACTIVATE   => '0000-00-00',
+            UID        => $u->[8],
+            BILL_ID    => ($tp_line->[14] > 0) ? $u->[16] : $u->[14],
+            REDUCTION  => $u->[15],
+            ACTIVATE   => $u->[12],
             DEPOSIT    => $u->[2],
-            CREDIT     => ($u->[3] > 0) ? $u->[3] : $tp_line->[14]
+            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[7],
+            COMPANY_ID => $u->[9],
            );
 
          $debug_output .= " Login: $u->[0] ($u->[7])  TP_ID: $u->[10] Fees: - REDUCTION: $u->[14] $u->[2] $u->[3] $u->[10] - $user{ACTIVATE}\n" if ($debug > 3); 	
+
+#Summary for company users
+#         my @UIDS  = ();
+#         if ($$processed_users{$user{COMPANY_ID}}) {
+#         	 next;
+#          }
+#
+#         if ($user{COMPANY_ID}) {
+#           my $company_users = $ulist = $Dv->list({ TP_ID      => $tp_line->[0],
+#                                                    COMPANY_ID => $user{COMPANY_ID}
+#         	                                        });
+#           $$processed_users{$user{COMPANY_ID}}=1;
+#         
+#           foreach my $c_user ( @$company_users ) {
+#         	    push @UIDS, $c_user->[7];
+#            }
+#
+#           print "$user{LOGIN} hello $user{COMPANY_ID} // ";
+#           print @UIDS ,"\n";
+#          }
+
          $Billing->{PERIOD_TRAFFIC}=undef;
          my $RESULT = $Billing->expression($user{UID}, \%expr_hash, 
                                                           { START_PERIOD => $user{ACTIVATE},
-  	                                                        debug        => 0 });
+  	                                                        debug        => 0,
+  	                                                        #UIDS         => ($#UIDS > -1) ? join(',', @UIDS) : '',
+  	                                                        #ACCOUNTS_SUMMARY => $#UIDS+1
+  	                                                        });
   	                                                        
          my $message = '';
          my $sum     = 0;

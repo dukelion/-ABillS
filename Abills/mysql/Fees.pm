@@ -185,6 +185,9 @@ sub list {
  if ($attr->{BILL_ID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{BILL_ID}, 'INT', 'f.bill_id') };
   }
+ elsif ($attr->{COMPANY_ID}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
+  }
 
  
  if ($attr->{AID}) {
@@ -234,9 +237,6 @@ sub list {
  # Date
 
 
- if ($attr->{COMPANY_ID}) {
- 	 push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";
-  }
 
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
