@@ -145,6 +145,7 @@ if ($self->{DISABLE} ||  $self->{DV_DISABLE} || $self->{USER_DISABLE}) {
 }
 
 
+$self->{PAYMENT_TYPE} == 1;
 if ($self->{PAYMENT_TYPE} == 0) {
   $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}; #-$self->{CREDIT_TRESSHOLD};
   #Check deposit
