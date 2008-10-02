@@ -4971,7 +4971,8 @@ sub tpl_describe {
 	  while(<FILE>) {
 	  	$content .= $_;
 	   }
-	
+	open(FILE);
+
  	my @rows = split(/\n/, $content);
   
   foreach my $line (@rows) {

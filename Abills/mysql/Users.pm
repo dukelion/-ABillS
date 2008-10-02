@@ -333,6 +333,13 @@ sub pi {
 	
 	$self->{INFO_FIELDS_VAL} = \@INFO_ARR;
 
+  my $i = 0;
+  foreach my $val (@INFO_ARR) {
+  	$self->{'INFO_FIELDS_VAL_'.$i}=$val;
+  	$i++;
+   }
+
+
 	return $self;
 }
 
