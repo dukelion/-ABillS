@@ -1600,7 +1600,7 @@ sub ipn_user_activate {
    }
 
 
-$HIDDEN{sid}=$html->{SID} if ($html->{SID});
+$HIDDEN{sid}        = $html->{SID} if ($html->{SID});
 
 $html->tpl_show(_include('ipn_form_active', 'Ipn'), { IP             => $ip,
 	                                                    IP_INPUT_FORM  => $IP_INPUT,

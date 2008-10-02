@@ -333,8 +333,10 @@ elsif (! defined $FORM{type}) {
 	$FORM{type}=15;
 }
 
+
+
 $admin->{SEL_TYPE} = $html->form_select('type', 
-                                { SELECTED   => $FORM{type},
+                                { SELECTED   => (! $SEARCH_TYPES{$FORM{type}}) ? 11 : $FORM{type},
  	                                SEL_HASH   => \%SEARCH_TYPES,
  	                                NO_ID      => 1
  	                                #EX_PARAMS => 'onChange="selectstype()"'
@@ -4178,7 +4180,7 @@ sub form_fees  {
 
 
  my @FEES_METHODS = ($_ONE_TIME, $_ABON, $_FINE, $_ACTIVATE);
-# push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
+ push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
 
 
 if ($attr->{USER}) {

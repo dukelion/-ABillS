@@ -1389,7 +1389,7 @@ sub tpl_show {
   #my $moddate = "$1$1$3";
   #$TIME    =~ /(\d{2}):(\d{2}):(\d{2})-/;
   my $moddate.= ''; #"$1$1$3";
-
+  $attr->{DOCS_IN_FILE} = 0 if (! $attr->{DOCS_IN_FILE});
   
   $pdf->info(
         'Author'       => "ABillS pdf manager",
@@ -1402,6 +1402,19 @@ sub tpl_show {
         'Keywords'     => ""
     ); 
 
+
+my $multi_doc_count = 0;
+my $page_count      = $pdf->pages;
+
+my $font_name = 'Verdana';
+my $encode    = 'windows-1251';
+
+my $font = $pdf->corefont($font_name, -encode => "$encode");
+
+
+MULTIDOC_LABEL:
+
+
 for my $key (sort keys %$tpl_describe) { 
   
   my @patterns = ();
@@ -1413,40 +1426,44 @@ for my $key (sort keys %$tpl_describe) {
     push @patterns, $tpl_describe->{$key}{PARAMS};
    }
 
+  my $x         = 0; 
+  my $y         = 0;
+  my $doc_page  = 1;
+  my $font_size = 10;
+  my $font_color;
+  my $align     = '';
+
 
   foreach my $pattern (@patterns) {
-    my $x         = 0; 
-    my $y         = 0;
-    my $doc_page  = 1;
-    my $font_size = 10;
-    my $font_name = 'Verdana';
-    my $font_color;
-    my $encode    = 'windows-1251';
-    my $align     = '';
-
     $x          = $1 if ($pattern =~ /x=(\d+)/);
     $y          = $1 if ($pattern =~ /y=(\d+)/);
+    next if ($x == 0 && $y == 0);
+
     $doc_page   = $1 if ($pattern =~ /page=(\d+)/);
     $font_size  = $1 if ($pattern =~ /font_size=(\d+)/);
-    $font_name  = $1 if ($pattern =~ /font_name=(\S+)/);
+    
     $font_color = $1 if ($pattern =~ /font_color=(\d+)/);
     $encode     = $1 if ($pattern =~ /encode=(\S+)/);
     $align      = $1 if ($align   =~ /align=(\S+)/);
     
- 
+    #print "$key / $pattern\n";
 
-    my $font = $pdf->corefont($font_name, -encode => "$encode");
-    my $page = $pdf->openpage($doc_page);
+    if ($pattern =~ /font_name=(\S+)/) {
+    	$font_name  = $1;
+      $font = $pdf->corefont($font_name, -encode => "$encode");
+     }
+    #my $font = $pdf->ttfont('arialbold');
+
+    my $work_page = ($attr->{DOCS_IN_FILE}) ? $doc_page + $page_count * ($multi_doc_count - 1) - ($page_count * $attr->{DOCS_IN_FILE} * int( ($multi_doc_count - 1) / $attr->{DOCS_IN_FILE})) : $doc_page + $page_count * $multi_doc_count;
+
+    my $page = $pdf->openpage($work_page)  ;
     my $txt  = $page->text;
     $txt->font($font,$font_size);
-
     if ($font_color) {
       $txt->fillcolor($font_color);
       $txt->fillstroke($font_color);
      }
-
-
-    next if ($x == 0 && $y == 0);
+    
     $txt->translate($x,$y);
 
     my $text = '';
@@ -1457,18 +1474,41 @@ for my $key (sort keys %$tpl_describe) {
     	$text = ''; #"'$key: $x/$y'";
      }
 
+
     $txt->text($text);
+
   }
 
-  
 }
 
 
+if ($attr->{MULTI_DOCS} && $multi_doc_count < @{ $attr->{MULTI_DOCS} }) {
+  
+  if ($attr->{DOCS_IN_FILE} && $multi_doc_count > 0 && $multi_doc_count % $attr->{DOCS_IN_FILE} == 0) {
+  	my $outfile = $attr->{SAVE_AS};
+  	my $filenum = int($multi_doc_count / $attr->{DOCS_IN_FILE});
+  	
+  	$outfile =~ s/\.pdf/$filenum\.pdf/;
+  	
+  	print "Save to: $outfile\n" if ($self->{debug});
+  	
+  	$pdf->saveas("$outfile") ;
+  	$pdf->end;
+    
+    $pdf = PDF::API2->open($filename);
+    $font = $pdf->corefont($font_name, -encode => "$encode");
+   }
+  
+  $variables_ref = $attr->{MULTI_DOCS}[$multi_doc_count];
+  print "Doc: $multi_doc_count\n" if ($attr->{debug});
+  #print %$variables_ref  ;
 
-#$txt->compress();
+  for(my $i=1; $i<=$page_count; $i++) {
+    my $page = $pdf->importpage($pdf, $i);
+   }
 
-if ($attr->{MULTI_DOCS}) {
-  return $pdf ; 	
+  $multi_doc_count++;  
+  goto MULTIDOC_LABEL;
 }
 
 if ($attr->{SAVE_AS}) {
