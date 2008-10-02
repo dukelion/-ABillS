@@ -94,7 +94,8 @@ sub user_ips {
 		 0,
 		 tp.octets_direction,
 		 u.reduction,
-		 ''
+		 '',
+		 u.activate
 		 FROM (users u, dv_main dv)
 		 LEFT JOIN companies c ON (u.company_id=c.id)
 		 LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -117,7 +118,8 @@ sub user_ips {
       calls.nas_id,
       tp.octets_direction,
       u.reduction,
-      CONNECT_INFO
+      CONNECT_INFO,
+      u.activate
     FROM (dv_calls calls, users u)
       LEFT JOIN companies c ON (u.company_id=c.id)
       LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -140,7 +142,8 @@ sub user_ips {
     calls.nas_id,
     0,
     u.reduction,
-    CONNECT_INFO
+    CONNECT_INFO,
+    u.activate
     FROM (dv_calls calls, users u)
    WHERE u.id=calls.user_name
    and calls.nas_id IN ($DATA->{NAS_ID});";
@@ -185,13 +188,14 @@ sub user_ips {
      #If post paid set deposit to 0
      #if (defined($line->[9]) && $line->[9] == 1) {
   	   #Payment type 0 - prepaid / 1 - postpaid
-  	   $users_info{PAYMENT_TYPE}{$line->[0]} = $line->[9];
+  	 $users_info{PAYMENT_TYPE}{$line->[0]} = $line->[9];
   	 #  $users_info{DEPOSIT}{$line->[0]} = 0;
   	 # } 
   	 #else {
   	 $users_info{DEPOSIT}{$line->[0]} = $line->[8];
   	 # }
      $users_info{REDUCTION}{$line->[0]} = $line->[13];
+     $users_info{ACTIVATE}{$line->[0]} = $line->[15];
  	   $users_info{BILL_ID}{$line->[0]} = $line->[7];  	 
  	 	
   	 push @clients_lst, $line->[1];

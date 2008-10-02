@@ -243,7 +243,8 @@ if ($Ipn->{INTERIM}{$ip}) {
 
      # Work with prepaid traffic
      if ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PREPAID_TSUM}) ) {
-     	  my($used_traffic) = $Ipn->traffic_user_get({ UID  => $uid   });
+	my($used_traffic) = $Ipn->traffic_user_get({ UID      => $uid, 
+                                                     ACTIVATE =>   });
         my $online  = 0;
 
         if($OCTETS_DIRECTION == 1) {

@@ -2367,7 +2367,7 @@ if ($FORM{RECALCULATE}) {
 
      # Work with prepaid traffic
      if ( $prepaid > 0 ) {
-     	  my($used_traffic) = $Ipn_collector->traffic_user_get({ UID      => $LIST_PARAMS{UID}, 
+     	  my($used_traffic) = $Ipn_Collector->traffic_user_get({ UID      => $LIST_PARAMS{UID}, 
      	  	                                                     INTERVAL => "0000-00-00/$line->[0]"   
      	  	                                                   });
         my $online  = 0;
