@@ -620,7 +620,7 @@ sub traffic_user_get {
    }
   elsif ($attr->{INTERVAL}) {
   	my ($from, $to)=split(/\//, $attr->{INTERVAL});
-  	$from = ($from eq '0000-00-00') ? 'DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), \'%Y-%m\')' : "DATE_FORMAT(start, '%Y-%m-%d')>='$from'";
+  	$from = ($from eq '0000-00-00') ? 'DATE_FORMAT(start, \'%Y-%m\')>=DATE_FORMAT(curdate(), \'%Y-%m\')' : "DATE_FORMAT(start, '\%Y-\%m-\%d')>='$from'";
   	$WHERE = "( $from AND start<'$to') ";
    }
   elsif ($attr->{ACTIVATE}) {
