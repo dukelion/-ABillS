@@ -1201,7 +1201,7 @@ elsif ($FORM{change}) {
    }
  }
 elsif ($FORM{del} && $FORM{is_js_confirmed}) {
-  $Cards->cards_diller_del({ ID => $FORM{del} });
+  $Cards->cards_diller_del({ ID => $FORM{del}, DILELR_ID => $FORM{DILLER_ID} });
   if (! $Cards->{errno}) {
     $html->message('info', $_INFO, "$_DELETED");	
    }
@@ -1217,7 +1217,7 @@ if ($Cards->{errno}) {
  	  $Cards->{ACTION}='change';
  	  $Cards->{LNG_ACTION}=$_CHANGE;
  	  
-    $pages_qs = "&UID=$FORM{UID}";
+    $pages_qs = "&UID=$FORM{UID}&DILLER_ID=$Cards->{ID}";
     $LIST_PARAMS{DILLER_ID}=$Cards->{ID};
 
     cards_main();
@@ -1226,7 +1226,6 @@ if ($Cards->{errno}) {
 
 	$Cards->{DISABLE} = ($Cards->{DISABLE} == 1)? 'checked' : '';
 	$html->tpl_show(_include('cards_dillers', 'Cards'), $Cards);
-
 }
 
 
