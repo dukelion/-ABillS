@@ -2899,6 +2899,7 @@ if ($nas->{errno}) {
   'pppd'      => 'pppd + RADIUS plugin (Linux)',
   'gnugk'     => 'GNU GateKeeper',
   'cisco'     => 'Cisco (Experimental)',
+  'dell'      => 'Dell Switch',
   'cisco_isg' => 'Cisco ISG',
   'patton'    => 'Patton RAS 29xx',
   'cisco_air' => 'Cisco Aironets',
