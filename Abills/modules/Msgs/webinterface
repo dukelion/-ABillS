@@ -571,7 +571,6 @@ sub msgs_admin {
   $LIST_PARAMS{PRIORITY}=undef if ($FORM{PRIORITY} == 5);
 
 
-  $Msgs->{debug}=1;
   my $list = $Msgs->messages_list({ %LIST_PARAMS, 
   	                                DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
   	                               });
@@ -871,7 +870,6 @@ sub msgs_user {
   $LIST_PARAMS{INNER_MSG}  =  0;
 
   #print "Content-type: text/html\n\n";
-  #$Msgs->{debug}=1;
   my  $list = $Msgs->messages_list({ %LIST_PARAMS });  
 
   my $table = $html->table( { width        => '100%',

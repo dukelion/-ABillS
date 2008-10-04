@@ -4832,6 +4832,7 @@ print << "[END]";
 
 
 my $table = $html->table( { width       => '600',
+	                          caption     => $_TEMPLATES,
                             title_plain => ["FILE", "$_SIZE (Byte)", "$_DATE", "$_DESCRIBE",  "-", "-", "-"],
                             cols_align  => ['left', 'right', 'right', 'left', 'center', 'center']
                          } );
@@ -4924,6 +4925,38 @@ foreach my $module (sort @MODULES) {
 #while(my($k, $v) = each %templates) {
 #  $table->addrow($html->b($k), "$v", $html->button($_CHANGE, "index=$index&tpl_name=$k"));
 #}
+print $table->show();
+
+
+my $table = $html->table( { width       => '600',
+	                          caption     => $_OTHER,
+                            title_plain => ["FILE", "$_SIZE (Byte)", "$_DATE", "$_DESCRIBE",  "-" ],
+                            cols_align  => ['left', 'right', 'right', 'left', 'center', 'center']
+                         } );
+
+	if (-d "$conf{TPL_DIR}" ) {
+    opendir DIR, "$conf{TPL_DIR}" or die "Can't open dir '$sys_templates/$module/templates' $!\n";
+      my @contents = grep  !/^\.\.?$/ && !/\.tpl$/  , readdir DIR;
+    closedir DIR;
+
+    $table->{rowcolor}=undef;
+    $table->{extra}=undef;
+
+    foreach my $file (sort @contents) {
+      next if (-d "$conf{TPL_DIR}/".$file);
+
+      my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+        $blksize,$blocks);
+
+      ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+         $blksize,$blocks)=stat("$conf{TPL_DIR}/$file");
+        $mtime = strftime "%Y-%m-%d", localtime($mtime);
+
+      $table->addrow("$file", $size, $mtime, $describe,
+         $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file" }));
+     }
+
+   }
 
 print $table->show();
 }
