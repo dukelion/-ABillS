@@ -113,7 +113,6 @@ sub query {
   $self->{errstr}=undef;
   $self->{errno}=undef;
   $self->{TOTAL} = 0;
-  
   print "<p>$query</p>\n" if ($self->{debug});
 
   if (defined($attr->{test})) {

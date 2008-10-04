@@ -42,7 +42,7 @@ sub new {
   
   if ($CONF->{DELETE_USER}) {
     $self->{UID}=$CONF->{DELETE_USER};
-    $self->del({ UID => $CONF->{DELETE_USER} });
+    $self->user_del({ UID => $CONF->{DELETE_USER} });
    }
   
   return $self;
