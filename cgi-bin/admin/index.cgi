@@ -4699,7 +4699,7 @@ print $table->show();
 #**********************************************************
 sub form_templates {
   
-  
+  my $safe_filename_characters = "a-zA-Z0-9_.-"; 
   my $sys_templates = '../../Abills/modules';
   my $main_templates_dir = '../../Abills/main_tpls/';
   my $template = '';
@@ -4787,13 +4787,39 @@ elsif ($FORM{change}) {
 
 	$html->message('info', $_INFO, "$_CHANGED '$FORM{tpl_name}'");
  }
+elsif ($FORM{FILE_UPLOAD}) {
+  $FORM{FILE_UPLOAD}{filename} =~ tr/ /_/;
+  $FORM{FILE_UPLOAD}{filename} =~ s/[^$safe_filename_characters]//g; 
+  
+  if (-f "$conf{TPL_DIR}/$FORM{FILE_UPLOAD}{filename}") {
+    $html->message('err', $_ERROR, "$_EXIST '$FORM{FILE_UPLOAD}{filename}'");
+   }
+  else {
+    open(FILE, ">$conf{TPL_DIR}/$FORM{FILE_UPLOAD}{filename}") or $html->message('err', $_ERROR, "$_ERROR  '$!'");
+      binmode FILE;
+      #while(<$FORM{FILE_UPLOAD}{Contents}>) {  
+      	print FILE $FORM{FILE_UPLOAD}{Contents};
+      # }
+    close(FILE);
+    $html->message('info', $_INFO, "$_ADDED: '$FORM{FILE_UPLOAD}{filename}' $_SIZE: $FORM{FILE_UPLOAD}{Size}");
+   }
+ }
+elsif ($FORM{file_del} && $FORM{is_js_confirmed} ) {
+  $FORM{file_del} =~ s/ |\///g;
+  if(unlink("$conf{TPL_DIR}/$FORM{file_del}") == 1 ) {	
+	  $html->message('info', $_DELETED, "$_DELETED: '$FORM{file_del}'");
+	 }
+  else {
+  	$html->message('err', $_DELETED, "$_ERROR");
+   }
+ }
 elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
   $FORM{del} =~ s/ |\///g;
   if(unlink("$conf{TPL_DIR}/$FORM{del}") == 1 ) {	
 	  $html->message('info', $_DELETED, "$_DELETED: '$FORM{del}'");
 	 }
   else {
-  	$html->message('del', $_DELETED, "$_ERROR");
+  	$html->message('err', $_DELETED, "$_ERROR");
    }
  }
 elsif($FORM{tpl_name}) {
@@ -4806,9 +4832,6 @@ elsif($FORM{tpl_name}) {
     $info{TPL_NAME} = $FORM{tpl_name};
     $html->message('info', $_CHAMGE, "$_CHANGE: $FORM{tpl_name}");
    }
-
-
-  
 }
 
 
@@ -4953,12 +4976,14 @@ my $table = $html->table( { width       => '600',
         $mtime = strftime "%Y-%m-%d", localtime($mtime);
 
       $table->addrow("$file", $size, $mtime, $describe,
-         $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file" }));
+         $html->button($_DEL, "index=$index&file_del=$file", { MESSAGE => "$_DEL '$file'" }));
      }
 
    }
+ print $table->show();
+ 
+ $html->tpl_show(templates('form_fileadd'), undef);
 
-print $table->show();
 }
 
 

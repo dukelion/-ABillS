@@ -75,10 +75,10 @@ For IPN
  Add to /etc/ppp/ip-down.local 
    /usr/abills/libexec/linkupdown pppd down \$1 'username' \$4
  
- For mikrotik:
+ For mikrotik (use it as acct external cmd /usr/abills/libexec/acct_ext):
  
-  /usr/abills/libexec/linkupdown mikrotik up INTERFACE USER HISADD
-  /usr/abills/libexec/linkupdown mikrotik down INTERFACE USER HISADD
+  /usr/abills/libexec/linkupdown mikrotik up INTERFACE USER HISADD NAS_HOST=192.168.1.1 NAS_ADMIN=admin [SSH_CMD=.., debug]
+  /usr/abills/libexec/linkupdown mikrotik down INTERFACE USER HISADD NAS_HOST=192.168.1.1 NAS_ADMIN=admin [SSH_CMD=.., debug]
 
 DEBUG: $debug
 };
@@ -162,10 +162,10 @@ elsif ($ARGV[0] eq 'ipn') {
 
 }
 elsif($ARGV[0] eq 'pppd' || $ARGV[0] eq 'mikrotik') {
-  $ACTION   =$ARGV[1];
-  $INTERFACE=$ARGV[2];
-  $USER     =$ARGV[3];
-  $HISADDR  =$ARGV[4];
+  $ACTION   = $ARGV[1];
+  $INTERFACE= $ARGV[2];
+  $USER     = $ARGV[3];
+  $HISADDR  = $ARGV[4];
   $inum     = $INTERFACE;
   if(! ($inum =~ s/ppp//)) {
   	$inum = 0;
@@ -277,8 +277,8 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   }
 
   if ($user->{SPEED} > 0) {
-    $speeds{0}{IN}=int($user->{SPEED});
-    $speeds{0}{OUT}=int($user->{SPEED});
+    $speeds{0}{IN} = int($user->{SPEED});
+    $speeds{0}{OUT}= int($user->{SPEED});
    }
   else {
 
@@ -341,7 +341,7 @@ print "Expresion:================================\n" if ($debug > 0);
   my $RESULT = $Billing->expression($Dv->{UID}, \%expr, { START_PERIOD => $Dv->{ACCOUNT_ACTIVATE}, 
   	                                                      debug        => $debug } );
 print "\nEND: =====================================\n" if ($debug > 0);
-  
+
   if (! $RESULT->{SPEED}) {
     $speeds{0}{IN}=$RESULT->{SPEED_IN} if($RESULT->{SPEED_IN});
     $speeds{0}{OUT}=$RESULT->{SPEED_OUT} if($RESULT->{SPEED_OUT});
@@ -351,8 +351,10 @@ print "\nEND: =====================================\n" if ($debug > 0);
   	$speeds{0}{OUT}=$RESULT->{SPEED};
    }
 
+
+
   if ($ARGV[0] eq 'mikrotik') {
-    mikrotik({ SPEEDS => \%speeds,
+    mikrotik_ext({ SPEEDS => \%speeds,
     	         NETS   => \%nets });
     	         
   	exit;
@@ -390,9 +392,9 @@ print "\nEND: =====================================\n" if ($debug > 0);
 
     @nets_arr = ('0.0.0.0/0') if ($#nets_arr < 0);
 
-    #Mikrotik tc shaper
+    #Mikrotik shaper
     if ($ARGV[0] eq 'mikrotik' ) {
-    	mikrotik({ 
+    	mikrotik_ext({ 
     		  SPEED_IN  => $speed_in,
     		  SPEED_OUT => $speed_out,
     		  NETS_ID   => undef,
@@ -532,26 +534,46 @@ foreach my $line (@FW_ACTIONS) {
 sub mikrotik {
 	my ($attr)=@_;
 
-  my $name = "ads-pptp-test";
-  my $interface = "<pptp-test>";
-  my $speed_in  = 512000;
-  my $speed_out = 512000;
-  my $cmd = '';
-
-if ($ACTION eq 'up') {
-  $cmd = "name=\"$name\" dst-address=0.0.0.0/0 interface=$interface
-      parent=none direction=both priority=8 queue=default-small/default-small
-      limit-at=$speed_in/$speed_out max-limit=$speed_in/$speed_out
-      total-queue=default-small";
- }
-elsif($ACTION eq 'down') {
-  $cmd = "remove [ find name=$name ]";
-	
-}
   
+  
+my $cmd   = '';
+my $proto = 'pptp';
+my $nets  = '';
+my $nas_host  = '';
+my $nas_admin = '';
+my $SSH       = '/usr/bin/ssh';
 
 
-  my $result .= `ssh admin_ssh\@192.168.101.10 "$cmd"`;
+foreach my $id (keys %{ $attr->{SPEEDS} }) {  
+  my $interface = "<$proto-$USER>";
+  my $name = "ads-$proto-$USER";
+  my $speed_in  = $attr->{SPEEDS}->{$id}->{IN};
+  my $speed_out = $attr->{SPEEDS}->{$id}->{OUT};
+  $cmd = '';
+  
+  if ($id == 0) {
+    $nets = '0.0.0.0/0';
+   }
+  else {
+    $nets =  $attr->{NETS}->[0];
+   }
+
+  if ($nets ne '' || $id == 0) {
+    if ($ACTION eq 'up') {
+      $cmd = "/queue tree add name name=\"$name\" dst-address=0.0.0.0/0 interface=$interface
+        parent=none direction=both priority=8 queue=default-small/default-small
+        limit-at=$speed_in/$speed_out max-limit=$speed_in/$speed_out
+        total-queue=default-small;";
+     }
+    elsif($ACTION eq 'down') {
+      $cmd = "/queue tree add name remove [ find name=$name ];";
+     }
+   }
+
+ }
+
+
+  my $result = `$SSH $nas_admin\@$nas_host "$cmd"`;
 }
 
 #**********************************************************
@@ -564,12 +586,25 @@ elsif($ACTION eq 'down') {
 sub mikrotik_ext {
 	my ($attr)=@_;
 
-	
-	my $speeds = $attr->{SPEEDS};
-	my $nets   = $attr->{NETS};
 
-	my @commands = ();
-  $INTERFACE="<pptp-aa1>";
+  my $argv = parse_arguments(\@ARGV);
+	
+	my $speeds    = $attr->{SPEEDS};
+	my $nets      = $attr->{NETS};
+
+  my $proto     = $argv->{PROTO} || 'pptp';
+  my $nas_host  = $argv->{NAS_HOST} || '';
+  my $nas_admin = $argv->{NAS_ADMIN}|| 'admin';
+  my $SSH       = $argv->{SSH_CMD}  || '/usr/bin/ssh';
+
+	my @commands  = ();
+
+  $INTERFACE="<$proto-$USER>";
+
+  if($ACTION eq 'down') {
+    push  @commands,  "/queue tree add name remove [ find name=$INTERFACE ];";
+   }
+  else {
 
   foreach my $traf_type (sort keys %$speeds) {
     my $speed = $speeds->{$traf_type};
@@ -594,7 +629,7 @@ sub mikrotik_ext {
 
     # Describe  / $address / speed (IN / OUT)
     # Make address list
-    my $address_list_name = "TT_".$traf_type;
+    my $address_list_name = "TT_$user->{TP_ID}_".$traf_type;
 
     foreach my $address (@nets_arr) {
    	  push @commands, qq{ /ip firewall address-list add list=$address_list_name address=$address };
@@ -602,21 +637,39 @@ sub mikrotik_ext {
 
     # Make marks
     my $mark_name=$address_list_name. "_mark";
+    my $mark_name_in=$address_list_name. "_mark_in";
+    my $priority = 5 - $traf_type;
+
     push @commands,  qq{ /ip firewall mangle add address-list=$address_list_name action=mark-connection new-connection-mark=$mark_name chain=prerouting comment=$mark_name };
 
     push @commands,  qq{ /queue tree add name=$mark_name parent=$INTERFACE max-limit=$speed_in/$speed_out packet-mark=$mark_name priority=8 };
+    
+    # Second way 
+    
+    # /ip firewall mangle add chain=prerouting dst-address=195.222.70.250 action=mark-onnection new-connection-mark=cybernet-connection-up passthrough=yes
+
+    # /ip firewall mangle add chain=forward connection-mark=cybernet-connection-up ction=mark-packet new-packet-mark=cybernet-packet-up passthrough=yes
+
+    #/ip firewall mangle add chain=prerouting src-address=195.222.70.250 action=mark-connection new-connection-mark=cybernet-connection-from passthrough=yes
+
+    #/ip firewall mangle add chain=forward connection-mark=cybernet-connection-from action=mark-packet new-packet-mark=cybernet-packet-from passthrough=yes 
+    
+    #/queue tree add name="queue_$traf_type" parent=global-out packet-mark=$mark_name imit-at=0 queue=default priority=$priority max-limit=$speed_out burst-limit=0 burst-threshold=0  burst-time=0s
+
+    #/queue tree add name="queue_$traf_type" parent=global-in packet-mark=$mark_name_in limit-at=0 queue=default priority=$priority max-limit=$speed_in burst-limit=0 burst-threshold=0s burst-time=0s 
 
   }
+}
+
 
 #Make ssh command	
 	my $result = '';
 	foreach my $cmd (@commands)  {
 		print "$cmd\n" if ($debug > 0);
-    $result .= `ssh admin\@192.168.101.10 "$cmd"`;
+    $result .= `$SSH $nas_admin\@$nas_host "$cmd"`;
 	 }
 
   print $result;
-
 }
 
 
