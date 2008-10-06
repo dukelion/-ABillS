@@ -217,22 +217,22 @@ sub list {
 
  # Show groups
  if ($attr->{GIDS}) {
-    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
   }
  elsif ($attr->{GID}) {
-    push @WHERE_RULES, "u.gid='$attr->{GID}'";
+   push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
  # Date
  if ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(f.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(f.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+   push @WHERE_RULES, "(date_format(f.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(f.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
   }
  elsif ($attr->{DATE}) {
-    push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'INT', 'date_format(f.date, \'%Y-%m-%d\')') };
   }
  # Month
  elsif ($attr->{MONTH}) {
-    push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
+   push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
   }
  # Date
 
