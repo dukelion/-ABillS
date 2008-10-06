@@ -163,7 +163,9 @@ sub new {
       PDF::API2->import();
       require Abills::PDF;
       $self = Abills::PDF->new( { IMG_PATH  => $IMG_PATH,
-      	                         NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1 
+      	                          NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+      	                          CONF      => $CONF
+      	                          
 	                            
 	                            });
      }
@@ -176,8 +178,8 @@ sub new {
   elsif (defined($FORM{xml})) {
     require Abills::XML;
     $self = Abills::XML->new( { IMG_PATH  => $IMG_PATH,
-	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1 
-	                            
+	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1 ,
+	                              CONF      => $CONF 
 	                            });
   }
   

@@ -1432,16 +1432,45 @@ for my $key (sort keys %$tpl_describe) {
   my $font_size = 10;
   my $font_color;
   my $align     = '';
-
+  my $text_file = '';
 
   foreach my $pattern (@patterns) {
     $x          = $1 if ($pattern =~ /x=(\d+)/);
     $y          = $1 if ($pattern =~ /y=(\d+)/);
     next if ($x == 0 && $y == 0);
 
+    my $text = '';
     $doc_page   = $1 if ($pattern =~ /page=(\d+)/);
+    my $work_page = ($attr->{DOCS_IN_FILE}) ? $doc_page + $page_count * ($multi_doc_count - 1) - ($page_count * $attr->{DOCS_IN_FILE} * int( ($multi_doc_count - 1) / $attr->{DOCS_IN_FILE})) : $doc_page + $page_count * $multi_doc_count;
+    my $page = $pdf->openpage($work_page)  ;
+
+    #Make img_insertion
+    if ($pattern =~ /img=([0-9a-zA-Z_\.]+)/) {
+    	my $img_file = $1;
+      if (! -f "$CONF->{TPL_DIR}/$img_file") {
+      	$text = "Img file not exists '$CONF->{TPL_DIR}/$img_file'\n";
+       }
+      else {  
+    	  print "make image '$CONF->{TPL_DIR}/$img_file'\n" if ($debug > 0);
+
+        my $img_height  = ($pattern =~ /img_height=([0-9a-zA-Z_\.]+)/) ? $1 : 100; 
+        my $img_width   = ($pattern =~ /img_width=([0-9a-zA-Z_\.]+)/) ? $1 : 100;
+
+
+    	  my $gfx=$page->gfx;
+    	  my $img = $pdf->image_jpeg("$CONF->{TPL_DIR}/$img_file"); #, 200, 200);
+        $gfx->image($img, $x, ($y - $img_height + 10), $img_width, $img_height); #, 596, 842);
+
+        $gfx->close;
+        $gfx->stroke;
+      
+    	  next;
+    	 }
+     }
+
+
+    $text_file  = $1 if ($pattern =~ /text=([0-9a-zA-Z_\.]+)/);
     $font_size  = $1 if ($pattern =~ /font_size=(\d+)/);
-    
     $font_color = $1 if ($pattern =~ /font_color=(\d+)/);
     $encode     = $1 if ($pattern =~ /encode=(\S+)/);
     $align      = $1 if ($align   =~ /align=(\S+)/);
@@ -1454,9 +1483,7 @@ for my $key (sort keys %$tpl_describe) {
      }
     #my $font = $pdf->ttfont('arialbold');
 
-    my $work_page = ($attr->{DOCS_IN_FILE}) ? $doc_page + $page_count * ($multi_doc_count - 1) - ($page_count * $attr->{DOCS_IN_FILE} * int( ($multi_doc_count - 1) / $attr->{DOCS_IN_FILE})) : $doc_page + $page_count * $multi_doc_count;
-
-    my $page = $pdf->openpage($work_page)  ;
+    
     my $txt  = $page->text;
     $txt->font($font,$font_size);
     if ($font_color) {
@@ -1466,14 +1493,36 @@ for my $key (sort keys %$tpl_describe) {
     
     $txt->translate($x,$y);
 
-    my $text = '';
     if (defined($variables_ref->{$key})) {
     	$text = $variables_ref->{$key};
      }
-    else {
-    	$text = ''; #"'$key: $x/$y'";
-     }
+    #else {
+    #	$text = ''; #"'$key: $x/$y'";
+    # }
 
+    if ($text_file ne '') {
+        my $text_height  = ($pattern =~ /text_height=([0-9a-zA-Z_\.]+)/) ? $1 : 100; 
+        my $text_width   = ($pattern =~ /text_width=([0-9a-zA-Z_\.]+)/) ? $1 : 100;
+
+        if (! -f "$CONF->{TPL_DIR}/$text_file") {
+        	$text = "Text file not exists '$CONF->{TPL_DIR}/$text_file'\n";
+         }
+        else {
+          my $content = '';
+          open(FILE, "$CONF->{TPL_DIR}/$text_file") or die "Can't open file '$text_file' $!\n";;
+            while(<FILE>) {
+          	  $content .= $_;
+             }
+          close(FILE);
+
+          my $string_height = 15;
+          $txt->lead($string_height);
+          my ($idt,$y2)=$txt->paragraph($content , $text_width, $text_height,
+                      -align     => 'justified',
+                      -spillover => 2 ); # ,400,14,@text);
+          next;
+        }
+     }
 
     $txt->text($text);
 

@@ -8,7 +8,6 @@ my $tmp_path        = '/tmp/';
 my $pdf_result_path = '../cgi-bin/admin/pdf/';
 my $debug           = 1;
 my $docs_in_file    = 4000;
-my $save_filename = $pdf_result_path .'/multidoc_.pdf';
 
 #my $save_filename = '/home/asm/tmp/pdf/multidoc_.pdf';
 #Periodic process
@@ -69,27 +68,43 @@ my $users = Users->new($db, $admin, \%conf);
 
 require $Bin ."/../Abills/modules/Docs/lng_$conf{default_language}.pl";
 
+my $ARGV = parse_arguments(\@ARGV);
+
+$pdf_result_path = $ARGV->{RESULT_DIR} if ($ARGV->{RESULT_DIR});
+
+my $save_filename = $pdf_result_path .'/multidoc_.pdf';
+
+
+
 if (! -d $pdf_result_path) {
 	mkdir ($pdf_result_path);
 }
 
+
 	my $list = $users->list({ DEPOSIT    => '<0',
-		                        DISABLE    => 0,
-		                        PAGE_ROWS  => 1000000   });
-	my @MULTI_ARR = ();
+		                  DISABLE    => 0,
+                                  CONTRACT_ID   => '*',
+                                  CONTRACT_DATE => '>=0000-00-00',
+		                  PAGE_ROWS  => 1000000   });
+
+  my @MULTI_ARR = ();
   my $doc_num = 0;
-	foreach my $line (@$list) {
+  my ($Y, $m, $d)=split(/-/, $DATE, 3); 
+
+foreach my $line (@$list) {
     push @MULTI_ARR, { FIO      => $line->[1], 
     	               DEPOSIT  => sprintf("%.2f", abs($line->[2])),
     	               CREDIT   => $line->[3],
   	               SUM      => sprintf("%.2f", abs($line->[2])),
                        DISABLE  => 0,
     	               ORDER_TOTAL_SUM_VAT => ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", abs($line->[2] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}))) : 0.00,
-    	               NUMBER     => '',
+    	               NUMBER     => "$line->[6]-$m",
                        ACTIVATE   => '>=$DATE',
                        EXPIRE     => '0000-00-00',
                        MONTH_FEE  => sprintf("%.2f", abs($line->[2])),
                        TOTAL_SUM  => sprintf("%.2f", abs($line->[2])),
+                       CONTRACT_ID   => $line->[6],
+                       CONTRACT_DATE => $line->[7],
                        DATE       => $DATE, 
                        SUM_LIT    => int2ml(sprintf("%.2f", abs($line->[2])), { 
   	 ONES             => \@ones,
@@ -126,7 +141,7 @@ if ($begin_time > 0)  {
 #
 #**********************************************************
 sub multi_tpls {
-	my ($tpl, $MULTI_ARR, $attr) = @_;	
+  my ($tpl, $MULTI_ARR, $attr) = @_;	
   my $tpl_name = $1 if ($tpl =~ /\/([a-zA-Z\.0-9\_]+)$/);
   
   my $single_tpl = $html->tpl_show($tpl, undef, 
