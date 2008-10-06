@@ -1442,13 +1442,14 @@ for my $key (sort keys %$tpl_describe) {
     my $text = '';
     $doc_page   = $1 if ($pattern =~ /page=(\d+)/);
     my $work_page = ($attr->{DOCS_IN_FILE}) ? $doc_page + $page_count * ($multi_doc_count - 1) - ($page_count * $attr->{DOCS_IN_FILE} * int( ($multi_doc_count - 1) / $attr->{DOCS_IN_FILE})) : $doc_page + $page_count * $multi_doc_count;
-    my $page = $pdf->openpage($work_page)  ;
+    my $page = $pdf->openpage($work_page);
 
     #Make img_insertion
     if ($pattern =~ /img=([0-9a-zA-Z_\.]+)/) {
     	my $img_file = $1;
       if (! -f "$CONF->{TPL_DIR}/$img_file") {
       	$text = "Img file not exists '$CONF->{TPL_DIR}/$img_file'\n";
+      	next;
        }
       else {  
     	  print "make image '$CONF->{TPL_DIR}/$img_file'\n" if ($debug > 0);
