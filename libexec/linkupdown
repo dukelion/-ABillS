@@ -77,8 +77,8 @@ For IPN
  
  For mikrotik (use it as acct external cmd /usr/abills/libexec/acct_ext):
  
-  /usr/abills/libexec/linkupdown mikrotik up INTERFACE USER HISADD NAS_HOST=192.168.1.1 NAS_ADMIN=admin [SSH_CMD=.., debug]
-  /usr/abills/libexec/linkupdown mikrotik down INTERFACE USER HISADD NAS_HOST=192.168.1.1 NAS_ADMIN=admin [SSH_CMD=.., debug]
+  /usr/abills/libexec/linkupdown mikrotik up INTERFACE USER HISADD NAS_HOST=192.168.1.1 NAS_ADMIN=admin [SSH_CMD=.., PROTO=pptp,pppoe, debug]
+  /usr/abills/libexec/linkupdown mikrotik down INTERFACE USER HISADD NAS_HOST=192.168.1.1 NAS_ADMIN=admin [SSH_CMD=.., PROTO=pptp,pppoe, debug]
 
 DEBUG: $debug
 };
