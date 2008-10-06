@@ -1,7 +1,6 @@
 #!/usr/bin/perl -w
-
-
-
+#
+#
 use strict;
 
 my $tmp_path        = '/tmp/';
@@ -9,8 +8,6 @@ my $pdf_result_path = '../cgi-bin/admin/pdf/';
 my $debug           = 1;
 my $docs_in_file    = 4000;
 
-#my $save_filename = '/home/asm/tmp/pdf/multidoc_.pdf';
-#Periodic process
 
 use vars  qw(%RAD %conf @MODULES $db $html $DATE $TIME $GZIP $TAR
   $MYSQLDUMP
@@ -70,7 +67,13 @@ require $Bin ."/../Abills/modules/Docs/lng_$conf{default_language}.pl";
 
 my $ARGV = parse_arguments(\@ARGV);
 
-$pdf_result_path = $ARGV->{RESULT_DIR} if ($ARGV->{RESULT_DIR});
+if (defined($ARGV->{help})) {
+	help();
+	exit;
+}
+
+$pdf_result_path = $ARGV->{RESULT_DIR} || $pdf_result_path;
+$docs_in_file    = $ARGV->{DOCS_IN_FILE} || $docs_in_file;
 
 my $save_filename = $pdf_result_path .'/multidoc_.pdf';
 
@@ -82,10 +85,11 @@ if (! -d $pdf_result_path) {
 
 
 	my $list = $users->list({ DEPOSIT    => '<0',
-		                  DISABLE    => 0,
-                                  CONTRACT_ID   => '*',
-                                  CONTRACT_DATE => '>=0000-00-00',
-		                  PAGE_ROWS  => 1000000   });
+		                        DISABLE    => 0,
+                            CONTRACT_ID=> '*',
+                            CONTRACT_DATE=> '>=0000-00-00',
+		                        PAGE_ROWS  => 1000000   
+		                       });
 
   my @MULTI_ARR = ();
   my $doc_num = 0;
@@ -93,18 +97,18 @@ if (! -d $pdf_result_path) {
 
 foreach my $line (@$list) {
     push @MULTI_ARR, { FIO      => $line->[1], 
-    	               DEPOSIT  => sprintf("%.2f", abs($line->[2])),
-    	               CREDIT   => $line->[3],
-  	               SUM      => sprintf("%.2f", abs($line->[2])),
+    	                 DEPOSIT  => sprintf("%.2f", $line->[2]),
+    	                 CREDIT   => $line->[3],
+  	                   SUM      => sprintf("%.2f", abs($line->[2])),
                        DISABLE  => 0,
-    	               ORDER_TOTAL_SUM_VAT => ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", abs($line->[2] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}))) : 0.00,
-    	               NUMBER     => "$line->[6]-$m",
-                       ACTIVATE   => '>=$DATE',
-                       EXPIRE     => '0000-00-00',
-                       MONTH_FEE  => sprintf("%.2f", abs($line->[2])),
-                       TOTAL_SUM  => sprintf("%.2f", abs($line->[2])),
-                       CONTRACT_ID   => $line->[6],
-                       CONTRACT_DATE => $line->[7],
+    	                 ORDER_TOTAL_SUM_VAT => ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", abs($line->[2] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}))) : 0.00,
+    	                 NUMBER   => $line->[$users->{SEARCH_FIELDS_COUNT}+3]."-$m",
+                       ACTIVATE => '>=$DATE',
+                       EXPIRE   => '0000-00-00',
+                       MONTH_FEE=> sprintf("%.2f", abs($line->[2])),
+                       TOTAL_SUM=> sprintf("%.2f", abs($line->[2])),
+                       CONTRACT_ID   => $line->[$users->{SEARCH_FIELDS_COUNT}+3],
+                       CONTRACT_DATE => $line->[$users->{SEARCH_FIELDS_COUNT}+4],
                        DATE       => $DATE, 
                        SUM_LIT    => int2ml(sprintf("%.2f", abs($line->[2])), { 
   	 ONES             => \@ones,
@@ -152,6 +156,18 @@ sub multi_tpls {
   	                                       }); 
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub help {
+
+print << "[END]";	
+	RESULT_DIR=    - Output dir (default: abills/cgi-bin/admin/pdf)
+	DOCS_IN_FILE=  - docs in single file (default: $docs_in_file)
+	DEBUG=[1..5]   - Debug mode
+[END]
+}
 
 
 
