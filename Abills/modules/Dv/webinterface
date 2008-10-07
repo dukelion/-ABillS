@@ -3066,7 +3066,9 @@ sub dv_monthly_fees {
          
          #***************************************************************
          #Min use 
-         if ($min_use_sum > 0 && $d == $START_PERIOD_DAY) {
+         if ($min_use_sum > 0) {
+           
+           next if ($d != $START_PERIOD_DAY);
            #Check activation dae
            my $min_use = $min_use_sum;
 

@@ -121,6 +121,12 @@ sub auth {
   my $self = shift;
   my ($RAD, $NAS) = @_;
 
+
+#Make TP
+  if ($RAD->{USER_NAME} =~ /^TT_/) {
+  	return  make_tp($RAD);
+ 	 }
+
   %RAD_PAIRS=();
   $self->user_info($RAD, $NAS);
 
@@ -159,10 +165,34 @@ else {
 }
 
 my $debug = 0;
-
+  my @RAD_PAIRS_ARR = ();
+  #DEFAULT Auth-Type = Accept
+  #cisco-avpair = "subscriber:accounting-list=BH_ACCNT_LIST1",
+  #Cisco-Account-Info = "ABasic_Internet_Service",
+  #Cisco-Account-Info += "NSERVICE_406_BOD1M",
+  #Cisco-Account-Info += "NSERVICE_406_VPN_1001c",
+  #Exec-Program-Wait = "/usr/abills/libexec/rauth.pl",
+  #Idle-Timeout = 1800
 
   #Speeds
 
+
+  #$RAD_PAIRS{'Cisco-Account-Info'} = "ABasic_Internet_Service";
+  #$RAD_PAIRS{'Cisco-Account-Info'} = "NSERVICE_406_BOD1M";
+  my $service = 'Basic_Internet_Service'; # "TT_$self->{TP_ID}";
+  
+  push @RAD_PAIRS_ARR, "Cisco-Account-Info=\"A$service\"";
+  push @RAD_PAIRS_ARR, "Cisco-Account-Info=\"NSERVICE_406_BOD1M\"";
+  
+  $RAD_PAIRS{'cisco-avpair'} = "subscriber:accounting-list=BH_ACCNT_LIST1";
+  $RAD_PAIRS{'Idle-Timeout'} = 1800;
+
+  print join(",\n", @RAD_PAIRS_ARR);
+  print ",\n";
+
+  return 0, \%RAD_PAIRS;
+  
+  
   my %speeds = ();
   my %expr   = ();
   my %names  = ();
