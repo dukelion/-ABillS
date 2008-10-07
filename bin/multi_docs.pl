@@ -83,33 +83,87 @@ if (! -d $pdf_result_path) {
 	mkdir ($pdf_result_path);
 }
 
+  
+  my %INFO_FIELDS = ('_c_address' => 'ADDRESS_STREET',
+                     '_c_build'   => 'ADDRESS_BUILD',
+                     '_c_flat'    => 'ADDRESS_FLAT'
+                     );
 
-	my $list = $users->list({ DEPOSIT    => '<0',
-		                        DISABLE    => 0,
-                            CONTRACT_ID=> '*',
-                            CONTRACT_DATE=> '>=0000-00-00',
-		                        PAGE_ROWS  => 1000000   
+  my %INFO_FIELDS_SEARCH = ();
+
+  foreach my $key ( keys %INFO_FIELDS ) {
+  	$INFO_FIELDS_SEARCH{$key}='*';
+   }
+
+	my $list = $users->list({ DEPOSIT       => '<0',
+		                        DISABLE       => 0,
+                            CONTRACT_ID   => '*',
+                            CONTRACT_DATE => '>=0000-00-00',
+                            ADDRESS_STREET=> '*',
+                            ADDRESS_BUILD => '*',
+                            ADDRESS_FLAT  => '*',
+                            
+		                        PAGE_ROWS     => 1000000,
+		                        %INFO_FIELDS_SEARCH  
 		                       });
+
+if ($users->{EXTRA_FIELDS}) {
+  foreach my $line (@{ $users->{EXTRA_FIELDS} }) {
+    if ($line->[0] =~ /ifu(\S+)/) {
+      my $field_id = $1;
+      my ($position, $type, $name)=split(/:/, $line->[1]);
+#      if ($type == 2) {
+#        $SEARCH_TITLES{$field_id.'_list.name'}=$name;
+#       }
+#      else {
+#        print "$position, $field_id, $name\n";
+        #$SEARCH_TITLES{'pi.'.$field_id}=$name;
+#       }
+     }
+   }
+}
+
 
   my @MULTI_ARR = ();
   my $doc_num = 0;
   my ($Y, $m, $d)=split(/-/, $DATE, 3); 
 
+
+#exit;
+my $ext_bill = ($conf{EXT_BILL_ACCOUNT}) ? 1 : 0;
+my %EXTRA    = ();
 foreach my $line (@$list) {
+    
+    my $full_address = '';
+    
+    if ($ARGV->{ADDRESS2} && $line->[$users->{SEARCH_FIELDS_COUNT} + 4 - 2]) {
+      $full_address  = $line->[$users->{SEARCH_FIELDS_COUNT} + 4 - 2] || '';
+      $full_address .= ' ' . $line->[$users->{SEARCH_FIELDS_COUNT} + 4 - 1] || '';
+      $full_address .= '/' . $line->[$users->{SEARCH_FIELDS_COUNT} + 4] || '';
+     }
+    else {
+      $full_address  = $line->[5+$ext_bill] || '';  #/ B: $line->[6] / f: $line->[7]";
+      $full_address .= ' ' .$line->[6+$ext_bill] || '';
+      $full_address .= '/' . $line->[7+$ext_bill] || '';
+     }
+
+     
+
     push @MULTI_ARR, { FIO      => $line->[1], 
     	                 DEPOSIT  => sprintf("%.2f", $line->[2]),
     	                 CREDIT   => $line->[3],
   	                   SUM      => sprintf("%.2f", abs($line->[2])),
                        DISABLE  => 0,
     	                 ORDER_TOTAL_SUM_VAT => ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", abs($line->[2] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}))) : 0.00,
-    	                 NUMBER   => $line->[$users->{SEARCH_FIELDS_COUNT}+3]."-$m",
+    	                 NUMBER   => $line->[8+$ext_bill]."-$m",
                        ACTIVATE => '>=$DATE',
                        EXPIRE   => '0000-00-00',
                        MONTH_FEE=> sprintf("%.2f", abs($line->[2])),
                        TOTAL_SUM=> sprintf("%.2f", abs($line->[2])),
-                       CONTRACT_ID   => $line->[$users->{SEARCH_FIELDS_COUNT}+3],
-                       CONTRACT_DATE => $line->[$users->{SEARCH_FIELDS_COUNT}+4],
-                       DATE       => $DATE, 
+                       CONTRACT_ID   => $line->[8+$ext_bill],
+                       CONTRACT_DATE => $line->[9+$ext_bill],
+                       DATE          => $DATE, 
+                       FULL_ADDRESS  => $full_address,
                        SUM_LIT    => int2ml(sprintf("%.2f", abs($line->[2])), { 
   	 ONES             => \@ones,
      TWOS             => \@twos,

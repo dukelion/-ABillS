@@ -1,6 +1,7 @@
 NUMBER:Номер Счета-фактуры:russian:(x=240;y=631;)
 #MONTH_LIT:Поточный месяц порписью и год:russian:(x=255;y=685;)
 FIO:Ф.И.О./официальное название для юр.лица (платильщики):russian:(x=125;y=422,x=350;y=675;page=2)
+FULL_ADDRESS:Адрес:russian:(x=350;y=655;page=2)
 CONTRACT_ID:Номер Договора:russian:(x=385;y=328;)
 CONTRACT_DATE:Дата контракта:russian:(x=435;y=328;)
 #EXPIRE_DATE:Счет действителен до:russian:(x=150;y=542,x=125;y=251;)

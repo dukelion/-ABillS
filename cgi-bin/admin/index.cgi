@@ -1501,11 +1501,13 @@ my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$
                   'pi.zip'            => "$_ZIP", 
                   'pi.contract_id'    => "$_CONTRACT_ID", 
                   'u.registration'    => "$_REGISTRATION", 
+                  'pi.phone'          => "$_PHONE",
                   'pi.comments'       => "$_COMMENTS", 
                   'if(company.id IS NULL,b.id,cb.id)' => 'BILL ID', 
                   'u.activate'        => "$_ACTIVATE", 
                   'u.expire'          => "$_EXPIRE",
                   'u.credit_date'     => "$_CREDIT $_DATE"
+                  
                     );
 
 

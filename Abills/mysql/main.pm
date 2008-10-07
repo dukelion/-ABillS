@@ -263,6 +263,15 @@ sub search_expr {
   my $self=shift;
   my ($value, $type, $field, $attr)=@_;
 
+ 	if ($attr->{EXT_FIELD}) {
+    $self->{SEARCH_FIELDS} .= "$field, ";
+    $self->{SEARCH_FIELDS_COUNT}++;
+ 	 }	
+ 
+  if ($value =~ s/;/,/g ) {
+  	return [ "$field IN ($value)" ];
+   }
+
 
   my @val_arr     = split(/,/, $value);  
   my @result_arr  = ();
@@ -294,11 +303,6 @@ sub search_expr {
    }
 
   if ($field) {
-  
-  	if ($attr->{EXT_FIELD}) {
-      $self->{SEARCH_FIELDS} .= '$field, ';
-      $self->{SEARCH_FIELDS_COUNT}++;
-  	 }	
   
   	if ($type ne 'INT') {
   		return [ '('. join(' or ', @result_arr)  .')']; 

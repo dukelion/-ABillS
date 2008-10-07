@@ -573,104 +573,65 @@ sub list {
   }
  
  if ($CONF->{EXT_BILL_ACCOUNT}) {
-    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit), ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-    if ($attr->{EXT_BILL_ID}) {
+   $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit), ';
+   $self->{SEARCH_FIELDS_COUNT}++;
+   if ($attr->{EXT_BILL_ID}) {
       my $value = $self->search_expr($attr->{EXT_BILL_ID}, 'INT');
       push @WHERE_RULES, "if(company.id IS NULL,ext_b.id,ext_cb.id)$value";
      }
-    $EXT_TABLES = "
+   $EXT_TABLES = "
             LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
             LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
   }
 
  if ($attr->{PHONE}) {
-    if ($attr->{PHONE} =~ /, /) {
-      push @WHERE_RULES, "pi.phone IN ($attr->{PHONE})";
-     }
-    else {
-      my $value = $self->search_expr($attr->{PHONE}, 'INT');
-      push @WHERE_RULES, "pi.phone$value";
-     }
-
-    $self->{SEARCH_FIELDS} .= 'pi.phone, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PHONE}, 'INT', 'pi.phone', { EXT_FIELD => 1 }) };
   }
 
- if ($attr->{EMAIL}) {
-    $attr->{EMAIL} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.email LIKE '$attr->{EMAIL}'";
-    $self->{SEARCH_FIELDS} = 'pi.email, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-  }
-
-
+ if ($attr->{EMAIL}) { 
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{EMAIL}, 'STR', 'pi.email', { EXT_FIELD => 1 }) }; 
+ 	}
 
  if ($attr->{ADDRESS_STREET}) {
-    $attr->{ADDRESS_STREET} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.address_street LIKE '$attr->{ADDRESS_STREET}' ";
-    $self->{SEARCH_FIELDS} .= 'pi.address_street, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-  }
-
- if ($attr->{PASPORT_DATE}) {
-    $attr->{PASPORT_DATE} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.pasport_date LIKE '$attr->{PASPORT_DATE}' ";
-    $self->{SEARCH_FIELDS} .= 'pi.pasport_date, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-  }
-
- if ($attr->{PASPORT_NUM}) {
-    $attr->{PASPORT_NUM} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.pasport_num LIKE '$attr->{PASPORT_NUM}' ";
-    $self->{SEARCH_FIELDS} .= 'pi.pasport_num, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-  }
-
- if ($attr->{PASPORT_GRANT}) {
-    $attr->{PASPORT_GRANT} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.pasport_grant LIKE '$attr->{PASPORT_GRANT}' ";
-    $self->{SEARCH_FIELDS} .= 'pi.pasport_grant, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{ADDRESS_BUILD}) {
-    $attr->{ADDRESS_BUILD} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.address_build LIKE '$attr->{ADDRESS_BUILD}'";
-    $self->{SEARCH_FIELDS} .= 'pi.address_build, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{ADDRESS_FLAT}) {
-    $attr->{ADDRESS_FLAT} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.address_flat LIKE '$attr->{ADDRESS_FLAT}'";
-    $self->{SEARCH_FIELDS} .= 'pi.address_flat, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat', { EXT_FIELD => 1 }) };
+  }
+
+
+ if ($attr->{PASPORT_DATE}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PASPORT_DATE}, 'STR', 'pi.pasport_date', { EXT_FIELD => 1 }) };
+  }
+
+ if ($attr->{PASPORT_NUM}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{PASPORT_NUM}, 'STR', 'pi.pasport_num', { EXT_FIELD => 1 }) };
+  }
+
+ if ($attr->{PASPORT_GRANT}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PASPORT_GRANT}, 'STR', 'pi.pasport_grant', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{CITY}) {
-    $attr->{CITY} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.city LIKE '$attr->{CITY}'";
-    $self->{SEARCH_FIELDS} .= 'pi.city, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{CITY}, 'STR', 'pi.city', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{ZIP}) {
-    $attr->{ZIP} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.zip LIKE '$attr->{ZIP}'";
-    $self->{SEARCH_FIELDS} .= 'pi.zip, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ZIP}, 'STR', 'pi.zip', { EXT_FIELD => 1}) }; 
   }
 
  if ($attr->{CONTRACT_ID}) {
-
     if ($attr->{CONTRACT_ID} =~ /^list:(.+)/) {
       my $contract_id = $1;
       push @WHERE_RULES, "pi.contract_id IN ($contract_id)";
      }
     else {
-      $attr->{CONTRACT_ID} =~ s/\*/\%/ig;
-      push @WHERE_RULES, "pi.contract_id LIKE '$attr->{CONTRACT_ID}'";
+      push @WHERE_RULES, @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'pi.contract_id' ) }; 
      }
 
     $self->{SEARCH_FIELDS} .= 'pi.contract_id, ';
@@ -678,19 +639,13 @@ sub list {
   }
 
  if ($attr->{CONTRACT_DATE}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{CONTRACT_DATE}", 'INT', 'pi.contract_date') };
-
-    $self->{SEARCH_FIELDS} .= 'pi.contract_date, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{CONTRACT_DATE}", 'INT', 'pi.contract_date', { EXT_FIELD => 1 }) };
   }
 
 
  if ($attr->{REGISTRATION}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{REGISTRATION}", 'INT', 'u.registration') };
-    $self->{SEARCH_FIELDS} .= 'u.registration, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{REGISTRATION}", 'INT', 'u.registration', { EXT_FIELD => 1 }) };
   }
-
 
  if ($attr->{DEPOSIT}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'b.deposit') }; 
@@ -701,41 +656,28 @@ sub list {
   }
 
  if ($attr->{CREDIT_DATE}) {
-    push @WHERE_RULES,  @{ $self->search_expr($attr->{CREDIT_DATE}, 'INT', 'u.credit_date') };
-    $self->{SEARCH_FIELDS} .= 'u.credit_date,';
-    $self->{SEARCH_FIELDS_COUNT}++;
+    push @WHERE_RULES,  @{ $self->search_expr($attr->{CREDIT_DATE}, 'INT', 'u.credit_date', { EXT_FIELD => 1 }) };
   }
-
 
 
  if ($attr->{COMMENTS}) {
-    $attr->{COMMENTS} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.comments LIKE '$attr->{COMMENTS}'";
-    $self->{SEARCH_FIELDS} .= 'pi.comments, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-  }    
-
- if ($attr->{BILL_ID}) {
-    my $value = $self->search_expr($attr->{BILL_ID}, 'INT');
-    push @WHERE_RULES, "if(company.id IS NULL,b.id,cb.id)$value";
-
-    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,b.id,cb.id), ';
-    $self->{SEARCH_FIELDS_COUNT}++;
-  }    
-
-
- if ($attr->{FIO}) {
-    $attr->{FIO} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.fio LIKE '$attr->{FIO}'";
+   push @WHERE_RULES,  @{ $self->search_expr($attr->{COMMENTS}, 'STR', 'pi.comments', { EXT_FIELD => 1 }) };
   }
 
+ if ($attr->{BILL_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{BILL_ID}, 'INT', 'if(company.id IS NULL,b.id,cb.id)', { EXT_FIELD => 1 }) };
+  }    
+
+ if ($attr->{FIO}) {
+   push @WHERE_RULES,  @{ $self->search_expr($attr->{FIO}, 'STR', 'pi.fio') };
+  }
  # Show debeters
  if ($attr->{DEBETERS}) {
-    push @WHERE_RULES, "b.deposit<0";
+   push @WHERE_RULES, "b.deposit<0";
   }
 
  if ($attr->{COMPANY_ID}) {
-    push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";
+   push @WHERE_RULES,  @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
   }
 
  # Show groups
@@ -743,36 +685,24 @@ sub list {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})";
   }
  elsif (defined($attr->{GID}) && $attr->{GID} >= 0) {
-   my $value = $self->search_expr($attr->{GID}, 'INT');
-   push @WHERE_RULES, "u.gid$value";
+   push @WHERE_RULES,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => 1 }) };
   }
 
 
 #Activate
  if ($attr->{ACTIVATE}) {
-   my $value = $self->search_expr("$attr->{ACTIVATE}", 'INT');
-   push @WHERE_RULES, "(u.activate$value)"; 
-   
-   #push @WHERE_RULES, "(u.activate='0000-00-00' or u.activate$value)"; 
-   $self->{SEARCH_FIELDS} .= 'u.activate, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
+  push @WHERE_RULES,  @{ $self->search_expr($attr->{ACTIVATE}, 'INT', 'u.activate', { EXT_FIELD => 1 })  };
  }
 
 #DIsable
  if ($attr->{DISABLE}) {
    push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
- }
-
+  }
 
 #Expire
  if ($attr->{EXPIRE}) {
-   my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
-   push @WHERE_RULES, "(u.expire$value)"; 
-   #push @WHERE_RULES, "(u.expire='0000-00-00' or u.expire$value)"; 
-   
-   $self->{SEARCH_FIELDS} .= 'u.expire, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
- }
+   push @WHERE_RULES,  @{ $self->search_expr($attr->{EXPIRE}, 'INT', 'u.expire', { EXT_FIELD => 1 })  };
+  }
 
 #Info fields
 my $list = $self->config_list({ PARAM => 'ifu*', SORT => 2 });
@@ -796,8 +726,7 @@ if ($self->{TOTAL} > 0) {
          }
         elsif ($attr->{$field_name}) {
           if ($type == 1) {
-        	  my $value = $self->search_expr("$attr->{$field_name}", 'INT');
-            push @WHERE_RULES, "(pi.". $field_name. "$value)"; 
+        	  my $value = $self->search_expr("$attr->{$field_name}", 'INT', "pi.$field_name", {  EXT_FIELD => 1 });
            }
           elsif ($type == 2)  {
           	push @WHERE_RULES, "(pi.$field_name='$attr->{$field_name}')"; 
@@ -811,12 +740,8 @@ if ($self->{TOTAL} > 0) {
           	next;
            }
           else {
-    	      $attr->{$field_name} =~ s/\*/\%/ig;
-            push @WHERE_RULES, "pi.$field_name LIKE '$attr->{$field_name}'"; 
+          	my $value = $self->search_expr("$attr->{$field_name}", 'STR', "pi.$field_name", {  EXT_FIELD => 1 });
            }
-
-          $self->{SEARCH_FIELDS} .= "pi.$field_name, ";
-          $self->{SEARCH_FIELDS_COUNT}++;
          }
 
        }
