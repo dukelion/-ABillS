@@ -973,7 +973,7 @@ print $table->show();
 sub msgs_new {
   my ($attr) = @_;
 
-  my   %SHOW_PARAMS = ();
+  my   %SHOW_PARAMS = ( GIDS => $LIST_PARAMS{GIDS} );
   if ($attr->{UID}) {
     %SHOW_PARAMS = (UID         => $UID, 
                     USER_READ   => '0000-00-00 00:00:00',
@@ -990,7 +990,9 @@ sub msgs_new {
     return '';
    }
   elsif ($attr->{AID}) {
-    %SHOW_PARAMS = (ADMIN_READ => '0000-00-00 00:00:00');
+    %SHOW_PARAMS = (ADMIN_READ => '0000-00-00 00:00:00',
+                    GIDS       => ($admin->{GIDS}) ? $admin->{GIDS} : $admin->{GID}
+                    );
     my $a_list = $Msgs->admins_list({ AID => $attr->{AID} });
     my @A_CHAPTER = ();
     foreach my $line (@$a_list) {

@@ -60,13 +60,22 @@ sub messages_new {
    push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})"; 
   }
 
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+ }
+
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
 
-
-
- $self->query($db,   "SELECT $fields 
-  FROM (msgs_messages m)
- $WHERE;");
+ if ($attr->{GIDS}) {
+   $self->query($db,   "SELECT $fields 
+    FROM (msgs_messages m, users u)
+   $WHERE and u.uid=m.uid;");
+  }
+ else {
+   $self->query($db,   "SELECT $fields 
+    FROM (msgs_messages m)
+   $WHERE;");
+  }
 
  ($self->{UNREAD}, $self->{TODAY}, $self->{OPENED}) = @{ $self->{list}->[0] };
 
@@ -951,6 +960,15 @@ sub messages_reports {
    #  $date = "date_format(m.date, '%Y-%m-%d')";
    # }
   }
+
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+  }
+
 
  if ($attr->{DATE}) {
     push @WHERE_RULES, "date_format(m.date, '%Y-%m-%d')='$attr->{DATE}'";
