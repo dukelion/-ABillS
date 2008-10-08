@@ -161,10 +161,12 @@ else {
 #If Access deny
  if($r == 1){
     my $message = "$RAD_PAIRS->{'Reply-Message'} ";
+
     if ($auth_mod{"default"}->{errstr}) {
     	 $auth_mod{"default"}->{errstr}=~s/\n//g;
     	 $message .= $auth_mod{"default"}->{errstr};
      }
+
     my $CID = ($RAD->{CALLING_STATION_ID}) ? " CID: $RAD->{CALLING_STATION_ID} " : '';
     access_deny("$RAD->{USER_NAME}", "$message$CID", $nas->{NAS_ID});
     return $r;
@@ -181,7 +183,7 @@ else {
 
        if (defined($RAD_REPLY{"$left"})) {
    	     $RAD_REPLY{"$left"} =~ s/\"//g;
-   	     $RAD_REPLY{"$left"}="\"". $RAD_REPLY{"$left"} .",$right\"";
+   	     $RAD_REPLY{"$left"} ="\"". $RAD_REPLY{"$left"} .",$right\"";
         }
        else {
      	   $RAD_REPLY{"$left"}="\"$right\"";
@@ -192,7 +194,7 @@ else {
          if ($left =~ s/^!//) {
            delete $RAD_REPLY{"$left"};
    	      }
-   	     else {  
+   	     else {
    	       $RAD_REPLY{"$left"}="$right";
    	      }
        }

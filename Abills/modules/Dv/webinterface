@@ -2732,11 +2732,17 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
   	    	$Dv->{ISG_CID_CUR}=$1;
   	     }
   	 }
- 	
+	
  	  if ($RAD_PAIRS{'Error-Cause'}) {
  	  	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
  	   }
- 	
+
+    if ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
+    	$Dv->{ISG_CID_CUR} = dv_get_isg_mac($Dv->{ISG_CID_CUR});
+    	if ($Dv->{ISG_CID_CUR} eq '') {
+    		$html->message('err', $_ERROR, "Can't find MAC in DHCP");
+    	 }
+     }
    }
   
   if ($FORM{activate}) {
@@ -2814,31 +2820,28 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
 	                       SUBMIT  => { activate => "$_ACTIVATE"  } 
  	                      });
   	
-  	  $Dv->{CID}= $Dv->{ISG_CID_CUR};
-  	  $Dv->{IP} = $user->{REMOTE_ADDR};
+  	  $Dv->{CID} = $Dv->{ISG_CID_CUR};
+  	  $Dv->{IP}  = $user->{REMOTE_ADDR};
   	  $Dv->{CID} .= ' '.$html->color_mark($_NOT_ACTIVE, $_COLORS[6]);
   	 }
 
-    $Dv->{SPEED} = $html->form_main({ CONTENT => "$_SPEED: ".$html->form_select('SPEED', 
-                                          { 
- 	                                          SELECTED     => $FORM{SPEED},
- 	                                          SEL_ARRAY    => ['', '128b/s, 3000 sec', '512b/s, 3000 sec', '2048b/s, 3000 sec'],
- 	                                          ARRAY_NUM_ID => 1
- 	                                        }),
-                       HIDDEN  => { index => "$index",
-  	                   	            CID   => "$Dv->{ISG_CID_CUR}",
-  	                         	      sid   => $sid    },
-                       SUBMIT  => { change => "$_CHANGE"  } 
-                      });
+#    $Dv->{SPEED} = $html->form_main({ CONTENT => "$_SPEED: ".$html->form_select('SPEED', 
+#                                          { 
+# 	                                          SELECTED     => $FORM{SPEED},
+# 	                                          SEL_ARRAY    => ['', '128b/s, 3000 sec', '512b/s, 3000 sec', '2048b/s, 3000 sec'],
+# 	                                          ARRAY_NUM_ID => 1
+# 	                                        }),
+#                       HIDDEN  => { index => "$index",
+#  	                   	            CID   => "$Dv->{ISG_CID_CUR}",
+#  	                         	      sid   => $sid    },
+#                       SUBMIT  => { change => "$_CHANGE"  } 
+#                      });
 
 
    }
 
 
   $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
-  
-
-  
 }
 
 
@@ -4208,6 +4211,37 @@ sub dv_get_month_fee {
 }
 
 
+#**********************************************************
+# Get MAC from hcl leaseds
+#**********************************************************
+sub dv_get_isg_mac {
+	my ($ip) = @_;
+
+  my $logfile = $conf{DHCPHOSTS_LEASES} || '/var/db/dhcp.leaseds';
+  my %list = ();
+
+ if ( ! -f $logfile ) {
+   return \%list; 
+  }
+
+ open (FILE, $logfile) or $html->message('err', $_ERROR, "Can't read file '$logfile' $!");
+
+   while (<FILE>) {
+      next if /^#|^$/;
+
+      if (/^lease (\d+\.\d+\.\d+\.\d+)/) {
+         $ip = $1; 
+         $list{$ip}{ip}=sprintf("%-17s", $ip);
+       }
+      /^\s*hardware ethernet (.*);/ && ( $list{$ip}{hardware}=sprintf("%-19s", $1); last; );
+   }
+ close FILE;
+
+
+
+	
+	return ($list{$ip}{hardware}) ?  $list{$ip}{hardware} : '';
+}
 
 1
 

@@ -121,13 +121,17 @@ sub auth {
   my $self = shift;
   my ($RAD, $NAS) = @_;
 
-
+  my %RAD_PAIRS=();
 #Make TP
   if ($RAD->{USER_NAME} =~ /^TT_/) {
   	return  $self->make_tp($RAD);
  	 }
+  elsif ($RAD->{USER_NAME} =~ /\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}/) {
+  	$RAD->{USER_NAME} = get_isg_mac($RAD->{USER_NAME});
+    $RAD_PAIRS{'Reply-Message'}="Can't find MAC in DHCP";
+    return 1, \%RAD_PAIRS;
+   }	
 
-  %RAD_PAIRS=();
   $self->user_info($RAD, $NAS);
 
   if($self->{errno}) {
@@ -164,6 +168,11 @@ else {
   $self->{DEPOSIT}=0;
 }
 
+
+#IP
+if ($self->{IP} ne '0.0.0.0') {
+	$RAD_PAIRS{'Framed-IP-Address'}=$self->{IP};
+ }
   my $debug = 0;
   my @RAD_PAIRS_ARR = ();
   #DEFAULT Auth-Type = Accept
@@ -186,6 +195,8 @@ else {
   
   $RAD_PAIRS{'cisco-avpair'} = "subscriber:accounting-list=BH_ACCNT_LIST1";
   $RAD_PAIRS{'Idle-Timeout'} = 1800;
+  
+  
 
   print join(",\n", @RAD_PAIRS_ARR);
   print ",\n";
@@ -212,6 +223,76 @@ sub make_tp {
   if ($RAD->{USER_NAME} =~ /TT_(\d+)/) {
   	$TP_ID = $1;
    }
+
+  my $RAD_PAIRS ;
+
+$self->query($db, "select  
+  
+  UNIX_TIMESTAMP(),
+  UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
+  DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
+  tp.rad_pairs
+     FROM tarif_plans tp
+     LEFT JOIN intervals i ON (tp.id = i.tp_id)
+     WHERE tp.id='$TP_ID'
+  ;");
+
+
+  if($self->{errno}) {
+  	$RAD_PAIRS->{'Reply-Message'}='SQL error';
+  	return 1, $RAD_PAIRS;
+   }
+  elsif ($self->{TOTAL} < 1) {
+    $RAD_PAIRS->{'Reply-Message'}="Can't find TP '$TP_ID'";
+    return 1, $RAD_PAIRS;
+   }
+
+
+  (
+     $self->{SESSION_START}, 
+     $self->{DAY_BEGIN}, 
+     $self->{DAY_OF_WEEK}, 
+     $self->{DAY_OF_YEAR},
+     $self->{TP_RAD_PAIRS},
+     $self->{INTERVALS},
+    ) = @{ $self->{list}->[0] };
+
+
+
+
+#chack TP Radius Pairs
+  if ($self->{TP_RAD_PAIRS}) {
+    my @p = split(/,/, $self->{TP_RAD_PAIRS});
+    foreach my $line (@p) {
+     if ($line =~ /\+\=/ ) {
+
+       my($left, $right)=split(/\+\=/, $line, 2);
+       $right =~ s/\"//g;
+
+ 	     
+       if (defined($RAD_PAIRS->{"$left"})) {
+   	     
+   	     $RAD_PAIRS->{"$left"} =~ s/\"//g;
+   	     $RAD_PAIRS->{"$left"}="\"". $RAD_PAIRS->{"$left"} .",$right\"";
+        }
+       else {
+     	   $RAD_PAIRS->{"$left"}="\"$right\"";
+        }
+       }
+      else {
+         my($left, $right)=split(/=/, $line, 2);
+         if ($left =~ s/^!//) {
+           delete $RAD_PAIRS->{"$left"};
+   	      }
+   	     else {  
+   	       $RAD_PAIRS->{"$left"}="$right";
+   	      }
+       }
+     }
+   }
+
+
 #
 #  if ($self->{SPEED} > 0) {
 #    $speeds{0}{IN}=int($self->{SPEED});
@@ -314,6 +395,43 @@ sub make_tp {
 #  }
 	
 	return 0, \%RAD_PAIRS;
+}
+
+
+
+#**********************************************************
+# Get MAC from hcl leaseds
+#**********************************************************
+sub get_isg_mac {
+	my ($ip) = @_;
+
+  my $logfile = $conf->{DHCPHOSTS_LEASES} || '/var/db/dhcp.leaseds';
+  my %list = ();
+
+ if ( ! -f $logfile ) {
+   return \%list; 
+  }
+
+ open (FILE, $logfile) or print "Can't read file '$logfile' $!";
+
+   while (<FILE>) {
+      next if /^#|^$/;
+
+      if (/^lease (\d+\.\d+\.\d+\.\d+)/) {
+         $ip = $1; 
+         $list{$ip}{ip}=sprintf("%-17s", $ip);
+       }
+      elsif (/^\s*hardware ethernet (.*);/) {
+      	$list{$ip}{hardware}=sprintf("%-19s", $1); 
+      	last; 
+       }
+   }
+ close FILE;
+
+
+
+	
+	return ($list{$ip}{hardware}) ?  $list{$ip}{hardware} : '';
 }
 
 
