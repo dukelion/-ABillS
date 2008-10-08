@@ -2737,12 +2737,12 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
  	  	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
  	   }
 
-    if ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
-    	$Dv->{ISG_CID_CUR} = dv_get_isg_mac($Dv->{ISG_CID_CUR});
-    	if ($Dv->{ISG_CID_CUR} eq '') {
-    		$html->message('err', $_ERROR, "Can't find MAC in DHCP");
-    	 }
-     }
+#    if ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
+#    	$Dv->{ISG_CID_CUR} = dv_get_isg_mac($Dv->{ISG_CID_CUR});
+#    	if ($Dv->{ISG_CID_CUR} eq '') {
+#    		$html->message('err', $_ERROR, "Can't find MAC in DHCP");
+#    	 }
+#     }
    }
   
   if ($FORM{activate}) {
@@ -4233,7 +4233,10 @@ sub dv_get_isg_mac {
          $ip = $1; 
          $list{$ip}{ip}=sprintf("%-17s", $ip);
        }
-      /^\s*hardware ethernet (.*);/ && ( $list{$ip}{hardware}=sprintf("%-19s", $1); last; );
+      if (/^\s*hardware ethernet (.*);/) { 
+      	$list{$ip}{hardware}=sprintf("%-19s", $1); 
+      	last; 
+      }
    }
  close FILE;
 

@@ -126,11 +126,11 @@ sub auth {
   if ($RAD->{USER_NAME} =~ /^TT_/) {
   	return  $self->make_tp($RAD);
  	 }
-  elsif ($RAD->{USER_NAME} =~ /\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}/) {
-  	$RAD->{USER_NAME} = get_isg_mac($RAD->{USER_NAME});
-    $RAD_PAIRS{'Reply-Message'}="Can't find MAC in DHCP";
-    return 1, \%RAD_PAIRS;
-   }	
+#  elsif ($RAD->{USER_NAME} =~ /\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}/) {
+#  	$RAD->{USER_NAME} = get_isg_mac($RAD->{USER_NAME});
+#    $RAD_PAIRS{'Reply-Message'}="Can't find MAC in DHCP";
+#    return 1, \%RAD_PAIRS;
+#   }	
 
   $self->user_info($RAD, $NAS);
 

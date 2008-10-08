@@ -708,7 +708,6 @@ sub list {
 #Info fields
 my $list = $self->config_list({ PARAM => 'ifu*', SORT => 2 });
 
-
 if ($self->{TOTAL} > 0) {
     foreach my $line (@$list) {
       if ($line->[0] =~ /ifu(\S+)/) {
@@ -727,7 +726,8 @@ if ($self->{TOTAL} > 0) {
          }
         elsif ($attr->{$field_name}) {
           if ($type == 1) {
-        	  my $value = $self->search_expr("$attr->{$field_name}", 'INT', "pi.$field_name", {  EXT_FIELD => 1 });
+        	  my $value = $self->search_expr("$attr->{$field_name}", 'INT');
+            push @WHERE_RULES, "(pi.". $field_name. "$value)"; 
            }
           elsif ($type == 2)  {
           	push @WHERE_RULES, "(pi.$field_name='$attr->{$field_name}')"; 
@@ -741,8 +741,12 @@ if ($self->{TOTAL} > 0) {
           	next;
            }
           else {
-          	my $value = $self->search_expr("$attr->{$field_name}", 'STR', "pi.$field_name", {  EXT_FIELD => 1 });
+    	      $attr->{$field_name} =~ s/\*/\%/ig;
+            push @WHERE_RULES, "pi.$field_name LIKE '$attr->{$field_name}'"; 
            }
+
+          $self->{SEARCH_FIELDS} .= "pi.$field_name, ";
+          $self->{SEARCH_FIELDS_COUNT}++;
          }
 
        }
