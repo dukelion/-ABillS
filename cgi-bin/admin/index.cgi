@@ -1516,7 +1516,7 @@ if ($users->{EXTRA_FIELDS}) {
   foreach my $line (@{ $users->{EXTRA_FIELDS} }) {
     if ($line->[0] =~ /ifu(\S+)/) {
       my $field_id = $1;
-      my ($type, $name)=split(/:/, $line->[1]);
+      my ($position, $type, $name)=split(/:/, $line->[1]);
       if ($type == 2) {
         $SEARCH_TITLES{$field_id.'_list.name'}=$name;
        }
