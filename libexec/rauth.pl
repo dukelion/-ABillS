@@ -6,6 +6,7 @@
 use vars  qw(%RAD %conf %AUTH
  %RAD_REQUEST %RAD_REPLY %RAD_CHECK 
  %auth_mod
+ $nas
  $begin_time
 );
 
@@ -26,7 +27,7 @@ require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db  = $sql->{db};
 require Nas;
-my $nas = undef;
+$nas = undef;
 
 require Auth;
 Auth->import();

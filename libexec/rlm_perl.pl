@@ -4,6 +4,7 @@
 use strict;
 use vars qw(%RAD_REQUEST %RAD_REPLY %RAD_CHECK %conf 
  $begin_time
+ $nas
 );
 #use Data::Dumper;
 
@@ -39,7 +40,7 @@ unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
 require $Bin ."/racct.pl";
 require $Bin ."/rauth.pl";
 
-my $nas = undef;
+$nas = undef;
 my %NAS_INFO = ();
 
 #**********************************************************
