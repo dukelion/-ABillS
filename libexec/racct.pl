@@ -2,10 +2,10 @@
 # Radius Accounting 
 #
 
-use vars  qw(%RAD %conf $db %ACCT
+use vars  qw(%RAD %conf %ACCT
  %RAD_REQUEST %RAD_REPLY %RAD_CHECK 
  $begin_time
- $nas);
+);
 use strict;
 
 use FindBin '$Bin';
@@ -19,7 +19,7 @@ my %acct_mod = ();
 
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
-$db = $sql->{db};
+my $db = $sql->{db};
 
 require Acct;
 Acct->import();
@@ -82,10 +82,10 @@ my %ACCT_TERMINATE_CAUSES = (
 #####################################################################
 
 
-
 # Files account section
 my $RAD;
-if (scalar(keys %RAD_REQUEST ) < 1) {
+my $nas = undef;
+if (scalar( %RAD_REQUEST ) < 1) {
   $RAD = get_radius_params();
   if (! defined($RAD->{NAS_IP_ADDRESS})) {
     $RAD->{USER_NAME}='-' if (! defined($RAD->{USER_NAME}));
@@ -111,7 +111,10 @@ if (scalar(keys %RAD_REQUEST ) < 1) {
   if(defined($acct->{errno})) {
 	  log_print('LOG_ERR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}". ( (defined($acct->{sql_errstr})) ? " ($acct->{sql_errstr})" : '' )  );
    }
+   
 
+
+  
   #$db->disconnect();
 }
 
@@ -242,7 +245,7 @@ if (-d $conf{extern_acct_dir}) {
     my @contents = grep  !/^\.\.?$/  , readdir DIR;
   closedir DIR;
 
-  if ($#contents > 0) {
+  if ($#contents > -1) {
     my $res = "";
     foreach my $file (@contents) {
       if (-x "$conf{extern_acct_dir}/$file" && -f "$conf{extern_acct_dir}/$file") {

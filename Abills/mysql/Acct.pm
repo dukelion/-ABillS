@@ -404,7 +404,7 @@ sub rt_billing {
    }
   elsif ($self->{TOTAL} < 1) {
     $self->{errno}=2;
-    $self->{errstr}="Session account Not Exist '$RAD->{ACCT_SESSION_ID}'";
+    $self->{errstr}="Session account rt Not Exist '$RAD->{ACCT_SESSION_ID}'";
     return $self;
    }
 

@@ -3,11 +3,11 @@
 
 
 
-use vars  qw(%RAD %conf $db %AUTH
+use vars  qw(%RAD %conf %AUTH
  %RAD_REQUEST %RAD_REPLY %RAD_CHECK 
  %auth_mod
  $begin_time
- $nas);
+);
 
 use strict;
 use FindBin '$Bin';
@@ -26,7 +26,7 @@ require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db  = $sql->{db};
 require Nas;
-$nas = undef;
+my $nas = undef;
 
 require Auth;
 Auth->import();
@@ -45,20 +45,23 @@ my $rr  = '';
 # files auth section
 my $RAD;
 
-if (scalar(keys %RAD_REQUEST ) < 1 ) {
+
+
+if (scalar(%RAD_REQUEST ) < 1 ) {
+	
   $RAD = get_radius_params();
   if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
-    auth($db, $RAD, { pre_auth => 1 });
+    auth($db, $RAD, undef, { pre_auth => 1 });
     exit 0;
    }
   elsif (defined($ARGV[0]) && $ARGV[0] eq 'post_auth') {
-    post_auth();
+    post_auth($RAD);
     exit 0;
    }
 
   my $ret = get_nas_info($db, $RAD);
   if($ret == 0) {
-    $ret = auth($db, $RAD);
+    $ret = auth($db, $RAD, $nas);
   }
   #$db->disconnect();
   
@@ -83,10 +86,10 @@ sub get_nas_info {
  $nas = Nas->new($db, \%conf);	
  
  $RAD->{NAS_IP_ADDRESS}='' if (!defined($RAD->{NAS_IP_ADDRESS}));
- $RAD->{USER_NAME}='' if (!defined($RAD->{USER_NAME}));
+ $RAD->{USER_NAME}='' if (! defined($RAD->{USER_NAME}));
 
  my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
- $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
+ $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if ($RAD->{NAS_IDENTIFIER});
  $nas->info({ %NAS_PARAMS });
 
 ## print "$RAD->{NAS_IP_ADDRESS} $RAD->{'NAS-IP-Address'} /// $nas->{errno}) || $nas->{TOTAL}";
@@ -107,6 +110,7 @@ elsif($nas->{NAS_DISABLE} > 0) {
 }
 
   $nas->{at} = 0 if (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE}));
+  
   return 0;
 }
 
@@ -115,7 +119,7 @@ elsif($nas->{NAS_DISABLE} > 0) {
 # auth();
 #*******************************************************************
 sub auth {
- my ($db, $RAD, $attr)=@_;
+ my ($db, $RAD, $nas, $attr)=@_;
  my ($r, $RAD_PAIRS);
 
  if(defined($conf{tech_works})) {
@@ -230,16 +234,17 @@ else {
 # post_auth()
 #*******************************************************************
 sub post_auth {
+  my ($RAD) = @_;
   my $reject_info = '';
   if (defined(%RAD_REQUEST)) {
     return 0;
-    if (defined($RAD_REQUEST{CALLING_STATION_ID})) {
+    if ($RAD_REQUEST{CALLING_STATION_ID}) {
       $reject_info=" CID $RAD_REQUEST{CALLING_STATION_ID}";
      }
     log_print('LOG_INFO', "AUTH [$RAD_REQUEST{'User-Name'}] AUTH REJECT$reject_info$GT");
    }
-  else {
-    if (defined($RAD->{CALLING_STATION_ID})) {
+  else { 
+    if ($RAD->{CALLING_STATION_ID}) {
       $reject_info=" CID $RAD->{CALLING_STATION_ID}";
      }
     log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] AUTH REJECT$reject_info$GT");
@@ -253,7 +258,7 @@ sub post_auth {
 #*******************************************************************
 # access_deny($user, $message);
 #*******************************************************************
-sub access_deny {
+sub access_deny { 
   my ($user, $message, $nas_num) = @_;
 
   log_print('LOG_WARNING', "AUTH [$user] NAS: $nas_num $message");

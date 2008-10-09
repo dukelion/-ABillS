@@ -4,7 +4,7 @@
 use strict;
 use vars qw(%RAD_REQUEST %RAD_REPLY %RAD_CHECK %conf 
  $begin_time
- $nas);
+);
 #use Data::Dumper;
 
 
@@ -39,7 +39,8 @@ unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
 require $Bin ."/racct.pl";
 require $Bin ."/rauth.pl";
 
-$nas = undef;
+my $nas = undef;
+my %NAS_INFO = ();
 
 #**********************************************************
 # Function to handle authenticate
@@ -48,10 +49,21 @@ $nas = undef;
 sub sql_connect {
 	my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
   my $db  = $sql->{db};
-  
   #$rc = $dbh->ping;
+
+  if (! $NAS_INFO{$RAD_REQUEST{NAS_IP_ADDRESS}.'_'.$RAD_REQUEST{NAS_IDENTIFIER}}) {
+    $nas = Nas->new($db, \%conf);
+    if (get_nas_info($db, \%RAD_REQUEST) == 0) {		
+      $NAS_INFO{$RAD_REQUEST{NAS_IP_ADDRESS}.'_'.$RAD_REQUEST{NAS_IDENTIFIER}}=$nas;
+     }
+    else {
+    	return; 
+     }
+   }
+  else {
+  	$nas = $NAS_INFO{$RAD_REQUEST{NAS_IP_ADDRESS}.'_'.$RAD_REQUEST{NAS_IDENTIFIER}};
+   }
   
-  $nas = Nas->new($db, \%conf);	
   return $db;
 }
 
@@ -65,10 +77,11 @@ sub authorize {
 
   my $db = sql_connect();
  
-  if ( get_nas_info($db, \%RAD_REQUEST) == 0 ) {
+ 
+  if ( $db ) {
   	
-  	if (auth($db, \%RAD_REQUEST, { pre_auth => 1 }) == 0) {
-      if ( auth($db, \%RAD_REQUEST) == 0 ) {
+  	if (auth($db, \%RAD_REQUEST, $nas, { pre_auth => 1 }) == 0) {
+      if ( auth($db, \%RAD_REQUEST, $nas) == 0 ) {
          #$RAD_CHECK{'User-Password'} = 'test12345';
     	   return RLM_MODULE_OK;
        }
@@ -86,8 +99,8 @@ sub authenticate {
   
   my $db = sql_connect();
   
-  if ( get_nas_info($db, \%RAD_REQUEST) == 0 ) {
-    if ( auth($db, \%RAD_REQUEST) == 0 ) {
+  if ( $db ) {
+    if ( auth($db, \%RAD_REQUEST, $nas) == 0 ) {
     	return RLM_MODULE_OK;
      }
    }
@@ -106,7 +119,7 @@ sub accounting {
   convert_radpairs();
 
   my $db = sql_connect();
-  if ( get_nas_info($db, \%RAD_REQUEST) == 0 ) {
+  if ( $db ) {
      my $ret = acct($db, \%RAD_REQUEST, $nas);
    }
 
@@ -131,25 +144,25 @@ sub convert_radpairs {
 
 
 
-
-
-sub test_call {
-	my ($funcname) = @_;
-	# Some code goes here 
-	my $test = "------$funcname\n";
-	#%RAD_REQUEST %RAD_REPLY %RAD_CHECK
-	$test .= '%RAD_REQUEST'."\n";
-	while(my($k, $v)=each(%RAD_REQUEST)){
-	  $test .= "$k, $v\n";
-	 }
-  $test .= "========\n".'%RAD_CHECK'."\n";
-	while(my($k, $v)=each(%RAD_CHECK)){
-	  $test .= "$k, $v\n";
-	 }
-
-  #print $test;
-  my $a=`echo "$test" >> /tmp/perllog`;
-}
+#
+#
+#sub test_call {
+#	my ($funcname) = @_;
+#	# Some code goes here 
+#	my $test = "------$funcname\n";
+#	#%RAD_REQUEST %RAD_REPLY %RAD_CHECK
+#	$test .= '%RAD_REQUEST'."\n";
+#	while(my($k, $v)=each(%RAD_REQUEST)){
+#	  $test .= "$k, $v\n";
+#	 }
+#  $test .= "========\n".'%RAD_CHECK'."\n";
+#	while(my($k, $v)=each(%RAD_CHECK)){
+#	  $test .= "$k, $v\n";
+#	 }
+#
+#  #print $test;
+#  my $a=`echo "$test" >> /tmp/perllog`;
+#}
 
 
 1

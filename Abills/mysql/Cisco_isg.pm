@@ -173,6 +173,7 @@ else {
 if ($self->{IP} ne '0.0.0.0') {
 	$RAD_PAIRS{'Framed-IP-Address'}=$self->{IP};
  }
+
   my $debug = 0;
   my @RAD_PAIRS_ARR = ();
   #DEFAULT Auth-Type = Accept
@@ -193,7 +194,7 @@ if ($self->{IP} ne '0.0.0.0') {
   push @RAD_PAIRS_ARR, "Cisco-Account-Info = \"A$service\"";
   push @RAD_PAIRS_ARR, "Cisco-Account-Info += \"NSERVICE_406_BOD1M\"";
   
-  $RAD_PAIRS{'cisco-avpair'} = "subscriber:accounting-list=BH_ACCNT_LIST1";
+  $RAD_PAIRS{'cisco-avpair'} = "\"subscriber:accounting-list=BH_ACCNT_LIST1\"";
   $RAD_PAIRS{'Idle-Timeout'} = 1800;
   
   
