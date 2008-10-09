@@ -22,7 +22,8 @@ my $fees = Finance->fees($db, $admin, \%conf);
 my $Paysys = Paysys->new($db, $admin, \%conf);
 my %PAY_SYSTEMS = (1 => "Webmoney",
                    2 => "RUpay",
-                   3 => "SMSProxy"
+                   3 => "SMSProxy",
+                   4 => "OSMP"
                   );
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
@@ -499,7 +500,8 @@ my $table = $html->table( { width      => '100%',
                             title      => ['ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "IP", '-', '-'],
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $Paysys->{TOTAL}
+                            pages      => $Paysys->{TOTAL},
+                            ID         => 'PAYSYS'
                            });
 
 foreach my $line (@$list) {
@@ -518,8 +520,8 @@ foreach my $line (@$list) {
 print $table->show();
 
 $table = $html->table( { width      => '100%',
-                         cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "$Paysys->{TOTAL}", "$_SUM", $Paysys->{SUM} ] ]
+                         cols_align => ['right', 'right', 'right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL}), "$_SUM", $html->b($Paysys->{SUM}) ] ]
                         } );
 print $table->show();
 
@@ -589,8 +591,8 @@ foreach my $line (@$list) {
 print $table->show();
 
 $table = $html->table( { width      => '100%',
-                         cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "$Paysys->{TOTAL}", "$_SUM", $Paysys->{SUM} ] ]
+                         cols_align => ['right', 'right', 'right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL}), "$_SUM", $html->b($Paysys->{SUM}) ] ]
                         } );
 print $table->show();	
 
