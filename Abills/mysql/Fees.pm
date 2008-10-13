@@ -305,6 +305,9 @@ sub reports {
    elsif($attr->{TYPE} eq 'METHOD') {
    	 $date = "f.method";   	
     }
+   elsif($attr->{TYPE} eq 'ADMINS') {
+   	 $date = "a.id";   	
+    }
    else {
      $date = "u.id";   	
     }  
@@ -317,16 +320,18 @@ sub reports {
  	 $date = "date_format(f.date, '%Y-%m')";
   }
 
- if ($attr->{METHODS}) {
-    push @WHERE_RULES, "f.method IN ($attr->{METHODS}) ";
-  }
+ 
 
+  if (defined($attr->{METHODS})) {
+    push @WHERE_RULES, "f.method IN ($attr->{METHODS}) ";
+   }
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
-  $self->query($db, "SELECT $date, count(*), sum(f.sum) 
+  $self->query($db, "SELECT $date, count(*), sum(f.sum), f.uid 
       FROM fees f
       LEFT JOIN users u ON (u.uid=f.uid)
+      LEFT JOIN admins a ON (f.aid=a.aid)
       $WHERE 
       GROUP BY 1
       ORDER BY $SORT $DESC;");

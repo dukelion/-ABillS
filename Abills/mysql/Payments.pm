@@ -314,7 +314,7 @@ sub reports {
    push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
- if ($attr->{METHODS}) {
+ if (defined($attr->{METHODS})) {
     push @WHERE_RULES, "p.method IN ($attr->{METHODS}) ";
   }
  
@@ -332,6 +332,9 @@ sub reports {
     }
    elsif($attr->{TYPE} eq 'PAYMENT_METHOD') {
    	 $date = "p.method";   	
+    }
+   elsif($attr->{TYPE} eq 'ADMINS') {
+   	 $date = "a.id";   	
     }
    else {
      $date = "u.id";   	
@@ -352,6 +355,7 @@ sub reports {
   $self->query($db, "SELECT $date, count(*), sum(p.sum) 
       FROM (payments p)
       LEFT JOIN users u ON (u.uid=p.uid)
+      LEFT JOIN admins a ON (a.aid=p.aid)
       $WHERE 
       GROUP BY 1
       ORDER BY $SORT $DESC;");

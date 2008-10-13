@@ -19,6 +19,10 @@ my @msg_status = ("$_OPEN",
                   "$_CLOSED_SUCCESSFUL"
                   );
 
+# Deleted 
+# Stalled
+# Rejected
+
 #*******************************************************************
 # Message system admins
 #*******************************************************************
@@ -141,6 +145,8 @@ sub msgs_admin_add {
 
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
+
+  $Msgs->{debug}=1;
 
   if ($FORM{send}) {
     #Add group 
@@ -277,6 +283,15 @@ sub msgs_admin_add {
  	                                          ARRAY_NUM_ID      => 1
  	                                        });
   
+  $Msgs->{RESPOSIBLE}=$html->form_select('RESPOSIBLE', 
+                                          { 
+ 	                                          SELECTED          => $Msgs->{RESPOSIBLE} || 0,
+ 	                                          SEL_MULTI_ARRAY   => [[0, $_ALL], @{ $admin->list({ GIDS => $admins->{GIDS}  }) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        }); 
+
+  
   $html->tpl_show(_include('msgs_send_form', 'Msgs'), $Msgs);
 }
 
@@ -288,6 +303,7 @@ sub msgs_admin {
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
  
+
   if ($FORM{change}) {
     if ($FORM{STATE} > 0) {
       $FORM{DONE_DATE}="$DATE" if ($FORM{STATE} == 2); 
@@ -297,7 +313,7 @@ sub msgs_admin {
     $Msgs->message_change({ %FORM, USER_READ => "0000-00-00 00:00:00" });
     
     $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});
-
+    $FORM{chg}=$FORM{ID} if ($FORM{ID});
     goto MSG_LABEL;
     
    }
@@ -369,7 +385,6 @@ sub msgs_admin {
     	$Msgs->message_reply_del({ ID => $FORM{reply_del} });
     	$html->message('info', $_INFO, "$_DELETED [$FORM{reply_del}] ") if (! $Msgs->{errno});  	
      }    
-    
     $Msgs->message_info($FORM{chg});
     $Msgs->{ACTION}='reply';
     $Msgs->{ACTION_LNG}=$_REPLY;
@@ -401,11 +416,11 @@ sub msgs_admin {
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });    
-
+    
     $Msgs->{RESPOSIBLE}=$html->form_select('RESPOSIBLE', 
                                           { 
  	                                          SELECTED          => $Msgs->{RESPOSIBLE} || 0,
- 	                                          SEL_MULTI_ARRAY   => [[0, $_ALL], @{ $admin->list() } ],
+ 	                                          SEL_MULTI_ARRAY   => [[0, $_ALL], @{ $admin->list({ GIDS => $admins->{GIDS}  }) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }); 

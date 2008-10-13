@@ -251,7 +251,7 @@ sub message_add {
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
-   priority, lock_msg, plan_date, plan_time, user_read, admin_read, inner_msg)
+   priority, lock_msg, plan_date, plan_time, user_read, admin_read, inner_msg, resposible)
     values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
         '$DATA{REPLY}',
         '$admin->{AID}',
@@ -263,7 +263,8 @@ sub message_add {
         '$DATA{PLAN_TIME}',
         '$DATA{USER_READ}',
         '$DATA{ADMIN_READ}',
-        '$DATA{INNER_MSG}'
+        '$DATA{INNER_MSG}',
+        '$DATA{RESPOSIBLE}'
         );", 'do');
 
 	return $self;

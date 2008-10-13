@@ -3480,11 +3480,13 @@ sub report_fees {
   	        REPORT      => '',
             PERIOD_FORM => 1,
   	        FIELDS      => { %METHODS_HASH },
-  	        EXT_TYPE    => { METHOD => $_TYPE }
+  	        EXT_TYPE    => { METHOD => $_TYPE,
+  	        	               ADMINS => $_ADMINS }
 
   	         });
 
-  if ($FORM{FIELDS}) {
+
+  if ( defined($FORM{FIELDS}) && $FORM{FIELDS} >= 0 ) {
   	$LIST_PARAMS{METHODS}=$FORM{FIELDS};
    }
 
@@ -3592,10 +3594,11 @@ sub report_payments {
   	        REPORT      => '',
   	        PERIOD_FORM => 1,
   	        FIELDS      => { %METHODS_HASH },
-  	        EXT_TYPE    => { PAYMENT_METHOD => $_PAYMENT_METHOD }
+  	        EXT_TYPE    => { PAYMENT_METHOD => $_PAYMENT_METHOD,
+  	        	               ADMINS => $_ADMINS }
          });
   
-  if ($FORM{FIELDS}) {
+  if (defined($FORM{FIELDS}) && $FORM{FIELDS} > 0) {
   	$LIST_PARAMS{METHODS}=$FORM{FIELDS};
    }
 
@@ -3626,8 +3629,6 @@ if (defined($FORM{DATE})) {
     }
  }   
 else{ 
-  
-  
   my @CAPTION = ("$_DATE", "$_COUNT", $_SUM);
   if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
   	$CAPTION[0]=$_PAYMENT_METHOD;
@@ -3636,6 +3637,9 @@ else{
   	$CAPTION[0]=$_USERS;
   	$type="search=1&LOGIN_EXPR";
   	$index=2;
+   }
+  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'ADMINS')  {
+    $CAPTION[0]=$_ADMINS;
    }
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'HOURS')  {
     $CAPTION[0]=$_HOURS;
@@ -3671,6 +3675,11 @@ else{
                        } );
 
   print $table->show();
+  
+  
+  
+  
+  
 }
 
 #**********************************************************

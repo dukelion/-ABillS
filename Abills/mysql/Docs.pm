@@ -619,7 +619,7 @@ sub tax_invoice_list {
 
 
   $self->query($db,   "SELECT d.acct_id, d.date, d.customer,  sum(o.price * o.counts), u.id, a.name, d.created, d.uid, d.id
-    FROM (docs_acct d, docs_acct_orders o)
+    FROM (docs_tax_invoices d, docs_tax_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     $WHERE
@@ -729,7 +729,7 @@ sub tax_invoice_info {
    c.company_id,
    d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day
    
-    FROM (docs_acct d, docs_acct_orders o)
+    FROM (docs_tax_invoices d, docs_tax_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     LEFT JOIN companies c ON (c.id=u.company_id)
@@ -784,6 +784,7 @@ sub tax_invoice_info {
 sub tax_invoice_change {
   my $self = shift;
   my ($attr) = @_;
+  
   
   my %FIELDS = (DOC_ID      => 'doc_id',
                 COMPANY_ID  => 'company_id',

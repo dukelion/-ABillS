@@ -60,6 +60,15 @@ my $db = $sql->{db};
 my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 
+
+
+require Finance;
+Finance->import();
+my $Fees = Finance->fees($db, $admin, \%conf);
+
+
+
+
 my $users = Users->new($db, $admin, \%conf);
 
 
@@ -72,7 +81,18 @@ if (defined($ARGV->{help})) {
 	exit;
 }
 
-$pdf_result_path = $ARGV->{RESULT_DIR} || $pdf_result_path;
+if ($ARGV->{RESULT_DIR}) {
+  $pdf_result_path = $ARGV->{RESULT_DIR};
+else {
+  $pdf_result_path = $pdf_result_path . "/%Y-%m/";
+}
+
+if (! -d $pdf_result_path) {
+  mkdir($pdf_result_path);
+  print "Directory no exists '$pdf_result_path'. Created." if ($debug > 0);
+ }
+
+
 $docs_in_file    = $ARGV->{DOCS_IN_FILE} || $docs_in_file;
 
 my $save_filename = $pdf_result_path .'/multidoc_.pdf';
@@ -83,7 +103,18 @@ if (! -d $pdf_result_path) {
 	mkdir ($pdf_result_path);
 }
 
-  
+#Fees get month fees - abon. payments
+my ($Y, $m, $d)=split(/-/, $DATE, 3); 
+my $fees_list = $Fees->reports({ INTERVAL => "$Y-$m-01/$DATE",  
+	                               METHODS  => 1,
+	                               TYPE     => 'USERS' 
+	                               });
+my %FEES_LIST_HASH = ();
+foreach my $line (@$fees_list) {
+	$FEES_LIST_HASH{$line->[3]}=$line->[2];
+}
+
+#Users info  
   my %INFO_FIELDS = ('_c_address' => 'ADDRESS_STREET',
                      '_c_build'   => 'ADDRESS_BUILD',
                      '_c_flat'    => 'ADDRESS_FLAT'
@@ -126,10 +157,9 @@ if ($users->{EXTRA_FIELDS}) {
 
   my @MULTI_ARR = ();
   my $doc_num = 0;
-  my ($Y, $m, $d)=split(/-/, $DATE, 3); 
+  
 
 
-#exit;
 my $ext_bill = ($conf{EXT_BILL_ACCOUNT}) ? 1 : 0;
 my %EXTRA    = ();
 foreach my $line (@$list) {
@@ -146,25 +176,25 @@ foreach my $line (@$list) {
       $full_address .= ' ' .$line->[6+$ext_bill] || '';
       $full_address .= '/' . $line->[7+$ext_bill] || '';
      }
+    
+    my $month_fee = ($FEES_LIST_HASH{$line->[$users->{SEARCH_FIELDS_COUNT} + 5]}) ? $FEES_LIST_HASH{$line->[$users->{SEARCH_FIELDS_COUNT} + 5]} : '0.00';
 
-     
-
-    push @MULTI_ARR, { FIO      => $line->[1], 
-    	                 DEPOSIT  => sprintf("%.2f", $line->[2]),
-    	                 CREDIT   => $line->[3],
-  	                   SUM      => sprintf("%.2f", abs($line->[2])),
-                       DISABLE  => 0,
+    push @MULTI_ARR, { FIO           => $line->[1], 
+    	                 DEPOSIT       => sprintf("%.2f", $line->[2] + $month_fee),
+    	                 CREDIT        => $line->[3],
+  	                   SUM           => sprintf("%.2f", abs($line->[2])),
+                       DISABLE       => 0,
     	                 ORDER_TOTAL_SUM_VAT => ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", abs($line->[2] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}))) : 0.00,
-    	                 NUMBER   => $line->[8+$ext_bill]."-$m",
-                       ACTIVATE => '>=$DATE',
-                       EXPIRE   => '0000-00-00',
-                       MONTH_FEE=> sprintf("%.2f", abs($line->[2])),
-                       TOTAL_SUM=> sprintf("%.2f", abs($line->[2])),
+    	                 NUMBER        => $line->[8+$ext_bill]."-$m",
+                       ACTIVATE      => '>=$DATE',
+                       EXPIRE        => '0000-00-00',
+                       MONTH_FEE     => $month_fee,
+                       TOTAL_SUM     => sprintf("%.2f", abs($line->[2])),
                        CONTRACT_ID   => $line->[8+$ext_bill],
                        CONTRACT_DATE => $line->[9+$ext_bill],
                        DATE          => $DATE, 
                        FULL_ADDRESS  => $full_address,
-                       SUM_LIT    => int2ml(sprintf("%.2f", abs($line->[2])), { 
+                       SUM_LIT       => int2ml(sprintf("%.2f", abs($line->[2])), { 
   	 ONES             => \@ones,
      TWOS             => \@twos,
      FIFTH            => \@fifth,
