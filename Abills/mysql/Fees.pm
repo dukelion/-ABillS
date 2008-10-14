@@ -207,7 +207,7 @@ sub list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{INNER_DESCRIBE}, 'STR', 'f.inner_describe') };
   }
 
- if ($attr->{METHODS}) {
+ if (defined($attr->{METHOD}) && $attr->{METHOD} >=0) {
     push @WHERE_RULES, "f.method IN ($attr->{METHODS}) ";
   }
 
@@ -289,6 +289,11 @@ sub reports {
  elsif ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
+ 
+ if ($attr->{BILL_ID}) {
+   push @WHERE_RULES, "f.BILL_ID IN ( $attr->{BILL_ID} )";
+  }
+ 
  
  if(defined($attr->{DATE})) {
    push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";

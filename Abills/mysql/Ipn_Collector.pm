@@ -623,19 +623,18 @@ sub traffic_user_get {
   	$from = ($from eq '0000-00-00') ? 'DATE_FORMAT(start, \'%Y-%m\')>=DATE_FORMAT(curdate(), \'%Y-%m\')' : "DATE_FORMAT(start, '\%Y-\%m-\%d')>='$from'";
   	$WHERE = "( $from AND start<'$to') ";
    }
-  elsif ($attr->{ACTIVATE}) {
+  elsif ($attr->{ACTIVATE} && $attr->{ACTIVATE} ne '0000-00-00') {
   	$WHERE = "DATE_FORMAT(start, '%Y-%m-%d')>='$attr->{ACTIVATE}'";
    }
   else {
     $WHERE = "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m')";
    }
 
-  #$self->{debug}=1;
-  $self->query($db, "SELECT traffic_class, sum(traffic_in) / $CONF->{MB_SIZE}, sum(traffic_out) / $CONF->{MB_SIZE}  from ipn_log
+  $self->query($db, "SELECT traffic_class, sum(traffic_in) / $CONF->{MB_SIZE}, sum(traffic_out) / $CONF->{MB_SIZE} 
+    FROM ipn_log
         WHERE uid='$uid'
         and $WHERE
         GROUP BY uid, traffic_class;");
-  
  
   foreach my $line (@{ $self->{list} }) {
     #Trffic class

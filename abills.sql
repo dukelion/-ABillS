@@ -201,18 +201,18 @@ CREATE TABLE `docs_tax_invoices` (
   `uid` int(11) unsigned NOT NULL default '0',
   `aid` smallint(6) unsigned NOT NULL default '0',
   `vat` double(5,2) unsigned NOT NULL default '0.00',
+  `company_id` int(11) unsigned NOT NULL default 0,
   PRIMARY KEY  (`id`)
 ) COMMENT='Docs Accounts'  ;
 
 CREATE TABLE `docs_tax_invoice_orders` (
-  `tax_invice_id` int(11) unsigned NOT NULL default '0',
+  `tax_invoice_id` int(11) unsigned NOT NULL default '0',
   `orders` varchar(200) NOT NULL default '',
   `counts` int(10) unsigned NOT NULL default '0',
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
-  KEY `aid` (`acct_id`)
+  KEY `aid` (`tax_invoice_id`)
 ) COMMENT='Docs Accounts Orders' ;
-
 
 CREATE TABLE `dv_main` (
   `uid` int(11) unsigned NOT NULL auto_increment,

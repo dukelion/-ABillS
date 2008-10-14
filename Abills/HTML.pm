@@ -410,10 +410,12 @@ sub form_select {
   if (defined($attr->{SEL_ARRAY})){
 	  my $H = $attr->{SEL_ARRAY};
 	  my $i=0;
+	  
+  
 	  foreach my $v (@$H) {
       my $id = (defined($attr->{ARRAY_NUM_ID})) ? $i : $v;
       $self->{SELECT} .= "<option value='$id'";
-      $self->{SELECT} .= ' selected' if ($attr->{SELECTED} && ( ($i eq $attr->{SELECTED}) || ($v eq $attr->{SELECTED}) ) );
+      $self->{SELECT} .= ' selected' if (defined($attr->{SELECTED}) && ( ($i eq $attr->{SELECTED}) || ($v eq $attr->{SELECTED}) ) );
       $self->{SELECT} .= ">$v\n";
       $i++;
      }

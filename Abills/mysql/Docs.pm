@@ -375,6 +375,11 @@ sub docs_nextid {
     $sql = "SELECT max(d.invoice_id), count(*) FROM docs_invoice d
      WHERE YEAR(date)=YEAR(curdate());";
    }
+  elsif($attr->{TYPE} eq 'TAX_INVOICE') {
+    $sql = "SELECT max(d.tax_invoice_id), count(*) FROM docs_tax_invoices d
+     WHERE YEAR(date)=YEAR(curdate());";
+   }
+
 
   $self->query($db,   "$sql");
 
@@ -581,11 +586,11 @@ sub tax_invoice_list {
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
 
- @WHERE_RULES = ("d.id=o.acct_id");
+ @WHERE_RULES = ();
  
  if($attr->{LOGIN_EXPR}) {
  	 require Users;
-	 push @WHERE_RULES, $self->search_expr($attr->{UID}, 'INT', 'd.uid');
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'd.uid') };
   }
 
  if ($attr->{FROM_DATE}) {
@@ -593,11 +598,11 @@ sub tax_invoice_list {
   }
 
  if ($attr->{DOC_ID}) {
-    push @WHERE_RULES, $self->search_expr($attr->{DOC_ID}, 'INT', 'd.acct_id');
+    push @WHERE_RULES, $self->search_expr($attr->{DOC_ID}, 'INT', 'd.tax_invoice_id');
   }
 
  if ($attr->{SUM}) {
-    push @WHERE_RULES, $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts');
+    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts') };
   }
 
  # Show groups
@@ -608,22 +613,26 @@ sub tax_invoice_list {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
+ $self->{debug}=1;
  
- #DIsable
+ if ($attr->{COMPANY_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'd.company_id') };
+ }
  if ($attr->{UID}) {
-   push @WHERE_RULES, $self->search_expr($attr->{UID}, 'INT', 'd.uid');
+   push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'd.uid') };
  }
  
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db,   "SELECT d.acct_id, d.date, d.customer,  sum(o.price * o.counts), u.id, a.name, d.created, d.uid, d.id
-    FROM (docs_tax_invoices d, docs_tax_invoice_orders o)
-    LEFT JOIN users u ON (d.uid=u.uid)
+  $self->query($db,   "SELECT d.tax_invoice_id, d.date, c.name, sum(o.price * o.counts), a.name, d.created, d.uid, d.company_id, d.id
+    FROM (docs_tax_invoices d)
+    LEFT JOIN docs_tax_invoice_orders o ON (d.id=o.tax_invoice_id)
+    LEFT JOIN companies c ON (d.company_id=c.id)
     LEFT JOIN admins a ON (d.aid=a.aid)
     $WHERE
-    GROUP BY d.acct_id 
+    GROUP BY d.tax_invoice_id 
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;");
 
@@ -632,12 +641,13 @@ sub tax_invoice_list {
  my $list = $self->{list};
 
 
- $self->query($db, "SELECT count(*)
-    FROM (docs_acct d, docs_acct_orders o)    
-    LEFT JOIN users u ON (d.uid=u.uid)
+ $self->query($db, "SELECT count(*), sum(o.price*o.counts)
+    FROM (docs_tax_invoices d)
+    LEFT JOIN docs_tax_invoice_orders o ON (d.id=o.tax_invoice_id)
+    LEFT JOIN companies c ON (d.company_id=c.id)
     $WHERE");
 
- ($self->{TOTAL}) = @{ $self->{list}->[0] };
+ ($self->{TOTAL}, $self->{SUM}) = @{ $self->{list}->[0] };
 
 	return $list;
 }
@@ -652,14 +662,18 @@ sub tax_invoice_add {
   
  
   %DATA = $self->get_data($attr, { default => \%DATA }); 
-  $DATA{DATE}    = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
-  $DATA{ACCT_ID} = ($attr->{ACCT_ID}) ? $attr->{ACCT_ID}  : $self->docs_nextid({ TYPE => 'ACCOUNT' });
+  $DATA{DATE}   = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
+  $DATA{DOC_ID} = ($attr->{DOC_ID}) ? $attr->{DOC_ID}  : $self->docs_nextid({ TYPE => 'TAX_INVOICE' });
 
-  $self->query($db, "insert into docs_tax_invoices (tax_invoice_id, date, created, aid, uid)
-      values ('$DATA{DOC_ID}', $DATA{DATE}, now(), \"$admin->{AID}\", \"$DATA{UID}\");", 'do');
+  $self->query($db, "insert into docs_tax_invoices (tax_invoice_id, date, created, aid, uid, company_id)
+      values ('$DATA{DOC_ID}', $DATA{DATE}, now(), \"$admin->{AID}\", \"$DATA{UID}\", '$DATA{COMPANY_ID}');", 'do');
  
   return $self if($self->{errno});
   $self->{DOC_ID}=$self->{INSERT_ID};
+
+  if (! $attr->{IDS}) {
+  	
+   }
 
   if ($attr->{IDS}) {
   	my @ids_arr = split(/, /, $attr->{IDS});
@@ -674,7 +688,6 @@ sub tax_invoice_add {
 
   return $self if($self->{errno});
   
-  $self->{DOC_ID}=$DATA{DOC_ID};
   $self->tax_invoice_info($self->{DOC_ID});
 
 	return $self;
@@ -693,7 +706,7 @@ sub tax_invoice_del {
     #$self->query($db, "DELETE FROM docs_acct WHERE uid='$id'", 'do');
    }
   else {
-    $self->query($db, "DELETE FROM docs_tax_invoice_orders WHERE acct_id='$id'", 'do');
+    $self->query($db, "DELETE FROM docs_tax_invoice_orders WHERE tax_invoice_id='$id'", 'do');
     $self->query($db, "DELETE FROM docs_tax_invoices WHERE id='$id'", 'do');
    }
 
@@ -710,7 +723,7 @@ sub tax_invoice_info {
   $WHERE = ($attr->{UID}) ? "and d.uid='$attr->{UID}'" : '';  
   
 
-  $self->query($db, "SELECT d.acct_id, 
+  $self->query($db, "SELECT d.tax_invoice_id, 
    d.date, 
    sum(o.price * o.counts), 
    if(d.vat>0, FORMAT(sum(o.price * o.counts) / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)),
@@ -726,15 +739,15 @@ sub tax_invoice_info {
    pi.phone,
    c.contract_id,
    c.contract_date,
-   c.company_id,
+   d.company_id,
    d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day
    
     FROM (docs_tax_invoices d, docs_tax_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
-    LEFT JOIN companies c ON (c.id=u.company_id)
+    LEFT JOIN companies c ON (c.id=d.company_id)
     LEFT JOIN admins a ON (d.aid=a.aid)
-    WHERE d.id=o.acct_id and d.id='$id' $WHERE
+    WHERE d.id=o.tax_invoice_id and d.id='$id' $WHERE
     GROUP BY d.id;");
 
   if ($self->{TOTAL} < 1) {
@@ -768,8 +781,8 @@ sub tax_invoice_info {
   if ($self->{TOTAL} > 0) {
     $self->{NUMBER}=$self->{ACCT_ID};
  
-    $self->query($db, "SELECT acct_id, orders, counts, unit, price
-     FROM docs_tax_invoice_orders WHERE acct_id='$id'");
+    $self->query($db, "SELECT tax_invoice_id, orders, counts, unit, price
+     FROM docs_tax_invoice_orders WHERE tax_invoice_id='$id'");
   
     $self->{ORDERS}=$self->{list};
    }

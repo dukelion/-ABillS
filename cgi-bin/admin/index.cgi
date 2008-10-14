@@ -644,8 +644,6 @@ elsif($FORM{change}) {
  }
 elsif($FORM{COMPANY_ID}) {
   
-
-  
   INFO:
 
   $company->info($FORM{COMPANY_ID});
@@ -2947,11 +2945,12 @@ my $table = $html->table( { width      => '100%',
                              "$_STATUS", "$_DESCRIBE", '-', '-', '-'],
                             cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 
                               'center:noprint', 'center:noprint', 'center:noprint'],
+                            ID         => 'NAS_LIST'
                            });
 
 my $list = $nas->list({ %LIST_PARAMS });
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=60&del=$line->[0]", { MESSAGE => "$_DEL NAS \\'$line->[1]\\'?" }); 
+  my $delete = $html->button($_DEL, "index=60&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?" }); 
   $table->addrow($line->[0], 
     $line->[1], 
     $line->[2], 
@@ -4013,7 +4012,7 @@ $payments->{SEL_ER} .= "</select>\n";
 push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
 $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
-                                { SELECTED      => $FORM{METHOD} || '',
+                                { SELECTED      => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
  	                                SEL_ARRAY     => \@PAYMENT_METHODS,
  	                                ARRAY_NUM_ID  => 1
  	                               });
@@ -4342,7 +4341,7 @@ if ($attr->{USER}) {
 
 
     $fees->{SEL_METHOD} =  $html->form_select('METHOD', 
-                                { SELECTED      => $FORM{METHOD} || '',
+                                { SELECTED      => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
  	                                SEL_ARRAY     => \@FEES_METHODS,
  	                                ARRAY_NUM_ID  => 1
  	                               });
@@ -4511,7 +4510,7 @@ elsif($search_form{$FORM{type}}) {
   if ($FORM{type} == 2) {
     push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
     $info{SEL_METHOD} =  $html->form_select('METHOD', 
-                                { SELECTED      => $FORM{METHOD} || '',
+                                { SELECTED      => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
  	                                SEL_ARRAY     => \@PAYMENT_METHODS,
  	                                ARRAY_NUM_ID  => 1,
                                   SEL_OPTIONS   => { '' => $_ALL }
@@ -4520,7 +4519,7 @@ elsif($search_form{$FORM{type}}) {
   elsif ($FORM{type} == 3) {
     push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
     $info{SEL_METHOD} =  $html->form_select('METHOD', 
-                                { SELECTED      => $FORM{METHOD} || '',
+                                { SELECTED      => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
  	                                SEL_ARRAY     => \@FEES_METHODS,
  	                                ARRAY_NUM_ID  => 1,
                                   SEL_OPTIONS   => { '' => $_ALL }

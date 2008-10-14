@@ -2,7 +2,9 @@
 
 
 use Docs;
+use Fees;
 my $Docs = Docs->new($db, $admin, \%conf);
+my $Fees = Fees->new($db, $admin, \%conf);
 
 
 
@@ -326,7 +328,7 @@ return 0;
 sub docs_tax_invoice_list {
 
 if ($LIST_PARAMS{UID} || $FORM{UID}) {
-	tax_invoice();
+	docs_tax_invoice();
 	return 0 if ($FORM{'print'});
  }
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed} ) {
@@ -359,11 +361,11 @@ if ($conf{DOCS_PDF_PRINT}) {
 	$pages_qs .= "&pdf=1";
 }
 
-my $list = $Docs->tax_invoice_list( { %LIST_PARAMS } );
+my $list = $Docs->tax_invoice_list( { %LIST_PARAMS, COMPANY_ID => $FORM{COMPANY_ID} } );
 my $table = $html->table( { width      => '100%',
                             border     => 1,
                             caption    => "$_TAX_INVOICE",
-                            title      => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, '-', '-'],
+                            title      => ['#', $_DATE, $_CUSTOMER, $_SUM, $_ADMIN, $_TIME, '-', '-'],
                             cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Docs->{TOTAL},
@@ -372,7 +374,7 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&UID=$line->[7]", { MESSAGE => "$_DEL ID $line->[8] ?" }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&COMPANY_ID=$line->[7]", { MESSAGE => "$_DEL ID '$line->[8]' ?" }) : ''; 
 
   $table->addrow("$line->[0]", 
    "$line->[1]",
@@ -380,7 +382,6 @@ foreach my $line (@$list) {
    "$line->[3]", 
    $html->button($line->[4], "index=11&UID=$line->[7]"),
    "$line->[5]", 
-   "$line->[6]", 
    $html->button($_PRINT, "qindex=$index&print=$line->[8]". (($pages_qs) ? $pages_qs : "&UID=$line->[7]"  ) , { ex_params => 'target=_new' }), 
    $delete);
 }
@@ -404,12 +405,32 @@ return 0;
 sub docs_tax_invoice {
 	my ($attr) = @_;
 
+  my $Customer = Customers->new($db, $admin, \%conf);
+  my $Company = $Customer->company();
+  $Company->info($FORM{COMPANY_ID});
+
+  $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
+
 # $Docs->tax_invoice_defaults();		
  $Docs->{DATE}=$DATE;
 
- #$Docs->{debug}=1;
+
  #print "aaaaaaaaa";
  if ($FORM{create}) {
+   # get fees info
+   my $list = $Fees->list({ MONTH      => $FORM{MONTH},
+   	                        BILL_ID    => $Company->{BILL_ID}
+   	                        });
+
+   if ($Fees->{TOTAL} > 0) {
+      $FORM{SUM}=$Fees->{SUM};    
+      $FORM{'IDS'}      = '1';
+      $FORM{'ORDER_'. 1}= '-';
+      $FORM{'COUNTS_'.1}= '1';
+      $FORM{'UNIT_'.1}  = '1';
+      $FORM{'SUM_'.1}   = $FORM{SUM};
+    }
+
    if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	   $html->message('err', $_ERROR, "$_EXIST");
     }
@@ -417,21 +438,21 @@ sub docs_tax_invoice {
      $html->message('err', "$_ERROR", $_WRONG_SUM);
     }
    elsif($FORM{PREVIEW}) {
-     docs_preview('account', { %FORM });
+     docs_preview('tax_invoice', { %FORM });
      return 0;
     }
    else {
-     $FORM{UID}=$LIST_PARAMS{UID} if (! $FORM{UID});
+     $FORM{COMPANY_ID}=$LIST_PARAMS{COMPANY_ID} if (! $FORM{COMPANY_ID});
      $Docs->tax_invoice_add({ %FORM });
+
      if(! $Docs->{errno}) {
     
        $html->message('info', "$_ADDED", "$_NUM: [$Docs->{DOC_ID}] $_DATE: $FORM{DATE}");
-       $Docs->tax_invoice_info($Docs->{DOC_ID}, { UID => $LIST_PARAMS{UID} });
+       $Docs->tax_invoice_info($Docs->{DOC_ID}, { COMPANY_ID => $LIST_PARAMS{COMPANY_ID} });
        ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
 
        my $list = $Docs->{ORDERS};
        my $i=0;
-
 
        foreach my $line (@$list) {
    	     $i++;
@@ -450,15 +471,18 @@ sub docs_tax_invoice {
          $FORM{qindex}    = $index;
          $html->{NO_PRINT}= undef;
 
-         docs_print('tax_invoice', $Docs);
+         docs_print('tax_invoice', { %$Docs, %$Company });
          exit;
         }
        else {
-         docs_print('tax_invoice', $Docs);
+         docs_print('tax_invoice', { %$Docs, %$Company });
         }
 
        $FORM{'print'}=1;
        return 0;
+      }
+     else {
+     	 $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
       }
     }
   }
@@ -499,8 +523,7 @@ sub docs_tax_invoice {
      
      $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
      
-  
-     docs_print('tax_invoice', $Docs);
+     docs_print('tax_invoice', { %$Docs, %$Company });
     }
    else {
 
@@ -567,18 +590,21 @@ sub docs_tax_invoice {
   my $table = $html->table( { width       => '100%',
   	                          caption     => "$_TAX_INVOICE",
 	                            rowcolor    => $_COLORS[0],
-                              rows        => [[ "$_USER: ", $users_list,
+                              rows        => [[ 
+                                                #"$_USER: ", $users_list,
                                                 "$_PERIOD: ", $html->form_select('MONTH', 
                                                            { SELECTED   => $FORM{MONTH},
  	                                                           SEL_ARRAY  => \@MONTH_ARR,
  	                                                           NO_ID      => 1
                                                           } ),
+                                                 "$_DATE: ", $html->form_input('DATE', "$Y-$M-01"),
                                           $html->form_input('show', $_CREATE, { TYPE => "SUBMIT" })
                                          ]],                                   
                       });
 
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                         HIDDEN  => { COMPANY_ID => "$_COMPNAY_ID",
+	                         HIDDEN  => { COMPANY_ID => "$FORM{COMPANY_ID}",
+	                         	            index      => $index,
 	                                      create     => "1"
 	                                     }
 	                       });
@@ -606,8 +632,6 @@ sub docs_account {
  $Docs->account_defaults();		
  $Docs->{DATE}=$DATE;
 
- #$Docs->{debug}=1;
- #print "aaaaaaaaa";
  if ($FORM{create}) {
    if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	   $html->message('err', $_ERROR, "$_EXIST");
@@ -802,8 +826,14 @@ sub docs_print {
 	
 	my $template = $type;
   print $html->header() if ($FORM{qindex});
- 
-  $users = $user if ($user);
+
+
+  if ($LIST_PARAMS{COMPANY_ID}) {
+
+   }
+  else {
+    $users = $user if ($user->{UID});
+   }
   
   $users->pi({  UID => $Docs->{UID} });
 	$html->tpl_show(_include("docs_$template", 'Docs', { pdf => $FORM{pdf} }), { %$ATTR, %$users });

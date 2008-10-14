@@ -723,6 +723,9 @@ foreach my $line (@$list) {
   if ($Dhcphosts->{IP_RANGE_FIRST} ne '0.0.0.0') {
     $INFO{RANGE}        = "range $Dhcphosts->{IP_RANGE_FIRST} $Dhcphosts->{IP_RANGE_LAST};";
    }
+  else {
+    $INFO{RANGE} = '';
+   }
 
   #Add static route
   my $list = $Dhcphosts->routes_list({ NET_ID => $NET_ID });  

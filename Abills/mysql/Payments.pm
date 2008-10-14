@@ -198,7 +198,7 @@ sub list {
     push @WHERE_RULES, "p.uid='$attr->{UID}' ";
   }
  elsif ($attr->{LOGIN_EXPR}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{$attr->{LOGIN_EXPR}}, 'STR', 'u.id') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
   }
  
  if ($attr->{AID}) {
@@ -206,15 +206,15 @@ sub list {
   }
 
  if ($attr->{A_LOGIN}) {
- 	 push @WHERE_RULES,  @{ $self->search_expr($attr->{$attr->{A_LOGIN}}, 'STR', 'a.id') };
+ 	 push @WHERE_RULES,  @{ $self->search_expr($attr->{A_LOGIN}, 'STR', 'a.id') };
   }
 
  if ($attr->{DESCRIBE}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{$attr->{DESCRIBE}}, 'STR', 'p.dsc') };
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'p.dsc') };
   }
 
  if ($attr->{INNER_DESCRIBE}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{$attr->{INNER_DESCRIBE}}, 'STR', 'p.inner_describe') };
+   push @WHERE_RULES, @{ $self->search_expr($attr->{INNER_DESCRIBE}, 'STR', 'p.inner_describe') };
   }
 
 
@@ -222,11 +222,8 @@ sub list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'p.sum') };
   }
 
- if ($attr->{METHOD}) {
-    push @WHERE_RULES, "p.method='$attr->{METHOD}' ";
-  }
- elsif ($attr->{METHODS}) {
-    push @WHERE_RULES, "p.method IN ($attr->{METHODS}) ";
+ if (defined($attr->{METHOD})) {
+   push @WHERE_RULES, "p.method IN ($attr->{METHOD}) ";
   }
 
  if ($attr->{DATE}) {
