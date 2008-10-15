@@ -126,11 +126,13 @@ sub auth {
   if ($RAD->{USER_NAME} =~ /^TP_/) {
   	return  $self->make_tp($RAD);
  	 }
-#  elsif ($RAD->{USER_NAME} =~ /\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}/) {
-#  	$RAD->{USER_NAME} = get_isg_mac($RAD->{USER_NAME});
-#    $RAD_PAIRS{'Reply-Message'}="Can't find MAC in DHCP";
-#    return 1, \%RAD_PAIRS;
-#   }	
+  elsif ($RAD->{USER_NAME} =~ /\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}/) {
+    $RAD->{USER_NAME} = get_isg_mac($RAD->{USER_NAME});
+    if ($RAD->{USER_NAME} eq '') {
+      $RAD_PAIRS{'Reply-Message'}="Can't find MAC in DHCP";
+      return 1, \%RAD_PAIRS;
+     }
+   }	
 
   $self->user_info($RAD, $NAS);
 
@@ -401,25 +403,27 @@ print $self->{TP_RAD_PAIRS}.",\n";
 sub get_isg_mac {
 	my ($ip) = @_;
 
+  print "$ip";
+
   my $logfile = $conf->{DHCPHOSTS_LEASES} || '/var/db/dhcp.leaseds';
   my %list = ();
+  my $l_ip = ();
 
- if ( ! -f $logfile ) {
-   return \%list; 
-  }
-
- open (FILE, $logfile) or print "Can't read file '$logfile' $!";
+ open (FILE, "$logfile") or print "Can't read file '$logfile' $!";
 
    while (<FILE>) {
       next if /^#|^$/;
 
       if (/^lease (\d+\.\d+\.\d+\.\d+)/) {
-         $ip = $1; 
+         $l_ip = $1; 
          $list{$ip}{ip}=sprintf("%-17s", $ip);
        }
       elsif (/^\s*hardware ethernet (.*);/) {
-      	$list{$ip}{hardware}=sprintf("%-19s", $1); 
-      	last; 
+      	my $mac = $1;
+      	if ($ip eq $l_ip) {
+      	  $list{$ip}{hardware}=sprintf("%s", $mac); 
+      	  last; 
+      	 }
        }
    }
  close FILE;

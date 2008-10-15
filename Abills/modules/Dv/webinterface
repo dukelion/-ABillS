@@ -2663,17 +2663,9 @@ elsif($FORM{del}) {
 sub dv_user_info {
   
   if ($conf{DV_ISG}) {
-  	#change speed 
-  	#if ($FORM{SPEED}) {
-  	#	my @speeds = ('', '128', '512', '2048');
-  	#	my $res = `/home/asm/coa2.sh - - $speeds[$FORM{SPEED}]`;
-  	# }
+    print "Content-Type: text/html\n\n";
   	
-  	
-  	#get mac from NAS
-  	#my $result = `/usr/bin/rsh -l snake 77.87.152.66 show arp`;
-
-    my $nas = Nas->new($db, \%conf);
+  	my $nas = Nas->new($db, \%conf);
     my $list = $nas->nas_ip_pools_list();
     
     foreach my $line (@$list) {
@@ -2687,10 +2679,59 @@ sub dv_user_info {
     	$html->message('err', $_ERROR, "Can't find your NAS");
     	return 0;
      }
+  	
+  	#change speed 
+  	if ($FORM{SPEED}) {
+      my @SPEED_ARR  = (
+        '',
+        "QU;128000;D;128000",
+        "QU;512000;D;512000",
+        "QU;2048000;D;2048000"
+      ) ;
+
+      my $speed = $SPEED_ARR[$FORM{SPEED}];
+
+      my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",Cisco-Service-Info=\\\"$speed\\\",Idle-Timeout=3000\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
+      
+      print $isg_cmd;
+      
+      my @arr = split(/\n/, $result);
+  	  my %RAD_PAIRS = ();
+  	  foreach my $line (@arr) {
+        my($key, $val)=split(/ = /, $line);
+
+        $val =~ s/\"//g;
+        $key =~ s/\t//g;
+        $key =~ s/ //g;
+        
+      	$RAD_PAIRS{$key}=$val;
+        #Mac as ID
+        if ($val =~ /\$MA(\S+)/) {
+      	  $Dv->{ISG_CID_CUR}=$1;
+      	 }
+  	    #IP user ID
+  	    elsif ($val =~ /S(\S+)/) {
+  	    	$Dv->{ISG_CID_CUR}=$1;
+  	     }
+  	   }
+	
+	
+	    $Dv->{ISG_CID_CUR} = '79.124.96.48';
+	
+   	  if ($RAD_PAIRS{'Error-Cause'}) {
+ 	    	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
+ 	     }
+      else {
+      	$html->message('info', $_INFO, "TURBO $_MODE");
+       }
+  	 }
+  	
+  	#get mac from NAS
+  	#my $result = `/usr/bin/rsh -l snake 77.87.152.66 show arp`;
+
 
     my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
 
-    print "Content-Type: text/html\n\n";
     print "<!-- $isg_cmd -->";
 
     my $result = `$isg_cmd`;
@@ -2725,24 +2766,31 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
         $key =~ s/ //g;
         
       	$RAD_PAIRS{$key}=$val;
+        #Mac as ID
         if ($val =~ /\$MA(\S+)/) {
       	  $Dv->{ISG_CID_CUR}=$1;
       	 }
+  	    #IP user ID
   	    elsif ($val =~ /S(\S+)/) {
   	    	$Dv->{ISG_CID_CUR}=$1;
   	     }
   	 }
 	
+	
+	  $Dv->{ISG_CID_CUR} = '79.124.96.48';
+	
  	  if ($RAD_PAIRS{'Error-Cause'}) {
  	  	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
  	   }
-
-#    if ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
-#    	$Dv->{ISG_CID_CUR} = dv_get_isg_mac($Dv->{ISG_CID_CUR});
-#    	if ($Dv->{ISG_CID_CUR} eq '') {
-#    		$html->message('err', $_ERROR, "Can't find MAC in DHCP");
-#    	 }
-#     }
+    elsif(! $Dv->{ISG_CID_CUR}) {
+    	$html->message('err', $_ERROR, "$_NOT_EXIST ID: ");
+     }
+    elsif ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
+    	$Dv->{ISG_CID_CUR} = dv_get_isg_mac($Dv->{ISG_CID_CUR});
+    	if ($Dv->{ISG_CID_CUR} eq '') {
+    		$html->message('err', $_ERROR, "Can't find MAC in DHCP");
+    	 }
+     }
    }
   
   if ($FORM{activate}) {
@@ -2824,6 +2872,19 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
   	  $Dv->{IP}  = $user->{REMOTE_ADDR};
   	  $Dv->{CID} .= ' '.$html->color_mark($_NOT_ACTIVE, $_COLORS[6]);
   	 }
+    else {
+      $Dv->{SPEED_SEL} = $html->form_select('SPEED', 
+                                          { 
+ 	                                          SELECTED     => $FORM{SPEED},
+ 	                                          SEL_ARRAY    => ['', 
+ 	                                             '128b/s, 3000 sec', 
+ 	                                             '512b/s, 3000 sec', 
+ 	                                             '2048b/s, 3000 sec'],
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+      
+      $html->tpl_show(_include('dv_user_speed', 'Dv'), $Dv);
+     }
 
 #    $Dv->{SPEED} = $html->form_main({ CONTENT => "$_SPEED: ".$html->form_select('SPEED', 
 #                                          { 
@@ -4217,12 +4278,9 @@ sub dv_get_month_fee {
 sub dv_get_isg_mac {
 	my ($ip) = @_;
 
-  my $logfile = $conf{DHCPHOSTS_LEASES} || '/var/db/dhcp.leaseds';
-  my %list = ();
-
- if ( ! -f $logfile ) {
-   return \%list; 
-  }
+ my $logfile = $conf{DHCPHOSTS_LEASES} || '/var/db/dhcp.leaseds';
+ my %list = ();
+ my $l_ip = '';
 
  open (FILE, $logfile) or $html->message('err', $_ERROR, "Can't read file '$logfile' $!");
 
@@ -4230,17 +4288,18 @@ sub dv_get_isg_mac {
       next if /^#|^$/;
 
       if (/^lease (\d+\.\d+\.\d+\.\d+)/) {
-         $ip = $1; 
+         $l_ip = $1; 
          $list{$ip}{ip}=sprintf("%-17s", $ip);
        }
-      if (/^\s*hardware ethernet (.*);/) { 
-      	$list{$ip}{hardware}=sprintf("%-19s", $1); 
-      	last; 
-      }
+      elsif (/^\s*hardware ethernet (.*);/) {
+      	my $mac = $1;
+      	if ($ip eq $l_ip) {
+      	  $list{$ip}{hardware}=sprintf("%s", $mac); 
+      	  last; 
+      	 }
+       }
    }
  close FILE;
-
-
 
 	
 	return ($list{$ip}{hardware}) ?  $list{$ip}{hardware} : '';

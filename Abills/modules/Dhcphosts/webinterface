@@ -254,12 +254,8 @@ sub dhcphosts_monitor {
 # Parse dhcpd.leases
 #*******************************************************************
 sub leaseparse {
-   my $logfile = shift;
+   my ($logfile) = @_;
    my ( %list, $ip );
-
-   if ( ! -f $logfile ) {
-   	return \%list; 
-   }
 
    open (FILE, $logfile) or print "Can't read file '$logfile' $!";
    
