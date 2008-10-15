@@ -259,8 +259,7 @@ $self->query($db, "select
 #> push(@avpairs,'ip:dns-servers=$dns1 $dns2');
 #> push(@avpairs,"ip:route=$$thisroute{network} $$thisroute{subnet}");
 #> $RAD_REPLY{'Cisco-AVPair'}=\@avpairs;
-
-This code works for me on freeradius 1.1.0. Which version you are using ?
+#This code works for me on freeradius 1.1.0. Which version you are using ?
 
 print $self->{TP_RAD_PAIRS}.",\n";
 
