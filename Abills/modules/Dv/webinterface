@@ -2694,7 +2694,8 @@ sub dv_user_info {
       my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",Cisco-Service-Info=\\\"$speed\\\",Idle-Timeout=3000\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
       
       print $isg_cmd;
-      
+
+      my $result = `$isg_cmd`;
       my @arr = split(/\n/, $result);
   	  my %RAD_PAIRS = ();
   	  foreach my $line (@arr) {
@@ -2776,8 +2777,6 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
   	     }
   	 }
 	
-	
-	  $Dv->{ISG_CID_CUR} = '79.124.96.48';
 	
  	  if ($RAD_PAIRS{'Error-Cause'}) {
  	  	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
