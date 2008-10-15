@@ -52,6 +52,8 @@ sub sql_connect {
   my $db  = $sql->{db};
   #$rc = $dbh->ping;
 
+  $RAD_REQUEST{NAS_IDENTIFIER}='' if (! $RAD_REQUEST{NAS_IDENTIFIER});
+
   if (! $NAS_INFO{$RAD_REQUEST{NAS_IP_ADDRESS}.'_'.$RAD_REQUEST{NAS_IDENTIFIER}}) {
     $nas = Nas->new($db, \%conf);
     if (get_nas_info($db, \%RAD_REQUEST) == 0) {		

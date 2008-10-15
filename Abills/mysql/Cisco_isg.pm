@@ -123,7 +123,7 @@ sub auth {
 
   my %RAD_PAIRS=();
 #Make TP
-  if ($RAD->{USER_NAME} =~ /^TT_/) {
+  if ($RAD->{USER_NAME} =~ /^TP_/) {
   	return  $self->make_tp($RAD);
  	 }
 #  elsif ($RAD->{USER_NAME} =~ /\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}/) {
@@ -183,10 +183,6 @@ if ($self->{IP} ne '0.0.0.0') {
   #Cisco-Account-Info += "NSERVICE_406_VPN_1001c",
   #Exec-Program-Wait = "/usr/abills/libexec/rauth.pl",
   #Idle-Timeout = 1800
-
-  #Speeds
-
-
   #$RAD_PAIRS{'Cisco-Account-Info'} = "ABasic_Internet_Service";
   #$RAD_PAIRS{'Cisco-Account-Info'} = "NSERVICE_406_BOD1M";
   my $service = 'Basic_Internet_Service'; # "TT_$self->{TP_ID}";
@@ -220,15 +216,14 @@ sub make_tp {
   my %expr   = ();
   my %names  = ();
   my $TP_ID  = 0;
+  my $debug  = 0;
 
-  if ($RAD->{USER_NAME} =~ /TT_(\d+)/) {
+  if ($RAD->{USER_NAME} =~ /TP_(\d+)/) {
   	$TP_ID = $1;
    }
-
   my $RAD_PAIRS ;
 
 $self->query($db, "select  
-  
   UNIX_TIMESTAMP(),
   UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
   DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
@@ -260,7 +255,7 @@ $self->query($db, "select
     ) = @{ $self->{list}->[0] };
 
 
-
+print $self->{TP_RAD_PAIRS}.",\n";
 
 #chack TP Radius Pairs
   if ($self->{TP_RAD_PAIRS}) {
@@ -270,10 +265,8 @@ $self->query($db, "select
 
        my($left, $right)=split(/\+\=/, $line, 2);
        $right =~ s/\"//g;
-
  	     
        if (defined($RAD_PAIRS->{"$left"})) {
-   	     
    	     $RAD_PAIRS->{"$left"} =~ s/\"//g;
    	     $RAD_PAIRS->{"$left"}="\"". $RAD_PAIRS->{"$left"} .",$right\"";
         }
@@ -300,50 +293,50 @@ $self->query($db, "select
 #    $speeds{0}{OUT}=int($self->{SPEED});
 #   }
 #  else {
-#
-#    ($self->{TIME_INTERVALS},
-#     $self->{INTERVAL_TIME_TARIF}, 
-#     $self->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($TP_ID);
-#
-#    my ($remaining_time, $ret_attr) = $Billing->remaining_time($self->{DEPOSIT}, {
-#    	    TIME_INTERVALS      => $self->{TIME_INTERVALS},
-#          INTERVAL_TIME_TARIF => $self->{INTERVAL_TIME_TARIF},
-#          INTERVAL_TRAF_TARIF => $self->{INTERVAL_TRAF_TARIF},
-#          SESSION_START       => $self->{SESSION_START},
-#          DAY_BEGIN           => $self->{DAY_BEGIN},
-#          DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
-#          DAY_OF_YEAR         => $self->{DAY_OF_YEAR},
-#          REDUCTION           => $self->{REDUCTION},
-#          POSTPAID            => 1,
-#          GET_INTERVAL        => 1
-##          debug               => ($debug > 0) ? 1 : undef
-#         });
+
+    ($self->{TIME_INTERVALS},
+     $self->{INTERVAL_TIME_TARIF}, 
+     $self->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($TP_ID);
+
+    my ($remaining_time, $ret_attr) = $Billing->remaining_time(0, {
+    	    TIME_INTERVALS      => $self->{TIME_INTERVALS},
+          INTERVAL_TIME_TARIF => $self->{INTERVAL_TIME_TARIF},
+          INTERVAL_TRAF_TARIF => $self->{INTERVAL_TRAF_TARIF},
+          SESSION_START       => $self->{SESSION_START},
+          DAY_BEGIN           => $self->{DAY_BEGIN},
+          DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
+          DAY_OF_YEAR         => $self->{DAY_OF_YEAR},
+          REDUCTION           => 0,
+          POSTPAID            => 1,
+          GET_INTERVAL        => 1
+#          debug               => ($debug > 0) ? 1 : undef
+         });
 #
 ##    print "RT: $remaining_time\n"  if ($debug == 1);
-#    my %TT_IDS = %$ret_attr;
-#
-#
-#    if (keys %TT_IDS > 0) {
-#    	
-#      require Tariffs;
-#      Tariffs->import();
-#      my $tariffs = Tariffs->new($db, $conf, undef);
-#
-#      #Get intervals
-#      while(my($k, $v)=each( %TT_IDS)) {
-#        print "> $k, $v\n" if ($debug > 0);
-# 	      next if ($k ne 'TT');
-# 	      my $list = $tariffs->tt_list({ TI_ID => $v });
-# 	      foreach my $line (@$list)  {
-# 	    	  $speeds{$line->[0]}{IN}="$line->[4]";
-# 	    	  $speeds{$line->[0]}{OUT}="$line->[5]";
-# 	    	  $names{$line->[0]}= ($line->[6]) ? "$line->[6]" : "Service_$line->[0]";
-# 	    	  $expr{$line->[0]}="$line->[8]" if (length($line->[8]) > 5);
-# 	    	  #print "$line->[0] $line->[6] $line->[4]\n";
-# 	      }
-#      }
-#    }
-#  
+    my %TT_IDS = %$ret_attr;
+
+
+    if (keys %TT_IDS > 0) {
+    	
+      require Tariffs;
+      Tariffs->import();
+      my $tariffs = Tariffs->new($db, $conf, undef);
+
+      #Get intervals
+      while(my($k, $v)=each( %TT_IDS)) {
+        print "> $k, $v\n" if ($debug > 0);
+ 	      next if ($k ne 'TT');
+ 	      my $list = $tariffs->tt_list({ TI_ID => $v });
+ 	      foreach my $line (@$list)  {
+ 	    	  $speeds{$line->[0]}{IN}="$line->[4]";
+ 	    	  $speeds{$line->[0]}{OUT}="$line->[5]";
+ 	    	  $names{$line->[0]}= ($line->[6]) ? "$line->[6]" : "Service_$line->[0]";
+ 	    	  $expr{$line->[0]}="$line->[8]" if (length($line->[8]) > 5);
+ 	    	  #print "$line->[0] $line->[6] $line->[4]\n";
+ 	      }
+      }
+    }
+  
 #   }
 #
 #
@@ -364,36 +357,32 @@ $self->query($db, "select
 #
 #  
 #  #Make speed
-#  foreach my $traf_type (sort keys %speeds) {
-#    my $speed = $speeds{$traf_type};
-#    
-#    my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN}  : 0;
-#    my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} : 0;
-#
-#    $RAD_PAIRS{'Cisco-Account-Info'} = "$names{$traf_type}";
-#    $RAD_PAIRS{'Cisco-Service-Info'} = "$names{$traf_type}";
-#    
-#    
-#    my $speed_in_rule = '';
-#    my $speed_out_rule = '';
-#    if ($speed_in > 0) {
-#    	$speed_in_rule = "D;" . ($speed_in * 1000) .";". 
-#      ( $speed_in / 8 * 1000 ).';'.
-#      ( $speed_in / 4 * 1000 ).';';
-#     }
-#
-#    if ($speed_out > 0) {
-#    	$speed_out_rule = "U;". ($speed_out * 1000 ) .";". 
-#      ( $speed_out / 8 * 1000 ).';'.
-#      ( $speed_out / 4 * 1000 );
-#     }
-#
-#    
-#    if ($speed_in_rule ne '' || $speed_out_rule ne '') {
-#      $RAD_PAIRS{'Cisco-Service-Info'} = "\"".$RAD_PAIRS{'Cisco-Service-Info'} .",Q$speed_out_rule;$speed_in_rule\"";
-#     }
-#
-#  }
+  foreach my $traf_type (sort keys %speeds) {
+    my $speed = $speeds{$traf_type};
+    
+    my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN}  : 0;
+    my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} : 0;
+  
+    my $speed_in_rule = '';
+    my $speed_out_rule = '';
+    if ($speed_in > 0) {
+    	$speed_in_rule = "D;" . ($speed_in * 1000) .";". 
+      ( $speed_in / 8 * 1000 ).';'.
+      ( $speed_in / 4 * 1000 ).';';
+     }
+
+    if ($speed_out > 0) {
+    	$speed_out_rule = "U;". ($speed_out * 1000 ) .";". 
+      ( $speed_out / 8 * 1000 ).';'.
+      ( $speed_out / 4 * 1000 );
+     }
+
+    
+    if ($speed_in_rule ne '' || $speed_out_rule ne '') {
+      $RAD_PAIRS{'Cisco-Service-Info'} = "\"Q$speed_out_rule;$speed_in_rule\"";
+     }
+
+  }
 	
 	return 0, \%RAD_PAIRS;
 }
