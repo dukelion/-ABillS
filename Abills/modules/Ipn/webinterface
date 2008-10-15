@@ -2325,10 +2325,11 @@ if ($FORM{RECALCULATE}) {
     my @CAPTION = ($_START,  "$_TRAFFIC  ID", $_RECV, $_SEND,  'NAS',  'IP', $_INTERVALS, $_SUM, 'SID', $_RECALCULATE);
   
     my $table = $html->table( { caption     => "$_RECALCULATE",
-    	                        width       => '100%',
-    	                        title       =>  \@CAPTION ,
-    	                        cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right' ]
-                         } );
+    	                          width       => '100%',
+    	                          title       =>  \@CAPTION ,
+    	                          cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right' ]
+                            } );
+
     my $total_sum = 0;
     my %TIME_INTERVALS = ();
     
@@ -2453,8 +2454,6 @@ if ($FORM{RECALCULATE}) {
 
       if ($FORM{ACTION}) {
        	my $recalculte = sprintf("%.5f", $total_sum -  $recalculate_total_sum);
-       	print "$user->{BILL_ID} // ---- $recalculte";
-
         if ($recalculte > 0) {
        	  $Ipn->traffic_recalc_bill({ SUM     => $recalculte, 
        		                            BILL_ID => $user->{BILL_ID} });

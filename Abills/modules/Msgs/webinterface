@@ -585,7 +585,6 @@ sub msgs_admin {
   $LIST_PARAMS{STATE}=undef if ($FORM{STATE} == 3);
   $LIST_PARAMS{PRIORITY}=undef if ($FORM{PRIORITY} == 5);
 
-
   my $list = $Msgs->messages_list({ %LIST_PARAMS, 
   	                                DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
   	                               });
@@ -615,21 +614,22 @@ function CheckAllINBOX() {
                            });
 
 foreach my $line (@$list) {
-  my $state = ($line->[5]==0) ? $html->b($msg_status[$line->[5]]) : $msg_status[$line->[5]];
-  $state .= '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[15] eq '0000-00-00 00:00:00');
+  my $state = ($line->[5] == 0) ? $html->b($msg_status[$line->[5]]) : $msg_status[$line->[5]];
+
+  $state .= '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[16] eq '0000-00-00 00:00:00');
   my $priority = '';
   if ($line->[8] == 4) {
- 	  $priority = "<font color='$_COLORS[6]'>$priority[$line->[8]]</font>";
+ 	  $priority = $html->color_mark($priority[$line->[8]], $_COLORS[6]);
  	 }
   elsif ($line->[8] == 0) {
- 	  $priority = "<font color='$_COLORS[8]'>$priority[$line->[8]]</font>";
+ 	  $priority = $html->color_mark($priority[$line->[8]], $_COLORS[8]);
  	 }
  	else {
  		$priority = $priority[$line->[8]];
  	 }
 
   $table->addrow(
-   $line->[0] . ( ($A_PRIVILEGES{$line->[17]} > 2 || $#A_CHAPTER == -1) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ), 
+   $line->[0] . ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ), 
    ($line->[10] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[11]") :  $line->[1],
    $html->button($line->[2], "index=$index&UID=$line->[11]&chg=$line->[0]"), 
    $line->[3],
@@ -640,7 +640,7 @@ foreach my $line (@$list) {
    $priority,
    $line->[9],
    $html->button("$_SHOW", "index=$index&chg=$line->[0]&UID=$line->[11]"),
-   ( ($A_PRIVILEGES{$line->[17]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL $line->[0]?" }): '') 
+   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?" }): '') 
 
   );
 }
@@ -1218,10 +1218,10 @@ if (defined($FORM{DATE})) {
 
     my $priority = '';
     if ($line->[8] == 4) {
- 	    $priority = "<font color='$_COLORS[6]'>$priority[$line->[8]]</font>";
+ 	    $priority = $html->color_mark($priority[$line->[8]], $_COLORS[6]);
  	   }
     elsif ($line->[8] == 0) {
- 	    $priority = "<font color='$_COLORS[8]'>$priority[$line->[8]]</font>";
+ 	    $priority = $html->color_mark($priority[$line->[8]], $_COLORS[8]);
    	 }
  	  else {
  		  $priority = $priority[$line->[8]];
