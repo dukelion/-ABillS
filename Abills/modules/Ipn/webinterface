@@ -2453,12 +2453,13 @@ if ($FORM{RECALCULATE}) {
      }
 
       if ($FORM{ACTION}) {
-       	my $recalculte = sprintf("%.5f", $total_sum -  $recalculate_total_sum);
-        if ($recalculte > 0) {
-       	  $Ipn->traffic_recalc_bill({ SUM     => $recalculte, 
-       		                            BILL_ID => $user->{BILL_ID} });
+       	my $recalculate = sprintf("%.5f", $total_sum - $recalculate_total_sum);
+        if ($recalculate != 0) {
+       	  $Ipn->traffic_recalc_bill({ SUM     => $recalculate, 
+       		                            BILL_ID => $user->{BILL_ID} 
+       		                           });
 
-          print $html->$message('info', $_RECALCULATE, "$_SUM: $recalculte, $_TARIF_PLAN: $TP_ID");
+          print $html->$message('info', $_RECALCULATE, "$_SUM: $recalculate, $_TARIF_PLAN: $TP_ID");
          }
        }
 

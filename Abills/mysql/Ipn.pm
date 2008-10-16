@@ -152,12 +152,10 @@ sub traffic_recalc_bill {
   my $self = shift;
   my ($attr) = @_;
  
-  if ($attr->{SUM} > 0) {
-   $self->query($db, "UPDATE bills SET
-      deposit=deposit - $attr->{SUM}
+  $self->query($db, "UPDATE bills SET
+      deposit=deposit + $attr->{SUM}
     WHERE 
     id='$attr->{BILL_ID}';", 'do');
-   }
 
   return $self;
 }

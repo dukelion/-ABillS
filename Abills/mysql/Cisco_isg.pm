@@ -1,6 +1,6 @@
 package Cisco_isg;
 # Cisco_isg AAA functions
-#
+# http://www.cisco.com/en/US/docs/ios/12_2sb/isg/coa/guide/isgcoa4.html
 
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
