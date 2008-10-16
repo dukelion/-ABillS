@@ -418,7 +418,7 @@ sub get_isg_mac {
        }
       elsif (/^\s*hardware ethernet (.*);/) {
       	my $mac = $1;
-      	if ($ip eq $l_ip) {
+      	if ($ip eq $l_ip && $mac ne 'de:de:de:de:de:de') {
       	  $list{$ip}{hardware}=sprintf("%s", $mac); 
       	  last; 
       	 }
