@@ -401,9 +401,7 @@ print $self->{TP_RAD_PAIRS}.",\n";
 # Get MAC from hcl leaseds
 #**********************************************************
 sub get_isg_mac {
-	my ($ip) = @_;
-
-  print "$ip";
+  my ($ip) = @_;
 
   my $logfile = $conf->{DHCPHOSTS_LEASES} || '/var/db/dhcp.leaseds';
   my %list = ();
