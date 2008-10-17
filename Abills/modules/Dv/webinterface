@@ -4244,7 +4244,7 @@ sub dv_get_month_fee {
         if ($active_m > 0 && $active_m < $m) {
         	$periods = $m - $active_m;
          }
-        elsif ($active_m > 0 && ( $active_m > $m  && $active_y < $y)) {
+        elsif ($active_m > 0 && ( $active_m >= $m  && $active_y < $y)) {
         	$periods = 12 - $active_m + $m - 1; 
          }
         
