@@ -2727,6 +2727,7 @@ pROFILRE
 
 =cut
 
+    #$result = "Cisco-Account-Info = \"N1TP_202;421;test;5887;5697;5108683;4021074\"";
 
   	my @arr = split(/\n/, $result);
   	my %RAD_PAIRS = ();
@@ -2752,8 +2753,11 @@ pROFILRE
   	 }
 	
 	
+	  #$Dv->{ISG_CID_CUR} = '192.168.0.1';
+	  #
  	  if ($RAD_PAIRS{'Error-Cause'}) {
  	  	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
+
  	   }
     elsif(! $Dv->{ISG_CID_CUR}) {
     	$html->message('err', $_ERROR, "$_NOT_EXIST ID: ");
@@ -2764,11 +2768,11 @@ pROFILRE
     		$html->message('err', $_ERROR, "Can't find MAC in DHCP");
     	 }
      }
-    else {
+
+    if ($Dv->{ISG_CID_CUR}) {
   	  #change speed 
   	  if ($FORM{SPEED}) {
-  	  	print "Change speed...";
-        if ($Dv->{CURE_SERVICE} ) {
+        if ($Dv->{CURE_SERVICE}) {
            my $service_name = 'TURBO_SPEED'. $FORM{SPEED};
            #Deactive cure service
            my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=deactivate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$Dv->{CURE_SERVICE}\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
