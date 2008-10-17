@@ -369,8 +369,7 @@ sub list {
  $self->{SEARCH_FIELDS} = '';
  $self->{SEARCH_FIELDS_COUNT}=0;
 
- undef @WHERE_RULES;
- push @WHERE_RULES, "u.uid = dv.uid";
+ @WHERE_RULES = ("u.uid = dv.uid");
  
  if ($attr->{USERS_WARNINGS}) {
    $self->query($db, "SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit
@@ -527,7 +526,6 @@ sub list {
    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
   }
 
- # Show debeters
  if ($attr->{COMPANY_ID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
   }
