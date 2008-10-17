@@ -2683,6 +2683,15 @@ sub dv_user_info {
   	#get mac from NAS and account info
   	#my $result = `/usr/bin/rsh -l snake 77.87.152.66 show arp`;
 
+    if ($FORM{DISABLE_ISG}) {
+    	#!!! Account logoff
+      my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-logoff\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
+      print "<!-- $isg_cmd -->";
+      my $result = `$isg_cmd`;
+      $html->message('info', $_INFO, "$_DISABLED");
+      return 0;
+     }
+
     my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
 
     print "<!-- $isg_cmd -->";
@@ -2811,11 +2820,11 @@ pROFILRE
  	        	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
  	         }
           else {
-      	    $html->message('info', $_INFO, "TURBO $_MODE");
+      	    $html->message('info', $_INFO, "TURBO $_MODE $_ENABLE");
            }
        }
       else {
-      	$html->message('info', $_INFO, "TURBO $_MODE $_ENABLE");
+      	$html->message('info', $_INFO, "TURBO $_MODE $_ENABLED");
        }
   	 }
    }
@@ -2904,27 +2913,17 @@ pROFILRE
       $Dv->{SPEED_SEL} = $html->form_select('SPEED', 
                                           { 
  	                                          SELECTED     => $FORM{SPEED},
- 	                                          SEL_ARRAY    => ['', 
- 	                                             '128b/s, 3000 sec', 
- 	                                             '512b/s, 3000 sec', 
- 	                                             '2048b/s, 3000 sec'],
+ 	                                          SEL_ARRAY    => [ '', 
+ 	                                             '128b/s,  3000 sec', 
+ 	                                             '512b/s,  3000 sec', 
+ 	                                             '2048b/s, 3000 sec'
+ 	                                             ],
  	                                          ARRAY_NUM_ID => 1
  	                                        });
-      
+
+      #$html->message('info', $_INFO, "TURBO $_ENABLE") if (! $Dv->{CURE_SERVICE});
       $html->tpl_show(_include('dv_user_speed', 'Dv'), $Dv);
      }
-
-#    $Dv->{SPEED} = $html->form_main({ CONTENT => "$_SPEED: ".$html->form_select('SPEED', 
-#                                          { 
-# 	                                          SELECTED     => $FORM{SPEED},
-# 	                                          SEL_ARRAY    => ['', '128b/s, 3000 sec', '512b/s, 3000 sec', '2048b/s, 3000 sec'],
-# 	                                          ARRAY_NUM_ID => 1
-# 	                                        }),
-#                       HIDDEN  => { index => "$index",
-#  	                   	            CID   => "$Dv->{ISG_CID_CUR}",
-#  	                         	      sid   => $sid    },
-#                       SUBMIT  => { change => "$_CHANGE"  } 
-#                      });
 
 
    }

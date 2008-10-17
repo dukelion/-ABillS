@@ -22,7 +22,7 @@ samechanged('STATE');
 
 %ATTACHMENT%
 <tr><td>$_ATTACHMENT:</td><td><input name='FILE_UPLOAD' type='file' size='40' class='fixed'>
-   <input class='button' type='submit' name='AttachmentUpload' value='$_ADD'></td></tr>  
+<!--   <input class='button' type='submit' name='AttachmentUpload' value='$_ADD'>--></td></tr>  
 <tr><td>$_STATUS:</td><td>%STATE_SEL% %RUN_TIME%</td></tr>
 </table>
 <input type='hidden' name='sid' value='$sid'/>
