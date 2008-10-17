@@ -2679,57 +2679,9 @@ sub dv_user_info {
     	$html->message('err', $_ERROR, "Can't find your NAS");
     	return 0;
      }
-  	
-  	#change speed 
-  	if ($FORM{SPEED}) {
-      my @SPEED_ARR  = (
-        '',
-        "QU;128000;D;128000",
-        "QU;512000;D;512000",
-        "QU;2048000;D;2048000"
-      ) ;
-
-      my $speed = $SPEED_ARR[$FORM{SPEED}];
-
-      my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",Cisco-Service-Info=\\\"$speed\\\",Idle-Timeout=3000\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
-      
-      print $isg_cmd;
-
-      my $result = `$isg_cmd`;
-      my @arr = split(/\n/, $result);
-  	  my %RAD_PAIRS = ();
-  	  foreach my $line (@arr) {
-        my($key, $val)=split(/ = /, $line);
-
-        $val =~ s/\"//g;
-        $key =~ s/\t//g;
-        $key =~ s/ //g;
-        
-      	$RAD_PAIRS{$key}=$val;
-        #Mac as ID
-        if ($val =~ /\$MA(\S+)/) {
-      	  $Dv->{ISG_CID_CUR}=$1;
-      	 }
-  	    #IP user ID
-  	    elsif ($val =~ /S(\S+)/) {
-  	    	$Dv->{ISG_CID_CUR}=$1;
-  	     }
-  	   }
-	
-	
-	    $Dv->{ISG_CID_CUR} = '79.124.96.48';
-	
-   	  if ($RAD_PAIRS{'Error-Cause'}) {
- 	    	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
- 	     }
-      else {
-      	$html->message('info', $_INFO, "TURBO $_MODE");
-       }
-  	 }
-  	
-  	#get mac from NAS
+ 	
+  	#get mac from NAS and account info
   	#my $result = `/usr/bin/rsh -l snake 77.87.152.66 show arp`;
-
 
     my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
 
@@ -2754,6 +2706,25 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
         NAS-Port = 0
         NAS-Port-Id = "nas-port:0.0.0.0:0/0/2/1416"
         Framed-IP-Address = 79.124.98.3
+pROFILRE
+
+        Cisco-Account-Info = "N1PBHK_SERVICE;399;chao;0;0;0;0"
+        Cisco-Account-Info = "N1TP_214;399;chao;0;46;0;2867"
+        User-Name = "chao"
+        Cisco-Command-Code = "\0041"
+        Cisco-Account-Info = "S79.124.99.40"
+        Cisco-Account-Info = "ATP_214"
+        Cisco-Account-Info = "NSERVICE_406_BOD1M"
+        Cisco-Account-Info = "NBasic_Internet_Service"
+        Cisco-Account-Info = "N1PBHK_SERVICE;399;chao;0;0;0;0"
+        Idle-Timeout = 1800
+        User-Name = "chao"
+        Cisco-AVPair = "accounting-list=BH_ACCNT_LIST1"
+        Cisco-AVPair = "sg-version=1.0"
+        NAS-Port = 33555320
+        NAS-Port-Id = "nas-port:0.0.0.0:0/0/2/888"
+        Framed-IP-Address = 79.124.99.40
+
 =cut
 
 
@@ -2775,6 +2746,9 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
   	    elsif ($val =~ /S(\S+)/) {
   	    	$Dv->{ISG_CID_CUR}=$1;
   	     }
+  	    elsif ($val =~ /^(N1TP_\d+)/) {
+  	      $Dv->{CURE_SERVICE}=$1;
+  	     }
   	 }
 	
 	
@@ -2790,7 +2764,58 @@ rad_recv: CoA-ACK packet from host 77.87.152.66:1700, id=218, length=211
     		$html->message('err', $_ERROR, "Can't find MAC in DHCP");
     	 }
      }
+    else {
+  	  #change speed 
+  	  if ($FORM{SPEED}) {
+
+        if ($Dv->{CURE_SERVICE} ) {
+           my $service_name = 'TURBO_SPEED'. $FORM{SPEED};
+           #Deactive cure service
+           my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=deactivate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$Dv->{CURE_SERVICE}\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
+
+           print $isg_cmd;
+           my $result = `$isg_cmd`;
+        
+           #Active service
+           $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=activate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$service_name\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
+      
+           print $isg_cmd;
+           my $result = `$isg_cmd`;
+
+           my @arr = split(/\n/, $result);
+  	       my %RAD_PAIRS = ();
+
+  	       foreach my $line (@arr) {
+             my($key, $val)=split(/ = /, $line);
+
+             $val =~ s/\"//g;
+             $key =~ s/\t//g;
+             $key =~ s/ //g;
+        
+             $RAD_PAIRS{$key}=$val;
+             #Mac as ID
+             if ($val =~ /\$MA(\S+)/) {
+      	        $Dv->{ISG_CID_CUR}=$1;
+      	      }
+  	         #IP user ID
+  	         elsif ($val =~ /S(\S+)/) {
+  	    	     $Dv->{ISG_CID_CUR}=$1;
+  	          }
+  	        }
+	  
+	     	  if ($RAD_PAIRS{'Error-Cause'}) {
+ 	        	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
+ 	         }
+          else {
+      	    $html->message('info', $_INFO, "TURBO $_MODE");
+           }
+       }
+      else {
+      	$html->message('info', $_INFO, "TURBO $_MODE $_ENABLE");
+       }
+  	 }
    }
+ }
   
   if ($FORM{activate}) {
      $Dv->change({ UID    => $LIST_PARAMS{UID}, 

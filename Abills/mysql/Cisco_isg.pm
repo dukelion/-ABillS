@@ -190,8 +190,10 @@ if ($self->{IP} ne '0.0.0.0') {
   my $service = "TP_$self->{TP_ID}"; #'Basic_Internet_Service'; 
   
   push @RAD_PAIRS_ARR, "Cisco-Account-Info = \"A$service\"";
-  push @RAD_PAIRS_ARR, "Cisco-Account-Info += \"NSERVICE_406_BOD1M\"";
-  
+  push @RAD_PAIRS_ARR, "Cisco-Account-Info += \"NTURBO_SPEED1\"";
+  push @RAD_PAIRS_ARR, "Cisco-Account-Info += \"NTURBO_SPEED2\"";
+  push @RAD_PAIRS_ARR, "Cisco-Account-Info += \"NTURBO_SPEED3\"";
+  push @RAD_PAIRS_ARR, "Cisco-Account-Info += \"QU;128000;D;128000;\"";
   $RAD_PAIRS{'cisco-avpair'} = "\"subscriber:accounting-list=BH_ACCNT_LIST1\"";
   $RAD_PAIRS{'Idle-Timeout'} = 1800;
   
