@@ -3297,7 +3297,6 @@ if ($d == 1) {
   #my %$processed_users = ();
   
   foreach my $tp_line (@$list) {
-     #$tariffs->{debug}=1;
      my $ti_list = $tariffs->ti_list({ TP_ID => $tp_line->[0] });
      next if ($tariffs->{TOTAL} != 1);
 

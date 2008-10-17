@@ -146,7 +146,6 @@ sub msgs_admin_add {
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
 
-  $Msgs->{debug}=1;
 
   if ($FORM{send}) {
     #Add group 
