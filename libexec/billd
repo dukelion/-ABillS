@@ -821,11 +821,11 @@ while(my($ip_address, $info)=each %$ip_pid_hash) {
   
   my $res = '';  
   if ($pid > 0) {
-    $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete`;
+    $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete down`;
     # /sbin/ifconfig tun$iface delete
    }
   else {
-    $res = `/sbin/ifconfig tun$iface delete`;
+    $res = `/sbin/ifconfig tun$iface delete down`;
    }
 
   print "Killed IP: $ip_address PID: '$pid' -- $res\n";  
