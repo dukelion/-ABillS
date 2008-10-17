@@ -2746,7 +2746,7 @@ pROFILRE
   	    elsif ($val =~ /S(\S+)/) {
   	    	$Dv->{ISG_CID_CUR}=$1;
   	     }
-  	    elsif ($val =~ /^(N1TP_\d+)/) {
+  	    elsif ($val =~ /^N1(TP_\d+)/) {
   	      $Dv->{CURE_SERVICE}=$1;
   	     }
   	 }
@@ -2767,7 +2767,7 @@ pROFILRE
     else {
   	  #change speed 
   	  if ($FORM{SPEED}) {
-
+  	  	print "Change speed...";
         if ($Dv->{CURE_SERVICE} ) {
            my $service_name = 'TURBO_SPEED'. $FORM{SPEED};
            #Deactive cure service
