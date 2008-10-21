@@ -319,6 +319,7 @@ sub form_info {
   
   if ($conf{user_chg_pi}) {
   	if ($FORM{chg}) {
+  		
   		$user->pi();
   		$user->{ACTION}='change';
   		$user->{LNG_ACTION}=$_CHANGE;

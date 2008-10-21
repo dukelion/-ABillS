@@ -2793,7 +2793,7 @@ pROFILRE
            $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=activate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$service_name\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
       
            print $isg_cmd;
-           my $result = `$isg_cmd`;
+           $result = `$isg_cmd`;
 
            my @arr = split(/\n/, $result);
   	       my %RAD_PAIRS = ();
