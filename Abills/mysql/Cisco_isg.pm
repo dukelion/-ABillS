@@ -177,7 +177,6 @@ if ($self->{IP} ne '0.0.0.0') {
  }
 
   my $debug = 0;
-  my @RAD_PAIRS_ARR = ();
   #DEFAULT Auth-Type = Accept
   #cisco-avpair = "subscriber:accounting-list=BH_ACCNT_LIST1",
   #Cisco-Account-Info = "ABasic_Internet_Service",
@@ -187,20 +186,16 @@ if ($self->{IP} ne '0.0.0.0') {
   #Idle-Timeout = 1800
   #$RAD_PAIRS{'Cisco-Account-Info'} = "ABasic_Internet_Service";
   #$RAD_PAIRS{'Cisco-Account-Info'} = "NSERVICE_406_BOD1M";
-  my $service = "TP_$self->{TP_ID}"; #'Basic_Internet_Service'; 
-  
-  push @RAD_PAIRS_ARR, "Cisco-Account-Info = \"A$service\"";
-  push @RAD_PAIRS_ARR, "Cisco-Account-Info += \"NTURBO_SPEED1\"";
-  push @RAD_PAIRS_ARR, "Cisco-Account-Info += \"NTURBO_SPEED2\"";
-  push @RAD_PAIRS_ARR, "Cisco-Account-Info += \"NTURBO_SPEED3\"";
-  #push @RAD_PAIRS_ARR, "Cisco-Account-Info += \"QU;128000;D;128000;\"";
-  $RAD_PAIRS{'cisco-avpair'} = "\"subscriber:accounting-list=BH_ACCNT_LIST1\"";
-  $RAD_PAIRS{'Idle-Timeout'} = 1800;
-  
-  
 
-  print join(",\n", @RAD_PAIRS_ARR);
-  print ",\n";
+  my $service = "TP_$self->{TP_ID}"; 
+  
+  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"A$service\"";
+  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED1\"";
+  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED2\"";
+  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED3\"";
+  push @{ $RAD_PAIRS{'cisco-avpair'} }, "\"subscriber:accounting-list=BH_ACCNT_LIST1\"";
+  $RAD_PAIRS{'Idle-Timeout'} = 1800;
+  $RAD_PAIRS{'Acct-Interim-Interval'}=600;
 
   return 0, \%RAD_PAIRS;
 }
@@ -271,19 +266,11 @@ print $self->{TP_RAD_PAIRS}.",\n";
   if ($self->{TP_RAD_PAIRS}) {
     my @p = split(/,/, $self->{TP_RAD_PAIRS});
     foreach my $line (@p) {
-     if ($line =~ /\+\=/ ) {
-
-       my($left, $right)=split(/\+\=/, $line, 2);
-       $right =~ s/\"//g;
- 	     
-       if (defined($RAD_PAIRS->{"$left"})) {
-   	     $RAD_PAIRS->{"$left"} =~ s/\"//g;
-   	     $RAD_PAIRS->{"$left"}="\"". $RAD_PAIRS->{"$left"} .",$right\"";
-        }
-       else {
-     	   $RAD_PAIRS->{"$left"}="\"$right\"";
-        }
-       }
+      if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/ ) {
+        my $left = $1;
+        my $right= $2;
+        push @{ $RAD_PAIRS->{"$left"} }, $right; 
+       }      
       else {
          my($left, $right)=split(/=/, $line, 2);
          if ($left =~ s/^!//) {
@@ -419,11 +406,14 @@ sub get_isg_mac {
          $list{$ip}{ip}=sprintf("%-17s", $ip);
        }
       elsif (/^\s*hardware ethernet (.*);/) {
-      	my $mac = $1;
-      	if ($ip eq $l_ip && $mac ne 'de:de:de:de:de:de') {
-      	  $list{$ip}{hardware}=sprintf("%s", $mac); 
-      	  last; 
-      	 }
+        my $mac = $1;
+        if ($ip eq $l_ip) {
+          $list{$ip}{hardware}=sprintf("%s", $mac);
+          last if ($list{$ip}{active});
+         }
+       }
+      elsif (/^\s+binding state active/) {
+         $list{$ip}{active}=1;
        }
    }
  close FILE;

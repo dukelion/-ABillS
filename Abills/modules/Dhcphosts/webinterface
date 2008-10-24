@@ -196,13 +196,13 @@ sub dhcphosts_monitor {
  
  my $table = $html->table({ width      => '100%',
                      			  caption    => "$_HOSTS",
-				                    title      => ["$_USER", 'IP', "$_START", "MAC", "$_HOSTS",  "abandoned","-","-", '-'],
+				                    title      => ["$_USER", 'IP', "$_START", "MAC", "$_HOSTS",  "abandoned", "$_STATE", "remote-id", "circuit_id", "-" ],
 				                    cols_align => ['left', 'right', 'right', 'right', 'left', 'center:noprint', 'center:noprint','center:noprint', 'center:noprint' ],
 				                    ID         => 'MONITOR_DHCP'
                           });
 
  $table->{rowcolor}=$_COLORS[0];
- $table->{extra}="colspan='6'";
+ $table->{extra}="colspan='9'";
  $table->addrow("$_TOTAL: $Dhcphosts->{TOTAL}");
  $table->{extra}=undef;
  $table->{rowcolor}=undef;
@@ -216,9 +216,10 @@ sub dhcphosts_monitor {
                      $dhcp_hash->{$line->[2]}{hardware},
                      $dhcp_hash->{$line->[2]}{'client-hostname'},
                      $dhcp_hash->{$line->[2]}{abandoned},
+                     $dhcp_hash->{$line->[2]}{state},
+                     $dhcp_hash->{$line->[2]}{remote_id},
+                     $dhcp_hash->{$line->[2]}{circuit_id},
                      "(". $html->button('P', "index=$index&ping=$line->[2]", { TITLE => 'ping' }) .")",
-                     '',
-                     ''
                      );
 
      delete $dhcp_hash->{$line->[2]};
@@ -226,7 +227,7 @@ sub dhcphosts_monitor {
  
  my @unregistred = sort keys %$dhcp_hash;
  $table->{rowcolor}=$_COLORS[0];
- $table->{extra}="colspan='6'";
+ $table->{extra}="colspan='9'";
  $table->addrow("$_NOT_EXIST $_TOTAL: ". ($#unregistred + 1));
  $table->{extra}=undef;
  $table->{rowcolor}=undef;
@@ -239,9 +240,12 @@ sub dhcphosts_monitor {
                      $dhcp_hash->{$ip}{hardware},
                      $dhcp_hash->{$ip}{'client-hostname'},
                      $dhcp_hash->{$ip}{abandoned},
+                     $dhcp_hash->{$ip}{state},
+                     $dhcp_hash->{$ip}{remote_id},
+                     $dhcp_hash->{$ip}{circuit_id},
+
                      "(". $html->button('P', "index=$index&ping=$ip", { TITLE => 'ping' }) .")",
-                     '',
-                     ''
+
                      );
   }
 	
@@ -259,22 +263,31 @@ sub leaseparse {
 
    open (FILE, $logfile) or print "Can't read file '$logfile' $!";
    
-   
+   my $state = '';
    while (<FILE>) {
       next if /^#|^$/;
 
       if (/^lease (\d+\.\d+\.\d+\.\d+)/) {
          $ip = $1; 
-         $list{$ip}{ip}=sprintf("%-17s", $ip);
-         #$ips_hash{$ip}=$list{$ip}{ip};
+         $list{$ip}{ip}=sprintf("%s", $ip);
+       }
+      # $list{$ip}{state} ne 'active' &&
+      elsif ( /^\s*binding state ([a-zA-Z]{4,6});/) {
+      	$state = sprintf("%s", $1);
+      	$list{$ip}{state}=$state if ($state eq 'active');
        }
       elsif (/^\s*client-hostname "(.*)";/) {
-      	 $list{$ip}{'client-hostname'}=sprintf("%-17s", $1);
+     	  $list{$ip}{'client-hostname'}=sprintf("%s", $1) ;
+       }
+      elsif (/^\s*hardware ethernet (.*);/) {
+        $list{$ip}{hardware}=$1;
        }
 
-      /^\s*hardware ethernet (.*);/ && ( $list{$ip}{hardware}=sprintf("%-19s", $1) );
+
       /^\s*starts \d (.*);/ && (  $list{$ip}{starts}=sprintf("%-21s", $1) );
       /^\s*(abandoned).*/ && (    $list{$ip}{abandoned}=sprintf("%-19s", $1) );
+      /^\s*option agent.circuit-id ([a-b0-9:]+);/ && (    $list{$ip}{circuit_id}=sprintf("%s", $1) );
+      /^\s*option agent.remote-id ([a-b0-9:]+);/ && (    $list{$ip}{remote_id}=sprintf("%s", $1) );
    }
 
    close FILE;

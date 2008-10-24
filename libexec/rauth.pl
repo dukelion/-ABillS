@@ -182,35 +182,32 @@ else {
 
    my @pairs_arr = split(/,/, $nas->{NAS_RAD_PAIRS});
    foreach my $line (@pairs_arr) {
-     if ($line =~ /\+\=/ ) {
-       my($left, $right)=split(/\+\=/, $line, 2);
-       $right =~ s/\"//g;
-
-       if (defined($RAD_REPLY{"$left"})) {
-   	     $RAD_REPLY{"$left"} =~ s/\"//g;
-   	     $RAD_REPLY{"$left"} ="\"". $RAD_REPLY{"$left"} .",$right\"";
-        }
-       else {
-     	   $RAD_REPLY{"$left"}="\"$right\"";
-        }
-       }
-      else {
-         my($left, $right)=split(/=/, $line, 2);
-         if ($left =~ s/^!//) {
-           delete $RAD_REPLY{"$left"};
-   	      }
-   	     else {
-   	       $RAD_REPLY{"$left"}="$right";
-   	      }
+     if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/ ) {
+       my $left=$1;
+       my $right=$2;
+ 	     push @{ $RAD_REPLY{"$left"} }, $right;
+      }
+     else {
+       my($left, $right)=split(/=/, $line, 2);
+       if ($left =~ s/^!//) {
+         delete $RAD_REPLY{"$left"};
+   	    }
+   	   else {
+   	     $RAD_REPLY{"$left"}="$right";
+   	    }
        }
       $RAD_CHECK{'Auth-Type'} = 'Accept';
      }
    
-   #$RAD_REPLY{'cisco-avpair'}="\"tunnel-type=VLAN,tunnel-medium-type==IEEE-802,tunnel-private-group-id=1, ip:inacl#1=deny ip 10.10.10.10 0.0.255.255 20.20.20.20 255.255.0.0\"";z
-
    #Show pairs
    while(my($rs, $ls)=each %RAD_REPLY) {
-     $rr .= "$rs = $ls,\n";
+     if (ref($ls) eq 'ARRAY') {
+     	 $rr .= "$rs += " . join(",\n$rs += ", @$ls);
+         $rr .= ",\n";
+     	}
+     else {
+       $rr .= "$rs = $ls,\n";
+     }
     }
 
    log_print('LOG_DEBUG', "AUTH [$RAD->{USER_NAME}] $rr");

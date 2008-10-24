@@ -714,6 +714,22 @@ sub hangup_mpd4 {
 sub hangup_mpd5 {
   my ($NAS, $PORT, $attr) = @_;
 
+  my $ctl_port = "pptp$PORT";
+  if ($attr->{ACCT_SESSION_ID}) {
+        if($attr->{ACCT_SESSION_ID} =~ /\d+\-(.+)/) {
+          $ctl_port = $1;
+
+         }
+   }
+
+  my @commands=("\t",
+                "Username: \t$NAS->{NAS_MNG_USER}",
+                "Password: \t$NAS->{NAS_MNG_PASSWORD}",
+                "\] \tbundle $ctl_port",
+                "\] \tclose",
+                "\] \texit");
+
+  my $result = telnet_cmd("$NAS->{NAS_MNG_IP_PORT}", \@commands);
   return 0;
 }
 

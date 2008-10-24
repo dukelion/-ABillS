@@ -2894,6 +2894,7 @@ if ($nas->{errno}) {
   'lucent_max'=> 'Lucent MAX',
   'mpd'       => 'MPD with kha0s patch',
   'mpd4'      => 'MPD 4.xx',
+  'mpd5'      => 'MPD 5.xx',
   'ipcad'     => 'IP accounting daemon with Cisco-like ip accounting export',
   'lepppd'    => 'Linux PPPD IPv4 zone counters',
   'pppd'      => 'pppd + RADIUS plugin (Linux)',

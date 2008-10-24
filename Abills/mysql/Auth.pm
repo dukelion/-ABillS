@@ -1,6 +1,5 @@
 package Auth;
 # Auth functions
-# 14.05.2006
 
 
 
@@ -672,27 +671,18 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
   if ($self->{TP_RAD_PAIRS}) {
     my @p = split(/,/, $self->{TP_RAD_PAIRS});
     foreach my $line (@p) {
-     if ($line =~ /\+\=/ ) {
+      if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/ ) {
+        my $left=$1;
+        my $right=$2;
 
-       my($left, $right)=split(/\+\=/, $line, 2);
-       $right =~ s/\"//g;
-
- 	     
-       if (defined($RAD_PAIRS->{"$left"})) {
-   	     
-   	     $RAD_PAIRS->{"$left"} =~ s/\"//g;
-   	     $RAD_PAIRS->{"$left"}="\"". $RAD_PAIRS->{"$left"} .",$right\"";
-        }
-       else {
-     	   $RAD_PAIRS->{"$left"}="\"$right\"";
-        }
+        push( @{ $RAD_PAIRS->{"$left"} }, $right ); 
        }
       else {
          my($left, $right)=split(/=/, $line, 2);
          if ($left =~ s/^!//) {
            delete $RAD_PAIRS->{"$left"};
    	      }
-   	     else {  
+   	     else {
    	       $RAD_PAIRS->{"$left"}="$right";
    	      }
        }
@@ -902,7 +892,6 @@ elsif(defined($RAD->{MS_CHAP_CHALLENGE})) {
 #        my $radsecret = 'test';
 #         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
 #	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
-
 #        $RAD_PAIRS{'MS-MPPE-Send-Key'}='0x4f835a2babe6f2600a731fd89ef25a38';
 #	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}='0x27ac8322247937ad3010161f1d5bbe5c';
 	       
@@ -922,9 +911,6 @@ elsif(defined($RAD->{MS_CHAP_CHALLENGE})) {
        # 2      Encryption-Required 
        $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000001';
        $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
-    
-
-
  }
 #End MSchap auth
 elsif($NAS->{NAS_AUTH_TYPE} == 1) {

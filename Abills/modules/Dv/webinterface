@@ -2683,15 +2683,6 @@ sub dv_user_info {
   	#get mac from NAS and account info
   	#my $result = `/usr/bin/rsh -l snake 77.87.152.66 show arp`;
 
-    if ($FORM{DISABLE_ISG}) {
-    	#!!! Account logoff
-      my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-logoff\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
-      print "<!-- $isg_cmd -->";
-      my $result = `$isg_cmd`;
-      $html->message('info', $_INFO, "$_DISABLED");
-      return 0;
-     }
-
     my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
 
     print "<!-- $isg_cmd -->";
@@ -2753,9 +2744,12 @@ pROFILRE
       	  $Dv->{ISG_CID_CUR}=$1;
       	 }
   	    #IP user ID
-  	    elsif ($val =~ /S(\S+)/) {
+  	    elsif ($val =~ /^S(\S+)/) {
   	    	$Dv->{ISG_CID_CUR}=$1;
   	     }
+            elsif ($val =~ /^N1TURBO_SPEED(\d+);(\d+)/) {
+              $Dv->{TURBO_MODE}=$2;
+             }
   	    elsif ($val =~ /^N1(TP_\d+)/) {
   	      $Dv->{CURE_SERVICE}=$1;
   	     }
@@ -2779,21 +2773,26 @@ pROFILRE
      }
 
     if ($Dv->{ISG_CID_CUR}) {
+
+
   	  #change speed 
-  	  if ($FORM{SPEED}) {
-        if ($Dv->{CURE_SERVICE}) {
+   if ($FORM{SPEED}) {
+        if ($Dv->{CURE_SERVICE} =~ /TP/ || ! $Dv->{TURBO_MODE} ) {
            my $service_name = 'TURBO_SPEED'. $FORM{SPEED};
            #Deactive cure service
-           my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=deactivate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$Dv->{CURE_SERVICE}\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
+           if ($Dv->{CURE_SERVICE} =~ /TP/) {
+             my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=deactivate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$Dv->{CURE_SERVICE}\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
+             print "<!-- $isg_cmd -->";
+             my $result = `$isg_cmd`;
+            }
 
-           print $isg_cmd;
-           my $result = `$isg_cmd`;
-        
+ 
            #Active service
            $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=activate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$service_name\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
-      
-           print $isg_cmd;
-           $result = `$isg_cmd`;
+     
+            print "<!-- $isg_cmd -->"; 
+           my $result = `$isg_cmd`;
+           $result = `/bin/echo \`date \"+ %Y-%m-%d %H:%M:%S\"\` \"$user->{LOGIN} $service_name \" >> /usr/abills/var/log/turbo.log`;
 
            my @arr = split(/\n/, $result);
   	       my %RAD_PAIRS = ();
@@ -2820,11 +2819,12 @@ pROFILRE
  	        	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
  	         }
           else {
-      	    $html->message('info', $_INFO, "TURBO $_MODE $_ENABLE");
+      	    $html->message('info', $_INFO, "TURBO $_ENABLE");
+            return 0;
            }
        }
-      else {
-      	$html->message('info', $_INFO, "TURBO $_MODE $_ENABLED");
+      elsif ($Dv->{TURBO_MODE}){
+      	$html->message('info', $_INFO, "TURBO $_MODE $_ENABLE");
        }
   	 }
    }
@@ -2909,21 +2909,35 @@ pROFILRE
   	  $Dv->{IP}  = $user->{REMOTE_ADDR};
   	  $Dv->{CID} .= ' '.$html->color_mark($_NOT_ACTIVE, $_COLORS[6]);
   	 }
+    elsif($Dv->{TURBO_MODE}) {
+       $html->message('info', $_INFO, "TURBO $_ENABLE $Dv->{TURBO_MODE} sec.");
+
+     } 
     else {
       $Dv->{SPEED_SEL} = $html->form_select('SPEED', 
                                           { 
  	                                          SELECTED     => $FORM{SPEED},
- 	                                          SEL_ARRAY    => [ '', 
- 	                                             '128b/s,  3000 sec', 
- 	                                             '512b/s,  3000 sec', 
- 	                                             '2048b/s, 3000 sec'
- 	                                             ],
+ 	                                          SEL_ARRAY    => ['', 
+ 	                                             '128b/s, 3000 sec', 
+ 	                                             '512b/s, 3000 sec', 
+ 	                                             '2048b/s, 3000 sec'],
  	                                          ARRAY_NUM_ID => 1
  	                                        });
-
-      #$html->message('info', $_INFO, "TURBO $_ENABLE") if (! $Dv->{CURE_SERVICE});
+      
       $html->tpl_show(_include('dv_user_speed', 'Dv'), $Dv);
      }
+
+#    $Dv->{SPEED} = $html->form_main({ CONTENT => "$_SPEED: ".$html->form_select('SPEED', 
+#                                          { 
+# 	                                          SELECTED     => $FORM{SPEED},
+# 	                                          SEL_ARRAY    => ['', '128b/s, 3000 sec', '512b/s, 3000 sec', '2048b/s, 3000 sec'],
+# 	                                          ARRAY_NUM_ID => 1
+# 	                                        }),
+#                       HIDDEN  => { index => "$index",
+#  	                   	            CID   => "$Dv->{ISG_CID_CUR}",
+#  	                         	      sid   => $sid    },
+#                       SUBMIT  => { change => "$_CHANGE"  } 
+#                      });
 
 
    }
@@ -4328,8 +4342,11 @@ sub dv_get_isg_mac {
       	my $mac = $1;
       	if ($ip eq $l_ip) {
       	  $list{$ip}{hardware}=sprintf("%s", $mac); 
-      	  last; 
+      	  last if ($list{$ip}{active}); 
       	 }
+       }
+      elsif (/^\s+binding state active/) {
+         $list{$ip}{active}=1;
        }
    }
  close FILE;
