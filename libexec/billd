@@ -1062,6 +1062,8 @@ sub make_pid {
 sub verify {
     my ($pid) = @_;
 
+    return 0 if ($pid eq '');
+
     my $me = $$;  # = $self->{verify};
 
     my @ps = split m|$/|, qx/ps -fp $pid/

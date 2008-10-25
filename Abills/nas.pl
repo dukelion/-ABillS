@@ -11,10 +11,9 @@
 use BER;
 use SNMP_Session;
 use SNMP_util;
-
+use Radius;
 
 my $PPPCTL = '/usr/sbin/pppctl';
-my $RADCLIENT = '/usr/local/bin/radclient';
 my $SUDO = '/usr/local/bin/sudo';
 
 #my $NAS_INFO = nas_params();
@@ -437,16 +436,24 @@ sub hangup_snmp {
 # rfc2882
 #*******************************************************************
 sub hangup_radius {
-  my ($NAS, $PORT, $USER) = @_;
+  my ($NAS, $PORT, $USER, $attr) = @_;
  
   my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
-  log_print('LOG_DEBUG', " HANGUP: echo \"User-Name=$USER\" | $RADCLIENT $ip:$mng_port 40 '$NAS->{NAS_MNG_PASSWORD}'\n"); 
+  log_print('LOG_DEBUG', " HANGUP: User-Name=$USER NAS_MNG: $ip:$mng_port '$NAS->{NAS_MNG_PASSWORD}' \n"); 
 
-  my $result = `echo "User-Name=$USER" | $RADCLIENT $ip:$mng_port 40 '$NAS->{NAS_MNG_PASSWORD}'`;
+  my %RAD_PAIRS = ();
+  my $type;
+  my $r = new Radius(Host   => "$NAS->{NAS_MNG_IP_PORT}", 
+                      Secret => "$NAS->{NAS_MNG_PASSWORD}");
+  Authen::Radius->load_dictionary;
 
-  #Received response ID 219, code 41, length = 20 `;
-  #echo "User-Name = user" | radclient 10.0.0.219:3799 40 secret123
-  #Received response ID 219, code 41, length = 20 
+  $r->add_attributes ({ Name => 'User-Name', Value => "$USER" });
+  $r->send_packet (POD_REQUEST) and $type = $r->recv_packet;
+
+  if( ! defined $type ) {
+    # No responce from POD server
+    die();
+   }
   
   return $result;
 }
@@ -552,8 +559,14 @@ sub hangup_cisco {
  my $command = '';
  my $user = $attr->{USER};
 
+ my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
+
+#POD Version
+if ($mng_port == 1700) {
+	hangup_radius($NAS, $PORT, "$user", $attr);
+ }
 #Rsh version
-if ($NAS->{NAS_MNG_USER}) {
+elsif ($NAS->{NAS_MNG_USER}) {
 # имя юзера на циско котрому разрешен rsh и хватает привелегий для сброса
   my $cisco_user=$NAS->{NAS_MNG_USER};
 # использование: NAS-IP-Address NAS-Port SQL-User-Name
