@@ -444,8 +444,10 @@ sub hangup_radius {
   my %RAD_PAIRS = ();
   my $type;
   my $r = new Radius(Host   => "$NAS->{NAS_MNG_IP_PORT}", 
-                      Secret => "$NAS->{NAS_MNG_PASSWORD}");
-  Authen::Radius->load_dictionary;
+                     Secret => "$NAS->{NAS_MNG_PASSWORD}");
+
+  $conf{'dictionary'}='/usr/abills/Abills/dictionary' if (! $conf{'dictionary'});
+  $r->load_dictionary($conf{'dictionary'});
 
   $r->add_attributes ({ Name => 'User-Name', Value => "$USER" });
   $r->send_packet (POD_REQUEST) and $type = $r->recv_packet;
