@@ -5423,7 +5423,7 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
 sub weblog {
 	my ($action, $value) = @_;
 
-  open(FILE, ">>$conf{WEB_LOGFILE}") || die "Can't open file '$conf{WEB_LOGFILE}' $!\n";
+  open(FILE, ">>$conf{WEB_LOGFILE}") || $html->message('err', $_ERROR, "Can't open file '$conf{WEB_LOGFILE}' $!");
     print FILE "$DATE $TIME $admin->{A_LOGIN} $admin->{SESSION_IP} $action:$value\n";
   close(FILE);
 }
