@@ -128,10 +128,11 @@ if ($FORM{SHOW}) {
   
   for(my $i=0; $i<256 / ($addr_count + 2); $i++) {
   	my $sufix_ip = ($addr_count + 2) * $i;
+        $int = ip2int("$ip_prefix".'.'. $sufix_ip);
   	$table->addrow("$ip_prefix".'.'. $sufix_ip,  
   	                "$FORM{MASK}",
   	                $addr_count,
-  	                "$_FROM: $ip_prefix.". (($addr_count + 2) * $i + 1) ." $_TO: ". int2ip($int + $addr_count),
+  	                "$_FROM: $ip_prefix.". (($addr_count + 2) * $i + 1) ." $_TO: ". int2ip($int +  $addr_count),
   	                int2ip($int + $addr_count + 1)
   	               );
   	
