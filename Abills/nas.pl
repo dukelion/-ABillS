@@ -732,9 +732,11 @@ sub hangup_mpd5 {
   my $ctl_port = "L-$PORT";
   if ($attr->{ACCT_SESSION_ID}) {
         if($attr->{ACCT_SESSION_ID} =~ /^\d+\-(.+)/) {
-          $ctl_port = $1;
+          $ctl_port = "L-". $1;
          }
    }
+
+  log_print('LOG_DEBUG', " HANGUP: SESSION: $ctl_port NAS_MNG: $ip:$mng_port '$NAS->{NAS_MNG_PASSWORD}'\n");
 
   my @commands=("\t",
                 "Username: \t$NAS->{NAS_MNG_USER}",
