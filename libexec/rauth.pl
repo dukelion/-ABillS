@@ -48,9 +48,9 @@ my $RAD;
 
 
 
-if (scalar(%RAD_REQUEST ) < 1 ) {
-	
-  $RAD = get_radius_params();
+#if (scalar(%RAD_REQUEST ) < 1 ) {
+$RAD = get_radius_params();
+if ($RAD->{NAS_IP_ADDRESS}) {	
   if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
     auth($db, $RAD, undef, { pre_auth => 1 });
     exit 0;
