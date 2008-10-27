@@ -347,25 +347,50 @@ sub host_add {
 sub host_del {
   my $self=shift;
   my ($attr)=@_;
+  my $uid;
+  my $action; 
 
   if ($attr->{UID}) {
-  	$WHERE =  "uid='$attr->{UID}'";
+  	$WHERE = "uid='$attr->{UID}'";
+  	$action= "DELETE ALL HOSTS"; 
+  	$uid   = $attr->{UID};
    }
   else {
-  	$WHERE = "id='$attr->{ID}'";
+  	$WHERE   = "id='$attr->{ID}'";
+  	my $host = $self->host_info($attr->{ID});
+    $uid     = $host->{UID}; 
+  	$action  = "DELETE HOST $host->{HOSTNAME} ($host->{IP}/$host->{MAC})"; 
    }
 
   $self->query($db, "DELETE FROM dhcphosts_hosts where $WHERE", 'do');
   
-  if ($attr->{UID}) {
-    $admin->action_add($attr->{UID}, "DELETE");
-   }
+  $admin->action_add($uid, $action); 
 
   return $self;
 };
 
 #**********************************************************
-#route_update()
+# host_check()
+#**********************************************************
+sub host_check {
+  my $self=shift;
+  my ($attr)=@_;
+
+  my %DATA = $self->get_data($attr);
+
+  my $net = $self->network_info($DATA{NETWORK});
+
+  my $ip = unpack("N",pack("C4",split(/\./,$DATA{IP})));
+  my $mask = unpack("N",pack("C4",split(/\./,$net->{MASK})));
+  if (unpack("N",pack("C4",split(/\./,$net->{NETWORK})))!=($ip&$mask)){
+    $self->{errno}=17 if ($ip!=0);
+  }
+
+  return $self;
+} 
+
+#**********************************************************
+#host_info()
 #**********************************************************
 sub host_info {
   my $self=shift;
@@ -420,7 +445,7 @@ sub host_info {
 
 
 #**********************************************************
-#route_update()
+#host_change()
 #**********************************************************
 sub host_change {
  my $self=shift;
