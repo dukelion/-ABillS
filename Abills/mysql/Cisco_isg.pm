@@ -127,6 +127,7 @@ sub auth {
   	return  $self->make_tp($RAD);
  	 }
   elsif ($RAD->{USER_NAME} =~ /\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}/) {
+    $RAD->{CALLING_STATION_ID}=$RAD->{USER_NAME};
     $RAD->{USER_NAME} = get_isg_mac($RAD->{USER_NAME});
     if ($RAD->{USER_NAME} eq '') {
       $RAD_PAIRS{'Reply-Message'}="Can't find MAC in DHCP";

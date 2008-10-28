@@ -189,6 +189,11 @@ sub online {
  	 push @WHERE_RULES, "c.user_name LIKE '$attr->{USER_NAME}'";
   }
 
+ if (defined($attr->{SESSION_ID})) {
+ 	 push @WHERE_RULES, "c.acct_session_id LIKE '$attr->{SESSION_ID}'";
+  }
+ 
+
  # Show groups
  if ($attr->{GIDS}) {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 

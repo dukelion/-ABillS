@@ -24,8 +24,11 @@ BEGIN {
  
  $sql_type='mysql';
  unshift(@INC, $libpath ."Abills/$sql_type/");
+ unshift(@INC, $libpath ."Abills/");
  unshift(@INC, $libpath);
  unshift(@INC, $libpath . 'libexec/');
+
+ 
 
  eval { require Time::HiRes; };
  if (! $@) {

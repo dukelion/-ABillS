@@ -950,6 +950,7 @@ my $table = $html->table( { width      => '100%',
                             title      => [ @CAPTION, '-', '-', '-' ],
                             cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
+                            ID         => 'ONLINE'
                          } );
 
 my $online = $sessions->{nas_sorted};

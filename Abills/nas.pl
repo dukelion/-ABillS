@@ -444,9 +444,10 @@ sub hangup_radius {
   my %RAD_PAIRS = ();
   my $type;
   my $r = new Radius(Host   => "$NAS->{NAS_MNG_IP_PORT}", 
-                     Secret => "$NAS->{NAS_MNG_PASSWORD}");
+                     Secret => "$NAS->{NAS_MNG_PASSWORD}") or return "Can't connect $!";
 
   $conf{'dictionary'}='/usr/abills/Abills/dictionary' if (! $conf{'dictionary'});
+
   $r->load_dictionary($conf{'dictionary'});
 
   $r->add_attributes ({ Name => 'User-Name', Value => "$USER" });
