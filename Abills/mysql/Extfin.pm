@@ -1018,6 +1018,7 @@ sub extfin_debetors {
 
 WHERE u.uid=f.uid and 
 (f.last_deposit >=0 and f.last_deposit-sum<0)
+and ( b.deposit < 0 or cb.deposit < 0 )
 GROUP BY f.uid
 ORDER BY f.date DESC;");
 
