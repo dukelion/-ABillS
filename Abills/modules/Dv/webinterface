@@ -3191,7 +3191,7 @@ sub dv_monthly_fees {
          #Min use Mkaes only 1 of month
          if ($min_use_sum > 0) {
            
-           next if ($d != $START_PERIOD_DAY || ! $conf{DV_MIN_USER_FULLPERIOD});
+           next if ($d != $START_PERIOD_DAY && ! $conf{DV_MIN_USER_FULLPERIOD});
            #Check activation dae
            my $min_use = $min_use_sum;
 
@@ -3200,7 +3200,7 @@ sub dv_monthly_fees {
             }
 
            #Min use Alignment
-           if ($user{ACTIVATE} ne '0000-00-00') {
+           if (! $conf{DV_MIN_USER_FULLPERIOD} && $user{ACTIVATE} ne '0000-00-00') {
              	 my ($activated_y, $activated_m, $activated_d)=split(/-/, $user{ACTIVATE}, 3);
              	 my $days_in_month=($activated_m!=2?(($activated_m%2)^($activated_m>7))+30:(!($activated_y%400)||!($activated_y%4)&&($activated_y%25)?29:28)); 
      	         $min_use = sprintf("%.2f", $min_use / $days_in_month * ($days_in_month - $activated_d + $START_PERIOD_DAY));
