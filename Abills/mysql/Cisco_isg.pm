@@ -267,7 +267,7 @@ print $self->{TP_RAD_PAIRS}.",\n";
   if ($self->{TP_RAD_PAIRS}) {
     my @p = split(/,/, $self->{TP_RAD_PAIRS});
     foreach my $line (@p) {
-      if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/ ) {
+      if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/ || $line =~ /cisco/gi) {
         my $left = $1;
         my $right= $2;
         push @{ $RAD_PAIRS->{"$left"} }, $right; 
