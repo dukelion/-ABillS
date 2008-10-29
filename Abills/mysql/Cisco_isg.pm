@@ -261,13 +261,14 @@ $self->query($db, "select
 #> $RAD_REPLY{'Cisco-AVPair'}=\@avpairs;
 #This code works for me on freeradius 1.1.0. Which version you are using ?
 
-print $self->{TP_RAD_PAIRS}.",\n";
+#print $self->{TP_RAD_PAIRS}.",\n";
+
 
 #chack TP Radius Pairs
   if ($self->{TP_RAD_PAIRS}) {
     my @p = split(/,/, $self->{TP_RAD_PAIRS});
     foreach my $line (@p) {
-      if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/ || $line =~ /cisco/gi) {
+      if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/gi) {
         my $left = $1;
         my $right= $2;
         push @{ $RAD_PAIRS->{"$left"} }, $right; 
@@ -382,7 +383,7 @@ print $self->{TP_RAD_PAIRS}.",\n";
 
   }
 	
-	return 0, \%RAD_PAIRS;
+	return 0, $RAD_PAIRS;
 }
 
 
