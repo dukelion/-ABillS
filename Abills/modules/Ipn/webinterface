@@ -1521,8 +1521,6 @@ sub ipn_user_activate {
   elsif ($FORM{LOGOUT}) {
   	 my $user  = $users->info( $LIST_PARAMS{UID} );
 
-print "Content-Type: text/html\n\n";
-$sessions->{debug}=1;
   	 my $list = $sessions->online({ USER_NAME  => $user->{LOGIN},
   	 	                              SESSION_ID => $FORM{SESSION_ID} });
   	 

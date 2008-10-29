@@ -12,6 +12,9 @@ add 15 reset log tcp from any to any dst-port 25
 add 50000 skipto 65010 ip from %REDIRECT_IP% to any via %VPN_INTERFACE%
 add 50000 skipto 65010 ip from any to %REDIRECT_IP% via %VPN_INTERFACE%
 
+#Allow DNS
+add 65002 allow udp from me 53 to any via %VPN_INTERFACE%
+add 65003 allow udp from any to me 53 via %VPN_INTERFACE%
 
 #Allow acces to billing withot VPN
 add 64010 allow tcp from me 9443 to any via %VPN_INTERFACE% 
