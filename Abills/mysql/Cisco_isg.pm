@@ -196,7 +196,7 @@ if ($self->{IP} ne '0.0.0.0') {
   push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED3\"";
   push @{ $RAD_PAIRS{'cisco-avpair'} }, "\"subscriber:accounting-list=BH_ACCNT_LIST1\"";
   $RAD_PAIRS{'Idle-Timeout'} = 1800;
-  $RAD_PAIRS{'Acct-Interim-Interval'}=600;
+  $RAD_PAIRS{'Acct-Interim-Interval'}=1200;
 
   return 0, \%RAD_PAIRS;
 }
