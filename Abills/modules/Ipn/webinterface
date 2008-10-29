@@ -1531,6 +1531,8 @@ sub ipn_user_activate {
   	  }
 
   	 my $ip=$list->[0]->[10];
+         my $nas_port_id = $list->[0]->[2];
+         my $user_name = $list->[0]->[0];
   	 $nas->info({ NAS_ID => $list->[0]->[18] });
   
      if ($nas->{errno}) {
