@@ -3112,6 +3112,7 @@ sub dv_monthly_fees {
  	 my $postpaid    = $line->[4];
    my $tp_postpaid = $line->[12];
    my $month_fee   = $line->[6];
+   my $activate_date = "<='$ADMIN_REPORT{DATE}'";
 
    my %used_traffic = ();
 
@@ -3122,8 +3123,21 @@ sub dv_monthly_fees {
  	   #get used  traffic for min use functions
  	   my %processed_users = ();
      if ($min_use_sum > 0 ) {
+       next if ($d != $START_PERIOD_DAY && ! $conf{DV_MIN_USER_FULLPERIOD});
+
+       print "coool\n";
+       my $interval = "$pre_month_begin/$pre_month_end";
+       
+       if ($conf{DV_MIN_USER_FULLPERIOD}) {
+       	 $activate_date = strftime "%Y-%m-%d", localtime($date_unixtime - 86400 * 30);
+       	 $interval="$activate_date/$ADMIN_REPORT{DATE}";
+       	 $activate_date = "='$activate_date'";
+       	 print "$interval / $activate_date\n";
+       	 
+        }
+       
        my $report_list = $sessions->reports({ 
-                     INTERVAL   => "$pre_month_begin/$pre_month_end",
+                     INTERVAL   => $interval,
                      TP_ID      => $TP_ID,
 	   	              });
 	  
@@ -3135,9 +3149,9 @@ sub dv_monthly_fees {
      if ($abon_distrib) {
      	 $month_fee = $month_fee / $days_in_month;
       }    
-
+     
 	   my $ulist = $Dv->list({ 
-         ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
+         ACTIVATE   => $activate_date,
          EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
          STATUS     => 0,
          LOGIN_STATUS => 0,
@@ -3177,7 +3191,7 @@ sub dv_monthly_fees {
          #Min use Mkaes only 1 of month
          if ($min_use_sum > 0) {
            
-           next if ($d != $START_PERIOD_DAY);
+           next if ($d != $START_PERIOD_DAY || ! $conf{DV_MIN_USER_FULLPERIOD});
            #Check activation dae
            my $min_use = $min_use_sum;
 
