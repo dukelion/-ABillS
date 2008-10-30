@@ -190,13 +190,21 @@ if ($self->{IP} ne '0.0.0.0') {
 
   my $service = "TP_$self->{TP_ID}"; 
   
-  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"A$service\"";
-  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED1\"";
-  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED2\"";
-  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED3\"";
-  push @{ $RAD_PAIRS{'cisco-avpair'} }, "\"subscriber:accounting-list=BH_ACCNT_LIST1\"";
+#  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"A$service\"";
+#  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED1\"";
+#  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED2\"";
+#  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED3\"";
+#  push @{ $RAD_PAIRS{'cisco-avpair'} }, "\"subscriber:accounting-list=BH_ACCNT_LIST1\"";
+
+  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "A$service";
+  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED1";
+  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED2";
+  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED3";
+  push @{ $RAD_PAIRS{'cisco-avpair'} }, "subscriber:accounting-list=BH_ACCNT_LIST1";
+
+
   $RAD_PAIRS{'Idle-Timeout'} = 1800;
-  $RAD_PAIRS{'Acct-Interim-Interval'}=1200;
+  $RAD_PAIRS{'Acct-Interim-Interval'}=6000;
 
   return 0, \%RAD_PAIRS;
 }
@@ -415,7 +423,7 @@ sub get_isg_mac {
          }
        }
       elsif (/^\s+binding state active/) {
-         $list{$ip}{active}=1;
+         $list{$l_ip}{active}=1;
        }
    }
  close FILE;
