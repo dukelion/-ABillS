@@ -492,9 +492,9 @@ sub hangup_ipcad {
   
   $Ipn->acct_stop({ %$attr, SESSION_ID => $attr->{ACCT_SESSION_ID} });
 
-  my $cmd = $conf{IPN_FW_STOP_RULE};
-
-  my $ip  = $attr->{FRAMED_IP_ADDRESS};
+  my $cmd     = $conf{IPN_FW_STOP_RULE};
+  my $ip      = $attr->{FRAMED_IP_ADDRESS};
+  my $netmask = $attr->{FRAMED_IP_ADDRESS};
   
   my $num = 0;
   if ($attr->{UID} && $conf{IPN_FW_RULE_UID}) {
@@ -510,7 +510,7 @@ sub hangup_ipcad {
 
 
   $cmd =~ s/\%IP/$ip/g;
-  #$cmd =~ s/\%MASK/$netmask/g;
+  $cmd =~ s/\%MASK/$netmask/g;
   $cmd =~ s/\%NUM/$rule_num/g;
   $cmd =~ s/\%LOGIN/$USER_NAME/g;
 
@@ -520,8 +520,7 @@ sub hangup_ipcad {
    }
   print $cmd."\n";
   my $result = system($cmd);
- 
- 
+
   print $result;
 }
 
