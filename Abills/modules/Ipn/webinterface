@@ -1483,6 +1483,8 @@ sub ipn_user_activate {
       $html->message('err', $_ERROR, "Unknown NAS");  	
      }
     else {
+      
+      
       my $user  = $users->info( $LIST_PARAMS{UID} );
       $nas->info({ NAS_ID => $nas_id });
       
@@ -1516,6 +1518,11 @@ sub ipn_user_activate {
      $DATA{FILTER_ID}=$RAD_PAIRS->{'Filter-Id'} || '';
      
      ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
+
+     if ($ENV{HTTP_REFERER} && $html->{SID}) {
+       print "Location: $ENV{HTTP_REFERER}". "\n\n";
+       exit;
+      }
     }
    }
   elsif ($FORM{LOGOUT}) {
@@ -1530,9 +1537,9 @@ sub ipn_user_activate {
        return 0   	 	
   	  }
 
-  	 my $ip=$list->[0]->[10];
-         my $nas_port_id = $list->[0]->[2];
-         my $user_name = $list->[0]->[0];
+  	 my $ip          = $list->[0]->[10];
+     my $nas_port_id = $list->[0]->[2];
+     my $user_name   = $list->[0]->[0];
   	 $nas->info({ NAS_ID => $list->[0]->[18] });
   
      if ($nas->{errno}) {
@@ -1693,6 +1700,7 @@ sub ipn_change_status {
   my $cmd;
 
 	if ($STATUS eq 'ONLINE_ENABLE') {
+    
      $cmd = $conf{IPN_FW_START_RULE};
      $html->message('info', $_INFO, "$_ENABLE IP: $ip");
      $sessions->online_update({ USER_NAME       => $USER_NAME,
