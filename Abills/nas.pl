@@ -494,7 +494,7 @@ sub hangup_ipcad {
 
   my $cmd     = $conf{IPN_FW_STOP_RULE};
   my $ip      = $attr->{FRAMED_IP_ADDRESS};
-  my $netmask = $attr->{FRAMED_IP_ADDRESS};
+  my $netmask = $attr->{NETMASK} || 32;
   
   my $num = 0;
   if ($attr->{UID} && $conf{IPN_FW_RULE_UID}) {
