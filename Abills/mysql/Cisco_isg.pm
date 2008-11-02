@@ -177,18 +177,8 @@ if ($self->{IP} ne '0.0.0.0') {
 	$RAD_PAIRS{'Framed-IP-Address'}=$self->{IP};
  }
 
-  my $debug = 0;
-  #DEFAULT Auth-Type = Accept
-  #cisco-avpair = "subscriber:accounting-list=BH_ACCNT_LIST1",
-  #Cisco-Account-Info = "ABasic_Internet_Service",
-  #Cisco-Account-Info += "NSERVICE_406_BOD1M",
-  #Cisco-Account-Info += "NSERVICE_406_VPN_1001c",
-  #Exec-Program-Wait = "/usr/abills/libexec/rauth.pl",
-  #Idle-Timeout = 1800
-  #$RAD_PAIRS{'Cisco-Account-Info'} = "ABasic_Internet_Service";
-  #$RAD_PAIRS{'Cisco-Account-Info'} = "NSERVICE_406_BOD1M";
-
-  my $service = "TP_$self->{TP_ID}"; 
+my $debug = 0;
+my $service = "TP_$self->{TP_ID}"; 
   
 #  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"A$service\"";
 #  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED1\"";
@@ -253,7 +243,7 @@ $self->query($db, "select
    }
 
 
-  (
+   (
      $self->{SESSION_START}, 
      $self->{DAY_BEGIN}, 
      $self->{DAY_OF_WEEK}, 
@@ -262,23 +252,15 @@ $self->query($db, "select
      $self->{INTERVALS},
     ) = @{ $self->{list}->[0] };
 
-
-#On Wednesday 25 January 2006 00:17, Alan Lumb wrote:
-#> push(@avpairs,'ip:dns-servers=$dns1 $dns2');
-#> push(@avpairs,"ip:route=$$thisroute{network} $$thisroute{subnet}");
-#> $RAD_REPLY{'Cisco-AVPair'}=\@avpairs;
-#This code works for me on freeradius 1.1.0. Which version you are using ?
-
-#print $self->{TP_RAD_PAIRS}.",\n";
-
-
 #chack TP Radius Pairs
   if ($self->{TP_RAD_PAIRS}) {
     my @p = split(/,/, $self->{TP_RAD_PAIRS});
     foreach my $line (@p) {
       if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/gi) {
+        
         my $left = $1;
         my $right= $2;
+        $right =~ s/\"//g;
         push @{ $RAD_PAIRS->{"$left"} }, $right; 
        }      
       else {

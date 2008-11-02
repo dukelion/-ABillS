@@ -657,7 +657,7 @@ sub hosts_list {
       push @WHERE_RULES, "(h.ip>=INET_ATON('$first_ip') and h.ip<=INET_ATON('$last_ip'))";
      }
     else {
-      push @WHERE_RULES, @{ $self->search_expr("$attr->{IP}", 'STR', 'h.ip') };
+      push @WHERE_RULES, @{ $self->search_expr("$attr->{IP}", 'IP', 'h.ip') };
     }
   }
 

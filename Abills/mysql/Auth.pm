@@ -120,6 +120,7 @@ sub dv_auth {
 
   if($self->{errno}) {
   	$RAD_PAIRS->{'Reply-Message'}='SQL error';
+  	undef $db;
   	return 1, $RAD_PAIRS;
    }
   elsif ($self->{TOTAL} < 1) {
@@ -215,6 +216,7 @@ if ($self->{JOIN_SERVICE}) {
 	
 	  if($self->{errno}) {
   	$RAD_PAIRS->{'Reply-Message'}='SQL error';
+  	undef $db;
   	return 1, $RAD_PAIRS;
    }
   elsif ($self->{TOTAL} < 1) {
@@ -824,6 +826,7 @@ sub authentication {
 
   if($self->{errno}) {
   	$RAD_PAIRS{'Reply-Message'}='SQL error';
+  	undef $db;
   	return 1, \%RAD_PAIRS;
    }
   elsif ($self->{TOTAL} < 1) {

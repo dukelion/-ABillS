@@ -5,7 +5,6 @@
 
 use vars  qw(%RAD %conf %AUTH
  %RAD_REQUEST %RAD_REPLY %RAD_CHECK 
- %auth_mod
  $nas
  $begin_time
 );
@@ -21,8 +20,6 @@ $begin_time = check_time();
 
 # Max session tarffic limit  (Mb)
 my %auth_mod = ();
-
-
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db  = $sql->{db};
@@ -31,7 +28,6 @@ $nas = undef;
 
 require Auth;
 Auth->import();
-$auth_mod{'default'} = Auth->new($db, \%conf);
 
 my $GT  = '';
 my $rr  = '';
@@ -43,13 +39,8 @@ my $rr  = '';
 ##print $t;
 #my $a = `echo "$t" >> /tmp/voip_test`;
 
-# files auth section
-my $RAD;
-
-
-
 #if (scalar(%RAD_REQUEST ) < 1 ) {
-$RAD = get_radius_params();
+my $RAD = get_radius_params();
 if ($RAD->{NAS_IP_ADDRESS}) {	
   if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
     auth($db, $RAD, undef, { pre_auth => 1 });
@@ -75,7 +66,6 @@ if ($RAD->{NAS_IP_ADDRESS}) {
 
   exit $ret;
 }
-
 
 
 #*******************************************************************
@@ -150,15 +140,15 @@ if(defined($AUTH{$nas->{NAS_TYPE}})) {
   if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
     require $AUTH{$nas->{NAS_TYPE}} . ".pm";
     $AUTH{$nas->{NAS_TYPE}}->import();
-    $auth_mod{"$nas->{NAS_TYPE}"} = $AUTH{$nas->{NAS_TYPE}}->new($db, \%conf);
    }
 
+  $auth_mod{"$nas->{NAS_TYPE}"} = $AUTH{$nas->{NAS_TYPE}}->new($db, \%conf);
   ($r, $RAD_PAIRS) = $auth_mod{"$nas->{NAS_TYPE}"}->auth($RAD, $nas);
 }
 else {
+  $auth_mod{'default'} = Auth->new($db, \%conf); # if (! $auth_mod{'default'});
   ($r, $RAD_PAIRS) = $auth_mod{"default"}->dv_auth($RAD, $nas, 
                                        { MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC}  } );
-                                       
 }
 
 %RAD_REPLY = %$RAD_PAIRS;
@@ -166,6 +156,10 @@ else {
 #If Access deny
  if($r == 1){
     my $message = "$RAD_PAIRS->{'Reply-Message'} ";
+
+    if ($RAD_PAIRS->{'Reply-Message'} eq 'SQL error') {
+    	undef %auth_mod;
+     }
 
     if ($auth_mod{"default"}->{errstr}) {
     	 $auth_mod{"default"}->{errstr}=~s/\n//g;

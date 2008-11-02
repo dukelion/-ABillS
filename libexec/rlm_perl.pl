@@ -76,13 +76,12 @@ sub sql_connect {
 #**********************************************************
 sub authorize {
   $begin_time = check_time();
+
   convert_radpairs();
 
   my $db = sql_connect();
- 
- 
+  
   if ( $db ) {
-  	
   	if (auth($db, \%RAD_REQUEST, $nas, { pre_auth => 1 }) == 0) {
       if ( auth($db, \%RAD_REQUEST, $nas) == 0 ) {
          #$RAD_CHECK{'User-Password'} = 'test12345';
@@ -99,7 +98,9 @@ sub authorize {
 #
 #**********************************************************
 sub authenticate {
-  
+  $begin_time = check_time();
+  convert_radpairs();
+
   my $db = sql_connect();
   
   if ( $db ) {
@@ -141,31 +142,10 @@ sub convert_radpairs {
 		$k =~ tr/[a-z]/[A-Z]/;
 		$r{$k}=$v;
 	 }
-
   %RAD_REQUEST = %r;
 }
 
 
-
-#
-#
-#sub test_call {
-#	my ($funcname) = @_;
-#	# Some code goes here 
-#	my $test = "------$funcname\n";
-#	#%RAD_REQUEST %RAD_REPLY %RAD_CHECK
-#	$test .= '%RAD_REQUEST'."\n";
-#	while(my($k, $v)=each(%RAD_REQUEST)){
-#	  $test .= "$k, $v\n";
-#	 }
-#  $test .= "========\n".'%RAD_CHECK'."\n";
-#	while(my($k, $v)=each(%RAD_CHECK)){
-#	  $test .= "$k, $v\n";
-#	 }
-#
-#  #print $test;
-#  my $a=`echo "$test" >> /tmp/perllog`;
-#}
 
 
 1
