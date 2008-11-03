@@ -118,8 +118,10 @@ sub auth {
  	 return 1;
   }
 
+ 
 
  if ($attr->{'pre_auth'}) {
+   $auth_mod{'default'} = Auth->new($db, \%conf);
    $r = $auth_mod{'default'}->pre_auth($RAD);
    if ($auth_mod{'default'}->{errno}) {
      log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] MS-CHAP PREAUTH FAILED$GT");
