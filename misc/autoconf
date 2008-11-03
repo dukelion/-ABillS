@@ -136,7 +136,7 @@ if(! -f $config_file ) {
               $res = `$mysql -u $mysql_root_user --password='$mysql_root_passwd' -e "$add_mysql_user"`;
               print $res;
               print "Upload Main Dump and modules\n";
-              $res = `$mysql -u $mysql_root_user --password='$mysql_root_passwd' -D $mk_config{dbname} < ../abills.sql`;
+              $res = `$mysql -u $mysql_root_user --default-character-set=$conf{dbcharset} --password='$mysql_root_passwd' -D $mk_config{dbname} < ../abills.sql`;
             } 
           }
          else {

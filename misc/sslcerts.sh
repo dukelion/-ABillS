@@ -12,7 +12,7 @@ days=730;
 DATE=`date`;
 CERT_TYPE=$1;
 CERT_USER="";
-VERSION=0.2;
+VERSION=0.3;
 
 if [ w$1 = w ] ; then
   echo "Create SSL Certs and SSH keys ";
@@ -25,11 +25,14 @@ if [ w$1 = w ] ; then
   echo "                USER - SSH remote user"
   echo " -D [PATH]     - Path for ssl certs"
   echo " -U [username] - Cert owner (Default: apache=www, postfix=vmail)"
+  echo " -LENGTH       - Cert length (Default: 1024)"
+  echo " -DAYS         - Cert period in days (Default: 730)"
 
   exit;
 fi
 
 CERT_PATH=/usr/abills/Certs/
+CERT_LENGTH=1024;
 
 # Proccess command-line options
 #
@@ -41,6 +44,12 @@ for _switch ; do
                 ;;
         -U)
                 CERT_USER="$3"
+                shift; shift
+                ;;
+        -LENGTH) CERT_LENGTH=$3
+                shift; shift
+                ;;
+        -DAYS) CERT_LENGTH=$3
                 shift; shift
                 ;;
         esac
@@ -106,7 +115,7 @@ else if [ w${CERT_TYPE} = wapache ]; then
   fi;
   cd ${CERT_PATH};
 
-  openssl genrsa -des3 -passout pass:${password} -out server.key 1024 
+  openssl genrsa -des3 -passout pass:${password} -out server.key ${CERT_LENGTH}
   
   openssl req -new -key server.key -out server.csr \
   -passin pass:${password} -passout pass:${password}
@@ -127,7 +136,6 @@ else if [ w${CERT_TYPE} = wapache ]; then
   openssl x509 -in server.crt -noout -subject
 
   chmod 400 server.key
-
 
 else if [ w${CERT_TYPE} = weap ]; then
   echo "*******************************************************************************"
@@ -309,7 +317,7 @@ else if [ w${CERT_TYPE} = winfo ]; then
     exit;
   fi;
 
-  openssl x509 -in ${FILENAME} -noout -subject
+  openssl x509 -in ${FILENAME} -noout -subject  -startdate -enddate
    
 
 
