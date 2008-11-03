@@ -1,0 +1,10 @@
+#ABillS %DATE% %TIME%
+PBHK_SERVICE  User-Password == sserv1ce, Auth-Type = Accept
+  cisco-avpair = "ip:portbundle=enable"
+
+SERVICE_406_L4R  User-Password == sserv1ce
+  cisco-avpair = "ip:l4redirect=redirect list 199 to group REDIRECT_SERVER_GROUP1",
+
+
+DEFAULT Auth-Type = Perl
+  Fall-Through = 1
