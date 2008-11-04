@@ -732,7 +732,7 @@ sub hangup_mpd5 {
   my $ctl_port = "L-$PORT";
   if ($attr->{ACCT_SESSION_ID}) {
         if($attr->{ACCT_SESSION_ID} =~ /^\d+\-(.+)/) {
-          $ctl_port = "L-". $1;
+          $ctl_port = $1;
          }
    }
 

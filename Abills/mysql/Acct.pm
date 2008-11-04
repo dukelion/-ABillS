@@ -302,14 +302,16 @@ elsif($acct_status_type eq 3) {
   $self->{SUM}=0 if (! $self->{SUM}); 
  
   if ($NAS->{NAS_EXT_ACCT}) {
+#      acct_input_octets='$RAD->{INBYTE}',
+#      acct_output_octets='$RAD->{OUTBYTE}',
+#      ex_input_octets='$RAD->{INBYTE2}',
+#      ex_output_octets='$RAD->{OUTBYTE2}',
+
+
     $self->query($db, "UPDATE dv_calls SET
       status='$acct_status_type',
       nas_port_id='$RAD->{NAS_PORT}',
       acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
-      acct_input_octets='$RAD->{INBYTE}',
-      acct_output_octets='$RAD->{OUTBYTE}',
-      ex_input_octets='$RAD->{INBYTE2}',
-      ex_output_octets='$RAD->{OUTBYTE2}',
       framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
       lupdated=UNIX_TIMESTAMP(),
       sum=sum+$self->{SUM},
