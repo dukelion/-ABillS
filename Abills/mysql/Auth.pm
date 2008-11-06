@@ -1331,14 +1331,14 @@ sub get_ip {
  my %pool = %{ $pools_arr[0] };
  
  for(my $i=0; $i<=$#pools_arr; $i++) {
-  %pool = %{ $pools_arr[0] };
-  foreach my $ip (@$list) {
-    if(exists($pool{$ip->[0]})) {
+   %pool = %{ $pools_arr[0] };
+   foreach my $ip (@$list) {
+     if(exists($pool{$ip->[0]})) {
        delete($pool{$ip->[0]});
        $self->{USED_IPS}++;
-     }
-   }
-  last if (scalar(keys %pool ) > 0);
+      }
+    } 
+   last if (scalar(keys %pool ) > 0);
   }
 
  my @ips_arr = keys %pool;

@@ -83,6 +83,7 @@ if (defined($ARGV->{help})) {
 
 if ($ARGV->{RESULT_DIR}) {
   $pdf_result_path = $ARGV->{RESULT_DIR};
+ }
 else {
   $pdf_result_path = $pdf_result_path . "/%Y-%m/";
 }
