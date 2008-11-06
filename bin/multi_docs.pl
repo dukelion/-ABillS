@@ -81,11 +81,12 @@ if (defined($ARGV->{help})) {
 	exit;
 }
 
+my ($Y, $m, $d)=split(/-/, $DATE, 3);
 if ($ARGV->{RESULT_DIR}) {
   $pdf_result_path = $ARGV->{RESULT_DIR};
  }
 else {
-  $pdf_result_path = $pdf_result_path . "/%Y-%m/";
+  $pdf_result_path = $pdf_result_path . "/$Y-$m/";
 }
 
 if (! -d $pdf_result_path) {
@@ -105,7 +106,6 @@ if (! -d $pdf_result_path) {
 }
 
 #Fees get month fees - abon. payments
-my ($Y, $m, $d)=split(/-/, $DATE, 3); 
 my $fees_list = $Fees->reports({ INTERVAL => "$Y-$m-01/$DATE",  
 	                               METHODS  => 1,
 	                               TYPE     => 'USERS' 
