@@ -16,5 +16,6 @@ $_HOSTS_MASK="Netmask of destination";
 $_HOSTS_ROUTER="Router to destination";
 $_RECONFIGURE='Reconfigure';
 $_SWITCH='Switch';
+$_AUTO='Auto';
 
 $ERR_WRONG_NETWORK  = 'Wrong network. Check network IP/MAC range';

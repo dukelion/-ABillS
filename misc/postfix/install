@@ -32,8 +32,15 @@ smtpd.conf         > [/usr/local/lib/sasl2]/smtpd.conf
 local.cf           > [/usr/local/etc/mail/spamassassin]/local.cf
 #Autostart postfix
 :OS=FREEBSD:# Don't start sendmail\nsendmail_enable="NONE"\nmta_start_script=""\nsendmail_outbound_enable="NO"\nsendmail_submit_enable="NO"\nsendmail_msp_queue_enable="NO"\n# Startup postfix\npostfix_enable="YES" >> [/etc]/rc.conf
+
+
 #Make startup for courier_imap
 :OS=FREEBSD:courier_authdaemond_enable="YES"\ncourier_imap_imapd_enable="YES"\ncourier_imap_pop3d_enable="YES"  >> [/etc]/rc.conf
+
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/postfix restart
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/courier-authdaemond restart
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/courier-imap-imapd.sh restart
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/courier-imap-pop3d.sh restart
 
 #AMaViS config
 
@@ -42,5 +49,8 @@ local.cf           > [/usr/local/etc/mail/spamassassin]/local.cf
 :AMAVIS=1:FILE=amavis_master.cf   >> [/usr/local/etc/postfix]/master.cf
 :OS=FREEBSD,AMAVIS=1:amavisd_enable="YES"\namavisd_ram="512m" >> [/etc]/rc.conf
 :OS=FREEBSD,CLAMAV=1:clamav_clamd_enable="YES"\nclamav_freshclam_enable="YES" >> [/etc]/rc.conf
+
 :OS=FREEBSD,CLAMAV=1:exec:a=`grep vscan:*:110:clamav /etc/group` ; if [ w$a != w ]; then cp /etc/group /etc/group_back && /bin/cat /etc/group_back | /usr/bin/sed 's/vscan:\*:110:/vscan:\*:110:clamav/' > /etc/group; fi; > [/dev]/null
 
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/clamav-clamd restart
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/amavisd restart

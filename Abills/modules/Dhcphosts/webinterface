@@ -412,8 +412,6 @@ sub dhcphosts_networks {
 # 
 #*******************************************************************
 sub dhcphosts_hosts {
-  
-  
   if (! $FORM{UID}) {
     $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel({ SEARCH  => 1 });
     form_search({ SEARCH_FORM => $html->tpl_show(_include('dhcphosts_search', 'Dhcphosts'), 
@@ -572,6 +570,10 @@ sub dhcphosts_user {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: $_HOSTS_HOSTNAME  ");
      }	
     else {
+      if (! $FORM{NETWORK}) {
+      	$FORM{NETWORK} = auto_net_sign($FORM{IP});
+       }
+      
       $Dhcphosts->host_check({ %FORM });
       if (! $Dhcphosts->{errno}) {
         $Dhcphosts->host_add({ %FORM });
@@ -590,6 +592,10 @@ sub dhcphosts_user {
       #00:19:5b:4f:98:7a	
      }	
     else {
+      if (! $FORM{NETWORK}) {
+      	$FORM{NETWORK} = auto_net_sign($FORM{IP});
+       }
+
       $Dhcphosts->host_check({ %FORM });
       if (! $Dhcphosts->{errno}) {
 	      $Dhcphosts->host_change({ %FORM });
@@ -630,7 +636,7 @@ sub dhcphosts_user {
 
    
   
-  $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel();
+  $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel({ AUTOSIGN => 1 });
 
 
 
@@ -682,6 +688,7 @@ sub dhcphosts_network_sel {
   my %networks = ();
   
   $networks{0} = "$_ALL" if ($attr->{SEARCH});
+  $networks{0} = "$_AUTO" if ($attr->{AUTOSIGN}); 
 
   foreach my $line (@$list) {
     $networks{$line->[0]}=$line->[1]."(".$line->[2]."/".$line->[3].")";
@@ -689,7 +696,7 @@ sub dhcphosts_network_sel {
 
   return $html->form_select('NETWORK', 	
                                     {
-    	                               SELECTED => $FORM{NETWORK},
+    	                               SELECTED => $FORM{NETWORK} || 0,
 		                                 SEL_HASH => \%networks 
 		                                }
 		                        );
@@ -998,4 +1005,32 @@ sub make_classless_option {
 }
 
 
+
+#**********************************************************
+#
+#**********************************************************
+sub auto_net_sign {
+  my ($ip) = @_;
+
+my %network_hash = ();
+my $list = $Dhcphosts->networks_list();
+$ip = ip2int($ip);
+
+
+foreach my $line (@$list) {
+	my $first_ip = ip2int($line->[2]);
+	my $last_ip  = $first_ip + (4294967295  - ip2int($line->[3]) );
+	$network_hash{$first_ip}="$last_ip:$line->[0]";
+}
+
+	while(my($first, $v)=each %network_hash) {
+		my ($last, $id)=split(/:/, $v, 2);
+		if ($ip >= $first && $ip <= $last) {
+			 return $id;
+		 }
+	 }
+
+  return 0;	
+
+}
 1

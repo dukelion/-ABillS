@@ -738,7 +738,9 @@ sub hosts_list {
 
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*) FROM dhcphosts_hosts h $WHERE");
+    $self->query($db, "SELECT count(*) FROM dhcphosts_hosts h
+     left join users u on h.uid=u.uid
+     $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }
 

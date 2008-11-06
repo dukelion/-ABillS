@@ -1520,6 +1520,7 @@ sub ipn_user_activate {
      ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
 
      if ($ENV{HTTP_REFERER} && $html->{SID}) {
+       my $red = `echo $ENV{HTTP_REFERER} >> /tmp/redirect`;
        print "Location: $ENV{HTTP_REFERER}". "\n\n";
        exit;
       }
