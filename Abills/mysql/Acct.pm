@@ -77,7 +77,6 @@ if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
 
 #Start
 if ($acct_status_type == 1) { 
-
   $self->query($db, "SELECT count(user_name) FROM dv_calls 
     WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
     
@@ -176,7 +175,9 @@ elsif ($acct_status_type == 2) {
                                                    $RAD, 
                                                    { USER_INFO => 1 } );
 
-    $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp,  
+    
+    if ($self->{UID} > 0 ) {
+      $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp,  
         sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
         bill_id,
@@ -191,6 +192,7 @@ elsif ($acct_status_type == 2) {
         '$RAD->{ACCT_TERMINATE_CAUSE}',
         '$RAD->{ACCT_INPUT_GIGAWORDS}',
         '$RAD->{ACCT_OUTPUT_GIGAWORDS}');", 'do');
+      }
    }
   elsif ($conf->{rt_billing}) {
     $self->rt_billing($RAD, $NAS);
@@ -289,7 +291,6 @@ elsif ($acct_status_type == 2) {
        }
     }
 }
-
 
   # Delete from session
   $self->query($db, "DELETE FROM dv_calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" 

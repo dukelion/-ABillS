@@ -283,6 +283,7 @@ else {
 	$r = $acct_mod{"default"}->accounting($RAD, $nas);
 }
 
+
 #if(defined($ACCT{$nas->{NAS_TYPE}})) {
 #  require $ACCT{$nas->{NAS_TYPE}} . ".pm";
 #  $ACCT{$nas->{NAS_TYPE}}->import();

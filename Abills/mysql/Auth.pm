@@ -412,6 +412,8 @@ my @direction_sum = (
 
 push @time_limits, $self->{MAX_SESSION_DURATION} if ($self->{MAX_SESSION_DURATION} > 0);
 
+
+
 my @periods = ('DAY', 'WEEK', 'MONTH');
 my %SQL_params = (
                   DAY   => "DATE_FORMAT(start, '%Y-%m-%d')=curdate()",
@@ -419,7 +421,7 @@ my %SQL_params = (
                   MONTH => "date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m')" 
                   );
 
-my $WHERE = "='$self=>{UID}'";
+my $WHERE = "='$self->{UID}'";
 if ($self->{UIDS}) {
   $WHERE = " IN ($self->{UIDS})";
 }
@@ -428,7 +430,7 @@ foreach my $line (@periods) {
      if (($self->{$line . '_TIME_LIMIT'} > 0) || ($self->{$line . '_TRAF_LIMIT'} > 0)) {
         my $session_time_limit=$traf_limit;
         my $session_traf_limit=$traf_limit;
- 
+
         $self->query($db, "SELECT if(". $self->{$line . '_TIME_LIMIT'} ." > 0, ". $self->{$line . '_TIME_LIMIT'} ." - sum(duration), 0),
                                   if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - $direction_sum[$self->{OCTETS_DIRECTION}], 0),
                                   1
@@ -525,16 +527,6 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
     $RAD_PAIRS->{'Exppp-Local-IP-Table'} = (defined($CONF->{DV_EXPPP_NETFILES})) ? "$CONF->{DV_EXPPP_NETFILES}$self->{TT_INTERVAL}.nets" : "$self->{TT_INTERVAL}.nets";
    }
 
-#Radius Shaper for exppp
-#  if ($self->{USER_SPEED} > 0) {
-#    $RAD_PAIRS->{'Exppp-Traffic-Shape'} = int($self->{USER_SPEED});
-#   }
-#  else {
-#    if ($EX_PARAMS->{speed}  > 0) {
-#      $RAD_PAIRS->{'Exppp-Traffic-Shape'} = $EX_PARAMS->{speed};
-#     }
-#   }
-
 =comments
         print "Exppp-Traffic-In-Limit = $trafic_inlimit,";
         print "Exppp-Traffic-Out-Limit = $trafic_outlimit,";
@@ -572,7 +564,6 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
 # lcp:interface-config#1=rate-limit input 256000 7500 7500 
 #  conform-action continue 
 #   exceed-action drop
-
 ######################
 # MPD
 elsif ($NAS->{NAS_TYPE} eq 'mpd4' && $RAD_PAIRS->{'Session-Timeout'} > 604800) {
@@ -592,18 +583,6 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd') {
   if ($RAD_PAIRS->{'Session-Timeout'} > 604800)    {
   	 $RAD_PAIRS->{'Session-Timeout'}=604800;
    }
-#MPD standart radius based Shaper
-#  if ($uspeed > 0) {
-#    $RAD_PAIRS{'mpd-rule'} = "\"1=pipe %p1 ip from any to any\"";
-#    $RAD_PAIRS{'mpd-pipe'} = "\"1=bw ". $uspeed ."Kbyte/s\"";
-#   }
-#  else {
-#    if ($v_speed > 0) {
-#      $RAD_PAIRS{'Exppp-Traffic-Shape'} = $v_speed;
-#      $RAD_PAIRS{'mpd-rule'} = "1=pipe %p1 ip from any to any";
-#      $RAD_PAIRS{'mpd-pipe'} = "1=bw ". $v_speed ."Kbyte/s";
-#     }
-#   }
  }
 ###########################################################
 # pppd + RADIUS plugin (Linux) http://samba.org/ppp/
@@ -786,12 +765,12 @@ sub authentication {
     	
     	
     	
-    	$RAD_PAIRS{'Ascend-Data-Svc'}='Switched-modem';
-      $RAD_PAIRS{'Ascend-Send-Auth'}='Send-Auth-None';
-      $RAD_PAIRS{'Ascend-CBCP-Enable'}='CBCP-Enabled';
-      $RAD_PAIRS{'Ascend-CBCP-Mode'}='CBCP-Profile-Callback';
-      $RAD_PAIRS{'Ascend-CBCP-Trunk-Group'}=5;
-      $RAD_PAIRS{'Ascend-Callback-Delay'}=30;
+    	$RAD_PAIRS{'Ascend-Data-Svc'}         = 'Switched-modem';
+      $RAD_PAIRS{'Ascend-Send-Auth'}        = 'Send-Auth-None';
+      $RAD_PAIRS{'Ascend-CBCP-Enable'}      = 'CBCP-Enabled';
+      $RAD_PAIRS{'Ascend-CBCP-Mode'}        = 'CBCP-Profile-Callback';
+      $RAD_PAIRS{'Ascend-CBCP-Trunk-Group'} = 5;
+      $RAD_PAIRS{'Ascend-Callback-Delay'}   = 30;
     	
     	#$RAD_PAIRS{'Ascend-Send-Secret'}='';
      }
@@ -862,60 +841,60 @@ elsif (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})) {
  }
 #Auth MS-CHAP v1,v2
 elsif(defined($RAD->{MS_CHAP_CHALLENGE})) {
-  # Its an MS-CHAP V2 request
-  # See draft-ietf-radius-ms-vsa-01.txt,
-  # draft-ietf-pppext-mschap-v2-00.txt, RFC 2548, RFC3079
-  $RAD->{MS_CHAP_CHALLENGE} =~ s/^0x//;
-  my $challenge = pack("H*", $RAD->{MS_CHAP_CHALLENGE});
-  my ($usersessionkey, $lanmansessionkey, $ms_chap2_success);
-
-  if (defined($RAD->{MS_CHAP2_RESPONSE})) {
-     $RAD->{MS_CHAP2_RESPONSE} =~ s/^0x//; 
-     my $rad_response = pack("H*", $RAD->{MS_CHAP2_RESPONSE});
-     my ($ident, $flags, $peerchallenge, $reserved, $response) = unpack('C C a16 a8 a24', $rad_response);
-
-
-     if (check_mschapv2(($RAD_PAIRS{'Callback-Number'}) ? "$RAD_PAIRS{'Callback-Number'}:$RAD->{USER_NAME}" : $RAD->{USER_NAME},
-       $self->{PASSWD}, $challenge, $peerchallenge, $response, $ident,
- 	     \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 1) {
-         $RAD_PAIRS{'MS-CHAP-Error'}="\"Wrong MS-CHAP2 password\"";
-         $RAD_PAIRS{'Reply-Message'}=$RAD_PAIRS{'MS-CHAP-Error'};
-         return 1, \%RAD_PAIRS;
-	    }
-
-     $RAD_PAIRS{'MS-CHAP2-SUCCESS'} = '0x' . bin2hex($ms_chap2_success);
-     my ($send, $recv) = Radius::MSCHAP::mppeGetKeys($usersessionkey, $response, 16);
-
-
-# MPPE Sent/Recv Key Not realizet now.
-#        print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
-#        $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $radsecret, $challenge), 0, 16));
-#	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex( substr(encode_mppe_key($recv, $radsecret, $challenge), 0, 16));
-
-#        my $radsecret = 'test';
-#         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
-#	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
-#        $RAD_PAIRS{'MS-MPPE-Send-Key'}='0x4f835a2babe6f2600a731fd89ef25a38';
-#	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}='0x27ac8322247937ad3010161f1d5bbe5c';
-	       
-        }
-       else {
-         my $message;
-  
-         if (check_mschap("$self->{PASSWD}", "$RAD->{MS_CHAP_CHALLENGE}", "$RAD->{MS_CHAP_RESPONSE}", 
-	           \$usersessionkey, \$lanmansessionkey, \$message) == 0) {
-           $message = "Wrong MS-CHAP password";
-           $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
-           $RAD_PAIRS{'Reply-Message'}=$message;
-           return 1, \%RAD_PAIRS;
-          }
-        }
-       # 1      Encryption-Allowed 
-       # 2      Encryption-Required 
-       $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000001';
-       $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
+#  # Its an MS-CHAP V2 request
+#  # See draft-ietf-radius-ms-vsa-01.txt,
+#  # draft-ietf-pppext-mschap-v2-00.txt, RFC 2548, RFC3079
+#  $RAD->{MS_CHAP_CHALLENGE} =~ s/^0x//;
+#  my $challenge = pack("H*", $RAD->{MS_CHAP_CHALLENGE});
+#  my ($usersessionkey, $lanmansessionkey, $ms_chap2_success);
+#
+#  if (defined($RAD->{MS_CHAP2_RESPONSE})) {
+#     $RAD->{MS_CHAP2_RESPONSE} =~ s/^0x//; 
+#     my $rad_response = pack("H*", $RAD->{MS_CHAP2_RESPONSE});
+#     my ($ident, $flags, $peerchallenge, $reserved, $response) = unpack('C C a16 a8 a24', $rad_response);
+#
+#
+#     if (check_mschapv2(($RAD_PAIRS{'Callback-Number'}) ? "$RAD_PAIRS{'Callback-Number'}:$RAD->{USER_NAME}" : $RAD->{USER_NAME},
+#       $self->{PASSWD}, $challenge, $peerchallenge, $response, $ident,
+# 	     \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 1) {
+#         $RAD_PAIRS{'MS-CHAP-Error'}="\"Wrong MS-CHAP2 password\"";
+#         $RAD_PAIRS{'Reply-Message'}=$RAD_PAIRS{'MS-CHAP-Error'};
+#         return 1, \%RAD_PAIRS;
+#	    }
+#
+#     $RAD_PAIRS{'MS-CHAP2-SUCCESS'} = '0x' . bin2hex($ms_chap2_success);
+#     my ($send, $recv) = Radius::MSCHAP::mppeGetKeys($usersessionkey, $response, 16);
+#
+#
+## MPPE Sent/Recv Key Not realizet now.
+##        print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
+##        $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $radsecret, $challenge), 0, 16));
+##	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex( substr(encode_mppe_key($recv, $radsecret, $challenge), 0, 16));
+#
+##        my $radsecret = 'test';
+##         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
+##	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
+##        $RAD_PAIRS{'MS-MPPE-Send-Key'}='0x4f835a2babe6f2600a731fd89ef25a38';
+##	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}='0x27ac8322247937ad3010161f1d5bbe5c';
+#	       
+#        }
+#       else {
+#         my $message;
+#  
+#         if (check_mschap("$self->{PASSWD}", "$RAD->{MS_CHAP_CHALLENGE}", "$RAD->{MS_CHAP_RESPONSE}", 
+#	           \$usersessionkey, \$lanmansessionkey, \$message) == 0) {
+#           $message = "Wrong MS-CHAP password";
+#           $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
+#           $RAD_PAIRS{'Reply-Message'}=$message;
+#           return 1, \%RAD_PAIRS;
+#          }
+#        }
+#       # 1      Encryption-Allowed 
+#       # 2      Encryption-Required 
+#       $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000001';
+#       $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
  }
-#End MSchap auth
+##End MSchap auth
 elsif($NAS->{NAS_AUTH_TYPE} == 1) {
   if (check_systemauth("$RAD->{USER_NAME}", "$RAD->{USER_PASSWORD}") == 0) { 
     $RAD_PAIRS{'Reply-Message'}="Wrong password '$RAD->{USER_PASSWORD}' $NAS->{NAS_AUTH_TYPE}";
@@ -1494,85 +1473,85 @@ if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
 
 
 
-#####################################################################
-# Overrideable function that checks a MSCHAP password response
-# $p is the current request
-# $username is the users (rewritten) name
-# $pw is the ascii plaintext version of the correct password if known
-# rfc2548 Microsoft Vendor-specific RADIUS Attributes
-sub check_mschap {
-  my ($pw, $challenge, $response, $usersessionkeydest, $lanmansessionkeydest, $message) = @_;
-
-  #use lib $Bin;
-  use Abills::MSCHAP;
-
-  $response =~ s/^0x//; 
-  $challenge =~ s/^0x//;
-  $challenge = pack("H*", $challenge);
-  $response = pack("H*", $response);
-  my($ident, $flags, $lmresponse, $ntresponse) = unpack('C C a24 a24', $response);
-
-
-  if ($flags == 1) {
-    my $upw = Radius::MSCHAP::ASCIItoUnicode($pw);
-    #return Radius::MSCHAP::NtChallengeResponse($challenge, $upw);
-    return unless Radius::MSCHAP::NtChallengeResponse($challenge, $upw) eq $ntresponse;
-    # Maybe generate a session key. 
-    
-    $$usersessionkeydest = Radius::MSCHAP::NtPasswordHash(Radius::MSCHAP::NtPasswordHash($upw))
-	if defined $usersessionkeydest;
-    $$lanmansessionkeydest = Radius::MSCHAP::LmPasswordHash($pw)
-	if defined $lanmansessionkeydest;
-
-#      $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpaAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpaAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpaAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', Radius::MSCHAP::LmPasswordHash($pw), 
-#                                                                            Radius::MSCHAP::NtPasswordHash( Radius::MSCHAP::NtPasswordHash(Radius::MSCHAP::ASCIItoUnicode($pw)))))). "0000000000000000";
-   }
-  else {
-     $$message = "MS-CHAP LM-response not implemented";
-     #log_print('LOG_ERR', "MS-CHAP LM-response not implemented");
-     return 0;
-   }
-  
-  return 1;
-
-}
-
-
-
-#####################################################################
-# $p is the current request
-# Overrideable function that checks a MSCHAP password response
-# $username is the users (rewritten) name
-# $pw is the ascii plaintext version of the correct password if known
-# $sessionkeydest is a ref to a string where the sesiosn key for MPPE will be returned
-sub check_mschapv2 {
-  my ($username, $pw, $challenge, $peerchallenge, $response, $ident,
-	$usersessionkeydest, $lanmansessionkeydest,  $ms_chap2_success) = @_;
-
-  use Abills::MSCHAP;
-
-  my $upw = Radius::MSCHAP::ASCIItoUnicode($pw);
-  return 1
-  unless &Radius::MSCHAP::GenerateNTResponse($challenge, $peerchallenge, $username, $upw) 
-	       eq $response;
-
-
-    # Maybe generate a session key. 
-    $$usersessionkeydest = Radius::MSCHAP::NtPasswordHash
-	(Radius::MSCHAP::NtPasswordHash($upw))
-	if defined $usersessionkeydest;
-    $$lanmansessionkeydest = Radius::MSCHAP::LmPasswordHash($pw)
-	if defined $lanmansessionkeydest;
-
-   
-    $$ms_chap2_success=pack('C a42', $ident,
-			  &Radius::MSCHAP::GenerateAuthenticatorResponseHash
-			  ($$usersessionkeydest, $response, $peerchallenge, $challenge, "$username"))
-			  if defined $ms_chap2_success;
-
-
-    return 0;
-}
+######################################################################
+## Overrideable function that checks a MSCHAP password response
+## $p is the current request
+## $username is the users (rewritten) name
+## $pw is the ascii plaintext version of the correct password if known
+## rfc2548 Microsoft Vendor-specific RADIUS Attributes
+#sub check_mschap {
+#  my ($pw, $challenge, $response, $usersessionkeydest, $lanmansessionkeydest, $message) = @_;
+#
+#  #use lib $Bin;
+#  use Abills::MSCHAP;
+#
+#  $response =~ s/^0x//; 
+#  $challenge =~ s/^0x//;
+#  $challenge = pack("H*", $challenge);
+#  $response = pack("H*", $response);
+#  my($ident, $flags, $lmresponse, $ntresponse) = unpack('C C a24 a24', $response);
+#
+#
+#  if ($flags == 1) {
+#    my $upw = Radius::MSCHAP::ASCIItoUnicode($pw);
+#    #return Radius::MSCHAP::NtChallengeResponse($challenge, $upw);
+#    return unless Radius::MSCHAP::NtChallengeResponse($challenge, $upw) eq $ntresponse;
+#    # Maybe generate a session key. 
+#    
+#    $$usersessionkeydest = Radius::MSCHAP::NtPasswordHash(Radius::MSCHAP::NtPasswordHash($upw))
+#	if defined $usersessionkeydest;
+#    $$lanmansessionkeydest = Radius::MSCHAP::LmPasswordHash($pw)
+#	if defined $lanmansessionkeydest;
+#
+##      $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpaAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpaAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpaAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', Radius::MSCHAP::LmPasswordHash($pw), 
+##                                                                            Radius::MSCHAP::NtPasswordHash( Radius::MSCHAP::NtPasswordHash(Radius::MSCHAP::ASCIItoUnicode($pw)))))). "0000000000000000";
+#   }
+#  else {
+#     $$message = "MS-CHAP LM-response not implemented";
+#     #log_print('LOG_ERR', "MS-CHAP LM-response not implemented");
+#     return 0;
+#   }
+#  
+#  return 1;
+#
+#}
+#
+#
+#
+######################################################################
+## $p is the current request
+## Overrideable function that checks a MSCHAP password response
+## $username is the users (rewritten) name
+## $pw is the ascii plaintext version of the correct password if known
+## $sessionkeydest is a ref to a string where the sesiosn key for MPPE will be returned
+#sub check_mschapv2 {
+#  my ($username, $pw, $challenge, $peerchallenge, $response, $ident,
+#	$usersessionkeydest, $lanmansessionkeydest,  $ms_chap2_success) = @_;
+#
+#  use Abills::MSCHAP;
+#
+#  my $upw = Radius::MSCHAP::ASCIItoUnicode($pw);
+#  return 1
+#  unless &Radius::MSCHAP::GenerateNTResponse($challenge, $peerchallenge, $username, $upw) 
+#	       eq $response;
+#
+#
+#    # Maybe generate a session key. 
+#    $$usersessionkeydest = Radius::MSCHAP::NtPasswordHash
+#	(Radius::MSCHAP::NtPasswordHash($upw))
+#	if defined $usersessionkeydest;
+#    $$lanmansessionkeydest = Radius::MSCHAP::LmPasswordHash($pw)
+#	if defined $lanmansessionkeydest;
+#
+#   
+#    $$ms_chap2_success=pack('C a42', $ident,
+#			  &Radius::MSCHAP::GenerateAuthenticatorResponseHash
+#			  ($$usersessionkeydest, $response, $peerchallenge, $challenge, "$username"))
+#			  if defined $ms_chap2_success;
+#
+#
+#    return 0;
+#}
 
 
 

@@ -109,8 +109,9 @@ sub authenticate {
      }
    }
 
-  $RAD_CHECK{'Auth-Type'} = 'Accept';
-	return RLM_MODULE_OK;
+  #$RAD_CHECK{'Auth-Type'} = 'Accept';
+	#return RLM_MODULE_OK;
+	return RLM_MODULE_REJECT;
 }
 
 

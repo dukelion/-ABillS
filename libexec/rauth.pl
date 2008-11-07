@@ -170,6 +170,7 @@ else {
 
     my $CID = ($RAD->{CALLING_STATION_ID}) ? " CID: $RAD->{CALLING_STATION_ID} " : '';
     access_deny("$RAD->{USER_NAME}", "$message$CID", $nas->{NAS_ID});
+    $RAD_CHECK{'Auth-Type'} = 'Reject';
     return $r;
   }
  else {
