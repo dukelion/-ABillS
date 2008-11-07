@@ -321,7 +321,10 @@ sub msgs_admin {
    	 	 my ($h, $min, $sec)=split(/:/, $FORM{RUN_TIME}, 3);
    	 	 $FORM{RUN_TIME}=$h*60*60+$min*60+$sec;
    	  }
-    $Msgs->message_reply_add({ %FORM, IP => $admin->{SESSION_IP} });
+
+    $Msgs->message_reply_add({ %FORM, 
+    	                         AID  => $admin->{AID},
+    	                         IP   => $admin->{SESSION_IP} });
 
      if (! $Msgs->{errno}) {
        #Add attachment
@@ -385,7 +388,7 @@ sub msgs_admin {
     	$html->message('info', $_INFO, "$_DELETED [$FORM{reply_del}] ") if (! $Msgs->{errno});  	
      }    
     $Msgs->message_info($FORM{chg});
-    $Msgs->{ACTION}='reply';
+    $Msgs->{ACTION}    ='reply';
     $Msgs->{ACTION_LNG}=$_REPLY;
     
     $Msgs->{STATE_NAME}=$msg_status[$Msgs->{STATE}];
@@ -438,16 +441,16 @@ sub msgs_admin {
     #	 	my ($id, $caption, $date, $person)=split(/|/, $line);
     #	 }
     # }
-    
-    my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID} });
 
+    $Msgs->{debug}=1;
+    my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID} });
+    
     my $reply = '';
-    if ($Msgs->{TOTAL} == 0)  {
+    if ($Msgs->{TOTAL} == 0) {
        $reply = $Msgs->{MESSAGE};
       }
 
     foreach my $line (@$list) {
-
       if ($FORM{QUOTING} && $FORM{QUOTING} == $line->[0]) {
          $reply = $line->[2];
        }
@@ -455,17 +458,21 @@ sub msgs_admin {
       $line->[2]=~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
       
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
-          REPLY_ID => $line->[0],
-          DATE     => $line->[1],
-          CAPTION  => convert($line->[5], { text2html => 1 }),
-          PERSON   =>	$line->[3],
-      	  MESSAGE  => convert($line->[2], { text2html => 1 }),
-      	  QUOTING  => $html->button($_QUOTING, "&index=$index&chg=$FORM{chg}&UID=$FORM{UID}&QUOTING=$line->[0]"),
-      	  DELETE   => $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }),
+          REPLY_ID   => $line->[0],
+          DATE       => $line->[1],
+          CAPTION    => convert($line->[5], { text2html => 1 }),
+          PERSON     =>	"$line->[3]",
+      	  MESSAGE    => convert($line->[2], { text2html => 1 }),
+      	  QUOTING    => $html->button($_QUOTING, "&index=$index&chg=$FORM{chg}&UID=$FORM{UID}&QUOTING=$line->[0]"),
+      	  DELETE     => $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }),
       	  ATTACHMENT =>  ($line->[7]) ? "$_ATTACHMENT: ". $html->button("$line->[7]", "qindex=$index&ATTACHMENT=$line->[9]", { TARGET => '_new' }). " ($_SIZE: ". int2byte($line->[8]) .')' : '',
-      	  RUN_TIME  => ($line->[11] ne '00:00:00') ? "$_RUN_TIME: $line->[11]" : ''
-      	  }, { notprint => 1 } );
+      	  COLOR      => ($line->[12] > 0) ? $_COLORS[2] : $_COLORS[1],
+      	  RUN_TIME   => ($line->[11] ne '00:00:00') ? "$_RUN_TIME: $line->[11]" : ''
+      	  }, { notprint => 1 }, 
+      	  
+      	  	);
      }
+
 
     my $run_time = '00:00:00';
     if ($reply ne '') {
@@ -727,7 +734,8 @@ sub msgs_user {
  elsif ($FORM{ID}) {
 
    if ($FORM{reply}) {
-     $Msgs->message_reply_add({ %FORM, 
+     $Msgs->message_reply_add({ %FORM,
+     	                          AID  => 0, 
      	                          IP   => $admin->{SESSION_IP},
      	                          UID  => $LIST_PARAMS{UID} 
      	                         });
@@ -803,6 +811,7 @@ sub msgs_user {
           CAPTION  => convert($line->[5], { text2html => 1 }),
           PERSON   =>	$line->[3],
       	  MESSAGE  => convert($line->[2], { text2html => 1 }),
+      	  COLOR    => ($line->[12] == 0) ? $_COLORS[2] : $_COLORS[1],
       	  QUOTING  => $html->button($_QUOTING, "index=$index&QUOTING=$line->[0]&ID=$FORM{ID}&sid=$sid"),
       	  }, { OUTPUT2RETURN => 1 } );
      }
@@ -898,7 +907,7 @@ sub msgs_user {
 foreach my $line (@$list) {
 #  my $state = '<img src="img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[5] eq '');
   $table->addrow(
-    ($line->[14] ne '0000-00-00 00:00:00') ? $line->[2] : $html->b($line->[2]), 
+    ($line->[15] ne '0000-00-00 00:00:00') ? $line->[2] : $html->b($line->[2]), 
     $line->[3],
     $line->[4],
     $msg_status[$line->[5]],

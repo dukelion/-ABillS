@@ -796,7 +796,7 @@ sub messages_reply_list {
   $self->query($db,   "SELECT mr.id,
     mr.datetime,
     mr.text,
-    if(mr.uid>0, u.id, a.id),
+    if(mr.aid>0, a.id, u.id),
     mr.status,
     mr.caption,
     INET_NTOA(mr.ip),
@@ -804,7 +804,8 @@ sub messages_reply_list {
     ma.content_size,
     ma.id,
     mr.uid,
-    SEC_TO_TIME(mr.run_time)
+    SEC_TO_TIME(mr.run_time),
+    mr.aid
     FROM (msgs_reply mr)
     LEFT JOIN users u ON (mr.uid=u.uid)
     LEFT JOIN admins a ON (mr.aid=a.aid)
@@ -840,7 +841,7 @@ sub message_reply_add {
    )
     values ('$DATA{ID}', '$DATA{REPLY_SUBJECT}', '$DATA{REPLY_TEXT}',  now(),
         INET_ATON('$DATA{IP}'), 
-        '$admin->{AID}',
+        '$DATA{AID}',
         '$DATA{STATE}',
         '$DATA{UID}', '$DATA{RUN_TIME}'
     );", 'do');
