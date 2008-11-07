@@ -1424,9 +1424,9 @@ sub ipn_user_activate {
   
     # Get valid NAS
     foreach my $line (@$poll_list) {
-    	if ( ($line->[2] <= $ip_num) && ($ip_num <= $line->[3]) ) {
-  	  	if ($line->[9]) {
-  	  	  $nas_id=$line->[9];
+    	if ( ($line->[3] <= $ip_num) && ($ip_num <= $line->[4]) ) {
+  	  	if ($line->[10]) {
+  	  	  $nas_id=$line->[10];
   	  	  last;
   	  	 }
   	   } 
