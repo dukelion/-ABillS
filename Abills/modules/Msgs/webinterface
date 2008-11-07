@@ -442,7 +442,6 @@ sub msgs_admin {
     #	 }
     # }
 
-    $Msgs->{debug}=1;
     my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID} });
     
     my $reply = '';
