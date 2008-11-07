@@ -1419,14 +1419,16 @@ sub ipn_user_activate {
     $nas_id=int($FORM{NAS_ID});
    }
   else {
-    my $poll_list = $nas->ip_pools_list();
+    my $poll_list = $nas->nas_ip_pools_list();
     my $ip_num = unpack("N", pack("C4", split( /\./, $ip))); 
   
     # Get valid NAS
     foreach my $line (@$poll_list) {
     	if ( ($line->[2] <= $ip_num) && ($ip_num <= $line->[3]) ) {
-  	  	$nas_id=$line->[9];
-  	  	last;
+  	  	if ($line->[9]) {
+  	  	  $nas_id=$line->[9];
+  	  	  last;
+  	  	 }
   	   } 
      }
    }
@@ -1608,7 +1610,7 @@ sub ipn_user_activate {
                             title_plain => ["$_USER", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT", '-' ],
                             cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                             qs          => $pages_qs,
-                            ID          => 'Online'
+                            ID          => 'IPN_ONLINE'
                                } );
   foreach my $line (@$list) {
     my $online_ip = int2ip($line->[3]);
