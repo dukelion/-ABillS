@@ -707,7 +707,7 @@ sub msgs_user {
           UID          => $user->{UID}
          });
        }      
-     $html->message('info', $_INFO, "$_SENDED");
+     $html->message('info', $_INFO, "$_MESSSAGE # $Msgs->{MSG_ID}. $_MSG_SENDED ");
 
      my $list = $Msgs->admins_list({ EMAIL_NOTIFY   => 1,
      	                               CHAPTEr_ID     => $FORM{CHAPTER}
@@ -739,8 +739,8 @@ sub msgs_user {
      	                          UID  => $LIST_PARAMS{UID} 
      	                         });
 
- 	   $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
- 	 	                         ID        => $FORM{ID},
+ 	   $Msgs->message_change({ UID        => $LIST_PARAMS{UID},
+ 	 	                         ID         => $FORM{ID},
  	 	                         ADMIN_READ => "0000-00-00 00:00:00"
  	 	                       });
 
@@ -915,6 +915,27 @@ foreach my $line (@$list) {
 }
 
 print $table->show();
+
+$Msgs->{TOTAL_MSG} = $Msgs->{TOTAL};
+my %SHOW_PARAMS = (ADMIN_READ => '0000-00-00 00:00:00',
+                   );
+
+$Msgs->messages_new({ %SHOW_PARAMS });
+$table = $html->table( { width      => '100%',
+                         cols_align => ['left', 'right' ],
+                         rows       => [ [ 
+                                           "$_TOTAL: ".        $html->b( $Msgs->{TOTAL_MSG} ),
+                                           "$_IN_WORK: ".      $html->b( $Msgs->{UNREAD}),
+                                           "$_OPEN: ".         $html->b( $Msgs->{OPEN}),
+                                           "$_CLOSED_UNSUCCESSFUL: ". $html->b( $Msgs->{UNMAKED}),
+                                           "$_CLOSED_SUCCESSFUL: " .  $html->b( $Msgs->{CLOSED}),
+                                        ] ],
+                         rowcolor   => $_COLORS[3]
+                        } );
+
+print $table->show();
+
+
 
 }
 

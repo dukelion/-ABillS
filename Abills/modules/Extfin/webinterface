@@ -37,7 +37,7 @@ sub extfin_export_customers {
    }
  
   if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
-    $LIST_PARAMS{PAGE_ROWS} = 100000;
+    $LIST_PARAMS{PAGE_ROWS} = 1000000;
     $LIST_PARAMS{PG}        = $FORM{PG} || 0;
 
     my $list = $Extfin->customers_list({ %LIST_PARAMS });

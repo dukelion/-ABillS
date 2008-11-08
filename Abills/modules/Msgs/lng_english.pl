@@ -7,3 +7,5 @@ $_INNER='Inner message';
 $_QUOTING='Quoting';
 $_NEW_MESSAGE='New message';
 $_RUN_TIME='Run time';
+$_MSG_SENDED='Send to administrator';
+$_IN_WORK='In Work';

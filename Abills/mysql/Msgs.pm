@@ -220,15 +220,24 @@ GROUP BY m.id
 
  my $list = $self->{list};
 
- if ($self->{TOTAL} >= $PAGE_ROWS  || $PG > 0) {
+ if ($self->{TOTAL} > 0  || $PG > 0) {
    
-   $self->query($db, "SELECT count(DISTINCT m.id)
+   $self->query($db, "SELECT count(DISTINCT m.id), 
+   sum(if(m.admin_read = '0000-00-00 00:00:00', 1, 0)),
+   sum(if(m.state = 0, 1, 0)),
+   sum(if(m.state = 1, 1, 0)),
+   sum(if(m.state = 2, 1, 0))
     FROM (msgs_messages m)
     LEFT JOIN users u ON (m.uid=u.uid)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     $WHERE");
 
-   ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   ($self->{TOTAL},
+    $self->{IN_WORK},
+    $self->{OPEN},
+    $self->{UNMAKED},
+    $self->{CLOSED},
+    ) = @{ $self->{list}->[0] };
   }
  
 
@@ -267,6 +276,7 @@ sub message_add {
         '$DATA{RESPOSIBLE}'
         );", 'do');
 
+  $self->{MSG_ID} = $self->{INSERT_ID};
 	return $self;
 }
 
@@ -945,9 +955,13 @@ sub messages_reports {
  
 
  if ($attr->{STATUS}) {
-    my $value = $self->search_expr($attr->{STATE}, 'INT');
-    push @WHERE_RULES, "m.status$value";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.status') };
   }
+
+ if ($attr->{UID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'm.uid') };
+  }
+
 
  my $date='date_format(m.date, \'%Y-%m-%d\')';
 
@@ -1010,19 +1024,22 @@ sub messages_reports {
   my $list = $self->{list};
 
   if ($self->{TOTAL} > 0 || $PG > 0) {
-    $self->query($db, "SELECT count(m.id),
+    $self->query($db, "SELECT count(DISTINCT m.id),
       sum(if (m.state=0, 1, 0)),
       sum(if (m.state=1, 1, 0)),
       sum(if (m.state=2, 1, 0)),
-      SEC_TO_TIME(sum(mr.run_time))
+      SEC_TO_TIME(sum(mr.run_time)),
+      sum(if(m.admin_read = '0000-00-00 00:00:00', 1, 0))
      FROM msgs_messages m
-     LEFT JOIN  msgs_reply mr ON (m.id=m.main_msg)
+     LEFT JOIN  msgs_reply mr ON (m.id=mr.main_msg)
     $WHERE;");
+
     ($self->{TOTAL}, 
      $self->{OPEN}, 
      $self->{UNMAKED}, 
      $self->{MAKED},
-     $self->{RUN_TIME}) = @{ $self->{list}->[0] };
+     $self->{RUN_TIME},
+     $self->{IN_WORK}) = @{ $self->{list}->[0] };
    }
 
   return $list;
