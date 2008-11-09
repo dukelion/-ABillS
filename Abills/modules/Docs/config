@@ -12,6 +12,7 @@ $web_interface    = 1;
                    "11:10:$_ACCOUNTS:docs_accounts_list:"     => 6,
                    "12:10:$_INVOICE:docs_invoice_list:"       => 6,
                    "15:0:$_DOCS:docs_reports:"                => 4,
+                   "16:15:$_TAX_INVOICE:docs_tax_invoice_list:"    => 4,
 #                   "13:10:$_CONTRACTS:docs_contractst:"      => 6
 
                    );

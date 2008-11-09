@@ -733,16 +733,17 @@ sub msgs_user {
  elsif ($FORM{ID}) {
 
    if ($FORM{reply}) {
+ 	   $Msgs->message_change({ UID        => $LIST_PARAMS{UID},
+ 	 	                         ID         => $FORM{ID},
+ 	 	                         ADMIN_READ => "0000-00-00 00:00:00"
+ 	 	                       });
+
+     
      $Msgs->message_reply_add({ %FORM,
      	                          AID  => 0, 
      	                          IP   => $admin->{SESSION_IP},
      	                          UID  => $LIST_PARAMS{UID} 
      	                         });
-
- 	   $Msgs->message_change({ UID        => $LIST_PARAMS{UID},
- 	 	                         ID         => $FORM{ID},
- 	 	                         ADMIN_READ => "0000-00-00 00:00:00"
- 	 	                       });
 
      if (! $Msgs->{errno}) {
        #Add attachment

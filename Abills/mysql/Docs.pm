@@ -35,7 +35,6 @@ sub new {
 
   $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD}=30 if (! $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD});
 
-#  $self->{debug}=1;
   return $self;
 }
 
@@ -613,7 +612,6 @@ sub tax_invoice_list {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
- $self->{debug}=1;
  
  if ($attr->{COMPANY_ID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'd.company_id') };
@@ -637,11 +635,12 @@ sub tax_invoice_list {
     LIMIT $PG, $PAGE_ROWS;");
 
 
+ $self->{SUM}=0.00;
  return $self->{list}  if ($self->{TOTAL} < 1);
  my $list = $self->{list};
 
 
- $self->query($db, "SELECT count(*), sum(o.price*o.counts)
+ $self->query($db, "SELECT count(DISTINCT d.tax_invoice_id), sum(o.price*o.counts)
     FROM (docs_tax_invoices d)
     LEFT JOIN docs_tax_invoice_orders o ON (d.id=o.tax_invoice_id)
     LEFT JOIN companies c ON (d.company_id=c.id)

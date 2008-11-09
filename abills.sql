@@ -194,16 +194,17 @@ CREATE TABLE `docs_invoice_orders` (
 
 
 CREATE TABLE `docs_tax_invoices` (
-  `id` int(11) unsigned NOT NULL auto_increment,
-  `date` date NOT NULL default '0000-00-00',
-  `created` datetime NOT NULL default '0000-00-00 00:00:00',
-  `tax_invoice_id` int(10) unsigned NOT NULL default '0',
-  `uid` int(11) unsigned NOT NULL default '0',
-  `aid` smallint(6) unsigned NOT NULL default '0',
-  `vat` double(5,2) unsigned NOT NULL default '0.00',
-  `company_id` int(11) unsigned NOT NULL default 0,
-  PRIMARY KEY  (`id`)
-) COMMENT='Docs Accounts'  ;
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `date` date NOT NULL DEFAULT '0000-00-00',
+  `created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `tax_invoice_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `uid` int(11) unsigned NOT NULL DEFAULT '0',
+  `aid` smallint(6) unsigned NOT NULL DEFAULT '0',
+  `vat` double(5,2) unsigned NOT NULL DEFAULT '0.00',
+  `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `date` (`date`,`company_id`)
+) COMMENT='Docs Tax Invoices';
 
 CREATE TABLE `docs_tax_invoice_orders` (
   `tax_invoice_id` int(11) unsigned NOT NULL default '0',
@@ -212,7 +213,7 @@ CREATE TABLE `docs_tax_invoice_orders` (
   `unit` tinyint(3) unsigned NOT NULL default '0',
   `price` double(10,2) unsigned NOT NULL default '0.00',
   KEY `aid` (`tax_invoice_id`)
-) COMMENT='Docs Accounts Orders' ;
+) COMMENT='Docs Tax Invoices Orders' ;
 
 CREATE TABLE `dv_main` (
   `uid` int(11) unsigned NOT NULL auto_increment,
