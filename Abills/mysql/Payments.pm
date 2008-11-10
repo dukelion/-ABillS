@@ -349,7 +349,7 @@ sub reports {
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
-  $self->query($db, "SELECT $date, count(*), sum(p.sum) 
+  $self->query($db, "SELECT $date, count(DISTINCT p.uid), count(*), sum(p.sum) 
       FROM (payments p)
       LEFT JOIN users u ON (u.uid=p.uid)
       LEFT JOIN admins a ON (a.aid=p.aid)
@@ -360,15 +360,17 @@ sub reports {
  my $list = $self->{list}; 
  
  if ($self->{TOTAL} > 0) {
-   $self->query($db, "SELECT count(*), sum(p.sum) 
+   $self->query($db, "SELECT count(DISTINCT p.uid), count(*), sum(p.sum) 
       FROM payments p
       LEFT JOIN users u ON (u.uid=p.uid)
       $WHERE;");
 
-   ($self->{TOTAL}, 
+   ($self->{USERS},
+    $self->{TOTAL}, 
     $self->{SUM}) = @{ $self->{list}->[0] };
   }
  else {
+   $self->{USERS}=0; 
    $self->{TOTAL}=0; 
    $self->{SUM}=0.00;
   }

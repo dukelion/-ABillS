@@ -236,11 +236,11 @@ if ($prepaid{0} + $prepaid{1} > 0) {
 
    $used_traffic->{ONLINE}=0;
    #Recv / IN
-   if($self->{OCTETS_DIRECTION}==1) {
+   if($self->{OCTETS_DIRECTION} == 1) {
      $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_IN};
      $used_traffic->{TRAFFIC_SUM_2}=$used_traffic->{TRAFFIC_IN_2};
-     $used_traffic->{ONLINE}=$recv;
-     $used_traffic->{ONLINE2}=$recv2;
+     $used_traffic->{ONLINE} = $recv;
+     $used_traffic->{ONLINE2}= $recv2;
     }
    #Sent / Out
    elsif($self->{OCTETS_DIRECTION}==2) {

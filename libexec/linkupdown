@@ -597,6 +597,16 @@ sub mikrotik_ext {
   my $nas_admin = $argv->{NAS_ADMIN}|| 'admin';
   my $SSH       = $argv->{SSH_CMD}  || '/usr/bin/ssh';
 
+
+  my $cmds = "$SSH $nas_admin\@$nas_host '/ppp active print where name=$USER'";
+  open(CMD, "$cmds |") || die "Can't open '$cmds' $!\n";
+    my @check_int = <CMD>;   
+  close(CMD);
+
+  my $protoup = (grep /pppoe/, @check_int) ? "pppoe" : "pptp";
+  $INTERFACE="<$protoup-$USER>";
+
+
 	my @commands  = ();
 
   $INTERFACE="<$proto-$USER>";

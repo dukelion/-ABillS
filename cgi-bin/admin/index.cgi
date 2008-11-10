@@ -3518,7 +3518,7 @@ if (defined($FORM{DATE})) {
  }   
 else{ 
   #Fees###################################################
-  my @TITLE = ("$_DATE", "$_COUNT", $_SUM);
+  my @TITLE = ("$_DATE", "$_USERS", "$_COUNT", $_SUM);
   if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
   	$TITLE[0]=$_PAYMENT_METHOD;
    }
@@ -3548,7 +3548,8 @@ else{
     $table_fees->addrow(
     ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD') ? $PAYMENT_METHODS[$line->[0]] : $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
     $line->[1], 
-    $html->b($line->[2]) );
+    $line->[2], 
+    $html->b($line->[3]) );
    }
 
 
@@ -3556,8 +3557,11 @@ else{
 
   print $table_fees->show();	
   $table = $html->table( { width      => '100%',
-                           cols_align => ['right', 'right', 'right', 'right'],
-                           rows       => [ [ "$_TOTAL:", $html->b($fees->{TOTAL}), "$_SUM", $html->b($fees->{SUM}) ] ],
+                           cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                           rows       => [ [ 
+                              "$_USERS: ". $html->b($fees->{USERS}), 
+                              "$_TOTAL: ". $html->b($fees->{TOTAL}), 
+                              "$_SUM: ". $html->b($fees->{SUM}) ] ],
                            rowcolor   => $_COLORS[2]
                           });
   print $table->show();
@@ -3629,7 +3633,7 @@ if (defined($FORM{DATE})) {
     }
  }   
 else{ 
-  my @CAPTION = ("$_DATE", "$_COUNT", $_SUM);
+  my @CAPTION = ("$_DATE", "$_USERS", "$_COUNT", $_SUM);
   if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
   	$CAPTION[0]=$_PAYMENT_METHOD;
    }
@@ -3660,7 +3664,8 @@ else{
     $table->addrow(
       ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') ? $PAYMENT_METHODS[$line->[0]] : $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
       $line->[1], 
-      $html->b($line->[2]) );
+      $line->[2], 
+      $html->b($line->[3]) );
    }
 
 
@@ -3670,7 +3675,10 @@ else{
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right', 'right', 'right'],
-                           rows       => [ [ "$_TOTAL:", $html->b($payments->{TOTAL}), "$_SUM", $html->b($payments->{SUM}) ] ],
+                           rows       => [ [ 
+                           "$_USERS: ". $html->b($payments->{USERS}),
+                           "$_TOTAL: ". $html->b($payments->{TOTAL}), 
+                           "$_SUM: ". $html->b($payments->{SUM}) ] ],
                            rowcolor   => $_COLORS[2]
                        } );
 
