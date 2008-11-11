@@ -5,6 +5,7 @@
 use vars  qw(%RAD %conf %ACCT
  %RAD_REQUEST %RAD_REPLY %RAD_CHECK 
  $begin_time
+ $access_deny
 );
 use strict;
 
@@ -79,40 +80,46 @@ my %ACCT_TERMINATE_CAUSES = (
 #test_radius_returns($RAD);
 #####################################################################
 
+my $access_deny = sub {
+    my ($user, $message, $nas_num) = @_;
+    log_print('LOG_WARNING', "ACCT [$user] NAS: $nas_num $message");
+    return 1;
+   };
+
 
 # Files account section
 my $RAD;
 my $nas = undef;
 if (scalar( %RAD_REQUEST ) < 1) {
+
+
   $RAD = get_radius_params();
+
   if (! defined($RAD->{NAS_IP_ADDRESS})) {
     $RAD->{USER_NAME}='-' if (! defined($RAD->{USER_NAME}));
-    access_deny("$RAD->{USER_NAME}", "Not specified NAS server", 0);
-    return 1;
-   }
-
-  require Nas;
-  $nas = Nas->new($db, \%conf);	
-  my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
-  $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
-  $nas->info({ %NAS_PARAMS });
-
-  my $acct;
-  if ($nas->{errno} || $nas->{TOTAL} < 1) {
-    access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
-    #exit 1;
+    $access_deny->("$RAD->{USER_NAME}", "Not specified NAS server", 0);
+    exit 1;
    }
   else {
-    $acct = acct($db, $RAD, $nas);
-   }
+    require Nas;
+    $nas = Nas->new($db, \%conf);	
+    my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
+    $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
+    $nas->info({ %NAS_PARAMS });
 
-  if(defined($acct->{errno})) {
-	  log_print('LOG_ERR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}". ( (defined($acct->{sql_errstr})) ? " ($acct->{sql_errstr})" : '' )  );
-   }
-   
+    my $acct;
+    if ($nas->{errno} || $nas->{TOTAL} < 1) {
+      $access_deny->("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
+      #exit 1;
+     }
+    else {
+      $acct = acct($db, $RAD, $nas);
+     }
 
-
-  
+    if(defined($acct->{errno})) {
+  	  log_print('LOG_ERR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}". ( (defined($acct->{sql_errstr})) ? " ($acct->{sql_errstr})" : '' )  );
+     }
+  }
   #$db->disconnect();
 }
 
@@ -299,22 +306,13 @@ else {
 
 
 if ($Acct->{errno}) {
-  access_deny("$RAD->{USER_NAME}", "[$r->{errno}] $r->{errstr}", $nas->{NAS_ID});
+  $access_deny->("$RAD->{USER_NAME}", "[$r->{errno}] $r->{errstr}", $nas->{NAS_ID});
  }
 
   return $r;
 }
 
 
-
-#*******************************************************************
-# access_deny($user, $message);
-#*******************************************************************
-sub access_deny {
-  my ($user, $message, $nas_num) = @_;
-  log_print('LOG_WARNING', "ACCT [$user] NAS: $nas_num $message");
-  return 1;
-}
 
 
 1

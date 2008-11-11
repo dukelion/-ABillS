@@ -830,7 +830,7 @@ sub authentication {
 
 
 #Auth chap
-if($RAD->{'HINT'} && $RAD->{'HINT'} eq 'NOPASS') {
+if( $RAD->{'HINT'} && $RAD->{'HINT'} eq 'NOPASS') {
 
  } 
 elsif (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})) {

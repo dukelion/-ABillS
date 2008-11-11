@@ -1,4 +1,3 @@
-#$web_interface    = 1;
 # Iner_ID : Main or Sub or if -1 user menu func list
 
 %FUNCTIONS_LIST = ("10:0:IP Net:ipn_user_activate:UID"       => 20,
@@ -37,7 +36,7 @@ if ($conf{IPN_CLUBMONITOR}) {
 }
 
 %PERIODIC = (
-             monthly => [ 'ipn_detail_rotate' ]
+             monthly => [ 'ipn_detail_rotate', 'ipn_periodic_session_restart' ]
             );
 
 

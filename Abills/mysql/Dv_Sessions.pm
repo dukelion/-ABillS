@@ -207,8 +207,8 @@ sub online {
  	 push @WHERE_RULES, "framed_ip_address=INET_ATON('$attr->{FRAMED_IP_ADDRESS}')";
   }
 
- if (defined($attr->{NAS_ID})) {
- 	 push @WHERE_RULES, "nas_id='$attr->{NAS_ID}'";
+ if ($attr->{NAS_ID}) {
+ 	 push @WHERE_RULES, "nas_id IN ($attr->{NAS_ID})";
   }
  
  

@@ -1,5 +1,9 @@
-:OS=FREEBSD: */5     *       *       *       *       root  /usr/local/bin/mrtg /usr/local/etc/mrtg/mrtg.cfg >> [/etc]/crontab
+:OS=FREEBSD,!REMOTE_NAS=1: */5     *       *       *       *       root  /usr/local/bin/mrtg /usr/local/etc/mrtg/mrtg.cfg >> [/etc]/crontab
 mrtg.cfg > [/usr/local/etc/mrtg]/mrtg.cfg 
-:OS=FREEBSD:exec:mkdir /usr/abills/webreports; chown www /usr/abills/webreports; chown www /usr/local/etc/mrtg/
-:OS=FREEBSD:exec:indexmaker /usr/local/etc/mrtg/mrtg.cfg > /usr/abills/webreports/index.html
+:OS=FREEBSD,!REMOTE_NAS=1:exec:mkdir /usr/abills/webreports; chown www /usr/abills/webreports; chown www /usr/local/etc/mrtg/
+:OS=FREEBSD,!REMOTE_NAS=1:exec:indexmaker /usr/local/etc/mrtg/mrtg.cfg > /usr/abills/webreports/index.html
+:OS=FREEBSD,REMOTE_NAS=1:inetd_enable="YES" >> /etc/rc.conf
+:OS=FREEBSD,REMOTE_NAS=1:rstats         30003/tcp >> /etc/services
+:OS=FREEBSD,REMOTE_NAS=1:rstats  stream  tcp     nowait  root    /usr/local/sbin/rstats rstats >> /etc/inetd.conf
+:OS=FREEBSD,REMOTE_NAS=1:exec:/etc/rc.d/inetd restart
 

@@ -103,7 +103,6 @@ my $db = $sql->{db};
 my $OS = '';
 
 
-print "$ARGV[$#ARGV-1]\n";
 if  ($ARGV[$#ARGV-1] =~ /^OS=(\S+)/ || $ARGV[$#ARGV] =~ /^OS=(\S+)/ ){
   $OS=$1;
 }

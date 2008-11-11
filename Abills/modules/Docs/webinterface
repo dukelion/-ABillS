@@ -327,7 +327,9 @@ return 0;
 #**********************************************************
 sub docs_tax_invoice_list {
 
-if ($LIST_PARAMS{UID} || $FORM{UID}) {
+
+
+if ($LIST_PARAMS{COMPANY_ID} || $FORM{COMPANY_ID}) {
 	docs_tax_invoice();
 	return 0 if ($FORM{'print'});
  }
@@ -414,6 +416,13 @@ sub docs_tax_invoice {
   my $Company = $Customer->company();
   $Company->info($FORM{COMPANY_ID});
 
+  if (! $FORM{qindex}) {
+    my $table = $html->table({ width       => '100%',
+	                             rowcolor    => $_COLORS[3],
+                               rows        => [[ $_NAME, $Company->{COMPANY_NAME} ]],
+                            });
+	  print $table->show();
+  }
 
   if ($Company->{TOTAL} < 1){
   	$html->message('err', $_ERROR, "$_NOT_EXIST");
@@ -602,18 +611,17 @@ sub docs_tax_invoice {
 	  my $m = sprintf("%02.d", $i);
 	  push @MONTH_ARR, "$Y-$m";
    }
-  $FORM{MONTH}="$Y-$m" if (! $FORM{MONTH});
+  $FORM{MONTH}="$Y-$M" if (! $FORM{MONTH});
 
 
-  my $company_users_list = $users->list( { COMPANY_ID => $FORM{COMPANY_ID} });  
-  my $users_list   =   $html->form_select("UID",
-                                { SELECTED          => $FORM{UID},
-                                  SEL_MULTI_ARRAY   => $company_users_list,
-                                  MULTI_ARRAY_KEY   => 5+$users->{SEARCH_FIELDS_COUNT},
-                                  MULTI_ARRAY_VALUE => 0,
-                                  NO_ID             => 1
-                                       });
-  
+  #my $company_users_list = $users->list({ COMPANY_ID => $FORM{COMPANY_ID} });  
+  #my $users_list   =   $html->form_select("UID",
+  #                              { SELECTED          => $FORM{UID},
+  #                                SEL_MULTI_ARRAY   => $company_users_list,
+  #                                MULTI_ARRAY_KEY   => 5+$users->{SEARCH_FIELDS_COUNT},
+  #                                MULTI_ARRAY_VALUE => 0,
+  #                                NO_ID             => 1
+  #                                     });
   
   my $table = $html->table( { width       => '100%',
   	                          caption     => "$_TAX_INVOICE",

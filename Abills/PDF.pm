@@ -1383,6 +1383,7 @@ sub tpl_show {
   $filename        = $filename.'.pdf';
   my $pdf          = PDF::API2->open($filename);
   my $tpl;
+  $debug = 0;
 
   
   #$DATE    =~ /(\d{4})-(\d{2})-(\d{2})-/;
@@ -1452,7 +1453,7 @@ for my $key (sort keys %$tpl_describe) {
       	next;
        }
       else {  
-    	  print "make image '$CONF->{TPL_DIR}/$img_file'\n" if ($debug > 0);
+    	print "make image '$CONF->{TPL_DIR}/$img_file'\n" if ($debug > 0);
 
         my $img_height  = ($pattern =~ /img_height=([0-9a-zA-Z_\.]+)/) ? $1 : 100; 
         my $img_width   = ($pattern =~ /img_width=([0-9a-zA-Z_\.]+)/) ? $1 : 100;
@@ -1909,8 +1910,11 @@ PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'>
 #**********************************************************
 sub tpl_describe {
 	my ($tpl_name, $attr) = @_;
+
 	my $filename   = $tpl_name.'.dsc';
 	my $content    = '';
+
+print $tpl_name.'.dsc';
   my %TPL_DESCRIBE = ();
 
   if (! -f $filename) {
