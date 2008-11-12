@@ -87,7 +87,7 @@ sub list {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT id, name, nas_identifier, ip,  nas_type, auth_type, disable, descr, alive,
-  mng_host_port, mng_user, DECODE(mng_password, '$SECRETKEY'), rad_pairs
+  mng_host_port, mng_user, DECODE(mng_password, '$SECRETKEY'), rad_pairs, ext_acct
   FROM nas
   $WHERE
   ORDER BY $SORT $DESC;");

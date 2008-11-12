@@ -1629,8 +1629,10 @@ sub snmputils_zyxel_smf_add {
 #Port
   $port_list=~s/ //g;
 	my @get_port_arr = split(/,/, $port_list);
-  #my @port_array = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-  my @port_array = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  #For 24 ports
+  my @port_array = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  #For 16 ports
+  #my @port_array = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
   $port_list = 1 if( $port_list eq '0' );
   $port_array[$port_list-1]=1;
@@ -1841,119 +1843,11 @@ sub snmputils_zyxel_smf {
  
   print $table->show();
 
- 
-
-#  foreach my $line (@{ $SWITCH_INFO->{PORT_STATE} }) {
-#  	my ($port, $state) = split(/:/, $line, 2);
-#    push @ports, $port;
-#  	
-#    $table->addtd(
-#             $table->td('-'),
-#             $table->td($port,    { rowspan => 1 } ),
-#             $table->td($THREE_MODE{$state}, { bgcolor => ($state == 2) ? '#00FF00' : $_COLORS[1], rowspan => 1  }), 
-#             $table->td(''),
-#             $table->td(''),
-#             $table->td(''),
-#             $table->td(''),
-#             $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&index=$index&PORT=$port&state=". (($state == 2) ? 3 : 2) )),
-#             $table->td('-')
-#             #$table->td($html->button($_DEL, "index=$index&del=$ip_arr[0]&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
-#      );
-#   }
-
-#
-##
-#
-#  $table->td($port, { colspan => 9, bgcolor => $_COLORS[0] } );
-#
-#  while(my($ip, $ports) = each %{ $ACTIVE_MAC->{MULTIPORTS} } ) {
-#    my @arr = (
-#             
-#             $table->td($ports,    { colspan => 2 } ),
-#             $table->td($ip),
-#             $table->td($ACTIVE_MAC->{MAC}{"$ip"}),
-#             $table->td( $THREE_MODE{$ACTIVE_MAC->{ACTIVE}{"$ip"}} ),
-#             $table->td( $MODES{$ACTIVE_MAC->{MODE}{"$ip"}} ),
-#             $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&index=$index&PORT=$port&state=". (($state == 2) ? 3 : 2) )),
-#             $table->td($html->button($_DEL, "index=$index&del=$ip&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
-#      );
-#     
-#    if($binding->{$ACTIVE_MAC->{MAC}{"$ip"}}) {
-# 		  my ($name, $uid) = split(/:/, $binding->{$ACTIVE_MAC->{MAC}{"$ip"}});
-#    	unshift @arr, $table->td($html->button("$name", "index=15&UID=$uid"));
-#     }
-#    else {
-#    	unshift @arr, $table->td('-');
-#     }	
-#    
-#    $table->addtd(@arr);
-#   }
-# 
-#  print $table->show();
-#
-#
-#  $Snmputils->{PORT_SEL}=$table = $html->table({ width       => '100%',
-#                                                 cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right' ]
-#                                               });
-#  my @arr=();
-#  foreach my $port (@ports) {
-#    push @arr, " $port".$html->form_input('PORT_ID', "$port", {TYPE => 'checkbox' });	
-#    if ($#arr !=0 && $#arr % 7 == 0) {
-#       $table->addrow(@arr);
-#       @arr=();
-#     }
-#   }
-#  $table->addrow(@arr) if ($#arr > -1);
-#  $Snmputils->{PORT_SEL}=$table->show(); 
-# 
 
   $Snmputils->{ACTIVE}='checked';
   $html->tpl_show(_include('snmputils_smf', 'Snmputils'), { %$Snmputils, %FORM }); 
  
  
- 
-#  $table = $html->table({ width       => '100%',
-#                          caption     => "$_DISABLED",
-#                          border      => 1,
-#                          title       => ["$_USER", "ID", "$_PORT", "MAC", "VID", "-"],
-#                          cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
-#                      });
-# 
-#  
-#  
-#  while(my($key, $val) = each %$BLOCK_MAC) {
-#    my $mac = join(':', unpack("H2H2H2H2H2H2", $BLOCK_MAC->{$key}{2}));
-#    my @arr = ('-',
-#               $BLOCK_MAC->{$key}{1}, 
-#  	           $BLOCK_MAC->{$key}{4},
-#  	           $mac,
-#  	           $BLOCK_MAC->{$key}{3},
-#  	           $BLOCK_MAC->{$key}{5},
-#  	           $html->button($_DEL, "index=$index&del=block&MAC=$key&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1")
-#  	          );
-#
-#     if($binding->{$mac}) {
-# 		  my ($name, $uid) = split(/:/, $binding->{$mac});
-#    	$arr[0] = $html->button("$name", "index=15&UID=$uid");
-#     }
-#
-#  	$table->addrow(@arr);
-#   }
-# print $table->show(); 
-# 
-#
-#print $html->form_main({ CONTENT => '',
-#	                       HIDDEN  => { index         =>  "$index",
-#	                       	            TYPE          =>  $FORM{TYPE},
-#	                       	            NAS_HOST      =>  $FORM{NAS_HOST},
-#	                       	            NAS_COMMUNITY =>  $FORM{NAS_COMMUNITY},
-#	                       	            NAS_ID        =>  $FORM{NAS_ID},
-#	                       	            SHOW          =>  1
-#	                                   	           },
-#	                                    SUBMIT  => { UPDATE   => "$_REFRESH"
-#	                       	           }
-#                                   });
-
  
 }
 

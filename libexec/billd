@@ -166,6 +166,7 @@ sub check_lines {
     $NAS{NAS_MNG_IP_PORT}  = $nas_row->[9];
     $NAS{NAS_MNG_USER}     = $nas_row->[10]; 
     $NAS{NAS_MNG_PASSWORD} = $nas_row->[11]; 
+    $NAS{NAS_EXT_ACCT}     = $nas_row->[13];
 
     foreach my $line (@$l) {
 	    
@@ -722,10 +723,6 @@ sub check_speed {
   	 ENDWHILE:
   	 print $debug_outputs if ($debug == 2); 
    }
-
-
-
-
 }
 
 #**********************************************************

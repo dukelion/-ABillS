@@ -888,8 +888,75 @@ elsif($FORM{del} || $FORM{dellist}) {
 
 
 
-#Field formed section
 
+
+
+# online count
+my $list = $sessions->online_count( { %LIST_PARAMS, FIELDS => \@ACTIVE_FIELDS } );	
+my $nas_list = $nas->list();
+
+$form_link = '';
+my $cure = '';
+if($FORM{ZAPED}) {
+	$LIST_PARAMS{ZAPED}=1;
+	$form_link = $html->button("On line", "index=$index");
+	$cure = 'Zap';
+ } 
+else {
+ 	$form_link = $html->button("$_ZAPED", "index=$index&ZAPED=yes"). " ($sessions->{ZAPED})";
+ 	$cure='Online';
+}
+
+
+my $table2 = $html->table( { width      => '100%',
+                             cols_align => ['left', 'right', 'right', 'right']
+                         } );
+
+$table2->addtd(   $table2->td($_TOTAL, { bgcolor => $_COLORS[0] }), 
+                  $table2->td($sessions->{ONLINE}, { bgcolor => $_COLORS[0] }), 
+                  $table2->td($form_link) 
+               );
+
+print $table2->show();
+
+
+if ($sessions->{TOTAL} > 500)  {
+  my $table = $html->table( { width      => '100%',
+                            caption    => "Online $_TOTAL",
+                            border     => 1,
+                            title      => [ "NAS ID", "NAS $_NAME", "NAS IP", "$_TYPE", "$_SESSIONS", "$_USERS", "ZAPPED", "$_ERROR", "-"  ],
+                            cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right', 'right',  'right', 'center:noprint' ],
+                            qs         => $pages_qs,
+                            ID         => 'ONLINE'
+                         } );
+
+  foreach my $line (@$list) {
+    $table->{rowcolor}= ($line->[0] == $FORM{NAS_ID}) ?  $_COLORS[0] : undef;
+
+    $table->addrow($line->[0],
+    $line->[1],
+    $line->[2],
+    $line->[3],
+    $line->[4],
+    $line->[5],
+    ($line->[6] > 0) ? $html->button("$line->[6]", "index=$index&NAS_ID=$line->[0]&ZAPED=1") : 0,
+    $line->[7],
+    $html->button("$_SHOW", "index=$index&NAS_ID=$line->[0]")
+   );
+  }
+
+  print $table->show();
+  
+  if (! $FORM{NAS_ID} && ! $FORM{ZAPED} && ! $FORM{FILTER}) {
+  	return 0;
+   }
+  else {
+  	$LIST_PARAMS{NAS_ID}=$FORM{NAS_ID};
+   }
+}
+
+
+#Field formed section
 my @FIELDS_ALL = ("$_USER", "$_FIO", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT",
                              "Ex_IN", "Ex_OUT", 
                              "CID",  "SESSION_ID", "$_TARIF_PLAN", "CONNECT_INFO", 
@@ -920,19 +987,6 @@ foreach my $field_id (@ACTIVE_FIELDS) {
 
 
 
-$form_link = '';
-my $cure = '';
-if($FORM{ZAPED}) {
-	$LIST_PARAMS{ZAPED}=1;
-	$form_link = $html->button("On line", "index=$index");
-	$cure = 'Zap';
- } 
-else {
- 	$sessions->online( { ZAPED => 1, COUNT => 1 } );	
- 	$form_link = $html->button("$_ZAPED", "index=$index&ZAPED=yes"). " ($sessions->{TOTAL})";
- 	$cure='Online';
-}
-
 
 if (defined($FORM{FILTER})) {
 	$LIST_PARAMS{FILTER_FIELD}=$FORM{FILTER_FIELD};
@@ -941,10 +995,10 @@ if (defined($FORM{FILTER})) {
 
 
 $sessions->online( { %LIST_PARAMS, FIELDS => \@ACTIVE_FIELDS } );	
-my $dub_ports = $sessions->{dub_ports};
+my $dub_ports  = $sessions->{dub_ports};
 my $dub_logins = $sessions->{dub_logins};
- 
-my $table = $html->table( { width      => '100%',
+
+$table = $html->table( { width      => '100%',
                             caption    => "$cure",
                             border     => 1,
                             title      => [ @CAPTION, '-', '-', '-' ],
@@ -954,11 +1008,12 @@ my $table = $html->table( { width      => '100%',
                          } );
 
 my $online = $sessions->{nas_sorted};
-my $nas_list = $nas->list();
+#my $nas_list = $nas->list();
 
 foreach my $nas_row (@$nas_list) {
 
   next if (! defined($online->{$nas_row->[0]}));
+  next if (($FORM{NAS_ID} && $FORM{NAS_ID} != $nas_row->[0]) && ! $FORM{ZAPED});
 
 
   my $l = $online->{$nas_row->[0]};
@@ -994,9 +1049,10 @@ foreach my $nas_row (@$nas_list) {
                            "UPDATES: $line->[$#ACTIVE_FIELDS+8]";
 
     	  	$value = "<acronym title='$user_info'>".$html->button($line->[0], "index=15&UID=$line->[$#ACTIVE_FIELDS+3]")."</acronym>";
-          #Dublicate logins
+          #Dublicate logins color yelow
  	  	    if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
     	   }	
+    	  # Dub ports color green
     	  elsif ($ACTIVE_FIELDS[$i] == 2) {
            if (defined($dub_ports->{$nas_row->[0]}{$line->[$i]}) && $dub_ports->{$nas_row->[0]}{$line->[$i]} > 1) { $table->{rowcolor}='#00FF40';    }    	  	
     	   }
@@ -1014,25 +1070,15 @@ foreach my $nas_row (@$nas_list) {
 
 
     $table->addrow(@rows,
-     "(". $html->button('P', "index=$index&ping=$line->[$#ACTIVE_FIELDS+2]", { TITLE => 'ping' }) .")",
+     "(". $html->button('P', "index=$index&NAS_ID=$FORM{NAS_ID}&ping=$line->[$#ACTIVE_FIELDS+2]", { TITLE => 'ping' }) .")",
      "$zap",
      "$hangup");
 
   }
 }
 
-my $table2 = $html->table( { width      => '100%',
-                             cols_align => ['left', 'right', 'right', 'right']
-                         } );
 
-$table2->addtd(   $table->td($_TOTAL, { bgcolor => $_COLORS[0] }), 
-                  $table->td($sessions->{TOTAL}, { bgcolor => $_COLORS[0] }), 
-                  $table->td($form_link) 
-               );
-
-
-my $total = $table2->show();
-my $output = $total . $table->show();
+my $output = $table->show();
 
 
 
@@ -1041,7 +1087,7 @@ my @arr = ();
 my $i=0;
 foreach my $name ( @FIELDS_ALL ) {
   my $ex_info = ($attr->{OIDS_EXINFO}->{$name}{DESCRIBE}) ?  " ($attr->{OIDS_EXINFO}->{$name}{ACCESS})<br>$attr->{OIDS_EXINFO}->{$name}{DESCRIBE}" : '';
-  push @arr, $html->form_input('fields', "$i", { TYPE => 'checkbox', STATE => (in_array($i, \@ACTIVE_FIELDS)) ? 1 : undef  }). " <b>$name</b>$ex_info";
+  push @arr, $html->form_input('fields', "$i", { TYPE => 'checkbox', STATE => (in_array($i, \@ACTIVE_FIELDS)) ? 1 : undef  }). ' '. $html->b($name) ." $ex_info";
 
   if ($#arr > 2) {
     $table2->addrow(@arr);
@@ -1075,14 +1121,16 @@ $table = $html->table( { width       => '100%',
 if ($FORM{ZAPED}) {
   $output = $html->form_main({ CONTENT => $output,
 	                             HIDDEN  => { index => "$index",
-	                       	                  ZAPED => 1 },
+	                       	                  ZAPED => 1,
+	                       	                  NAS_ID => $FORM{NAS_ID} },
 	                             SUBMIT  => { go    => "$_DEL" },
 	                             METHOD  => 'GET'
                             });
  }
 else {
   $output .= $html->form_main({ CONTENT => $table2->show(). $table->show(),
-	                              HIDDEN  => { index =>  "$index" },
+	                              HIDDEN  => { index  => "$index",
+	                              	           NAS_ID => $FORM{NAS_ID}},
 	                              METHOD  => 'GET'
                               });
 

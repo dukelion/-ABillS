@@ -96,6 +96,45 @@ sub online_update {
   return $self;
 }
 
+
+
+#**********************************************************
+# online()
+#********************************************************** 
+sub online_count {
+  my $self = shift;
+  my ($attr) = @_;
+
+ $self->query($db, "SELECT n.id, n.name, n.ip, n.nas_type,  
+   sum(if (c.status=1 or c.status>=3, 1, 0)),
+   count(distinct uid),
+   sum(if (status=2, 1, 0)), 
+   sum(if (status>3, 1, 0))
+ FROM dv_calls c, nas n
+ WHERE c.nas_id=n.id 
+ GROUP BY c.nas_id
+ ORDER BY $SORT $DESC;");
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0) {
+ 	 $self->query($db, "SELECT 1, count(uid),  
+ 	   sum(if (c.status=1 or c.status>=3, 1, 0)),
+ 	   sum(if (status=2, 1, 0))
+   FROM dv_calls c
+   GROUP BY 1;");
+
+   (undef,
+    $self->{TOTAL},
+    $self->{ONLINE},
+    $self->{ZAPED}
+    )= @{ $self->{list}->[0] };
+  }
+
+ return $list;
+}
+
+
 #**********************************************************
 # online()
 #********************************************************** 
@@ -330,19 +369,6 @@ sub online_del {
 
   return $self;
 }
-
-
-#**********************************************************
-# Add online session to log
-# online2log()
-#
-#********************************************************** 
-#sub online2log {
-#	my $self = shift;
-#	my ($attr) = @_;
-#
-#  $self->query($db, "SELECT c.user_name, ", 'do');
-#}
 
 
 #**********************************************************
