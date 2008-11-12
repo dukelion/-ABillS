@@ -36,9 +36,8 @@ my $debug = 1;
 require $Bin ."/config.pl";
 unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
 
-#convert_radpairs();
-require $Bin ."/racct.pl";
 require $Bin ."/rauth.pl";
+require $Bin ."/racct.pl";
 
 $nas = undef;
 my %NAS_INFO = ();

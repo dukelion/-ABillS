@@ -110,9 +110,10 @@ my $fees_list = $Fees->reports({ INTERVAL => "$Y-$m-01/$DATE",
 	                               METHODS  => 1,
 	                               TYPE     => 'USERS' 
 	                               });
+# UID / SUM
 my %FEES_LIST_HASH = ();
 foreach my $line (@$fees_list) {
-	$FEES_LIST_HASH{$line->[3]}=$line->[2];
+	$FEES_LIST_HASH{$line->[4]}=$line->[3];
 }
 
 #Users info  
@@ -144,13 +145,6 @@ if ($users->{EXTRA_FIELDS}) {
     if ($line->[0] =~ /ifu(\S+)/) {
       my $field_id = $1;
       my ($position, $type, $name)=split(/:/, $line->[1]);
-#      if ($type == 2) {
-#        $SEARCH_TITLES{$field_id.'_list.name'}=$name;
-#       }
-#      else {
-#        print "$position, $field_id, $name\n";
-        #$SEARCH_TITLES{'pi.'.$field_id}=$name;
-#       }
      }
    }
 }
@@ -250,6 +244,7 @@ sub help {
 print << "[END]";	
 	RESULT_DIR=    - Output dir (default: abills/cgi-bin/admin/pdf)
 	DOCS_IN_FILE=  - docs in single file (default: $docs_in_file)
+        ADDRESS2       - User second address (fields: _c_address, _c_build, _c_flat)
 	DEBUG=[1..5]   - Debug mode
 [END]
 }
