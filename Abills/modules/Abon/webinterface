@@ -301,6 +301,8 @@ sub abon_periodic {
   
   my $list = $Abon->periodic_list({ %LIST_PARAMS });
 
+ 
+
  #at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
  # u.id, at.id, at.name,
  # if(c.name IS NULL, b.deposit, cb.deposit),

@@ -556,8 +556,8 @@ sub docs_tax_invoice {
      
 
      $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
-     $Docs->{'DOC_SUM_WITHOUT_VAT'}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
-     $Docs->{'DOC_SUM_VAT'} = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'DOC_SUM_WITHOUT_VAT'});
+     $Docs->{'TOTAL_SUM_WITHOUT_VAT'}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
+     $Docs->{'TOTAL_SUM_VAT'} = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
    
      
      docs_print('tax_invoice', { %$Docs, %$Company, A_FIO => $admin->{A_FIO} });

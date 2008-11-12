@@ -145,7 +145,7 @@ if ($args->{DEBUG}) {
    undef %PERIODIC;
   }
 
-push  @daily_functions, 'sheduler';
+push  @daily_functions, 'sheduler' if (! $args->{MODULES});
 my($Y, $M, $D);
 
 
@@ -340,12 +340,12 @@ $list = $payments->list( { %LIST_PARAMS } );
 
 foreach my $line (@$list) {
    $ADMIN_REPORT{PAYMENTS} .= sprintf ("%-14s| %8.4f| %20s| %12s| %15s| %19s|\n", 
-    "$line->[1]", 
-    "$line->[3]", 
-    "$line->[4]", 
-    "$line->[5]", 
-    "$line->[6]", 
-    "$line->[2]");
+    $line->[1], 
+    $line->[3], 
+    $line->[4], 
+    $line->[5], 
+    $line->[6], 
+    $line->[2]);
 }
 
 $ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
