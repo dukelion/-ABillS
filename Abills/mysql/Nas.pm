@@ -430,4 +430,83 @@ sub stats {
 
 
 
+#**********************************************************
+# Nas list
+#**********************************************************
+sub log_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+  my @WHERE_RULES  = ();
+
+  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+  if(defined($attr->{USER})) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{USER}, 'STR', 'l.user') };
+  }
+
+  if(defined($attr->{MESSAGE})) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{USER}, 'STR', 'l.message') };
+  }
+
+  if($attr->{DATE}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'INT', 'l.date') };
+   }
+
+  if($attr->{TIME}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{TIME}, 'INT', 'l.time') };
+   }
+
+  if($attr->{LOG_TYPE}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{LOG_TYPE}, 'INT', 'l.log_type') };
+   }
+
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+ $self->query($db, "SELECT l.date, l.time, l.log_type, l.action, l.user, l.message
+  FROM errors_log l
+  $WHERE
+  ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ return $self->{list};
+}
+
+#**********************************************************
+# Add nas server
+# add($self)
+#**********************************************************
+sub log_add {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ %DATA = $self->get_data($attr); 
+ # $date, $time, $log_type, $action, $user, $message
+
+ $self->query($db, "INSERT INTO errors_log (date, time, log_type, action, user, message)
+ values (curdate(), curtime(), '$DATA{LOG_TYPE}', '$DATA{ACTION}', '$DATA{USER}', '$DATA{MESSAGE}');", 'do');
+
+
+ return 0;	
+}
+
+#**********************************************************
+# Add nas server
+# add($self)
+#**********************************************************
+sub log_del {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ %DATA = $self->get_data($attr); 
+
+ #$self->query($db, "INSERT INTO errors_log (date, time, log_type, action, user, message)
+ #values (curdate(), curtime(), '$DATA{LOG_TYPE}', '$DATA{ACTION}', '$DATA{USER}', #'$DATA{MESSAGE}');", 'do');
+
+
+ return 0;	
+}
+
 1
+

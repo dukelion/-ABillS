@@ -3013,6 +3013,7 @@ sub dv_periodic_logrotate {
 
   # Clean s_detail table
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+  $conf{DV_LOG_CLEAN_PERIOD}=180 if (! $conf{DV_LOG_CLEAN_PERIOD});
 
   if ($d == 1 && $conf{DV_LOG_CLEAN_PERIOD}) {
     $DEBUG .= "Make log rotate\n" if ($debug > 0);
@@ -3222,7 +3223,7 @@ sub dv_monthly_fees {
             COMPANY_ID => $u->[7 + $extfield_count]
            );
 
-       $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: ". ($u->[9 +$extfield_count ]  ) ." Fees: $line->[6] REDUCTION: $user{REDUCTION} DEPOSIT: $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 3); 	
+       $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: ". ($u->[9 +$extfield_count ]  ) ." Fees: $line->[6] REDUCTION: $user{REDUCTION} DEPOSIT: $u->[2] CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE} TP: $u->[11]\n" if ($debug > 3); 	
 
       
        if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {
@@ -3359,7 +3360,7 @@ sub dv_monthly_fees {
                     if ($fees->{errno}) {
                     	print "Error: [$fees->{errno}] $fees->{errstr} ";
                     	if ($fees->{errno} == 14 ) {
-                 	 	    print "[ $user{UID} ] $user{LOGIN} - Don't have money account";
+                 	 	    print "UID: $user{UID} LOGIN: $user{LOGIN} - Don't have money account";
                	       }
                	      print "\n";
                	     }
@@ -3382,7 +3383,8 @@ sub dv_monthly_fees {
           }
         }
        else {
-      	 print "[ $user{UID} ] Don't have money account\n";
+       	 my $ext = ($line->[13] > 0) ? 'Ext bill' : '';
+      	 print "UID: $user{UID} LOGIN: $user{LOGIN} Don't have $ext money account\n";
         }
  	  }
   }
@@ -3394,7 +3396,7 @@ sub dv_monthly_fees {
 #Make traffic recalculation for expration
 if ($d == 1) {
   $list = $tariffs->list({ %LIST_PARAMS });
-  $debug_output .= "-- Total month price\n";
+  $debug_output .= "Total month price\n";
   use Billing;
   my $Billing = Billing->new($db, $CONF);
 

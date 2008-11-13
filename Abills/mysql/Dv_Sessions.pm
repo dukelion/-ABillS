@@ -897,8 +897,7 @@ sub list {
   }
 
  if ($attr->{SUM}) {
-   my $value = $self->search_expr($attr->{SUM}, 'INT');
-   push @WHERE_RULES, "l.sum$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'l.sum') };
   }
 
 
@@ -1370,31 +1369,37 @@ sub log_rotate {
 	
   my $version = $self->db_version();
 
-  $self->query($db, "DELETE from s_detail
+ if ($version > 4.1) {
+   use POSIX qw(strftime);
+
+   my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));
+
+ 	 my @rq = (
+     'CREATE TABLE IF NOT EXISTS s_detail_new LIKE s_detail;',
+     'RENAME TABLE s_detail TO s_detail_'. $DATE .
+      ', s_detail_new TO s_detail;',
+     'CREATE TABLE IF NOT EXISTS dv_log_intervals_new LIKE dv_log_intervals;',
+     'DROP TABLE dv_log_intervals_old',
+     'RENAME TABLE dv_log_intervals TO dv_log_intervals_old'.
+      ', dv_log_intervals_new TO dv_log_intervals;',
+      );
+
+   foreach my $query (@rq) {
+     $self->query($db, "$query", 'do'); 
+    }
+  }
+ else {
+   $self->query($db, "DELETE from s_detail
             WHERE last_update < UNIX_TIMESTAMP()- $attr->{PERIOD} * 24 * 60 * 60;", 'do');
   
 
-  # LOW_PRIORITY
-  $self->query($db, "DELETE  dv_log_intervals from dv_log, dv_log_intervals
-WHERE
-  dv_log.acct_session_id=dv_log_intervals.acct_session_id
-  and dv_log.start < curdate() - INTERVAL $attr->{PERIOD} DAY;", 'do');
+    # LOW_PRIORITY
+    $self->query($db, "DELETE dv_log_intervals from dv_log, dv_log_intervals
+     WHERE
+     dv_log.acct_session_id=dv_log_intervals.acct_session_id
+      and dv_log.start < curdate() - INTERVAL $attr->{PERIOD} DAY;", 'do');
+  }
 
-
-  # FOR version > 4.1
-  # CREATE TABLE IF NOT EXISTS s_detail_2 LIKE s_detail;
-  ## INSERT INTO s_detail_2 (acct_session_id, nas_id smallint, acct_status, start, last_update, sent1, recv1, sent2, recv2,id ) VALUES 
-  ## SELECT acct_session_id, nas_id smallint, acct_status, start, last_update, sent1, recv1, sent2, recv2,id  FROM s_detail WHERE last_update < UNIX_TIMESTAMP()- $attr->{PERIOD} * 24 * 60 * 60
-  # RENAME TABLE s_detail TO s_detail_$DATE, s_detail_2 TO s_detail;
-  ## DELETE from s_detail_$DATE WHERE last_update < UNIX_TIMESTAMP()- $attr->{PERIOD} * 24 * 60 * 60;
-
-  # CREATE TABLE IF NOT EXISTS dv_log_intervals_2 LIKE dv_log_intervals;
-  ## INSERT INTO dv_log_intervals_2 (acct_session_id, nas_id smallint, acct_status, start, last_update, sent1, recv1, sent2, recv2,id ) VALUES 
-  ## SELECT  from dv_log, dv_log_intervals  WHERE
-  ## dv_log.acct_session_id=dv_log_intervals.acct_session_id and dv_log.start < curdate() - INTERVAL $attr->{PERIOD} DAY;
-  # RENAME TABLE dv_log_intervals TO dv_log_intervals_$DATE, dv_log_intervals_2 TO dv_log_intervals;
-  ## DELETE from dv_log_intervals_$DATE WHERE last_update < UNIX_TIMESTAMP()- $attr->{PERIOD} * 24 * 60 * 60;
-	
 	return $self;
 }
 

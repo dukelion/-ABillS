@@ -46,7 +46,7 @@ $USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if ($conf{DV_USER_CHG
 
 # 
 %PERIODIC = (daily   => [ 'dv_daily_fees', 'dv_users_warning_messages' ],
-             monthly => [ 'dv_monthly_fees', 'dv_periodic_logrotate' ],
+             monthly => [ 'dv_monthly_fees', 'dv_periodic_logrotate'  ],
              report  => [ 'dv_report'       ]);
 
 
