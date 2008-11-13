@@ -1501,6 +1501,7 @@ sub ipn_user_activate {
                   CALLING_STATION_ID => $ip,
                   CONNECT_INFO       => $FORM{CONNECT_INFO},
                   UID                => $LIST_PARAMS{UID},
+                  HINT               => 'NOPASS'
                  );
 
     
