@@ -1501,7 +1501,7 @@ sub ipn_user_activate {
                   CALLING_STATION_ID => $ip,
                   CONNECT_INFO       => $FORM{CONNECT_INFO},
                   UID                => $LIST_PARAMS{UID},
-                  HINT               => 'NOPASS'
+                  
                  );
 
     
@@ -2688,7 +2688,8 @@ foreach my $line (@$list)   {
                 CONNECT_INFO       => $connect_info,
                 UID                => $uid,
                 QUICK              => 1,
-                NAS_PORT           => 0
+                NAS_PORT           => 0,
+                HINT               => 'NOPASS'
                );
     
     my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, 
