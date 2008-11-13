@@ -119,6 +119,7 @@ CREATE TABLE `companies` (
   `registration` date NOT NULL default '0000-00-00',
   `disable` tinyint(1) unsigned NOT NULL default '0',
   `credit` double(8,2) NOT NULL default '0.00',
+  `credit_date` date NOT NULL default '0000-00-00',
   `address` varchar(100) NOT NULL default '',
   `phone` varchar(20) NOT NULL default '',
   `vat` double(5,2) unsigned NOT NULL default '0.00',

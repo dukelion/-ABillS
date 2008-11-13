@@ -571,7 +571,7 @@ sub backup {
 sub credit_operation {
 	$DEBUG .= "Reset Credit\n" if ($debug > 1);
 
-
+  # For users
   $conf{MAX_STABLE_CREDIT}=0 if (! $conf{MAX_STABLE_CREDIT});
   my $list = $users->list({  
                            CREDIT_DATE  => "$DATE",
@@ -589,6 +589,31 @@ sub credit_operation {
     		                           });
      }
   }
+
+ #For company
+ require Customers;
+ Customers->import();
+
+ my $customer = Customers->new($db, $admin, \%conf);
+ my $Company = $customer->company();
+
+ $list = $Company->list({  
+                           CREDIT_DATE  => "<=$DATE",
+                           CREDIT       => '>$conf{MAX_STABLE_CREDIT}',
+  	                       PAGE_ROWS    => 1000000
+  	                      });
+
+  foreach my $line (@$list) {
+  	$DEBUG .= "$line->[0] (". $line->[5] .") DEPOSIT: $line->[1] CREDIT: $line->[8] CREDIT_DATE: $line->[9]\n" if ($debug > 0);
+
+    if ($debug < 5) {
+    	$Company->change({ CREDIT      => $conf{MAX_STABLE_CREDIT},
+    		                 COMPANY_ID  => $line->[5],
+    		                 CREDIT_DATE => '0000-00-00',
+                      });
+     }
+  }
+	
 	
  return 0;
 }

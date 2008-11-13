@@ -56,6 +56,7 @@ sub defaults {
  BANK_BIC        => '',
  DISABLE         => 0,
  CREDIT          => '',
+ CREDIT_DATE     => '',
  ADDRESS         => '',
  PHONE           => '',
  VAT             => '',
@@ -109,11 +110,11 @@ sub add {
 
   my %DATA = $self->get_data($attr, { default => defaults() }); 
   $self->query($db, "INSERT INTO companies (name, tax_number, bank_account, bank_name, cor_bank_account, 
-     bank_bic, disable, credit, address, phone, vat, contract_id, contract_date,
+     bank_bic, disable, credit, credit_date, address, phone, vat, contract_id, contract_date,
      bill_id, ext_bill_id
      $info_fields) 
      VALUES ('$DATA{COMPANY_NAME}', '$DATA{TAX_NUMBER}', '$DATA{BANK_ACCOUNT}', '$DATA{BANK_NAME}', '$DATA{COR_BANK_ACCOUNT}', 
-      '$DATA{BANK_BIC}', '$DATA{DISABLE}', '$DATA{CREDIT}',
+      '$DATA{BANK_BIC}', '$DATA{DISABLE}', '$DATA{CREDIT}', '$DATA{CREDIT_DATE}',
       '$DATA{ADDRESS}', '$DATA{PHONE}',
       '$DATA{VAT}', '$DATA{CONTRACT_ID}', '$DATA{CONTRACT_DATE}',
       '$DATA{BILL_ID}', '$DATA{EXT_BILL_ID}'
@@ -182,6 +183,7 @@ sub change {
    BANK_BIC       => 'bank_bic',
    DISABLE        => 'disable',
    CREDIT         => 'credit',
+   CREDIT_DATE    => 'credit_date',
    BILL_ID        => 'bill_id',
    EXT_BILL_ID    => 'ext_bill_id',
    COMPANY_ID     => 'id',
@@ -264,7 +266,8 @@ sub info {
    
    }
 
-  $self->query($db, "SELECT c.id, c.name, c.credit, c.tax_number, c.bank_account, c.bank_name, 
+  $self->query($db, "SELECT c.id, c.name, c.credit, c.credit_date,
+  c.tax_number, c.bank_account, c.bank_name, 
   c.cor_bank_account, c.bank_bic, c.disable, c.bill_id, b.deposit,
   c.address, c.phone,
   c.vat, contract_id, contract_DATE,
@@ -285,6 +288,7 @@ sub info {
   ($self->{COMPANY_ID}, 
    $self->{COMPANY_NAME}, 
    $self->{CREDIT}, 
+   $self->{CREDIT_DATE}, 
    $self->{TAX_NUMBER}, 
    $self->{BANK_ACCOUNT}, 
    $self->{BANK_NAME}, 
@@ -349,6 +353,18 @@ sub list {
    push @WHERE_RULES, "c.name LIKE '$attr->{COMPANY_NAME}'";
  }
 
+ if ($attr->{COMPANY_NAME}) {
+   $attr->{COMPANY_NAME}=~ s/\*/\%/ig;
+   push @WHERE_RULES, "c.name LIKE '$attr->{COMPANY_NAME}'";
+ }
+
+ if ($attr->{CREDIT_DATE}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{CREDIT_DATE}", 'INT', 'c.credit_date') };
+  }
+
+ if ($attr->{CREDIT}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{CREDIT}", 'INT', 'c.credit') };
+  }
 
  if ($attr->{LOGIN_EXPR}) {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
@@ -359,7 +375,8 @@ sub list {
 
 
 
- $self->query($db, "SELECT c.name, b.deposit, c.registration, count(u.uid), c.disable, c.id, c.disable, c.bill_id
+ $self->query($db, "SELECT c.name, b.deposit, c.registration, count(u.uid), c.disable, c.id, 
+   c.disable, c.bill_id, c.credit, c.credit_date
     FROM companies  c
     LEFT JOIN users u ON (u.company_id=c.id)
     LEFT JOIN bills b ON (b.id=c.bill_id)
