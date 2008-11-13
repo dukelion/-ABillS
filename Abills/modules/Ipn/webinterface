@@ -2653,7 +2653,7 @@ foreach my $line (@$list)   {
   my $ip           = $line->[1];
   my $nas_id       = $line->[2];
   my $nas_ip       = $line->[3];
-  my $connect_info = $line->[4];
+  my $connect_info = $line->[4] || '';
   my $uid          = $line->[5];
   $FORM{SESSION_ID}= $line->[19];
   $debug_output .= "LOGIN: $login IP: $ip NAS_ID: $nas_id NAS_IP: $nas_ip CONNECT_INFO: $connect_info UID: $uid FILTER_ID: $filter_id\n" if ($debug > 3);
