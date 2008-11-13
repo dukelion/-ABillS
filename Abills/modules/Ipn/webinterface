@@ -2686,7 +2686,8 @@ foreach my $line (@$list)   {
                 CALLING_STATION_ID => $ip,
                 CONNECT_INFO       => $connect_info,
                 UID                => $uid,
-                QUICK              => 1
+                QUICK              => 1,
+                NAS_PORT           => 0
                );
     
     my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, 
