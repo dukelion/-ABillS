@@ -2624,7 +2624,8 @@ my $Dv  = Dv->new($db, $admin, \%conf);
 my $nas = Nas->new($db);
 
 
-my $nas_list = $nas->list({ NAS_ID => $nas_id, PAGE_ROWS => 10000 });
+my $nas_list = $nas->list({ NAS_IDS   => $attr->{NAS_IDS}, 
+	                          PAGE_ROWS => 10000 });
 #ID => IP
 my %nas_info = ();
 foreach my $line (@$nas_list) {
