@@ -282,7 +282,7 @@ foreach my $line (@$list) {
    }
   
   $table->addrow(
-   $html->button("$line->[0]", "index=15&UID=$line->[6+$Dv->{SEARCH_FIELDS_COUNT}]"), 
+   $html->button("$line->[0]", "index=15&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}]), 
    "$line->[1]",
    "$line->[2]", 
    "$line->[3]", 
@@ -346,19 +346,35 @@ sub dv_user {
     	return 0;
      }
 
+    if ($FORM{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ && $FORM{IP} ne '0.0.0.0') {
+    	my $list = $Dv->list({ IP => $FORM{IP} });
+    	if ($Dv->{TOTAL} > 0 && $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}] != $FORM{UID}) {
+    	  $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. $_LOGIN: ". $html->button("$list->[0][0]", "index=15&UID=". $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}]));
+      	return 0;
+    	 }
+     }
+ 
     $Dv->add({ %FORM });
-
     if (! $Dv->{errno}) {
-    	#Make month feee
-    	$Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
-    	dv_get_month_fee($Dv) if (! $FORM{STATUS});
+  	  #Make month feee
+  	  $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
+   	  dv_get_month_fee($Dv) if (! $FORM{STATUS});
       $html->message('info', $_INFO, "$_ADDED");	
      }
+
    }
 	elsif($FORM{set}) {
     if (! $permissions{0}{4} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
     	return 0;
+     }
+
+    if ($FORM{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ && $FORM{IP} ne '0.0.0.0') {
+    	my $list = $Dv->list({ IP => $FORM{IP} });
+    	if ($Dv->{TOTAL} > 0 && $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}] != $FORM{UID}) {
+    	  $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. $_LOGIN: ". $html->button("$list->[0][0]", "index=15&UID=". $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}]));
+      	return 0;
+    	 }
      }
 
     $Dv->change({ %FORM });
@@ -3963,6 +3979,16 @@ sub dv_wizard_user {
        }
 
       #4 Dv
+      
+      if ( $add_values{4}{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ &&  $add_values{4}{IP} ne '0.0.0.0') {
+      	my $list = $Dv->list({ IP => $add_values{4}{IP} });
+      	if ($Dv->{TOTAL} > 0 && $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}] != $FORM{UID}) {
+      	  $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. $_LOGIN: ". $html->button("$list->[0][0]", "index=15&UID=". $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}]));
+        	return 0;
+    	   }
+       }
+
+      
    	  $Dv->add({ UID => $UID, %{$add_values{4}} });
       if ($Dv->{errno}) {
         $html->message('err', "Dv:$_ERROR", "Dv Modules [$Dv->{errno}] $err_strs{$Dv->{errno}}");	
