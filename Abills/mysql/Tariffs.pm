@@ -605,8 +605,11 @@ sub list {
   my @WHERE_RULES = ();
 
  if (defined($attr->{TP_GID})) {
-   my $value = $self->search_expr($attr->{TP_GID}, 'INT');
-   push @WHERE_RULES, "tp.gid$value"; 
+   push @WHERE_RULES, @{ $self->search_expr($attr->{TP_GID}, 'INT', 'tp.gid') };
+  }
+
+ if (defined($attr->{TP_ID})) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'tp.id') };
   }
 
  if (defined($attr->{MODULE})) {
@@ -614,9 +617,8 @@ sub list {
   }
 
  if (defined($attr->{MIN_USE})) {
-    my $val = $self->search_expr($attr->{MIN_USE}, 'INT');  	
-    push @WHERE_RULES, "tp.min_use$val"; 
-   }
+   push @WHERE_RULES, @{ $self->search_expr($attr->{MIN_USE}, 'INT', 'tp.min_use') };  	
+  }
 
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';

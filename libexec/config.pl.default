@@ -95,17 +95,16 @@ $conf{debug}=10;
 $conf{foreground}=0;
 $conf{debugmods}='LOG_ALERT LOG_WARNING LOG_ERR LOG_INFO';
 #show auth and accounting time need Time::HiRes module (available from CPAN)
-# Log levels
+# Log levels. For details see <syslog.h>
 %log_levels = ('LOG_EMERG' => 0,
-'LOG_ALERT' => 0,
-'LOG_CRIT' => 0,
-'LOG_ERR' => 1,
-'LOG_WARNING' => 0, 
-'LOG_NOTICE' => 0,
-'LOG_INFO' => 1,
-'LOG_DEBUG' => 7,
-'LOG_SQL' => 6);
-
+'LOG_ALERT'   => 1,
+'LOG_CRIT'    => 2,
+'LOG_ERR'     => 3,
+'LOG_WARNING' => 4,
+'LOG_NOTICE'  => 5,
+'LOG_INFO'    => 6,
+'LOG_DEBUG'   => 7,
+'LOG_SQL'     => 8);
 
 #Check password from radius or FTP servers for web interface
 #Radius

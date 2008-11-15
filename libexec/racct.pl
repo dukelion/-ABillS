@@ -86,13 +86,27 @@ my $access_deny = sub {
     return 1;
    };
 
+my $log_print = sub {
+  my ($level, $text, $attr) = @_;
+
+  if ($conf{debugmods} =~ /$level/) {
+    if (defined($conf{foreground}) && $conf{foreground} == 1) {
+      print "$DATE $TIME $level: $text\n";
+     }
+    else {
+      open(FILE, ">>$conf{LOGFILE}") || die "Can't open file '$conf{LOGFILE}' $!\n";
+        print FILE "$DATE $TIME $level: $text\n";
+      close(FILE);
+     }
+   }
+
+};
+
 
 # Files account section
 my $RAD;
 my $nas = undef;
 if (scalar( %RAD_REQUEST ) < 1) {
-
-
   $RAD = get_radius_params();
 
   if (! defined($RAD->{NAS_IP_ADDRESS})) {
@@ -116,7 +130,7 @@ if (scalar( %RAD_REQUEST ) < 1) {
       $acct = acct($db, $RAD, $nas);
      }
 
-    if(defined($acct->{errno})) {
+    if($acct->{errno}) {
   	  log_print('LOG_ERR', "ACCT [$RAD->{USER_NAME}] $acct->{errstr}". ( (defined($acct->{sql_errstr})) ? " ($acct->{sql_errstr})" : '' )  );
      }
   }

@@ -206,7 +206,7 @@ sub show_log {
   my @err_recs = ();
   my %types = ();
 
-  my $PAGE_ROWS = (defined($attr->{PAGE_ROWS}))? $attr->{PAGE_ROWS} : 100;
+  my $PAGE_ROWS = ($attr->{PAGE_ROWS})? $attr->{PAGE_ROWS} : 25;
   my $PG = (defined($attr->{PG}))? $attr->{PG} : 1;
 
   $login =~ s/\*/\[\.\]\{0,100\}/g if ($login ne '');

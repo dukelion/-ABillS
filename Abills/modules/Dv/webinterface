@@ -1682,6 +1682,8 @@ sub dv_error {
   my $PAGE_ROWS = 100;
   my $login  = ''; 
 
+  my %log_levels_rev = reverse %log_levels;
+
 if ($attr->{USER}) {
   my $user = $attr->{USER};
   $login = $user->{LOGIN};
@@ -1695,8 +1697,48 @@ elsif($FORM{UID}) {
   return 0;
 }
 
+#Sql Part
+if ($conf{ERROR2DB}) {
+  my $Nas = Nas->new($db, \%conf);
+
+  $Dv->{LOG_TYPE_SEL} = $html->form_select('LOG_TYPE', 
+                          { 
+ 	                         SELECTED  => $FORM{LOG_TYPE},
+ 	                         SEL_HASH  => \%log_levels_rev,
+                           NO_ID     => 1
+   	                      }) ;
+
+  form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_errors_search', 'Dv'),
+ 	                                            { %FORM, %$Dv },
+ 	                                            { notprint => 1 })    });
+
+  
+
+  my $list = $Nas->log_list({ %FORM  });
+
+  my $table = $html->table( { caption => "DB $_ERROR",
+	                            width   => '100%',
+	                            title   => [ $_DATE, "$_TYPE", "$_ACTION", "$_USER", "$_TEXT"],
+	                            pages   => $totals,
+	                            qs      => $pages_qs,
+	                            ID      => 'DV_ERRORS'
+	                         } );
+
+	foreach my $line (@$list) {
+		$table->addrow($line->[0],
+		$log_levels_rev{$line->[1]},
+		$line->[2],
+		$line->[3],
+		$line->[4],
+		$line->[5],
+		);
+	 }
+
+  print $table->show();
+}
 
 
+#File part
 if (! -f $conf{LOGFILE}) {
 	$html->message('info', $_INFO, "'$conf{LOGFILE}' $_NOT_EXIST");
 	return 0;
@@ -1710,16 +1752,16 @@ if (defined($FORM{LOG_TYPE})) {
 my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      => $FORM{DATE},
 	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
 	                                                                   PG        => $PG,
-	                                                                   PAGE_ROWS => $PAGE_ROWS
+	                                                                   PAGE_ROWS => 25 #$PAGE_ROWS
 	                                                                 });
-	                                                                   
-
-print $html->form_main({ CONTENT => "$_LOGIN (*): " . $html->form_input('LOGIN_EXPR', "$FORM{LOGIN_EXPR}"),
-	                       HIDDEN  => { sid   => "$sid",
-	                                    index => "$index",
-	                                    UID   => "$UID"   },
-	                       SUBMIT  => { show  => "$_SHOW" }
-	                      });
+#	                                                                   
+#
+#print $html->form_main({ CONTENT => "$_LOGIN (*): " . $html->form_input('LOGIN_EXPR', "$FORM{LOGIN_EXPR}"),
+#	                       HIDDEN  => { sid   => "$sid",
+#	                                    index => "$index",
+#	                                    UID   => "$UID"   },
+#	                       SUBMIT  => { show  => "$_SHOW" }
+#	                      });
 	                                                                   
 
 	                                                                   
@@ -3049,7 +3091,7 @@ sub dv_daily_fees {
   my $debug_output = '';
 
  $debug_output .= "Daily periodic payments\n" if ($debug > 1);
-
+ $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
  my $list = $tariffs->list({ %LIST_PARAMS });
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
 

@@ -465,7 +465,7 @@ sub log_list {
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT l.date, l.time, l.log_type, l.action, l.user, l.message
+ $self->query($db, "SELECT l.date, l.log_type, l.action, l.user, l.message
   FROM errors_log l
   $WHERE
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
@@ -484,8 +484,8 @@ sub log_add {
  %DATA = $self->get_data($attr); 
  # $date, $time, $log_type, $action, $user, $message
 
- $self->query($db, "INSERT INTO errors_log (date, time, log_type, action, user, message)
- values (curdate(), curtime(), '$DATA{LOG_TYPE}', '$DATA{ACTION}', '$DATA{USER}', '$DATA{MESSAGE}');", 'do');
+ $self->query($db, "INSERT INTO errors_log (date, log_type, action, user, message)
+ values (now(), '$DATA{LOG_TYPE}', '$DATA{ACTION}', '$DATA{USER}', '$DATA{MESSAGE}');", 'do');
 
 
  return 0;	
