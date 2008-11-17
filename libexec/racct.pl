@@ -89,16 +89,16 @@ my $access_deny = sub {
 my $log_print = sub {
   my ($level, $text, $attr) = @_;
 
-  if ($conf{debugmods} =~ /$level/) {
-    if (defined($conf{foreground}) && $conf{foreground} == 1) {
-      print "$DATE $TIME $level: $text\n";
-     }
-    else {
-      open(FILE, ">>$conf{LOGFILE}") || die "Can't open file '$conf{LOGFILE}' $!\n";
-        print FILE "$DATE $TIME $level: $text\n";
-      close(FILE);
-     }
-   }
+  #if ($conf{debugmods} =~ /$level/) {
+  #  if (defined($conf{foreground}) && $conf{foreground} == 1) {
+  #    print "$DATE $TIME $level: $text\n";
+  #   }
+  #  else {
+  #    open(FILE, ">>$conf{LOGFILE}") || die "Can't open file '$conf{LOGFILE}' $!\n";
+  #      print FILE "$DATE $TIME $level: $text\n";
+  #    close(FILE);
+  #   }
+  # }
 
 };
 
