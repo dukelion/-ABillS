@@ -544,10 +544,16 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
+    #Gigaword limit  	
+  	if ($EX_PARAMS->{traf_limit} > 4096) {
+  		my $giga_limit = $EX_PARAMS->{traf_limit} / 4096;
+  		$RAD_PAIRS->{'Mikrotik-Recv-Limit-Gigawords'}=int($giga_limit);
+  		$RAD_PAIRS->{'Mikrotik-Xmit-Limit-Gigawords'}=int($giga_limit);
+  		$EX_PARAMS->{traf_limit} = $giga_limit - int($giga_limit) * 4096;
+  	 }
+  	
     $RAD_PAIRS->{'Mikrotik-Recv-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
     $RAD_PAIRS->{'Mikrotik-Xmit-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
-    # $RAD_PAIRS->{'Mikrotik-Recv-Limit-Gigawords'}
-    # $RAD_PAIRS->{'Mikrotik-Xmit-Limit-Gigawords'}
    }
 
 #Shaper

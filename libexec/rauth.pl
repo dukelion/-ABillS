@@ -5,6 +5,7 @@
 
 use vars  qw(%RAD %conf %AUTH
  %RAD_REQUEST %RAD_REPLY %RAD_CHECK 
+ %log_levels
  $nas
  $begin_time
 );
@@ -40,6 +41,29 @@ my $rr  = '';
 #my $a = `echo "$t" >> /tmp/voip_test`;
 
 #if (scalar(%RAD_REQUEST ) < 1 ) {
+
+my $log_print = sub {
+  my ($LOG_TYPE, $USER_NAME, $MESSAGE, $attr) = @_;
+
+
+ 
+  if ($conf{debugmods} =~ /$LOG_TYPE/) {
+    if ($conf{ERROR2DB} && $attr->{NAS}) {
+      my $Nas = $attr->{NAS};
+      $Nas->log_add({LOG_TYPE => $log_levels{$LOG_TYPE},
+                     ACTION   => 'AUTH', 
+                     USER_NAME=> "$USER_NAME",
+                     MESSAGE  => "$MESSAGE"
+                    });
+
+     }
+    else {
+      log_print("$LOG_TYPE", "AUTH [$USER_NAME] $MESSAGE");      
+     }
+   }
+};
+
+
 my $RAD = get_radius_params();
 if ($RAD->{NAS_IP_ADDRESS}) {	
   if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
@@ -124,7 +148,7 @@ sub auth {
    $auth_mod{'default'} = Auth->new($db, \%conf);
    $r = $auth_mod{'default'}->pre_auth($RAD);
    if ($auth_mod{'default'}->{errno}) {
-     log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] MS-CHAP PREAUTH FAILED$GT");
+     $log_print->('LOG_INFO', $RAD->{USER_NAME}, "MS-CHAP PREAUTH FAILED$GT", { NAS => $nas});
     }
    else {
       while(my($k, $v)=each(%{ $auth_mod{'default'}->{'RAD_CHECK'} })) {
@@ -207,7 +231,7 @@ else {
      }
     }
 
-   log_print('LOG_DEBUG', "AUTH [$RAD->{USER_NAME}] $rr");
+   $log_print->('LOG_DEBUG', $RAD->{USER_NAME}, "$rr", { NAS => $nas});
  }
 
  if ($begin_time > 0)  {
@@ -219,7 +243,8 @@ else {
 
 
   my $CID = ($RAD->{CALLING_STATION_ID}) ? " CID: $RAD->{CALLING_STATION_ID} " : '';
-  log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] NAS: $nas->{NAS_ID} ($RAD->{NAS_IP_ADDRESS})$CID$GT");
+
+  $log_print->('LOG_INFO', $RAD->{USER_NAME}, "NAS: $nas->{NAS_ID} ($RAD->{NAS_IP_ADDRESS})$CID$GT", { NAS => $nas});
   return $r;
 }
 
@@ -236,13 +261,13 @@ sub post_auth {
     if ($RAD_REQUEST{CALLING_STATION_ID}) {
       $reject_info=" CID $RAD_REQUEST{CALLING_STATION_ID}";
      }
-    log_print('LOG_INFO', "AUTH [$RAD_REQUEST{'User-Name'}] AUTH REJECT$reject_info$GT");
+    $log_print->('LOG_INFO', $RAD->{USER_NAME}, "REJECT$reject_info$GT", { NAS => $nas});
    }
   else { 
     if ($RAD->{CALLING_STATION_ID}) {
       $reject_info=" CID $RAD->{CALLING_STATION_ID}";
      }
-    log_print('LOG_INFO', "AUTH [$RAD->{USER_NAME}] AUTH REJECT$reject_info$GT");
+    $log_print->('LOG_INFO', $RAD->{USER_NAME}, "REJECT$reject_info$GT", { NAS => $nas});
    }
 
   # return RLM_MODULE_OK;
@@ -254,9 +279,9 @@ sub post_auth {
 # access_deny($user, $message);
 #*******************************************************************
 sub access_deny { 
-  my ($user, $message, $nas_num) = @_;
+  my ($user_name, $message, $nas_num) = @_;
 
-  log_print('LOG_WARNING', "AUTH [$user] NAS: $nas_num $message");
+  $log_print->('LOG_WARNING', $user_name, "NAS: $nas_num $message", { NAS => $nas});
 
   return 1;
 }

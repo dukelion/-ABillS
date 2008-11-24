@@ -1453,7 +1453,7 @@ for my $key (sort keys %$tpl_describe) {
       	next;
        }
       else {  
-    	print "make image '$CONF->{TPL_DIR}/$img_file'\n" if ($debug > 0);
+    	  print "make image '$CONF->{TPL_DIR}/$img_file'\n" if ($debug > 0);
 
         my $img_height  = ($pattern =~ /img_height=([0-9a-zA-Z_\.]+)/) ? $1 : 100; 
         my $img_width   = ($pattern =~ /img_width=([0-9a-zA-Z_\.]+)/) ? $1 : 100;
@@ -1526,7 +1526,18 @@ for my $key (sort keys %$tpl_describe) {
         }
      }
 
-    $txt->text($text);
+    if ($pattern =~ /step=(\S+)/) {
+    	my $step = $1;
+    	my $len  = length($pattern);
+    	for(my $i = 0; $i <= $len; $i++) {
+        $txt->translate($x + $i*$step,$y);
+        my $char = substr($text, $i, 1);
+    		$txt->text( $char );
+    	 }
+     }
+    else {
+      $txt->text($text);
+     }
 
   }
 
@@ -1933,17 +1944,19 @@ print $tpl_name.'.dsc';
   	if ($line =~ /^#/) {
   		next;
   	 }
-  	elsif($line =~ /^(\S+):(.+):(\S+):(\S{0,500})/) {
+  	elsif($line =~ /^(\S+):(.+):(\S+):(\S{0,500})([:.]{0,20})/) {
     	my $name    = $1;
     	my $describe= $2;
     	my $lang    = $3;
     	my $params  = $4;
+    	my $default = $5;
 
     	next if ($attr->{LANG} && $attr->{LANG} ne $lang);
 
     	$TPL_DESCRIBE{$name}{DESCRIBE}=$describe;
     	$TPL_DESCRIBE{$name}{LANG}    =$lang;
     	$TPL_DESCRIBE{$name}{PARAMS}  =$params;
+    	$TPL_DESCRIBE{$name}{DEFAULT} =$default;
      }
    }
 

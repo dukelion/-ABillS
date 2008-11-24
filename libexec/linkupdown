@@ -102,9 +102,10 @@ my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $c
 my $db = $sql->{db};
 my $OS = '';
 
+my $argv = parse_arguments(\@ARGV);
 
-if  ($ARGV[$#ARGV-1] =~ /^OS=(\S+)/ || $ARGV[$#ARGV] =~ /^OS=(\S+)/ ){
-  $OS=$1;
+if  ($argv->{OS}){
+  $OS=$argv->{OS};
 }
 
 
@@ -148,7 +149,7 @@ elsif ($ARGV[0] eq 'ipn') {
   $HISADDR   = $ARGV[4];
   $CLIENT_IP = $HISADDR;	
 	my ($n1, $n2, $n3, $n4) = split(/\./, $HISADDR, 4);
-  $inum  = $n4;
+  $inum  = $argv->{PORT} || $n4;
 
   if ($INTERFACE eq 'getif') {
     $INTERFACE = `/sbin/route -n get $HISADDR | /usr/bin/grep interface: | /usr/bin/awk '{print \$2}'`;
@@ -586,8 +587,6 @@ sub mikrotik_ext {
 	my ($attr)=@_;
 
 
-  my $argv = parse_arguments(\@ARGV);
-	
 	my $speeds    = $attr->{SPEEDS};
 	my $nets      = $attr->{NETS};
 

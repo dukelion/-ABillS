@@ -1501,7 +1501,7 @@ sub ipn_user_activate {
                   CALLING_STATION_ID => $ip,
                   CONNECT_INFO       => $FORM{CONNECT_INFO},
                   UID                => $LIST_PARAMS{UID},
-                  
+                  PORT               => 0
                  );
 
     
@@ -1518,6 +1518,7 @@ sub ipn_user_activate {
      
      
      $Ipn->user_status({ %DATA });
+     $DATA{PORT}=$Ipn->{PORT} || 0;
      $DATA{FILTER_ID}=$RAD_PAIRS->{'Filter-Id'} || '';
      
      ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
@@ -1686,6 +1687,7 @@ sub ipn_change_status {
   my $FILTER_ID       = $attr->{FILTER_ID} || '';
   #my $PORT            = $attr->{NAS_PORT} || 0;
   my $UID             = $attr->{UID} || 0;
+  my $PORT            = $attr->{PORT} || 0;
     
   my $speed_in=0;
   my $speed_out=0;
@@ -1751,6 +1753,8 @@ sub ipn_change_status {
   $cmd =~ s/\%SPEED_IN/$speed_in/g if ($speed_in > 0);
   $cmd =~ s/\%SPEED_OUT/$speed_out/g if ($speed_out > 0);
   $cmd =~ s/\%LOGIN/$USER_NAME/g;
+  $cmd =~ s/\%PORT/$PORT/g;
+
   #print "$cmd";
   system($cmd);
   

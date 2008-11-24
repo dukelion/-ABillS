@@ -554,12 +554,22 @@ sub docs_tax_invoice {
       }
 
      
-
+#print "Content-Type: text/html\n\n";
      $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
      $Docs->{'TOTAL_SUM_WITHOUT_VAT'}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
      $Docs->{'TOTAL_SUM_VAT'} = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
-   
      
+     my $i=0; 
+     foreach my $field_id ( @{ $Company->{INFO_FIELDS_ARR} } ) {
+       my($position, $type, $name)=split(/:/, $Company->{INFO_FIELDS_HASH}->{$field_id});
+       $Company->{$field_id}=$Company->{INFO_FIELDS_VAL}->[$i];
+       
+       #print "";
+       $i++;
+     }
+     
+#     $Company->{_ipn_u}='123456790';
+#     exit;
      docs_print('tax_invoice', { %$Docs, %$Company, A_FIO => $admin->{A_FIO} });
     }
    else {

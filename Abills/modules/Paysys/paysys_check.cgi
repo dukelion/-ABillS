@@ -601,6 +601,98 @@ elsif($FORM{LMI_HASH}) {
 
 }
 
+
+#**********************************************************
+# http://portmone.com.ua/
+#
+#**********************************************************
+sub wm_portmone {
+
+
+
+#Pre request section
+if($FORM{'LMI_PREREQUEST'} && $FORM{'LMI_PREREQUEST'} == 1) { 
+
+ 
+ }
+#Payment notification
+elsif($FORM{LMI_HASH}) {
+  my $checksum = wm_validate();
+  my $info = '';
+	my $user = $users->info($FORM{UID});
+	
+	my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
+	
+  if (! in_array($FORM{LMI_PAYEE_PURSE}, \@ACCOUNTS)) {
+  	$status = 'Not valid money account';
+  	#return 0;
+   }
+  elsif (defined($FORM{LMI_MODE}) && $FORM{LMI_MODE} == 1) {
+  	$status = 'Test mode';
+  	#return 0;
+   }
+  elsif (length($FORM{LMI_HASH}) != 32 ) {
+  	$status = 'Not MD5 checksum';
+   }
+  elsif ($FORM{LMI_HASH} ne $checksum) {
+  	$status = "Incorect checksum '$checksum'";
+   }
+  elsif ($user->{errno}) {
+		$status = "ERROR: $user->{errno}";
+	 }
+	elsif ($user->{TOTAL} < 0) {
+		$status = "User not exist";
+	 }
+  else {
+    #Add payments
+    my $er = 1;
+    
+    
+    if ($FORM{LMI_PAYEE_PURSE} =~ /^(\S)/ ) {
+      my $payment_unit = 'WM'.$1;
+      $payments->exchange_info(0, { SHORT_NAME => "$payment_unit"  });
+      if ($payments->{TOTAL} > 0) {
+      	$er = $payments->{ER_RATE};
+       }
+     }
+    
+    #my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
+    $payments->add($user, {SUM          => $FORM{LMI_PAYMENT_AMOUNT},
+    	                     DESCRIBE     => 'Webmoney', 
+    	                     METHOD       => '2', 
+  	                       EXT_ID       => $FORM{SHOPORDERNUMBER}, 
+  	                       ER           => $er
+  	                       } );  
+
+    if ($payments->{errno}) {
+      $info = "PAYMENT ERROR: $payments->{errno}\n";
+     }
+    else {
+    	$status = "Added $payments->{INSERT_ID}\n";
+     }
+   }
+  
+  while(my($k, $v)=each %FORM) {
+    $info .= "$k, $v\n" if ($k =~ /^LMI/);
+   }
+
+  #Info section  
+  $Paysys->add({ SYSTEM_ID      => 1, 
+  	             DATETIME       => '', 
+  	             SUM            => $FORM{LMI_PAYMENT_AMOUNT},
+  	             UID            => $FORM{UID}, 
+                 IP             => $FORM{IP},
+                 TRANSACTION_ID => "$FORM{SHOPORDERNUMBER}",
+                 INFO           => "STATUS, $status\n$info",
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+               });
+
+  $output2 .= "Paysys:".$Paysys->{errno} if ($Paysys->{errno});
+  $output2 .= "CHECK_SUM: $checksum\n";
+}
+
+}
+
 #**********************************************************
 # Webmoney MD5 validate
 #**********************************************************

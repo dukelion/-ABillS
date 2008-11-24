@@ -11,7 +11,7 @@
 
 %ATTACHMENT%
 <tr><td>$_ATTACHMENT:</td><td><input name='FILE_UPLOAD' type='file' size='40' class='fixed'>
-                  <input class='button' type='submit' name='AttachmentUpload' value='$_ADD'></td></tr>  
+                  <!-- <input class='button' type='submit' name='AttachmentUpload' value='$_ADD'> --></td></tr>  
 <tr><td>$_STATE:</td><td>%STATE_SEL%</td></tr>  
 <tr><td>$_PRIORITY:</td><td>%PRIORITY_SEL%</td></tr>
 

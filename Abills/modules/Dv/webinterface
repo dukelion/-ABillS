@@ -1679,7 +1679,7 @@ $html->make_charts({
 #**********************************************************
 sub dv_error {
 	my ($attr) = @_;
-  my $PAGE_ROWS = 100;
+  my $PAGE_ROWS = 25;
   my $login  = ''; 
 
   my %log_levels_rev = reverse %log_levels;
@@ -1713,13 +1713,42 @@ if ($conf{ERROR2DB}) {
  	                                            { notprint => 1 })    });
 
   
+	if (! $FORM{sort}) {
+	  $LIST_PARAMS{SORT}=1;
+	  $LIST_PARAMS{DESC}=DESC;
+   }
 
-  my $list = $Nas->log_list({ %FORM  });
+  my $list = $Nas->log_list({ %LIST_PARAMS  });
 
-  my $table = $html->table( { caption => "DB $_ERROR",
+  my $table = $html->table( { 
+  	                    caption    => $_TOTAL,
+	                      width      => '100%',
+	                      cols_align => ['right', 'right'],
+	                       } );
+
+
+
+  my $total = 0;
+	foreach my $line (@{ $Nas->{list} }) {
+		$table->addrow(
+		$log_levels_rev{$line->[0]},
+		$line->[1]
+		);
+    $total += $line->[1];
+	 }
+
+	$table->addrow(
+		$_TOTAL, $total
+		);
+
+
+  print $table->show();
+
+
+  $table = $html->table( { caption => "$_ERROR",
 	                            width   => '100%',
 	                            title   => [ $_DATE, "$_TYPE", "$_ACTION", "$_USER", "$_TEXT"],
-	                            pages   => $totals,
+	                            pages   => $total,
 	                            qs      => $pages_qs,
 	                            ID      => 'DV_ERRORS'
 	                         } );
@@ -1728,13 +1757,13 @@ if ($conf{ERROR2DB}) {
 		$table->addrow($line->[0],
 		$log_levels_rev{$line->[1]},
 		$line->[2],
-		$line->[3],
-		$line->[4],
-		$line->[5],
+		$html->button($line->[3], "index=11&LOGIN_EXPR=$line->[3]"),
+		($line->[1] < 5) ? $html->color_mark($line->[4], "#FF0000") : $line->[4],
 		);
 	 }
 
   print $table->show();
+  
 }
 
 
@@ -1776,13 +1805,6 @@ foreach my $line (@$list) {
   if ($line =~ m/LOG_WARNING/i) {
      $line = $html->color_mark($line, '#FF0000');
    }
-
-#  if ($line =~ m/LOG_WARNING/i) {
-#    $table->{rowcolor}='#FF0000';
-#   } 
-#  else {
-#  	$table->{rowcolor}=undef;
-#   }  
 
   $table->addrow($line);
 }

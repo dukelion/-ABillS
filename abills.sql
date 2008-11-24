@@ -106,16 +106,17 @@ CREATE TABLE `dv_log_intervals` (
   KEY `session_interval` (`acct_session_id`,`interval_id`)
 ) ;
 
+
 CREATE TABLE `errors_log` (
   `date` datetime NOT NULL,
   `log_type` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `action` varchar(10) NOT NULL,
   `user` varchar(20) NOT NULL,
   `message` varchar(120) NOT NULL,
-  KEY `user' (`user`),
-  KEY `date' (`date`)
+  KEY `user` (`user`),
+  KEY `date` (`date`),
+  KEY `log_type` (`log_type`)
 ) COMMENT='Error log';
-
 
 CREATE TABLE `companies` (
   `id` int(11) unsigned NOT NULL auto_increment,

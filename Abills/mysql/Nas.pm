@@ -470,7 +470,17 @@ sub log_list {
   $WHERE
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
- return $self->{list};
+ my $list = $self->{list};
+ 
+
+ $self->query($db, "SELECT l.log_type, count(*)
+  FROM errors_log l
+  $WHERE
+  GROUP BY 1
+  ORDER BY 1;");
+  
+
+ return $list;
 }
 
 #**********************************************************
@@ -485,11 +495,12 @@ sub log_add {
  # $date, $time, $log_type, $action, $user, $message
 
  $self->query($db, "INSERT INTO errors_log (date, log_type, action, user, message)
- values (now(), '$DATA{LOG_TYPE}', '$DATA{ACTION}', '$DATA{USER}', '$DATA{MESSAGE}');", 'do');
+ values (now(), '$DATA{LOG_TYPE}', '$DATA{ACTION}', '$DATA{USER_NAME}', '$DATA{MESSAGE}');", 'do');
 
 
  return 0;	
 }
+
 
 #**********************************************************
 # Add nas server
