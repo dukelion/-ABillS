@@ -407,7 +407,7 @@ return 0;
 
 
 #**********************************************************
-# docs_account
+# docs_tax_invoice
 #**********************************************************
 sub docs_tax_invoice {
 	my ($attr) = @_;
@@ -438,7 +438,7 @@ sub docs_tax_invoice {
  if ($FORM{create}) {
    # get fees info
    my $list = $Fees->list({ MONTH      => $FORM{MONTH},
-   	                        BILL_ID    => $Company->{BILL_ID}
+   	                    BILL_ID    => $Company->{BILL_ID}
    	                        });
 
    if ($Fees->{TOTAL} < 1) {

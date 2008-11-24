@@ -9,10 +9,11 @@ $web_interface    = 1;
                    "07:6:$_TARIF_PLANS:iptv_tp:"             => 5,
                    "08:7:$_ADD:iptv_tp:"                     => 5,
                    "09:7:$_INTERVALS:iptv_intervals:TP_ID"   => 5,
-#                   "10:7:$_NASS:iptv_nas:TP_ID"              => 5,
-                   "11:6:$_CHANNELS:iptv_channels:"              => 5,
+#                   "10:7:$_NASS:iptv_nas:TP_ID"             => 5,
+                   "11:6:$_CHANNELS:iptv_channels:"          => 5,
                    "13:7:$_USERS:iptv_users_list:TP_ID"      => 5,
                    "20:0:IPTV:iptv_online:"                  => 8,
+                   "21:0:IPTV:iptv_report:"                  => 4,
 
                    );
 
@@ -20,7 +21,8 @@ $web_interface    = 1;
                        "03:1:$_CHANNELS:iptv_user_channels:"   => 0
                       );
 
-%PERIODIC = ( report  => [ 'iptv_report' ],
+%PERIODIC = ( 
+              #report  => [ 'iptv_report' ],
               monthly => [ 'iptv_monthly_fees' ]
             );
 

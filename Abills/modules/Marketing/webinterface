@@ -1,0 +1,55 @@
+# Marketing reports
+
+
+use Marketing;
+my $Marketing = Marketing->new($db, $admin, \%conf);
+
+my %FORM_BASE = ();
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
+
+
+#*******************************************************************
+# 
+# marketing_report1()
+#*******************************************************************
+sub marketing_report1 {
+ my ($attr) = @_;
+
+ my $list = $Marketing->report1({ %LIST_PARAMS });
+ 
+ my $table = $html->table( { width      => '100%',
+                             caption    => "$_REPORT 1",
+                             title      => ["$_ADDRESS_STREET", "$_ADDRESS_BUILD", "$_COUNT", '%' ],
+                             ID         => 'REPORT 1',
+                             pages      => $Marketing->{TOTAL},
+                           });
+
+
+
+
+
+
+    foreach my $line ( @$list ) {
+      my $percent = sprintf("%.10f", 100 / $Marketing->{TOTAL} * $line->[2]);
+
+    	$table->addrow($line->[0],
+    	 $line->[1],
+    	 $line->[2],
+    	 $percent
+    	 );
+     }
+
+   print $table->show();
+  
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL})
+                                           ] ]
+                     } );
+print $table->show();
+
+}
+
+1
+
+

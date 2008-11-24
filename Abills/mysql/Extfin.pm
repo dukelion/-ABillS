@@ -288,6 +288,16 @@ sub payment_deed {
    push @WHERE_RULES_DV, "DATE_FORMAT(dv.start, '%Y-%m')='$attr->{MONTH}'";
   }
 
+  # Show groups
+  if ($attr->{GIDS}) {
+    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+    push @WHERE_RULES_DV, "u.gid IN ($attr->{GIDS})"; 
+   }
+  elsif ($attr->{GID}) {
+    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+    push @WHERE_RULES_DV, "u.gid IN ($attr->{GIDS})"; 
+   }
+
  
  my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
  my $WHERE_DV = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES_DV)  : '';
@@ -421,6 +431,12 @@ sub extfin_report_deeds {
  	 push @WHERE_RULES, "report.period>='$attr->{DATE_FROM}' AND report.period<='$attr->{DATE_TO}'";
   }
 
+ if ($attr->{GID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid') }; 
+  }
+
+
+
 
  my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
 
@@ -433,7 +449,8 @@ sub extfin_report_deeds {
    report.sum,
    IF(company.name is not null, company.vat, 0),
    report.date,
-   report.aid, u.uid
+   report.aid, 
+   u.uid
   FROM extfin_reports report
   INNER JOIN bills b ON (report.bill_id = b.id)
   LEFT JOIN users u ON (b.id = u.bill_id)
@@ -550,8 +567,6 @@ sub paid_periodic_list {
 
 
   return $list;
-
-  return $self;
 }
 
 
@@ -671,39 +686,35 @@ sub paids_list {
   }
  
  if ($attr->{SUM}) {
-    my $value = $self->search_expr($attr->{SUM}, 'INT');
-    push @WHERE_RULES, "p.sum$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'p.sum') };
   }
-
+ if ($attr->{GID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid') }; 
+  }
  if ($attr->{STATUS}) {
-    my $value = $self->search_expr($attr->{STATE}, 'INT');
-    push @WHERE_RULES, "p.status$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'p.status'); }
   }
 
  if ($attr->{TYPE}) {
-    my $value = $self->search_expr($attr->{TYPE}, 'INT');
-    push @WHERE_RULES, "p.type_id$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{TYPE}, 'INT', 'p.type_id') };
   }
 
  if (defined($attr->{PAYMENT_METHOD})) {
-    my $value = $self->search_expr($attr->{PAYMENT_METHOD}, 'INT');
-    push @WHERE_RULES, "p.maccount_id$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_METHOD}, 'INT', 'p.maccount_id') };
   }
 
 
  if ($attr->{UID}) {
-    my $value = $self->search_expr($attr->{UID}, 'INT');
-    push @WHERE_RULES, "p.uid$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'u.uid') };
   }
 
 
  if ($attr->{DESCRIBE}) {
-    $attr->{DESCRIBE} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "p.comments LIKE '$attr->{DESCRIBE}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'p.comments') };
   }
 
  if ($attr->{DATE}) {
-    push @WHERE_RULES, "p.date='$attr->{DATE}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'INT', 'p.date') };
   }
  elsif ($attr->{INTERVAL}) {
  	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
@@ -746,7 +757,8 @@ sub paids_list {
      FROM (extfin_paids p, admins a)
     LEFT JOIN extfin_paids_types pt ON (p.type_id=pt.id)
     WHERE p.aid=a.aid $WHERE;");
-    ($self->{TOTAL}, $self->{SUM}) = @{ $self->{list}->[0] };
+    ($self->{TOTAL}, 
+     $self->{SUM}) = @{ $self->{list}->[0] };
    }
   
   
@@ -787,18 +799,15 @@ sub paid_reports {
   }
  
  if ($attr->{SUM}) {
-    my $value = $self->search_expr($attr->{SUM}, 'INT');
-    push @WHERE_RULES, "p.sum$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'p.sum') };
   }
 
  if ($attr->{STATUS}) {
-    my $value = $self->search_expr($attr->{STATE}, 'INT');
-    push @WHERE_RULES, "p.status$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'p.status'); }
   }
 
  if ($attr->{PAYMENT_TYPE}) {
-    my $value = $self->search_expr($attr->{PAIDS_TYPE}, 'INT');
-    push @WHERE_RULES, "p.type_id$value";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PAIDS_TYPE}, 'INT', 'p.type_id') };
   }
  
  if ($attr->{FIELDS}) {
@@ -968,7 +977,6 @@ sub paid_types_list {
   my $self = shift;
   my ($attr) = @_;
 
-
  $WHERE = '';
 
  if ($attr->{PERIODIC}) {
@@ -994,8 +1002,18 @@ sub extfin_debetors {
   my $self = shift;
   my ($attr) = @_;
 
-  $WHERE = '';
+  @WHERE_RULES = ();
 
+  # Show groups
+  if ($attr->{GIDS}) {
+    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+   }
+  elsif ($attr->{GID}) {
+    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+   }
+
+
+  $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : ''; 
 
   $self->query($db, "SELECT '', u.id, pi.contract_id,
    pi.fio,
