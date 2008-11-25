@@ -444,7 +444,7 @@ sub hangup_radius {
   my %RAD_PAIRS = ();
   my $type;
   my $r = new Radius(Host   => "$NAS->{NAS_MNG_IP_PORT}", 
-                     Secret => "$NAS->{NAS_MNG_PASSWORD}") or return "Can't connect $!";
+                     Secret => "$NAS->{NAS_MNG_PASSWORD}") or return "Can't connect '$NAS->{NAS_MNG_IP_PORT}' $!";
 
   $conf{'dictionary'}='/usr/abills/Abills/dictionary' if (! $conf{'dictionary'});
 
@@ -455,7 +455,7 @@ sub hangup_radius {
 
   if( ! defined $type ) {
     # No responce from POD server
-    die();
+    die('No responce from POD server');
    }
   
   return $result;

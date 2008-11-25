@@ -437,19 +437,28 @@ sub docs_tax_invoice {
 
  if ($FORM{create}) {
    # get fees info
-   my $list = $Fees->list({ MONTH      => $FORM{MONTH},
-   	                    BILL_ID    => $Company->{BILL_ID}
+   #my $list = $Fees->list({ MONTH      => $FORM{MONTH},
+   #	                        BILL_ID    => $Company->{BILL_ID}
+   #	                        });
+
+   my $list = $Fees->reports({ MONTH      => $FORM{MONTH},
+   	                           BILL_ID    => $Company->{BILL_ID},
+   	                           TYPE       => 'METHOD'
    	                        });
 
    if ($Fees->{TOTAL} < 1) {
      $html->message('info', $_INFO, "$_FEES $_NOT_EXIST");
     }
   
+   my @FEES_METHODS = ($_ONE_TIME, $_ABON, $_FINE, $_ACTIVATE);
+   push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
+
+
    my $i = 1;
    foreach my $line (@$list) {
       $FORM{SUM}=$Fees->{SUM};    
       $FORM{'IDS'}     .= "$i, ";
-      $FORM{'ORDER_'. $i}= $line->[4];
+      $FORM{'ORDER_'. $i}= $FEES_METHODS[$line->[0]];
       $FORM{'COUNTS_'.$i}= '1';
       $FORM{'UNIT_'.$i}  = '1';
       $FORM{'SUM_'.$i}   = $line->[3];

@@ -76,7 +76,7 @@ sub report1 {
  $self->{SEARCH_FIELDS} = '';
  $self->{SEARCH_FIELDS_COUNT}=0;
 
- @WHERE_RULES = ();
+ @WHERE_RULES = ( 'u.disable=0' );
  
 
 

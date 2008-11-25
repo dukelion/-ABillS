@@ -293,14 +293,26 @@ sub reports {
  if ($attr->{BILL_ID}) {
    push @WHERE_RULES, "f.BILL_ID IN ( $attr->{BILL_ID} )";
   }
+
+
+
  
  
- if(defined($attr->{DATE})) {
+ if($attr->{DATE}) {
    push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";
   }
  elsif ($attr->{INTERVAL}) {
  	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
    push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')>='$from' and date_format(f.date, '%Y-%m-%d')<='$to'";
+  }
+ elsif (defined($attr->{MONTH})) {
+ 	 push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
+   $date = "date_format(f.date, '%Y-%m-%d')";
+  } 
+ else {
+ 	 $date = "date_format(f.date, '%Y-%m')";
+  }
+
    if ($attr->{TYPE} eq 'HOURS') {
      $date = "date_format(f.date, '%H')";
     }
@@ -313,18 +325,9 @@ sub reports {
    elsif($attr->{TYPE} eq 'ADMINS') {
    	 $date = "a.id";   	
     }
-   else {
+   elsif($date eq '') {
      $date = "u.id";   	
     }  
-  }
- elsif (defined($attr->{MONTH})) {
- 	 push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
-   $date = "date_format(f.date, '%Y-%m-%d')";
-  } 
- else {
- 	 $date = "date_format(f.date, '%Y-%m')";
-  }
-
  
 
   if (defined($attr->{METHODS})) {
