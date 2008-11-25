@@ -101,7 +101,7 @@ sub report1 {
 
 
 
- $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ $WHERE = ($#WHERE_RULES > -1) ? 'and '. join(' and ', @WHERE_RULES)  : '';
 
 
 
@@ -110,8 +110,8 @@ sub report1 {
       if (pi._c_address <> '', pi._c_address, pi.address_street),
       if (pi._c_build <> '', pi._c_build, pi.address_build),
       count(*) 
-     FROM (users_pi pi)
-     $WHERE 
+     FROM (users_pi pi, users u)
+     WHERE u.uid=pi.uid $WHERE
      GROUP BY 1,2
      ORDER BY $SORT $DESC 
      LIMIT $PG, $PAGE_ROWS;");
