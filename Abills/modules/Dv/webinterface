@@ -4479,6 +4479,16 @@ sub dv_get_month_fee {
 sub dv_get_isg_mac {
 	my ($ip) = @_;
 
+  use Dhcphosts;
+  my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
+
+  $Dhcphosts->host_info(0, { IP => $ip });
+  
+  if ($Dhcphosts->{TOTAL} > 0) {
+  	return $Dhcphosts->{MAC};
+   }
+  
+
  my $logfile = $conf{DHCPHOSTS_LEASES} || '/var/db/dhcp.leaseds';
  my %list = ();
  my $l_ip = '';

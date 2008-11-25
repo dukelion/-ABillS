@@ -493,6 +493,7 @@ sub log_add {
  
  %DATA = $self->get_data($attr); 
  # $date, $time, $log_type, $action, $user, $message
+ $DATA{MESSAGE} =~ s/'/\\'/g;
 
  $self->query($db, "INSERT INTO errors_log (date, log_type, action, user, message)
  values (now(), '$DATA{LOG_TYPE}', '$DATA{ACTION}', '$DATA{USER_NAME}', '$DATA{MESSAGE}');", 'do');

@@ -394,8 +394,15 @@ sub host_check {
 #**********************************************************
 sub host_info {
   my $self=shift;
-  my ($id)=@_;
+  my ($id, $attr)=@_;
 
+
+  if ($attr->{IP}) {
+  	$WHERE = "ip=INET_ATON('$attr->{IP}')";
+   }
+  else {
+  	$WHERE = "id='$id'";
+   }
 
   $self->query($db, "SELECT
    uid, 
@@ -415,7 +422,7 @@ sub host_info {
    boot_file, 
    changed
   FROM dhcphosts_hosts
-  WHERE id='$id';");
+  WHERE $WHERE;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;

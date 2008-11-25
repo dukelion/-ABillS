@@ -9,7 +9,6 @@ use Abills::Base;
 use Socket;
 
 use Nas;
-
 my $Nas = Nas->new($db, \%conf);
 
 #*******************************************************************

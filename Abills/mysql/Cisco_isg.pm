@@ -127,14 +127,31 @@ sub auth {
   	return  $self->make_tp($RAD);
  	 }
   elsif ($RAD->{USER_NAME} =~ /\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}/) {
+#Get statis DHCP address
     $RAD->{CALLING_STATION_ID}=$RAD->{USER_NAME};
-    $RAD->{USER_NAME} = get_isg_mac($RAD->{USER_NAME});
+    $self->{debug}=1;
+    $self->query($db, "SELECT dhcphosts_hosts.mac
+      FROM dhcphosts_hosts, users u
+    WHERE dhcphosts_hosts.uid=u.uid 
+    and dhcphosts_hosts.ip=INET_ATON('$RAD->{USER_NAME}');");
+
+    if ($self->{TOTAL} > 0) {
+      #($self->{USER_NAME}
+      # )= @{ $self->{list}->[0] };
+     }
+    else {
+      $RAD->{USER_NAME} = get_isg_mac($RAD->{USER_NAME});
+     }
+
+  
     if ($RAD->{USER_NAME} eq '') {
       $RAD_PAIRS{'Reply-Message'}="Can't find MAC in DHCP";
       return 1, \%RAD_PAIRS;
      }
    }	
 
+
+    
   $self->user_info($RAD, $NAS);
 
   if($self->{errno}) {

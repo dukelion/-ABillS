@@ -229,7 +229,7 @@ if (! defined($ENV{CONTENT_TYPE}) || $ENV{CONTENT_TYPE} !~ /boundary/ ) {
       #Check quotes
       $value =~ s/"/\\"/g;
       $value =~ s/'/\\'/g;
-    }
+     }
     else {
       $value = '';
      }
@@ -281,7 +281,9 @@ else {
          }
         else {
 	        next if $datas =~ /^\s*$/;
-           $FORM{"$name"} = $datas;
+	        $datas =~ s/"/\\"/g;
+          $datas =~ s/'/\\'/g;
+          $FORM{"$name"} = $datas;
          }
         next;
        }

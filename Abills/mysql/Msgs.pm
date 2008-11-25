@@ -255,8 +255,7 @@ GROUP BY m.id
 sub message_add {
 	my $self = shift;
 	my ($attr) = @_;
-  
- 
+
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
