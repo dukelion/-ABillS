@@ -34,7 +34,6 @@ sub new {
   my $self = { };
   bless($self, $class);
 
-  #$self->{debug}=1;
   my $Auth = Auth->new($db, $conf);
   $Billing = Billing->new($db, $conf);	
 
@@ -129,7 +128,6 @@ sub auth {
   elsif ($RAD->{USER_NAME} =~ /\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}/) {
 #Get statis DHCP address
     $RAD->{CALLING_STATION_ID}=$RAD->{USER_NAME};
-    $self->{debug}=1;
     $self->query($db, "SELECT dhcphosts_hosts.mac
       FROM dhcphosts_hosts, users u
     WHERE dhcphosts_hosts.uid=u.uid 
