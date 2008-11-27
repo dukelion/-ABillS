@@ -3,9 +3,9 @@
 <table border=0 width=100%>
 <tr>
 <td><b><u>Постачальник</u></b></td><td>Підприємець Станчик Ю. М.<br>
-<br>р/р 26002501630546  в філії АКБ “Національний кредит”, 
-<br>м. Коломия.  МФО 336826
-<br>Інд. Код. № 2329906211
+<br>р/р 26002501630333  в філії АКБ “Національний кредит”, 
+<br>м. Коломия.  МФО 336822
+<br>Інд. Код. № 2329906333
 </td></tr>		     
 <tr><td><b><u>Одержувач</u></b></td><td>  %CUSTOMER%
                           <br> Тел. %PHONE%</td></tr>
@@ -33,9 +33,9 @@
 %ORDER%
 
 <tr><th colspan=6><img src=/img/black.gif width=630 height=1></th></tr>
-<tr><td colspan=4 rowspan=3>&nbsp;</td><td><strong>Сума:</strong></td><td align=right>%SUM%<br>
+<tr><td colspan=4 rowspan=3>&nbsp;</td><td><strong>Сума:</strong></td><td align=right>%TOTAL_SUM%<br>
 <tr><td><strong>ПДВ:</strong></td><td align=right>%VAT%</td></tr>
-<tr><td><strong>Всього на суму:</strong></td><td align=right>%SUM%</td></tr>
+<tr><td><strong>Всього на суму:</strong></td><td align=right>%TOTAL_SUM%</td></tr>
 <tr><td colspan=6 align=right>Прописом: <i>(%SUM_LIT%)</i></td></td>
 </table>
 

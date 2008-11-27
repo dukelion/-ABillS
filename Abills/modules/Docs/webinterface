@@ -21,7 +21,7 @@ sub docs_contract {
     my ($y, $m, $d)=split(/-/, (($users->{CONTRACT_DATE}) ? $users->{CONTRACT_DATE} : $DATE ) , 3);
     $Docs->{CONTRACT_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
     
-    $Docs->{ADDRESS_FULL}="$Docs->{ADDRESS_STREET}, $Docs->{ADDRESS_BUILD}/$Docs->{ADDRESS_FLAT}"; 
+    #$Docs->{ADDRESS_FULL}="$Docs->{ADDRESS_STREET}, $Docs->{ADDRESS_BUILD}/$Docs->{ADDRESS_FLAT}"; 
 		
 		docs_print('contract', { %$admin, %$Docs, %$attr });
 	 }
@@ -719,8 +719,42 @@ sub docs_account {
 
        foreach my $line (@$list) {
    	     $i++;
-   	     $Docs->{ORDER} .= sprintf("<tr><td align='right'>%d</td><td>%s</td><td align='right'>%d</td><td align='right'>%d</td><td align='right'>%.2f</td><td align='right'>%.2f</td></tr>\n", 
-   	       $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[3]*$line->[4]));
+   	     $Docs->{ORDER} .= $html->tpl_show(_include('docs_account_order_row', 'Docs'), 
+   	        { NUMBER => $i,
+   	        	NAME   => $line->[1],
+   	        	COUNT  => $line->[3],
+   	        	UNIT   => $line->[2],
+   	        	PRICE  => $line->[4],
+   	        	SUM    => sprintf("%.2f", $line->[3]*$line->[4])
+   	        	}, 
+   	         { OUTPUT2RETURN => 1 });
+   	     
+        }
+
+       if ($conf{DOCS_PDF_PRINT}) {
+       	 $html->message('info', $_ADDED, "$_ACCOUNT $_ADDED. ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }));
+       	 return 0;
+        }
+
+      
+       #print $html->header() if ($FORM{qindex}AL_SUM});
+
+       my $list = $Docs->{ORDERS};
+       my $i=0;
+
+
+       foreach my $line (@$list) {
+   	     $i++;
+  	     $Docs->{ORDER} .= $html->tpl_show(_include('docs_account_order_row', 'Docs'), 
+   	        { NUMBER => $i,
+   	        	NAME   => $line->[1],
+   	        	COUNT  => $line->[3],
+   	        	UNIT   => $line->[2],
+   	        	PRICE  => $line->[4],
+   	        	SUM    => sprintf("%.2f", $line->[3]*$line->[4])
+   	        	}, 
+   	         { OUTPUT2RETURN => 1 });
+
         }
 
        if ($conf{DOCS_PDF_PRINT}) {
@@ -763,8 +797,18 @@ sub docs_account {
      my $i=0;
      foreach my $line (@$list) {
    	   $i++;
-   	   $Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", 
-   	     $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[2]*$line->[4]));
+ 	     $Docs->{ORDER} .= $html->tpl_show(_include('docs_account_order_row', 'Docs'), 
+   	        { NUMBER => $i,
+   	        	NAME   => $line->[1],
+   	        	COUNT  => $line->[3],
+   	        	UNIT   => $line->[2],
+   	        	PRICE  => $line->[4],
+   	        	SUM    => sprintf("%.2f", $line->[3]*$line->[4])
+   	        	}, 
+   	         { OUTPUT2RETURN => 1 });
+
+   	   #$Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", 
+   	   #  $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[2]*$line->[4]));
    	   
    	   my $count = $line->[2] || 1;
    	   my $sum   = sprintf("%.2f", $count*$line->[4]);
@@ -892,8 +936,11 @@ sub docs_print {
    }
   
 
-  
-  $users->pi({  UID => $Docs->{UID} });
+  if ($Docs->{UID}) {
+    $users->pi({  UID => $Docs->{UID} }) ;
+    $users->{ADDRESS_FULL}="$users->{ADDRESS_STREET}, $users->{ADDRESS_BUILD}/$users->{ADDRESS_FLAT}"; 
+   }
+
 	$html->tpl_show(_include("docs_$template", 'Docs', { pdf => $FORM{pdf} }), { %$ATTR, %$users });
 }
 
