@@ -1382,7 +1382,9 @@ my %CAPTIONS_HASH = ('1:DATE'            => $_DATE,
   	        EX_PARAMS     => { HOURS => "$_HOURS",
   	        	                 USERS => "$_USERS"
   	        	                 }, 
-  	        EXT_TYPE      => { TP    => "$_TARIF_PLANS"
+  	        EXT_TYPE      => { TP              => "$_TARIF_PLANS",
+  	        	                 GID             => "$_GROUPS",
+  	        	                 TERMINATE_CAUSE => 'TERMINATE_CAUSE'
   	        	                 }, 
   	        PERIOD_FORM		=> 1,
   	        FIELDS        => { %CAPTIONS_HASH },
@@ -2159,7 +2161,7 @@ if ($sessions->{errno})	{
      my $customer = Customers->new($db, $admin, \%conf);
      my $company = $customer->company();
 
-print "Content-type: text/html\n\n";
+#print "Content-type: text/html\n\n";
      my $ulist = $company->admins_list({ COMPANY_ID => $user->{COMPANY_ID}, 
 	                                       UID        => $UID });
 
@@ -2228,7 +2230,8 @@ if ($sessions->{TOTAL} > 0) {
 	                            width       => '100%',
                               title_plain => ["$_LOGIN", "IP", "CID", "$_DURATION", "$_SEND", "$_RECV"],
                               cols_align  => ['left', 'right', 'right', 'right', 'right', 'right' ],
-                              rowcolor    => $_COLORS[1]
+                              rowcolor    => $_COLORS[1],
+                              ID          => 'ONLINE'
                             } );
 
   foreach my $line (@$list) {
@@ -2266,7 +2269,7 @@ print $table->show();
 $table = $html->table({ width       => '100%',
 	                      rowcolor    => $_COLORS[0],
                         rows        => [[ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
-                                         "$_TO: ",   $html->date_fld('to', { MONTHES => \@MONTHES } ),
+                                          "$_TO: ",   $html->date_fld('to', { MONTHES => \@MONTHES } ),
                                           $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
  	                                                               SEL_HASH   => {'' => 'Auto', 
  	                                                               	              'Kb' => 'Kb', 

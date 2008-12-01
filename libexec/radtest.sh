@@ -3,11 +3,17 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.01
+VERSION=0.2
 
 USER_NAME=test
 USER_PASSWORD=123456
 NAS_IP_ADDRESS=127.0.0.1
+
+#Voip defauls
+VOIP_NAS_IP_ADDRESS=192.168.202.15
+VOIP_USER_NAME=200
+VOIP_CHAP_PASSWORD=''; #123456
+
 
 echo `pwd -P`;
 echo $1 
@@ -83,7 +89,7 @@ elif [ t$1 = 'tacct' ]; then
         FRAMED_IP_NETMASK=0.0.0.0 \
         CISCO_AVPAIR="connect-progress=LAN Ses Up"\
         CISCO_AVPAIR="client-mac-address=0001.29d2.2695"\
-        NAS_IP_ADDRESS=127.0.0.1 \
+        NAS_IP_ADDRESS=${NAS_IP_ADDRESS} \
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Start \
@@ -100,7 +106,7 @@ elif [ t$1 = 'tacct' ]; then
         FRAMED_IP_ADDRESS=10.0.0.1 \
         FRAMED_IP_NETMASK=0.0.0.0 \
         CALLING_STATION_ID="192.168.101.4" \
-        NAS_IP_ADDRESS=127.0.0.1 \
+        NAS_IP_ADDRESS=${NAS_IP_ADDRESS} \
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Interim-Update \
@@ -125,7 +131,7 @@ elif [ t$1 = 'tacct' ]; then
         FRAMED_IP_ADDRESS=10.0.0.1 \
         FRAMED_IP_NETMASK=0.0.0.0 \
         CALLING_STATION_ID="192.168.101.4" \
-        NAS_IP_ADDRESS=127.0.0.1 \
+        NAS_IP_ADDRESS=${NAS_IP_ADDRESS} \
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Stop \
@@ -162,14 +168,14 @@ elif [ t$1 = 'tvoip' ] ; then
  echo "Voip";
   if [ t$2 = 'tauth' ] ; then
    echo Auth;
-   ./rauth.pl NAS_IP_ADDRESS="192.168.202.15" \
+   ./rauth.pl NAS_IP_ADDRESS="${VOIP_NAS_IP_ADDRESS}" \
      NAS_PORT_TYPE="Virtual" \
      NAS_IDENTIFIER="" \
      CLIENT_IP_ADDRESS="192.168.101.17" \
      CISCO_AVPAIR="h323-ivr-out=terminal-alias:100;" \
      SERVICE_TYPE="Login-User" \
      CHAP_CHALLENGE="0x43a28c01" \
-     USER_NAME="200" \
+     USER_NAME="${VOIP_USER_NAME}" \
      CALLING_STATION_ID="3456"\
      FRAMED_IP_ADDRESS="192.168.101.23" \
      CALLED_STATION_ID="001363" \
@@ -180,10 +186,10 @@ elif [ t$1 = 'tvoip' ] ; then
 #     CHAP_PASSWORD="0x06a8f3fb0ab5f4a8e90a590686c845c456" \
  
 
-  elif [ t$2 = 'tcallstart' ] ; then
+  elif [ t$2 = 'tStart' ] ; then
     echo "Start\n";
 
-   ./rauth.pl NAS_IP_ADDRESS="192.168.101.17" \
+   ./rauth.pl NAS_IP_ADDRESS="${VOIP_NAS_IP_ADDRESS}" \
        CHAP_PASSWORD="0x0338b5a0e6ade0557eb9e5d208fe0f5eee" \
        H323_CONF_ID="h323-conf-id=16000 647BEE1D 80F000A F453DBFD"\
        H323_GW_ID="h323-gw-id=ASMODEUSGK"\
@@ -195,7 +201,7 @@ elif [ t$1 = 'tvoip' ] ; then
        CLIENT_IP_ADDRESS="192.168.101.17"\
        CHAP_CHALLENGE="0x43aea616"\
        FRAMED_IP_ADDRESS="192.168.101.23"\
-       USER_NAME="101"\
+       USER_NAME="${VOIP_USER_NAME}"\
        CALLED_STATION_ID="613"\
        H323_CALL_TYPE="h323-call-type=VoIP"\
        HUNTGROUP_NAME="voips"
@@ -228,8 +234,8 @@ elif [ t$1 = 'tvoip' ] ; then
       ACCT_STATUS_TYPE="Start"\
       SERVICE_TYPE="Login-User"\
       H323_SETUP_TIME="h323-setup-time=15:59:47.000 EET Sun Dec 25 2005"\
-      USER_NAME="101"\
-      NAS_IP_ADDRESS="192.168.101.17"\
+      USER_NAME="${VOIP_USER_NAME}"\
+      NAS_IP_ADDRESS="${VOIP_NAS_IP_ADDRESS}"\
       H323_GW_ID="h323-gw-id=ASMODEUSGK"\
       CALLING_STATION_ID="101"\
       H323_REMOTE_ADDRESS="h323-remote-address=192.168.101.4"\
@@ -244,7 +250,7 @@ elif [ t$1 = 'tvoip' ] ; then
 
 
 
-   elif [ t$2 = 'tstop' ] ; then
+   elif [ t$2 = 'tStop' ] ; then
     echo "Voip Stop"
    ./racct.pl  ACCT_UNIQUE_SESSION_ID="7ae849dcfba1c03f"\
    H323_CONF_ID="h323-conf-id=16000 647BEE1D 80F000A F453DBFD"\
@@ -259,7 +265,7 @@ elif [ t$1 = 'tvoip' ] ; then
    H323_SETUP_TIME="h323-setup-time=15:59:47.000 EET Sun Dec 25 2005"\
    H323_DISCONNECT_TIME="h323-disconnect-time=16:01:54.000 EET Sun Dec 25 2005"\
    USER_NAME="101"\
-   NAS_IP_ADDRESS="192.168.101.17"\
+   NAS_IP_ADDRESS="${VOIP_NAS_IP_ADDRESS}"\
    ACCT_SESSION_TIME="99"\
    H323_GW_ID="h323-gw-id=ASMODEUSGK"\
    CALLING_STATION_ID="101"\
@@ -290,9 +296,12 @@ elif [ t$1 = 'tvoip' ] ; then
 else 
  echo "Arguments (auth | acct | authgt | acctgt)"
  echo "       auth - test authentification
-       acct - test accounting
+       acct (Stop|Start|Alive) - test accounting
        authgt - show authentification generation time
        acctgt - show account generation time
+VoIP Functions
+       voip auth 
+       voip acct (Stop|Start|Alive)
   "
 fi
 

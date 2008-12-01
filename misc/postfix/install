@@ -11,7 +11,7 @@ sql/virtual_mailbox.cf > [/usr/local/etc/postfix]/sql/virtual_mailbox.cf
 sql/virtual_mailbox_limits.cf > [/usr/local/etc/postfix]/sql/virtual_mailbox_limits.cf
 #add maildrop
 :OS=FREEBSD:maildrop  unix  -       n       n       -       -       pipe\n  flags=Rhu user=vmail argv=/usr/local/bin/maildrop -w 90 -d ${recipient}  >> [/usr/local/etc/postfix]/master.cf
-:OS=FREEBSD:exec:exec /usr/abills/misc/postfix/install.sh ADD_VMAIL_USER
+:OS=FREEBSD:exec:exec /usr/abills/misc/postfix/install.sh ADD_VMAIL_USER %OS%
 .mailfilter        > [/var/spool/virtual]/.mailfilter
 :OS=FREEBSD:exec:chown -Rf vmail:vmail /var/spool/virtual/
 :OS=FREEBSD:exec:chmod 600 /var/spool/virtual/.mailfilter

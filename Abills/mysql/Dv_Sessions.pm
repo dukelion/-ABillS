@@ -924,7 +924,8 @@ sub list {
 
 #Session ID
 if ($attr->{ACCT_SESSION_ID}) {
-   push @WHERE_RULES, "l.acct_session_id='$attr->{ACCT_SESSION_ID}'";
+   $attr->{ACCT_SESSION_ID} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "l.acct_session_id LIKE '$attr->{ACCT_SESSION_ID}'";
   }
 
  # Show groups
@@ -937,7 +938,7 @@ if ($attr->{ACCT_SESSION_ID}) {
 
 
 if ($attr->{TERMINATE_CAUSE}) {
-	push @WHERE_RULES, "l.terminate_cause='$attr->{TERMINATE_CAUSE}'";
+	push @WHERE_RULES, @{ $self->search_expr($attr->{TERMINATE_CAUSE}, 'INT', 'l.terminate_cause') };
  }
 
 if ($attr->{FROM_DATE}) {
@@ -1127,6 +1128,7 @@ sub reports {
                            USERS           => 'u.id',
                            USERS_FIO       => 'u.fio',
                            SESSIONS        => 'count(l.uid)',
+                           TERMINATE_CAUSE => 'l.terminate_cause',                           
                            TRAFFIC_SUM     => 'sum(l.sent + 4294967296 * acct_output_gigawords + l.recv + 4294967296 * acct_input_gigawords)',
                            TRAFFIC_2_SUM   => 'sum(l.sent2 + l.recv2)',
                            DURATION        => 'sec_to_time(sum(l.duration))',
@@ -1170,6 +1172,12 @@ sub reports {
    elsif ($attr->{TYPE} eq 'TP') {
      $date = "l.tp_id";
     }
+   elsif ($attr->{TYPE} eq 'TERMINATE_CAUSE') {
+   	 $date = "l.terminate_cause"
+    }
+   elsif ($attr->{GID} eq 'GID') {
+   	 $date = "u.gid"
+    }
    else {
      $date = "u.id";   	
     }  
@@ -1212,9 +1220,6 @@ if ($attr->{FIELDS}) {
 	my @fields_array = split(/, /, $attr->{FIELDS});
 	my @show_fields = ();
   my %get_fields_hash = ();
-
- 
-
 
   foreach my $line (@fields_array) {
   	$get_fields_hash{$line}=1;

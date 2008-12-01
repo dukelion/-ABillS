@@ -16,7 +16,7 @@ if [ w$1 = w ]; then
 
 fi;
 
-if [ wLinux = w$2 ]; then
+if [ wLINUX = w$2 ]; then
   if [ wClamav = w$1 ]; then
     GROUP=clamav;
     USER=clamav;
@@ -43,7 +43,7 @@ if [ x"$1" = xADD_VMAIL_USER ]; then
    GID=1005
 #Linux 
 
-  if [ x"$1" = xLINUX ]; then
+  if [ x"$2" = xLINUX ]; then
     if /bin/id "${GROUP}" 2>/dev/null; then
        echo "Group Exist";
     else

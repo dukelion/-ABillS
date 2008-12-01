@@ -1574,7 +1574,8 @@ my $table = $html->table( { width        => '100%',
                             cols_align   => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                             qs           => $pages_qs,
                             pages        => $sessions->{TOTAL},
-                            recs_on_page => $LIST_PARAMS{PAGE_ROWS}
+                            recs_on_page => $LIST_PARAMS{PAGE_ROWS},
+                            ID           => 'VOIP_SESSIONS'
                                } );
 
 my $delete = '';
@@ -1954,7 +1955,8 @@ my $table = $html->table( { width       => '100%',
                             caption     => $_PERIOD,
                             title_plain => ["$_PERIOD", "$_DURATION", "$_SUM"],
                             cols_align  => ['left', 'right', 'right'],
-                            rowcolor    => $_COLORS[1]
+                            rowcolor    => $_COLORS[1],
+                            ID          => 'PERIODS'
                         } );
 
 if (! defined($sessions->{sum_4})) {
@@ -1969,14 +1971,15 @@ for(my $i = 0; $i < 5; $i++) {
 print $table->show();
 
 
-$table = $html->table( { width       => '100%',
-	                       rowcolor    => $_COLORS[0],
-                         title_plain => [ "$_FROM: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
-                                          "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ),
-                                          "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
-                                          $html->form_input('show', $_SHOW,  { TYPE => 'submit', OUTPUT2RETURN => 1 })
-                                         ],                                   
-                      });
+$table = $html->table({ width       => '100%',
+	                      rowcolor    => $_COLORS[0],
+                        rows        => [[ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                          "$_TO: ",   $html->date_fld('to', { MONTHES => \@MONTHES } ),
+                                          "$_ROWS: ", $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
+                                         $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
+                                        ]],                                   
+                        } );
+
 
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { sid   => "$sid",
@@ -2008,6 +2011,7 @@ $table = $html->table( { width       => '640',
                          title_plain => ["$_SESSIONS", "$_DURATION", "$_SUM"],
                          cols_align  => ['right', 'right', 'right'],
                          rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, $sessions->{SUM} ] ],
+                         ID          => 'VOIP_TOTALS'
                      } );
 print $table->show();	
 
