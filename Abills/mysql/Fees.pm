@@ -313,6 +313,8 @@ sub reports {
  	 $date = "date_format(f.date, '%Y-%m')";
   }
 
+   $attr->{TYPE}='' if (! $attr->{TYPE});
+
    if ($attr->{TYPE} eq 'HOURS') {
      $date = "date_format(f.date, '%H')";
     }

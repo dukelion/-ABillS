@@ -1158,13 +1158,14 @@ sub reports {
    push @WHERE_RULES, " date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'";
   }
  elsif ($attr->{INTERVAL}) {
- 	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+   my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
    push @WHERE_RULES, "date_format(l.start, '%Y-%m-%d')>='$from' and date_format(l.start, '%Y-%m-%d')<='$to'";
 
-   $attr->{TYPE} = '' if (! $attr->{TYPE});
+   $attr->{TYPE}='-' if (! $attr->{TYPE});
 
-   if ($attr->{TYPE} eq 'HOURS') {
-     $date = "date_format(l.start, '%H')";
+
+   if ($attr->{TYPE} eq 'HOURS' ) {
+     $date = "date_format(l.start, '\%H')";
     }
    elsif ($attr->{TYPE} eq 'DAYS') {
      $date = "date_format(l.start, '%Y-%m-%d')";
@@ -1175,9 +1176,12 @@ sub reports {
    elsif ($attr->{TYPE} eq 'TERMINATE_CAUSE') {
    	 $date = "l.terminate_cause"
     }
-   elsif ($attr->{GID} eq 'GID') {
-   	 $date = "u.gid"
+   elsif ($attr->{TYPE} eq 'GID') {
+         $date = "u.gid"
     }
+#   elsif ($attr->{GID} eq 'GID') {
+#   	 $date = "u.gid"
+#    }
    else {
      $date = "u.id";   	
     }  
