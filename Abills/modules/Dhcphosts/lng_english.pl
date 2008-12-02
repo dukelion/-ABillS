@@ -17,5 +17,5 @@ $_HOSTS_ROUTER="Router to destination";
 $_RECONFIGURE='Reconfigure';
 $_SWITCH='Switch';
 $_AUTO='Auto';
-
+$_NETWORK='Network';
 $ERR_WRONG_NETWORK  = 'Wrong network. Check network IP/MAC range';

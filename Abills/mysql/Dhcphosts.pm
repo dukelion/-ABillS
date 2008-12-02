@@ -380,6 +380,8 @@ sub host_check {
 
   my $net = $self->network_info($DATA{NETWORK});
 
+  $self->{errno}=17 if ($self->{TOTAL} == 0);
+
   my $ip = unpack("N",pack("C4",split(/\./,$DATA{IP})));
   my $mask = unpack("N",pack("C4",split(/\./,$net->{MASK})));
   if (unpack("N",pack("C4",split(/\./,$net->{NETWORK})))!=($ip&$mask)){

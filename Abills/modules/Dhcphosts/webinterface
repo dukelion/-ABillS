@@ -572,7 +572,7 @@ sub dhcphosts_user {
       if (! $FORM{NETWORK}) {
       	$FORM{NETWORK} = auto_net_sign($FORM{IP});
        }
-      
+
       $Dhcphosts->host_check({ %FORM });
       if (! $Dhcphosts->{errno}) {
         $Dhcphosts->host_add({ %FORM });
@@ -626,7 +626,7 @@ sub dhcphosts_user {
   
   if ($Dhcphosts->{errno}) {
     if ($Dhcphosts->{errno} == 17) {
-      	$html->message('err', $_ERROR, "$ERR_WRONG_NETWORK");
+      	$html->message('err', $_ERROR, "# $FORM{NETWORK} $ERR_WRONG_NETWORK");
        }
     else {
       $html->message('err', $_ERROR, "[$Dhcphosts->{errno}] $err_strs{$Dhcphosts->{errno}}");
@@ -1030,6 +1030,5 @@ foreach my $line (@$list) {
 	 }
 
   return 0;	
-
 }
 1

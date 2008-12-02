@@ -1012,6 +1012,10 @@ sub extfin_debetors {
     push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
    }
 
+  if ($attr->{INTERVAL}) {
+ 	  my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+    push @WHERE_RULES, "date_format(l.start, '%Y-%m-%d')>='$from' and date_format(l.start, '%Y-%m-%d')<='$to'";
+   }
 
   $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : ''; 
 
@@ -1036,7 +1040,7 @@ sub extfin_debetors {
 
 WHERE u.uid=f.uid and 
 (f.last_deposit >=0 and f.last_deposit-sum<0)
-and ( b.deposit < 0 or cb.deposit < 0 )
+and ( b.deposit < 0 or cb.deposit < 0 ) $WHERE
 GROUP BY f.uid
 ORDER BY f.date DESC;");
 

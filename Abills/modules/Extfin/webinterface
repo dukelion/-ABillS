@@ -1211,8 +1211,33 @@ print $table_sessions->show() . $table->show(). $output;
 sub extfin_debetors {
 	my ($attr) = @_;
 
-  my $list = $Extfin->extfin_debetors({ %LIST_PARAMS });	
   
+#    reports({ DATE          => $FORM{DATE}, 
+#  	        REPORT        => '',
+#  	        HIDDEN        => \%HIDDEN,
+#  	        #EX_PARAMS     => { HOURS => "$_HOURS",
+#  	        #	                 USERS => "$_USERS"
+#  	        #	                 }, 
+#  	        #EXT_TYPE      => { TP              => "$_TARIF_PLANS",
+#  	        #	                 GID             => "$_GROUPS",
+#  	        #	                 TERMINATE_CAUSE => 'TERMINATE_CAUSE'
+#  	        #	                 }, 
+#  	        PERIOD_FORM		=> 1,
+#  	        XML           => 1,
+#  	        EX_INPUTS     => [ $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
+# 	                                                               SEL_HASH   => {'' => 'Auto', 
+# 	                                                               	              'Bt' => 'Bt',
+# 	                                                               	              'Kb' => 'Kb', 
+# 	                                                               	              'Mb' => 'Mb', 
+# 	                                                               	              'Gb' => 'Gb'
+# 	                                                               	             },
+# 	                                                               NO_ID       => 1
+#                                                                } )
+#                               ]
+#  	       });
+  
+
+my $list = $Extfin->extfin_debetors({ %LIST_PARAMS });	  
 my $table = $html->table( { width      => '100%',
                               caption    => "$_DEBETORS",
                               border     => 1,

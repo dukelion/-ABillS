@@ -66,17 +66,23 @@ sub user_info {
   UNIX_TIMESTAMP(),
   UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
   DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
-  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP()))
+  DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
 
-   FROM dv_main dv, 
-        users u
+  tp.payment_type,
+  tp.neg_deposit_filter_id,
+  tp.credit,
+  tp.credit_tresshold
+
+   FROM (dv_main dv, users u)
+   LEFT JOIN tarif_plans tp ON  (dv.tp_id=tp.id)
    WHERE 
     u.uid=dv.uid
    $WHERE;");
 
-  if ($self->{TOTAL} < 1) {
-     return $self;
+	if($self->{errno}) {
+  	return $self;
    }
+
 
   ($self->{USER_NAME},
    $self->{UID},
@@ -95,9 +101,15 @@ sub user_info {
    $self->{SESSION_START}, 
    $self->{DAY_BEGIN}, 
    $self->{DAY_OF_WEEK}, 
-   $self->{DAY_OF_YEAR}
+   $self->{DAY_OF_YEAR},
+
+   $self->{PAYMENT_TYPE},
+   $self->{NEG_DEPOSIT_FILTER_ID},
+   $self->{TP_CREDIT},
+   $self->{CREDIT_TRESSHOLD}
 
   )= @{ $self->{list}->[0] };
+
   
   #Chack Company account if ACCOUNT_ID > 0
   $self->check_company_account() if ($self->{COMPANY_ID} > 0);
@@ -134,8 +146,8 @@ sub auth {
     and dhcphosts_hosts.ip=INET_ATON('$RAD->{USER_NAME}');");
 
     if ($self->{TOTAL} > 0) {
-      #($self->{USER_NAME}
-      # )= @{ $self->{list}->[0] };
+      ($RAD->{USER_NAME}
+       )= @{ $self->{list}->[0] };
      }
     else {
       $RAD->{USER_NAME} = get_isg_mac($RAD->{USER_NAME});
@@ -162,6 +174,11 @@ sub auth {
     $RAD_PAIRS{'Reply-Message'}="User Not Exist '$RAD->{USER_NAME}'";
     return 1, \%RAD_PAIRS;
    }
+  elsif (! defined($self->{PAYMENT_TYPE})) {
+    $RAD_PAIRS{'Reply-Message'}="Service not allow";
+    return 1, \%RAD_PAIRS;
+   }
+
 
   $RAD_PAIRS{'User-Name'}=$self->{USER_NAME};
   $RAD->{USER_NAME}=$self->{USER_NAME};
@@ -172,20 +189,28 @@ if ($self->{DISABLE} ||  $self->{DV_DISABLE} || $self->{USER_DISABLE}) {
   return 1, \%RAD_PAIRS;
 }
 
-
-$self->{PAYMENT_TYPE} = 1;
+my $service = "TP_$self->{TP_ID}"; 
+#$self->{PAYMENT_TYPE} = 1;
 if ($self->{PAYMENT_TYPE} == 0) {
-  $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}; #-$self->{CREDIT_TRESSHOLD};
+  $self->{CREDIT} = $self->{TP_CREDIT} if ($self->{CREDIT} == 0);
+
+  $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT} - $self->{CREDIT_TRESSHOLD};
   #Check deposit
+
   if($self->{DEPOSIT}  <= 0) {
-    $RAD_PAIRS{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
-    return 1, \%RAD_PAIRS;
+  	if ($self->{NEG_DEPOSIT_FILTER_ID}) {
+      #$RAD_PAIRS->{'Filter-Id'} = "$self->{NEG_DEPOSIT_FILTER_ID}";
+  	  $service = $self->{NEG_DEPOSIT_FILTER_ID};
+  	 }
+    else {
+      $RAD_PAIRS{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
+      return 1, \%RAD_PAIRS;
+     }
    }
 }
 else {
   $self->{DEPOSIT}=0;
 }
-
 
 #IP
 if ($self->{IP} ne '0.0.0.0') {
@@ -193,7 +218,7 @@ if ($self->{IP} ne '0.0.0.0') {
  }
 
 my $debug = 0;
-my $service = "TP_$self->{TP_ID}"; 
+
   
 #  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"A$service\"";
 #  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED1\"";
@@ -202,9 +227,11 @@ my $service = "TP_$self->{TP_ID}";
 #  push @{ $RAD_PAIRS{'cisco-avpair'} }, "\"subscriber:accounting-list=BH_ACCNT_LIST1\"";
 
   push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "A$service";
+if ($service =~ /^TP/) {
   push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED1";
   push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED2";
   push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED3";
+}
   push @{ $RAD_PAIRS{'cisco-avpair'} }, "subscriber:accounting-list=BH_ACCNT_LIST1";
 
 
@@ -328,7 +355,7 @@ $self->query($db, "select
 
       #Get intervals
       while(my($k, $v)=each( %TT_IDS)) {
-        print "> $k, $v\n" if ($debug > 0);
+        #print "> $k, $v\n" if ($debug > 0);
  	      next if ($k ne 'TT');
  	      my $list = $tariffs->tt_list({ TI_ID => $v });
  	      foreach my $line (@$list)  {
