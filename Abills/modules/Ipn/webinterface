@@ -1688,6 +1688,7 @@ sub ipn_change_status {
   #my $PORT            = $attr->{NAS_PORT} || 0;
   my $UID             = $attr->{UID} || 0;
   my $PORT            = $attr->{PORT} || 0;
+  my $DEBUG           = $attr->{DEBUG} || 0;
     
   my $speed_in=0;
   my $speed_out=0;
@@ -1755,7 +1756,7 @@ sub ipn_change_status {
   $cmd =~ s/\%LOGIN/$USER_NAME/g;
   $cmd =~ s/\%PORT/$PORT/g;
 
-  #print "$cmd";
+  print "IPN: $cmd\n" if ($DEBUG > 5);
   system($cmd);
   
   if ($conf{IPN_FILTER} && ($STATUS ne 'ONLINE_ENABLE' || ($STATUS eq 'ONLINE_ENABLE' && $FILTER_ID ne '') ) ) {
@@ -1769,6 +1770,7 @@ sub ipn_change_status {
     $cmd =~ s/\%UID/$UID/g;
 
     system($cmd);
+    print "IPN FILTER: $cmd\n" if ($DEBUG > 5);
    }
 
 }
@@ -2671,7 +2673,8 @@ foreach my $line (@$list)   {
   	 	                ACCT_TERMINATE_CAUSE  => 7,
   	 	                UID                   => $uid,
 #  	 	                FILTER_ID             => "$filter_id",
-                      QUICK                 => 1
+                      QUICK                 => 1,
+                      DEBUG                 => $debug
   	 	         	 	  });
   $debug_output .= "$_DISABLE IP: $ip\n" if ($debug > 1);
 
@@ -2694,7 +2697,8 @@ foreach my $line (@$list)   {
                 UID                => $uid,
                 QUICK              => 1,
                 NAS_PORT           => 0,
-                HINT               => 'NOPASS'
+                HINT               => 'NOPASS',
+                DEBUG              => $debug
                );
     
     my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, 
