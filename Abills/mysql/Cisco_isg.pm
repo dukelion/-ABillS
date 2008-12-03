@@ -201,11 +201,7 @@ if ($self->{PAYMENT_TYPE} == 0) {
   #Check deposit
 
   if($self->{DEPOSIT}  <= 0) {
-  	if ($self->{NEG_DEPOSIT_FILTER_ID}) {
-      #$RAD_PAIRS->{'Filter-Id'} = "$self->{NEG_DEPOSIT_FILTER_ID}";
-  	  $service = $self->{NEG_DEPOSIT_FILTER_ID};
-  	 }
-    else {
+  	if (! $self->{NEG_DEPOSIT_FILTER_ID}) {
       $RAD_PAIRS{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
       return 1, \%RAD_PAIRS;
      }
@@ -221,6 +217,12 @@ if ($self->{IP} ne '0.0.0.0') {
  }
 
 my $debug = 0;
+
+
+if ($self->{NEG_DEPOSIT_FILTER_ID}) {
+    #$RAD_PAIRS->{'Filter-Id'} = "$self->{NEG_DEPOSIT_FILTER_ID}";
+	  $service = $self->{NEG_DEPOSIT_FILTER_ID};
+ }
 
   
 #  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"A$service\"";
