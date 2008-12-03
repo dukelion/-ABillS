@@ -194,6 +194,10 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'INT', 'f.aid') };
   }
 
+ if ($attr->{ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'f.id') };
+  }
+
  if ($attr->{A_LOGIN}) {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{A_LOGIN}, 'STR', 'a.id') };
  }
