@@ -55,8 +55,8 @@ elsif ($FORM{chg}) {
 
   my $list = $Msgs->chapters_list({ AID => $FORM{AID} });
   my $table = $html->table({ width      => '100%',
-                             title      => ['ID', "$_CHAPTERS", "$_ACCESS", 'E-mail' ],
-                             cols_align => ['right', 'left', 'center', 'center' ],
+                             title      => ['ID', "$_CHAPTERS", "$_ACCESS", 'E-mail', "$_PRIORITY" ],
+                             cols_align => ['right', 'left', 'center', 'center', 'center' ],
                            });
   
  
@@ -74,6 +74,7 @@ elsif ($FORM{chg}) {
         $privileges,
         $html->form_input('EMAIL_NOTIFY_'. $line->[0], 1, { TYPE => 'checkbox', 
     	  STATE => ($A_MAIL_SEND{$line->[0]}) ? 1 : undef }),
+    	  $html->form_input('PRIORITY_'. $line->[0], 0, { SIZE => 3 }),
      );
    }
   
@@ -511,8 +512,9 @@ sub msgs_admin {
    }
   elsif ($FORM{ATTACHMENT}) {
   	$Msgs->attachment_info({ ID => $FORM{ATTACHMENT} });
-  	print "Content-Type: $Msgs->{CONTENT_TYPE}\n\n";
-  	
+  	print "Content-Type: $Msgs->{CONTENT_TYPE}; filename=\"$Msgs->{FILENAME}\"\n".
+  	"Content-Disposition: attachment; filename=\"$Msgs->{FILENAME}\"".
+  	"\n\n";
   	print "$Msgs->{CONTENT}";
   	return 0;
    }
@@ -865,8 +867,9 @@ sub msgs_user {
   		print "Error: Can't find attachment\n";
   		return 0;
   	 }
-  	print "Content-Type: $Msgs->{CONTENT_TYPE}\n\n";
   	
+  	print "Content-Type: $Msgs->{CONTENT_TYPE}; filename=\"$Msgs->{FILENAME}\"\n".
+  	"Content-Disposition: attachment; filename=\"$Msgs->{FILENAME}\"\n\n";
   	print "$Msgs->{CONTENT}";
   	return 0;
    }
