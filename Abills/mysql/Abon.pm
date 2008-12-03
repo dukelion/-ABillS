@@ -330,7 +330,7 @@ sub periodic_list {
  $self->query($db, "SELECT at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
   u.id, at.id, at.name,
   if(c.name IS NULL, b.deposit, cb.deposit),
-  if(u.company_id > 0, c.credit, u.credit),
+  if(c.name IS NULL, c.credit, u.credit),
   u.disable,
   at.id,
   at.payment_type

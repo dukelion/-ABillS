@@ -575,7 +575,7 @@ sub credit_operation {
   $conf{MAX_STABLE_CREDIT}=0 if (! $conf{MAX_STABLE_CREDIT});
   my $list = $users->list({  
                            CREDIT_DATE  => "$DATE",
-                           CREDIT       => '>$conf{MAX_STABLE_CREDIT}',
+                           CREDIT       => ">$conf{MAX_STABLE_CREDIT}",
   	                       PAGE_ROWS    => 1000000
   	                      });
 
@@ -598,9 +598,9 @@ sub credit_operation {
  my $Company = $customer->company();
 
  $list = $Company->list({  
-                           CREDIT_DATE  => "<=$DATE",
-                           CREDIT       => '>$conf{MAX_STABLE_CREDIT}',
-  	                       PAGE_ROWS    => 1000000
+                           CREDIT_DATE  => "$DATE",
+                           CREDIT       => ">$conf{MAX_STABLE_CREDIT}",
+  	                   PAGE_ROWS    => 1000000
   	                      });
 
   foreach my $line (@$list) {

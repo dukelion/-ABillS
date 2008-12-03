@@ -98,10 +98,10 @@ sub info {
    u.id, u.activate, u.expire, u.credit, u.reduction, 
    u.registration, 
    u.disable,
-   if(u.company_id > 0, cb.id, b.id),
+   if(u.company_id IS NULL, cb.id, b.id),
    if(c.name IS NULL, b.deposit, cb.deposit),
    u.company_id,
-   if(c.name IS NULL, 'N/A', c.name), 
+   if(c.name IS NULL, '', c.name), 
    if(c.name IS NULL, 0, c.vat),
    if(c.name IS NULL, b.uid, cb.uid),
    if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id),
@@ -571,6 +571,10 @@ sub list {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
     push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
   }
+ elsif ($attr->{UID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'u.uid', { EXT_FIELD => 1 }) };
+  }
+ 
  
  if ($CONF->{EXT_BILL_ACCOUNT}) {
    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit), ';

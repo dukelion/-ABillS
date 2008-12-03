@@ -298,11 +298,18 @@ print $table->show();
 # daily_fees
 #**********************************************************
 sub abon_periodic {
+ my ($attr) = @_;
+
+ my $debug = $attr->{DEBUG} || 0;
+ my $debug_output = '';
+ $debug_output .= "ABON: Monthly periodic payments\n" if ($debug > 1);
+
   
+  $Abon->{debug}=1 if ($debug > 7);
   my $list = $Abon->periodic_list({ %LIST_PARAMS });
 
  
-
+exit;
  #at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
  # u.id, at.id, at.name,
  # if(c.name IS NULL, b.deposit, cb.deposit),
@@ -323,7 +330,9 @@ sub abon_periodic {
                    METHOD    => 1  );
     $PARAMS{DATE}=$DATE if ($DATE ne '');
 
-    if(($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
+
+print "$user{UID} - ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0\n" if (! $line->[8] );
+    if($line->[8] && ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
      	#Get day fee
      	if ($line->[0] == 0) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
@@ -334,13 +343,18 @@ sub abon_periodic {
     	#Get month fee
     	elsif ($line->[0] == 1 && ($d == 1)) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
-         $Abon->user_tariff_update({ UID => "$line->[2]", DATE => $DATE, TP_ID => "$line->[10]" });
+         $Abon->user_tariff_update({ UID   => "$line->[2]", 
+         	                           DATE  => $DATE, 
+         	                           TP_ID => "$line->[10]" });
          #print "Month Fee $d<Br>\n"; 
        }
   	  # Yesr fee
   	  elsif ($line->[0] == 2 && ($m == 0 && $d == 1)) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
-         $Abon->user_tariff_update({ UID => "$line->[2]", DATE => $DATE, TP_ID => "$line->[10]" });
+         $Abon->user_tariff_update({ UID   => "$line->[2]", 
+         	                           DATE  => $DATE, 
+         	                           TP_ID => "$line->[10]" 
+         	                           });
          #print "Year fee $m $d<Br>\n"; 
        }
      }
@@ -355,6 +369,9 @@ sub abon_periodic {
 
   }
 
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
 }
 
 

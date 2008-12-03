@@ -79,7 +79,10 @@ sub user_info {
     u.uid=dv.uid
    $WHERE;");
 
-	if($self->{errno}) {
+	if($self->{TOTAL} < 1) {
+  	return $self;
+   }
+	elsif($self->{errno}) {
   	return $self;
    }
 

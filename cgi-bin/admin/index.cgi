@@ -944,6 +944,8 @@ sub user_form {
    $user_info->{LNG_ACTION}=$_ADD;
   }
  else {
+   $user_info->{COMPANY_NAME}=$html->color_mark("$_NOT_EXIST ID: $user_info->{COMPANY_ID}", $_COLORS[6]) if ($user_info->{COMPANY_ID} && ! $user_info->{COMPANY_NAME}) ;
+
    $user_info->{EXDATA} = $html->tpl_show(templates('form_user_exdata'), 
                                           $user_info, { notprint => 1 });
 
@@ -951,7 +953,6 @@ sub user_form {
      $user_info->{EXDATA} .= $html->tpl_show(templates('form_ext_bill'), 
                                              $user_info, { notprint => 1 });
     }
-
 
    if ($user_info->{DISABLE} > 0) {
      $user_info->{DISABLE} = ' checked';
