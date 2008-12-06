@@ -281,7 +281,7 @@
 
  */5  *      *    *     *   root   /usr/abills/libexec/billd -all\\
  1     0     *    *     *   root    /usr/abills/libexec/periodic daily\\
- 1     0     *    *     *   root    /usr/abills/libexec/periodic monthly\\
+ 1     1     *    *     *   root    /usr/abills/libexec/periodic monthly\\
 
 \\
 
