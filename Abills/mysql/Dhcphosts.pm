@@ -114,6 +114,8 @@ sub network_defaults {
 }
 
 
+
+
 #**********************************************************
 # network_add()
 #**********************************************************
@@ -757,9 +759,186 @@ sub hosts_list {
 }
 
 
+#**********************************************************
+# host_defaults()
+#**********************************************************
+sub leases_defaults {
+  my $self = shift;
+
+  my %DATA = (
+   STARTS    => '', 
+   ENDS      => '', 
+   STATE     => 0, 
+   NEXT_STATE=> 0,
+   HARDWARE  => '', 
+   UID       => '', 
+   CIRCUIT_ID=> '', 
+   REMOTE_ID => '',
+   HOSTNAME  => '',
+   NAS_ID    => 0,
+   IP        => '0.0.0.0'
+  );
+
+ 
+  $self = \%DATA;
+  return $self;
+}
+
+#**********************************************************
+# leases_update()
+#**********************************************************
+sub leases_update {
+  my $self=shift;
+  my ($attr)=@_;
+  
+  my %DATA = $self->get_data($attr, { default => leases_defaults() }); 
+
+  $self->query($db,"INSERT INTO dhcphosts_leases 
+     (  start,  ends,
+  state,
+  next_state,
+  hardware,
+  uid,
+  circuit_id,
+  remote_id,
+  hostname,
+  nas_id,
+  ip ) 
+     VALUES('$DATA{STARTS}', '$DATA{ENDS}', '$DATA{STATE}', '$DATA{NEXT_STATE}',
+       '$DATA{HARDWARE}', '$DATA{UID}', '$DATA{CIRCUIT_ID}', '$DATA{REMOTE_ID}',
+       '$DATA{HOSTNAME}',
+       '$DATA{NAS_ID}',
+       INET_ATON('$DATA{IP}') )", 'do');
+
+  return $self;
+}
+
+#**********************************************************
+# leases_list()
+#**********************************************************
+sub leases_list {
+  my $self=shift;
+  my ($attr)=@_;
+  
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+  @WHERE_RULES = ();
+
+  if ($attr->{HOSTNAME}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{HOSTNAME}", 'STR', 'hostname') };
+   }
+ 
+ if ($attr->{HARDWARE}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{HARDWARE}", 'STR', 'hardware') };
+  }
+
+ if ($attr->{REMOTE_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{REMOTE_ID}", 'STR', 'remote_id') };
+  }
+
+ if ($attr->{CIRCUIT_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{CIRCUIT_ID}", 'STR', 'circuit_id') };
+  }
 
 
+ if ($attr->{IPS}) {
+ 	 my @ip_arr = split(/,/, $attr->{IPS});
+ 	 $attr->{IPS}='';
+ 	 foreach my $ip (@ip_arr) {
+ 	   $ip =~ s/ //g;
+ 	   $attr->{IPS}.="INET_ATON('$ip'),";
+ 	 }
+ 	 chop($attr->{IPS});
+ 	 push @WHERE_RULES, "ip IN ($attr->{IPS})";
+  }
+ elsif ($attr->{IP}) {
+    if ($attr->{IP} =~ m/\*/g) {
+      my ($i, $first_ip, $last_ip);
+      my @p = split(/\./, $attr->{IP});
+      for ($i=0; $i<4; $i++) {
 
+         if ($p[$i] eq '*') {
+           $first_ip .= '0';
+           $last_ip .= '255';
+          }
+         else {
+           $first_ip .= $p[$i];
+           $last_ip .= $p[$i];
+          }
+         if ($i != 3) {
+           $first_ip .= '.';
+           $last_ip .= '.';
+          }
+       }
+      push @WHERE_RULES, "(ip>=INET_ATON('$first_ip') and ip<=INET_ATON('$last_ip'))";
+     }
+    else {
+      push @WHERE_RULES, @{ $self->search_expr("$attr->{IP}", 'IP', 'ip') };
+    }
+  }
+
+  if ($attr->{ENDS}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{ENDS}", 'INT', 'ends') };
+  }
+
+  if ($attr->{STARTS}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{STARTS}", 'INT', 'starts') };
+  }
+
+  if (defined($attr->{STATE})) {
+    push @WHERE_RULES, "state='$attr->{STATE}'";
+  }
+
+  if (defined($attr->{NEXT_STATE})) {
+    push @WHERE_RULES, "next_state='$attr->{NEXT_STATE}'";
+  }
+
+  if (defined($attr->{NAS_ID})) {
+    push @WHERE_RULES, "nas_id='$attr->{NAS_ID}'";
+  }
+
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
+ 
+  $self->query($db,"SELECT '', INET_NTOA(ip), start,  hardware, hostname, 
+  ends,
+  state,
+  remote_id,
+  circuit_id,
+  next_state,
+  uid,
+  nas_id
+  FROM dhcphosts_leases 
+   $WHERE 
+  ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS; ");
+
+  my $list = $self->{list};
+
+  $self->query($db,"SELECT count(*) FROM dhcphosts_leases $WHERE;");
+
+  ($self->{TOTAL}) = @{ $self->{list}->[0] };
+
+  
+
+  return $list;
+}
+
+#**********************************************************
+# leases_update()
+#**********************************************************
+sub leases_clear {
+  my $self=shift;
+  my ($attr)=@_;
+  
+  my %DATA = $self->get_data($attr, { default => leases_defaults() }); 
+
+  $self->query($db,"DELETE FROM dhcphosts_leases WHERE nas_id='$DATA{NAS_ID}';", 'do');
+  return $self;
+}
 
 1
 

@@ -243,8 +243,9 @@ CREATE TABLE `dv_main` (
   `port` int(11) unsigned NOT NULL default '0',
   `join_service` int(11) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`uid`),
-  KEY `tp_id` (`tp_id`)
-) ;
+  KEY `tp_id` (`tp_id`),
+  KEY CID (CID)
+) COMMENT='Dv accounts' ;
 
 # --------------------------------------------------------
 

@@ -2887,15 +2887,16 @@ pROFILRE
   	     }
   	 }
 	
+
 	
-	  #$Dv->{ISG_CID_CUR} = '192.168.0.1';
+	  $Dv->{ISG_CID_CUR} = '192.168.0.1';
 	  #
  	  if ($RAD_PAIRS{'Error-Cause'}) {
  	  	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
 
  	   }
     elsif(! $Dv->{ISG_CID_CUR}) {
-    	$html->message('err', $_ERROR, "$_NOT_EXIST ID: ");
+    	$html->message('err', $_ERROR, "$_NOT_EXIST ID: '$user->{REMOTE_ADDR}' ");
      }
     elsif ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
     	$Dv->{ISG_CID_CUR} = dv_get_isg_mac($Dv->{ISG_CID_CUR});
@@ -4482,17 +4483,24 @@ sub dv_get_month_fee {
 sub dv_get_isg_mac {
 	my ($ip) = @_;
 
-  use Dhcphosts;
-  my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
-
-  $Dhcphosts->host_info(0, { IP => $ip });
-  
-  if ($Dhcphosts->{TOTAL} > 0) {
+ use Dhcphosts;
+ my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
+ $Dhcphosts->host_info(0, { IP => $ip });
+ 
+ if ($Dhcphosts->{TOTAL} > 0) {
   	return $Dhcphosts->{MAC};
    }
-  
 
- my $logfile = $conf{DHCPHOSTS_LEASES} || '/var/db/dhcp.leaseds';
+ if ($conf{DHCPHOSTS_LEASES} eq 'db') {
+   my $list = $Dhcphosts->leases_list({ IP => $ip, STATE => 2 });
+ 
+   if ($Dhcphosts->{TOTAL} > 0) {
+  	 return $list->[0]->[3];
+    }
+   return '';
+  }
+
+ my $logfile = $conf{DHCPHOSTS_LEASES} || '/var/db/dhcpd.leaseds';
  my %list = ();
  my $l_ip = '';
 

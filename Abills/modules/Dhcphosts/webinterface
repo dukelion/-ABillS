@@ -183,6 +183,66 @@ sub dhcphosts_monitor {
    }
  }
 
+
+ #Get info from DB
+ if ($conf{DHCPHOSTS_LEASES} eq 'db') {
+   my %state_hash = ('unknown'   => 0,
+                     'free'      => 1,
+                     'active'    => 2,
+                     'abandoned' => 3);
+
+   my %state_hash_rev = reverse %state_hash;
+
+   form_search({ SIMPLE => {
+   	                        "$_HOSTS_HOSTNAME"=> 'HOSTNAME',
+   	                        'IP'              => 'IP',
+                            'MAC'             => 'HARDWARE',			
+                            "$_EXPIRE"        => 'ENDS',
+                            'CIRCUIT_ID'      => 'CIRCUIT_ID',
+                            'REMOTE_ID'       => 'REMOTE_ID',
+                            'STATE'           => \%state_hash_rev
+   	                         }, 
+
+	            });
+
+
+
+	 my $list = $Dhcphosts->leases_list({ %LIST_PARAMS });
+	 
+   my $table = $html->table({ width    => '100%',
+                     			  caption    => "$_HOSTS",
+				                    title      => ["$_USER", 'IP', "$_START", "MAC", "$_HOSTS",  "abandoned", "$_STATE", "remote-id", "circuit_id", "-" ],
+				                    cols_align => ['left', 'right', 'right', 'right', 'left', 'center:noprint', 'center:noprint','center:noprint', 'center:noprint' ],
+				                    ID         => 'MONITOR_DHCP',
+                  				  qs         => $pages_qs,
+				                    pages      => $Dhcphosts->{TOTAL}
+                          });
+
+	 
+   foreach my $line (@$list) {
+      $table->addrow($line->[0],
+                     $line->[1],
+                     $line->[2],
+                     $line->[3],
+                     $line->[4],
+                     $line->[5],
+                     $state_hash_rev{$line->[6]},
+                     $line->[7],
+                     $line->[8],
+                     "(". $html->button('P', "index=$index&ping=$line->[1]", { TITLE => 'ping' }) .")"
+                     );
+    }
+   print  $table->show();
+
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", $html->b($Dhcphosts->{TOTAL}) ] ]
+                       } );
+  print $table->show();
+
+   return 0;
+  }
+
  
  #Get info from dhcpd.leased 
  my $dhcp_hash = leaseparse($conf{DHCPHOSTS_LEASES});
@@ -206,7 +266,7 @@ sub dhcphosts_monitor {
  $table->{extra}=undef;
  $table->{rowcolor}=undef;
 
-
+ #Get info derect from file
  foreach my $line (@$hosts_list) {
       $table->addrow(
                      $html->button("$line->[1]", "index=15&UID=". $line->[12+$Dhcphosts->{SEARCH_FIELDS_COUNT}]), 
@@ -247,7 +307,9 @@ sub dhcphosts_monitor {
 
                      );
   }
-	
+
+
+
  print $table->show();	
 
 }
@@ -399,7 +461,7 @@ sub dhcphosts_networks {
   
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Dhcphosts->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($Dhcphosts->{TOTAL}) ] ]
                        } );
   print $table->show();
 };

@@ -51,3 +51,19 @@ CREATE TABLE `dhcphosts_networks` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`)
 ) COMMENT='Dhcphost networks';
+
+CREATE TABLE `dhcphosts_leases` (
+  `start` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `ends` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `state` tinyint(2) NOT NULL DEFAULT '0',
+  `next_state` tinyint(2) NOT NULL DEFAULT '0',
+  `hardware` varchar(17) NOT NULL DEFAULT '',
+  `uid` varchar(30) NOT NULL DEFAULT '',
+  `circuit_id` varchar(25) NOT NULL DEFAULT '',
+  `remote_id` varchar(25) NOT NULL DEFAULT '',
+  `hostname` varchar(30) NOT NULL DEFAULT '',
+  `nas_id` smallint(6) NOT NULL DEFAULT '0',
+  `ip` int(11) unsigned NOT NULL DEFAULT '0',
+  KEY `ip` (`ip`),
+  KEY `nas_id` (`nas_id`)
+) COMMENT='Dhcphosts leaseds';

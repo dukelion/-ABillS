@@ -18,6 +18,7 @@ use main;
 use Billing;
 use Auth;
 
+
 @ISA  = ("main");
 my ($db, $conf, $Billing);
 
@@ -153,7 +154,18 @@ sub auth {
        )= @{ $self->{list}->[0] };
      }
     else {
-      $RAD->{USER_NAME} = get_isg_mac($RAD->{USER_NAME});
+      if ($conf->{DHCPHOSTS_LEASES} eq 'db') {
+        $self->query($db, "SELECT hardware FROM dhcphosts_leases
+          WHERE ip=INET_ATON('$RAD->{USER_NAME}');");
+ 
+        if ($self->{TOTAL} > 0) {
+          ($RAD->{USER_NAME}
+           )= @{ $self->{list}->[0] };
+         }
+       }
+      else {
+        $RAD->{USER_NAME} = get_isg_mac($RAD->{USER_NAME});	
+       }
      }
 
   

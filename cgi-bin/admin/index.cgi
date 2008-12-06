@@ -4492,9 +4492,19 @@ if (defined($attr->{SIMPLE})) {
 
 	my $SEARCH_FIELDS = $attr->{SIMPLE};
 	while(my($k, $v)=each( %$SEARCH_FIELDS )) {
-	  $SEARCH_DATA{SEARCH_FORM}.="<tr><td>$k:</td><td>";
-	  $SEARCH_DATA{SEARCH_FORM}.=$html->form_input("$v", '%'. $v .'%');
-	  $SEARCH_DATA{SEARCH_FORM}.="</td></tr>\n";
+    $SEARCH_DATA{SEARCH_FORM}.="<tr><td>$k:</td><td>";
+	
+	  if ( ref $v eq 'HASH' ) {
+      $SEARCH_DATA{SEARCH_FORM}.=$html->form_select("$k",
+			                                   {   SELECTED => $FORM{$k},
+		                                         SEL_HASH => $v
+                                          });
+	   }
+	  else {
+	    $SEARCH_DATA{SEARCH_FORM}.=$html->form_input("$v", '%'. $v .'%');
+	   }
+
+    $SEARCH_DATA{SEARCH_FORM}.="</td></tr>\n";
 	 }
 
   $html->tpl_show(templates('form_search_simple'), \%SEARCH_DATA);
