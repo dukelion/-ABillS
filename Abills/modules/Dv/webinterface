@@ -2889,7 +2889,7 @@ pROFILRE
 	
 
 	
-	  $Dv->{ISG_CID_CUR} = '192.168.0.1';
+#	  $Dv->{ISG_CID_CUR} = '192.168.0.1';
 	  #
  	  if ($RAD_PAIRS{'Error-Cause'}) {
  	  	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
