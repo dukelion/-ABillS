@@ -1012,11 +1012,25 @@ sub extfin_debetors {
     push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
    }
 
+  my $ext_field = '';
   if ($attr->{INTERVAL}) {
  	  my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
-    push @WHERE_RULES, "date_format(l.start, '%Y-%m-%d')>='$from' and date_format(l.start, '%Y-%m-%d')<='$to'";
+    push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')>='$from' and date_format(f.date, '%Y-%m-%d')<='$to'";
+    
+    push @WHERE_RULES, "(f.last_deposit-sum<0)";
+    
+    $ext_field = "f.last_deposit,";
    }
-
+  else {
+    push @WHERE_RULES, "( b.deposit < 0 or cb.deposit < 0 ) and (f.last_deposit >=0 and f.last_deposit-sum<0)";
+    $ext_field = "if(DATEDIFF(CURDATE(), f.date) < 32, \@A, ''),
+   if(DATEDIFF(CURDATE(), f.date) > 33 and DATEDIFF(CURDATE(), f.date) < 54 , \@A, ''),
+   if(DATEDIFF(CURDATE(), f.date) > 65 and DATEDIFF(CURDATE(), f.date) < 96 , \@A, ''),
+   if(DATEDIFF(CURDATE(), f.date) > 97 and DATEDIFF(CURDATE(), f.date) < 183 , \@A, ''),
+   if(DATEDIFF(CURDATE(), f.date) > 184 and DATEDIFF(CURDATE(), f.date) < 365 , \@A, ''),
+   if(DATEDIFF(CURDATE(), f.date) > 365 , \@A, ''),";
+   }
+  
   $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : ''; 
 
   $self->query($db, "SELECT '', u.id, pi.contract_id,
@@ -1024,13 +1038,7 @@ sub extfin_debetors {
    pi.contract_date,
    '',
    \@A:=if(company.id IS NULL,b.deposit,cb.deposit),
-   
-   if(DATEDIFF(CURDATE(), f.date) < 32, \@A, ''),
-   if(DATEDIFF(CURDATE(), f.date) > 33 and DATEDIFF(CURDATE(), f.date) < 54 , \@A, ''),
-   if(DATEDIFF(CURDATE(), f.date) > 65 and DATEDIFF(CURDATE(), f.date) < 96 , \@A, ''),
-   if(DATEDIFF(CURDATE(), f.date) > 97 and DATEDIFF(CURDATE(), f.date) < 183 , \@A, ''),
-   if(DATEDIFF(CURDATE(), f.date) > 184 and DATEDIFF(CURDATE(), f.date) < 365 , \@A, ''),
-   if(DATEDIFF(CURDATE(), f.date) > 365 , \@A, ''),
+   $ext_field
    u.uid
   FROM (users u, fees f)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
@@ -1038,9 +1046,7 @@ sub extfin_debetors {
      LEFT JOIN companies company ON  (u.company_id=company.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
 
-WHERE u.uid=f.uid and 
-(f.last_deposit >=0 and f.last_deposit-sum<0)
-and ( b.deposit < 0 or cb.deposit < 0 ) $WHERE
+WHERE u.uid=f.uid $WHERE
 GROUP BY f.uid
 ORDER BY f.date DESC;");
 

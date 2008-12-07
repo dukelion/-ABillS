@@ -3446,9 +3446,9 @@ if (defined($FORM{DATE})) {
   
 
   $table = $html->table({ width       => '100%',
-                           rowcolor   => $_COLORS[1],
-                           cols_align => ['right', 'left'],
-                           rows       => [ @rows ]
+                          rowcolor   => $_COLORS[1],
+                          cols_align => ['right', 'left'],
+                          rows       => [ @rows ]
                          });
 
   print $table->show();
