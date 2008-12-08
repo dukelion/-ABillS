@@ -183,9 +183,9 @@ sub do_stuff {
 	while(my ($ip, $hash) = each( %$list )) {
 		$i++;
 		if ($debug > 1) {
-		  print "$ip \n" 
+		  print "$ip \n" ;
 		  while(my($k, $v) = each %{ $hash }) {
-			  print "  $k, $v\n" if ($debug > 0);;
+			  print "  $k, $v\n" if ($debug > 1);
 		   }
 		 }
     $Dhcphosts->leases_update({ %$hash, NAS_ID => $NAS_ID });
