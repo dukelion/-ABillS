@@ -200,7 +200,7 @@ sub dhcphosts_monitor {
                             "$_EXPIRE"        => 'ENDS',
                             'CIRCUIT_ID'      => 'CIRCUIT_ID',
                             'REMOTE_ID'       => 'REMOTE_ID',
-                            'STATE'           => \%state_hash_rev
+                            'STATE'           => { '' => '', %state_hash_rev }
    	                         }, 
 
 	            });
