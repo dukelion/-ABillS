@@ -1275,7 +1275,7 @@ my $total_maximum_sum = 0.00;
 
 my @interval = ();
 foreach my $line (@$list) {
-  if ($FORM{INTERVAL}) {
+  if ($LIST_PARAMS{INTERVAL}) {
    @interval = ( ($line->[8]) ? sprintf("%.2f", $line->[8])  : '',
     ($line->[9]) ? sprintf("%.2f", $line->[9])  : '',
     ($line->[10]) ? sprintf("%.2f", $line->[10]): '',
@@ -1322,7 +1322,7 @@ foreach my $line (@$list) {
 
 
 $table->{rowcolor}   = $_COLORS[2];
-if ($FORM{INTERVAL}) {
+if ($LIST_PARAMS{INTERVAL}) {
   @interval = ( $html->b($total_65),
   $html->b($total_97),
   $html->b($total_184),
@@ -1339,7 +1339,7 @@ $html->b($total_32),
 
  );
 
-if ($FORM{INTERVAL}) {
+if ($LIST_PARAMS{INTERVAL}) {
   @interval = ( 
   $html->b(sprintf("%.2f", $total_65_sum  )),
   $html->b(sprintf("%.2f", $total_97_sum  )),
