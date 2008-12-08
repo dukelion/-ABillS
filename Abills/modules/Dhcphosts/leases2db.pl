@@ -174,18 +174,24 @@ sub pase {
 #**********************************************************
 #
 #**********************************************************
-sub do_stuff{
+sub do_stuff {
   my ($list) = @_;
 
   $Dhcphosts->leases_clear();
 
+  my $i = 0;
 	while(my ($ip, $hash) = each( %$list )) {
-		print "$ip \n" if ($debug > 0);
-		while(my($k, $v) = each %{ $hash }) {
-			print "  $k, $v\n" if ($debug > 0);;
+		$i++;
+		if ($debug > 1) {
+		  print "$ip \n" 
+		  while(my($k, $v) = each %{ $hash }) {
+			  print "  $k, $v\n" if ($debug > 0);;
+		   }
 		 }
     $Dhcphosts->leases_update({ %$hash, NAS_ID => $NAS_ID });
 	}
+
+  print "Updated: $i leases\n" if ($debug > 0);
 }
 
 
