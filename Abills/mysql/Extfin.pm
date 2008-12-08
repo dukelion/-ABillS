@@ -1013,22 +1013,17 @@ sub extfin_debetors {
    }
 
   my $ext_field = '';
-  if ($attr->{INTERVAL}) {
- 	  my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
-    push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')>='$from' and date_format(f.date, '%Y-%m-%d')<='$to'";
+  if ($attr->{DATE}) {
+    push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')<='$attr->{DATE}'";
     
     push @WHERE_RULES, "(f.last_deposit-sum<0)";
-    
-    $ext_field = "f.last_deposit,";
+    $attr->{DATE} = "'$attr->{DATE}'";
+    $ext_field = "\@A:=f.last_deposit,";
    }
   else {
     push @WHERE_RULES, "( b.deposit < 0 or cb.deposit < 0 ) and (f.last_deposit >=0 and f.last_deposit-sum<0)";
-    $ext_field = "if(DATEDIFF(CURDATE(), f.date) < 32, \@A, ''),
-   if(DATEDIFF(CURDATE(), f.date) > 33 and DATEDIFF(CURDATE(), f.date) < 54 , \@A, ''),
-   if(DATEDIFF(CURDATE(), f.date) > 65 and DATEDIFF(CURDATE(), f.date) < 96 , \@A, ''),
-   if(DATEDIFF(CURDATE(), f.date) > 97 and DATEDIFF(CURDATE(), f.date) < 183 , \@A, ''),
-   if(DATEDIFF(CURDATE(), f.date) > 184 and DATEDIFF(CURDATE(), f.date) < 365 , \@A, ''),
-   if(DATEDIFF(CURDATE(), f.date) > 365 , \@A, ''),";
+    $ext_field = "\@A:=if(company.id IS NULL,b.deposit,cb.deposit),";
+    $attr->{DATE} = 'CURDATE()';
    }
   
   $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : ''; 
@@ -1037,8 +1032,14 @@ sub extfin_debetors {
    pi.fio,
    pi.contract_date,
    '',
-   \@A:=if(company.id IS NULL,b.deposit,cb.deposit),
    $ext_field
+   if(DATEDIFF($attr->{DATE}, f.date) < 32, \@A, ''),
+   if(DATEDIFF($attr->{DATE}, f.date) > 33 and DATEDIFF($attr->{DATE}, f.date) < 54 , \@A, ''),
+   if(DATEDIFF($attr->{DATE}, f.date) > 65 and DATEDIFF($attr->{DATE}, f.date) < 96 , \@A, ''),
+   if(DATEDIFF($attr->{DATE}, f.date) > 97 and DATEDIFF($attr->{DATE}, f.date) < 183 , \@A, ''),
+   if(DATEDIFF($attr->{DATE}, f.date) > 184 and DATEDIFF($attr->{DATE}, f.date) < 365 , \@A, ''),
+   if(DATEDIFF($attr->{DATE}, f.date) > 365 , \@A, ''),
+
    u.uid
   FROM (users u, fees f)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
