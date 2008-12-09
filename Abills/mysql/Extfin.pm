@@ -1031,7 +1031,7 @@ sub extfin_debetors {
   $self->query($db, "SELECT '', u.id, pi.contract_id,
    pi.fio,
    pi.contract_date,
-   '',
+   dv.tp_id,
    $ext_field
    if(DATEDIFF($attr->{DATE}, f.date) < 32, \@A, ''),
    if(DATEDIFF($attr->{DATE}, f.date) > 33 and DATEDIFF($attr->{DATE}, f.date) < 54 , \@A, ''),
@@ -1046,7 +1046,7 @@ sub extfin_debetors {
      LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-
+     LEFT JOIN dv_main dv ON  (u.uid=dv.uid)
 WHERE u.uid=f.uid $WHERE
 GROUP BY f.uid
 ORDER BY f.date DESC;");
