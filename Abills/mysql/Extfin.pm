@@ -1012,13 +1012,14 @@ sub extfin_debetors {
     push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
    }
 
+  $self->{debug};
   my $ext_field = '';
   if ($attr->{DATE}) {
     push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')<='$attr->{DATE}'";
     
-    push @WHERE_RULES, "(f.last_deposit-sum<0)";
+    push @WHERE_RULES, "(f.last_deposit-f.sum<0)";
     $attr->{DATE} = "'$attr->{DATE}'";
-    $ext_field = "\@A:=f.last_deposit,";
+    $ext_field = "\@A:=f.last_deposit-f.sum,";
    }
   else {
     push @WHERE_RULES, "( b.deposit < 0 or cb.deposit < 0 ) and (f.last_deposit >=0 and f.last_deposit-sum<0)";
