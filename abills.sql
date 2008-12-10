@@ -242,6 +242,7 @@ CREATE TABLE `dv_main` (
   `callback` tinyint(1) unsigned NOT NULL default '0',
   `port` int(11) unsigned NOT NULL default '0',
   `join_service` int(11) unsigned NOT NULL DEFAULT '0',
+  `turbo_mode` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`),
   KEY `tp_id` (`tp_id`),
   KEY CID (CID)

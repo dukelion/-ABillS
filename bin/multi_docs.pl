@@ -89,6 +89,8 @@ else {
   $pdf_result_path = $pdf_result_path . "/$Y-$m/";
 }
 
+my $sort = ($ARGV->{SORT}) ? $ARGV->{SORT} : 1;
+
 if (! -d $pdf_result_path) {
   mkdir($pdf_result_path);
   print "Directory no exists '$pdf_result_path'. Created." if ($debug > 0);
@@ -137,7 +139,8 @@ foreach my $line (@$fees_list) {
                             ADDRESS_FLAT  => '*',
                             
 		                        PAGE_ROWS     => 1000000,
-		                        %INFO_FIELDS_SEARCH  
+		                        %INFO_FIELDS_SEARCH,
+		                        SORT          => $sort
 		                       });
 
 if ($users->{EXTRA_FIELDS}) {
@@ -174,7 +177,8 @@ foreach my $line (@$list) {
     
     my $month_fee = ($FEES_LIST_HASH{$line->[$users->{SEARCH_FIELDS_COUNT} + 5]}) ? $FEES_LIST_HASH{$line->[$users->{SEARCH_FIELDS_COUNT} + 5]} : '0.00';
 
-    push @MULTI_ARR, { FIO           => $line->[1], 
+    push @MULTI_ARR, { LOGIN         => $line->[0], 
+    	                 FIO           => $line->[1], 
     	                 DEPOSIT       => sprintf("%.2f", $line->[2] + $month_fee),
     	                 CREDIT        => $line->[3],
   	                   SUM           => sprintf("%.2f", abs($line->[2])),
@@ -203,6 +207,9 @@ foreach my $line (@$list) {
 
                        DOC_NUMBER => sprintf("%.6d",  $doc_num),
     	                };
+    
+    print "UID: LOGIN: $line->[0] FIO: $line->[1] SUM: $line->[2]\n" if ($debug > 2);
+
     $doc_num++
 	 }
 
@@ -244,7 +251,8 @@ sub help {
 print << "[END]";	
 	RESULT_DIR=    - Output dir (default: abills/cgi-bin/admin/pdf)
 	DOCS_IN_FILE=  - docs in single file (default: $docs_in_file)
-        ADDRESS2       - User second address (fields: _c_address, _c_build, _c_flat)
+  ADDRESS2       - User second address (fields: _c_address, _c_build, _c_flat)
+  SORT=          - Sort by 
 	DEBUG=[1..5]   - Debug mode
 [END]
 }
