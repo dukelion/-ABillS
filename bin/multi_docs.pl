@@ -81,6 +81,8 @@ if (defined($ARGV->{help})) {
 	exit;
 }
 
+$debug = $ARGV->{DEBUG} || $debug;
+
 my ($Y, $m, $d)=split(/-/, $DATE, 3);
 if ($ARGV->{RESULT_DIR}) {
   $pdf_result_path = $ARGV->{RESULT_DIR};
