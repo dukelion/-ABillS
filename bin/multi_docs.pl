@@ -107,6 +107,7 @@ if (! -d $pdf_result_path) {
 	mkdir ($pdf_result_path);
 }
 
+$Fees->{debug}=1 if ($debug > 6);
 #Fees get month fees - abon. payments
 my $fees_list = $Fees->reports({ INTERVAL => "$Y-$m-01/$DATE",  
 	                               METHODS  => 1,
@@ -130,6 +131,7 @@ foreach my $line (@$fees_list) {
   	$INFO_FIELDS_SEARCH{$key}='*';
    }
 
+  $Fees->{users}=1 if ($debug > 6);
 	my $list = $users->list({ DEPOSIT       => '<0',
 		                        DISABLE       => 0,
                             CONTRACT_ID   => '*',
@@ -214,7 +216,10 @@ foreach my $line (@$list) {
 	 }
 
 print "TOTAL: ".$users->{TOTAL};
-multi_tpls(_include('docs_multi_invoice', 'Docs'), \@MULTI_ARR );
+
+if ($debug < 5) {
+  multi_tpls(_include('docs_multi_invoice', 'Docs'), \@MULTI_ARR );
+ }
 
 
 
