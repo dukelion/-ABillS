@@ -133,7 +133,7 @@ foreach my $line (@$fees_list) {
   	$INFO_FIELDS_SEARCH{$key}='*';
    }
 
-  $Fees->{users}=1 if ($debug > 6);
+  $users->{debug}=1 if ($debug > 6);
 	my $list = $users->list({ DEPOSIT       => '<0',
 		                        DISABLE       => 0,
                             CONTRACT_ID   => '*',

@@ -14,6 +14,8 @@ nodeflate
 novj
 novjccomp
 nobsdcomp
-#require mppe
+require-mppe-40
+require-mppe-128
+require-mppe
 #mppe-stateful
 #ms-dns ***.***.***.***

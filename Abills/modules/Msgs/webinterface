@@ -1117,10 +1117,11 @@ else {
 	$LIST_PARAMS{PLAN_TO_DATE}=$DATE;
 }
 
+
 my $list = $Msgs->messages_list({ %LIST_PARAMS, 
-  	                              DESC  => '',
-  	                              SORT  => 10,
-  	                              STATE => 0,
+  	                              DESC      => '',
+  	                              SORT      => 10,
+  	                              STATE     => 0,
   	                              PAGE_ROWS => 1000
 	                               });
 
@@ -1147,7 +1148,7 @@ if (! $dates{$date})  {
   $table2 = $html->table( { 
                          width      => '300',
                          caption    => "$date",
-                         title      => ['#', "$_TIME", "$_SUBJECT"],
+                         title      => ['#', "$_ADMIN", "$_TIME",  "$_SUBJECT"],
                          cols_align => ['right', 'left', 'left'],
                          ID         => 'SHEDULE_LIST',
                       } );
@@ -1155,7 +1156,8 @@ if (! $dates{$date})  {
  }
 
  $table2->addrow(
-   $html->button("$line->[0]", "index=". ($index-2) ."&chg=$line->[0]&UID=$line->[11]") ,
+   $html->button("$line->[0]", "index=". ($index-2) ."&chg=$line->[0]&UID=$line->[11]"), 
+   "$line->[7]",
    $time,
    $line->[2]
   );

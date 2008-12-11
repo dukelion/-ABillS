@@ -422,20 +422,10 @@ print "\nEND: =====================================\n" if ($debug > 0);
  
       if ($ACTION eq 'up') {
         foreach my $ip_full (@nets_arr) {
-                                if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/{0,1}(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,2}):{0,1}(\S{0,200})/ ) {
-#                      if (@nets_arr) {
-#                              foreach my $ip_full (@nets_arr) {
-#                                      if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/{0,1}(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,2}):{0,1}(\S{0,200})/ ) {
-#                                              push @FW_ACTIONS, "$tc filter $act dev $INTERFACE protocol ip parent ffff: prio $prio match ip src $CLIENT_IP/32 match ip dst $2/$3 police rate $speed_out"."Kibit burst 12k drop flowid :1";
-#                               }
-#                               }
-#                       }
-#                      else {
-#                              push @FW_ACTIONS, "$tc filter $act dev $INTERFACE protocol ip parent ffff: prio $prio match ip src $CLIENT_IP/32 police rate $speed_out"."Kibit burst 12k drop flowid :1";
-#                      }
+         if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/{0,1}(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,2}):{0,1}(\S{0,200})/ ) {
              push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent 1: prio $fw_num_out u32 match ip src $2/$3 match ip dst $CLIENT_IP flowid 1:$flowid";
              push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLIENT_IP match ip dst $2/$3 $drop flowid 1:";
-            }
+           }
          }
       }
    }
@@ -448,7 +438,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
         if ($traf_type == 0) {
           # In
           push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to any $via_if_in";
-          push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". int( $speed_in / 10 ) ."Kbytes mask dst-ip 0x00000000";
+          push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes mask dst-ip 0x00000000";
          }
         else {
           #ipfw tables
@@ -466,7 +456,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
           else {
             push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to $nets{$traf_type} $via_if_in";
            }
-            push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". int( $speed_in / 10 ) ."Kbytes";
+            push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
          }
        }
       else {
@@ -477,7 +467,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
       if ($speed_out > 0) {
         if ($traf_type == 0) {
             push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to $CLIENT_IP $via_if_out";
-            push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". int($speed_in / 10) ."Kbytes mask dst-ip 0x00000000";
+            push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask dst-ip 0x00000000";
          }
         else {
           #User ipfw table if more then 5 networks
@@ -497,7 +487,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
            }
 
 
-          push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". int($speed_in / 10) ."Kbytes";
+          push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
          }
        }
      	#if speed 0 (UNlime) make only allow rules

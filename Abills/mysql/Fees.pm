@@ -300,7 +300,7 @@ sub reports {
 
 
 
- 
+
  
  if($attr->{DATE}) {
    push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";

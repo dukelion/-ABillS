@@ -1706,7 +1706,7 @@ if ($conf{ERROR2DB}) {
   $Dv->{LOG_TYPE_SEL} = $html->form_select('LOG_TYPE', 
                           { 
  	                         SELECTED  => $FORM{LOG_TYPE},
- 	                         SEL_HASH  => \%log_levels_rev,
+ 	                         SEL_HASH  => { '' => '', %log_levels_rev},
                            NO_ID     => 1
    	                      }) ;
 
