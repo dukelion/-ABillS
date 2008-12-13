@@ -2,6 +2,7 @@
 mrtg.cfg > [/usr/local/etc/mrtg]/mrtg.cfg 
 :OS=FREEBSD,!REMOTE_NAS=1:exec:mkdir /usr/abills/webreports; chown www /usr/abills/webreports; chown www /usr/local/etc/mrtg/
 :OS=FREEBSD,!REMOTE_NAS=1:exec:indexmaker /usr/local/etc/mrtg/mrtg.cfg > /usr/abills/webreports/index.html
+:NAS_TYPE=CISCO:FILE=cisco.cfg     >> /usr/local/etc/mrtg/mrtg.cfg
 :OS=FREEBSD,REMOTE_NAS=1:inetd_enable="YES" >> /etc/rc.conf
 :OS=FREEBSD,REMOTE_NAS=1:rstats         30003/tcp >> /etc/services
 :OS=FREEBSD,REMOTE_NAS=1:rstats  stream  tcp     nowait  root    /usr/local/sbin/rstats rstats >> /etc/inetd.conf
