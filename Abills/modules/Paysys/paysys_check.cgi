@@ -693,6 +693,86 @@ elsif($FORM{LMI_HASH}) {
 
 }
 
+
+#**********************************************************
+# http://ukrpays.com/
+#
+#**********************************************************
+sub wm_ukrpays {
+#Pre request section
+if($FORM{hash}) {
+  
+  $md5->reset;
+
+	$md5->add($FORM{id_ups}); 
+	$md5->add($FORM{login});
+  $md5->add($FORM{summ});
+  $md5->add($FORM{date}); 
+  $md5->add($conf{PAYSYS_UKRPAYS_SECRETKEY});
+
+  my $checksum = uc($md5->hexdigest());	
+
+  my $info = '';
+	my $user = $users->info($FORM{login});
+	
+  if ($FORM{hash} ne $checksum) {
+  	$status = "Incorect checksum '$checksum'";
+   }
+  elsif ($user->{errno}) {
+		$status = "ERROR: $user->{errno}";
+	 }
+	elsif ($user->{TOTAL} < 0) {
+		$status = "User not exist";
+	 }
+  else {
+    #Add payments
+    my $er = 1;
+    
+    
+    #if ($FORM{LMI_PAYEE_PURSE} =~ /^(\S)/ ) {
+    #  my $payment_unit = 'WM'.$1;
+    #  $payments->exchange_info(0, { SHORT_NAME => "$payment_unit"  });
+    #  if ($payments->{TOTAL} > 0) {
+    #  	$er = $payments->{ER_RATE};
+    #   }
+    # }
+    
+    #my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
+    $payments->add($user, {SUM          => $FORM{amount},
+    	                     DESCRIBE     => 'Ukrpays', 
+    	                     METHOD       => '2', 
+  	                       EXT_ID       => $FORM{OPERATION_ID}, 
+  	                       ER           => $er
+  	                       } );  
+
+    if ($payments->{errno}) {
+      $info = "PAYMENT ERROR: $payments->{errno}\n";
+     }
+    else {
+    	$status = "Added $payments->{INSERT_ID}\n";
+     }
+   }
+  
+  while(my($k, $v)=each %FORM) {
+    $info .= "$k, $v\n"; # if ($k =~ /LMI/);
+   }
+
+  #Info section  
+  $Paysys->add({ SYSTEM_ID      => 1, 
+  	             DATETIME       => '', 
+  	             SUM            => $FORM{amount},
+  	             UID            => $FORM{UID}, 
+                 IP             => $FORM{IP},
+                 TRANSACTION_ID => "$FORM{SHOPORDERNUMBER}",
+                 INFO           => "STATUS, $status\n$info",
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+               });
+
+  $output2 .= "Paysys:".$Paysys->{errno} if ($Paysys->{errno});
+  $output2 .= "CHECK_SUM: $checksum\n";
+}
+
+}
 #**********************************************************
 # Webmoney MD5 validate
 #**********************************************************
