@@ -398,7 +398,6 @@ sub docs_nextid {
 sub account_add {
 	my $self = shift;
 	my ($attr) = @_;
-  
  
   %DATA = $self->get_data($attr, { default => \%DATA }); 
   $DATA{DATE}    = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
@@ -470,12 +469,10 @@ sub account_info {
 
   $WHERE = ($attr->{UID}) ? "and d.uid='$attr->{UID}'" : '';  
   
-
   $self->query($db, "SELECT d.acct_id, 
    d.date, 
    d.customer,  
    sum(o.price * o.counts), 
-   d.phone,
    if(d.vat>0, FORMAT(sum(o.price * o.counts) / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)),
    u.id, 
    a.name, 
@@ -486,7 +483,7 @@ sub account_info {
    pi.address_street,
    pi.address_build,
    pi.address_flat,
-   pi.phone,
+   if (d.phone<>0, d.phone, pi.phone),
    pi.contract_id,
    d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day
    
@@ -506,7 +503,6 @@ sub account_info {
    $self->{DATE}, 
    $self->{CUSTOMER}, 
    $self->{TOTAL_SUM},
-   $self->{PHONE},
    $self->{VAT},
    $self->{LOGIN}, 
    $self->{ADMIN}, 

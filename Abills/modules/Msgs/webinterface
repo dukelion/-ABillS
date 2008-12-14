@@ -464,7 +464,7 @@ sub msgs_admin {
           PERSON     =>	"$line->[3]",
       	  MESSAGE    => convert($line->[2], { text2html => 1 }),
       	  QUOTING    => $html->button($_QUOTING, "&index=$index&chg=$FORM{chg}&UID=$FORM{UID}&QUOTING=$line->[0]"),
-      	  DELETE     => $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }),
+      	  DELETE     => $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=$line->[0]&UID=$Msgs->{UID}", { MESSAGE => "$_DEL $line->[0]?" }),
       	  ATTACHMENT =>  ($line->[7]) ? "$_ATTACHMENT: ". $html->button("$line->[7]", "qindex=$index&ATTACHMENT=$line->[9]", { TARGET => '_new' }). " ($_SIZE: ". int2byte($line->[8]) .')' : '',
       	  COLOR      => ($line->[12] > 0) ? $_COLORS[2] : $_COLORS[1],
       	  RUN_TIME   => ($line->[11] ne '00:00:00') ? "$_RUN_TIME: $line->[11]" : ''

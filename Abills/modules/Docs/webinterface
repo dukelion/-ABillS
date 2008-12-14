@@ -739,24 +739,6 @@ sub docs_account {
       
        #print $html->header() if ($FORM{qindex}AL_SUM});
 
-       my $list = $Docs->{ORDERS};
-       my $i=0;
-
-
-       foreach my $line (@$list) {
-   	     $i++;
-  	     $Docs->{ORDER} .= $html->tpl_show(_include('docs_account_order_row', 'Docs'), 
-   	        { NUMBER => $i,
-   	        	NAME   => $line->[1],
-   	        	COUNT  => $line->[3],
-   	        	UNIT   => $line->[2],
-   	        	PRICE  => $line->[4],
-   	        	SUM    => sprintf("%.2f", $line->[3]*$line->[4])
-   	        	}, 
-   	         { OUTPUT2RETURN => 1 });
-
-        }
-
        if ($conf{DOCS_PDF_PRINT}) {
        	 $html->message('info', $_ADDED, "$_ACCOUNT $_ADDED. ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }));
        	 return 0;
@@ -789,10 +771,9 @@ sub docs_account {
    	 $Docs->{VAT}=sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
     }
 
-
    if ($Docs->{TOTAL} > 0) {
    	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
-     $Docs->{FROM_DATE_LIT}='';
+      $Docs->{FROM_DATE_LIT}='';
      my $list = $Docs->{ORDERS};
      my $i=0;
      foreach my $line (@$list) {
@@ -805,7 +786,7 @@ sub docs_account {
    	        	PRICE  => $line->[4],
    	        	SUM    => sprintf("%.2f", $line->[3]*$line->[4])
    	        	}, 
-   	         { OUTPUT2RETURN => 1 });
+   	         { OUTPUT2RETURN => 1 }) if (! $FORM{pdf});
 
    	   #$Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", 
    	   #  $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[2]*$line->[4]));
@@ -856,8 +837,11 @@ sub docs_account {
 	
 	if(! $user->{UID}  ) {
   	$Docs->{FORM_ACCT_ID} = "<tr><td>$_ACCOUNT $_NUM:</td><td><input type='text' name='ACCT_ID' value='%ACCT_ID%'></td></tr>\n";
+    $Docs->{DATE_FIELD}="- <input type=text name=DATE value='%DATE%'>";
+    
    }
   else {
+  	$Docs->{DATE_FIELD}="$DATE";
   	$users = $user;
    }
   $Docs->{SEL_ORDER} .= $html->form_select('ORDER', 
@@ -873,6 +857,9 @@ sub docs_account {
 
   $Docs->{CUSTOMER}=$users->{FIO} || '-';
   $Docs->{CAPTION}=$_ACCOUNT;
+  
+  
+  
   $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users });
 }
 
@@ -941,7 +928,8 @@ sub docs_print {
     $users->{ADDRESS_FULL}="$users->{ADDRESS_STREET}, $users->{ADDRESS_BUILD}/$users->{ADDRESS_FLAT}"; 
    }
 
-	$html->tpl_show(_include("docs_$template", 'Docs', { pdf => $FORM{pdf} }), { %$ATTR, %$users });
+	$html->tpl_show(_include("docs_$template", 'Docs', 
+	    { pdf => $FORM{pdf} }), { %$users, %$ATTR });
 }
 
 

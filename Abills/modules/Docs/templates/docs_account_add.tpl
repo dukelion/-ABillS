@@ -8,7 +8,7 @@
 <Table>
 <tr><th align=right bgcolor=$_COLORS[0] colspan=2>%CAPTION%</th></tr>
 %FORM_ACCT_ID%
-<tr><td>$_DATE:</td><td><input type=text name=DATE value='%DATE%'></td></tr>
+<tr><td>$_DATE:</td><td>%DATE_FIELD%</td></tr>
 <tr><td>$_CUSTOMER:</td><td><input type=text name=CUSTOMER value='%CUSTOMER%' size=60></td></tr>
 <tr><td>$_PHONE:</td><td><input type=text name=PHONE value=%PHONE%></td></tr>
 <tr><td>$_ORDER:</td><td>%SEL_ORDER%</td></tr>

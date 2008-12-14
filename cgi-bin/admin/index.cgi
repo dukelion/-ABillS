@@ -4853,6 +4853,8 @@ elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
    }
  }
 elsif($FORM{tpl_name}) {
+    show_tpl_info("$conf{TPL_DIR}/$FORM{tpl_name}");
+  
   if (-f  "$conf{TPL_DIR}/$FORM{tpl_name}" ) {
 	  open(FILE, "$conf{TPL_DIR}/$FORM{tpl_name}") || $html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");;
   	  while(<FILE>) {
@@ -5028,7 +5030,8 @@ sub show_tpl_info {
   my $table = $html->table( { width       => '600',
   	                          caption     => "$_INFO - '$filename'",
                               title_plain => ["$_NAME", "$_DESCRIBE", "$_PARAMS"],
-                              cols_align  => ['left', 'left', 'left']
+                              cols_align  => ['left', 'left', 'left'],
+                              ID          => 'TPL_INFO'
                            } );
 
 
