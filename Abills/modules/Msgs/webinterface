@@ -815,6 +815,7 @@ sub msgs_user {
       	  MESSAGE  => convert($line->[2], { text2html => 1 }),
       	  COLOR    => ($line->[12] == 0) ? $_COLORS[2] : $_COLORS[1],
       	  QUOTING  => $html->button($_QUOTING, "index=$index&QUOTING=$line->[0]&ID=$FORM{ID}&sid=$sid"),
+      	  ATTACHMENT =>  ($line->[7]) ? "$_ATTACHMENT: ". $html->button("$line->[7]", "qindex=$index&ATTACHMENT=$line->[9]", { TARGET => '_new' }). " ($_SIZE: ". int2byte($line->[8]) .')' : '',
       	  }, { OUTPUT2RETURN => 1 } );
      }
     

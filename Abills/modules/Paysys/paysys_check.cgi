@@ -163,6 +163,9 @@ sub payments {
   elsif($FORM{rupay_action}) {
   	rupay_payments();
    }
+  elsif ($FORM{id_ups}) {
+  	ukrpays_payments();
+   }
   elsif($FORM{smsid}) {
     smsproxy_payments();
     exit;
@@ -377,6 +380,7 @@ my $code = mk_unique_value(8);
 #Info section  
  my ($transaction_id, $m_secs)=split(/\./, $FORM{smsid}, 2);
  
+
  my $er = 1;
  $payments->exchange_info(0, { SHORT_NAME => "SMSPROXY"  });
  if ($payments->{TOTAL} > 0) {
@@ -698,15 +702,15 @@ elsif($FORM{LMI_HASH}) {
 # http://ukrpays.com/
 #
 #**********************************************************
-sub wm_ukrpays {
+sub ukrpays_payments {
 #Pre request section
-if($FORM{hash}) {
-  
-  $md5->reset;
 
+
+if($FORM{hash}) {
+  $md5->reset;
 	$md5->add($FORM{id_ups}); 
 	$md5->add($FORM{login});
-  $md5->add($FORM{summ});
+  $md5->add($FORM{amount});
   $md5->add($FORM{date}); 
   $md5->add($conf{PAYSYS_UKRPAYS_SECRETKEY});
 
@@ -737,16 +741,23 @@ if($FORM{hash}) {
     #   }
     # }
     
-    #my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
     $payments->add($user, {SUM          => $FORM{amount},
     	                     DESCRIBE     => 'Ukrpays', 
     	                     METHOD       => '2', 
-  	                       EXT_ID       => $FORM{OPERATION_ID}, 
+  	                       EXT_ID       => "UKRPAYS:$FORM{id_ups}", 
+  	                       CHECK_EXT_ID => "UKRPAYS:$FORM{id_ups}", 
   	                       ER           => $er
   	                       } );  
 
     if ($payments->{errno}) {
-      $info = "PAYMENT ERROR: $payments->{errno}\n";
+      if ($payments->{errno} == 7) {
+        $info = "PAYMENTS DUBLICATE: UKRPAYS:$FORM{id_ups}\n";
+       }
+      else {
+        $info = "PAYMENT ERROR: $payments->{errno}\n";
+       }
+
+      
      }
     else {
     	$status = "Added $payments->{INSERT_ID}\n";
@@ -754,25 +765,41 @@ if($FORM{hash}) {
    }
   
   while(my($k, $v)=each %FORM) {
-    $info .= "$k, $v\n"; # if ($k =~ /LMI/);
+    $info .= "$k, $v\n" if ($k !~ /__B/);
    }
 
+  $status =~ s/'/\\'/g;
+
   #Info section  
-  $Paysys->add({ SYSTEM_ID      => 1, 
+  $Paysys->add({ SYSTEM_ID      => 6, 
   	             DATETIME       => '', 
   	             SUM            => $FORM{amount},
-  	             UID            => $FORM{UID}, 
-                 IP             => $FORM{IP},
-                 TRANSACTION_ID => "$FORM{SHOPORDERNUMBER}",
+  	             UID            => $FORM{login}, 
+                 IP             => $FORM{IP} || '0.0.0.0',
+                 TRANSACTION_ID => "UKRPAYS:$FORM{id_ups}",
                  INFO           => "STATUS, $status\n$info",
                  PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
-  $output2 .= "Paysys:".$Paysys->{errno} if ($Paysys->{errno});
+  if ($Paysys->{errno}) {
+    if ($Paysys->{errno}==7) {
+      $output2 = "TRANSACTION DUBLICATE: UKRPAYS:$FORM{id_ups}\n";
+     }
+    else {
+      $status = $output2;
+     }
+    $status = $output2;
+   }
+
   $output2 .= "CHECK_SUM: $checksum\n";
 }
 
+   print $status;
 }
+
+
+
+
 #**********************************************************
 # Webmoney MD5 validate
 #**********************************************************

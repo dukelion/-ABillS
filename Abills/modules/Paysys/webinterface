@@ -746,7 +746,7 @@ elsif ($FORM{LMI_PAYMENT_NO}) {
  }
   
 
-my %info = ();
+my %info = (UID => $LIST_PARAMS{UID});
 
 $html->tpl_show(_include('paysys_ukrpays_add', 'Paysys'), \%info);
 }
