@@ -378,3 +378,6 @@ $_CHANNELS='Channels';
 $_ABON_DISTRIBUTION='Abon. paymets distribution';
 
 $_CORRECTION='correction';
+$_ACCEPT_RULES='Rules Accepted';
+$_ACCEPT='Accept';
+$_CANCEL='Cancel';

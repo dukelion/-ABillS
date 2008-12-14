@@ -155,6 +155,9 @@ if ($uid > 0) {
  	  exit;
    }
   
+  
+  accept_rules() if ($conf{ACCEPT_RULES});
+  
   push @m, "17:0:$_PASSWD:form_passwd:::" if($conf{user_chg_passwd});
 
   mk_menu();
@@ -234,7 +237,7 @@ if ($uid > 0) {
   
   $OUTPUT{BODY}=$html->tpl_show(templates('form_client_main'), \%OUTPUT);
 
-}
+ }
 else {
   form_login();
 }
@@ -627,7 +630,38 @@ sub logout {
 	return 0;
 }
 
+#**********************************************************
+#
+# Report main interface
+#**********************************************************
+sub accept_rules {
+  my ($attr) = @_;
 
+  $user->pi({ UID => $user->{UID} });
+  if ($FORM{ACCEPT}) {
+    if ($user->{TOTAL} == 0) {
+      $user->pi_add({ UID => $user->{UID}, ACCEPT_RULES => 1 });
+     }
+    else {
+      $user->pi_change({ UID => $user->{UID}, ACCEPT_RULES => 1 });    
+     }
+
+    return 0;
+  }
+
+
+  if ($user->{ACCEPT_RULES}) {
+
+    return 0;
+   }
+
+  $html->tpl_show(templates('form_accept_rules'), $user);
+	
+  print $html->header();
+  $OUTPUT{BODY}="$html->{OUTPUT}";
+  print $OUTPUT{BODY};
+  exit;
+}
 
 #**********************************************************
 #
@@ -930,6 +964,9 @@ $table = $html->table({ width      => '100%',
                       });
 print $table->show();
 }
+
+
+
 
 #*******************************************************************
 # form_period

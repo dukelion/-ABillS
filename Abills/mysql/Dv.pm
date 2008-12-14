@@ -108,7 +108,8 @@ sub info {
    tp.month_fee,
    tp.postpaid_fee,
    tp.payment_type,
-   dv.join_service
+   dv.join_service,
+   dv.turbo_mode
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
    $WHERE;");
@@ -136,7 +137,8 @@ sub info {
    $self->{MONTH_ABON},
    $self->{POSTPAID_ABON}, 
    $self->{PAYMENT_TYPE},
-   $self->{JOIN_SERVICE}
+   $self->{JOIN_SERVICE},
+   $self->{TURBO_MODE}
   )= @{ $self->{list}->[0] };
   
   
@@ -221,12 +223,13 @@ sub add {
              cid,
              callback,
              port,
-             join_service)
+             join_service,
+             turbo_mode)
         VALUES ('$DATA{UID}', now(),
         '$DATA{TP_ID}', '$DATA{SIMULTANEONSLY}', '$DATA{STATUS}', INET_ATON('$DATA{IP}'), 
         INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'),
         '$DATA{CALLBACK}',
-        '$DATA{PORT}', '$DATA{JOIN_SERVICE}');", 'do');
+        '$DATA{PORT}', '$DATA{JOIN_SERVICE}', '$DATA{TURBO_MODE}');", 'do');
 
   return $self if ($self->{errno});
   $admin->action_add("$DATA{UID}", "ACTIVE");

@@ -456,6 +456,15 @@ sub dv_user {
   $Dv->{CALLBACK}         = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
   $Dv->{REGISTRATION_INFO}= $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1");
 
+  $Dv->{TURBO_MODE_SEL} = $html->form_select('TURBO_MODE', 
+                                          { 
+ 	                                          SELECTED     => $Dv->{TURBO_MODE},
+ 	                                          SEL_ARRAY    => [$_DISABLE, 
+ 	                                             $_ENABLE, 
+ 	                                             $_BLOCKED, 
+ 	                                             ],
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
 
 
   #Join Service
@@ -2879,9 +2888,9 @@ pROFILRE
   	    elsif ($val =~ /^S(\S+)/) {
   	    	$Dv->{ISG_CID_CUR}=$1;
   	     }
-            elsif ($val =~ /^N1TURBO_SPEED(\d+);(\d+)/) {
-              $Dv->{TURBO_MODE}=$2;
-             }
+        elsif ($val =~ /^N1TURBO_SPEED(\d+);(\d+)/) {
+          $Dv->{TURBO_MODE}=$2;
+         }
   	    elsif ($val =~ /^N1(TP_\d+)/) {
   	      $Dv->{CURE_SERVICE}=$1;
   	     }
@@ -3028,7 +3037,9 @@ pROFILRE
      }
   }
 
-  if ($conf{DV_ISG} && $conf{DV_TURBO_MODE}) {
+  
+  #Activate Cisco ISG Account
+  if ($conf{DV_ISG}) {
     if ($Dv->{CID} ne $Dv->{ISG_CID_CUR} || $Dv->{CID} eq '') {
       $html->message('info', $_INFO, "$_NOT_ACTIVE CID: $Dv->{ISG_CID_CUR} IP: $user->{REMOTE_ADDR} ");
       $html->form_main({ CONTENT => '',
@@ -3042,9 +3053,12 @@ pROFILRE
   	  $Dv->{IP}  = $user->{REMOTE_ADDR};
   	  $Dv->{CID} .= ' '.$html->color_mark($_NOT_ACTIVE, $_COLORS[6]);
   	 }
-    elsif($Dv->{TURBO_MODE}) {
-       $html->message('info', $_INFO, "TURBO $_ENABLE $Dv->{TURBO_MODE} sec.");
+   }
 
+  #Turbo mode Enable
+  if ($conf{DV_TURBO_MODE} && $Dv->{TURBO_MODE}) {
+    if($Dv->{TURBO_MODE}) {
+       $html->message('info', $_INFO, "TURBO $_ENABLE $Dv->{TURBO_MODE} sec.");
      } 
     else {
       $Dv->{SPEED_SEL} = $html->form_select('SPEED', 
@@ -4345,7 +4359,10 @@ sub dv_registration  {
 		$html->message('info', $_INFO, "$_REGISTRATION");
 	 }
 	
-  $html->tpl_show(_include('dv_registration', 'Dv'), $Dv, { ID => 'DV_REGISTRATION' });
+  $html->tpl_show(_include('dv_registration', 'Dv'), 
+      $Dv, 
+      { ID => 'DV_REGISTRATION' });
+
 	return 0;
 }
 

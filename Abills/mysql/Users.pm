@@ -234,7 +234,7 @@ sub pi_add {
 
   $self->query($db,  "INSERT INTO users_pi (uid, fio, phone, address_street, address_build, address_flat, 
           email, contract_id, contract_date, comments, pasport_num, pasport_date,  pasport_grant, zip, 
-          city $info_fields)
+          city, accept_rules $info_fields)
            VALUES ('$DATA{UID}', '$DATA{FIO}', '$DATA{PHONE}', \"$DATA{ADDRESS_STREET}\", 
             \"$DATA{ADDRESS_BUILD}\", \"$DATA{ADDRESS_FLAT}\",
             '$DATA{EMAIL}', '$DATA{CONTRACT_ID}', '$DATA{CONTRACT_DATE}',
@@ -243,7 +243,8 @@ sub pi_add {
             '$DATA{PASPORT_DATE}',
             '$DATA{PASPORT_GRANT}',
             '$DATA{ZIP}',
-            '$DATA{CITY}'
+            '$DATA{CITY}',
+            '$DATA{ACCEPT_RULES}'
             $info_fields_val );", 'do');
   
   return $self if ($self->{errno});
@@ -301,7 +302,8 @@ sub pi {
   pi.pasport_date,
   pi.pasport_grant,
   pi.zip,
-  pi.city
+  pi.city,
+  pi.accept_rules
   $info_fields
     FROM users_pi pi
     WHERE pi.uid='$UID';");
@@ -328,6 +330,7 @@ sub pi {
    $self->{PASPORT_GRANT},
    $self->{ZIP},
    $self->{CITY},
+   $self->{ACCEPT_RULES},
    @INFO_ARR
   )= @{ $self->{list}->[0] };
 	
@@ -366,7 +369,8 @@ my %FIELDS = (EMAIL          => 'email',
               PASPORT_DATE   => 'pasport_date',
               PASPORT_GRANT  => 'pasport_grant',
               ZIP            => 'zip',
-              CITY           => 'city'
+              CITY           => 'city',
+              ACCEPT_RULES   => 'accept_rules'
              );
 
 	my $list = $self->config_list({ PARAM => 'ifu*'});

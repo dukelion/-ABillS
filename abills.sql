@@ -87,6 +87,7 @@ CREATE TABLE `dv_calls` (
   `ex_output_octets_gigawords` smallint(4) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
   `join_service` int(11) unsigned NOT NULL default '0',
+  `turbo_mode` varchar(30) NOT NULL default '',
   KEY `user_name` (`user_name`),
   KEY `acct_session_id` (`acct_session_id`),
   KEY `uid` (`uid`)
@@ -832,6 +833,7 @@ CREATE TABLE `users_pi` (
   `pasport_grant` varchar(100) NOT NULL default '',
   `zip` varchar(7) NOT NULL default '',
   `city` varchar(20) NOT NULL default '',
+  `accept_rules` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`)
 ) ;
 

@@ -1195,7 +1195,10 @@ sub user_pi {
     $user_pi->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new'  }) ;
    }
 
-  
+  if ($conf{ACCEPT_RULES}) {
+    $user_pi->{ACCEPT_RULES} = ($user_pi->{ACCEPT_RULES}) ? $_YES :  $html->color_mark($html->b($_NO), $_COLORS[6]);
+   }
+
   $index=30;
   $html->tpl_show(templates('form_pi'), $user_pi);
 }

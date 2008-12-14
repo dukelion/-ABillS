@@ -1,4 +1,37 @@
 =====0.41=====
+  * 14.12.2008\\
+
+Добавлена возможность включения страницы ознакомления и принятия правил провайдера. Если 
+правила ещё не были приняты пользователем, при первом его заходе показываются правила. 
+Система разрешает пользоваться личным кабинетом только после подтверждения правил.\\
+Страница правил также работает для формы регистрации.
+
+Для включения даной функции используеться опция:
+  $conf{ACCEPT_RULES}=1;
+Темплейт отвечающий за данные правила:
+  form_accept_rules.tpl
+
+MySQL:\\
+  ALTER TABLE users_pi ADD COLUMN `accept_rules` tinyint(1) unsigned NOT NULL default '0';
+  ALTER TABLE dv_main  ADD COLUMN `turbo_mode` tinyint(1) unsigned NOT NULL default '0';
+  ALTER TABLE dv_calls ADD COLUMN `turbo_mode` varchar(30) NOT NULL default '';
+
+  * 09.12.2008\\
+Добавлена возможность организации автоматического переключения скорости при смене временных интервалов для NAS Mikrotik.\\
+
+Добавлена возможность добавлять сообщения об ошибке прямо в базу. Опция $conf{ERROR2DB}=1; Разрешает использовать удалённые сервера доступа и несколько радиус серверов. Более гибкая система выборки логов.\\
+MySQL:\\
+  CREATE TABLE `errors_log` (
+    `date` datetime NOT NULL,
+    `log_type` tinyint(3) unsigned NOT NULL DEFAULT '0',
+    `action` varchar(10) NOT NULL,
+    `user` varchar(20) NOT NULL,
+    `message` varchar(120) NOT NULL,
+    KEY `user` (`user`),
+    KEY `date` (`date`),
+    KEY `log_type` (`log_type`)
+  ) COMMENT='Error log';
+
   * 06.12.2008\\
 Добоработан модуль [[http://abills.net.ua/wiki/doku.php?id=abills:docs:modules:dhcphosts:ru#leases2db.pl|Dhcphosts]]. Добавлен leases2db.pl агент который переводит данные из dhcp.leases в базу.
 MySQL:\\

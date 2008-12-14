@@ -6,6 +6,7 @@
 <input type=hidden name=UID value='%UID%'>
 <TABLE width=420 cellspacing=0 cellpadding=3>
 <TR><TD>$_FIO:*</TD><TD><textarea name='FIO' rows=2 cols=45>%FIO%</textarea>
+<TR><TD>$_ACCEPT_RULES:</TD><TD>%ACCEPT_RULES%</TD></TR>
 <TR><TD>$_PHONE:</TD><TD><input type=text name=PHONE value='%PHONE%'></TD></TR>
 <TR><TD>$_ADDRESS_STREET:</TD><TD><input type=text name=ADDRESS_STREET value='%ADDRESS_STREET%'></TD></TR>
 <TR><TD>$_ADDRESS_BUILD:</TD><TD><input type=text name=ADDRESS_BUILD value='%ADDRESS_BUILD%'> $_ADDRESS_FLAT:<input type=text name=ADDRESS_FLAT value='%ADDRESS_FLAT%' size=8></TD></TR>
