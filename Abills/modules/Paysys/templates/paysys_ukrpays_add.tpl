@@ -1,4 +1,4 @@
-<FORM ACTION='https://ukrpays.com/указанный адрес' method='POST'>
+<FORM ACTION='$conf{PAYSYS_UKRPAYS_URL}' method='POST'>
 <INPUT TYPE='HIDDEN' NAME='OPERATION_ID' VALUE='$FORM{OPERATION_ID}'>
 
 <input type='hidden' name='login' value='%UID%'>
