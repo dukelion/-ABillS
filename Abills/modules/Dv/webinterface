@@ -776,7 +776,7 @@ elsif ($FORM{hangup}) {
   $html->message('info', $_INFO, "$message");
  }
 if ($FORM{zapall}) {
-  $sessions->zap(0, 0, 0, { ALL => 1 });
+  $sessions->zap(0, 0, 0, { ALL => 1, %FORM });
   $html->message('info', $_INFO, "Zapped all sessions");
  }
 elsif($FORM{zap}) {
@@ -784,7 +784,7 @@ elsif($FORM{zap}) {
   
   
   my($nas_id, $nas_port_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
-  $sessions->zap($nas_id, $nas_port_id, $acct_session_id);
+  $sessions->zap($nas_id, $nas_port_id, $acct_session_id, { %FORM });
 
   if ($sessions->{errno}) {
   	 $html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
@@ -953,6 +953,7 @@ if ($sessions->{TOTAL} > 500)  {
                             cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right', 'right',  'right', 'center:noprint' ],
                             qs         => $pages_qs,
                             ID         => 'ONLINE'
+                            
                          } );
 
   foreach my $line (@$list) {
@@ -1029,7 +1030,19 @@ $table = $html->table( { width      => '100%',
                             title      => [ @CAPTION, '-', '-', '-' ],
                             cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
-                            ID         => 'ONLINE'
+                            ID         => 'ONLINE',
+                            header     => ($FORM{ZAPED}) ? "<script language=\"JavaScript\" type=\"text/javascript\">
+<!-- 
+function CheckAllINBOX() {
+  for (var i = 0; i < document.users_list.elements.length; i++) {
+    if(document.users_list.elements[i].type == 'checkbox' && document.users_list.elements[i].name == 'dellist'){
+      document.users_list.elements[i].checked =         !(document.users_list.elements[i].checked);
+    }
+  }
+}
+//-->
+</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n" : undef
+
                          } );
 
 my $online = $sessions->{nas_sorted};
@@ -1045,7 +1058,7 @@ foreach my $nas_row (@$nas_list) {
   my $total = $#{@$l} + 1;  
   $table->{rowcolor}=$_COLORS[0];
   $table->{extra}="colspan='". ($#CAPTION +1 ) . "' class='small'";
-  $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]) .":$nas_row->[3]:$_TOTAL: $total" );
+  $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]) .":$nas_row->[3]:$_TOTAL: $total (". $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->[0]", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->[0]' ?" }) .')'  );
   
   
 
@@ -1149,7 +1162,8 @@ if ($FORM{ZAPED}) {
 	                       	                  ZAPED => 1,
 	                       	                  NAS_ID => $FORM{NAS_ID} },
 	                             SUBMIT  => { go    => "$_DEL" },
-	                             METHOD  => 'GET'
+	                             METHOD  => 'GET',
+	                             NAME    => 'users_list'
                             });
  }
 else {
@@ -2910,14 +2924,15 @@ pROFILRE
     elsif ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
     	$Dv->{ISG_CID_CUR} = dv_get_isg_mac($Dv->{ISG_CID_CUR});
     	if ($Dv->{ISG_CID_CUR} eq '') {
-    		$html->message('err', $_ERROR, "Can't find MAC in DHCP");
+    		$html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC: $_NOT_EXIST. DHCP $_ERROR ");
+
+        return 0; 
     	 }
      }
 
-    if ($Dv->{ISG_CID_CUR}) {
 
-
-  	  #change speed 
+ if ($Dv->{ISG_CID_CUR}) {
+   #change speed 
    if ($FORM{SPEED}) {
         if ($Dv->{CURE_SERVICE} =~ /TP/ || ! $Dv->{TURBO_MODE} ) {
            my $service_name = 'TURBO_SPEED'. $FORM{SPEED};

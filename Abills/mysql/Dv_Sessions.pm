@@ -463,12 +463,16 @@ sub zap {
   my ($nas_id, $nas_port_id, $acct_session_id, $attr)=@_;
   
   my $WHERE = '';
-  
-  if (! defined($attr->{ALL})) {
+
+  if ($attr->{NAS_ID}) {
+  	$WHERE = "WHERE nas_id='$attr->{NAS_ID}'";
+   }  
+  elsif (! defined($attr->{ALL})) {
     $WHERE = "WHERE nas_id='$nas_id' and nas_port_id='$nas_port_id' and acct_session_id='$acct_session_id'";
    }
 
   $self->query($db, "UPDATE dv_calls SET status='2' $WHERE;", 'do');
+
   return $self;
 }
 

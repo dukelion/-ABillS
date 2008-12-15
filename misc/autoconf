@@ -16,7 +16,7 @@ my $config_file = $Bin . '/../libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
 $conf{WORK_DIR}=$Bin;
-my $debug=5;
+my $debug=1;
 require $Bin . '/../Abills/Base.pm';
 Abills::Base->import();
 
@@ -28,6 +28,7 @@ if(! -f $config_file ) {
      'dbname'    => 'abills',
      'dbuser'    => 'abills',
      'dbpasswd'  => 'sqlpassword',
+     'dbcharset' => 'cp1251',
      'ADMIN_MAIL'=> '',
      'WEB_TITLE' => ''
     );
@@ -123,7 +124,7 @@ if(! -f $config_file ) {
          chop($read = <STDIN>);
          $mysql_root_passwd = $read if ($read ne '');
         
-         $res = `$mysql -u $mysql_root_user --password=$mysql_root_passwd -e "select version();"`; 
+         $res = `$mysql --default-character-set=$conf{dbcharset} -u $mysql_root_user --password=$mysql_root_passwd -e "select version();"`; 
          if ($res !~ /Unknown database/) {
            if (confirm_yn("Your DB not configure for ABillS using. Configure? ", "y")) {
               print "Make users\n";
@@ -133,10 +134,10 @@ if(! -f $config_file ) {
                  "CREATE DATABASE $mk_config{dbname};".
                  "flush privileges;";
 
-              $res = `$mysql -u $mysql_root_user --password='$mysql_root_passwd' -e "$add_mysql_user"`;
+              $res = `$mysql --default-character-set=$conf{dbcharset} -u $mysql_root_user --password='$mysql_root_passwd' -e "$add_mysql_user"`;
               print $res;
               print "Upload Main Dump and modules\n";
-              $res = `$mysql -u $mysql_root_user --default-character-set=$conf{dbcharset} --password='$mysql_root_passwd' -D $mk_config{dbname} < ../abills.sql`;
+              $res = `$mysql --default-character-set=$conf{dbcharset} -u $mysql_root_user --default-character-set=$conf{dbcharset} --password='$mysql_root_passwd' -D $mk_config{dbname} < ../abills.sql`;
             } 
           }
          else {
