@@ -757,7 +757,7 @@ sub msgs_user {
            FILENAME     => $FORM{FILE_UPLOAD}{filename},
            CONTENT_TYPE => $FORM{FILE_UPLOAD}{'Content-Type'},
            UID          => $user->{UID},
-           ESSAGE_TYPE  => 1
+           MESSAGE_TYPE  => 1
           });
         }      
 
