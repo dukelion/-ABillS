@@ -166,6 +166,9 @@ sub payments {
   elsif ($FORM{id_ups}) {
   	ukrpays_payments();
    }
+  elsif ($FORM{SIGN}) {
+  	usmp_payments();
+   }
   elsif($FORM{smsid}) {
     smsproxy_payments();
     exit;
@@ -183,7 +186,6 @@ sub payments {
 #
 #**********************************************************
 sub osmp_payments {
-
 
  print "Content-Type: text/xml\n\n";
 # print "Content-Type: text/html\n\n";
@@ -270,8 +272,8 @@ elsif ($command eq 'pay') {
     $payments->add($user, {SUM          => $FORM{sum},
     	                     DESCRIBE     => 'OSMP', 
     	                     METHOD       => '2', 
-  	                     EXT_ID       => "OSMP:$FORM{txn_id}",
-  	                     CHECK_EXT_ID => "OSMP:$FORM{txn_id}" } );  
+  	                       EXT_ID       => "OSMP:$FORM{txn_id}",
+  	                       CHECK_EXT_ID => "OSMP:$FORM{txn_id}" } );  
 
 
     #Exists
@@ -324,6 +326,84 @@ exit;
 }
 
 
+#**********************************************************
+# http://usmp.com.ua/
+#**********************************************************
+sub usmp_payments {
+
+
+eval { require Crypt::OpenSSL::RSA; };
+if (! $@) {
+   Crypt::OpenSSL::RSA->import();
+ }
+else {
+   print "Content-Type: text/html\n\n";
+   print "Can't load 'Crypt::OpenSSL::RSA' check http://www.cpan.org";
+   exit;
+ }
+
+
+my $CHECK_FIELD = $conf{PAYSYS_USMP_ACCOUNT_KEY} || 'UID';
+
+my $id    = $FORM{'ID'};
+my $accid = $FORM{'ACCOUNT'};
+my $summ  = $FORM{'SUM'};
+my $sign  = $FORM{'SIGN'};
+my $hash  = $FORM{'HASH'};
+my $date  = $FORM{'DATE'};
+
+my $err_code = 0;
+
+#Check user account
+my $list = $users->list({ $CHECK_FIELD => $accid });
+
+my $user ;
+if ($users->{errno}) {
+  err_trap(7);
+ }
+elsif ($users->{TOTAL} < 1) {
+  $err_code = 2
+ }
+else {
+  my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+	$user = $users->info($uid); 
+}
+
+if (!$err_code) {    
+	$date =~ s/\s/%20/;
+	$date =~ s/:/%3A/g;
+	my $data = "account=" . $accid . "&date=" . $date . "&hash=" . $hash . "&id=" . $id . "&sum=" . $summ . "&testMode=0&type=1";
+	my $rsa_pub = Crypt::OpenSSL::RSA->new_public_key(read_public_key($conf{PAYSYS_USMP_KEYFILE}));
+
+	$rsa_pub->use_md5_hash();
+	my $signature = pack('H*', $sign);
+	if ($rsa_pub->verify($data, $signature)) {
+    $payments->add($user, {SUM          => $summ,
+     	                     DESCRIBE     => 'USMP', 
+    	                     METHOD       => '2', 
+    	                     EXT_ID       => "USMP:$id",
+  	                       CHECK_EXT_ID => "USMP:$id" } );  
+    if ($users->{errno}) {
+      err_trap(7);
+     }  
+
+    $Paysys->add({ SYSTEM_ID   => 7, 
+ 	              DATETIME       => "'$DATE $TIME'", 
+ 	              SUM            => "$summ",
+  	            UID            => "$accid", 
+                IP             => '0.0.0.0',
+                TRANSACTION_ID => "USMP:$id",
+                INFO           => "STATUS: $err_code",
+                PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+               });
+
+     }
+   }    
+
+
+print "code=$err_code&message=Done&date=" . get_date();
+
+}
 
 
 #**********************************************************
@@ -798,7 +878,48 @@ if($FORM{hash}) {
 }
 
 
+#**********************************************************
+# Read Public Key
+#**********************************************************
+sub read_public_key {
+  my ($filename) = @_;
+  my $cert = "";
 
+  open (CERT, "$filename") || die "Can't open '$filename' $!\n";
+    while (<CERT>) {
+     	$cert .= $_;
+     }
+  close CERT;
+
+  return $cert;        
+}
+
+#**********************************************************
+# Error Trap
+#**********************************************************
+sub err_trap {
+  my ($err_code) = @_;
+  print "code=$err_code";
+  die "Database error: $DBI::errstr\n";
+}
+
+
+#**********************************************************
+# Get Date
+#**********************************************************
+sub get_date {
+    my ($sec, $min, $hour, $mday, $mon, $year) = (localtime time)[0, 1, 2, 3, 4, 5];
+    $year -= 100;
+    $mon++;
+    $year = "0$year" if $year < 10;
+    $mday = "0$mday" if $mday < 10;
+    $mon = "0$mon" if $mon < 10;
+    $hour = "0$hour" if $hour < 10;
+    $min = "0$min" if $min < 10;
+    $sec = "0$sec" if $sec < 10;
+    
+    return "$mday.$mon.$year $hour:$min:$sec";
+}
 
 #**********************************************************
 # Webmoney MD5 validate
