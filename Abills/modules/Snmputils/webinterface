@@ -812,12 +812,12 @@ sub snmputils_dlink_pb_add {
 
   my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
 
-	my $sw_info = $attr->{SWITCH_INFO} || snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
+	my $sw_info   = $attr->{SWITCH_INFO} || snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
-	my $ip   = $attr->{IP}   || '0.0.0.0';
+	my $ip        = $attr->{IP}   || '0.0.0.0';
   #my $port = $attr->{PORT} || 0;
   my $port_list = $attr->{PORT_ID} || '';
-  my $mac  = $attr->{MAC}  || 0;
+  my $mac       = $attr->{MAC}  || 0;
 	
 	
 	my $oid_prefix = $sw_info->{oid_prefix};
@@ -877,7 +877,9 @@ sub snmputils_dlink_pb_add {
 #  	$port_array[$i]=(in_array(($i+1), \@get_arr)) ? 1 : 0;
 #   }
 
-  my @ar = unpack("H2H2H2H2", pack("B32", join("", @port_array)));
+  my $unpack_ = ($sw_info->{version} =~ /3550/) ? "H2H2H2H2H2H2H2" : "H2H2H2H2";
+
+  my @ar = unpack("$unpack_", pack("B48", join("", @port_array)));
 
   my $port_binding = '';
   foreach my $c (@ar) {
@@ -890,7 +892,7 @@ sub snmputils_dlink_pb_add {
   	$message .= "Ok\n";
    }
   else {
-    print "$oid_prefix / $oid_sufix{PORT} / $ip => $port_binding\n";
+    print "PORT: $oid_prefix / $oid_sufix{PORT} / $ip => $port_binding\n";
     print "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
    }
 

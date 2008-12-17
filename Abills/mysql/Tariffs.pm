@@ -381,7 +381,7 @@ sub defaults {
             FILTER_ID            => '',
             PAYMENT_TYPE         => 0,
             MIN_SESSION_COST     => '0.00000',
-            RAD_PAIRS               => '',
+            RAD_PAIRS            => '',
             TRAFFIC_TRANSFER_PERIOD => 0,
             NEG_DEPOSUT_FILTER_ID   => '',
             TP_GID           => 0,
@@ -461,6 +461,8 @@ sub change {
   $attr->{EXT_BILL_ACCOUNT}=0  if (! $attr->{EXT_BILL_ACCOUNT});
   $attr->{PERIOD_ALIGNMENT}=0  if (! $attr->{PERIOD_ALIGNMENT});
   $attr->{ABON_DISTRIBUTION}=0 if (! $attr->{ABON_DISTRIBUTION});
+
+   $self->{debug}=1;
 
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',

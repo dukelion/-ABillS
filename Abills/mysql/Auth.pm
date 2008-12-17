@@ -662,6 +662,7 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
         my $left=$1;
         my $right=$2;
 
+        $right =~ s/\"//g;
         push( @{ $RAD_PAIRS->{"$left"} }, $right ); 
        }
       else {
