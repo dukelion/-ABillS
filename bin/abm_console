@@ -13,7 +13,7 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
 
 #use strict;
 
-my $version = 0.4;
+my $version = 0.5;
 
 
 use FindBin '$Bin';
@@ -46,6 +46,7 @@ require Admins;
 Admins->import();
 $admin = Admins->new($db, \%conf);
 
+$admin->{SESSION_ID}='0.0.0.0';
 
 my $ARGV = parse_arguments(\@ARGV);
 my $retries          = 0;
@@ -86,8 +87,16 @@ require  Dv;
 Dv->import();
 my $Dv = Dv->new($db, $admin, \%conf);
 
+my %LIST_PARAMS = ();
+
+$LIST_PARAMS{PAGE_ROWS}= ($ARGV->{PAGE_ROWS}) ? $ARGV->{PAGE_ROWS} : 1000000;
+$LIST_PARAMS{DATE}=$ARGV->{DATE} || '';
+
+#Intercat mode
+my $interact = 0;
 
 if ($#ARGV == -1) {
+  $interact=1;
   while($retries < $max_acccess_rets) {
     my $res =  check_permissions("$REMOTE_USER", "$REMOTE_PASSWD");
     if ($res == 1) {
@@ -123,9 +132,13 @@ if ($#ARGV == -1) {
    }
 }
 
+my $res =  check_permissions("$REMOTE_USER", "$REMOTE_PASSWD");
 
 if ($ARGV->{DV_USER}) {
 	dv_users();
+ }
+elsif ($ARGV->{PAYMENTS}) {
+  form_payments();
  }
 elsif ($ARGV->{LOGIN}) {
 	
@@ -481,11 +494,19 @@ sub check_permissions {
 sub help {
 print << "[END]";
 abm_console console ABillS managment
-  ACTION=- some user actions (add,del,change,info(default))
-  LOGIN= - show user info
+  ACTION=          - some user actions (add,del,change,info(default))
+  PAYMENTS=[login] - info (default), ADD, DEL 
+   Extended:
+    DATE           - DATE
+    METHOD         - Method ID 
+    UID            - UID
+    LOGIN          - User Login
 
-  USER   - Get session info from /var/log/ppp.log for user USER
-  PID    - Get INfo for PID
+  LOGIN=           - show user info
+
+  USER             - Get session info from /var/log/ppp.log for user USER
+  PID              - Get Info for PID
+  
 
 [END]
 
@@ -659,6 +680,7 @@ sub form_fees {
 sub form_payments {
   my ($attr) = @_;
 
+if ($interact) {
   print ">> $_PAYMENTS:\n";
 
   my @params = ("$_SUM (0.00):SUM",
@@ -682,6 +704,30 @@ sub form_payments {
        }
      }
    }
+ }
+
+my @args = ('ADD', 'DEL', 'METHOD', 'DATE');
+foreach my $a (@args) {
+  if (defined($ARGV->{$a})) {
+  	$LIST_PARAMS{$a}=$ARGV->{$a};
+   }
+}
+
+my $list = $payments->list({ %LIST_PARAMS });
+foreach my $line (@$list) {
+	printf("%-5d| %-16s|%19s|%11f|%-20s|\n", 
+	 $line->[0],
+	 $line->[1],
+	 $line->[2],
+	 $line->[3],
+	 $line->[5],
+  );
+
+  if ($ARGV->{DEL}) {
+  	$payments->del({ UID => $line->[11] }, $line->[0]);
+  	print "$_DEL\n";
+   }
+}
 
   return 0;
 }
