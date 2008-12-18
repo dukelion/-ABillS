@@ -1162,7 +1162,7 @@ if ($FORM{ZAPED}) {
 	                       	                  ZAPED => 1,
 	                       	                  NAS_ID => $FORM{NAS_ID} },
 	                             SUBMIT  => { go    => "$_DEL" },
-	                             METHOD  => 'GET',
+	                             METHOD  => 'POST',
 	                             NAME    => 'users_list'
                             });
  }
