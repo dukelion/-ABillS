@@ -1170,10 +1170,10 @@ else {
   $output .= $html->form_main({ CONTENT => $table2->show(). $table->show(),
 	                              HIDDEN  => { index  => "$index",
 	                              	           NAS_ID => $FORM{NAS_ID}},
-	                              METHOD  => 'GET'
+	                              METHOD  => 'POST'
                               });
 
-  $output .= $html->button('Zap All', "index=$index&zapall=y", { MESSAGE => "Do you realy want zap all sessions ?" });
+  $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want ZAP all sessions ?" });
  }
 
 
