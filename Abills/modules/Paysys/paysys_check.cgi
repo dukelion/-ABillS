@@ -166,7 +166,7 @@ sub payments {
   elsif ($FORM{id_ups}) {
   	ukrpays_payments();
    }
-  elsif ($FORM{SIGN}) {
+  elsif ($FORM{sign}) {
   	usmp_payments();
    }
   elsif($FORM{smsid}) {
@@ -328,6 +328,9 @@ exit;
 
 #**********************************************************
 # http://usmp.com.ua/
+# Example:
+# /paysys_check.cgi?account=638&date=13.12.08%2001%3A42%3A21&hash=5237893&id=138&sum=66&testMode=0&type=1&sign=a97e377896b2630fe491d6e0d79a8f484bf357b4f5c5197e8ffc7466d1b6693d0dc892e1380ab4104bc920ccfdc808fe898524330bcefd7c7c2407668a9a845f47f693202119820cce77928a377a316c99c561c5d81811f929d3b39c0e37d893901f35e30352e3e8acd49abcbbe2033c3847d81c0bd06728d24f36e116be6d49
+#
 #**********************************************************
 sub usmp_payments {
 
@@ -345,12 +348,12 @@ else {
 
 my $CHECK_FIELD = $conf{PAYSYS_USMP_ACCOUNT_KEY} || 'UID';
 
-my $id    = $FORM{'ID'};
-my $accid = $FORM{'ACCOUNT'};
-my $summ  = $FORM{'SUM'};
-my $sign  = $FORM{'SIGN'};
-my $hash  = $FORM{'HASH'};
-my $date  = $FORM{'DATE'};
+my $id    = $FORM{'id'};
+my $accid = $FORM{'account'};
+my $summ  = $FORM{'sum'};
+my $sign  = $FORM{'sign'};
+my $hash  = $FORM{'hash'};
+my $date  = $FORM{'date'};
 
 my $err_code = 0;
 
@@ -359,7 +362,7 @@ my $list = $users->list({ $CHECK_FIELD => $accid });
 
 my $user ;
 if ($users->{errno}) {
-  err_trap(7);
+  err_trap(7, $users->{errstr});
  }
 elsif ($users->{TOTAL} < 1) {
   $err_code = 2
@@ -383,9 +386,10 @@ if (!$err_code) {
     	                     METHOD       => '2', 
     	                     EXT_ID       => "USMP:$id",
   	                       CHECK_EXT_ID => "USMP:$id" } );  
-    if ($users->{errno}) {
-      err_trap(7);
+    if ($payments->{errno}) {
+      err_trap(7, $payments->{errstr});
      }  
+    
 
     $Paysys->add({ SYSTEM_ID   => 7, 
  	              DATETIME       => "'$DATE $TIME'", 
@@ -690,7 +694,7 @@ elsif($FORM{LMI_HASH}) {
 # http://portmone.com.ua/
 #
 #**********************************************************
-sub wm_portmone {
+sub portmone_payments {
 
 
 
@@ -898,9 +902,9 @@ sub read_public_key {
 # Error Trap
 #**********************************************************
 sub err_trap {
-  my ($err_code) = @_;
+  my ($err_code, $error) = @_;
   print "code=$err_code";
-  die "Database error: $DBI::errstr\n";
+  die "Paysys database error: $error\n";
 }
 
 

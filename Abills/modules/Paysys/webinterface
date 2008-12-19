@@ -25,7 +25,8 @@ my %PAY_SYSTEMS = (1 => "Webmoney",
                    3 => "SMSProxy",
                    4 => "OSMP",
                    5 => "Portmone",
-                   6 => "Ukrpays"
+                   6 => "Ukrpays",
+                   7 => "USMP"
                   );
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
