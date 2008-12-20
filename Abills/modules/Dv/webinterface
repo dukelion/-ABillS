@@ -2816,6 +2816,7 @@ elsif($FORM{del}) {
 # dv_user_info
 #**********************************************************
 sub dv_user_info {
+  my $NAS_ID = 0;
   
   if ($conf{DV_ISG}) {
     print "Content-Type: text/html\n\n";
@@ -2825,6 +2826,7 @@ sub dv_user_info {
     
     foreach my $line (@$list) {
     	if ($line->[3] <= ip2int($user->{REMOTE_ADDR}) && ip2int($user->{REMOTE_ADDR}) <= $line->[4]) {
+    		$NAS_ID = $line->[0];
     		$nas->info({ NAS_ID => $line->[0] });
     		next;
     	 }
@@ -2915,8 +2917,8 @@ pROFILRE
 #	  $Dv->{ISG_CID_CUR} = '192.168.0.1';
 	  #
  	  if ($RAD_PAIRS{'Error-Cause'}) {
- 	  	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
-
+ 	  	$html->message('err', $_ERROR, "NAS: $NAS_ID, $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
+      return 0;
  	   }
     elsif(! $Dv->{ISG_CID_CUR}) {
     	$html->message('err', $_ERROR, "$_NOT_EXIST ID: '$user->{REMOTE_ADDR}' ");

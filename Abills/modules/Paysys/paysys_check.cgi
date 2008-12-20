@@ -376,6 +376,13 @@ if (!$err_code) {
 	$date =~ s/\s/%20/;
 	$date =~ s/:/%3A/g;
 	my $data = "account=" . $accid . "&date=" . $date . "&hash=" . $hash . "&id=" . $id . "&sum=" . $summ . "&testMode=0&type=1";
+	
+	if (! -f $conf{PAYSYS_USMP_KEYFILE}) {
+		print "code=2";
+		print "Can't find cert file.";
+		return 0;
+	 }
+	
 	my $rsa_pub = Crypt::OpenSSL::RSA->new_public_key(read_public_key($conf{PAYSYS_USMP_KEYFILE}));
 
 	$rsa_pub->use_md5_hash();
