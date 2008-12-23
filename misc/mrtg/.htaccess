@@ -4,7 +4,7 @@ deny from all
 #allow from 192.168.101.4
 AuthType Basic
 AuthName "Admin Area"
-AuthUserFile /usr/abills/users
+AuthUserFile /usr/abills/libexec/web_users
 Satisfy Any
 require valid-user
 

@@ -1,3 +1,4 @@
+:DEFAULT:WEB_ACCESS_USER=admin:Web access user
 :OS=FREEBSD,!REMOTE_NAS=1: */5     *       *       *       *       root  /usr/local/bin/mrtg /usr/local/etc/mrtg/mrtg.cfg >> [/etc]/crontab
 mrtg.cfg > [/usr/local/etc/mrtg]/mrtg.cfg 
 :OS=FREEBSD,!REMOTE_NAS=1:exec:mkdir /usr/abills/webreports; chown www /usr/abills/webreports; chown www /usr/local/etc/mrtg/
@@ -7,4 +8,5 @@ mrtg.cfg > [/usr/local/etc/mrtg]/mrtg.cfg
 :OS=FREEBSD,REMOTE_NAS=1:rstats         30003/tcp >> /etc/services
 :OS=FREEBSD,REMOTE_NAS=1:rstats  stream  tcp     nowait  root    /usr/local/sbin/rstats rstats >> /etc/inetd.conf
 :OS=FREEBSD,REMOTE_NAS=1:exec:/etc/rc.d/inetd restart
-
+:PASSWORD=1:FILE=.htaccess  > /usr/abills/webreports/.htaccess
+:PASSWORD=1:exec:htpasswd -c /usr/abills/libexec/web_users %WEB_ACCESS_USER%

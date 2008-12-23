@@ -381,3 +381,4 @@ $_CORRECTION='correction';
 $_ACCEPT_RULES='Rules Accepted';
 $_ACCEPT='Accept';
 $_CANCEL='Cancel';
+$_NEGATIVE_DEPOSIT='Negative Deposit';

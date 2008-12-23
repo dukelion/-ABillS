@@ -576,9 +576,9 @@ sub list {
       dv.tp_id, 
       u.activate, 
       u.expire, 
-      if(u.company_id > 0, company.bill_id, u.bill_id),
+      if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id,
       u.reduction,
-      if(u.company_id > 0, company.ext_bill_id, u.ext_bill_id)
+      if(u.company_id > 0, company.ext_bill_id, u.ext_bill_id) AS ext_bill_id
      FROM (users u, dv_main dv)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON (u.bill_id = b.id)

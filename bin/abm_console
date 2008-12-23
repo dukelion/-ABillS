@@ -13,8 +13,8 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
 
 #use strict;
 
-my $version = 0.5;
-
+my $version = 0.7;
+my $debug   = 0;
 
 use FindBin '$Bin';
 require $Bin . '/../libexec/config.pl';
@@ -89,6 +89,7 @@ my $Dv = Dv->new($db, $admin, \%conf);
 
 my %LIST_PARAMS = ();
 
+$debug=($ARGV->{DEBUG}) ? $ARGV->{DEBUG} : $debug;
 $LIST_PARAMS{PAGE_ROWS}= ($ARGV->{PAGE_ROWS}) ? $ARGV->{PAGE_ROWS} : 1000000;
 $LIST_PARAMS{DATE}=$ARGV->{DATE} || '';
 
@@ -140,8 +141,13 @@ if ($ARGV->{DV_USER}) {
 elsif ($ARGV->{PAYMENTS}) {
   form_payments();
  }
-elsif ($ARGV->{LOGIN}) {
-	
+elsif ($ARGV->{PI}) {
+  $LIST_PARAMS{LOGIN_EXPR}=$ARGV->{PI} ;
+  form_users({ %$ARGV });
+ }
+elsif ($ARGV->{LOGIN_CHANGE}) {
+  $LIST_PARAMS{LOGIN_EXPR}=$ARGV->{LOGIN_CHANGE} ;
+  form_users({ %$ARGV });
  }
 elsif ($ARGV->{LOGPARSE}) {
   ppp_log_parser( $ARGV );
@@ -170,7 +176,7 @@ sub dv_users {
 		$Dv->change({ UID => $users->{UID}, %{ $ARGV } });
     
     if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-      $Dv->{ACTIVATE}= ($ARGV->{ACTIVATE}) ? $ARGV->{ACTIVATE} : $users->{ACTIVATE};
+      $Dv->{ACTIVATE}=($ARGV->{ACTIVATE}) ? $ARGV->{ACTIVATE} : $users->{ACTIVATE};
       dv_get_month_fee($Dv);
      }
 
@@ -501,12 +507,12 @@ abm_console console ABillS managment
     METHOD         - Method ID 
     UID            - UID
     LOGIN          - User Login
-
+  PI=              - Personal info
   LOGIN=           - show user info
 
   USER             - Get session info from /var/log/ppp.log for user USER
   PID              - Get Info for PID
-  
+  DEBUG            - Debug mode
 
 [END]
 
@@ -581,6 +587,8 @@ sub form_pi {
 sub form_users {
   my ($attr)=@_;
 
+
+if ($interact) {
   my @user_functions = ("<-:help",
                         "EXIT:exit");
                         #"$_INFO:user_pi");
@@ -634,9 +642,42 @@ sub form_users {
   	   print "$line->[0], $line->[1], $line->[2], $line->[3], ". $status[$line->[4]] ."\n";
      }
    }
+  return 0;
+ }
+
+
+  if (! $attr->{UID}) {
+ 	  my $list = $users->list({ %LIST_PARAMS });
+
+    if ($users->{TOTAL} == 1) {
+      $LIST_PARAMS{UID} = $list->[0]->[5 + $users->{SEARCH_FIELDS_COUNT}];
+      
+     }
+  	else {
+  		print "User not found. LOGIN: '$LIST_PARAMS{LOGIN_EXPR}'\n";
+  		return 0;
+  	 }
+   }
+
+  if ($attr->{PI}) {
+    $users->pi_change({ %$attr, UID => $LIST_PARAMS{UID} });
+   }
+  else {
+  	$users->change($LIST_PARAMS{UID}, { %$attr, UID => $LIST_PARAMS{UID} });
+   }
+
+  if (! $users->{errno}) {
+    print "Change! \n";
+   }
+  else {
+  	print "[$users->{errno}] $users->{errstr}\n";
+   }
+
 
   return 0;
 }
+
+
 
 
 
@@ -704,6 +745,8 @@ if ($interact) {
        }
      }
    }
+
+  return 0;
  }
 
 my @args = ('ADD', 'DEL', 'METHOD', 'DATE');
