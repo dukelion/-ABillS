@@ -2838,7 +2838,7 @@ sub dv_user_info {
     print "Content-Type: text/html\n\n";
   	
   	my $nas = Nas->new($db, \%conf);
-    my $list = $nas->nas_ip_pools_list();
+    $list = $nas->nas_ip_pools_list();
     
     foreach my $line (@$list) {
     	if ($line->[3] <= ip2int($user->{REMOTE_ADDR}) && ip2int($user->{REMOTE_ADDR}) <= $line->[4]) {
