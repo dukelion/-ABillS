@@ -805,7 +805,7 @@ if($FORM{hash}) {
   $md5->add($FORM{date}); 
   $md5->add($conf{PAYSYS_UKRPAYS_SECRETKEY});
 
-  my $checksum = uc($md5->hexdigest());	
+  my $checksum = $md5->hexdigest();	
 
   my $info = '';
 	my $user = $users->info($FORM{login});
@@ -880,6 +880,9 @@ if($FORM{hash}) {
       $status = $output2;
      }
     $status = $output2;
+   }
+  else {
+  	$status = 'payment complete';
    }
 
   $output2 .= "CHECK_SUM: $checksum\n";
