@@ -107,6 +107,7 @@ if ($args->{DEBUG}) {
     my $i=0;
     while(my($k, $v)= each %PERIODIC) {
       if ($k eq 'daily') {
+        
         foreach my $funtion_name (@{ $PERIODIC{$k} })  {
           push @daily_functions, $funtion_name;
          }
@@ -148,7 +149,7 @@ if ($args->{DEBUG}) {
 push  @daily_functions, 'sheduler' if (! $args->{MODULES});
 my($Y, $M, $D);
 
-
+  #Make date asign function
   if(defined($args->{DATE})) {
      if ($args->{DATE} !~ /\d{4}\-\d{2}\-\d{2}/) {
        print "Wrong date format. Format: YYYY-MM-DD\n";
@@ -191,6 +192,7 @@ if (defined($args->{monthly})) {
  }
 elsif (defined($args->{daily})) {
   for(my $i=$#daily_functions; $i>-1; $i--) {
+    
     my $f = $daily_functions[$i];
     $DEBUG .= "==> FUNCTION: ". $f ."\n" if ($args->{DEBUG} && $args->{DEBUG} > 4);
     $f->({ %$args });

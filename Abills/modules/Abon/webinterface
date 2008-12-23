@@ -10,8 +10,8 @@ use Abon;
 use Fees;
 
 
-my $Abon = Abon->new($db, $admin, \%conf);
-my $fees     = Fees->new($db, $admin, \%conf);
+my $Abon    = Abon->new($db, $admin, \%conf);
+my $fees    = Fees->new($db, $admin, \%conf);
 my @PERIODS = ($_DAY, $_MONTH, $_YEAR);
 
 #*******************************************************************
@@ -308,8 +308,6 @@ sub abon_periodic {
   $Abon->{debug}=1 if ($debug > 7);
   my $list = $Abon->periodic_list({ %LIST_PARAMS });
 
- 
-exit;
  #at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
  # u.id, at.id, at.name,
  # if(c.name IS NULL, b.deposit, cb.deposit),
@@ -330,8 +328,9 @@ exit;
                    METHOD    => 1  );
     $PARAMS{DATE}=$DATE if ($DATE ne '');
 
+    $line->[8] = 0 if (! $line->[8]);
 
-print "$user{UID} - ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0\n" if (! $line->[8] );
+    #print "$user{UID} - ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0\n" if (! $line->[8] );
     if($line->[8] && ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
      	#Get day fee
      	if ($line->[0] == 0) {

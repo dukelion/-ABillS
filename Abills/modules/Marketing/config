@@ -3,7 +3,7 @@
 
 %FUNCTIONS_LIST = (
                    "01:0:Marketing:null:"               => 4,
-                   "02:1:$_REPORT 1:marketing_report1:" => 4,
+                   "02:1:_REPORT 1:marketing_report1:" => 4,
 		 );
 
 

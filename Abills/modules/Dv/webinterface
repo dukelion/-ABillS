@@ -3149,6 +3149,8 @@ sub dv_daily_fees {
 	my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
 
+ print "/usr/abills/libexec/periodic\n";
+
  $debug_output .= "DV: Daily periodic payments\n" if ($debug > 1);
  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
  my $list = $tariffs->list({ %LIST_PARAMS });
