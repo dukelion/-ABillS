@@ -2830,7 +2830,7 @@ sub dv_user_info {
        $html->message('err', $_ERROR, "$_NEGATIVE_DEPOSIT");
        return 0;
      }
-    elsif ($list->[0]->[5]) {
+    elsif ($list->[0]->[5] && $list->[0]->[5] == 1) {
        $html->message('err', $_ERROR, "$_SERVICES '$list->[0]->[4]' $_DISABLE");
        return 0;
      }
@@ -4409,7 +4409,7 @@ sub dv_registration  {
 sub dv_get_month_fee {
   my ($Dv, $attr) = @_;
 
-
+  #Get active price
   if ($Dv->{TP_INFO}->{ACTIV_PRICE}) {
     my $users = Users->new($db, $admin, \%conf); 
     my $user  = $users->info($Dv->{UID});
@@ -4423,9 +4423,10 @@ sub dv_get_month_fee {
    }
 
 
+  #Get month fee
   if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
 
-     my $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
+     my $sum   = $Dv->{TP_INFO}->{MONTH_FEE};
 
      my $users = Users->new($db, $admin, \%conf); 
      my $user  = $users->info($Dv->{UID});
@@ -4440,6 +4441,9 @@ sub dv_get_month_fee {
      #Current Month
      my ($y, $m, $d)=split(/-/, $DATE, 3);
      my ($active_y, $active_m, $active_d)=split(/-/, $Dv->{ACTIVATE}, 3);	 
+     if (int("$y$m$d") < int("$active_y$active_m$active_d")) {
+     	  return ;
+      }
 
         if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
         	$message = "$_MONTH_ALIGNMENT, ";
