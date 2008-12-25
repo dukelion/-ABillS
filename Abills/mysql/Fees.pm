@@ -212,7 +212,7 @@ sub list {
   }
 
  if (defined($attr->{METHOD}) && $attr->{METHOD} >=0) {
-    push @WHERE_RULES, "f.method IN ($attr->{METHODS}) ";
+    push @WHERE_RULES, "f.method IN ($attr->{METHOD}) ";
   }
 
  if ($attr->{SUM}) {

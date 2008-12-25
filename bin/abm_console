@@ -141,6 +141,9 @@ if ($ARGV->{DV_USER}) {
 elsif ($ARGV->{PAYMENTS}) {
   form_payments();
  }
+elsif ($ARGV->{FEES}) {
+  form_fees();
+ }
 elsif ($ARGV->{PI}) {
   $LIST_PARAMS{LOGIN_EXPR}=$ARGV->{PI} ;
   form_users({ %$ARGV });
@@ -687,6 +690,7 @@ if ($interact) {
 sub form_fees {
   my ($attr) = @_;
 
+if ($interact) {
   print ">> $_FEES:\n";
   my @params = ("$_SUM (0.00):SUM",
                 "$_DESCRIBE:DESCRIBE",
@@ -709,9 +713,36 @@ sub form_fees {
        }
      }
    }
+
+   return 0;
+ }
  
 
+my @args = ('ADD', 'DEL', 'METHOD', 'DATE');
+foreach my $a (@args) {
+  if (defined($ARGV->{$a})) {
+  	$LIST_PARAMS{$a}=$ARGV->{$a};
+   }
+}
+
+my $list = $fees->list({ %LIST_PARAMS });
+foreach my $line (@$list) {
+	printf("%-5d| %-16s|%19s|%11f|%-20s|\n", 
+	 $line->[0],
+	 $line->[1],
+	 $line->[2],
+	 $line->[3],
+	 $line->[5],
+  );
+
+  if ($ARGV->{DEL}) {
+  	$fees->del({ UID => $line->[11] }, $line->[0]);
+  	print "$_DEL\n";
+   }
+}
+
   return 0;
+ 
 }
 
 

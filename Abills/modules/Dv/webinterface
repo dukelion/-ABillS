@@ -178,9 +178,9 @@ elsif($FORM{del}) {
 
 my $tp_index = $index + 4;
 
-$tariffs->{UID}=$attr->{USER}->{UID};
-$tariffs->{m}=$m;
-$tariffs->{TP_ID} = $Dv->{TP_ID};
+$tariffs->{UID}     = $attr->{USER}->{UID};
+$tariffs->{m}       = $m;
+$tariffs->{TP_ID}   = $Dv->{TP_ID};
 $tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$Dv->{TP_ID}", { TITLE => "$_TP" } ). "]";
 
 
@@ -2821,12 +2821,16 @@ sub dv_user_info {
   if ($conf{DV_ISG}) {
     #Check depost and disable STATUS
     my $list = $Dv->list({ LOGIN         => $user->{LOGIN}, 
-                           # PAYMENTS_TYPE => 0 
+                           TP_CREDIT     => '>0',
+                           PAYMENTS_TYPE => 0 
                            });
+   
     if ($Dv->{TOTAL} < 1) {
        
      }
-    elsif ($list->[0]->[2]+$list->[0]->[3] < 0 ) {
+    elsif (($list->[0]->[3] > 0 && ($list->[0]->[2] + $list->[0]->[3] < 0)) || 
+           ($list->[0]->[3] == 0 && $list->[0]->[2] + $list->[0]->[6]) < 0 ) {
+       
        $html->message('err', $_ERROR, "$_NEGATIVE_DEPOSIT");
        return 0;
      }

@@ -524,6 +524,13 @@ sub list {
    $self->{SEARCH_FIELDS_COUNT}++;
   }
 
+ if (defined($attr->{PAYMENT_TYPE})) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_TYPE}, 'INT', 'tp.payment_type') };
+   $self->{SEARCH_FIELDS} .= 'tp.payment_type, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+
  # Show debeters
  if ($attr->{DEBETERS}) {
    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
