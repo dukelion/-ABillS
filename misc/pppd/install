@@ -7,4 +7,6 @@
 ip-up.local        > [/etc/ppp]/ip-up.local
 pptpd.conf         > [/etc]/pptpd.conf
 pptpd.options      > [/etc/ppp]/pptpd.options
+dictionary.microsoft >> [/etc/radiusclient]/dictionary   
+pppd.dictionary      >> [/etc/radiusclient]/dictionary
 

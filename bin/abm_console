@@ -92,6 +92,8 @@ my %LIST_PARAMS = ();
 $debug=($ARGV->{DEBUG}) ? $ARGV->{DEBUG} : $debug;
 $LIST_PARAMS{PAGE_ROWS}= ($ARGV->{PAGE_ROWS}) ? $ARGV->{PAGE_ROWS} : 1000000;
 $LIST_PARAMS{DATE}=$ARGV->{DATE} || '';
+$LIST_PARAMS{SORT}=$ARGV->{SORT} || 1;
+$LIST_PARAMS{DESC}=$ARGV->{DESC} || undef;
 
 #Intercat mode
 my $interact = 0;
@@ -503,13 +505,16 @@ sub check_permissions {
 sub help {
 print << "[END]";
 abm_console console ABillS managment
-  ACTION=          - some user actions (add,del,change,info(default))
-  PAYMENTS=[login] - info (default), ADD, DEL 
+  PAYMENTS=[login] - Payments: info (default), ADD, DEL 
    Extended:
     DATE           - DATE
     METHOD         - Method ID 
     UID            - UID
-    LOGIN          - User Login
+    ....
+  FEES=[login]     - Fees. info (default), ADD, DEL   
+   Extended:
+    ....
+
   PI=              - Personal info
   LOGIN=           - show user info
 
@@ -579,6 +584,7 @@ sub form_pi {
  	$user = $users->pi($uid);
 
  	print "$_FIO: ". ( ($user->{FIO}) ? $user->{FIO} : ''  ). "\n".
+ 	  "$_PHONE: ". (($user->{PHONE}) ? $user->{PHONE} : ''  ). "\n".
  	  "$_ADDRESS:   $user->{ADDRESS_STREET}, $user->{ADDRESS_BUILD}/$user->{ADDRESS_FLAT}\n".
  	  "$_CONTRACT:  $user->{CONTRACT_ID} $user->{CONTRACT_DATE}\n";
 
