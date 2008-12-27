@@ -16,11 +16,16 @@ my $config_file = $Bin . '/../libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
 $conf{WORK_DIR}=$Bin;
-my $debug=1;
+my $debug=0;
 require $Bin . '/../Abills/Base.pm';
 Abills::Base->import();
 
 my $ARGV = parse_arguments(\@ARGV);
+if ($ARGV->{debug}) {
+  $debug=int($ARGV->{debug});
+  print "Debug mode: $debug\n";
+}
+
 
 if(! -f $config_file ) {
   print "System main configuration\n";
@@ -88,13 +93,12 @@ if(! -f $config_file ) {
 
          #Check mysql running
          my $proc_list = `ps ax`;
-         print $proc_list;
+         print $proc_list if ($debug > 5);
 
          if ($proc_list !~  /mysql/) {
            print "MySQL Not running\n";
            check_install("mysql");
           }
-
 
          if ($conf{OS} eq 'FREEBSD') {
 
@@ -114,7 +118,7 @@ if(! -f $config_file ) {
          chop($read = <STDIN>);
          $mysql = $read if ($read ne '');
 
-         my $mysql_root_user = 'root';
+         my $mysql_root_user   = 'root';
          my $mysql_root_passwd = '';
          print "MySQL root user [$mysql_root_user]: ";
          chop($read = <STDIN>);
@@ -124,7 +128,7 @@ if(! -f $config_file ) {
          chop($read = <STDIN>);
          $mysql_root_passwd = $read if ($read ne '');
         
-         $res = `$mysql --default-character-set=$conf{dbcharset} -u $mysql_root_user --password=$mysql_root_passwd -e "select version();"`; 
+         $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --password=$mysql_root_passwd -e "select version();"`; 
          if ($res !~ /Unknown database/) {
            if (confirm_yn("Your DB not configure for ABillS using. Configure? ", "y")) {
               print "Make users\n";
@@ -134,10 +138,10 @@ if(! -f $config_file ) {
                  "CREATE DATABASE $mk_config{dbname};".
                  "flush privileges;";
 
-              $res = `$mysql --default-character-set=$conf{dbcharset} -u $mysql_root_user --password='$mysql_root_passwd' -e "$add_mysql_user"`;
+              $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --password='$mysql_root_passwd' -e "$add_mysql_user"`;
               print $res;
               print "Upload Main Dump and modules\n";
-              $res = `$mysql --default-character-set=$conf{dbcharset} -u $mysql_root_user --default-character-set=$conf{dbcharset} --password='$mysql_root_passwd' -D $mk_config{dbname} < ../abills.sql`;
+              $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --default-character-set=$mk_config{dbcharset} --password='$mysql_root_passwd' -D $mk_config{dbname} < ../abills.sql`;
             } 
           }
          else {
@@ -172,10 +176,6 @@ require $Bin . '/../libexec/config.pl';
 
 
 
-if ($ARGV->{debug}) {
-  $debug=int($ARGV->{debug});
-  print "Debug mode: $debug\n";
-}
 
 $conf{DATE}=$DATE;
 $conf{TIME}=$TIME;
