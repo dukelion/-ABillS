@@ -11,16 +11,20 @@ use vars  qw(%conf $db
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 1.5;
+my $VERSION = 1.7;
 my $config_file = $Bin . '/../libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
+chop($conf{OS});
 $conf{WORK_DIR}=$Bin;
 my $debug=0;
 require $Bin . '/../Abills/Base.pm';
 Abills::Base->import();
 
 my $ARGV = parse_arguments(\@ARGV);
+$ARGV->{OS}=$conf{OS} if (! $ARGV->{OS});
+print "OS: $conf{OS}\n";
+
 if ($ARGV->{debug}) {
   $debug=int($ARGV->{debug});
   print "Debug mode: $debug\n";
@@ -181,8 +185,6 @@ $conf{DATE}=$DATE;
 $conf{TIME}=$TIME;
 $conf{WORK_DIR}=$Bin;
 
-print $conf{OS};
-
 if ($ARGV->{CSUM}) {
    checksum();
    exit;
@@ -255,8 +257,8 @@ sub programs_info {
  my @files = ();
  open(FILE, "< $install_file") || die "Can't open file '$install_file'  $!";
    while(<FILE>) {
-      next if (/^#/);
-      push @files, $_;
+     next if (/^#/);
+     push @files, $_;
     }
  close(FILE);
 
@@ -265,7 +267,7 @@ sub programs_info {
  my %DEFAULT_DESCRIBE = ();
 
  my %PARAMS_VALUES = ();
- my %PARAMS_HASH =  ();
+ my %PARAMS_HASH   = ();
 
 foreach my $file (@files) {
   if ($file =~ /^:DEFAULT:(.+)/) {
@@ -277,16 +279,16 @@ foreach my $file (@files) {
  			
  			 print "DEFAULT: $name / $value / $describe \n" if ($debug > 2);
  			 $DEFAULT_DESCRIBE{"$name"}=$describe;
- 			 $DEFAULT_VALUE{"$name"}=$value;
+ 			 $DEFAULT_VALUE{"$name"}   =$value;
  		  }
  	   next;
  	 }
   elsif ($file =~ /^:(\S{0,100}):(.+) (>{1,2}) +\[(\S+)\]\/(.+)/) {
- 		my $params  = $1;
+ 		my $params      = $1;
  		#my $param_value = $2;
- 		my $param_name = '' ;
+ 		my $param_name  = '' ;
  		my $param_value = '';
- 		my $value  = $2;
+ 		my $value       = $2;
     
     $value =~ s/\\n/\n/g;
     
@@ -294,29 +296,11 @@ foreach my $file (@files) {
     if ($params) {
       my @params_arr = split(/,/, $params);
       foreach my $param ( @params_arr ) {
-        ($param_name, $param_value)=split(/=/, $param, 2);
-        $PARAMS_HASH{$param_name}=$param_value;
+        ($param_name, $param_value)= split(/=/, $param, 2);
+        $PARAMS_HASH{$param_name}  = $param_value;
        }
      }
 
-    
-    
-#    if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
-#      #If result is file
-#      if ($value =~ /^FILE=(\S+)/) {
-#      	$config_body = get_file($Bin."/$program/".$1);
-#       }
-#      else {
-#      	$config_body = "$value\n";
-#       }
-#     }  		
-#    elsif (! $params) {
-#    	$config_body = "$value\n";
-#     }
-#    else {
-#    	next;
-#     }
- 		
  	 }
 }
 
@@ -430,32 +414,41 @@ sub check_install {
     next;
    } 
  	elsif ($file =~ /^:(\S{0,100}):(.+) (>{1,2}) +\[(\S+)\]\/(.+)/) {
- 		my $params  = $1;
+ 		my $params      = $1;
  		#my $param_value = $2;
- 		my $param_name = '' ;
+ 		my $param_name  = '' ;
  		my $param_value = '';
- 		my $value  = $2;
- 		$type   = $3;
- 	  $folder = $4;
- 	  $dest   = $5;
+ 		my $value       = $2;
+ 		$type           = $3;
+ 	  $folder         = $4;
+ 	  $dest           = $5;
     
     $value =~ s/\\n/\n/g;
     
-    my %PARAMS_HASH =  ();
+    my %PARAMS_HASH         =  ();
+    my %EXCLUDE_PARAMS_HASH =  ();
+
     if ($params) {
       my @params_arr = split(/,/, $params);
       foreach my $param ( @params_arr ) {
-        ($param_name, $param_value)=split(/=/, $param, 2);
-        $PARAMS_HASH{$param_name}=$param_value;
+        my ($param_name2, $param_value2)=split(/=/, $param, 2);
+        if ($param_name2 =~ /^!/) {
+        	$EXCLUDE_PARAMS_HASH{$param_name2}=$param_value2;
+         }
+        else {
+          $PARAMS_HASH{$param_name2}=$param_value2;
+          $param_name  = $param_name2;
+          $param_value = $param_value2;
+         }
        }
      }
 
     
-    
-    if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
+    if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value) 
+     &&     (! $ARGV->{ keys %EXCLUDE_PARAMS_HASH } ) ) {
       #If result is file
       if ($value =~ /^FILE=(\S+)/) {
-      $config_body = get_file($conf{WORK_DIR}."/$program/".$1);
+        $config_body = get_file($conf{WORK_DIR}."/$program/".$1);
        }
       else {
       	$config_body = "$value\n";
