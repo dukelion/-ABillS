@@ -100,11 +100,12 @@ my $interact = 0;
 
 if ($#ARGV == -1) {
   $interact=1;
-  while($retries < $max_acccess_rets) {
+  while($retries < $max_acccess_rets+1) {
     my $res =  check_permissions("$REMOTE_USER", "$REMOTE_PASSWD");
     if ($res == 1) {
   	  print "Wrong Password!!!\n";
   	  $retries++;
+  	  exit if ($max_acccess_rets < $retries);
      }
     else {
       print "$_ADMIN: $admin->{A_FIO}. $_DATE: $DATE $TIME\n";
@@ -133,6 +134,7 @@ if ($#ARGV == -1) {
       form_users();
      }
    }
+
 }
 
 my $res =  check_permissions("$REMOTE_USER", "$REMOTE_PASSWD");
