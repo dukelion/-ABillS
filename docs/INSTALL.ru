@@ -4,6 +4,7 @@
   * При разбиении диска на разделы крайне рекомендуется отвести для раздела **/var** не менее 10 Гигабайт. Если планируется высокая нагрузка это значение можно увеличить.
   * Рекомендованный дистрибутивный набор (Distribution Set) - **6 Kernel-Developer **
   * Более подробно об установке читайте тут [[http://www.asmodeus.com.ua/library/os/freebsd/handbook/|FreeBSD Handbook]]
+  * [[http://www.seteved.ru/index.php?option=com_content&task=view&id=180&Itemid=29|Установка FreeBSD 7 в картинках, для начинающих]]
 
 =====Radius=====
 Загрузить пакет FreeRadius можно по адресу [http://www.freeradius.org]
@@ -344,6 +345,4 @@
 Если всё правильно настроено, в файле логов **/usr/abills/var/log/abills.log** должна появиться строка \\
 
   2005-02-23 12:55:55 LOG_INFO: AUTH [testuser] NAS: 1 (xxx.xxx.xxx.xxx) GT: 0.03799
-
-
 

@@ -16,12 +16,16 @@ sub docs_contract {
   my ($attr) = @_;
 	
 	if ($FORM{UID}) {
-		$Docs = $users->pi({ UID => $FORM{UID} });
+		my $user_main_info = $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
+		$Docs              = $users->pi({ UID => $FORM{UID} });
+
 		require "../../Abills/modules/Docs/lng_$conf{default_language}.pl";
     my ($y, $m, $d)=split(/-/, (($users->{CONTRACT_DATE}) ? $users->{CONTRACT_DATE} : $DATE ) , 3);
     $Docs->{CONTRACT_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
     
     #$Docs->{ADDRESS_FULL}="$Docs->{ADDRESS_STREET}, $Docs->{ADDRESS_BUILD}/$Docs->{ADDRESS_FLAT}"; 
+		
+		%{ $attr } = %{ Docs }, %{ $user_main_info };
 		
 		docs_print('contract', { %$admin, %$Docs, %$attr });
 	 }
@@ -155,10 +159,10 @@ elsif($FORM{print}) {
 		my @ORDERS = @{ $Docs->{ORDERS} };
 		$Docs->{ORDER}='';
 		foreach my $line (@ORDERS) {
+			
 			my $sum = sprintf("%.2f", $line->[3] * $line->[4]);
-		  $Docs->{ORDER}.="<tr><th align='right'>$i</th><td align='left'>$line->[1]</td><td align='center'>$units[$line->[2]]</td>
-		  <td align='right'>$line->[3]</td><td align='right'>$line->[4]</td><td align='right'>$sum</td></tr>";
-		  $i++;
+      $Docs->{ORDER}.="<tr><th align='right'>$i</th><td align='left'>$line->[1]</td><td align='center'>$units[$line->[2]]</td>
+		      <td align='right'>$line->[3]</td><td align='right'>$line->[4]</td><td align='right'>$sum</td></tr>";
 		  
    	  $Docs->{'ORDER_NUM_'.$i}   = $i;
       $Docs->{'ORDER_NAME_'.$i}  = $line->[1];
@@ -168,8 +172,11 @@ elsif($FORM{print}) {
        
       $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[4]);
       $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - $sum / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum);
-		  
+
+      
+      		  
 		  $Docs->{TOTAL_SUM}+=$sum;
+		  $i++;
    	 }
 	 }
 
@@ -180,7 +187,7 @@ elsif($FORM{print}) {
    	 $Docs->{TOTAL_SUM_WITHOUT_VAT}=sprintf("%.2f",$Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
    	 $Docs->{VAT}=sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
    }
-  
+ 
   docs_print('invoice', $Docs);
   return 0;
  }
