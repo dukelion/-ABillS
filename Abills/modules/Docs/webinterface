@@ -62,6 +62,7 @@ sub docs_invoice_add  {
       }
      elsif ($Docs->{errno} && $Docs->{errno} == 1) {
      	 $html->message('err', $_ERROR, "$ERR_NO_ORDERS");	
+     	 return 0;
       }
      elsif ($Docs->{errno} ) {
        $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}} $Docs->{errstr}");	
@@ -88,7 +89,7 @@ sub docs_invoice_add  {
   $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
 
   if ($conf{DOCS_PDF_PRINT}) {
-  	 $html->message('info', $_ADDED, "$_INVOICE $_ADDED. ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }));
+  	 $html->message('info', $_ADDED, "$_INVOICE $_ADDED. ". $html->button($_PRINT, "qindex=$index&print=$Docs->{INVOICE_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }));
    	 return 0;
    }
 
@@ -116,11 +117,11 @@ sub docs_invoice {
 
     #$Docs->{COMPANY_VAT}=$user->{COMPANY_VAT}.' %';
     $Docs->{OP_SID}  = mk_unique_value(16);
-    $users->pi({  $users->{UID} });
+    $users->pi({ $users->{UID} });
 
     $Docs->{CUSTOMER}=$users->{FIO} || '-';
-
     $Docs->{CAPTION}=$_INVOICE;
+
     $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users });
    }
 

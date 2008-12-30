@@ -211,9 +211,11 @@ sub docs_invoice_add {
  
   %DATA = $self->get_data($attr, { default => \%DATA }); 
   
+ 
   if ($attr->{ORDER}) {
     push @{ $attr->{ORDERS} }, "$attr->{ORDER}|0|1|$attr->{SUM}";
    }
+  
   
   if (! defined($attr->{ORDERS}) || $#{ $attr->{ORDERS} } < 0) {
   	$self->{errno}=1;
@@ -225,7 +227,6 @@ sub docs_invoice_add {
   
   $DATA{DATE}       = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
   $DATA{INVOICE_ID} = ($attr->{INVOICE_ID}) ? $attr->{INVOICE_ID}  : $self->docs_nextid({ TYPE => 'INVOICE' });
-  
 
   $self->query($db, "insert into docs_invoice (invoice_id, date, created, customer, phone, aid, uid,
     by_proxy_seria,
@@ -250,7 +251,7 @@ sub docs_invoice_add {
 
   return $self if($self->{errno});
   
-  $self->{INVOICE_ID}=$DATA{ACCT_ID};
+  $self->{INVOICE_ID}=$DATA{INVOICE_ID};
   $self->docs_invoice_info($self->{DOC_ID});
 
 	return $self;

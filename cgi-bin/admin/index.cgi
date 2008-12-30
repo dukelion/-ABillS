@@ -3912,7 +3912,7 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
       
       $prefix = substr($prefix, 0, $level * 6 * 3);
       goto label;
-    }
+     }
     delete($new_hash{0}{$parent});
    }
 
@@ -3945,10 +3945,14 @@ sub form_payments () {
  use Finance;
  my $payments = Finance->payments($db, $admin, \%conf);
 
-
  return 0 if (! defined ($permissions{1}));
 
  my %BILL_ACCOUNTS = ();
+
+ if ($FORM{print}) {
+   require "Abills/modules/Docs/webinterface";
+   docs_invoice({ %FORM  });
+  }
 
 
 if (defined($attr->{USER})) { 
@@ -3984,6 +3988,19 @@ if (defined($attr->{USER})) {
      	    return 0;
          }
        }
+
+      #Docs
+      if ($FORM{CREATE_INVOICE}) {
+        require "Abills/modules/Docs/webinterface";
+        docs_invoice_add({
+        	CUSTOMER  => '-', 
+        	PHONE     => '',
+          UID       => $FORM{UID},
+          ORDER     => "$FORM{DESCRIBE}" || '-',
+          SUM       => $FORM{SUM},
+          create    => 1
+        	});
+  	   }
      }
    }
   elsif($FORM{del} && $FORM{is_js_confirmed}) {
@@ -4049,6 +4066,12 @@ if (defined($permissions{1}{1})) {
    	 $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>". $html->form_input('DATE', "$DATE $TIME"). "</td></tr>\n";
     }
 
+
+   if (in_array('Docs', \@MODULES) ) {
+     $payments->{DATE} .= "<tr><td colspan=2>$_INVOICE:</td><td>". $html->form_input('CREATE_INVOICE', '1', { TYPE => 'checkbox', STATE => 1 }). "</td></tr>\n";
+    }
+
+   
 
    $html->tpl_show(templates('form_payments'), $payments);
  }
@@ -4171,9 +4194,9 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
 	
 
 $html->tpl_show(templates('form_er'), $finance);
-my $table = $html->table( { width      => '640',
-                            title      => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", "$_CHANGED", '-', '-'],
-                            cols_align => ['left', 'left', 'right', 'center', 'center'],
+my $table = $html->table({ width      => '640',
+                           title      => ["$_MONEY", "$_SHORT_NAME", "$_EXCHANGE_RATE (1 unit =)", "$_CHANGED", '-', '-'],
+                           cols_align => ['left', 'left', 'right', 'center', 'center'],
                           });
 
 my $list = $finance->exchange_list( {%LIST_PARAMS} );
