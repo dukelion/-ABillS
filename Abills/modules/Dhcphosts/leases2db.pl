@@ -11,6 +11,9 @@ require $Bin . '/config.pl';
 unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
 require Abills::Base;
 Abills::Base->import();
+use POSIX qw(strftime);
+
+
 my $begin_time = check_time();
 
 require Abills::SQL;
@@ -28,6 +31,7 @@ my $LEASES      = $ARGV->{LEASES} || $conf{DHCPHOSTS_LEASES} || "/var/db/dhcpd/d
 my $UPDATE_TIME = $ARGV->{UPDATE_TIME} || 30;    # In Seconds
 my $AUTO_VERIFY = 0;    
 my $debug       = $ARGV->{DEBUG} || 0;
+my $logfile     = $ARGV->{LOG_FILE} || '';
 
 my $oldstat     = 0;
 my $check_count = 0;
@@ -193,9 +197,7 @@ sub do_stuff {
 
 
   if ($debug > 0) {
-    use POSIX qw(strftime);
-    my $DATETIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);
-    print "Updated: $i leases $DATETIME\n";
+    make_log("Updated: $i leases");
    }
 
 }
@@ -203,7 +205,25 @@ sub do_stuff {
 
 
 #**********************************************************
-#
+# Make login
+#**********************************************************
+sub mk_log {
+  my ($message) = @_;
+      
+  my $DATETIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);  
+  if ($ARGV->{LOG_FILE}) {
+    open(FILE, ">> $logfile") || die "Can't open file '$logfile' $!\n";
+      print FILE "$DATETIME $message";
+    close(FILE);
+   }
+  else {
+  	print "$DATETIME $message\n";
+   }
+}
+
+
+#**********************************************************
+# help
 #**********************************************************
 sub usage{
 	print <<EOF;
@@ -214,6 +234,7 @@ Usage:
 
 -d              uns dhcp2db in daemon mode
 -h              displays this help message
+LOG_FILE=...    make log file
 LEASES=...      lease files
 UPDATE_TIME=... Update peiod (Default: 30)
 DEBUG=...       Debug mode 1-5
@@ -288,19 +309,3 @@ sub verify {
 
     return ($ps[0]) ? 1 : 0;
 }
-
-#############################################################################
-#This pogam is fee softwae; you can edistibute it and/o modify
-#it unde the tems of the GNU Geneal Public License as published by
-#the Fee Softwae Foundation; eithe vesion 2 of the License, o
-#(at you option) any late vesion.
-#
-#This pogam is distibuted in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied waanty of
-#MERCHANTABILITY o FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU Geneal Public License fo moe details.
-#
-#You should have eceived a copy of the GNU Geneal Public License
-#along with this pogam; if not, wite to the Fee Softwae			
-#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  
-#############################################################################
