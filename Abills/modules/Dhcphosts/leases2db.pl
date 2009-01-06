@@ -197,7 +197,7 @@ sub do_stuff {
 
 
   if ($debug > 0) {
-    make_log("Updated: $i leases");
+    mk_log("Updated: $i leases");
    }
 
 }
