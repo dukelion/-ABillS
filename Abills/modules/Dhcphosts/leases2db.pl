@@ -191,7 +191,13 @@ sub do_stuff {
     $Dhcphosts->leases_update({ %$hash, NAS_ID => $NAS_ID });
 	}
 
-  print "Updated: $i leases\n" if ($debug > 0);
+
+  if ($debug > 0) {
+    use POSIX qw(strftime);
+    my $DATETIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);
+    print "Updated: $i leases $DATETIME\n";
+   }
+
 }
 
 
