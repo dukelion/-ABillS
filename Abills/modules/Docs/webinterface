@@ -89,7 +89,7 @@ sub docs_invoice_add  {
   $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
 
   if ($conf{DOCS_PDF_PRINT}) {
-  	 $html->message('info', $_ADDED, "$_INVOICE $_ADDED. ". $html->button($_PRINT, "qindex=$index&print=$Docs->{INVOICE_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }));
+  	 $html->message('info', $_ADDED, "$_INVOICE $_ADDED. ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }));
    	 return 0;
    }
 
