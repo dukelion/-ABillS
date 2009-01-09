@@ -289,7 +289,7 @@ if ($prepaid{0} + $prepaid{1} > 0) {
     }
  }
 #Expration 
-elsif ($RAD->{ACCT_STATUS_TYPE} eq 'Stop' && scalar(keys %expr) > 0) {
+elsif (scalar(keys %expr) > 0) {
 	$self->{PERIOD_TRAFFIC}  = {
                        		     SESSION_TRAFFIC_OUT   => $sent || 0, 
                                SESSION_TRAFFIC_IN    => $recv || 0,
@@ -297,8 +297,8 @@ elsif ($RAD->{ACCT_STATUS_TYPE} eq 'Stop' && scalar(keys %expr) > 0) {
                                SESSION_TRAFFIC_IN_2  => $recv2|| 0
          	                    };
 
-  my $RESULT = $self->expression($self->{UID}, \%expr, { 
-                                                         debug => 0 });
+  my $RESULT = $self->expression($self->{UID}, \%expr, { RAD_ALIVE => ($RAD->{ACCT_STATUS_TYPE} eq 'Alive')  ? 1 : 0,
+                                                         debug     => 0 });
 
   
   $traf_price{in}{0}=$RESULT->{PRICE_IN}   || 0;
@@ -1322,6 +1322,13 @@ sub expression {
           #$CONF->{KBYTE_SIZE} = 1;
   	      print "ARGUMENT: $ex{ARGUMENT} EXP: '$ex{EXPR}' PARAMETER: $ex{PARAMETER}\n" if ($debug > 0); 
   	      if ($ex{ARGUMENT} =~ /TRAFFIC/) {
+            
+            # for alive session expr price 0
+            if ($attr->{RAD_ALIVE} && $ex{ARGUMENT} !~ /SESSION/) {
+            	$RESULT->{PRICE_IN}=0;
+            	$RESULT->{PRICE_OUT}=0;
+            	return $RESULT;
+             }
 
   	      	
             if ($self->{PERIOD_TRAFFIC}) {

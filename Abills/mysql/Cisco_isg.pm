@@ -217,6 +217,8 @@ if ($self->{PAYMENT_TYPE} == 0) {
       $RAD_PAIRS{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
       return 1, \%RAD_PAIRS;
      }
+
+    $service = $self->{NEG_DEPOSIT_FILTER_ID};
    }
 }
 else {
@@ -231,10 +233,6 @@ if ($self->{IP} ne '0.0.0.0') {
 my $debug = 0;
 
 
-if ($self->{NEG_DEPOSIT_FILTER_ID}) {
-    #$RAD_PAIRS->{'Filter-Id'} = "$self->{NEG_DEPOSIT_FILTER_ID}";
-	  $service = $self->{NEG_DEPOSIT_FILTER_ID};
- }
 
   
 #  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"A$service\"";
@@ -243,7 +241,7 @@ if ($self->{NEG_DEPOSIT_FILTER_ID}) {
 #  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED3\"";
 #  push @{ $RAD_PAIRS{'cisco-avpair'} }, "\"subscriber:accounting-list=BH_ACCNT_LIST1\"";
 
-  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "A$service";
+push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "A$service";
 if ($service =~ /^TP/) {
   push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED1";
   push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED2";
@@ -365,7 +363,6 @@ $self->query($db, "select
 
 
     if (keys %TT_IDS > 0) {
-    	
       require Tariffs;
       Tariffs->import();
       my $tariffs = Tariffs->new($db, $conf, undef);
@@ -381,8 +378,8 @@ $self->query($db, "select
  	    	  $names{$line->[0]}= ($line->[6]) ? "$line->[6]" : "Service_$line->[0]";
  	    	  $expr{$line->[0]}="$line->[8]" if (length($line->[8]) > 5);
  	    	  #print "$line->[0] $line->[6] $line->[4]\n";
- 	      }
-      }
+ 	       }
+       }
     }
   
 #   }
@@ -432,7 +429,7 @@ $self->query($db, "select
 
   }
 	
-	return 0, $RAD_PAIRS;
+	return 0, \%RAD_PAIRS;
 }
 
 

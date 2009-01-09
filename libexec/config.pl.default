@@ -52,7 +52,7 @@ $conf{s_detalization}=1; #make session detalization recomended for vpn leathed l
 #Check periodic deposit and session. hangup after get negative result
 $conf{periodic_check}=0;
 
-$conf{version}='0.40b'; #16.06.2006
+$conf{version}='0.41b'; #16.06.2006
 
 #Octets direction
 # server - Count octets from server side
