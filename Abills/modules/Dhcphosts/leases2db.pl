@@ -213,7 +213,7 @@ sub mk_log {
   my $DATETIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);  
   if ($ARGV->{LOG_FILE}) {
     open(FILE, ">> $logfile") || die "Can't open file '$logfile' $!\n";
-      print FILE "$DATETIME $message";
+      print FILE "$DATETIME $message\n";
     close(FILE);
    }
   else {

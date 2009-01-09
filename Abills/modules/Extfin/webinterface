@@ -1216,7 +1216,7 @@ sub extfin_debetors {
 $table = $html->table( { width       => '100%',
 	                       rowcolor    => $_COLORS[0],
                          rows        => [[ "$_PERIOD: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
-#                                          "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
+                                           "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit' })
                                          ]],                                   
                       });

@@ -1013,6 +1013,7 @@ sub extfin_debetors {
    }
 
   my $ext_field = '';
+
   if ($attr->{DATE}) {
     push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')<='$attr->{DATE}'";
     
@@ -1027,6 +1028,8 @@ sub extfin_debetors {
    }
   
   $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : ''; 
+
+  $self->{debug}=1;
 
   $self->query($db, "SELECT '', u.id, pi.contract_id,
    pi.fio,

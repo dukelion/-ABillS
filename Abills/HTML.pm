@@ -822,6 +822,8 @@ form {
   font-size: 12px;
 }
 
+
+
 input, textarea {
 	font-family : Verdana, Arial, sans-serif;
 	font-size : 12px;
@@ -845,6 +847,124 @@ TABLE.border {
   border-style : solid;
   border-width : 1px;
 }
+
+
+
+
+#l_user_menu {
+      width: 100%;
+      border-right: 1px solid #000;
+      padding: 0 0 6px 0;
+      margin-bottom: 1px;
+      font-family: 'Trebuchet MS', 'Lucida Grande',
+      Verdana, Lucida, Geneva, Helvetica, 
+      Arial, sans-serif;
+      background-color: $_COLORS[2];
+      color: #333;
+      }
+
+#l_user_menu ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border: none;
+      }
+		
+#l_user_menu li {
+      border-bottom: 1px solid $_COLORS[2];
+      margin: 0;
+      }
+
+
+#l_user_menu li a {
+      display: block;
+      padding: 5px 5px 5px 0.5em;
+      border-left: 4px solid $_COLORS[0];
+      border-right: 5px solid $_COLORS[4];
+      background-color: $_COLORS[3];
+      color: $_COLORS[9];
+      text-decoration: none;
+      width: 100%;
+      }
+
+#l_user_menu li a {
+      width: auto;
+      }
+
+#l_user_menu li a:hover {
+      border-left: 4px solid $_COLORS[9];
+      border-right: 5px solid $_COLORS[2];
+      background-color: $_COLORS[0];
+      color: $_COLORS[9];
+      }
+
+
+
+
+
+
+#tabs ul {
+      margin-left: 0;
+      padding-left: 0;
+      display: inline;
+      } 
+
+#tabs ul li {
+      margin-left: 0;
+      margin-bottom: 0;
+      padding: 2px 15px 5px;
+      border: 1px solid $_COLORS[3];
+      list-style: none;
+      display: inline;
+      }
+		
+#tabs ul li.active {
+      border-bottom: 1px solid $_COLORS[0];
+      list-style: none;
+      display: inline;
+      }
+
+
+
+
+#rules {
+  float:center;
+  text-align:center;
+  padding: 0 0 6px 0;
+  overflow:hidden;
+  height:32px;
+  line-height:30px;
+}
+
+#rules li{
+  display:inline;
+  padding:0;
+}
+
+#rules .center a{
+  padding:1px 5px;
+  font-weight:100;
+  font-size:11;
+  background:$_COLORS[2];
+  border:1px solid $_COLORS[4];
+  color:#000;
+  text-decoration:none;
+  margin:0 1px;
+}
+
+#rules .center a:hover{
+  background:#ccc;
+  border:1px solid #666;
+}
+
+#rules .center a.active{
+  background:#666;
+  border:1px solid #666;
+  color:#fff;
+}
+
+
+
 
 
 
@@ -1297,14 +1417,14 @@ my $output = qq{
 
 }
 
+
 #*******************************************************************
 # Mark Bold
 #*******************************************************************
 sub b {
  my $self = shift;
  my ($message) = @_;
- 
- 
+
  my $output = "<b>$message</b>";
 
  return $output;
@@ -1347,10 +1467,13 @@ sub pages {
  return $self->{pages} if ($count < $PAGE_ROWS);
  
 for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
-   $self->{pages} .= ($i == $PG) ? "<b>$i</b>:: " : $self->button($i, "$argument&pg=$i"). ':: ';
+   $self->{pages} .= ($i == $PG) ? "<b>$i</b> " : $self->button($i, "$argument&pg=$i") .' ';
 }
  
- return $self->{pages};
+ 
+ return "<div id=\"rules\"><ul><li class=\"center\">". 
+         $self->{pages}.
+        "</li></ul></div>\n";
 }
 
 
@@ -1574,9 +1697,14 @@ foreach my $line (@alphabet) {
   	return '';
    }
 	else { 
- 	  return $letters;
+ 	  return "<div id=\"rules\"><ul><li class=\"center\">
+ 	  $letters
+ 	  </li></ul></div>\n";
 	 }
 }
+
+
+
 
 #**********************************************************
 # Using some flash from http://www.maani.us

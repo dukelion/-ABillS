@@ -60,6 +60,7 @@ sub tariff_info {
    period,
    price,
    payment_type,
+   period_alignment,
    id
      FROM abon_tariffs
    $WHERE;");
@@ -74,6 +75,7 @@ sub tariff_info {
    $self->{PERIOD},
    $self->{SUM}, 
    $self->{PAYMENT_TYPE},
+   $self->{PERIOD_ALIGNMENT},
    $self->{ABON_ID}
   )= @{ $self->{list}->[0] };
   
@@ -91,9 +93,10 @@ sub defaults {
   my $self = shift;
 
   %DATA = (
-   ID => 0, 
+   ID     => 0, 
    PERIOD => 0, 
-   SUM => '0.00'
+   SUM    => '0.00',
+   
   );
 
  
@@ -111,8 +114,8 @@ sub tariff_add {
   
   %DATA = $self->get_data($attr); 
 
-  $self->query($db,  "INSERT INTO abon_tariffs (id, name, period, price, payment_type)
-        VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}', '$DATA{PAYMENT_TYPE}');", 'do');
+  $self->query($db,  "INSERT INTO abon_tariffs (id, name, period, price, payment_type, period_alignment)
+        VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}', '$DATA{PAYMENT_TYPE}', '$DATA{PERIOD_ALIGNMENT}');", 'do');
 
   return $self if ($self->{errno});
 #  $admin->action_add($DATA{UID}, "ADDED");
@@ -133,8 +136,11 @@ sub tariff_change {
               NAME				     => 'name',
               PERIOD           => 'period',
               SUM              => 'price',
-              PAYMENT_TYPE     => 'payment_type'
+              PAYMENT_TYPE     => 'payment_type',
+              PERIOD_ALIGNMENT => 'period_alignment'
              );
+
+  $attr->{PERIOD_ALIGNMENT}=0   if (! $attr->{PERIOD_ALIGNMENT});
 
   $self->changes($admin,  { CHANGE_PARAM => 'ABON_ID',
                    TABLE        => 'abon_tariffs',
@@ -145,7 +151,8 @@ sub tariff_change {
 
 
   #$admin->action_add($DATA{UID}, "$self->{result}");
-
+  $self->tariff_info($attr->{ABON_ID});
+  
   return $self->{result};
 }
 
@@ -177,7 +184,10 @@ sub tariff_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT name, price, period, payment_type, count(ul.uid), id 
+ $self->query($db, "SELECT name, price, period, payment_type, 
+     period_alignment,
+     count(ul.uid),
+     id 
      FROM abon_tariffs
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
      $WHERE
@@ -330,7 +340,9 @@ sub periodic_list {
  $self->query($db, "SELECT at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
   u.id, at.id, at.name,
   if(c.name IS NULL, b.deposit, cb.deposit),
-  if(c.name IS NULL, c.credit, u.credit),
+  if(c.name IS NULL, u.credit, 
+    if (c.credit = 0, u.credit, c.credit) 
+   ),
   u.disable,
   at.id,
   at.payment_type

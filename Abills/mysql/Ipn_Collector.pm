@@ -34,7 +34,7 @@ my %intervals = ();
 my %tp_interval = ();
 
 my @zoneids;
-my @clients_lst = ();
+#my @clients_lst = ();
 
 #**********************************************************
 # Init 
@@ -79,8 +79,7 @@ sub user_ips {
 
     $DATA->{NAS_ID} = join(',', @nas_arr);
    }
-  
-  
+
   if ($CONF->{IPN_STATIC_IP}) {
 	  $sql="select u.uid, dv.ip, u.id, 
 	   if(calls.acct_session_id, calls.acct_session_id, ''),
@@ -95,7 +94,9 @@ sub user_ips {
 		 tp.octets_direction,
 		 u.reduction,
 		 '',
-		 u.activate
+		 u.activate,
+		 dv.netmask,
+		 dv.ip
 		 FROM (users u, dv_main dv)
 		 LEFT JOIN companies c ON (u.company_id=c.id)
 		 LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -119,7 +120,9 @@ sub user_ips {
       tp.octets_direction,
       u.reduction,
       CONNECT_INFO,
-      u.activate
+      u.activate,
+      dv.netmask,
+      dv.ip
     FROM (dv_calls calls, users u)
       LEFT JOIN companies c ON (u.company_id=c.id)
       LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -143,8 +146,11 @@ sub user_ips {
     0,
     u.reduction,
     CONNECT_INFO,
-    u.activate
+    u.activate,
+    dv.netmask,
+    dv.ip
     FROM (dv_calls calls, users u)
+    LEFT JOIN dv_main dv ON (u.uid=dv.uid)
    WHERE u.id=calls.user_name
    and calls.nas_id IN ($DATA->{NAS_ID});";
   }  
@@ -164,7 +170,19 @@ sub user_ips {
   foreach my $line (@$list) {
      #UID
   	 $ips{$line->[1]}         = $line->[0];
-     
+
+     #Get IP/mask
+     if ($line->[16] < 4294967295) {
+       my $first_ip =  $line->[17] & 4294967288;
+       for(my $i=0; $i<=4294967295 -  $line->[16]; $i++) {
+       	 my $ip = $first_ip+$i;
+     	   $ips{$ip}=$line->[0];
+     	   #print int2ip($first_ip+$i)."\n";
+     	   $session_ids{$ip} = "v$ip" if (! $session_ids{$ip});
+     	   $self->{$ip}{OCTET_DIRECTION} = $line->[12];
+        }
+      }
+
      #IN / OUT octets
   	 $self->{$line->[1]}{IN}  = $line->[4];
   	 $self->{$line->[1]}{OUT} = $line->[5];
@@ -175,30 +193,21 @@ sub user_ips {
      #Octet direction
      $self->{$line->[1]}{OCTET_DIRECTION} = $line->[12];
      
-  	 $users_info{TPS}{$line->[0]} = $line->[6];
+  	 $users_info{TPS}{$line->[0]}       = $line->[6];
    	 #User login
-   	 $users_info{LOGINS}{$line->[0]} = $line->[2];
+   	 $users_info{LOGINS}{$line->[0]}    = $line->[2];
      #Session ID
-     $session_ids{$line->[1]} = $line->[3];
-     $interim_times{$line->[3]}=$line->[10];
-     $connect_info{$line->[3]}=$line->[14];
+     $session_ids{$line->[1]}           = $line->[3];
+     $interim_times{$line->[3]}         = $line->[10];
+     $connect_info{$line->[3]}          = $line->[14];
      #$self->{INTERIM}{$line->[3]}{TIME}=$line->[10];
-
-    
-     #If post paid set deposit to 0
-     #if (defined($line->[9]) && $line->[9] == 1) {
-  	   #Payment type 0 - prepaid / 1 - postpaid
   	 $users_info{PAYMENT_TYPE}{$line->[0]} = $line->[9];
-  	 #  $users_info{DEPOSIT}{$line->[0]} = 0;
-  	 # } 
-  	 #else {
-  	 $users_info{DEPOSIT}{$line->[0]} = $line->[8];
-  	 # }
+  	 $users_info{DEPOSIT}{$line->[0]}   = $line->[8];
      $users_info{REDUCTION}{$line->[0]} = $line->[13];
-     $users_info{ACTIVATE}{$line->[0]} = $line->[15];
- 	   $users_info{BILL_ID}{$line->[0]} = $line->[7];  	 
+     $users_info{ACTIVATE}{$line->[0]}  = $line->[15];
+ 	   $users_info{BILL_ID}{$line->[0]}   = $line->[7];  	 
  	 	
-  	 push @clients_lst, $line->[1];
+  	 #push @clients_lst, $line->[1];
    }
  
   $self->{USERS_IPS}     = \%ips;
@@ -511,6 +520,7 @@ sub ip_in_zone($$$$) {
     my %zones = %$zone_data;
 
     if ($self->{debug}) { print "--- CALL ip_in_zone($ip_num, $port, $zoneid) -> \n"; }
+
     # eaai ii nieneo aa?ania ciiu
     for (my $i=0; $i<=$#{$zones{$zoneid}{A}}; $i++) {
 	     
@@ -584,7 +594,6 @@ sub traffic_add_user {
        '$DATA->{SESSION_ID}'
       );", 'do');
    }
-
 
   if ($self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}}) {
   	#Take money from bill
@@ -824,19 +833,21 @@ sub tcollector {
 #**********************************************************
 #
 #**********************************************************
-sub is_client_ip($) {
-  my $self = shift;
-  my $ip = shift @_;
-
-  if ($self->{debug}) { print "--- CALL is_client_ip($ip),\t\$#clients_lst = $#clients_lst\n"; }
-  if ($#clients_lst < 0) {return 0;} # nienie iono!
-  foreach my $i (@clients_lst) {
-	  if ($i eq $ip) { return 1; }
-   }
-  if ($self->{debug}) { print "   Client $ip not found in \@clients_lst\n"; }
-
-  return 0;
-}
+#sub is_client_ip($) {
+#  my $self = shift;
+#  my $ip = shift @_;
+#
+#  if ($self->{debug}) { print "--- CALL is_client_ip($ip),\t\$#clients_lst = $#clients_lst\n"; }
+#  if ($#clients_lst < 0) {  return 0; } # nienie iono!
+#
+#  foreach my $i (@clients_lst) {
+#	  if ($i eq $ip) { return 1; }
+#   }
+#
+#  if ($self->{debug}) { print "   Client $ip not found in \@clients_lst\n"; }
+#
+#  return 0;
+#}
 
 #**********************************************************
 #
@@ -875,5 +886,3 @@ $d[3]=int($i-$d[0]*256*256*256-$d[1]*256*256-$d[2]*256);
 
 
 1
-
-

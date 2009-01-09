@@ -26,7 +26,8 @@ my %FIELDS = ( TP_ID            => 'id',
                DAY_FEE          => 'day_fee',
                MONTH_FEE        => 'month_fee',
                REDUCTION_FEE    => 'reduction_fee',
-               POSTPAID_FEE     => 'postpaid_fee',
+               POSTPAID_DAY_FEE     => 'postpaid_daily_fee',
+               POSTPAID_MONTH_FEE   => 'postpaid_monthly_fee',
                EXT_BILL_ACCOUNT => 'ext_bill_account',
                SIMULTANEOUSLY   => 'logins',
                AGE              => 'age',
@@ -357,26 +358,27 @@ sub defaults {
   my $self = shift;
 
   %DATA = ( TP_ID => 0, 
-            NAME             => '',  
-            TIME_TARIF       => '0.00000',
-            DAY_FEE          => '0.00',
-            MONTH_FEE        => '0.00',
-            REDUCTION_FEE    => 0,
-            POSTPAID_FEE     => 0,
-            EXT_BILL_ACCOUNT => 0,
-            SIMULTANEOUSLY   => 0,
-            AGE              => 0,
-            DAY_TIME_LIMIT   => 0,
-            WEEK_TIME_LIMIT  => 0,
-            MONTH_TIME_LIMIT => 0,
-            DAY_TRAF_LIMIT   => 0, 
-            WEEK_TRAF_LIMIT  => 0, 
-            MONTH_TRAF_LIMIT => 0,
-            ACTIV_PRICE      => '0.00',
-            CHANGE_PRICE     => '0.00',
-            CREDIT_TRESSHOLD => '0.00',
-            ALERT            => 0,
-            OCTETS_DIRECTION => 0,
+            NAME               => '',  
+            TIME_TARIF         => '0.00000',
+            DAY_FEE            => '0.00',
+            MONTH_FEE          => '0.00',
+            REDUCTION_FEE      => 0,
+            POSTPAID_DAY_FEE   => 0,
+            POSTPAID_MONTH_FEE => 0,
+            EXT_BILL_ACCOUNT   => 0,
+            SIMULTANEOUSLY     => 0,
+            AGE                => 0,
+            DAY_TIME_LIMIT     => 0,
+            WEEK_TIME_LIMIT    => 0,
+            MONTH_TIME_LIMIT   => 0,
+            DAY_TRAF_LIMIT     => 0, 
+            WEEK_TRAF_LIMIT    => 0, 
+            MONTH_TRAF_LIMIT   => 0,
+            ACTIV_PRICE        => '0.00',
+            CHANGE_PRICE       => '0.00',
+            CREDIT_TRESSHOLD   => '0.00',
+            ALERT              => 0,
+            OCTETS_DIRECTION   => 0,
             MAX_SESSION_DURATION => 0,
             FILTER_ID            => '',
             PAYMENT_TYPE         => 0,
@@ -409,7 +411,10 @@ sub add {
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
   $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, 
-     month_fee, day_fee, reduction_fee, postpaid_fee, ext_bill_account,
+     month_fee, day_fee, reduction_fee, 
+     postpaid_daily_fee, 
+     postpaid_monthly_fee,
+     ext_bill_account,
      logins, 
      day_time_limit, week_time_limit,  month_time_limit, 
      day_traf_limit, week_traf_limit,  month_traf_limit,
@@ -422,7 +427,10 @@ sub add {
      abon_distribution
      )
     values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
-     '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', '$DATA{POSTPAID_FEE}', '$DATA{EXT_BILL_ACCOUNT}',
+     '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', 
+     '$DATA{POSTPAID_DAY_FEE}', 
+     '$DATA{POSTPAID_MONTH_FEE}', 
+     '$DATA{EXT_BILL_ACCOUNT}',
      '$DATA{SIMULTANEOUSLY}', 
      '$DATA{DAY_TIME_LIMIT}', '$DATA{WEEK_TIME_LIMIT}',  '$DATA{MONTH_TIME_LIMIT}', 
      '$DATA{DAY_TRAF_LIMIT}', '$DATA{WEEK_TRAF_LIMIT}',  '$DATA{MONTH_TRAF_LIMIT}',
@@ -456,13 +464,12 @@ sub change {
   	 $FIELDS{CHG_TP_ID}='id';
    }
  
-  $attr->{REDUCTION_FEE}=0     if (! $attr->{REDUCTION_FEE});
-  $attr->{POSTPAID_FEE}=0      if (! $attr->{POSTPAID_FEE});
-  $attr->{EXT_BILL_ACCOUNT}=0  if (! $attr->{EXT_BILL_ACCOUNT});
-  $attr->{PERIOD_ALIGNMENT}=0  if (! $attr->{PERIOD_ALIGNMENT});
-  $attr->{ABON_DISTRIBUTION}=0 if (! $attr->{ABON_DISTRIBUTION});
-
-   $self->{debug}=1;
+  $attr->{REDUCTION_FEE}=0      if (! $attr->{REDUCTION_FEE});
+  $attr->{POSTPAID_DAY_FEE}=0   if (! $attr->{POSTPAID_DAY_FEE});
+  $attr->{POSTPAID_MONTH_FEE}=0 if (! $attr->{POSTPAID_MONTH_FEE});
+  $attr->{EXT_BILL_ACCOUNT}=0   if (! $attr->{EXT_BILL_ACCOUNT});
+  $attr->{PERIOD_ALIGNMENT}=0   if (! $attr->{PERIOD_ALIGNMENT});
+  $attr->{ABON_DISTRIBUTION}=0  if (! $attr->{ABON_DISTRIBUTION});
 
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
@@ -521,7 +528,8 @@ sub info {
 
 
   $self->query($db, "SELECT id, name,
-      day_fee, month_fee, reduction_fee, postpaid_fee, ext_bill_account,
+      day_fee, month_fee, reduction_fee, postpaid_daily_fee, postpaid_monthly_fee, 
+      ext_bill_account,
       logins, age,
       day_time_limit, week_time_limit,  month_time_limit, 
       day_traf_limit, week_traf_limit,  month_traf_limit,
@@ -555,7 +563,8 @@ sub info {
    $self->{DAY_FEE}, 
    $self->{MONTH_FEE}, 
    $self->{REDUCTION_FEE}, 
-   $self->{POSTPAID_FEE}, 
+   $self->{POSTPAID_DAY_FEE}, 
+   $self->{POSTPAID_MONTH_FEE}, 
    $self->{EXT_BILL_ACCOUNT}, 
    $self->{SIMULTANEOUSLY}, 
    $self->{AGE},
@@ -636,7 +645,8 @@ sub list {
     tp_g.name,
     tp.rad_pairs,
     tp.reduction_fee,
-    tp.postpaid_fee,
+    tp.postpaid_daily_fee,
+    tp.postpaid_monthly_fee,
     tp.ext_bill_account,
     tp.credit,
     tp.min_use,

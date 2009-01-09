@@ -6,6 +6,7 @@
 <tr><td>$_SUM:</td><td><input type='text' name='SUM' value='%SUM%'></td></tr>
 <tr><td>$_PERIOD:</td><td>%PERIOD_SEL%</td></tr>
 <tr><td>$_PAYMENT_TYPE:</td><td>%PAYMENT_TYPE_SEL%</td></tr>
+<tr><td>$_MONTH_ALIGNMENT:</td><td><input type=checkbox name=PERIOD_ALIGNMENT value=1 %PERIOD_ALIGNMENT%></td></tr>
 <!-- <tr><td>$_DATE:</td><td></td></tr> -->
 </table>
 

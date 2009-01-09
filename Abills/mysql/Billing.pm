@@ -157,6 +157,7 @@ sub traffic_calculations {
 my %traf_price  = ();
 my %prepaid     = ( 0 => 0, 
                     1 => 0);
+my %expr        = ();
 
 my $list = $tariffs->tt_list( { TI_ID => $self->{TI_ID} });
 #id, in_price, out_price, prepaid, speed, descr, nets
@@ -164,6 +165,7 @@ foreach my $line (@$list) {
    $traf_price{in}{$line->[0]}  =	$line->[1];
    $traf_price{out}{$line->[0]} =	$line->[2];
    $prepaid{$line->[0]}         = $line->[3];
+   $expr{$line->[0]}            = $line->[8] if (length($line->[8]) > 7);
 }
 
   my $used_traffic;
@@ -286,6 +288,22 @@ if ($prepaid{0} + $prepaid{1} > 0) {
      $recv2 = ($self->{OCTETS_DIRECTION}==1) ?  $not_prepaid : $not_prepaid / 2;
     }
  }
+#Expration 
+elsif ($RAD->{ACCT_STATUS_TYPE} eq 'Stop' && scalar(keys %expr) > 0) {
+	$self->{PERIOD_TRAFFIC}  = {
+                       		     SESSION_TRAFFIC_OUT   => $sent || 0, 
+                               SESSION_TRAFFIC_IN    => $recv || 0,
+                               SESSION_TRAFFIC_OUT_2 => $sent || 0,
+                               SESSION_TRAFFIC_IN_2  => $recv2|| 0
+         	                    };
+
+  my $RESULT = $self->expression($self->{UID}, \%expr, { 
+                                                         debug => 0 });
+
+  
+  $traf_price{in}{0}=$RESULT->{PRICE_IN}   || 0;
+  $traf_price{out}{0}=$RESULT->{PRICE_OUT} || 0;
+}
 
 #####################################################################
 # TRafic payments
@@ -569,7 +587,6 @@ sub session_sum {
  #session devisions
  my @sd = @{ $self->{TIME_DIVISIONS_ARR} };
  $self->{TI_ID} = 0;
-
 
 if(! defined($self->{NO_TPINTERVALS})) {
   if($#sd < 0) {
@@ -1272,6 +1289,8 @@ sub interval_sum {
 
 #**********************************************************
 # Extretions formul 
+# attr - Atributes
+#   PERIOD_TRAFFIC - period traffic summary
 #**********************************************************
 sub expression {
   my ($self, $UID, $expr, $attr) = @_;
@@ -1290,18 +1309,18 @@ sub expression {
     while(my($id, $expresion_text) = each %{ $expr } ) {
   	  $expresion_text =~ s/\n|[\r]//g;
   	  my @expresions_array = split(/;/, $expresion_text);
-  	  
+ 	  
   	  foreach my $expresion (@expresions_array) {
   	    print "ID: $id EXPR: $expresion\n" if ($debug > 0);
   	    my($left, $right)=split(/=/, $expresion);
   	  
-  	    if($left =~ /([A-Z0-9_]+)(<|>)([0-9\.]+)/) {
+  	    if($left =~ /([A-Z0-9_]+)(<|>)([A-Z0-9_0-9\.]+)/) {
     	    $ex{ARGUMENT}  = $1;
     	    $ex{EXPR}      = $2;
-  	      $ex{PARAMENTER}= $3;
+  	      $ex{PARAMETER}= $3;
   	      
           #$CONF->{KBYTE_SIZE} = 1;
-  	      print "ARGUMENT: $ex{ARGUMENT} EXP: '$ex{EXPR}' PARAMENTER: $ex{PARAMENTER}\n" if ($debug > 0); 
+  	      print "ARGUMENT: $ex{ARGUMENT} EXP: '$ex{EXPR}' PARAMETER: $ex{PARAMETER}\n" if ($debug > 0); 
   	      if ($ex{ARGUMENT} =~ /TRAFFIC/) {
 
   	      	
@@ -1315,24 +1334,34 @@ sub expression {
    	                                          }) if (! $counters->{TRAFFIC_IN});
              }
 
+  	      	if ($ex{PARAMETER} !~ /^[0-9\.]+$/) {
+  	      		$ex{PARAMETER} = $counters->{$ex{PARAMETER}} || 0;
+   	      	 }
+
+
             if ( $ex{ARGUMENT} eq 'TRAFFIC_SUM' && ! $counters->{TRAFFIC_SUM}) {
               $counters->{TRAFFIC_SUM}=$counters->{TRAFFIC_IN}+$counters->{TRAFFIC_OUT};
              }
+
+#           	print "--- $ex{EXPR} eq '<' && $counters->{$ex{ARGUMENT}} <=  $ex{PARAMETER} --\n".
+#           	"!!! $ex{EXPR} eq '>' && $counters->{$ex{ARGUMENT}} >=  $ex{PARAMETER}\n !!!!";
+           	$counters->{$ex{ARGUMENT}}=0 if (! $counters->{$ex{ARGUMENT}});
+           	
             
-            if($ex{EXPR} eq '<' && $counters->{$ex{ARGUMENT}}  <=  $ex{PARAMENTER}) {
-             	print "EXPR: $ex{EXPR} RES: $ex{RES} RES VAL: $ex{RES_VAL}\n" if ($debug > 0);
+            if($ex{EXPR} eq '<' && $counters->{$ex{ARGUMENT}}  <=  $ex{PARAMETER}) {
+             	print "EXPR: $ex{EXPR} RES: $ex{ARGUMENT} RES VAL: $counters->{$ex{ARGUMENT}}\n" if ($debug > 0);
              	$RESULT = get_result($right);
              	$RESULT->{$ex{ARGUMENT}}=$counters->{$ex{ARGUMENT}};
              }
-            elsif($ex{EXPR} eq '>' && $counters->{$ex{ARGUMENT}} >=  $ex{PARAMENTER}) {
+            elsif($ex{EXPR} eq '>' && $counters->{$ex{ARGUMENT}} >=  $ex{PARAMETER}) {
             	print "EXPR: $ex{EXPR} ARGUMENT: $counters->{$ex{ARGUMENT}}\n" if ($debug > 0);
             	$RESULT = get_result($right);
             	$RESULT->{$ex{ARGUMENT}}=$counters->{$ex{ARGUMENT}};
              }
             else {
             	print "No hits!\n" if ($debug > 0);
-            	$RESULT->{TRAFFIC_LIMIT}=$ex{PARAMENTER};
-            	last;
+            	$RESULT->{TRAFFIC_LIMIT}=$ex{PARAMETER};
+            	last if ($ex{ARGUMENT} !~ /SESSION/);
              }
   	       }
 

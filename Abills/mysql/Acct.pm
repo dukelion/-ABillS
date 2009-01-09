@@ -54,6 +54,7 @@ sub accounting {
  my $self = shift;
  my ($RAD, $NAS)=@_;
  
+ 
  $self->{SUM} = 0; # if (! $self->{SUM});
  my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
  my $SESSION_START = (defined($RAD->{SESSION_START}) && $RAD->{SESSION_START} > 0) ?  "FROM_UNIXTIME($RAD->{SESSION_START})" : "FROM_UNIXTIME(UNIX_TIMESTAMP())";
@@ -134,7 +135,7 @@ elsif ($acct_status_type == 2) {
   my $Billing = Billing->new($db, $conf);	
 
   if ( $NAS->{NAS_EXT_ACCT} || $NAS->{NAS_TYPE} eq 'ipcad') {
-
+ 
     $self->query($db, "SELECT 
        acct_input_octets,
        acct_output_octets,
@@ -296,7 +297,6 @@ elsif ($acct_status_type == 2) {
   $self->query($db, "DELETE FROM dv_calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" 
      and user_name=\"$RAD->{USER_NAME}\" 
      and nas_id='$NAS->{NAS_ID}';", 'do');
-     
  }
 #Alive status 3
 elsif($acct_status_type eq 3) {

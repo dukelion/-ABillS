@@ -918,7 +918,7 @@ sub user_form {
      my $customers = Customers->new($db, $admin, \%conf);
      my $company = $customers->company->info($FORM{COMPANY_ID});
  	   $user_info->{COMPANY_ID}=$FORM{COMPANY_ID};
-     $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td>". $html->button($company->{COMPANY_NAME}, "index=13&COMPANY_ID=$company->{COMPANY_ID}"). "</td></tr>\n";
+     $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td>". (($company->{COMPANY_ID} > 0) ? $html->button($company->{COMPANY_NAME}, "index=13&COMPANY_ID=$company->{COMPANY_ID}") : '' ). "</td></tr>\n";
     }
    
    if ($admin->{GIDS}) {
@@ -939,7 +939,10 @@ sub user_form {
      $user_info->{DISABLE} = ' checked';
      $user_info->{DISABLE_MARK} = $html->color_mark($html->b($_DISABLE), $_COLORS[6]);
     } 
-    
+   else {
+   	 $user_info->{DISABLE} = '';
+    }
+  
    $user_info->{ACTION}='add';
    $user_info->{LNG_ACTION}=$_ADD;
   }
@@ -958,6 +961,10 @@ sub user_form {
      $user_info->{DISABLE} = ' checked';
      $user_info->{DISABLE_MARK} = $html->color_mark($html->b($_DISABLE), $_COLORS[6]);
     } 
+   else {
+   	 $user_info->{DISABLE} = '';
+    }
+
 
    $user_info->{ACTION}='change';
    $user_info->{LNG_ACTION}=$_CHANGE;
@@ -1192,7 +1199,7 @@ sub user_pi {
 
   
   if (in_array('Docs', \@MODULES) ) {
-    $user_pi->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new'  }) ;
+    $user_pi->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new'  }) ;
    }
 
   if ($conf{ACCEPT_RULES}) {
@@ -1231,7 +1238,7 @@ if(defined($attr->{USER})) {
   foreach my $key ( sort keys %menu_items) {
 	  if (defined($menu_items{$key}{20})) {
 	  	$service_func_index=$key if (($FORM{MODULE} && $FORM{MODULE} eq $module{$key} || ! $FORM{MODULE}) && $service_func_index == 0);
-		  $service_menu .= '<li>'. $html->button($menu_items{$key}{20}, "UID=$user_info->{UID}&index=$key");
+		  $service_menu .= '<li class=umenu_item>'. $html->button($menu_items{$key}{20}, "UID=$user_info->{UID}&index=$key");
 	   }
   
    	if ($service_func_index > 0 && $menu_items{$key}{$service_func_index}) {
@@ -1307,7 +1314,7 @@ if(defined($attr->{USER})) {
    	 	  require "Abills/modules/$module{$service_func_index}/webinterface";
        }
     
-    print "<TABLE width='100%'>
+    print "<TABLE width='100%' border=0>
       <TR bgcolor='$_COLORS[0]'><TH align='right'>$module{$service_func_index}</TH></TR>
       <TR bgcolor='$_COLORS[2]'><TH align='right'>$service_func_menu</TH></TR>
     </TABLE>\n";
@@ -1321,24 +1328,29 @@ if(defined($attr->{USER})) {
 
 
 
-my $payments = (defined($permissions{1})) ? '<li>'. $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2") : '';
-my $fees = (defined($permissions{2})) ? '<li>' .$html->button($_FEES, "UID=$user_info->{UID}&index=3") : '';
+my $payments = (defined($permissions{1})) ? '<li class=umenu_item>'. $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2").'</li>' : '';
+my $fees = (defined($permissions{2})) ? '<li class=umenu_item>' .$html->button($_FEES, "UID=$user_info->{UID}&index=3").'</li>' : '';
 
 print "
 </td><td bgcolor='$_COLORS[3]' valign='top' width='180'>
-<table width='100%' border='0'><tr><td><ul>
-      $payments
+<table width='100%' border='0' cellspacing='0' cellpadding='0'><tr><td>
+<div id=l_user_menu>
+<ul class=user_menu>
+      $payments  
       $fees
-      <li>". 
+      <li class=umenu_item>". 
 $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=31").
 
-"</ul>\n</td></tr>
-<tr><td> 
-  <ul>
+"</li></ul></div>
 
-$service_menu
-
-</ul><ul>\n";
+</td></tr>
+<tr><td>
+  <div id=l_user_menu> 
+  <ul class=user_menu>
+   $service_menu
+  </ul></div>
+<div id=l_user_menu>
+<ul class=user_menu>\n";
 
 
 my %userform_menus = (
@@ -1362,12 +1374,14 @@ while(my($k, $v)=each %uf_menus) {
 while(my($k, $v)=each (%userform_menus) ) {
   my $url =  "index=$k&UID=$user_info->{UID}";
   my $a = (defined($FORM{$k})) ? $html->b($v) : $v;
-  print "<li>" . $html->button($a,  "$url");
+  print "<li class=umenu_item>" . $html->button($a,  "$url").'</li>';
 }
 
-print "<li>". $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }) if (defined($permissions{0}{5}));
+print "<li class=umenu_item>". $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }).'</li>' if (defined($permissions{0}{5}));
 
-print "</ul></td></tr>
+print "</ul></div>
+
+</td></tr>
 </table>
 </td></tr></table>\n";
   return 0;
@@ -1558,7 +1572,13 @@ function CheckAllINBOX() {
   }
 }
 //-->
-</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n" : undef
+</script>\n
+
+<div id='tabs'>
+<ul class=\"user_menu\">
+<li class=\"active\"><a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a></li>
+</ul>
+</div>\n" : undef
 
                           });
 
@@ -3306,7 +3326,7 @@ if ($attr->{FIELDS}) {
   my $i=0;
 
   foreach my $line (sort keys %{ $attr->{FIELDS} }) {
-  	my ($id, $k)=split(/:/, $line);
+  	my ($id, $k, $align)=split(/:/, $line);
   	
   	push @arr, $html->form_input("FIELDS", $k, { TYPE => 'checkbox', STATE => (defined($fields_hash{$k})) ? 'checked' : undef }). " $attr->{FIELDS}{$line}";
   	$i++;

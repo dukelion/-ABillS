@@ -16,9 +16,11 @@ my @PERIODS = ($_DAY, $_MONTH, $_YEAR);
 
 #*******************************************************************
 # Change user variant form
-# form_chg_vid()
+# abon_user()
 #*******************************************************************
 sub abon_user {
+ my ($attr) = @_;
+
 
  if ($FORM{change}) {
     my @new_arr  = ();
@@ -28,7 +30,6 @@ sub abon_user {
     
     foreach my $k (@ids_arr) {
     	$ids_hash{$k}=1;
-    	
      }
 
 
@@ -44,6 +45,8 @@ sub abon_user {
 
     @new_arr = keys %ids_hash;
 
+
+
     if ($#new_arr > -1) {
       my $list = $Abon->tariff_list({ IDS => join(', ', @new_arr) });  
 
@@ -51,16 +54,28 @@ sub abon_user {
       
       foreach my $line (@$list) {
         if(($users->{CREDIT} + $users->{DEPOSIT}) > $line->[1] || $line->[3]) {
-          my %PARAMS = ( DESCRIBE => "ABON: [$line->[5]] $line->[0]",
+        	$Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->[4] || 0;
+        	$Abon->{TP_INFO}->{MONTH_FEE}        = $line->[1];
+          $Abon->{TP_INFO}->{TP_ID}            = $line->[6];
+          $Abon->{TP_INFO}->{NAME}             = $line->[0]; 
+          
+ 
+          my %PARAMS = ( DESCRIBE => "ABON: [$line->[6]] $line->[0]",
                          METHOD   => 1  );
-      
+          
+          if ($line->[2] == 1 && $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} == 1) {
+            $Abon->{ACTIVATE}=$users->{ACTIVATE};
+            abon_get_month_fee($Abon);      
+           }
+          else {
+            $fees->take($users, $Abon->{TP_INFO}->{MONTH_FEE}, { %PARAMS } ); 
+           }
 
-          $fees->take($users, $line->[1], { %PARAMS } ); 
           $Abon->user_tariff_update({ UID   => "$users->{UID}", 
-        	                            TP_ID => "$line->[5]", 
+        	                            TP_ID => "$line->[6]", 
         	                            DATE  => $DATE, });
 
-          push @add_arr, $line->[5];
+          push @add_arr, $line->[6];
          }
         else {
       	  $html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
@@ -107,8 +122,10 @@ foreach my $line (@$list) {
 
 
 print $html->form_main({ CONTENT => $table->show(),
-	                 HIDDEN  => { index  => "$index", UID => $FORM{UID}  },
-	                 SUBMIT  => { change => "$_CHANGE"} 
+	                 HIDDEN  => { index  => "$index", 
+	                 	            UID    => $FORM{UID}  
+	                 	            },
+	                 SUBMIT  => { change => "$_CHANGE" } 
 	                });
 }
 
@@ -262,6 +279,8 @@ sub abon_tariffs {
  	                                ARRAY_NUM_ID  => 'y'
  	                               });
 
+  $Abon->{PERIOD_ALIGNMENT}  = ($Abon->{PERIOD_ALIGNMENT})  ? 'checked' : ''; 
+
   $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);
 
  my $list = $Abon->tariff_list();
@@ -270,20 +289,21 @@ sub abon_tariffs {
                             title      => [$_NAME, $_SUM, $_PERIOD, $_PAYMENT_TYPE, $_USERS, '-', '-'],
                             cols_align => ['left', 'right', 'left', 'right', 'center', 'center'],
                             qs         => $pages_qs,
+                            ID         => 'ABON_TARIFFS'
                            });
 
 
 my $delete = '';
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[6]", { MESSAGE => "$_DEL $line->[0]?" }); 
    }
-  $table->addrow($html->button("$line->[0]", "index=$index&ABON_ID=$line->[5]"), 
+  $table->addrow($html->button("$line->[0]", "index=$index&ABON_ID=$line->[6]"), 
      "$line->[1]", 
      $PERIODS[$line->[2]], 
      $Payment_Types[$line->[3]], 
-     $html->button("$line->[4]", "index=". ($index-2). "&ABON_ID=$line->[5]"), 
-     $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[5]"), 
+     $html->button("$line->[5]", "index=". ($index-2). "&ABON_ID=$line->[6]"), 
+     $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[6]"), 
      $delete
    );
  }
@@ -375,6 +395,102 @@ sub abon_periodic {
 
 
 
+#**********************************************************
+#
+#**********************************************************
+sub abon_get_month_fee {
+  my ($Abon, $attr) = @_;
+
+  my $result_sum = 0;
+
+  #Get month fee
+  if ($Abon->{TP_INFO}->{MONTH_FEE} > 0) {
+     my $sum   = $Abon->{TP_INFO}->{MONTH_FEE};
+     my $user  = $users->info($Abon->{UID});
+
+     my $message = ''; 
+     #Current Month
+     my ($y, $m, $d)=split(/-/, $DATE, 3);
+     my ($active_y, $active_m, $active_d)=split(/-/, $Abon->{ACTIVATE}, 3);	 
+     if (int("$y$m$d") < int("$active_y$active_m$active_d")) {
+     	  return ;
+      }
+
+        if ($Abon->{TP_INFO}->{PERIOD_ALIGNMENT}) {
+        	$message = ", $_MONTH_ALIGNMENT";
+          my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+
+          if ($Abon->{ACTIVATE} && $Abon->{ACTIVATE} ne '0000-00-00') {
+            $days_in_month=($active_m!=2?(($active_m%2)^($active_m>7))+30:(!($active_y%400)||!($active_y%4)&&($active_y%25)?29:28)); 
+            $d = $active_d;
+           }
+
+          $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
+          $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
+         }
+       
+        return 0 if ($sum == 0);
+        
+        my $periods = 0;
+        if ($active_m > 0 && $active_m < $m) {
+        	$periods = $m - $active_m;
+         }
+        elsif ($active_m > 0 && ( $active_m >= $m  && $active_y < $y)) {
+        	$periods = 12 - $active_m + $m - 1; 
+         }
+
+        $message = "ABON: [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME}".$message;
+        
+        #if ($Abon->{TP_INFO}->{ABON_DISTRIBUTION}) {
+        #	$sum = $sum / ( ($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28)) );
+        #	$message .= " - $_ABON_DISTRIBUTION";
+        # }
+        
+        
+
+        for (my $i=0; $i<=$periods; $i++) {
+
+          if ($active_m+$i > 12) {
+          	$active_m=0;
+          	$active_y=$active_y+1;
+           }
+          
+          $m = sprintf("%.2d", $active_m+$i);
+
+          if ( $i > 0 ) {
+  	        $sum     = $Abon->{TP_INFO}->{MONTH_FEE};
+            $message = "ABON: $sum ($Abon->{TP_INFO}->{TP_ID})";
+            $DATE    = "$active_y-$m-01";
+            $TIME    = "00:00:00";
+           }
+          elsif ($Abon->{ACTIVATE} && $Abon->{ACTIVATE} ne '0000-00-00'){
+            $DATE    = "$active_y-$m-$active_d";
+            $TIME    = "00:00:00";
+            
+            #if ($Abon->{TP_INFO}->{PERIOD_ALIGNMENT}) {
+            #  $users->change($Abon->{UID}, { ACTIVATE => '0000-00-00',
+            #  	                             UID      => $Abon->{UID} });
+            # }
+           }
+         
+          $fees->take($users, $sum, { DESCRIBE  => $message, 
+        	                            METHOD    => 1, 
+        	                            DATE      => "$DATE $TIME"
+        	                           });  
+        
+          if ($fees->{errno}) {
+        	  $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}");	
+           }
+          else {
+            $html->message('info', $_INFO, $message);	
+           }
+         }
+
+
+      }
+
+
+}
 
 1
 

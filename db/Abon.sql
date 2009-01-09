@@ -4,6 +4,7 @@ CREATE TABLE `abon_tariffs` (
   `period` tinyint(2) unsigned NOT NULL default '0',
   `price` double(14,2) unsigned NOT NULL default '0.00',
   `payment_type` tinyint(1) unsigned NOT NULL default '0',
+  `period_alignment` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
