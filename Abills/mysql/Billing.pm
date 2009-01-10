@@ -297,7 +297,7 @@ elsif (scalar(keys %expr) > 0) {
                                SESSION_TRAFFIC_IN_2  => $recv2|| 0
          	                    };
 
-  my $RESULT = $self->expression($self->{UID}, \%expr, { RAD_ALIVE => ($RAD->{ACCT_STATUS_TYPE} eq 'Alive')  ? 1 : 0,
+  my $RESULT = $self->expression($self->{UID}, \%expr, { RAD_ALIVE => ($RAD->{ACCT_STATUS_TYPE} && $RAD->{ACCT_STATUS_TYPE} eq 'Alive')  ? 1 : 0,
                                                          debug     => 0 });
 
   

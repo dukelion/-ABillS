@@ -736,7 +736,7 @@ sub hangup_mpd5 {
          }
    }
 
-  log_print('LOG_DEBUG', " HANGUP: SESSION: $ctl_port NAS_MNG: $ip:$mng_port '$NAS->{NAS_MNG_PASSWORD}'\n");
+  log_print('LOG_DEBUG', " HANGUP: SESSION: $ctl_port NAS_MNG: $NAS->{NAS_MNG_IP_PORT} '$NAS->{NAS_MNG_PASSWORD}'\n");
 
   my @commands=("\t",
                 "Username: \t$NAS->{NAS_MNG_USER}",
