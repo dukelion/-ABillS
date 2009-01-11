@@ -1017,6 +1017,7 @@ sub snmputils_dlink_pb_list {
   print "OID Prefix: $SWITCH_INFO->{oid_prefix} / $SWITCH_INFO->{oid_sufix}{STATE}\n" if ($debug > 0);
 
   my $expr_val = chr(0)."-".chr(255);                                            
+  my $unpack_ = ($SWITCH_INFO->{version} =~ /3550/) ? "H2H2H2H2H2H2H2" : "H2H2H2H2";
   foreach my $line (@result) {
     print "$line => " if ($debug > 0);
     #Blocked address
@@ -1031,9 +1032,10 @@ sub snmputils_dlink_pb_list {
   	  if ($1 == 4) {
   	    my $port   = $3;
         my $ip     = $2;
-        my $string = unpack("B32",  $port);
+        
+        my $string = unpack("B48",  $port);
         if ($debug > 0) {
-       	  my $hex_val = join(':', unpack("H2H2H2H2", pack("B32", $string)));
+       	  my $hex_val = join(':', unpack("$unpack_", pack("B48", $string)));
        	  print "IP: $ip PORT: $hex_val ($string)<BR>\n";
          }
 
@@ -1198,7 +1200,8 @@ sub snmputils_dlink_ip_mac_port{
                           border      => 1,
                           title       => ["$_USER", "$_PORT", "$_STATE", "IP", "MAC", "$_STATUS", "_MODE", "-", "-"],
                           cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
-                          qs          => $pages_qs              
+                          qs          => $pages_qs,
+                          ID          => 'IP-MAC-Port Binding'
                       });
 
 
@@ -1281,7 +1284,7 @@ sub snmputils_dlink_ip_mac_port{
 
 
   if ($debug > 4) {
-    print "$sort / $SORT_COLUMNS{$sort} /<br>";
+    print "$sort / $SORT_COLUMNS{$sort} /<br>\n";
    }
 
   foreach my $line (sort @entries) {
@@ -1300,31 +1303,6 @@ sub snmputils_dlink_ip_mac_port{
       );
     $table->addtd(@arr);
    }
-  
-
-#  #while(my($ip, $ports) = each %{ $ACTIVE_MAC->{MULTIPORTS} } ) {
-#  foreach my $ip (sort keys %{ $ACTIVE_MAC->{MULTIPORTS} } ) {
-#    my @arr = (
-#             $table->td($ACTIVE_MAC->{LOGIN_URL}{"$ip"}),
-#             $table->td($ACTIVE_MAC->{MULTIPORTS}{"$ip"},  { colspan => 2 } ),
-#             $table->td($ip),
-#             $table->td($ACTIVE_MAC->{MAC}{"$ip"}),
-#             $table->td( $THREE_MODE{$ACTIVE_MAC->{ACTIVE}{"$ip"}} ),
-#             $table->td( $MODES{$ACTIVE_MAC->{MODE}{"$ip"}} ),
-#             $table->td($html->button(($state == 2) ? $THREE_MODE{3} : $THREE_MODE{2}, "NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&index=$index&PORT=$port&state=". (($state == 2) ? 3 : 2) )),
-#             $table->td($html->button($_DEL, "index=$index&del=$ip&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1"))
-#      );
-#     
-##    if($binding->{$ACTIVE_MAC->{MAC}{"$ip"}}) {
-## 		  my ($name, $uid) = split(/:/, $binding->{$ACTIVE_MAC->{MAC}{"$ip"}});
-##    	unshift @arr, $table->td($html->button("$name", "index=15&UID=$uid"));
-##     }
-##    else {
-##    	unshift @arr, $table->td('-');
-##     }	
-#   
-#    $table->addtd(@arr);
-#   }
  
   print $table->show();
 
@@ -1352,6 +1330,7 @@ sub snmputils_dlink_ip_mac_port{
                           border      => 1,
                           title       => ["$_USER", "ID", "$_PORT", "MAC", "VID", "-"],
                           cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+                          ID          => 'DISABLED'
                       });
  
   
@@ -1406,6 +1385,7 @@ sub snmputils_dlink_pb_monitor {
                              border      => 1,
                              title       => ["$_USER", "$_DEPOSIT + $_CREDIT", "$_STATUS", "ID", "$_PORT", "MAC", "VID", '-', '-'],
                              cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+                             ID          => 'DISABLED'
                            });
 
   my $list = $Nas->list({ PAGE_ROWS => 10000, 

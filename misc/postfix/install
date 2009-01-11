@@ -35,6 +35,7 @@ local.cf           > [/usr/local/etc/mail/spamassassin]/local.cf
 
 
 #Make startup for courier_imap
+#:OS=FREEBSD,IMAP_SSL:exec:/usr/local/share/courier-imap/mkimapdcert
 :OS=FREEBSD:courier_authdaemond_enable="YES"\ncourier_imap_imapd_enable="YES"\ncourier_imap_pop3d_enable="YES"  >> [/etc]/rc.conf
 
 :OS=FREEBSD:exec:/usr/local/etc/rc.d/postfix restart
