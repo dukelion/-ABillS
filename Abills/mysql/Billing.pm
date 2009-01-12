@@ -301,8 +301,8 @@ elsif (scalar(keys %expr) > 0) {
                                                          debug     => 0 });
 
   
-  $traf_price{in}{0}=$RESULT->{PRICE_IN}   || 0;
-  $traf_price{out}{0}=$RESULT->{PRICE_OUT} || 0;
+  $traf_price{in}{0} = $RESULT->{PRICE_IN} if (defined($RESULT->{PRICE_IN}));
+  $traf_price{out}{0}= $RESULT->{PRICE_OUT} if (defined($RESULT->{PRICE_OUT}));
 }
 
 #####################################################################
@@ -1325,8 +1325,8 @@ sub expression {
             
             # for alive session expr price 0
             if ($attr->{RAD_ALIVE} && $ex{ARGUMENT} !~ /SESSION/) {
-            	$RESULT->{PRICE_IN}=0;
-            	$RESULT->{PRICE_OUT}=0;
+            	#$RESULT->{PRICE_IN}=0;
+            	#$RESULT->{PRICE_OUT}=0;
             	return $RESULT;
              }
 
