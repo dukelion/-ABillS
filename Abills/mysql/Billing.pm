@@ -311,11 +311,15 @@ elsif (scalar(keys %expr) > 0) {
   
   $traf_price{in}{0} = $RESULT->{PRICE_IN} if (defined($RESULT->{PRICE_IN}));
   $traf_price{out}{0}= $RESULT->{PRICE_OUT} if (defined($RESULT->{PRICE_OUT}));
+  
+  
 }
 
 #####################################################################
 # TRafic payments
  my $traf_sum = 0;
+ 
+ 
  
  my $gl_in  = ($traf_price{in}{0}) ? $recv / $CONF->{MB_SIZE} * $traf_price{in}{0} : 0;
  my $gl_out = ($traf_price{out}{0}) ? $sent / $CONF->{MB_SIZE} * $traf_price{out}{0} : 0;
