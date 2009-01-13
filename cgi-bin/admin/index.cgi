@@ -1971,7 +1971,7 @@ sub form_changes {
  my ($attr) = @_; 
  my %search_params = ();
  
-if ($FORM{del} && $FORM{is_js_confirmed}) {
+if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {
 	$admin->action_del( $FORM{del} );
   if ($admins->{errno}) {
     $html->message('err', $_ERROR, "[$admins->{errno}] $err_strs{$admins->{errno}}");	
@@ -2014,13 +2014,14 @@ my $table = $html->table( { width      => '100%',
                             title      => ['#', 'UID',  $_DATE,  $_CHANGE,  $_ADMIN,   'IP', "$_MODULES", '-'],
                             cols_align => ['right', 'left', 'right', 'left', 'left', 'right', 'left', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $admin->{TOTAL}
+                            pages      => $admin->{TOTAL},
+                            ID         => 'ADMIN_ACTIONS'
                            });
 
 
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }); 
+  my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
 
   $table->addrow($html->b($line->[0]),
     $html->button($line->[1], "index=15&UID=$line->[7]"), 
