@@ -1187,7 +1187,7 @@ $output = $html->make_charts({
 
 
 $table = $html->table( { width      => '100%',
-                         cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                         cols_align => ['right', 'right', ],
                          rows       => [ [ "$_COUNT: ". $html->b( $Extfin->{TOTAL} ),
                                            "$_SUM: ". $html->b( $Extfin->{SUM} ), 
                                         ] ],

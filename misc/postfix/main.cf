@@ -62,7 +62,7 @@ mail_owner = postfix
 
 # tls config
 #smtp_use_tls = yes
-#smtpd_use_tls = yes
+#smtpd_tls_security_level = may
 #smtp_tls_note_starttls_offer = yes
 #smtpd_tls_key_file = /usr/abills/Certs/smtpd.pem
 #smtpd_tls_cert_file = /usr/abills/Certs/smtpd.pem

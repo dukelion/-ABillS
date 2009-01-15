@@ -1712,9 +1712,11 @@ sub dv_error {
 if ($attr->{USER}) {
   my $user = $attr->{USER};
   $login = $user->{LOGIN};
+  $LIST_PARAMS{LOGIN_EXPR} = $user->{LOGIN};
 }
 elsif ($FORM{LOGIN_EXPR}) {
   $login = $FORM{LOGIN_EXPR};
+  $LIST_PARAMS{LOGIN_EXPR} = $FORM{LOGIN_EXPR};
   $pages_qs .= "&LOGIN_EXPR=$FORM{LOGIN_EXPR}";
  }
 elsif($FORM{UID}) {

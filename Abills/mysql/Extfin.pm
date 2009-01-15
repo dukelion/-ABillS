@@ -297,7 +297,8 @@ sub payment_deed {
     push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
     push @WHERE_RULES_DV, "u.gid IN ($attr->{GIDS})"; 
    }
-
+ 
+  #Don't use bonus
  
  my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
  my $WHERE_DV = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES_DV)  : '';
@@ -420,6 +421,9 @@ sub summary_del {
 sub extfin_report_deeds {
   my $self = shift;
   my ($attr) = @_;
+
+ print "Content-Type: text/html\n\n";
+ print "aaaaaaaaaaaaaa";
 
  @WHERE_RULES = ();
  my %NAMES=();

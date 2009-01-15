@@ -446,6 +446,11 @@ sub log_list {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{USER}, 'STR', 'l.user') };
   }
 
+  if($attr->{LOGIN_EXPR}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'l.user') };
+  }
+
+
   if(defined($attr->{MESSAGE})) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{USER}, 'STR', 'l.message') };
   }
