@@ -106,7 +106,7 @@ sub info {
    dv.port,
    tp.gid,
    tp.month_fee,
-   tp.postpaid_fee,
+   tp.postpaid_monthly_fee,
    tp.payment_type,
    dv.join_service,
    dv.turbo_mode
