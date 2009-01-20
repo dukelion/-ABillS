@@ -30,6 +30,10 @@ if ($ARGV->{debug}) {
   print "Debug mode: $debug\n";
 }
 
+if ($ARGV->{SYSTEM}) {
+	system_conf();
+}
+
 
 if(! -f $config_file ) {
   print "System main configuration\n";
@@ -243,10 +247,6 @@ elsif ($ARGV->{PROGRAMS}) {
   	  check_install("$program");
   	 }
    }
-}
-
-if ($ARGV->{SYSTEM}) {
-	system_conf();
 }
 
 if ($ARGV->{INTERACT}) {
