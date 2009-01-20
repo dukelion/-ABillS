@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w 
 # Auto configure service
-
+# System conf
 
 use vars  qw(%conf $db
  $DATE $TIME
@@ -11,7 +11,7 @@ use vars  qw(%conf $db
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 1.7;
+my $VERSION = 2.0;
 my $config_file = $Bin . '/../libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
@@ -194,6 +194,7 @@ elsif ($ARGV->{help}) {
  ./autoconf [parameters]
   PROGRAMS=[PROGRAMS,...] - Program names (postfix,freeradius,exppp)
   INFO=[PROGRAMS,...]     - Program information (postfix,freeradius,exppp)
+  SYSTEM                  - System config
   -f                      - Force mode. Rewrite exists files withot prompt
   OS=                     - Operation system
   PARAMS=                 - Extended parameters
@@ -242,6 +243,14 @@ elsif ($ARGV->{PROGRAMS}) {
   	  check_install("$program");
   	 }
    }
+}
+
+if ($ARGV->{SYSTEM}) {
+	system_conf();
+}
+
+if ($ARGV->{INTERACT}) {
+	interact_mode();
 }
 
 
@@ -594,7 +603,7 @@ sub confirm_yn {
 
     if ($read !~ "$yes" && $read !~ "$no") {
         warn "Wrong value. Enter again!\a\n";
-      }
+     }
 }
 
 
@@ -706,15 +715,142 @@ sub read_file {
 # Write file
 #**********************************************************
 sub write_file {
-	my ($filename, $content, $mode) = @_;
+	my ($filename, $content, $mode, $attr) = @_;
+
+ 
+ if ($ARGV->{BACKUP}) {
+   system("cp -R -pi $filename $filename.bak");
+  }
 
  $mode = ($mode) ? $mode : '>';
-
-	open(FILE, "$mode$filename") || die "Can't open file '$filename' $!";
-    print FILE  $content;
-	close(FILE);
+ open(FILE, "$mode$filename") || die "Can't open file '$filename' $!";
+   print FILE  $content;
+ close(FILE);
 
 	return $content;
 }
+
+#**********************************************************
+# Intercat secrvice installation
+#**********************************************************
+sub interact_mode {
+ 
+  print "Interact ABillS Configuration ($Bin):\n";
+
+ opendir DIR, $Bin or die "Can't open dir '$conf{extern_acct_dir}' $!\n";
+   my @contents = grep  !/^\.\.?$/  , readdir DIR;
+ closedir DIR;
+ my @PROGRAMS = ();
+ 
+ foreach my $dir (sort @contents)  {
+   if (-d "$Bin/$dir" && -f "$Bin/$dir/install")	{
+     	push @PROGRAMS, $dir,
+    }
+  }
+ 
+ my @installed = ();
+
+ my $read='';
+ goto label;
+
+ while(1) {
+ 	 chop($read = <STDIN>);
+   if ($read =~ /exit/gi) {
+   	  exit;
+    }
+   else {
+   	 label:
+   	 if ($read =~ /\d+/ && $read > 0) {
+   	   my $program = $PROGRAMS[$read - 1];
+   	   print "Configuration: $program\n";
+   	   check_install("$program");
+  	  }
+
+
+     for(my $i=1; $i<=$#PROGRAMS+1; $i++) {
+ 	     my $program = $PROGRAMS[$i-1];
+ 	     print "$i. $program\n";
+      }
+
+   	 print "Select program or exit: ";
+    }
+  }
+
+}
+
+#**********************************************************
+# System conf
+#**********************************************************
+sub system_conf {
+	my ($attr) = @_;
+
+  if ($conf{OS} eq 'FREEBSD') {
+   print "FreeBSD System configuration\n";
+   my @rc_variables = (
+   'usbd_enable,YES,',
+   'sshd_enable,YES,',
+   'inetd_enable,YES,',
+   'gateway_enable,YES,',
+   'local_startup,/usr/local/etc/rc.d,',
+
+   'hostname,abills-flash-nas,',
+   'defaultrouter,10.0.0.1,',
+   'ifconfig_lnc0,inet 10.0.0.10 netmask 255.255.255.0,',
+
+#   'ipcad_enable,YES,',
+#   'flow_capture_enable,YES,',
+#   'flow_capture_datadir,/usr/abills/var/log/ipn/,',
+#   'flow_capture_port,9996,',
+#   'flow_capture_flags,-S 5 -n 287 -N 0 -d 5,',
+
+   #firewall_enable="YES"
+   'firewall_type,/etc/fw.conf,',
+   'natd_enable,YES,',
+   'natd_interface,lnc0,',
+
+#   'dhcpd_enable,YES,',
+
+   #PPPoE
+#   'pppoed_enable,YES,',
+#   'pppoed_flags,-d -l pppoe-in',
+#   'pppoed_interface,em1,',
+
+   'ntpdate_enable,YES,',
+   'named_enable,YES,',
+   );
+
+   my @rc_result = ();
+   my $read;
+   foreach my $line (@rc_variables) {
+   	 my($name, $default, $describe)=split(/,/, $line, 3);
+   	 
+   	 print "$describe\n$name [$default]: ";
+   	 
+   	 chop($read = <STDIN>);
+   	 if ($read !~ /^n$|^no$/gi) {
+   	 	 if ($read eq '') {
+         $read = $default;
+   	 	  }
+   	   push @rc_result, "$name,$read";
+   	  }
+    }
+
+   #Show result
+   my $content = '';
+   foreach my $line (@rc_result) {
+   	 my($name, $val)=split(/,/, $line);
+   	 $content .= "$name=\"$val\"\n";
+    }
+
+   if(confirm_yn("Make /etc/rc.conf", 'y')) {
+     write_file('/tmp/rc.conf', $content, '>');
+     print "Done\n";
+    }
+
+   }
+
+	return 0;
+}
+
 
 1

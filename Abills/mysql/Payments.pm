@@ -172,7 +172,7 @@ sub del {
   
 
   $self->query($db, "DELETE FROM payments WHERE id='$id';", 'do');
-  $admin->action_add($user->{UID}, "DELETE PAYEMNTS SUM: $sum");
+  $admin->action_add($user->{UID}, "DELETE PAYEMNTS $id SUM: $sum");
 
   return $self;
 }

@@ -1,6 +1,7 @@
 package Billing;
 # Main billing functions
 #
+
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );

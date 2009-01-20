@@ -1,6 +1,5 @@
 #!/usr/bin/perl -w
 # Accounting controll deamon
-# ~AsmodeuS~ (2007.05.23)
 # Work only with Dv module
 
 
