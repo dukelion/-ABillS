@@ -945,8 +945,21 @@ $table2->addtd(   $table2->td($_TOTAL, { bgcolor => $_COLORS[0] }),
 
 print $table2->show();
 
+#Field formed section
+my @FIELDS_ALL = ("$_USER", "$_FIO", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT",
+                             "Ex_IN", "Ex_OUT", 
+                             "CID",  "SESSION_ID", "$_TARIF_PLAN", "CONNECT_INFO", 
+                             "$_SPEED",
+                             "$_SUM",
+                             "$_STATUS",
+                             "$_ADDRESS",
+                             "$_GROUP",
+                             "TURBO",
+                             "$_JOIN_SERVICE"
+                             );
 
-if ($sessions->{TOTAL} > 500)  {
+
+if ($sessions->{TOTAL} > 1) { #500)  {
   my $table = $html->table( { width      => '100%',
                             caption    => "Online $_TOTAL",
                             border     => 1,
@@ -974,22 +987,19 @@ if ($sessions->{TOTAL} > 500)  {
 
   print $table->show();
   
+  
   if (! $FORM{NAS_ID} && ! $FORM{ZAPED} && ! $FORM{FILTER}) {
+  	print dv_online_search({ FIELDS_ALL => \@FIELDS_ALL }); 
+  	
   	return 0;
    }
   else {
+  	
   	$LIST_PARAMS{NAS_ID}=$FORM{NAS_ID};
    }
 }
 
 
-#Field formed section
-my @FIELDS_ALL = ("$_USER", "$_FIO", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT",
-                             "Ex_IN", "Ex_OUT", 
-                             "CID",  "SESSION_ID", "$_TARIF_PLAN", "CONNECT_INFO", 
-                             "$_SPEED",
-                             "$_SUM",
-                             "$_STATUS");
 
 
 my @CAPTION = (); 
@@ -1121,11 +1131,42 @@ my $output = $table->show();
 
 
 
-$table2 = $html->table({ width => '100%' });
+
+
+if ($FORM{ZAPED}) {
+  $output = $html->form_main({ CONTENT => $output,
+	                             HIDDEN  => { index => "$index",
+	                       	                  ZAPED => 1,
+	                       	                  NAS_ID => $FORM{NAS_ID} },
+	                             SUBMIT  => { go    => "$_DEL" },
+	                             METHOD  => 'POST',
+	                             NAME    => 'users_list'
+                            });
+ }
+else {
+  $output .= dv_online_search({ FIELDS_ALL => \@FIELDS_ALL }); 
+
+  $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want ZAP all sessions ?" });
+ }
+
+
+print  $output;
+	
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub dv_online_search {
+	my ($attr) = @_;
+	
+	my $FIELDS_ALL = $attr->{FIELDS_ALL};
+my $table2 = $html->table({ width => '100%' });
 my @arr = ();
 my $i=0;
-foreach my $name ( @FIELDS_ALL ) {
-  my $ex_info = ($attr->{OIDS_EXINFO}->{$name}{DESCRIBE}) ?  " ($attr->{OIDS_EXINFO}->{$name}{ACCESS})<br>$attr->{OIDS_EXINFO}->{$name}{DESCRIBE}" : '';
+foreach my $name ( @$FIELDS_ALL ) {
+  my $ex_info = ''; #($attr->{OIDS_EXINFO}->{$name}{DESCRIBE}) ?  " ($attr->{OIDS_EXINFO}->{$name}{ACCESS})<br>$attr->{OIDS_EXINFO}->{$name}{DESCRIBE}" : '';
   push @arr, $html->form_input('fields', "$i", { TYPE => 'checkbox', STATE => (in_array($i, \@ACTIVE_FIELDS)) ? 1 : undef  }). ' '. $html->b($name) ." $ex_info";
 
   if ($#arr > 2) {
@@ -1143,47 +1184,26 @@ if ($#arr > -1 ) {
 
 my $FIELDS_SEL = $html->form_select('FILTER_FIELD', 
                                 { SELECTED      => $FORM{FILTER_FIELD},
- 	                                SEL_ARRAY     => \@FIELDS_ALL,
+ 	                                SEL_ARRAY     => $FIELDS_ALL,
  	                                ARRAY_NUM_ID  => 1
  	                               });
 
-$table = $html->table( { width       => '100%',
-                         title_plain => [ 
+my $table = $html->table( { width       => '100%',
+                            title_plain => [ 
                                            " $_FILTERS: ". $html->form_input('FILTER', $FORM{FILTER}) .
                                            " $_FIELDS: $FIELDS_SEL".
                                            " $_REFRESH (sec): ".   $html->form_input('REFRESH', int($FORM{REFRESH}), { SIZE => 4 } ),
                                            $html->form_input('SHOW',  $_SHOW, { TYPE => 'SUBMIT'})  
                                          ],
-                          cols_align => ['center:noprint', 'center:noprint'],
+                             cols_align => ['center:noprint', 'center:noprint'],
                            });
-
-if ($FORM{ZAPED}) {
-  $output = $html->form_main({ CONTENT => $output,
-	                             HIDDEN  => { index => "$index",
-	                       	                  ZAPED => 1,
-	                       	                  NAS_ID => $FORM{NAS_ID} },
-	                             SUBMIT  => { go    => "$_DEL" },
-	                             METHOD  => 'POST',
-	                             NAME    => 'users_list'
-                            });
- }
-else {
-  $output .= $html->form_main({ CONTENT => $table2->show(). $table->show(),
-	                              HIDDEN  => { index  => "$index",
-	                              	           NAS_ID => $FORM{NAS_ID}},
-	                              METHOD  => 'POST'
-                              });
-
-  $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want ZAP all sessions ?" });
- }
-
-
-print  $output;
 	
+	return $html->form_main({ CONTENT => $table2->show(). $table->show(),
+	                          HIDDEN  => { index  => "$index",
+	                              	       NAS_ID => $FORM{NAS_ID}},
+	                          METHOD  => 'GET'
+                           });
 }
-
-
-
 
 #**********************************************************
 # Whow sessions from log

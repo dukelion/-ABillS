@@ -76,7 +76,6 @@ sub take {
   my $self = shift;
   my ($user, $sum, $attr) = @_;
   
-  
   %DATA = $self->get_data($attr, { default => defaults() });
   my $DESCRIBE = ($attr->{DESCRIBE}) ? $attr->{DESCRIBE} : '';
   my $DATE  =  ($attr->{DATE}) ? "'$attr->{DATE}'" : 'now()';
@@ -114,8 +113,8 @@ sub take {
             '$user->{COMPANY_VAT}', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do');
 
     if($self->{errno}) {
-       return $self;
-      }
+      return $self;
+     }
   }
   else {
     $self->{errno}=14;

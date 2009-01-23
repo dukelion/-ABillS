@@ -139,6 +139,7 @@ CREATE TABLE `companies` (
   `contract_date` date NOT NULL default '0000-00-00',
   `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
+  KEY `bill_id` (`bill_id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
 ) COMMENT='Companies';
@@ -780,6 +781,7 @@ CREATE TABLE `users` (
   `credit_date` date default '0000-00-00',
   PRIMARY KEY  (`uid`),
   UNIQUE KEY `id` (`id`),
+  KEY `bill_id` (`bill_id`), 
   KEY `company_id` (`company_id`)
 );
 

@@ -143,6 +143,7 @@ sub online {
 	my ($attr) = @_;
 
   my $WHERE = '';
+ 
 
   if ($attr->{COUNT}) {
   	if ($attr->{ZAPED}) {
@@ -177,6 +178,10 @@ sub online {
    'dv.speed',   
    'c.sum',
    'c.status',
+   'concat(pi.address_street,\' \', pi.address_build,\'/\', pi.address_flat) AS ADDRESS', 
+   'u.gid',
+   'c.turbo_mode',
+   'c.join_service',
 
    'pi.phone',
    'INET_NTOA(c.framed_ip_address)',

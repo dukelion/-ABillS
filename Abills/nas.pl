@@ -529,7 +529,7 @@ sub hangup_ipcad {
 # hangup_openvpn 
 #*******************************************************************
 sub hangup_openvpn {
-  my ($NAS, $PORT, $USER_NAME, $attr) = @_;
+  my ($NAS, $PORT, $USER, $attr) = @_;
 
  my @commands=(">INFO:OpenVPN Management Interface Version 1 -- type 'help' for more info\tkill $USER",
                "SUCCESS: common name '$USER' found, 1 client(s) killed\texit");

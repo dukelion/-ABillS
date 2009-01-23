@@ -465,6 +465,9 @@ sub list {
   }
 
 
+  if ($attr->{NETMASK}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{NETMASK}, 'INT', 'dv.netmask') };
+   }
 
  if ($attr->{DEPOSIT}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'u.deposit') };
