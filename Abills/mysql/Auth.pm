@@ -324,8 +324,32 @@ if ($self->{PAYMENT_TYPE} == 0) {
 
     #Filtering with negative deposit
     if ($self->{NEG_DEPOSIT_FILTER_ID}) {
-      $RAD_PAIRS->{'Filter-Id'} = "$self->{NEG_DEPOSIT_FILTER_ID}";
-      
+      if ($self->{NEG_DEPOSIT_FILTER_ID} =~ /RAD:(.+)/) {
+      	my $rad_pairs = $1;
+        my @p = split(/,/, $rad_pairs);
+        foreach my $line (@p) {
+          if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/ ) {
+            my $left=$1;
+            my $right=$2;
+    
+            $right =~ s/\"//g;
+            push( @{ $RAD_PAIRS->{"$left"} }, $right ); 
+           }
+          else {
+            my($left, $right)=split(/=/, $line, 2);
+            if ($left =~ s/^!//) {
+              delete $RAD_PAIRS->{"$left"};
+   	         }
+   	        else {
+   	          $RAD_PAIRS->{"$left"}="$right";
+   	         }
+           }
+         }
+      	
+       }
+      else {
+      	$RAD_PAIRS->{'Filter-Id'} = "$self->{NEG_DEPOSIT_FILTER_ID}";
+       }
       # Return radius attr    
       if ($self->{IP} ne '0') {
         $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
@@ -354,6 +378,7 @@ if ($self->{PAYMENT_TYPE} == 0) {
 else {
   $self->{DEPOSIT}=0;
 }
+
 
   if ($self->{INTERVALS} > 0)  {
      ($self->{TIME_INTERVALS}, $self->{INTERVAL_TIME_TARIF}, $self->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($self->{TP_ID});
@@ -655,6 +680,7 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
  }
 
 #chack TP Radius Pairs
+
   if ($self->{TP_RAD_PAIRS}) {
     my @p = split(/,/, $self->{TP_RAD_PAIRS});
     foreach my $line (@p) {
@@ -671,6 +697,8 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
            delete $RAD_PAIRS->{"$left"};
    	      }
    	     else {
+   	     	 next if ($self->{"$left"});
+   	     	 
    	       $RAD_PAIRS->{"$left"}="$right";
    	      }
        }
