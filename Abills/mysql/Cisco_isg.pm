@@ -310,11 +310,11 @@ $self->query($db, "select
     ) = @{ $self->{list}->[0] };
 
 #chack TP Radius Pairs
+
   if ($self->{TP_RAD_PAIRS}) {
     my @p = split(/,/, $self->{TP_RAD_PAIRS});
     foreach my $line (@p) {
       if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/gi) {
-        
         my $left = $1;
         my $right= $2;
         $right =~ s/\"//g;
@@ -331,6 +331,7 @@ $self->query($db, "select
        }
      }
    }
+
 
 
 #
@@ -424,12 +425,12 @@ $self->query($db, "select
 
     
     if ($speed_in_rule ne '' || $speed_out_rule ne '') {
-      $RAD_PAIRS{'Cisco-Service-Info'} = "\"Q$speed_out_rule;$speed_in_rule\"";
+      $RAD_PAIRS->{'Cisco-Service-Info'} = "\"Q$speed_out_rule;$speed_in_rule\"";
      }
 
   }
 	
-	return 0, \%RAD_PAIRS;
+	return 0, $RAD_PAIRS;
 }
 
 
