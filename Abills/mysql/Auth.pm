@@ -345,7 +345,6 @@ if ($self->{PAYMENT_TYPE} == 0) {
    	         }
            }
          }
-      	
        }
       else {
       	$RAD_PAIRS->{'Filter-Id'} = "$self->{NEG_DEPOSIT_FILTER_ID}";
@@ -697,8 +696,7 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
            delete $RAD_PAIRS->{"$left"};
    	      }
    	     else {
-   	     	 next if ($self->{"$left"});
-   	     	 
+   	     	 next if (! $self->{"$left"});
    	       $RAD_PAIRS->{"$left"}="$right";
    	      }
        }
