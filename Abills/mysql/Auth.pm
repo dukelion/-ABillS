@@ -341,6 +341,7 @@ if ($self->{PAYMENT_TYPE} == 0) {
               delete $RAD_PAIRS->{"$left"};
    	         }
    	        else {
+   	        	#next if (! $self->{"$left"});
    	          $RAD_PAIRS->{"$left"}="$right";
    	         }
            }
@@ -681,6 +682,7 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
 #chack TP Radius Pairs
 
   if ($self->{TP_RAD_PAIRS}) {
+    $self->{TP_RAD_PAIRS} =~ s/\r|\n//g;
     my @p = split(/,/, $self->{TP_RAD_PAIRS});
     foreach my $line (@p) {
       if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/ ) {
@@ -696,7 +698,7 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
            delete $RAD_PAIRS->{"$left"};
    	      }
    	     else {
-   	     	 next if (! $self->{"$left"});
+   	     	 #next if (! $self->{"$left"});
    	       $RAD_PAIRS->{"$left"}="$right";
    	      }
        }
