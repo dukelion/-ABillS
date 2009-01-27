@@ -1,5 +1,6 @@
 <form action='$SELF_URL' METHOD=POST>
 <input type=hidden name=index value=$index>
+<input type=hidden name=HOST_ID value='$FORM{HOST_ID}'>
 <table>
 <tr><th colspan=2>SQL QUERY:</th><tr>
 <tr><th colspan=2><textarea name='QUERY' cols=70 rows=10>%QUERY%</textarea></th><tr>

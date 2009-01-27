@@ -638,7 +638,7 @@ sub accept_rules {
   my ($attr) = @_;
 
   $user->pi({ UID => $user->{UID} });
-  if ($FORM{ACCEPT}) {
+  if ($FORM{ACCEPT} &&  $FORM{accept}) {
     if ($user->{TOTAL} == 0) {
       $user->pi_add({ UID => $user->{UID}, ACCEPT_RULES => 1 });
      }
