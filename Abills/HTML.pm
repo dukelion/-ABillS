@@ -1351,14 +1351,18 @@ sub button {
 #*******************************************************************
 sub message {
  my $self = shift;
- my ($type, $caption, $message, $head) = @_;
+ my ($type, $caption, $message, $attr) = @_;
  
+ my $head = '';
+ $caption .= ': '. $attr->{ID} if ($attr->{ID});
  if ($type eq 'err') {
    $head = "<tr><th bgcolor=\"#FF0000\">$caption</th></TR>\n";
   }
  elsif ($type eq 'info') {
    $head = "<tr><th bgcolor=\"$_COLORS[0]\">$caption</th></TR>\n";
   }  
+ 
+ 
  
 my $output = qq{
 <br>

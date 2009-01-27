@@ -70,8 +70,9 @@ if ($attr->{IP}) {
    push @WHERE_RULES, '(' . join(' or ', @ip_q) . ')';
 }
 
+#Period
 if ($attr->{START_DATE}) {
-        my  $s_time = ($attr->{START_DATE} =~ /^\d{4}-\d{2}-\d{2}$/) ? 'DATE_FORMAT(s_time, \'%Y-%m-%d\')' : 's_time' ;
+  my  $s_time = ($attr->{START_DATE} =~ /^\d{4}-\d{2}-\d{2}$/) ? 'DATE_FORMAT(s_time, \'%Y-%m-%d\')' : 's_time' ;
 	push @WHERE_RULES, "$s_time >= '$attr->{START_DATE}'";
 	if ($attr->{START_DATE} =~ /(\d{4})-(\d{2})-(\d{2})/) {
 	  $START_DATE = "$1$2$3";

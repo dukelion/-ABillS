@@ -1226,7 +1226,29 @@ sub user_detail {
 if ($attr->{INTERVAL}) {
   my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
   push @WHERE_RULES, "date_format(s_time, '%Y-%m-%d')>='$from' and date_format(f_time, '%Y-%m-%d')<='$to'";
- }
+  
+  
+  #Period
+  if ($from) {
+    my  $s_time = ($from =~ /^\d{4}-\d{2}-\d{2}$/) ? 'DATE_FORMAT(s_time, \'%Y-%m-%d\')' : 's_time' ;
+	  push @WHERE_RULES, "$s_time >= '$from'";
+	  if ($from =~ /(\d{4})-(\d{2})-(\d{2})/) {
+	    $attr->{START_DATE} = "$1$2$3";
+	   }
+  }
+
+  #if (! $to) {
+  #  $attr->{FINISH_DATE}=$DATE;
+  # }
+
+  my  $s_time = ($to =~ /^\d{4}-\d{2}-\d{2}$/) ? 'DATE_FORMAT(s_time, \'%Y-%m-%d\')' : 's_time' ;
+
+  push @WHERE_RULES, "$s_time <= '$to'";
+  if ($to =~ /(\d{4})-(\d{2})-(\d{2})/) {
+    $attr->{FINISH_DATE} = "$1$2$3";
+   }
+  
+}
 
 if ($attr->{UID}) {
    push @WHERE_RULES, "uid='$attr->{UID}'";
@@ -1235,9 +1257,6 @@ if ($attr->{UID}) {
 if (defined($attr->{SRC_PORT}) && $attr->{SRC_PORT} =~ /^\d+$/) {
    push @WHERE_RULES, "src_port='$attr->{SRC_PORT}'";
  }
-
-
-
 
 if ($attr->{DST_IP}) {
   my @ips_arr = split(/,/, $attr->{DST_IP});
@@ -1291,14 +1310,6 @@ if ($attr->{SRC_IP}) {
    push @WHERE_RULES, '(' . join(' or ', @ip_q) . ')';
 }
 
-#if ($attr->{DST_IP}) {
-#   push @WHERE_RULES, "dst_addr=INET_ATON('$attr->{DST_IP}')";
-# }
-
-#if ($attr->{SRC_IP}) {
-#   push @WHERE_RULES, "src_addr=INET_ATON('$attr->{SRC_IP}')";
-# }
-
 if (defined($attr->{DST_PORT}) && $attr->{DST_PORT} =~ /^\d+$/ ) {
    push @WHERE_RULES, "dst_port='$attr->{DST_PORT}'";
  }
@@ -1312,6 +1323,7 @@ if ($attr->{SRC_IP_GROUP}) {
  }
 
 
+
 my $GROUP_BY = '';
 my $size = 'size';
 
@@ -1322,32 +1334,101 @@ if ($#GROUP_RULES > -1) {
   $size = 'sum(size)';
  } 
 
- 
- $self->query($db, "SELECT  s_time,	f_time,
-  INET_NTOA(src_addr),
-  src_port,
-  INET_NTOA(dst_addr),
-  dst_port,
-  protocol,
-  $size,
-  nas_id
-  
-   FROM ipn_traf_detail
 
-  $WHERE
-  $GROUP_BY
-  ORDER BY $SORT $DESC 
-  LIMIT $PG, $PAGE_ROWS
-   ;");
+my @tables = ();
+
+$self->query($db, "SHOW TABLES;");
+my $list = $self->{list};
+
+foreach my $line (@$list) {
+  my $table = $line->[0];
+  if ($table =~ m/ipn_traf_detail_(\d{4})_(\d{2})_(\d{2})/) {
+  	 my $table_date="$1$2$3";
+  	 if ($table_date >= $attr->{START_DATE} && $table_date <= $attr->{FINISH_DATE}) {
+  	 	  print $table."\n" if ($debug > 1);
+  	 	  push @tables, $table;
+  	  }
+   }
+}
+
+push @tables, 'ipn_traf_detail';
+my @sql_arr = ();
+foreach my $table (@tables) {
+  my $date ;
+  if ($table =~ m/ipn_traf_detail_(\d{4})_(\d{2})_(\d{2})/) {
+    $date = "$1-$2-$3";
+   }
+  
+  push @sql_arr,   "SELECT s_time,	f_time,
+    INET_NTOA(src_addr),
+    src_port,
+    INET_NTOA(dst_addr),
+    dst_port,
+    protocol,
+    $size,
+    nas_id 
+  FROM $table 
+    $WHERE
+    $GROUP_BY
+    ";
+
+#print "$sql\n" if ($debug > 0);  
+#print "DATE: $date =============================================\n";
+
+#my $q = $db->prepare($sql);
+#$q->execute();
+#my $total = 0;
+#while (my ($src_addr,$dst_addr,$src_port,$dst_port,$protocol,$size,
+#  $f_time,$s_time,$nas_id) = $q->fetchrow_array()) {
+#
+#  if ($FORMAT eq 'tab_delimeter' ){
+#    print "$src_addr\t$src_port\t$dst_addr\t$dst_port\t$protocol\t$size\t$f_time\t$s_time\t$nas_id";
+#   }
+#  else {
+#    printf("%-15s|%-5s|%-15s|%-5s|%4s|%-8s|%-19s|%-19s|%-3s|\n", $src_addr, $src_port, $dst_addr, 
+#     $dst_port, $protocol, $size, $f_time, $s_time, $nas_id);
+#   }
+#  $total += $size;
+
+#}
+
+#print "=================SUM: $total\n";
+
+}
+ 
+ my $sql = join(" UNION ", @sql_arr);
+ $self->query($db, "$sql LIMIT $PG,$PAGE_ROWS");
+ 
+# $self->query($db, "SELECT  s_time,	f_time,
+#  INET_NTOA(src_addr),
+#  src_port,
+#  INET_NTOA(dst_addr),
+#  dst_port,
+#  protocol,
+#  $size,
+#  nas_id
+#  
+#   FROM ipn_traf_detail
+#
+#  $WHERE
+#  $GROUP_BY
+#  ORDER BY $SORT $DESC 
+#  LIMIT $PG, $PAGE_ROWS
+#   ;");
 
   $list = $self->{list};
 
+  
+  
   if ($self->{TOTAL} > 0 && $#GROUP_RULES < 0) {
-     $self->query($db, "SELECT count(*) from ipn_traf_detail
-      $WHERE ;");
-	
-    ($self->{TOTAL},
-     $self->{SUM}) = @{ $self->{list}->[0] };
+    #$self->{debug}=1;
+    my $totals = 0;
+    foreach my $table (@tables) {
+      $self->query($db, "SELECT count(*) from $table
+        $WHERE ;");
+      $totals += $self->{list}->[0]->[0];
+     }
+    $self->{TOTAL}=$totals;
    }
 
 

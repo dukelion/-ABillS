@@ -564,7 +564,7 @@ sub list {
  }
 
 #DIsable
- if (defined($attr->{STATUS})) {
+ if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
    push @WHERE_RULES, "dv.disable='$attr->{STATUS}'"; 
  }
  

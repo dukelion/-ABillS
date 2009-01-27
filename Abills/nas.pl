@@ -61,6 +61,9 @@ sub hangup {
  elsif ($nas_type eq 'cisco')  {
  	 hangup_cisco($NAS, $PORT, { USER => $USER, %$attr });
   }
+ elsif ($nas_type eq 'cisco_isg')  {
+ 	 hangup_cisco_isg($NAS, $PORT, { USER => $USER, %$attr });
+  }
  elsif ($nas_type eq 'mpd') {
    hangup_mpd($NAS, $PORT);
   }
@@ -538,6 +541,42 @@ sub hangup_openvpn {
  log_print('LOG_DEBUG', "$result");
 
  return 0; 
+}
+
+
+
+#*******************************************************************
+# HANGUP Cisco ISG
+#
+# ip rcmd rcp-enable
+# ip rcmd rsh-enable
+# no ip rcmd domain-lookup
+# ! ip rcmd remote-host имя_юзера_на_cisco IP_address_или_имя_компа_с_которого_запускается_скрипт имя_юзера_от_чьего_имени_будет_запукаться_скрипт enable
+# ! например
+# ip rcmd remote-host admin 192.168.0.254 root enable
+#
+#*******************************************************************
+sub hangup_cisco_isg {
+ my ($NAS, $PORT, $attr) = @_;
+ my $exec;
+ my $command = '';
+ my $user = $attr->{USER};
+
+ my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
+
+#POD Version
+if ($NAS->{NAS_MNG_USER}) {
+# имя юзера на циско котрому разрешен rsh и хватает привелегий для сброса
+  my $cisco_user=$NAS->{NAS_MNG_USER};
+  $command = "/usr/bin/rsh -l $cisco_user $NAS->{NAS_IP} clear subscriber session username $user";
+  log_print('LOG_DEBUG', "$command");
+  $exec = `$command`;
+ }
+else {
+  print "Can't find 'NAS_MNG_USER'\n";
+}
+
+ return $exec;
 }
 
 

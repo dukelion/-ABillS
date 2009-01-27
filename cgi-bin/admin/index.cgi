@@ -1328,21 +1328,20 @@ if(defined($attr->{USER})) {
 
 
 
-my $payments = (defined($permissions{1})) ? '<li class=umenu_item>'. $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2").'</li>' : '';
-my $fees = (defined($permissions{2})) ? '<li class=umenu_item>' .$html->button($_FEES, "UID=$user_info->{UID}&index=3").'</li>' : '';
+my $payments_menu = (defined($permissions{1})) ? '<li class=umenu_item>'. $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2").'</li>' : '';
+my $fees_menu     = (defined($permissions{2})) ? '<li class=umenu_item>' .$html->button($_FEES, "UID=$user_info->{UID}&index=3").'</li>' : '';
+my $sendmail_manu = '<li class=umenu_item>'. $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=31"). '</li>';
 
 print "
 </td><td bgcolor='$_COLORS[3]' valign='top' width='180'>
 <table width='100%' border='0' cellspacing='0' cellpadding='0'><tr><td>
 <div id=l_user_menu>
 <ul class=user_menu>
-      $payments  
-      $fees
-      <li class=umenu_item>". 
-$html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=31").
-
-"</li></ul></div>
-
+   $payments_menu
+   $fees_menu
+   $sendmail_manu
+</ul>
+</div>
 </td></tr>
 <tr><td>
   <div id=l_user_menu> 
