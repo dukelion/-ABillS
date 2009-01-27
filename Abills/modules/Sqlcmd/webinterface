@@ -2,9 +2,14 @@
 # Some code are use from mysqlreport (http://hackmysql.com/mysqlreport)
 #
 
+
+
 require "Sqlcmd.pm";
 Sqlcmd->import();
 my $Sqlcmd = Sqlcmd->new($db, $admin, \%conf);
+
+
+
 
 my (%DMS_vals, %Com_vals);
 my ($stat_name, $stat_val, $stat_label);
@@ -15,6 +20,8 @@ my (%stats, %vars); # SHOW STATUS, SHOW VARIABLES
 # sqlcmd
 #**********************************************************
 sub sqlcmd {
+ sqlcmd_cluster_info();
+ 
  
 my $FORM2  = ();
 my @pairs = split(/&/, $FORM{__BUFFER});
@@ -62,17 +69,17 @@ if ($FORM{QUERY} && ! $FORM{xml}) {
                              } );
 
   #Syntax hightligth
-  my @syntax = ('SELECT', 'FROM', 'WHERE', 'HAVING', 'MIN', 'MAX', 'AVG', 'SUM', 'IF',
+  my @syntax = ('SELECT', 'FROM', 'WHERE', 'MIN', 'MAX', 'AVG', 'SUM', 'IF',
             'INSERT', 'UPDATE', 'INTO', 'VALUES', 
             'GROUP BY', 'ORDER BY', 'LIMIT',
-            'DATE_FORMAT', 'LEFT JOIN', 'INNER JOIN', 'ON', 'AND', 'EXPLAIN', 'ALTER', 'CREATE', 'TABLE',
-            'DROP', 'ADD', "PRIMARY", "KEY", "AUTO_INCREMENT", 'COLUMN', 'UNSIGNED', 'NOT', 'NULL', 'DEFAULT', 'INTERVAL', 'COUNT'
+            'DATE_FORMAT', 'LEFT JOIN', 'ON', 'AND', 'EXPLAIN', 'ALTER', 'TABLE',
+            'ADD', 'COLUMN', 'UNSIGNED', 'NOT', 'NULL', 'DEFAULT', 'INTERVAL', 'COUNT'
             );
  
   my @types = ('INT', 'VARCHAR', 'SMALLINT', 'CHAR', 'TINYINT', 'DOUBLE');
   my @func =  ('CURDATE()', 'NOW()');
 
-  my @division = ('FROM', 'WHERE', 'HAVING', 'LEFT JOIN', 'GROUP BY', 'ORDER BY', 'LIMIT');
+  my @division = ('FROM', 'WHERE', 'LEFT JOIN', 'GROUP BY', 'ORDER BY', 'LIMIT');
 
   foreach my $query ( @{ $Sqlcmd->{EXECUTED_QUERY} } ) {
     foreach my $s (@division) {
@@ -126,7 +133,7 @@ $pages_qs .= "&QUERY=$FORM{QUERY}";
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", $html->b($Sqlcmd->{TOTAL}) ] ]
+                           rows       => [ [ "$_TOTAL:", "<b>$Sqlcmd->{TOTAL}</b>" ] ]
                         } );
 
   print $table->show();
@@ -178,28 +185,18 @@ if ($FORM{TABLE_INFO}) {
 #**********************************************************
 sub sqlcmd_tables {
 	
+	sqlcmd_cluster_info();
 	#SHOW TABLE STATUS FROM abills;
   #$table{size} = Index_length + Data_length
   
-  my $list = $Sqlcmd->info({ TYPE => 'showtables', 
-  	                         DATE => $DATE, 
-  	                         %LIST_PARAMS, 
-  	                         %FORM });
+  my $list = $Sqlcmd->info({ TYPE => 'showtables', %LIST_PARAMS, %FORM });
 
   if ($Sqlcmd->{errno}) {
-    $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}} $Sqlcmd->{errstr}");	
+    $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}}");	
     return 0;
    }
-  
-  if ($FORM{ACTION} && $FORM{ACTION} eq 'ROTATE') {
-    my @tables_arr = split(/, /, $FORM{TABLES});
-    my $message = '';
-    $DATE =~ s/-/\_/g;
-    foreach my $table (@tables_arr) {
-    	 $message .= "$table => $table". '_'. $DATE . ', ';
-     }
-    $html->message('info', "ROTATE", "$message");	
-   }
+
+
   
 
   my @ACTIVE_FIELDS = ('Name', 
@@ -317,11 +314,10 @@ $table3->addtd(  $table->td("$_ACTION:" .
                  $html->form_select('ACTION', 
                                     { 
  	                                   SELECTED    => $FORM{ACTION},
- 	                                   SEL_ARRAY   => [ 'ROTATE', 'ANALYZE',  'BACKUP', 'CHECK', 'CHECKSUM', 'OPTIMIZE', 'REPAIR', 'RESTORE' ],
+ 	                                   SEL_ARRAY   => [ 'ANALYZE',  'BACKUP', 'CHECK', 'CHECKSUM', 'OPTIMIZE', 'REPAIR', 'RESTORE' ],
                                      NO_ID       => 1,
                                      SEL_OPTIONS => {'', ''}
- 	                                  }), { colspan => 2 } 
- 	                                  	),
+ 	                                  }), { colspan => 2} ),
  	               $table->td("$_VALUE:". $html->form_input('VALUE', "$FORM{VALUE}"), { colspan => 2 })
                );
 
@@ -348,6 +344,7 @@ sub sqlcmd_info {
  %stats = %$stats;  
  %vars  = %$vars;
 
+ sqlcmd_cluster_info();
 
 my $questions = $stats->{'Questions'};
 my $key_read_ratio  = sprintf "%.2f", ($stats->{'Key_read_requests'} ? $stats->{'Key_reads'} / $stats->{'Key_read_requests'} : 0);
@@ -381,8 +378,9 @@ my $dms = $DMS_vals{SELECT} + $DMS_vals{INSERT} + $DMS_vals{REPLACE} + $DMS_vals
 # First part of main report
 
 
-  my $table = $html->table( { width  => '100%',
-                              border => 1,
+  my $table = $html->table( { width    => '100%',
+  	                          caption  => "$_INFO",
+                              border   => 1,
                               cols_align => ['left', 'left', 'left', 'left', 'right', 'right', 'center']
                            } );
 
@@ -694,6 +692,7 @@ sub t  () {
 #**********************************************************
 sub sqlcmd_procs {
 
+  sqlcmd_cluster_info();
 
   if ($FORM{del}) {
   	$Sqlcmd->list({ QUERY => "kill $FORM{del}" });
@@ -729,5 +728,36 @@ sub sqlcmd_procs {
 
   print $table->show();
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub sqlcmd_cluster_info {
+	
+ my(@cluster_hosts) = split(/,/, $conf{SQLCMD_CLUSTER_HOSTS});
+
+ my $table = $html->table( { width       => '100%',
+                             cols_align  => ['left'],
+                           } );
+
+my $id = 0;
+my $active_host = $FORM{HOST_ID} || 0;
+
+foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
+	if ($active_host == $id) {
+    push @cells, $table->th("$host", { bgcolor => $_COLORS[1] });
+	 }
+	else {
+	  push @cells,  $table->th($html->button("$host", "index=$index&HOST_ID=$id"), { bgcolor => $_COLORS[0] })
+	 }
+  $id++;
+}
+
+  $table->addtd(@cells);
+
+  print $table->show();
+}
+
+
 
 1
