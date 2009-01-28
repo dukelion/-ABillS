@@ -1256,4 +1256,17 @@ for (my $i=97; $i<123; $i++) {
 
 }
 
+#*******************************************************************
+# Mark text
+#*******************************************************************
+sub color_mark {
+ my $self = shift;
+ my ($message, $color) = @_;
+ 
+ my $output = "<color_mark color=$color>$message</color_mark>";
+
+ return $output;
+}
+
+
 1
