@@ -11,7 +11,7 @@ use Tariffs;
 use Socket;
 
 my $Ipn      = Ipn->new($db, \%conf);
-my $Ipn_Collector  = Ipn_Collector->new($db, \%conf);
+my $Ipn_Collector = Ipn_Collector->new($db, \%conf);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $users    = Users->new($db, $admin, \%conf); 
@@ -2653,8 +2653,9 @@ if ($#nas_ids_arr < 0) {
 use Auth;
 my $Auth = Auth->new($db, \%conf);
 my $list = $sessions->online({ NAS_ID => join(', ', @nas_ids_arr),
-	                             FIELDS => [ 0,17, 23, 19, 12, 18, 27 ] });
+	                             FIELDS => [ 0,21, 27, 23, 12, 22, 10 ] });
 
+my $count = 0;
 foreach my $line (@$list)   {
   my $filter_id = '';
   my $login        = $line->[0];
@@ -2663,7 +2664,7 @@ foreach my $line (@$list)   {
   my $nas_ip       = $line->[3];
   my $connect_info = $line->[4] || '';
   my $uid          = $line->[5];
-  $FORM{SESSION_ID}= $line->[19];
+  $FORM{SESSION_ID}= $line->[6];
   $debug_output .= "LOGIN: $login IP: $ip NAS_ID: $nas_id NAS_IP: $nas_ip CONNECT_INFO: $connect_info UID: $uid FILTER_ID: $filter_id\n" if ($debug > 3);
   
   #Hangup and activate
@@ -2718,6 +2719,7 @@ foreach my $line (@$list)   {
     $debug_output .= "$_ACTIVATE IP: $ip\n" if ($debug > 1);
   }
 }
+  $debug_output .= "Total: $count\n" if ($debug > 0);
 
   $DEBUG .= $debug_output;
   return $debug_output;
