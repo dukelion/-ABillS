@@ -2709,7 +2709,7 @@ foreach my $line (@$list)   {
                                        );
 
     if ($r == 1) {
-      $debug_output .= "Hangup: LOGIN: $login $RAD_PAIRS->{'Reply-Message'}";
+      $debug_output .= "Hangup: LOGIN: $login $RAD_PAIRS->{'Reply-Message'}\n";
   	  #return 0;
      }
      

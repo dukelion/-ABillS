@@ -1768,6 +1768,10 @@ if ($conf{ERROR2DB}) {
 	  $LIST_PARAMS{DESC}=DESC;
    }
 
+  if ($FORM{search}) {
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}/$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
+   }
+
   my $list = $Nas->log_list({ %LIST_PARAMS  });
 
   my $table = $html->table( { 

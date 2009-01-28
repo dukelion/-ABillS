@@ -438,21 +438,23 @@ sub log_list {
  my ($attr) = @_;
 
   my @WHERE_RULES  = ();
-
   my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
   if(defined($attr->{USER})) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{USER}, 'STR', 'l.user') };
   }
-
-  if($attr->{LOGIN_EXPR}) {
+  elsif($attr->{LOGIN_EXPR}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'l.user') };
   }
 
+  if ($attr->{INTERVAL}) {
+ 	  my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+    push @WHERE_RULES, "date_format(l.date, '%Y-%m-%d')>='$from' and date_format(l.date, '%Y-%m-%d')<='$to'";
+   }
 
   if(defined($attr->{MESSAGE})) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{USER}, 'STR', 'l.message') };
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{MESSAGE}, 'STR', 'l.message') };
   }
 
   if($attr->{DATE}) {
@@ -468,7 +470,9 @@ sub log_list {
    }
 
  
+ 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
  
  $self->query($db, "SELECT l.date, l.log_type, l.action, l.user, l.message
   FROM errors_log l
