@@ -1338,7 +1338,7 @@ if ($#GROUP_RULES > -1) {
 my @tables = ();
 
 $self->query($db, "SHOW TABLES;");
-my $list = $self->{list};
+$list = $self->{list};
 
 foreach my $line (@$list) {
   my $table = $line->[0];
