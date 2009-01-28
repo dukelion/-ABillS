@@ -2653,7 +2653,7 @@ if ($#nas_ids_arr < 0) {
 use Auth;
 my $Auth = Auth->new($db, \%conf);
 my $list = $sessions->online({ NAS_ID => join(', ', @nas_ids_arr),
-	                             FIELDS => [ 0,21, 27, 23, 12, 22, 10 ] });
+	                             FIELDS => [ 0, 21, 27, 23, 12, 22, 10 ] });
 
 my $count = 0;
 foreach my $line (@$list)   {
@@ -2677,6 +2677,7 @@ foreach my $line (@$list)   {
                       QUICK                 => 1,
                       DEBUG                 => $debug
   	 	         	 	  });
+
   $debug_output .= "$_DISABLE IP: $ip\n" if ($debug > 1);
 
   #Activate
@@ -2708,8 +2709,8 @@ foreach my $line (@$list)   {
                                        );
 
     if ($r == 1) {
-      $debug_output .= "$RAD_PAIRS->{'Reply-Message'}";
-  	  return 0;
+      $debug_output .= "Hangup: LOGIN: $login $RAD_PAIRS->{'Reply-Message'}";
+  	  #return 0;
      }
      
     #$DATA{FILTER_ID}=$RAD_PAIRS->{'Filter-Id'} || '';     
@@ -2718,7 +2719,10 @@ foreach my $line (@$list)   {
     ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
     $debug_output .= "$_ACTIVATE IP: $ip\n" if ($debug > 1);
   }
+
+  $count++;
 }
+
   $debug_output .= "Total: $count\n" if ($debug > 0);
 
   $DEBUG .= $debug_output;

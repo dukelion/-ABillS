@@ -97,11 +97,12 @@ if (! -f $LEASES) {
 	}
 
 	if($oldstat != $custat || (($check_count == $AUTO_VERIFY) && $AUTO_VERIFY)){
+		mk_log("Leases stat - old: $oldstat cur: $custat");
 		$oldstat = $custat;
 		$check_count = 0;
 
 		print "Timestamp change o AUTO_VERIFY tiggeed...\n" if ($debug > 0);
-		mk_log("Leases stat - old: $oldstat cur: $custat");
+		
 		return 1;
 	}
 	else{
@@ -187,7 +188,7 @@ sub do_stuff {
   my $i = 0;
 	while(my ($ip, $hash) = each( %$list )) {
 		$i++;
-		if ($debug > 1) {
+		if ($debug > 2) {
 		  print "$ip \n" ;
 		  while(my($k, $v) = each %{ $hash }) {
 			  print "  $k, $v\n" if ($debug > 1);
