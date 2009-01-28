@@ -4,7 +4,7 @@
 use vars  qw(%conf $db $DATE $time $var_dir);
 use strict;
 
-my $vesion = 0.1;
+my $vesion = 0.2;
 
 use FindBin '$Bin';
 require $Bin . '/config.pl';
@@ -72,7 +72,7 @@ if(defined($ARGV->{'-d'})){
 
 while(1){
 	if(changed($LEASES)){
-		my $list = pase($LEASES);
+		my $list = parse($LEASES);
 		do_stuff($list);
 	}
 
@@ -101,6 +101,7 @@ if (! -f $LEASES) {
 		$check_count = 0;
 
 		print "Timestamp change o AUTO_VERIFY tiggeed...\n" if ($debug > 0);
+		mk_log("Leases stat - old: $oldstat cur: $custat");
 		return 1;
 	}
 	else{
@@ -133,7 +134,7 @@ sub daemonize{
 #**********************************************************
 #
 #**********************************************************
-sub pase {
+sub parse {
    my ($logfile) = @_;
    my ( %list, $ip );
 
@@ -170,7 +171,7 @@ sub pase {
       /^\s*option agent.remote-id ([a-f0-9:]+);/ &&  (   $list{$ip}{REMOTE_ID}=$1  );
    }
 
-   close FILE;
+   close(FILE);
 
    return \%list;
 }
@@ -199,7 +200,6 @@ sub do_stuff {
   if ($debug > 0) {
     mk_log("Updated: $i leases");
    }
-
 }
 
 
