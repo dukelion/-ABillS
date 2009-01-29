@@ -199,6 +199,44 @@ sub online {
    'c.join_service'
    );
 
+  my %FIELDS_NAMES_HASH = (
+   USER_NAME      => 'c.user_name',
+   FIO            => 'pi.fio',
+   NAS_PORT_ID    => 'c.nas_port_id',
+   CLIENT_IP_NUM  => 'c.framed_ip_address',
+   DURATION       => 'SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started))',
+
+   INPUT_OCTETS   => 'c.acct_input_octets + 4294967296 * acct_input_gigawords', 
+   OUTPUT_OCTETS  => 'c.acct_output_octets + 4294967296 * acct_output_gigawords', 
+   INPUT_OCTETS2  => 'c.ex_input_octets', 
+   OUTPUT_OCTETS2 => 'c.ex_output_octets',
+ 
+   CID             => 'c.CID',                           
+   ACCT_SESSION_ID => 'c.acct_session_id',
+   TP_ID           => 'dv.tp_id',
+   CONNECT_INFO    => 'c.CONNECT_INFO',
+   SPEED           => 'dv.speed',   
+   SUM             => 'c.sum',
+   STATUS          => 'c.status',
+   ADDRESS_FULL    => 'concat(pi.address_street,\' \', pi.address_build,\'/\', pi.address_flat) AS ADDRESS', 
+   GID             => 'u.gid',
+   TURBO_MODE      => 'c.turbo_mode',
+   JOIN_SERVICE    => 'c.join_service',
+
+   PHONE           => 'pi.phone',
+   CLIENT_IP       => 'INET_NTOA(c.framed_ip_address)',
+   UID             => 'u.uid',
+   NAS_IP          => 'INET_NTOA(c.nas_ip_address)',
+   DEPOSIT         => 'if(company.name IS NULL, b.deposit, cb.deposit)',
+   CREDIT          => 'u.credit',
+   STARTED         => 'if(date_format(c.started, "%Y-%m-%d")=curdate(), date_format(c.started, "%H:%i:%s"), c.started)',
+   NAS_ID          => 'c.nas_id',
+   LAST_ALIVE      => 'UNIX_TIMESTAMP()-c.lupdated',
+   ACCT_SESSION_TIME => 'UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)',
+   DURATION_SEC    => 'c.lupdated - UNIX_TIMESTAMP(c.started)',
+   FILTER_ID       => 'dv.filter_id'
+  );
+
 
   my @RES_FIELDS = (0, 1, 2, 3, 4, 5, 6, 7, 8);
  
@@ -211,6 +249,19 @@ sub online {
   for(my $i=0; $i<=$#RES_FIELDS; $i++) {
   	$port_id=$i if ($RES_FIELDS[$i] == 2);
     $fields .= "$FIELDS_ALL[$RES_FIELDS[$i]], ";
+   }
+
+  my $RES_FIELDS_COUNT = $#RES_FIELDS;
+ 
+
+  if ($attr->{FIELDS_NAMES}) {
+  	$fields='';
+    $RES_FIELDS_COUNT = 0;
+  	foreach my $field ( @{ $attr->{FIELDS_NAMES} } ) {
+  	  $fields .= "$FIELDS_NAMES_HASH{$field},\n ";	
+  	  $RES_FIELDS_COUNT++;
+  	 }
+    $RES_FIELDS_COUNT--;
    }
 
 
@@ -262,9 +313,7 @@ sub online {
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
-
- $self->query($db, "SELECT  $fields
- 
+ $self->query($db, "SELECT $fields
    pi.phone,
    INET_NTOA(c.framed_ip_address),
    u.uid,
@@ -310,14 +359,14 @@ sub online {
 
  my $list = $self->{list};
  
- my $nas_id_field = $#RES_FIELDS+10;
+ my $nas_id_field = $RES_FIELDS_COUNT+10;
  
  foreach my $line (@$list) {
  	  $dub_logins{$line->[0]}++;
  	  $dub_ports{$line->[$nas_id_field]}{$line->[$port_id]}++;
     
     my @fields = ();
-    for(my $i=0; $i<=$#RES_FIELDS+15; $i++) {
+    for(my $i=0; $i<=$RES_FIELDS_COUNT+15; $i++) {
        push @fields, $line->[$i];
      }
 
