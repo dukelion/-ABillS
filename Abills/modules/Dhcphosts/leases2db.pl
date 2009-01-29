@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w 
 #
 
-use vars  qw(%conf $db $DATE $time $var_dir);
+use vars  qw(%conf %log_levels $db $DATE $time $var_dir);
 use strict;
 
-my $vesion = 0.2;
+my $vesion = 0.3;
 
 use FindBin '$Bin';
 require $Bin . '/config.pl';
@@ -17,21 +17,18 @@ use POSIX qw(strftime);
 my $begin_time = check_time();
 
 require Abills::SQL;
-my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
-my $db  = $sql->{db};
-
 require Dhcphosts;
 Dhcphosts->import();
-my $Dhcphosts = Dhcphosts->new($db, undef, \%conf);
-
 
 my $ARGV = parse_arguments(\@ARGV);
+
+my $log_dir = $var_dir.'/log';
 
 my $LEASES      = $ARGV->{LEASES} || $conf{DHCPHOSTS_LEASES} || "/var/db/dhcpd/dhcpd.leases";
 my $UPDATE_TIME = $ARGV->{UPDATE_TIME} || 30;    # In Seconds
 my $AUTO_VERIFY = 0;    
-my $debug       = $ARGV->{DEBUG} || 0;
-my $logfile     = $ARGV->{LOG_FILE} || '';
+my $debug       = $ARGV->{DEBUG} || 3;
+my $logfile     = $ARGV->{LOG_FILE} || $log_dir.'/leases2db.log';
 
 my $oldstat     = 0;
 my $check_count = 0;
@@ -42,7 +39,7 @@ my %state_hash  = ('unknown'   => 0,
                    'abandoned' => 3
                    );
 
-my $log_dir = $var_dir.'/log';
+
 
 if (defined($ARGV->{stop})) {
 	stop($log_dir."/leases2db.pid");
@@ -50,34 +47,57 @@ if (defined($ARGV->{stop})) {
 }
 
 
-if(make_pid($log_dir."/leases2db.pid") == 1) {
-  print "Already running!\n";
-  exit;
-}
 
 
-$Dhcphosts->{debug}=1 if ($debug > 6);
 
 if(defined($ARGV->{'-h'})){
 	usage();
 	exit;
 }
 
-print "Start...\n";
+#**********************************************************
+# log_print local function
+#**********************************************************
+sub mk_log {
+  my ($type, $message) = @_;
+  
+  if ($debug < $log_levels{$type}) {
+    return 0;
+   }
+
+  my $DATETIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);  
+  if ($ARGV->{LOG_FILE} || defined($ARGV->{'-d'}) ) {
+    open(FILE, ">> $logfile") || die "Can't open file '$logfile' $!\n";
+      print FILE "$DATETIME $type: $message\n";
+    close(FILE);
+   }
+  else {
+  	print "$DATETIME $message\n";
+   }
+};
+
+print "Start... debug: $debug\n";
 if(defined($ARGV->{'-d'})){
-  print "leases2db.pl Daemonize..."; 
+  mk_log('LOG_EMERG', "leases2db.pl Daemonize..."); 
   daemonize();
  }
-
-
-while(1){
+else {
+	if(make_pid($log_dir."/leases2db.pid") == 1) {
+    print "Already running PID: !\n";
+    exit;
+  }
+}	
+while(1) {
 	if(changed($LEASES)){
 		my $list = parse($LEASES);
-		do_stuff($list);
-	}
+		leases2db($list);
+	 }
 
 	sleep $UPDATE_TIME;
 }
+
+
+
 
 #**********************************************************
 # Check file change
@@ -86,8 +106,7 @@ sub changed {
 	my ($file)  = @_;
 
 if (! -f $LEASES) {
-  print "Can't find leases file '$LEASES'.\n";
-
+  mk_log('LOG_ERR', "Can't find leases file '$LEASES'.\n");
   exit;  
 }
 	my $custat = (stat($file))[9];
@@ -97,11 +116,12 @@ if (! -f $LEASES) {
 	}
 
 	if($oldstat != $custat || (($check_count == $AUTO_VERIFY) && $AUTO_VERIFY)){
-		mk_log("Leases stat - old: $oldstat cur: $custat");
+		mk_log('LOG_DEBUG', "Leases stat - old: $oldstat cur: $custat");
+
 		$oldstat = $custat;
 		$check_count = 0;
 
-		print "Timestamp change o AUTO_VERIFY tiggeed...\n" if ($debug > 0);
+		mk_log('LOG_INFO', 'Timestamp change o AUTO_VERIFY tiggeed...');
 		
 		return 1;
 	}
@@ -118,16 +138,30 @@ if (! -f $LEASES) {
 sub daemonize{
         chdir '/';
         umask 0;
+
+        #Save old out
+        my  $SAVEOUT;
+        open($SAVEOUT, ">&", STDOUT) or die "XXXX: $!";
+
+        #Reset out
         open STDIN, '/dev/null';
         open STDOUT, '/dev/null';
         open STDERR, '/dev/null';
 
         if(fork()){
-                exit;
+        	exit;
         }
         else{
-                #setsid;
-                return;
+          #setsid;
+          if(make_pid($log_dir."/leases2db.pid") == 1) {
+            #Close new out 
+            close (STDOUT);
+            #Open old out
+            open (STDOUT, ">&", $SAVEOUT);
+            print "Already running!\n";
+            exit;
+           }
+          return;
         }
 }
 
@@ -139,7 +173,7 @@ sub parse {
    my ($logfile) = @_;
    my ( %list, $ip );
 
-   print "Begin parse '$logfile'\n" if ($debug > 2);
+   mk_log('LOG_DEBUG', "Begin parse '$logfile'");
 
    open (FILE, $logfile) || print "Can't read file '$logfile' $!\n";
    
@@ -180,47 +214,40 @@ sub parse {
 #**********************************************************
 #
 #**********************************************************
-sub do_stuff {
+sub leases2db {
   my ($list) = @_;
 
+  my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+  my $db  = $sql->{db};
+
+  
+  my $Dhcphosts = Dhcphosts->new($db, undef, \%conf);
+  $Dhcphosts->{debug}=1 if ($debug > 7);
+
   $Dhcphosts->leases_clear();
+  if ($Dhcphosts->{errno}) {
+  	mk_log('LOG_ERR', "SQL error: ". $Dhcphosts->{errstr});
+  	return 0;
+   }
 
   my $i = 0;
+  my $parse_info = '';
 	while(my ($ip, $hash) = each( %$list )) {
 		$i++;
-		if ($debug > 2) {
-		  print "$ip \n" ;
+		if ($debug > 5) {
+		  $parse_info .= "$ip\n";
 		  while(my($k, $v) = each %{ $hash }) {
-			  print "  $k, $v\n" if ($debug > 1);
+			  $parse_info .= "  $k, $v\n";
 		   }
 		 }
     $Dhcphosts->leases_update({ %$hash, NAS_ID => $NAS_ID });
 	}
-
-
-  if ($debug > 0) {
-    mk_log("Updated: $i leases");
-   }
+ 
+  mk_log('LOG_INFO', "$parse_info");
+  mk_log('LOG_NOTICE', "Updated: $i leases");
 }
 
 
-
-#**********************************************************
-# Make login
-#**********************************************************
-sub mk_log {
-  my ($message) = @_;
-      
-  my $DATETIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);  
-  if ($ARGV->{LOG_FILE}) {
-    open(FILE, ">> $logfile") || die "Can't open file '$logfile' $!\n";
-      print FILE "$DATETIME $message\n";
-    close(FILE);
-   }
-  else {
-  	print "$DATETIME $message\n";
-   }
-}
 
 
 #**********************************************************
@@ -231,14 +258,14 @@ sub usage{
 dhcp2ldapd v$vesion: Dynamic DNS Updates fo the Bind9 LDAP backend
 
 Usage:
-	dhcp2db [-d | -h | ...]
+	leases2db [-d | -h | ...]
 
--d              uns dhcp2db in daemon mode
+-d              Runs dhcp2db in daemon mode
 -h              displays this help message
 LOG_FILE=...    make log file
 LEASES=...      lease files
 UPDATE_TIME=... Update peiod (Default: 30)
-DEBUG=...       Debug mode 1-5
+DEBUG=...       Debug mode 1-7 (Default: 8)
 NAS_ID=         NAS ID (Default: 0)
 
 Please edit the config vaiables befoe unning!
@@ -280,9 +307,9 @@ sub make_pid {
      }
    }
   
-  my $traffic2sql_pid = $$;  
+  my $self_pid = $$;
 	open(PIDFILE, ">$pid_file") || die "Can't open pid file '$pid_file' $!\n";
-	  print PIDFILE $traffic2sql_pid;
+	  print PIDFILE $self_pid;
 	close(PIDFILE);    
   
   return 0;
