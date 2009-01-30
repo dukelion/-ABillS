@@ -377,6 +377,8 @@ $_MAIN='Main';
 $_CHANNELS='Channels';
 $_ABON_DISTRIBUTION='Abon. paymets distribution';
 
+$_LOGON='Logon';
+
 $_CORRECTION='correction';
 $_ACCEPT_RULES='Rules Accepted';
 $_ACCEPT='Accept';

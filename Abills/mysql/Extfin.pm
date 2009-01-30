@@ -342,7 +342,8 @@ sub payment_deed {
  	     }
  	   }
    }
-	
+ 
+ #Get Dv use
  $self->query($db, "SELECT
  if(u.company_id > 0, company.bill_id, u.bill_id),
  sum(dv.sum),
@@ -376,7 +377,42 @@ sub payment_deed {
     	$PAYMENT_DEED{$line->[0]}+=$line->[1];
      }
    }
+  
+  #Ipn
+  $self->query($db, "SELECT
+ if(u.company_id > 0, company.bill_id, u.bill_id),
+ sum(ipn.sum),
+ if(u.company_id > 0, company.name, if(pi.fio<>'', pi.fio, u.id)),
+ if(u.company_id > 0, company.name, if(pi.fio<>'', pi.fio, u.id)),
+  if(u.company_id > 0, 1, 0),
+  if(u.company_id > 0, company.vat, 0),
+  u.uid $info_fields
+     FROM (users u, ipn_log ipn)
+     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+     LEFT JOIN companies company ON  (u.company_id=company.id)
+     WHERE u.uid=ipn.uid and $WHERE_DV
+     GROUP BY 1
+     ORDER BY 2 DESC
+   ;");
 
+
+  foreach my $line (@{ $self->{list} } ) {
+    if (! $PAYMENT_DEED{$line->[0]}) {
+  	  $PAYMENT_DEED{$line->[0]}+=$line->[1];
+  	  #Name|Type|VAT
+  	  $NAMES{$line->[0]}="$line->[2]|$line->[4]|$line->[5]";
+  	  
+   	  if ($info_fields_count > 0) {
+  	    for (my $i=0; $i<=$info_fields_count; $i++) {
+  	       $NAMES{$line->[0]}.="|". $line->[8+$i];
+ 	      }
+ 	     }
+  	 }
+    else {
+    	$PAYMENT_DEED{$line->[0]}+=$line->[1];
+     }
+   }
+  
 
   $self->{PAYMENT_DEED}=\%PAYMENT_DEED;
   $self->{NAMES}=\%NAMES;

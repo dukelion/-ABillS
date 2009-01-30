@@ -81,10 +81,10 @@ sub extfin_export_customers {
     	$LIST_PARAMS{DATE_TO}="$6-$5-$4";
      }
     elsif ($FORM{FROM_Y}) {
-        $FORM{FROM_M} = sprintf("%.2d", $FORM{FROM_M}+1);
-        $FORM{TO_M}   = sprintf("%.2d", $FORM{TO_M}+1);
-        $LIST_PARAMS{DATE_FROM}="$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}";
-        $LIST_PARAMS{DATE_TO}="$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
+      $FORM{FROM_M} = sprintf("%.2d", $FORM{FROM_M}+1);
+      $FORM{TO_M}   = sprintf("%.2d", $FORM{TO_M}+1);
+      $LIST_PARAMS{DATE_FROM}="$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}";
+      $LIST_PARAMS{DATE_TO}="$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
      }
     else {
       $LIST_PARAMS{MONTH}=$FORM{MONTH};

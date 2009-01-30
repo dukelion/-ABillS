@@ -2849,7 +2849,7 @@ sub dv_user_info {
   
   my $nas;
   if ($conf{DV_ISG}) {
-    #Check depost and disable STATUS
+    #Check deposit and disable STATUS
     my $list = $Dv->list({ LOGIN         => $user->{LOGIN}, 
                            TP_CREDIT     => '>0',
                            PAYMENTS_TYPE => 0 
@@ -2870,7 +2870,7 @@ sub dv_user_info {
      }
 
     print "Content-Type: text/html\n\n";
-  	
+  	#Get user NAS server from ip pools
   	$nas = Nas->new($db, \%conf);
     $list = $nas->nas_ip_pools_list();
     
@@ -2887,18 +2887,24 @@ sub dv_user_info {
     	return 0;
      }
  	
-  	#get mac from NAS and account info
+  	#get  PBHK identifier (IP or MAC) from NAS and account info
   	#my $result = `/usr/bin/rsh -l snake 77.87.152.66 show arp`;
 
     my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
-
     print "<!-- $isg_cmd -->";
-
     my $result = `$isg_cmd`;
 
-    #echo "User-Name=\"test\",cisco-avpair=\"subscriber:command=account-logon\",Cisco-Account-Info=\"S79.124.98.3\"" | /usr/local/bin/radclient -x 77.87.152.66:1700 coa cisco555
-
 =comments
+redirect service:
+        Cisco-Account-Info=N1SERVICE_406_L4R;12;;0;0;0;0,
+        Cisco-Account-Info=N1PBHK_SERVICE;12;;0;0;0;0,
+        Cisco-Command-Code=0,
+        Cisco-Account-Info=S79.124.108.107,
+        Cisco-AVPair=sg-version=1.0,
+        NAS-Port-Id=33555320,
+        NAS-Port-Id=nas-port:0.0.0.0:0/0/2/888,
+        Framed-IP-Address=79.124.108.107,
+
 Sending CoA-Request of id 218 to 77.87.152.66 port 1700
         User-Name = "test"
         Cisco-AVPair = "subscriber:command=account-status-query"
@@ -2965,7 +2971,7 @@ pROFILRE
 	
 
 	
-	  #$Dv->{ISG_CID_CUR} = '192.168.0.1';
+	  $Dv->{ISG_CID_CUR} = '192.168.0.1';
 	  #
  	  if ($RAD_PAIRS{'Error-Cause'}) {
  	  	$html->message('err', $_ERROR, "NAS: $NAS_ID, $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}", { ID => 100 });
@@ -2978,18 +2984,17 @@ pROFILRE
     	$Dv->{ISG_CID_CUR} = dv_get_isg_mac($Dv->{ISG_CID_CUR});
     	if ($Dv->{ISG_CID_CUR} eq '') {
     		$html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC: $_NOT_EXIST. DHCP $_ERROR ", { ID => 12 });
-
         return 0; 
     	 }
      }
 
 
  if ($Dv->{ISG_CID_CUR}) {
-   #change speed 
+   #change speed (active turbo mode)
    if ($FORM{SPEED}) {
         if ($Dv->{CURE_SERVICE} =~ /TP/ || ! $Dv->{TURBO_MODE_RUN} ) {
            my $service_name = 'TURBO_SPEED'. $FORM{SPEED};
-           #Deactive cure service
+           #Deactive cure service (TP Service)
            if ($Dv->{CURE_SERVICE} =~ /TP/) {
              my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=deactivate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$Dv->{CURE_SERVICE}\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
              print "<!-- $isg_cmd -->";
@@ -2997,10 +3002,10 @@ pROFILRE
             }
 
  
-           #Active service
+           #Active service (TURBO mode)
            $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=activate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$service_name\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
      
-            print "<!-- $isg_cmd -->"; 
+           print "<!-- $isg_cmd -->"; 
            my $result = `$isg_cmd`;
            $result = `/bin/echo \`date \"+ %Y-%m-%d %H:%M:%S\"\` \"$user->{LOGIN} $service_name \" >> /usr/abills/var/log/turbo.log`;
 
@@ -3015,7 +3020,7 @@ pROFILRE
              $key =~ s/ //g;
         
              $RAD_PAIRS{$key}=$val;
-             #Mac as ID
+             #MAC as ID
              if ($val =~ /\$MA(\S+)/) {
       	        $Dv->{ISG_CID_CUR}=$1;
       	      }
@@ -3060,6 +3065,13 @@ pROFILRE
   	  	
   	  	
   	   }
+   }
+  elsif ($FORM{logon}) {
+  	my $res = `/bin/echo "User-Name=\"$user->{LOGIN}\",cisco-avpair=\"subscriber:commandmy=account-logon\",Cisco-Account-Info=\"S$user->{REMOTE_ADDR}\"" | /usr/local/bin/radclient -x  $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}`;
+  	$html->message('info', $_INFO, "$_LOGON");
+   }
+  elsif ($FORM{discover}) {  
+
    }
   elsif ($FORM{hangup}) {
   	require "Abills/nas.pl";
@@ -3129,11 +3141,11 @@ pROFILRE
   	 }
     #Self hangup
     elsif ($Dv->{CID} eq $Dv->{ISG_CID_CUR}) {
-
-    $table = $html->table({ width       => '500',
+      $table = $html->table({ width       => '500',
 	                          rowcolor    => $_COLORS[0],
-                            rows        => [[ "$_DURATION: ", $Dv->{ISG_SESSION_DURATION},  
-                                            $html->form_input('hangup', $_HANGUP, { TYPE => 'submit', OUTPUT2RETURN => 1 })
+                            rows        => [[ "$_DURATION: ", $Dv->{ISG_SESSION_DURATION},
+                            ($Dv->{CURE_SERVICE} !~ /TP/ && !$Dv->{TURBO_MODE_RUN}) ? $html->form_input('logon', "$_LOGON ", { TYPE => 'submit', OUTPUT2RETURN => 1 }) : '',
+                            $html->form_input('hangup', $_HANGUP, { TYPE => 'submit', OUTPUT2RETURN => 1 })
                                          ]],                                   
                          });
       
@@ -3145,7 +3157,7 @@ pROFILRE
      }
    }
 
-  #Turbo mode Enable
+  #Turbo mode Enable function
   if ($conf{DV_TURBO_MODE} && ! $Dv->{TURBO_MODE}) {
     my (@turbo_mods) = split(/;/, $conf{DV_TURBO_MODE});
 
