@@ -3042,24 +3042,34 @@ pROFILRE
    }
  }
 elsif ($conf{DV_IP_DISCOVERY}) {
-	$Dv->{DHCP_LEASES_MAC} = dv_dhcp_get_mac($user->{REMOTE_ADDR});
+
+	$Dv->{DHCP_LEASES_MAC} = dv_dhcp_get_mac($user->{REMOTE_ADDR}, { CHECK_STATIC => 1 });
+	
  	if ($Dv->{DHCP_LEASES_MAC} eq '') {
  		$html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC: $_NOT_EXIST. DHCP $_ERROR ", { ID => 112 });
     return 0; 
  	 }
-
-  $table = $html->table({ width       => '500',
+  elsif ($Dv->{DHCP_LEASES_MAC} =~ /^static/) {
+  	my (undef, $mac, $ip)=split(/;/, $Dv->{DHCP_LEASES_MAC});
+  	if ($ip ne "$user->{REMOTE_ADDR}") {
+  	  $html->message('err', $_ERROR, "IP: '$ip', MAC: $_NOT_EXIST. Address Conflict", { ID => 114 });
+  	 }
+   }
+  else {  
+    $table = $html->table({ width       => '500',
                           rowcolor    => $_COLORS[0],
                           rows        => [[ "MAC: ", $Dv->{DHCP_LEASES_MAC},
                           $html->form_input('discovery', $_REGISTRATION, { TYPE => 'submit', OUTPUT2RETURN => 1 })
                                          ]],                                   
                          });
       
-  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+    print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
   	                     HIDDEN  => { index => "$index",
   	                         	        CID   => "$Dv->{DHCP_LEASES_MAC}",
   	                         	        sid   => $sid    },
 	                       });
+
+  }
 }  
 
   if ($FORM{activate}) {
@@ -4643,7 +4653,6 @@ sub dv_dhcp_get_mac_add {
   	#print "Content-Type: text/html\n\n";
 
   	if (ip2int($ip) >= ip2int($start_ip) && ip2int($ip) <= ip2int($start_ip) + $address_count) {
-  		
   		#$Dhcphosts->{debug}=1;
       my $list = $Dhcphosts->hosts_list({ 
       	                                  NETWORK   => $id, 
@@ -4715,8 +4724,13 @@ sub dv_dhcp_get_mac {
  my $MAC = '';
  
  if ($Dhcphosts->{TOTAL} > 0) {
-  	return $Dhcphosts->{MAC};
-   }
+   if ($attr->{CHECK_STATIC}) {
+   	 return "static;$Dhcphosts->{MAC};$Dhcphosts->{IP}";
+    }
+   else {
+  	 return $Dhcphosts->{MAC};
+    }
+  }
 
  if ($conf{DHCPHOSTS_LEASES} eq 'db') {
    my $list = $Dhcphosts->leases_list({ IP => $ip, STATE => 2 });
