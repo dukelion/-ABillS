@@ -381,16 +381,16 @@ sub payment_deed {
   #Ipn
   $self->query($db, "SELECT
  if(u.company_id > 0, company.bill_id, u.bill_id),
- sum(ipn.sum),
+ sum(dv.sum),
  if(u.company_id > 0, company.name, if(pi.fio<>'', pi.fio, u.id)),
  if(u.company_id > 0, company.name, if(pi.fio<>'', pi.fio, u.id)),
   if(u.company_id > 0, 1, 0),
   if(u.company_id > 0, company.vat, 0),
   u.uid $info_fields
-     FROM (users u, ipn_log ipn)
+     FROM (users u, ipn_log dv)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN companies company ON  (u.company_id=company.id)
-     WHERE u.uid=ipn.uid and $WHERE_DV
+     WHERE u.uid=dv.uid and $WHERE_DV
      GROUP BY 1
      ORDER BY 2 DESC
    ;");

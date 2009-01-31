@@ -2869,7 +2869,7 @@ sub dv_user_info {
        return 0;
      }
 
-    print "Content-Type: text/html\n\n";
+    #print "Content-Type: text/html\n\n";
   	#Get user NAS server from ip pools
   	$nas = Nas->new($db, \%conf);
     $list = $nas->nas_ip_pools_list();
@@ -2891,7 +2891,7 @@ sub dv_user_info {
   	#my $result = `/usr/bin/rsh -l snake 77.87.152.66 show arp`;
 
     my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
-    print "<!-- $isg_cmd -->";
+    #print "<!-- $isg_cmd -->";
     my $result = `$isg_cmd`;
 
 =comments
@@ -2939,9 +2939,6 @@ pROFILRE
         Framed-IP-Address = 79.124.99.40
 
 =cut
-
-    #$result = "Cisco-Account-Info = \"N1TP_202;421;test;5887;5697;5108683;4021074\"";
-
   	my @arr = split(/\n/, $result);
   	my %RAD_PAIRS = ();
   	foreach my $line (@arr) {
@@ -2971,7 +2968,7 @@ pROFILRE
 	
 
 	
-	  $Dv->{ISG_CID_CUR} = '192.168.0.1';
+	  #$Dv->{ISG_CID_CUR} = '192.168.0.1';
 	  #
  	  if ($RAD_PAIRS{'Error-Cause'}) {
  	  	$html->message('err', $_ERROR, "NAS: $NAS_ID, $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}", { ID => 100 });
@@ -2981,7 +2978,7 @@ pROFILRE
     	$html->message('err', $_ERROR, "$_NOT_EXIST ID: '$user->{REMOTE_ADDR}' ", { ID =>  11 });
      }
     elsif ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
-    	$Dv->{ISG_CID_CUR} = dv_get_isg_mac($Dv->{ISG_CID_CUR});
+    	$Dv->{ISG_CID_CUR} = dv_dhcp_get_mac($Dv->{ISG_CID_CUR});
     	if ($Dv->{ISG_CID_CUR} eq '') {
     		$html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC: $_NOT_EXIST. DHCP $_ERROR ", { ID => 12 });
         return 0; 
@@ -3044,7 +3041,27 @@ pROFILRE
   	 }
    }
  }
-  
+elsif ($conf{DV_IP_DISCOVERY}) {
+	$Dv->{DHCP_LEASES_MAC} = dv_dhcp_get_mac($user->{REMOTE_ADDR});
+ 	if ($Dv->{DHCP_LEASES_MAC} eq '') {
+ 		$html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC: $_NOT_EXIST. DHCP $_ERROR ", { ID => 112 });
+    return 0; 
+ 	 }
+
+  $table = $html->table({ width       => '500',
+                          rowcolor    => $_COLORS[0],
+                          rows        => [[ "MAC: ", $Dv->{DHCP_LEASES_MAC},
+                          $html->form_input('discovery', $_REGISTRATION, { TYPE => 'submit', OUTPUT2RETURN => 1 })
+                                         ]],                                   
+                         });
+      
+  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+  	                     HIDDEN  => { index => "$index",
+  	                         	        CID   => "$Dv->{DHCP_LEASES_MAC}",
+  	                         	        sid   => $sid    },
+	                       });
+}  
+
   if ($FORM{activate}) {
      $Dv->change({ UID    => $LIST_PARAMS{UID}, 
      	             STATUS => 0,
@@ -3062,16 +3079,19 @@ pROFILRE
          }
 
   	  	$html->message('err', $_ACTIVATE, "$_ERROR CID: $Dv->{ISG_CID_CUR}", { ID => 102 });
-  	  	
-  	  	
   	   }
    }
   elsif ($FORM{logon}) {
   	my $res = `/bin/echo "User-Name=\"$user->{LOGIN}\",cisco-avpair=\"subscriber:commandmy=account-logon\",Cisco-Account-Info=\"S$user->{REMOTE_ADDR}\"" | /usr/local/bin/radclient -x  $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}`;
   	$html->message('info', $_INFO, "$_LOGON");
    }
-  elsif ($FORM{discover}) {  
-
+  elsif ($FORM{discovery}) {  
+    if(dv_dhcp_get_mac_add($user->{REMOTE_ADDR}, $Dv->{DHCP_LEASES_MAC})) {
+    	$html->message('info', $_INFO, "$_ACTIVATE IP: $Dv->{NEW_IP} CID: $Dv->{DHCP_LEASES_MAC}");
+     }
+    else {
+    	$html->message('err', $_ACTIVATE, "$_ERROR IP: $user->{REMOTE_ADDR} CID: $Dv->{DHCP_LEASES_MAC}", { ID => 113 });
+     }
    }
   elsif ($FORM{hangup}) {
   	require "Abills/nas.pl";
@@ -4598,16 +4618,101 @@ sub dv_get_month_fee {
 
 }
 
+#**********************************************************
+# Add discovery mac to Dhcphosts
+#**********************************************************
+sub dv_dhcp_get_mac_add {
+	my ($ip, $mac, $attr)=@_;
+  
+  use Dhcphosts;
+  my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
+
+  my @dhcp_nets = split(/,/, $conf{DV_IP_DISCOVERY});
+  
+
+  foreach my $nets (@dhcp_nets) {
+  	my ($id, $net)=split(/:/, $nets);
+
+  	my $start_ip ='0.0.0.0';
+  	my $bit_mask =0;
+
+  	($start_ip, $bit_mask)=split(/\//, $net) if ($net);
+
+  	my $mask = 0b0000000000000000000000000000001;
+  	my $address_count = sprintf("%d", $mask << (32  - $bit_mask) );
+  	#print "Content-Type: text/html\n\n";
+
+  	if (ip2int($ip) >= ip2int($start_ip) && ip2int($ip) <= ip2int($start_ip) + $address_count) {
+  		
+  		#$Dhcphosts->{debug}=1;
+      my $list = $Dhcphosts->hosts_list({ 
+      	                                  NETWORK   => $id, 
+      	                                  SORT      => 3,
+      	                                  DESC      => 'DESC',
+      	                                  PAGE_ROWS => 1
+      	                                    });
+      	
+      #make Discovery	                                  
+      my $new_ip;
+      if ($Dhcphosts->{errno}) {
+      	$html->message('err', $_ACTIVATE, "$_ERROR DHCP get ip error", { ID => 116 });
+        return 0;
+       }
+      elsif ($Dhcphosts->{TOTAL} < 1) {
+      	$Dhcphosts->network_info($id);
+      	if($Dhcphosts->{TOTAL} < 0) {
+          $html->message('err', $_ACTIVATE, "$_ERROR Can't find your network", { ID => 117 });
+          return 0;
+      	 }
+
+      	$new_ip = int2ip(ip2int($Dhcphosts->{NETWORK}) + 1);
+       }
+      else {
+      	$new_ip = int2ip($list->[0]->[2]+1);
+       }
+
+    	$Dhcphosts->host_add({ NETWORK  => $id,
+    		                     HOSTNAME => "$user->{LOGIN}_$id",
+     		                     MAC      => $mac,
+     		                     IP       => $new_ip,
+     		                     UID      => $user->{UID},
+     		                     });
+
+      if ($Dhcphosts->{errno}) {
+        if ($Dhcphosts->{errno} == 7) {
+        	$html->message('err', $_ACTIVATE, "$_ERROR: DHCP Hosts Dublicate", { ID => 118 });
+         }
+        else {
+        	$html->message('err', $_ACTIVATE, "$_ERROR: DHCP add hosts error", { ID => 119 });
+         }
+       }
+      else {
+      	my $cmd = `$conf{DHCPHOSTS_RECONFIGURE}`;
+      	$Dv->{NEW_IP}=$new_ip;
+      	return 1;
+       }
+      
+      return 0;
+  	 }
+   }
+  
+ 
+  $html->message('err', $_ACTIVATE, "$_ERROR: Can't find assign network", { ID => 120 }); 
+  return 0;
+}
+
+
 
 #**********************************************************
 # Get MAC from hcl leaseds
 #**********************************************************
-sub dv_get_isg_mac {
-	my ($ip) = @_;
+sub dv_dhcp_get_mac {
+	my ($ip, $attr) = @_;
 
  use Dhcphosts;
  my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
  $Dhcphosts->host_info(0, { IP => $ip });
+ my $MAC = '';
  
  if ($Dhcphosts->{TOTAL} > 0) {
   	return $Dhcphosts->{MAC};
@@ -4621,35 +4726,35 @@ sub dv_get_isg_mac {
     }
    return '';
   }
+ else {
+   my $logfile = $conf{DHCPHOSTS_LEASES} || '/var/db/dhcpd.leaseds';
+   my %list = ();
+   my $l_ip = '';
 
- my $logfile = $conf{DHCPHOSTS_LEASES} || '/var/db/dhcpd.leaseds';
- my %list = ();
- my $l_ip = '';
+   open (FILE, $logfile) or $html->message('err', $_ERROR, "Can't read file '$logfile' $!");
 
- open (FILE, $logfile) or $html->message('err', $_ERROR, "Can't read file '$logfile' $!");
+     while (<FILE>) {
+       next if /^#|^$/;
 
-   while (<FILE>) {
-      next if /^#|^$/;
-
-      if (/^lease (\d+\.\d+\.\d+\.\d+)/) {
+       if (/^lease (\d+\.\d+\.\d+\.\d+)/) {
          $l_ip = $1; 
          $list{$ip}{ip}=sprintf("%-17s", $ip);
-       }
-      elsif (/^\s*hardware ethernet (.*);/) {
-      	my $mac = $1;
-      	if ($ip eq $l_ip) {
-      	  $list{$ip}{hardware}=sprintf("%s", $mac); 
-      	  last if ($list{$ip}{active}); 
-      	 }
-       }
-      elsif (/^\s+binding state active/) {
+        }
+       elsif (/^\s*hardware ethernet (.*);/) {
+      	 my $mac = $1;
+      	 if ($ip eq $l_ip) {
+      	   $list{$ip}{hardware}=sprintf("%s", $mac); 
+      	   last if ($list{$ip}{active}); 
+      	  }
+        }
+       elsif (/^\s+binding state active/) {
          $list{$ip}{active}=1;
-       }
-   }
- close FILE;
-
+        }
+     }
+   close FILE;
+ }
 	
-	return ($list{$ip}{hardware}) ?  $list{$ip}{hardware} : '';
+	 return ($list{$ip}{hardware}) ?  $list{$ip}{hardware} : '';
 }
 
 1
