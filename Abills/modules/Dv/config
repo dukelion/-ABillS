@@ -40,6 +40,11 @@ if ($conf{DV_ISG}) {
   delete $USER_FUNCTION_LIST{"01:0:Internet:dv_user_info:"};
   $USER_FUNCTION_LIST{"01:0:Internet:dv_user_info:defaultindex"}=0;
 }
+elsif ($conf{DV_IP_DISCOVERY}) {
+  delete $USER_FUNCTION_LIST{"01:0:Internet:dv_user_info:"};
+  $USER_FUNCTION_LIST{"01:0:Internet:dv_user_info:defaultindex"}=0;
+}
+
 
 $USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if ($conf{DV_USER_CHG_TP});
 

@@ -500,21 +500,21 @@ sub dhcphosts_hosts {
 	  elsif($status == 1 ) { $table->{rowcolor}=$_COLORS[6]; }
 	  elsif($status == 2 ) { $table->{rowcolor}=$_COLORS[1]; }
 
-	  if (($line->[11 + $Dhcphosts->{SEARCH_FIELDS_COUNT}]==1) && $status) { $table->{rowcolor}=$_COLORS[0]; };
+	  if (($line->[12 + $Dhcphosts->{SEARCH_FIELDS_COUNT}]==1) && $status) { $table->{rowcolor}=$_COLORS[0]; };
 
 	  #$table->{rowcolor}=$_COLORS[$i];
     $table->addrow(
 	    $line->[0], 
-	    $html->button($line->[1], "index=15&UID=". $line->[12+$Dhcphosts->{SEARCH_FIELDS_COUNT}]."&MODULE=Dhcphosts"),
-	    $line->[2],
+	    $html->button($line->[1], "index=15&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]."&MODULE=Dhcphosts"),
+	    $line->[11],
 	    $line->[3],
 	    $line->[5].": ".$line->[4],
 	    $line->[6],
 	    $line->[10]."/".$line->[8],
 	    $line->[9],
 	    $line->[7],
-	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=". $line->[12+$Dhcphosts->{SEARCH_FIELDS_COUNT}]),
-	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=". $line->[12+$Dhcphosts->{SEARCH_FIELDS_COUNT}], { MESSAGE => "$_DEL $line->[0]?" })
+	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]),
+	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}], { MESSAGE => "$_DEL $line->[0]?" })
      );
 	   $i++;
    };
