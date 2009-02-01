@@ -4637,7 +4637,7 @@ sub dv_dhcp_get_mac_add {
   use Dhcphosts;
   my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
 
-  my @dhcp_nets = split(/,/, $conf{DV_IP_DISCOVERY});
+  my @dhcp_nets = split(/;/, $conf{DV_IP_DISCOVERY});
   
 
   foreach my $nets (@dhcp_nets) {
@@ -4758,7 +4758,7 @@ sub dv_dhcp_get_mac {
       	 my $mac = $1;
       	 if ($ip eq $l_ip) {
       	   $list{$ip}{hardware}=sprintf("%s", $mac); 
-      	   last if ($list{$ip}{active}); 
+      	   return $list{$ip}{hardware} if ($list{$ip}{active}); 
       	  }
         }
        elsif (/^\s+binding state active/) {

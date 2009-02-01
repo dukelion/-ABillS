@@ -3,7 +3,7 @@
 use Nas;
 use Vlan;
 my $Vlan = Vlan->new($db, $admin, \%conf);
-my $Nas = Nas->new($db, \%conf);
+my $Nas  = Nas->new($db, \%conf);
 
 my $SUDO = '/usr/local/bin/sudo';
 my $debug = 0;
@@ -70,6 +70,7 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center'],
                             qs         => $pages_qs,
                             pages      => $Vlan->{TOTAL}
+                            ID         => 'VLANS'
                            });
 
 foreach my $line (@$list) {
@@ -97,7 +98,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$Vlan->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($Vlan->{TOTAL}) ] ]
                         } );
 print $table->show();
 
