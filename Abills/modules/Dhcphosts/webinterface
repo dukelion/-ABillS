@@ -909,7 +909,7 @@ foreach my $line (@$list) {
       #Static hosts
       $INFO{HOSTS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_host', 'Dhcphosts',), { 
     	  MAC       => $INFO{CLIENT_MAC},
-        IP        => $line->[2],
+        IP        => $line->[11],
         ROUTERS   => ($Dhcphosts->{ROUTERS} ne '0.0.0.0') ? $Dhcphosts->{ROUTERS} : convert_ip("0.0.0.1", '', $Dhcphosts),
         LOGIN     => $line->[1],
         HOSTNAME  => $line->[3],
