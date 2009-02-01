@@ -69,7 +69,7 @@ my $table = $html->table( { width      => '100%',
                             title      => \@TITLE,
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center'],
                             qs         => $pages_qs,
-                            pages      => $Vlan->{TOTAL}
+                            pages      => $Vlan->{TOTAL},
                             ID         => 'VLANS'
                            });
 
