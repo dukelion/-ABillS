@@ -422,16 +422,16 @@ sub list {
 
  # Start letter 
  if ($attr->{FIRST_LETTER}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+   push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
   }
  elsif ($attr->{LOGIN}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
+   $attr->{LOGIN} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
   }
  # Login expresion
  elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+   $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+   push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
   }
  
 

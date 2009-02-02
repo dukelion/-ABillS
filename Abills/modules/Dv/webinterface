@@ -3249,6 +3249,10 @@ sub dv_daily_fees {
 
  $debug_output .= "DV: Daily periodic payments\n" if ($debug > 1);
  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+
+ my %DV_LIST_PARAMS = ();
+ $DV_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
+
  my $list = $tariffs->list({ %LIST_PARAMS });
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
 
@@ -3271,7 +3275,8 @@ sub dv_daily_fees {
          TP_ID     => $TP_ID,
          SORT      => 1,
          PAGE_ROWS => 1000000,
-         TP_CREDIT => '>=0'
+         TP_CREDIT => '>=0',
+         %DV_LIST_PARAMS
  	   	 });
 
 
@@ -3318,8 +3323,9 @@ sub dv_daily_fees {
                	  }
                	 print "\n";
                	}
-               elsif($debug > 1) {
-                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
+               elsif($debug > 0) {
+               	 $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
+                 #$debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                 }
               }
            }
@@ -3341,6 +3347,9 @@ sub dv_daily_fees {
 
 #**********************************************************
 # monthly_fees
+# Extended parameters  
+# TP_ID - Make periodic only for  TP_ID
+# LOGIN - Make periodic only for user. You can use wildcard (*)
 #**********************************************************
 sub dv_monthly_fees {
  my ($attr) = @_;
@@ -3353,6 +3362,8 @@ sub dv_monthly_fees {
  use Users;
  
  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+ my %DV_LIST_PARAMS = ();
+ $DV_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
 
  my $users = Users->new($db, $admin, \%conf); 
  my $list = $tariffs->list({ %LIST_PARAMS });
@@ -3376,8 +3387,7 @@ sub dv_monthly_fees {
 
  my $pre_month_begin = "$y-$m-01";
  my $pre_month_end = "$y-$m-$days_in_pre_month";
-
- 
+ $START_PERIOD_DAY = ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} : 1;
 
  foreach my $line (@$list) {
    my %TP_INFO     = ();
@@ -3392,7 +3402,7 @@ sub dv_monthly_fees {
    $TP_INFO{REDUCTION}        = $line->[11];
 
    my %used_traffic = ();
-
+  
    #Monthfee & min use
  	 if ($month_fee > 0 || $min_use_sum > 0) {
  	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $TP_INFO{POSTPAID_MONTHLY} REDUCTION: $TP_INFO{REDUCTION} EXT_BILL_ID: $line->[14] CREDIT: $line->[15] MIN_USE: $min_use_sum ABON_DISTR: $abon_distrib\n" if ($debug > 1);
@@ -3424,14 +3434,15 @@ sub dv_monthly_fees {
       }    
      
 	   my $ulist = $Dv->list({ 
-         ACTIVATE   => $activate_date,
-         EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
-         STATUS     => 0,
+         ACTIVATE     => $activate_date,
+         EXPIRE       => ">'$ADMIN_REPORT{DATE}'",
+         STATUS       => 0,
          LOGIN_STATUS => 0,
-         TP_ID      => $TP_ID,
-         SORT       => 1,
-         PAGE_ROWS  => 1000000,
-         TP_CREDIT  => '>=0'
+         TP_ID        => $TP_ID,
+         SORT         => 1,
+         PAGE_ROWS    => 1000000,
+         TP_CREDIT    => '>=0',
+         %DV_LIST_PARAMS
  	   	 });
  
      my $extfield_count = $Dv->{SEARCH_FIELDS_COUNT};
@@ -3458,7 +3469,6 @@ sub dv_monthly_fees {
 
        
          my $sum = 0;
-         $START_PERIOD_DAY = ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} : 1;
          
          #***************************************************************
          #Min use Makes only 1 of month

@@ -458,7 +458,7 @@ sub hangup_radius {
 
   if( ! defined $type ) {
     # No responce from POD server
-    die('No responce from POD server');
+    print "No responce from POD server '$NAS->{NAS_MNG_IP_PORT}' ";
    }
   
   return $result;
