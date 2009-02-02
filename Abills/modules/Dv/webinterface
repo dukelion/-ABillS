@@ -962,7 +962,7 @@ my @FIELDS_ALL = ("$_USER", "$_FIO", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_
                              );
 
 
-if ($sessions->{TOTAL} > 1) { #500)  {
+if ($sessions->{TOTAL} > 500)  {
   my $table = $html->table( { width      => '100%',
                             caption    => "Online $_TOTAL",
                             border     => 1,
@@ -3287,6 +3287,7 @@ sub dv_daily_fees {
             CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[7]
            );
 
+#print "$user{LOGIN} / $user{BILL_ID} \n";
         if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
           #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $user{DEPOSIT} / $u->[3] / BILL_ID: $user->{BILL_ID}\n"; 	
 
@@ -4670,7 +4671,7 @@ sub dv_dhcp_get_mac_add {
       elsif ($Dhcphosts->{TOTAL} < 1) {
       	$Dhcphosts->network_info($id);
       	if($Dhcphosts->{TOTAL} < 0) {
-          $html->message('err', $_ACTIVATE, "$_ERROR Can't find your network", { ID => 117 });
+          $html->message('err', $_ACTIVATE, "$_ERROR Can't find your network '$id' ", { ID => 117 });
           return 0;
       	 }
 
@@ -4696,7 +4697,10 @@ sub dv_dhcp_get_mac_add {
          }
        }
       else {
-      	my $cmd = `$conf{DHCPHOSTS_RECONFIGURE}`;
+      	require "Abills/modules/Dhcphosts/webinterface";
+      	dhcphosts_config({ NETWORKS => $id, 
+      	                   reconfig => 1 
+      	                  });
       	$Dv->{NEW_IP}=$new_ip;
       	return 1;
        }
@@ -4706,7 +4710,7 @@ sub dv_dhcp_get_mac_add {
    }
   
  
-  $html->message('err', $_ACTIVATE, "$_ERROR: Can't find assign network", { ID => 120 }); 
+  $html->message('err', $_ACTIVATE, "$_ERROR: Can't find assign network IP: '$ip' ", { ID => 120 }); 
   return 0;
 }
 
