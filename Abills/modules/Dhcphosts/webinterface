@@ -75,7 +75,7 @@ sub dhcphosts_mac_block_show {
 
       #DENY
       my %INFO = (
-            IP      => ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[2],
+            IP      => ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[11],
       	    MAC     => $line->[6],
       	    LOGIN   => $line->[1],
       	    DEPOSIT => ($conf{DHCPHOSTS_DEPOSITCHECK}) ? " D: ". $line->[15 + $Dhcphosts->{SEARCH_FIELDS_COUNT}] : '',

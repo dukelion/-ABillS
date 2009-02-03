@@ -703,15 +703,7 @@ elsif($FORM{LMI_HASH}) {
 #**********************************************************
 sub portmone_payments {
 
-
-
-#Pre request section
-if($FORM{'LMI_PREREQUEST'} && $FORM{'LMI_PREREQUEST'} == 1) { 
-
- 
- }
-#Payment notification
-elsif($FORM{LMI_HASH}) {
+if($FORM{LMI_HASH}) {
   my $checksum = wm_validate();
   my $info = '';
 	my $user = $users->info($FORM{UID});
@@ -774,7 +766,7 @@ elsif($FORM{LMI_HASH}) {
   #Info section  
   $Paysys->add({ SYSTEM_ID      => 1, 
   	             DATETIME       => '', 
-  	             SUM            => $FORM{LMI_PAYMENT_AMOUNT},
+  	             SUM            => $FORM{SUM},
   	             UID            => $FORM{UID}, 
                  IP             => $FORM{IP},
                  TRANSACTION_ID => "$FORM{SHOPORDERNUMBER}",

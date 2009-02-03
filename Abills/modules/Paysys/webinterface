@@ -468,7 +468,8 @@ if ($FORM{info}) {
                                      [ "$_USER IP",     $Paysys->{IP}       ],
                                      [ "PAYSYS IP",     $Paysys->{PAYSYS_IP}],
                                      [ "$_INFO",        $Paysys->{INFO}     ]
-                                    ]
+                                    ],
+                           ID     => 'PAYSYS_INFO'
                         } );
 
    print $table->show();
@@ -589,7 +590,8 @@ my $table = $html->table( { width      => '100%',
                             title      => ['ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "IP", '-' ],
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $Paysys->{TOTAL}
+                            pages      => $Paysys->{TOTAL},
+                            ID         => 'PAYSYS'
                            });
 
 foreach my $line (@$list) {
@@ -689,9 +691,6 @@ $info{ACCOUNTS_SEL}=$html->form_select('LMI_PAYEE_PURSE',
 
 $info{LMI_PAYMENT_AMOUNT}=$FORM{SUM};
 
-
-#$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '' ) ."$ENV{REQUEST_URI}" if (! $conf{PAYSYS_LMI_RESULT_URL});
-
 $conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '' ) ."/paysys_check.cgi" if (! $conf{PAYSYS_LMI_RESULT_URL});
 
 
@@ -763,25 +762,12 @@ $html->tpl_show(_include('paysys_ukrpays_add', 'Paysys'), \%info);
 sub paysys_portmone () {
 
 
-if ($FORM{FALSE}) {
+if ($FORM{RESULT}) {
 	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{SHOPORDERNUMBER}");
  }
-elsif ($FORM{LMI_PAYMENT_NO}) {
-	my $users = Users->new($db, $admin, \%conf); 
-	my $user = $users->info($FORM{UID});
-	
-	if ($user->{errno}) {
-		$html->message('err', $_ERROR, "$_ERROR $user->{errno}");
-	 }
-	elsif ($user->{TOTAL} < 0) {
-		$html->message('err', $_ERROR, "$_NOT_EXIST");
-	 }
-	else {
-    if ($conf{PAYSYS_LMI_RESULT_URL}) {
-    	$html->message('info', $_INFO, "$_ADDED ID: $FORM{LMI_PAYMENT_NO}");
-     }
-    else {
-      my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'SHOPORDERNUMBER '}", UID => $LIST_PARAMS{UID} });
+elsif ($FORM{SHOPORDERNUMBER}) {
+      my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'SHOPORDERNUMBER '}", 
+      	                         UID            => $LIST_PARAMS{UID} });
 
       if ($Paysys->{TOTAL} > 0) {
 	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{SHOPORDERNUMBER }");
@@ -804,12 +790,24 @@ elsif ($FORM{LMI_PAYMENT_NO}) {
       else {
     	  $html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO} $_ERR_NO_TRANSACTION");
        }
-     }
-	 }
-
   return 0;
  }
-  
+else {
+  #Info section  
+  $Paysys->add({ SYSTEM_ID      => 5, 
+  	             DATETIME       => "'$DATE $TIME'", 
+  	             SUM            => $FORM{SUM},
+  	             UID            => $user->{UID}, 
+                 IP             => $FORM{IP},
+                 TRANSACTION_ID => "$FORM{OPERATION_ID}",
+                 INFO           => "",
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+               });
+
+  if ($Paysys->{errno}) {
+  	$html->message('err', "$_ERROR", "$_EEROR Paysys ID: '$FORM{OPERATION_ID}'");
+   }
+}  
 
 my %info = ();
 
@@ -822,6 +820,15 @@ if (! $conf{PAYSYS_PORTMONE_PAYEE_ID}) {
 
 $conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '' ) ."/paysys_check.cgi" if (! $conf{PAYSYS_LMI_RESULT_URL});
 
+ if ($html->{language} eq 'english') {
+ 	$info{LANG}='en';
+ 	}
+ elsif($html->{language} eq 'ukraine') {
+ 	$info{LANG}='uk';
+  }
+ else {
+ 	$info{LANG}='ru';
+ }
 
 $html->tpl_show(_include('paysys_portmone_add', 'Paysys'), \%info);
 }

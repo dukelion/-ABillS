@@ -2860,8 +2860,7 @@ sub dv_user_info {
      }
     elsif (($list->[0]->[3] > 0 && ($list->[0]->[2] + $list->[0]->[3] < 0)) || 
            ($list->[0]->[3] == 0 && $list->[0]->[2] + $list->[0]->[6]) < 0 ) {
-       
-       $html->message('err', $_ERROR, "$_NEGATIVE_DEPOSIT", { ID => 14 });
+       $html->message('err', $_ERROR, "$_NEGATIVE_DEPOSIT. $_DEPOSIT: $list->[0]->[2] $_CREDIT: $list->[0]->[3] ", { ID => 14 });
        return 0;
      }
     elsif ($list->[0]->[5] && $list->[0]->[5] == 1) {
@@ -2980,7 +2979,7 @@ pROFILRE
     elsif ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
     	$Dv->{ISG_CID_CUR} = dv_dhcp_get_mac($Dv->{ISG_CID_CUR});
     	if ($Dv->{ISG_CID_CUR} eq '') {
-    		$html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC: $_NOT_EXIST. DHCP $_ERROR ", { ID => 12 });
+    		$html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC $_NOT_EXIST. DHCP $_ERROR ", { ID => 12 });
         return 0; 
     	 }
      }
