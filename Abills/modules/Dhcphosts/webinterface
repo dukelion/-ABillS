@@ -270,7 +270,7 @@ sub dhcphosts_monitor {
  foreach my $line (@$hosts_list) {
       $table->addrow(
                      $html->button("$line->[1]", "index=15&UID=". $line->[12+$Dhcphosts->{SEARCH_FIELDS_COUNT}]), 
-                     $line->[2],
+                     $line->[11],
                      $dhcp_hash->{$line->[2]}{starts},
                      $dhcp_hash->{$line->[2]}{hardware},
                      $dhcp_hash->{$line->[2]}{'client-hostname'},

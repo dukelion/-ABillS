@@ -411,7 +411,9 @@ sub post_info {
 
      my $search_ret = sr_search($search_string);
      if (ref $search_ret eq 'HASH') {
-     	  $Filearch->file_change({ ID => $line->[0], NAME => $search_ret->{NAME} });
+     	  $Filearch->file_change({ ID   => $line->[0], 
+     	                           NAME => $search_ret->{NAME} 
+     	                          });
      	  
      	   if (defined($search_ret->{GENRE})) {
            my @genre_arr = split(/, /, $search_ret->{GENRE});

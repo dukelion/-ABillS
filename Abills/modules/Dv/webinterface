@@ -872,8 +872,8 @@ elsif($FORM{tolog}) {
   else {
   	my $table = $html->table( { width => '100%'} );
   	foreach my $k (sort keys %$ACCT_INFO) {
- 		    $table->addrow($k, $ACCT_INFO->{$k});
-  	  }
+ 		  $table->addrow($k, $ACCT_INFO->{$k});
+  	 }
 
     $table->addrow('-', '-');
   	foreach my $k (sort keys %$Acct) {

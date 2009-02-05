@@ -247,7 +247,9 @@ sub online {
   my $fields = '';
   my $port_id=0;
   for(my $i=0; $i<=$#RES_FIELDS; $i++) {
-  	$port_id=$i if ($RES_FIELDS[$i] == 2);
+  	if ($RES_FIELDS[$i] == 2) {
+  		$port_id=$i;
+  	 }
     $fields .= "$FIELDS_ALL[$RES_FIELDS[$i]], ";
    }
 
@@ -308,7 +310,15 @@ sub online {
  
  
  if ($attr->{FILTER}) {
- 	 push @WHERE_RULES, ($attr->{FILTER} =~ s/\*/\%/g) ? "$FIELDS_ALL[$attr->{FILTER_FIELD}] LIKE '$attr->{FILTER}'" : "$FIELDS_ALL[$attr->{FILTER_FIELD}]='$attr->{FILTER}'";
+ 	 my $filter_field = '';
+ 	 if ($attr->{FILTER_FIELD} == 3){
+ 	 	 $filter_field = "INET_NTOA(framed_ip_address)";
+ 	  }
+ 	 else {
+ 	 	 $filter_field = $FIELDS_ALL[$attr->{FILTER_FIELD}];
+ 	  }
+
+ 	 push @WHERE_RULES, ($attr->{FILTER} =~ s/\*/\%/g) ? "$filter_field LIKE '$attr->{FILTER}'" : "$filter_field='$attr->{FILTER}'";
   }
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';

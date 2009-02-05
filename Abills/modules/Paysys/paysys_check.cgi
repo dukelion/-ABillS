@@ -166,12 +166,12 @@ sub payments {
   elsif ($FORM{id_ups}) {
   	ukrpays_payments();
    }
-  elsif ($FORM{sign}) {
-  	usmp_payments();
-   }
   elsif($FORM{smsid}) {
     smsproxy_payments();
     exit;
+   }
+  elsif ($FORM{sign}) {
+  	usmp_payments();
    }
   else {
   	print "Error: Unknown payment system";

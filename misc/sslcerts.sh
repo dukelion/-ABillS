@@ -8,14 +8,15 @@ CA_pl=CA.pl;
 
 hostname=`hostname`;
 password=whatever;
+VERSION=0.4;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
 CERT_USER="";
-VERSION=0.3;
+
 
 if [ w$1 = w ] ; then
-  echo "Create SSL Certs and SSH keys ";
+  echo "Create SSL Certs and SSH keys. Version: ${VERSION} ";
   echo "sslcerts.sh [apache|eap|postfix_tls|ssh] -D";
   echo " apache        - Create apache SSL cert"
   echo " eap           - Create Server and users SSL Certs"
@@ -27,6 +28,9 @@ if [ w$1 = w ] ; then
   echo " -U [username] - Cert owner (Default: apache=www, postfix=vmail)"
   echo " -LENGTH       - Cert length (Default: 1024)"
   echo " -DAYS         - Cert period in days (Default: 730)"
+  echo " -PASSSWORD    - Password for Certs (Default: whatever)"
+  echo " -HOSTNAME     - Hostname for Certs (default: system hostname)"
+  
 
   exit;
 fi
@@ -52,6 +56,12 @@ for _switch ; do
         -DAYS) CERT_LENGTH=$3
                 shift; shift
                 ;;
+        -PASSWORD) password=$3
+                shift; shift
+                ;;
+        -HOSTNAME) hostname=$3
+                shift; shift
+                ;;
         esac
 done
 
@@ -65,8 +75,9 @@ fi
 
 
 cd ${CERT_PATH};
-
+#**********************************************************
 #SSH certs
+#**********************************************************
 if [ w${CERT_TYPE} = wssh ]; then
   echo "*******************************************************************************"
   echo "Creating SSH authentication Key"
@@ -84,7 +95,16 @@ if [ w${CERT_TYPE} = wssh ]; then
    
   ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}${id_dsa_file}"
 
-  echo -n "Upload file to remote host (y/n):"
+  #Change local Certs users
+  if [ w${CERT_USER} = w ]; then
+    CERT_USER=www;
+  fi;
+
+  chown ${CERT_USER} ${CERT_PATH}${id_dsa_file}
+  echo "Set Cert user: ${CERT_USER}";
+
+
+  echo -n "Upload file to remote host (y/n): "
   read UPLOAD
   if [ w${UPLOAD} = wy ]; then
     echo -n "Enter host: "
@@ -93,6 +113,12 @@ if [ w${CERT_TYPE} = wssh ]; then
     echo "Make upload to: ${HOST} "
     ssh ${USER}@${HOST} "mkdir ~/.ssh"
     scp ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOST}:~/.ssh/authorized_keys
+    
+    echo -n "Connect to remote host: ${HOST}  (y/n): "
+    read CONNECT
+    if [ w${CONNECT} = wy ]; then
+      ssh -o StrictHostKeyChecking=no -i ${CERT_PATH}${id_dsa_file}.pub  ${USER}@${HOST}
+    fi;
   fi;
 
 
@@ -100,7 +126,9 @@ if [ w${CERT_TYPE} = wssh ]; then
   echo "Copy ${CERT_PATH}${id_dsa_file}.pub to REMOTE_HOST User home dir (/home/${USER}/.ssh/authorized_keys) "
   echo 
 
+#**********************************************************
 #Apache Certs
+#**********************************************************
 else if [ w${CERT_TYPE} = wapache ]; then
 
   echo "*******************************************************************************"
@@ -137,6 +165,9 @@ else if [ w${CERT_TYPE} = wapache ]; then
 
   chmod 400 server.key
 
+#**********************************************************
+# eap for radius
+#**********************************************************
 else if [ w${CERT_TYPE} = weap ]; then
   echo "*******************************************************************************"
   echo "Make RADIUS EAP"
@@ -295,7 +326,9 @@ openssl x509 -inform PEM -outform DER -in cert-srv.pem -out cert-srv.der
 #clean up
 rm newcert.pem newreq.pem
 
-
+#**********************************************************
+# postfix
+#**********************************************************
 else if [ w${CERT_TYPE} = wpostfix_tls ]; then
   echo "******************************************************************************"
   echo "Make POSTFIX TLS sertificats"
@@ -306,6 +339,9 @@ else if [ w${CERT_TYPE} = wpostfix_tls ]; then
   openssl req -new -x509 -nodes -out smtpd.pem -keyout smtpd.pem -days ${days} \
    -passin pass:${password} -passout pass:${password}
 
+#**********************************************************
+# Information about Certs
+#**********************************************************
 else if [ w${CERT_TYPE} = winfo ]; then
 
   echo "******************************************************************************"
