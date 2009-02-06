@@ -425,7 +425,7 @@ $self->query($db, "select
 
     
     if ($speed_in_rule ne '' || $speed_out_rule ne '') {
-      $RAD_PAIRS->{'Cisco-Service-Info'} = "\"Q$speed_out_rule;$speed_in_rule\"";
+      $RAD_PAIRS->{'Cisco-Service-Info'} = "Q$speed_out_rule;$speed_in_rule";
      }
 
   }

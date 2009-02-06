@@ -1473,7 +1473,7 @@ for my $key (sort keys %$tpl_describe) {
 
     $text_file  = $1 if ($pattern =~ /text=([0-9a-zA-Z_\.]+)/);
     $font_size  = $1 if ($pattern =~ /font_size=(\d+)/);
-    $font_color = $1 if ($pattern =~ /font_color=(\d+)/);
+    $font_color = $1 if ($pattern =~ /font_color=(\S+)/);
     $encode     = $1 if ($pattern =~ /encode=(\S+)/);
     $align      = $1 if ($align   =~ /align=(\S+)/);
     

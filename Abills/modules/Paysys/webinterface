@@ -758,74 +758,7 @@ $html->tpl_show(_include('paysys_ukrpays_add', 'Paysys'), \%info);
 
 
 
-#**********************************************************
-# Web request
-#**********************************************************
-sub web_request {
- my ($request, $attr)=@_;
- 
- my $res;
- my $host='';
- my $port=80;
 
- $request =~ /http:\/\/([a-zA-Z.-]+)\/(.+)/;
- $host = $1; 
- $request = '/'.$2;
-
- if ($host =~ /:/) {
- 	 ($host, $port)=split(/:/, $host, 2);
-  }	
-
-
-
- $request =~ s/ /%20/g;
- 
- $request = "GET $request HTTP/1.0\r\n";
- $request .= ($attr->{'User-Agent'}) ? $attr->{'User-Agent'} : "User-Agent: Mozilla/4.0 (compatible; MSIE 5.5; Windows 98;Win 9x 4.90)\r\n"; 
- $request .= "Accept: text/html, image/png, image/x-xbitmap, image/gif, image/jpeg, */*\r\n";
- $request .= "Accept-Language: en\r\n";
- $request .= "Host: $host\r\n";
- $request .= "Content-type: application/x-www-form-urlencoded\r\n";
- $request .= "Referer: $attr->{'Referer'}\r\n" if ($attr->{'Referer'});
-# $request .= "Connection: Keep-Alive\r\n";
- $request .= "Cache-Control: no-cache\r\n";
- $request .= "Accept-Encoding: *;q=0\r\n";
- $request .= "\r\n";
- 
- print $request if ($attr->{debug});
- 
- my $timeout = defined($attr->{'TimeOut'}) ? $attr->{'TimeOut'} : 5;
- my	$socket = new IO::Socket::INET(
-				PeerAddr => $host,
-				PeerPort => $port,
-				Proto    => 'tcp',
-				TimeOut  => $timeout
-	) or log_print('LOG_DEBUG', "ERR: Can't connect to '$host:$port' $!");
-
-
-  $socket->send("$request");
-  while(<$socket>) {
-     $res .= $_;
-   }
- my ($header, $content) = split(/\n\n/, $res); 
- close($socket);
-
-#print $header;
- if ($header =~ /HTTP\/1.\d 302/ ) {
-   $header =~ /Location: (.+)\r\n/;
-   
-   my $new_location = $1;
-   if ($new_location !~ /^http:\/\//) {
-      $new_location="http://$host".$new_location;
-    }
-
-   $res .= web_request($new_location, { Referer => '/' });
-  }
- 
- 
- 
- return $res;
-}
 
 #**********************************************************
 # portmone get result
@@ -868,10 +801,10 @@ sub paysys_portmone_result () {
   my ($order_id, $attr) = @_;
 
 
-  my $request = "https://www.portmone.com.ua/secure/bills/results.php?"+
-   	"SHOPORDERNUMBER=$order_id&SHOP_ID=$conf{PAYSYS_PORTMONE_PAYEE_ID}&LOG=$conf{PAYSYS_PORTMONE_LOG}&PASS=$conf{PAYSYS_PORTMONE_PASS}";
+#  my $request = "https://www.portmone.com.ua/secure/bills/results.php?SHOPORDERNUMBER=$order_id&SHOP_ID=$conf{PAYSYS_PORTMONE_PAYEE_ID}&LOG=$conf{PAYSYS_PORTMONE_LOG}&PASS=$conf{PAYSYS_PORTMONE_PASS}";
 
-  my $request_result = web_request($request);
+  my $result = 'https://192.168.0.40:9443/test.xml';
+  my $request_result = `/usr/local/bin/curl --url $result --insecure`;
 
 	my @res_array = split(/\n[\r]?/, $request_result);
   my %request_hash = ();
