@@ -568,7 +568,7 @@ sub hangup_cisco_isg {
 if ($NAS->{NAS_MNG_USER}) {
 # имя юзера на циско котрому разрешен rsh и хватает привелегий для сброса
   my $cisco_user=$NAS->{NAS_MNG_USER};
-  $command = "/usr/bin/rsh -l $cisco_user $NAS->{NAS_IP} "clear ip subscriber ip $attr->{FRAMED_IP_ADDRESS}";
+  $command = "/usr/bin/rsh -l $cisco_user $NAS->{NAS_IP} clear ip subscriber ip $attr->{FRAMED_IP_ADDRESS}";
   #"clear subscriber session username $user";
   log_print('LOG_DEBUG', "$command");
   $exec = `$command`;
