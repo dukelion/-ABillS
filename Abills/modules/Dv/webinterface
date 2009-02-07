@@ -997,7 +997,7 @@ if ($sessions->{TOTAL} > 500)  {
   	return 0;
    }
   else {
-  	
+  	$pages_qs .= "&NAS_ID=$FORM{NAS_ID}";
   	$LIST_PARAMS{NAS_ID}=$FORM{NAS_ID};
    }
 }
@@ -1039,13 +1039,13 @@ my $dub_ports  = $sessions->{dub_ports};
 my $dub_logins = $sessions->{dub_logins};
 
 $table = $html->table( { width      => '100%',
-                            caption    => "$cure",
-                            border     => 1,
-                            title      => [ @CAPTION, '-', '-', '-' ],
-                            cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
-                            qs         => $pages_qs,
-                            ID         => 'ONLINE',
-                            header     => ($FORM{ZAPED}) ? "<script language=\"JavaScript\" type=\"text/javascript\">
+                         caption    => "$cure",
+                         border     => 1,
+                         title      => [ @CAPTION, '-', '-', '-' ],
+                         cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
+                         qs         => $pages_qs,
+                         ID         => 'ONLINE',
+                         header     => ($FORM{ZAPED}) ? "<script language=\"JavaScript\" type=\"text/javascript\">
 <!-- 
 function CheckAllINBOX() {
   for (var i = 0; i < document.users_list.elements.length; i++) {
@@ -1117,12 +1117,12 @@ foreach my $nas_row (@$nas_list) {
 
 
     if ($line->[$#ACTIVE_FIELDS + 9] > 3)  { $table->{rowcolor}='#FF0000';    }
-    my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+".$line->[$#ACTIVE_FIELDS + 12]."+". $line->[($#ACTIVE_FIELDS + 13)], { TITLE => 'Zap' }) . ")";
-    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[$#ACTIVE_FIELDS + 13]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->[$#ACTIVE_FIELDS+2]&hangup=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]+$line->[$#ACTIVE_FIELDS + 11]&UID=$line->[$#ACTIVE_FIELDS+3]", { TITLE => 'Hangup' }). ")";
+    my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+".$line->[$#ACTIVE_FIELDS + 12]."+". $line->[($#ACTIVE_FIELDS + 13)].$pages_qs, { TITLE => 'Zap' }) . ")";
+    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[$#ACTIVE_FIELDS + 13]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->[$#ACTIVE_FIELDS+2]&hangup=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]+$line->[$#ACTIVE_FIELDS + 11]&UID=$line->[$#ACTIVE_FIELDS+3]$pages_qs", { TITLE => 'Hangup' }). ")";
 
 
     $table->addrow(@rows,
-     "(". $html->button('P', "index=$index&NAS_ID=$FORM{NAS_ID}&ping=$line->[$#ACTIVE_FIELDS+2]", { TITLE => 'ping' }) .")",
+     "(". $html->button('P', "index=$index&NAS_ID=$FORM{NAS_ID}&ping=$line->[$#ACTIVE_FIELDS+2]$pages_qs", { TITLE => 'ping' }) .")",
      "$zap",
      "$hangup");
 

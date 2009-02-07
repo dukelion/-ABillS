@@ -19,7 +19,7 @@
 :OS=FREEBSD:exec:INTERFACES=%WORK_DIR%/mpd/if_create.sh -conf -s %FIRST_INTERFACE% -c %INTERFACE_COUNT% -t %INTERFACE_TYPE%
 mpd.conf           > [/usr/local/etc/mpd4]/mpd.conf
 #MPD5
-:MPD5=1:mpd5.conf   > [/usr/local/etc/mpd5]/mpd.conf
+:MPD5=1:FILE=mpd5.conf   > [/usr/local/etc/mpd5]/mpd.conf
 mpd.dictionary     >> [/usr/local/etc/raddb]/dictionary 
 :OS=FREEBSD:exec:IF_LINKS=%WORK_DIR%/mpd/if_create.sh -links -s %FIRST_INTERFACE% -c %INTERFACE_COUNT% -t %INTERFACE_TYPE%
 mpd.links          > [/usr/local/etc/mpd4]/mpd.links
