@@ -170,6 +170,9 @@ sub payments {
     smsproxy_payments();
     exit;
    }
+  elsif($FORM{SHOPORDERNUMBER}) {
+  	portmone_payments();
+   }
   elsif ($FORM{sign}) {
   	usmp_payments();
    }
@@ -180,7 +183,12 @@ sub payments {
 }
 
 
-
+#**********************************************************
+#
+#**********************************************************
+sub portmone_payments {
+	
+}
 
 #**********************************************************
 #

@@ -795,8 +795,6 @@ sub system_conf {
 
    'hostname,abills-flash-nas,',
    'defaultrouter,10.0.0.1,',
-   'ifconfig_lnc0,inet 10.0.0.10 netmask 255.255.255.0,',
-
 #   'ipcad_enable,YES,',
 #   'flow_capture_enable,YES,',
 #   'flow_capture_datadir,/usr/abills/var/log/ipn/,',
@@ -818,6 +816,22 @@ sub system_conf {
    'ntpdate_enable,YES,',
    'named_enable,YES,',
    );
+
+#Makwe interface config
+my $res = `ifconfig`;
+my @arr = split(/\n/, $res);
+
+foreach my $line (@arr) {
+  #print $line."\n";
+  if ($line =~ /^(\S+):/) {
+    my $iface = "$1";
+    if ($iface ne  'lo0') {
+       @rc_variables = ("ifconfig_$iface,inet xxx.xxx.xxx.xxx netmask xxx.xxx.xxx.xxx,Interface configuration", @rc_variables);
+     }
+  }
+}
+
+   #'ifconfig_lnc0,inet 10.0.0.10 netmask 255.255.255.0,',
 
    my @rc_result = ();
    my $read;
@@ -843,7 +857,7 @@ sub system_conf {
     }
 
    if(confirm_yn("Make /etc/rc.conf", 'y')) {
-     write_file('/tmp/rc.conf', $content, '>');
+     write_file('/etc/rc.conf', $content, '>');
      print "Done\n";
     }
 

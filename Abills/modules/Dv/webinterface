@@ -3118,7 +3118,10 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   
   if ($Dv->{STATUS} == 2) {
     $Dv->{STATUS}    = $html->color_mark($service_status[$Dv->{STATUS}], $_COLORS[6]). ' '.
-      $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1");
+      $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1", {
+      	 ex_params  => ' ID="ACTIVATE"',
+      	 #JAVASCRIPT => ' onclick="obj_disable(ACTIVATE, \'Wait...\')"'
+      	 } );
    }  
   else {
   	$Dv->{STATUS}    = $service_status[$Dv->{STATUS}];

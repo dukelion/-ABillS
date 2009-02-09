@@ -206,3 +206,19 @@ function CopyInputField(from, to) {
     document.getElementById(to).value = document.getElementById(from).value;
     return true;
 }
+
+/*
+* Disable button after click
+* @param obj, object text
+*
+* @return  boolean  always true
+*/
+
+function obj_disable(obj, text) {
+  if (obj.disabled) {obj.disabled = false;}
+  else obj.disabled = true;
+
+  if (text != '') obj.value=text ;  
+
+  return true;
+}
