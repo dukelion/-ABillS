@@ -1069,8 +1069,6 @@ sub extfin_debetors {
   
   $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : ''; 
 
-  $self->{debug}=1;
-
   $self->query($db, "SELECT '', u.id, pi.contract_id,
    pi.fio,
    pi.contract_date,

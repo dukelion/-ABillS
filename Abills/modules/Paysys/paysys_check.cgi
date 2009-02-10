@@ -204,8 +204,8 @@ sub portmone_payments {
         $payments->add($user, {SUM      => $sum,
     	                     DESCRIBE     => 'PORTMONE', 
     	                     METHOD       => '2', 
-  	                       EXT_ID       => "PORTMONE:$FORM{SHOPORDERNUMBER}",
-  	                       CHECK_EXT_ID => "PORTMONE:$FORM{SHOPORDERNUMBER}" } );  
+  	                       EXT_ID       => "PM:$FORM{SHOPORDERNUMBER}",
+  	                       CHECK_EXT_ID => "PM:$FORM{SHOPORDERNUMBER}" } );  
 
 
         #Exists
