@@ -612,7 +612,7 @@ CREATE TABLE `payments` (
   `aid` smallint(6) unsigned NOT NULL default '0',
   `id` int(11) unsigned NOT NULL auto_increment,
   `method` tinyint(4) unsigned NOT NULL default '0',
-  `ext_id` varchar(16) NOT NULL default '',
+  `ext_id` varchar(24) NOT NULL default '',
   `bill_id` int(11) unsigned NOT NULL default '0',
   `inner_describe` varchar(80) NOT NULL default '',
   PRIMARY KEY  (`id`),

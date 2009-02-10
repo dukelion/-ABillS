@@ -404,7 +404,7 @@ sub paysys_payment {
 	elsif($FORM{PAYMENT_SYSTEM} == 3) {
      paysys_smsproxy();
 	 }
-	elsif($FORM{PAYMENT_SYSTEM} == 5) {
+	elsif($FORM{PAYMENT_SYSTEM} == 5 || $FORM{SHOPORDERNUMBER}) {
      paysys_portmone();
 	 }
 	elsif($FORM{PAYMENT_SYSTEM} == 6) {
@@ -860,13 +860,13 @@ if ($debug > 0 ) {
 #**********************************************************
 sub paysys_portmone () {
 
-
 if ($FORM{RESULT}) {
 	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{SHOPORDERNUMBER}");
  }
 elsif ($FORM{SHOPORDERNUMBER}) {
-      my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'SHOPORDERNUMBER '}", 
-      	                         UID            => $LIST_PARAMS{UID} });
+      my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'SHOPORDERNUMBER'}", 
+      	                         UID            => $LIST_PARAMS{UID} ,
+      	                         });
 
 
 
@@ -884,7 +884,7 @@ elsif ($FORM{SHOPORDERNUMBER}) {
 	      	 "ID: $FORM{SHOPORDERNUMBER }\n".
 	      	 "$_SUM: $list->[0][3]\n";
 
-          sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Webmoney Add", 
+          sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Portmone Add", 
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
 	      	
 	       }
@@ -903,12 +903,12 @@ else {
   	             UID            => $user->{UID}, 
                  IP             => $FORM{IP},
                  TRANSACTION_ID => "$FORM{OPERATION_ID}",
-                 INFO           => "",
+                 INFO           => '-',
                  PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
   if ($Paysys->{errno}) {
-  	$html->message('err', "$_ERROR", "$_EEROR Paysys ID: '$FORM{OPERATION_ID}'");
+  	$html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
    }
 }  
 
