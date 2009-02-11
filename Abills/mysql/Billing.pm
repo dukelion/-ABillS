@@ -629,7 +629,8 @@ if(! defined($self->{NO_TPINTERVALS})) {
 $sum = $sum * (100 - $self->{REDUCTION}) / 100 if ($self->{REDUCTION} > 0);
 
 if (! $attr->{FULL_COUNT}) {
-  $sum = $self->{MIN_SESSION_COST} if ($sum < $self->{MIN_SESSION_COST} && $self->{MIN_SESSION_COST} > 0);
+	#if (! $sum || ! $self->{MIN_SESSION_COST})
+  $sum = $self->{MIN_SESSION_COST} if ($self->{MIN_SESSION_COST} && $sum < $self->{MIN_SESSION_COST} && $self->{MIN_SESSION_COST} > 0);
 }
 
 if ($self->{COMPANY_ID} > 0) {
