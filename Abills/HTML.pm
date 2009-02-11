@@ -1335,6 +1335,8 @@ sub button {
   if ($attr->{MESSAGE}) {
   	$attr->{MESSAGE} =~ s/'/\\'/g;
   	$attr->{MESSAGE} =~ s/"/\\'/g;
+  	$attr->{MESSAGE} =~ s/\n//g;
+  	$attr->{MESSAGE} =~ s/\r//g;
   	
   	$message = " onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"";
    }
