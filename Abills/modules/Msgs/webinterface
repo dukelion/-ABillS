@@ -592,13 +592,33 @@ sub msgs_admin {
   $LIST_PARAMS{STATE}=undef if ($FORM{STATE} == 3);
   $LIST_PARAMS{PRIORITY}=undef if ($FORM{PRIORITY} == 5);
 
+
+
+
+my $i = 0;
+my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index") : $html->b($_ALL);;
+
+foreach my $name ( @msg_status) {
+	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
+    $LIST_PARAMS{STATE}=$FORM{STATE};
+    $status_bar .= ' :: '. $html->b($name);
+	 }
+	else {
+	  $status_bar .= ' :: ' .$html->button("$name", "index=$index&STATE=$i");
+	 }
+
+  $i++;
+}
+
+
+
   my $list = $Msgs->messages_list({ %LIST_PARAMS, 
   	                                DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
   	                               });
   
   
   
-  my $table = $html->table( { width      => '100%',
+  my  $table = $html->table( { width      => '100%',
                               caption    => "$_MESSAGES",
                               title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", 
                                "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-"],
@@ -606,7 +626,7 @@ sub msgs_admin {
                               qs         => $pages_qs,
                               pages      => $Msgs->{TOTAL},
                               ID         => 'MSGS_LIST',
-                              header     => ($#A_CHAPTER == -1) ? "<script language=\"JavaScript\" type=\"text/javascript\">
+                              header     => ( ($#A_CHAPTER == -1) ? "<script language=\"JavaScript\" type=\"text/javascript\">
 <!-- 
 function CheckAllINBOX() {
   for (var i = 0; i < document.users_list.elements.length; i++) {
@@ -616,7 +636,7 @@ function CheckAllINBOX() {
   }
 }
 //-->
-</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n" : ''
+</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n" : '' ). $status_bar
 
                            });
 
