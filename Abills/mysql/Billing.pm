@@ -210,7 +210,9 @@ if ($prepaid{0} + $prepaid{1} > 0) {
                                               INTERVAL => $interval,
                                               TP_ID    => $tp
                                             });
-                                           
+        
+     print "/$self->{UID}/" if (! $self->{OCTETS_DIRECTION});                                      
+
      if($self->{OCTETS_DIRECTION} == 1) {
  	     $prepaid{0} += $prepaid{0} - $transfer_traffic->{TRAFFIC_IN} if ( $prepaid{0} > $transfer_traffic->{TRAFFIC_IN} );
        $prepaid{1} += $prepaid{1} - $transfer_traffic->{TRAFFIC_IN_2} if ( $prepaid{1} > $transfer_traffic->{TRAFFIC_IN_2} );

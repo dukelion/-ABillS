@@ -133,4 +133,80 @@ sub report1 {
 
 
 
+#**********************************************************
+# report1()
+#**********************************************************
+sub internet_fees_monitor {
+ my $self = shift;
+ my ($attr) = @_;
+ my @list = ();
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
+ $self->{SEARCH_FIELDS} = '';
+ $self->{SEARCH_FIELDS_COUNT}=0;
+
+ @WHERE_RULES = ( 'u.disable=0' );
+ 
+
+
+ # Start letter 
+ if ($attr->{FIRST_LETTER}) {
+    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+  }
+ elsif ($attr->{LOGIN}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
+  }
+ # Login expresion
+ elsif ($attr->{LOGIN_EXPR}) {
+    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+  }
+
+
+ if ($attr->{DEPOSIT}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'u.deposit') };
+  }
+
+
+
+ $WHERE = ($#WHERE_RULES > -1) ? 'and '. join(' and ', @WHERE_RULES)  : '';
+
+
+
+ 
+ $self->query($db, "select u.uid,  u.id, 
+   dv.tp_id, 
+   tp.name, 
+   tp.month_fee,
+   if (DATE_FORMAT(curdate(), '%Y-%m-01')=DATE_FORMAT(f.date, '%Y-%m-01'), 1, 0),
+   max(f.date)
+
+  from users u
+  inner join dv_main dv on (dv.uid=u.uid)
+  inner join tarif_plans tp on (dv.tp_id=tp.id)
+  inner join fees f on (f.uid=u.uid)
+  GROUP BY u.uid
+     ORDER BY $SORT $DESC 
+     LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(*) FROM users u;");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+  return $list;
+}
+
+
+
 1

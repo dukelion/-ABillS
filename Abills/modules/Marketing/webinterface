@@ -7,6 +7,46 @@ my $Marketing = Marketing->new($db, $admin, \%conf);
 my %FORM_BASE = ();
 my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
 
+#*******************************************************************
+# 
+# marketing_report1()
+#*******************************************************************
+sub marketing_internet {
+
+ my $list = $Marketing->internet_fees_monitor({ %LIST_PARAMS });
+ 
+ my $table = $html->table( { width      => '100%',
+                             caption    => "Internet Payments",
+                             title      => ["UID", "$_LOGIN", "$_TARIF_PLAN ID", "$_TARIF_PLAN $_NAME", "$_FEES", "$_GETED", "$_DATE" ],
+                             ID         => 'REPORT 1',
+                             pages      => $Marketing->{TOTAL},
+                           });
+
+    foreach my $line ( @$list ) {
+    	$table->addrow(
+    	 $line->[0],
+    	 $html->button($line->[1], "index=11&UID=$line->[0]"),
+    	 $line->[2],
+    	 $line->[3],
+    	 $line->[4],
+    	 $line->[5],
+    	 $line->[6],
+    	 );
+     }
+
+   print $table->show();
+  
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL})
+                                           ] ]
+                     } );
+print $table->show();
+
+}
+
+
+
 
 #*******************************************************************
 # 

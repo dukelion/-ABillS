@@ -514,10 +514,20 @@ sub check_speed {
      }
    }
 
+
+                             
   $sessions->{debug}=1 if ($debug > 4);
 	$sessions->online( { %LIST_PARAMS, 
 		                   NAS_ID => $ARGV->{NAS_ID}, 
-		                   FIELDS => [0, 2, 11, 13, 29]   
+		                   #FIELDS => [0, 2, 11, 13, 29]   
+		                   FIELDS_NAMES => { 'USER_NAME', 
+		                   	                 'NAS_PORT_ID', 
+		                   	                 'TP_ID',
+		                   	                 'SPEED',
+		                   	                 'UID',
+		                   	                 'JOIN_SERVICE',
+		                   	                 'IP',
+		                   	                  }
 		               } );	
 
 
@@ -546,8 +556,8 @@ sub check_speed {
          $tp = $line->[2];
         }
       
-       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] IP:$line->[6]\n" if ($debug > 1);
-       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[4]:$line->[6]";
+       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);
+       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]";
 
        $TP_HASH{$tp}=1;
      }
