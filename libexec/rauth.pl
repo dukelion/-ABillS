@@ -257,17 +257,18 @@ sub post_auth {
   my ($RAD) = @_;
   my $reject_info = '';
   if (defined(%RAD_REQUEST)) {
-    return 0;
-    if ($RAD_REQUEST{CALLING_STATION_ID}) {
-      $reject_info=" CID $RAD_REQUEST{CALLING_STATION_ID}";
+  #  return 0;
+    if ($RAD_REQUEST{'Calling-Station-Id'}) {
+      $reject_info=" CID $RAD_REQUEST{'Calling-Station-Id'}";
      }
-    $log_print->('LOG_INFO', $RAD->{USER_NAME}, "REJECT$reject_info$GT", { NAS => $nas});
+    $log_print->('LOG_WARNING', $RAD_REQUEST{'User-Name'}, "REJECT Wrong password $reject_info$GT", { NAS => $nas});
+    return 0;
    }
   else { 
     if ($RAD->{CALLING_STATION_ID}) {
       $reject_info=" CID $RAD->{CALLING_STATION_ID}";
      }
-    $log_print->('LOG_INFO', $RAD->{USER_NAME}, "REJECT$reject_info$GT", { NAS => $nas});
+    $log_print->('LOG_WARNING', $RAD->{USER_NAME}, "REJECT$reject_info$GT", { NAS => $nas});
    }
 
   # return RLM_MODULE_OK;
