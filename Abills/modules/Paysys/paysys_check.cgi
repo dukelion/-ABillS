@@ -501,10 +501,10 @@ sub smsproxy_payments {
 
 
 
- my $sms_num     = $FORM{num} || 0;
- my $cost        = $FORM{cost} || 0;
- my $skey        = $FORM{skey}  || '';
- my $prefix      = $FORM{prefix} || '';
+ my $sms_num     = $FORM{num}     || 0;
+ my $cost        = $FORM{сost_rur}|| 0;
+ my $skey        = $FORM{skey}    || '';
+ my $prefix      = $FORM{prefix}  || '';
 
  my %prefix_keys = ();
  my $service_key = '';
