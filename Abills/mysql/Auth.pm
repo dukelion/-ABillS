@@ -168,6 +168,10 @@ elsif (! $self->{JOIN_SERVICE} && $self->{TP_ID} < 1) {
   $RAD_PAIRS->{'Reply-Message'}="No Tarif Selected";
   return 1, $RAD_PAIRS;
  }
+elsif (! defined($self->{PAYMENT_TYPE}) ) {
+  $RAD_PAIRS->{'Reply-Message'}="Service not allow";
+  return 1, $RAD_PAIRS;
+ }
 elsif (( $RAD_PAIRS->{'Callback-Number'} || $RAD_PAIRS->{'Ascend-Callback'} ) && $self->{CALLBACK} != 1){
   $RAD_PAIRS->{'Reply-Message'}="Callback disabled";
   return 1, $RAD_PAIRS;
