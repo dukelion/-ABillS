@@ -184,7 +184,7 @@ sub internet_fees_monitor {
    dv.tp_id, 
    tp.name, 
    tp.month_fee,
-   if (DATE_FORMAT(curdate(), '%Y-%m-01')=DATE_FORMAT(f.date, '%Y-%m-01'), 1, 0),
+   sum(if (DATE_FORMAT(curdate(), '%Y-%m-01')=DATE_FORMAT(f.date, '%Y-%m-%d'), 1, 0)),
    max(f.date)
 
   from users u
