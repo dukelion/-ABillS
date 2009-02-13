@@ -17,7 +17,7 @@ sub marketing_internet {
  my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
  my $table = $html->table( { width      => '100%',
                              caption    => "Internet Payments",
-                             title      => ["UID", "$_LOGIN", "$_ACCOUNT", "$_SERVICES $_STATUS", "$_TARIF_PLAN ID", "$_TARIF_PLAN $_NAME", "$_FEES", "$_GETED", "$_DATE" ],
+                             title      => ["UID", "$_LOGIN", "$_ACCOUNT", "$_SERVICES $_STATUS", "$_TARIF_PLAN ID", "$_TARIF_PLAN $_NAME", "$_FEES", "$_COUNT", "$_DATE" ],
                              ID         => 'REPORT 1',
                              pages      => $Marketing->{TOTAL},
                            });
