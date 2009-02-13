@@ -520,14 +520,14 @@ sub check_speed {
 	$sessions->online( { %LIST_PARAMS, 
 		                   NAS_ID => $ARGV->{NAS_ID}, 
 		                   #FIELDS => [0, 2, 11, 13, 29]   
-		                   FIELDS_NAMES => { 'USER_NAME', 
+		                   FIELDS_NAMES => [ 'USER_NAME', 
 		                   	                 'NAS_PORT_ID', 
 		                   	                 'TP_ID',
 		                   	                 'SPEED',
 		                   	                 'UID',
 		                   	                 'JOIN_SERVICE',
 		                   	                 'CLIENT_IP',
-		                   	                  }
+		                   	                  ]
 		               } );	
 
 
