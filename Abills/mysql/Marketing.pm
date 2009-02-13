@@ -181,6 +181,8 @@ sub internet_fees_monitor {
 
  
  $self->query($db, "select u.uid,  u.id, 
+   u.disable,
+   dv.disable,
    dv.tp_id, 
    tp.name, 
    tp.month_fee,

@@ -14,10 +14,10 @@ my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
 sub marketing_internet {
 
  my $list = $Marketing->internet_fees_monitor({ %LIST_PARAMS });
- 
+ my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
  my $table = $html->table( { width      => '100%',
                              caption    => "Internet Payments",
-                             title      => ["UID", "$_LOGIN", "$_TARIF_PLAN ID", "$_TARIF_PLAN $_NAME", "$_FEES", "$_GETED", "$_DATE" ],
+                             title      => ["UID", "$_LOGIN", "$_ACCOUNT", "$_SERVICES $_STATUS", "$_TARIF_PLAN ID", "$_TARIF_PLAN $_NAME", "$_FEES", "$_GETED", "$_DATE" ],
                              ID         => 'REPORT 1',
                              pages      => $Marketing->{TOTAL},
                            });
@@ -26,11 +26,14 @@ sub marketing_internet {
     	$table->addrow(
     	 $line->[0],
     	 $html->button($line->[1], "index=11&UID=$line->[0]"),
-    	 $line->[2],
-    	 $line->[3],
+    	 
+    	 ($line->[2] == 0) ? $service_status[$line->[2]] : $html->color_mark($service_status[$line->[2]], '#FF0000'),
+    	 ($line->[3] == 0) ? $service_status[$line->[3]] : $html->color_mark($service_status[$line->[3]], '#FF0000'),
     	 $line->[4],
     	 $line->[5],
     	 $line->[6],
+    	 $line->[7],
+    	 $line->[8],
     	 );
      }
 
