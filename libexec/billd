@@ -526,7 +526,7 @@ sub check_speed {
 		                   	                 'SPEED',
 		                   	                 'UID',
 		                   	                 'JOIN_SERVICE',
-		                   	                 'IP',
+		                   	                 'CLIENT_IP',
 		                   	                  }
 		               } );	
 
