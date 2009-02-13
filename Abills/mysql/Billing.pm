@@ -241,7 +241,7 @@ if ($prepaid{0} + $prepaid{1} > 0) {
 
    $used_traffic->{ONLINE}=0;
    #Recv / IN
-   print "$slef->{UID}--\n" if (! defined($self->{OCTETS_DIRECTION}));
+   print "$self->{UID}--\n" if (! defined($self->{OCTETS_DIRECTION}));
    if($self->{OCTETS_DIRECTION} == 1) {
      $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_IN};
      $used_traffic->{TRAFFIC_SUM_2}=$used_traffic->{TRAFFIC_IN_2};
