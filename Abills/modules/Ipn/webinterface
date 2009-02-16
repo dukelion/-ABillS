@@ -1434,7 +1434,7 @@ sub ipn_user_activate {
    }
 
   if ($nas_id < 1) {
-  	$html->message('err', $_ERROR, "$_NOT_EXIST IP '$ip'");
+  	$html->message('err', $_ERROR, "$_NOT_EXIST IP '$ip' ");
   	if (! $user->{UID}) {
       $IP_INPUT .= " NAS: ". $html->form_select('NAS_ID', 
                                     { 
@@ -1497,10 +1497,12 @@ sub ipn_user_activate {
                   FRAMED_IP_ADDRESS  => $ip, 
                   NAS_ID             => $nas_id,
                   NAS_IP_ADDRESS     => $nas->{NAS_IP},
+                  NAS_MNG_USER       => $nas->{NAS_MNG_USER},
                   TP                 => 0,
                   CALLING_STATION_ID => $ip,
                   CONNECT_INFO       => $FORM{CONNECT_INFO},
-                  UID                => $LIST_PARAMS{UID},
+                  #UID                => $LIST_PARAMS{UID},
+                  UID                => $user->{UID}, 
                   PORT               => 0
                  );
 
@@ -1559,7 +1561,9 @@ sub ipn_user_activate {
   	 	                   FRAMED_IP_ADDRESS     => $ip,
   	 	                   ACCT_TERMINATE_CAUSE  => 1,
   	 	                   UID                   => $LIST_PARAMS{UID},
-  	 	                   FILTER_ID             => ""
+  	 	                   FILTER_ID             => "",
+  	 	                   NAS_IP_ADDRESS        => $nas->{NAS_IP},
+                         NAS_MNG_USER          => $nas->{NAS_MNG_USER},
   	 	         	 	     });
        }
      else {
@@ -1755,6 +1759,11 @@ sub ipn_change_status {
   $cmd =~ s/\%SPEED_OUT/$speed_out/g if ($speed_out > 0);
   $cmd =~ s/\%LOGIN/$USER_NAME/g;
   $cmd =~ s/\%PORT/$PORT/g;
+
+  if ($attr->{NAS_IP_ADDRESS}) {
+    $ENV{NAS_IP_ADDRESS}=$attr->{NAS_IP_ADDRESS};
+    $ENV{NAS_MNG_USER}=$attr->{NAS_MNG_USER};
+   }
 
   print "IPN: $cmd\n" if ($DEBUG > 5);
   system($cmd);
@@ -2639,6 +2648,8 @@ foreach my $line (@$nas_list) {
 	  $nas_info{$line->[0]}{NAS_IP}=$line->[3]; 
 	  $nas_info{$line->[0]}{NAS_ID}=$line->[0];
 	  $nas_info{$line->[0]}{NAS_TYPE}=$line->[4];
+	  $nas_info{$line->[0]}{NAS_IP_ADDRESS}=$line->[9];
+	  $nas_info{$line->[0]}{NAS_MNG_USER}=$line->[10];
    }
 }
 
@@ -2675,7 +2686,10 @@ foreach my $line (@$list)   {
   	 	                UID                   => $uid,
 #  	 	                FILTER_ID             => "$filter_id",
                       QUICK                 => 1,
-                      DEBUG                 => $debug
+                      DEBUG                 => $debug,
+                      NAS_ID                => $nas_id,
+                      NAS_IP_ADDRESS        => $nas_info{$nas_id}{NAS_IP_ADDRESS},
+                      NAS_MNG_USER          => $nas_info{$nas_id}{NAS_MNG_USER},
   	 	         	 	  });
 
   $debug_output .= "$_DISABLE IP: $ip\n" if ($debug > 1);
@@ -2692,7 +2706,8 @@ foreach my $line (@$list)   {
                 ACCT_SESSION_ID    => mk_unique_value(10), 
                 FRAMED_IP_ADDRESS  => $ip, 
                 NAS_ID             => $nas_id,
-                NAS_IP_ADDRESS     => $nas_info{$nas_id},
+                NAS_IP_ADDRESS     => $nas_info{$nas_id}{NAS_IP_ADDRESS},
+                NAS_MNG_USER       => $nas_info{$nas_id}{NAS_MNG_USER},
                 TP                 => 0,
                 CALLING_STATION_ID => $ip,
                 CONNECT_INFO       => $connect_info,
