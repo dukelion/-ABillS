@@ -300,6 +300,9 @@ sub msgs_admin_add {
 #*******************************************************************
 sub msgs_admin {
 
+
+  push @msg_status, $_IN_WORK;
+
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
  
@@ -911,7 +914,7 @@ sub msgs_user {
     $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
    } 
 
-  
+  push @msg_status, $_IN_WORK;
   $LIST_PARAMS{ADMIN_READ} = '>0000-00-00 00:00:00';
   $LIST_PARAMS{SORT}       =  '11, 5 DESC';
   $LIST_PARAMS{INNER_MSG}  =  0;
