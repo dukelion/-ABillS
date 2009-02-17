@@ -98,7 +98,7 @@ sub messages_list {
  @WHERE_RULES = ();
  
  if($attr->{LOGIN_EXPR}) {
-	 push @WHERE_RULES, "u.id='$attr->{LOGIN_EXPR}'"; 
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
   }
  
  if ($attr->{DATE}) {
