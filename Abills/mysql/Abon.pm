@@ -334,8 +334,20 @@ sub user_tariff_update {
 #**********************************************************
 sub periodic_list {
   my $self = shift;
-  my ($period) = @_;
+  my ($period, $attr) = @_;
   
+
+ @WHERE_RULES = ();
+ if ($attr->{LOGIN}) {
+ 	 push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
+  }
+
+ if ($attr->{TP_ID}) {
+ 	 push @WHERE_RULES, "al.tp_id IN (attr->{TP_ID})";
+  }
+
+ my $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES)  : '';
+ 
 
  $self->query($db, "SELECT at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
   u.id, at.id, at.name,
@@ -353,6 +365,8 @@ sub periodic_list {
 WHERE
 at.id=al.tp_id and
 al.uid=u.uid
+
+$WHERE
 ORDER BY 1;");
 
  my $list = $self->{list};

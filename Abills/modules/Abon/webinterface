@@ -3,9 +3,6 @@
 #
 
 
-
-
-
 use Abon;
 use Fees;
 
@@ -324,6 +321,8 @@ sub abon_periodic {
  my $debug_output = '';
  $debug_output .= "ABON: Monthly periodic payments\n" if ($debug > 1);
 
+ $LIST_PARAMS{LOGIN}=$attr->{LOGIN} if ($attr->{LOGIN});
+ $LIST_PARAMS{TP_ID}=$attr->{TP_ID} if ($attr->{TP_ID});
   
   $Abon->{debug}=1 if ($debug > 7);
   my $list = $Abon->periodic_list({ %LIST_PARAMS });
@@ -344,8 +343,9 @@ sub abon_periodic {
        BILL_ID => $line->[3]
       );
 
-    my %PARAMS = ( DESCRIBE => "ABON: [$line->[10]] $line->[6]",
+    my %PARAMS = ( DESCRIBE  => "ABON: [$line->[10]] $line->[6]",
                    METHOD    => 1  );
+
     $PARAMS{DATE}=$DATE if ($DATE ne '');
 
     $line->[8] = 0 if (! $line->[8]);
