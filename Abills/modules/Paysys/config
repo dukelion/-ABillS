@@ -8,7 +8,7 @@ $web_interface    = 1;
                    "04:0:Import:paysys_import_fees:"      => 3
                    );
 
-%USER_FUNCTION_LIST = ("01:0:Paysys:paysys_payment:"  => 40,
+%USER_FUNCTION_LIST = ("01:0:$_BALANCE_RECHARCHE:paysys_payment:"  => 40,
                        "02:1:$_LOG:paysys_user_log:"  => 40
                        
                        );

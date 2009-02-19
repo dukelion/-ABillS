@@ -3,7 +3,7 @@
 <tr><th align=right bgcolor=$_COLORS[0] colspan=2>Visa / Mastercard (Portmone)</th></tr>
 
 
-<INPUT TYPE='HIDDEN' NAME='PAYEE_ID' VALUE='$conf{PAYSYS_PORTMONE_PAYEE_ID' />
+<INPUT TYPE='HIDDEN' NAME='PAYEE_ID' VALUE='$conf{PAYSYS_PORTMONE_PAYEE_ID}' />
 <INPUT TYPE='HIDDEN' NAME='PAYEE_NAME' VALUE='$conf{WEB_TITLE}'>
 <INPUT TYPE='HIDDEN' NAME='PAYEE_HOME_PAGE_URL' VALUE='$conf{PAYSYS_PORTMONE_HOME_PAGE_URL}'>
 <INPUT TYPE='HIDDEN' NAME='SHOPORDERNUMBER' VALUE='$FORM{OPERATION_ID}' />
@@ -22,17 +22,6 @@
 <input type=hidden name='ADD_PARAM[1][NAME]' value='UID' /> 
 <input type=hidden name='ADD_PARAM[1][VALUE]' value='$LIST_PARAMS{UID}' />
 
-<input type=hidden name='ADD_PARAM[2][NAME]' value='sid' /> 
-<input type=hidden name='ADD_PARAM[2][VALUE]' value='$FORM{sid}' />
-
-<input type=hidden name='ADD_PARAM[3][NAME]' value='IP' /> 
-<input type=hidden name='ADD_PARAM[3][VALUE]' value='$ENV{REMOTE_ADDR}' />
-
-<input type=hidden name='ADD_PARAM[4][NAME]' value='index' /> 
-<input type=hidden name='ADD_PARAM[4][VALUE]' value='$index' />
-
-<input type=hidden name='ADD_PARAM[5][NAME]' value='PAYMENT_SYSTEM' /> 
-<input type=hidden name='ADD_PARAM[5][VALUE]' value='5' />
 
 
 <tr><td>ID:</td><td>$FORM{OPERATION_ID}</td></tr>

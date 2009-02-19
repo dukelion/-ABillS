@@ -384,3 +384,4 @@ $_ACCEPT_RULES='Rules Accepted';
 $_ACCEPT='Accept';
 $_CANCEL='Cancel';
 $_NEGATIVE_DEPOSIT='Negative Deposit';
+$_BALANCE_RECHARCHE='Balance recharge';

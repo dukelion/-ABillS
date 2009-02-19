@@ -36,7 +36,6 @@ require "Abills/templates.pl";
 
 
 
-
 use vars qw(%conf 
   %FUNCTIONS_LIST
   @PAYMENT_METHODS  
@@ -228,7 +227,6 @@ my %USER_SERVICES = ();
 #Add modules
 foreach my $m (@MODULES) {
 	next if ($admin->{MODULES} && ! $admin->{MODULES}{$m});
-	
 	require "Abills/modules/$m/config";
   my %module_fl=();
 

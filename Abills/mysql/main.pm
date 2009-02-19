@@ -360,6 +360,7 @@ sub changes {
 
 
   while(my($k, $v)=each(%DATA)) {
+  	print "$k, $v<br>\n";
     $OLD_DATA->{$k} = '' if (! $OLD_DATA->{$k});
     if (defined($FIELDS->{$k}) && $OLD_DATA->{$k} ne $DATA{$k}){
         if ($k eq 'PASSWORD' || $k eq 'NAS_MNG_PASSWORD') {

@@ -124,6 +124,7 @@ my @m = (
 if ($conf{user_finance_menu}) {
    push @m, "40:0:$_FINANCES:form_payments:::";
    push @m, "41:40:$_FEES:form_fees:::";
+   push @m, "42:40:$_PAYMENTS:form_payments:::";
 }
 
 $user=Users->new($db, $admin, \%conf); 

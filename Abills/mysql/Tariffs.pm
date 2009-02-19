@@ -547,7 +547,8 @@ sub info {
       ippool,
       period_alignment,
       min_use,
-      abon_distribution
+      abon_distribution,
+      tp_id
     FROM tarif_plans
     WHERE id='$id'$WHERE;");
 
@@ -592,8 +593,8 @@ sub info {
    $self->{IPPOOL},
    $self->{PERIOD_ALIGNMENT}, 
    $self->{MIN_USE},
-   $self->{ABON_DISTRIBUTION}
-
+   $self->{ABON_DISTRIBUTION},
+   $self->{ID}
   ) = @{ $self->{list}->[0] };
 
 
