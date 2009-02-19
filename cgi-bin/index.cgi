@@ -895,7 +895,8 @@ my $table = $html->table( { width      => '100%',
                             title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
                             qs         => $pages_qs,
-                            pages      => $fees->{TOTAL}
+                            pages      => $fees->{TOTAL},
+                            ID         => 'FEES'
                         } );
 
 
@@ -926,7 +927,10 @@ sub form_payments {
 my @PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus');
 my $payments = Finance->payments($db, $admin, \%conf);
 
-
+if (! $FORM{sort}) {
+  $LIST_PARAMS{sort}=1;
+  $LIST_PARAMS{DESC}='DESC';
+}
 my $list = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
@@ -934,7 +938,8 @@ my $table = $html->table( { width      => '100%',
                             title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left'],
                             qs         => $pages_qs,
-                            pages      => $payments->{TOTAL}
+                            pages      => $payments->{TOTAL},
+                            ID         => 'PAYMENTS'
                            } );
 
 $pages_qs .= "&subf=2" if (! $FORM{subf});

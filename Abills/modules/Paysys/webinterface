@@ -864,6 +864,8 @@ if ($FORM{RESULT}) {
 	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{SHOPORDERNUMBER}");
  }
 elsif ($FORM{SHOPORDERNUMBER}) {
+
+  if ($FORM{TRUE}) {
       my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'SHOPORDERNUMBER'}", 
       	                         UID            => $LIST_PARAMS{UID} ,
       	                         });
@@ -890,8 +892,12 @@ elsif ($FORM{SHOPORDERNUMBER}) {
 	       }
 	     }
       else {
-    	  $html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO} $_ERR_NO_TRANSACTION");
+    	  $html->message('err', $_ERROR, "$_FAILED ID: $FORM{SHOPORDERNUMBER} $_ERR_NO_TRANSACTION");
        }
+    }
+  else {
+  	$html->message('err', $_ERROR, "$_BALANCE_RECHARCHE; $_FAILED ID: $FORM{SHOPORDERNUMBER} $_ERR_NO_TRANSACTION");
+   }
   return 0;
  }
 else {

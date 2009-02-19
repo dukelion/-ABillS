@@ -38,11 +38,6 @@ use Finance;
 use Admins;
 
 
-
-
-
-
-
 my $html = Abills::HTML->new();
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
@@ -116,6 +111,11 @@ my $payments = Finance->payments($db, $admin, \%conf);
 my $users = Users->new($db, $admin, \%conf); 
 
 
+#DEbug
+my $output2 = '';
+while(my($k, $v)=each %FORM) {
+ 	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
+}
 
 if( $FORM{txn_id} ) {
 	osmp_payments();
@@ -141,11 +141,6 @@ my $md5 = new Digest::MD5;
 
 
 #DEbug
-my $output2 = '';
-while(my($k, $v)=each %FORM) {
- 	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
-}
-
 payments();
 
 
@@ -245,11 +240,12 @@ sub portmone_payments {
 	
 	#money added sucesfully
 	if ($status == 1) {
-	  print "Location: /index.cgi?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}". "\n\n";
+	  print "Location: /index.cgi?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}&TRUE=1". "\n\n";
 	 }
 	else {
-		print "Content-Type: text/html\n\n";
-		print "FAILED PAYSYS: Portmone SUM: $FORM{BILL_AMOUNT} ID: $FORM{SHOPORDERNUMBER} STATUS: $status";
+		#print "Content-Type: text/html\n\n";
+		#print "FAILED PAYSYS: Portmone SUM: $FORM{BILL_AMOUNT} ID: $FORM{SHOPORDERNUMBER} STATUS: $status";
+		print "Location: /index.cgi?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}". "\n\n";
 	 }
 
 	exit;
