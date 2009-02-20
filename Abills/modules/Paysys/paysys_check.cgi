@@ -239,14 +239,21 @@ sub portmone_payments {
 	     }
 	
 	#money added sucesfully
-	$ENV{QUERY_STRING} =~ s/paysys_check.cgi/index.cgi/;
+	
+  #print "Content-Type: text/html\n\n";
+  #print "// $ENV{SCRIPT_NAME} $ENV{REQUEST_URI}//";
+  
+	my $home_url = '/index.cgi';
+  $home_url = $ENV{SCRIPT_NAME};
+  $home_url =~ s/paysys_check.cgi/index.cgi/;
+  
 	if ($status == 1) {
-	  print "Location: /index.cgi?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}&TRUE=1". "\n\n";
+	  print "Location: $home_url?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}&TRUE=1". "\n\n";
 	 }
 	else {
 		#print "Content-Type: text/html\n\n";
 		#print "FAILED PAYSYS: Portmone SUM: $FORM{BILL_AMOUNT} ID: $FORM{SHOPORDERNUMBER} STATUS: $status";
-		print "Location: /index.cgi?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}". "\n\n";
+		print "Location: $home_url?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}". "\n\n";
 	 }
 
 	exit;
