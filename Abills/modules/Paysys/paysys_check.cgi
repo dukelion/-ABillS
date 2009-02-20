@@ -239,6 +239,7 @@ sub portmone_payments {
 	     }
 	
 	#money added sucesfully
+	$ENV{QUERY_STRING} =~ s/paysys_check.cgi/index.cgi/;
 	if ($status == 1) {
 	  print "Location: /index.cgi?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}&TRUE=1". "\n\n";
 	 }
