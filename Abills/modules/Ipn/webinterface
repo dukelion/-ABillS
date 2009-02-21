@@ -1401,7 +1401,13 @@ sub ipn_user_activate {
 
   my $Dv = Dv->new($db, $admin, \%conf);  
   $Dv->info( $LIST_PARAMS{UID} );
-  
+
+  if ($Dv->{STATUS} > 0) {
+  	require "modules/Dv/webinterface";
+  	dv_user_info();
+  	
+  	return 0 if (! $FORM{activate});
+   }
   
   if (! $user->{UID})  {
      $ENV{REMOTE_ADDR} = $Dv->{IP} if ($Dv->{IP} ne '0.0.0.0');
@@ -1596,7 +1602,7 @@ sub ipn_user_activate {
 #   }
 
   
-  my @ACTION = ( 'ACTIVE', "$_ACTIVATE" ); 
+  my @ACTION = ( 'ACTIVE', "$_LOGON" ); 
   my %HIDDEN = ();
 #  my $nas = '';
 
