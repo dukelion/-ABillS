@@ -181,7 +181,6 @@ sub payments {
 #
 #**********************************************************
 sub portmone_payments {
-
   #Get order
   my $status = 0;
   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'SHOPORDERNUMBER'}", 
@@ -229,7 +228,7 @@ sub portmone_payments {
 	      	 "LOGIN: $user->{LOGIN} [$uid]\n".
 	      	 "\n".
        	   "\n".
-	      	 "ID: $FORM{SHOPORDERNUMBER }\n".
+	      	 "ID: $FORM{SHOPORDERNUMBER}\n".
 	      	 "SUM: $sum\n";
 
           sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Portmone Add", 

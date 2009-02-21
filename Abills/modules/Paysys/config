@@ -16,10 +16,11 @@ $web_interface    = 1;
 
 
 
-# 
-#%PERIODIC = (daily   => [ 'dv_daily_fees', 'dv_users_warning_messages' ],
+ 
+%PERIODIC = (daily   => [ 'paysys_periodic' ],
 #             monthly => [ 'dv_monthly_fees' ],
-#             report  => [ 'dv_report'       ]);
+#             report  => [ 'dv_report'       ]
+              );
 
 
 1

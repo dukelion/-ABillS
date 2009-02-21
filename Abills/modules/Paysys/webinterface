@@ -757,8 +757,87 @@ $html->tpl_show(_include('paysys_ukrpays_add', 'Paysys'), \%info);
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub paysys_periodic () {
+  my ($attr) = @_;
+
+  my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+  $debug_output .= "Paysys: Daily periodic payments\n" if ($debug > 1);
+ 
+ 
+  if ($conf{PAYSYS_PORTMONE_PAYEE_ID}) {
+  	$ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+  	my ($y, $m, $mday)=split(/-/, $ADMIN_REPORT{DATE});
+  	#replace the parameters with your own values..
+    $mon  = $m-1;
+    $year = $y - 1900;
+    my $timestamp = mktime(0,0,0,$mday,$mon,$year,0,0,-1);
+
+  	my $DATE = strftime "%Y-%m-%d", localtime( $timestamp - 86400 );
+    my $res_arr = paysys_portmone_result(0, { DEBUG => $debug, DATE => $DATE });	
+    
+    my %res_hash = ();
+    for(my $i=0; $i<=$#{ $res_arr }; $i++) {
+     	$res_hash{$res_arr->[$i]{ordernumber}}=$i;
+     }
+    
+    my $list = $Paysys->list({ DATE => $DATE, PAYMENT_SYSTEM => 5, INFO => '-' });
+    my $users = Users->new($db, $admin, \%conf); 
+    foreach my $line (@$list) {
+    	#Add payments to abills
+    	$debug_output .= "Unfinished payment ID: $line->[0]/$line->[5]\n" if ($debug > 2);
+    	if (defined($res_hash{$line->[5]})) {
+    		my $uid = $line->[7];
+	      my $sum = $line->[3];
+        my $order_num = $line->[5];
+        my $user = $users->info($uid);
+        $payments->add($user, {SUM      => $sum,
+    	                     DESCRIBE     => 'PORTMONE', 
+    	                     METHOD       => '2', 
+  	                       EXT_ID       => "PM:$order_num",
+  	                       CHECK_EXT_ID => "PM:$order_num" } );  
 
 
+        #Exists
+        if ($payments->{errno} && $payments->{errno} == 7) {
+          $status = 8;  	
+         }
+        elsif ($payments->{errno}) {
+          $status = 4;
+         }
+        else {
+          $Paysys->change({ ID     => $line->[0],
+         	                  INFO   => "APPROVALCODE: $res_arr->[$res_hash{$line->[5]}]{approvalcode}" 
+         	                 });
+      	  $status = 1;
+         }    
+        
+
+	      if ($conf{PAYSYS_EMAIL_NOTICE}) {
+	      	my $message = "\n".
+	      	 "System: Portmone\n".
+	      	 "DATE: $DATE $TIME\n".
+	      	 "LOGIN: $user->{LOGIN} [$uid]\n".
+	      	 "\n".
+       	   "\n".
+	      	 "ID: $line->[0]\n".
+	      	 "SUM: $sum\n";
+
+          sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Portmone Add", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+	      	
+	       }
+    	  $debug_output .= "Add payments TRANSACTION_ID: $line->[5]\n" if ($debug > 0);
+       }
+     }
+   }
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
 
 #**********************************************************
 # portmone get result
@@ -800,17 +879,28 @@ $html->tpl_show(_include('paysys_ukrpays_add', 'Paysys'), \%info);
 sub paysys_portmone_result () {
   my ($order_id, $attr) = @_;
 
+  my $debug = $attr->{DEBUG} || 0;
+  my $request = "https://www.portmone.com.ua/secure/bills/results.php?SHOPORDERNUMBER=$order_id&SHOP_ID=$conf{PAYSYS_PORTMONE_PAYEE_ID}&LOG=$conf{PAYSYS_PORTMONE_LOG}&PASS=$conf{PAYSYS_PORTMONE_PASS}";
 
-#  my $request = "https://www.portmone.com.ua/secure/bills/results.php?SHOPORDERNUMBER=$order_id&SHOP_ID=$conf{PAYSYS_PORTMONE_PAYEE_ID}&LOG=$conf{PAYSYS_PORTMONE_LOG}&PASS=$conf{PAYSYS_PORTMONE_PASS}";
+  #my $request = 'https://192.168.0.40:9443/test.xml';
+  my $ex_params = '&PAYMENTTYPE=1';
+  
+  if ($attr->{DATE}) {
+  	my ($y, $m, $d)=split(/-/, $attr->{DATE});
+  	$ex_params = "&STARTDAY=$d&STARTMONTH=$m&STARTYEAR=$y&ENDDAY=$d&ENDMONTH=$m&ENDYEAR=$y";
+   }
+  my $cmd = "/usr/local/bin/curl -s --insecure --url '$request$ex_params' -A \"Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)\"\n";
+  if ($debug > 4) {
+  	print $cmd;
+   }
 
-  my $result = 'https://192.168.0.40:9443/test.xml';
-  my $request_result = `/usr/local/bin/curl --url $result --insecure`;
+  my $request_result = `$cmd`;
 
 	my @res_array = split(/\n[\r]?/, $request_result);
   my %request_hash = ();
   my $request_end  = 0;
   my $cure_object  = 0;
-  my $objects = 0;
+  my $objects      = 0;
 
 foreach my $line (@res_array) {
   if ($line =~ /<portmoneresult count='(\d+)'>/) {
@@ -821,13 +911,13 @@ foreach my $line (@res_array) {
     $request_end=1;
    }
   elsif ($line =~ /<\/order>/) {
-    $cure_oject++;
+    $cure_object++;
    }
   elsif(! $request_end && $line =~ /<(\S+)>(.+)<\/\S+>/) {
     $request_hash{$1}=$2;
    }
   elsif($line =~ /<(\S+)>(.+)<\/\S+>/) {
-    $orders[$cure_oject]{$1}=$2;
+    $orders[$cure_object]{$1}=$2;
    }
 }
 
@@ -851,7 +941,17 @@ if ($debug > 0 ) {
    }
 }
 
-	return 0;
+  if ($attr->{CHECK}) {
+  	if ($orders[0]{total}) {
+  		return 1;
+  	 } 
+  	else {
+  		return 0;
+  	 }
+   }
+
+
+	return \@orders;
 }
 
 #**********************************************************
