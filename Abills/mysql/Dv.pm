@@ -425,13 +425,11 @@ sub list {
    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
   }
  elsif ($attr->{LOGIN}) {
-   $attr->{LOGIN} =~ s/\*/\%/ig;
-   push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
   }
  # Login expresion
  elsif ($attr->{LOGIN_EXPR}) {
-   $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-   push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
   }
  
 
