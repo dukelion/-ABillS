@@ -1333,20 +1333,20 @@ my $sendmail_manu = '<li class=umenu_item>'. $html->button($_SEND_MAIL, "UID=$us
 print "
 </td><td bgcolor='$_COLORS[3]' valign='top' width='180'>
 <table width='100%' border='0' cellspacing='0' cellpadding='0'><tr><td>
-<div id=l_user_menu>
+<div class=l_user_menu>
 <ul class=user_menu>
-   $payments_menu
-   $fees_menu
-   $sendmail_manu
+  $payments_menu
+  $fees_menu
+  $sendmail_manu
 </ul>
 </div>
 </td></tr>
 <tr><td>
-  <div id=l_user_menu> 
+  <div class=l_user_menu> 
   <ul class=user_menu>
    $service_menu
   </ul></div>
-<div id=l_user_menu>
+<div class=l_user_menu>
 <ul class=user_menu>\n";
 
 

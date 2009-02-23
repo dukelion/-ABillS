@@ -851,7 +851,7 @@ TABLE.border {
 
 
 
-#l_user_menu {
+.l_user_menu {
       width: 100%;
       border-right: 1px solid #000;
       padding: 0 0 6px 0;
@@ -863,20 +863,20 @@ TABLE.border {
       color: #333;
       }
 
-#l_user_menu ul {
+.l_user_menu ul {
       list-style: none;
       margin: 0;
       padding: 0;
       border: none;
       }
 		
-#l_user_menu li {
+.l_user_menu li {
       border-bottom: 1px solid $_COLORS[2];
       margin: 0;
       }
 
 
-#l_user_menu li a {
+.l_user_menu li a {
       display: block;
       padding: 5px 5px 5px 0.5em;
       border-left: 4px solid $_COLORS[0];
@@ -887,11 +887,11 @@ TABLE.border {
       width: 100%;
       }
 
-#l_user_menu li a {
+.l_user_menu li a {
       width: auto;
       }
 
-#l_user_menu li a:hover {
+.l_user_menu li a:hover {
       border-left: 4px solid $_COLORS[9];
       border-right: 5px solid $_COLORS[2];
       background-color: $_COLORS[0];

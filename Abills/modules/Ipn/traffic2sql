@@ -114,6 +114,9 @@ if (-f $log) {
 }
 
 
+$conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
+
+
 # GEt information from flowtools
 #
   my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";

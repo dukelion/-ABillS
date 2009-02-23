@@ -22,6 +22,24 @@ use main;
 @ISA  = ("main");
 my $uid;
 
+my %PI_FIELDS = (EMAIL          => 'email',
+              FIO            => 'fio',
+              PHONE          => 'phone',
+              ADDRESS_BUILD  => 'address_build',
+              ADDRESS_STREET => 'address_street',
+              ADDRESS_FLAT   => 'address_flat',
+              COMMENTS       => 'comments',
+              UID            => 'uid',
+              CONTRACT_ID    => 'contract_id',
+              CONTRACT_DATE  => 'contract_date',
+              PASPORT_NUM    => 'pasport_num',
+              PASPORT_DATE   => 'pasport_date',
+              PASPORT_GRANT  => 'pasport_grant',
+              ZIP            => 'zip',
+              CITY           => 'city',
+              ACCEPT_RULES   => 'accept_rules'
+             );
+
 
 
 #**********************************************************
@@ -255,6 +273,67 @@ sub pi_add {
 
 
 
+
+
+
+
+#**********************************************************
+# Personal inforamtion
+# personal_info()
+#**********************************************************
+sub pi_list {
+	my $self = shift;
+  my ($attr) = @_;
+  
+#Make info fields use
+  my $info_fields = '';
+  my @info_fields_arr = ();
+
+  my $field = '';
+  my $filter = '';
+
+  if ($attr->{FIELD}) {
+  	if ($PI_FIELDS{$attr->{FIELD}} ) {
+  	  $field = $PI_FIELDS{$attr->{FIELD}};
+  	  $filter = "$field LIKE '$attr->{VALUE}%'";
+  	 }
+    else {
+    	my $list = $self->config_list({ PARAM => "ifu$attr->{FIELD}", 
+		                                  SORT  => 2 });
+      if ($self->{TOTAL} > 0) {
+        foreach my $line (@$list) {
+          if ($line->[0] =~ /ifu(\S+)/) {
+    	      $field = $1;
+    	      $filter = "$field LIKE '$attr->{VALUE}%'";
+           }
+         }
+       }
+    }
+   }
+  else {
+  	return [];
+   }
+
+
+
+  
+  
+  $self->query($db, "SELECT $field  FROM users_pi pi
+    WHERE $filter;");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  my $list = $self->{list};
+	
+
+	return $list;
+}
+
+
 #**********************************************************
 # Personal inforamtion
 # personal_info()
@@ -355,30 +434,12 @@ sub pi_change {
   my ($attr) = @_;
 
 
-my %FIELDS = (EMAIL          => 'email',
-              FIO            => 'fio',
-              PHONE          => 'phone',
-              ADDRESS_BUILD  => 'address_build',
-              ADDRESS_STREET => 'address_street',
-              ADDRESS_FLAT   => 'address_flat',
-              COMMENTS       => 'comments',
-              UID            => 'uid',
-              CONTRACT_ID    => 'contract_id',
-              CONTRACT_DATE  => 'contract_date',
-              PASPORT_NUM    => 'pasport_num',
-              PASPORT_DATE   => 'pasport_date',
-              PASPORT_GRANT  => 'pasport_grant',
-              ZIP            => 'zip',
-              CITY           => 'city',
-              ACCEPT_RULES   => 'accept_rules'
-             );
-
 	my $list = $self->config_list({ PARAM => 'ifu*'});
   if ($self->{TOTAL} > 0) {
     foreach my $line (@$list) {
       if ($line->[0] =~ /ifu(\S+)/) {
         my $field_name = $1;
-        $FIELDS{$field_name}="$field_name";
+        $PI_FIELDS{$field_name}="$field_name";
         my ($position, $type, $name)=split(/:/, $line->[1]);
         if ($type == 4) {
         	$attr->{$field_name} = 0 if (! $attr->{$field_name});
@@ -389,7 +450,7 @@ my %FIELDS = (EMAIL          => 'email',
 
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users_pi',
-		                FIELDS       => \%FIELDS,
+		                FIELDS       => \%PI_FIELDS,
 		                OLD_INFO     => $self->pi({ UID => $attr->{UID} }),
 		                DATA         => $attr
 		              } );
