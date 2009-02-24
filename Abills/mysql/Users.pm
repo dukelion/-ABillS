@@ -285,6 +285,12 @@ sub pi_list {
 	my $self = shift;
   my ($attr) = @_;
   
+  
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 50;
+
 #Make info fields use
   my $info_fields = '';
   my @info_fields_arr = ();
@@ -319,7 +325,8 @@ sub pi_list {
   
   
   $self->query($db, "SELECT $field  FROM users_pi pi
-    WHERE $filter;");
+    WHERE $filter 
+    GROUP BY $field ORDER BY 1 $DESC LIMIT $PG, $PAGE_ROWS;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
