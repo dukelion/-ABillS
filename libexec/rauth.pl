@@ -268,7 +268,7 @@ sub post_auth {
     if ($RAD->{CALLING_STATION_ID}) {
       $reject_info=" CID $RAD->{CALLING_STATION_ID}";
      }
-    $log_print->('LOG_WARNING', $RAD->{USER_NAME}, "REJECT$reject_info$GT", { NAS => $nas});
+    $log_print->('LOG_WARNING', $RAD->{USER_NAME}, "REJECT Wrong password$reject_info$GT", { NAS => $nas});
    }
 
   # return RLM_MODULE_OK;
