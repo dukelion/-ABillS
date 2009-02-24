@@ -575,10 +575,12 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
   if ($EX_PARAMS->{traf_limit} > 0) {
     #Gigaword limit  	
   	if ($EX_PARAMS->{traf_limit} > 4096) {
+  		
   		my $giga_limit = $EX_PARAMS->{traf_limit} / 4096;
+  		
   		$RAD_PAIRS->{'Mikrotik-Recv-Limit-Gigawords'}=int($giga_limit);
   		$RAD_PAIRS->{'Mikrotik-Xmit-Limit-Gigawords'}=int($giga_limit);
-  		$EX_PARAMS->{traf_limit} = $giga_limit - int($giga_limit) * 4096;
+  		$EX_PARAMS->{traf_limit} = $EX_PARAMS->{traf_limit} - int($giga_limit) * 4096;
   	 }
   	
     $RAD_PAIRS->{'Mikrotik-Recv-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
@@ -698,6 +700,7 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
        }
       else {
          my($left, $right)=split(/=/, $line, 2);
+         $left =~ s/^ //g;
          if ($left =~ s/^!//) {
            delete $RAD_PAIRS->{"$left"};
    	      }
