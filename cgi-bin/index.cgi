@@ -470,7 +470,7 @@ elsif (length($sid) > 1) {
   $user->web_session_info({ SID => $sid });
 
   if ($user->{TOTAL} < 1) { 
-    $html->message('err', "$_ERROR", "$_NOT_LOGINED");	
+    #$html->message('err', "$_ERROR", "$_NOT_LOGINED");	
     return 0; 
    }
   elsif ($user->{errno}) {
