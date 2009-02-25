@@ -706,7 +706,7 @@ sub header {
  my $admin_ip=$ENV{REMOTE_ADDR};
 
  $self->{header} = "Content-type: application/pdf\n";
- $self->{header}.= "Content-disposition: inline; name=".rand(32768).".pdf\n\n";
+ $self->{header}.= "Content-disposition: inline; name=".int(rand(32768)).".pdf\n\n";
 
  return $self->{header};
 }
@@ -1377,13 +1377,15 @@ sub multi_tpls {
 sub tpl_show {
   my $self = shift;
   my ($filename, $variables_ref, $attr) = @_;	
-  
+
+  $debug = 0;
   $filename        =~ s/\.[a-z]{3}$//;
   my $tpl_describe = tpl_describe($filename);
+  
   $filename        = $filename.'.pdf';
   my $pdf          = PDF::API2->open($filename);
   my $tpl;
-  $debug = 0;
+  
 
   
   #$DATE    =~ /(\d{4})-(\d{2})-(\d{2})-/;
@@ -1402,6 +1404,7 @@ sub tpl_show {
         'Subject'      => "Account",
         'Keywords'     => ""
     ); 
+
 
 
 my $multi_doc_count = 0;
@@ -1544,6 +1547,7 @@ for my $key (sort keys %$tpl_describe) {
 }
 
 
+
 if ($attr->{MULTI_DOCS} && $multi_doc_count < @{ $attr->{MULTI_DOCS} }) {
   
   if ($attr->{DOCS_IN_FILE} && $multi_doc_count > 0 && $multi_doc_count % $attr->{DOCS_IN_FILE} == 0) {
@@ -1573,6 +1577,8 @@ if ($attr->{MULTI_DOCS} && $multi_doc_count < @{ $attr->{MULTI_DOCS} }) {
   goto MULTIDOC_LABEL;
 }
 
+
+
 if ($attr->{SAVE_AS}) {
   $pdf->saveas("$attr->{SAVE_AS}") ;
   $pdf->end;
@@ -1581,6 +1587,8 @@ if ($attr->{SAVE_AS}) {
 
   $tpl = $pdf->stringify();
   $pdf->end;
+ 
+ 
  
   print $tpl;
 
@@ -1925,7 +1933,7 @@ sub tpl_describe {
 	my $filename   = $tpl_name.'.dsc';
 	my $content    = '';
 
-print $tpl_name.'.dsc';
+  #print $tpl_name.'.dsc';
   my %TPL_DESCRIBE = ();
 
   if (! -f $filename) {

@@ -151,10 +151,12 @@ if($FORM{del} && $FORM{is_js_confirmed}) {
    }
  }
 elsif($FORM{print}) {
+  
   $Docs->docs_invoice_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
   ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
-  $Docs->{TOTAL_SUM}=0.00;
+   $Docs->{TOTAL_SUM}=0.00;
   
+ 
   if ($Docs->{ORDERS}) {
 		my $i = 1;
 		my @ORDERS = @{ $Docs->{ORDERS} };
@@ -887,7 +889,15 @@ sub docs_preview {
 #**********************************************************
 sub docs_print {
 	my ($type, $ATTR)=@_;
-	
+
+  if (-f "../Abills/modules/Docs/lng_$conf{default_language}.pl") {
+    require "../Abills/modules/Docs/lng_$conf{default_language}.pl";
+   }
+  else {
+    require "../../Abills/modules/Docs/lng_$conf{default_language}.pl";
+   }
+
+  
 	if (defined(@MONTHES_LIT) && $ATTR->{DATE}) {
     my ($y, $m, $d)=split(/-/, $ATTR->{DATE}, 3);
     $ATTR->{FROM_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
@@ -899,12 +909,6 @@ sub docs_print {
    }
 
 
-  if (-f "../Abills/modules/Docs/lng_$conf{default_language}.pl") {
-    require "../Abills/modules/Docs/lng_$conf{default_language}.pl";
-   }
-  else {
-    require "../../Abills/modules/Docs/lng_$conf{default_language}.pl";
-   }
 
   $ATTR->{SUM_LIT} = int2ml("$ATTR->{TOTAL_SUM}", { 
   	 ONES             => \@ones,

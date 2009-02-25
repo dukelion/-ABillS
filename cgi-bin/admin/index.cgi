@@ -3968,8 +3968,10 @@ sub form_payments () {
  my %BILL_ACCOUNTS = ();
 
  if ($FORM{print}) {
+ 	 #print "Content-Type: text/html\n\n";
    require "Abills/modules/Docs/webinterface";
    docs_invoice({ %FORM  });
+   exit;
   }
 
 
