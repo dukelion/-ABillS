@@ -2,8 +2,8 @@
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
 <TR bgcolor='$_COLORS[0]'><TH ALIGN=RIGHT COLSPAN='2'>$_INFO</TH></TR>
 <TR bgcolor='$_COLORS[1]'><TD>$_LOGIN:</TD><TD>%LOGIN%</TD></TR>
-<tR bgcolor='$_COLORS[1]'><TD>UID:</TD><TD>%UID%</TD></TR>
-<tR bgcolor='$_COLORS[1]'><TD>$_DEPOSIT:</TD><TD>%DEPOSIT%</TD></TR>
+<TR bgcolor='$_COLORS[1]'><TD>UID:</TD><TD>%UID%</TD></TR>
+<TR bgcolor='$_COLORS[1]'><TD>$_DEPOSIT:</TD><TD>%DEPOSIT%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD>$_FIO:</TD><TD>%FIO%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD>$_PHONE:</TD><TD>%PHONE%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD>$_ADDRESS:</TD><TD>%ADDRESS%</TD></TR>

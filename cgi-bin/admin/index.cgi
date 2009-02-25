@@ -1104,7 +1104,7 @@ sub user_info {
   	                      rowcolor   => $_COLORS[2],
   	                      border     => 0,
                           cols_align => ['left:noprint'],
-                          rows       => [ [ "$_USER: ". $html->button($html->b($user_info->{LOGIN}), "index=15&UID=$user_info->{UID}") ] ]
+                          rows       => [ [ "$_USER: ". $html->button($html->b($user_info->{LOGIN}), "index=15&UID=$user_info->{UID}"). " (UID: $user_info->{UID})" ] ]
                         });
   print $table->show();
  
@@ -4976,7 +4976,7 @@ if (-d $main_templates_dir ) {
       $table->addrow("$file", $size, $mtime, $describe,
          $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }),
          (-f "$conf{TPL_DIR}/_$file") ? $html->button($_CHANGE, "index=$index&tpl_name="."_$file") : $html->button($_CREATE, "index=$index&create=:$file"),
-         (-f "$conf{TPL_DIR}/_$file") ? $html->button($_DEL, "index=$index&del=". "_$file", { MESSAGE => "$_DEL \\'$file\\'" }) : '');
+         (-f "$conf{TPL_DIR}/_$file") ? $html->button($_DEL, "index=$index&del=". "_$file", { MESSAGE => "$_DEL '$file'" }) : '');
      }
 
  }
