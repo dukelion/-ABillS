@@ -312,7 +312,7 @@ foreach my $line (@$list) {
    $html->button($line->[4], "index=11&UID=$line->[7]"),
    "$line->[5]", 
    "$line->[6]", 
-   $html->button($_PRINT, "qindex=$index&print=$line->[8]". (($pages_qs) ? $pages_qs : "&UID=$line->[7]"  ) , { ex_params => 'target=_new' }), 
+   $html->button($_PRINT, "qindex=$index&print=$line->[8]&UID=$line->[7]$pages_qs", { ex_params => 'target=_new' }), 
    $delete);
 }
 print $table->show();
@@ -915,7 +915,8 @@ sub docs_print {
      TEN              => \@ten,
      TENS             => \@tens,
      HUNDRED          => \@hundred,
-     MONEY_UNIT_NAMES => $conf{MONEY_UNIT_NAMES} || \@money_unit_names
+     MONEY_UNIT_NAMES => $conf{MONEY_UNIT_NAMES} || \@money_unit_names,
+     LOCALE           => $conf{LOCALE}
   	  });
 
 

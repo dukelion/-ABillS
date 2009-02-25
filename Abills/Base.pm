@@ -551,8 +551,13 @@ if ($second ne '') {
 } else {
  $ret .= "\n";
 }
+
+ use locale;
+ use POSIX qw(locale_h);
+ my $locale = $attr->{LOCALE} || 'ru_RU.CP1251';
+ setlocale(LC_ALL, $locale);
  
- return $ret;
+ return ucfirst $ret;
 }
 
 #**********************************************************
