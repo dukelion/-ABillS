@@ -109,7 +109,8 @@ sub info {
    tp.postpaid_monthly_fee,
    tp.payment_type,
    dv.join_service,
-   dv.turbo_mode
+   dv.turbo_mode,
+   tp.abon_distribution
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
    $WHERE;");
@@ -138,7 +139,8 @@ sub info {
    $self->{POSTPAID_ABON}, 
    $self->{PAYMENT_TYPE},
    $self->{JOIN_SERVICE},
-   $self->{TURBO_MODE}
+   $self->{TURBO_MODE},
+   $self->{ABON_DISTRIBUTION}
   )= @{ $self->{list}->[0] };
   
   

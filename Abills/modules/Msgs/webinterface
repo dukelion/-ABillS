@@ -607,7 +607,7 @@ foreach my $name ( @msg_status) {
     $status_bar .= ' :: '. $html->b($name);
 	 }
 	else {
-	  $status_bar .= ' :: ' .$html->button("$name", "index=$index&STATE=$i");
+	  $status_bar .= ' :: ' .$html->button("$name", "index=$index&STATE=$i$pages_qs");
 	 }
 
   $i++;

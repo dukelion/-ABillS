@@ -4563,7 +4563,7 @@ sub dv_get_month_fee {
      	  return ;
       }
 
-        if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
+        if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT} && ! $Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
         	$message = "$_MONTH_ALIGNMENT, ";
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
