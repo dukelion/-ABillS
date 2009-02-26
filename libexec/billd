@@ -171,7 +171,7 @@ sub check_lines {
 
   foreach my $nas_row (@$nas_list) {
     #If ipcad NAS all checks make in traff2sql 
-    #next if ($nas_row->[4] eq 'ipcad');
+    next if ($nas_row->[4] eq 'ipcad');
     
     my $l = $online->{$nas_row->[0]};
     print "NAS IP: $nas_row->[3]\n NAS_TYPE: $nas_row->[4]\n STATUS: $nas_row->[6]\n Alive: $nas_row->[8]/\n " if ($debug > 0);
@@ -343,7 +343,7 @@ sub check_lines {
 
            my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
            	                                                       FRAMED_IP_ADDRESS    => int2ip($client_ip),
-           	                                                       ACCT_TERMINATE_CAUSE => 15,
+           	                                                       ACCT_TERMINATE_CAUSE => 16,
            	                                                       UID                  => $self->{UID},
            	                                                       debug                => $debug
            	                                                      });
