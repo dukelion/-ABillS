@@ -1005,6 +1005,9 @@ if ($sessions->{TOTAL} > 500)  {
 
 
 
+
+
+
 my @CAPTION = (); 
 my @ACTIVE_FIELDS = (0,1,2,3,4,5,6,7,8);
 
@@ -1021,8 +1024,6 @@ elsif ($admin->{WEB_OPTIONS} =~ /DV_MONITOR=(.+);/) {
 foreach my $field_id (@ACTIVE_FIELDS) {
 	push @CAPTION, $FIELDS_ALL[$field_id];
 }
-
-
 
 
 
@@ -1147,7 +1148,9 @@ if ($FORM{ZAPED}) {
                             });
  }
 else {
-  $output .= dv_online_search({ FIELDS_ALL => \@FIELDS_ALL }); 
+  $output .= dv_online_search({ FIELDS_ALL    => \@FIELDS_ALL, 
+  	                            ACTIVE_FIELDS => \@ACTIVE_FIELDS 
+  	                            }); 
 
   $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want ZAP all sessions ?" });
  }
@@ -1164,13 +1167,14 @@ print  $output;
 sub dv_online_search {
 	my ($attr) = @_;
 	
-	my $FIELDS_ALL = $attr->{FIELDS_ALL};
+	my $FIELDS_ALL    = $attr->{FIELDS_ALL};
+	my $ACTIVE_FIELDS = $attr->{ACTIVE_FIELDS};
 my $table2 = $html->table({ width => '100%' });
 my @arr = ();
 my $i=0;
 foreach my $name ( @$FIELDS_ALL ) {
   my $ex_info = ''; #($attr->{OIDS_EXINFO}->{$name}{DESCRIBE}) ?  " ($attr->{OIDS_EXINFO}->{$name}{ACCESS})<br>$attr->{OIDS_EXINFO}->{$name}{DESCRIBE}" : '';
-  push @arr, $html->form_input('fields', "$i", { TYPE => 'checkbox', STATE => (in_array($i, \@ACTIVE_FIELDS)) ? 1 : undef  }). ' '. $html->b($name) ." $ex_info";
+  push @arr, $html->form_input('fields', "$i", { TYPE => 'checkbox', STATE => (in_array($i, $ACTIVE_FIELDS)) ? 1 : undef  }). ' '. $html->b($name) ." $ex_info";
 
   if ($#arr > 2) {
     $table2->addrow(@arr);
