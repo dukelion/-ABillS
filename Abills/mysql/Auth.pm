@@ -328,60 +328,13 @@ if ($self->{PAYMENT_TYPE} == 0) {
 
     #Filtering with negative deposit
     if ($self->{NEG_DEPOSIT_FILTER_ID}) {
-      if ($self->{NEG_DEPOSIT_FILTER_ID} =~ /RAD:(.+)/) {
-      	my $rad_pairs = $1;
-        my @p = split(/,/, $rad_pairs);
-        foreach my $line (@p) {
-          if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/ ) {
-            my $left=$1;
-            my $right=$2;
-    
-            $right =~ s/\"//g;
-            push( @{ $RAD_PAIRS->{"$left"} }, $right ); 
-           }
-          else {
-            my($left, $right)=split(/=/, $line, 2);
-            if ($left =~ s/^!//) {
-              delete $RAD_PAIRS->{"$left"};
-   	         }
-   	        else {
-   	        	#next if (! $self->{"$left"});
-   	          $RAD_PAIRS->{"$left"}="$right";
-   	         }
-           }
-         }
-       }
-      else {
-      	$RAD_PAIRS->{'Filter-Id'} = "$self->{NEG_DEPOSIT_FILTER_ID}";
-       }
-      # Return radius attr    
-      if ($self->{IP} ne '0') {
-        $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
-       }
-      else {
-        my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{TP_IPPOOL} });
-        if ($ip eq '-1') {
-          $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS})";
-          return 1, $RAD_PAIRS;
-         }
-        elsif($ip eq '0') {
-          #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
-          #return 1, $RAD_PAIRS;
-         }
-        else {
-          $RAD_PAIRS->{'Framed-IP-Address'} = "$ip";
-         }
-       }
-
-      return 0, $RAD_PAIRS;
+      return $self->neg_deposit_filter_former($self->{NEG_DEPOSIT_FILTER_ID});
+      #return 1, $RAD_PAIRS;
      }
-
-    return 1, $RAD_PAIRS;
    }
- }
-else {
-  $self->{DEPOSIT}=0;
-}
+  else {
+    $self->{DEPOSIT}=0;
+   }
 
 
   if ($self->{INTERVALS} > 0)  {
@@ -1596,7 +1549,67 @@ if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
 #}
 
 
+#**********************************************************
+#
+#**********************************************************
+sub neg_deposit_filter_former {
+	my $self = shift;
+	my ($RAD, $NAS, $NEG_DEPOSIT_FILTER_ID, $attr) = @_;
+	
+	my $RAD_PAIRS ;
+	
+	 if ($NEG_DEPOSIT_FILTER_ID =~ /RAD:(.+)/) {
+      	my $rad_pairs = $1;
+        my @p = split(/,/, $rad_pairs);
+        foreach my $line (@p) {
+          if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/ ) {
+            my $left=$1;
+            my $right=$2;
+    
+            $right =~ s/\"//g;
+            push( @{ $RAD_PAIRS->{"$left"} }, $right ); 
+           }
+          else {
+            my($left, $right)=split(/=/, $line, 2);
+            if ($left =~ s/^!//) {
+              delete $RAD_PAIRS->{"$left"};
+   	         }
+   	        else {
+   	        	#next if (! $self->{"$left"});
+   	          $RAD_PAIRS->{"$left"}="$right";
+   	         }
+           }
+         }
+       }
+      else {
+      	$RAD_PAIRS->{'Filter-Id'} = "$NEG_DEPOSIT_FILTER_ID";
+       }
 
+      # Return radius attr    
+      if ($self->{IP} ne '0') {
+        $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
+       }
+      else {
+        my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{TP_IPPOOL} });
+        if ($ip eq '-1') {
+          $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS})";
+          return 1, $RAD_PAIRS;
+         }
+        elsif($ip eq '0') {
+          #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
+          #return 1, $RAD_PAIRS;
+         }
+        else {
+          $RAD_PAIRS->{'Framed-IP-Address'} = "$ip";
+         }
+       }
+
+      return 0, $RAD_PAIRS;
+     }
+	
+	
+	return ;
+}
 
 
 1
