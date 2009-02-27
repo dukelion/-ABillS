@@ -1737,7 +1737,8 @@ sub ipn_change_status {
 	 }
 	elsif ($STATUS eq 'HANGUP') {
      $Ipn->acct_stop({ %FORM, 
-     	                 ACCT_TERMINATE_CAUSE => $attr->{ACCT_TERMINATE_CAUSE} || 6 });
+     	                 ACCT_TERMINATE_CAUSE => $attr->{ACCT_TERMINATE_CAUSE} || 6 
+     	                 });
 
      $cmd = $conf{IPN_FW_STOP_RULE};
 
