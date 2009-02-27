@@ -168,13 +168,14 @@ sub acct_stop {
   my ($attr) = @_;
   my $session_id='';
 
-
   if (defined($attr->{SESSION_ID})) {
   	$session_id=$attr->{SESSION_ID};
    }
   else {
     return $self;
   }
+ 
+ 
  
   my $ACCT_TERMINATE_CAUSE = (defined($attr->{ACCT_TERMINATE_CAUSE})) ? $attr->{ACCT_TERMINATE_CAUSE} : 0;
 
@@ -221,6 +222,7 @@ sub acct_stop {
    $self->{NAS_PORT}
   ) = @{ $self->{list}->[0] };
 
+
  
  $self->query($db, "SELECT sum(l.traffic_in), 
    sum(l.traffic_out),
@@ -245,7 +247,7 @@ sub acct_stop {
    $self->{SUM}
   ) = @{ $self->{list}->[0] };
 
-
+ 
   $self->{GW_INPUT_OCTETS}=0; 
   $self->{GW_OUTPUT_OCTETS}=0;
   if ($self->{INPUT_OCTETS} > 4294967294) {
@@ -257,6 +259,7 @@ sub acct_stop {
   	$self->{GW_OUTPUT_OCTETS} = int($self->{OUTPUT_OCTETS} / 4294967294);
   	$self->{OUTPUT_OCTETS}=$self->{OUTPUT_OCTETS} % 4294967294;
    }
+
 
   $self->query($db, "INSERT INTO dv_log (uid, 
     start, 
