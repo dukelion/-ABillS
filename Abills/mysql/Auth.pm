@@ -332,9 +332,10 @@ if ($self->{PAYMENT_TYPE} == 0) {
       #return 1, $RAD_PAIRS;
      }
    }
-  else {
-    $self->{DEPOSIT}=0;
-   }
+ }
+else {
+  $self->{DEPOSIT}=0;
+ }
 
 
   if ($self->{INTERVALS} > 0)  {
@@ -1552,11 +1553,11 @@ if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
 #**********************************************************
 #
 #**********************************************************
-sub neg_deposit_filter_former {
+sub neg_deposit_filter_former () {
 	my $self = shift;
 	my ($RAD, $NAS, $NEG_DEPOSIT_FILTER_ID, $attr) = @_;
 	
-	my $RAD_PAIRS ;
+	 my $RAD_PAIRS ;
 	
 	 if ($NEG_DEPOSIT_FILTER_ID =~ /RAD:(.+)/) {
       	my $rad_pairs = $1;
@@ -1580,10 +1581,10 @@ sub neg_deposit_filter_former {
    	         }
            }
          }
-       }
-      else {
-      	$RAD_PAIRS->{'Filter-Id'} = "$NEG_DEPOSIT_FILTER_ID";
-       }
+    }
+   else {
+    	$RAD_PAIRS->{'Filter-Id'} = "$NEG_DEPOSIT_FILTER_ID";
+    }
 
       # Return radius attr    
       if ($self->{IP} ne '0') {
@@ -1603,12 +1604,9 @@ sub neg_deposit_filter_former {
           $RAD_PAIRS->{'Framed-IP-Address'} = "$ip";
          }
        }
-
-      return 0, $RAD_PAIRS;
-     }
 	
 	
-	return ;
+	return 0, $RAD_PAIRS;;
 }
 
 
