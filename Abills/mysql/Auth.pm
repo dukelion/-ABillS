@@ -331,6 +331,9 @@ if ($self->{PAYMENT_TYPE} == 0) {
       return $self->neg_deposit_filter_former($self->{NEG_DEPOSIT_FILTER_ID});
       #return 1, $RAD_PAIRS;
      }
+    else {
+    	return 1, $RAD_PAIRS;
+     }
    }
  }
 else {
