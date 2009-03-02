@@ -1617,9 +1617,9 @@ sub tpl_show {
 # 
 #**********************************************************
 sub test {
-
+ return 0 if (! $CONF->{WEB_DEBUG});
+ 
  my $output = '';
-
 #print "<TABLE border=1>
 #<tr><TD colspan=2>FORM</TD></TR>
 #<tr><TD>index</TD><TD>$index</TD></TD></TR>
