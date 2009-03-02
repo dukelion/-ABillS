@@ -2632,11 +2632,11 @@ sub ipn_detail_rotate {
 #**********************************************************
 sub ipn_periodic_session_restart {
 	my ($attr) = @_;
-  my $debug = $attr->{DEBUG} || 0;
+  my $debug  = $attr->{DEBUG} || 0;
   my $debug_output = '';
 
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
-  if (!$attr->{SRESTART} && $d == 1) {
+  if (!$attr->{SRESTART} && $d != 1) {
 	  $DEBUG .= $debug_output;
     return $debug_output;
    }
@@ -2734,12 +2734,12 @@ foreach my $line (@$list)   {
       $debug_output .= "Hangup: LOGIN: $login $RAD_PAIRS->{'Reply-Message'}\n";
   	  #return 0;
      }
-     
-    #$DATA{FILTER_ID}=$RAD_PAIRS->{'Filter-Id'} || '';     
-    
-    $Ipn->user_status({ %DATA });
-    ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
-    $debug_output .= "$_ACTIVATE IP: $ip\n" if ($debug > 1);
+    else { 
+      #$DATA{FILTER_ID}=$RAD_PAIRS->{'Filter-Id'} || '';     
+      $Ipn->user_status({ %DATA });
+      ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
+      $debug_output .= "$_ACTIVATE IP: $ip\n" if ($debug > 1);
+     }
   }
 
   $count++;
