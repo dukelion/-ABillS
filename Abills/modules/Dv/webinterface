@@ -3262,7 +3262,7 @@ sub dv_daily_fees {
 
  foreach my $line (@$list) {
  	 if ($line->[5] > 0) {
- 	   $LIST_PARAMS{TP}=$line->[0];
+ 	   #$LIST_PARAMS{TP}=$line->[0];
      my $TP_ID = $line->[0];
    
      my %TP_INFO = ();

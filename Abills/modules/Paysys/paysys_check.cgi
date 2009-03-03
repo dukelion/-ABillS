@@ -125,6 +125,25 @@ elsif ($FORM{SHOPORDERNUMBER}) {
  }
 
 
+#Check payment system by IP
+
+#OSMP
+my $first_ip = unpack("N", pack("C4", split( /\./, '79.142.16.0')));
+my $mask_ips = unpack("N", pack("C4", split( /\./, '255.255.255.255'))) - unpack("N", pack("C4", split( /\./, '255.255.240.0')));
+my $last_ip  = $first_ip + $mask_ips;
+my $ip_num   = unpack("N", pack("C4", split( /\./, $ENV{REMOTE_ADDR})));
+
+if ($ip_num > $first_ip && $ip_num < $last_ip){
+        print "Content-Type: text/xml\n\n";
+        print "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+        print "<response>\n";
+        print "<result>300</result>\n";
+        print "<result1>$ENV{REMOTE_ADDR}</result1>\n";
+        print " </response>\n";
+        exit;
+ } 
+
+
 print "Content-Type: text/html\n\n";
 
 eval { require Digest::MD5; };
@@ -144,9 +163,6 @@ my $md5 = new Digest::MD5;
 payments();
 
 
-#debug
-#my $a=`echo "-----\n$output2\n-$status \n"  >> /tmp/test_paysys`;
-#print "//".$output2;
 
 
 #**********************************************************
@@ -171,8 +187,7 @@ sub payments {
   	usmp_payments();
    }
   else {
-  	print "Error: Unknown payment system";
-  	#$output2 .= "Unknown payment system"; 
+    print "Error: Unknown payment system";
    }
 }
 
@@ -355,6 +370,7 @@ elsif ($command eq 'pay') {
     #Exists
     if ($payments->{errno} && $payments->{errno} == 7) {
       $status = 8;  	
+      $payments_id = $payments->{ID};
      }
     elsif ($payments->{errno}) {
       $status = 4;

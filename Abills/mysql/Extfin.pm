@@ -459,7 +459,7 @@ sub extfin_report_deeds {
   my ($attr) = @_;
 
  print "Content-Type: text/html\n\n";
- print "aaaaaaaaaaaaaa";
+ #print "aaaaaaaaaaaaaa";
 
  @WHERE_RULES = ();
  my %NAMES=();

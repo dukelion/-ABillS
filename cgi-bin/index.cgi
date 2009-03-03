@@ -323,10 +323,35 @@ sub mk_menu {
 # form_stats
 #**********************************************************
 sub form_info {
+  my ($attr) = @_;
+  use POSIX qw(strftime);
   
-  if ($conf{user_chg_pi}) {
+  if ( $conf{user_credit_change}) {
+    my ($sum, $days) = split(/:/, $conf{user_credit_change});
+    my $credit_date = strftime "%Y-%m-%d", localtime(time + int($days) * 86400);
+    
+    if ($user->{CREDIT} < $sum) {
+       if ($FORM{change_credit}) {
+         $user->change($user->{UID}, { UID         => $user->{UID},
+                                       CREDIT      => $sum,
+                                       CREDIT_DATE => $credit_date
+                                     });
+         if (! $user->{errno}) {
+            $html->message('info', "$_CHANGED", " $_CREDIT: $sum");
+          }
+
+         $user->{CREDIT}=$sum;
+         $user->{CREDIT_DATE}=$credit_date;
+        }
+       else {
+         $user->{CREDIT_CHG_BUTTON} = $html->button("$_SET: $sum", "index=$index&sid=$sid&change_credit=$sum");
+        }
+     }
+    
+
+   }
+  elsif ($conf{user_chg_pi}) {
   	if ($FORM{chg}) {
-  		
   		$user->pi();
   		$user->{ACTION}='change';
   		$user->{LNG_ACTION}=$_CHANGE;
@@ -341,7 +366,8 @@ sub form_info {
   	 }
    }
 
-
+  
+  
   $user->pi();
   
   my $payments = Finance->payments($db, $admin, \%conf);
