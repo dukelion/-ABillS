@@ -31,7 +31,7 @@ my %REPORTS = ( 1 => "$_DEPOSIT_BELOW",
 
 
 #**********************************************************
-# user_dv
+# ureports_users_list
 #**********************************************************
 sub ureports_users_list {
  my ($attr)=@_;
@@ -47,7 +47,7 @@ sub ureports_users_list {
   }
  elsif($FORM{TP_ID}) {
    $FORM{subf}=$index;
-   dv_tp();
+   ureports_tp();
    return 0;
   }
  
@@ -481,19 +481,19 @@ print $table->show();
 
 
 #**********************************************************
-# dv_use_all_monthes();
+# ureports_use_all_monthes();
 #**********************************************************
-sub dv_use_allmonthes {
+sub ureports_use_allmonthes {
 
   $FORM{allmonthes}=1;
-  dv_use();
+  ureports_use();
 }
 
 
 #**********************************************************
-# dv_use();
+# ureports_use();
 #**********************************************************
-sub dv_use {
+sub ureports_use {
 
 my %CAPTIONS_HASH = ('1:DATE:right'            => $_DATE,  	
                      '2:USERS:left'            => $_USERS,
@@ -965,7 +965,7 @@ print $table->show();
 
 
 #**********************************************************
-# dv_user_info
+# ureports_user_info
 #**********************************************************
 sub ureports_user_info {
 
@@ -1649,67 +1649,12 @@ if ($d == 1) {
 
 
 
-#**********************************************************
-# user_warnings
-# 
-#**********************************************************
-sub dv_users_warning_messages {
-
- $ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_TARIF_PLAN, $_DEPOSIT, $_CREDIT).
-   "---------------------------------------------------------------\n";
- if (defined($ADMIN_REPORT{NO_USERS_WARNINGS})) {
-   return 0;
-  }
-
-
-my %LIST_PARAMS = (USERS_WARNINGS => 1 ) ;
-
-my $list = $Ureports->list( { %LIST_PARAMS } );
-
-return 0 if ($Ureports->{TOTAL} < 1);
-my %USER_INFO = ();
-
-foreach my $line (@$list) {
-  #u.id, u.email, u.tp_id, u.credit, u.deposit, tp.name, tp.uplimit
-
-  $USER_INFO{LOGIN}  = $line->[0];
-  $USER_INFO{TP_NAME}= $line->[5];
-  $USER_INFO{TP_ID}  = $line->[2];
-  $USER_INFO{DEPOSIT}= $line->[4];
-  $USER_INFO{CREDIT} = $line->[3];
-  
-  my $email = ((! defined($line->[1])) || $line->[1] eq '') ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : "$line->[1]";
-  
- 
-  $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
-    $USER_INFO{LOGIN}, 
-    $USER_INFO{TP_ID}, 
-    $USER_INFO{TP_NAME},  
-    $USER_INFO{DEPOSIT}, 
-    $USER_INFO{CREDIT});
-  
-  my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { notprint => 1 });
-
-  sendmail("$conf{ADMIN_MAIL}", 
-              "$email", 
-              "$_BILL_INFO", 
-              "$message", 
-              "$conf{MAIL_CHARSET}", 
-              "2 (High)");
-}
-
-$ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
-$_TOTAL: $Ureports->{TOTAL}\n";
-
-
-}
-
 
 
 #***********************************************************
-# dv_sheduler
+# ureports_sheduler
 #***********************************************************
-sub dv_sheduler {
+sub ureports_sheduler {
 	my ($type, $action, $uid)=@_;
 
   my $user = $Ureports->info($uid);  	
@@ -1728,9 +1673,9 @@ sub dv_sheduler {
 
 
 #***********************************************************
-# dv_report
+# ureports_report
 #***********************************************************
-sub dv_report {
+sub ureports_report {
 	my ($type, $attr)=@_;
   my $REPORT = "Module: DV\n";
   
