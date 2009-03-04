@@ -511,6 +511,11 @@ sub hangup_ipcad {
   my $rule_num = $conf{IPN_FW_FIRST_RULE} || 20000;
   $rule_num = $rule_num + 10000 + $num;
 
+  if ($NAS->{NAS_MNG_IP_PORT}) {
+    $ENV{NAS_IP_ADDRESS}=$NAS->{NAS_MNG_IP_PORT};
+    $ENV{NAS_MNG_USER}=$NAS->{NAS_MNG_USER};
+   }
+
 
   $cmd =~ s/\%IP/$ip/g;
   $cmd =~ s/\%MASK/$netmask/g;
