@@ -174,7 +174,7 @@ sub msgs_admin_add {
      }
     else {
       $Msgs->message_add({ %FORM, 
-      	                   ADMIN_READ => (! $FORM{INNER_MSG}) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
+      	      	           ADMIN_READ => (! $FORM{INNER_MSG} || ($FORM{STATE} == 1 || $FORM{STATE} == 2)) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
       	                   IP         => $admin->{SESSION_IP} 
       	                 });
      }
@@ -548,7 +548,7 @@ sub msgs_admin {
   if ($#A_CHAPTER > -1) {
     $LIST_PARAMS{CHAPTERS} = join(', ', @A_CHAPTER);
     #$LIST_PARAMS{DONE_DATE}='0000-00-00'; 
-    $LIST_PARAMS{CLOSED_DATE}='0000-00-00'; 
+    #$LIST_PARAMS{CLOSED_DATE}='0000-00-00'; 
     
     #print "--- $A_PRIVILEGES{$line->[5]} -- ";
     
@@ -595,11 +595,14 @@ sub msgs_admin {
   $LIST_PARAMS{STATE}=undef if ($FORM{STATE} == 3);
   $LIST_PARAMS{PRIORITY}=undef if ($FORM{PRIORITY} == 5);
 
+  #$pages_qs .= "&UID=$FORM{UID}" if ($FORM{UID});
 
-
-
+  if (! $FORM{STATE} && ! $FORM{ALL_MSGS}) {
+     $FORM{STATE}=0;
+   }
+  
 my $i = 0;
-my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index") : $html->b($_ALL);;
+my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs") : $html->b($_ALL);;
 
 foreach my $name ( @msg_status) {
 	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
@@ -613,7 +616,13 @@ foreach my $name ( @msg_status) {
   $i++;
 }
 
-
+  if (defined($FORM{ALL_MSGS})) {
+    $pages_qs.="&ALL_MSGS=1";
+   }
+  else {
+    $pages_qs.="&STATE=$FORM{STATE}";
+   }
+  
 
   my $list = $Msgs->messages_list({ %LIST_PARAMS, 
   	                                DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 

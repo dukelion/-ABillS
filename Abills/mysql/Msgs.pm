@@ -258,8 +258,10 @@ sub message_add {
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
+  my $CLOSED_DATE = ($DATA{STATE} == 1 || $DATA{STATE} == 2 ) ? 'now()' : "'0000-00-00 00:00:00'";
+
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
-   priority, lock_msg, plan_date, plan_time, user_read, admin_read, inner_msg, resposible)
+   priority, lock_msg, plan_date, plan_time, user_read, admin_read, inner_msg, resposible, closed_date)
     values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
         '$DATA{REPLY}',
         '$admin->{AID}',
@@ -272,7 +274,8 @@ sub message_add {
         '$DATA{USER_READ}',
         '$DATA{ADMIN_READ}',
         '$DATA{INNER_MSG}',
-        '$DATA{RESPOSIBLE}'
+        '$DATA{RESPOSIBLE}',
+        $CLOSED_DATE
         );", 'do');
 
   $self->{MSG_ID} = $self->{INSERT_ID};
