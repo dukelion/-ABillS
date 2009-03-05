@@ -248,7 +248,7 @@ sub list {
   }
 
  if ($attr->{EXT_ID}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{EXT_ID}, 'INT', 'p.ext_id') };
+   push @WHERE_RULES, @{ $self->search_expr($attr->{EXT_ID}, 'STR', 'p.ext_id') };
   }
 
  if ($attr->{ID}) {

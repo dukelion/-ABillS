@@ -117,7 +117,7 @@ while(my($k, $v)=each %FORM) {
  	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
 }
 
-if( $FORM{txn_id} ) {
+if( $FORM{txn_id} || $FORM{prv_txn} ) {
 	osmp_payments();
  }
 elsif ($FORM{SHOPORDERNUMBER}) {
@@ -274,33 +274,47 @@ sub portmone_payments {
 }
 
 #**********************************************************
-#
+# OSMP / Pegas
 #**********************************************************
 sub osmp_payments {
 
  print "Content-Type: text/xml\n\n";
 # print "Content-Type: text/html\n\n";
-  
+ my $txn_id            = 'osmp_txn_id';
+ my $payment_system    = 'OSMP';
+ my $payment_system_id = 4;
+ my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
 
+my %status_hash = (0	=> 'Success',
+  1   => 'Temporary DB error',
+  4	  => 'Wrong client indentifier',
+  5	  => 'Failed witness a signature',
+  6	  => 'Unknown terminal',
+  7	  => 'Payments deny',
+  
+  8	  => 'Double request',
+  9	  => 'Key Info mismatch',
+  79  => 'Счёт абонента не активен',
+  300	=> 'Unknown error',
+  );
+
+
+
+ #For pegas
+ if ($conf{PAYSYS_PEGAS}) {
+ 	 $txn_id            = 'txn_id';
+ 	 $payment_system    = 'PEGAS';
+ 	 $payment_system_id = 9;
+ 	 $status_hash{5}='Неверный индентификатор абонента';
+ 	 $status_hash{243}='Невозможно проверитьсостояние счёта';
+ 	 $CHECK_FIELD       = $conf{PAYSYS_PEGAS_ACCOUNT_KEY} || 'UID';
+  }
 
 my $comments = '';
-my %status_hash = (0	=> 'Success',
-1 => 'Temporary error',
-4	=> 'Wrong client indentifier',
-5	=> 'Failed witness a signature',
-6	=> 'Unknown terminal',
-7	=> 'Payments deny',
-300	=> 'Unknown error',
-8	=> 'Double request',
-9	=> 'Key Info mismatch'
-);
-
-
 my $command = $FORM{command};
-my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
-
-$FORM{account} =~ s/^0+//g;
-
+$FORM{account} =~ s/^0+//g if ($FORM{account});
+my %RESULT_HASH=( result => 300 );
+my $results = '';
 
 #Check user account
 #https://service.someprovider.ru:8443/payment_app.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
@@ -319,19 +333,48 @@ if ($command eq 'check') {
     $status = 0; 
    }
 
-if ($status > 0) {
-  $comments = $status_hash{$status} if ($comments eq '');
-}
 
-print << "[END]";
-<?xml version="1.0" encoding="UTF-8"?> 
-<response><osmp_txn_id>$FORM{txn_id}</osmp_txn_id>
-<result>$status</result>
-<comment>$comments</comment>
-</response>
-[END]
+
+$RESULT_HASH{result} = $status;
+
+#For OSMP
+if ($payment_system_id == 4) {
+  $RESULT_HASH{$txn_id}= $FORM{txn_id} ;
+  $RESULT_HASH{prv_txn}= $FORM{prv_txn};
+ }
 
 }
+#Cancel payments
+elsif ($command eq 'cancel') {
+  my $prv_txn = $FORM{prv_txn};
+  $RESULT_HASH{prv_txn}=$prv_txn;
+
+  my $list = $payments->list({ ID => "$prv_txn", EXT_ID => "PEGAS:*"  });
+
+  if ($payments->{errno}) {
+      $RESULT_HASH{result}=1;
+   }
+  elsif ($payments->{TOTAL} < 1) {
+  	$RESULT_HASH{result}=79;
+   }
+  else {
+	  my %user = (
+     BILL_DI => $list->[10],
+     UID     => $list->[11]
+    );
+
+  	$payments->del(\%user, $prv_txn);
+    if (! $payments->{errno}) {
+      $RESULT_HASH{result}=0;
+     }
+    else {
+      $RESULT_HASH{result}=1;
+     }
+   }
+ }
+elsif ($command eq 'balance') {
+  	
+ }
 #https://service.someprovider.ru:8443/payment_app.cgi?command=pay&txn_id=1234567&txn_date=20050815120133&account=0957835959&sum=10.45
 elsif ($command eq 'pay') {
 
@@ -348,12 +391,11 @@ elsif ($command eq 'pay') {
 
       my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
       $user = $users->info($uid); 
-
      }
    }
 
   if ($users->{errno}) {
-	  $status = 300; 
+    $status = ($users->{errno} == 2) ? 5 : 300;
    }
   elsif ($users->{TOTAL} < 1) {
 	  $status =  4;
@@ -361,15 +403,15 @@ elsif ($command eq 'pay') {
   else {
     #Add payments
     $payments->add($user, {SUM          => $FORM{sum},
-    	                     DESCRIBE     => 'OSMP', 
+    	                     DESCRIBE     => "$payment_system", 
     	                     METHOD       => '2', 
-  	                       EXT_ID       => "OSMP:$FORM{txn_id}",
-  	                       CHECK_EXT_ID => "OSMP:$FORM{txn_id}" } );  
+  	                       EXT_ID       => "$payment_system:$FORM{txn_id}",
+  	                       CHECK_EXT_ID => "$payment_system:$FORM{txn_id}" } );  
 
 
     #Exists
     if ($payments->{errno} && $payments->{errno} == 7) {
-      $status = 8;  	
+      $status      = 8;  	
       $payments_id = $payments->{ID};
      }
     elsif ($payments->{errno}) {
@@ -380,12 +422,12 @@ elsif ($command eq 'pay') {
      }    
 
 
-    $Paysys->add({ SYSTEM_ID   => 4, 
+    $Paysys->add({ SYSTEM_ID   => $payment_system_id, 
  	              DATETIME       => "'$DATE $TIME'", 
  	              SUM            => "$FORM{sum}",
   	            UID            => "$user->{UID}", 
                 IP             => '0.0.0.0',
-                TRANSACTION_ID => "OSMP:$FORM{txn_id}",
+                TRANSACTION_ID => "$payment_system:$FORM{txn_id}",
                 INFO           => "TYPE: $FORM{command} PS_TIME: ".
   (($FORM{txn_date}) ? $FORM{txn_date} : '' ) ." STATUS: $status $status_hash{$status}",
                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
@@ -394,23 +436,27 @@ elsif ($command eq 'pay') {
     $payments_id = ($Paysys->{INSERT_ID}) ? $Paysys->{INSERT_ID} : 0;
 	 }
 
-if ($status > 0) {
-  $comments = $status_hash{$status} if ($comments eq '');
+$RESULT_HASH{result} = $status;
+$RESULT_HASH{$txn_id}= $FORM{txn_id};
+$RESULT_HASH{prv_txn}= $payments_id;
+$RESULT_HASH{sum}    = $FORM{sum};
 }
+ 
 
 
+#Result output
+$RESULT_HASH{comment}=$status_hash{$RESULT_HASH{result}} if ($RESULT_HASH{result} && ! $RESULT_HASH{comment});
+
+while(my($k, $v) = each %RESULT_HASH) {
+	$results .= "<$k>$v</$k>\n";
+}
 
 print << "[END]";
 <?xml version="1.0" encoding="UTF-8"?> 
-<response><osmp_txn_id>$FORM{txn_id}</osmp_txn_id>
-<result>$status</result> 
-<prv_txn>$payments_id</prv_txn> 
-<sum>$FORM{sum}</sum> 
-<comment>$comments</comment> 
+<response>
+$results
 </response> 
 [END]
-}
- 
 
 
 exit;
