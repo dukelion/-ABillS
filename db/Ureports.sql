@@ -1,9 +1,12 @@
-CREATE TABLE `ureports_log` (
+CREATE TABLE IF NOT EXISTS `ureports_log` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `uid` int(11) unsigned NOT NULL DEFAULT '0',
   `execute` datetime NOT NULL,
   `body` text NOT NULL,
-  `destinatio` varchar(60) NOT NULL DEFAULT '',
+  `destination` varchar(60) NOT NULL,
+  `report_id` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `tp_id` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `status` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `uid` (`uid`)

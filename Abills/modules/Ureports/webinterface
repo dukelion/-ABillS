@@ -918,7 +918,7 @@ $list = $Ureports->log_list({ %LIST_PARAMS });
 my $table = $html->table( { width      => '100%',
                             caption    => "$_STATS",
                             border     => 1,
-                            title      => ["#", "$_USER", "$_DATE", "$_DESTINATION", "$_BODY", "-", "-"],
+                            title      => ["#", "$_USER", "$_DATE", "$_DESTINATION", "$_TARIF_PLAN", "$_REPORTS", "$_STATUS", "-", "-"],
                             cols_align => ['right', 'left', 'right', 'left', 'left',  'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Ureports->{TOTAL},
@@ -944,8 +944,8 @@ foreach my $line (@$list) {
      $line->[1], 
      $line->[2],  
      $line->[3],  
-     int2byte($line->[4], { DIMENSION => $FORM{DIMENSION} }), 
-     int2byte($line->[5], { DIMENSION => $FORM{DIMENSION} }), 
+     $line->[4], 
+     $line->[5], 
      $line->[6],
      $line->[7], 
      $line->[10], 
@@ -1119,6 +1119,8 @@ sub ureports_send_reports {
   	
    }
  
+ 
+ 
   return 1;
 }
 
@@ -1218,6 +1220,16 @@ sub ureports_periodic_reports {
          	 	 	
          	 	  }	
          	 	 $debug_output .= "UID: $user{UID} TYPE: $user{DESTINATION_TYPE} DESTINATION: $user{DESTINATION_ID}" if ($debug > 0);
+         	 	 
+       	 	   $Ureports->log_add({ 
+             	 DESTINATION => $user{DESTINATION_ID},
+   	           BODY        => '',
+   	           UID         => $user{UID},
+   	           TP_ID       => $user{TP_ID},
+  	           REPORT_ID   => $user{REPORT_ID},
+  	           STATUS      => 0
+  	         });
+
          	  }
           }
         }
