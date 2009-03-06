@@ -908,11 +908,13 @@ sub snmputils_dlink_pb_add {
 
 
   #Шаг 4. Задать режим связки IP MAC Port Binding (ARP / ACL):
-  my $mode = ($attr->{ACL_IP_MAC}) ? 1 : 0;
-  $message .= $oid_prefix.$oid_sufix{MODE}.".$ip => $mode\n";
+  if ($oid_sufix{MODE}) {
+    my $mode = ($attr->{ACL_IP_MAC}) ? 1 : 0;
+    $message .= $oid_prefix.$oid_sufix{MODE}.".$ip => $mode\n";
   
-  if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MODE}.".$ip", "integer", $mode)) {
-    $message .= "Ok\n";
+    if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MODE}.".$ip", "integer", $mode)) {
+      $message .= "Ok\n";
+     }
    }
 
   #Шаг 5. Включить IP-MAC-Port Binding на этом порту:
@@ -923,7 +925,10 @@ sub snmputils_dlink_pb_add {
      }
    }
 
-  if($sw_info->{version} =~ /DES-30/) {
+  if($sw_info->{version} =~ /DES-3052/) {
+    
+   }
+  elsif($sw_info->{version} =~ /DES-30/) {
   	print "=> $oid\n";
   	if(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
    	  $message .= " Ok\n";
