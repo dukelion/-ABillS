@@ -1026,8 +1026,13 @@ sub snmputils_dlink_pb_list {
   	print "No swich info '$attr->{SNMP_COMMUNITY}'\n";
   	return 0;
    }
+  
+  $SWITCH_INFO->{oid_prefix} =~ s/\.$//;
   #Full list
   $SNMP_Session::errmsg=undef;
+  if ($debug > 4) {
+  	print "COMUNITY: $SNMP_COMMUNITY OID: '$SWITCH_INFO->{oid_prefix}'\n";
+   }
   my @result = &snmpwalk("$SNMP_COMMUNITY", $SWITCH_INFO->{oid_prefix});
   if ($SNMP_Session::errmsg) {
     print "OID: '$SWITCH_INFO->{oid_prefix}'<br>$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n";
@@ -1040,7 +1045,7 @@ sub snmputils_dlink_pb_list {
   my $expr_val = chr(0)."-".chr(255);                                            
   my $unpack_ = ($SWITCH_INFO->{version} =~ /3550/ || $SWITCH_INFO->{version} =~ /3052/) ? "H2H2H2H2H2H2H2" : "H2H2H2H2";
   foreach my $line (@result) {
-    print "$line => " if ($debug > 0);
+    print "\n<br>$line => " if ($debug > 0);
     #Blocked address
     if($line =~ /^[\d\.]{0,2}\d\.\d\.(\d)\.\d\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/ ) {
     	$BLOCK_HASH{$2}{$1}=$3;
