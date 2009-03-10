@@ -441,11 +441,12 @@ sub int2ml {
 
  my $money_unit_names = $attr->{MONEY_UNIT_NAMES};
 
+ $array =~ s/,/\./g;
  $array =~ tr/0-9,.//cd;
  my $tmp = $array;
  my $count = ($tmp =~ tr/.,//);
-
-#print $array,"\n";
+ 
+ 
 if ($count > 1) {
   $ret .= "bad integer format\n";
   return 1;
@@ -487,6 +488,7 @@ for ($i = $first_length; $i >=1; $i--) {
       $tmp = $first[$i];
       $tmp =~ s/(^\d)(\d)(\d$)/$1/;
       $ret .= $hundred[$tmp];
+
       if ($tmp > 0) {
         $ret .= " ";
       }
