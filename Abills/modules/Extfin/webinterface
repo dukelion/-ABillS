@@ -1292,8 +1292,9 @@ foreach my $line (@$list) {
    $total_maximum += ($line->[13]) ? 1 : 0;
 
 
+  my $deposit = $Extfin->{DEPOSITS}->{$line->[14]};
   $table->addrow($i,
-    $html->button($line->[1], "index=15&UID=$line->[13]"),
+    $html->button($line->[1], "index=15&UID=$line->[14]"),
     $line->[2],
     $line->[3],
     $line->[4],
