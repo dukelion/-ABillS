@@ -181,33 +181,21 @@ foreach my $line (@$list) {
     
     my $month_fee = ($FEES_LIST_HASH{$line->[$users->{SEARCH_FIELDS_COUNT} + 5]}) ? $FEES_LIST_HASH{$line->[$users->{SEARCH_FIELDS_COUNT} + 5]} : '0.00';
 
-    push @MULTI_ARR, { LOGIN         => $line->[0], 
-    	                 FIO           => $line->[1], 
-    	                 DEPOSIT       => sprintf("%.2f", $line->[2] + $month_fee),
-    	                 CREDIT        => $line->[3],
-  	                   SUM           => sprintf("%.2f", abs($line->[2])),
-                       DISABLE       => 0,
-    	                 ORDER_TOTAL_SUM_VAT => ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", abs($line->[2] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}))) : 0.00,
-    	                 NUMBER        => $line->[8+$ext_bill]."-$m",
-                       ACTIVATE      => '>=$DATE',
-                       EXPIRE        => '0000-00-00',
-                       MONTH_FEE     => $month_fee,
-                       TOTAL_SUM     => sprintf("%.2f", abs($line->[2])),
-                       CONTRACT_ID   => $line->[8+$ext_bill],
-                       CONTRACT_DATE => $line->[9+$ext_bill],
-                       DATE          => $DATE, 
-                       FULL_ADDRESS  => $full_address,
-                       SUM_LIT       => int2ml(sprintf("%.2f", abs($line->[2])), { 
-  	 ONES             => \@ones,
-     TWOS             => \@twos,
-     FIFTH            => \@fifth,
-     ONE              => \@one,
-     ONEST            => \@onest,
-     TEN              => \@ten,
-     TENS             => \@tens,
-     HUNDRED          => \@hundred,
-     MONEY_UNIT_NAMES => $conf{MONEY_UNIT_NAMES} || \@money_unit_names
-  	  }),
+    push @MULTI_ARR, { LOGIN         => $line->[0], FIO           => $line->[1], 
+    DEPOSIT       => sprintf("%.2f", $line->[2] + $month_fee), CREDIT        => 
+    $line->[3], SUM           => sprintf("%.2f", abs($line->[2])), DISABLE 
+    => 0, ORDER_TOTAL_SUM_VAT => ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", 
+    abs($line->[2] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / 
+    $conf{DOCS_VAT_INCLUDE}))) : 0.00, NUMBER        => $line->[8+$ext_bill]."-
+    $m", ACTIVATE      => '>=$DATE', EXPIRE        => '0000-00-00', MONTH_FEE 
+    => $month_fee, TOTAL_SUM     => sprintf("%.2f", abs($line->[2])), 
+    CONTRACT_ID   => $line->[8+$ext_bill], CONTRACT_DATE => $line-
+    >[9+$ext_bill], DATE          => $DATE, FULL_ADDRESS  => $full_address, 
+    SUM_LIT       => int2ml(sprintf("%.2f", abs($line->[2])), { ONES 
+    => \@ones, TWOS             => \@twos, FIFTH            => \@fifth, ONE 
+    => \@one, ONEST            => \@onest, TEN              => \@ten, TENS 
+    => \@tens, HUNDRED          => \@hundred, MONEY_UNIT_NAMES => 
+    $conf{MONEY_UNIT_NAMES} || \@money_unit_names }),
 
                        DOC_NUMBER => sprintf("%.6d",  $doc_num),
     	                };

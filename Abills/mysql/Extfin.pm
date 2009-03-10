@@ -1053,13 +1053,18 @@ sub extfin_debetors {
    }
 
   my $ext_field = '';
+  $self->{debug}=1;
 
   if ($attr->{DATE}) {
     push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')<='$attr->{DATE}'";
     
-    push @WHERE_RULES, "(f.last_deposit-f.sum<0)";
+    push @WHERE_RULES, "(f.last_deposit-f.sum<0) ";
+    
+    #push @WHERE_RULES, "(f.last_deposit-sum<0) and u.uid IN (SELECT fees.uid from fees WHERE fees.last_deposit-sum<0 and fees.date<'2009-03-01') ";
+    
     $attr->{DATE} = "'$attr->{DATE}'";
-    $ext_field = "\@A:=f.last_deposit-f.sum,";
+    #$ext_field    = "\@A:=f.last_deposit-f.sum,";
+    $ext_field    = "\@A:=(select last_deposit-sum FROM fees WHERE uid=\@uid ORDER BY id DESC limit 1),";
    }
   else {
     push @WHERE_RULES, "( b.deposit < 0 or cb.deposit < 0 ) and (f.last_deposit >=0 and f.last_deposit-sum<0)";
@@ -1069,7 +1074,7 @@ sub extfin_debetors {
   
   $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : ''; 
 
-  $self->query($db, "SELECT '', u.id, pi.contract_id,
+  $self->query($db, "SELECT \@uid:=u.uid, u.id, pi.contract_id,
    pi.fio,
    pi.contract_date,
    dv.tp_id,
