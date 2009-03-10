@@ -1216,6 +1216,12 @@ sub extfin_debetors {
 $table = $html->table( { width       => '100%',
 	                       rowcolor    => $_COLORS[0],
                          rows        => [[ "$_PERIOD: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                                           "$_STATUS: ". $html->form_select('STATUS', 
+                                    { 
+ 	                                   SELECTED    => $FORM{STATUS},
+ 	                                   SEL_ARRAY   => [ $_ALL, "$_ENABLE","$_DISABLE" ],
+                                     ARRAY_NUM_ID=> 1
+ 	                                  }),
                                            "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit' })
                                          ]],                                   
@@ -1231,12 +1237,14 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 if ($FORM{show}) {
 	$FORM{fromM}++;
   $LIST_PARAMS{DATE}="$FORM{fromY}-$FORM{fromM}-$FORM{fromD}"  if ($FORM{show});
+  $LIST_PARAMS{STATUS}=$FORM{STATUS};
 }
+
 my $list = $Extfin->extfin_debetors({ %LIST_PARAMS });	  
 my $table = $html->table( { width      => '100%',
                             caption    => "$_DEBETORS",
                             border     => 1,
-                            title      => ['#', $_LOGIN, $_CONTRACT_ID, $_FIO, $_REGISTRATION, 
+                            title      => ['#', $_LOGIN, $_CONTRACT_ID, $_FIO, $_REGISTRATION, "$_STATUS",
                                 "$_TARIF_PLAN",  $_DEPOSIT, "< 32 days", "33 - 64 days","65 - 96 days","97 - 183 days", "184 - 365 days", "> 365 days" ],
                             cols_align => ['right', 'left', 'right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right' ],
                             ID         => 'DEBETORS'
@@ -1262,26 +1270,26 @@ my $total_maximum_sum = 0.00;
 
 my @interval = ();
 foreach my $line (@$list) {
-   @interval = ( ($line->[8]) ? sprintf("%.2f", $line->[8])  : '',
-    ($line->[9]) ? sprintf("%.2f", $line->[9])  : '',
-    ($line->[10]) ? sprintf("%.2f", $line->[10]): '',
+   @interval = ( ($line->[9]) ? sprintf("%.2f", $line->[9])  : '',
+    ($line->[10]) ? sprintf("%.2f", $line->[10])  : '',
     ($line->[11]) ? sprintf("%.2f", $line->[11]): '',
-    ($line->[12]) ? sprintf("%.2f", $line->[12]): '' );
+    ($line->[12]) ? sprintf("%.2f", $line->[12]): '',
+    ($line->[13]) ? sprintf("%.2f", $line->[13]): '' );
     
     
     
-   $total_65_sum += $line->[8];
-   $total_97_sum += $line->[9];
-   $total_184_sum+= $line->[10];
-   $total_365_sum+= $line->[11];
-   $total_maximum_sum += $line->[12];
+   $total_65_sum += $line->[9];
+   $total_97_sum += $line->[10];
+   $total_184_sum+= $line->[11];
+   $total_365_sum+= $line->[12];
+   $total_maximum_sum += $line->[13];
 
 
-   $total_65 += ($line->[8]) ? 1 : 0;
-   $total_97 += ($line->[9]) ? 1 : 0;
-   $total_184+= ($line->[10]) ? 1 : 0;
-   $total_365+= ($line->[11]) ? 1 : 0;
-   $total_maximum += ($line->[12]) ? 1 : 0;
+   $total_65 += ($line->[9]) ? 1 : 0;
+   $total_97 += ($line->[10]) ? 1 : 0;
+   $total_184+= ($line->[11]) ? 1 : 0;
+   $total_365+= ($line->[12]) ? 1 : 0;
+   $total_maximum += ($line->[13]) ? 1 : 0;
 
 
   $table->addrow($i,
@@ -1289,17 +1297,18 @@ foreach my $line (@$list) {
     $line->[2],
     $line->[3],
     $line->[4],
-    $line->[5],
-    ($line->[6]) ? sprintf("%.2f", $line->[6])  : '',
+    ($line->[5]==1) ? $html->color_mark($status[$line->[5]], '#FF0000') : $status[$line->[5]],
+    $line->[6],
     ($line->[7]) ? sprintf("%.2f", $line->[7])  : '',
+    ($line->[8]) ? sprintf("%.2f", $line->[8])  : '',
     @interval,
     );
 
-   $total_sum    += $line->[6];
-   $total_32_sum += $line->[7];
+   $total_sum    += $line->[7];
+   $total_32_sum += $line->[8];
 
-   $total    += ($line->[6]) ? 1 : 0;
-   $total_32 += ($line->[7]) ? 1 : 0;
+   $total    += ($line->[7]) ? 1 : 0;
+   $total_32 += ($line->[8]) ? 1 : 0;
 
 
 
