@@ -837,12 +837,12 @@ sub snmputils_dlink_pb_add {
     $mac .= chr(hex($c));
    }
 
-  $message .= $oid_prefix.$oid_sufix{MAC}.".$ip => $mac\n";
+  $message .= $oid_prefix.$oid_sufix{MAC}.$ip ."=> $mac\n";
   if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAC}.".$ip", "string", "$mac")) {
     $message .= "Ok\n";
    }
   else {
-    print "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
+    print "'' $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
    }
 
   #Шаг 2. Назначить эту связку на порт 1:
@@ -897,7 +897,7 @@ sub snmputils_dlink_pb_add {
     $port_binding .= chr(hex($c));
    }
      
-  $message .= $oid_prefix.$oid_sufix{PORT}.".$ip => '$port_binding'\n";
+  $message .= $oid_prefix.$oid_sufix{PORT}.".$ip => ". join(':', @ar)."\n";
   if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{PORT}.".$ip", "string", "$port_binding")) {
   	$message .= "Ok\n";
    }

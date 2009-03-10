@@ -909,7 +909,6 @@ sub docs_print {
    }
 
 
-
   $ATTR->{SUM_LIT} = int2ml("$ATTR->{TOTAL_SUM}", { 
   	 ONES             => \@ones,
      TWOS             => \@twos,
