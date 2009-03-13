@@ -385,3 +385,4 @@ $_ACCEPT='Accept';
 $_CANCEL='Cancel';
 $_NEGATIVE_DEPOSIT='Negative Deposit';
 $_BALANCE_RECHARCHE='Balance recharge';
+$_PRICE='Price';

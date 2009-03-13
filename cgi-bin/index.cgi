@@ -327,10 +327,22 @@ sub form_info {
   use POSIX qw(strftime);
   
   if ( $conf{user_credit_change}) {
-    my ($sum, $days) = split(/:/, $conf{user_credit_change});
+    my ($sum, $days, $price) = split(/:/, $conf{user_credit_change});
     my $credit_date = strftime "%Y-%m-%d", localtime(time + int($days) * 86400);
+
+      if (in_array('Docs', \@MODULES) ) {
+        
+        require "Abills/modules/Ipn/webinterface";
+        my $Dv       = Dv->new($db, $admin, \%conf);
+
+        $Dv->info($user->{UID});
+        $sum = $Dv->{TP_CREDIT};
+       }
+
     
     if ($user->{CREDIT} < $sum) {
+
+    
        if ($FORM{change_credit}) {
          $user->change($user->{UID}, { UID         => $user->{UID},
                                        CREDIT      => $sum,
@@ -338,13 +350,18 @@ sub form_info {
                                      });
          if (! $user->{errno}) {
             $html->message('info', "$_CHANGED", " $_CREDIT: $sum");
+            if ($price && $price > 0) {
+              my $Fees = Finance->fees($db, $admin, \%conf);
+              $Fees->take($user, $price, { DESCRIBE => "$_CREDIT $_ENABLE" } );              
+             }
           }
 
          $user->{CREDIT}=$sum;
          $user->{CREDIT_DATE}=$credit_date;
         }
        else {
-         $user->{CREDIT_CHG_BUTTON} = $html->button("$_SET: $sum", "index=$index&sid=$sid&change_credit=$sum");
+         $user->{CREDIT_CHG_BUTTON} =  $html->button("$_SET: ". sprintf("%.2f", $sum), "index=$index&sid=$sid&change_credit=$sum");
+         $user->{CREDIT_CHG_BUTTON} .= sprintf(" (%s: %.2f)", $_PRICE, $price) if ($price && $price > 0);
         }
      }
     

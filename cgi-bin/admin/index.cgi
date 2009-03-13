@@ -3625,7 +3625,7 @@ sub report_payments {
   	        	               ADMINS => $_ADMINS }
          });
   
-  if (defined($FORM{FIELDS}) && $FORM{FIELDS} > 0) {
+  if (defined($FORM{FIELDS}) && $FORM{FIELDS} >= 0) {
   	$LIST_PARAMS{METHODS}=$FORM{FIELDS};
    }
 

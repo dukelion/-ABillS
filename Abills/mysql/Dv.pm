@@ -110,7 +110,8 @@ sub info {
    tp.payment_type,
    dv.join_service,
    dv.turbo_mode,
-   tp.abon_distribution
+   tp.abon_distribution,
+   tp.credit
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
    $WHERE;");
@@ -140,7 +141,8 @@ sub info {
    $self->{PAYMENT_TYPE},
    $self->{JOIN_SERVICE},
    $self->{TURBO_MODE},
-   $self->{ABON_DISTRIBUTION}
+   $self->{ABON_DISTRIBUTION},
+   $self->{TP_CREDIT}
   )= @{ $self->{list}->[0] };
   
   
