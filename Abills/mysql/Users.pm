@@ -241,10 +241,17 @@ sub pi_add {
     	  my $value = $1;
     	  push @info_fields_arr, $value;
     	  $attr->{$value} =~ s/^ +|[ \n]+$//g;
+    	  
         push @info_fields_val, "'$attr->{$value}'";
-      }
+        
+        #my ($position, $type, $name)=split(/:/, $line->[1]);
+        #if ($type == 7) {
+        #	
+        # }
+       }
 
      }
+
     $info_fields = ', '. join(', ', @info_fields_arr) if ($#info_fields_arr > -1);
     $info_fields_val = ', '. join(', ', @info_fields_val) if ($#info_fields_arr > -1);
    }
@@ -289,7 +296,7 @@ sub pi_list {
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
   $PG = ($attr->{PG}) ? $attr->{PG} : 0;
-  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 50;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
 #Make info fields use
   my $info_fields = '';
@@ -1396,6 +1403,7 @@ sub info_field_add {
 	                    " tinyint(11) NOT NULL default '0' ",
 	                    " content longblob NOT NULL",
 	                    " varchar(100) not null default ''",
+	                    " int(11) unsigned NOT NULL default '0'",
 	                    );
 	
 	$attr->{FIELD_TYPE} = 0 if (! $attr->{FIELD_TYPE});

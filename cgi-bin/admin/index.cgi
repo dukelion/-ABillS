@@ -5691,7 +5691,7 @@ sub form_info_fields {
    }
 
 
-  my @fields_types = ('String', 'Integer', $_LIST, $_TEXT, 'Flag', 'Blob', 'PCRE');
+  my @fields_types = ('String', 'Integer', $_LIST, $_TEXT, 'Flag', 'Blob', 'PCRE', 'AUTOINCREMENT');
 
   my $fields_type_sel = $html->form_select('FIELD_TYPE', 
                                 { SELECTED   => $FORM{field_type},

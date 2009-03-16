@@ -985,6 +985,9 @@ sub ureports_user_info {
 
   	  if (! $Ureports->{errno}) {
   	  	$html->message('info', $_INFO, "$_ACTIVATED");
+        if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_ENABLED")) {
+        	$html->message('info', $_INFO, "$_ACTIVATED_MSG_SENDED");
+         }
   	   }
   	 }
    }
@@ -999,6 +1002,9 @@ sub ureports_user_info {
   	    $Ureports->tp_user_reports_change({ %FORM, UID => $user->{UID} });
   	    if (! $Ureports->{errno} ){
   	  	  $html->message('info', $_INFO, "$_CHANGED");
+          if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_ENABLED")) {
+          	$html->message('info', $_INFO, "$_ACTIVATED_MSG_SENDED");
+           }
   	     }
        }
       else {
