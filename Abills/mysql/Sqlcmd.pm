@@ -113,6 +113,11 @@ sub info {
 
     return $list;
   }
+ elsif ($type eq 'showtriggers') {
+    $self->query($db, "SHOW TRIGGERS");
+ 	      
+ 	  return $self->{list}     
+  }
 
   
   return $self;

@@ -164,7 +164,7 @@ sub ureports_user {
     	return 0;
      }
 
-    if ($FORM{TYPE} == 1 && $FORM{DESTINATION} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
+    if ($FORM{TYPE} == 0 && $FORM{DESTINATION} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
     	$html->message('err', $_ERROR, "$_WRONG_EMAIL");
      }
     else {
@@ -181,7 +181,7 @@ sub ureports_user {
     	return 0;
      }
 
-    if ($FORM{TYPE} == 1 && $FORM{DESTINATION} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
+    if ($FORM{TYPE} == 0 && $FORM{DESTINATION} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
     	$html->message('err', $_ERROR, "$_WRONG_EMAIL");
      }
     else {
@@ -236,7 +236,7 @@ sub ureports_user {
     my $table = $html->table( { width      => '100%',
                               caption    => "$_REPORTS",
                               border     => 1,
-                              title      => ['#', $_NAME, $_SUM ],
+                              title      => ['#', $_NAME, $_VALUE, $_DEFAULT ],
                               cols_align => ['center', 'left',  'center'],
                               qs         => $pages_qs,
                               ID         => 'TP_REPORTS'
@@ -247,9 +247,11 @@ sub ureports_user {
   
     foreach my $line (@$list) {
       $table->addrow(
-      $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => ($line->[2]) ? 1 : undef, OUTPUT2RETURN => 1 }), 
-      $REPORTS{$line->[0]}."/$line->[0]",
-      (($line->[1]) ? $line->[1] : '0.00') );
+        $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => ($line->[3]) ? 1 : undef, OUTPUT2RETURN => 1 }), 
+        $REPORTS{$line->[0]},
+        $html->form_input("VALUE_$line->[0]", (($line->[1]) ? $line->[1] : 0), { OUTPUT2RETURN => 1, SIZE => 6 }), 
+        (($line->[2]) ? $line->[2] : '0.00') 
+      );
      }
 
     $Ureports->{REPORTS_LIST} = $table->show({ OUTPUT2RETURN => 1 }); 
@@ -974,7 +976,7 @@ sub ureports_user_info {
 
 
   if ($FORM{activate}) {
-    if ($FORM{TYPE} == 1 && $FORM{DESTINATION} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
+    if ($FORM{TYPE} == 0 && $FORM{DESTINATION} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
     	$html->message('err', $_ERROR, "$_WRONG_EMAIL");
      }
     else {
@@ -992,7 +994,7 @@ sub ureports_user_info {
   	 }
    }
   elsif ($FORM{set}) {
-    if ($FORM{TYPE} == 1 && $FORM{DESTINATION} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
+    if ($FORM{TYPE} == 0 && $FORM{DESTINATION} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
     	$html->message('err', $_ERROR, "$_WRONG_EMAIL");
      }
     else {
@@ -1067,7 +1069,7 @@ sub ureports_user_info {
     my $table = $html->table( { width      => '100%',
                               caption    => "$_REPORTS",
                               border     => 1,
-                              title      => ['#', "$_NAME", "$_VALUE", "$_SUM" ],
+                              title      => ['#', "$_NAME", "$_VALUE", "$_DEFAULT" ],
                               cols_align => ['center', 'left', 'right',  'center'],
                               qs         => $pages_qs,
                               ID         => 'TP_REPORTS'

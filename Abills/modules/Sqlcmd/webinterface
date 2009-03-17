@@ -72,7 +72,7 @@ if ($FORM{QUERY} && ! $FORM{xml}) {
   my @syntax = ('SELECT', 'FROM', 'WHERE', 'MIN', 'MAX', 'AVG', 'SUM', 'IF',
             'INSERT', 'UPDATE', 'INTO', 'VALUES', 
             'GROUP BY', 'ORDER BY', 'LIMIT',
-            'DATE_FORMAT', 'LEFT JOIN', 'ON', 'AND', 'EXPLAIN', 'ALTER', 'TABLE',
+            'DATE_FORMAT', 'LEFT JOIN', 'INNER JOIN', 'ON', 'AND', 'EXPLAIN', 'ALTER', 'TABLE',
             'ADD', 'COLUMN', 'UNSIGNED', 'NOT', 'NULL', 'DEFAULT', 'INTERVAL', 'COUNT'
             );
  
@@ -180,6 +180,59 @@ if ($FORM{TABLE_INFO}) {
   return 0;
 }
 
+
+
+#**********************************************************
+#
+#**********************************************************
+sub sqlcmd_triggers {
+	sqlcmd_cluster_info();
+	
+	my @caption = ('Trigger', 'Event', 'Table', 'Statement',
+             'Timing', 'Created', 'sql_mode', 'Definer', 'character_set_client',
+             'collation_connection', 'Database Collation');
+	
+	my $table = $html->table( { width      => '100%',
+                              border     => 1,
+                              title      => \@caption,
+                              cols_align => ['left', 'left', 'left', 'left', 'right', 'right', 'center'],
+                              qs         => "&fields=$FORM{fields}"
+                          } );
+
+  my @syntax = ('BEGIN', 'END\s+IF\s{0,10};', 'END$', 'IF', 'THEN', 'DECLARE', 
+    'SET', 'INTEGER', 'new\.');
+  my $list = $Sqlcmd->info({ TYPE => 'showtriggers', %LIST_PARAMS, %FORM });
+  foreach my $line (@$list) {
+
+    my $trigger = $line->[3];
+
+    foreach my $s (@syntax) {
+      #Extended
+      $trigger =~ s/($s)/ <b>$1<\/b>/ig;
+      $trigger =~ s/$s\(/ <b>$s<\/b>\(/gi;
+      $trigger =~ s/'(\S+)'/ <font color=\"#0000FF\">'$1'<\/font> /gi;
+      $trigger =~ s/\s?(\d+)|(\d+),/ <font color=\"red\">$1<\/font>/g;
+     }
+
+
+     $table->addrow(
+      $line->[0],
+      $line->[1],
+      $html->button($line->[2], "TABLE_INFO=$line->[2]&QUERY=SELECt * FROM $line->[2] LIMIT 25&index=". ($index-2)),
+      $html->pre("$trigger", { OUTPUT2RETURN => 1 }),
+      $line->[4],
+      $line->[5],
+      $line->[6],
+      $line->[7],
+      $line->[8],
+      $line->[9],
+     );
+   }
+  
+
+  print $table->show();	
+}
+
 #**********************************************************
 #
 #**********************************************************
@@ -188,7 +241,8 @@ sub sqlcmd_tables {
 	sqlcmd_cluster_info();
 	#SHOW TABLE STATUS FROM abills;
   #$table{size} = Index_length + Data_length
-  
+  $FORM{sort} = 1 if (! $FORM{sort});
+
   my $list = $Sqlcmd->info({ TYPE => 'showtables', %LIST_PARAMS, %FORM });
 
   if ($Sqlcmd->{errno}) {
