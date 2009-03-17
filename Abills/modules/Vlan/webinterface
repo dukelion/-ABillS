@@ -452,11 +452,10 @@ foreach my $line (@$list) {
 
     if ($nas_mng_ip ne '') {
       $cmds = "$SSH -p $nas_mng_port -o StrictHostKeyChecking=no UserKnownHostsFile=no -i $base_dir/Certs/id_dsa.$nas_mng_user $nas_mng_user\@$nas_mng_ip \"$cmds\" ";
-      
-      print $cmds;
      }
 
    system($cmds) if ($debug < 5);
+   print $cmds;
    $debug_output .= "$cmds\n" if ($debug > 2);
   }
 
