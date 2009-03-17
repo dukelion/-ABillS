@@ -314,7 +314,7 @@ foreach my $line (@$list) {
   my $nas_mng_user    = $line->[10];
   
   my ($nas_mng_ip, $nas_mng_port)=split(/:/, $nas_mng_ip_port);
-
+  $nas_mng_port = 22 if (! $nas_mng_port);
 
   my $vlan_list = $Vlan->list({ DISABLE   => 0,
 	                              PAGE_ROWS => 100000,
@@ -325,7 +325,7 @@ foreach my $line (@$list) {
 
   my $sudo = ($nas_mng_ip_port ne '') ? $SUDO : '';
   my $vlans_info = vlan_info({ NAS_MNG_IP      => $nas_mng_ip,
-  	                           NAS_MNG_PORT    => $nas_mng_port || 22,
+  	                           NAS_MNG_PORT    => $nas_mng_port,
   	                           NAS_MNG_USER    => $nas_mng_user,
   	                           DEBUG           => $debug,
   	                           PARENT_IF       => $parent_interface
@@ -462,7 +462,7 @@ foreach my $line (@$list) {
     $INFO{SUBNETS} = $DHCP_SUBNETS{"$nas_mng_ip_port"};
 
     vlan_dhcp({ NAS_MNG_IP      => $nas_mng_ip,
-    	          NAS_MNG_PORT    => $nas_mng_port || 22,
+    	          NAS_MNG_PORT    => $nas_mng_port,
   	            NAS_MNG_USER    => $nas_mng_user,
   	            NAS_ID          => $NAS_ID,
   	            INFO            => \%INFO  });
@@ -472,7 +472,7 @@ foreach my $line (@$list) {
   if (scalar keys %client_interfaces > 0) {
     vlan_pppoe_relay({ CLIENT_INTERFACES => \%client_interfaces,
   	                   NAS_MNG_IP        => $nas_mng_ip,
-    	                 NAS_MNG_PORT      => $nas_mng_port || 22,
+    	                 NAS_MNG_PORT      => $nas_mng_port,
   	                   NAS_MNG_USER      => $nas_mng_user,
   	                   PARENT_INTERFACE  => $parent_interface,
   	                   CLIENT_INTERFACES_UNUSED => \@client_interfaces_unused
