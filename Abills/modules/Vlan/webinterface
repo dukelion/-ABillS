@@ -6,8 +6,8 @@ my $Vlan = Vlan->new($db, $admin, \%conf);
 my $Nas  = Nas->new($db, \%conf);
 
 my $SUDO = 'sudo';
-my $SSH  = '$SSH';
-my $SCP  = '$SCP';
+my $SSH  = '/usr/bin/ssh';
+my $SCP  = '/usr/bin/scp';
 my $debug = 0;
 
 
