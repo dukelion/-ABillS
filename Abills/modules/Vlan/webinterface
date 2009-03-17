@@ -11,13 +11,13 @@ my $SCP  = '/usr/bin/scp';
 my $debug = 0;
 
 
-$conf{VLAN_IF_CREATE}='if [ w`uname` = wLinux ]; then /sbin/vconfig add %PARENT_INTERFACE% %VLAN_ID%; else /sbin/ifconfig vlan%VLAN_ID% create vlan %VLAN_ID% vlandev %PARENT_INTERFACE% up; fi' if (! $conf{VLAN_IF_CREATE});
+$conf{VLAN_IF_CREATE}='if [ w`uname` = wLinux ]; then /usr/bin/sudo /sbin/vconfig add %PARENT_INTERFACE% %VLAN_ID%; else /usr/local/bin/sudo /sbin/ifconfig vlan%VLAN_ID% create vlan %VLAN_ID% vlandev %PARENT_INTERFACE% up; fi' if (! $conf{VLAN_IF_CREATE});
 
 $conf{VLAN_IF_IP}='if [ w`uname` = wLinux ]; then /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% %VLAN_IF_IP% netmask %VLAN_IF_NETMASK% up; else /sbin/ifconfig vlan%VLAN_ID% inet %VLAN_IF_IP% netmask %VLAN_IF_NETMASK%; fi' if (! $conf{VLAN_IF_IP}); 
 
 $conf{VLAN_IP_DELETE}='if [ w`uname` = wLinux ]; then /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% delete %VLAN_IF_IP%; else /sbin/ifconfig vlan%VLAN_ID% delete %VLAN_IF_IP%; fi' if (! $conf{VLAN_IP_DELETE});
 
-$conf{VLAN_IF_CREATE}='if [ w`uname` = wLinux ]; then /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% down;  /sbin/vconfig rem %PARENT_INTERFACE%.%VLAN_ID%; else /sbin/ifconfig vlan%VLAN_ID% destroy; fi' if (! $conf{VLAN_IF_DESTROY});
+$conf{VLAN_IF_DESTROY}='if [ w`uname` = wLinux ]; then /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% down;  /sbin/vconfig rem %PARENT_INTERFACE%.%VLAN_ID%; else /sbin/ifconfig vlan%VLAN_ID% destroy; fi' if (! $conf{VLAN_IF_DESTROY});
 
 
 
@@ -446,11 +446,14 @@ foreach my $line (@$list) {
   if ($#commands > -1 ) {
     my $cmds = '';
     foreach my $cmd ( @commands ) {
-      $cmds .= ($sudo ne '') ? "$sudo $cmd; " : "$cmd; ";
+      #$cmds .= ($sudo ne '') ? "$sudo $cmd; " : "$cmd; ";
+      $cmds .= "$cmd;";
      }
 
     if ($nas_mng_ip ne '') {
       $cmds = "$SSH -p $nas_mng_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$nas_mng_user $nas_mng_user\@$nas_mng_ip \"$cmds\" ";
+      
+      print $cmds;
      }
 
    system($cmds) if ($debug < 5);
