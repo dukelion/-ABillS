@@ -1404,7 +1404,7 @@ $head
 #*******************************************************************
 sub pre {
  my $self = shift;
- my ($message) = @_;
+ my ($message, $attr) = @_;
  
  
 my $output = qq{
@@ -1413,7 +1413,7 @@ my $output = qq{
 </pre>
 };
 
-  if (defined($self->{NO_PRINT})) {
+  if ($self->{NO_PRINT} || $attr->{OUTPUT2RETURN}) {
   	$self->{OUTPUT}.=$output;
   	return $output;
    }
