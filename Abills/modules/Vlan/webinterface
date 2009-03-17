@@ -11,13 +11,13 @@ my $SCP  = '/usr/bin/scp';
 my $debug = 0;
 
 
-$conf{VLAN_IF_CREATE}='if [ w`uname` = wLinux ]; then /usr/bin/sudo /sbin/vconfig add %PARENT_INTERFACE% %VLAN_ID%; else /usr/local/bin/sudo /sbin/ifconfig vlan%VLAN_ID% create vlan %VLAN_ID% vlandev %PARENT_INTERFACE% up; fi' if (! $conf{VLAN_IF_CREATE});
+$conf{VLAN_IF_CREATE}='if [ uname = Linux ]; then /usr/bin/sudo /sbin/vconfig add %PARENT_INTERFACE% %VLAN_ID%; else /usr/local/bin/sudo /sbin/ifconfig vlan%VLAN_ID% create vlan %VLAN_ID% vlandev %PARENT_INTERFACE% up; fi' if (! $conf{VLAN_IF_CREATE});
 
-$conf{VLAN_IF_IP}='if [ w`uname` = wLinux ]; then /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% %VLAN_IF_IP% netmask %VLAN_IF_NETMASK% up; else /sbin/ifconfig vlan%VLAN_ID% inet %VLAN_IF_IP% netmask %VLAN_IF_NETMASK%; fi' if (! $conf{VLAN_IF_IP}); 
+$conf{VLAN_IF_IP}='if [ uname = Linux ]; then /usr/bin/sudo /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% %VLAN_IF_IP% netmask %VLAN_IF_NETMASK% up; else /usr/local/bin/sudo /sbin/ifconfig vlan%VLAN_ID% inet %VLAN_IF_IP% netmask %VLAN_IF_NETMASK%; fi' if (! $conf{VLAN_IF_IP}); 
 
-$conf{VLAN_IP_DELETE}='if [ w`uname` = wLinux ]; then /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% delete %VLAN_IF_IP%; else /sbin/ifconfig vlan%VLAN_ID% delete %VLAN_IF_IP%; fi' if (! $conf{VLAN_IP_DELETE});
+$conf{VLAN_IP_DELETE}='if [ uname = Linux ]; then /usr/bin/sudo /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% delete %VLAN_IF_IP%; else /usr/local/bin/sudo /sbin/ifconfig vlan%VLAN_ID% delete %VLAN_IF_IP%; fi' if (! $conf{VLAN_IP_DELETE});
 
-$conf{VLAN_IF_DESTROY}='if [ w`uname` = wLinux ]; then /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% down;  /sbin/vconfig rem %PARENT_INTERFACE%.%VLAN_ID%; else /sbin/ifconfig vlan%VLAN_ID% destroy; fi' if (! $conf{VLAN_IF_DESTROY});
+$conf{VLAN_IF_DESTROY}='if [ uname = Linux ]; then /usr/bin/sudo /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% down;  /usr/bin/sudo /sbin/vconfig rem %PARENT_INTERFACE%.%VLAN_ID%; else /sbin/ifconfig vlan%VLAN_ID% destroy; fi' if (! $conf{VLAN_IF_DESTROY});
 
 
 
