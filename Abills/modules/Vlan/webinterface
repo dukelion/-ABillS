@@ -5,14 +5,24 @@ use Vlan;
 my $Vlan = Vlan->new($db, $admin, \%conf);
 my $Nas  = Nas->new($db, \%conf);
 
-my $SUDO = '/usr/local/bin/sudo';
+my $SUDO = 'sudo';
+my $SSH  = '$SSH';
+my $SCP  = '$SCP';
 my $debug = 0;
 
 
-$conf{VLAN_IF_CREATE}=$IFCONFIG . ' vlan%VLAN_ID% create vlan %VLAN_ID% vlandev %PARENT_INTERFACE% up' if (! $conf{VLAN_IF_CREATE});
-$conf{VLAN_IF_IP}=$IFCONFIG . ' vlan%VLAN_ID% inet %VLAN_IF_IP% netmask %VLAN_IF_NETMASK%' if (! $conf{VLAN_IF_IP}); 
-$conf{VLAN_IP_DELETE}=$IFCONFIG . ' vlan%VLAN_ID% delete %VLAN_IF_IP%' if (! $conf{VLAN_IP_DELETE});
-$conf{VLAN_IF_DESTROY}=$IFCONFIG . ' vlan%VLAN_ID% destroy' if (! $conf{VLAN_IF_DESTROY});
+$conf{VLAN_IF_CREATE}='if [ w`uname` = wLinux ]; then /sbin/vconfig add %PARENT_INTERFACE% %VLAN_ID%; else /sbin/ifconfig vlan%VLAN_ID% create vlan %VLAN_ID% vlandev %PARENT_INTERFACE% up; fi' if (! $conf{VLAN_IF_CREATE});
+
+$conf{VLAN_IF_IP}='if [ w`uname` = wLinux ]; then /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% %VLAN_IF_IP% netmask %VLAN_IF_NETMASK% up; else /sbin/ifconfig vlan%VLAN_ID% inet %VLAN_IF_IP% netmask %VLAN_IF_NETMASK%; fi' if (! $conf{VLAN_IF_IP}); 
+
+$conf{VLAN_IP_DELETE}='if [ w`uname` = wLinux ]; then /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% delete %VLAN_IF_IP%; else /sbin/ifconfig vlan%VLAN_ID% delete %VLAN_IF_IP%; fi' if (! $conf{VLAN_IP_DELETE});
+
+$conf{VLAN_IF_CREATE}='if [ w`uname` = wLinux ]; then /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% down;  /sbin/vconfig rem %PARENT_INTERFACE%.%VLAN_ID%; else /sbin/ifconfig vlan%VLAN_ID% destroy; fi' if (! $conf{VLAN_IF_DESTROY});
+
+
+
+
+
 
 #**********************************************************
 # user_vlan
@@ -168,6 +178,7 @@ sub vlan_user {
   if ($Vlan->{IP} && $Vlan->{IP} ne '0.0.0.0') {
     my $INFO = vlan_get_net($Vlan->{IP}, "$Vlan->{NETMASK}");
     $Vlan->{IP_RANGE} = "$INFO->{FIRST_IP} - $INFO->{LAST_IP}";
+    $Vlan->{CLIENT_IPS_COUNT}=$INFO->{CLIENT_IPS_COUNT};
    }
 
   if($user->{TOTAL} < 1) {
@@ -223,30 +234,16 @@ sub vlan_get_net {
   	$netmask = '255.255.255.252';
    } 
 
-  my @ip_decs = split(/\./, $ip, 4);
-  #Make subnetworks
-  if ($ip_decs[3] == 0) {
-    $ip = "$ip_decs[0]\.$ip_decs[1]\.$ip_decs[2]\.1";
-   }
+  
+  my $ips_in_mask = ip2int('255.255.255.255') - ip2int($netmask);
+  my $broadcast = ip2int($ip) | $ips_in_mask;
 
-  my $netip_num = ip2int("$ip_decs[0]\.$ip_decs[1]\.$ip_decs[2]\.0"); 
-  my $addr_count = ip2int('255.255.255.255') - ip2int($netmask) - 1;
-  my $user_ip_int = ip2int($ip);
-
-
-  while($user_ip_int + $addr_count + 2 > $netip_num ) {
-  	if ($user_ip_int > $netip_num && $user_ip_int < $netip_num + $addr_count + 2) {
- 	    $INFO{NET_IP}   = int2ip($netip_num);
-      $INFO{IF_IP}    = int2ip($netip_num + 1);
-      $INFO{USER_IP}  = int2ip($netip_num + 2);
-      $INFO{FIRST_IP} = int2ip($netip_num + 2);
-      $INFO{LAST_IP}  = int2ip($netip_num + $addr_count);
-
-  	  print "> This net $INFO{NET_IP} / $netmask\n" if ($debug > 3);
-  	  last;
-     }
- 	  $netip_num += $addr_count+2;
-   }
+  $INFO{NET_IP}   = int2ip($netip_num);
+  $INFO{IF_IP}    = int2ip($broadcast - $ips_in_mask + 1);
+  $INFO{USER_IP}  = int2ip($broadcast - $ips_in_mask + 2);
+  $INFO{FIRST_IP} = int2ip($broadcast - $ips_in_mask + 2);
+  $INFO{LAST_IP}  = int2ip($broadcast - 1);
+  $INFO{CLIENT_IPS_COUNT} = $ips_in_mask-2;
 
   return \%INFO;
 }
@@ -315,6 +312,8 @@ foreach my $line (@$list) {
   my $NAS_ID          = $line->[0];
   my $nas_mng_ip_port = $line->[9];
   my $nas_mng_user    = $line->[10];
+  
+  my ($nas_mng_ip, $nas_mng_port)=split(/:/, $nas_mng_ip_port);
 
 
   my $vlan_list = $Vlan->list({ DISABLE   => 0,
@@ -325,7 +324,8 @@ foreach my $line (@$list) {
 	                             });
 
   my $sudo = ($nas_mng_ip_port ne '') ? $SUDO : '';
-  my $vlans_info = vlan_info({ NAS_MNG_IP_PORT => $nas_mng_ip_port,
+  my $vlans_info = vlan_info({ NAS_MNG_IP      => $nas_mng_ip,
+  	                           NAS_MNG_PORT    => $nas_mng_port || 22,
   	                           NAS_MNG_USER    => $nas_mng_user,
   	                           DEBUG           => $debug,
   	                           PARENT_IF       => $parent_interface
@@ -401,11 +401,13 @@ foreach my $line (@$list) {
     elsif ($vlans_info->{$INFO{VLAN_ID}} && $vlans_info->{$INFO{VLAN_ID}} ne $INFO{VLAN_IF_IP}) {
       #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} destroy";
       #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface";
+      #Set VLAN IP
       if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
         push @commands, _parse($conf{VLAN_IF_IP}, \%INFO); 
         #"$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
         $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Changed\n" if ($debug > 0);
        }
+      #Destroy VLAN
       else {
         push @commands, _parse($conf{VLAN_IP_DELETE}, { VLAN_IF_IP => $vlans_info->{$INFO{VLAN_ID}}, VLAN_ID => $INFO{VLAN_ID} });
         #"$IFCONFIG vlan$INFO{VLAN_ID} delete $INFO{VLAN_IF_IP}";
@@ -447,8 +449,8 @@ foreach my $line (@$list) {
       $cmds .= ($sudo ne '') ? "$sudo $cmd; " : "$cmd; ";
      }
 
-    if ($nas_mng_ip_port ne '') {
-      $cmds = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$nas_mng_user $nas_mng_user\@$nas_mng_ip_port \"$cmds\" ";
+    if ($nas_mng_ip ne '') {
+      $cmds = "$SSH -p $nas_mng_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$nas_mng_user $nas_mng_user\@$nas_mng_ip \"$cmds\" ";
      }
 
    system($cmds) if ($debug < 5);
@@ -459,7 +461,8 @@ foreach my $line (@$list) {
   if ($INFO{SUBNETS}) {
     $INFO{SUBNETS} = $DHCP_SUBNETS{"$nas_mng_ip_port"};
 
-    vlan_dhcp({ NAS_MNG_IP_PORT => $nas_mng_ip_port,
+    vlan_dhcp({ NAS_MNG_IP      => $nas_mng_ip,
+    	          NAS_MNG_PORT    => $nas_mng_port || 22,
   	            NAS_MNG_USER    => $nas_mng_user,
   	            NAS_ID          => $NAS_ID,
   	            INFO            => \%INFO  });
@@ -468,7 +471,8 @@ foreach my $line (@$list) {
   #Make PPPoE Realy
   if (scalar keys %client_interfaces > 0) {
     vlan_pppoe_relay({ CLIENT_INTERFACES => \%client_interfaces,
-  	                   NAS_MNG_IP_PORT   => $nas_mng_ip_port,
+  	                   NAS_MNG_IP        => $nas_mng_ip,
+    	                 NAS_MNG_PORT      => $nas_mng_port || 22,
   	                   NAS_MNG_USER      => $nas_mng_user,
   	                   PARENT_INTERFACE  => $parent_interface,
   	                   CLIENT_INTERFACES_UNUSED => \@client_interfaces_unused
@@ -494,8 +498,8 @@ sub vlan_info {
 	my $ifconfig = '';
   my $IFCONFIG_CMD =  $IFCONFIG;
 
-  if ($attr->{NAS_MNG_IP_PORT}) {
-  	$IFCONFIG_CMD = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} $attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"$IFCONFIG\"";
+  if ($attr->{NAS_MNG_IP}) {
+  	$IFCONFIG_CMD = "$SSH -p $attr->{NAS_MNG_PORT} -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} $attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP} \"$IFCONFIG\"";
    }
 
 
@@ -506,6 +510,7 @@ sub vlan_info {
      }  
   close(IFCONFIG)	;
 
+  #FreeBSD VLANS analize 
   while($ifconfig =~ m/vlan(\d+): .+\n((\s+inet \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}.+\n)?\s.*[\n\sa-zA-Z0-9]+\n\s.*\n\s.*\n\s.*\n)/gi ) {
     my  $ip        = '0.0.0.0';
     my  $if_num    = $1;
@@ -552,8 +557,8 @@ sub vlan_dhcp {
   # DHCP Section
   my $DHCPCONF  = ($conf{DHCPHOSTS_CONFIG}) ?  $conf{DHCPHOSTS_CONFIG} :  '/usr/local/etc/dhcpd.conf';
   #my $dhcp_sufix = '';
-  if ($attr->{NAS_MNG_IP_PORT}) {
-  	my $dhcp_sufix = '_'.$attr->{NAS_MNG_IP_PORT};
+  if ($attr->{NAS_MNG_IP}) {
+  	my $dhcp_sufix = '_'.$attr->{NAS_MNG_IP};
   	$DHCPCONF = "$conf{TPL_DIR}/dhcpd.conf$dhcp_sufix";
    }
 
@@ -576,12 +581,12 @@ sub vlan_dhcp {
 
 
  my $cmd = '';
- if ($attr->{NAS_MNG_IP_PORT}) {
+ if ($attr->{NAS_MNG_IP}) {
    my $DHCPCONF_REMOTE = $conf{DHCPHOSTS_CONFIG};
-   $cmd = "/usr/bin/scp -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} $DHCPCONF ".
-      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT}:$DHCPCONF_REMOTE; ".
-             "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
-      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"sudo /usr/local/etc/rc.d/isc-dhcpd restart\""; 
+   $cmd = "$SCP -P $attr->{NAS_MNG_PORT} -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} $DHCPCONF ".
+      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP}:$DHCPCONF_REMOTE; ".
+             "$SSH -p $attr->{NAS_MNG_PORT} -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
+      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP} \"$sudo /usr/local/etc/rc.d/isc-dhcpd restart\""; 
   }
  else {
    $cmd = "$conf{DHCPHOSTS_RECONFIGURE}"; 
@@ -619,7 +624,7 @@ sub vlan_pppoe_relay {
       $debug_output .= "Delete PPPoE $if\n" ;	  
      }
 
-    $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ";
+    $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then $sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ";
    }
 
 # Add interfaces
@@ -629,13 +634,13 @@ sub vlan_pppoe_relay {
       $debug_output .= "Create PPPoE $if\n" ;
      }
 
-    $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ".
-     " sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; ";
+    $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then $sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ".
+     " $sudo /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; ";
    }
 
-  if ($attr->{NAS_MNG_IP_PORT}) {
-    $cmd = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
-      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"$cmd\"";
+  if ($attr->{NAS_MNG_IP}) {
+    $cmd = "$SSH -p $attr->{NAS_MNG_PORT} -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
+      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP} \"$cmd\"";
    }
 
 # PPPoE Relay 
@@ -643,8 +648,8 @@ sub vlan_pppoe_relay {
 #  my $cmd = "pppoe-relay -S $attr->{PARENT_INTERFACE} -C $client_interfaces";
 #
 #   if ($attr->{NAS_MNG_IP_PORT}) {
-#     $cmd = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
-#       "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"sudo killall pppoe-relay; sudo $cmd\"";
+#     $cmd = "$SSH -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
+#       "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP_PORT} \"$sudo killall pppoe-relay; $sudo $cmd\"";
 #    }
 
   my $out= '';  
