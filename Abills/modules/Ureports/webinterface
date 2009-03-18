@@ -971,8 +971,7 @@ print $table->show();
 #**********************************************************
 sub ureports_user_info {
 
-  print "Content-Type: text/html\n\n";
-  $Ureports->{debug}=1;
+#  print "Content-Type: text/html\n\n";
 
 
   if ($FORM{activate}) {
@@ -1148,7 +1147,6 @@ sub ureports_periodic_reports {
  my %SERVICE_LIST_PARAMS = ();
  $SERVICE_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
 
- $tariffs->{debug}=1;
  my $list = $tariffs->list({ %LIST_PARAMS });
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
 
@@ -1793,7 +1791,6 @@ if(defined($attr->{TP})) {
    }
 
   my %TP_REPORTS = ();
-  $Ureports->{debug}=1;
   my $list = $Ureports->tp_reports_list({ %LIST_PARAMS, TP_ID => $FORM{TP_ID} });
   foreach my $line (@$list) {
      $TP_REPORTS{$line->[0]}=$line->[1];
