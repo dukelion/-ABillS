@@ -30,10 +30,10 @@
 
 
 # 
-%PERIODIC = (daily   => [ 'ureports_periodic_reports' ],
+#%PERIODIC = (daily   => [ 'ureports_periodic_reports' ],
 #             monthly => [ 'dv_monthly_fees', 'dv_periodic_logrotate'  ],
 #             report  => [ 'dv_report'       ]
-             );
+#             );
 
 
 1
