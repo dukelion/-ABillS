@@ -336,7 +336,7 @@ sub form_info {
         my $Dv       = Dv->new($db, $admin, \%conf);
 
         $Dv->info($user->{UID});
-        $sum = $Dv->{TP_CREDIT};
+        $sum = $Dv->{TP_CREDIT} if ($Dv->{TP_CREDIT} > 0);
        }
 
     
