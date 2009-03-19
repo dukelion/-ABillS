@@ -158,7 +158,6 @@ sub vlan_user {
     $Vlan->change({ %FORM });
     if (! $Vlan->{errno}) {
     	my $message = vlan_create({ DEBUG => 1 });
-    	#print "<pre>$DEBUG</pre>";
       $html->message('info', $_CHANGED, $html->pre($message));	
      }
    }
@@ -533,6 +532,20 @@ sub vlan_info {
    print "Vlan: $if_num IP: $ip Parent: '$parent_if'\n$res\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 4);
   }
 
+  #Linux
+  while($ifconfig =~ m/(\S+)\.(\d+) .+\n\s+inet addr:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+Bcast:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})  Mask:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/gi ) {
+    my  $parent_if = $1;
+    my  $if_num    = $2;
+    my  $ip        = $3;
+    my  $brodcast  = $4 || '';
+    my  $netmask   = $5;
+    
+    
+
+   $VLANS{$if_num}=$ip; # if (! $attr->{PARENT_IF} || $attr->{PARENT_IF} eq $parent_if);
+
+   print "Vlan: $if_num IP: $ip Parent: '$parent_if'\n$res\n" if ($attr->{DEBUG} && $attr->{DEBUG} > 4);
+  }
 
 
  
