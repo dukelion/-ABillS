@@ -118,7 +118,7 @@ while(my($k, $v)=each %FORM) {
  	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
 }
 
-if( $FORM{txn_id} || $FORM{prv_txn} ) {
+if( $FORM{txn_id} || $FORM{prv_id} ) {
 	osmp_payments();
  }
 elsif ($FORM{SHOPORDERNUMBER}) {
@@ -363,16 +363,16 @@ $RESULT_HASH{result} = $status;
 #For OSMP
 if ($payment_system_id == 4) {
   $RESULT_HASH{$txn_id}= $FORM{txn_id} ;
-  $RESULT_HASH{prv_txn}= $FORM{prv_txn};
+  $RESULT_HASH{prv_id}= $FORM{prv_id};
  }
 
 }
 #Cancel payments
 elsif ($command eq 'cancel') {
-  my $prv_txn = $FORM{prv_txn};
-  $RESULT_HASH{prv_txn}=$prv_txn;
+  my $prv_id = $FORM{prv_id};
+  $RESULT_HASH{prv_id}=$prv_id;
 
-  my $list = $payments->list({ ID => "$prv_txn", EXT_ID => "PEGAS:*"  });
+  my $list = $payments->list({ ID => "$prv_id", EXT_ID => "PEGAS:*"  });
 
   if ($payments->{errno}) {
       $RESULT_HASH{result}=1;
@@ -386,7 +386,7 @@ elsif ($command eq 'cancel') {
      UID     => $list->[11]
     );
 
-  	$payments->del(\%user, $prv_txn);
+  	$payments->del(\%user, $prv_id);
     if (! $payments->{errno}) {
       $RESULT_HASH{result}=0;
      }
@@ -461,7 +461,7 @@ elsif ($command eq 'pay') {
 
 $RESULT_HASH{result} = $status;
 $RESULT_HASH{$txn_id}= $FORM{txn_id};
-$RESULT_HASH{prv_txn}= $payments_id;
+$RESULT_HASH{prv_id} = $payments_id;
 $RESULT_HASH{sum}    = $FORM{sum};
 }
  
