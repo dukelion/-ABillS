@@ -118,7 +118,7 @@ while(my($k, $v)=each %FORM) {
  	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
 }
 
-if( $FORM{txn_id} || $FORM{prv_txn} || $FORM{prv_id} ) {
+if( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) ) {
 	osmp_payments();
  }
 elsif ($FORM{SHOPORDERNUMBER}) {
