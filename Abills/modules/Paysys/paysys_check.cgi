@@ -434,7 +434,7 @@ elsif ($command eq 'pay') {
 
     #Exists
     if ($payments->{errno} && $payments->{errno} == 7) {
-      $status      = 8;  	
+      $status      = 0;  	
       $payments_id = $payments->{ID};
      }
     elsif ($payments->{errno}) {
@@ -442,10 +442,7 @@ elsif ($command eq 'pay') {
      }
     else {
     	$status = 0;
-     }    
-
-
-    $Paysys->add({ SYSTEM_ID   => $payment_system_id, 
+    	$Paysys->add({ SYSTEM_ID   => $payment_system_id, 
  	              DATETIME       => "'$DATE $TIME'", 
  	              SUM            => "$FORM{sum}",
   	            UID            => "$user->{UID}", 
@@ -456,7 +453,10 @@ elsif ($command eq 'pay') {
                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
-    $payments_id = ($Paysys->{INSERT_ID}) ? $Paysys->{INSERT_ID} : 0;
+      $payments_id = ($Paysys->{INSERT_ID}) ? $Paysys->{INSERT_ID} : 0;
+     }    
+
+
 	 }
 
 $RESULT_HASH{result} = $status;
