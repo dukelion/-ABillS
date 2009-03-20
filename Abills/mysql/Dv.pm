@@ -481,6 +481,13 @@ sub list {
    $self->{SEARCH_FIELDS_COUNT}++;
   }
 
+ if ($attr->{SIMULTANEONSLY}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{SIMULTANEONSLY}, 'INT', 'dv.logins') } ;
+   $self->{SEARCH_FIELDS} .= 'dv.logins, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+
  if ($attr->{SPEED}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{SPEED}, 'INT', 'dv.speed') };
    $self->{SEARCH_FIELDS} .= 'dv.speed, ';

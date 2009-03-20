@@ -4535,10 +4535,12 @@ sub dv_get_month_fee {
   if ($Dv->{TP_INFO}->{ACTIV_PRICE}) {
     my $users = Users->new($db, $admin, \%conf); 
     my $user  = $users->info($Dv->{UID});
+    my $date  = ($user->{ACTIVATE} ne '0000-00-00') ? $user->{ACTIVATE} : $DATE;
+    my $time  = ($user->{ACTIVATE} ne '0000-00-00') ? '00:00:00' : $TIME;
 
     $fees->take($user, $Dv->{TP_INFO}->{ACTIV_PRICE}, 
                               { DESCRIBE  => "$_ACTIVATE $_TARIF_PLAN", 
-   	                            DATE      => "$DATE $TIME"
+   	                            DATE      => "$date $time"
   	                           });  
 
     $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN");	
@@ -4562,6 +4564,7 @@ sub dv_get_month_fee {
      my $message = ''; 
      #Current Month
      my ($y, $m, $d)=split(/-/, $DATE, 3);
+
      my ($active_y, $active_m, $active_d)=split(/-/, $Dv->{ACTIVATE}, 3);	 
      if (int("$y$m$d") < int("$active_y$active_m$active_d")) {
      	  return ;
@@ -4587,7 +4590,7 @@ sub dv_get_month_fee {
         	$periods = $m - $active_m;
          }
         elsif ($active_m > 0 && ( $active_m >= $m  && $active_y < $y)) {
-        	$periods = 12 - $active_m + $m - 1; 
+        	$periods = 12 - $active_m + $m; 
          }
         
         $message .= "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{TP_ID})";
@@ -4598,15 +4601,14 @@ sub dv_get_month_fee {
          }
         
         
-
+        $m = $active_m if ($active_m > 0);
         for (my $i=0; $i<=$periods; $i++) {
-
-          if ($active_m+$i > 12) {
-          	$active_m=0;
+          if ($m > 12) {
+          	$m=1;
           	$active_y=$active_y+1;
            }
           
-          $m = sprintf("%.2d", $active_m+$i);
+          $m = sprintf("%.2d", $m);
 
           if ( $i > 0 ) {
   	        $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
@@ -4635,6 +4637,8 @@ sub dv_get_month_fee {
           else {
             $html->message('info', $_INFO, $message);	
            }
+
+          $m++;
          }
 
 
