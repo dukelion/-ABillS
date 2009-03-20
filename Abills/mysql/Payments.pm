@@ -101,7 +101,7 @@ sub add {
     if ($self->{TOTAL} > 0) {
       $self->{errno}=7;
       $self->{errstr}='ERROR_DUBLICATE';
-      $self->{ID}=$self->[0][0];
+      $self->{ID}=$self->{list}->[0][0];
       return $self;	
      }
    }
