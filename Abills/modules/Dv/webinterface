@@ -4826,7 +4826,7 @@ if ($FORM{add}) {
 	
 	my $days = ($to_date - $from_date) / 86400 ;
   $Dv->info($FORM{UID});
-  my $sum = $days * $Dv->{DAY_ABON} + $days * ($Dv->{MONTH_ABON} / 31);
+  my $sum = sprintf("%.2f", $days * $Dv->{DAY_ABON} + $days * ($Dv->{MONTH_ABON} / 31));
   
   my $payments     = Payments->new($db, $admin, \%conf);
   $payments->add({  BILL_ID => $users->{BILL_ID},
