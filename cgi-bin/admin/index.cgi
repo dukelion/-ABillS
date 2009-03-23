@@ -4738,7 +4738,8 @@ my $table = $html->table( { width      => '100%',
                             title      => ["$_HOURS", "$_DAY", "$_MONTH", "$_YEAR", "$_COUNT", "$_USER", "$_TYPE", "$_VALUE", "$_MODULES", "$_ADMINS", "$_CREATED", "-"],
                             cols_align => ['right', 'right', 'right', 'right', 'right', 'left', 'right', 'right', 'right', 'left', 'right', 'center'],
                             qs         => $pages_qs,
-                            pages      => $shedule->{TOTAL}
+                            pages      => $shedule->{TOTAL},
+                            ID         => 'SHEDULE'
                           });
 
 foreach my $line (@$list) {

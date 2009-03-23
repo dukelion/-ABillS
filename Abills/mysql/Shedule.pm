@@ -1,5 +1,5 @@
 package Shedule;
-
+#Shedule SQL backend
 
 
 use strict;
@@ -30,14 +30,16 @@ sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
   my $self = { };
+
   bless($self, $class);
+
   return $self;
 }
 
 
 
 #**********************************************************
-# list()
+# info()
 #**********************************************************
 sub info {
  my $self = shift;

@@ -2,25 +2,27 @@ $web_interface    = 1;
 @useraccount_menu = ('Dialup_VPN');
 
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("01:0:Internet:dv_users_list:"  => 11,
-                   "02:0:Internet:dv_user:UID"            => 20,
+%FUNCTIONS_LIST = ("01:0:Internet:dv_users_list:"             => 11,
+                   "02:0:Internet:dv_user:UID"                => 20,
                    "03:2:$_TARIF_PLANS:dv_chg_tp:UID"         => 11,
                    "04:2:$_STATS:dv_stats:UID"                => 11,
                    "05:2:$_ERROR:dv_error:UID"                => 11,
-                   "06:0:Internet:null:"               => 5,
-                   "07:6:$_TARIF_PLANS:dv_tp:"             => 5,
-                   "08:7:$_ADD:dv_tp:"                     => 5,
-                   "09:7:$_INTERVALS:form_intervals:TP_ID" => 5,
-                   "10:7:$_NASS:form_nas_allow:TP_ID"      => 5,
-                   "11:7:$_USERS:dv_users_list:TP_ID"      => 5,
-                   "11:7:$_GROUPS:form_tp_groups:"         => 5,
-                   "13:0:Internet:null:"               => 4,
-                   "14:13:$_ERROR:dv_error:"               => 4,
-                   "15:13:$_LAST:dv_sessions:"             => 4,
-                   "16:13:$_USED:dv_use:"                  => 4,
-                   "17:16:$_MONTH:dv_use_allmonthes:"      => 4,
-                   "18:0:Internet:dv_online:"          => 8,
-                   "20:0:$_DV $_STATS:dv_use:COMPANY_ID" => 13
+                   "06:2:$_SHEDULE:dv_form_shedule:UID"       => 11,
+                   "07:2:$_COMPENSATION:dv_compensation:UID"  => 11,
+                   "10:0:Internet:null:"                   => 5,
+                   "11:10:$_TARIF_PLANS:dv_tp:"             => 5,
+                   "12:11:$_ADD:dv_tp:"                     => 5,
+                   "13:11:$_INTERVALS:form_intervals:TP_ID" => 5,
+                   "14:11:$_NASS:form_nas_allow:TP_ID"      => 5,
+                   "15:11:$_USERS:dv_users_list:TP_ID"      => 5,
+                   "16:11:$_GROUPS:form_tp_groups:"         => 5,
+                   "17:0:Internet:null:"                   => 4,
+                   "18:17:$_ERROR:dv_error:"               => 4,
+                   "19:17:$_LAST:dv_sessions:"             => 4,
+                   "20:17:$_USED:dv_use:"                  => 4,
+                   "21:18:$_MONTH:dv_use_allmonthes:"      => 4,
+                   "22:0:Internet:dv_online:"              => 8,
+                   "23:0:$_DV $_STATS:dv_use:COMPANY_ID"   => 13
                    );
 
 if ($permissions{0}{1}) {

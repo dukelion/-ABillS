@@ -240,7 +240,8 @@ sub sheduler {
 	
 my %shedule_type = ('tp'      => $_TARIF_PLAN, 
                     'fees'    => $_FEES,
-                    'message' => $_MESSAGES
+                    'message' => $_MESSAGES,
+                    'status'  => $_STATUS
  );
 
 #Change tp

@@ -12,7 +12,7 @@
 <tr><td>CID:</td><td><input type=text name='CID' value='%CID%'>
 <tr><td>$_PORT:</td><td><input type=text name='PORT' value='%PORT%'>
 <tr><td>Callback:</td><td><input type='checkbox' name='CALLBACK' value='1' %CALLBACK%>
-<tr><td>$_STATUS:</td><td>%STATUS_SEL%</td></tr>
+<tr><td>$_STATUS:</td><td>%STATUS_SEL% %SHEDULE%</td></tr>
 <tr><td>TURBO:</td><td>%TURBO_MODE_SEL%</td></tr>
 <tr><td>$_ABON:</td><td>%ABON_DATE%</td></tr>
 <tr><td colspan='2'>%REGISTRATION_INFO%</td></tr>

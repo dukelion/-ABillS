@@ -176,7 +176,7 @@ elsif($FORM{del}) {
 
  
 
-my $tp_index = $index + 4;
+my $tp_index = $index + 6;
 
 $tariffs->{UID}     = $attr->{USER}->{UID};
 $tariffs->{m}       = $m;
@@ -343,6 +343,9 @@ sub dv_user {
 
      return 0;
    }
+  elsif ($FORM{shedule}) {
+
+   }
   elsif ($FORM{add}) {
     if (! $permissions{0}{1} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
@@ -446,6 +449,7 @@ sub dv_user {
         $Dv->{ABON_DATE} = "$Y-$M-$D";
        }
       }
+	  $Dv->{SHEDULE}=$html->button("$_SHEDULE", "UID=$FORM{UID}&shedule=status&index=". ($index+4));
 	} 
 
 
@@ -3939,6 +3943,15 @@ sub dv_sheduler {
     	return $Dv->{errno};
      }
    }
+  elsif ($type eq 'status') {
+    $Dv->change({ UID    => $uid, 
+    	            STATUS => $action 
+    	          });
+
+    if ($Dv->{errno} && $Dv->{errno} == 15) {
+    	return $Dv->{errno};
+     }
+   }
 
   return 0;
 }
@@ -4672,7 +4685,6 @@ sub dv_dhcp_get_mac_add {
   	#print "Content-Type: text/html\n\n";
 
   	if (ip2int($ip) >= ip2int($start_ip) && ip2int($ip) <= ip2int($start_ip) + $address_count) {
-  		#$Dhcphosts->{debug}=1;
       my $list = $Dhcphosts->hosts_list({ 
       	                                  NETWORK   => $id, 
       	                                  SORT      => 3,
@@ -4794,6 +4806,179 @@ sub dv_dhcp_get_mac {
 	 return ($list{$ip}{hardware}) ?  $list{$ip}{hardware} : '';
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub dv_compensation () {
+
+
+if ($FORM{add}) {
+	my $Y = $FORM{from_Y};
+	my $M = $FORM{from_M}+1;
+  my $D = $FORM{from_D}+1;
+	my $from_date = mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0);
+
+	$Y = $FORM{to_Y};
+	$M = $FORM{to_M}+1;
+  $D = $FORM{to_D};
+	my $to_date = mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0);
+	
+	my $days = ($to_date - $from_date) / 86400 ;
+  $Dv->info($FORM{UID});
+  my $sum = $days * $Dv->{DAY_ABON} + $days * ($Dv->{MONTH_ABON} / 31);
+  
+  my $payments     = Payments->new($db, $admin, \%conf);
+  $payments->add({  BILL_ID => $users->{BILL_ID},
+  	                UID     => $users->{UID}
+  	                }, 
+  	             	  
+  	             	            { SUM      => $sum,
+  	             	            	METHOD   => 4,
+  	                            DESCRIBE => "$_COMPENSATION. $days $_DAYS" } );
+   
+  
+  if ($fees->{errno}) {
+    $html->message('err', $_ERROR, "$_ERROR: [$fees->{errno}] $fees->{errstr} "); 
+   }
+  else {
+    $html->message('info', $_INFO, "$_FROM: $from_date $_TO: $to_date / $_DAYS: $days / $_SUM $sum");
+   }
+}
+
+$table = $html->table( { width       => '100%',
+	                       rowcolor    => $_COLORS[0],
+	                       caption     => $_COMPENSATION,
+                         rows        => [[ "$_FROM: ",  $html->date_fld('from_', { MONTHES => \@MONTHES} ),
+                                          "$_TO: ",    $html->date_fld('to_', { MONTHES => \@MONTHES } ),
+                                          $html->form_input('add', $_COMPENSATION, { TYPE => 'submit' })
+                                         ]],                                   
+                      });
+
+
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { sid   => "$sid",
+	                                    index => "$index",
+	                                    UID   => "$FORM{UID}" }});
+
+
+	
+	
+	
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub dv_form_shedule () {
+
+  my $shedule = Shedule->new($db, $admin, \%conf);
+  
+
+if ($FORM{add}) {
+    $shedule->add( {UID     => $FORM{UID},
+                   TYPE     => "$FORM{shedule}",
+                   ACTION   => $FORM{ACTION},
+    	             D        => $FORM{date_D},
+                   M        => sprintf("%.2d", $FORM{date_M}+1),
+                   Y        => $FORM{date_Y},
+                   DESCRIBE => "$message<br>
+                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                   MODULE   => 'Dv'
+                    });
+
+    if ($shedule->{errno}) {
+      $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
+     }
+    else {
+      $html->message('info', $_CHANGED, "$_SHEDULE $_ADDED");
+    }
+ }
+elsif ($FORM{shedule}) {
+	if ($FORM{shedule} eq 'status') {
+    my $table = $html->table( { width       => '100%',
+	                       rowcolor    => $_COLORS[0],
+                         rows        => [[ "$_FROM: ",  $html->date_fld('date_', { MONTHES => \@MONTHES} ),
+                                          "$_STATUS: ", $html->form_select('ACTION', 
+                                          { 
+ 	                                          SELECTED     => $FORM{ACTION},
+ 	                                          SEL_HASH     => { 
+ 	                                          	                0  => $service_status[0],
+ 	                                          	                1  => $service_status[1],
+ 	                                          	                2  => $service_status[2]  
+ 	                                          	                },
+                                            NO_ID       => 1
+ 	                                        }),
+ 	                                        $html->form_input('add', $_ADD, { TYPE => 'submit' })
+                                           
+                                         ]],                                   
+                      });
+
+
+
+    print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { sid     => "$sid",
+	                                    index   => "$index",
+	                                    shedule => "status",
+	                                    UID     => "$FORM{UID}",
+	                                     }});		
+	 }
+	
+}
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  $shedule->del({ ID => $FORM{del} });
+  if ($shedule->{errno}) {
+    $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");
+   }
+  else {
+    $html->message('info', $_DELETED, "$_DELETED [$FORM{del}]");
+   }
+}
+
+
+
+  my $list = $shedule->list( {UID      => $FORM{UID},
+                   MODULE   => 'Dv'
+                   });
+
+  my $table = $html->table( { width      => '100%',
+                            border     => 1,
+                            title      => ["$_HOURS", "$_DAY", "$_MONTH", "$_YEAR", "$_COUNT", "$_USER", "$_TYPE", "$_VALUE", "$_MODULES", "$_ADMINS", "$_CREATED", "-"],
+                            cols_align => ['right', 'right', 'right', 'right', 'right', 'left', 'right', 'right', 'right', 'left', 'right', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $shedule->{TOTAL},
+                            ID         => 'DV_SHEDULE'
+                          });
+
+foreach my $line (@$list) {
+  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[13]&UID=$line->[12]", { MESSAGE =>  "$_DEL [$line->[13]]?" }) : '-'; 
+
+
+  $table->addrow($html->b($line->[0]), $line->[1], $line->[2], 
+    $line->[3],  $line->[4],  
+    $html->button($line->[5], "index=15&UID=$line->[12]"), 
+    "$line->[6]", 
+    "$line->[7]", 
+    "$line->[8]", 
+    "$line->[9]", 
+    "$line->[10]", $delete);
+}
+
+print $table->show();
+
+$table = $html->table({ width      => '100%',
+                        cols_align => ['right', 'right', 'right', 'right'],
+                        rows       => [ [ "$_TOTAL:", $html->b($shedule->{TOTAL}) ] ]
+                       });
+print $table->show();
+
+
+
+
+
+}
 1
 
 
