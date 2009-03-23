@@ -4824,7 +4824,7 @@ if ($FORM{add}) {
   $D = $FORM{to_D};
 	my $to_date = mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0);
 	
-	my $days = ($to_date - $from_date) / 86400 ;
+	my $days = ($to_date - $from_date) / 86400 + 1;
   $Dv->info($FORM{UID});
   my $sum = sprintf("%.2f", $days * $Dv->{DAY_ABON} + $days * ($Dv->{MONTH_ABON} / 31));
   
@@ -4833,9 +4833,11 @@ if ($FORM{add}) {
   	                UID     => $users->{UID}
   	                }, 
   	             	  
-  	             	            { SUM      => $sum,
-  	             	            	METHOD   => 4,
-  	                            DESCRIBE => "$_COMPENSATION. $days $_DAYS" } );
+  	             	            { SUM            => $sum,
+  	             	            	METHOD         => 4,
+  	                            DESCRIBE       => "$_COMPENSATION. $days $_DAYS. ".$FORM{DESCRIBE},
+  	                            INNER_DESCRIBE => $FORM{INNER_DESCRIBE}
+  	                            } );
    
   
   if ($fees->{errno}) {
@@ -4846,22 +4848,12 @@ if ($FORM{add}) {
    }
 }
 
-$table = $html->table( { width       => '100%',
-	                       rowcolor    => $_COLORS[0],
-	                       caption     => $_COMPENSATION,
-                         rows        => [[ "$_FROM: ",  $html->date_fld('from_', { MONTHES => \@MONTHES} ),
-                                          "$_TO: ",    $html->date_fld('to_', { MONTHES => \@MONTHES } ),
-                                          $html->form_input('add', $_COMPENSATION, { TYPE => 'submit' })
-                                         ]],                                   
-                      });
 
 
+$Dv->{FROM_DATE}=$html->date_fld('from_', { MONTHES => \@MONTHES} );
+$Dv->{TO_DATE}=$html->date_fld('to_', { MONTHES => \@MONTHES } );
 
-print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                       HIDDEN  => { sid   => "$sid",
-	                                    index => "$index",
-	                                    UID   => "$FORM{UID}" }});
-
+$html->tpl_show(_include('dv_compensation', 'Dv'), $Dv);
 
 	
 	
