@@ -8,3 +8,4 @@ eap.conf         > [/usr/local/etc/raddb]/eap.conf
 clients.conf     > [/usr/local/etc/raddb]/clients.conf
 :OS=FREEBSD:radiusd_enable="YES"  >> [/etc/]/rc.conf
 :OS=FREEBSD:exec:/usr/local/etc/rc.d/radiusd restart
+:OS=FREEBSD:12  9    *   *  *    root   find /var/log/radacct/%RADIUS_CLIENT_IP%/ -type f -mtime +30d -delete  >> [/etc/]/crontab

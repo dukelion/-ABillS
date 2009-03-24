@@ -272,12 +272,15 @@ sub programs_info {
  close(FILE);
 
 
- my %DEFAULT_VALUE = (WORK_DIR => $conf{WORK_DIR});
+ my %DEFAULT_VALUE = (WORK_DIR => $conf{WORK_DIR}
+                       );
  my %DEFAULT_DESCRIBE = ();
 
  my %PARAMS_VALUES = ();
  my %PARAMS_HASH   = ();
-
+ 
+# :DEFAULT:CLAMAV=1:Configure Clamav
+# :DEFAULT:CLAMAV=exec:hostname:Configure Clamav
 foreach my $file (@files) {
   if ($file =~ /^:DEFAULT:(.+)/) {
      my $value = $1;
@@ -285,7 +288,13 @@ foreach my $file (@files) {
  			 my $name     = $1;
  			 my $value    = $2;
  			 my $describe = $3;
- 			
+ 			 
+ 			 if ($value eq 'exec' && $describe =~ /(.+):(.+)/) {
+ 			 	 my $cmd = $1;
+ 			 	 $describe = $2;
+ 			 	 $value = `$cmd`;
+ 			  }
+
  			 print "DEFAULT: $name / $value / $describe \n" if ($debug > 2);
  			 $DEFAULT_DESCRIBE{"$name"}=$describe;
  			 $DEFAULT_VALUE{"$name"}   =$value;
@@ -341,6 +350,8 @@ sub check_install {
 
  my %DEFAULT_VALUE = ();
  my %DEFAULT_DESCRIBE = ();
+ $DEFAULT_VALUE{HOSTNAME}=`hostname`;
+ chop($DEFAULT_VALUE{HOSTNAME});
 
  foreach my $file (@files) {
    my $config_body = '';
