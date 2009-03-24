@@ -563,8 +563,6 @@ sub check_speed {
      }
   }
 
-
-
   require Billing;
   Billing->import();
   my $Billing = Billing->new($db, \%conf);
@@ -637,7 +635,7 @@ sub check_speed {
   	 $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
 
      if ($JOIN_SERVICE > 0) {
-     	 
+
       }
      #No shaper definition
      elsif (! $rule_speed{$IFACE}) {
@@ -658,8 +656,7 @@ sub check_speed {
      	  $debug_outputs .= " IN:  0, $SPEED ipfw: $fw_num / $rule_speed{$IFACE}{$fw_num}\n".
      	                    " OUT: 0, $SPEED ipfw: ". $rule_speed{$IFACE}{$fw_num + 1} ."\n";
         
-
-      	
+     	
       	if ($JOIN_SERVICE > 0) {
       	  my $pipe_in = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2;
       	  my $pipe_out = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2 + 1;
