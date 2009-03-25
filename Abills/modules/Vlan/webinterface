@@ -683,9 +683,9 @@ sub vlan_pppoe_relay {
 sub _parse {
 	my ($string, $HASH_REF) = @_;
 	
-	reset %$HASH_REF;
 
-	while(my($k, $v)= each %$HASH_REF) {
+  foreach my $k (keys %$HASH_REF) {
+		my $v = $HASH_REF->{$k};
 		$string =~ s/\%$k\%/$v/g;   
 	 }
 
