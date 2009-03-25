@@ -300,6 +300,7 @@ sub check_lines {
                    ACCT_OUTPUT_GIGAWORDS => 0
                    );
 
+
         # Join Service operation
         if ($join_service) {
            if (! $JOIN_SERVICE_STATS{$join_service}) {
@@ -317,6 +318,8 @@ sub check_lines {
         my $Billing = Billing->new($db, \%conf);	
         my $self;
 
+
+
         ($self->{UID}, 
          $self->{SUM}, 
          $self->{BILL_ID}, 
@@ -332,8 +335,11 @@ sub check_lines {
         print "> Login: $RAD{USER_NAME} START: $RAD{SESSION_START} DURATION: $RAD{ACCT_SESSION_TIME}\n".
          "UID: $self->{UID} SUM: $self->{SUM} BILL_ID: $self->{BILL_ID} TARIF_PLAN: $self->{TARIF_PLAN} TRAF_TARIF: $self->{TRAF_TARIF}\n" if ($debug == 1);
 
-        if ( ($Billing->{PAYMENT_TYPE} && $Billing->{PAYMENT_TYPE} == 0) 
+
+
+        if ( (defined($Billing->{PAYMENT_TYPE}) && $Billing->{PAYMENT_TYPE} == 0) 
                              && ($deposit + $credit <= $self->{SUM}) ) {
+
 
            #Neg deposit filter
            if ($Billing->{NEG_DEPOSIT_FILTER} ne '' && $deposit + $credit < 0) {

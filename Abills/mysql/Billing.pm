@@ -421,7 +421,7 @@ sub session_sum {
  my $recv  = $RAD->{INBYTE}  || 0;  #to server
  my $sent2 = $RAD->{OUTBYTE2}|| 0; 
  my $recv2 = $RAD->{INBYTE2} || 0;
-
+ 
  # Don't calculate if session smaller then $CONF->{MINIMUM_SESSION_TIME} and  $CONF->{MINIMUM_SESSION_TRAF}
  if (! $attr->{FULL_COUNT} && 
      (
@@ -629,7 +629,10 @@ if(! defined($self->{NO_TPINTERVALS})) {
 }
 
 
+
+
 $sum = $sum * (100 - $self->{REDUCTION}) / 100 if ($self->{REDUCTION} > 0);
+
 
 if (! $attr->{FULL_COUNT}) {
 	#if (! $sum || ! $self->{MIN_SESSION_COST})

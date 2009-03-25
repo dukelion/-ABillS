@@ -234,7 +234,8 @@ sub online {
    LAST_ALIVE      => 'UNIX_TIMESTAMP()-c.lupdated',
    ACCT_SESSION_TIME => 'UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)',
    DURATION_SEC    => 'c.lupdated - UNIX_TIMESTAMP(c.started)',
-   FILTER_ID       => 'dv.filter_id'
+   FILTER_ID       => 'dv.filter_id',
+   SESSION_START   => 'UNIX_TIMESTAMP(started)'
   );
 
 
@@ -288,6 +289,12 @@ sub online {
 
  if (defined($attr->{SESSION_ID})) {
  	 push @WHERE_RULES, "c.acct_session_id LIKE '$attr->{SESSION_ID}'";
+  }
+
+ if ($attr->{SESSION_IDS}) {
+ 	 my @session_arr = split(/, /, $attr->{SESSION_IDS});
+ 	 my $w = "'". join('\', \'', @session_arr) . "'";
+ 	 push @WHERE_RULES, "c.acct_session_id IN ($w)";
   }
  
 
