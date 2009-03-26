@@ -852,7 +852,7 @@ foreach my $line (@$list) {
     $INFO{NET_ROUTES}="option ms-classless-static-routes $routes\n";
 
     # RFC3442 routes: overrides routers option
-    $INFO{NET_ROUTES_RFC3442}.="option rfc3442-classless-static-routes $routes\n";
+    $INFO{NET_ROUTES_RFC3442}="option rfc3442-classless-static-routes $routes\n";
    }
 
 
