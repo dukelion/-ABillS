@@ -35,6 +35,7 @@ CREATE TABLE `sharing_log` (
   `useragent` text,
   `referer` text,
   `uniqueid` text,
+  `nas_id` int(10) unsigned NOT NULL default '0',
   KEY `username` (`username`)
 ) COMMENT='Sharing log file';
 
