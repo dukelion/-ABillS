@@ -1,5 +1,5 @@
 package Sharing;
-# Stats functions
+# Sharing module DB functions
 #
 
 
