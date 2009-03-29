@@ -3561,7 +3561,7 @@ else{
   $table_fees = $html->table({ width      => '100%',
 	                             caption    => $_FEES, 
                                title      => \@TITLE,
-                               cols_align => ['right', 'right', 'right'],
+                               cols_align => ['right', 'right', 'right', 'right'],
                                qs         => $pages_qs,
                                ID         => 'REPORT_FEES'
                                });
@@ -3675,7 +3675,7 @@ else{
   $table = $html->table({ width      => '100%',
 	                        caption    => $_PAYMENTS, 
                           title      => \@CAPTION,
-                          cols_align => ['right', 'right', 'right'],
+                          cols_align => ['right', 'right', 'right', 'right'],
                           qs         => $pages_qs,
                           ID         => 'REPORT_PAYMENTS'
                         });

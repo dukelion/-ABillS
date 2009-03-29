@@ -1118,8 +1118,8 @@ sub ureports_send_reports {
   	 }
    }
   elsif($type == 1) {
-  	if ($conf{UREPORTS_SMS_CMD}) {
-  	  my $cmd = `$conf{UREPORTS_SMS_CMD} $destination $message`;
+  	if ($conf{UREPORTS_EXT_SENDER}) {
+  	  my $cmd = `$conf{UREPORTS_EXT_SENDER} $destination $message`;
   	 }
    }
   elsif($type == 2) {

@@ -1085,11 +1085,11 @@ sub extfin_debetors {
   
   $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : ''; 
 
-  $self->{debug}=1;
+  #$self->{debug}=1;
 
   $self->query($db, "SELECT \@uid:=u.uid, u.id, pi.contract_id,
    pi.fio,
-   pi.contract_date,
+   if (pi.contract_date = '0000-00-00', u.registration, pi.contract_date),
    u.disable,
    dv.tp_id,
    $ext_field

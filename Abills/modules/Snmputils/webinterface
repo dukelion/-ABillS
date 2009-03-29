@@ -868,7 +868,7 @@ sub snmputils_dlink_pb_add {
   $port_count=30;
   foreach my $id (@get_port_arr) {
    	if ($sw_info->{version} =~ /DES-3052/) {
-   	  $port_array[50+2-$id]=1;
+   	  $port_array[$id-1]=1;
    	 }
    	elsif ($sw_info->{version} =~ /DES-30/) {
    	  $port_array[$port_count+2-$id]=1;
