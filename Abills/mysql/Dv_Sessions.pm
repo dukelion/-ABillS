@@ -773,7 +773,10 @@ sub prepaid_rest {
     u.uid, 
     dv.tp_id, 
     tp.name,
-    tp.traffic_transfer_period
+    tp.traffic_transfer_period,
+    tp.day_traf_limit,
+    tp.week_traf_limit,
+    tp.month_traf_limit
   from (users u,
         dv_main dv,
         tarif_plans tp,
