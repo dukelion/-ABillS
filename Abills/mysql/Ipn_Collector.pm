@@ -122,7 +122,9 @@ sub user_ips {
       CONNECT_INFO,
       u.activate,
       dv.netmask,
-      dv.ip
+      dv.ip,
+      calls.acct_input_gigawords,
+      calls.acct_output_gigawords
     FROM (dv_calls calls, users u)
       LEFT JOIN companies c ON (u.company_id=c.id)
       LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -187,6 +189,9 @@ sub user_ips {
   	 $self->{$line->[1]}{IN}  = $line->[4];
   	 $self->{$line->[1]}{OUT} = $line->[5];
      
+     $self->{$line->[1]}{ACCT_INPUT_GIGAWORDS}  = $line->[18] || 0;
+  	 $self->{$line->[1]}{ACCT_OUTPUT_GIGAWORDS} = $line->[19] || 0;
+
      #user NAS
      $self->{$line->[1]}{NAS_ID} = $line->[11];
      
