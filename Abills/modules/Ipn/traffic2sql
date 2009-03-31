@@ -357,6 +357,8 @@ elsif($total_user_sum > 0 && $uid > 0) {
     %RAD = (  NAS_PORT          => 0,
    	          INBYTE            => $Ipn->{$ip}{IN} || 0,
    	          OUTBYTE           => $Ipn->{$ip}{OUT} || 0,
+   	          ACCT_INPUT_GIGAWORDS  => $Ipn->{$ip}{ACCT_INPUT_GIGAWORDS}  || 0;
+  	          ACCT_OUTPUT_GIGAWORDS => $Ipn->{$ip}{ACCT_OUTPUT_GIGAWORDS} || 0;
    	          INBYTE2           => 0,
    	          OUTBYTE2          => 0,
               FRAMED_IP_ADDRESS => $ip_addr,
