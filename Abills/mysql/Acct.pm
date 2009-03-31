@@ -303,7 +303,7 @@ elsif($acct_status_type eq 3) {
   $self->{SUM}=0 if (! $self->{SUM}); 
   if ($NAS->{NAS_EXT_ACCT}) {
     my $ipn_fields='';
-  	if ($attr->{NAS_EXT_ACCT}) {
+  	if ($NAS->{IPN_COLLECTOR}) {
   	  $ipn_fields="sum=sum+$self->{SUM},
       acct_input_octets='$RAD->{INBYTE}',
       acct_output_octets='$RAD->{OUTBYTE}',

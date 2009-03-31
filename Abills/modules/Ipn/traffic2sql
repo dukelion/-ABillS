@@ -373,6 +373,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
       my $r = $Acct->accounting(\%RAD, { NAS_ID       => $Ipn->{$ip}{NAS_ID} || $NAS_ID, 
     	                                   NAS_TYPE     => 'other',
     	                                   NAS_EXT_ACCT => 1,
+    	                                   IPN_COLLECTOR=> 1
     	                                   
     	                                });
      }
