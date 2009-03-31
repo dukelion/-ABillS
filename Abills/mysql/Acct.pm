@@ -310,7 +310,7 @@ elsif($acct_status_type eq 3) {
       ex_input_octets='$RAD->{INBYTE2}',
       ex_output_octets='$RAD->{OUTBYTE2}',
       acct_input_gigawords='$RAD->{ACCT_INPUT_GIGAWORDS}',
-      acct_output_gigawords='$RAD->{ACCT_OUTPUT_GIGAWORDS}'";
+      acct_output_gigawords='$RAD->{ACCT_OUTPUT_GIGAWORDS}',";
      }
 
     $self->query($db, "UPDATE dv_calls SET
@@ -319,7 +319,7 @@ elsif($acct_status_type eq 3) {
       nas_port_id='$RAD->{NAS_PORT}',
       acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
       framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
-      lupdated=UNIX_TIMESTAMP(),
+      lupdated=UNIX_TIMESTAMP()
     WHERE
       acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
       user_name=\"$RAD->{USER_NAME}\" and
