@@ -302,24 +302,29 @@ elsif ($acct_status_type == 2) {
 elsif($acct_status_type eq 3) {
   $self->{SUM}=0 if (! $self->{SUM}); 
   if ($NAS->{NAS_EXT_ACCT}) {
+    my $ipn_fields='';
+  	if ($attr->{NAS_EXT_ACCT}) {
+  	  $ipn_fields="sum=sum+$self->{SUM},
+      acct_input_octets='$RAD->{INBYTE}',
+      acct_output_octets='$RAD->{OUTBYTE}',
+      ex_input_octets='$RAD->{INBYTE2}',
+      ex_output_octets='$RAD->{OUTBYTE2}',
+      acct_input_gigawords='$RAD->{ACCT_INPUT_GIGAWORDS}',
+      acct_output_gigawords='$RAD->{ACCT_OUTPUT_GIGAWORDS}'";
+     }
+
     $self->query($db, "UPDATE dv_calls SET
+      $ipn_fields
       status='$acct_status_type',
       nas_port_id='$RAD->{NAS_PORT}',
       acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
       framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
       lupdated=UNIX_TIMESTAMP(),
-      sum=sum+$self->{SUM}
     WHERE
       acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
       user_name=\"$RAD->{USER_NAME}\" and
       nas_id='$NAS->{NAS_ID}';", 'do');
 
-#      acct_input_octets='$RAD->{INBYTE}',
-#      acct_output_octets='$RAD->{OUTBYTE}',
-#      ex_input_octets='$RAD->{INBYTE2}',
-#      ex_output_octets='$RAD->{OUTBYTE2}',
-#      acct_input_gigawords='$RAD->{ACCT_INPUT_GIGAWORDS}',
-#      acct_output_gigawords='$RAD->{ACCT_OUTPUT_GIGAWORDS}'
 
 
   	return $self;
