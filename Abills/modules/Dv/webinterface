@@ -1546,7 +1546,10 @@ my %CAPTIONS_HASH = ('1:DATE:right'            => $_DATE,
   	       });
 
 
-$LIST_PARAMS{TP_ID}=$FORM{TP_ID} if ($FORM{TP_ID});
+if ($FORM{TP_ID}) {
+  $LIST_PARAMS{TP_ID}=$FORM{TP_ID} ;
+  $pages_qs .= "&TP_ID=$FORM{TP_ID}" ;
+ }
 
 if ($FORM{COMPANY_ID}) {
  	$LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
@@ -1569,6 +1572,8 @@ my $graph_type='';
 
 #Day reposrt
 if (defined($FORM{DATE})) {
+
+  
 
   #Used Traffic
   $table_sessions = $html->table({ width      => '100%',
@@ -1680,6 +1685,9 @@ else {
     		$TP_NAMES{$line->[0]}=$line->[1];
     	 }
      }
+    elsif ($FORM{TP_ID}) {
+    	$caption[0]="$_LOGINS";
+     }
   
   $table_sessions = $html->table({ width      => '100%',
 	                                 caption    => "$_SESSIONS", 
@@ -1692,7 +1700,9 @@ else {
 
   $graph_type='month_stats';
   my $num = 0;
+
   
+
   my $list = $sessions->reports({ %LIST_PARAMS });
   
   
