@@ -1305,7 +1305,7 @@ foreach my $line (@$list) {
     @interval,
     );
 
-   $total_sum    += $line->[7];
+   $total_sum    += $line->[7] if ($line->[7] < 0);
    $total_32_sum += $line->[8];
 
    $total    += ($line->[7] < 0) ? 1 : 0;
