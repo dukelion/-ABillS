@@ -1063,7 +1063,7 @@ sub extfin_debetors {
   if ($attr->{DATE}) {
     push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')<='$attr->{DATE}'";
     
-    push @WHERE_RULES, "(f.last_deposit-f.sum<0) ";
+    push @WHERE_RULES, "(f.last_deposit<0) ";
     
     #push @WHERE_RULES, "(f.last_deposit-sum<0) and u.uid IN (SELECT fees.uid from fees WHERE fees.last_deposit-sum<0 and fees.date<'2009-03-01') ";
     
@@ -1085,7 +1085,7 @@ sub extfin_debetors {
   
   $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : ''; 
 
-  #$self->{debug}=1;
+  $self->{debug}=1;
 
   $self->query($db, "SELECT \@uid:=u.uid, u.id, pi.contract_id,
    pi.fio,
@@ -1109,6 +1109,7 @@ sub extfin_debetors {
      LEFT JOIN dv_main dv ON  (u.uid=dv.uid)
 WHERE u.uid=f.uid $WHERE
 GROUP BY f.uid
+
 ORDER BY f.date DESC;");
 
   my $list = $self->{list};
