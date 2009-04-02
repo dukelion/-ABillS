@@ -1325,7 +1325,7 @@ $table->{rowcolor}   = $_COLORS[2];
   $html->b($total_365),
   $html->b($total_maximum) );
 
-$table->addrow("$_COUNT:  ", '', '', '', '', '', 
+$table->addrow("$_COUNT:  ", '', '', '', '', '', '',
 $html->b($total),
 $html->b($total_32),
 @interval
@@ -1341,7 +1341,7 @@ $html->b($total_32),
   $html->b(sprintf("%.2f", $total_maximum_sum )) );
 
 
-$table->addrow("$_SUM: ", '', '', '',  '', '', 
+$table->addrow("$_SUM: ", '', '', '',  '', '', '',
 $html->b(sprintf("%.2f", $total_sum)),
 $html->b(sprintf("%.2f", $total_32_sum  )),
 @interval ) ;
