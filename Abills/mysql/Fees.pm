@@ -335,7 +335,7 @@ sub reports {
     }  
  
 
-  if (defined($attr->{METHODS})) {
+  if (defined($attr->{METHODS}) and $attr->{METHODS} ne '') {
     push @WHERE_RULES, "f.method IN ($attr->{METHODS}) ";
    }
 

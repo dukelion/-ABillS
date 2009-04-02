@@ -303,7 +303,6 @@ sub reports {
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  my $date = '';
  undef @WHERE_RULES;
- 
 
  if ($attr->{GIDS}) {
    push @WHERE_RULES, "u.gid IN ( $attr->{GIDS} )";
@@ -312,7 +311,7 @@ sub reports {
    push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
- if (defined($attr->{METHODS})) {
+ if (defined($attr->{METHODS}) and $attr->{METHODS} ne '') {
     push @WHERE_RULES, "p.method IN ($attr->{METHODS}) ";
   }
  
