@@ -778,7 +778,7 @@ sub list {
  }
 
 #DIsable
- if (defined($attr->{DISABLE})) {
+ if (defined($attr->{DISABLE}) && $attr->{DISABLE} ne '') {
    push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
   }
 
