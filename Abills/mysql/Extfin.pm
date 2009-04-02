@@ -1063,13 +1063,13 @@ sub extfin_debetors {
   if ($attr->{DATE}) {
     push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')<='$attr->{DATE}'";
     
-    push @WHERE_RULES, "(f.last_deposit<0) ";
+    push @WHERE_RULES, "(f.last_deposit-f.sum<0) ";
     
     #push @WHERE_RULES, "(f.last_deposit-sum<0) and u.uid IN (SELECT fees.uid from fees WHERE fees.last_deposit-sum<0 and fees.date<'2009-03-01') ";
     
     $attr->{DATE} = "'$attr->{DATE}'";
     #$ext_field    = "\@A:=f.last_deposit-f.sum,";
-    $ext_field    = "\@A:=(select last_deposit-f.sum FROM fees USE INDEX (uid) WHERE uid=\@uid ORDER BY id DESC limit 1),";
+    $ext_field    = "\@A:=(select last_deposit-sum FROM fees USE INDEX (uid) WHERE uid=\@uid ORDER BY id DESC limit 1),";
     #$self->query($db, "select uid, last_deposit-sum FROM fees WHERE date<$attr->{DATE} GROUP BY uid ORDER BY id;");
     #foreach my $line (@{ $self->{list} }) {
     #	$deposits{$line->[0]}=$line->[1];

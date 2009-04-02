@@ -1215,7 +1215,7 @@ sub extfin_debetors {
 
 $table = $html->table( { width       => '100%',
 	                       rowcolor    => $_COLORS[0],
-                         rows        => [[ "$_PERIOD: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
+                         rows        => [[ "$_PERIOD: ", $html->form_input('SEL_DATE', 1, { TYPE => 'checkbox' } ). $html->date_fld('from', { MONTHES => \@MONTHES} ),
                                            "$_STATUS: ". $html->form_select('STATUS', 
                                     { 
  	                                   SELECTED    => $FORM{STATUS},
@@ -1236,11 +1236,11 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 
 if ($FORM{show}) {
 	$FORM{fromM}++;
-  $LIST_PARAMS{DATE}="$FORM{fromY}-$FORM{fromM}-$FORM{fromD}"  if ($FORM{show});
+  $LIST_PARAMS{DATE}="$FORM{fromY}-$FORM{fromM}-$FORM{fromD}"  if ($FORM{show} && $FORM{SEL_DATE});
   $LIST_PARAMS{STATUS}=$FORM{STATUS};
 }
 
-my $list = $Extfin->extfin_debetors({ %LIST_PARAMS });	  
+my $list = $Extfin->extfin_debetors({ %LIST_PARAMS, });	  
 my $table = $html->table( { width      => '100%',
                             caption    => "$_DEBETORS",
                             border     => 1,
