@@ -52,7 +52,7 @@ $conf{s_detalization}=1; #make session detalization recomended for vpn leathed l
 #Check periodic deposit and session. hangup after get negative result
 $conf{periodic_check}=0;
 
-$conf{version}='0.41b'; #16.06.2006
+$conf{version}='0.42b'; #02.04.2009
 
 #Octets direction
 # server - Count octets from server side
@@ -83,7 +83,7 @@ $conf{MAX_SESSION_TRAFFIC} = 2047;
 
 
 # Exppp options
-$conf{DV_EXPPP_NETFILES}='/usr/abills/cgi-bin/admin/nets/';
+#$conf{DV_EXPPP_NETFILES}='/usr/abills/cgi-bin/admin/nets/';
 #Auto assigning MAC in first connect
 $conf{MAC_AUTO_ASSIGN}=1;
 $conf{KBYTE_SIZE} = 1024;
