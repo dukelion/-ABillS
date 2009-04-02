@@ -1208,8 +1208,28 @@ elsif ($FORM{TRUE}) {
  	                                      NO_ID     => 1
                                      });
 
+=comments
+function hexbin($temp) {
+   $data="";
+   $len = strlen($temp);
+   for ($i=0;$i<$len;$i+=2) $data.=chr(hexdec(substr($temp,$i,2)));
+   return $data;
+}
+
+
+$orderID=”Test_Merchant_Name_”.rand(1000,999999999);
+$str = "j8O5Eek7"."100000000918471"."414963".$orderID.$amount."980".$amount2."840";
+$s1=sha1($str);
+$s1=hexbin($s1);
+$hash = base64_encode($s1);
+=cut
+
 	$info{OPERATION_ID}  = $FORM{OPERATION_ID};  
-  $info{SUM}           = $FORM{SUM};
+  ($info{AMOUNT}, $info{AMOUNT2})=split(/,|./, $FORM{SUM}, 2);
+  $info{AMOUNT}  = sprintf("%.12d", int($info{AMOUNT}));
+  $info{AMOUNT2} = sprintf("%.12d", int($info{AMOUNT2}));
+  
+  
   $info{DESCRIBE}      = $FORM{DESCRIBE};
 
   $html->tpl_show(_include('paysys_pb_add', 'Paysys'), \%info);
