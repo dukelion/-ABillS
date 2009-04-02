@@ -1214,8 +1214,8 @@ sub reports {
                            TRAFFIC_2_SUM   => 'sum(l.sent2 + l.recv2)',
                            DURATION        => 'sec_to_time(sum(l.duration))',
                            SUM             => 'sum(l.sum)',
-                           TRAFFIC_RECV    => 'sum(l.recv)',
-                           TRAFFIC_SENT    => 'sum(l.sent)',
+                           TRAFFIC_RECV    => 'sum(l.recv + 4294967296 * acct_input_gigawords)',
+                           TRAFFIC_SENT    => 'sum(l.sent + 4294967296 * acct_output_gigawords)',
                            USERS_COUNT     => 'count(DISTINCT l.uid)',
                            TP              => 'l.tp_id'
                           };

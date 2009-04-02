@@ -150,7 +150,7 @@ sub internet_fees_monitor {
  $self->{SEARCH_FIELDS} = '';
  $self->{SEARCH_FIELDS_COUNT}=0;
 
- @WHERE_RULES = ( 'u.disable=0' );
+ @WHERE_RULES = ();
  
 
 
@@ -173,13 +173,24 @@ sub internet_fees_monitor {
    push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'u.deposit') };
   }
 
+ if ($attr->{TP_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'tp.id') };
+  }
 
+ if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', 'dv.disable') };
+  }
 
- $WHERE = ($#WHERE_RULES > -1) ? 'and '. join(' and ', @WHERE_RULES)  : '';
+ my $date = 'curdate()'; 
 
+ if ($attr->{FROM_Y}) {
+ 	 $date = sprintf("'%s-%.2d-%.2d'", $attr->{FROM_Y}, ($attr->{FROM_M}+1), $attr->{FROM_D});
+  }
+ 
 
+ 
 
- my $date = 'curdate()';
+ my $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
 
 
  $self->query($db, "select u.uid,  u.id, 
@@ -194,7 +205,8 @@ sub internet_fees_monitor {
   from users u
   inner join dv_main dv on (dv.uid=u.uid)
   inner join tarif_plans tp on (dv.tp_id=tp.id)
-  inner join fees f on (f.uid=u.uid)
+  left join fees f on (f.uid=u.uid)
+  $WHERE
   GROUP BY u.uid
      ORDER BY $SORT $DESC 
      LIMIT $PG, $PAGE_ROWS;");
@@ -204,7 +216,10 @@ sub internet_fees_monitor {
  my $list = $self->{list};
 
  if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(*) FROM users u;");
+    $self->query($db, "SELECT count(distinct u.uid) FROM  users u
+     inner join dv_main dv on (dv.uid=u.uid)
+     inner join tarif_plans tp on (dv.tp_id=tp.id)
+    $WHERE;");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 
