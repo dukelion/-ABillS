@@ -164,27 +164,42 @@ sub parse_arguments {
 #
 #********************************************************************
 sub sendmail {
-  my ($from, $to, $subject, $message, $charset, $priority, $attr) = @_;
+  my ($from, $to_addresses, $subject, $message, $charset, $priority, $attr) = @_;
   my $SENDMAIL = (defined($attr->{SENDMAIL_PATH})) ? $attr->{SENDMAIL_PATH} : '/usr/sbin/sendmail';
   
-  if ($attr->{TEST}) {
-    print "To: $to\n";
-    print "From: $from\n";
-    print "Content-Type: text/plain; charset=$charset\n";
-    print "X-Priority: $priority\n" if ($priority ne '');
-    print "Subject: $subject \n\n";
-    print "$message";
-    return 0;
+  my $header = '';
+  if ($attr->{MAIL_HEADER}) {
+    foreach my $line (@{ $attr->{MAIL_HEADER} } ) {
+    	$header .= "$line\n";
+     }	
    }
   
-  open(MAIL, "| $SENDMAIL -t $to") || die "Can't open file '$SENDMAIL' $!\n";
-    print MAIL "To: $to\n";
-    print MAIL "From: $from\n";
-    print MAIL "Content-Type: text/plain; charset=$charset\n";
-    print MAIL "X-Priority: $priority\n" if ($priority ne '');
-    print MAIL "Subject: $subject \n\n";
-    print MAIL "$message";
-  close(MAIL);
+  $to_addresses =~ s/[\n\r]//g;
+  
+  my @emails_arr = split(/;/, $to_addresses);
+  
+  foreach my $to (@emails_arr) {
+    if ($attr->{TEST}) {
+      print "To: $to\n";
+      print "From: $from\n";
+      print "Content-Type: text/plain; charset=$charset\n";
+      print "X-Priority: $priority\n" if ($priority ne '');
+      print $header;
+      print "Subject: $subject \n\n";
+      print "$message";
+     }
+    else {
+      open(MAIL, "| $SENDMAIL -t $to") || die "Can't open file '$SENDMAIL' $!\n";
+        print MAIL "To: $to\n";
+        print MAIL "From: $from\n";
+        print MAIL "Content-Type: text/plain; charset=$charset\n";
+        print MAIL "X-Priority: $priority\n" if ($priority ne '');
+        print MAIL $header;
+        print MAIL "Subject: $subject \n\n";
+        print MAIL "$message";
+      close(MAIL);
+     }
+  }
 
   return 0;
 }

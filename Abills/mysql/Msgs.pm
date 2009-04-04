@@ -279,6 +279,7 @@ sub message_add {
         );", 'do');
 
   $self->{MSG_ID} = $self->{INSERT_ID};
+  
 	return $self;
 }
 
@@ -857,7 +858,9 @@ sub message_reply_add {
         '$DATA{STATE}',
         '$DATA{UID}', '$DATA{RUN_TIME}'
     );", 'do');
-
+ 
+  
+  $self->{REPLY_ID} = $self->{INSERT_ID};
 
   return $self;	
 }
@@ -876,6 +879,8 @@ sub attachment_add () {
         " ('$attr->{MSG_ID}', '$attr->{FILENAME}', '$attr->{CONTENT_TYPE}', '$attr->{FILESIZE}', ?, ".
         " current_timestamp, '$attr->{UID}', current_timestamp, '0', '$attr->{MESSAGE_TYPE}')", 
         'do', { Bind => [ $attr->{CONTENT}  ] } );
+        
+        
 
   return $self;
 }
@@ -1048,3 +1053,4 @@ sub messages_reports {
 }
 
 1
+

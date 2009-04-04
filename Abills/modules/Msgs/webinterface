@@ -158,7 +158,6 @@ sub msgs_admin_add {
     my $message='';
 
     if  (! $FORM{INNER_MSG} && (defined($FORM{GID}) || ($FORM{GID} == 0 && $FORM{UID} == 0 ) ) ) {
-    	 print "Total send";
        my $list = $users->list({ GID => $FORM{GID}, PAGE_ROWS => 100000 });
        foreach my $line (@$list) {
           $FORM{UID}=$line->[5+$users->{SEARCH_FIELDS_COUNT}];
@@ -173,10 +172,15 @@ sub msgs_admin_add {
        undef $FORM{UID};
      }
     else {
+    	
       $Msgs->message_add({ %FORM, 
       	      	           ADMIN_READ => (! $FORM{INNER_MSG} || ($FORM{STATE} == 1 || $FORM{STATE} == 2)) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
       	                   IP         => $admin->{SESSION_IP} 
       	                 });
+      	                 
+      if (! $FORM{INNER_MSG}) {
+      	$users->pi({ UID => $FORM{UID} });
+       }
      }
 
     if (! $Msgs->{errno}) {
@@ -198,16 +202,25 @@ sub msgs_admin_add {
       if ($users->{EMAIL}) {
       	$ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
         my $site =  $1 || '';
-    	 
+   	 
        	my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
-           { SITE => $site, DATE => $DATE, TIME => $TIME }, { OUTPUT2RETURN => 1 } );
+           { SITE => $site, 
+           	 DATE => $DATE, 
+           	 TIME => $TIME, 
+           	 ID      => $Msgs->{INSERT_ID}, 
+           	 SUBJECT => $FORM{SUBJECT},
+           	 STATUS  => $msg_status[$FORM{STATE}],
+           	 MESSAGE => $FORM{MESSAGE},
+           	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
+           	 }, { OUTPUT2RETURN => 1 } );
 
-        sendmail("AbillS <$conf{ADMIN_MAIL}>",
+        sendmail("X-ABillS <$conf{ADMIN_MAIL}>",
           "$users->{EMAIL}",
           "$conf{WEB_TITLE} - $_NEW_MESSAGE",
           "$message",
           "$conf{MAIL_CHARSET}",
-          undef);
+          undef,
+          { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}" ] });
        }
 
      }
@@ -329,6 +342,7 @@ sub msgs_admin {
     $Msgs->message_reply_add({ %FORM, 
     	                         AID  => $admin->{AID},
     	                         IP   => $admin->{SESSION_IP} });
+    my $reply_id =  $Msgs->{INSERT_ID};
 
      if (! $Msgs->{errno}) {
        #Add attachment
@@ -369,15 +383,26 @@ sub msgs_admin {
     	 $ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
        my $site =  $1 || '';
     	 
+   	 
     	 my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
-           { SITE => $site, DATE => $DATE, TIME => $TIME }, { OUTPUT2RETURN => 1 } );
+           { SITE => $site, 
+           	 DATE => $DATE, 
+           	 TIME => $TIME, 
+          	 ID      => "$Msgs->{ID} / $reply_id", 
+           	 SUBJECT => $FORM{REPLY_SUBJECT},
+           	 STATUS  => $msg_status[$FORM{STATE}],
+           	 MESSAGE => $FORM{REPLY_TEXT},
+           	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
+            }, { OUTPUT2RETURN => 1 } );
     	 
-       sendmail("AbillS <$conf{ADMIN_MAIL}>",
+       sendmail("X-ABillS <$conf{ADMIN_MAIL}>",
           "$users->{EMAIL}",
           "$conf{WEB_TITLE} - $_NEW_MESSAGE",
           "$message",
           "$conf{MAIL_CHARSET}",
-          undef);
+          undef,
+          { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}",
+          	                 "X-ABillS-REPLY-ID: $Msgs->{REPLY_ID}" ] });
 
      }
     
@@ -700,6 +725,8 @@ $table = $html->table({ width      => '100%',
 print $table->show();
 }
 
+
+
 #*******************************************************************
 #
 #*******************************************************************
@@ -753,14 +780,23 @@ sub msgs_user {
         my $site =  $1 || '';
 
       	my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
-           { SITE => $site, DATE => $DATE, TIME => $TIME }, { OUTPUT2RETURN => 1 } );
+           { SITE => $site, 
+           	 DATE => $DATE, 
+           	 TIME => $TIME, 
+           	 ID      => $Msgs->{INSERT_ID}, 
+           	 SUBJECT => $FORM{SUBJECT},
+           	 STATUS  => $msg_status[$FORM{STATE}],
+           	 MESSAGE => $FORM{MESSAGE},
+           	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
+            }, { OUTPUT2RETURN => 1 } );
     	 
-        sendmail("AbillS <$conf{ADMIN_MAIL}>",
+        sendmail("X-ABillS <$conf{ADMIN_MAIL}>",
           "$line->[7]",
           "$conf{WEB_TITLE} - $_NEW_MESSAGE",
           "$message",
           "$conf{MAIL_CHARSET}",
-          undef);
+          undef,
+          { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}" ] });
       }
    }
  	}
@@ -796,7 +832,7 @@ sub msgs_user {
      $html->message('info', $_INFO, "$_REPLY");  
      
      my $list = $Msgs->admins_list({ EMAIL_NOTIFY   => 1,
-     	                               CHAPTEr_ID     => $FORM{CHAPTER}
+     	                               CHAPTER_ID     => $FORM{CHAPTER}
      	                              });     
      foreach my $line (@$list) {
         next if (! $line->[7]);
@@ -805,15 +841,25 @@ sub msgs_user {
         my $site =  $1 || '';
 
        	my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
-           { SITE => $site, DATE => $DATE, TIME => $TIME }, { OUTPUT2RETURN => 1 } );
+           { SITE => $site, 
+           	 DATE => $DATE, 
+           	 TIME => $TIME,
+	           ID      => "$Msgs->{INSERT_ID}/$Msgs->{REPLY_ID}", 
+           	 SUBJECT => $FORM{REPLY_SUBJECT},
+           	 STATUS  => $msg_status[$FORM{STATE}],
+           	 MESSAGE => $FORM{REPLY_TEXT},
+           	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}           	  
+           	 }, { OUTPUT2RETURN => 1 } );
 
 
-        sendmail("AbillS <$conf{ADMIN_MAIL}>",
+        sendmail("X-ABillS <$conf{ADMIN_MAIL}>",
           "$line->[7]",
           "$conf{WEB_TITLE} - $_NEW_MESSAGE",
           "$message",
           "$conf{MAIL_CHARSET}",
-          undef);
+          undef,
+          { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}",
+          	                 "X-ABillS-Reply-ID: $Msgs->{REPLY_ID}" ] });
       }
    
      }

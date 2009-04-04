@@ -1,7 +1,14 @@
 $_ADDED $_MESSAGE
 =======================================
+ID: %ID%
+$_SUBJECT: %SUBJECT%
+$_STATUS: %STATUS%
+---------------------------------------
 
-$_SITE: %SITE%
+%MESSAGE%
 
+$_ATTACHMENT: %ATTACHMENT%
+---------------------------------------
+$_SITE:   %SITE%
 =======================================
 $_DATE: %DATE% %TIME%

@@ -328,7 +328,7 @@ if ($self->{PAYMENT_TYPE} == 0) {
 
     #Filtering with negative deposit
     if ($self->{NEG_DEPOSIT_FILTER_ID}) {
-      return $self->neg_deposit_filter_former($self->{NEG_DEPOSIT_FILTER_ID});
+      return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
       #return 1, $RAD_PAIRS;
      }
     else {
