@@ -53,7 +53,8 @@ sub dhcphosts_mac_block_show {
    my @pair_status = ('ACCEPT', 'DENY');
    my $list = $Dhcphosts->hosts_list({ STATUS        => $LIST_PARAMS{STATUS}, 
    	                                   PAGE_ROWS     => 1000000,
-   	                                   DHCPHOSTS_DEPOSITCHECK => $conf{DHCPHOSTS_DEPOSITCHECK}
+   	                                   DHCPHOSTS_DEPOSITCHECK => $conf{DHCPHOSTS_DEPOSITCHECK},
+   	                                   DHCPHOSTS_EXT_DEPOSITCHECK => $conf{DHCPHOSTS_EXT_DEPOSITCHECK}
                                      });
 
    #Get Templates default for IP Guard
@@ -75,17 +76,26 @@ sub dhcphosts_mac_block_show {
       #Chack status
       my $status = ($line->[10] == 1 || $line->[14+$Dhcphosts->{SEARCH_FIELDS_COUNT}] == 1 ) ? 1 : 0;	    
 
+      my $deposit = 0;
+      
+      if ($conf{DHCPHOSTS_EXT_DEPOSITCHECK}) {
+      	$deposit = 'ED:'. $line->[15 + $Dhcphosts->{SEARCH_FIELDS_COUNT}];
+       }
+      elsif($conf{DHCPHOSTS_DEPOSITCHECK}) {
+      	$deposit = 'D:'. $line->[15 + $Dhcphosts->{SEARCH_FIELDS_COUNT}];
+       }
+
       #DENY
       my %INFO = (
             IP      => ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[11],
       	    MAC     => $line->[6],
       	    LOGIN   => $line->[1],
-      	    DEPOSIT => ($conf{DHCPHOSTS_DEPOSITCHECK}) ? " D: ". $line->[15 + $Dhcphosts->{SEARCH_FIELDS_COUNT}] : '',
+      	    DEPOSIT => $deposit,
       	    UID     => $line->[12 + $Dhcphosts->{SEARCH_FIELDS_COUNT}],
       	    EXPIRE  => $line->[7]
         ); 
       
-      if ($status == 1 || ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[15 + $Dhcphosts->{SEARCH_FIELDS_COUNT}] <= 0)) {
+      if ($status == 1 || (($conf{DHCPHOSTS_DEPOSITCHECK} || $conf{DHCPHOSTS_DEPOSITCHECK} ) && deposit <= 0) ) {
          next if ($DENY_TEMPLATE eq '');
          $ethers_content .= tpl_parse($DENY_TEMPLATE, {  
       	                              STATUS  => $pair_status[1],
@@ -374,6 +384,7 @@ sub dhcphosts_networks {
   	print $html->message('err', $_ERROR, "$_HOSTS_NETWORKS_NAME - '$FORM{NAME}' $ERR_WRONG_DATA");
   	return 0;
    }
+
   
   if ($FORM{config}) {
   	dhcphosts_config({ NETWORKS => $FORM{IDS} });
@@ -382,10 +393,19 @@ sub dhcphosts_networks {
    }
   elsif ($FORM{add}) {
     $FORM{ROUTERS}='0.0.0.0' if (! $FORM{ROUTERS}) ;
-    $Dhcphosts->network_add({ %FORM });
-    if (! $Dhcphosts->{errno}) {
-	    $html->message('info', $_ADDED, "$_HOSTS_NETWORKS_NAME [$FORM{NAME}] ");
-	   }
+
+    if(ip2int($FORM{IP_RANGE_FIRST}) < ip2int($FORM{NETWORK}) 
+     || ip2int($FORM{IP_RANGE_FIRST}) > ip2int($FORM{NETWORK}) + ( ip2int('255.255.255.255') - ip2int($FORM{MASK}) )
+     || ip2int($FORM{IP_RANGE_LAST}) < ip2int($FORM{NETWORK}) 
+     || ip2int($FORM{IP_RANGE_LAST}) > ip2int($FORM{NETWORK}) + ( ip2int('255.255.255.255') - ip2int($FORM{MASK}) ) ) {
+      $html->message('err', $_ERROR, "$ERR_WRONG_RANGE");
+     }	
+    else {
+      $Dhcphosts->network_add({ %FORM });
+      if (! $Dhcphosts->{errno}) {
+	      $html->message('info', $_ADDED, "$_HOSTS_NETWORKS_NAME [$FORM{NAME}] ");
+	     }
+     }
 	 }
   elsif ($FORM{change}) {
 	  $FORM{MASK}           = ip2int($FORM{MASK});
@@ -393,6 +413,13 @@ sub dhcphosts_networks {
     $FORM{ROUTERS}        = ip2int($FORM{ROUTERS});
 	  $FORM{IP_RANGE_FIRST} = ip2int($FORM{IP_RANGE_FIRST});
     $FORM{IP_RANGE_LAST}  = ip2int($FORM{IP_RANGE_LAST});
+
+    if($FORM{IP_RANGE_FIRST} < $FORM{NETWORK} 
+     || $FORM{IP_RANGE_FIRST} > $FORM{NETWORK} + ( ip2int('255.255.255.255') - $FORM{MASK} )
+     || $FORM{IP_RANGE_LAST} < $FORM{NETWORK} 
+     || $FORM{IP_RANGE_LAST} > $FORM{NETWORK} + ( ip2int('255.255.255.255') - $FORM{MASK} ) ) {
+      $html->message('err', $_ERROR, "$ERR_WRONG_RANGE");
+     }	
 
 
 	  $Dhcphosts->network_change({ %FORM });
@@ -632,6 +659,10 @@ sub dhcphosts_user {
     elsif(! $FORM{HOSTNAME}) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: $_HOSTS_HOSTNAME  ");
      }	
+    elsif(ip2int($FORM{IP_RANGE_FIRST}) < ip2int($FORM{NETWORK}) ||  ip2int($FORM{IP_RANGE_FIRST}) > ip2int($FORM{NETWORK}) + ( ip2int('255.255.255.255') - ip2int($FORM{MASK}) )
+     || ip2int($FORM{IP_RANGE_LAST}) < ip2int($FORM{NETWORK}) ||  ip2int($FORM{IP_RANGE_LAST}) > ip2int($FORM{NETWORK}) + ( ip2int('255.255.255.255') - ip2int($FORM{MASK}) ) ) {
+      $html->message('err', $_ERROR, "$ERR_WRONG_RANGE");
+     }	
     else {
       if (! $FORM{NETWORK}) {
       	$FORM{NETWORK} = auto_net_sign($FORM{IP});
@@ -864,6 +895,7 @@ foreach my $line (@$list) {
   	                               STATUS    => 0, 
   	                               PAGE_ROWS => 100000,
   	                               DHCPHOSTS_DEPOSITCHECK => $conf{DHCPHOSTS_DEPOSITCHECK},
+  	                               DHCPHOSTS_EXT_DEPOSITCHECK => $conf{DHCPHOSTS_EXT_DEPOSITCHECK},
   	                               PORTS     => '*',
   	                               NAS_ID    => '>=0',
   	                               OPTION_82 => '>=0',

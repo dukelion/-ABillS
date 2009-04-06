@@ -685,10 +685,18 @@ sub hosts_list {
   }
 
   # Deposit chech
-  my $extra_db     = ''; 
+  my $EXT_TABLES     = ''; 
   my $extra_fields = '';
-  if ($attr->{DHCPHOSTS_DEPOSITCHECK}) {
-  	$extra_db = 'LEFT JOIN bills b ON (u.bill_id = b.id)
+  if ($attr->{DHCPHOSTS_EXT_DEPOSITCHECK}) {
+   $extra_fields = ', if(company.id IS NULL,ext_b.deposit,ext_cb.deposit) ';
+
+   $EXT_TABLES = "
+            LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
+            LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
+
+   }
+  elsif ($attr->{DHCPHOSTS_DEPOSITCHECK}) {
+  	$EXT_TABLES = 'LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)'; 
     $extra_fields = ', if(company.id IS NULL, b.deposit, cb.deposit) + u.credit';
@@ -738,7 +746,7 @@ sub hosts_list {
      FROM (dhcphosts_hosts h)
      left join dhcphosts_networks n on h.network=n.id
      left join users u on h.uid=u.uid
-     $extra_db
+     $EXT_TABLES
      $WHERE
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 

@@ -19,3 +19,4 @@ $_SWITCH='Switch';
 $_AUTO='Auto';
 $_NETWORK='Network';
 $ERR_WRONG_NETWORK  = 'Wrong network. Check network IP/MAC range';
+$ERR_WRONG_RANGE='Wrong IP range';
