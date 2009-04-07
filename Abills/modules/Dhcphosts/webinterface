@@ -95,7 +95,7 @@ sub dhcphosts_mac_block_show {
       	    EXPIRE  => $line->[7]
         ); 
       
-      if ($status == 1 || (($conf{DHCPHOSTS_DEPOSITCHECK} || $conf{DHCPHOSTS_DEPOSITCHECK} ) && deposit <= 0) ) {
+      if ($status == 1 || (($conf{DHCPHOSTS_DEPOSITCHECK} || $conf{DHCPHOSTS_DEPOSITCHECK} ) && $deposit <= 0) ) {
          next if ($DENY_TEMPLATE eq '');
          $ethers_content .= tpl_parse($DENY_TEMPLATE, {  
       	                              STATUS  => $pair_status[1],

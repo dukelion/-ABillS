@@ -115,6 +115,7 @@ if (! -f $LEASES) {
 		$check_count++;
 	}
 
+  $begin_time = check_time();
 	if($oldstat != $custat || (($check_count == $AUTO_VERIFY) && $AUTO_VERIFY)){
 		mk_log('LOG_DEBUG', "Leases stat - old: $oldstat cur: $custat");
 
@@ -244,7 +245,16 @@ sub leases2db {
 	}
  
   mk_log('LOG_INFO', "$parse_info");
-  mk_log('LOG_NOTICE', "Updated: $i leases");
+
+  my $GT = '';
+  if ($begin_time > 0)  {
+    Time::HiRes->import(qw(gettimeofday));
+    my $end_time = gettimeofday();
+    my $gen_time = $end_time - $begin_time;
+    $GT = sprintf(" (GT: %2.5f)", $gen_time);
+  }
+
+  mk_log('LOG_NOTICE', "Updated: $i leases $GT");
 }
 
 
