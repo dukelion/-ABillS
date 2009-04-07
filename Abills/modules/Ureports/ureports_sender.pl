@@ -99,8 +99,8 @@ sub ureports_send_reports {
 
   if ($type == 0) {
   	my $subject = $attr->{SUBJECT} || '';
-  	
   	if (! sendmail($conf{ADMIN_MAIL}, $destination, $subject, $message, $conf{MAIL_CHARSET})) {
+
   		 return 0;
   	 }
    }
@@ -182,6 +182,7 @@ sub ureports_periodic_reports {
          	 	 	  $debug_output .= "UID: $user{UID} REPORT_ID: $user{REPORT_ID} DEPOSIT: $user{DEPOSIT}/$user{CREDIT} Small Deposit\n" if ($debug > 0);
          	 	 	  next;
          	 	  }
+
          	 	 ureports_send_reports($user{DESTINATION_TYPE}, 
          	 	                       $user{DESTINATION_ID}, 
          	 	                       "$_DEPOSIT: $user{DEPOSIT}", 

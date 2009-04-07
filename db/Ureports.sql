@@ -1,59 +1,71 @@
-CREATE TABLE IF NOT EXISTS `ureports_log` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `uid` int(11) unsigned NOT NULL DEFAULT '0',
-  `execute` datetime NOT NULL,
-  `body` text NOT NULL,
-  `destination` varchar(60) NOT NULL,
-  `report_id` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `tp_id` smallint(5) unsigned NOT NULL DEFAULT '0',
-  `status` tinyint(3) unsigned NOT NULL DEFAULT '0',
+CREATE TABLE `ureports_log` (
+  `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `execute` DATETIME NOT NULL,
+  `body` TEXT COLLATE latin1_swedish_ci NOT NULL,
+  `destination` VARCHAR(60) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  `report_id` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0',
+  `tp_id` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0',
+  `status` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `uid` (`uid`)
-) COMMENT='Ureports log';
+)ENGINE=MyISAM
+AUTO_INCREMENT=36 ROW_FORMAT=DYNAMIC 
+CHARACTER SET 'latin1' COLLATE 'latin1_swedish_ci'
+COMMENT='Ureports log';
 
 CREATE TABLE `ureports_main` (
-  `uid` int(11) unsigned NOT NULL DEFAULT '0',
-  `tp_id` smallint(6) unsigned NOT NULL DEFAULT '0',
-  `registration` date NOT NULL,
-  `status` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `type` tinyint(4) unsigned NOT NULL DEFAULT '0',
-  `destination` varchar(40) NOT NULL,
+  `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `registration` DATE NOT NULL,
+  `status` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+  `type` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+  `destination` VARCHAR(40) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`uid`),
   KEY `tp_id` (`tp_id`)
-) COMMENT='Ureports user account';
+)ENGINE=MyISAM
+AUTO_INCREMENT=0 ROW_FORMAT=DYNAMIC 
+CHARACTER SET 'latin1' COLLATE 'latin1_swedish_ci'
+COMMENT='Ureports user account';
+
 
 CREATE TABLE `ureports_spool` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `uid` int(11) unsigned NOT NULL DEFAULT '0',
-  `added` datetime NOT NULL,
-  `execute` date NOT NULL,
-  `body` text NOT NULL,
-  `destinatio` varchar(60) NOT NULL,
+  `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `added` DATETIME NOT NULL,
+  `execute` DATE NOT NULL,
+  `body` TEXT COLLATE latin1_swedish_ci NOT NULL,
+  `destinatio` VARCHAR(60) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `uid` (`uid`)
-) COMMENT='Ureports spool';
+)
+COMMENT='Ureports spool';
+
 
 CREATE TABLE `ureports_tp` (
-  `msg_price` double(14,2) unsigned NOT NULL DEFAULT '0.00',
-  `tp_id` smallint(5) unsigned DEFAULT '0'
-) COMMENT='Ureports tarif plans';
+  `msg_price` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00',
+  `tp_id` SMALLINT(5) UNSIGNED DEFAULT '0'
+)
+COMMENT='Ureports tariff plans';
 
 
 CREATE TABLE `ureports_tp_reports` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `tp_id` smallint(6) unsigned NOT NULL DEFAULT '0',
-  `msg_price` double(14,2) unsigned NOT NULL DEFAULT '0.00',
-  `report_id` smallint(6) unsigned NOT NULL DEFAULT '0',
+  `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `msg_price` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00',
+  `report_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `tp_id` (`tp_id`,`report_id`)
-) COMMENT='Ureports tarif plans reports';
+  KEY `tp_id` (`tp_id`, `report_id`)
+)
+COMMENT='Ureports users Tarif plans';
+
 
 CREATE TABLE `ureports_users_reports` (
-  `uid` int(11) unsigned NOT NULL DEFAULT '0',
-  `report_id` smallint(6) unsigned NOT NULL DEFAULT '0',
-  `date` date NOT NULL DEFAULT '0000-00-00',
-  `value` varchar(10) NOT NULL
-) COMMENT='Ureports users reports';
-
+  `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `report_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `date` DATE NOT NULL DEFAULT '0000-00-00',
+  `value` VARCHAR(10) COLLATE cp1251_general_ci NOT NULL DEFAULT ''
+)
+COMMENT='Ureports users reports';
