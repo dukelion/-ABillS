@@ -10,10 +10,7 @@ CREATE TABLE `ureports_log` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `uid` (`uid`)
-)ENGINE=MyISAM
-AUTO_INCREMENT=36 ROW_FORMAT=DYNAMIC 
-CHARACTER SET 'latin1' COLLATE 'latin1_swedish_ci'
-COMMENT='Ureports log';
+) COMMENT='Ureports log';
 
 CREATE TABLE `ureports_main` (
   `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
@@ -24,10 +21,7 @@ CREATE TABLE `ureports_main` (
   `destination` VARCHAR(40) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`uid`),
   KEY `tp_id` (`tp_id`)
-)ENGINE=MyISAM
-AUTO_INCREMENT=0 ROW_FORMAT=DYNAMIC 
-CHARACTER SET 'latin1' COLLATE 'latin1_swedish_ci'
-COMMENT='Ureports user account';
+) COMMENT='Ureports user account';
 
 
 CREATE TABLE `ureports_spool` (
