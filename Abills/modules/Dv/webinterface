@@ -1475,7 +1475,7 @@ my %CAPTIONS_HASH = ('1:DATE:right'            => $_DATE,
                      '2:USERS:left'            => $_USERS,
                      '3:USERS_FIO:left'        => $_FIO,
                      '4:TP:left'               => $_TARIF_PLAN,
-                     '5:SESSIONS:right'         => $_SESSIONS,
+                     '5:SESSIONS:right'        => $_SESSIONS,
                      '6:TRAFFIC_RECV:right'    => "$_TRAFFIC $_RECV",
                      '7:TRAFFIC_SENT:right'    => "$_TRAFFIC $_SENT",
                      '8:TRAFFIC_SUM:right'     => $_TRAFFIC,
@@ -1573,7 +1573,7 @@ my $graph_type='';
 #Day reposrt
 if (defined($FORM{DATE})) {
 
-  
+
 
   #Used Traffic
   $table_sessions = $html->table({ width      => '100%',
@@ -1687,6 +1687,7 @@ else {
      }
     elsif ($FORM{TP_ID}) {
     	$caption[0]="$_LOGINS";
+    	$field_align[0]='left';
      }
   
   $table_sessions = $html->table({ width      => '100%',
@@ -1702,7 +1703,6 @@ else {
   my $num = 0;
 
   
-
   my $list = $sessions->reports({ %LIST_PARAMS });
   
   
@@ -1735,6 +1735,9 @@ else {
     	  }
     	 elsif ($FORM{TYPE} eq 'TP') {
     	 	 $button = $line->[0].'. ' .$html->button($TP_NAMES{$line->[0]}, "index=$index&TP_ID=$line->[0]$pages_qs");
+    	  }
+    	 elsif ($FORM{TP_ID}) {
+    	 	 $button = $html->button("$line->[0]", "index=11&$type=$line->[0]&UID=$line->[7]");
     	  }
     	 else {
     	 	 $button = $html->button("$line->[0]", "index=$index&$type=$line->[0]$pages_qs");
