@@ -1044,6 +1044,9 @@ sub extfin_debetors {
 
   @WHERE_RULES = ();
 
+
+  $self->{debug}=1;
+
   # Show groups
   if ($attr->{GIDS}) {
     push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
@@ -1069,7 +1072,7 @@ sub extfin_debetors {
     
     $attr->{DATE} = "'$attr->{DATE}'";
     #$ext_field    = "\@A:=f.last_deposit-f.sum,";
-    $ext_field    = "\@A:=(select last_deposit-sum FROM fees USE INDEX (uid) WHERE uid=\@uid ORDER BY id DESC limit 1),";
+    $ext_field    = "\@A:=(select f.last_deposit-f.sum FROM fees f WHERE f.uid=@uid and f.date<'2009-03-31' ORDER BY f.id DESC limit 1),";
     #$self->query($db, "select uid, last_deposit-sum FROM fees WHERE date<$attr->{DATE} GROUP BY uid ORDER BY id;");
     #foreach my $line (@{ $self->{list} }) {
     #	$deposits{$line->[0]}=$line->[1];
@@ -1085,7 +1088,6 @@ sub extfin_debetors {
   
   $WHERE = ($#WHERE_RULES > -1) ?  "and " . join(' and ', @WHERE_RULES) : ''; 
 
-  $self->{debug}=1;
 
   $self->query($db, "SELECT \@uid:=u.uid, u.id, pi.contract_id,
    pi.fio,

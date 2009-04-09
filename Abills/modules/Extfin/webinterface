@@ -1246,7 +1246,7 @@ my $table = $html->table( { width      => '100%',
                             border     => 1,
                             title      => ['#', $_LOGIN, $_CONTRACT_ID, $_FIO, $_REGISTRATION, "$_STATUS",
                                 "$_TARIF_PLAN",  $_DEPOSIT, "< 32 days", "33 - 64 days","65 - 96 days","97 - 183 days", "184 - 365 days", "> 365 days" ],
-                            cols_align => ['right', 'left', 'right', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right' ],
+                            cols_align => ['right', 'left', 'left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right' ],
                             ID         => 'DEBETORS'
                            } );
 

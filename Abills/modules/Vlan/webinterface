@@ -601,7 +601,7 @@ sub vlan_dhcp {
    $cmd = "$SCP -P $attr->{NAS_MNG_PORT} -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} $DHCPCONF ".
       "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP}:$DHCPCONF_REMOTE; ".
              "$SSH -p $attr->{NAS_MNG_PORT} -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
-      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP} \"$sudo /usr/local/etc/rc.d/isc-dhcpd restart\""; 
+      "$attr->{NAS_MNG_USER}\@$attr->{NAS_MNG_IP} \"$SUDO /usr/local/etc/rc.d/isc-dhcpd restart\""; 
   }
  else {
    $cmd = "$conf{DHCPHOSTS_RECONFIGURE}"; 
@@ -639,7 +639,7 @@ sub vlan_pppoe_relay {
       $debug_output .= "Delete PPPoE $if\n" ;	  
      }
 
-    $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then $sudo kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ";
+    $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then $SUDO kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ";
    }
 
 # Add interfaces

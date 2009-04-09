@@ -149,6 +149,7 @@ sub ureports_periodic_reports {
 
      #Get users
  	   my $ulist = $Ureports->tp_user_reports_list({
+         DATE      => '0000-00-00',
          TP_ID     => $TP_ID,
          SORT      => 1,
          PAGE_ROWS => 1000000,
@@ -187,6 +188,10 @@ sub ureports_periodic_reports {
          	 	                       $user{DESTINATION_ID}, 
          	 	                       "$_DEPOSIT: $user{DEPOSIT}", 
          	 	                       { SUBJECT => "$_DEPOSIT_BELOW" });
+         	 	 
+         	 	 tp_user_reports_update({ UID       => $user{UID},
+         	 	 	                        REPORT_ID => $user{REPORT_ID} 
+         	 	 	                        });
          	 	     
          	 	 if ($user{MSG_PRICE} > 0) {
                $sum = $user{MSG_PRICE};

@@ -236,8 +236,8 @@ sub ureports_user {
     my $table = $html->table( { width      => '100%',
                               caption    => "$_REPORTS",
                               border     => 1,
-                              title      => ['#', $_NAME, $_VALUE, $_DEFAULT ],
-                              cols_align => ['center', 'left',  'center'],
+                              title      => ['#', $_NAME, $_VALUE, $_PRICE, $_SENDED ],
+                              cols_align => ['center', 'left',  'center', 'right', 'right'],
                               qs         => $pages_qs,
                               ID         => 'TP_REPORTS'
                            } );
@@ -250,7 +250,8 @@ sub ureports_user {
         $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => ($line->[3]) ? 1 : undef, OUTPUT2RETURN => 1 }), 
         $REPORTS{$line->[0]},
         $html->form_input("VALUE_$line->[0]", (($line->[1]) ? $line->[1] : 0), { OUTPUT2RETURN => 1, SIZE => 6 }), 
-        (($line->[2]) ? $line->[2] : '0.00') 
+        (($line->[2]) ? $line->[2] : '0.00'),
+        $line->[3] 
       );
      }
 
@@ -1068,8 +1069,8 @@ sub ureports_user_info {
     my $table = $html->table( { width      => '100%',
                               caption    => "$_REPORTS",
                               border     => 1,
-                              title      => ['#', "$_NAME", "$_VALUE", "$_DEFAULT" ],
-                              cols_align => ['center', 'left', 'right',  'center'],
+                              title      => ['#', "$_NAME", "$_VALUE", "$_PRICE", "$_SENDED" ],
+                              cols_align => ['center', 'left', 'right',  'center', 'right'],
                               qs         => $pages_qs,
                               ID         => 'TP_REPORTS'
                            } );
@@ -1082,7 +1083,8 @@ sub ureports_user_info {
         $html->form_input("IDS", "$line->[0]", { TYPE => 'checkbox', STATE => ($line->[3]) ? 1 : undef, OUTPUT2RETURN => 1 }), 
         $REPORTS{$line->[0]},
         $html->form_input("VALUE_$line->[0]", (($line->[1]) ? $line->[1] : 0), { OUTPUT2RETURN => 1, SIZE => 6 }), 
-        (($line->[2]) ? $line->[2] : '0.00') 
+        (($line->[2]) ? $line->[2] : '0.00'),
+        $line->[3]
       );
      }
 
@@ -1799,7 +1801,7 @@ if(defined($attr->{TP})) {
   my $table = $html->table( { width      => '100%',
                               caption    => "$_REPORTS",
                               border     => 1,
-                              title      => ['#', $_NAME, $_SUM ],
+                              title      => ['#', $_NAME, "$_DEFAULT $_VALUE"],
                               cols_align => ['center', 'left',  'center'],
                               qs         => $pages_qs,
                               ID         => 'TP_REPORTS'
