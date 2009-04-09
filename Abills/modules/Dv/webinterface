@@ -928,8 +928,7 @@ elsif($FORM{tolog}) {
 	  $sessions->online_del({ SESSIONS_LIST => \@del_arr });
    }
   else {
-
-    $nas->info({ NAS_ID => $FORM{NAS_ID} });
+    $nas->info({ NAS_ID => $FORM{nas_id} });
     my $ACCT_INFO = $sessions->online_info({ NAS_ID        => $FORM{nas_id},
                                            NAS_PORT        => $FORM{nas_port_id},
                                            ACCT_SESSION_ID => $FORM{tolog}
@@ -941,8 +940,6 @@ elsif($FORM{tolog}) {
    }
 
 
-
-
   $ACCT_INFO->{INBYTE}           = $ACCT_INFO->{ACCT_INPUT_OCTETS};
   $ACCT_INFO->{OUTBYTE}          = $ACCT_INFO->{ACCT_OUTPUT_OCTETS};
   $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS};
@@ -951,7 +948,6 @@ elsif($FORM{tolog}) {
   $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
 
 
-exit;
 
   # Exppp VENDOR params           
   my $r = $Acct->accounting($ACCT_INFO, $nas);
