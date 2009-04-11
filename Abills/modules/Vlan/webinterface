@@ -445,7 +445,7 @@ foreach my $line (@$list) {
   if ($#commands > -1 ) {
     my $cmds = '';
     foreach my $cmd ( @commands ) {
-      #$cmds .= ($sudo ne '') ? "$sudo $cmd; " : "$cmd; ";
+      $cmds .= ($sudo ne '') ? "$sudo $cmd; " : "$cmd; ";
       $cmds .= "$cmd;";
      }
 
