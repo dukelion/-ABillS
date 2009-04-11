@@ -11,7 +11,7 @@
 %EXDATA%
 <TR bgcolor=$_COLORS[1]><TD>$_CREDIT:</TD><TD><input type=text name=CREDIT value='%CREDIT%'> $_DATE: <input type=text name=CREDIT_DATE value='%CREDIT_DATE%'></TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_VAT (%):</TD><TD><input type=text name=VAT value='%VAT%'></TD></TR>
-
+<TR bgcolor=$_COLORS[1]><TD>$_REGISTRATION:</TD><TD>%REGISTRATION%</TD></TR>
 <TR bgcolor=$_COLORS[0] align=right><TH colspan=2>$_BANK_INFO</th></tr>
 <TR bgcolor=$_COLORS[2]><TD>$_TAX_NUMBER:</TD><TD><input type=text name=TAX_NUMBER value='%TAX_NUMBER%' size=60></TD></TR>
 <TR bgcolor=$_COLORS[2]><TD>$_ACCOUNT:</TD><TD><input type=text name=BANK_ACCOUNT value='%BANK_ACCOUNT%' size=60></TD></TR>

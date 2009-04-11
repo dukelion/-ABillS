@@ -111,13 +111,13 @@ sub add {
   my %DATA = $self->get_data($attr, { default => defaults() }); 
   $self->query($db, "INSERT INTO companies (name, tax_number, bank_account, bank_name, cor_bank_account, 
      bank_bic, disable, credit, credit_date, address, phone, vat, contract_id, contract_date,
-     bill_id, ext_bill_id
+     bill_id, ext_bill_id, registration
      $info_fields) 
      VALUES ('$DATA{COMPANY_NAME}', '$DATA{TAX_NUMBER}', '$DATA{BANK_ACCOUNT}', '$DATA{BANK_NAME}', '$DATA{COR_BANK_ACCOUNT}', 
       '$DATA{BANK_BIC}', '$DATA{DISABLE}', '$DATA{CREDIT}', '$DATA{CREDIT_DATE}',
       '$DATA{ADDRESS}', '$DATA{PHONE}',
       '$DATA{VAT}', '$DATA{CONTRACT_ID}', '$DATA{CONTRACT_DATE}',
-      '$DATA{BILL_ID}', '$DATA{EXT_BILL_ID}'
+      '$DATA{BILL_ID}', '$DATA{EXT_BILL_ID}', now()
       $info_fields_val
       );", 'do');
 
@@ -271,7 +271,8 @@ sub info {
   c.cor_bank_account, c.bank_bic, c.disable, c.bill_id, b.deposit,
   c.address, c.phone,
   c.vat, contract_id, contract_DATE,
-  c.ext_bill_id
+  c.ext_bill_id,
+  c.registration
   $info_fields
     FROM companies c
     LEFT JOIN bills b ON (c.bill_id=b.id)
@@ -303,6 +304,7 @@ sub info {
    $self->{CONTRACT_ID},
    $self->{CONTRACT_DATE},
    $self->{EXT_BILL_ID},
+   $self->{REGISTRATION},
    @INFO_ARR
    ) = @{ $self->{list}->[0] };
   
