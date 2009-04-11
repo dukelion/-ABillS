@@ -1403,6 +1403,8 @@ sub ipn_user_activate {
   $Dv->info( $LIST_PARAMS{UID} );
 
   if ($Dv->{STATUS} > 0) {
+  	my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
+  	$html->message('err', $_ERROR, "$service_status[$Dv->{STATUS}]");
   	require "modules/Dv/webinterface";
   	dv_user_info();
   	
