@@ -903,6 +903,7 @@ foreach my $line (@$list) {
   	                               BOOT_FILE => '*'
   	                             });
 
+  $INFO{OPTION82_POOLS} = '';
   foreach my $line (@$list) {
     #next if ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[14] <= 0);
     $INFO{CLIENT_MAC} = $line->[6];
