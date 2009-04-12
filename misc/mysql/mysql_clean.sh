@@ -3,9 +3,29 @@
 # Freeradius log
 
 
-VERSION=0.2;
+VERSION=0.3;
 MYSQL_BIN_PREFIX='abills-bin.';
-MYSQL_DATADIR='/var/db/mysql';
+MYSQL=`which mysql`;
+
+if [ w${MYSQL} = w ]; then
+  echo "Can't find 'mysql' command.";
+  exit;
+fi;
+
+#For Freebsd
+if [ -d '/var/db/mysql' ] ; then 
+  MYSQL_DATADIR='/var/db/mysql';
+else 
+#For Linux
+if [ -d '/var/lib/mysql' ]; then
+  MYSQL_DATADIR='/var/lib/mysql';
+else
+  echo "Can't find mysql data dir\n";
+  exit;
+fi;
+fi;
+
+
 USER=root
 PASSWORD=
 
@@ -20,21 +40,18 @@ RENAME TABLE general_log_backup TO general_log_backup2, general_log TO general_l
 #MYSQL_CMD="TRUNCATE TABLE general_log;";
 
 # Disable mysql General LOG
-/usr/local/bin/mysql -D mysql -u ${USER} --password=${PASSWORD} -e "SET GLOBAL general_log = 'OFF';"
-/usr/local/bin/mysql -D mysql -u ${USER} --password=${PASSWORD} -e "${MYSQL_CMD}"
+${MYSQL} -D mysql -u ${USER} --password=${PASSWORD} -e "SET GLOBAL general_log = 'OFF';"
+${MYSQL} -D mysql -u ${USER} --password=${PASSWORD} -e "${MYSQL_CMD}"
 
 #Clean mysql bin log
 #rm /usr/mysql/asr-bin.*
 
 
-
-
 cd ${MYSQL_DATADIR}
-
-
  
-WORK_BIN=`mysql -u ${USER} --password=${PASSWORD} -e "show master status;" | grep abills | awk '{ print $1 }'`
-for file in  ` ls ${MYSQL_BIN_PREFIX}0*`; do
+WORK_BIN=`${MYSQL} -u ${USER} --password=${PASSWORD} -e "show master status;" | grep abills | awk '{ print $1 }'`
+
+for file in  `ls ${MYSQL_BIN_PREFIX}0*`; do
 
   if [ ${file} != ${WORK_BIN} ]; then
     if [ ${file} != ${WORK_BIN}index ] ; then
@@ -43,7 +60,10 @@ for file in  ` ls ${MYSQL_BIN_PREFIX}0*`; do
     fi;
   fi;
 
-
 done;
 
-rm -rf /var/log/radacct/*
+#Clean Query log
+> ${MYSQL_DATADIR}/mysql_query.log
+
+#Clean Radius log
+#rm -rf /var/log/radacct/*
