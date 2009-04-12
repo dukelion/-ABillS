@@ -29,18 +29,25 @@ fi;
 USER=root
 PASSWORD=
 
-#Rotate mysql general_log
-MYSQL_CMD="USE mysql;
-CREATE TABLE IF NOT EXISTS general_log2 LIKE general_log;
-CREATE TABLE IF NOT EXISTS general_log_backup LIKE general_log;
-DROP TABLE IF EXISTS general_log_backup2;
-RENAME TABLE general_log_backup TO general_log_backup2, general_log TO general_log_backup, general_log2 TO general_log;
-";
 
-#MYSQL_CMD="TRUNCATE TABLE general_log;";
 
 # Disable mysql General LOG
-${MYSQL} -D mysql -u ${USER} --password=${PASSWORD} -e "SET GLOBAL general_log = 'OFF';"
+MYSQL_VERSION=`${MYSQL} -D mysql -u ${USER} --password=${PASSWORD} -e "SELECT version();"`;
+MYSQL_VERSION=`echo ${MYSQL_VERSION} | sed   's/version() \(.*\)\..*/\1/g'`;
+
+if [ $MYSQL_VERSION = 5.1 ]; then
+  #Rotate mysql general_log
+  MYSQL_CMD="USE mysql;
+   CREATE TABLE IF NOT EXISTS general_log2 LIKE general_log;
+   CREATE TABLE IF NOT EXISTS general_log_backup LIKE general_log;
+   DROP TABLE IF EXISTS general_log_backup2;
+   RENAME TABLE general_log_backup TO general_log_backup2, general_log TO general_log_backup, general_log2 TO general_log;
+  ";
+
+  ${MYSQL} -D mysql -u ${USER} --password=${PASSWORD} -e "SET GLOBAL general_log='OFF';"
+fi;
+
+
 ${MYSQL} -D mysql -u ${USER} --password=${PASSWORD} -e "${MYSQL_CMD}"
 
 #Clean mysql bin log
