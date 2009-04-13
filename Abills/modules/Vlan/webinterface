@@ -478,7 +478,6 @@ foreach my $line (@$list) {
      }
 
    system($cmds) if ($debug < 5);
-   print $cmds;
    $debug_output .= "$cmds\n" if ($debug > 2);
   }
 
