@@ -290,6 +290,17 @@ my %NAS_COMMANDS = ();
 #my $NAS_ID = 0;
 my %DHCP_SUBNETS = () ;
 
+#make static hash
+my %static_vlans = ();
+$conf{VLAN_STATIC}='' if (! $conf{VLAN_STATIC});
+my @static_vlans_arr = split(/;/, $conf{VLAN_STATIC});
+foreach my $nas_static (@static_vlans_arr) {
+	my($nas_id, $vlans)=split(/=/, $nas_static);
+	my @vlan_arr = split(/,/, $vlans);
+	foreach my $vlan (@vlan_arr) {
+    $static_vlans{$nas_id}{$vlan}=1;
+	 }
+}
 
 foreach my $line (@$list) {
   my @commands = ();
@@ -441,6 +452,11 @@ foreach my $line (@$list) {
 
   # Delete not allow vlans
   while(my($vlan_id, $ip) = each %$vlans_info) {
+    if ($static_vlans{$NAS_ID}{$vlan_id}) {
+      $debug_output .= "STATIC TABLE VLAN $vlan_id, $ip\n" if ($debug > 4);
+      next;
+	   }
+	  
 	  $debug_output .= "DELETED VLAN $vlan_id, $ip\n" if ($debug > 3);
 	  push @commands, _parse($conf{VLAN_IF_DESTROY}, { VLAN_ID => $vlan_id, PARENT_INTERFACE => $parent_interface });
 	  #"$IFCONFIG vlan$vlan_id destroy";
