@@ -831,7 +831,7 @@ my %INFO = ();
 foreach my $line (@$list) {
   my $NET_ID = $line->[0];
   my %curnet = ();
-  $INFO{OPTION82_POOLS}
+  $INFO{OPTION82_POOLS}='';
   $Dhcphosts->network_info($NET_ID);
   
   $INFO{DNS}        = ($Dhcphosts->{DNS}) ? "option domain-name-servers $Dhcphosts->{DNS};"  : undef;
