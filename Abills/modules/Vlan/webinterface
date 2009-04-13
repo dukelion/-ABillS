@@ -470,7 +470,7 @@ foreach my $line (@$list) {
     my $cmds = '';
     foreach my $cmd ( @commands ) {
       $cmds .= ($sudo ne '') ? "$sudo $cmd; " : "$cmd; ";
-      $cmds .= "$cmd;";
+      #$cmds .= "$cmd;";
      }
 
     if ($nas_mng_ip ne '') {
