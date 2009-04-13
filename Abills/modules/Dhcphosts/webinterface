@@ -827,11 +827,11 @@ my $list = $Dhcphosts->networks_list({ DISABLE   => 0,
 	                                     SORT      => 2  
 	                                     });  
   
-  
+my %INFO = ();  
 foreach my $line (@$list) {
   my $NET_ID = $line->[0];
   my %curnet = ();
-  my %INFO = ();
+  $INFO{OPTION82_POOLS}
   $Dhcphosts->network_info($NET_ID);
   
   $INFO{DNS}        = ($Dhcphosts->{DNS}) ? "option domain-name-servers $Dhcphosts->{DNS};"  : undef;
