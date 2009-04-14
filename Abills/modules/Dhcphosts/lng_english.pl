@@ -20,3 +20,7 @@ $_AUTO='Auto';
 $_NETWORK='Network';
 $ERR_WRONG_NETWORK  = 'Wrong network. Check network IP/MAC range';
 $ERR_WRONG_RANGE='Wrong IP range';
+
+
+$_DENY_UNKNOWN_CLIENTS='Allow unknown clients';
+$_AUTHORITATIVE='Server is authoritative for this shared network';

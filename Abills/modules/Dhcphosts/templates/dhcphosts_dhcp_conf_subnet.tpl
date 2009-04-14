@@ -7,13 +7,20 @@
  subnet %NETWORK% netmask %NETWORK_MASK% {
    %DNS%
    %DOMAINNAME%
-   #range
+   #IP Range
    %RANGE%
-   deny unknown-clients;
-   authoritative;
+
+   # Old config params
+   #deny unknown-clients;
+   #authoritative;
+   
+   %DENY_UNKNOWN_CLIENTS%
+   %AUTHORITATIVE%
+   
    %ROUTERS%
    %NET_ROUTES%
    %NET_ROUTES_RFC3442%
    
    %OPTION82_POOLS%
   }
+

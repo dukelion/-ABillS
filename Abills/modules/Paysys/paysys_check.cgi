@@ -509,12 +509,20 @@ else {
 
 my $CHECK_FIELD = $conf{PAYSYS_USMP_ACCOUNT_KEY} || 'UID';
 
+
 my $id    = $FORM{'id'};
 my $accid = $FORM{'account'};
 my $summ  = $FORM{'sum'};
 my $sign  = $FORM{'sign'};
 my $hash  = $FORM{'hash'};
 my $date  = $FORM{'date'};
+
+my $ChequeNumber = 0;
+if ($conf{PAYSYS_USMP_V2}) {
+	
+}
+
+
 
 my $err_code = 0;
 
@@ -573,7 +581,28 @@ if (!$err_code) {
    }    
 
 
-print "code=$err_code&message=Done&date=" . get_date();
+if ($conf{PAYSYS_USMP_V2}) {
+print << "[END]";
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Body>
+    <ProcessPaymentResponse xmlns="http://usmp.com.ua/">
+      <ProcessPaymentResult xsi:type="ProcessPaymentsResponse">
+        <Statuses>
+          <PaymentStatusDetails>
+            <ChequeNumber>$ChequeNumber</ChequeNumber>
+            <Status>$err_code</Status>
+          </PaymentStatusDetails>
+        </Statuses>
+      </ProcessPaymentResult>
+    </ProcessPaymentResponse>
+  </soap:Body>
+</soap:Envelope>
+[END]
+}
+else {
+  print "code=$err_code&message=Done&date=" . get_date();
+ }
 
 }
 

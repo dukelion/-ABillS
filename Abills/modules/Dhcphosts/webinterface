@@ -79,11 +79,13 @@ sub dhcphosts_mac_block_show {
       my $deposit = 0;
       
       if ($conf{DHCPHOSTS_EXT_DEPOSITCHECK}) {
-      	$deposit = 'ED:'. $line->[15 + $Dhcphosts->{SEARCH_FIELDS_COUNT}];
+      	$deposit = $line->[15 + $Dhcphosts->{SEARCH_FIELDS_COUNT}];
        }
       elsif($conf{DHCPHOSTS_DEPOSITCHECK}) {
-      	$deposit = 'D:'. $line->[15 + $Dhcphosts->{SEARCH_FIELDS_COUNT}];
+      	$deposit = $line->[15 + $Dhcphosts->{SEARCH_FIELDS_COUNT}];
        }
+
+      $deposit = 0 if (! $deposit);
 
       #DENY
       my %INFO = (
@@ -375,8 +377,7 @@ sub leaseparse {
 # 
 #*******************************************************************
 sub dhcphosts_networks {
-
-
+ 
   $Dhcphosts->{ACTION}='add';
   $Dhcphosts->{ACTION_LNG}=$_ADD;
 
@@ -394,10 +395,11 @@ sub dhcphosts_networks {
   elsif ($FORM{add}) {
     $FORM{ROUTERS}='0.0.0.0' if (! $FORM{ROUTERS}) ;
 
-    if(ip2int($FORM{IP_RANGE_FIRST}) < ip2int($FORM{NETWORK}) 
+    if($FORM{IP_RANGE_FIRST} ne '0.0.0.0' && (ip2int($FORM{IP_RANGE_FIRST}) < ip2int($FORM{NETWORK}) 
      || ip2int($FORM{IP_RANGE_FIRST}) > ip2int($FORM{NETWORK}) + ( ip2int('255.255.255.255') - ip2int($FORM{MASK}) )
      || ip2int($FORM{IP_RANGE_LAST}) < ip2int($FORM{NETWORK}) 
-     || ip2int($FORM{IP_RANGE_LAST}) > ip2int($FORM{NETWORK}) + ( ip2int('255.255.255.255') - ip2int($FORM{MASK}) ) ) {
+     || ip2int($FORM{IP_RANGE_LAST}) > ip2int($FORM{NETWORK}) + ( ip2int('255.255.255.255') - ip2int($FORM{MASK}) ) )
+     ) {
       $html->message('err', $_ERROR, "$ERR_WRONG_RANGE");
      }	
     else {
@@ -414,10 +416,10 @@ sub dhcphosts_networks {
 	  $FORM{IP_RANGE_FIRST} = ip2int($FORM{IP_RANGE_FIRST});
     $FORM{IP_RANGE_LAST}  = ip2int($FORM{IP_RANGE_LAST});
 
-    if($FORM{IP_RANGE_FIRST} < $FORM{NETWORK} 
+    if($FORM{IP_RANGE_FIRST} > 0 && ($FORM{IP_RANGE_FIRST} < $FORM{NETWORK} 
      || $FORM{IP_RANGE_FIRST} > $FORM{NETWORK} + ( ip2int('255.255.255.255') - $FORM{MASK} )
      || $FORM{IP_RANGE_LAST} < $FORM{NETWORK} 
-     || $FORM{IP_RANGE_LAST} > $FORM{NETWORK} + ( ip2int('255.255.255.255') - $FORM{MASK} ) ) {
+     || $FORM{IP_RANGE_LAST} > $FORM{NETWORK} + ( ip2int('255.255.255.255') - $FORM{MASK} ) )) {
       $html->message('err', $_ERROR, "$ERR_WRONG_RANGE");
      }	
 
@@ -451,6 +453,9 @@ sub dhcphosts_networks {
 
 
    $Dhcphosts->{DISABLE}=' checked' if($Dhcphosts->{DISABLE});
+   $Dhcphosts->{DENY_UNKNOWN_CLIENTS}=' checked' if($Dhcphosts->{DENY_UNKNOWN_CLIENTS});
+   $Dhcphosts->{AUTHORITATIVE}=' checked' if($Dhcphosts->{AUTHORITATIVE});
+   
    my $net_defaults = $Dhcphosts->network_defaults();
    
    
@@ -827,7 +832,6 @@ my $list = $Dhcphosts->networks_list({ DISABLE   => 0,
 	                                     SORT      => 2  
 	                                     });  
   
-my %INFO = ();  
 foreach my $line (@$list) {
   my $NET_ID = $line->[0];
   my %curnet = ();
@@ -846,6 +850,13 @@ foreach my $line (@$list) {
   $INFO{NETWORK}      = $Dhcphosts->{NETWORK};
   $INFO{NETWORK_MASK} = $Dhcphosts->{MASK};
   $INFO{DESCRIBE}     = $Dhcphosts->{NAME};
+  
+  $INFO{DESCRIBE}     = $Dhcphosts->{COMMENTS};
+  $INFO{AUTHORITATIVE}= ($Dhcphosts->{AUTHORITATIVE}) ? 'authoritative;' : '';
+  $INFO{DENY_UNKNOWN_CLIENTS}= ($Dhcphosts->{DENY_UNKNOWN_CLIENTS}) ? 'deny unknown-clients;' : '';
+  
+
+  
   if ($Dhcphosts->{IP_RANGE_FIRST} ne '0.0.0.0') {
     $INFO{RANGE}        = "range $Dhcphosts->{IP_RANGE_FIRST} $Dhcphosts->{IP_RANGE_LAST};";
    }
@@ -892,10 +903,11 @@ foreach my $line (@$list) {
   $INFO->{NETWORK}='';
   #$Dhcphosts->{debug}=1;
   $list = $Dhcphosts->hosts_list({ NETWORK   => $NET_ID, 
-  	                               STATUS    => 0, 
+  	                               STATUS    => 0,
   	                               PAGE_ROWS => 100000,
   	                               DHCPHOSTS_DEPOSITCHECK => $conf{DHCPHOSTS_DEPOSITCHECK},
   	                               DHCPHOSTS_EXT_DEPOSITCHECK => $conf{DHCPHOSTS_EXT_DEPOSITCHECK},
+  	                               USER_DISABLE => 0,
   	                               PORTS     => '*',
   	                               NAS_ID    => '>=0',
   	                               OPTION_82 => '>=0',
@@ -906,7 +918,8 @@ foreach my $line (@$list) {
   
 
   foreach my $line (@$list) {
-    #next if ($conf{DHCPHOSTS_DEPOSITCHECK} && $line->[14] <= 0);
+    next if (($conf{DHCPHOSTS_DEPOSITCHECK} || $conf{DHCPHOSTS_EXT_DEPOSITCHECK}) && $line->[20] <= 0);
+
     $INFO{CLIENT_MAC} = $line->[6];
     #Option 82
     if ($line->[12]) {

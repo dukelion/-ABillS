@@ -1,7 +1,18 @@
 =====0.42=====
+
+14.04.2009\\
+  * Dhcphosts  добавлено три новых параметра: коментарий, допуск неизвесным клиентам, авторизированная сеть.\\
+Теперь опции DHCP deny unknown-clients; и authoritative; задаются для каждой отдельной сетки.\\
+MySQL:\\
+  alter table dhcphosts_networks add column describe varchar(250) not null default '';
+  alter table dhcphosts_networks add column deny_unknown_clients tinyint(1) unsigned not null default 0;
+  alter table dhcphosts_networks add column authoritative tinyint(1) unsigned not null default 0;
+
+
+
 11.04.2009\\
   * Добавлена возможность создавать Vlan в Linux. Добавлено инициализацию параметров доступа к NAS в переменные среды. ([[abills:docs:modules:vlan:ru|Vlan]])
-  * Опция $conf{VLAN_STATIC}=''; для указания списка VLAN которые не подлежат обработке. ([[abills:docs:modules:vlan:ru|Vlan]])
+  * Опция $conf{VLAN_STATIC} для указания списка VLAN которые не подлежат обработке. ([[abills:docs:modules:vlan:ru|Vlan]])
   * Добавлен скрипт для чистки бинарных логов mysql (misc/mysql_clean.sh).
 06.04.2009\\
   * Добавлена возможность учёта дополнительного депозита при выдачи адресов модулем [[abills:docs:modules:Dhcphosts:ru:|Dhcphosts]], опция $conf{DHCPHOSTS_DEPOSITCHECK}.
