@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 # Ureports sender
+#
+
+
 use vars  qw(%RAD %conf $db %AUTH $DATE $TIME $var_dir
 %ADMIN_REPORT
 %LIST_PARAMS
@@ -8,8 +11,8 @@ $DEBUG
 );
 #use strict;
 
-
-my $debug = 0;
+my $version = 0.2;
+my $debug   = 0;
 
 use FindBin '$Bin';
 require $Bin . '/config.pl';
