@@ -1157,18 +1157,29 @@ sub ureports_send_reports {
 }
 
 
+
+
 #**********************************************************
 # reset send date
 #**********************************************************
 sub ureports_daily_resets {
   my ($attr) =@_;
 
-	my $debug        = $attr->{DEBUG} || 0;
-  my $debug_output = '';
 
-  $Ureports->tp_user_reports_list({ RESET     => 1,
-  	                                REPORT_ID => 1 
+	my $debug        = $attr->{DEBUG} || 0;
+  my $debug_output = 'Daily reports reset';
+
+  $debug_output = "Daily reports reset\n" if ($debug > 1);
+  my $list = $Ureports->tp_user_reports_list({ RESET     => 1,
+  	                                REPORT_ID => 1,
+  	                                DATE      => '>0000-00-00' 
   	                              });
+  foreach my $line (@$list) {
+     $debug_output .= "UID: $line->[8] REPORT_ID: $line->[0] VALUE: $line->[3] DEPOSIT: $line->[5]\n" if ($debug > 1);
+     $Ureports->tp_user_reports_reset_date({ REPORT_ID => $line->[0],
+     	                                       UID       => $line->[8] 
+     	                                      });
+   }
 
   $DEBUG .= $debug_output;
   return $debug_output;
