@@ -269,7 +269,7 @@ sub vlan_user_info {
 
 
 #**********************************************************
-#
+# Create vlans
 #**********************************************************
 sub vlan_create {
   my ($attr) = @_;	
@@ -293,6 +293,7 @@ my %DHCP_SUBNETS = () ;
 #make static hash
 my %static_vlans = ();
 $conf{VLAN_STATIC}='' if (! $conf{VLAN_STATIC});
+
 my @static_vlans_arr = split(/;/, $conf{VLAN_STATIC});
 foreach my $nas_static (@static_vlans_arr) {
 	my($nas_id, $vlans)=split(/=/, $nas_static);
@@ -333,12 +334,12 @@ foreach my $line (@$list) {
   $ENV{NAS_MNG_PASSWD}=$nas_mng_passwd;
 
 
-  my $vlan_list = $Vlan->list({ DISABLE   => 0,
-	                              PAGE_ROWS => 100000,
-	                              NAS_ID    => $line->[0],
-	                              SORT      => 5,
+  my $vlan_list = $Vlan->list({ DISABLE    => 0,
+	                              PAGE_ROWS  => 100000,
+	                              NAS_ID     => $line->[0],
+	                              SORT       => 5,
 	                              VLAN_GROUP => 1,
-	                              LOGIN     => ($attr->{LOGIN}) ? $attr->{LOGIN} : undef
+	                              LOGIN      => ($attr->{LOGIN}) ? $attr->{LOGIN} : undef
 	                             });
 
   my $sudo = ($nas_mng_ip_port ne '') ? $SUDO : '';
@@ -395,7 +396,19 @@ foreach my $line (@$list) {
       #$INFO{SUBNETS} .= $html->tpl_show($subnets, \%INFO, { notprint => 'yes' });
      }
 
+    if ($attr->{RECONFIGURE}) {
+    	push @commands, _parse($conf{VLAN_IF_DESTROY}, { VLAN_ID => $vlan_id, 
+    		                                                PARENT_INTERFACE => $parent_interface 
+    		                                                });
+    	delete $vlans_info->{$INFO{VLAN_ID}};
+     }
 
+
+    if ($attr->{PPPOE_CHECK}) {
+      if ( $INFO{PPPOE} == 1 ) {
+        $client_interfaces{"vlan$INFO{VLAN_ID}"}=1;
+       }
+     }
 
     if (! $vlans_info->{$INFO{VLAN_ID}}) {
       push @commands, _parse($conf{VLAN_IF_CREATE}, \%INFO);

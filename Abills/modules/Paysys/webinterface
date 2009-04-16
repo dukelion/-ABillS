@@ -787,7 +787,7 @@ sub paysys_periodic () {
     my $res_arr = paysys_portmone_result(0, { DEBUG => $debug, DATE => $DATE });	
     
     my %res_hash = ();
-    for(my $i=0; $i<=$#{ $res_arr }; $i++) {
+    for(my $i=0; $i<$#{ $res_arr }; $i++) {
      	$res_hash{$res_arr->[$i]{ordernumber}}=$i;
      }
     
