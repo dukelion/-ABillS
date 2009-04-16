@@ -149,6 +149,11 @@ sub paysys_import_form {
 	     	                          PAGE_ROWS      => 1000000 
 	     	                        });
 
+       if ($users->{errno}) {
+          $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");          
+          return 0;
+        }
+
        $binding_field_id = 5;
        if ($BINDING_FIELD eq 'LOGIN') {
          $binding_field_id = 0;
@@ -346,9 +351,9 @@ sub paysys_import_parse {
   my ($expration, $columns)=split(/:/, $import_expr);
   my @EXPR_IDS = split(/,/, $columns);
   
-  print "Expration: $expration\n";	     
+  print "Expration: $expration $_INFO_FIELDS: $columns\n";	     
   my @rows = split(/[\r]{0,1}\n/, $content);
-  
+  my $line_count = 1;
        
         foreach my $line (@rows) {
         	 my %DATA_HASH = ();
@@ -379,12 +384,13 @@ sub paysys_import_parse {
         	    }
 
              push @DATA_ARR, { %DATA_HASH };
-             
              push @BINDING_IDS, $DATA_HASH{$BINDING_FIELD} if ($DATA_HASH{$BINDING_FIELD});
             }
            else {
-            print "'$line'<br>\n";	
+             print $html->b("Error: line: $line_count"). " '$line'<br>\n";	
            }
+
+          $line_count++;
         }
 
   return \@DATA_ARR, \@BINDING_IDS;

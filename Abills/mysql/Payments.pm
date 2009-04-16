@@ -250,7 +250,10 @@ sub list {
  if ($attr->{EXT_ID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{EXT_ID}, 'STR', 'p.ext_id') };
   }
-
+ elsif($attr->{EXT_IDS}) {
+ 	 push @WHERE_RULES, "p.ext_id in ($attr->{EXT_IDS})";
+  }
+ 
  if ($attr->{ID}) {
  	 push @WHERE_RULES, @{ $self->search_expr("$attr->{ID}", 'INT', 'p.id') };
   }
