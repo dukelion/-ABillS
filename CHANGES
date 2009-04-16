@@ -4,7 +4,7 @@
   * Dhcphosts  добавлено три новых параметра: коментарий, допуск неизвесным клиентам, авторизированная сеть.\\
 Теперь опции DHCP deny unknown-clients; и authoritative; задаются для каждой отдельной сетки.\\
 MySQL:\\
-  alter table dhcphosts_networks add column describe varchar(250) not null default '';
+  alter table dhcphosts_networks add column comments varchar(250) not null default '';
   alter table dhcphosts_networks add column deny_unknown_clients tinyint(1) unsigned not null default 0;
   alter table dhcphosts_networks add column authoritative tinyint(1) unsigned not null default 0;
 

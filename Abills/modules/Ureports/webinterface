@@ -156,7 +156,6 @@ print $table->show();
 sub ureports_user {
  	my ($attr) = @_;
 
-  $Ureports->{debug}=1;
 
  	$Ureports->{UID}=$FORM{UID} || $LIST_PARAMS{UID} ;	  
 
@@ -866,7 +865,6 @@ sub ureports_session_detail {
 #**********************************************************
 sub ureports_stats {
 
- $Ureports->{debug}=1;
  if ($FORM{del}  && $FORM{is_js_confirmed} ) {
    $Ureports->log_del({ %FORM }); 	  
    if (! $Ureports->{errno}) {
