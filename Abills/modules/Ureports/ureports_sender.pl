@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-#
+# Ureports sender
 use vars  qw(%RAD %conf $db %AUTH $DATE $TIME $var_dir
 %ADMIN_REPORT
 %LIST_PARAMS
@@ -170,7 +170,8 @@ sub ureports_periodic_reports {
  	      CREDIT           => $u->[6],
  	      FIO              => $u->[7],
  	      UID              => $u->[8],
- 	      BILL_ID          => $u->[9] 
+ 	      BILL_ID          => $u->[9],
+ 	      TP_ID            => $TP_ID 
      	 ); 
 
 
@@ -189,9 +190,9 @@ sub ureports_periodic_reports {
          	 	                       "$_DEPOSIT: $user{DEPOSIT}", 
          	 	                       { SUBJECT => "$_DEPOSIT_BELOW" });
          	 	 
-         	 	 tp_user_reports_update({ UID       => $user{UID},
-         	 	 	                        REPORT_ID => $user{REPORT_ID} 
-         	 	 	                        });
+         	 	 $Ureports->tp_user_reports_update({ UID       => $user{UID},
+         	 	 	                                   REPORT_ID => $user{REPORT_ID} 
+         	 	 	                                });
          	 	     
          	 	 if ($user{MSG_PRICE} > 0) {
                $sum = $user{MSG_PRICE};

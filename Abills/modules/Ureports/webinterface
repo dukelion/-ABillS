@@ -1,4 +1,4 @@
-# User reports
+# User reports webinterface
 
 
 
@@ -156,6 +156,8 @@ print $table->show();
 sub ureports_user {
  	my ($attr) = @_;
 
+  $Ureports->{debug}=1;
+
  	$Ureports->{UID}=$FORM{UID} || $LIST_PARAMS{UID} ;	  
 
   if ($FORM{add}) {
@@ -175,6 +177,12 @@ sub ureports_user {
        }
      }
    }
+  elsif($FORM{reset_date}) {
+  	$Ureports->tp_user_reports_reset_date({ %FORM });
+    if (! $Ureports->{errno}) {
+      $html->message('info', $_INFO, "$_RESETED");	
+     }
+   }  
 	elsif($FORM{set}) {
     if (! $permissions{0}{4} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
@@ -251,7 +259,7 @@ sub ureports_user {
         $REPORTS{$line->[0]},
         $html->form_input("VALUE_$line->[0]", (($line->[1]) ? $line->[1] : 0), { OUTPUT2RETURN => 1, SIZE => 6 }), 
         (($line->[2]) ? $line->[2] : '0.00'),
-        $line->[3] 
+        $line->[3] . ( ($line->[3] && $line->[3] ne '0000-00-00') ?  ' ('. $html->button($_RESET, "index=$index&UID=$Ureports->{UID}&REPORT_ID=$line->[0]&reset_date=1", { MESSAGE => "$_RESET" } ).')' : '' )
       );
      }
 
@@ -844,6 +852,13 @@ $html->make_charts({
 
 }
 
+#**********************************************************
+# form_stats
+#**********************************************************
+sub ureports_session_detail {
+	
+	
+}
 
 
 #**********************************************************
@@ -851,13 +866,24 @@ $html->make_charts({
 #**********************************************************
 sub ureports_stats {
 
-
- if(defined($FORM{SESSION_ID})) {
-  	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
-  	ureports_session_detail({ LOGIN => $LIST_PARAMS{LOGIN} });
-  	return 0;
+ $Ureports->{debug}=1;
+ if ($FORM{del}  && $FORM{is_js_confirmed} ) {
+   $Ureports->log_del({ %FORM }); 	  
+   if (! $Ureports->{errno}) {
+      $html->message('info', $_INFO, "$_DELETED $_MESSAGE [$FORM{MSG_ID}]");	
+     }
+  }
+ elsif(defined($FORM{MSG_ID})) {
+   $pages_qs .= "&SESSION_ID=$FORM{MSG_ID}";
+   ureports_session_detail({ LOGIN => $LIST_PARAMS{LOGIN} });
+   return 0;
   }
 
+
+if ($Ureports->{errno}) {
+  $html->message('err', $_ERROR, "[$Ureports->{errno}] $err_strs{$Ureports->{errno}}");	
+  return 0;
+ }
 
 
 if ($sessions->{errno})	{
@@ -871,6 +897,10 @@ if ($FORM{rows}) {
   $pages_qs .= "&rows=$conf{list_max_recs}";
  }
 
+if (! $FORM{sort}) {
+	$LIST_PARAMS{SORT}='1';
+	$LIST_PARAMS{DESC}='desc';
+}
 
 $table = $html->table({ width       => '100%',
 	                      rowcolor    => $_COLORS[0],
@@ -915,6 +945,7 @@ elsif (defined($FORM{PERIOD})) {
 
 
 #Session List
+
 $list = $Ureports->log_list({ %LIST_PARAMS });	
 
 	
@@ -937,32 +968,26 @@ my $Billing = Billing->new($db, \%conf);
 
 foreach my $line (@$list) {
   if ($permissions{3}{1} && $LIST_PARAMS{UID}) {
-    $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", 
-       { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?" }
+    $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=$line->[0]&MSG_ID=$line->[0]", 
+       { MESSAGE => "$_DEL Session MSG_ID $line->[0]?" }
       );
    }
 
   $table->addrow(
-     $html->button("$line->[0]", "index=11&UID=$line->[12]"),
-     $line->[1], 
+     $line->[0], 
+     $html->button("$line->[1]", "index=11&UID=$line->[7]"),
      $line->[2],  
      $line->[3],  
      $line->[4], 
      $line->[5], 
-     $line->[6],
-     $line->[7], 
-     $line->[10], 
-     "$line->[9]", 
+     $line->[6], 
      "(". 
-        $html->button("D", "index=$index&UID=$line->[12]&SESSION_ID=$line->[11]", { TITLE => "$_DETAIL" } )
+        $html->button("D", "index=$index&UID=$line->[7]&MSG_ID=$line->[0]", { TITLE => "$_DETAIL" } )
       . ")", 
      $delete);
 }
 
 print $table->show();
-
-
-
 }
 
 
@@ -1131,6 +1156,24 @@ sub ureports_send_reports {
  
  
   return 1;
+}
+
+
+#**********************************************************
+# reset send date
+#**********************************************************
+sub ureports_daily_resets {
+  my ($attr) =@_;
+
+	my $debug        = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+
+  $Ureports->tp_user_reports_list({ RESET     => 1,
+  	                                REPORT_ID => 1 
+  	                              });
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
 }
 
 #**********************************************************

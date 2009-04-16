@@ -17,7 +17,6 @@
 #                   "16:13:$_USED:dv_use:"                  => 4,
 #                   "17:16:$_MONTH:dv_use_allmonthes:"      => 4,
 #                   "20:0:$_DV $_STATS:dv_use:COMPANY_ID" => 13
-
                    );
 
 
@@ -30,10 +29,11 @@
 
 
 # 
-#%PERIODIC = (daily   => [ 'ureports_periodic_reports' ],
+%PERIODIC = (daily   => [ 'ureports_daily_resets' ]
+
 #             monthly => [ 'dv_monthly_fees', 'dv_periodic_logrotate'  ],
 #             report  => [ 'dv_report'       ]
-#             );
+             );
 
 
 1
