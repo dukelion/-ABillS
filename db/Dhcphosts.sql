@@ -48,6 +48,9 @@ CREATE TABLE `dhcphosts_networks` (
   `ip_range_first` int(11) unsigned NOT NULL DEFAULT '0',
   `ip_range_last` int(11) unsigned NOT NULL DEFAULT '0',
   `disable` tinyint(1) unsigned NOT NULL default '0',
+  `comments` varchar(250) not null default '',
+  `deny_unknown_clients` tinyint(1) unsigned not null default 0,
+  `authoritative` tinyint(1) unsigned not null default 0,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`)
 ) COMMENT='Dhcphost networks';
