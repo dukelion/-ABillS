@@ -572,10 +572,28 @@ if ($request_hash{'Serial'} ne $conf{'PAYSYS_USMP_SERIAL'} ||
     return 0;
  }
 
+
+$conf{PAYSYS_USMP_MINSUM}=1.00 if (! $conf{PAYSYS_USMP_MINSUM});
+$conf{PAYSYS_USMP_MAXSUM}=10000.00 if (! $conf{PAYSYS_USMP_MAXSUM});
+
 if ($conf{'PAYSYS_USMP_PAYELEMENTID'} && $request_hash{'PayElementID'} ne $conf{'PAYSYS_USMP_PAYELEMENTID'}  ){
-    usmp_error_msg('121', 'Incorect');
+    usmp_error_msg('121', 'Incorect PayElementID');
     return 0;
  }
+
+if ($sum < $conf{PAYSYS_USMP_MINSUM}){
+    usmp_error_msg('6', 'Small Sum');
+    return 0;
+ }
+elsif ($sum > 0) {
+    usmp_error_msg('120', 'Too large Amount');
+    return 0;
+ }
+elsif ($sum <= 0){
+    usmp_error_msg('120', 'Wrong Sum');
+    return 0;
+ }
+
 
 
 #add money
