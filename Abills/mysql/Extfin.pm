@@ -1081,7 +1081,7 @@ sub extfin_debetors {
     $self->{DEPOSITS}=\%deposits;
    }
   else {
-    push @WHERE_RULES, "( b.deposit < 0 or cb.deposit < 0 ) and (f.last_deposit >=0 and f.last_deposit-sum<0)";
+    push @WHERE_RULES, "( b.deposit < 0 or cb.deposit < 0 ) ";# and (f.last_deposit >=0 and f.last_deposit-sum<0)";
     $ext_field = "\@A:=if(company.id IS NULL,b.deposit,cb.deposit),";
     $attr->{DATE} = 'CURDATE()';
    }
