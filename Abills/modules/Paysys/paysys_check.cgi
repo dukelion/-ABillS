@@ -568,10 +568,15 @@ print "Content-Type: text/xml\n\n";
 
 if ($request_hash{'Serial'} ne $conf{'PAYSYS_USMP_SERIAL'} ||
     $request_hash{'KeyWord'} ne $conf{'PAYSYS_USMP_KEYWORD'}  ){
-    $err_code = 210;
     usmp_error_msg('210', 'IncorrectKeyWord');
     return 0;
  }
+
+if ($conf{'PAYSYS_USMP_PAYELEMENTID'} && $request_hash{'PayElementID'} ne $conf{'PAYSYS_USMP_PAYELEMENTID'}  ){
+    usmp_error_msg('121', 'Incorect');
+    return 0;
+ }
+
 
 #add money
 if($request_type eq 'PaymentDetails') {

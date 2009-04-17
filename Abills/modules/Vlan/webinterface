@@ -397,8 +397,8 @@ foreach my $line (@$list) {
      }
 
     if ($attr->{RECONFIGURE}) {
-    	push @commands, _parse($conf{VLAN_IF_DESTROY}, { VLAN_ID => $vlan_id, 
-    		                                                PARENT_INTERFACE => $parent_interface 
+    	push @commands, _parse($conf{VLAN_IF_DESTROY}, { VLAN_ID          => $INFO{VLAN_ID}, 
+    		                                               PARENT_INTERFACE => $parent_interface 
     		                                                });
     	delete $vlans_info->{$INFO{VLAN_ID}};
      }
