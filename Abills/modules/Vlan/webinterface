@@ -512,7 +512,8 @@ foreach my $line (@$list) {
     	                 NAS_MNG_PORT      => $nas_mng_port,
   	                   NAS_MNG_USER      => $nas_mng_user,
   	                   PARENT_INTERFACE  => $parent_interface,
-  	                   CLIENT_INTERFACES_UNUSED => \@client_interfaces_unused
+  	                   CLIENT_INTERFACES_UNUSED => \@client_interfaces_unused,
+  	                   PPPOE_CHECK       => $attr->{PPPOE_CHECK}
   	                  });
    }
 
@@ -685,8 +686,14 @@ sub vlan_pppoe_relay {
       $debug_output .= "Create PPPoE $if\n" ;
      }
 
-    $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then $SUDO kill  \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ".
-     " $SUDO /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; ";
+    if ($attr->{PPPOE_CHECK}) {
+      $cmd .= "if [ ! -f /var/run/pppoed_". $if .".pid ]; then
+        $SUDO /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; fi; ";
+     }
+    else {
+      $cmd .= "if [ -f /var/run/pppoed_". $if .".pid ]; then $SUDO kill -9 \\`cat /var/run/pppoed_". $if .".pid\\`; fi; ".
+       " $SUDO /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; ";
+     }
    }
 
   if ($attr->{NAS_MNG_IP}) {
