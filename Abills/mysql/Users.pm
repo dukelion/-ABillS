@@ -1586,12 +1586,12 @@ sub config_info {
  my $self = shift;
  my ($attr) = @_;
  
- $self->query($db, "select param, info FROM config WHERE param='$attr->{PARAM}';");
+ $self->query($db, "select param, value FROM config WHERE param='$attr->{PARAM}';");
 
  return $self if ($self->{errno} || $self->{TOTAL} < 1);
 
  ($self->{PARAM},
- 	$self->{NAME}) = @{ $self->{list}->[0] };
+ 	$self->{VALUE}) = @{ $self->{list}->[0] };
 
  return $self;
 }

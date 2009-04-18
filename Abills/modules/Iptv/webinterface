@@ -16,6 +16,52 @@ my $debug = 0;
 my @status = ($_ENABLE, $_DISABLE);
 my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
 
+
+#*******************************************************************
+# close period
+#*******************************************************************
+sub iptv_close_period {
+
+  if ($FORM{CLOSE_PERIOD}) {
+  	$users->config_del('IPTV_CLOSED_PERIOD');
+  	
+  	$users->config_add({ PARAM   => 'IPTV_CLOSED_PERIOD',
+                         VALUE   => "1"
+                         });
+   }
+
+
+  $users->config_info({ PARAM => 'IPTV_CLOSED_PERIOD' });
+
+
+  my $close_period = ($users->{VALUE} eq '1') ? "$_MONTH_FEE" : "$users->{VALUE}";
+
+ 	my $table = $html->table( { width      => '300',
+ 		                          caption    => "$_CLOSE_PERIOD",
+                              cols_align => ['left', 'left'],
+                              rows => [ [ "$_STATUS:", "$close_period"   ]
+                                      ]
+                               } );
+
+  print $html->form_main({ CONTENT => $table->show(),
+                           HIDDEN  => { 
+	                                      index       => "$index",
+	                                     },
+                           ($users->{VALUE} ne '1') ? { SUBMIT  => { CLOSE_PERIOD  => "$_CLOSE_PERIOD"  } }  : undef	                       
+	                       });
+
+
+}
+
+
+
+
+
+
+
+
+
+
 #*******************************************************************
 # Change user variant form
 # form_chg_vid()
@@ -1627,7 +1673,7 @@ foreach my $line (@$list) {
   
   my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { notprint => 'yes' });
 
-  sendmail("$conf{ADMIN_MAIL}", "$email", "Попередження сервера статистики.", 
+  sendmail("$conf{ADMIN_MAIL}", "$email", "???????????? ??????? ??????????.", 
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
 }
 

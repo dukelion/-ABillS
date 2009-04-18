@@ -930,13 +930,16 @@ sub form_fees {
 		$LIST_PARAMS{DESC}='DESC';
 	 }
 	
+ my @FEES_METHODS = ($_ONE_TIME, $_ABON, $_FINE, $_ACTIVATE);
+ push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
+
 my $fees = Finance->fees($db, $admin, \%conf);
 my $list = $fees->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_FEES",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT],
-                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_TYPE, $_ADMINS, 'IP',  $_DEPOSIT],
+                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'left', 'right', 'right'],
                             qs         => $pages_qs,
                             pages      => $fees->{TOTAL},
                             ID         => 'FEES'
@@ -946,8 +949,13 @@ my $table = $html->table( { width      => '100%',
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
 
-  $table->addrow($html->b($line->[0]), $html->button($line->[1], "index=15&UID=$line->[8]"), $line->[2], 
-   $line->[3], $line->[4],  "$line->[5]", "$line->[6]", "$line->[7]");
+  $table->addrow($html->b($line->[0]), $line->[1], $line->[2], 
+   $line->[3], 
+   $line->[4],  
+   $FEES_METHODS[$line->[5]], 
+   "$line->[6]", 
+   "$line->[7]",
+   "$line->[8]");
 }
 
 print $table->show();
@@ -974,7 +982,7 @@ if (! $FORM{sort}) {
   $LIST_PARAMS{sort}=1;
   $LIST_PARAMS{DESC}='DESC';
 }
-my $list = $payments->list( { %LIST_PARAMS } );
+my $list  = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,

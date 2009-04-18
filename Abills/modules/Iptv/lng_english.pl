@@ -15,3 +15,4 @@ $_PROVIDER = 'Provider';
 
 $_ALLOW_ANSWER='Allow answer';
 $_ALLOW_CALLS='Allow Calls';
+$_CLOSE_PERIOD='Close period';

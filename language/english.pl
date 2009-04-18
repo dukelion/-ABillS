@@ -387,3 +387,4 @@ $_NEGATIVE_DEPOSIT='Negative Deposit';
 $_BALANCE_RECHARCHE='Balance recharge';
 $_PRICE='Price';
 $_COMPENSATION='Compensation';
+$_TV='Television';

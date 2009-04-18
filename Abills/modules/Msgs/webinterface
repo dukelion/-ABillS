@@ -214,7 +214,7 @@ sub msgs_admin_add {
            	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
            	 }, { OUTPUT2RETURN => 1 } );
 
-        sendmail("X-ABillS <$conf{ADMIN_MAIL}>",
+        sendmail("$conf{ADMIN_MAIL}",
           "$users->{EMAIL}",
           "$conf{WEB_TITLE} - $_NEW_MESSAGE",
           "$message",
@@ -395,7 +395,7 @@ sub msgs_admin {
            	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
             }, { OUTPUT2RETURN => 1 } );
     	 
-       sendmail("X-ABillS <$conf{ADMIN_MAIL}>",
+       sendmail("$conf{ADMIN_MAIL}",
           "$users->{EMAIL}",
           "$conf{WEB_TITLE} - $_NEW_MESSAGE",
           "$message",
@@ -790,7 +790,7 @@ sub msgs_user {
            	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
             }, { OUTPUT2RETURN => 1 } );
     	 
-        sendmail("X-ABillS <$conf{ADMIN_MAIL}>",
+        sendmail("$conf{ADMIN_MAIL}",
           "$line->[7]",
           "$conf{WEB_TITLE} - $_NEW_MESSAGE",
           "$message",
@@ -852,7 +852,7 @@ sub msgs_user {
            	 }, { OUTPUT2RETURN => 1 } );
 
 
-        sendmail("X-ABillS <$conf{ADMIN_MAIL}>",
+        sendmail("$conf{ADMIN_MAIL}",
           "$line->[7]",
           "$conf{WEB_TITLE} - $_NEW_MESSAGE",
           "$message",
