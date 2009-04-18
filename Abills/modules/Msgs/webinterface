@@ -902,7 +902,7 @@ sub msgs_user {
   	  $reply =~ s/\n/> /g;
      }
 
-    if ($Msgs->{STATE} < 2) {
+    if ($Msgs->{STATE} < 1) {
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), 
        { %$Msgs, REPLY_TEXT => $reply }, { OUTPUT2RETURN => 1 });
       }
