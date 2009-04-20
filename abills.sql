@@ -652,7 +652,7 @@ CREATE TABLE `shedule` (
   `uid` int(11) unsigned NOT NULL default '0',
   `date` date NOT NULL default '0000-00-00',
   `type` varchar(50) NOT NULL default '',
-  `action` varchar(200) NOT NULL default '',
+  `action` varchar(250) NOT NULL default '',
   `aid` smallint(6) unsigned NOT NULL default '0',
   `counts` tinyint(4) unsigned NOT NULL default '0',
   `d` char(2) NOT NULL default '*',

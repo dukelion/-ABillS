@@ -1,6 +1,3 @@
-$web_interface    = 1;
-#@useraccount_menu = ('Dialup_VPN');
-
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:0:$_TV:iptv_users_list:"       => 11,
                    "02:0:$_TV:iptv_user:UID"                 => 20,
@@ -18,9 +15,14 @@ $web_interface    = 1;
 
                    );
 
-%USER_FUNCTION_LIST = ("01:0:$_TV:iptv_user_info:"           => 0,
-                       "03:1:$_CHANNELS:iptv_user_channels:"   => 0
-                      );
+
+%USER_FUNCTION_LIST = ("01:0:$_TV:iptv_user_info:"             => 0,
+                       #"04:1:$_CHANNELS:iptv_user_channels:"   => 0,
+                       );
+
+if ($conf{IPTV_USER_CHG_TP}) {
+  $USER_FUNCTION_LIST{"03:1:$_TARIF_PLAN:iptv_user_chg_tp:"}=0;
+}
 
 %PERIODIC = ( 
               #report  => [ 'iptv_report' ],

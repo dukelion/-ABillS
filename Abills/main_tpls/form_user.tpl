@@ -8,7 +8,7 @@
 <TR><TD>$_CREDIT:</TD><TD><input type=text name='CREDIT' value='%CREDIT%' size=8> 
 $_DATE: <input type=text name='CREDIT_DATE' value='%CREDIT_DATE%' size=10>
 </TD></TR>
-<TR><TD>$_GROUPS:</TD><TD>%GID%:%G_NAME%</TD></TR>
+<TR><TD>$_GROUPS:</TD><TD>%GID%:%G_NAME% [<a href='$SELF_URL?index=12&UID=$FORM{UID}'>$_CHANGE</a>]</TD></TR>
 <TR><TD>$_ACTIVATE:</TD><TD><input type=text name=ACTIVATE value='%ACTIVATE%'></TD></TR>
 <TR><TD>$_EXPIRE:</TD><TD><input type=text name=EXPIRE value='%EXPIRE%'></TD></TR>
 <TR><TD>$_REDUCTION (%):</TD><TD><input type=text name=REDUCTION value='%REDUCTION%'></TD></TR>

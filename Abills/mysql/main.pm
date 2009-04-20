@@ -269,6 +269,8 @@ sub search_expr {
  	 }	
  
   if ($value =~ s/;/,/g ) {
+  	my @val_arr     = split(/,/, $value);  
+  	$value = "'". join("', '", @val_arr) ."'";
   	return [ "$field IN ($value)" ];
    }
 
