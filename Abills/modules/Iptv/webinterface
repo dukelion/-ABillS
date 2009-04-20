@@ -42,12 +42,17 @@ sub iptv_close_period {
                               rows => [ [ "$_STATUS:", "$close_period"   ]
                                       ]
                                } );
+  my %submit = ();
+  
+  if ($users->{VALUE} ne '1') {
+     $submit{CLOSE_PERIOD}  = "$_CLOSE_PERIOD";
+   }
 
   print $html->form_main({ CONTENT => $table->show(),
                            HIDDEN  => { 
 	                                      index       => "$index",
 	                                     },
-                           ($users->{VALUE} ne '1') ? { SUBMIT  => { CLOSE_PERIOD  => "$_CLOSE_PERIOD"  } }  : undef	                       
+                           SUBMIT  => \%submit
 	                       });
 
 
