@@ -505,14 +505,20 @@ my $request_end  = 0;
 my $cure_object  = 0;
 my $objects      = 0;
 my @payments_arr = ();
+my @orders       = ();
 
 my $request_type = '';
+
+
 foreach my $line (@res_array) {
   if ($line =~ /<ValidatePhone /) {
     $request_type = 'ValidatePhone';
    }
   elsif ($line =~ /<PaymentDetails>/) {
   	$request_type = 'PaymentDetails';
+   }
+  elsif ($line =~ /<\/PaymentDetails>/) {
+  	$cure_object++;
    }
   elsif ($line =~ /GetLimit/) {
   	$request_type = 'GetLimit';
@@ -533,12 +539,12 @@ foreach my $line (@res_array) {
   elsif ($line =~ /<\/order>/) {
     $cure_object++;
    }
+  elsif($request_type eq 'PaymentDetails' && $line =~ /<(\S+)>(.+)<\/\S+>/) {
+    $orders[$cure_object]{$1}=$2;
+   }
   elsif(! $request_end && $line =~ /<(\S+)>(.+)<\/\S+>/) {
     $request_hash{$1}=$2;
    }
-  #elsif($line =~ /<(\S+)>(.+)<\/\S+>/) {
-  #  $orders[$cure_object]{$1}=$2;
-  # }
 }
 
 
@@ -581,42 +587,67 @@ if ($conf{'PAYSYS_USMP_PAYELEMENTID'} && $request_hash{'PayElementID'} ne $conf{
     return 0;
  }
 
-if ($sum < $conf{PAYSYS_USMP_MINSUM}){
-    usmp_error_msg('6', 'Small Sum');
-    return 0;
- }
-elsif ($sum > 0) {
-    usmp_error_msg('120', 'Too large Amount');
-    return 0;
- }
-elsif ($sum <= 0){
-    usmp_error_msg('120', 'Wrong Sum');
-    return 0;
- }
 
 
 
 #add money
 if($request_type eq 'PaymentDetails') {
   $type = 'ProcessPaymentsResponse';
-  #Check user account
-  my $list = $users->list({ $CHECK_FIELD => $accid });
+  my @result_arr = ();
+  my $user;
 
-  my $user ;
-  if ($users->{errno}) {
-    usmp_error_msg('113', "Can't  find account");
-    return 0;
+  for(my $i=0; $i<=$#orders; $i++) {
+    my $id           = $orders[$i]{'ChequeNumber'} ; #$request_hash{'PayElementID'};
+    my $accid        = $orders[$i]{'Account'};
+    my $sum          = $orders[$i]{'Amount'};
+    my $date         = $orders[$i]{'Date'};
+    my $PayElementID = $orders[$i]{'PayElementID'};
+  
+    $result_arr[$i]{ChequeNumber}= $id;
+    $result_arr[$i]{Status}      = 0;
+    if ($conf{'PAYSYS_USMP_PAYELEMENTID'} && $request_hash{'PayElementID'} ne $conf{'PAYSYS_USMP_PAYELEMENTID'}  ){
+      usmp_error_msg('121', 'Incorect PayElementID');
+      return 0;
+     }
+
+  
+  if ($sum < $conf{PAYSYS_USMP_MINSUM}){
+    #usmp_error_msg('6', 'Small Sum');
+    #return 0;
+    $result_arr[$i]{Status}=6;
    }
-  elsif ($users->{TOTAL} < 1) {
-    usmp_error_msg('113', "Can't  find account");
-    return 0;
+  elsif ($sum > $conf{PAYSYS_USMP_MAXSUM}) {
+    #usmp_error_msg('120', 'Too large Amount');
+    #return 0;
+    $result_arr[$i]{Status}=120;
+   }
+  elsif ($sum <= 0){
+    #usmp_error_msg('120', 'Wrong Sum');
+    #return 0;
+    $result_arr[$i]{Status}=120;
    }
   else {
-    my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
-	  $user = $users->info($uid); 
+    #Check user account
+    my $list = $users->list({ $CHECK_FIELD => $accid });
+
+    if ($users->{errno}) {
+      #usmp_error_msg('113', "Can't  find account");
+      #return 0;
+      $result_arr[$i]{Status}=113;
+     }
+    elsif ($users->{TOTAL} < 1) {
+      #usmp_error_msg('113', "Can't  find account");
+      #return 0;
+      $result_arr[$i]{Status}=113;
+     }
+    else {
+      my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+	    $user = $users->info($uid); 
+     }
    }
 
-  if (!$err_code) {    
+
+  if ($result_arr[$i]{Status} < 1) {    
 	   $payments->add($user, {SUM         => $sum,
      	                     DESCRIBE     => 'USMP', 
     	                     METHOD       => '2', 
@@ -624,42 +655,62 @@ if($request_type eq 'PaymentDetails') {
   	                       CHECK_EXT_ID => "USMP:$id" } );  
      
      if ($payments->{errno} && $payments->{errno} == 7) {
-       usmp_error_msg('108', "Dublicate payments");
-       return 0;
+       #usmp_error_msg('108', "Dublicate payments");
+       $result_arr[$i]{Status}=108;
+       #return 0;
       }
      elsif ($payments->{errno}) {
-       usmp_error_msg('108', "Payments error");
+       #usmp_error_msg('108', "Payments error");
+       $result_arr[$i]{Status}=108;
       }  
+     else {
+       #usmp_error_msg('108', "Payments error");
+       $result_arr[$i]{Status}=9;
+      }
+    }
 
-       $Paysys->add({ SYSTEM_ID   => 7, 
+  $Paysys->add({ SYSTEM_ID   => 7, 
  	              DATETIME       => "'$DATE $TIME'", 
  	              SUM            => "$sum",
   	            UID            => "$accid", 
                 IP             => '0.0.0.0',
                 TRANSACTION_ID => "USMP:$id",
-                INFO           => "STATUS: $err_code $request_hash{'PayElementID'}; $request_hash{'Account'}; $request_hash{'Amount'}; $request_hash{'Date'}",
+                INFO           => "STATUS: $result_arr[$i]{Status} ID: $id Account: $accid SUM: $sum DATE: $date  PE: $PayElementID",
                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
-     }
+  }
+
 
 print << "[END]";
 <?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <soap:Body>
     <ProcessPaymentResponse xmlns="http://usmp.com.ua/">
-      <ProcessPaymentResult xsi:type="$type">
+      <ProcessPaymentResult xsi:type="ProcessPaymentsResponse">
         <Statuses>
-          <PaymentStatusDetails>
-            <ChequeNumber>$ChequeNumber</ChequeNumber>
-            <Status>$err_code</Status>
-          </PaymentStatusDetails>
+[END]
+
+for(my $i=0; $i<=$#result_arr; $i++) {
+
+print "    
+    <PaymentStatusDetails>
+            <ChequeNumber>$result_arr[$i]{ChequeNumber}</ChequeNumber>
+            <Status>$result_arr[$i]{Status}</Status>
+    </PaymentStatusDetails>
+";
+
+ }
+
+
+print << "[END]";
         </Statuses>
       </ProcessPaymentResult>
     </ProcessPaymentResponse>
   </soap:Body>
 </soap:Envelope>
 [END]
+
  }
 #Get payments statua
 elsif($request_type eq 'ChequeNumbers') {

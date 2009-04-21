@@ -908,6 +908,7 @@ sub paysys_portmone_result () {
   my $request_end  = 0;
   my $cure_object  = 0;
   my $objects      = 0;
+  my @orders       = ();
 
 foreach my $line (@res_array) {
   if ($line =~ /<portmoneresult count='(\d+)'>/) {
