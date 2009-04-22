@@ -15,6 +15,12 @@
 # /etc/services
 # hangup	30000/tcp
 
+#Debug mode
+VERSION=0.2
+DEBUG=0;
+LOG_FILE=/var/log/pppd_kill.log
+ALLOW_IP=""
+
 if [ w$1 = wserver ] ; then
   read IP_ADDR
 else if [ w$1 = w ] ; then
@@ -42,4 +48,9 @@ fi;
 
 echo "killed PID: $PPP_PID INTERFACE: $INTERFACE  IP: $IP_STRIP" 
 
+#if debug mode write output to file
+if [ w${DEBUG} = w1 ]; then
+   DATE=`date "+%Y-%m-%d %H-%M-%S"`;
+   echo "${DATE} HOST: ${REMOTE_HOST} killed PID: $PPP_PID INTERFACE: $INTERFACE  IP: $IP_STRIP"  >> ${LOG_FILE}
+fi;
 
