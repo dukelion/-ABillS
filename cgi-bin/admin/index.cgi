@@ -193,7 +193,7 @@ my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTI
                [$_LIST, $_ADD, $_DEL, $_ALL, $_DATE],                                 # Payments
                [$_LIST, $_GET, $_DEL, $_ALL],                                 # Fees
                [$_LIST, $_DEL],                                               # reports view
-               [$_LIST, $_ADD, $_CHANGE, $_DEL, $_ADMINS],                    # system magment
+               [$_LIST, $_ADD, $_CHANGE, $_DEL, $_ADMINS, "$_SYSTEM $_LOG"],                    # system magment
                [$_ALL],                                                       # Modules managments
                [$_SEARCH],                                                    # Search
                [$_MONITORING, $_HANGUP],
@@ -1961,12 +1961,129 @@ sub form_bills {
 }
 
 
+
+#**********************************************************
+# form_system_changes();
+#**********************************************************
+sub form_system_changes {
+ my ($attr) = @_; 
+ my %search_params = ();
+ 
+  my %action_types = ( 0  => 'Unknown', 
+                   1  => "$_ADDED",
+                   2  => "$_CHANGED",
+                   3  => "$_CHANGED $_TARIF_PLAN",
+                   4  => "$_CHANGED $_STATUS",
+                   5  => '-',
+                   6  => '$_INFO',
+                   7  => '-',
+                   8  => '$_ENABLE',
+                   9  => "$_DISABLED",
+                   10 => "$_DELETED");
+
+ 
+if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {
+	$admin->system_action_del( $FORM{del} );
+  if ($admins->{errno}) {
+    $html->message('err', $_ERROR, "[$admins->{errno}] $err_strs{$admins->{errno}}");	
+   }
+  else {
+    $html->message('info', $_DELETED, "$_DELETED [$FORM{del}]");
+   }
+ }
+elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
+	$FORM{subf}=$index;
+	form_admins();
+	return 0;
+ }
+
+
+#u.id, aa.datetime, aa.actions, a.name, INET_NTOA(aa.ip),  aa.UID, aa.aid, aa.id
+
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=1;
+  $LIST_PARAMS{DESC}=DESC;
+ }
+
+
+%search_params=%FORM;
+$search_params{MODULES_SEL} = $html->form_select('MODULE', 
+                                { SELECTED      => $FORM{MODULE},
+ 	                                SEL_ARRAY     => ['', @MODULES],
+ 	                                OUTPUT2RETURN => 1
+ 	                               });
+
+$search_params{TYPE_SEL} = $html->form_select('TYPE', 
+                                { SELECTED      => $FORM{TYPE},
+                                	SEL_HASH      => {'' => $_ALL, %action_types },
+                                	SORT_KEY      => 1,
+ 	                                OUTPUT2RETURN => 1
+ 	                               });
+
+
+form_search({ HIDDEN_FIELDS => $LIST_PARAMS{AID},
+	            SEARCH_FORM   => $html->tpl_show(templates('form_history_search'), \%search_params, { notprint => 1 })
+	           });
+
+
+my $list = $admin->system_action_list({ %LIST_PARAMS });
+my $table = $html->table( { width      => '100%',
+                            border     => 1,
+                            title      => ['#', $_DATE,  $_CHANGE,  $_ADMIN,   'IP', "$_MODULES", "$_TYPE", '-'],
+                            cols_align => ['right', 'left', 'right', 'left', 'left', 'right', 'left', 'left', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $admin->{TOTAL},
+                            ID         => 'ADMIN_SYSTEM_ACTIONS'
+                           });
+
+
+
+foreach my $line (@$list) {
+  my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
+
+  $table->addrow($html->b($line->[0]),
+    $line->[1],
+    $line->[2], 
+    $line->[3], 
+    $line->[4], 
+    $line->[5], 
+    $action_types{$line->[6]}, 
+    $delete);
+}
+
+
+
+print $table->show();
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($admin->{TOTAL}) ] ]
+                       } );
+print $table->show();
+
+}
+
+
+
+
+
 #**********************************************************
 # form_changes();
 #**********************************************************
 sub form_changes {
  my ($attr) = @_; 
  my %search_params = ();
+ 
+ my %action_types = ( 0  => 'Unknown', 
+                   1  => "$_ADDED",
+                   2  => "$_CHANGED",
+                   3  => "$_CHANGED $_TARIF_PLAN",
+                   4  => "$_CHANGED $_STATUS",
+                   5  => '-',
+                   6  => '$_INFO',
+                   7  => '-',
+                   8  => '$_ENABLE',
+                   9  => "$_DISABLED",
+                   10 => "$_DELETED");
  
 if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {
 	$admin->action_del( $FORM{del} );
@@ -1999,6 +2116,12 @@ $search_params{MODULES_SEL} = $html->form_select('MODULE',
  	                                OUTPUT2RETURN => 1
  	                               });
 
+$search_params{TYPE_SEL} = $html->form_select('TYPE', 
+                                { SELECTED      => $FORM{TYPE},
+                                	SEL_HASH      => {'' => $_ALL, %action_types },
+                                	SORT_KEY      => 1,
+ 	                                OUTPUT2RETURN => 1
+ 	                               });
 
 form_search({ HIDDEN_FIELDS => $LIST_PARAMS{AID},
 	            SEARCH_FORM   => $html->tpl_show(templates('form_history_search'), \%search_params, { notprint => 1 })
@@ -2008,8 +2131,8 @@ form_search({ HIDDEN_FIELDS => $LIST_PARAMS{AID},
 my $list = $admin->action_list({ %LIST_PARAMS });
 my $table = $html->table( { width      => '100%',
                             border     => 1,
-                            title      => ['#', 'UID',  $_DATE,  $_CHANGE,  $_ADMIN,   'IP', "$_MODULES", '-'],
-                            cols_align => ['right', 'left', 'right', 'left', 'left', 'right', 'left', 'center:noprint'],
+                            title      => ['#', 'UID',  $_DATE,  $_CHANGE,  $_ADMIN,   'IP', "$_MODULES", "$_TYPE", '-'],
+                            cols_align => ['right', 'left', 'right', 'left', 'left', 'right', 'left', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $admin->{TOTAL},
                             ID         => 'ADMIN_ACTIONS'
@@ -2027,6 +2150,7 @@ foreach my $line (@$list) {
     $line->[4], 
     $line->[5], 
     $line->[6], 
+    $action_types{$line->[7]}, 
     $delete);
 }
 
@@ -2490,7 +2614,7 @@ if ($FORM{AID}) {
   $admin_form->{LNG_ACTION}=$_CHANGE;
  }
 elsif ($FORM{add}) {
-  
+  $admin_form->{AID}=$admin->{AID};
   if (! $FORM{A_LOGIN}) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA $_ADMIN $_LOGIN");  	
     }
@@ -2506,6 +2630,7 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
 		$html->message('err', $_ERROR, "Can't delete system admin. Check ". '$conf{SYSTEM_ADMIN_ID}=1;');	
 	 }
   else { 
+  	$admin_form->{AID}=$admin->{AID};
   	$admin_form->del($FORM{del});
     if (! $admin_form->{errno}) {
       $html->message('info', $_DELETE, "$_DELETED");	
@@ -2643,7 +2768,7 @@ sub form_admin_permissions {
     return 0;	
   }
 
- my $admin = $attr->{ADMIN};
+ my $admin_form = $attr->{ADMIN};
 
  if (defined($FORM{set})) {
    while(my($k, $v)=each(%FORM)) {
@@ -2653,18 +2778,20 @@ sub form_admin_permissions {
         }
     }
 
-   $admin->set_permissions(\%permits);
+   $admin_form->{MAIN_AID}=$admin->{AID};
+   $admin_form->{MAIN_SESSION_IP}=$admin->{SESSION_IP};
+   $admin_form->set_permissions(\%permits);
 
-   if ($admin->{errno}) {
-     $html->message('err', $_ERROR, "$err_strs{$admin->{errno}}");
+   if ($admin_form->{errno}) {
+     $html->message('err', $_ERROR, "[$admin_form->{errno}] $err_strs{$admin_form->{errno}}");
     }
    else {
      $html->message('info', $_INFO, "$_CHANGED");
     }
   }
 
- my $p = $admin->get_permissions();
- if ($admin->{errno}) {
+ my $p = $admin_form->get_permissions();
+ if ($admin_form->{errno}) {
     $html->message('err', $_ERROR, "$err_strs{$admin->{errno}}");
     return 0;
   }
@@ -2694,8 +2821,8 @@ foreach my $k ( sort keys %menu_items ) {
 
       $table->addrow("$action_index", "$action", 
       $html->form_input($k."_$action_index", 'yes', { TYPE          => 'checkbox',
-       	                                               OUTPUT2RETURN => 1,
-       	                                               STATE         => (defined($permits{$k}{$action_index})) ? '1' : undef  
+       	                                              OUTPUT2RETURN => 1,
+       	                                              STATE         => (defined($permits{$k}{$action_index})) ? '1' : undef  
        	                                              })  
        	                                              );
 
@@ -2717,7 +2844,7 @@ foreach my $name (sort @MODULES) {
   	$table2->addrow("$name", 
   	  	$html->form_input("9_". $i. "_". $name, 'yes', { TYPE          => 'checkbox',
        	                                 OUTPUT2RETURN => 1,
-       	                                 STATE         => ($admin->{MODULES}{$name}) ? '1' : undef  
+       	                                 STATE         => ($admin_form->{MODULES}{$name}) ? '1' : undef  
        	                                    })
        	                                   );
    $i++;
@@ -3754,9 +3881,9 @@ my @m = (
  
  "59:5:$_LOG:form_changes:::",
   
- "60:5:$_NAS:form_nas:::",
- "61:60:IP POOLs:form_ip_pools:::",
- "62:60:$_NAS_STATISTIC:form_nas_stats:::",
+ "61:5:$_NAS:form_nas:::",
+ "62:61:IP POOLs:form_ip_pools:::",
+ "63:61:$_NAS_STATISTIC:form_nas_stats:::",
 
  "65:5:$_EXCHANGE_RATE:form_exchange_rate:::",
  "75:5:$_HOLIDAYS:form_holidays:::",
@@ -3792,6 +3919,11 @@ if ($permissions{4} && $permissions{4}{4}) {
   push @m, "56:50:$_PAYMENTS:form_payments:AID::";
   push @m, "57:50:$_CHANGE:form_admins:AID::";
 }
+
+if ($permissions{4} && $permissions{4}{5}) {
+  push @m, "60:5:$_SYSTEM $_LOG:form_system_changes:::";
+}
+
 
 if ($permissions{0} && $permissions{0}{1}) {
   push @m, "24:11:$_ADD:user_form:::" ;

@@ -83,6 +83,8 @@ sub ti_del {
 	my ($id) = @_;
 	$self->query($db, "DELETE FROM intervals WHERE id='$id';", 'do');
 	$self->query($db, "DELETE FROM trafic_tarifs WHERE interval_id='$id';", 'do');
+	
+	$admin->system_action_add("TI:$id", { TYPE => 10 });
 	return $self;
 }
 
@@ -96,6 +98,8 @@ sub ti_add {
 	my ($attr) = @_;
 	$self->query($db, "INSERT INTO intervals (tp_id, day, begin, end, tarif)
      values ('$self->{TP_ID}', '$attr->{TI_DAY}', '$attr->{TI_BEGIN}', '$attr->{TI_END}', '$attr->{TI_TARIF}');", 'do');
+  
+  $admin->system_action_add("TI:$self->{INSERT_ID} TP:$self->{TP_ID}", { TYPE => 1 });  
 	return $self;
 }
 
@@ -166,6 +170,8 @@ sub ti_change {
   	$self->info($DATA{TI_ID});
    }
   
+  $admin->system_action_add("TI:$ti_id $self->{CHANGES_LOG}", { TYPE => 2 });  
+
 #  $admin->action_add(0, "$CHANGES_LOG");
 	return $self;
 }
@@ -230,6 +236,8 @@ sub tp_group_del {
 	my $self = shift;
 	my ($id) = @_;
 	$self->query($db, "DELETE FROM tp_groups WHERE id='$id';", 'do');
+	
+	$admin->system_action_add("TP_GROUP:$id", { TYPE => 10 });  
 	return $self;
 }
 
@@ -244,6 +252,8 @@ sub tp_group_add {
 
 	$self->query($db, "INSERT INTO tp_groups (id, name, user_chg_tp)
      values ('$attr->{GID}', '$attr->{NAME}', '$attr->{USER_CHG_TP}');", 'do');
+  
+  $admin->system_action_add("TP_GROUP:$attr->{GID}", { TYPE => 1 });  
 	return $self;
 }
 
@@ -297,9 +307,9 @@ sub tp_group_change {
 		              } );
 
 
+  $admin->system_action_add("TP_GROUP:$DATA{ID} $self->{CHANGES_LOG}", { TYPE => 2 });  
 
 	$self->tp_group_info($DATA{GID});
-#  $admin->action_add(0, "$CHANGES_LOG");
 	return $self;
 }
 
@@ -448,6 +458,8 @@ sub add {
      );", 'do' );
 
 
+
+  $admin->system_action_add("TP:$DATA{TP_ID}", { TYPE => 1 });    
   return $self;
 }
 
@@ -479,7 +491,7 @@ sub change {
 		                EXTENDED     => ($attr->{MODULE}) ? "and module='$attr->{MODULE}'" : undef
 		              } );
 
-
+  $admin->system_action_add("TP:$tp_id $self->{CHANGES_LOG}", { TYPE => 2 });    
   if ($tp_id != $attr->{CHG_TP_ID}) {
   	 $attr->{TP_ID} = $attr->{CHG_TP_ID};
    }
@@ -501,6 +513,8 @@ sub del {
    }
   	
   $self->query($db, "DELETE FROM tarif_plans WHERE id='$id'$WHERE;", 'do');
+  
+  $admin->system_action_add("TP:$id $self->{CHANGES_LOG}", { TYPE => 10 });    
 
  return $self;
 }
@@ -686,7 +700,8 @@ sub nas_add {
    $self->query($db, "INSERT INTO tp_nas (nas_id, tp_id)
         VALUES ('$line', '$self->{TP_ID}');", 'do');	
   }
-  #$admin->action_add($uid, "NAS ". join(',', @$nas) );
+
+  $admin->system_action_add("TP_NAS:$self->{TP_ID} NAS:". (join(',', @$nas)), { TYPE => 1 });    
   return $self;
 }
 
@@ -845,6 +860,8 @@ sub  tt_add {
     $self->create_nets({ TI_ID => $DATA{TI_ID} });
    }
 
+  $admin->system_action_add("TT:$self->{INSERT_ID} TI:$DATA{TI_ID}", { TYPE => 1 });    
+  
   return $self;
 }
 
@@ -872,6 +889,8 @@ sub  tt_change {
     WHERE 
     interval_id='$attr->{TI_ID}' and id='$DATA{TT_ID}';", 'do');
 
+
+  $admin->system_action_add("TT: TI:$attr->{TI_ID}", { TYPE => 2 });    
 
   if ($attr->{DV_EXPPP_NETFILES}) {
     $self->create_nets({ TI_ID => $attr->{TI_ID} });
@@ -936,6 +955,8 @@ sub tt_del {
    }
 
 
+  $admin->system_action_add("TT:$attr->{TT_ID} TI:$DATA{TI_ID}", { TYPE => 10 });    
+
 	return $self;
 }
 
@@ -989,6 +1010,7 @@ sub holidays_add {
 	$self->query($db,"INSERT INTO holidays (day)
        VALUES ('$DATA{MONTH}-$DATA{DAY}');", 'do');
 
+  $admin->system_action_add("HOLIDAYS:$self->{INSERT_ID} $DATA{MONTH}-$DATA{DAY}", { TYPE => 1 });    
   return $self;
 }
 
@@ -1000,6 +1022,9 @@ sub holidays_del {
 	my $self = shift;
   my ($id) = @_;
 	$self->query($db, "DELETE from holidays WHERE day='$id';", 'do');
+	
+	
+	$admin->system_action_add("HOLIDAYS:$id", { TYPE => 10 });    
   return $self;
 }
 

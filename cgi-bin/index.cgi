@@ -330,9 +330,8 @@ sub form_info {
     my ($sum, $days, $price) = split(/:/, $conf{user_credit_change});
     my $credit_date = strftime "%Y-%m-%d", localtime(time + int($days) * 86400);
 
-      if (in_array('Docs', \@MODULES) ) {
-        
-        require "Abills/modules/Ipn/webinterface";
+      if (in_array('Dv', \@MODULES) ) {
+        require "Abills/modules/Dv/webinterface";
         my $Dv       = Dv->new($db, $admin, \%conf);
 
         $Dv->info($user->{UID});

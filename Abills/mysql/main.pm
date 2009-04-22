@@ -380,6 +380,8 @@ sub changes {
           $CHANGES_QUERY .= "$FIELDS->{$k}=INET_ATON('$DATA{$k}'),";
          }
         else {
+        	next if (! $OLD_DATA->{$k} && $DATA{$k} == 0);
+
           $CHANGES_LOG .= "$k $OLD_DATA->{$k}->$DATA{$k};";
           $CHANGES_QUERY .= "$FIELDS->{$k}='$DATA{$k}',";
          }
@@ -391,8 +393,10 @@ sub changes {
 
 if ($CHANGES_QUERY eq '') {
   return $self->{result};	
+ }
+else {
+  $self->{CHANGES_LOG}=$CHANGES_LOG;
 }
-
 
 
 # print $CHANGES_LOG;

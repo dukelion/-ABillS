@@ -197,6 +197,9 @@ sub payments {
 }
 
 
+
+
+
 #**********************************************************
 #
 #**********************************************************
@@ -499,7 +502,7 @@ exit;
 #**********************************************************
 sub usmp_payments_v2 {
 
-my @res_array = split(/\n[\r]?/, $FORM{data});
+my @res_array = split(/\n[\r]?/, $FORM{__BUFFER});
 my %request_hash = ();
 my $request_end  = 0;
 my $cure_object  = 0;

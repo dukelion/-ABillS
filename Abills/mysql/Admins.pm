@@ -77,6 +77,7 @@ sub admin_groups_change {
     $self->query($db, "INSERT INTO admins_groups (aid, gid) VALUES ('$attr->{AID}', '$gid');", 'do');
    }
 
+  $self->system_action_add("AID:$attr->{AID} GID: ". (join(',', @groups)), { TYPE => 2 });
 	return $self;
 }
 
@@ -119,6 +120,14 @@ sub set_permissions {
       VALUES ('$self->{AID}', '$section', '$perms', '$module');", 'do');
      }
    }
+  
+  $self->{CHANGED_AID}=$self->{AID};
+  $self->{AID}=$self->{MAIN_AID};
+  $IP=$self->{MAIN_SESSION_IP};
+  
+  
+  $self->system_action_add("AID:$self->{CHANGED_AID} PERMISION:", { TYPE => 2 });
+  $self->{AID}= $self->{CHANGED_AID};
   return $self->{permissions};
 }
 
@@ -257,7 +266,7 @@ sub change {
 
  
 
- $self->changes($admin, { CHANGE_PARAM => 'AID',
+  $self->changes($admin, { CHANGE_PARAM => 'AID',
 		                      TABLE        => 'admins',
 		                      FIELDS       => \%FIELDS,
 		                      OLD_INFO     => $self->info($self->{AID}),
@@ -265,8 +274,10 @@ sub change {
 		                     } );
 
 
+  $self->system_action_add("AID:$attr->{AID} $self->{CHANGES_LOG}", { TYPE => 2 });  
 
   $self->info($self->{AID});
+  
   
   
 	return $self;
@@ -281,10 +292,14 @@ sub add {
   my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 
+  print "$self->{AID} / $IP / $self->{SESSION_IP}";
+  
+
   $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable, gid, email, comments) 
    VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}', '$DATA{GID}', 
    '$DATA{EMAIL}', '$DATA{A_COMMENTS}');", 'do');
 
+  $self->system_action_add("AID:$self->{INSERT_ID} LOGIN:$DATA{A_LOGIN}", { TYPE => 1 });  
   return $self;
 }
 
@@ -298,6 +313,8 @@ sub del {
 
   $self->query($db, "DELETE FROM admins WHERE aid='$id';", 'do');
   $self->query($db, "DELETE FROM admin_permits WHERE aid='$id';", 'do');
+  
+  $self->system_action_add("AID:$id", { TYPE => 10 });  
   return $self;
 }
 
@@ -310,10 +327,11 @@ sub action_add {
   my ($uid, $actions, $attr) = @_;
   
   my $MODULE = (defined($self->{MODULE})) ? $self->{MODULE} : '';
+  my $action_type = ($attr->{TYPE}) ? $attr->{TYPE} : '';
   
  
-  $self->query($db, "INSERT INTO admin_actions (aid, ip, datetime, actions, uid, module) 
-    VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$uid', '$MODULE')", 'do');
+  $self->query($db, "INSERT INTO admin_actions (aid, ip, datetime, actions, uid, module, action_type) 
+    VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$uid', '$MODULE', '$action_type')", 'do');
   return $self;
 }
 
@@ -374,6 +392,11 @@ sub action_list {
  	 push @WHERE_RULES, "aa.actions LIKE '$attr->{ACTION}'";
   }    
 
+ if (defined($attr->{TYPE}) && $attr->{TYPE} ne '') {
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{TYPE}, 'INT', 'aa.action_type') };
+  }    
+
+
  # Date intervals
  if ($attr->{FROM_DATE}) {
    push @WHERE_RULES, "(date_format(aa.datetime, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(aa.datetime, '%Y-%m-%d')<='$attr->{TO_DATE}')";
@@ -393,8 +416,10 @@ sub action_list {
 
   $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if ($#WHERE_RULES > -1);
 
-  $self->query($db, "select aa.id, u.id, aa.datetime, aa.actions, a.id, INET_NTOA(aa.ip), aa.module, aa.uid, aa.aid, aa.id
-      FROM admin_actions aa
+  $self->query($db, "select aa.id, u.id, aa.datetime, aa.actions, a.id, INET_NTOA(aa.ip), aa.module, 
+      aa.action_type,
+      aa.uid, aa.aid, aa.id
+   FROM admin_actions aa
       LEFT JOIN admins a ON (aa.aid=a.aid)
       LEFT JOIN users u ON (aa.uid=u.uid)
       $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
@@ -410,6 +435,118 @@ sub action_list {
   return $list;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#**********************************************************
+#  system_action_add()
+#**********************************************************
+sub system_action_add {
+  my $self = shift;
+  my ($actions, $attr) = @_;
+  
+  my $MODULE = (defined($self->{MODULE})) ? $self->{MODULE} : '';
+  my $action_type = ($attr->{TYPE}) ? $attr->{TYPE} : '';
+  
+ 
+  $self->query($db, "INSERT INTO admin_system_actions (aid, ip, datetime, actions, module, action_type) 
+    VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$MODULE', '$action_type')", 'do');
+  return $self;
+}
+
+#**********************************************************
+#  system_action_del()
+#**********************************************************
+sub system_action_del {
+  my $self = shift;
+  my ($action_id) = @_;
+  $self->query($db, "DELETE FROM admin_system_actions WHERE id='$action_id';", 'do');
+}
+
+
+#**********************************************************
+#  system_action_list()
+#**********************************************************
+sub system_action_list {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+  my @list = ();
+  @WHERE_RULES = ();
+  $WHERE='';
+
+  if ($attr->{AID}) {
+    push @WHERE_RULES, "aa.aid='$attr->{AID}'";
+   }
+  elsif($attr->{ADMIN}) {
+  	$attr->{ADMIN} =~ s/\*/\%/ig;
+    push @WHERE_RULES, "a.id LIKE '$attr->{ADMIN}'";
+   }
+
+ if ($attr->{ACTION}) {
+ 	 $attr->{ACTION} =~ s/\*/\%/ig;
+ 	 push @WHERE_RULES, "aa.actions LIKE '$attr->{ACTION}'";
+  }    
+
+ # Date intervals
+ if ($attr->{FROM_DATE}) {
+   push @WHERE_RULES, "(date_format(aa.datetime, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(aa.datetime, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+  }
+
+ if ($attr->{MODULE}) {
+   push @WHERE_RULES, "aa.module='$attr->{MODULE}'";
+  }
+
+ if (defined($attr->{TYPE}) && $attr->{TYPE} ne '') {
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{TYPE}, 'INT', 'aa.action_type') };
+  }    
+
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "a.gid IN ($attr->{GIDS})";
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "a.gid='$attr->{GID}'";
+  }
+
+
+  $WHERE = "WHERE " . join(' and ', @WHERE_RULES) if ($#WHERE_RULES > -1);
+
+  $self->query($db, "select aa.id, aa.datetime, aa.actions, a.id, INET_NTOA(aa.ip), aa.module, 
+      aa.action_type,
+      aa.aid
+   FROM admin_system_actions aa
+      LEFT JOIN admins a ON (aa.aid=a.aid)
+      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+  
+  my $list = $self->{list};
+  
+  $self->query($db, "SELECT count(*) FROM admin_system_actions aa 
+    LEFT JOIN admins a ON (aa.aid=a.aid)
+    $WHERE;");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+
+  return $list;
+}
+
+
+
 #**********************************************************
 # password()
 #**********************************************************
@@ -420,6 +557,7 @@ sub password {
   my $secretkey = (defined($attr->{secretkey}))? $attr->{secretkey} : '';
   $self->query($db, "UPDATE admins SET password=ENCODE('$password', '$secretkey') WHERE aid='$aid';", 'do');
 
+  $self->system_action_add("AID:$self->{INSERT_ID} PASSWORD:****", { TYPE => 2 });  
   return $self;
 }
 

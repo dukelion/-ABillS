@@ -6,10 +6,24 @@ CREATE TABLE `admin_actions` (
   `aid` smallint(6) unsigned NOT NULL default '0',
   `id` int(11) unsigned NOT NULL auto_increment,
   `module` varchar(10) NOT NULL default '',
+  `action_type` TINYINT(2) NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `uid` (`uid`)
-) ;
+) COMMENT="Users changes log" ;
+
+
+CREATE TABLE `admin_system_actions` (
+ `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `actions` varchar(100) NOT NULL default '',
+  `datetime` DATETIME NOT NULL,
+  `ip` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `module` VARCHAR(10) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  `action_type` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) COMMENT='System Changes';   
 
 
 CREATE TABLE `admin_permits` (
@@ -838,13 +852,8 @@ CREATE TABLE `users_pi` (
   `city` varchar(20) NOT NULL default '',
   `accept_rules` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`)
-) ;
+) COMMENT='Users personal info';
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `voip_calls`
-#
 
 CREATE TABLE `voip_calls` (
   `status` tinyint(4) unsigned NOT NULL default '0',

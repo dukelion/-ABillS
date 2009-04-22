@@ -28,7 +28,8 @@ my %PAY_SYSTEMS = (1 => "Webmoney",
                    6 => "Ukrpays",
                    7 => "USMP",
                    8 => "PrivatBank",
-                   9 => "Pegas"
+                   9 => "Pegas",
+                   10 => "Comepay"
                   );
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
