@@ -15,7 +15,7 @@ CREATE TABLE `admin_actions` (
 
 CREATE TABLE `admin_system_actions` (
  `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `actions` varchar(100) NOT NULL default '',
+  `actions` varchar(200) NOT NULL default '',
   `datetime` DATETIME NOT NULL,
   `ip` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
   `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
