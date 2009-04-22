@@ -48,17 +48,20 @@ sub info {
  @WHERE_RULES =();
 
  if ($attr->{UID}) {
-    push @WHERE_RULES, "s.uid='$attr->{UID}'";
+   push @WHERE_RULES, "s.uid='$attr->{UID}'";
   }
  
  if ($attr->{TYPE}) {
-    push @WHERE_RULES, "s.type='$attr->{TYPE}'";
+   push @WHERE_RULES, "s.type='$attr->{TYPE}'";
   }
 
  if ($attr->{MODULE}) {
-    push @WHERE_RULES, "s.module='$attr->{MODULE}'";
+   push @WHERE_RULES, "s.module='$attr->{MODULE}'";
   }
  
+ if ($attr->{ID}) {
+ 	 push @WHERE_RULES, "s.id='$attr->{ID}'";
+  }
 
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
@@ -204,6 +207,8 @@ sub add {
      return $self;
    }
 
+ $admin->action_add($UID, "SHEDULE:$self->{INSERT_ID}");
+
  return $self;	
 }
 
@@ -219,9 +224,14 @@ sub del {
  my $self = shift;
  my ($attr) = @_;
 
- $self->query($db, "DELETE FROM shedule WHERE id='$attr->{ID}';", 'do');
- 
- # $admin->action_add($user->{UID}, "DELETE SHEDULE $id");
+ $self->info({ ID => $attr->{ID}});
+
+ if ($self->{TOTAL} > 0) {
+   $self->query($db, "DELETE FROM shedule WHERE id='$attr->{ID}';", 'do');
+   
+   $admin->system_action_add("SHEDULE:$attr->{ID} UID:$self->{UID}", { TYPE => 10 });    
+  } 
+  
  return $self;	
 }
 

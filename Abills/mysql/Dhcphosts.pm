@@ -142,6 +142,8 @@ sub network_add {
        '$DATA{AUTHORITATIVE}'
        )", 'do');
 
+  $admin->system_action_add("DHCPHOSTS_NET:$self->{INSERT_ID}", { TYPE => 1 });    
+
   return $self;
 }
 
@@ -156,6 +158,7 @@ sub network_del {
 
   $self->query($db, "DELETE FROM dhcphosts_hosts where network='$id';", 'do');
 
+  $admin->system_action_add("DHCPHOSTS_NET:$id", { TYPE => 10 });    
   return $self;
 };
 
@@ -195,7 +198,8 @@ sub network_change {
 		               TABLE        => 'dhcphosts_networks',
 		               FIELDS       => \%FIELDS,
 		               OLD_INFO     => $self->network_info($attr->{ID}),
-		               DATA         => $attr
+		               DATA         => $attr,
+		               EXT_CHANGE_INFO  => "DHCPHOSTS_NET:$attr->{ID}"
 		              } );
 
 
@@ -531,6 +535,8 @@ sub route_add {
        (network, src, mask, router) 
     values($DATA{NET_ID},INET_ATON('$DATA{SRC}'), INET_ATON('$DATA{MASK}'), INET_ATON('$DATA{ROUTER}'))", 'do');
 
+
+    $admin->system_action_add("DHCPHOSTS_NET:$DATA{NET_ID} ROUTE:$self->{INSERT_ID}", { TYPE => 1 });    
     return $self;
 };
 
@@ -542,6 +548,7 @@ sub route_del {
   my ($id)=@_;
   $self->query($db,"DELETE FROM dhcphosts_routes where id='$id'", 'do');
 
+  $admin->system_action_add("DHCPHOSTS_NET: ROUTE:$id", { TYPE => 10 });    
   return $self;
 };
 
@@ -565,7 +572,8 @@ sub route_change {
 		               TABLE        => 'dhcphosts_routes',
 		               FIELDS       => \%FIELDS,
 		               OLD_INFO     => $self->route_info($attr->{ID}),
-		               DATA         => $attr
+		               DATA         => $attr,
+		               EXT_CHANGE_INFO  => "DHCPHOSTS_ROUTE:$attr->{ID}"
 		              } );
 
   return $self if($self->{errno});

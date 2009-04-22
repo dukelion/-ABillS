@@ -118,7 +118,7 @@ sub tariff_add {
         VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}', '$DATA{PAYMENT_TYPE}', '$DATA{PERIOD_ALIGNMENT}');", 'do');
 
   return $self if ($self->{errno});
-#  $admin->action_add($DATA{UID}, "ADDED");
+  $admin->system_action_add("ABON_ID:$DATA{ID}", { TYPE => 1 });    
   return $self;
 }
 
@@ -146,11 +146,12 @@ sub tariff_change {
                    TABLE        => 'abon_tariffs',
                    FIELDS       => \%FIELDS,
                    OLD_INFO     => $self->tariff_info($attr->{ABON_ID}),
-                   DATA         => $attr
+                   DATA         => $attr,
+                   EXT_CHANGE_INFO  => "ABON_ID:$attr->{ABON_ID}"
                   } );
 
 
-  #$admin->action_add($DATA{UID}, "$self->{result}");
+
   $self->tariff_info($attr->{ABON_ID});
   
   return $self->{result};
@@ -167,6 +168,7 @@ sub tariff_del {
   my ($id) = @_;
   
   $self->query($db, "DELETE from abon_tariffs WHERE id='$id';", 'do');
+  $admin->system_action_add("ABON_ID:$id", { TYPE => 10 });    
   return $self->{result};
 }
 

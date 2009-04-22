@@ -206,6 +206,7 @@ foreach my $query (@QUERY_ARRAY) {
  
  #$self->query($db, "$attr->{QUERY};");
 
+  $admin->system_action_add("SQLCMD:$attr->{QUERY}", { TYPE => 1 });    
   my $list = \@rows;
   return $list;
 }
