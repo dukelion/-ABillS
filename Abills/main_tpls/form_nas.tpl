@@ -1,6 +1,6 @@
 <div class='noprint'>
 <form action=$SELF_URL METHOD=post>
-<input type=hidden name='index' value='60'>
+<input type=hidden name='index' value='61'>
 <input type=hidden name='NAS_ID' value='%NAS_ID%'>
 <TABLE>
 <TR><TD>ID</TD><TD>%NAS_ID%</TD></TR>

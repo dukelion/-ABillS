@@ -15,6 +15,8 @@
 </script>
 
 <form action='$SELF_URL' METHOD='post'>
+<br>
+<br>
 <TABLE width='400'  cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='$_COLORS[4]'>
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'><TR><TD bgcolor='$_COLORS[1]'>
 <TABLE width='100%' cellspacing='0' cellpadding='0' border='0'>

@@ -1,5 +1,5 @@
 <form action='$SELF_URL' METHOD='post'>
-<input type='hidden' name='index' value='61'/>
+<input type='hidden' name='index' value='62'/>
 <input type='hidden' name='NAS_ID' value='%NAS_ID%'/>
 <input type='hidden' name='chg' value='$FORM{chg}'/>
 <TABLE>

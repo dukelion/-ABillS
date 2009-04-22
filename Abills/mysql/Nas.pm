@@ -183,14 +183,16 @@ sub change {
   NAS_EXT_ACCT        => 'ext_acct');
 
 
-  	$self->changes($admin, { CHANGE_PARAM => 'NAS_ID',
-		                TABLE        => 'nas',
-		                FIELDS       => \%FIELDS,
-		                OLD_INFO     => $self->info({ NAS_ID => $self->{NAS_ID} }),
-		                DATA         => $attr
+  $self->changes($admin, { CHANGE_PARAM => 'NAS_ID',
+		                TABLE           => 'nas',
+		                FIELDS          => \%FIELDS,
+		                OLD_INFO        => $self->info({ NAS_ID => $self->{NAS_ID} }),
+		                DATA            => $attr,
+		                EXT_CHANGE_INFO => "NAS_ID:$self->{NAS_ID}"
 		              } );
 
   $self->info({ NAS_ID => $self->{NAS_ID} });
+  
   
   return $self;
 }
@@ -212,6 +214,7 @@ sub add {
   '$DATA{NAS_ALIVE}', '$DATA{NAS_DISABLE}', '$DATA{NAS_EXT_ACCT}');", 'do');
 
 
+ $admin->system_action_add("NAS_ID:$self->{INSERT_ID}", { TYPE => 1 });    
  return 0;	
 }
 
@@ -224,6 +227,8 @@ sub del {
  my ($id) = @_;
  
  $self->query($db, "DELETE FROM nas WHERE id='$id'", 'do');
+
+ $admin->system_action_add("NAS_ID:$id", { TYPE => 10 });    
  return 0;	
 }
 
@@ -252,7 +257,7 @@ sub nas_ip_pools_list {
     LEFT JOIN nas n ON (n.id=np.nas_id)
       ORDER BY $SORT $DESC");
 
-
+ 
  return $self->{list};	
 }
 
@@ -274,6 +279,7 @@ sub nas_ip_pools_set {
     VALUES ('$id', '$attr->{NAS_ID}');", 'do');
   }
 
+ $admin->system_action_add("NAS_ID:$self->{NAS_ID} POOLS:". (join(',', split(/, /, $attr->{ids}))), { TYPE => 2 });    
  return $self->{list};	
 }
 
@@ -333,7 +339,8 @@ sub ip_pools_change {
 		                TABLE        => 'ippools',
 		                FIELDS       => \%FIELDS,
 		                OLD_INFO     => $self->ip_pools_info($attr->{ID}),
-		                DATA         => $attr
+		                DATA         => $attr,
+		                EXT_CHANGE_INFO  => "POOL:$attr->{ID}"
 		              } );
 
   
@@ -379,6 +386,7 @@ sub ip_pools_add {
    VALUES ('$DATA{NAS_ID}', INET_ATON('$DATA{NAS_IP_SIP}'), '$DATA{NAS_IP_COUNT}',
    '$DATA{POOL_NAME}', '$DATA{POOL_PRIORITY}')", 'do');
 
+ $admin->system_action_add("NAS_ID:$DATA{NAS_ID} POOLS:". (join(',', split(/, /, $attr->{ids}))), { TYPE => 1 });    
  return 0;	
 }
 
@@ -392,6 +400,8 @@ sub ip_pools_del {
  my ($id) = @_;
  
  $self->query($db, "DELETE FROM ippools WHERE id='$id'", 'do');
+ 
+ $admin->system_action_add("POOL:$id", { TYPE => 10 });    
  return 0;	
 }
 

@@ -380,9 +380,26 @@ sub changes {
           $CHANGES_QUERY .= "$FIELDS->{$k}=INET_ATON('$DATA{$k}'),";
          }
         else {
-        	next if (! $OLD_DATA->{$k} && $DATA{$k} == 0);
+        	next if ((! $OLD_DATA->{$k}) && ($DATA{$k} == 0 || $DATA{$k} eq ''));
 
-          $CHANGES_LOG .= "$k $OLD_DATA->{$k}->$DATA{$k};";
+          if ($k eq 'DISABLE') {
+            if ($DATA{$k} == 0){
+              $self->{ENABLE}=1;
+             }
+            else {
+            	$self->{DISABLE}=1;
+             }
+           }
+          elsif($k eq 'STATUS') {
+            $self->{CHG_STATUS}=$OLD_DATA->{$k}.'->'.$DATA{$k};
+           }
+          elsif($k eq 'TP_ID') {
+            $self->{CHG_TP}=$OLD_DATA->{$k}.'->'.$DATA{$k};
+           }
+          else {
+            $CHANGES_LOG .= "$k $OLD_DATA->{$k}->$DATA{$k};";
+           }
+
           $CHANGES_QUERY .= "$FIELDS->{$k}='$DATA{$k}',";
          }
      }
@@ -409,9 +426,30 @@ else {
    }
 
   if (defined($DATA{UID}) && $DATA{UID} > 0 && defined($admin)) { 
-     $admin->action_add($DATA{UID}, "$CHANGES_LOG");
-   }
+    if ($self->{'DISABLE'}) {
+      $admin->action_add($DATA{UID}, "", { TYPE => 9});
+     }
 
+    if ($self->{'ENABLE'}) {
+      $admin->action_add($DATA{UID}, "", { TYPE => 8});
+     }
+
+    if($self->{'STATUS'}) {
+      $admin->action_add($DATA{UID}, "$self->{'STATUS'}", { TYPE => 4});
+     }
+
+    if($self->{'CHG_TP'}) {
+      $admin->action_add($DATA{UID}, "$self->{'CHG_TP'}", { TYPE => 3});
+     }
+
+    if ($CHANGES_LOG ne '') {
+      $admin->action_add($DATA{UID}, "$CHANGES_LOG", { TYPE => 2});
+     }
+   }
+  elsif(defined($admin)) {
+  	$CHANGES_LOG = $attr->{EXT_CHANGE_INFO}.' '.$CHANGES_LOG if ($attr->{EXT_CHANGE_INFO});
+    $admin->system_action_add("$CHANGES_LOG", { TYPE => 2 });
+   }
   return $self->{result};
 }
 

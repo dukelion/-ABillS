@@ -169,8 +169,6 @@ sub ti_change {
   else {
   	$self->info($DATA{TI_ID});
    }
-  
-  $admin->system_action_add("TI:$ti_id $self->{CHANGES_LOG}", { TYPE => 2 });  
 
 #  $admin->action_add(0, "$CHANGES_LOG");
 	return $self;
@@ -305,9 +303,6 @@ sub tp_group_change {
 		               OLD_INFO     => $self->tp_group_info($DATA{ID}),
 		               DATA         => $attr
 		              } );
-
-
-  $admin->system_action_add("TP_GROUP:$DATA{ID} $self->{CHANGES_LOG}", { TYPE => 2 });  
 
 	$self->tp_group_info($DATA{GID});
 	return $self;
@@ -488,10 +483,10 @@ sub change {
 		                FIELDS       => \%FIELDS,
 		                OLD_INFO     => $self->info($tp_id, { MODULE => $attr->{MODULE} }),
 		                DATA         => $attr,
-		                EXTENDED     => ($attr->{MODULE}) ? "and module='$attr->{MODULE}'" : undef
+		                EXTENDED     => ($attr->{MODULE}) ? "and module='$attr->{MODULE}'" : undef,
+		                EXT_CHANGE_INFO  => "TP_ID:$tp_id"
 		              } );
 
-  $admin->system_action_add("TP:$tp_id $self->{CHANGES_LOG}", { TYPE => 2 });    
   if ($tp_id != $attr->{CHG_TP_ID}) {
   	 $attr->{TP_ID} = $attr->{CHG_TP_ID};
    }

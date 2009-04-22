@@ -274,12 +274,8 @@ sub change {
 		                     } );
 
 
-  $self->system_action_add("AID:$attr->{AID} $self->{CHANGES_LOG}", { TYPE => 2 });  
-
   $self->info($self->{AID});
-  
-  
-  
+ 
 	return $self;
 }
 

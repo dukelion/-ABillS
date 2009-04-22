@@ -342,7 +342,7 @@ $admin->{SEL_TYPE} = $html->form_select('type',
 
 
 ## Visualisation begin
-print "<table width='100%'>\n";
+print "<table width='100%' border='0' cellpadding='0' cellspacing='1'>\n";
 $admin->{DATE}=$DATE;
 $admin->{TIME}=$TIME;
 if(defined($conf{tech_works})) {
@@ -1975,10 +1975,10 @@ sub form_system_changes {
                    3  => "$_CHANGED $_TARIF_PLAN",
                    4  => "$_CHANGED $_STATUS",
                    5  => '-',
-                   6  => '$_INFO',
+                   6  => "$_INFO",
                    7  => '-',
-                   8  => '$_ENABLE',
-                   9  => "$_DISABLED",
+                   8  => "$_ENABLE",
+                   9  => "$_DISABLE",
                    10 => "$_DELETED");
 
  
@@ -2079,10 +2079,10 @@ sub form_changes {
                    3  => "$_CHANGED $_TARIF_PLAN",
                    4  => "$_CHANGED $_STATUS",
                    5  => '-',
-                   6  => '$_INFO',
+                   6  => "$_INFO",
                    7  => '-',
-                   8  => '$_ENABLE',
-                   9  => "$_DISABLED",
+                   8  => "$_ENABLE",
+                   9  => "$_DISABLE",
                    10 => "$_DELETED");
  
 if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {
@@ -3101,15 +3101,15 @@ my $table = $html->table( { width      => '100%',
 
 my $list = $nas->list({ %LIST_PARAMS });
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=60&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?" }); 
+  my $delete = $html->button($_DEL, "index=61&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?" }); 
   $table->addrow($line->[0], 
     $line->[1], 
     $line->[2], 
     $line->[3], $line->[4], $auth_types[$line->[5]], 
     $status[$line->[6]],
     $line->[7],
-    $html->button("IP POOLs", "index=61&NAS_ID=$line->[0]"),
-    $html->button("$_CHANGE", "index=60&NAS_ID=$line->[0]"),
+    $html->button("IP POOLs", "index=62&NAS_ID=$line->[0]"),
+    $html->button("$_CHANGE", "index=61&NAS_ID=$line->[0]"),
     $delete);
 }
 print $table->show();
@@ -3209,12 +3209,12 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[9]", { MESSAGE => "$_DEL NAS $line->[5]?" }); 
-  my $change = $html->button($_CHANGE, "index=61$pages_qs&chg=$line->[9]"); 
+  my $delete = $html->button($_DEL, "index=62$pages_qs&del=$line->[9]", { MESSAGE => "$_DEL POOL $line->[9]?" }); 
+  my $change = $html->button($_CHANGE, "index=62$pages_qs&chg=$line->[9]"); 
 
   $table->addrow(
     $html->form_input('ids', $line->[9], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef }),
-    $html->button($line->[1], "index=60&NAS_ID=$line->[10]"), 
+    $html->button($line->[1], "index=61&NAS_ID=$line->[10]"), 
     $line->[2],
     $line->[7], 
     $line->[8], 
@@ -4416,6 +4416,7 @@ if ($attr->{USER}) {
       my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
 
       $FORM{date_M}++;
+      $FORM{date_M}=sprintf("%.2d", $FORM{date_M});
       my $FEES_DATE = "$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}";
 
       if ($seltime - 86400 <= time()) {
