@@ -266,9 +266,23 @@ my %shedule_type = ('tp'      => $_TARIF_PLAN,
  foreach my $line (@$list) {
    if ($line->[6] eq 'fees') {
     	 my $user = $users->info( $line->[12] );
-    	 my ($sum, $descr) = split(/:/, $line->[7], 2);
+    	 my ($sum, $descr, $bill_id) = split(/:/, $line->[7]);
     	 #my $module = $line->[8];
+    	 if ($bill_id) {
+    	 	  if($bill_id =~ /(\S+)=(\S+)/) {
+    	 	  	$bill_id=$2;
+    	 	   }
+    	  }
+    	 $user->{BILL_ID}=$bill_id;
     	 $fees->take($user, $sum, { DESCRIBE => "$_SHEDULE: $descr" } );
+       if ($fees->{errno}) {
+        	print "Error: [ $user->{UID} ] $user->{LOGIN} SUM: $sum [$fees->{errno}] $fees->{errstr}";
+        	if ($fees->{errno} == 14 ) {
+    	 	    print "  - Don't have money account";
+  	       }
+
+          print "\n";
+        }
     	 $ret = 0;
      }
    #Required modules
