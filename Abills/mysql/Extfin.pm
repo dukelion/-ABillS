@@ -1072,7 +1072,7 @@ sub extfin_debetors {
     
     $attr->{DATE} = "'$attr->{DATE}'";
     #$ext_field    = "\@A:=f.last_deposit-f.sum,";
-    $ext_field    = "\@A:=(select f.last_deposit-f.sum FROM fees f WHERE f.uid=\@uid and f.date<'2009-03-31' ORDER BY f.id DESC limit 1),";
+    $ext_field    = "\@A:=(select f.last_deposit-f.sum FROM fees f WHERE f.uid=\@uid and f.date<'2009-03-31' ORDER BY f.id DESC limit 1) AS debet,";
     #$self->query($db, "select uid, last_deposit-sum FROM fees WHERE date<$attr->{DATE} GROUP BY uid ORDER BY id;");
     #foreach my $line (@{ $self->{list} }) {
     #	$deposits{$line->[0]}=$line->[1];
@@ -1082,7 +1082,7 @@ sub extfin_debetors {
    }
   else {
     push @WHERE_RULES, "( b.deposit < 0 or cb.deposit < 0 ) ";# and (f.last_deposit >=0 and f.last_deposit-sum<0)";
-    $ext_field = "\@A:=if(company.id IS NULL,b.deposit,cb.deposit),";
+    $ext_field = "\@A:=if(company.id IS NULL,b.deposit,cb.deposit) AS debet,";
     $attr->{DATE} = 'CURDATE()';
    }
   
@@ -1111,7 +1111,7 @@ sub extfin_debetors {
      LEFT JOIN dv_main dv ON  (u.uid=dv.uid)
 WHERE u.uid=f.uid $WHERE
 GROUP BY f.uid
-
+HAVING debet < 0
 ORDER BY f.date DESC;");
 
   my $list = $self->{list};
