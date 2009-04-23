@@ -584,10 +584,10 @@ if ($request_hash{'Serial'} ne $conf{'PAYSYS_USMP_SERIAL'} ||
 $conf{PAYSYS_USMP_MINSUM}=1.00 if (! $conf{PAYSYS_USMP_MINSUM});
 $conf{PAYSYS_USMP_MAXSUM}=10000.00 if (! $conf{PAYSYS_USMP_MAXSUM});
 
-if ($conf{'PAYSYS_USMP_PAYELEMENTID'} && $request_hash{'PayElementID'} ne $conf{'PAYSYS_USMP_PAYELEMENTID'}  ){
-    usmp_error_msg('121', 'Incorect PayElementID');
-    return 0;
- }
+#if ($conf{'PAYSYS_USMP_PAYELEMENTID'} && $request_hash{'PayElementID'} ne $conf{'PAYSYS_USMP_PAYELEMENTID'}  ){
+#    usmp_error_msg('121', 'Incorect PayElementID');
+#    return 0;
+# }
 
 
 
@@ -607,7 +607,7 @@ if($request_type eq 'PaymentDetails') {
   
     $result_arr[$i]{ChequeNumber}= $id;
     $result_arr[$i]{Status}      = 0;
-    if ($conf{'PAYSYS_USMP_PAYELEMENTID'} && $request_hash{'PayElementID'} ne $conf{'PAYSYS_USMP_PAYELEMENTID'}  ){
+    if ($conf{'PAYSYS_USMP_PAYELEMENTID'} && $PayElementID ne $conf{'PAYSYS_USMP_PAYELEMENTID'}  ){
       usmp_error_msg('121', 'Incorect PayElementID');
       return 0;
      }
