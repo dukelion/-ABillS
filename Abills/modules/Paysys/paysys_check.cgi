@@ -749,7 +749,7 @@ print << "[END]";
 
   foreach my $id (@payments_arr) {
     print "     <ChequeNumber>$id</ChequeNumber>\n
-            <Status>". (($payments_status{$id}) ? 9 : 105 ) ."</Status>\n";
+            <Status>". (($payments_status{$id}) ? 9 : 123 ) ."</Status>\n";
    }
 
 print << "[END]";
