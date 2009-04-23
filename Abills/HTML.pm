@@ -245,6 +245,7 @@ if (! defined($ENV{CONTENT_TYPE}) || $ENV{CONTENT_TYPE} !~ /boundary/ ) {
 else {
  ($boundary = $ENV{CONTENT_TYPE}) =~ s/^.*boundary=(.*)$/$1/;
  
+ $FORM{__BUFFER}=$buffer;
  @pairs = split(/--$boundary/, $buffer);
  @pairs = splice(@pairs,1,$#pairs-1);
 

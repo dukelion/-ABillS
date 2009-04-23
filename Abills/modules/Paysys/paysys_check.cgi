@@ -550,7 +550,6 @@ foreach my $line (@res_array) {
    }
 }
 
-
 if($debug > 0) {
   print "Conten-Type: text/plain\n\n";
   print "---  $request_type ---\n";
