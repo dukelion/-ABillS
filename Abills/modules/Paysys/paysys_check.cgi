@@ -629,7 +629,7 @@ if($request_type eq 'PaymentDetails') {
   elsif ($amount > $conf{PAYSYS_USMP_MAXSUM}) {
     #usmp_error_msg('120', 'Too large Amount');
     #return 0;
-    $result_arr[$i]{Status}=120;
+    $result_arr[$i]{Status}=112;
    }
   else {
     #Check user account
