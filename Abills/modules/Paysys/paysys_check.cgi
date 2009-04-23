@@ -574,15 +574,6 @@ my $err_code = 0;
 my $type     = '';
 print "Content-Type: text/xml\n\n";
 
-if ($request_hash{'Serial'} ne $conf{'PAYSYS_USMP_SERIAL'}){
-  usmp_error_msg('211', 'IncorrectSerial');
-  return 0;
- }
-elsif($request_hash{'KeyWord'} ne $conf{'PAYSYS_USMP_KEYWORD'}) {
-  usmp_error_msg('210', 'IncorrectKeyWord');
-  return 0;
-}
-
 $conf{PAYSYS_USMP_MINSUM} = (! $conf{PAYSYS_USMP_MINSUM}) ? 100 : $conf{PAYSYS_USMP_MINSUM} * 100;
 $conf{PAYSYS_USMP_MAXSUM} = (! $conf{PAYSYS_USMP_MAXSUM}) ? 10000 : $conf{PAYSYS_USMP_MINSUM} * 100;;
 
@@ -591,11 +582,20 @@ $conf{PAYSYS_USMP_MAXSUM} = (! $conf{PAYSYS_USMP_MAXSUM}) ? 10000 : $conf{PAYSYS
 #    return 0;
 # }
 
-
-
-
+if (! $request_hash{'Serial'} || $request_hash{'KeyWord'}) {
+  usmp_error_msg('212', 'WrongXML');
+  return 0;
+ }
+elsif ($request_hash{'Serial'} ne $conf{'PAYSYS_USMP_SERIAL'}){
+  usmp_error_msg('211', 'IncorrectSerial');
+  return 0;
+ }
+elsif($request_hash{'KeyWord'} ne $conf{'PAYSYS_USMP_KEYWORD'}) {
+  usmp_error_msg('210', 'IncorrectKeyWord');
+  return 0;
+ }
 #add money
-if($request_type eq 'PaymentDetails') {
+elsif($request_type eq 'PaymentDetails') {
   $type = 'ProcessPaymentsResponse';
   my @result_arr = ();
   my $user;
@@ -829,10 +829,10 @@ print << "[END]";
   </soap:Body>
 </soap:Envelope>
 [END]
-
-
 }
-
+else {
+	
+}
 
 }
 
