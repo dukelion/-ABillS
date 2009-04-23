@@ -583,8 +583,8 @@ elsif($request_hash{'KeyWord'} ne $conf{'PAYSYS_USMP_KEYWORD'}) {
   return 0;
 }
 
-$conf{PAYSYS_USMP_MINSUM}=1.00 if (! $conf{PAYSYS_USMP_MINSUM});
-$conf{PAYSYS_USMP_MAXSUM}=10000.00 if (! $conf{PAYSYS_USMP_MAXSUM});
+$conf{PAYSYS_USMP_MINSUM} = (! $conf{PAYSYS_USMP_MINSUM}) ? 100 : $conf{PAYSYS_USMP_MINSUM} * 100;
+$conf{PAYSYS_USMP_MAXSUM} = (! $conf{PAYSYS_USMP_MAXSUM}) ? 10000 : $conf{PAYSYS_USMP_MINSUM} * 100;;
 
 #if ($conf{'PAYSYS_USMP_PAYELEMENTID'} && $request_hash{'PayElementID'} ne $conf{'PAYSYS_USMP_PAYELEMENTID'}  ){
 #    usmp_error_msg('121', 'Incorect PayElementID');
@@ -603,7 +603,8 @@ if($request_type eq 'PaymentDetails') {
   for(my $i=0; $i<=$#orders; $i++) {
     my $id           = $orders[$i]{'ChequeNumber'} ; #$request_hash{'PayElementID'};
     my $accid        = $orders[$i]{'Account'};
-    my $sum          = $orders[$i]{'Amount'};
+    my $amount       = $orders[$i]{'Amount'};
+    my $sum          = $amount / 100;
     my $date         = $orders[$i]{'Date'};
     my $PayElementID = $orders[$i]{'PayElementID'};
   
@@ -615,18 +616,18 @@ if($request_type eq 'PaymentDetails') {
      }
 
   
-  if ($sum < $conf{PAYSYS_USMP_MINSUM}){
+  if ($amount <= 0){
+    #usmp_error_msg('112', 'SUM <= 0');
+    #return 0;
+    $result_arr[$i]{Status}=112;
+   }
+  elsif ($amount < $conf{PAYSYS_USMP_MINSUM}){
     #usmp_error_msg('6', 'Small Sum');
     #return 0;
     $result_arr[$i]{Status}=6;
    }
-  elsif ($sum > $conf{PAYSYS_USMP_MAXSUM}) {
+  elsif ($amount > $conf{PAYSYS_USMP_MAXSUM}) {
     #usmp_error_msg('120', 'Too large Amount');
-    #return 0;
-    $result_arr[$i]{Status}=120;
-   }
-  elsif ($sum <= 0){
-    #usmp_error_msg('120', 'Wrong Sum');
     #return 0;
     $result_arr[$i]{Status}=120;
    }
