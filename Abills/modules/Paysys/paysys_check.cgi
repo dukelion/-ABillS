@@ -574,12 +574,14 @@ my $err_code = 0;
 my $type     = '';
 print "Content-Type: text/xml\n\n";
 
-if ($request_hash{'Serial'} ne $conf{'PAYSYS_USMP_SERIAL'} ||
-    $request_hash{'KeyWord'} ne $conf{'PAYSYS_USMP_KEYWORD'}  ){
-    usmp_error_msg('210', 'IncorrectKeyWord');
-    return 0;
+if ($request_hash{'Serial'} ne $conf{'PAYSYS_USMP_SERIAL'}){
+  usmp_error_msg('211', 'IncorrectSerial');
+  return 0;
  }
-
+elsif($request_hash{'KeyWord'} ne $conf{'PAYSYS_USMP_KEYWORD'}) {
+  usmp_error_msg('210', 'IncorrectKeyWord');
+  return 0;
+}
 
 $conf{PAYSYS_USMP_MINSUM}=1.00 if (! $conf{PAYSYS_USMP_MINSUM});
 $conf{PAYSYS_USMP_MAXSUM}=10000.00 if (! $conf{PAYSYS_USMP_MAXSUM});
