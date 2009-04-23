@@ -144,7 +144,7 @@ if ($ip_num > $first_ip && $ip_num < $last_ip){
         exit;
  } 
 #USMP
-elsif('77.222.138.142,195.10.218.120,192.168.0.1' =~ /$ENV{REMOTE_ADDR}/) {
+elsif('77.222.138.142,195.10.218.120,192.168.0.1' =~ /$ENV{REMOTE_ADDR}/ && ! $conf{PAYSYS_USMP_OLD}) {
   usmp_payments_v2();
   exit;
  }
