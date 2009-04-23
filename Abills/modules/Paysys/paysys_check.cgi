@@ -583,7 +583,7 @@ $conf{PAYSYS_USMP_MAXSUM} = (! $conf{PAYSYS_USMP_MAXSUM}) ? 10000 : $conf{PAYSYS
 # }
 
 if (! $request_hash{'Serial'} || $request_hash{'KeyWord'}) {
-  usmp_error_msg('212', 'WrongXML');
+  usmp_error_msg('212', 'Incorrect XML');
   return 0;
  }
 elsif ($request_hash{'Serial'} ne $conf{'PAYSYS_USMP_SERIAL'}){
