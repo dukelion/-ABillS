@@ -149,7 +149,7 @@ sub del {
   $Bill->action('add', $bill_id, $sum); 
 
   $self->query($db, "DELETE FROM fees WHERE id='$id';", 'do');
-  $admin->action_add($user->{UID}, "DELETE FEES $id SUM: $sum");
+  $admin->action_add($user->{UID}, "FEES:$id SUM:$sum", { TYPE => 10 });
 
   return $self->{result};
 }

@@ -331,13 +331,45 @@ sub action_add {
   return $self;
 }
 
+
+#**********************************************************
+#  action_del()
+#**********************************************************
+sub action_info {
+  my $self = shift;
+  my ($id) = @_;
+
+  $self->query($db, "SELECT aid, INET_NTOA(ip), datetime, actions, uid, module, action_type 
+    FROM admin_actions WHERE id='$id';");
+
+  ($self->{AID},
+   $self->{IP}, 
+   $self->{DATETIME}, 
+   $self->{ACTION}, 
+   $self->{UID},
+   $self->{MODULES},
+   $self->{ACTION_TYPE}
+  )= @{ $self->{list}->[0] };  
+ 
+  return $self;
+}
+
+
 #**********************************************************
 #  action_del()
 #**********************************************************
 sub action_del {
   my $self = shift;
-  my ($action_id) = @_;
-  $self->query($db, "DELETE FROM admin_actions WHERE id='$action_id';", 'do');
+  my ($id) = @_;
+  
+
+  $self->action_info($id);
+  
+  if ($self->{TOTAL} > 0) {
+    $self->query($db, "DELETE FROM admin_actions WHERE id='$id';", 'do');
+    $self->system_action_add("ACTION:$id DATETIME:$self->{DATETIME} UID:$self->{UID} CHANGED:$self->{ACTION}", { TYPE => 10 });    
+   }
+
 }
 
 
