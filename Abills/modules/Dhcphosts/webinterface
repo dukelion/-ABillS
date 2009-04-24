@@ -87,7 +87,7 @@ sub dhcphosts_mac_block_show {
 
       $deposit = 0 if (! $deposit);
 
-      #DENY
+      
       my %INFO = (
             IP      => ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[11],
       	    MAC     => $line->[6],
@@ -97,6 +97,7 @@ sub dhcphosts_mac_block_show {
       	    EXPIRE  => $line->[7]
         ); 
       
+      #DENY
       if ($status == 1 || (($conf{DHCPHOSTS_DEPOSITCHECK} || $conf{DHCPHOSTS_DEPOSITCHECK} ) && $deposit <= 0) ) {
          next if ($DENY_TEMPLATE eq '');
          $ethers_content .= tpl_parse($DENY_TEMPLATE, {  

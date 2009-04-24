@@ -86,8 +86,11 @@ sub user_info {
    service.disable,
    tp.gid,
    tp.month_fee,
+   tp.day_fee,
    tp.postpaid_monthly_fee,
-   tp.payment_type
+   tp.payment_type,
+   period_alignment
+   
      FROM iptv_main service
      LEFT JOIN tarif_plans tp ON (service.tp_id=tp.id)
    $WHERE;");
@@ -106,9 +109,10 @@ sub user_info {
    $self->{STATUS},
    $self->{TP_GID},
    $self->{MONTH_ABON},
+   $self->{DAY_ABON},
    $self->{POSTPAID_ABON}, 
    $self->{PAYMENT_TYPE},
-   $self->{JOIN_SERVICE}
+   $self->{PERIOD_ALIGNMENT},
   )= @{ $self->{list}->[0] };
   
   
@@ -158,7 +162,6 @@ sub user_add {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
 
      $self->{TP_INFO}=$tariffs->info($DATA{TP_ID});
-     
 
      #Take activation price
      if($tariffs->{ACTIV_PRICE} > 0) {
@@ -193,7 +196,9 @@ sub user_add {
          );", 'do');
 
   return $self if ($self->{errno});
-  $admin->action_add("$DATA{UID}", "ACTIVE");
+
+  $admin->action_add("$DATA{UID}", "", { TYPE => 1 });
+
   return $self;
 }
 
@@ -230,6 +235,8 @@ sub user_change {
 
      $self->{TP_INFO}=$tariffs->info($attr->{TP_ID});
      
+     
+    
      my $user = Users->new($db, $admin, $CONF);
 
      $user->info($attr->{UID});

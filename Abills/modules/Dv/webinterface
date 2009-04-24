@@ -384,10 +384,11 @@ sub dv_user {
      }
 
     $Dv->change({ %FORM });
-    $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
-    dv_get_month_fee($Dv) if (! $FORM{STATUS});
 
     if (! $Dv->{errno}) {
+      $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
+      dv_get_month_fee($Dv) if (! $FORM{STATUS});
+
       $html->message('info', $_INFO, "$_CHANGED");	
      }
    }
