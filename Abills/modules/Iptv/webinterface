@@ -1616,13 +1616,13 @@ sub iptv_user_channels {
   use Shedule;
   my $Shedule = Shedule->new($db, $admin);
 
-  my $user = $Iptv->user_info($LIST_PARAMS{UID});
+  my $Iptv = $Iptv->user_info($LIST_PARAMS{UID});
 
   require Tariffs;
   Tariffs->import();
   my $Iptv_tp = Tariffs->new($db, \%conf);
 
-	my $list = $Iptv_tp->ti_list({ TP_ID => $user->{TP_ID}  });
+	my $list = $Iptv_tp->ti_list({ TP_ID => $Iptv->{TP_ID}  });
   my @interval_ids = ();
 
   if ($Iptv_tp->{TOTAL} < 1) {
@@ -1638,9 +1638,8 @@ sub iptv_user_channels {
 
   #Active channels
   my %select_channels = ();
-
-  	my $list = $Iptv->user_channels_list({ TP_ID => $user->{TP_ID},
-  		                                     UID   => $LIST_PARAMS{UID}
+  	my $list = $Iptv->user_channels_list({ TP_ID => $Iptv->{TP_ID},
+  		                                     UID   => $Iptv->{UID}
   		                                     });
   	foreach my $line (@$list) {
   		$select_channels{$line->[2]}=$line->[3];
@@ -1661,7 +1660,7 @@ sub iptv_user_channels {
        }
       $M = sprintf("%.2d", $M);
 
-      $Shedule->add( {UID   => $user->{UID},
+      $Shedule->add( {UID   => $Iptv->{UID},
                    TYPE     => 'channels',
                    ACTION   => "$FORM{IDS}",
     	             D        => $D,
@@ -1697,19 +1696,25 @@ sub iptv_user_channels {
      }
 
 
+    $users=$user if ($user->{UID});
     
     foreach my $channel (keys %select_channels) {
+    	  #print "$channel<br>";
     	  #Tarif exists
-    	  delete $ids_hash{$channel} ;
-    	  #Add new tarif
-    	  push @add_arr, "$channel";
+    	  if ($ids_hash{$channel}) {
+    	    delete $ids_hash{$channel} ;
+    	    #Add new tarif
+    	    push @add_arr, $channel ;
+    	  }
      }
+
 
 
     @new_arr = keys %ids_hash;
     if ($#new_arr > -1) {
-      my $list = $Iptv->channel_ti_list({ %LIST_PARAMS, IDS => join('; ', @new_arr) });	
+    	
 
+      my $list = $Iptv->channel_ti_list({ %LIST_PARAMS, IDS => join('; ', @new_arr) });	
       foreach my $line (@$list) {
         if(($users->{CREDIT} + $users->{DEPOSIT}) > $line->[4] || $Iptv->{PEYMENT_TYPE}) {
         	$Iptv->{TP_INFO}->{PERIOD_ALIGNMENT} = $self->{PERIOD_ALIGNMENT} || 0;
@@ -1721,7 +1726,7 @@ sub iptv_user_channels {
                          METHOD   => 1  );
           
           if ($Iptv->{TP_INFO}->{MONTH_FEE} > 0) {
-            $Iptv->{ACTIVATE}=$user->{ACTIVATE};
+            $Iptv->{ACTIVATE}=$users->{ACTIVATE};
             iptv_get_month_fee($Iptv, { EXT_DESCRIBE => " $_CHANNEL: $line->[1]" });      
            }
           else {
@@ -1738,7 +1743,7 @@ sub iptv_user_channels {
      }
 
       delete $FORM{IDS};
-      $Iptv->user_channels({ %FORM, 
+      $Iptv->user_channels({  UID   => $Iptv->{UID}, 
                               TP_ID => $Iptv->{TP_ID},
                               IDS   => join(', ', @add_arr) 
                             }) ;  
@@ -1764,7 +1769,7 @@ sub iptv_user_channels {
     $html->message('err', $_ERROR, "[$Iptv->{errno}] $err_strs{$Iptv->{errno}}");	
    }
 
-  $Shedule->info( {UID     => $user->{UID},
+  $Shedule->info( {UID     => $Iptv->{UID},
                    TYPE    => 'channels',
                    MODULE  => 'Iptv'
                    });
@@ -1782,8 +1787,8 @@ sub iptv_user_channels {
 
 
     %select_channels = ();
-  	my $list = $Iptv->user_channels_list({ TP_ID => $user->{TP_ID},
-  		                                     UID   => $LIST_PARAMS{UID}
+  	my $list = $Iptv->user_channels_list({ TP_ID => $Iptv->{TP_ID},
+  		                                     UID   => $Iptv->{UID}
   		                                     });
   	foreach my $line (@$list) {
   		$select_channels{$line->[2]}=$line->[3];
@@ -1853,8 +1858,8 @@ if ($conf{IPTV_USER_CHG_CHANNELS}) {
   # }
 
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-                           HIDDEN  => { UID         => "$user->{UID}",
-                         	              TP_ID       => "$user->{TP_ID}",
+                           HIDDEN  => { UID         => "$users->{UID}",
+                         	              TP_ID       => "$users->{TP_ID}",
 	                                      index       => "$index",
 	                                      SHEDULE_ID  => $Shedule->{SHEDULE_ID}
                                      },
