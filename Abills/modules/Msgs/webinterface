@@ -530,9 +530,11 @@ sub msgs_admin {
     $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
     
     if ( $Msgs->{RESPOSIBLE} == 0 || $Msgs->{RESPOSIBLE} == $admin->{AID} ) {
- 	    $Msgs->message_change({ 
+ 	    $Msgs->message_change({ UID => $Msgs->{UID},
  	 	               ID         => $FORM{chg},
- 	 	               ADMIN_READ => "$DATE $TIME"});
+ 	 	               ADMIN_READ => "$DATE $TIME",
+ 	 	               });
+ 	 	               
      }
     
     return 0;

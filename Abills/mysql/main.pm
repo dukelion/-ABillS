@@ -425,6 +425,7 @@ else {
      return $self;
    }
 
+  $CHANGES_LOG = $attr->{EXT_CHANGE_INFO}.' '.$CHANGES_LOG if ($attr->{EXT_CHANGE_INFO});
   if (defined($DATA{UID}) && $DATA{UID} > 0 && defined($admin)) { 
     if ($self->{'DISABLE'}) {
       $admin->action_add($DATA{UID}, "", { TYPE => 9});
@@ -447,7 +448,6 @@ else {
      }
    }
   elsif(defined($admin)) {
-  	$CHANGES_LOG = $attr->{EXT_CHANGE_INFO}.' '.$CHANGES_LOG if ($attr->{EXT_CHANGE_INFO});
     $admin->system_action_add("$CHANGES_LOG", { TYPE => 2 });
    }
   return $self->{result};

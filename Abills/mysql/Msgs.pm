@@ -16,6 +16,7 @@ $VERSION = 2.00;
 use main;
 @ISA  = ("main");
 
+my $MODULE='Msgs';
 
 #**********************************************************
 # Init 
@@ -23,7 +24,9 @@ use main;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
+  $admin->{MODULE}=$MODULE;
   my $self = { };
+
   bless($self, $class);
   return $self;
 }
@@ -440,11 +443,13 @@ sub message_change {
 
   #print "!! $attr->{STATE} !!!";
 
+  $admin->{MODULE}=$MODULE;
   $self->changes($admin,  { CHANGE_PARAM => 'ID',
                    TABLE        => 'msgs_messages',
                    FIELDS       => \%FIELDS,
                    OLD_INFO     => $self->message_info($attr->{ID}),
-                   DATA         => $attr
+                   DATA         => $attr,
+                   EXT_CHANGE_INFO  => "MSG_ID:$attr->{ID}"
                   } );
 
   return $self->{result};
@@ -517,6 +522,8 @@ sub chapter_add {
   $self->query($db, "insert into msgs_chapters (name, inner_chapter)
     values ('$DATA{NAME}', '$DATA{INNER_CHAPTER}');", 'do');
 
+ 
+  $admin->system_action_add("MGSG_CHAPTER:$self->{INSERT_ID}", { TYPE => 1 });
 	return $self;
 }
 
@@ -583,12 +590,13 @@ sub chapter_change {
                 INNER_CHAPTER => 'inner_chapter'
              );
 
-
+  $admin->{MODULE}=$MODULE;
   $self->changes($admin,  { CHANGE_PARAM => 'ID',
                    TABLE        => 'msgs_chapters',
                    FIELDS       => \%FIELDS,
                    OLD_INFO     => $self->chapter_info($attr->{ID}),
-                   DATA         => $attr
+                   DATA         => $attr,
+                   
                   } );
 
   return $self->{result};
