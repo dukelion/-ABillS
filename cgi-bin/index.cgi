@@ -178,7 +178,7 @@ if ($uid > 0) {
   $OUTPUT{DATE}=$DATE;
   $OUTPUT{TIME}=$TIME;
   $OUTPUT{LOGIN}=$login;
-  $OUTPUT{IP}=$user->{REMOTE_ADDR};
+  $OUTPUT{IP}=$ENV{REMOTE_ADDR};
 
   $pages_qs="&UID=$user->{UID}&sid=$sid";
   $LIST_PARAMS{UID}=$user->{UID};
@@ -216,7 +216,12 @@ if ($uid > 0) {
    }
 
   if ($index != 0 && defined($functions{$index})) {
-    $functions{$index}->();
+    if (! $FORM{index} && $user->{DEPOSIT} + $user->{CREDIT} < 0) {
+      $html->tpl_show(templates('form_neg_deposit'), $user);
+     }
+    else {
+      $functions{$index}->();
+     }
    }
   else {
     $functions{$default_index}->();
@@ -485,14 +490,19 @@ sub auth {
  my $ip = "$REMOTE_ADDR/$HTTP_X_FORWARDED_FOR";
 
 
+ $conf{PASSWORDLESS_ACCESS}=$ENV{USER_CHECK_DEPOSIT};
+
+
 #Passwordless Access
 if ($conf{PASSWORDLESS_ACCESS}) {
     require  Dv_Sessions;
     Dv_Sessions->import();
     my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 	  my $list = $sessions->online({ FRAMED_IP_ADDRESS => "$REMOTE_ADDR" });
+
     
-    if ($sessions->{TOTAL} > 0) {
+    
+    if ($sessions->{TOTAL} == 1) {
       $login   = $list->[0]->[0];
       $ret     = $list->[0]->[11];
       #$time    = time;

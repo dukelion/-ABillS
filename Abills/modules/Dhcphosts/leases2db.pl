@@ -50,7 +50,7 @@ if (defined($ARGV->{stop})) {
 
 
 
-if(defined($ARGV->{'-h'})){
+if(defined($ARGV->{'help'})){
 	usage();
 	exit;
 }
@@ -199,7 +199,7 @@ sub parse {
        }
 
 
-      /^\s*stats \d (\d{4})\/(\d{1,2})\/(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2});/ && (  $list{$ip}{STARTS}="$1-$2-$3 $4:$5:$6" );
+      /^\s*starts \d (\d{4})\/(\d{1,2})\/(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2});/ && (  $list{$ip}{STARTS}="$1-$2-$3 $4:$5:$6" );
       /^\s*next binding state (.*);/ && (  $list{$ip}{NEXT_STATE}=$state_hash{$1} );
       /^\s*ends \d (\d{4})\/(\d{1,2})\/(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2});/   && (  $list{$ip}{ENDS}="$1-$2-$3 $4:$5:$6" );
       /^\s*(abandoned).*/   && (    $list{$ip}{abandoned}=$1 );
@@ -268,10 +268,10 @@ sub usage{
 dhcp2ldapd v$vesion: Dynamic DNS Updates fo the Bind9 LDAP backend
 
 Usage:
-	leases2db [-d | -h | ...]
+	leases2db [-d | help | ...]
 
 -d              Runs dhcp2db in daemon mode
--h              displays this help message
+help            displays this help message
 LOG_FILE=...    make log file
 LEASES=...      lease files
 UPDATE_TIME=... Update peiod (Default: 30)

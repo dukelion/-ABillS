@@ -2967,8 +2967,9 @@ sub dv_user_info {
      }
     elsif (($list->[0]->[3] > 0 && ($list->[0]->[2] + $list->[0]->[3] < 0)) || 
            ($list->[0]->[3] == 0 && $list->[0]->[2] + $list->[0]->[6]) < 0 ) {
-       $html->message('err', $_ERROR, "$_NEGATIVE_DEPOSIT. $_DEPOSIT: $list->[0]->[2] $_CREDIT: $list->[0]->[3] ", { ID => 14 });
-       return 0;
+      $html->tpl_show(templates('form_neg_deposit'), $user);
+      #$html->message('err', $_ERROR, "$_NEGATIVE_DEPOSIT. $_DEPOSIT: $list->[0]->[2] $_CREDIT: $list->[0]->[3] ", { ID => 14 });
+      return 0;
      }
     elsif ($list->[0]->[5] && $list->[0]->[5] == 1) {
        $html->message('err', $_ERROR, "$_SERVICES '$list->[0]->[4]' $_DISABLE", { ID => 15 });

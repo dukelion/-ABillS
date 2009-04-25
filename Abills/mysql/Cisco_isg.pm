@@ -155,11 +155,12 @@ sub auth {
      }
     else {
       if ($conf->{DHCPHOSTS_LEASES} eq 'db') {
-        $self->query($db, "SELECT hardware FROM dhcphosts_leases
+        $self->query($db, "SELECT hardware, UNIX_TIMESTAMP(ends)-UNIX_TIMESTAMP() FROM dhcphosts_leases
           WHERE ip=INET_ATON('$RAD->{USER_NAME}');");
  
         if ($self->{TOTAL} > 0) {
-          ($RAD->{USER_NAME}
+          ($RAD->{USER_NAME},
+           $RAD_PAIRS{'Session-Timeout'}
            )= @{ $self->{list}->[0] };
          }
        }

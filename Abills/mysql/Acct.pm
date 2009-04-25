@@ -106,6 +106,9 @@ if ($acct_status_type == 1) {
     if ($RAD->{X_ASCEND_DATA_RATE} && $RAD->{X_ASCEND_XMIT_RATE}) {
         $RAD->{CONNECT_INFO}="$RAD->{X_ASCEND_DATA_RATE} / $RAD->{X_ASCEND_XMIT_RATE}";
      }
+    elsif ($RAD->{CISCO_SERVICE_INFO}) {
+      $RAD->{CONNECT_INFO}="$RAD->{CISCO_SERVICE_INFO}";
+     }
 
     # 
     my $sql = "INSERT INTO dv_calls
