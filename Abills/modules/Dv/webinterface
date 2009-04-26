@@ -2990,7 +2990,7 @@ sub dv_user_info {
      }
 
     if (! $nas->{NAS_ID}) {
-    	$html->message('err', $_ERROR, "Can't find your NAS", { ID => 13 });
+    	$html->message('err', $_ERROR, "$ERR_UNKNOWN_IP", { ID => 13 });
     	return 0;
      }
  	
@@ -3162,19 +3162,23 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   	  $html->message('err', $_ERROR, "IP: '$ip', MAC: $_NOT_EXIST. Address Conflict", { ID => 114 });
   	 }
    }
-  else {  
-    $table = $html->table({ width       => '500',
-                          rowcolor    => $_COLORS[0],
-                          rows        => [[ "MAC: ", $Dv->{DHCP_LEASES_MAC},
-                          $html->form_input('discovery', $_REGISTRATION, { TYPE => 'submit', OUTPUT2RETURN => 1 })
-                                         ]],                                   
-                         });
-      
-    print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-  	                     HIDDEN  => { index => "$index",
-  	                         	        CID   => "$Dv->{DHCP_LEASES_MAC}",
-  	                         	        sid   => $sid    },
-	                       });
+  else {
+  	$html->tpl_show(_include('dv_guest_mode', 'Dv'), $Dv);  
+    
+#    $table = $html->table({ width       => '500',
+#                          rowcolor    => $_COLORS[0],
+#                          rows        => [
+#                          [$_GUEST_MODE],
+#                          [ "MAC: ", $Dv->{DHCP_LEASES_MAC},
+#                          $html->form_input('discovery', $_REGISTRATION, { TYPE => 'submit', OUTPUT2RETURN => 1 })
+#                                         ]],                                   
+#                         });
+#      
+#    print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+#  	                     HIDDEN  => { index => "$index",
+#  	                         	        CID   => "$Dv->{DHCP_LEASES_MAC}",
+#  	                         	        sid   => $sid    },
+#	                       });
 
   }
 }  
@@ -4828,7 +4832,7 @@ sub dv_dhcp_get_mac_add {
 
       if ($Dhcphosts->{errno}) {
         if ($Dhcphosts->{errno} == 7) {
-        	$html->message('err', $_ACTIVATE, "$_ERROR: DHCP Hosts Dublicate", { ID => 118 });
+        	$html->message('err', $_ACTIVATE, "$_ERROR: MAC: '$mac' IP: '$new_ip' $_EXIST", { ID => 118 });
          }
         else {
         	$html->message('err', $_ACTIVATE, "$_ERROR: DHCP add hosts error", { ID => 119 });

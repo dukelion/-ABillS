@@ -246,6 +246,7 @@ $ERR_WRONG_CONFIRM='Wrong Confirmation';
 $ERR_NAME_TOOLONG='Login is too long';
 $ERR_WRONG_DATA="Wrong data input";
 $ERR_SMALL_DEPOSIT='Too Small Deposit';
+$ERR_UNKNOWN_IP="Not registred IP Address. Can't find your NAS.";
 
 
 #Mail section
@@ -376,6 +377,7 @@ $_JOIN_SERVICE='Join Service';
 $_MAIN='Main';
 $_CHANNELS='Channels';
 $_ABON_DISTRIBUTION='Abon. payments distribution';
+$_GUEST_MODE='Guest mode. Please registration your address';
 
 $_LOGON='Logon';
 

@@ -218,6 +218,7 @@ if ($uid > 0) {
   if ($index != 0 && defined($functions{$index})) {
     if (! $FORM{index} && $user->{DEPOSIT} + $user->{CREDIT} < 0) {
       $html->tpl_show(templates('form_neg_deposit'), $user);
+      $html->tpl_show(templates('form_client_info'), $user);
      }
     else {
       $functions{$index}->();
@@ -509,6 +510,8 @@ if ($conf{PASSWORDLESS_ACCESS}) {
       $sid     = mk_unique_value(14);
       $action  = 'Access';
       $user->info($ret);
+
+      $user->{REMOTE_ADDR}=$REMOTE_ADDR;
       return ($ret, $sid, $login);
     }
   }
