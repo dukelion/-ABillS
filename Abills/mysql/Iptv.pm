@@ -78,7 +78,6 @@ sub user_info {
   
   $WHERE =  "WHERE service.uid='$uid'";
   
-  
   $self->query($db, "SELECT service.uid, service.tp_id, 
    tp.name, 
    service.filter_id, 
@@ -89,7 +88,8 @@ sub user_info {
    tp.day_fee,
    tp.postpaid_monthly_fee,
    tp.payment_type,
-   period_alignment
+   tp.period_alignment
+   
    
      FROM iptv_main service
      LEFT JOIN tarif_plans tp ON (service.tp_id=tp.id)
@@ -105,6 +105,7 @@ sub user_info {
   ($self->{UID},
    $self->{TP_ID}, 
    $self->{TP_NAME}, 
+   $self->{CID}, 
    $self->{FILTER_ID}, 
    $self->{STATUS},
    $self->{TP_GID},

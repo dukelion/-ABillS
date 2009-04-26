@@ -1712,12 +1712,10 @@ sub iptv_user_channels {
 
     @new_arr = keys %ids_hash;
     if ($#new_arr > -1) {
-    	
-
       my $list = $Iptv->channel_ti_list({ %LIST_PARAMS, IDS => join('; ', @new_arr) });	
       foreach my $line (@$list) {
         if(($users->{CREDIT} + $users->{DEPOSIT}) > $line->[4] || $Iptv->{PEYMENT_TYPE}) {
-        	$Iptv->{TP_INFO}->{PERIOD_ALIGNMENT} = $self->{PERIOD_ALIGNMENT} || 0;
+        	$Iptv->{TP_INFO}->{PERIOD_ALIGNMENT} = $Iptv->{PERIOD_ALIGNMENT} || 0;
         	$Iptv->{TP_INFO}->{MONTH_FEE}        = $line->[4];
           $Iptv->{TP_INFO}->{DAY_FEE}          = $line->[5];
           $Iptv->{TP_INFO}->{TP_ID}            = $Iptv->{TP_ID};
