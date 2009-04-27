@@ -17,12 +17,12 @@ $web_interface    = 1;
                    "15:11:$_USERS:dv_users_list:TP_ID"      => 5,
                    "16:11:$_GROUPS:form_tp_groups:"         => 5,
                    "17:0:Internet:null:"                   => 4,
-                   "18:17:$_ERROR:dv_error:"               => 4,
-                   "19:17:$_LAST:dv_sessions:"             => 4,
-                   "20:17:$_USED:dv_use:"                  => 4,
-                   "21:18:$_MONTH:dv_use_allmonthes:"      => 4,
-                   "22:0:Internet:dv_online:"              => 8,
-                   "23:0:$_DV $_STATS:dv_use:COMPANY_ID"   => 13
+                   "19:17:$_ERROR:dv_error:"               => 4,
+                   "21:17:$_LAST:dv_sessions:"             => 4,
+                   "18:17:$_USED:dv_use:"                  => 4,
+                   "20:18:$_MONTH:dv_use_allmonthes:"      => 4,
+                   "26:0:Internet:dv_online:"              => 8,
+                   "27:0:$_DV $_STATS:dv_use:COMPANY_ID"   => 13
                    );
 
 if ($permissions{0}{1}) {
