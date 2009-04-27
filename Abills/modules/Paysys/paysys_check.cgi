@@ -502,72 +502,53 @@ exit;
 #**********************************************************
 sub usmp_payments_v2 {
 
-my @res_array = split(/\n[\r]?/, $FORM{__BUFFER});
-my %request_hash = ();
-my $request_end  = 0;
-my $cure_object  = 0;
-my $objects      = 0;
-my @payments_arr = ();
-my @orders       = ();
 
+eval { require XML::Simple; };
+if (! $@) {
+   XML::Simple->import();
+ }
+else {
+   print "Content-Type: text/html\n\n";
+   print "Can't load 'XML::Simple' check http://www.cpan.org";
+   exit;
+ }
+
+my $_xml = eval { XMLin($FORM{__BUFFER}, forcearray=>1) };
+
+if($@) {
+	print "Content-Type: text/xml\n\n";
+  usmp_error_msg('212', 'Incorrect XML');
+  return 0;
+  #print "\n$FORM{__BUFFER}\n";
+  #print $@;
+}
+
+my %request_hash = ();
 my $request_type = '';
 
-
-foreach my $line (@res_array) {
-  if ($line =~ /<ValidatePhone /) {
-    $request_type = 'ValidatePhone';
-   }
-  elsif ($line =~ /<PaymentDetails>/) {
-  	$request_type = 'PaymentDetails';
-   }
-  elsif ($line =~ /<\/PaymentDetails>/) {
-  	$cure_object++;
-   }
-  elsif ($line =~ /GetLimit/) {
-  	$request_type = 'GetLimit';
-   }
-  elsif ($line =~ /<GetStatus>/) {
-  	$request_type = 'GetStatus';
-   } 
-  elsif ($line =~ /<ChequeNumbers>/) {
-  	$request_type = 'ChequeNumbers';
-   }
-  elsif ($line =~ /<\/request>/) {
-    #print "End request\n";
-    $request_end=1;
-   }
-  elsif ($line =~ /<int>(\d+)<\/int>/) {
-  	push @payments_arr, $1;
-   }
-  elsif ($line =~ /<\/order>/) {
-    $cure_object++;
-   }
-  elsif($request_type eq 'PaymentDetails' && $line =~ /<(\S+)>(.+)<\/\S+>/) {
-    $orders[$cure_object]{$1}=$2;
-   }
-  elsif(! $request_end && $line =~ /<(\S+)>(.+)<\/\S+>/) {
-    $request_hash{$1}=$2;
-   }
+while(my ($k, $v) = each %{ $_xml->{'soap:Body'}->[0] }) {
+	$request_type = $k;
 }
+
+
 
 if($debug > 0) {
   print "Conten-Type: text/plain\n\n";
-  print "---  $request_type ---\n";
-  print "Objects: $objects\n";
-  while(my($k, $v) = each %request_hash ) {
-    print "$k, $v\n";
-  }
+  print "\n-- $request_type --\n";
 }
 
 my $CHECK_FIELD = $conf{PAYSYS_USMP_ACCOUNT_KEY} || 'UID';
 
-my $id    = $request_hash{'ChequeNumber'} ; #$request_hash{'PayElementID'};
-my $accid = $request_hash{'Account'};
-my $sum   = $request_hash{'Amount'};
-my $date  = $request_hash{'Date'};
-my $ChequeNumber = $request_hash{'ChequeNumber'};
+my $id    = 0;  
+my $accid = ''; 
+my $sum   = 0;  
+my $date  = ''; 
+my $ChequeNumber = ''; 
 
 
+
+$request_hash{'KeyWord'} = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{KeyWord}->[0];
+$request_hash{'Serial'}  = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{Serial}->[0];
 
 
 my $err_code = 0;
@@ -595,18 +576,21 @@ elsif($request_hash{'KeyWord'} ne $conf{'PAYSYS_USMP_KEYWORD'}) {
   return 0;
  }
 #add money
-elsif($request_type eq 'PaymentDetails') {
+elsif($request_type eq 'ProcessPayment') {
   $type = 'ProcessPaymentsResponse';
   my @result_arr = ();
   my $user;
 
-  for(my $i=0; $i<=$#orders; $i++) {
-    my $id           = $orders[$i]{'ChequeNumber'} ; #$request_hash{'PayElementID'};
-    my $accid        = $orders[$i]{'Account'};
-    my $amount       = $orders[$i]{'Amount'};
-    my $sum          = $amount / 100;
-    my $date         = $orders[$i]{'Date'};
-    my $PayElementID = $orders[$i]{'PayElementID'};
+  my @payments_arr = @{ $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{Payments}->[0]->{PaymentDetails} };
+
+
+  for(my $i=0; $i<=$#payments_arr; $i++) {
+    my $id           = $payments_arr[$i]->{ChequeNumber}->[0];
+    my $accid        = $payments_arr[$i]->{Account}->[0];
+    my $amount       = $payments_arr[$i]->{Amount}->[0];
+    my $sum          = $payments_arr[$i]->{Amount}->[0] / 100;
+    my $date         = $payments_arr[$i]->{Date}->[0];
+    my $PayElementID = $payments_arr[$i]->{PayElementID}->[0];
   
     $result_arr[$i]{ChequeNumber}= $id;
     $result_arr[$i]{Status}      = 0;
@@ -660,16 +644,12 @@ elsif($request_type eq 'PaymentDetails') {
   	                       CHECK_EXT_ID => "USMP:$id" } );  
      
      if ($payments->{errno} && $payments->{errno} == 7) {
-       #usmp_error_msg('108', "Dublicate payments");
        $result_arr[$i]{Status}=108;
-       #return 0;
       }
      elsif ($payments->{errno}) {
-       #usmp_error_msg('108', "Payments error");
        $result_arr[$i]{Status}=108;
       }  
      else {
-       #usmp_error_msg('108', "Payments error");
        $result_arr[$i]{Status}=9;
       }
     }
@@ -717,8 +697,12 @@ print << "[END]";
 [END]
 
  }
-#Get payments statua
-elsif($request_type eq 'ChequeNumbers') {
+#Get payments statua   
+elsif($request_type eq 'GetStatus') {
+  my @payments_arr = @{ $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{ChequeNumbers}->[0]->{int} };
+#  foreach my $order (@payments_arr) {
+#     print "$order\n";
+#  }
   
   my $ext_ids = '\'USMP:'. join("', 'USMP:", @payments_arr)."'";
   
@@ -797,8 +781,15 @@ print << "[END]";
 }
 #Check account
 elsif($request_type eq 'ValidatePhone') {
+	$accid = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{Account}->[0];
 	
-	my $list = $users->list({ $CHECK_FIELD => $accid });
+	if ($accid eq '') {
+    usmp_error_msg('113', "Can't  find account");
+    return 0;
+   }
+
+	
+	my $list = $users->list({ $CHECK_FIELD => "$accid" });
 
   my $user ;
   if ($users->{errno}) {
@@ -823,7 +814,7 @@ print << "[END]";
     <ValidatePhoneResponse xmlns="http://usmp.com.ua/">
       <ValidatePhoneResult xsi:type="ValidatePhoneResponse">
         <Result>$result</Result>
-        <Account>$request_hash{'Account'}</Account>
+        <Account>$accid</Account>
       </ValidatePhoneResult>
     </ValidatePhoneResponse>
   </soap:Body>

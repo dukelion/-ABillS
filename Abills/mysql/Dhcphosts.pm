@@ -715,7 +715,7 @@ sub hosts_list {
   # Deposit chech
   my $EXT_TABLES     = ''; 
   my $extra_fields = '';
-  if ($attr->{DHCPHOSTS_EXT_DEPOSITCHECK}) {
+  if (defined($attr->{DHCPHOSTS_EXT_DEPOSITCHECK})) {
    $extra_fields = ', if(company.id IS NULL,ext_b.deposit,ext_cb.deposit) ';
 
    $EXT_TABLES = "
@@ -724,7 +724,7 @@ sub hosts_list {
             LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
 
    }
-  elsif ($attr->{DHCPHOSTS_DEPOSITCHECK}) {
+  elsif (defined($attr->{DHCPHOSTS_DEPOSITCHECK})) {
   	$EXT_TABLES = 'LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)'; 

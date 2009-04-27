@@ -950,6 +950,8 @@ sub user_form {
    $user_info->{EXDATA} = $html->tpl_show(templates('form_user_exdata'), 
                                           $user_info, { notprint => 1 });
 
+   
+
    if ($conf{EXT_BILL_ACCOUNT} && $user_info->{EXT_BILL_ID}) {
      $user_info->{EXDATA} .= $html->tpl_show(templates('form_ext_bill'), 
                                              $user_info, { notprint => 1 });

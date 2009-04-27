@@ -51,9 +51,9 @@ sub dhcphosts_mac_block_show {
    my $ethers_content = "# $DATE $TIME\n# ABillS IPGuard CONFIG: \n";
 
    my @pair_status = ('ACCEPT', 'DENY');
-   my $list = $Dhcphosts->hosts_list({ STATUS        => $LIST_PARAMS{STATUS}, 
-   	                                   PAGE_ROWS     => 1000000,
-   	                                   DHCPHOSTS_DEPOSITCHECK => $conf{DHCPHOSTS_DEPOSITCHECK},
+   my $list = $Dhcphosts->hosts_list({ STATUS                     => $LIST_PARAMS{STATUS}, 
+   	                                   PAGE_ROWS                  => 1000000,
+   	                                   DHCPHOSTS_DEPOSITCHECK     => $conf{DHCPHOSTS_DEPOSITCHECK},
    	                                   DHCPHOSTS_EXT_DEPOSITCHECK => $conf{DHCPHOSTS_EXT_DEPOSITCHECK}
                                      });
 
@@ -78,10 +78,10 @@ sub dhcphosts_mac_block_show {
 
       my $deposit = 0;
       
-      if ($conf{DHCPHOSTS_EXT_DEPOSITCHECK}) {
+      if (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})) {
       	$deposit = $line->[15 + $Dhcphosts->{SEARCH_FIELDS_COUNT}];
        }
-      elsif($conf{DHCPHOSTS_DEPOSITCHECK}) {
+      elsif(defined($conf{DHCPHOSTS_DEPOSITCHECK})) {
       	$deposit = $line->[15 + $Dhcphosts->{SEARCH_FIELDS_COUNT}];
        }
 
@@ -98,7 +98,8 @@ sub dhcphosts_mac_block_show {
         ); 
       
       #DENY
-      if ($status == 1 || (($conf{DHCPHOSTS_DEPOSITCHECK} || $conf{DHCPHOSTS_DEPOSITCHECK} ) && $deposit <= 0) ) {
+      if ($status == 1 || ((defined($conf{DHCPHOSTS_DEPOSITCHECK}) && $deposit < $conf{DHCPHOSTS_DEPOSITCHECK}) || (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK}) && $deposit < $conf{DHCPHOSTS_EXT_DEPOSITCHECK} ) ) ) {
+
          next if ($DENY_TEMPLATE eq '');
          $ethers_content .= tpl_parse($DENY_TEMPLATE, {  
       	                              STATUS  => $pair_status[1],
@@ -470,8 +471,27 @@ sub dhcphosts_networks {
 				cols_align => ['left', 'left', 'left', 'left', 'left', 'center:noprint', 'center:noprint','center:noprint',
 				 'center:noprint' ],
 				qs         => $pages_qs,
-				pages      => $Dhcphosts->{TOTAL}
+				pages      => $Dhcphosts->{TOTAL},
+				ID         => 'DHCP_NETWORKS',
+				header     => "<script language=\"JavaScript\" type=\"text/javascript\">
+<!-- 
+function CheckAllINBOX() {
+  for (var i = 0; i < document.dhcp_list.elements.length; i++) {
+    if(document.dhcp_list.elements[i].type == 'checkbox' && document.dhcp_list.elements[i].name == 'IDS'){
+      document.dhcp_list.elements[i].checked =         !(document.dhcp_list.elements[i].checked);
+    }
+  }
+}
+//-->
+</script>\n
+
+<div id='tabs'>
+<ul class=\"user_menu\">
+<li class=\"active\"><a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a></li>
+</ul>
+</div>\n"
     });
+
 
     foreach my $line (@$list) {
       $table->addrow(
@@ -490,7 +510,8 @@ sub dhcphosts_networks {
 
    print $html->form_main({ CONTENT => $table->show(),
 	                          HIDDEN  => { index  => $index },
-                            SUBMIT  => { config => 'dhcp.conf' }
+                            SUBMIT  => { config => 'dhcp.conf' },
+                            NAME    => 'dhcp_list'
                           });
 
   
@@ -919,7 +940,9 @@ foreach my $line (@$list) {
   
 
   foreach my $line (@$list) {
-    next if (($conf{DHCPHOSTS_DEPOSITCHECK} || $conf{DHCPHOSTS_EXT_DEPOSITCHECK}) && $line->[20] <= 0);
+  	my $deposit =  $line->[20];
+    next if ( (defined($conf{DHCPHOSTS_DEPOSITCHECK} && $despoit < $conf{DHCPHOSTS_DEPOSITCHECK})) 
+      || ( defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})  && $despoit < $conf{DHCPHOSTS_EXT_DEPOSITCHECK}) );
 
     $INFO{CLIENT_MAC} = $line->[6];
     #Option 82
