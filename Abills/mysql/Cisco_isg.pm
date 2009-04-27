@@ -442,7 +442,7 @@ $self->query($db, "select
 sub get_isg_mac {
   my ($ip) = @_;
 
-  my $logfile = $conf->{DHCPHOSTS_LEASES} || '/var/db/dhcp.leaseds';
+  my $logfile = $conf->{DHCPHOSTS_LEASES} || '/var/db/dhcpd/dhcpd.leases';
   my %list = ();
   my $l_ip = ();
 

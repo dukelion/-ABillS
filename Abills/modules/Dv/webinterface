@@ -4888,7 +4888,7 @@ sub dv_dhcp_get_mac {
    return '';
   }
  else {
-   my $logfile = $conf{DHCPHOSTS_LEASES} || '/var/db/dhcpd.leaseds';
+   my $logfile = $conf{DHCPHOSTS_LEASES} || '/var/db/dhcpd/dhcpd.leases';
    my %list = ();
    my $l_ip = '';
 
