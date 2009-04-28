@@ -514,22 +514,24 @@ else {
  }
 
 $FORM{__BUFFER}=~s/data=//;
+$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><GetStatus xmlns="http://usmp.com.ua/"><request><Serial>VZJxfNNYJ4XGtwm2T</Serial><KeyWord>WrnVmkcYMPDYxvNvLQDKRB</KeyWord><ChequeNumbers><int>10</int><int>11</int><int>12</int></ChequeNumbers></request></GetStatus></soap:Body></soap:Envelope>};
 
-if ($debug > 0) {
-	my $content = $FORM{__BUFFER};
-
-  open(FILE, ">>test_cgi.txt") or die "Can't open file 'test_cgi.txt' $!\n";
-    print FILE "----\n";
-    print FILE $content;
-    print FILE "\n----\n";
-  close(FILE);
-}
 
 my $_xml = eval { XMLin($FORM{__BUFFER}, forcearray=>1) };
 
 if($@) {
 	print "Content-Type: text/xml\n\n";
   usmp_error_msg('212', 'Incorrect XML');
+
+	my $content = $FORM{__BUFFER};
+  open(FILE, ">>test_xml.log") or die "Can't open file 'test_cgi.txt' $!\n";
+    print FILE "----\n";
+    print FILE $content;
+    print FILE "\n----\n";
+    print FILE $@;
+    print FILE "\n----\n";
+  close(FILE);
+
   return 0;
 
   print "Content-Type: text/plain\n\n";
