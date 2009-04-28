@@ -513,6 +513,8 @@ else {
    exit;
  }
 
+$FORM{__BUFFER}=~s/data=//;
+
 my $_xml = eval { XMLin($FORM{__BUFFER}, forcearray=>1) };
 
 if($@) {
