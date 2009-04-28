@@ -515,14 +515,26 @@ else {
 
 $FORM{__BUFFER}=~s/data=//;
 
+if ($debug > 0) {
+	my $content = $FORM{__BUFFER};
+
+  open(FILE, ">>test_cgi.txt") or die "Can't open file 'test_cgi.txt' $!\n";
+    print FILE "----\n";
+    print FILE $content;
+    print FILE "\n----\n";
+  close(FILE);
+}
+
 my $_xml = eval { XMLin($FORM{__BUFFER}, forcearray=>1) };
 
 if($@) {
 	print "Content-Type: text/xml\n\n";
   usmp_error_msg('212', 'Incorrect XML');
   return 0;
-  #print "\n$FORM{__BUFFER}\n";
-  #print $@;
+
+  print "Content-Type: text/plain\n\n";
+  print "\n$FORM{__BUFFER}\n";
+  print $@;
 }
 
 my %request_hash = ();
