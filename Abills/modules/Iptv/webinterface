@@ -435,8 +435,8 @@ $list = $Iptv->channel_ti_list({ %LIST_PARAMS,
 my $table = $html->table( { width      => '100%',
                             caption    => $_CHANNELS,
                             border     => 1,
-                            title      => ["# ", "$_NUM", $_NAME, $_DESCRIBE, "$_MONTH $_PRICE", "$_DSY $_PRICE"  ],
-                            cols_align => ['right', 'right', 'left', 'left', 'right', 'right'],
+                            title      => ["# ", "$_NUM", $_NAME, $_DESCRIBE, "$_MONTH $_PRICE", "$_DSY $_PRICE", $_MANDATORY
+                            cols_align => ['right', 'right', 'left', 'left', 'right', 'right', 'center'],
                             qs         => $pages_qs."&TP_ID=$FORM{TP_ID}",
                             #pages      => $Iptv->{TOTAL},
                             ID         => 'IPTV_INTERVAL_CHANNELS',
@@ -451,8 +451,9 @@ foreach my $line (@$list) {
     $line->[1], 
     $line->[2],
     $line->[3],
-    $html->form_input("MONTH_PRICE_".$line->[8], (($line->[4]) ? $line->[4] : 0.00), { SIZE => 8 }),
-    $html->form_input("DAY_PRICE_".$line->[8], (($line->[5]) ? $line->[5] : 0.00), { SIZE => 8 })
+    $html->form_input("MONTH_PRICE_".$line->[9], (($line->[4]) ? $line->[4] : 0.00), { SIZE => 8 }),
+    $html->form_input("DAY_PRICE_".$line->[9], (($line->[5]) ? $line->[5] : 0.00), { SIZE => 8 }),
+    $html->form_input("MANDATORY_".$line->[9], 1, { TYPE => 'checkbox', STATE => (($line->[6]) ? 1 : undef) })
     );
 }
 

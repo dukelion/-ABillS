@@ -513,11 +513,13 @@ else {
    exit;
  }
 
+$FORM{__BUFFER}='' if (! $FORM{__BUFFER});
 $FORM{__BUFFER}=~s/data=//;
+
 #$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><GetStatus xmlns="http://usmp.com.ua/"><request><Serial>VZJxfNNYJ4XGtwm2T</Serial><KeyWord>WrnVmkcYMPDYxvNvLQDKRB</KeyWord><ChequeNumbers><int>10</int><int>11</int><int>12</int></ChequeNumbers></request></GetStatus></soap:Body></soap:Envelope>};
 
 
-my $_xml = eval { XMLin($FORM{__BUFFER}, forcearray=>1) };
+my $_xml = eval { XMLin("$FORM{__BUFFER}", forcearray=>1) };
 
 if($@) {
 	print "Content-Type: text/xml\n\n";
@@ -534,9 +536,9 @@ if($@) {
 
   return 0;
 
-  print "Content-Type: text/plain\n\n";
-  print "\n$FORM{__BUFFER}\n";
-  print $@;
+  #print "Content-Type: text/plain\n\n";
+  #print "\n$FORM{__BUFFER}\n";
+  #print $@;
 }
 
 my %request_hash = ();
