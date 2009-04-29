@@ -6,6 +6,7 @@ use vars  qw(%RAD %conf @MODULES $db $html $DATE $TIME $GZIP $TAR
   $MYSQLDUMP
   %ADMIN_REPORT 
   $DEBUG
+  $users
  );
 
 
@@ -51,7 +52,7 @@ if ($admin->{errno}) {
   exit 0;
 }
 
-my $users = Users->new($db, $admin, \%conf); 
+$users = Users->new($db, $admin, \%conf); 
 
 require "language/$conf{default_language}.pl";
 use POSIX qw(mktime strftime);

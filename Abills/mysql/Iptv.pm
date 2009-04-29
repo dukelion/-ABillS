@@ -919,8 +919,9 @@ sub channel_ti_change {
 
   foreach my $id (@ids) {
     $self->query($db,  "INSERT INTO iptv_ti_channels 
-     ( interval_id, channel_id, month_price, day_price)
-        VALUES ( '$DATA{INTERVAL_ID}',  '$id', '". $DATA{'MONTH_PRICE_'.$id} ."', '". $DATA{'DAY_PRICE_'.$id}."');", 'do');
+     ( interval_id, channel_id, month_price, day_price, mandatory)
+        VALUES ( '$DATA{INTERVAL_ID}',  '$id', '". $DATA{'MONTH_PRICE_'.$id} ."', 
+        '". $DATA{'DAY_PRICE_'.$id}."', '". $DATA{'MANDATORY_'.$id}."');", 'do');
    }
 
   return $self if ($self->{errno});
@@ -981,6 +982,10 @@ sub channel_ti_list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{TI}, 'INT', 'ic.interval_id') };
   }
 
+ if ($attr->{MANDATORY}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{MANDATORY}, 'INT', 'ic.mandatory') };
+  }
+
 
 #DIsable
  if (defined($attr->{DISABLE})) {
@@ -990,7 +995,7 @@ sub channel_ti_list {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT if (ic.channel_id IS NULL, 0, 1),
-   c.num, c.name,  c.comments, ic.month_price, ic.day_price, c.port,
+   c.num, c.name,  c.comments, ic.month_price, ic.day_price, ic.mandatory, c.port,
    c.disable, c.id
      FROM iptv_channels c
      LEFT JOIN iptv_ti_channels ic ON (id=ic.channel_id and ic.interval_id='$attr->{TI}')

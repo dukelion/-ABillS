@@ -6,7 +6,7 @@
   <tr><th>#</th><td><input type=text name=CHG_TP_ID value='%TP_ID%'></td></tr>
   <tr><td>$_NAME:</td><td><input type=text name=NAME value='%NAME%'></td></tr>
   <tr><td>$_UPLIMIT:</td><td><input type=text name=ALERT value='%ALERT%'></td></tr>
-
+  <tr><td>$_GROUP:</td><td>%GROUPS_SEL%</td></tr>
   <tr><td>$_DAY_FEE:</td><td><input type=text name=DAY_FEE value='%DAY_FEE%'></td></tr>
   <tr><td>$_MONTH_FEE:</td><td><input type=text name=MONTH_FEE value='%MONTH_FEE%'></td></tr>
   <tr><td>$_MONTH_ALIGNMENT:</td><td><input type=checkbox name=PERIOD_ALIGNMENT value='1' %PERIOD_ALIGNMENT%></td></tr>
