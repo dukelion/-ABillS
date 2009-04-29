@@ -42,13 +42,30 @@ sub new {
 }
 
 #**********************************************************
-# user_info
+# 
 #**********************************************************
 sub user_info {
   my $self = shift;
   my ($RAD, $NAS) = @_;
 
-  my $WHERE = " and dv.CID='$RAD->{CALLING_STATION_ID}'";
+  my $WHERE = '';
+  my $EXT_TABLES = '';
+  
+  if ($conf->{AUTH_MAC_DHCP}) {
+  	
+  	if ($RAD->{CALLING_STATION_ID} =~ /([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})\.([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})\.([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})/) {
+  		$RAD->{CALLING_STATION_ID} = "$1:$2:$3:$4:$5:$6";
+  	 }
+  	else { 
+  		$RAD->{CALLING_STATION_ID} =~ s/\-/:/g;
+  	 }
+  	
+    $WHERE = " and dhcp.mac='$RAD->{CALLING_STATION_ID}'";	
+    $EXT_TABLES = "INNER JOIN dhcphosts_hosts dhcp ON (dhcp.uid=u.uid)";
+   }
+  else {
+    $WHERE = " and dv.CID='$RAD->{CALLING_STATION_ID}'";
+   }
 
   $self->query($db, "SELECT 
    u.id,
@@ -76,6 +93,7 @@ sub user_info {
   tp.rad_pairs
 
    FROM (dv_main dv, users u)
+   $EXT_TABLES
    LEFT JOIN tarif_plans tp ON  (dv.tp_id=tp.id)
    WHERE 
     u.uid=dv.uid
@@ -127,13 +145,8 @@ if($self->{errno}) {
   return 1, \%RAD_PAIRS;
  }
 
-
-
-
-
   return $self;
 }
-
 
 #**********************************************************
 # 
