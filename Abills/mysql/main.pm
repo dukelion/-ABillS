@@ -380,7 +380,15 @@ sub changes {
           $CHANGES_QUERY .= "$FIELDS->{$k}=INET_ATON('$DATA{$k}'),";
          }
         else {
-        	next if ((! $OLD_DATA->{$k}) && ($DATA{$k} == 0 || $DATA{$k} eq ''));
+
+        	
+        	#if ($k =~ /^_/) {
+        	#	
+        	# }
+        	if (! $OLD_DATA->{$k} && ($DATA{$k} eq '0' || $DATA{$k} eq '')) {
+        	  print "$k $OLD_DATA->{$k} && length($DATA{$k}) == 0) || (! $OLD_DATA->{$k} && $DATA{$k} eq 0 )<br>";
+        		next;
+           }
 
           if ($k eq 'DISABLE') {
             if ($DATA{$k} == 0){

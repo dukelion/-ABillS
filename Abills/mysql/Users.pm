@@ -430,6 +430,7 @@ sub pi {
 
   my $i = 0;
   foreach my $val (@INFO_ARR) {
+  	$self->{$info_fields_arr[$i]}=$val;
   	$self->{'INFO_FIELDS_VAL_'.$i}=$val;
   	$i++;
    }
