@@ -45,6 +45,7 @@ CREATE TABLE `iptv_ti_channels` (
   `date` date NOT NULL DEFAULT '0000-00-00',
   `month_price` DOUBLE(15,2) NOT NULL DEFAULT '0.00',
   `day_price` DOUBLE(15,2) NOT NULL DEFAULT '0.00',
+  `mandatory` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
   UNIQUE KEY `channel_id` (`channel_id`,`interval_id`)
 ) COMMENT='IPTV channels prices';
 

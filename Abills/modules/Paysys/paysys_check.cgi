@@ -7,7 +7,11 @@
 use vars qw($begin_time %FORM %LANG 
 $DATE $TIME
 $CHARSET 
-@MODULES);
+@MODULES
+$users 
+$payments
+$Paysys
+);
 
 BEGIN {
  my $libpath = '../';
@@ -16,6 +20,7 @@ BEGIN {
  unshift(@INC, $libpath ."Abills/$sql_type/");
  unshift(@INC, $libpath);
  unshift(@INC, $libpath . 'libexec/');
+ unshift(@INC, $libpath . 'Abills/modules/Paysys');
 
  eval { require Time::HiRes; };
  if (! $@) {
@@ -104,12 +109,12 @@ if ($conf{PAYSYS_PASSWD}) {
 
 
 
-my $Paysys = Paysys->new($db, undef, \%conf);
+$Paysys = Paysys->new($db, undef, \%conf);
 my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
-my $payments = Finance->payments($db, $admin, \%conf);
+$payments = Finance->payments($db, $admin, \%conf);
 
-my $users = Users->new($db, $admin, \%conf); 
+$users = Users->new($db, $admin, \%conf); 
 
 
 #DEbug
@@ -124,7 +129,10 @@ if( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) ) {
 elsif ($FORM{SHOPORDERNUMBER}) {
   portmone_payments();
  }
-
+elsif($FORM{operation}) {
+	require "Comepay.pm";
+	exit;
+}
 
 #Check payment system by IP
 
@@ -144,7 +152,7 @@ if ($ip_num > $first_ip && $ip_num < $last_ip){
         exit;
  } 
 #USMP
-elsif('77.222.138.142,195.10.218.120,192.168.0.1' =~ /$ENV{REMOTE_ADDR}/ && ! $conf{PAYSYS_USMP_OLD}) {
+elsif('77.222.138.142,195.10.218.120' =~ /$ENV{REMOTE_ADDR}/ && ! $conf{PAYSYS_USMP_OLD}) {
   usmp_payments_v2();
   exit;
  }
