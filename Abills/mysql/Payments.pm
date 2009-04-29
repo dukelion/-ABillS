@@ -97,11 +97,12 @@ sub add {
    }
   
   if ($DATA{CHECK_EXT_ID}) {
-    $self->query($db, "SELECT id FROM payments WHERE ext_id='$DATA{CHECK_EXT_ID}';");
+    $self->query($db, "SELECT id, date FROM payments WHERE ext_id='$DATA{CHECK_EXT_ID}';");
     if ($self->{TOTAL} > 0) {
       $self->{errno}=7;
       $self->{errstr}='ERROR_DUBLICATE';
       $self->{ID}=$self->{list}->[0][0];
+      $self->{DATE}=$self->{list}->[0][1];
       return $self;	
      }
    }
