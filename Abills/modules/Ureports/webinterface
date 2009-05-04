@@ -21,10 +21,14 @@ my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my %FORM_BASE = ();
 my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
 my @service_type = ( "E-mail", "SMS", "Fax" );
-my %REPORTS = ( 1 => "$_DEPOSIT_BELOW",       
-                2 => "$_PREPAID_TRAFFIC_BELOW",
-                3 => "$_TRAFFIC_BELOW",
-                4 => "$_MONTH_REPORT",
+my %REPORTS = ( 1 => "$_DEPOSIT_BELOW",
+                2 => "$_DEPOSIT_CREDIT_BELOW",
+                3 => "$_PREPAID_TRAFFIC_BELOW",
+                4 => "$_DAY: $_TRAFFIC_MORE",
+                5 => "$_MONTH: $_DEPOSIT + $_CREDIT + $_TRAFFIC",
+                6 => "$_DAY: $_DEPOSIT + $_CREDIT + $_TRAFFIC",
+                7 => "$_CREDIT EXPIRE",
+                8 => "$_LOGIN $_DISABLE "
              );
 
 

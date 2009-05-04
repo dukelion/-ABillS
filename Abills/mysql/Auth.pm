@@ -591,7 +591,21 @@ elsif ($NAS->{NAS_TYPE} eq 'pppd' or ($NAS->{NAS_TYPE} eq 'lepppd')) {
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
     $RAD_PAIRS->{'Session-Octets-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE});
-    $RAD_PAIRS->{'Octets-Direction'} = $self->{OCTETS_DIRECTION};
+    
+    if ($CONF->{octets_direction} && $CONF->{octets_direction} eq 'user') {
+      if($self->{OCTETS_DIRECTION} == 1) {
+        $RAD_PAIRS->{'Octets-Direction'} = 2;
+       }
+      elsif($self->{OCTETS_DIRECTION} == 2) {
+        $RAD_PAIRS->{'Octets-Direction'} = 1;
+       }
+      else {
+      	$RAD_PAIRS->{'Octets-Direction'} = 0;
+       }
+     }
+    else {
+    	$RAD_PAIRS->{'Octets-Direction'}     = $self->{OCTETS_DIRECTION};
+     }
    }
 
   #Speed limit attributes 

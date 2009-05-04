@@ -129,7 +129,7 @@ if( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) ) {
 elsif ($FORM{SHOPORDERNUMBER}) {
   portmone_payments();
  }
-elsif($FORM{operation}) {
+elsif($FORM{operation} || $ENV{'QUERY_STRING'} =~ /operation=/) {
 	require "Comepay.pm";
 	exit;
 }
