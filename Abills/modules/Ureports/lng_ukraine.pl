@@ -6,3 +6,5 @@ $_PREPAID_TRAFFIC_BELOW='Передоплачений трафік менше';
 $_TRAFFIC_BELOW='Трафика  меньше';
 $_MONTH_REPORT='Місячний звіт';
 $_ACTIVATED_MSG_SENDED='Повідомлення про активацію відправлено на Вашу адресу';
+$_DEPOSIT_CREDIT_BELOW='Депозит та кредит менше';
+$_TRAFFIC_MORE='Трафіку більше ніж';

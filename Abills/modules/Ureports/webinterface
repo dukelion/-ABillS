@@ -27,7 +27,7 @@ my %REPORTS = ( 1 => "$_DEPOSIT_BELOW",
                 4 => "$_DAY: $_TRAFFIC_MORE",
                 5 => "$_MONTH: $_DEPOSIT + $_CREDIT + $_TRAFFIC",
                 6 => "$_DAY: $_DEPOSIT + $_CREDIT + $_TRAFFIC",
-                7 => "$_CREDIT EXPIRE",
+                7 => "$_CREDIT $_EXPIRE",
                 8 => "$_LOGIN $_DISABLE "
              );
 

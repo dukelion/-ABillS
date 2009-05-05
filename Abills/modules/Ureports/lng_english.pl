@@ -6,3 +6,5 @@ $_PREPAID_TRAFFIC_BELOW='Prepaid Traffic Below';
 $_TRAFFIC_BELOW='Month traffic';
 $_MONTH_REPORT='Month using';
 $_ACTIVATED_MSG_SENDED='Activated message sended';
+$_DEPOSIT_CREDIT_BELOW='Deposit + Credit Below';
+$_TRAFFIC_MORE='Traffic more then';
