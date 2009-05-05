@@ -582,7 +582,7 @@ my $type     = '';
 print "Content-Type: text/xml\n\n";
 
 $conf{PAYSYS_USMP_MINSUM} = (! $conf{PAYSYS_USMP_MINSUM}) ? 100 : $conf{PAYSYS_USMP_MINSUM} * 100;
-$conf{PAYSYS_USMP_MAXSUM} = (! $conf{PAYSYS_USMP_MAXSUM}) ? 100000 : $conf{PAYSYS_USMP_MINSUM} * 100;
+$conf{PAYSYS_USMP_MAXSUM} = (! $conf{PAYSYS_USMP_MAXSUM}) ? 100000 : $conf{PAYSYS_USMP_MAXSUM} * 100;
 
 #if ($conf{'PAYSYS_USMP_PAYELEMENTID'} && $request_hash{'PayElementID'} ne $conf{'PAYSYS_USMP_PAYELEMENTID'}  ){
 #    usmp_error_msg('121', 'Incorect PayElementID');
