@@ -50,6 +50,10 @@ require Tariffs;
 Tariffs->import();
 require Admins;
 Admins->import();
+require Dv_Sessions;
+Dv_Sessions->import();
+
+
 my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 
@@ -57,6 +61,7 @@ $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 my $Ureports = Ureports->new($db, $admin, \%conf);
 my $fees     = Fees->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
+my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
 
 require $Bin ."/../language/$html->{language}.pl";
 require $Bin ."/../Abills/modules/Ureports/lng_$html->{language}.pl";
@@ -87,6 +92,13 @@ if ($ARGV->{DEBUG}) {
 }
 
 $DATE = $ARGV->{DATE} if ($ARGV->{DATE});
+if ($ARGV->{REPORT_ID}) {
+	$ARGV->{REPORT_IDS}  =~ s/,/;/g;
+  $LIST_PARAMS{REPORT_ID}=$ARGV->{REPORT_IDS};
+ }
+
+
+
 
 
 my $debug_output = ureports_periodic_reports({ %$ARGV });
@@ -131,15 +143,16 @@ sub ureports_periodic_reports {
   my $debug_output = '';
 
  $debug_output .= "Ureports: Daily spool former\n" if ($debug > 1);
-
  $LIST_PARAMS{MODULE}='Ureports';
- $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+ $LIST_PARAMS{TP_ID} = $ARGV->{TP_IDS} if ($ARGV->{TP_IDS});
+
 
  my %SERVICE_LIST_PARAMS = ();
- $SERVICE_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
+ $SERVICE_LIST_PARAMS{LOGIN} = $ARGV->{LOGINS} if ($ARGV->{LOGINS});
 
   my $list = $tariffs->list({ %LIST_PARAMS });
- $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
 
  foreach my $line (@$list) {
      my $TP_ID = $line->[0];
@@ -151,6 +164,7 @@ sub ureports_periodic_reports {
  	   $debug_output .= "TP ID: $TP_ID DF: $line->[5] MF: $line->[6] POSTPAID: $TP_INFO{POSTPAID_DAILY} REDUCTION: $TP_INFO{REDUCTION} EXT_BILL: $line->[13] CREDIT: $line->[14]\n" if ($debug > 1);
 
      #Get users
+     #$Ureports->{debug}=1;
  	   my $ulist = $Ureports->tp_user_reports_list({
          DATE      => '0000-00-00',
          TP_ID     => $TP_ID,
@@ -163,6 +177,7 @@ sub ureports_periodic_reports {
 
      foreach my $u (@$ulist) {
      	 #Check bill id and deposit 
+     	 my %PARAMS = ();
      	 my %user = (
      	  REPORT_ID        => $u->[0],
      	  DESTINATION_TYPE => $u->[1],
@@ -174,24 +189,144 @@ sub ureports_periodic_reports {
  	      FIO              => $u->[7],
  	      UID              => $u->[8],
  	      BILL_ID          => $u->[9],
- 	      TP_ID            => $TP_ID 
+ 	      TP_ID            => $TP_ID,
+ 	      DISABLE          => $u->[10],
+ 	      CREDIT_EXPIRE    => $u->[11],
      	 ); 
 
 
 
 
        if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
+         #Skip action for pay opearation
+     	 	 if ($user{MSG_PRICE} > 0 && $user{DEPOSIT} + $user{CREDIT} < 0 && $TP_INFO{POSTPAID}  == 0) {
+     	 	 	  #print "/$TP_ID/$user{UID} / val: $user{VALUE} / report: $user{REPORT_ID} / $user{MSG_PRICE} print !!!!!!!!!!!!; \\ \n ";
+     	 	 	  $debug_output .= "UID: $user{UID} REPORT_ID: $user{REPORT_ID} DEPOSIT: $user{DEPOSIT}/$user{CREDIT} Small Deposit\n" if ($debug > 0);
+     	 	 	  next;
+     	 	  }
+
+         #Report 1
          if ($user{REPORT_ID} == 1) {
          	 if ($user{VALUE} > $user{DEPOSIT}) {
-         	 	 if ($user{MSG_PRICE} > 0 && $user{DEPOSIT} + $user{CREDIT} < 0 && $TP_INFO{POSTPAID}  == 0) {
-         	 	 	  $debug_output .= "UID: $user{UID} REPORT_ID: $user{REPORT_ID} DEPOSIT: $user{DEPOSIT}/$user{CREDIT} Small Deposit\n" if ($debug > 0);
-         	 	 	  next;
-         	 	  }
+         	   %PARAMS = ( 
+               DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
+               DATE     => "$ADMIN_REPORT{DATE} $TIME",
+               METHOD   => 1,
+               MESSAGE  => "$_DEPOSIT: $user{DEPOSIT}", 
+         	 	   SUBJECT =>  "$_DEPOSIT_BELOW"
+                );
+         	  }
+           else {
+           	  next;
+            }
+          }
+         #Report 2
+         elsif($user{REPORT_ID} == 2) {
+         	 if ($user{VALUE} > $user{DEPOSIT} + $user{CREDIT}) {
+         	   %PARAMS = ( 
+               DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
+               DATE     => "$ADMIN_REPORT{DATE} $TIME",
+               METHOD   => 1,
+               MESSAGE  => "$_DEPOSIT: $user{DEPOSIT} $_CREDIT: $user{CREDIT}", 
+         	 	   SUBJECT =>  "$_DEPOSIT_CREDIT_BELOW"
+                );
+         	  }
+           else {
+           	  next;
+            }
+          }
+         #Report 3 Prepaid traffic rest
+         elsif($user{REPORT_ID} == 3) {
+           if ($Sessions->prepaid_rest({ 
+	                                       UID  => $user{UID},
+		                                 })) {
+	
+            my $list = $Sessions->{INFO_LIST};
+            my $rest_traffic = '';
+            my $rest = 0;
+           	foreach my $line  (@$list) {
+           		
+	            $rest = ($line->[4] > 0 && $Sessions->{REST}->{$line->[0]} > 0) ? $Sessions->{REST}->{$line->[0]} : 0;
+	            if ($rest < $user{VALUE}) {
+	            	
+	            	$rest_traffic .= "================\n $_TYPE: $line->[0]\n $_BEGIN: $line->[1]\n".
+	            	"$_END: $line->[2]\n".
+	            	"$_TOTAL: $line->[4]\n".
+	            	"\n $_REST: ". $rest;
 
+           	   %PARAMS = ( 
+                 DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
+                 DATE     => "$ADMIN_REPORT{DATE} $TIME",
+                 METHOD   => 1,
+                 MESSAGE  => "$_MONTH:\n $_DEPOSIT: $user{DEPOSIT}\n $_CREDIT: $user{CREDIT}\n $_TRAFFIC: $_RECV: $traffic_in $_SEND: $traffic_out \n  $_SUM: $traffic_sum \n", 
+         	 	     SUBJECT =>  "$_PREPAID_TRAFFIC_BELOW"
+                 );
+	             }
+             }
+           }
+          }
+         # 5 => "$_MONTH: $_DEPOSIT + $_CREDIT + $_TRAFFIC",
+         elsif($user{REPORT_ID} == 5 && $d == 1) {
+         	 $Sessions->list({ UID    => $user{UID},
+         	 	                PERIOD => 6
+         	 	               });
+         	 
+         	 my $traffic_in  = ($Sessions->{TRAFFIC_IN}) ? $Sessions->{TRAFFIC_IN} : 0;
+           my $traffic_out = ($Sessions->{TRAFFIC_OUT}) ? $Sessions->{TRAFFIC_IN} : 0;
+           my $traffic_sum = $traffic_in + $traffic_out; 
+       	 
+         	   %PARAMS = ( 
+               DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
+               DATE     => "$ADMIN_REPORT{DATE} $TIME",
+               METHOD   => 1,
+               MESSAGE  => "$_MONTH:\n $_DEPOSIT: $user{DEPOSIT}\n $_CREDIT: $user{CREDIT}\n $_TRAFFIC: $_RECV: $traffic_in $_SEND: $traffic_out \n  $_SUM: $traffic_sum \n", 
+         	 	   SUBJECT =>  "$_MONTH: $_DEPOSIT + $_CREDIT + $_TRAFFIC"
+                );
+          }
+         # 7 - credit expired
+         elsif($user{REPORT_ID} == 7) {
+         	 if ($user{CREDIT_EXPIRE} < $user{VALUE}) {
+         	   %PARAMS = ( 
+               DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
+               DATE     => "$ADMIN_REPORT{DATE} $TIME",
+               METHOD   => 1,
+               MESSAGE  => "$_CREDIT $_EXPIRE", 
+         	 	   SUBJECT =>  "$_CREDIT $_EXPIRE"
+                );
+         	  }
+           else {
+           	  next;
+            }
+          }
+         # 8 - login disable
+         elsif($user{REPORT_ID} == 8) {
+         	 if ($user{DISABLE}) {
+         	   %PARAMS = ( 
+               DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
+               DATE     => "$ADMIN_REPORT{DATE} $TIME",
+               METHOD   => 1,
+               MESSAGE  => "$_LOGIN $_DISABLE", 
+         	 	   SUBJECT =>  "$_LOGIN $_DISABLE"
+                );
+         	  }
+           else {
+           	  next;
+            }
+
+         }
+        }
+       else {
+       	  print "[ $user{UID} ] $user{LOGIN} - Don't have money account\n";
+       	  next;
+        }
+
+
+#Semd reports secton
+       if (scalar keys %PARAMS > 0) {
          	 	 ureports_send_reports($user{DESTINATION_TYPE}, 
          	 	                       $user{DESTINATION_ID}, 
-         	 	                       "$_DEPOSIT: $user{DEPOSIT}", 
-         	 	                       { SUBJECT => "$_DEPOSIT_BELOW" });
+         	 	                       $PARAMS{MESSAGE}, 
+         	 	                       { SUBJECT => $PARAMS{SUBJECT} });
          	 	 
          	 	 $Ureports->tp_user_reports_update({ UID       => $user{UID},
          	 	 	                                   REPORT_ID => $user{REPORT_ID} 
@@ -200,50 +335,35 @@ sub ureports_periodic_reports {
          	 	 if ($user{MSG_PRICE} > 0) {
                $sum = $user{MSG_PRICE};
 
-         	 	 	
-         	 	 	 my %PARAMS = ( 
-               DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
-               DATE     => "$ADMIN_REPORT{DATE} $TIME",
-               METHOD   => 1 );
-
-
-             if ($debug > 4) {
-                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
-              }
-             else {
-
-               $fees->take(\%user, $sum, { %PARAMS } );
-               if ($fees->{errno}) {
-               	 print "Error: [$fees->{errno}] $fees->{errstr} ";
-               	 if ($fees->{errno} == 14 ) {
-               	 	 print "[ $user{UID} ] $user{LOGIN} - Don't have money account";
-               	  }
-               	 print "\n";
-               	}
-               elsif($debug > 0) {
-               	 $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
-                 #$debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
+               if ($debug > 4) {
+                  $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                 }
-              }
-
-         	 	 	
+               else {
+                 $fees->take(\%user, $sum, { %PARAMS } );
+                 if ($fees->{errno}) {
+               	   print "Error: [$fees->{errno}] $fees->{errstr} ";
+               	   if ($fees->{errno} == 14 ) {
+               	 	   print "[ $user{UID} ] $user{LOGIN} - Don't have money account";
+               	    }
+               	   print "\n";
+               	  }
+                 elsif($debug > 0) {
+               	   $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
+                   #$debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
+                  }
+                }
          	 	  }	
          	 	 $debug_output .= "UID: $user{UID} REPORT_ID: $user{REPORT_ID} DESTINATION_TYPE: $user{DESTINATION_TYPE} DESTINATION: $user{DESTINATION_ID}\n" if ($debug > 0);
          	 	 
        	 	   $Ureports->log_add({ 
              	 DESTINATION => $user{DESTINATION_ID},
-   	           BODY        => '',
+   	           BODY        => (length($PARAMS{MESSAGE}) < 500 ) ? $PARAMS{MESSAGE} : '-',
    	           UID         => $user{UID},
    	           TP_ID       => $user{TP_ID},
   	           REPORT_ID   => $user{REPORT_ID},
   	           STATUS      => 0
   	         });
 
-         	  }
-          }
-        }
-       else {
-       	  print "[ $user{UID} ] $user{LOGIN} - Don't have money account\n";
         }
 
       }
@@ -677,11 +797,14 @@ if ($d == 1) {
 sub help () {
 	
 print << "[END]";
-Ureports server.
+Ureports sender.
 
-  DEBUG=0..6         - Debug mode
-  DATE="YYYY-MM-DD"  - Send date
-  help               - this help
+  DEBUG=0..6           - Debug mode
+  DATE="YYYY-MM-DD"    - Send date
+  REPORT_IDS=[1,2,4..] - reports ids
+  LOGINS=[...,]        - make reports for some logins
+  TP_IDS=[...,]        - make reports for some tarif plans
+  help                 - this help
 [END]
 	
 }
