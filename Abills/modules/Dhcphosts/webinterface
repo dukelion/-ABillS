@@ -941,8 +941,16 @@ foreach my $line (@$list) {
 
   foreach my $line (@$list) {
   	my $deposit =  $line->[20];
-    next if ( (defined($conf{DHCPHOSTS_DEPOSITCHECK} && $despoit < $conf{DHCPHOSTS_DEPOSITCHECK})) 
-      || ( defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})  && $despoit < $conf{DHCPHOSTS_EXT_DEPOSITCHECK}) );
+     
+    if ( defined($conf{DHCPHOSTS_DEPOSITCHECK}) && $deposit < $conf{DHCPHOSTS_DEPOSITCHECK}) {
+     	next;
+     }
+    elsif( defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK})  && $deposit < $conf{DHCPHOSTS_EXT_DEPOSITCHECK}) {
+      next;
+     }
+    else {
+
+     }
 
     $INFO{CLIENT_MAC} = $line->[6];
     #Option 82
