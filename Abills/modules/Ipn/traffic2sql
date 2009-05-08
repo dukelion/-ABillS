@@ -120,6 +120,11 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
 # GEt information from flowtools
 #
   my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
+  my $FLOWTOOLS_IP_AGREGATION='';
+  if ($ARGV->{FLOWTOOLS_IP_AGREGATION}) {
+    $FLOWTOOLS_IP_AGREGATION='awk \'BEGIN { ip1=0 };  { ips[$1"  "$2]+=$6 }; END { for (i in ips) { print i" "1" "0" "0" "ips[i]" "0; } }\' |';
+   }
+
   $unknown_ip_log = "$flow_dir/unknown_ip.log";
 
   exit if(make_pid($flow_dir."/traffic2sql_pid.pid") == 1);
@@ -137,7 +142,7 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
       my $end_date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
       #print "Start: $start_date End: $end_date\n"; 
  
-      get_collector_data("$FLOW_CAT $flow_dir/$log | $FLOW_PRINT |", { START => $start_date });
+      get_collector_data("$FLOW_CAT $flow_dir/$log | $FLOW_PRINT | $FLOWTOOLS_IP_AGREGATION", { START => $start_date });
 
       if (! $ARGV->{DETAIL_ONLY}) {
         processing({ START => $start_date,
