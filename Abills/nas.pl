@@ -916,7 +916,7 @@ sub hangup_pppd {
                                         PeerAddr => "$ip",
                                         PeerPort => $mng_port 
                                         )
-    or die "cannot connect to rmstats port at $ip:$mng_port $!\n";
+    or die "cannot connect to pppd disconnect port at $ip:$mng_port $!\n";
 
    print $remote "$IP\n";
    $result =  <$remote> ;
