@@ -17,6 +17,7 @@ if ($#ARGV < 1) {
    debug      - Set debug mode (1,2)
    DETAIL_ONLY- Make IP detalisation only
    UNKNOWN_IP_LOG - Disabled unknown ip login
+   PREPAID_STORE - Use alternative prepaid store for prepaid traffic colection.
    TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysetion
    AMON_ALIVE - Second for Amon Alive Alive interval (default value 120).
    daemon     - Deamon mode
@@ -233,6 +234,8 @@ foreach my $ip ( sort keys %$session_ids) {
 #parse  traffic stats
 if ($Ipn->{INTERIM}{$ip}) {
   # Traffic type, traffic count
+  # $k - traffic Class
+  # $v - value
   while(my($k, $v)=each %$ip_stats) {
      my $in = (defined($v->{IN})) ? int($v->{IN}) : 0;
      my $out = (defined($v->{OUT})) ? int($v->{OUT}) : 0;
@@ -250,9 +253,26 @@ if ($Ipn->{INTERIM}{$ip}) {
 
      # Work with prepaid traffic
      if ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PREPAID_TSUM}) ) {
-	      my($used_traffic) = $Ipn->traffic_user_get({ UID      => $uid, 
-                                                     ACTIVATE => $Ipn->{USERS_INFO}->{ACTIVATE}->{$uid}  
+
+        my $used_traffic;
+
+        if ($ARGV->{PREPAID_STORE}) {
+	        ($used_traffic) = $Ipn->traffic_user_get2({ UID          => $uid, 
+                                                     ACTIVATE      => $Ipn->{USERS_INFO}->{ACTIVATE}->{$uid},
+                                                     TRAFFIC_IN   => $in,
+                                                     TRAFFIC_OUT   => $out,
+                                                     TRAFFIC_ID    => $k
                                                      });
+         }
+        else {
+	        ($used_traffic) = $Ipn->traffic_user_get({ UID          => $uid, 
+                                                     ACTIVATE      => $Ipn->{USERS_INFO}->{ACTIVATE}->{$uid},
+                                                     TRAFFIC_IN   => $in,
+                                                     TRAFFIC_OUT   => $out,
+                                                     TRAFFIC_ID    => $k
+                                                     });
+        	
+         }
         my $online  = 0;
 
         if($OCTETS_DIRECTION == 1) {

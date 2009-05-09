@@ -617,6 +617,87 @@ sub traffic_add_user {
 }
 
 
+
+#**********************************************************
+# traffic_user_get2
+# Get used traffic from DB
+#**********************************************************
+sub traffic_user_get2 {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my $uid        = $attr->{UID};
+  my $from       = $attr->{FROM} || '';
+  my %result = ();
+
+  if ($attr->{DATE_TIME}) {
+  	$WHERE = "start>=$attr->{DATE_TIME}";
+   }
+  elsif ($attr->{INTERVAL}) {
+  	my ($from, $to)=split(/\//, $attr->{INTERVAL});
+  	$from = ($from eq '0000-00-00') ? 'DATE_FORMAT(started, \'%Y-%m\')>=DATE_FORMAT(curdate(), \'%Y-%m\')' : "DATE_FORMAT(started, '\%Y-\%m-\%d')>='$from'";
+  	$WHERE = "( $from AND started<'$to') ";
+   }
+  elsif ($attr->{ACTIVATE}) {
+  	
+  	if($attr->{ACTIVATE} eq '0000-00-00') {
+      $attr->{ACTIVATE}="DATE_FORMAT(curdate(), '%Y-%m-01')";
+      }
+  	else {
+  		$attr->{ACTIVATE} = "'$attr->{ACTIVATE}'";
+  	 }
+  	$WHERE = "DATE_FORMAT(started, '%Y-%m-%d')>=$attr->{ACTIVATE}";
+
+   }
+  else {
+    $WHERE = "DATE_FORMAT(started, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m')";
+   }
+
+  
+  if (defined($attr->{TRAFFIC_ID})) {
+  	$WHERE .= "and traffic_class='$attr->{TRAFFIC_ID}'";
+   } 
+
+
+
+  $self->query($db, "SELECT    started,
+   uid,
+   traffic_class,
+   traffic_in,
+   traffic_out
+    FROM traffic_prepaid_sum
+        WHERE uid='$uid'
+        and $WHERE;");
+ 
+ 
+ 
+   if ($self->{TOTAL} < 1) {
+   	 $self->query($db, "INSERT INTO traffic_prepaid_sum (uid, started, traffic_class, traffic_in, traffic_out)
+   	   VALUES ('$uid', $attr->{ACTIVATE}, '$attr->{TRAFFIC_ID}', '$attr->{TRAFFIC_IN}', '$attr->{TRAFFIC_OUT}')", 'do');
+   	
+   	 $result{$attr->{TRAFFIC_ID}}{TRAFFIC_IN}=0;
+  	 $result{$attr->{TRAFFIC_ID}}{TRAFFIC_OUT}=0;
+
+   	 return \%result;
+    }
+ 
+ 
+  foreach my $line (@{ $self->{list} }) {
+    #Trffic class
+  	$result{$line->[2]}{TRAFFIC_IN}=$line->[3];
+  	$result{$line->[2]}{TRAFFIC_OUT}=$line->[4];
+   }
+
+  $self->query($db, "UPDATE traffic_prepaid_sum SET 
+     traffic_in=traffic_in+$attr->{TRAFFIC_IN},
+     traffic_out=traffic_out+$attr->{TRAFFIC_OUT}
+    WHERE uid='$uid'
+        and $WHERE;", 'do');
+
+
+
+  return \%result;
+}
 #**********************************************************
 # traffic_user_get
 # Get used traffic from DB
