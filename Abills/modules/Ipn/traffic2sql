@@ -14,11 +14,13 @@ if ($#ARGV < 1) {
    log        - Log file for trafd
    INTERFACE  - Interface for trafd
    flowdir    - Folder where stored flow-capture result files
+   FLOWTOOLS_IP_AGGREGATION - Aggregate Netflow files to ip.
+   FLOWTOOLS_FT_BACKUP=dir - Backup old flow-tools ft* file. For debug only
    debug      - Set debug mode (1,2)
    DETAIL_ONLY- Make IP detalisation only
    UNKNOWN_IP_LOG - Disabled unknown ip login
    PREPAID_STORE - Use alternative prepaid store for prepaid traffic colection.
-   TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysetion
+   TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysation
    AMON_ALIVE - Second for Amon Alive Alive interval (default value 120).
    daemon     - Deamon mode
 
@@ -76,7 +78,7 @@ if ($ARGV->{AMON_ALIVE}) {
 require Ipn_Collector;
 Ipn_Collector->import();
 my $Ipn = Ipn_Collector->new($db, \%conf);
-use POSIX qw(strftime);
+use POSIX qw(strftime mktime ctime);
 
 
 my $NAS_ID = 0;
@@ -121,9 +123,9 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
 # GEt information from flowtools
 #
   my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
-  my $FLOWTOOLS_IP_AGREGATION='';
-  if ($ARGV->{FLOWTOOLS_IP_AGREGATION}) {
-    $FLOWTOOLS_IP_AGREGATION='awk \'BEGIN { ip1=0 };  { ips[$1"  "$2]+=$6 }; END { for (i in ips) { print i" "1" "0" "0" "ips[i]" "0; } }\' |';
+  my $FLOWTOOLS_IP_AGGREGATION='';
+  if ($ARGV->{FLOWTOOLS_IP_AGGREGATION}) {
+    $FLOWTOOLS_IP_AGGREGATION='awk \'BEGIN { ip1=0 };  { ips[$1"  "$2]+=$6 }; END { for (i in ips) { print i" "1" "0" "0" "ips[i]" "0; } }\' |';
    }
 
   $unknown_ip_log = "$flow_dir/unknown_ip.log";
@@ -135,15 +137,19 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
     my @contents = grep  /^ft*/, readdir DIR;
   closedir DIR;
 
+  my $session_interval = 0;
   foreach $log (sort @contents) {
     print "$flow_dir/$log\n" if ($debug > 0);
     if("$log" =~ /ft-(\w+)\.(\d+)\-(\d+)\-(\d+)\.(\d{2})(\d{2})(\d{2})[\-|\+](\d+)/) {
       my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$flow_dir/$log");
+      #File date
       my $start_date = "$2-$3-$4 $5:$6:$7";
+      $session_interval += $mtime - mktime(int($7), $6, ($5-1), int($4), int($3)-1, int($2)-1900);
+
+      #Last modified
       my $end_date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
-      #print "Start: $start_date End: $end_date\n"; 
  
-      get_collector_data("$FLOW_CAT $flow_dir/$log | $FLOW_PRINT | $FLOWTOOLS_IP_AGREGATION", { START => $start_date });
+      get_collector_data("$FLOW_CAT $flow_dir/$log | $FLOW_PRINT | $FLOWTOOLS_IP_AGGREGATION", { START => $start_date });
 
       if (! $ARGV->{DETAIL_ONLY}) {
         processing({ START => $start_date,
@@ -151,7 +157,16 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
        }
 
       # Delete log file
-      my $status = unlink("$flow_dir/$log");
+      if ($ARGV->{FLOWTOOLS_FT_BACKUP}) {
+      	if (! -d $ARGV->{FLOWTOOLS_FT_BACKUP}) {
+      		print "Error: Can't find dir '$ARGV->{FLOWTOOLS_FT_BACKUP}'\n";
+      		exit;
+      	 }
+      	my $status = system("mv $flow_dir/$log $ARGV->{FLOWTOOLS_FT_BACKUP}")
+       }
+      else {
+        my $status = unlink("$flow_dir/$log");
+       }
      }
     else {
        print "Unknow File name format\n";
@@ -505,7 +520,12 @@ if ($debug > 0) {
     $GT = sprintf(" GT: %2.5f", $gen_time);
    }
 
-	print "$unknow_ip$registred$GT/Query: $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS} Unknown: $Ipn->{UNKNOWN_TRAFFIC_ROWS}\n";
+  $Ipn->{TRAFFIC_SUM}=0 if (! $Ipn->{TRAFFIC_SUM});
+  $Ipn->{UNKNOWN_TRAFFIC_SUM}=0 if (! $Ipn->{UNKNOWN_TRAFFIC_SUM});
+  
+  my $speed = int2byte(($Ipn->{TRAFFIC_SUM}+$Ipn->{UNKNOWN_TRAFFIC_SUM}) / $session_interval);
+
+	print "$unknow_ip$registred$GT/Query: $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS}/". int2byte($Ipn->{TRAFFIC_SUM}) ." Unknown: $Ipn->{UNKNOWN_TRAFFIC_ROWS}/". int2byte($Ipn->{UNKNOWN_TRAFFIC_SUM}) ." Speed: $speed/sec.\n";
 	print " Unknown: $#{$Ipn->{IN}}/$Ipn->{INTERIM}{0}{OUT}" if ($Ipn->{IN});
 	print "\n";
 }
@@ -538,23 +558,8 @@ my %DATA=();
 open( LOG, $log ) || die "Can't open log file '$log' $!\n";
 
 while( <LOG> ) {
-  #Ipcad log analize
-  if (/ (\d+)\.(\d+)\.(\d+)\.(\d+)[ |\t]+(\d+)\.(\d+)\.(\d+)\.(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\S+)/) {
-  	#print "-$1.$2.$3.$4 $5.$6.$7.$8 Pkg: $9 Byte: $10 Port: $11 / $12 Proto: $13 > $14\n";
-		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $11 );
-		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $12 ); 
-  	$DATA{SIZE} = $10;
-        $DATA{PROTOCOL}=0;
-		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
-		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
-		#$DATA{NAS_ID}=$NAS_ID;
-		if ($14) {
-			$DATA{IF_NAME}=$14;
-		 }
-    $Ipn->traffic_agregate_users({ %DATA });
-   }
   # flow-capture
- 	elsif ( /(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/ ){
+ 	if ( /(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/ ){
   	print "-$1.$2.$3.$4 $5.$6.$7.$8 $9 $10 $11 $12\n" if ($debug>7);
 
 		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $10 );
@@ -566,8 +571,23 @@ while( <LOG> ) {
 	  $DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
 	  #$DATA{NAS_ID}=$NAS_ID;
 	  $DATA{IF_NAME}  = '0';
-    $Ipn->traffic_agregate_users({ %DATA });
+    $Ipn->traffic_agregate_users({ %DATA, DEBUG => $debug });
  	 }
+  #Ipcad log analize
+  elsif (/ (\d+)\.(\d+)\.(\d+)\.(\d+)[ |\t]+(\d+)\.(\d+)\.(\d+)\.(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\S+)/) {
+  	#print "-$1.$2.$3.$4 $5.$6.$7.$8 Pkg: $9 Byte: $10 Port: $11 / $12 Proto: $13 > $14\n";
+		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $11 );
+		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $12 ); 
+  	$DATA{SIZE} = $10;
+        $DATA{PROTOCOL}=0;
+		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
+		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
+		#$DATA{NAS_ID}=$NAS_ID;
+		if ($14) {
+			$DATA{IF_NAME}=$14;
+		 }
+    $Ipn->traffic_agregate_users({ %DATA, DEBUG => $debug });
+   }
  	#trafdlog analize
  	elsif ( /^(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+([^\s]+)\s+[a-z]+\s+\d+\s+(\d+)/ ){
 		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $5 );
@@ -579,7 +599,7 @@ while( <LOG> ) {
 		#$DATA{NAS_ID}=$NAS_ID;
 		$DATA{IF_NAME}='0';
 
-    $Ipn->traffic_agregate_users({ %DATA });
+    $Ipn->traffic_agregate_users({ %DATA, DEBUG => $debug });
 	}
 }
 close(LOG);

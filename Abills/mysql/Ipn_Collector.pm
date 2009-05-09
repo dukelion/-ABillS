@@ -259,18 +259,26 @@ sub traffic_agregate_users {
     $DATA->{UID}=$users_ips->{$DATA->{DST_IP}};
 	  $y++;
    }
-  #Unknow Ips
+  #Unknown Ips
   elsif ($y < 1) {
   	$DATA->{UID}=0;
     if ($CONF->{UNKNOWN_IP_LOG}) {
   	  $self->{INTERIM}{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
       push @{ $self->{IN} }, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
      }
-    $self->{UNKNOWN_TRAFFIC_ROWS}++;
+
+    if ($DATA->{DEBUG}) {
+      $self->{UNKNOWN_TRAFFIC_ROWS}++;
+      $self->{UNKNOWN_TRAFFIC_SUM}+=$DATA->{SIZE};
+     }
+
     return $self;
    }
   
-  $self->{TRAFFIC_ROWS}++;
+  if ($DATA->{DEBUG}) {
+    $self->{TRAFFIC_ROWS}++;
+    $self->{TRAFFIC_SUM}+=$DATA->{SIZE};
+   }
 
   #Make user detalization
   if ($CONF->{IPN_DETAIL} && $DATA->{UID} > 0) {
