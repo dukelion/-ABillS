@@ -40,3 +40,12 @@ CREATE TABLE `ipn_traf_detail` (
   `uid` int(11) unsigned NOT NULL default '0'
 ) COMMENT='Ipn detail log traffic class';
 
+
+CREATE TABLE `traffic_prepaid_sum` (
+  `started` DATE NOT NULL DEFAULT '0000-00-00',
+  `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `traffic_class` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `traffic_in` BIGINT(14) UNSIGNED NOT NULL DEFAULT '0',
+  `traffic_out` BIGINT(14) UNSIGNED NOT NULL DEFAULT '0',
+  KEY `uid` (`uid`, `started`, `traffic_class`)
+) COMMENT='Prepaid traffic summary';

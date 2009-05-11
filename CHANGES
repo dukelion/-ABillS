@@ -1,4 +1,34 @@
 =====0.42=====
+11.05.2009\\
+
+  * Добавлена платёжная система [[http://www.comepay.ru|COMEPAY]]
+  * Доработан анализатор траффика traffic2sql.pl:
+Добавлено отображение в режиме отладки количество проанализированного трафика и средняя скорость за интервал анализа.\\
+Добавленны опции:  FLOWTOOLS_IP_AGGREGATION, FLOWTOOLS_FT_BACKUP, PREPAID_STORE
+MySQL:
+
+  CREATE TABLE `traffic_prepaid_sum` (
+    `started` DATE NOT NULL DEFAULT '0000-00-00',
+    `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+    `traffic_class` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+    `traffic_in` BIGINT(14) UNSIGNED NOT NULL DEFAULT '0',
+    `traffic_out` BIGINT(14) UNSIGNED NOT NULL DEFAULT '0',
+    KEY `uid` (`uid`, `started`, `traffic_class`)
+  ) COMMENT='Prepaid traffic summary';
+
+  * создан скрипт ipn_analize.sh  для удобного анализа flow-tools файлов.
+  * В скрипт autozh.pl добавлена возможность анализа лога ошибок по шаблону и при возникновении сножества одинаковых ошибок выполнять автоматический зап.
+  * Добавлено новое поле для лога ошибок nas_id, Разрешате просматривать ошибки по отдельно выбраным серверам доступа.\\
+
+MySQL:
+  ALTER TABLE errors_log ADD COLUMN `nas_id` smallint(5) unsigned NOT NULL DEFAULT '0';
+
+
+28.04.2009\\
+  * Добавлена функция включения обязательных каналов при активизации тарифного плана для [[abills:docs:modules:iptv:ru|Iptv]]
+MySQL:
+   ALTER TABLE iptv_ti_channels ADD COLUMN `mandatory` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
+
 26.04.2009\\
   * Добавлен шаблон информации о гостевом доступе dv_guest_mode.tpl.
   * Добавлен шаблон информации о негативном депозите form_neg_deposit.tpl.

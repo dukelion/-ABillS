@@ -128,6 +128,7 @@ CREATE TABLE `errors_log` (
   `action` varchar(10) NOT NULL,
   `user` varchar(20) NOT NULL,
   `message` varchar(120) NOT NULL,
+  `nas_id` smallint(5) unsigned NOT NULL DEFAULT '0',
   KEY `user` (`user`),
   KEY `date` (`date`),
   KEY `log_type` (`log_type`)

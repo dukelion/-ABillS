@@ -450,6 +450,9 @@ sub log_list {
   my @WHERE_RULES  = ();
   my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+  my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
 
   if(defined($attr->{USER})) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{USER}, 'STR', 'l.user') };
@@ -479,24 +482,31 @@ sub log_list {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{LOG_TYPE}, 'INT', 'l.log_type') };
    }
 
+  if($attr->{NAS_ID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{NAS_ID}, 'INT', 'l.nas_id') };
+   }
+
  
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
  
- $self->query($db, "SELECT l.date, l.log_type, l.action, l.user, l.message
+ $self->query($db, "SELECT l.date, l.log_type, l.action, l.user, l.message, l.nas_id
   FROM errors_log l
   $WHERE
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  my $list = $self->{list};
- 
+
+ $self->{OUTPUT_ROWS}=$self->{TOTAL};
+
 
  $self->query($db, "SELECT l.log_type, count(*)
   FROM errors_log l
   $WHERE
   GROUP BY 1
   ORDER BY 1;");
+
   
 
  return $list;
@@ -514,8 +524,8 @@ sub log_add {
  # $date, $time, $log_type, $action, $user, $message
  $DATA{MESSAGE} =~ s/'/\\'/g;
 
- $self->query($db, "INSERT INTO errors_log (date, log_type, action, user, message)
- values (now(), '$DATA{LOG_TYPE}', '$DATA{ACTION}', '$DATA{USER_NAME}', '$DATA{MESSAGE}');", 'do');
+ $self->query($db, "INSERT INTO errors_log (date, log_type, action, user, message, nas_id)
+ values (now(), '$DATA{LOG_TYPE}', '$DATA{ACTION}', '$DATA{USER_NAME}', '$DATA{MESSAGE}',  '$self->{NAS_ID}');", 'do');
 
 
  return 0;	

@@ -46,10 +46,11 @@ my $log_print = sub {
   my ($LOG_TYPE, $USER_NAME, $MESSAGE, $attr) = @_;
 
 
- 
+  my $Nas = $attr->{NAS}; 
+
   if ($conf{debugmods} =~ /$LOG_TYPE/) {
     if ($conf{ERROR2DB} && $attr->{NAS}) {
-      my $Nas = $attr->{NAS};
+
       $Nas->log_add({LOG_TYPE => $log_levels{$LOG_TYPE},
                      ACTION   => 'AUTH', 
                      USER_NAME=> "$USER_NAME",
@@ -58,7 +59,7 @@ my $log_print = sub {
 
      }
     else {
-      log_print("$LOG_TYPE", "AUTH [$USER_NAME] $MESSAGE");      
+      log_print("$LOG_TYPE", "AUTH [$USER_NAME] NAS: $Nas->{NAS_ID} ($Nas->{NAS_IP}) $MESSAGE");      
      }
    }
 };
@@ -244,7 +245,7 @@ else {
 
   my $CID = ($RAD->{CALLING_STATION_ID}) ? " CID: $RAD->{CALLING_STATION_ID} " : '';
 
-  $log_print->('LOG_INFO', $RAD->{USER_NAME}, "NAS: $nas->{NAS_ID} ($RAD->{NAS_IP_ADDRESS})$CID$GT", { NAS => $nas});
+  $log_print->('LOG_INFO', $RAD->{USER_NAME}, "$CID$GT", { NAS => $nas});
   return $r;
 }
 
@@ -282,7 +283,7 @@ sub post_auth {
 sub access_deny { 
   my ($user_name, $message, $nas_num) = @_;
 
-  $log_print->('LOG_WARNING', $user_name, "NAS: $nas_num $message", { NAS => $nas});
+  $log_print->('LOG_WARNING', $user_name, "$message", { NAS => $nas});
 
   return 1;
 }
