@@ -11,7 +11,7 @@ $DEBUG
 );
 #use strict;
 
-my $version = 0.2;
+my $version = 0.3;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -249,26 +249,30 @@ sub ureports_periodic_reports {
 	            $rest = ($line->[4] > 0 && $Sessions->{REST}->{$line->[0]} > 0) ? $Sessions->{REST}->{$line->[0]} : 0;
 	            if ($rest < $user{VALUE}) {
 	            	
-	            	$rest_traffic .= "================\n $_TYPE: $line->[0]\n $_BEGIN: $line->[1]\n".
+	            	$rest_traffic .= "================\n $_TRAFFIC $_TYPE: $line->[0]\n$_BEGIN: $line->[1]\n".
 	            	"$_END: $line->[2]\n".
 	            	"$_TOTAL: $line->[4]\n".
-	            	"\n $_REST: ". $rest;
+	            	"\n $_REST: ". $rest ."\n================";
+
+	             }
+             }
+
 
            	   %PARAMS = ( 
                  DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
                  DATE     => "$ADMIN_REPORT{DATE} $TIME",
                  METHOD   => 1,
-                 MESSAGE  => "$_MONTH:\n $_DEPOSIT: $user{DEPOSIT}\n $_CREDIT: $user{CREDIT}\n $_TRAFFIC: $_RECV: $traffic_in $_SEND: $traffic_out \n  $_SUM: $traffic_sum \n", 
-         	 	     SUBJECT =>  "$_PREPAID_TRAFFIC_BELOW"
+                 MESSAGE  => "$rest_traffic", 
+         	 	     SUBJECT  => "$_PREPAID_TRAFFIC_BELOW"
                  );
-	             }
-             }
+
+
            }
           }
          # 5 => "$_MONTH: $_DEPOSIT + $_CREDIT + $_TRAFFIC",
          elsif($user{REPORT_ID} == 5 && $d == 1) {
          	 $Sessions->list({ UID    => $user{UID},
-         	 	                PERIOD => 6
+         	 	                 PERIOD => 6
          	 	               });
          	 
          	 my $traffic_in  = ($Sessions->{TRAFFIC_IN}) ? $Sessions->{TRAFFIC_IN} : 0;
@@ -279,8 +283,8 @@ sub ureports_periodic_reports {
                DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
                DATE     => "$ADMIN_REPORT{DATE} $TIME",
                METHOD   => 1,
-               MESSAGE  => "$_MONTH:\n $_DEPOSIT: $user{DEPOSIT}\n $_CREDIT: $user{CREDIT}\n $_TRAFFIC: $_RECV: $traffic_in $_SEND: $traffic_out \n  $_SUM: $traffic_sum \n", 
-         	 	   SUBJECT =>  "$_MONTH: $_DEPOSIT + $_CREDIT + $_TRAFFIC"
+               MESSAGE  => "$_MONTH:\n $_DEPOSIT: $user{DEPOSIT}\n $_CREDIT: $user{CREDIT}\n $_TRAFFIC: $_RECV: " . int2byte($traffic_in) ." $_SEND: ". int2byte($traffic_out) ." \n  $_SUM: ". int2byte($traffic_sum) ." \n", 
+         	 	   SUBJECT =>  "$_MONTH: $_DEPOSIT / $_CREDIT / $_TRAFFIC"
                 );
           }
          # 7 - credit expired
