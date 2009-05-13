@@ -443,125 +443,6 @@ sub hosts_list {
 }
 
 
-
-#**********************************************************
-#
-#**********************************************************
-sub reports2 {
- my $self = shift;
- my ($attr) = @_;
-
-
- my $table_name = "ipn_traf_log_". $Y."_".$M;
- undef @WHERE_RULES; 
-
- my $GROUP = '';
- my $size  = 'size';
- 
- if ($attr->{GROUPS}) {
- 	  $GROUP = "GROUP BY $attr->{GROUPS}";
- 	  $size = "sum(size)";
-  }
-
-
-if ($attr->{SRC_ADDR}) {
-   push @WHERE_RULES, "src_addr=INET_ATON('$attr->{SRC_ADDR}')";
- }
-
-if (defined($attr->{SRC_PORT}) && $attr->{SRC_PORT} =~ /^\d+$/) {
-   push @WHERE_RULES, "src_port='$attr->{SRC_PORT}'";
- }
-
-if ($attr->{DST_ADDR}) {
-   push @WHERE_RULES, "dst_addr=INET_ATON('$attr->{DST_ADDR}')";
- }
-
-if (defined($attr->{DST_PORT}) && $attr->{DST_PORT} =~ /^\d+$/ ) {
-   push @WHERE_RULES, "dst_port='$attr->{DST_PORT}'";
- }
-
-
-
-my $f_time = 'f_time';
-
-
-#Interval from date to date
-if ($attr->{INTERVAL}) {
- 	my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
-  push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d')>='$from' and date_format(f_time, '%Y-%m-%d')<='$to'";
- }
-#Period
-elsif (defined($attr->{PERIOD})) {
-   my $period = $attr->{PERIOD} || 0;   
-   if ($period == 4) { $WHERE .= ''; }
-   else {
-     $WHERE .= ($WHERE ne '') ? ' and ' : 'WHERE ';
-     if($period == 0)    {  push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d')=curdate()"; }
-     elsif($period == 1) {  push @WHERE_RULES, "TO_DAYS(curdate()) - TO_DAYS(f_time) = 1 ";  }
-     elsif($period == 2) {  push @WHERE_RULES, "YEAR(curdate()) = YEAR(f_time) and (WEEK(curdate()) = WEEK(f_time)) ";  }
-     elsif($period == 3) {  push @WHERE_RULES, "date_format(f_time, '%Y-%m')=date_format(curdate(), '%Y-%m') "; }
-     elsif($period == 5) {  push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d')='$attr->{DATE}' "; }
-     else {$WHERE .= "date_format(f_time, '%Y-%m-%d')=curdate() "; }
-    }
- }
-elsif($attr->{HOUR}) {
-   push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d %H')='$attr->{HOUR}'";
- }
-elsif($attr->{DATE}) {
-	 push @WHERE_RULES, "date_format(f_time, '%Y-%m-%d')='$attr->{DATE}'";
-}
-
-
-my $lupdate = '';
-
-if ($attr->{INTERVAL_TYPE} eq 3) {
-  $lupdate = "DATE_FORMAT(f_time, '%Y-%m-%d')";	
-  $GROUP="GROUP BY 1";
-  $size = 'sum(size)';
-}
-elsif($attr->{INTERVAL_TYPE} eq 2) {
-  $lupdate = "DATE_FORMAT(f_time, '%Y-%m-%d %H')";	
-  $GROUP="GROUP BY 1";
-  $size = 'sum(size)';
-}
-#elsif($attr->{INTERVAL_TYPE} eq 'sessions') {
-#	$WHERE = '';
-#  $lupdate = "f_time";
-#  $GROUP=2;
-#}
-else {
-  $lupdate = "f_time";
-}
-
-
- $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
- my $list;
-
- $self->query($db, "SELECT INET_NTOA(dst_addr), sum(size), count(*), 
-  sum(if(protocol = 0, 1, 0)),
-  sum(if(protocol = 1, 1, 0))
-   from $table_name
-   $WHERE
-   GROUP BY 1
-  ORDER BY $SORT $DESC 
-  LIMIT $PG, 100;");
-
- $list = $self->{list};
-
-
- if ($self->{TOTAL} > 0) {
-   $self->query($db, "SELECT count(*),  sum(size)
-     from $table_name
-     $WHERE ;");
-
-     ($self->{COUNT},
-      $self->{SUM}) = @{ $self->{list}->[0] };
-  }
-
- return $list;
-}
-
-
 #**********************************************************
 #
 #**********************************************************
@@ -626,18 +507,17 @@ sub reports_users {
  my ($attr) = @_;
  
  
-my $lupdate = ""; 
-my $GROUP = '1';
-
+my $GROUP   = '1';
+my $date    = '';
  
  undef @WHERE_RULES;  
  if ($attr->{UID}) {
    push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
-   $lupdate = " DATE_FORMAT(start, '%Y-%m-%d'), l.traffic_class, tt.descr,";
+   $date = " DATE_FORMAT(start, '%Y-%m-%d'), l.traffic_class, tt.descr";
    $GROUP = '1, 2';
   }
  else {
-   $lupdate = " DATE_FORMAT(start, '%Y-%m-%d'), count(DISTINCT l.uid), ";
+   $date = " DATE_FORMAT(start, '%Y-%m-%d'), count(DISTINCT l.uid) ";
   }
 
 if ($attr->{SESSION_ID}) {
@@ -648,6 +528,37 @@ if ($attr->{SESSION_ID}) {
 if ($attr->{INTERVAL}) {
  	my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
   push @WHERE_RULES, "date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
+
+   $attr->{TYPE}='-' if (! $attr->{TYPE});
+
+
+   if ($attr->{TYPE} eq 'HOURS' ) {
+     $date = "date_format(l.start, '\%H')";
+    }
+   
+   elsif ($attr->{TYPE} eq 'DAYS_TCLASS') {
+     $date = "date_format(l.start, '%Y-%m-%d'), '-', l.traffic_class, tt.descr";
+     $GROUP = '1,3';
+    }
+   elsif ($attr->{TYPE} eq 'DAYS') {
+     $date = "date_format(l.start, '%Y-%m-%d'), count(DISTINCT l.uid)";
+    }
+   elsif ($attr->{TYPE} eq 'TP') {
+     $date = "l.tp_id";
+    }
+   elsif ($attr->{TYPE} eq 'TERMINATE_CAUSE') {
+   	 $date = "l.terminate_cause"
+    }
+   elsif ($attr->{TYPE} eq 'GID') {
+         $date = "u.gid"
+    }
+#   elsif ($attr->{GID} eq 'GID') {
+#   	 $date = "u.gid"
+#    }
+#   else {
+#     $date = "u.id";   	
+#    }  
+
  }
 #Period
 elsif (defined($attr->{PERIOD})) {
@@ -666,7 +577,7 @@ elsif (defined($attr->{PERIOD})) {
 elsif($attr->{HOUR}) {
    push @WHERE_RULES, "date_format(start, '%Y-%m-%d %H')='$attr->{HOUR}'";
 	 $GROUP = "1, 2, 3";
-	 $lupdate = "DATE_FORMAT(start, '%Y-%m-%d %H'), u.id, l.traffic_class, tt.descr, ";
+	 $date = "DATE_FORMAT(start, '%Y-%m-%d %H'), u.id, l.traffic_class, tt.descr ";
  }
 elsif($attr->{DATE}) {
 
@@ -675,29 +586,40 @@ elsif($attr->{DATE}) {
    if ($attr->{UID}) {
    	 $GROUP = "1, 2";
      #push @WHERE_RULES, "l.uid='$attr->{UID}'"; 	
-     $lupdate = " DATE_FORMAT(start, '%Y-%m-%d %H'), l.traffic_class, tt.descr,";
+     $date = " DATE_FORMAT(start, '%Y-%m-%d %H'), l.traffic_class, tt.descr";
     }
    elsif($attr->{HOURS}) {
    	 $GROUP = "1, 3";
-	   $lupdate = "DATE_FORMAT(start, '%Y-%m-%d %H'), count(DISTINCT u.id), l.traffic_class, tt.descr, ";
+	   $date = "DATE_FORMAT(start, '%Y-%m-%d %H'), count(DISTINCT u.id), l.traffic_class, tt.descr ";
     }
    else {
    	 $GROUP = "1, 2, 3";
-	   $lupdate = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, l.traffic_class, tt.descr, ";
+	   $date = "DATE_FORMAT(start, '%Y-%m-%d'), u.id, l.traffic_class, tt.descr ";
 	  }
 }
 elsif (defined($attr->{MONTH})) {
  	 push @WHERE_RULES, "date_format(l.start, '%Y-%m')='$attr->{MONTH}'";
  } 
 else {
- 	 $lupdate = "date_format(l.start, '%Y-%m'), count(DISTINCT u.id), "; 
+ 	 $date = "date_format(l.start, '%Y-%m'), count(DISTINCT u.id), "; 
  }
 
+# Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+  }
+
+# Compnay
+ if ($attr->{COMPANY_ID}) {
+   push @WHERE_RULES, "u.company_id=$attr->{COMPANY_ID}"; 
+  }
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
-
- $self->query($db, "SELECT $lupdate
+ $self->query($db, "SELECT $date,
    sum(l.traffic_in), sum(l.traffic_out), sum(l.sum),
    l.nas_id, l.uid
    from ipn_log l

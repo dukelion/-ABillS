@@ -1225,14 +1225,7 @@ sub reports {
  
  my $EXT_TABLE = 'users';
 
- # Show groups
- if ($attr->{GIDS}) {
-   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
-  }
- elsif ($attr->{GID}) {
-   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
-  }
- 
+  
  if ($attr->{TP_ID}) {
  	 push @WHERE_RULES, " l.tp_id='$attr->{TP_ID}'";
   }

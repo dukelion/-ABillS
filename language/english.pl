@@ -80,6 +80,7 @@ $_SELECTED='Selected';
 $_RECORDS='Records';
 $_LOGOUT='Logout';
 $_TRAFFIC='Traffic';
+$_TRAFFIC_CLASS='Traffic Class';
 $_DURATION='Duration';
 $_DAY_DURATION='Day time limit';
 $_LOGIN='Login';

@@ -5,15 +5,13 @@
                    "12:10:$_STATS:ipn_sessions2:UID"         => 20,
                    "13:10:$_TRAFIC_TARIFS:ipn_getnet:UID"    => 20,
                    "22:0:IP Net:null:"                       => 4,
-                   #"23:22:$_ERROR:ipn_error:"               => 4,
-                   #"24:22:$_LAST:ipn_sessions:"             => 4,
-                   "25:22:$_USED:ipn_use:"                   => 4,
-                   "26:22:$_USERS:ipn_use_users:"            => 4,
+                   #"25:22:$_USED:ipn_use:"                  => 4,
+                   "26:22:$_USED:ipn_use:"                   => 4,
                    "27:26:$_MONTH:ipn_use_users_allmonthes:" => 4,
                    "29:25:$_MONTH:ipn_use_allmonthes:"       => 4,
                    "30:0:IP Net:null:"                       => 5,
                    "31:30:IP Net comps:ipn_comps:"           => 5,
-                   #"32:30:IPFW:ipn_ipfw:"                    => 5
+                   #"32:30:IPFW:ipn_ipfw:"                   => 5
                    );
 
 if ($conf{IPN_DETAIL}) {

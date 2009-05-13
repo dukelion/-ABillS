@@ -290,7 +290,7 @@ else {
  # @type = ('area', 'area', 'line');
 $table = $html->table( { width      => '100%',
 	                       caption    => "$_TOTAL",
-	                       title      => ['TT', "$_RECV", "$_SENT", "$_TOTAL", "$_SUM" ],
+	                       title      => ["$_TRAFFIC_CLASS", "$_RECV", "$_SENT", "$_TOTAL", "$_SUM" ],
 	                       cols_align => ['right', 'right', 'right', 'right', 'right'],
                       } );
 
@@ -505,22 +505,52 @@ print $table->show();
 #**********************************************************
 sub ipn_use_users_allmonthes {
   $FORM{allmonthes}=1;
-  ipn_use_users();
+  ipn_use();
 }
 
 
 #**********************************************************
 # ipn_use();
 #**********************************************************
-sub ipn_use_users {
+sub ipn_use {
 
-  reports({ DATE       => $FORM{DATE}, 
-  	        REPORT     => '',
-  	        SHOW_HOURS => 1,
-   	        EX_PARAMS  => { HOURS => "$_HOURS",
-            	              USERS => "$_USERS" } 
+#  reports({ DATE       => $FORM{DATE}, 
+#  	        REPORT     => '',
+#  	        SHOW_HOURS => 1,
+#   	        EX_PARAMS  => { HOURS => "$_HOURS",
+#            	              USERS => "$_USERS" } 
+#  	       });
+
+my %HIDDEN = ();
+
+  $HIDDEN{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
+  $HIDDEN{sid}=$sid if ($FORM{sid}); 
+
+
+  reports({ DATE          => $FORM{DATE}, 
+  	        REPORT        => '',
+  	        HIDDEN        => \%HIDDEN,
+  	        EX_PARAMS     => { HOURS => "$_HOURS",
+  	        	                 USERS => "$_USERS"
+  	        	                 }, 
+  	        EXT_TYPE      => { 
+  	        	                 DAYS_TCLASS     => "$_DAYS $_TRAFFIC_CLASS",
+  	        	                 GID             => "$_GROUPS",
+  	        	                 }, 
+  	        PERIOD_FORM		=> 1,
+  	        FIELDS        => { %CAPTIONS_HASH },
+  	        XML           => 1,
+  	        EX_INPUTS     => [ $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
+ 	                                                               SEL_HASH   => {'' => 'Auto', 
+ 	                                                               	              'Bt' => 'Bt',
+ 	                                                               	              'Kb' => 'Kb', 
+ 	                                                               	              'Mb' => 'Mb', 
+ 	                                                               	              'Gb' => 'Gb'
+ 	                                                               	             },
+ 	                                                               NO_ID       => 1
+                                                                } )
+                               ]
   	       });
-
 
 
 my %totals = ();
@@ -535,11 +565,14 @@ my %AVG = (MONEY    => 0,
 my $graph_type='';
 my $out = '';
 my @type = ();
+my %TRAFFIC_CLASS = ();
 
 #Day reposrt
 
-if (defined($FORM{DATE})) {
+if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
 
+
+   
    $LIST_PARAMS{INTERVAL_TYPE} = 2;
 #  $LIST_PARAMS{DATE}="$FORM{DATE}";
 #  $pages_qs.="&DATE=$LIST_PARAMS{DATE}";
@@ -547,9 +580,10 @@ if (defined($FORM{DATE})) {
     #Used Fraffic
     $table_sessions = $html->table( { width      => '100%',
 	                                    caption    => "$_SESSIONS", 
-                                      title      => ["$_DATE", "$_USERS", "TT", "$_NAME", "IN", "OUT", "$_TOTAL", "$_SUM"],
+                                      title      => ["$_DATE", "$_USERS", "$_TRAFFIC_CLASS", "$_NAME", "IN", "OUT", "$_TOTAL", "$_SUM"],
                                       cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
-                                      qs         => $pages_qs             
+                                      qs         => $pages_qs,
+                                      ID         => 'IPN_USERS_STATS'             
                                } );
 
 
@@ -561,6 +595,8 @@ if (defined($FORM{DATE})) {
       foreach my $line (@$list) {
          push  @{$report{"$line->[0]"}}, [ @$line ];
        }
+
+
 
       foreach my $k ( sort %report) {  
         my $v=$report{$k};
@@ -583,16 +619,18 @@ if (defined($FORM{DATE})) {
                   $table->td($stats_array[0][1], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
                   $table->td($stats_array[0][2], { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
                   $table->td($stats_array[0][3], { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
-                  $table->td(int2byte($stats_array[0][4]), { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
-                  $table->td(int2byte($stats_array[0][5]), { bgcolor => $TT_COLORS[$stats_array[0][2]] }),
-                  $table->td(int2byte($stats_array[0][4]+$stats_array[0][5]), { bgcolor => $TT_COLORS[$stats_array[0][2]] }),
+                  $table->td(int2byte($stats_array[0][4], { DIMENSION => $FORM{DIMENSION} }), { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
+                  $table->td(int2byte($stats_array[0][5], { DIMENSION => $FORM{DIMENSION} }), { bgcolor => $TT_COLORS[$stats_array[0][2]] }),
+                  $table->td(int2byte($stats_array[0][4]+$stats_array[0][5], { DIMENSION => $FORM{DIMENSION} }), { bgcolor => $TT_COLORS[$stats_array[0][2]] }),
                   $table->td($stats_array[0][6], { bgcolor => $TT_COLORS[$stats_array[0][2]] })
          );
-
-        $user_total_in+=$stats_array[0][4];
-        $user_total_out+=$stats_array[0][5];
-        $user_traffic_sum+=$stats_array[0][4]+$stats_array[0][5];
-        $user_sum+=$stats_array[0][6];
+        
+        
+        
+        $user_total_in    += $stats_array[0][4];
+        $user_total_out   += $stats_array[0][5];
+        $user_traffic_sum += $stats_array[0][4]+$stats_array[0][5];
+        $user_sum         += $stats_array[0][6];
 
 
 
@@ -607,9 +645,9 @@ if (defined($FORM{DATE})) {
 
           $table_sessions->addrow($stats_array[$i][2], 
              $stats_array[$i][3],
-             int2byte($stats_array[$i][4]),
-             int2byte($stats_array[$i][5]),
-             int2byte($stats_array[$i][4]+$stats_array[$i][5]),
+             int2byte($stats_array[$i][4], { DIMENSION => $FORM{DIMENSION} }),
+             int2byte($stats_array[$i][5], { DIMENSION => $FORM{DIMENSION} }),
+             int2byte($stats_array[$i][4]+$stats_array[$i][5], { DIMENSION => $FORM{DIMENSION} }),
              $stats_array[$i][6]
             );
         
@@ -622,9 +660,9 @@ if (defined($FORM{DATE})) {
 
         $table_sessions->{rowcolor}=$_COLORS[3];
         $table_sessions->addtd("<th colspan='2'>$_TOTAL:</th>", 
-          "<th>". int2byte($user_total_in) ."</th>",
-          "<th>". int2byte($user_total_out) ."</th>",
-          "<th>". int2byte($user_traffic_sum). "</th>",
+          "<th>". int2byte($user_total_in, { DIMENSION => $FORM{DIMENSION} }) ."</th>",
+          "<th>". int2byte($user_total_out, { DIMENSION => $FORM{DIMENSION} }) ."</th>",
+          "<th>". int2byte($user_traffic_sum, { DIMENSION => $FORM{DIMENSION} }). "</th>",
           "<th>". $user_sum . "</th>" );
  
 
@@ -659,31 +697,40 @@ if (defined($FORM{DATE})) {
         push  @{$report{"$line->[0]$line->[1]"}}, [ @$line ];
        }
 
-      while(my($k, $v)=each %report) {
+       foreach my $k ( sort keys %report) {  
+        my $v=$report{$k};
         my @stats_array = @$v;
 	      $table_sessions->{rowcolor}=$_COLORS[1];
 
-        my $user_total_in=0;
-        my $user_total_out=0;
-        my $user_traffic_sum=0;
-        my $user_sum=0;
+        my $user_total_in   = 0;
+        my $user_total_out  = 0;
+        my $user_traffic_sum= 0;
+        my $user_sum        = 0;
+
+        my $field = ($FORM{TYPE}) ? '' : $html->button($stats_array[0][1], "index=11&UID=$stats_array[0][8]");
 
         $table_sessions->addtd(
                   $table->td($stats_array[0][0], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
-                  $table->td($html->button($stats_array[0][1], "index=11&UID=$stats_array[0][8]"), { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
+                  $table->td($field, { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
                   $table->td($stats_array[0][2], { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
                   $table->td($stats_array[0][3], { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
-                  $table->td(int2byte($stats_array[0][4]), { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
-                  $table->td(int2byte($stats_array[0][5]), { bgcolor => $TT_COLORS[$stats_array[0][2]] }),
-                  $table->td(int2byte($stats_array[0][4]+$stats_array[0][5]), { bgcolor => $TT_COLORS[$stats_array[0][2]] }),
+                  $table->td(int2byte($stats_array[0][4], { DIMENSION => $FORM{DIMENSION} }), { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
+                  $table->td(int2byte($stats_array[0][5], { DIMENSION => $FORM{DIMENSION} }), { bgcolor => $TT_COLORS[$stats_array[0][2]] }),
+                  $table->td(int2byte($stats_array[0][4]+$stats_array[0][5], { DIMENSION => $FORM{DIMENSION} }), { bgcolor => $TT_COLORS[$stats_array[0][2]] }),
                   $table->td($stats_array[0][6], { bgcolor => $TT_COLORS[$stats_array[0][2]] })
          );
 
-        $user_total_in+=$stats_array[0][4];
-        $user_total_out+=$stats_array[0][5];
-        $user_traffic_sum+=$stats_array[0][4]+$stats_array[0][5];
-        $user_sum+=$stats_array[0][6];
+        
+
+        $user_total_in    += $stats_array[0][4];
+        $user_total_out   += $stats_array[0][5];
+        $user_traffic_sum += $stats_array[0][4]+$stats_array[0][5];
+        $user_sum         += $stats_array[0][6];
      
+        $TRAFFIC_CLASS{$stats_array[0][2]}{IN}  += $user_total_in; 
+        $TRAFFIC_CLASS{$stats_array[0][2]}{OUT} += $user_total_out;
+        $TRAFFIC_CLASS{$stats_array[0][2]}{SUM} += ($user_total_in + $user_total_out);
+
 
 
        for($i=1; $i<$#stats_array+1; $i++)  {
@@ -697,41 +744,74 @@ if (defined($FORM{DATE})) {
 
          $table_sessions->addrow($stats_array[$i][2], 
              $stats_array[$i][3],
-             int2byte($stats_array[$i][4]),
-             int2byte($stats_array[$i][5]),
-             int2byte($stats_array[$i][4]+$stats_array[$i][5]),
+             int2byte($stats_array[$i][4], { DIMENSION => $FORM{DIMENSION} }),
+             int2byte($stats_array[$i][5], { DIMENSION => $FORM{DIMENSION} }),
+             int2byte($stats_array[$i][4]+$stats_array[$i][5], { DIMENSION => $FORM{DIMENSION} }),
              $stats_array[$i][6]
             );
         
-            $user_total_in+=$stats_array[$i][4];
-            $user_total_out+=$stats_array[$i][5];
-            $user_traffic_sum+=$stats_array[$i][4]+$stats_array[$i][5];
-            $user_sum+=$stats_array[$i][6];
+            $user_total_in    += $stats_array[$i][4];
+            $user_total_out   += $stats_array[$i][5];
+            $user_traffic_sum += $stats_array[$i][4]+$stats_array[$i][5];
+            $user_sum         += $stats_array[$i][6];
+            
+            $TRAFFIC_CLASS{$stats_array[0][2]}{IN}  += $user_total_in; 
+            $TRAFFIC_CLASS{$stats_array[0][2]}{OUT} += $user_total_out;
+            $TRAFFIC_CLASS{$stats_array[0][2]}{SUM} += ($user_total_in + $user_total_out);
+
        }
 
        $table_sessions->{rowcolor}=$_COLORS[3];
        $table_sessions->addtd("<th colspan='2'>$_TOTAL:</th>", 
-          "<th>". int2byte($user_total_in) ."</th>",
-          "<th>". int2byte($user_total_out) ."</th>",
-          "<th>". int2byte($user_traffic_sum). "</th>",
+          "<th>". int2byte($user_total_in, { DIMENSION => $FORM{DIMENSION} }) ."</th>",
+          "<th>". int2byte($user_total_out, { DIMENSION => $FORM{DIMENSION} }) ."</th>",
+          "<th>". int2byte($user_traffic_sum, { DIMENSION => $FORM{DIMENSION} }). "</th>",
           "<th>". $user_sum . "</th>" );
  
 
-      $totals{SUM}+=$user_sum;
-      $totals{TRAFFIC_IN}+=$user_total_in;
-      $totals{TRAFFIC_OUT}+=$user_total_out;
+      $totals{SUM}        += $user_sum;
+      $totals{TRAFFIC_IN} += $user_total_in;
+      $totals{TRAFFIC_OUT}+= $user_total_out;
    }
+
+
+  #Traffic Class summary
+  my $table_classes_sum =  $html->table( { width      => '100%',
+	                                    caption    => "$_TRAFFIC_CLASS", 
+                                      title      => ["$_TRAFFIC_CLASS", "$_RECV", "$_SENT", "$_SUM"],
+                                      cols_align => ['right', 'right', 'right', 'right' ],
+                                      qs         => $pages_qs,
+                                      ID         => 'IPN_TRAFFIC_CLASS_SUM'             
+                               } );
+  
+  foreach my $class (sort keys %TRAFFIC_CLASS) {
+  	$table_classes_sum->addrow("$class", 
+  	  int2byte($TRAFFIC_CLASS{$class}{IN}), 
+  	  int2byte($TRAFFIC_CLASS{$class}{OUT}), 
+  	  int2byte($TRAFFIC_CLASS{$class}{SUM})
+  	);
+   }
+
+  print $table_classes_sum->show();
+
 }
 
 
  }
 else {
   #Used Traffic
+  
+  my @caption = ("$_DATE", "$_USERS", "IN", "OUT", "$_TOTAL",  $_SUM);
+  if ($FORM{TYPE} eq 'DAYS_TCLASS')  {
+  	$caption[1]="$_TRAFFIC_CLASS";
+   } 
+  
   $table_sessions = $html->table( { width      => '100%',
 	                                  caption    => "$_SESSIONS", 
-                                    title      => ["$_DATE", "$_USERS", "IN", "OUT", "$_TOTAL",  $_SUM ],
+                                    title      => \@caption,
                                     cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
-                                    qs         => $pages_qs             
+                                    qs         => $pages_qs,
+                                    ID         => 'IPN_REPORT'             
                                } );
 
   $LIST_PARAMS{INTERVAL_TYPE}=3;
@@ -740,13 +820,19 @@ else {
   $graph_type='month_stats';
   
   my $num = 0;
+  
+
 
   foreach my $line (@$list) {
+  	if ($FORM{TYPE} eq 'DAYS' ||  $FORM{TYPE} eq 'DAYS_TCLASS') {
+  		$pages_qs = ''; #"&DATE=$line->[0]";
+  	 }
+  	
     $table_sessions->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
        $line->[1],   
-       int2byte($line->[2]), 
-       int2byte($line->[3]),
-       int2byte($line->[2]+$line->[3]),
+       int2byte($line->[2], { DIMENSION => $FORM{DIMENSION} }), 
+       int2byte($line->[3], { DIMENSION => $FORM{DIMENSION} }),
+       int2byte($line->[2]+$line->[3], { DIMENSION => $FORM{DIMENSION} }),
        $line->[4]
       );
    
@@ -796,10 +882,10 @@ else {
 
 $table = $html->table( { width => '100%',
 	    cols_align => ['right', 'right', 'right', 'right', 'right'],
-	          rows => [ [ '$_USERS: '. $html->b(int2byte($total_tunnel)), 
-	                      'IN: '     . $html->b(int2byte($totals{TRAFFIC_IN})),
-                        'OUT: '    . $html->b(int2byte($totals{TRAFFIC_OUT})), 
-                        'TRAFFIC: '. $html->b(int2byte($totals{TRAFFIC_IN}+$totals{TRAFFIC_OUT})), 
+	          rows => [ [ '$_USERS: '. $html->b(int2byte($total_tunnel, { DIMENSION => $FORM{DIMENSION} })), 
+	                      'IN: '     . $html->b(int2byte($totals{TRAFFIC_IN}, { DIMENSION => $FORM{DIMENSION} })),
+                        'OUT: '    . $html->b(int2byte($totals{TRAFFIC_OUT}, { DIMENSION => $FORM{DIMENSION} })), 
+                        'TRAFFIC: '. $html->b(int2byte($totals{TRAFFIC_IN}+$totals{TRAFFIC_OUT}, { DIMENSION => $FORM{DIMENSION} })), 
                         'SUM: '    . $html->b($totals{SUM})
                         ] ],
                         rowcolor => $_COLORS[2]
@@ -826,221 +912,6 @@ $html->make_charts({
 
 
 
-
-#**********************************************************
-# ipn_use();
-#**********************************************************
-sub ipn_use {
-
-
-
-      my $list = $Ipn->reports2({ %LIST_PARAMS });
-
-      $table_sessions = $html->table( { width => '100%',
-	                                      caption    => "$_FROM", 
-                                        title      => ["IP", "PACKEDGE", "$_SUM"],
-                                        cols_align => ['left', 'right', 'right'],
-                                        qs         => $pages_qs             
-                               } );
-
-      foreach my $line (@$list) {
-        $table_sessions->addrow($html->b($line->[0]), 
-          int2byte($line->[1]), 
-          $line->[2]
-         );
-       }
-
-      print $table_sessions->show();
-
-
-
-return 0;
-
-
- my @EX_GROUPS = ('Time', 'Hosts', 'Ports');
- my %EX_PARAMS = ();
- my $i = 0;
- foreach my $line (@EX_GROUPS) {
-   	$EX_PARAMS{$i}=$line;
-    $i++;
-  }
-
-
-
-  reports({ DATE       => $FORM{DATE}, 
-  	        REPORT     => '',
-  	        EX_PARAMS  => \%EX_PARAMS,
-  	        SHOW_HOURS => 1
-  	       });
-
-
-  my $total_in      = 0;
-  my $total_out     = 0;
-  my $total_tunnel  = 0;
-  my $total_sum     = 0;
-  my $total_package = 0;  
-
-
-
-
-#Day reposrt
-if (defined($FORM{DATE})) {
-
-   $LIST_PARAMS{INTERVAL_TYPE} = 2;
-
-   if ($FORM{EX_PARAMS} == 1) {
-      $LIST_PARAMS{HOSTS}=1;
-      $Ipn->reports({ %LIST_PARAMS });
-
-      my $list = $Ipn->{HOSTS_LIST_FROM};
-      $table_sessions = $html->table( { width => '100%',
-	                              caption => "$_FROM", 
-                                title =>["IP", "$_SUM", "PACKEDGE"],
-                                cols_align => ['left', 'right', 'right'],
-                                qs => $pages_qs             
-                               } );
-
-      foreach my $line (@$list) {
-        $table_sessions->addrow($html->b($line->[0]), 
-          int2byte($line->[1]), 
-          $line->[2]
-         );
-       }
-
-      print $table_sessions->show();
-      $list = $Ipn->{HOSTS_LIST_TO};
-      $table_sessions = $html->table( { width => '100%',
-	                              caption       => "$_TO", 
-                                title         => ["IP", "$_SUM", "PACKEDGE"],
-                                cols_align    => ['left', 'right', 'right'],
-                                qs            => $pages_qs             
-                               } );
-
-      foreach my $line (@$list) {
-        $table_sessions->addrow($html->b($line->[0]), 
-          int2byte($line->[1]), 
-          $line->[2]
-         );
-       }
-    }
-
-   elsif ($FORM{EX_PARAMS} == 2) {
-      $LIST_PARAMS{PORTS}=1;
-      $Ipn->reports({ %LIST_PARAMS });
-
-      my $list = $Ipn->{PORTS_LIST_FROM};
-      $table_sessions = $html->table( { width      => '100%',
-	                                      caption    => "$_FROM", 
-                                        title      =>["IP", "$_SUM", "PACKEDGE"],
-                                        cols_align => ['left', 'right', 'right'],
-                                        qs         => $pages_qs             
-                                     } );
-
-      foreach my $line (@$list) {
-        $table_sessions->addrow($html->b($line->[0]), 
-          int2byte($line->[1]), 
-          $line->[2]
-         );
-       }
-
-      print $table_sessions->show();
-      $list = $Ipn->{PORTS_LIST_TO};
-      $table_sessions = $html->table( { width => '100%',
-	                                      caption => "$_TO", 
-                                        title =>["IP", "$_SUM", "PACKEDGE"],
-                                        cols_align => ['left', 'right', 'right'],
-                                        qs => $pages_qs             
-                               } );
-
-      foreach my $line (@$list) {
-        $table_sessions->addrow($html->b($line->[0]), 
-          int2byte($line->[1]), 
-          $line->[2]
-         );
-       }
-    }
-
-
-   else {
-#  $LIST_PARAMS{DATE}="$FORM{DATE}";
-#  $pages_qs.="&DATE=$LIST_PARAMS{DATE}";
-    my $list = $Ipn->reports({ %LIST_PARAMS });
-    #Used Fraffic
-    $table_sessions = $html->table( { width => '100%',
-	                              caption => "$_SESSIONS", 
-                                title =>["$_DATE", "IN", "OUT", "TUNELS", "$_SUM", "PACKEDGE", '-'],
-                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'center'],
-                                qs => $pages_qs             
-                               } );
-
-
-    foreach my $line (@$list) {
-      $table_sessions->addrow($html->b($line->[0]), 
-        int2byte($line->[1]), 
-        int2byte($line->[2]), 
-        int2byte($line->[3]),  
-        int2byte($line->[4]),  
-        $line->[5], 
-        $html->button("$_HOSTS", "index=$index&HOUR=$line->[0]$pages_qs&EX_PARAMS=1")
-      );
-
-     $total_in      += $line->[1];   
-     $total_out     += $line->[2]; 
-     $total_tunnel  += $line->[3];
-     $total_sum     += $line->[4];
-     $total_package += $line->[5];
-    }
-  }
- }
-else {
-  #Used Traffic
-  $table_sessions = $html->table( { width => '100%',
-	                              caption => "$_SESSIONS", 
-                                title =>["$_DATE", "IN", "OUT", "TUNNELS", $_SUM, "PACKEDGE", '-', '-'],
-                                cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'center', 'center'],
-                                qs => $pages_qs             
-                               } );
-
-
-  $LIST_PARAMS{INTERVAL_TYPE}=3;
-  my $list = $Ipn->reports({ %LIST_PARAMS });
-  foreach my $line (@$list) {
-    $table_sessions->addrow($html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
-       int2byte($line->[1]),   
-       int2byte($line->[2]), 
-       int2byte($line->[3]),
-       int2byte($line->[4]),
-       $line->[5],
-       $html->button("$_HOURS", "index=$index&$type=$line->[0]$pages_qs"),
-       $html->button("$_HOSTS", "index=$index$pages_qs")
-       );
-   
-    $total_in      += $line->[1];   
-    $total_out     += $line->[2]; 
-    $total_tunnel  += $line->[3];
-    $total_sum     += $line->[4];
-    $total_package += $line->[5];
-   }
-}
-
-
-
-$table = $html->table( { width => '100%',
-	    cols_align => ['right', 'right', 'right', 'right', 'right'],
-	    rows => [ [ 'IN: '. $html->b( int2byte($total_in) ),
-                                            'OUT: '   . $html->b( int2byte($total_out) ), 
-                                            'TUNEL: ' . $html->b( int2byte($total_tunnel)), 
-                                            'SUM: '   . $html->b( int2byte($total_sum) ), 
-                                            'PACKAGES:'.  $html->b($total_package) 
-                                           ] ],
-                                rowcolor => $_COLORS[2]
-                               } );
-
-
-print $table_sessions->show() . $table->show();
-
-
-}
 
 
 #**********************************************************
