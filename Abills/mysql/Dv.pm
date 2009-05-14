@@ -238,7 +238,9 @@ sub add {
         '$DATA{PORT}', '$DATA{JOIN_SERVICE}', '$DATA{TURBO_MODE}');", 'do');
 
   return $self if ($self->{errno});
-  $admin->action_add("$DATA{UID}", "ACTIVE");
+
+  $admin->{MODULE}=$MODULE;
+  $admin->action_add("$DATA{UID}", "ACTIVE", { TYPE => 1 });
   return $self;
 }
 

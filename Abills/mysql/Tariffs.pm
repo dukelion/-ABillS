@@ -509,7 +509,7 @@ sub del {
   	
   $self->query($db, "DELETE FROM tarif_plans WHERE id='$id'$WHERE;", 'do');
   
-  $admin->system_action_add("TP:$id $self->{CHANGES_LOG}", { TYPE => 10 });    
+  $admin->system_action_add("TP:$id", { TYPE => 10 });    
 
  return $self;
 }

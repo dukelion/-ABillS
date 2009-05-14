@@ -14,7 +14,7 @@
 <tr><td>$_LOGIN / $_GROUP:</td><td>%USER%</td></tr>
 <tr><th bgcolor='$_COLORS[0]' colspan='2'>$_MESSAGE</th></tr>
 <tr><th colspan='2'><textarea name='MESSAGE' cols='70' rows='9'>%MESSAGE%</textarea></th></tr>
-
+<tr><td>$_PHONE:</td><td><input type='text' name='PHONE' value='%PHONE%' size='30'/></td></tr>
 %ATTACHMENT%
 <tr><td>$_ATTACHMENT:</td><td><input name='FILE_UPLOAD' type='file' size='40' class='fixed'>
                   <!-- <input class='button' type='submit' name='AttachmentUpload' value='$_ADD'> --> </td></tr>  

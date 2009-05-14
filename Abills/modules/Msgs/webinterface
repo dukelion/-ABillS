@@ -315,6 +315,7 @@ sub msgs_admin {
 
 
   push @msg_status, $_IN_WORK;
+  push @msg_status, $_NEW_MESSAGE;
 
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
@@ -624,8 +625,8 @@ sub msgs_admin {
 
   #$pages_qs .= "&UID=$FORM{UID}" if ($FORM{UID});
 
-  if (! $FORM{STATE} && ! $FORM{ALL_MSGS}) {
-     $FORM{STATE}=0;
+  if (! defined($FORM{STATE}) && ! $FORM{ALL_MSGS}) {
+     $FORM{STATE}=4;
    }
   
 my $i = 0;
@@ -1182,7 +1183,7 @@ print $table->show();
 
 if ($period == 1) {
   $LIST_PARAMS{PLAN_FROM_DATE} = $DATE;
-  $LIST_PARAMS{PLAN_TO_DATE} = strftime "%Y-%m-%d", localtime(time + 86400 * 5);
+  $LIST_PARAMS{PLAN_TO_DATE}   = strftime "%Y-%m-%d", localtime(time + 86400 * 5);
  }
 elsif ($period == 2) {
   $LIST_PARAMS{PLAN_WEEK} = 1; 
@@ -1203,7 +1204,7 @@ my $list = $Msgs->messages_list({ %LIST_PARAMS,
   	                              DESC      => '',
   	                              SORT      => 10,
   	                              STATE     => 0,
-  	                              PAGE_ROWS => 1000
+  	                              PAGE_ROWS => 10000
 	                               });
 
 
@@ -1225,10 +1226,21 @@ foreach my $line (@$list) {
 
 if (! $dates{$date})  {
   push @main_table_rows, $table2->show({ OUTPUT2RETURN => 1 }) if (keys %dates  > 0);
-
+  my $caption = '';
+  
+  if ($line->[19] == 0) {
+  	$caption = $html->color_mark($WEEKDAYS[7], $_COLORS[6]);
+   }
+  elsif ($line->[19] == 6) {
+  	$caption = $html->color_mark($WEEKDAYS[6], $_COLORS[6]);
+   }
+  else {
+    $caption = $WEEKDAYS[$line->[19]];
+   }
+  
   $table2 = $html->table( { 
                          width      => '300',
-                         caption    => "$date",
+                         caption    => $caption . " / $date",
                          title      => ['#', "$_ADMIN", "$_TIME",  "$_SUBJECT"],
                          cols_align => ['right', 'left', 'left'],
                          ID         => 'SHEDULE_LIST',

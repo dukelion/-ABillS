@@ -273,7 +273,7 @@ sub pi_add {
   
   return $self if ($self->{errno});
   
-  $admin->action_add("$DATA{UID}", "ADD PIf");
+  $admin->action_add("$DATA{UID}", "ADD PI");
   return $self;
 }
 
@@ -572,7 +572,8 @@ sub group_change {
 		               TABLE        => 'groups',
 		               FIELDS       => \%FIELDS,
 		               OLD_INFO     => $self->group_info($gid),
-		               DATA         => $attr
+		               DATA         => $attr,
+		               EXT_CHANGE_INFO  => "GID:$gid"
 		              } );
 
 
@@ -592,6 +593,9 @@ sub group_add {
  $self->query($db, "INSERT INTO groups (gid, name, descr)
     values ('$DATA{GID}', '$DATA{G_NAME}', '$DATA{G_DESCRIBE}');", 'do');
 
+
+ $admin->system_action_add("GID:$DATA{GID}", { TYPE => 1 });    
+ 
  return $self;
 }
 
@@ -605,6 +609,8 @@ sub group_del {
  my ($id) = @_;
 
  $self->query($db, "DELETE FROM groups WHERE gid='$id';", 'do');
+ 
+ $admin->system_action_add("GID:$id", { TYPE => 10 });    
  return $self;
 }
 
@@ -1006,10 +1012,10 @@ sub add {
   
   return $self if ($self->{errno});
   
-  $self->{UID} = $self->{INSERT_ID};
+  $self->{UID}   = $self->{INSERT_ID};
   $self->{LOGIN} = $DATA{LOGIN};
 
-  $admin->action_add("$self->{UID}", "ADD $DATA{LOGIN}");
+  $admin->action_add("$self->{UID}", "LOGIN:$DATA{LOGIN}", { TYPE => 1 });
 
   if ($attr->{CREATE_BILL}) {
   	#print "create bill";

@@ -536,6 +536,7 @@ CREATE TABLE `msgs_messages` (
   `admin_read` datetime NOT NULL default '0000-00-00 00:00:00',
   `resposible` smallint(6) unsigned NOT NULL default '0',
   `inner_msg` tinyint(1) unsigned NOT NULL default '0',
+  `phone` VARCHAR(16) NOT NULL DEFAULT '',
   PRIMARY KEY  (`id`),
   KEY `uid` (`uid`)
 ) COMMENT='Msgs Messages';

@@ -2146,7 +2146,7 @@ foreach my $line (@$list) {
   my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
 
   $table->addrow($html->b($line->[0]),
-    $html->button($line->[1], "index=15&UID=$line->[7]"), 
+    $html->button($line->[1], "index=15&UID=$line->[8]"), 
     $line->[2], 
     $line->[3], 
     $line->[4], 

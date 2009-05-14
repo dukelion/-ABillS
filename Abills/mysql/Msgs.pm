@@ -133,6 +133,11 @@ sub messages_list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{USER_READ}, 'STR', 'm.user_read') };
   }
 
+ if (defined($attr->{PHONE})) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PHONE}, 'STR', 'm.phone') };
+  }
+
+
  # Show groups
  if ($attr->{GIDS}) {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
@@ -170,7 +175,12 @@ sub messages_list {
  }
 
  if (defined($attr->{STATE})) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.state')  };
+   if ($attr->{STATE} == 4) {
+   	 push @WHERE_RULES, @{ $self->search_expr('0000-00-00 00:00:00', 'INT', 'm.admin_read') };
+    }
+   else {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.state')  };
+    }
   }
 
  if ($attr->{PRIORITY}) {
@@ -207,7 +217,9 @@ m.gid,
 m.user_read,
 m.admin_read,
 if(r.id IS NULL, 0, count(r.id)),
-m.chapter
+m.chapter,
+DATE_FORMAT(plan_date, '%w')
+
 
 FROM (msgs_messages m)
 LEFT JOIN users u ON (m.uid=u.uid)
@@ -264,7 +276,8 @@ sub message_add {
   my $CLOSED_DATE = ($DATA{STATE} == 1 || $DATA{STATE} == 2 ) ? 'now()' : "'0000-00-00 00:00:00'";
 
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
-   priority, lock_msg, plan_date, plan_time, user_read, admin_read, inner_msg, resposible, closed_date)
+   priority, lock_msg, plan_date, plan_time, user_read, admin_read, inner_msg, resposible, closed_date,
+   phone)
     values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
         '$DATA{REPLY}',
         '$admin->{AID}',
@@ -278,7 +291,8 @@ sub message_add {
         '$DATA{ADMIN_READ}',
         '$DATA{INNER_MSG}',
         '$DATA{RESPOSIBLE}',
-        $CLOSED_DATE
+        $CLOSED_DATE,
+        '$DATA{PHONE}'
         );", 'do');
 
   $self->{MSG_ID} = $self->{INSERT_ID};
@@ -359,7 +373,8 @@ sub message_info {
   m.user_read,
   m.admin_read,
   m.resposible,
-  m.inner_msg
+  m.inner_msg,
+  m.phone
     FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN users u ON (m.uid=u.uid)
@@ -400,7 +415,8 @@ sub message_info {
    $self->{USER_READ},
  	 $self->{ADMIN_READ},
  	 $self->{RESPOSIBLE},
- 	 $self->{INNER_MSG}
+ 	 $self->{INNER_MSG},
+ 	 $self->{PHONE}
   )= @{ $self->{list}->[0] };
 	
 	
@@ -438,7 +454,8 @@ sub message_change {
                 USER_READ   => 'user_read',
  	              ADMIN_READ  => 'admin_read',
  	              RESPOSIBLE  => 'resposible',
- 	              INNER_MSG   => 'inner_msg'
+ 	              INNER_MSG   => 'inner_msg',
+ 	              PHONE       => 'phone'
              );
 
   #print "!! $attr->{STATE} !!!";
