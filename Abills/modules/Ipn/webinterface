@@ -707,11 +707,11 @@ if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
         my $user_traffic_sum= 0;
         my $user_sum        = 0;
 
-        my $field = ($FORM{TYPE}) ? '' : $html->button($stats_array[0][1], "index=11&UID=$stats_array[0][8]");
+        my $field2 = ($FORM{TYPE}) ? '' : $html->button($stats_array[0][1], "index=11&UID=$stats_array[0][8]");
 
         $table_sessions->addtd(
-                  $table->td($stats_array[0][0], { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
-                  $table->td($field, { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
+                  $table->td($html->button($stats_array[0][0], "index=$index&DATE=$stats_array[0][0]"), { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
+                  $table->td($field2, { rowspan => ($#stats_array > 0) ? $#stats_array+2 : 2 } ),
                   $table->td($stats_array[0][2], { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
                   $table->td($stats_array[0][3], { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 
                   $table->td(int2byte($stats_array[0][4], { DIMENSION => $FORM{DIMENSION} }), { bgcolor => $TT_COLORS[$stats_array[0][2]] }), 

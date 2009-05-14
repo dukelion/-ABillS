@@ -67,6 +67,7 @@ my $log_print = sub {
 
 my $RAD = get_radius_params();
 if ($RAD->{NAS_IP_ADDRESS}) {	
+  my $ret = get_nas_info($db, $RAD);
   if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
     auth($db, $RAD, undef, { pre_auth => 1 });
     exit 0;
@@ -76,7 +77,7 @@ if ($RAD->{NAS_IP_ADDRESS}) {
     exit 0;
    }
 
-  my $ret = get_nas_info($db, $RAD);
+  
   if($ret == 0) {
     $ret = auth($db, $RAD, $nas);
   }
@@ -149,7 +150,7 @@ sub auth {
    $auth_mod{'default'} = Auth->new($db, \%conf);
    $r = $auth_mod{'default'}->pre_auth($RAD);
    if ($auth_mod{'default'}->{errno}) {
-     $log_print->('LOG_INFO', $RAD->{USER_NAME}, "MS-CHAP PREAUTH FAILED$GT", { NAS => $nas});
+     $log_print->('LOG_INFO', $RAD->{USER_NAME}, "MS-CHAP PREAUTH FAILED$GT", { NAS => $nas });
     }
    else {
       while(my($k, $v)=each(%{ $auth_mod{'default'}->{'RAD_CHECK'} })) {
