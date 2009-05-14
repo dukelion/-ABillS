@@ -758,11 +758,11 @@ if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
             $TRAFFIC_CLASS{$stats_array[$i][2]}{IN}  += $stats_array[$i][4]; 
             $TRAFFIC_CLASS{$stats_array[$i][2]}{OUT} += $stats_array[$i][5];
             $TRAFFIC_CLASS{$stats_array[$i][2]}{SUM} += ($stats_array[$i][4]+$stats_array[$i][5]);
-
        }
 
        $table_sessions->{rowcolor}=$_COLORS[3];
-       $table_sessions->addtd("<th colspan='2'>$_TOTAL:</th>", 
+       my $speed = int2byte($user_traffic_sum / 86400);
+       $table_sessions->addtd("<th align=left>$_AVG $_SPEED: $speed/sec. </th><th> $_TOTAL:</th>", 
           "<th>". int2byte($user_total_in, { DIMENSION => $FORM{DIMENSION} }) ."</th>",
           "<th>". int2byte($user_total_out, { DIMENSION => $FORM{DIMENSION} }) ."</th>",
           "<th>". int2byte($user_traffic_sum, { DIMENSION => $FORM{DIMENSION} }). "</th>",
