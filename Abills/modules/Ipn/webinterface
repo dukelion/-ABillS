@@ -727,9 +727,9 @@ if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
         $user_traffic_sum += $stats_array[0][4]+$stats_array[0][5];
         $user_sum         += $stats_array[0][6];
      
-        $TRAFFIC_CLASS{$stats_array[0][2]}{IN}  += $user_total_in; 
-        $TRAFFIC_CLASS{$stats_array[0][2]}{OUT} += $user_total_out;
-        $TRAFFIC_CLASS{$stats_array[0][2]}{SUM} += ($user_total_in + $user_total_out);
+        $TRAFFIC_CLASS{$stats_array[0][2]}{IN}  += $stats_array[0][4]; 
+        $TRAFFIC_CLASS{$stats_array[0][2]}{OUT} += $stats_array[0][5];
+        $TRAFFIC_CLASS{$stats_array[0][2]}{SUM} += ($stats_array[0][4]+$stats_array[0][5]);
 
 
 
@@ -755,9 +755,9 @@ if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
             $user_traffic_sum += $stats_array[$i][4]+$stats_array[$i][5];
             $user_sum         += $stats_array[$i][6];
             
-            $TRAFFIC_CLASS{$stats_array[0][2]}{IN}  += $user_total_in; 
-            $TRAFFIC_CLASS{$stats_array[0][2]}{OUT} += $user_total_out;
-            $TRAFFIC_CLASS{$stats_array[0][2]}{SUM} += ($user_total_in + $user_total_out);
+            $TRAFFIC_CLASS{$stats_array[$i][2]}{IN}  += $stats_array[$i][4]; 
+            $TRAFFIC_CLASS{$stats_array[$i][2]}{OUT} += $stats_array[$i][5];
+            $TRAFFIC_CLASS{$stats_array[$i][2]}{SUM} += ($stats_array[$i][4]+$stats_array[$i][5]);
 
        }
 
