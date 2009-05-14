@@ -363,7 +363,7 @@ sub msgs_admin {
 
 
      %params = ();
-     $params{STATE}       = $FORM{STATE}if ($FORM{STATE});
+     $params{STATE}       = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
      my $state=$FORM{STATE};
  	 	 $params{CLOSED_DATE} = $DATE       if ($state > 0);
  	 	 $params{DONE_DATE}   = $DATE       if ($state > 1);
