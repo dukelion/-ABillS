@@ -284,6 +284,9 @@ sub search_expr {
     if($type eq 'INT' && $v =~ s/\*//g) {
       $expr = '>';
      }
+    elsif ($v =~ s/^!//) {
+    	$expr = ' <> ';
+     }
     elsif ($type eq 'STR') {
     	$expr = ' LIKE ';
     	$v =~ s/\*/\%/g;

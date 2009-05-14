@@ -243,12 +243,13 @@ my $list = $Dv->list( { %LIST_PARAMS } );
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-');
 my @EX_TITLE_ARR  = split(/, /, $Dv->{SEARCH_FIELDS});
 
-my %SEARCH_TITLES = ('INET_NTOA(dv.ip)' => 'IP',
-                     'dv.speed'         => $_SPEED,
-                     'dv.port'          => $_PORT,
-                     'dv.cid'           => 'CID',
-                     'dv.filter_id'     => 'Filter ID',
-                     'tp.name'          => "$_TARIF_PLAN"
+my %SEARCH_TITLES = ('INET_NTOA(dv.ip)'      => 'IP',
+                     'INET_NTOA(dv.netmask)' => 'NETMASK',
+                     'dv.speed'              => $_SPEED,
+                     'dv.port'               => $_PORT,
+                     'dv.cid'                => 'CID',
+                     'dv.filter_id'          => 'Filter ID',
+                     'tp.name'               => "$_TARIF_PLAN"
                    );
 
 
