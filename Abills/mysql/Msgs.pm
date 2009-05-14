@@ -459,6 +459,7 @@ sub message_change {
              );
 
   #print "!! $attr->{STATE} !!!";
+  $attr->{STATUS} = ($attr->{STATUS}) ? $attr->{STATUS} : 0;
 
   $admin->{MODULE}=$MODULE;
   $self->changes($admin,  { CHANGE_PARAM => 'ID',
