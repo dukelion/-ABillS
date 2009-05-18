@@ -314,6 +314,7 @@ sub msgs_admin_add {
 sub msgs_admin {
 
 
+
   push @msg_status, $_IN_WORK;
   push @msg_status, $_NEW_MESSAGE;
 
@@ -333,6 +334,17 @@ sub msgs_admin {
     $FORM{chg}=$FORM{ID} if ($FORM{ID});
     goto MSG_LABEL;
     
+   }
+  elsif ($FORM{add_dispatch}) {
+  	my @ids = split(/, /, $FORM{del});
+  	
+  	for my $id (@ids) {
+  		$Msgs->message_change({ DISPATCH_ID => $FORM{DISPATCH_ID}, 
+  			                      ID          => $id 
+  			                      });
+  	 }
+ 	
+  	$html->message('info', $_INFO, "$_DISPATCH $_ADD # $FORM{IDS}") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{reply}) {
  	  if ($FORM{RUN_TIME}) {
@@ -368,13 +380,14 @@ sub msgs_admin {
  	 	 $params{CLOSED_DATE} = $DATE       if ($state > 0);
  	 	 $params{DONE_DATE}   = $DATE       if ($state > 1);
 
-
+    
  	  $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
  	 	                        ID        => $FORM{ID},
  	 	                        USER_READ => "0000-00-00 00:00:00",
  	 	                        ADMIN_READ=> "$DATE $TIME",
  	 	                        %params
  	 	                      });
+
     $FORM{chg} = $FORM{ID};
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
     
@@ -456,6 +469,15 @@ sub msgs_admin {
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }); 
+
+    $Msgs->{DISPATCH_SEL}=$html->form_select('DISPATCH_ID', 
+                                          { 
+ 	                                          SELECTED          => $Msgs->{DISPATCH_ID} || 0,
+ 	                                          SEL_MULTI_ARRAY   => [[0, ''], @{ $Msgs->dispatch_list({ STATUS => 0 }) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        }); 
+
     
     $Msgs->{MSG_CLOSED_DATE}=$html->form_input('MSG_CLOSED_DATE', "");
     $Msgs->{INNER_MSG} = $bool_vals[$Msgs->{INNER_MSG}];
@@ -549,7 +571,7 @@ sub msgs_admin {
   	print "$Msgs->{CONTENT}";
   	return 0;
    }
-  elsif ($FORM{del}) {
+  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
     $Msgs->message_del({ ID => $FORM{del}, UID => $UID  });
     $html->message('info', $_INFO, "$_DELETED") if (! $Msgs->{errno});  	
    }
@@ -708,13 +730,33 @@ foreach my $line (@$list) {
    $line->[9],
    $html->button("$_SHOW", "index=$index&chg=$line->[0]&UID=$line->[11]"),
    ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?" }): '') 
-
   );
 }
 
-print $html->form_main({ CONTENT => $table->show(),
+
+
+
+my $table2 = $html->table({ width      => '100%',
+                            caption    => "$_DISPATCHES",
+                            cols_align => ['center', 'center', 'center'],
+                            rows       => [ [ "$_DISPATCH:" ,  
+                                              $html->form_select('DISPATCH_ID',  { 
+ 	                                             SELECTED          => $Msgs->{DISPATCH_ID},
+ 	                                             SEL_MULTI_ARRAY   => [ [ undef, "$_ALL" ], @{ $Msgs->dispatch_list({ STATE => 0 }) } ],
+ 	                                             MULTI_ARRAY_KEY   => 0,
+ 	                                             MULTI_ARRAY_VALUE => 1,
+ 	                                            })
+                                             , 
+                                            $html->form_input('add_dispatch', "$_ADD", { TYPE => 'submit', OUTPUT2RETURN => 1   }) 
+                                          ] ]
+                      });
+
+
+
+
+print $html->form_main({ CONTENT => $table->show(). $table2->show(),
 	                       HIDDEN  => { index            => "$index",
-	                                    UID							 => $UID      },
+	                                    UID							 => $FORM{UID}    },
 	                       SUBMIT  => ($#A_CHAPTER == -1) ? { delete => $_DEL } : undef  ,
 	                       NAME    => 'users_list'
 	                     });
@@ -1054,7 +1096,7 @@ sub msgs_chapters {
 
     $html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	  	
    }
-  elsif ($FORM{del}) {
+  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
     $Msgs->chapter_del({ ID => $FORM{del} });
 
     $html->message('info', $_INFO, "$_DELETED") if (! $Msgs->{errno});
@@ -1094,6 +1136,298 @@ foreach my $line (@$list) {
 print $table->show();
   
 }
+
+
+
+#*******************************************************************
+# dispatch admins
+#*******************************************************************
+sub msgs_dispatch_admins {
+	
+	
+	
+	
+	if ($FORM{change_admins}) {
+	    $Msgs->dispatch_admins_change({ %FORM });
+      $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});  	
+	  }
+	
+	my $list = $Msgs->dispatch_admins_list({ DISPATCH_ID => $FORM{chg} });
+  my %active_admins = ();
+  foreach my $line (@$list) {
+  	$active_admins{$line->[1]}=1;
+   }
+
+	
+	
+	$list = $admin->list({ %LIST_PARAMS });
+   
+  
+  my $table = $html->table({ width      => '100%',
+                             caption    => "$_ADMINS",
+                             title      => ['#', $_ADMIN, "$_FIO" ],
+                             cols_align => ['right', 'left', 'center', 'center:noprint' ],
+                             qs         => $pages_qs,
+                             ID         => 'MSGS_ADMINS'
+                           });
+
+
+foreach my $line (@$list) {
+  $table->addrow($html->form_input('AIDS', "$line->[0]", { TYPE => 'checkbox', 
+    	  STATE => ($active_admins{$line->[0]}) ? 1 : undef }), 
+    	  	$line->[0], 
+    	  	$line->[1]
+    	  );
+}
+
+
+
+print $html->form_main({ CONTENT => $table->show(),
+	                       HIDDEN  => { index            => "$index",
+	                                    DISPATCH_ID			 => $FORM{chg},
+	                                    chg			         => $FORM{chg},
+	                                          },
+	                       SUBMIT  => { change_admins => $_CHANGE } ,
+	                       NAME    => 'admins_list'
+	                     });
+
+	
+}
+
+#*******************************************************************
+# Count New messages for user
+#*******************************************************************
+sub msgs_dispatch {
+	
+	$Msgs->{ACTION}    = 'add';
+  $Msgs->{ACTION_LNG}= $_ADD;
+
+
+
+  if ($FORM{add}) {
+    $Msgs->dispatch_add({ %FORM });
+
+    $html->message('info', $_INFO, "$_ADDED") if (! $Msgs->{errno});  	
+   }
+  elsif ($FORM{print}) {
+    
+    print $html->header();
+    $Msgs->dispatch_info($FORM{print});
+
+    my $list = $Msgs->messages_list({ DISPATCH_ID  => $FORM{print}, 
+                           DESC         => (! $FORM{sort}) ? 'DESC' : $FORM{desc},
+                           FULL_ADDRESS => 1,
+                           SHOW_TEXT    => 1
+  	                       });
+
+    my %ORDERS = ();
+    my $i=1;
+    
+    foreach my $line (@$list) {
+    	$ORDERS{'ORDER_NUM_'.$i}          = $i;
+    	$ORDERS{'ORDER_PERSONAL_INFO_'.$i}= "$line->[6], $line->[7], $line->[8]";
+    	$ORDERS{'ORDER_JOB_'.$i}          = $line->[9];
+    	$i++;
+     }
+
+    $html->tpl_show(_include('msgs_dispatch_blank', 'Msgs'), { %$Msgs, %ORDERS });      
+    
+    exit;
+   } 
+  elsif ($FORM{change}) {
+    
+     if ($FORM{STATE} > 0) {
+      $FORM{DONE_DATE}="$DATE" if ($FORM{STATE} == 2); 
+      $FORM{CLOSED_DATE}="$DATE";
+     }
+
+    
+    $Msgs->dispatch_change({ %FORM });
+    $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});  	
+   }
+  elsif ($FORM{chg}) {
+
+    
+
+    $Msgs->dispatch_info($FORM{chg});
+
+    $Msgs->{ACTION}='change';
+    $Msgs->{ACTION_LNG}=$_CHANGE;
+
+    $html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	  	
+   }
+  elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
+    $Msgs->dispatch_del({ ID => $FORM{del} });
+
+    $html->message('info', $_INFO, "$_DELETED") if (! $Msgs->{errno});
+   }
+  elsif ($FORM{msg_del} && $FORM{is_js_confirmed} ) {
+    $Msgs->message_change({ DISPATCH_ID => 0,
+    	                      ID          => $FORM{msg_del} });
+
+    $html->message('info', $_INFO, "$_MESSAGE # $FORM{msg_del} $_DELETED") if (! $Msgs->{errno});
+   }
+
+
+  if ($Msgs->{errno}) {
+     $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
+   } 
+  
+
+  $LIST_PARAMS{STATE}  = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
+
+  push @msg_status, $_IN_WORK;
+  $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
+                                          { 
+ 	                                          SELECTED          => $Msgs->{STATE} || 0,
+ 	                                          SEL_ARRAY         => [@msg_status, "$_ALL" ],
+ 	                                          ARRAY_NUM_ID      => 0,
+ 	                                          EX_PARAMS         => "onchange='samechanged(this)'"
+ 	                                        });
+  
+  
+ 
+  $Msgs->{RESPOSIBLE_SEL}=$html->form_select('RESPOSIBLE', 
+                                          { 
+ 	                                          SELECTED          => $Msgs->{RESPOSIBLE_ID} || 0,
+ 	                                          SEL_MULTI_ARRAY   => [[0, ''], @{ $admin->list({ GIDS => $admins->{GIDS}  }) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          EX_PARAMS         => " STYLE='background-color: $_COLORS[3]' DISABLED" 
+ 	                                        }); 
+
+  $Msgs->{PLAN_DATE}=$DATE;
+  $html->tpl_show(_include('msgs_dispatch', 'Msgs'), $Msgs);  
+  
+  if ($FORM{chg}) {
+    $LIST_PARAMS{DISPATCH_ID}=$FORM{chg};
+    #$FORM{chg}=undef;
+    my $list = $Msgs->messages_list({ %LIST_PARAMS, 
+  	                                DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
+  	                               });
+  
+  
+  
+  my  $table = $html->table( { width      => '100%',
+                              caption    => "$_MESSAGES",
+                              title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", 
+                               "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-"],
+                              cols_align => ['right', 'left', 'left', 'right', 'right', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint'],
+                              qs         => $pages_qs,
+                              pages      => $Msgs->{TOTAL},
+                              ID         => 'MSGS_LIST',
+                              header     => ( ($#A_CHAPTER == -1) ? "<script language=\"JavaScript\" type=\"text/javascript\">
+<!-- 
+function CheckAllINBOX() {
+  for (var i = 0; i < document.users_list.elements.length; i++) {
+    if(document.users_list.elements[i].type == 'checkbox' && document.users_list.elements[i].name == 'del'){
+      document.users_list.elements[i].checked =         !(document.users_list.elements[i].checked);
+    }
+  }
+}
+//-->
+</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n" : '' ). $status_bar
+
+                           });
+
+foreach my $line (@$list) {
+  my $state = ($line->[5] == 0) ? $html->b($msg_status[$line->[5]]) : $msg_status[$line->[5]];
+
+  $state .= '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[16] eq '0000-00-00 00:00:00');
+  my $priority = '';
+  if ($line->[8] == 4) {
+ 	  $priority = $html->color_mark($priority[$line->[8]], $_COLORS[6]);
+ 	 }
+  elsif ($line->[8] == 0) {
+ 	  $priority = $html->color_mark($priority[$line->[8]], $_COLORS[8]);
+ 	 }
+ 	else {
+ 		$priority = $priority[$line->[8]];
+ 	 }
+
+  $table->addrow(
+   $line->[0] . ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ), 
+   ($line->[10] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[11]") :  $line->[1],
+   $html->button($line->[2], "index=". ($index - 2). "&UID=$line->[11]&chg=$line->[0]"), 
+   $line->[3],
+   $line->[4],
+   $state,
+   $line->[6],      
+   $line->[7],      
+   $priority,
+   $line->[9],
+   $html->button("$_SHOW", "index=". ($index-2) . "&chg=$line->[0]&UID=$line->[11]&DIAPTACH_ID="),
+   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&msg_del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?" }): '') 
+  );
+}
+ 
+    print $table->show();
+ 
+    msgs_dispatch_admins();
+   }
+  
+  
+  if (! defined($FORM{STATE}) && ! $FORM{ALL_MSGS}) {
+     $FORM{STATE}=0;
+     $LIST_PARAMS{STATE}=0;
+   }
+
+  my $list = $Msgs->dispatch_list({ %LIST_PARAMS });
+  
+  
+my $i = 0;
+$pages_qs='';
+
+
+
+
+my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs") : $html->b($_ALL);
+
+
+
+foreach my $name ( @msg_status) {
+	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
+    $LIST_PARAMS{STATE}=$FORM{STATE};
+    $status_bar .= ' :: '. $html->b($name);
+	 }
+	else {
+	  $status_bar .= ' :: ' .$html->button("$name", "index=$index&STATE=$i$pages_qs");
+	 }
+
+  $i++;
+}
+  
+  
+  my $table = $html->table( { width      => '100%',
+                              caption    => "$_DISPATCH",
+                              title      => ['#', "$_COMMENTS", $_EXECUTION, "$_CREATED", "$_MESSAGES", "-", "-", "-"],
+                              cols_align => ['left', 'left', 'right', 'center:noprint', 'center:noprint'],
+                              qs         => $pages_qs,
+                              ID         => 'MSGS_DISPATCH',
+                              header     => $status_bar
+                           });
+
+
+foreach my $line (@$list) {
+  $table->addrow(
+    $line->[0], 
+    $line->[1], 
+    $line->[2], 
+    $line->[3],
+    $line->[4],
+    $html->button($_PRINT, "#", 
+      { NEW_WINDOW      => "$SELF_URL?qindex=$index&print=$line->[0]",
+      	NEW_WINDOW_SIZE => "640:600",
+      	 }),
+    $html->button("$_CHANGE", "index=$index&chg=$line->[0]"),
+    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
+   );
+}
+
+print $table->show();
+	
+}
+
 
 
 #*******************************************************************

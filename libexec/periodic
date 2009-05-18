@@ -156,7 +156,6 @@ my($Y, $M, $D);
        print "Wrong date format. Format: YYYY-MM-DD\n";
        exit;
       }
-     ($Y, $M, $D)=split(/-/, $args->{DATE}, 3);
      $YESTERDAY = (strftime '%Y-%m-%d', localtime(POSIX::mktime( 0, 10, 1, $D, ($M-1), ($Y-1900)) - 86400));
 
      #$YESTERDAY=$args->{DATE};
@@ -502,8 +501,10 @@ sub logrotate {
      $DEBUG .= $cmd."\n" if ($args->{DEBUG} && $args->{DEBUG} > 3);
      my $r = `$cmd`;
    }
-	
-	
+
+#Bruteforce clear
+  $users->bruteforce_del({ DATE => $DATE });
+	$DEBUG .= "Brute force log cleaned\n" if ( $args->{DEBUG} > 1);
 }
 
 

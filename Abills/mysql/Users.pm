@@ -1101,7 +1101,7 @@ sub change {
  
   
  
- 
+  $admin->{MODULE}='';
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users',
 		                FIELDS       => \%FIELDS,
@@ -1262,9 +1262,14 @@ sub bruteforce_list {
 sub bruteforce_del {
   my $self = shift;	
 	my ($attr) = @_;
+
+  my $WHERE = "login='$attr->{LOGIN}'";
+  if ($attr->{DATE}) {
+  	$WHERE = "datetime < $attr->{DATE}";
+   }
 	
   $self->query($db,  "DELETE FROM users_bruteforce
-	 WHERE login='$attr->{LOGIN}';", 'do');
+	 WHERE $WHERE;", 'do');
 
 	return $self;
 }

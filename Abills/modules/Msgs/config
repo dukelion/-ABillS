@@ -24,6 +24,7 @@ elsif(defined($admin->{AID})) {
   $FUNCTIONS_LIST{"10:0:$_MESSAGES $count:msgs_admin:"}=6;
   $FUNCTIONS_LIST{"12:10:$_ADD:msgs_admin_add:"}=6;
   $FUNCTIONS_LIST{"12:10:$_SHEDULE:msgs_shedule:"}=6;
+  $FUNCTIONS_LIST{"12:10:$_DISPATCH:msgs_dispatch:"}=6;
  }   
 
 #%QUICK_SHOW=();

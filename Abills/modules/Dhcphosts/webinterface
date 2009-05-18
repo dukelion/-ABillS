@@ -17,8 +17,18 @@ my $Nas = Nas->new($db, \%conf);
 # 
 #*******************************************************************
 sub dhcphosts_periodic {
-	
-	
+ my ($attr) = @_;
+
+ my $debug = $attr->{DEBUG} || 0;
+ my $debug_output = '';
+ $debug_output .= "Dhcphosts: Dhcp reconfigure\n" if ($debug > 1);
+ 
+  dhcphosts_config({ NETWORKS => '-', 
+                     reconfig => 1 
+	                  });
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
 }
 
 #*******************************************************************
@@ -1016,10 +1026,15 @@ if ($attr->{reconfig} || $FORM{reconfig} ) {
                             { OUTPUT2RETURN => 1 }
                            );	 
 
-	open(FILE, ">$conf{DHCPHOSTS_CONFIG}") || print "Can't open file '$conf{DHCPHOSTS_CONFIG}' $!";
+	if(open(FILE, ">$conf{DHCPHOSTS_CONFIG}")) {
 	  print FILE $tpl;
-  close(FILE);
-  
+    close(FILE);
+   }
+  else {
+  	print "Can't open file '$conf{DHCPHOSTS_CONFIG}' $!";
+  	return 0;
+   }
+
   dhcphosts_reconfigure({ DEBUG => $FORM{DEBUG} });
   
   $html->message('info', $_INFO, "DHCP $_RECONFIGURE '$conf{DHCPHOSTS_CONFIG}'") if (! $attr->{SILENT});

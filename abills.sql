@@ -512,6 +512,23 @@ CREATE TABLE `msgs_chapters` (
   UNIQUE KEY `name` (`name`)
 ) COMMENT='Msgs chapters';
 
+CREATE TABLE `msgs_dispatch` (
+  `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `created` DATETIME NOT NULL,
+  `plan_date` DATE NOT NULL,
+  `comments` TEXT COLLATE latin1_swedish_ci NOT NULL,
+  `status` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+  `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `resposible` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `plan_date` (`plan_date`, `status`)
+) COMMENT='Msgs dispatches';
+
+CREATE TABLE `msgs_dispatch_admins` (
+  `dispatch_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0'
+) COMMENT='Msgs Dispatch admins';
+
 
 CREATE TABLE `msgs_messages` (
   `id` int(11) unsigned NOT NULL auto_increment,
@@ -537,6 +554,7 @@ CREATE TABLE `msgs_messages` (
   `resposible` smallint(6) unsigned NOT NULL default '0',
   `inner_msg` tinyint(1) unsigned NOT NULL default '0',
   `phone` VARCHAR(16) NOT NULL DEFAULT '',
+  `dispatch_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   KEY `uid` (`uid`)
 ) COMMENT='Msgs Messages';

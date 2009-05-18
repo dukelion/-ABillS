@@ -424,8 +424,8 @@ sub form_select {
      }
    }
   elsif (defined($attr->{SEL_MULTI_ARRAY})){
-    my $key   = $attr->{MULTI_ARRAY_KEY};
-    my $value = $attr->{MULTI_ARRAY_VALUE};
+    my $key   = $attr->{MULTI_ARRAY_KEY} || 0;
+    my $value = $attr->{MULTI_ARRAY_VALUE} || 1;
 	  my $H = $attr->{SEL_MULTI_ARRAY};
 
 	  foreach my $v (@$H) {
@@ -1325,11 +1325,21 @@ sub button {
   
   $ex_attr=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
   
-  $ex_attr .= " onclick=\"window.open('$attr->{NEW_WINDOW}', null,
+  if ( $attr->{NEW_WINDOW} ) {
+    my $x = 640;
+    my $y = 480;
+
+    if ($attr->{NEW_WINDOW_SIZE}) {
+    	($x, $y)=split(/:/, $attr->{NEW_WINDOW_SIZE});
+     }
+   
+    $ex_attr .= " onclick=\"window.open('$attr->{NEW_WINDOW}', null,
             'toolbar=0,location=0,directories=0,status=1,menubar=0,'+
             'scrollbars=1,resizable=1,'+
-            'width=640, height=480');\"" if ( $attr->{NEW_WINDOW} );
+            'width=$x, height=$y');\"";
 
+    $params = '#';
+   }
   
   my $message = '';
   

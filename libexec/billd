@@ -153,11 +153,31 @@ sub check_lines {
                              'ACCT_SESSION_TIME',
                              'DURATION_SEC',
                              'DEPOSIT',
-                             'CREDIT' ]
+                             'CREDIT',
+                             'TP_ID' ]
 		                   } );	
 	
   print "==> check_lines\n" if ($debug > 1);
+
+  #Get TP Credits
+  
+  require Tariffs;
+  Tariffs->import();
+  my $Tariffs = Tariffs->new($db, $admin);
+  
+  my $list = $Tariffs->list();
+  my %TP_CREDITS = ();
+
+  foreach my $line (@$list) {
+  	$TP_CREDITS{$line->[0]}=$line->[15];
+   }
+
+
+  
+
+
 	$LIST_PARAMS{NAS_IDS}=$ARGV->{NAS_IDS} if ($ARGV->{NAS_IDS});
+
 	my $online = $sessions->{nas_sorted};
   my $nas_list = $nas->list({ %LIST_PARAMS });
   my %NAS  = ();
@@ -176,10 +196,10 @@ sub check_lines {
     my $l = $online->{$nas_row->[0]};
     print "NAS IP: $nas_row->[3]\n NAS_TYPE: $nas_row->[4]\n STATUS: $nas_row->[6]\n Alive: $nas_row->[8]/\n " if ($debug > 0);
 
-    $NAS{NAS_ID}    = $nas_row->[0];
-    $NAS{NAS_IP}    = $nas_row->[3];
-    $NAS{NAS_TYPE}  = $nas_row->[4];
-    $NAS{NAS_ALIVE} = $nas_row->[8] || 0;
+    $NAS{NAS_ID}           = $nas_row->[0];
+    $NAS{NAS_IP}           = $nas_row->[3];
+    $NAS{NAS_TYPE}         = $nas_row->[4];
+    $NAS{NAS_ALIVE}        = $nas_row->[8] || 0;
     $NAS{NAS_MNG_IP_PORT}  = $nas_row->[9];
     $NAS{NAS_MNG_USER}     = $nas_row->[10]; 
     $NAS{NAS_MNG_PASSWORD} = $nas_row->[11]; 
@@ -202,7 +222,7 @@ sub check_lines {
       my $acct_session_time       = $line->[13];
       my $duration_sec            = $line->[14];
       my $deposit                 = $line->[15];
-      my $credit                  = $line->[16];
+      my $credit                  = ($line->[16] > 0) ? $line->[16] : $TP_CREDITS{$line->[17]}; 
 
 
       #hangup connaction if max ext traffic reached
@@ -326,9 +346,9 @@ sub check_lines {
          $self->{TARIF_PLAN}, 
          $self->{TIME_TARIF}, 
          $self->{TRAF_TARIF}) = $Billing->session_sum("$RAD{USER_NAME}", 
-                                                    $RAD{SESSION_START}, 
-                                                    $RAD{ACCT_SESSION_TIME}, 
-                                                    \%RAD);
+                                                       $RAD{SESSION_START}, 
+                                                       $RAD{ACCT_SESSION_TIME}, 
+                                                       \%RAD);
 
         next if ($self->{UID} < 1);
         

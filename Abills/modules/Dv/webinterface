@@ -65,7 +65,7 @@ if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
           $Y++;
          }
         $D='01';
-        $M = sprintf("%02.d", $M);
+        $M = sprintf("%02d", $M);
         $Dv->{ABON_DATE} = "$Y-$M-$D";
        }
  }
@@ -447,7 +447,7 @@ sub dv_user {
           $Y++;
          }
         $D='01';
-        $M = sprintf("%02.d", $M);
+        $M = sprintf("%02d", $M);
         $Dv->{ABON_DATE} = "$Y-$M-$D";
        }
       }
@@ -2765,7 +2765,7 @@ if ($FORM{set}) {
          $M = 1;
          $Y++;
        }
-     $M = sprintf("%02.d", $M);
+     $M = sprintf("%02d", $M);
     
      my $seltime = POSIX::mktime(0, 0, 0, $D, $M, ($Y - 1900));
 
@@ -2807,8 +2807,8 @@ if ($FORM{set}) {
     $shedule->add( {UID     => $LIST_PARAMS{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
-    	             D        => sprintf("%02.d", $FORM{date_D}),
-                   M        => sprintf("%02.d", $FORM{date_M}),
+    	             D        => sprintf("%02d", $FORM{date_D}),
+                   M        => sprintf("%02d", $FORM{date_M}),
                    Y        => $FORM{date_Y},
                    DESCRIBE => "$message<br>
                    $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
@@ -2850,7 +2850,7 @@ if ($FORM{set}) {
           $Y++;
          }
         $D='01';
-        $M = sprintf("%02.d", $M);
+        $M = sprintf("%02d", $M);
         $Dv->{ABON_DATE} = "$Y-$M-$D";
        }
     }
@@ -3279,7 +3279,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
         $Y++;
        }
       $D='01';
-      $M = sprintf("%02.d", $M);
+      $M = sprintf("%02d", $M);
       $Dv->{ABON_DATE} = "$Y-$M-$D";
      }
   }
@@ -3517,7 +3517,7 @@ sub dv_monthly_fees {
    $y--;
   }
 
- $m = sprintf("%02.d", $m);
+ $m = sprintf("%02d", $m);
  my $days_in_pre_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
  my $pre_month_begin = "$y-$m-01";

@@ -1,4 +1,27 @@
 =====0.42=====
+18.05.2009\\
+ДОбавлена функция формирования нарядов на выполнения для ремонтных работ.
+MySQL:
+  ALTER TABLE msgs_messages ADD COLUMN `dispatch_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
+  
+  CREATE TABLE `msgs_dispatch` (
+    `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `created` DATETIME NOT NULL,
+    `plan_date` DATE NOT NULL,
+    `comments` TEXT COLLATE latin1_swedish_ci NOT NULL,
+    `status` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+    `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+    `resposible` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`),
+    KEY `plan_date` (`plan_date`, `status`)
+  ) COMMENT='Msgs dispatches';
+  
+  CREATE TABLE `msgs_dispatch_admins` (
+    `dispatch_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+    `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0'
+  ) COMMENT='Msgs Dispatch admins';
+
+
 14.05.2009\\
   * Добавлены отчёты по классам трафика для модуля IPN.
   * Добавлен поле регистрации телефонов звонящих с службу поддержки.

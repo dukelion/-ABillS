@@ -391,3 +391,4 @@ $_BALANCE_RECHARCHE='Balance recharge';
 $_PRICE='Price';
 $_COMPENSATION='Compensation';
 $_TV='Television';
+$_DISPATCH='Dispatch';
