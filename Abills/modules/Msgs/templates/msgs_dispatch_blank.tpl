@@ -25,4 +25,13 @@
 <tr><td>Наряд составил:</td><td>%ADMIN_FIO%</td></tr>
 <tr><td>Наряд получил:</td><td>%RESPOSIBLE_FIO%</td></tr>
 <tr><td>Наряд принял:</td><td>%RESPOSIBLE_FIO%</td></tr>
+
+
 </table>
+
+<div class='noprint' align=center>
+<p>
+<a href=\"javascript:window.print();\" class=linkm1><b>$_PRINT</b></a> :: 
+<a href=\"javascript:window.close();\" class=linkm1><b>$_CLOSE</b></a>
+</p>
+</div>

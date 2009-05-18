@@ -3287,7 +3287,10 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   
   #Activate Cisco ISG Account
   if ($conf{DV_ISG}) {
-    if ($Dv->{CID} ne $Dv->{ISG_CID_CUR} || $Dv->{CID} eq '') {
+    if ($user->{DISABLE}) {
+    	$html->message('err', $_ERROR, "$_USER  $_DISABLE", { ID => 16 });
+     }
+    elsif ($Dv->{CID} ne $Dv->{ISG_CID_CUR} || $Dv->{CID} eq '') {
       $html->message('info', $_INFO, "$_NOT_ACTIVE CID: $Dv->{ISG_CID_CUR} IP: $user->{REMOTE_ADDR} ");
       $html->form_main({ CONTENT => '',
   	                     HIDDEN  => { index => "$index",

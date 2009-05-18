@@ -1867,12 +1867,12 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 voip_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
-  $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
-  $FORM{fromm}++;
-  $FORM{tom}++;
-  $FORM{fromm} = sprintf("%.2d", $FORM{fromm}++);
-  $FORM{tom} = sprintf("%.2d", $FORM{tom}++);
-  $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
+  $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromm=$FORM{fromM}&fromy=$FORM{fromY}&tod=$FORM{toD}&tom=$FORM{toM}&toy=$FORM{toY}";
+  $FORM{fromM}++;
+  $FORM{toM}++;
+  $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
+  $FORM{toM} = sprintf("%.2d", $FORM{toM}++);
+  $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
  }
 elsif (defined($FORM{period})) {
 	$LIST_PARAMS{PERIOD} = int($FORM{period}); 
@@ -1943,6 +1943,7 @@ if ($sessions->{errno})	 {
 
 
 if ($FORM{rows}) {
+
   $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
   $conf{list_max_recs}=$FORM{rows};
   $pages_qs .= "&rows=$conf{list_max_recs}";
@@ -1989,12 +1990,12 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 voip_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
-  $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
-  $FORM{fromm}++;
-  $FORM{tom}++;
-  $FORM{fromm} = sprintf("%.2d", $FORM{fromm}++);
-  $FORM{tom} = sprintf("%.2d", $FORM{tom}++);
-  $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
+  $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromm=$FORM{fromM}&fromy=$FORM{fromY}&tod=$FORM{toD}&tom=$FORM{toM}&toy=$FORM{toY}";
+  $FORM{fromM}++;
+  $FORM{toM}++;
+  $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
+  $FORM{toM} = sprintf("%.2d", $FORM{toM}++);
+  $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
  }
 elsif (defined($FORM{period})) {
 	$LIST_PARAMS{PERIOD} = int($FORM{period}); 

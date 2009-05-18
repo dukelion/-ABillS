@@ -283,6 +283,7 @@ $_PAYMENT_METHOD='Payment Method';
 $_TEST='Test';
 $_ZAPED='Zapped';
 $_CLOSED='Closed';
+$_CLOSE='Close';
 $_USED='Used';
 $_MAX_SESSION_DURATION='Max. session time';
 $_START='Start';
