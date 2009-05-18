@@ -517,11 +517,11 @@ CREATE TABLE `msgs_dispatch` (
   `created` DATETIME NOT NULL,
   `plan_date` DATE NOT NULL,
   `comments` TEXT COLLATE latin1_swedish_ci NOT NULL,
-  `status` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+  `state` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
   `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   `resposible` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `plan_date` (`plan_date`, `status`)
+  KEY `plan_date` (`plan_date`, `state`)
 ) COMMENT='Msgs dispatches';
 
 CREATE TABLE `msgs_dispatch_admins` (
