@@ -518,6 +518,7 @@ CREATE TABLE `msgs_dispatch` (
   `plan_date` DATE NOT NULL,
   `comments` TEXT COLLATE latin1_swedish_ci NOT NULL,
   `state` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+  `closed_date` DATE NOT NULL,
   `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   `resposible` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
