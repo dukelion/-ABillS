@@ -286,6 +286,19 @@ sub access_deny {
 
   $log_print->('LOG_WARNING', $user_name, "$message", { NAS => $nas});
 
+  #External script for error connections
+  if ($conf{AUTH_ERROR_CMD}) {
+  	 my @cmds = split(/;/, $conf{AUTH_ERROR_CMD});
+  	 
+  	 foreach my $expr_cmd (@cmds) {
+  	 	 $RAD->{NAS_PORT}=0 if (! $RAD->{NAS_PORT});
+  	 	 my ($expr, $cmd)=split(/:/, $expr_cmd);
+  	 	 	  if ($message =~ /$expr/) {
+  	 	 	  	my $result = system("$cmd USER_NAME=$user_name NAS_PORT=$RAD->{NAS_PORT} NAS_IP=$nas->{NAS_IP} ERROR=$message");
+  	 	 	   }
+  	 	  }
+  	  }
+
   return 1;
 }
 

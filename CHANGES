@@ -1,4 +1,7 @@
 =====0.42=====
+19.ю05.2009\\
+  * Добавлен внешний обработчик соединений с ошибками. Опция $conf{AUTH_ERROR_CMD}.
+
 18.05.2009\\
 ДОбавлена функция формирования нарядов на выполнения для ремонтных работ.
 MySQL:
@@ -9,11 +12,12 @@ MySQL:
     `created` DATETIME NOT NULL,
     `plan_date` DATE NOT NULL,
     `comments` TEXT COLLATE latin1_swedish_ci NOT NULL,
-    `status` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+    `state` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+    `closed_date` DATE NOT NULL,
     `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
     `resposible` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
-    KEY `plan_date` (`plan_date`, `status`)
+    KEY `plan_date` (`plan_date`, `state`)
   ) COMMENT='Msgs dispatches';
   
   CREATE TABLE `msgs_dispatch_admins` (
