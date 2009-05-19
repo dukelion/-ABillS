@@ -481,7 +481,7 @@ sub dv_user {
     my $list  = $Dv->list({ JOIN_SERVICE => 1, 
                             COMPANY_ID   => $attr->{USER}->{COMPANY_ID}   
                          });
-
+    
     $Dv->{JOIN_SERVICES_SEL}= $html->form_select('JOIN_SERVICE', 
                                           { 
  	                                          SELECTED          => $Dv->{JOIN_SERVICE},

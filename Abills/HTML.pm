@@ -424,16 +424,31 @@ sub form_select {
      }
    }
   elsif (defined($attr->{SEL_MULTI_ARRAY})){
-    my $key   = $attr->{MULTI_ARRAY_KEY} || 0;
-    my $value = $attr->{MULTI_ARRAY_VALUE} || 1;
+    my $key   = $attr->{MULTI_ARRAY_KEY};
+    my $value = $attr->{MULTI_ARRAY_VALUE};
+    
 	  my $H = $attr->{SEL_MULTI_ARRAY};
 
 	  foreach my $v (@$H) {
       $self->{SELECT} .= "<option value='$v->[$key]'";
       $self->{SELECT} .= ' selected' if (defined($attr->{SELECTED}) && $v->[$key] eq $attr->{SELECTED});
       $self->{SELECT} .= '>';
+      #Value
       $self->{SELECT} .= "$v->[$key]:" if (! $attr->{NO_ID});
-      $self->{SELECT} .= "$v->[$value]\n";
+
+      if ($value =~ /,/) {
+      	my @values = split(/,/, $value);
+      	foreach my $val_keys (@values) {
+      	  $self->{SELECT} .= $v->[int($val_keys)]."; ";	
+      	 }
+       }
+      else {
+        $self->{SELECT} .= "$v->[$value]";
+       }
+     
+      $self->{SELECT} .= "\n";
+
+
      }
    }
   elsif (defined($attr->{SEL_HASH})) {
