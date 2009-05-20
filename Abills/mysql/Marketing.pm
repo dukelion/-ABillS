@@ -228,4 +228,92 @@ sub internet_fees_monitor {
 
 
 
+
+
+#**********************************************************
+# report1()
+#**********************************************************
+sub increase_report {
+ my $self = shift;
+ my ($attr) = @_;
+ my @list = ();
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
+ $self->{SEARCH_FIELDS} = '';
+ $self->{SEARCH_FIELDS_COUNT}=0;
+
+ @WHERE_RULES = ();
+ 
+
+ my $date = 'DATE_FORMAT(datetime, \'%Y-%m\')'; 
+
+ if ($attr->{PERIOD}) {
+ 	 $date = "DATE_FORMAT(datetime, \'%Y-%m-%d\')";
+  }
+
+ if ($attr->{MODULE}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{MODULE}, 'INT', 'aa.module') };
+  }
+ else {
+ 	 push @WHERE_RULES, 'aa.module=\'\'';
+  }
+ 
+ if ($attr->{MONTH}) {
+ 	 push @WHERE_RULES, "date_format(aa.datetime, '%Y-%m')='$attr->{MONTH}'";
+ 	 $date = "DATE_FORMAT(datetime, \'%Y-%m-%d\')";
+  }
+ elsif ($attr->{INTERVAL}) {
+   my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
+   push @WHERE_RULES, "date_format(aa.datetime, '%Y-%m-%d')>='$from' and date_format(aa.datetime, '%Y-%m-%d')<='$to'";
+  }
+
+ my $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
+
+
+ $self->query($db, "select $date,
+  sum(if(action_type = 1, 1, 0)),
+  sum(if(action_type = 9, 1, 0)),
+  sum(if(action_type = 10, 1, 0))
+  
+  FROM admin_actions aa
+  $WHERE 
+  GROUP BY 1
+     ORDER BY $SORT $DESC 
+     LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(distinct $date) FROM admin_actions aa
+    $WHERE;");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+
+
+
+  return $list;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 1

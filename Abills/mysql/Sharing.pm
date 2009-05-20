@@ -39,7 +39,7 @@ sub new {
   $admin->{MODULE}=$MODULE;
   
   if ($CONF->{DELETE_USER}) {
-    $self->del($CONF->{DELETE_USER}, '', '', '', { DELETE_USER => $CONF->{DELETE_USER} });
+    $self->del({ UID => $CONF->{DELETE_USER}, DELETE_USER => $CONF->{DELETE_USER} });
    }
  
   return $self;
@@ -1272,9 +1272,9 @@ sub del {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "DELETE from sharing_main WHERE uid='$self->{UID}';", 'do');
+  $self->query($db, "DELETE from sharing_main WHERE uid='$attr->{UID}';", 'do');
 
-  $admin->action_add($uid, "DELETE");
+  $admin->action_add($attr->{UID}, "$attr->{UID}", { TYPE => 10 });
   return $self->{result};
 }
 

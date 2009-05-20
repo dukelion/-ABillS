@@ -224,7 +224,7 @@ sub user_del {
   my ($attr) = @_;
 
   $self->query($db, "DELETE from voip_main WHERE uid='$self->{UID}';", 'do');
-  $admin->action_add($self->{UID}, "DELETE $self->{UID}");
+  $admin->action_add($self->{UID}, "$self->{UID}", { TYPE => 10 });
 
   return $self->{result};
 }

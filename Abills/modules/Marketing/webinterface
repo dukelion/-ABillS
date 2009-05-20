@@ -14,6 +14,100 @@ my $tariffs   = Tariffs->new($db, \%conf, $admin);
 my %FORM_BASE = ();
 my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
 
+
+
+#*******************************************************************
+# 
+# marketing_report1()
+#*******************************************************************
+sub marketing_increase {
+
+ my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" ); 
+
+ $table = $html->table( { width       => '100%',
+	                        rowcolor    => $_COLORS[0],
+                          rows        => [[ "$_FROM: ",  $html->date_fld('FROM_', { MONTHES => \@MONTHES} ),
+                                            "$_TO: ",  $html->date_fld('TO_', { MONTHES => \@MONTHES} ),
+#                                            "$_ACTIONS: ". $html->form_select('STATUS', 
+#                                          { 
+# 	                                          SELECTED     => $FORM{STATUS},
+# 	                                          SEL_HASH     => { '' => '',
+# 	                                          	                0  => $_REGISTRATION,
+# 	                                          	                1  => $_DISABLE,
+# 	                                          	                2  => $service_status[2]  
+# 	                                          	                },
+#                                            NO_ID       => 1
+# 	                                        }),
+                                         "$_MODULES: " . $html->form_select('MODULE', 
+                                { SELECTED      => $FORM{MODULE},
+ 	                                SEL_ARRAY     => ['', @MODULES],
+ 	                                OUTPUT2RETURN => 1
+ 	                               }),
+                            "$_PERIOD: ". $html->form_select('PERIOD', 
+                                { SELECTED      => $FORM{PERIOD},
+ 	                                SEL_ARRAY     => ["$_MONTH", "$_DAY"],
+ 	                                ARRAY_NUM_ID  => 1,
+ 	                                OUTPUT2RETURN => 1
+ 	                               }),
+
+                                      
+                                           "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' })
+                                         ]],                                   
+                      });
+
+
+  if ($FORM{show}) {
+    $pages_qs = "&show=1&FROM_D=$FORM{FROM_D}&FROM_M=$FORM{FROM_M}&FROM_Y=$FORM{FROM_Y}&TO_D=$FORM{TO_D}&TO_M=$FORM{TO_M}&TO_Y=$FORM{TO_Y}&PERIOD=$FORM{PERIOD}";
+    $FORM{FROM_M}++;
+    $FORM{TO_M}++;
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}/$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
+   }
+  elsif ($FORM{MONTH}) {
+  	$LIST_PARAMS{MONTH}=$FORM{MONTH};
+   }
+
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { sid   => "$sid",
+	                                    index => "$index",
+	                                    UID   => "$UID" }});
+
+ $pages_qs.="&TP_ID=$FORM{TP_ID}"  if ($FORM{TP_ID});
+ $pages_qs.="&STATUS=$FORM{STATUS}"  if (defined($FORM{STATUS}));
+
+
+ my @caption = ("$_DATE", "$_REGISTRATION", "$_DISABLE",   "$_DELETED");
+
+ my $list = $Marketing->increase_report({ %LIST_PARAMS, %FORM });
+ my $table = $html->table( { width      => '100%',
+                             caption    => "INCREASE",
+                             title      => [ @caption ],
+                             ID         => 'REPORT 1',
+                             pages      => $Marketing->{TOTAL},
+                             qs         => $pages_qs,
+                           });
+
+    foreach my $line ( @$list ) {
+    	$table->addrow(
+    	 ($FORM{MONTH}) ? $html->button($line->[0], "index=$index&DATE=$line->[0]") : $html->button($line->[0], "index=$index&MONTH=$line->[0]"),
+    	 $line->[1],
+    	 $line->[2],
+    	 $line->[3],
+    	 );
+     }
+
+   print $table->show();
+  
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL})
+                                           ] ]
+                     } );
+print $table->show();
+
+}
+
 #*******************************************************************
 # 
 # marketing_report1()

@@ -102,11 +102,12 @@ sub mbox_del {
       WHERE uid='$CONF->{DELETE_USER}';", 'do');
    }
   else {
-	 $self->query($db, "DELETE FROM mail_boxes 
-     WHERE id='$id' and uid='$attr->{UID}';", 'do');
+	  $self->query($db, "DELETE FROM mail_boxes 
+      WHERE id='$id' and uid='$attr->{UID}';", 'do');
 	 }
 
-	$admin->action_add("$attr->{UID}", "DELETE mailbox_id: $id");
+
+  $admin->action_add($attr->{UID}, "$attr->{UID}", { TYPE => 10 });
 	return $self;
 }
 

@@ -50,7 +50,8 @@ sub new {
   ($db, $CONF) = @_;
   my $self = { };
   bless($self, $class);
-
+  $admin->{MODULE}='Ipn';
+ 
   if (! defined($CONF->{KBYTE_SIZE})){
   	$CONF->{KBYTE_SIZE}=1024;
    }
@@ -77,7 +78,7 @@ sub user_del {
  
   $self->query($db, "DELETE FROM ipn_log WHERE uid='$attr->{UID}';", 'do');
 
-  $admin->action_add($attr->{UID}, "DELETE");
+  $admin->action_add($attr->{UID}, "$attr->{UID}", { TYPE => 10 });
   return $self;   
 }
 

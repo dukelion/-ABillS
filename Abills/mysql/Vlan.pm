@@ -193,7 +193,7 @@ sub del {
 
   $self->query($db, "DELETE from vlan_main WHERE uid='$self->{UID}';", 'do');
 
-  $admin->action_add($uid, "DELETE");
+  $admin->action_add($self->{UID}, "$self->{UID}", { TYPE => 10 });
   return $self->{result};
 }
 

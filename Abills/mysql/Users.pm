@@ -1139,7 +1139,7 @@ sub del {
      $self->{info} .= "$table, ";
     }
 
-  $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}");
+  $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}", {  TYPE => 10 });
   return $self->{result};
 }
 

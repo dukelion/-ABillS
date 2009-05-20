@@ -30,15 +30,40 @@ my $uid;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
-  
-  $admin->{MODULE}=$MODULE;
+
   my $self = { };
   bless($self, $class);
+  
+  $admin->{MODULE}=$MODULE;
+  
+  if ($CONF->{DELETE_USER}) {
+    $self->{UID}=$CONF->{DELETE_USER};
+    $self->del({ UID => $CONF->{DELETE_USER} });
+   }
+
+  
+  
   
   return $self;
 }
 
 
+
+
+#**********************************************************
+# Delete user info from all tables
+#
+# del(attr);
+#**********************************************************
+sub del {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "DELETE from dv_main WHERE uid='$self->{UID}';", 'do');
+
+  $admin->action_add($self->{UID}, "$self->{UID}", { TYPE => 10 });
+  return $self->{result};
+}
 
 
 #**********************************************************

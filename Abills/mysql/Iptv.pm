@@ -311,7 +311,7 @@ sub user_del {
 
   $self->query($db, "DELETE from iptv_main WHERE uid='$self->{UID}';", 'do');
 
-  $admin->action_add($self->{UID}, "DELETE");
+  $admin->action_add($self->{UID}, "$self->{UID}", { TYPE => 10 });
   return $self->{result};
 }
 
