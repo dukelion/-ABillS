@@ -222,7 +222,7 @@ sub check_lines {
       my $acct_session_time       = $line->[13];
       my $duration_sec            = $line->[14];
       my $deposit                 = $line->[15];
-      my $credit                  = ($line->[16] > 0) ? $line->[16] : $TP_CREDITS{$line->[17]}; 
+      my $credit                  = ($line->[16] > 0) ? $line->[16] : (( $line->[17] ) ? $TP_CREDITS{$line->[17]} : 0 ); 
 
 
       #hangup connaction if max ext traffic reached
