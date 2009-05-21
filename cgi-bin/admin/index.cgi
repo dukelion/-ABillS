@@ -3752,7 +3752,7 @@ else{
 	        PERIOD     => $graph_type,
 	        DATA       => \%DATA_HASH,
 	        AVG        => \%AVG,
-	        TYPE       => ['area', 'area', 'area'],
+	        TYPE       => ['area', 'line', 'column' ],
 	        TRANSITION => 1,
           OUTPUT2RETURN => 1,
           %CHART 
@@ -3910,7 +3910,7 @@ else{
 	        PERIOD     => $graph_type,
 	        DATA       => \%DATA_HASH,
 	        AVG        => \%AVG,
-	        TYPE       => ['area', 'area', 'area'],
+	        TYPE       => ['area', 'line', 'column'],
 	        TRANSITION => 1,
           OUTPUT2RETURN => 1,
           %CHART 

@@ -138,7 +138,7 @@ print $table->show();
 	        PERIOD     => $graph_type,
 	        DATA       => \%DATA_HASH,
 	        #AVG        => \%AVG,
-	        TYPE       => ['area', 'area', 'area'],
+	        TYPE       => ['area', 'column', 'line' ],
 	        TRANSITION => 1,
           OUTPUT2RETURN => 1,
           %CHART 
