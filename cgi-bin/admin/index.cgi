@@ -3728,7 +3728,7 @@ else{
     $DATA_HASH{SUM}[$num]    = $line->[3];
       
     $AVG{USERS}   = $line->[1] if ($AVG{USERS} < $line->[1]);
-    $AVG{TOTAL}   = $line->[2] if ($AVG{TOTALS} < $line->[2]);
+    $AVG{TOTALS}   = $line->[2] if ($AVG{TOTALS} < $line->[2]);
     $AVG{SUM}     = $line->[3] if ($AVG{SUM} < $line->[3]);
    }
 
@@ -3883,7 +3883,7 @@ else{
       $DATA_HASH{SUM}[$num]    = $line->[3];
       
       $AVG{USERS}   = $line->[1] if ($AVG{USERS} < $line->[1]);
-      $AVG{TOTAL}   = $line->[2] if ($AVG{TOTALS} < $line->[2]);
+      $AVG{TOTALS}   = $line->[2] if ($AVG{TOTALS} < $line->[2]);
       $AVG{SUM}     = $line->[3] if ($AVG{SUM} < $line->[3]);
 
 

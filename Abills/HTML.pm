@@ -1783,8 +1783,9 @@ sub make_charts {
   .$ex_params
 
 	.'<series_color>
-		<value>ff8800</value>
-		<value>00FF00</value>
+	  <color>C0C0C0</color>
+		<color>FF8844</color>
+		<color>7e6cee</color>
 	 </series_color>
 
   	<chart_grid_h alpha="10" color="0066FF" thickness="1"  />
