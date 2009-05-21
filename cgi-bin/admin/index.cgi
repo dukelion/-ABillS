@@ -3646,8 +3646,15 @@ sub report_fees {
   use Finance;
   my $fees = Finance->fees($db, $admin, \%conf);
 
+  my $graph_type= 'month_stats';
+  my %DATA_HASH = ();
+  my %AVG       = ();
+  my %CHART     = ();
+  my $num       = 0;
+
 
 if (defined($FORM{DATE})) {
+	$graph_type='';
   $list = $fees->list( { %LIST_PARAMS } );
   $table_fees = $html->table( { width      => '100%',
   	                            caption    => "$_FEES", 
@@ -3667,6 +3674,10 @@ if (defined($FORM{DATE})) {
       "$line->[6]", 
       "$line->[7]");
     }
+
+
+
+
  }   
 else{ 
   #Fees###################################################
@@ -3702,7 +3713,25 @@ else{
     $line->[1], 
     $line->[2], 
     $html->b($line->[3]) );
+
+    if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+      $num = $3;
+     }
+    elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+   	  $CHART{X_LINE}[$num]=$line->[0];
+   	  $CHART{X_TEXT}[$num]=$line->[0];
+   	  $num++;
+     }
+
+    $DATA_HASH{USERS}[$num]  = $line->[1];      
+    $DATA_HASH{TOTALS}[$num] = $line->[2];
+    $DATA_HASH{SUM}[$num]    = $line->[3];
+      
+    $AVG{USERS}   = $line->[1] if ($AVG{USERS} < $line->[1]);
+    $AVG{TOTAL}   = $line->[2] if ($AVG{TOTALS} < $line->[2]);
+    $AVG{SUM}     = $line->[3] if ($AVG{SUM} < $line->[3]);
    }
+
 
 
 }
@@ -3717,6 +3746,19 @@ else{
                            rowcolor   => $_COLORS[2]
                           });
   print $table->show();
+  
+  if ($graph_type ne '') {
+    print $html->make_charts({  
+	        PERIOD     => $graph_type,
+	        DATA       => \%DATA_HASH,
+	        AVG        => \%AVG,
+	        TYPE       => ['area', 'area', 'area'],
+	        TRANSITION => 1,
+          OUTPUT2RETURN => 1,
+          %CHART 
+       });
+   }
+
 }
 
 
@@ -3763,7 +3805,15 @@ sub report_payments {
   
   my $payments = Finance->payments($db, $admin, \%conf);
  
+  my $graph_type= 'month_stats';
+  my %DATA_HASH = ();
+  my %AVG       = ();
+  my %CHART     = ();
+  my $num       = 0;
+
+ 
 if (defined($FORM{DATE})) {
+	$graph_type = '';
   $list  = $payments->list( { %LIST_PARAMS } );
   $table = $html->table({ width      => '100%',
   	                      caption    => "$_PAYMENTS", 
@@ -3818,6 +3868,25 @@ else{
       $line->[1], 
       $line->[2], 
       $html->b($line->[3]) );
+
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+        $num = $3;
+       }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+   	    $CHART{X_LINE}[$num]=$line->[0];
+   	    $CHART{X_TEXT}[$num]=$line->[0];
+   	    $num++;
+       }
+
+      $DATA_HASH{USERS}[$num]  = $line->[1];      
+      $DATA_HASH{TOTALS}[$num] = $line->[2];
+      $DATA_HASH{SUM}[$num]    = $line->[3];
+      
+      $AVG{USERS}   = $line->[1] if ($AVG{USERS} < $line->[1]);
+      $AVG{TOTAL}   = $line->[2] if ($AVG{TOTALS} < $line->[2]);
+      $AVG{SUM}     = $line->[3] if ($AVG{SUM} < $line->[3]);
+
+
    }
 
 
@@ -3836,7 +3905,17 @@ else{
 
   print $table->show();
   
-  
+  if ($graph_type ne '') {
+    print $html->make_charts({  
+	        PERIOD     => $graph_type,
+	        DATA       => \%DATA_HASH,
+	        AVG        => \%AVG,
+	        TYPE       => ['area', 'area', 'area'],
+	        TRANSITION => 1,
+          OUTPUT2RETURN => 1,
+          %CHART 
+       });
+   }
   
   
   

@@ -24,7 +24,9 @@ sub dhcphosts_periodic {
  $debug_output .= "Dhcphosts: Dhcp reconfigure\n" if ($debug > 1);
  
   dhcphosts_config({ NETWORKS => '-', 
-                     reconfig => 1 
+                     reconfig => 1,
+                     QUITE    => 1,
+                     DEBUG    => $attr->{DEBUG}
 	                  });
 
   $DEBUG .= $debug_output;
@@ -389,6 +391,7 @@ sub leaseparse {
 # 
 #*******************************************************************
 sub dhcphosts_networks {
+  
  
   $Dhcphosts->{ACTION}='add';
   $Dhcphosts->{ACTION_LNG}=$_ADD;
@@ -1036,8 +1039,7 @@ if ($attr->{reconfig} || $FORM{reconfig} ) {
    }
 
   dhcphosts_reconfigure({ DEBUG => $FORM{DEBUG} });
-  
-  $html->message('info', $_INFO, "DHCP $_RECONFIGURE '$conf{DHCPHOSTS_CONFIG}'") if (! $attr->{SILENT});
+  $html->message('info', $_INFO, "DHCP $_RECONFIGURE '$conf{DHCPHOSTS_CONFIG}'") if (! $attr->{QUITE});
  }
 else {
   print "<textarea cols=90 rows=20>\n";

@@ -1753,6 +1753,7 @@ sub make_charts {
 	  $PATH =~ s/img//;
    }
 
+  $PATH .= 'charts';
 #  if (! -f $PATH. "charts.swf") {
 #     return 0;
 #   }
@@ -1772,14 +1773,14 @@ sub make_charts {
    }
 
  	my $AXIS_CATEGORY_skip = (defined($attr->{AXIS_CATEGORY_skip})) ? $attr->{AXIS_CATEGORY_skip} : 2 ;
-  my $CHART_RECT_width   = ($attr->{CHART_RECT_width}) ? $attr->{CHART_RECT_width} : 400 ;  
-  my $CHART_RECT_height  = ($attr->{CHART_RECT_height}) ? $attr->{CHART_RECT_height} : 200 ;  
-  my $CHART_RECT_x = ($attr->{CHART_RECT_x}) ? $attr->{CHART_RECT_x} : 30 ;  
-  my $CHART_RECT_y = ($attr->{CHART_RECT_y}) ? $attr->{CHART_RECT_y} : 50 ;  
+  my $CHART_RECT_width   = ($attr->{CHART_RECT_width}) ? $attr->{CHART_RECT_width} : 500 ;  
+  my $CHART_RECT_height  = ($attr->{CHART_RECT_height}) ? $attr->{CHART_RECT_height} : 280 ;  
+  my $CHART_RECT_x = ($attr->{CHART_RECT_x}) ? $attr->{CHART_RECT_x} : 50 ;  
+  my $CHART_RECT_y = ($attr->{CHART_RECT_y}) ? $attr->{CHART_RECT_y} : 70 ;  
   
   
-  my $data = '<chart>'.
-  $ex_params
+  my $data = '<chart>'
+  .$ex_params
 
 	.'<series_color>
 		<value>ff8800</value>
@@ -1807,30 +1808,31 @@ sub make_charts {
 
   $data .= "<chart_data>\n";
 
-  if ($attr->{PERIOD} eq 'month_stats') {
+
+  if ($attr->{X_TEXT}) {
     $data .= "<row>\n".   	
-    "<string></string>\n";
-    for(my $i=1; $i<=31; $i++) {
-    	 $data .= "<string>$i</string>\n";
-     }
-   $data .= "</row>\n";
-  }
-  elsif ($attr->{PERIOD} eq 'day_stats') {
-    $data .= "<row>\n".   	
-    "<string></string>\n";
-    for(my $i=0; $i<=23; $i++) {
-    	 $data .= "<string>$i</string>\n";
-     }
-   $data .= "</row>\n";
-  }
-  elsif ($attr->{X_TEXT}) {
-    $data .= "<row>\n".   	
-    "<string></string>\n";
+    "<null/>\n";
     foreach my $i (@{ $attr->{X_TEXT} }) {
     	 $data .= "<string>$i</string>\n";
      }
-   $data .= "</row>\n";
-  }
+    $data .= "</row>\n";
+   }
+  elsif ($attr->{PERIOD} eq 'month_stats') {
+    $data .= "<row>\n".   	
+    "<null/>\n";
+    for(my $i=1; $i<=31; $i++) {
+    	 $data .= "<string>$i</string>\n";
+     }
+    $data .= "</row>\n";
+   }
+  elsif ($attr->{PERIOD} eq 'day_stats') {
+    $data .= "<row>\n".   	
+    "<null/>\n";
+    for(my $i=0; $i<=23; $i++) {
+    	 $data .= "<string>$i</string>\n";
+     }
+    $data .= "</row>\n";
+   }
   
 
 
@@ -1847,7 +1849,7 @@ sub make_charts {
     shift @$value;
     foreach my $line (@$value) {
     	 $data .= "<number>";
-    	 $data .= ($midle > 0) ? $line * $midle : $line; 
+    	 $data .= ($midle > 0) ? $line * $midle : ( ($line eq '') ? 0 : $line); 
     	 $data .="</number>\n";
      }
    $data .= "</row>\n";
@@ -1898,7 +1900,7 @@ sub make_charts {
      	my $part = $attr->{AVG}{MONEY} / 4;
     	$data .= "<draw>\n";
    	  foreach(my $i=0; $i<=4; $i++) {
-     	   $data .= "<text size=\"9\" x=\"435\" y=\"". (242-$i*45) ."\" color=\"000000\">". int($i * $part) ."</text>\n";
+     	   $data .= "<text size=\"9\" x=\"552\" y=\"". (342-$i*69) ."\" color=\"000000\">". int($i * $part) ."</text>\n";
    	   }
    	  $data .= "</draw>\n";
     }
@@ -1920,29 +1922,67 @@ $data .= "</chart>\n";
  close(FILE);
  	
 
+$CHART_RECT_width += 80;
+$CHART_RECT_height += 90;
+my $output = qq { 
+	
+<!-- charts start -->
+<script language="javascript">AC_FL_RunContent = 0;</script>
+<script language="javascript">DetectFlashVer = 0; </script>
+<script src="$PATH/AC_RunActiveContent.js" language="javascript"></script>
+<script language="JavaScript" type="text/javascript">
+<!--
+var requiredMajorVersion = 9;
+var requiredMinorVersion = 0;
+var requiredRevision     = 45;
+-->
+</script>
 
-my $output = "
 <br>
-<OBJECT classid='clsid:D27CDB6E-AE6D-11cf-96B8-444553540000' 
-codebase='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0' 
-WIDTH=". ($CHART_RECT_width + 100). " 
-HEIGHT=". ($CHART_RECT_height + 100). "
-id='$file_xml' ALIGN=''>
-<PARAM NAME=movie VALUE='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&amp;php_source=". $file_xml .".xml'> 
-<PARAM NAME=quality VALUE=high> <PARAM NAME=bgcolor VALUE=#EEEEEE> 
-<EMBED src='". $PATH. "charts.swf?library_path=". $PATH. "charts_library&amp;php_source=". $file_xml .".xml' 
-quality=high 
-bgcolor='#EEEEEE' 
-WIDTH=". ($CHART_RECT_width + 100). "
-HEIGHT=". ($CHART_RECT_height + 100). "
-NAME='$file_xml' 
-ALIGN='' 
-swLiveConnect='true' 
-TYPE='application/x-shockwave-flash' 
-PLUGINSPAGE='http://www.macromedia.com/go/getflashplayer'>
-</EMBED></OBJECT>
-<br>
-";
+<script language="JavaScript" type="text/javascript">
+<!--
+if (AC_FL_RunContent == 0 || DetectFlashVer == 0) {
+	alert("This page requires AC_RunActiveContent.js.");
+} else {
+	var hasRightVersion = DetectFlashVer(requiredMajorVersion, requiredMinorVersion, requiredRevision);
+	if(hasRightVersion) { 
+		AC_FL_RunContent(
+			'codebase', 'http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,45,0',
+			'width', '$CHART_RECT_width',
+			'height', '$CHART_RECT_height',
+			'scale', 'noscale',
+			'salign', 'TL',
+			'bgcolor', '#EEEEEE',
+			'wmode', 'opaque',
+			'movie', 'charts',
+			'src', 'charts',
+			'FlashVars', 'library_path=$PATH/charts_library&xml_source=$file_xml.xml', 
+			'id', 'my_chart',
+			'name', 'my_chart',
+			'menu', 'true',
+			'allowFullScreen', 'true',
+			'allowScriptAccess','sameDomain',
+			'quality', 'high',
+			'align', 'middle',
+			'pluginspage', 'http://www.macromedia.com/go/getflashplayer',
+			'play', 'true',
+			'devicefont', 'false'
+			); 
+	} else { 
+		var alternateContent = 'This content requires the Adobe Flash Player. '
+		+ '<u><a href=http://www.macromedia.com/go/getflash/>Get Flash</a></u>.';
+		document.write(alternateContent); 
+	}
+}
+// -->
+</script>
+<noscript>
+	<P>This content requires JavaScript.</P>
+</noscript>
+<!-- charts end -->
+<br>	
+	};
+
 
 
 	if ($attr->{OUTPUT2RETURN}) {

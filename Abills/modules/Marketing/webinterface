@@ -20,7 +20,7 @@ my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
 # 
 # marketing_report1()
 #*******************************************************************
-sub marketing_increase {
+sub marketing_evolution {
 
  my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" ); 
 
@@ -56,7 +56,12 @@ sub marketing_increase {
                                          ]],                                   
                       });
 
-
+  my $graph_type= 'month_stats';
+  my %DATA_HASH = ();
+  my %AVG       = ();
+  my %CHART     = ();
+  my $num       = 0;
+  
   if ($FORM{show}) {
     $pages_qs = "&show=1&FROM_D=$FORM{FROM_D}&FROM_M=$FORM{FROM_M}&FROM_Y=$FORM{FROM_Y}&TO_D=$FORM{TO_D}&TO_M=$FORM{TO_M}&TO_Y=$FORM{TO_Y}&PERIOD=$FORM{PERIOD}";
     $FORM{FROM_M}++;
@@ -65,6 +70,7 @@ sub marketing_increase {
    }
   elsif ($FORM{MONTH}) {
   	$LIST_PARAMS{MONTH}=$FORM{MONTH};
+  	$graph_type='day_stats';
    }
 
 
@@ -73,20 +79,19 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                                    index => "$index",
 	                                    UID   => "$UID" }});
 
- $pages_qs.="&TP_ID=$FORM{TP_ID}"  if ($FORM{TP_ID});
- $pages_qs.="&STATUS=$FORM{STATUS}"  if (defined($FORM{STATUS}));
 
 
  my @caption = ("$_DATE", "$_REGISTRATION", "$_DISABLE",   "$_DELETED");
-
- my $list = $Marketing->increase_report({ %LIST_PARAMS, %FORM });
- my $table = $html->table( { width      => '100%',
+ 
+ my $list    = $Marketing->increase_report({ %LIST_PARAMS, %FORM });
+ my $table   = $html->table( { width      => '100%',
                              caption    => "INCREASE",
                              title      => [ @caption ],
-                             ID         => 'REPORT 1',
+                             ID         => 'REPORT_EVOLUTION',
                              pages      => $Marketing->{TOTAL},
                              qs         => $pages_qs,
                            });
+
 
     foreach my $line ( @$list ) {
     	$table->addrow(
@@ -95,9 +100,29 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
     	 $line->[2],
     	 $line->[3],
     	 );
+
+
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+      	 $num = $3;
+        }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+      	 $CHART{X_LINE}[$num]=$line->[0];
+      	 $CHART{X_TEXT}[$num]=$line->[0];
+       	 $num++;
+       }
+
+
+      $DATA_HASH{REGISTRATION}[$num]= $line->[1];      
+      $DATA_HASH{DISABLED}[$num]    = $line->[2];
+      $DATA_HASH{DELETED}[$num]     = $line->[3];
+      
+      $AVG{REGISTRATION}= $line->[1] if ($AVG{REGISTRATION} < $line->[1]);
+      $AVG{DISABLED}    = $line->[2] if ($AVG{DISABLED} < $line->[2]);
+      $AVG{DELETED}     = $line->[3] if ($AVG{DELETED} < $line->[3]);
+
      }
 
-   print $table->show();
+print $table->show();
   
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
@@ -105,6 +130,19 @@ $table = $html->table( { width      => '100%',
                                            ] ]
                      } );
 print $table->show();
+
+
+
+
+    print $html->make_charts({  
+	        PERIOD     => $graph_type,
+	        DATA       => \%DATA_HASH,
+	        #AVG        => \%AVG,
+	        TYPE       => ['area', 'area', 'area'],
+	        TRANSITION => 1,
+          OUTPUT2RETURN => 1,
+          %CHART 
+       });
 
 }
 
