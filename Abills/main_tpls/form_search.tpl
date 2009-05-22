@@ -7,7 +7,7 @@
 
 <TR bgcolor='$_COLORS[0]'><TH colspan='2' align='right'>$_SEARCH</TH></TR>
 %SEL_TYPE%
-<TR><TD>$_LOGIN:</TD><TD><input tabindex=1 type='text' name='LOGIN_EXPR' value='%LOGIN_EXPR%'></TD></TR>
+<TR><TD>$_LOGIN (*,):</TD><TD><input tabindex=1 type='text' name='LOGIN_EXPR' value='%LOGIN_EXPR%'></TD></TR>
 <tr><TD>$_PERIOD:</TD><TD>
 <TABLE width='100%'>
 <TR><TD>$_FROM: </TD><TD>%FROM_DATE%</TD></TR>
