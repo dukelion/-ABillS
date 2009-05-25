@@ -81,10 +81,75 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 
 
 
- my @caption = ("$_DATE", "$_REGISTRATION", "$_DISABLE",   "$_DELETED");
+if ($FORM{USERS}) {
+	my @caption = ("$_DATE", "$_USER", "$_ADMIN", "$_REGISTRATION"   );
  
- my $list    = $Marketing->increase_report({ %LIST_PARAMS, %FORM });
- my $table   = $html->table( { width      => '100%',
+  $LIST_PARAMS{USERS}=1;
+  my %reports_list = (ADDED    => "$_ADDED",
+                      DISABLED => "$_DISABLE",
+                      DELETED   => "$_DELETED"
+                       ); 
+
+  foreach my $report_name (keys %reports_list) {
+
+  	$LIST_PARAMS{$report_name}=1;
+
+    my $list    = $Marketing->evolution_users_report({ %LIST_PARAMS, %FORM });
+    my $table   = $html->table( { width      => '100%',
+                             caption    => "$_EVOLUTION $_USERS - $reports_list{$report_name}",
+                             title      => [ @caption ],
+                             ID         => 'REPORT_EVOLUTION',
+                             pages      => $Marketing->{TOTAL},
+                             qs         => $pages_qs,
+                           });
+
+
+    foreach my $line ( @$list ) {
+    	$table->addrow(
+    	 $line->[0],
+    	 ($report_name eq 'DELETED') ? $line->[1] :  $html->button($line->[1], "index=11&UID=$line->[4]"),
+    	 $line->[2],
+    	 $line->[3]
+    	 );
+
+
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+      	 $num = $3;
+        }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+      	 $CHART{X_LINE}[$num]=$line->[0];
+      	 $CHART{X_TEXT}[$num]=$line->[0];
+       	 $num++;
+       }
+
+
+      $DATA_HASH{REGISTRATION}[$num]= $line->[1];      
+      $DATA_HASH{DISABLED}[$num]    = $line->[2];
+      $DATA_HASH{DELETED}[$num]     = $line->[3];
+      
+      $AVG{REGISTRATION}= $line->[1] if ($AVG{REGISTRATION} < $line->[1]);
+      $AVG{DISABLED}    = $line->[2] if ($AVG{DISABLED} < $line->[2]);
+      $AVG{DELETED}     = $line->[3] if ($AVG{DELETED} < $line->[3]);
+
+     }
+
+    print $table->show();
+  
+    $table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL})
+                                           ] ]
+                     } );
+    print $table->show();
+  }	
+	
+	
+ }
+else {
+  my @caption = ("$_DATE", "$_REGISTRATION", "$_DISABLE",   "$_DELETED", "$_USERS");
+ 
+  my $list    = $Marketing->evolution_report({ %LIST_PARAMS, %FORM });
+  my $table   = $html->table( { width      => '100%',
                              caption    => "INCREASE",
                              title      => [ @caption ],
                              ID         => 'REPORT_EVOLUTION',
@@ -99,6 +164,7 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
     	 $line->[1],
     	 $line->[2],
     	 $line->[3],
+    	 ($FORM{MONTH}) ? $html->button($_USERS, "index=$index&DATE=$line->[0]&USERS=1") : $html->button($_USERS, "index=$index&MONTH=$line->[0]&USERS=1"),
     	 );
 
 
@@ -143,6 +209,10 @@ print $table->show();
           OUTPUT2RETURN => 1,
           %CHART 
        });
+}
+
+
+
 
 }
 
