@@ -237,7 +237,8 @@ m.user_read,
 m.admin_read,
 if(r.id IS NULL, 0, count(r.id)),
 m.chapter,
-DATE_FORMAT(plan_date, '%w')
+DATE_FORMAT(plan_date, '%w'),
+m.resposible
 
 
 FROM (msgs_messages m)

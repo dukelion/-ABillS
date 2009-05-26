@@ -104,14 +104,14 @@ foreach my $line (@$list) {
   push @{ $A_PRIVILEGES{$line->[0]} }, "$line->[1]|$line->[2]|$line->[3]|$line->[4]|$line->[5]}|$line->[6]";
 }
 
-foreach my $admin (sort keys %A_PRIVILEGES) {
-  my $rows = $#{ $A_PRIVILEGES{$admin} };
-  my @arr = @{ $A_PRIVILEGES{$admin} };
+foreach my $admin_id (sort keys %A_PRIVILEGES) {
+  my $rows = $#{ $A_PRIVILEGES{$admin_id} };
+  my @arr = @{ $A_PRIVILEGES{$admin_id} };
 
   my ($chapter_name, $privilege, $msgs, $aid, $chapter_id, $mail_send) = split(/\|/, $arr[0] );
 
   $table->addtd(
-                  $table->td($admin, { rowspan => ($rows > 0) ? $rows+1 : 1 } ),
+                  $table->td($admin_id, { rowspan => ($rows > 0) ? $rows+1 : 1 } ),
                   $table->td($chapter_name), 
                   $table->td($privilages_arr[$privilege]), 
                   $table->td($msgs), 
@@ -312,8 +312,6 @@ sub msgs_admin_add {
 #
 #*******************************************************************
 sub msgs_admin {
-
-
 
   push @msg_status, $_IN_WORK;
   push @msg_status, $_NEW_MESSAGE;
@@ -1483,6 +1481,7 @@ sub msgs_new {
 #*******************************************************************
 sub msgs_shedule {
 	
+
 my %MSGS_PERIOD = (0 => $_DAY,
 	                 1 => "5 $_DAYS",
 	                 2 => "$_WEEK",
@@ -1494,26 +1493,60 @@ my @rows = ();
 my $period = $FORM{PERIOD} || 0;
 
 
+my %SHOW_TYPE = (admins   => "$_ADMINS",
+                 chapters => "$_CHAPTERS",
+                 date     => "$_DATE");
+
+if (! $FORM{SHOW_TYPE}) {
+	$FORM{SHOW_TYPE} = 'date';
+}
+
+my $table = $html->table( { width        => '100%',
+                            caption      => "$_TYPE",
+                            ID           => 'MSGS_SHEDULER_TYPE',
+#                            rows         => [ \@rows ]
+                          });
 
 
+foreach my $id ( sort keys %SHOW_TYPE) {
+	if ($FORM{SHOW_TYPE} eq $id) {
+    push @rows, $table->th($SHOW_TYPE{$id}, { bgcolor => $_COLORS[1] });
+	 }
+	else {
+	  push @rows,  $table->th($html->button("$SHOW_TYPE{$id}", "index=$index&PERIOD=$FORM{PERIOD}&SHOW_TYPE=$id"), { bgcolor => $_COLORS[0] })
+	 }
+}
+
+	
+
+$table->addtd(@rows);
+print $table->show();
+
+@rows = ();
 my $table = $html->table( { width        => '100%',
                             caption      => "$_PERIOD",
                             ID           => 'MSGS_SHEDULER_PERIOD',
 #                            rows         => [ \@rows ]
                           });
 
+
+
+
 foreach my $id ( sort keys %MSGS_PERIOD) {
 	if ($period == $id) {
     push @rows, $table->th($MSGS_PERIOD{$id}, { bgcolor => $_COLORS[1] });
 	 }
 	else {
-	  push @rows,  $table->th($html->button("$MSGS_PERIOD{$id}", "index=$index&PERIOD=$id"), { bgcolor => $_COLORS[0] })
+	  push @rows,  $table->th($html->button("$MSGS_PERIOD{$id}", "index=$index&PERIOD=$id&SHOW_TYPE=$FORM{SHOW_TYPE}"), { bgcolor => $_COLORS[0] })
 	 }
 }
 
 
+
 $table->addtd(@rows);
 print $table->show();
+
+
 
 if ($period == 1) {
   $LIST_PARAMS{PLAN_FROM_DATE} = $DATE;
@@ -1532,6 +1565,9 @@ else {
   $LIST_PARAMS{PLAN_FROM_DATE}=$DATE;
 	$LIST_PARAMS{PLAN_TO_DATE}=$DATE;
 }
+
+
+
 
 
 my $list = $Msgs->messages_list({ %LIST_PARAMS, 
@@ -1553,14 +1589,79 @@ $table = $html->table( {
 my %dates = ();
 my $table2;
 my @main_table_rows = ();
+my $color= $_COLORS[0];
+
+my @chapters_list = @{ $Msgs->chapters_list() };
+my @admins_list = ([ 0, "- $_UNKNOWS"], @{ $admin->list({ GIDS => $admins->{GIDS}  }) } );
+
 
 foreach my $line (@$list) {
   #my $state = $msg_status[$line->[5]];
   my ($date, $time) = split(/ /, $line->[9]);
+  my @hours = ();
 
 if (! $dates{$date})  {
-  push @main_table_rows, $table2->show({ OUTPUT2RETURN => 1 }) if (keys %dates  > 0);
   my $caption = '';
+  if (keys %dates  > 0) {
+  	if ($FORM{SHOW_TYPE} eq 'chapters' || $FORM{SHOW_TYPE} eq 'admins') {
+      $title = $_CHAPTERS;
+    
+      if ($FORM{SHOW_TYPE} eq 'admins') {
+        @chapters_list=@admins_list;
+        $title=$_ADMINS;
+       }
+
+    foreach my $chapter_info (@chapters_list) {
+  	  @hours = ();
+      my ($h_b, $h_e, $p);
+ 
+      my $link = "&nbsp;";
+  
+      for(my $h=0; $h<24*4; $h++) {
+  	    if($calendar{$chapter_info->[0]}) {
+  	      $day_periods = $visual_view{$i};
+          #print "<b>Chapters $chapter_info->[0]</b>/ <br>";
+          foreach my $chap_periods (@{ $calendar{$chapter_info->[0]} }) {
+     	      #print "$i -- $chap_periods  <br>\n";
+     	      ($number, $user_name, $uid, $time_exec)=split(/\|/, $chap_periods, 4);
+            my ($h_b, $m_b, $s_b) = split(/:/, $time_exec);
+            $h_e=$h_b;
+
+            #print "** $h_b, $m_b, $s_b || ($h / 4 >= $h_b) && ($h /4 <= $h_e)<br>";
+
+     	      if (
+     	          (($h / 4 >= $h_b) && ($h / 4 <= $h_e) && $m_b <= 15) || 
+     	          ((($h-1) / 4 == $h_b) && ($m_b <= 30 && $m_b >= 15)) || 
+     	          ((($h-2) / 4 == $h_b) && ($m_b <= 45 && $m_b >= 30)) || 
+     	          ((($h-3) / 4 == $h_b) && ($m_b <= 60 && $m_b >= 45))
+     	           ) {
+       	   	   #print "$i // $h => $h_b && $h <= $h_e // $color // $time<br> \n";
+  	   	       $tdcolor = $color;
+  	 	         $link = "<acronym title='$_USER: $user_name\n ID: $number\n $_TIME: $time'> ". $html->button("#", "index=". ($index-3) ."&chg=$number&UID=$uid", ) . "</acronym>";
+  	 	         last;
+  	 	        }
+  	         else {
+  	 	         $link = "&nbsp;";
+  	 	         $tdcolor = $_COLORS[1];
+  	          }
+         }
+       }
+  	   else {
+  	 	   $link = "&nbsp;";
+  	 	   $tdcolor = $_COLORS[1];
+  	    }
+     
+    	 push(@hours, $table2->td("$link", { align=>'center', bgcolor => $tdcolor }) );
+     }
+
+       $table2->addtd($table->td($html->b($chapter_info->[1]), { bgcolor => $_COLORS[2] }), @hours);
+      }    	 	
+
+  	  %calendar = ();
+  	}
+
+     push @main_table_rows, $table2->show({ OUTPUT2RETURN => 1 }) 
+   }
   
   if ($line->[19] == 0) {
   	$caption = $html->color_mark($WEEKDAYS[7], $_COLORS[6]);
@@ -1572,31 +1673,126 @@ if (! $dates{$date})  {
     $caption = $WEEKDAYS[$line->[19]];
    }
   
-  $table2 = $html->table( { 
+  if ($FORM{SHOW_TYPE} eq 'chapters' || $FORM{SHOW_TYPE} eq 'admins') {
+    $table2 = $html->table({ width       => '100%',
+                            caption     => $caption . " / $date",
+                            rowcolor    => $_COLORS[1]
+                          });
+
+    my $list = $Msgs->messages_list({ %LIST_PARAMS, 
+  	                              DESC      => '',
+  	                              SORT      => 10,
+  	                              STATE     => 0,
+  	                              PAGE_ROWS => 10000
+	                               });
+
+    my @hours = ();
+    for (my $i = 0; $i<24; $i++) {
+   	  push @hours, $table2->td($html->b($i), { bgcolor => $_COLORS[0], colspan => 4, align => 'center' });
+     }
+
+
+    $table2->addtd($table2->td($html->b($title), { bgcolor => $_COLORS[0] }), @hours);
+   }
+  else {
+  	$table2 = $html->table( { 
                          width      => '300',
                          caption    => $caption . " / $date",
                          title      => ['#', "$_ADMIN", "$_TIME",  "$_SUBJECT"],
                          cols_align => ['right', 'left', 'left'],
                          ID         => 'SHEDULE_LIST',
                       } );
+   }
+
   $dates{$date}=1;
  }
 
- $table2->addrow(
-   $html->button("$line->[0]", "index=". ($index-2) ."&chg=$line->[0]&UID=$line->[11]"), 
-   "$line->[7]",
-   $time,
-   $line->[2]
+ if ($FORM{SHOW_TYPE} eq 'chapters') {
+    push @{ $calendar{$line->[18]} },  "$line->[0]|$line->[7]|$line->[11]|$time";
+  }
+ elsif ($FORM{SHOW_TYPE} eq 'admins') {
+    push @{ $calendar{$line->[20]} },  "$line->[0]|$line->[7]|$line->[11]|$time";
+  }
+ else {
+   $table2->addrow(
+     $html->button("$line->[0]", "index=". ($index-3) ."&chg=$line->[0]&UID=$line->[11]"), 
+     "$line->[7]",
+     $time,
+     $line->[2]
   );
+ }
+
 }
 
 if ($table2) {
+	if ($FORM{SHOW_TYPE} eq 'chapters' || $FORM{SHOW_TYPE} eq 'admins') {
+		
+		@chapters_list=@admins_list if ($FORM{SHOW_TYPE} eq 'admins');
+		
+		foreach my $chapter_info (@chapters_list) {
+  	  @hours = ();
+      my ($h_b, $h_e, $p);
+
+
+  
+      my $link = "&nbsp;";
+  
+      for(my $h=0; $h<24*4; $h++) {
+  	    if($calendar{$chapter_info->[0]}) {
+  	      $day_periods = $visual_view{$i};
+          #print "<b>Chapters $chapter_info->[0]</b>/ <br>";
+          foreach my $chap_periods (@{ $calendar{$chapter_info->[0]} }) {
+     	      #print "$i -- $chap_periods  <br>\n";
+     	      ($number, $user_name, $uid, $time)=split(/\|/, $chap_periods, 4);
+            my ($h_b, $m_b, $s_b) = split(/:/, $time);
+            $h_e=$h_b;
+
+            #print "** $h_b, $m_b, $s_b || ($h / 4 >= $h_b) && ($h /4 <= $h_e)<br>";
+
+     	      if (
+     	          (($h / 4 >= $h_b) && ($h / 4 <= $h_e) && $m_b <= 15) || 
+     	          ((($h-1) / 4 == $h_b) && ($m_b <= 30 && $m_b >= 15)) || 
+     	          ((($h-2) / 4 == $h_b) && ($m_b <= 45 && $m_b >= 30)) || 
+     	          ((($h-3) / 4 == $h_b) && ($m_b <= 60 && $m_b >= 45))
+     	           ) {
+       	   	   #print "$i // $h => $h_b && $h <= $h_e // $color // $time<br> \n";
+  	   	       $tdcolor = $color;
+  	 	         $link = "<acronym title='$_USER: $user_name\n ID: $number\n $_TIME: $time'> ". $html->button("#", "index=". ($index-3) ."&chg=$number&UID=$uid", ) . "</acronym>";
+  	 	         last;
+  	 	        }
+  	         else {
+  	 	         $link = "&nbsp;";
+  	 	         $tdcolor = $_COLORS[1];
+  	          }
+         }
+       }
+  	   else {
+  	 	   $link = "&nbsp;";
+  	 	   $tdcolor = $_COLORS[1];
+  	    }
+     
+    	 push(@hours, $table2->td("$link", { align=>'center', bgcolor => $tdcolor }) );
+     }
+
+       $table2->addtd($table->td($html->b($chapter_info->[1]), { bgcolor => $_COLORS[2] }), @hours);
+      }  
+		
+	 }
+	
   push @main_table_rows, $table2->show({ OUTPUT2RETURN => 1 });
  }
 else {
 	print $html->message('info', $_INFO, "$_NO_RECORD");
 	return 0;
 }
+
+
+if ($FORM{SHOW_TYPE} eq 'chapters' || $FORM{SHOW_TYPE} eq 'admins') {
+   foreach my $t ( @main_table_rows ) {
+  	  print $t;
+    }
+ }
+else {
 
 my $i=0;
 my @table_rows = ();
@@ -1611,12 +1807,19 @@ foreach my $line (@main_table_rows) {
    }
 }
 
-if ($#table_rows > -1) {
-	$table->addtd(@table_rows);
+  if ($#table_rows > -1) {
+	  $table->addtd(@table_rows);
+  }
+
+  print $table->show();
 }
 
-print $table->show();
-	
+
+
+
+
+
+
 }
 
 #**********************************************************
