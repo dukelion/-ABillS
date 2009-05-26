@@ -16,7 +16,7 @@ my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
 my %FORM_BASE = ();
-my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_DISABLE: $_NON_PAYMENT" );
 
 
 #*******************************************************************
