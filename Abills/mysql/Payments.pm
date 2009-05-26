@@ -305,7 +305,10 @@ sub reports {
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- my $date = '';
+ my $date       = '';
+ my $ext_tables = '';
+ my $GROUP      = 1;
+ 
  undef @WHERE_RULES;
 
  if ($attr->{GIDS}) {
@@ -334,6 +337,11 @@ sub reports {
    elsif($attr->{TYPE} eq 'PAYMENT_METHOD') {
    	 $date = "p.method";   	
     }
+   elsif($attr->{TYPE} eq 'FIO') {
+   	 $ext_tables = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
+   	 $date  = "pi.fio";  
+   	 $GROUP = 5; 	
+    } 
    elsif($attr->{TYPE} eq 'ADMINS') {
    	 $date = "a.id";   	
     }
@@ -353,10 +361,11 @@ sub reports {
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
-  $self->query($db, "SELECT $date, count(DISTINCT p.uid), count(*), sum(p.sum) 
+  $self->query($db, "SELECT $date, count(DISTINCT p.uid), count(*), sum(p.sum), p.uid 
       FROM (payments p)
       LEFT JOIN users u ON (u.uid=p.uid)
       LEFT JOIN admins a ON (a.aid=p.aid)
+      $ext_tables
       $WHERE 
       GROUP BY 1
       ORDER BY $SORT $DESC;");

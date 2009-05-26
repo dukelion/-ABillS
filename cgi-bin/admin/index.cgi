@@ -3633,7 +3633,8 @@ sub report_fees {
             PERIOD_FORM => 1,
   	        FIELDS      => { %METHODS_HASH },
   	        EXT_TYPE    => { METHOD => $_TYPE,
-  	        	               ADMINS => $_ADMINS }
+  	        	               ADMINS => $_ADMINS,
+  	        	               FIO    => $_FIO }
 
   	         });
 
@@ -3689,6 +3690,11 @@ else{
   	$TITLE[0]=$_USERS;
   	$type="search=1&LOGIN_EXPR";
   	$index=3;
+  	$graph_type='';
+   }
+  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'FIO')  {
+    $TITLE[0]=$_FIO;
+    $graph_type='';
    }
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'HOURS')  {
     $TITLE[0]=$_HOURS;
@@ -3708,8 +3714,25 @@ else{
 
   $list = $fees->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
+
+    my $main_column = '';
+    if ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD') {
+    	$main_column = $PAYMENT_METHODS[$line->[0]];
+     }
+    elsif($FORM{TYPE} && ($FORM{TYPE} eq 'FIO' || $FORM{TYPE} eq 'USER')) {
+      if (! $line->[0] || $line->[0] eq '') {
+        $main_column = $html->button($html->color_mark("!!! UNKNOWN", $_COLORS[6]), "index=11&UID=$line->[4]");
+       }
+      else {
+        $main_column = $html->button($line->[0], "index=11&UID=$line->[4]");
+       }
+     }
+    else { 
+      $main_column = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
+     }
+    
     $table_fees->addrow(
-    ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD') ? $PAYMENT_METHODS[$line->[0]] : $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
+    $main_column,
     $line->[1], 
     $line->[2], 
     $html->b($line->[3]) );
@@ -3728,7 +3751,7 @@ else{
     $DATA_HASH{SUM}[$num]    = $line->[3];
       
     $AVG{USERS}   = $line->[1] if ($AVG{USERS} < $line->[1]);
-    $AVG{TOTALS}   = $line->[2] if ($AVG{TOTALS} < $line->[2]);
+    $AVG{TOTALS}  = $line->[2] if ($AVG{TOTALS} < $line->[2]);
     $AVG{SUM}     = $line->[3] if ($AVG{SUM} < $line->[3]);
    }
 
@@ -3793,7 +3816,8 @@ sub report_payments {
   	        PERIOD_FORM => 1,
   	        FIELDS      => { %METHODS_HASH },
   	        EXT_TYPE    => { PAYMENT_METHOD => $_PAYMENT_METHOD,
-  	        	               ADMINS => $_ADMINS }
+  	        	               ADMINS => $_ADMINS,
+  	        	               FIO    => $_FIO }
          });
   
   if (defined($FORM{FIELDS}) && $FORM{FIELDS} >= 0) {
@@ -3843,9 +3867,15 @@ else{
   	$CAPTION[0]=$_USERS;
   	$type="search=1&LOGIN_EXPR";
   	$index=2;
+  	$graph_type='';
+   }
+  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'FIO') {
+  	$CAPTION[0]=$_FIO;
+  	$graph_type='';
    }
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'ADMINS')  {
     $CAPTION[0]=$_ADMINS;
+    $graph_type='';
    }
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'HOURS')  {
     $CAPTION[0]=$_HOURS;
@@ -3863,8 +3893,25 @@ else{
   $list = $payments->reports({ %LIST_PARAMS });
 
   foreach my $line (@$list) {
+    my $main_column = '';
+    if ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD') {
+    	$main_column = $PAYMENT_METHODS[$line->[0]];
+     }
+    elsif($FORM{TYPE} && ($FORM{TYPE} eq 'FIO' || $FORM{TYPE} eq 'USER')) {
+      if (! $line->[0] || $line->[0] eq '') {
+        $main_column = $html->button($html->color_mark("!!! UNKNOWN", $_COLORS[6]), "index=11&UID=$line->[4]");
+       }
+      else {
+        $main_column = $html->button($line->[0], "index=11&UID=$line->[4]");
+       }
+     }
+    else { 
+      $main_column = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
+     }
+
+  	
     $table->addrow(
-      ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') ? $PAYMENT_METHODS[$line->[0]] : $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs"), 
+      $main_column, 
       $line->[1], 
       $line->[2], 
       $html->b($line->[3]) );

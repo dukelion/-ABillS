@@ -316,7 +316,9 @@ sub reports {
  	 $date = "date_format(f.date, '%Y-%m')";
   }
 
+   my $GROUP = 1;
    $attr->{TYPE}='' if (! $attr->{TYPE});
+   my $ext_tables = '';
 
    if ($attr->{TYPE} eq 'HOURS') {
      $date = "date_format(f.date, '%H')";
@@ -329,6 +331,11 @@ sub reports {
     }
    elsif($attr->{TYPE} eq 'ADMINS') {
    	 $date = "a.id";   	
+    }
+   elsif($attr->{TYPE} eq 'FIO') {
+   	 $ext_tables = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
+   	 $date  = "pi.fio";  
+   	 $GROUP = 5; 	
     }
    elsif($date eq '') {
      $date = "u.id";   	
@@ -345,8 +352,9 @@ sub reports {
       FROM fees f
       LEFT JOIN users u ON (u.uid=f.uid)
       LEFT JOIN admins a ON (f.aid=a.aid)
+      $ext_tables
       $WHERE 
-      GROUP BY 1
+      GROUP BY $GROUP
       ORDER BY $SORT $DESC;");
 
  my $list = $self->{list}; 
