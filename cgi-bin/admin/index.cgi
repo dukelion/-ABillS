@@ -5120,11 +5120,16 @@ elsif ($FORM{change}) {
   $info{TEMPLATE} = $FORM2{template};
   $info{TPL_NAME} = $FORM{tpl_name};
   
-	open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}") || $html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");
+	if (open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}")) {
 	  print FILE "$info{TEMPLATE}";
-	close(FILE);
+	  close(FILE);
+	  $html->message('info', $_INFO, "$_CHANGED '$FORM{tpl_name}'");
+	 }
+  else {
+  	$html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");
+   }
 
-	$html->message('info', $_INFO, "$_CHANGED '$FORM{tpl_name}'");
+	
  }
 elsif ($FORM{FILE_UPLOAD}) {
   $FORM{FILE_UPLOAD}{filename} =~ tr/ /_/;
@@ -5484,11 +5489,14 @@ sub form_dictionary {
   		  
   	 }
 
-    open(FILE, ">../../language/$sub_dict.pl" ) || print "Can't open file '../../language/$sub_dict.pl' $!\n";  ;
+    if (open(FILE, ">../../language/$sub_dict.pl" )) { 
       print FILE "$out";
-	  close(FILE);
-
-  	$html->message('info', $_CHANGED, "$_CHANGED '$FORM{SUB_DICT}'");
+	    close(FILE);
+     	$html->message('info', $_CHANGED, "$_CHANGED '$FORM{SUB_DICT}'");
+     }
+    else {
+    	$html->message('err', $_ERROR, "Can't open file '../../language/$sub_dict.pl' $!");
+     }
    }
 
 

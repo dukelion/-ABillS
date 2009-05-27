@@ -270,6 +270,7 @@ $_MODULES = 'Modules';
 $_SYSTEM = 'System configuration';
 $_GENERED_PARRWORD = 'Generate password';
 $_DISABLE='Disable';
+$_HOLD_UP='Hold Up';
 $_ENABLE='Enable';
 $_COMPANY='Company';
 $_ADD_USER='Add user';
