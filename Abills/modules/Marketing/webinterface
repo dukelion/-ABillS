@@ -12,7 +12,7 @@ my $tariffs   = Tariffs->new($db, \%conf, $admin);
 
 
 my %FORM_BASE = ();
-my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT" );
 
 
 
@@ -233,14 +233,17 @@ sub marketing_internet {
  	                                          SEL_HASH     => { '' => "$_ALL",
  	                                          	                0  => $service_status[0],
  	                                          	                1  => $service_status[1],
- 	                                          	                2  => $service_status[2]  
+ 	                                          	                2  => $service_status[2],  
+ 	                                          	                3  => $service_status[3],
+ 	                                          	                4  => $service_status[4],  
+
  	                                          	                },
                                             NO_ID       => 1
  	                                        }),
                                     $_TARIF_PLAN =>  $html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $FORM{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
+ 	                                          SEL_MULTI_ARRAY   => [['', ''], @{ $tariffs->list() }],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }),
@@ -341,6 +344,7 @@ $table = $html->table( { width      => '100%',
 print $table->show();
 
 }
+
 
 1
 

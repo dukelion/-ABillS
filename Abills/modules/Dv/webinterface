@@ -16,7 +16,7 @@ my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
 my %FORM_BASE = ();
-my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_DISABLE: $_NON_PAYMENT" );
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT" );
 
 
 #*******************************************************************
@@ -219,7 +219,9 @@ sub dv_users_list {
  	                                          SEL_HASH     => { '' => "$_ALL",
  	                                          	                0  => $service_status[0],
  	                                          	                1  => $service_status[1],
- 	                                          	                2  => $service_status[2]  
+ 	                                          	                2  => $service_status[2],
+ 	                                          	                3  => $service_status[3],  
+ 	                                          	                4  => $service_status[4]    
  	                                          	                },
                                             NO_ID       => 1
  	                                        });
@@ -5035,7 +5037,8 @@ elsif ($FORM{shedule}) {
  	                                          SEL_HASH     => { 
  	                                          	                0  => $service_status[0],
  	                                          	                1  => $service_status[1],
- 	                                          	                2  => $service_status[2]  
+ 	                                          	                2  => $service_status[2],
+ 	                                          	                3  => $service_status[3]
  	                                          	                },
                                             NO_ID       => 1
  	                                        }),
@@ -5107,6 +5110,8 @@ print $table->show();
 
 
 }
+
+
 1
 
 

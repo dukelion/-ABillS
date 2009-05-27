@@ -1523,7 +1523,7 @@ $table->addtd(@rows);
 print $table->show();
 
 @rows = ();
-my $table = $html->table( { width        => '100%',
+$table = $html->table( { width        => '100%',
                             caption      => "$_PERIOD",
                             ID           => 'MSGS_SHEDULER_PERIOD',
 #                            rows         => [ \@rows ]
@@ -2003,5 +2003,7 @@ $table = $html->table( { width      => '100%',
 
 print $table_sessions->show() . $table->show(). $output;
 }
+
+
 1
 

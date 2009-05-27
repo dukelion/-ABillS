@@ -156,6 +156,7 @@ my($Y, $M, $D);
        print "Wrong date format. Format: YYYY-MM-DD\n";
        exit;
       }
+     ($Y, $M, $D)=split(/-/, $args->{DATE}) ;
      $YESTERDAY = (strftime '%Y-%m-%d', localtime(POSIX::mktime( 0, 10, 1, $D, ($M-1), ($Y-1900)) - 86400));
 
      #$YESTERDAY=$args->{DATE};
@@ -751,3 +752,4 @@ foreach my $DEBETOR_GID (sort { $b <=> $a } keys %DEBETORS_GIDS) {
 
   return 0;
 }
+

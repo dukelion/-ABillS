@@ -653,7 +653,7 @@ sub list {
   }
  # Login expresion
  elsif ($attr->{LOGIN_EXPR}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') }; # "u.id LIKE '$attr->{LOGIN_EXPR}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
   }
  elsif ($attr->{UID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'u.uid', { EXT_FIELD => 1 }) };
@@ -1654,6 +1654,8 @@ sub config_del {
  $self->query($db, "DELETE FROM config WHERE param='$id';", 'do');
  return $self;
 }
+
+
 
 
 
