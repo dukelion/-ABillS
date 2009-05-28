@@ -16,6 +16,8 @@ my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
 my %FORM_BASE = ();
+
+my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000');
 my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT" );
 
 
@@ -287,14 +289,14 @@ foreach my $line (@$list) {
   for(my $i=0; $i<$Dv->{SEARCH_FIELDS_COUNT}; $i++){
      push @fields_array, $line->[6+$i];
    }
-  
+
   $table->addrow(
    $html->button("$line->[0]", "index=15&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}]), 
    "$line->[1]",
    "$line->[2]", 
    "$line->[3]", 
    "$line->[4]", 
-   "$service_status[$line->[5]]",
+   ($line->[5] > 0) ? $html->color_mark($service_status[$line->[5]], $service_status_colors[$line->[5]]) : "$service_status[$line->[5]]",
    @fields_array, 
    $payments, 
    $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}])
@@ -463,6 +465,10 @@ sub dv_user {
  	                                          SEL_ARRAY    => \@service_status,
  	                                          ARRAY_NUM_ID => 1
  	                                        });
+   
+  if ($Dv->{STATUS} > 0) { 
+    $Dv->{STATUS_COLOR} = $service_status_colors[$Dv->{STATUS}] ;
+   }
 
   $Dv->{CALLBACK}         = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
   $Dv->{REGISTRATION_INFO}= $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1");
@@ -3249,8 +3255,8 @@ elsif ($conf{DV_IP_DISCOVERY}) {
     return 0;	
    }
   
-  if ($Dv->{STATUS} == 2) {
-    $Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $_COLORS[6]). ' ';
+  if ($Dv->{STATUS} > 0) {
+    $Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $service_status_colors[$Dv->{STATUS}]). ' ';
     $Dv->{STATUS}  .= ($user->{DISABLE}) ? $html->b("($_ACCOUNT $_DISABLE)") : $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1", {   	 ex_params  => ' ID="ACTIVATE"' });
     #   JAVASCRIPT => ' onclick="obj_disable(ACTIVATE, \'Wait...\')"'  	 } );
    }  
