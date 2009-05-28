@@ -1262,10 +1262,14 @@ sub bruteforce_del {
   my $self = shift;	
 	my ($attr) = @_;
 
-  my $WHERE = "login='$attr->{LOGIN}'";
+  my $WHERE = "";
+
   if ($attr->{DATE}) {
   	$WHERE = "datetime < $attr->{DATE}";
    }
+	else {
+		$WHERE = "login='$attr->{LOGIN}'";
+	 }
 	
   $self->query($db,  "DELETE FROM users_bruteforce
 	 WHERE $WHERE;", 'do');
