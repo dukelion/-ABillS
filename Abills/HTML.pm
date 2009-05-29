@@ -1777,34 +1777,53 @@ sub make_charts {
   my $CHART_RECT_height  = ($attr->{CHART_RECT_height}) ? $attr->{CHART_RECT_height} : 280 ;  
   my $CHART_RECT_x = ($attr->{CHART_RECT_x}) ? $attr->{CHART_RECT_x} : 50 ;  
   my $CHART_RECT_y = ($attr->{CHART_RECT_y}) ? $attr->{CHART_RECT_y} : 70 ;  
-  
-  
+
+
   my $data = '<chart>'
   .$ex_params
 
-	.'<series_color>
-	  <color>C0C0C0</color>
+	.'
+	<series_color>
+	  <color>00EE00</color>
 		<color>FF8844</color>
 		<color>7e6cee</color>
+		<color>BBBBFF</color>
+		<color>E8AC71</color>
+		<color>99FB5E</color>
 	 </series_color>
 
-  	<chart_grid_h alpha="10" color="0066FF" thickness="1"  />
-	  <chart_grid_v alpha="10" color="0066FF" thickness="1" />
+  <chart_grid_h alpha="10" color="0066FF" thickness="1"  />
+	<chart_grid_v alpha="10" color="0066FF" thickness="1" />
+  <chart_label shadow="low" color="000000" alpha="95" size="10" position="inside" as_percentage="true" />
+  <chart_border color="000000" top_thickness="1" bottom_thickness="2" left_thickness="0" right_thickness="0" />
+  <chart_rect x="'. $CHART_RECT_x .'" y="'. $CHART_RECT_y .'" width="'. $CHART_RECT_width .'" height="'. $CHART_RECT_height .'" positive_color="FFFFFF" positive_alpha="40" />
+  <chart_pref select="true" />
 
 	<axis_category font="arial" bold="1" size="11" color="000000" alpha="50" skip="'. $AXIS_CATEGORY_skip. '" />
 	<axis_ticks value_ticks="" category_ticks="1" major_thickness="2" minor_thickness="1" minor_count="3" major_color="000000" minor_color="888888" position="outside" />
 
-  <axis_value font="arial" bold="1" size="9" color="000000" alpha="75" 
-  steps="4" prefix="" suffix="'. $suffix .'" 
-  decimals="0" 
-  separator="" 
-  show_min="1" 
-  orientation="diagonal_up"
-  />
+  <axis_value font="arial" size="7" color="000000" alpha="75" steps="4" prefix="" suffix="'. $suffix .'" 
+  decimals="0" separator="" show_min="1" orientation="diagonal_up" />
 
- 
-	<chart_border color="000000" top_thickness="1" bottom_thickness="2" left_thickness="0" right_thickness="0" />
-  <chart_rect x="'. $CHART_RECT_x .'" y="'. $CHART_RECT_y .'" width="'. $CHART_RECT_width .'" height="'. $CHART_RECT_height .'" positive_color="FFFFFF" positive_alpha="40" />
+
+  <legend shadow="low" fill_color="0" fill_alpha="5" line_alpha="0" line_thickness="0" bullet="circle" size="12" color="111111" alpha="75" margin="10" />
+
+
+
+
+	<draw>
+		<text layer="background" shadow="low" color="ffffff" alpha="5" size="30" x="0" y="0" width="400" height="150" >|||||||||||||||||||||||||||||||||||||||||||||||</text>
+		<text layer="background"  shadow="low" color="ffffff" alpha="5" size="30" x="0" y="140" width="400" height="150" v_align="bottom">|||||||||||||||||||||||||||||||||||||||||||||||</text>
+	</draw>
+
+	<filter>
+		<shadow id="low" distance="2" angle="45" color="0" alpha="50" blurX="5" blurY="5" />
+		<bevel id="data" angle="45" blurX="10" blurY="10" distance="3" highlightAlpha="5" highlightColor="ffffff" shadowColor="000000" shadowAlpha="50" type="full" />
+		<bevel id="bg" angle="10" blurX="20" blurY="20" distance="10" highlightAlpha="25" highlightColor="ff8888" shadowColor="8888ff" shadowAlpha="25" type="full" />
+		<glow id="glow1" color="ff88ff" alpha="75" blurX="30" blurY="30" inner="false" />
+	</filter>
+
+
   ';
 
   $data .= "<chart_data>\n";
@@ -1834,7 +1853,7 @@ sub make_charts {
      }
     $data .= "</row>\n";
    }
-  
+
 
 
   while(my($name, $value)=each %$DATA ){
@@ -1849,7 +1868,7 @@ sub make_charts {
 
     shift @$value;
     foreach my $line (@$value) {
-    	 $data .= "<number>";
+    	 $data .= "<number bevel='data'>";
     	 $data .= ($midle > 0) ? $line * $midle : ( ($line eq '') ? 0 : $line); 
     	 $data .="</number>\n";
      }
@@ -1881,15 +1900,22 @@ sub make_charts {
   if ($attr->{TYPE}) {
     $data .= "<chart_type>";
 		my $type_array_ref = $attr->{TYPE};
-		foreach my $line (@$type_array_ref) {
-		  if ($line eq 'bar') {
-		  	$data .= "$line";
-		  	last;
-		   }
-		  else {
-		    $data .= " <value>$line</value>";
-		   }
+		
+		if ( $#{ $type_array_ref } == 0) {
+			$data .= $type_array_ref->[0];
+		 }
+		else {
+		 foreach my $line (@$type_array_ref) {
+		    if ($line eq 'bar') {
+		  	  $data .= "$line";
+		  	  last;
+		     }
+		    else {
+		      $data .= " <value>$line</value>";
+		     }
+      }
      }
+
    	$data .= "</chart_type>\n";
    }
   
