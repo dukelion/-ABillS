@@ -4,7 +4,7 @@ $_DNS_AVAILABLE='';
 
 
 $_REQUIRED_SCORE='Рейтинг срабатывания фильтра';
-$_REWRITE_HEADER='Изменить тему писька';
+$_REWRITE_HEADER='Изменить тему письма';
 $_REPORT_SAFE='Тип отчёта по спаму';
 $_USER_IN_WHITELIST='Рейтинг белого списка';
 $_USER_IN_BLACKLIST='Рейтинг для чёрного списка';

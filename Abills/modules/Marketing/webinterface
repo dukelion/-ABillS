@@ -262,7 +262,6 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 
  $pages_qs.="&TP_ID=$FORM{TP_ID}"  if ($FORM{TP_ID});
  $pages_qs.="&STATUS=$FORM{STATUS}"  if (defined($FORM{STATUS}));
-
  my $list = $Marketing->internet_fees_monitor({ %LIST_PARAMS, %FORM });
  my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
  my $table = $html->table( { width      => '100%',

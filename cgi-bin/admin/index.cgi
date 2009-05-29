@@ -3652,7 +3652,7 @@ sub report_fees {
   my %AVG       = ();
   my %CHART     = ();
   my $num       = 0;
-
+  my @CHART_TYPE= ('area', 'line', 'column');
 
 if (defined($FORM{DATE})) {
 	$graph_type='';
@@ -3683,8 +3683,9 @@ if (defined($FORM{DATE})) {
 else{ 
   #Fees###################################################
   my @TITLE = ("$_DATE", "$_USERS", "$_COUNT", $_SUM);
-  if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
-  	$TITLE[0]=$_PAYMENT_METHOD;
+  if ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD') {
+  	$TITLE[0]=$_METHOD;
+  	@CHART_TYPE= ('pie');
    }
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'USER') {
   	$TITLE[0]=$_USERS;
@@ -3717,7 +3718,7 @@ else{
 
     my $main_column = '';
     if ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD') {
-    	$main_column = $PAYMENT_METHODS[$line->[0]];
+    	$main_column = $FEES_METHODS[$line->[0]];
      }
     elsif($FORM{TYPE} && ($FORM{TYPE} eq 'FIO' || $FORM{TYPE} eq 'USER')) {
       if (! $line->[0] || $line->[0] eq '') {
@@ -3737,22 +3738,29 @@ else{
     $line->[2], 
     $html->b($line->[3]) );
 
-    if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
-      $num = $3;
+    if ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD') {
+      $DATA_HASH{TYPE}[$num+1]  = $line->[3];
+      $CHART{X_TEXT}[$num]      = $line->[0];
+      $num++;
      }
-    elsif ($line->[0] =~ /(\d+)-(\d+)/) {
-   	  $CHART{X_LINE}[$num]=$line->[0];
-   	  $CHART{X_TEXT}[$num]=$line->[0];
-   	  $num++;
-     }
+    else {
+      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+        $num = $3;
+       }
+      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+   	    $CHART{X_LINE}[$num]=$line->[0];
+   	    $CHART{X_TEXT}[$num]=$line->[0];
+   	    $num++;
+       }
 
-    $DATA_HASH{USERS}[$num]  = $line->[1];      
-    $DATA_HASH{TOTALS}[$num] = $line->[2];
-    $DATA_HASH{SUM}[$num]    = $line->[3];
+      $DATA_HASH{USERS}[$num]  = $line->[1];      
+      $DATA_HASH{TOTALS}[$num] = $line->[2];
+      $DATA_HASH{SUM}[$num]    = $line->[3];
       
-    $AVG{USERS}   = $line->[1] if ($AVG{USERS} < $line->[1]);
-    $AVG{TOTALS}  = $line->[2] if ($AVG{TOTALS} < $line->[2]);
-    $AVG{SUM}     = $line->[3] if ($AVG{SUM} < $line->[3]);
+      $AVG{USERS}   = $line->[1] if ($AVG{USERS} < $line->[1]);
+      $AVG{TOTALS}  = $line->[2] if ($AVG{TOTALS} < $line->[2]);
+      $AVG{SUM}     = $line->[3] if ($AVG{SUM} < $line->[3]);
+    }
    }
 
 
@@ -3775,7 +3783,7 @@ else{
 	        PERIOD     => $graph_type,
 	        DATA       => \%DATA_HASH,
 	        AVG        => \%AVG,
-	        TYPE       => ['area', 'line', 'column' ],
+	        TYPE       => \@CHART_TYPE,
 	        TRANSITION => 1,
           OUTPUT2RETURN => 1,
           %CHART 
@@ -3833,6 +3841,7 @@ sub report_payments {
   my %DATA_HASH = ();
   my %AVG       = ();
   my %CHART     = ();
+  my @CHART_TYPE= ('area', 'line', 'column');
   my $num       = 0;
 
  
@@ -3862,6 +3871,8 @@ else{
   my @CAPTION = ("$_DATE", "$_USERS", "$_COUNT", $_SUM);
   if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
   	$CAPTION[0]=$_PAYMENT_METHOD;
+  	$graph_type='pie';
+  	@CHART_TYPE=('pie');
    }
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'USER') {
   	$CAPTION[0]=$_USERS;
@@ -3894,7 +3905,8 @@ else{
 
   foreach my $line (@$list) {
     my $main_column = '';
-    if ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD') {
+
+    if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
     	$main_column = $PAYMENT_METHODS[$line->[0]];
      }
     elsif($FORM{TYPE} && ($FORM{TYPE} eq 'FIO' || $FORM{TYPE} eq 'USER')) {
@@ -3916,6 +3928,13 @@ else{
       $line->[2], 
       $html->b($line->[3]) );
 
+
+    if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
+      $DATA_HASH{TYPE}[$num+1]  = $line->[3];
+      $CHART{X_TEXT}[$num]    = $PAYMENT_METHODS[$line->[0]];
+      $num++;
+     }
+    else {
       if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
         $num = $3;
        }
@@ -3930,9 +3949,9 @@ else{
       $DATA_HASH{SUM}[$num]    = $line->[3];
       
       $AVG{USERS}   = $line->[1] if ($AVG{USERS} < $line->[1]);
-      $AVG{TOTALS}   = $line->[2] if ($AVG{TOTALS} < $line->[2]);
+      $AVG{TOTALS}  = $line->[2] if ($AVG{TOTALS} < $line->[2]);
       $AVG{SUM}     = $line->[3] if ($AVG{SUM} < $line->[3]);
-
+     }
 
    }
 
@@ -3957,7 +3976,7 @@ else{
 	        PERIOD     => $graph_type,
 	        DATA       => \%DATA_HASH,
 	        AVG        => \%AVG,
-	        TYPE       => ['area', 'line', 'column'],
+	        TYPE       => \@CHART_TYPE,
 	        TRANSITION => 1,
           OUTPUT2RETURN => 1,
           %CHART 

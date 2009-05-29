@@ -185,6 +185,11 @@ sub internet_fees_monitor {
 
  if ($attr->{FROM_Y}) {
  	 $date = sprintf("'%s-%.2d-%.2d'", $attr->{FROM_Y}, ($attr->{FROM_M}+1), $attr->{FROM_D});
+ 	 my $date_2 = '';
+ 	 if ($date =~ /(\d{4})-(\d{2})/) {
+ 	   $date_2 = "$1-$2";
+ 	  }
+ 	 push @WHERE_RULES, @{ $self->search_expr("$date_2", 'INT', 'DATE_FORMAT(f.date, \'%Y-%m\')') };
   }
  
 
@@ -219,6 +224,7 @@ sub internet_fees_monitor {
     $self->query($db, "SELECT count(distinct u.uid) FROM  users u
      inner join dv_main dv on (dv.uid=u.uid)
      inner join tarif_plans tp on (dv.tp_id=tp.id)
+     left join fees f on (f.uid=u.uid)
     $WHERE;");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
