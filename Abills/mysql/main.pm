@@ -293,6 +293,7 @@ sub search_expr {
      }
     elsif ( $v =~ s/^([<>=]{1,2})// ) {
       $expr = $1;
+      
      }  
   
     if ($type eq 'IP') {
@@ -303,7 +304,7 @@ sub search_expr {
      }
 
     $value = $expr . $v;
-    
+   
     push @result_arr, "$field$value" if ($field);
    }
 

@@ -470,10 +470,9 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
-
   if ($attr->{NETMASK}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{NETMASK}, 'INT', 'INET_NTOA(dv.netmask)') };
-    $self->{SEARCH_FIELDS} = 'INET_NTOA(dv.netmask), ';
+    push @WHERE_RULES, @{ $self->search_expr($attr->{NETMASK}, 'IP', 'INET_NTOA(dv.netmask)') };
+    $self->{SEARCH_FIELDS} .= 'INET_NTOA(dv.netmask), ';
     $self->{SEARCH_FIELDS_COUNT}++;
    }
 
