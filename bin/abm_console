@@ -13,7 +13,7 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
 
 #use strict;
 
-my $version = 0.7;
+my $version = 0.8;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -569,10 +569,10 @@ sub user_info {
 
  	$user = $users->info($uid);
 
- 	print "$_USER: $user->{LOGIN} (". ( ($user->{FIO}) ? $user->{FIO} : ''  ). ") $user->{UID}\n".
- 	  "$_DEPOSIT: $user->{DEPOSIT}\n".
- 	  "$_CREDIT:  $user->{CREDIT}\n".
- 	  "$_STATUS: ". $status[$user->{DISABLE}]."\n";
+ 	print "    $_USER: $user->{LOGIN} (". ( ($user->{FIO}) ? $user->{FIO} : ''  ). ") $user->{UID}\n".
+ 	  "    $_DEPOSIT: $user->{DEPOSIT}\n".
+ 	  "[1] $_CREDIT:  $user->{CREDIT}\n".
+ 	  "[2] $_STATUS: ". $status[$user->{DISABLE}]."\n";
 
 }
 
@@ -592,11 +592,54 @@ sub form_pi {
 
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub form_users_change {
+  my ($attr) = @_;
+
+if ($interact) {
+  print ">> $_CHANGE:\n";
+
+  my @params = (
+                "$_CREDIT [$user->{CREDIT}]:CREDIT:$user->{CREDIT}",
+                "$_DISABLE [$status[$user->{DISABLE}]] (y/n):DISABLE:$user->{DISABLE}",
+                "$_CONFIRM (y/n):CONFIRM"
+                );
+
+  my $FORM   = form_parse(\@params);
+
+
+  if ($FORM->{CONFIRM}) {
+  	$users->{debug}=1;
+  	$users->change($user->{UID}, { UID => $user->{UID}, %$FORM });
+
+  	if (! $users->{errno}) {
+  		print "$_CHANGED\n";
+  	 }
+    else {
+      if ($users->{errno} == 14) {
+        print "Error: $_BILLS $_NOT_EXISTS\n";
+       }
+      else {
+    	  print "$_ERROR: [$users->{errno}]\n"; #$err_strs{$users->{errno}}":      }
+       }
+     }
+   }
+
+  return 0;
+ }
+}
+
+
 #**********************************************************
 #
 #**********************************************************
 sub form_users {
   my ($attr)=@_;
+
+
 
 
 if ($interact) {
@@ -606,7 +649,7 @@ if ($interact) {
 
 
   push @user_functions, "$_USER_INFO:form_pi";
-  push @user_functions, "$_CHANGE:form_users" if ($permissions{0});
+  push @user_functions, "$_CHANGE:form_users_change" if ($permissions{0});
   push @user_functions, "$_PAYMENTS:form_payments" if ($permissions{1});
   push @user_functions, "$_FEES:form_fees" if ($permissions{3});
   push @user_functions, "$_DV:dv_user_main" if (in_array('Dv', \@MODULES) );
@@ -635,6 +678,10 @@ if ($interact) {
       elsif ($input =~ /exit|quite|q/ || $input == 1) {
       	return 0;
        }
+#      elsif (int($input) =~ /3 (\d+)/){ 
+#      	%change_params =  
+#      	$users->change($user->{UID}, { UID => $LIST_PARAMS{UID}, %change_params });
+#       }
       elsif (int($input) =~ /(\d+)/){
      	  my $function_id = $1;
      	  if ($user_functions[$function_id]) {
@@ -726,7 +773,7 @@ if ($interact) {
  }
  
 
-my @args = ('ADD', 'DEL', 'METHOD', 'DATE');
+my @args = ('ADD', 'DEL', 'METHOD', 'DATE', 'DESCRIBE');
 foreach my $a (@args) {
   if (defined($ARGV->{$a})) {
   	$LIST_PARAMS{$a}=$ARGV->{$a};
@@ -788,7 +835,7 @@ if ($interact) {
   return 0;
  }
 
-my @args = ('ADD', 'DEL', 'METHOD', 'DATE');
+my @args = ('ADD', 'DEL', 'METHOD', 'DATE', 'DESCRIBE');
 foreach my $a (@args) {
   if (defined($ARGV->{$a})) {
   	$LIST_PARAMS{$a}=$ARGV->{$a};
@@ -822,13 +869,19 @@ sub form_parse {
   my ($keys, $attr) = @_;
   my %values = ();
   foreach my $k (@$keys) {
-  	my($describe, $key)=split(/:/, $k);
+  	my($describe, $key, $default)=split(/:/, $k);
   	print "$describe:";
   	my $val = '';
   	chop($val = <STDIN>);
   	
   	if ($key eq 'CONFIRM' && $val =~ /n/) {
   		
+  	 }
+  	elsif ($val eq '') {
+      $values{$key}=$default;
+  	 } 
+  	elsif ($key eq 'DISABLE') {
+  		$values{$key}= ($val =~ /n/) ? 0  : 1 ;
   	 }
   	else {
   	  $values{$key}=$val;
