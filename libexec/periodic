@@ -493,19 +493,19 @@ sub logrotate {
      for (my $i = 5; $i>0; $i--) {
        if ( -f $logfile.'.'. ($i-1) .'.gz') {
          $cmd = 'mv '. $logfile .'.'. ($i-1) .'.gz '. $logfile .'.'. $i .'.gz';
-         $DEBUG .= $cmd ."\n" if ($args->{DEBUG} && $args->{DEBUG} > 3);
+         $DEBUG .= $cmd ."\n" if ($debug > 3);
          #my $a = `$cmd`;
         }
       }
 
      $cmd = '$GZIP -c '. $logfile. ' > '. $logfile . '.1.gz && >'. $logfile ;
-     $DEBUG .= $cmd."\n" if ($args->{DEBUG} && $args->{DEBUG} > 3);
+     $DEBUG .= $cmd."\n" if ($debug > 3);
      my $r = `$cmd`;
    }
 
 #Bruteforce clear
   $users->bruteforce_del({ DATE => $DATE });
-	$DEBUG .= "Brute force log cleaned\n" if ( $args->{DEBUG} > 1);
+	$DEBUG .= "Brute force log cleaned\n" if ( $debug > 1);
 }
 
 

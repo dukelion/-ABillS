@@ -690,7 +690,7 @@ sub cards_dillers_sel {
  	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0, SORT => 2,  PAGE_ROWS => 10000 }) }],
  	                                         MULTI_ARRAY_KEY   => 0,
  	                                         MULTI_ARRAY_VALUE => 2,
- 	                                         NO_ID             => 1,
+ 	                                         #NO_ID             => 1,
  	                                        });
 
 

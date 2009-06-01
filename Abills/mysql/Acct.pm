@@ -341,7 +341,6 @@ elsif($acct_status_type eq 3) {
   
   $self->query($db, "UPDATE dv_calls SET
     status='$acct_status_type',
-    nas_port_id='$RAD->{NAS_PORT}',
     acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
     acct_input_octets='$RAD->{INBYTE}',
     acct_output_octets='$RAD->{OUTBYTE}',
