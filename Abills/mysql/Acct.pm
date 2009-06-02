@@ -139,6 +139,7 @@ elsif ($acct_status_type == 2) {
 
   if ( $NAS->{NAS_EXT_ACCT} || $NAS->{NAS_TYPE} eq 'ipcad') {
  
+
     $self->query($db, "SELECT 
        acct_input_octets,
        acct_output_octets,
@@ -319,7 +320,6 @@ elsif($acct_status_type eq 3) {
     $self->query($db, "UPDATE dv_calls SET
       $ipn_fields
       status='$acct_status_type',
-      nas_port_id='$RAD->{NAS_PORT}',
       acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
       framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
       lupdated=UNIX_TIMESTAMP()
