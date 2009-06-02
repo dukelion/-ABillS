@@ -4748,6 +4748,11 @@ sub dv_get_month_fee {
         	$periods = 12 - $active_m + $m; 
          }
         
+        #Make reduction
+        if ($users->{REDUCTION} > 0 && $Dv->{TP_INFO}->{REDUCTION_FEE}) {
+         	$sum = $sum * (100 - $users->{REDUCTION}) / 100;
+         }          
+
         $message .= "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{TP_ID})";
         
         if ($Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
@@ -4780,6 +4785,7 @@ sub dv_get_month_fee {
               	                           UID      => $Dv->{UID} });
              }
            }
+          
          
           $fees->take($users, $sum, { DESCRIBE  => $message, 
         	                            METHOD    => 1, 
