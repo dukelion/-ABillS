@@ -355,7 +355,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
 
   if ($ARGV[0] eq 'mikrotik') {
     mikrotik_ext({ SPEEDS => \%speeds,
-    	         NETS   => \%nets });
+    	             NETS   => \%nets });
     	         
   	exit;
    }
