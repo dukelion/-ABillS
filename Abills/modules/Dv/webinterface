@@ -1682,6 +1682,7 @@ else {
     if ($FORM{TYPE} eq 'USER') {
     	$caption[0]="$_USER";
   	  $caption[1]="$_LOGINS";
+  	  $graph_type='';
      }
     elsif ($FORM{TYPE} eq 'TP') {
     	$caption[0]="$_TARIF_PLAN";

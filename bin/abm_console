@@ -612,7 +612,6 @@ if ($interact) {
 
 
   if ($FORM->{CONFIRM}) {
-  	$users->{debug}=1;
   	$users->change($user->{UID}, { UID => $user->{UID}, %$FORM });
 
   	if (! $users->{errno}) {

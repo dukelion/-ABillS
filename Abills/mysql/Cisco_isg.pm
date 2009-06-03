@@ -233,9 +233,6 @@ if ($self->{IP} ne '0.0.0.0') {
 
 my $debug = 0;
 
-
-
-  
 #  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"A$service\"";
 #  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED1\"";
 #  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED2\"";
@@ -243,6 +240,7 @@ my $debug = 0;
 #  push @{ $RAD_PAIRS{'cisco-avpair'} }, "\"subscriber:accounting-list=BH_ACCNT_LIST1\"";
 
 push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "A$service";
+
 if ($service =~ /^TP/) {
   push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED1";
   push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED2";
