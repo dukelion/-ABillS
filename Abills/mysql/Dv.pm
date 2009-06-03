@@ -337,6 +337,8 @@ sub change {
                   } );
 
 
+  $self->{OLD_STATUS}=$old_info->{STATUS};
+
   $self->info($attr->{UID});
   
 
