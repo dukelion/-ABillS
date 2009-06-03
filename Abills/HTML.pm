@@ -1615,12 +1615,19 @@ sub tpl_show {
   while($tpl =~ /\%(\w+)\%/g) {
 #    print "-$1-<br>\n";
     my $var = $1;
+#    if ($var =~ /$\{exec:.+\}$/) {
+#    	my $exec = $1;
+#    	if ($exec !~ /$\/usr/abills\/\misc\/ /);
+#    	my $exec_content = system("$1");
+#    	$tpl =~ s/\%$var\%/$exec_content/g;
+#     }
+#    els
     if (defined($variables_ref->{$var})) {
     	$tpl =~ s/\%$var\%/$variables_ref->{$var}/g;
-    }
+     }
     else {
       $tpl =~ s/\%$var\%//g;
-    }
+     }
   }
 
   if($attr->{OUTPUT2RETURN}) {
