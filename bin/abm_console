@@ -873,14 +873,14 @@ sub form_parse {
   	my $val = '';
   	chop($val = <STDIN>);
   	
-  	if ($key eq 'CONFIRM' && $val =~ /n/) {
+  	if ($key eq 'CONFIRM' && $val =~ /n/i) {
   		
   	 }
   	elsif ($val eq '') {
       $values{$key}=$default;
   	 } 
   	elsif ($key eq 'DISABLE') {
-  		$values{$key}= ($val =~ /n/) ? 0  : 1 ;
+  		$values{$key}= ($val =~ /n/i) ? 0  : 1 ;
   	 }
   	else {
   	  $values{$key}=$val;
