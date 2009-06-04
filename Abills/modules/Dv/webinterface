@@ -1490,6 +1490,34 @@ my %CAPTIONS_HASH = ('1:DATE:right'            => $_DATE,
                      '92:SUM:right'            => $_SUM);
 
 
+my %ACCT_TERMINATE_CAUSES = (
+                      'Unknown'             =>     0,
+                      'User-Request'        =>     1,
+                      'Lost-Carrier'        =>     2,
+                      'Lost-Service'        =>     3,
+                      'Idle-Timeout'        =>     4,
+                      'Session-Timeout'     =>     5,
+                      'Admin-Reset'         =>     6,
+                      'Admin-Reboot'        =>     7,
+                      'Port-Error'          =>     8,
+                      'NAS-Error'           =>     9,
+                      'NAS-Request'         =>     10,
+                      'NAS-Reboot'          =>     11,
+                      'Port-Unneeded'       =>     12,
+                      'Port-Preempted'      =>     13,
+                      'Port-Suspended'      =>     14,
+                      'Service-Unavailable' =>     15,
+                      'Callback'            =>     16,
+                      'User-Error'          =>     17,
+                      'Host-Request'        =>     18,
+                      'Supplicant-Restart'  =>     19,
+                      'Reauthentication-Failure' => 20,
+                      'Port-Reinit'         =>     21,
+                      'Port-Disabled'       =>     22       
+                    );
+
+my %ACCT_TERMINATE_CAUSES_REV = reverse %ACCT_TERMINATE_CAUSES;
+
     my $i=1; 
     my $list = $users->config_list({ PARAM => 'ifu*'  });
     my %INFO_LISTS = (); 
@@ -1566,7 +1594,8 @@ if ($FORM{COMPANY_ID}) {
 my ($tables_sessions);
 my $output = '';
 
-my %TP_NAMES = ();
+my %TP_NAMES    = ();
+my %GROUP_NAMES = ();
 
 my %DATA_HASH = ();
 my %CHART = ();
@@ -1574,6 +1603,8 @@ my %AVG = (MONEY    => 0,
            TRAFFIC  => 0,
            DURATION => 0);
 
+my @CHART_TYPE  = ('column', 'line');
+my @CHART_TYPE2 = ('area', 'area');
 my $graph_type='';
 
 #Day reposrt
@@ -1679,18 +1710,40 @@ else {
   	@field_align = ('right', 'right', 'right', 'right', 'right', 'right', 'right');
    }
 
+    $graph_type='month_stats';
+
     if ($FORM{TYPE} eq 'USER') {
     	$caption[0]="$_USER";
   	  $caption[1]="$_LOGINS";
-  	  $graph_type='';
+     }
+    elsif ($FORM{TYPE} eq 'TERMINATE_CAUSE') {
+    	$caption[0]="$_ERROR";
+    	@CHART_TYPE=('pie');
+    	$graph_type='pie';
      }
     elsif ($FORM{TYPE} eq 'TP') {
     	$caption[0]="$_TARIF_PLAN";
+
+    	@CHART_TYPE2  = ('column', 'line');
+    	$CHART{AXIS_CATEGORY_skip}=0;
+
     	my $list = $tariffs->list();
-    	
+   	
     	foreach my $line (@$list) {
     		$TP_NAMES{$line->[0]}=$line->[1];
     	 }
+     }
+    elsif($FORM{TYPE} eq 'GID') {
+    	@CHART_TYPE2  = ('column', 'line');
+    	$CHART{AXIS_CATEGORY_skip}=0;
+
+    	$caption[0]="$_GROUPS";
+    	my $list = $users->groups_list();
+   	
+    	foreach my $line (@$list) {
+    		$GROUP_NAMES{$line->[0]}=$line->[1];
+    	 }
+
      }
     elsif ($FORM{TP_ID}) {
     	$caption[0]="$_LOGINS";
@@ -1706,7 +1759,7 @@ else {
                                } );
 
 
-  $graph_type='month_stats';
+  
   my $num = 0;
 
   
@@ -1730,6 +1783,9 @@ else {
         elsif ($fields_arr[$i] =~ 'TP') {
         	push @rows, $button = $line->[0].'. ' .$html->button($TP_NAMES{$line->[0]}, "index=$index&TP_ID=$line->[0]$pages_qs");
          }
+        elsif ($fields_arr[$i] =~ 'GID') {
+        	push @rows, $button = $line->[0].'. ' .$html->button($GROUP_NAMES{$line->[0]}, "index=$index&GID=$line->[0]$pages_qs");
+         }
         else {
           push @rows, $line->[$i];
          }
@@ -1743,9 +1799,20 @@ else {
     	 elsif ($FORM{TYPE} eq 'TP') {
     	 	 $button = $line->[0].'. ' .$html->button($TP_NAMES{$line->[0]}, "index=$index&TP_ID=$line->[0]$pages_qs");
     	  }
+    	 elsif ($FORM{TYPE} eq 'GID') {
+    	 	 $button = $line->[0].'. ' .$html->button($GROUP_NAMES{$line->[0]}, "index=$index&GID=$line->[0]$pages_qs");
+    	  }
     	 elsif ($FORM{TP_ID}) {
     	 	 $button = $html->button("$line->[0]", "index=11&$type=$line->[0]&UID=$line->[7]");
     	  }
+       elsif ($FORM{TYPE} eq 'TERMINATE_CAUSE') {
+         $button = $html->button($ACCT_TERMINATE_CAUSES_REV{$line->[0]}, "index=$index&$type=$line->[0]&TERMINATE_CAUSE=$line->[0]$pages_qs");
+
+         $DATA_HASH{TYPE}[$num+1]  = $line->[3];
+         $CHART{X_TEXT}[$num]      = $line->[0];
+
+         $num++;
+        }
     	 else {
     	 	 $button = $html->button("$line->[0]", "index=$index&$type=$line->[0]$pages_qs");
     	  }
@@ -1758,26 +1825,32 @@ else {
        $line->[5], 
        $html->b($line->[6]) );
 
-      $AVG{USERS}    = $line->[1] if ($AVG{USERS} < $line->[1]);
-      $AVG{TRAFFIC}  = $line->[3] if ($AVG{TRAFFIC} < $line->[3]);
 
-      $AVG{DURATION} = time2sec($line->[5]) if ($AVG{DURATION} < time2sec($line->[5]));
-      $AVG{MONEY}    = $line->[6] if ($AVG{MONEY} < $line->[6]);
+      if ($FORM{TYPE} ne 'TERMINATE_CAUSE')  {
+        $AVG{USERS}    = $line->[1] if ($AVG{USERS} < $line->[1]);
+        $AVG{TRAFFIC}  = $line->[3] if ($AVG{TRAFFIC} < $line->[3]);
 
+        $AVG{DURATION} = time2sec($line->[5]) if ($AVG{DURATION} < time2sec($line->[5]));
+        $AVG{MONEY}    = $line->[6] if ($AVG{MONEY} < $line->[6]);
 
-
-      if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
-      	 $num = $3;
-        }
-      elsif ($line->[0] =~ /(\d+)-(\d+)/) {
-      	 $CHART{X_LINE}[$num]=$line->[0];
-       	 $num++;
-       }
+        if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
+        	 $num = $3;
+          }
+        elsif ($line->[0] =~ /(\d+)-(\d+)/) {
+        	 $CHART{X_LINE}[$num]=$line->[0];
+        	 $num++;
+         }
+        else {
+        	$CHART{X_TEXT}[$num]=$line->[0];
+        	$num++;
+         }
      
-      $DATA_HASH{USERS}[$num]     = $line->[1];      
-      $DATA_HASH2{TRAFFIC}[$num]  = $line->[3];
-      $DATA_HASH2{DURATION}[$num] = time2sec($line->[5]);
-      $DATA_HASH{MONEY}[$num]     = $line->[6];
+        $DATA_HASH{USERS}[$num]     = $line->[1];      
+        $DATA_HASH2{TRAFFIC}[$num]  = $line->[3];
+        $DATA_HASH2{DURATION}[$num] = time2sec($line->[5]);
+        $DATA_HASH{MONEY}[$num]     = $line->[6];
+      }
+
      }
 
     $table_sessions->addrow(@rows);
@@ -1786,15 +1859,22 @@ else {
    }
 
 
+print "111 $graph_type /";
+if ($graph_type ne 'pie') {
+	
 $output = $html->make_charts({  
 	 PERIOD     => $graph_type,
 	 DATA       => \%DATA_HASH2,
 	 AVG        => \%AVG,
-	 TYPE       => ['area', 'area'],
+	   
+	 TYPE       => \@CHART_TYPE2,
 	 TRANSITION => 1,
-   OUTPUT2RETURN => 1
+   OUTPUT2RETURN => 1,
+   %CHART
   });
 
+  #%CHART = ();
+}
 
 }
 
@@ -1824,15 +1904,18 @@ print $table_sessions->show() . $table->show();
 $table = $html->table({ rows => [[ $output  ]] });
 print $table->show();
 
-$html->make_charts({  
-	 PERIOD     => $graph_type,
-	 DATA       => \%DATA_HASH,
-	 AVG        => \%AVG,
-	 TYPE       => ['column', 'line'],
-	 TRANSITION => 1,
 
-  });
+if ($graph_type ne '') {
+  $html->make_charts({  
+	   PERIOD     => $graph_type,
+	   DATA       => \%DATA_HASH,
+	   AVG        => \%AVG,
+	   TYPE       => \@CHART_TYPE,
+	   TRANSITION => 1,
+	   %CHART 
+    });
 
+}
 
 
 }
