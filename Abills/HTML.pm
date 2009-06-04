@@ -1785,7 +1785,6 @@ sub make_charts {
   my $CHART_RECT_x = ($attr->{CHART_RECT_x}) ? $attr->{CHART_RECT_x} : 50 ;  
   my $CHART_RECT_y = ($attr->{CHART_RECT_y}) ? $attr->{CHART_RECT_y} : 70 ;  
 
-
   my $data = '<chart>'
   .$ex_params
 
