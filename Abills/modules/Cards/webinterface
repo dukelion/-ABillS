@@ -1155,7 +1155,7 @@ sub cards_diller_face {
   
   if ($Cards->{TOTAL} < 1) {
      $html->setCookie('sid', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
-     print "Content-Type: text/html\n\n";
+     $html->header();
      $html->message('info', $_INFO, "$_NOT_EXIST");
      exit; 	
    }
@@ -1167,6 +1167,8 @@ sub cards_diller_face {
   	 }
    }
   else {
+  	#$html->header();
+  	print "Content-Type: text/html\n\n";
   	$html->message('info', $_INFO, "$ERR_SMALL_DEPOSIT");
    }
 
@@ -1241,6 +1243,7 @@ if ($FORM{add}) {
      print $html->header();
 
      if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
+   	   
    	   $html->message('err', $_ERROR, "$_EXIST");
    	   print "$_ICARDS $_EXIST ";
    	   exit;

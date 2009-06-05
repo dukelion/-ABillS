@@ -72,13 +72,18 @@ sub user_info {
   tp.payment_type,
   tp.neg_deposit_filter_id,
   tp.credit,
-  tp.credit_tresshold
+  tp.credit_tresshold,
+  tp_int.id,
+  count(DISTINCT tp_int.id),
+  count(DISTINCT tt.id)
 
    FROM (dv_main dv, users u)
    LEFT JOIN tarif_plans tp ON  (dv.tp_id=tp.id)
-   WHERE 
-    u.uid=dv.uid
-   $WHERE;");
+   LEFT JOIN intervals tp_int ON  (tp_int.tp_id=tp.id)
+   LEFT JOIN trafic_tarifs tt ON  (tt.interval_id=tp_int.id)
+   WHERE    u.uid=dv.uid
+   $WHERE
+   GROUP BY u.uid;");
 
 	if($self->{TOTAL} < 1) {
   	return $self;
@@ -110,8 +115,10 @@ sub user_info {
    $self->{PAYMENT_TYPE},
    $self->{NEG_DEPOSIT_FILTER_ID},
    $self->{TP_CREDIT},
-   $self->{CREDIT_TRESSHOLD}
-
+   $self->{CREDIT_TRESSHOLD},
+   $self->{INTERVAL_ID},
+   $self->{TT_COUNTS},
+   $self->{INTERVAL_COUNTS}
   )= @{ $self->{list}->[0] };
 
   
@@ -233,13 +240,16 @@ if ($self->{IP} ne '0.0.0.0') {
 
 my $debug = 0;
 
-#  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"A$service\"";
-#  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED1\"";
-#  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED2\"";
-#  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "\"NTURBO_SPEED3\"";
-#  push @{ $RAD_PAIRS{'cisco-avpair'} }, "\"subscriber:accounting-list=BH_ACCNT_LIST1\"";
+if ($self->{TT_COUNTS} > 0) {
+  $self->query($db, "SELECT id FROM trafic_tarifs WHERE interval_id='$self->{INTERVAL_ID}';");
+  foreach my $line ( @{ $self->{list} }) {
+  	push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "ATP_$self->{TP_ID}_$line->[0]";
+   }
+ }
+else {
+  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "A$service";
+}
 
-push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "A$service";
 
 if ($service =~ /^TP/) {
   push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED1";
@@ -270,22 +280,31 @@ sub make_tp {
   my %expr   = ();
   my %names  = ();
   my $TP_ID  = 0;
+  my $TT_ID  = 0;
   my $debug  = 0;
 
-  if ($RAD->{USER_NAME} =~ /TP_(\d+)/) {
+  if ($RAD->{USER_NAME} =~ /TP_(\d+)_(\d+)/) {
+    $TP_ID = $1;
+    $TT_ID = $2;
+   }
+  elsif ($RAD->{USER_NAME} =~ /TP_(\d+)/) {
   	$TP_ID = $1;
    }
   my $RAD_PAIRS ;
+
 
 $self->query($db, "select  
   UNIX_TIMESTAMP(),
   UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP()), '%Y-%m-%d')),
   DAYOFWEEK(FROM_UNIXTIME(UNIX_TIMESTAMP())),
   DAYOFYEAR(FROM_UNIXTIME(UNIX_TIMESTAMP())),
-  tp.rad_pairs
+  tp.rad_pairs,
+  tt.in_speed,
+  tt.out_speed
      FROM tarif_plans tp
      LEFT JOIN intervals i ON (tp.id = i.tp_id)
-     WHERE tp.id='$TP_ID'
+     LEFT JOIN trafic_tarifs tt ON (tt.interval_id = i.id)
+     WHERE tp.id='$TP_ID' and tt.id='$TT_ID'
   ;");
 
 
@@ -294,7 +313,7 @@ $self->query($db, "select
   	return 1, $RAD_PAIRS;
    }
   elsif ($self->{TOTAL} < 1) {
-    $RAD_PAIRS->{'Reply-Message'}="Can't find TP '$TP_ID'";
+    $RAD_PAIRS->{'Reply-Message'}="Can't find TP '$TP_ID' TT: '$TT_ID'";
     return 1, $RAD_PAIRS;
    }
 
@@ -305,10 +324,20 @@ $self->query($db, "select
      $self->{DAY_OF_WEEK}, 
      $self->{DAY_OF_YEAR},
      $self->{TP_RAD_PAIRS},
-     $self->{INTERVALS},
+     $self->{IN_SPEED},
+     $self->{OUT_SPEED}
     ) = @{ $self->{list}->[0] };
 
 #chack TP Radius Pairs
+
+  if ($TT_ID > 0) {
+     push @{ $RAD_PAIRS->{'cisco-avpair'} }, "ip:traffic-class=input access-group name ACL_IN_INTERNET_$TT_ID priority ". (($TT_ID + 1) * 100);
+     push @{ $RAD_PAIRS->{'cisco-avpair'} }, "ip:traffic-class=output access-group name ACL_OUT_INTERNET_$TT_ID priority ". (($TT_ID + 1) * 100);
+     push @{ $RAD_PAIRS->{'cisco-avpair'} }, "ip:traffic-class=out default drop";
+     push @{ $RAD_PAIRS->{'cisco-avpair'} }, "ip:traffic-class=in default drop";
+     push @{ $RAD_PAIRS->{'cisco-avpair'} }, "subscriber:accounting-list=BH_ACCNT_LIST_$TT_ID";
+    }
+  else {
 
   if ($self->{TP_RAD_PAIRS}) {
     my @p = split(/,/, $self->{TP_RAD_PAIRS});
@@ -330,15 +359,8 @@ $self->query($db, "select
        }
      }
    }
+}
 
-
-
-#
-#  if ($self->{SPEED} > 0) {
-#    $speeds{0}{IN}=int($self->{SPEED});
-#    $speeds{0}{OUT}=int($self->{SPEED});
-#   }
-#  else {
 
     ($self->{TIME_INTERVALS},
      $self->{INTERVAL_TIME_TARIF}, 
@@ -402,14 +424,15 @@ $self->query($db, "select
 #
 #  
 #  #Make speed
-  foreach my $traf_type (sort keys %speeds) {
-    my $speed = $speeds{$traf_type};
+
+    my $speed = $speeds{$TT_ID};
     
     my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN}  : 0;
     my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} : 0;
   
     my $speed_in_rule = '';
     my $speed_out_rule = '';
+
     if ($speed_in > 0) {
     	$speed_in_rule = "D;" . ($speed_in * 1000) .";". 
       ( $speed_in / 8 * 1000 ).';'.
@@ -427,7 +450,7 @@ $self->query($db, "select
       $RAD_PAIRS->{'Cisco-Service-Info'} = "Q$speed_out_rule;$speed_in_rule";
      }
 
-  }
+
 	
 	return 0, $RAD_PAIRS;
 }

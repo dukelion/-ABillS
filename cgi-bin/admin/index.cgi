@@ -3382,7 +3382,7 @@ elsif ($FORM{newpassword} eq $FORM{confirm}) {
   $FORM{PASSWORD} = $FORM{newpassword};
   }
 elsif($FORM{newpassword} ne $FORM{confirm}) {
-  $html->message('err', $_ERROR, $err_strs{5});
+  $html->message('err', $_ERROR, "$ERR_WRONG_CONFIRM");
 }
 
 #$password_form->{GEN_PASSWORD}=mk_unique_value(8);
