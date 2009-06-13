@@ -265,7 +265,6 @@ $_FOLDER='Folder';
 
 #==new
 $_LIST='List';
-$_SA_ONLY = 'Self added only';
 $_REPORTS = 'Reports';
 $_MODULES = 'Modules';
 $_SYSTEM = 'System configuration';
