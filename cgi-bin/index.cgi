@@ -5,7 +5,8 @@
 
 
 
-use vars qw($begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST $UID $user $admin 
+use vars qw($begin_time %LANG $CHARSET @MODULES $USER_FUNCTION_LIST 
+$UID $user $admin 
 $sid
 
 @ones
@@ -43,7 +44,6 @@ BEGIN {
 
 require "config.pl";
 require "Abills/defs.conf";
-require "Abills/templates.pl";
 use Abills::Base;
 use Abills::SQL;
 use Abills::HTML;
@@ -70,8 +70,8 @@ $html->{language}=$FORM{language} if (defined($FORM{language}) && $FORM{language
 require "../language/$html->{language}.pl";
 $sid = $FORM{sid} || ''; # Session ID
 if ((length($COOKIES{sid})>1) && (! $FORM{passwd})) {
-  $COOKIES{sid} =~ s/"//g;
-  $COOKIES{sid} =~ s/'//g;
+  $COOKIES{sid} =~ s/\"//g;
+  $COOKIES{sid} =~ s/\'//g;
   $sid = $COOKIES{sid};
 }
 elsif((length($COOKIES{sid})>1) && (defined($FORM{passwd}))){
@@ -93,6 +93,13 @@ if (defined($FORM{sid})) {
 }
 #===========================================================
 
+require Admins;
+Admins->import();
+$admin = Admins->new($db, \%conf);
+$admin->info($conf{SYSTEM_ADMIN_ID}, { DOMAIN_ID => $FORM{DOMAIN_ID} });
+$conf{WEB_TITLE} = $admin->{DOMAIN_NAME};
+require "Abills/templates.pl";
+
 
 if ($index == 10) {
   $user=Users->new($db, $admin, \%conf); 
@@ -106,10 +113,6 @@ my $maxnumber = 0;
 my $uid = 0;
 my $page_qs;
 
-require Admins;
-Admins->import();
-$admin = Admins->new($db, \%conf);
-$admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 
 my %OUTPUT = ();
 
@@ -404,6 +407,7 @@ sub form_info {
     $user->{EXT_DATA}=$html->tpl_show(templates('form_ext_bill'), 
                                              $user, { OUTPUT2RETURN => 1 });
    }
+  
   $html->tpl_show(templates('form_client_info'), $user);
 
   if ($conf{user_chg_pi}) {

@@ -83,6 +83,10 @@ sub list {
   	push @WHERE_RULES, "id IN ($attr->{NAS_IDS})";
   }
 
+  if($attr->{DOMAIN_ID}) {
+  	push @WHERE_RULES, "domain_id IN ($attr->{DOMAIN_ID})";
+  }
+
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
@@ -119,7 +123,7 @@ sub info {
 
 
 $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
- DECODE(mng_password, '$SECRETKEY'), rad_pairs, alive, disable, ext_acct
+ DECODE(mng_password, '$SECRETKEY'), rad_pairs, alive, disable, ext_acct, address_build, address_street, address_flat, zip, city, domain_id
  FROM nas
  WHERE $WHERE
  ORDER BY nas_identifier DESC;");
@@ -146,7 +150,14 @@ $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_ty
    $self->{NAS_RAD_PAIRS},
    $self->{NAS_ALIVE},
    $self->{NAS_DISABLE},
-   $self->{NAS_EXT_ACCT}) = @{ $self->{list}->[0] };
+   $self->{NAS_EXT_ACCT},
+   $self->{ADDRESS_BUILD},
+   $self->{ADDRESS_STREET},
+   $self->{ADDRESS_FLAT},
+   $self->{ZIP},
+   $self->{CITY},
+   $self->{DOMAIN_ID}
+   ) = @{ $self->{list}->[0] };
 
  return $self;
 }
@@ -180,7 +191,14 @@ sub change {
   NAS_RAD_PAIRS       => 'rad_pairs',
   NAS_ALIVE           => 'alive',
   NAS_DISABLE         => 'disable',
-  NAS_EXT_ACCT        => 'ext_acct');
+  NAS_EXT_ACCT        => 'ext_acct',
+  ADDRESS_BUILD       => 'address_build',
+  ADDRESS_STREET      => 'address_street',
+  ADDRESS_FLAT        => 'address_flat',
+  ZIP                 => 'zip',
+  CITY                => 'city',
+  DOMAIN_ID           => 'domain_id',
+  );
 
 
   $self->changes($admin, { CHANGE_PARAM => 'NAS_ID',
@@ -208,10 +226,15 @@ sub add {
  %DATA = $self->get_data($attr); 
 
  $self->query($db, "INSERT INTO nas (name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
- mng_password, rad_pairs, alive, disable, ext_acct)
+ mng_password, rad_pairs, alive, disable, ext_acct, 
+ address_build, address_street, address_flat, zip, city, domain_id)
  values ('$DATA{NAS_NAME}', '$DATA{NAS_INDENTIFIER}', '$DATA{NAS_DESCRIBE}', '$DATA{NAS_IP}', '$DATA{NAS_TYPE}', '$DATA{NAS_AUTH_TYPE}',
   '$DATA{NAS_MNG_IP_PORT}', '$DATA{NAS_MNG_USER}', ENCODE('$DATA{NAS_MNG_PASSWORD}', '$SECRETKEY'), '$DATA{NAS_RAD_PAIRS}',
-  '$DATA{NAS_ALIVE}', '$DATA{NAS_DISABLE}', '$DATA{NAS_EXT_ACCT}');", 'do');
+  '$DATA{NAS_ALIVE}', '$DATA{NAS_DISABLE}', '$DATA{NAS_EXT_ACCT}',
+  '$DATA{ADDRESS_BUILD}', '$DATA{ADDRESS_STREET}', '$DATA{ADDRESS_FLAT}', '$DATA{ZIP}', '$DATA{CITY}', '$DATA{DOMAIN_ID}'
+  );", 'do');
+
+
 
 
  $admin->system_action_add("NAS_ID:$self->{INSERT_ID}", { TYPE => 1 });    
@@ -219,7 +242,7 @@ sub add {
 }
 
 #**********************************************************
-# Add nas server
+# ADel nas server
 # add($self)
 #**********************************************************
 sub del {
@@ -359,6 +382,7 @@ sub ip_pools_list {
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  
  my $WHERE = (defined($self->{NAS_ID})) ? "and pool.nas='$self->{NAS_ID}'" : '' ;
+
 
  $self->query($db, "SELECT nas.name, pool.name, 
    pool.ip, pool.ip + pool.counts, pool.counts, pool.priority,

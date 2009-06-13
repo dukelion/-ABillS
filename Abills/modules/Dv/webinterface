@@ -577,15 +577,16 @@ elsif (defined($FORM{TP_ID})) {
                                           { 
  	                                          SELECTED          => $FORM{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS }),
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MULTI_ARRAY_KEY   => 18,
+ 	                                          MULTI_ARRAY_VALUE => '0,1',
+ 	                                          NO_ID             => 1
  	                                        }),
 	                                          HIDDEN  => { index => "$index" },
 	                                          SUBMIT  => { show  => "$_SHOW" } 
-	                        });
+	                                       });
   
   func_menu({ 
-  	         'ID' =>   $tariffs->{TP_ID}, 
+  	         'ID' =>   $tariffs->{ID}, 
   	         $_NAME => $tariffs->{NAME_SEL}
   	       }, 
   	{ 
@@ -700,8 +701,8 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
-    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[0]");
+    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]");
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
@@ -712,14 +713,14 @@ foreach my $line (@$list) {
    }
   
   $table->addrow($html->b($line->[0]), 
-   $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
+   $html->button($line->[1], "index=$index&TP_ID=$line->[18]"),
    $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], 
    $line->[5], 
    $line->[6], 
    $line->[7], 
    $line->[8], 
    $line->[9],
-   $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[0]"),
+   $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[18]"),
    $change,
    $delete);
 }

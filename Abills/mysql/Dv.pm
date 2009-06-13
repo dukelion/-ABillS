@@ -416,8 +416,7 @@ sub list {
      LEFT JOIN dv_log l ON  (l.uid=u.uid) 
      WHERE  
         u.bill_id=b.id
-        and (b.deposit+u.credit-tp.credit_tresshold<=0
-        and tp.hourp+tp.df+tp.abon>=0)
+        and (b.deposit+u.credit-tp.credit_tresshold<=0)
         or (
         (u.expire<>'0000-00-00' and u.expire < CURDATE())
         AND (u.activate<>'0000-00-00' and u.activate > CURDATE())

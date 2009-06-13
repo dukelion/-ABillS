@@ -20,9 +20,9 @@ use main;
 
 
 
-my %FIELDS = ( TP_ID            => 'id', 
+my %FIELDS = ( TP               => 'id', 
+               TP_ID            => 'tp_id', 
                NAME             => 'name',  
-               TIME_TARIF       => 'hourp',
                DAY_FEE          => 'day_fee',
                MONTH_FEE        => 'month_fee',
                REDUCTION_FEE    => 'reduction_fee',
@@ -55,7 +55,8 @@ my %FIELDS = ( TP_ID            => 'id',
                IPPOOL           => 'ippool',
                PERIOD_ALIGNMENT => 'period_alignment',
                MIN_USE          => 'min_use',
-               ABON_DISTRIBUTION=> 'abon_distribution'
+               ABON_DISTRIBUTION=> 'abon_distribution',
+               DOMAIN_ID        => 'domain_id'
 
              );
 
@@ -96,8 +97,11 @@ sub ti_del {
 sub ti_add {
 	my $self = shift;
 	my ($attr) = @_;
+
 	$self->query($db, "INSERT INTO intervals (tp_id, day, begin, end, tarif)
      values ('$self->{TP_ID}', '$attr->{TI_DAY}', '$attr->{TI_BEGIN}', '$attr->{TI_END}', '$attr->{TI_TARIF}');", 'do');
+  
+  $self->{INTERVAL_ID}=$self->{INSERT_ID};
   
   $admin->system_action_add("TI:$self->{INSERT_ID} TP:$self->{TP_ID}", { TYPE => 1 });  
 	return $self;
@@ -227,8 +231,8 @@ sub  ti_defaults {
 
 
 #**********************************************************
-# Time_intervals
-# ti_add
+# TP GROUP
+# 
 #**********************************************************
 sub tp_group_del {
 	my $self = shift;
@@ -241,8 +245,8 @@ sub tp_group_del {
 
 
 #**********************************************************
-# Time_intervals
-# tp_group_add
+# TP GROUP
+# 
 #**********************************************************
 sub tp_group_add {
 	my $self = shift;
@@ -256,8 +260,8 @@ sub tp_group_add {
 }
 
 #**********************************************************
-# Time_intervals  list
-# tp_group_list
+# TP GROUP
+# 
 #**********************************************************
 sub tp_group_list {
 	my $self = shift;
@@ -275,7 +279,8 @@ sub tp_group_list {
 }
 
 #**********************************************************
-# Time intervals change
+# TP GROUP
+#
 #**********************************************************
 sub tp_group_change {
   my $self = shift;
@@ -310,7 +315,7 @@ sub tp_group_change {
 
 
 #**********************************************************
-# Time_intervals  info
+# TP GROUP
 # tp_group_info();
 #**********************************************************
 sub tp_group_info {
@@ -362,7 +367,7 @@ sub tp_group_defaults {
 sub defaults {
   my $self = shift;
 
-  %DATA = ( TP_ID => 0, 
+  %DATA = ( TP                 => 0, 
             NAME               => '',  
             TIME_TARIF         => '0.00000',
             DAY_FEE            => '0.00',
@@ -397,8 +402,8 @@ sub defaults {
             IPPOOL           => '0',
             PERIOD_ALIGNMENT => '0',
             MIN_USE          => '0.00',
-            ABON_DISTRIBUTION=> 0
-
+            ABON_DISTRIBUTION=> 0,
+            DOMAIN_ID        => 0
          );   
  
   $self = \%DATA;
@@ -415,7 +420,7 @@ sub add {
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
-  $self->query($db, "INSERT INTO tarif_plans (id, hourp, uplimit, name, 
+  $self->query($db, "INSERT INTO tarif_plans (id, uplimit, name, 
      month_fee, day_fee, reduction_fee, 
      postpaid_daily_fee, 
      postpaid_monthly_fee,
@@ -429,9 +434,10 @@ sub add {
      ippool,
      period_alignment,
      min_use,
-     abon_distribution
+     abon_distribution,
+     domain_id
      )
-    values ('$DATA{TP_ID}', '$DATA{TIME_TARIF}', '$DATA{ALERT}', \"$DATA{NAME}\", 
+    values ('$DATA{ID}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', 
      '$DATA{POSTPAID_DAY_FEE}', 
      '$DATA{POSTPAID_MONTH_FEE}', 
@@ -449,10 +455,13 @@ sub add {
      '$DATA{IPPOOL}',
      '$DATA{PERIOD_ALIGNMENT}', 
      '$DATA{MIN_USE}',
-     '$DATA{ABON_DISTRIBUTION}'
+     '$DATA{ABON_DISTRIBUTION}',
+     '$admin->{DOMAIN_ID}'
      );", 'do' );
 
 
+
+  $self->{TP_ID}=$self->{INSERT_ID};
 
   $admin->system_action_add("TP:$DATA{TP_ID}", { TYPE => 1 });    
   return $self;
@@ -467,10 +476,11 @@ sub change {
   my $self = shift;
   my ($tp_id, $attr) = @_;
 
-  if ($tp_id != $attr->{CHG_TP_ID}) {
-  	 $FIELDS{CHG_TP_ID}='id';
-   }
+  #if ($tp_id != $attr->{CHG_TP_ID}) {
+  #	 $FIELDS{CHG_TP_ID}='tp_id';
+  # }
  
+
   $attr->{REDUCTION_FEE}=0      if (! $attr->{REDUCTION_FEE});
   $attr->{POSTPAID_DAY_FEE}=0   if (! $attr->{POSTPAID_DAY_FEE});
   $attr->{POSTPAID_MONTH_FEE}=0 if (! $attr->{POSTPAID_MONTH_FEE});
@@ -487,11 +497,12 @@ sub change {
 		                EXT_CHANGE_INFO  => "TP_ID:$tp_id"
 		              } );
 
-  if ($tp_id != $attr->{CHG_TP_ID}) {
-  	 $attr->{TP_ID} = $attr->{CHG_TP_ID};
-   }
+  #if ($tp_id != $attr->{CHG_TP_ID}) {
+  #	 $attr->{TP_ID} = $attr->{CHG_TP_ID};
+  # }
 
   $self->info($attr->{TP_ID}, { MODULE => $attr->{MODULE} });
+
 	return $self;
 }
 
@@ -507,7 +518,7 @@ sub del {
   	$WHERE = " and module='$attr->{MODULE}'";
    }
   	
-  $self->query($db, "DELETE FROM tarif_plans WHERE id='$id'$WHERE;", 'do');
+  $self->query($db, "DELETE FROM tarif_plans WHERE tp_id='$id'$WHERE;", 'do');
   
   $admin->system_action_add("TP:$id", { TYPE => 10 });    
 
@@ -557,9 +568,10 @@ sub info {
       period_alignment,
       min_use,
       abon_distribution,
-      tp_id
+      tp_id,
+      domain_id
     FROM tarif_plans
-    WHERE id='$id'$WHERE;");
+    WHERE tp_id='$id'$WHERE;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
@@ -568,7 +580,7 @@ sub info {
    }
 
   
-  ($self->{TP_ID}, 
+  ($self->{ID}, 
    $self->{NAME}, 
    $self->{DAY_FEE}, 
    $self->{MONTH_FEE}, 
@@ -603,7 +615,8 @@ sub info {
    $self->{PERIOD_ALIGNMENT}, 
    $self->{MIN_USE},
    $self->{ABON_DISTRIBUTION},
-   $self->{ID}
+   $self->{TP_ID},
+   $self->{DOMAIN_ID}
   ) = @{ $self->{list}->[0] };
 
 
@@ -641,6 +654,13 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{MIN_USE}, 'INT', 'tp.min_use') };  	
   }
 
+ if ($admin->{DOMAIN_ID}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr($admin->{DOMAIN_ID}, 'INT', 'tp.domain_id') };  	
+  }
+ elsif (defined($attr->{DOMAIN_ID})) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DOMAIN_ID}, 'INT', 'tp.domain_id') };  	
+  }
+
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
@@ -660,9 +680,10 @@ sub list {
     tp.ext_bill_account,
     tp.credit,
     tp.min_use,
-    tp.abon_distribution
+    tp.abon_distribution,
+    tp.tp_id
     FROM (tarif_plans tp)
-    LEFT JOIN intervals i ON (i.tp_id=tp.id)
+    LEFT JOIN intervals i ON (i.tp_id=tp.tp_id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
     LEFT JOIN tp_groups tp_g ON (tp.gid=tp_g.id)
     $WHERE
@@ -812,6 +833,8 @@ sub  tt_info {
      interval_id='$attr->{TI_ID}'
      and id='$attr->{TT_ID}';");
 
+  return $self if ($self->{TOTAL} == 0);
+
   ($self->{TT_ID},
    $self->{TI_ID},
    $self->{TT_PRICE_IN},
@@ -886,6 +909,9 @@ sub  tt_change {
 
 
   $admin->system_action_add("TT: TI:$attr->{TI_ID}", { TYPE => 2 });    
+
+  $self->tt_info({ TI_ID => $attr->{TI_ID}, TT_ID => $DATA{TT_ID}  });
+
 
   if ($attr->{DV_EXPPP_NETFILES}) {
     $self->create_nets({ TI_ID => $attr->{TI_ID} });

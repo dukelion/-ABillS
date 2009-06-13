@@ -381,8 +381,11 @@ sub form_main {
 
 
 	$self->{FORM}.="</form>\n";
-	
-	if (defined($self->{NO_PRINT})) {
+
+  if($attr->{OUTPUT2RETURN}) {
+		return $self->{FORM};
+	 }
+	elsif (defined($self->{NO_PRINT})) {
   	$self->{OUTPUT} .= $self->{FORM};
   	$self->{FORM} = '';
   }
@@ -757,6 +760,7 @@ sub header {
    $PRINTCSS = "$self->{PATH}$PRINTCSS";
   }
 
+ $CONF->{WEB_TITLE}=$self->{WEB_TITLE} if ($self->{WEB_TITLE});
 
  my $css = css();
  my $title = ($CONF->{WEB_TITLE}) ? $CONF->{WEB_TITLE} : "~AsmodeuS~ Billing System";

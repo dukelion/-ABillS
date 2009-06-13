@@ -2,6 +2,7 @@
 # 
 # http://www.maani.us/charts/index.php
 #use vars qw($begin_time);
+
 BEGIN {
   my $libpath = '../../';
  
@@ -25,8 +26,6 @@ BEGIN {
 
 require "config.pl";
 require "Abills/defs.conf";
-require "Abills/templates.pl";
-
 #
 #====End config
 
@@ -112,6 +111,10 @@ else {
   check_permissions('$REMOTE_USER');
 }
 
+if ($admin->{DOMAIN_ID}) {
+	$conf{WEB_TITLE}=$admin->{DOMAIN_NAME};
+}
+
 $index = 0;
 $html = Abills::HTML->new({ CONF     => \%conf, 
                             NO_PRINT => 0, 
@@ -128,6 +131,9 @@ if ($admin->{errno}) {
   if ($admin->{errno} == 2) {
   	$message = "Account Disabled or $admin->{errstr}";
    }
+  elsif ($admin->{errno} == 4) {
+  	$message = "Wrong password";
+   }
   elsif (! defined($REMOTE_USER)) {
     $message = "Wrong password";
    }
@@ -143,6 +149,7 @@ if ($admin->{errno}) {
 }
 
 
+require "Abills/templates.pl";
 #Operation system ID
 if ($FORM{OP_SID}) {
   $html->setCookie('OP_SID', $FORM{OP_SID}, "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
@@ -208,6 +215,10 @@ elsif  ($admin->{GID} > 0) {
   $LIST_PARAMS{GID}=$admin->{GID} 
  }
 
+if  ($admin->{DOMAIN_ID} > 0) {
+  $LIST_PARAMS{DOMAIN_ID}=$admin->{DOMAIN_ID};
+ }
+
 
 #Global Vars
 @action    = ('add', $_ADD);
@@ -268,7 +279,6 @@ foreach my $m (@MODULES) {
 
 use Users;
 $users = Users->new($db, $admin, \%conf); 
-
 
 #Quick index
 # Show only function results whithout main windows
@@ -506,6 +516,10 @@ sub check_permissions {
   
 
   if ($admin->{errno}) {
+    if ($admin->{errno} == 4) {
+      $admin->system_action_add("$login:$password", { TYPE => 11 });        	
+      $admin->{errno} = 4;
+     }
     return 1;
    }
   elsif($admin->{DISABLE} == 1) {
@@ -513,6 +527,7 @@ sub check_permissions {
   	$admin->{errstr} = 'DISABLED';
   	return 2;
    }
+  
   
   if ($admin->{WEB_OPTIONS}) {
     my @WO_ARR = split(/;/, $admin->{WEB_OPTIONS}	);
@@ -1207,6 +1222,7 @@ sub user_pi {
    }
 
   $index=30;
+  $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $user_pi, { notprint => 1 });
   $html->tpl_show(templates('form_pi'), $user_pi);
 }
 
@@ -1981,7 +1997,8 @@ sub form_system_changes {
                    7  => '-',
                    8  => "$_ENABLE",
                    9  => "$_DISABLE",
-                   10 => "$_DELETED");
+                   10 => "$_DELETED",
+                   11 => "$ERR_WRONG_PASSWD");
 
  
 if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {
@@ -2569,12 +2586,30 @@ $admin_form->{LNG_ACTION}=$_ADD;
 
 if ($FORM{AID}) {
   $admin_form->info($FORM{AID});
-  $LIST_PARAMS{AID}=$admin_form->{AID};  	
-  $pages_qs = "&AID=$admin_form->{AID}&subf=$FORM{subf}";
+  
+
+  $FORM{DOMAIN_ID}  = $admin_form->{DOMAIN_ID};
+  $LIST_PARAMS{AID} = $admin_form->{AID};  	
+  $pages_qs = "&AID = $admin_form->{AID}&subf=$FORM{subf}";
+
+
+  my $A_LOGIN = $html->form_main({ CONTENT => $html->form_select('AID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{AID},
+ 	                                          SEL_MULTI_ARRAY   => $admin->list({ %LIST_PARAMS }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        }),
+	                                          HIDDEN  => { index => "$index",
+	                                          	           subf  => $FORM{subf} 
+	                                          	           },
+	                                          SUBMIT  => { show  => "$_SHOW" } 
+	                        });
+
 
   func_menu({ 
   	         'ID'   => $admin_form->{AID}, 
-  	         $_NAME => $admin_form->{A_LOGIN}
+  	         $_NAME => $A_LOGIN
   	       }, 
   	{ 
   	 $_CHANGE         => ":AID=$admin_form->{AID}",
@@ -2621,7 +2656,7 @@ elsif ($FORM{add}) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA $_ADMIN $_LOGIN");  	
     }
   else {
-    $admin_form->add({ %FORM });
+    $admin_form->add({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });
     if (! $admin_form->{errno}) {
        $html->message('info', $_INFO, "$_ADDED");	
      }
@@ -2649,13 +2684,27 @@ if ($admin_form->{errno}) {
 $admin_form->{DISABLE} = ($admin_form->{DISABLE} > 0) ? 'checked' : '';
 $admin_form->{GROUP_SEL} = sel_groups();
 
+
+if ($admin->{DOMAIN_ID}) {
+	$admin_form->{DOMAIN_SEL} = $admin->{DOMAIN_NAME};
+ }
+elsif (in_array('Multidoms', \@MODULES)) {
+  require "../../Abills/modules/Multidoms/webinterface";
+  $admin_form->{DOMAIN_SEL} = multidoms_domains_sel();
+ }
+else  {
+  $admin_form->{DOMAIN_SEL}  = '';  
+ }
+
 $html->tpl_show(templates('form_admin'), $admin_form);
 
 my $table = $html->table( { width      => '100%',
 	                          caption    => $_ADMINS,
                             border     => 1,
-                            title      => ['ID', $_NAME, $_FIO, $_CREATE, $_STATUS,  $_GROUPS, '-', '-', '-', '-', '-', '-'],
-                            cols_align => ['right', 'left', 'left', 'right', 'left', 'center', 'center', 'center', 'center', 'center', 'center'],
+                            title      => ['ID', $_NAME, $_FIO, $_CREATE, $_STATUS,  $_GROUPS, 'Domain', 
+                              '-', '-', '-', '-', '-', '-'],
+                            cols_align => ['right', 'left', 'left', 'right', 'left', 'left', 'center', 
+                            'center', 'center', 'center', 'center', 'center'],
                          } );
 
 my $list = $admin_form->admins_groups_list({ ALL => 1 });
@@ -2665,7 +2714,7 @@ foreach my $line ( @$list) {
 }
 
 
-$list = $admin_form->list({ %LIST_PARAMS });
+$list = $admin->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
 foreach my $line (@$list) {
   $table->addrow($line->[0], 
     $line->[1], 
@@ -2673,6 +2722,7 @@ foreach my $line (@$list) {
     $line->[3], 
     $status[$line->[4]], 
     $line->[5] . $admin_groups{$line->[0]}, 
+    $line->[6],
    $html->button($_PERMISSION, "index=$index&subf=52&AID=$line->[0]"),
    $html->button($_LOG, "index=$index&subf=51&AID=$line->[0]"),
    $html->button($_PASSWD, "index=$index&subf=54&AID=$line->[0]"),
@@ -3003,7 +3053,7 @@ if($FORM{NAS_ID}) {
   	return 0;
    }
   elsif($FORM{change}) {
-    $nas->change({ %FORM });  
+    $nas->change({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });  
     if (! $nas->{errno}) {
        $html->message('info', $_CHANGED, "$_CHANGED $nas->{NAS_ID}");
      }
@@ -3013,7 +3063,7 @@ if($FORM{NAS_ID}) {
   $nas->{ACTION}='change';
  }
 elsif ($FORM{add}) {
-  $nas->add({	%FORM	});
+  $nas->add({	%FORM, DOMAIN_ID => $admin->{DOMAIN_ID}	});
 
   if (! $nas->{errno}) {
     $html->message('info', $_INFO, "$_ADDED '$FORM{NAS_IP}'");
@@ -3090,6 +3140,7 @@ if ($nas->{errno}) {
  	                               });
 
   $nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
+  $nas->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $nas, { notprint => 1 });
   $html->tpl_show(templates('form_nas'), $nas);
 
 my $table = $html->table( { width      => '100%',
@@ -3101,7 +3152,7 @@ my $table = $html->table( { width      => '100%',
                             ID         => 'NAS_LIST'
                            });
 
-my $list = $nas->list({ %LIST_PARAMS });
+my $list = $nas->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=61&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?" }); 
   $table->addrow($line->[0], 
@@ -3178,7 +3229,7 @@ if ($attr->{NAS}) {
    }
   $pages_qs = "&NAS_ID=$nas->{NAS_ID}";
 
-  $html->tpl_show(templates('form_ip_pools'), $nas);
+  $html->tpl_show(templates('form_ip_pools'), { %$nas, INDEX => 62 });
  }
 elsif($FORM{NAS_ID}) {
   $FORM{subf}=$index;
@@ -5062,6 +5113,19 @@ sub form_templates {
   my $main_templates_dir = '../../Abills/main_tpls/';
   my $template = '';
   my %info = ();
+  
+  my $domain_path = '';
+  if ($admin->{DOMAIN_ID}) {
+  	$domain_path="$admin->{DOMAIN_ID}/";
+	  $conf{TPL_DIR} = "$conf{TPL_DIR}/$domain_path";
+	  if (! -d "$conf{TPL_DIR}") {
+    	if (! mkdir("$conf{TPL_DIR}") ) {
+    		$html->message('err', $_ERROR, "Can't create file '$conf{TPL_DIR}' $!\n");
+    	  }
+     }
+   }
+
+
 
 $info{ACTION_LNG}=$_CHANGE;
 
@@ -5138,6 +5202,8 @@ elsif ($FORM{change}) {
 
   $info{TEMPLATE} = $FORM2{template};
   $info{TPL_NAME} = $FORM{tpl_name};
+  
+  
   
 	if (open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}")) {
 	  print FILE "$info{TEMPLATE}";

@@ -6,7 +6,7 @@ CREATE TABLE `admin_actions` (
   `aid` smallint(6) unsigned NOT NULL default '0',
   `id` int(11) unsigned NOT NULL auto_increment,
   `module` varchar(10) NOT NULL default '',
-  `action_type` TINYINT(2) NOT NULL DEFAULT '0',
+  `action_type` TINYINT(2) NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `uid` (`uid`)
@@ -48,6 +48,7 @@ CREATE TABLE `admins` (
   `web_options` text NOT NULL,
   `email` varchar(35) NOT NULL default '',
   `comments` text NOT NULL,
+  `domain_id` smallint(6) unsigned not null default '0',
   PRIMARY KEY  (`aid`),
   UNIQUE KEY `aid` (`aid`),
   UNIQUE KEY `id` (`id`)
@@ -70,10 +71,17 @@ CREATE TABLE `bills` (
   KEY `uid` (`uid`,`company_id`)
 ) ;
 
-# --------------------------------------------------------
-#
-# Структура таблиці `dv_calls`
-#
+
+CREATE TABLE `domains` (
+  `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(30) NOT NULL DEFAULT '',
+  `comments` TEXT NOT NULL,
+  `created` DATE NOT NULL,
+  `state` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) COMMENT='Domains List';
+
 
 CREATE TABLE `dv_calls` (
   `status` int(3) NOT NULL default '0',
@@ -153,10 +161,11 @@ CREATE TABLE `companies` (
   `contract_id` varchar(10) NOT NULL default '',
   `contract_date` date NOT NULL default '0000-00-00',
   `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `domain_id` smallint(6) unsigned not null default 0,
   PRIMARY KEY  (`id`),
   KEY `bill_id` (`bill_id`),
   UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `name` (`name`)
+  UNIQUE KEY `name` (`domain_id`, `name`)
 ) COMMENT='Companies';
 
 
@@ -331,8 +340,9 @@ CREATE TABLE `groups` (
   `gid` smallint(4) unsigned NOT NULL default '0',
   `name` varchar(30) NOT NULL default '',
   `descr` varchar(200) NOT NULL default '',
+  `domain_id` smallint(6) unsigned not null default 0,
   PRIMARY KEY  (`gid`),
-  UNIQUE KEY `name` (`name`)
+  UNIQUE KEY `name` (`domain_id`, `name`)
 ) ;
 
 # --------------------------------------------------------
@@ -591,6 +601,12 @@ CREATE TABLE `nas` (
   `alive` smallint(6) unsigned NOT NULL default '0',
   `disable` tinyint(6) unsigned NOT NULL default '0',
   `ext_acct` tinyint(1) unsigned NOT NULL, 
+  `domain_id` smallint(6) unsigned not null default 0,
+  `address_street` varchar(100) NOT NULL default '',
+  `address_build` varchar(10) NOT NULL default '',
+  `address_flat` varchar(10) NOT NULL default '',
+  `zip` varchar(7) NOT NULL default '',
+  `city` varchar(20) NOT NULL default '',
   PRIMARY KEY  (`id`)
 ) COMMENT='Nas servers list';
 
@@ -708,7 +724,6 @@ CREATE TABLE `shedule` (
 
 CREATE TABLE `tarif_plans` (
   `id` smallint(5) unsigned NOT NULL default '0',
-  `hourp` double(15,5) unsigned NOT NULL default '0.00000',
   `month_fee` double(14,2) unsigned NOT NULL default '0.00',
   `uplimit` double(14,2) NOT NULL default '0.00',
   `name` varchar(40) NOT NULL default '',
@@ -745,6 +760,7 @@ CREATE TABLE `tarif_plans` (
   `period_alignment` tinyint(1) NOT NULL DEFAULT '0',
   `min_use` double(14,2) unsigned NOT NULL DEFAULT '0.00',
   `abon_distribution` tinyint(1) NOT NULL DEFAULT '0',
+  `domain_id` smallint(6) unsigned not null default 0,
   PRIMARY KEY  (`id`,`module`),
   UNIQUE KEY `tp_id` (`tp_id`),
   KEY `name` (`name`)
@@ -814,8 +830,9 @@ CREATE TABLE `users` (
   `bill_id` int(11) unsigned NOT NULL default '0',
   `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0',
   `credit_date` date default '0000-00-00',
+  `domain_id` smallint(6) unsigned not null default 0,
   PRIMARY KEY  (`uid`),
-  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `id` (domain_id, id),
   KEY `bill_id` (`bill_id`), 
   KEY `company_id` (`company_id`)
 );

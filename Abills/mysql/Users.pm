@@ -28,6 +28,8 @@ my %PI_FIELDS = (EMAIL          => 'email',
               ADDRESS_BUILD  => 'address_build',
               ADDRESS_STREET => 'address_street',
               ADDRESS_FLAT   => 'address_flat',
+              ZIP            => 'zip',
+              CITY           => 'city',
               COMMENTS       => 'comments',
               UID            => 'uid',
               CONTRACT_ID    => 'contract_id',
@@ -35,8 +37,6 @@ my %PI_FIELDS = (EMAIL          => 'email',
               PASPORT_NUM    => 'pasport_num',
               PASPORT_DATE   => 'pasport_date',
               PASPORT_GRANT  => 'pasport_grant',
-              ZIP            => 'zip',
-              CITY           => 'city',
               ACCEPT_RULES   => 'accept_rules'
              );
 
@@ -125,6 +125,7 @@ sub info {
    if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id),
    u.credit_date,
    if(c.name IS NULL, 0, c.credit),
+   u.domain_id,
    $password
      FROM users u
      LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -159,6 +160,7 @@ sub info {
    $self->{EXT_BILL_ID},
    $self->{CREDIT_DATE},
    $self->{COMPANY_CREDIT},
+   $self->{DOMAIN_ID},
    $self->{PASSWORD}
  )= @{ $self->{list}->[0] };
  
@@ -492,7 +494,9 @@ sub defaults {
    DISABLE        => 0,
    PASSWORD       => '',
    BILL_ID        => 0,
-   EXT_BILL_ID    => 0);
+   EXT_BILL_ID    => 0,
+   DOMAIN_ID      => 0
+   );
  
   $self = \%DATA;
   return $self;
@@ -517,10 +521,17 @@ sub groups_list {
     push @WHERE_RULES, "g.gid='$attr->{GID}'";
   }
 
+ my $USERS_WHERE = '';
+ if ($admin->{DOMAIN_ID}) {
+    push @WHERE_RULES, "g.domain_id='$admin->{DOMAIN_ID}'";
+    $USERS_WHERE = "AND u.domain_id='$admin->{DOMAIN_ID}'";
+  }
+
+
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
  
- $self->query($db, "select g.gid, g.name, g.descr, count(u.uid) FROM groups g
-        LEFT JOIN users u ON  (u.gid=g.gid) 
+ $self->query($db, "select g.gid, g.name, g.descr, count(u.uid), g.domain_id FROM groups g
+        LEFT JOIN users u ON  (u.gid=g.gid $USERS_WHERE) 
         $WHERE
         GROUP BY g.gid
         ORDER BY $SORT $DESC");
@@ -543,7 +554,7 @@ sub group_info {
  my $self = shift;
  my ($gid) = @_;
  
- $self->query($db, "select g.name, g.descr FROM groups g WHERE g.gid='$gid';");
+ $self->query($db, "select g.name, g.descr, g.domain_id FROM groups g WHERE g.gid='$gid';");
 
  return $self if ($self->{errno} || $self->{TOTAL} < 1);
 
@@ -565,7 +576,8 @@ sub group_change {
  my %FIELDS = (GID        => 'gid',
                G_NAME     => 'name',
                G_DESCRIBE => 'descr',
-               CHG        => 'gid');
+               CHG        => 'gid',
+               );
 
  $attr->{CHG}=$gid;
  $self->changes($admin, { CHANGE_PARAM => 'CHG',
@@ -590,8 +602,10 @@ sub group_add {
  my ($attr) = @_;
 
  %DATA = $self->get_data($attr); 
- $self->query($db, "INSERT INTO groups (gid, name, descr)
-    values ('$DATA{GID}', '$DATA{G_NAME}', '$DATA{G_DESCRIBE}');", 'do');
+ 
+ $self->{debug}=1;
+ $self->query($db, "INSERT INTO groups (gid, name, descr, domain_id)
+    values ('$DATA{GID}', '$DATA{G_NAME}', '$DATA{G_DESCRIBE}', '$admin->{DOMAIN_ID}');", 'do');
 
 
  $admin->system_action_add("GID:$DATA{GID}", { TYPE => 1 });    
@@ -729,6 +743,13 @@ sub list {
 
  if ($attr->{CONTRACT_DATE}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{CONTRACT_DATE}", 'INT', 'pi.contract_date', { EXT_FIELD => 1 }) };
+  }
+
+ if (defined($admin->{DOMAIN_ID})) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 1 }) };
+  }
+ elsif ($attr->{DOMAIN_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 1 }) };
   }
 
 
@@ -1002,11 +1023,11 @@ sub add {
   
   $DATA{DISABLE} = int($DATA{DISABLE});
   $self->query($db,  "INSERT INTO users (id, activate, expire, credit, reduction, 
-           registration, disable, company_id, gid, password, credit_date)
+           registration, disable, company_id, gid, password, credit_date, domain_id)
            VALUES ('$DATA{LOGIN}', '$DATA{ACTIVATE}', '$DATA{EXPIRE}', '$DATA{CREDIT}', '$DATA{REDUCTION}', 
            now(),  '$DATA{DISABLE}', 
            '$DATA{COMPANY_ID}', '$DATA{GID}', 
-           ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}'), '$DATA{CREDIT_DATE}'
+           ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}'), '$DATA{CREDIT_DATE}', '$admin->{DOMAIN_ID}'
            );", 'do');
   
   return $self if ($self->{errno});
@@ -1053,7 +1074,8 @@ sub change {
               PASSWORD    => 'password',
               BILL_ID     => 'bill_id',
               EXT_BILL_ID => 'ext_bill_id',
-              CREDIT_DATE => 'credit_date'
+              CREDIT_DATE => 'credit_date',
+              DOMAIN_ID   => 'domain_id',
              );
 
   my $old_info = $self->info($attr->{UID});

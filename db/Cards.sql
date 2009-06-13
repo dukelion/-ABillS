@@ -35,7 +35,9 @@ CREATE TABLE `cards_users` (
   `serial` varchar(10) NOT NULL default '',
   `pin` blob NOT NULL default '',
   `uid` int(11) unsigned NOT NULL default '0',
-  UNIQUE KEY `serial` (`number`,`serial`),
+  `domain_id` smallint(6) unsigned not null default 0,
+  `created` DATETIME NOT NULL,
+  UNIQUE KEY `serial` (`number`,`serial`, `domain_id`),
   KEY `diller_id` (`diller_id`),
   KEY `login` (`login`)
 ) COMMENT='Cards list';

@@ -161,6 +161,9 @@ sub info {
     $WHERE = "WHERE a.id='$attr->{LOGIN}'";
     $PASSWORD = "if(DECODE(a.password, '$SECRETKEY')='$attr->{PASSWORD}', 0, 1)";
    }
+  elsif($attr->{DOMAIN_ID}) {
+  	$WHERE = "WHERE a.domain_id='$attr->{DOMAIN_ID}'";
+   }
   else {
     $WHERE = "WHERE a.aid='$aid'";
    }
@@ -168,25 +171,32 @@ sub info {
   $IP = (defined($attr->{IP}))? $attr->{IP} : '0.0.0.0';
   $self->query($db, "SELECT a.aid, a.id, a.name, a.regdate, a.phone, a.disable, a.web_options, a.gid, 
      count(ag.aid),
-     email,
-     comments,
+     a.email,
+     a.comments,
+     a.domain_id,
+     d.name,
      $PASSWORD
      FROM 
       admins a
      LEFT JOIN  admins_groups ag ON (a.aid=ag.aid)
+     LEFT JOIN  domains d ON (a.domain_id=d.id)
      $WHERE
-     GROUP BY a.aid;");
+     GROUP BY a.aid
+     ORDER BY a.aid DESC
+     LIMIT 1;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
-     $self->{errstr} = 'Not exist';
+     $self->{errstr}= 'Not exist';
+     $self->{AID}   = 0;
      return $self;
    }
 
   my $a_ref = $self->{list}->[0];
-  if ($a_ref->[11] == 1) {
-     $self->{errno} = 4;
+  if ($a_ref->[13] == 1) {
+     $self->{errno}  = 4;
      $self->{errstr} = 'ERROR_WRONG_PASSWORD';
+     $self->{AID}    = $a_ref->[0],
      return $self;
    }
 
@@ -200,7 +210,9 @@ sub info {
    $self->{GID},
    $self->{GIDS},
    $self->{EMAIL},
-   $self->{A_COMMENTS}
+   $self->{A_COMMENTS},
+   $self->{DOMAIN_ID},
+   $self->{DOMAIN_NAME}
     )= @$a_ref;
   
   if ($self->{GIDS} > 0) {
@@ -232,12 +244,21 @@ sub list {
  elsif ($attr->{GID}) {
    push @WHERE_RULES, "a.gid='$attr->{GID}'";
   }
+
+ if ($self->{DOMAIN_ID}) {
+ 	 push @WHERE_RULES, "a.domain_id IN ($self->{DOMAIN_ID})";
+  }
+ elsif ($attr->{DOMAIN_ID}) {
+ 	 push @WHERE_RULES, "a.domain_id IN ($attr->{DOMAIN_ID})";
+  }
+
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES) : '';
  
- $self->query($db, "select a.aid, a.id, a.name, a.regdate, a.disable, g.name 
+ $self->query($db, "select a.aid, a.id, a.name, a.regdate, a.disable, g.name, d.name 
  FROM admins a
   LEFT JOIN groups g ON (a.gid=g.gid) 
+  LEFT JOIN domains d ON (d.id=a.domain_id) 
  $WHERE
  ORDER BY $SORT $DESC;");
 
@@ -261,6 +282,7 @@ sub change {
            GID         => 'gid',
            EMAIL       => 'email',
            A_COMMENTS  => 'comments',
+           DOMAIN_ID   => 'domain_id',
    );
 
 
@@ -288,12 +310,11 @@ sub add {
   my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 
-  print "$self->{AID} / $IP / $self->{SESSION_IP}";
-  
-
-  $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable, gid, email, comments) 
+  $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable, gid, email, comments, password, domain_id) 
    VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}', '$DATA{GID}', 
-   '$DATA{EMAIL}', '$DATA{A_COMMENTS}');", 'do');
+   '$DATA{EMAIL}', '$DATA{A_COMMENTS}', '$DATA{PASSWORD}', '$DATA{DOMAIN_ID}');", 'do');
+
+  $self->{AID}=$self->{INSERT_ID};
 
   $self->system_action_add("AID:$self->{INSERT_ID} LOGIN:$DATA{A_LOGIN}", { TYPE => 1 });  
   return $self;

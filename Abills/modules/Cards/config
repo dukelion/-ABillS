@@ -1,5 +1,3 @@
-$web_interface    = 1;
-
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:0:Card System:null:"             => 5,
                    "04:1:BRUTE FORCE:cards_bruteforce:" => 5,
@@ -14,6 +12,13 @@ $web_interface    = 1;
 
 %USER_FUNCTION_LIST = ("01:0:$_ICARDS:cards_user_payment:"  => 0,
                        );
+
+
+%RESELLER_FUNCTION_LIST  = ("01:0:$_ICARDS:cards_reseller_face:defaultindex"  => 0,
+                            "02:1:$_REPORTS:cards_diller_stats:"                  => 1 
+                            );
+
+
 
 #$USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if (defined($conf{dv_user_chg_tp}));
 

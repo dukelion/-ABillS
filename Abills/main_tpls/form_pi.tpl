@@ -8,9 +8,7 @@
 <TR><TD>$_FIO:*</TD><TD><textarea name='FIO' rows=2 cols=45>%FIO%</textarea>
 <TR><TD>$_ACCEPT_RULES:</TD><TD>%ACCEPT_RULES%</TD></TR>
 <TR><TD>$_PHONE:</TD><TD><input type=text name=PHONE value='%PHONE%'></TD></TR>
-<TR><TD>$_ADDRESS_STREET:</TD><TD><input type=text name=ADDRESS_STREET value='%ADDRESS_STREET%'></TD></TR>
-<TR><TD>$_ADDRESS_BUILD:</TD><TD><input type=text name=ADDRESS_BUILD value='%ADDRESS_BUILD%'> $_ADDRESS_FLAT:<input type=text name=ADDRESS_FLAT value='%ADDRESS_FLAT%' size=8></TD></TR>
-<TR><TD>$_CITY:</TD><TD><input type=text name=CITY value='%CITY%'> $_ZIP: <input type=text name=ZIP value='%ZIP%' size=8></TD></TR>
+%ADDRESS_TPL%
 <TR><TD>E-mail:</TD><TD><input type=text name=EMAIL value='%EMAIL%' size=45></TD></TR>
 <TR><TD>$_CONTRACT_ID:</TD><TD><input type=text name=CONTRACT_ID value='%CONTRACT_ID%'> $_DATE: <input type=text name=CONTRACT_DATE value='%CONTRACT_DATE%' size=12> %PRINT_CONTRACT%</TD></TR>
 <TR><TH colspan='2' bgcolor='$_COLORS[2]'>$_PASPORT</TH></TR>
