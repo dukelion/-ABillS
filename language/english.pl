@@ -388,6 +388,7 @@ $_LOGON='Logon';
 
 $_CORRECTION='correction';
 $_ACCEPT_RULES='Rules Accepted';
+$_RULES='Rulles';
 $_ACCEPT='Accept';
 $_CANCEL='Cancel';
 $_NEGATIVE_DEPOSIT='Negative Deposit. Please add amount to your account';
