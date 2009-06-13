@@ -1,0 +1,946 @@
+# MULTIDOMAIN INTERFACE
+
+
+=comments
+
+ALTER TABLE users ADD column domain_id smallint(6) unsigned not null default 0;
+ALTER TABLE users DROP index id;
+ALTER TABLE users ADD UNIQUE KEY `id` (domain_id, id);
+
+ALTER TABLE groups ADD column `domain_id` smallint(6) unsigned not null default 0;
+ALTER TABLE groups DROP index name;
+ALTER TABLE groups ADD UNIQUE KEY `name` (`domain_id`, `name`);
+
+
+ALTER TABLE companies ADD column `domain_id` smallint(6) unsigned not null default 0;
+ALTER TABLE companies DROP index name;
+ALTER TABLE companies ADD UNIQUE KEY `name` (`domain_id`, `name`);
+
+ALTER TABLE groups ADD column domain_id smallint(6) unsigned not null default 0;
+
+ALTER TABLE tarif_plans ADD column `domain_id` smallint(6) unsigned not null default 0;
+ALTER TABLE tarif_plans DROP PRIMARY KEY;
+ALTER TABLE tarif_plans ADD PRIMARY KEY (`id`, `module`, `domain_id`);
+
+
+ALTER TABLE tarif_plans DROP UNIQUE KEY `name`;
+ALTER TABLE tarif_plans ADD UNIQUE KEY `name` (`name`, `domain_id`);
+
+ALTER TABLE admins ADD column `domain_id` smallint(6) unsigned not null default 0;
+
+ALTER TABLE nas ADD column `domain_id` smallint(6) unsigned not null default 0;
+ALTER TABLE nas ADD column `address_street` varchar(100) NOT NULL default '';
+ALTER TABLE nas ADD column `address_build` varchar(10) NOT NULL default '';
+ALTER TABLE nas ADD column `address_flat` varchar(10) NOT NULL default '';
+ALTER TABLE nas ADD column `zip` varchar(7) NOT NULL default '';
+ALTER TABLE nas ADD column `city` varchar(20) NOT NULL default '';
+
+
+
+
+ALTER TABLE cards_users ADD column `domain_id` smallint(6) unsigned not null default 0;
+ALTER TABLE cards_users DROP index serial;
+ALTER TABLE cards_users ADD KEY `serial` (`number`,`serial`, `domain_id`);
+
+
+ALTER TABLE cards_users ADD KEY `domain_id` (`domain_id`);
+ALTER TABLE cards_users ADD column `created` DATETIME NOT NULL;
+
+
+ALTER TABLE cards_bruteforce ADD column `domain_id` smallint(6) unsigned not null default 0;
+
+CREATE TABLE `domains` (
+  `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(30) NOT NULL DEFAULT '',
+  `comments` TEXT NOT NULL,
+  `created` DATE NOT NULL,
+  `state` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) COMMENT='Domains List';
+
+
+ALTER TABLE intervals add column new_tp_id smallint unsigned not null default 0;
+UPDATE intervals, tarif_plans SET intervals.new_tp_id=tarif_plans.tp_id
+WHERE intervals.tp_id=tarif_plans.id;
+ALTER TABLE  intervals drop KEY tp_intervals;
+DELETE from intervals WHERE new_tp_id=0;
+UPDATE intervals SET intervals.tp_id=new_tp_id;
+ALTER TABLE intervals add UNIQUE KEY `tp_intervals` (`tp_id`, `begin`, `day`);
+ALTER TABLE intervals drop column new_tp_id;
+
+ALTER TABLE cards_dillers ADD column domain_id smallint(6) unsigned not null default 0;
+
+=cut
+
+
+eval { require Cards; };
+if (! $@) {
+  Cards->import();
+ }
+else {
+  print "Can't load 'Cards'. Purchase this module http://abills.net.ua $@";
+  exit; #return 0;
+ }
+
+eval { require Multidoms; };
+if (! $@) {
+  Multidoms->import();
+ }
+else {
+  print "Can't load 'Multidoms'. Purchase this module http://abills.net.ua $@";
+  exit; #return 0;
+ }
+
+
+use Payments;
+use Fees;
+use Tariffs;
+use Nas;
+my $tariffs  = Tariffs->new($db, \%conf, $admin);
+my $payments = Payments->new($db, $admin, \%conf);
+
+my $Cards      = Cards->new($db, $admin, \%conf);
+my $Multidoms  = Multidoms->new($db, $admin, \%conf);
+
+my @status = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
+
+
+#**********************************************************
+# form_nas
+#**********************************************************
+sub multidoms_reseller_nas {
+  my $nas = Nas->new($db, \%conf);	
+  $nas->{ACTION}='add';
+  $nas->{LNG_ACTION}=$_ADD;
+
+if($FORM{NAS_ID}) {
+  $nas->info( { NAS_ID => $FORM{NAS_ID}	} );
+  $pages_qs .= "&NAS_ID=$FORM{NAS_ID}&subf=$FORM{subf}";
+  $LIST_PARAMS{NAS_ID} = $FORM{NAS_ID};
+  %F_ARGS = ( NAS => $nas );
+  
+  $nas->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('NAS_ID', 
+                                         { 
+ 	                                          SELECTED  => $FORM{NAS_ID},
+ 	                                          SEL_MULTI_ARRAY   => $nas->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        }),
+	                       HIDDEN  => { index => $index,
+                                      AID   => "$FORM{AID}",
+                                      subf  => "$FORM{subf}"
+                                     },
+	                       SUBMIT  => { show   => "$_SHOW"
+	                       	           },
+	                       OUTPUT2RETURN => 1	           
+	                       	           
+	                       	           });
+
+  func_menu({ 
+  	         'ID' =>   $nas->{NAS_ID}, 
+  	         $_NAME => $nas->{NAME_SEL}
+  	       }, 
+  	{ 
+  	 $_INFO          => ":NAS_ID=$nas->{NAS_ID}",
+     'IP Pools'      => ($index+1). ":NAS_ID=$nas->{NAS_ID}",
+  	 },
+  	{
+  		f_args => { %F_ARGS }
+  	 });
+
+  if ($FORM{subf}) {
+  	return 0;
+   }
+  elsif($FORM{change}) {
+    $nas->change({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });  
+    if (! $nas->{errno}) {
+       $html->message('info', $_CHANGED, "$_CHANGED $nas->{NAS_ID}");
+     }
+   }
+
+  $nas->{LNG_ACTION}=$_CHANGE;
+  $nas->{ACTION}='change';
+ }
+elsif ($FORM{add}) {
+  $nas->add({	%FORM, DOMAIN_ID => $admin->{DOMAIN_ID}	});
+
+  if (! $nas->{errno}) {
+    $html->message('info', $_INFO, "$_ADDED '$FORM{NAS_IP}'");
+   }
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  $nas->del($FORM{del});
+  if (! $nas->{errno}) {
+    $html->message('info', $_INFO, "$_DELETED [$FORM{del}]");
+   }
+
+}
+
+if ($nas->{errno}) {
+  $html->message('err', $_ERROR, "$err_strs{$nas->{errno}}");
+ }
+
+ my %nas_descr = (
+  'mikrotik'  => 'Mikrotik (http://www.mikrotik.com)',
+  'chillispot'=> 'Chillispot (DD-WRT)',
+  'other'     => 'Other nas server'
+ );
+
+
+  if (defined($conf{nas_servers})) {
+  	%nas_descr = ( %nas_descr,  %{$conf{nas_servers}} );
+   }
+
+  $nas->{SEL_TYPE} = $html->form_select('NAS_TYPE', 
+                                { SELECTED   => $nas->{NAS_TYPE},
+ 	                                SEL_HASH   => \%nas_descr,
+ 	                                SORT_KEY   => 1 
+ 	                               });
+
+  $nas->{SEL_AUTH_TYPE} = $html->form_select('NAS_AUTH_TYPE', 
+                                { SELECTED     => $nas->{NAS_AUTH_TYPE},
+ 	                                SEL_ARRAY    => \@auth_types,
+                                  ARRAY_NUM_ID => 1 	                                
+ 	                               });
+ 
+
+  $nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
+  $nas->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1 });
+  $html->tpl_show(_include('multidoms_reseller_nas', 'Multidoms'), $nas);
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_NAS",
+                            title      => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", 
+                             "$_STATUS", "$_DESCRIBE", '-', '-', '-'],
+                            cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 
+                              'center:noprint', 'center:noprint', 'center:noprint'],
+                            ID         => 'NAS_LIST'
+                           });
+
+my $list = $nas->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?" }); 
+  $table->addrow($line->[0], 
+    $line->[1], 
+    $line->[2], 
+    $line->[3], $line->[4], $auth_types[$line->[5]], 
+    $status[$line->[6]],
+    $line->[7],
+    $html->button("IP POOLs", "index=". ($index+1) ."&NAS_ID=$line->[0]"),
+    $html->button("$_CHANGE", "index=$index&NAS_ID=$line->[0]"),
+    $delete);
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($nas->{TOTAL}) ] ]
+                     } );
+
+print $table->show();
+
+}
+
+#**********************************************************
+# form_ip_pools()
+#**********************************************************
+sub multidoms_reseller_ip_pools {
+	my ($attr) = @_;
+	my $nas;
+
+  $nas->{ACTION}='add';
+  $nas->{LNG_ACTION}="$_ADD";
+
+  
+if ($attr->{NAS}) {
+	$nas = $attr->{NAS};
+
+  if ($FORM{add}) {
+    $nas->ip_pools_add({ %FORM  });
+
+    if (! $nas->{errno}) {
+       $html->message('info', $_INFO, "$_ADDED");
+     }
+   }
+  elsif($FORM{change}) {
+    $nas->ip_pools_change({ %FORM, 
+    	                      ID => $FORM{chg},
+    	                      NAS_IP_SIP_INT => ip2int($FORM{NAS_IP_SIP}) });
+
+    if (! $nas->{errno}) {
+       $html->message('info', $_INFO, "$_CHANGED");
+     }
+   }
+  elsif($FORM{chg}) {
+    $nas->ip_pools_info($FORM{chg});
+
+    if (! $nas->{errno}) {
+       $html->message('info', $_INFO, "$_CHANGING");
+       $nas->{ACTION}='change';
+       $nas->{LNG_ACTION}="$_CHANGE";
+     }
+   }
+  elsif($FORM{set}) {
+    $nas->nas_ip_pools_set({ %FORM });
+
+    if (! $nas->{errno}) {
+       $html->message('info', $_INFO, "$_CHANGED");
+     }
+   }
+  elsif($FORM{del} && $FORM{is_js_confirmed} ) {
+    $nas->ip_pools_del( $FORM{del} );
+
+    if (! $nas->{errno}) {
+       $html->message('info', $_INFO, "$_DELETED");
+     }
+   }
+  $pages_qs = "&NAS_ID=$nas->{NAS_ID}";
+ 
+ 
+  $html->tpl_show(templates('form_ip_pools'), { %$nas, INDEX => $index });
+  #$html->tpl_show(templates('form_ip_pools'), $nas);
+ }
+elsif($FORM{NAS_ID}) {
+  $FORM{subf}=$index;
+  multidoms_reseller_nas();
+  return 0;
+ }
+else {
+  $nas = Nas->new($db, \%conf);	
+}
+
+if ($nas->{errno}) {
+  $html->message('err', $_ERROR, "$err_strs{$nas->{errno}}");
+ }
+
+
+
+
+my $list = $nas->ip_pools_list({ %LIST_PARAMS, NAS_ID => $FORM{NAS_ID} });	
+my $table = $html->table( { width      => '100%',
+                            caption    => "NAS IP POOLs",
+                            border     => 1,
+                            title      => ['', "NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", '-', '-'],
+                            cols_align => ['right', 'left', 'right', 'right', 'right', 'center', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $payments->{TOTAL},
+                            ID         => 'NAS_IP_POOLS'
+                           });
+
+
+
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[8]", { MESSAGE => "$_DEL POOL $line->[9]?" }); 
+  my $change = $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[8]"); 
+
+  $table->addrow(
+    $html->form_input('ids', $line->[8], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef ,  OUTPUT2RETURN => 1 }),
+    $html->button($line->[1], "index=61&NAS_ID=$line->[10]"), 
+    $line->[2],
+    $line->[7], 
+    $line->[8], 
+    $line->[5],  
+    $line->[6],  
+    $change,
+    $delete);
+}
+
+
+print $html->form_main({  CONTENT => $table->show(),
+	                        HIDDEN  => { index  => "$index",
+                                       NAS_ID => "$FORM{NAS_ID}",
+                                     },
+	                        SUBMIT  => { set   => "$_SET"
+	                       	           } });
+
+
+return 0;
+
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "IP POOLs",
+                            border     => 1,
+                            title      => ["NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", '-'],
+                            cols_align => ['left', 'right', 'right', 'right', 'center'],
+                            qs         => $pages_qs,
+                            ID         => 'IP_POOLS'
+                           });
+
+
+my $list = $nas->ip_pools_list({ %LIST_PARAMS });	
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[8]", { MESSAGE => "$_DEL NAS $line->[4]?" }); 
+
+  $table->addrow($html->button($line->[0], "index=60&NAS_ID=$line->[9]"), 
+    $line->[1],
+    $line->[6], 
+    $line->[7], 
+    $line->[4],  
+    $line->[5],  
+    $delete);
+}
+
+print $table->show();
+}
+
+
+#**********************************************************
+# Tarif plans
+# form_tp
+#**********************************************************
+sub multidoms_reseller_tp {
+ 
+ my $tarif_info;
+ my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
+ my @Octets_Direction = ("$_RECV + $_SEND", $_RECV, $_SEND);
+ my @bool_vals = ($_NO, $_YES);
+
+ $tarif_info = $tariffs->defaults();
+
+ $tarif_info->{TI_TARIF}    = '0.00';
+ $tarif_info->{TT_PRICE_IN} = '0.00';
+ $tarif_info->{TT_PRICE_OUT}= '0.00';
+ $tarif_info->{TT_SPEED_IN} = 0;
+ $tarif_info->{TT_SPEED_OUT}= 0;
+ 
+
+
+ $tarif_info->{LNG_ACTION} = $_ADD;
+ $tarif_info->{ACTION}     = 'ADD_TP';
+
+
+if($FORM{ADD_TP}) {
+   if (! $FORM{TP_ID}) {
+   	  my $list = $tariffs->list({ PAGE_ROWS => 1, SORT => 1, DESC => 'desc' });
+   	  
+   	  if ($tariffs->{TOTAL} < 1) {
+   	  	$FORM{TP_ID}=1;
+   	   }
+   	  else {
+   	    $FORM{TP_ID}=$list->[0][0]+1;
+   	   }
+    }
+
+
+  $FORM{ID}=$FORM{TP_ID};
+  if ($FORM{TP_ID} < 1) {
+  	$html->message('err', $_ERROR, "$_ERROR ID = 0");
+   }
+  else {
+   $FORM{SIMULTANEOUSLY} = 1;
+   
+   $tariffs->add( { %FORM });
+   if (! $tariffs->{errno}) {
+     $html->message('info', $_ADDED, "$_ADDED '$FORM{ID}' $FORM{NAME}");
+     
+     $tariffs->ti_add({ TP_ID    => $tariffs->{TP_ID}, 
+     	                     TI_DAY   => 0,
+     	                     TI_BEGIN => '00:00:00',
+     	                     TI_END   => '24:00:00',
+     	                     TI_TARIF => $FORM{TI_TARIF}  });
+
+     $tariffs->tt_add({ TI_ID         => $tariffs->{INTERVAL_ID}, 
+     	                 TT_PRICE_IN    => $FORM{TT_PRICE_IN},
+     	                 TT_PRICE_OUT   => $FORM{TT_PRICE_OUT},
+                       TT_SPEED_IN    => $FORM{TT_SPEED_IN},
+                       TT_SPEED_OUT   => $FORM{TT_SPEED_OUT}
+                        });
+     
+    }
+
+
+  }
+ }
+elsif (defined($FORM{TP_ID})) {
+ 
+  $tarif_info = $tariffs->info( $FORM{TP_ID} );
+
+  if ($tariffs->{errno}) {
+    $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+    return 0;
+   }
+
+  my $ti_list = $tariffs->ti_list({ TP_ID => $tariffs->{TP_ID} });
+  if ($tariffs->{TOTAL} > 0) {
+     $tariffs->ti_info( $ti_list->[0]->[0] );
+     if ($tariffs->{TOTAL} > 0) {
+       $tariffs->tt_info({ TI_ID => $ti_list->[0]->[0], TT_ID => 0 });
+      }
+   }
+
+  $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
+  $LIST_PARAMS{TP} = $FORM{TP_ID};
+
+  if ($FORM{subf}) {
+
+  	return 0;
+   }
+  elsif($FORM{change}) {
+    $tarif_info = $tariffs->change( $FORM{TP_ID}, { %FORM  } );  
+     
+    if (! $tariffs->{errno}) {
+       $tariffs->ti_change($FORM{TI_ID}, { %FORM });
+       $tariffs->tt_change({ %FORM, TT_ID => 0 });	 
+       $html->message('info', $_CHANGED, "$_CHANGED $tariffs->{TP_ID}");
+     }
+   }
+
+  $tarif_info->{LNG_ACTION}=$_CHANGE;
+  $tarif_info->{ACTION}='change';
+
+ }
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+  $tariffs->del($FORM{del});
+
+  if (! $tariffs->{errno}) {
+    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
+   }
+}
+
+
+
+if ($tariffs->{errno}) {
+    $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+ }
+
+
+my $nas = Nas->new($db, \%conf);
+
+$tarif_info->{REDUCTION_FEE}     = ($tarif_info->{REDUCTION_FEE})     ? 'checked' : '';
+$tarif_info->{POSTPAID_DAY_FEE}  = ($tarif_info->{POSTPAID_DAY_FEE})  ? 'checked' : '';
+$tarif_info->{POSTPAID_MONTH_FEE}= ($tarif_info->{POSTPAID_MONTH_FEE})? 'checked' : '';
+$tarif_info->{PERIOD_ALIGNMENT}  = ($tarif_info->{PERIOD_ALIGNMENT})  ? 'checked' : ''; 
+$tarif_info->{ABON_DISTRIBUTION} = ($tarif_info->{ABON_DISTRIBUTION}) ? 'checked' : ''; 
+
+
+
+#my $i=0;
+$tarif_info->{SEL_OCTETS_DIRECTION} = $html->form_select('OCTETS_DIRECTION', 
+                                          { 
+ 	                                          SELECTED     => $tarif_info->{OCTETS_DIRECTION},
+ 	                                          SEL_ARRAY    => \@Octets_Direction,
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+
+$tarif_info->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE', 
+                                          { 
+ 	                                          SELECTED     => $tarif_info->{PAYMENT_TYPE},
+ 	                                          SEL_ARRAY    => \@Payment_Types,
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+
+
+
+$tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID', 
+                                          { 
+ 	                                          SELECTED          => $tarif_info->{TP_GID},
+ 	                                          SEL_MULTI_ARRAY   => [[ '', ''],  @{ $tariffs->tp_group_list( ) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+
+$html->tpl_show(_include('multidoms_reseller_tp', 'Multidoms'), $tarif_info);
+
+my $list = $tariffs->list({ %LIST_PARAMS });	
+
+# Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_TARIF_PLANS",
+                            border     => 1,
+                            title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_AGE, '-', '-'],
+                            cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
+                            ID         => 'DV_TARIF_PLANS',
+                            header     => "<div id='tabs'>
+<ul class=\"user_menu\">
+<li class=\"active\"><a href='$SELF_URL?index=$index'>$_ADD</a></li>
+</ul>
+</div>\n"
+                                  } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+#  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]");
+#   }
+  
+  if($FORM{TP_ID} eq $line->[0]) {
+  	$table->{rowcolor}=$_COLORS[0];
+   }
+  else {
+  	undef($table->{rowcolor});
+   }
+  
+  $table->addrow($html->b($line->[0]), 
+   $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
+   $bool_vals[$line->[2]], 
+   $bool_vals[$line->[3]], 
+   $Payment_Types[$line->[4]], 
+   $line->[8],
+   $change,
+   $delete);
+}
+
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($tariffs->{TOTAL}) ] ]
+                     } );
+print $table->show();
+
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub multidoms_domains_sel {
+
+  return $html->form_select("DOMAIN_ID", 
+                                { SELECTED          => $FORM{DOMAIN_ID},
+ 	                                SEL_MULTI_ARRAY   => $Multidoms->multidoms_domains_list({ PAGE_ROWS => 100000 }), 
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                                SEL_OPTIONS       => { 0 => "$_ALL"},
+ 	                                NO_ID             => 1
+ 	                               });
+
+
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub multidoms_domains {
+	
+	$Multidoms->{ACTION}='add';
+ 	$Multidoms->{LNG_ACTION}=$_ADD;
+
+if ($FORM{info}) {
+  $pages_qs = "&info=$FORM{info}";
+  $LIST_PARAMS{DOOMAIN_ID}=$FORM{info};
+  #$FORM{SERIA}=0;
+
+  $Multidoms = $Multidoms->multidomas_domain_info({ ID => $FORM{info} });
+  $html->tpl_show(_include('multidomas_domain_info', 'Multidoms'), $Multidoms);  
+  #cards_main();
+  return 0;
+ }
+elsif ($FORM{add}) {
+  $Multidoms->multidoms_domain_add({ %FORM });
+  if (! $Multidoms->{errno}) {
+    $html->message('info', $_INFO, "$_ADDED");	
+   }
+ }
+elsif ($FORM{change}) {
+  $Multidoms->multidoms_domain_change({ %FORM });
+  if (! $Multidoms->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGED");	
+   }
+ }
+elsif ($FORM{chg}) {
+  $Multidoms->multidoms_domain_info({ ID => $FORM{chg} });
+  if (! $Multidoms->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING");	
+   }
+	$Multidoms->{ACTION}='change';
+ 	$Multidoms->{LNG_ACTION}=$_CHANGE;
+
+
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  $Multidoms->multidoms_domain_del({ ID => $FORM{del} });
+  if (! $Cards->{errno}) {
+    $html->message('info', $_INFO, "$_DELETED");	
+   }
+}
+
+if ($Multidoms->{errno}) {
+  $html->message('err', $_ERROR, "[$Multidoms->{errno}] $err_strs{$Multidoms->{errno}}");
+ }
+
+ 
+ $Multidoms->{STATE} = ($Multidoms->{STATE} == 1)? 'checked' : '';
+ $html->tpl_show(_include('multidoms_domain', 'Multidoms'), $Multidoms);
+
+  my $list = $Multidoms->multidoms_domains_list({ %LIST_PARAMS });
+	$table = $html->table( { width      => '100%',
+                           caption    => "$_DILLERS",
+                           title      => ['ID', "$_NAME", "$_STATE", "$_REGISTRATION",   '-', '-'],
+                           cols_align => ['right', 'left', 'center',  'right', 'center:noprint', 'center:noprint'],
+                           qs         => $pages_qs,
+                           pages      => $Multidoms->{TOTAL}
+                          });
+
+
+  foreach $line (@$list) {
+   	$table->addrow($line->[0], 
+  	    $line->[1],
+  		  $status[$line->[2]],
+  		  $line->[3],
+  		  $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]"),
+  		  $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+		   );
+    }
+
+  print $table->show();
+  
+  
+ 	 $table = $html->table( { width      => '100%',
+                            cols_align => ['right', 'right'],
+                            rows       => [ [ "$_TOTAL:", $html->b($Multidoms->{TOTAL}) ] ]
+                        });
+   print $table->show();	
+}
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_dillers_sel {
+  my $dillers_sel = '';
+
+
+
+  $dillers_sel=$html->form_select('DILLER_ID', { 
+ 	                                         SELECTED          => $FORM{DILLER_ID},
+ 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Multidoms->multidoms_domains_list({ DISABLE => 0, SORT => 2,  PAGE_ROWS => 10000 }) }],
+ 	                                         MULTI_ARRAY_KEY   => 0,
+ 	                                         MULTI_ARRAY_VALUE => 2,
+ 	                                         #NO_ID             => 1,
+ 	                                        });
+
+
+  return $dillers_sel;
+}
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_dillers {
+
+ 	$Cards->{ACTION}='add';
+ 	$Cards->{LNG_ACTION}=$_ADD;
+
+if ($FORM{info}) {
+
+  $pages_qs = "&info=$FORM{info}";
+  $LIST_PARAMS{DILLER_ID}=$FORM{info};
+  #$FORM{SERIA}=0;
+
+  $Cards = $Cards->cards_diller_info({ ID => $FORM{info} });
+  $html->tpl_show(_include('cards_diller_info', 'Cards'), $Cards);  
+  cards_main();
+  return 0;
+ }
+elsif ($FORM{add}) {
+  $Cards->cards_diller_add({ %FORM });
+  if (! $Cards->{errno}) {
+    $html->message('info', $_INFO, "$_ADDED");	
+   }
+ }
+elsif ($FORM{change}) {
+  $Cards->cards_diller_change({ %FORM });
+  if (! $Cards->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGED");	
+   }
+ }
+elsif ($FORM{chg}) {
+  $Cards->cards_diller_info({ ID => $FORM{chg} });
+  if (! $Cards->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING");	
+   }
+ 	$Cards->{ACTION}='change';
+ 	$Cards->{LNG_ACTION}=$_CHANGE;
+
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  $Cards->cards_diller_del({ ID => $FORM{del} });
+  if (! $Cards->{errno}) {
+    $html->message('info', $_INFO, "$_DELETED");	
+   }
+}
+
+if ($Cards->{errno}) {
+  $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
+ }
+
+ 
+ $Cards->{DISABLE} = ($Cards->{DISABLE} == 1)? 'checked' : '';
+ $html->tpl_show(_include('cards_dillers', 'Cards'), $Cards);
+
+  my $list = $Cards->cards_dillers_list({ %LIST_PARAMS });
+	$table = $html->table( { width      => '100%',
+                           caption    => "$_DILLERS",
+                           title      => ['ID', "$_NAME", "$_ADDRESS", "E-Mail", "$_REGISTRATION", "$_PERCENTAGE", "$_STATE", 
+                              "$_COUNT",  "$_ENABLE", '-', '-', '-'],
+                           cols_align => ['right', 'left', 'left',  'left', 'right', 'right', 'right', 'right', 
+                            'center:noprint', 'center:noprint', 'center:noprint'],
+                           qs         => $pages_qs,
+                           pages      => $Cards->{TOTAL}
+                          });
+
+
+  foreach $line (@$list) {
+   	$table->addrow($line->[0], 
+  	    $line->[1],
+  		  $line->[2],
+        $line->[3],
+  		  $line->[4],
+  		  $line->[5],
+  		  $status[$line->[6]],
+  		  $line->[7],
+  		  $line->[8],
+  		  $html->button($_INFO, "index=$index$pages_qs&info=$line->[0]"),
+  		  $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]"),
+  		  $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+		   );
+    }
+
+  print $table->show();
+  
+  
+ 	 $table = $html->table( { width      => '100%',
+                            cols_align => ['right', 'right'],
+                            rows       => [ [ "$_TOTAL:", $html->b($Cards->{TOTAL}) ] ]
+                        });
+   print $table->show();	
+
+  
+}
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_report_dillers {
+	my ($attr) = @_;
+	
+if ($FORM{DILLER_ID}) {
+	$LIST_PARAMS{DILLER_ID}=$FORM{DILLER_ID};
+
+	cards_report();
+  return 0;
+ }
+elsif ($FORM{SERIAL}) {
+	$LIST_PARAMS{SERIAL}=$FORM{SERIAL};
+
+	cards_report();
+  return 0;
+	
+}	
+
+  if (! $FORM{DATE}) {
+	 reports({ DATE      => $FORM{DATE}, 
+ 	         REPORT      => '',
+ 	         EX_PARAMS   => { 1 => $_DILLERS, 2 => $_ICARDS },
+           PERIOD_FORM => 1
+  	     });
+  }
+
+	
+  my $list = $Cards->cards_report_dillers({ %LIST_PARAMS });
+	$table = $html->table( { width      => '100%',
+                           caption    =>  $attr->{CAPTION},
+                           #title      => ['ID', "$_LOGIN", "$_ADDED", "$_GROUP", "$_STATUS", "$_EXPIRE", "$_DILLERS", "$_ADMINS", '-'],
+                           cols_align => ['left', 'right', 'right','right','right','right','right','right','right'
+                            ,'right','right'],
+                           qs         => $pages_qs,
+                           pages      => $Cards->{TOTAL}
+                          });
+
+
+   $table->addtd(
+             $table->td($attr->{CAPTION}, { bgcolor => $_COLORS[0], rowspan => 2 }),
+             $table->td($_ENABLE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_DISABLE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_PAYMENTS, { bgcolor => $_COLORS[0], colspan => 2 }), 
+             $table->td($_LOGIN, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_TAKE, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_SOLD, { bgcolor => $_COLORS[0], colspan => 3 } ), 
+             $table->td($_RETURNED, { bgcolor => $_COLORS[0], colspan => 2 } ), 
+             $table->td($_TOTAL, { bgcolor => $_COLORS[0], colspan => 2 } )
+      );
+
+      $table->{rowcolor} = $_COLORS[0];
+    	$table->addrow(
+    	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+     	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM", "$_PERCENTAGE",
+     	  "$_COUNT", "$_SUM", 
+    	  "$_COUNT", "$_SUM"
+    	);
+
+     $table->{rowcolor} = undef;
+
+
+  foreach $line (@$list) {
+   	#my $button
+   	my $button = ($LIST_PARAMS{GROUP}) ? $html->button($line->[0], "index=$index&SERIAL=$line->[0]$pages_qs") : $html->button($line->[0], "index=$index&DILLER_ID=$line->[18]$pages_qs");
+
+   	$table->addrow(
+   	    $button,
+  	    $line->[1],
+  		  $line->[2],
+  		  $line->[3],
+        $line->[4],
+  		  $line->[5],
+  		  $line->[6],
+  		  $line->[7],
+  		  $line->[8],
+  		  $line->[9],
+  		  $line->[10],
+   		  $line->[11],
+   		  $line->[12],
+   		  $line->[13],
+   		  $line->[14],
+   		  $line->[15],
+   		  $line->[16],
+   		  $line->[17]
+
+		   );
+		   
+    }
+
+$table->{rowcolor} = $_COLORS[3];
+  $table->addrow( "$_TOTAL:", 
+     $Cards->{ENABLE_TOTAL}, 
+     $Cards->{ENABLE_TOTAL_SUM}, 
+     $Cards->{DISABLE_TOTAL},  
+     $Cards->{DISABLE_TOTAL_SUM},  
+     $Cards->{PAYMENT_TOTAL}, 
+     $Cards->{PAYMENT_TOTAL_SUM}, 
+     $Cards->{LOGIN_TOTAL},  
+     $Cards->{LOGIN_TOTAL_SUM},
+     $Cards->{TAKE_TOTAL},  
+     $Cards->{TAKE_TOTAL_SUM},
+     $Cards->{SOLD_TOTAL},  
+     $Cards->{SOLD_TOTAL_SUM},
+     $Cards->{SOLD_TOTAL_PERCENTAGE},
+     
+     $Cards->{RETURN_TOTAL},  
+     $Cards->{RETURN_TOTAL_SUM},
+     $Cards->{COUNT_TOTAL},
+     $Cards->{COUNT_TOTAL_SUM} );
+
+print $table->show();
+	
+}
+
+
+  
+
+1

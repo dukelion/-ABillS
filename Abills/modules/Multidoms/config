@@ -1,0 +1,19 @@
+#Iner_ID : Main or Sub or if -1 user menu func list
+
+
+%FUNCTIONS_LIST = ("01:0:Domains:multidoms_domains:"             => 5,
+                   );
+
+%USER_FUNCTION_LIST = (
+                       );
+
+
+%RESELLER_FUNCTION_LIST = (
+                        "01:0:NAS:multidoms_reseller_nas:defaultindex"   => 0,
+                        "02:1:IP Pools:multidoms_reseller_ip_pools:NAS_ID"     => 1,
+                        "05:0:$_TARIF_PLANS:multidoms_reseller_tp:"      => 0,
+                   #     "06:0:$_CUSTOMERS:multidoms_reseller_customers:" => 0 
+                       );
+
+
+1
