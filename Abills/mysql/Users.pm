@@ -603,7 +603,6 @@ sub group_add {
 
  %DATA = $self->get_data($attr); 
  
- $self->{debug}=1;
  $self->query($db, "INSERT INTO groups (gid, name, descr, domain_id)
     values ('$DATA{GID}', '$DATA{G_NAME}', '$DATA{G_DESCRIBE}', '$admin->{DOMAIN_ID}');", 'do');
 
@@ -1035,7 +1034,7 @@ sub add {
   $self->{UID}   = $self->{INSERT_ID};
   $self->{LOGIN} = $DATA{LOGIN};
 
-  $admin->action_add("$self->{UID}", "LOGIN:$DATA{LOGIN}", { TYPE => 1 });
+  $admin->action_add("$self->{UID}", "LOGIN:$DATA{LOGIN}", { TYPE => 7 });
 
   if ($attr->{CREATE_BILL}) {
   	#print "create bill";
@@ -1078,6 +1077,8 @@ sub change {
               DOMAIN_ID   => 'domain_id',
              );
 
+
+
   my $old_info = $self->info($attr->{UID});
   
   if($attr->{CREATE_BILL}) {
@@ -1114,14 +1115,13 @@ sub change {
          $self->{errstr} =  $Bill->{errstr};
          return $self;
         }
-       #$DATA{BILL_ID}=$Bill->{BILL_ID};
        $attr->{EXT_BILL_ID}=$Bill->{BILL_ID};
    }
  
   #Make extrafields use
  
   
- 
+
   $admin->{MODULE}='';
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users',
@@ -1160,7 +1160,7 @@ sub del {
      $self->{info} .= "$table, ";
     }
 
-  $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}", {  TYPE => 10 });
+  $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}", {  TYPE => 12 });
   return $self->{result};
 }
 

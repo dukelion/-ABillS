@@ -244,6 +244,7 @@ sub evolution_report {
  my ($attr) = @_;
  my @list = ();
 
+
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
@@ -282,9 +283,9 @@ sub evolution_report {
 
 
  $self->query($db, "select $date,
-  sum(if(action_type = 1, 1, 0)),
-  sum(if(action_type = 9, 1, 0)),
-  sum(if(action_type = 10, 1, 0))
+  sum(if(action_type = 7, 1, 0)),
+  sum(if(action_type = 9, 1, 0))-sum(if(action_type = 8, 1, 0)),
+  sum(if(action_type = 12, 1, 0))
   
   FROM admin_actions aa
   $WHERE 
@@ -325,8 +326,8 @@ sub evolution_users_report {
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
 
- $self->{SEARCH_FIELDS} = '';
- $self->{SEARCH_FIELDS_COUNT}=0;
+ $self->{SEARCH_FIELDS}      = '';
+ $self->{SEARCH_FIELDS_COUNT}= 0;
 
  @WHERE_RULES = ();
  
@@ -343,7 +344,8 @@ sub evolution_users_report {
  else {
  	 push @WHERE_RULES, 'aa.module=\'\'';
   }
- 
+
+  
  if ($attr->{MONTH}) {
  	 push @WHERE_RULES, "date_format(aa.datetime, '%Y-%m')='$attr->{MONTH}'";
  	 #$date = "DATE_FORMAT(datetime, \'%Y-%m-%d\')";
@@ -358,10 +360,45 @@ sub evolution_users_report {
  	 push @WHERE_RULES, "aa.action_type=1";
   }
  elsif ($attr->{DISABLED}) {
- 	 push @WHERE_RULES, "aa.action_type=9";
+ 	 
+
+ my $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
+
+
+ $self->query($db, "select max($date), $user, a.id, u.registration, aa.uid,
+   sum(if(aa.action_type=9, 1, 0)) - sum(if(aa.action_type=8, 1, 0)) As ACTIONS  
+   FROM admin_actions aa 
+   LEFT JOIN users u ON (aa.uid=u.uid) 
+   LEFT JOIN admins a ON (a.aid=aa.aid) 
+   $WHERE and (aa.action_type=9 or aa.action_type<>8)
+   GROUP BY 2 
+   HAVING ACTIONS > 0
+   ORDER BY $SORT $DESC 
+   LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+
+# if ($self->{TOTAL} >= 0) {
+#    $self->query($db, "SELECT count(*) FROM (select max($date), $user, a.id, u.registration, aa.uid,
+#   sum(if(aa.action_type=9, 1, 0)) - sum(if(aa.action_type=8, 1, 0)) As ACTIONS  
+#   FROM admin_actions aa 
+#   LEFT JOIN users u ON (aa.uid=u.uid) 
+#   LEFT JOIN admins a ON (a.aid=aa.aid) 
+#   $WHERE and (aa.action_type=9 or aa.action_type<>8)
+#   GROUP BY 2 
+#   HAVING ACTIONS > 0)
+#    ;");
+#    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+#   }
+
+
+   return $list;
   }
  elsif ($attr->{DELETED}) {
- 	 push @WHERE_RULES, "aa.action_type=10";
+ 	 push @WHERE_RULES, "aa.action_type=12";
  	 $user = 'aa.actions';
   }
 

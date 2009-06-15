@@ -2099,10 +2099,12 @@ sub form_changes {
                    4  => "$_CHANGED $_STATUS",
                    5  => '-',
                    6  => "$_INFO",
-                   7  => '-',
+                   7  => "$_REGISTRATION",
                    8  => "$_ENABLE",
                    9  => "$_DISABLE",
-                   10 => "$_DELETED");
+                   10 => "$_DELETED",
+                   11 => '',
+                   12 => "$_DELETED $_USER");
  
 if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {
 	$admin->action_del( $FORM{del} );

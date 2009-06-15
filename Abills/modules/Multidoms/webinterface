@@ -3,73 +3,75 @@
 
 =comments
 
-ALTER TABLE users ADD column domain_id smallint(6) unsigned not null default 0;
-ALTER TABLE users DROP index id;
-ALTER TABLE users ADD UNIQUE KEY `id` (domain_id, id);
 
-ALTER TABLE groups ADD column `domain_id` smallint(6) unsigned not null default 0;
-ALTER TABLE groups DROP index name;
-ALTER TABLE groups ADD UNIQUE KEY `name` (`domain_id`, `name`);
+**В связи с множеством доработок в версии 0.5 при переходе обазательно нужно обновить все коммерческие модули, цена обновления 50%  от цены модуля**
 
+  * Создан новый модуль Multidoms. Система управления мультидоменами разрешающая незавеисемо вести в одной билингововй системе несколько провайдеров.
+  * Добавлен интефейс реселлера, с возможностью авторегисрации реселлеров.
+  * Улучшен интерфейс дилера в карточном модуле. Доработаны отчёты продаж
+  
 
-ALTER TABLE companies ADD column `domain_id` smallint(6) unsigned not null default 0;
-ALTER TABLE companies DROP index name;
-ALTER TABLE companies ADD UNIQUE KEY `name` (`domain_id`, `name`);
+  ALTER TABLE users ADD column domain_id smallint(6) unsigned not null default 0;
+  ALTER TABLE users DROP index id;
+  ALTER TABLE users ADD UNIQUE KEY `id` (domain_id, id);
+  
+  ALTER TABLE groups ADD column `domain_id` smallint(6) unsigned not null default 0;
+  ALTER TABLE groups DROP index name;
+  ALTER TABLE groups ADD UNIQUE KEY `name` (`domain_id`, `name`);
+  
+  
+  ALTER TABLE companies ADD column `domain_id` smallint(6) unsigned not null default 0;
+  ALTER TABLE companies DROP index name;
+  ALTER TABLE companies ADD UNIQUE KEY `name` (`domain_id`, `name`);
+  
+  ALTER TABLE groups ADD column domain_id smallint(6) unsigned not null default 0;
+  
+  ALTER TABLE tarif_plans ADD column `domain_id` smallint(6) unsigned not null default 0;
+  ALTER TABLE tarif_plans DROP PRIMARY KEY;
+  ALTER TABLE tarif_plans ADD PRIMARY KEY (`id`, `module`, `domain_id`);
+  
+  
+  ALTER TABLE tarif_plans DROP UNIQUE KEY `name`;
+  ALTER TABLE tarif_plans ADD UNIQUE KEY `name` (`name`, `domain_id`);
+  
+  ALTER TABLE admins ADD column `domain_id` smallint(6) unsigned not null default 0;
+  
+  ALTER TABLE nas ADD column `domain_id` smallint(6) unsigned not null default 0;
+  ALTER TABLE nas ADD column `address_street` varchar(100) NOT NULL default '';
+  ALTER TABLE nas ADD column `address_build` varchar(10) NOT NULL default '';
+  ALTER TABLE nas ADD column `address_flat` varchar(10) NOT NULL default '';
+  ALTER TABLE nas ADD column `zip` varchar(7) NOT NULL default '';
+  ALTER TABLE nas ADD column `city` varchar(20) NOT NULL default '';
+  
+  ALTER TABLE cards_users ADD column `domain_id` smallint(6) unsigned not null default 0;
+  ALTER TABLE cards_users DROP index serial;
+  ALTER TABLE cards_users ADD KEY `serial` (`number`,`serial`, `domain_id`);
+  
+  
+  ALTER TABLE cards_users ADD KEY `domain_id` (`domain_id`);
+  ALTER TABLE cards_users ADD column `created` DATETIME NOT NULL;
+  
+  ALTER TABLE cards_bruteforce ADD column `domain_id` smallint(6) unsigned not null default 0;
+  
+  CREATE TABLE `domains` (
+    `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(30) NOT NULL DEFAULT '',
+    `comments` TEXT NOT NULL,
+    `created` DATE NOT NULL,
+    `state` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `name` (`name`)
+  )  COMMENT='Domains List';
 
-ALTER TABLE groups ADD column domain_id smallint(6) unsigned not null default 0;
+  ALTER TABLE intervals add column new_tp_id smallint unsigned not null default 0;
+  UPDATE intervals, tarif_plans SET intervals.new_tp_id=tarif_plans.tp_id
+  WHERE intervals.tp_id=tarif_plans.id;
+  ALTER TABLE  intervals drop KEY tp_intervals;
+  DELETE from intervals WHERE new_tp_id=0;
+  UPDATE intervals SET intervals.tp_id=new_tp_id;
+  ALTER TABLE intervals add UNIQUE KEY `tp_intervals` (`tp_id`, `begin`, `day`);
+  ALTER TABLE intervals drop column new_tp_id;
 
-ALTER TABLE tarif_plans ADD column `domain_id` smallint(6) unsigned not null default 0;
-ALTER TABLE tarif_plans DROP PRIMARY KEY;
-ALTER TABLE tarif_plans ADD PRIMARY KEY (`id`, `module`, `domain_id`);
-
-
-ALTER TABLE tarif_plans DROP UNIQUE KEY `name`;
-ALTER TABLE tarif_plans ADD UNIQUE KEY `name` (`name`, `domain_id`);
-
-ALTER TABLE admins ADD column `domain_id` smallint(6) unsigned not null default 0;
-
-ALTER TABLE nas ADD column `domain_id` smallint(6) unsigned not null default 0;
-ALTER TABLE nas ADD column `address_street` varchar(100) NOT NULL default '';
-ALTER TABLE nas ADD column `address_build` varchar(10) NOT NULL default '';
-ALTER TABLE nas ADD column `address_flat` varchar(10) NOT NULL default '';
-ALTER TABLE nas ADD column `zip` varchar(7) NOT NULL default '';
-ALTER TABLE nas ADD column `city` varchar(20) NOT NULL default '';
-
-
-
-
-ALTER TABLE cards_users ADD column `domain_id` smallint(6) unsigned not null default 0;
-ALTER TABLE cards_users DROP index serial;
-ALTER TABLE cards_users ADD KEY `serial` (`number`,`serial`, `domain_id`);
-
-
-ALTER TABLE cards_users ADD KEY `domain_id` (`domain_id`);
-ALTER TABLE cards_users ADD column `created` DATETIME NOT NULL;
-
-
-ALTER TABLE cards_bruteforce ADD column `domain_id` smallint(6) unsigned not null default 0;
-
-CREATE TABLE `domains` (
-  `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(30) NOT NULL DEFAULT '',
-  `comments` TEXT NOT NULL,
-  `created` DATE NOT NULL,
-  `state` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`)
-) COMMENT='Domains List';
-
-
-ALTER TABLE intervals add column new_tp_id smallint unsigned not null default 0;
-UPDATE intervals, tarif_plans SET intervals.new_tp_id=tarif_plans.tp_id
-WHERE intervals.tp_id=tarif_plans.id;
-ALTER TABLE  intervals drop KEY tp_intervals;
-DELETE from intervals WHERE new_tp_id=0;
-UPDATE intervals SET intervals.tp_id=new_tp_id;
-ALTER TABLE intervals add UNIQUE KEY `tp_intervals` (`tp_id`, `begin`, `day`);
-ALTER TABLE intervals drop column new_tp_id;
-
-ALTER TABLE cards_dillers ADD column domain_id smallint(6) unsigned not null default 0;
 
 =cut
 

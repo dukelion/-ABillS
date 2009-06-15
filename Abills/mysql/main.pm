@@ -392,6 +392,7 @@ sub changes {
           if ($k eq 'DISABLE') {
             if ($DATA{$k} == 0){
               $self->{ENABLE}=1;
+              $self->{DISABLE}=undef;
              }
             else {
             	$self->{DISABLE}=1;
