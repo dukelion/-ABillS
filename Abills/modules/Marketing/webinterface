@@ -87,7 +87,7 @@ if ($FORM{USERS}) {
   $LIST_PARAMS{USERS}=1;
   my %reports_list = (ADDED    => "$_ADDED",
                       DISABLED => "$_DISABLE",
-                      DELETED   => "$_DELETED"
+                      DELETED  => "$_DELETED"
                        ); 
 
   foreach my $report_name (keys %reports_list) {
@@ -195,7 +195,8 @@ $table = $html->table( { width      => '100%',
                          rows       => [ [ "$_TOTAL:", $html->b($Marketing->{TOTAL})
                                            ] ]
                      } );
-print $table->show();
+
+#print $table->show();
 
 
 
