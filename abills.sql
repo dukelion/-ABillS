@@ -787,15 +787,10 @@ CREATE TABLE `tp_nas` (
   KEY `vid` (`tp_id`)
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `trafic_tarifs`
-#
-
 CREATE TABLE `trafic_tarifs` (
   `id` tinyint(4) NOT NULL default '0',
   `descr` varchar(30) default NULL,
+  `net_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   `nets` text,
   `tp_id` smallint(5) unsigned NOT NULL default '0',
   `prepaid` int(11) unsigned default '0',
@@ -808,6 +803,18 @@ CREATE TABLE `trafic_tarifs` (
   `expression` varchar(255) NOT NULL default '',
   UNIQUE KEY `id` (`id`,`interval_id`)
 ) ;
+
+CREATE TABLE `traffic_classes` (
+  `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(25) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  `nets` TEXT COLLATE latin1_swedish_ci,
+  `comments` TEXT COLLATE latin1_swedish_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `name` (`name`)
+) COMMENT='Traffic Classes';
+
+
 
 # --------------------------------------------------------
 
