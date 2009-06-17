@@ -107,7 +107,8 @@ sub dv_auth {
   tp.ext_bill_account,
   tp.credit,
   tp.ippool,
-  dv.join_service
+  dv.join_service,
+  tp.tp_id
 
      FROM (dv_main dv)
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
@@ -132,7 +133,7 @@ sub dv_auth {
      $self->{FILTER}, 
      $self->{IP}, 
      $self->{NETMASK}, 
-     $self->{TP_ID}, 
+     $self->{TP_NUM}, 
      $self->{USER_SPEED}, 
      $self->{CID},
      $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT}, $self->{TIME_LIMIT},
@@ -156,7 +157,8 @@ sub dv_auth {
      $self->{EXT_BILL_ACCOUNT},
      $self->{TP_CREDIT},
      $self->{TP_IPPOOL},
-     $self->{JOIN_SERVICE}
+     $self->{JOIN_SERVICE},
+     $self->{TP_ID}
     ) = @{ $self->{list}->[0] };
 
 #DIsable
@@ -164,7 +166,7 @@ if ($self->{DISABLE}) {
   $RAD_PAIRS->{'Reply-Message'}="Service Disable";
   return 1, $RAD_PAIRS;
  }
-elsif (! $self->{JOIN_SERVICE} && $self->{TP_ID} < 1) {
+elsif (! $self->{JOIN_SERVICE} && $self->{TP_NUM} < 1) {
   $RAD_PAIRS->{'Reply-Message'}="No Tarif Selected";
   return 1, $RAD_PAIRS;
  }
@@ -209,7 +211,8 @@ if ($self->{JOIN_SERVICE}) {
   tp.neg_deposit_filter_id,
   tp.ext_bill_account,
   tp.credit,
-  tp.ippool
+  tp.ippool,
+  tp.tp_id
      FROM (dv_main dv, tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
      LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.id)
@@ -231,7 +234,7 @@ if ($self->{JOIN_SERVICE}) {
     (
      $self->{LOGINS}, 
      $self->{FILTER}, 
-     $self->{TP_ID}, 
+     $self->{TP_NUM}, 
      $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT}, $self->{TIME_LIMIT},
      $self->{DAY_TRAF_LIMIT},  $self->{WEEK_TRAF_LIMIT},   $self->{MONTH_TRAF_LIMIT}, $self->{OCTETS_DIRECTION},
      $self->{NAS}, 
@@ -246,6 +249,7 @@ if ($self->{JOIN_SERVICE}) {
      $self->{EXT_BILL_ACCOUNT},
      $self->{TP_CREDIT},
      $self->{TP_IPPOOL},
+     $self->{TP_ID},
     ) = @{ $self->{list}->[0] };
     $self->{UIDS} = "$self->{JOIN_SERVICE}";
    }
@@ -1113,8 +1117,6 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
    }   
 
   if ($self->{TRAFFIC_TRANSFER_PERIOD}) {
-    my $tp = $self->{TP_ID};
-    
     #$prepaids{0} = $prepaids{0} * $self->{TRAFFIC_TRANSFER_PERIOD} ;
     #$prepaids{1} = $prepaids{1} * $self->{TRAFFIC_TRANSFER_PERIOD} ;
     my $interval = undef;
@@ -1132,7 +1134,8 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
     my $transfer_traffic=$Billing->get_traffic({ UID      => $self->{UID},
     	                                           UIDS     => $self->{UIDS},
                                                  INTERVAL => $interval,
-                                                 TP_ID    => $tp
+                                                 TP_ID    => $self->{TP_ID},
+                                                 TP_NUM   => $self->{TP_NUM},
                                                });
                                            
      

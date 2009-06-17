@@ -184,9 +184,7 @@ else {
 } 
 
 
-$INTERFACE=~s/\n//;
-my $via_if_in  = ($INTERFACE ne '-') ? "via $INTERFACE in" : '';
-my $via_if_out = ($INTERFACE ne '-') ? "via $INTERFACE out" : '';
+$CLIENT_IP = $HISADDR;
 
 require Admins;
 Admins->import();
@@ -201,6 +199,10 @@ my $Dv = Dv->new($db, $admin, \%conf);
 my %LIST_PARAMS = ();
 my @FW_ACTIONS  = ();
 
+my $tp_table_number = 0;
+my $tp_table_first_number = 10;
+
+
 
 # Flush rules
   my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
@@ -212,6 +214,7 @@ my @FW_ACTIONS  = ();
       $user = $Dv->info(0, { LOGIN => $USER });
       $inum = $user->{UID};
      }
+
     $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
 
     $START_FW[0]=$START_FW[0]+$conf{IPN_FW_FIRST_RULE};
@@ -219,13 +222,15 @@ my @FW_ACTIONS  = ();
     $START_FW[2]=$START_FW[2]+$conf{IPN_FW_FIRST_RULE};
    }
 
+
+if ($inum ne '-' ) {
   foreach my $num (@START_FW) {
     $fw_num     = $num + $inum * 2;
     $pipe_num   = $num + $inum * 2;
     $fw_nums   .= ' ' . ($fw_num)   .' '. ($fw_num +1);
     $pipe_nums .= ' ' . ($pipe_num) .' '. ($pipe_num+1);
    }
-
+}
 
 
 
@@ -237,7 +242,7 @@ else {
   if ($OS eq 'Linux') {
    }
   else {
-    push @FW_ACTIONS, "$IPFW -f delete $fw_nums";
+    #push @FW_ACTIONS, "$IPFW -f delete $fw_nums";
     #push @FW_ACTIONS, "$IPFW -f pipe delete $pipe_nums";
    }
   $LIST_PARAMS{LOGIN} = "$USER";
@@ -247,6 +252,7 @@ else {
 if ($ACTION eq 'up' || $OS eq 'Linux') {
   my %speeds = ();
   my %nets   = ();
+  my %nets_id= ();
   my %expr   = ();
   
   if (! defined($user)) {
@@ -267,14 +273,39 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   #JOIN Service
   $conf{JOIN_SERVICE_FW_FIRST_RULE} = 40000 if (! $conf{JOIN_SERVICE_FW_FIRST_RULE});
 
-
+  my %IPFW_NUMS = ();
   if ($user->{JOIN_SERVICE}) {
  	  if ($user->{JOIN_SERVICE} > 1) {
   	  $user = $Dv->info($user->{JOIN_SERVICE});
      }   
 
     $user->{JOIN_SERVICE}=$user->{UID}	
-  }
+   }
+  elsif($OS eq '' || $OS eq 'FreeBSD') {
+  	$inum      = '-';
+  	if ($INTERFACE =~ /tun/ || $INTERFACE =~ /ng/) {
+  	   $INTERFACE = '-';
+  	 }
+
+    $tp_table_number = $tp_table_first_number + $user->{TP_NUM};
+    $CLIENT_IP       = $HISADDR;
+    push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP";
+    
+    my $result = `$IPFW show`;
+    if ($result ne '') {
+   	  my @rows = split(/\n/, $result);
+      foreach my $line (@rows) {
+        	  my($num, undef)=split(/ /, $line);
+         	  $num =~ s/^0//;
+         	  $IPFW_NUMS{$num}=1;
+          }
+     }
+   }
+
+  $INTERFACE=~s/\n//;
+  my $via_if_in  = ($INTERFACE ne '-') ? "via $INTERFACE in" : ' in ';
+  my $via_if_out = ($INTERFACE ne '-') ? "via $INTERFACE out" : ' out ';
+
 
   if ($user->{SPEED} > 0) {
     $speeds{0}{IN} = int($user->{SPEED});
@@ -284,7 +315,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
     ($user->{TIME_INTERVALS},
      $user->{INTERVAL_TIME_TARIF}, 
-     $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($user->{TP_ID});
+     $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($user->{TP_NUM});
 
     my ($remaining_time, $ret_attr) = $Billing->remaining_time($user->{DEPOSIT}, {
     	    TIME_INTERVALS      => $user->{TIME_INTERVALS},
@@ -317,12 +348,15 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
         next if ($k ne 'FIRST_INTERVAL');
 
         $user->{TI_ID}=$v;
- 	      my $list = $tariffs->tt_list({ TI_ID => $v });
+
+ 	      my $list = $tariffs->tt_list({ TI_ID => $v, SHOW_NETS => 1 });
+
  	      foreach my $line (@$list)  {
- 	    	  $speeds{$line->[0]}{IN}="$line->[4]";
- 	    	  $speeds{$line->[0]}{OUT}="$line->[5]";
- 	    	  $nets{$line->[0]}="$line->[7]";
- 	    	  $expr{$line->[0]}="$line->[8]" if (length($line->[8]) > 5);
+ 	    	  $speeds{$line->[0]}{IN} = "$line->[4]";
+ 	    	  $speeds{$line->[0]}{OUT}= "$line->[5]";
+ 	    	  $nets_id{$line->[0]}    = "$line->[9]";
+ 	    	  $nets{$line->[0]}       = "$line->[10]";
+ 	    	  $expr{$line->[0]}       = "$line->[8]" if (length($line->[8]) > 5);
  	    	  #print "$line->[0] $line->[4]\n";
  	      }
       }
@@ -360,7 +394,12 @@ print "\nEND: =====================================\n" if ($debug > 0);
   	exit;
    }
   
+  
   #Make speed rules
+  #if ($inum eq '-') {
+  #	$inum = 0;
+  # }
+
   foreach my $traf_type (sort keys %speeds) {
     my $speed = $speeds{$traf_type};
 
@@ -368,16 +407,18 @@ print "\nEND: =====================================\n" if ($debug > 0);
        $START_FW[$traf_type]=$START_FW[0]+$traf_type*$fw_step;
      }
 
-    $fw_num_in    = $START_FW[$traf_type] + $inum * 2;
-    $fw_num_out   = $START_FW[$traf_type] + $inum * 2 + 1;
+    if ($inum ne '-' ) {
+      $fw_num_in    = $START_FW[$traf_type] + $inum * 2;
+      $fw_num_out   = $START_FW[$traf_type] + $inum * 2 + 1;
 
-    if ($user->{JOIN_SERVICE}) {
-      $pipe_num_in = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $user->{JOIN_SERVICE} * 2 + $traf_type * $fw_step;
-      $pipe_num_out = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $user->{JOIN_SERVICE} * 2 + 1 + $traf_type * $fw_step ;
-     }
-    else {
-      $pipe_num_in  = $START_FW[$traf_type] + $inum * 2 ;
-      $pipe_num_out = $START_FW[$traf_type] + $inum * 2 + 1;
+      if ($user->{JOIN_SERVICE}) {
+        $pipe_num_in = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $user->{JOIN_SERVICE} * 2 + $traf_type * $fw_step;
+        $pipe_num_out = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $user->{JOIN_SERVICE} * 2 + 1 + $traf_type * $fw_step ;
+       }
+      else {
+        $pipe_num_in  = $START_FW[$traf_type] + $inum * 2 ;
+        $pipe_num_out = $START_FW[$traf_type] + $inum * 2 + 1;
+       }
      }
 
     my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN}  : 0;
@@ -433,6 +474,56 @@ print "\nEND: =====================================\n" if ($debug > 0);
 
     #FreeBSD ipfw pipe shaper
     else {
+
+    	
+      my $dest_ip = 'any';
+      #User ipfw table if more then 5 networks
+      if ($#nets_arr > 5) {
+        my $table_number = $nets_id{$traf_type};
+        my $result = `$IPFW table $table_number list`;
+        if ($result eq '') {
+             foreach my $line (@nets_arr) {
+             	  push @FW_ACTIONS, "$IPFW table $table_number add $line";
+              }
+           }
+        $dest_ip = "table\\($table_number\\)";
+       }
+      else {
+        $dest_ip = $nets{$traf_type};
+       }
+     
+     #Tables
+     my $table_debug = 1;
+   if ($inum eq '-' ) {
+     $fw_num_in     = $START_FW[$traf_type] + $user->{TP_NUM} * 20;
+     $fw_num_out    = $START_FW[$traf_type] + $user->{TP_NUM} * 20 + 1;
+     $pipe_num_in   = $START_FW[$traf_type] + $user->{TP_NUM} * 20;
+     $pipe_num_out  = $START_FW[$traf_type] + $user->{TP_NUM} * 20 + 1;
+     
+     if (! $IPFW_NUMS{$fw_num_in}) {
+       if ($speed_in > 0) {
+         push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from table\\($tp_table_number\\) to $dest_ip $via_if_in";
+         push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
+        }
+       else {
+         push @FW_ACTIONS, "$IPFW add $fw_num_in allow ip from table\\($tp_table_number\\) to $dest_ip $via_if_in";      		
+        }
+      }
+
+     if (! $IPFW_NUMS{$fw_num_out}) { 
+       if ($speed_in > 0) {
+         push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $dest_ip to table\\($tp_table_number\\) $via_if_out";
+         push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
+        }
+       else {
+         push @FW_ACTIONS, "$IPFW add $fw_num_out allow ip from $dest_ip to table\\($tp_table_number\\) $via_if_out";
+        }
+      }
+
+    }
+#-----Old------------------------------------------------
+else {
+ 
      if ($speed_in > 0) {
     	  #In;
         if ($traf_type == 0) {
@@ -441,59 +532,31 @@ print "\nEND: =====================================\n" if ($debug > 0);
           push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes mask dst-ip 0x00000000";
          }
         else {
-          #ipfw tables
-          if ($#nets_arr > 5) {
-             my $table_number = $user->{TI_ID};
-
-             my $result = `$IPFW table $table_number list`;
-             if ($result eq '') {
-               foreach my $line (@nets_arr) {
-               	  push @FW_ACTIONS, "$IPFW table $table_number add $line";
-                }
-              }
-            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to table\\($table_number\\) $via_if_in";
-           }
-          else {
-            push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to $nets{$traf_type} $via_if_in";
-           }
-            push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
+          push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to $dest_ip $via_if_in";
+          push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
          }
        }
       else {
         #if speed 0 (UNlime) make only allow rules
-        push @FW_ACTIONS, "$IPFW add $fw_num_in allow ip from $CLIENT_IP to $nets{$traf_type} $via_if_in";      	
+        push @FW_ACTIONS, "$IPFW add $fw_num_in allow ip from $CLIENT_IP to $dest_ip $via_if_in";      	
        }
       
       if ($speed_out > 0) {
         if ($traf_type == 0) {
-            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to $CLIENT_IP $via_if_out";
-            push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask dst-ip 0x00000000";
+          push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to $CLIENT_IP $via_if_out";
+          push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask dst-ip 0x00000000";
          }
         else {
-          #User ipfw table if more then 5 networks
-          if ($#nets_arr > 5) {
-             my $table_number = $user->{TI_ID};
-
-             my $result = `$IPFW table $table_number list`;
-             if ($result eq '') {
-               foreach my $line (@nets_arr) {
-               	  push @FW_ACTIONS, "$IPFW table $table_number add $line";
-                }
-              }
-             push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from table\\($table_number\\) to $CLIENT_IP $via_if_out";
-           }
-          else {
-            push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $nets{$traf_type} to $CLIENT_IP $via_if_out";
-           }
-
-
+          push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $dest_ip to $CLIENT_IP $via_if_out";
           push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
          }
        }
      	#if speed 0 (UNlime) make only allow rules
       else {
-         push @FW_ACTIONS, "$IPFW add $fw_num_out allow ip from $nets{$traf_type} to $CLIENT_IP $via_if_out";
+         push @FW_ACTIONS, "$IPFW add $fw_num_out allow ip from $dest_ip to $CLIENT_IP $via_if_out";
        }
+}
+#-----------------------------------------------------
 
 
     }
@@ -501,6 +564,17 @@ print "\nEND: =====================================\n" if ($debug > 0);
   }
 
  }
+elsif ($ACTION eq 'down') {
+  if ($OS eq 'Linux') {
+  	
+   }
+  else {
+    $user = $Dv->info(0, { LOGIN => $USER });	  
+    $tp_table_number = $tp_table_first_number + $user->{TP_NUM};
+	  push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
+	 }
+}
+
 
 #make firewall actions
 foreach my $line (@FW_ACTIONS) {

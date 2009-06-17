@@ -112,13 +112,14 @@ sub info {
    dv.join_service,
    dv.turbo_mode,
    tp.abon_distribution,
-   tp.credit
+   tp.credit,
+   tp.tp_id
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
    $WHERE;");
 
-  if ($self->{TOTAL} < 1) {
-     $self->{errno} = 2;
+  if ($self->{TOTAL} < 1) {     
+  	 $self->{errno} = 2;
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
@@ -131,7 +132,7 @@ sub info {
    $self->{IP}, 
    $self->{NETMASK}, 
    $self->{SPEED}, 
-   $self->{FILTER_ID}, 
+   $self->{IDTER_ID}, 
    $self->{CID},
    $self->{STATUS},
    $self->{CALLBACK},
@@ -144,7 +145,8 @@ sub info {
    $self->{JOIN_SERVICE},
    $self->{TURBO_MODE},
    $self->{ABON_DISTRIBUTION},
-   $self->{TP_CREDIT}
+   $self->{TP_CREDIT},
+   $self->{TP_NUM}
   )= @{ $self->{list}->[0] };
   
   
@@ -155,7 +157,7 @@ sub info {
 
 #**********************************************************
 #
-#**********************************************************
+#**************************************
 sub defaults {
   my $self = shift;
 
@@ -646,4 +648,27 @@ sub periodic {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 1
+ 

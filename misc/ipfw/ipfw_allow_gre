@@ -31,10 +31,10 @@ add 65013 deny log udp from any to any via %VPN_INTERFACE%
 add 65010 divert 8668 ip4 from any to any via %EXTERNAL_INTERFACE%
 
 #Extrnal interface Netbios BLOCK
-add 65100 deny udp from any 135-139 to any via rl0 # netbios низя
-add 65100 deny tcp from any 135-139,445 to any via  rl0 # netbios низя
-add 65100 deny udp from any to any 135-139 via rl0 # netbios низя
-add 65100 deny tcp from any to any 135-139,445 via rl0 # netbios
+add 65100 deny udp from any 135-139 to any via %EXTERNAL_INTERFACE% # netbios низя
+add 65100 deny tcp from any 135-139,445 to any via  %EXTERNAL_INTERFACE% # netbios низя
+add 65100 deny udp from any to any 135-139 via %EXTERNAL_INTERFACE% # netbios низя
+add 65100 deny tcp from any to any 135-139,445 via %EXTERNAL_INTERFACE% # netbios
 
 
 

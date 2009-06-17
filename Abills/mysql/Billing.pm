@@ -191,7 +191,7 @@ if ($prepaid{0} + $prepaid{1} > 0) {
 
    #Traffic transfert function
   if ($self->{TRAFFIC_TRANSFER_PERIOD}) {
-    my $tp = $self->{TP_ID};
+    my $tp = $self->{TP_NUM};
     
     my $interval = undef;
   	if ($self->{ACTIVATE} ne '0000-00-00') {
@@ -433,8 +433,8 @@ sub session_sum {
   }
 
 
- #If defined TP_ID
- if ($attr->{TP_ID}) {
+ #If defined TP_NUM
+ if ($attr->{TP_NUM}) {
    $self->query($db, "SELECT 
     u.uid,
     UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')),
@@ -471,7 +471,7 @@ sub session_sum {
     tp.octets_direction,
     tp.traffic_transfer_period
    FROM tarif_plans tp
-   WHERE tp.id='$attr->{TP_ID}';");
+   WHERE tp.id='$attr->{TP_NUM}';");
 
 
    if($self->{errno}) {
@@ -482,7 +482,7 @@ sub session_sum {
      return -5, 0, 0, 0, 0, 0;	
     }
 
-   $self->{TP_ID}=$attr->{TP_ID};
+   $self->{TP_NUM}=$attr->{TP_NUM};
 
    ( $self->{MIN_SESSION_COST},
      $self->{PAYMENT_TYPE},
@@ -507,7 +507,8 @@ sub session_sum {
     tp.octets_direction,
     tp.traffic_transfer_period,
     tp.neg_deposit_filter_id,
-    dv.join_service
+    dv.join_service,
+    tp.tp_id
    FROM (users u, 
       dv_main dv) 
    LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id )
@@ -523,7 +524,7 @@ sub session_sum {
     }
   
   ($self->{UID}, 
-   $self->{TP_ID}, 
+   $self->{TP_NUM}, 
    $self->{DAY_BEGIN}, 
    $self->{DAY_OF_WEEK}, 
    $self->{DAY_OF_YEAR}, 
@@ -536,7 +537,8 @@ sub session_sum {
    $self->{OCTETS_DIRECTION},
    $self->{TRAFFIC_TRANSFER_PERIOD},
    $self->{NEG_DEPOSIT_FILTER},
-   $self->{JOIN_SERVICE}
+   $self->{JOIN_SERVICE},
+   $self->{TP_ID},
   ) = @{ $self->{list}->[0] };
  }
 
@@ -549,7 +551,8 @@ sub session_sum {
         tp.payment_type,
         tp.octets_direction,
         tp.traffic_transfer_period,
-        tp.neg_deposit_filter_id
+        tp.neg_deposit_filter_id,
+        tp.tp_id
        FROM ( dv_main dv,  tarif_plans tp)
        WHERE dv.tp_id=tp.id 
        and dv.uid='$self->{JOIN_SERVICE}';");
@@ -563,12 +566,13 @@ sub session_sum {
       }
 
      (
-      $self->{TP_ID}, 
+      $self->{TP_NUM}, 
       $self->{MIN_SESSION_COST},
       $self->{PAYMENT_TYPE},
       $self->{OCTETS_DIRECTION},
       $self->{TRAFFIC_TRANSFER_PERIOD},
-      $self->{NEG_DEPOSIT_FILTER}
+      $self->{NEG_DEPOSIT_FILTER},
+      $self->{TP_ID}
      ) = @{ $self->{list}->[0] };
 
      $self->{UIDS} = "$self->{JOIN_SERVICE}";
@@ -586,7 +590,7 @@ sub session_sum {
 
 
  if ($attr->{USER_INFO}) {
- 	 return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_ID}, 0, 0;
+ 	 return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
   }
 
 
@@ -597,7 +601,9 @@ sub session_sum {
                          $self->{DAY_BEGIN},
                          $self->{DAY_OF_WEEK}, 
                          $self->{DAY_OF_YEAR},
-                         { TP_ID => $self->{TP_ID} }
+                         { TP_NUM => $self->{TP_NUM},
+                         	 TP_ID  => $self->{TP_ID} 
+                         	 }
                         );
  
  #session devisions
@@ -653,7 +659,7 @@ if ($self->{COMPANY_ID} > 0) {
 }
 
 
-  return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_ID}, 0, 0;
+  return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
 }
 
 

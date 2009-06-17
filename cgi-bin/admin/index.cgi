@@ -2428,6 +2428,14 @@ if (defined($FORM{tt})) {
        	                                               );
    }
   
+  $tarif_plan->{NETS_SEL} = $html->form_select('TT_NET_ID', 
+                                         { 
+ 	                                          SELECTED          => $tarif_plan->{TT_NET_ID},
+ 	                                        SEL_MULTI_ARRAY   => [ [ 0, ''], @{ $tarif_plan->traffic_class_list({ %LIST_PARAMS}) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
   $html->tpl_show(_include('dv_tt', 'Dv'), $tarif_plan);
 }
 else {

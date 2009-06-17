@@ -15,8 +15,7 @@
 <tr><td colspan=2>$_DESCRIBE:</td><td><input type=text name='TT_DESCRIBE' value='%TT_DESCRIBE%'></td></tr>
 <tr><td colspan=2>$_EXPRASSION:</td><td><textarea name='TT_EXPRASSION' cols=40 rows=8>%TT_EXPRASSION%</textarea></td></tr>
 
-<tr><th colspan=3>NETS (192.168.101.0/24;10.0.0.0/28) </th></tr>
-<tr><th colspan=3><textarea cols=40 rows=4 name='TT_NETS'>%TT_NETS%</textarea></th></tr>
+<tr><td colspan=2>NETS</td><td>%NETS_SEL%</td></tr>
 <tr><th colspan=3>%DV_EXPPP_NETFILES%</th></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
