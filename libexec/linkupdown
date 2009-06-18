@@ -282,7 +282,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     $user->{JOIN_SERVICE}=$user->{UID}	
    }
   elsif($OS eq '' || $OS eq 'FreeBSD') {
-  	$inum      = '-';
+  	$inum      = '-' if (! $user->{SPEED});
   	if ($INTERFACE =~ /tun/ || $INTERFACE =~ /ng/) {
   	   $INTERFACE = '-';
   	 }
