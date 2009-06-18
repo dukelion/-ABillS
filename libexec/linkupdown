@@ -207,8 +207,37 @@ my $tp_table_first_number = 10;
 # Flush rules
   my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
 
-  my $user = undef;
   
+  
+
+
+
+if ($ARGV[0] eq 'pppd') {
+	#push @FW_ACTIONS, "/sbin/tc qdisk del dev $INTERFACE";
+	$LIST_PARAMS{IP}=$HISADDR;
+ } 
+else {
+  if ($OS eq 'Linux') {
+   }
+  else {
+    #push @FW_ACTIONS, "$IPFW -f delete $fw_nums";
+    #push @FW_ACTIONS, "$IPFW -f pipe delete $pipe_nums";
+   }
+  $LIST_PARAMS{LOGIN} = "$USER";
+}
+
+
+  my $user = $Dv->info(0, { LOGIN => $USER });	  
+  if(defined($Dv->{errno})) {
+     print "Error: User not exist ([$Dv->{errno}] $Dv->{errstr})\n";
+     exit 1;
+   }
+  elsif($Dv->{TOTAL} < 1) {
+    print "$USER - Not exist\n";
+    exit 1;
+   }
+
+
   if ($ARGV[0] eq 'ipn') {
     if ($conf{IPN_FW_RULE_UID}) {
       $user = $Dv->info(0, { LOGIN => $USER });
@@ -234,20 +263,6 @@ if ($inum ne '-' ) {
 
 
 
-if ($ARGV[0] eq 'pppd') {
-	#push @FW_ACTIONS, "/sbin/tc qdisk del dev $INTERFACE";
-	$LIST_PARAMS{IP}=$HISADDR;
- } 
-else {
-  if ($OS eq 'Linux') {
-   }
-  else {
-    #push @FW_ACTIONS, "$IPFW -f delete $fw_nums";
-    #push @FW_ACTIONS, "$IPFW -f pipe delete $pipe_nums";
-   }
-  $LIST_PARAMS{LOGIN} = "$USER";
-}
-
 # Up fw shaper rules
 if ($ACTION eq 'up' || $OS eq 'Linux') {
   my %speeds = ();
@@ -255,20 +270,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   my %nets_id= ();
   my %expr   = ();
   
-  if (! defined($user)) {
-    $user = $Dv->info(0, { %LIST_PARAMS });
-   }
-
-  if(defined($Dv->{errno})) {
-     print "Error: User not exist ([$Dv->{errno}] $Dv->{errstr})\n";
-     exit 1;
-   }
-  elsif($Dv->{TOTAL} < 1) {
-    print "$USER - Not exist\n";
-    exit 1;
-   }
- 
-
 
   #JOIN Service
   $conf{JOIN_SERVICE_FW_FIRST_RULE} = 40000 if (! $conf{JOIN_SERVICE_FW_FIRST_RULE});
@@ -569,7 +570,6 @@ elsif ($ACTION eq 'down') {
   	
    }
   else {
-    $user = $Dv->info(0, { LOGIN => $USER });	  
     $tp_table_number = $tp_table_first_number + $user->{TP_NUM};
 	  push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
 	 }
