@@ -120,6 +120,8 @@ if (-f $log) {
 $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
 
 
+
+
 # GEt information from flowtools
 #
   my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
@@ -131,6 +133,8 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
   $unknown_ip_log = "$flow_dir/unknown_ip.log";
 
   exit if(make_pid($flow_dir."/traffic2sql_pid.pid") == 1);
+
+
 
   #Get flow tools files
   opendir DIR, $flow_dir or die "Can't open dir '$flow_dir' $!\n";
@@ -148,12 +152,13 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
 
       #Last modified
       my $end_date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
- 
+      
       get_collector_data("$FLOW_CAT $flow_dir/$log | $FLOW_PRINT | $FLOWTOOLS_IP_AGGREGATION", { START => $start_date });
 
       if (! $ARGV->{DETAIL_ONLY}) {
         processing({ START => $start_date,
   	                 STOP  => $end_date });
+
        }
 
       # Delete log file
@@ -186,6 +191,7 @@ make_pid($flow_dir."/traffic2sql_pid.pid", 'clean');
 #**********************************************************
 sub processing {
  my ($attr) = @_;
+
 
 my $IN_ARRAY  = $Ipn->{IN};
 my $OUT_ARRAY = $Ipn->{OUT};

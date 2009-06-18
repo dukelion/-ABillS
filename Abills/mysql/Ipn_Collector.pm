@@ -34,6 +34,8 @@ my %intervals = ();
 my %tp_interval = ();
 
 my @zoneids;
+my %ip_class_tables = ();
+
 #my @clients_lst = ();
 
 #**********************************************************
@@ -322,7 +324,7 @@ sub traffic_agregate_nets {
     my $user = $Dv->info($uid);
 
     if ($Dv->{TOTAL} > 0) {
-    	$TP_ID = $user->{TP_ID} || 0;
+    	$TP_ID = $user->{TP_NUM} || 0;
       $self->{USERS_INFO}->{TPS}->{$uid}=$TP_ID;
      }
     
@@ -371,19 +373,24 @@ sub traffic_agregate_nets {
 
    my %zones;
 
+
+
+
    @zoneids = @{ $intervals{$tp_interval{$TP_ID}}{ZONEIDS} };
-   %zones   = %{ $intervals{$tp_interval{$TP_ID}}{ZONES} };
+   #%zones   = %ip_class_tables; #%{ $intervals{$tp_interval{$TP_ID}}{ZONES} };
     
+   
     if (defined($data_hash->{OUT})) {
       #Get User data array
       my $DATA_ARRAY_REF = $data_hash->{OUT};
       
       foreach my $DATA ( @$DATA_ARRAY_REF ) {
    	    #print "------ < $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}\n" if ($self->{debug});
+
   	    if ( $#zoneids >= 0 ) {
-  	     
   	      foreach my $zid (@zoneids) {
-    	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $zid, \%zones)) {
+    	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $self->{ZONES}{$zid}{TRAFFIC_CLASS}, \%ip_class_tables)) {
+
 		          $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} += $DATA->{SIZE};
 	  	        print " $zid ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}  $DATA->{SIZE} / $zones{$zid}{PriceOut}\n" if ($self->{debug});;
 		          last;
@@ -405,7 +412,7 @@ sub traffic_agregate_nets {
   	    #print "!!------ < $DATA->{SIZE} ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}\n" if ($self->{debug});
   	    if ($#zoneids >= 0) {
  	        foreach my $zid (@zoneids) {
- 		        if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $zid, \%zones)) {
+ 		        if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $self->{ZONES}{$zid}{TRAFFIC_CLASS}, \%ip_class_tables)) {
 	    	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
     		      print " $zid ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT} <- ". int2ip($DATA->{SRC_IP})  .":$DATA->{SRC_PORT}  $DATA->{SIZE} / $zones{$zid}{PriceIn}\n" if ($self->{debug});
   		        last;
@@ -444,34 +451,48 @@ sub get_zone {
 	my $zoneid  = 0;
 	my %zones   = ();
 	my @zoneids = ();
-
+	
   my $tariff  = $attr->{TP_INTERVAL} || 0;
- 
+
+  #Get traffic classes and prices 
   require Tariffs;
   Tariffs->import();
   my $tariffs = Tariffs->new($db, $admin, $CONF);
   my $list = $tariffs->tt_list({ TI_ID => $tariff });
 
   foreach my $line (@$list) {
- 	    #$speeds{$line->[0]}{IN}="$line->[4]";
- 	    #$speeds{$line->[0]}{OUT}="$line->[5]";
       $zoneid=$line->[0];
 
-      $zones{$zoneid}{PriceIn}=$line->[1]+0;
-      $zones{$zoneid}{PriceOut}=$line->[2]+0;
-      $zones{$zoneid}{PREPAID_TSUM}=$line->[3]+0;
-
-  	  my $ip_list="$line->[7]";
-  	  #Make ip hash
-      # !10.10.0.0/24:3400
-      # [Negative][IP][/NETMASK][:PORT]
-      my @ip_list_array = split(/\n|;/, $ip_list);
-      
+      $zones{$zoneid}{PriceIn}      = $line->[1]+0;
+      $zones{$zoneid}{PriceOut}     = $line->[2]+0;
+      $zones{$zoneid}{PREPAID_TSUM} = $line->[3]+0;
+      $zones{$zoneid}{TRAFFIC_CLASS}= $line->[9];
       push @zoneids, $zoneid;
+ 	 }
 
-      my $i = 0;      
 
-      foreach my $ip_full (@ip_list_array) {
+   @{$intervals{$tariff}{ZONEIDS}}= @zoneids;
+   %{$intervals{$tariff}{ZONES}}  = %zones;
+
+
+   $self->{ZONES_IDS}= $intervals{$tariff}{ZONEIDS};
+   $self->{ZONES}    = $intervals{$tariff}{ZONES};
+
+   #print %{ $self->{ZONES}{0} };
+   #print "!!!!!!!!!!!!!!!!!!!!!!";
+
+
+   #Get IP addresse for each traffic zones
+   if(! %ip_class_tables) {
+   	 $self->query($db, "SELECT id, nets FROM traffic_classes;");
+   	 foreach my $line (@{ $self->{list} }) {
+       my $zoneid = $line->[0];
+       $line->[1] =~ s/\n//g;
+   	 	 my @ip_list_array = split(/;/, $line->[1]);
+
+       my $i=0;
+
+       foreach my $ip_full (@ip_list_array) {
    	    if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(\/{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,2})(:{0,1})(\S{0,100})/ ) {
    	    	my $NEG      = $1 || ''; 
    	    	my $IP       = unpack("N", pack("C4", split( /\./, $2))); 
@@ -479,16 +500,16 @@ sub get_zone {
    	    	
    	      print "REG $i ID: $zoneid NEGATIVE: $NEG IP: ".  int2ip($IP). " MASK: ". int2ip($NETMASK) ." Ports: $6<br>\n" if ($self->{debug});
 
-  	      $zones{$zoneid}{A}[$i]{IP}   = $IP;
-	        $zones{$zoneid}{A}[$i]{Mask} = $NETMASK;
-	        $zones{$zoneid}{A}[$i]{Neg}  = $NEG;
+  	      $ip_class_tables{$zoneid}[$i]{IP}   = $IP;
+	        $ip_class_tables{$zoneid}[$i]{Mask} = $NETMASK;
+	        $ip_class_tables{$zoneid}[$i]{Neg}  = $NEG;
         
 	        #Get ports
-	        @{$zones{$zoneid}{A}[$i]{'Ports'}} = ();
+	        @{$ip_class_tables{$zoneid}[$i]{'Ports'}} = ();
           if ($6 ne '')	{      	
 	      	  my @PORTS_ARRAY = split(/,/, $6);
 	      	  foreach my $port (@PORTS_ARRAY) {
-	      	    push @{$zones{$zoneid}{A}[$i]{Ports}}, $port;
+	      	    push @{$ip_class_tables{$zoneid}[$i]{Ports}}, $port;
     	      	#while (my $ref2=$sth2->fetchrow_hashref()) {
 	            #  if ($DEBUG) { print "$ref2->{'PortNum'} "; }
 	            #  push @{$zones{$zoneid}{A}[$i]{Ports}}, $ref2->{'PortNum'};
@@ -497,17 +518,12 @@ sub get_zone {
            }
           $i++;
    	     }
-
-        
-        
        }
- 	 }
+   	  }
 
-   @{$intervals{$tariff}{ZONEIDS}}=@zoneids;
-   %{$intervals{$tariff}{ZONES}}=%zones;
+     $self->{ZONES_IPS}=\%ip_class_tables;
+    }
 
-   $self->{ZONES_IDS}=$intervals{$tariff}{ZONEIDS};
-   $self->{ZONES}=$intervals{$tariff}{ZONES};
 
    print " Tariff Interval: $tariff\n".
    " Zone Ids:". @{$intervals{$tariff}{ZONEIDS}}."\n".
@@ -521,7 +537,7 @@ sub get_zone {
 
 
 #**********************************************************
-# ii?aaaeyao i?eiaaea?iinou aa?ana ciia, ciiu caaaiu NOIA?-IOIA?-oyoai %zones
+# Check ip in zone
 #**********************************************************
 sub ip_in_zone($$$$) {
     my $self;
@@ -533,17 +549,21 @@ sub ip_in_zone($$$$) {
     my $res = 0;
     # debug
     my %zones = %$zone_data;
-
+    
+    
+    
     if ($self->{debug}) { print "--- CALL ip_in_zone($ip_num, $port, $zoneid) -> \n"; }
 
     # eaai ii nieneo aa?ania ciiu
-    for (my $i=0; $i<=$#{$zones{$zoneid}{A}}; $i++) {
-	     
-	     my $adr_hash = \%{ $zones{$zoneid}{A}[$i] };
+    for (my $i=0; $i<=$#{$zones{$zoneid}}; $i++) {
+	     my $adr_hash = \%{ $zones{$zoneid}[$i] };
        
        my $a_ip  = $$adr_hash{'IP'}; 
        my $a_msk = $$adr_hash{'Mask'}; 
-       my $a_neg = $$adr_hash{'Neg'}; 
+       my $a_neg = $$adr_hash{'Neg'};
+       
+       #print  "$a_ip / $a_msk / $a_neg<br>";
+        
        my $a_ports_ref = \@{ $$adr_hash{'Ports'} };
        
        #print "AAAAAAAA:" . @$a_ports_ref . "\n";

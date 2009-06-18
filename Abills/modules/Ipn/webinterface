@@ -2156,7 +2156,7 @@ my $table = $html->table( { width       => '400',
 
   my ($TIME_INTERVALS,
       $INTERVAL_TIME_TARIF,
-      $INTERVAL_TRAF_TARIF) = $Billing->time_intervals($Dv->{TP_ID});
+      $INTERVAL_TRAF_TARIF) = $Billing->time_intervals($Dv->{TP_NUM});
 
 
   my ($remaining_time, $ret_attr) = $Billing->remaining_time(0, {
@@ -2171,17 +2171,10 @@ my $table = $html->table( { width       => '400',
           POSTPAID            => 1 
          });
 
-       #$tp_interval{$TP_ID} = (defined($ret_attr->{TT}) && $ret_attr->{TT} > 0) ? $ret_attr->{TT} :  0;
-       
-  my $TP_INTERVAL = $tp_interval{$TP_ID} = ($ret_attr->{FIRST_INTERVAL}) ? $ret_attr->{FIRST_INTERVAL} :  0;
+  my $TP_INTERVAL = ($ret_attr->{FIRST_INTERVAL}) ? $ret_attr->{FIRST_INTERVAL} :  0;
 
-	
-#	print "TP: $Dv->{TP_ID} // Interval: $TP_INTERVAL // TIME_INTERVALS: $TIME_INTERVALS,
-#      $INTERVAL_TIME_TARIF,
-#      $INTERVAL_TRAF_TARIF<br>";
-	
 	# Get names
-  my $list_tt = $tariffs->tt_list({ TI_ID => $TP_INTERVAL });
+  my $list_tt = $tariffs->tt_list({ TI_ID => $TP_INTERVAL, SHOW_NETS => 1 });
   my %tt_names = ();
   foreach my $line (@$list_tt) {
     $tt_names{$line->[0]}=$line->[6];
@@ -2203,17 +2196,22 @@ my $table = $html->table( { width       => '400',
 	my $zone = -1;
 
 	foreach my $zone_id (@{ $Ipn_Collector->{ZONES_IDS} }) {
-	  if( ip_in_zone(ip2int($ip), $port, $zone_id, $Ipn_Collector->{ZONES} ) ) {
+	  print @{ $Ipn_Collector->{ZONES_IPS}{1} };
+	  if( ip_in_zone(ip2int($ip), $port, $Ipn_Collector->{ZONES}{$zone_id}{TRAFFIC_CLASS}, $Ipn_Collector->{ZONES_IPS} ) ) {
 		  $zone = $zone_id;
       last;
 	   };
 	 }
 
 	foreach my $line ( @{ $Ipn_Collector->{ZONES_IDS} }) {
-		$last_byte = 0;
+		$last_byte   = 0;
 		my $networks = '';
-		my $ports = '';
-		foreach my $address ( @{ $Ipn_Collector->{ZONES}{$line}{A} } ){
+		my $ports    = '';
+
+    
+    my $zid = $Ipn_Collector->{ZONES}{$line}{TRAFFIC_CLASS};
+
+		foreach my $address ( @{ $Ipn_Collector->{ZONES_IPS}{$zid} } ) {
 			my $adr_hash = \%{ $address };
 
       my $a_ip  = $$adr_hash{'IP'}; 
