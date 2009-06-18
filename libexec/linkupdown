@@ -205,9 +205,8 @@ my $tp_table_first_number = 10;
 
 
 # Flush rules
-  my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
+my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
 
-  
   
 
 
@@ -282,8 +281,8 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
     $user->{JOIN_SERVICE}=$user->{UID}	
    }
-  elsif($OS eq '' || $OS eq 'FreeBSD') {
-  	$inum      = '-' if (! $user->{SPEED});
+  elsif(($OS eq '' || $OS eq 'FreeBSD') && ! $user->{SPEED}) {
+  	$inum      = '-';
   	if ($INTERFACE =~ /tun/ || $INTERFACE =~ /ng/) {
   	   $INTERFACE = '-';
   	 }
