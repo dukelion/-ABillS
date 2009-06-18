@@ -494,7 +494,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
      
      #Tables
    my $table_debug = 1;
-   if ($inum eq '-' ) {
+   if ($inum eq '-' && ! $user->{SPEED}) {
      $fw_num_in     = $START_FW[$traf_type] + $user->{TP_NUM} * 20;
      $fw_num_out    = $START_FW[$traf_type] + $user->{TP_NUM} * 20 + 1;
      $pipe_num_in   = $START_FW[$traf_type] + $user->{TP_NUM} * 20;
