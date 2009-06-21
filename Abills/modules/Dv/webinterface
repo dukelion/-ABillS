@@ -551,7 +551,7 @@ sub dv_tp {
 if($FORM{ADD_TP}) {
   $FORM{TP_ID} = $FORM{CHG_TP_ID};
   
-  if ($FORM{TP_ID} < 1) {
+  if ($FORM{ID} < 1) {
   	$html->message('err', $_ERROR, "$_ERROR ID = 0");
    }
   else {
