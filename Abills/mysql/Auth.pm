@@ -113,8 +113,8 @@ sub dv_auth {
      FROM (dv_main dv)
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
-     LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.id)
-     LEFT JOIN intervals i ON (tp.id = i.tp_id)
+     LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.tp_id)
+     LEFT JOIN intervals i ON (tp.tp_id = i.tp_id)
      WHERE dv.uid='$self->{UID}'
      GROUP BY dv.uid;");
 
@@ -215,8 +215,8 @@ if ($self->{JOIN_SERVICE}) {
   tp.tp_id
      FROM (dv_main dv, tarif_plans tp)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
-     LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.id)
-     LEFT JOIN intervals i ON (tp.id = i.tp_id)
+     LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.tp_id)
+     LEFT JOIN intervals i ON (tp.tp_id = i.tp_id)
      WHERE dv.tp_id=tp.id
          AND dv.uid='$self->{JOIN_SERVICE}'
      GROUP BY dv.uid;");
@@ -564,6 +564,58 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
 #   exceed-action drop
 ######################
 # MPD
+elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
+  
+  $self->query($db, "SELECT tt.id, tc.nets
+             FROM trafic_tarifs tt
+             LEFT JOIN traffic_classes tc ON (tt.net_id=tc.id)
+             WHERE tt.interval_id='$self->{TT_INTERVAL}' ORDER BY 1 DESC;");
+
+  foreach my $line ( @{ $self->{list} } ) {
+  	my $class_id    = $line->[0];
+    my $filter_name = 'flt';
+
+    if ($class_id == 0 && $line->[1] =~ /0.0.0.0/) {
+       push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all rate-limit 1024000 150000 300000";
+       push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all shape 64000 4000";
+
+   	   next ;
+      }
+    else {
+  	  $line->[1] =~ s/[\n\r]//g;
+      my @net_list = split(/;/, $line->[1]);
+  	
+  	  my $i=1;
+  	  $class_id = $class_id * 2 + 1 - 2 if ($class_id != 0);
+
+  	  foreach my $net (@net_list) {
+        push @{$RAD_PAIRS->{'mpd-filter'} }, ($class_id)."#$i=match dst net $net";
+        push @{$RAD_PAIRS->{'mpd-filter'} }, ($class_id+1)."#$i=match src net $net";
+  		  $i++;
+  	   }
+  	  
+      push @{$RAD_PAIRS->{'mpd-limit'} }, "in#" . ($self->{TOTAL}-$line->[0]) ."#$line->[0]=flt". ($class_id) ." pass";
+      push @{$RAD_PAIRS->{'mpd-limit'} }, "out#". ($self->{TOTAL}-$line->[0]) ."#$line->[0]=flt". ($class_id+1) ." pass";
+     }
+
+    #mpd-limit+=in#1#1=flt1 pass,
+    #mpd-limit+=out#1#1=flt2 pass,
+    
+    #mpd-limit+=out#2#0=all rate-limit 1024000 150000 300000,
+    #mpd-limit+=in#2#0=all shape 64000 4000,  	
+  	
+    #mpd-filter+=1#1=match dst net 10.0.0.0/8,
+    #mpd-filter+=2#1=match src net 10.0.0.0/8,
+    #mpd-limit+=in#1#1=flt1 pass,
+    #mpd-limit+=in#2#0=all shape 64000 4000,
+    #mpd-limit+=out#1#1=flt2 pass,
+    #mpd-limit+=out#2#0=all rate-limit 1024000 150000 300000,
+
+   }
+  
+	
+	#$RAD_PAIRS->{'Session-Timeout'}=604800;
+ }
 elsif ($NAS->{NAS_TYPE} eq 'mpd4' && $RAD_PAIRS->{'Session-Timeout'} > 604800) {
 	$RAD_PAIRS->{'Session-Timeout'}=604800;
  }

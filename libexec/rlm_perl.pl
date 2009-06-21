@@ -124,6 +124,20 @@ sub accounting {
 
   my $db = sql_connect();
   if ( $db ) {
+#  	 my $rrr = '';
+#  	 while(my($k, $v) = each %RAD_REQUEST) {
+#  	 	  $rrr .= "$k , $v \n";
+#  	 	  if ($k eq 'MPD_INPUT_OCTETS') {
+#  	 	  	foreach my $l (@{ $v }) {
+#  	 	  		 $rrr .= "--- $l";
+#  	 	  	 }
+#  	 	   }
+#  	   }
+#  	 
+#  	 reset %RAD_REQUEST;
+
+
+#  	 my $zz = `echo "$rrr" >> /tmp/test_rlm`;
      my $ret = acct($db, \%RAD_REQUEST, $nas);
    }
 

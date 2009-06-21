@@ -175,11 +175,24 @@ sub acct {
       }
    }
 
-  if (defined($conf{octets_direction}) && $conf{octets_direction} eq 'server') {
+  if ($conf{octets_direction} && $conf{octets_direction} eq 'server') {
     $RAD->{INBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0;   # FROM client
     $RAD->{OUTBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # TO client
 
-    if ($nas->{NAS_TYPE} eq 'exppp') {
+    if ($nas->{NAS_TYPE} eq 'mpd5' && $RAD->{MPD_INPUT_OCTETS}) {
+      foreach my $line  (@{ $RAD->{MPD_OUTPUT_OCTETS} }) {
+         my($class, $byte)=split(/:/, $line);
+         $class = ($class == 0) ? '' : $class + 1;
+         $RAD->{'INBYTE'. $class }	= $byte;
+        }
+
+      foreach my $line  (@{ $RAD->{MPD_INPUT_OCTETS} }) {
+         my($class, $byte)=split(/:/, $line);
+         $class = ($class == 0) ? '' : $class + 1;
+         $RAD->{'OUTBYTE' . $class}	= $byte;
+        }
+     }
+    elsif ($nas->{NAS_TYPE} eq 'exppp') {
       #reverse byte parameters
       $RAD->{INBYTE}  = $RAD->{ACCT_OUTPUT_OCTETS} || 0;   # FROM client
       $RAD->{OUTBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0; # TO client
@@ -219,8 +232,26 @@ sub acct {
 
     ($RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = ($RAD->{ACCT_OUTPUT_GIGAWORDS}, $RAD->{ACCT_INPUT_GIGAWORDS}); 
 
+  	
+    if ($nas->{NAS_TYPE} eq 'mpd5' && $RAD->{MPD_INPUT_OCTETS}) {
+    	
+   	
+      foreach my $line  (@{ $RAD->{MPD_INPUT_OCTETS} }) {
+         my($class, $byte)=split(/:/, $line);
+         $class = ($class == 0) ? '' : $class + 1;
+         $RAD->{'INBYTE'. $class }	= $byte;
+        }
 
-    if ($nas->{NAS_TYPE} eq 'exppp') {
+      foreach my $line  (@{ $RAD->{MPD_OUTPUT_OCTETS} }) {
+         my($class, $byte)=split(/:/, $line);
+         $class = ($class == 0) ? '' : $class + 1;
+         $RAD->{'OUTBYTE' . $class}	= $byte;
+        }
+      
+      my $xxx = `echo "$RAD->{INBYTE} /  $RAD->{OUTBYTE} / $RAD->{MPD_INPUT_OCTETS}[0]" >> /tmp/test_rlm`;
+      
+     }
+    elsif ($nas->{NAS_TYPE} eq 'exppp') {
       #reverse byte parameters
       $RAD->{INBYTE}   = $RAD->{ACCT_INPUT_OCTETS} || 0;   # FROM client
       $RAD->{OUTBYTE}  = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # TO client

@@ -20,7 +20,7 @@ use main;
 
 
 
-my %FIELDS = ( TP               => 'id', 
+my %FIELDS = ( ID               => 'id', 
                TP_ID            => 'tp_id', 
                NAME             => 'name',  
                DAY_FEE          => 'day_fee',

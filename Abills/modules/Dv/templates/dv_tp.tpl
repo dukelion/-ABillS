@@ -3,7 +3,7 @@
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='TP_ID' value='%TP_ID%'>
 <table border='0'>
-  <tr><th>#</th><td><input type='text' name='CHG_TP_ID' value='%TP_ID%'></td></tr>
+  <tr><th>#</th><td><input type='text' name='ID' value='%ID%'></td></tr>
   <tr><td>$_NAME:</td><td><input type=text name=NAME value='%NAME%'></td></tr>
 
   <tr><td>$_GROUP:</td><td>%GROUPS_SEL%</td></tr>
@@ -55,7 +55,7 @@
   <tr><td>$_NEG_DEPOSIT_FILTER_ID:</td><td><input type=text name=NEG_DEPOSIT_FILTER_ID value='%NEG_DEPOSIT_FILTER_ID%'></td></tr>
   <tr><td>IP Pool:</td><td>%IP_POOLS_SEL%</td></tr>
   <tr><th colspan=2>RADIUS Parameters (,)</th></tr>
-  <tr><th colspan=2><textarea cols=50 rows=4 name=RAD_PAIRS>%RAD_PAIRS%</textarea></th></tr>
+  <tr><th colspan=2><textarea cols=55 rows=5 name=RAD_PAIRS>%RAD_PAIRS%</textarea></th></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
