@@ -505,14 +505,14 @@ print "\nEND: =====================================\n" if ($debug > 0);
 
   	 $tp_table_number += $nets_id{$traf_type} if ($nets_id{$traf_type} && $traf_type > 0);
 
+     print "$IPFW table $tp_table_number delete $CLIENT_IP\n";
   	 push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
+
   	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP ". ($user->{UID} * 5 + 1000000 + $traf_type * 2);
 
-     
-
      $speed_in = $speed_in * 1024;
-
-     ng_car_shape("$USER", ($user->{UID} * 5 + 1000000 + $traf_type * 2), "class$traf_type", $speed_in);
+     $speed_out = $speed_out * 1024;
+     ng_car_shape("$USER", ($user->{UID} * 5 + 1000000 + $traf_type * 2), "class$traf_type", $speed_in, $speed_out);
     }
 #------------------------------------------------------------------------------
    #Use IPFW table and dummy net
@@ -623,23 +623,25 @@ foreach my $line (@FW_ACTIONS) {
 # 
 #**********************************************************
 sub ng_car_shape {
-  my ($user, $tablearg, $shape_type, $shape, $attr) = @_;            
-  my $cbs = $attr->{cbs} || 0;
-  my $ebs = $attr->{ebs} || 0;           
-  if (! $cbs || ! $ebs) {
-    $cbs=$ebs=$shape/8;
-   }
+  my ($user, $tablearg, $shape_type, $speed_in, $speed_out, $attr) = @_;            
+
+  my ($cbs_in, $ebs_in, $cbs_out, $ebs_out);
+
+  $cbs_in=$ebs_in=$speed_in/8;
+  $cbs_out=$ebs_out=$speed_out/8;
+ 
 
             push @FW_ACTIONS, sprintf("/usr/sbin/ngctl -f- <<-EOF
 mkpeer ipfw: car %s upper
 name ipfw:%s %s_%s
 connect %s_%s: ipfw: lower %s
-msg %s_%s: setconf { upstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=1 redAction=2 mode=2 } downstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=1 redAction=2 mode=2 } }",
+msg %s_%s: setconf { upstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=1 redAction=2 mode=2 }                      downstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=1 redAction=2 mode=2 } }",
             $tablearg,
             $tablearg,$shape_type,$user,
             $shape_type,$user,$tablearg+1,
             $shape_type,$user,
-            $cbs,$ebs,$shape,$ebs,$cbs,$shape);
+            $cbs_out,$ebs_out,$speed_out,
+            $ebs_in,$cbs_in,$speed_in);
 }
 
 
