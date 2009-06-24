@@ -498,7 +498,7 @@ sub check_speed {
 		    if (/\s+Name: (class[\d+])_([a-zA-Z_0-9]+)/) {
 		      my $class = $1;
 		      my $login   = $2;	
-		      print "Login: $login ($class". "_$class)\n" if ($debug > 1);
+		      print "Login: $login ($class". "_$login)\n" if ($debug > 1);
 		      
 		      $class =~ /(\d+)$/;
 		      my $class_id = $1;
@@ -515,7 +515,11 @@ sub check_speed {
 		  }
 	  close(PROCS);	
 
-    while(my($login, $spees_hash) = each %LOGINS_SPEEDS) {
+    foreach my $login ( sort keys %LOGINS_SPEEDS) {
+    #while(my($login, $spees_hash) = each %LOGINS_SPEEDS) {
+    	$spees_hash = $LOGINS_SPEEDS{$login};
+    	
+    	
     	print "$login: \n";
     	while(my($direction, $speed) = each %$spees_hash) {
     		print "  $direction  IN: $speed->{IN} OUT: $speed->{OUT}\n";

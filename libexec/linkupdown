@@ -624,13 +624,17 @@ foreach my $line (@FW_ACTIONS) {
 sub ng_car_shape {
   my ($user, $tablearg, $shape_type, $speed_in, $speed_out, $attr) = @_;            
 
+  $speed_in   = 104857600 if ($speed_in  == 0);
+  $speed_out  = 104857600 if ($speed_out == 0);
+
+
   my ($cbs_in, $ebs_in, $cbs_out, $ebs_out);
 
   $cbs_in=$ebs_in=$speed_in/8;
   $cbs_out=$ebs_out=$speed_out/8;
  
 
-            push @FW_ACTIONS, sprintf("/usr/sbin/ngctl -f- <<-EOF
+push @FW_ACTIONS, sprintf("/usr/sbin/ngctl -f- <<-EOF
 mkpeer ipfw: car %s upper
 name ipfw:%s %s_%s
 connect %s_%s: ipfw: lower %s
