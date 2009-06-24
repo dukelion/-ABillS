@@ -1,7 +1,8 @@
 #!/usr/bin/perl -w
 # Accounting controll deamon
+# Speed control
 # Work only with Dv module
-
+#
 
 
 use vars  qw(%RAD %conf @MODULES $db $DATE $GZIP $MYSQLDUMP %ADMIN_REPORT $IPFW
@@ -470,7 +471,7 @@ sub parse_fw {
   my $result = '';
   my %params = ();
 
-  $part =~ s/"|//g;
+  $part =~ s/\"|//g;
   if ($part =~ / (\d+)/) {
     $params{item} = $1;
    }
@@ -488,6 +489,42 @@ sub parse_fw {
 # Ceck current speed for exppp
 #**********************************************************
 sub check_speed {		
+	
+	if ($conf{ng_car}) {
+
+    my %LOGINS_SPEEDS = ();
+    open(PROCS, "/usr/sbin/ngctl list |") || die "Can't open file '' $!\n";
+      while(<PROCS>) {
+		    if (/\s+Name: (class[\d+])_([a-zA-Z_0-9]+)/) {
+		      my $class = $1;
+		      my $login   = $2;	
+		      print "Login: $login ($class". "_$class)\n" if ($debug > 1);
+		      
+		      $class =~ /(\d+)$/;
+		      my $class_id = $1;
+		      open(SUB_NG, "/usr/sbin/ngctl msg $class". "_$login: getconf|")  || die "Can't open $!\n";
+		        while(<SUB_NG>) {
+		        	if(/Args:\s*{ upstream={ cbs=\d+ ebs=\d+ cir=(\d+) greenAction=\d yellowAction=\d redAction=\d mode=\d } downstream={ cbs=\d+ ebs=\d+ cir=(\d+) greenAction=\d yellowAction=\d redAction=\d mode=\d } }/) {
+		        		$LOGINS_SPEEDS{$login}{$class_id}{OUT}= $1;
+		        		$LOGINS_SPEEDS{$login}{$class_id}{IN} = $2;
+		        	 }
+		         }
+		      close(SUB_NG);
+		    }
+		
+		  }
+	  close(PROCS);	
+
+    while(my($login, $spees_hash) = each %LOGINS_SPEEDS) {
+    	print "$login: \n";
+    	while(my($direction, $speed) = each %$spees_hash) {
+    		print "  $direction  IN: $speed->{IN} OUT: $speed->{OUT}\n";
+    	 }
+     }
+
+
+		return 0;
+	 }
 	
   if (! $ARGV->{NAS_ID}) {
     print "NAS not specify. Example:\n";
