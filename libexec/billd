@@ -47,6 +47,7 @@ CHECK exist connections
   checkmikro  - check Active ppp on Mikrotik session and disconnect unknown ip.
 CHECK speed
   checkspeed  - check cure speed for user on FreeBSD NAS. Arguments NAS_ID=xx
+     SHOW_SPEED=1 - Only show current speed
   checkspeed_mikro - check cure speed for user on Mikrotik. Arguments NAS_ID=xx
 CHECK connection Alive
   checklines  - Check alive connections
@@ -490,9 +491,22 @@ sub parse_fw {
 #**********************************************************
 sub check_speed {		
 	
-	if ($conf{ng_car}) {
+  if (! $ARGV->{NAS_ID}) {
+    print "NAS not specify. Example:\n";
+    print "# billd checkspeed NAS_ID=8\n";
+    exit;
+   }
 
-    my %LOGINS_SPEEDS = ();
+	my %LOGINS_SPEEDS = ();
+
+
+  my %rule_speed = ();
+  my %pipe_rules = ();
+  
+	#Get ng_car speed
+	if ($conf{ng_car}) {
+    #Get speed from server
+   
     open(PROCS, "/usr/sbin/ngctl list |") || die "Can't open file '' $!\n";
       while(<PROCS>) {
 		    if (/\s+Name: (class[\d+])_([a-zA-Z_0-9]+)/) {
@@ -505,8 +519,8 @@ sub check_speed {
 		      open(SUB_NG, "/usr/sbin/ngctl msg $class". "_$login: getconf|")  || die "Can't open $!\n";
 		        while(<SUB_NG>) {
 		        	if(/Args:\s*{ upstream={ cbs=\d+ ebs=\d+ cir=(\d+) greenAction=\d yellowAction=\d redAction=\d mode=\d } downstream={ cbs=\d+ ebs=\d+ cir=(\d+) greenAction=\d yellowAction=\d redAction=\d mode=\d } }/) {
-		        		$LOGINS_SPEEDS{$login}{$class_id}{OUT}= $1;
-		        		$LOGINS_SPEEDS{$login}{$class_id}{IN} = $2;
+		        		$LOGINS_SPEEDS{$login}{$class_id}{OUT}= $1 / 1024;
+		        		$LOGINS_SPEEDS{$login}{$class_id}{IN} = $2 / 1024;
 		        	 }
 		         }
 		      close(SUB_NG);
@@ -514,6 +528,8 @@ sub check_speed {
 		
 		  }
 	  close(PROCS);	
+
+if ($debug > 1 || $ARGV->{SHOW_SPEED}) {
 
     foreach my $login ( sort keys %LOGINS_SPEEDS) {
     #while(my($login, $spees_hash) = each %LOGINS_SPEEDS) {
@@ -526,27 +542,33 @@ sub check_speed {
     	 }
      }
 
+     return 0 if(defined($ARGV->{SHOW_SPEED}));
+    
+    
+}
 
-		return 0;
+    #Get speed from billing
+		#return 0;
 	 }
+else {	
 	
-  if (! $ARGV->{NAS_ID}) {
-    print "NAS not specify. Example:\n";
-    print "# billd checkspeed NAS_ID=8\n";
-    exit;
-   }
 	
+#----------------------------------------------------------	
+# old shaper check
+#----------------------------------------------------------
+
 	$conf{JOIN_SERVICE_FW_FIRST_RULE} = 40000 if (! $conf{JOIN_SERVICE_FW_FIRST_RULE});
 #Get IPFW speed rules
 	my $result = `$IPFW show; $IPFW pipe show`;
 	my @rules = split(/\n/, $result);
 	# key1 interface; key2 rule number; value speed
-	my %rule_speed = ();
+	
 	my %interfaces = ();
 	my %speeds_rotations = ('Kbit' => 1,
 	                        'Mbit' => 1000);
 	                        
-  my %pipe_rules = ();
+  
+	
 	
 	#Parce all ipfw rules
 	foreach my $line (@rules) {
@@ -581,9 +603,16 @@ sub check_speed {
      }
    }
 
+}
+ 
+ 
 
-                             
+
+
+
+#Get online users                             
   $sessions->{debug}=1 if ($debug > 4);
+
 	$sessions->online( { %LIST_PARAMS, 
 		                   NAS_ID => $ARGV->{NAS_ID}, 
 		                   #FIELDS => [0, 2, 11, 13, 29]   
@@ -624,6 +653,8 @@ sub check_speed {
         }
       
        print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);
+       
+       
        $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]";
 
        $TP_HASH{$tp}=1;
@@ -635,21 +666,31 @@ sub check_speed {
   my $Billing = Billing->new($db, \%conf);
   my $user = $Billing->get_timeinfo();
 
+
+
   require Tariffs;
   Tariffs->import();
   my $tariffs = Tariffs->new($db, $admin);
   my %speeds = ();
   
+  #foreach my $tp (keys (%TP_HASH)) {
+  my $tp_list = $tariffs->list({ MODULE => '',  
+  	                             TP_ID => join(';',  keys %TP_HASH) 
+  	                            });
   
+
   #GET TP speed
-  foreach my $tp (keys (%TP_HASH)) {
-  	print "TP: $tp\n" if ($debug == 2);
+  foreach my $line ( @$tp_list ) {
+  	my $tp_id = $line->[18];
+  	my $tp    = $line->[0];
+
+  	print "TP: $line->[0] ($line->[18])\n" if ($debug == 2);
   
     my ($remaining_time, $ret_attr); 
 
     ($user->{TIME_INTERVALS},
      $user->{INTERVAL_TIME_TARIF}, 
-     $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($tp);
+     $user->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($tp_id);
 
     ($remaining_time, $ret_attr) = $Billing->remaining_time(0, {
     	    TIME_INTERVALS      => $user->{TIME_INTERVALS},
@@ -683,19 +724,127 @@ sub check_speed {
          }
       }
     }
-  
    }
 
 
-  
- 
   my $debug_outputs = '';
   my $cmd_debug='';
 
   if ($debug > 1) {
   	$cmd_debug='debug';
    }
-  
+#----------------------------------------------------------
+# New NG car methods
+if ($conf{ng_car})   {
+  while(my($user, $other)=each %USER_IFACES) {
+  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
+
+  	 $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
+
+
+
+     if ($JOIN_SERVICE > 0) {
+
+      }
+     #No shaper definition
+     elsif (! $LOGINS_SPEEDS{$user}) {
+        $debug_outputs .= "  ! Speed not defined\n";	
+        print $debug_outputs if ($debug > 0); 
+
+        $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+                  	NAS_TYPE => $NAS_TYPE,
+                  	debug    => ( $debug > 1) ? ' debug' : undef 
+                  	});
+
+        next;
+      }
+     
+     #User base speed
+     if ($SPEED > 0)  {
+     	  $debug_outputs .= " IN:  0, $SPEED ng_car: $LOGINS_SPEEDS{$user}{0}{IN}\n".
+     	                    " OUT: 0, $SPEED ng_car: $LOGINS_SPEEDS{$user}{0}{OUT}\n";
+        
+     	
+      	if ($JOIN_SERVICE > 0) {
+          if ($SPEED != $LOGINS_SPEEDS{$user}{0}{IN} || $SPEED != $LOGINS_SPEEDS{$user}{0}{OUT}) {
+            $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+            	 NAS_TYPE => $NAS_TYPE,
+            	 debug    => ( $debug > 1) ? ' debug' : undef 
+           	 });
+            }
+      	  
+          next;
+     	   }
+     	  elsif ($SPEED != $LOGINS_SPEEDS{$user}{0}{IN} || $SPEED != $LOGINS_SPEEDS{$user}{0}{OUT} ) {
+           $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+           	 NAS_TYPE => $NAS_TYPE,
+           	 debug    => ( $debug > 1) ? ' debug' : undef 
+           	 });
+           next;
+     	   }
+
+     	} 
+   #TP SPEED
+   	 elsif(defined($speeds{$TP})) {
+  	 	 $debug_outputs .= " IN:  ";
+
+      	if ($JOIN_SERVICE > 0) {
+          if (! $LOGINS_SPEEDS{$user}{0}{IN} ||  
+              ! $LOGINS_SPEEDS{$user}{0}{OUT} || 
+              ! defined($speeds{$TP}{IN}{0}) || 
+              ! defined($speeds{$TP}{OUT}{0}) ||
+              int($LOGINS_SPEEDS{$user}{0}{IN}) != $speeds{$TP}{IN}{0} || 
+              int($LOGINS_SPEEDS{$user}{0}{OUT}) != $speeds{$TP}{OUT}{0} 
+             ) {
+            $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+            	 NAS_TYPE => $NAS_TYPE,
+            	 debug    => ( $debug > 1) ? ' debug' : undef 
+           	 });
+            }
+          next;
+     	   }
+
+
+#IN SPEED
+             # Class, $speed
+             
+          if ($speeds{$TP}){
+  	 	       while(my($class_id, $v)=each %{ $speeds{$TP}{IN} }) {
+  	 	       	  $debug_outputs .= "  $class_id, $v ng_car: $LOGINS_SPEEDS{$user}{$class_id}{IN}";
+  	 	       	  next if (! $v);
+  	 	       	  
+  	 	       	  if (! $LOGINS_SPEEDS{$user}{$class_id}{IN} || $LOGINS_SPEEDS{$user}{$class_id}{IN} != $v) {
+                  $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+                  	 NAS_TYPE => $NAS_TYPE,
+                  	 debug    => ( $debug > 1) ? ' debug' : undef });
+                  #goto ENDWHILE;
+                  next;
+  	 	           }
+              }
+           }
+
+   	 	 $debug_outputs .= " OUT: ";
+  	 	       while(my($class_id, $v)=each %{ $speeds{$TP}{OUT} }) {
+  	 	       	  $debug_outputs .= "  $class_id, $v ng_car: $LOGINS_SPEEDS{$user}{$class_id}{IN}";
+                next if (! $v);
+  	 	       	  if (! $LOGINS_SPEEDS{$user}{$class_id}{OUT} || $LOGINS_SPEEDS{$user}{$class_id}{OUT} != $v) {
+                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+                    	NAS_TYPE => $NAS_TYPE,
+                    	debug    => ( $debug > 1) ? ' debug' : undef });
+                   next;
+  	 	       	   }
+  	 	        }
+ 	  }
+
+ 
+
+
+ }
+
+}
+#----------------------------------------------------------
+#Old dummy net methods
+else { 
   while(my($user, $other)=each %USER_IFACES) {
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
 
@@ -821,6 +970,8 @@ sub check_speed {
   	 ENDWHILE:
   	 print $debug_outputs if ($debug == 2); 
    }
+}
+
 }
 
 #**********************************************************
