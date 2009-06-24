@@ -517,7 +517,7 @@ sub check_speed {
 
     foreach my $login ( sort keys %LOGINS_SPEEDS) {
     #while(my($login, $spees_hash) = each %LOGINS_SPEEDS) {
-    	$spees_hash = $LOGINS_SPEEDS{$login};
+    	my $spees_hash = $LOGINS_SPEEDS{$login};
     	
     	
     	print "$login: \n";
