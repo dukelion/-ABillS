@@ -505,7 +505,6 @@ print "\nEND: =====================================\n" if ($debug > 0);
 
   	 $tp_table_number += $nets_id{$traf_type} if ($nets_id{$traf_type} && $traf_type > 0);
 
-     print "$IPFW table $tp_table_number delete $CLIENT_IP\n";
   	 push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
 
   	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP ". ($user->{UID} * 5 + 1000000 + $traf_type * 2);
