@@ -18,7 +18,6 @@ sub _include {
   my $result = '';
   
   my $sufix = ($attr->{pdf}) ? '.pdf' : '.tpl';
-  
 
   if (-f '../../Abills/templates/'.$domain_path. $module . '_' . $tpl . $sufix) {
     return ($FORM{pdf}) ? '../../Abills/templates/'. $domain_path. $module . '_' . $tpl . $sufix : tpl_content('../../Abills/templates/'. $module . '_' . $tpl . $sufix);

@@ -323,7 +323,7 @@ sub dv_user {
  	my ($attr) = @_;
 
  	$Dv->{UID}=$FORM{UID} || $LIST_PARAMS{UID} ;	  
-
+  
   
   if ($FORM{REGISTRATION_INFO}) {
      # Info
@@ -331,23 +331,39 @@ sub dv_user {
      my $dv    = $Dv->info($Dv->{UID});
      my $pi    = $users->pi({ UID => $Dv->{UID} });
      my $user  = $users->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
+     $pi->{ADDRESS_FULL}="$pi->{ADDRESS_STREET} $pi->{ADDRESS_BUILD}/$pi->{ADDRESS_FLAT}";
  
-     $html->tpl_show(templates('form_user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
-     $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
+     if ($FORM{pdf}) {
+     	 #print "Content-Type: text/html\n\n";
+       print "Content-type: application/pdf\n";
+       print "Content-disposition: inline; name=".int(rand(32768)).".pdf\n\n";
+       
+       
+     	 $html->tpl_show(_include('dv_user_info', 'Dv', { pdf => 1 }), { %$user, 
+     	 	                                                               %$pi, 
+     	 	                                                               DATE => $DATE, 
+     	 	                                                               TIME => $TIME, 
+     	 	                                                               %$dv,
+     	 	                                                               });
+      }
+     else {
+       $html->tpl_show(templates('form_user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
+       $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
 
 
-     if (in_array('Mail', \@MODULES)) {
-       require "Abills/modules/Mail/webinterface";
-       my $Mail = Mail->new($db, $admin, \%conf);
+       if (in_array('Mail', \@MODULES)) {
+         require "Abills/modules/Mail/webinterface";
+         my $Mail = Mail->new($db, $admin, \%conf);
 
-       my $list = $Mail->mbox_list({ UID => $Dv->{UID} });
-       foreach my $line (@$list) {
-    	   $Mail->{EMAIL_ADDR} = $line->[0] . '@' . $line->[1];
-    	   $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail);
-    	  }
+         my $list = $Mail->mbox_list({ UID => $Dv->{UID} });
+         foreach my $line (@$list) {
+      	   $Mail->{EMAIL_ADDR} = $line->[0] . '@' . $line->[1];
+    	     $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail);
+      	  }
+       }
      }
 
-     return 0;
+    return 0;
    }
   elsif ($FORM{shedule}) {
 

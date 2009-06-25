@@ -756,6 +756,7 @@ sub dhcphosts_user {
    	$Dhcphosts->host_del({ ID => $FORM{del} });
     if (! $Dhcphosts->{errstr}) {
 	    $html->message('info', $_DELETED, "$_DELETED [$FORM{del}] ");
+	    dhcphosts_config({ NETWORKS => $FORM{NETWORK}, reconfig => 1 });
 	   }
    }
   

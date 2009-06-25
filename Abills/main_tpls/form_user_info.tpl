@@ -6,7 +6,7 @@
 <TR bgcolor='$_COLORS[1]'><TD>$_DEPOSIT:</TD><TD>%DEPOSIT%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD>$_FIO:</TD><TD>%FIO%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD>$_PHONE:</TD><TD>%PHONE%</TD></TR>
-<TR bgcolor='$_COLORS[1]'><TD>$_ADDRESS:</TD><TD>%ADDRESS%</TD></TR>
+<TR bgcolor='$_COLORS[1]'><TD>$_ADDRESS:</TD><TD>%ADDRESS_FULL%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD>E-mail:</TD><TD>%EMAIL%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD>$_CONTRACT:</TD><TD>%CONTRACT_ID%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD>$_CREDIT:</TD><TD>%CREDIT%</TD></TR>
