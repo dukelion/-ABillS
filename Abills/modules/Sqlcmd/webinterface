@@ -6,8 +6,8 @@
 
 require "Sqlcmd.pm";
 Sqlcmd->import();
-my $Sqlcmd = Sqlcmd->new($db, $admin, \%conf);
-
+my $Sqlcmd      = Sqlcmd->new($db, $admin, \%conf);
+my $Sqlcmd_main = Sqlcmd->new($db, $admin, \%conf);
 
 
 
@@ -20,11 +20,25 @@ my (%stats, %vars); # SHOW STATUS, SHOW VARIABLES
 # sqlcmd
 #**********************************************************
 sub sqlcmd {
- sqlcmd_cluster_info();
+ if (! sqlcmd_cluster_info() ) {
+ 	  return 0;
+  }
  
  
 my $FORM2  = ();
 my @pairs = split(/&/, $FORM{__BUFFER});
+
+$liST_PARAMS{PAGE_ROWS}=15;
+
+
+if ($FORM{QUERY_ID}) {
+	$Sqlcmd_main->history_query({ %FORM });
+  
+  $FORM{QUERY}=$Sqlcmd_main->{SQL_QUERY};
+  $FORM2{QUERY}= $FORM{QUERY};
+  $Sqlcmd->{QUERY}=$FORM{QUERY};
+ }
+else {
 
 foreach my $pair (@pairs) {
    my ($side, $value) = split(/=/, $pair);
@@ -56,14 +70,47 @@ if ($FORM{WIZARD}) {
 	$FORM{QUERY} .= " FROM $FORM{TABLE_INFO} LIMIT $PAGE_ROWS";
 }
 
+}
+ 
+ $table = $html->table( { width        => '100%',
+                           border       => 1,
+                           caption      => $FORM{TABLE_INFO},
+                           title_plain  => [$_DATE, "$_COMMENTS", '-', '-'], 
+                       } );
+	
+
+  my $list = $Sqlcmd_main->history_list({ %LIST_PARAMS });
+
+	foreach my $line (@$list) {
+		$table->addrow($line->[0], 
+		$line->[1], 
+		$html->button('QUERY', "index=$index&QUERY_ID=$line->[2]"),
+		$html->button("$_DEL", "index=$index&del=$line->[2]", { MESSAGE => "$_DEL $line->[2]?" }),
+		
+		 );
+	 }
+
+ $Sqlcmd->{SQL_HISTORY} = $table->show({ OUTPUT2RETURN => 1 });
  
 
  $html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, \%FORM });
+ 
+if($FORM{del} && $FORM{is_js_confirmed}) {
+	$Sqlcmd_main->history_del({ ID => $FORM{del} });
+	if(! $Sqlcmd_main->{errno} ) {
+		$html->message('info', $_INFO, "$_DELETED");
+	 }
+
+  return 0;
+ }
+
  
   my $list = $Sqlcmd->list( { %FORM2 } ) if (defined($FORM2{QUERY}) && length($FORM2{QUERY}) > 10);
 
 
 if ($FORM{QUERY} && ! $FORM{xml}) {
+	$FORM{SQL_QUERY} = $FORM{QUERY};
+
   my $table = $html->table( { width       => '100%',
                               cols_align  => ['left'],
                              } );
@@ -97,6 +144,8 @@ if ($FORM{QUERY} && ! $FORM{xml}) {
   }
 
   print $table->show();
+  
+  $Sqlcmd_main->history_add({ %FORM });
 }
 
 if ($Sqlcmd->{errno}) {
@@ -794,12 +843,35 @@ sub sqlcmd_cluster_info {
                              cols_align  => ['left'],
                            } );
 
-my $id = 0;
+my $id  = 0;
 my $active_host = $FORM{HOST_ID} || 0;
+my $ret = 1;
 
 foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
 	if ($active_host == $id) {
     push @cells, $table->th("$host", { bgcolor => $_COLORS[1] });
+
+    $Sqlcmd_main = Sqlcmd->new($db, $admin, \%conf);
+
+    if ($conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}) {
+#      print "
+#       $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}
+#       $conf{'SQLCMD_HOST'. $id .'_DB'}
+#       $conf{'SQLCMD_HOST'. $id .'_USER'}
+#       $conf{'SQLCMD_HOST'. $id .'_PASSWD'}
+#      ";
+      my $sql = Abills::SQL->connect($conf{dbtype}, $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, 
+                                                    $conf{'SQLCMD_HOST'. $id .'_DB'}, 
+                                                    $conf{'SQLCMD_HOST'. $id .'_USER'}, 
+                                                    $conf{'SQLCMD_HOST'. $id .'_PASSWD'},
+        { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
+
+      my $db_slave = $sql->{db};
+
+      $FORM{DB_ID}=$id;
+      $Sqlcmd = Sqlcmd->new($db_slave, $admin, \%conf);
+     }
+
 	 }
 	else {
 	  push @cells,  $table->th($html->button("$host", "index=$index&HOST_ID=$id"), { bgcolor => $_COLORS[0] })
@@ -810,6 +882,13 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
   $table->addtd(@cells);
 
   print $table->show();
+  
+ if($id != 0) {
+    	$html->message('info', $_INFO, "Can't find DB");
+   	$ret = 0;
+   }
+
+  return $ret;
 }
 
 

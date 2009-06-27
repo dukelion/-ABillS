@@ -1042,6 +1042,19 @@ CREATE TABLE IF NOT EXISTS `voip_trunks` (
   UNIQUE KEY `name` (`name`)
 ) ;
 
+
+CREATE TABLE `sqlcmd_history` (
+  `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `datetime` DATETIME NOT NULL,
+  `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '000000',
+  `sql_query` TEXT COLLATE latin1_swedish_ci NOT NULL,
+  `db_id` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+  `comments` TEXT COLLATE latin1_swedish_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `aid` (`aid`)
+) COMMENT='Sqlcmd history';
+
 CREATE TABLE `help` (
   `function` varchar(20) NOT NULL default '',
   `title` varchar(200) NOT NULL default '',

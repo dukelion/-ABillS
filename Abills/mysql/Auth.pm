@@ -1631,6 +1631,29 @@ sub neg_deposit_filter_former () {
 	
 	 my $RAD_PAIRS ;
 	
+      # Return radius attr    
+      if ($self->{IP} ne '0') {
+        $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
+       }
+      else {
+        my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{TP_IPPOOL} });
+        if ($ip eq '-1') {
+          $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS})";
+          return 1, $RAD_PAIRS;
+         }
+        elsif($ip eq '0') {
+          #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
+          #return 1, $RAD_PAIRS;
+         }
+        else {
+          $RAD_PAIRS->{'Framed-IP-Address'} = "$ip";
+         }
+       }
+
+
+   $NEG_DEPOSIT_FILTER_ID =~ s/\%IP\%/$RAD_PAIRS->{'Framed-IP-Address'}/g;
+   $NEG_DEPOSIT_FILTER_ID =~ s/\%LOGIN\%/$RAD->{'USER_NAME'}/g;
+	
 	 if ($NEG_DEPOSIT_FILTER_ID =~ /RAD:(.+)/) {
       	my $rad_pairs = $1;
         my @p = split(/,/, $rad_pairs);
@@ -1658,24 +1681,6 @@ sub neg_deposit_filter_former () {
     	$RAD_PAIRS->{'Filter-Id'} = "$NEG_DEPOSIT_FILTER_ID";
     }
 
-      # Return radius attr    
-      if ($self->{IP} ne '0') {
-        $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
-       }
-      else {
-        my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{TP_IPPOOL} });
-        if ($ip eq '-1') {
-          $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS})";
-          return 1, $RAD_PAIRS;
-         }
-        elsif($ip eq '0') {
-          #$RAD_PAIRS->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
-          #return 1, $RAD_PAIRS;
-         }
-        else {
-          $RAD_PAIRS->{'Framed-IP-Address'} = "$ip";
-         }
-       }
 	
 	
 	return 0, $RAD_PAIRS;;

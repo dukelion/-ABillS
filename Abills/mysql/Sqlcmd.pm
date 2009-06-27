@@ -252,4 +252,96 @@ while(@row = $query->fetchrow_array()) {
  return \%stats, \%vars;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+#**********************************************************
+# add()
+#**********************************************************
+sub history_add {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  $self->query($db,  "INSERT INTO sqlcmd_history (datetime,
+                  aid,  sql_query,  db_id,  comments)
+               VALUES (now(), $admin->{AID}, '$attr->{SQL_QUERY}', '$attr->{DB_ID}', '$attr->{COMMENTS}');", 'do');
+
+  return $self;
+}
+
+
+#**********************************************************
+# Delete user info from all tables
+#
+# del(attr);
+#**********************************************************
+sub history_del {
+  my $self = shift;
+  my ($attr) = @_;
+ 
+  $self->query($db, "DELETE from sqlcmd_history WHERE id='$attr->{ID}';", 'do');
+
+  return $self->{result};
+}
+
+#**********************************************************
+# list_allow nass
+#**********************************************************
+sub history_list {
+  my $self = shift;
+  my $list;
+
+  $self->query($db, "SELECT datetime, comments, id FROM sqlcmd_history WHERE aid='$admin->{AID}' 
+  ORDER BY 1 DESC
+  LIMIT $PG, $PAGE_ROWS;");
+
+
+	return $self->{list};
+}
+
+
+
+#**********************************************************
+# list_allow nass
+#**********************************************************
+sub history_query {
+  my $self = shift;
+  my ($attr)=@_;
+
+
+  $self->query($db, "SELECT datetime, 
+   sql_query,
+   comments, 
+   id FROM sqlcmd_history 
+   WHERE aid='$admin->{AID}' 
+   AND id = '$attr->{QUERY_ID}';
+   ");
+   
+  
+
+  if ($self->{TOTAL} < 1){
+  	 return $self;
+   }
+
+  ($self->{DATETIME},
+   $self->{SQL_QUERY},
+   $self->{COMENTS},
+   $self->{ID}
+   ) = @{ $self->{list}->[0] };
+
+	return $self;
+}
+
+
+
 1
