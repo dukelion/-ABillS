@@ -883,8 +883,8 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
 
   print $table->show();
   
- if($id != 0) {
-    	$html->message('info', $_INFO, "Can't find DB");
+ if($active_host != 0 && ! $conf{'SQLCMD_HOST'. $active_host .'_HOSTNAME'}) {
+    $html->message('info', $_INFO, "Can't find DB");
    	$ret = 0;
    }
 

@@ -30,6 +30,6 @@ mpd.links          > [/usr/local/etc/mpd4]/mpd.links
 :OS=FREEBSD:/var/log/mpd.log 600 5 100 * JC >> [/etc]/newsyslog.conf
 :OS=FREEBSD:exec: touch /var/log/mpd.log
 :OS=FREEBSD:exec: killall -1 syslogd
-:MPD5=1:exec:/usr/local/etc/rc.d/mpd5
+:MPD5=1:exec:/usr/local/etc/rc.d/mpd5 start
 
 
