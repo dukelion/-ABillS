@@ -3084,7 +3084,7 @@ elsif($FORM{del}) {
 
 
   if ($shedule->{TOTAL} > 0) {
-  	$tariffs->info($shedule->{ACTION});
+  	$tariffs->info(0, { ID => $shedule->{ACTION} });
   	
   	$table = $html->table( { width      => '100%',
   		                       caption    => "$_SHEDULE",

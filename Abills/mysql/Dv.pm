@@ -195,7 +195,7 @@ sub add {
   if ($DATA{TP_ID} > 0 && ! $DATA{STATUS}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
 
-     $self->{TP_INFO}=$tariffs->info($DATA{TP_ID});
+     $self->{TP_INFO}=$tariffs->info(0, { ID => $DATA{TP_ID} });
      
 
      #Take activation price
@@ -283,7 +283,7 @@ sub change {
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
 
-     $self->{TP_INFO}=$tariffs->info($attr->{TP_ID});
+     $self->{TP_INFO}=$tariffs->info(0, { ID => $attr->{TP_ID} });
      
      my $user = Users->new($db, $admin, $CONF);
 
@@ -325,7 +325,7 @@ sub change {
    }
   elsif (($old_info->{STATUS} == 2 && $attr->{STATUS} == 0) || ($old_info->{STATUS} == 4 && $attr->{STATUS} == 0)) {
     my $tariffs = Tariffs->new($db, $CONF, $admin);
-    $self->{TP_INFO}=$tariffs->info($old_info->{TP_ID});
+    $self->{TP_INFO}=$tariffs->info(0, { ID => $old_info->{TP_ID} });
    }
 
   $attr->{JOIN_SERVICE} = ($attr->{JOIN_SERVICE}) ? $attr->{JOIN_SERVICE} : 0;

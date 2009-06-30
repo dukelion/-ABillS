@@ -543,8 +543,14 @@ sub info {
    }
 
 
+  if($attr->{ID}) {
+  	push @WHERE_RULES, "id='$attr->{ID}'";
+   }
+  else {
+  	push @WHERE_RULES, "tp_id='$id'";
+   }
 
-  my $WHERE = ($#WHERE_RULES > -1) ? " and " . join(' and ', @WHERE_RULES)  : '';
+  my $WHERE = ($#WHERE_RULES > -1) ?  join(' and ', @WHERE_RULES)  : '';
 
 
   $self->query($db, "SELECT id, name,
@@ -571,7 +577,7 @@ sub info {
       tp_id,
       domain_id
     FROM tarif_plans
-    WHERE tp_id='$id'$WHERE;");
+    WHERE $WHERE;");
 
   if ($self->{TOTAL} < 1) {
      $self->{errno} = 2;
