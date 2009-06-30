@@ -1056,7 +1056,6 @@ print $table->show();
 sub cards_diller_stats {
 	$LIST_PARAMS{DILLER_ID}=$diller->{ID};
 
-
 	if ($FORM{print}) {
 		$LIST_PARAMS{CREATED_DATE}=$FORM{print};
     print "Content-Type: text/html\n\n";
@@ -1124,6 +1123,7 @@ sub cards_diller_stats {
 	                        });
 
 
+  
 
   $pages_qs.="&SERIA=";
   my @pin = ();
@@ -1148,7 +1148,15 @@ if ($FORM{TYPE} eq 'CARDS') {
     $LIST_PARAMS{DESC}='DESC';
    }
 
+
   $pages_qs = "&TYPE=CARDS";
+
+  if ($FORM{CREATED_DATE}) {
+    $LIST_PARAMS{CREATED_DATE}="$FORM{CREATED_DATE}" ;
+    $pages_qs .= "&CREATED_DATE=$LIST_PARAMS{CREATED_DATE}";
+   }
+
+
   my $list = $Cards->cards_list({ %LIST_PARAMS, 
   	                              SERIA => '' 
  	                              });
@@ -1198,15 +1206,18 @@ else {
                            qs           => $pages_qs,
                            pages        => $Cards->{TOTAL}
                          });
+ 
 
-
+  
+  
+  
   my $list = $Cards->cards_report_days({ %LIST_PARAMS, 
   	                                     SERIA => '' 
  	                                     });
 
   foreach $line (@$list) {
    	$table->addrow(
-   	     $html->button($line->[0], "index=$index&TYPE=CARDS$pages_qs&sid=$FORM{sid}"), 
+   	     $html->button($line->[0], "index=$index&TYPE=CARDS$pages_qs&sid=$FORM{sid}". ( ($line->[0] =~ /(\d{4}-\d{2}-\d{2})/) ? "&CREATED_DATE=$1" : '') ), 
   	     $line->[1],
   		   $line->[2],
   	     $html->button("$_PRINT", '#',  {  NEW_WINDOW      => "$_SELF_URL?qindex=$index&print=$line->[0]&sid=$FORM{sid}",
