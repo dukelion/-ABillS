@@ -765,7 +765,7 @@ sub prepaid_rest {
 	$CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
 	
 	#Get User TP and intervals
-  $self->query($db, "select tt.tp_id, i.begin, i.end, 
+  $self->query($db, "select tt.id, i.begin, i.end, 
     if(u.activate<>'0000-00-00', u.activate, DATE_FORMAT(curdate(), '%Y-%m-01')), 
     tt.prepaid, 
     u.id, 
@@ -785,7 +785,7 @@ sub prepaid_rest {
 WHERE
      u.uid=dv.uid
  and dv.tp_id=tp.id
- and tp.id=i.tp_id
+ and tp.tp_id=i.tp_id
  and i.id=tt.interval_id
  and u.uid='$attr->{UID}'
  ORDER BY 1
