@@ -901,10 +901,11 @@ foreach my $line (@$list) {
    }
 
   #Add static route
+
   my $list = $Dhcphosts->routes_list({ NET_ID => $NET_ID });  
   if ($Dhcphosts->{TOTAL} > 0) {
     my $routes="";
- 
+
     foreach my $line (@$list) {
       #($src,$mask,$router)=$sth->fetchrow_array()){
       my $src    = $line->[2];
@@ -951,7 +952,6 @@ foreach my $line (@$list) {
   	                               BOOT_FILE => '*'
   	                             });
 
-  
 
   foreach my $line (@$list) {
   	my $deposit =  $line->[20];
@@ -983,6 +983,11 @@ foreach my $line (@$list) {
 
          push @OPTION82_MATCHES, "binary-to-ascii(16, 8, \":\", substring(option agent.remote-id, 2, 6)) = \"$INFO{OPTION82_NAS_MAC}\"";
     	 }
+      else {
+      	print "Can't find NAS '$line->[14]' MAC\n";
+      	$INFO{OPTION82_NAS_NAME}='';
+      	$INFO{OPTION82_NAS_MAC}='';
+       }
 
       #Check nas port
       push @OPTION82_MATCHES, "binary-to-ascii(10, 8, \":\", substring(option agent.circuit-id, 4, 2)) = \"0:$INFO{OPTION82_NAS_PORT}\"" if ($INFO{OPTION82_NAS_PORT} && $INFO{OPTION82_NAS_PORT} > 0);
