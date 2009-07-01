@@ -728,7 +728,7 @@ sub cards_dillers_sel {
 #**********************************************************
 #
 #**********************************************************
-sub cards_dillers {
+sub multidoms_cards_dillers {
 
  	$Cards->{ACTION}='add';
  	$Cards->{LNG_ACTION}=$_ADD;
