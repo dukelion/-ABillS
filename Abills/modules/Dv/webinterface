@@ -3083,6 +3083,7 @@ elsif($FORM{del}) {
                    });
 
 
+
   if ($shedule->{TOTAL} > 0) {
   	$tariffs->info(0, { ID => $shedule->{ACTION} });
   	

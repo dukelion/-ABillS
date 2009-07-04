@@ -453,6 +453,9 @@ if($FORM{ADD_TP}) {
 
 
   }
+
+  $tarif_info->{LNG_ACTION} = $_ADD;
+  $tarif_info->{ACTION}     = 'ADD_TP';
  }
 elsif (defined($FORM{TP_ID})) {
  
@@ -545,6 +548,9 @@ $tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID',
 
 $html->tpl_show(_include('multidoms_reseller_tp', 'Multidoms'), $tarif_info);
 
+$LIST_PARAMS{DOMAIN_ID}=$admin->{DOMAIN_ID};
+print "Content-Type: text/html\n\n";
+$tariffs->{debug}=1;
 my $list = $tariffs->list({ %LIST_PARAMS });	
 
 # Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
@@ -576,7 +582,7 @@ foreach my $line (@$list) {
    }
   
   $table->addrow($html->b($line->[0]), 
-   $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
+   $html->button($line->[1], "index=$index&TP_ID=$line->[18]"),
    $bool_vals[$line->[2]], 
    $bool_vals[$line->[3]], 
    $Payment_Types[$line->[4]], 

@@ -15,8 +15,10 @@ CREATE TABLE `cards_dillers` (
   `registration` date NOT NULL default '0000-00-00',
   `percentage` tinyint(3) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
+  `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
-  UNIQUE KEY `id` (`id`)
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `uid` (`uid`)
 ) COMMENT='Cards dillers';
 
 

@@ -10,6 +10,9 @@
 <tr bgcolor='$_COLORS[1]'><td>$_ADDRESS:</td><td>%ADDRESS%</td></tr>
 <tr bgcolor='$_COLORS[1]'><td>$_PHONE:</td><td>%PHONE%</td></tr>
 <tr bgcolor='$_COLORS[1]'><td>E-Mail:</td><td>%EMAIL%</td></tr>
+
+<tr bgcolor='$_COLORS[1]'><td>$_TARIF_PLAN:</td><td>%TP_NAME%</td></tr>
+
 <tr bgcolor='$_COLORS[1]'><td>$_PERCENTAGE:</td><td>%PERCENTAGE%</td></tr>
 <tr bgcolor='$_COLORS[1]'><td>$_DISABLE:</td><td>%DISABLE%</td></tr>
 <tr bgcolor='$_COLORS[1]'><td>$_REGISTRATION:</td><td>%REGISTRATION%</td></tr>

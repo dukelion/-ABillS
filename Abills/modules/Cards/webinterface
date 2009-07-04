@@ -750,6 +750,15 @@ if ($Cards->{errno}) {
   $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
  }
 
+
+ $Cards->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $Cards->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Cards->dillers_tp_list(),
+ 	                                          MULTI_ARRAY_KEY   => 4,
+ 	                                          MULTI_ARRAY_VALUE => 0,
+ 	                                        });
+
  
  $Cards->{DISABLE} = ($Cards->{DISABLE} == 1)? 'checked' : '';
  $html->tpl_show(_include('cards_dillers', 'Cards'), $Cards);
@@ -853,39 +862,7 @@ else {
       $table->{rowcolor} = $_COLORS[0];
     	$table->addrow(
     	  "$_COUNT", "$_SUM",
-    	  "$_COUNT", "$_SUM",
-    	  "$_COUNT", "$_SUM",
-     	  "$_COUNT", "$_SUM",
-    	  "$_COUNT", "$_SUM",
-    	  "$_COUNT", "$_SUM",
-     	  "$_COUNT", "$_SUM"
-    	);
-
- $table->{rowcolor} = undef;
-
-my @days_arr = sort keys %$report_hash;
-
- for(my $i=$#days_arr; $i>=0;  $i--)  {
- 	 my $k = $days_arr[$i];
-   my $v=$report_hash->{$k};
-
- 	 $table->addrow($html->button($k, "index=$index&DATE=$k"), 
- 	   ($v->{ENABLE})   ? $v->{ENABLE} : 0,
- 	   ($v->{ENABLE_SUM})   ? $v->{ENABLE_SUM} : 0.00,
-
- 	   ($v->{USED})     ? $v->{USED} : 0,
- 	   ($v->{USED_SUM})     ? $v->{USED_SUM} : 0.00,
-
- 	   ($v->{DISABLE})  ? $v->{DISABLE} : 0,
- 	   ($v->{DISABLE_SUM})  ? $v->{DISABLE_SUM} : 0.00,
-
- 	   ($v->{RETURNED}) ? $v->{RETURNED} : 0,
- 	   ($v->{RETURNED_SUM}) ? $v->{RETURNED_SUM} : 0.00,
-
- 	   ($v->{LOGIN})   ? $v->{LOGIN} : 0,
- 	   ($v->{LOGIN_SUM})   ? $v->{LOGIN_SUM} : 0.00,
-
- 	   ($v->{DILLERS})   ? $v->{DILLERS} : 0,
+    	  "$_COUNT",   ($v->{DILLERS})   ? $v->{DILLERS} : 0,
  	   ($v->{DILLERS_SUM})   ? $v->{DILLERS_SUM} : 0.00,
 
  	   ($v->{DILLERS_SOLD})   ? $v->{DILLERS_SOLD} : 0,
@@ -926,7 +903,6 @@ my @days_arr = sort keys %$report_hash;
 }
 
 
-}
 
 
 #**********************************************************
@@ -1113,6 +1089,7 @@ sub cards_diller_stats {
                       });
 
 
+
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
   	                       HIDDEN  => { index  => "$index",
   	                       	            SERIA  => '',
@@ -1125,7 +1102,6 @@ sub cards_diller_stats {
 
   
 
-  $pages_qs.="&SERIA=";
   my @pin = ();
   @pin = ("PIN") if ($conf{CARDS_SHOW_PINS}) ;
 
@@ -1149,7 +1125,10 @@ if ($FORM{TYPE} eq 'CARDS') {
    }
 
 
-  $pages_qs = "&TYPE=CARDS";
+
+
+
+  $pages_qs .= "&TYPE=CARDS";
 
   if ($FORM{CREATED_DATE}) {
     $LIST_PARAMS{CREATED_DATE}="$FORM{CREATED_DATE}" ;
@@ -1349,6 +1328,15 @@ if ($Cards->{errno}) {
 
     cards_main();
    }
+
+$Cards->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $Cards->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Cards->dillers_tp_list(),
+ 	                                          MULTI_ARRAY_KEY   => 4,
+ 	                                          MULTI_ARRAY_VALUE => 0,
+ 	                                          NO_ID             => 1
+ 	                                        });
 
 
 	$Cards->{DISABLE} = ($Cards->{DISABLE} == 1)? 'checked' : '';
@@ -1557,6 +1545,106 @@ sub _external {
    }
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_dillers_tp {
+	my ($attr) = @_;
+
+  $Cards->{LNG_ACTION} = $_ADD;
+  $Cards->{ACTION}     = 'add';
+
+
+  my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
+
+if ($FORM{add}) {
+  $Cards->dillers_tp_add({ %FORM });
+  if (! $Cards->{errno}) {
+    $html->message('info', $_INFO, "$_ADDED");	
+   }
+ }
+elsif ($FORM{change}) {
+  $Cards->dillers_tp_change({ %FORM });
+  if (! $Cards->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGED");	
+   }
+ }
+elsif ($FORM{chg}) {
+  $Cards->dillers_tp_info({ ID => $FORM{chg} });
+  if (! $Cards->{errno}) {
+    $html->message('info', $_INFO, "$_CHANGING");	
+   }
+
+ 	$Cards->{ACTION}='change';
+ 	$Cards->{LNG_ACTION}=$_CHANGE;
+
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  $Cards->dillers_tp_del({ ID => $FORM{del} });
+  if (! $Cards->{errno}) {
+    $html->message('info', $_INFO, "$_DELETED");	
+   }
+}
+
+if ($Cards->{errno}) {
+  $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
+ }
+
+
+
+
+$Cards->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE', 
+                                          { 
+ 	                                          SELECTED     => $tarif_info->{PAYMENT_TYPE},
+ 	                                          SEL_ARRAY    => \@Payment_Types,
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+
+$html->tpl_show(_include('cards_dillers_tp', 'Cards'), $Cards);
+
+my $list = $Cards->dillers_tp_list({ %LIST_PARAMS });	
+
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_TARIF_PLANS",
+                            border     => 1,
+                            title      => [$_NAME,  $_PERCENTAGE, $_OPERATION_PAYMENT, $_PAYMENT_TYPE,  '-', '-'],
+                            cols_align => ['left', 'right', 'left', 'center', 'center', 'center', 'center:noprint', 'center:noprint'],
+                            ID         => 'DILLERS_TARIF_PLANS'
+                                  } );
+
+my ($delete, $change);
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[4]");
+   }
+  
+  if($FORM{chg} eq $line->[4]) {
+  	$table->{rowcolor}=$_COLORS[0];
+   }
+  else {
+  	undef($table->{rowcolor});
+   }
+  
+  $table->addrow($html->button($line->[0], "index=$index&TP_ID=$line->[4]"),
+   $line->[1], 
+   $line->[2], 
+   $Payment_Types[$line->[3]], 
+   $change,
+   $delete);
+}
+
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($tariffs->{TOTAL}) ] ]
+                     } );
+print $table->show();
+	
+}
 
 1
 

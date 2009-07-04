@@ -10,6 +10,9 @@
 <tr><td>E-Mail:</td><td><input type='text' name='EMAIL' value='%EMAIL%'></td></tr>
 -->
 
+
+<tr><th colspan=2 bgcolor=$_COLORS[0]>$_DILLERS</th></tr>
+<tr><td>$_TARIF_PLAN:</td><td>%TARIF_PLAN_SEL%</td></tr>
 <tr><td>$_PERCENTAGE:</td><td><input type='text' name='PERCENTAGE' value='%PERCENTAGE%'></td></tr>
 <tr><td>$_DISABLE:</td><td><input type='checkbox' name='DISABLE' value='1' %DISABLE%></td></tr>
 <tr><td>$_REGISTRATION:</td><td>%REGISTRATION%</td></tr>

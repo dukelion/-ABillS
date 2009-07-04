@@ -29,7 +29,13 @@
   <tr><th colspan=3 bgcolor=$_COLORS[0]>$_TIME_LIMIT (sec)</th></tr> 
   <tr><td>$_DAY</td><td colspan=2><input type=text name=DAY_TIME_LIMIT value='%DAY_TIME_LIMIT%'></td></tr> 
   <tr><td>$_WEEK</td><td colspan=2><input type=text name=WEEK_TIME_LIMIT value='%WEEK_TIME_LIMIT%'></td></tr>
-  <tr><td>$_MONTH</td><td colspan=2><input type=text name=MONTH_TIME_LIMIT value='%MONTH_TIME_LIMIT%'></td></tr>
+  <tr><td>$_TOTAL</td><td colspan=2>
+  
+  <input type=radio name=MONTH_TIME_LIMIT value='900'>  15 $_MIN<br>
+  <input type=radio name=MONTH_TIME_LIMIT value='1800'> 30 $_MIN<br>
+  <input type=radio name=MONTH_TIME_LIMIT value='3600'> 60 $_MIN<br>
+  <input type=radio name=MONTH_TIME_LIMIT value='7200'>120 $_MIN<br>
+  <input type=text name=MONTH_TIME_LIMIT value='%MONTH_TIME_LIMIT%'> $_SEC</td></tr>
 
   <tr><td>$_HOUR_TARIF (0.00)</td><td colspan=2><input type=text name=TI_TARIF value='%TI_TARIF%'></td></tr>
 
