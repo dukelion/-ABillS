@@ -18,10 +18,10 @@ $web_interface    = 1;
                    "16:11:$_GROUPS:form_tp_groups:"            => 5,
                    "17:11:$_TRAFFIC_CLASS:dv_traffic_classes:" => 5,
 
-                   "21:0:Internet:null:"                   => 4,
-                   "22:21:$_ERROR:dv_error:"               => 4,
-                   "23:21:$_LAST:dv_sessions:"             => 4,
-                   "24:21:$_USED:dv_use:"                  => 4,
+                   "19:0:Internet:null:"                   => 4,
+                   "22:19:$_ERROR:dv_error:"               => 4,
+                   "23:19:$_LAST:dv_sessions:"             => 4,
+                   "24:19:$_USED:dv_use:"                  => 4,
                    "25:24:$_MONTH:dv_use_allmonthes:"      => 4,
 
                    "36:0:Internet:dv_online:"              => 8,

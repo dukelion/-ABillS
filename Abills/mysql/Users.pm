@@ -37,7 +37,7 @@ my %PI_FIELDS = (EMAIL          => 'email',
               PASPORT_NUM    => 'pasport_num',
               PASPORT_DATE   => 'pasport_date',
               PASPORT_GRANT  => 'pasport_grant',
-              ACCEPT_RULES   => 'accept_rules'
+              ACCEPT_RULES   => 'accept_rules',
              );
 
 
@@ -204,7 +204,8 @@ sub defaults_pi {
    PASPORT_GRANT  => '',
    ZIP            => '',
    CITY           => '',
-   CREDIT_DATE    => '0000-00-00'
+   CREDIT_DATE    => '0000-00-00',
+   ACCEPT_RULES   => 0
   );
  
   $self = \%DATA;
@@ -486,6 +487,7 @@ sub defaults {
    ACTIVATE       => '0000-00-00', 
    EXPIRE         => '0000-00-00', 
    CREDIT         => 0, 
+   CREDIT_DATE    => '0000-00-00',
    REDUCTION      => '0.00', 
    SIMULTANEONSLY => 0, 
    DISABLE        => 0, 
@@ -496,6 +498,7 @@ sub defaults {
    BILL_ID        => 0,
    EXT_BILL_ID    => 0,
    DOMAIN_ID      => 0
+   
    );
  
   $self = \%DATA;

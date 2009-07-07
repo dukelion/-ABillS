@@ -29,16 +29,16 @@ my $uid;
 
 my $MODULE='Dv';
 
-my %SEARCH_PARAMS = (TP_ID => 0, 
-   SIMULTANEONSLY => 0, 
-   STATUS        => 0, 
-   IP             => '0.0.0.0', 
-   NETMASK        => '255.255.255.255', 
-   SPEED          => 0, 
-   FILTER_ID      => '', 
-   CID            => '', 
-   REGISTRATION   => ''
-);
+#my %SEARCH_PARAMS = (TP_ID => 0, 
+#   SIMULTANEONSLY => 0, 
+#   STATUS        => 0, 
+#   IP             => '0.0.0.0', 
+#   NETMASK        => '255.255.255.255', 
+#   SPEED          => 0, 
+#   FILTER_ID      => '', 
+#   CID            => '', 
+#   REGISTRATION   => ''
+#);
 
 #**********************************************************
 # Init 
@@ -172,7 +172,8 @@ sub defaults {
    CID            => '',
    CALLBACK       => 0,
    PORT           => 0,
-   JOIN_SERVICE   => 0
+   JOIN_SERVICE   => 0,
+   TURBO_MODE     => 0
   );
 
  

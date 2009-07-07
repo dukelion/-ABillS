@@ -183,7 +183,7 @@ sub sendmail {
       print "To: $to\n";
       print "From: $from\n";
       print "Content-Type: text/plain; charset=$charset\n";
-      print "X-Priority: $priority\n" if ($priority ne '');
+      print "X-Priority: $priority\n" if ($priority);
       print $header;
       print "Subject: $subject \n\n";
       print "$message";
@@ -193,7 +193,7 @@ sub sendmail {
         print MAIL "To: $to\n";
         print MAIL "From: $from\n";
         print MAIL "Content-Type: text/plain; charset=$charset\n";
-        print MAIL "X-Priority: $priority\n" if ($priority ne '');
+        print MAIL "X-Priority: $priority\n" if ($priority);
         print MAIL $header;
         print MAIL "Subject: $subject \n\n";
         print MAIL "$message";
