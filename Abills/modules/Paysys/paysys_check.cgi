@@ -623,7 +623,7 @@ elsif($request_type eq 'ProcessPayment') {
     if ($conf{'PAYSYS_USMP_PAYELEMENTID'}){
     	$conf{'PAYSYS_USMP_PAYELEMENTID'} =~ s/ //g;
     	my @PAYSYS_USMP_PAYELEMENTID_ARR = split(/,/, $conf{'PAYSYS_USMP_PAYELEMENTID'});
-    	if (! in_array($PayElementID, @PAYSYS_USMP_PAYELEMENTID_ARR)) {
+    	if (! in_array($PayElementID, \@PAYSYS_USMP_PAYELEMENTID_ARR)) {
         usmp_error_msg('121', 'Incorect PayElementID');
         return 0;
        }
@@ -821,7 +821,7 @@ elsif($request_type eq 'ValidatePhone') {
     my $PayElementID = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{PayElementID}->[0];
   	$conf{'PAYSYS_USMP_PAYELEMENTID'} =~ s/ //g;
   	my @PAYSYS_USMP_PAYELEMENTID_ARR = split(/,/, $conf{'PAYSYS_USMP_PAYELEMENTID'});
-  	if (! in_array($PayElementID, @PAYSYS_USMP_PAYELEMENTID_ARR)) {
+  	if (! in_array($PayElementID, \@PAYSYS_USMP_PAYELEMENTID_ARR)) {
 
 print << "[END]";  
 <?xml version="1.0" encoding="utf-8"?>
