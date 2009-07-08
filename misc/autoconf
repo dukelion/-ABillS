@@ -825,7 +825,9 @@ sub system_conf {
 #   'pppoed_interface,em1,',
 
    'ntpdate_enable,YES,',
+   'ntpdate_flags,europe.pool.ntp.org',
    'named_enable,YES,',
+   
    );
 
 #Makwe interface config
@@ -877,5 +879,15 @@ foreach my $line (@arr) {
 	return 0;
 }
 
+
+
+#**********************************************************
+#
+#**********************************************************
+sub other_options {
+	
+	#ntpdate_flags="europe.pool.ntp.org"
+  #ntpdate_enable="YES"
+}
 
 1
