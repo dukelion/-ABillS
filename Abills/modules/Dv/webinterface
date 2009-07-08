@@ -969,7 +969,7 @@ elsif($FORM{tolog}) {
         $ACCT_INFO->{SESSION_START}     = $line->[12];
   
         $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
-        $ACCT_INFO->{ACCT_STATUS_TYPE}='Stop';    	
+        $ACCT_INFO->{ACCT_STATUS_TYPE}  = 'Stop';    	
         
         #while(my($k,$v) = each   %$ACCT_INFO ) {
   	    #  print "$k./ $v,<br>";
