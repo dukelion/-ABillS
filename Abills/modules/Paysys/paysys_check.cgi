@@ -762,13 +762,15 @@ print << "[END]";
 elsif($request_type eq 'GetStatus') {
   my @payments_arr = @{ $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{ChequeNumbers}->[0]->{int} };
 
-  if ($conf{'PAYSYS_USMP_PAYELEMENTID'}){
-    my $PayElementID = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{PayElementID}->[0];
-    if (! usmp_PayElementID_check($PayElementID, {  })) {
-    	  return 0;
-     }
-   }
 
+    if ($conf{'PAYSYS_USMP_PAYELEMENTID'}){
+    	$conf{'PAYSYS_USMP_PAYELEMENTID'} =~ s/ //g;
+    	my @PAYSYS_USMP_PAYELEMENTID_ARR = split(/,/, $conf{'PAYSYS_USMP_PAYELEMENTID'});
+    	my $PayElementID = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{PayElementID}->[0];
+    	if (! in_array($PayElementID, \@PAYSYS_USMP_PAYELEMENTID_ARR)) {
+        $payments_status{$id}=121
+       }
+     }
   
   my $ext_ids = '\'USMP:'. join("', 'USMP:", @payments_arr)."'";
   
@@ -799,7 +801,15 @@ print << "[END]";
 
   foreach my $id (@payments_arr) {
     print "     <ChequeNumber>$id</ChequeNumber>\n
-            <Status>". (($payments_status{$id}) ? 9 : 123 ) ."</Status>\n";
+            <Status>"; 
+ 
+    if ($payments_status{$id} && $payments_status{$id} == 121) {
+    	print 121;
+     }          
+    else {
+      print (($payments_status{$id}) ? 9 : 123 );
+     }
+    print "</Status>\n";
    }
 
 print << "[END]";
@@ -907,7 +917,7 @@ else {
 }
 
 print << "[END]";	
- 
+        <Message></Message>
       </ValidatePhoneResult>
     </ValidatePhoneResponse>
   </soap:Body>
