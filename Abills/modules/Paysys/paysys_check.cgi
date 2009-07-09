@@ -656,8 +656,7 @@ elsif($request_type eq 'ProcessPayment') {
     	$conf{'PAYSYS_USMP_PAYELEMENTID'} =~ s/ //g;
     	my @PAYSYS_USMP_PAYELEMENTID_ARR = split(/,/, $conf{'PAYSYS_USMP_PAYELEMENTID'});
     	if (! in_array($PayElementID, \@PAYSYS_USMP_PAYELEMENTID_ARR)) {
-        usmp_error_msg('121', 'Incorect PayElementID');
-        return 0;
+        $result_arr[$i]{Status}=121;
        }
      }
 
