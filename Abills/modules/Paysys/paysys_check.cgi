@@ -778,6 +778,14 @@ print << "[END]";
 #Check limit
 elsif($request_type eq 'GetLimit') {
 	
+  if ($conf{'PAYSYS_USMP_PAYELEMENTID'}){
+    my $PayElementID = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{PayElementID}->[0];
+    if (! usmp_PayElementID_check($PayElementID)) {
+    	  return 0;
+     }
+   }
+
+	
 	my $list = $users->list({ $CHECK_FIELD => $accid });
 
   my $user ;
@@ -813,33 +821,12 @@ print << "[END]";
 elsif($request_type eq 'ValidatePhone') {
   $accid = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{Account}->[0];
   
-  
-  
-  
-
  if ($conf{'PAYSYS_USMP_PAYELEMENTID'}){
-    my $PayElementID = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{PayElementID}->[0];
-  	$conf{'PAYSYS_USMP_PAYELEMENTID'} =~ s/ //g;
-  	my @PAYSYS_USMP_PAYELEMENTID_ARR = split(/,/, $conf{'PAYSYS_USMP_PAYELEMENTID'});
-  	if (! in_array($PayElementID, \@PAYSYS_USMP_PAYELEMENTID_ARR)) {
-
-print << "[END]";  
-<?xml version="1.0" encoding="utf-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-<soap:Body>
-<ValidatePhoneResponse xmlns="http://usmp.com.ua/">
-<ValidatePhoneResult xsi:type="ValidatePhoneResponse">
-<Result>false</Result>
-<Account>$accid</Account>
-<Message></Message>
-</ValidatePhoneResult>
-</ValidatePhoneResponse>
-</soap:Body>
-</soap:Envelope>
-[END]
-  return 0;
-   }
- }
+   my $PayElementID = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{PayElementID}->[0];
+   if (! usmp_PayElementID_check($PayElementID)) {
+   	  return 0;
+    }
+  }
 	
 	
 	if ($accid eq '') {
@@ -884,6 +871,38 @@ else {
 	
 }
 
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub usmp_PayElementID_check () {
+	my ($PayElementID) = @_;
+	
+	
+  $conf{'PAYSYS_USMP_PAYELEMENTID'} =~ s/ //g;
+  my @PAYSYS_USMP_PAYELEMENTID_ARR = split(/,/, $conf{'PAYSYS_USMP_PAYELEMENTID'});
+  if (! in_array($PayElementID, \@PAYSYS_USMP_PAYELEMENTID_ARR)) {
+
+print << "[END]";  
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<soap:Body>
+<ValidatePhoneResponse xmlns="http://usmp.com.ua/">
+<ValidatePhoneResult xsi:type="ValidatePhoneResponse">
+<Result>false</Result>
+<Account>$accid</Account>
+<Message></Message>
+</ValidatePhoneResult>
+</ValidatePhoneResponse>
+</soap:Body>
+</soap:Envelope>
+[END]
+  return 0;
+   }
+	
+	return 1;
 }
 
 #**********************************************************
