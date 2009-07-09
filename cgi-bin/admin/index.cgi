@@ -98,7 +98,7 @@ if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
 
   my $res =  check_permissions("$REMOTE_USER", "$REMOTE_PASSWD");
   if ($res == 1) {
-    print "WWW-Authenticate: Basic realm=\"Billing system\"\n";
+    print "WWW-Authenticate: Basic realm=\"$conf{WEB_TITLE} Billing System\"\n";
     print "Status: 401 Unauthorized\n";
    }
   elsif ($res == 2) {
