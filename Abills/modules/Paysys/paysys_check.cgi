@@ -882,7 +882,7 @@ elsif($request_type eq 'ValidatePhone') {
 
 	
 	my $list = $users->list({ $CHECK_FIELD => "$accid" });
-
+  my $login = '';
   my $user ;
   my $status = undef;
   if ($users->{errno}) {
@@ -917,7 +917,7 @@ else {
 }
 
 print << "[END]";	
-        <Message></Message>
+        <Message>$user->{LOGIN} DEPOSIT: $user->{DEPOSIT}</Message>
       </ValidatePhoneResult>
     </ValidatePhoneResponse>
   </soap:Body>
