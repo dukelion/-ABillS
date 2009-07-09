@@ -152,7 +152,7 @@ if ($ip_num > $first_ip && $ip_num < $last_ip){
         exit;
  } 
 #USMP
-elsif('77.222.138.142,195.10.218.120' =~ /$ENV{REMOTE_ADDR}/ && ! $conf{PAYSYS_USMP_OLD}) {
+elsif('192.168.0.1,77.222.138.142,195.10.218.120' =~ /$ENV{REMOTE_ADDR}/ && ! $conf{PAYSYS_USMP_OLD}) {
   usmp_payments_v2();
   exit;
  }
@@ -524,7 +524,37 @@ else {
 $FORM{__BUFFER}='' if (! $FORM{__BUFFER});
 $FORM{__BUFFER}=~s/data=//;
 
-#$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><GetStatus xmlns="http://usmp.com.ua/"><request><Serial>VZJxfNNYJ4XGtwm2T</Serial><KeyWord>WrnVmkcYMPDYxvNvLQDKRB</KeyWord><ChequeNumbers><int>10</int><int>11</int><int>12</int></ChequeNumbers></request></GetStatus></soap:Body></soap:Envelope>};
+
+#
+#$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="utf-8"?>
+#<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+#  <soap:Body>
+#    <ProcessPayment xmlns="http://usmp.com.ua/">
+#      <request>
+#        <Serial>VZJxfNNYJ4XGtwm2T</Serial>
+#        <KeyWord>WrnVmkcYMPDYxvNvLQDKRB</KeyWord>
+#        <Payments>
+#          <PaymentDetails>
+#            <Date>DateTime</Date>
+#            <PayElementID>int</PayElementID>
+#            <Account>string</Account>
+#            <Amount>int</Amount>
+#            <ChequeNumber>int</ChequeNumber>
+#          </PaymentDetails>
+#          <PaymentDetails>
+#            <Date>DateTime</Date>
+#            <PayElementID>int</PayElementID>
+#            <Account>string</Account>
+#            <Amount>int</Amount>
+#            <ChequeNumber>int</ChequeNumber>
+#          </PaymentDetails>
+#        </Payments>
+#      </request>
+#    </ProcessPayment>
+#  </soap:Body>
+#</soap:Envelope>
+#
+#};
 
 
 my $_xml = eval { XMLin("$FORM{__BUFFER}", forcearray=>1) };
@@ -534,7 +564,7 @@ if($@) {
   usmp_error_msg('212', 'Incorrect XML');
 
 	my $content = $FORM{__BUFFER};
-  open(FILE, ">>test_xml.log") or die "Can't open file 'test_cgi.txt' $!\n";
+  open(FILE, ">>paysys_xml.log") or die "Can't open file 'paysys_xml.log' $!\n";
     print FILE "----\n";
     print FILE $content;
     print FILE "\n----\n";
@@ -617,6 +647,8 @@ elsif($request_type eq 'ProcessPayment') {
     my $sum          = $payments_arr[$i]->{Amount}->[0] / 100;
     my $date         = $payments_arr[$i]->{Date}->[0];
     my $PayElementID = $payments_arr[$i]->{PayElementID}->[0];
+  
+ 
   
     $result_arr[$i]{ChequeNumber}= $id;
     $result_arr[$i]{Status}      = 0;
@@ -733,7 +765,7 @@ elsif($request_type eq 'GetStatus') {
 
   if ($conf{'PAYSYS_USMP_PAYELEMENTID'}){
     my $PayElementID = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{PayElementID}->[0];
-    if (! usmp_PayElementID_check($PayElementID)) {
+    if (! usmp_PayElementID_check($PayElementID, {  })) {
     	  return 0;
      }
    }
@@ -785,7 +817,7 @@ elsif($request_type eq 'GetLimit') {
 	
   if ($conf{'PAYSYS_USMP_PAYELEMENTID'}){
     my $PayElementID = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{PayElementID}->[0];
-    if (! usmp_PayElementID_check($PayElementID)) {
+    if (! usmp_PayElementID_check($PayElementID, { Account => $accid  })) {
     	  return 0;
      }
    }
@@ -828,7 +860,7 @@ elsif($request_type eq 'ValidatePhone') {
   
  if ($conf{'PAYSYS_USMP_PAYELEMENTID'}){
    my $PayElementID = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{PayElementID}->[0];
-   if (! usmp_PayElementID_check($PayElementID)) {
+   if (! usmp_PayElementID_check($PayElementID, { Account => $accid })) {
    	  return 0;
     }
   }
@@ -894,7 +926,7 @@ else {
 #
 #**********************************************************
 sub usmp_PayElementID_check () {
-	my ($PayElementID) = @_;
+	my ($PayElementID, $attr) = @_;
 	
 	
   $conf{'PAYSYS_USMP_PAYELEMENTID'} =~ s/ //g;
@@ -908,8 +940,14 @@ print << "[END]";
 <ValidatePhoneResponse xmlns="http://usmp.com.ua/">
 <ValidatePhoneResult xsi:type="ValidatePhoneResponse">
 <Result>false</Result>
-<Account>$accid</Account>
-<Message></Message>
+[END]
+
+while(my($k, $v)=each %$attr) {
+	print "<$k>$v</$k>\n";
+	
+}
+
+print << "[END]";  
 </ValidatePhoneResult>
 </ValidatePhoneResponse>
 </soap:Body>
