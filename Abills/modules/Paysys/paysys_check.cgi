@@ -662,32 +662,25 @@ elsif($request_type eq 'ProcessPayment') {
 
   
   if ($amount <= 0){
-    #usmp_error_msg('112', 'SUM <= 0');
-    #return 0;
     $result_arr[$i]{Status}=112;
    }
   elsif ($amount < $conf{PAYSYS_USMP_MINSUM}){
-    #usmp_error_msg('6', 'Small Sum');
-    #return 0;
     $result_arr[$i]{Status}=6;
    }
   elsif ($amount > $conf{PAYSYS_USMP_MAXSUM}) {
-    #usmp_error_msg('120', 'Too large Amount');
-    #return 0;
     $result_arr[$i]{Status}=112;
+   }
+  elsif ($id < 1) {
+    $result_arr[$i]{Status}=120;
    }
   else {
     #Check user account
     my $list = $users->list({ $CHECK_FIELD => $accid });
 
     if ($users->{errno}) {
-      #usmp_error_msg('113', "Can't  find account");
-      #return 0;
       $result_arr[$i]{Status}=113;
      }
     elsif ($users->{TOTAL} < 1) {
-      #usmp_error_msg('113', "Can't  find account");
-      #return 0;
       $result_arr[$i]{Status}=113;
      }
     else {
