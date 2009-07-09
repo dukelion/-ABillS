@@ -730,9 +730,14 @@ print << "[END]";
 #Get payments statua   
 elsif($request_type eq 'GetStatus') {
   my @payments_arr = @{ $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{ChequeNumbers}->[0]->{int} };
-#  foreach my $order (@payments_arr) {
-#     print "$order\n";
-#  }
+
+  if ($conf{'PAYSYS_USMP_PAYELEMENTID'}){
+    my $PayElementID = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{PayElementID}->[0];
+    if (! usmp_PayElementID_check($PayElementID)) {
+    	  return 0;
+     }
+   }
+
   
   my $ext_ids = '\'USMP:'. join("', 'USMP:", @payments_arr)."'";
   
@@ -774,7 +779,7 @@ print << "[END]";
   </soap:Body>
 </soap:Envelope>
 [END]
-}
+ }
 #Check limit
 elsif($request_type eq 'GetLimit') {
 	
@@ -838,13 +843,12 @@ elsif($request_type eq 'ValidatePhone') {
 	my $list = $users->list({ $CHECK_FIELD => "$accid" });
 
   my $user ;
+  my $status = undef;
   if ($users->{errno}) {
-    usmp_error_msg('113', "Can't  find account");
-    return 0;
+    $status = 113;
    }
   elsif ($users->{TOTAL} < 1) {
-    usmp_error_msg('113', "Can't  find account");
-    return 0;
+    $status =  113;
    }
   else {
     my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
@@ -859,8 +863,20 @@ print << "[END]";
   <soap:Body>
     <ValidatePhoneResponse xmlns="http://usmp.com.ua/">
       <ValidatePhoneResult xsi:type="ValidatePhoneResponse">
-        <Result>$result</Result>
         <Account>$accid</Account>
+        
+[END]
+
+if ($status) {
+	print "<Result>false</Result>\n";
+
+}
+else {
+	print "<Result>$result</Result>\n";
+}
+
+print << "[END]";	
+ 
       </ValidatePhoneResult>
     </ValidatePhoneResponse>
   </soap:Body>
@@ -923,8 +939,10 @@ print << "[END]";
   </soap:Body>
 </soap:Envelope>
 [END]
-
 }
+
+
+
 
 #**********************************************************
 # http://usmp.com.ua/
