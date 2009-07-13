@@ -11,7 +11,7 @@ use vars  qw(%conf $db
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 2.0;
+my $VERSION = 2.1;
 my $config_file = $Bin . '/../libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
@@ -387,6 +387,9 @@ sub check_install {
     if ($param) {
       ($param_name, $param_value)=split(/=/, $param, 2);
      }
+
+    delete $ARGV->{$param_name}  if ($param_value =~ /^!/);    
+
 
     if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
       $config_body = "$value\n";

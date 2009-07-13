@@ -1,0 +1,22 @@
+authorize { 
+  preprocess 
+  abills_preauth 
+  mschap 
+#  files 
+#  sql
+  abills_auth 
+ } 
+ 
+preacct { 
+  preprocess 
+  abills_acc 
+ } 
+
+post-auth { 
+  Post-Auth-Type REJECT { 
+     abills_postauth 
+   }
+ Post-Auth-Type REJECT {
+   sql
+  } 
+}

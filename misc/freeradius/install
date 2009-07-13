@@ -9,3 +9,8 @@ clients.conf     > [/usr/local/etc/raddb]/clients.conf
 :OS=FREEBSD:radiusd_enable="YES"  >> [/etc/]/rc.conf
 :OS=FREEBSD:exec:/usr/local/etc/rc.d/radiusd restart
 :OS=FREEBSD:12  9    *   *  *    root   find /var/log/radacct/%RADIUS_CLIENT_IP%/ -type f -mtime +30d -delete  >> [/etc/]/crontab
+
+#VERSION 2.xx
+:OS=FREEBSD,FREERADIUS2=1:FILE=v2/radius.conf  > [/usr/local/etc/raddb]/radius.conf
+:OS=FREEBSD,FREERADIUS2=1:FILE=v2/sql.conf  > [/usr/local/etc/raddb]/sql.conf
+:OS=FREEBSD,FREERADIUS2=1:FILE=v2/default  > [/usr/local/etc/raddb]/sites-enabled/default
