@@ -575,22 +575,23 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
   	my $class_id    = $line->[0];
     my $filter_name = 'flt';
 
-    if ($class_id == 0 && $line->[1] =~ /0.0.0.0/) {
+    if ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/) {
        push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all rate-limit 1024000 150000 300000";
        push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all shape 64000 4000";
 
    	   next ;
       }
     else {
-  	  $line->[1] =~ s/[\n\r]//g;
+      $line->[1] = '' if (! $line->[1]) ;
+      $line->[1] =~ s/[\n\r]//g;
       my @net_list = split(/;/, $line->[1]);
   	
   	  my $i=1;
   	  $class_id = $class_id * 2 + 1 - 2 if ($class_id != 0);
 
-  	  foreach my $net (@net_list) {
-        push @{$RAD_PAIRS->{'mpd-filter'} }, ($class_id)."#$i=match dst net $net";
-        push @{$RAD_PAIRS->{'mpd-filter'} }, ($class_id+1)."#$i=match src net $net";
+        foreach my $net (@net_list) {
+          push @{$RAD_PAIRS->{'mpd-filter'} }, ($class_id)."#$i=match dst net $net";
+          push @{$RAD_PAIRS->{'mpd-filter'} }, ($class_id+1)."#$i=match src net $net";
   		  $i++;
   	   }
   	  
@@ -1524,7 +1525,12 @@ if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
   	my $list = $self->{list}->[0];
     my $password = $list->[0];
     $self->{'RAD_CHECK'}{'User-Password'}="$password";
-    print "User-Password == \"$password\"";
+    if ($CONF->{RADIUS2}) {
+       print "Cleartext-Password := \"$password\"";
+     }
+    else {
+       print "User-Password == \"$password\"";
+     }
     return 0;
    }
 

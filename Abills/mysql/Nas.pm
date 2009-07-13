@@ -84,8 +84,8 @@ sub list {
   }
 
   if($attr->{DOMAIN_ID}) {
-  	push @WHERE_RULES, "domain_id IN ($attr->{DOMAIN_ID})";
-  }
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{DOMAIN_ID}, 'INT', 'domain_id') };
+   }
 
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
@@ -547,6 +547,7 @@ sub log_add {
  %DATA = $self->get_data($attr); 
  # $date, $time, $log_type, $action, $user, $message
  $DATA{MESSAGE} =~ s/'/\\'/g;
+ $self->{NAS_ID}=0 if (! $self->{NAS_ID});
 
  $self->query($db, "INSERT INTO errors_log (date, log_type, action, user, message, nas_id)
  values (now(), '$DATA{LOG_TYPE}', '$DATA{ACTION}', '$DATA{USER_NAME}', '$DATA{MESSAGE}',  '$self->{NAS_ID}');", 'do');

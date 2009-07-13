@@ -104,15 +104,54 @@ my $payments = Payments->new($db, $admin, \%conf);
 
 my $Cards      = Cards->new($db, $admin, \%conf);
 my $Multidoms  = Multidoms->new($db, $admin, \%conf);
+my $nas        = Nas->new($db, \%conf);	
 
 my @status = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
+
+
+
+#**********************************************************
+# form_nas
+#**********************************************************
+sub multidoms_reseller_nas_reconfig {
+  my ($attr) = @_;
+
+#  my $list = $nas->list({  });
+#  my $config_content = '';
+#  foreach my $line (@$list) {
+#  	$config_content .= qq{
+## ID: $line->[0] NAME: $line->[1]
+## DILLER_ID: 
+#client $line->[3] {
+#   secret          = $line->[11]
+#   shortname       = NAS_$line->[0]
+# }
+#
+#};
+#
+#  }
+#
+#
+#
+#  if (open(FILE, ">$conf{RADIUS_CLIENTS}" )) { 
+#      print FILE "$config_content";
+#	    close(FILE);
+#	    system("$conf{RADIUS_RESTART}");
+#   }
+#  else {
+#   	$html->message('err', $_ERROR, "Can't open file '$conf{RADIUS_CLIENTS}' $!");
+#   	return 0;
+#   }
+  system("$conf{RADIUS_RESTART} > /dev/null");
+  return 1;
+}
 
 
 #**********************************************************
 # form_nas
 #**********************************************************
 sub multidoms_reseller_nas {
-  my $nas = Nas->new($db, \%conf);	
+
   $nas->{ACTION}='add';
   $nas->{LNG_ACTION}=$_ADD;
 
@@ -157,6 +196,7 @@ if($FORM{NAS_ID}) {
   elsif($FORM{change}) {
     $nas->change({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });  
     if (! $nas->{errno}) {
+    	 multidoms_reseller_nas_reconfig();
        $html->message('info', $_CHANGED, "$_CHANGED $nas->{NAS_ID}");
      }
    }
@@ -165,15 +205,30 @@ if($FORM{NAS_ID}) {
   $nas->{ACTION}='change';
  }
 elsif ($FORM{add}) {
-  $nas->add({	%FORM, DOMAIN_ID => $admin->{DOMAIN_ID}	});
-
-  if (! $nas->{errno}) {
-    $html->message('info', $_INFO, "$_ADDED '$FORM{NAS_IP}'");
+  if (! $FORM{NAS_MNG_PASSWORD}) {
+  	$html->message('err', $_ERROR, "$ERR_WRONG_PASSWD");
    }
+  else {
+  	$FORM{NAS_NAME}="NAS_$FORM{NAS_IP}" if (! $FORM{NAS_NAME});
+  	
+    $nas->add({	%FORM, DOMAIN_ID => $admin->{DOMAIN_ID}	});
+
+    if (! $nas->{errno}) {
+  	  if (multidoms_reseller_nas_reconfig())  {
+        $html->message('info', $_INFO, "$_ADDED '$FORM{NAS_IP}'");
+       }
+     }
+   elsif($nas->{errno} == 7) {
+   	 $html->message('err', $_ERROR, "$_EXIST IP: '$FORM{NAS_IP}'");
+   	 $nas->{errno}=undef;
+    }
+  }
+
  }
 elsif ($FORM{del} && $FORM{is_js_confirmed}) {
   $nas->del($FORM{del});
   if (! $nas->{errno}) {
+  	multidoms_reseller_nas_reconfig();
     $html->message('info', $_INFO, "$_DELETED [$FORM{del}]");
    }
 
@@ -209,7 +264,7 @@ if ($nas->{errno}) {
 
   $nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
   $nas->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1 });
-  $html->tpl_show(_include('multidoms_reseller_nas', 'Multidoms'), $nas);
+  $html->tpl_show(_include('multidoms_reseller_nas', 'Multidoms'), { %FORM, %$nas });
 
 my $table = $html->table( { width      => '100%',
                             caption    => "$_NAS",

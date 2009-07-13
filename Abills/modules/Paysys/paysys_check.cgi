@@ -796,7 +796,10 @@ print << "[END]";
     print "     <ChequeNumber>$id</ChequeNumber>\n
             <Status>"; 
  
-    if ($payments_status{$id} && $payments_status{$id} == 121) {
+    if ($id < 1) {
+    	print 120;
+     }
+    elsif ($payments_status{$id} && $payments_status{$id} == 121) {
     	print 121;
      }          
     else {

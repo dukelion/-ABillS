@@ -1341,6 +1341,30 @@ $Cards->{TARIF_PLAN_SEL}=$html->form_select('TP_ID',
 
 	$Cards->{DISABLE} = ($Cards->{DISABLE} == 1)? 'checked' : '';
 	$html->tpl_show(_include('cards_dillers', 'Cards'), $Cards);
+	
+	if (in_array('Multidoms', \@MODULES)) {
+		my %ACTIONS = ( $_CARDS        => 1,
+		                $_TARIF_PLANS => 2,
+		                $_NAS         => 3,
+		                $_DILLERS     => 4
+		               );
+    my $table = $html->table( { width      => '100%',
+                           caption    => "$_PERMISIONS",
+                           title      => ["$_ACTION", "$_COMMENTS", '-'],
+                           cols_align => ['left', 'left', 'center' ],
+                         });
+
+
+    foreach $key (sort keys %ACTIONS) {
+     	$table->addrow(
+   	      $key, '', $html->form_input('PERMITS', $ACTIONS{$key}, { TYPE => 'checkbox', STATUS => })
+   		 );
+    }
+
+		
+		print $table->show(); 
+	 }
+	
 }
 
 
