@@ -1293,7 +1293,13 @@ sub cards_diller {
  	$Cards->{LNG_ACTION}=$_ADD;
 
 
-if (! $FORM{SERIA}) {
+if ($FORM{change_permits}) {
+  $Cards->diller_permissions_set({ %FORM });
+  if (! $Cards->{errno}) {
+    $html->message('info', $_INFO, "$_ADDED");	
+   }
+ }
+elsif (! $FORM{SERIA}) {
   if ($FORM{add}) {
     $Cards->cards_diller_add({ %FORM });
     if (! $Cards->{errno}) {
@@ -1342,27 +1348,45 @@ $Cards->{TARIF_PLAN_SEL}=$html->form_select('TP_ID',
 	$Cards->{DISABLE} = ($Cards->{DISABLE} == 1)? 'checked' : '';
 	$html->tpl_show(_include('cards_dillers', 'Cards'), $Cards);
 	
-	if (in_array('Multidoms', \@MODULES)) {
-		my %ACTIONS = ( $_CARDS        => 1,
+	if (in_array('Multidoms', \@MODULES) && $LIST_PARAMS{DILLER_ID}) {
+		my %ACTIONS = ( $_ICARDS      => 1,
 		                $_TARIF_PLANS => 2,
 		                $_NAS         => 3,
-		                $_DILLERS     => 4
+		                $_DILLERS     => 4,
+		                $_TEMPLATES   => 5
 		               );
-    my $table = $html->table( { width      => '100%',
-                           caption    => "$_PERMISIONS",
-                           title      => ["$_ACTION", "$_COMMENTS", '-'],
-                           cols_align => ['left', 'left', 'center' ],
-                         });
+
+
+    my $permits = $Cards->diller_permissions_list({ %FORM, DILLER_ID => $LIST_PARAMS{DILLER_ID} });
+
+    my $table = $html->table( { width      => '400',
+                                caption    => "$_PERMISSION",
+                                title      => ["$_ACTIONS", "$_COMMENTS", '-'],
+                                cols_align => ['left', 'left', 'center' ],
+                             });
 
 
     foreach $key (sort keys %ACTIONS) {
      	$table->addrow(
-   	      $key, '', $html->form_input('PERMITS', $ACTIONS{$key}, { TYPE => 'checkbox', STATUS => })
+   	      $key, '', $html->form_input('PERMITS', $ACTIONS{$key}, { TYPE => 'checkbox', 
+   	      	  STATE => ($permits->{$ACTIONS{$key}}) ? 'checked' : undef })
    		 );
     }
 
 		
-		print $table->show(); 
+
+		
+		  print $html->form_main({ CONTENT => $table->show(),
+                              
+  	                       HIDDEN  => { index     => "$index",
+  	                       	            DILLER_ID => $LIST_PARAMS{DILLER_ID},
+  	                       	            UID       => $FORM{UID}
+  	                       	           },
+	                         SUBMIT  => { 
+	                         	            change_permits  => "$_CHANGE" 
+	                         	           },
+	                         NAME    => 'permits_list'
+	                        });
 	 }
 	
 }

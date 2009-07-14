@@ -97,7 +97,9 @@ require Admins;
 Admins->import();
 $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { DOMAIN_ID => $FORM{DOMAIN_ID} });
-$conf{WEB_TITLE} = $admin->{DOMAIN_NAME};
+
+$conf{WEB_TITLE} = $admin->{DOMAIN_NAME} if ($admin->{DOMAIN_NAME});
+
 require "Abills/templates.pl";
 
 

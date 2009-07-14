@@ -16,7 +16,7 @@
 
 
 %RESELLER_FUNCTION_LIST  = ("01:0:$_ICARDS:cards_reseller_face:defaultindex"  => 0,
-                            "02:1:$_REPORTS:cards_diller_stats:"                  => 1 
+                            "02:1:$_REPORTS:cards_diller_stats:"              => 1 
                             );
 
 

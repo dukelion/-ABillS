@@ -11,6 +11,6 @@ clients.conf     > [/usr/local/etc/raddb]/clients.conf
 :OS=FREEBSD:12  9    *   *  *    root   find /var/log/radacct/%RADIUS_CLIENT_IP%/ -type f -mtime +30d -delete  >> [/etc/]/crontab
 
 #VERSION 2.xx
-:OS=FREEBSD,FREERADIUS2=1:FILE=v2/radius.conf  > [/usr/local/etc/raddb]/radius.conf
+:OS=FREEBSD,FREERADIUS2=1:FILE=v2/radiusd.conf  > [/usr/local/etc/raddb]/radiusd.conf
 :OS=FREEBSD,FREERADIUS2=1:FILE=v2/sql.conf  > [/usr/local/etc/raddb]/sql.conf
 :OS=FREEBSD,FREERADIUS2=1:FILE=v2/default  > [/usr/local/etc/raddb]/sites-enabled/default
