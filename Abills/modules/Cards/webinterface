@@ -1437,25 +1437,42 @@ if ($FORM{add}) {
                     $i = sprintf("%s%.11d", $FORM{SERIAL}, $i);
                     my $EXPIRE_DATE = '0000-00-00';
           $Cards->cards_add({ SERIAL    => "",
-                                    NUMBER    => "$i",
-                                PIN       => "$pin",
-                                  SUM       => "$FORM{SUM}",
-                                    STATUS    => 0,
-                                    EXPIRE    => "$EXPIRE_DATE",
-                                    DILLER_ID => $diller->{ID}
-                                  });
+                              NUMBER    => "$i",
+                              PIN       => "$pin",
+                              SUM       => "$FORM{SUM}",
+                              STATUS    => 0,
+                              EXPIRE    => "$EXPIRE_DATE",
+                              DILLER_ID => $diller->{ID}
+                            });
 
           if ($Cards->{errno}) {
             $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
             return 0;
            }
-                else {
-                        #Take fees
-                        my $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $diller->{PERCENTAGE})));
-                        my $fees = Finance->fees($db, $admin, \%conf);
+          else {
+          	my $sum = 0;
+            #Take fees
+            if ($diller->{PERCENTAGE} > 0) {
+              $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $diller->{PERCENTAGE})));
+             }
+            else {
+            	$Cards->dillers_tp_info({ ID => $diller->{TP_ID} });
+            	
+              if ($Cards->{PERCENTAGE} > 0) {
+              	$sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $Cards->{PERCENTAGE})));
+               }
+
+              if ( $Cards->{OPERATION_PAYMENT} > 0) {
+              	$sum += $Cards->{OPERATION_PAYMENT};
+               }
+          	
+             }
+              
+
+            my $fees = Finance->fees($db, $admin, \%conf);
 
 
-                  $fees->take($user, $sum,
+            $fees->take($user, $sum,
                                     {  DESCRIBE     => "$_ICARDS",
                              METHOD       => 0,
                              EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
@@ -1472,7 +1489,7 @@ if ($FORM{add}) {
                  } );
 
 
-        }
+           }
 
 
            }
@@ -1493,9 +1510,10 @@ if ($FORM{add}) {
 
     $Cards->{TP_SEL}=$html->form_select('TP_ID', { 
  	                                         SELECTED          => $FORM{TP_ID},
- 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0, SORT => 2,  PAGE_ROWS => 10000 }) }],
- 	                                         MULTI_ARRAY_KEY   => 0,
- 	                                         MULTI_ARRAY_VALUE => 2,
+ 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $tariffs->list({ PAGE_ROWS => 1, SORT => 1, DESC => 'desc', DOMAIN_ID => $user->{DOMAIN_ID}
+ 	                                         	 }) }],
+ 	                                         MULTI_ARRAY_KEY   => 18,
+ 	                                         MULTI_ARRAY_VALUE => 1,
  	                                         EX_PARAMS         => 'DISABLE STYLE=\'background-color: #dddddd\' DISABLED name=\'TP_ID\''
  	                                        });
 
