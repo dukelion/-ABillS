@@ -59,3 +59,11 @@ CREATE TABLE `dillers_tps` (
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
  ) COMMENT='Resellers Tarif Plans';
+
+
+CREATE TABLE `dillers_permits` (
+  `diller_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `actions` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+  `section` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+  UNIQUE KEY `diller_id` (`diller_id`, `section`)
+) COMMENT='Dillers Permisions';

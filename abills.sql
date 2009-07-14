@@ -607,7 +607,8 @@ CREATE TABLE `nas` (
   `address_flat` varchar(10) NOT NULL default '',
   `zip` varchar(7) NOT NULL default '',
   `city` varchar(20) NOT NULL default '',
-  PRIMARY KEY  (`id`)
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `domain_id` (`domain_id`, `ip`, `nas_identifier`)
 ) COMMENT='Nas servers list';
 
 
