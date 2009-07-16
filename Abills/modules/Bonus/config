@@ -1,15 +1,16 @@
-$web_interface    = 1;
-
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = (
-                   "01:0:$_BONUS:bonus_main:"               => 5
+                   "01:0:$_BONUS:bonus_users_list:"   => 11,
+                   "02:0:$_BONUS:bonus_user:UID"      => 20,
+                   "08:0:$_BONUS:bonus_tp:"           => 5
                    );
 
 
 # 
-%PERIODIC = (daily   => [ 'bonus_periodic' ],
-             monthly => [ 'bonus_periodic' ],
-             report  => [ 'bonus_report'   ]);
+%PERIODIC = (daily   => [ 'bonus_periodic_daily'   ],
+             monthly => [ 'bonus_periodic_monthly' ],
+#             report  => [ 'bonus_report'   ]
+            );
 
 
 1

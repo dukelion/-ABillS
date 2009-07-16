@@ -8,9 +8,12 @@ use Finance;
 use Tariffs;
 
 
-my $Bonus = Bonus->new($db, $admin, \%conf);
-my $Fees = Fees->new($db, $admin, \%conf);
+my $Bonus   = Bonus->new($db, $admin, \%conf);
+my $Fees    = Fees->new($db, $admin, \%conf);
 my $Tariffs = Tariffs->new($db, \%conf, $admin);
+
+
+
 
 
 
@@ -18,46 +21,42 @@ my $Tariffs = Tariffs->new($db, \%conf, $admin);
 # Change user variant form
 # form_chg_vid()
 #*******************************************************************
-sub bonus_main {
+sub bonus_tp {
  my ($attr) = @_;
 
 
  $Bonus->{ACTION}='add';
  $Bonus->{LNG_ACTION}=$_ADD;
 
-
- if ($FORM{add}) {
-   if ($FORM{RANGE_BEGIN}) {
-   	 $Bonus->add({ %FORM });
-     if(! $Bonus->{errno}) {
+ if ($FORM{RULES}) {
+   bonus_rules();
+   return 0;
+  }
+ elsif ($FORM{add}) {
+ 	 $Bonus->tp_add({ %FORM });
+   if(! $Bonus->{errno}) {
        $html->message('info', $_INFO, "$_ADDED");
-      }
-    }
-
-
-   $html->tpl_show(_include('bonus_setup', 'Bonus'), $Bonus);
+     }
   }
  elsif ($FORM{change}) {
-
-   $Bonus->change({ %FORM });
+   $Bonus->tp_change({ %FORM });
    
    if(! $Bonus->{errno}) {
      $html->message('info', $_INFO, "$_CHANGED ID: $FORM{ID}");
     }
   }
  elsif ($FORM{chg}) {
-   $Bonus->info($FORM{chg});
+   $Bonus->tp_info($FORM{chg});
+
    $Bonus->{ACTION}='change';
    $Bonus->{LNG_ACTION}=$_CHANGE;
 
    if(! $Bonus->{errno}) {
      $html->message('info', $_INFO, "$_CHANGING");
     }
-
-   $html->tpl_show(_include('bonus_setup', 'Bonus'), $Bonus);
  	}
  elsif ($FORM{del}  && $FORM{is_js_confirmed}) {
-   $Bonus->del({ ID => $FORM{del} });
+   $Bonus->tp_del({ ID => $FORM{del} });
 
    if(! $Bonus->{errno}) {
      $html->message('info', $_INFO, "$_DELETED ID: $FORM{del}");
@@ -70,20 +69,19 @@ sub bonus_main {
 
 
 
+
+$Bonus->{STATE} = ($Bonus->{STATE}) ? 'checked' : '';
+$html->tpl_show(_include('bonus_tp', 'Bonus'), $Bonus);
+
 my %bonus_hash = ();
 
-my $list = $Bonus->list();
-foreach my $line (@$list) {
-	push @{ $bonus_hash{$line->[0]} }, "$line->[1]|$line->[2]|$line->[3]|$line->[4]|$line->[5]";
-}
+my $list  = $Bonus->tp_list();
 
-
-$list = $Tariffs->list({ %LIST_PARAMS });
 my $table = $html->table( { width      => '100%',
                             caption    => "$_TARIF_PLANS",
                             border     => 1,
-                            #title      => ['#', $_NAME, "$_BONUS"],
-                            cols_align => ['right', 'left', 'center', 'center:noprint', 'center:noprint'],
+                            title     => ['#', $_NAME, "$_STATE", '-', '-', '-'],
+                            cols_align => ['right', 'left', 'center', 'center:noprint', 'center:noprint', 'center:noprint'],
                           } );
 
 my ($add);
@@ -99,29 +97,12 @@ foreach my $line (@$list) {
   	undef($table->{rowcolor});
    }
 
-  
-  my $bonus_count = (defined($bonus_hash{$line->[0]})) ? $#{ $bonus_hash{$line->[0]} } + 2 : 1;
- 
-  $table->addtd(
-               $table->td("<b>$line->[0]</b>", { rowspan => $bonus_count } ),
-               $table->td("<b>$line->[1]</b>", { colspan => 5 }), 
-               $table->td($add, { colspan => 2 })
-    );
-
-
-  #Bonus recs
-  if (defined($bonus_hash{$line->[0]})) {
-    #$table->{extra}=undef;
-
-    foreach my $bonus_line (@{ $bonus_hash{$line->[0]} }) {
-    	my ($period, $begin, $end, $sum, $comments, $id)=split(/\|/, $bonus_line);
-
-      $table->addrow($period, $begin, $end, $sum, $comments,  
-       $html->button($_CHANGE, "index=$index&TP_ID=$line->[0]&chg=$line->[0]"),
-       $html->button($_DEL, "index=$index&del=$id", { MESSAGE => "$_DEL $id?" }) 
-       );
-     }
-   }
+  $table->addrow($line->[0], $line->[1], 
+     $status[$line->[2]],  
+     $html->button("$_RULES", "index=$index&RULES=1&TP_ID=$line->[0]"),
+     $html->button($_CHANGE, "index=$index&chg=$line->[0]"),
+     $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0] ?" }) 
+   );
 }
 
 print $table->show();
@@ -136,14 +117,304 @@ print $table->show();
 
 
 
+
+#*******************************************************************
+# Change user variant form
+# form_chg_vid()
+#*******************************************************************
+sub bonus_rules {
+ my ($attr) = @_;
+
+ $Bonus->{ACTION}='add';
+ $Bonus->{LNG_ACTION}=$_ADD;
+
+ if ($FORM{add}) {
+ 	 $Bonus->rule_add({ %FORM });
+   if(! $Bonus->{errno}) {
+       $html->message('info', $_INFO, "$_ADDED");
+     }
+  }
+ elsif ($FORM{change}) {
+   $Bonus->rule_change({ %FORM });
+   
+   if(! $Bonus->{errno}) {
+     $html->message('info', $_INFO, "$_CHANGED ID: $FORM{ID}");
+    }
+  }
+ elsif ($FORM{chg}) {
+   $Bonus->rule_info($FORM{chg});
+
+   $Bonus->{ACTION}='change';
+   $Bonus->{LNG_ACTION}=$_CHANGE;
+
+   if(! $Bonus->{errno}) {
+     $html->message('info', $_INFO, "$_CHANGING");
+    }
+ 	}
+ elsif ($FORM{del}  && $FORM{is_js_confirmed}) {
+   $Bonus->rule_del({ ID => $FORM{del} });
+
+   if(! $Bonus->{errno}) {
+     $html->message('info', $_INFO, "$_DELETED ID: $FORM{del}");
+    }
+  }
+
+ if($Bonus->{errno}) {
+   $html->message('err', $_ERROR, "[$Bonus->{errno}] $err_strs{$Bonus->{errno}}");	
+  }
+
+
+
+
+$Bonus->{STATE} = ($Bonus->{STATE}) ? 'checked' : '';
+
+my %bonus_hash = ();
+
+my $list    = $Bonus->rule_list({ TP_ID => $FORM{TP_ID} });
+my @PERIODS = ($_DAY, $_MONTH);
+
+
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_RULES",
+                            border     => 1,
+                            title      => [$_PERIOD, "$_RULES", "$_VALUE", "$_BONUS", '-', '-'],
+                            cols_align => ['right', 'left', 'center', 'center:noprint', 'center:noprint', 'center:noprint'],
+                          } );
+
+my %BONUS_HUSH = (TRAFFIC_IN_BONUS_MB   => $_TRAFFIC_IN_BONUS_MB,
+                  TRAFFIC_OUT_BONUS_MB  => $_TRAFFIC_OUT_BONUS_MB,
+                  TRAFFIC_SUM_BONUS_MB  => $_TRAFFIC_SUM_BONUS_MB
+                  );
+
+
+
+my ($add);
+foreach my $line (@$list) {
+  if ($permissions{4}{1}) {
+    $add = $html->button($_ADD, "index=$index&TP_ID=$line->[0]&add=$line->[0]");
+   }
+  
+  if($FORM{TP_ID} eq $line->[0]) {
+  	$table->{rowcolor}=$_COLORS[0];
+   }
+  else {
+  	undef($table->{rowcolor});
+   }
+
+  $table->addrow($PERIODS[$line->[0]], 
+     $BONUS_HUSH{$line->[1]}, 
+     $line->[2],  
+     $line->[3],  
+     $html->button($_CHANGE, "index=$index&RULES=1&TP_ID=$FORM{TP_ID}&chg=$line->[4]"),
+     $html->button($_DEL, "index=$index&TP_ID=$FORM{TP_ID}&RULES=1&del=$line->[4]", { MESSAGE => "$_DEL $line->[4] ?" }) 
+   );
+}
+
+
+$table->addtd(
+               $table->td($html->form_select('PERIOD', 
+                                { SELECTED      => $Bonus->{PERIOD},
+ 	                                SEL_ARRAY     => \@PERIODS,
+ 	                                OUTPUT2RETURN => 1,
+ 	                                ARRAY_NUM_ID  => 1
+ 	                               }) ),
+
+               $table->td( $html->form_select('RULE', 
+                                { SELECTED   => $Bonus->{RULE},
+ 	                                SEL_HASH   => \%BONUS_HUSH,
+ 	                                NO_ID      => 1
+ 	                               })
+ 	                               ), 
+
+               $table->td($html->form_input(RULE_VALUE, "$Bonus->{RULE_VALUE}", { SIZE => 10 })), 
+               $table->td($html->form_input(ACTIONS, "$Bonus->{ACTIONS}", { SIZE => 50 })), 
+               $table->td($html->form_input($Bonus->{ACTION}, "$Bonus->{LNG_ACTION}", { TYPE => 'SUBMIT' }), { colspan => 2 })
+    );
+
+
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                          HIDDEN  => { index      => $index,
+	                          	           chg        => $Bonus->{ID},
+	                          	           ID         => $Bonus->{ID},
+	                          	           RULES      => 1,
+	                          	           TP_ID      => $FORM{TP_ID}
+	                       	              },
+	                       	  NAME    => 'list_add'
+                         });
+
+
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$Tariffs->{TOTAL}</b>" ] ]
+                      } );
+
+
+
+print $table->show();
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#*******************************************************************
+# 
+# bonus_user()
+#*******************************************************************
+sub bonus_user {
+ my ($attr) = @_;
+
+ if ($FORM{add}) {
+ 	 $Bonus->user_add({ %FORM });
+   if(! $Bonus->{errno}) {
+       $html->message('info', $_INFO, "$_ADDED");
+     }
+  }
+ elsif ($FORM{change}) {
+   $Bonus->user_change({ %FORM });
+   
+   if(! $Bonus->{errno}) {
+     $html->message('info', $_INFO, "$_CHANGED ID: $FORM{ID}");
+    }
+  }
+ elsif ($FORM{del}  && $FORM{is_js_confirmed}) {
+   $Bonus->user_del({ ID => $FORM{del} });
+
+   if(! $Bonus->{errno}) {
+     $html->message('info', $_INFO, "$_DELETED ID: $FORM{del}");
+    }
+  }
+
+ if($Bonus->{errno}) {
+   $html->message('err', $_ERROR, "[$Bonus->{errno}] $err_strs{$Bonus->{errno}}");	
+  }
+
+
+  $Bonus->user_info($FORM{UID});
+
+if ($Bonus->{TOTAL} < 1) {
+	$Bonus->{ACTION}='add';
+  $Bonus->{LNG_ACTION}=$_ADD;
+ }
+else {
+  $Bonus->{ACTION}    = 'change';
+  $Bonus->{LNG_ACTION}= $_CHANGE;
+}
+
+
+$Bonus->{TARIF_SEL} = $html->form_select('TP_ID', 
+                                { 
+ 	                                SELECTED          => $Bonus->{TP_ID},
+ 	                                SEL_MULTI_ARRAY   => [['', ''],  @{ $Bonus->tp_list({  }) } ],
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                               });
+
+$Bonus->{STATE} = ($Bonus->{STATE}) ? 'checked' : '';
+$html->tpl_show(_include('bonus_user', 'Bonus'), $Bonus);
+
+}
+
+
+
+
+
+
+
+#*******************************************************************
+# 
+# bonus_user()
+#*******************************************************************
+sub bonus_users_list {
+ my ($attr) = @_;
+
+my $list  = $Bonus->user_list();
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_BONUS",
+                            border     => 1,
+                            title      => ["$_LOGIN", $_FIO, "$_TARIF_PLAN", "$_STATE", '-'],
+                            cols_align => ['right', 'left', 'center', 'center:noprint', 'center:noprint', 'center:noprint'],
+                          } );
+
+my ($add);
+foreach my $line (@$list) {
+  $table->addrow($line->[0], 
+     $line->[1], 
+     $line->[2], 
+     ($line->[3]) ? $html->color_mark($status[$line->[3]], $_COLORS[6]) : $status[$line->[3]],  
+     $html->button($_INFO, "index=15&MODULE=Bonus&UID=$line->[4]" ) 
+   );
+}
+
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", "<b>$Tariffs->{TOTAL}</b>" ] ]
+                      } );
+
+print $table->show();
+
+}
+
+
+
+
+
 #**********************************************************
 #
 #**********************************************************
-sub bonus_periodic {
-	my $REPORT = '';
+sub bonus_periodic_daily {
+	 my ($attr) = @_;
+
+   my $debug = $attr->{DEBUG} || 0;
+   my $debug_output = '';
+   $debug_output .= "Bonus - Monthly pariodic payments\n" if ($debug > 1);
+
 	
-  return $REPORT;
+   $DEBUG .= $debug_output;
+   return $debug_output;
+ }
+
+#**********************************************************
+#
+#**********************************************************
+sub bonus_periodic_monthly {
+	 my ($attr) = @_;
+
+   my $debug = $attr->{DEBUG} || 0;
+   my $debug_output = '';
+   $debug_output .= "Bonus - Monthly pariodic payments\n" if ($debug > 1);
+
+   
+
+
+
+
+	
+   $DEBUG .= $debug_output;
+   return $debug_output;
 }
+
 
 
 #**********************************************************
@@ -151,6 +422,10 @@ sub bonus_periodic {
 #**********************************************************
 sub bonus_report {
 	my $REPORT = '';
+	
+	
+	
+	
 	
 	return $REPORT;
 }

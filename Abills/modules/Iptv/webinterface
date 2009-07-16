@@ -9,11 +9,9 @@ my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $Iptv     = Iptv->new($db, $admin, \%conf);
 my $fees     = Fees->new($db, $admin, \%conf);
 
-my $MODULE = ($module{$index}) ? $module{$index} : 'Iptv';
 
-
-my $debug = 0;
-my @status = ($_ENABLE, $_DISABLE);
+my $debug          = 0;
+my @status         = ($_ENABLE, $_DISABLE);
 my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
 
 
@@ -39,7 +37,7 @@ sub iptv_close_period {
  	my $table = $html->table( { width      => '300',
  		                          caption    => "$_CLOSE_PERIOD",
                               cols_align => ['left', 'left'],
-                              rows => [ [ "$_STATUS:", "$close_period"   ]
+                              rows       => [ [ "$_STATUS:", "$close_period"   ]
                                       ]
                                } );
   my %submit = ();

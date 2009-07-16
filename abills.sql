@@ -762,9 +762,11 @@ CREATE TABLE `tarif_plans` (
   `min_use` double(14,2) unsigned NOT NULL DEFAULT '0.00',
   `abon_distribution` tinyint(1) NOT NULL DEFAULT '0',
   `domain_id` smallint(6) unsigned not null default 0,
-  PRIMARY KEY  (`id`,`module`),
+  `total_time_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `total_traf_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  PRIMARY KEY  (`id`,`module`, `domain_id`),
   UNIQUE KEY `tp_id` (`tp_id`),
-  KEY `name` (`name`)
+  KEY `name` (`name`, `domain_id`)
 ) COMMENT='Tarif plans';
 
 

@@ -3,6 +3,7 @@
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='NAS_ID' value='%NAS_ID%'>
 <TABLE>
+
 <TR><th align=right bgcolor='$_COLORS[0]' colspan=2>$_NAS</th></TR>
 <TR><TD>ID</TD><TD>%NAS_ID%</TD></TR>
 <TR><TD>IP</TD><TD><input type=text name=NAS_IP value='%NAS_IP%'></TD></TR>
@@ -13,8 +14,12 @@
 <TR><TD>Alive (sec.):</TD><TD><input type=text name=NAS_ALIVE value='%NAS_ALIVE%'></TD></TR>
 <TR><TD>$_DISABLE:</TD><TD><input type=checkbox name=NAS_DISABLE value=1 %NAS_DISABLE%></TD></TR>
 <TR><th colspan=2>:$_MANAGE:</th></TR>
+
+
 <TR><TD>IP:PORT:</TD><TD><input type=text name=NAS_MNG_IP_PORT value='%NAS_MNG_IP_PORT%'></TD></TR>
-<TR><TD>$_USER:</TD><TD><input type=text name=NAS_MNG_USER value='%NAS_MNG_USER%'></TD></TR>
+<TR><TD>$_USER:</TD><TD><input type=text name=NAS_MNG_USER value='%NAS_MNG_USER%'></TD></TR> 
+
+
 <TR><TD>$_PASSWD:</TD><TD><input type=password name=NAS_MNG_PASSWORD value=''></TD></TR>
 <TR><th colspan=2>RADIUS $_PARAMS (,)</th></TR>
 <TR><th colspan=2><textarea cols=50 rows=4 name=NAS_RAD_PAIRS>%NAS_RAD_PAIRS%</textarea></th></TR>
