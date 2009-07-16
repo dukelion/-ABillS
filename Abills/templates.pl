@@ -25,6 +25,9 @@ sub _include {
   elsif (-f '../Abills/templates/'.$domain_path. $module . '_' . $tpl .$sufix) {
     return ($FORM{pdf}) ? '../Abills/templates/'.$domain_path. $module . '_' . $tpl. '.tpl' : tpl_content('../Abills/templates/'. $module . '_' . $tpl. $sufix);
    }
+  elsif (-f $Bin .'/../Abills/templates/'. $module . '_' . $tpl .$sufix) {
+    return ($FORM{pdf}) ? $Bin .'/../Abills/templates/'.$domain_path. $module . '_' . $tpl .$sufix : tpl_content($Bin .'/../Abills/templates/'. $module . '_' . $tpl .$sufix);
+   }
   elsif (-f $Bin .'/../Abills/templates/$domain_path'. $module . '_' . $tpl .$sufix) {
     return ($FORM{pdf}) ? $Bin .'/../Abills/templates/'.$domain_path. $module . '_' . $tpl .$sufix : tpl_content($Bin .'/../Abills/templates/'. $module . '_' . $tpl .$sufix);
    }
