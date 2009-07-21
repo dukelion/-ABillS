@@ -169,14 +169,16 @@ my($Y, $M, $D);
    }
 
   ($Y, $M, $D)=split(/-/, $ADMIN_REPORT{DATE}, 3);
- 
+
+$ADMIN_REPORT{YESTERDAY}=$YESTERDAY;
  
 if (defined($args->{monthly})) {
   for(my $i=$#monthly_functions; $i>-1; $i--) {
   	my $f = $monthly_functions[$i];
   	#$DEBUG .= 
   	print "==> FUNCTION: ". $f ."\n" if ($args->{DEBUG} && $args->{DEBUG} > 4);
-  	$f->({ DEBUG => $args->{DEBUG}, %$args });
+  	$f->({ %$args, 
+  		     %ADMIN_REPORT });
   }
 
   if ($begin_time > 0)  {
@@ -196,7 +198,8 @@ elsif (defined($args->{daily})) {
     
     my $f = $daily_functions[$i];
     $DEBUG .= "==> FUNCTION: ". $f ."\n" if ($args->{DEBUG} && $args->{DEBUG} > 4);
-    $f->({ %$args });
+    $f->({ %$args, 
+  		     %ADMIN_REPORT });
    }
 
   if ($begin_time > 0)  {

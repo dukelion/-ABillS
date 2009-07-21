@@ -394,6 +394,74 @@ sub get_traffic {
 }
 
 
+
+
+#**********************************************************
+# Get traffic from some period using IPN stats
+# UID     - user id
+# PERIOD  - start period
+# 
+# Return traffic recalculation by MB 
+#
+#**********************************************************
+sub get_traffic_ipn {
+	my ($self, $attr) = @_;
+
+	my %result = (
+	   TRAFFIC_OUT   => 0, 
+     TRAFFIC_IN    => 0,
+     TRAFFIC_OUT_2 => 0,
+     TRAFFIC_IN_2  => 0
+	);
+  
+  
+  my $period = "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')";
+  if ($attr->{PERIOD}) {
+    $period = $attr->{PERIOD};
+   }
+  elsif($attr->{INTERVAL}) {
+  	$period = $attr->{INTERVAL};
+   }
+  
+  if ($attr->{TP_ID}) {
+  	$period .= " AND tp_id='$attr->{TP_ID}'";
+   }
+
+  if ($attr->{TRAFFIC_CLASS}) {
+  	$period .= " AND traffic_class='$attr->{TRAFFIC_CLASS}'";
+   }
+
+  my $WHERE = "='$attr->{UID}'";
+
+  if ($attr->{UIDS}) {
+  	$WHERE = "IN ($attr->{UIDS})";
+   }
+
+  $self->query($db, "SELECT traffic_class,
+                            sum(traffic_out) / $CONF->{MB_SIZE},  
+                            sum(traffic_in) / $CONF->{MB_SIZE}
+       FROM ipn_log 
+       WHERE uid $WHERE and ($period)
+       GROUP BY 1;");
+
+ 
+  foreach my $line (@{ $self->{list} }) {
+    if ($line->[0] == 0) {
+      $result{TRAFFIC_OUT}=$line->[1]; 
+      $result{TRAFFIC_IN} =$line->[2];
+     }
+    else {
+      $result{'TRAFFIC_OUT'.($line->[0]+1)}=$line->[1]; 
+      $result{'TRAFFIC_IN'.($line->[0]+1)} =$line->[2];
+     }
+   }
+
+ 
+  $self->{PERIOD_TRAFFIC}=\%result;
+  
+	return \%result;
+}
+
 #**********************************************************
 # Calculate session sum
 # Return 
@@ -1328,6 +1396,10 @@ sub expression {
   if (scalar(keys %{ $expr }) > 0) {
     my $start_period = ($attr->{START_PERIOD} && $attr->{START_PERIOD} ne '0000-00-00') ? "DATE_FORMAT(start, '%Y-%m-%d')>='$attr->{START_PERIOD}'" : "DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m')";
 
+    if ($attr->{STOP_PERIOD} && $attr->{STOP_PERIOD} ne '0000-00-00') {
+       $start_period .= " AND DATE_FORMAT(start, '%Y-%m-%d')<='$attr->{STOP_PERIOD}'";
+     }
+
     my %ex = ();
     my $counters;
 
@@ -1366,10 +1438,20 @@ sub expression {
             	$counters = $self->{PERIOD_TRAFFIC};
              }
             else {
-  	      	  $counters = $self->get_traffic({ UID    => $UID,
+  	      	  if (! $counters->{TRAFFIC_IN}) {
+  	      	    if ($attr->{IPN}) {
+  	      	      $counters = $self->get_traffic_ipn({ UID    => $UID,
   	      	  	                               UIDS   => $attr->{UIDS},
-     	                                         PERIOD => $start_period
-   	                                          }) if (! $counters->{TRAFFIC_IN});
+     	                                         PERIOD => $start_period,
+   	                                          }); 
+  	      	     }	
+  	      	    else {	
+  	      	      $counters = $self->get_traffic({ UID    => $UID,
+  	      	  	                               UIDS   => $attr->{UIDS},
+     	                                         PERIOD => $start_period,
+   	                                          }); 
+                 }
+               }
              }
 
   	      	if ($ex{PARAMETER} !~ /^[0-9\.]+$/) {
