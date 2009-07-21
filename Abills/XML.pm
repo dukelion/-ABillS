@@ -890,8 +890,9 @@ sub td {
 sub table_title_plain {
   my $self = shift;
   my ($caption)=@_;
+  
+  $self->{table_title} = "<TITLE columns=\"". (  $#{ $caption } + 1) ."\">\n";
 
-  $self->{table_title} = "<TITLE columns=\"". ($#{ @$caption } + 1) ."\">\n";
 	my $i = 0;
   foreach my $line (@$caption) {
     $self->{table_title} .= "  <COLUMN_".$i." NAME=\"$line\"/>\n";
@@ -919,7 +920,7 @@ sub table_title  {
 
 #  print "$sort, $desc, $pg, $op, $caption, $qs";
 
-  $self->{table_title} = "<TITLE columns=\"". ($#{ @$caption } + 1) ."\">\n";
+  $self->{table_title} = "<TITLE columns=\"". ($#{ $caption } + 1) ."\">\n";
   my $i=1;
   foreach my $line (@$caption) {
      $self->{table_title} .= " <COLUMN_".$i." NAME=\"$line\" ";
