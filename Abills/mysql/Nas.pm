@@ -18,7 +18,7 @@ sub new {
   $SECRETKEY = (defined($CONF->{secretkey})) ? $CONF->{secretkey}: '';
   my $self = { };
   bless($self, $class);
-  #$self->{debug}=1;
+
   return $self;
 }
 
@@ -87,6 +87,10 @@ sub list {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{DOMAIN_ID}, 'INT', 'domain_id') };
    }
 
+  if($attr->{GID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', 'gid') };
+   }
+
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
@@ -123,7 +127,8 @@ sub info {
 
 
 $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
- DECODE(mng_password, '$SECRETKEY'), rad_pairs, alive, disable, ext_acct, address_build, address_street, address_flat, zip, city, domain_id
+ DECODE(mng_password, '$SECRETKEY'), rad_pairs, alive, disable, ext_acct, 
+ gid, address_build, address_street, address_flat, zip, city, domain_id
  FROM nas
  WHERE $WHERE
  ORDER BY nas_identifier DESC;");
@@ -151,6 +156,7 @@ $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_ty
    $self->{NAS_ALIVE},
    $self->{NAS_DISABLE},
    $self->{NAS_EXT_ACCT},
+   $self->{GID},
    $self->{ADDRESS_BUILD},
    $self->{ADDRESS_STREET},
    $self->{ADDRESS_FLAT},
@@ -173,8 +179,6 @@ sub change {
  my ($attr) = @_;
 
  my %DATA = $self->get_data($attr); 
- my $CHANGES_QUERY = "";
- my $CHANGES_LOG = "NAS:";
 
  $attr->{NAS_DISABLE} = (defined($attr->{NAS_DISABLE})) ? 1 : 0;
 
@@ -198,7 +202,8 @@ sub change {
   ZIP                 => 'zip',
   CITY                => 'city',
   DOMAIN_ID           => 'domain_id',
-  );
+  GID                 => 'gid',
+  ); 
 
 
   $self->changes($admin, { CHANGE_PARAM => 'NAS_ID',
@@ -227,12 +232,12 @@ sub add {
 
  $self->query($db, "INSERT INTO nas (name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
  mng_password, rad_pairs, alive, disable, ext_acct, 
- address_build, address_street, address_flat, zip, city, domain_id)
+ address_build, address_street, address_flat, zip, city, domain_id, gid)
  values ('$DATA{NAS_NAME}', '$DATA{NAS_INDENTIFIER}', '$DATA{NAS_DESCRIBE}', '$DATA{NAS_IP}', '$DATA{NAS_TYPE}', '$DATA{NAS_AUTH_TYPE}',
   '$DATA{NAS_MNG_IP_PORT}', '$DATA{NAS_MNG_USER}', ENCODE('$DATA{NAS_MNG_PASSWORD}', '$SECRETKEY'), '$DATA{NAS_RAD_PAIRS}',
   '$DATA{NAS_ALIVE}', '$DATA{NAS_DISABLE}', '$DATA{NAS_EXT_ACCT}',
-  '$DATA{ADDRESS_BUILD}', '$DATA{ADDRESS_STREET}', '$DATA{ADDRESS_FLAT}', '$DATA{ZIP}', '$DATA{CITY}', '$DATA{DOMAIN_ID}'
-  );", 'do');
+  '$DATA{ADDRESS_BUILD}', '$DATA{ADDRESS_STREET}', '$DATA{ADDRESS_FLAT}', '$DATA{ZIP}', '$DATA{CITY}', '$DATA{DOMAIN_ID}',
+  '$DATA{GID}');", 'do');
 
 
 
@@ -573,6 +578,161 @@ sub log_del {
 
  return 0;	
 }
+
+
+
+
+
+
+
+
+
+
+
+#**********************************************************
+# Nas Group list
+#**********************************************************
+sub nas_group_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+  my @WHERE_RULES  = ();
+
+  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+  if($attr->{DOMAIN_ID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{DOMAIN_ID}, 'INT', 'domain_id') };
+   }
+
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+ $self->query($db, "SELECT id, name, comments, disable
+  FROM nas_groups
+  $WHERE
+  ORDER BY $SORT $DESC;");
+
+ return $self->{list};
+}
+
+#***************************************************************
+# nas_group_info($attr);
+#***************************************************************
+sub nas_group_info {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ my $WHERE = '';
+ if(defined($attr->{ID})) {
+   $WHERE = "id='$attr->{ID}'";
+  }
+
+
+$self->query($db, "SELECT id, 
+    name, 
+    comments, 
+    disable, 
+    domain_id
+ FROM nas_groups
+ WHERE $WHERE
+  ;");
+
+ if(defined($self->{errno})) {
+   return $self;
+  }
+ elsif($self->{TOTAL} < 1) {
+   $self->{errstr}="ERROR_NOT_EXIST";
+   $self->{errno}=2;
+   return $self;
+  }
+
+ ( $self->{ID},
+   $self->{NAME}, 
+   $self->{COMMENTS},
+   $self->{DISABLE},
+   $self->{DOMAIN_ID}
+   ) = @{ $self->{list}->[0] };
+
+ return $self;
+}
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub nas_group_change {
+ my $self = shift;
+ my ($attr) = @_;
+
+ $attr->{DISABLE} = (defined($attr->{DISABLE})) ? 1 : 0;
+
+ my %FIELDS = (ID => 'id', 
+  NAME            => 'name', 
+  COMMENTS        => 'comments', 
+  DISABLE         => 'disable', 
+#  DOMAIN_ID       => 'DOMAIN_ID',
+  );
+
+
+  $self->changes($admin, { CHANGE_PARAM => 'ID',
+		                TABLE           => 'nas_groups',
+		                FIELDS          => \%FIELDS,
+		                OLD_INFO        => $self->nas_group_info({ ID => $attr->{ID} }),
+		                DATA            => $attr,
+		                EXT_CHANGE_INFO => "NAS_GROUP_ID:$self->{ID}"
+		              } );
+
+  $self->nas_group_info({ ID => $attr->{ID} });
+  
+  
+  return $self;
+}
+
+#**********************************************************
+# Add nas server
+# add($self)
+#**********************************************************
+sub nas_group_add {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ %DATA = $self->get_data($attr); 
+
+ $self->query($db, "INSERT INTO nas_groups (name, comments, disable, domain_id)
+ values ('$DATA{NAME}', '$DATA{COMMENTS}', '$DATA{DISABLE}', '$DATA{DOMAIN_ID}');", 'do');
+
+
+
+ $admin->system_action_add("NAS_GROUP_ID:$self->{INSERT_ID}", { TYPE => 1 });    
+ return 0;	
+}
+
+#**********************************************************
+# ADel nas server
+# add($self)
+#**********************************************************
+sub nas_group_del {
+ my $self = shift;
+ my ($id) = @_;
+ 
+ $self->query($db, "DELETE FROM nas_groups WHERE id='$id'", 'do');
+
+ $admin->system_action_add("NAS_GROUP_ID:$id", { TYPE => 10 });    
+ return 0;	
+}
+
+
+
+
+
+
+
+
+
+
 
 1
 

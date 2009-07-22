@@ -535,7 +535,7 @@ if ($attr->{INTERVAL}) {
 
 
    if ($attr->{TYPE} eq 'HOURS' ) {
-     $date = "date_format(l.start, '\%H')";
+     $date = "date_format(l.start, '\%H'), count(DISTINCT l.uid)";
     }
    
    elsif ($attr->{TYPE} eq 'DAYS_TCLASS') {

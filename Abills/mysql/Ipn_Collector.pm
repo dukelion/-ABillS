@@ -284,7 +284,9 @@ sub traffic_agregate_users {
 
   #Make user detalization
   if ($CONF->{IPN_DETAIL} && $DATA->{UID} > 0) {
-  	  $self->traffic_add({ 
+ 	  return $self if ( $CONF->{IPN_DETAIL_MIN_SIZE} > $DATA->{SIZE} ); 
+
+ 	  $self->traffic_add({ 
         SRC_IP   => $DATA->{SRC_IP}, 
         DST_IP   => $DATA->{DST_IP},
         SRC_PORT => $DATA->{SRC_PORT} || 0,
@@ -359,6 +361,9 @@ sub traffic_agregate_nets {
     if (! defined(  $intervals{$tp_interval{$TP_ID}}{ZONES} )) {
     	$self->get_zone({ TP_INTERVAL => $tp_interval{$TP_ID} });
      }
+    else {
+      $self->{ZONES}    = $intervals{$tp_interval{$TP_ID}}{ZONES};   	
+     }
 
    my $data_hash;
    
@@ -389,6 +394,8 @@ sub traffic_agregate_nets {
 
   	    if ( $#zoneids >= 0 ) {
   	      foreach my $zid (@zoneids) {
+  	      	#print "-- $zid// $self->{ZONES}{$zid}{TRAFFIC_CLASS} / $uid / \n" if (! $ip_class_tables{$self->{ZONES}{$zid}{TRAFFIC_CLASS}});
+  	      	
     	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $self->{ZONES}{$zid}{TRAFFIC_CLASS}, \%ip_class_tables)) {
 
 		          $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} += $DATA->{SIZE};
@@ -478,9 +485,6 @@ sub get_zone {
    $self->{ZONES_IDS}= $intervals{$tariff}{ZONEIDS};
    $self->{ZONES}    = $intervals{$tariff}{ZONES};
 
-   #print %{ $self->{ZONES}{0} };
-   #print "!!!!!!!!!!!!!!!!!!!!!!";
-
 
    #Get IP addresse for each traffic zones
    if(! %ip_class_tables) {
@@ -554,6 +558,8 @@ sub ip_in_zone($$$$) {
     
     if ($self->{debug}) { print "--- CALL ip_in_zone($ip_num, $port, $zoneid) -> \n"; }
 
+    return 0 if (! $zones{$zoneid});
+
     # eaai ii nieneo aa?ania ciiu
     for (my $i=0; $i<=$#{$zones{$zoneid}}; $i++) {
 	     my $adr_hash = \%{ $zones{$zoneid}[$i] };
@@ -579,7 +585,7 @@ sub ip_in_zone($$$$) {
 	        else {
 		        $res = 1;
             #print ">>". int2ip($a_ip). " & $a_msk / ". int2ip($ip_num) ." $zoneid / $res\n";
-		        next; #next
+		        next;
 	         }
 	      }
     }

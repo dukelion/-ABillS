@@ -21,6 +21,7 @@
 <TR><th colspan=2>RADIUS $_PARAMS (,)</th></TR>
 <TR><th colspan=2><textarea cols=50 rows=4 name=NAS_RAD_PAIRS>%NAS_RAD_PAIRS%</textarea></th></TR>
 <TR><td align=right bgcolor='$_COLORS[9]' class=small colspan=2></td></TR>
+<TR><TD>$_GROUP:</TD><TD>%NAS_GROUPS_SEL%</TD></TR>
 %ADDRESS_TPL%
 </TABLE>
 <input type=submit name=%ACTION% value='%LNG_ACTION%'>

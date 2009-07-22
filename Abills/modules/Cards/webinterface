@@ -1353,8 +1353,20 @@ $Cards->{TARIF_PLAN_SEL}=$html->form_select('TP_ID',
 		                $_TARIF_PLANS => 2,
 		                $_NAS         => 3,
 		                $_DILLERS     => 4,
-		                $_TEMPLATES   => 5
+		                $_TEMPLATES   => 5,
+		                $_REPORTS     => 6,
+		                $_FINANCE     => 7
 		               );
+
+#- редагування тарифів
+#- Керування хотспотами та групами
+#- Робота адміна лише в межах групи або хотспоту
+#- Шаблони стартових сторінок
+#- звіти 
+#- статистика
+#- замовлення кодів та карток
+#- фін. інформація
+
 
 
     my $permits = $Cards->diller_permissions_list({ %FORM, DILLER_ID => $LIST_PARAMS{DILLER_ID} });

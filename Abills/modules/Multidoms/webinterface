@@ -187,8 +187,10 @@ if ($nas->{errno}) {
  	                               });
  
 
-  $nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
-  $nas->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1 });
+  $nas->{NAS_DISABLE}   = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
+  $nas->{ADDRESS_TPL}   = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1 });
+  $nas->{NAS_GROUPS_SEL}= sel_nas_groups();
+
   $html->tpl_show(_include('multidoms_reseller_nas', 'Multidoms'), { %FORM, %$nas });
 
 my $table = $html->table( { width      => '100%',
@@ -457,9 +459,39 @@ elsif (defined($FORM{TP_ID})) {
 
   $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
   $LIST_PARAMS{TP} = $FORM{TP_ID};
+  %F_ARGS          = ( TP => $tariffs );
+  
+  $tariffs->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS }),
+ 	                                          MULTI_ARRAY_KEY   => 18,
+ 	                                          MULTI_ARRAY_VALUE => '0,1',
+ 	                                          NO_ID             => 1,
+                                            
+ 	                                        }),
+	                                          HIDDEN  => { index => "$index" },
+	                                          SUBMIT  => { show  => "$_SHOW" },
+	                                          OUTPUT2RETURN     => 1,
+	                                       });
+  
+  func_menu({ 
+  	         'ID' =>   $tariffs->{ID}, 
+  	         $_NAME => $tariffs->{NAME_SEL}
+  	       }, 
+  	{ 
+    	$_INFO          => ":TP_ID=$tariffs->{TP_ID}",
+#     $_USERS         => "11:TP_ID=$tariffs->{TP_ID}",
+#     $_INTERVALS     => "73:TP_ID=$tariffs->{TP_ID}",
+      $_NAS           => ($index+1).":TP_ID=$tariffs->{TP_ID}"
+  	 },
+  	{
+  		f_args => { %F_ARGS }
+  	 });
+
 
   if ($FORM{subf}) {
-
+    #multidoms_reseller_tp_nas({ TP => $tariffs });
   	return 0;
    }
   elsif($FORM{change}) {
@@ -553,7 +585,7 @@ foreach my $line (@$list) {
     $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]");
 #   }
   
-  if($FORM{TP_ID} eq $line->[0]) {
+  if($FORM{TP_ID} eq $line->[18]) {
   	$table->{rowcolor}=$_COLORS[0];
    }
   else {
@@ -579,6 +611,95 @@ $table = $html->table( { width      => '100%',
 print $table->show();
 
 }
+
+
+
+
+
+#*******************************************************************
+# Users and Variant NAS Servers
+# form_nas_allow()
+#*******************************************************************
+sub multidoms_reseller_tp_nas {
+ my ($attr) = @_;
+ my @allow = split(/, /, $FORM{ids});
+ my %allow_nas = (); 
+ my %EX_HIDDEN_PARAMS = (subf  => "$FORM{subf}",
+	                       index => "$index");
+if($attr->{TP}) {
+  my $tarif_plan = $attr->{TP};
+
+  if ($FORM{change}){
+    $tarif_plan->nas_add(\@allow);
+    if ($tarif_plan->{errno}) {
+      $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}}");	
+     }
+    else {
+      $html->message('info', $_INFO, "$_ALLOW $_NAS: $FORM{ids}");
+     }
+   }
+  
+  my $list = $tarif_plan->nas_list();
+  foreach my $nas_id (@$list) {
+     $allow_nas{$nas_id->[0]}=1;
+   }
+
+  $EX_HIDDEN_PARAMS{TP_ID}=$tarif_plan->{TP_ID};
+}
+elsif (defined($FORM{TP_ID})) {
+  $FORM{chg}=$FORM{TP_ID};
+  $FORM{subf}=$index;
+  multidoms_reseller_tp();
+  return 0;
+ }
+
+my $nas = Nas->new($db, \%conf);
+
+
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_NAS",
+                            border     => 1,
+                            title      => ["$_ALLOW", "$_NAME", 'NAS-Identifier', "IP", "$_TYPE", "$_AUTH"],
+                            cols_align => ['right', 'left', 'left', 'right', 'left', 'left'],
+                            qs         => $pages_qs,
+                            ID         => 'NAS_ALLOW'
+                           });
+
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=2;
+ }
+
+$LIST_PARAMS{DOMAIN_ID} = $user->{DOMAIN_ID};
+
+
+my $list = $nas->list({ %LIST_PARAMS, 
+	                      PAGE_ROWS => 100000 });
+
+foreach my $line (@$list) {
+  $table->addrow(" $line->[0]". $html->form_input('ids', "$line->[0]", 
+                                                   { TYPE          => 'checkbox',
+  	                                                 OUTPUT2RETURN => 1,
+       	                                             STATE         => (defined($allow_nas{$line->[0]}) || $allow_nas{all}) ? 1 : undef
+       	                                          }), 
+    $line->[1], 
+    $line->[2],  
+    $line->[3],  
+    $line->[4], 
+    $auth_types[$line->[5]]
+    );
+}
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { %EX_HIDDEN_PARAMS },
+	                       SUBMIT  => { change   => "$_CHANGE",
+	                       	            default  => $_DEFAULT 
+	                       	           } });
+
+}
+
+
+
+
 
 #**********************************************************
 #

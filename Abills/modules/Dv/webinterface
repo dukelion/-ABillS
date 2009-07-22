@@ -632,9 +632,9 @@ elsif (defined($FORM{TP_ID})) {
     return 0;
    }
 
-  $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
+  $pages_qs       .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
   $LIST_PARAMS{TP} = $FORM{TP_ID};
-  %F_ARGS = ( TP => $tariffs );
+  %F_ARGS          = ( TP => $tariffs );
   
   $tariffs->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('TP_ID', 
                                           { 
@@ -3647,7 +3647,7 @@ $list = $tariffs->list({ %LIST_PARAMS });
 $debug_output .= "Bonus payments\n";
 use Billing;
 my $Billing = Billing->new($db, $CONF);
-#my %$processed_users = ();
+
   
   foreach my $tp_line (@$list) {
      

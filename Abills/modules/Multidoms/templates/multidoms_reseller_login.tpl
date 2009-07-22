@@ -26,6 +26,7 @@
 <TR><TD>$_LANGUAGE:</TD><TD>%SEL_LANGUAGE%</TD></TR>
 <TR><TD>$_LOGIN:</TD><TD><input type='text' name='user'></TD></TR>
 <TR><TD>$_PASSWD:</TD><TD><input type='password' name='passwd'></TD></TR>
+<TR><TD>$_TIME:</TD><TD><input type='text' name='web_session_timeout' value='%web_session_timeout%' size=5> $_MINUTES</TD></TR>
 <tr><th colspan='2'>
 <input type='submit' name='logined' value='$_ENTER'>
 </th></TR>
