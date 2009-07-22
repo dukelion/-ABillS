@@ -607,11 +607,20 @@ CREATE TABLE `nas` (
   `address_flat` varchar(10) NOT NULL default '',
   `zip` varchar(7) NOT NULL default '',
   `city` varchar(20) NOT NULL default '',
+  `gid` smallint(6) unsigned NOT NULL default 0,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `domain_id` (`domain_id`, `ip`, `nas_identifier`)
 ) COMMENT='Nas servers list';
 
-
+CREATE TABLE `nas_groups` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `name` varchar(40) NOT NULL default '',
+  `comments` text not null,
+  `disable` tinyint(6) unsigned NOT NULL default '0',
+  `domain_id` smallint(6) unsigned not null default 0,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `domain_id` (`domain_id`,`name`)
+) COMMENT='Nas servers groups'; 
 
 CREATE TABLE `nas_ippools` (
   `pool_id` int(10) unsigned NOT NULL default 0,
