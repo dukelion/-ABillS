@@ -69,7 +69,7 @@ my $RAD = get_radius_params();
 if ($RAD->{NAS_IP_ADDRESS}) {	
   my $ret = get_nas_info($db, $RAD);
   if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
-    auth($db, $RAD, undef, { pre_auth => 1 });
+    auth($db, $RAD, $nas, { pre_auth => 1 });
     exit 0;
    }
   elsif (defined($ARGV[0]) && $ARGV[0] eq 'post_auth') {

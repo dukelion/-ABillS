@@ -200,11 +200,12 @@ my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTI
                [$_LIST, $_ADD, $_DEL, $_ALL, $_DATE],                                 # Payments
                [$_LIST, $_GET, $_DEL, $_ALL],                                 # Fees
                [$_LIST, $_DEL],                                               # reports view
-               [$_LIST, $_ADD, $_CHANGE, $_DEL, $_ADMINS, "$_SYSTEM $_LOG"],                    # system magment
+               [$_LIST, $_ADD, $_CHANGE, $_DEL, $_ADMINS, "$_SYSTEM $_LOG", $_DOMAINS],                    # system magment
                [$_ALL],                                                       # Modules managments
                [$_SEARCH],                                                    # Search
                [$_MONITORING, $_HANGUP],
                [$_PROFILE],
+               [$_LIST, $_ADD, $_CHANGE, $_DEL],
                );
 
 
@@ -350,6 +351,16 @@ $admin->{SEL_TYPE} = $html->form_select('type',
  	                                #EX_PARAMS => 'onChange="selectstype()"'
  	                               });
 
+#Domains sel
+if (in_array('Multidoms', \@MODULES) && $permissions{10}) {
+  require "Abills/modules/Multidoms/webinterface";
+  $admin->{SEL_DOMAINS} = "$_DOMAINS:" . $html->form_main({ CONTENT => multidoms_domains_sel(),
+	                       HIDDEN  => { index      => $index, 
+	                       	            COMPANY_ID => $FORM{COMPANY_ID} 
+	                       	            },
+	                       SUBMIT  => { action   => "$_CHANGE"
+	                       	           } });
+ }
 
 ## Visualisation begin
 print "<table width='100%' border='0' cellpadding='0' cellspacing='1'>\n";
@@ -2893,6 +2904,27 @@ foreach my $k ( sort keys %menu_items ) {
    }
  }
 
+if (in_array('Multidoms', \@MODULES)) {
+  	my $k=10;
+  	
+  	$table->{rowcolor}=$_COLORS[0];
+  	$table->addrow("10:", $html->b($_DOMAINS), '');
+    
+    my $actions_list  = $actions[9];
+    my $action_index  = 0;
+    $table->{rowcolor}= undef;
+    foreach my $action (@$actions_list) {
+      $table->addrow("$action_index", "$action", 
+      $html->form_input($k."_$action_index", 'yes', { TYPE          => 'checkbox',
+       	                                              OUTPUT2RETURN => 1,
+       	                                              STATE         => (defined($permits{$k}{$action_index})) ? '1' : undef  
+       	                                              })  
+       	                                              );
+
+      $action_index++;
+     }
+}
+
 my $table2 = $html->table( { width       => '400',
                             border      => 1,
                             caption     => "$_MODULES",
@@ -3149,8 +3181,10 @@ if ($nas->{errno}) {
                                   ARRAY_NUM_ID => 1 	                                
  	                               });
 
-  $nas->{NAS_DISABLE} = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
-  $nas->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $nas, { notprint => 1 });
+  $nas->{NAS_DISABLE}   = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
+  $nas->{ADDRESS_TPL}   = $html->tpl_show(templates('form_address'), $nas, { notprint => 1 });
+  $nas->{NAS_GROUPS_SEL}= sel_nas_groups({ GID => $nas->{GID} });
+
   $html->tpl_show(templates('form_nas'), $nas);
 
 my $table = $html->table( { width      => '100%',
@@ -3183,6 +3217,117 @@ $table = $html->table( { width      => '100%',
                      } );
 print $table->show();
 }
+
+
+
+#**********************************************************
+# sel_nas_groups
+#**********************************************************
+sub sel_nas_groups {
+  my ($attr) = @_;
+
+  my $GROUPS_SEL = '';
+  my $GID = $attr->{GID} || $FORM{GID};
+
+  my $nas = Nas->new($db, \%conf);	
+  $GROUPS_SEL = $html->form_select('GID', 
+                                { 
+ 	                                SELECTED          => $GID,
+ 	                                SEL_MULTI_ARRAY   => $nas->nas_group_list({ DOMAIN_ID => $admin->{GIDS} }),
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                                SEL_OPTIONS       => { 0 => "" }
+ 	                               });
+
+  return $GROUPS_SEL;	
+}
+
+#**********************************************************
+# form_nas
+#**********************************************************
+sub form_nas_groups {
+  
+  my $nas = Nas->new($db, \%conf);	
+  $nas->{ACTION}     = 'add';
+  $nas->{LNG_ACTION} = $_ADD;
+
+
+if ($FORM{add}) {
+  $nas->nas_group_add( { %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });
+  if (! $nas->{errno}) {
+      $html->message('info', $_ADDED, "$_ADDED");
+    }
+ }
+elsif($FORM{change}){
+  $nas->nas_group_change({ %FORM });
+  if (! $nas->{errno}) {
+    $html->message('info', $_CHANGED, "$_CHANGED $nas->{GID}");
+   }
+ }
+elsif($FORM{chg}){
+  $nas->nas_group_info({ ID => $FORM{chg} });
+
+  $nas->{ACTION}='change';
+  $nas->{LNG_ACTION}=$_CHANGE;
+ }
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}){
+  $nas->nas_group_del( $FORM{del} );
+  if (! $nas->{errno}) {
+    $html->message('info', $_DELETED, "$_DELETED $users->{GID}");
+   }
+}
+
+
+if ($nas->{errno}) {
+   $html->message('err', $_ERROR, "[$nas->{errno}] $err_strs{$nas->{errno}}");	
+  }
+
+
+$nas->{DISABLE} = ($nas->{DISABLE}) ? ' checked' : '';
+
+$html->tpl_show(templates('form_nas_group'), $nas);
+
+my $list = $nas->nas_group_list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_NAS $_GROUPS",
+                            border     => 1,
+                            title      => ['#', $_NAME, $_COMMENTS, $_STATUS, '-', '-', '-'],
+                            cols_align => ['right', 'left', 'left', 'center', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $nas->{TOTAL}
+                       } );
+
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" }); 
+
+  $table->addrow($html->b($line->[0]), 
+   "$line->[1]", 
+   "$line->[2]", 
+   $html->color_mark($status[$line->[3]], $state_colors[$line->[3]]),
+   $html->button($_NAS, "index=". ($index - 3) ."&GID=$line->[0]"), 
+   $html->button($_CHANGE, "index=$index&chg=$line->[0]"),
+   $delete);
+}
+print $table->show();
+
+
+$table = $html->table({ width      => '100%',
+                        cols_align => ['right', 'right'],
+                        rows       => [ [ "$_TOTAL:", $html->b($nas->{TOTAL}) ] ]
+                      });
+print $table->show();
+
+
+
+
+}
+
+
+
+
+
+
+
 
 #**********************************************************
 # form_ip_pools()
@@ -4092,6 +4237,7 @@ my @m = (
  "61:5:$_NAS:form_nas:::",
  "62:61:IP POOLs:form_ip_pools:::",
  "63:61:$_NAS_STATISTIC:form_nas_stats:::",
+ "64:61:$_GROUPS:form_nas_groups:::",
 
  "65:5:$_EXCHANGE_RATE:form_exchange_rate:::",
  "75:5:$_HOLIDAYS:form_holidays:::",
@@ -5776,7 +5922,7 @@ sub form_config {
 sub clearquotes {
  my $text = shift;
  if ($text ne '""') {
-   $text =~ s/\"|'|;//g;
+   $text =~ s/\"|\'|;//g;
   }
  else {
  	 $text = '';
