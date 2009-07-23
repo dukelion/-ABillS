@@ -427,7 +427,7 @@ sub get_traffic_ipn {
   	$period .= " AND tp_id='$attr->{TP_ID}'";
    }
 
-  if ($attr->{TRAFFIC_CLASS}) {
+  if (defined($attr->{TRAFFIC_CLASS})) {
   	$period .= " AND traffic_class='$attr->{TRAFFIC_CLASS}'";
    }
 
@@ -436,6 +436,7 @@ sub get_traffic_ipn {
   if ($attr->{UIDS}) {
   	$WHERE = "IN ($attr->{UIDS})";
    }
+
 
   $self->query($db, "SELECT traffic_class,
                             sum(traffic_out) / $CONF->{MB_SIZE},  
@@ -446,14 +447,14 @@ sub get_traffic_ipn {
 
  
   foreach my $line (@{ $self->{list} }) {
-    if ($line->[0] == 0) {
+    if ($line->[0] == $attr->{TRAFFIC_CLASS}) {
       $result{TRAFFIC_OUT}=$line->[1]; 
       $result{TRAFFIC_IN} =$line->[2];
      }
-    else {
-      $result{'TRAFFIC_OUT'.($line->[0]+1)}=$line->[1]; 
-      $result{'TRAFFIC_IN'.($line->[0]+1)} =$line->[2];
-     }
+#    else {
+#      $result{'TRAFFIC_OUT'.($line->[0]+1)}=$line->[1]; 
+#      $result{'TRAFFIC_IN'.($line->[0]+1)} =$line->[2];
+#     }
    }
 
  
@@ -1441,9 +1442,12 @@ sub expression {
   	      	  if (! $counters->{TRAFFIC_IN}) {
   	      	    if ($attr->{IPN}) {
   	      	      $counters = $self->get_traffic_ipn({ UID    => $UID,
-  	      	  	                               UIDS   => $attr->{UIDS},
-     	                                         PERIOD => $start_period,
-   	                                          }); 
+  	      	  	                                       UIDS   => $attr->{UIDS},
+     	                                                 PERIOD => $start_period,
+     	                                                 TRAFFIC_CLASS => $attr->{TRAFFIC_CLASS}
+     	                                                 
+   	                                                }); 
+   	                                                
   	      	     }	
   	      	    else {	
   	      	      $counters = $self->get_traffic({ UID    => $UID,
