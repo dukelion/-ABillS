@@ -3676,6 +3676,7 @@ my $Billing = Billing->new($db, $CONF);
          $traffic_class = $tt->[0];
 
          $expr_hash{$traffic_class} = $expression;
+         last;
      	  }
      	  
        if (! defined($expr_hash{$traffic_class})) {
