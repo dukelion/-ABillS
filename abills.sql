@@ -162,6 +162,7 @@ CREATE TABLE `companies` (
   `contract_date` date NOT NULL default '0000-00-00',
   `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0',
   `domain_id` smallint(6) unsigned not null default 0,
+  `representative` VARCHAR(120) NOT NULL DEFAULT '',
   PRIMARY KEY  (`id`),
   KEY `bill_id` (`bill_id`),
   UNIQUE KEY `id` (`id`),
@@ -192,7 +193,11 @@ CREATE TABLE `docs_acct` (
   `uid` int(11) unsigned NOT NULL default '0',
   `aid` smallint(6) unsigned NOT NULL default '0',
   `vat` double(5,2) unsigned NOT NULL default '0.00',
-  PRIMARY KEY  (`id`)
+  `domain_id` smallint(6) unsigned not null default 0, 
+  `payment_id` int(11) unsigned NOT NULL default 0,
+  PRIMARY KEY  (`id`),
+  KEY `payment_id` (`payment_id`),
+  KEY `domain_id` (`domain_id`)
 ) COMMENT='Docs Accounts'  ;
 
 CREATE TABLE `docs_acct_orders` (
@@ -218,7 +223,11 @@ CREATE TABLE `docs_invoice` (
   `by_proxy_seria` varchar(40) NOT NULL default '',
   `by_proxy_person` varchar(15) NOT NULL default '',
   `by_proxy_date` date NOT NULL default '0000-00-00',
-  PRIMARY KEY  (`id`)
+  `domain_id` smallint(6) unsigned not null default 0,
+  `payment_id` int(11) unsigned NOT NULL default 0,
+  PRIMARY KEY  (`id`),
+  KEY `payment_id` (`payment_id`),
+  KEY `domain_id` (`domain_id`)
 )  COMMENT='Docs invoices';
 
 CREATE TABLE `docs_invoice_orders` (
@@ -240,8 +249,10 @@ CREATE TABLE `docs_tax_invoices` (
   `aid` smallint(6) unsigned NOT NULL DEFAULT '0',
   `vat` double(5,2) unsigned NOT NULL DEFAULT '0.00',
   `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+  `domain_id` smallint(6) unsigned not null default 0,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `date` (`date`,`company_id`)
+  UNIQUE KEY `date` (`date`,`company_id`),
+  KEY `domain_id` (`domain_id`)
 ) COMMENT='Docs Tax Invoices';
 
 CREATE TABLE `docs_tax_invoice_orders` (

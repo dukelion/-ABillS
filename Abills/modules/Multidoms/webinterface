@@ -75,6 +75,86 @@ sub multidoms_reseller_nas_reconfig {
 #**********************************************************
 # form_nas
 #**********************************************************
+sub multidoms_reseller_nas_groups {
+  
+  my $nas = Nas->new($db, \%conf);	
+  $nas->{ACTION}     = 'add';
+  $nas->{LNG_ACTION} = $_ADD;
+
+
+if ($FORM{add}) {
+  $nas->nas_group_add( { %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });
+  if (! $nas->{errno}) {
+      $html->message('info', $_ADDED, "$_ADDED");
+    }
+ }
+elsif($FORM{change}){
+  $nas->nas_group_change({ %FORM });
+  if (! $nas->{errno}) {
+    $html->message('info', $_CHANGED, "$_CHANGED $nas->{GID}");
+   }
+ }
+elsif($FORM{chg}){
+  $nas->nas_group_info({ ID => $FORM{chg} });
+
+  $nas->{ACTION}='change';
+  $nas->{LNG_ACTION}=$_CHANGE;
+ }
+elsif(defined($FORM{del}) && $FORM{is_js_confirmed}){
+  $nas->nas_group_del( $FORM{del} );
+  if (! $nas->{errno}) {
+    $html->message('info', $_DELETED, "$_DELETED $users->{GID}");
+   }
+}
+
+
+if ($nas->{errno}) {
+   $html->message('err', $_ERROR, "[$nas->{errno}] $err_strs{$nas->{errno}}");	
+  }
+
+
+$nas->{DISABLE} = ($nas->{DISABLE}) ? ' checked' : '';
+
+$html->tpl_show(templates('form_nas_group'), $nas);
+
+my $list = $nas->nas_group_list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_NAS $_GROUPS",
+                            border     => 1,
+                            title      => ['#', $_NAME, $_COMMENTS, $_STATUS, '-', '-', '-'],
+                            cols_align => ['right', 'left', 'left', 'center', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $nas->{TOTAL}
+                       } );
+
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" }); 
+
+  $table->addrow($html->b($line->[0]), 
+   "$line->[1]", 
+   "$line->[2]", 
+   $html->color_mark($status[$line->[3]], $state_colors[$line->[3]]),
+   $html->button($_NAS, "index=". ($index - 3) ."&GID=$line->[0]"), 
+   $html->button($_CHANGE, "index=$index&chg=$line->[0]"),
+   $delete);
+}
+print $table->show();
+
+
+$table = $html->table({ width      => '100%',
+                        cols_align => ['right', 'right'],
+                        rows       => [ [ "$_TOTAL:", $html->b($nas->{TOTAL}) ] ]
+                      });
+print $table->show();
+
+
+
+
+}
+
+#**********************************************************
+# form_nas
+#**********************************************************
 sub multidoms_reseller_nas {
 
   $nas->{ACTION}='add';
@@ -189,7 +269,7 @@ if ($nas->{errno}) {
 
   $nas->{NAS_DISABLE}   = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
   $nas->{ADDRESS_TPL}   = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1 });
-  $nas->{NAS_GROUPS_SEL}= sel_nas_groups();
+  $nas->{NAS_GROUPS_SEL}= sel_nas_groups({ GID => $nas->{GID} });
 
   $html->tpl_show(_include('multidoms_reseller_nas', 'Multidoms'), { %FORM, %$nas });
 

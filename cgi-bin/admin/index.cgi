@@ -3233,7 +3233,7 @@ sub sel_nas_groups {
   $GROUPS_SEL = $html->form_select('GID', 
                                 { 
  	                                SELECTED          => $GID,
- 	                                SEL_MULTI_ARRAY   => $nas->nas_group_list({ DOMAIN_ID => $admin->{GIDS} }),
+ 	                                SEL_MULTI_ARRAY   => $nas->nas_group_list({ DOMAIN_ID => $admin->{DOMAIN_ID} }),
  	                                MULTI_ARRAY_KEY   => 0,
  	                                MULTI_ARRAY_VALUE => 1,
  	                                SEL_OPTIONS       => { 0 => "" }
