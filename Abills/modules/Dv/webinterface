@@ -3675,7 +3675,7 @@ my $Billing = Billing->new($db, $CONF);
          $debug_output .= "  Expr: $expression\n" if ($debug > 3);
          $traffic_class = $tt->[0];
 
-         $expr_hash{$tt->[0]} = $expression;
+         $expr_hash{$traffic_class} = $expression;
      	  }
      	  
        if (! defined($expr_hash{$traffic_class})) {
@@ -3695,7 +3695,7 @@ my $Billing = Billing->new($db, $CONF);
            PAGE_ROWS  => 1000000,
            TP_CREDIT  => '>=0',
            COMPANY_ID => '>=0',
-           DOMAIN_ID  => $DOMAIN_ID
+           %DV_LIST_PARAMS
  	     	 });
 
        my $extfield_count = $Dv->{SEARCH_FIELDS_COUNT};
@@ -3713,34 +3713,14 @@ my $Billing = Billing->new($db, $CONF);
             COMPANY_ID => $u->[7 + $extfield_count]
            );
 
-
-#Summary for company users
-#         my @UIDS  = ();
-#         if ($$processed_users{$user{COMPANY_ID}}) {
-#         	 next;
-#          }
-#
-#         if ($user{COMPANY_ID}) {
-#           my $company_users = $ulist = $Dv->list({ TP_ID      => $tp_line->[0],
-#                                                    COMPANY_ID => $user{COMPANY_ID}
-#         	                                        });
-#           $$processed_users{$user{COMPANY_ID}}=1;
-#         
-#           foreach my $c_user ( @$company_users ) {
-#         	    push @UIDS, $c_user->[7];
-#            }
-#
-#           print "$user{LOGIN} hello $user{COMPANY_ID} // ";
-#           print @UIDS ,"\n";
-#          }
-
-
          $Billing->{PERIOD_TRAFFIC}=undef;
+
          my $RESULT = $Billing->expression($user{UID}, \%expr_hash, 
-                                                          { START_PERIOD => $attr->{YESTERDAY},
-                                                          	STOP_PERIOD  => $attr->{DATE}, 
-  	                                                        debug        => 0,
-  	                                                        IPN          => 1
+                                                          { START_PERIOD  => $attr->{YESTERDAY},
+                                                          	STOP_PERIOD   => $attr->{DATE}, 
+  	                                                        debug         => 0,
+  	                                                        IPN           => 1,
+  	                                                        TRAFFIC_CLASS => $traffic_class
   	                                                        });
 
          my $message = '';
@@ -3749,20 +3729,22 @@ my $Billing = Billing->new($db, $CONF);
          my %FEES_PARAMS = (
                             DATE     => $ADMIN_REPORT{DATE},
                             METHOD   => 0 );  
-         my $result_sufix = ($traffic_class > 0) ? $traffic_class + 1 : '';
 
-         if ($RESULT->{'TRAFFIC_IN'.$result_sufix}) {
-         	 $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ".$RESULT->{'TRAFFIC_IN'. $result_sufix} ."SUM: $RESULT->{PRICE_IN}";
-         	 $sum     = $RESULT->{'TRAFFIC_IN'.$result_sufix} * $RESULT->{PRICE_IN}; #(($RESULT->{PRICE_IN}) ? $RESULT->{PRICE_IN} : 0);
+
+         #my $result_sufix = ($traffic_class > 0) ? $traffic_class + 1 : '';
+
+         if ($RESULT->{'TRAFFIC_IN'}) {
+         	 $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ".$RESULT->{'TRAFFIC_IN'} ."SUM: $RESULT->{PRICE_IN}";
+         	 $sum     = $RESULT->{'TRAFFIC_IN'} * $RESULT->{PRICE_IN}; #(($RESULT->{PRICE_IN}) ? $RESULT->{PRICE_IN} : 0);
           }
 
-         if ($RESULT->{'TRAFFIC_OUT'.$result_sufix}) {
-         	 $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ". $RESULT->{'TRAFFIC_OUT'.$result_sufix} ."SUM: $RESULT->{PRICE_OUT}";
-         	 $sum     = $RESULT->{'TRAFFIC_OUT'.$result_sufix} * $RESULT->{PRICE_OUT};
+         if ($RESULT->{'TRAFFIC_OUT'}) {
+         	 $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ". $RESULT->{'TRAFFIC_OUT'} ."SUM: $RESULT->{PRICE_OUT}";
+         	 $sum     = $RESULT->{'TRAFFIC_OUT'} * $RESULT->{PRICE_OUT};
           }
-         elsif ($RESULT->{'TRAFFIC_SUM'.$result_sufix}) {
-         	 $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ". $RESULT->{'TRAFFIC_SUM'.$result_sufix}." SUM: $RESULT->{PRICE}";
-         	 $sum     = $RESULT->{'TRAFFIC_SUM'.$result_sufix} * $RESULT->{PRICE};
+         elsif ($RESULT->{'TRAFFIC_SUM'}) {
+         	 $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ". $RESULT->{'TRAFFIC_SUM'}." SUM: $RESULT->{PRICE}";
+         	 $sum     = $RESULT->{'TRAFFIC_SUM'} * $RESULT->{PRICE};
           }
 
 
@@ -3775,7 +3757,8 @@ my $Billing = Billing->new($db, $CONF);
 
           }
 
-         $debug_output .= " Login: $u->[0] ($u->[8])  TP_ID: $u->[11] Payments: $sum REDUCTION: $u->[15] $u->[2] $u->[3] $u->[10] - $user{ACTIVATE}\n" if ($debug > 3); 	
+         $debug_output .= " Login: $u->[0] ($u->[8])  TP_ID: $u->[11] Payments: $sum REDUCTION: $u->[15] $u->[2] $u->[3] $u->[10] - $user{ACTIVATE}\n" if ($debug > 0); 	
+         
 
 
 
