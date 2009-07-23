@@ -604,14 +604,13 @@ if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
 
 
         my @stats_array = @$v;
-	      $table_sessions->{rowcolor}=$_COLORS[1];
+	      my $user_total_in    = 0;
+        my $user_total_out   = 0;
+        my $user_traffic_sum = 0;
+        my $user_sum         = 0;
+        my $user_count       = $stats_array[0][1];
 
-        my $user_total_in=0;
-        my $user_total_out=0;
-        my $user_traffic_sum=0;
-        my $user_sum=0;
-        my $user_count = $stats_array[0][1];
-        
+        $table_sessions->{rowcolor}=$_COLORS[1];
 
         
         $table_sessions->addtd(
@@ -651,10 +650,10 @@ if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
              $stats_array[$i][6]
             );
         
-          $user_total_in+=$stats_array[$i][4];
-          $user_total_out+=$stats_array[$i][5];
-          $user_traffic_sum+=$stats_array[$i][4]+$stats_array[$i][5];
-          $user_sum+=$stats_array[$i][6];
+          $user_total_in    += $stats_array[$i][4];
+          $user_total_out   += $stats_array[$i][5];
+          $user_traffic_sum += $stats_array[$i][4]+$stats_array[$i][5];
+          $user_sum         += $stats_array[$i][6];
           
          }
 
@@ -666,9 +665,9 @@ if ($FORM{DATE} || ($FORM{TYPE} && $FORM{TYPE} eq 'DAYS_TCLASS')) {
           "<th>". $user_sum . "</th>" );
  
 
-        $totals{SUM}+=$user_sum;
-        $totals{TRAFFIC_IN}+=$user_total_in;
-        $totals{TRAFFIC_OUT}+=$user_total_out;
+        $totals{SUM}        += $user_sum;
+        $totals{TRAFFIC_IN} += $user_total_in;
+        $totals{TRAFFIC_OUT}+= $user_total_out;
 #Chart        
         my($date, $h)=split(/ /, $stats_array[0][0], 2);
         $h++;
@@ -805,6 +804,9 @@ else {
   if ($FORM{TYPE} eq 'DAYS_TCLASS')  {
   	$caption[1]="$_TRAFFIC_CLASS";
    } 
+  elsif ($FORM{TYPE} eq 'HOURS')  {
+  	$caption[1]="$_HOURS";
+   } 
   
   $table_sessions = $html->table( { width      => '100%',
 	                                  caption    => "$_SESSIONS", 
@@ -844,24 +846,26 @@ else {
 
       if ($line->[0] =~ /(\d+)-(\d+)-(\d+)/) {
       	 $num = $3;
-        }
+       }
       elsif ($line->[0] =~ /(\d+)-(\d+)/) {
-      	 $CHART{X_LINE}[$num]=$line->[0];
-      	 $num++;
+      	$CHART{X_LINE}[$num]=$line->[0];
+      	$num++;
+       }
+      elsif($line->[0] =~ /^(\d{1,2})$/) {
+        $num=$1;
        }
 
-      $DATA_HASH2{USERS}[$num]=$line->[1];
-      $DATA_HASH2{MONEY}[$num]=$line->[4];
+      $DATA_HASH2{USERS}[$num]      = $line->[1];
+      $DATA_HASH2{MONEY}[$num]      = $line->[4];
             
-      $DATA_HASH{TRAFFIC_OUT}[$num]=$line->[2];
-      $DATA_HASH{TRAFFIC_IN}[$num]=$line->[3];
+      $DATA_HASH{TRAFFIC_OUT}[$num] = $line->[2];
+      $DATA_HASH{TRAFFIC_IN}[$num]  = $line->[3];
 
 
-     
-     $totals{TRAFFIC_IN} += $line->[2];
-     $totals{TRAFFIC_OUT}+= $line->[3];
-     $totals{SUM}        += $line->[4];
-   
+      $totals{TRAFFIC_IN} += $line->[2];
+      $totals{TRAFFIC_OUT}+= $line->[3];
+      $totals{SUM}        += $line->[4];
+
    }
 
   $out = $html->make_charts({  

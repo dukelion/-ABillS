@@ -51,6 +51,8 @@ sub new {
   	$CONF->{KBYTE_SIZE}=1024;
    }
 
+  $CONF->{IPN_DETAIL_MIN_SIZE} = 0 if (! $CONF->{IPN_DETAIL_MIN_SIZE});
+
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
   
   $self->{TRAFFIC_ROWS}=0;
