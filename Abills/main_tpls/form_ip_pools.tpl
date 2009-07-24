@@ -1,6 +1,7 @@
 <form action='$SELF_URL' METHOD='post'>
 <input type='hidden' name='index' value='%INDEX%'/>
 <input type='hidden' name='NAS_ID' value='%NAS_ID%'/>
+<input type='hidden' name='IP_POOLS' value='1'/>
 <input type='hidden' name='chg' value='$FORM{chg}'/>
 <TABLE>
 <TR><TH COLSPAN='2' BGCOLOR='$_COLORS[0]' align='right'>IP POOLS</TH></TR>

@@ -62,6 +62,7 @@ my $CONF;
 my $row_number = 0;
 
 
+#require "Abills/templates.pl";
 
 
 #**********************************************************
@@ -103,6 +104,10 @@ sub new {
    }
   else {
  	  $PAGE_ROWS = 25;
+   }
+
+  if ($attr->{METATAGS}) {
+  	$self->{METATAGS} = $attr->{METATAGS};
    }
 
   if ($attr->{PATH}) {
@@ -740,8 +745,8 @@ else {
 sub header {
  my $self = shift;
  my($attr)=@_;
- my $admin_name=$ENV{REMOTE_USER};
- my $admin_ip=$ENV{REMOTE_ADDR};
+ my $admin_name  = $ENV{REMOTE_USER};
+ my $admin_ip    = $ENV{REMOTE_ADDR};
  $self->{header} = "Content-Type: text/html\n\n";
 
 
@@ -752,245 +757,35 @@ sub header {
    @_COLORS = split(/, /, $COOKIES{colors});
   }
 
- my $JAVASCRIPT = "functions.js"; 
- my $PRINTCSS = "print.css";
+
+
+ my %info = (
+  JAVASCRIPT => 'functions.js',
+  PRINTCSS   => 'print.css'
+ );
 
  if($self->{PATH}) {
-   $JAVASCRIPT = "$self->{PATH}$JAVASCRIPT";
-   $PRINTCSS = "$self->{PATH}$PRINTCSS";
+   $info{JAVASCRIPT} = "$self->{PATH}$info{JAVASCRIPT}";
+   $info{PRINTCSS}   = "$self->{PATH}$info{PRINTCSS}";
+  }
+ 
+ my $i=0;
+ foreach my $color (@_COLORS) {
+ 	 $info{'_COLOR_'.$i}=$color;
+ 	 $i++;
   }
 
  $CONF->{WEB_TITLE}=$self->{WEB_TITLE} if ($self->{WEB_TITLE});
 
- my $css = css();
- my $title = ($CONF->{WEB_TITLE}) ? $CONF->{WEB_TITLE} : "~AsmodeuS~ Billing System";
- my $REFRESH = ($FORM{REFRESH}) ? "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$FORM{REFRESH}; URL=$ENV{REQUEST_URI}\"/>\n" : '';
 
-$self->{header} .= qq{ <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+ $info{title}   = ($CONF->{WEB_TITLE}) ? $CONF->{WEB_TITLE} : "~AsmodeuS~ Billing System";
+ $info{REFRESH} = ($FORM{REFRESH}) ? "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$FORM{REFRESH}; URL=$ENV{REQUEST_URI}\"/>\n" : '';
+ $info{CHARSET} = $self->{CHARSET};
 
-<html>
-<head>
- $REFRESH
- <META HTTP-EQUIV="Cache-Control" content="no-cache,no-cache,no-store,must-revalidate"/>
- <META HTTP-EQUIV="Expires" CONTENT="-1"/>
- <META HTTP-EQUIV="Pragma" CONTENT="no-cache"/>
- <meta http-equiv="Content-Type" content="text/html; charset=$self->{CHARSET}"/>
- <meta name="Author" content="~AsmodeuS~"/>
-};
-
-$self->{header} .= $css;
-$self->{header} .= " <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"$PRINTCSS\" />
-  <script src=\"$JAVASCRIPT\" type=\"text/javascript\" language=\"javascript\"></script>
-<title>$title</title>
-</head>
-<body style=\"margin: 0\" bgcolor=\"$_COLORS[10]\" text=\"$_COLORS[9]\" link=\"$_COLORS[8]\"  vlink=\"$_COLORS[7]\">\n";
+ $self->{header} .= $self->tpl_show($self->{METATAGS}, \%info, { OUTPUT2RETURN => 1  });
+ return $self->{header};
 
  return $self->{header};
-}
-
-#********************************************************************
-#
-# css()
-#********************************************************************
-sub css { 
-
-my $css = "
-<style type=\"text/css\">
-
-body {
-  background-color: $_COLORS[10];
-  color: $_COLORS[9];
-  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
-  font-size: 14px;
-  /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
-}
-
-th.small {
-  color: $_COLORS[9];
-  font-size: 10px;
-  height: 10;
-}
-
-td.small {
-  color: $_COLORS[9];
-  height: 1;
-}
-
-th, li {
-  color: $_COLORS[9];
-  height: 24;
-  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
-  font-size: 12px;
-}
-
-td {
-  color: $_COLORS[9];
-  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
-  height: 20;
-  font-size: 14px;
-}
-
-form {
-  font-family: Tahoma,Verdana,Arial,Helvetica,sans-serif;
-  font-size: 12px;
-}
-
-.button {
-  font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
-  background-color: $_COLORS[2];
-  color: $_COLORS[9];
-  font-size: 12px;
-}
-
-
-
-input, textarea {
-	font-family : Verdana, Arial, sans-serif;
-	font-size : 12px;
-	color : $_COLORS[9];
-	border-color : #9F9F9F;
-	border : 1px solid #9F9F9F;
-	background : $_COLORS[2];
-}
-
-select {
-	font-family : Verdana, Arial, sans-serif;
-	font-size : 12px;
-	color : $_COLORS[9];
-	border-color : #C0C0C0;
-	border : 1px solid #C0C0C0;
-	background : $_COLORS[2];
-}
-
-TABLE.border {
-  border-color : #99CCFF;
-  border-style : solid;
-  border-width : 1px;
-}
-
-
-
-
-.l_user_menu {
-      width: 100%;
-      border-right: 1px solid #000;
-      padding: 0 0 6px 0;
-      margin-bottom: 1px;
-      font-family: 'Trebuchet MS', 'Lucida Grande',
-      Verdana, Lucida, Geneva, Helvetica, 
-      Arial, sans-serif;
-      background-color: $_COLORS[2];
-      color: #333;
-      }
-
-.l_user_menu ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      border: none;
-      }
-		
-.l_user_menu li {
-      border-bottom: 1px solid $_COLORS[2];
-      margin: 0;
-      }
-
-
-.l_user_menu li a {
-      display: block;
-      padding: 5px 5px 5px 0.5em;
-      border-left: 4px solid $_COLORS[0];
-      border-right: 5px solid $_COLORS[4];
-      background-color: $_COLORS[3];
-      color: $_COLORS[9];
-      text-decoration: none;
-      width: 100%;
-      }
-
-.l_user_menu li a {
-      width: auto;
-      }
-
-.l_user_menu li a:hover {
-      border-left: 4px solid $_COLORS[9];
-      border-right: 5px solid $_COLORS[2];
-      background-color: $_COLORS[0];
-      color: $_COLORS[9];
-      }
-
-
-
-
-
-
-#tabs ul {
-      margin-left: 0;
-      padding-left: 0;
-      display: inline;
-      } 
-
-#tabs ul li {
-      margin-left: 0;
-      margin-bottom: 0;
-      padding: 2px 15px 5px;
-      border: 1px solid $_COLORS[3];
-      list-style: none;
-      display: inline;
-      }
-		
-#tabs ul li.active {
-      border-bottom: 1px solid $_COLORS[0];
-      list-style: none;
-      display: inline;
-      }
-
-
-
-
-#rules {
-  float:center;
-  text-align:center;
-  padding: 0 0 6px 0;
-  overflow:hidden;
-  height:32px;
-  line-height:30px;
-}
-
-#rules li{
-  display:inline;
-  padding:0;
-}
-
-#rules .center a{
-  padding:1px 5px;
-  font-weight:100;
-  font-size:11;
-  background:$_COLORS[2];
-  border:1px solid $_COLORS[4];
-  color:#000;
-  text-decoration:none;
-  margin:0 1px;
-}
-
-#rules .center a:hover{
-  background:#ccc;
-  border:1px solid #666;
-}
-
-#rules .center a.active{
-  background:#666;
-  border:1px solid #666;
-  color:#fff;
-}
-
-
-
-
-
-
-</style>";
-
- return $css;
 }
 
 
@@ -1617,7 +1412,6 @@ sub tpl_show {
   my ($tpl, $variables_ref, $attr) = @_;	
 
   while($tpl =~ /\%(\w+)\%/g) {
-#    print "-$1-<br>\n";
     my $var = $1;
 #    if ($var =~ /$\{exec:.+\}$/) {
 #    	my $exec = $1;

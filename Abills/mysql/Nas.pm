@@ -72,31 +72,45 @@ sub list {
   my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
   if(defined($attr->{TYPE})) {
-  	push @WHERE_RULES, "nas_type='$attr->{TYPE}'";
+  	push @WHERE_RULES, "nas.nas_type='$attr->{TYPE}'";
   }
 
   if(defined($attr->{DISABLE})) {
-  	push @WHERE_RULES, "disable='$attr->{DISABLE}'";
+  	push @WHERE_RULES, "nas.disable='$attr->{DISABLE}'";
   }
 
   if($attr->{NAS_IDS}) {
-  	push @WHERE_RULES, "id IN ($attr->{NAS_IDS})";
+  	push @WHERE_RULES, "nas.id IN ($attr->{NAS_IDS})";
   }
 
   if($attr->{DOMAIN_ID}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{DOMAIN_ID}, 'INT', 'domain_id') };
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{DOMAIN_ID}, 'INT', 'nas.domain_id') };
    }
 
   if($attr->{GID}) {
-  	push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', 'gid') };
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', 'nas.gid') };
    }
 
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT id, name, nas_identifier, ip,  nas_type, auth_type, disable, descr, alive,
-  mng_host_port, mng_user, DECODE(mng_password, '$SECRETKEY'), rad_pairs, ext_acct
+ $self->query($db, "SELECT nas.id, 
+  nas.name, 
+  nas.nas_identifier, 
+  nas.ip,  
+  nas.nas_type, 
+  ng.name,
+  nas.disable, 
+  nas.descr, 
+  nas.alive,
+  nas.mng_host_port, 
+  nas.mng_user, 
+  DECODE(nas.mng_password, '$SECRETKEY'), 
+  nas.rad_pairs, 
+  nas.ext_acct,
+  nas.auth_type 
   FROM nas
+  LEFT JOIN nas_groups ng ON (ng.id=nas.gid)
   $WHERE
   ORDER BY $SORT $DESC;");
 

@@ -319,7 +319,7 @@ if ($FORM{qindex}) {
 
 
 
-
+$html->{METATAGS}=templates('metatags');
 print $html->header();
 
 
@@ -5422,22 +5422,24 @@ elsif($FORM{tpl_name}) {
 }
 
 
-print << "[END]";
+$html->tpl_show(templates('form_template_editor'), { %info });
 
-<form action='$SELF_URL' METHOD='POST'>
-<input type="hidden" name="index" value='$index'>
-<input type="hidden" name="tpl_name" value='$info{TPL_NAME}'>
-<table>
-<tr bgcolor="$_COLORS[0]"><th>$_TEMPLATES</th></tr>
-<tr bgcolor="$_COLORS[0]"><td>$info{TPL_NAME}</td></tr>
-<tr><td>
-   <textarea cols="100" rows="30" name="template">$info{TEMPLATE}</textarea>
-</td></tr>
-<tr><td>$conf{TPL_DIR}</td></tr>
-</table>
-<input type="submit" name="change" value='$info{ACTION_LNG}'>
-</form>
-[END]
+#print << "[END]";
+#
+#<form action='$SELF_URL' METHOD='POST'>
+#<input type="hidden" name="index" value='$index'>
+#<input type="hidden" name="tpl_name" value='$info{TPL_NAME}'>
+#<table>
+#<tr bgcolor="$_COLORS[0]"><th>$_TEMPLATES</th></tr>
+#<tr bgcolor="$_COLORS[0]"><td>$info{TPL_NAME}</td></tr>
+#<tr><td>
+#   <textarea cols="100" rows="30" name="template">$info{TEMPLATE}</textarea>
+#</td></tr>
+#<tr><td>$conf{TPL_DIR}</td></tr>
+#</table>
+#<input type="submit" name="change" value='$info{ACTION_LNG}'>
+#</form>
+#[END]
 
 
 

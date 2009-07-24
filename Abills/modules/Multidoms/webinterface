@@ -189,13 +189,18 @@ if($FORM{NAS_ID}) {
   	       }, 
   	{ 
   	 $_INFO          => ":NAS_ID=$nas->{NAS_ID}",
-     'IP Pools'      => ($index+1). ":NAS_ID=$nas->{NAS_ID}",
+     'IP Pools'      => ":NAS_ID=$nas->{NAS_ID}&IP_POOLS=1",
   	 },
   	{
   		f_args => { %F_ARGS }
   	 });
 
-  if ($FORM{subf}) {
+	if ($FORM{IP_POOLS}) {
+  		
+    multidoms_reseller_ip_pools({ NAS => $nas });
+    return 0;
+	 }
+  elsif ($FORM{subf}) {
   	return 0;
    }
   elsif($FORM{change}) {
@@ -275,11 +280,18 @@ if ($nas->{errno}) {
 
 my $table = $html->table( { width      => '100%',
                             caption    => "$_NAS",
-                            title      => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", 
-                             "$_STATUS", "$_DESCRIBE", '-', '-', '-'],
+                            title      => ["ID", "$_NAME", "NAS-Identifier", "IP", 
+                             "$_TYPE", "$_GROUP", 
+                             "$_STATUS", '-', '-', '-'],
                             cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 
                               'center:noprint', 'center:noprint', 'center:noprint'],
-                            ID         => 'NAS_LIST'
+                            ID         => 'NAS_LIST',
+                            header     => "<div id='tabs'>
+<ul class=\"user_menu\">
+<li class=\"active\"><a href='$SELF_URL?index=$index'>$_ADD</a></li>
+</ul>
+</div>\n"
+
                            });
 
 my $list = $nas->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
@@ -289,10 +301,10 @@ foreach my $line (@$list) {
   $table->addrow($line->[0], 
     $line->[1], 
     $line->[2], 
-    $line->[3], $line->[4], $auth_types[$line->[5]], 
+    $line->[3], $line->[4], 
+    $line->[5], 
     $status[$line->[6]],
-    $line->[7],
-    $html->button("IP POOLs", "index=". ($index+1) ."&NAS_ID=$line->[0]"),
+    #$html->button("IP POOLs", "index=". ($index+1) ."&NAS_ID=$line->[0]"),
     $html->button("$_INFO", "index=$index&NAS_ID=$line->[0]"),
     $delete);
 }
@@ -396,8 +408,8 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[8]", { MESSAGE => "$_DEL POOL $line->[9]?" }); 
-  my $change = $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[8]"); 
+  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[8]&IP_POOLS=1", { MESSAGE => "$_DEL POOL $line->[9]?" }); 
+  my $change = $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[8]&IP_POOLS=1"); 
 
   $table->addrow(
     $html->form_input('ids', $line->[8], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef ,  OUTPUT2RETURN => 1 }),
