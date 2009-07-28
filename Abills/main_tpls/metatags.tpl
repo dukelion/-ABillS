@@ -50,6 +50,7 @@ td {
 form {
   font-family: Tahoma,Verdana,Arial,Helvetica,sans-serif;
   font-size: 12px;
+  margin:0px;
 }
 
 .button {
@@ -192,6 +193,10 @@ TABLE.border {
   background:#666;
   border:1px solid #666;
   color:#fff;
+}
+
+.MENU_BACK {
+  background:%_COLOR_2%;
 }
 
 </style>

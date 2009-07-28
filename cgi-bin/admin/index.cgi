@@ -411,7 +411,7 @@ if ($admin->{WEB_OPTIONS}{qm} && ! $FORM{xml}) {
 $html->tpl_show(templates('header'), $admin);
 print $admin->{QUICK_MENU} if ($admin->{QUICK_MENU});
 
-print "<tr  class='MENU'><td valign='top' width='18%' bgcolor='$_COLORS[2]' rowspan='2' class='noprint'>
+print "<tr  class='noprint'><td valign='top' width='18%' bgcolor='$_COLORS[2]' rowspan='2' class='MENU_BACK'>
 $menu_text
 </td><td bgcolor='$_COLORS[0]' height='50' class='noprint'>$navigat_menu</td></tr>
 <tr class='CONTENT'><td valign='top' align='center'>";

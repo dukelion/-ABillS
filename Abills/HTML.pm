@@ -1090,9 +1090,9 @@ sub show  {
   $self->{show} .= $self->{rows}; 
   $self->{show} .= "</TABLE></TD></TR></TABLE>\n";
 
-  $self->{show} = "<div class='block_adm_top'></div>\n"
-  . "<div class='block_adm_cont'>$self->{show}</div>\n"
-  . "<div class='block_adm_bot'></div>\n";
+  $self->{show} = "<div class='table_top'></div>\n"
+  . "<div class='table_cont'>$self->{show}</div>\n"
+  . "<div class='table_bot'></div>\n";
 
 
   if (defined($self->{pages})) {
@@ -1441,12 +1441,21 @@ sub tpl_show {
   if($attr->{OUTPUT2RETURN}) {
 		return $tpl;
 	 }
+  elsif ($attr->{MAIN}) {
+		$self->{OUTPUT} .= "$tpl";
+  	return $tpl;
+   }
   elsif ($attr->{notprint} || $self->{NO_PRINT}) {
-  	$self->{OUTPUT} .= $tpl;
+		$self->{OUTPUT} .= "<div class='table_top'></div>\n"
+     . "<div class='table_cont'>$tpl</div>"
+     . "<div class='table_bot'></div>\n";
+
   	return $tpl;
    }
 	else { 
- 	  print $tpl;
+		print "<div class='table_top'></div>\n"
+     . "<div class='table_cont'>$tpl</div>\n"
+     . "<div class='table_bot'></div>\n";
 	}
 }
 
