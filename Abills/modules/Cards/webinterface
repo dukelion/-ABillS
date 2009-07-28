@@ -1470,14 +1470,18 @@ if ($FORM{add}) {
             else {
             	$Cards->dillers_tp_info({ ID => $diller->{TP_ID} });
             	
-              if ($Cards->{PERCENTAGE} > 0) {
-              	$sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $Cards->{PERCENTAGE})));
-               }
+            	if ($Cards->{TOTAL} > 0) {
+                if ($Cards->{PERCENTAGE} > 0) {
+              	  $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $Cards->{PERCENTAGE})));
+                 }
 
-              if ( $Cards->{OPERATION_PAYMENT} > 0) {
-              	$sum += $Cards->{OPERATION_PAYMENT};
+                if ( $Cards->{OPERATION_PAYMENT} > 0) {
+              	  $sum += $Cards->{OPERATION_PAYMENT};
+                 }
                }
-          	
+          	  else {
+          	  	$sum = $FORM{SUM};
+          	   }
              }
               
 
