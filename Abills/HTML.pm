@@ -540,9 +540,9 @@ sub getCookies {
 }
 
 
-#
+#**********************************************************
 # 
-# 
+#**********************************************************
 sub menu () {
  my $self = shift;
  my ($menu_items, $menu_args, $permissions, $attr) = @_;
@@ -600,7 +600,9 @@ foreach my $ID (@s) {
  
  my @last_array = ();
 
- my $menu_text = "<div class='menu'>
+ my $menu_text = "
+ <div class='menu_top'></div>
+ <div class='menu_main'>
  <table border='0' width='100%'>\n";
 
  	  my $level  = 0;
@@ -618,7 +620,7 @@ foreach my $ID (@s) {
  	     my($ID, $name)=split(/:/, $sm_item, 2);
  	     next if((! defined($attr->{ALL_PERMISSIONS})) && (! $permissions->{$ID-1}) && $parent == 0);
 
- 	     $name = (defined($tree{$ID})) ? "<b>$name</b>" : "$name";
+ 	     $name = (defined($tree{$ID})) ? $self->b($name) : "$name";
        if(! defined($menu_args->{$ID}) || (defined($menu_args->{$ID}) && defined($FORM{$menu_args->{$ID}})) ) {
        	   my $ext_args = "$EX_ARGS";
        	   if (defined($menu_args->{$ID})) {
@@ -628,13 +630,13 @@ foreach my $ID (@s) {
 
        	   my $link = $self->button($name, "index=$ID$ext_args");
     	       if($parent == 0) {
- 	        	   $menu_text .= "<tr><td bgcolor=\"$_COLORS[3]\" align=left>$prefix$link</td></tr>\n";
+ 	        	   $menu_text .= "<tr><td bgcolor=\"$_COLORS[3]\" align=left class=menu_cel_main>$prefix$link</td></tr>\n";
 	            }
  	           elsif(defined($tree{$ID})) {
-   	           $menu_text .= "<tr><td bgcolor=\"$_COLORS[2]\" align=left>$prefix>$link</td></tr>\n";
+   	           $menu_text .= "<tr><td bgcolor=\"$_COLORS[2]\" align=left class=menu_cel>$prefix>$link</td></tr>\n";
  	            }
  	           else {
- 	             $menu_text .= "<tr><td bgcolor=\"$_COLORS[1]\">$prefix$link</td></tr>\n";
+ 	             $menu_text .= "<tr><td bgcolor=\"$_COLORS[1]\" class=menu_cel>$prefix$link</td></tr>\n";
  	            }
          }
         else {
@@ -665,7 +667,8 @@ foreach my $ID (@s) {
 #  }
  
  
- $menu_text .= "</table>\n</div>\n";
+ $menu_text .= "</table>\n</div>
+ <div class='menu_bot'></div>\n";
  
  return ($menu_navigator, $menu_text);
 }
@@ -1087,9 +1090,15 @@ sub show  {
   $self->{show} .= $self->{rows}; 
   $self->{show} .= "</TABLE></TD></TR></TABLE>\n";
 
+  $self->{show} = "<div class='block_adm_top'></div>\n"
+  . "<div class='block_adm_cont'>$self->{show}</div>\n"
+  . "<div class='block_adm_bot'></div>\n";
+
+
   if (defined($self->{pages})) {
  	   $self->{show} =  '<br>'.$self->{pages} . $self->{show} . $self->{pages} .'<br>';
  	 } 
+
 
 
 

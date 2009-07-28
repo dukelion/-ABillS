@@ -67,22 +67,30 @@ sub tpl_content {
 # templates
 #**********************************************************
 sub templates {
-  my ($tpl_name) = @_;
+  my ($tpl_name, $attr) = @_;
 
+  if ($admin->{DOMAIN_ID}) {
+ 	  $domain_path="$admin->{DOMAIN_ID}/";
+   }
+  
 
   if (-f $Bin."/../../Abills/templates/$domain_path". '_' . "$tpl_name" . '.tpl') {
     return tpl_content("$Bin/../../Abills/templates/$domain_path". '_'. "$tpl_name". '.tpl');
+    
    }
   elsif (-f "$Bin/../Abills/templates/$domain_path".'_'."$tpl_name".".tpl") {
     return tpl_content("$Bin/../Abills/templates/$domain_path". '_'."$tpl_name".".tpl");
+    
    }
   elsif (-f "$Bin/../../Abills/main_tpls/$tpl_name".".tpl") {
     return tpl_content("$Bin/../../Abills/main_tpls/$tpl_name".".tpl");
+    
    }
   elsif (-f "$Bin/../Abills/main_tpls/$tpl_name".".tpl") {
     return tpl_content("$Bin/../Abills/main_tpls/$tpl_name".".tpl");
+
    }
-  
+
   return "No such template [$tpl_name]";
 }
 
