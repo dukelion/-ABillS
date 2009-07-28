@@ -1192,10 +1192,10 @@ sub message {
  my $head = '';
  $caption .= ': '. $attr->{ID} if ($attr->{ID});
  if ($type eq 'err') {
-   $head = "<tr><th bgcolor=\"#FF0000\">$caption</th></TR>\n";
+   $head = "<tr><th bgcolor=\"#FF0000\" class=err_message>$caption</th></TR>\n";
   }
  elsif ($type eq 'info') {
-   $head = "<tr><th bgcolor=\"$_COLORS[0]\">$caption</th></TR>\n";
+   $head = "<tr><th bgcolor=\"$_COLORS[0]\" class=info_message>$caption</th></TR>\n";
   }  
  
  
@@ -1420,6 +1420,7 @@ sub tpl_show {
   my $self = shift;
   my ($tpl, $variables_ref, $attr) = @_;	
 
+  if (! $attr->{SOURCE}) {
   while($tpl =~ /\%(\w+)\%/g) {
     my $var = $1;
 #    if ($var =~ /$\{exec:.+\}$/) {
@@ -1436,7 +1437,7 @@ sub tpl_show {
       $tpl =~ s/\%$var\%//g;
      }
   }
-
+}
   if($attr->{OUTPUT2RETURN}) {
 		return $tpl;
 	 }
