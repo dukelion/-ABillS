@@ -10,7 +10,7 @@
  <META name=\"Author\" content=\"~AsmodeuS~\"/>
 
  <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" />
- <script src=\"$info{JAVASCRIPT}\" type=\"text/javascript\" language=\"javascript\"></script>
+ <script src=\"%JAVASCRIPT%\" type=\"text/javascript\" language=\"javascript\"></script>
 
 <style type=\"text/css\">
 
