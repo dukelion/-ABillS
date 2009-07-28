@@ -23,6 +23,8 @@
 <TR><td align=right bgcolor='$_COLORS[9]' class=small colspan=2></td></TR>
 <TR><TD>$_GROUP:</TD><TD>%NAS_GROUPS_SEL%</TD></TR>
 %ADDRESS_TPL%
+
+<TR><TD colspan=2>%EXTRA_PARAMS%</TD></TR>
 </TABLE>
 <input type=submit name=%ACTION% value='%LNG_ACTION%'>
 </form>

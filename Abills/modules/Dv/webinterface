@@ -619,7 +619,7 @@ if($FORM{ADD_TP}) {
   else {
    $tariffs->add( { %FORM });
    if (! $tariffs->{errno}) {
-     $html->message('info', $_ADDED, "$_ADDED $tariffs->{TP_ID}");
+     $html->message('info', $_ADDED, "$_ADDED $tariffs->{ID}");
     }
   }
  }
@@ -670,7 +670,7 @@ elsif (defined($FORM{TP_ID})) {
     $tariffs->change( $FORM{TP_ID}, { %FORM  } );  
      
     if (! $tariffs->{errno}) {
-       $html->message('info', $_CHANGED, "$_CHANGED $tariffs->{TP_ID}");
+       $html->message('info', $_CHANGED, "$_CHANGED $tariffs->{ID}");
      }
    }
 
