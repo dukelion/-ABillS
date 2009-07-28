@@ -282,9 +282,9 @@ my $table = $html->table( { width      => '100%',
                             caption    => "$_NAS",
                             title      => ["ID", "$_NAME", "NAS-Identifier", "IP", 
                              "$_TYPE", "$_GROUP", 
-                             "$_STATUS", '-', '-', '-'],
+                             "$_STATUS", '-', '-' ],
                             cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 
-                              'center:noprint', 'center:noprint', 'center:noprint'],
+                              'center:noprint', 'center:noprint' ],
                             ID         => 'NAS_LIST',
                             header     => "<div id='tabs'>
 <ul class=\"user_menu\">
