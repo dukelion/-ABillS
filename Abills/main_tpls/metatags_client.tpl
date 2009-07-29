@@ -40,6 +40,23 @@ th, li {
   font-size: 12px;
 }
 
+.table_title {
+  background-color: %_COLOR_0%;
+  color: %_COLOR_9%;
+  height: 24;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+.form_title {
+  background-color: %_COLOR_0%;
+  color: %_COLOR_9%;
+  height: 20;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+  text-align:right;
+}
+
 td {
   color: %_COLOR_9%;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;

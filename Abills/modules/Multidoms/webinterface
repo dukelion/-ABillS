@@ -166,6 +166,14 @@ if($FORM{NAS_ID}) {
   $LIST_PARAMS{NAS_ID} = $FORM{NAS_ID};
   %F_ARGS = ( NAS => $nas );
   
+  if ($nas->{NAS_TYPE} eq 'chillispot') {
+    $ENV{HTTP_HOST} =~ s/\:(\d+)//g;
+    $nas->{EXTRA_PARAMS} = $html->tpl_show(templates('form_nas_configure'), { %$nas,
+    	 CONFIGURE_DATE => "http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?DOMAIN_ID=$admin->{DOMAIN_ID}&NAS_ID=$nas->{NAS_ID}"
+    	 }, { OUTPUT2RETURN => 1 });
+
+   }
+  
   $nas->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('NAS_ID', 
                                          { 
  	                                          SELECTED  => $FORM{NAS_ID},
@@ -250,7 +258,7 @@ if ($nas->{errno}) {
 
  my %nas_descr = (
   'mikrotik'  => 'Mikrotik (http://www.mikrotik.com)',
-  'chillispot'=> 'Chillispot (DD-WRT)',
+  'chillispot'=> 'Chillispot (DD-WRT or Other WRT OS)',
   'other'     => 'Other nas server'
  );
 

@@ -1,4 +1,4 @@
-# 0.3
+# 0.5
 $CHARSET = 'windows-1251';
 
 @PERIODS=('Today', 'Yesterday', 'Week', 'Month', 'All sessions', 'From activation');
@@ -301,6 +301,7 @@ $_TAKE='Take';
 $_ADDRESS_STREET='Street';
 $_ADDRESS_BUILD='Build';
 $_ADDRESS_FLAT='Flat';
+$_COUNTRY='Country';
 $_CONTRACT_ID='Contract Number';
 $_CONTRACT='Contract';
 $_CONTRACTS='Contracts';
@@ -309,6 +310,7 @@ $_REFRESH='Refresh';
 $_ROUTES='Routes';
 $_DICTIONARY='Dictionary';
 $_ABON='Periodic payments';
+
 
 $_SYMBOLS='Symbols';
 $_SERIAL='Serial';
@@ -398,3 +400,4 @@ $_TV='Television';
 $_DISPATCH='Dispatch';
 $_EVOLUTION='Evolution';
 $_REPRESENTATIVE='Representative';
+$_SETTINGS='Settings';

@@ -4,7 +4,7 @@
 <input type=hidden name='NAS_ID' value='%NAS_ID%'>
 <TABLE>
 
-<TR><th align=right bgcolor='$_COLORS[0]' colspan=2>$_NAS</th></TR>
+<TR><th class=form_title colspan=2>$_NAS</th></TR>
 <TR><TD>ID</TD><TD>%NAS_ID%</TD></TR>
 <TR><TD>IP</TD><TD><input type=text name=NAS_IP value='%NAS_IP%'></TD></TR>
 <TR><TD>$_NAME:</TD><TD><input type=text name=NAS_NAME value='%NAS_NAME%'></TD></TR>
@@ -26,6 +26,9 @@
 <TR><td align=right bgcolor='$_COLORS[9]' class=small colspan=2></td></TR>
 <TR><TD>$_GROUP:</TD><TD>%NAS_GROUPS_SEL%</TD></TR>
 %ADDRESS_TPL%
+<TR><td align=right bgcolor='$_COLORS[9]' class=small colspan=2></td></TR>
+<TR><TD colspan=2>%EXTRA_PARAMS%</TD></TR>
+
 </TABLE>
 <input type=submit name=%ACTION% value='%LNG_ACTION%'>
 </form>

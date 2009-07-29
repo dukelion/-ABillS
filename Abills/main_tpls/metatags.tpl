@@ -33,11 +33,28 @@ td.small {
   height: 1;
 }
 
-th, li {
+th, li, {
   color: %_COLOR_9%;
   height: 24;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
   font-size: 12px;
+}
+
+.table_title {
+  background-color: %_COLOR_0%;
+  color: %_COLOR_9%;
+  height: 24;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+.form_title {
+  background-color: %_COLOR_0%;
+  color: %_COLOR_9%;
+  height: 20;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+  text-align:right;
 }
 
 td {
