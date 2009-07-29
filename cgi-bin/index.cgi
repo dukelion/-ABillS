@@ -52,9 +52,9 @@ use Finance;
 
 
 $html = Abills::HTML->new( { IMG_PATH => 'img/',
-	                            NO_PRINT => 1,
-	                            CONF     => \%conf,
-	                            CHARSET  => $conf{default_charset}
+	                           NO_PRINT => 1,
+	                           CONF     => \%conf,
+	                           CHARSET  => $conf{default_charset},
 	                       });
 
 my $sql = Abills::SQL->connect($conf{dbtype}, 
@@ -101,7 +101,7 @@ $admin->info($conf{SYSTEM_ADMIN_ID}, { DOMAIN_ID => $FORM{DOMAIN_ID} });
 $conf{WEB_TITLE} = $admin->{DOMAIN_NAME} if ($admin->{DOMAIN_NAME});
 
 require "Abills/templates.pl";
-$html->{METATAGS}=templates('metatags');
+$html->{METATAGS}=templates('metatags_client');
 
 if ($index == 10) {
   $user=Users->new($db, $admin, \%conf); 

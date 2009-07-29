@@ -1489,7 +1489,7 @@ if ($FORM{add}) {
 
 
             $fees->take($user, $sum,
-                                    {  DESCRIBE     => "$_ICARDS",
+                                    {  DESCRIBE     => "$_ICARDS $Cards->{SERIAL}$Cards->{NUMBER}",
                              METHOD       => 0,
                              EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
                              CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
