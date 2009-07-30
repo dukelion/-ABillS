@@ -33,7 +33,7 @@ td.small {
   height: 1;
 }
 
-th, li, {
+th, li {
   color: %_COLOR_9%;
   height: 24;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
