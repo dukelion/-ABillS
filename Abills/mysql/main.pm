@@ -115,6 +115,7 @@ sub query {
   $self->{TOTAL} = 0;
   print "<p>$query</p>\n" if ($self->{debug});
 
+ 	 
   if (defined($attr->{test})) {
   	 return $self;
    }
@@ -147,7 +148,7 @@ if (defined($type) && $type eq 'do') {
   if (defined($db->{'mysql_insertid'})) {
   	 $self->{INSERT_ID} = $db->{'mysql_insertid'};
    }
-}
+ }
 else {
   #print $query;
   $q = $db->prepare($query); # || die $db->errstr;
@@ -419,6 +420,8 @@ sub changes {
 
 
 
+
+
 if ($CHANGES_QUERY eq '') {
   return $self->{result};	
  }
@@ -427,13 +430,16 @@ else {
 }
 
 
+
 # print $CHANGES_LOG;
   chop($CHANGES_QUERY);
+  
   my $extended = ($attr->{EXTENDED}) ? $attr->{EXTENDED} : '' ;
+  
   $self->query($db, "UPDATE $TABLE SET $CHANGES_QUERY WHERE $FIELDS->{$CHANGE_PARAM}='$DATA{$CHANGE_PARAM}'$extended", 'do');
 
   if($self->{errno}) {
-     return $self;
+    return $self;
    }
 
   $CHANGES_LOG = $attr->{EXT_CHANGE_INFO}.' '.$CHANGES_LOG if ($attr->{EXT_CHANGE_INFO});
