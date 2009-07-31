@@ -3064,6 +3064,8 @@ if($FORM{NAS_ID}) {
   $LIST_PARAMS{NAS_ID} = $FORM{NAS_ID};
   %F_ARGS = ( NAS => $nas );
   
+  
+  $nas->{CHANGED} = "($_CHANGED: $nas->{CHANGED})";
   $nas->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('NAS_ID', 
                                          { 
  	                                          SELECTED  => $FORM{NAS_ID},
