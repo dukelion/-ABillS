@@ -4,7 +4,7 @@
 <input type=hidden name='NAS_ID' value='%NAS_ID%'>
 <TABLE>
 <TR><th align=right bgcolor='$_COLORS[0]' colspan=2>$_NAS</th></TR>
-<TR><TD>ID</TD><TD>%NAS_ID%</TD></TR>
+<TR><TD>ID</TD><TD><b>%NAS_ID%</b> <i>%CHANGED%</i></TD></TR>
 <TR><TD>IP</TD><TD><input type=text name=NAS_IP value='%NAS_IP%'></TD></TR>
 <TR><TD>$_NAME (a-ZA-Z0-9_):</TD><TD><input type=text name=NAS_NAME value='%NAS_NAME%'></TD></TR>
 <TR><TD>Radius NAS-Identifier:</TD><TD><input type=text name=NAS_INDENTIFIER value='%NAS_INDENTIFIER%'></TD></TR>
