@@ -25,39 +25,39 @@ sub new {
 #***************************************************************
 # nas_params($attr);
 #***************************************************************
-sub nas_params {
- my $self = shift;
- my ($attr) = @_;
- 
- my $WHERE = (defined $attr->{nas_ip}) ? "WHERE ip='$attr->{nas_ip}'" : '';
- 	
- 
- my %NAS_INFO = ();
- my $sql = "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
- DECODE(mng_password, '$SECRETKEY'), rad_pairs 
- FROM nas
- $WHERE;";
- 
- #log_print('LOG_SQL', "$sql");
- my $q = $db->prepare("$sql") || die $self->{db}->strerr;
- $q -> execute();
- while(my($id, $name, $nas_identifier, $describe, $ip, $nas_type, $auth_type, $mng_ip_port, 
-     $mng_user, $mng_password, $rad_pairs)=$q->fetchrow()) {
-     $NAS_INFO{$ip}=$id;
-     $NAS_INFO{$ip}{$nas_identifier}=$id;
-
-     $NAS_INFO{$id}{name}=$name || '';
-     $NAS_INFO{$id}{nt}=$nas_type  || '';
-     $NAS_INFO{$id}{at}=$auth_type || 0;
-     $NAS_INFO{$id}{rp}=$rad_pairs || '';
-     $NAS_INFO{$id}{mng_user}=$mng_user || '';
-     $NAS_INFO{$id}{mng_password}=$mng_password || '';
-     my ($mip, $mport)=split(/:/, $mng_ip_port);
-     $NAS_INFO{$id}{mng_ip}=$mip || '0.0.0.0';
-     $NAS_INFO{$id}{mng_port}=$mport || 0;     
-  }
- return \%NAS_INFO;
-}
+#sub nas_params {
+# my $self = shift;
+# my ($attr) = @_;
+# 
+# my $WHERE = (defined $attr->{nas_ip}) ? "WHERE ip='$attr->{nas_ip}'" : '';
+# 	
+# 
+# my %NAS_INFO = ();
+# my $sql = "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
+# DECODE(mng_password, '$SECRETKEY'), rad_pairs 
+# FROM nas
+# $WHERE;";
+# 
+# #log_print('LOG_SQL', "$sql");
+# my $q = $db->prepare("$sql") || die $self->{db}->strerr;
+# $q -> execute();
+# while(my($id, $name, $nas_identifier, $describe, $ip, $nas_type, $auth_type, $mng_ip_port, 
+#     $mng_user, $mng_password, $rad_pairs)=$q->fetchrow()) {
+#     $NAS_INFO{$ip}=$id;
+#     $NAS_INFO{$ip}{$nas_identifier}=$id;
+#
+#     $NAS_INFO{$id}{name}=$name || '';
+#     $NAS_INFO{$id}{nt}=$nas_type  || '';
+#     $NAS_INFO{$id}{at}=$auth_type || 0;
+#     $NAS_INFO{$id}{rp}=$rad_pairs || '';
+#     $NAS_INFO{$id}{mng_user}=$mng_user || '';
+#     $NAS_INFO{$id}{mng_password}=$mng_password || '';
+#     my ($mip, $mport)=split(/:/, $mng_ip_port);
+#     $NAS_INFO{$id}{mng_ip}=$mip || '0.0.0.0';
+#     $NAS_INFO{$id}{mng_port}=$mport || 0;     
+#  }
+# return \%NAS_INFO;
+#}
 
 #**********************************************************
 # Nas list
@@ -86,6 +86,11 @@ sub list {
   if($attr->{DOMAIN_ID}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{DOMAIN_ID}, 'INT', 'nas.domain_id') };
    }
+
+  if($attr->{MAC}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{MAC}, 'INT', 'nas.mac') };
+   }
+
 
   if($attr->{GID}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', 'nas.gid') };
@@ -118,7 +123,7 @@ sub list {
 }
 
 #***************************************************************
-# nas_params($attr);
+# info($attr);
 #***************************************************************
 sub info {
  my $self = shift;
@@ -142,7 +147,7 @@ sub info {
 
 $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
  DECODE(mng_password, '$SECRETKEY'), rad_pairs, alive, disable, ext_acct, 
- gid, address_build, address_street, address_flat, zip, city, domain_id
+ gid, address_build, address_street, address_flat, zip, city, country, domain_id, mac
  FROM nas
  WHERE $WHERE
  ORDER BY nas_identifier DESC;");
@@ -176,7 +181,9 @@ $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_ty
    $self->{ADDRESS_FLAT},
    $self->{ZIP},
    $self->{CITY},
-   $self->{DOMAIN_ID}
+   $self->{COUNTRY},
+   $self->{DOMAIN_ID},
+   $self->{MAC}
    ) = @{ $self->{list}->[0] };
 
  return $self;
@@ -215,8 +222,10 @@ sub change {
   ADDRESS_FLAT        => 'address_flat',
   ZIP                 => 'zip',
   CITY                => 'city',
+  COUNTRY             => 'country',
   DOMAIN_ID           => 'domain_id',
   GID                 => 'gid',
+  MAC                 => 'mac'
   ); 
 
 
@@ -246,12 +255,12 @@ sub add {
 
  $self->query($db, "INSERT INTO nas (name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
  mng_password, rad_pairs, alive, disable, ext_acct, 
- address_build, address_street, address_flat, zip, city, domain_id, gid)
+ address_build, address_street, address_flat, zip, city, country, domain_id, gid, mac)
  values ('$DATA{NAS_NAME}', '$DATA{NAS_INDENTIFIER}', '$DATA{NAS_DESCRIBE}', '$DATA{NAS_IP}', '$DATA{NAS_TYPE}', '$DATA{NAS_AUTH_TYPE}',
   '$DATA{NAS_MNG_IP_PORT}', '$DATA{NAS_MNG_USER}', ENCODE('$DATA{NAS_MNG_PASSWORD}', '$SECRETKEY'), '$DATA{NAS_RAD_PAIRS}',
   '$DATA{NAS_ALIVE}', '$DATA{NAS_DISABLE}', '$DATA{NAS_EXT_ACCT}',
-  '$DATA{ADDRESS_BUILD}', '$DATA{ADDRESS_STREET}', '$DATA{ADDRESS_FLAT}', '$DATA{ZIP}', '$DATA{CITY}', '$DATA{DOMAIN_ID}',
-  '$DATA{GID}');", 'do');
+  '$DATA{ADDRESS_BUILD}', '$DATA{ADDRESS_STREET}', '$DATA{ADDRESS_FLAT}', '$DATA{ZIP}', '$DATA{CITY}', '$DATA{COUNTRY}', '$DATA{DOMAIN_ID}',
+  '$DATA{GID}', '$DATA{MAC}');", 'do');
 
 
 

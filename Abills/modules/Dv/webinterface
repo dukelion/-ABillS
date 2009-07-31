@@ -4680,7 +4680,7 @@ sub dv_wizard_user {
         $FORM{'6.newpassword'} = $FORM{'6.PASSWORD'} if ($FORM{'6.PASSWORD'});
 
         $Mail->mbox_add({ UID => "$UID", 
-        	                %{$add_values{6}}, 
+        	                %{ $add_values{6} }, 
         	                PASSWORD => $FORM{'6.newpassword'},
         	             });
         $Mail->{PASSWORD}=$FORM{'6.newpassword'};
@@ -4854,12 +4854,14 @@ sub dv_wizard_user {
      }
    }
  
+ $pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), undef, { notprint => 1 });
+ 
  $dv_defaults->{JOIN_SERVICE}='';
  my %tpls = (
 	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults,    { notprint => 1, ID => 'FORM_USER'     }),  
 	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { notprint => 1, ID => 'FORM_PASSWORD' }),
 	            "3:$_INFO::"     => $html->tpl_show(templates('form_pi'), \%pi_form,            { notprint => 1, ID => 'FORM_PI'       }), 
-	            "4:Internet::" => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults,    { notprint => 1, ID => 'DV_USER'       }),
+	            "4:Internet::"   => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults,    { notprint => 1, ID => 'DV_USER'       }),
  	            "5:$_PAYMENTS::" => $html->tpl_show(templates('form_payments'), $payments,      { notprint => 1, ID => 'FORM_PAYMENTS' }),
              );
  
