@@ -380,8 +380,11 @@ sub changes {
             $DATA{$k} = '0.0.0.0' ;
            }
           
-          $CHANGES_LOG .= "$k $OLD_DATA->{$k}->$DATA{$k};";
+          $CHANGES_LOG   .= "$k $OLD_DATA->{$k}->$DATA{$k};";
           $CHANGES_QUERY .= "$FIELDS->{$k}=INET_ATON('$DATA{$k}'),";
+         }
+        elsif($k eq 'CHANGED') {
+          $CHANGES_QUERY .= "$FIELDS->{$k}=now(),";
          }
         else {
         	if (! $OLD_DATA->{$k} && ($DATA{$k} eq '0' || $DATA{$k} eq '')) {

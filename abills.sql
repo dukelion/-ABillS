@@ -621,6 +621,7 @@ CREATE TABLE `nas` (
   `country` tinyint(6) unsigned NOT NULL default '0',
   `gid` smallint(6) unsigned NOT NULL default 0,
   `mac` varchar(17) NOT NULL default '',
+  `changed` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `domain_id` (`domain_id`, `ip`, `nas_identifier`)
 ) COMMENT='Nas servers list';
