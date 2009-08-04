@@ -34,7 +34,7 @@ function make_unique() {
 -->
 </script>
 
-<form action='$SELF_URL' METHOD='POST' TARGET=New>
+<form action='$SELF_URL' METHOD='POST' TARGET=New  ENCTYPE='multipart/form-data'>
 
 <input type='hidden' name='qindex' value='$index'>
 <input type='hidden' name='UID' value='$FORM{UID}'>
@@ -51,6 +51,12 @@ function make_unique() {
 <tr><td>$_TYPE:</td><td>%TYPE_SEL%</td></tr>
 <tr><td>$_TARIF_PLAN:</td><td>%TP_SEL%</td></tr>
 
+<tr><td>$_EXPORT:</td><td>
+<input type=radio name=EXPORT value=xml> XML 
+<input type=radio name=EXPORT value=text> TEXT 
+<input type=radio name=EXPORT value=xml> $_PRINT 
+</td></tr>
+<tr><td>$_IMPORT:</td><td><input type=file name=import></td></tr>
 
 </table>
 
