@@ -223,10 +223,10 @@ if($FORM{NAS_ID}) {
   $nas->{ACTION}='change';
  }
 elsif ($FORM{add}) {
-  if (! $FORM{NAS_MNG_PASSWORD}) {
-  	$html->message('err', $_ERROR, "$ERR_WRONG_PASSWD");
-   }
-  else {
+#  if (! $FORM{NAS_MNG_PASSWORD}) {
+#  	$html->message('err', $_ERROR, "$ERR_WRONG_PASSWD");
+#   }
+#  else {
   	$FORM{NAS_NAME}="NAS_$FORM{NAS_IP}" if (! $FORM{NAS_NAME});
   	
     $nas->add({	%FORM, DOMAIN_ID => $admin->{DOMAIN_ID}	});
@@ -240,7 +240,7 @@ elsif ($FORM{add}) {
    	 $html->message('err', $_ERROR, "$_EXIST IP: '$FORM{NAS_IP}'");
    	 $nas->{errno}=undef;
     }
-  }
+  #}
 
  }
 elsif ($FORM{del} && $FORM{is_js_confirmed}) {
