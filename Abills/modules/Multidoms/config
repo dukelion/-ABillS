@@ -10,7 +10,7 @@
 
 
 %RESELLER_FUNCTION_LIST = (
-                        "01:0:NAS:multidoms_reseller_nas:defaultindex"       => 0,
+                        "01:0:$_NAS:multidoms_reseller_nas:defaultindex"       => 0,
                         "02:1:$_GROUPS:multidoms_reseller_nas_groups:"         => 0,
                         #"06:1:IP Pools:multidoms_reseller_ip_pools:NAS_ID"   => 1,
                         "07:0:$_TARIF_PLANS:multidoms_reseller_tp:"          => 0,
