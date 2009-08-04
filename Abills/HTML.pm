@@ -1421,8 +1421,10 @@ sub tpl_show {
   my ($tpl, $variables_ref, $attr) = @_;	
 
   if (! $attr->{SOURCE}) {
-  while($tpl =~ /\%(\w+)\%/g) {
-    my $var = $1;
+  while($tpl =~ /\%(\w+)(\=?)([A-Za-z0-9]{0,50})\%/g) {
+    my $var       = $1;
+    my $delimiter = $2; 
+    my $default   = $3;
 #    if ($var =~ /$\{exec:.+\}$/) {
 #    	my $exec = $1;
 #    	if ($exec !~ /$\/usr/abills\/\misc\/ /);
@@ -1431,10 +1433,10 @@ sub tpl_show {
 #     }
 #    els
     if (defined($variables_ref->{$var})) {
-    	$tpl =~ s/\%$var\%/$variables_ref->{$var}/g;
+    	$tpl =~ s/\%$var$delimiter$default%/$variables_ref->{$var}/g;
      }
     else {
-      $tpl =~ s/\%$var\%//g;
+      $tpl =~ s/\%$var$delimiter$default\%/$default/g;
      }
   }
 }
