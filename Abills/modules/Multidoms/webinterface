@@ -263,28 +263,6 @@ if ($nas->{errno}) {
  );
 
 
-  if (defined($conf{nas_servers})) {
-  	%nas_descr = ( %nas_descr,  %{$conf{nas_servers}} );
-   }
-
-  $nas->{SEL_TYPE} = $html->form_select('NAS_TYPE', 
-                                { SELECTED   => $nas->{NAS_TYPE},
- 	                                SEL_HASH   => \%nas_descr,
- 	                                SORT_KEY   => 1 
- 	                               });
-
-  $nas->{SEL_AUTH_TYPE} = $html->form_select('NAS_AUTH_TYPE', 
-                                { SELECTED     => $nas->{NAS_AUTH_TYPE},
- 	                                SEL_ARRAY    => \@auth_types,
-                                  ARRAY_NUM_ID => 1 	                                
- 	                               });
- 
-
-  $nas->{NAS_DISABLE}   = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
-  $nas->{ADDRESS_TPL}   = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1 });
-  $nas->{NAS_GROUPS_SEL}= sel_nas_groups({ GID => $nas->{GID} });
-
-  $html->tpl_show(_include('multidoms_reseller_nas', 'Multidoms'), { %FORM, %$nas });
 
 my $table = $html->table( { width      => '100%',
                             caption    => "$_NAS",
@@ -296,11 +274,12 @@ my $table = $html->table( { width      => '100%',
                             ID         => 'NAS_LIST',
                             header     => "<div id='tabs'>
 <ul class=\"user_menu\">
-<li class=\"active\"><a href='$SELF_URL?index=$index'>$_ADD</a></li>
+<li class=\"active\"><a href='$SELF_URL?index=$index#FORM_NAS'>$_ADD</a></li>
 </ul>
 </div>\n"
 
                            });
+
 
 my $list = $nas->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
 foreach my $line (@$list) {
@@ -324,6 +303,40 @@ $table = $html->table( { width      => '100%',
                      } );
 
 print $table->show();
+
+
+
+  if (defined($conf{nas_servers})) {
+  	%nas_descr = ( %nas_descr,  %{$conf{nas_servers}} );
+   }
+
+  $nas->{SEL_TYPE} = $html->form_select('NAS_TYPE', 
+                                { SELECTED   => $nas->{NAS_TYPE},
+ 	                                SEL_HASH   => \%nas_descr,
+ 	                                SORT_KEY   => 1 
+ 	                               });
+
+  $nas->{SEL_AUTH_TYPE} = $html->form_select('NAS_AUTH_TYPE', 
+                                { SELECTED     => $nas->{NAS_AUTH_TYPE},
+ 	                                SEL_ARRAY    => \@auth_types,
+                                  ARRAY_NUM_ID => 1 	                                
+ 	                               });
+ 
+  $nas->{COUNTRY_SEL} = $html->form_select('COUNTRY', 
+                                { SELECTED   => $nas->{COUNTRY},
+ 	                                SEL_HASH   => \%COUNTRY_LIST,
+ 	                                SORT_VAL   => 1 
+ 	                               });
+
+ 
+
+  $nas->{NAS_DISABLE}   = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
+  $nas->{ADDRESS_TPL}   = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1 });
+  $nas->{NAS_GROUPS_SEL}= sel_nas_groups({ GID => $nas->{GID} });
+
+  $html->tpl_show(_include('multidoms_reseller_nas', 'Multidoms'), { %FORM, %$nas });
+
+
 
 }
 
@@ -486,8 +499,8 @@ sub multidoms_reseller_tp {
  $tarif_info->{TI_TARIF}    = '0.00';
  $tarif_info->{TT_PRICE_IN} = '0.00';
  $tarif_info->{TT_PRICE_OUT}= '0.00';
- $tarif_info->{TT_SPEED_IN} = 0;
- $tarif_info->{TT_SPEED_OUT}= 0;
+ #$tarif_info->{TT_SPEED_IN} = 512;
+ #$tarif_info->{TT_SPEED_OUT}= 512;
  
 
 
@@ -625,42 +638,6 @@ if ($tariffs->{errno}) {
 
 my $nas = Nas->new($db, \%conf);
 
-$tarif_info->{REDUCTION_FEE}     = ($tarif_info->{REDUCTION_FEE})     ? 'checked' : '';
-$tarif_info->{POSTPAID_DAY_FEE}  = ($tarif_info->{POSTPAID_DAY_FEE})  ? 'checked' : '';
-$tarif_info->{POSTPAID_MONTH_FEE}= ($tarif_info->{POSTPAID_MONTH_FEE})? 'checked' : '';
-$tarif_info->{PERIOD_ALIGNMENT}  = ($tarif_info->{PERIOD_ALIGNMENT})  ? 'checked' : ''; 
-$tarif_info->{ABON_DISTRIBUTION} = ($tarif_info->{ABON_DISTRIBUTION}) ? 'checked' : ''; 
-
-
-
-#my $i=0;
-$tarif_info->{SEL_OCTETS_DIRECTION} = $html->form_select('OCTETS_DIRECTION', 
-                                          { 
- 	                                          SELECTED     => $tarif_info->{OCTETS_DIRECTION},
- 	                                          SEL_ARRAY    => \@Octets_Direction,
- 	                                          ARRAY_NUM_ID => 1
- 	                                        });
-
-$tarif_info->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE', 
-                                          { 
- 	                                          SELECTED     => $tarif_info->{PAYMENT_TYPE},
- 	                                          SEL_ARRAY    => \@Payment_Types,
- 	                                          ARRAY_NUM_ID => 1
- 	                                        });
-
-
-
-$tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID', 
-                                          { 
- 	                                          SELECTED          => $tarif_info->{TP_GID},
- 	                                          SEL_MULTI_ARRAY   => [[ '', ''],  @{ $tariffs->tp_group_list( ) } ],
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
- 	                                        });
-
-
-$html->tpl_show(_include('multidoms_reseller_tp', 'Multidoms'), $tarif_info);
-
 $LIST_PARAMS{DOMAIN_ID}=$admin->{DOMAIN_ID};
 my $list = $tariffs->list({ %LIST_PARAMS });	
 
@@ -673,7 +650,7 @@ my $table = $html->table( { width      => '100%',
                             ID         => 'DV_TARIF_PLANS',
                             header     => "<div id='tabs'>
 <ul class=\"user_menu\">
-<li class=\"active\"><a href='$SELF_URL?index=$index'>$_ADD</a></li>
+<li class=\"active\"><a href='$SELF_URL?index=$index#TP_FORM'>$_ADD</a></li>
 </ul>
 </div>\n"
                                   } );
@@ -709,6 +686,46 @@ $table = $html->table( { width      => '100%',
                          rows       => [ [ "$_TOTAL:", $html->b($tariffs->{TOTAL}) ] ]
                      } );
 print $table->show();
+
+
+
+$tarif_info->{REDUCTION_FEE}     = ($tarif_info->{REDUCTION_FEE})     ? 'checked' : '';
+$tarif_info->{POSTPAID_DAY_FEE}  = ($tarif_info->{POSTPAID_DAY_FEE})  ? 'checked' : '';
+$tarif_info->{POSTPAID_MONTH_FEE}= ($tarif_info->{POSTPAID_MONTH_FEE})? 'checked' : '';
+$tarif_info->{PERIOD_ALIGNMENT}  = ($tarif_info->{PERIOD_ALIGNMENT})  ? 'checked' : ''; 
+$tarif_info->{ABON_DISTRIBUTION} = ($tarif_info->{ABON_DISTRIBUTION}) ? 'checked' : ''; 
+
+
+
+#my $i=0;
+$tarif_info->{SEL_OCTETS_DIRECTION} = $html->form_select('OCTETS_DIRECTION', 
+                                          { 
+ 	                                          SELECTED     => $tarif_info->{OCTETS_DIRECTION},
+ 	                                          SEL_ARRAY    => \@Octets_Direction,
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+
+$tarif_info->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE', 
+                                          { 
+ 	                                          SELECTED     => $tarif_info->{PAYMENT_TYPE},
+ 	                                          SEL_ARRAY    => \@Payment_Types,
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+
+
+
+$tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID', 
+                                          { 
+ 	                                          SELECTED          => $tarif_info->{TP_GID},
+ 	                                          SEL_MULTI_ARRAY   => [[ '', ''],  @{ $tariffs->tp_group_list( ) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+#$tarif_info->{HOURS} = 1;
+#$tarif_info->{DAYS}  = 1;
+$html->tpl_show(_include('multidoms_reseller_tp', 'Multidoms'), $tarif_info);
+
 
 }
 

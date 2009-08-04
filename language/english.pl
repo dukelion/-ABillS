@@ -401,3 +401,4 @@ $_DISPATCH='Dispatch';
 $_EVOLUTION='Evolution';
 $_REPRESENTATIVE='Representative';
 $_SETTINGS='Settings';
+$_UNLIMITED='Unlimited';

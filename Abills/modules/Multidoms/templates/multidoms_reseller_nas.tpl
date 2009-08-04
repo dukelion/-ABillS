@@ -1,10 +1,11 @@
 <div class='noprint'>
+<a name='FORM_NAS'></a> 
 <form action=$SELF_URL METHOD=post>
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='NAS_ID' value='%NAS_ID%'>
 <TABLE>
 
-<TR><th class=form_title colspan=2>$_NAS</th></TR>
+<TR><th class=form_title colspan=2>%LNG_ACTION% $_NAS</th></TR>
 <TR><TD>ID</TD><TD>%NAS_ID%</TD></TR>
 <TR><TD>IP</TD><TD><input type=text name=NAS_IP value='%NAS_IP%'></TD></TR>
 <TR><TD>$_NAME:</TD><TD><input type=text name=NAS_NAME value='%NAS_NAME%'></TD></TR>
