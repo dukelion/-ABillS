@@ -1146,21 +1146,19 @@ INSERT INTO `admin_permits` (`aid`, `section`, `actions`, `module`) VALUES
 --
 
 
-INSERT INTO `users` VALUES ('test','0000-00-00','0000-00-00',0.00,0.00,'2009-08-03', ENCODE('123456','test12345678901234567890'),1,0,0,0,1,0,'0000-00-00',0);
+INSERT INTO `users` (`id`, `activate`, `expire`, `credit`, `reduction`, `registration`, `password`, `uid`, `gid`, `disable`, `company_id`, `bill_id`, `ext_bill_id`, `credit_date`, `domain_id`) VALUES ('test','0000-00-00','0000-00-00',0.00,0.00,'2009-08-03', ENCODE('123456','test12345678901234567890'),1,0,0,0,1,0,'0000-00-00',0);
 
 INSERT INTO `users_pi` VALUES (1,'Test user',0,'','','','','','','0000-00-00','','0000-00-00','','','',0);
 
 INSERT INTO `bills` VALUES (1,0.000000,1,0,'2009-08-03');
 
-INSERT INTO `tarif_plans` VALUES (100,0.00,0.00,'Admin',0.00,0,0,0,0,0,0,0,0,0.0
-0,0.00,0.00,0,0,0,'',1,0.00000,'',0,0,0,'',0,0,'',1,0,0.00,0,0,0.00,0,0,0,0);
+INSERT INTO `tarif_plans` (id, name, payment_type) VALUES (100,'Admin',1);
 
 INSERT INTO `dv_main` VALUES (1,100,0,'2009-08-03',0,'',0,4294967295,'','',0,0,0,0,0);
 
 INSERT INTO `admin_actions` VALUES ('LOGIN:test','2009-08-03 11:42:53',1534854767,1,1,1,'',7),('BILL_ID ->1;','2009-08-03 11:42:53',1534854767,1,1,2,'',2),('PASSWORD *->*;','2009-08-03 11:42:53',1534854767,1,1,3,'',2),('ADD PI','2009-08-03 11:42:53',1534854767,1,1,4,'',0),('ACTIVE','2009-08-03 11:42:53',1534854767,1,1,5,'Dv',1);
 
-INSERT INTO `nas` VALUES (1,'NAS Server','','NAS Server','127.0.0.1','mpd5', 0,'127.0.0.0.1:5005','admin', ENCODE('secretpass','test12345678901234567890'),300,0,0,0,'','','','','',0,0,'','0000-00-00 00:00:00');
-
+INSERT INTO `nas` (id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, mng_password, alive) VALUES (1,'NAS Server','','NAS Server','127.0.0.1','mpd5', 0,'127.0.0.1:5005','admin', ENCODE('secretpass','test12345678901234567890'),300);
 INSERT INTO `ippools` VALUES (1,1,167772161,256,'Main',0);
 
 
