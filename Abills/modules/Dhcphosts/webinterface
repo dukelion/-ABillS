@@ -546,7 +546,7 @@ sub dhcphosts_hosts {
     $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel({ SEARCH  => 1 });
     form_search({ SEARCH_FORM => $html->tpl_show(_include('dhcphosts_search', 'Dhcphosts'), 
   	                                  { %$Dhcphosts, %FORM }, 
-  	                                  { notprint => 1 })  
+  	                                  { OUTPUT2RETURN => 1 })  
 	            });
    }
   
@@ -1047,13 +1047,14 @@ if ($attr->{reconfig} || $FORM{reconfig} ) {
   $html->message('info', $_INFO, "DHCP $_RECONFIGURE '$conf{DHCPHOSTS_CONFIG}'") if (! $attr->{QUITE});
  }
 else {
-  print "<textarea cols=90 rows=20>\n";
+  
   #$INFO{SUBNETS} = $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
   #                                 \%INFO,
   #                                 { notprint => 1 } );	 
 
-  $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO);
-	print "</textarea>\n";
+  my $conf_content = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
+
+	print "<textarea cols=90 rows=20>$conf_content</textarea>\n";
 	print $html->form_main(	{  HIDDEN  => { index    => $index,
 		                                      IDS      => $FORM{IDS},
 		                                      config   => 'dhcp.conf' },
