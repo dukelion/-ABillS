@@ -230,6 +230,7 @@ elsif ($FORM{add}) {
 #  	$html->message('err', $_ERROR, "$ERR_WRONG_PASSWD");
 #   }
 #  else {
+    $FORM{NAS_MNG_PASSWORD}='secrete' if (! $FORM{NAS_MNG_PASSWORD});
   	$FORM{NAS_NAME}="NAS_$FORM{NAS_IP}" if (! $FORM{NAS_NAME});
   	
     $nas->add({	%FORM, DOMAIN_ID => $admin->{DOMAIN_ID}	});
