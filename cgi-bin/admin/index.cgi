@@ -1259,9 +1259,9 @@ if(defined($attr->{USER})) {
 
   print "<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"2\"><tr><td valign=\"top\" align=\"center\">\n";
   #Make service menu
-  my $service_menu = '';
+  my $service_menu       = '';
   my $service_func_index = 0;
-  my $service_func_menu = '';
+  my $service_func_menu  = '';
   foreach my $key ( sort keys %menu_items) {
 	  if (defined($menu_items{$key}{20})) {
 	  	$service_func_index=$key if (($FORM{MODULE} && $FORM{MODULE} eq $module{$key} || ! $FORM{MODULE}) && $service_func_index == 0);

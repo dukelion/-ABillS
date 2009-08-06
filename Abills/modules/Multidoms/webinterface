@@ -456,7 +456,7 @@ print $html->form_main({  CONTENT => $table->show(),
 return 0;
 
 
-my $table = $html->table( { width      => '100%',
+$table = $html->table( { width      => '100%',
                             caption    => "IP POOLs",
                             border     => 1,
                             title      => ["NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", '-'],
@@ -466,7 +466,7 @@ my $table = $html->table( { width      => '100%',
                            });
 
 
-my $list = $nas->ip_pools_list({ %LIST_PARAMS });	
+$list = $nas->ip_pools_list({ %LIST_PARAMS });	
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[8]", { MESSAGE => "$_DEL NAS $line->[4]?" }); 
 

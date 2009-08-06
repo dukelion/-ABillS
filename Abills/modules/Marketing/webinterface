@@ -22,7 +22,7 @@ my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_
 #*******************************************************************
 sub marketing_evolution {
 
- my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" ); 
+ @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" ); 
 
  $table = $html->table( { width       => '100%',
 	                        rowcolor    => $_COLORS[0],
@@ -223,7 +223,7 @@ $table = $html->table( { width      => '100%',
 #*******************************************************************
 sub marketing_internet {
 
- my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" ); 
+ @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" ); 
 
  $table = $html->table( { width       => '100%',
 	                        rowcolor    => $_COLORS[0],
@@ -264,7 +264,7 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
  $pages_qs.="&TP_ID=$FORM{TP_ID}"  if ($FORM{TP_ID});
  $pages_qs.="&STATUS=$FORM{STATUS}"  if (defined($FORM{STATUS}));
  my $list = $Marketing->internet_fees_monitor({ %LIST_PARAMS, %FORM });
- my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
+ @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
  my $table = $html->table( { width      => '100%',
                              caption    => "Internet _$_FEES",
                              title      => ["UID", "$_LOGIN", "$_ACCOUNT", "$_SERVICES $_STATUS",
