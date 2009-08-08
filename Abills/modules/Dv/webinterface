@@ -251,10 +251,12 @@ sub dv_users_list {
 
 
  if ($attr->{TP}) {
+ 	 $FORM{TP_ID} = $FORM{TP_NUM} if ($FORM{TP_NUM});
    $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
    #$pages_qs .= "&TP_ID=$FORM{TP_ID}";
   }
- elsif($FORM{TP_ID}) {
+ elsif($FORM{TP_ID} || $FORM{TP_NUM}) {
+ 	 $FORM{TP_ID} = $FORM{TP_NUM} if ($FORM{TP_NUM});
    $FORM{subf}=$index;
    dv_tp();
    return 0;
@@ -625,15 +627,22 @@ if($FORM{ADD_TP}) {
  }
 elsif (defined($FORM{TP_ID})) {
  
-  $tarif_info = $tariffs->info( $FORM{TP_ID} );
+  $tarif_info = $tariffs->info( $FORM{TP_ID}, { ID => $FORM{TP_NUM}  } );
+
 
   if ($tariffs->{errno}) {
-    $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+    if ($tariffs->{errno} == 2) {
+      $html->message('err', $_ERROR, "$_TARIF_PLAN $_NOT_EXIST");	
+     }
+    else {
+    	$html->message('err', $_ERROR, "$_TARIF_PLAN [$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+     }
     return 0;
    }
 
   $pages_qs       .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
   $LIST_PARAMS{TP} = $FORM{TP_ID};
+  $FORM{TP_NUM}    = $tarif_info->{ID};
   %F_ARGS          = ( TP => $tariffs );
   
   $tariffs->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('TP_ID', 
@@ -3685,7 +3694,6 @@ my $Billing = Billing->new($db, $CONF);
        
        #Get users for bonus payments
        #Ipn users for daily payments
-   	   #$Dv->{debug}=1;
    	   $ulist = $Dv->list({ 
            ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
            EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
