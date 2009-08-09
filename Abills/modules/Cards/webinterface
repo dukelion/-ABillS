@@ -904,7 +904,6 @@ else {
 
 
 
-
 #**********************************************************
 #
 #**********************************************************
@@ -1024,6 +1023,8 @@ $table->{rowcolor} = $_COLORS[3];
 print $table->show();
 	
 }
+
+
 
 
 #**********************************************************
@@ -1416,7 +1417,17 @@ sub cards_diller_add {
 
 
 if ($FORM{add}) {
-     print $html->header();
+     
+     if ($FORM{EXPORT} && $FORM{EXPORT} eq 'xml') {
+     	  print "Content-Type: text/xml\n\n";
+     	  print "<?xml version=\"1.0\" encoding=\"$html->{CHARSET}\"?>\n";
+     	}
+     elsif ($FORM{EXPORT} && $FORM{EXPORT} eq 'text') {
+     	  print "Content-Type: text/plain\n\n";
+     	}
+     else {
+       print $html->header();
+      }
 
      if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
            $html->message('err', $_ERROR, "$_EXIST");
@@ -1426,25 +1437,29 @@ if ($FORM{add}) {
 
 
           my $list = $Cards->cards_list({ SERIA  => '',
-                                            PAGE_ROWS    => 1,
-                                            SORT    => 1,
-                                            DESC    => 'DESC'
+                                          PAGE_ROWS    => 1,
+                                          SORT    => 1,
+                                          DESC    => 'DESC'
                                                });
             my $serial = 0;
             my $count = $FORM{COUNT} || 1;
 
             if ($Cards->{TOTAL} > 0) {
-                 $serial = $list->[0]->[0];
-
+              $serial = $list->[0]->[0];
              }
 
       $serial++;
 
-      $FORM{CARDS_PAYMENT_PIN_LENGTH} = 8 if (! $FORM{CARDS_PAYMENT_PIN_LENGTH})
-;
+      $FORM{CARDS_PAYMENT_PIN_LENGTH} = 8 if (! $FORM{CARDS_PAYMENT_PIN_LENGTH});
 
 
-      for (my $i=$serial; $i<$serial+$count; $i++) {
+      my @CARDS_OUTPUT = ();
+
+      if ($FORM{import}) {
+
+       }
+      else {
+        for (my $i=$serial; $i<$serial+$count; $i++) {
           my $pin = mk_unique_value($FORM{CARDS_PAYMENT_PIN_LENGTH}, { SYMBOLS => '1234567890' });
                     $i = sprintf("%s%.11d", $FORM{SERIAL}, $i);
                     my $EXPIRE_DATE = '0000-00-00';
@@ -1495,20 +1510,55 @@ if ($FORM{add}) {
                              CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
                          });
 
-            $html->tpl_show(_include('cards_check', 'Cards'),
-              { PIN         => $pin,
+              push @CARDS_OUTPUT, { PIN         => $pin,
                 NUMBER      => $i,
                 EXPIRE_DATE => ($EXPIRE_DATE ne '0000-00-00') ? $EXPIRE_DATE : '' ,
                 DATE        => "$DATE $TIME",
                 SUM         => sprintf("%.2f", $FORM{SUM}),
                 DILLER_ID   => $diller->{ID}
-                 } );
+                 };
+
+           }
 
 
            }
+        }
+      #Show cards
+      if ($FORM{EXPORT} eq 'xml') {
+        print "<CARDS>";
+        foreach my $card_info (@CARDS_OUTPUT) {
+          print "<CARD><PIN>$card_info->{PIN}</PIN>
+          <NUMBER>$card_info->{NUMBER}</NUMBER>
+          <EXPIRE_DATE>$card_info->{EXPIRE_DATE}</EXPIRE_DATE>
+          <CREATED_DATE>$card_info->{DATE}</CREATED_DATE>
+          <SUM>$card_info->{SUM}</SUM>
+          <DILLER_ID>$card_info->{DILLER_ID}</DILLER_ID><CARD>\n";
+         }
+        print "</CARDS>";
+       }
+      elsif ($FORM{EXPORT} eq 'text' ) {
+        foreach my $card_info (@CARDS_OUTPUT) {
+          print "$card_info->{PIN}\t$card_info->{NUMBER}\t$card_info->{EXPIRE_DATE}\t$card_info->{DATE}\t$card_info->{SUM}\t$card_info->{DILLER_ID}\n";
+         }
+       }
+      elsif ($FORM{EXPORT} eq 'order_print') {
+        my $content = "Print Cards
+        ";
+        foreach my $card_info (@CARDS_OUTPUT) {
+        	$content .= "$card_info->{PIN}\t$card_info->{NUMBER}\t$card_info->{EXPIRE_DATE}\t$card_info->{DATE}\t$card_info->{SUM}\t$card_info->{DILLER_ID}\n";
+         }
+
+        sendmail("$user->{FROM}", "$conf{ADMIN_MAIL}", "Cards Print", "$content", "$conf{MAIL_CHARSET}", "$FORM{PRIORITY} ($MAIL_PRIORITY{$FORM{PRIORITY}})");
+        
+        $html->message('info', "$_INFO", "$_SENDED $_ORDER_PRINT");
+       }
+      else {
+        foreach my $card_info (@CARDS_OUTPUT) {
+          $html->tpl_show(_include('cards_check', 'Cards'), $card_info );
+         }
+       }
 
 
-           }
      return 1;
           }
 
@@ -1729,4 +1779,3 @@ print $table->show();
 }
 
 1
-

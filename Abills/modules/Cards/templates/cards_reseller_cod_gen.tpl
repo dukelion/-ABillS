@@ -52,9 +52,10 @@ function make_unique() {
 <tr><td>$_TARIF_PLAN:</td><td>%TP_SEL%</td></tr>
 
 <tr><td>$_EXPORT:</td><td>
-<input type=radio name=EXPORT value=xml> XML 
-<input type=radio name=EXPORT value=text> TEXT 
-<input type=radio name=EXPORT value=xml> $_PRINT 
+<input type=radio name=EXPORT value=xml>   XML 
+<input type=radio name=EXPORT value=text>  TEXT 
+<input type=radio name=EXPORT value=print CHECKED> $_PRINT 
+<input type=radio name=EXPORT value=order_print> $_ORDER_PRINT 
 </td></tr>
 <tr><td>$_IMPORT:</td><td><input type=file name=import></td></tr>
 

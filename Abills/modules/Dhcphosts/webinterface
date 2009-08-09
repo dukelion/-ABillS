@@ -1178,7 +1178,7 @@ sub auto_net_sign {
   my ($ip) = @_;
 
 my %network_hash = ();
-my $list = $Dhcphosts->networks_list();
+my $list = $Dhcphosts->networks_list({ PAGE_ROWS => 10000 });
 $ip = ip2int($ip);
 
 
