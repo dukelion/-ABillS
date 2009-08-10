@@ -95,8 +95,8 @@ sub abon_user {
 my $list = $Abon->user_tariff_list($FORM{UID});
 my $table = $html->table( { width      => '100%',
                             caption    => "$_ABON",
-                            title      => ['-', $_NAME, $_COMMENTS, $_SUM, $_PERIOD, $_DATE ],
-                            cols_align => ['left', 'right', 'left', 'center', 'center'],
+                            title      => ['-', $_NAME, $_COMMENTS, $_SUM, $_PERIOD, "$_FEES $_DATE", "$_NEXT_PERIOD" ],
+                            cols_align => ['left', 'right', 'left', 'right', 'left', 'right', 'right'],
                             qs         => $pages_qs,
                             ID         => 'USER_ABON'
                            });
@@ -114,8 +114,8 @@ foreach my $line (@$list) {
      $html->form_input('COMMENTS_'.$line->[0], "$line->[2]", { SIZE => 40 }),
      "$line->[3]", 
      $PERIODS[$line->[4]], 
-     "$line->[5]"
-
+     "$line->[5]",
+     "$line->[6]"
    );
  }
 
@@ -151,7 +151,7 @@ sub abon_user_list {
  my $list = $Abon->user_list({ %LIST_PARAMS });
  my $table = $html->table( { width     => '100%',
                              caption    => "$_ABON",
-                             title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, "$_COMMENTS", $_SUM, $_PERIOD, $_DATE],
+                             title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, "$_COMMENTS", $_SUM, $_PERIOD, "$_FEES $_DATE", "$_NEXT_PERIOD"],
                              cols_align => ['left', 'right', 'left', 'right'],
                              qs         => $pages_qs,
                              pages      => $Abon->{TOTAL},
@@ -165,13 +165,14 @@ foreach my $line (@$list) {
   #if ($permissions{0}{1}) {
   #  $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?" }); 
   # }
-  $table->addrow($html->button("$line->[0]", "index=15&UID=$line->[6]"), 
+  $table->addrow($html->button("$line->[0]", "index=15&UID=$line->[8]"), 
      "$line->[1]", 
      $line->[2], 
      $line->[3], 
      $line->[4],
      $PERIODS[$line->[5]],
-     $line->[6]
+     $line->[6],
+     $line->[7]
    );
  }
 print $table->show();

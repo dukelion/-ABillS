@@ -335,6 +335,7 @@ $_CONFIG='Configuration';
 $_PROCESSES='Processes';
 $_TRAFFIC_TRANSFER_PERIOD='Traffic transfer period';
 $_MONTH_ALIGNMENT='Month alignment';
+$_PERIOD_ALIGNMENT='Period Alignment';
 $_MIN_USE='Minimal money use';
 
 $_ATTACHMENT='Attachment';

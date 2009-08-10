@@ -269,7 +269,20 @@ sub user_list {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT u.id, pi.fio, at.name, ul.comments, at.price, at.period,
-     ul.date, u.uid, at.id
+     ul.date, 
+     if (at.period = 0, curdate()+ INTERVAL 1 DAY, 
+       if (at.period = 1, DATE_FORMAT(curdate() + INTERVAL 1 MONTH, '%Y-%m-01'), 
+         if (at.period = 2, CONCAT(YEAR(curdate() + INTERVAL 3 MONTH), '-' ,(QUARTER((curdate() + INTERVAL 3 MONTH))*3-2), '-01'), 
+           if (at.period = 3, CONCAT(YEAR(curdate() + INTERVAL 6 MONTH), '-', if(MONTH(curdate() + INTERVAL 6 MONTH) > 6, '06', '01'), '-01'), 
+             if (at.period = 4, DATE_FORMAT(curdate() + INTERVAL 1 YEAR, '%Y-01-01'), 
+               '-'
+              )
+            )
+          )
+        )
+       ),
+     u.uid, 
+     at.id
      FROM (users u, abon_user_list ul, abon_tariffs at)
      LEFT JOIN users_pi pi ON u.uid = pi.uid
      $WHERE
@@ -302,9 +315,21 @@ sub user_tariff_list {
 # @WHERE_RULES = ("ul.uid='$uid'");
 # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT id, name, comments, price, period, ul.date, count(ul.uid)
-     FROM abon_tariffs
-     LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id and ul.uid='$uid')
+ $self->query($db, "SELECT id, name, comments, price, period, ul.date, 
+      if (at.period = 0, curdate()+ INTERVAL 1 DAY, 
+       if (at.period = 1, DATE_FORMAT(curdate() + INTERVAL 1 MONTH, '%Y-%m-01'), 
+         if (at.period = 2, CONCAT(YEAR(curdate() + INTERVAL 3 MONTH), '-' ,(QUARTER((curdate() + INTERVAL 3 MONTH))*3-2), '-01'), 
+           if (at.period = 3, CONCAT(YEAR(curdate() + INTERVAL 6 MONTH), '-', if(MONTH(curdate() + INTERVAL 6 MONTH) > 6, '06', '01'), '-01'), 
+             if (at.period = 4, DATE_FORMAT(curdate() + INTERVAL 1 YEAR, '%Y-01-01'), 
+               '-'
+              )
+            )
+          )
+        )
+       ),
+   count(ul.uid)
+     FROM abon_tariffs at
+     LEFT JOIN abon_user_list ul ON (at.id=ul.tp_id and ul.uid='$uid')
      GROUP BY id
      ORDER BY $SORT $DESC;");
 
