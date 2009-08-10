@@ -5481,6 +5481,7 @@ my $table = $html->table( { width      => '100%',
                            });
 
 foreach my $line (@$list) {
+  $line->[2] =~ s/\n/<br>/g;
   $table->addrow(
     "$line->[0]",
     "$line->[1]", 

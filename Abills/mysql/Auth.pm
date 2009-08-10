@@ -851,6 +851,12 @@ sub authentication {
     $RAD->{USER_NAME}=$login;
    }
 
+  my $WHERE  = '';
+
+  if ($NAS->{DOMAIN_ID}) {
+  	$WHERE = "AND u.domain_id='$NAS->{DOMAIN_ID}'";
+   }
+
   $self->query($db, "select
   u.uid,
   DECODE(password, '$SECRETKEY'),
@@ -867,7 +873,7 @@ sub authentication {
   u.ext_bill_id
      FROM users u
      WHERE 
-        u.id='$RAD->{USER_NAME}'
+        u.id='$RAD->{USER_NAME}' $WHERE
         AND (u.expire='0000-00-00' or u.expire > CURDATE())
         AND (u.activate='0000-00-00' or u.activate <= CURDATE())
        GROUP BY u.id;");
