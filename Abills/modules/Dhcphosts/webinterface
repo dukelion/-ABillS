@@ -692,8 +692,6 @@ sub dhcphosts_user {
 
 
   if ($FORM{add}) {
-    print $FORM{NETWORK};
-    
     if ($FORM{MAC} !~ /[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/i) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: MAC ");
       #00:19:5b:4f:98:7a	
