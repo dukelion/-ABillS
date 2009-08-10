@@ -1132,13 +1132,13 @@ sub ex_traffic_params {
 
    my $list = $self->{list};
    foreach my $line (@$list) {
-     $prepaids{$line->[0]}=$line->[3];
-     $in_prices{$line->[0]}=$line->[1];
-     $out_prices{$line->[0]}=$line->[2];
-     $EX_PARAMS{speed}{$line->[0]}{IN}=$line->[4];
-     $EX_PARAMS{speed}{$line->[0]}{OUT}=$line->[5];
+     $prepaids{$line->[0]}            = $line->[3];
+     $in_prices{$line->[0]}           = $line->[1];
+     $out_prices{$line->[0]}          = $line->[2];
+     $EX_PARAMS{speed}{$line->[0]}{IN}= $line->[4];
+     $EX_PARAMS{speed}{$line->[0]}{OUT}= $line->[5];
      $expr{$line->[0]}=$line->[7] if (length($line->[7]) > 5);
-     $nets+=$line->[6];
+     $nets+=$line->[6] if (defined($line->[6]));
     }
 
    $EX_PARAMS{nets}=$nets if ($nets > 20);

@@ -106,6 +106,13 @@ sub get_nas_info {
  $RAD->{USER_NAME}='' if (! defined($RAD->{USER_NAME}));
 
  my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
+ 
+ if ($RAD->{NAS_IP_ADDRESS} eq '0.0.0.0') {
+ 	 %NAS_PARAMS = ( CALLED_STATION_ID => $RAD->{CALLED_STATION_ID} );
+  }
+ 	
+ 	
+ 
  $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if ($RAD->{NAS_IDENTIFIER});
  $nas->info({ %NAS_PARAMS });
 

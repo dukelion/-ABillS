@@ -95,7 +95,7 @@ sub info {
  
  my $WHERE = '';
 
- if (defined($attr->{IP})) {
+ if ($attr->{IP}) {
  	 $WHERE = "ip='$attr->{IP}'";
    if (defined($attr->{NAS_IDENTIFIER})) {
      $WHERE .= " and (nas_identifier='$attr->{NAS_IDENTIFIER}' or nas_identifier='')";	
@@ -104,7 +104,10 @@ sub info {
    	 $WHERE .= " and nas_identifier=''";
     }
   }
- elsif(defined($attr->{NAS_ID})) {
+ elsif($attr->{CALLED_STATION_ID}) {
+   $WHERE = "mac='$attr->{CALLED_STATION_ID}'";
+  }
+ elsif($attr->{NAS_ID}) {
    $WHERE = "id='$attr->{NAS_ID}'";
   }
 
