@@ -113,6 +113,7 @@ sub query {
   $self->{errstr}=undef;
   $self->{errno}=undef;
   $self->{TOTAL} = 0;
+  #$self->{debug}=1;
   print "<p>$query</p>\n" if ($self->{debug});
 
  	 

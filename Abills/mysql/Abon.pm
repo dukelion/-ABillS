@@ -268,7 +268,7 @@ sub user_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT u.id, pi.fio, at.name, at.price, at.period,
+ $self->query($db, "SELECT u.id, pi.fio, at.name, ul.comments, at.price, at.period,
      ul.date, u.uid, at.id
      FROM (users u, abon_user_list ul, abon_tariffs at)
      LEFT JOIN users_pi pi ON u.uid = pi.uid
@@ -302,7 +302,7 @@ sub user_tariff_list {
 # @WHERE_RULES = ("ul.uid='$uid'");
 # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT id, name, price, period, ul.date, count(ul.uid)
+ $self->query($db, "SELECT id, name, comments, price, period, ul.date, count(ul.uid)
      FROM abon_tariffs
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id and ul.uid='$uid')
      GROUP BY id
@@ -328,7 +328,7 @@ sub user_tariff_change {
  my $abon_log = "";
  
  foreach my $tp_id (@tp_array) {
-   $self->query($db, "INSERT INTO abon_user_list (uid, tp_id) VALUES ('$attr->{UID}', '$tp_id');", 'do');
+   $self->query($db, "INSERT INTO abon_user_list (uid, tp_id, comments) VALUES ('$attr->{UID}', '$tp_id', '". $attr->{'COMMENTS_'. $tp_id} ."');", 'do');
    $abon_log.="$tp_id, ";
   }
 
@@ -386,7 +386,8 @@ sub periodic_list {
    ),
   u.disable,
   at.id,
-  at.payment_type
+  at.payment_type,
+  al.comments
   FROM (abon_tariffs at, abon_user_list al, users u)
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN companies c ON (u.company_id=c.id)

@@ -9,7 +9,7 @@ use Fees;
 
 my $Abon    = Abon->new($db, $admin, \%conf);
 my $fees    = Fees->new($db, $admin, \%conf);
-my @PERIODS = ($_DAY, $_MONTH, $_YEAR);
+my @PERIODS = ($_DAY, $_MONTH, $_QUARTER, $_SIX_MONTH, $_YEAR);
 
 #*******************************************************************
 # Change user variant form
@@ -95,7 +95,7 @@ sub abon_user {
 my $list = $Abon->user_tariff_list($FORM{UID});
 my $table = $html->table( { width      => '100%',
                             caption    => "$_ABON",
-                            title      => ['-', $_NAME, $_SUM, $_PERIOD, $_DATE ],
+                            title      => ['-', $_NAME, $_COMMENTS, $_SUM, $_PERIOD, $_DATE ],
                             cols_align => ['left', 'right', 'left', 'center', 'center'],
                             qs         => $pages_qs,
                             ID         => 'USER_ABON'
@@ -108,11 +108,13 @@ foreach my $line (@$list) {
    }
 
   $table->addrow($html->form_input('IDS', "$line->[0]", { TYPE => 'CHECKBOX', 
-  	                                                      STATE => ($line->[5] == 1) ? 1 : undef   }),
+  	                                                      STATE => ($line->[6] == 1) ? 1 : undef   }),
+     
      "$line->[1]",
-     "$line->[2]", 
-     $PERIODS[$line->[3]], 
-     "$line->[4]"
+     $html->form_input('COMMENTS_'.$line->[0], "$line->[2]", { SIZE => 40 }),
+     "$line->[3]", 
+     $PERIODS[$line->[4]], 
+     "$line->[5]"
 
    );
  }
@@ -149,7 +151,7 @@ sub abon_user_list {
  my $list = $Abon->user_list({ %LIST_PARAMS });
  my $table = $html->table( { width     => '100%',
                              caption    => "$_ABON",
-                             title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, $_SUM, $_PERIOD, $_DATE],
+                             title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, "$_COMMENTS", $_SUM, $_PERIOD, $_DATE],
                              cols_align => ['left', 'right', 'left', 'right'],
                              qs         => $pages_qs,
                              pages      => $Abon->{TOTAL},
@@ -166,9 +168,10 @@ foreach my $line (@$list) {
   $table->addrow($html->button("$line->[0]", "index=15&UID=$line->[6]"), 
      "$line->[1]", 
      $line->[2], 
-     $line->[3],
-     $PERIODS[$line->[4]],
-     $line->[5]
+     $line->[3], 
+     $line->[4],
+     $PERIODS[$line->[5]],
+     $line->[6]
    );
  }
 print $table->show();
@@ -343,12 +346,14 @@ sub abon_periodic {
        BILL_ID => $line->[3]
       );
 
-    my %PARAMS = ( DESCRIBE  => "ABON: [$line->[10]] $line->[6]",
+    my %PARAMS = ( DESCRIBE  => "$_ABON: [$line->[10]] $line->[6]",
                    METHOD    => 1  );
 
     $PARAMS{DATE}=$DATE if ($DATE ne '');
 
     $line->[8] = 0 if (! $line->[8]);
+    $PARAMS{DESCRIBE} = "$_ABON: $line->[6]. $line->[12]" if ($line->[12]);
+
 
     #print "$user{UID} - ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0\n" if (! $line->[8] );
     if($line->[8] && ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
@@ -365,16 +370,30 @@ sub abon_periodic {
          $Abon->user_tariff_update({ UID   => "$line->[2]", 
          	                           DATE  => $DATE, 
          	                           TP_ID => "$line->[10]" });
-         #print "Month Fee $d<Br>\n"; 
+
+       }
+    	#Get quarter fee
+    	elsif ($line->[0] == 2 && ($m == 0 || $m % 3 == 0)) {
+         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+         $Abon->user_tariff_update({ UID   => "$line->[2]", 
+         	                           DATE  => $DATE, 
+         	                           TP_ID => "$line->[10]" });
+
+       }
+    	#Get six month fee
+    	elsif ($line->[0] == 3 && (($m==0 || $m == 5) && $d == 1)) {
+         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+         $Abon->user_tariff_update({ UID   => "$line->[2]", 
+         	                           DATE  => $DATE, 
+         	                           TP_ID => "$line->[10]" });
        }
   	  # Yesr fee
-  	  elsif ($line->[0] == 2 && ($m == 0 && $d == 1)) {
+  	  elsif ($line->[0] == 4 && ($m == 0 && $d == 1)) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$line->[2]", 
          	                           DATE  => $DATE, 
          	                           TP_ID => "$line->[10]" 
          	                           });
-         #print "Year fee $m $d<Br>\n"; 
        }
      }
 
@@ -493,4 +512,3 @@ sub abon_get_month_fee {
 }
 
 1
-
