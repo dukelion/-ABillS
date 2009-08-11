@@ -1,7 +1,7 @@
 <script type=\"text/JavaScript\">
 
 <!--
-function Process(version, INTERNAL_SUBNET, wds){
+function Process(version, INTERNAL_SUBNET, wds, SSID){
 	
 	var commandbegin='%PARAM1%';
 	var commandend = '%PARAM2%';
@@ -25,13 +25,19 @@ function Process(version, INTERNAL_SUBNET, wds){
   	} else { 
 		var commandwds = ''; 
 	}
+
+	if (SSID != '') {
+		var commandsid = '\\&SSID='+SSID;
+  	} else { 
+		var commandsid = ''; 
+	}
+
 	
-	document.FORM_NAS.tbox.value = commandbegin+ commandversion + commandsubnet + commandwds + commandend;
+	document.FORM_NAS.tbox.value = commandbegin+ commandversion + commandsid + commandsubnet + commandwds + commandend;
 
 }
 
-function data_change(field)
-     {
+function data_change(field) {
           var check = true;
           var value = field.value; //get characters
           //check that all characters are digits, ., -, or \"\"
@@ -85,15 +91,21 @@ function disableEnterKey(e)
  </td>
                            </tr>
 
-<tr><td>Set router's internal IP to:
-                                   </td><td>
+<tr><td>Set router's internal IP to:</td><td>
                              192.168. <input name=\"INTERNAL_SUBNET\" class=\"forminput\" type=\"text\"  id=\"INTERNAL_SUBNET\" value=\"20\" size=\"3\" maxlength=\"3\"  
-                             onchange=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value)\" onkeyup=\"data_change(this)\"
+                             onchange=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\" onkeyup=\"data_change(this)\"
                             
-                            onsubmit=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value)\"  
+                            onsubmit=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\"  
                             
-                            onKeyPress=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value); return disableEnterKey(event)\" />
+                            onKeyPress=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value); return disableEnterKey(event)\" />
                                .1</td>
 </tr>
+<tr><td>SSID:</td><td> <input name=\"CUSTOM_SID\" class=\"forminput\" type=\"text\"  id=\"CUSTOM_SID\" value=\"\" size=\"18\" maxlength=\"14\"  
+                             onchange=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\" onkeyup=\"\"
+                            
+                            onsubmit=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value)\"  
+                            onKeyPress=\"Process(this.form.version.value, this.form.INTERNAL_SUBNET.value, this.form.wds.value, this.form.CUSTOM_SID.value); return disableEnterKey(event)\" /></td>
+</tr>
+
 <tr><td align=center colspan=2><textarea name=tbox rows=4 id=tbox cols=50>%CONFIGURE_DATE%</textarea></td></tr>
 </table>
