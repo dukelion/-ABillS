@@ -1263,7 +1263,19 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
   if ($RESULT->{TRAFFIC_LIMIT}) {
   	#print "LIMIT: $RESULT->{TRAFFIC_LIMIT} USED: $used_traffic->{TRAFFIC_SUM}";
   	$trafic_limits{0} =  $RESULT->{TRAFFIC_LIMIT} - $used_traffic->{TRAFFIC_COUNTER};
+   if ($RESULT->{SPEED_IN}) {
+        $EX_PARAMS{speed}{0}{IN}=$RESULT->{SPEED_IN};
    }
+
+  if ($RESULT->{SPEED_OUT}) {
+        $EX_PARAMS{speed}{0}{OUT}=$RESULT->{SPEED_OUT};
+   }
+
+  if ($RESULT->{SPEED}) {
+        $EX_PARAMS{speed}{0}{IN}=$RESULT->{SPEED};
+        $EX_PARAMS{speed}{0}{OUT}=$RESULT->{SPEED};
+   }
+  }
   #End expresion   
  }
 else {
