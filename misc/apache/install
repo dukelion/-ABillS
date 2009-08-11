@@ -5,4 +5,5 @@
 ::exec:mkdir /var/log/httpd
 abills_httpd.conf > [/usr/local/etc/apache22]/abills_httpd.conf
 :OS=FREEBSD:exec: /usr/local/etc/rc.d/apache22 restart
+:OS=FREEBSD:FILE=abills_hotspot.conf > [/usr/local/etc/apache22]/Include/abills_hotspot.conf
 

@@ -3064,6 +3064,14 @@ if($FORM{NAS_ID}) {
   $LIST_PARAMS{NAS_ID} = $FORM{NAS_ID};
   %F_ARGS = ( NAS => $nas );
   
+  if ($nas->{NAS_TYPE} eq 'chillispot' && -f "../wrt_configure.cgi") {
+    $ENV{HTTP_HOST} =~ s/\:(\d+)//g;
+    $nas->{EXTRA_PARAMS} = $html->tpl_show(templates('form_nas_configure'), { %$nas,
+    	 CONFIGURE_DATE => "wget -O /tmp/setup.sh http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?DOMAIN_ID=$admin->{DOMAIN_ID}\\\&NAS_ID=$nas->{NAS_ID}; chmod 755 /tmp/setup.sh; /tmp/setup.sh",
+    	 PARAM1  => "wget -O /tmp/setup.sh http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?DOMAIN_ID=$admin->{DOMAIN_ID}\\\&NAS_ID=$nas->{NAS_ID}",
+    	 PARAM2  => "; chmod 755 /tmp/setup.sh; /tmp/setup.sh",
+    	 }, { OUTPUT2RETURN => 1 });
+   }
   
   $nas->{CHANGED} = "($_CHANGED: $nas->{CHANGED})";
   $nas->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('NAS_ID', 
