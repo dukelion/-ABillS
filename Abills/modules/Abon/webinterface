@@ -55,9 +55,10 @@ sub abon_user {
         	$Abon->{TP_INFO}->{MONTH_FEE}        = $line->[1];
           $Abon->{TP_INFO}->{TP_ID}            = $line->[6];
           $Abon->{TP_INFO}->{NAME}             = $line->[0]; 
+          $Abon->{COMMENTS}                    = $FORM{'COMMENTS_'.$line->[6]}; 
           
  
-          my %PARAMS = ( DESCRIBE => "ABON: [$line->[6]] $line->[0]",
+          my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[6]]" . (($FORM{'COMMENTS_'.$line->[6]})? $FORM{'COMMENTS_'.$line->[6]} : "$line->[0]"),
                          METHOD   => 1  );
           
           if ($line->[2] == 1 && $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} == 1) {
@@ -91,7 +92,6 @@ sub abon_user {
 
   }
  
-
 my $list = $Abon->user_tariff_list($FORM{UID});
 my $table = $html->table( { width      => '100%',
                             caption    => "$_ABON",
@@ -103,12 +103,12 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
-   }
+  #if ($permissions{4}{1}) {
+  #  $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
+  # }
 
   $table->addrow($html->form_input('IDS', "$line->[0]", { TYPE => 'CHECKBOX', 
-  	                                                      STATE => ($line->[6] == 1) ? 1 : undef   }),
+  	                                                      STATE => ($line->[7] == 1) ? 1 : undef   }),
      
      "$line->[1]",
      $html->form_input('COMMENTS_'.$line->[0], "$line->[2]", { SIZE => 40 }),
@@ -299,6 +299,7 @@ foreach my $line (@$list) {
   if ($permissions{4}{1}) {
     $delete = $html->button($_DEL, "index=$index&del=$line->[6]", { MESSAGE => "$_DEL $line->[0]?" }); 
    }
+
   $table->addrow($html->button("$line->[0]", "index=$index&ABON_ID=$line->[6]"), 
      "$line->[1]", 
      $PERIODS[$line->[2]], 
@@ -437,7 +438,7 @@ sub abon_get_month_fee {
       }
 
         if ($Abon->{TP_INFO}->{PERIOD_ALIGNMENT}) {
-        	$message = ", $_MONTH_ALIGNMENT";
+        	$message = ", $_PERIOD_ALIGNMENT";
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
           if ($Abon->{ACTIVATE} && $Abon->{ACTIVATE} ne '0000-00-00') {
@@ -459,7 +460,7 @@ sub abon_get_month_fee {
         	$periods = 12 - $active_m + $m - 1; 
          }
 
-        $message = "ABON: [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME}".$message;
+        $message = "$_ABON: ". (($Abon->{COMMENTS}) ? " $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}" : " [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} " ) .$message;
         
         #if ($Abon->{TP_INFO}->{ABON_DISTRIBUTION}) {
         #	$sum = $sum / ( ($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28)) );
@@ -479,7 +480,7 @@ sub abon_get_month_fee {
 
           if ( $i > 0 ) {
   	        $sum     = $Abon->{TP_INFO}->{MONTH_FEE};
-            $message = "ABON: $sum ($Abon->{TP_INFO}->{TP_ID})";
+            $message = "$_ABON: $sum ($Abon->{TP_INFO}->{TP_ID})";
             $DATE    = "$active_y-$m-01";
             $TIME    = "00:00:00";
            }
@@ -491,6 +492,10 @@ sub abon_get_month_fee {
             #  $users->change($Abon->{UID}, { ACTIVATE => '0000-00-00',
             #  	                             UID      => $Abon->{UID} });
             # }
+           }
+         
+          if ($Abon->{COMMENTS}) {
+          	$message .= $Abon->{COMMENTS};
            }
          
           $fees->take($users, $sum, { DESCRIBE  => $message, 
