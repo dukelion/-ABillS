@@ -13,6 +13,6 @@ clients.conf     > [/usr/local/etc/raddb]/clients.conf
 :OS=FREEBSD,FREERADIUS=2:FILE=v2/radiusd.conf  > [/usr/local/etc/raddb]/radiusd.conf
 :OS=FREEBSD,FREERADIUS=2:FILE=v2/sql.conf  > [/usr/local/etc/raddb]/sql.conf
 :OS=FREEBSD,FREERADIUS=2:FILE=v2/default  > [/usr/local/etc/raddb]/sites-enabled/abills_default
-:FREERADIUS2=2:exec:chown freeradius /usr/abills/var/log/abills.log
+:FREERADIUS=2:exec:chown freeradius /usr/abills/var/log/abills.log
 
 :OS=FREEBSD:exec:/usr/local/etc/rc.d/radiusd restart

@@ -2,7 +2,7 @@ authorize {
   preprocess 
   abills_preauth 
   mschap 
-#  files 
+  files 
 #  sql
   abills_auth 
  } 
