@@ -1,9 +1,7 @@
+#RLM perl config
 authenticate {
         Auth-Type PAP {
                 pap
-        }
-        Auth-Type CHAP {
-                chap
         }
         Auth-Type MS-CHAP {
                 mschap
@@ -14,25 +12,29 @@ authenticate {
         eap
 }
 
+
 authorize { 
   preprocess 
   abills_preauth 
   mschap 
   files 
+  perl
 #  sql
-  abills_auth 
+#  abills_auth 
  } 
  
 preacct { 
   preprocess 
-  abills_acc 
  } 
+
+accounting {
+# don't use simultaneously 'perl' and files
+       perl
+       #detail
+}
 
 post-auth { 
   Post-Auth-Type REJECT { 
-     abills_postauth 
+     perl
    }
-# Post-Auth-Type REJECT {
-#   sql
-#  } 
 }
