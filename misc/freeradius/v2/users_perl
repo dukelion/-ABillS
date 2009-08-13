@@ -1,0 +1,2 @@
+DEFAULT Auth-Type = Perl
+    Fall-Through = 1 

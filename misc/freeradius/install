@@ -14,7 +14,7 @@ clients.conf     > [/usr/local/etc/raddb]/clients.conf
 :OS=FREEBSD,FREERADIUS=2:FILE=v2/sql.conf  > [/usr/local/etc/raddb]/sql.conf
 :OS=FREEBSD,FREERADIUS=2:FILE=v2/default  > [/usr/local/etc/raddb]/sites-enabled/abills_default
 :OS=FREEBSD,FREERADIUS=2:FILE=v2/perl >> [/usr/local/etc/raddb/modules]/perl
-:OS=FREEBSD,FREERADIUS=2:FILE=v2/users    > [/usr/local/etc/raddb]/users
+:OS=FREEBSD,FREERADIUS=2:FILE=v2/users_perl    > [/usr/local/etc/raddb]/users
 :OS=FREEBSD,FREERADIUS=2:FILE=v2/default_rlm_perl  > [/usr/local/etc/raddb]/sites-enabled/abills_default
 :FREERADIUS=2:exec:chown freeradius /usr/abills/var/log/abills.log
 
