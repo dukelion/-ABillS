@@ -511,6 +511,20 @@ sub multidoms_reseller_tp {
  $tarif_info->{LNG_ACTION} = $_ADD;
  $tarif_info->{ACTION}     = 'ADD_TP';
 
+if (defined($FORM{TOTAL_TIME_TYPE})) {
+	if($FORM{TOTAL_TIME_TYPE} == 2) {
+		$FORM{TOTAL_TIME_LIMIT}=$FORM{DAYS} * 86400;
+	 }
+  elsif($FORM{TOTAL_TIME_TYPE}) {
+		$FORM{TOTAL_TIME_LIMIT}=$FORM{HOURS} * 3600;
+	 }
+  else {
+  	$FORM{TOTAL_TIME_LIMIT}=30 * 60;
+   }
+}
+
+
+
 
 if($FORM{ADD_TP}) {
    if (! $FORM{TP_ID}) {
@@ -528,6 +542,9 @@ if($FORM{ADD_TP}) {
   $FORM{ID}=$FORM{TP_ID};
   if ($FORM{TP_ID} < 1) {
   	$html->message('err', $_ERROR, "$_ERROR ID = 0");
+   }
+  elsif (! $FORM{NAME}) {
+  	$html->message('err', $_ERROR, "$ERR_WRONG_NAME");
    }
   else {
    $FORM{SIMULTANEOUSLY} = 1;
@@ -728,6 +745,24 @@ $tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID',
 
 #$tarif_info->{HOURS} = 1;
 #$tarif_info->{DAYS}  = 1;
+
+
+
+if ($tarif_info->{TOTAL_TIME_LIMIT} > 0) {
+  if ($tarif_info->{TOTAL_TIME_LIMIT} == 1800) {
+	  $tarif_info->{PERIOD_30M} = 'checked';
+   }
+  elsif($tarif_info->{TOTAL_TIME_LIMIT} % 86400 == 0) {
+    $tarif_info->{PERIOD_1D}='checked';
+    $tarif_info->{DAYS}=$tarif_info->{TOTAL_TIME_LIMIT} / 86400;
+   }
+  elsif($tarif_info->{TOTAL_TIME_LIMIT} % 3600 == 0) {
+    $tarif_info->{PERIOD_1H}='checked';
+    $tarif_info->{HOURS}=$tarif_info->{TOTAL_TIME_LIMIT} / 3600;
+   }
+}
+
+
 $html->tpl_show(_include('multidoms_reseller_tp', 'Multidoms'), $tarif_info);
 
 
