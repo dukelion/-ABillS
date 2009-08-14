@@ -33,9 +33,9 @@
  
   <tr><th colspan=3 bgcolor=$_COLORS[0]>$_TIME_LIMIT</th></tr> 
   <tr><td>$_TOTAL</td><td colspan=2>
-  <input type=radio name=MONTH_TIME_TYPE value='0'> 30 $_MINUTES<br>
-  <input type=radio name=MONTH_TIME_TYPE value='1'> $_HOURS: <input type=text name=HOURS value='%HOURS=1%' size=6><br>
-  <input type=radio name=MONTH_TIME_TYPE value='2'> $_DAYS: <input type=text name=DAYS value='%DAYS=1%' size=6><br>
+  <input type=radio name=TOTAL_TIME_TYPE value='0' %PERIOD_30M=checked%> 30 $_MINUTES<br>
+  <input type=radio name=TOTAL_TIME_TYPE value='1' %PERIOD_1H%> $_HOURS: <input type=text name=HOURS value='%HOURS=1%' size=6><br>
+  <input type=radio name=TOTAL_TIME_TYPE value='2' %PERIOD_1D%> $_DAYS: <input type=text name=DAYS value='%DAYS=1%' size=6><br>
   </td></tr>
 <!--
   <tr><td>$_DAY</td><td colspan=2><input type=text name=DAY_TIME_LIMIT value='%DAY_TIME_LIMIT%'></td></tr> 
@@ -52,11 +52,11 @@
 -->
 
   <tr><th colspan=3 bgcolor=$_COLORS[0]>$_TRAF_LIMIT (Mb)</th></tr>
-  <tr><td>$_DAY</td><td colspan=2><input type=text name=DAY_TRAF_LIMIT value='%DAY_TRAF_LIMIT%' size=10></td></tr>
+  <tr><td>$_DAY (0=$_UNLIMITED)):</td><td colspan=2><input type=text name=DAY_TRAF_LIMIT value='%DAY_TRAF_LIMIT%' size=10></td></tr>
 <!--  <tr><td>$_WEEK</td><td colspan=2><input type=text name=WEEK_TRAF_LIMIT value='%WEEK_TRAF_LIMIT%'></td></tr>
       <tr><td>$_MONTH</td><td colspan=2><input type=text name=MONTH_TRAF_LIMIT value='%MONTH_TRAF_LIMIT%'></td></tr>
 -->  
-  <tr><td>$_TOTAL</td><td colspan=2><input type=text name=TOTAL_TRAF_LIMIT value='%TOTAL_TRAF_LIMIT%' size=10></td></tr>
+  <tr><td>$_TOTAL (0=$_UNLIMITED)):</td><td colspan=2><input type=text name=TOTAL_TRAF_LIMIT value='%TOTAL_TRAF_LIMIT%' size=10></td></tr>
   <tr><td>$_OCTETS_DIRECTION</td colspan=2><td>%SEL_OCTETS_DIRECTION%</td></tr>
 
 <!--
