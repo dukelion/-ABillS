@@ -297,9 +297,10 @@ sub mk_unique_value {
    my ($passsize, $attr) = @_;
    my $symbols = (defined($attr->{SYMBOLS})) ? $attr->{SYMBOLS} : "qwertyupasdfghjikzxcvbnmQWERTYUPASDFGHJKLZXCVBNM23456789";
 
-   my $value = '';
+   my $value  = '';
    my $random = '';
-   my $i=0;
+   my $i      = 0;
+   $passsize  = 6 if (int($passsize) < 1);
    
    my $size = length($symbols);
    srand();
