@@ -434,6 +434,8 @@ sub cards_users_add  {
   	  my $SERIAL       = $FORM{SERIAL} || '';
   	  my $generated    = 0;
       my $DATA_ARRAY   = ();
+      $FORM{LOGIN_LENGTH}=6 if (! $FORM{LOGIN_LENGTH});
+      $FORM{PASSWD_LENGTH}=6 if(! $FORM{PASSWD_LENGTH});  
 
       if ($FORM{LOGIN_FILE}) {
       	 $html->message('info', $_INFO, "$_FILE: $FORM{LOGIN_FILE}{filename}");
@@ -451,7 +453,7 @@ sub cards_users_add  {
            $USER_HASH{DILLER_ID}= int($FORM{DILLER_ID});
            $USER_HASH{SERIAL}   = $SERIAL;
            $USER_HASH{NUMBER}   = $begin;
-           $USER_HASH{PIN}      = "$password" if ($FORM{PAYMENT_OPERATION});
+           $USER_HASH{PIN}      = ($FORM{PAYMENT_OPERATION}) ? "$password" : '';
            
            next if ($USER_HASH{LOGIN} eq '');
            
@@ -517,16 +519,21 @@ sub cards_users_add  {
   	      	                  SERIAL     => "$FORM{SERIAL}",
   	      	                  NUMBER     => $i,
   	      	                  DILLER_ID  => $FORM{DILLER_ID},
-   	                          PIN        => ($FORM{PAYMENT_OPERATION}) ? "$password" : undef
+   	                          PIN        => ($FORM{PAYMENT_OPERATION}) ? "$password" : $password
   	      	                  
       	                    };
   	   }
 
-    if ($generated > 0) {
-      $export="<?xml version=\"1.0\" encoding=\"$html->{CHARSET}\"?>\n<CARDS>\n$export</CARDS>" if ($FORM{EXPORT} eq 'XML');
+    if ($generated > 0 && ! $attr->{NO_PRINT}) {
+      if ($FORM{EXPORT} eq 'XML') {
+        $export="<?xml version=\"1.0\" encoding=\"$html->{CHARSET}\"?>\n<CARDS>\n$export</CARDS>" 
+       }
+      else {
+      	$export="$_LOGIN\t$_PASSWD\t$_SERIAL\t$_EXPIRE\n=====================================================\n$export" ;
+       }
 
-   	    $html->message('info', $_INFO, "$_CREATED: $generated");
-   	    print "<textarea cols='70' rows='30'>$export</textarea>\n";
+ 	    $html->message('info', $_INFO, "$_CREATED: $generated");
+      print "<textarea cols='70' rows='30'>$export</textarea>\n";
    	 }
    	  
    return \@DATA_ARRAY;
@@ -549,7 +556,7 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
  	                                        });
 
 
-	$Cards->{CARDS_TYPE}=$html->tpl_show(_include('cards_logins', 'Cards'), $Cards, { notprint => 1 });
+	$Cards->{CARDS_TYPE}=$html->tpl_show(_include('cards_logins', 'Cards'), $Cards, { OUTPUT2RETURN => 1 });
 	$html->tpl_show(_include('cards_add', 'Cards'), $Cards);
 }
 
@@ -787,6 +794,9 @@ if ($Cards->{errno}) {
 }
 
 
+
+
+
 #**********************************************************
 #
 #**********************************************************
@@ -845,7 +855,39 @@ else {
       $table->{rowcolor} = $_COLORS[0];
     	$table->addrow(
     	  "$_COUNT", "$_SUM",
-    	  "$_COUNT",   ($v->{DILLERS})   ? $v->{DILLERS} : 0,
+    	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+     	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+    	  "$_COUNT", "$_SUM",
+     	  "$_COUNT", "$_SUM"
+    	);
+
+ $table->{rowcolor} = undef;
+
+my @days_arr = sort keys %$report_hash;
+
+ for(my $i=$#days_arr; $i>=0;  $i--)  {
+ 	 my $k = $days_arr[$i];
+   my $v=$report_hash->{$k};
+
+ 	 $table->addrow($html->button($k, "index=$index&DATE=$k"), 
+ 	   ($v->{ENABLE})   ? $v->{ENABLE} : 0,
+ 	   ($v->{ENABLE_SUM})   ? $v->{ENABLE_SUM} : 0.00,
+
+ 	   ($v->{USED})     ? $v->{USED} : 0,
+ 	   ($v->{USED_SUM})     ? $v->{USED_SUM} : 0.00,
+
+ 	   ($v->{DISABLE})  ? $v->{DISABLE} : 0,
+ 	   ($v->{DISABLE_SUM})  ? $v->{DISABLE_SUM} : 0.00,
+
+ 	   ($v->{RETURNED}) ? $v->{RETURNED} : 0,
+ 	   ($v->{RETURNED_SUM}) ? $v->{RETURNED_SUM} : 0.00,
+
+ 	   ($v->{LOGIN})   ? $v->{LOGIN} : 0,
+ 	   ($v->{LOGIN_SUM})   ? $v->{LOGIN_SUM} : 0.00,
+
+ 	   ($v->{DILLERS})   ? $v->{DILLERS} : 0,
  	   ($v->{DILLERS_SUM})   ? $v->{DILLERS_SUM} : 0.00,
 
  	   ($v->{DILLERS_SOLD})   ? $v->{DILLERS_SOLD} : 0,
@@ -884,6 +926,30 @@ else {
  print $table->show();
 
 }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #**********************************************************
@@ -1214,13 +1280,20 @@ sub cards_diller_add {
 
 
 if ($FORM{add}) {
+     my $fees = Finance->fees($db, $admin, \%conf);
+     
      
      if ($FORM{EXPORT} && $FORM{EXPORT} eq 'xml') {
-     	  print "Content-Type: text/xml\n\n";
+     	  print "Content-Type: text/xml; filename=\"cards_$DATE.xml\"\n".
+  	    "Content-Disposition: attachment; filename=\"cards_$DATE.xml\"; size=$Msgs->{FILESIZE}".
+  	    "\n\n";
+
      	  print "<?xml version=\"1.0\" encoding=\"$html->{CHARSET}\"?>\n";
      	}
      elsif ($FORM{EXPORT} && $FORM{EXPORT} eq 'text') {
-     	  print "Content-Type: text/plain\n\n";
+     	  print "Content-Type: text/plain; filename=\"cards_$DATE.csv\"\n".
+  	    "Content-Disposition: attachment; filename=\"cards_$DATE.csv\"; size=$Msgs->{FILESIZE}".
+  	    "\n\n";
      	}
      else {
        print $html->header();
@@ -1247,7 +1320,7 @@ if ($FORM{add}) {
 
       $serial++;
 
-      if (! $FORM{CARDS_PAYMENT_PIN_LENGTH}) {
+     if($FORM{CARDS_PAYMENT_PIN_LENGTH}) {
         $FORM{CARDS_PAYMENT_PIN_LENGTH} = $conf{CARDS_PAYMENT_PIN_LENGTH} || 8;
        }
 
@@ -1256,23 +1329,31 @@ if ($FORM{add}) {
       
       #Import from other systems
       if ($FORM{import}) {
-       	my $return = cards_users_add({ EXTRA_TPL => $dv_tpl  });
-        $FORM{add}=1;
-        if (scalar keys %FORM_BASE < 1) {
-  	       %FORM_BASE=%FORM;
-         }
 
-        my $CREATED = '';
-        my $added_count = 0;
+
+        
+        
+       }
+      else {
+        if ($FORM{TYPE}) {
+        	require "Abills/modules/Dv/webinterface";
+
+          $FORM{add}   =1;
+          $FORM{create}=1;
+         	my $return = cards_users_add({ EXTRA_TPL => $dv_tpl, 
+         		                             NO_PRINT => 1  
+         		                             });
+          
+          my $added_count = 0;
 
         if (ref($return) eq 'ARRAY') {
   	      foreach my $line (@$return) {
-            %FORM = ();
-     	      %FORM = %FORM_BASE;
+            #%FORM = ( add => 1);
+     	      #%FORM = %FORM_BASE;
 
-  	 	      while(my($k, $v)= each %$line) {
-  	 	  	    $FORM{$k}=clearquotes($v);
-  	 	       }
+  	 	      #while(my($k, $v)= each %$line) {
+  	 	  	  #  $FORM{$k}=clearquotes($v);
+  	 	      # }
 
       	 	  $FORM{'1.LOGIN'}      = $line->{LOGIN};
   	    	  $FORM{'1.PASSWORD'}   = $line->{PASSWORD};
@@ -1287,33 +1368,44 @@ if ($FORM{add}) {
   	 	      else {
   	 	        #Confim card creation
   	 	        $added_count++;
-  	 	        $table->addrow("$FORM{'1.LOGIN'}", "$UID", "$FORM{ex_message}");
+  	 	        #$table->addrow("$FORM{'1.LOGIN'}", "$UID", "$FORM{ex_message}");
+  	 	  	    
+  	 	  	      push @CARDS_OUTPUT, { PIN         => $pin,
+#  	 	  	      	LOGIN       => $FORM{'1.LOGIN'},
+  	 	  	      	PASSWORD    => $FORM{'1.PASSWORD'},
+  	 	  	      	PIN         => $FORM{'1.PASSWORD'},
+                  NUMBER      => $i,
+                  EXPIRE_DATE => ($EXPIRE_DATE ne '0000-00-00') ? $EXPIRE_DATE : '' ,
+                  DATE        => "$DATE $TIME",
+                  SUM         => sprintf("%.2f", $FORM{SUM}),
+                  DILLER_ID   => $diller->{ID}
+                   };
+  	 	  	    
   	 	  	    if(cards_users_gen_confim({ %$line, SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  }) == 0) {
   	 	  		     return 0;
   	 	  		 }
   	 	    }
+
+
+
   	    }
 
          }
-        
-        
-       }
-      else {
-        if ($FORM{TYPE}) {
-        	require "Abills/modules/Dv/webinterface";
+        	
+        	
          } 
-        
-        for (my $i=$serial; $i<$serial+$count; $i++) {
-        	if ($FORM{TYPE}) {
-        		my $password = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
-        	 }
+        else {
+          for (my $i=$serial; $i<$serial+$count; $i++) {
+        	  if ($FORM{TYPE}) {
+        		  my $password = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
+        	   }
         	
         	
-          my $pin         = mk_unique_value($FORM{CARDS_PAYMENT_PIN_LENGTH}, { SYMBOLS => '1234567890' });
-          $i              = sprintf("%s%.11d", $FORM{SERIAL}, $i);
-          my $EXPIRE_DATE = '0000-00-00';
+            my $pin         = mk_unique_value($FORM{CARDS_PAYMENT_PIN_LENGTH}, { SYMBOLS => '1234567890' });
+            $i              = sprintf("%s%.11d", $FORM{SERIAL}, $i);
+            my $EXPIRE_DATE = '0000-00-00';
 
-          $Cards->cards_add({ SERIAL    => "",
+            $Cards->cards_add({ SERIAL    => "",
                               NUMBER    => "$i",
                               PIN       => "$pin",
                               SUM       => "$FORM{SUM}",
@@ -1322,56 +1414,58 @@ if ($FORM{add}) {
                               DILLER_ID => $diller->{ID}
                             });
 
-          if ($Cards->{errno}) {
-            $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
-            return 0;
-           }
-          else {
-          	my $sum = 0;
-            #Take fees
-            if ($diller->{PERCENTAGE} > 0) {
-              $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $diller->{PERCENTAGE})));
+            if ($Cards->{errno}) {
+              $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
+              return 0;
              }
             else {
-            	$Cards->dillers_tp_info({ ID => $diller->{TP_ID} });
-            	
-            	if ($Cards->{TOTAL} > 0) {
-                if ($Cards->{PERCENTAGE} > 0) {
-              	  $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $Cards->{PERCENTAGE})));
-                 }
-
-                if ( $Cards->{OPERATION_PAYMENT} > 0) {
-              	  $sum += $Cards->{OPERATION_PAYMENT};
-                 }
+            	my $sum = 0;
+              #Take fees
+              if ($diller->{PERCENTAGE} > 0) {
+                $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $diller->{PERCENTAGE})));
                }
-          	  else {
-          	  	$sum = $FORM{SUM};
-          	   }
-             }
+              else {
+            	  $Cards->dillers_tp_info({ ID => $diller->{TP_ID} });
+            	
+            	  if ($Cards->{TOTAL} > 0) {
+                  if ($Cards->{PERCENTAGE} > 0) {
+              	    $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $Cards->{PERCENTAGE})));
+                   }
+
+                  if ( $Cards->{OPERATION_PAYMENT} > 0) {
+                	  $sum += $Cards->{OPERATION_PAYMENT};
+                   }
+                 }
+             	  else {
+             	  	$sum = $FORM{SUM};
+            	   }
+               }
               
 
-            my $fees = Finance->fees($db, $admin, \%conf);
+              
 
 
-            $fees->take($user, $sum,
+              $fees->take($user, $sum,
                                     {  DESCRIBE     => "$_ICARDS $Cards->{SERIAL}$Cards->{NUMBER}",
                                        METHOD       => 0,
                                        EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
                                        CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
                                      });
 
-              push @CARDS_OUTPUT, { PIN         => $pin,
-                NUMBER      => $i,
-                EXPIRE_DATE => ($EXPIRE_DATE ne '0000-00-00') ? $EXPIRE_DATE : '' ,
-                DATE        => "$DATE $TIME",
-                SUM         => sprintf("%.2f", $FORM{SUM}),
-                DILLER_ID   => $diller->{ID}
-                 };
+                push @CARDS_OUTPUT, { PIN         => $pin,
+                  NUMBER      => $i,
+                  EXPIRE_DATE => ($EXPIRE_DATE ne '0000-00-00') ? $EXPIRE_DATE : '' ,
+                  DATE        => "$DATE $TIME",
+                  SUM         => sprintf("%.2f", $FORM{SUM}),
+                  DILLER_ID   => $diller->{ID}
+                   };
+  
+             }
+
 
            }
 
-
-           }
+         }
         }
 
 
@@ -1422,7 +1516,7 @@ if ($FORM{add}) {
   if ($attr->{RESELLER}) {
     $Cards->{TYPE_SEL} = $html->form_select('TYPE', { 
  	                                       SELECTED      => $FORM{TYPE},
- 	                                       SEL_ARRAY     => [$_PAYMENTS, $_ACCOUNTS],
+ 	                                       SEL_ARRAY     => [$_PAYMENTS, "$_SERVICES ($_LOGIN + $_PASSWD)"],
  	                                       ARRAY_NUM_ID  => 1,
  	                                       EX_PARAMS         => 'onchange=\'samechanged(this)\''
  	                                     });
@@ -1629,6 +1723,9 @@ $table = $html->table( { width      => '100%',
                      } );
 print $table->show();
 	
+}
+
+sub sel_groups {
 }
 
 1

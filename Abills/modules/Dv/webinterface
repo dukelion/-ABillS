@@ -4699,7 +4699,7 @@ sub dv_wizard_user {
           return 0;
          }
         elsif ($FORM{'6.SEND_MAIL'}) {
-      	  my $message =  $html->tpl_show(_include('mail_test_msg', 'Mail'), $Mail, { notprint => 1 });
+      	  my $message =  $html->tpl_show(_include('mail_test_msg', 'Mail'), $Mail, { OUTPUT2RETURN => 1 });
       	  sendmail("$conf{ADMIN_MAIL}", 
       	   "$Mail->{USER_EMAIL}", 
       	   "Test mail", 
@@ -4782,8 +4782,8 @@ sub dv_wizard_user {
   
   
   if (! $attr->{NO_EXTRADATA}) {
-    $users_defaults->{EXDATA}  =  $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
-    $users_defaults->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
+    $users_defaults->{EXDATA}  =  $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { OUTPUT2RETURN => 1 });
+    $users_defaults->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { OUTPUT2RETURN => 1 }) if ($conf{EXT_BILL_ACCOUNT});
     
 #    $html->tpl_show(templates('form_user_exdata'), 
 #       { CREATE_BILL  => ' checked' }, 
@@ -4863,15 +4863,15 @@ sub dv_wizard_user {
      }
    }
  
- $pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), undef, { notprint => 1 });
+ $pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), undef, { OUTPUT2RETURN => 1 });
  
  $dv_defaults->{JOIN_SERVICE}='';
  my %tpls = (
-	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults,    { notprint => 1, ID => 'FORM_USER'     }),  
-	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { notprint => 1, ID => 'FORM_PASSWORD' }),
-	            "3:$_INFO::"     => $html->tpl_show(templates('form_pi'), \%pi_form,            { notprint => 1, ID => 'FORM_PI'       }), 
-	            "4:Internet::"   => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults,    { notprint => 1, ID => 'DV_USER'       }),
- 	            "5:$_PAYMENTS::" => $html->tpl_show(templates('form_payments'), $payments,      { notprint => 1, ID => 'FORM_PAYMENTS' }),
+	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults,    { OUTPUT2RETURN => 1, ID => 'FORM_USER'     }),  
+	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { OUTPUT2RETURN => 1, ID => 'FORM_PASSWORD' }),
+	            "3:$_INFO::"     => $html->tpl_show(templates('form_pi'), \%pi_form,            { OUTPUT2RETURN => 1, ID => 'FORM_PI'       }), 
+	            "4:Internet::"   => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults,    { OUTPUT2RETURN => 1, ID => 'DV_USER'       }),
+ 	            "5:$_PAYMENTS::" => $html->tpl_show(templates('form_payments'), $payments,      { OUTPUT2RETURN => 1, ID => 'FORM_PAYMENTS' }),
              );
  
  #If mail module added
@@ -4900,7 +4900,7 @@ sub dv_wizard_user {
  	                               });
 
 
-    $tpls{"6:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { notprint => 1, ID => 'MAIL_BOX' });
+    $tpls{"6:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { OUTPUT2RETURN => 1, ID => 'MAIL_BOX' });
   } 
  
  if ($attr->{TPLS}) {
@@ -4920,7 +4920,7 @@ sub dv_wizard_user {
 
      $template .= "<tr bgcolor=\"$_COLORS[0]\"><th>$descr</th></tr>\n";
      #$wizard = $pre;
-     my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { notprint => 1, ID => "$descr" });
+     my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { OUTPUT2RETURN => 1, ID => "$descr" });
      $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
      $sub_tpl =~ s/(<input .*?index.*?>)//gi;
      $sub_tpl =~ s/name=([A-Z_]+)/name=$n.$1/gi;

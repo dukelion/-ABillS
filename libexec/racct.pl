@@ -232,7 +232,8 @@ sub acct {
 
     ($RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = ($RAD->{ACCT_OUTPUT_GIGAWORDS}, $RAD->{ACCT_INPUT_GIGAWORDS}); 
 
-  	
+
+    
     if ($nas->{NAS_TYPE} eq 'mpd5' && $RAD->{MPD_INPUT_OCTETS}) {
     	
    	  if (ref $RAD->{MPD_INPUT_OCTETS} eq 'ARRAY') {
@@ -259,6 +260,7 @@ sub acct {
 #          $RAD->{'OUTBYTE' . $class}	= $byte;
 #       }
 
+      
       #my $xxx = `echo "$RAD->{INBYTE} /  $RAD->{OUTBYTE} / $RAD->{MPD_INPUT_OCTETS}[0]" >> /tmp/test_rlm`;
       
      }
