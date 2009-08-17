@@ -235,19 +235,30 @@ sub acct {
   	
     if ($nas->{NAS_TYPE} eq 'mpd5' && $RAD->{MPD_INPUT_OCTETS}) {
     	
-   	
-      foreach my $line  (@{ $RAD->{MPD_INPUT_OCTETS} }) {
-         my($class, $byte)=split(/:/, $line);
-         $class = ($class == 0) ? '' : $class + 1;
-         $RAD->{'INBYTE'. $class }	= $byte;
-        }
+   	  if (ref $RAD->{MPD_INPUT_OCTETS} eq 'ARRAY') {
+        foreach my $line  (@{ $RAD->{MPD_INPUT_OCTETS} }) {
+          my($class, $byte)=split(/:/, $line);
+          $class = ($class == 0) ? '' : $class + 1;
+          $RAD->{'INBYTE'. $class }	= $byte;
+         }
 
-      foreach my $line  (@{ $RAD->{MPD_OUTPUT_OCTETS} }) {
-         my($class, $byte)=split(/:/, $line);
-         $class = ($class == 0) ? '' : $class + 1;
-         $RAD->{'OUTBYTE' . $class}	= $byte;
-        }
-      
+        foreach my $line  (@{ $RAD->{MPD_OUTPUT_OCTETS} }) {
+          my($class, $byte)=split(/:/, $line);
+          $class = ($class == 0) ? '' : $class + 1;
+          $RAD->{'OUTBYTE' . $class}	= $byte;
+         }
+       }
+#      else {
+#          my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS});
+#          $class = ($class == 0) ? '' : $class + 1;
+#          $RAD->{'INBYTE'. $class }	= $byte;
+#
+#
+#          my($class, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS});
+#          $class = ($class == 0) ? '' : $class + 1;
+#          $RAD->{'OUTBYTE' . $class}	= $byte;
+#       }
+
       my $xxx = `echo "$RAD->{INBYTE} /  $RAD->{OUTBYTE} / $RAD->{MPD_INPUT_OCTETS}[0]" >> /tmp/test_rlm`;
       
      }
