@@ -259,7 +259,7 @@ sub acct {
 #          $RAD->{'OUTBYTE' . $class}	= $byte;
 #       }
 
-      my $xxx = `echo "$RAD->{INBYTE} /  $RAD->{OUTBYTE} / $RAD->{MPD_INPUT_OCTETS}[0]" >> /tmp/test_rlm`;
+      #my $xxx = `echo "$RAD->{INBYTE} /  $RAD->{OUTBYTE} / $RAD->{MPD_INPUT_OCTETS}[0]" >> /tmp/test_rlm`;
       
      }
     elsif ($nas->{NAS_TYPE} eq 'exppp') {
