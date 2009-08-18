@@ -439,8 +439,8 @@ if ($functions{$index}) {
    }
 
  	  
-  if($FORM{UID} && $FORM{UID} > 0) {
-  	my $ui = user_info($FORM{UID});
+  if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne '')) {
+  	my $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
 
   	if($ui->{errno}==2) {
   		$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
@@ -1249,6 +1249,8 @@ sub form_users {
   	return 0;
    }
 
+
+
 if(defined($attr->{USER})) {
 
   my $user_info = $attr->{USER};
@@ -1486,9 +1488,11 @@ elsif ($FORM{MULTIUSER}) {
 }
 
 
+
 if (! $permissions{0}{2}) {
 	return 0;
 }
+
 
 
 
@@ -1519,7 +1523,7 @@ if ($users->{errno}) {
  }
 elsif ($users->{TOTAL} == 1) {
 	$FORM{index} = 15;
-	$FORM{UID}=$list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+	$FORM{UID}   = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
 	form_users({  USER => user_info($list->[0]->[5 + $users->{SEARCH_FIELDS_COUNT}], { %FORM }) });
 	return 0;
  }
@@ -3498,7 +3502,7 @@ elsif($FORM{NAS_ID}) {
   $FORM{subf}=$index;
   form_nas();
   return 0;
-}
+ }
 else {
 	$nas = Nas->new($db, \%conf);	
 }
@@ -3509,12 +3513,13 @@ my $table = $html->table( { width      => '100%',
                             border     => 1,
                             title      => ["NAS", "NAS_PORT", "$_SESSIONS", "$_LAST_LOGIN", "$_AVG", "$_MIN", "$_MAX"],
                             cols_align => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+                            ID         => 'NAS_STATS'
                         } );
 
 my $list = $nas->stats({ %LIST_PARAMS });	
 
 foreach my $line (@$list) {
-  $table->addrow($html->button($line->[0], "index=60&NAS_ID=$line->[7]"), 
+  $table->addrow($html->button($line->[0], "index=61&NAS_ID=$line->[7]"), 
      $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], $line->[6] );
 }
 
@@ -5014,6 +5019,7 @@ sub form_sendmail {
  $html->tpl_show(templates('mail_form'), $user); 
 }
 
+
 #*******************************************************************
 # Search form
 #*******************************************************************
@@ -5181,19 +5187,19 @@ $html->tpl_show(templates('form_search'), \%SEARCH_DATA);
 
 if ($FORM{search}) {
 	$LIST_PARAMS{LOGIN_EXPR}=$FORM{LOGIN_EXPR};
-  $pages_qs = "&search=y";
+  $pages_qs  = "&search=1";
   $pages_qs .= "&type=$FORM{type}" if ($pages_qs !~ /&type=/);
 
 	if(defined($FORM{FROM_D}) && defined($FORM{TO_D})) {
-	  $FORM{FROM_DATE}="$FORM{FROM_Y}-". sprintf("%.2d", ($FORM{FROM_M}+1)). "-$FORM{FROM_D}";
-	  $FORM{TO_DATE}="$FORM{TO_Y}-". sprintf("%.2d", ($FORM{TO_M}+1)) ."-$FORM{TO_D}";
+	  $FORM{FROM_DATE}= "$FORM{FROM_Y}-". sprintf("%.2d", ($FORM{FROM_M}+1)). "-$FORM{FROM_D}";
+	  $FORM{TO_DATE}  = "$FORM{TO_Y}-". sprintf("%.2d", ($FORM{TO_M}+1)) ."-$FORM{TO_D}";
    }	 
 	
 	while(my($k, $v)=each %FORM) {
 		if ($k =~ /([A-Z0-9]+|_[a-z0-9]+)/ && $v ne '' && $k ne '__BUFFER') {
 		  #print "$k, $v<br>";
-		  $LIST_PARAMS{$k}=$v;
-	    $pages_qs .= "&$k=$v";
+		  $LIST_PARAMS{$k}= $v;
+	    $pages_qs      .= "&$k=$v";
 		 }
 	 }
 

@@ -2101,7 +2101,7 @@ if ($conf{ERROR2DB}) {
 		$table->addrow($line->[0],
 		$log_levels_rev{$line->[1]},
 		$line->[2],
-		$html->button($line->[3], "index=11&LOGIN_EXPR=$line->[3]"),
+		$html->button($line->[3], "index=11&LOGIN=$line->[3]"),
 		($line->[1] < 5) ? $html->color_mark($line->[4], "#FF0000") : $line->[4],
 		$nas_ids{$line->[5]}
 		);
@@ -2128,14 +2128,6 @@ my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      =
 	                                                                   PG        => $PG,
 	                                                                   PAGE_ROWS => 25 #$PAGE_ROWS
 	                                                                 });
-#	                                                                   
-#
-#print $html->form_main({ CONTENT => "$_LOGIN (*): " . $html->form_input('LOGIN_EXPR', "$FORM{LOGIN_EXPR}"),
-#	                       HIDDEN  => { sid   => "$sid",
-#	                                    index => "$index",
-#	                                    UID   => "$UID"   },
-#	                       SUBMIT  => { show  => "$_SHOW" }
-#	                      });
 	                                                                   
 
 	                                                                   
