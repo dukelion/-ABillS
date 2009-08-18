@@ -1471,7 +1471,9 @@ if ($FORM{add}) {
                                        CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
                                      });
 
-                push @CARDS_OUTPUT, { PIN         => $pin,
+                push @CARDS_OUTPUT, { 
+                	LOGIN       => '-',
+                	PIN         => $pin,
                   NUMBER      => $i,
                   EXPIRE_DATE => ($EXPIRE_DATE ne '0000-00-00') ? $EXPIRE_DATE : '' ,
                   DATE        => "$DATE $TIME",
@@ -1493,6 +1495,7 @@ if ($FORM{add}) {
         print "<CARDS>";
         foreach my $card_info (@CARDS_OUTPUT) {
           print "<CARD>
+          <LOGIN>$card_info->{PIN}</LOGIN>
           <PIN>$card_info->{PIN}</PIN>
           <NUMBER>$card_info->{NUMBER}</NUMBER>
           <EXPIRE_DATE>$card_info->{EXPIRE_DATE}</EXPIRE_DATE>
@@ -1504,7 +1507,7 @@ if ($FORM{add}) {
        }
       elsif ($FORM{EXPORT} eq 'text' ) {
         foreach my $card_info (@CARDS_OUTPUT) {
-          print "$card_info->{PIN}\t$card_info->{NUMBER}\t$card_info->{EXPIRE_DATE}\t$card_info->{DATE}\t$card_info->{SUM}\t$card_info->{DILLER_ID}\n";
+          print "$card_info->{LOGIN}\t$card_info->{PIN}\t$card_info->{NUMBER}\t$card_info->{EXPIRE_DATE}\t$card_info->{DATE}\t$card_info->{SUM}\t$card_info->{DILLER_ID}\n";
          }
        }
       elsif ($FORM{EXPORT} eq 'order_print') {
