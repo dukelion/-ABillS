@@ -3,7 +3,8 @@
 --------------------------
 $_SERIAL:  %SERIA%
 $_NUM:     %NUMBER%
-PIN:       %PIN%
+$_LOGIN:   %LOGIN%
+PIN / $_PASSWD:       %PIN%
 
 $_SUM:     %SUM%
 
