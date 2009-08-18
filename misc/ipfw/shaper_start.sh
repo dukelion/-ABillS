@@ -5,7 +5,7 @@
 #traffic Class numbers
 
 CLASSES_NUMS='1 2 3'
-VERSION=0.1
+VERSION=0.2
 
 
 
@@ -34,8 +34,9 @@ kldload ng_ipfw
 #for num in ${CLASSES_NUMS}; do
 #  FW_NUM=`expr  `;
   ${IPFW}  add 09000 netgraph tablearg ip from table\(${USER_CLASS_TRAFFIC_NUM}\) to table\(${NETS_TABLE_START_NUM}\) out via ${EXTERNAL_INTERFACE}
-  ${IPFW}  add 09010 netgraph tablearg ip from table\(${NETS_TABLE_START_NUM}\) to table\(${USER_CLASS_TRAFFIC_NUM}\) out via ${INTERNAL_INTERFACE}
+  ${IPFW}  add 09010 netgraph tablearg ip from table\(${NETS_TABLE_START_NUM}\) to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + 1 `\) out via ${INTERNAL_INTERFACE}
+
   ${IPFW}  add 10000 netgraph tablearg ip from table\(10\) to any out via ${EXTERNAL_INTERFACE}
-  ${IPFW}  add 10010 netgraph tablearg ip from any to table\(10\) out via ${INTERNAL_INTERFACE}
+  ${IPFW}  add 10010 netgraph tablearg ip from any to table\(11\) out via ${INTERNAL_INTERFACE}
 
 #done
