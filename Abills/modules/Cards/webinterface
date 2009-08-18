@@ -437,12 +437,14 @@ sub cards_users_add  {
       $FORM{LOGIN_LENGTH}=6 if (! $FORM{LOGIN_LENGTH});
       $FORM{PASSWD_LENGTH}=6 if(! $FORM{PASSWD_LENGTH});  
 
+      
+
+
       if ($FORM{LOGIN_FILE}) {
       	 $html->message('info', $_INFO, "$_FILE: $FORM{LOGIN_FILE}{filename}");
        }
 
       if(defined($FORM{FILE_DATA})) {
-
       	my @rows = split(/[\r]{0,1}\n/, $FORM{"FILE_DATA"}{'Contents'});
 
         foreach my $line (@rows) {
@@ -497,14 +499,15 @@ sub cards_users_add  {
        }
 
 #Create numeric logins
+      
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
           my $LOGIN_LENGTH = (length("$FORM{LOGIN_PREFIX}$LOGIN_NUMBER") < $FORM{LOGIN_LENGTH}) ? $FORM{LOGIN_LENGTH} - length($FORM{LOGIN_PREFIX}) : $FORM{LOGIN_LENGTH};
 
           my $password = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
   	 	    my $serial   = sprintf("%s%.11d", $FORM{SERIAL}, $i);
   	 	    my $login    = sprintf(  "%s%.". $LOGIN_LENGTH."d", $FORM{LOGIN_PREFIX}, $LOGIN_NUMBER);
-          
-        
+      
+              
           if ($Cards->{errno}) {
        	    $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}} $_LOGIN: '$login' / $_ADDED: $generated");
        	    return 0;
@@ -546,8 +549,8 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
  }
   
   $Cards = $Cards->defaults();
-  $Cards->{EXPARAMS}=$attr->{EXTRA_TPL};
-  $Cards->{DILLERS_SEL}=cards_dillers_sel();
+  $Cards->{EXPARAMS}   = $attr->{EXTRA_TPL};
+  $Cards->{DILLERS_SEL}= cards_dillers_sel();
 
   $Cards->{STATUS_SEL}=$html->form_select('STATUS', { 
  	                                         SEL_ARRAY    => ['', @status ],
@@ -1325,6 +1328,8 @@ if ($FORM{add}) {
        }
 
 
+
+
       my @CARDS_OUTPUT = ();
       
       #Import from other systems
@@ -1335,53 +1340,67 @@ if ($FORM{add}) {
         
        }
       else {
+      	
+      	
         if ($FORM{TYPE}) {
         	require "Abills/modules/Dv/webinterface";
 
           $FORM{add}   =1;
           $FORM{create}=1;
+          if (! $FORM{BEGIN}) {
+             my $list = $user->list({ PAGE_ROWS => 1, 
+             	                        SORT      => 8,
+             	                        DESC      => 'DESC'
+             	                        
+             	                        });
+             $FORM{BEGIN}=$list->[0][7];
+             $FORM{LOGIN_BEGIN}=$list->[0][7];
+            }
+
          	my $return = cards_users_add({ EXTRA_TPL => $dv_tpl, 
          		                             NO_PRINT => 1  
          		                             });
           
           my $added_count = 0;
 
-        if (ref($return) eq 'ARRAY') {
-  	      foreach my $line (@$return) {
-            #%FORM = ( add => 1);
-     	      #%FORM = %FORM_BASE;
+          if (ref($return) eq 'ARRAY') {
+    	      foreach my $line (@$return) {
+              #%FORM = ( add => 1);
+     	        #%FORM = %FORM_BASE;
+  	 	        #while(my($k, $v)= each %$line) {
+  	 	  	    #  $FORM{$k}=clearquotes($v);
+  	 	        # }
 
-  	 	      #while(my($k, $v)= each %$line) {
-  	 	  	  #  $FORM{$k}=clearquotes($v);
-  	 	      # }
-
-      	 	  $FORM{'1.LOGIN'}      = $line->{LOGIN};
-  	    	  $FORM{'1.PASSWORD'}   = $line->{PASSWORD};
-  	 	      $FORM{'1.CREATE_BILL'}= 1;
+        	 	  $FORM{'1.LOGIN'}      = $line->{LOGIN};
+    	    	  $FORM{'1.PASSWORD'}   = $line->{PASSWORD};
+  	   	      $FORM{'1.CREATE_BILL'}= 1;
         
-            $line->{UID} = dv_wizard_user({ SHORT_REPORT => 1 });
+              $line->{UID} = dv_wizard_user({ SHORT_REPORT => 1 });
        
-  	 	      if ( $line->{UID} < 1) {
-  	 	  	     $html->message('err', "$_ERROR", "$_LOGIN: '$line->{LOGIN}'");
-      	 	  	 last if (! $line->{SKIP_ERRORS} );
-  	    	   }
-  	 	      else {
-  	 	        #Confim card creation
-  	 	        $added_count++;
-  	 	        #$table->addrow("$FORM{'1.LOGIN'}", "$UID", "$FORM{ex_message}");
-  	 	  	    
-  	 	  	      push @CARDS_OUTPUT, { PIN         => $pin,
-#  	 	  	      	LOGIN       => $FORM{'1.LOGIN'},
+    	 	      if ( $line->{UID} < 1) {
+    	 	  	     $html->message('err', "$_ERROR", "$_LOGIN: '$line->{LOGIN}'");
+        	 	  	 last if (! $line->{SKIP_ERRORS} );
+  	      	   }
+  	 	        else {
+  	 	          #Confim card creation
+  	 	          $added_count++;
+    	 	        #$table->addrow("$FORM{'1.LOGIN'}", "$UID", "$FORM{ex_message}");
+    	 	  	    
+  	   	  	    push @CARDS_OUTPUT, { PIN         => $pin,
+   	 	  	      	LOGIN       => $FORM{'1.LOGIN'},
   	 	  	      	PASSWORD    => $FORM{'1.PASSWORD'},
   	 	  	      	PIN         => $FORM{'1.PASSWORD'},
-                  NUMBER      => $i,
+                  NUMBER      => $line->{NUMBER},
+                  SERIA       => $line->{SERIA},
                   EXPIRE_DATE => ($EXPIRE_DATE ne '0000-00-00') ? $EXPIRE_DATE : '' ,
                   DATE        => "$DATE $TIME",
                   SUM         => sprintf("%.2f", $FORM{SUM}),
-                  DILLER_ID   => $diller->{ID}
+                  DILLER_ID   => $diller->{ID},
+                  TARF_PLAN   => $FORM{TP_ID}
                    };
   	 	  	    
-  	 	  	    if(cards_users_gen_confim({ %$line, SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  }) == 0) {
+  	 	  	      if(cards_users_gen_confim({ %$line, 
+  	 	  	    	                          SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  }) == 0) {
   	 	  		     return 0;
   	 	  		 }
   	 	    }
