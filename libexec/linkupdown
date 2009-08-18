@@ -501,17 +501,23 @@ print "\nEND: =====================================\n" if ($debug > 0);
    my $table_debug = 1;
    #Use ngcar shapper
    if ($conf{ng_car}) {
+  	 # First out traffic table, second in
   	 my $tp_table_number = $conf{FW_TABLE_USERS} || 10;
 
   	 $tp_table_number += $nets_id{$traf_type} if ($nets_id{$traf_type} && $traf_type > 0);
 
   	 push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
+  	 push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1) ."delete $CLIENT_IP";
 
-  	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP ". ($user->{UID} * 5 + 1000000 + $traf_type * 2);
+     my $tablearg = ($user->{UID} * 5 + 1000000 + $traf_type * 2);
 
-     $speed_in = $speed_in * 1024;
+  	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP ". $tablearg;
+     push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1). " add $CLIENT_IP ". ($tablearg + 1);
+
+
+     $speed_in  = $speed_in * 1024;
      $speed_out = $speed_out * 1024;
-     ng_car_shape("$USER", ($user->{UID} * 5 + 1000000 + $traf_type * 2), "class$traf_type", $speed_in, $speed_out);
+     ng_car_shape("$USER", $tablearg, "class$traf_type", $speed_in, $speed_out);
     }
 #------------------------------------------------------------------------------
    #Use IPFW table and dummy net
@@ -624,8 +630,8 @@ foreach my $line (@FW_ACTIONS) {
 sub ng_car_shape {
   my ($user, $tablearg, $shape_type, $speed_in, $speed_out, $attr) = @_;            
 
-  $speed_in   = 104857600 if ($speed_in  == 0);
-  $speed_out  = 104857600 if ($speed_out == 0);
+  $speed_in   = 1048576000 if ($speed_in  == 0);
+  $speed_out  = 1048576000 if ($speed_out == 0);
 
 
   my ($cbs_in, $ebs_in, $cbs_out, $ebs_out);
