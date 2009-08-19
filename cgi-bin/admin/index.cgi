@@ -439,7 +439,7 @@ if ($functions{$index}) {
    }
 
  	  
-  if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne '')) {
+  if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne '' && ! $FORM{add})) {
   	my $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
 
   	if($ui->{errno}==2) {
