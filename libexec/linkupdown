@@ -649,7 +649,7 @@ msg %s_%s: setconf { upstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=
             $tablearg,$shape_type,$user,
             $shape_type,$user,$tablearg+1,
             $shape_type,$user,
-            $ebs_in,$cbs_in,$speed_in,
+            $cbs_in,$ebs_in,$speed_in,
             $cbs_out,$ebs_out,$speed_out);
 }
 
