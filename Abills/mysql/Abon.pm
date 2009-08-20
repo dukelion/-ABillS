@@ -86,7 +86,10 @@ sub tariff_info {
    price,
    payment_type,
    period_alignment,
+   nonfix_period, 
+   ext_bill_account,
    id
+   
      FROM abon_tariffs
    $WHERE;");
 
@@ -101,7 +104,9 @@ sub tariff_info {
    $self->{SUM}, 
    $self->{PAYMENT_TYPE},
    $self->{PERIOD_ALIGNMENT},
-   $self->{ABON_ID}
+   $self->{ABON_ID},
+   $self->{NONFIX_PERIOD},
+   $self->{EXT_BILL_ACCOUNT}
   )= @{ $self->{list}->[0] };
   
 
@@ -139,8 +144,9 @@ sub tariff_add {
   
   %DATA = $self->get_data($attr); 
 
-  $self->query($db,  "INSERT INTO abon_tariffs (id, name, period, price, payment_type, period_alignment)
-        VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}', '$DATA{PAYMENT_TYPE}', '$DATA{PERIOD_ALIGNMENT}');", 'do');
+  $self->query($db,  "INSERT INTO abon_tariffs (id, name, period, price, payment_type, period_alignment, nonfix_period, ext_bill_account)
+        VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}', '$DATA{PAYMENT_TYPE}', '$DATA{PERIOD_ALIGNMENT}',
+        '$DATA{NONFIX_PERIOD}', '$DATA{EXT_BILL_ACCOUNT}');", 'do');
 
   return $self if ($self->{errno});
   $admin->system_action_add("ABON_ID:$DATA{ID}", { TYPE => 1 });    
@@ -162,7 +168,9 @@ sub tariff_change {
               PERIOD           => 'period',
               SUM              => 'price',
               PAYMENT_TYPE     => 'payment_type',
-              PERIOD_ALIGNMENT => 'period_alignment'
+              PERIOD_ALIGNMENT => 'period_alignment',
+              NONFIX_PERIOD    => 'nonfix_period', 
+              EXT_BILL_ACCOUNT => 'ext_bill_account'
              );
 
   $attr->{PERIOD_ALIGNMENT}=0   if (! $attr->{PERIOD_ALIGNMENT});

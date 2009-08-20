@@ -576,8 +576,10 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
     my $filter_name = 'flt';
 
     if ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/) {
-       push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all rate-limit 1024000 150000 300000";
-       push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all shape 64000 4000";
+       if (! $CONF->{ng_car}) {
+         push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all rate-limit 1024000 150000 300000";
+         push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all shape 64000 4000";
+        }
 
    	   next ;
       }

@@ -95,7 +95,7 @@ sub abon_user {
 my $list = $Abon->user_tariff_list($FORM{UID});
 my $table = $html->table( { width      => '100%',
                             caption    => "$_ABON",
-                            title      => ['-', $_NAME, $_COMMENTS, $_SUM, $_PERIOD, "$_FEES $_DATE", "$_NEXT_PERIOD" ],
+                            title      => ['-', $_NAME, $_COMMENTS, $_SUM, $_PERIOD, $_LAST_ABON, $_NEXT_ABON ],
                             cols_align => ['left', 'right', 'left', 'right', 'left', 'right', 'right'],
                             qs         => $pages_qs,
                             ID         => 'USER_ABON'
@@ -151,7 +151,8 @@ sub abon_user_list {
  my $list = $Abon->user_list({ %LIST_PARAMS });
  my $table = $html->table( { width     => '100%',
                              caption    => "$_ABON",
-                             title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, "$_COMMENTS", $_SUM, $_PERIOD, "$_FEES $_DATE", "$_NEXT_PERIOD"],
+                             title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, "$_COMMENTS", $_SUM, $_PERIOD,                              
+                               $_LAST_ABON, $_NEXT_ABON],
                              cols_align => ['left', 'right', 'left', 'right'],
                              qs         => $pages_qs,
                              pages      => $Abon->{TOTAL},
@@ -281,6 +282,8 @@ sub abon_tariffs {
  	                               });
 
   $Abon->{PERIOD_ALIGNMENT}  = ($Abon->{PERIOD_ALIGNMENT})  ? 'checked' : ''; 
+  $Abon->{NONFIX_PERIOD}     = ($Abon->{NONFIX_PERIOD})  ? 'checked' : ''; 
+  $Abon->{EXT_BILL_ACCOUNT}  = ($Abon->{EXT_BILL_ACCOUNT})  ? 'checked' : ''; 
 
   $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);
 
