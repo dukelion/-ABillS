@@ -23,8 +23,9 @@ sub abon_user {
     my @new_arr  = ();
     my @ids_arr  = split(/, /, $FORM{IDS});
     my %ids_hash = ();
-    my @add_arr = ();
-    
+    my @add_arr  = ();
+    my @del_arr  = ();
+
     foreach my $k (@ids_arr) {
     	$ids_hash{$k}=1;
      }
@@ -35,7 +36,10 @@ sub abon_user {
     foreach my $line (@$list) {
     	if ($ids_hash{$line->[0]} && $line->[5]) {
     	  delete $ids_hash{$line->[0]} ;
-    	  push @add_arr, $line->[0];
+    	  #push @add_arr, $line->[0];
+    	 }
+    	elsif($line->[5]) {
+    		push @del_arr, $line->[0];
     	 }
      }
 
@@ -69,9 +73,9 @@ sub abon_user {
             $fees->take($users, $Abon->{TP_INFO}->{MONTH_FEE}, { %PARAMS } ); 
            }
 
-          $Abon->user_tariff_update({ UID   => "$users->{UID}", 
-        	                            TP_ID => "$line->[6]", 
-        	                            DATE  => $DATE, });
+          #$Abon->user_tariff_update({ UID   => "$users->{UID}", 
+        	#                            TP_ID => "$line->[6]", 
+        	#                            DATE  => $DATE, });
 
           push @add_arr, $line->[6];
          }
@@ -82,7 +86,10 @@ sub abon_user {
      }
 
       delete $FORM{IDS};
-      $Abon->user_tariff_change({ %FORM, IDS => join(', ', @add_arr) }) ;  
+      $Abon->user_tariff_change({ %FORM, 
+      	                         IDS => join(', ', @add_arr),
+      	                         DEL => join(', ', @del_arr) }) ;  
+
       if (! $Abon->{errno}){
     	   $html->message('info', $_INFO, "$_CHANGED");
        }
@@ -283,7 +290,17 @@ sub abon_tariffs {
 
   $Abon->{PERIOD_ALIGNMENT}  = ($Abon->{PERIOD_ALIGNMENT})  ? 'checked' : ''; 
   $Abon->{NONFIX_PERIOD}     = ($Abon->{NONFIX_PERIOD})  ? 'checked' : ''; 
-  $Abon->{EXT_BILL_ACCOUNT}  = ($Abon->{EXT_BILL_ACCOUNT})  ? 'checked' : ''; 
+  
+  if ($conf{EXT_BILL_ACCOUNT}) {
+    my $checked = ($Abon->{EXT_BILL_ACCOUNT}) ? ' checked' : '';
+    $Abon->{EXT_BILL_ACCOUNT}  = "<tr><td>$_EXTRA $_BILL:</td><td><input type='checkbox' name='EXT_BILL_ACCOUNT' value='1' $checked></td></tr>\n";
+   }
+  else {
+	  $Abon->{EXT_BILL_ACCOUNT}='';
+   }
+
+  
+  
 
   $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);
 
@@ -348,13 +365,15 @@ sub abon_periodic {
   if (defined($line->[7])) {
      my %user = (
        UID     => $line->[2],
-       BILL_ID => $line->[3]
+       BILL_ID => ($line->[14]) ? $line->[15] : $line->[3]
       );
 
     my %PARAMS = ( DESCRIBE  => "$_ABON: [$line->[10]] $line->[6]",
-                   METHOD    => 1  );
+                   METHOD    => 1,
+                   DATE      => $ADMIN_REPORT{DATE}
+                     );
 
-    $PARAMS{DATE}=$DATE if ($DATE ne '');
+    #$PARAMS{DATE}=$ADMIN_REPORT{DATE} if ($DATE ne '');
 
     $line->[8] = 0 if (! $line->[8]);
     $PARAMS{DESCRIBE} = "$_ABON: $line->[6]. $line->[12]" if ($line->[12]);
@@ -363,14 +382,23 @@ sub abon_periodic {
     #print "$user{UID} - ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0\n" if (! $line->[8] );
     if($line->[8] && ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
      	#Get day fee
+
+
+     	$line->[13] = $ADMIN_REPORT{DATE} if (! $line->[13] && $line->[0] == 1 && $d == 1);
+
+      $line->[13] = $ADMIN_REPORT{DATE} if (! $line->[13] && $line->[0] == 0);
+
      	if ($line->[0] == 0) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
-         $Abon->user_tariff_update({ UID => "$line->[2]", TP_ID => "$line->[10]", DATE => $DATE, });
+         $Abon->user_tariff_update({ UID   => "$line->[2]", 
+         	                           TP_ID => "$line->[10]", 
+         	                           DATE  => $ADMIN_REPORT{DATE} 
+         	                          });
 
          #print "$line->[0] Day fee<Br>\n"; 
        }
     	#Get month fee
-    	elsif ($line->[0] == 1 && ($d == 1)) {
+    	elsif ($line->[0] == 1 && $ADMIN_REPORT{DATE} eq $line->[13]) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$line->[2]", 
          	                           DATE  => $DATE, 
@@ -378,7 +406,7 @@ sub abon_periodic {
 
        }
     	#Get quarter fee
-    	elsif ($line->[0] == 2 && ($m == 0 || $m % 3 == 0)) {
+    	elsif ($line->[0] == 2 && $ADMIN_REPORT{DATE} eq $line->[13]) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$line->[2]", 
          	                           DATE  => $DATE, 
@@ -386,14 +414,14 @@ sub abon_periodic {
 
        }
     	#Get six month fee
-    	elsif ($line->[0] == 3 && (($m==0 || $m == 5) && $d == 1)) {
+    	elsif ($line->[0] == 3 && $ADMIN_REPORT{DATE} eq $line->[13]) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$line->[2]", 
          	                           DATE  => $DATE, 
          	                           TP_ID => "$line->[10]" });
        }
   	  # Yesr fee
-  	  elsif ($line->[0] == 4 && ($m == 0 && $d == 1)) {
+  	  elsif ($line->[0] == 4 && $ADMIN_REPORT{DATE} eq $line->[13]) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$line->[2]", 
          	                           DATE  => $DATE, 

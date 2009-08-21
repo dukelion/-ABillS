@@ -11,7 +11,7 @@
 
 <tr><td>$_MONTH_ALIGNMENT:</td><td><input type=checkbox name=PERIOD_ALIGNMENT value=1 %PERIOD_ALIGNMENT%></td></tr>
 
-<tr><td>$_EXTRA $_BILL:</td><td><input type='checkbox' name='EXT_BILL_ACCOUNT' value='1' %EXT_BILL_ACCOUNT%></td></tr>
+%EXT_BILL_ACCOUNT%
 
 
 <!-- <tr><td>$_DATE:</td><td></td></tr> -->

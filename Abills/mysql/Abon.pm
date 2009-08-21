@@ -104,9 +104,9 @@ sub tariff_info {
    $self->{SUM}, 
    $self->{PAYMENT_TYPE},
    $self->{PERIOD_ALIGNMENT},
-   $self->{ABON_ID},
    $self->{NONFIX_PERIOD},
-   $self->{EXT_BILL_ACCOUNT}
+   $self->{EXT_BILL_ACCOUNT},
+   $self->{ABON_ID}
   )= @{ $self->{list}->[0] };
   
 
@@ -278,17 +278,32 @@ sub user_list {
  
  $self->query($db, "SELECT u.id, pi.fio, at.name, ul.comments, at.price, at.period,
      ul.date, 
-     if (at.period = 0, curdate()+ INTERVAL 1 DAY, 
-       if (at.period = 1, DATE_FORMAT(curdate() + INTERVAL 1 MONTH, '%Y-%m-01'), 
-         if (at.period = 2, CONCAT(YEAR(curdate() + INTERVAL 3 MONTH), '-' ,(QUARTER((curdate() + INTERVAL 3 MONTH))*3-2), '-01'), 
-           if (at.period = 3, CONCAT(YEAR(curdate() + INTERVAL 6 MONTH), '-', if(MONTH(curdate() + INTERVAL 6 MONTH) > 6, '06', '01'), '-01'), 
-             if (at.period = 4, DATE_FORMAT(curdate() + INTERVAL 1 YEAR, '%Y-01-01'), 
+     if (at.nonfix_period = 1, 
+      if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
+       if (at.period = 1, ul.date + INTERVAL 1 MONTH, 
+         if (at.period = 2, ul.date + INTERVAL 3 MONTH, 
+           if (at.period = 3, ul.date + INTERVAL 6 MONTH, 
+             if (at.period = 4, ul.date + INTERVAL 1 YEAR, 
                '-'
               )
             )
           )
         )
-       ),
+       )
+      ,
+      
+      if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
+       if (at.period = 1, DATE_FORMAT(ul.date + INTERVAL 1 MONTH, '%Y-%m-01'), 
+         if (at.period = 2, CONCAT(YEAR(ul.date + INTERVAL 3 MONTH), '-' ,(QUARTER((ul.date + INTERVAL 3 MONTH))*3-2), '-01'), 
+           if (at.period = 3, CONCAT(YEAR(ul.date + INTERVAL 6 MONTH), '-', if(MONTH(ul.date + INTERVAL 6 MONTH) > 6, '06', '01'), '-01'), 
+             if (at.period = 4, DATE_FORMAT(ul.date + INTERVAL 1 YEAR, '%Y-01-01'), 
+               '-'
+              )
+            )
+          )
+        )
+       )
+      ),
      u.uid, 
      at.id
      FROM (users u, abon_user_list ul, abon_tariffs at)
@@ -324,17 +339,32 @@ sub user_tariff_list {
 # $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT id, name, comments, price, period, ul.date, 
-      if (at.period = 0, curdate()+ INTERVAL 1 DAY, 
-       if (at.period = 1, DATE_FORMAT(curdate() + INTERVAL 1 MONTH, '%Y-%m-01'), 
-         if (at.period = 2, CONCAT(YEAR(curdate() + INTERVAL 3 MONTH), '-' ,(QUARTER((curdate() + INTERVAL 3 MONTH))*3-2), '-01'), 
-           if (at.period = 3, CONCAT(YEAR(curdate() + INTERVAL 6 MONTH), '-', if(MONTH(curdate() + INTERVAL 6 MONTH) > 6, '06', '01'), '-01'), 
-             if (at.period = 4, DATE_FORMAT(curdate() + INTERVAL 1 YEAR, '%Y-01-01'), 
+      if (at.nonfix_period = 1, 
+      if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
+       if (at.period = 1, ul.date + INTERVAL 1 MONTH, 
+         if (at.period = 2, ul.date + INTERVAL 3 MONTH, 
+           if (at.period = 3, ul.date + INTERVAL 6 MONTH, 
+             if (at.period = 4, ul.date + INTERVAL 1 YEAR, 
                '-'
               )
             )
           )
         )
-       ),
+       )
+      ,
+      
+      if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
+       if (at.period = 1, DATE_FORMAT(ul.date + INTERVAL 1 MONTH, '%Y-%m-01'), 
+         if (at.period = 2, CONCAT(YEAR(ul.date + INTERVAL 3 MONTH), '-' ,(QUARTER((ul.date + INTERVAL 3 MONTH))*3-2), '-01'), 
+           if (at.period = 3, CONCAT(YEAR(ul.date + INTERVAL 6 MONTH), '-', if(MONTH(ul.date + INTERVAL 6 MONTH) > 6, '06', '01'), '-01'), 
+             if (at.period = 4, DATE_FORMAT(ul.date + INTERVAL 1 YEAR, '%Y-01-01'), 
+               '-'
+              )
+            )
+          )
+        )
+       )
+      ),
    count(ul.uid)
      FROM abon_tariffs at
      LEFT JOIN abon_user_list ul ON (at.id=ul.tp_id and ul.uid='$uid')
@@ -354,14 +384,16 @@ sub user_tariff_change {
  my ($attr) = @_;
 
 
- $self->query($db, "DELETE from abon_user_list WHERE uid='$attr->{UID}';", 'do');
+ if ($attr->{DEL}) {
+   $self->query($db, "DELETE from abon_user_list WHERE uid='$attr->{UID}' AND  tp_id IN ($attr->{DEL});", 'do');
+  }
 
  
  my @tp_array = split(/, /, $attr->{IDS});
  my $abon_log = "";
  
  foreach my $tp_id (@tp_array) {
-   $self->query($db, "INSERT INTO abon_user_list (uid, tp_id, comments) VALUES ('$attr->{UID}', '$tp_id', '". $attr->{'COMMENTS_'. $tp_id} ."');", 'do');
+   $self->query($db, "INSERT INTO abon_user_list (uid, tp_id, comments, date) VALUES ('$attr->{UID}', '$tp_id', '". $attr->{'COMMENTS_'. $tp_id} ."', curdate());", 'do');
    $abon_log.="$tp_id, ";
   }
 
@@ -370,6 +402,28 @@ sub user_tariff_change {
  return $self;
 }
 
+#**********************************************************
+# user_tariffs()
+#**********************************************************
+sub user_tariff_del {
+ my $self = shift;
+ my ($attr) = @_;
+
+
+ my $WHERE = '';
+ if ($attr->{TP_IDS}) {
+   $WHERE = "tp_id IN ($attr->{TP_IDS})";
+  }
+ else {
+ 	 $WHERE = "tp_id='$attr->{TP_ID}'";
+ 	}
+
+ $self->query($db, "DELETE from abon_user_list WHERE uid='$attr->{UID}' AND $WHERE;", 'do');
+
+
+ $admin->action_add($attr->{UID}, "$attr->{TP_IDS}");
+ return $self;
+}
 
 
 #**********************************************************
@@ -405,14 +459,18 @@ sub periodic_list {
   }
 
  if ($attr->{TP_ID}) {
- 	 push @WHERE_RULES, "al.tp_id IN (attr->{TP_ID})";
+ 	 push @WHERE_RULES, "ul.tp_id IN (attr->{TP_ID})";
   }
 
  my $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES)  : '';
  
+ my $EXT_TABLE = '';
 
- $self->query($db, "SELECT at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
-  u.id, at.id, at.name,
+ $self->query($db, "SELECT at.period, at.price, u.uid, 
+  if(u.company_id > 0, c.bill_id, u.bill_id) AS bill_id,
+  u.id, 
+  at.id, 
+  at.name,
   if(c.name IS NULL, b.deposit, cb.deposit),
   if(c.name IS NULL, u.credit, 
     if (c.credit = 0, u.credit, c.credit) 
@@ -420,14 +478,42 @@ sub periodic_list {
   u.disable,
   at.id,
   at.payment_type,
-  al.comments
-  FROM (abon_tariffs at, abon_user_list al, users u)
+  ul.comments,
+      if (at.nonfix_period = 1, 
+      if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
+       if (at.period = 1, ul.date + INTERVAL 1 MONTH, 
+         if (at.period = 2, ul.date + INTERVAL 3 MONTH, 
+           if (at.period = 3, ul.date + INTERVAL 6 MONTH, 
+             if (at.period = 4, ul.date + INTERVAL 1 YEAR, 
+               '-'
+              )
+            )
+          )
+        )
+       )
+      ,
+      
+      if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
+       if (at.period = 1, DATE_FORMAT(ul.date + INTERVAL 1 MONTH, '%Y-%m-01'), 
+         if (at.period = 2, CONCAT(YEAR(ul.date + INTERVAL 3 MONTH), '-' ,(QUARTER((ul.date + INTERVAL 3 MONTH))*3-2), '-01'), 
+           if (at.period = 3, CONCAT(YEAR(ul.date + INTERVAL 6 MONTH), '-', if(MONTH(ul.date + INTERVAL 6 MONTH) > 6, '06', '01'), '-01'), 
+             if (at.period = 4, DATE_FORMAT(ul.date + INTERVAL 1 YEAR, '%Y-01-01'), 
+               '-'
+              )
+            )
+          )
+        )
+       )
+      ),
+   at.ext_bill_account,
+   if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id) AS ext_bill_id
+  FROM (abon_tariffs at, abon_user_list ul, users u)
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN companies c ON (u.company_id=c.id)
      LEFT JOIN bills cb ON (c.bill_id=cb.id)
 WHERE
-at.id=al.tp_id and
-al.uid=u.uid
+at.id=ul.tp_id and
+ul.uid=u.uid
 
 $WHERE
 ORDER BY 1;");
