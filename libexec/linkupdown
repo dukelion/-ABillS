@@ -504,7 +504,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
   	 # First out traffic table, second in
   	 my $tp_table_number = $conf{FW_TABLE_USERS} || 10;
 
-  	 $tp_table_number += $nets_id{$traf_type} if ($nets_id{$traf_type} && $traf_type > 0);
+  	 $tp_table_number += $nets_id{$traf_type} * 2 - 2 if ($nets_id{$traf_type} && $traf_type > 0);
 
   	 push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
   	 push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1) ." delete $CLIENT_IP";
