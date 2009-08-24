@@ -483,7 +483,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
       my $dest_ip = 'any';
       #User ipfw table if more then 5 networks
       # Networks tables
-      if ($#nets_arr > 5) {
+      if ($#nets_arr > -1) {
         my $table_number = $nets_id{$traf_type};
         my $result = `$IPFW table $table_number list`;
         if ($result eq '') {
@@ -493,9 +493,9 @@ print "\nEND: =====================================\n" if ($debug > 0);
            }
         $dest_ip = "table\\($table_number\\)";
        }
-      elsif($nets{$traf_type}) {
-        $dest_ip = $nets{$traf_type};
-       }
+#      elsif($nets{$traf_type}) {
+#        $dest_ip = $nets{$traf_type};
+#       }
      
      #Tables
    my $table_debug = 1;

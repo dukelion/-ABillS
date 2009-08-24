@@ -577,8 +577,8 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
 
     if ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/) {
        if (! $CONF->{ng_car}) {
-         push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all rate-limit 1024000 150000 300000";
-         push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all shape 64000 4000";
+         push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all pass";
+         push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all pass";
         }
 
    	   next ;

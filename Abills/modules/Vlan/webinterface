@@ -19,7 +19,7 @@ $conf{VLAN_IP_DELETE}='if [ `uname` = Linux ]; then /usr/bin/sudo /sbin/ifconfig
 
 $conf{VLAN_IF_DESTROY}='if [ `uname` = Linux ]; then /usr/bin/sudo /sbin/ifconfig %PARENT_INTERFACE%.%VLAN_ID% down;  /usr/bin/sudo /sbin/vconfig rem %PARENT_INTERFACE%.%VLAN_ID%; else /sbin/ifconfig vlan%VLAN_ID% destroy; fi' if (! $conf{VLAN_IF_DESTROY});
 
-
+$conf{VLAN_CREATE_PPPOE}=undef if (! $conf{VLAN_CREATE_PPPOE});
 
 
 
@@ -397,7 +397,7 @@ foreach my $line (@$list) {
      }
 
     if ($attr->{RECONFIGURE}) {
-    	push @commands, _parse($conf{VLAN_IF_DESTROY}, { VLAN_ID          => $INFO{VLAN_ID}, 
+    	push @commands, tpl_parse($conf{VLAN_IF_DESTROY}, { VLAN_ID          => $INFO{VLAN_ID}, 
     		                                               PARENT_INTERFACE => $parent_interface 
     		                                                });
     	delete $vlans_info->{$INFO{VLAN_ID}};
@@ -406,16 +406,16 @@ foreach my $line (@$list) {
 
     if ($attr->{PPPOE_CHECK}) {
       if ( $INFO{PPPOE} == 1 ) {
-        $client_interfaces{"vlan$INFO{VLAN_ID}"}=1;
+        $client_interfaces{"vlan$INFO{VLAN_ID}"}="$INFO{LOGIN}";
        }
      }
 
     if (! $vlans_info->{$INFO{VLAN_ID}}) {
-      push @commands, _parse($conf{VLAN_IF_CREATE}, \%INFO);
+      push @commands, tpl_parse($conf{VLAN_IF_CREATE}, \%INFO);
       #"$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $INFO{PARENT_INTERFACE} up";
 
       if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
-        push @commands, _parse($conf{VLAN_IF_IP}, \%INFO);
+        push @commands, tpl_parse($conf{VLAN_IF_IP}, \%INFO);
         #"$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
        }
 
@@ -434,13 +434,13 @@ foreach my $line (@$list) {
       #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface";
       #Set VLAN IP
       if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
-        push @commands, _parse($conf{VLAN_IF_IP}, \%INFO); 
+        push @commands, tpl_parse($conf{VLAN_IF_IP}, \%INFO); 
         #"$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
         $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Changed\n" if ($debug > 0);
        }
       #Destroy VLAN
       else {
-        push @commands, _parse($conf{VLAN_IP_DELETE}, { VLAN_IF_IP => $vlans_info->{$INFO{VLAN_ID}}, VLAN_ID => $INFO{VLAN_ID} });
+        push @commands, tpl_parse($conf{VLAN_IP_DELETE}, { VLAN_IF_IP => $vlans_info->{$INFO{VLAN_ID}}, VLAN_ID => $INFO{VLAN_ID} });
         #"$IFCONFIG vlan$INFO{VLAN_ID} delete $INFO{VLAN_IF_IP}";
         $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $vlans_info->{$INFO{VLAN_ID}} Deleted\n" if ($debug > 0);
        }
@@ -471,7 +471,7 @@ foreach my $line (@$list) {
 	   }
 	  
 	  $debug_output .= "DELETED VLAN $vlan_id, $ip\n" if ($debug > 3);
-	  push @commands, _parse($conf{VLAN_IF_DESTROY}, { VLAN_ID => $vlan_id, PARENT_INTERFACE => $parent_interface });
+	  push @commands, tpl_parse($conf{VLAN_IF_DESTROY}, { VLAN_ID => $vlan_id, PARENT_INTERFACE => $parent_interface });
 	  #"$IFCONFIG vlan$vlan_id destroy";
 	  push @client_interfaces_unused, "vlan$vlan_id";
 	  delete $client_interfaces{"vlan$vlan_id"};
@@ -493,6 +493,7 @@ foreach my $line (@$list) {
    system($cmds) if ($debug < 5);
    $debug_output .= "$cmds\n" if ($debug > 2);
   }
+
 
   #Make DHCP Nets  
   if ($INFO{SUBNETS}) {
@@ -665,12 +666,24 @@ sub vlan_pppoe_relay {
   my($attr) = @_;
 
   my $debug_output = '';
+  my $cmd = '';
 
+  if($conf{VLAN_CREATE_PPPOE}) {
+  	my $interfaces = join(',', sort keys %{ $attr->{CLIENT_INTERFACES} });
 
+  	$conf{VLAN_CREATE_PPPOE} = tpl_parse($conf{VLAN_CREATE_PPPOE}, { ACTION      => 'START', 
+                                                                     INTERFACES  => $interfaces,
+                                                                     NAS_IP      => $attr->{NAS_MNG_IP} || '127.0.0.1' ,
+                                                                     DESCRIBE    => ''
+    		                                                         });
+
+  	$cmd = "$conf{VLAN_CREATE_PPPOE}";
+   }
+  else {
 # PPPoE Server
 # Delete unused
-  my $cmd = '';
-  my $if = '';
+
+  my $if  = '';
   foreach $if ( @{ $attr->{CLIENT_INTERFACES_UNUSED} } ) {
     if($debug > 0) {
       $debug_output .= "Delete PPPoE $if\n" ;	  
@@ -695,6 +708,8 @@ sub vlan_pppoe_relay {
        " $SUDO /usr/libexec/pppoed -P /var/run/pppoed_". $if .".pid -l pppoe-in -p \\* $if; ";
      }
    }
+}
+
 
   if ($attr->{NAS_MNG_IP}) {
     $cmd = "$SSH -p $attr->{NAS_MNG_PORT} -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$attr->{NAS_MNG_USER} ".
@@ -713,27 +728,13 @@ sub vlan_pppoe_relay {
   my $out= '';  
   $debug_output .= $cmd."\n" if ($debug > 3);
   $out = system($cmd) if ($debug < 5);
-  $debug_output .= $out."\n" if ($debug > 4);
+  $debug_output .= $out . "\n" if ($debug > 4);
   
   
   $DEBUG .= $debug_output;	
 	return $debug_output;
 }
 
-#**********************************************************
-# _parse($string, \%HASH_REF);
-#**********************************************************
-sub _parse {
-	my ($string, $HASH_REF) = @_;
-	
-
-  foreach my $k (keys %$HASH_REF) {
-		my $v = $HASH_REF->{$k};
-		$string =~ s/\%$k\%/$v/g;   
-	 }
-
-	return $string;
-}
 
 
 1

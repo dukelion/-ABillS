@@ -4,8 +4,8 @@
 
 #traffic Class numbers
 
-CLASSES_NUMS='1 2 3'
-VERSION=0.2
+CLASSES_NUMS='2'
+VERSION=0.3
 
 
 
@@ -22,8 +22,10 @@ FW_START_NUM=4000
 NETS_TABLE_START_NUM=2
 
 #First Class traffic users
-USER_CLASS_TRAFFIC_NUM=12
+USER_CLASS_TRAFFIC_NUM=10
 
+
+if [ w$1 = wstart ]; then
 #Load kernel modules
 kldload ng_ether
 kldload ng_car
@@ -31,12 +33,19 @@ kldload ng_ipfw
 
 
 
-#for num in ${CLASSES_NUMS}; do
+for num in ${CLASSES_NUMS}; do
 #  FW_NUM=`expr  `;
-  ${IPFW}  add 09000 netgraph tablearg ip from table\(${USER_CLASS_TRAFFIC_NUM}\) to table\(${NETS_TABLE_START_NUM}\) out via ${EXTERNAL_INTERFACE}
-  ${IPFW}  add 09010 netgraph tablearg ip from table\(${NETS_TABLE_START_NUM}\) to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + 1 `\) out via ${INTERNAL_INTERFACE}
+  echo "Traffic: ${num} "
+  ${IPFW}  add ` expr 9000 + ${num} \* 10 ` netgraph tablearg ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to table\(${num}\) out via ${EXTERNAL_INTERFACE}
+  ${IPFW}  add ` expr 9000 + ${num} \* 10 + 5 ` netgraph tablearg ip from table\(${num}\) to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2 + 1 `\) out via ${INTERNAL_INTERFACE}
+done;
 
   ${IPFW}  add 10000 netgraph tablearg ip from table\(10\) to any out via ${EXTERNAL_INTERFACE}
   ${IPFW}  add 10010 netgraph tablearg ip from any to table\(11\) out via ${INTERNAL_INTERFACE}
-
 #done
+else if [ w$1 = wstop ]; then
+  ${IPFW} delete 09000 09010 10000 10010
+else
+  echo "(start|stop)"
+fi;
+fi;
