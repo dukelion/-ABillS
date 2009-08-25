@@ -39,6 +39,8 @@ sub extfin_export_customers {
   if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
     $LIST_PARAMS{PAGE_ROWS} = 1000000;
     $LIST_PARAMS{PG}        = $FORM{PG} || 0;
+    $LIST_PARAMS{USER_TYPE}        = $FORM{USER_TYPE};
+
 
     my $list = $Extfin->customers_list({ %LIST_PARAMS });
     my $table = $html->table( { width      => '100%',
@@ -52,6 +54,7 @@ sub extfin_export_customers {
 
     foreach my $line ( @$list ) {
       # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
+      # номер телефона, ИНН, основной договор, основн 
       # номер телефона, ИНН, основной договор, основной счёт, 
     	$table->addrow($line->[0],
     	 $line->[1],
@@ -91,7 +94,7 @@ sub extfin_export_customers {
      }
     
     $LIST_PARAMS{INFO_FIELDS} = $FORM{INFO_FIELDS};
-
+    $LIST_PARAMS{USER_TYPE}        = $FORM{USER_TYPE};
    
     my $list = $Extfin->payment_deed({ %LIST_PARAMS });
 
@@ -136,6 +139,10 @@ sub extfin_export_customers {
   	return 0;
    }
   
+  
+  $Extfin->{GROUP_SEL} = sel_groups();
+  
+  
   $Extfin->{TYPE_SEL} = $html->form_select('TYPE', 
                                     { 
  	                                   SELECTED    => $FORM{TYPE},
@@ -144,6 +151,17 @@ sub extfin_export_customers {
  	                                   	               },
                                      NO_ID       => 1
  	                                  });
+
+  $Extfin->{USER_TYPE_SEL} = $html->form_select('USER_TYPE', 
+                                    { 
+ 	                                   SELECTED    => $FORM{USER_TYPE},
+ 	                                   SEL_HASH    => { '' => $_ALL,
+ 	                                   	                0  => $_USERS,
+ 	                                   	                1  => $_COMPANIES
+ 	                                   	               },
+                                     NO_ID       => 1
+ 	                                  });
+
   
   my @monthes = ();
   for(my $i=1; $i<13; $i++) {
@@ -196,9 +214,10 @@ sub extfin_monthly_summary {
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
  
- $conf{START_PERIOD_DAY} = 1 if (!$conf{START_PERIOD_DAY});
+ $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
 
  if ($d != $conf{START_PERIOD_DAY}) {
+
    $DEBUG .= $debug_output;
    return $debug_output;
   }
@@ -212,9 +231,9 @@ sub extfin_monthly_summary {
    $m--;
   }
  
- $m = sprintf("%02.d", $m);
- my $period = "$y-$m";
- 
+ my $period = sprintf("%d-%.2d",  $y, $m);
+
+  
  $debug_output .= "Extfin make summary. Period: $period\n" if ($debug > 1);
 
  my $list = $Extfin->payment_deed({ MONTH => "$period" });
@@ -567,66 +586,6 @@ print $table->show();
 }
 
 
-##**********************************************************
-## 
-##**********************************************************
-#sub extfin_report_deeds {
-#
-#
-#
-#if ($FORM{show}) {
-#  if ($FORM{xml}) {
-#    print "Content-Type: text/xml\n\n";
-#    print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
-#   }
-#  elsif($FORM{qindex}) {
-#    print "Content-Type: text/html\n\n";
-#   }
-# }
-#
-#my @MONTH_ARR = ('');
-#my ($Y, $M, $D)=split(/-/, $DATE, 3);
-#for(my $i=1; $i<13; $i++) {
-#	my $m = sprintf("%02.d", $i);
-#	push @MONTH_ARR, "$Y-$m";
-#}
-#
-#
-#	reports({ DATE          => $FORM{DATE}, 
-#  	        PERIOD_FORM		=> 1,
-#   	        XML           => 1,
-#  	        EX_INPUTS     => [ $html->form_select('MONTH', { SELECTED   => $FORM{MONTH},
-# 	                                                           SEL_ARRAY  => \@MONTH_HASH,
-# 	                                                           NO_ID      => 1
-#                                                          } )
-#                               ]
-# 	       });
-#
-#my $list = $Extfin->extfin_report_paids({ %LIST_PARAMS, MONTH => $period  });
-#
-#$table = $html->table( { width      => '100%',
-#                         caption    => "PAYMENT_DEED $_DATE: $period",
-#                         border     => 1,
-#                         title      => ['#', $_PERIOD,  $_SUM, $_NAME, $_TYPE, "$_SUM",  "$_VAT" ],
-#                         cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'right', 'center',  'center', 'center:noprint', 'center:noprint'],
-#                         ID         => 'EXTFIN_PAYMENT_DEED',
-#                      } );
-#
-#foreach my $line (@$list) {
-#  $table->addrow($line->[0], 
-#   $line->[1],
-#   $line->[2], 
-#   $line->[3],
-#   $line->[4], 
-#   $line->[5],
-#   $line->[6], 
-#   );
-#}
-#
-#print $table->show();
-#
-#
-#}
 
 #**********************************************************
 # 
@@ -635,6 +594,9 @@ sub extfin_report_deeds {
 
 
 my ($Y, $M, $D)=split(/-/, $DATE, 3);
+
+$LIST_PARAMS{USER_TYPE}=$FORM{USER_TYPE};
+$LIST_PARAMS{TOTAL_ONLY}=$FORM{TOTAL_ONLY};
 
 if ($FORM{show} || $FORM{qindex}) {
   if ($FORM{MONTH}) {
@@ -664,7 +626,7 @@ else {
 my @MONTH_ARR = ('');
 for(my $i=1; $i<13; $i++) {
 	my $m = sprintf("%02.d", $i);
-	push @MONTH_ARR, "$Y-$m";
+	push @MONTH_ARR, sprintf("%d-%.2d", $Y, $m);
 }
 
 
@@ -679,6 +641,17 @@ if (! $FORM{xml}) {
  	                                                           SEL_ARRAY  => \@MONTH_ARR,
  	                                                           NO_ID      => 1
                                                           } ),
+                                           "$_USERS $_TYPE: " .  $html->form_select('USER_TYPE', 
+                                    { 
+ 	                                   SELECTED    => $FORM{USER_TYPE},
+ 	                                   SEL_HASH    => { '' => $_ALL,
+ 	                                   	                0  => $_USERS,
+ 	                                   	                1  => $_COMPANIES
+ 	                                   	               },
+                                     NO_ID       => 1
+ 	                                  }),
+                                    "$_TOTAL: ". $html->form_input('TOTAL_ONLY', 1, { TYPE => 'checkbox', STATE => ($FORM{TOTAL_ONLY}) ? 1 : undef } ),
+
                                           "XML: ",  $html->form_input('xml', 1, { TYPE => 'checkbox' } ),
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit' })
                                          ]],                                   
@@ -715,10 +688,16 @@ foreach my $line (@$list) {
   	$date = "01.$2.$1";
    }
   
+  my $name = $line->[3];
+  
+  if ($FORM{TOTAL_ONLY}) {
+ 	  $name = ($line->[4] == 1) ? "$_TOTAL: $_COMPANIES" : "$_TOTAL: $_USERS"; 
+   }
+  
   $table->addrow($line->[0], 
    $date,
    $line->[2], 
-   $line->[3],
+   $name,
    $line->[4], 
    $line->[5],
    $line->[6], 
@@ -729,7 +708,6 @@ print $table->show();
 
 	
 }
-
 
 #**********************************************************
 # 
@@ -993,6 +971,8 @@ $table = $html->table( { width      => '100%',
 print $table_sessions->show() . $table->show(). $output;
 
 }
+
+
 
 #**********************************************************
 #

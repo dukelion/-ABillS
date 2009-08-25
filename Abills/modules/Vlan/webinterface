@@ -486,7 +486,7 @@ foreach my $line (@$list) {
       #$cmds .= "$cmd;";
      }
 
-    if ($nas_mng_ip ne '') {
+    if ($nas_mng_ip && $nas_mng_ip ne '') {
       $cmds = "$SSH -p $nas_mng_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$nas_mng_user $nas_mng_user\@$nas_mng_ip \"$cmds\" ";
      }
 
