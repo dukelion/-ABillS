@@ -136,7 +136,7 @@ sub vlan_user {
        }
      }
 
-    if($FORM{DHCP} && ($FORM{NETMASK} eq '255.255.255.255' || $FORM{IP} eq '0.0.0.0') {
+    if($FORM{DHCP} && ($FORM{NETMASK} eq '255.255.255.255' || $FORM{IP} eq '0.0.0.0')) {
     	$html->message('err', $_ERROR, "$ERR_DHCP_SELECT_CORRECT_IP_MASK");  	
      }
     else {
@@ -160,7 +160,7 @@ sub vlan_user {
        }
      }
 
-    if($FORM{DHCP} && ($FORM{NETMASK} eq '255.255.255.255' || $FORM{IP} eq '0.0.0.0') {
+    if($FORM{DHCP} && ($FORM{NETMASK} eq '255.255.255.255' || $FORM{IP} eq '0.0.0.0')) {
     	$html->message('err', $_ERROR, "$ERR_DHCP_SELECT_CORRECT_IP_MASK");  	
      }
     else {
