@@ -485,7 +485,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
       # Networks tables
       if ($#nets_arr > -1) {
       	print "Error: Traff_type: $traf_type User: $USER \n" if (! $traf_type || ! $nets_id{$traf_type});
-        my $table_number = $nets_id{$traf_type};
+        my $table_number = $nets_id{$traf_type} || 1;
         my $result = `$IPFW table $table_number list`;
         if ($result eq '') {
              foreach my $line (@nets_arr) {
