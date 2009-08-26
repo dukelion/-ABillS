@@ -668,7 +668,7 @@ sub vlan_pppoe_relay {
   my $debug_output = '';
   my $cmd = '';
 
-  if($conf{VLAN_CREATE_PPPOE}) {
+  if($conf{VLAN_CREATE_PPPOE} && $attr->{NAS_MNG_IP} ne '193.93.244.10') {
   	my $interfaces = join(',', sort keys %{ $attr->{CLIENT_INTERFACES} });
 
   	$conf{VLAN_CREATE_PPPOE} = tpl_parse($conf{VLAN_CREATE_PPPOE}, { ACTION      => 'START', 
