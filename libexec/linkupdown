@@ -180,7 +180,7 @@ else {
   $USER      = $ARGV[2];
   $HISADDR   = $ARGV[3];
   $inum      = $INTERFACE;
-  $inum      =~ s/tun//;
+  $inum      =~ s/^[a-z]//;
 } 
 
 
