@@ -135,11 +135,16 @@ sub vlan_user {
         $FORM{IP} = $INFO->{IF_IP};
        }
      }
-    
-    $Vlan->add({ %FORM });
-    if (! $Vlan->{errno}) {
-      $html->message('info', $_INFO, "$_ADDED");	
-      vlan_create({ NAS_ID => $FORM{NAS_ID} });
+
+    if($FORM{DHCP} && ($FORM{NETMASK} eq '255.255.255.255' || $FORM{IP} eq '0.0.0.0') {
+    	$html->message('err', $_ERROR, "$ERR_DHCP_SELECT_CORRECT_IP_MASK");  	
+     }
+    else {
+      $Vlan->add({ %FORM });
+      if (! $Vlan->{errno}) {
+        $html->message('info', $_INFO, "$_ADDED");	
+        vlan_create({ NAS_ID => $FORM{NAS_ID} });
+       }
      }
    }
 	elsif($FORM{set}) {
@@ -155,10 +160,15 @@ sub vlan_user {
        }
      }
 
-    $Vlan->change({ %FORM });
-    if (! $Vlan->{errno}) {
-    	my $message = vlan_create({ DEBUG => 1, NAS_ID => $FORM{NAS_ID} });
-      $html->message('info', $_CHANGED, $html->pre($message));	
+    if($FORM{DHCP} && ($FORM{NETMASK} eq '255.255.255.255' || $FORM{IP} eq '0.0.0.0') {
+    	$html->message('err', $_ERROR, "$ERR_DHCP_SELECT_CORRECT_IP_MASK");  	
+     }
+    else {
+      $Vlan->change({ %FORM });
+      if (! $Vlan->{errno}) {
+    	  my $message = vlan_create({ DEBUG => 1, NAS_ID => $FORM{NAS_ID} });
+        $html->message('info', $_CHANGED, $html->pre($message));	
+       }
      }
    }
 	elsif($FORM{del}) {
