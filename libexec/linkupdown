@@ -180,7 +180,7 @@ else {
   $USER      = $ARGV[2];
   $HISADDR   = $ARGV[3];
   $inum      = $INTERFACE;
-  $inum      =~ s/^[a-z]//;
+  $inum      =~ s/^[a-z]+//;
 } 
 
 
@@ -557,7 +557,7 @@ else {
         if ($traf_type == 0) {
           # In
           push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to any $via_if_in";
-          push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes mask dst-ip 0x00000000";
+          push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes". (($user->{JOIN_SERVICE}) ? ' mask dst-ip 0x00000000' : ' mask dst-ip 0xfffffffff');
          }
         else {
           push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to $dest_ip $via_if_in";
@@ -572,7 +572,7 @@ else {
       if ($speed_out > 0) {
         if ($traf_type == 0) {
           push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to $CLIENT_IP $via_if_out";
-          push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask dst-ip 0x00000000";
+          push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes". (($user->{JOIN_SERVICE}) ? ' mask dst-ip 0x00000000' : ' mask dst-ip 0xfffffffff');
          }
         else {
           push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $dest_ip to $CLIENT_IP $via_if_out";
