@@ -478,13 +478,11 @@ print "\nEND: =====================================\n" if ($debug > 0);
 
     #FreeBSD ipfw pipe shaper
     else {
-
-    	
       my $dest_ip = 'any';
       #User ipfw table if more then 5 networks
       # Networks tables
       if ($#nets_arr > -1) {
-      	print "Error: Traff_type: $traf_type User: $USER \n" if (! $traf_type || ! $nets_id{$traf_type});
+      	#print "Error: Traff_type: $traf_type User: $USER \n" if (! $traf_type || ! $nets_id{$traf_type});
         my $table_number = $nets_id{$traf_type} || 1;
         my $result = `$IPFW table $table_number list`;
         if ($result eq '') {
@@ -498,9 +496,10 @@ print "\nEND: =====================================\n" if ($debug > 0);
 #        $dest_ip = $nets{$traf_type};
 #       }
      
-     #Tables
-   my $table_debug = 1;
-   #Use ngcar shapper
+     
+     my $table_debug = 1;
+#------------------------------------------------------------------------------
+#Use ngcar shapper
    if ($conf{ng_car}) {
   	 # First out traffic table, second in
   	 my $tp_table_number = $conf{FW_TABLE_USERS} || 10;
@@ -521,7 +520,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
      ng_car_shape("$USER", $tablearg, "class$traf_type", $speed_in, $speed_out);
     }
 #------------------------------------------------------------------------------
-   #Use IPFW table and dummy net
+#Use IPFW table and dummy net
    elsif ($inum eq '-' && ! $user->{SPEED}) {
      $fw_num_in     = $START_FW[$traf_type] + $user->{TP_NUM} * 20;
      $fw_num_out    = $START_FW[$traf_type] + $user->{TP_NUM} * 20 + 1;
@@ -850,7 +849,7 @@ sub parse_fw {
   my $result = '';
   my %params = ();
 
-  $part =~ s/"|//g;
+  $part =~ s/\"|//g;
   if ($part =~ / (\d+)/) {
     $params{item} = $1;
    }
@@ -866,3 +865,6 @@ sub parse_fw {
 
   return \%params;
 }
+
+
+1
