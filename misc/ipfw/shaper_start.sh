@@ -63,3 +63,32 @@ else
   echo "(start|stop)"
 fi;
 fi;
+
+
+#NAT Section
+if [ w${abills_nat_enable} != w ] ; then
+
+FAKE_NET=192.168.0.0/16
+NAT_TABLE=20
+NAT_FIRST_RULE=20
+NAT_IPS="91.200.156.56 91.200.156.57 91.200.156.58"
+NAT_REAL_TO_FAKE_TABLE_NUM=31;
+
+
+# nat configuration
+for IP in ${NAT_IPS}; do
+  ${IPFW} nat ` expr ${NAT_FIRST_RULE} + 1 ` config ip ${IP} log deny_in
+  ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ` expr ${NAT_FIRST_RULE} + 1 `
+done;
+
+
+# nat real to fake
+#${IPFW} add 00600 nat tablearg ip from any to table\(21\) in recv ${EXTERNAL_INTERFACE}
+# nat fake to real
+#${IPFW} add 17000 nat tablearg ip from table\(20\) to not 193.138.244.2 out
+
+
+${IPFW} add 10 nat 123 ip from ${FAKE_NET} to any
+${IPFW} add 20 nat 123 ip from any to table\(21\)
+
+fi;

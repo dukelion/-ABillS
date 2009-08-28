@@ -11,7 +11,7 @@ use vars  qw(%conf $db
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 2.1;
+my $VERSION = 2.2;
 my $config_file = $Bin . '/../libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
@@ -138,19 +138,25 @@ if(! -f $config_file ) {
         
          $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --password=$mysql_root_passwd -e "select version();"`; 
          if ($res !~ /Unknown database/) {
-           if (confirm_yn("Your DB not configure for ABillS using. Configure? ", "y")) {
-              print "Make users\n";
-              my $add_mysql_user = "USE mysql;".
+           my $add_mysql_user = "USE mysql;".
                  "INSERT INTO user (Host, User, Password) VALUES ('$mk_config{dbhost}','$mk_config{dbuser}', password('$mk_config{dbpasswd}'));".
-                 "INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, Lock_tables_priv, Create_tmp_table_priv) VALUES ('$mk_config{dbhost}', '$mk_config{dbname}', '$mk_config{dbuser}', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'); ".
+                 "INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, Lock_tables_priv, Create_tmp_table_priv, Trigger_priv,Create_view_priv, Show_view_priv) VALUES ('$mk_config{dbhost}', '$mk_config{dbname}', '$mk_config{dbuser}', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'); ".
                  "CREATE DATABASE $mk_config{dbname} DEFAULT CHARACTER SET cp1251 COLLATE cp1251_general_ci;".
                  "flush privileges;";
+
+           if (confirm_yn("Your DB not configure for ABillS using. Configure? ", "y")) {
+              print "Make users\n";
 
               $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --password='$mysql_root_passwd' -e "$add_mysql_user"`;
               print $res;
               print "Upload Main Dump and modules\n";
               $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --default-character-set=$mk_config{dbcharset} --password='$mysql_root_passwd' -D $mk_config{dbname} < ../abills.sql`;
             } 
+           elsif(confirm_yn("Show MySQL configure Settings? ", "y")) {
+           	 print "----------------------------------------------------------\n".
+           	 "$add_mysql_user\n".
+           	 "----------------------------------------------------------\n";
+            }
           }
          else {
            print $res;
