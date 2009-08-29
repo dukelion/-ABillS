@@ -186,6 +186,8 @@ else {
 
 $CLIENT_IP = $HISADDR;
 
+$conf{FW_TABLE_USERS}=10 if (! $conf{FW_TABLE_USERS});
+
 require Admins;
 Admins->import();
 require Dv;
@@ -514,10 +516,16 @@ print "\nEND: =====================================\n" if ($debug > 0);
   	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP ". $tablearg;
      push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1). " add $CLIENT_IP ". ($tablearg + 1);
 
-
-     $speed_in  = $speed_in * 1024;
-     $speed_out = $speed_out * 1024;
-     ng_car_shape("$USER", $tablearg, "class$traf_type", $speed_in, $speed_out);
+     #Add user to unlime rules
+     if ($speed_in + $speed_out  == 0) {
+       my $tp_table_number = $conf{FW_TABLE_USERS} - 1;
+       push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP ";
+      }
+     else {
+       $speed_in  = $speed_in * 1024;
+       $speed_out = $speed_out * 1024;
+       ng_car_shape("$USER", $tablearg, "class$traf_type", $speed_in, $speed_out);
+      }
     }
 #------------------------------------------------------------------------------
 #Use IPFW table and dummy net
@@ -602,6 +610,10 @@ elsif ($ACTION eq 'down') {
 
     	my $tp_table_number = $conf{FW_TABLE_USERS} || 10;
       push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
+      push @FW_ACTIONS, "$IPFW table ". ($tp_table_number + 1) ." delete $CLIENT_IP";
+      
+      push @FW_ACTIONS, "$IPFW table ". ($conf{FW_TABLE_USERS} - 1) ." delete $CLIENT_IP";
+      
      }
     else {
       $tp_table_number = $tp_table_first_number + $user->{TP_NUM};
