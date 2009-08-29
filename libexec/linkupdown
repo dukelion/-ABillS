@@ -186,6 +186,7 @@ else {
 
 $CLIENT_IP = $HISADDR;
 
+$conf{SHAPER_CLASSES}=2 if (! defined($conf{SHAPER_CLASSES}));
 $conf{FW_TABLE_USERS}=10 if (! $conf{FW_TABLE_USERS});
 
 require Admins;
@@ -504,7 +505,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
 #Use ngcar shapper
    if ($conf{ng_car}) {
   	 # First out traffic table, second in
-  	 my $tp_table_number = $conf{FW_TABLE_USERS} || 10;
+  	 my $tp_table_number = $conf{FW_TABLE_USERS}|| 10;
 
   	 $tp_table_number += $nets_id{$traf_type} * 2 - 2 if ($nets_id{$traf_type} && $traf_type > 0);
 
@@ -605,12 +606,16 @@ elsif ($ACTION eq 'down') {
    }
   else {
     if ($conf{ng_car}) {
-      push @FW_ACTIONS, sprintf("/usr/sbin/ngctl shutdown %s_%s:", 'class0', $USER);
-      push @FW_ACTIONS, sprintf("/usr/sbin/ngctl shutdown %s_%s:", 'class1', $USER);
-
     	my $tp_table_number = $conf{FW_TABLE_USERS} || 10;
-      push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
-      push @FW_ACTIONS, "$IPFW table ". ($tp_table_number + 1) ." delete $CLIENT_IP";
+      for(my $i=0; $i<=$conf{SHAPER_CLASSES}; $i++) {
+        push @FW_ACTIONS, sprintf("/usr/sbin/ngctl shutdown %s_%s:", 'class'.$i, $USER);
+  
+        push @FW_ACTIONS, "$IPFW table ". ($tp_table_number + $i * 2) ." delete $CLIENT_IP";
+        push @FW_ACTIONS, "$IPFW table ". ($tp_table_number + $i * 2 + 1) ." delete $CLIENT_IP";
+
+       }
+
+
       
       push @FW_ACTIONS, "$IPFW table ". ($conf{FW_TABLE_USERS} - 1) ." delete $CLIENT_IP";
       
