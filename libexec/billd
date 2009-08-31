@@ -583,7 +583,7 @@ else {
      	  }
      	}
 	   # parce ipfw show
-	   elsif ($line =~ /(\d+).+[tun|ng](\d+)/) {
+	   elsif ($line =~ /(\d+).+[tun|ng|em](\d+)/) {
 	     $interfaces{$1}=$2;
 	    }
 	 }
@@ -998,7 +998,7 @@ sub check_speed_change {
   my $cmds = "$Bin/linkupdown down tun$IFACE_ID $USER_NAME $USER_IP $cmd_debug;".
              "$Bin/linkupdown up tun$IFACE_ID $USER_NAME $USER_IP $cmd_debug";
 
-  if ($NAS_TYPE eq 'mpd4' || $NAS_TYPE eq 'mpd') {
+  if ($NAS_TYPE =~ /mpd/) {
      $cmds = "$Bin/linkupdown mpd down ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;".
              "$Bin/linkupdown mpd up ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;";
    }
