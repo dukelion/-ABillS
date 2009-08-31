@@ -688,7 +688,7 @@ else {
   	my $tp_id = $line->[18];
   	my $tp    = $line->[0];
 
-  	print "TP: $tp ($tp_id)\n" if ($debug == 2);
+  	print "TP: $tp ($tp_id)\n" if ($debug == 2 || $ARGV->{SHOW_SPEED});
   
     my ($remaining_time, $ret_attr); 
 
@@ -744,7 +744,7 @@ else {
                delete $pipe_rules{$pipe_rule_out};
  	      	   }
 
-            print "   $traf_type IN: $line->[4] OUT: $line->[5] Pipe: $pipe_rule_in / $pipe_rule_out \n" if ($debug == 2);
+            print "  Traffic Class: $traf_type IN: $line->[4] OUT: $line->[5] Pipe: $pipe_rule_in / $pipe_rule_out \n" if ($debug == 2 || $ARGV->{SHOW_SPEED});
    	      }
          }
       }
