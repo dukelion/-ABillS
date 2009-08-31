@@ -751,13 +751,6 @@ else {
     }
    }
 
-#Make speed 
- foreach my $cmd (@FW_ACTIONS) {
-   print $cmd if ($debug > 2);
-   if ($debug < 5) {
-   	 system($cmd);
-    }
- }
 
 
 
@@ -769,7 +762,7 @@ else {
    }
 
 
-exit;
+
 #----------------------------------------------------------
 # New NG car methods
 if ($conf{ng_car})   {
@@ -883,27 +876,18 @@ if ($conf{ng_car})   {
 
 #----------------------------------------------------------
 #Old dummy net methods
-elsif(1) {
-  while(my($user, $other)=each %USER_IFACES) {
-  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
-     print "$IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP\n";
-     
-     #In speed
-     if (! $pipe_rules{($TP * 20)}) {
-     	 print "No in speed\n";
-      }
-     
-     #Out speed
-     elsif (! $pipe_rules{($TP * 20 + 1)} ) {
-     	 print "No out speed\n";
-      }
-
-     
-   }	
-	
-	
- }
 else { 
+
+ #Make speed 
+ foreach my $cmd (@FW_ACTIONS) {
+   print $cmd if ($debug > 2);
+   if ($debug < 5) {
+   	 system($cmd);
+    }
+ }
+
+
+  return 0;
   while(my($user, $other)=each %USER_IFACES) {
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
 
