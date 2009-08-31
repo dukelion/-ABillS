@@ -552,13 +552,14 @@ if ($debug > 1 || $ARGV->{SHOW_SPEED}) {
 	 }
 else {	
 	
-	
 #----------------------------------------------------------	
 # old shaper check
 #----------------------------------------------------------
 
 	$conf{JOIN_SERVICE_FW_FIRST_RULE} = 40000 if (! $conf{JOIN_SERVICE_FW_FIRST_RULE});
-#Get IPFW speed rules
+  #Get IPFW speed rules
+
+
 	my $result = `$IPFW show; $IPFW pipe show`;
 	my @rules = split(/\n/, $result);
 	# key1 interface; key2 rule number; value speed
@@ -588,6 +589,8 @@ else {
 	    }
 	 }
 
+
+
 #====
 
   #debug 
@@ -610,7 +613,7 @@ else {
 
 
 
-#Get online users                             
+  #Get online users                             
   $sessions->{debug}=1 if ($debug > 4);
 
 	$sessions->online( { %LIST_PARAMS, 
@@ -678,13 +681,14 @@ else {
   	                             TP_ID => join(';',  keys %TP_HASH) 
   	                            });
   
+  my @FW_ACTIONS = ();
 
   #GET TP speed
   foreach my $line ( @$tp_list ) {
   	my $tp_id = $line->[18];
   	my $tp    = $line->[0];
 
-  	print "TP: $line->[0] ($line->[18])\n" if ($debug == 2);
+  	print "TP: $tp ($tp_id)\n" if ($debug == 2);
   
     my ($remaining_time, $ret_attr); 
 
@@ -713,18 +717,48 @@ else {
       while(my($k, $v)=each( %TT_IDS)) {
  	      print " INTERVAL: $k, $v\n" if ($debug == 2);
         
-        if ($k eq 'TT' || $k eq 'FIRST_INTERVAL') {
+        if (($k eq 'TT' || $k eq 'FIRST_INTERVAL') && ! $speeds{$tp}{IN}) {
  	        my $list = $tariffs->tt_list({ TI_ID => $v });
  	        foreach my $line (@$list)  {
- 	      	  print "   $line->[0] IN: $line->[4] OUT: $line->[5]\n" if ($debug == 2);
- 	      	  $speeds{$tp}{IN}{$line->[0]}="$line->[4]";
- 	      	  $speeds{$tp}{OUT}{$line->[0]}="$line->[5]";
+ 	        	
+ 	        	my $traf_type = $line->[0];
+ 	        	my $pipe_rule_in  = ($line->[4]> 0) ? sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 20) : 0;
+            my $pipe_rule_out = ($line->[4]> 0) ? sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 20 + 1) : 0;
 
+ 	      	  my $speed_in      = $line->[4];
+ 	      	  my $speed_out     = $line->[5];
+             
+ 	      	  $speeds{$tp}{IN}{$traf_type}=$speed_in;
+ 	      	  $speeds{$tp}{OUT}{$traf_type}=$speed_out;
+	      	  
+ 	      	  if ($speed_in != 0 && (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_in)) {
+ 	      	  	 push @FW_ACTIONS, "\n\n$IPFW pipe $pipe_rule_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
+ 	      	  	 print "Change TP: $tp IN: $speed_in\n";
+ 	      	  	 delete $pipe_rules{$pipe_rule_in};
+ 	      	   }
+
+ 	      	  if ($speed_out != 0 && (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_out)) {
+               push @FW_ACTIONS, "$IPFW pipe $pipe_rule_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
+             
+               print "Change TP: $tp OUT: $speed_out\n";
+               delete $pipe_rules{$pipe_rule_out};
+ 	      	   }
+
+            print "   $traf_type IN: $line->[4] OUT: $line->[5] Pipe: $pipe_rule_in / $pipe_rule_out \n" if ($debug == 2);
    	      }
          }
       }
     }
    }
+
+#Make speed 
+ foreach my $cmd (@FW_ACTIONS) {
+   print $cmd if ($debug > 2);
+   if ($debug < 5) {
+   	 system($cmd);
+    }
+ }
+
 
 
   my $debug_outputs = '';
@@ -733,6 +767,9 @@ else {
   if ($debug > 1) {
   	$cmd_debug='debug';
    }
+
+
+exit;
 #----------------------------------------------------------
 # New NG car methods
 if ($conf{ng_car})   {
@@ -842,8 +879,30 @@ if ($conf{ng_car})   {
  }
 
 }
+
+
 #----------------------------------------------------------
 #Old dummy net methods
+elsif(1) {
+  while(my($user, $other)=each %USER_IFACES) {
+  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
+     print "$IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP\n";
+     
+     #In speed
+     if (! $pipe_rules{($TP * 20)}) {
+     	 print "No in speed\n";
+      }
+     
+     #Out speed
+     elsif (! $pipe_rules{($TP * 20 + 1)} ) {
+     	 print "No out speed\n";
+      }
+
+     
+   }	
+	
+	
+ }
 else { 
   while(my($user, $other)=each %USER_IFACES) {
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
