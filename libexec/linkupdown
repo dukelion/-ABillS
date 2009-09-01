@@ -204,7 +204,7 @@ my @FW_ACTIONS  = ();
 
 my $tp_table_number = 0;
 my $tp_table_first_number = 10;
-
+my $users_table_number = $conf{FW_TABLE_USERS} || 10;
 
 
 # Flush rules
@@ -294,7 +294,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   	   }
 
       #$tp_table_number = $tp_table_first_number + $user->{TP_NUM};
-      my $users_table_number = $conf{FW_TABLE_USERS} || 10;
       $CLIENT_IP       = $HISADDR;
       push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP $user->{TP_NUM}";
     
@@ -613,17 +612,13 @@ elsif ($ACTION eq 'down') {
   
         push @FW_ACTIONS, "$IPFW table ". ($tp_table_number + $i * 2) ." delete $CLIENT_IP";
         push @FW_ACTIONS, "$IPFW table ". ($tp_table_number + $i * 2 + 1) ." delete $CLIENT_IP";
-
        }
-
-
       
       push @FW_ACTIONS, "$IPFW table ". ($conf{FW_TABLE_USERS} - 1) ." delete $CLIENT_IP";
       
      }
     else {
-      $tp_table_number = $tp_table_first_number + $user->{TP_NUM};
-	    push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
+	    push @FW_ACTIONS, "$IPFW table $users_table_number delete $CLIENT_IP";
 	   }
 	 }
 }
