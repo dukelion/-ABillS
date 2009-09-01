@@ -560,36 +560,24 @@ else {
   #Get IPFW speed rules
 
 
-	my $result = `$IPFW show; $IPFW pipe show`;
+	my $result = `$IPFW pipe show; $IPFW show`;
 	my @rules = split(/\n/, $result);
 	# key1 interface; key2 rule number; value speed
 	
-	my %interfaces = ();
 	my %speeds_rotations = ('Kbit' => 1,
 	                        'Mbit' => 1000);
 	                        
   
-	
+	print $result;
 	
 	#Parce all ipfw rules
 	foreach my $line (@rules) {
      #Parce ipfw pipe rules
      if ($line =~ /^(\d+):\s+(\S+) (\w+)/) {
        my $speed = $2 * $speeds_rotations{$3};
-       if (defined($interfaces{$1})) {
-         $rule_speed{$interfaces{$1}}{int($1)} = "$speed";
-        }
-     	 else {
      	 	 $pipe_rules{$1}=$speed;
      	  }
-     	}
-	   # parce ipfw show
-	   elsif ($line =~ /(\d+).+[tun|ng|em](\d+)/) {
-	     $interfaces{$1}=$2;
-	    }
 	 }
-
-
 
 #====
 
@@ -698,13 +686,14 @@ else {
   	push @FW_ACTIONS, "$IPFW -q table 2 flush";
    }
 
+
   #GET TP speed
   foreach my $line ( @$tp_list ) {
   	my $tp_id = $line->[18];
   	my $tp    = $line->[0];
 
   	print "TP: $tp ($tp_id)\n" if ($debug == 2 || $ARGV->{SHOW_SPEED});
-  
+
     my ($remaining_time, $ret_attr); 
 
     ($user->{TIME_INTERVALS},
@@ -783,6 +772,9 @@ else {
    }
 
 
+  if($ARGV->{SHOW_SPEED}) {
+  	 return 0;
+   }
 
 
   my $debug_outputs = '';
