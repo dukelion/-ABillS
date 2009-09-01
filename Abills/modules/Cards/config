@@ -24,8 +24,9 @@
 #$USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if (defined($conf{dv_user_chg_tp}));
 
 
-# 
-#%PERIODIC = (daily   => [ 'dv_daily_fees', 'dv_users_warning_messages' ],
+ 
+%PERIODIC = (daily   => [ 'cards_bruteforce_clean' ] );
+
 #             monthly => [ 'dv_monthly_fees' ],
 #             report  => [ 'dv_report'       ]);
 

@@ -568,8 +568,6 @@ else {
 	                        'Mbit' => 1000);
 	                        
   
-	print $result;
-	
 	#Parce all ipfw rules
 	foreach my $line (@rules) {
      #Parce ipfw pipe rules
