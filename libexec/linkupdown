@@ -293,7 +293,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   	     $INTERFACE = '-';
   	   }
 
-      #$tp_table_number = $tp_table_first_number + $user->{TP_NUM};
       $CLIENT_IP       = $HISADDR;
       push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP $user->{TP_NUM}";
     
@@ -317,6 +316,11 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   if ($user->{SPEED} > 0) {
     $speeds{0}{IN} = int($user->{SPEED});
     $speeds{0}{OUT}= int($user->{SPEED});
+    
+    if(($OS eq '' || $OS eq 'FreeBSD') && ! $conf{ng_car}) {
+      push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP 1000$user->{SPEED}";   	
+     }
+    
    }
   else {
 
