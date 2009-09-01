@@ -319,7 +319,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     
     if(($OS eq '' || $OS eq 'FreeBSD') && ! $conf{ng_car}) {
       push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP 1000$user->{SPEED}";   	
-      exit 0;
+      goto FW_ACTION;
      }
     
    }
@@ -629,6 +629,7 @@ elsif ($ACTION eq 'down') {
 }
 
 
+FW_ACTION:
 #make firewall actions
 foreach my $line (@FW_ACTIONS) {
   if ($debug == 1) {
