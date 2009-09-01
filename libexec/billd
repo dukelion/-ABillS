@@ -678,10 +678,15 @@ else {
   
   #foreach my $tp (keys (%TP_HASH)) {
   my $tp_list = $tariffs->list({ MODULE => '',  
-  	                             TP_ID => join(';',  keys %TP_HASH) 
+  	                             #TP_ID => join(';',  keys %TP_HASH) 
   	                            });
   
   my @FW_ACTIONS = ();
+
+  if ($ARGV->{RECONFIGURE}) {
+  	push @FW_ACTIONS, "$IPFW -q flush";
+  	push @FW_ACTIONS, "$IPFW -q pipe flush";
+   }
 
   #GET TP speed
   foreach my $line ( @$tp_list ) {
@@ -711,6 +716,10 @@ else {
 #    print "RT: $remaining_time\n"  if ($debug == 1);
     my %TT_IDS = %$ret_attr;
 
+    my $users_table_number = 10;
+    my $nets_table_number  = 2;
+    my $via_if_in          = ($conf{FW_DIRECTION}) ? $conf{FW_DIRECTION} : ' out xmit em0';
+    my $via_if_out         = ($conf{FW_DIRECTION}) ? $conf{FW_DIRECTION} : ' in recv em0';
 
     if (keys %TT_IDS > 0) {
       #Get intervals
@@ -722,8 +731,8 @@ else {
  	        foreach my $line (@$list)  {
  	        	
  	        	my $traf_type = $line->[0];
- 	        	my $pipe_rule_in  = ($line->[4]> 0) ? sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 20) : 0;
-            my $pipe_rule_out = ($line->[4]> 0) ? sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 20 + 1) : 0;
+ 	        	my $pipe_rule_in  = sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 20);
+            my $pipe_rule_out = sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 20 + 1);
 
  	      	  my $speed_in      = $line->[4];
  	      	  my $speed_out     = $line->[5];
@@ -731,18 +740,34 @@ else {
  	      	  $speeds{$tp}{IN}{$traf_type}=$speed_in;
  	      	  $speeds{$tp}{OUT}{$traf_type}=$speed_out;
 	      	  
- 	      	  if ($speed_in != 0 && (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_in)) {
- 	      	  	 push @FW_ACTIONS, "\n\n$IPFW pipe $pipe_rule_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
- 	      	  	 print "Change TP: $tp IN: $speed_in\n";
- 	      	  	 delete $pipe_rules{$pipe_rule_in};
+	      	  my $dest_ip = ($traf_type == 0) ? 'any' : "table\\($nets_table_number, $traf_type\\)";
+	      	  
+ 	      	  if ($speed_in > 0) {
+ 	      	  	 push @FW_ACTIONS, "$IPFW add $pipe_rule_in pipe $pipe_rule_in ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
+ 	      	  	
+ 	      	  	 if (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_in) { 
+   	      	  	 push @FW_ACTIONS, "$IPFW pipe $pipe_rule_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
+ 	      	  	   print "Change TP: $tp IN: $speed_in\n";
+           	  	 delete $pipe_rules{$pipe_rule_in};
+           	  	}
  	      	   }
+            else{
+              push @FW_ACTIONS, "$IPFW add $pipe_rule_in allow ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
+             }
 
- 	      	  if ($speed_out != 0 && (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_out)) {
-               push @FW_ACTIONS, "$IPFW pipe $pipe_rule_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
+ 	      	  if ($speed_out > 0) {
+ 	      	  	 push @FW_ACTIONS, "$IPFW add $pipe_rule_out pipe $pipe_rule_out ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
+
+ 	      	     if (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_out) {
+                 push @FW_ACTIONS, "$IPFW pipe $pipe_rule_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
              
-               print "Change TP: $tp OUT: $speed_out\n";
-               delete $pipe_rules{$pipe_rule_out};
+                 print "Change TP: $tp OUT: $speed_out\n";
+                 delete $pipe_rules{$pipe_rule_out};
+                }
  	      	   }
+            else{
+              push @FW_ACTIONS, "$IPFW add $pipe_rule_out allow ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
+             }
 
             print "  Traffic Class: $traf_type IN: $line->[4] OUT: $line->[5] Pipe: $pipe_rule_in / $pipe_rule_out \n" if ($debug == 2 || $ARGV->{SHOW_SPEED});
    	      }
@@ -880,7 +905,7 @@ else {
 
  #Make speed 
  foreach my $cmd (@FW_ACTIONS) {
-   print $cmd if ($debug > 2);
+   print $cmd."\n" if ($debug > 2);
    if ($debug < 5) {
    	 system($cmd);
     }

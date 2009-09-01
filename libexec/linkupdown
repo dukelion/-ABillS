@@ -293,9 +293,10 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   	     $INTERFACE = '-';
   	   }
 
-      $tp_table_number = $tp_table_first_number + $user->{TP_NUM};
+      #$tp_table_number = $tp_table_first_number + $user->{TP_NUM};
+      my $users_table_number = $conf{FW_TABLE_USERS} || 10;
       $CLIENT_IP       = $HISADDR;
-      push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP $user->{UID}";
+      push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP $user->{TP_NUM}";
     
       my $result = `$IPFW show`;
       if ($result ne '') {
@@ -490,7 +491,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
         my $result = `$IPFW table $table_number list`;
         if ($result eq '') {
              foreach my $line (@nets_arr) {
-             	  push @FW_ACTIONS, "$IPFW table $table_number add $line";
+             	  push @FW_ACTIONS, "$IPFW table $table_number add $line $traf_type";
               }
            }
         $dest_ip = "table\\($table_number\\)";
@@ -531,31 +532,31 @@ print "\nEND: =====================================\n" if ($debug > 0);
 #------------------------------------------------------------------------------
 #Use IPFW table and dummy net
    elsif ($inum eq '-' && ! $user->{SPEED}) {
-     $fw_num_in     = $START_FW[$traf_type] + $user->{TP_NUM} * 20;
-     $fw_num_out    = $START_FW[$traf_type] + $user->{TP_NUM} * 20 + 1;
-     $pipe_num_in   = $START_FW[$traf_type] + $user->{TP_NUM} * 20;
-     $pipe_num_out  = $START_FW[$traf_type] + $user->{TP_NUM} * 20 + 1;
-     
-     if (! $IPFW_NUMS{$fw_num_in}) {
-       if ($speed_in > 0) {
-         push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from table\\($tp_table_number\\) to $dest_ip $via_if_in";
-         push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
-        }
-       else {
-         push @FW_ACTIONS, "$IPFW add $fw_num_in allow ip from table\\($tp_table_number\\) to $dest_ip $via_if_in";      		
-        }
-      }
-
-     if (! $IPFW_NUMS{$fw_num_out}) { 
-       if ($speed_in > 0) {
-         push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $dest_ip to table\\($tp_table_number\\) $via_if_out";
-         push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
-        }
-       else {
-         push @FW_ACTIONS, "$IPFW add $fw_num_out allow ip from $dest_ip to table\\($tp_table_number\\) $via_if_out";
-        }
-      }
-
+#     $fw_num_in     = $START_FW[$traf_type] + $user->{TP_NUM} * 20;
+#     $fw_num_out    = $START_FW[$traf_type] + $user->{TP_NUM} * 20 + 1;
+#     $pipe_num_in   = $START_FW[$traf_type] + $user->{TP_NUM} * 20;
+#     $pipe_num_out  = $START_FW[$traf_type] + $user->{TP_NUM} * 20 + 1;
+#     
+#     if (! $IPFW_NUMS{$fw_num_in}) {
+#       if ($speed_in > 0) {
+#         push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from table\\($tp_table_number\\) to $dest_ip $via_if_in";
+#         push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
+#        }
+#       else {
+#         push @FW_ACTIONS, "$IPFW add $fw_num_in allow ip from table\\($tp_table_number\\) to $dest_ip $via_if_in";      		
+#        }
+#      }
+#
+#     if (! $IPFW_NUMS{$fw_num_out}) { 
+#       if ($speed_in > 0) {
+#         push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $dest_ip to table\\($tp_table_number\\) $via_if_out";
+#         push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
+#        }
+#       else {
+#         push @FW_ACTIONS, "$IPFW add $fw_num_out allow ip from $dest_ip to table\\($tp_table_number\\) $via_if_out";
+#        }
+#      }
+#
     }
 #-----Old------------------------------------------------
 else {

@@ -799,13 +799,13 @@ sub  tt_list {
      FROM trafic_tarifs  tt 
      LEFT JOIN  traffic_classes tc ON (tc.id=tt.net_id)
      WHERE tt.interval_id='$attr->{TI_ID}'
-     ORDER BY id DESC;");
+     ORDER BY tt.id DESC;");
    }	
 	else {
 	  $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, descr, net_id, expression
      FROM trafic_tarifs 
      WHERE tp_id='$self->{TP_ID}'
-     ORDER BY id;");
+     ORDER BY tt.id;");
    }
 
 
