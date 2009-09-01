@@ -357,8 +357,11 @@ sub cards_bruteforce_clean {
 	my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
 
+  $debug_output .= "Cards: Bruteforce Clean\n" if ($debug > 1);
 
+  $conf{CARDS_BRUTE_CLEAN_PERIOD}=2 if (! $conf{CARDS_BRUTE_CLEAN_PERIOD});
 
+  $Cards->bruteforce_del({ PERIOD => $conf{CARDS_BRUTE_CLEAN_PERIOD} });
 
 
 	
