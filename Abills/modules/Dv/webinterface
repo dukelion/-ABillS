@@ -619,7 +619,7 @@ if($FORM{ADD_TP}) {
   	$html->message('err', $_ERROR, "$_ERROR ID = 0");
    }
   else {
-   $tariffs->add( { %FORM });
+   $tariffs->add( { %FORM, MODULE => 'Dv' });
    if (! $tariffs->{errno}) {
      $html->message('info', $_ADDED, "$_ADDED $tariffs->{ID}");
     }
