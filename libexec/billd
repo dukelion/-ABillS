@@ -609,7 +609,11 @@ else {
 }
  
  
+  my $users_table_number = $conf{FW_TABLE_USERS} || 10;
 
+  my $nets_table_number  = 2;
+  my $via_if_in          = ($conf{FW_DIRECTION}) ? $conf{FW_DIRECTION} : ' out xmit em0';
+  my $via_if_out         = ($conf{FW_DIRECTION}) ? $conf{FW_DIRECTION} : ' in recv em0';
 
 
 
@@ -647,9 +651,11 @@ else {
     foreach my $line (@$l) {
                            #IFACE : TP : SPEED  :IP
        my $tp = 0;
+       my $tp_id = 0;
        if ($line->[4] > 0) {
           $Dv->info($line->[4]);
-          $tp = $Dv->{TP_ID};
+          $tp    = $Dv->{TP_ID};
+          $tp_id = $Dv->{TP_NUM};
         }
        else {
          $tp = $line->[2];
@@ -658,7 +664,7 @@ else {
        print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);
        
        
-       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]";
+       $USER_IFACES{$line->[0]}="$line->[1]:$tp_id:$line->[3]:$line->[5]:$line->[6]";
 
        $TP_HASH{$tp}=1;
      }
@@ -677,15 +683,19 @@ else {
   my %speeds = ();
   
   #foreach my $tp (keys (%TP_HASH)) {
-  my $tp_list = $tariffs->list({ MODULE => '',  
+  my $tp_list = $tariffs->list({ MODULE => 'Dv',  
   	                             #TP_ID => join(';',  keys %TP_HASH) 
   	                            });
   
   my @FW_ACTIONS = ();
 
   if ($ARGV->{RECONFIGURE}) {
+  	print "Reconfigure\n" if ($debug > 1);
+
   	push @FW_ACTIONS, "$IPFW -q flush";
   	push @FW_ACTIONS, "$IPFW -q pipe flush";
+  	push @FW_ACTIONS, "$IPFW -q table 10 flush";
+  	push @FW_ACTIONS, "$IPFW -q table 2 flush";
    }
 
   #GET TP speed
@@ -716,10 +726,6 @@ else {
 #    print "RT: $remaining_time\n"  if ($debug == 1);
     my %TT_IDS = %$ret_attr;
 
-    my $users_table_number = 10;
-    my $nets_table_number  = 2;
-    my $via_if_in          = ($conf{FW_DIRECTION}) ? $conf{FW_DIRECTION} : ' out xmit em0';
-    my $via_if_out         = ($conf{FW_DIRECTION}) ? $conf{FW_DIRECTION} : ' in recv em0';
 
     if (keys %TT_IDS > 0) {
       #Get intervals
@@ -903,6 +909,38 @@ if ($conf{ng_car})   {
 #Old dummy net methods
 else { 
 
+  my @static_speeds = ();
+
+  my $list = $Dv->list({ SPEED     => '>0', 
+  	                     PAGE_ROWS => 100000,
+  	                     GROUP_BY  => 'dv.speed' });
+  
+  my $static_speed_fw_num = 50000;
+  foreach my $line (@$list) {
+  	my $speed = $line->[6];
+  	
+  	push @FW_ACTIONS, "$IPFW add $static_speed_fw_num pipe $static_speed_fw_num ip from table\\($users_table_number, 1000$speed\\) to any $via_if_in";
+ 	      	  	
+ 	  if (! $pipe_rules{$static_speed_fw_num} || $pipe_rules{$static_speed_fw_num} != $speed) { 
+   	      	  	 push @FW_ACTIONS, "$IPFW pipe $static_speed_fw_num config bw ". $speed ."Kbit/s queue ". (( $speed / 10 > 1000) ? 1000 : int( $speed / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
+ 	      	  	   print "Change Static Speed IN: $speed\n";
+           	  	 delete $pipe_rules{$static_speed_fw_num};
+      }
+   
+    $static_speed_fw_num++;
+    
+    push @FW_ACTIONS, "$IPFW add $static_speed_fw_num pipe $static_speed_fw_num ip from any to table\\($users_table_number, 1000$speed\\) $via_if_out";
+
+ 	  if (! $pipe_rules{$static_speed_fw_num} || $pipe_rules{$static_speed_fw_num} != $speed) {
+        push @FW_ACTIONS, "$IPFW pipe $static_speed_fw_num config bw ". $speed ."Kbit/s queue ". (( $speed / 10 > 1000) ? 1000 : int( $speed / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
+             
+        print "Change Static Speed OUT: $speed\n";
+        delete $pipe_rules{$static_speed_fw_num};
+     }
+    $static_speed_fw_num++;
+   }
+
+
  #Make speed 
  foreach my $cmd (@FW_ACTIONS) {
    print $cmd."\n" if ($debug > 2);
@@ -912,10 +950,24 @@ else {
  }
 
 
-  return 0;
+
   while(my($user, $other)=each %USER_IFACES) {
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
 
+     if ($ARGV->{RECONFIGURE}) {
+     	  my $cmd = '';
+     	  if ($SPEED > 0) {
+     	    $cmd = "$IPFW table 10 add $IP 1000$SPEED\n" 
+     	   }
+     	  else {
+     	    $cmd = "$IPFW table 10 add $IP $TP\n"
+     	   }
+     	  
+     	  print $cmd ."\n" if ($debug > 1);
+     	  system("$IPFW table 10 add $IP $TP");
+      }
+
+     next;
   	 $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
 
      if ($JOIN_SERVICE > 0) {

@@ -381,6 +381,14 @@ sub list {
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+ my $GROUP_BY = 'u.uid';
+
+ if ($attr->{GROUP_BY}) {
+ 	 $GROUP_BY = $attr->{GROUP_BY};
+  }
+ 
+ 	
+
 
  $self->{SEARCH_FIELDS} = '';
  $self->{SEARCH_FIELDS_COUNT}=0;
@@ -614,7 +622,7 @@ sub list {
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $WHERE 
-     GROUP BY u.uid
+     GROUP BY $GROUP_BY
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  return $self if($self->{errno});
