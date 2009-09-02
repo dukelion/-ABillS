@@ -733,7 +733,7 @@ my $nas = Nas->new($db, \%conf);
 $tarif_info->{IP_POOLS_SEL} = $html->form_select('IPPOOL', 
                                           { 
  	                                          SELECTED          => $tarif_info->{IPPOOL},
- 	                                          SEL_MULTI_ARRAY   => [[ '', ''],  @{ $nas->ip_pools_list({ %LIST_PARAMS })	 } ],
+ 	                                          SEL_MULTI_ARRAY   => [['', ''],  @{ $nas->ip_pools_list({ %LIST_PARAMS })	 } ],
  	                                          MULTI_ARRAY_KEY   => 8,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
