@@ -338,7 +338,11 @@ sub form_info {
   use POSIX qw(strftime);
   
   if ( $conf{user_credit_change}) {
-    my ($sum, $days, $price) = split(/:/, $conf{user_credit_change});
+    my ($sum, $days, $price, $month_changes) = split(/:/, $conf{user_credit_change}) ;
+    $month_changes = 0 if (!$month_changes);
+
+
+
     my $credit_date = strftime "%Y-%m-%d", localtime(time + int($days) * 86400);
 
       if (in_array('Dv', \@MODULES) ) {
@@ -349,10 +353,29 @@ sub form_info {
         $sum = $Dv->{TP_CREDIT} if ($Dv->{TP_CREDIT} > 0);
        }
 
-    
-    if ($user->{CREDIT} < $sum) {
+    if ($month_changes) {
+      
+      my ($y, $m, $d) = split(/\-/, $DATE);
+      
+      $admin->action_list({ UID       => $user->{UID},
+      	                    TYPE      => 5,
+      	                    FROM_DATE => "$y-$m-01",
+      	                    TO_DATE   => "$y-$m-31"
+      	                   });
+      
+      if ($admin->{TOTAL} >= $month_changes) {
+        $user->{CREDIT_CHG_BUTTON} = $html->color_mark("$ERR_CREDIT_CHANGE_LIMIT_REACH. $_TOTAL: $admin->{TOTAL}/$month_changes", $_COLORS[6]);
+        $sum = 0;
+       }
+     }
+
+
 
     
+    if ($user->{DISABLE}) {
+    	
+     }
+    elsif ($user->{CREDIT} < $sum) {
        if ($FORM{change_credit}) {
          $user->change($user->{UID}, { UID         => $user->{UID},
                                        CREDIT      => $sum,
@@ -409,6 +432,8 @@ sub form_info {
     $user->{EXT_DATA}=$html->tpl_show(templates('form_ext_bill'), 
                                              $user, { OUTPUT2RETURN => 1 });
    }
+  
+  $user->{DISABLE} = ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6])  : $_ENABLE;
   
   $html->tpl_show(templates('form_client_info'), $user);
 

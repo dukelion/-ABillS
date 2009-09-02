@@ -681,7 +681,7 @@ else {
   	push @FW_ACTIONS, "$IPFW -q flush";
   	push @FW_ACTIONS, "$IPFW -q pipe flush";
   	push @FW_ACTIONS, "$IPFW -q table 10 flush";
-  	push @FW_ACTIONS, "$IPFW -q table 2 flush";
+  	#push @FW_ACTIONS, "$IPFW -q table 2 flush";
    }
 
 

@@ -409,6 +409,9 @@ sub changes {
           elsif($k eq 'TP_ID') {
             $self->{CHG_TP}=$OLD_DATA->{$k}.'->'.$DATA{$k};
            }
+          elsif($k eq 'CREDIT') {
+            $self->{CREDIT}=$OLD_DATA->{$k}.'->'.$DATA{$k};
+           }
           else {
             $CHANGES_LOG .= "$k $OLD_DATA->{$k}->$DATA{$k};";
            }
@@ -453,17 +456,23 @@ else {
       $admin->action_add($DATA{UID}, "", { TYPE => 8});
      }
 
-    if($self->{'STATUS'}) {
-      $admin->action_add($DATA{UID}, "$self->{'STATUS'}", { TYPE => 4});
+    if ($CHANGES_LOG ne '') {
+      $admin->action_add($DATA{UID}, "$CHANGES_LOG", { TYPE => 2});
      }
 
     if($self->{'CHG_TP'}) {
       $admin->action_add($DATA{UID}, "$self->{'CHG_TP'}", { TYPE => 3});
      }
 
-    if ($CHANGES_LOG ne '') {
-      $admin->action_add($DATA{UID}, "$CHANGES_LOG", { TYPE => 2});
+    if($self->{'STATUS'}) {
+      $admin->action_add($DATA{UID}, "$self->{'STATUS'}", { TYPE => 4});
      }
+
+    if($self->{'CREDIT'}) {
+      $admin->action_add($DATA{UID}, "$self->{'CREDIT'}", { TYPE => 5 });
+     }
+
+
    }
   elsif(defined($admin)) {
     $admin->system_action_add("$CHANGES_LOG", { TYPE => 2 });

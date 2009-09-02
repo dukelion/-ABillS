@@ -2112,7 +2112,7 @@ sub form_changes {
                    2  => "$_CHANGED",
                    3  => "$_CHANGED $_TARIF_PLAN",
                    4  => "$_CHANGED $_STATUS",
-                   5  => '-',
+                   5  => "$_CHANGED $_CREDIT",
                    6  => "$_INFO",
                    7  => "$_REGISTRATION",
                    8  => "$_ENABLE",
