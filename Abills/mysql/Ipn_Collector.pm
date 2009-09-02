@@ -107,8 +107,14 @@ sub user_ips {
 		 LEFT JOIN bills cb ON (c.bill_id=cb.id)
 		 LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
 		 LEFT JOIN dv_calls calls ON (u.id=calls.user_name)
-		 WHERE u.uid=dv.uid 
-		  and dv.ip > 0 and u.disable=0 and dv.disable=0;";
+     LEFT JOIN users_nas un ON(u.uid=un.uid)
+		 WHERE u.uid=dv.uid and u.domain_id=0
+		  and dv.ip > 0 and u.disable=0 and dv.disable=0
+		  and (un.nas_id IN ($DATA->{NAS_ID}) or un.nas_id IS NULL)
+		 GROUP BY u.uid;";
+		  
+		
+		  
    }
   elsif ( $CONF->{IPN_DEPOSIT_OPERATION} ) {
   	$sql="select u.uid, calls.framed_ip_address, calls.user_name,
@@ -135,7 +141,7 @@ sub user_ips {
       LEFT JOIN bills cb ON (c.bill_id=cb.id)
       LEFT JOIN dv_main dv ON (u.uid=dv.uid)
       LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
-    WHERE u.id=calls.user_name
+    WHERE u.id=calls.user_name and u.domain_id=0
     and calls.nas_id IN ($DATA->{NAS_ID});";
   }
   else {
@@ -157,11 +163,19 @@ sub user_ips {
     dv.ip
     FROM (dv_calls calls, users u)
     LEFT JOIN dv_main dv ON (u.uid=dv.uid)
-   WHERE u.id=calls.user_name
+   WHERE u.id=calls.user_name and u.domain_id=0
    and calls.nas_id IN ($DATA->{NAS_ID});";
   }  
   
+  
+ 
   $self->query($db, $sql);
+
+  if ($self->{errno}) {
+  	print "SQL Error: Get online users\n";
+  	exit;
+   }
+
 
   my $list = $self->{list};
   my %session_ids    = ();
@@ -173,12 +187,17 @@ sub user_ips {
   $self->{0}{IN}=0;
  	$self->{0}{OUT}=0;
 
+
+
+
   foreach my $line (@$list) {
      #UID
   	 $ips{$line->[1]}         = $line->[0];
 
+  
+
      #Get IP/mask
-     if ($line->[16] < 4294967295) {
+     if ($line->[16] && $line->[16] < 4294967295) {
        my $first_ip =  $line->[17] & 4294967288;
        for(my $i=0; $i<=4294967295 -  $line->[16]; $i++) {
        	 my $ip = $first_ip+$i;
@@ -188,6 +207,7 @@ sub user_ips {
      	   $self->{$ip}{OCTET_DIRECTION} = $line->[12];
         }
       }
+
 
      #IN / OUT octets
   	 $self->{$line->[1]}{IN}  = $line->[4];

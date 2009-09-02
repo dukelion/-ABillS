@@ -261,28 +261,31 @@ else {
       #$AVG{TRAFFIC_IN}   = $user_total_in if ($AVG{TRAFFIC_IN} < $user_total_in);
       #$AVG{TRAFFIC_OUT}  = $user_total_out if ($AVG{TRAFFIC_OUT} < $user_total_out);
  
-      $DATA_HASH{TRAFFIC_IN}[$h]=int($user_total_in / 3600) ;
-      $DATA_HASH{TRAFFIC_OUT}[$h]=int($user_total_out / 3600) ;
-      $DATA_HASH{MONEY}[$h]=$user_sum;
+      $DATA_HASH{TRAFFIC_IN}[$h] = int($user_total_in / 3600) ;
+      $DATA_HASH{TRAFFIC_OUT}[$h]= int($user_total_out / 3600) ;
+      $DATA_HASH{MONEY}[$h]      = 0; # $user_sum;
      }
     else {
-      #$AVG{TRAFFIC_IN}  = $line->[1] if ($AVG{TRAFFIC_IN} < $line->[1]);
-      #$AVG{TRAFFIC_OUT}  = $line->[2] if ($AVG{TRAFFIC_OUT} < $line->[2]);
+    	#print "1111";
+      $AVG{TRAFFIC_IN}  = $user_total_in if ($AVG{TRAFFIC_IN} < $user_total_in);
+      $AVG{TRAFFIC_OUT}  = $user_total_out if ($AVG{TRAFFIC_OUT} < $user_total_out);
 
       if ($stats_array[0][0] =~ /(\d+)-(\d+)-(\d+)/) {
       	 $num = $3;
         }
       elsif ($stats_array[0][0] =~ /(\d+)-(\d+)/) {
-      	 $CHART{X_LINE}[$num]=$stats_array[0][0];
+      	 $CHART{X_LINE}[$num]   =  $stats_array[0][0];
       	 $num++;
        }
 
-      $DATA_HASH{TRAFFIC_IN}[$num]=int($user_total_in / (3600 * 24));
-      $DATA_HASH{TRAFFIC_OUT}[$num]=int($user_total_out / (3600 * 24));
-      $DATA_HASH{MONEY}[$num]=$user_sum;
+      $DATA_HASH{TRAFFIC_IN}[$num] = int($user_total_in / (3600 * 24));
+      $DATA_HASH{TRAFFIC_OUT}[$num]= int($user_total_out / (3600 * 24));
+      $DATA_HASH{MONEY}[$num]      = $user_sum;
+      
+      #print "$num / $DATA_HASH{MONEY}[$num] / $user_sum <br>";
      }
 
-    $AVG{MONEY}        = $user_sum if ($AVG{TRAFFIC_IN} < $user_sum);
+    $AVG{MONEY}        = $user_sum if ($AVG{MONEY} < $user_sum);
     
  }
  
@@ -307,14 +310,14 @@ print $table_sessions->show() . $table->show();
 
 
 
-$html->make_charts({  
-	 PERIOD => $graph_type,
-	 DATA   => \%DATA_HASH,
-	 AVG    => \%AVG,
-	 TYPE   => \@type,
-	 TRANSITION => 1,
-	 %CHART
-  });
+#$html->make_charts({  
+#	 PERIOD     => $graph_type,
+#	 DATA       => \%DATA_HASH,
+#	 AVG        => \%AVG,
+#	 TYPE       => \@type,
+#	 TRANSITION => 1,
+#	 %CHART
+#  });
 
 
 
@@ -1095,6 +1098,8 @@ sub ipn_user_stats {
 if ($sessions->{errno})	 {
 	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
  }
+
+
 
 
 if ($FORM{rows}) {
