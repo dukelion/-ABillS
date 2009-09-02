@@ -2058,9 +2058,11 @@ if ($conf{ERROR2DB}) {
 	  $LIST_PARAMS{DESC}=DESC;
    }
 
+
   if ($FORM{search}) {
-    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}/$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_Y}-". sprintf("%.2d", $FORM{FROM_M}+1). "-$FORM{FROM_D}/$FORM{TO_Y}-". sprintf("%.2d", $FORM{TO_M}+1) ."-$FORM{TO_D}";
    }
+
 
   $list = $Nas->log_list({ %LIST_PARAMS  });
 
@@ -2123,15 +2125,16 @@ if (defined($FORM{LOG_TYPE})) {
 	$pages_qs .= "&LOG_TYPE=$FORM{LOG_TYPE}";
 }
 
+
 my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      => $FORM{DATE},
-	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
+	                                                                   LOG_TYPE  => $log_levels_rev{$FORM{LOG_TYPE}},
 	                                                                   PG        => $PG,
 	                                                                   PAGE_ROWS => 25 #$PAGE_ROWS
 	                                                                 });
 	                                                                   
 
 	                                                                   
-my $table = $html->table( { caption => "$_ERROR",
+my $table = $html->table( { caption => "System $_ERROR",
 	                          width   => '100%',
 	                          pages   => $totals,
 	                          qs      => $pages_qs,
