@@ -246,7 +246,7 @@ sub show_log {
       	next;
        }
       
-      if (defined($attr->{LOG_TYPE}) && $log_type ne $attr->{LOG_TYPE}) {
+      if (defined($attr->{LOG_TYPE}) && "$log_type" ne "$attr->{LOG_TYPE}:") {
       	#print "0";
       	next;
        }
