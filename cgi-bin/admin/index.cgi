@@ -1652,7 +1652,7 @@ foreach my $line (@$list) {
 }
 
 
-my $table2 = $html->table( { width      => '100%',
+  my $table2 = $html->table( { width      => '100%',
                              cols_align => ['right', 'right'],
                              rows       => [ [ "$_TOTAL:", $html->b($users->{TOTAL}) ] ]
                           });
@@ -1686,7 +1686,8 @@ if ($permissions{0}{7}) {
 
 }
 else {
-  print $table->show() . $table2->show();	
+  print $table->show();
+  $table2->show() if (! $admin->{MAX_ROWS});	
 }
 
 
@@ -4665,14 +4666,18 @@ foreach my $line (@$list) {
 
 print $table->show();
 
-$table = $html->table({ width      => '100%',
+
+if (! $admin->{MAX_ROWS}) {
+  $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right', 'right', 'right', 'right', 'right' ],
                         rows       => [ [ "$_TOTAL:", $html->b($payments->{TOTAL}), 
                                           "$_USERS:", $html->b($payments->{TOTAL_USERS}), 
                                           "$_SUM",    $html->b($payments->{SUM}) ] ],
                         rowcolor   => $_COLORS[2]
                       });
-print $table->show();
+  print $table->show();
+ }
+
 }
 
 #*******************************************************************
@@ -4974,7 +4979,8 @@ foreach my $line (@$list) {
 
 print $table->show();
 
-$table = $html->table( { width      => '100%',
+if (! $admin->{MAX_ROWS}) {
+  $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
                          rows       => [ [ "$_TOTAL:", $html->b($fees->{TOTAL}), 
                                            "$_USERS:", $html->b($fees->{TOTAL_USERS}),
@@ -4982,7 +4988,8 @@ $table = $html->table( { width      => '100%',
                                              ] ],
                          rowcolor   => $_COLORS[2]
                      } );
-print $table->show();
+  print $table->show();
+ }
 
 
 }

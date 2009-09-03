@@ -354,11 +354,13 @@ foreach my $line (@$list) {
 }
 print $table->show();
 
-$table = $html->table( { width      => '100%',
+if (! $admin->{MAX_ROWS}) {
+  $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
                          rows       => [ [ "$_TOTAL:", $html->b($Dv->{TOTAL}) ] ]
                         } );
-print $table->show();
+  print $table->show();
+ }
 
   return 0;
 }
