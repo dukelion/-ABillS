@@ -913,7 +913,7 @@ else {
  	      	  	
  	  if (! $pipe_rules{$static_speed_fw_num} || $pipe_rules{$static_speed_fw_num} != $speed) { 
    	      	  	 push @FW_ACTIONS, "$IPFW pipe $static_speed_fw_num config bw ". $speed ."Kbit/s queue ". (( $speed / 10 > 1000) ? 1000 : int( $speed / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
- 	      	  	   print "Change Static Speed IN: $speed\n";
+ 	      	  	   print "Change Static Speed IN: ". (($pipe_rules{$static_speed_fw_num}) ? $pipe_rules{$static_speed_fw_num} : 'Not set' ) ." -> $speed\n";
            	  	 delete $pipe_rules{$static_speed_fw_num};
       }
    
@@ -924,7 +924,7 @@ else {
  	  if (! $pipe_rules{$static_speed_fw_num} || $pipe_rules{$static_speed_fw_num} != $speed) {
         push @FW_ACTIONS, "$IPFW pipe $static_speed_fw_num config bw ". $speed ."Kbit/s queue ". (( $speed / 10 > 1000) ? 1000 : int( $speed / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
              
-        print "Change Static Speed OUT: $speed\n";
+        print "Change Static Speed OUT: ". (($pipe_rules{$static_speed_fw_num}) ? $pipe_rules{$static_speed_fw_num} : 'Not set' ) ."$speed\n";
         delete $pipe_rules{$static_speed_fw_num};
      }
     $static_speed_fw_num++;
@@ -947,14 +947,14 @@ else {
      if ($ARGV->{RECONFIGURE}) {
      	  my $cmd = '';
      	  if ($SPEED > 0) {
-     	    $cmd = "$IPFW table 10 add $IP 10$SPEED\n" 
+     	    $cmd = "$IPFW table 10 add $IP 10$SPEED" 
      	   }
      	  else {
-     	    $cmd = "$IPFW table 10 add $IP $TP\n"
+     	    $cmd = "$IPFW table 10 add $IP $TP"
      	   }
      	  
-     	  print $cmd ."\n" if ($debug > 1);
-     	  system("$IPFW table 10 add $IP $TP");
+     	  print "$cmd\n" if ($debug > 1);
+     	  system("$cmd");
       }
 
      next;
