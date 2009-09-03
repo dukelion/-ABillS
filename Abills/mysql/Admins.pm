@@ -175,6 +175,8 @@ sub info {
      a.comments,
      a.domain_id,
      d.name,
+     a.min_search_chars,
+     a.max_rows,
      $PASSWORD
      FROM 
       admins a
@@ -193,7 +195,7 @@ sub info {
    }
 
   my $a_ref = $self->{list}->[0];
-  if ($a_ref->[13] == 1) {
+  if ($a_ref->[15] == 1) {
      $self->{errno}  = 4;
      $self->{errstr} = 'ERROR_WRONG_PASSWORD';
      $self->{AID}    = $a_ref->[0],
@@ -212,7 +214,9 @@ sub info {
    $self->{EMAIL},
    $self->{A_COMMENTS},
    $self->{DOMAIN_ID},
-   $self->{DOMAIN_NAME}
+   $self->{DOMAIN_NAME},
+   $self->{MIN_SEARCH_CHARS},
+ 	 $self->{MAX_ROWS}
     )= @$a_ref;
   
   if ($self->{GIDS} > 0) {
@@ -283,6 +287,9 @@ sub change {
            EMAIL       => 'email',
            A_COMMENTS  => 'comments',
            DOMAIN_ID   => 'domain_id',
+           MIN_SEARCH_CHARS => 'min_search_chars',
+ 	         MAX_ROWS    => 'max_rows'
+           
    );
 
 
@@ -310,9 +317,12 @@ sub add {
   my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 
-  $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable, gid, email, comments, password, domain_id) 
+  $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable, gid, email, comments, password, domain_id,
+  min_search_chars, rage_rows) 
    VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}', '$DATA{GID}', 
-   '$DATA{EMAIL}', '$DATA{A_COMMENTS}', '$DATA{PASSWORD}', '$DATA{DOMAIN_ID}');", 'do');
+   '$DATA{EMAIL}', '$DATA{A_COMMENTS}', '$DATA{PASSWORD}', '$DATA{DOMAIN_ID}',
+   $DATA{MIN_SEARCH_CHARS},
+ 	 $DATA{MAX_ROWS});", 'do');
 
   $self->{AID}=$self->{INSERT_ID};
 

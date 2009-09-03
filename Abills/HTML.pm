@@ -802,21 +802,11 @@ sub table {
  my $self;
 
 
-# if (@ISA && $proto->SUPER::can('table')) {
-# 	  $self = $proto->SUPER::table(@_);
-#  }
-# else {
-  $self = {};
-#  bless($self, $proto);
-# }
-
-
-# while(my($k, $v)=each %$proto) {
-#   print "$k, $v <br>";	
-# }
- 
+ $self = {};
  bless($self);
 
+
+ $self->{MAX_ROWS}=$parent->{MAX_ROWS};
 
  $self->{prototype} = $proto;
  $self->{NO_PRINT} = $proto->{NO_PRINT};
@@ -893,7 +883,7 @@ sub table {
  	   my %ATTR = ();
  	   if (defined($attr->{recs_on_page})) {
  	   	 $ATTR{recs_on_page}=$attr->{recs_on_page};
- 	     }
+ 	    }
  	   $self->{pages} =  $self->pages($attr->{pages}, "$op$attr->{qs}", { %ATTR });
 	 } 
 
@@ -1290,6 +1280,8 @@ sub color_mark {
 sub pages {
  my $self = shift;
  my ($count, $argument, $attr) = @_;
+
+ return '' if ($self->{MAX_ROWS});
 
  if (defined($attr->{recs_on_page})) {
  	 $PAGE_ROWS = $attr->{recs_on_page};

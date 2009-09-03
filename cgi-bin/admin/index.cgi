@@ -216,9 +216,18 @@ elsif  ($admin->{GID} > 0) {
   $LIST_PARAMS{GID}=$admin->{GID} 
  }
 
+
+
+
 if  ($admin->{DOMAIN_ID} > 0) {
   $LIST_PARAMS{DOMAIN_ID}=$admin->{DOMAIN_ID};
  }
+
+if  ($admin->{MAX_ROWS} > 0) {
+  $LIST_PARAMS{PAGE_ROWS}=$admin->{MAX_ROWS};
+  $html->{MAX_ROWS}=111; #$admin->{MAX_ROWS};
+ }
+
 
 
 #Global Vars
@@ -5075,6 +5084,14 @@ else {
 
 
 $FORM{type}=11 if ($FORM{type} == 15);
+
+
+if( $FORM{LOGIN_EXPR} && $admin->{MIN_SEARCH_CHARS} && length($FORM{LOGIN_EXPR}) < $admin->{MIN_SEARCH_CHARS}) {
+	$html->message('err', $_ERROR, "$_ERR_SEARCH_VAL_TOSMALL. $_MIN: $admin->{MIN_SEARCH_CHARS}");
+	return 0;
+}
+
+
 
 if (defined($attr->{SEARCH_FORM})) {
 	$SEARCH_DATA{SEARCH_FORM} = $attr->{SEARCH_FORM}
