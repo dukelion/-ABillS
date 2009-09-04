@@ -530,6 +530,7 @@ sub dv_user {
                                           { 
  	                                          SELECTED     => $Dv->{STATUS},
  	                                          SEL_ARRAY    => \@service_status,
+ 	                                          STYLE        => \@service_status_colors,
  	                                          ARRAY_NUM_ID => 1
  	                                        });
    

@@ -9,3 +9,5 @@ $_NEW_MESSAGE='New message';
 $_RUN_TIME='Run time';
 $_MSG_SENDED='Send to administrator';
 $_IN_WORK='In Work';
+$_ANSWER_WAIT='Wait user answer';
+$_UPDATED='Updated';

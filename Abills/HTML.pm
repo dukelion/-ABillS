@@ -260,7 +260,7 @@ else {
       next if $firstline =~ /filename=\"\"/;
       $firstline =~ s/^Content-Disposition: form-data; //;
       my (@columns) = split(/;\s+/, $firstline);
-      ($name = $columns[0]) =~ s/^name="([^"]+)"$/$1/g;
+      ($name = $columns[0]) =~ s/^name=\"([^\"]+)\"$/$1/g;
       my $blankline;
       if ($#columns > 0) {
 	      if ($datas =~ /^Content-Type:/) {
@@ -275,7 +275,10 @@ else {
       else {
 	     ($blankline, $datas) = split(/[\r]\n/, $datas, 2);
         if (grep(/^$name$/, keys(%FORM))) {
-          if (@{$FORM{$name}} > 0) {
+        	print "Content-Type: text/html\n\n";
+        	print "/$name // $FORM{$name}<br>";
+        	
+          if (@{ $FORM{$name} } > 0) {
             push(@{$FORM{$name}}, $datas);
            }
           else {
@@ -426,6 +429,7 @@ sub form_select {
 	  foreach my $v (@$H) {
       my $id = (defined($attr->{ARRAY_NUM_ID})) ? $i : $v;
       $self->{SELECT} .= "<option value='$id'";
+      $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$i];' " if ($attr->{STYLE});
       $self->{SELECT} .= ' selected' if (defined($attr->{SELECTED}) && ( ($i eq $attr->{SELECTED}) || ($v eq $attr->{SELECTED}) ) );
       $self->{SELECT} .= ">$v\n";
       $i++;
