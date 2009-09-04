@@ -2205,7 +2205,6 @@ my $table = $html->table( { width       => '400',
 	my $zone = -1;
 
 	foreach my $zone_id (@{ $Ipn_Collector->{ZONES_IDS} }) {
-	  print @{ $Ipn_Collector->{ZONES_IPS}{1} };
 	  if( ip_in_zone(ip2int($ip), $port, $Ipn_Collector->{ZONES}{$zone_id}{TRAFFIC_CLASS}, $Ipn_Collector->{ZONES_IPS} ) ) {
 		  $zone = $zone_id;
       last;
