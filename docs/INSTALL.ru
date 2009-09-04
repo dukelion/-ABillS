@@ -49,7 +49,7 @@
 В этот файл нужно вписать IP адрес или имя NAS сервера с
 которого будут поступать данные для радиуса и пароль доступа.
 \\
-  client nashost.nasdomain {
+  client 127.0.0.1 {
      secret = radsecret
      shortname = shorrname
   }
@@ -74,24 +74,46 @@
 
 ====Версия 2.xx====
 
-в **raddb/radiusd.conf** в секции ''modules'':
+в **raddb/radiusd.conf** в секции ''modules'' описываем секции:
 
-  exec auth {                                                   
-     program = "/usr/abills/libexec/rauth.pl"       
-     wait = yes                                           
-     input_pairs = request                                 
-     shell_escape = yes                                   
-     output = no                                           
-     output_pairs = reply                                 
-  }                                                             
+  abills_preauth 
+  exec abills_preauth { 
+    program = "/usr/abills/libexec/rauth.pl pre_auth" 
+    wait = yes 
+    input_pairs = request 
+    shell_escape = yes 
+    #output = no 
+    output_pairs = config 
+  } 
   
-  exec acc {                                                   
-     program = "/usr/abills/libexec/racct.pl"       
-     wait = yes                                           
-     input_pairs = request                                 
-     shell_escape = yes                                   
-     output = no                                           
-     output_pairs = reply                                 
+  abills_postauth 
+  exec abills_postauth { 
+    program = "/usr/abills/libexec/rauth.pl post_auth" 
+    wait = yes 
+    input_pairs = request 
+    shell_escape = yes 
+    #output = no 
+    output_pairs = config 
+  } 
+  
+  abills_auth 
+  exec abills_auth { 
+    program = "/usr/abills/libexec/rauth.pl" 
+    wait = yes 
+    input_pairs = request 
+    shell_escape = yes 
+    output = no 
+    output_pairs = reply 
+   } 
+  
+  abills_acc 
+    exec abills_acc { 
+    program = "/usr/abills/libexec/racct.pl" 
+    wait = yes 
+    input_pairs = request 
+    shell_escape = yes 
+    output = no 
+    output_pairs = reply 
   }
 
  в секции ''exec''\\
@@ -106,19 +128,28 @@
      output_pairs = reply                                 
   }
 
-в нужной конфигурации из ''sites-enabled''\\
+Файл raddb/sytes-inable/default - правим секции authorize, preacct, post-auth. Остальное в этих секциях ремарим. \\
+
 Код:
 
-  preacct {                                               
-     preprocess                                     
-     acc                         
-  }
+  authorize { 
+    preprocess 
+    abills_preauth 
+    mschap 
+    files 
+    abills_auth 
+   } 
+   
+  preacct { 
+    preprocess 
+    abills_acc 
+   } 
   
-  authorize {                                                     
-     preprocess                                                       
-     files                   
-     auth
-  }
+  post-auth { 
+    Post-Auth-Type REJECT { 
+       abills_postauth 
+     } 
+  } 
 
 в **raddb/users** \\
 Код:
@@ -176,52 +207,99 @@
 
 =====Apache=====
  [[http://www.apache.org|Apache]]\\
- Веб сервер должен быть собран  с поддержкой ''mod_rewrite''\\
+ Веб-сервер должен быть собран  с поддержкой ''mod_rewrite''\\
 
   # ./configure --prefix=/usr/local/apache --enable-rewrite=shared
   # make
   # make install
 
+Если нужно шифрование трафика для веб-интерфейса, тогда создаём сертификаты. Apache должен быть собран с mod_ssl.
+
+  # /usr/abills/misc/sslcerts.sh apache
+
 Вносим в конфигурационый файл следующие опции **httpd.conf**.
 
-  #Abills version 0.3
+  #Abills version 0.5
+  Listen 9443
+  <VirtualHost _default_:9443>
+  
+    DocumentRoot "/usr/abills/cgi-bin"
+    #ServerName www.example.com:9443
+    #ServerAdmin admin@example.com
+    ErrorLog /var/log/httpd/abills-error.log
+    #TransferLog /var/log/httpd/abills-access.log
+    CustomLog /var/log/httpd/abills-access_log common
+   
+    <IfModule ssl_module>
+      #   SSL Engine Switch:
+      #   Enable/Disable SSL for this virtual host.
+      SSLEngine on
+      SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
+      SSLCertificateFile /usr/abills/Certs/server.crt
+      SSLCertificateKeyFile /usr/abills/Certs/server.key
+      <FilesMatch "\.(cgi)$">
+        SSLOptions +StdEnvVars
+      </FilesMatch>
+      BrowserMatch ".*MSIE.*" \
+         nokeepalive ssl-unclean-shutdown \
+         downgrade-1.0 force-response-1.0
+  
+      CustomLog /var/log/abills-ssl_request.log \
+          "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+    </IfModule>
+  
+  
   # User interface
-  Alias /abills "/usr/abills/cgi-bin/"
-  <Directory "/usr/abills/cgi-bin">
-     <IfModule mod_rewrite.c>
+    <Directory "/usr/abills/cgi-bin">
+      <IfModule ssl_module>
+        SSLOptions +StdEnvVars
+      </IfModule>
+  
+      <IfModule mod_rewrite.c>
         RewriteEngine on
         RewriteCond %{HTTP:Authorization} ^(.*)
         RewriteRule ^(.*) - [E=HTTP_CGI_AUTHORIZATION:%1]
         Options Indexes ExecCGI SymLinksIfOwnerMatch
-     </IfModule>
-    AddHandler cgi-script .cgi
-    Options Indexes ExecCGI FollowSymLinks
-    AllowOverride none
-    DirectoryIndex index.cgi
-    Order allow,deny
-    Allow from all
+      </IfModule>
+   
+      AddHandler cgi-script .cgi
+      Options Indexes ExecCGI FollowSymLinks
+      AllowOverride none
+      DirectoryIndex index.cgi         
   
-    <Files ~ "\.(db|log)$">
       Order allow,deny
-      Deny from all
-    </Files>
-  </Directory>
+      Allow from all
   
+     <Files ~ "\.(db|log)$">
+       Order allow,deny
+       Deny from all
+     </Files>
+    
+    #For hotspot solution
+    #ErrorDocument 404 "/abills/"
+    #directoryIndex "/abills" index.cgi
+   </Directory>
   
-  #Admin interface
-  <Directory "/usr/abills/cgi-bin/admin">
-    AddHandler cgi-script .cgi
-    Options Indexes ExecCGI FollowSymLinks
-    AllowOverride none
-    DirectoryIndex index.cgi
-    order deny,allow
-    allow from all
-  </Directory>
+   #Admin interface
+   <Directory "/usr/abills/cgi-bin/admin">
+     <IfModule ssl_module>
+       SSLOptions +StdEnvVars
+     </IfModule>
+  
+     AddHandler cgi-script .cgi
+     Options Indexes ExecCGI FollowSymLinks
+     AllowOverride none
+     DirectoryIndex index.cgi
+     order deny,allow
+     allow from all
+   </Directory>
+  
+  </VirtualHost>
 
 
+Или включаем ** abills/misc/apache/abills_httpd.conf ** в конфигурационный файл apache
 
-
-
+  Include /usr/abills/misc/apache/abills_httpd.conf
 
 =====Perl modules=====
 Для работы системы нужны модули.\\
@@ -279,7 +357,7 @@
   #DB configuration 
   $conf{dbhost}='localhost';
   $conf{dbname}='abills'; 
-  $conf{dblogin}='abills';
+  $conf{dbuser}='abills';
   $conf{dbpasswd}='sqlpassword'; 
   $conf{ADMIN_MAIL}='info@your.domain'; 
   $conf{USERS_MAIL_DOMAIN}="your.domain";
@@ -304,13 +382,18 @@
   # chown -Rf www /usr/abills/Abills/templates
   # chown -Rf www /usr/abills/backup
   
-Открываем веб интерфейс http://your.host/abills/admin/
-
-
+Веб интерфейс администратора:\\
+**https://your.host:9443/admin/**\\
+\\
 Логин администратора по умолчанию **abills** пароль **abills**\\
 
+Веб интерфейс для пользователей:\\
+**https://your.host:9443/**\\
+\\
 
-Прежде всего надо сконфигурировать сервера доступа NAS (Network Access Server). \\
+
+
+В интерфейсе администратора прежде всего надо сконфигурировать сервера доступа NAS (Network Access Server). \\
 Переходим в меню\\
 **System configuration->NAS**\\
 
