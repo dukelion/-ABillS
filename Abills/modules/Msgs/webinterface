@@ -409,6 +409,7 @@ sub msgs_admin {
  	 	                        ID        => $FORM{ID},
  	 	                        USER_READ => "0000-00-00 00:00:00",
  	 	                        ADMIN_READ=> "$DATE $TIME",
+ 	 	                        #CHAPTER   => 
  	 	                        %params
  	 	                      });
 
@@ -482,13 +483,17 @@ sub msgs_admin {
  	                                          ARRAY_NUM_ID      => 1
  	                                        });
 
-    $Msgs->{CHAPTER_NAME}=$html->form_select('CHAPTER', 
-                                          { 
- 	                                          SELECTED          => $Msgs->{CHAPTER},
- 	                                          SEL_MULTI_ARRAY   => $Msgs->chapters_list(),
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
- 	                                        });    
+
+  my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
+  
+  
+#    $Msgs->{CHAPTER_NAME}=$html->form_select('CHAPTER', 
+#                                          { 
+# 	                                          SELECTED          => $Msgs->{CHAPTER},
+# 	                                          SEL_MULTI_ARRAY   => $Msgs->chapters_list({ }),
+# 	                                          MULTI_ARRAY_KEY   => 0,
+# 	                                          MULTI_ARRAY_VALUE => 1,
+# 	                                        });    
     
     $Msgs->{RESPOSIBLE}=$html->form_select('RESPOSIBLE', 
                                           { 
@@ -786,7 +791,7 @@ print $html->form_main({ CONTENT => $table->show(). $table2->show(),
 
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right'],
-                        rows       => [ [ "$_TOTAL:", $html->b($Msgs->{TOTAL}) ] ]
+                        rows       => [ [ " $_TOTAL: ", $html->b($Msgs->{TOTAL}) ] ]
                       });
 print $table->show();
 }
