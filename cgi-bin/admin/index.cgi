@@ -226,7 +226,7 @@ if  ($admin->{DOMAIN_ID} > 0) {
 if  ($admin->{MAX_ROWS} > 0) {
   $LIST_PARAMS{PAGE_ROWS}=$admin->{MAX_ROWS};
   $FORM{PAGE_ROWS}=$admin->{MAX_ROWS};
-  #$html->{MAX_ROWS}=111; #$admin->{MAX_ROWS};
+  $html->{MAX_ROWS}=$admin->{MAX_ROWS};
  }
 
 
