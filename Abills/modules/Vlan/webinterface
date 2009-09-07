@@ -172,6 +172,7 @@ sub vlan_user {
      }
    }
 	elsif($FORM{del}) {
+    $Vlan->{UID}=$FORM{UID};
     $Vlan->del();
     if (! $Vlan->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
@@ -690,7 +691,7 @@ sub vlan_pppoe_relay {
   my $debug_output = '';
   my $cmd = '';
 
-  if($conf{VLAN_CREATE_PPPOE} && $attr->{NAS_MNG_IP} ne '193.93.244.10') {
+  if($conf{VLAN_CREATE_PPPOE}) {
   	my $interfaces = join(',', sort keys %{ $attr->{CLIENT_INTERFACES} });
    
     $cmd = "$conf{VLAN_CREATE_PPPOE}";
