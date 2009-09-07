@@ -5,9 +5,9 @@ use Vlan;
 my $Vlan = Vlan->new($db, $admin, \%conf);
 my $Nas  = Nas->new($db, \%conf);
 
-my $SUDO = 'sudo';
-my $SSH  = '/usr/bin/ssh';
-my $SCP  = '/usr/bin/scp';
+my $SUDO  = 'sudo';
+my $SSH   = '/usr/bin/ssh';
+my $SCP   = '/usr/bin/scp';
 my $debug = 0;
 
 
@@ -289,7 +289,10 @@ sub vlan_create {
 
 $debug = $attr->{DEBUG} || 0;
 my $debug_output = '';
-  
+
+
+$attr->{NAS_IDS} = $attr->{LOCAL_NAS_IDS}  if ($attr->{LOCAL_NAS_IDS});
+
 my $list = $Nas->list({ PAGE_ROWS => 100000, 
  	                      TYPE      => 'vlan', 
  	                      DISABLE   => 0,
@@ -329,19 +332,28 @@ foreach my $line (@$list) {
   	$debug_output .= "!!! No Interface name. Push 'IP-Interface-Name=\"fxp0\"' to NAS RADIUS pairs\n";
   	next;
    }
-  
-  my $NAS_ID          = $line->[0];
-  my $nas_mng_ip_port = $line->[9];
-  my $nas_mng_user    = $line->[10];
-  my $nas_mng_passwd  = $line->[11];
-  
-  my ($nas_mng_ip, $nas_mng_port)=split(/:/, $nas_mng_ip_port);
-  $nas_mng_port = 22 if (! $nas_mng_port);
 
- 	$ENV{NAS_IP_ADDRESS}=$nas_mng_ip;
- 	$ENV{NAS_IP_PORT}   =$nas_mng_port;
-  $ENV{NAS_MNG_USER}  =$nas_mng_user;
-  $ENV{NAS_MNG_PASSWD}=$nas_mng_passwd;
+
+  my $NAS_ID          = '';
+  my $nas_mng_ip_port = '';
+  my $nas_mng_user    = '';
+  my $nas_mng_passwd  = '';
+  
+  
+  if (! $attr->{LOCAL_NAS_IDS}) {
+    $NAS_ID          = $line->[0];
+    $nas_mng_ip_port = $line->[9];
+    $nas_mng_user    = $line->[10];
+    $nas_mng_passwd  = $line->[11];
+  
+    my ($nas_mng_ip, $nas_mng_port)=split(/:/, $nas_mng_ip_port);
+    $nas_mng_port = 22 if (! $nas_mng_port);
+
+ 	  $ENV{NAS_IP_ADDRESS}=$nas_mng_ip;
+ 	  $ENV{NAS_IP_PORT}   =$nas_mng_port;
+    $ENV{NAS_MNG_USER}  =$nas_mng_user;
+    $ENV{NAS_MNG_PASSWD}=$nas_mng_passwd;
+   }
 
 
   my $vlan_list = $Vlan->list({ DISABLE    => 0,
