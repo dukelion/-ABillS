@@ -287,7 +287,7 @@ if ($self->{JOIN_SERVICE}) {
   }
 
 #Check CID (MAC) 
-if ($self->{CID} ne '' && $self->{CID} ne '0') {
+if ($self->{CID} ne '' && $self->{CID} ne "ANY") {
   my ($ret, $ERR_RAD_PAIRS) = $self->Auth_CID($RAD);
   return $ret, $ERR_RAD_PAIRS if ($ret == 1);
 }
@@ -700,10 +700,9 @@ elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
 }
 
 #Auto assing MAC in first connect
-if( defined($CONF->{MAC_AUTO_ASSIGN}) && 
-       $CONF->{MAC_AUTO_ASSIGN}==1 && 
-       $self->{CID} eq '' && 
-       (defined($RAD->{CALLING_STATION_ID}) && $RAD->{CALLING_STATION_ID} =~ /:/ && $RAD->{CALLING_STATION_ID} !~ /\// )
+if( $CONF->{MAC_AUTO_ASSIGN} && 
+    $self->{CID} eq '' && 
+    ($RAD->{CALLING_STATION_ID} && $RAD->{CALLING_STATION_ID} =~ /:|\-/ && $RAD->{CALLING_STATION_ID} !~ /\// )
       ) {
   $self->query($db, "UPDATE dv_main SET cid='$RAD->{CALLING_STATION_ID}'
      WHERE uid='$self->{UID}';", 'do');
@@ -758,16 +757,19 @@ sub Auth_CID {
   my $RAD_PAIRS;
   
   my @MAC_DIGITS_GET = ();
-  if (! defined($RAD->{CALLING_STATION_ID})) {
+  if (! $RAD->{CALLING_STATION_ID}) {
      $RAD_PAIRS->{'Reply-Message'}="Wrong CID ''";
      return 1, $RAD_PAIRS, "Wrong CID ''";
    }
+ 
+ 	my @CID_POOL = split(/;/, $self->{CID});
 
+  foreach my $TEMP_CID (@CID_POOL) { if ($TEMP_CID != '') {
 
-   if (($self->{CID} =~ /:/ || $self->{CID} =~ /-/)
-       && $self->{CID} !~ /\./) {
-      #@MAC_DIGITS_GET=split(/:/, $self->{CID}) if($self->{CID} =~ /:/);
-      @MAC_DIGITS_GET=split(/:|-/, $self->{CID});
+    if (($TEMP_CID =~ /:/ || $TEMP_CID =~ /-/)
+       && $TEMP_CID !~ /\./) {
+      @MAC_DIGITS_GET=split(/:|-/, $TEMP_CID);
+        
       
       
 
@@ -779,30 +781,40 @@ sub Auth_CID {
        }
 
       my @MAC_DIGITS_NEED = split(/:|\.|-/, $RAD->{CALLING_STATION_ID});
+      my $counter=0;
 
       for(my $i=0; $i<=5; $i++) {
-        if(hex($MAC_DIGITS_NEED[$i]) != hex($MAC_DIGITS_GET[$i])) {
-          $RAD_PAIRS->{'Reply-Message'}="Wrong MAC '$RAD->{CALLING_STATION_ID}'";
-          return 1, $RAD_PAIRS, "Wrong MAC '$RAD->{CALLING_STATION_ID}'";
-         }
+         if(hex($MAC_DIGITS_NEED[$i]) == hex($MAC_DIGITS_GET[$i])) {
+	         $counter++;
+          }
+        }
+
+      if ($counter eq '6') {
+   	    return 0;
+	     }
+
+     }
+    # If like MPD CID
+    # 192.168.101.2 / 00:0e:0c:4a:63:56 
+    elsif($TEMP_CID =~ /\//) {
+      $RAD->{CALLING_STATION_ID} =~ s/ //g;
+      my ($cid_ip, $cid_mac, $trash) = split(/\//, $RAD->{CALLING_STATION_ID}, 3);
+      if ("$cid_ip/$cid_mac" eq $TEMP_CID) {
+        return 0;
        }
-    }
-   # If like MPD CID
-   # 192.168.101.2 / 00:0e:0c:4a:63:56 
-   elsif($self->{CID} =~ /\//) {
-     $RAD->{CALLING_STATION_ID} =~ s/ //g;
-     my ($cid_ip, $cid_mac, $trash) = split(/\//, $RAD->{CALLING_STATION_ID}, 3);
-     if ("$cid_ip/$cid_mac" ne $self->{CID}) {
-       $RAD_PAIRS->{'Reply-Message'}="Wrong CID '$cid_ip/$cid_mac'";
-       return 1, $RAD_PAIRS;
-      }
-    }
-   elsif($self->{CID} ne $RAD->{CALLING_STATION_ID}) {
-     $RAD_PAIRS->{'Reply-Message'}="Wrong CID '$RAD->{CALLING_STATION_ID}'";
-     return 1, $RAD_PAIRS;
-    }
+     }
+    elsif($TEMP_CID eq $RAD->{CALLING_STATION_ID}) {
+      return 0;
+     }
+   }
+
+  }
+
+   $RAD_PAIRS->{'Reply-Message'}="Wrong CID '$RAD->{CALLING_STATION_ID}'";
+   return 1, $RAD_PAIRS;
 
 }
+
 
 #**********************************************************
 # User authentication

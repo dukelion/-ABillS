@@ -369,10 +369,13 @@ else {
 
 #detalization for Exppp
 if ($conf->{s_detalization}) {
-   $RAD->{INTERIUM_INBYTE}=0 if (! defined($RAD->{INTERIUM_INBYTE}));
-   $RAD->{INTERIUM_OUTBYTE}=0 if (! defined($RAD->{INTERIUM_OUTBYTE}));
-   $RAD->{INTERIUM_INBYTE2}=0 if (! defined($RAD->{INTERIUM_INBYTE2}));
-   $RAD->{INTERIUM_OUTBYTE2}=0 if (! defined($RAD->{INTERIUM_OUTBYTE2}));
+
+  if($NAS->{NAS_TYPE} ne 'exppp') {
+    $RAD->{INTERIUM_INBYTE}  =$RAD->{INBYTE};
+    $RAD->{INTERIUM_OUTBYTE} =$RAD->{OUTBYTE};
+    $RAD->{INTERIUM_INBYTE2} =$RAD->{INBYTE2}  || 0;
+    $RAD->{INTERIUM_OUTBYTE2}=$RAD->{OUTBYTE2} || 0;
+   }
 
   $self->query($db, "INSERT into s_detail (acct_session_id, nas_id, acct_status, last_update, 
     sent1, recv1, sent2, recv2, id)

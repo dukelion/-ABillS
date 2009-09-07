@@ -981,13 +981,12 @@ sub user_form {
    $user_info->{LNG_ACTION}=$_ADD;
   }
  else {
+ 	 $FORM{UID}=$user_info->{UID};
+
    $user_info->{COMPANY_NAME}=$html->color_mark("$_NOT_EXIST ID: $user_info->{COMPANY_ID}", $_COLORS[6]) if ($user_info->{COMPANY_ID} && ! $user_info->{COMPANY_NAME}) ;
 
    $user_info->{EXDATA} = $html->tpl_show(templates('form_user_exdata'), 
                                           $user_info, { notprint => 1 });
-
-   
-
    if ($conf{EXT_BILL_ACCOUNT} && $user_info->{EXT_BILL_ID}) {
      $user_info->{EXDATA} .= $html->tpl_show(templates('form_ext_bill'), 
                                              $user_info, { notprint => 1 });
@@ -1005,7 +1004,7 @@ sub user_form {
    $user_info->{ACTION}='change';
    $user_info->{LNG_ACTION}=$_CHANGE;
    if ($permissions{0}{3}) {
-   	 $user_info->{PASSWORD} = ($FORM{SHOW_PASSWORD}) ? "$_PASSWD: '$user_info->{PASSWORD}'" : $html->button("$_SHOW $_PASSWD", "index=$index&UID=$FORM{UID}&SHOW_PASSWORD=1");
+   	 $user_info->{PASSWORD} = ($FORM{SHOW_PASSWORD}) ? "$_PASSWD: '$user_info->{PASSWORD}'" : $html->button("$_SHOW $_PASSWD", "index=$index&UID=$LIST_PARAMS{UID}&SHOW_PASSWORD=1");
     }
   } 
 
