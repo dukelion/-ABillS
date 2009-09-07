@@ -1640,6 +1640,11 @@ sub ipn_change_status {
      }
    }
 
+if (! $cmd) {
+  print "Error: Not defined external command for status: $STATUS\n";
+  return 0;
+}
+
 
   $cmd =~ s/\%IP/$ip/g;
   $cmd =~ s/\%MASK/$netmask/g;
