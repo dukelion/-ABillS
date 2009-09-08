@@ -391,7 +391,7 @@ sub host_del {
   $self->query($db, "DELETE FROM dhcphosts_hosts where $WHERE", 'do');
  
 
-  $admin->action_add($uid, "$attr->{UID}", { TYPE => 10 }); 
+  $admin->action_add($uid, "$action", { TYPE => 10 }); 
 
   return $self;
 };
