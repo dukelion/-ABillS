@@ -215,7 +215,7 @@ if($FORM{NAS_ID}) {
   	return 0;
    }
   elsif($FORM{change}) {
-    $nas->change({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });  
+    $nas->change({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} || 0 });  
     if (! $nas->{errno}) {
     	 multidoms_reseller_nas_reconfig();
        $html->message('info', $_CHANGED, "$_CHANGED $nas->{NAS_ID}");
