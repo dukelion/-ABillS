@@ -318,11 +318,11 @@ sub add {
   %DATA = $self->get_data($attr); 
 
   $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable, gid, email, comments, password, domain_id,
-  min_search_chars, rage_rows) 
+  min_search_chars, max_rows) 
    VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}', '$DATA{GID}', 
    '$DATA{EMAIL}', '$DATA{A_COMMENTS}', '$DATA{PASSWORD}', '$DATA{DOMAIN_ID}',
-   $DATA{MIN_SEARCH_CHARS},
- 	 $DATA{MAX_ROWS});", 'do');
+   '$DATA{MIN_SEARCH_CHARS}',
+ 	 '$DATA{MAX_ROWS}');", 'do');
 
   $self->{AID}=$self->{INSERT_ID};
 

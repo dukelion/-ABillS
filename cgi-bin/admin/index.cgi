@@ -2712,7 +2712,7 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
 
 
 if ($admin_form->{errno}) {
-     $html->message('err', $_ERROR, $err_strs{$admin_form->{errno}});	
+  $html->message('err', $_ERROR, $err_strs{$admin_form->{errno}});	
  }
 
 
@@ -2768,7 +2768,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($admin_form->{TOTAL}) ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($admin->{TOTAL}) ] ]
                      } );
 print $table->show();
 }
