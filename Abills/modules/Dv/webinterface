@@ -1104,6 +1104,7 @@ if($FORM{ZAPED}) {
 	$LIST_PARAMS{ZAPED}=1;
 	$form_link = $html->button("On line", "index=$index");
 	$cure = 'Zap';
+	$pages_qs .= "&ZAPED=1";
  } 
 else {
  	$form_link = $html->button("$_ZAPED", "index=$index&ZAPED=yes"). " ($sessions->{ZAPED})";
@@ -1137,6 +1138,7 @@ my @FIELDS_ALL = ("$_USER", "$_FIO", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_
 
 
 if ($sessions->{TOTAL} > 500)  {
+	
   my $table = $html->table( { width      => '100%',
                             caption    => "Online $_TOTAL",
                             border     => 1,
@@ -1175,8 +1177,6 @@ if ($sessions->{TOTAL} > 500)  {
   	$LIST_PARAMS{NAS_ID}=$FORM{NAS_ID};
    }
 }
-
-
 
 
 
