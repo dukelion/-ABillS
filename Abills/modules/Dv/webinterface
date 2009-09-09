@@ -348,7 +348,7 @@ foreach my $line (@$list) {
    ($line->[5] > 0) ? $html->color_mark($service_status[$line->[5]], $service_status_colors[$line->[5]]) : "$service_status[$line->[5]]",
    @fields_array, 
    $payments, 
-   $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}])
+   $html->button("$_STATS", "index=". ((! $FORM{TP_SHOW}) ? $index + 3 : $index - 9 ) ."&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}])
 
    );
 }
@@ -631,6 +631,7 @@ if($FORM{ADD_TP}) {
 elsif (defined($FORM{TP_ID})) {
  
   $tarif_info = $tariffs->info( $FORM{TP_ID}, { ID => $FORM{TP_NUM}  } );
+  $FORM{TP_SHOW}=1;
 
 
   if ($tariffs->{errno}) {
@@ -688,7 +689,6 @@ elsif (defined($FORM{TP_ID})) {
 
   $tarif_info->{LNG_ACTION}=$_CHANGE;
   $tarif_info->{ACTION}='change';
-
  }
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
   $tariffs->del($FORM{del});
