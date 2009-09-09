@@ -2769,10 +2769,10 @@ $sessions->session_detail({ %FORM });
 
 $sessions->{ACCT_TERMINATE_CAUSE} = "$sessions->{ACCT_TERMINATE_CAUSE} : ". $ACCT_TERMINATE_CAUSES_VALUE{$sessions->{ACCT_TERMINATE_CAUSE}};
 
-$sessions->{_SENT}=int2byte($sessions->{SENT}); 
-$sessions->{_RECV}=int2byte($sessions->{RECV}); 
-$sessions->{_SENT2}=int2byte($sessions->{SENT2});
-$sessions->{_RECV2}=int2byte($sessions->{RECV2});
+$sessions->{_SENT} = int2byte($sessions->{SENT}); 
+$sessions->{_RECV} = int2byte($sessions->{RECV}); 
+$sessions->{_SENT2}= int2byte($sessions->{SENT2});
+$sessions->{_RECV2}= int2byte($sessions->{RECV2});
 
 $html->tpl_show(_include('dv_session_detail', 'Dv'), $sessions);
 
@@ -2838,13 +2838,20 @@ if ($sessions->{TOTAL} > 0) {
 
 
 #Log detail list
+
+if(! $FORM{sort}) {
+  $LIST_PARAMS{SORT}=1;
+  $LIST_PARAMS{DESC}='DESC';
+}
+
 $list = $sessions->detail_list({ %LIST_PARAMS, %FORM });
 my $table = $html->table({ width      => '100%',
                            border     => 1,
                            title      => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
                            cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
                            pages      => $sessions->{TOTAL},
-                           qs         => $pages_qs
+                           qs         => $pages_qs,
+                           ID         => 'DETAIL_LIST'
                            } );
 
  foreach my $line (@$list) {
