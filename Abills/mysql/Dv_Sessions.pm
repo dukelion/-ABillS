@@ -643,6 +643,11 @@ sub detail_list {
 	my $self = shift;
 	my ($attr) = @_;
 
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
 	
 my $lupdate;
 	
