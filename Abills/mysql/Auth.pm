@@ -1710,6 +1710,7 @@ sub neg_deposit_filter_former () {
    	         }
    	        else {
    	        	#next if (! $self->{"$left"});
+   	        	$right = '' if (! $right);
    	          $RAD_PAIRS->{"$left"}="$right";
    	         }
            }

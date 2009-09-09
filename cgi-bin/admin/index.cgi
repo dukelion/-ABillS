@@ -4478,6 +4478,7 @@ sub form_payments () {
  use Finance;
  my $payments = Finance->payments($db, $admin, \%conf);
 
+ 
  return 0 if (! defined ($permissions{1}));
 
  my %BILL_ACCOUNTS = ();
@@ -4612,7 +4613,7 @@ if (defined($permissions{1}{1})) {
  }
 }
 elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
-	#$FORM{subf}=$index;
+	$FORM{subf}=$index;
 	form_admins();
 	return 0;
  }
@@ -4929,7 +4930,8 @@ if ($attr->{USER}) {
 }
 elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
 	$FORM{subf}=$index;
-	form_admins();
+	
+  form_admins();
 	return 0;
  }
 elsif($FORM{UID}) {
