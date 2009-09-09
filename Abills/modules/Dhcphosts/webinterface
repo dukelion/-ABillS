@@ -692,6 +692,12 @@ sub dhcphosts_user {
 
 
   if ($FORM{add}) {
+    
+    if ($FORM{IP} eq '0.0.0.0' && $FORM{AUTO_IP} && $FORM{NETWORK}) {
+  	 	$FORM{IP}=dhcphosts_get_static_ip($FORM{NETWORK});
+     }
+    
+    
     if ($FORM{MAC} !~ /[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/i) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: MAC ");
       #00:19:5b:4f:98:7a	
@@ -717,6 +723,10 @@ sub dhcphosts_user {
     }
 	 }
   elsif ($FORM{change}) {
+    if ($FORM{IP} eq '0.0.0.0' && $FORM{AUTO_IP} && $FORM{NETWORK}) {
+    	$FORM{IP}=dhcphosts_get_static_ip($FORM{NETWORK});
+     }
+
     if ($FORM{MAC} !~ /[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/i) {
       $html->message('err', $_ERROR, "WRONG MAC ");
       #00:19:5b:4f:98:7a	
@@ -797,12 +807,54 @@ sub dhcphosts_user {
      #                                             EX_PARAMS         => (! $Dhcphosts->{OPTION_82}) ? "DISABLED STYLE='background-color: $_COLORS[3]'" : ''
                                            });
 
-
-  $html->tpl_show(_include('dhcphosts_host', 'Dhcphosts'), { %{ $Dhcphosts->host_defaults() }, HOSTNAME => $users->{LOGIN},  %$Dhcphosts }); 
   dhcphosts_hosts();
 
+  $html->tpl_show(_include('dhcphosts_host', 'Dhcphosts'), { %{ $Dhcphosts->host_defaults() }, 
+  	    HOSTNAME => $users->{LOGIN} . (($Dhcphosts->{TOTAL}) ? '_'.$Dhcphosts->{TOTAL}+1 : ''),  
+  	    %$Dhcphosts }); 
+
+  #dhcphosts_hosts();
 };
 
+
+
+
+#**********************************************************
+# Get static ip from pool
+# form_tp
+#**********************************************************
+sub dhcphosts_get_static_ip {
+	my ($network_id)=@_;
+	my $ip = '0.0.0.0';
+	
+  my $nas = Nas->new($db, \%conf);  
+  $Dhcphosts->network_info($network_id);
+
+  my $start_ip = ip2int($Dhcphosts->{IP_RANGE_FIRST});
+  my $end_ip   = ip2int($Dhcphosts->{IP_RANGE_LAST});
+
+  my %users_ips = ();
+  
+  my $list = $Dhcphosts->hosts_list({ NETWORK   => $network_id, 
+  	                                  PAGE_ROWS => 100000
+                     	                   });
+
+
+  foreach my $line (@$list) {
+    $users_ips{$line->[2]}=1;
+   }
+  
+  for(my $ip_cur=$start_ip; $ip_cur<=$end_ip; $ip_cur++) {
+  	if (! $users_ips{$ip_cur}) {
+  		 return int2ip($ip_cur);
+  	 }
+   }
+  
+	$html->message('err', $_ERROR, "$ERR_NO_FREE_IP_IN_POOL");
+	
+	
+	return $ip;
+}
 
 #**********************************************************
 #
@@ -811,7 +863,7 @@ sub dhcphosts_network_sel {
 	my ($attr) = @_;
 	
   my $list=$Dhcphosts->networks_list({ PAGE_ROWS => 10000, SORT => 2 });
-  if ($Hosts->{errno}) {
+  if ($Dhcphosts->{errno}) {
    	print $html->message('err', $_ERROR, "[$Hosts->{errno}] $err_strs{$Hosts->{errno}}");
    	return 0;
    }

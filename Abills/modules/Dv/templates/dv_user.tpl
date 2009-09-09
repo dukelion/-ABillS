@@ -5,7 +5,7 @@
 <tr><td>$_TARIF_PLAN:</td><th  align='left' valign='middle'>[%TP_ID%] %TP_NAME% %CHANGE_TP_BUTTON%</th></tr>
 %JOIN_SERVICE%
 <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEONSLY value='%SIMULTANEONSLY%'></td></tr>
-<tr><td>IP:</td><td><input type=text name=IP value='%IP%'></td></tr>
+<tr><td>IP:</td><td><input type=text name=IP value='%IP%'> Static IP Pool: %STATIC_IP_POOL%</td></tr>
 <tr><td>Netmask:</td><td><input type=text name=NETMASK value='%NETMASK%'></td></tr>
 <tr><td>$_SPEED (kb):</td><td><input type=text name=SPEED value='%SPEED%'></td></tr>
 <tr><td>$_FILTERS:</td><td><input type=text name=FILTER_ID value='%FILTER_ID%'></td></tr>

@@ -3409,8 +3409,11 @@ if ($attr->{NAS}) {
        $html->message('info', $_INFO, "$_DELETED");
      }
    }
+  
   $pages_qs = "&NAS_ID=$nas->{NAS_ID}";
 
+  $nas->{STATIC}=' checked' if ($nas->{STATIC});
+  
   $html->tpl_show(templates('form_ip_pools'), { %$nas, INDEX => 62 });
  }
 elsif($FORM{NAS_ID}) {
@@ -3471,30 +3474,6 @@ print $html->form_main({  CONTENT => $table->show(),
 return 0;
 
 
-my $table = $html->table( { width      => '100%',
-                            caption    => "IP POOLs",
-                            border     => 1,
-                            title      => ["NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", '-'],
-                            cols_align => ['left', 'right', 'right', 'right', 'center'],
-                            qs         => $pages_qs,
-                            ID         => 'IP_POOLS'
-                           });
-
-
-my $list = $nas->ip_pools_list({ %LIST_PARAMS });	
-foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[8]", { MESSAGE => "$_DEL NAS $line->[4]?" }); 
-
-  $table->addrow($html->button($line->[0], "index=60&NAS_ID=$line->[9]"), 
-    $line->[1],
-    $line->[6], 
-    $line->[7], 
-    $line->[4],  
-    $line->[5],  
-    $delete);
-}
-
-print $table->show();
 }
 
 #**********************************************************

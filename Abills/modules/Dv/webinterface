@@ -424,6 +424,10 @@ sub dv_user {
     	return 0;
      }
 
+    if ($FORM{IP} eq '0.0.0.0' && $FORM{STATIC_IP_POOL}) {
+    	$FORM{IP}=dv_get_static_ip($FORM{STATIC_IP_POOL});
+     }
+
     if ($FORM{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ && $FORM{IP} ne '0.0.0.0') {
     	my $list = $Dv->list({ IP => $FORM{IP} });
     	if ($Dv->{TOTAL} > 0 && $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}] != $FORM{UID}) {
@@ -445,6 +449,10 @@ sub dv_user {
     if (! $permissions{0}{4} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
     	return 0;
+     }
+
+    if ($FORM{IP} eq '0.0.0.0' && $FORM{STATIC_IP_POOL}) {
+    	$FORM{IP}=dv_get_static_ip($FORM{STATIC_IP_POOL});
      }
 
     if ($FORM{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ && $FORM{IP} ne '0.0.0.0') {
@@ -589,13 +597,62 @@ sub dv_user {
  		$Dv->{JOIN_SERVICE}='';
  	}                                        
 
+
+  my $nas = Nas->new($db, \%conf);  
+  $list = $nas->ip_pools_list({ STATIC => 1 });
+  
+  $Dv->{STATIC_IP_POOL}=$html->form_select('STATIC_IP_POOL', 
+                                          { 
+ 	                                          SELECTED          => $FORM{STATIC_POOL},
+ 	                                          SEL_MULTI_ARRAY   => [['', ''], @$list ],
+ 	                                          MULTI_ARRAY_KEY   => 8,
+ 	                                          MULTI_ARRAY_VALUE => '1',
+ 	                                          NO_ID             => 1
+ 	                                        });
+ 
   
   $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
   
   return 0; 
 }
 
+#**********************************************************
+# Get static ip from pool
+# form_tp
+#**********************************************************
+sub dv_get_static_ip {
+	my ($pool_id)=@_;
+	my $ip = '0.0.0.0';
+	
+  my $nas = Nas->new($db, \%conf);  
+  $nas->ip_pools_info($pool_id);
+  
+  
+  my $start_ip = ip2int($nas->{NAS_IP_SIP});
+  my $end_ip   = $start_ip + $nas->{NAS_IP_COUNT};
 
+  my %users_ips = ();
+  
+  my $list = $Dv->list({ PAGE_ROWS => 100000, 
+  	                     IP        => ">=$nas->{NAS_IP_SIP}" 
+  	                   });
+
+
+  foreach my $line (@$list) {
+    $users_ips{$line->[6]}=1;
+   }
+  
+  for(my $ip_cur=$start_ip; $ip_cur<=$end_ip; $ip_cur++) {
+  	if (! $users_ips{int2ip($ip_cur)}) {
+  		 return int2ip($ip_cur);
+  	 }
+   }
+  
+	$html->message('err', $_ERROR, "$ERR_NO_FREE_IP_IN_POOL");
+	
+	
+	return $ip;
+}
 
 #**********************************************************
 # Tarif plans

@@ -764,7 +764,8 @@ sub Auth_CID {
  
  	my @CID_POOL = split(/;/, $self->{CID});
 
-  foreach my $TEMP_CID (@CID_POOL) { if ($TEMP_CID != '') {
+
+  foreach my $TEMP_CID (@CID_POOL) { if ($TEMP_CID ne '') {
 
     if (($TEMP_CID =~ /:/ || $TEMP_CID =~ /-/)
        && $TEMP_CID !~ /\./) {

@@ -317,7 +317,8 @@ sub ip_pools_info {
  
  my $WHERE = '';
 
- $self->query($db, "SELECT id, INET_NTOA(ip), counts, name, priority
+
+ $self->query($db, "SELECT id, INET_NTOA(ip), counts, name, priority, static
    FROM ippools  WHERE id='$id';");
 
  if(defined($self->{errno})) {
@@ -334,7 +335,7 @@ sub ip_pools_info {
    $self->{NAS_IP_COUNT}, 
    $self->{POOL_NAME}, 
    $self->{POOL_PRIORITY},
-   $self->{NAS_IP_SIP_INT}
+   $self->{STATIC}
    ) = @{ $self->{list}->[0] };
 
  return $self;	
@@ -354,7 +355,8 @@ sub ip_pools_change {
   POOL_NAME       => 'name', 
   NAS_IP_COUNT    => 'counts', 
   POOL_PRIORITY   => 'priority', 
-  NAS_IP_SIP_INT  => 'ip'
+  NAS_IP_SIP_INT  => 'ip',
+  STATIC          => 'static'
  );
 
 
@@ -381,7 +383,17 @@ sub ip_pools_list {
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  
- my $WHERE = (defined($self->{NAS_ID})) ? "and pool.nas='$self->{NAS_ID}'" : '' ;
+ @WHERE_RULES = ();
+ 
+ if (defined($attr->{STATIC})) {
+ 	 push @WHERE_RULES, "pool.static='$attr->{STATIC}'"; 
+  }
+ 
+ if(defined($self->{NAS_ID})) {
+ 	 push @WHERE_RULES, "pool.nas='$self->{NAS_ID}'"; 
+  }
+ 
+ my $WHERE = ($#WHERE_RULES > -1) ? "and " . join(' and ', @WHERE_RULES)  : '';
 
 
  $self->query($db, "SELECT nas.name, pool.name, 
@@ -406,9 +418,9 @@ sub ip_pools_add {
  my ($attr) = @_;
  my %DATA = $self->get_data($attr); 
  
- $self->query($db, "INSERT INTO ippools (nas, ip, counts, name, priority) 
+ $self->query($db, "INSERT INTO ippools (nas, ip, counts, name, priority, static) 
    VALUES ('$DATA{NAS_ID}', INET_ATON('$DATA{NAS_IP_SIP}'), '$DATA{NAS_IP_COUNT}',
-   '$DATA{POOL_NAME}', '$DATA{POOL_PRIORITY}')", 'do');
+   '$DATA{POOL_NAME}', '$DATA{POOL_PRIORITY}', '$DATA{STATIC}')", 'do');
 
  $admin->system_action_add("NAS_ID:$DATA{NAS_ID} POOLS:". (join(',', split(/, /, $attr->{ids}))), { TYPE => 1 });    
  return 0;	

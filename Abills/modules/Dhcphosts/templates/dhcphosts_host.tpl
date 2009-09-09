@@ -6,7 +6,7 @@
 
 <tr><td>$_HOSTS_HOSTNAME:</td><td><input type=text name=HOSTNAME value='%HOSTNAME%'></td></tr>			
 <tr><td>$_HOSTS_NETWORKS:</td><td>%NETWORKS_SEL%</td></tr>
-<tr><td>IP:</td><td><input type=text name=IP value='%IP%'></td></tr>			
+<tr><td>IP:</td><td><input type=text name=IP value='%IP%' size=15> $_AUTO: <input type=checkbox name=AUTO_IP value=1></td></tr>			
 <tr><td>$_HOSTS_MAC:<BR>(00:00:00:00:00:00)</td><td><input type=text name=MAC value='%MAC%'></td></tr>
 <tr><td>$_FILE:</td><td><input type=text name=BOOT_FILE value='%BOOT_FILE%'></td></tr>
 <tr><td>$_EXPIRE:</td><td><input type=text name=EXPIRE value='%EXPIRE%'></td></tr>
