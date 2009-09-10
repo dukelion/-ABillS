@@ -598,8 +598,14 @@ else {
   my $users_table_number = $conf{FW_TABLE_USERS} || 10;
 
   my $nets_table_number  = 2;
-  my $via_if_in          = ($conf{FW_DIRECTION}) ? $conf{FW_DIRECTION} : ' out xmit em0';
-  my $via_if_out         = ($conf{FW_DIRECTION}) ? $conf{FW_DIRECTION} : ' in recv em0';
+  
+  my $out_interface  = 'em0';
+  if (! $conf{ng_car}) {
+  	$out_interface = `netstat -rn | grep default | awk '{ print \$6 }'`;
+  }
+  
+  my $via_if_in          = ($conf{FW_DIRECTION}) ? $conf{FW_DIRECTION} : ' out xmit '. $out_interface;
+  my $via_if_out         = ($conf{FW_DIRECTION}) ? $conf{FW_DIRECTION} : ' in recv '. $out_interface;
 
 
 
