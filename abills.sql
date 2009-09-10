@@ -49,6 +49,8 @@ CREATE TABLE `admins` (
   `email` varchar(35) NOT NULL default '',
   `comments` text NOT NULL,
   `domain_id` smallint(6) unsigned not null default '0',
+  `min_search_chars` tinyint(2) unsigned NOT NULL DEFAULT '0',
+  `max_rows` smallint(6) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`aid`),
   UNIQUE KEY `aid` (`aid`),
   UNIQUE KEY `id` (`id`)
@@ -391,6 +393,7 @@ CREATE TABLE `ippools` (
   `counts` int(10) unsigned NOT NULL default '0',
   `name` varchar(25) NOT NULL,
   `priority` tinyint(4) NOT NULL DEFAULT '0',
+  `static` tinyint(6) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `nas` (`nas`,`ip`)
 )  ;
