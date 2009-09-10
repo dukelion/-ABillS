@@ -424,7 +424,7 @@ sub dv_user {
     	return 0;
      }
 
-    if ($FORM{IP} eq '0.0.0.0' && $FORM{STATIC_IP_POOL}) {
+    if (( $FORM{IP} eq '0.0.0.0' || $FORM{IP} eq '' ) && $FORM{STATIC_IP_POOL}) {
     	$FORM{IP}=dv_get_static_ip($FORM{STATIC_IP_POOL});
      }
 
