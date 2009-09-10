@@ -566,7 +566,7 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
 # MPD
 elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
   
-  $self->query($db, "SELECT tt.id, tc.nets
+  $self->query($db, "SELECT tt.id, tc.nets, in_speed, out_speed
              FROM trafic_tarifs tt
              LEFT JOIN traffic_classes tc ON (tt.net_id=tc.id)
              WHERE tt.interval_id='$self->{TT_INTERVAL}' ORDER BY 1 DESC;");
@@ -577,8 +577,8 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
 
     if ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/) {
        if (! $CONF->{ng_car}) {
-         push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all pass";
-         push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all pass";
+         push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all shape ". ($line->[2] * 1024)." 4000";
+         push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all shape ". ($line->[3] * 1024) ." 4000";
         }
 
    	   next ;
@@ -740,6 +740,7 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
        }
      }
    }
+
 #OK
   return 0, $RAD_PAIRS, '';
 }
