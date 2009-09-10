@@ -56,6 +56,9 @@ for num in ${CLASSES_NUMS}; do
 done;
 
   echo "Global shaper"
+  ${IPFW} add 9000 allow ip from table\(9\) to any in recv ${INTERNAL_INTERFACE}
+  ${IPFW} add 9005 allow ip from any to table\(9\) out xmit ${INTERNAL_INTERFACE}
+
   ${IPFW}  add 10000 netgraph tablearg ip from table\(10\) to any in recv ${INTERNAL_INTERFACE}
   ${IPFW}  add 10010 netgraph tablearg ip from any to table\(11\) out xmit ${INTERNAL_INTERFACE}
   ${IPFW}  add 10015 allow ip from any to any via ng*
