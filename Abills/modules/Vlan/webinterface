@@ -143,7 +143,7 @@ sub vlan_user {
       $Vlan->add({ %FORM });
       if (! $Vlan->{errno}) {
         $html->message('info', $_INFO, "$_ADDED");	
-        vlan_create({ NAS_ID => $FORM{NAS_ID} });
+        vlan_create({ NAS_IDS => $FORM{NAS_ID} });
        }
      }
    }
@@ -166,7 +166,7 @@ sub vlan_user {
     else {
       $Vlan->change({ %FORM });
       if (! $Vlan->{errno}) {
-    	  my $message = vlan_create({ DEBUG => 1, NAS_ID => $FORM{NAS_ID} });
+    	  my $message = vlan_create({ DEBUG => 1, NAS_IDS => $FORM{NAS_ID} });
         $html->message('info', $_CHANGED, $html->pre($message));	
        }
      }
