@@ -76,11 +76,14 @@ sub dv_auth {
   dv.tp_id,
   dv.speed,
   dv.cid,
+  
+  tp.total_time_limit,
   tp.day_time_limit,
   tp.week_time_limit,
   tp.month_time_limit,
   UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
 
+  tp.total_traf_limit,
   tp.day_traf_limit,
   tp.week_traf_limit,
   tp.month_traf_limit,
@@ -136,8 +139,8 @@ sub dv_auth {
      $self->{TP_NUM}, 
      $self->{USER_SPEED}, 
      $self->{CID},
-     $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT}, $self->{TIME_LIMIT},
-     $self->{DAY_TRAF_LIMIT},  $self->{WEEK_TRAF_LIMIT},   $self->{MONTH_TRAF_LIMIT}, $self->{OCTETS_DIRECTION},
+     $self->{TOTAL_TIME_LIMIT}, $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT}, $self->{TIME_LIMIT},
+     $self->{TOTAL_TRAF_LIMIT}, $self->{DAY_TRAF_LIMIT},  $self->{WEEK_TRAF_LIMIT},   $self->{MONTH_TRAF_LIMIT}, $self->{OCTETS_DIRECTION},
      $self->{NAS}, 
      $self->{SESSION_START}, 
      $self->{DAY_BEGIN}, 
@@ -189,11 +192,13 @@ if ($self->{JOIN_SERVICE}) {
   if ($self->{LOGINS}>0, $self->{LOGINS}, tp.logins) AS logins,
   if('$self->{FILTER}' != '', '$self->{FILTER}', tp.filter_id),
   dv.tp_id,
+  tp.total_time_limit,
   tp.day_time_limit,
   tp.week_time_limit,
   tp.month_time_limit,
   UNIX_TIMESTAMP(DATE_FORMAT(DATE_ADD(curdate(), INTERVAL 1 MONTH), '%Y-%m-01')) - UNIX_TIMESTAMP(),
 
+  tp.total_traf_limit,
   tp.day_traf_limit,
   tp.week_traf_limit,
   tp.month_traf_limit,
@@ -235,8 +240,8 @@ if ($self->{JOIN_SERVICE}) {
      $self->{LOGINS}, 
      $self->{FILTER}, 
      $self->{TP_NUM}, 
-     $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT}, $self->{TIME_LIMIT},
-     $self->{DAY_TRAF_LIMIT},  $self->{WEEK_TRAF_LIMIT},   $self->{MONTH_TRAF_LIMIT}, $self->{OCTETS_DIRECTION},
+     $self->{TOTAL_TIME_LIMIT}, $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT}, $self->{TIME_LIMIT},
+     $self->{TOTAL_TRAF_LIMIT}, $self->{DAY_TRAF_LIMIT},  $self->{WEEK_TRAF_LIMIT},   $self->{MONTH_TRAF_LIMIT}, $self->{OCTETS_DIRECTION},
      $self->{NAS}, 
      $self->{MAX_SESSION_DURATION},
      $self->{PAYMENT_TYPE},
@@ -404,11 +409,11 @@ push @time_limits, $self->{MAX_SESSION_DURATION} if ($self->{MAX_SESSION_DURATIO
 
 
 
-my @periods = ('DAY', 'WEEK', 'MONTH');
-my %SQL_params = (
-                  DAY   => "DATE_FORMAT(start, '%Y-%m-%d')=curdate()",
-                  WEEK  => "(YEAR(curdate())=YEAR(start)) and (WEEK(curdate()) = WEEK(start))",
-                  MONTH => "date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m')" 
+my @periods = ('TOTAL', 'DAY', 'WEEK', 'MONTH');
+my %SQL_params = (TOTAL => '',
+                  DAY   => "and DATE_FORMAT(start, '%Y-%m-%d')=curdate()",
+                  WEEK  => "and (YEAR(curdate())=YEAR(start)) and (WEEK(curdate()) = WEEK(start))",
+                  MONTH => "and date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m')" 
                   );
 
 my $WHERE = "='$self->{UID}'";
@@ -418,14 +423,14 @@ if ($self->{UIDS}) {
 
 foreach my $line (@periods) {
      if (($self->{$line . '_TIME_LIMIT'} > 0) || ($self->{$line . '_TRAF_LIMIT'} > 0)) {
-        my $session_time_limit=$traf_limit;
+        my $session_time_limit=$time_limit;
         my $session_traf_limit=$traf_limit;
 
         $self->query($db, "SELECT if(". $self->{$line . '_TIME_LIMIT'} ." > 0, ". $self->{$line . '_TIME_LIMIT'} ." - sum(duration), 0),
                                   if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - $direction_sum[$self->{OCTETS_DIRECTION}], 0),
                                   1
             FROM dv_log
-            WHERE uid $WHERE and $SQL_params{$line}
+            WHERE uid $WHERE $SQL_params{$line}
             GROUP BY 3;");
 
         if ($self->{TOTAL} == 0) {
