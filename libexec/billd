@@ -949,12 +949,7 @@ else {
 
 
  #Make speed 
- foreach my $cmd (@FW_ACTIONS) {
-   print $cmd."\n" if ($debug > 2);
-   if ($debug < 5) {
-   	 system($cmd);
-    }
- }
+
 
 
 
@@ -962,16 +957,12 @@ else {
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
 
      if ($ARGV->{RECONFIGURE}) {
-     	  my $cmd = '';
      	  if ($SPEED > 0) {
-     	    $cmd = "$IPFW table 10 add $IP 10$SPEED" 
+     	    push @FW_ACTIONS, "$IPFW table 10 add $IP 9$SPEED";
      	   }
      	  else {
-     	    $cmd = "$IPFW table 10 add $IP $TP"
+     	    push @FW_ACTIONS, "$IPFW table 10 add $IP $TP";
      	   }
-     	  
-     	  print "$cmd\n" if ($debug > 1);
-     	  system("$cmd");
       }
 
      next;
@@ -1097,6 +1088,15 @@ else {
   	 ENDWHILE:
   	 print $debug_outputs if ($debug == 2); 
    }
+
+
+ foreach my $cmd (@FW_ACTIONS) {
+   print $cmd."\n" if ($debug > 2);
+   if ($debug < 5) {
+   	 system($cmd);
+    }
+ }
+
 }
 
 }
