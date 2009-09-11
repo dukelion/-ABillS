@@ -588,8 +588,8 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
 
    	   next ;
       }
-    else {
-      $line->[1] = '' if (! $line->[1]) ;
+    elsif($line->[1]) {
+      #$line->[1] = '' if (! $line->[1]) ;
       $line->[1] =~ s/[\n\r]//g;
       my @net_list = split(/;/, $line->[1]);
   	
@@ -787,10 +787,12 @@ sub Auth_CID {
          ($cid_ip, $RAD->{CALLING_STATION_ID}, $trash) = split(/\//, $RAD->{CALLING_STATION_ID}, 3);
        }
 
-      my @MAC_DIGITS_NEED = split(/:|\.|-/, $RAD->{CALLING_STATION_ID});
+      my @MAC_DIGITS_NEED = split(/:|-/, $RAD->{CALLING_STATION_ID});
       my $counter=0;
 
       for(my $i=0; $i<=5; $i++) {
+      	#print "$MAC_DIGITS_NEED[$i]) == hex($MAC_DIGITS_GET[$i]\n";
+      	
          if(hex($MAC_DIGITS_NEED[$i]) == hex($MAC_DIGITS_GET[$i])) {
 	         $counter++;
           }
