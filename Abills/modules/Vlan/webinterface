@@ -339,7 +339,8 @@ foreach my $line (@$list) {
   my $nas_mng_ip_port = '';
   my $nas_mng_user    = '';
   my $nas_mng_passwd  = '';
-  
+  my $nas_mng_ip      = '';
+  my $nas_mng_port    = '';
   
   if (! $attr->{LOCAL_NAS_IDS}) {
     $NAS_ID          = $line->[0];
@@ -347,7 +348,7 @@ foreach my $line (@$list) {
     $nas_mng_user    = $line->[10];
     $nas_mng_passwd  = $line->[11];
   
-    my ($nas_mng_ip, $nas_mng_port)=split(/:/, $nas_mng_ip_port);
+    ($nas_mng_ip, $nas_mng_port)=split(/:/, $nas_mng_ip_port);
     $nas_mng_port = 22 if (! $nas_mng_port);
 
  	  $ENV{NAS_IP_ADDRESS}=$nas_mng_ip;

@@ -11,7 +11,7 @@ VERSION=0.7
 
 
 IPFW=/sbin/ipfw
-EXTERNAL_INTERFACE=`netstat -rn | grep default | awk '{ print $6 }'`
+EXTERNAL_INTERFACE=`/sbin/route get 91.203.4.17 | grep interface: | awk '{ print $2 }'`
 INTERNAL_INTERFACE=ng*
 
 #Main users table num
