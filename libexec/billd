@@ -924,7 +924,7 @@ else {
   	my $speed = $line->[6];
   	
    	if ($ARGV->{RECONFIGURE}) {
-  	  push @FW_ACTIONS, "$IPFW add $static_speed_fw_num pipe $static_speed_fw_num ip from table\\($users_table_number, 9$speed\\) to any $via_if_in";
+  	  push @FW_ACTIONS, "$IPFW add $static_speed_fw_num pipe $static_speed_fw_num ip from table\\($users_table_number, 1$speed\\) to any $via_if_in";
   	 }
  	      	  	
  	  if (! $pipe_rules{$static_speed_fw_num} || $pipe_rules{$static_speed_fw_num} != $speed) { 
@@ -935,7 +935,7 @@ else {
     $static_speed_fw_num++;
     
    	if ($ARGV->{RECONFIGURE}) {
-      push @FW_ACTIONS, "$IPFW add $static_speed_fw_num pipe $static_speed_fw_num ip from any to table\\($users_table_number, 9$speed\\) $via_if_out";
+      push @FW_ACTIONS, "$IPFW add $static_speed_fw_num pipe $static_speed_fw_num ip from any to table\\($users_table_number, 1$speed\\) $via_if_out";
      }
 
  	  if (! $pipe_rules{$static_speed_fw_num} || $pipe_rules{$static_speed_fw_num} != $speed) {
@@ -958,7 +958,7 @@ else {
 
      if ($ARGV->{RECONFIGURE}) {
      	  if ($SPEED > 0) {
-     	    push @FW_ACTIONS, "$IPFW table 10 add $IP 9$SPEED";
+     	    push @FW_ACTIONS, "$IPFW table 10 add $IP 1$SPEED";
      	   }
      	  else {
      	    push @FW_ACTIONS, "$IPFW table 10 add $IP $TP";

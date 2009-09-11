@@ -318,7 +318,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     $speeds{0}{OUT}= int($user->{SPEED});
     
     if(($OS eq '' || $OS eq 'FreeBSD') && ! $conf{ng_car}) {
-      push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP 9$user->{SPEED}";   	
+      push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP 1$user->{SPEED}";   	
       goto FW_ACTION;
      }
     
