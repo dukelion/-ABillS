@@ -31,7 +31,7 @@ if [ t$1 = 'tauth' ] ; then
   ./rauth.pl \
         SERVICE_TYPE=VPN \
         NAS_IP_ADDRESS=${NAS_IP_ADDRESS} \
-        CALLING_STATION_ID="00:1d:72:13:dd:e5"\
+        CALLING_STATION_ID="0:1d:72:13:dd:e5"\
         USER_PASSWORD="${USER_PASSWORD}"\
         USER_NAME="${USER_NAME}"
 
