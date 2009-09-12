@@ -607,8 +607,8 @@ else {
   $conf{FW_DIRECTION_OUT}=$ARGV->{FW_DIRECTION_OUT} if ($ARGV->{FW_DIRECTION_OUT});
   $conf{FW_DIRECTION_IN}=$ARGV->{FW_DIRECTION_OUT} if ($ARGV->{FW_DIRECTION_IN});
   
-  my $via_if_in          = ($conf{FW_DIRECTION_IN}) ? $conf{FW_DIRECTION} : ' out xmit '. $out_interface;
-  my $via_if_out         = ($conf{FW_DIRECTION_OUT}) ? $conf{FW_DIRECTION} : ' in recv '. $out_interface;
+  my $via_if_in          = ($conf{FW_DIRECTION_IN}) ? $conf{FW_DIRECTION_IN} : ' out xmit '. $out_interface;
+  my $via_if_out         = ($conf{FW_DIRECTION_OUT}) ? $conf{FW_DIRECTION_OUT} : ' in recv '. $out_interface;
 
 
 
