@@ -920,6 +920,7 @@ else {
 
   my $list = $Dv->list({ SPEED     => '>0', 
   	                     PAGE_ROWS => 100000,
+  	                     SORT      => 7,
   	                     GROUP_BY  => 'dv.speed' });
   
   my $static_speed_fw_num = 50000;
