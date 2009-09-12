@@ -690,6 +690,7 @@ else {
  	  push @FW_ACTIONS, "$IPFW -q flush";
 	  push @FW_ACTIONS, "$IPFW -q pipe flush";
 	  push @FW_ACTIONS, "$IPFW -q table 10 flush";
+	  %pipe_rules = ();
   	#push @FW_ACTIONS, "$IPFW -q table 2 flush";
    }
 
@@ -746,10 +747,13 @@ else {
 	      	  
  	      	  if ($speed_in > 0) {
             	if ($ARGV->{RECONFIGURE}) { 
- 	       	  	  push @FW_ACTIONS, "$IPFW add $pipe_rule_in pipe $pipe_rule_in ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
+ 	       	  	  push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in pipe $pipe_rule_in ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
  	      	  	 }
 
  	      	  	if (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_in) { 
+ 	      	  		
+ 	      	  		 #print $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_in;
+ 	      	  		
    	      	  	 push @FW_ACTIONS, "$IPFW pipe $pipe_rule_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
  	      	  	   print "Change TP: $tp IN: ". ( ($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set'  ) ." -> $speed_in\n";
            	  	 delete $pipe_rules{$pipe_rule_in};
@@ -763,7 +767,7 @@ else {
 
  	      	  if ($speed_out > 0) {
              	if ($ARGV->{RECONFIGURE}) {
-  	      	  	 push @FW_ACTIONS, "$IPFW add $pipe_rule_out pipe $pipe_rule_out ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
+  	      	  	 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out pipe $pipe_rule_out ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
                }
 
       	      if (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_out) {
