@@ -46,9 +46,9 @@ CHECK exist connections
   check_pptpd - chack Active PoPToP deamon on Linux
   checkmikro  - check Active ppp on Mikrotik session and disconnect unknown ip.
 CHECK speed
-  checkspeed  - check cure speed for user on FreeBSD NAS. Arguments NAS_ID=xx
+  checkspeed  - check cure speed for user on FreeBSD NAS. Arguments NAS_IDS=xx
      SHOW_SPEED=1 - Only show current speed
-  checkspeed_mikro - check cure speed for user on Mikrotik. Arguments NAS_ID=xx
+  checkspeed_mikro - check cure speed for user on Mikrotik. Arguments NAS_IDS=xx
 CHECK connection Alive
   checklines  - Check alive connections
   -d          - deamon mode
@@ -491,9 +491,9 @@ sub parse_fw {
 #**********************************************************
 sub check_speed {		
 	
-  if (! $ARGV->{NAS_ID}) {
+  if (! $ARGV->{NAS_IDS}) {
     print "NAS not specify. Example:\n";
-    print "# billd checkspeed NAS_ID=8\n";
+    print "# billd checkspeed NAS_IDS=8,1,5...\n";
     exit;
    }
 
@@ -616,7 +616,7 @@ else {
   $sessions->{debug}=1 if ($debug > 4);
 
 	$sessions->online( { %LIST_PARAMS, 
-		                   NAS_ID => $ARGV->{NAS_ID}, 
+		                   NAS_ID  => $ARGV->{NAS_IDS}, 
 		                   #FIELDS => [0, 2, 11, 13, 29]   
 		                   FIELDS_NAMES => [ 'USER_NAME', 
 		                   	                 'NAS_PORT_ID', 
