@@ -128,7 +128,7 @@
      output_pairs = reply                                 
   }
 
-Файл raddb/sytes-inable/default - правим секции authorize, preacct, post-auth. Остальное в этих секциях ремарим. \\
+Файл raddb/sites-enable/default - правим секции authorize, preacct, post-auth. Остальное в этих секциях ремарим. \\
 
 Код:
 

@@ -349,7 +349,7 @@ sub online {
    dv.tp_id
    
  FROM dv_calls c
- LEFT JOIN users u     ON (u.id=user_name && domain_id = '$admin->{DOMAIN_ID}')
+ LEFT JOIN users u     ON (u.id=user_name && u.domain_id = '$admin->{DOMAIN_ID}')
  LEFT JOIN dv_main dv  ON (dv.uid=u.uid)
  LEFT JOIN users_pi pi ON (pi.uid=u.uid)
 
