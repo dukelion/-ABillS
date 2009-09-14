@@ -14,9 +14,9 @@ IPFW=/sbin/ipfw
 EXTERNAL_INTERFACE=`/sbin/route get 91.203.4.17 | grep interface: | awk '{ print $2 }'`
 INTERNAL_INTERFACE=ng*
 
-PKG_DIRECTION="TO_SERTER"
+PKG_DIRECTION="TO_SERVER"
 
-if [ ${PKG_DIRECTION} = TO_SERVER ] ; then
+if [ w${PKG_DIRECTION} = wTO_SERVER ] ; then
   IN_DIRECTION="in recv ${INTERNAL_INTERFACE}"
   OUT_DIRECTION="out xmit ${INTERNAL_INTERFACE}"
 else
