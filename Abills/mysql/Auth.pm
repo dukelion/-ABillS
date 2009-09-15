@@ -1381,7 +1381,7 @@ sub get_ip {
   }
 
  if ($self->{TOTAL} < 1)  {
-   return 0;	
+   return -1;
   }
 
  
@@ -1685,7 +1685,7 @@ sub neg_deposit_filter_former () {
       else {
         my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{TP_IPPOOL} });
         if ($ip eq '-1') {
-          $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS})";
+          $RAD_PAIRS->{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS}) ". (($self->{TP_IPPOOL}) ? " TP_IPPOOL: $self->{TP_IPPOOL}" : '' );
           return 1, $RAD_PAIRS;
          }
         elsif($ip eq '0') {

@@ -433,7 +433,7 @@ foreach my $line (@$list) {
        }
      }
 
-    if (! $vlans_info->{$INFO{VLAN_ID}}) {
+    if (! defined($vlans_info->{$INFO{VLAN_ID}})) {
       push @commands, tpl_parse($conf{VLAN_IF_CREATE}, \%INFO);
       #"$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $INFO{PARENT_INTERFACE} up";
 
@@ -452,7 +452,7 @@ foreach my $line (@$list) {
        
       $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP}/$INFO{VLAN_IF_NETMASK} Created\n" if ($debug > 0);
      }
-    elsif ($vlans_info->{$INFO{VLAN_ID}} && $vlans_info->{$INFO{VLAN_ID}} ne $INFO{VLAN_IF_IP}) {
+    elsif (defined($vlans_info->{$INFO{VLAN_ID}}) && $vlans_info->{$INFO{VLAN_ID}} ne $INFO{VLAN_IF_IP}) {
       #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} destroy";
       #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface";
       #Set VLAN IP
