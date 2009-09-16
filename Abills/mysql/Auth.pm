@@ -571,7 +571,8 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
 # MPD
 elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
   
-  $self->query($db, "SELECT tt.id, tc.nets, in_speed, out_speed
+  if (! $NAS->{NAS_EXT_ACCT}) {
+    $self->query($db, "SELECT tt.id, tc.nets, in_speed, out_speed
              FROM trafic_tarifs tt
              LEFT JOIN traffic_classes tc ON (tt.net_id=tc.id)
              WHERE tt.interval_id='$self->{TT_INTERVAL}' ORDER BY 1 DESC;");
@@ -620,7 +621,7 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
     #mpd-limit+=out#2#0=all rate-limit 1024000 150000 300000,
 
    }
-  
+  }
 	
 	#$RAD_PAIRS->{'Session-Timeout'}=604800;
  }
