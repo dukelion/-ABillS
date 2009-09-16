@@ -223,6 +223,7 @@ if  ($admin->{DOMAIN_ID} > 0) {
   $LIST_PARAMS{DOMAIN_ID}=$admin->{DOMAIN_ID};
  }
 
+
 if  ($admin->{MAX_ROWS} > 0) {
   $LIST_PARAMS{PAGE_ROWS}=$admin->{MAX_ROWS};
   $FORM{PAGE_ROWS}=$admin->{MAX_ROWS};
@@ -236,6 +237,7 @@ if  ($admin->{MAX_ROWS} > 0) {
 @bool_vals = ($_NO, $_YES);
 @PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus', "$_CORRECTION");
 @status = ("$_ENABLE", "$_DISABLE");
+
 
 
 my %menu_items  = ();
@@ -361,6 +363,7 @@ $admin->{SEL_TYPE} = $html->form_select('type',
  	                                #EX_PARAMS => 'onChange="selectstype()"'
  	                               });
 
+
 #Domains sel
 if (in_array('Multidoms', \@MODULES) && $permissions{10}) {
   require "Abills/modules/Multidoms/webinterface";
@@ -371,6 +374,7 @@ if (in_array('Multidoms', \@MODULES) && $permissions{10}) {
 	                       SUBMIT  => { action   => "$_CHANGE"
 	                       	           } });
  }
+
 
 ## Visualisation begin
 print "<table width='100%' border='0' cellpadding='0' cellspacing='1'>\n";
@@ -2999,8 +3003,9 @@ if ($FORM{colors}) {
   print "$FORM{colors} ". $html->{language};
 }
 
-my $REFRESH=$admin->{WEB_OPTIONS}{REFRESH} || 60;
-my $ROWS=$admin->{WEB_OPTIONS}{PAGE_ROWS} || $PAGE_ROWS;
+
+my $REFRESH= $admin->{WEB_OPTIONS}{REFRESH}   || 60;
+my $ROWS   = $admin->{WEB_OPTIONS}{PAGE_ROWS} || $PAGE_ROWS;
 
 
 my $SEL_LANGUAGE = $html->form_select('language', 

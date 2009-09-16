@@ -759,6 +759,7 @@ foreach my $line (@$list) {
   );
 }
 
+my $total_msgs = $Msgs->{TOTAL};
 
 
 
@@ -779,10 +780,14 @@ my $table2 = $html->table({ width      => '100%',
 
 
 
+print "//". $#A_CHAPTER ."//";
 
 print $html->form_main({ CONTENT => $table->show(). $table2->show(),
 	                       HIDDEN  => { index            => "$index",
-	                                    UID							 => $FORM{UID}    },
+	                                    UID							 => $FORM{UID},
+	                                    is_js_confirmed  => 1,
+	                                    STATE            => $FORM{STATE}     
+	                                   },
 	                       SUBMIT  => ($#A_CHAPTER == -1) ? { delete => $_DEL } : undef  ,
 	                       NAME    => 'users_list'
 	                     });
@@ -791,7 +796,7 @@ print $html->form_main({ CONTENT => $table->show(). $table2->show(),
 
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right'],
-                        rows       => [ [ " $_TOTAL: ", $html->b($Msgs->{TOTAL}) ] ]
+                        rows       => [ [ " $_TOTAL: ", $html->b($total_msgs) ] ]
                       });
 print $table->show();
 }
