@@ -39,7 +39,7 @@ sub extfin_export_customers {
   if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
     $LIST_PARAMS{PAGE_ROWS} = 1000000;
     $LIST_PARAMS{PG}        = $FORM{PG} || 0;
-    $LIST_PARAMS{USER_TYPE}        = $FORM{USER_TYPE};
+    $LIST_PARAMS{USER_TYPE} = $FORM{USER_TYPE};
 
 
     my $list = $Extfin->customers_list({ %LIST_PARAMS });
@@ -94,7 +94,8 @@ sub extfin_export_customers {
      }
     
     $LIST_PARAMS{INFO_FIELDS} = $FORM{INFO_FIELDS};
-    $LIST_PARAMS{USER_TYPE}        = $FORM{USER_TYPE};
+    $LIST_PARAMS{USER_TYPE}   = $FORM{USER_TYPE};
+    $LIST_PARAMS{TOTAL_ONLY}  = $FORM{TOTAL_ONLY};
    
     my $list = $Extfin->payment_deed({ %LIST_PARAMS });
 
@@ -107,17 +108,37 @@ sub extfin_export_customers {
 
 
 
+    my $total_sum = 0;
     foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
       my($name, $type, $vat, @info_arr)=split(/\|/, $Extfin->{NAMES}{$id});
       my $total = $Extfin->{PAYMENT_DEED}{$id} + $Extfin->{PAYMENT_DEED}{$id} * ($vat / 100);
-      $table->addrow($id,
-       $name,
-       $type,
-       $Extfin->{PAYMENT_DEED}{$id},
-       $vat,
-       $total,
-       @info_arr
-      );
+
+      if (! $FORM{TOTAL_ONLY}) {
+        $table->addrow($id,
+         $name,
+         $type,
+         $Extfin->{PAYMENT_DEED}{$id},
+         $vat,
+         $total,
+         @info_arr
+        );
+       }
+      else {
+      	$total_sum += $total;
+       }
+
+     }
+
+      if ($FORM{TOTAL_ONLY}) {
+ 	      $name = ($FORM{USER_TYPE} == 1) ? "$_TOTAL: $_COMPANIES" : "$_TOTAL: $_USERS"; 
+        $table->addrow(0,
+         $name,
+         $FORM{USER_TYPE},
+         0,
+         0,
+         $total_sum,
+         @info_arr
+       );
      }
 
     print $table->show();
@@ -595,16 +616,16 @@ sub extfin_report_deeds {
 
 my ($Y, $M, $D)=split(/-/, $DATE, 3);
 
-$LIST_PARAMS{USER_TYPE}=$FORM{USER_TYPE};
-$LIST_PARAMS{TOTAL_ONLY}=$FORM{TOTAL_ONLY};
+$LIST_PARAMS{USER_TYPE}  = $FORM{USER_TYPE};
+$LIST_PARAMS{TOTAL_ONLY} = $FORM{TOTAL_ONLY};
 
 if ($FORM{show} || $FORM{qindex}) {
   if ($FORM{MONTH}) {
   	$LIST_PARAMS{MONTH}=$FORM{MONTH};
    }
   elsif($FORM{PERIOD} && $FORM{PERIOD} =~ /(\d{2})\.(\d{2})\.(\d{4})-(\d{2})\.(\d{2})\.(\d{4})/) {
-    $LIST_PARAMS{DATE_FROM}="$3-$2";
-    $LIST_PARAMS{DATE_TO}="$6-$5";
+    $LIST_PARAMS{DATE_FROM}= "$3-$2";
+    $LIST_PARAMS{DATE_TO}  = "$6-$5";
    }
   elsif ($FORM{FROM_M}) {
     $LIST_PARAMS{DATE_FROM}="$FORM{FROM_Y}-". sprintf("%.2d", $FORM{FROM_M}+1);
