@@ -10,7 +10,8 @@
 </td></tr>
 <tr><td>$_REPORT $_TYPE:</td><td>%TYPE_SEL%</td></tr>
 
-<tr><td>$_USER $_TYPE:</td><td>%USER_TYPE_SEL%</td></tr>
+<tr bgcolor=$_COLORS[2]><td>$_USER $_TYPE:</td><td>%USER_TYPE_SEL%</td></tr>
+<tr bgcolor=$_COLORS[2]><td>$_TOTAL:</td><td><input type=checkbox name=TOTAL_ONLY value=1></td></tr>
 
 <tr><td>$_INFO_FIELDS:</td><td>%INFO_FIELDS%</td></tr>
 
