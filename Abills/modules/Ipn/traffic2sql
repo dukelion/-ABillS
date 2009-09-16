@@ -252,6 +252,7 @@ foreach my $ip ( sort keys %$session_ids) {
    }
  
   my $ip_addr = int2ip($ip);
+  my %TRAFFIC_CLASS_SUM = ();
 #parse  traffic stats
 if ($Ipn->{INTERIM}{$ip}) {
   # Traffic type, traffic count
@@ -260,6 +261,9 @@ if ($Ipn->{INTERIM}{$ip}) {
   while(my($k, $v)=each %$ip_stats) {
      my $in = (defined($v->{IN})) ? int($v->{IN}) : 0;
      my $out = (defined($v->{OUT})) ? int($v->{OUT}) : 0;
+     
+     $TRAFFIC_CLASS_SUM{$k}{IN}=$in;
+     $TRAFFIC_CLASS_SUM{$k}{OUT}=$out;
       
      $total_in += $in;
      $total_out += $out;
@@ -279,10 +283,10 @@ if ($Ipn->{INTERIM}{$ip}) {
 
         if ($ARGV->{PREPAID_STORE}) {
 	        ($used_traffic) = $Ipn->traffic_user_get2({ UID          => $uid, 
-                                                     ACTIVATE      => $Ipn->{USERS_INFO}->{ACTIVATE}->{$uid},
-                                                     TRAFFIC_IN   => $in,
-                                                     TRAFFIC_OUT   => $out,
-                                                     TRAFFIC_ID    => $k
+                                                      ACTIVATE     => $Ipn->{USERS_INFO}->{ACTIVATE}->{$uid},
+                                                      TRAFFIC_IN   => $in,
+                                                      TRAFFIC_OUT  => $out,
+                                                      TRAFFIC_ID   => $k
                                                      });
          }
         else {
@@ -405,8 +409,8 @@ elsif($total_user_sum > 0 && $uid > 0) {
    	          OUTBYTE           => $Ipn->{$ip}{OUT} || 0,
    	          ACCT_INPUT_GIGAWORDS  => $Ipn->{$ip}{ACCT_INPUT_GIGAWORDS}  || 0,
   	          ACCT_OUTPUT_GIGAWORDS => $Ipn->{$ip}{ACCT_OUTPUT_GIGAWORDS} || 0,
-   	          INBYTE2           => 0,
-   	          OUTBYTE2          => 0,
+   	          INBYTE2           => ($TRAFFIC_CLASS_SUM{1}{IN}) ? $TRAFFIC_CLASS_SUM{1}{IN} : 0,
+   	          OUTBYTE2          => ($TRAFFIC_CLASS_SUM{1}{OUT}) ? $TRAFFIC_CLASS_SUM{1}{OUT} : 0,
               FRAMED_IP_ADDRESS => $ip_addr,
               USER_NAME         => $login,
               ACCT_SESSION_ID   => $session_id,
