@@ -82,7 +82,72 @@ sub multidoms_reseller_nas_groups {
   $nas->{LNG_ACTION} = $_ADD;
 
 
-if ($FORM{add}) {
+if (defined($FORM{NAS_GID})) {
+ 
+
+ 
+  $nas->nas_group_info({ ID => $FORM{NAS_GID} });
+
+  if ($nas->{errno}) {
+    $html->message('err', $_ERROR, "[$nas->{errno}] $err_strs{$nas->{errno}}");	
+    return 0;
+   }
+
+  $pages_qs .= "&NAS_GID=$FORM{NAS_GID}&subf=$FORM{subf}";
+  %F_ARGS    = ( NAS_GID => $FORM{NAS_GID} );
+
+
+  
+  $nas->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('NAS_GID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{NAS_GID},
+ 	                                          SEL_MULTI_ARRAY   => $nas->nas_group_list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => '0,1',
+ 	                                          NO_ID             => 1,
+                                            
+ 	                                        }),
+	                                          HIDDEN  => { index => "$index" },
+	                                          SUBMIT  => { show  => "$_SHOW" },
+	                                          OUTPUT2RETURN     => 1,
+	                                       });
+  
+
+
+ 
+  func_menu({ 
+  	         'ID' =>   $nas->{ID}, 
+  	         $_NAME => $nas->{NAME_SEL}
+  	       }, 
+  	{ 
+#    	$_INFO          => ":NAS_GID=$nas->{NAS_GID}",
+#      $_TEMPLATES     => ($index+1).":NAS_GID=$nas->{NAS_GID}"
+  	 },
+  	{
+  		f_args => { %F_ARGS }
+  	 });
+
+  if ($FORM{subf}) {
+    #multidoms_reseller_tp_nas({ TP => $tariffs });
+  	return 0;
+   }
+
+
+#  elsif($FORM{change}) {
+#    $tarif_info = $tariffs->change( $FORM{TP_ID}, { %FORM  } );  
+#     
+#    if (! $tariffs->{errno}) {
+#       $tariffs->ti_change($FORM{TI_ID}, { %FORM });
+#       $tariffs->tt_change({ %FORM, TT_ID => 0 });	 
+#       $html->message('info', $_CHANGED, "$_CHANGED $tariffs->{TP_ID}");
+#     }
+#   }
+#
+#  $tarif_info->{LNG_ACTION}=$_CHANGE;
+#  $tarif_info->{ACTION}='change';
+
+ }
+elsif ($FORM{add}) {
   $nas->nas_group_add( { %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });
   if (! $nas->{errno}) {
       $html->message('info', $_ADDED, "$_ADDED");
@@ -121,8 +186,8 @@ my $list = $nas->nas_group_list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID}
 my $table = $html->table( { width      => '100%',
                             caption    => "$_NAS $_GROUPS",
                             border     => 1,
-                            title      => ['#', $_NAME, $_COMMENTS, $_STATUS, '-', '-', '-'],
-                            cols_align => ['right', 'left', 'left', 'center', 'center:noprint', 'center:noprint'],
+                            title      => ['#', $_NAME, $_COMMENTS, $_STATUS, '-', '-', '-', '-' ],
+                            cols_align => ['right', 'left', 'left', 'center', 'center:noprint', 'center:noprint',  'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $nas->{TOTAL}
                        } );
@@ -136,6 +201,7 @@ foreach my $line (@$list) {
    $html->color_mark($status[$line->[3]], $state_colors[$line->[3]]),
    $html->button($_NAS, "index=". ($index - 3) ."&GID=$line->[0]"), 
    $html->button($_CHANGE, "index=$index&chg=$line->[0]"),
+   $html->button($_TEMPLATES, "index=". ($index+1). "&NAS_GID=$line->[0]"),
    $delete);
 }
 print $table->show();
@@ -150,6 +216,405 @@ print $table->show();
 
 
 
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub multidoms_reseller_nas_groups_templates {
+	my ($attr) = @_; 
+	
+	
+	if ($attr->{NAS_GID}) {
+	 }
+	elsif($FORM{NAS_GID}) {
+    $FORM{subf}=$index;
+    multidoms_reseller_nas_groups();
+    return 0;
+ }
+	
+  my $safe_filename_characters = "a-zA-Z0-9_.-"; 
+  my $sys_templates = '../../Abills/modules';
+  my $main_templates_dir = '../../Abills/main_tpls/';
+  my $template = '';
+  my %info = ();
+  
+ 
+  my $domain_path = '';
+  if ($admin->{DOMAIN_ID}) {
+  	$domain_path="$admin->{DOMAIN_ID}/";
+	  $conf{TPL_DIR} = "$conf{TPL_DIR}/$domain_path/$FORM{NAS_GID}";
+	  
+ 
+	  if (! -d "$conf{TPL_DIR}") {
+    	if (! mkdir("$conf{TPL_DIR}") ) {
+    		$html->message('err', $_ERROR, "Can't create file '$conf{TPL_DIR}' $!\n");
+    	  }
+     }
+   }
+
+
+
+$info{ACTION_LNG}=$_CHANGE;
+
+if ($FORM{create}) {
+   $FORM{create} =~ s/ |\///g;
+   my ($module, $file, $lang)=split(/:/, $FORM{create}, 3);
+
+   my $filename = ($module) ? "$sys_templates/$module/templates/$file" : "$main_templates_dir/$file";
+
+   if ($lang ne '') {
+   	  $file =~ s/\.tpl/_$lang/;
+   	  $file .= '.tpl';
+    }
+   
+   $info{TPL_NAME} = "$module"._."$file";
+
+
+
+
+   if (-f  $filename ) {
+	  open(FILE, $filename) || $html->message('err', $_ERROR, "Can't open file '$filename' $!\n");;
+  	  while(<FILE>) {
+	    	$info{TEMPLATE} .= $_;
+	    }	 
+	  close(FILE);
+   }
+
+  show_tpl_info($filename);
+ }
+elsif ($FORM{SHOW}) {
+	print $html->header();
+
+  my ($module, $file, $lang)=split(/:/, $FORM{SHOW}, 3);
+  $file =~ s/.tpl//;
+
+  $file =~ s/ |\///g;
+
+  $html->{language}=$lang if ($lang ne '');
+
+
+  if ($module) {
+    my $realfilename = "$prefix/Abills/modules/$module/lng_$html->{language}.pl";
+    my $lang_file;
+    my $prefix = '../..';
+    if (-f $realfilename) {
+      $lang_file =  $realfilename;
+     }
+    elsif (-f "$prefix/Abills/modules/$module/lng_english.pl") {
+   	  $lang_file = "$prefix/Abills/modules/$module/lng_english.pl";
+     }
+
+    if ($lang_file ne '') {
+      require $lang_file;
+     }
+   }
+  
+  
+  
+  print "<center>";
+
+  if ($module) {
+    $html->tpl_show(_include("$file", "$module"), { LNG_ACTION => $_ADD },  ); 
+   }
+  else {
+    $html->tpl_show(templates("$file"), { LNG_ACTION => $_ADD }, );  	
+   } 
+
+  print "</center>\n";
+	
+	return 0;
+ }
+elsif ($FORM{change}) {
+  my $FORM2  = ();
+  my @pairs = split(/&/, $FORM{__BUFFER});
+  $info{ACTION_LNG}=$_CHANGE;
+  
+  foreach my $pair (@pairs) {
+    my ($side, $value) = split(/=/, $pair);
+    $value =~ tr/+/ /;
+    $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
+
+    if (defined($FORM2{$side})) {
+      $FORM2{$side} .= ", $value";
+     }
+    else {
+      $FORM2{$side} = $value;
+     }
+   }
+
+  $info{TEMPLATE} = $FORM2{template};
+  $info{TPL_NAME} = $FORM{tpl_name};
+  
+  
+	if (open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}")) {
+	  print FILE "$info{TEMPLATE}";
+	  close(FILE);
+	  $html->message('info', $_INFO, "$_CHANGED '$FORM{tpl_name}'");
+	 }
+  else {
+  	$html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");
+   }
+
+	
+ }
+elsif ($FORM{FILE_UPLOAD}) {
+  $FORM{FILE_UPLOAD}{filename} =~ tr/ /_/;
+  $FORM{FILE_UPLOAD}{filename} =~ s/[^$safe_filename_characters]//g; 
+  
+  if (-f "$conf{TPL_DIR}/$FORM{FILE_UPLOAD}{filename}") {
+    $html->message('err', $_ERROR, "$_EXIST '$FORM{FILE_UPLOAD}{filename}'");
+   }
+  else {
+    open(FILE, ">$conf{TPL_DIR}/$FORM{FILE_UPLOAD}{filename}") or $html->message('err', $_ERROR, "$_ERROR  '$!'");
+      binmode FILE;
+      #while(<$FORM{FILE_UPLOAD}{Contents}>) {  
+      	print FILE $FORM{FILE_UPLOAD}{Contents};
+      # }
+    close(FILE);
+    $html->message('info', $_INFO, "$_ADDED: '$FORM{FILE_UPLOAD}{filename}' $_SIZE: $FORM{FILE_UPLOAD}{Size}");
+   }
+ }
+elsif ($FORM{file_del} && $FORM{is_js_confirmed} ) {
+  $FORM{file_del} =~ s/ |\///g;
+  if(unlink("$conf{TPL_DIR}/$FORM{file_del}") == 1 ) {	
+	  $html->message('info', $_DELETED, "$_DELETED: '$FORM{file_del}'");
+	 }
+  else {
+  	$html->message('err', $_DELETED, "$_ERROR");
+   }
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed} ) {
+  $FORM{del} =~ s/ |\///g;
+  if(unlink("$conf{TPL_DIR}/$FORM{del}") == 1 ) {	
+	  $html->message('info', $_DELETED, "$_DELETED: '$FORM{del}'");
+	 }
+  else {
+  	$html->message('err', $_DELETED, "$_ERROR");
+   }
+ }
+elsif($FORM{tpl_name}) {
+    show_tpl_info("$conf{TPL_DIR}/$FORM{tpl_name}");
+  
+  if (-f  "$conf{TPL_DIR}/$FORM{tpl_name}" ) {
+	  open(FILE, "$conf{TPL_DIR}/$FORM{tpl_name}") || $html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");;
+  	  while(<FILE>) {
+	    	 $info{TEMPLATE} .= $_;
+	    }	 
+	  close(FILE);
+    $info{TPL_NAME} = $FORM{tpl_name};
+    $html->message('info', $_CHAMGE, "$_CHANGE: $FORM{tpl_name}");
+   }
+}
+
+
+#$html->tpl_show(templates('form_template_editor'), { %info });
+
+$html->{OUTPUT} .= qq{
+<form action='$SELF_URL' METHOD='POST'>
+<input type="hidden" name="index" value='$index'>
+<input type="hidden" name="tpl_name" value='$info{TPL_NAME}'>
+<input type="hidden" name="NAS_GID" value='$FORM{NAS_GID}'>
+<table>
+<tr bgcolor="$_COLORS[0]"><th>$_TEMPLATES</th></tr>
+<tr bgcolor="$_COLORS[0]"><td>$info{TPL_NAME}</td></tr>
+<tr><td>
+   <textarea cols="100" rows="30" name="template">$info{TEMPLATE}</textarea>
+</td></tr>
+</table>
+<input type="submit" name="change" value='$info{ACTION_LNG}'>
+</form> 
+};
+
+
+
+
+my @caption = keys %LANG;
+
+my $table = $html->table( { width       => '100%',
+	                          caption     => $_TEMPLATES,
+                            title_plain => ["FILE", "$_SIZE (Byte)", "$_DATE", "$_DESCRIBE",  "$_MAIN", @caption],
+                            cols_align  => ['left', 'right', 'right', 'left', 'center', 'center'],
+                            ID          => 'TEMPLATES_LIST'
+                         } );
+
+use POSIX qw(strftime);
+
+
+$table->{rowcolor}=$_COLORS[0];
+$table->{extra}="colspan='". ( 6 + $#caption )."' class='small'";
+#$table->addrow("$_PRIMARY: ($main_templates_dir) ");
+#if (-d $main_templates_dir ) {
+#    opendir DIR, "$main_templates_dir" or die "Can't open dir '$sys_templates/main_tpls' $!\n";
+#      my @contents = grep  !/^\.\.?$/  , readdir DIR;
+#    closedir DIR;
+#
+#    my @contents = (
+#      'form_sell_points.tpl',
+#      'form_client_intro.tpl',
+#      'form_client_start.tpl',
+#      'form_client_promo.tpl',
+#      'form_main_custom.tpl',
+#      'metatags_client.tpl'
+#    );
+#
+#
+#    $table->{rowcolor}=undef;
+#    $table->{extra}=undef;
+#
+#    foreach my $file (sort @contents) {
+#      if (-d "$main_templates_dir".$file) {
+#      	next;
+#       } 
+#      elsif ($file !~ /\.tpl$/) {
+#      	next;
+#       }
+#
+#      ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+#        $blksize,$blocks);
+#
+#      if (-f "$conf{TPL_DIR}/$module"."_$file") {
+#        ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+#         $blksize,$blocks)=stat("$conf{TPL_DIR}/$module"."_$file");
+#        $mtime = strftime "%Y-%m-%d", localtime($mtime);
+#       }
+#      else {
+# 	      ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+#         $blksize,$blocks)=stat("$main_templates_dir".$file);
+#        $mtime = strftime "%Y-%m-%d", localtime($mtime);
+#       }
+#
+#
+#      # LANG
+#      my @rows = (
+#      "$file", $size, $mtime, $describe,
+#         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }) .'<br>'.
+#         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name="."_$file") : $html->button($_CREATE, "index=$index&create=:$file") ) .'<br>'.
+#         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($_DEL, "index=$index&del=". "_$file", { MESSAGE => "$_DEL '$file'" }) : '' )
+#      );    
+#
+#      $file =~ s/\.tpl//;
+#      foreach my $lang (@caption) {
+#      	 my $f = '_'.$file.'_'.$lang.'.tpl';
+#
+#         push @rows,  ((-f "$conf{TPL_DIR}/$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang" }).'<br>'. $html->button($html->b($_CHANGE), "index=$index&tpl_name=$f") : $html->button($_CREATE, "index=$index&create=:$file".'.tpl'.":$lang") ).'<br>'.
+#         ( (-f "$conf{TPL_DIR}/$f") ? $html->button($_DEL, "index=$index&del=$f", { MESSAGE => "$_DEL '$f'" }) : '' );
+#
+#       }
+# 
+#      
+#      $table->addrow(
+#         @rows
+#         );
+#     
+#     
+#     
+#     
+#     }
+#
+# #}
+
+
+  #@MODULES=('Multidoms');
+
+
+	$table->{rowcolor}=$_COLORS[0];
+	$table->{extra}="colspan='". ( 6 + $#caption )."' class='small'";
+	
+	#$table->addrow("$module ($sys_templates/$module/templates)");
+#	if (-d "$sys_templates/$module/templates" ) {
+    #opendir DIR, "$sys_templates/$module/templates" or die "Can't open dir '$sys_templates/$module/templates' $!\n";
+    #  my @contents = grep  !/^\.\.?$/ && /\.tpl$/  , readdir DIR;
+    #closedir DIR;
+    
+    my @contents = (
+      'multidoms_sell_points.tpl',
+      'multidoms_client_intro.tpl',
+      'multidoms_client_start.tpl',
+      'multidoms_client_promo.tpl',
+      'multidoms_main_custom.tpl',
+      'multidoms_metatags_client.tpl'
+    );
+
+    $table->{rowcolor}=undef;
+    $table->{extra}=undef;
+
+    foreach my $file (sort @contents) {
+      next if (-d "$sys_templates/$module/templates/".$file);
+
+      my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+        $blksize,$blocks);
+
+      if (-f "$conf{TPL_DIR}/$module"."_$file") {
+        ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+         $blksize,$blocks)=stat("$conf{TPL_DIR}/$module"."_$file");
+        $mtime = strftime "%Y-%m-%d", localtime($mtime);
+       }
+
+      # LANG
+      my @rows = ("$file", $size, $mtime, $describe,
+         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&NAS_GID=$FORM{NAS_GID}&SHOW=$module:$file" }) .'<br>'.
+         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($html->b($_CHANGE), "index=$index&NAS_GID=$FORM{NAS_GID}&tpl_name=$module"."_$file") : $html->button($_CREATE, "index=$index&NAS_GID=$FORM{NAS_GID}&create=$module:$file") ). '<br>'.
+         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&NAS_GID=$FORM{NAS_GID}&del=$module". "_$file", { MESSAGE => "$_DEL $file" }) : '' )
+        );
+      
+      
+      $file =~ s/\.tpl//;
+
+      foreach my $lang (@caption) {
+      	  my $f = '_'.$file.'_'.$lang.'.tpl';
+      	
+         push @rows,  ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&NAS_GID=$FORM{NAS_GID}&SHOW=$module:$file:$lang" }) .'<br>'. $html->button($html->b($_CHANGE), "index=$index&NAS_GID=$FORM{NAS_GID}&tpl_name=$module"."$f") : $html->button($_CREATE, "index=$index&NAS_GID=$FORM{NAS_GID}&create=$module:$file".'.tpl'.":$lang") ).'<br>'.
+         ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_DEL, "index=$index&NAS_GID=$FORM{NAS_GID}&del=$module". "$f", { MESSAGE => "$_DEL $file" }) : '');
+       }
+
+      $table->addrow(@rows);
+
+     }
+
+#   }
+
+
+while(my($k, $v) = each %templates) {
+  $table->addrow($html->b($k), "$v", $html->button($_CHANGE, "index=$index&NAS_GID=$FORM{NAS_GID}&tpl_name=$k"));
+}
+print $table->show();
+
+
+#my $table = $html->table( { width       => '600',
+#	                          caption     => $_OTHER,
+#                            title_plain => ["FILE", "$_SIZE (Byte)", "$_DATE", "$_DESCRIBE",  "-" ],
+#                            cols_align  => ['left', 'right', 'right', 'left', 'center', 'center']
+#                         } );
+#
+#	if (-d "$conf{TPL_DIR}" ) {
+#    opendir DIR, "$conf{TPL_DIR}" or die "Can't open dir '$sys_templates/$module/templates' $!\n";
+#      my @contents = grep  !/^\.\.?$/ && !/\.tpl$/  , readdir DIR;
+#    closedir DIR;
+#
+#    $table->{rowcolor}=undef;
+#    $table->{extra}=undef;
+#
+#    foreach my $file (sort @contents) {
+#      next if (-d "$conf{TPL_DIR}/".$file);
+#
+#      my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+#        $blksize,$blocks);
+#
+#      ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+#         $blksize,$blocks)=stat("$conf{TPL_DIR}/$file");
+#        $mtime = strftime "%Y-%m-%d", localtime($mtime);
+#
+#      $table->addrow("$file", $size, $mtime, $describe,
+#         $html->button($_DEL, "index=$index&file_del=$file", { MESSAGE => "$_DEL '$file'" }));
+#     }
+#
+#   }
+# print $table->show();
+ 
+# $html->tpl_show(templates('form_fileadd'), undef);
+	
 }
 
 #**********************************************************

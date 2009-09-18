@@ -338,14 +338,18 @@ elsif($acct_status_type eq 3) {
   elsif ($conf->{rt_billing}) {
     $self->rt_billing($RAD, $NAS);
    }
+   
+  if ($RAD->{INBYTE2} || $RAD->{OUTBYTE2}) {
+    $ex_octets = "ex_input_octets='$RAD->{INBYTE2}',  ex_output_octets='$RAD->{OUTBYTE2}', ";
+   }
+ 
   
   $self->query($db, "UPDATE dv_calls SET
     status='$acct_status_type',
     acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
     acct_input_octets='$RAD->{INBYTE}',
     acct_output_octets='$RAD->{OUTBYTE}',
-    ex_input_octets='$RAD->{INBYTE2}',
-    ex_output_octets='$RAD->{OUTBYTE2}',
+    $ex_octets
     framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
     lupdated=UNIX_TIMESTAMP(),
     sum=sum+$self->{SUM},

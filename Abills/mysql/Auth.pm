@@ -1382,7 +1382,7 @@ sub get_ip {
   }
 
  if ($self->{TOTAL} < 1)  {
-   return -1;
+   return 0;
   }
 
  
