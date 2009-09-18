@@ -339,6 +339,7 @@ elsif($acct_status_type eq 3) {
     $self->rt_billing($RAD, $NAS);
    }
    
+  my $ex_octets = '';
   if ($RAD->{INBYTE2} || $RAD->{OUTBYTE2}) {
     $ex_octets = "ex_input_octets='$RAD->{INBYTE2}',  ex_output_octets='$RAD->{OUTBYTE2}', ";
    }
