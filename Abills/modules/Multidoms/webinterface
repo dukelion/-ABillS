@@ -235,8 +235,8 @@ sub multidoms_reseller_nas_groups_templates {
  }
 	
   my $safe_filename_characters = "a-zA-Z0-9_.-"; 
-  my $sys_templates = '../../Abills/modules';
-  my $main_templates_dir = '../../Abills/main_tpls/';
+  my $sys_templates = '../Abills/modules';
+  my $main_templates_dir = '../Abills/main_tpls/';
   my $template = '';
   my %info = ();
   
@@ -441,99 +441,47 @@ my $table = $html->table( { width       => '100%',
 
 use POSIX qw(strftime);
 
+#get describe for templates
+$module = 'Multidoms';
+my %tpls_describe = ();
 
-$table->{rowcolor}=$_COLORS[0];
-$table->{extra}="colspan='". ( 6 + $#caption )."' class='small'";
-#$table->addrow("$_PRIMARY: ($main_templates_dir) ");
-#if (-d $main_templates_dir ) {
-#    opendir DIR, "$main_templates_dir" or die "Can't open dir '$sys_templates/main_tpls' $!\n";
-#      my @contents = grep  !/^\.\.?$/  , readdir DIR;
-#    closedir DIR;
-#
-#    my @contents = (
-#      'form_sell_points.tpl',
-#      'form_client_intro.tpl',
-#      'form_client_start.tpl',
-#      'form_client_promo.tpl',
-#      'form_main_custom.tpl',
-#      'metatags_client.tpl'
-#    );
-#
-#
-#    $table->{rowcolor}=undef;
-#    $table->{extra}=undef;
-#
-#    foreach my $file (sort @contents) {
-#      if (-d "$main_templates_dir".$file) {
-#      	next;
-#       } 
-#      elsif ($file !~ /\.tpl$/) {
-#      	next;
-#       }
-#
-#      ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
-#        $blksize,$blocks);
-#
-#      if (-f "$conf{TPL_DIR}/$module"."_$file") {
-#        ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
-#         $blksize,$blocks)=stat("$conf{TPL_DIR}/$module"."_$file");
-#        $mtime = strftime "%Y-%m-%d", localtime($mtime);
-#       }
-#      else {
-# 	      ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
-#         $blksize,$blocks)=stat("$main_templates_dir".$file);
-#        $mtime = strftime "%Y-%m-%d", localtime($mtime);
-#       }
-#
-#
-#      # LANG
-#      my @rows = (
-#      "$file", $size, $mtime, $describe,
-#         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }) .'<br>'.
-#         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name="."_$file") : $html->button($_CREATE, "index=$index&create=:$file") ) .'<br>'.
-#         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($_DEL, "index=$index&del=". "_$file", { MESSAGE => "$_DEL '$file'" }) : '' )
-#      );    
-#
-#      $file =~ s/\.tpl//;
-#      foreach my $lang (@caption) {
-#      	 my $f = '_'.$file.'_'.$lang.'.tpl';
-#
-#         push @rows,  ((-f "$conf{TPL_DIR}/$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang" }).'<br>'. $html->button($html->b($_CHANGE), "index=$index&tpl_name=$f") : $html->button($_CREATE, "index=$index&create=:$file".'.tpl'.":$lang") ).'<br>'.
-#         ( (-f "$conf{TPL_DIR}/$f") ? $html->button($_DEL, "index=$index&del=$f", { MESSAGE => "$_DEL '$f'" }) : '' );
-#
-#       }
-# 
-#      
-#      $table->addrow(
-#         @rows
-#         );
-#     
-#     
-#     
-#     
-#     }
-#
-# #}
+if ( -f "$sys_templates/$module/templates/describe.tpls" ) {
+
+	my $content = '';
+	open(FILE, "$sys_templates/$module/templates/describe.tpls") ;
+	  while(<FILE>) {
+	  	$content .= $_;
+	   }
+	close(FILE);
+
+  my @arr = split(/\n/,  $content); 
 
 
-  #@MODULES=('Multidoms');
+	foreach my $line (@arr) {
+	
+		if ($line =~ /^#/) {
+			next;
+		 }
+		my($tpl, $lang, $describe)=split(/:/, $line, 3);
+		
+		if ($lang eq $html->{language}) {
+		  $tpls_describe{$tpl}=$describe;
+		 }
+	 }
+	
+}
 
 
 	$table->{rowcolor}=$_COLORS[0];
 	$table->{extra}="colspan='". ( 6 + $#caption )."' class='small'";
 	
-	#$table->addrow("$module ($sys_templates/$module/templates)");
-#	if (-d "$sys_templates/$module/templates" ) {
-    #opendir DIR, "$sys_templates/$module/templates" or die "Can't open dir '$sys_templates/$module/templates' $!\n";
-    #  my @contents = grep  !/^\.\.?$/ && /\.tpl$/  , readdir DIR;
-    #closedir DIR;
     
     my @contents = (
       'multidoms_sell_points.tpl',
       'multidoms_client_intro.tpl',
       'multidoms_client_start.tpl',
       'multidoms_client_promo.tpl',
-      'multidoms_main_custom.tpl',
+#      'multidoms_main_custom.tpl',
       'multidoms_metatags_client.tpl'
     );
 
@@ -553,6 +501,8 @@ $table->{extra}="colspan='". ( 6 + $#caption )."' class='small'";
        }
 
       # LANG
+      $describe = ($tpls_describe{$file}) ? $tpls_describe{$file} : '';
+
       my @rows = ("$file", $size, $mtime, $describe,
          $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&NAS_GID=$FORM{NAS_GID}&SHOW=$module:$file" }) .'<br>'.
          ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($html->b($_CHANGE), "index=$index&NAS_GID=$FORM{NAS_GID}&tpl_name=$module"."_$file") : $html->button($_CREATE, "index=$index&NAS_GID=$FORM{NAS_GID}&create=$module:$file") ). '<br>'.
