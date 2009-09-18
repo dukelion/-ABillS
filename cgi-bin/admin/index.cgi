@@ -5599,7 +5599,7 @@ foreach my $module (sort @MODULES) {
 
       # LANG
       my @rows = ("$file", $size, $mtime, 
-         (($tpl_describe->{$file}) ? $tpl_describe->{$file} : '' ),,
+         (($tpl_describe->{$file}) ? $tpl_describe->{$file} : '' ),
          $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }) .'<br>'.
          ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name=$module"."_$file") : $html->button($_CREATE, "index=$index&create=$module:$file") ). '<br>'.
          ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file" }) : '' )

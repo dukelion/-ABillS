@@ -20,7 +20,10 @@ sub _include {
   my $sufix = ($attr->{pdf}) ? '.pdf' : '.tpl';
 
 
-  if (-f '../../Abills/templates/'.$domain_path. $module . '_' . $tpl . "_$html->{language}" .$sufix) {
+  if ($FORM{NAS_ID} && -f $Bin .'../Abills/templates/'. $domain_path.'/'. $FORM{NAS_ID} .'/'.$module . '_' . $tpl . "_$html->{language}".$sufix) {
+    return ($FORM{pdf}) ? $Bin .'/../Abills/templates/'. $domain_path.'/'. $FORM{NAS_ID} .'/'. $module . '_' . $tpl . "_$html->{language}" . $sufix : tpl_content($Bin .'../Abills/templates/'. $domain_path.'/'. $FORM{NAS_ID} .'/'.$module . '_' . $tpl . "_$html->{language}".$sufix);
+   }
+  elsif (-f '../../Abills/templates/'.$domain_path. $module . '_' . $tpl . "_$html->{language}" .$sufix) {
     return ($FORM{pdf}) ? '../../Abills/templates/'. $domain_path. $module . '_' . $tpl . $sufix : tpl_content('../../Abills/templates/'. $module . '_' . $tpl . "_$html->{language}" . $sufix);
    }
   elsif (-f $Bin .'../Abills/templates/'. $module . '_' . $tpl . "_$html->{language}".$sufix) {
