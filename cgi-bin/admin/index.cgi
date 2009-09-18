@@ -5494,11 +5494,15 @@ my $table = $html->table( { width       => '100%',
 
 use POSIX qw(strftime);
 
-
+#Main templates section
 $table->{rowcolor}=$_COLORS[0];
 $table->{extra}="colspan='". ( 6 + $#caption )."' class='small'";
 $table->addrow("$_PRIMARY: ($main_templates_dir) ");
 if (-d $main_templates_dir ) {
+
+
+    my $tpl_describe = get_tpl_describe("$main_templates_dir/describe.tpls");
+
     opendir DIR, "$main_templates_dir" or die "Can't open dir '$sys_templates/main_tpls' $!\n";
       my @contents = grep  !/^\.\.?$/  , readdir DIR;
     closedir DIR;
@@ -5531,7 +5535,8 @@ if (-d $main_templates_dir ) {
 
       # LANG
       my @rows = (
-      "$file", $size, $mtime, $describe,
+      "$file", $size, $mtime, 
+         (($tpl_describe->{$file}) ? $tpl_describe->{$file} : '' ),
          $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }) .'<br>'.
          ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name="."_$file") : $html->button($_CREATE, "index=$index&create=:$file") ) .'<br>'.
          ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($_DEL, "index=$index&del=". "_$file", { MESSAGE => "$_DEL '$file'" }) : '' )
@@ -5565,6 +5570,9 @@ foreach my $module (sort @MODULES) {
 	
 	$table->addrow("$module ($sys_templates/$module/templates)");
 	if (-d "$sys_templates/$module/templates" ) {
+		
+		my $tpl_describe = get_tpl_describe("$sys_templates/$module/templates/describe.tpls");
+		
     opendir DIR, "$sys_templates/$module/templates" or die "Can't open dir '$sys_templates/$module/templates' $!\n";
       my @contents = grep  !/^\.\.?$/ && /\.tpl$/  , readdir DIR;
     closedir DIR;
@@ -5590,7 +5598,8 @@ foreach my $module (sort @MODULES) {
        }
 
       # LANG
-      my @rows = ("$file", $size, $mtime, $describe,
+      my @rows = ("$file", $size, $mtime, 
+         (($tpl_describe->{$file}) ? $tpl_describe->{$file} : '' ),,
          $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }) .'<br>'.
          ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name=$module"."_$file") : $html->button($_CREATE, "index=$index&create=$module:$file") ). '<br>'.
          ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file" }) : '' )
@@ -5652,6 +5661,48 @@ my $table = $html->table( { width       => '600',
  
  $html->tpl_show(templates('form_fileadd'), undef);
 
+}
+
+
+
+#**********************************************************
+# Get teblate describe 
+#**********************************************************
+sub get_tpl_describe {
+  my ($file) = @_;
+
+  my %tpls_describe = ();
+
+if (! -f  $file ) {
+  return \%tpls_describe;
+}
+
+
+  my %tpls_describe = ();
+
+	my $content = '';
+	open(FILE, "$file") ;
+	  while(<FILE>) {
+	  	$content .= $_;
+	   }
+	close(FILE);
+
+  my @arr = split(/\n/,  $content); 
+
+
+	foreach my $line (@arr) {
+	
+		if ($line =~ /^#/) {
+			next;
+		 }
+		my($tpl, $lang, $describe)=split(/:/, $line, 3);
+		
+		if ($lang eq $html->{language}) {
+		  $tpls_describe{$tpl}=$describe;
+		 }
+	 }
+	
+	return \%tpls_describe;
 }
 
 
