@@ -245,15 +245,7 @@ sub multidoms_reseller_nas_groups_templates {
   if ($admin->{DOMAIN_ID}) {
   	$domain_path="$admin->{DOMAIN_ID}/";
 	  $conf{TPL_DIR} = "$conf{TPL_DIR}/$domain_path/$FORM{NAS_GID}";
-	  
- 
-	  if (! -d "$conf{TPL_DIR}") {
-    	if (! mkdir("$conf{TPL_DIR}") ) {
-    		$html->message('err', $_ERROR, "Can't create file '$conf{TPL_DIR}' $!\n");
-    	  }
-     }
    }
-
 
 
 $info{ACTION_LNG}=$_CHANGE;
@@ -347,6 +339,19 @@ elsif ($FORM{change}) {
   $info{TEMPLATE} = $FORM2{template};
   $info{TPL_NAME} = $FORM{tpl_name};
   
+  $conf{TPL_DIR} =~ /(\S+)\/(\d+)\//g;
+ 	if (! -d "$1/$2") {
+   	if (! mkdir("$conf{TPL_DIR}") ) {
+   	   $html->message('err', $_ERROR, "Can't create file '$conf{TPL_DIR}' $!\n");
+   	 }
+   }
+ 
+  if (! -d "$conf{TPL_DIR}") {
+  	if (! mkdir("$conf{TPL_DIR}") ) {
+   		$html->message('err', $_ERROR, "Can't create file '$conf{TPL_DIR}' $!\n");
+  	 }
+   }
+
   
 	if (open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}")) {
 	  print FILE "$info{TEMPLATE}";
