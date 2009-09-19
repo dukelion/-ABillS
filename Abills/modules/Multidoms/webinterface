@@ -340,15 +340,16 @@ elsif ($FORM{change}) {
   $info{TPL_NAME} = $FORM{tpl_name};
   
   $conf{TPL_DIR} =~ /(\S+)\/(\d+)\//g;
- 	if (! -d "$1/$2") {
-   	if (! mkdir("$conf{TPL_DIR}") ) {
-   	   $html->message('err', $_ERROR, "Can't create file '$conf{TPL_DIR}' $!\n");
+  my $pre_folder = "$1/$2";
+ 	if (! -d "$pre_folder") {
+   	if (! mkdir("$pre_folder") ) {
+   	   $html->message('err', $_ERROR, "$ERR_CANT_CREATE_FILE '$pre_folder' $!\n");
    	 }
    }
  
   if (! -d "$conf{TPL_DIR}") {
   	if (! mkdir("$conf{TPL_DIR}") ) {
-   		$html->message('err', $_ERROR, "Can't create file '$conf{TPL_DIR}' $!\n");
+   		$html->message('err', $_ERROR, "$ERR_CANT_CREATE_FILE '$conf{TPL_DIR}' $!\n");
   	 }
    }
 
