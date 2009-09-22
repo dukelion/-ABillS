@@ -5305,7 +5305,7 @@ sub form_templates {
 	  $conf{TPL_DIR} = "$conf{TPL_DIR}/$domain_path";
 	  if (! -d "$conf{TPL_DIR}") {
     	if (! mkdir("$conf{TPL_DIR}") ) {
-    		$html->message('err', $_ERROR, "Can't create file '$conf{TPL_DIR}' $!\n");
+    		$html->message('err', $_ERROR, "$ERR_CANT_CREATE_FILE '$conf{TPL_DIR}' $_ERROR: $!\n");
     	  }
      }
    }

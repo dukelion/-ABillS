@@ -228,7 +228,7 @@ sub multidoms_reseller_nas_groups_templates {
 	
 	if ($attr->{NAS_GID}) {
 	 }
-	elsif($FORM{NAS_GID}) {
+	elsif($FORM{NAS_GID} && ! $FORM{qindex}) {
     $FORM{subf}=$index;
     multidoms_reseller_nas_groups();
     return 0;
@@ -250,6 +250,7 @@ sub multidoms_reseller_nas_groups_templates {
 
 $info{ACTION_LNG}=$_CHANGE;
 
+
 if ($FORM{create}) {
    $FORM{create} =~ s/ |\///g;
    my ($module, $file, $lang)=split(/:/, $FORM{create}, 3);
@@ -263,9 +264,6 @@ if ($FORM{create}) {
    
    $info{TPL_NAME} = "$module"._."$file";
 
-
-
-
    if (-f  $filename ) {
 	  open(FILE, $filename) || $html->message('err', $_ERROR, "Can't open file '$filename' $!\n");;
   	  while(<FILE>) {
@@ -273,6 +271,10 @@ if ($FORM{create}) {
 	    }	 
 	  close(FILE);
    }
+
+
+
+  $info{TEMPLATE}=~s/\%BODY\%/__BODY__/g;
 
   show_tpl_info($filename);
  }
@@ -304,14 +306,15 @@ elsif ($FORM{SHOW}) {
    }
   
   
-  
-  print "<center>";
+
 
   if ($module) {
-    $html->tpl_show(_include("$file", "$module"), { LNG_ACTION => $_ADD },  ); 
+ 	
+    print  $html->tpl_show(_include("$file", "$module"), { LNG_ACTION => $_ADD },  { OUTPUT2RETURN => 1 }); 
+    
    }
   else {
-    $html->tpl_show(templates("$file"), { LNG_ACTION => $_ADD }, );  	
+    print $html->tpl_show(templates("$file"), { LNG_ACTION => $_ADD }, { OUTPUT2RETURN => 1 });  	
    } 
 
   print "</center>\n";
@@ -343,13 +346,13 @@ elsif ($FORM{change}) {
   my $pre_folder = "$1/$2";
  	if (! -d "$pre_folder") {
    	if (! mkdir("$pre_folder") ) {
-   	   $html->message('err', $_ERROR, "$ERR_CANT_CREATE_FILE '$pre_folder' $!\n");
+   	   $html->message('err', $_ERROR, "$ERR_CANT_CREATE_FILE '$pre_folder' $_ERROR: $!\n");
    	 }
    }
  
   if (! -d "$conf{TPL_DIR}") {
   	if (! mkdir("$conf{TPL_DIR}") ) {
-   		$html->message('err', $_ERROR, "$ERR_CANT_CREATE_FILE '$conf{TPL_DIR}' $!\n");
+   		$html->message('err', $_ERROR, "$ERR_CANT_CREATE_FILE '$conf{TPL_DIR}' $_ERROR: $!\n");
   	 }
    }
 
@@ -363,7 +366,7 @@ elsif ($FORM{change}) {
   	$html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");
    }
 
-	
+	$info{TEMPLATE}=~s/\%BODY\%/__BODY__/g;
  }
 elsif ($FORM{FILE_UPLOAD}) {
   $FORM{FILE_UPLOAD}{filename} =~ tr/ /_/;
@@ -416,6 +419,9 @@ elsif($FORM{tpl_name}) {
 
 
 #$html->tpl_show(templates('form_template_editor'), { %info });
+
+
+
 
 $html->{OUTPUT} .= qq{
 <form action='$SELF_URL' METHOD='POST'>
@@ -570,7 +576,10 @@ print $table->show();
 # print $table->show();
  
 # $html->tpl_show(templates('form_fileadd'), undef);
-	
+
+
+
+
 }
 
 #**********************************************************

@@ -19,14 +19,20 @@ sub _include {
   
   my $sufix = ($attr->{pdf}) ? '.pdf' : '.tpl';
 
+  if ($admin->{DOMAIN_ID}) {
+ 	  $domain_path="$admin->{DOMAIN_ID}/";
+   }
 
-  if ($FORM{NAS_ID} && -f $Bin .'../Abills/templates/'. $domain_path.'/'. $FORM{NAS_ID} .'/'.$module . '_' . $tpl . "_$html->{language}".$sufix) {
-    return ($FORM{pdf}) ? $Bin .'/../Abills/templates/'. $domain_path.'/'. $FORM{NAS_ID} .'/'. $module . '_' . $tpl . "_$html->{language}" . $sufix : tpl_content($Bin .'../Abills/templates/'. $domain_path.'/'. $FORM{NAS_ID} .'/'.$module . '_' . $tpl . "_$html->{language}".$sufix);
+  if ($FORM{NAS_GID} && -f $Bin .'/../Abills/templates/'. $domain_path.'/'. $FORM{NAS_GID} .'/'.$module . '_' . $tpl . "_$html->{language}".$sufix) {
+    return ($FORM{pdf}) ? $Bin .'/../Abills/templates/'. $domain_path.'/'. $FORM{NAS_GID} .'/'. $module . '_' . $tpl . "_$html->{language}" . $sufix : tpl_content($Bin .'../Abills/templates/'. $domain_path.'/'. $FORM{NAS_GID} .'/'.$module . '_' . $tpl . "_$html->{language}".$sufix);
+   }
+  elsif ($FORM{NAS_GID} && -f $Bin .'/../Abills/templates/'. $domain_path.'/'. $FORM{NAS_GID} .'/'.$module . '_' . $tpl . $sufix) {
+    return ($FORM{pdf}) ? $Bin .'/../Abills/templates/'. $domain_path.'/'. $FORM{NAS_GID} .'/'. $module . '_' . $tpl . $sufix : tpl_content($Bin .'/../Abills/templates/'. $domain_path.'/'. $FORM{NAS_GID} .'/'.$module . '_' . $tpl . $sufix);
    }
   elsif (-f '../../Abills/templates/'.$domain_path. $module . '_' . $tpl . "_$html->{language}" .$sufix) {
     return ($FORM{pdf}) ? '../../Abills/templates/'. $domain_path. $module . '_' . $tpl . $sufix : tpl_content('../../Abills/templates/'. $module . '_' . $tpl . "_$html->{language}" . $sufix);
    }
-  elsif (-f $Bin .'../Abills/templates/'. $module . '_' . $tpl . "_$html->{language}".$sufix) {
+  elsif (-f $Bin .'/../Abills/templates/'. $module . '_' . $tpl . "_$html->{language}".$sufix) {
     return ($FORM{pdf}) ? $Bin .'/../Abills/templates/'. $module . '_' . $tpl . "_$html->{language}" . $sufix : tpl_content($Bin .'/../Abills/templates/'. $module . '_' . $tpl . "_$html->{language}".$sufix);
    }
   elsif (-f '../Abills/templates/'.$domain_path. $module . '_' . $tpl . "_$html->{language}" .$sufix) {
