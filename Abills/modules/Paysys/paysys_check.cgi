@@ -109,7 +109,7 @@ if ($conf{PAYSYS_PASSWD}) {
 
 
 
-$Paysys = Paysys->new($db, undef, \%conf);
+$Paysys   = Paysys->new($db, undef, \%conf);
 my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 $payments = Finance->payments($db, $admin, \%conf);
@@ -343,8 +343,8 @@ my %status_hash = (0	=> 'Success',
  	 $txn_id            = 'txn_id';
  	 $payment_system    = 'PEGAS';
  	 $payment_system_id = 9;
- 	 $status_hash{5}='Неверный индентификатор абонента';
- 	 $status_hash{243}='Невозможно проверитьсостояние счёта';
+ 	 $status_hash{5}    = 'Неверный индентификатор абонента';
+ 	 $status_hash{243}  = 'Невозможно проверитьсостояние счёта';
  	 $CHECK_FIELD       = $conf{PAYSYS_PEGAS_ACCOUNT_KEY} || 'UID';
   }
 

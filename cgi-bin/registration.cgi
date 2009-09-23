@@ -46,7 +46,8 @@ use Sharing;
 
 
 
-$html = Abills::HTML->new({ CONF => \%conf });
+$html = Abills::HTML->new({ CONF => \%conf, NO_PRINT => 1, });
+
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db = $sql->{db};
 #Operation status
@@ -58,9 +59,10 @@ $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 my $payments = Finance->payments($db, $admin, \%conf);
 $users = Users->new($db, $admin, \%conf); 
 
-print "Content-Type: text/html\n\n";
-if (! defined( @REGISTRATION ) ) {
 
+if (! defined( @REGISTRATION ) ) {
+  print "Content-Type: text/html\n\n";
+  print "Can't find modules services for registration";
 	exit;
 }
 
@@ -76,12 +78,12 @@ if ($FORM{module}) {
 	my $function = $m . '_registration';
   $function->();
   
-  exit;
+#  exit;
  }
 elsif ($FORM{FORGOT_PASSWD}) {
 	password_recovery();
 	
-	exit;
+#	exit;
  }
 elsif($#REGISTRATION == 0) {
 	my $m = $REGISTRATION[0];
@@ -91,14 +93,21 @@ elsif($#REGISTRATION == 0) {
 	my $function = $m . '_registration';
   $function->();
   
-  exit;
+#  exit;
+}
+else {
+  foreach my $m (@REGISTRATION) {
+	  #require "Abills/modules/$m/config";
+	  #require "Abills/modules/$m/webinterface";
+    print $html->button($m, "module=$m");
+  }
 }
 
-foreach my $m (@REGISTRATION) {
-	#require "Abills/modules/$m/config";
-	#require "Abills/modules/$m/webinterface";
-  print $html->button($m, "module=$m");
-}
+
+$html->{METATAGS}=templates('metatags_client');  
+print $html->header();
+$OUTPUT{BODY}="$html->{OUTPUT}";
+print $html->tpl_show(templates('form_client_start'), \%OUTPUT);
 
 
 

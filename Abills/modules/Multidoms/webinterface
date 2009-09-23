@@ -460,47 +460,53 @@ my %tpls_describe = ();
 if ( -f "$sys_templates/$module/templates/describe.tpls" ) {
 
 	my $content = '';
-	open(FILE, "$sys_templates/$module/templates/describe.tpls") ;
-	  while(<FILE>) {
-	  	$content .= $_;
-	   }
-	close(FILE);
-
-  my @arr = split(/\n/,  $content); 
-
-
-	foreach my $line (@arr) {
 	
-		if ($line =~ /^#/) {
-			next;
-		 }
-		my($tpl, $lang, $describe)=split(/:/, $line, 3);
+	foreach my $tpl_dir ( "$sys_templates/$module/templates", "$main_templates_dir" ) {
+	
+  	open(FILE, "$tpl_dir/describe.tpls") ;
+	    while(<FILE>) {
+	    	$content .= $_;
+	     }
+	  close(FILE);
+
+    my @arr = split(/\n/,  $content); 
+
+	  foreach my $line (@arr) {
+	
+		  if ($line =~ /^#/) {
+			  next;
+		   }
+		  my($tpl, $lang, $describe)=split(/:/, $line, 3);
 		
-		if ($lang eq $html->{language}) {
-		  $tpls_describe{$tpl}=$describe;
-		 }
-	 }
+		  if ($lang eq $html->{language}) {
+		    $tpls_describe{$tpl}=$describe;
+  		 }
+	   }
+	
+  }
 	
 }
 
 
 	$table->{rowcolor}=$_COLORS[0];
 	$table->{extra}="colspan='". ( 6 + $#caption )."' class='small'";
-	
     
-    my @contents = (
-      'multidoms_sell_points.tpl',
-      'multidoms_client_intro.tpl',
-      'multidoms_client_start.tpl',
-      'multidoms_client_promo.tpl',
+  my @contents = (
+      'Multidoms:multidoms_sell_points.tpl',
+      'Multidoms:multidoms_client_intro.tpl',
+      'Multidoms:multidoms_client_start.tpl',
+      'Multidoms:multidoms_client_promo.tpl',
 #      'multidoms_main_custom.tpl',
-      'multidoms_metatags_client.tpl'
+      'Multidoms:multidoms_metatags_client.tpl',
+      ':form_client_hotspot_start.tpl'
     );
 
     $table->{rowcolor}=undef;
     $table->{extra}=undef;
 
-    foreach my $file (sort @contents) {
+    foreach my $line (sort @contents) {
+    	my ($module, $file)=split(/:/, $line);
+    	
       next if (-d "$sys_templates/$module/templates/".$file);
 
       my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,

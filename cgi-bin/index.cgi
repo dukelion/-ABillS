@@ -100,6 +100,9 @@ $admin->info($conf{SYSTEM_ADMIN_ID}, { DOMAIN_ID => $FORM{DOMAIN_ID} });
 
 $conf{WEB_TITLE} = $admin->{DOMAIN_NAME} if ($admin->{DOMAIN_NAME});
 
+
+
+
 require "Abills/templates.pl";
 $html->{METATAGS}=templates('metatags_client');
 
@@ -180,14 +183,15 @@ if ($uid > 0) {
   	exit;
   }
 
-  $OUTPUT{DATE}=$DATE;
-  $OUTPUT{TIME}=$TIME;
-  $OUTPUT{LOGIN}=$login;
-  $OUTPUT{IP}=$ENV{REMOTE_ADDR};
+  $OUTPUT{DATE} = $DATE;
+  $OUTPUT{TIME} = $TIME;
+  $OUTPUT{LOGIN}= $login;
+  $OUTPUT{IP}   = $ENV{REMOTE_ADDR};
 
-  $pages_qs="&UID=$user->{UID}&sid=$sid";
-  $LIST_PARAMS{UID}=$user->{UID};
-  $LIST_PARAMS{LOGIN}=$user->{LOGIN};
+  $pages_qs     = "&UID=$user->{UID}&sid=$sid";
+
+  $LIST_PARAMS{UID}  = $user->{UID};
+  $LIST_PARAMS{LOGIN}= $user->{LOGIN};
 
   $index = $FORM{qindex} if ($FORM{qindex});
   my $lang_file = '';
@@ -699,9 +703,9 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
 }
 
  my $password_form;
- $password_form->{ACTION}='change';
- $password_form->{LNG_ACTION}="$_CHANGE";
- $password_form->{GEN_PASSWORD}=mk_unique_value(8);
+ $password_form->{ACTION}      = 'change';
+ $password_form->{LNG_ACTION}  = "$_CHANGE";
+ $password_form->{GEN_PASSWORD}= mk_unique_value(8);
  $html->tpl_show(templates('form_password'), $password_form);
 
  return 0;
