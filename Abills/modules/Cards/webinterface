@@ -18,9 +18,11 @@ use Tariffs;
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $payments = Payments->new($db, $admin, \%conf);
 
-my $Cards  = Cards->new($db, $admin, \%conf);
-my @status = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
+my $Cards    = Cards->new($db, $admin, \%conf);
+my @status   = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
 
+
+$conf{CARDS_PIN_SYMBOLS}='0123456789' if (! $conf{CARDS_PIN_SYMBOLS});
 
 #**********************************************************
 #
@@ -308,8 +310,9 @@ sub cards_add {
   	  my $added=0;
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
 #        REPLAY:
-          my $pin    = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
+          my $pin    = mk_unique_value($conf{CARDS_PAYMENT_PIN_LENGTH} || 8, { SYMBOLS => $conf{CARDS_PIN_SYMBOLS} || undef });
   	 	    my $serial = sprintf("%s%.11d", $FORM{SERIAL}, $i);
+
           $Cards->cards_add({ SERIAL    => "$FORM{SERIAL}",
         	                    NUMBER    => "$i",
             	                PIN       => "$pin",
@@ -448,6 +451,9 @@ sub cards_bruteforce () {
 sub cards_users_add  {
   my ($attr) = @_;
 
+
+  
+
   if ($FORM{create}) {
       my $export       = '';
     	my $begin        = $FORM{BEGIN} || 0;
@@ -456,8 +462,8 @@ sub cards_users_add  {
   	  my $SERIAL       = $FORM{SERIAL} || '';
   	  my $generated    = 0;
       my $DATA_ARRAY   = ();
-      $FORM{LOGIN_LENGTH}=6 if (! $FORM{LOGIN_LENGTH});
-      $FORM{PASSWD_LENGTH}=6 if(! $FORM{PASSWD_LENGTH});  
+      $FORM{LOGIN_LENGTH} =6 if (! $FORM{LOGIN_LENGTH});
+      $FORM{PASSWD_LENGTH}=6 if (! $FORM{PASSWD_LENGTH});  
 
       
 
@@ -465,7 +471,8 @@ sub cards_users_add  {
       if ($FORM{LOGIN_FILE}) {
       	 $html->message('info', $_INFO, "$_FILE: $FORM{LOGIN_FILE}{filename}");
        }
-
+      
+      #Create service cards from file
       if(defined($FORM{FILE_DATA})) {
       	my @rows = split(/[\r]{0,1}\n/, $FORM{"FILE_DATA"}{'Contents'});
 
@@ -520,14 +527,20 @@ sub cards_users_add  {
       	$html->message('info', $_INFO, $table->show());
        }
 
-#Create numeric logins
-      
+#Create numeric or random logins
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
+ 	  	
           my $LOGIN_LENGTH = (length("$FORM{LOGIN_PREFIX}$LOGIN_NUMBER") < $FORM{LOGIN_LENGTH}) ? $FORM{LOGIN_LENGTH} - length($FORM{LOGIN_PREFIX}) : $FORM{LOGIN_LENGTH};
 
           my $password = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
+          
+          
   	 	    my $serial   = sprintf("%s%.11d", $FORM{SERIAL}, $i);
-  	 	    my $login    = sprintf(  "%s%.". $LOGIN_LENGTH."d", $FORM{LOGIN_PREFIX}, $LOGIN_NUMBER);
+  	 	    my $login    = sprintf("%s%.". $LOGIN_LENGTH."d", $FORM{LOGIN_PREFIX}, $LOGIN_NUMBER);
+
+          if($conf{CARDS_LOGIN_PASSWD_SAME}) {
+          	$login = $password;
+           }
       
               
           if ($Cards->{errno}) {

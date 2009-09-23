@@ -673,6 +673,11 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{DOMAIN_ID}, 'INT', 'tp.domain_id') };  	
   }
 
+ if ($attr->{PAYMENT_TYPE}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{PAYMENT_TYPE}", 'INT', 'tp.payment_type') };  	
+  }
+
+
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 

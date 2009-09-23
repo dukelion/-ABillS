@@ -930,7 +930,7 @@ print $table->show();
 sub multidoms_reseller_tp {
  
  my $tarif_info;
- my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
+ my @Payment_Types    = ($_PREPAID, $_POSTPAID, $_GUEST_ACCOUNT); 
  my @Octets_Direction = ("$_RECV + $_SEND", $_RECV, $_SEND);
  my @bool_vals = ($_NO, $_YES);
 
@@ -946,6 +946,8 @@ sub multidoms_reseller_tp {
 
  $tarif_info->{LNG_ACTION} = $_ADD;
  $tarif_info->{ACTION}     = 'ADD_TP';
+
+ $FORM{PAYMENT_TYPE}=1 if (! $FORM{PAYMENT_TYPE});
 
 if (defined($FORM{TOTAL_TIME_TYPE})) {
 	if($FORM{TOTAL_TIME_TYPE} == 2) {
@@ -1151,7 +1153,7 @@ $tarif_info->{POSTPAID_DAY_FEE}  = ($tarif_info->{POSTPAID_DAY_FEE})  ? 'checked
 $tarif_info->{POSTPAID_MONTH_FEE}= ($tarif_info->{POSTPAID_MONTH_FEE})? 'checked' : '';
 $tarif_info->{PERIOD_ALIGNMENT}  = ($tarif_info->{PERIOD_ALIGNMENT})  ? 'checked' : ''; 
 $tarif_info->{ABON_DISTRIBUTION} = ($tarif_info->{ABON_DISTRIBUTION}) ? 'checked' : ''; 
-
+$tarif_info->{PAYMENT_TYPE}      = ($tarif_info->{PAYMENT_TYPE} == 2) ? 'checked' : ''; 
 
 
 #my $i=0;

@@ -10,6 +10,8 @@
 <!--  <tr><th>#</th><td><input type='text' name='CHG_TP_ID' value='%TP_ID%'></td></tr> -->
 
   <tr><td>$_NAME:</td><td colspan=2><input type=text name=NAME value='%NAME%' size=30></td></tr>
+  <tr><td>$_PRICE:</td><td colspan=2><input type=text name=PRICE value='%PRICE%' size=30></td></tr>
+  <tr><td>$_GUEST_ACCOUNT:</td><td colspan=2><input type=checkbox name=PAYMENT_TYPE value='2' %PAYMENT_TYPE%></td></tr>
 
   <tr><td colspan=3 class=small bgcolor=$_COLORS[9]></td></tr> 
   <!-- <tr><td>$_PAYMENT_TYPE:</td><td colspan=2>%PAYMENT_TYPE_SEL%</td></tr> -->

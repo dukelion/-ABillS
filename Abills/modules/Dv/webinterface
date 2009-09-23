@@ -4549,6 +4549,7 @@ sub dv_cards {
   
 
   $FORM{add}=1;
+
   if (scalar keys %FORM_BASE < 1) {
   	%FORM_BASE=%FORM;
    }
