@@ -3,7 +3,7 @@
 
 use Docs;
 use Fees;
-my $Docs = Docs->new($db, $admin, \%conf);
+$Docs = Docs->new($db, $admin, \%conf);
 my $Fees = Fees->new($db, $admin, \%conf);
 
 

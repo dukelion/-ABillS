@@ -306,6 +306,10 @@ sub accounts_list {
     push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
   }
 
+ if (defined($attr->{PAYMENT_ID})) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_ID}, 'INT', 'd.payment_id') };
+  }
+
  if ($attr->{DOC_ID}) {
  	  my $value = $self->search_expr($attr->{DOC_ID}, 'INT');
     push @WHERE_RULES, "d.acct_id$value";
@@ -546,18 +550,21 @@ sub account_change {
                 CUSTOMER    => 'customer',
                 SUM         => 'sum',
                 ID          => 'id',
-                UID         => 'uid'
+                UID         => 'uid',
+                PAYMENT_ID  => 'payment_id'
              );
 
+  my $info =   $self->account_info($attr->{ID});
 
   $self->changes($admin,  { CHANGE_PARAM => 'ID',
                    TABLE        => 'docs_acct',
                    FIELDS       => \%FIELDS,
-                   OLD_INFO     => $self->account_info($attr->{DOC_ID}),
+                   OLD_INFO     => $info,
                    DATA         => $attr
                   } );
 
-  return $self->{result};
+
+  return $self;
 }
 
 

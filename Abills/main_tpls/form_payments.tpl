@@ -16,6 +16,11 @@
 <TR><TD colspan=2>EXT ID:</TD><TD><input type=text name='EXT_ID' value='%EXT_ID%'></TD></TR>
 %EXT_DATA%
 %DATE%
+
+
+%DOCS_ACCOUNT_ELEMENT%
+
+
 </TABLE>
 <input type=submit name=add value='$_ADD'>
 </form>

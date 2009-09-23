@@ -4484,6 +4484,11 @@ if (defined($attr->{USER})) {
     $BILL_ACCOUNTS{$user->{EXT_BILL_ID}} = "$_EXTRA : $user->{EXT_BILL_ID}" if ($user->{EXT_BILL_ID}); 
    }
 
+
+  if (in_array('Docs', \@MODULES) ) {
+  	require "Abills/modules/Docs/webinterface";
+   }
+
   if($user->{BILL_ID} < 1) {
     form_bills({ USER => $user });
     return 0;
@@ -4521,6 +4526,18 @@ if (defined($attr->{USER})) {
           create    => 1
         	});
   	   }
+
+      #Add number 
+      if ($FORM{ACCOUNT_ID}) {
+       	$Docs->account_change({ ID         => $FORM{ACCOUNT_ID},
+      		                      PAYMENT_ID => $payments->{PAYMENT_ID}
+      		                        });
+      	
+      	if ($Docs->{SUM} != $FORM{SUM})  {
+      		$html->message('err', $_ERROR, "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
+      	 }
+       }
+
      }
    }
   elsif($FORM{del} && $FORM{is_js_confirmed}) {
@@ -4586,9 +4603,22 @@ if (defined($permissions{1}{1})) {
    	 $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>". $html->form_input('DATE', "$DATE $TIME"). "</td></tr>\n";
     }
 
+  if (in_array('Docs', \@MODULES) ) {
+  	my $ACCOUNTS_SEL = $html->form_select("ACCOUNT_ID", 
+                                { SELECTED          => $FORM{ACCOUNT_ID},
+ 	                                SEL_MULTI_ARRAY   => $Docs->accounts_list({ UID_ID => $user->{UID}, PAYMENT_ID => 0 }), 
+ 	                                MULTI_ARRAY_KEY   => 8,
+ 	                                MULTI_ARRAY_VALUE => '1,3',
+ 	                                SEL_OPTIONS       => { 0 => ''},
+ 	                                NO_ID             => 1
+ 	                               });
+
+    $payments->{DOCS_ACCOUNT_ELEMENT}="<tr><td colspan=2>$_ACCOUNT:</td><td>$ACCOUNTS_SEL</td></tr>";
+   }
+
 
    if (in_array('Docs', \@MODULES) ) {
-     $payments->{DATE} .= "<tr><td colspan=2>$_INVOICE:</td><td>". $html->form_input('CREATE_INVOICE', '1', { TYPE => 'checkbox', STATE => 1 }). "</td></tr>\n";
+     $payments->{DOCS_ACCOUNT_ELEMENT} .= "<tr><td colspan=2>$_INVOICE:</td><td>". $html->form_input('CREATE_INVOICE', '1', { TYPE => 'checkbox', STATE => 1 }). "</td></tr>\n";
     }
 
    

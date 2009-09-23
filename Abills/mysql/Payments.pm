@@ -129,6 +129,7 @@ sub add {
            values ('$user->{UID}', '$user->{BILL_ID}', $date, '$DATA{SUM}', '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}', '$DATA{METHOD}', 
            '$DATA{EXT_ID}', '$DATA{INNER_DESCRIBE}');", 'do');
 
+    $self->{PAYMENT_ID}=$self->{INSERT_ID};
 
     if ($CONF->{payment_chg_activate} && $user->{ACTIVATE} ne '0000-00-00') {
       $user->change($user->{UID}, { UID      => $user->{UID}, 
