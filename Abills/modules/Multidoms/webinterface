@@ -356,6 +356,9 @@ elsif ($FORM{change}) {
   	 }
    }
 
+
+  #print "content-type: text/html\n\n";
+  #print "!! $conf{TPL_DIR}/$FORM{tpl_name} ##";
   
 	if (open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}")) {
 	  print FILE "$info{TEMPLATE}";
