@@ -383,6 +383,10 @@ sub docs_nextid {
     $sql = "SELECT max(d.tax_invoice_id), count(*) FROM docs_tax_invoices d
      WHERE YEAR(date)=YEAR(curdate());";
    }
+  elsif($attr->{TYPE} eq 'ACT') {
+    $sql = "SELECT max(d.act_id), count(*) FROM docs_acts d
+     WHERE YEAR(date)=YEAR(curdate());";
+   }
 
 
   $self->query($db,   "$sql");
@@ -864,7 +868,7 @@ sub acts_list {
   }
 
  if ($attr->{SUM}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'd.sum') };
   }
 
  # Show groups
@@ -887,8 +891,8 @@ sub acts_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db,   "SELECT d.act_id, d.date, c.name, sum(o.price * o.counts), a.name, d.created, d.uid, d.company_id, d.id
-    FROM (docs_akts d)
+  $self->query($db,   "SELECT d.act_id, d.date, c.name, d.sum, a.name, d.created, d.uid, d.company_id, d.id
+    FROM (docs_acts d)
     LEFT JOIN companies c ON (d.company_id=c.id)
     LEFT JOIN admins a ON (d.aid=a.aid)
     $WHERE
@@ -902,7 +906,7 @@ sub acts_list {
  my $list = $self->{list};
 
 
- $self->query($db, "SELECT count(DISTINCT d.act_id), sum(o.price*o.counts)
+ $self->query($db, "SELECT count(DISTINCT d.act_id), sum(d.sum)
     FROM (docs_acts d)
     LEFT JOIN companies c ON (d.company_id=c.id)
     $WHERE");
@@ -923,10 +927,10 @@ sub act_add {
  
   %DATA = $self->get_data($attr, { default => \%DATA }); 
   $DATA{DATE}   = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
-  $DATA{DOC_ID} = ($attr->{DOC_ID}) ? $attr->{DOC_ID}  : $self->docs_nextid({ TYPE => 'TAX_INVOICE' });
+  $DATA{DOC_ID} = ($attr->{DOC_ID}) ? $attr->{DOC_ID}  : $self->docs_nextid({ TYPE => 'ACT' });
 
-  $self->query($db, "insert into docs_acts (act_id, date, created, aid, uid, company_id)
-      values ('$DATA{DOC_ID}', $DATA{DATE}, now(), \"$admin->{AID}\", \"$DATA{UID}\", '$DATA{COMPANY_ID}');", 'do');
+  $self->query($db, "insert into docs_acts (act_id, date, created, aid, uid, company_id, sum)
+      values ('$DATA{DOC_ID}', $DATA{DATE}, now(), \"$admin->{AID}\", \"$DATA{UID}\", '$DATA{COMPANY_ID}', '$DATA{SUM}');", 'do');
  
   return $self if($self->{errno});
   $self->{DOC_ID}=$self->{INSERT_ID};
@@ -965,8 +969,8 @@ sub act_info {
 
   $self->query($db, "SELECT d.act_id, 
    d.date, 
-   sum(o.price * o.counts), 
-   if(d.vat>0, FORMAT(sum(o.price * o.counts) / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)),
+   d.sum, 
+   if(d.vat>0, FORMAT(d.sum / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)),
    u.id, 
    a.name, 
    d.created, 

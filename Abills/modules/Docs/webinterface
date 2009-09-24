@@ -303,9 +303,6 @@ if ( $user->{UID} ) {
 	@CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS);
 }
 
-# $Docs->{debug}=1;
-
-
 
 my $list = $Docs->accounts_list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
@@ -440,7 +437,6 @@ print $table->show();
 return 0;
 }
 
-
 #**********************************************************
 # docs_tax_invoice
 #**********************************************************
@@ -491,7 +487,7 @@ sub docs_tax_invoice {
 
    my $i = 1;
    foreach my $line (@$list) {
-      $FORM{SUM}=$Fees->{SUM};    
+      $FORM{SUM}       +=$Fees->{SUM};    
       $FORM{'IDS'}     .= "$i, ";
       $FORM{'ORDER_'. $i}= $FEES_METHODS[$line->[0]];
       $FORM{'COUNTS_'.$i}= '1';
@@ -500,7 +496,13 @@ sub docs_tax_invoice {
       $i++;
     }
 
+  my ($y, $m)=split(/-/, $FORM{PERIOD});
 
+  my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+
+  print "$FORM{PERIOD}/ $days_in_month";
+
+return 0;
    if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	   $html->message('err', $_ERROR, "$_EXIST");
     }
@@ -581,7 +583,19 @@ sub docs_tax_invoice {
      my $i=0;
      foreach my $line (@$list) {
    	   $i++;
-   	   $Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</printf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[3]);
+   	   $Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", 
+   	     $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[2]*$line->[4]));
+   	   
+   	   my $count = $line->[2] || 1;
+   	   my $sum   = sprintf("%.2f", $count*$line->[4]);
+   	   
+   	   $Docs->{'ORDER_NUM_'.$i}   = $i;
+       $Docs->{'ORDER_NAME_'.$i}  = $line->[1];
+       $Docs->{'ORDER_COUNT_'.$i} = $count;
+       $Docs->{'ORDER_PRICE_'.$i} = $line->[4];
+       $Docs->{'ORDER_SUM_'.$i}   = $sum;
+       
+       $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[3]);
        $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum );
       }
 
@@ -683,12 +697,15 @@ sub docs_tax_invoice {
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                         HIDDEN  => { COMPANY_ID => "$FORM{COMPANY_ID}",
 	                         	            index      => $index,
+	                         	            subf       => $FORM{subf},
 	                                      create     => "1"
 	                                     }
 	                       });
 
   #$html->tpl_show(_include('docs_tax_invoice_add', 'Docs'), { %$Docs, %$users });
 }
+
+
 
 
 #**********************************************************
@@ -1042,15 +1059,16 @@ sub docs_summary {
 # docs_tax_invoice_list
 #**********************************************************
 sub docs_acts_list {
+  my ($attr) = @_;
 
 
-
+if (! $attr->{COMPANY} ) {
 if ($LIST_PARAMS{COMPANY_ID} || $FORM{COMPANY_ID}) {
-	docs_tax_invoice();
+	docs_acts();
 	return 0 if ($FORM{'print'});
  }
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed} ) {
-  $Docs->tax_invoice_del($FORM{del});
+  $Docs->act_del($FORM{del});
   if(! $Docs->{errno}) {
     $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
    }
@@ -1060,16 +1078,22 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed} ) {
    }
  }
 elsif($FORM{print}) {
-	docs_tax_invoice();
+	docs_acts();
 	
 	return 0;
  }
-else {
-  form_search({ SEARCH_FORM => $html->tpl_show(_include('docs_search', 'Docs'), 
-  	                                  { %info, %FORM }, 
-  	                                  { notprint => 1 })  
-	            });
+
  }
+else {
+  $index=$FORM{index};
+ }
+
+  form_search({ SEARCH_FORM   => $html->tpl_show(_include('docs_search', 'Docs'),
+  	                                  { %info, %FORM }, 
+  	                                  { notprint => 1 }),
+  	            HIDDEN_FIELDS => { COMPANY_ID => $FORM{COMPANY_ID} || undef }
+	            });
+
 
 
 #  Date  Customer  Sum  User  Administrators  Time  
@@ -1079,15 +1103,13 @@ if (! defined($FORM{sort})) {
   $LIST_PARAMS{DESC}='DESC';
 }
 
+my $list = $Docs->acts_list( { %LIST_PARAMS, 
+	                             COMPANY_ID   => $FORM{COMPANY_ID} 
+	                             } );
 
-if ($conf{DOCS_PDF_PRINT}) {
-	$pages_qs .= "&pdf=1";
-}
-
-my $list = $Docs->tax_invoice_list( { %LIST_PARAMS, COMPANY_ID => $FORM{COMPANY_ID} } );
 my $table = $html->table( { width      => '100%',
                             border     => 1,
-                            caption    => "$_TAX_INVOICE",
+                            caption    => "$_ACTS",
                             title      => ['#', $_DATE, $_CUSTOMER, $_SUM, $_ADMIN, $_TIME, '-', '-'],
                             cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
@@ -1095,9 +1117,10 @@ my $table = $html->table( { width      => '100%',
                             ID         => 'DOCS_TAX_INVOICE'
                           });
 
+$pages_qs = '';
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&COMPANY_ID=$line->[7]", { MESSAGE => "$_DEL ID '$line->[8]' ?" }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$FORM{index}&del=$line->[8]&COMPANY_ID=$line->[7]", { MESSAGE => "$_DEL ID '$line->[8]' ?" }) : ''; 
 
   $table->addrow("$line->[0]", 
    "$line->[1]",
@@ -1105,7 +1128,7 @@ foreach my $line (@$list) {
    "$line->[3]", 
    $html->button($line->[4], "index=11&UID=$line->[7]"),
    "$line->[5]", 
-   $html->button($_PRINT, "qindex=$index&print=$line->[8]&COMPANY_ID=$line->[7]". (($pages_qs) ? $pages_qs : "&COMPANY_ID=$line->[7]"  ) , { ex_params => 'target=_new' }), 
+   $html->button($_PRINT, "qindex=$FORM{index}&print=$line->[8]&COMPANY_ID=$line->[7]". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''). (($pages_qs) ? $pages_qs : ""  ) , { ex_params => 'target=_new' }), 
    $delete);
 }
 print $table->show();
@@ -1131,15 +1154,22 @@ sub docs_acts {
   if (! $attr->{COMPANY}) {
     $FORM{subf}=$FORM{index};
     $index=13;
+    $index2=$FORM{index};
     form_companies();
     return 0;
    }
 
+
+
   $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
 
-  $Docs->{DATE}=$DATE;
-  $Docs->{DONE_DATE}=$DATE;
-  $Docs->{FROM_DATE}=$DATE;
+  $Docs->{DATE}     = $FORM{DATE} || $DATE;
+  $Docs->{DONE_DATE}= $DATE;
+  $Docs->{FROM_DATE}= $DATE;
+
+  my ($y, $m)=split(/-/, $FORM{MONTH});
+  my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+
 
  if ($FORM{create}) {
    my $list = $Fees->reports({ MONTH      => $FORM{MONTH},
@@ -1154,18 +1184,21 @@ sub docs_acts {
    my @FEES_METHODS = ($_ONE_TIME, $_ABON, $_FINE, $_ACTIVATE);
    push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
 
+   $FORM{SUM}     =$Fees->{SUM};    
 
-   my $i = 1;
-   foreach my $line (@$list) {
-      $FORM{SUM}=$Fees->{SUM};    
-      $FORM{'IDS'}      .= "$i, ";
-      $FORM{'ORDER_'. $i}= $FEES_METHODS[$line->[0]];
-      $FORM{'COUNTS_'.$i}= '1';
-      $FORM{'UNIT_'.$i}  = '1';
-      $FORM{'SUM_'.$i}   = $line->[3];
-      $i++;
-    }
+#   my $i = 1;
+#   foreach my $line (@$list) {
+#      
+#      $FORM{'IDS'}      .= "$i, ";
+#      $FORM{'ORDER_'. $i}= $FEES_METHODS[$line->[0]];
+#      $FORM{'COUNTS_'.$i}= '1';
+#      $FORM{'UNIT_'.$i}  = '1';
+#      $FORM{'SUM_'.$i}   = $line->[3];
+#      $i++;
+#    }
 
+  
+  
 
    if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	   $html->message('err', $_ERROR, "$_EXIST");
@@ -1180,13 +1213,13 @@ sub docs_acts {
    else {
      $FORM{COMPANY_ID}=$LIST_PARAMS{COMPANY_ID} if (! $FORM{COMPANY_ID});
      
-     $Docs->acts_add({ %FORM, DATE => "$FORM{MONTH}-01" });
+     $Docs->act_add({ %FORM, DATE => "$Docs->{DATE}" });
 
 
      if ($Docs->{errno} == 7) {
      	 $html->message('err', $_ERROR, "$_EXIST");	
       }
-     else {
+     elsif($Docs->{errno}) {
      	 $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
       }
     }
@@ -1209,13 +1242,9 @@ sub docs_acts {
      foreach my $field_id ( @{ $Company->{INFO_FIELDS_ARR} } ) {
        my($position, $type, $name)=split(/:/, $Company->{INFO_FIELDS_HASH}->{$field_id});
        $Company->{$field_id}=$Company->{INFO_FIELDS_VAL}->[$i];
-       
-       #print "";
        $i++;
      }
-     
-#     $Company->{_ipn_u}='123456790';
-#     exit;
+
      docs_print('docs_ack', { %$Docs, %$Company, A_FIO => $admin->{A_FIO} });
     }
    else {
@@ -1224,19 +1253,21 @@ sub docs_acts {
     }
    return 0;
   }
- elsif(defined($FORM{change})) {
+ elsif($FORM{change}) {
    $Docs->act_change({ %FORM });
+
    if(! $Docs->{errno}) {
      $html->message('info', "$_INFO", "$_CHANGED N: [$FORM{DOC_ID}]");
     }
   }
- elsif(defined($FORM{chg})) {
+ elsif($FORM{chg}) {
    $Docs->act_info($FORM{chg});
+
    if(! $Docs->{errno}) {
      $html->message('info', "$_INFO", "$_CHANGING N: [$FORM{chg}]");
     }
   }
- elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+ elsif($FORM{del} && $FORM{is_js_confirmed}) {
    $Docs->act_del($FORM{del});
    if(! $Docs->{errno}) {
      $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
@@ -1257,14 +1288,14 @@ sub docs_acts {
   my ($Y, $M, $D)=split(/-/, $DATE, 3);  
   my @MONTH_ARR = ('');
   for(my $i=1; $i<13; $i++) {
-	  my $m = sprintf("%02.d", $i);
-	  push @MONTH_ARR, "$Y-$m";
+	  push @MONTH_ARR, sprintf("%d-%.2d", $Y,$i);
    }
-  $FORM{MONTH}="$Y-$M" if (! $FORM{MONTH});
 
+  $FORM{MONTH}="$Y-$M" if (! $FORM{MONTH});
+  
 
   my $table = $html->table( { width       => '100%',
-  	                          caption     => "$_ACT",
+  	                          caption     => "$_ACTS",
 	                            rowcolor    => $_COLORS[0],
                               rows        => [[ 
                                                 #"$_USER: ", $users_list,
@@ -1273,19 +1304,20 @@ sub docs_acts {
  	                                                           SEL_ARRAY  => \@MONTH_ARR,
  	                                                           NO_ID      => 1
                                                           } ),
-                                                 "$_DATE: ", $html->form_input('DATE', "$Y-$M-01"),
+                                                 "$_DATE: ", $html->form_input('DATE', "$Y-$M-$D"),
                                           $html->form_input('show', $_CREATE, { TYPE => "SUBMIT" })
                                          ]],                                   
                       });
 
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                         HIDDEN  => { COMPANY_ID => "$FORM{COMPANY_ID}",
-	                         	            index      => $index,
+	                         	            subf       => $FORM{subf},
+	                         	            index      => $index2,
 	                                      create     => "1"
 	                                     }
 	                       });
 
-  #$html->tpl_show(_include('docs_tax_invoice_add', 'Docs'), { %$Docs, %$users });
+  docs_acts_list($attr);
 }
 
 
@@ -1294,144 +1326,3 @@ sub docs_acts {
 
 
 1
-
-                   "$_DATE: ", $html->form_input('DATE', "$Y-$M-01"),
-                                          $html->form_input('show', $_CREATE, { TYPE => "SUBMIT" })
-                                         ]],                                   
-                      });
-
-  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                         HIDDEN  => { COMPANY_ID => "$FORM{COMPANY_ID}",
-	                         	            index      => $index,
-	                                      create     => "1"
-	                                     }
-	                       });
-
-  #$html->tpl_show(_include('docs_tax_invoice_add', 'Docs'), { %$Docs, %$users });
-}
-
-
-
-
-
-
-1
-
-                   "$_DATE: ", $html->form_input('DATE', "$Y-$M-01"),
-                                          $html->form_input('show', $_CREATE, { TYPE => "SUBMIT" })
-                                         ]],                                   
-                      });
-
-  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                         HIDDEN  => { COMPANY_ID => "$FORM{COMPANY_ID}",
-	                         	            index      => $index,
-	                                      create     => "1"
-	                                     }
-	                       });
-
-  #$html->tpl_show(_include('docs_tax_invoice_add', 'Docs'), { %$Docs, %$users });
-}
-
-
-
-
-
-
-1
-
-                   "$_DATE: ", $html->form_input('DATE', "$Y-$M-01"),
-                                          $html->form_input('show', $_CREATE, { TYPE => "SUBMIT" })
-                                         ]],                                   
-                      });
-
-  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                         HIDDEN  => { COMPANY_ID => "$FORM{COMPANY_ID}",
-	                         	            index      => $index,
-	                                      create     => "1"
-	                                     }
-	                       });
-
-  #$html->tpl_show(_include('docs_tax_invoice_add', 'Docs'), { %$Docs, %$users });
-}
-
-
-
-
-
-
-1
-
-                   "$_DATE: ", $html->form_input('DATE', "$Y-$M-01"),
-                                          $html->form_input('show', $_CREATE, { TYPE => "SUBMIT" })
-                                         ]],                                   
-                      });
-
-  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                         HIDDEN  => { COMPANY_ID => "$FORM{COMPANY_ID}",
-	                         	            index      => $index,
-	                                      create     => "1"
-	                                     }
-	                       });
-
-  #$html->tpl_show(_include('docs_tax_invoice_add', 'Docs'), { %$Docs, %$users });
-}
-
-
-
-
-
-
-1
-
-                                        "$_DATE: ", $html->form_input('DATE', "$Y-$M-01"),
-                                          $html->form_input('show', $_CREATE, { TYPE => "SUBMIT" })
-                                         ]],                                   
-                      });
-
-  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                         HIDDEN  => { COMPANY_ID => "$FORM{COMPANY_ID}",
-	                         	            index      => $index,
-	                                      create     => "1"
-	                                     }
-	                       });
-
-  #$html->tpl_show(_include('docs_tax_invoice_add', 'Docs'), { %$Docs, %$users });
-}
-
-
-
-
-
-
-1
-
-                         rowcolor    => $_COLORS[0],
-                              rows        => [[ 
-                                                #"$_USER: ", $users_list,
-                                                "$_PERIOD: ", $html->form_select('MONTH', 
-                                                           { SELECTED   => $FORM{MONTH},
- 	                                                           SEL_ARRAY  => \@MONTH_ARR,
- 	                                                           NO_ID      => 1
-                                                          } ),
-                                                 "$_DATE: ", $html->form_input('DATE', "$Y-$M-01"),
-                                          $html->form_input('show', $_CREATE, { TYPE => "SUBMIT" })
-                                         ]],                                   
-                      });
-
-  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                         HIDDEN  => { COMPANY_ID => "$FORM{COMPANY_ID}",
-	                         	            index      => $index,
-	                                      create     => "1"
-	                                     }
-	                       });
-
-  #$html->tpl_show(_include('docs_tax_invoice_add', 'Docs'), { %$Docs, %$users });
-}
-
-
-
-
-
-
-1
-
