@@ -354,17 +354,18 @@ sub changes {
      }
    }
 
+
+
   $OLD_DATA = $attr->{OLD_INFO}; #  $self->info($uid);
   if($OLD_DATA->{errno}) {
      $self->{errno}  = $OLD_DATA->{errno};
      $self->{errstr} = $OLD_DATA->{errstr};
      return $self;
    }
- 
-
 
   my $CHANGES_QUERY = "";
   my $CHANGES_LOG = "";
+
 
 
   while(my($k, $v)=each(%DATA)) {

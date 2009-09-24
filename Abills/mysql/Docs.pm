@@ -338,7 +338,7 @@ sub accounts_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db,   "SELECT d.acct_id, d.date, d.customer,  sum(o.price * o.counts), u.id, a.name, d.created, d.uid, d.id
+  $self->query($db,   "SELECT d.acct_id, d.date, d.customer,  sum(o.price * o.counts), d.payment_id, u.id, a.name, d.created, d.uid, d.id
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
@@ -554,12 +554,12 @@ sub account_change {
                 PAYMENT_ID  => 'payment_id'
              );
 
-  my $info =   $self->account_info($attr->{ID});
+  my $old_info =   $self->account_info($attr->{ID});
 
   $self->changes($admin,  { CHANGE_PARAM => 'ID',
                    TABLE        => 'docs_acct',
                    FIELDS       => \%FIELDS,
-                   OLD_INFO     => $info,
+                   OLD_INFO     => $old_info,
                    DATA         => $attr
                   } );
 

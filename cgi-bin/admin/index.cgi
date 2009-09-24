@@ -4532,10 +4532,13 @@ if (defined($attr->{USER})) {
        	$Docs->account_change({ ID         => $FORM{ACCOUNT_ID},
       		                      PAYMENT_ID => $payments->{PAYMENT_ID}
       		                        });
-      	
-      	if ($Docs->{SUM} != $FORM{SUM})  {
+      	if ($Docs->{errno}) {
+      		$html->message('err', "$_ACCOUNT $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
+      	 }
+      	elsif ($Docs->{TOTAL_SUM} != $FORM{SUM})  {
       		$html->message('err', $_ERROR, "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
       	 }
+        
        }
 
      }
@@ -4606,8 +4609,8 @@ if (defined($permissions{1}{1})) {
   if (in_array('Docs', \@MODULES) ) {
   	my $ACCOUNTS_SEL = $html->form_select("ACCOUNT_ID", 
                                 { SELECTED          => $FORM{ACCOUNT_ID},
- 	                                SEL_MULTI_ARRAY   => $Docs->accounts_list({ UID_ID => $user->{UID}, PAYMENT_ID => 0 }), 
- 	                                MULTI_ARRAY_KEY   => 8,
+ 	                                SEL_MULTI_ARRAY   => $Docs->accounts_list({ UID => $user->{UID}, PAYMENT_ID => 0, PAGE_ROWS => 100, SORT => 2, DESC => 'DESC' }), 
+ 	                                MULTI_ARRAY_KEY   => 9,
  	                                MULTI_ARRAY_VALUE => '1,3',
  	                                SEL_OPTIONS       => { 0 => ''},
  	                                NO_ID             => 1
@@ -4648,6 +4651,7 @@ if (! defined($FORM{sort})) {
 
 
 
+$LIST_PARAMS{ID}=$FORM{ID} if ($FORM{ID});
 
 my $list = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
