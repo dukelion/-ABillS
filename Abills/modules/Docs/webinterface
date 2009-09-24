@@ -261,6 +261,9 @@ print $table->show();
 #**********************************************************
 sub docs_accounts_list {
 
+my @payments_status = ("$_UNPAID", "$_PAID", "$_PARTLY_PAID");
+
+
 if ($LIST_PARAMS{UID} || $FORM{UID}) {
 	docs_account();
 	return 0 if ($FORM{'print'});
@@ -291,35 +294,54 @@ if (! defined($FORM{sort})) {
 }
 
 
-if ($conf{DOCS_PDF_PRINT}) {
-	$pages_qs .= "&pdf=1";
+#if ($conf{DOCS_PDF_PRINT}) {
+#	$pages_qs .= "&pdf=1";
+#}
+
+my @CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS, $_USER, $_ADMIN, $_TIME, '-', '-');
+if ( $user->{UID} ) {
+	@CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS);
 }
+
+# $Docs->{debug}=1;
+
+
 
 my $list = $Docs->accounts_list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             border     => 1,
                             caption    => "$_ACCOUNTS",
-                            title      => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, '-', '-'],
+                            title      => \@CAPTION,
                             cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Docs->{TOTAL},
                             ID         => 'DOCS_ACCOUNTS_LIST'
                           });
 
+my @rows = ();
 
 foreach my $line (@$list) {
+
   my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&UID=$line->[7]", { MESSAGE => "$_DEL ID $line->[8] ?" }) : ''; 
 
-  $table->addrow("$line->[0]", 
-   "$line->[1]",
+  @rows = ( "$line->[0]", 
+   $html->button("$line->[1]", "qindex=$index&print=$line->[9]&UID=$line->[8]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new' }), 
    "$line->[2]", 
    "$line->[3]", 
-   $html->button($line->[4], "index=11&UID=$line->[7]"),
-   "$line->[5]", 
-   "$line->[6]", 
-   $html->button($_PRINT, "qindex=$index&print=$line->[8]&UID=$line->[7]$pages_qs", { ex_params => 'target=_new' }), 
-   $delete);
+   ($line->[4]) ? (($user->{UID}) ? $payments_status[1] : $html->button($payments_status[1], "index=2&UID=$line->[8]&ID=$line->[4]") ) :  $html->color_mark($payments_status[0], $_COLORS[6]) 
+   );  
+
+  if ( ! $user->{UID}  ) {
+    push @rows, $html->button($line->[5], "index=11&UID=$line->[8]"),
+    "$line->[6]", 
+    "$line->[7]", 
+    $html->button($_PRINT, "qindex=$index&print=$line->[9]&UID=$line->[8]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new' }), 
+    $delete;
+   }
+
+  $table->addrow( @rows );
 }
+
 print $table->show();
 
 $table = $html->table( { width      => '100%',
