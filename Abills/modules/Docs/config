@@ -4,9 +4,12 @@ $web_interface    = 1;
                    "02:1:$_ACCOUNTS:docs_accounts_list:UID"   => 15,
                    "03:2:$_ADD:docs_account:UID"              => 15,
                    "04:1:$_INVOICES:docs_invoice:UID"         => 15,
-                   "06:1:$_ACTS:docs_acts:UID"                => 15,
-                   "07:0:$_TAX_INVOICE:docs_tax_invoice_list:COMPANY_ID"  => 13,
-#                   "08:7:$_ADD:docs_tax_invoice:COMPANY_ID"   => 13,
+
+                   "05:0:$_DOCS:docs_acts:COMPANY_ID"         => 13,
+                   "06:5:$_ACTS:docs_acts:COMPANY_ID"         => 13,
+                   "07:5:$_TAX_INVOICE:docs_tax_invoice_list:COMPANY_ID"  => 13,
+#                  "08:7:$_ADD:docs_tax_invoice:COMPANY_ID"   => 13,
+
                    "09:0:$_DOCS:docs_summary:"                => 5,
                    "10:0:$_DOCS:docs_accounts_list:"          => 6,
                    "11:10:$_ACCOUNTS:docs_accounts_list:"     => 6,

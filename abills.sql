@@ -211,6 +211,23 @@ CREATE TABLE `docs_acct_orders` (
   KEY `aid` (`acct_id`)
 )  COMMENT='Docs Accounts Orders' ;
 
+CREATE TABLE `docs_acts` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `date` date NOT NULL DEFAULT '0000-00-00',
+  `created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `act_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `uid` int(11) unsigned NOT NULL DEFAULT '0',
+  `aid` smallint(6) unsigned NOT NULL DEFAULT '0',
+  `vat` double(5,2) unsigned NOT NULL DEFAULT '0.00',
+  `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+  `domain_id` smallint(6) unsigned not null default 0,
+  `sum` double(10,2) unsigned NOT NULL default '0.00',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `date` (`date`,`company_id`),
+  KEY `domain_id` (`domain_id`)
+) COMMENT='Docs Acts';
+
+
 
 CREATE TABLE `docs_invoice` (
   `id` int(11) NOT NULL auto_increment,

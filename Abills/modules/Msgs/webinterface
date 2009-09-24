@@ -1058,9 +1058,9 @@ sub msgs_user {
    } 
 
   push @msg_status, $_IN_WORK;
-  #$LIST_PARAMS{ADMIN_READ} = '>0000-00-00 00:00:00';
-  $LIST_PARAMS{SORT}       =  '11, 5 DESC';
-  $LIST_PARAMS{INNER_MSG}  =  0;
+  #$LIST_PARAMS{ADMIN_READ}= '>0000-00-00 00:00:00';
+  $LIST_PARAMS{SORT}       = '5 DESC'; # '11, 5 DESC';
+  $LIST_PARAMS{INNER_MSG}  = 0;
 
   #print "Content-type: text/html\n\n";
   my  $list = $Msgs->messages_list({ %LIST_PARAMS });  

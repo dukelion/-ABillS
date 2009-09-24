@@ -211,7 +211,6 @@ sub dhcphosts_monitor {
    }
  }
 
-
  #Get info from DB
  if ($conf{DHCPHOSTS_LEASES} eq 'db') {
    my %state_hash = ('unknown'   => 0,
@@ -243,7 +242,7 @@ sub dhcphosts_monitor {
 				                    cols_align => ['left', 'right', 'right', 'right', 'left', 'center:noprint', 'center:noprint','center:noprint', 'center:noprint' ],
 				                    ID         => 'MONITOR_DHCP',
                   				  qs         => $pages_qs,
-				                    pages      => $Dhcphosts->{TOTAL}
+				                    pages      => $Dhcphosts->{TOTAL},
                           });
 
 	 
@@ -294,10 +293,12 @@ sub dhcphosts_monitor {
  $table->{extra}=undef;
  $table->{rowcolor}=undef;
 
+ print "##".$Dhcphosts->{SEARCH_FIELDS_COUNT}."##";
+
  #Get info derect from file
  foreach my $line (@$hosts_list) {
       $table->addrow(
-                     $html->button("$line->[1]", "index=15&UID=". $line->[12+$Dhcphosts->{SEARCH_FIELDS_COUNT}]), 
+                     $html->button("$line->[1]", "index=15&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]), 
                      $line->[11],
                      $dhcp_hash->{$line->[2]}{starts},
                      $dhcp_hash->{$line->[2]}{hardware},
@@ -306,7 +307,7 @@ sub dhcphosts_monitor {
                      $dhcp_hash->{$line->[2]}{state},
                      $dhcp_hash->{$line->[2]}{remote_id},
                      $dhcp_hash->{$line->[2]}{circuit_id},
-                     "(". $html->button('P', "index=$index&ping=$line->[2]", { TITLE => 'ping' }) .")",
+                     "(". $html->button('P', "index=$index&ping=$line->[11]", { TITLE => 'ping' }) .")",
                      );
 
      delete $dhcp_hash->{$line->[2]};
@@ -986,7 +987,6 @@ foreach my $line (@$list) {
 
   #Make hosts
   $INFO->{NETWORK}='';
-  #$Dhcphosts->{debug}=1;
   $list = $Dhcphosts->hosts_list({ NETWORK   => $NET_ID, 
   	                               STATUS    => 0,
   	                               PAGE_ROWS => 100000,

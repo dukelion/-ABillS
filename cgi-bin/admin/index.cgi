@@ -700,7 +700,11 @@ elsif($FORM{COMPANY_ID}) {
      $_FEES     => "3:COMPANY_ID=$company->{COMPANY_ID}",
      $_ADD_USER => "24:COMPANY_ID=$FORM{COMPANY_ID}",
      $_BILL     => "19:COMPANY_ID=$FORM{COMPANY_ID}"
-  	 });
+  	 },
+  	 {
+  	 	 f_args => { COMPANY => $company }
+  	 	} 
+  	 );
  
 
   #Sub functions
