@@ -552,6 +552,14 @@ sub cards_users_add  {
   	      $LOGIN_NUMBER++;
   	      $generated++;
 
+          if ($i == 0) {
+          	my $list = $Cards->cards_list({ SERIA    => "$SERIAL",
+          		                   PAGE_ROWS => 1,
+          		                   SORT      => 'number',
+          		                   DESC      => 'DESC'});
+            $i = $list->[0][0]+1;          		                   
+           }
+
   	      push @DATA_ARRAY, { LOGIN      => "$login",
   	      	                  PASSWORD   => "$password",
   	      	                  SERIAL     => "$FORM{SERIAL}",

@@ -39,9 +39,11 @@ CREATE TABLE `cards_users` (
   `uid` int(11) unsigned NOT NULL default '0',
   `domain_id` smallint(6) unsigned not null default 0,
   `created` DATETIME NOT NULL,
+  `id` int(11) unsigned NOT NULL auto_increment,
   UNIQUE KEY `serial` (`number`,`serial`, `domain_id`),
   KEY `diller_id` (`diller_id`),
-  KEY `login` (`login`)
+  KEY `login` (`login`),
+  PRIMARY KEY (`id`)
 ) COMMENT='Cards list';
 
 CREATE TABLE `dillers_tps` (
