@@ -358,7 +358,9 @@ return 0;
 # docs_tax_invoice_list
 #**********************************************************
 sub docs_tax_invoice_list {
+	my ($attr) = @_;
 
+  if (! $attr->{COMPANY}) {
 
 
 if ($LIST_PARAMS{COMPANY_ID} || $FORM{COMPANY_ID}) {
@@ -381,11 +383,15 @@ elsif($FORM{print}) {
 	return 0;
  }
 else {
+
+ }
+} 
+
   form_search({ SEARCH_FORM => $html->tpl_show(_include('docs_search', 'Docs'), 
   	                                  { %info, %FORM }, 
   	                                  { notprint => 1 })  
 	            });
- }
+ 
 
 
 #  Date  Customer  Sum  User  Administrators  Time  
@@ -443,23 +449,15 @@ return 0;
 sub docs_tax_invoice {
 	my ($attr) = @_;
 
-  my $Customer = Customers->new($db, $admin, \%conf);
-  my $Company = $Customer->company();
-  $Company->info($FORM{COMPANY_ID});
-
-  if (! $FORM{qindex}) {
-    my $table = $html->table({ width       => '100%',
-	                             rowcolor    => $_COLORS[3],
-                               rows        => [[ $_NAME, $Company->{COMPANY_NAME} ]],
-                            });
-	  print $table->show();
-  }
-
-  if ($Company->{TOTAL} < 1){
-  	$html->message('err', $_ERROR, "$_NOT_EXIST");
+  if (! $attr->{COMPANY}) {
+    $FORM{subf}=$FORM{index};
+    $index=13;
+    $index2=$FORM{index};
+    form_companies();
+    return 0;
    }
 
-  $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
+  #$LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
 
 # $Docs->tax_invoice_defaults();		
   $Docs->{DATE}=$DATE;
@@ -467,11 +465,6 @@ sub docs_tax_invoice {
   $Docs->{FROM_DATE}=$DATE;
 
  if ($FORM{create}) {
-   # get fees info
-   #my $list = $Fees->list({ MONTH      => $FORM{MONTH},
-   #	                        BILL_ID    => $Company->{BILL_ID}
-   #	                        });
-
    my $list = $Fees->reports({ MONTH      => $FORM{MONTH},
    	                           BILL_ID    => $Company->{BILL_ID},
    	                           TYPE       => 'METHOD'
@@ -703,6 +696,8 @@ return 0;
 	                       });
 
   #$html->tpl_show(_include('docs_tax_invoice_add', 'Docs'), { %$Docs, %$users });
+  
+  docs_tax_invoice_list($attr);
 }
 
 
@@ -1161,7 +1156,7 @@ sub docs_acts {
 
 
 
-  $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
+  #$LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
 
   $Docs->{DATE}     = $FORM{DATE} || $DATE;
   $Docs->{DONE_DATE}= $DATE;
@@ -1197,6 +1192,7 @@ sub docs_acts {
 #      $i++;
 #    }
 
+   #Get internet using
   
   
 

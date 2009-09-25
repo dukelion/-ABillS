@@ -210,7 +210,6 @@ sub dhcphosts_monitor {
     $html->message('err', $_ERROR,  "$ERR_WRONG_DATA: IP");
    }
  }
-
  #Get info from DB
  if ($conf{DHCPHOSTS_LEASES} eq 'db') {
    my %state_hash = ('unknown'   => 0,
@@ -293,7 +292,6 @@ sub dhcphosts_monitor {
  $table->{extra}=undef;
  $table->{rowcolor}=undef;
 
- print "##".$Dhcphosts->{SEARCH_FIELDS_COUNT}."##";
 
  #Get info derect from file
  foreach my $line (@$hosts_list) {
@@ -301,7 +299,7 @@ sub dhcphosts_monitor {
                      $html->button("$line->[1]", "index=15&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]), 
                      $line->[11],
                      $dhcp_hash->{$line->[2]}{starts},
-                     $dhcp_hash->{$line->[2]}{hardware},
+                     $dhcp_hash->{$line->[2]}{hardware} || $line->[6],
                      $dhcp_hash->{$line->[2]}{'client-hostname'},
                      $dhcp_hash->{$line->[2]}{abandoned},
                      $dhcp_hash->{$line->[2]}{state},
@@ -584,7 +582,7 @@ sub dhcphosts_hosts {
 	    $line->[9],
 	    $line->[7],
 	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]),
-	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}], { MESSAGE => "$_DEL $line->[0]?" })
+	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]. "&IP=$line->[11]", { MESSAGE => "$_DEL $line->[0]?" })
      );
 	   $i++;
    };
@@ -761,9 +759,13 @@ sub dhcphosts_user {
    }
   elsif ($FORM{del} && $FORM{is_js_confirmed}) {
    	$Dhcphosts->host_del({ ID => $FORM{del} });
+
     if (! $Dhcphosts->{errstr}) {
 	    $html->message('info', $_DELETED, "$_DELETED [$FORM{del}] ");
-	    dhcphosts_config({ NETWORKS => $FORM{NETWORK}, reconfig => 1 });
+
+	    $FORM{NETWORK} = auto_net_sign($FORM{IP});
+	    dhcphosts_config({ NETWORKS => $FORM{NETWORK}, 
+	                       reconfig => 1 });
 	   }
    }
   

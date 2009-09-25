@@ -7,7 +7,7 @@ $web_interface    = 1;
 
                    "05:0:$_DOCS:docs_acts:COMPANY_ID"           => 13,
                    "06:5:$_ACTS:docs_acts:COMPANY_ID"           => 13,
-                   "07:5:$_TAX_INVOICE:docs_tax_invoice_list:COMPANY_ID"  => 13,
+                   "07:5:$_TAX_INVOICE:docs_tax_invoice:COMPANY_ID"  => 13,
 #                  "08:7:$_ADD:docs_tax_invoice:COMPANY_ID"     => 13,
 
                    "09:0:$_DOCS:docs_summary:"                  => 5,
