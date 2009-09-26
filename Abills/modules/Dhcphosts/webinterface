@@ -692,7 +692,10 @@ sub dhcphosts_user {
 
   if ($FORM{add}) {
     
-    if ($FORM{IP} eq '0.0.0.0' && $FORM{AUTO_IP} && $FORM{NETWORK}) {
+    if ($FORM{AUTO_IP} && ! $FORM{NETWORK}) {
+    	$html->message('err', $_ERROR, "$ERR_WRONG_DATA: Select network");
+     }
+    elsif ($FORM{IP} eq '0.0.0.0' && $FORM{AUTO_IP} && $FORM{NETWORK}) {
   	 	$FORM{IP}=dhcphosts_get_static_ip($FORM{NETWORK});
      }
     

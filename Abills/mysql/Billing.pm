@@ -1124,7 +1124,7 @@ sub remaining_time {
  
 
 
- while(($deposit > 0 || (defined($attr->{POSTPAID}) && $attr->{POSTPAID}==1 )) && $count < 50) {
+ while(($deposit > 0 || (defined($attr->{POSTPAID}) && $attr->{POSTPAID}>0 )) && $count < 50) {
 
    if ($time_limit != 0 && $time_limit < $remaining_time) {
      $remaining_time = $time_limit;

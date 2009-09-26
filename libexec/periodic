@@ -656,13 +656,14 @@ sub debetors_group_create {
   my @DEBETORS_GROUP = split(/,/, $conf{DEBETORS_GROUP});  
   my %DEBETORS_GIDS = ();
   my %USERS_GIDS = ();
+
   foreach my $line (sort @DEBETORS_GROUP) {
+    # DEBETOR_GROUP_ID:DEPOSIT:LAST_PAYNMENT_DAYS:USER_GID
     my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS, $USER_GID) = split(/:/, $line);  
     $USER_GID = 0 if (! $USER_GID);    
     $DEBETORS_GIDS{$GID}="$USER_GID";
     $USERS_GIDS{$USER_GID}="$GID:$DEPOSIT:$LAST_PAYMENTS_DAYS";
    } 
-
   
   #Add to debetors group  
   $DEBUG .= "Add to debetors group\n" if ($debug > 1);
@@ -683,7 +684,7 @@ foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
 
 
   my $list = $users->list({  
-                           GID          => $USER_GID,
+                           GID          => ($USER_GID eq '*' ) ? undef : $USER_GID,
   	                       PAYMENT_DAYS => "<$LAST_PAYMENTS_DAYS",
   	                       DEPOSIT      => "<=$DEPOSIT",
                            COMMENTS     => '*',               

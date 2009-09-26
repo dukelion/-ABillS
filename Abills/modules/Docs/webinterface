@@ -1155,6 +1155,9 @@ sub docs_acts {
    }
 
 
+use Dv_Sessions;
+my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
+
 
   #$LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
 
@@ -1193,7 +1196,12 @@ sub docs_acts {
 #    }
 
    #Get internet using
-  
+   my $report_list = $Sessions->reports({ 
+                     INTERVAL   => $interval,
+                     TP_ID      => $TP_ID,
+                     COMPANY_ID => $FORM{COMPANY_ID}
+	   	              });
+
   
 
    if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
