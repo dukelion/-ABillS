@@ -691,6 +691,7 @@ foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
   	                      });
   my %EXIST_GROUPS = ();
 
+exit;
   foreach my $line (@$list) {
     my $uid           = $line->[5 + $users->{SEARCH_FIELDS_COUNT}];
     my $gid           = $line->[10 + $users->{SEARCH_FIELDS_COUNT}];
@@ -701,9 +702,11 @@ foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
 
     if ($debug < 5) {
   	  #Check group if not exist create it
-    	$users->change($line->[7], { GID => $GID,
-    		                           UID => $uid 
-    		                           });
+  	  
+    	$users->change($uid, { GID     => $GID,
+    		                     UID     => $uid,
+    		                     DISABLE => $line->[4]
+    		                    });
       
       $users->pi_change({ 
       	         UID      => $uid,
