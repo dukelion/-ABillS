@@ -104,7 +104,7 @@ sub templates {
 
 
   #Nas path
-  if (-f $Bin."/../Abills/templates/$domain_path".'/'. $FORM{NAS_GID} .'/'."_$tpl_name" . "_$html->{language}.tpl") {
+  if ($FORM{NAS_GID} && -f $Bin."/../Abills/templates/$domain_path".'/'. $FORM{NAS_GID} .'/'."_$tpl_name" . "_$html->{language}.tpl") {
     return tpl_content($Bin."/../Abills/templates/$domain_path".'/'. $FORM{NAS_GID} .'/'."_$tpl_name" . "_$html->{language}.tpl");
    }
   elsif ($FORM{NAS_GID} && -f $Bin."/../Abills/templates/$domain_path".'/'. $FORM{NAS_GID} .'/'."_$tpl_name" . ".tpl") {

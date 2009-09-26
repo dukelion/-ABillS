@@ -682,17 +682,15 @@ foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
 
     }
 
-
   my $list = $users->list({  
-                           GID          => ($USER_GID eq '*' ) ? undef : $USER_GID,
+                           GID          => ($USER_GID == -1 && $#DEBETORS_GROUP == 0) ? "!$GID" : $USER_GID,
   	                       PAYMENT_DAYS => "<$LAST_PAYMENTS_DAYS",
   	                       DEPOSIT      => "<=$DEPOSIT",
                            COMMENTS     => '*',               
   	                       PAGE_ROWS    => 100000
   	                      });
-
   my %EXIST_GROUPS = ();
-  
+
   foreach my $line (@$list) {
     my $uid           = $line->[5 + $users->{SEARCH_FIELDS_COUNT}];
     my $gid           = $line->[10 + $users->{SEARCH_FIELDS_COUNT}];
