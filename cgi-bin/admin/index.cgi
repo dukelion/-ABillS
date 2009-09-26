@@ -1100,7 +1100,8 @@ my $table = $html->table( { width      => '100%',
                             title      => [$_ID, $_NAME, $_DESCRIBE, $_USERS, '-', '-'],
                             cols_align => ['right', 'left', 'left', 'right', 'center', 'center'],
                             qs         => $pages_qs,
-                            pages      => $users->{TOTAL}
+                            pages      => $users->{TOTAL},
+                            ID         => 'GROUPS'
                        } );
 
 foreach my $line (@$list) {
