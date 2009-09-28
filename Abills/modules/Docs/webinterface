@@ -3,8 +3,12 @@
 
 use Docs;
 use Fees;
+use Customers;	
+
 $Docs = Docs->new($db, $admin, \%conf);
 my $Fees = Fees->new($db, $admin, \%conf);
+my $Customer = Customers->new($db, $admin, \%conf);
+my $Company  = $Customer->company();
 
 
 
@@ -360,32 +364,32 @@ return 0;
 sub docs_tax_invoice_list {
 	my ($attr) = @_;
 
-  if (! $attr->{COMPANY}) {
 
-
-if ($LIST_PARAMS{COMPANY_ID} || $FORM{COMPANY_ID}) {
-	docs_tax_invoice();
-	return 0 if ($FORM{'print'});
- }
-elsif(defined($FORM{del}) && $FORM{is_js_confirmed} ) {
-  $Docs->tax_invoice_del($FORM{del});
-  if(! $Docs->{errno}) {
-    $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
+if (! $attr->{COMPANY} ) {
+  if ($LIST_PARAMS{COMPANY_ID} || $FORM{COMPANY_ID}) {
+	  docs_tax_invoice();
+	  return 0 if ($FORM{'print'});
    }
-  elsif ($Docs->{errno}) {
-    $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
-    return 0;
+  elsif(defined($FORM{del}) && $FORM{is_js_confirmed} ) {
+    $Docs->tax_invoice_del($FORM{del});
+    if(! $Docs->{errno}) {
+      $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
+     }
+    elsif ($Docs->{errno}) {
+      $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
+      return 0;
+     }
    }
- }
-elsif($FORM{print}) {
-	docs_tax_invoice();
+  elsif($FORM{print}) {
+	  docs_tax_invoice();
 	
-	return 0;
+	  return 0;
+   }
  }
 else {
-
+  $index=$FORM{index};
  }
-} 
+
 
   form_search({ SEARCH_FORM => $html->tpl_show(_include('docs_search', 'Docs'), 
   	                                  { %info, %FORM }, 
@@ -402,9 +406,9 @@ if (! defined($FORM{sort})) {
 }
 
 
-if ($conf{DOCS_PDF_PRINT}) {
-	$pages_qs .= "&pdf=1";
-}
+#if ($conf{DOCS_PDF_PRINT}) {
+#	$pages_qs .= "&pdf=1";
+#}
 
 my $list = $Docs->tax_invoice_list( { %LIST_PARAMS, COMPANY_ID => $FORM{COMPANY_ID} } );
 my $table = $html->table( { width      => '100%',
@@ -427,7 +431,7 @@ foreach my $line (@$list) {
    "$line->[3]", 
    $html->button($line->[4], "index=11&UID=$line->[7]"),
    "$line->[5]", 
-   $html->button($_PRINT, "qindex=$index&print=$line->[8]&COMPANY_ID=$line->[7]". (($pages_qs) ? $pages_qs : "&COMPANY_ID=$line->[7]"  ) , { ex_params => 'target=_new' }), 
+   $html->button($_PRINT, "qindex=$index&print=$line->[8]&UID=$line->[8]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new' }), 
    $delete);
 }
 print $table->show();
@@ -449,7 +453,7 @@ return 0;
 sub docs_tax_invoice {
 	my ($attr) = @_;
 
- my $Company ;
+ 
   if (! $attr->{COMPANY} && ! $FORM{qindex}) {
     $FORM{subf}=$FORM{index};
     $index=13;
@@ -458,8 +462,6 @@ sub docs_tax_invoice {
     return 0;
    }
   elsif($FORM{qindex}) {
-    my $Customer = Customers->new($db, $admin, \%conf);
-    $Company = $Customer->company();
     $Company->info($FORM{COMPANY_ID});
    }
   else {
@@ -469,7 +471,7 @@ sub docs_tax_invoice {
   #$LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
 
 # $Docs->tax_invoice_defaults();		
-  $Docs->{DATE}=$DATE;
+  $Docs->{DATE}     =$DATE;
   $Docs->{DONE_DATE}=$DATE;
   $Docs->{FROM_DATE}=$DATE;
 
@@ -572,7 +574,7 @@ return 0;
    if ($conf{DOCS_VAT_INCLUDE}) {
    	 $Docs->{ORDER_TOTAL_SUM_VAT}  = sprintf("%.2f", $Docs->{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
    	 $Docs->{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f", $Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
-   	 $Docs->{VAT}=sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
+   	 $Docs->{TOTAL_SUM_VAT}        = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
     }
 
    $Docs->{NUMBER}=$Docs->{DOC_ID};
@@ -602,10 +604,10 @@ return 0;
       }
 
      
-#print "Content-Type: text/html\n\n";
-     $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
-     $Docs->{'TOTAL_SUM_WITHOUT_VAT'}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
-     $Docs->{'TOTAL_SUM_VAT'} = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
+
+     $Docs->{'TOTAL_SUM'}            = sprintf("%.2f", $Docs->{TOTAL_SUM});
+     $Docs->{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
+     $Docs->{'TOTAL_SUM_VAT'}        = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
      
      my $i=0; 
      foreach my $field_id ( @{ $Company->{INFO_FIELDS_ARR} } ) {
@@ -794,11 +796,24 @@ sub docs_account {
          $FORM{qindex}    = $index;
          $html->{NO_PRINT}= undef;
 
-         docs_print('account', $Docs);
+         if ($Docs->{COMPANY_ID}) {
+         	 $Company->info($Docs->{COMPANY_ID});
+         	 docs_print('account_company', { %$Docs, %$Company });
+          }
+         else {
+           docs_print('account', $Docs);
+          }
+
          exit;
         }
        else {
-         docs_print('account', $Docs);
+         if ($Docs->{COMPANY_ID}) {
+         	 $Company->info($Docs->{COMPANY_ID});
+         	 docs_print('account_company', { %$Docs, %$Company });
+          }
+         else {
+           docs_print('account', $Docs);
+          }
         }
 
        $FORM{'print'}=1;
@@ -806,18 +821,19 @@ sub docs_account {
       }
     }
   }
- elsif(defined($FORM{print})){
+ elsif($FORM{print}){
    $Docs->account_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
    
    if ($conf{DOCS_VAT_INCLUDE}) {
-   	 $Docs->{ORDER_TOTAL_SUM_VAT} = sprintf("%.2f", $Docs->{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
-   	 $Docs->{TOTAL_SUM_WITHOUT_VAT}=sprintf("%.2f",$Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
-   	 $Docs->{VAT}=sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
+   	 $Docs->{ORDER_TOTAL_SUM_VAT}  = sprintf("%.2f", $Docs->{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
+   	 $Docs->{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f",$Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
+   	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
     }
 
    if ($Docs->{TOTAL} > 0) {
    	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
       $Docs->{FROM_DATE_LIT}='';
+
      my $list = $Docs->{ORDERS};
      my $i=0;
      foreach my $line (@$list) {
@@ -851,11 +867,15 @@ sub docs_account {
      
      $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
      
-  
-     docs_print('account', $Docs);
+     if ($Docs->{COMPANY_ID}) {
+       $Company->info($Docs->{COMPANY_ID});
+       docs_print('account_company', { %$Docs, %$Company });
+      }
+     else {
+       docs_print('account', $Docs);
+      }
     }
    else {
-
      $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
     }
    return 0;
@@ -1067,26 +1087,25 @@ sub docs_acts_list {
 
 
 if (! $attr->{COMPANY} ) {
-if ($LIST_PARAMS{COMPANY_ID} || $FORM{COMPANY_ID}) {
-	docs_acts();
-	return 0 if ($FORM{'print'});
- }
-elsif(defined($FORM{del}) && $FORM{is_js_confirmed} ) {
-  $Docs->act_del($FORM{del});
-  if(! $Docs->{errno}) {
-    $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
+  if ($LIST_PARAMS{COMPANY_ID} || $FORM{COMPANY_ID}) {
+	  docs_acts();
+	  return 0 if ($FORM{'print'});
    }
-  elsif ($Docs->{errno}) {
-    $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
-    return 0;
+  elsif(defined($FORM{del}) && $FORM{is_js_confirmed} ) {
+    $Docs->act_del($FORM{del});
+    if(! $Docs->{errno}) {
+      $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
+     }
+    elsif ($Docs->{errno}) {
+      $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
+      return 0;
+     }
    }
- }
-elsif($FORM{print}) {
-	docs_acts();
+  elsif($FORM{print}) {
+	  docs_acts();
 	
-	return 0;
- }
-
+	  return 0;
+   }
  }
 else {
   $index=$FORM{index};
@@ -1155,7 +1174,6 @@ return 0;
 sub docs_acts {
 	my ($attr) = @_;
 
-  my $Company ;
   if (! $attr->{COMPANY} && ! $FORM{qindex}) {
     $FORM{subf}=$FORM{index};
     $index=13;
@@ -1164,8 +1182,6 @@ sub docs_acts {
     return 0;
    }
   elsif($FORM{qindex}) {
-    my $Customer = Customers->new($db, $admin, \%conf);
-    $Company = $Customer->company();
     $Company->info($FORM{COMPANY_ID});
    }
   else {
@@ -1255,7 +1271,7 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
    	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
       $Docs->{FROM_DATE_LIT}='';
      
-#print "Content-Type: text/html\n\n";
+
      $Docs->{'TOTAL_SUM'}             = sprintf("%.2f", $Docs->{TOTAL_SUM});
      $Docs->{'TOTAL_SUM_WITHOUT_VAT'} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
      $Docs->{'TOTAL_SUM_VAT'}         = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
