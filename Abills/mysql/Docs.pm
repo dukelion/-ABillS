@@ -969,6 +969,7 @@ sub act_info {
 
   $self->query($db, "SELECT d.act_id, 
    d.date, 
+   date_format(d.date, '%Y-%m'),
    d.sum, 
    if(d.vat>0, FORMAT(d.sum / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)),
    u.id, 
@@ -1000,8 +1001,9 @@ sub act_info {
      return $self;
    }
 
-  ($self->{DOC_ID}, 
+  ($self->{ACT_ID}, 
    $self->{DATE}, 
+   $self->{MONTH}, 
    $self->{TOTAL_SUM},
    $self->{VAT},
    $self->{LOGIN}, 

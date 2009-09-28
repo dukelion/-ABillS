@@ -1737,6 +1737,7 @@ sub user_del {
 sub user_group {
   my ($attr) = @_;
   my $user = $attr->{USER};
+
   $user->{SEL_GROUPS} = sel_groups();
   $html->tpl_show(templates('form_chg_group'), $user);
 }

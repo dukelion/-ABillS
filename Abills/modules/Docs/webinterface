@@ -449,12 +449,21 @@ return 0;
 sub docs_tax_invoice {
 	my ($attr) = @_;
 
-  if (! $attr->{COMPANY}) {
+ my $Company ;
+  if (! $attr->{COMPANY} && ! $FORM{qindex}) {
     $FORM{subf}=$FORM{index};
     $index=13;
     $index2=$FORM{index};
     form_companies();
     return 0;
+   }
+  elsif($FORM{qindex}) {
+    my $Customer = Customers->new($db, $admin, \%conf);
+    $Company = $Customer->company();
+    $Company->info($FORM{COMPANY_ID});
+   }
+  else {
+  	$Company = $attr->{COMPANY};
    }
 
   #$LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
@@ -1146,12 +1155,21 @@ return 0;
 sub docs_acts {
 	my ($attr) = @_;
 
-  if (! $attr->{COMPANY}) {
+  my $Company ;
+  if (! $attr->{COMPANY} && ! $FORM{qindex}) {
     $FORM{subf}=$FORM{index};
     $index=13;
     $index2=$FORM{index};
     form_companies();
     return 0;
+   }
+  elsif($FORM{qindex}) {
+    my $Customer = Customers->new($db, $admin, \%conf);
+    $Company = $Customer->company();
+    $Company->info($FORM{COMPANY_ID});
+   }
+  else {
+  	$Company = $attr->{COMPANY};
    }
 
 
@@ -1217,7 +1235,7 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
    else {
      $FORM{COMPANY_ID}=$LIST_PARAMS{COMPANY_ID} if (! $FORM{COMPANY_ID});
      
-     $Docs->act_add({ %FORM, DATE => "$Docs->{DATE}" });
+     $Docs->act_add({ %FORM, DATE => "$FORM{MONTH}-01" });
 
 
      if ($Docs->{errno} == 7) {
@@ -1238,9 +1256,9 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
       $Docs->{FROM_DATE_LIT}='';
      
 #print "Content-Type: text/html\n\n";
-     $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
-     $Docs->{'TOTAL_SUM_WITHOUT_VAT'}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
-     $Docs->{'TOTAL_SUM_VAT'} = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
+     $Docs->{'TOTAL_SUM'}             = sprintf("%.2f", $Docs->{TOTAL_SUM});
+     $Docs->{'TOTAL_SUM_WITHOUT_VAT'} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
+     $Docs->{'TOTAL_SUM_VAT'}         = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
      
      my $i=0; 
      foreach my $field_id ( @{ $Company->{INFO_FIELDS_ARR} } ) {
@@ -1249,7 +1267,7 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
        $i++;
      }
 
-     docs_print('docs_ack', { %$Docs, %$Company, A_FIO => $admin->{A_FIO} });
+     docs_print('act', { %$Docs, %$Company, A_FIO => $admin->{A_FIO} });
     }
    else {
 
