@@ -494,10 +494,14 @@ sub account_info {
    pi.address_flat,
    if (d.phone<>0, d.phone, pi.phone),
    pi.contract_id,
-   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day
+   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day,
+   u.company_id,
+   c.name
+   
    
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
+    LEFT JOIN companies c ON (u.company_id=c.id)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     WHERE d.id=o.acct_id and d.id='$id' $WHERE
@@ -525,7 +529,9 @@ sub account_info {
    $self->{ADDRESS_FLAT}, 
    $self->{PHONE},
    $self->{CONTRACT_ID},
-   $self->{EXPIRE_DATE}
+   $self->{EXPIRE_DATE},
+   $self->{COMPANY_ID},
+   $self->{COMPANY_NAME}
   )= @{ $self->{list}->[0] };
 	
   
@@ -763,7 +769,7 @@ sub tax_invoice_info {
      return $self;
    }
 
-  ($self->{DOC_ID}, 
+  ($self->{TAX_INVOICE_ID}, 
    $self->{DATE}, 
    $self->{TOTAL_SUM},
    $self->{VAT},
@@ -985,7 +991,9 @@ sub act_info {
    c.contract_id,
    c.contract_date,
    d.company_id,
+   c.name,
    d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day
+   
    
     FROM (docs_acts d)
     LEFT JOIN users u ON (d.uid=u.uid)
@@ -1019,8 +1027,10 @@ sub act_info {
    $self->{PHONE},
    $self->{CONTRACT_ID},
    $self->{CONTRACT_DATE},
-   $self->{COMPANY_NAMA},
+   $self->{COMPANY_ID},
+   $self->{COMPANY_NAME},
    $self->{EXPIRE_DATE}
+
   )= @{ $self->{list}->[0] };
 	
 	return $self;
