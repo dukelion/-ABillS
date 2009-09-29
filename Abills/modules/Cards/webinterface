@@ -1324,7 +1324,6 @@ sub cards_diller_add {
  	$Cards->{ACTION}='add';
  	$Cards->{LNG_ACTION}=$_ADD;
 
-
 if ($FORM{add}) {
      my $fees = Finance->fees($db, $admin, \%conf);
      
@@ -1401,7 +1400,7 @@ if ($FORM{add}) {
             }
 
          	my $return = cards_users_add({ EXTRA_TPL => $dv_tpl, 
-         		                             NO_PRINT => 1  
+         		                             NO_PRINT  => 1  
          		                             });
           
           my $added_count = 0;
@@ -1798,6 +1797,7 @@ print $table->show();
 #
 #**********************************************************
 sub cards_diller_stats {
+
 	$LIST_PARAMS{DILLER_ID}=$diller->{ID};
 
 	if ($FORM{print}) {
