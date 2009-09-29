@@ -1024,7 +1024,6 @@ sub add {
   
   
   $DATA{DISABLE} = int($DATA{DISABLE});
-  $self->{debug}=1;
   $self->query($db,  "INSERT INTO users (id, activate, expire, credit, reduction, 
            registration, disable, company_id, gid, password, credit_date, domain_id)
            VALUES ('$DATA{LOGIN}', '$DATA{ACTIVATE}', '$DATA{EXPIRE}', '$DATA{CREDIT}', '$DATA{REDUCTION}', 
