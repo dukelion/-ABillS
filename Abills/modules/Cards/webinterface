@@ -1790,7 +1790,210 @@ print $table->show();
 	
 }
 
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_diller_stats {
+	$LIST_PARAMS{DILLER_ID}=$diller->{ID};
+
+	if ($FORM{print}) {
+		$LIST_PARAMS{CREATED_DATE}=$FORM{print};
+    print "Content-Type: text/html\n\n";
+    
+    my $list = $Cards->cards_list({ %LIST_PARAMS, 
+    	                              PAGE_ROWS => 1000000, 
+    	                              SERIA     => '' 
+ 	                                 });
+    my $details     = '';
+    my $total_count = 0;
+    my $total_sum   = 0;
+
+    foreach my $line (@$list) {
+    	$details     = '';
+      $total_count++;
+      $total_sum   += $line->[3];
+     }
+
+    
+
+    $html->tpl_show(_include('cards_diller_sum_check', 'Cards'),
+              { 
+                DATE        => "$DATE $TIME",
+                TOTAL_COUNT => $total_count,
+                TOTAL_SUM   => sprintf("%.2f", $total_sum),
+                DILLER_ID   => $diller->{ID},
+                DETAILS     => undef
+                
+                 } );
+		
+		
+		
+		return 0;
+	 }
+	
+
+
+
+  my $table = $html->table( { width       => '100%',
+	                       rowcolor    => $_COLORS[0],
+                         rows        => [[ "$_FROM: ",  $html->date_fld('CREATED_FROM_', { MONTHES => \@MONTHES} ),
+                                          "$_TO: ",    $html->date_fld('CREATED_TO_', { MONTHES => \@MONTHES } ),
+                                          $html->form_select('TYPE', 
+                                             { SELECTED   => $FORM{TYPE},
+ 	                                             SEL_HASH   => { CARDS => $_ICARDS,
+ 	                                             	               DAYS   => $_DAYS
+ 	                                             	               },
+ 	                                             SORT_KEY   => 1,
+ 	                                             NO_ID      => 1 
+ 	                                            }),
+                                          "$_ROWS: " .  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
+
+                                         ]],                                   
+                      });
+
+
+
+  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+  	                       HIDDEN  => { index  => "$index",
+  	                       	            SERIA  => '',
+  	                       	            sid    => $sid,
+  	                       	            UID    => $FORM{UID},
+  	                       	           },
+	                         NAME    => 'cards_list'
+	                        });
+
+
+  
+
+  my @pin = ();
+  @pin = ("PIN") if ($conf{CARDS_SHOW_PINS}) ;
+
+	if(defined($FORM{CREATED_FROM_D}) && defined($FORM{CREATED_TO_D})) {
+	  $pages_qs = "&CREATED_TO_Y=$FORM{CREATED_TO_Y}&CREATED_TO_M=$FORM{CREATED_TO_M}&CREATED_TO_D=$FORM{CREATED_TO_D}&CREATED_FROM_Y=$FORM{CREATED_FROM_Y}&CREATED_FROM_M=$FORM{CREATED_FROM_M}&CREATED_FROM_D=$FORM{CREATED_FROM_D}";
+	  $LIST_PARAMS{CREATED_FROM_DATE}="$FORM{CREATED_FROM_Y}-". sprintf("%.2d", ($FORM{CREATED_FROM_M}+1)). "-$FORM{CREATED_FROM_D}";
+	  $LIST_PARAMS{CREATED_TO_DATE}="$FORM{CREATED_TO_Y}-". sprintf("%.2d", ($FORM{CREATED_TO_M}+1)) ."-$FORM{CREATED_TO_D}";
+	  $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
+   }	 
+  else {
+  	my ($Y, $M, $D)=split(/-/, $DATE);
+  	$LIST_PARAMS{CREATED_MONTH}="$Y-$M";
+  	$pages_qs = "&CREATED_MONTH=$Y-$M";
+   }
+
+
+if ($FORM{TYPE} eq 'CARDS') {
+  if (! $FORM{SORT}) {
+    $LIST_PARAMS{SORT}=1;
+    $LIST_PARAMS{DESC}='DESC';
+   }
+
+
+
+
+
+  $pages_qs .= "&TYPE=CARDS";
+
+  if ($FORM{CREATED_DATE}) {
+    $LIST_PARAMS{CREATED_DATE}="$FORM{CREATED_DATE}" ;
+    $pages_qs .= "&CREATED_DATE=$LIST_PARAMS{CREATED_DATE}";
+   }
+
+
+  my $list = $Cards->cards_list({ %LIST_PARAMS, 
+  	                              SERIA => '' 
+ 	                              });
+
+  $table = $html->table( { width      => '100%',
+                           caption    => "$_LOG",
+                           title      => ["$_NUM", "$_SERIAL", "$_LOGIN", "$_SUM", "$_STATUS", "$_EXPIRE", "$_ADDED", 
+                              "$_DILLERS", "$_DATE" ],
+                           cols_align => ['right', 'right','right','right', 'center', 'right', 'right', 'left', 
+                             'right', 'right', 'left', 'right', 'center:noprint'],
+                           qs         => $pages_qs,
+                           pages      => $Cards->{TOTAL}
+                         });
+
+
+  foreach $line (@$list) {
+   	@pin = ("$line->[14]") if ($conf{CARDS_SHOW_PINS}) ;
+   	$table->addrow(
+   	    $line->[0], 
+  	    $line->[1],
+  	    $html->button($line->[2], "&index=11&UID=$line->[13]"),
+  		  $line->[3],
+  		  $status[$line->[4]],
+  		  $line->[5],
+  		  $line->[6],
+  		  $line->[7],
+  		  $line->[8],
+  		);
+    }
+
+  
+  print $table->show();
+  
+	 $table = $html->table( { width      => '100%',
+                            cols_align => ['right', 'right'],
+                            rows       => [ [ "$_TOTAL:", $html->b($Cards->{TOTAL}), "$_SUM:",  $html->b($Cards->{TOTAL_SUM}) ] ]
+                        });
+   print $table->show();	
+ }
+else {
+	
+
+  $table = $html->table( { width        => '100%',
+                           caption      => "$_LOG",
+                           title_plain  => ["$_DATE", "$_COUNT", "$_SUM", '-' ],
+                           cols_align   => ['right', 'right','right', 'center:noprint'],
+                           qs           => $pages_qs,
+                           pages        => $Cards->{TOTAL}
+                         });
+ 
+
+  
+  
+  
+  my $list = $Cards->cards_report_days({ %LIST_PARAMS, 
+  	                                     SERIA => '' 
+ 	                                     });
+
+  foreach $line (@$list) {
+   	$table->addrow(
+   	     $html->button($line->[0], "index=$index&TYPE=CARDS$pages_qs&sid=$FORM{sid}". ( ($line->[0] =~ /(\d{4}-\d{2}-\d{2})/) ? "&CREATED_DATE=$1" : '') ), 
+  	     $line->[1],
+  		   $line->[2],
+  	     $html->button("$_PRINT", '#',  {  NEW_WINDOW      => "$_SELF_URL?qindex=$index&print=$line->[0]&sid=$FORM{sid}",
+      	                                   NEW_WINDOW_SIZE => "480:640",  
+      	                                 } ),  		
+  	    );
+    }
+
+
+   print $table->show();
+}
+
+   
+}
+
+
+
+
+
+
+
+
+
+
+
 sub sel_groups {
 }
+
+
+
 
 1
