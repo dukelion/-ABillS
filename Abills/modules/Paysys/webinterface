@@ -1219,15 +1219,24 @@ elsif ($FORM{TRUE}) {
                                      });
 
 	$info{OPERATION_ID}  = $FORM{OPERATION_ID};  
-	$FORM{SUM} = sprintf("%.2f", $FORM{SUM});
 	
 	
 	
-  ($info{AMOUNT}, $info{AMOUNT2})=split(/,|\./, $FORM{SUM}, 2);
+	
+  # ($info{AMOUNT2}, $info{AMOUNT})=split(/,|\./, $FORM{SUM}, 2);
 
+ #$info{AMOUNT} = $FORM{SUM};
+ #$info{AMOUNT} = sprintf("%d", );
 
+ $conf{PAYSYS_PB_PW}="j8O5Eek7";
+ $conf{PAYSYS_PB_MERID}="100000000918471";
+ #$info{OPERATION_ID}="Test_Merchant_Name_";
+ #$info{AMOUNT}=100;
+ #$info{AMOUNT2}=20;
+  
 
-  $info{AMOUNT}  = sprintf("%.12d", int($info{AMOUNT}));
+  
+  $info{AMOUNT}  = sprintf("%.12d", int($FORM{SUM}*100));
   $info{AMOUNT2} = sprintf("%.12d", int($info{AMOUNT2}));
 
 
@@ -1241,10 +1250,23 @@ elsif ($FORM{TRUE}) {
 
   my $ctx = Digest::SHA1->new;
  
-  #$ctx->add($conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'); 
-  $ctx->add('xxxxxxxx10000000091811141496397000000009180980');
-  $info{HASH} = $ctx->b64digest();
+#$amount=100;   //1 грн.
+#$amount2=20;   //20 центов
+#while( strlen($amount)<12) {$amount="0".$amount;}
+#while( strlen($amount2)<12) {$amount2="0".$amount;}
+#$orderID=.rand(1000,999999999);
+#$str = "j8O5Eek7"."100000000918471"."414963".$orderID.$amount."980".$amount2."840";
+#$s1=sha1($str);
+#$s1=hexbin($s1);
+
  
+ 
+  #               Password+         MerID+                 AcqID+   OrderID+            PurchaseAmt+PurchaseCurrency+PurchaseAmt2+PurchaseCurrency2+AdditionalData+Reversal
+  $ctx->add($conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$info{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'); 
+  #           $str = "j8O5Eek7".  "100000000918471".     "414963".$orderID           .$amount.      "980".$amount2.      "840";
+  #$ctx->add('xxxxxxxx10000000091811141496397000000009180980');
+  $info{HASH} = $ctx->b64digest();
+  $info{SignatureMethod} = 'SHA1'; 
 
 
 
@@ -1256,15 +1278,17 @@ elsif ($FORM{TRUE}) {
 #  $md5->add($conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'); 
 #  $info{HASH} = $md5->b64digest();
 
+  print "Content-Type: text/html\n\n";
+  
+  print $conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'. "<br>\n";
 
   $info{HASH}=$info{HASH}.'=';  
   
-  print "Content-Type: text/html\n\n";
-  print "// ". $conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840' ."//\n";
+
+  #print "// ". $conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840' ."//\n";
   
   
   print $info{HASH};
-  exit;
   $info{DESCRIBE}      = $FORM{DESCRIBE};
 
   $html->tpl_show(_include('paysys_pb_add', 'Paysys'), \%info);

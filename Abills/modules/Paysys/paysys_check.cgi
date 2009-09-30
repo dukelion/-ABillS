@@ -118,7 +118,7 @@ $users = Users->new($db, $admin, \%conf);
 
 
 #DEbug
-my $output2 = '';
+my $output2 = "DATE: $DATE $TIME =========================\n";
 while(my($k, $v)=each %FORM) {
  	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
 }
@@ -137,7 +137,6 @@ elsif($FORM{ACT}) {
 	require "24_non_stop.pm";
 	exit;
 }
-
 
 #Check payment system by IP
 
@@ -206,6 +205,15 @@ sub payments {
    }
   else {
     print "Error: Unknown payment system";
+    if (scalar keys %FORM > 0) {
+   	  if (open(FILE, ">>paysys_check.log")) {
+  	    print FILE $output2;
+	      close(FILE);
+	     }
+      else {
+  	    $html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");
+       }
+    }
    }
 }
 
