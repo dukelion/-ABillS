@@ -1089,6 +1089,7 @@ sub snmputils_dlink_pb_list {
 
   my $expr_val = chr(0)."-".chr(255);                                            
   my $unpack_ = ($SWITCH_INFO->{version} =~ /3550/ || $SWITCH_INFO->{version} =~ /3052/) ? "H2H2H2H2H2H2H2" : "H2H2H2H2";
+
   foreach my $line (@result) {
     print "\n<br>$line => " if ($debug > 0);
     #Blocked address

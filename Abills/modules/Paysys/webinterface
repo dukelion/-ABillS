@@ -29,7 +29,8 @@ my %PAY_SYSTEMS = (1 => "Webmoney",
                    7 => "USMP",
                    8 => "PrivatBank",
                    9 => "Pegas",
-                   10 => "Comepay"
+                   10 => "Comepay",
+                   11 => "24_non_STOP"
                   );
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
@@ -429,7 +430,7 @@ sub paysys_payment {
 	                             3 => 'PAYSYS_SMSPROXY',
 	                             5 => 'PAYSYS_PORTMONE_PAYEE_ID',
 	                             6 => 'PAYSYS_UKRPAYS_SECRETKEY',
-	                             8 => 'PAYSYS_PB_SHOP_CODE' );
+	                             8 => 'PAYSYS_PB_MERID' );
 	  
 	  while(my($k, $v) = each %PAY_SYSTEMS) {
 	  	delete $PAY_SYSTEMS{$k} if (! $conf{$PAY_SYSTEM_ACCOUNTS{$k}});
@@ -1186,7 +1187,8 @@ $info{SUM_VAL_SEL}=$html->form_select('sum_val',
 
 
 #**********************************************************
-#
+# 80567161228 vadim
+# vadim.ignatkin@pbank.com.ua
 #**********************************************************
 sub paysys_privatbank {
 	
@@ -1216,33 +1218,75 @@ elsif ($FORM{TRUE}) {
  	                                      NO_ID     => 1
                                      });
 
-=comments
-function hexbin($temp) {
-   $data="";
-   $len = strlen($temp);
-   for ($i=0;$i<$len;$i+=2) $data.=chr(hexdec(substr($temp,$i,2)));
-   return $data;
-}
-
-
-$orderID=”Test_Merchant_Name_”.rand(1000,999999999);
-$str = "j8O5Eek7"."100000000918471"."414963".$orderID.$amount."980".$amount2."840";
-$s1=sha1($str);
-$s1=hexbin($s1);
-$hash = base64_encode($s1);
-=cut
-
 	$info{OPERATION_ID}  = $FORM{OPERATION_ID};  
-  ($info{AMOUNT}, $info{AMOUNT2})=split(/,|./, $FORM{SUM}, 2);
+	$FORM{SUM} = sprintf("%.2f", $FORM{SUM});
+	
+	
+	
+  ($info{AMOUNT}, $info{AMOUNT2})=split(/,|\./, $FORM{SUM}, 2);
+
+
+
   $info{AMOUNT}  = sprintf("%.12d", int($info{AMOUNT}));
   $info{AMOUNT2} = sprintf("%.12d", int($info{AMOUNT2}));
+
+
+#  Password+MerID+AcqID+OrderID+PurchaseAmt+PurchaseCurrency+PurchaseAmt2+PurchaseCurrency2+AdditionalData+Reversal   
+#  print "Content-Type: text/html\n\n";
+#  print $conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840';
+
+#SHA1 signature
+#----------------------------
+  use Digest::SHA1;
+
+  my $ctx = Digest::SHA1->new;
+ 
+  #$ctx->add($conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'); 
+  $ctx->add('xxxxxxxx10000000091811141496397000000009180980');
+  $info{HASH} = $ctx->b64digest();
+ 
+
+
+
+#MD5 Signature
+#----------------------------
+
+#  my $md5 = new Digest::MD5;
+#  $md5->reset;
+#  $md5->add($conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'); 
+#  $info{HASH} = $md5->b64digest();
+
+
+  $info{HASH}=$info{HASH}.'=';  
+  
+  print "Content-Type: text/html\n\n";
+  print "// ". $conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840' ."//\n";
   
   
+  print $info{HASH};
+  exit;
   $info{DESCRIBE}      = $FORM{DESCRIBE};
 
   $html->tpl_show(_include('paysys_pb_add', 'Paysys'), \%info);
 }
 
+
+
+#**********************************************************
+#
+#**********************************************************
+sub hex2bin {
+   my ($temp) = @_;
+
+   my $data="";
+   my $len = length($temp);
+   
+   for (my $i=0; $i<$len; $i+=2) {
+     $data .= chr(hex(substr($temp,$i,2)));
+    }
+
+   return $data;
+}
 
 #**********************************************************
 # 

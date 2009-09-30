@@ -133,6 +133,11 @@ elsif($FORM{operation} || $ENV{'QUERY_STRING'} =~ /operation=/) {
 	require "Comepay.pm";
 	exit;
 }
+elsif($FORM{ACT}) {
+	require "24_non_stop.pm";
+	exit;
+}
+
 
 #Check payment system by IP
 
@@ -754,7 +759,7 @@ print << "[END]";
 #Get payments statua   
 elsif($request_type eq 'GetStatus') {
   my @payments_arr = @{ $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{ChequeNumbers}->[0]->{int} };
-
+  my %payments_status = ();
 
     if ($conf{'PAYSYS_USMP_PAYELEMENTID'}){
     	$conf{'PAYSYS_USMP_PAYELEMENTID'} =~ s/ //g;
@@ -768,7 +773,7 @@ elsif($request_type eq 'GetStatus') {
   my $ext_ids = '\'USMP:'. join("', 'USMP:", @payments_arr)."'";
   
   my $list = $payments->list({ EXT_IDS => $ext_ids  });
-  my %payments_status = ();
+  
 
   if ($payments->{errno}) {
      usmp_error_msg('108', "Payments error");
