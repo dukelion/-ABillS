@@ -16,11 +16,13 @@
 	<input id='MerRespURL'        type='hidden' value='https://www.verification.privatbank.ua/SENTRY/PaymentGateway/Application/wfrmresponse.aspx'  name='MerRespURL'>
 	<input id='PurchaseAmt'       type='hidden' value='%AMOUNT%' name='PurchaseAmt'>
 	<input id='PurchaseCurrency'  type='hidden' value='980' name='PurchaseCurrency'>
-	<input id='PurchaseAmt2'      type='hidden' value='%AMOUNT2%' name='PurchaseAmt2'>
+
+  <input id='PurchaseAmt2'      type='hidden' value='%AMOUNT2%' name='PurchaseAmt2'>
 	<input id='PurchaseCurrency2' type='hidden' value='840' name='PurchaseCurrency2'>
+
 	<input id='PurchaseCurrencyExponent' type='hidden' value='2' name='PurchaseCurrencyExponent'>
 	<input id='OrderID'           type='hidden' value='%OPERATION_ID%' name='OrderID'>
-	<input id='SignatureMethod'   type='hidden' value='MD5' name='SignatureMethod'>
+	<input id='SignatureMethod'   type='hidden' value='%SignatureMethod%' name='SignatureMethod'>
 	<input id='Signature' type='hidden' value ='%HASH%' name='Signature'>
 	<input id='CaptureFlag'       type='hidden' value='A' name='CaptureFlag'>
 
