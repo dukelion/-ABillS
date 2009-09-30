@@ -41,6 +41,31 @@ sub extfin_export_customers {
     $LIST_PARAMS{PG}        = $FORM{PG} || 0;
     $LIST_PARAMS{USER_TYPE} = $FORM{USER_TYPE};
 
+    if ($LIST_PARAMS{USER_TYPE} == 0 && $FORM{TOTAL_ONLY}) {
+      my $table = $html->table( { width      => '100%',
+                                caption    => "$_USERS",
+                                title      => ['ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, 
+                                  $_PHONE, $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT' ],
+                                ID         => 'EXTFIN_CUSTOMERS',
+                                rows       => [ [ 100000,
+    	  "$_TOTAL: $_USERS" ,
+    	  '',
+    	   0,
+    	  '' ,
+    	   1,
+    	 '',
+    	 '',
+    	 '',
+    	 '',
+    	 '',
+    	 '',
+    	 '']]
+                                
+                           });
+    	
+    	print $table->show();
+    	return 0;
+     }
 
     my $list = $Extfin->customers_list({ %LIST_PARAMS });
     my $table = $html->table( { width      => '100%',
@@ -131,7 +156,7 @@ sub extfin_export_customers {
 
       if ($FORM{TOTAL_ONLY}) {
  	      $name = ($FORM{USER_TYPE} == 1) ? "$_TOTAL: $_COMPANIES" : "$_TOTAL: $_USERS"; 
-        $table->addrow(0,
+        $table->addrow(1000000,
          $name,
          $FORM{USER_TYPE},
          0,
