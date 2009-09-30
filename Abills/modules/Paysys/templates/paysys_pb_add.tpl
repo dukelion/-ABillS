@@ -13,9 +13,9 @@
 <input id='Version'             type='hidden' name='Version' value='1.0.0'>
 	<input id='MerID'             type='hidden' value='$conf{PAYSYS_PB_MERID}' name='MerID'>
 	<input id='AcqID'             type='hidden' value='414963' name='AcqID'>
-	<input id='MerRespURL'        type='hidden' value='https://demo.abills.net.ua:9443/paysys_check.cgi'  name='MerRespURL'>
+	<input id='MerRespURL'        type='hidden' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi'  name='MerRespURL'>
 	
-	<input id='MerRespURL2'        type='hidden' value='https://demo.abills.net.ua:9443/paysys_check.cgi'  name='MerRespURL2'>
+	<input id='MerRespURL2'        type='hidden' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi'  name='MerRespURL2'>
 	
 	<input id='PurchaseAmt'       type='hidden' value='%AMOUNT%' name='PurchaseAmt'>
 	<input id='PurchaseCurrency'  type='hidden' value='980' name='PurchaseCurrency'>
