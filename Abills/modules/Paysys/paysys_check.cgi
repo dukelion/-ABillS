@@ -129,6 +129,9 @@ if( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) ) {
 elsif ($FORM{SHOPORDERNUMBER}) {
   portmone_payments();
  }
+elsif($FORM{AcqID}) {
+	privatbank_payments();
+ }
 elsif($FORM{operation} || $ENV{'QUERY_STRING'} =~ /operation=/) {
 	require "Comepay.pm";
 	exit;
@@ -297,6 +300,92 @@ sub portmone_payments {
 		#print "Content-Type: text/html\n\n";
 		#print "FAILED PAYSYS: Portmone SUM: $FORM{BILL_AMOUNT} ID: $FORM{SHOPORDERNUMBER} STATUS: $status";
 		print "Location: $home_url?index=$FORM{index}&sid=$FORM{sid}&SHOPORDERNUMBER=$FORM{SHOPORDERNUMBER}". "\n\n";
+	 }
+
+	exit;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub privatbank_payments {
+  #Get order
+
+
+  my $status = 0;
+
+  my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'OrderID'}", 
+      	                     INFO           => '-',
+      	                     
+  	                         });
+
+
+ 
+
+ if ($Paysys->{TOTAL} > 0) {
+	 
+   if (	$FORM{ReasonCode} == 1 ) {     
+	      #$html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{SHOPORDERNUMBER }");
+	      my $uid = $list->[0][7];
+	      my $sum = $list->[0][3];
+        my $user = $users->info($uid);
+        $payments->add($user, {SUM      => $sum,
+    	                     DESCRIBE     => 'PBANK', 
+    	                     METHOD       => '2', 
+  	                       EXT_ID       => "PBANK:$FORM{OrderID}",
+  	                       CHECK_EXT_ID => "PBANK:$FORM{OrderID}" } );  
+
+
+        #Exists
+        if ($payments->{errno} && $payments->{errno} == 7) {
+          $status = 8;  	
+         }
+        elsif ($payments->{errno}) {
+          $status = 4;
+         }
+        else{
+   	      $Paysys->change({ ID     => $list->[0][0],
+ 	                          INFO   => "ReasonCode: $FORM{ReasonCode}" 
+ 	                  });
+         }
+
+	      if ($conf{PAYSYS_EMAIL_NOTICE}) {
+	      	my $message = "\n".
+	      	 "System: Portmone\n".
+	      	 "DATE: $DATE $TIME\n".
+	      	 "LOGIN: $user->{LOGIN} [$uid]\n".
+	      	 "\n".
+       	   "\n".
+	      	 "ID: $FORM{SHOPORDERNUMBER}\n".
+	      	 "SUM: $sum\n";
+
+          sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Portmone Add", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+	      	
+	       }
+
+    }
+   else {
+     $Paysys->change({ ID     => $list->[0][0],
+ 	                     INFO   => "ReasonCode: $FORM{ReasonCode}. $FORM{ReasonCodeDesc}" 
+ 	                 });
+  	}
+
+  }
+	
+  
+	my $home_url = '/index.cgi';
+  $home_url = $ENV{SCRIPT_NAME};
+  $home_url =~ s/paysys_check.cgi/index.cgi/;
+  
+	if ($FORM{ResponseCode} == 1) {
+	  print "Location: $home_url?PAYMENT_SYSTEM=8&OrderID=$FORM{OrderID}&TRUE=1". "\n\n";
+	 }
+	else {
+		#print "Content-Type: text/html\n\n";
+		#print "FAILED PAYSYS: Portmone SUM: $FORM{BILL_AMOUNT} ID: $FORM{SHOPORDERNUMBER} STATUS: $status";
+		print "Location: $home_url?PAYMENT_SYSTEM=8&OrderID=$FORM{OrderID}&FALSE=1". "\n\n";
 	 }
 
 	exit;

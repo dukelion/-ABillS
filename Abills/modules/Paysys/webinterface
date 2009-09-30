@@ -1195,74 +1195,71 @@ sub paysys_privatbank {
 	my %info = ();
 	
 if ($FORM{FALSE}) {
-	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID}");
+	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID}");
+	$html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+
+	return 0;
  }
 elsif ($FORM{TRUE}) {
-   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OPERATION_ID}", UID => $LIST_PARAMS{UID} });
+   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OrderID}", 
+   	                          UID => $LIST_PARAMS{UID} });
 
    if ($Paysys->{TOTAL} > 0) {
-	    $html->message('info', $_INFO, "$_TRANSACTION_PROCESSING $_SUM: $list->[0][3] ID: $FORM{OPERATION_ID}");
+	    $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OPERATION_ID}");
 	   }
     else {
     	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
      }
+  $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
 
   return 0;
  }
-	
+else {
+	#Info section  
+  $Paysys->add({ SYSTEM_ID      => 8, 
+  	             DATETIME       => "'$DATE $TIME'", 
+  	             SUM            => $FORM{SUM},
+  	             UID            => $user->{UID}, 
+                 IP             => $FORM{IP},
+                 TRANSACTION_ID => "$FORM{OPERATION_ID}",
+                 INFO           => '-',
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+               });
 
-  $info{SUM_VAL_SEL}=$html->form_select('sum_val', 
-                                    { 
- 	                                      SELECTED  => $FORM{sum_val},
- 	                                      SEL_ARRAY => [USD, EUR, UAH, RUR],
- 	                                      NO_ID     => 1
-                                     });
+  if ($Paysys->{errno}) {
+  	$html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
+  	return 0;
+   }
+	
+}	
 
-	$info{OPERATION_ID}  = $FORM{OPERATION_ID};  
-	
-	
-	
-	
-  # ($info{AMOUNT2}, $info{AMOUNT})=split(/,|\./, $FORM{SUM}, 2);
 
- #$info{AMOUNT} = $FORM{SUM};
- #$info{AMOUNT} = sprintf("%d", );
 
- $conf{PAYSYS_PB_PW}="j8O5Eek7";
- $conf{PAYSYS_PB_MERID}="100000000918471";
- #$info{OPERATION_ID}="Test_Merchant_Name_";
- #$info{AMOUNT}=100;
- #$info{AMOUNT2}=20;
+  
+  $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+  
+
+
+  $info{OPERATION_ID}  = $FORM{OPERATION_ID};  
+  $conf{PAYSYS_PB_PW}="j8O5Eek7";
+  $conf{PAYSYS_PB_MERID}="100000000918471";
+  #$info{OPERATION_ID}="Test_Merchant_Name_";
+  #$info{AMOUNT}=100;
+  #$info{AMOUNT2}=20;
   
 
   
   $info{AMOUNT}  = sprintf("%.12d", int($FORM{SUM}*100));
   $info{AMOUNT2} = sprintf("%.12d", int($info{AMOUNT2}));
-
-
-#  Password+MerID+AcqID+OrderID+PurchaseAmt+PurchaseCurrency+PurchaseAmt2+PurchaseCurrency2+AdditionalData+Reversal   
-#  print "Content-Type: text/html\n\n";
-#  print $conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840';
+  $info{AdditionalData} = "index=$index&UID=$user->{UID}";
 
 #SHA1 signature
 #----------------------------
   use Digest::SHA1;
 
   my $ctx = Digest::SHA1->new;
- 
-#$amount=100;   //1 грн.
-#$amount2=20;   //20 центов
-#while( strlen($amount)<12) {$amount="0".$amount;}
-#while( strlen($amount2)<12) {$amount2="0".$amount;}
-#$orderID=.rand(1000,999999999);
-#$str = "j8O5Eek7"."100000000918471"."414963".$orderID.$amount."980".$amount2."840";
-#$s1=sha1($str);
-#$s1=hexbin($s1);
-
- 
- 
   #               Password+         MerID+                 AcqID+   OrderID+            PurchaseAmt+PurchaseCurrency+PurchaseAmt2+PurchaseCurrency2+AdditionalData+Reversal
-  $ctx->add($conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$info{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'); 
+  $ctx->add($conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$info{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'.$info{AdditionalData});
   #           $str = "j8O5Eek7".  "100000000918471".     "414963".$orderID           .$amount.      "980".$amount2.      "840";
   #$ctx->add('xxxxxxxx10000000091811141496397000000009180980');
   $info{HASH} = $ctx->b64digest();
@@ -1272,23 +1269,14 @@ elsif ($FORM{TRUE}) {
 
 #MD5 Signature
 #----------------------------
-
 #  my $md5 = new Digest::MD5;
 #  $md5->reset;
 #  $md5->add($conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'); 
 #  $info{HASH} = $md5->b64digest();
-
-  print "Content-Type: text/html\n\n";
-  
-  print $conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'. "<br>\n";
-
   $info{HASH}=$info{HASH}.'=';  
   
 
   #print "// ". $conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840' ."//\n";
-  
-  
-  print $info{HASH};
   $info{DESCRIBE}      = $FORM{DESCRIBE};
 
   $html->tpl_show(_include('paysys_pb_add', 'Paysys'), \%info);

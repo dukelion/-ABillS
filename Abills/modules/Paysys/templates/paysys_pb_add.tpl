@@ -13,7 +13,10 @@
 <input id='Version'             type='hidden' name='Version' value='1.0.0'>
 	<input id='MerID'             type='hidden' value='$conf{PAYSYS_PB_MERID}' name='MerID'>
 	<input id='AcqID'             type='hidden' value='414963' name='AcqID'>
-	<input id='MerRespURL'        type='hidden' value='https://www.verification.privatbank.ua/SENTRY/PaymentGateway/Application/wfrmresponse.aspx'  name='MerRespURL'>
+	<input id='MerRespURL'        type='hidden' value='https://demo.abills.net.ua:9443/paysys_check.cgi'  name='MerRespURL'>
+	
+	<input id='MerRespURL2'        type='hidden' value='https://demo.abills.net.ua:9443/paysys_check.cgi'  name='MerRespURL2'>
+	
 	<input id='PurchaseAmt'       type='hidden' value='%AMOUNT%' name='PurchaseAmt'>
 	<input id='PurchaseCurrency'  type='hidden' value='980' name='PurchaseCurrency'>
 
@@ -26,6 +29,9 @@
 	<input id='Signature' type='hidden' value ='%HASH%' name='Signature'>
 	<input id='CaptureFlag'       type='hidden' value='A' name='CaptureFlag'>
 
+  <input id='AdditionalData' type=hidden value='%AdditionalData%' name='AdditionalData'>
+
+  
 <script>
 document.getElementById('checkout').submit();
 </script>
