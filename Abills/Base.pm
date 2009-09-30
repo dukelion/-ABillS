@@ -31,6 +31,7 @@ $VERSION = 2.00;
   &sendmail
   &in_array
   &tpl_parse
+  &encode_base64
  );
 
 @EXPORT_OK = ();
@@ -601,15 +602,15 @@ sub decode_base64 {
 # encode_base64()
 #**********************************************************
 sub encode_base64 ($;$) {
-    if ($] >= 5.006) {
-	require bytes;
-	if (bytes::length($_[0]) > length($_[0]) ||
-	    ($] >= 5.008 && $_[0] =~ /[^\0-\xFF]/))
-	{
+
+ if ($] >= 5.006) {
+	 require bytes;
+	 if (bytes::length($_[0]) > length($_[0]) ||
+	    ($] >= 5.008 && $_[0] =~ /[^\0-\xFF]/))	{
 	    require Carp;
 	    Carp::croak("The Base64 encoding is only defined for bytes");
-	}
-    }
+	  } 
+  }
 
     use integer;
 
