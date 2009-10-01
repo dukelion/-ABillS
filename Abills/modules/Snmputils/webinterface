@@ -1092,8 +1092,11 @@ sub snmputils_dlink_pb_list {
 
   foreach my $line (@result) {
     print "\n<br>$line => " if ($debug > 0);
+
     #Blocked address
-    if($line =~ /^[\d\.]{0,2}\d\.\d\.(\d)\.\d\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/ ) {
+    if($line =~ /^[\d\.]{0,2}\d\.\d\.(\d)\.\d+\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/ ) {
+    	
+    	#       MAC / 2 -> MAC
     	$BLOCK_HASH{$2}{$1}=$3;
     	print "Block<br>\n" if ($debug > 0);
      }
@@ -1333,10 +1336,10 @@ sub snmputils_dlink_ip_mac_port{
   while(my($ip, $ports) = each %{ $ACTIVE_MAC->{MULTIPORTS} } ) {
     if($binding->{$ACTIVE_MAC->{MAC}{"$ip"}}) {
  		  my ($name, $uid, $deposit, $status_val) = split(/:/, $binding->{$ACTIVE_MAC->{MAC}{"$ip"}}, 4);
-    	$ACTIVE_MAC->{LOGIN_URL}{"$ip"}=$html->button("$name", "index=15&UID=$uid");
-    	$ACTIVE_MAC->{LOGIN}{"$ip"}="$name";
-    	$ACTIVE_MAC->{DEPOSIT}{"$ip"}=$deposit;
-    	$ACTIVE_MAC->{STATUS}{"$ip"}=$status_val;
+    	$ACTIVE_MAC->{LOGIN_URL}{"$ip"}= $html->button("$name", "index=15&UID=$uid");
+    	$ACTIVE_MAC->{LOGIN}{"$ip"}    = "$name";
+    	$ACTIVE_MAC->{DEPOSIT}{"$ip"}  = $deposit;
+    	$ACTIVE_MAC->{STATUS}{"$ip"}   = $status_val;
      }
     else {
     	$ACTIVE_MAC->{LOGIN}{"$ip"}='-'
@@ -1403,7 +1406,7 @@ sub snmputils_dlink_ip_mac_port{
   $table = $html->table({ width       => '100%',
                           caption     => "$_DISABLE",
                           border      => 1,
-                          title       => ["$_USER", "ID", "$_PORT", "MAC", "VID", "-"],
+                          title       => ["$_USER", "ID", "$_PORT", "MAC", "VID", "$_STATUS", '-'],
                           cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                           ID          => 'DISABLED'
                       });
