@@ -1179,6 +1179,6 @@ INSERT INTO `dv_main` VALUES (1,100,0,'2009-08-03',0,'',0,4294967295,'','',0,0,0
 INSERT INTO `admin_actions` VALUES ('LOGIN:test','2009-08-03 11:42:53',1534854767,1,1,1,'',7),('BILL_ID ->1;','2009-08-03 11:42:53',1534854767,1,1,2,'',2),('PASSWORD *->*;','2009-08-03 11:42:53',1534854767,1,1,3,'',2),('ADD PI','2009-08-03 11:42:53',1534854767,1,1,4,'',0),('ACTIVE','2009-08-03 11:42:53',1534854767,1,1,5,'Dv',1);
 
 INSERT INTO `nas` (id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, mng_password, alive) VALUES (1,'NAS Server','','NAS Server','127.0.0.1','mpd5', 0,'127.0.0.1:5005','admin', ENCODE('secretpass','test12345678901234567890'),300);
-INSERT INTO `ippools` VALUES (1,1,167772161,256,'Main',0);
+INSERT INTO `ippools` ( id, nas, ip, counts, name, priority) VALUES (1,1,167772161,256,'Main',0);
 
 
