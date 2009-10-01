@@ -410,7 +410,7 @@ CREATE TABLE `ippools` (
   `counts` int(10) unsigned NOT NULL default '0',
   `name` varchar(25) NOT NULL,
   `priority` tinyint(4) NOT NULL DEFAULT '0',
-  `static` tinyint(6) unsigned NOT NULL DEFAULT '0',
+  `static` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `nas` (`nas`,`ip`)
 )  ;
