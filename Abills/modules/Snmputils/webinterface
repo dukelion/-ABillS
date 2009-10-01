@@ -45,6 +45,7 @@ my @association_state = ('initial',
                          'assocNotAnuthenticated',
                          'authenticated');
 
+$conf{SNMPUTILS_BINDING_DEPOSIT} = 0 if (! $conf{SNMPUTILS_BINDING_DEPOSIT});
 
 my %loaded_mibs = ();
 
@@ -498,7 +499,7 @@ sub snmputils_qbridge {
  	   }
 
  	  $debug_output .= "$line->[0], UID: $line->[1] IP: $line->[2] MAC: $line->[3] VID: $line->[6] PORT: $line->[7] NAS: $line->[8]\n" if ($debug > 2);
-    if ( $line->[4] >= 0 && ($line->[8] == 0 || $line->[8] == $NAS_ID) ) {
+    if ( $line->[4] >= $conf{SNMPUTILS_BINDING_DEPOSIT} && ($line->[8] == 0 || $line->[8] == $NAS_ID) ) {
       $MUST_ACTIVATE{"$line->[6]-$line->[3]"}="$line->[7]";
      }
     else {
@@ -625,7 +626,8 @@ sub snmputils_dlink_pb {
      	   }
 
      	  $debug_output .= "$line->[0], UID: $line->[1] IP: $line->[2] MAC: $line->[3] PORT: $user_ports\n" if ($debug > 2);
-        if ($line->[4] >= 0) {
+        
+        if ($line->[4] >= $conf{SNMPUTILS_BINDING_DEPOSIT}) {
           $MUST_ACTIVATE{$line->[3]}="$line->[2]:$user_ports";
          }
         else {

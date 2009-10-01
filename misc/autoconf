@@ -11,8 +11,8 @@ use vars  qw(%conf $db
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 2.2;
-my $config_file = $Bin . '/../libexec/config.pl';
+my $VERSION = 2.3;
+my $config_file = '/usr/abills/libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
 chop($conf{OS});
@@ -70,6 +70,7 @@ if(! -f $config_file ) {
       }
      
      #Print result
+     print "Configure.\n-----------------------------\n";
      while(my($k, $v) = each %mk_config ) {
      	 print "$k: $v\n";
       }
@@ -103,11 +104,13 @@ if(! -f $config_file ) {
          my $proc_list = `ps ax`;
          print $proc_list if ($debug > 5);
 
-         if ($proc_list !~  /mysql/) {
+
+         if ($proc_list !~  /mysqld/) {
            print "MySQL Not running\n";
            check_install("mysql");
           }
 
+exit;
          if ($conf{OS} eq 'FREEBSD') {
 
 
