@@ -1466,12 +1466,19 @@ sub snmputils_dlink_pb_monitor {
                              ID          => 'DISABLED'
                            });
 
-  my $list = $Nas->list({ PAGE_ROWS => 10000, 
+  
+
+  my $list;
+  if ($FORM{SNMP_HOST}) {
+    $list = ['', '', '', '', '', '', '', '', '', $FORM{SNMP_HOST}, '', $FORM{SNMP_COMMUNITY}, '', '', '', ''];
+   }
+  else {
+    $list = $Nas->list({ PAGE_ROWS => 10000, 
   	                      SORT      => 2, 
   	                      TYPE      => dlink_pb, 
-  	                      DISABLE   => 0 
+  	                      DISABLE   => 0,
   	                    });
-
+    }
 
   foreach my $line (@$list) {
     $debug_output .= "NAS: $line->[0], $line->[9], $line->[11] $line->[12]\n" if ($debug > 1);
