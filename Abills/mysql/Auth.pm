@@ -577,6 +577,11 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
              LEFT JOIN traffic_classes tc ON (tt.net_id=tc.id)
              WHERE tt.interval_id='$self->{TT_INTERVAL}' ORDER BY 1 DESC;");
 
+    if ($self->{TOTAL} > 500) {
+    	
+     }
+    else {
+
   foreach my $line ( @{ $self->{list} } ) {
   	my $class_id    = $line->[0];
     my $filter_name = 'flt';
@@ -621,6 +626,9 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
     #mpd-limit+=out#2#0=all rate-limit 1024000 150000 300000,
 
    }
+
+}
+
   }
 	
 	#$RAD_PAIRS->{'Session-Timeout'}=604800;
