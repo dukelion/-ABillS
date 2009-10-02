@@ -79,10 +79,11 @@ sub convert {
 	my ($text, $attr)=@_;
 	
 	if(defined($attr->{text2html})) {
-		 $text =~ s/\n/<br>/gi;
+		 
 		 $text =~ s/</&lt;/g;
      $text =~ s/>/&gt;/g;
      $text =~ s/\"/&quot;/g;
+     $text =~ s/\n/<br>/gi;
    }
 	elsif($attr->{'from_tpl'}) {
      $text =~ s/textarea/__textarea__/g;
