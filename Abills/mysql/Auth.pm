@@ -571,7 +571,10 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
 # MPD
 elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
   
-  if (! $NAS->{NAS_EXT_ACCT}) {
+  if (! $CONF->{mpd_filters}) {
+  	
+   }
+  elsif (! $NAS->{NAS_EXT_ACCT}) {
     $self->query($db, "SELECT tt.id, tc.nets, in_speed, out_speed
              FROM trafic_tarifs tt
              LEFT JOIN traffic_classes tc ON (tt.net_id=tc.id)
@@ -594,8 +597,6 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
       #$line->[1] = '' if (! $line->[1]) ;
       $line->[1] =~ s/[\n\r]//g;
       my @net_list = split(/;/, $line->[1]);
-  	
-  	  next if ($#net_list > 500);
   	
   	  my $i=1;
   	  $class_id = $class_id * 2 + 1 - 2 if ($class_id != 0);
