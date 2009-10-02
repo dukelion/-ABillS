@@ -24,6 +24,41 @@ my @status   = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
 
 $conf{CARDS_PIN_SYMBOLS}='0123456789' if (! $conf{CARDS_PIN_SYMBOLS});
 
+
+#**********************************************************
+#
+#**********************************************************
+sub cards_card_info {
+  my ($attr) = @_;
+
+  $Cards->cards_info($attr);
+  
+  if ($Cards->{TOTAL} < 1) {
+  	$html->message('err', $_ERROR, "PIN: $attr->{PIN} $_NOT_EXIST");
+  	return 0;
+   }
+
+
+  if ($Cards->{UID} > 0) {
+  	$Cards->cards_service_info({ UID => $Cards->{UID} });
+  	
+    $Cards->{AGE}       =$_UNLIMITED if (! $Cards->{AGE});
+    $Cards->{TIME_LIMIT}=$_UNLIMITED if (! $Cards->{TIME_LIMIT});
+    $Cards->{TRAF_LIMIT}=$_UNLIMITED if (! $Cards->{TRAF_LIMIT});
+    $Cards->{SPEED}     =$_UNLIMITED if (! $Cards->{SPEED});
+   }
+
+  $FORM{LOGIN}    = $Cards->{LOGIN};
+  $FORM{PASSWORD} = $Cards->{PASSWORD};
+
+  $html->tpl_show(_include('cards_card_info', 'Cards'), 
+  	                                  { %$Cards }, 
+  	                                  );
+
+
+ 
+}
+
 #**********************************************************
 #
 #**********************************************************

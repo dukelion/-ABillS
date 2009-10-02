@@ -106,7 +106,7 @@ if(! -f $config_file ) {
 
 
          if ($proc_list !~  /mysqld/) {
-           print "MySQL Not running\n";
+           print "MySQL Not running. Start configure mysql\n";
            check_install("mysql");
           }
 
@@ -394,11 +394,26 @@ sub check_install {
  		my $param_name = '' ;
  		my $param_value = '';
     if ($param) {
-      ($param_name, $param_value)=split(/=/, $param, 2);
+    	 my @param_arr = split(/,/, $param);
+    	 foreach my $p (@param_arr) {
+         my ($param_name_tmp, $param_value_tmp)=split(/=/, $p, 2);
+         
+         if ($param_name_tmp =~ /^!(\S+)/) {
+           my $val =  $1;
+           if ($ARGV->{$val}) {
+           	 next;
+         	  }
+          }
+         else {
+        	 $param_name  = $param_name_tmp;
+         	 $param_value = $param_value_tmp;
+         	}
+
+        }
      }
 
     delete $ARGV->{$param_name}  if ($param_value =~ /^!/);    
-
+    
 
     if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
       $config_body = "$value\n";
@@ -423,6 +438,8 @@ sub check_install {
     else {
     	$exec_cmd = $config_body;
      }
+
+
 
     $exec_cmd = _parse($exec_cmd, \%DEFAULT_VALUE, \%DEFAULT_DESCRIBE); 
     my $exec_file = '';
@@ -464,7 +481,10 @@ sub check_install {
       my @params_arr = split(/,/, $params);
       foreach my $param ( @params_arr ) {
         my ($param_name2, $param_value2)=split(/=/, $param, 2);
+        print "'$param_name2', $param_value2 \n";
+        
         if ($param_name2 =~ /^!/) {
+        	print "aaaa";
         	$EXCLUDE_PARAMS_HASH{$param_name2}=$param_value2;
          }
         else {
