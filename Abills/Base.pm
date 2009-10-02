@@ -83,7 +83,7 @@ sub convert {
 		 $text =~ s/</&lt;/g;
      $text =~ s/>/&gt;/g;
      $text =~ s/\"/&quot;/g;
-     $text =~ s/\n/<br>/gi;
+     $text =~ s/\n/<br>\n/gi;
    }
 	elsif($attr->{'from_tpl'}) {
      $text =~ s/textarea/__textarea__/g;
