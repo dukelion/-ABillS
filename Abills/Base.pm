@@ -80,6 +80,15 @@ sub convert {
 	
 	if(defined($attr->{text2html})) {
 		 $text =~ s/\n/<br>/gi;
+		 $text =~ s/</&lt;/g;
+     $text =~ s/>/&gt;/g;
+     $text =~ s/\"/&quot;/g;
+   }
+	elsif($attr->{'from_tpl'}) {
+     $text =~ s/textarea/__textarea__/g;
+   }
+	elsif($attr->{'2_tpl'}) {
+     $text =~ s/__textarea__/textarea/g;
    }
 	elsif(defined($attr->{win2koi})) { $text = win2koi($text);	 }
 	elsif( $attr->{koi2win} ) { $text = koi2win($text); }

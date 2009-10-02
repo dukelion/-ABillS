@@ -5441,7 +5441,8 @@ elsif ($FORM{change}) {
   $info{TEMPLATE} = $FORM2{template};
   $info{TPL_NAME} = $FORM{tpl_name};
   
-  
+  $info{TEMPLATE} = convert($info{TEMPLATE}, { '2_tpl' => 1 });
+	
 	if (open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}")) {
 	  print FILE "$info{TEMPLATE}";
 	  close(FILE);
@@ -5504,6 +5505,8 @@ elsif($FORM{tpl_name}) {
 
 
 #$html->tpl_show(templates('form_template_editor'), { %info });
+
+$info{TEMPLATE} = convert($info{TEMPLATE}, { from_tpl => 1 });
 
 print << "[END]";
 <form action='$SELF_URL' METHOD='POST'>
