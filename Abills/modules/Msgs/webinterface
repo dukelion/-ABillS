@@ -972,7 +972,8 @@ sub msgs_user {
          $reply = $line->[2];
        }
       
-      $line->[2]=~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
+      $line->[2] = convert($line->[2], { text2html => 1 });
+      $line->[2] =~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
 
     	
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
@@ -980,7 +981,7 @@ sub msgs_user {
           DATE     => $line->[1],
           CAPTION  => convert($line->[5], { text2html => 1 }),
           PERSON   =>	$line->[3],
-      	  MESSAGE  => convert($line->[2], { text2html => 1 }),
+      	  MESSAGE  => $line->[2],
       	  COLOR    => ($line->[12] == 0) ? $_COLORS[2] : $_COLORS[1],
       	  QUOTING  => $html->button($_QUOTING, "index=$index&QUOTING=$line->[0]&ID=$FORM{ID}&sid=$sid"),
       	  ATTACHMENT =>  ($line->[7]) ? "$_ATTACHMENT: ". $html->button("$line->[7]", "qindex=$index&ATTACHMENT=$line->[9]", { TARGET => '_new' }). " ($_SIZE: ". int2byte($line->[8]) .')' : '',
