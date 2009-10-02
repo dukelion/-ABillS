@@ -30,6 +30,7 @@ th.small {
 
 td.small {
   color: %_COLOR_9%;
+  background-color: %_COLOR_9%;
   height: 1;
 }
 
