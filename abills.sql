@@ -652,6 +652,8 @@ CREATE TABLE `nas_groups` (
   `comments` text not null,
   `disable` tinyint(6) unsigned NOT NULL default '0',
   `domain_id` smallint(6) unsigned not null default 0,
+  `default` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+  `main_page` VARCHAR(120) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `domain_id` (`domain_id`,`name`)
 ) COMMENT='Nas servers groups'; 

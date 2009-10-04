@@ -2745,6 +2745,11 @@ if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID},
 $pages_qs .= "&DIMENSION=$FORM{DIMENSION}"  if ($FORM{DIMENSION});
 
 #Session List
+if (! $FORM{sort}) {
+  $LIST_PARAMS{SORT}=2;
+  $LIST_PARAMS{DESC}='DESC';	
+}
+
 $list = $sessions->list({ %LIST_PARAMS });	
 
 $table = $html->table( {  caption     => "$_SUM",

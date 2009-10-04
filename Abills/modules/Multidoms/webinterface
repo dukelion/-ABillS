@@ -242,7 +242,9 @@ sub multidoms_reseller_nas_groups_templates {
   
  
   my $domain_path = '';
+  
   if ($admin->{DOMAIN_ID}) {
+  	$conf{MAIN_TPL_DIR} = $conf{TPL_DIR};
   	$domain_path   = "$admin->{DOMAIN_ID}/";
 	  $conf{TPL_DIR} = "$conf{TPL_DIR}/$domain_path/$FORM{NAS_GID}";
    }
@@ -256,6 +258,13 @@ if ($FORM{create}) {
    my ($module, $file, $lang)=split(/:/, $FORM{create}, 3);
 
    my $filename = ($module) ? "$sys_templates/$module/templates/$file" : "$main_templates_dir/$file";
+
+   if (-f $conf{MAIN_TPL_DIR}."/_$file") {
+   	 $filename = $conf{MAIN_TPL_DIR}."/_$file";
+    }
+   elsif(-f $conf{MAIN_TPL_DIR}."/$module"."_$file") {
+   	 $filename = $conf{MAIN_TPL_DIR}."/_$file";
+    }
 
    if ($lang ne '') {
    	  $file =~ s/\.tpl/_$lang/;
