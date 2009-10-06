@@ -274,7 +274,7 @@ sub nas_ip_pools_list {
    n.name, pool.name, 
    pool.ip, pool.ip + pool.counts, pool.counts,     pool.priority,
     INET_NTOA(pool.ip), INET_NTOA(pool.ip + pool.counts), 
-    pool.id, np.nas_id
+    pool.id, np.nas_id, pool.static
     FROM ippools pool
     LEFT JOIN  nas_ippools np ON (np.pool_id=pool.id $WHERE_NAS)
     LEFT JOIN nas n ON (n.id=np.nas_id)
@@ -359,6 +359,8 @@ sub ip_pools_change {
   STATIC          => 'static'
  );
 
+
+  $attr->{STATIC} = ($attr->{STATIC}) ? $attr->{STATIC} : 0;
 
 	$self->changes($admin, { CHANGE_PARAM => 'ID',
 		                TABLE        => 'ippools',

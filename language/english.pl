@@ -251,6 +251,7 @@ $ERR_UNKNOWN_IP="Not registred IP Address. Can't find your NAS.";
 $ERR_ACCEPT_RULES='Don\'t accepted rules';
 $ERR_CREDIT_CHANGE_LIMIT_REACH='Credit change limit reach';
 $ERR_CANT_CREATE_FILE='Can\'t create file or folder';
+$ERR_WRONG_SUM="Wrong sum";
 
 
 #Mail section

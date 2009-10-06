@@ -3460,9 +3460,10 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=62$pages_qs&del=$line->[9]", { MESSAGE => "$_DEL POOL $line->[9]?" }); 
   my $change = $html->button($_CHANGE, "index=62$pages_qs&chg=$line->[9]"); 
+  $table->{rowcolor} = ($line->[9] eq $FORM{chg}) ? $_COLORS[0] : undef;
 
   $table->addrow(
-    $html->form_input('ids', $line->[9], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef }),
+    ($line->[11]) ? 'static' : $html->form_input('ids', $line->[9], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef }),
     $html->button($line->[1], "index=61&NAS_ID=$line->[10]"), 
     $line->[2],
     $line->[7], 
@@ -4500,55 +4501,80 @@ if (defined($attr->{USER})) {
     return 0;
   }
 
+  if ($FORM{DATE}) {
+    ($DATE, $TIME)=split(/ /, $FORM{DATE});
+   }
+
+
   if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	  $html->message('err', $_ERROR, "$_EXIST");
    }
   elsif ($FORM{add} && $FORM{SUM})	{
-    my $er = $payments->exchange_info($FORM{ER});
-    $FORM{ER} = $er->{ER_RATE};
-    $payments->add($user, { %FORM } );  
+    if( $FORM{ACCOUNT_ID} && $FORM{ACCOUNT_ID} eq 'create' ) {
+    	$LIST_PARAMS{UID}= $FORM{UID};
+    	$FORM{create}    = 1;
+    	$FORM{CUSTOMER}  = '-';
+    	$FORM{ORDER}     = $FORM{DESCRIBE};
 
-    if ($payments->{errno}) {
-      $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+    	docs_account();    	
+     }
+    elsif($FORM{ACCOUNT_ID}) {
+    	$Docs->account_info($FORM{ACCOUNT_ID});
+      if ($Docs->{TOTAL} == 0) {
+      	$FORM{ACCOUNT_SUM}=0;
+       } 
+      else {
+      	$FORM{ACCOUNT_SUM} = $Docs->{TOTAL_SUM};
+       }
+     }
+
+   	if ($FORM{ACCOUNT_SUM} && $FORM{ACCOUNT_SUM} != $FORM{SUM})  {
+      	$html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
      }
     else {
-      $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} $er->{ER_SHORT_NAME}");
-      
-      if ($conf{external_payments}) {
-        if (! _external($conf{external_payments}, { %FORM }) ) {
-     	    return 0;
-         }
-       }
-      
-      if ($FORM{DATE}) {
-        ($DATE, $TIME)=split(/ /, $FORM{DATE});
-       }
-      #Docs
-      if ($FORM{CREATE_INVOICE}) {
-        require "Abills/modules/Docs/webinterface";
-        docs_invoice_add({
-        	CUSTOMER  => '-', 
-        	PHONE     => '',
-          UID       => $FORM{UID},
-          ORDER     => "$FORM{DESCRIBE}" || '-',
-          SUM       => $FORM{SUM},
-          create    => 1
-        	});
-  	   }
 
-      #Add number 
-      if ($FORM{ACCOUNT_ID}) {
-       	$Docs->account_change({ ID         => $FORM{ACCOUNT_ID},
-      		                      PAYMENT_ID => $payments->{PAYMENT_ID}
-      		                        });
-      	if ($Docs->{errno}) {
-      		$html->message('err', "$_ACCOUNT $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
-      	 }
-      	elsif ($Docs->{TOTAL_SUM} != $FORM{SUM})  {
-      		$html->message('err', $_ERROR, "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
-      	 }
-        
+      my $er = $payments->exchange_info($FORM{ER});
+      $FORM{ER} = $er->{ER_RATE};
+      $payments->add($user, { %FORM } );  
+
+      if ($payments->{errno}) {
+        $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
        }
+      else {
+        $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} $er->{ER_SHORT_NAME}");
+        
+        if ($conf{external_payments}) {
+          if (! _external($conf{external_payments}, { %FORM }) ) {
+     	      return 0;
+           }
+         }
+
+        #Add number 
+        if ($FORM{ACCOUNT_ID}) {
+         	$Docs->account_change({ ID         => $FORM{ACCOUNT_ID},
+        		                      PAYMENT_ID => $payments->{PAYMENT_ID}
+      		                        });
+        	if ($Docs->{errno}) {
+        		$html->message('err', "$_ACCOUNT $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
+      	   }
+      	  elsif ($Docs->{TOTAL_SUM} != $FORM{SUM})  {
+      		  $html->message('err', $_ERROR, "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
+      	   }
+         }
+      
+        #Docs
+        if ($FORM{CREATE_INVOICE}) {
+          require "Abills/modules/Docs/webinterface";
+          docs_invoice_add({
+          	CUSTOMER  => '-', 
+          	PHONE     => '',
+            UID       => $FORM{UID},
+            ORDER     => "$FORM{DESCRIBE}" || '-',
+            SUM       => $FORM{SUM},
+            create    => 1
+        	  });
+  	     }
+      }
 
      }
    }
@@ -4620,8 +4646,8 @@ if (defined($permissions{1}{1})) {
                                 { SELECTED          => $FORM{ACCOUNT_ID},
  	                                SEL_MULTI_ARRAY   => $Docs->accounts_list({ UID => $user->{UID}, PAYMENT_ID => 0, PAGE_ROWS => 100, SORT => 2, DESC => 'DESC' }), 
  	                                MULTI_ARRAY_KEY   => 9,
- 	                                MULTI_ARRAY_VALUE => '1,3',
- 	                                SEL_OPTIONS       => { 0 => ''},
+ 	                                MULTI_ARRAY_VALUE => '0,1,3',
+ 	                                SEL_OPTIONS       => { 0 => '', create => $_CREATE },
  	                                NO_ID             => 1
  	                               });
 

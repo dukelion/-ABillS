@@ -699,8 +699,10 @@ sub dhcphosts_user {
   	 	$FORM{IP}=dhcphosts_get_static_ip($FORM{NETWORK});
      }
     
-    
-    if ($FORM{MAC} !~ /[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/i) {
+    if ($FORM{IP} eq '0.0.0.0') {
+
+     }
+    elsif ($FORM{MAC} !~ /[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/i) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: MAC ");
       #00:19:5b:4f:98:7a	
      }
@@ -834,30 +836,35 @@ sub dhcphosts_get_static_ip {
 	my $ip = '0.0.0.0';
 	
   my $nas = Nas->new($db, \%conf);  
+
   $Dhcphosts->network_info($network_id);
 
   my $start_ip = ip2int($Dhcphosts->{IP_RANGE_FIRST});
   my $end_ip   = ip2int($Dhcphosts->{IP_RANGE_LAST});
 
-  my %users_ips = ();
+  if ($start_ip == 0 || $end_ip == 0) {
+  	$html->message('err', $_ERROR, "$ERR_WRONG_RANGE. $_START IP: $Dhcphosts->{IP_RANGE_FIRST} $_END IP: $Dhcphosts->{IP_RANGE_LAST}");
+   }
+  else {
+    my %users_ips = ();
   
-  my $list = $Dhcphosts->hosts_list({ NETWORK   => $network_id, 
+    my $list = $Dhcphosts->hosts_list({ NETWORK   => $network_id, 
   	                                  PAGE_ROWS => 100000
                      	                   });
 
 
-  foreach my $line (@$list) {
-    $users_ips{$line->[2]}=1;
-   }
+    foreach my $line (@$list) {
+      $users_ips{$line->[2]}=1;
+     }
   
-  for(my $ip_cur=$start_ip; $ip_cur<=$end_ip; $ip_cur++) {
-  	if (! $users_ips{$ip_cur}) {
-  		 return int2ip($ip_cur);
-  	 }
-   }
   
-	$html->message('err', $_ERROR, "$ERR_NO_FREE_IP_IN_POOL");
-	
+    for(my $ip_cur=$start_ip; $ip_cur<=$end_ip; $ip_cur++) {
+  	  if (! $users_ips{$ip_cur}) {
+  		  return int2ip($ip_cur);
+  	   }
+     }
+  	$html->message('err', $_ERROR, "$ERR_NO_FREE_IP_IN_POOL");
+	}
 	
 	return $ip;
 }
