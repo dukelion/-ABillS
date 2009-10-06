@@ -4519,7 +4519,10 @@ if (defined($attr->{USER})) {
      	    return 0;
          }
        }
-
+      
+      if ($FORM{DATE}) {
+        ($DATE, $TIME)=split(/ /, $FORM{DATE});
+       }
       #Docs
       if ($FORM{CREATE_INVOICE}) {
         require "Abills/modules/Docs/webinterface";
