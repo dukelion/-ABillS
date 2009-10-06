@@ -431,27 +431,28 @@ elsif($FORM{tpl_name}) {
 }
 
 
-#$html->tpl_show(templates('form_template_editor'), { %info });
-
-
 
 $info{TEMPLATE} = convert($info{TEMPLATE}, { from_tpl => 1 });
+$html->tpl_show(templates('form_template_editor'), { %info, TEMPLATE => '__TEMPLATE__' });
+$html->{__TEMPLATE__}=$info{TEMPLATE};
 
-$html->{OUTPUT} .= qq{
-<form action='$SELF_URL' METHOD='POST'>
-<input type="hidden" name="index" value='$index'>
-<input type="hidden" name="tpl_name" value='$info{TPL_NAME}'>
-<input type="hidden" name="NAS_GID" value='$FORM{NAS_GID}'>
-<table>
-<tr bgcolor="$_COLORS[0]"><th>$_TEMPLATES</th></tr>
-<tr bgcolor="$_COLORS[0]"><td>$info{TPL_NAME}</td></tr>
-<tr><td>
-   <textarea cols="100" rows="30" name="template">$info{TEMPLATE}</textarea>
-</td></tr>
-</table>
-<input type="submit" name="change" value='$info{ACTION_LNG}'>
-</form> 
-};
+
+
+#$html->{OUTPUT} .= qq{
+#<form action='$SELF_URL' METHOD='POST'>
+#<input type="hidden" name="index" value='$index'>
+#<input type="hidden" name="tpl_name" value='$info{TPL_NAME}'>
+#<input type="hidden" name="NAS_GID" value='$FORM{NAS_GID}'>
+#<table>
+#<tr bgcolor="$_COLORS[0]"><th>$_TEMPLATES</th></tr>
+#<tr bgcolor="$_COLORS[0]"><td>$info{TPL_NAME}</td></tr>
+#<tr><td>
+#   <textarea cols="100" rows="30" name="template">$info{TEMPLATE}</textarea>
+#</td></tr>
+#</table>
+#<input type="submit" name="change" value='$info{ACTION_LNG}'>
+#</form> 
+#};
 
 
 
