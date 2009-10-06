@@ -1632,7 +1632,7 @@ if ($FORM{add}) {
  	                                         	 }) }],
  	                                         MULTI_ARRAY_KEY   => 18,
  	                                         MULTI_ARRAY_VALUE => 1,
- 	                                         EX_PARAMS         => 'DISABLE STYLE=\'background-color: #dddddd\' DISABLED name=\'TP_ID\''
+ 	                                         EX_PARAMS         => 'STYLE=\'background-color: #dddddd\' name=\'TP_ID\''
  	                                        });
 
     $html->tpl_show(_include('cards_reseller_cod_gen', 'Cards'),
