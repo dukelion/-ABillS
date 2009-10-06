@@ -720,7 +720,7 @@ if ($nas->{errno}) {
 
 my $table = $html->table( { width      => '100%',
                             caption    => "$_NAS",
-                            title      => ["ID", "$_NAME", "NAS-Identifier", "IP", 
+                            title      => ["-", "$_NAME", "NAS-Identifier", "IP", 
                              "$_TYPE", "$_GROUP", 
                              "$_STATUS", '-', '-' ],
                             cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 
@@ -739,7 +739,7 @@ my $list = $nas->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?" }); 
 
-  $table->addrow($line->[0], 
+  $table->addrow('', 
     $line->[1], 
     $line->[2], 
     $line->[3], $line->[4], 
@@ -1118,7 +1118,7 @@ my $list = $tariffs->list({ %LIST_PARAMS });
 my $table = $html->table( { width      => '100%',
                             caption    => "$_TARIF_PLANS",
                             border     => 1,
-                            title      => ['#', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_AGE, '-', '-'],
+                            title      => ['-', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_AGE, '-', '-'],
                             cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
                             ID         => 'DV_TARIF_PLANS',
                             header     => "<div id='tabs'>
@@ -1142,7 +1142,7 @@ foreach my $line (@$list) {
   	undef($table->{rowcolor});
    }
   
-  $table->addrow($html->b($line->[0]), 
+  $table->addrow('', #$html->b($line->[0]), 
    $html->button($line->[1], "index=$index&TP_ID=$line->[18]"),
    $bool_vals[$line->[2]], 
    $bool_vals[$line->[3]], 
@@ -1542,6 +1542,7 @@ if ($Cards->{errno}) {
 #**********************************************************
 sub cards_report_dillers {
 	my ($attr) = @_;
+	
 	
 if ($FORM{DILLER_ID}) {
 	$LIST_PARAMS{DILLER_ID}=$FORM{DILLER_ID};
