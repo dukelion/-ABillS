@@ -341,6 +341,9 @@ sub cards_add {
     	my $begin = $FORM{BEGIN} || 0;
   	  my $count = $FORM{COUNT} || 0;
   	  
+  	  #print "Content-Type: text/html\n\n";
+  	  #print "$count!!!";
+  	  
   	  my $i = 0;
   	  my $added=0;
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
@@ -380,8 +383,8 @@ sub cards_add {
  }
 
   $Cards->{DILLERS_SEL} = cards_dillers_sel();
-	$Cards->{CARDS_TYPE}=$html->tpl_show(_include('cards_payment', 'Cards'), $Cards, { notprint => 1 });
-	$Cards->{TYPE_CAPTION}=$_PAYMENTS;
+	$Cards->{CARDS_TYPE}  = $html->tpl_show(_include('cards_payment', 'Cards'), $Cards, { notprint => 1 });
+	$Cards->{TYPE_CAPTION}= $_PAYMENTS;
 	$html->tpl_show(_include('cards_add', 'Cards'), $Cards);
 }
 
@@ -1417,21 +1420,24 @@ if ($FORM{add}) {
         
        }
       else {
-      	
-      	
-        if ($FORM{TYPE}) {
+      	if ($FORM{TYPE} && ! $FORM{TP_ID}) {
+      		$html->message('err', "$_INFO", "$ERR_SELECT_TARIF_PLAN");
+      	 }
+        elsif ($FORM{TYPE}) {
         	require "Abills/modules/Dv/webinterface";
 
-          $FORM{add}   =1;
-          $FORM{create}=1;
+ 
+
+          $FORM{add}   = 1;
+          $FORM{create}= 1;
           if (! $FORM{BEGIN}) {
              my $list = $user->list({ PAGE_ROWS => 1, 
              	                        SORT      => 8,
              	                        DESC      => 'DESC'
              	                        
              	                        });
-             $FORM{BEGIN}=$list->[0][7];
-             $FORM{LOGIN_BEGIN}=$list->[0][7];
+             $FORM{BEGIN}      = $list->[0][7];
+             $FORM{LOGIN_BEGIN}= $list->[0][7];
             }
 
          	my $return = cards_users_add({ EXTRA_TPL => $dv_tpl, 

@@ -274,6 +274,8 @@ if ($LIST_PARAMS{UID} || $FORM{UID}) {
  }
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed} ) {
   $Docs->account_del($FORM{del});
+
+  
   if(! $Docs->{errno}) {
     $html->message('info', "$_INFO", "$_DELETED N: [$FORM{del}]");
    }
@@ -323,7 +325,7 @@ my @rows = ();
 
 foreach my $line (@$list) {
 
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&UID=$line->[7]", { MESSAGE => "$_DEL ID $line->[8] ?" }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[9]&UID=$line->[8]", { MESSAGE => "$_DEL ID $line->[8] ?" }) : ''; 
 
   @rows = ( "$line->[0]", 
    $html->button("$line->[1]", "qindex=$index&print=$line->[9]&UID=$line->[8]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new' }), 
@@ -336,7 +338,7 @@ foreach my $line (@$list) {
     push @rows, $html->button($line->[5], "index=11&UID=$line->[8]"),
     "$line->[6]", 
     "$line->[7]", 
-    $html->button($_PRINT, "qindex=$index&print=$line->[9]&UID=$line->[8]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new' }), 
+    $html->button($_PRINT, "qindex=$index&print=$line->[9]&UID=$line->[8]". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new' }), 
     $delete;
    }
 
@@ -732,6 +734,8 @@ sub docs_account {
 
  $Docs->account_defaults();		
  $Docs->{DATE}=$DATE;
+
+ 
 
  if ($FORM{create}) {
    if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {

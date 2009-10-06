@@ -43,6 +43,10 @@ Domain ID: %DOMAIN_ID% Domain name: %DOMAIN_NAME%<br>
 <tr><th class=title bgcolor=$_COLORS[0] colspan=2>$_ICARDS $_INFO</th></tr>
 <tr><td>PIN:</td><td><input type=text name=PIN value='' size=30><input type=submit name=1 value='$_INFO'></td></tr>
 
+
+%SELL_POINTS%
+
+
 </center>
 
 </table>

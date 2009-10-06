@@ -1502,7 +1502,8 @@ if ($Cards->{errno}) {
                            cols_align => ['right', 'left', 'left',  'left', 'right', 'right', 'right', 'right', 
                             'center:noprint', 'center:noprint', 'center:noprint'],
                            qs         => $pages_qs,
-                           pages      => $Cards->{TOTAL}
+                           pages      => $Cards->{TOTAL},
+                           ID         => 'CARDS_DILLERS'
                           });
 
 
