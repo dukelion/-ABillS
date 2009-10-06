@@ -565,6 +565,17 @@ sub cards_users_add  {
       	$html->message('info', $_INFO, $table->show());
        }
 
+
+#Get last number if begin not set
+      if ($begin == 0) {
+       	my $list = $Cards->cards_list({ SERIA    => "$SERIAL",
+                  		                  PAGE_ROWS => 1,
+          		                          SORT      => 'number',
+          		                          DESC      => 'DESC'});
+        $begin = $list->[0][0]+1;          		                   
+       }
+
+
 #Create numeric or random logins
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
  	  	
@@ -590,13 +601,6 @@ sub cards_users_add  {
   	      $LOGIN_NUMBER++;
   	      $generated++;
 
-          if ($i == 0) {
-          	my $list = $Cards->cards_list({ SERIA    => "$SERIAL",
-          		                   PAGE_ROWS => 1,
-          		                   SORT      => 'number',
-          		                   DESC      => 'DESC'});
-            $i = $list->[0][0]+1;          		                   
-           }
 
   	      push @DATA_ARRAY, { LOGIN      => "$login",
   	      	                  PASSWORD   => "$password",
