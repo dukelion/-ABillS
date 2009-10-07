@@ -4572,6 +4572,7 @@ if (defined($attr->{USER})) {
         if ($FORM{CREATE_INVOICE}) {
           require "Abills/modules/Docs/webinterface";
           docs_invoice_add({
+          	DATE      => $DATE,
           	CUSTOMER  => '-', 
           	PHONE     => '',
             UID       => $FORM{UID},
