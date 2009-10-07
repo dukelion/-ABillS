@@ -93,7 +93,7 @@ $self->query($db, "SELECT section, actions, module FROM admin_permits WHERE aid=
 
 foreach my $line (@{ $self->{list} }) {
   my($section, $action, $module)=@$line;
-  $permissions{$section}{$action} = 'y';
+  $permissions{$section}{$action} = 1;
   if ($module) {
   	$self->{MODULES}{$module}=1;
    }

@@ -1,6 +1,3 @@
-$web_interface    = 1;
-@useraccount_menu = ('Dialup_VPN');
-
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:0:Internet:dv_users_list:"             => 11,
                    "02:0:Internet:dv_user:UID"                => 20,
@@ -28,12 +25,13 @@ $web_interface    = 1;
                    "37:0:$_DV $_STATS:dv_use:COMPANY_ID"   => 13
                    );
 
-if ($permissions{0}{1}) {
+if ($permissions{0} && $permissions{0}{1}) {
   $FUNCTIONS_LIST{"20:1:$_USERS $_ADD:dv_wizard_user:"} = 11;
   if (in_array('Cards', \@MODULES)) {
     $FUNCTIONS_LIST{"21:1:$_ICARDS:dv_cards:"} = 11;
    }   
 }
+
 
 
 

@@ -1,5 +1,5 @@
 package Abills::HTML;
-#HTML output
+#HTML visualisation functions
 
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
@@ -297,7 +297,7 @@ else {
         next;
        }
       for my $currentColumn (@columns) {
-        my ($currentHeader, $currentValue) = $currentColumn =~ /^([^=]+)="([^"]+)"$/;
+        my ($currentHeader, $currentValue) = $currentColumn =~ /^([^=]+)="([^\"]+)"$/;
         if ($currentHeader eq 'filename') {
         	 if ( $currentValue =~ /(\S+)\\(\S+)$/ ){
         	   $currentValue = $2;
@@ -576,6 +576,9 @@ sub menu () {
    }
 }
 
+
+
+
 $FORM{root_index} = $root_index;
 if ($root_index > 0) {
   my $ri = $root_index-1;
@@ -591,7 +594,6 @@ my @s = sort {
      ||
    $a cmp $b
 } keys %$menu_items;
-
 
 
 foreach my $ID (@s) {
@@ -622,7 +624,7 @@ foreach my $ID (@s) {
  	  
  	  while(my $sm_item = pop @$sub_menu_array) {
  	     my($ID, $name)=split(/:/, $sm_item, 2);
- 	     next if((! defined($attr->{ALL_PERMISSIONS})) && (! $permissions->{$ID-1}) && $parent == 0);
+ 	     next if((! defined($attr->{ALL_PERMISSIONS})) && (! defined($permissions->{$ID-1})) && $parent == 0);
 
  	     $name = (defined($tree{$ID})) ? $self->b($name) : "$name";
        if(! defined($menu_args->{$ID}) || (defined($menu_args->{$ID}) && defined($FORM{$menu_args->{$ID}})) ) {
@@ -676,74 +678,6 @@ foreach my $ID (@s) {
  
  return ($menu_navigator, $menu_text);
 }
-
-#*******************************************************************
-# menu($type, $main_para,_name, $ex_params, \%menu_hash_ref);
-#
-# $type
-#   0 - horizontal  
-#   1 - vertical
-# $ex_params - extended params
-# $mp_name - Menu parameter name
-# $params - hash of menu items
-# menu($type, $mp_name, $ex_params, $menu, $sub_menu, $attr);
-#*******************************************************************
-sub menu2 {
- my $self = shift;
- my ($type, $mp_name, $ex_params, $menu, $sub_menu, $attr)=@_;
- my @menu_captions = sort keys %$menu;
-
- $self->{menu} = "<TABLE width=\"100%\">\n";
-
-if ($type == 1) {
-
-  foreach my $line (@menu_captions) {
-    my($n, $file, $k)=split(/:/, $line);
-    my $link = ($file eq '') ? "$SELF_URL" : "$file";
-    $link .= '?'; 
-    $link .= "$mp_name=$k&" if ($k ne '');
-
-
-#    if ((defined($FORM{$mp_name}) && $FORM{$mp_name} eq $k) && $file eq '') {
-     if ((defined($FORM{root_index}) && $FORM{root_index} eq $k) && $file eq '') {
-      $self->{menu} .= "<tr><td bgcolor=\"$_COLORS[3]\"><a href='$link$ex_params'><b>". $menu->{"$line"} ."</b></a></td></TR>\n";
-      while(my($k, $v)=each %$sub_menu) {
-      	 $self->{menu} .= "<tr><td bgcolor=\"$_COLORS[1]\">&nbsp;&nbsp;&nbsp;<a href='$SELF_URL?index=$k'>$v</a></td></TR>\n";
-       }
-     }
-    else {
-      $self->{menu} .= "<tr><td><a href='$link'>". $menu->{"$line"} ."</a></td></TR>\n";
-     }
-   }
-}
-else {
-  $self->{menu} .= "<tr bgcolor=\"$_COLORS[0]\">\n";
-  
-  foreach my $line (@menu_captions) {
-    my($n, $file, $k)=split(/:/, $line);
-    my $link = ($file eq '') ? "$SELF_URL" : "$file";
-    $link .= '?'; 
-    $link .= "$mp_name=$k&" if ($k ne '');
-
-    $self->{menu} .= "<th";
-    if ($FORM{$mp_name} eq $k && $file eq '') {
-      $self->{menu} .= " bgcolor=\"$_COLORS[3]\"><a href='$link$ex_params'>". $menu->{"$line"} ."</a></th>";
-     }
-    else {
-      $self->{menu} .= "><a href='$link'>". $menu->{"$line"} ."</a></th>\n";
-     }
-
- }
-  $self->{menu} .= "</TR>\n"; 
-}
-
- $self->{menu} .= "</TABLE>\n";
-
-
- return $self->{menu};
-}
-
-
 
 #*******************************************************************
 # heder off main page
