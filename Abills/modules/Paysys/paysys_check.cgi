@@ -1554,9 +1554,10 @@ elsif($FORM{LMI_HASH}) {
 #}
 
 
+
 #**********************************************************
 # http://ukrpays.com/
-#
+# version: Ver. 1.5.001
 #**********************************************************
 sub ukrpays_payments {
 #Pre request section
@@ -1565,7 +1566,7 @@ sub ukrpays_payments {
 if($FORM{hash}) {
   $md5->reset;
 	$md5->add($FORM{id_ups}); 
-	$md5->add($FORM{login});
+	$md5->add($FORM{order});
   $md5->add($FORM{amount});
   $md5->add($FORM{date}); 
   $md5->add($conf{PAYSYS_UKRPAYS_SECRETKEY});
