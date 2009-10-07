@@ -761,6 +761,8 @@ elsif ($FORM{LMI_PAYMENT_NO}) {
   
 
 my %info = (UID => $LIST_PARAMS{UID});
+$info{AMOUNT}  = sprintf("%.2f", $FORM{SUM});
+
 
 $html->tpl_show(_include('paysys_ukrpays_add', 'Paysys'), \%info);
 }

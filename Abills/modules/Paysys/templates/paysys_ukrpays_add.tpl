@@ -16,7 +16,7 @@
 
 <tr><th align=right bgcolor=$_COLORS[0] colspan=2>Visa / Mastercard (Ukrpays)</th></tr>
 <tr><th colspan=2><img src='https://ukrpays.com/img/logo.gif'></th></tr>
-<tr><td>$_SUM:</td><td><input type='text' name='amount' value='$FORM{SUM}'></td></tr>
+<tr><td>$_SUM:</td><td><input type='text' name='amount' value='%AMOUNT%'></td></tr>
 <tr><th colspan=2><input type='submit' name='pay' value='$_ADD'></th></tr>
 </table>
 
