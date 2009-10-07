@@ -4477,7 +4477,13 @@ sub form_payments () {
  if ($FORM{print}) {
  	 #print "Content-Type: text/html\n\n";
    require "Abills/modules/Docs/webinterface";
-   docs_invoice({ %FORM  });
+   if ($FORM{ACCOUNT_ID}) {
+   	 docs_account({ %FORM  });
+    }
+   else {
+     docs_invoice({ %FORM  });
+    }
+   
    exit;
   }
 

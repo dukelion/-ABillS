@@ -782,7 +782,7 @@ sub docs_account {
         }
 
        if ($conf{DOCS_PDF_PRINT}) {
-       	 $html->message('info', $_ADDED, "$_ACCOUNT $_ADDED. ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }));
+       	 $html->message('info', $_ADDED, "$_ACCOUNT $_ADDED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }));
        	 return 0;
         }
 
