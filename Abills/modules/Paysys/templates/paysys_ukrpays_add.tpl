@@ -1,9 +1,10 @@
 <FORM ACTION='$conf{PAYSYS_UKRPAYS_URL}' method='POST'>
 <INPUT TYPE='HIDDEN' NAME='OPERATION_ID' VALUE='$FORM{OPERATION_ID}'>
 
-<input type='hidden' name='login' value='%UID%'>
+<input type='hidden' name='order' value='%UID%'>
 <input type='hidden' name='sus_url' value='http://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?TRUE=1&amp;index=$index'>
 <input type='hidden' name='lang' value='%LANG%'>
+<input type='hidden' name='service_id' value='$conf{PAYSYS_UKRPAYS_SERVICE_ID}'>
 
 
 <TABLE width='400'cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1'>
