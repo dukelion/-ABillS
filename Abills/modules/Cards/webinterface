@@ -402,9 +402,8 @@ sub cards_bruteforce_clean {
 
   $conf{CARDS_BRUTE_CLEAN_PERIOD}=2 if (! $conf{CARDS_BRUTE_CLEAN_PERIOD});
 
+
   $Cards->bruteforce_del({ PERIOD => $conf{CARDS_BRUTE_CLEAN_PERIOD} });
-
-
 	
   $DEBUG .= $debug_output;
   return $debug_output;
@@ -450,12 +449,14 @@ sub cards_bruteforce () {
    return 0;
   }
  
+
   my $list = $Cards->bruteforce_list({ %LIST_PARAMS });
   my $table = $html->table( { width      => '100%',
                               title      => ["$_USER", "$PERIODS[0]", "$_TOTAL", "$_DATE", '-', '-'],
                               cols_align => ['left', 'right', 'right', 'right', 'center', 'center' ],
                               qs         => $pages_qs,
-                              pages      => $Cards->{TOTAL}
+                              pages      => $Cards->{TOTAL},
+                              ID         => 'CARDS_BRUTEFORCE_LIST'
                             });
 
 
