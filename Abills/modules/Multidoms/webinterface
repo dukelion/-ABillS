@@ -1543,6 +1543,10 @@ if ($Cards->{errno}) {
 #**********************************************************
 sub cards_report_dillers {
 	my ($attr) = @_;
+
+
+#  print "Content-Type: text/html\n\n";
+#  print "aaaaaaaaa";
 	
 	
 if ($FORM{DILLER_ID}) {

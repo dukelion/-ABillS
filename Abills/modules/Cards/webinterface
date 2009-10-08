@@ -891,7 +891,6 @@ if ($Cards->{errno}) {
 #**********************************************************
 sub cards_report {
  
-  print "aaaaaaaaa";
  
  reports({ DATE        => $FORM{DATE}, 
  	         REPORT      => '-----------------',
@@ -1084,7 +1083,8 @@ elsif ($FORM{SERIAL}) {
                            cols_align => ['left', 'right', 'right','right','right','right','right','right','right'
                             ,'right','right'],
                            qs         => $pages_qs,
-                           pages      => $Cards->{TOTAL}
+                           pages      => $Cards->{TOTAL},
+                           ID         => 'CARDS_REPORT_DILLERS'
                           });
 
 
@@ -1470,6 +1470,7 @@ if ($FORM{add}) {
         	 	  $FORM{'1.LOGIN'}      = $line->{LOGIN};
     	    	  $FORM{'1.PASSWORD'}   = $line->{PASSWORD};
   	   	      $FORM{'1.CREATE_BILL'}= 1;
+  	   	      $FORM{'4.TP_ID'}      = $FORM{TP_ID};
         
               $line->{UID} = dv_wizard_user({ SHORT_REPORT => 1 });
        
@@ -1643,10 +1644,12 @@ if ($FORM{add}) {
  	                                         SELECTED          => $FORM{TP_ID},
  	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $tariffs->list({ PAGE_ROWS => 1, SORT => 1, DESC => 'desc', DOMAIN_ID => $user->{DOMAIN_ID}
  	                                         	 }) }],
- 	                                         MULTI_ARRAY_KEY   => 18,
+ 	                                         MULTI_ARRAY_KEY   => 0,
  	                                         MULTI_ARRAY_VALUE => 1,
- 	                                         EX_PARAMS         => 'STYLE=\'background-color: #dddddd\' name=\'TP_ID\''
+ 	                                         EX_PARAMS         => '', #'STYLE=\'background-color: #dddddd\' name=\'TP_ID\'',
+ 	                                         NO_ID             => 1
  	                                        });
+
 
     $html->tpl_show(_include('cards_reseller_cod_gen', 'Cards'),
          { COUNT => 1, 
@@ -1940,7 +1943,82 @@ sub cards_diller_stats {
    }
 
 
-if ($FORM{TYPE} eq 'CARDS') {
+  if (! $FORM{SORT}) {
+    $LIST_PARAMS{SORT}=1;
+    $LIST_PARAMS{DESC}='DESC';
+   }
+
+
+#Group by TP
+if ($FORM{TYPE} eq 'TP') {
+
+
+  $pages_qs .= "&TYPE=TP";
+
+  if ($FORM{CREATED_DATE}) {
+    $LIST_PARAMS{CREATED_DATE}="$FORM{CREATED_DATE}" ;
+    $pages_qs .= "&CREATED_DATE=$LIST_PARAMS{CREATED_DATE}";
+   }
+
+ 
+  $LIST_PARAMS{TP_ID}=$FORM{TP_ID} if ($FORM{TP_ID});
+  $LIST_PARAMS{TYPE}='TP';
+ 
+  my $list = $Cards->cards_list({ %LIST_PARAMS, 
+  	                              SERIA => '' 
+ 	                              });
+
+  my @caption = ("$_DATE", "$_TARIF_PLAN", "$_COUNT", "$_SUM", "-");
+  
+  if ($FORM{TP_ID}) {
+    @caption = ("$_NUM", "$_LOGIN", "$_PASSWD", "$_TARIF_PLAN", "$_DATE");
+   }
+
+  $table = $html->table( { width      => '100%',
+                           caption    => "$_LOG",
+                           title      => \@caption,
+                           cols_align => ['right', 'left', 'right', 'right' ],
+                           qs         => $pages_qs,
+                           pages      => $Cards->{TOTAL},
+                           ID         => 'CARDS_LIST'
+                         });
+
+
+
+  my @rows = ();
+  foreach $line (@$list) {
+   	@pin = ("$line->[14]") if ($conf{CARDS_SHOW_PINS}) ;
+    if ($FORM{TP_ID}) {
+   	  @rows = ($line->[0], 
+  	    $line->[1],
+  	    $line->[2],
+  		  $line->[3],
+  		  $line->[4]
+      );
+     }
+    else {
+   	  @rows = ($html->button($line->[0], "&index=64&TP_ID=$line->[4]&CREATED_DATE=$line->[0]&TYPE=TP"),
+  	    $html->button($line->[1], "&index=64&TP_ID=$line->[4]&CREATED_DATE=$line->[0]&TYPE=TP"),
+  	    $line->[2],
+  		  $line->[3],
+  		  $line->[4]
+      )
+     }
+
+   	$table->addrow( @rows );
+
+   }
+
+  
+   print $table->show();
+  
+	 $table = $html->table( { width      => '100%',
+                            cols_align => ['right', 'right'],
+                            rows       => [ [ "$_TOTAL:", $html->b($Cards->{TOTAL}), "$_SUM:",  $html->b($Cards->{TOTAL_SUM}) ] ]
+                        });
+   print $table->show();	
+ }
+elsif ($FORM{TYPE} eq 'CARDS') {
   if (! $FORM{SORT}) {
     $LIST_PARAMS{SORT}=1;
     $LIST_PARAMS{DESC}='DESC';
@@ -1965,12 +2043,14 @@ if ($FORM{TYPE} eq 'CARDS') {
   $table = $html->table( { width      => '100%',
                            caption    => "$_LOG",
                            title      => ["$_NUM", "$_SERIAL", "$_LOGIN", "$_SUM", "$_STATUS", "$_EXPIRE", "$_ADDED", 
-                              "$_DILLERS", "$_DATE" ],
+                               ],
                            cols_align => ['right', 'right','right','right', 'center', 'right', 'right', 'left', 
-                             'right', 'right', 'left', 'right', 'center:noprint'],
+                              ],
                            qs         => $pages_qs,
-                           pages      => $Cards->{TOTAL}
+                           pages      => $Cards->{TOTAL},
+                           ID         => 'CARDS_LIST'
                          });
+
 
 
   foreach $line (@$list) {
@@ -1983,8 +2063,6 @@ if ($FORM{TYPE} eq 'CARDS') {
   		  $status[$line->[4]],
   		  $line->[5],
   		  $line->[6],
-  		  $line->[7],
-  		  $line->[8],
   		);
     }
 
@@ -1998,8 +2076,6 @@ if ($FORM{TYPE} eq 'CARDS') {
    print $table->show();	
  }
 else {
-	
-
   $table = $html->table( { width        => '100%',
                            caption      => "$_LOG",
                            title_plain  => ["$_DATE", "$_COUNT", "$_SUM", '-' ],
@@ -2018,7 +2094,8 @@ else {
 
   foreach $line (@$list) {
    	$table->addrow(
-   	     $html->button($line->[0], "index=$index&TYPE=CARDS$pages_qs&sid=$FORM{sid}". ( ($line->[0] =~ /(\d{4}-\d{2}-\d{2})/) ? "&CREATED_DATE=$1" : '') ), 
+   	     #$html->button($line->[0], "index=$index&TYPE=CARDS$pages_qs&sid=$FORM{sid}". ( ($line->[0] =~ /(\d{4}-\d{2}-\d{2})/) ? "&CREATED_DATE=$1" : '') ), 
+   	     $html->button($line->[0], "index=$index&TYPE=TP$pages_qs&sid=$FORM{sid}". ( ($line->[0] =~ /(\d{4}-\d{2}-\d{2})/) ? "&CREATED_DATE=$1" : '') ), 
   	     $line->[1],
   		   $line->[2],
   	     $html->button("$_PRINT", '#',  {  NEW_WINDOW      => "$_SELF_URL?qindex=$index&print=$line->[0]&sid=$FORM{sid}",

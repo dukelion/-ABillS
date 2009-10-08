@@ -4472,7 +4472,7 @@ sub form_payments () {
  my $payments = Finance->payments($db, $admin, \%conf);
 
  
- return 0 if (! defined ($permissions{1}));
+ return 0 if (! $permissions{1});
 
  my %BILL_ACCOUNTS = ();
 
@@ -4633,7 +4633,7 @@ $payments->{SEL_METHOD} =  $html->form_select('METHOD',
 
 
 
-if (defined($permissions{1}{1})) {
+if ($permissions{1} && $permissions{1}{1}) {
    $payments->{OP_SID} = mk_unique_value(16);
    
    if ($conf{EXT_BILL_ACCOUNT}) {
@@ -4687,6 +4687,7 @@ elsif($index != 7) {
 		                               COMPANY_ID => $FORM{COMPANY_ID}  } });
 }
 
+return 0 if (! $permissions{1}{0});
 
 if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=1;
@@ -4956,7 +4957,7 @@ if ($attr->{USER}) {
    }
   
   $fees->{PERIOD_FORM}=form_period($period, { TD_EXDATA  => 'colspan=2' });
-  if (defined ($permissions{2}{1})) {
+  if ($permissions{2} && $permissions{2}{1}) {
     #exchange rate sel
     my $er = $fees->exchange_list();
     $fees->{SEL_ER} = "<select name='ER'>\n";
@@ -5004,6 +5005,9 @@ elsif($index != 7) {
 	form_search({ HIDDEN_FIELDS => { subf       => ($FORM{subf}) ? $FORM{subf} : undef,
 		                               COMPANY_ID => $FORM{COMPANY_ID} } });
 }
+
+
+return 0 if (! $permissions{2}{0});
 
 if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=1;

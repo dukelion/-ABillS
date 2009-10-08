@@ -423,6 +423,12 @@ sub add {
   my ($attr) = @_;
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
+ 
+   if (! $DATA{ID}) {
+     $self->query($db, "SELECT id FROM tarif_plans WHERE domain_id='$admin->{DOMAIN_ID}' ORDER BY 1 DESC LIMIT 1");
+   	 $DATA{ID} = int($self->{list}->[0]->[0])+1;
+    }
+ 
 
   $self->query($db, "INSERT INTO tarif_plans (id, uplimit, name, 
      month_fee, day_fee, reduction_fee, 

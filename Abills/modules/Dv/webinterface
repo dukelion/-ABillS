@@ -675,15 +675,15 @@ sub dv_tp {
 if($FORM{ADD_TP}) {
   $FORM{TP_ID} = $FORM{CHG_TP_ID};
   
-  if ($FORM{ID} < 1) {
-  	$html->message('err', $_ERROR, "$_ERROR ID = 0");
-   }
-  else {
+#  if ($FORM{ID} < 1) {
+#  	$html->message('err', $_ERROR, "$_ERROR ID = 0");
+#   }
+#  else {
    $tariffs->add( { %FORM, MODULE => 'Dv' });
    if (! $tariffs->{errno}) {
      $html->message('info', $_ADDED, "$_ADDED $tariffs->{ID}");
     }
-  }
+#  }
  }
 elsif (defined($FORM{TP_ID})) {
  
