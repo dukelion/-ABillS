@@ -699,6 +699,41 @@ return $list;
 
 
 #**********************************************************
+# detail_list()
+#**********************************************************
+sub detail_sum {
+	my $self = shift;
+	my ($attr) = @_;
+
+ my $lupdate;
+ my $GROUP;
+
+my $interval = 3600;
+if ($attr->{INTERVAL}) {
+  $interval = $attr->{INTERVAL};
+}
+
+
+
+ $self->{debug}=1;
+ $self->query($db, "select ((SELECT  sent1+recv1
+  FROM s_detail 
+  WHERE id='$attr->{LOGIN}' AND last_update>UNIX_TIMESTAMP()-$interval
+  ORDER BY last_update DESC
+  LIMIT 1 ) - (SELECT  sent1+recv1
+  FROM s_detail 
+  WHERE id='$attr->{LOGIN}' AND last_update>UNIX_TIMESTAMP()-$interval
+  ORDER BY last_update
+  LIMIT 1)) / $interval;" );
+
+  my $speed = $self->{list}->[0]->[0];
+  
+	
+	
+ return $speed;
+}
+
+#**********************************************************
 # Periods totals
 # periods_totals($self, $attr);
 #**********************************************************
