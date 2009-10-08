@@ -1961,7 +1961,10 @@ if ($FORM{TYPE} eq 'TP') {
    }
 
  
-  $LIST_PARAMS{TP_ID}=$FORM{TP_ID} if ($FORM{TP_ID});
+  if ($FORM{TP_ID}) {
+    $LIST_PARAMS{TP_ID}=$FORM{TP_ID};
+    $pages_qs .= "&TP_ID=$FORM{TP_ID}";
+   }
   $LIST_PARAMS{TYPE}='TP';
  
   my $list = $Cards->cards_list({ %LIST_PARAMS, 
