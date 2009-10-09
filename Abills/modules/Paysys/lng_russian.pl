@@ -5,5 +5,5 @@ $_ERR_NO_TRANSACTION='Превод не зарегистрирован';
 $_TRANSACTION_PROCESSING='Платёж обрабатывается';
 $_FAILED='Транзакация не выполнена';
 $ERR_INVALID_SIGNATURE='Неправильная подпись. ОБратитесь к администратору';
-$ERR_INVALID_SIGNATURE='Транзакция отвергнута';
+$ERR_TRANSACTION_DECLINED='Транзакция отвергнута';
 
