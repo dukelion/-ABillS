@@ -8,7 +8,6 @@
 
 
 <FORM id='checkout' name='checkout' method=post action='https://www.verification.privatbank.ua/SENTRY/PaymentGateway/Application/CheckOutPage/CheckoutPage.aspx'>
-        
 
 <input id='Version'             type='hidden' name='Version' value='1.0.0'>
 	<input id='MerID'             type='hidden' value='$conf{PAYSYS_PB_MERID}' name='MerID'>
