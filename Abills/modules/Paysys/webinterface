@@ -1197,7 +1197,18 @@ sub paysys_privatbank {
 	my %info = ();
 	
 if ($FORM{FALSE}) {
-	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID}");
+	
+	
+	if ($FORM{ReasonCode} == 11 ) {
+    $FORM{ReasonCodeDesc}="$ERR_INVALID_SIGNATURE";
+	 }
+	elsif ($FORM{ReasonCode} == 2 ) {
+    $FORM{ReasonCodeDesc}="$ERR_TRANSACTION_DECLINED";
+	 }
+
+	
+	
+	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID} $FORM{ReasonCodeDesc} ");
 	$html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
 
 	return 0;

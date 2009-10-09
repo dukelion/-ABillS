@@ -385,7 +385,7 @@ sub privatbank_payments {
 	else {
 		#print "Content-Type: text/html\n\n";
 		#print "FAILED PAYSYS: Portmone SUM: $FORM{BILL_AMOUNT} ID: $FORM{SHOPORDERNUMBER} STATUS: $status";
-		print "Location: $home_url?PAYMENT_SYSTEM=8&OrderID=$FORM{OrderID}&FALSE=1". "\n\n";
+		print "Location: $home_url?PAYMENT_SYSTEM=8&OrderID=$FORM{OrderID}&FALSE=1&ReasonCodeDesc=$FORM{ReasonCodeDesc}&ReasonCode=$FORM{ReasonCode}". "\n\n";
 	 }
 
 	exit;
