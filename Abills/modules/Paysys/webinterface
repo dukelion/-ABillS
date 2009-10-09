@@ -554,40 +554,6 @@ print $table->show();
 
 }
 
-#*******************************************************
-    $html->button($_INFO, "index=$index&info=$line->[0]"),
-    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
-   );
-}
-print $table->show();
-
-$table = $html->table( { width      => '100%',
-                         cols_align => ['right', 'right', 'right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL}), "$_SUM", $html->b($Paysys->{SUM}) ] ]
-                        } );
-print $table->show();
-
-
-}
-
-#**********************************************************
-#
-#*********
-    $html->button($_INFO, "index=$index&info=$line->[0]"),
-    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
-   );
-}
-print $table->show();
-
-$table = $html->table( { width      => '100%',
-                         cols_align => ['right', 'right', 'right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL}), "$_SUM", $html->b($Paysys->{SUM}) ] ]
-                        } );
-print $table->show();
-
-
-}
-
 #**********************************************************
 #
 #**********************************************************
@@ -889,27 +855,27 @@ sub paysys_periodic () {
 #=commencts
 #
 #<?xml version='1.0' encoding='windows-1251' standalone='yes'?>
-#<portmoneresult count='<Кол-во объектов>'> 
+#<portmoneresult count='<???-?? ????????>'> 
 #	<request> 
-#		<shopordernumber>Принимаемый параметр SHOPORDERNUMBER</shopordernumber>
-#		<shop_id>Принимаемый параметр SHOP_ID</shop_id>
-#		<paymenttype>Принимаемый параметр PAYMENTTYPE</paymenttype>
-#		<startdate>Принимаемый параметр STARTMONTH/STARTDAY/STARTYEAR</startdate>
-#		<enddate>Принимаемый параметр ENDMONTH/ENDDAY/ENDYEAR</enddate>
-#		<success>Принимаемый параметр SUCCESS</success> 
+#		<shopordernumber>??????????? ???????? SHOPORDERNUMBER</shopordernumber>
+#		<shop_id>??????????? ???????? SHOP_ID</shop_id>
+#		<paymenttype>??????????? ???????? PAYMENTTYPE</paymenttype>
+#		<startdate>??????????? ???????? STARTMONTH/STARTDAY/STARTYEAR</startdate>
+#		<enddate>??????????? ???????? ENDMONTH/ENDDAY/ENDYEAR</enddate>
+#		<success>??????????? ???????? SUCCESS</success> 
 #	</request>
 #	<orders> 
 #		<order> 
-#			<ordernumber>Номер заказа</ordernumber> 
-#			<description>Комментарий</ description > 
-#			<orderdate>Дата</orderdate> 
-#			<total>Сумма</total> 
-#			<currency>Код валюты</currency>
-#			<approvalcode>Код авторизации</approvalcode> 
-#			<billnumber>Номер платежа</billnumber> 
-#			<billdate>Дата платежа</billdate> 
-#			<error_code>Код ответа процессингового центра</error_code> 
-#			<error_message>Расшифровка ответа процессингового центра</error_ message> 
+#			<ordernumber>????? ??????</ordernumber> 
+#			<description>???????????</ description > 
+#			<orderdate>????</orderdate> 
+#			<total>?????</total> 
+#			<currency>??? ??????</currency>
+#			<approvalcode>??? ???????????</approvalcode> 
+#			<billnumber>????? ???????</billnumber> 
+#			<billdate>???? ???????</billdate> 
+#			<error_code>??? ?????? ??????????????? ??????</error_code> 
+#			<error_message>??????????? ?????? ??????????????? ??????</error_ message> 
 #		</order>
 #		<order> 
 #			...
@@ -1286,13 +1252,20 @@ else {
 }	
 
 
+
+  
   $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+  
+
+
   $info{OPERATION_ID}  = $FORM{OPERATION_ID};  
-  #$conf{PAYSYS_PB_PW}="j8O5Eek7";
-  #$conf{PAYSYS_PB_MERID}="100000000918471";
+  $conf{PAYSYS_PB_PW}="j8O5Eek7";
+  $conf{PAYSYS_PB_MERID}="100000000918471";
   #$info{OPERATION_ID}="Test_Merchant_Name_";
   #$info{AMOUNT}=100;
   #$info{AMOUNT2}=20;
+  
+
   
   $info{AMOUNT}  = sprintf("%.12d", int($FORM{SUM}*100));
   $info{AMOUNT2} = sprintf("%.12d", int($info{AMOUNT2}));
