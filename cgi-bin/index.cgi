@@ -190,6 +190,11 @@ if ($uid > 0) {
 
   $pages_qs     = "&UID=$user->{UID}&sid=$sid";
 
+  if ($COOKIES{lastindex}) {
+  	$index=$COOKIES{lastindex};
+   }
+
+
   $LIST_PARAMS{UID}  = $user->{UID};
   $LIST_PARAMS{LOGIN}= $user->{LOGIN};
 
@@ -210,9 +215,9 @@ if ($uid > 0) {
     require $lang_file;
    }
 
-  if ($COOKIES{lastindex}) {
-  	$index=$COOKIES{lastindex};
-   }
+#  if ($COOKIES{lastindex}) {
+#  	$index=$COOKIES{lastindex};
+#   }
 
   if ($FORM{qindex}) {
     if(defined($module{$FORM{qindex}})) {

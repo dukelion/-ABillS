@@ -1233,7 +1233,7 @@ else {
   	             DATETIME       => "'$DATE $TIME'", 
   	             SUM            => $FORM{SUM},
   	             UID            => $user->{UID}, 
-                 IP             => $FORM{IP},
+                 IP             => "$ENV{'REMOTE_ADDR'}",
                  TRANSACTION_ID => "$FORM{OPERATION_ID}",
                  INFO           => '-',
                  PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
