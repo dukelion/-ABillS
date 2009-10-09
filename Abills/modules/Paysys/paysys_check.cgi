@@ -345,8 +345,29 @@ sub privatbank_payments {
           $status = 4;
          }
         else{
-   	      $Paysys->change({ ID     => $list->[0][0],
- 	                          INFO   => "ReasonCode: $FORM{ReasonCode}" 
+        	
+#MerID=100000000918471  
+#OrderID=test00000001g5hg45h45
+#AcqID=414963
+#Signature=e2DkM6RYyNcn6+okQQX2BNeg/+k=
+#ECI=5
+#IP=217.117.65.41
+#CountryBIN=804
+#CountryIP=804
+#ONUS=1
+#Time=22/01/2007 13:56:38
+#Signature2=nv7CcUe5t9vm+uAo9a52ZLHvRv4=
+#ReasonCodeDesc=Transaction is approved.
+#ResponseCode=1
+#ReasonCode=1
+#ReferenceNo=702308304646
+#PaddedCardNo=XXXXXXXXXXXX3982
+#AuthCode=073291
+
+        	
+   	      $Paysys->change({ ID        => $list->[0][0],
+   	      	                PAYSYS_IP => $ENV{'REMOTE_ADDR'},
+ 	                          INFO      => "ReasonCode: $FORM{ReasonCode}\n Authcode: $FORM{AuthCode}\n PaddedCardNo: $FORM{PaddedCardNo}\n ResponseCode: $FORM{ResponseCode}\n ReasonCodeDesc: $FORM{ReasonCodeDesc}\n IP: $FORM{IP}\n Signature: $FORM{Signature}" 
  	                  });
          }
 
@@ -367,8 +388,9 @@ sub privatbank_payments {
 
     }
    else {
-     $Paysys->change({ ID     => $list->[0][0],
- 	                     INFO   => "ReasonCode: $FORM{ReasonCode}. $FORM{ReasonCodeDesc}" 
+     $Paysys->change({ ID        => $list->[0][0],
+     	                 PAYSYS_IP => $ENV{'REMOTE_ADDR'},
+ 	                     INFO      => "ReasonCode: $FORM{ReasonCode}. $FORM{ReasonCodeDesc}" 
  	                 });
   	}
 

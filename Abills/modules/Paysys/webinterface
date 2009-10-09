@@ -1228,6 +1228,11 @@ elsif ($FORM{TRUE}) {
   return 0;
  }
 else {
+	if ($FORM{SUM} <= 0 ) {
+		$html->message('info', $_ERROR, "$ERR_WRONG_SUM $FORM{SUM}");
+		return 0;
+	 }
+	
 	#Info section  
   $Paysys->add({ SYSTEM_ID      => 8, 
   	             DATETIME       => "'$DATE $TIME'", 
