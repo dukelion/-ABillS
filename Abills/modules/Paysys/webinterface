@@ -554,6 +554,22 @@ print $table->show();
 
 }
 
+#*******************************************************
+    $html->button($_INFO, "index=$index&info=$line->[0]"),
+    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
+   );
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right', 'right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL}), "$_SUM", $html->b($Paysys->{SUM}) ] ]
+                        } );
+print $table->show();
+
+
+}
+
 #**********************************************************
 #
 #**********************************************************
@@ -1255,12 +1271,12 @@ else {
 
   
   $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
-  
 
 
   $info{OPERATION_ID}  = $FORM{OPERATION_ID};  
-  $conf{PAYSYS_PB_PW}="j8O5Eek7";
-  $conf{PAYSYS_PB_MERID}="100000000918471";
+
+  #$conf{PAYSYS_PB_PW}="j8O5Eek7";
+  #$conf{PAYSYS_PB_MERID}="100000000918471";
   #$info{OPERATION_ID}="Test_Merchant_Name_";
   #$info{AMOUNT}=100;
   #$info{AMOUNT2}=20;
