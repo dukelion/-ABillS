@@ -1259,8 +1259,8 @@ else {
 
 
   $info{OPERATION_ID}  = $FORM{OPERATION_ID};  
-  $conf{PAYSYS_PB_PW}="j8O5Eek7";
-  $conf{PAYSYS_PB_MERID}="100000000918471";
+  #$conf{PAYSYS_PB_PW}="j8O5Eek7";
+  #$conf{PAYSYS_PB_MERID}="100000000918471";
   #$info{OPERATION_ID}="Test_Merchant_Name_";
   #$info{AMOUNT}=100;
   #$info{AMOUNT2}=20;
