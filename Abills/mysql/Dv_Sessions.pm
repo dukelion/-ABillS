@@ -729,12 +729,13 @@ if ($attr->{INTERVAL}) {
   FROM s_detail 
   WHERE id='$attr->{LOGIN}' AND last_update>UNIX_TIMESTAMP()-$interval
   ORDER BY last_update
-  LIMIT 1)) / $interval;" );
+  LIMIT 1));" );
 
   my $speed = 0;
 
   if ( $self->{TOTAL} > 0 ) {
-    $speed = $self->{list}->[0]->[0] || 0;
+    $self->{TOTAL_TRAFFIC} = $self->{list}->[0]->[0] || 0;
+    $speed =  $self->{TOTAL_TRAFFIC} / $interval;
    }
 	
   return $speed;

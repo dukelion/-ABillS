@@ -445,8 +445,8 @@ sub check_speed_mikro {
     foreach my $part (@parts) {
       my $params = parse_fw($part);
       if ($params->{'limit-at'} && $params->{'limit-at'} =~ /(\d+)\/(\d+)/) {
-        $rule_speed{$params->{'item'}}{IN}=$1;
-        $rule_speed{$params->{'item'}}{OUT}=$2;
+        $rule_speed{$params->{'item'}}{IN} = $1;
+        $rule_speed{$params->{'item'}}{OUT}= $2;
        }
 
       if ($debug > 5) {
@@ -487,8 +487,10 @@ sub parse_fw {
   my $result = '';
   my %params = ();
 
+
+
   $part =~ s/\"|//g;
-  if ($part =~ / (\d+)/) {
+  if ($part =~ /\s{0,1}(\d+)/) {
     $params{item} = $1;
    }
 
@@ -1603,14 +1605,12 @@ sub speed_expr {
          $nas_speed_out = ($nas_speeds->{$nas_row->[0]}{OUT}) ? $nas_speeds->{$nas_row->[0]}{OUT} : 0;
         }
        
-       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$speed_in/$speed_out Cur speed: $cur_speed NAS SPEED: $nas_speed_in/$nas_speed_out JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);            
+       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$speed_in/$speed_out Cur speed: $cur_speed NAS SPEED: $nas_speed_in/$nas_speed_out TRAFF: $sessions->{TOTAL_TRAFFIC} JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);            
        
        next if ($ARGV->{SHOW_CUR_SPEED});
        if ($cur_speed >= $AVG_SPEED) {
        	 print " ==> $SET_SPEED";
         }
-     
-
        
        
        $USER_IFACES{$line->[0]}="$line->[1]:$tp_id:$line->[3]:$line->[5]:$line->[6]";
