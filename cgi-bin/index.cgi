@@ -192,6 +192,7 @@ if ($uid > 0) {
 
   if ($COOKIES{lastindex}) {
   	$index=$COOKIES{lastindex};
+    $html->setCookie('lastindex', '', "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
    }
 
 
