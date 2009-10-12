@@ -735,7 +735,7 @@ if ($attr->{INTERVAL}) {
 
   if ( $self->{TOTAL} > 0 ) {
     $self->{TOTAL_TRAFFIC} = $self->{list}->[0]->[0] || 0;
-    $speed =  $self->{TOTAL_TRAFFIC} / $interval;
+    $speed =  int($self->{TOTAL_TRAFFIC} / $interval);
    }
 	
   return $speed;
