@@ -1208,7 +1208,7 @@ if ($FORM{FALSE}) {
 
 	
 	
-	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID} [$FORM{ReasonCode}] $FORM{ReasonCodeDesc} ");
+	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID} [$FORM{ReasonCode}/$FORM{ResponseCode}] $FORM{ReasonCodeDesc} ");
 	$html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
 
 	return 0;

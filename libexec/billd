@@ -50,7 +50,7 @@ CHECK speed
      SHOW_SPEED=1  - Only show current speed
   checkspeed_mikro - check cure speed for user on Mikrotik. Arguments NAS_IDS=xx
   speed_expr       - Speed Expration
-
+    SHOW_CUR_SPEED - Show current users speed
 CHECK connection Alive
   checklines  - Check alive connections
   -d          - deamon mode
@@ -400,7 +400,7 @@ sub check_speed_mikro {
   
   my %nas_speeds         = ();
   
-  $LIST_PARAMS{TYPE}    ='mikrotik';
+  $LIST_PARAMS{TYPE}    = 'mikrotik';
   my $list = $nas->list({ %LIST_PARAMS });
 
   foreach my $line (@$list) {
@@ -1488,11 +1488,12 @@ sub speed_expr {
 
 
 
-  $LIST_PARAMS{NAS_IDS}=$ARGV->{NAS_IDS};
+
 
   #Get Cure speed
   my $nas_speeds = check_speed_mikro({ NAS_IDS => $ARGV->{NAS_IDS} });
 
+  %LIST_PARAMS = ( NAS_IDS => $ARGV->{NAS_IDS} );
 
 #Get TP speed
   require Tariffs;
@@ -1506,6 +1507,9 @@ sub speed_expr {
   foreach my $tp_line (@$list) {
      my $ti_list = $Tariffs->ti_list({ TP_ID => $tp_line->[18] });
      next if ($Tariffs->{TOTAL} != 1);
+     my $speed_in  = 0;
+     my $speed_out = 0;
+     
 
      foreach my $ti (@$ti_list) {
 
@@ -1516,22 +1520,24 @@ sub speed_expr {
      	 foreach my $tt ( @$tt_list ) {
      	 	 my $expression = $tt->[8];
      	 	 next if ($expression !~ /SPEED/);
+
+         $speed_in  = $tt->[4];
+         $speed_out = $tt->[5];
          
          $expression =~ s/MONTH_TRAFFIC/TRAFFIC/g;
 
-         $debug_output .= "TP: $tp_line->[0] TI: $ti->[0] TT: $tt->[0]\n";
-         $debug_output .= "  Expr: $expression\n" if ($debug > 3);
+         #$debug_output .= "TP: $tp_line->[0] TI: $ti->[0] TT: $tt->[0]\n";
+         #$debug_output .= "  Expr: $expression\n" if ($debug > 3);
+         print "TP: $tp_line->[0] TI: $ti->[0] TT: $tt->[0]\n" if ($debug > 0);
+         print "  Expr: $expression\n" if ($debug > 3);
          
          $expr_hash{$tt->[0]} = $expression;
-         
-
      	  }
 
-       next if (! defined($expr_hash{0}));
+       next if (! defined($expr_hash{0}) && ! $ARGV->{SHOW_CUR_SPEED});
 
 
-
-	$sessions->online( { %LIST_PARAMS, 
+  $sessions->online( { %LIST_PARAMS, 
 		                   NAS_ID  => $ARGV->{NAS_IDS}, 
 		                   TP_ID   => $tp_line->[0],
 		                   FIELDS_NAMES => [ 'USER_NAME', 
@@ -1544,6 +1550,7 @@ sub speed_expr {
 		                   	                  ]
 		               } );	
 
+
 	my $online = $sessions->{nas_sorted};
 	
   my $nas_list = $nas->list({ %LIST_PARAMS  });
@@ -1552,6 +1559,18 @@ sub speed_expr {
   my %TP_HASH = ();
 
   my $NAS_TYPE = '';
+  #AVG>300=SPEED:64;
+  $expr_hash{0} = '' if (! $expr_hash{0});
+  $expr_hash{0} =~ /(\S+)(<|>)(\d+)=(\S+):(\d+)/;
+
+
+  my $AVG        = $1;
+  my $AVG_MATH   = $2;
+  my $AVG_SPEED  = $3;
+  my $SPEED_DIRECTION = $4;
+  my $SET_SPEED  = $5;
+  
+  
   foreach my $nas_row (@$nas_list) {
     next if (! $online->{$nas_row->[0]});
 
@@ -1560,7 +1579,7 @@ sub speed_expr {
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
                            #IFACE : TP : SPEED  :IP
-       my $tp = 0;
+       my $tp    = 0;
        my $tp_id = 0;
        if ($line->[5] > 0) {
           $Dv->info($line->[5]);
@@ -1574,13 +1593,24 @@ sub speed_expr {
        #Get last period traffic and speed
        my $cur_speed = $sessions->detail_sum({ LOGIN => $line->[0] });
        
-      
+
+
        #Set speed
+       my $nas_speed_in  = 0;
+       my $nas_speed_out = 0;
        if (! $nas_speeds->{$nas_row->[0]}) {
-       	  
+         $nas_speed_in  = ($nas_speeds->{$nas_row->[0]}{IN}) ? $nas_speeds->{$nas_row->[0]}{IN} : 0;
+         $nas_speed_out = ($nas_speeds->{$nas_row->[0]}{OUT}) ? $nas_speeds->{$nas_row->[0]}{OUT} : 0;
         }
-      
-       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3]/Download speed: $cur_speed JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);
+       
+       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$speed_in/$speed_out Cur speed: $cur_speed NAS SPEED: $nas_speed_in/$nas_speed_out JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);            
+       
+       next if ($ARGV->{SHOW_CUR_SPEED});
+       if ($cur_speed >= $AVG_SPEED) {
+       	 print " ==> $SET_SPEED";
+        }
+     
+
        
        
        $USER_IFACES{$line->[0]}="$line->[1]:$tp_id:$line->[3]:$line->[5]:$line->[6]";
@@ -1599,7 +1629,7 @@ sub speed_expr {
 }
 
 
-print $debug_output;
+#print $debug_output;
 
 
 

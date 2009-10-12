@@ -1,5 +1,5 @@
 package Dv_Sessions;
-# Stats functions
+# Dv Stats functions
 #
 
 
@@ -310,6 +310,12 @@ sub online {
  if (defined($attr->{FRAMED_IP_ADDRESS})) {
  	 push @WHERE_RULES, "framed_ip_address=INET_ATON('$attr->{FRAMED_IP_ADDRESS}')";
   }
+
+ if ($attr->{TP_ID}) {
+ 	 push @WHERE_RULES, "dv.tp_id='$attr->{TP_ID}'";
+  }
+
+ 
 
  if ($attr->{NAS_ID}) {
  	 push @WHERE_RULES, "nas_id IN ($attr->{NAS_ID})";
@@ -715,7 +721,6 @@ if ($attr->{INTERVAL}) {
 
 
 
- $self->{debug}=1;
  $self->query($db, "select ((SELECT  sent1+recv1
   FROM s_detail 
   WHERE id='$attr->{LOGIN}' AND last_update>UNIX_TIMESTAMP()-$interval
@@ -726,11 +731,13 @@ if ($attr->{INTERVAL}) {
   ORDER BY last_update
   LIMIT 1)) / $interval;" );
 
-  my $speed = $self->{list}->[0]->[0];
-  
+  my $speed = 0;
+
+  if ( $self->{TOTAL} > 0 ) {
+    $speed = $self->{list}->[0]->[0] || 0;
+   }
 	
-	
- return $speed;
+  return $speed;
 }
 
 #**********************************************************
