@@ -5546,7 +5546,7 @@ foreach my $line (@$list) {
     $line->[3],  $line->[4],  
     $html->button($line->[5], "index=15&UID=$line->[12]"), 
     "$line->[6]", 
-    "$line->[7]", 
+    ($line->[6] eq 'status') ? $html->color_mark($service_status[$line->[7]], $service_status_colors[ $line->[7]]) : $line->[7], 
     "$line->[8]", 
     "$line->[9]", 
     "$line->[10]", $delete);
