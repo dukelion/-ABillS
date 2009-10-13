@@ -39,6 +39,7 @@ sub docs_contract {
 }
 
 
+
 #**********************************************************
 # docs_invoice_add
 # Order array format
@@ -64,7 +65,8 @@ sub docs_invoice_add  {
      $Docs->docs_invoice_add({ %$attr });
 
      if(! $Docs->{errno}) {
-       $html->message('info', "$_ADDED", "$_NUM: [$Docs->{DOC_ID}] $_DATE: $FORM{DATE}");
+       $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}] $_DATE: $FORM{DATE} (". 
+        $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new' }) . ")");
        $Docs->docs_invoice_info($Docs->{DOC_ID});
       }
      elsif ($Docs->{errno} && $Docs->{errno} == 1) {
@@ -101,8 +103,10 @@ sub docs_invoice_add  {
    }
 
 
-  docs_print('invoice', $Docs);
+  docs_print('invoice', $Docs) if (! $FORM{QUICK});
 }
+
+
 
 #**********************************************************
 # docs_invoice_list
@@ -141,12 +145,6 @@ sub docs_invoice {
 #**********************************************************
 sub docs_invoice_list {
 
-
-#if ($LIST_PARAMS{UID}) {
-#	docs_account();
-#	return 0 if ($FORM{'print'});
-# }
-#els
 if($FORM{del} && $FORM{is_js_confirmed}) {
   $Docs->docs_invoice_del($FORM{del});
   if(! $Docs->{errno}) {
@@ -161,7 +159,7 @@ elsif($FORM{print}) {
   
   $Docs->docs_invoice_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
   ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
-   $Docs->{TOTAL_SUM}=0.00;
+  $Docs->{TOTAL_SUM}=0.00;
   
  
   if ($Docs->{ORDERS}) {
@@ -725,7 +723,6 @@ sub docs_reports {
 }
 
 
-
 #**********************************************************
 # docs_account
 #**********************************************************
@@ -759,7 +756,8 @@ sub docs_account {
      $Docs->account_add({ %FORM });
      if(! $Docs->{errno}) {
        $FORM{ACCOUNT_ID}=$Docs->{DOC_ID};
-       $html->message('info', "$_ADDED", "$_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE}");
+       $html->message('info', "$_ACCOUNT $_ADDED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE} (".
+        $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new' }) .")");
        $Docs->account_info($Docs->{DOC_ID}, { UID => $LIST_PARAMS{UID} });
        ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
 
@@ -782,15 +780,7 @@ sub docs_account {
         }
 
        if ($conf{DOCS_PDF_PRINT}) {
-       	 $html->message('info', $_ADDED, "$_ACCOUNT $_ADDED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }));
-       	 return 0;
-        }
-
-      
-       #print $html->header() if ($FORM{qindex}AL_SUM});
-
-       if ($conf{DOCS_PDF_PRINT}) {
-       	 $html->message('info', $_ADDED, "$_ACCOUNT $_ADDED. ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }));
+       	 $html->message('info', "$_ACCOUNT $_ADDED", "$_ACCOUNT $_ADDED. (". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }).")" );
        	 return 0;
         }
 
@@ -816,7 +806,7 @@ sub docs_account {
          	 docs_print('account_company', { %$Docs, %$Company });
           }
          else {
-           docs_print('account', $Docs);
+           docs_print('account', $Docs) if (! $FORM{QUICK});;
           }
         }
 
@@ -930,6 +920,8 @@ sub docs_account {
   
   $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users });
 }
+
+
 
 
 #**********************************************************

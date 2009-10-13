@@ -3575,7 +3575,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
 
 
   $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
-  if ($conf{DV_SERVICE_HOLDUP}) {
+  if ($conf{DV_USER_SERVICE_HOLDUP}) {
   	#$_HOLD_UP
   	dv_holdup_service();
    }

@@ -4501,6 +4501,7 @@ if (defined($attr->{USER})) {
 
 
   if (in_array('Docs', \@MODULES) ) {
+    $FORM{QUICK}=1;
   	require "Abills/modules/Docs/webinterface";
    }
 
