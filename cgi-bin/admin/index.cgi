@@ -1244,6 +1244,28 @@ sub user_pi {
   
   if (in_array('Docs', \@MODULES) ) {
     $user_pi->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new'  }) ;
+    
+    if ($conf{DOCS_CONTRACT_TYPES}) {
+    	
+    	#PREFIX:SUFIX:NAME;
+    	
+    	
+    	$conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
+      my (@contract_types_list)=split(/;/, $conf{DOCS_CONTRACT_TYPES});
+
+
+      my %CONTRACTS_LIST_HASH = ();
+      foreach my $line (@contract_types_list) {
+      	my ($prefix, $sufix, $name, $tpl_name)=split(/:/, $line);
+      	$CONTRACTS_LIST_HASH{"$prefix|$sufix"}=$name;
+       }
+
+      $user_pi->{CONTRACT_TYPE}=" $_TYPE: ".$html->form_select('BILL_ID', 
+                                { SELECTED   => '',
+ 	                                SEL_HASH   => {'' => '', %CONTRACTS_LIST_HASH },
+ 	                                NO_ID      => 1
+ 	                               });
+     }
    }
 
   if ($conf{ACCEPT_RULES}) {

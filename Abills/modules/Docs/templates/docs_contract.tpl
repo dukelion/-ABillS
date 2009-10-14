@@ -1,2 +1,2 @@
 Договор № %CONTRACT_ID%
-Дата %CONTRACT_DATE%
+Дата %CONTRACT_DATE% (%CONTRACT_DATE_LIT%)
