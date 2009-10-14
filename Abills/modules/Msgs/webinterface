@@ -814,6 +814,14 @@ print $table->show();
 sub msgs_user {
 	 
 
+  my @msg_status_all = ("$_OPEN",
+                  "$_CLOSED_UNSUCCESSFUL",
+                  "$_CLOSED_SUCCESSFUL",
+                  "$_IN_WORK",
+                  "$_NEW_MESSAGE",
+                  "$_HOLD_UP",
+                  "$_ANSWER_WAIT",
+                  );
 	 
 	 
 	 $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
@@ -872,7 +880,7 @@ sub msgs_user {
            	 TIME => $TIME, 
            	 ID      => $Msgs->{INSERT_ID}, 
            	 SUBJECT => $FORM{SUBJECT},
-           	 STATUS  => $msg_status[$FORM{STATE}],
+           	 STATUS  => $msg_status_all[$FORM{STATE}],
            	 MESSAGE => $FORM{MESSAGE},
            	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
             }, { OUTPUT2RETURN => 1 } );
@@ -961,7 +969,7 @@ sub msgs_user {
    $Msgs->{ACTION_LNG}= $_REPLY;
 
 
-   $Msgs->{STATE_NAME}   = $msg_status_all[$Msgs->{STATE}];
+   $Msgs->{STATE_NAME}   = ($Msgs->{STATE} == 6) ? "<blink>$msg_status_all[$Msgs->{STATE}]</blink>" :  ( ($Msgs->{STATE} == 0) ? $html->color_mark($msg_status_all[$Msgs->{STATE}], $_COLORS[8]) :  $msg_status_all[$Msgs->{STATE}]);
    $Msgs->{PRIORITY_TEXT}= $html->color_mark($priority[$Msgs->{PRIORITY}], $priority_colors[$Msgs->{PRIORITY}]);
 
 
@@ -1072,14 +1080,7 @@ sub msgs_user {
   $LIST_PARAMS{SORT}       = '5 DESC'; # '11, 5 DESC';
   $LIST_PARAMS{INNER_MSG}  = 0;
 
-  @msg_status_all = ("$_OPEN",
-                  "$_CLOSED_UNSUCCESSFUL",
-                  "$_CLOSED_SUCCESSFUL",
-                  "$_IN_WORK",
-                  "$_NEW_MESSAGE",
-                  "$_HOLD_UP",
-                  "$_ANSWER_WAIT",
-                  );
+  
 
 
   #print "Content-type: text/html\n\n";
