@@ -777,7 +777,17 @@ sub dhcphosts_user {
   if ($Dhcphosts->{errno}) {
     if ($Dhcphosts->{errno} == 17) {
       	$html->message('err', $_ERROR, "# $FORM{NETWORK} $ERR_WRONG_NETWORK");
-       }
+     }
+    elsif ($Dhcphosts->{errno} == 7) {
+    	my $list = $Dhcphosts->hosts_list({ IP => $FORM{IP} });
+
+    	my $login = '';
+    	if ($Dhcphosts->{TOTAL} > 0) {
+   	    $login = $html->button("$list->[0][1]", "index=15&UID=". $list->[0][13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]."&MODULE=Dhcphosts"),
+    	 }
+
+     	$html->message('err', $_ERROR, "[7] $_EXIST $FORM{IP}/$FORM{MAC} $login");
+     }
     else {
       $html->message('err', $_ERROR, "[$Dhcphosts->{errno}] $err_strs{$Dhcphosts->{errno}}");
      }
@@ -819,7 +829,9 @@ sub dhcphosts_user {
 
   $html->tpl_show(_include('dhcphosts_host', 'Dhcphosts'), { %{ $Dhcphosts->host_defaults() }, 
   	    HOSTNAME => $users->{LOGIN} . (($Dhcphosts->{TOTAL}) ? '_'.$Dhcphosts->{TOTAL}+1 : ''),  
-  	    %$Dhcphosts }); 
+  	    %FORM, 
+  	    %$Dhcphosts,  
+  	    }); 
 
   #dhcphosts_hosts();
 };
@@ -848,9 +860,9 @@ sub dhcphosts_get_static_ip {
   else {
     my %users_ips = ();
   
-    my $list = $Dhcphosts->hosts_list({ NETWORK   => $network_id, 
-  	                                  PAGE_ROWS => 100000
-                     	                   });
+    my $list = $Dhcphosts->hosts_list({ #NETWORK   => $network_id, 
+  	                                    PAGE_ROWS => 100000
+                     	                });
 
 
     foreach my $line (@$list) {
