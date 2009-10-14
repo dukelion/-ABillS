@@ -1101,7 +1101,7 @@ foreach my $line (@$list) {
   $table->{rowcolor} = ($line->[0] == $FORM{ID}) ? $_COLORS[0] : undef ;
   
   $table->addrow(
-    ($line->[15] ne '0000-00-00 00:00:00') ? $line->[2] : $html->b($line->[2]), 
+    ($line->[15] ne '0000-00-00 00:00:00') ? $html->button($line->[2], "index=$index&ID=$line->[0]&sid=$sid") : $html->button($html->b($line->[2]), "index=$index&ID=$line->[0]&sid=$sid"), 
     $line->[3],
     $line->[4],
     ($line->[5] == 6) ? "<blink>$msg_status_all[$line->[5]]</blink>" :  ( ($line->[5] == 0) ? $html->color_mark($msg_status_all[$line->[5]], $_COLORS[8]) :  $msg_status_all[$line->[5]]),
