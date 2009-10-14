@@ -411,7 +411,7 @@ sub changes {
             $self->{CHG_TP}=$OLD_DATA->{$k}.'->'.$DATA{$k};
            }
           elsif($k eq 'CREDIT') {
-            $self->{CREDIT}=$OLD_DATA->{$k}.'->'.$DATA{$k};
+            $self->{CHG_CREDIT}=$OLD_DATA->{$k}.'->'.$DATA{$k};
            }
           else {
             $CHANGES_LOG .= "$k $OLD_DATA->{$k}->$DATA{$k};";
@@ -421,9 +421,6 @@ sub changes {
          }
      }
    }
-
-
-
 
 
 
@@ -469,8 +466,8 @@ else {
       $admin->action_add($DATA{UID}, "$self->{'STATUS'}", { TYPE => 4});
      }
 
-    if($self->{'CREDIT'}) {
-      $admin->action_add($DATA{UID}, "$self->{'CREDIT'}", { TYPE => 5 });
+    if($self->{CHG_CREDIT}) {
+      $admin->action_add($DATA{UID}, "$self->{'CHG_CREDIT'}", { TYPE => 5 });
      }
 
 

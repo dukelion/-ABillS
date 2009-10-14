@@ -1081,6 +1081,7 @@ sub change {
              );
 
 
+  #$attr->{CREDIT}=undef if ($attr->{CREDIT} && $attr->{CREDIT} <= 0);
 
   my $old_info = $self->info($attr->{UID});
   
