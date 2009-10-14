@@ -329,6 +329,17 @@ if ($FORM{qindex}) {
 
 
 
+#Make active lang list
+if ($conf{LANGS}) {
+	$conf{LANGS} =~ s/\n//g;
+	my(@lang_arr)=split(/;/, $conf{LANGS});
+	%LANG = ();
+	foreach my $l (@lang_arr) {
+		my ($lang, $lang_name)=split(/:/, $l);
+		$lang =~ s/^\s+//;
+		$LANG{$lang}=$lang_name;
+	 } 
+}
 
 
 $html->{METATAGS}=templates('metatags');
