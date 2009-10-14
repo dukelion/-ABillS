@@ -22,7 +22,7 @@
 <tr bgcolor=$_COLORS[3]><td colspan=4> 
 <table cellspacing='1' cellpadding='0' border='0' width=100%>
 <tr><th align=left  bgcolor=$_COLORS[0]> %LOGIN% </th></tr>
-<tr><td  bgcolor=$_COLORS[1] class=small><font size=-2>$_DATE: %DATE%</font> </td></tr>
+<tr><th  bgcolor=$_COLORS[1] class=small align=left><font size=-2>$_DATE: %DATE%</font> </th></tr>
 </table>
 </td></tr>
 <tr><td bgcolor='$_COLORS[1]' colspan='4'>%MESSAGE%</td></tr>
