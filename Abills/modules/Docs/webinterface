@@ -24,8 +24,8 @@ sub docs_contract {
 		$Docs              = $users->pi({ UID => $FORM{UID} });
 
     $conf{DOCS_LANGUAGE} = $conf{default_language} if (! $conf{DOCS_LANGUAGE});
-		require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
 		require "../../language/$conf{DOCS_LANGUAGE}.pl";
+		require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
 
     my ($y, $m, $d)=split(/-/, (($users->{CONTRACT_DATE}) ? $users->{CONTRACT_DATE} : $DATE ) , 3);
     $Docs->{CONTRACT_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
@@ -943,12 +943,12 @@ sub docs_print {
   $conf{DOCS_LANGUAGE} = $conf{default_language} if (! $conf{DOCS_LANGUAGE});
 
   if (-f "../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl") {
-    require "../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
     require "../language/$conf{DOCS_LANGUAGE}.pl";
+    require "../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
    }
   else {
-    require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
     require "../../language/$conf{DOCS_LANGUAGE}.pl";
+    require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
    }
 
   
