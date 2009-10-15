@@ -5690,6 +5690,7 @@ foreach my $module (sort @MODULES) {
 	$table->addrow("$module ($sys_templates/$module/templates)");
 	if (-d "$sys_templates/$module/templates" ) {
 		
+
 		my $tpl_describe = get_tpl_describe("$sys_templates/$module/templates/describe.tpls");
 		
     opendir DIR, "$sys_templates/$module/templates" or die "Can't open dir '$sys_templates/$module/templates' $!\n";
