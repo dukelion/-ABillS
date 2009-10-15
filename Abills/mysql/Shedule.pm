@@ -224,6 +224,15 @@ sub del {
  my $self = shift;
  my ($attr) = @_;
 
+
+ if ($attr->{IDS}) {
+   $self->query($db, "DELETE FROM shedule WHERE id IN ( $attr->{IDS} );", 'do');
+   
+   $admin->system_action_add("SHEDULE:$attr->{IDS} UID:$self->{UID}", { TYPE => 10 });    
+
+   return $self;	
+  }
+
  $self->info({ ID => $attr->{ID}});
 
  if ($self->{TOTAL} > 0) {

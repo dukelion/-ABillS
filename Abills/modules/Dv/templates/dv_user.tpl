@@ -16,7 +16,7 @@
 </td></tr>
 <tr><td>TURBO:</td><td>%TURBO_MODE_SEL%</td></tr>
 <tr><td>$_ABON:</td><td>%ABON_DATE%</td></tr>
-<tr><td colspan='2'>%REGISTRATION_INFO%</td></tr>
+<tr><td colspan='2'>%REGISTRATION_INFO%  %REGISTRATION_INFO_PDF%</td></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%' class='noprint'>
 </form>

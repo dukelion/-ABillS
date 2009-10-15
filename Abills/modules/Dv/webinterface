@@ -388,7 +388,7 @@ sub dv_user {
        print "Content-type: application/pdf\n";
        print "Content-disposition: inline; name=".int(rand(32768)).".pdf\n\n";
        
-       
+
      	 $html->tpl_show(_include('dv_user_info', 'Dv', { pdf => 1 }), { %$user, 
      	 	                                                               %$pi, 
      	 	                                                               DATE => $DATE, 
@@ -548,6 +548,11 @@ sub dv_user {
 
   $Dv->{CALLBACK}         = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
   $Dv->{REGISTRATION_INFO}= $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1");
+
+  if ($conf{DOCS_PDF_PRINT}) {
+    $Dv->{REGISTRATION_INFO_PDF}= '('. $html->button("PDF", "qindex=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1&pdf=1", { ex_params => 'target=_new' } ) .')';
+   }
+
 
   $Dv->{TURBO_MODE_SEL} = $html->form_select('TURBO_MODE', 
                                           { 
@@ -3588,20 +3593,37 @@ elsif ($conf{DV_IP_DISCOVERY}) {
 #**********************************************************
 sub dv_holdup_service {
 
+
+
+  my ($hold_up_min_period, $hold_up_max_period)=split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
+
+
   my $shedule = Shedule->new($db, $admin, \%conf);
+  
+  if ($FORM{del}) {
+  	$shedule->del({ UID    => $user->{UID},
+                    IDS    => $FORM{del},
+                   });
+
+  	$html->message('info', $_HOLD_UP, "$_DELETED");
+   }
+
 
   my $list = $shedule->list({ UID    => $user->{UID},
                               MODULE => 'Dv',
                               TYPE   => 'status' });
 
   my %shedule_val = ();
-
+  my $del_ids = '';
   foreach $line ( @$list ) {
   	$shedule_val{$line->[7]}="$line->[3]-$line->[2]-$line->[1]";
+  	$del_ids .= "$line->[13],";
    }
   
+  chop($del_ids);
+
   if($shedule->{TOTAL} > 0) {
-  	$html->message('info', $_INFO, "$_HOLD_UP $shedule_val{3} -> $shedule_val{0} ");
+  	$html->message('info', $_INFO, "$_HOLD_UP $shedule_val{3} -> $shedule_val{0} " . $html->button("$_DEL", "index=$index&del=$del_ids"));
   	return 0;
    }
 
@@ -3609,7 +3631,15 @@ sub dv_holdup_service {
     my $from_seltime = POSIX::mktime(0, 0, 0, $FORM{FROM_D}, $FORM{FROM_M}, ($FORM{FROM_Y} - 1900));
     my $to_seltime   = POSIX::mktime(0, 0, 0, $FORM{TO_D}, $FORM{TO_M}, ($FORM{TO_Y} - 1900));
     
-    if ($from_seltime <= time()) {
+    my $block_days = ($to_seltime - $from_seltime) / 86400;
+    
+    if ($block_days < $hold_up_min_period) {
+    	$html->message('err', "$ERR_WRONG_DATA", "$_MIN $_HOLD_UP   $hold_up_min_period $_DAYS");
+     }
+    elsif($block_days > $hold_up_max_period) {
+    	$html->message('err', "$ERR_WRONG_DATA", "$_MAX $_HOLD_UP   $hold_up_max_period $_DAYS");
+     }
+    elsif ($from_seltime <= time()) {
       $html->message('info', $_INFO, "$ERR_WRONG_DATA ($_FROM: $FORM{FROM_D}-$FORM{FROM_M}-$FORM{FROM_Y})");
      }
     elsif ($to_seltime <= time()) {
@@ -3640,7 +3670,7 @@ sub dv_holdup_service {
   	
 
       if (! $shedule->{errno}) {
-      	$html->message('info', $_INFO, "$_HOLD_UP $FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D} -> $FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D} ");
+      	$html->message('info', $_INFO, "$_HOLD_UP $FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D} -> $FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}  $block_days $_DAYS");
   	    return 0;
        }
      }
