@@ -1,0 +1,19 @@
+dv_compensation.tpl:russian:Форма компенсации
+dv_errors_search.tpl:russian:Поиск по журналу ошибок входа клиентов
+dv_guest_mode.tpl:russian:Форма оповещения о гостевом входе клиента
+dv_hold_up.tpl:russian:Форма приотановки сервиса из личного кабинета клиента
+dv_reg_complete.tpl:russian:Форма оповещения о успешной регистрации
+dv_registration.tpl:russian:Форма регистрации сервиса
+dv_session_detail.tpl:russian:Детализация сесси
+dv_sessions_search.tpl:russian:Форма поиска сессий
+dv_tp.tpl:russian:Форма заведения тарифного плана
+dv_traffic_class.tpl:russian:Форма заведения классов траффика
+dv_tt.tpl:russian:Форма заведения тарифов трафика
+dv_user.tpl:russian:Форма управления учётной записью пользователя для данног сервиса
+dv_user_info.dsc:russian:
+dv_user_info.pdf:russian:Форма информации о сервисе в формате pdf
+dv_user_info.tpl:russian:Форма информации о сервисе
+dv_user_join_service.tpl:russian:Форма совместного сервиса
+dv_user_speed.tpl:russian:Форма TURBO  режима
+dv_users_search.tpl:russian:Форма поиска пользоватлей сервиса
+dv_users_warning_messages.tpl:russian:Форма оповещения на E-mail о расходованом балансе
