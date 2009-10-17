@@ -25,6 +25,17 @@ require Billing;
 Billing->import();
 my $Billing;
 
+require Dv;
+Dv->import();
+my $Dv;
+
+require Tariffs;
+Tariffs->import();
+my $Tariffs;
+
+
+
+
 my %ips = ();
 my $db;
 my $CONF;
@@ -59,6 +70,9 @@ sub new {
   $self->{UNKNOWN_TRAFFIC_ROWS}=0;
 
   $Billing = Billing->new($db, $CONF);
+  $Dv = Dv->new($db, undef, $CONF);
+  $Tariffs = Tariffs->new($db, $admin, $CONF);
+
   return $self;
 }
 
@@ -256,6 +270,7 @@ sub user_ips {
 #**********************************************************
 sub traffic_agregate_clean {
   my $self = shift;
+
   delete $self->{AGREGATE_USERS};
   delete $self->{INTERIM};
   delete $self->{IN};
@@ -336,10 +351,6 @@ sub traffic_agregate_nets {
   my $AGREGATE_USERS  = $self->{AGREGATE_USERS}; 
   my $ips       = $self->{USERS_IPS};
   my $user_info = $self->{USERS_INFO};
-
-  require Dv;
-  Dv->import();
-  my $Dv = Dv->new($db, undef, $CONF);
 
   #Get user and session TP
   while (my ($uid, $session_tp) = each ( %{ $user_info->{TPS} } )) {
@@ -484,10 +495,7 @@ sub get_zone {
   my $tariff  = $attr->{TP_INTERVAL} || 0;
 
   #Get traffic classes and prices 
-  require Tariffs;
-  Tariffs->import();
-  my $tariffs = Tariffs->new($db, $admin, $CONF);
-  my $list = $tariffs->tt_list({ TI_ID => $tariff });
+  my $list = $Tariffs->tt_list({ TI_ID => $tariff });
 
   foreach my $line (@$list) {
       $zoneid=$line->[0];

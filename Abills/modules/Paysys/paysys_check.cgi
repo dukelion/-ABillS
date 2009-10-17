@@ -135,7 +135,11 @@ elsif($FORM{AcqID}) {
 elsif($FORM{operation} || $ENV{'QUERY_STRING'} =~ /operation=/) {
 	require "Comepay.pm";
 	exit;
-}
+ }
+elsif ($FORM{EO}) {
+	require "express_oplata.pm";
+	exit;
+ }
 elsif($FORM{ACT}) {
 	require "24_non_stop.pm";
 	exit;

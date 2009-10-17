@@ -57,6 +57,7 @@
   <tr><td>$_TRAFFIC_TRANSFER_PERIOD:</td><td><input type=text name=TRAFFIC_TRANSFER_PERIOD value='%TRAFFIC_TRANSFER_PERIOD%'></td></tr>
   <tr><td>$_NEG_DEPOSIT_FILTER_ID:</td><td><input type=text name=NEG_DEPOSIT_FILTER_ID value='%NEG_DEPOSIT_FILTER_ID%'></td></tr>
   <tr><td>IP Pool:</td><td>%IP_POOLS_SEL%</td></tr>
+  <tr><td>$_PRIORITY:</td><td><input type=text name=PRIORITY value='%PRIORITY%' size=5></td></tr>
   <tr><th colspan=2>RADIUS Parameters (,)</th></tr>
   <tr><th colspan=2><textarea cols=55 rows=5 name=RAD_PAIRS>%RAD_PAIRS%</textarea></th></tr>
 </table>

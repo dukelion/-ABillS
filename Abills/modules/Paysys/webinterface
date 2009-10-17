@@ -30,7 +30,8 @@ my %PAY_SYSTEMS = (1 => "Webmoney",
                    8 => "PrivatBank",
                    9 => "Pegas",
                    10 => "Comepay",
-                   11 => "24_non_STOP"
+                   11 => "24_non_STOP",
+                   12 => "Express_Oplata"
                   );
 
 my @status = ('ENABLE', 'DISABLE', 'USED');

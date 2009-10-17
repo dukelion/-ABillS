@@ -809,6 +809,7 @@ CREATE TABLE `tarif_plans` (
   `domain_id` smallint(6) unsigned not null default 0,
   `total_time_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
   `total_traf_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `priority` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`,`module`, `domain_id`),
   UNIQUE KEY `tp_id` (`tp_id`),
   KEY `name` (`name`, `domain_id`)

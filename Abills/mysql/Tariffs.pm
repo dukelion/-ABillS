@@ -58,7 +58,8 @@ my %FIELDS = ( ID               => 'id',
                PERIOD_ALIGNMENT => 'period_alignment',
                MIN_USE          => 'min_use',
                ABON_DISTRIBUTION=> 'abon_distribution',
-               DOMAIN_ID        => 'domain_id'
+               DOMAIN_ID        => 'domain_id',
+               PRIORITY         => 'priority'
 
              );
 
@@ -407,7 +408,8 @@ sub defaults {
             PERIOD_ALIGNMENT => '0',
             MIN_USE          => '0.00',
             ABON_DISTRIBUTION=> 0,
-            DOMAIN_ID        => 0
+            DOMAIN_ID        => 0,
+            PRIORITY         => 0,
          );   
  
   $self = \%DATA;
@@ -445,7 +447,8 @@ sub add {
      period_alignment,
      min_use,
      abon_distribution,
-     domain_id
+     domain_id,
+     priority
      )
     values ('$DATA{ID}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', 
@@ -466,7 +469,8 @@ sub add {
      '$DATA{PERIOD_ALIGNMENT}', 
      '$DATA{MIN_USE}',
      '$DATA{ABON_DISTRIBUTION}',
-     '$admin->{DOMAIN_ID}'
+     '$admin->{DOMAIN_ID}',
+     '$DATA{PRIORITY}'
      );", 'do' );
 
 
@@ -585,7 +589,8 @@ sub info {
       min_use,
       abon_distribution,
       tp_id,
-      domain_id
+      domain_id,
+      priority
     FROM tarif_plans
     WHERE $WHERE;");
 
@@ -634,7 +639,8 @@ sub info {
    $self->{MIN_USE},
    $self->{ABON_DISTRIBUTION},
    $self->{TP_ID},
-   $self->{DOMAIN_ID}
+   $self->{DOMAIN_ID},
+   $self->{PRIORITY}
   ) = @{ $self->{list}->[0] };
 
 
