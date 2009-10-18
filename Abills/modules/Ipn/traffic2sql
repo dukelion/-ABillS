@@ -2,7 +2,7 @@
 # PUSH traffic to sql
 # 
 #
-use vars  qw(%RAD %conf $db %AUTH $DATE $TIME $var_dir);
+use vars  qw(%RAD %conf $db %AUTH $DATE $TIME $var_dir %log_levels);
 use strict;
 
 
@@ -35,6 +35,7 @@ my $NAS_IDS=$ARGV[0];
 
 my $debug = 0;
 
+
 use FindBin '$Bin';
 require $Bin . '/config.pl';
 unshift(@INC, $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
@@ -42,16 +43,33 @@ require Abills::Base;
 Abills::Base->import();
 my $begin_time = check_time();
 
+my $ARGV = parse_arguments(\@ARGV);
+my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
+my $log_file = "$flow_dir/traffic2sql.log";
+
+
+
+#Demonize section
+print "Start... debug: $debug\n";
+if(defined($ARGV->{'-d'})){
+  mk_log('LOG_EMERG', "traffci2sql Daemonize..."); 
+  daemonize();
+ }
+else {
+	if(make_pid($flow_dir."/traffic2sql.pid") == 1) {
+    print "Already running PID: !\n";
+    exit;
+  }
+ }	
+
+
+
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db  = $sql->{db};
 
-require Acct;
-Acct->import();
-my $Acct = Acct->new($db, \%conf);
 
 
-my $ARGV = parse_arguments(\@ARGV);
 my $IF_NAME=($ARGV->{INTERFACE}) ? $ARGV->{INTERFACE} : '';
 
 
@@ -85,10 +103,16 @@ Ipn_Collector->import();
 my $Ipn = Ipn_Collector->new($db, \%conf);
 use POSIX qw(strftime mktime ctime);
 
+require Acct;
+Acct->import();
+my $Acct = Acct->new($db, \%conf);
+
 
 my $NAS_ID = 0;
 my $unknown_ip_log = $var_dir."log/ipn/unknown_ip.log";
 my $log = $var_dir."log/ipn/trafd_". $NAS_ID. "_" .$IF_NAME;
+
+
 
 if ($NAS_IDS eq '') {
 	print "You don't specify NAS ID\n";
@@ -122,31 +146,27 @@ if (-f $log) {
 }
 
 
+
 $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
-my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
-my $log_file = "$flow_dir/traffic2sql.log";
 
 
 
-print "Start... debug: $debug\n";
-if(defined($ARGV->{'-d'})){
-  #mk_log('LOG_EMERG', "traffci2sql Daemonize..."); 
-  daemonize();
- }
-else {
-	if(make_pid($flow_dir."/traffic2sql.pid") == 1) {
-    print "Already running PID: !\n";
-    exit;
-  }
- }	
+
+
+
+
 
 while(1) {
+	$begin_time = check_time();
+
 	$Ipn->user_ips({ NAS_ID => $NAS_IDS });
+
 	flow_capture();
 
   my $UPDATE_TIME = 10;
 	sleep $UPDATE_TIME;
 }
+
 
 
 #**********************************************************
@@ -174,7 +194,7 @@ sub flow_capture {
 
   my $session_interval = 0;
   foreach $log (sort @contents) {
-    print "$flow_dir/$log\n" if ($debug > 0);
+    print "$flow_dir/$log\n" if ($debug > 1);
     if("$log" =~ /ft-(\w+)\.(\d+)\-(\d+)\-(\d+)\.(\d{2})(\d{2})(\d{2})[\-|\+](\d+)/) {
       my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$flow_dir/$log");
       #File date
@@ -267,9 +287,9 @@ foreach my $ip ( sort keys %$session_ids) {
   my $ip_stats      = $Ipn->{INTERIM}{$ip};
   my $interium_time = $interim_times->{$session_id} || 0;	
 
-  my $total_in      = 0; 
-  my $total_out     = 0;
-  my $extended      = '';
+  my $total_in       = 0; 
+  my $total_out      = 0;
+  my $extended       = '';
   my $total_user_sum = 0;
 
   # Get interval ID
@@ -432,8 +452,10 @@ elsif($total_user_sum > 0 && $uid > 0) {
 #   	      } );
 }
 
-  #Put user date to database  
+  #Put user date to database
+  
   if ($uid > 0) {
+ 	  
     $Ipn->{$ip}{IN}=0 if (! $Ipn->{$ip}{IN});
     $Ipn->{$ip}{OUT}=0 if (! $Ipn->{$ip}{OUT});
     
@@ -482,6 +504,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
           }
 
          my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $num;
+
 
          print "$DATE $TIME Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug>0);
          my $netmask = 32;
@@ -579,10 +602,9 @@ if ($debug > 0 || $log_file) {
     print $output;
    }
   else {
-    open(FILE, ">>$log_file") or die "Can't open '$log_file' $!\n";
-      print FILE "$DATE $TIME $attr->{LOG} $GT Query: $Ipn->{query_count}\n";
-      print FILE $output if ($debug > 0);
-    close(FILE);
+  	my $log_message =  "$attr->{LOG} $GT Query: $Ipn->{query_count}";
+  	$log_message .= $output if ($debug > 0);
+  	mk_log('LOG_EMERG', "$log_message"); 
    }
   
 
@@ -731,9 +753,10 @@ sub daemonize {
         open($SAVEOUT, ">&", STDOUT) or die "XXXX: $!";
 
         #Reset out
-        open STDIN, '/dev/null';
-        open STDOUT, '/dev/null';
-        open STDERR, '/dev/null';
+        
+        #open STDIN, '/dev/null';
+        #open STDOUT, '/dev/null';
+        #open STDERR, '/dev/null';
 
         if(fork()){
         	exit;
@@ -751,5 +774,27 @@ sub daemonize {
           return;
         }
 }
+
+
+#**********************************************************
+# log_print local function
+#**********************************************************
+sub mk_log {
+  my ($type, $message) = @_;
+  
+  if ($debug < $log_levels{$type}) {
+    return 0;
+   }
+
+  my $DATETIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);  
+  if ($ARGV->{LOG_FILE} || defined($ARGV->{'-d'}) ) {
+    open(FILE, ">> $log_file") || die "Can't open file '$log_file' $!\n";
+      print FILE "$DATETIME $type: $message\n";
+    close(FILE);
+   }
+  else {
+  	print "$DATETIME $message\n";
+   }
+};
 
 1
