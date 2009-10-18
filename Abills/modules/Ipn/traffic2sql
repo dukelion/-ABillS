@@ -130,7 +130,7 @@ my $log_file = "$flow_dir/traffic2sql.log";
 
 print "Start... debug: $debug\n";
 if(defined($ARGV->{'-d'})){
-  mk_log('LOG_EMERG', "traffci2sql Daemonize..."); 
+  #mk_log('LOG_EMERG', "traffci2sql Daemonize..."); 
   daemonize();
  }
 else {
