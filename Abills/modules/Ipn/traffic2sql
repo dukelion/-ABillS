@@ -22,7 +22,7 @@ if ($#ARGV < 1) {
    PREPAID_STORE - Use alternative prepaid store for prepaid traffic colection.
    TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysation
    AMON_ALIVE - Second for Amon Alive Alive interval (default value 120).
-   daemon     - Deamon mode
+   -d         - Deamon mode
 
 
    FLOW_CAT   - Flow tools flow-cat location
@@ -45,6 +45,11 @@ my $begin_time = check_time();
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db  = $sql->{db};
+
+require Acct;
+Acct->import();
+my $Acct = Acct->new($db, \%conf);
+
 
 my $ARGV = parse_arguments(\@ARGV);
 my $IF_NAME=($ARGV->{INTERFACE}) ? $ARGV->{INTERFACE} : '';
@@ -118,20 +123,38 @@ if (-f $log) {
 
 
 $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
+my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
+my $log_file = "$flow_dir/traffic2sql.log";
 
 
 
-if(defined($ARGV->{'-d'})) {
-  mk_log('LOG_EMERG', "traffic2sql Daemonize..."); 
+print "Start... debug: $debug\n";
+if(defined($ARGV->{'-d'})){
+  mk_log('LOG_EMERG', "traffci2sql Daemonize..."); 
   daemonize();
  }
+else {
+	if(make_pid($flow_dir."/traffic2sql.pid") == 1) {
+    print "Already running PID: !\n";
+    exit;
+  }
+ }	
+
+while(1) {
+	$Ipn->user_ips({ NAS_ID => $NAS_IDS });
+	flow_capture();
+
+  my $UPDATE_TIME = 10;
+	sleep $UPDATE_TIME;
+}
 
 
-# GEt information from flowtools
-#
+#**********************************************************
+# Get information from flowtools
+#**********************************************************
+sub flow_capture {
+  my ($attr) = @_;
 
-  my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
-  my $log_file = "$flow_dir/traffic2sql.log";
   
   
   my $FLOWTOOLS_IP_AGGREGATION='';
@@ -141,7 +164,6 @@ if(defined($ARGV->{'-d'})) {
 
   $unknown_ip_log = "$flow_dir/unknown_ip.log";
 
-  exit if(make_pid($flow_dir."/traffic2sql_pid.pid") == 1);
 
 
 
@@ -165,9 +187,10 @@ if(defined($ARGV->{'-d'})) {
       get_collector_data("$FLOW_CAT $flow_dir/$log | $FLOW_PRINT | $FLOWTOOLS_IP_AGGREGATION", { START => $start_date });
 
       if (! $ARGV->{DETAIL_ONLY}) {
-        processing({ START => $start_date,
-  	                 STOP  => $end_date,
-  	                 LOG   => $log
+        processing({ START            => $start_date,
+  	                 STOP             => $end_date,
+  	                 SESSION_INTERVAL => $session_interval,
+  	                 LOG              => $log
   	                  });
 
        }
@@ -191,9 +214,10 @@ if(defined($ARGV->{'-d'})) {
     $begin_time = check_time();
   }
 
+  return 0;
+}
 
 
-make_pid($flow_dir."/traffic2sql_pid.pid", 'clean');
 
 
 
@@ -220,9 +244,6 @@ foreach my $line (@$IN_ARRAY) {
 $Ipn->traffic_agregate_nets();
 my ($intervals, $tp_interval) = $Ipn->get_interval_params();
 
-require Acct;
-Acct->import();
-my $Acct = Acct->new($db, \%conf);
 
 my $ips           = $Ipn->{USERS_IPS};
 my $ips_interim   = $Ipn->{INTERIM};
@@ -548,19 +569,19 @@ if ($debug > 0 || $log_file) {
   $Ipn->{TRAFFIC_SUM}=0 if (! $Ipn->{TRAFFIC_SUM});
   $Ipn->{UNKNOWN_TRAFFIC_SUM}=0 if (! $Ipn->{UNKNOWN_TRAFFIC_SUM});
   
-  my $speed = int2byte(($Ipn->{TRAFFIC_SUM}+$Ipn->{UNKNOWN_TRAFFIC_SUM}) / $session_interval);
+  my $speed = int2byte(($Ipn->{TRAFFIC_SUM}+$Ipn->{UNKNOWN_TRAFFIC_SUM}) / $attr->{SESSION_INTERVAL});
 
 	my $output = "$unknow_ip$registred$GT/Query: $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS}/". int2byte($Ipn->{TRAFFIC_SUM}) ." Unknown: $Ipn->{UNKNOWN_TRAFFIC_ROWS}/". int2byte($Ipn->{UNKNOWN_TRAFFIC_SUM}) ." Speed: $speed/sec.\n";
 	$output .= " Unknown: $#{$Ipn->{IN}}/$Ipn->{INTERIM}{0}{OUT}" if ($Ipn->{IN});
 	$output .= "\n";
 
-
-  if ($debug > 0) {
+  if ($debug > 0 && ! defined($ARGV->{'-d'})) {
     print $output;
    }
   else {
     open(FILE, ">>$log_file") or die "Can't open '$log_file' $!\n";
       print FILE "$DATE $TIME $attr->{LOG} $GT Query: $Ipn->{query_count}\n";
+      print FILE $output if ($debug > 0);
     close(FILE);
    }
   
@@ -701,7 +722,7 @@ sub verify {
 #**********************************************************
 #
 #**********************************************************
-sub daemonize{
+sub daemonize {
         chdir '/';
         umask 0;
 
@@ -719,7 +740,7 @@ sub daemonize{
         }
         else{
           #setsid;
-          if(make_pid($flow_dir."/traffic2sql_pid.pid") == 1) {
+          if(make_pid($flow_dir."/traffic2sql.pid") == 1) {
             #Close new out 
             close (STDOUT);
             #Open old out
