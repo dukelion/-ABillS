@@ -121,10 +121,19 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
 
 
 
+if(defined($ARGV->{'-d'})) {
+  mk_log('LOG_EMERG', "traffic2sql Daemonize..."); 
+  daemonize();
+ }
+
 
 # GEt information from flowtools
 #
+
   my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
+  my $log_file = "$flow_dir/traffic2sql.log";
+  
+  
   my $FLOWTOOLS_IP_AGGREGATION='';
   if ($ARGV->{FLOWTOOLS_IP_AGGREGATION}) {
     $FLOWTOOLS_IP_AGGREGATION='awk \'BEGIN { ip1=0 };  { ips[$1"  "$2]+=$6 }; END { for (i in ips) { print i" "1" "0" "0" "ips[i]" "0; } }\' |';
@@ -157,7 +166,9 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
 
       if (! $ARGV->{DETAIL_ONLY}) {
         processing({ START => $start_date,
-  	                 STOP  => $end_date });
+  	                 STOP  => $end_date,
+  	                 LOG   => $log
+  	                  });
 
        }
 
@@ -176,7 +187,11 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
     else {
        print "Unknow File name format\n";
      }
+
+    $begin_time = check_time();
   }
+
+
 
 make_pid($flow_dir."/traffic2sql_pid.pid", 'clean');
 
@@ -520,7 +535,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
      ) if ($debug > 0);
 }
 
-if ($debug > 0) {
+if ($debug > 0 || $log_file) {
 	my $GT = '';
 
 	if ($begin_time > 0) {
@@ -535,9 +550,23 @@ if ($debug > 0) {
   
   my $speed = int2byte(($Ipn->{TRAFFIC_SUM}+$Ipn->{UNKNOWN_TRAFFIC_SUM}) / $session_interval);
 
-	print "$unknow_ip$registred$GT/Query: $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS}/". int2byte($Ipn->{TRAFFIC_SUM}) ." Unknown: $Ipn->{UNKNOWN_TRAFFIC_ROWS}/". int2byte($Ipn->{UNKNOWN_TRAFFIC_SUM}) ." Speed: $speed/sec.\n";
-	print " Unknown: $#{$Ipn->{IN}}/$Ipn->{INTERIM}{0}{OUT}" if ($Ipn->{IN});
-	print "\n";
+	my $output = "$unknow_ip$registred$GT/Query: $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS}/". int2byte($Ipn->{TRAFFIC_SUM}) ." Unknown: $Ipn->{UNKNOWN_TRAFFIC_ROWS}/". int2byte($Ipn->{UNKNOWN_TRAFFIC_SUM}) ." Speed: $speed/sec.\n";
+	$output .= " Unknown: $#{$Ipn->{IN}}/$Ipn->{INTERIM}{0}{OUT}" if ($Ipn->{IN});
+	$output .= "\n";
+
+
+  if ($debug > 0) {
+    print $output;
+   }
+  else {
+    open(FILE, ">>$log_file") or die "Can't open '$log_file' $!\n";
+      print FILE "$DATE $TIME $attr->{LOG} $GT Query: $Ipn->{query_count}\n";
+    close(FILE);
+   }
+  
+
+  $Ipn->{TRAFFIC_SUM}=0;
+  $Ipn->{UNKNOWN_TRAFFIC_SUM}=0;
 }
 elsif($unknow_ip ne '') {
   open(FILE, ">>$unknown_ip_log") or die "Can't open '$unknown_ip_log' $!";
@@ -596,6 +625,7 @@ while( <LOG> ) {
 		if ($14) {
 			$DATA{IF_NAME}=$14;
 		 }
+
     $Ipn->traffic_agregate_users({ %DATA, DEBUG => $debug });
    }
  	#trafdlog analize
@@ -668,5 +698,37 @@ sub verify {
 
 
 
+#**********************************************************
+#
+#**********************************************************
+sub daemonize{
+        chdir '/';
+        umask 0;
+
+        #Save old out
+        my  $SAVEOUT;
+        open($SAVEOUT, ">&", STDOUT) or die "XXXX: $!";
+
+        #Reset out
+        open STDIN, '/dev/null';
+        open STDOUT, '/dev/null';
+        open STDERR, '/dev/null';
+
+        if(fork()){
+        	exit;
+        }
+        else{
+          #setsid;
+          if(make_pid($flow_dir."/traffic2sql_pid.pid") == 1) {
+            #Close new out 
+            close (STDOUT);
+            #Open old out
+            open (STDOUT, ">&", $SAVEOUT);
+            print "Already running!\n";
+            exit;
+           }
+          return;
+        }
+}
 
 1
