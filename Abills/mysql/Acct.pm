@@ -311,11 +311,12 @@ elsif($acct_status_type eq 3) {
   	  $ipn_fields="sum=sum+$self->{SUM},
       acct_input_octets='$RAD->{INBYTE}',
       acct_output_octets='$RAD->{OUTBYTE}',
-      ex_input_octets='$RAD->{INBYTE2}',
-      ex_output_octets='$RAD->{OUTBYTE2}',
+      ex_input_octets=ex_input_octets + $RAD->{INBYTE2},
+      ex_output_octets=ex_output_octets + $RAD->{OUTBYTE2},
       acct_input_gigawords='$RAD->{ACCT_INPUT_GIGAWORDS}',
       acct_output_gigawords='$RAD->{ACCT_OUTPUT_GIGAWORDS}',";
      }
+
 
     $self->query($db, "UPDATE dv_calls SET
       $ipn_fields
