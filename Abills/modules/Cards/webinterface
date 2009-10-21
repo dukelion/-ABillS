@@ -1907,7 +1907,7 @@ sub cards_diller_stats {
  	                                             SORT_KEY   => 1,
  	                                             NO_ID      => 1 
  	                                            }),
-                                          "$_ROWS: " .  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
+                                          "$_ROWS: " .  $html->form_input('rows', ($FORM{rows} || int($conf{list_max_recs}) ), { SIZE => 4, OUTPUT2RETURN => 1 } ),
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
 
                                          ]],                                   

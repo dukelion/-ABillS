@@ -4730,22 +4730,11 @@ sub dv_wizard_user {
   my $users    = Users->new($db, $admin, \%conf); 
 
 
+
   if ($FORM{print}) {
     require "Abills/modules/Docs/webinterface";
     if ($FORM{PRINT_CONTRACT}) {
-#    $Dv->info($FORM{UID});
-#    $tariffs->info($Dv->{TP_ID});
-#    
-#    
-#    #Order1 Section
-#    $Dv->{ORDER_NUM}   = 1;
-#    $Dv->{ORDER_NAME}  = $_ABON;
-#    $Dv->{ORDER_COUNT} = 1;
-#    $Dv->{ORDER_PRICE} = $tariffs->{MONTH_FEE};
-#    $Dv->{ORDER_SUM}   = $tariffs->{MONTH_FEE};
-#    $Dv->{ORDER_PRICE_WITHOUT_VAT} = $tariffs->{MONTH_FEE};
-#    $Dv->{ORDER_SUM_WITHOUT_VAT}   = $tariffs->{MONTH_FEE};
-     docs_contract({ %$Dv });
+      docs_contract({ %$Dv });
     } 
    else {
      docs_account();
@@ -4798,7 +4787,7 @@ sub dv_wizard_user {
        }
       
       #3 personal info
-      $user->pi_add({ UID => "$UID", %{$add_values{3}} });
+      $user->pi_add({ UID => "$UID", %{ $add_values{3} } });
 
       #5 Payments section
       if ($FORM{'5.SUM'}) {
@@ -5037,6 +5026,27 @@ sub dv_wizard_user {
       $i++;
      }
    }
+
+    if ($conf{DOCS_CONTRACT_TYPES}) {
+    	#PREFIX:SUFIX:NAME;
+
+    	$conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
+      my (@contract_types_list)=split(/;/, $conf{DOCS_CONTRACT_TYPES});
+
+      my %CONTRACTS_LIST_HASH = ();
+      foreach my $line (@contract_types_list) {
+      	my ($prefix, $sufix, $name, $tpl_name)=split(/:/, $line);
+      	$prefix =~ s/ //g;
+      	$CONTRACTS_LIST_HASH{"$prefix|$sufix"}=$name;
+       }
+
+      $pi_form{CONTRACT_TYPE}=" $_TYPE: ".$html->form_select('CONTRACT_TYPE', 
+                                { SELECTED   => '',
+ 	                                SEL_HASH   => {'' => '', %CONTRACTS_LIST_HASH },
+ 	                                NO_ID      => 1
+ 	                               });
+     }
+
  
  $pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), undef, { OUTPUT2RETURN => 1 });
  

@@ -3,6 +3,7 @@
 # http://www.maani.us/charts/index.php
 #use vars qw($begin_time);
 
+
 BEGIN {
   my $libpath = '../../';
  
@@ -1266,13 +1267,15 @@ sub user_pi {
 
 
       my %CONTRACTS_LIST_HASH = ();
+      $FORM{CONTRACT_SUFIX}="|$user_pi->{CONTRACT_SUFIX}";
       foreach my $line (@contract_types_list) {
       	my ($prefix, $sufix, $name, $tpl_name)=split(/:/, $line);
+      	$prefix =~ s/ //g;
       	$CONTRACTS_LIST_HASH{"$prefix|$sufix"}=$name;
        }
 
-      $user_pi->{CONTRACT_TYPE}=" $_TYPE: ".$html->form_select('BILL_ID', 
-                                { SELECTED   => '',
+      $user_pi->{CONTRACT_TYPE}=" $_TYPE: ".$html->form_select('CONTRACT_TYPE', 
+                                { SELECTED   => $FORM{CONTRACT_SUFIX},
  	                                SEL_HASH   => {'' => '', %CONTRACTS_LIST_HASH },
  	                                NO_ID      => 1
  	                               });

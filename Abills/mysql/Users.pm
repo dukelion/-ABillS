@@ -259,9 +259,20 @@ sub pi_add {
     $info_fields_val = ', '. join(', ', @info_fields_val) if ($#info_fields_arr > -1);
    }
 
+  my ($prefix, $sufix); 
+  if ($attr->{CONTRACT_TYPE}) {
+  	($prefix, $sufix)=split(/\|/, $attr->{CONTRACT_TYPE});
+  	
+ 	
+  	#$self->query($db,  "SET \@CONTRACT_PREFIX:='$prefix';") if ($prefix);
+  	#$self->query($db,  "SET \@CONTRACT_SUFIX:='$sufix';") if ($sufix);
+   }
+
+
   $self->query($db,  "INSERT INTO users_pi (uid, fio, phone, address_street, address_build, address_flat, 
           email, contract_id, contract_date, comments, pasport_num, pasport_date,  pasport_grant, zip, 
-          city, accept_rules $info_fields)
+          city, accept_rules, contract_sufix
+           $info_fields)
            VALUES ('$DATA{UID}', '$DATA{FIO}', '$DATA{PHONE}', \"$DATA{ADDRESS_STREET}\", 
             \"$DATA{ADDRESS_BUILD}\", \"$DATA{ADDRESS_FLAT}\",
             '$DATA{EMAIL}', '$DATA{CONTRACT_ID}', '$DATA{CONTRACT_DATE}',
@@ -271,7 +282,8 @@ sub pi_add {
             '$DATA{PASPORT_GRANT}',
             '$DATA{ZIP}',
             '$DATA{CITY}',
-            '$DATA{ACCEPT_RULES}'
+            '$DATA{ACCEPT_RULES}',
+            '$sufix'
             $info_fields_val );", 'do');
   
   return $self if ($self->{errno});
@@ -392,6 +404,7 @@ sub pi {
   pi.email,  
   pi.contract_id,
   pi.contract_date,
+  pi.contract_sufix,
   pi.comments,
   pi.pasport_num,
   pi.pasport_date,
@@ -419,6 +432,7 @@ sub pi {
    $self->{EMAIL}, 
    $self->{CONTRACT_ID},
    $self->{CONTRACT_DATE},
+   $self->{CONTRACT_SUFIX},
    $self->{COMMENTS},
    $self->{PASPORT_NUM},
    $self->{PASPORT_DATE},
@@ -997,6 +1011,7 @@ sub add {
   
   my %DATA = $self->get_data($attr, { default => defaults() }); 
 
+
   if (! defined($DATA{LOGIN})) {
      $self->{errno} = 8;
      $self->{errstr} = 'ERROR_ENTER_NAME';
@@ -1021,7 +1036,6 @@ sub add {
       return $self;
      }
    }
-  
   
   $DATA{DISABLE} = int($DATA{DISABLE});
   $self->query($db,  "INSERT INTO users (id, activate, expire, credit, reduction, 

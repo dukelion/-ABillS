@@ -103,7 +103,7 @@ sub new {
   	$PAGE_ROWS = int($attr->{PAGE_ROWS});
    }
   else {
- 	  $PAGE_ROWS = $CONF->{web_page_rows} || 25;
+ 	  $PAGE_ROWS = $CONF->{list_max_recs} || 25;
    }
 
   if ($attr->{METATAGS}) {

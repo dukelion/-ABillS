@@ -10,7 +10,7 @@
 <TR bgcolor='$_COLORS[1]'><TD><b>$_PHONE:</b></TD><TD>%PHONE%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD><b>$_ADDRESS:</b></TD><TD>%ADDRESS_STREET%, %ADDRESS_BUILD%/%ADDRESS_FLAT%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD><b>E-mail:</b></TD><TD>%EMAIL%</TD></TR>
-<TR bgcolor='$_COLORS[2]'><TD><b>$_CONTRACT:</b></TD><TD>%CONTRACT_ID%</TD></TR>
+<TR bgcolor='$_COLORS[2]'><TD><b>$_CONTRACT:</b></TD><TD>%CONTRACT_ID%%CONTRACT_SUFIX%</TD></TR>
 <TR bgcolor='$_COLORS[2]'><TD><b>$_CONTRACT $_DATE:</b></TD><TD>%CONTRACT_DATE%</TD></TR>
 <TR bgcolor='$_COLORS[1]'><TD><b>$_STATUS:</b></TD><TD>%DISABLE%</TD></TR>
 <TR bgcolor='#DDDDDD'><TD colspan='2'>&nbsp;</TD></TR>

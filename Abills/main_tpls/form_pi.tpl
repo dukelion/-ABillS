@@ -10,7 +10,7 @@
 <TR><TD>$_PHONE:</TD><TD><input type=text name=PHONE value='%PHONE%'></TD></TR>
 %ADDRESS_TPL%
 <TR><TD>E-mail:</TD><TD><input type=text name=EMAIL value='%EMAIL%' size=45></TD></TR>
-<TR><TD>$_CONTRACT_ID:</TD><TD><input type=text name=CONTRACT_ID value='%CONTRACT_ID%'> $_DATE: <input type=text name=CONTRACT_DATE value='%CONTRACT_DATE%' size=12> %CONTRACT_TYPE% %PRINT_CONTRACT%</TD></TR>
+<TR><TD>$_CONTRACT_ID:</TD><TD><input type=text name=CONTRACT_ID value='%CONTRACT_ID%'>%CONTRACT_SUFIX% $_DATE: <input type=text name=CONTRACT_DATE value='%CONTRACT_DATE%' size=12> %CONTRACT_TYPE% %PRINT_CONTRACT%</TD></TR>
 <TR><TH colspan='2' bgcolor='$_COLORS[2]'>$_PASPORT</TH></TR>
 <TR><TD>$_NUM:</TD><TD><input type=text name=PASPORT_NUM value='%PASPORT_NUM%'></TD></TR>
 <TR><TD>$_DATE:</TD><TD><input type=text name=PASPORT_DATE value='%PASPORT_DATE%'></TD></TR>
