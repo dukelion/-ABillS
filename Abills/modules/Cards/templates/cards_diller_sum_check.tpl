@@ -1,5 +1,6 @@
 <table><tr><td>
 <pre><CODE>
+$_REPORTS: $_DAY
 --------------------------
 $_DATE:   %DATE%
 DILLER_ID: %DILLER_ID%

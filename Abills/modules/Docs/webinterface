@@ -756,9 +756,8 @@ sub docs_account {
      $Docs->account_add({ %FORM });
      if(! $Docs->{errno}) {
        $FORM{ACCOUNT_ID}=$Docs->{DOC_ID};
-       $html->message('info', "$_ACCOUNT $_ADDED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE} (".
-        $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new' }) .")");
        $Docs->account_info($Docs->{DOC_ID}, { UID => $LIST_PARAMS{UID} });
+
        ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
 
        my $list = $Docs->{ORDERS};
@@ -783,6 +782,12 @@ sub docs_account {
        	 $html->message('info', "$_ACCOUNT $_ADDED", "$_ACCOUNT $_ADDED. (". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }).")" );
        	 return 0;
         }
+       else {
+         $html->message('info', "$_ACCOUNT $_ADDED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE} (".
+          $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new' }) .")");
+          #return 0;
+        }
+       	
 
       
        #print $html->header() if ($FORM{qindex});

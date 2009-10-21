@@ -1863,7 +1863,7 @@ sub cards_diller_stats {
     
     my $list = $Cards->cards_list({ %LIST_PARAMS, 
     	                              PAGE_ROWS => 1000000, 
-    	                              SERIA     => '' 
+    	                              #SERIA     => '' 
  	                                 });
     my $details     = '';
     my $total_count = 0;
@@ -1871,8 +1871,8 @@ sub cards_diller_stats {
 
     foreach my $line (@$list) {
     	$details     = '';
-      $total_count++;
-      $total_sum   += $line->[3];
+      $total_count += $line->[1];
+      $total_sum   += $line->[2];
      }
 
     
@@ -2101,7 +2101,7 @@ else {
    	     $html->button($line->[0], "index=$index&TYPE=TP$pages_qs&sid=$FORM{sid}". ( ($line->[0] =~ /(\d{4}-\d{2}-\d{2})/) ? "&CREATED_DATE=$1" : '') ), 
   	     $line->[1],
   		   $line->[2],
-  	     $html->button("$_PRINT", '#',  {  NEW_WINDOW      => "$_SELF_URL?qindex=$index&print=$line->[0]&sid=$FORM{sid}",
+  	     $html->button("$_PRINT $_SUM", '#',  {  NEW_WINDOW      => "$_SELF_URL?qindex=$index&print=$line->[0]&sid=$FORM{sid}",
       	                                   NEW_WINDOW_SIZE => "480:640",  
       	                                 } ),  		
   	    );

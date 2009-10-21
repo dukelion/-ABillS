@@ -103,7 +103,7 @@ sub new {
   	$PAGE_ROWS = int($attr->{PAGE_ROWS});
    }
   else {
- 	  $PAGE_ROWS = 25;
+ 	  $PAGE_ROWS = $CONF->{web_page_rows} || 25;
    }
 
   if ($attr->{METATAGS}) {
@@ -111,14 +111,14 @@ sub new {
    }
 
   if ($attr->{PATH}) {
-    $self->{PATH}=$attr->{PATH};
-    $IMG_PATH = $self->{PATH}.'img';
+    $self->{PATH} = $attr->{PATH};
+    $IMG_PATH     = $self->{PATH}.'img';
    }
 
-  $domain = $ENV{SERVER_NAME};
+  $domain   = $ENV{SERVER_NAME};
   $web_path = '';
-  $secure = '';
-  my $prot = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http' ;
+  $secure   = '';
+  my $prot  = (defined($ENV{HTTPS}) && $ENV{HTTPS} =~ /on/i) ? 'https' : 'http' ;
   $SELF_URL = (defined($ENV{HTTP_HOST})) ? "$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}" : '';
 
   $SESSION_IP = $ENV{REMOTE_ADDR} || '0.0.0.0';
@@ -1268,9 +1268,26 @@ sub date_fld  {
    $mday=1;
   }
  
- my $day = $FORM{$base_name.'D'} || $mday;
+
+
  my $month = $FORM{$base_name.'M'} || $mon;
- my $year = $FORM{$base_name.'Y'} || $curyear + 1900;
+ my $year  = $FORM{$base_name.'Y'} || $curyear + 1900;
+ my $day;
+ 
+ if ($FORM{$base_name.'D'}) {
+   $day   = $FORM{$base_name.'D'};
+  }
+ else {
+ 	 if ($base_name =~ /to/i) {
+ 	 	 my $m = $month+1;
+ 	   $day   = ($m!=2?(($m%2)^($m>7))+30:(!($year%400)||!($year%4)&&($year%25)?29:28));
+ 	  }
+   else {
+   	 $day   = $mday;
+    }
+  }
+
+
 
 
 my $result  = "<SELECT name=". $base_name ."D>";
