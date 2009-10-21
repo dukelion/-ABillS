@@ -947,6 +947,7 @@ CREATE TABLE `users_pi` (
   `zip` varchar(7) NOT NULL default '',
   `city` varchar(20) NOT NULL default '',
   `accept_rules` tinyint(1) unsigned NOT NULL default '0',
+  `contract_sufix` VARCHAR(5) NOT NULL DEFAULT '',
   PRIMARY KEY  (`uid`)
 ) COMMENT='Users personal info';
 
