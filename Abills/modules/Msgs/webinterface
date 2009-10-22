@@ -1136,6 +1136,77 @@ print $table->show();
 }
 
 
+#*******************************************************************
+#
+#*******************************************************************
+sub msgs_chapters {
+
+  $Msgs->{ACTION}='add';
+  $Msgs->{ACTION_LNG}=$_ADD;
+
+  if ($FORM{add}) {
+    $Msgs->chapter_add({ %FORM });
+
+    $html->message('info', $_INFO, "$_ADDED") if (! $Msgs->{errno});  	
+   }
+  elsif ($FORM{change}) {
+    
+    $Msgs->chapter_change({ %FORM });
+
+    $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});  	
+   }
+  elsif ($FORM{chg}) {
+
+    $Msgs->chapter_info($FORM{chg});
+
+    $Msgs->{ACTION}='change';
+    $Msgs->{ACTION_LNG}=$_CHANGE;
+
+    $html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	  	
+   }
+  elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+    $Msgs->chapter_del({ ID => $FORM{del} });
+
+    $html->message('info', $_INFO, "$_DELETED") if (! $Msgs->{errno});
+   }
+
+  if ($Msgs->{errno}) {
+     $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
+   } 
+  
+
+  $Msgs->{INNER_CHAPTER} = ($Msgs->{INNER_CHAPTER}) ? ' checked' : '';
+
+  $html->tpl_show(_include('msgs_chapter', 'Msgs'), $Msgs);  
+  
+  my $list = $Msgs->chapters_list({ %LIST_PARAMS });
+  
+  
+  my $table = $html->table( { width      => '100%',
+                              caption    => "$_CHAPTERS",
+                              title      => ['#', "$_NAME", "$_INNER", "$_MESSAGES", "-", "-"],
+                              cols_align => ['left', 'left', 'right', 'center:noprint', 'center:noprint'],
+                              qs         => $pages_qs,
+                           });
+
+
+foreach my $line (@$list) {
+  $table->addrow(
+    $line->[0], 
+    $line->[1], 
+    $bool_vals[$line->[2]], 
+    $html->button($line->[3], ""),
+    $html->button("$_CHANGE", "index=$index&chg=$line->[0]"),
+    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
+   );
+}
+
+print $table->show();
+  
+}
+
+
+
 
 
 #*******************************************************************
