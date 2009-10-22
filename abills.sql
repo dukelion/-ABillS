@@ -941,13 +941,13 @@ CREATE TABLE `users_pi` (
   `comments` text NOT NULL,
   `contract_id` varchar(10) NOT NULL default '',
   `contract_date` date NOT NULL,
+  `contract_sufix` VARCHAR(5) NOT NULL DEFAULT '',
   `pasport_num` varchar(16) NOT NULL default '',
   `pasport_date` date NOT NULL default '0000-00-00',
   `pasport_grant` varchar(100) NOT NULL default '',
   `zip` varchar(7) NOT NULL default '',
   `city` varchar(20) NOT NULL default '',
   `accept_rules` tinyint(1) unsigned NOT NULL default '0',
-  `contract_sufix` VARCHAR(5) NOT NULL DEFAULT '',
   PRIMARY KEY  (`uid`)
 ) COMMENT='Users personal info';
 
