@@ -58,6 +58,10 @@ sub new {
   my $self = { };
   bless($self, $class);
 
+  if ($CONF->{DELETE_USER}) {
+    return $self;
+   }
+
   if (! defined($CONF->{KBYTE_SIZE})){
   	$CONF->{KBYTE_SIZE}=1024;
    }
