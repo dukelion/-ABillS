@@ -33,8 +33,30 @@ sub docs_contract {
     #$Docs->{ADDRESS_FULL}="$Docs->{ADDRESS_STREET}, $Docs->{ADDRESS_BUILD}/$Docs->{ADDRESS_FLAT}"; 
 		
 		%{ $attr } = %{ Docs }, %{ $user_main_info };
+		my $contract_tpl = 'contract';
 		
-		docs_print('contract', { %$admin, %$Docs, %$attr });
+		if ($Docs->{CONTRACT_SUFIX}) {
+			if ($conf{DOCS_CONTRACT_TYPES}) {
+    	  #PREFIX:SUFIX:NAME;
+
+        $conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
+        my (@contract_types_list)=split(/;/, $conf{DOCS_CONTRACT_TYPES});
+        foreach my $line (@contract_types_list) {
+        	my ($prefix, $sufix, $name, $tpl_name)=split(/:/, $line);
+        	
+        	if ($sufix eq $Docs->{CONTRACT_SUFIX}) {
+        	  $contract_tpl = $tpl_name;
+        	
+        	  $Docs->{CONTRACT_ID} .= $Docs->{CONTRACT_SUFIX};
+        	  last;
+        	 }
+         }
+       }
+			
+		 }
+		
+
+		docs_print($contract_tpl, { %$admin, %$Docs, %$attr });
 	 }
 }
 
