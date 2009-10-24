@@ -34,10 +34,12 @@ my %PI_FIELDS = (EMAIL          => 'email',
               UID            => 'uid',
               CONTRACT_ID    => 'contract_id',
               CONTRACT_DATE  => 'contract_date',
+              CONTRACT_SUFIX => 'contract_sufix',
               PASPORT_NUM    => 'pasport_num',
               PASPORT_DATE   => 'pasport_date',
               PASPORT_GRANT  => 'pasport_grant',
               ACCEPT_RULES   => 'accept_rules',
+              
              );
 
 
@@ -478,7 +480,13 @@ sub pi_change {
       }
      }
    }
-  
+
+  my ($prefix, $sufix); 
+  if ($attr->{CONTRACT_TYPE}) {
+  	($prefix, $sufix)=split(/\|/, $attr->{CONTRACT_TYPE});
+  	$attr->{CONTRACT_SUFIX}=$sufix;
+   }
+
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users_pi',
 		                FIELDS       => \%PI_FIELDS,
