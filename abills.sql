@@ -1172,7 +1172,7 @@ INSERT INTO `admin_permits` (`aid`, `section`, `actions`, `module`) VALUES
 
 INSERT INTO `users` (`id`, `activate`, `expire`, `credit`, `reduction`, `registration`, `password`, `uid`, `gid`, `disable`, `company_id`, `bill_id`, `ext_bill_id`, `credit_date`, `domain_id`) VALUES ('test','0000-00-00','0000-00-00',0.00,0.00,'2009-08-03', ENCODE('123456','test12345678901234567890'),1,0,0,0,1,0,'0000-00-00',0);
 
-INSERT INTO `users_pi` VALUES (1,'Test user',0,'','','','','','','0000-00-00','','0000-00-00','','','',0);
+INSERT INTO `users_pi` (uid, fio) VALUES (1,'Test user');
 
 INSERT INTO `bills` VALUES (1,0.000000,1,0,'2009-08-03');
 
