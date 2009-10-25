@@ -338,13 +338,17 @@ sub changes {
   my $self = shift;
   my ($admin, $attr) = @_;
 
+
   
   my $TABLE        = $attr->{TABLE};
   my $CHANGE_PARAM = $attr->{CHANGE_PARAM};
   my $FIELDS       = $attr->{FIELDS};
   my %DATA         = $self->get_data($attr->{DATA}); 
 
-  $DATA{DISABLE} = ($DATA{DISABLE}) ? 1 : 0;
+
+  if (! $DATA{UNCHANGE_DISABLE} ) {
+    $DATA{DISABLE} = (defined($DATA{DISABLE})) ? $DATA{DISABLE} : undef;
+   }
 
   if(defined($DATA{EMAIL}) && $DATA{EMAIL} ne '') {
     if ($DATA{EMAIL} !~ /(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/) {
@@ -369,7 +373,7 @@ sub changes {
 
 
   while(my($k, $v)=each(%DATA)) {
-#  	print "$k, $v<br>\n";
+  	#print "$k, $v<br>\n";
     $OLD_DATA->{$k} = '' if (! $OLD_DATA->{$k});
     if (defined($FIELDS->{$k}) && $OLD_DATA->{$k} ne $DATA{$k}){
     	
@@ -397,8 +401,8 @@ sub changes {
 
           if ($k eq 'DISABLE') {
             if ($DATA{$k} == 0){
-              $self->{ENABLE}=1;
-              $self->{DISABLE}=undef;
+              $self->{ENABLE} = 1;
+              $self->{DISABLE}= undef;
              }
             else {
             	$self->{DISABLE}=1;

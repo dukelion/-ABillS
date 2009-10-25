@@ -1105,6 +1105,10 @@ sub change {
 
   #$attr->{CREDIT}=undef if ($attr->{CREDIT} && $attr->{CREDIT} <= 0);
 
+  
+
+  #$self->{debug}=1;
+
   my $old_info = $self->info($attr->{UID});
   
   if($attr->{CREATE_BILL}) {
@@ -1146,7 +1150,6 @@ sub change {
  
   #Make extrafields use
  
-  
 
   $admin->{MODULE}='';
 	$self->changes($admin, { CHANGE_PARAM => 'UID',

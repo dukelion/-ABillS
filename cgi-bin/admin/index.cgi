@@ -1505,11 +1505,19 @@ elsif ($FORM{MULTIUSER}) {
   my $count = 0;
 	my %CHANGE_PARAMS = ();
  	while(my($k, $v)=each %FORM) {
+ 		print "// $k, $v <br>";
  		if ($k =~ /^MU_(\S+)/) {
-      $CHANGE_PARAMS{$1}=$FORM{$1};
+ 			my $val = $1;
+      $CHANGE_PARAMS{$val}=$FORM{$val};
 	   }
 	 }
 
+  if (! defined($FORM{DISABLE})) {
+    $CHANGE_PARAMS{UNCHANGE_DISABLE}=1 ;
+   }
+  else {
+  	$CHANGE_PARAMS{DISABLE}=$FORM{MU_DISABLE} || 0;
+   }
 
   if ($#multiuser_arr < 0) {
   	$html->message('err', $_MULTIUSER_OP, "$_SELECT_USER");
