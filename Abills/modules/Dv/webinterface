@@ -1998,7 +1998,6 @@ else {
    }
 
 
-print "111 $graph_type /";
 if ($graph_type ne 'pie') {
 	
 $output = $html->make_charts({  

@@ -464,6 +464,14 @@ foreach my $line (@periods) {
     }
   }
 
+ if ($self->{ACC_EXPIRE} != 0) {
+   my $to_expire = $self->{ACC_EXPIRE}-$self->{SESSION_START};
+   if ($to_expire < $time_limit) {
+   	 $time_limit=$to_expire;
+    }
+  }
+
+
  if ($time_limit > 0) {
    $RAD_PAIRS->{'Session-Timeout'} = "$time_limit";
   }
@@ -900,7 +908,8 @@ sub authentication {
   u.credit,
   u.activate,
   u.reduction,
-  u.ext_bill_id
+  u.ext_bill_id,
+  UNIX_TIMESTAMP(u.expire)
      FROM users u
      WHERE 
         u.id='$RAD->{USER_NAME}' $WHERE
@@ -931,7 +940,8 @@ sub authentication {
      $self->{CREDIT},
      $self->{ACCOUNT_ACTIVATE},
      $self->{REDUCTION},
-     $self->{EXT_BILL_ID}
+     $self->{EXT_BILL_ID},
+     $self->{ACC_EXPIRE}
     ) = @{ $self->{list}->[0] };
 
 

@@ -349,6 +349,8 @@ sub del {
   my ($attr) = @_;
 
   $self->query($db, "DELETE from dv_main WHERE uid='$self->{UID}';", 'do');
+  $self->query($db, "DELETE from dv_log WHERE uid='$self->{UID}';", 'do');
+
 
   $admin->action_add($self->{UID}, "$self->{UID}", { TYPE => 10 });
   return $self->{result};

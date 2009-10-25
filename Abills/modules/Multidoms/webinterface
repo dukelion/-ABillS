@@ -282,6 +282,7 @@ if ($FORM{create}) {
    }
 
 
+  $info{TEMPLATE} =~ s/\\"/"/g;
 
   $info{TEMPLATE}=~s/\%BODY\%/__BODY__/g;
 
@@ -379,7 +380,9 @@ elsif ($FORM{change}) {
   	$html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");
    }
 
+  $info{TEMPLATE} =~ s/\\"/"/g;
 	$info{TEMPLATE}=~s/\%BODY\%/__BODY__/g;
+
  }
 elsif ($FORM{FILE_UPLOAD}) {
   $FORM{FILE_UPLOAD}{filename} =~ tr/ /_/;
@@ -427,6 +430,8 @@ elsif($FORM{tpl_name}) {
 	  close(FILE);
     $info{TPL_NAME} = $FORM{tpl_name};
     $html->message('info', $_CHAMGE, "$_CHANGE: $FORM{tpl_name}");
+
+    $info{TEMPLATE} =~ s/\\"/"/g;
    }
 }
 
