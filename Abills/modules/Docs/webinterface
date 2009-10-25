@@ -30,7 +30,7 @@ sub docs_contract {
     my ($y, $m, $d)=split(/-/, (($users->{CONTRACT_DATE}) ? $users->{CONTRACT_DATE} : $DATE ) , 3);
     $Docs->{CONTRACT_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
     
-    #$Docs->{ADDRESS_FULL}="$Docs->{ADDRESS_STREET}, $Docs->{ADDRESS_BUILD}/$Docs->{ADDRESS_FLAT}"; 
+    #$Docs->{ADDRESS_FULL}="$Docs->{ADDRESS_STREET} $Docs->{ADDRESS_BUILD}, $Docs->{ADDRESS_FLAT}"; 
 		
 		%{ $attr } = %{ Docs }, %{ $user_main_info };
 		my $contract_tpl = 'contract';
@@ -1018,7 +1018,7 @@ sub docs_print {
 
   if ($Docs->{UID}) {
     $users->pi({  UID => $Docs->{UID} }) ;
-    $users->{ADDRESS_FULL}="$users->{ADDRESS_STREET}, $users->{ADDRESS_BUILD}/$users->{ADDRESS_FLAT}"; 
+    $users->{ADDRESS_FULL}="$users->{ADDRESS_STREET}, $users->{ADDRESS_BUILD}, $users->{ADDRESS_FLAT}"; 
    }
 
 	$html->tpl_show(_include("docs_$template", 'Docs', 
