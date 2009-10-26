@@ -21,6 +21,8 @@ Billing system with different abilities:
    Cisco ISG (Services, Turbo Mode) 
    IPTV (VoD,nVoD)
    Antivirus (Dr. Web, AV Desk)
+   Marketing Reports
+   Payments Systems (Webmoney, Pegas, 24 Non Stop, SMS Proxy and other)
 
 Technology: 
    FreeBSD, Linux, MySQL, Radius, DHCP, Netwlow, SNMP, SMTP
