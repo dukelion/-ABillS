@@ -6,12 +6,13 @@ use Fees;
 use Customers;	
 
 $Docs = Docs->new($db, $admin, \%conf);
-my $Fees = Fees->new($db, $admin, \%conf);
+my $Fees     = Fees->new($db, $admin, \%conf);
+my $Payments = Payments->new($db, $admin, \%conf);
 my $Customer = Customers->new($db, $admin, \%conf);
 my $Company  = $Customer->company();
 
-
-
+#Default 20% VAT
+$conf{DOCS_VAT_INCLUDE}=20 if (! defined($conf{DOCS_VAT_INCLUDE}));
 
 #**********************************************************
 # docs_print
@@ -103,21 +104,54 @@ sub docs_invoice_add  {
   }
 
   $Docs->{TOTAL_SUM}=0.00;
+
   if ($Docs->{ORDERS}) {
 		my $i = 1;
 		my @ORDERS = @{ $Docs->{ORDERS} };
 		$Docs->{ORDER}='';
 		foreach my $line (@ORDERS) {
 			my $sum = sprintf("%.2f", $line->[3] * $line->[4]);
+
 		  $Docs->{ORDER}.="<tr><th align='right'>$i</th><td align='left'>$line->[1]</td><td align='center'>$units[$line->[2]]</td>
 		  <td align='right'>$line->[3]</td><td align='right'>$line->[4]</td><td align='right'>$sum</td></tr>";
+
+   	  $Docs->{'ORDER_NUM_'.$i}   = $i;
+      $Docs->{'ORDER_NAME_'.$i}  = $line->[1];
+      $Docs->{'ORDER_COUNT_'.$i} = $count;
+      $Docs->{'ORDER_PRICE_'.$i} = $line->[4];
+      $Docs->{'ORDER_SUM_'.$i}   = $sum;
+
+      $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[4]);
+      $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - $sum / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum);
 
 		  $i++;
 		  $Docs->{TOTAL_SUM}+=$sum;
 		 }
 	 }
 
+  if ($Docs->{PAYMENT_ID}) {
+    my $list = $Docs->accounts_list({ PAYMENT_ID => $Docs->{PAYMENT_ID} });
+    if ($Docs->{TOTAL} > 0) {
+      $Docs->account_info($list->[0]->[9]);	
+     }
+    $Docs->{ACCOUNT_ID}=$Docs->{ACCT_ID};
+    
+    push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+    my $method = 0;
+
+
+    $list = $Payments->list({ ID => $Docs->{PAYMENT_ID} });
+    if ($Payments->{TOTAL} > 0) {
+    	$method=$list->[0]->[8];
+      $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$method];
+     }
+   }
+ 
   $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
+
+  $Docs->{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
+  $Docs->{'TOTAL_SUM_VAT'}        = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
+
 
   if ($conf{DOCS_PDF_PRINT}) {
   	 $html->message('info', $_ADDED, "$_INVOICE $_ADDED. ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new' }));
@@ -152,8 +186,8 @@ sub docs_invoice {
     $Docs->{OP_SID}  = mk_unique_value(16);
     $users->pi({ $users->{UID} });
 
-    $Docs->{CUSTOMER}=$users->{FIO} || '-';
-    $Docs->{CAPTION}=$_INVOICE;
+    $Docs->{CUSTOMER}= $users->{FIO} || '-';
+    $Docs->{CAPTION} = $_INVOICE;
 
     $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users });
    }
@@ -211,11 +245,29 @@ elsif($FORM{print}) {
 	 }
 
   $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
+
+  if ($Docs->{PAYMENT_ID}) {
+    my $list = $Docs->accounts_list({ PAYMENT_ID => $Docs->{PAYMENT_ID} });
+    if ($Docs->{TOTAL} > 0) {
+      $Docs->account_info($list->[0]->[9]);	
+     }
+    $Docs->{ACCOUNT_ID}=$Docs->{ACCT_ID};
+    
+    push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+    my $method = 0;
+
+    $list = $Payments->list({ ID => $Docs->{PAYMENT_ID} });
+    if ($Payments->{TOTAL} > 0) {
+    	$method=$list->[0]->[8];
+      $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$method];
+     }
+   }
+
   
   if ($conf{DOCS_VAT_INCLUDE}) {
-   	 $Docs->{ORDER_TOTAL_SUM_VAT} = sprintf("%.2f", $Docs->{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
-   	 $Docs->{TOTAL_SUM_WITHOUT_VAT}=sprintf("%.2f",$Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
-   	 $Docs->{VAT}=sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
+   	 $Docs->{ORDER_TOTAL_SUM_VAT}  = sprintf("%.2f", $Docs->{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
+   	 $Docs->{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f",$Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
+   	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
    }
  
   docs_print('invoice', $Docs);

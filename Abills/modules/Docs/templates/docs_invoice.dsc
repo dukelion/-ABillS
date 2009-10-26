@@ -56,6 +56,8 @@ ORDER_SUM_WITHOUT_VAT_2:Сума товара без налога:russian:(x=0;y=0)
 
 #ORDER_TOTAL_SUM_VAT:Сума налога заказа за товар:russian:(x=446;y=432,x=490;y=390,x=325;y=452;page=2)
 #TOTAL_SUM_WITHOUT_VAT:Всего, без налога:russian:(x=446;y=447;)
+PAYMENT_METHOD:Payments methods:english:(x=10;y=20)
+ACCOUNT_ID:Account ID:english:(x=20;y=20)
 
 
 

@@ -9,7 +9,7 @@
 <tr><td><b><u>ИИН    </u></b>  </td><td>  </td></tr>
 <tr><td><b><u>Адрес  </u></b>    </td><td>  </td></tr>
 <tr><td><b><u>Отправитель  </u></b>  </td><td> %FROM%  </td></tr>
-<tr><td><b><u>Получатель  </u></b>  </td><td>  %CUSTOMER%  </td></tr>
+<tr><td><b><u>Получатель  </u></b>  </td><td>  %CUSTOMER% (%LOGIN%) </td></tr>
 <tr><td><b><u>Тип продажи </u></b>  </td><td>  в долг      </td></tr>
 <tr><td><b><u>Тип операции </u></b> </td><td>  Передача товара  %OPERATION%  </td></tr>
 <tr><td colspan=2>

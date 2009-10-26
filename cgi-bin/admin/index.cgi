@@ -1505,7 +1505,6 @@ elsif ($FORM{MULTIUSER}) {
   my $count = 0;
 	my %CHANGE_PARAMS = ();
  	while(my($k, $v)=each %FORM) {
- 		print "// $k, $v <br>";
  		if ($k =~ /^MU_(\S+)/) {
  			my $val = $1;
       $CHANGE_PARAMS{$val}=$FORM{$val};
@@ -4619,13 +4618,14 @@ if (defined($attr->{USER})) {
         if ($FORM{CREATE_INVOICE}) {
           require "Abills/modules/Docs/webinterface";
           docs_invoice_add({
-          	DATE      => $DATE,
-          	CUSTOMER  => '-', 
-          	PHONE     => '',
-            UID       => $FORM{UID},
-            ORDER     => "$FORM{DESCRIBE}" || '-',
-            SUM       => $FORM{SUM},
-            create    => 1
+          	DATE       => $DATE,
+          	CUSTOMER   => '-', 
+          	PHONE      => '',
+            UID        => $FORM{UID},
+            ORDER      => "$FORM{DESCRIBE}" || '-',
+            SUM        => $FORM{SUM},
+            create     => 1,
+            PAYMENT_ID => $payments->{PAYMENT_ID}
         	  });
   	     }
       }

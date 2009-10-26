@@ -269,6 +269,7 @@ CREATE TABLE `docs_tax_invoices` (
   `vat` double(5,2) unsigned NOT NULL DEFAULT '0.00',
   `company_id` int(11) unsigned NOT NULL DEFAULT '0',
   `domain_id` smallint(6) unsigned not null default 0,
+  `account_id` int(11) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `date` (`date`,`company_id`),
   KEY `domain_id` (`domain_id`)

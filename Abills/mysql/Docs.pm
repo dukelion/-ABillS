@@ -159,7 +159,8 @@ sub docs_invoice_info {
    d.by_proxy_date,
    d.id,
    d.uid,
-   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day
+   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day,
+   d.payment_id
     FROM (docs_invoice d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
@@ -179,14 +180,15 @@ sub docs_invoice_info {
    $self->{PHONE},
    $self->{VAT},
    $self->{ADMIN},
-   $self->{USER},
+   $self->{LOGIN},
    $self->{CREATED},
    $self->{BY_PROXY_SERIA},
    $self->{BY_PROXY_PERSON},
    $self->{BY_PROXY_DATE},
    $self->{DOC_ID},
    $self->{UID},
-   $self->{EXPIRE_DATE}
+   $self->{EXPIRE_DATE},
+   $self->{PAYMENT_ID}
   )= @{ $self->{list}->[0] };
 	
   if ($self->{TOTAL} > 0) {
@@ -231,12 +233,14 @@ sub docs_invoice_add {
   $self->query($db, "insert into docs_invoice (invoice_id, date, created, customer, phone, aid, uid,
     by_proxy_seria,
     by_proxy_person,
-    by_proxy_date)
+    by_proxy_date,
+    payment_id)
       values ('$DATA{INVOICE_ID}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 
       \"$admin->{AID}\", \"$DATA{UID}\",
       '$DATA{BY_PROXY_SERIA}',
       '$DATA{BY_PROXY_PERSON}',
-      '$DATA{BY_PROXY_DATE}');", 'do');
+      '$DATA{BY_PROXY_DATE}',
+      '$DATA{PAYMENT_ID}');", 'do');
  
   return $self if($self->{errno});
   $self->{DOC_ID}=$self->{INSERT_ID};
