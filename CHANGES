@@ -1,623 +1,223 @@
-=====0.42=====
-02.06.2009\\
- * Добавлена опция $conf{SNMPUTILS_SAVE_CONF} сохранение параметров конфигурации после применения привязок MAC  к портам
+=====0.5x (Dev)=====
 
-27.05.2009\\
-  * Добавлено два новых статуса для сервиса DV - "приостановленно" и "Отключено: Неуплата".
 
-26.05.2009\\
-  * В расписание сообщений добавлена таблица расписания по часам, разделам и администраторам.
+**В связи с множеством доработок в версии 0.5 при переходе обязательно нужно обновить все коммерческие модули, цена обновления 50%  от цены модуля**
 
-21.05.2009\\
-  * Обновлены скрипты рисования графиков
-  * Добавлены графики в отчёты по Поступления и Списаниям средств
-  * Добавлен Маркетинговый отчёт "Развитие". В котором отображается количество Подключённых, отключённых и удалённых пользователей.
+  * Создан новый модуль [[abills:docs:modules:multidoms:ru:abills|Multidoms]]. Система управления мультидоменами, разрешающая независимо вести в одной биллинговой системе несколько провайдеров.
+  * Добавлен интерфейс реселлера, с возможностью авторегистрации реселлеров.
+  * Улучшен интерфейс дилера в карточном модуле. Доработаны отчёты продаж
+  * Добавлены поля занесения физических адресов расположения серверов доступа  
+  * Вынесены классы трафика в отдельную форму и доработан шейпер с учётом таблиц FreeBSD + ng_car. **При миграции нужно завести классы трафика в таблицу и повторно их выбрать в форме тарификации трафика**
+  * Добавлена возможность учёта классов трафика для MPD5 через RADIUS  атрибуты
+  * Добавлена возможность мониторинга нескольких баз данных, мониторинг состояния кластера
+  * Добавлена возможность вести историю SQL  запросов в Sqlcmd
+  * Добавлена возможность задавать несколько расписаний на изменение тарифных планов.
+  * Добавлены поля максимальное количество трафика и времени для тарифного плана. Позволяет более гибко стоить тарифных планы для Hotspot систем.
+  * Добавлено группирование NAS (серверов доступа).
+  * Задание минимального размер пакета, который будет попадать в детализацию. Данная опция предохраняет от замусоривания базы $conf{IPN_DETAIL_MIN_SIZE}=1024;
+  * Добавлено в компании информационное поле представитель
+  * Добавлена привязка платежей к платёжным документам: счёт, счёт-фактура, кассовый ордер
+  * Добавлена возможность автоконфигурации точек HotSpot с прошивкой на базе WRT
+  * Добавлена возможность добавлять комментарии при назначении периодических платежей пользователям. Комментарии отображаются при снятии денег по периодическим платежам.
+  * Добавлено отображение даты следующего периодического платежа
+  * Добавлены временные интервалы к периодическим платежам: квартал, пол года
+  * Добавлена возможность снимать деньги с дополнительного счёта
+  * Добавлены возможность производить снятия как по фиксированным периодам: начало месяца, начало квартала начало года, так и по произвольным - через месяц после последнего снятия, через квартал, через полгода, через год
+  * Добавлено в отчёты Extfin  возможность выбора статистики отдельно по юридическим или физическим пользователям.
+  * В модуль Cards добавлена опция $conf{CARDS_BRUTE_CLEAN_PERIOD}=2; - количество дней через которое удаляется запись о неправильном вводе пин-кода. (По умолчанию 2 дня).
+  * Доработана возможность изменения кредита с пользовательского интерфейса. Добавлена возможность задавать количество изменений в месяц.
+  * Добавлена возможность задавать минимальное допустимое количество символов при поиске логинов администратором
+  * Добавлена возможность ограничить количество значений отображаемых в списках администратором. Настраивается в веб интерфейсе администратора.
+  * Добавлена возможность удалять Vlan.
+  * Сделана возможность переинициализировать Vlan  на удалённых серверах доступа после их перезагрузки
+  * Добавлена возможность задавать несколько MAC адресов пользователю.
+  * Добавлена возможность авто. выбора следующего свободного статического адреса из пула для модуля Dv. Выбираются адреса только из пулов с флагом STATIC.
+  * Добавлена возможность авто. выбора следующего свободного статического адреса для модуля Dhcphosts.
+  * Создание актов оказания услуг. Автоматическое создание актов оказания услуг за прошедший период.
+  * Разделение выписки счетов отдельно для юридических лиц и для физических.
+  * Добавлена опция $conf{SNMPUTILS_BINDING_DEPOSIT}=0.	Количество средств на счету ниже которого не привязываетя пользователь к портам комутатора. Количество средств - Депозит + Кредит аккаунта пользователя. 
+  * Новая опция $conf{DV_USER_SERVICE_HOLDUP}=1; 	 Приостановка действия сервиса пользователя из личного кабинета кабинета.   
+  * Добавлен параметр $conf{LANGS} разрешающий добавлять собственные словари и работать только с нужными языками.
 
-19.05.2009\\
-  * Добавлен внешний обработчик соединений с ошибками. Опция $conf{AUTH_ERROR_CMD}.
-
-18.05.2009\\
-ДОбавлена функция формирования нарядов на выполнения для ремонтных работ.
-MySQL:
-  ALTER TABLE msgs_messages ADD COLUMN `dispatch_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE users ADD column domain_id smallint(6) unsigned not null default 0;
+  ALTER TABLE users DROP index id;
+  ALTER TABLE users ADD UNIQUE KEY `id` (id, domain_id);
   
-  CREATE TABLE `msgs_dispatch` (
-    `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `created` DATETIME NOT NULL,
-    `plan_date` DATE NOT NULL,
-    `comments` TEXT COLLATE latin1_swedish_ci NOT NULL,
+  ALTER TABLE groups ADD column `domain_id` smallint(6) unsigned not null default 0;
+  ALTER TABLE groups DROP index name;
+  ALTER TABLE groups ADD UNIQUE KEY `name` (`domain_id`, `name`);
+  
+  
+  ALTER TABLE companies ADD column `domain_id` smallint(6) unsigned not null default 0;
+  ALTER TABLE companies DROP index name;
+  ALTER TABLE companies ADD UNIQUE KEY `name` (`domain_id`, `name`);
+  
+  ALTER TABLE tarif_plans ADD column `domain_id` smallint(6) unsigned not null default 0;
+  ALTER TABLE tarif_plans DROP KEY id;
+  ALTER TABLE tarif_plans ADD UNIQUE  KEY `id` (`id`, `module`, `domain_id`);
+  
+  
+  ALTER TABLE tarif_plans DROP KEY `name`;
+  ALTER TABLE tarif_plans ADD UNIQUE KEY `name` (`name`, `domain_id`);
+  
+  ALTER TABLE admins ADD column `domain_id` smallint(6) unsigned not null default 0;
+  
+  ALTER TABLE nas ADD column `domain_id` smallint(6) unsigned not null default 0;
+  ALTER TABLE nas ADD column `address_street` varchar(100) NOT NULL default '';
+  ALTER TABLE nas ADD column `address_build` varchar(10) NOT NULL default '';
+  ALTER TABLE nas ADD column `address_flat` varchar(10) NOT NULL default '';
+  ALTER TABLE nas ADD column `zip` varchar(7) NOT NULL default '';
+  ALTER TABLE nas ADD column `city` varchar(20) NOT NULL default '';
+  
+  ALTER TABLE cards_users ADD column `domain_id` smallint(6) unsigned not null default 0;
+  ALTER TABLE cards_users DROP index serial;
+  ALTER TABLE cards_users ADD KEY `serial` (`number`,`serial`, `domain_id`);
+  
+  
+  ALTER TABLE cards_users ADD KEY `domain_id` (`domain_id`);
+  ALTER TABLE cards_users ADD column `created` DATETIME NOT NULL;
+  UPDATE cards_users SET created=datetime;
+  
+  ALTER TABLE cards_bruteforce ADD column `domain_id` smallint(6) unsigned not null default 0;
+  
+  CREATE TABLE `domains` (
+    `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(30) NOT NULL DEFAULT '',
+    `comments` TEXT NOT NULL,
+    `created` DATE NOT NULL,
     `state` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
-    `closed_date` DATE NOT NULL,
-    `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
-    `resposible` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
-    PRIMARY KEY (`id`),
-    KEY `plan_date` (`plan_date`, `state`)
-  ) COMMENT='Msgs dispatches';
-  
-  CREATE TABLE `msgs_dispatch_admins` (
-    `dispatch_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
-    `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0'
-  ) COMMENT='Msgs Dispatch admins';
-
-
-14.05.2009\\
-  * Добавлены отчёты по классам трафика для модуля IPN.
-  * Добавлен поле регистрации телефонов звонящих с службу поддержки.
-MySQL:
-  ALTER TABLE msgs_messages ADD COLUMN `phone` VARCHAR(16) NOT NULL DEFAULT '';
-
-11.05.2009\\
-  * Добавлена платёжная система [[http://www.comepay.ru|COMEPAY]]
-  * Доработан анализатор траффика traffic2sql.pl:
-Добавлено отображение в режиме отладки количество проанализированного трафика и средняя скорость за интервал анализа.\\
-Добавленны опции:  FLOWTOOLS_IP_AGGREGATION, FLOWTOOLS_FT_BACKUP, PREPAID_STORE
-MySQL:
-
-  CREATE TABLE `traffic_prepaid_sum` (
-    `started` DATE NOT NULL DEFAULT '0000-00-00',
-    `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
-    `traffic_class` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
-    `traffic_in` BIGINT(14) UNSIGNED NOT NULL DEFAULT '0',
-    `traffic_out` BIGINT(14) UNSIGNED NOT NULL DEFAULT '0',
-    KEY `uid` (`uid`, `started`, `traffic_class`)
-  ) COMMENT='Prepaid traffic summary';
-
-  * создан скрипт ipn_analize.sh  для удобного анализа flow-tools файлов.
-  * В скрипт autozh.pl добавлена возможность анализа лога ошибок по шаблону и при возникновении сножества одинаковых ошибок выполнять автоматический зап.
-  * Добавлено новое поле для лога ошибок nas_id, Разрешате просматривать ошибки по отдельно выбраным серверам доступа.\\
-
-MySQL:
-  ALTER TABLE errors_log ADD COLUMN `nas_id` smallint(5) unsigned NOT NULL DEFAULT '0';
-
-
-28.04.2009\\
-  * Добавлена функция включения обязательных каналов при активизации тарифного плана для [[abills:docs:modules:iptv:ru|Iptv]]
-MySQL:
-   ALTER TABLE iptv_ti_channels ADD COLUMN `mandatory` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
-
-26.04.2009\\
-  * Добавлен шаблон информации о гостевом доступе dv_guest_mode.tpl.
-  * Добавлен шаблон информации о негативном депозите form_neg_deposit.tpl.
-Данные доработки разрешают описывать действия по оплате (пунктам и способам) и работе в гостевом режиме для каждого отдельного провайдера. \\
-21.04.2009\\
-  * Обновлена версия протокола взаимодействия с системой USMP.
-  * Добавлена типизация изменений пользовательских даных
-  * Добавлен журнал логирования действий администратора по работе с системой. Журнал доступен только при включении прав на него.
-MySQL:\\
-  ALTER TABLE admin_actions add COLUMN action_type TINYINT(2) NOT NULL DEFAULT '0';
-  
-  CREATE TABLE `admin_system_actions` (
-   `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `actions` varchar(200) NOT NULL default '',
-    `datetime` DATETIME NOT NULL,
-    `ip` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
-    `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
-    `module` VARCHAR(10) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
-    `action_type` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `id` (`id`)
-   ) COMMENT='System Changes';
-
-
-18.04.2009\\
-  * В модуль [[abills:docs:modules:iptv:ru|Iptv]] добавлено опции: $conf{IPTV_ALLOW_GIDS} - разрешить пользоваться услугой только пользователями определённой группы. \\ $conf{IPTV_CLOSE_PERIOD} - Снимать абоплату после установки флага закрытия период. \\ Добавлена возможность группирования каналов в одном тарифном плане и назначение на каждую групу определённую цену.
-  * Включение каналов из пользовательского интерфейса
-  * Возможность установки цены на каждый отдельный канал
-  * В модуль [[abills:docs:modules:Vlan:ru|Vlan]] добавлена возможность проверки активных PPPoE серверов в Вланах и  переинициализации вланов. 
-
-14.04.2009\\
-  * Dhcphosts  добавлено три новых параметра: коментарий, допуск неизвесным клиентам, авторизированная сеть.\\
-Теперь опции DHCP deny unknown-clients; и authoritative; задаются для каждой отдельной сетки.\\
-MySQL:\\
-  alter table dhcphosts_networks add column comments varchar(250) not null default '';
-  alter table dhcphosts_networks add column deny_unknown_clients tinyint(1) unsigned not null default 0;
-  alter table dhcphosts_networks add column authoritative tinyint(1) unsigned not null default 0;
-
-
-
-11.04.2009\\
-  * Добавлена возможность создавать Vlan в Linux. Добавлено инициализацию параметров доступа к NAS в переменные среды. ([[abills:docs:modules:vlan:ru|Vlan]])
-  * Опция $conf{VLAN_STATIC} для указания списка VLAN которые не подлежат обработке. ([[abills:docs:modules:vlan:ru|Vlan]])
-  * Добавлен скрипт для чистки бинарных логов mysql (misc/mysql_clean.sh).
-06.04.2009\\
-  * Добавлена возможность учёта дополнительного депозита при выдачи адресов модулем [[abills:docs:modules:Dhcphosts:ru:|Dhcphosts]], опция $conf{DHCPHOSTS_DEPOSITCHECK}.
-  * Добавлена проверка диапазано IP адресов выдаваемых в сети.
-  * Доработан система оповещения о новых сообщениях для модуля [[abills:docs:Msgs:ru:|Msgs]].
-  * Добавлена возможность вносить несколько E-mail адресов. Адреса разделяются точкой с запятой. Система отправляет сообщения на все указанные адреса.
-  MySQL:
-
-  ALTER TABLE users_pi CHANGE column email email varchar(250) not null default '';
-
-=====0.41=====
-
-25.03.2009\\
-  * Групповое занесение ZAP сессий в лог.
-23.03.2009\\
-  * Возможность устанавливать расписания на отключение сервиса. Возможно устанавливать несколько расписаний на разные промежутки времени.
-  * [[abills:docs:modules:dv:ru#compensation|Форма компенсации.]]
-
-18.03.2009\\
-Добавлена возможность устанавливать пользователем кредитный лимит в пределах кредитного лимита тарифного плана. Лимит устанавливается на определённое количество дней указанных в тарифном плане. Учтена возможность снятия денег за изменение кредитного лимита. ''(функция доступна в коммерческой версии)''
-
-05.03.2009\\
-Добавлена работа с платёжной системой [[http://pegaspay.com.ua|Pegas]]\\
-
-MySQL:
-  ALTER TABLE payments CHANGE column ext_id ext_id varchar(28);
-23.01.2009\\
-  * Добавлена возможность задавать радиус-связки передаваемые в параметре "Фильт негативного депозита". \\
-MySQL:
-  alter table tarif_plans change column neg_deposit_filter_id neg_deposit_filter_id varchar(150) not null default '';
-
-
-09.01.2009\\
-  * Изменения в месячной абонплате. Возможность "послеоплата" разнесена на месячную и дневную.
-  * В модуле Abon добавлено выравнивание месяца. При выравнивании по дате активизации, дата не меняется.
-  * Добавлена возможность обсчёта привелигилированого направления трафика сессии (SESSION_IN,   SESSION_OUT).   
-  * Добавлена возможность турборежимов для модуля Dv.
-  * Возможность подсчёта трафика в модуле IPN исходя из IP и маски клиента. Трафик учитывается для всей сети, если хотя бы один из пользователей активизирован.
-
-  ALTER TABLE tarif_plans ADD COLUMN  postpaid_daily_fee tinyint(1) unsigned NOT NULL default '0';
-  ALTER TABLE tarif_plans ADD COLUMN  postpaid_monthly_fee tinyint(1) unsigned NOT NULL default '0';
-  UPDATE tarif_plans SET postpaid_daily_fee=postpaid_fee, postpaid_monthly_fee=postpaid_fee;
-  ALTER TABLE  abon_tariffs ADD COLUMN `period_alignment` tinyint(1) NOT NULL DEFAULT '0';
-
-  * Добавлена платёжная система Portmone
-
-
-
-30.12.2008\\
-  * Добавлена возможность выписки квитанции после внесения оплаты пользователю. Данная возможность доступна только с включённым модулем Docs. Используется шаблон docs_invoice.
-
-15.12.2008\\
-  * Добавлен запас сессий на каждый отдельный сервер доступа.
-  * Добавлена возможность автоматической переинициализации IPN-сессий после ребута
-14.12.2008\\
-  * Добавлена работа с платёжной системой [[http://ukrpays.com|UKRPAYS]]
-
-  * Добавлена возможность включения страницы ознакомления и принятия правил провайдера. Если 
-правила ещё не были приняты пользователем, при первом его заходе показываются правила. 
-Система разрешает пользоваться личным кабинетом только после подтверждения правил.\\
-Страница правил также работает для формы регистрации.
-
-Для включения данной функции используется опция:
-  $conf{ACCEPT_RULES}=1;
-Темплейт отвечающий за данные правила:
-  form_accept_rules.tpl
-
-MySQL:\\
-  ALTER TABLE users_pi ADD COLUMN `accept_rules` tinyint(1) unsigned NOT NULL default '0';
-  ALTER TABLE dv_main  ADD COLUMN `turbo_mode` tinyint(1) unsigned NOT NULL default '0';
-  ALTER TABLE dv_calls ADD COLUMN `turbo_mode` varchar(30) NOT NULL default '';
-
-09.12.2008\\
-  * Добавлена возможность организации автоматического переключения скорости при смене временных интервалов для NAS Mikrotik.\\
-
-  * Добавлена возможность добавлять сообщения об ошибке прямо в базу. Опция $conf{ERROR2DB}=1; Разрешает использовать удалённые сервера доступа и несколько радиус-серверов. Более гибкая система выборки логов.\\
-MySQL:\\
-  CREATE TABLE `errors_log` (
-    `date` datetime NOT NULL,
-    `log_type` tinyint(3) unsigned NOT NULL DEFAULT '0',
-    `action` varchar(10) NOT NULL,
-    `user` varchar(20) NOT NULL,
-    `message` varchar(120) NOT NULL,
-    KEY `user` (`user`),
-    KEY `date` (`date`),
-    KEY `log_type` (`log_type`)
-  ) COMMENT='Error log';
-
-06.12.2008\\
-  * Дообработан модуль [[http://abills.net.ua/wiki/doku.php?id=abills:docs:modules:dhcphosts:ru#leases2db.pl|Dhcphosts]]. Добавлен leases2db.pl агент, который переводит данные из dhcp.leases в базу.
-MySQL:\\
-  CREATE TABLE `dhcphosts_leases` (
-    `start` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-    `ends` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-    `state` tinyint(2) NOT NULL DEFAULT '0',
-    `next_state` tinyint(2) NOT NULL DEFAULT '0',
-    `hardware` varchar(17) NOT NULL DEFAULT '',
-    `uid` varchar(30) NOT NULL DEFAULT '',
-    `circuit_id` varchar(25) NOT NULL DEFAULT '',
-    `remote_id` varchar(25) NOT NULL DEFAULT '',
-    `hostname` varchar(30) NOT NULL DEFAULT '',
-    `nas_id` smallint(6) NOT NULL DEFAULT '0',
-    `ip` int(11) unsigned NOT NULL DEFAULT '0',
-    KEY `ip` (`ip`),
-    KEY `nas_id` (`nas_id`)
-  ) COMMENT='Dhcphosts leaseds';
-
-  * Dv
-MySQL:\\
-  alter table dv_main add INDEX CID (CID);
-
-14.11.2008\\
-  * Проверка дублирования статических IP-адресов для модуля  Dv
-13.11.2008\\
-  * Добавлено поле "дата кредита" для компании.
-MySQL:\\
-  ALTER TABLE companies add column `credit_date` date NOT NULL default '0000-00-00';
-Улучшена система ротации логов для модуля Dv.\\
-Добавлена возможность групповой переинициализации  IPN-сессий.\\
-
-
-6.11.2008 \\
-  * Автоопределение сети при добавлении пользователя через Dhcphosts.
-2.11.2008 \\
-  * Улучшена поддержка rlm_perl: \\
-  - Доработана работа с потоковым Perl (threaded). \\
-  - Ликвидирована ошибка пропадания связи с сервером\\
-  - Ускорена работа авторизатора.  \\
-  * Добавлена возможность сброса с Cisco NAS используя Radius POD
- 
-29.10.2008 \\
-  * $conf{DV_MIN_USER_FULLPERIOD}=1; - Включение возможности снимать минимальную наработку не первого числа каждого месяца, а через 30 дней с даты активации.
-24.10.2008 \\
-  * Доработан DHCP-мониторинг\\
-  * Сделана корректная обработка RADIUS пар с +=
-
-02.10.2008 \\
-  * Добавлено поле учёта изменения DHCP-записи в системе.\\
-MySQL:\\
-  alter table dhcphosts_hosts add column changed datetime not null default '0000-00-00 00:00:00';
-
-01.10.2008 \\
-  * Добавлено поле учёта времени выполнения задания в модуле Msgs.\\
-MySQL:\\
-  ALTER TABLE msgs_reply ADD COLUMN  run_time int(11) unsigned NOT NULL default '0';
-
-=====0.40=====
-12.09.2008\\
-  * Добавлен шаблон ipn_form_active, позволяющий убрать кнопку активизации IPN-сесии из пользовательского меню (из меню администратора кнопка также удаляется).
-
-11.09.2008\\
-  * Модуль [[http://abills.net.ua/wiki/doku.php?id=abills:docs:modules:extfin:ru|Extfin]] добавлен отчёт по должникам.
-10.09.2008\\
-  * Улучшен шейпер для Linux. Теперь его можно применять для IPN и при использовании Vlan. **(Особая благодарность ran)**
-  * Добавлена опция $conf{CARDS_PAYMENTS_EXTERNAL}='/usr/abills/misc/cards_external.sh'; Запуск внешних программ после успешного пополнения счёта через карточный модуль. \\
-  * Распределение месячной платы по дням. При указании опции месячная плата взимается каждый день с учётом её распределения по дням месяца\\
-MySQL:
-  ALTER TABLE tarif_plans ADD COLUMN `abon_distribution` tinyint(1) NOT NULL DEFAULT '0';
-
-01.09.2008\\
-Добавлена возможность печати PDF файлов в модуле работы с документами Docs.
-
-16.08.2008\\
-Добавлено поле дата договора в компании.
-MySQL:
-  ALTER TABLE companies ADD COLUMN `contract_date` date NOT NULL;
-
-12.08.2008\\
-Добавлено поле дата договора.
-MySQL:
-  ALTER TABLE users_pi ADD COLUMN `contract_date` date NOT NULL;
-  ALTER TABLE admins ADD COLUMN `comments` text NOT NULL;
-
-
-
-30.07.2008\\
-Была изменена логика добавления данных для управления коммутаторами [[http://abills.net.ua/wiki/doku.php?id=abills:docs:modules:snmputils:ru|Snmputils]] 
-
-
-29.07.2008\\
-Добавлена возможность создавать супер пользователя компании. Суперпользователь может просматривать отчёты по всем пользователям компании.\\
-
-MySQL:
-  CREATE TABLE `companie_admins` (
-    `company_id` int(10) unsigned NOT NULL DEFAULT '0',
-    `uid` int(10) unsigned NOT NULL DEFAULT '0',
-    PRIMARY KEY (`company_id`,`uid`)
-  ) COMMENT='Companie Super Users';
-
-
-25.07.2008\\
-Дополнен модуль Voip. Добавлена возможность редактирования префиксов в зависимости о транка.
-MySQL:  
-
-  ALTER TABLE voip_trunks add COLUMN   `addprefix` char(20) not null DEFAULT '';
-
-
-22.07.2008\\
-Улучшенна работа с модулем сообщений. Добавлена возможность оповещения администратора и пользователей по E-mail о новых сообщения. Добавлена подсветка цитат.
-MySQL:
-  ALTER TABLE msgs_admins ADD COLUMN`email_notify` tinyint(4) unsigned NOT NULL default '0';
-
-17.07.2008\\
-MySQL:
-  UPDATE config SET value=CONCAT('0:',  value) WHERE param LIKE 'if%'
-
-12.07.2008\\
-Доработаны права администраторов. Добавлена возможность включать определённые модули для администраторов. \\
-MySQL:
-  INSERT INTO `admin_permits` (`aid`, `section`, `actions`, `module`) VALUES (1,4,4,'');
-
-30.06.2008\\
-MySQL:
-  ALTER TABLE users add key company_id (company_id);
-
-26.06.2008\\
-Добавлен в систему интерфейс дилера, где дилер сможет себе сам формировать карточки оплат\\
-MySQL:
-  ALTER TABLE cards_dillers ADD `uid` int(11) unsigned NOT NULL default '0';
-  ALTER TABLE cards_dillers DROP key name;
-
-
-21.06.2008\\
-Доизменена  концепция пулов серверов доступа. Теперь они создаются как независимые объекты и потом присваиваются серверам доступа. При подключении система просматривает занятие адреса на всех серверах доступа, использующих данный пул.
-**Обязательно обновите пулы серверов доступа**\\
-MySQL:
-  CREATE TABLE `nas_ippools` (
-    `pool_id` int(10) unsigned NOT NULL default 0,
-    `nas_id` smallint(5) unsigned NOT NULL default '0',
-    UNIQUE KEY `nas` (`nas_id`,`pool_id`)
-  )  ;
-
-
-18.06.2008\\
-Добавлена возможность использовать совместный сервис несколькими логинами.\\
-Данная функция доступна только пользователям привязанным к компании и разрешает использовать параметры одного тарифного плана несколькими пользователями.\\
-
-MySQL:
-  ALTER TABLE dv_calls ADD COLUMN`join_service` int(11) unsigned NOT NULL default '0';
-
-
-18.06.2008\\
-MySQL:
-  ALTER TABLE dv_calls ADD COLUMN `uid` int(11) unsigned NOT NULL default '0';
-  ALTER TABLE dv_calls ADD KEY `uid` (`uid`);
-
-
-16.06.2008\\
-MySQL:
-  ALTER TABLE dv_main ADD COLUMN `join_service` int(11) unsigned NOT NULL DEFAULT '0';
-
-
-Добавлены транки для модуля VoIP. Транки присваиваются в зависимости от направления и цены.
-
-MySQL:
-
-  ALTER TABLE `voip_route_prices` ADD `trunk` SMALLINT UNSIGNED NOT NULL DEFAULT '0';
-  
-  CREATE TABLE IF NOT EXISTS `voip_trunks` (
-    `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
-    `name` char(20) NOT NULL,
-    `trunkprefix` char(20) DEFAULT NULL,
-    `protocol` char(10) NOT NULL,
-    `provider_ip` char(80) NOT NULL,
-    `removeprefix` char(20) DEFAULT NULL,
-    `secondusedreal` smallint(5) unsigned DEFAULT '0',
-    `secondusedcarrier` smallint(5) unsigned DEFAULT '0',
-    `secondusedratecard` smallint(5) unsigned DEFAULT '0',
-    `failover_trunk` smallint(5) unsigned NOT NULL DEFAULT '0',
-    `addparameter` char(120) DEFAULT NULL,
-    `provider_name` char(120) DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `name` (`name`)
-   ) ;
-
-10.06.2008\\
-Добавлено 3 статуса сервиса для модуля Dv (Активно, Блокировано, Не активизировано).  Добавлена возможность пользователям самостоятельно активизировать свой уже зарегистрированный аккаунт. При активации аккаунта с месячной абон. платой система автоматически снимает её в зависисмости от правил тарифного плана. Пользователю разрешено менять статус только с 'Не активизирован' на  'Активно'.
-
-06.06.2008\\
-Добавлена возможность вносить оплаты произвольной датой. Операция разрешается  в меню привилегий администратора.\\
-Добавлена возможность вносить снятие денег задним числом\\
-Добавлена к модулю Paysys консольная утилита paysys_cons, разрешающая вносить оплаты и снятия денег из текстового файла. Имеется возможность задавать формат файла и указывать поле прикрепления.
-
-26.05.2008\\
-Добавлен отчёт - наработка по тарифных планах.\\
-
-Добавлена функция установки даты истечения кредита. В день истечения кредита обнуляются данные по сумме кредита.
-MySQL:
-  ALTER TABLE users ADD COLUMN `credit_date` date default '0000-00-00';
-
-
-22.05.2008\\
-
-MySQL
-  ALTER TABLE paysys_log change COLUMN transaction_id transaction_id varchar(15) NOT NULL DEFAULT ''
-21.05.2008 
-  * Добавлена возможность автоматического снятия абонплаты с пользователя при добавлении пользователя или изменении тарифного плана администратором, если в новом тарифном плане пристуствует правило снятия абон. платы.
-
-  * Добавлено опция тарифного плана - Выравнивание. При включённой опции система при переводе на данный тарифный план снимает с пользователя сумму, расчитанную с текущего дня до конца месяца. Таким образом происходит выравнивание по 1 числу следующего месяца.
-  * Добавлена возможность утанавливать начало учётного периода. В опции $conf{START_PERIOD_DAY} устанавливается число месяца, которое считается отсчётным для учётного периода. Используется при снятии абон. платы.
-  * Добавлено опция тарифного плана - Минимальная Наработка.\\
-Минимальная Наработка - Минимально количество денежных стредств, которые нужно использовать по данному тарифному плану на протяжении месяца.
-Если пользователь использовал меньшее количество денежных средств, эта разница взимается с его аккаунта в конце учётного периода. При снятии разницы наработки не учитывается депозит пользователя.
-
-  * Добавлено опция тарифного плана - Pool.\\
-Pool - Разрешает прикреплять к тарифному плану пул IP-адресов. При исчерпании свободных адресов система использует пул адресов сервера доступа. Пулы адресов заводятся через сервера доступа.
-
-MySQL
-  ALTER TABLE tarif_plans ADD COLUMN `ippool` int(11) NOT NULL DEFAULT '0';
-  ALTER TABLE tarif_plans ADD COLUMN `period_alignment` tinyint(1) NOT NULL DEFAULT '0';
-  ALTER TABLE tarif_plans ADD COLUMN `min_use` double(14,2) unsigned NOT NULL DEFAULT '0.00';
-
-
-  * Добавлена опция название IP-пула.
-  * Добавлена опция приоритет IP-пулов. \\ При использовании нескольких пулов адресов сначала используются адреса пула с более высоким приоритетом, а затем по возростанию.
-  Самым высоким приоритетом считется - 0 (ноль).
-
-MySQL
-  ALTER TABLE ippools ADD column `name` varchar(25) NOT NULL;
-  ALTER TABLE ippools ADD column `priority` tinyint(4) NOT NULL DEFAULT '0';
-
-
-24.04.2008 
-MySQL
- Добавлена возможность указывать загрузочный файл через DHCP.
-   ALTER TABLE `dhcphosts_hosts` ADD `boot_file` VARCHAR( 150 ) NOT NULL default '';
-
-
-24.04.2008 
-
-  * **Информационные поля.** Набор функций по созданию дополнительных информационных полей для пользовательского аккаунта и аккаунта компании. Разрешает создавать дополнительные поля без вмешательства в код системы.\\
-При создании информационного поля нужно указать 
-  *	Название поля. Поле будет показываться в описании поля
-  *	Идентификатор поля. Физическое название поля
-  *	Тип поля
-
-08.04.2008 
-  * Для функций пополнения счёта и снятия со счёта добавлены новые поля - Внутреннее описание операции. В функционал снятия денег добавлены типизации операций.
+  )  COMMENT='Domains List';
   
-
-MySQL
-  ALTER TABLE payments ADD COLUMN `inner_describe` varchar(80) NOT NULL default '';
-  ALTER TABLE `fees` ADD `inner_describe` VARCHAR( 80 ) NOT NULL default '';
-  ALTER TABLE `fees` ADD `method` TINYINT UNSIGNED NOT NULL DEFAULT '0';
-
-
-
-06.04.2008 
-  * Добавлена возможность автоматического создания группы должников. В группу заносятся пользователи, у которых депозит ниже указанного в конфигурации и последняя оплата старше определённого количества дней. При включении  пользователя в эту группу система автоматически добавляет комментарии с указанием даты добавлении. Если указанная группа не существует, система пытается её создать. При погашении долга пользователя, автоматически удаляется из группы вместе с комментарием.\\
-Опция конфигурации: **$conf{DEBETORS_GROUP}="GROUP_ID:DEPOSIT:LAST_PAYNMENT_DAYS";** (Пример: $conf{DEBETORS_GROUP}='500:0:20';)
-  * Добавлена возможность установки кредитного лимита тарифного плана. Кредитный лимит тарифного плана имеет более низкий приоритет, чем кредитный лимит пользователя.
-MySQL
-  ALTER TABLE tarif_plans ADD COLUMN `credit` double(10,2) unsigned NOT NULL DEFAULT '0.00';
-
-04.03.2008
-  * в модуле Dhcphosts добавлена возможность задавать автоматически выдаваемые адреса для сети.
-  * Удалена опция $conf{DHCPHOSTS_IPGUARD_TYPE}=""; . Добавлено две новые опции $conf{DHCPHOSTS_IPGUARD_DENY_TPL}=””; $conf{DHCPHOSTS_IPGUARD_ACCEPT_TPL}=””;
-
-
-MySQL
-  ALTER TABLE dhcphosts_hosts ADD UNIQUE KEY `host_network` (`hostname`,`network`);
-  ALTER TABLE dhcphosts_networks ADD COLUMN `ip_range_first` int(11) unsigned NOT NULL DEFAULT '0';
-  ALTER TABLE dhcphosts_networks ADD COLUMN `ip_range_last` int(11) unsigned NOT NULL DEFAULT '0';
-
-
-02.03.2008
-  * Улучшен редактор шаблонов (/ System configuration/ MISC/ Template/).
-  * В сервисе Dv информация о пользователе добавлено поле показывающее дату следующего снятие абонплаты (/ Customers/ Logins/ Information/ Services/ Dialup / VPN/). 
-  * Исправлена ошибка снятия месячной абонплаты модулем Dv. 
-
-28.02.2008
-  * Paysys. Добавлено внесение IP-адреса робота платёжной системы уведомляющего о платеже.
-  * Добавлена возможность блокирования/разрешения уведомлений о платеже для определенных IP адресов. Опция:
-   $conf{PAYSYS_IPS}="0.0.0.0";
-MySQL
-  ALTER TABLE  paysys_log ADD COLUMN `paysys_ip` int(11) unsigned NOT NULL DEFAULT '0';
-
-26.02.2008
-  * добавлена  возможность автоматически создавать файл пользователей для Asterisk. Опция 
-  $conf{VOIP_ASTERISK_USERS}='/usr/abills/Abills/templates/users.conf';
-
-MySQL
-
-  ALTER TABLE voip_main DROP PRIMARY KEY;
-  ALTER TABLE voip_main ADD PRIMARY KEY (`number`);
-  ALTER TABLE voip_main ADD KEY `uid` (`uid`);
-
-  * Добавлена возможность прикреплять пользователю два денежных счёта. Основной и дополнительный. \\ 
-Основной счёт может служить для отчислений за использованные услуги при Dialup/VPN подключениях, 
-дополнительный использоваться для абон. платы. \\
-Для включения возможности получать дополнительный денежный счёт, нужно прописать в конфигурационном файле: 
-  $conf{EXT_BILL_ACCOUNT}=1;
-
-Для снятия денег с дополнительного счёта нужно поставить галочку в / System configuration/ Dialup / VPN/ Tarif plans/ -> Extra Money account\\
-MySQL
-
-  ALTER TABLE companies ADD COLUMN `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0';
-  ALTER TABLE users ADD COLUMN `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0';
-  ALTER TABLE tarif_plans ADD COLUMN  `ext_bill_account` tinyint(1) unsigned NOT NULL DEFAULT '0';
-  ALTER TABLE bills DROP KEY `uid`;
-  ALTER TABLE bills ADD KEY `uid` (`uid`,`company_id`);
-
-
-
-  * Перенесены системные шаблоны в отдельный каталог
-
-  * 08.02.2008
-Отображение депозита для заблокированных пользователей Snmputils\\
-MYSQL
-
-  ALTER TABLE snmputils_binding add KEY `uid` (`uid`);
-
- * 02.02.2008
-MYSQL
-  ALTER TABLE paysys_log add COLUMN `code` blob NOT NULL;
-
- * 27.01.2008
-MYSQL
-  ALTER TABLE ipn_log add key uid_traffic_class (uid, traffic_class);
+  ALTER TABLE intervals add column new_tp_id smallint unsigned not null default 0;
+  UPDATE intervals, tarif_plans SET intervals.new_tp_id=tarif_plans.tp_id
+  WHERE intervals.tp_id=tarif_plans.id;
+  ALTER TABLE  intervals drop KEY tp_intervals;
+  DELETE from intervals WHERE new_tp_id=0;
+  UPDATE intervals SET intervals.tp_id=new_tp_id;
+  ALTER TABLE intervals add UNIQUE KEY `tp_intervals` (`tp_id`, `begin`, `day`);
+  ALTER TABLE intervals drop column new_tp_id;
+  DELETE FROM tp_nas;  
   
-  ALTER TABLE dv_log_intervals add column `added` timestamp(14) NOT NULL;
-  ALTER TABLE dv_log_intervals add  KEY `acct_session_id` (`acct_session_id`);
-  ALTER TABLE dv_log_intervals add KEY `session_interval` (`acct_session_id`,`interval_id`);
-
-  * 27.01.2008
-Дополнения в [[abills:docs:msgs:ru|Msgs]]
-  * Возможность прикреплять файлы к сообщениям.
-  * Отчёты 
-
-MYSQL
-  CREATE TABLE `msgs_attachments` (
-    `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-    `message_id` bigint(20) NOT NULL DEFAULT '0',
-    `filename` varchar(250) DEFAULT NULL,
-    `content_size` varchar(30) DEFAULT NULL,
-    `content_type` varchar(250) DEFAULT NULL,
-    `content` longblob NOT NULL,
-    `create_time` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-    `create_by` int(11) NOT NULL DEFAULT '0',
-    `change_time` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-    `change_by` int(11) NOT NULL DEFAULT '0',
-    `message_type` tinyint(2) NOT NULL DEFAULT '0',
+  CREATE TABLE `traffic_classes` (
+    `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(25) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+    `nets` TEXT COLLATE latin1_swedish_ci,
+    `comments` TEXT COLLATE latin1_swedish_ci NOT NULL,
     PRIMARY KEY (`id`),
-    KEY `article_attachment_article_id` (`message_id`)
-  ) COMMENT='Messages Attachment table';
-
-  * 25.01.2008
-Включение меню Finance (Денежные операции) в аккаунте пользователя
-  $conf{user_finance_menu}=1;
-   
-
-  * 24.01.2008
-Дополнение типов оплаты собственными через опцию
-   @EX_PAYMENT_METHODS = ('webmoney', 'rupay', 'Счёт н 453');
-
-  * 23.01.2008
-Просмотр пароля пользователя администратором\\
-Выписка карты подключения для пользователя для уже заведённого пользователя (Логин, Пароль...)\\
-Дополнение [[abills:docs:msgs:ru|Msgs]]\\
-Добавление комутаторов Zyxel в [[http://abills.net.ua/wiki/doku.php?id=abills:docs:modules:snmputils:ru|Snmputils]]\\
-
-
-  * 06.12.2007
-MYSQL
-  ALTER TABLE `sharing_main` CHANGE COLUMN  `extra_byte` `extra_byte` double(15,2) unsigned NOT NULL default '0.00';
-
-  * 05.12.2007
-MYSQL
-  ALTER TABLE msgs_chapters ADD COLUMN `inner_chapter` tinyint(1) unsigned NOT NULL default '0';
-  ALTER TABLE msgs_messages ADD COLUMN `inner_msg` tinyint(1) unsigned NOT NULL default '0';
-
-  * 30.11.2007
-MYSQL
-  ALTER TABLE users ADD COLUMN `credit_date` date NOT NULL default '0000-00-00';
-
-  * 30.11.2007
-MYSQL
-  ALTER TABLE web_users_sessions ADD COLUMN `ext_info` varchar(200) NOT NULL default '';
-
-  * 28.11.2007 
-MYSQL
-  ALTER TABLE sharing_main ADD COLUMN  `extra_byte` int(11) unsigned NOT NULL default '0';
+    UNIQUE KEY `id` (`id`),
+    UNIQUE KEY `name` (`name`)
+   ) COMMENT='Traffic Classes';
   
-  CREATE TABLE `sharing_additions` (
-    `id` smallint(6) NOT NULL auto_increment,
-    `name` varchar(25) NOT NULL default '',
-    `quantity` int(11) unsigned NOT NULL default '0',
-    `price` double(14,2) default NULL,
-    `tp_id` smallint(6) unsigned NOT NULL default '0',
+  INSERT INTO traffic_classes (name, nets) VALUES ('Global', '0.0.0.0/0');
+  
+  ALTER TABLE trafic_tarifs ADD COLUMN `net_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+  
+  CREATE TABLE `sqlcmd_history` (
+    `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `datetime` DATETIME NOT NULL,
+    `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+    `sql_query` TEXT NOT NULL,
+    `db_id` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+    `comments` TEXT NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `id` (`id`),
+    KEY `aid` (`aid`)
+  ) COMMENT='Sqlcmd history';
+  
+  ALTER TABLE cards_dillers ADD COLUMN `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+  
+  CREATE TABLE `dillers_tps` (
+    `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(100) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+    `payment_type` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+    `percentage` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
+    `operation_payment` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00',
+    `activate_price` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00',
+    `change_price` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00',
+    `credit` DOUBLE(10,2) UNSIGNED NOT NULL DEFAULT '0.00',
+    `min_use` DOUBLE(14,3) UNSIGNED NOT NULL DEFAULT '0.000',
+    `payment_expr` VARCHAR(240) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+    `nas_count` SMALLINT(6) UNSIGNED NOT NULL DEFAULT 0,
+    `tp_counts` SMALLINT(6) UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `id` (`id`),
+    UNIQUE KEY `name` (`name`)
+   ) COMMENT='Resellers Tarif Plans';
+  
+  ALTER TABLE tarif_plans ADD COLUMN `total_time_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE tarif_plans ADD COLUMN `total_traf_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
+  
+  ALTER TABLE nas ADD COLUMN`gid` smallint(6) unsigned NOT NULL default 0;
+  
+  CREATE TABLE `nas_groups` (
+    `id` int(10) unsigned NOT NULL auto_increment,
+    `name` varchar(40) NOT NULL default '',
+    `comments` text not null,
+    `disable` tinyint(6) unsigned NOT NULL default '0',
+    `domain_id` smallint(6) unsigned not null default 0,
     PRIMARY KEY  (`id`),
-    UNIQUE KEY `id` (`id`)
-  ) COMMENT='Sharing Additions';
-
-
-
-
-  * 25.11.2007 
-MYSQL
-  ALTER TABLE dhcphosts_hosts ADD column `ports` varchar(100) NOT NULL default '';
-  ALTER TABLE dhcphosts_hosts ADD column `vid` smallint(6) unsigned NOT NULL default '0';
-  ALTER TABLE dhcphosts_hosts ADD column `nas` smallint(6) unsigned NOT NULL default '0';
-  ALTER TABLE dhcphosts_hosts ADD column `option_82` tinyint(1) unsigned NOT NULL default '0';
-
+    UNIQUE KEY `domain_id` (`domain_id`,`name`)
+  ) COMMENT='Nas servers groups';
+  
+  ALTER TABLE companies ADD COLUMN `representative` VARCHAR(120) NOT NULL DEFAULT '';
+  
+  ALTER TABLE docs_acct ADD COLUMN `payment_id` int(11) unsigned NOT NULL default 0;
+  ALTER TABLE docs_acct ADD COLUMN `domain_id` smallint(6) unsigned not null default 0;
+  ALTER TABLE docs_acct ADD KEY `payment_id` (`payment_id`);
+  ALTER TABLE docs_acct ADD KEY `domain_id` (`domain_id`);
+  ALTER TABLE docs_invoice ADD COLUMN `payment_id` int(11) unsigned NOT NULL default 0;
+  ALTER TABLE docs_invoice ADD COLUMN `domain_id` smallint(6) unsigned not null default 0;
+  ALTER TABLE docs_invoice ADD KEY `payment_id` (`payment_id`);
+  ALTER TABLE docs_invoice ADD KEY `domain_id` (`domain_id`);
+  CREATE TABLE `docs_tax_invoices` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `date` date NOT NULL DEFAULT '0000-00-00',
+    `created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+    `tax_invoice_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `uid` int(11) unsigned NOT NULL DEFAULT '0',
+    `aid` smallint(6) unsigned NOT NULL DEFAULT '0',
+    `vat` double(5,2) unsigned NOT NULL DEFAULT '0.00',
+    `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+    `domain_id` smallint(6) unsigned not null default 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `date` (`date`,`company_id`),
+    KEY `domain_id` (`domain_id`)
+  ) COMMENT='Docs Tax Invoices';  
+    
+  ALTER TABLE nas ADD COLUMN `country` tinyint(6) unsigned NOT NULL default '0';
+  ALTER TABLE nas ADD COLUMN `mac` varchar(17) NOT NULL default '';
+  ALTER TABLE nas ADD COLUMN `changed` datetime NOT NULL default '0000-00-00 00:00:00';
+  
+  ALTER TABLE abon_user_list ADD COLUMN `comments` VARCHAR(240) COLLATE cp1251_general_ci NOT NULL DEFAULT '';
+  ALTER TABLE abon_user_list ADD KEY `uid` (`uid`, `tp_id`);
+  ALTER TABLE abon_tariffs CHANGE COLUMN name `name` varchar(100) NOT NULL default '';
+  ALTER TABLE abon_tariffs ADD COLUMN `ext_bill_account` tinyint(1) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE abon_tariffs ADD COLUMN `nonfix_period` tinyint(1) unsigned NOT NULL DEFAULT '0';
+  UPDATE tarif_plans SET module='Dv' WHERE module='';
+  ALTER TABLE `admins` ADD COLUMN min_search_chars tinyint(2) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE `admins` ADD COLUMN max_rows smallint(6) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE `ippools` ADD COLUMN static tinyint(6) unsigned NOT NULL DEFAULT '0';
+  UPDATE dv_main SET CID='ANY' WHERE CID='0';
+  
+  CREATE TABLE `docs_acts` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `date` date NOT NULL DEFAULT '0000-00-00',
+    `created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+    `act_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `uid` int(11) unsigned NOT NULL DEFAULT '0',
+    `aid` smallint(6) unsigned NOT NULL DEFAULT '0',
+    `vat` double(5,2) unsigned NOT NULL DEFAULT '0.00',
+    `company_id` int(11) unsigned NOT NULL DEFAULT '0',
+    `domain_id` smallint(6) unsigned not null default 0,
+    `sum` double(10,2) unsigned NOT NULL default '0.00',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `date` (`date`,`company_id`),
+    KEY `domain_id` (`domain_id`)
+  ) COMMENT='Docs Acts';
+  
+  ALTER TABLE nas_groups ADD COLUMN `default` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE nas_groups ADD COLUMN `main_page` VARCHAR(120) NOT NULL DEFAULT '';
+  ALTER TABLE tarif_plans ADD COLUMN `priority` tinyint(1) unsigned NOT NULL  DEFAULT '0';
+  ALTER TABLE users_pi ADD COLUMN `contract_sufix` VARCHAR(5) NOT NULL DEFAULT '';
