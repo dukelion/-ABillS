@@ -1,6 +1,9 @@
 ABillS - ~AsmodeuS~ Billing System.
+Version: 0.50
 
 
-Billing system with different abilities. Dialup/VPN (PPPoE, PPTP, L2TP, IPSec), NetFlow, Squid Monitoring, VoIP (GNU gatekeeper, Asterisk), CMTS BSR1000 monitoring, Mail management (Postfix, Spamassassin, Courier IMAP/POP), SNMP Monitoring (D-Link, Cisco, Zyxel, Patton, Mikrotik)
 
-http://abills.net.ua
+Billing system with different abilities. Dialup/VPN (PPPoE, PPTP, L2TP, IPSec), NetFlow, Squid Monitoring, VoIP (GNU gatekeeper, Asterisk), CMTS BSR1000 monitoring, Mail management (Postfix, Spamassassin, Courier IMAP/POP), SNMP Monitoring (D-Link, Cisco, Zyxel, Patton, Mikrotik), Cisco ISG, IPTV (VoD,nVoD)
+
+
+Site: http://abills.net.ua
