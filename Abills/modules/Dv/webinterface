@@ -3186,7 +3186,7 @@ elsif($FORM{del}) {
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $Dv->{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ TP_GID => $Dv->{TP_GID} }),
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ TP_GID => $Dv->{TP_GID}, CHANGE_PRICE =>  '<='. ($user->{DEPOSIT} + $user->{CREDIT}) }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
