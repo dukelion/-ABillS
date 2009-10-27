@@ -35,7 +35,7 @@
  
   <tr><th colspan=3 bgcolor=$_COLORS[0]>$_TIME_LIMIT</th></tr> 
   <tr><td>$_TOTAL</td><td colspan=2>
-  <input type=radio name=TOTAL_TIME_TYPE value='0' %PERIOD_30M=checked%> 30 $_MINUTES<br>
+  <input type=radio name=TOTAL_TIME_TYPE value='0' %PERIOD_30M=checked%> $_MINUTES: <input type=text name=MINUTES value='%MINUTES=30%' size=6><br>
   <input type=radio name=TOTAL_TIME_TYPE value='1' %PERIOD_1H%> $_HOURS: <input type=text name=HOURS value='%HOURS=1%' size=6><br>
   <input type=radio name=TOTAL_TIME_TYPE value='2' %PERIOD_1D%> $_DAYS: <input type=text name=DAYS value='%DAYS=1%' size=6><br>
   </td></tr>

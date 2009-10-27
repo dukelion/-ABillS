@@ -69,13 +69,14 @@ $html->{language}=$FORM{language} if (defined($FORM{language}) && $FORM{language
 
 require "../language/$html->{language}.pl";
 $sid = $FORM{sid} || ''; # Session ID
+my $cookies_time=gmtime(time()+$conf{web_session_timeout})." GMT";
 if ((length($COOKIES{sid})>1) && (! $FORM{passwd})) {
   $COOKIES{sid} =~ s/\"//g;
   $COOKIES{sid} =~ s/\'//g;
   $sid = $COOKIES{sid};
 }
 elsif((length($COOKIES{sid})>1) && (defined($FORM{passwd}))){
-	$html->setCookie('sid', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+	$html->setCookie('sid', "", "$cookies_time", $web_path, $domain, $secure);
 	$COOKIES{sid}=undef;
 }
 
@@ -89,7 +90,7 @@ $html->setCookie('OP_SID', "$FORM{OP_SID}", "Fri, 1-Jan-2038 00:00:01", $web_pat
 $html->setCookie('language', "$FORM{language}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{language}));
 
 if (defined($FORM{sid})) {
-  $html->setCookie('sid', "$FORM{sid}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+  $html->setCookie('sid', "$FORM{sid}", "$cookies_time", $web_path, $domain, $secure);
 }
 #===========================================================
 
