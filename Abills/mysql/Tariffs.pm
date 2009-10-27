@@ -689,6 +689,10 @@ sub list {
  	 push @WHERE_RULES, @{ $self->search_expr("$attr->{PAYMENT_TYPE}", 'INT', 'tp.payment_type') };  	
   }
 
+ if ($attr->{CHANGE_PRICE}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{CHANGE_PRICE}", 'INT', 'tp.change_price') };  	
+  }
+
 
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';

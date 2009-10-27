@@ -273,15 +273,16 @@ sub change {
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
 
-     $self->{TP_INFO}=$tariffs->info(0, { ID => $attr->{TP_ID} });
+     $tariffs->info(0, { ID => $old_info->{TP_ID} }); 
+ 
+     $self->{TP_INFO_OLD}->{PRIORITY}=$tariffs->{PRIORITY};
+     $self->{TP_INFO}    = $tariffs->info(0, { ID => $attr->{TP_ID} });
      
      my $user = Users->new($db, $admin, $CONF);
 
      $user->info($attr->{UID});
      
      if ($old_info->{STATUS} == 2 && (defined($attr->{STATUS}) && $attr->{STATUS} == 0) && $tariffs->{ACTIV_PRICE} > 0) {
-       
-       
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0 && $tariffs->{POSTPAID_FEE} == 0) {
         
          $self->{errno}=15;
@@ -293,8 +294,9 @@ sub change {
 
        $tariffs->{ACTIV_PRICE}=0;
       }
-     elsif($tariffs->{CHANGE_PRICE} > 0) {
-      
+     elsif($tariffs->{CHANGE_PRICE} > 0 && 
+       ($self->{TP_INFO_OLD}->{PRIORITY} - $tariffs->{PRIORITY} > 0 || $self->{TP_INFO_OLD}->{PRIORITY} + $tariffs->{PRIORITY} == 0) ) {
+
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{CHANGE_PRICE}) {
          $self->{errno}=15;
        	 return $self; 
