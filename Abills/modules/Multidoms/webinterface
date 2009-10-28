@@ -387,18 +387,23 @@ elsif ($FORM{FILE_UPLOAD}) {
   $FORM{FILE_UPLOAD}{filename} =~ tr/ /_/;
   $FORM{FILE_UPLOAD}{filename} =~ s/[^$safe_filename_characters]//g; 
   
-  if (-f "$conf{TPL_DIR}/$FORM{FILE_UPLOAD}{filename}") {
-    $html->message('err', $_ERROR, "$_EXIST '$FORM{FILE_UPLOAD}{filename}'");
+  if ($FORM{FILE_UPLOAD}{filename} !~ /(swf|css|js|png|gif|jpg)$/i) {
+  	$html->message('err', $_ERROR, "$ERR_WRONG_FILE_NAME '$FORM{FILE_UPLOAD}{filename}'");
    }
   else {
-    open(FILE, ">$conf{TPL_DIR}/$FORM{FILE_UPLOAD}{filename}") or $html->message('err', $_ERROR, "$_ERROR  '$!'");
-      binmode FILE;
-      #while(<$FORM{FILE_UPLOAD}{Contents}>) {  
-      	print FILE $FORM{FILE_UPLOAD}{Contents};
-      # }
-    close(FILE);
-    $html->message('info', $_INFO, "$_ADDED: '$FORM{FILE_UPLOAD}{filename}' $_SIZE: $FORM{FILE_UPLOAD}{Size}");
-   }
+    if (-f "$conf{TPL_DIR}/$FORM{FILE_UPLOAD}{filename}") {
+      $html->message('err', $_ERROR, "$_EXIST '$FORM{FILE_UPLOAD}{filename}'");
+     }
+    else {
+      open(FILE, ">$conf{TPL_DIR}/$FORM{FILE_UPLOAD}{filename}") or $html->message('err', $_ERROR, "$_ERROR  '$!'");
+        binmode FILE;
+        #while(<$FORM{FILE_UPLOAD}{Contents}>) {  
+      	  print FILE $FORM{FILE_UPLOAD}{Contents};
+        # }
+      close(FILE);
+      $html->message('info', $_INFO, "$_ADDED: '$FORM{FILE_UPLOAD}{filename}' $_SIZE: $FORM{FILE_UPLOAD}{Size}");
+     }
+  }
  }
 elsif ($FORM{file_del} && $FORM{is_js_confirmed} ) {
   $FORM{file_del} =~ s/ |\///g;
@@ -569,38 +574,42 @@ while(my($k, $v) = each %templates) {
 print $table->show();
 
 
-#my $table = $html->table( { width       => '600',
-#	                          caption     => $_OTHER,
-#                            title_plain => ["FILE", "$_SIZE (Byte)", "$_DATE", "$_DESCRIBE",  "-" ],
-#                            cols_align  => ['left', 'right', 'right', 'left', 'center', 'center']
-#                         } );
-#
-#	if (-d "$conf{TPL_DIR}" ) {
-#    opendir DIR, "$conf{TPL_DIR}" or die "Can't open dir '$sys_templates/$module/templates' $!\n";
-#      my @contents = grep  !/^\.\.?$/ && !/\.tpl$/  , readdir DIR;
-#    closedir DIR;
-#
-#    $table->{rowcolor}=undef;
-#    $table->{extra}=undef;
-#
-#    foreach my $file (sort @contents) {
-#      next if (-d "$conf{TPL_DIR}/".$file);
-#
-#      my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
-#        $blksize,$blocks);
-#
-#      ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
-#         $blksize,$blocks)=stat("$conf{TPL_DIR}/$file");
-#        $mtime = strftime "%Y-%m-%d", localtime($mtime);
-#
-#      $table->addrow("$file", $size, $mtime, $describe,
-#         $html->button($_DEL, "index=$index&file_del=$file", { MESSAGE => "$_DEL '$file'" }));
-#     }
-#
-#   }
-# print $table->show();
+my $table = $html->table( { width       => '600',
+	                          caption     => $_FILES.' (.jpg .gif .png .css .js)',
+                            title_plain => ["FILE", "$_SIZE (Byte)", "$_DATE", "$_DESCRIBE",  "-" ],
+                            cols_align  => ['left', 'right', 'right', 'left', 'center', 'center']
+                         } );
+
+
+  $conf{TPL_DIR}="$conf{MAIN_TPL_DIR}/$domain_path";
+
+	if (-d "$conf{TPL_DIR}" ) {
+    opendir DIR, "$conf{MAIN_TPL_DIR}/$domain_path" or die "Can't open dir '$conf{MAIN_TPL_DIR}/$domain_path' $!\n";
+      my @contents = grep  !/^\.\.?$/ && !/\.tpl$/  , readdir DIR;
+    closedir DIR;
+
+    $table->{rowcolor}=undef;
+    $table->{extra}=undef;
+
+    foreach my $file (sort @contents) {
+      next if (-d "$conf{TPL_DIR}/".$file);
+
+      my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+        $blksize,$blocks);
+
+      ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+         $blksize,$blocks)=stat("$conf{TPL_DIR}/$file");
+        $mtime = strftime "%Y-%m-%d", localtime($mtime);
+
+      $table->addrow("<a href='/images/$admin->{DOMAIN_ID}/$file'>/images/$admin->{DOMAIN_ID}/$file</a>", 
+         $size, $mtime, $describe,
+         $html->button($_DEL, "index=$index&file_del=$file", { MESSAGE => "$_DEL '$file'" }));
+     }
+
+   }
+ print $table->show();
  
-# $html->tpl_show(templates('form_fileadd'), undef);
+ $html->tpl_show(templates('form_fileadd'), undef);
 
 
 
