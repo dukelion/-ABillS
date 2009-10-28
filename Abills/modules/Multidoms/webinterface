@@ -365,12 +365,11 @@ elsif ($FORM{change}) {
    		$html->message('err', $_ERROR, "$ERR_CANT_CREATE_FILE '$conf{TPL_DIR}' $_ERROR: $!\n");
   	 }
    }
-
-
-  #print "content-type: text/html\n\n";
-  #print "!! $conf{TPL_DIR}/$FORM{tpl_name} ##";
   
   $info{TEMPLATE} = convert($info{TEMPLATE}, { '2_tpl' => 1 });
+  
+  $info{TEMPLATE} =~ s/"/\\"/g;
+  
 	if (open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}")) {
 	  print FILE "$info{TEMPLATE}";
 	  close(FILE);
@@ -625,7 +624,7 @@ if($FORM{NAS_ID}) {
   if ($nas->{NAS_TYPE} eq 'chillispot') {
     $ENV{HTTP_HOST} =~ s/\:(\d+)//g;
     $nas->{EXTRA_PARAMS} = $html->tpl_show(templates('form_nas_configure'), { %$nas,
-    	 CONFIGURE_DATE => "wget -O /tmp/setup.sh http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?DOMAIN_ID=$admin->{DOMAIN_ID}\\\&NAS_ID=$nas->{NAS_ID}; chmod 755 /tmp/setup.sh; /tmp/setup.sh",
+    	 CONFIGURE_DATE => "wget -O /tmp/setup.sh http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?DOMAIN_ID=$admin->{DOMAIN_ID}\\\&NAS_ID=$nas->{NAS_ID}; chmod 755 /tmp/setup.sh; /tmp/setup.sh;",
     	 PARAM1  => "wget -O /tmp/setup.sh http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?DOMAIN_ID=$admin->{DOMAIN_ID}\\\&NAS_ID=$nas->{NAS_ID}",
     	 PARAM2  => "; chmod 755 /tmp/setup.sh; /tmp/setup.sh;",
     	 }, { OUTPUT2RETURN => 1 });

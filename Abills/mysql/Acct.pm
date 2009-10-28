@@ -203,6 +203,7 @@ elsif ($acct_status_type == 2) {
     $self->rt_billing($RAD, $NAS);
 
     if (! $self->{errno} ) {
+    	#return $self;
       $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb, sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
         bill_id,
