@@ -382,7 +382,7 @@ sub dv_user {
      my $dv    = $Dv->info($Dv->{UID});
      my $pi    = $users->pi({ UID => $Dv->{UID} });
      my $user  = $users->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
-     $pi->{ADDRESS_FULL}="$pi->{ADDRESS_STREET} $pi->{ADDRESS_BUILD}/$pi->{ADDRESS_FLAT}";
+     $pi->{ADDRESS_FULL}="$pi->{ADDRESS_STREET} $pi->{ADDRESS_BUILD}, $pi->{ADDRESS_FLAT}";
  
      if ($FORM{pdf}) {
      	 #print "Content-Type: text/html\n\n";
