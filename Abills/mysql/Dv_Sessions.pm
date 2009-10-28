@@ -143,7 +143,8 @@ sub online {
 	my ($attr) = @_;
 
   my $WHERE = '';
- 
+
+  $admin->{DOMAIN_ID}=0 if (! $admin->{DOMAIN_ID});
 
   if ($attr->{COUNT}) {
   	if ($attr->{ZAPED}) {

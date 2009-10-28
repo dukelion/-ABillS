@@ -216,7 +216,7 @@ sub user_ips {
 
      #Get IP/mask
      if ($line->[16] && $line->[16] < 4294967295) {
-       my $first_ip =  $line->[17] & 4294967288;
+       my $first_ip =  $line->[17] & $line->[16];
        for(my $i=0; $i<=4294967295 -  $line->[16]; $i++) {
        	 my $ip = $first_ip+$i;
      	   $ips{$ip}=$line->[0];
