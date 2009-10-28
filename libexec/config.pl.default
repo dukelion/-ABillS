@@ -72,8 +72,8 @@ $conf{MINIMUM_SESSION_TRAF}=200; # minimum session trafic for push session to db
 $conf{SYSTEM_ADMIN_ID}=1;
 
 #System Langs
-$conf{LANGS}="english=English;
- russian=Русский;
+$conf{LANGS}="english:English;
+ russian:Русский;
  ukraine:Українська;
  bulgarian:Болгарска;
  french:French";
