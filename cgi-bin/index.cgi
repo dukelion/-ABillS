@@ -18,6 +18,7 @@ $sid
 @tens
 @hundred
 @money_unit_names
+@EX_PAYMENT_METHODS
 );
 
 BEGIN {
@@ -1010,7 +1011,7 @@ my $list = $fees->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_FEES",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_TYPE, $_ADMINS, 'IP',  $_DEPOSIT],
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_TYPE, $_DEPOSIT, 'BILL ID'],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'left', 'right', 'right'],
                             qs         => $pages_qs,
                             pages      => $fees->{TOTAL},
@@ -1025,9 +1026,9 @@ foreach my $line (@$list) {
    $line->[3], 
    $line->[4],  
    $FEES_METHODS[$line->[5]], 
-   "$line->[6]", 
+   "$line->[6]",
    "$line->[7]",
-   "$line->[8]");
+   );
 }
 
 print $table->show();
@@ -1048,6 +1049,8 @@ print $table->show();
 sub form_payments {
 	
 my @PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus');
+push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
 my $payments = Finance->payments($db, $admin, \%conf);
 
 if (! $FORM{sort}) {
@@ -1058,7 +1061,7 @@ my $list  = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left'],
                             qs         => $pages_qs,
                             pages      => $payments->{TOTAL},
@@ -1074,11 +1077,9 @@ foreach my $line (@$list) {
   $line->[3], 
   $line->[4],  
   "$line->[5]", 
-  "$line->[6]", 
+  $PAYMENT_METHODS[$line->[6]], 
   "$line->[7]", 
-  $PAYMENT_METHODS[$line->[8]], 
-  "$line->[9]", 
-  "$line->[10]", 
+  "$line->[8]", 
   );
 }
 

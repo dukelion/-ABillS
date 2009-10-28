@@ -45,7 +45,8 @@ use Admins;
 
 my $debug  = 0;
 my $html   = Abills::HTML->new();
-my $sql    = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $sql    = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser},
+    $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
 my $db     = $sql->{db};
 #Operation status
 my $status = '';

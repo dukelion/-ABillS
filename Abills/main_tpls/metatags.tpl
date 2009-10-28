@@ -44,7 +44,7 @@ th, li {
   background-color: %_COLOR_0%;
   color: %_COLOR_9%;
   height: 24;
-  text-align: right;
+  text-align: center;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
   font-size: 12px;
 }

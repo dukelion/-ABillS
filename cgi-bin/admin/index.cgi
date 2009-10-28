@@ -4747,8 +4747,8 @@ my $list = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP',  $_DEPOSIT, 
-                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", '-'],
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE,   $_DEPOSIT, 
+                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP', '-'],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $payments->{TOTAL},
@@ -4765,11 +4765,12 @@ foreach my $line (@$list) {
   $line->[3], 
   $line->[4] . ( ($line->[12] ) ? ' ('. $html->b($line->[12]) .') ' : '' ), 
   "$line->[5]", 
-  "$line->[6]", 
+  $PAYMENT_METHODS[$line->[6]], 
   "$line->[7]", 
-  $PAYMENT_METHODS[$line->[8]], 
+  ($conf{EXT_BILL_ACCOUNT} && $attr->{USER}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
   "$line->[9]", 
-  ($conf{EXT_BILL_ACCOUNT} && $attr->{USER}) ? $BILL_ACCOUNTS{$line->[10]} : "$line->[10]",
+  "$line->[10]", 
+  
   $delete);
 }
 
@@ -5064,7 +5065,7 @@ my $list = $fees->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_FEES",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_TYPE, $_ADMINS, 'IP',  $_DEPOSIT, "$_BILLS", '-'],
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_TYPE, $_DEPOSIT, "$_BILLS", $_ADMINS, 'IP','-'],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $fees->{TOTAL},
@@ -5083,10 +5084,11 @@ foreach my $line (@$list) {
   $line->[3], 
   $line->[4] . ( ($line->[11] ) ? ' ('. $html->b($line->[11]) .') ' : '' ), 
   $FEES_METHODS[$line->[5]], 
-  "$line->[6]", 
-  "$line->[7]",
-  "$line->[8]",
-  ($BILL_ACCOUNTS{$line->[9]}) ? $BILL_ACCOUNTS{$line->[9]} : "$line->[9]",
+  "$line->[6]",
+  ($BILL_ACCOUNTS{$line->[7]}) ? $BILL_ACCOUNTS{$line->[7]} : "$line->[7]",
+  "$line->[8]", 
+  "$line->[9]",
+
   $delete);
 }
 
