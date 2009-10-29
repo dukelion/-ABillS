@@ -148,7 +148,7 @@ sub docs_invoice_add  {
 
     $list = $Payments->list({ ID => $Docs->{PAYMENT_ID} });
     if ($Payments->{TOTAL} > 0) {
-    	$method=$list->[0]->[8];
+    	$method=$list->[0]->[6];
       $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$method];
      }
    }
@@ -264,7 +264,7 @@ elsif($FORM{print}) {
 
     $list = $Payments->list({ ID => $Docs->{PAYMENT_ID} });
     if ($Payments->{TOTAL} > 0) {
-    	$method=$list->[0]->[8];
+    	$method=$list->[0]->[6];
       $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$method];
      }
 
