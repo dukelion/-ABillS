@@ -365,6 +365,15 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed} ) {
    }
  }
 else {
+	
+	$info{PAID_STATUS_SEL} = $html->form_select('PAID_STATUS', 
+                                    { 
+ 	                                   SELECTED     => $FORM{PAID_STATUS},
+ 	                                   ARRAY_NUM_ID => 1,
+ 	                                   SEL_ARRAY    => [ $_ALL, $_PAID, $_UNPAID ],
+                                     NO_ID        => 1
+ 	                                  });
+
   form_search({ SEARCH_FORM => $html->tpl_show(_include('docs_search', 'Docs'), 
   	                                  { %info, %FORM }, 
   	                                  { notprint => 1 })  
@@ -374,15 +383,11 @@ else {
 
 #  Date  Customer  Sum  User  Administrators  Time  
 
-if (! defined($FORM{sort})) {
+if (! $FORM{sort}) {
   $LIST_PARAMS{SORT}=1;
   $LIST_PARAMS{DESC}='DESC';
 }
 
-
-#if ($conf{DOCS_PDF_PRINT}) {
-#	$pages_qs .= "&pdf=1";
-#}
 
 my @CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS, $_USER, $_ADMIN, $_TIME, '-', '-');
 if ( $user->{UID} ) {
@@ -996,7 +1001,6 @@ sub docs_account {
                                      NO_ID       => 1
  	                                  });
 
-  #$Docs->{COMPANY_VAT}=$user->{COMPANY_VAT}.' %';
   $Docs->{OP_SID}  = mk_unique_value(16);
   $users->pi({  $users->{UID} });
 

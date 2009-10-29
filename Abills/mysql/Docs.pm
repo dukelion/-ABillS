@@ -291,6 +291,8 @@ sub accounts_list {
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
 
  @WHERE_RULES = ("d.id=o.acct_id");
@@ -332,7 +334,10 @@ sub accounts_list {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
- 
+ if ($attr->{PAID_STATUS}) {
+   push @WHERE_RULES, "d.payment_id". ( ($attr->{PAID_STATUS} == 1) ? '>\'0' : '=\'0' ) ."'"; 
+  }   
+
  #DIsable
  if ($attr->{UID}) {
    push @WHERE_RULES, "d.uid='$attr->{UID}'"; 
