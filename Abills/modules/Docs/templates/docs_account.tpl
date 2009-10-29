@@ -87,7 +87,7 @@
   </tr>
     <tr>
         <td width=\"133\" height=\"16\" align=\"left\" valign=\"bottom\" style=\"border-right-width:1; border-left-width:1pt; border-right-color:black; border-left-color:black; border-right-style:solid;\">        </td>
-        <td height=\"16\" align=\"left\" valign=\"top\" colspan=\"5\" style=\"border-right-width:1pt; border-right-color:black;\">    %FIO%   </td>
+        <td height=\"16\" align=\"left\" valign=\"top\" colspan=\"5\" style=\"border-right-width:1pt; border-right-color:black;\">    %FIO% (%BILL_ID%)   </td>
   </tr>
     <tr>
 
