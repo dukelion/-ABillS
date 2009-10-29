@@ -1081,6 +1081,7 @@ sub docs_print {
   
 
   if ($Docs->{UID}) {
+    $users->info($Docs->{UID}) if (! $users->{BILL_ID});
     $users->pi({  UID => $Docs->{UID} }) ;
     $users->{ADDRESS_FULL}="$users->{ADDRESS_STREET}, $users->{ADDRESS_BUILD}, $users->{ADDRESS_FLAT}"; 
    }
