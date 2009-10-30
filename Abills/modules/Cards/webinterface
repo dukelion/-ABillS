@@ -176,7 +176,7 @@ $Cards->{STATUS_SEL}=$html->form_select('STATUS', {
 my $table;
 
   form_search({ SEARCH_FORM => $html->tpl_show(_include('cards_search', 'Cards'), 
-  	                                  { %$Cards, %FORM }, 
+  	                                  { %FORM }, 
   	                                  { OUTPUT2RETURN => 1 })  
 	            });
 
