@@ -753,7 +753,7 @@ sub time_intervals {
    LEFT JOIN  trafic_tarifs tt ON (tt.interval_id=i.id)
    WHERE i.tp_id='$TP_ID'
    GROUP BY i.id
-   ORDER BY 1;");
+   ORDER BY 1,2;");
 
  if ($self->{TOTAL} < 1) {
    return 0;	
@@ -869,7 +869,7 @@ if ($debug == 1) {
 
    TIME_INTERVALS:
      #my @intervals = sort keys %$cur_int;
-     my @intervals = sort { $cur_int->{$a} <=> $cur_int->{$b} } keys %$cur_int; 
+     my @intervals = sort { $a <=> $b } keys %$cur_int; 
      $i = -1;
 
      
@@ -1163,8 +1163,8 @@ sub remaining_time {
      
      TIME_INTERVALS:
 
-     my @intervals = sort keys %$cur_int; 
-     #my @intervals = sort { $cur_int->{$a} <=> $cur_int->{$b} } keys %$cur_int;
+     #my @intervals = sort keys %$cur_int; 
+     my @intervals = sort { $a <=> $b } keys %$cur_int;
      $i = -1;
      
      #Check intervals
