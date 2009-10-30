@@ -868,7 +868,8 @@ if ($debug == 1) {
    my $prev_tarif = '';
 
    TIME_INTERVALS:
-     my @intervals = sort keys %$cur_int; 
+     #my @intervals = sort keys %$cur_int;
+     my @intervals = sort { $cur_int->{$a} <=> $cur_int->{$b} } keys %$cur_int; 
      $i = -1;
 
      
@@ -1162,7 +1163,8 @@ sub remaining_time {
      
      TIME_INTERVALS:
 
-     my @intervals = sort keys %$cur_int; 
+     #my @intervals = sort keys %$cur_int; 
+     my @intervals = sort { $cur_int->{$a} <=> $cur_int->{$b} } keys %$cur_int;
      $i = -1;
      
      #Check intervals
@@ -1280,15 +1282,15 @@ sub remaining_time {
 
         }
        elsif($i == $#intervals) {
-       	  print "!! LAST@@@@ $i == $#intervals\n" if ($debug == 1);
+       	  print "!! LAST@@@@ $i == Interval counts: $#intervals\n" if ($debug == 1);
        	  $prev_tarif = "$tarif_day:$int_begin";
 
 
 
        	  if (defined($time_intervals->{0}) && $tarif_day != 0) {
        	    $tarif_day = 0;
-       	    $cur_int = $time_intervals->{$tarif_day};
-       	    print "Go to\n" if ($debug == 1);
+       	    $cur_int   = $time_intervals->{$tarif_day};
+       	    print "Go to TIME_INTERVALS\n" if ($debug == 1);
        	    goto TIME_INTERVALS;
        	   }
        	  elsif($session_start < 86400) {
