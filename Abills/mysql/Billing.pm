@@ -1163,8 +1163,8 @@ sub remaining_time {
      
      TIME_INTERVALS:
 
-     #my @intervals = sort keys %$cur_int; 
-     my @intervals = sort { $cur_int->{$a} <=> $cur_int->{$b} } keys %$cur_int;
+     my @intervals = sort keys %$cur_int; 
+     #my @intervals = sort { $cur_int->{$a} <=> $cur_int->{$b} } keys %$cur_int;
      $i = -1;
      
      #Check intervals
