@@ -156,7 +156,7 @@ sub extfin_export_customers {
 
       if ($FORM{TOTAL_ONLY}) {
  	      $name = ($FORM{USER_TYPE} == 1) ? "$_TOTAL $_COMPANIES" : "$_TOTAL $_USERS"; 
-        $table->addrow(10000000,
+        $table->addrow(999999,
          $name,
          $FORM{USER_TYPE},
          0,
