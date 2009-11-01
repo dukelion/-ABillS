@@ -1382,6 +1382,7 @@ sub tpl_show {
   $filename        =~ s/\.[a-z]{3}$//;
   my $tpl_describe = tpl_describe($filename);
   
+
   $filename        = $filename.'.pdf';
   my $pdf          = PDF::API2->open($filename);
   my $tpl;
@@ -1415,12 +1416,10 @@ my $encode    = 'windows-1251';
 
 my $font = $pdf->corefont($font_name, -encode => "$encode");
 
-
 MULTIDOC_LABEL:
 
 
 for my $key (sort keys %$tpl_describe) { 
-  
   my @patterns = ();
 
   if ( $tpl_describe->{$key}{PARAMS} =~ /\((.+)\)/ ) {
@@ -1548,7 +1547,7 @@ for my $key (sort keys %$tpl_describe) {
 
 
 
-if ($attr->{MULTI_DOCS} && $multi_doc_count < @{ $attr->{MULTI_DOCS} }) {
+if ($attr->{MULTI_DOCS} && $multi_doc_count <= $#{ $attr->{MULTI_DOCS} }) {
   
   if ($attr->{DOCS_IN_FILE} && $multi_doc_count > 0 && $multi_doc_count % $attr->{DOCS_IN_FILE} == 0) {
   	my $outfile = $attr->{SAVE_AS};
@@ -1569,8 +1568,10 @@ if ($attr->{MULTI_DOCS} && $multi_doc_count < @{ $attr->{MULTI_DOCS} }) {
   print "Doc: $multi_doc_count\n" if ($attr->{debug});
   #print %$variables_ref  ;
 
-  for(my $i=1; $i<=$page_count; $i++) {
-    my $page = $pdf->importpage($pdf, $i);
+  if ($multi_doc_count > 0) {
+    for(my $i=1; $i<=$page_count; $i++) {
+      my $page = $pdf->importpage($pdf, $i);
+     }
    }
 
   $multi_doc_count++;  

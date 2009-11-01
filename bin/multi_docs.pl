@@ -239,7 +239,7 @@ if ($begin_time > 0)  {
 #**********************************************************
 sub multi_tpls {
   my ($tpl, $MULTI_ARR, $attr) = @_;	
-  my $tpl_name = $1 if ($tpl =~ /\/([a-zA-Z\.0-9\_]+)$/);
+#  my $tpl_name = $1 if ($tpl =~ /\/([a-zA-Z\.0-9\_]+)$/);
   
   my $single_tpl = $html->tpl_show($tpl, undef, 
                                            { MULTI_DOCS   => $MULTI_ARR, 

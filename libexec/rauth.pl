@@ -120,7 +120,7 @@ sub get_nas_info {
 #
 if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
   # (defined($RAD->{NAS_IDENTIFIER})) ? $RAD->{NAS_IDENTIFIER} : ''
-  access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}' [$nas->{errno}] $nas->{errstr}", 0);
+  access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'". (( $RAD->{NAS_IP_ADDRESS} eq '0.0.0.0' ) ? $RAD->{CALLED_STATION_ID} : '') ." [$nas->{errno}] $nas->{errstr}", 0);
   $RAD_REPLY{'Reply-Message'}="Unknow server '$RAD->{NAS_IP_ADDRESS}'";
   return 1;
  }
