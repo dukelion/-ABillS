@@ -975,7 +975,7 @@ sub multidoms_reseller_tp {
  $tarif_info->{LNG_ACTION} = $_ADD;
  $tarif_info->{ACTION}     = 'ADD_TP';
 
- $FORM{PAYMENT_TYPE}=0 if (! $FORM{PAYMENT_TYPE});
+ $FORM{PAYMENT_TYPE}=1 if (! $FORM{PAYMENT_TYPE});
 
 if (defined($FORM{TOTAL_TIME_TYPE})) {
 	if($FORM{TOTAL_TIME_TYPE} == 2) {

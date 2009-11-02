@@ -177,6 +177,7 @@ if (defined($args->{monthly})) {
   	my $f = $monthly_functions[$i];
   	#$DEBUG .= 
   	print "==> FUNCTION: ". $f ."\n" if ($args->{DEBUG} && $args->{DEBUG} > 4);
+  	
   	$f->({ %$args, 
   		     %ADMIN_REPORT });
   }

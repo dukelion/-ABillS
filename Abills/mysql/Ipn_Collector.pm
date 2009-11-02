@@ -74,8 +74,7 @@ sub new {
   $self->{UNKNOWN_TRAFFIC_ROWS}=0;
 
   $Billing = Billing->new($db, $CONF);
-  $Dv = Dv->new($db, undef, $CONF);
-  $Tariffs = Tariffs->new($db, $admin, $CONF);
+  
 
   return $self;
 }
@@ -355,6 +354,7 @@ sub traffic_agregate_nets {
   my $AGREGATE_USERS  = $self->{AGREGATE_USERS}; 
   my $ips       = $self->{USERS_IPS};
   my $user_info = $self->{USERS_INFO};
+  $Dv = Dv->new($db, undef, $CONF);
 
   #Get user and session TP
   while (my ($uid, $session_tp) = each ( %{ $user_info->{TPS} } )) {
@@ -499,6 +499,7 @@ sub get_zone {
   my $tariff  = $attr->{TP_INTERVAL} || 0;
 
   #Get traffic classes and prices 
+  $Tariffs = Tariffs->new($db, undef, $CONF);
   my $list = $Tariffs->tt_list({ TI_ID => $tariff });
 
   foreach my $line (@$list) {

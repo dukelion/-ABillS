@@ -79,7 +79,7 @@ sub dhcphosts_mac_block_show {
         next;
        }
 	    elsif (! defined($line->[1])) {
-	     	print "Warning: IP: $ip MAC: $mac Record don't have users\n";
+	     	print 'Warning: IP: '.($ip || 'No ip').' MAC: '. ($mac || 'No MAC'). " Record don't have users (ID: $line->[0])\n";
 	     	next;
 	     }
 
@@ -568,9 +568,13 @@ sub dhcphosts_hosts {
 	  elsif($status == 1 ) { $table->{rowcolor}=$_COLORS[6]; }
 	  elsif($status == 2 ) { $table->{rowcolor}=$_COLORS[1]; }
 
-	  if (($line->[12 + $Dhcphosts->{SEARCH_FIELDS_COUNT}]==1) && $status) { $table->{rowcolor}=$_COLORS[0]; };
-
-	  #$table->{rowcolor}=$_COLORS[$i];
+	  if (($line->[12 + $Dhcphosts->{SEARCH_FIELDS_COUNT}]==1) && $status)
+         { $table->{rowcolor}=$_COLORS[0]; 
+           }
+          else {
+            $table->{rowcolor}=undef; 
+           }
+ 
     $table->addrow(
 	    $line->[0], 
 	    $html->button($line->[1], "index=15&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]."&MODULE=Dhcphosts"),

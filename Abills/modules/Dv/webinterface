@@ -17,6 +17,7 @@ my $payments = Payments->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
+
 my %FORM_BASE = ();
 
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000');
@@ -3802,7 +3803,7 @@ sub dv_daily_fees {
              else {
                $fees->take(\%user, $sum, { %PARAMS } );
                if ($fees->{errno}) {
-               	 print "Error: [ $user{UID} ] $user{LOGIN} SUM: $sum [$fees->{errno}] $fees->{errstr} ";
+               	 print "Dv Error: [ $user{UID} ] $user{LOGIN} SUM: $sum [$fees->{errno}] $fees->{errstr} ";
                	 if ($fees->{errno} == 14 ) {
                	 	 print "[ $user{UID} ] $user{LOGIN} - Don't have money account";
                	  }
@@ -3971,7 +3972,6 @@ sub dv_monthly_fees {
  my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
  $debug_output .= "DV: Monthly periodic payments\n" if ($debug > 1);
- 
  
  use Users;
  
@@ -4203,8 +4203,8 @@ sub dv_monthly_fees {
                     $fees->take(\%user, $sum, { %FEES_PARAMS } );
                     $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} CHANGE ACTIVATE\n" if ($debug > 0);
                     if ($fees->{errno}) {
-                    	print "Error: [ $user{UID} ] $user{LOGIN} SUM: $sum [$fees->{errno}] $fees->{errstr} ";
-                    	if ($fees->{errno} == 14 ) {
+                    	print "Dv Error: [ $user{UID} ] $user{LOGIN} SUM: $sum [$fees->{errno}] $fees->{errstr} ";
+                     	if ($fees->{errno} == 14 ) {
                  	 	    print "UID: $user{UID} LOGIN: $user{LOGIN} - Don't have money account";
                	       }
                	      print "\n";
