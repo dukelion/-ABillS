@@ -2228,7 +2228,7 @@ if ($FORM{TYPE} eq 'TP') {
 
 if($FORM{print_cards}) {
 	cards_print();
-	return 0;
+  exit;
 }
 
 
@@ -2236,7 +2236,8 @@ if($FORM{print_cards}) {
 if ($FORM{TP_ID}) {
   $table = $html->table( { width       => '100',
                            qs          => $pages_qs,
-                           title_plain => [ $html->button($_PRINT, "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex_params   => 'target=_new' }) ],
+                           title_plain => [ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex_params   => 'target=_new' }),
+                            $html->button('CSV', "qindex=$index&csv=1&print_cards=1&$pages_qs", { ex_params   => 'target=_new' }) ],
                            ID          => 'PRINT_CARDS_LIST',
                          });
   print $table->show();
@@ -2392,7 +2393,18 @@ else {
 #**********************************************************
 sub cards_print {
 	
- print $html->header();
+	
+if ($FORM{csv}) {
+  print "Content-Type: text/plain; filename=\"cards_$FORM{CREATE_DATE}.csv\"\n".
+  	    "Content-Disposition: attachment; filename=\"cards_$FORM{CREATE_DATE}.csv\"; size=$Msgs->{FILESIZE}".
+  	    "\n\n";
+
+  print "SERIAL\tLOGIN\tPASSWORD/PIN\tTARIF_PLAN\tSUM\tEXPIRE\tAGE\tTIME_LIMIT\n";
+ }
+else {
+  print $html->header();
+}
+
 
  #$Cards->{debug}=1;
  my $list = $Cards->cards_list({ %LIST_PARAMS, 
@@ -2405,6 +2417,12 @@ sub cards_print {
  my @MULTI_ARR       = ();
  
  foreach my $line (@$list) {
+  
+   if ($FORM{csv}) {
+   	 print "$line->[0]\t$line->[1]\t$line->[2]\t$line->[3]\t$line->[14]\t$line->[5]\t$line->[6]\t$line->[7]\n";
+    }
+   
+  
    $page_print_hash{'SERIAL_'.$i} = "$line->[0]";
    $page_print_hash{'LOGIN_'.$i}  = "$line->[1]";
    $page_print_hash{'PIN_'.$i}    = "$line->[2]";
@@ -2430,12 +2448,14 @@ sub cards_print {
    else {
      $i++;
     }
-  }
+ }
 
 
 
-
-if (scalar keys %page_print_hash > 0) {
+if ($FORM{csv}) {
+  return 0;	
+ }
+elsif (scalar keys %page_print_hash > 0) {
 	push @MULTI_ARR, { %page_print_hash };
 }
 
@@ -2446,6 +2466,8 @@ if (scalar keys %page_print_hash > 0) {
   	                                         debug        => $debug
   	                                        }
   	                                       ); 
+
+
 
 }
 
