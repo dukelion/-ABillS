@@ -416,7 +416,8 @@ sub form_info {
     
 
    }
-  elsif ($conf{user_chg_pi}) {
+  
+  if ($conf{user_chg_pi}) {
   	if ($FORM{chg}) {
   		$user->pi();
   		$user->{ACTION}='change';
