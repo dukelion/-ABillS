@@ -1102,6 +1102,9 @@ elsif (defined($FORM{TP_ID})) {
      
     if (! $tariffs->{errno}) {
        $tariffs->ti_change($FORM{TI_ID}, { %FORM });
+
+#print "Content-Type: text/html\n\n";
+#$tariffs->{debug}=1;
        $tariffs->tt_change({ %FORM, TT_ID => 0 });	 
        $html->message('info', $_CHANGED, "$_CHANGED $tariffs->{TP_ID}");
      }

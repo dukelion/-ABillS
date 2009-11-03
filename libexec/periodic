@@ -490,7 +490,9 @@ sub logrotate {
   # abills.log rotate
   #my ($Y, $M, $D)=split(/:/, $DATE, 3);
   my $rotate_level = 5;
+  
   if ($D == 1) {
+
      my $logfile = "$conf{LOGFILE}";
      my $cmd = '';
 
@@ -498,9 +500,10 @@ sub logrotate {
        if ( -f $logfile.'.'. ($i-1) .'.gz') {
          $cmd = 'mv '. $logfile .'.'. ($i-1) .'.gz '. $logfile .'.'. $i .'.gz';
          $DEBUG .= $cmd ."\n" if ($debug > 3);
-         #my $a = `$cmd`;
+         my $a = `$cmd`;
         }
       }
+
 
      $cmd = '$GZIP -c '. $logfile. ' > '. $logfile . '.1.gz && >'. $logfile ;
      $DEBUG .= $cmd."\n" if ($debug > 3);
@@ -510,6 +513,11 @@ sub logrotate {
 #Bruteforce clear
   $users->bruteforce_del({ DATE => $DATE });
 	$DEBUG .= "Brute force log cleaned\n" if ( $debug > 1);
+	
+	 # Clean old backups
+   my $r = `find /usr/abills/backup/ -type f -mtime +30 -delete`;
+ 
+   $DEBUG .= "Clean mysql old backups\n" if ( $debug > 1);
 }
 
 
@@ -585,6 +593,7 @@ sub backup {
    } 
 
   }
+
 
   return;
 }

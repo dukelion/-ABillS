@@ -707,6 +707,7 @@ elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
   if ($EX_PARAMS->{traf_limit} > 0) { 
     $RAD_PAIRS->{'ChilliSpot-Max-Total-Octets'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE}); 
    } 
+
   #Shaper for chillispot 
   if ($self->{USER_SPEED} > 0) { 
      $RAD_PAIRS->{'WISPr-Bandwidth-Max-Down'} = int($self->{USER_SPEED}) * $CONF->{KBYTE_SIZE}; 
