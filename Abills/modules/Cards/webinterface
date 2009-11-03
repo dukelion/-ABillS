@@ -581,7 +581,7 @@ sub cards_users_add  {
                   		                  PAGE_ROWS => 1,
           		                          SORT      => 'number',
           		                          DESC      => 'DESC'});
-        $begin = int($list->[0][0])+1;          		                   
+        $begin = int($list->[0][1])+1;          		                   
        }
 
 
