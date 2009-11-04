@@ -974,37 +974,7 @@ sub acct_stop {
 
 }
 
-#*******************************************************************
-# Convert integer value to ip
-# int2ip($i);
-#*******************************************************************
-sub tcollector {
- my $self = shift;
- my ($attr) = @_;
 
-
- return $self;
-}
-
-
-#**********************************************************
-#
-#**********************************************************
-#sub is_client_ip($) {
-#  my $self = shift;
-#  my $ip = shift @_;
-#
-#  if ($self->{debug}) { print "--- CALL is_client_ip($ip),\t\$#clients_lst = $#clients_lst\n"; }
-#  if ($#clients_lst < 0) {  return 0; } # nienie iono!
-#
-#  foreach my $i (@clients_lst) {
-#	  if ($i eq $ip) { return 1; }
-#   }
-#
-#  if ($self->{debug}) { print "   Client $ip not found in \@clients_lst\n"; }
-#
-#  return 0;
-#}
 
 #**********************************************************
 #
