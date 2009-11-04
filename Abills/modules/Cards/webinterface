@@ -90,11 +90,11 @@ if ($FORM{change}) {
           }
          $FROM .= "$diller, ";
 
- 		     #docs_invoice_add({ FROM      => $diller,
- 		     #	                 CUSTOMER  => $diller,
-         #                 	 ORDERS    => [ @ORDERS ],
-         #                 	CREATE    => 1
-         #                 });
+# 		     docs_invoice_add({ FROM      => $diller,
+# 		     	                 CUSTOMER  => $diller,
+#                          	 ORDERS    => [ @ORDERS ],
+#                          	CREATE    => 1
+#                          });
 
         }
   }
@@ -172,6 +172,13 @@ else {
   $Cards->{DILLERS_SEL}=cards_dillers_sel();
 }
 
+$Cards->{ADMINS_SEL}=$html->form_select('AID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{AID},
+ 	                                          SEL_MULTI_ARRAY   => $admin->list({ %LIST_PARAMS }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
 
 $Cards->{STATUS_SEL}=$html->form_select('STATUS', { 
  	                                       SELECTED      => ($FORM{STATUS}) ? $FORM{STATUS} : 0,
@@ -182,8 +189,11 @@ $Cards->{STATUS_SEL}=$html->form_select('STATUS', {
 
 my $table;
 
+  $Cards->{SUM}=undef if (! $FORM{SUM});
+  $Cards->{EXPIRE}=undef if (! $FORM{EXPIRE});
+
   form_search({ SEARCH_FORM => $html->tpl_show(_include('cards_search', 'Cards'), 
-  	                                  { %FORM }, 
+  	                                  { %FORM, %$Cards }, 
   	                                  { OUTPUT2RETURN => 1 })  
 	            });
 
@@ -206,6 +216,7 @@ if (defined($FORM{SERIA})) {
                              'right', 'right', 'left', 'right', 'center:noprint'],
                            qs         => $pages_qs,
                            pages      => $Cards->{TOTAL},
+                           ID         => 'CARDS_LIST',
                            header     => "<script language=\"JavaScript\" type=\"text/javascript\">
 <!-- 
 function CheckAllINBOX() {
@@ -766,6 +777,7 @@ sub cards_user_payment () {
 	
 }
 
+
 #**********************************************************
 #
 #**********************************************************
@@ -779,7 +791,6 @@ sub cards_dillers_sel {
  	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Cards->cards_dillers_list({ DISABLE => 0, SORT => 2,  PAGE_ROWS => 10000 }) }],
  	                                         MULTI_ARRAY_KEY   => 0,
  	                                         MULTI_ARRAY_VALUE => 2,
- 	                                         #NO_ID             => 1,
  	                                        });
 
 
@@ -1260,6 +1271,7 @@ sub cards_diller {
  	$Cards->{ACTION}='add';
  	$Cards->{LNG_ACTION}=$_ADD;
 
+  my $fees = Finance->fees($db, $admin, \%conf);
 
 if ($FORM{change_permits}) {
   $Cards->diller_permissions_set({ %FORM });

@@ -1,5 +1,5 @@
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("01:0:$_ICARDS:null:"                 => 5,
+%FUNCTIONS_LIST = ("01:0:$_ICARDS:cards_main:"                 => 5,
                    "04:1:BRUTE FORCE:cards_bruteforce:"   => 5,
                    "05:1:$_ICARDS:cards_main:"            => 5,
                    "06:1:$_DILLERS $_TARIF_PLANS:cards_dillers_tp:"     => 5,
@@ -20,15 +20,7 @@
                             );
 
 
-
-#$USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if (defined($conf{dv_user_chg_tp}));
-
-
- 
 %PERIODIC = (daily   => [ 'cards_bruteforce_clean' ] );
-
-#             monthly => [ 'dv_monthly_fees' ],
-#             report  => [ 'dv_report'       ]);
 
 
 1
