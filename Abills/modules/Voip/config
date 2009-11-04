@@ -1,6 +1,3 @@
-$web_interface    = 1;
-#@useraccount_menu = ('Dialup_VPN');
-
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:0:VoIP $_LIST:voip_users_list:"       => 11,
                    "02:0:VoIP:voip_user:UID"                 => 20,
@@ -21,8 +18,8 @@ $web_interface    = 1;
                    "17:14:$_USED:voip_use:"                  => 4,
                    "18:16:$_MONTH:voip_use_allmonthes:"      => 4,
                    "19:6:Trunks:voip_trunks:"                => 4,
-                   "20:0:VoIP:voip_online:"                  => 8,
-                   "21:20:Gatekeeper:voip_gk_console:"       => 8,
+                   "20:0:VoIP:voip_online:"                  => 6,
+                   "21:20:Gatekeeper:voip_gk_console:"       => 6,
 
                    );
 
@@ -33,8 +30,6 @@ $web_interface    = 1;
 
 %PERIODIC = ( report  => [ 'voip_report' ]);
 
-#daily   => [ 'voip_daily_fees' ],
-#monthly => [ 'voip_monthly_fees' ],
 
 
 

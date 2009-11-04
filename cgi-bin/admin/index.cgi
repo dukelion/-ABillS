@@ -581,7 +581,7 @@ sub check_permissions {
 
 
 #**********************************************************
-# Quick start menu
+# Start form
 #**********************************************************
 sub form_start {
 
@@ -595,13 +595,9 @@ while((my($findex, $hash)=each(%menu_items))) {
     }
 }
 
-
-my $h = $new_hash{0};
-my @last_array = ();
-
 my @menu_sorted = sort {
-  $a cmp $b
-} keys %$h;
+  $b <=> $a
+} keys %{ $new_hash{0} };
 
 my $table2 = $html->table({ width    => '100%',
 	                          border   => 0 
@@ -612,9 +608,7 @@ my $table;
 my @rows = ();
 
 for(my $parent=1; $parent<$#menu_sorted; $parent++) { 
-  my $val = $h->{$parent};
-  my $level = 0;
-  my $prefix = '';
+  my $val = $new_hash{0}{$parent};
   $table->{rowcolor}=$_COLORS[0];      
 
   if (! defined($permissions{($parent-1)})) {
@@ -631,13 +625,12 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
 
   if (defined($new_hash{$parent})) {
     $table->{rowcolor}=$_COLORS[1];
-    $level++;
-    $prefix .= "&nbsp;&nbsp;&nbsp;";
+    my $mi = $new_hash{$parent};
 
-    label:
-      my $mi = $new_hash{$parent};
-      while(my($k, $val)=each %$mi) {
-        $table->addrow("$prefix ". $html->button($val, "index=$k"));
+      foreach my $k ( sort keys %$mi) {
+        $val=$mi->{$k};
+        
+        $table->addrow("&nbsp;&nbsp;&nbsp; ". $html->button($val, "index=$k"));
         delete($new_hash{$parent}{$k});
       }
   }
@@ -652,7 +645,6 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
 
 $table2->addtd(@rows);
 print $table2->show();
-# return 0;
 }
 
 
@@ -4294,7 +4286,7 @@ my @m = (
 
  "5:0:$_SYSTEM:null:::",
  
- "59:5:$_LOG:form_changes:::",
+ 
   
  "61:5:$_NAS:form_nas:::",
  "62:61:IP POOLs:form_ip_pools:::",
@@ -4302,6 +4294,9 @@ my @m = (
  "64:61:$_GROUPS:form_nas_groups:::",
 
  "65:5:$_EXCHANGE_RATE:form_exchange_rate:::",
+ 
+ "66:5:$_LOG:form_changes:::",
+ 
  "75:5:$_HOLIDAYS:form_holidays:::",
 
  
@@ -4315,13 +4310,13 @@ my @m = (
  "95:90:$_SQL_BACKUP:form_sql_backup:::",
  "96:90:$_INFO_FIELDS:form_info_fields:::",
  "97:96:$_LIST:form_info_lists:::",
- "6:0:$_OTHER:null:::",
+ "6:0:$_MONITORING:null:::",
   
  "7:0:$_SEARCH:form_search:::",
- 
- "8:0:$_MONITORING:null:::",
+
+ "8:0:$_OTHER:null:::",
  "9:0:$_PROFILE:admin_profile:::",
- "53:9:$_PROFILE:admin_profile:::",
+ #"53:9:$_PROFILE:admin_profile:::",
  "99:9:$_FUNCTIONS_LIST:flist:::",
  );
 
@@ -4337,7 +4332,7 @@ if ($permissions{4} && $permissions{4}{4}) {
 }
 
 if ($permissions{4} && $permissions{4}{5}) {
-  push @m, "60:5:$_SYSTEM $_LOG:form_system_changes:::";
+  push @m, "67:66:$_SYSTEM $_LOG:form_system_changes:::";
 }
 
 
@@ -4399,7 +4394,6 @@ sub flist {
 my  %new_hash = ();
 while((my($findex, $hash)=each(%menu_items))) {
    while(my($parent, $val)=each %$hash) {
-#     print "$findex $parent $val<br>\n";
      $new_hash{$parent}{$findex}=$val;
     }
 }
@@ -4410,12 +4404,8 @@ my $h = $new_hash{0};
 my @last_array = ();
 
 my @menu_sorted = sort {
-   $h->{$b} <=> $h->{$a}
-     ||
-   length($a) <=> length($b)
-     ||
-   $a cmp $b
-} keys %$h;
+   $b <=> $a
+ } keys %$h;
 
 my %qm = ();
 if (defined($admin->{WEB_OPTIONS}{qm})) {
@@ -4433,8 +4423,10 @@ my $table = $html->table({ width      => '100%',
 
 
 for(my $parent=1; $parent<$#menu_sorted; $parent++) { 
-  my $val = $h->{$parent};
-  my $level = 0;
+	#print "$parent /<br>";
+	
+  my $val    = $h->{$parent};
+  my $level  = 0;
   my $prefix = '';
   $table->{rowcolor}=$_COLORS[0];      
 
@@ -4447,10 +4439,11 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
     $level++;
     $prefix .= "&nbsp;&nbsp;&nbsp;";
     label:
-      my $mi = $new_hash{$parent};
+      while(my($k, $val)=each %{ $new_hash{$parent} }) {
 
-      while(my($k, $val)=each %$mi) {
- 
+      #foreach my $k (keys %{ $new_hash{$parent} }) {
+        #my $val = ''; #$mi->{$k};
+
         my $checked = undef;
         if (defined($qm{$k})) { 
         	$checked = 1;  
@@ -6698,4 +6691,3 @@ sub form_info_lists {
 
 
 1
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            

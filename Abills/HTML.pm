@@ -566,7 +566,7 @@ sub menu () {
   while(my ($par_key, $name) = each ( %$h )) {
 
     my $ex_params = (defined($menu_args->{$root_index}) && defined($FORM{$menu_args->{$root_index}})) ? '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}" : '';
-    
+
     $menu_navigator =  " ". $self->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
     $tree{$root_index}=1;
     if ($par_key > 0) {
@@ -575,8 +575,6 @@ sub menu () {
      }
    }
 }
-
-
 
 
 $FORM{root_index} = $root_index;
@@ -590,16 +588,14 @@ if ($root_index > 0) {
 
 
 my @s = sort {
-   length($a) <=> length($b)
-     ||
-   $a cmp $b
+  $b <=> $a
 } keys %$menu_items;
 
 
 foreach my $ID (@s) {
  	my $VALUE_HASH = $menu_items->{$ID};
  	foreach my $parent (keys %$VALUE_HASH) {
-# 		print "$parent, $ID<br>";
+ 		#print "$parent, $ID<br>";
     push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
    }
 }
@@ -667,11 +663,6 @@ foreach my $ID (@s) {
       $prefix = substr($prefix, 0, $level * 6 * 3);
       goto label;
      }
-
-
- 	  
-#  }
- 
  
  $menu_text .= "</table>\n</div>
  <div class='menu_bot'></div>\n";

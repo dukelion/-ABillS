@@ -1,6 +1,4 @@
-#$web_interface    = 1;
 # Iner_ID : Main or Sub or if -1 user menu func list
-
 %FUNCTIONS_LIST = ("1:0:$_INFO:sysinfo_main:"      => 90,
                    "2:1:_MEMORY:sysinfo_memory:"   => 90,
                    "3:1:_CPU:sysinfo_cpu:"         => 90,
@@ -10,9 +8,5 @@
                    "7:1:$_CONFIG:sysinfo_conf:"    => 90,
                    "8:1:Perl:sysinfo_perl:"        => 90
                    );
-
-#%PERIODIC = (daily   => 'dv_daily_fees',
-#             monthly => 'dv_monthly_fees');
-#
 
 1

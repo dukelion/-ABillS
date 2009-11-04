@@ -1,5 +1,4 @@
 # Iner_ID : Main or Sub or if -1 user menu func list
-
 %FUNCTIONS_LIST = ("10:0:IP Net:ipn_user_activate:UID"       => 20,
                    #"11:10:$_ACTIVATE:ipn_user_activate:UID" => 20,
                    "12:10:$_STATS:ipn_sessions2:UID"         => 20,
@@ -29,13 +28,12 @@ if ($conf{IPN_USERMENU}) {
 }
 
 if ($conf{IPN_CLUBMONITOR}) {
-  $FUNCTIONS_LIST{"50:0:Club monitor:ipn_club_monitor:"} = 8;
-  $FUNCTIONS_LIST{"51:50:$_ADD:ipn_user_add:"}           = 8;
+  $FUNCTIONS_LIST{"50:0:Club monitor:ipn_club_monitor:"} = 6;
+  $FUNCTIONS_LIST{"51:50:$_ADD:ipn_user_add:"}           = 6;
 }
 
 %PERIODIC = (
              monthly => [ 'ipn_detail_rotate', 'ipn_periodic_session_restart' ]
             );
-
 
 1

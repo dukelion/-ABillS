@@ -1,4 +1,3 @@
-$web_interface    = 1;
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:-1:$_DOCS:null:UID"                      => 15,
                    "02:1:$_ACCOUNTS:docs_accounts_list:UID"     => 15,
@@ -11,21 +10,17 @@ $web_interface    = 1;
 #                  "08:7:$_ADD:docs_tax_invoice:COMPANY_ID"     => 13,
 
                    "09:0:$_DOCS:docs_summary:"                  => 5,
-                   "10:0:$_DOCS:docs_accounts_list:"            => 6,
-                   "11:10:$_ACCOUNTS:docs_accounts_list:"       => 6,
-                   "12:10:$_INVOICE:docs_invoice_list:"         => 6,
+                   "10:0:$_DOCS:docs_accounts_list:"            => 8,
+                   "11:10:$_ACCOUNTS:docs_accounts_list:"       => 8,
+                   "12:10:$_INVOICE:docs_invoice_list:"         => 8,
                    "15:0:$_DOCS:docs_reports:"                  => 4,
                    "16:15:$_TAX_INVOICE:docs_tax_invoice_list:" => 4,
                    "17:15:$_ACTS:docs_acts_list:"               => 4,
-#                   "13:10:$_CONTRACTS:docs_contractst:"        => 6
+#                   "13:10:$_CONTRACTS:docs_contractst:"        => 8
 
                    );
 
 %USER_FUNCTION_LIST = ("01:0:$_DOCS:docs_accounts_list:"            => 0
                       );
-
-#%PERIODIC = (daily   => 'dv_daily_fees',
-#             monthly => 'dv_monthly_fees');
-
 
 1

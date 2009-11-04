@@ -1,5 +1,3 @@
-$web_interface    = 1;
-
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:0:$_ABON:abon_user_list:"             => 11,
                    "02:0:$_ABON:abon_user_list:COMPANY_ID"   => 13,
@@ -8,10 +6,6 @@ $web_interface    = 1;
                    #"07:6:$_USERS:abon_user_list:ABON_ID"    => 5
                    );
 
-
-%USER_FUNCTION_LIST = ( );
-
 %PERIODIC = (daily   => [ 'abon_periodic' ]);
-
 
 1

@@ -1,8 +1,7 @@
-
 $_HOSTS_NETWORKS='Hosts Networks';
 $_HOSTS_ROUTES='Hosts routes';
 
-$web_interface    = 1;
+
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = (
                    "01:0:DHCP:dhcphosts_hosts:"           => 11,
@@ -12,12 +11,11 @@ $web_interface    = 1;
 		               "12:11:$_HOSTS_ROUTES:dhcphosts_routes:NET_ID" => 5,
 		               "13:10:IP guard:dhcphosts_mac_block:"          => 5,
                    "14:13:Static:dhcphosts_mac_static:"           => 5,
-                   "15:0:DHCP:dhcphosts_monitor:"                 => 8
+                   "15:0:DHCP:dhcphosts_monitor:"                 => 6
                    );
 
 %PERIODIC = (
               daily   => [ 'dhcphosts_periodic', 'dhcphosts_mac_block_make' ]
              );
-
 
 1

@@ -3,24 +3,21 @@
                    "2:0:Sharing:sharing_user:UID"       => 20,
                    "3:2:$_STATS:sharing_stats:UID"      => 20,
                    "4:2:$_ERROR:sharing_error:UID"      => 20,
-                   "5:2:$_TARIF_PLAN:sharing_chg_tp:UID"   => 20,
+                   "5:2:$_TARIF_PLAN:sharing_chg_tp:UID"=> 20,
                    "10:0:Sharing:sharing_sessions:"     => 4,
                    "11:10:$_ERROR:sharing_error:"       => 4,
                    "20:0:Sharing:null:"                 => 5,
                    "21:20:$_TARIF_PLANS:sharing_tp:"    => 5,
                    "22:21:$_GROUPS:form_tp_groups:"     => 5,
                    "23:21:$_TRAFIC_TARIFS:sharing_traffic_tariffs:TP_ID" => 5,
-                   "24:21:Ext $_TRAFFIC:sharing_additions:TP_ID"       => 5,
+                   "24:21:Ext $_TRAFFIC:sharing_additions:TP_ID"         => 5,
                    "25:20:$_PRIORITY:sharing_priority:" => 5,
-                   "30:0:Sharing:sharing_online:"       => 8
-                   
+                   "30:0:Sharing:sharing_online:"       => 6
                    ); 
- 
-
  
 %USER_FUNCTION_LIST = ("01:0:Sharing:sharing_user_info:"         => 0,
                        "03:1:$_STATS:sharing_user_stats:"        => 0,
-                       # "04:1:$_TRAFFIC:sharing_addition_buy:"    => 0
+                       # "04:1:$_TRAFFIC:sharing_addition_buy:"  => 0
                        );
 
 %PERIODIC = (

@@ -1,4 +1,3 @@
-$web_interface    = 1;
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = ("01:0:Extfin:extfin_export_customers"      => 1,
                    "02:1:$_FEES:extfin_paids"                 => 1,
@@ -15,6 +14,5 @@ $web_interface    = 1;
 %PERIODIC = (
              monthly => [ 'extfin_monthly_summary', 'extfin_periodic_paids' ]
              );
-
 
 1

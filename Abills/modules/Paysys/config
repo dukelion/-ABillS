@@ -1,5 +1,3 @@
-$web_interface    = 1;
-
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = (
                    #"01:0:Paysys:paysys_webmoney:UID"     => 2,
@@ -18,9 +16,6 @@ $web_interface    = 1;
 
  
 %PERIODIC = (daily   => [ 'paysys_periodic' ],
-#             monthly => [ 'dv_monthly_fees' ],
-#             report  => [ 'dv_report'       ]
-              );
-
+             );
 
 1

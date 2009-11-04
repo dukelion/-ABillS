@@ -6,8 +6,6 @@
                    "08:0:$_MESSAGES:msgs_reports:"      => 4
                     );
 
-%USER_FUNCTION_LIST = ();
-
 require "Abills/modules/Msgs/webinterface";
 
 if (defined($user->{UID})) {
@@ -21,15 +19,10 @@ if (defined($user->{UID})) {
  }
 elsif(defined($admin->{AID})) {
   my $count=msgs_new({ AID => $admin->{AID} });
-  $FUNCTIONS_LIST{"10:0:$_MESSAGES $count:msgs_admin:"}=6;
-  $FUNCTIONS_LIST{"12:10:$_ADD:msgs_admin_add:"}=6;
-  $FUNCTIONS_LIST{"12:10:$_SHEDULE:msgs_shedule:"}=6;
-  $FUNCTIONS_LIST{"12:10:$_DISPATCH:msgs_dispatch:"}=6;
+  $FUNCTIONS_LIST{"10:0:$_MESSAGES $count:msgs_admin:"}=8;
+  $FUNCTIONS_LIST{"12:10:$_ADD:msgs_admin_add:"}       =8;
+  $FUNCTIONS_LIST{"12:10:$_SHEDULE:msgs_shedule:"}     =8;
+  $FUNCTIONS_LIST{"12:10:$_DISPATCH:msgs_dispatch:"}   =8;
  }   
-
-#%QUICK_SHOW=();
-
-
-
 
 1

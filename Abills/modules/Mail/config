@@ -1,8 +1,4 @@
-
-$web_interface    = 1;
-
 #Iner_ID : Main or Sub or if -1 user menu func list
-
 %FUNCTIONS_LIST = ("01:0:E-MAIL $_LIST:mail_users_list:" => 11,
                    "02:1:$_ADD:mail_wizard:"             => 11,
                    "03:0:E-MAIL:mail_users_list:UID"     => 20,
@@ -17,7 +13,7 @@ if ($conf{MAIL_SPAMD}) {
   $FUNCTIONS_LIST{"17:16:Whitelist:mail_spam_whitelist:"}  = 5;
   $FUNCTIONS_LIST{"18:16:Blacklist:mail_spam_blacklist:"}  = 5;
   $FUNCTIONS_LIST{"19:16:$_ALL:mail_spamassassin_conf:"}   = 5;
-  $FUNCTIONS_LIST{"20:16:AWL:mail_spam_awl:"}   = 5;
+  $FUNCTIONS_LIST{"20:16:AWL:mail_spam_awl:"}              = 5;
 }
 
 if ($conf{MAIL_CHG_PASSWD}) {
