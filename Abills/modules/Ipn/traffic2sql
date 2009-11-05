@@ -23,6 +23,7 @@ if ($#ARGV < 1) {
    TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysation
    AMON_ALIVE - Second for Amon Alive Alive interval (default value 120).
    -d         - Deamon mode
+   -fg        - foreground mode
 
 
    FLOW_CAT   - Flow tools flow-cat location
@@ -51,7 +52,7 @@ my $log_file = "$flow_dir/traffic2sql.log";
 
 #Demonize section
 print "Start... debug: $debug\n";
-if(defined($ARGV->{'-d'})){
+if(defined($ARGV->{'-d'}) && ! defined($ARGV->{'-fg'})){
   mk_log('LOG_EMERG', "traffci2sql Daemonize..."); 
   daemonize();
  }
@@ -70,8 +71,8 @@ my $db  = $sql->{db};
 
 
 
+# Get options ==============================================
 my $IF_NAME=($ARGV->{INTERFACE}) ? $ARGV->{INTERFACE} : '';
-
 
 if (defined($ARGV->{debug})) {
 	print "Debug mode on\n";
@@ -97,6 +98,7 @@ if ($ARGV->{AMON_ALIVE}) {
   $conf{IPN_AMON_ALIVE}=$ARGV->{AMON_ALIVE};	
   print "AMON_ALIVE=$conf{IPN_AMON_ALIVE}\n" if ($debug > 0);
 }
+#==========================================================
 
 require Ipn_Collector;
 Ipn_Collector->import();
@@ -130,6 +132,7 @@ $conf{MB_SIZE} = $conf{KBYTE_SIZE} * $conf{KBYTE_SIZE};
 
 
 
+
 my %PROTOCOLS = ('tcp'    => 1,
                  'udp'    => 2);
 my $PROTOCOL = 0; #(defined($PROTOCOLS{$PROTOCOL})) ? $PROTOCOLS{$PROTOCOL} : 0;
@@ -153,20 +156,24 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
 
 
 
+if (defined($ARGV->{'-d'})) {
 
+  while(1) {
+	  $begin_time = check_time();
+  	$Ipn->user_ips({ NAS_ID => $NAS_IDS });
 
+  	flow_capture();
 
-while(1) {
-	$begin_time = check_time();
-
-	$Ipn->user_ips({ NAS_ID => $NAS_IDS });
-
-	flow_capture();
-
-  my $UPDATE_TIME = 10;
-	sleep $UPDATE_TIME;
+    my $UPDATE_TIME = 10;
+	  sleep $UPDATE_TIME;
+  }
 }
+else {
+	$begin_time = check_time();
+  $Ipn->user_ips({ NAS_ID => $NAS_IDS });
 
+  flow_capture();
+}
 
 
 #**********************************************************

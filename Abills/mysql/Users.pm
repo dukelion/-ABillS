@@ -793,6 +793,9 @@ sub list {
     push @WHERE_RULES,  @{ $self->search_expr($attr->{CREDIT_DATE}, 'INT', 'u.credit_date', { EXT_FIELD => 1 }) };
   }
 
+ if ($attr->{REDUCTION}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{REDUCTION}, 'INT', 'u.reduction', { EXT_FIELD => 1 }) };
+  }
 
  if ($attr->{COMMENTS}) {
    push @WHERE_RULES,  @{ $self->search_expr($attr->{COMMENTS}, 'STR', 'pi.comments', { EXT_FIELD => 1 }) };

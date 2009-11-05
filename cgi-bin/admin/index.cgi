@@ -1605,9 +1605,10 @@ my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$
                   'if(company.id IS NULL,b.id,cb.id)' => 'BILL ID', 
                   'u.activate'        => "$_ACTIVATE", 
                   'u.expire'          => "$_EXPIRE",
-                  'u.credit_date'     => "$_CREDIT $_DATE"
-                  
+                  'u.credit_date'     => "$_CREDIT $_DATE",
+                  'u.reduction'       => "$_REDUCTION"
                     );
+
 
 
 
