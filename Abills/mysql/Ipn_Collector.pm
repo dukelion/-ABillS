@@ -279,6 +279,19 @@ sub traffic_agregate_clean {
   delete $self->{IN};
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 #**********************************************************
 # traffic_agregate_users
 # Get Data and agregate it by users
@@ -352,9 +365,9 @@ sub traffic_agregate_nets {
   my ($DATA) = @_;
 
   my $AGREGATE_USERS  = $self->{AGREGATE_USERS}; 
-  my $ips       = $self->{USERS_IPS};
-  my $user_info = $self->{USERS_INFO};
-  $Dv = Dv->new($db, undef, $CONF);
+  my $ips             = $self->{USERS_IPS};
+  my $user_info       = $self->{USERS_INFO};
+  $Dv                 = Dv->new($db, undef, $CONF);
 
   #Get user and session TP
   while (my ($uid, $session_tp) = each ( %{ $user_info->{TPS} } )) {
@@ -495,6 +508,11 @@ sub get_zone {
 	my $zoneid  = 0;
 	my %zones   = ();
 	my @zoneids = ();
+	
+	require Abills::Base;
+  Abills::Base->import();
+
+	my $begin_time = check_time();
 	
   my $tariff  = $attr->{TP_INTERVAL} || 0;
 
@@ -995,16 +1013,16 @@ sub is_exist($$) {
 # Convert integer value to ip
 # int2ip($i);
 #*******************************************************************
-sub int2ip {
-my $i = shift;
-
-my (@d);
-$d[0]=int($i/256/256/256);
-$d[1]=int(($i-$d[0]*256*256*256)/256/256);
-$d[2]=int(($i-$d[0]*256*256*256-$d[1]*256*256)/256);
-$d[3]=int($i-$d[0]*256*256*256-$d[1]*256*256-$d[2]*256);
- return "$d[0].$d[1].$d[2].$d[3]";
-}
+#sub int2ip {
+#my $i = shift;
+#
+#my (@d);
+#$d[0]=int($i/256/256/256);
+#$d[1]=int(($i-$d[0]*256*256*256)/256/256);
+#$d[2]=int(($i-$d[0]*256*256*256-$d[1]*256*256)/256);
+#$d[3]=int($i-$d[0]*256*256*256-$d[1]*256*256-$d[2]*256);
+# return "$d[0].$d[1].$d[2].$d[3]";
+#}
 
 
 

@@ -22,6 +22,8 @@ if ($#ARGV < 1) {
    PREPAID_STORE - Use alternative prepaid store for prepaid traffic colection.
    TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysation
    AMON_ALIVE - Second for Amon Alive Alive interval (default value 120).
+   VIRUS_ALERT=1000 - Count of small PKG
+   
    -d         - Deamon mode
    -fg        - foreground mode
 
@@ -157,7 +159,6 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
 
 
 if (defined($ARGV->{'-d'})) {
-
   while(1) {
 	  $begin_time = check_time();
   	$Ipn->user_ips({ NAS_ID => $NAS_IDS });
@@ -169,9 +170,6 @@ if (defined($ARGV->{'-d'})) {
   }
 }
 else {
-	$begin_time = check_time();
-  $Ipn->user_ips({ NAS_ID => $NAS_IDS });
-
   flow_capture();
 }
 
@@ -191,9 +189,6 @@ sub flow_capture {
 
   $unknown_ip_log = "$flow_dir/unknown_ip.log";
 
-
-
-
   #Get flow tools files
   opendir DIR, $flow_dir or die "Can't open dir '$flow_dir' $!\n";
     my @contents = grep  /^ft*/, readdir DIR;
@@ -211,8 +206,11 @@ sub flow_capture {
       #Last modified
       my $end_date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
       
+      
+      my $begin_time = check_time();      
       get_collector_data("$FLOW_CAT $flow_dir/$log | $FLOW_PRINT | $FLOWTOOLS_IP_AGGREGATION", { START => $start_date });
 
+      #Dont proccess files if only detalization
       if (! $ARGV->{DETAIL_ONLY}) {
         processing({ START            => $start_date,
   	                 STOP             => $end_date,
@@ -231,7 +229,7 @@ sub flow_capture {
       	my $status = system("mv $flow_dir/$log $ARGV->{FLOWTOOLS_FT_BACKUP}")
        }
       else {
-        my $status = unlink("$flow_dir/$log");
+        #my $status = unlink("$flow_dir/$log");
        }
      }
     else {
@@ -266,6 +264,7 @@ my $unknow_ip = '';
 foreach my $line (@$IN_ARRAY) {
   my($from, $to, $size)=split(/\//, $line, 3);
   $unknow_ip .= sprintf("%15s -> %15s %10s\n", int2ip($from), int2ip($to), $size); 
+  print ">>>>>>>>>>>>>>>>>>>>>>>>>\n";
  }
 
 $Ipn->traffic_agregate_nets();
@@ -644,6 +643,10 @@ print "$log\n" if ($debug > 1);
 $Ipn->traffic_agregate_clean();
 my %DATA=();
 
+my %virus_allert_ips = ();
+#my $i = 0;
+#my $total_size = 0;
+
 open( LOG, $log ) || die "Can't open log file '$log' $!\n";
 
 while( <LOG> ) {
@@ -651,15 +654,18 @@ while( <LOG> ) {
  	if ( /(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/ ){
   	print "-$1.$2.$3.$4 $5.$6.$7.$8 $9 $10 $11 $12\n" if ($debug>7);
 
-		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $10 );
-		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $11 ); 
-
     $DATA{SIZE}     = $12;
+    if ($ARGV->{VIRUS_ALERT} && $DATA{SIZE} < 100) {
+      $virus_allert_ips{(16777216 * $1 + 65536 * $2 + 256 * $3 + $4)}++;
+      next;
+     }    
+
+		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, int($10) );
+		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, int($11) ); 
+
     $DATA{PROTOCOL} = $9;
-	  $DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
-	  $DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
-	  #$DATA{NAS_ID}=$NAS_ID;
-	  $DATA{IF_NAME}  = '0';
+	  #$DATA{IF_NAME}  = '0';
+
     $Ipn->traffic_agregate_users({ %DATA, DEBUG => $debug });
  	 }
   #Ipcad log analize
@@ -668,7 +674,7 @@ while( <LOG> ) {
 		( $DATA{SRC_IP}, $DATA{SRC_PORT} ) = ( 16777216 * $1 + 65536 * $2 + 256 * $3 + $4, $11 );
 		( $DATA{DST_IP}, $DATA{DST_PORT} ) = ( 16777216 * $5 + 65536 * $6 + 256 * $7 + $8, $12 ); 
   	$DATA{SIZE} = $10;
-        $DATA{PROTOCOL}=0;
+    $DATA{PROTOCOL}=0;
 		$DATA{SRC_PORT} = 0 if ( $DATA{SRC_PORT} !~ /^\d+$/ );
 		$DATA{DST_PORT} = 0 if ( $DATA{DST_PORT} !~ /^\d+$/ );
 		#$DATA{NAS_ID}=$NAS_ID;
@@ -693,6 +699,21 @@ while( <LOG> ) {
 	}
 }
 close(LOG);
+
+if ($ARGV->{VIRUS_ALERT}) {
+	my $virus_allert_log = '';
+  while(my($k, $v)= each %virus_allert_ips) {
+  	my $user = ($Ipn->{USERS_IPS}{$k}) ? $Ipn->{USERS_INFO}{LOGINS}->{$Ipn->{USERS_IPS}{$k}}.' '. int2ip($k)  : '!!! '.int2ip($k);
+	  $virus_allert_log .= "$DATE $TIME $user $v\n" if ($v > 1000);
+   }
+  
+  if ($virus_allert_log ne '')  {
+    open(FILE, ">> $flow_dir/virus_allert.log") || die "Can't open file '$log_file' $!\n";
+      print FILE $virus_allert_log;
+    close(FILE);
+   }
+}
+
 }
 
 
@@ -805,3 +826,4 @@ sub mk_log {
 };
 
 1
+
