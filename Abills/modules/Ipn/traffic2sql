@@ -7,7 +7,7 @@ use strict;
 
 
 if ($#ARGV < 1) {
-  print "ABillS IPN Traffic collector
+  print "ABillS Ic collector
   traffic2sql [NAS_IDS] [Options]
    NAS_IDS    - Ids of NAS servers 1,2,3 or 1-100
  Options:
@@ -156,7 +156,7 @@ $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
 
 
 
-
+Time::HiRes->import(qw(gettimeofday));
 
 if (defined($ARGV->{'-d'})) {
   while(1) {
@@ -207,8 +207,9 @@ sub flow_capture {
       my $end_date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
       
       
-      my $begin_time = check_time();      
       get_collector_data("$FLOW_CAT $flow_dir/$log | $FLOW_PRINT | $FLOWTOOLS_IP_AGGREGATION", { START => $start_date });
+
+      #print "get colect:". (gettimeofday() - $begin_time) . "\n";
 
       #Dont proccess files if only detalization
       if (! $ARGV->{DETAIL_ONLY}) {
@@ -220,6 +221,8 @@ sub flow_capture {
 
        }
 
+      #print "processing 2:". (gettimeofday() - $begin_time) . "\n";
+
       # Delete log file
       if ($ARGV->{FLOWTOOLS_FT_BACKUP}) {
       	if (! -d $ARGV->{FLOWTOOLS_FT_BACKUP}) {
@@ -229,16 +232,19 @@ sub flow_capture {
       	my $status = system("mv $flow_dir/$log $ARGV->{FLOWTOOLS_FT_BACKUP}")
        }
       else {
-        my $status = unlink("$flow_dir/$log");
+        #my $status = unlink("$flow_dir/$log");
        }
      }
     else {
        print "Unknow File name format\n";
      }
 
+    #print "End:". (gettimeofday() - $begin_time) . "\n";
+
     $begin_time = check_time();
   }
-
+  
+  
   return 0;
 }
 
@@ -258,17 +264,19 @@ sub processing {
 
 
 my $IN_ARRAY  = $Ipn->{IN};
-my $OUT_ARRAY = $Ipn->{OUT};
+#my $OUT_ARRAY = $Ipn->{OUT};
 
 my $unknow_ip = '';
 foreach my $line (@$IN_ARRAY) {
   my($from, $to, $size)=split(/\//, $line, 3);
   $unknow_ip .= sprintf("%15s -> %15s %10s\n", int2ip($from), int2ip($to), $size); 
-  print ">>>>>>>>>>>>>>>>>>>>>>>>>\n";
  }
 
 $Ipn->traffic_agregate_nets();
+
 my ($intervals, $tp_interval) = $Ipn->get_interval_params();
+
+#print "processing 1:". (gettimeofday() - $begin_time) . "\n";
 
 
 my $ips           = $Ipn->{USERS_IPS};
@@ -655,7 +663,7 @@ while( <LOG> ) {
   	print "-$1.$2.$3.$4 $5.$6.$7.$8 $9 $10 $11 $12\n" if ($debug>7);
 
     $DATA{SIZE}     = $12;
-    if ($ARGV->{VIRUS_ALERT} && $DATA{SIZE} < 100) {
+    if ($ARGV->{VIRUS_ALERT} && $DATA{SIZE} < 150) {
       $virus_allert_ips{(16777216 * $1 + 65536 * $2 + 256 * $3 + $4)}++;
       next;
      }    
@@ -826,4 +834,3 @@ sub mk_log {
 };
 
 1
-
