@@ -23,6 +23,7 @@ if ($#ARGV < 1) {
    TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysation
    AMON_ALIVE - Second for Amon Alive Alive interval (default value 120).
    VIRUS_ALERT=1000 - Count of small PKG
+   LOG_FILE   - Debug log file for traffic2sql
    
    -d         - Deamon mode
    -fg        - foreground mode
@@ -233,7 +234,7 @@ sub flow_capture {
       	my $status = system("mv $flow_dir/$log $ARGV->{FLOWTOOLS_FT_BACKUP}")
        }
       else {
-        my $status = unlink("$flow_dir/$log");
+        #my $status = unlink("$flow_dir/$log");
        }
      }
     else {
@@ -241,7 +242,7 @@ sub flow_capture {
      }
 
     #print "End:". (gettimeofday() - $begin_time) . "\n";
-    #$begin_time = check_time();
+    $begin_time = check_time();
   }
   
   
@@ -616,7 +617,7 @@ if ($debug > 0 || $log_file) {
     print $output;
    }
   else {
-  	my $log_message =  "$attr->{LOG} $GT Query: $Ipn->{query_count}";
+  	my $log_message =  "$attr->{LOG} $GT Query: $Ipn->{query_count} ROWS: $Ipn->{TOTAL_FLOWS}"; 
   	$log_message .= $output if ($debug > 0);
   	mk_log('LOG_EMERG', "$log_message"); 
    }
@@ -649,6 +650,7 @@ sub get_collector_data {
 print "$log\n" if ($debug > 1);
 
 $Ipn->traffic_agregate_clean();
+$Ipn->{TOTAL_FLOWS}=0;
 my %DATA=();
 
 my %virus_allert_ips = ();
@@ -660,6 +662,7 @@ open( LOG, $log ) || die "Can't open log file '$log' $!\n";
 while( <LOG> ) {
   # flow-capture
  	if ( /(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\.(\d+)\.(\d+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/ ){
+ 		$Ipn->{TOTAL_FLOWS}++;
   	print "-$1.$2.$3.$4 $5.$6.$7.$8 $9 $10 $11 $12\n" if ($debug>7);
 
     $DATA{SIZE}     = $12;
@@ -810,6 +813,7 @@ sub daemonize {
           return;
         }
 }
+
 
 
 #**********************************************************
