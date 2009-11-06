@@ -50,6 +50,14 @@ my $ARGV = parse_arguments(\@ARGV);
 my $flow_dir = ($ARGV->{flowdir}) ? $ARGV->{flowdir} : $var_dir."log/ipn/";
 my $log_file = "$flow_dir/traffic2sql.log";
 
+if (defined($ARGV->{debug})) {
+	print "Debug mode on\n";
+	$debug=$ARGV->{debug};
+ }
+elsif(defined($ARGV->{help})){
+	print "Help:\n";
+}
+
 
 
 #Demonize section
@@ -76,13 +84,6 @@ my $db  = $sql->{db};
 # Get options ==============================================
 my $IF_NAME=($ARGV->{INTERFACE}) ? $ARGV->{INTERFACE} : '';
 
-if (defined($ARGV->{debug})) {
-	print "Debug mode on\n";
-	$debug=$ARGV->{debug};
- }
-elsif(defined($ARGV->{help})){
-	print "Help:\n";
-}
 
 if ($ARGV->{UNKNOWN_IP_LOG}) {
   $conf{UNKNOWN_IP_LOG}=1;	
@@ -232,7 +233,7 @@ sub flow_capture {
       	my $status = system("mv $flow_dir/$log $ARGV->{FLOWTOOLS_FT_BACKUP}")
        }
       else {
-        #my $status = unlink("$flow_dir/$log");
+        my $status = unlink("$flow_dir/$log");
        }
      }
     else {
@@ -240,8 +241,7 @@ sub flow_capture {
      }
 
     #print "End:". (gettimeofday() - $begin_time) . "\n";
-
-    $begin_time = check_time();
+    #$begin_time = check_time();
   }
   
   
@@ -605,7 +605,7 @@ if ($debug > 0 || $log_file) {
 
   $Ipn->{TRAFFIC_SUM}=0 if (! $Ipn->{TRAFFIC_SUM});
   $Ipn->{UNKNOWN_TRAFFIC_SUM}=0 if (! $Ipn->{UNKNOWN_TRAFFIC_SUM});
-  
+
   my $speed = int2byte(($Ipn->{TRAFFIC_SUM}+$Ipn->{UNKNOWN_TRAFFIC_SUM}) / $attr->{SESSION_INTERVAL});
 
 	my $output = "$unknow_ip$registred$GT/Query: $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS}/". int2byte($Ipn->{TRAFFIC_SUM}) ." Unknown: $Ipn->{UNKNOWN_TRAFFIC_ROWS}/". int2byte($Ipn->{UNKNOWN_TRAFFIC_SUM}) ." Speed: $speed/sec.\n";
