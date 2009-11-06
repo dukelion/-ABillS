@@ -369,8 +369,20 @@ sub traffic_agregate_nets {
   my $user_info       = $self->{USERS_INFO};
   $Dv                 = Dv->new($db, undef, $CONF);
 
+
+  #require Abills::Base;
+  #Abills::Base->import();
+
+
+  #Time::HiRes->import(qw(gettimeofday));
+  #my $begin_time = check_time();
+
+
   #Get user and session TP
   while (my ($uid, $session_tp) = each ( %{ $user_info->{TPS} } )) {
+
+    #print "  uid: $uid ". (gettimeofday() - $begin_time) . "\n";
+    #$begin_time = check_time();
 
     my $TP_ID = 0;
     my $user = $Dv->info($uid);
