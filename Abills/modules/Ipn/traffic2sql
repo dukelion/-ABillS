@@ -234,7 +234,7 @@ sub flow_capture {
       	my $status = system("mv $flow_dir/$log $ARGV->{FLOWTOOLS_FT_BACKUP}")
        }
       else {
-        #my $status = unlink("$flow_dir/$log");
+        my $status = unlink("$flow_dir/$log");
        }
      }
     else {
