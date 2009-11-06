@@ -3919,23 +3919,35 @@ if (defined($FORM{DATE})) {
 	$graph_type='';
   $list = $fees->list( { %LIST_PARAMS } );
   $table_fees = $html->table( { width      => '100%',
-  	                            caption    => "$_FEES", 
-                                title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT],
-                                cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
-                                qs         => $pages_qs,
-                                ID         => 'REPORT_FEES'
-                               });
+                            caption    => "$_FEES",
+                            border     => 1,
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_TYPE, $_DEPOSIT, "$_BILLS", $_ADMINS, 'IP','-'],
+                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $fees->{TOTAL},
+                            ID         => 'REPORTS_FEES'
+                        } );
 
+
+  $pages_qs .= "&subf=2" if (! $FORM{subf});
   foreach my $line (@$list) {
-   $table_fees->addrow($html->b($line->[0]), 
-     $html->button($line->[1], "index=15&subf=3&DATE=$line->[0]&UID=$line->[10]"),  
-      $line->[2],
-      $line->[3], 
-      $line->[4],  
-      "$line->[5]", 
-      "$line->[6]", 
-      "$line->[7]");
-    }
+    #my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=3&del=$line->[0]&UID=".$line->[10], 
+    #  { MESSAGE => "$_DEL ID: $line->[0]?" }) : ''; 
+
+    $table_fees->addrow($html->b($line->[0]), 
+    $html->button($line->[1], "index=15&UID=".$line->[10]), 
+    $line->[2], 
+    $line->[3], 
+    $line->[4] . ( ($line->[11] ) ? ' ('. $html->b($line->[11]) .') ' : '' ), 
+    $FEES_METHODS[$line->[5]], 
+    "$line->[6]",
+    ($BILL_ACCOUNTS{$line->[7]}) ? $BILL_ACCOUNTS{$line->[7]} : "$line->[7]",
+    "$line->[8]", 
+    "$line->[9]",
+  
+    #$delete
+     );
+  }
 
 
 
@@ -4108,25 +4120,36 @@ sub report_payments {
  
 if (defined($FORM{DATE})) {
 	$graph_type = '';
-  $list  = $payments->list( { %LIST_PARAMS } );
-  $table = $html->table({ width      => '100%',
-  	                      caption    => "$_PAYMENTS", 
-                          title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_ADMINS, 'IP', $_DEPOSIT],
-                          cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right'],
-                          qs         => $pages_qs,
-                          ID         => 'REPORT_PAYMENTS'
-                         });
 
+  $list = $payments->list( { %LIST_PARAMS } );
+  $table = $html->table( { width      => '100%',
+                            caption    => "$_PAYMENTS",
+                              title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE,   $_DEPOSIT, 
+                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP'],
+                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $payments->{TOTAL},
+                            ID         => 'REPORTS_PAYMENTS'
+                           } );
+
+  my $pages_qs .= "&subf=2" if (! $FORM{subf});
   foreach my $line (@$list) {
-   $table->addrow($html->b($line->[0]), 
-      $html->button($line->[1], "index=15&DATE=$LIST_PARAMS{DATE}&UID=$line->[11]"),  
-      $line->[2],
-      $line->[3], 
-      $line->[4],  
-      "$line->[5]", 
-      "$line->[6]", 
-      "$line->[7]");
-    }
+    #my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=2&del=$line->[0]&UID=". $line->[11] ."$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
+
+    $table->addrow($html->b($line->[0]), 
+    $html->button($line->[1], "index=15&UID=$line->[11]"), 
+    $line->[2], 
+    $line->[3], 
+    $line->[4] . ( ($line->[12] ) ? ' ('. $html->b($line->[12]) .') ' : '' ), 
+    "$line->[5]", 
+    $PAYMENT_METHODS[$line->[6]], 
+    "$line->[7]", 
+    ($conf{EXT_BILL_ACCOUNT} && $attr->{USER}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
+    "$line->[9]", 
+    "$line->[10]", 
+    #$delete
+    );
+  }
  }   
 else{ 
   my @CAPTION = ("$_DATE", "$_USERS", "$_COUNT", $_SUM);
