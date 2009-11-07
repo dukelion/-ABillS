@@ -581,7 +581,7 @@ $FORM{root_index} = $root_index;
 if ($root_index > 0) {
   my $ri = $root_index-1;
   if (defined($permissions) && (! defined($permissions->{$ri}))) {
-	  $self->{ERROR} = "Access deny";
+	  $self->{ERROR} = "Access deny $ri";
 	  return '', '';
    }
 }
