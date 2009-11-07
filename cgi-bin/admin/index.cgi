@@ -202,11 +202,12 @@ my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTI
                [$_LIST, $_GET, $_DEL, $_ALL],                                 # Fees
                [$_LIST, $_DEL],                                               # reports view
                [$_LIST, $_ADD, $_CHANGE, $_DEL, $_ADMINS, "$_SYSTEM $_LOG", $_DOMAINS],                    # system magment
-               [$_ALL],                                                       # Modules managments
-               [$_SEARCH],                                                    # Search
                [$_MONITORING, $_HANGUP],
+               [$_SEARCH],                                                    # Search
+               [$_ALL],                                                       # Modules managments               
                [$_PROFILE],
                [$_LIST, $_ADD, $_CHANGE, $_DEL],
+               
                );
 
 
@@ -3096,7 +3097,7 @@ $profiles{'IO'} = "#FCBB43, #FFFFFF, #eeeeee, #dddddd, #E1E1E1, #FFFFFF, #FF0000
 $profiles{'Cisco'} = "#99CCCC, #FFFFFF, #FFFFFF, #669999, #669999, #FFFFFF, #FF0000, #003399, #003399, #000000, #FFFFFF";
 
 while(my($thema, $colors)=each %profiles ) {
-  my $url = "index=53&AWEB_OPTIONS=1&set=set";
+  my $url = "index=$index&AWEB_OPTIONS=1&set=set";
   my @c = split(/, /, $colors);
   foreach my $line (@c) {
       $line =~ s/#/%23/ig;
