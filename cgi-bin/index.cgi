@@ -67,12 +67,13 @@ my $sql = Abills::SQL->connect($conf{dbtype},
                                $conf{dbpasswd},
                                { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
 my $db = $sql->{db};
-
 $html->{language}=$FORM{language} if (defined($FORM{language}) && $FORM{language} =~ /[a-z_]/);
 
 require "../language/$html->{language}.pl";
 $sid = $FORM{sid} || ''; # Session ID
+
 my $cookies_time=gmtime(time()+$conf{web_session_timeout})." GMT";
+
 if ((length($COOKIES{sid})>1) && (! $FORM{passwd})) {
   $COOKIES{sid} =~ s/\"//g;
   $COOKIES{sid} =~ s/\'//g;
@@ -89,7 +90,7 @@ if (defined($FORM{colors})) {
   $html->setCookie('colors', "$cook_colors", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
  }
 #Operation system ID
-$html->setCookie('OP_SID', "$FORM{OP_SID}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{OP_SID}));
+$html->setCookie('OP_SID', "$FORM{OP_SID}", "$cookies_time", $web_path, $domain, $secure) if (defined($FORM{OP_SID}));
 $html->setCookie('language', "$FORM{language}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure) if (defined($FORM{language}));
 
 if (defined($FORM{sid})) {
