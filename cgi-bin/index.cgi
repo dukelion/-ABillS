@@ -19,6 +19,8 @@ $sid
 @hundred
 @money_unit_names
 @EX_PAYMENT_METHODS
+%menu_items
+%menu_args
 );
 
 BEGIN {
@@ -108,15 +110,6 @@ $conf{WEB_TITLE} = $admin->{DOMAIN_NAME} if ($admin->{DOMAIN_NAME});
 require "Abills/templates.pl";
 $html->{METATAGS}=templates('metatags_client');
 
-if ($index == 10) {
-  $user=Users->new($db, $admin, \%conf); 
-  logout();
-
-  print "Location: $SELF_URL". "\n\n";
-  exit;
-}
-
-my $maxnumber = 0;
 my $uid = 0;
 my $page_qs;
 
@@ -126,16 +119,7 @@ my %OUTPUT = ();
 my $login = $FORM{user} || '';
 my $passwd = $FORM{passwd} || '';
 
-my @m = (
-   "10:0:$_LOGOUT:logout:::",
-   "30:0:$_USER_INFO:form_info:::",
-   );
 
-if ($conf{user_finance_menu}) {
-   push @m, "40:0:$_FINANCES:form_payments:::";
-   push @m, "41:40:$_FEES:form_fees:::";
-   push @m, "42:40:$_PAYMENTS:form_payments:::";
-}
 
 $user=Users->new($db, $admin, \%conf); 
 
@@ -144,6 +128,7 @@ $user=Users->new($db, $admin, \%conf);
 my %uf_menus = ();
 
 if ($uid > 0) {
+
   $UID = $uid;
   my $default_index = 30;
   
@@ -168,10 +153,17 @@ if ($uid > 0) {
   
   
   accept_rules() if ($conf{ACCEPT_RULES});
-  
-  push @m, "17:0:$_PASSWD:form_passwd:::" if($conf{user_chg_passwd});
 
-  mk_menu();
+  my @m = (
+   "10:0:$_USER_INFO:form_info:::",
+   );
+  if ($conf{user_finance_menu}) {
+     push @m, "40:0:$_FINANCES:form_payments:::";
+     push @m, "41:40:$_FEES:form_fees:::";
+     push @m, "42:40:$_PAYMENTS:form_payments:::";
+   }
+  push @m, "17:0:$_PASSWD:form_passwd:::" if($conf{user_chg_passwd});
+  mk_menu(\@m);
 
   $html->{SID}=$sid;
   (undef, $OUTPUT{MENU}) = $html->menu(\%menu_items, \%menu_args, undef, 
@@ -183,7 +175,7 @@ if ($uid > 0) {
   if ($html->{ERROR}) {
   	$html->message('err',  $_ERROR, "$html->{ERROR}");
   	exit;
-  }
+   }
 
   $OUTPUT{DATE} = $DATE;
   $OUTPUT{TIME} = $TIME;
@@ -283,10 +275,11 @@ $html->test() if ($conf{debugmods} =~ /LOG_DEBUG/);
 #
 #==========================================================
 sub mk_menu {
+  my ($menu) = @_;
  
-  $maxnumber  = 0;
+  my $maxnumber  = 0;
   
-  foreach my $line (@m) {
+  foreach my $line ( @$menu ) {
 	  my ($ID, $PARENT, $NAME, $FUNTION_NAME, $SHOW_SUBMENU, $OP)=split(/:/, $line);
     $menu_items{$ID}{$PARENT}=$NAME;
     $menu_names{$ID} = $NAME;
@@ -344,6 +337,10 @@ sub mk_menu {
 
     %USER_FUNCTION_LIST = ();
   }
+
+  $menu_names{1000}    = "$_LOGOUT";
+  $functions{1000}     = 'logout';
+  $menu_items{1000}{0} = $_LOGOUT;
 }
 
 #**********************************************************
@@ -504,6 +501,8 @@ sub auth_radius {
 	my ($login, $passwd, $sid)=@_;
   my $res = 0;
   
+  print "Content-Type: text/html\n\n";
+  
   my $check_access = $conf{check_access};
  
   #check password throught ftp access
@@ -578,7 +577,7 @@ if ($conf{PASSWORDLESS_ACCESS}) {
     }
   }
 
-if (defined($FORM{op}) && $FORM{op} eq 'logout') {
+if ($index == 1000) {
   $user->web_session_del({ SID => $FORM{sid} });
   return 0;
  }
@@ -738,15 +737,8 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
  return 0;
 }
 
-sub logout {
-	$FORM{op}='logout';
-	auth('', '', $sid);
-	#$html->message('info', $_INFO, $_LOGOUT);
-	
-	
-	
-	return 0;
-}
+
+
 
 #**********************************************************
 #
