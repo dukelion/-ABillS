@@ -1055,14 +1055,12 @@ my $list  = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_DEPOSIT, $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
+                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_DEPOSIT], # $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left'],
                             qs         => $pages_qs,
                             pages      => $payments->{TOTAL},
                             ID         => 'PAYMENTS'
                            } );
-
-$pages_qs .= "&subf=2" if (! $FORM{subf});
 
 foreach my $line (@$list) {
   $table->addrow($html->b($line->[0]), 
@@ -1071,9 +1069,9 @@ foreach my $line (@$list) {
   $line->[3], 
   $line->[4],  
   "$line->[5]", 
-  $PAYMENT_METHODS[$line->[6]], 
-  "$line->[7]", 
-  "$line->[8]", 
+#  $PAYMENT_METHODS[$line->[6]], 
+#  "$line->[7]", 
+#  "$line->[8]", 
   );
 }
 

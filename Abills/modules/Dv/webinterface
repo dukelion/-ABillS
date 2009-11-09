@@ -96,6 +96,10 @@ if ($FORM{set}) {
       $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}, $FORM{date_M}, $FORM{date_Y}  )/". $seltime . "-" . time());
       return 0;
      }
+    elsif($FORM{date_D} > ($FORM{date_M}!=2?(($FORM{date_M}%2)^($FORM{date_M}>7))+30:(!($FORM{date_Y}%400)||!($FORM{date_Y}%4)&&($FORM{date_Y}%25)?29:28))) {
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}-$FORM{date_M}-$FORM{date_Y})");
+      return 0;
+     }
 
     $shedule->add( {UID     => $Dv->{UID},
                    TYPE     => 'tp',
@@ -3108,6 +3112,11 @@ if ($FORM{set}) {
         $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}, $FORM{date_M}, $FORM{date_Y}  )/". $seltime . "-" . time());
         return 0;
        }
+      elsif($FORM{date_D} > ($FORM{date_M}!=2?(($FORM{date_M}%2)^($FORM{date_M}>7))+30:(!($FORM{date_Y}%400)||!($FORM{date_Y}%4)&&($FORM{date_Y}%25)?29:28))) {
+        $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}-$FORM{date_M}-$FORM{date_Y})");
+        return 0;
+       }
+
 
       $shedule->add( {UID     => $LIST_PARAMS{UID},
                      TYPE     => 'tp',
