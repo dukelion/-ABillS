@@ -131,7 +131,7 @@ my %uf_menus = ();
 if ($uid > 0) {
 
   $UID = $uid;
-  my $default_index = 30;
+  my $default_index = 10;
   
   #Quick Amon Alive Update
   # $ENV{HTTP_USER_AGENT} =~ /^AMon /
