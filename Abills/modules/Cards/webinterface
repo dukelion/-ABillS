@@ -1649,13 +1649,20 @@ $Cards->{TARIF_PLAN_SEL}=$html->form_select('TP_ID',
 sub cards_diller_add {
  	my ($attr) = @_;
  	
- 	
  	$Cards->{ACTION}='add';
  	$Cards->{LNG_ACTION}=$_ADD;
 
 if ($FORM{add}) {
+	
+	   if (! $FORM{TYPE} && $FORM{SUM} && $FORM{SUM} <= 0 ) {
+	   	 print $html->header();
+	   	 $html->message('err', $_ERROR, "$ERR_WRONG_SUM");
+	   	 print $html->{OUTPUT};
+	   	 exit;
+	    }
+	
+	
      my $fees = Finance->fees($db, $admin, \%conf);
-     
      
      if ($FORM{EXPORT} && $FORM{EXPORT} eq 'xml') {
      	  print "Content-Type: text/xml; filename=\"cards_$DATE.xml\"\n".
@@ -1680,22 +1687,22 @@ if ($FORM{add}) {
       }
 
 
-          my $list = $Cards->cards_list({ SERIA     => '',
-                                          PAGE_ROWS => 1,
-                                          SORT      => 1,
-                                          DESC      => 'DESC'
-                                        });
-            my $serial = 0;
-            my $count = $FORM{COUNT} || 1;
+     my $list = $Cards->cards_list({ SERIA     => '',
+                                     PAGE_ROWS => 1,
+                                     SORT      => 2,
+                                     DESC      => 'DESC'
+                                   });
+     my $serial = 0;
+     my $count = $FORM{COUNT} || 1;
 
-            if ($Cards->{TOTAL} > 0) {
-              $serial = $list->[0]->[0];
-             }
+     if ($Cards->{TOTAL} > 0) {
+       $serial = $list->[0]->[1];
+      }
 
-      $serial++;
+     $serial++;
 
      if($FORM{CARDS_PAYMENT_PIN_LENGTH}) {
-        $FORM{CARDS_PAYMENT_PIN_LENGTH} = $conf{CARDS_PAYMENT_PIN_LENGTH} || 8;
+         $FORM{CARDS_PAYMENT_PIN_LENGTH} = $conf{CARDS_PAYMENT_PIN_LENGTH} || 8;
        }
 
 
@@ -1705,9 +1712,6 @@ if ($FORM{add}) {
       
       #Import from other systems
       if ($FORM{import}) {
-
-
-        
         
        }
       else {
@@ -1740,12 +1744,6 @@ if ($FORM{add}) {
 
           if (ref($return) eq 'ARRAY') {
     	      foreach my $line (@$return) {
-              #%FORM = ( add => 1);
-     	        #%FORM = %FORM_BASE;
-  	 	        #while(my($k, $v)= each %$line) {
-  	 	  	    #  $FORM{$k}=clearquotes($v);
-  	 	        # }
-
         	 	  $FORM{'1.LOGIN'}      = $line->{LOGIN};
     	    	  $FORM{'1.PASSWORD'}   = $line->{PASSWORD};
   	   	      $FORM{'1.CREATE_BILL'}= 1;
@@ -1905,7 +1903,7 @@ if ($FORM{add}) {
 
 
      return 1;
-          }
+  }
 
 
 
@@ -1942,7 +1940,9 @@ if ($FORM{add}) {
          { COUNT => 1, SUM => 0.00, %$Cards},
          { ID => 'CARD_GEN' });
    }
-        return 0;
+
+
+  return 0;
 
 }
 
