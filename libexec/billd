@@ -159,7 +159,9 @@ sub check_lines {
                              'DURATION_SEC',
                              'DEPOSIT',
                              'CREDIT',
-                             'TP_ID' ]
+                             'TP_ID',
+                             'DISABLE',
+                             'DV_STATUS' ]
 		                   } );	
 	
   print "==> check_lines\n" if ($debug > 1);
@@ -230,8 +232,14 @@ sub check_lines {
       my $credit                  = ($line->[16] > 0) ? $line->[16] : (( $line->[17] ) ? $TP_CREDITS{$line->[17]} : 0 ); 
 
 
+
+
       #hangup connaction if max ext traffic reached
-      if ($acct_input_octets_ext > $exppp_hanguplimit || $acct_output_octets_ext > $exppp_hanguplimit) {
+      if ($acct_input_octets_ext > $exppp_hanguplimit 
+         || $acct_output_octets_ext > $exppp_hanguplimit 
+         || $line->[16] 
+         || $line->[19]
+         ) {
         my $ret = hangup(\%NAS, "$nas_port_id", "$nas_port_id", { ACCT_SESSION_ID      => "$acct_session_id",
         	                                                        FRAMED_IP_ADDRESS    => int2ip($client_ip),
         	                                                        ACCT_TERMINATE_CAUSE => 15,
