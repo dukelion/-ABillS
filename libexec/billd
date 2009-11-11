@@ -237,7 +237,7 @@ sub check_lines {
       #hangup connaction if max ext traffic reached
       if ($acct_input_octets_ext > $exppp_hanguplimit 
          || $acct_output_octets_ext > $exppp_hanguplimit 
-         || $line->[16] 
+         || $line->[18] 
          || $line->[19]
          ) {
         my $ret = hangup(\%NAS, "$nas_port_id", "$nas_port_id", { ACCT_SESSION_ID      => "$acct_session_id",
