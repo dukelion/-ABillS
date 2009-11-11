@@ -582,7 +582,7 @@ sub dhcphosts_hosts {
 	    $line->[3],
 	    $line->[5].": ".$line->[4],
 	    $line->[6],
-	    $line->[10]."/".$line->[8],
+	    $status[$line->[10]]."/".$line->[8],
 	    $line->[9],
 	    $line->[7],
 	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]),
@@ -745,6 +745,7 @@ sub dhcphosts_user {
        }
 
       $Dhcphosts->host_check({ %FORM });
+      
       if (! $Dhcphosts->{errno}) {
 	      $Dhcphosts->host_change({ %FORM });
      
@@ -784,6 +785,7 @@ sub dhcphosts_user {
      }
     elsif ($Dhcphosts->{errno} == 7) {
     	my $list = $Dhcphosts->hosts_list({ IP => $FORM{IP} });
+
 
     	my $login = '';
     	if ($Dhcphosts->{TOTAL} > 0) {

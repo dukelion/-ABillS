@@ -64,6 +64,13 @@ sub cards_card_info {
 #**********************************************************
 sub cards_main {
 
+  if ($Cards::VERSION < 5) {
+  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.00 or higher. http://abills.net.ua/");
+  	return 0;
+   }
+   
+ 
+
 if ($FORM{change}) {
   my @ORDERS  = ();    
   my $list;
@@ -90,11 +97,11 @@ if ($FORM{change}) {
           }
          $FROM .= "$diller, ";
 
-# 		     docs_invoice_add({ FROM      => $diller,
-# 		     	                 CUSTOMER  => $diller,
-#                          	 ORDERS    => [ @ORDERS ],
-#                          	CREATE    => 1
-#                          });
+ 		     docs_invoice_add({ FROM      => $diller,
+ 		     	                  CUSTOMER  => $diller,
+                            ORDERS    => [ @ORDERS ],
+                          	CREATE    => 1
+                          });
 
         }
   }
@@ -175,7 +182,7 @@ else {
 $Cards->{ADMINS_SEL}=$html->form_select('AID', 
                                           { 
  	                                          SELECTED          => $FORM{AID},
- 	                                          SEL_MULTI_ARRAY   => $admin->list({ %LIST_PARAMS }),
+ 	                                          SEL_MULTI_ARRAY   => [ ['', ''], @{ $admin->list({ %LIST_PARAMS }) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -186,6 +193,15 @@ $Cards->{STATUS_SEL}=$html->form_select('STATUS', {
  	                                       ARRAY_NUM_ID  => 1
  	                                     });
 
+
+#Domains sel
+if (in_array('Multidoms', \@MODULES) && $permissions{10}) {
+  require "Abills/modules/Multidoms/webinterface";
+  $Cards->{DOMAIN_SEL} = multidoms_domains_sel();
+ }
+else {
+  $Cards->{DOMAIN_SEL}='';	
+}
 
 my $table;
 
@@ -236,8 +252,7 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
   foreach $line (@$list) {
    	@pin = ("$line->[14]") if ($conf{CARDS_SHOW_PINS}) ;
    	$table->addrow(
-   	    
-   	    $line->[0]. $html->form_input("IDS", "$line->[1]:$line->[0]", {TYPE => 'checkbox'}), 
+   	    $html->form_input("IDS", "$line->[0]:$line->[1]", {TYPE => 'checkbox'}). $html->b($line->[0]) , 
   	    $line->[1],
   	    $html->button($line->[2], "&index=11&UID=$line->[13]"),
   		  $line->[3],
@@ -1070,8 +1085,7 @@ sub cards_report_dillers {
 	#print "Content-Type: text/html\n\n";
 	#print "aaaaaaaaa";
 
-  #$Cards->{debug}=1;
-	
+
 if ($FORM{DILLER_ID}) {
 	$LIST_PARAMS{DILLER_ID}=$FORM{DILLER_ID};
 
