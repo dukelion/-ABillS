@@ -207,6 +207,8 @@ my $table;
 
   $Cards->{SUM}=undef if (! $FORM{SUM});
   $Cards->{EXPIRE}=undef if (! $FORM{EXPIRE});
+  $Cards->{SERIA}='*' if (! $FORM{SERIA});
+
 
   form_search({ SEARCH_FORM => $html->tpl_show(_include('cards_search', 'Cards'), 
   	                                  { %FORM, %$Cards }, 

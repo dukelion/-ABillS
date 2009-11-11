@@ -129,7 +129,15 @@ sub messages_list {
  	  push @WHERE_RULES,  @{ $self->search_expr($attr->{MSG_ID}, 'INT', 'm.id') };
   }
 
- if (defined($attr->{REPLY})) {
+
+ if (defined($attr->{SUBJECT})) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{SUBJECT}, 'STR', 'm.subject') };
+  }
+
+ if ($attr->{MESSAGE}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{MESSAGE}, 'STR', 'm.message') };
+  }
+ elsif (defined($attr->{REPLY})) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{USER_READ}, 'STR', 'm.user_read') };
   }
 
@@ -177,6 +185,9 @@ sub messages_list {
  if (defined($attr->{STATE})) {
    if ($attr->{STATE} == 4) {
    	 push @WHERE_RULES, @{ $self->search_expr('0000-00-00 00:00:00', 'INT', 'm.admin_read') };
+    }
+   if ($attr->{STATE} == 7) {
+
     }
    else {
      push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.state')  };
