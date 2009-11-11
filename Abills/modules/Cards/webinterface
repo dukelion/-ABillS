@@ -595,7 +595,7 @@ sub cards_users_add  {
         $begin = int($list->[0][1])+1;          		                   
        }
 
-
+$LOGIN_NUMBER=$begin;
 #Create numeric or random logins
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
  	  	
