@@ -60,7 +60,8 @@ if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
       if ($users->{ACTIVATE} ne '0000-00-00') {
         my ($Y, $M, $D)=split(/-/, $users->{ACTIVATE}, 3);
         $M--;
-        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400) );
+        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400 + ( ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} * 86400 : 0 ) ) );
+
        }
       else {
         my ($Y, $M, $D)=split(/-/, $DATE, 3);
@@ -69,7 +70,14 @@ if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
           $M = 1;
           $Y++;
          }
-        $D='01';
+
+        if ($conf{START_PERIOD_DAY}) {
+          $D=sprintf("%02d", $conf{START_PERIOD_DAY}); 
+         }
+        else {
+          $D='01';
+         }
+
         $M = sprintf("%02d", $M);
         $Dv->{ABON_DATE} = "$Y-$M-$D";
        }
@@ -522,7 +530,7 @@ sub dv_user {
       if ($users->{ACTIVATE} ne '0000-00-00') {
         my ($Y, $M, $D)=split(/-/, $users->{ACTIVATE}, 3);
         $M--;
-        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400) );
+        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400 + ( ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} * 86400 : 0 ) ) );
        }
       else {
         my ($Y, $M, $D)=split(/-/, $DATE, 3);
@@ -531,7 +539,13 @@ sub dv_user {
           $M = 1;
           $Y++;
          }
-        $D='01';
+        if ($conf{START_PERIOD_DAY}) {
+          $D=sprintf("%02d", $conf{START_PERIOD_DAY}); 
+         }
+        else {
+          $D='01';
+         }
+
         $M = sprintf("%02d", $M);
         $Dv->{ABON_DATE} = "$Y-$M-$D";
        }
@@ -3082,7 +3096,8 @@ if ($FORM{set}) {
       if ($user->{ACTIVATE} ne '0000-00-00') {
         my ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
         $M--;
-        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400) );
+        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400 + ( ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} * 86400 : 0 ) ) );
+
        }
       else {
         my ($Y, $M, $D)=split(/-/, $DATE, 3);
@@ -3091,7 +3106,14 @@ if ($FORM{set}) {
           $M = 1;
           $Y++;
          }
-        $D='01';
+ 
+        if ($conf{START_PERIOD_DAY}) {
+          $D=sprintf("%02d", $conf{START_PERIOD_DAY}); 
+         }
+        else {
+          $D='01';
+         }
+
         $M = sprintf("%02d", $M);
         $Dv->{ABON_DATE} = "$Y-$M-$D";
        }
@@ -3526,7 +3548,14 @@ elsif ($conf{DV_IP_DISCOVERY}) {
         $M = 1;
         $Y++;
        }
-      $D='01';
+
+      if ($conf{START_PERIOD_DAY}) {
+          $D=sprintf("%02d", $conf{START_PERIOD_DAY}); 
+        }
+      else {
+        $D='01';
+       }
+
       $M = sprintf("%02d", $M);
       $Dv->{ABON_DATE} = "$Y-$M-$D";
      }
@@ -5227,9 +5256,9 @@ sub dv_get_month_fee {
            }
 
           $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
-          $sum = sprintf("%.2f", $sum / $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
+          $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
           
-          print "$conf{START_PERIOD_DAY} !!!.". $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY});
+          my $ddd  = $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY});
          }
        
         return 0 if ($sum == 0);
