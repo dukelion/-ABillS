@@ -762,8 +762,8 @@ sub traffic_user_get2 {
   $self->query($db, "SELECT    started,
    uid,
    traffic_class,
-   traffic_in,
-   traffic_out
+   traffic_in / $CONF->{MB_SIZE},
+   traffic_out / $CONF->{MB_SIZE}
     FROM traffic_prepaid_sum
         WHERE uid='$uid'
         and $WHERE;");
@@ -774,7 +774,7 @@ sub traffic_user_get2 {
    	 $self->query($db, "INSERT INTO traffic_prepaid_sum (uid, started, traffic_class, traffic_in, traffic_out)
    	   VALUES ('$uid', $attr->{ACTIVATE}, '$attr->{TRAFFIC_ID}', '$attr->{TRAFFIC_IN}', '$attr->{TRAFFIC_OUT}')", 'do');
    	
-   	 $result{$attr->{TRAFFIC_ID}}{TRAFFIC_IN}=0;
+   	 $result{$attr->{TRAFFIC_ID}}{TRAFFIC_IN} =0;
   	 $result{$attr->{TRAFFIC_ID}}{TRAFFIC_OUT}=0;
 
    	 return \%result;
@@ -783,8 +783,8 @@ sub traffic_user_get2 {
  
   foreach my $line (@{ $self->{list} }) {
     #Trffic class
-  	$result{$line->[2]}{TRAFFIC_IN}=$line->[3];
-  	$result{$line->[2]}{TRAFFIC_OUT}=$line->[4];
+  	$result{$line->[2]}{TRAFFIC_IN} = $line->[3];
+  	$result{$line->[2]}{TRAFFIC_OUT}= $line->[4];
    }
 
   $self->query($db, "UPDATE traffic_prepaid_sum SET 

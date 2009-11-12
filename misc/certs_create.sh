@@ -144,6 +144,7 @@ if [ w${CERT_TYPE} = wssh ]; then
   ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}${id_dsa_file}"
 
   chown ${APACHE_USER} ${CERT_PATH}${id_dsa_file}
+  chmod u=r,go= ${CERT_PATH}/${id_dsa_file}.pub
   echo "Set Cert user: ${CERT_USER}";
 
 
