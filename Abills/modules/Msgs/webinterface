@@ -665,7 +665,7 @@ sub msgs_admin {
 
     $Msgs->{CHAPTER_SEL}=$html->form_select('CHAPTER', 
                                           { 
- 	                                          SELECTED          => $Msgs->{CHAPTER},
+ 	                                          SELECTED          => $Msgs->{CHAPTER} || $FORM{CHAPTER},
  	                                          SEL_MULTI_ARRAY   => [ [ undef, "$_ALL" ], @{ $Msgs->chapters_list() } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
@@ -714,6 +714,8 @@ foreach my $name ( @msg_status) {
     $pages_qs.="&STATE=$FORM{STATE}";
    }
   
+
+  $LIST_PARAMS{CHAPTERS}=$FORM{CHAPTER};
 
   my $list = $Msgs->messages_list({ %LIST_PARAMS, 
   	                                DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
