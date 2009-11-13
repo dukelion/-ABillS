@@ -534,7 +534,7 @@ sub check_speed {
    
     open(PROCS, "/usr/sbin/ngctl list |") || die "Can't open file '' $!\n";
       while(<PROCS>) {
-		    if (/\s+Name: (class[\d+])_([a-zA-Z_0-9]+)/) {
+		    if (/\s+Name: (class[\d+])_([\-a-zA-Z_0-9]+)/) {
 		      my $class = $1;
 		      my $login   = $2;	
 		      print "Login: $login ($class". "_$login)\n" if ($debug > 1);
