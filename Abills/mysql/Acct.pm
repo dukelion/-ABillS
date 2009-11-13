@@ -203,7 +203,7 @@ elsif ($acct_status_type == 2) {
     $self->rt_billing($RAD, $NAS);
 
     if (! $self->{errno} ) {
-    	#return $self;
+      #return $self;
       $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb, sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
         bill_id,
@@ -222,7 +222,12 @@ elsif ($acct_status_type == 2) {
     else {
       #$self->{errstr}    = "ACCT [$RAD->{USER_NAME}] Can't find sessions $RAD->{ACCT_SESSION_ID}";
       #$self->{sql_errstr}= '';
-      #$self->{errno}     = 1;   
+      #$self->{errno}     = 1;
+      #DEbug only
+      use POSIX qw(strftime);
+      my $DATE_TIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);
+      my $r = `echo "$DATE_TIME $self->{UID} - $RAD->{USER_NAME} / $RAD->{ACCT_SESSION_ID} / Time: $RAD->{ACCT_SESSION_TIME} / $self->{errstr}" >> /tmp/unknown_session.log`;
+      #DEbug only end
       return $self;      
      }     
    }
@@ -538,8 +543,8 @@ sub rt_billing {
    }
   elsif ($self->{UID} <= 0) {
     $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE}), $self->{UID}";
-    
-    print "ACCT [$RAD->{USER_NAME}] /$RAD->{ACCT_STATUS_TYPE}/ small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE}), $self->{UID}\n";;
+    $self->{errno} = 1;
+    print "ACCT [$RAD->{USER_NAME}] /$RAD->{ACCT_STATUS_TYPE}/ small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE}), $self->{UID}\n";
    }
   else {
     if ($self->{SUM} > 0) {
