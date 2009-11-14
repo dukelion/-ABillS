@@ -266,7 +266,7 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
   		  $line->[9],
   		  $line->[10],
   		  @pin,
-  		  $html->button($_DEL, "index=$index&del=y&&ID=$line->[0]$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" })
+  		  $html->button($_DEL, "index=$index&del=y&ID=$line->[1]$pages_qs", { MESSAGE => "$_DEL [$line->[0]$line->[1]] ?" })
   		);
     }
 
