@@ -619,7 +619,7 @@ sub credit_operation {
     if ($debug < 5) {
     	$users->change($line->[5 + $users->{SEARCH_FIELDS_COUNT}], { CREDIT      => $conf{MAX_STABLE_CREDIT} ,
     		                           CREDIT_DATE => '0000-00-00',
-    		                           DISABLE     => $line->[4],
+    		                           DISABLE     => $line->[4] || 0,
     		                           UID         => $line->[5 + $users->{SEARCH_FIELDS_COUNT}]
     		                           });
      }

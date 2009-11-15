@@ -387,6 +387,7 @@ elsif ($FORM{FILE_UPLOAD}) {
   $FORM{FILE_UPLOAD}{filename} =~ tr/ /_/;
   $FORM{FILE_UPLOAD}{filename} =~ s/[^$safe_filename_characters]//g; 
   
+  
   if ($FORM{FILE_UPLOAD}{filename} !~ /(swf|css|js|png|gif|jpg)$/i) {
   	$html->message('err', $_ERROR, "$ERR_WRONG_FILE_NAME '$FORM{FILE_UPLOAD}{filename}'");
    }
@@ -522,11 +523,13 @@ if ( -f "$sys_templates/$module/templates/describe.tpls" ) {
       'Multidoms:multidoms_client_promo.tpl',
 #      'multidoms_main_custom.tpl',
       'Multidoms:multidoms_metatags_client.tpl',
+      'Cards:cards_card_info.tpl',
+      ':form_hotspot_login.tpl',
       ':form_client_hotspot_start.tpl'
     );
 
-    $table->{rowcolor}=undef;
-    $table->{extra}=undef;
+    $table->{rowcolor}= undef;
+    $table->{extra}   = undef;
 
     foreach my $line (sort @contents) {
     	my ($module, $file)=split(/:/, $line);
@@ -575,16 +578,16 @@ print $table->show();
 
 
 my $table = $html->table( { width       => '600',
-	                          caption     => $_FILES.' (.jpg .gif .png .css .js)',
+	                          caption     => "$conf{TPL_DIR}".$_FILES.' (.jpg .gif .png .css .js)',
                             title_plain => ["FILE", "$_SIZE (Byte)", "$_DATE", "$_DESCRIBE",  "-" ],
                             cols_align  => ['left', 'right', 'right', 'left', 'center', 'center']
                          } );
 
 
-  $conf{TPL_DIR}="$conf{MAIN_TPL_DIR}/$domain_path";
+  #$conf{TPL_DIR}="$conf{MAIN_TPL_DIR}/$domain_path";
 
 	if (-d "$conf{TPL_DIR}" ) {
-    opendir DIR, "$conf{MAIN_TPL_DIR}/$domain_path" or die "Can't open dir '$conf{MAIN_TPL_DIR}/$domain_path' $!\n";
+    opendir DIR, "$conf{TPL_DIR}" or die "Can't open dir '$conf{MAIN_TPL_DIR}/$domain_path' $!\n";
       my @contents = grep  !/^\.\.?$/ && !/\.tpl$/  , readdir DIR;
     closedir DIR;
 
@@ -599,9 +602,9 @@ my $table = $html->table( { width       => '600',
 
       ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
          $blksize,$blocks)=stat("$conf{TPL_DIR}/$file");
-        $mtime = strftime "%Y-%m-%d", localtime($mtime);
+         $mtime = strftime "%Y-%m-%d %H-%M-%S", localtime($mtime);
 
-      $table->addrow("<a href='/images/$admin->{DOMAIN_ID}/$file'>/images/$admin->{DOMAIN_ID}/$file</a>", 
+      $table->addrow("<a href='/images/$admin->{DOMAIN_ID}/$FORM{NAS_ID}/$file'>/images/$admin->{DOMAIN_ID}/$FORM{NAS_ID}/$file</a>", 
          $size, $mtime, $describe,
          $html->button($_DEL, "index=$index&file_del=$file", { MESSAGE => "$_DEL '$file'" }));
      }
@@ -634,7 +637,7 @@ if($FORM{NAS_ID}) {
     $ENV{HTTP_HOST} =~ s/\:(\d+)//g;
     $nas->{EXTRA_PARAMS} = $html->tpl_show(templates('form_nas_configure'), { %$nas,
     	 CONFIGURE_DATE => "wget -O /tmp/setup.sh http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?DOMAIN_ID=$admin->{DOMAIN_ID}\\\&NAS_ID=$nas->{NAS_ID}; chmod 755 /tmp/setup.sh; /tmp/setup.sh;",
-    	 PARAM1  => "wget -O /tmp/setup.sh http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?DOMAIN_ID=$admin->{DOMAIN_ID}\\\&NAS_ID=$nas->{NAS_ID}",
+    	 PARAM1  => "wget -O /tmp/setup.sh http://$ENV{HTTP_HOST}/hotspot/wrt_configure.cgi?DOMAIN_ID=$admin->{DOMAIN_ID}\\\\&NAS_ID=$nas->{NAS_ID}",
     	 PARAM2  => "; chmod 755 /tmp/setup.sh; /tmp/setup.sh;",
     	 }, { OUTPUT2RETURN => 1 });
 
