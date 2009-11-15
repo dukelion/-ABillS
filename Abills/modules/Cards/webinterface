@@ -221,7 +221,7 @@ my $table;
 
 my @total_arr=();
 if (defined($FORM{SERIA})) {
-  $pages_qs.="&SERIA=$FORM{SERIA}";
+  $pages_qs.="&SERIA=$FORM{SERIA}&PAGE_ROWS=$PAGE_ROWS";
   my @pin = ();
   @pin = ("PIN") if ($conf{CARDS_SHOW_PINS}) ;
 
@@ -929,7 +929,7 @@ if ($Cards->{errno}) {
 #**********************************************************
 sub cards_report {
  
- 
+
  reports({ DATE        => $FORM{DATE}, 
  	         REPORT      => '-----------------',
  	         EX_PARAMS   => { 1 => $_DILLERS, 2 => $_ICARDS },
@@ -2158,6 +2158,8 @@ sub cards_diller_stats {
 
 	$LIST_PARAMS{DILLER_ID}=$diller->{ID};
 
+  $FORM{PAGE_ROWS}=$FORM{rows} if ($FORM{rows});
+
 	if ($FORM{print}) {
 		$LIST_PARAMS{CREATED_DATE}=$FORM{print};
     print "Content-Type: text/html\n\n";
@@ -2208,6 +2210,14 @@ sub cards_diller_stats {
  	                                             SORT_KEY   => 1,
  	                                             NO_ID      => 1 
  	                                            }),
+ 	                                        "$_STATUS: ".  $html->form_select('STATUS', 
+                                             { SELECTED   => $FORM{STATUS},
+ 	                                             SEL_HASH   => { 0 => "$_ENABLE",
+ 	                                             	               2 => "$_USED"
+ 	                                             	               },
+ 	                                             SORT_KEY   => 1,
+ 	                                             NO_ID      => 1 
+ 	                                            }),
                                           "$_ROWS: " .  $html->form_input('rows', ($FORM{rows} || int($conf{list_max_recs}) ), { SIZE => 4, OUTPUT2RETURN => 1 } ),
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
 
@@ -2250,11 +2260,12 @@ sub cards_diller_stats {
    }
 
 
-
-
 #Group by TP
 if ($FORM{TYPE} eq 'TP') {
-  $pages_qs .= "&TYPE=TP";
+
+  
+
+  $pages_qs .= "&TYPE=TP&PAGE_ROWS=$PAGE_ROWS";
 
   if ($FORM{CREATED_DATE}) {
     $LIST_PARAMS{CREATED_DATE}="$FORM{CREATED_DATE}" ;
@@ -2294,7 +2305,7 @@ if ($FORM{TP_ID}) {
   my @caption = ("$_DATE", "$_TARIF_PLAN", "$_COUNT", "$_SUM", "-");
   
   if ($FORM{TP_ID}) {
-    @caption = ("$_NUM", "$_LOGIN", "$_PASSWD", "$_TARIF_PLAN", "$_DATE");
+    @caption = ("$_NUM", "$_LOGIN", "$_PASSWD", "$_TARIF_PLAN", "$_USED $_DATE");
    }
 
   $table = $html->table( { width      => '100%',
@@ -2316,12 +2327,13 @@ if ($FORM{TP_ID}) {
   	    $line->[1],
   	    $line->[2],
   		  $line->[3],
-  		  $line->[4]
+  		  $line->[4],
+  		  
       );
      }
     else {
-   	  @rows = ($html->button($line->[0], "&index=64&TP_ID=$line->[4]&CREATED_DATE=$line->[0]&TYPE=TP"),
-  	    $html->button($line->[1], "&index=64&TP_ID=$line->[4]&CREATED_DATE=$line->[0]&TYPE=TP"),
+   	  @rows = ($html->button($line->[0], "&index=64&TP_ID=$line->[4]&CREATED_DATE=$line->[0]&TYPE=TP&PAGE_ROWS=$FORM{PAGE_ROWS}"),
+  	    (! $line->[4]) ? $_PAYMENTS : $html->button($line->[1], "&index=64&TP_ID=$line->[4]&CREATED_DATE=$line->[0]&TYPE=TP&PAGE_ROWS=$FORM{PAGE_ROWS}"),
   	    $line->[2],
   		  $line->[3],
   		  $line->[4]
@@ -2347,7 +2359,9 @@ elsif ($FORM{TYPE} eq 'CARDS') {
     $LIST_PARAMS{DESC}='DESC';
    }
 
-  $pages_qs .= "&TYPE=CARDS";
+
+
+  $pages_qs .= "&TYPE=CARDS&PAGE_ROWS=$FORM{PAGE_ROWS}";
 
   if ($FORM{CREATED_DATE}) {
     $LIST_PARAMS{CREATED_DATE}="$FORM{CREATED_DATE}" ;
@@ -2410,7 +2424,6 @@ else {
 
   foreach $line (@$list) {
    	$table->addrow(
-   	     #$html->button($line->[0], "index=$index&TYPE=CARDS$pages_qs&sid=$FORM{sid}". ( ($line->[0] =~ /(\d{4}-\d{2}-\d{2})/) ? "&CREATED_DATE=$1" : '') ), 
    	     $html->button($line->[0], "index=$index&TYPE=TP$pages_qs&sid=$FORM{sid}". ( ($line->[0] =~ /(\d{4}-\d{2}-\d{2})/) ? "&CREATED_DATE=$1" : '') ), 
   	     $line->[1],
   		   $line->[2],
