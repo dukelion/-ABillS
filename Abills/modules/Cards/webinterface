@@ -2374,7 +2374,7 @@ elsif ($FORM{TYPE} eq 'CARDS') {
 
   $table = $html->table( { width      => '100%',
                            caption    => "$_LOG",
-                           title      => ["$_NUM", "$_SERIAL", "$_LOGIN", "$_SUM", "$_STATUS", "$_EXPIRE", "$_ADDED", 
+                           title      => ["$_SERIAL", "$_NUM", "$_LOGIN", "$_SUM", "$_STATUS", "$_EXPIRE", "$_ADDED", 
                                ],
                            cols_align => ['right', 'right','right','right', 'center', 'right', 'right', 'left', 
                               ],
@@ -2388,7 +2388,7 @@ elsif ($FORM{TYPE} eq 'CARDS') {
    	$table->addrow(
    	    $line->[0], 
   	    $line->[1],
-  	    $html->button($line->[2], "&index=11&UID=$line->[13]"),
+  	    ($user->{UID}) ? $line->[2] : $html->button($line->[2], "&index=11&UID=$line->[13]"),
   		  $line->[3],
   		  $status[$line->[4]],
   		  $line->[5],
