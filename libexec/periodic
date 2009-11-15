@@ -380,7 +380,6 @@ $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n",
 #Fees
 my $fees = Finance->fees($db, $admin, \%conf);
 
-
 # Daily fees report
 $ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8s| %20s| %12s| %15s| %8s\n", $_LOGIN, $_SUM, $_DESCRIBE, $_TYPE, $_ADMINS, 'IP', $_DEPOSIT);
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
@@ -391,12 +390,12 @@ foreach my $line (@$list) {
 #SELECT f.id, u.id, f.date, f.sum, f.dsc, a.name, INET_NTOA(f.ip), f.last_deposit, f.uid 
   $ADMIN_REPORT{FEES} .= sprintf ("%-14s| %8.4f| %20s| %12s | %12s| %15s| %8.4f\n", 
     ($line->[1]) ? $line->[1] : "!Unknown", 
-    $line->[3], 
+    $line->[3],
     $line->[4], 
     $line->[5], 
-    $line->[6],
-    $line->[7],
-    $line->[8]);
+    $line->[8], 
+    $line->[9],
+    $line->[6]);
 }
 
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
@@ -607,8 +606,9 @@ sub credit_operation {
 
   # For users
   $conf{MAX_STABLE_CREDIT}=0 if (! $conf{MAX_STABLE_CREDIT});
+
   my $list = $users->list({  
-                           CREDIT_DATE  => "$DATE",
+                           CREDIT_DATE  => "<=$DATE",
                            CREDIT       => ">$conf{MAX_STABLE_CREDIT}",
   	                       PAGE_ROWS    => 1000000
   	                      });
@@ -619,6 +619,7 @@ sub credit_operation {
     if ($debug < 5) {
     	$users->change($line->[5 + $users->{SEARCH_FIELDS_COUNT}], { CREDIT      => $conf{MAX_STABLE_CREDIT} ,
     		                           CREDIT_DATE => '0000-00-00',
+    		                           DISABLE     => $line->[4],
     		                           UID         => $line->[5 + $users->{SEARCH_FIELDS_COUNT}]
     		                           });
      }
@@ -632,9 +633,9 @@ sub credit_operation {
  my $Company = $customer->company();
 
  $list = $Company->list({  
-                           CREDIT_DATE  => "$DATE",
+                           CREDIT_DATE  => "<=$DATE",
                            CREDIT       => ">$conf{MAX_STABLE_CREDIT}",
-  	                   PAGE_ROWS    => 1000000
+  	                       PAGE_ROWS    => 1000000
   	                      });
 
   foreach my $line (@$list) {
@@ -701,7 +702,6 @@ foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
   	                      });
   my %EXIST_GROUPS = ();
 
-exit;
   foreach my $line (@$list) {
     my $uid           = $line->[5 + $users->{SEARCH_FIELDS_COUNT}];
     my $gid           = $line->[10 + $users->{SEARCH_FIELDS_COUNT}];
