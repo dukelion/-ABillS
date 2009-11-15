@@ -7,27 +7,27 @@ function Process(version, INTERNAL_SUBNET, wds, SSID){
 	var commandend = '%PARAM2%';
 	
 	if (version == 'v24') {
-		var commandversion = '\\&version=v24';
+		var commandversion = '\\\\&version=v24';
   	} else if (version == 'coova') { 
-		var commandversion = '\\&version=coova'; 
+		var commandversion = '\\\\&version=coova'; 
 	} else { 
 		var commandversion = ''; 
 	}
 	
 	if (INTERNAL_SUBNET != '20') {
-		var commandsubnet = '\\&INTERNAL_SUBNET='+INTERNAL_SUBNET;
+		var commandsubnet = '\\\\&INTERNAL_SUBNET='+INTERNAL_SUBNET;
   	} else { 
 		var commandsubnet = ''; 
 	}
 	
 	if (wds != '0') {
-		var commandwds = '\\&wds='+wds;
+		var commandwds = '\\\\&wds='+wds;
   	} else { 
 		var commandwds = ''; 
 	}
 
 	if (SSID != '') {
-		var commandsid = '\\&SSID='+SSID;
+		var commandsid = '\\\\&SSID='+SSID;
   	} else { 
 		var commandsid = ''; 
 	}
