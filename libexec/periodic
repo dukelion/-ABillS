@@ -607,11 +607,14 @@ sub credit_operation {
   # For users
   $conf{MAX_STABLE_CREDIT}=0 if (! $conf{MAX_STABLE_CREDIT});
 
+$users->{debug}=1;
   my $list = $users->list({  
-                           CREDIT_DATE  => "<=$DATE",
+                           CREDIT_DATE  => ">0000-00-00,<=$DATE",
                            CREDIT       => ">$conf{MAX_STABLE_CREDIT}",
   	                       PAGE_ROWS    => 1000000
   	                      });
+
+exit;
 
   foreach my $line (@$list) {
   	$DEBUG .= "$line->[0] (". $line->[5 +  $users->{SEARCH_FIELDS_COUNT}] .") DEPOSIT: $line->[2] CREDIT: $line->[3] CREDIT_DATE: ". $line->[4+$users->{SEARCH_FIELDS_COUNT}] ."\n" if ($debug > 0);
@@ -633,7 +636,7 @@ sub credit_operation {
  my $Company = $customer->company();
 
  $list = $Company->list({  
-                           CREDIT_DATE  => "<=$DATE",
+                           CREDIT_DATE  => "$DATE",
                            CREDIT       => ">$conf{MAX_STABLE_CREDIT}",
   	                       PAGE_ROWS    => 1000000
   	                      });
