@@ -1,3 +1,7 @@
+From: $conf{ADMIN_MAIL}
+#Subject: Low deposit
+#X-Priority: 2 (High)
+
 Шановний користувач %LOGIN%.
 
 Ви працюєте за тарифним планом # [%TP_ID%] %TP_NAME%.
