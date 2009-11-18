@@ -218,10 +218,23 @@ sub sendmail {
      }	
    }
   
+  
+  $message =~ s/#.+//g;
+  
+  if ($message =~ s/Subject: (.+)//g ) {
+  	$subject=$1;
+   }
+  if ($message =~ s/From: (.+)//g ) {
+  	$from=$1;
+   }
+  if ($message =~ s/X-Priority: (.+)//g ) {
+  	$priority=$1;
+   }
+
+  
   $to_addresses =~ s/[\n\r]//g;
   
   my @emails_arr = split(/;/, $to_addresses);
-  
   foreach my $to (@emails_arr) {
     if ($attr->{TEST}) {
       print "To: $to\n";
@@ -229,7 +242,7 @@ sub sendmail {
       print "Content-Type: text/plain; charset=$charset\n";
       print "X-Priority: $priority\n" if ($priority);
       print $header;
-      print "Subject: $subject \n\n";
+      print "Subject: $subject\n\n";
       print "$message";
      }
     else {
