@@ -652,10 +652,10 @@ sub ng_car_shape {
   $speed_in   = 1048576000 if ($speed_in  == 0);
   $speed_out  = 1048576000 if ($speed_out == 0);
 
-  my $cbs_in=$speed_in/8*1.5; 
-  my $ebs_in=$cbs_in*2;
-  my $cbs_out=$speed_out/8*1.5; 
-  my $ebs_out=$cbs_out*2;
+  my $cbs_in  = $speed_in/8*1.5; 
+  my $ebs_in  = $cbs_in*2;
+  my $cbs_out = $speed_out/8*1.5; 
+  my $ebs_out = $cbs_out*2;
 
  
 

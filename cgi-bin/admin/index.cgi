@@ -1008,6 +1008,16 @@ sub user_form {
    if ($user_info->{DISABLE} > 0) {
      $user_info->{DISABLE} = ' checked';
      $user_info->{DISABLE_MARK} = $html->color_mark($html->b($_DISABLE), $_COLORS[6]);
+     
+     my $list = $admin->action_list({ UID       => $user_info->{UID},
+     	                     TYPE      => 9,
+     	                     PAGE_ROWS => 1,
+     	                     SORT      => 1,
+     	                     DESC      => 'DESC'
+     	                     });
+     if ($admin->{TOTAL}>0) {
+       $user_info->{DISABLE_COMMENTS}=$list->[0][3];
+      }
     } 
    else {
    	 $user_info->{DISABLE} = '';

@@ -356,6 +356,10 @@ sub action_add {
   my $MODULE = (defined($self->{MODULE})) ? $self->{MODULE} : '';
   my $action_type = ($attr->{TYPE}) ? $attr->{TYPE} : '';
   
+  if ($attr->{ACTION_COMMENTS}) {
+  	$actions .= ":$attr->{ACTION_COMMENTS}";
+   }
+  
  
   $self->query($db, "INSERT INTO admin_actions (aid, ip, datetime, actions, uid, module, action_type) 
     VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$uid', '$MODULE', '$action_type')", 'do');

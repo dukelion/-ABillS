@@ -1299,6 +1299,8 @@ sub msgs_dispatch {
     	$ORDERS{'ORDER_NUM_'.$i}          = $i;
     	$ORDERS{'ORDER_PERSONAL_INFO_'.$i}= "$line->[6], $line->[7], $line->[8]";
     	$ORDERS{'ORDER_JOB_'.$i}          = $line->[9];
+    	$ORDERS{'ORDER_SUBJECT_'.$i}      = $line->[2];
+    	$ORDERS{'ORDER_CHAPTER_'.$i}      = $line->[3];
     	$i++;
      }
 
