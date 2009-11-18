@@ -345,6 +345,88 @@ print $table->show();
 
 }
 
+#**********************************************************
+# Marketing report 2
+#**********************************************************
+sub marketing_report2 {
+
+
+my @caption = ($_FIO, 
+'REQUEST_DATE', 
+$_REGISTRATION,
+$_ADMIN,
+'SEGMET',
+'DISTRICT',
+$_ADDRESS_STREET,
+$_ADDRESS_BUILD,
+'ENTRANCE',
+$_ADDRESS_FLAT,
+'FLOR',
+
+
+$_TARIF_PLAN,
+"$_PRE $_TARIF_PLAN",
+"$_TARIF_PLAN $_CHANGE",
+
+"$_LAST $_PAYMENTS",
+"$_PAYMENTS $TYPE",
+"$_PEYMENTS $_HISTORY",
+"$_PAYMENTS $_SUM",
+"$_PAYMENTS TO DATE",
+"$_DEBTS_DAYS",
+"$_STATUS",
+"FORUM",
+"BONUS",
+"DISCONNECT_DATE",
+"DISCONNECT_REASON"
+);
+
+
+ my $table = $html->table( { width      => '100%',
+                             caption    => "$_REPORT 1",
+                             title      => \@caption,
+                             ID         => 'REPORT 2',
+                             pages      => $Marketing->{TOTAL},
+                           });
+
+print $table->show();
+
+=comments
+SELECT 
+pi.fio,
+msgs.date,
+u.registration,
+u.aid,
+'segment',
+'microrayon',
+pi.address_street,
+pi.address_build,
+pi.address_flat,
+'podezd',
+dv.tp_id (tp.name),
+'last_tp',
+changes.date,
+max(p.date),
+p.type,
+'payments history',
+p.sum,
+'to payments date',
+'prosrochennyh dney',
+'kol prosrochennyh dney',
+'activnost na forume',
+'bonus actions',
+'статус',
+'disconnect date'
+'disconnect reason'
+FROM users u
+INNER JOIN users_pi pi ON (u.uid=pi.uid)
+INNER JOIN dv_main  dv ON (u.uid=dv.uid)
+INNER JOIN tariff_plans tp pi ON (tp.id=dv.tp_id)
+INNER JOIN changes changes ON (u.uid=changes.uid)
+=cut
+
+
+}
 
 1
 

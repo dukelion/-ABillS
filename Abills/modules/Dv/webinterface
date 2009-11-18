@@ -4874,11 +4874,11 @@ sub dv_wizard_user {
         return 0;
        }
       else {
-        if (! $add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-          $Dv->{UID}=$UID;
-          $Dv->{ACTIVATE}=$add_values{1}{ACTIVATE};
-          dv_get_month_fee($Dv);
-         }
+#        if (! $add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+#          $Dv->{UID}=$UID;
+#          $Dv->{ACTIVATE}=$add_values{1}{ACTIVATE};
+#          dv_get_month_fee($Dv);
+#         }
        }
 
 
