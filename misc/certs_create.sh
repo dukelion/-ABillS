@@ -1,19 +1,28 @@
 #!/bin/sh
 # ABILLS Certificat creator
 
+
+
 SSL=/usr/local/${OPENSSL}
 export PATH=/usr/src/crypto/${OPENSSL}/apps/:${SSL}/bin/:${SSL}/ssl/misc:${PATH}
 export LD_LIBRARY_PATH=${SSL}/lib
 CA_pl=CA.pl;
 
+
 hostname=`hostname`;
 password=whatever;
-VERSION=0.5;
+VERSION=0.6;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
 CERT_USER="";
 OPENSSL=`which openssl`
+
+
+if [ w$1 = whelp ]; then
+  shift ;
+fi;
+
 
 if [ w$1 = w ] ; then
   echo "Create SSL Certs and SSH keys. Version: ${VERSION} ";
@@ -94,7 +103,6 @@ express_oplata () {
   echo
 
   CERT_LENGTH=1024;
-  password="test"
 
   # Private key
   echo ${OPENSSL};
@@ -183,7 +191,6 @@ else if [ w${CERT_TYPE} = wapache ]; then
 
   cd ${CERT_PATH};
 
-
   ${OPENSSL} genrsa -des3 -passout pass:${password} -out server.key ${CERT_LENGTH}
   
   ${OPENSSL} req -new -key server.key -out server.csr \
@@ -196,7 +203,7 @@ else if [ w${CERT_TYPE} = wapache ]; then
   chmod u=r,go= ${CERT_PATH}/server.crt
   chown ${APACHE_USER} server.crt server.csr
 
-  cp server.key server.key.org
+  cp ${CERT_PATH}/server.key ${CERT_PATH}/server.key.org
 
   ${OPENSSL} rsa -in server.key.org -out server.key \
    -passin pass:${password} -passout pass:${password}
@@ -206,6 +213,7 @@ else if [ w${CERT_TYPE} = wapache ]; then
 
   chmod 400 server.key
 
+exit;
 #**********************************************************
 # eap for radius
 #**********************************************************
