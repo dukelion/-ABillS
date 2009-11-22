@@ -1343,5 +1343,344 @@ sub dispatch_admins_list {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#**********************************************************
+# messages_list
+#**********************************************************
+sub unreg_requests_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+ 
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = (defined($attr->{DESC})) ? $attr->{DESC} : 'DESC';
+
+
+ @WHERE_RULES = ();
+ 
+ if ($attr->{DATE}) {
+   push @WHERE_RULES, "date_format(m.date, '%Y-%m-%d')='$attr->{DATE}'";
+  } 
+ elsif ($attr->{FROM_DATE}) {
+   push @WHERE_RULES, "(date_format(m.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(m.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+  }
+
+ if ($attr->{MSG_ID}) {
+ 	  push @WHERE_RULES,  @{ $self->search_expr($attr->{MSG_ID}, 'INT', 'm.id') };
+  }
+
+ if (defined($attr->{SUBJECT})) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{SUBJECT}, 'STR', 'm.subject') };
+  }
+ if ($attr->{MESSAGE}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{MESSAGE}, 'STR', 'm.message') };
+  }
+ elsif (defined($attr->{REPLY})) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{USER_READ}, 'STR', 'm.user_read') };
+  }
+
+ if (defined($attr->{PHONE})) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PHONE}, 'STR', 'm.phone') };
+  }
+
+ if ($attr->{ADMIN_READ}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ADMIN_READ}, 'INT', 'm.admin_read') };
+  }
+
+ if ($attr->{CLOSED_DATE}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{CLOSED_DATE}, 'INT', 'm.closed_date') };
+  }
+
+ if ($attr->{DONE_DATE}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DONE_DATE}, 'INT', 'm.done_date') };
+  }
+
+ if ($attr->{CHAPTERS}) {
+   push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})"; 
+  }
+ 
+ if ($attr->{UID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'm.uid') };
+ }
+
+ if (defined($attr->{STATE})) {
+   if ($attr->{STATE} == 4) {
+   	 push @WHERE_RULES, @{ $self->search_expr('0000-00-00 00:00:00', 'INT', 'm.admin_read') };
+    }
+   if ($attr->{STATE} == 7) {
+
+    }
+   else {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.state')  };
+    }
+  }
+
+ if ($attr->{PRIORITY}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PRIORITY}, 'INT', 'm.state') };
+  }
+
+ my $EXT_JOIN = ''; 
+
+ if ($attr->{SHOW_TEXT}) {
+   $self->{SEARCH_FIELDS} .= 'm.message, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
+  }
+ 
+
+ $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
+
+  $self->query($db,   "SELECT  m.id,
+  m.datetime,
+  m.subject,
+  m.fio,
+  mc.name,
+  ra.id,
+  m.state,
+  m.priority,
+  m.closed_date,
+  m.responsible_admin
+FROM (msgs_unreg_requests m)
+LEFT JOIN admins ra ON (m.received_admin=ra.aid)
+LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
+ $WHERE
+GROUP BY m.id 
+    ORDER BY $SORT $DESC
+    LIMIT $PG, $PAGE_ROWS;");
+
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0  || $PG > 0) {
+   
+   $self->query($db, "SELECT count(*)
+    FROM (msgs_unreg_requests m)
+    LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
+    $WHERE");
+
+   ($self->{TOTAL}) = @{ $self->{list}->[0] };
+  }
+ 
+
+
+ $WHERE = '';
+ @WHERE_RULES=();
+  
+ return $list;
+}
+
+
+#**********************************************************
+# Message
+#**********************************************************
+sub unreg_requests_add {
+	my $self = shift;
+	my ($attr) = @_;
+
+  %DATA = $self->get_data($attr, { default => \%DATA }); 
+
+  $self->query($db, "insert into msgs_unreg_requests (datetime, received_admin, ip, subject, chapter, request, state,
+   priority,
+   fio,
+   phone,
+   email,
+   address_street,
+   address_build,
+   address_flat )
+    values (now(), '$admin->{AID}', INET_ATON('$admin->{SESSION_IP}'),  '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{REQUEST}',  '$DATA{STATE}',
+        '$DATA{PRIORITY}',
+        '$DATA{FIO}',
+        '$DATA{PHONE}', 
+        '$DATA{EMAIL}',
+        '$DATA{ADDRESS_STREET}',
+        '$DATA{ADDRESS_BUILD}',
+        '$DATA{ADDRESS_FLAT}'
+        );", 'do');
+
+  $self->{MSG_ID} = $self->{INSERT_ID};
+  
+	return $self;
+}
+
+
+
+
+
+#**********************************************************
+# Bill
+#**********************************************************
+sub unreg_requests_del {
+	my $self = shift;
+	my ($attr) = @_;
+
+  @WHERE_RULES=();
+
+  if ($attr->{ID}) {
+    if ($attr->{ID} =~ /,/) {
+    	push @WHERE_RULES, "id IN ($attr->{ID})";
+     }
+  	else {
+  		push @WHERE_RULES, "id='$attr->{ID}'";
+  	 }
+   }
+
+  $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
+  $self->query($db, "DELETE FROM msgs_unreg_requests WHERE $WHERE", 'do');
+
+	return $self;
+}
+
+#**********************************************************
+# Bill
+#**********************************************************
+sub unreg_requests_info {
+	my $self = shift;
+	my ($id, $attr) = @_;
+
+  $WHERE = ($attr->{UID}) ? "and m.uid='$attr->{UID}'" : '';
+
+  $self->query($db, "SELECT 
+    m.id,
+    m.datetime,
+    ra.id,
+    m.state,
+    m.priority,
+    m.subject,
+    mc.name,
+    m.request,
+    m.comments,
+    m.responsible_admin,
+    m.fio,
+    m.phone,
+    m.email,
+    m.address_street,
+    m.address_build,
+    m.address_flat,
+    m.ip,
+    m.closed_date,
+    m.uid
+    FROM (msgs_unreg_requests m)
+    LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
+    LEFT JOIN admins ra ON (m.received_admin=ra.aid)
+  WHERE m.id='$id' $WHERE
+  GROUP BY m.id;");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  ($self->{ID},
+   $self->{DATETIME},
+   $self->{RECIEVED_ADMIN},
+   $self->{STATE},
+   $self->{PRIORITY},
+   $self->{SUBJECT},
+   $self->{CHAPTER},
+   $self->{REQUEST},
+   $self->{COMMENTS},
+   $self->{RESPONSIBLE_ADMIN},
+   $self->{FIO},
+   $self->{PHONE},
+   $self->{EMAIL},
+   $self->{ADDRESS_STREET},
+   $self->{ADDRESS_BUILD},
+   $self->{ADDRESS_FLAT},
+   $self->{IP},
+   $self->{CLOSED_DATE},
+   $self->{UID}
+  )= @{ $self->{list}->[0] };
+	
+	return $self;
+}
+
+
+#**********************************************************
+# change()
+#**********************************************************
+sub unreg_requests_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+ 
+  my %FIELDS = ( ID    => 'id',
+     DATETIME          => 'datetime',
+     RECIEVED_ADMIN    => 'received_admin',
+     STATE             => 'state',
+     PRIORITY          => 'priority',
+     SUBJECT           => 'subject',
+     CHAPTER           => 'chapter',
+     REQUEST           => 'request',
+     COMMENTS          => 'comments',
+     RESPONSIBLE_ADMIN => 'responsible_admin',
+     FIO               => 'fio',
+     PHONE             => 'phone',
+     EMAIL             => 'email',
+     ADDRESS_STREET    => 'address_street',
+     ADDRESS_BUILD     => 'address_build',
+     ADDRESS_FLAT      => 'address_flat',
+     IP                => 'ip',
+     CLOSED_DATE       => 'closed_date',
+     UID               => 'uid'
+             );
+
+  #print "!! $attr->{STATE} !!!";
+  $attr->{STATUS} = ($attr->{STATUS}) ? $attr->{STATUS} : 0;
+
+  $admin->{MODULE}=$MODULE;
+  
+  $self->changes($admin,  { CHANGE_PARAM => 'ID',
+                   TABLE        => 'msgs_unreg_requests',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $self->unreg_requests_info($attr->{ID}),
+                   DATA         => $attr,
+                   EXT_CHANGE_INFO  => "MSG_ID:$attr->{ID}"
+                  } );
+
+  return $self->{result};
+}
+
 1
 

@@ -3,7 +3,8 @@
                    "02:0:$_MESSAGES:msgs_admin:"        => 5,
                    "03:2:$_CHAPTERS:msgs_chapters:"     => 5,
                    "04:2:$_ADMINS:msgs_admins:"         => 5,
-                   "08:0:$_MESSAGES:msgs_reports:"      => 4
+                   "08:0:$_MESSAGES:msgs_reports:"      => 4,
+                   
                     );
 
 require "Abills/modules/Msgs/webinterface";
@@ -19,10 +20,13 @@ if (defined($user->{UID})) {
  }
 elsif(defined($admin->{AID})) {
   my $count=msgs_new({ AID => $admin->{AID} });
-  $FUNCTIONS_LIST{"10:0:$_MESSAGES $count:msgs_admin:"}=8;
-  $FUNCTIONS_LIST{"12:10:$_ADD:msgs_admin_add:"}       =8;
-  $FUNCTIONS_LIST{"12:10:$_SHEDULE:msgs_shedule:"}     =8;
-  $FUNCTIONS_LIST{"12:10:$_DISPATCH:msgs_dispatch:"}   =8;
+  $FUNCTIONS_LIST{"10:0:$_MESSAGES $count:msgs_admin:"}   = 8;
+  $FUNCTIONS_LIST{"12:10:$_ADD:msgs_admin_add:"}          = 8;
+  $FUNCTIONS_LIST{"12:10:$_SHEDULE:msgs_shedule:"}        = 8;
+  $FUNCTIONS_LIST{"12:10:$_DISPATCH:msgs_dispatch:"}      = 8;
+  $FUNCTIONS_LIST{"13:10:$_REQUESTS:msgs_unreg_requests_list:"}= 8;
+  $FUNCTIONS_LIST{"14:13:$_ADD:msgs_unreg_requests:"}= 8;
+  
  }   
 
 1

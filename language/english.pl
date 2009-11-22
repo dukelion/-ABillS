@@ -413,3 +413,4 @@ $_MIN_SEARCH_CHARS='Minimum chars for searching';
 $_ERR_SEARCH_VAL_TOSMALL='Search value to small';
 $ERR_NO_FREE_IP_IN_POOL='No free IPs in pool';
 $_GUEST_ACCOUNT='Guest account';
+$_REQUESTS='Requests';
