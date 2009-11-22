@@ -584,7 +584,7 @@ CREATE TABLE `msgs_messages` (
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
   `state` tinyint(2) unsigned default '0',
   `aid` smallint(6) unsigned NOT NULL default '0',
-  `subject` varchar(40) NOT NULL default '',
+  `subject` varchar(45) NOT NULL default '',
   `gid` smallint(4) unsigned NOT NULL default '0',
   `priority` tinyint(4) unsigned NOT NULL default '0',
   `lock_msg` tinyint(1) unsigned NOT NULL default '0',
@@ -617,6 +617,31 @@ CREATE TABLE `msgs_reply` (
   UNIQUE KEY `id` (`id`),
   KEY `main_msg` (`main_msg`)
 ) COMMENT='Msgs replies';
+
+CREATE TABLE `msgs_unreg_requests` (
+  `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `datetime` DATETIME NOT NULL,
+  `received_admin` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `state` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `priority` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `subject` VARCHAR(45) NOT NULL DEFAULT '',
+  `chapter` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `request` TEXT  NOT NULL,
+  `comments` TEXT  NOT NULL, 
+  `responsible_admin` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `fio` VARCHAR(40)  NOT NULL DEFAULT '',
+  `phone` BIGINT(16) UNSIGNED NOT NULL DEFAULT '0',
+  `email` VARCHAR(250)  NOT NULL DEFAULT '',
+  `address_street` VARCHAR(100)  NOT NULL DEFAULT '',
+  `address_build` VARCHAR(10)  NOT NULL DEFAULT '',
+  `address_flat` VARCHAR(10)  NOT NULL DEFAULT '',
+  `ip` INTEGER(11) UNSIGNED NOT NULL,
+  `closed_date` DATETIME NOT NULL,
+  `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `datetime` (`datetime`)
+) COMMENT='Messages from unregister users';
 
 CREATE TABLE `nas` (
   `id` smallint(5) unsigned NOT NULL auto_increment,
