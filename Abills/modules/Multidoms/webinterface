@@ -558,7 +558,7 @@ if ( -f "$sys_templates/$module/templates/describe.tpls" ) {
       $file =~ s/\.tpl//;
 
       foreach my $lang (@caption) {
-      	  my $f = '_'.$file.'_'.$lang.'.tpl';
+      	 my $f = '_'.$file.'_'.$lang.'.tpl';
       	
          push @rows,  ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&NAS_GID=$FORM{NAS_GID}&SHOW=$module:$file:$lang" }) .'<br>'. $html->button($html->b($_CHANGE), "index=$index&NAS_GID=$FORM{NAS_GID}&tpl_name=$module"."$f") : $html->button($_CREATE, "index=$index&NAS_GID=$FORM{NAS_GID}&create=$module:$file".'.tpl'.":$lang") ).'<br>'.
          ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_DEL, "index=$index&NAS_GID=$FORM{NAS_GID}&del=$module". "$f", { MESSAGE => "$_DEL $file" }) : '');
@@ -604,7 +604,7 @@ my $table = $html->table( { width       => '600',
          $blksize,$blocks)=stat("$conf{TPL_DIR}/$file");
          $mtime = strftime "%Y-%m-%d %H-%M-%S", localtime($mtime);
 
-      $table->addrow("<a href='/images/$admin->{DOMAIN_ID}/$FORM{NAS_ID}/$file'>/images/$admin->{DOMAIN_ID}/$FORM{NAS_ID}/$file</a>", 
+      $table->addrow("<a href='/images/$admin->{DOMAIN_ID}/$FORM{NAS_GID}/$file'>/images/$admin->{DOMAIN_ID}/$FORM{NAS_GID}/$file</a>", 
          $size, $mtime, $describe,
          $html->button($_DEL, "index=$index&file_del=$file", { MESSAGE => "$_DEL '$file'" }));
      }

@@ -41,6 +41,7 @@ $_ADDRESS='Address';
 $_PHONE='Phone';
 $_COMMENTS='Comments';
 $_REGISTRATION='Registration';
+$_REGISTRATION_COMPLETE='Registration Complete';
 $_EXPIRE='Expired';
 
 $_USER_INFO='User Information';
