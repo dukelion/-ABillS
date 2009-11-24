@@ -1966,7 +1966,7 @@ my $table = $html->table( { width      => '100%',
                            });
 
 if (! defined($FORM{sort})) {
-  $LIST_PARAMS{SORT}=2;
+  $LIST_PARAMS{SORT}=1;
  }
 
 

@@ -32,11 +32,11 @@ $liST_PARAMS{PAGE_ROWS}=15;
 
 
 if ($FORM{QUERY_ID}) {
-	$Sqlcmd_main->history_query({ %FORM });
+  $Sqlcmd_main->history_query({ %FORM });
   
-  $FORM{QUERY}=$Sqlcmd_main->{SQL_QUERY};
-  $FORM2{QUERY}= $FORM{QUERY};
-  $Sqlcmd->{QUERY}=$FORM{QUERY};
+  $FORM{QUERY}    = $Sqlcmd_main->{SQL_QUERY};
+  $FORM2{QUERY}   = $FORM{QUERY};
+  $Sqlcmd->{QUERY}= $FORM{QUERY};
  }
 else {
 
@@ -72,7 +72,16 @@ if ($FORM{WIZARD}) {
 
 }
  
- $table = $html->table( { width        => '100%',
+ if($FORM{del} && $FORM{is_js_confirmed}) {
+	 $Sqlcmd_main->history_del({ ID => $FORM{del} });
+	 if(! $Sqlcmd_main->{errno} ) {
+		 $html->message('info', $_INFO, "$_DELETED");
+	  }
+   # return 0;
+  }
+
+
+  $table = $html->table( { width        => '100%',
                            border       => 1,
                            caption      => $FORM{TABLE_INFO},
                            title_plain  => [$_DATE, "$_COMMENTS", '-', '-'], 
@@ -95,14 +104,6 @@ if ($FORM{WIZARD}) {
 
  $html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, \%FORM });
  
-if($FORM{del} && $FORM{is_js_confirmed}) {
-	$Sqlcmd_main->history_del({ ID => $FORM{del} });
-	if(! $Sqlcmd_main->{errno} ) {
-		$html->message('info', $_INFO, "$_DELETED");
-	 }
-
-  return 0;
- }
 
  
   my $list = $Sqlcmd->list( { %FORM2 } ) if (defined($FORM2{QUERY}) && length($FORM2{QUERY}) > 10);
@@ -145,7 +146,7 @@ if ($FORM{QUERY} && ! $FORM{xml}) {
 
   print $table->show();
   
-  $Sqlcmd_main->history_add({ %FORM });
+  $Sqlcmd_main->history_add({ %FORM }) if ($FORM{HISTORY});
 }
 
 if ($Sqlcmd->{errno}) {
@@ -162,11 +163,12 @@ $pages_qs .= "&QUERY=$FORM{QUERY}";
   @CAPTION = @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} } if ($Sqlcmd->{MYSQL_FIELDS_NAMES});
  
 
-  $table = $html->table( { width  => '100%',
-                           border => 1,
-                           title  => ( $#CAPTION > -1 ) ? [ @CAPTION ] : [ ], 
-                           qs     => $pages_qs,
-                           pages  => $Sqlcmd->{TOTAL}
+  $table = $html->table( { width   => '100%',
+                           border  => 1,
+  	                       caption => $_RESULT,
+                           title   => ( $#CAPTION > -1 ) ? [ @CAPTION ] : [ ], 
+                           qs      => $pages_qs,
+                           pages   => $Sqlcmd->{TOTAL}
                        } );
 
 
@@ -211,7 +213,7 @@ if ($FORM{TABLE_INFO}) {
 	 }
 
 
-  $table2 = $html->table({ width       => '100%',
+  $table2 = $html->table({ width        => '100%',
                            border       => 1,
                            title_plain  => [ $html->form_input('WIZARD', "$_SHOW", {TYPE => 'SUBMIT'}) ]
                         });

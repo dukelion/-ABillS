@@ -2332,7 +2332,7 @@ if ($FORM{TP_ID}) {
       );
      }
     else {
-   	  @rows = ($html->button($line->[0], "&index=$index&TP_ID=$line->[4]&CREATED_DATE=$line->[0]&TYPE=TP&PAGE_ROWS=$FORM{PAGE_ROWS}"),
+   	  @rows = ($html->button($line->[0], "&index=$index&CREATED_DATE=$line->[0]". ( ($line->[4] > 0)  ? "&TYPE=TP&TP_ID=$line->[4]" : '&TYPE=CARDS' ). "&PAGE_ROWS=$FORM{PAGE_ROWS}"),
   	    (! $line->[4]) ? $_PAYMENTS : $html->button($line->[1], "&index=$index&TP_ID=$line->[4]&CREATED_DATE=$line->[0]&TYPE=TP&PAGE_ROWS=$FORM{PAGE_ROWS}"),
   	    $line->[2],
   		  $line->[3],

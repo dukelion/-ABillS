@@ -351,6 +351,9 @@ print $table->show();
 sub marketing_report2 {
 
 
+
+$html->tpl_show(_include('marketing_report2', 'Marketing'), $Marketing);
+
 my @caption = ($_FIO, 
 'REQUEST_DATE', 
 $_REGISTRATION,
@@ -381,6 +384,55 @@ $_TARIF_PLAN,
 "DISCONNECT_REASON"
 );
 
+
+my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-');
+my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$_EXTRA $_DEPOSIT",
+                  'max(p.date)'       => "$_PAYMENTS $_DATE",
+                  'pi.email'          => 'E-Mail', 
+                  'pi.address_street' => $_ADDRESS, 
+                  'pi.pasport_date'   => "$_PASPORT $_DATE", 
+                  'pi.pasport_num'    => "$_PASPORT $_NUM", 
+                  'pi.pasport_grant'  => "$_PASPORT $_GRANT", 
+                  'pi.address_build'  => "$_ADDRESS_BUILD", 
+                  'pi.address_flat'   => "$_ADDRESS_FLAT", 
+                  'pi.city'           => "$_CITY", 
+                  'pi.zip'            => "$_ZIP", 
+                  'pi.contract_id'    => "$_CONTRACT_ID", 
+                  'u.registration'    => "$_REGISTRATION", 
+                  'pi.phone'          => "$_PHONE",
+                  'pi.comments'       => "$_COMMENTS", 
+                  'if(company.id IS NULL,b.id,cb.id)' => 'BILL ID', 
+                  'u.activate'        => "$_ACTIVATE", 
+                  'u.expire'          => "$_EXPIRE",
+                  'u.credit_date'     => "$_CREDIT $_DATE",
+                  'u.reduction'       => "$_REDUCTION"
+                    );
+
+
+
+
+if ($users->{EXTRA_FIELDS}) {
+  foreach my $line (@{ $users->{EXTRA_FIELDS} }) {
+    if ($line->[0] =~ /ifu(\S+)/) {
+      my $field_id = $1;
+      my ($position, $type, $name)=split(/:/, $line->[1]);
+      if ($type == 2) {
+        $SEARCH_TITLES{$field_id.'_list.name'}=$name;
+       }
+      else {
+        $SEARCH_TITLES{'pi.'.$field_id}=$name;
+       }
+     }
+   }
+}
+
+
+my @EX_TITLE_ARR  = split(/, /, $users->{SEARCH_FIELDS});
+
+for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++) {
+	push @TITLE, '-';
+	$TITLE[5+$i] = $SEARCH_TITLES{$EX_TITLE_ARR[$i]} || "$_SEARCR";
+}
 
  my $table = $html->table( { width      => '100%',
                              caption    => "$_REPORT 1",

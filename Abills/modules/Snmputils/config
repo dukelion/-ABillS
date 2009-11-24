@@ -1,8 +1,8 @@
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = (
                    "2:0:SNMP _BINDING:snmputils_binding:UID" => 15,
-                   "3:0:SNMP $_INFO:snmp_info_form:"         => 6,
-                   "4:0:SNMP:snmputils_monitor:"             => 8
+                   "3:0:SNMP $_INFO:snmp_info_form:"         => 8,
+                   "4:0:SNMP:snmputils_monitor:"             => 6 
 
                    
                    );

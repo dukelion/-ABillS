@@ -289,7 +289,15 @@ sub history_del {
   my $self = shift;
   my ($attr) = @_;
  
-  $self->query($db, "DELETE from sqlcmd_history WHERE id='$attr->{ID}';", 'do');
+  my $DEL = '';
+  if ($attr->{IDS}) {
+  	$DEL = "id IN ('$attr->{IDS}')";
+   }
+  else {
+    $DEL = "id='$attr->{ID}'";
+   }
+ 
+  $self->query($db, "DELETE from sqlcmd_history WHERE $DEL;", 'do');
 
   return $self->{result};
 }
