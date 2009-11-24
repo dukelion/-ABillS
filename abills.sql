@@ -641,7 +641,7 @@ CREATE TABLE `msgs_unreg_requests` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `datetime` (`datetime`)
-) COMMENT='Messages from unregister users';
+) COMMENT='Msgs from unregister users';
 
 CREATE TABLE `nas` (
   `id` smallint(5) unsigned NOT NULL auto_increment,
