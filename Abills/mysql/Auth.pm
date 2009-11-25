@@ -68,6 +68,8 @@ sub dv_auth {
   }
   
   my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 4096;
+
+  my $DOMAIN_ID = ($NAS->{DOMAIN_ID}) ? "AND tp.domain_id='$NAS->{DOMAIN_ID}'" : '';
  
   $self->query($db, "select  if (dv.logins=0, if(tp.logins is null, 0, tp.logins), dv.logins) AS logins,
   if(dv.filter_id != '', dv.filter_id, if(tp.filter_id is null, '', tp.filter_id)),
@@ -114,7 +116,7 @@ sub dv_auth {
   tp.tp_id
 
      FROM (dv_main dv)
-     LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
+     LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id $DOMAIN_ID)
      LEFT JOIN users_nas un ON (un.uid = dv.uid)
      LEFT JOIN tp_nas ON (tp_nas.tp_id = tp.tp_id)
      LEFT JOIN intervals i ON (tp.tp_id = i.tp_id)
