@@ -149,7 +149,27 @@ sub docs_invoice_add  {
     $list = $Payments->list({ ID => $Docs->{PAYMENT_ID} });
     if ($Payments->{TOTAL} > 0) {
     	$method=$list->[0]->[6];
-      $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$method];
+    	
+    	if ($conf{DOCS_PAYMENT_METHODS}) {
+    		$conf{DOCS_PAYMENT_METHODS} =~ s/[\r\n]//g;
+    		my @methods_arr  = split(/;/, $conf{DOCS_PAYMENT_METHODS});
+    		my %methods_hash = ();
+    		foreach my $line (@methods_arr) {
+    			my ($k, $v)=split(/:/, $line);
+    			$k =~ s/^\s+//;
+    			$methods_hash{$k}=$v;
+    		 }
+        
+        if ($methods_hash{$method}) {
+          $Docs->{PAYMENT_METHOD}=$methods_hash{$method};
+         }
+        else {
+        	$Docs->{PAYMENT_METHOD}=$methods_hash{0};
+         }
+    	 }
+    	else {
+        $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$method];
+       }
      }
    }
  
@@ -185,9 +205,8 @@ sub docs_invoice {
  	                                  });
 
     #$Docs->{COMPANY_VAT}=$user->{COMPANY_VAT}.' %';
-    $Docs->{OP_SID}  = mk_unique_value(16);
     $users->pi({ $users->{UID} });
-
+    $Docs->{OP_SID}  = mk_unique_value(16);
     $Docs->{CUSTOMER}= $users->{FIO} || '-';
     $Docs->{CAPTION} = $_INVOICE;
 
@@ -591,9 +610,6 @@ sub docs_tax_invoice {
 
   my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
 
-  print "$FORM{PERIOD}/ $days_in_month";
-
-return 0;
    if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	   $html->message('err', $_ERROR, "$_EXIST");
     }
