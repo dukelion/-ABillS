@@ -896,6 +896,7 @@ elsif($request_type eq 'GetStatus') {
      }
   
   my $ext_ids = '\'USMP:'. join("', 'USMP:", @payments_arr)."'";
+
   
   my $list = $payments->list({ EXT_IDS => $ext_ids  });
   
@@ -905,7 +906,7 @@ elsif($request_type eq 'GetStatus') {
    }
 
   foreach my $line (@$list) {
-  	my $ext = $line->[9];
+  	my $ext = $line->[7];
   	$ext =~ s/USMP://g;
   	$payments_status{$ext}=$line->[0];
    }

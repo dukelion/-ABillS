@@ -52,7 +52,8 @@ sub null {
 #**********************************************************
 sub in_array {
  my ($value, $array) = @_;
- 
+
+ return 0 if (! $value); 
  foreach my $line (@$array) {
  	 return 1 if ($value eq $line);
   }
