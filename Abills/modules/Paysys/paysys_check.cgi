@@ -920,7 +920,7 @@ print << "[END]";
     <GetStatusResponse xmlns="http://usmp.com.ua/">
       <GetStatusResult xsi:type="StatusesResponse">
         <Statuses>
-          <PaymentStatusDetails>
+ 
 [END]
 
   foreach my $id (@payments_arr) {
