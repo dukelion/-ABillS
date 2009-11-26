@@ -924,7 +924,7 @@ print << "[END]";
 [END]
 
   foreach my $id (@payments_arr) {
-    print "     <ChequeNumber>$id</ChequeNumber>\n
+    print "<PaymentStatusDetails> \n <ChequeNumber>$id</ChequeNumber>\n
             <Status>"; 
  
     if ($id < 1) {
@@ -936,11 +936,10 @@ print << "[END]";
     else {
       print (($payments_status{$id}) ? 9 : 123 );
      }
-    print "</Status>\n";
+    print "</Status>\n</PaymentStatusDetails>\n";
    }
 
 print << "[END]";
-          </PaymentStatusDetails>
         </Statuses>
       </GetStatusResult>
     </GetStatusResponse>
