@@ -471,7 +471,7 @@ elsif ($FORM{change}) {
   if ($FORM{RENAME_FILE}) {
      my $ORIGIN_NAME = $FORM{ORIGIN_NAME};
      $ORIGIN_NAME =~ s/ /_/g;
-     if ($FILENAME =~ /\.([a-z0-9]+)$/i) {
+     if ($FORM{FILENAME} =~ /\.([a-z0-9]+)$/i) {
        $ORIGIN_NAME .=".$1";
       }
 
