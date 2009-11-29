@@ -470,23 +470,23 @@ pi._flor,
 dv.tp_id,
 tp.name,
 
-@user_deposit := if(c.name IS NULL, b.deposit, cb.deposit) AS user_deposit,
-@user_credit := if(c.name IS NULL, 0, c.credit) AS user_credit,
+\@user_deposit := if(c.name IS NULL, b.deposit, cb.deposit) AS user_deposit,
+\@user_credit := if(c.name IS NULL, 0, c.credit) AS user_credit,
 
-SUBSTRING_INDEX(@last_tp_info:=GET_LAST_TP(u.uid), ',', 1 ) AS last_tp_id, 
-SUBSTRING_INDEX(SUBSTRING_INDEX(@last_tp_info, ',', 2 ),',',-1) AS last_tp_changed,
+SUBSTRING_INDEX(\@last_tp_info:=GET_LAST_TP(u.uid), ',', 1 ) AS last_tp_id, 
+SUBSTRING_INDEX(SUBSTRING_INDEX(\@last_tp_info, ',', 2 ),',',-1) AS last_tp_changed,
 
-SUBSTRING_INDEX(@last_payment_info:=GET_LAST_PAYMENT_INFO(u.uid), ',', 1 ) AS last_payment_sum, 
-@last_payment_date = SUBSTRING_INDEX(SUBSTRING_INDEX(@last_payment_info, ',', 2 ),',',-1) AS last_payment_date,
-SUBSTRING_INDEX(SUBSTRING_INDEX(@last_payment_info, ',', 3 ),',',-1) AS last_payment_method,
-if(tp.day_fee>0, @user_deposit / tp.day_fee, 0) AS to_payments_date,
-if ( @user_deposit + @user_credit < 0, NOW()-@last_payment_date, 0) AS prosrochennyh_dney,
+SUBSTRING_INDEX(\@last_payment_info:=GET_LAST_PAYMENT_INFO(u.uid), ',', 1 ) AS last_payment_sum, 
+\@last_payment_date = SUBSTRING_INDEX(SUBSTRING_INDEX(\@last_payment_info, ',', 2 ),',',-1) AS last_payment_date,
+SUBSTRING_INDEX(SUBSTRING_INDEX(\@last_payment_info, ',', 3 ),',',-1) AS last_payment_method,
+if(tp.day_fee>0, \@user_deposit / tp.day_fee, 0) AS to_payments_date,
+if ( \@user_deposit + \@user_credit < 0, NOW()-\@last_payment_date, 0) AS prosrochennyh_dney,
 'activnost na forume',
 'bonus actions',
 'статус',
 
-if (u.disable=1, SUBSTRING_INDEX(@disable_info:=GET_ACTION_INFO(u.uid, 9, ''), ',', 1), ''),
-if (u.disable=1, SUBSTRING_INDEX(SUBSTRING_INDEX(@disable_info, ',', 2 ),',',-1), '')
+if (u.disable=1, SUBSTRING_INDEX(\@disable_info:=GET_ACTION_INFO(u.uid, 9, ''), ',', 1), ''),
+if (u.disable=1, SUBSTRING_INDEX(SUBSTRING_INDEX(\@disable_info, ',', 2 ),',',-1), '')
 FROM users u
 INNER JOIN users_pi pi ON (u.uid=pi.uid)
 INNER JOIN dv_main  dv ON (u.uid=dv.uid)
@@ -507,11 +507,11 @@ GROUP BY u.uid LIMIT 1
  my $list = $self->{list};
 
 
- if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(distinct $date) FROM admin_actions aa
-    $WHERE;");
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
-   }
+# if ($self->{TOTAL} >= 0) {
+#    $self->query($db, "SELECT count(distinct $date) FROM admin_actions aa
+#    $WHERE;");
+#    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+#   }
 
 }
 1

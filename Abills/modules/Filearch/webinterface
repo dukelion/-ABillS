@@ -6,7 +6,7 @@ if (! $conf{DOWNLOADS}) {
 $conf{DOWNLOADS}='%INFO% [ <a href="ftp://ftp.yes.ko.if.ua/Video/Movies/%FOLDER%/%FILE%">FTP</a> ]
 [ <a href="http://ftp.yes.ko.if.ua/ftp/Video/Movies/%FOLDER%/%FILE%">HTTP</a> ]
 [ <a href="file:\\\ftp.yes.ko.if.ua\Share\Video\Movies\%FOLDER%\%FILE%">SMB</a> ]'.
-" [ <a href=\"$SELF_URL?qindex=$index&VOD=$FORM{ID}\" target=_new 
+" [ <a href=\"#\" target=_new 
          onclick=\"window.open('$SELF_URL?qindex=$index&VOD=$FORM{ID}', null,
             'toolbar=0,location=0,directories=0,status=1,menubar=0,'+
             'scrollbars=1,resizable=1,'+
@@ -469,17 +469,18 @@ elsif ($FORM{change}) {
   #  $Filearch->file_change({ ID => $FORM{ID}, NAME => $FORM{NAME} });
   
   if ($FORM{RENAME_FILE}) {
-     $FORM{ORIGIN_NAME} =~ s/ /_/g;
+     my $ORIGIN_NAME = $FORM{ORIGIN_NAME};
+     $ORIGIN_NAME =~ s/ /_/g;
      #$FORM{ORIGIN_NAME} =~ s/ //g;
-     if ($FORM{FILENAME} =~ /\.([a-zA-B0-9]+)$/) {
-       $FORM{ORIGIN_NAME}.=".$1";
+     if ($FILENAME =~ /\.([a-zA-B0-9]+)$/) {
+       $ORIGIN_NAME .=".$1";
       }
 
      if (! -f "$conf{FILEARCH_PATH}/$FORM{FILENAME}") {
      	 $html->message('err', $_ERROR, "Can't find origin file '$conf{FILEARCH_PATH}/$FORM{FILENAME}' ");
       }
-     elsif (! rename "$conf{FILEARCH_PATH}/$FORM{FILENAME}", "$conf{FILEARCH_PATH}/$FORM{ORIGIN_NAME}" ) {
-       $html->message('err', $_ERROR, "Can't Rename '$conf{FILEARCH_PATH}/$FORM{FILENAME}' -> '$conf{FILEARCH_PATH}/$FORM{ORIGIN_NAME}' $!");
+     elsif (! rename "$conf{FILEARCH_PATH}/$FORM{FILENAME}", "$conf{FILEARCH_PATH}/$ORIGIN_NAME" ) {
+       $html->message('err', $_ERROR, "Can't Rename '$conf{FILEARCH_PATH}/$FORM{FILENAME}' -> '$conf{FILEARCH_PATH}/$ORIGIN_NAME' $!");
        goto FILE_INFO;
       }
    }  
