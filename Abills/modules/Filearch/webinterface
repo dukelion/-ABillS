@@ -476,7 +476,10 @@ elsif ($FORM{change}) {
        $ORIGIN_NAME .=".$1";
       }
 
-     if (! -f "$conf{FILEARCH_PATH}/$FORM{FILENAME}") {
+     if ( "$conf{FILEARCH_PATH}/$FORM{FILENAME}" eq "$conf{FILEARCH_PATH}/$ORIGIN_NAME" )  {
+
+      }
+     elsif (! -f "$conf{FILEARCH_PATH}/$FORM{FILENAME}") {
      	 $html->message('err', $_ERROR, "Can't find origin file '$conf{FILEARCH_PATH}/$FORM{FILENAME}' ");
       }
      elsif (! rename "$conf{FILEARCH_PATH}/$FORM{FILENAME}", "$conf{FILEARCH_PATH}/$ORIGIN_NAME" ) {
