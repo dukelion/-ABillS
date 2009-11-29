@@ -28,7 +28,7 @@ sub vod_addfile {
   while($content =~ /new (.+)\s+vod.+\nsetup\s+.+\s+input\s+\"(.+)\"\n/g) {
   	my $cfg_file  = $1;
   	my $full_name = $2;
-  	$VOD_ACTIVE_FILES{$2}=$1;
+  	$VOD_ACTIVE_FILES{$full_name}=$cfg_file;
   	#print "! $cfg_file  ->	$full_name <br>\n";
    }
 
@@ -119,7 +119,22 @@ print << "[END]";
 # :sout=#std{access=mmsh,mux=asfh,dst=10.10.10.5:8080}
 # :sout-all :sout-keep
 
-	return  "rtsp://$conf{IPTV_VOD_SERVER_IP}:5554/$VOD_ACTIVE_FILES{$file}";
+print << "[END]";
+<p align=center>
+<embed type="application/x-vlc-plugin"
+         name="video1"
+         autoplay="no" loop="yes" width="400" height="300"
+         target="rtsp://$conf{IPTV_VOD_SERVER_IP}:5554/$VOD_ACTIVE_FILES{$file}" />
+<br />
+  <a href="javascript:;" onclick='document.video1.play()'>Play video1</a>
+  <a href="javascript:;" onclick='document.video1.pause()'>Pause video1</a>
+  <a href="javascript:;" onclick='document.video1.stop()'>Stop video1</a>
+  <a href="javascript:;" onclick='document.video1.fullscreen()'>Fullscreen</a>
+</p>
+[END]
+
+
+	return "rtsp://$conf{IPTV_VOD_SERVER_IP}:5554/$VOD_ACTIVE_FILES{$file}";
 	
 }
 
