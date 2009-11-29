@@ -3153,7 +3153,7 @@ if($FORM{NAS_ID}) {
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }),
-	                       HIDDEN  => { index => '60',
+	                       HIDDEN  => { index => '61',
                                       AID   => "$FORM{AID}",
                                       subf  => "$FORM{subf}"
                                      },
@@ -3166,8 +3166,8 @@ if($FORM{NAS_ID}) {
   	       }, 
   	{ 
   	 $_INFO          => ":NAS_ID=$nas->{NAS_ID}",
-     'IP Pools'      => "61:NAS_ID=$nas->{NAS_ID}",
-     $_STATS         => "62:NAS_ID=$nas->{NAS_ID}"
+     'IP Pools'      => "62:NAS_ID=$nas->{NAS_ID}",
+     $_STATS         => "63:NAS_ID=$nas->{NAS_ID}"
   	 },
   	{
   		f_args => { %F_ARGS }

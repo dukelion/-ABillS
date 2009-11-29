@@ -78,11 +78,15 @@ sub user_info {
   
   $WHERE =  "WHERE service.uid='$uid'";
   
-  $self->query($db, "SELECT service.uid, service.tp_id, 
+  $self->query($db, "SELECT service.uid, 
+   service.tp_id, 
    tp.name, 
+   tp.tp_id, 
    service.filter_id, 
    service.cid,
    service.disable,
+   service.pin,
+   service.vod,
    tp.gid,
    tp.month_fee,
    tp.day_fee,
@@ -105,9 +109,12 @@ sub user_info {
   ($self->{UID},
    $self->{TP_ID}, 
    $self->{TP_NAME}, 
+   $self->{TP_NUM}, 
    $self->{CID}, 
    $self->{FILTER_ID}, 
    $self->{STATUS},
+   $self->{PIN},
+   $self->{VOD},
    $self->{TP_GID},
    $self->{MONTH_ABON},
    $self->{DAY_ABON},
@@ -139,7 +146,7 @@ sub defaults {
    CID            => '',
    CALLBACK       => 0,
    PORT           => 0,
-   JOIN_SERVICE   => 0
+   PIN            =>
   );
 
  
@@ -189,11 +196,15 @@ sub user_add {
   $self->query($db,  "INSERT INTO iptv_main (uid, registration, 
              tp_id, 
              disable, 
-             filter_id 
+             filter_id,
+             pin,
+             vod
              )
         VALUES ('$DATA{UID}', now(),
         '$DATA{TP_ID}', '$DATA{STATUS}',
-        '$DATA{FILTER_ID}'
+        '$DATA{FILTER_ID}',
+        '$DATA{PIN}',
+        '$DATA{VOD}'
          );", 'do');
 
   return $self if ($self->{errno});
@@ -222,11 +233,11 @@ sub user_change {
               TP_ID            => 'tp_id',
               UID              => 'uid',
               FILTER_ID        => 'filter_id',
+              PIN              => 'pin',
+              VOD              => 'vod',
              );
   
-  if (! $attr->{CALLBACK}) {
-  	$attr->{CALLBACK}=0;
-   }
+  $attr->{VOD} = (! defined($attr->{CALLBACK})) ? 0 : 1;
 
   my $old_info = $self->user_info($attr->{UID});
   

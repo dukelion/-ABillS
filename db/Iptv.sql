@@ -6,6 +6,8 @@ CREATE TABLE `iptv_main` (
   `cid` varchar(35) NOT NULL default '',
   `disable` tinyint(1) unsigned NOT NULL default '0',
   `registration` date default '0000-00-00',
+  `pin` BLOB NOT NULL,
+  `vod` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`),
   KEY `tp_id` (`tp_id`)
 ) COMMENT='IPTV users settings';

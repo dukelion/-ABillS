@@ -43,7 +43,7 @@ CREATE TABLE `filearch_video` (
   `genre` tinyint(4) unsigned NOT NULL default '0',
   `producer` varchar(50) NOT NULL default '',
   `descr` text NOT NULL,
-  `studio` varchar(150) default NULL,
+  `studio` varchar(150) not null default '',
   `duration` time NOT NULL default '00:00:00',
   `language` tinyint(4) unsigned NOT NULL default '0',
   `file_format` varchar(20) NOT NULL default '',
@@ -54,8 +54,9 @@ CREATE TABLE `filearch_video` (
   `imdb` int(11) unsigned NOT NULL default '0',
   `parent` int(11) unsigned NOT NULL default '0',
   `extra` varchar(200) NOT NULL default '',
-  `country` tinyint(4) NOT NULL default '0',
+  `country` tinyint(4) unsigned  NOT NULL default '0',
   `cover_small_url` varchar(200) NOT NULL default '',
+  `pin_access` tinyint(1) unsigned NOT NULL default '0',
   UNIQUE KEY `id` (`id`)
 ) COMMENT='Filearch';
 
@@ -75,6 +76,14 @@ CREATE TABLE `filearch_video_genres` (
   `name` varchar(20) NOT NULL default '',
   `imdb` varchar(20) default NULL,
   `sharereactor` varchar(20) default NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `name` (`name`)
+) COMMENT='Filearch';
+
+CREATE TABLE `filearch_countries` (
+  `id` tinyint(4) unsigned NOT NULL auto_increment,
+  `name` varchar(30) NOT NULL default '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
