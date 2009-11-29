@@ -57,6 +57,7 @@ CREATE TABLE `filearch_video` (
   `country` tinyint(4) unsigned  NOT NULL default '0',
   `cover_small_url` varchar(200) NOT NULL default '',
   `pin_access` tinyint(1) unsigned NOT NULL default '0',
+  `updated` datetime not null default '0000-00-00 00:00:00',
   UNIQUE KEY `id` (`id`)
 ) COMMENT='Filearch';
 

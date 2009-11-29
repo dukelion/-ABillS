@@ -511,7 +511,8 @@ sub video_change {
                  PARENT        => 'parent',
                  EXTRA         => 'extra',
                  COUNTRY       => 'country',
-                 PIN_ACCESS    => 'pin_access'
+                 PIN_ACCESS    => 'pin_access',
+                 UPDATED       => 'updated'
                 );   
 
 
@@ -579,7 +580,8 @@ sub video_info {
          v.parent,
          v.extra,
          v.country,
-         v.pin_access
+         v.pin_access,
+         v.updated
   FROM filearch f
    LEFT JOIN filearch_video v ON (f.id = v.id)  
    LEFT JOIN filearch_film_actors fa ON (f.id = fa.video_id)  
@@ -620,6 +622,7 @@ sub video_info {
    $self->{EXTRA},
    $self->{COUNTRY},
    $self->{PIN_ACCESS},
+   $self->{UPDATED}
   ) = @$ar;
 
 

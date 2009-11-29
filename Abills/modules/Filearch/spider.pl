@@ -38,9 +38,9 @@ Filesearcher->import();
 use Digest::MD4;
 use constant BLOCKSIZE => 9728000;
 
-$conf{FILEARCH_PATH}='/bfs/Share/Video/Movies' if (! $conf{FILEARCH_PATH});
-$conf{FILEARCH_FORMATS}='.avi,*.mpg,*.vob' if (! $conf{FILEARCH_FORMATS});
-$conf{FILEARCH_SKIPDIR}='/bfs/Share/Video/Movies/_unsorted' if (! $conf{FILEARCH_SKIPDIR});
+$conf{FILEARCH_PATH}   = '/bfs/Share/Video/Movies' if (! $conf{FILEARCH_PATH});
+$conf{FILEARCH_FORMATS}= '.avi,*.mpg,*.vob' if (! $conf{FILEARCH_FORMATS});
+$conf{FILEARCH_SKIPDIR}= '/bfs/Share/Video/Movies/_unsorted' if (! $conf{FILEARCH_SKIPDIR});
 my $recursive=0;
 my $rec_level=0;
 

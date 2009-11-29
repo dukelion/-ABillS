@@ -254,6 +254,7 @@ $ERR_CREDIT_CHANGE_LIMIT_REACH='Credit change limit reach';
 $ERR_CANT_CREATE_FILE='Can\'t create file or folder';
 $ERR_WRONG_FILE_NAME='Wrong file name or type';
 $ERR_WRONG_SUM="Wrong sum";
+#$ERR_ACCESS_DENY='';
 
 
 #Mail section

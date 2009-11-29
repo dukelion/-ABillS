@@ -139,7 +139,7 @@ sub telnet_cmd {
    ($hostname, $port)=split(/:/, $hostname, 2);
  }
 
-# my $debug   = (defined($attr->{debug})) ? 1 : 0;
+ my $debug   = ($attr->{debug}) ? 1 : 0;
  my $timeout = defined($attr->{'TimeOut'}) ? $attr->{'TimeOut'} : 5;
  
 
@@ -179,7 +179,7 @@ sub telnet_cmd {
 foreach my $line (@$commands) {
 
   my ($waitfor, $sendtext)=split(/\t/, $line, 2);
-
+  my $wait_len = length($waitfor);
   $input = '';
   
   if ($waitfor eq '-') {
@@ -187,12 +187,15 @@ foreach my $line (@$commands) {
     send($sock, "$sendtext\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
    }
 
+
+
   do {
      recv($sock, $inbuf, $MAXBUF, 0);
      $input .= $inbuf;
      $len = length($inbuf);
+     #return 0;
      alarm 5;
-    } while ($len >= $MAXBUF || $len < 4);
+    } while ($len >= $MAXBUF || $len < $wait_len);
 
 
  
@@ -477,7 +480,7 @@ sub hangup_mikrotik_telnet {
  push @commands, ">/interface pptp-server remove [find user=$USER]";
  push @commands, ">quit";
 
-  my $result = telnet_cmd_new("$NAS->{NAS_IP}", \@commands);
+  my $result = telnet_cmd2("$NAS->{NAS_IP}", \@commands);
  
   print $result;
 }
