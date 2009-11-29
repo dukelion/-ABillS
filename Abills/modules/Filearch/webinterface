@@ -1,10 +1,13 @@
-#!/usr/bin/perl
-# Squid
+# FileArch
 
+
+if (! $conf{DOWNLOADS}) {
 
 $conf{DOWNLOADS}='%INFO% [ <a href="ftp://ftp.yes.ko.if.ua/Video/Movies/%FOLDER%/%FILE%">FTP</a> ]
 [ <a href="http://ftp.yes.ko.if.ua/ftp/Video/Movies/%FOLDER%/%FILE%">HTTP</a> ]
 [ <a href="file:\\\ftp.yes.ko.if.ua\Share\Video\Movies\%FOLDER%\%FILE%">SMB</a> ]';
+
+}
 
 =commnets
 #Windows Media Player
@@ -110,6 +113,7 @@ if ($Filearch->{errno}) {
  }
 	
 }
+
 
 #*******************************************************************
 # 
@@ -304,7 +308,6 @@ my $genres_list = $Filearch->genres_list();
   	$FORM{external_db}=$Filearch->{FILENAME};
    }
 
-  print $html->button($_NEW, "&index=$index&extdb_type=$FORM{extdb_type}&NEXT_FILE=". int($FORM{ID}) );
 
 if ($FORM{add}) {
   $Filearch->video_add({ %FORM });
@@ -314,10 +317,8 @@ if ($FORM{add}) {
    }
  }
 elsif ($FORM{external_db}) {
-
-  
   my $type = $FORM{extdb_type} || 'sr'; 
-	my $name =$FORM{external_db};
+	my $name = $FORM{external_db};
 	if($name =~ /(.+)(\.avi|\.mpg|\.vob)/) {
 		$name = $1;
 	 }
@@ -325,12 +326,9 @@ elsif ($FORM{external_db}) {
   $name =~ s/(\.cd(\d+))//;
   $name =~ s/\./ /g;
 	
-	#$html->message('info', $_INFO, "$type ");
-
-
-
-  print $html->form_main({ CONTENT => $html->form_input('external_db', "$name", { SIZE => 40 }).
-  	                            $html->form_select('extdb_type', {
+  print "( ". $html->button($_NEXT_FILE, "&index=$index&extdb_type=$FORM{extdb_type}&NEXT_FILE=". int($FORM{ID}) ) ." )";
+  print $html->form_main({ CONTENT => $html->form_input('external_db', "$name", { SIZE => 40 }) .
+  	                                  $html->form_select('extdb_type', {
   	                            	          SELECTED          => $type,
  	                                          SEL_ARRAY         => [ keys %SEARCH_EXPRESSiONS ],
  	                                          NO_ID             => 1
@@ -343,16 +341,42 @@ elsif ($FORM{external_db}) {
 
   ##
     my $res = web_request($SEARCH_EXPRESSiONS{$type}{SEARCH_LINK}.$name);
+
     $table = $html->table( { width       => '600',
                              caption     => "$_RESULT",
                              title_plain => ['-', $_NAME, "$_YEAR", "$_GENRE" ],
                            });  
      
   
-   #print "<textarea cols=80 rows=10>$res</textarea>";
+    #print "<textarea cols=80 rows=10>$SEARCH_EXPRESSiONS{$type}{SEARCH_LINK}.$name</textarea>";
+    
     $res =~ s/<\/TR>/<\/TR>\n/g;
 
+#    if ($type eq 'kinopoisk1') {
+#    	 my $INFO = parse_info($res, { EXPRESSIONS => $SEARCH_EXPRESSiONS{$type}{GET_INFO} });
+#    	 
+#    	 my $link  = $SEARCH_EXPRESSiONS{$type}{INFO_PAGE};
+#       
+#       my $id    = $INFO->{ID};
+#       
+#       $link =~ s/%ID%/$id/g;
+#
+#       my $name  = $INFO->{NAME} ." ($INFO->{ORIGIN_NAME})";
+#       my $year  = $INFO->{YEAR}  || ''; 
+#       my $genre = $INFO->{GENRE} || '';
+#       
+#  	   $table->addrow($html->form_input('EXT_CHECK', "$link" , 
+#    	   { TYPE => 'radio', OUTPUT2RETURN => 1, TARGET => '_new' }), 
+#    	   $html->button("$name", '', { GLOBAL_URL => $link  } ),
+#   	     $year,
+#   	     $genre
+#   	   );
+#
+#       
+#     } 
+#    els
     if ($res =~ /HTTP\/1.\d 302/) {
+    	print "302 //";
  	    $link='';
  	    while($res =~ /Location: (.+)\r\n/g) {
         $link = $1;
@@ -377,12 +401,12 @@ elsif ($FORM{external_db}) {
      }
     else {
     while ($res =~ /$SEARCH_EXPRESSiONS{$type}{SEARCH}/g) {
-#     print "<textarea cols=80 rows=5>1)$1\n2) $2\n3) $3\n4) $4</textarea>";
+      #print "<textarea cols=80 rows=5>1)$1\n2) $2\n3) $3\n4) $4</textarea>";
 
-      my $link = $SEARCH_EXPRESSiONS{$type}{INFO_PAGE};
-      my $id = $1;
-      my $name = $2;
-      my $year = $3 || ''; 
+      my $link  = $SEARCH_EXPRESSiONS{$type}{INFO_PAGE};
+      my $id    = $1;
+      my $name  = $2;
+      my $year  = $3 || ''; 
       my $genre = $4 || '';
 
       $link =~ s/%ID%/$id/g;
@@ -395,28 +419,54 @@ elsif ($FORM{external_db}) {
    	   );
      }
     }
+
     print $html->form_main({ CONTENT => $table->show(),
                              HIDDEN  => { index      => $index,
                             	            ID         => $FORM{ID},
                             	            extdb_type => $type 
                             	           },
-                            SUBMIT  => { show  => $_SHOW  }
+                             SUBMIT  => { show  => $_SHOW  }
                            });
    
    
  
  }
 elsif ($FORM{change}) {
-  $Filearch->file_change({ ID => $FORM{ID}, NAME => $FORM{NAME} });
+  #  $Filearch->file_change({ ID => $FORM{ID}, NAME => $FORM{NAME} });
+  
+  if ($FORM{RENAME_FILE}) {
+     $FORM{ORIGIN_NAME} =~ s/ /_/g;
+     #$FORM{ORIGIN_NAME} =~ s/ //g;
+     if ($FORM{FILENAME} =~ /\.([a-zA-B0-9]+)$/) {
+       $FORM{ORIGIN_NAME}.=".$1";
+      }
 
+     if (! -f "$conf{FILEARCH_PATH}/$FORM{FILENAME}") {
+     	 $html->message('err', $_ERROR, "Can't find origin file '$conf{FILEARCH_PATH}/$FORM{FILENAME}' ");
+      }
+     elsif (! rename "$conf{FILEARCH_PATH}/$FORM{FILENAME}", "$conf{FILEARCH_PATH}/$FORM{ORIGIN_NAME}" ) {
+       $html->message('err', $_ERROR, "Can't Rename '$conf{FILEARCH_PATH}/$FORM{FILENAME}' -> '$conf{FILEARCH_PATH}/$FORM{ORIGIN_NAME}' $!");
+       goto FILE_INFO;
+      }
+   }  
+
+
+ 
+  $Filearch->file_change({ ID       => $FORM{ID}, 
+                           NAME     => $FORM{NAME} ,
+                           FILENAME => ($FORM{RENAME_FILE}) ? $FORM{ORIGIN_NAME} : undef
+                         });
+ 
   $Filearch->video_change({ %FORM });
-	if (! $Filearch->{errno}) {
+  if (! $Filearch->{errno}) {
     $html->message('info', $_INFO, "$_CHANGED ");	
     $FORM{NEXT_FILE}=$FORM{ID};
     goto NEXT_FILE;
    }
  }
 elsif ($FORM{ID}) {
+
+  FILE_INFO:  
   $Filearch->video_info($FORM{ID});
   
   $conf{DOWNLOADS}=~s/%FOLDER%/$Filearch->{PATH}/g;
@@ -425,7 +475,7 @@ elsif ($FORM{ID}) {
   $Filearch->{DOWNLOAD}=$conf{DOWNLOADS};
 
 
-	if (! $Filearch->{errno}) {
+  if (! $Filearch->{errno}) {
     $html->message('info', $_INFO, "$_CHANGING ");	
    }
 
@@ -441,17 +491,20 @@ elsif ($FORM{ID}) {
        }
      }
     else {
-	    my $res = web_request("$FORM{EXT_CHECK}", {'TimeOut' => 60 }); 
+      my $res = web_request("$FORM{EXT_CHECK}", {'TimeOut' => 60 }); 
       $INFO = parse_info($res, { EXPRESSIONS => $SEARCH_EXPRESSiONS{$FORM{extdb_type}}{GET_INFO} });
      }
    }
 
-  if ($Filearch->{CHECKSUM} =~ /ed2k/) {
+  if ($FORM{EXT_CHECK}) {
+    $Filearch->{EXT_CHECK}=$html->form_input('EXT_CHECK', "$FORM{EXT_CHECK}", { EX_PARAMS => ' SIZE="70"' }). $html->form_input('GET', "$_GET", { TYPE => 'SUBMIT' });
+
+   }
+  elsif ($Filearch->{CHECKSUM} =~ /ed2k/) {
     my ($type, $key)=split(/\|/, $Filearch->{CHECKSUM}, 2);
     $Filearch->{EXT_CHECK}='http://www.sharereactor.ru' . $html->form_input('EXT_CHECK', 
-         "http://www.sharereactor.ru/cgi-bin/mzsearch.cgi?search=$key", { EX_PARAMS => 'SIZE="70"' }).
-         $html->form_input('GET', 
-         "$_GET", { TYPE => 'SUBMIT' });
+         "http://www.sharereactor.ru/cgi-bin/mzsearch.cgi?search=$key", { EX_PARAMS => ' SIZE="70"' }).
+         $html->form_input('GET', "$_GET", { TYPE => 'SUBMIT' });
    }
 
   
@@ -474,10 +527,23 @@ elsif ($FORM{ID}) {
     $Filearch->{GENRES}.=$html->form_input('GENRES', "$line->[4]", { TYPE => 'checkbox', EX_PARAMS => " $status" })."$line->[0]<br>\n";
    }
 
+  $INFO->{PIN_ACCESS} = ($INFO->{PIN_ACCESS}) ? 'checked' : '';
+
+  $INFO->{COUNTRY_SEL} = $html->form_select('COUNTRY_ID', 
+                                          { 
+ 	                                          SELECTED          => $INFO->{COUNTRY_ID},
+ 	                                          SEL_MULTI_ARRAY   => $Filearch->file_country_list(),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+
   $html->tpl_show(_include('filearch_video_add', 'Filearch'), { %$Filearch, %$INFO });
+  
+
  }
 elsif ($FORM{del} && $FORM{is_js_confirmed}) {
-	$Filearch->video_del($FORM{del});
+  $Filearch->video_del($FORM{del});
 
   if (! $Filearch->{errno}) {
     $html->message('info', $_INFO, "$_DELETED $FORM{del}");	
@@ -501,14 +567,12 @@ $Filearch->{GENRES_SEL}=$html->form_select('GENRE',
  	                                          MULTI_ARRAY_KEY   => 4,
  	                                          MULTI_ARRAY_VALUE => 0,
  	                                          NO_ID             => 1
- 	                                        }),
+ 	                                        });
 
-
-
-
-
-form_search({ TPL => 1 });
-$html->tpl_show(_include('filearch_video_search', 'Filearch'), { %$Filearch, %$INFO });
+if (! $FORM{ID} ) {
+  form_search({ TPL => 1 });
+  $html->tpl_show(_include('filearch_video_search', 'Filearch'), { %$Filearch, %$INFO });
+}
 
 print $html->letters_list({ EXPR => 'À-ß' });
 if ($FORM{letter}) {

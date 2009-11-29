@@ -20,3 +20,6 @@ $_NEW='New';
 $_COVER='Cover';
 $_POSTER='Poster';
 $_SKIP='Skip';
+$_RENAME_FILE='Rename to origin name';
+$_PIN_ACCESS='Pin access';
+$_NEXT_FILE='Next File';

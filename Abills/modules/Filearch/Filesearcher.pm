@@ -49,6 +49,7 @@ $VERSION = 2.00;
                                        STUDIO      => '<B>Выпущено:</B> (.+)\n',
                                        DURATION    => '<B>Продолжительность:</B> (\S+)',
                                        LANGUAGE    => '<B>Язык:</B> (\W+)\n',
+                                       
                 
                                        COMMENTS    => '<B>Примечания:</B> (\W+)\n',
                                        EXTRA       => '<B>Дополнительно:</B> (\W+)\n',
@@ -90,20 +91,23 @@ $VERSION = 2.00;
                         	        	   SITES        => ''     
                         	        	           }
                         	        },
-                        	kinopoisk => { SEARCH  => 'level/1/id_film/(\d+)/sr/1/">(.+)</a>,&nbsp;.+>(.+)</a>',
+                        	        #<td width=100% class="news"><a class="all" href="/level/1/film/409233/sr/1/">Бугимен 3 (видео)</a>
+                        	kinopoisk => { SEARCH  => 'level/1/film/(\d+)/sr/1/">(.+)</a>,&nbsp;.+>(.+)</a>',
                           	        SEARCH_LINK  => 'http://www.kinopoisk.ru/index.php?level=7&m_act%5Bwhat%5D=item&from=forma&m_act%5Bid%5D=0&m_act%5Bfind%5D=',
                         	          SEARCH_PARSE => '',
-                        	          INFO_PAGE    => 'http://www.kinopoisk.ru/level/1/id_film/%ID%',
+                        	          INFO_PAGE    => 'http://www.kinopoisk.ru/level/1/film/%ID%',
                         	          GET_INFO     => {
-                        	        	   NAME        => '<H1 class="moviename-big"><strong>(.+)</strong>',
-                                       ORIGIN_NAME => 'оригинал</td><td class="desc-data">(.+)</td>',
+                        	        	   ID          => 'id_film = (\d+);',
+                                  	   NAME        => '<h1 style="margin: 0; padding: 0" class="moviename-big">(.+)&nbsp;<\/h1>',
+                                       ORIGIN_NAME => '#666; font-size: 13px">(.+)<\/span>',
+                                       COUNTRY     => 'm_act%5Bcountry%5D\/\d+\/">(\S+)<\/a>',
                                        YEAR        => 'm_act%5Byear%5D/(\d+)/',                
                                        GENRE       => 'FUNCTION:kinopoisk_genres',
-                                       PRODUCER    => 'режисcер</td><td class="desc-data"><a href=".+" class="all">(.+)</a>',
+                                       PRODUCER    => 'режиссер<\/td><td><a href=".+">(.+)<\/a>',
                                        ACTORS      => 'FUNCTION:kinopoisk_actors',
                                        DESCR       => 'FUNCTION:kinopoisk_descr',
                                        STUDIO      => 'FUNCTION:kinopoisk_studio',
-                                       DURATION    => 'время</td><td class="desc-data">(\d+)',
+                                       DURATION    => 'время<\/td><td class="time" id="runtime">(\d+)',
                                        LANGUAGE    => '<B>Язык:</B> (\W+)\n',
                 
                                       # COMMENTS    => '<B>Примечания:</B> (\W+)\n',
@@ -112,9 +116,9 @@ $VERSION = 2.00;
                                       # FILE_QUALITY => '<B>Качество:</B> (\S+)\n',
                                       # FILE_VSIZE   => '<B>Видео:</B> (.+)\n',
                                       # FILE_SOUND   => '<B>Звук:</B> (.+)\n',
-                                       COVER        => 'src="(/images/film/.+)"  width',
-                                       COVER_SMALL  => 'src="(/images/film/.+)"  width',
-                                       POSTER       => 'src="(/images/film/.+)"  width',
+                                       COVER        => 'src="(/images/film/.+)" width',
+                                       COVER_SMALL  => 'src="(/images/film/.+)" width',
+                                       POSTER       => 'FUNCTION:kinopoisk_posters',  #'src="(/images/film/.+)" width',
                                        SITES        => ''
                         	        	            
                         	        	            
@@ -198,6 +202,10 @@ sub parse_info (){
     
   my %PARAMS = %{ $attr->{EXPRESSIONS} };
  
+ 
+  #print "<textarea colr=60 rows=8>$page</textarea>\n";
+ 
+ 
   while(my($key, $val)=each %PARAMS) {
      my $page1=$page;
 
@@ -273,7 +281,7 @@ sub web_request {
  my $port=80;
 
  $request =~ /http:\/\/([a-zA-Z.-]+)\/(.+)/;
- $host = $1; 
+ $host    = $1; 
  $request = '/'.$2;
 
  if ($host =~ /:/) {
@@ -287,7 +295,7 @@ sub web_request {
  $request = "GET $request HTTP/1.0\r\n";
  $request .= ($attr->{'User-Agent'}) ? $attr->{'User-Agent'} : "User-Agent: Mozilla/4.0 (compatible; MSIE 5.5; Windows 98;Win 9x 4.90)\r\n"; 
  $request .= "Accept: text/html, image/png, image/x-xbitmap, image/gif, image/jpeg, */*\r\n";
- $request .= "Accept-Language: en\r\n";
+ $request .= "Accept-Language: ru\r\n";
  $request .= "Host: $host\r\n";
  $request .= "Content-type: application/x-www-form-urlencoded\r\n";
  $request .= "Referer: $attr->{'Referer'}\r\n" if ($attr->{'Referer'});
@@ -314,6 +322,9 @@ sub web_request {
  my ($header, $content) = split(/\n\n/, $res); 
  close($socket);
 
+
+
+
 #print $header;
  if ($header =~ /HTTP\/1.\d 302/ ) {
    $header =~ /Location: (.+)\r\n/;
@@ -323,9 +334,22 @@ sub web_request {
       $new_location="http://$host".$new_location;
     }
 
-   $res .= web_request($new_location, { Referer => '/' });
+   $res = web_request($new_location, { Referer => "$request" });
+  }
+
+
+ if ($res =~ /\<meta\s+http-equiv='Refresh'\s+content='\d;\sURL=(.+)'\>/ig) {
+    my $new_location = $1;
+    if ($new_location !~ /^http:\/\//) {
+      $new_location="http://$host".$new_location;
+    }
+
+    $res = web_request($new_location, { Referer => "$new_location" });
   }
  
+
+ #print "<br><textarea cols=80 rows=8>$request\n\n$res</textarea><br>\n";  
+  
  
  
  return $res;
@@ -372,8 +396,9 @@ sub imdb_actors {
 sub kinopoisk_genres {
 	my ($page) = @_;
 
-  $page =~ /жанр<\/td><td class="desc-data">(.+)\n/;
+  $page =~ /жанр<\/td><td>(.+)\n/;
  
+
   my %imdb_genres = (
   'боевик'      => 'Action',	  
   'приключения' => 'Adventure',	
@@ -410,11 +435,13 @@ sub kinopoisk_genres {
   my @genre_array = ();
 
   my @genre_arr = split(/, /, $1);
+
   foreach my $line (@genre_arr) {
     if ($line =~ />(.+)<\/a>/) {
        $line=$1;
-       print "$line <br>";
+       #print "$line <br>";
       }
+
     push @genre_array, $imdb_genres{"$line"};
    }
  
@@ -432,6 +459,7 @@ sub kinopoisk_actors {
   while ($page =~ /<tr><td height=15 align=right><a href="\/level\/4\/id_actor\/\d+\/" class="all">(.+)<\/a>/ig) {
   	 push(@actors_array, $1);
    }
+
 	return join(', ', @actors_array);
 }
 
@@ -445,14 +473,47 @@ sub kinopoisk_descr {
   $page =~ /class="news">\n\t\t\t(.+)/;
   $descr = $1;
   
+  $descr =~ s/<span class="_reachbanner_">//;
+  $descr =~ s/<br[ \/]{0,3}>/\n/g;
+  
   if ($descr =~ /<a href="(.+)" class/) {
-    $page = web_request("http://www.kinopoisk.ru".$1);
+    my $request = "http://www.kinopoisk.ru".$1;
+    
+    $page = web_request($request);
     $page =~ /class="news">\n\t\t\t(.+)/;
     $descr = $1;
-   }
 
+    print "$request";
+
+   }
 	return $descr;
 }
+
+
+#**********************************************************
+# filearch functions
+#**********************************************************
+sub kinopoisk_posters {
+	my ($page) = @_;
+  my $posters = '';
+  my @posters_arr = (); 
+  
+                
+
+  if ($page =~ /<a style="text-decoration:none" href="(.+)"><b style="font-weight: bold"><font color="#ff6600">п<\/font><font color="#555555">остеры/) {
+     $page = web_request("http://www.kinopoisk.ru".$1);
+     while($page =~ /\/images\/poster\/([a-z\_\.0-9]+)\'/ig) {
+       push @posters_arr, $1;
+      }
+   }
+
+  $posters = join(", http://www.kinopoisk.ru/images/poster/", @posters_arr);
+  
+
+	return $studios;
+}
+
+
 
 #**********************************************************
 # filearch functions
