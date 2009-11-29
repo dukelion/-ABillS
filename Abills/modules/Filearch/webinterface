@@ -471,8 +471,7 @@ elsif ($FORM{change}) {
   if ($FORM{RENAME_FILE}) {
      my $ORIGIN_NAME = $FORM{ORIGIN_NAME};
      $ORIGIN_NAME =~ s/ /_/g;
-     #$FORM{ORIGIN_NAME} =~ s/ //g;
-     if ($FILENAME =~ /\.([a-zA-B0-9]+)$/) {
+     if ($FILENAME =~ /\.([a-z0-9]+)$/i) {
        $ORIGIN_NAME .=".$1";
       }
 
@@ -485,6 +484,9 @@ elsif ($FORM{change}) {
      elsif (! rename "$conf{FILEARCH_PATH}/$FORM{FILENAME}", "$conf{FILEARCH_PATH}/$ORIGIN_NAME" ) {
        $html->message('err', $_ERROR, "Can't Rename '$conf{FILEARCH_PATH}/$FORM{FILENAME}' -> '$conf{FILEARCH_PATH}/$ORIGIN_NAME' $!");
        goto FILE_INFO;
+      }
+     else {
+     	 $html->message('info', $_CHANGED, "'$conf{FILEARCH_PATH}/$FORM{FILENAME}' -> '$conf{FILEARCH_PATH}/$ORIGIN_NAME' $!");
       }
    }  
 
