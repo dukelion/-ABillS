@@ -474,6 +474,7 @@ sub kinopoisk_descr {
   $descr = $1;
   
   $descr =~ s/<span class="_reachbanner_">//;
+  $descr =~ s/</span>//;
   $descr =~ s/<br[ \/]{0,3}>/\n/g;
   
   if ($descr =~ /<a href="(.+)" class/) {

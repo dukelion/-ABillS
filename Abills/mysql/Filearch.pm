@@ -762,7 +762,6 @@ sub file_country_info {
   $self->query($db, "SELECT id, name FROM filearch_countries 
    WHERE $WHERE;", 'do');
 
-return 0;
   if ($attr->{ADD} && $self->{TOTAL} == 0) {
   	$self->file_country_add({ COUNTRY_NAME => $attr->{COUNTRY_NAME} });
    }
