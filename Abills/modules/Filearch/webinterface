@@ -459,7 +459,7 @@ elsif ($FORM{VOD}) {
      }
    }
 
-  my $vod_url = vod_addfile($conf{FILEARCH_PATH} ."/$Filearch->{PATH}/$Filearch->{FILENAME}", { debug => 1});
+  my $vod_url = vod_addfile($conf{FILEARCH_PATH} ."/$Filearch->{PATH}/$Filearch->{FILENAME}", { debug =>  0 });
 	
 	print $html->button("$Filearch->{NAME}", '#', { GLOBAL_URL => "$vod_url" });
 	
