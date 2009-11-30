@@ -4,16 +4,55 @@ $conf{IPTV_VOD_SERVER_IP}  = '10.0.0.1'            if (! $conf{IPTV_VOD_SERVER_I
 $conf{IPTV_VLC_PASSWORD}   = 'videolan'            if (! $conf{IPTV_VLC_PASSWORD});
 $conf{IPTV_VLC_HOST_PORT}  = 'localhost:4212'      if (! $conf{IPTV_VLC_HOST_PORT});
 
+$conf{IPTV_VLC_VOD_START}  = '/usr/local/bin/vlc -I telnet --control telnet --telnet-password $conf{IPTV_VLC_PASSWORD} --rtsp-host 0.0.0.0:5554 --vlm-conf "$conf{IPTV_VOD_SERVER_CONF}" --pidfile '      if (! $conf{IPTV_VLC_VOD_START});
+
+$conf{IPTV_VLC_VOD_STOP}   = 'kill -9 '      if (! $conf{IPTV_VLC_VOD_STOP});
+
+
+#**********************************************************
+#
+#**********************************************************
+sub vod_files_list {
+ 
+   my $result = telnet_cmd("$conf{IPTV_VLC_HOST_PORT}", \@commands, { TimeOut => 10 });
+
+   #print $result;
+
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub vod_status {
+  my ($attr) = @_;
+
+  if ($attr->{START}) {
+    my $res = system("$conf{IPTV_VLC_VOD_START}");
+   }
+  elsif($attr->{STOP}) {
+  	
+   }
+  #Get status
+  else {
+  	
+   }
+}
+
 
 #**********************************************************
 #
 #**********************************************************
 sub vod_addfile {
-  my ($file, $attr) = @_;
+  my ($media_file, $attr) = @_;
+
+
+  
 
 	$cfgpath=$conf{IPTV_VOD_SERVER_CONF};		
   my $content = '';
   my $VOD_ACTIVE_FILES = ();
+
+  $media_file =~ s/\/\//\//g;
   
   if (! open(VOD_CFG, "$cfgpath")) {
       print "Can't open config '$cfgpath' $!\n";
@@ -28,22 +67,22 @@ sub vod_addfile {
   while($content =~ /new (.+)\s+vod.+\nsetup\s+.+\s+input\s+\"(.+)\"\n/g) {
   	my $cfg_file  = $1;
   	my $full_name = $2;
-  	$VOD_ACTIVE_FILES{$full_name}=$cfg_file;
+  	$VOD_ACTIVE_FILES{"$full_name"}=$cfg_file;
   	#print "! $cfg_file  ->	$full_name <br>\n";
    }
 
-  my $cfg_file_name = $file;
+  my $cfg_file_name = $media_file;
   $cfg_file_name =~ s/\.[a-z0-9]+$//g;
   $cfg_file_name =~ s/[\.\ \_]?//g;
   
   
-	if (! $VOD_ACTIVE_FILES{$file}) {					#if identifying string not found
+	if (! $VOD_ACTIVE_FILES{$media_file}) {					#if identifying string not found
     require "nas.pl";
 
     my @commands = ();
     push @commands, "Password:\t$conf{IPTV_VLC_PASSWORD}";
     push @commands, ">\tnew ".$cfg_file_name." vod enabled";
-    push @commands, ">\tsetup ".$cfg_file_name." input \"".$file."\"";
+    push @commands, ">\tsetup ".$cfg_file_name." input \"".$media_file."\"";
     push @commands, ">\texit";
     #push @commands, ">\tshow";
 
@@ -61,9 +100,10 @@ sub vod_addfile {
 
      print VOD_CFG "\n\n# $DATE $TIME";		#load into the VOD config file
   	 print VOD_CFG "\nnew ".$cfg_file_name." vod enabled";		#load into the VOD config file
-	   print VOD_CFG "\nsetup ".$cfg_file_name." input \"".$file."\""; #load into the VOD config file
-   close(VOD_CFG);
+	   print VOD_CFG "\nsetup ".$cfg_file_name." input \"".$media_file."\""; #load into the VOD config file
+     close(VOD_CFG);
 
+     $VOD_ACTIVE_FILES{$media_file}=$cfg_file_name;
    }
 
 
@@ -124,7 +164,7 @@ print << "[END]";
 <embed type="application/x-vlc-plugin"
          name="video1"
          autoplay="no" loop="yes" width="400" height="300"
-         target="rtsp://$conf{IPTV_VOD_SERVER_IP}:5554/$VOD_ACTIVE_FILES{$file}" />
+         target="rtsp://$conf{IPTV_VOD_SERVER_IP}:5554/$VOD_ACTIVE_FILES{$media_file}" />
 <br />
   <a href="javascript:;" onclick='document.video1.play()'>Play video1</a>
   <a href="javascript:;" onclick='document.video1.pause()'>Pause video1</a>
@@ -133,8 +173,14 @@ print << "[END]";
 </p>
 [END]
 
+  print $media_file if ($attr->{debug});
 
-	return "rtsp://$conf{IPTV_VOD_SERVER_IP}:5554/$VOD_ACTIVE_FILES{$file}";
+  if ($VOD_ACTIVE_FILES{$media_file}) {
+    return "rtsp://$conf{IPTV_VOD_SERVER_IP}:5554/$cfg_file_name";
+   }
+	else {
+		print "! Error. Can't stream file '$media_file' $cfg_file_name \n";
+	 }
 	
 }
 

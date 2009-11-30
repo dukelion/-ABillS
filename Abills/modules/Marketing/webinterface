@@ -354,8 +354,9 @@ sub marketing_report2 {
 
 $html->tpl_show(_include('marketing_report2', 'Marketing'), $Marketing);
 
-my @caption = ($_FIO, 
-'REQUEST_DATE', 
+my @caption = (
+$_LOGIN,
+$_FIO, 
 $_REGISTRATION,
 $_ADMIN,
 'SEGMET',
@@ -371,11 +372,14 @@ $_TARIF_PLAN,
 "$_PRE $_TARIF_PLAN",
 "$_TARIF_PLAN $_CHANGE",
 
-"$_LAST $_PAYMENTS",
-"$_PAYMENTS $TYPE",
-"$_PEYMENTS $_HISTORY",
-"$_PAYMENTS $_SUM",
-"$_PAYMENTS TO DATE",
+"$_DEPOSIT",
+"$_CREDIT",
+"$_LAST_PAYMENT $_SUM",
+"$_LAST_PAYMENT",
+"$_PAYMENTS $_TYPE",
+"$_PAYMENTS $_LOG",
+
+"$_PAYMENT_TO_DATE",
 "$_DEBTS_DAYS",
 "$_STATUS",
 "FORUM",
@@ -410,6 +414,7 @@ my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$
 
 
 
+my $list = $Marketing->report_2({ %LIST_PARAMS });
 
 if ($users->{EXTRA_FIELDS}) {
   foreach my $line (@{ $users->{EXTRA_FIELDS} }) {
@@ -441,41 +446,41 @@ for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++) {
                              pages      => $Marketing->{TOTAL},
                            });
 
+foreach my $line ( @$list ) {
+  $table->addrow(
+    	 $html->button($line->[0], "index=11&UID=$line->[27]"),
+    	 $line->[1],
+    	 $line->[2],
+    	 $line->[3],
+    	 $line->[4],
+    	 $line->[5],
+    	 $line->[6],
+    	 $line->[7],
+    	 $line->[8],
+    	 $line->[9],
+    	 $line->[10],
+    	 $line->[11],
+    	 $line->[12],
+    	 $line->[13],
+    	 $line->[14],
+    	 $line->[15],
+    	 $line->[16],
+    	 $line->[17],
+    	 $line->[18],
+    	 $line->[19],
+    	 $line->[20],
+    	 $line->[21],
+    	 $status[$line->[22]],
+    	 $line->[23],
+    	 $line->[24],
+    	 $line->[25],
+    	 $line->[26],
+    	 );  
+}
+
+
 print $table->show();
 
-=comments
-SELECT 
-pi.fio,
-msgs.date,
-u.registration,
-u.aid,
-'segment',
-'microrayon',
-pi.address_street,
-pi.address_build,
-pi.address_flat,
-'podezd',
-dv.tp_id (tp.name),
-'last_tp',
-changes.date,
-max(p.date),
-p.type,
-'payments history',
-p.sum,
-'to payments date',
-'prosrochennyh dney',
-'kol prosrochennyh dney',
-'activnost na forume',
-'bonus actions',
-'статус',
-'disconnect date'
-'disconnect reason'
-FROM users u
-INNER JOIN users_pi pi ON (u.uid=pi.uid)
-INNER JOIN dv_main  dv ON (u.uid=dv.uid)
-INNER JOIN tariff_plans tp pi ON (tp.id=dv.tp_id)
-INNER JOIN changes changes ON (u.uid=changes.uid)
-=cut
 
 
 }
