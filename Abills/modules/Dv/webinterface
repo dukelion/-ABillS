@@ -178,7 +178,9 @@ elsif($FORM{del}) {
   	  $tariffs->{LNG_ACTION}     = $_DEL;
   }
  else {
-   my $tp_list = $tariffs->list();
+ 	 $tariffs->{debug}=1;
+   
+   my $tp_list = $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $admin->{DOMAIN_ID} });
 
    #Sheduler fot TP change
    if($conf{DV_TP_MULTISHEDULE}) {

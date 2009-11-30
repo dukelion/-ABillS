@@ -497,7 +497,8 @@ elsif ($FORM{change}) {
        goto FILE_INFO;
       }
      else {
-     	 $html->message('info', $_CHANGED, "'$conf{FILEARCH_PATH}/$FORM{FILENAME}' -> '$conf{FILEARCH_PATH}/$ORIGIN_NAME' $!");
+       $html->message('info', $_CHANGED, "'$conf{FILEARCH_PATH}/$FORM{FILENAME}' -> '$conf{FILEARCH_PATH}/$ORIGIN_NAME' $!");
+       $FORM{RENAME_FILE}=$ORIGIN_NAME;
       }
    }  
 

@@ -853,6 +853,8 @@ sub file_del {
   my $self = shift;
   my ($id) = @_;
   $self->query($db, "DELETE FROM filearch WHERE id='$id';", 'do');
+  
+  $self->video_del($id);
   return $self;
 }
 

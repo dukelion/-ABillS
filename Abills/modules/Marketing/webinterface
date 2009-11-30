@@ -13,6 +13,7 @@ my $tariffs   = Tariffs->new($db, \%conf, $admin);
 
 my %FORM_BASE = ();
 my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT" );
+my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000');
 
 
 
@@ -470,7 +471,7 @@ foreach my $line ( @$list ) {
     	 $line->[19],
     	 $line->[20],
     	 $line->[21],
-    	 $status[$line->[22]],
+    	 $html->color_mark($service_status[$line->[22]], $service_status_colors[$line->[22]]),
     	 $line->[23],
     	 $line->[24],
     	 $line->[25],

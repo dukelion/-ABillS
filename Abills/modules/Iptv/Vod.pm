@@ -52,7 +52,7 @@ sub vod_addfile {
   my $content = '';
   my $VOD_ACTIVE_FILES = ();
 
-  $media_file =~ s/\/\//\//g;
+  $media_file =~ s/\/{2,5}/\//g;
   
   if (! open(VOD_CFG, "$cfgpath")) {
       print "Can't open config '$cfgpath' $!\n";

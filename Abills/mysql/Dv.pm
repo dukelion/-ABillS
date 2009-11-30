@@ -104,7 +104,7 @@ sub info {
    tp.credit,
    tp.tp_id
      FROM dv_main dv
-     LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id)
+     LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id and tp.domain_id='$admin->{DOMAIN_ID}')
    $WHERE;");
 
   if ($self->{TOTAL} < 1) {     
