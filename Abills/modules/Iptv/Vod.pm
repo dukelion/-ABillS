@@ -173,7 +173,6 @@ print << "[END]";
 </p>
 [END]
 
-  print $media_file if ($attr->{debug});
 
   if ($VOD_ACTIVE_FILES{$media_file}) {
     return "rtsp://$conf{IPTV_VOD_SERVER_IP}:5554/$cfg_file_name";

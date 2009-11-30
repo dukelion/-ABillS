@@ -777,9 +777,8 @@ sub file_country_list {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "SELECT id, name FROM filearch_countries", 'do');
+  $self->query($db, "SELECT id, name FROM filearch_countries");
   
-
   return $self->{list};	
 }
 
