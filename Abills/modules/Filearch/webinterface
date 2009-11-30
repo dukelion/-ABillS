@@ -146,23 +146,34 @@ elsif ($FORM{change}) {
    }
  }
 elsif ($FORM{chg}) {
-  $Filearch->chapter_info({ ID => $FORM{ID} });
+  $Filearch->file_info({ ID => $FORM{ID} });
 
 	if (! $Filearch->{errno}) {
     $html->message('info', $_INFO, "$_CHANGING ");	
     return 0;
    }
   
-  $Filearch->{ACTION}='change';
-  $Filearch->{LNG_ACTION}=$_CHANGE;
+  $Filearch->{ACTION}    = 'change';
+  $Filearch->{LNG_ACTION}= $_CHANGE;
+
   $html->tpl_show(_include('filearch_file', 'Filearch'), { %$Filearch });
+
  }
 elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+
+  $Filearch->file_info($FORM{del});
+
+  if (unlink $conf{FILEARCH_PATH} ."/$Filearch->{PATH}/$Filearch->{FILENAME}") {
+  	$html->message('info', $_INFO, "$_DELETED '". $conf{FILEARCH_PATH} . "/$Filearch->{PATH}/$Filearch->{FILENAME}". "'");	
+   }
+  else {
+  	$html->message('err', $_ERROR, "$_DELETED '". $conf{FILEARCH_PATH} ."/$Filearch->{PATH}/$Filearch->{FILENAME}". "' $!");	
+   }
+
 	$Filearch->file_del($FORM{del});
 
   if (! $Filearch->{errno}) {
-    $html->message('info', $_INFO, "$_DELETED $FORM{del}");	
-    return 0;
+    $html->message('info', $_INFO, "$_DELETED ID: $FORM{del} '$Filearch->{FILENAME}'");	
    }
  }
 
@@ -572,7 +583,7 @@ elsif ($FORM{ID}) {
   $INFO->{COUNTRY_SEL} = $html->form_select('COUNTRY_ID', 
                                           { 
  	                                          SELECTED          => $INFO->{COUNTRY_ID},
- 	                                          SEL_MULTI_ARRAY   => $Filearch->file_country_list(),
+ 	                                          SEL_MULTI_ARRAY   => [[0, $_OTHER], @{ $Filearch->file_country_list() }],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -1041,7 +1052,6 @@ sub filearch_ext_check {
 #*******************************************************************
 sub filearch_chapters {
 
-  $Filearch->{debug}=1;
   $Filearch->{ACTION}='add';
   $Filearch->{LNG_ACTION}=$_ADD;
 
