@@ -483,7 +483,7 @@ SUBSTRING_INDEX(\@last_payment_info:=GET_LAST_PAYMENT_INFO(u.uid), ',', 1 ) AS l
 SUBSTRING_INDEX(SUBSTRING_INDEX(\@last_payment_info, ',', 3 ),',',-1) AS last_payment_method,
 '-',
 
-if(tp.day_fee>0, \@user_deposit / tp.day_fee, 0) AS to_payments_date,
+if(tp.day_fee>0, curdate() + interval (\@user_deposit / tp.day_fee) day, 0) AS to_payments_date,
 
 if ( \@user_deposit + \@user_credit < 0, NOW()-\@last_payment_date, 0) AS prosrochennyh_dney,
 

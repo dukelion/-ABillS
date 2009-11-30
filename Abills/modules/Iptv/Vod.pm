@@ -100,7 +100,7 @@ sub vod_addfile {
 
      print VOD_CFG "\n\n# $DATE $TIME";		#load into the VOD config file
   	 print VOD_CFG "\nnew ".$cfg_file_name." vod enabled";		#load into the VOD config file
-	   print VOD_CFG "\nsetup ".$cfg_file_name." input \"".$media_file."\""; #load into the VOD config file
+	   print VOD_CFG "\nsetup ".$cfg_file_name." input \"".$media_file."\"\n"; #load into the VOD config file
      close(VOD_CFG);
 
      $VOD_ACTIVE_FILES{$media_file}=$cfg_file_name;

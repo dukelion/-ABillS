@@ -506,7 +506,7 @@ elsif ($FORM{change}) {
  
   $Filearch->file_change({ ID       => $FORM{ID}, 
                            NAME     => $FORM{NAME} ,
-                           FILENAME => ($FORM{RENAME_FILE}) ? $FORM{ORIGIN_NAME} : undef
+                           FILENAME => ($FORM{RENAME_FILE}) ? $FORM{RENAME_FILE} : undef
                          });
  
   $Filearch->video_change({ %FORM, UPDATED => "$DATE $TIME" });
