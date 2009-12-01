@@ -32,6 +32,7 @@ $VERSION = 2.00;
   &in_array
   &tpl_parse
   &encode_base64
+  &cfg2hash
  );
 
 @EXPORT_OK = ();
@@ -45,6 +46,31 @@ $VERSION = 2.00;
 sub null {
   return 0;	
 }
+
+
+#**********************************************************
+# Convert cft str to hash
+#
+# cfg format:
+#  key:value;key:value;key:value;
+#
+#**********************************************************
+sub cfg2hash {
+  my ($cfg, $attr) = @_;
+  my %hush = ();
+ 
+
+  $cfg =~ s/\n//g;
+	my @payments_methods_arr = split(/;/, $cfg);
+
+	foreach my $line (@payments_methods_arr) {
+		 my ($k, $v)=split(/:/, $line, 2);
+		 $hush{$k}=$v;
+	 }
+
+  return \%hush;
+}
+
 
 #**********************************************************
 # isvalue()

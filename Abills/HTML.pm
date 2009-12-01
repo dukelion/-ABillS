@@ -478,6 +478,7 @@ sub form_select {
     
     foreach my $k (@H) {
       $self->{SELECT} .= "<option value='$k'";
+      $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$k];' " if ($attr->{STYLE});
       $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
 
       $self->{SELECT} .= ">";
