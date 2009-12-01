@@ -4712,7 +4712,7 @@ $payments->{SEL_ER} .= "</select>\n";
 push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
 for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
-	$PAYMENTS_METHODS{"$i:$i"}="$PAYMENT_METHODS[$i]";
+	$PAYMENTS_METHODS{"$i"}="$PAYMENT_METHODS[$i]";
  }
 
 my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
@@ -5276,10 +5276,9 @@ elsif($search_form{$FORM{type}}) {
 
    push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
    %PAYMENTS_METHODS = ();
-   my $i=0;
-   foreach my $key (@PAYMENT_METHODS) {
-	   $PAYMENTS_METHODS{$i}=$key;
-	   $i++;
+   
+   for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+	   $PAYMENTS_METHODS{"$i"}="$PAYMENT_METHODS[$i]";
     }
 
    my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };

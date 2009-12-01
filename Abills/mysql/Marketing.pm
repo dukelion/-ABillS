@@ -649,7 +649,7 @@ INNER JOIN tarif_plans tp ON (tp.id=dv.tp_id)
      LEFT JOIN bills cb ON (c.bill_id=cb.id)
 LEFT JOIN _segment_list _segment ON (_segment.id=pi._segment)
 LEFT JOIN _district_list _district ON (_district.id=pi._district)
-WHERE u.domain_id='$admin->{DOMAIN_ID}' $WHERE
+WHERE u.domain_id='$admin->{DOMAIN_ID}'
 GROUP BY u.uid 
 ", 'do');
 
