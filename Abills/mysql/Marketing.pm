@@ -654,7 +654,6 @@ GROUP BY u.uid
 ", 'do');
 
 
- $self->{debug}=1;
  $self->query($db, "SELECT login,
 fio,
 registration,
