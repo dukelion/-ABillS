@@ -352,6 +352,28 @@ print $table->show();
 sub marketing_report2 {
 
 
+push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+	$PAYMENTS_METHODS{"$i"}="$PAYMENT_METHODS[$i]";
+ }
+
+my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+
+while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
+	$PAYMENTS_METHODS{$k}=$v;
+}
+
+  $Marketing->{LAST_PAYMENT_METHOD_SEL} = $html->form_select('LAST_PAYMENT_METHOD', 
+                                { SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
+ 	                                SEL_HASH     => \%PAYMENTS_METHODS,
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1,
+ 	                                SEL_OPTIONS   => { '' => $_ALL }
+ 	                               });
+
+
+
 
   $Marketing->{STATUS_SEL}=$html->form_select('STATUS', 
                                           { 
