@@ -28,7 +28,7 @@
 <tr><th colspan=4 class=form_title>Internet <input type=checkbox name=INTERNET value=1 checked></th></tr>
 
 <tr>
-  <td>$_TARIF_PLAN:</td><td><input type=text name='TP_ID' value='%_ENTRANCE%' size=7> $_PRE $_TARIF_PLAN: <input type=text name='PRE_TP_ID' value='%PRE_TP_ID%' size=7></td>
+  <td>$_TARIF_PLAN:</td><td><input type=text name='TP_ID' value='%TP_ID%' size=7> $_PRE_TP: <input type=text name='PRE_TP_ID' value='%PRE_TP_ID%' size=7></td>
   <td>$_TARIF_PLAN $_CHANGED:</td><td><input type=text name=TARIF_PLAN_CHANGED value='%TARIF_PLAN_CHANGED%'></td>
 </tr>
 

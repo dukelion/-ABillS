@@ -3003,7 +3003,10 @@ sub dv_user_chg_tp {
 if ($FORM{set}) {
 	use POSIX;
 
-  if ($conf{DV_USER_CHG_TP_NPERIOD}) {
+  if (! $FORM{TP_ID} || $FORM{TP_ID} < 1 ){
+  	$html->message('err', "$_ERROR", "$ERR_WRONG_DATA: $_TARIF_PLAN");
+   }
+  elsif ($conf{DV_USER_CHG_TP_NPERIOD}) {
   	 # Get next month
      my $Y;
      my $M;
