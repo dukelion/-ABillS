@@ -451,6 +451,18 @@ if ($FORM{OTHER}) {
     }
 
 
+if ($FORM{search}) {
+  $pages_qs  = "&search=1";
+	
+	while(my($k, $v)=each %FORM) {
+		if ($k =~ /([A-Z0-9]+|_[a-z0-9]+)/ && $v ne '' && $k ne '__BUFFER') {
+		  $LIST_PARAMS{$k}= $v;
+	    $pages_qs      .= "&$k=$v";
+		 }
+	 }
+}
+
+
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-');
 
 my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$_EXTRA $_DEPOSIT",
@@ -509,6 +521,7 @@ for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++) {
                              title      => \@caption,
                              ID         => 'REPORT 2',
                              pages      => $Marketing->{TOTAL},
+                             qs         => $pages_qs
                            });
 
 foreach my $line ( @$list ) {
