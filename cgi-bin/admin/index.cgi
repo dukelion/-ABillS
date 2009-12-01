@@ -237,7 +237,7 @@ if  ($admin->{MAX_ROWS} > 0) {
 #Global Vars
 @action    = ('add', $_ADD);
 @bool_vals = ($_NO, $_YES);
-@PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus', "$_CORRECTION");
+@PAYMENT_METHODS = ("$_CASH", 'Bank', "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION");
 @status = ("$_ENABLE", "$_DISABLE");
 
 
@@ -4096,11 +4096,21 @@ sub report_payments {
   my %METHODS_HASH = ();
   
   push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
-  
+
   for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
-  	$METHODS_HASH{"$i:$i"}="$PAYMENT_METHODS[$i]";
+	  $METHODS_HASH{"$i:$i"}="$PAYMENT_METHODS[$i]";
+	  $PAYMENTS_METHODS{$i}=$PAYMENT_METHODS[$i];
    }
 
+  my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+  while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
+	  $PAYMENTS_METHODS{$k}=$v;
+   }
+
+
+  while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
+	  $METHODS_HASH{"$k:$k"}=$v;
+   }
 
 
   reports({ DATE        => $FORM{DATE}, 
@@ -4153,7 +4163,7 @@ if (defined($FORM{DATE})) {
     $line->[3], 
     $line->[4] . ( ($line->[12] ) ? ' ('. $html->b($line->[12]) .') ' : '' ), 
     "$line->[5]", 
-    $PAYMENT_METHODS[$line->[6]], 
+    $PAYMENTS_METHODS{$line->[6]}, 
     "$line->[7]", 
     ($conf{EXT_BILL_ACCOUNT} && $attr->{USER}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
     "$line->[9]", 
@@ -4545,6 +4555,9 @@ sub form_payments () {
  
  return 0 if (! $permissions{1});
 
+
+ %PAYMENTS_METHODS = ();
+
  my %BILL_ACCOUNTS = ();
 
  if ($FORM{print}) {
@@ -4698,10 +4711,21 @@ $payments->{SEL_ER} .= "</select>\n";
 
 push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
-$payments->{SEL_METHOD} =  $html->form_select('METHOD', 
-                                { SELECTED      => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
- 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
- 	                                ARRAY_NUM_ID  => 1
+for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+	$PAYMENTS_METHODS{"$i:$i"}="$PAYMENT_METHODS[$i]";
+ }
+
+my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+
+while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
+	$PAYMENTS_METHODS{$k}=$v;
+}
+
+$payments->{SEL_METHOD} = $html->form_select('METHOD', 
+                                { SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
+ 	                                SEL_HASH     => \%PAYMENTS_METHODS,
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1
  	                               });
 
 
@@ -4783,6 +4807,7 @@ my $table = $html->table( { width      => '100%',
                             ID         => 'PAYMENTS'
                            } );
 
+
 my $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
   my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=2&del=$line->[0]&UID=". $line->[11] ."$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
@@ -4793,7 +4818,7 @@ foreach my $line (@$list) {
   $line->[3], 
   $line->[4] . ( ($line->[12] ) ? ' ('. $html->b($line->[12]) .') ' : '' ), 
   "$line->[5]", 
-  $PAYMENT_METHODS[$line->[6]], 
+  $PAYMENTS_METHODS{$line->[6]}, 
   "$line->[7]", 
   ($conf{EXT_BILL_ACCOUNT} && $attr->{USER}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
   "$line->[9]", 
@@ -5248,13 +5273,37 @@ if (defined($attr->{SEARCH_FORM})) {
  } 
 elsif($search_form{$FORM{type}}) {
   if ($FORM{type} == 2) {
-    push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
-    $info{SEL_METHOD} =  $html->form_select('METHOD', 
-                                { SELECTED      => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
- 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
- 	                                ARRAY_NUM_ID  => 1,
-                                  SEL_OPTIONS   => { '' => $_ALL }
+
+   push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+   %PAYMENTS_METHODS = ();
+   my $i=0;
+   foreach my $key (@PAYMENT_METHODS) {
+	   $PAYMENTS_METHODS{$i}=$key;
+	   $i++;
+    }
+
+   my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+
+   while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
+	   $PAYMENTS_METHODS{$k}=$v;
+    }
+
+   $info{SEL_METHOD} = $html->form_select('METHOD', 
+                                { SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
+ 	                                SEL_HASH     => \%PAYMENTS_METHODS,
+ 	                                SORT_KEY     => 1,
+ 	                                SEL_OPTIONS   => { '' => $_ALL }
  	                               });
+
+
+#    push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+#    $info{SEL_METHOD} =  $html->form_select('METHOD', 
+#                                { SELECTED      => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
+# 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
+# 	                                ARRAY_NUM_ID  => 1,
+#                                  SEL_OPTIONS   => { '' => $_ALL }
+# 	                               });
+
    }
   elsif ($FORM{type} == 3) {
     push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);

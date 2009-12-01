@@ -353,44 +353,84 @@ sub marketing_report2 {
 
 
 
-$html->tpl_show(_include('marketing_report2', 'Marketing'), $Marketing);
-
-my @caption = (
-$_LOGIN,
-$_FIO, 
-$_REGISTRATION,
-$_ADMIN,
-'SEGMET',
-'DISTRICT',
-$_ADDRESS_STREET,
-$_ADDRESS_BUILD,
-'ENTRANCE',
-$_ADDRESS_FLAT,
-'FLOR',
+  $Marketing->{STATUS_SEL}=$html->form_select('STATUS', 
+                                          { 
+ 	                                          SELECTED     => $FORM{STATUS},
+ 	                                          SEL_HASH     => { '' => "$_ALL",
+ 	                                          	                0  => $service_status[0],
+ 	                                          	                1  => $service_status[1],
+ 	                                          	                },
+                                            STYLE        => \@service_status_colors,
+                                            NO_ID       => 1
+ 	                                        });
 
 
-$_TARIF_PLAN,
-"$_PRE $_TARIF_PLAN",
-"$_TARIF_PLAN $_CHANGE",
 
-"$_DEPOSIT",
-"$_CREDIT",
-"$_LAST_PAYMENT $_SUM",
-"$_LAST_PAYMENT",
-"$_PAYMENTS $_TYPE",
-"$_PAYMENTS $_LOG",
+$html->tpl_show(_include('marketing_report2', 'Marketing'), { %$Marketing, %FORM }, { });
+#form_search(); 
 
-"$_PAYMENT_TO_DATE",
-"$_DEBTS_DAYS",
-"$_STATUS",
-"FORUM",
-"BONUS",
-"DISCONNECT_DATE",
-"DISCONNECT_REASON"
-);
+
+my %TARIF_PLANS_HASH = ();
+my $list = $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $admin->{DOMAIN_ID} });
+foreach my $line (@$list) {
+	$TARIF_PLANS_HASH{$line->[0]}="$line->[0]:$line->[1]";
+}
+
+if (! $FORM{search} ) {
+	$FORM{ADDRESS}  = 1 ;
+	$FORM{INTERNET} = 1 ;
+	$FORM{PAYMENTS} = 1 ;
+	$FORM{OTHER}    = 1 ;
+ }
+
+
+my @caption = ($_LOGIN, $_FIO); 
+
+
+
+if ($FORM{ADDRESS}) {
+ push @caption, 	 $_REGISTRATION,
+  $_ADMIN,
+  'SEGMET',
+  'DISTRICT',
+  $_ADDRESS_STREET,
+  $_ADDRESS_BUILD,
+  'ENTRANCE',
+  $_ADDRESS_FLAT,
+  'FLOR';
+ }
+  
+if ($FORM{INTERNET}) {
+  push @caption,
+    $_TARIF_PLAN,
+    "$_PRE $_TARIF_PLAN",
+    "$_TARIF_PLAN $_CHANGE";
+ }	
+
+if ($FORM{PAYMENTS}) {
+  push @caption,
+    "$_DEPOSIT",
+    "$_CREDIT",
+    "$_LAST_PAYMENT $_SUM",
+    "$_LAST_PAYMENT",
+    "$_PAYMENTS $_TYPE",
+    "$_PAYMENTS $_LOG",
+    "$_PAYMENT_TO_DATE",
+    "$_DEBTS_DAYS";
+   }	 
+
+if ($FORM{OTHER}) {
+  push @caption,
+     "$_STATUS",
+     "FORUM",
+     "BONUS",
+     "DISCONNECT_DATE",
+     "DISCONNECT_REASON";
+    }
 
 
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-');
+
 my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$_EXTRA $_DEPOSIT",
                   'max(p.date)'       => "$_PAYMENTS $_DATE",
                   'pi.email'          => 'E-Mail', 
@@ -415,7 +455,9 @@ my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$
 
 
 
-my $list = $Marketing->report_2({ %LIST_PARAMS });
+
+
+my $list = $Marketing->report_2({ %FORM, %LIST_PARAMS,  });
 
 if ($users->{EXTRA_FIELDS}) {
   foreach my $line (@{ $users->{EXTRA_FIELDS} }) {
@@ -448,10 +490,11 @@ for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++) {
                            });
 
 foreach my $line ( @$list ) {
-  $table->addrow(
+  my @rows = (
     	 $html->button($line->[0], "index=11&UID=$line->[27]"),
-    	 $line->[1],
-    	 $line->[2],
+    	 $line->[1]);
+  if ($FORM{ADDRESS}) {
+    push @rows, 	 $line->[2],
     	 $line->[3],
     	 $line->[4],
     	 $line->[5],
@@ -459,24 +502,37 @@ foreach my $line ( @$list ) {
     	 $line->[7],
     	 $line->[8],
     	 $line->[9],
-    	 $line->[10],
-    	 $line->[11],
-    	 $line->[12],
-    	 $line->[13],
-    	 $line->[14],
+    	 $line->[10];
+   }
+  
+  if ($FORM{INTERNET}) {
+    push @rows,
+    	 $TARIF_PLANS_HASH{$line->[11]},
+    	 $TARIF_PLANS_HASH{$line->[12]},
+    	 $line->[13];
+    }	
+
+  if ($FORM{PAYMENTS}) {
+    push @rows,
+       $line->[14],
     	 $line->[15],
     	 $line->[16],
     	 $line->[17],
     	 $line->[18],
-    	 $line->[19],
+    	 $html->button($_PAYMENTS, "index=2&UID=$line->[27]"),
     	 $line->[20],
-    	 $line->[21],
+    	 $line->[21];
+    }	 
+  if ($FORM{OTHER}) {
+    push @rows,
     	 $html->color_mark($service_status[$line->[22]], $service_status_colors[$line->[22]]),
     	 $line->[23],
     	 $line->[24],
     	 $line->[25],
-    	 $line->[26],
-    	 );  
+    	 $line->[26];
+    }
+
+  $table->addrow( @rows );  
 }
 
 

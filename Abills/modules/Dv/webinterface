@@ -178,8 +178,7 @@ elsif($FORM{del}) {
   	  $tariffs->{LNG_ACTION}     = $_DEL;
   }
  else {
- 	 $tariffs->{debug}=1;
-   
+  
    my $tp_list = $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $admin->{DOMAIN_ID} });
 
    #Sheduler fot TP change
@@ -290,7 +289,8 @@ sub dv_users_list {
  	                                          	                3  => $service_status[3],  
  	                                          	                4  => $service_status[4]    
  	                                          	                },
-                                            NO_ID       => 1
+                                            NO_ID       => 1,
+                                            STYLE        => \@service_status_colors,
  	                                        });
 
  
@@ -4999,6 +4999,7 @@ sub dv_wizard_user {
                                           { 
  	                                          SELECTED     => $FORM{STATUS} || undef,
  	                                          SEL_ARRAY    => \@service_status,
+ 	                                          STYLE        => \@service_status_colors,
  	                                          ARRAY_NUM_ID => 1
  	                                        });
 

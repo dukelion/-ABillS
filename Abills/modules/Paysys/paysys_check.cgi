@@ -11,6 +11,7 @@ $CHARSET
 $users 
 $payments
 $Paysys
+%PAYSYS_PAYMENTS_METHODS
 );
 
 BEGIN {
@@ -116,6 +117,9 @@ $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 $payments = Finance->payments($db, $admin, \%conf);
 
 $users = Users->new($db, $admin, \%conf); 
+
+
+%PAYSYS_PAYMENTS_METHODS=%{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
 
 
 #DEbug
@@ -249,7 +253,7 @@ sub portmone_payments {
         my $user = $users->info($uid);
         $payments->add($user, {SUM      => $sum,
     	                     DESCRIBE     => 'PORTMONE', 
-    	                     METHOD       => '2', 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{45}) ? 45 : '2',
   	                       EXT_ID       => "PM:$FORM{SHOPORDERNUMBER}",
   	                       CHECK_EXT_ID => "PM:$FORM{SHOPORDERNUMBER}" } );  
 
@@ -337,7 +341,7 @@ sub privatbank_payments {
         my $user = $users->info($uid);
         $payments->add($user, {SUM      => $sum,
     	                     DESCRIBE     => 'PBANK', 
-    	                     METHOD       => '2', 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{48}) ? 48 : '2',  
   	                       EXT_ID       => "PBANK:$FORM{OrderID}",
   	                       CHECK_EXT_ID => "PBANK:$FORM{OrderID}" } );  
 
@@ -407,12 +411,12 @@ sub privatbank_payments {
   $home_url =~ s/paysys_check.cgi/index.cgi/;
   
 	if ($FORM{ResponseCode} == 1) {
-	  print "Location: $home_url?PAYMENT_SYSTEM=8&OrderID=$FORM{OrderID}&TRUE=1". "\n\n";
+	  print "Location: $home_url?PAYMENT_SYSTEM=48&OrderID=$FORM{OrderID}&TRUE=1". "\n\n";
 	 }
 	else {
 		#print "Content-Type: text/html\n\n";
 		#print "FAILED PAYSYS: Portmone SUM: $FORM{BILL_AMOUNT} ID: $FORM{SHOPORDERNUMBER} STATUS: $status";
-		print "Location: $home_url?PAYMENT_SYSTEM=8&OrderID=$FORM{OrderID}&FALSE=1&ReasonCodeDesc=$FORM{ReasonCodeDesc}&ReasonCode=$FORM{ReasonCode}&ResponseCode=$FORM{ResponseCode}". "\n\n";
+		print "Location: $home_url?PAYMENT_SYSTEM=48&OrderID=$FORM{OrderID}&FALSE=1&ReasonCodeDesc=$FORM{ReasonCodeDesc}&ReasonCode=$FORM{ReasonCode}&ResponseCode=$FORM{ResponseCode}". "\n\n";
 	 }
 
 
@@ -450,7 +454,7 @@ sub osmp_payments {
 # print "Content-Type: text/html\n\n";
  my $txn_id            = 'osmp_txn_id';
  my $payment_system    = 'OSMP';
- my $payment_system_id = 4;
+ my $payment_system_id = 44;
  my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
 
 my %status_hash = (0	=> 'Success',
@@ -472,7 +476,7 @@ my %status_hash = (0	=> 'Success',
  if ($conf{PAYSYS_PEGAS}) {
  	 $txn_id            = 'txn_id';
  	 $payment_system    = 'PEGAS';
- 	 $payment_system_id = 9;
+ 	 $payment_system_id = 49;
  	 $status_hash{5}    = 'Неверный индентификатор абонента';
  	 $status_hash{243}  = 'Невозможно проверитьсостояние счёта';
  	 $CHECK_FIELD       = $conf{PAYSYS_PEGAS_ACCOUNT_KEY} || 'UID';
@@ -506,7 +510,7 @@ if ($command eq 'check') {
 $RESULT_HASH{result} = $status;
 
 #For OSMP
-if ($payment_system_id == 4) {
+if ($payment_system_id == 44) {
   $RESULT_HASH{$txn_id}= $FORM{txn_id} ;
   $RESULT_HASH{prv_txn}= $FORM{prv_txn};
  }
@@ -572,7 +576,7 @@ elsif ($command eq 'pay') {
     #Add payments
     $payments->add($user, {SUM          => $FORM{sum},
     	                     DESCRIBE     => "$payment_system", 
-    	                     METHOD       => '2', 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{44}) ? 44 : '2', , 
   	                       EXT_ID       => "$payment_system:$FORM{txn_id}",
   	                       CHECK_EXT_ID => "$payment_system:$FORM{txn_id}" } );  
 
@@ -823,7 +827,7 @@ elsif($request_type eq 'ProcessPayment') {
   if ($result_arr[$i]{Status} < 1) {    
 	   $payments->add($user, {SUM         => $sum,
      	                     DESCRIBE     => 'USMP', 
-    	                     METHOD       => '2', 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{47}) ? 47 : '2',, 
     	                     EXT_ID       => "USMP:$id",
   	                       CHECK_EXT_ID => "USMP:$id" } );  
      
@@ -838,7 +842,7 @@ elsif($request_type eq 'ProcessPayment') {
       }
     }
 
-  $Paysys->add({ SYSTEM_ID   => 7, 
+  $Paysys->add({ SYSTEM_ID   => 47, 
  	              DATETIME       => "'$DATE $TIME'", 
  	              SUM            => "$sum",
   	            UID            => "$accid", 
@@ -1189,7 +1193,7 @@ if (!$err_code) {
 	if ($rsa_pub->verify($data, $signature)) {
     $payments->add($user, {SUM          => $summ,
      	                     DESCRIBE     => 'USMP', 
-    	                     METHOD       => '2', 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{47}) ? 47 : '2',, 
     	                     EXT_ID       => "USMP:$id",
   	                       CHECK_EXT_ID => "USMP:$id" } );  
     if ($payments->{errno}) {
@@ -1197,7 +1201,7 @@ if (!$err_code) {
      }  
     
 
-    $Paysys->add({ SYSTEM_ID   => 7, 
+    $Paysys->add({ SYSTEM_ID   => 47, 
  	              DATETIME       => "'$DATE $TIME'", 
  	              SUM            => "$summ",
   	            UID            => "$accid", 
@@ -1286,7 +1290,7 @@ my $code = mk_unique_value(8);
    return 0;
   }
  
- $Paysys->add({ SYSTEM_ID      => 3, 
+ $Paysys->add({ SYSTEM_ID      => 43, 
  	              DATETIME       => "'$DATE $TIME'", 
  	              SUM            => "$cost",
  	              UID            => "", 
@@ -1351,7 +1355,7 @@ if ($FORM{rupay_action} eq 'add') {
    }
 
   #Info section  
-  $Paysys->add({ SYSTEM_ID      => 2, 
+  $Paysys->add({ SYSTEM_ID      => 42, 
   	             DATETIME       => '', 
   	             SUM            => $FORM{rupay_sum},
   	             UID            => $FORM{user_field_UID}, 
@@ -1376,7 +1380,7 @@ elsif ($FORM{rupay_action} eq 'update') {
     my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
     $payments->add($user, {SUM          => $FORM{rupay_sum},
     	                     DESCRIBE     => 'RUpay', 
-    	                     METHOD       => '2', 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{42}) ? 42 : '2', 
   	                       EXT_ID       => $FORM{rupay_order_id}, 
   	                       ER           => $er->{ER_RATE} } );  
 
@@ -1389,7 +1393,7 @@ elsif ($FORM{rupay_action} eq 'update') {
    }
 
   #Info section  
-  $Paysys->add({ SYSTEM_ID      => 2, 
+  $Paysys->add({ SYSTEM_ID      => 42, 
   	             DATETIME       => '', 
   	             SUM            => $FORM{rupay_sum},
   	             UID            => $FORM{user_field_UID}, 
@@ -1463,7 +1467,7 @@ elsif($FORM{LMI_HASH}) {
     #my $er = ($FORM{'5.ER'}) ? $payments->exchange_info() : { ER_RATE => 1 } ;  
     $payments->add($user, {SUM          => $FORM{LMI_PAYMENT_AMOUNT},
     	                     DESCRIBE     => 'Webmoney', 
-    	                     METHOD       => '2', 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{41}) ? 41 : '2', 
   	                       EXT_ID       => $FORM{LMI_PAYMENT_NO}, 
   	                       ER           => $er
   	                       } );  
@@ -1481,7 +1485,7 @@ elsif($FORM{LMI_HASH}) {
    }
 
   #Info section  
-  $Paysys->add({ SYSTEM_ID      => 1, 
+  $Paysys->add({ SYSTEM_ID      => 41, 
   	             DATETIME       => '', 
   	             SUM            => $FORM{LMI_PAYMENT_AMOUNT},
   	             UID            => $FORM{UID}, 
@@ -1565,7 +1569,7 @@ elsif($FORM{LMI_HASH}) {
 #   }
 #
 #  #Info section  
-#  $Paysys->add({ SYSTEM_ID      => 1, 
+#  $Paysys->add({ SYSTEM_ID      => 41, 
 #  	             DATETIME       => '', 
 #  	             SUM            => $FORM{SUM},
 #  	             UID            => $FORM{UID}, 
@@ -1628,7 +1632,7 @@ if($FORM{hash}) {
     
     $payments->add($user, {SUM          => $FORM{amount},
     	                     DESCRIBE     => 'Ukrpays', 
-    	                     METHOD       => '2', 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{46}) ? 46 : '2',, 
   	                       EXT_ID       => "UKRPAYS:$FORM{id_ups}", 
   	                       CHECK_EXT_ID => "UKRPAYS:$FORM{id_ups}", 
   	                       ER           => $er
@@ -1656,7 +1660,7 @@ if($FORM{hash}) {
   $status =~ s/'/\\'/g;
 
   #Info section  
-  $Paysys->add({ SYSTEM_ID      => 6, 
+  $Paysys->add({ SYSTEM_ID      => 46, 
   	             DATETIME       => '', 
   	             SUM            => $FORM{amount},
   	             UID            => $FORM{login}, 

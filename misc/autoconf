@@ -11,7 +11,7 @@ use vars  qw(%conf $db
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 2.3;
+my $VERSION = 2.4;
 my $config_file = '/usr/abills/libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
@@ -143,7 +143,7 @@ if(! -f $config_file ) {
          if ($res !~ /Unknown database/) {
            my $add_mysql_user = "USE mysql;".
                  "INSERT INTO user (Host, User, Password) VALUES ('$mk_config{dbhost}','$mk_config{dbuser}', password('$mk_config{dbpasswd}'));".
-                 "INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, Lock_tables_priv, Create_tmp_table_priv, Trigger_priv,Create_view_priv, Show_view_priv) VALUES ('$mk_config{dbhost}', '$mk_config{dbname}', '$mk_config{dbuser}', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'); ".
+                 "INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, Lock_tables_priv, Create_tmp_table_priv, Trigger_priv,Create_view_priv, Show_view_priv, Execute_priv, Event_priv) VALUES ('$mk_config{dbhost}', '$mk_config{dbname}', '$mk_config{dbuser}', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'); ".
                  "CREATE DATABASE $mk_config{dbname} DEFAULT CHARACTER SET cp1251 COLLATE cp1251_general_ci;".
                  "flush privileges;";
 

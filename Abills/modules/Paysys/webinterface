@@ -20,18 +20,20 @@ my $fees = Finance->fees($db, $admin, \%conf);
 
 
 my $Paysys = Paysys->new($db, $admin, \%conf);
-my %PAY_SYSTEMS = (1 => "Webmoney",
-                   2 => "RUpay",
-                   3 => "SMSProxy",
-                   4 => "OSMP",
-                   5 => "Portmone",
-                   6 => "Ukrpays",
-                   7 => "USMP",
-                   8 => "PrivatBank",
-                   9 => "Pegas",
-                   10 => "Comepay",
-                   11 => "24_non_STOP",
-                   12 => "Express_Oplata"
+
+my %PAY_SYSTEMS = (41 => "Webmoney",
+                   42 => "RUpay",
+                   43 => "SMSProxy",
+                   44 => "OSMP",
+                   45 => "Portmone",
+                   46 => "Ukrpays",
+                   47 => "USMP",
+                   48 => "PrivatBank",
+                   49 => "Pegas",
+                   50 => "Comepay",
+                   51 => "24_non_STOP",
+                   52 => "24_non_STOP_SELF",
+                   53 => "Express_Oplata",
                   );
 
 my @status = ('ENABLE', 'DISABLE', 'USED');

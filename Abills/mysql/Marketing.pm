@@ -443,7 +443,7 @@ sub report_2 {
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
 
@@ -452,10 +452,154 @@ sub report_2 {
 
  @WHERE_RULES = ();
 
- my $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
 
+ if ($attr->{REGISTRATION}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{REGISTRATION}, 'INT', 'registration') };
+  }
+
+ if ($attr->{LOCATION}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION}, 'STR', '_segment') };
+  }
+
+ if ($attr->{DISTRICT}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT}, 'STR', '_district') };
+  }
+
+ if ($attr->{ADDRESS_STREET}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'address_street') };
+  }
+
+ if ($attr->{ADDRESS_BUILD}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'address_build') };
+  }
+
+ if ($attr->{ENTRANCE}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ENTRANCE}, 'STR', '_entrance') };
+  }
+
+ if ($attr->{FLOR}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{FLOR}, 'INT', '_flor') };
+  }
+
+ if ($attr->{ADDRESS_FLAT}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'INT', 'address_flat') };
+  }
+
+ if ($attr->{TP_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'tp_id') };
+  }
+
+ if ($attr->{PRE_TP_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PRE_TP_ID}, 'INT', 'last_tp_id') };
+  }
+
+ if ($attr->{TARIF_PLAN_CHANGED}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{TARIF_PLAN_CHANGED}, 'INT', 'last_tp_changed') };
+  }
+
+ if ($attr->{CREDIT}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{CREDIT}, 'INT', 'credit') };
+  }
+
+ if ($attr->{DEPOSIT}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'deposit') };
+  }
+
+ if ($attr->{LAST_PAYMENT_DATE}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LAST_PAYMENT_DATE}, 'INT', 'last_payment_date') };
+  }
+
+ if (defined($attr->{LAST_PAYMENT_METHOD}) && $attr->{LAST_PAYMENT_METHOD} ne '') {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LAST_PAYMENT_METHOD}, 'INT', 'last_payment_method') };
+  }
+
+ if ($attr->{LAST_PAYMENT_SUM}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LAST_PAYMENT_SUM}, 'INT', 'last_payment_sum') };
+  }
+
+ if ($attr->{PAYMENT_TO_DATE}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_TO_DATE}, 'INT', 'to_payments_date') };
+  }
+
+ if ($attr->{DEBTS_DAYS}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DEBTS_DAYS}, 'INT', 'prosrochennyh_dney') };
+  }
+
+ if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', 'status') };
+  }
+
+ if ($attr->{FORUM}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{FORUM}, 'STR', 'forum_activity') };
+  }
+
+ if ($attr->{BONUS}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{BONUS}, 'STR', 'bonus') };
+  }
+
+ if ($attr->{DISABLE_DATE}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DISABLE_DATE}, 'INT', 'disable_date') };
+  }
+
+ if ($attr->{DISABLE_REASON}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DISABLE_REASON}, 'STR', 'disable_comments') };
+  }
+
+ if ($attr->{UID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DISABLE_DATE}, 'INT', 'uid') };
+  }
+
+
+
+
+=comments
+REQUEST_DATE
+
+=cut
+
+
+
+ my $WHERE = ($#WHERE_RULES > -1) ? ' WHERE '. join(' and ', @WHERE_RULES)  : '';
+
+$self->query($db, "
+CREATE TEMPORARY TABLE IF NOT EXISTS marketing_report_2
+(
+login varchar(40) not null default '',
+fio varchar(40) not null default '',
+registration date,
+aid smallint unsigned not null default 0,  
+_segment varchar(40) not null default '',
+_district varchar(40) not null default '',
+address_street varchar(40) not null default '',
+address_build varchar(6) not null default '',
+address_flat varchar(6) not null default '',
+_entrance tinyint unsigned not null default 0,  
+_flor tinyint unsigned not null default 0,  
+
+tp_id smallint unsigned not null default 0,  
+last_tp_id smallint unsigned not null default 0,  
+last_tp_changed date not null default '0000-00-00',
+
+credit double(10,2) unsigned not null default 0,
+deposit double(10,2) unsigned not null default 0,
+
+last_payment_sum double(10,2) unsigned not null default 0,
+last_payment_date datetime not null,
+last_payment_method tinyint unsigned not null default 0,  
+to_payments_date date not null default '0000-00-00',
+prosrochennyh_dney smallint unsigned not null default 0,  
+
+status tinyint unsigned not null default 0,  
+forum_activity varchar(40) not null default '',
+bonus varchar(40) not null default '',
+disable_date datetime not null,
+disable_comments varchar(40) not null default '',
+uid int unsigned not null default 0
+) CHARACTER SET '$CONF->{dbcharset}' ;", 'do');
 
  $self->query($db, "
+insert into marketing_report_2
+
 SELECT 
 u.id,
 pi.fio,
@@ -468,7 +612,7 @@ pi.address_build,
 pi.address_flat,
 pi._entrance, 
 pi._flor,
-concat(dv.tp_id, ':', tp.name),
+dv.tp_id,
 
 SUBSTRING_INDEX(\@last_tp_info:=GET_LAST_TP(u.uid), ',', 1 ) AS last_tp_id, 
 SUBSTRING_INDEX(SUBSTRING_INDEX(\@last_tp_info, ',', 2 ),',',-1) AS last_tp_changed,
@@ -481,7 +625,6 @@ SUBSTRING_INDEX(SUBSTRING_INDEX(\@last_tp_info, ',', 2 ),',',-1) AS last_tp_chan
 SUBSTRING_INDEX(\@last_payment_info:=GET_LAST_PAYMENT_INFO(u.uid), ',', 1 ) AS last_payment_sum, 
 \@last_payment_date := SUBSTRING_INDEX(SUBSTRING_INDEX(\@last_payment_info, ',', 2 ),',',-1) AS last_payment_date,
 SUBSTRING_INDEX(SUBSTRING_INDEX(\@last_payment_info, ',', 3 ),',',-1) AS last_payment_method,
-'-',
 
 if(tp.day_fee>0, curdate() + interval (\@user_deposit / tp.day_fee) day, 0) AS to_payments_date,
 
@@ -491,8 +634,8 @@ u.disable,
 'activnost na forume',
 'bonus actions',
 
-if (u.disable=1, SUBSTRING_INDEX(\@disable_info:=GET_ACTION_INFO(u.uid, 9, ''), ',', 1), ''),
-if (u.disable=1, SUBSTRING_INDEX(SUBSTRING_INDEX(\@disable_info, ',', 2 ),',',-1), ''),
+if (u.disable=1, SUBSTRING_INDEX(\@disable_info:=GET_ACTION_INFO(u.uid, 9, ''), ',', 1), '') AS DISABLE_DATE,
+if (u.disable=1, SUBSTRING_INDEX(SUBSTRING_INDEX(\@disable_info, ',', 2 ),',',-1), '') AS DISABLE_COMMENTS,
 
 u.uid
 
@@ -506,10 +649,49 @@ INNER JOIN tarif_plans tp ON (tp.id=dv.tp_id)
      LEFT JOIN bills cb ON (c.bill_id=cb.id)
 LEFT JOIN _segment_list _segment ON (_segment.id=pi._segment)
 LEFT JOIN _district_list _district ON (_district.id=pi._district)
-WHERE u.domain_id=0
+WHERE u.domain_id='$admin->{DOMAIN_ID}' $WHERE
 GROUP BY u.uid 
-     ORDER BY $SORT $DESC 
-     LIMIT $PG, $PAGE_ROWS;");
+", 'do');
+
+
+ $self->{debug}=1;
+ $self->query($db, "SELECT login,
+fio,
+registration,
+aid,  
+_segment,
+_district,
+address_street,
+address_build,
+address_flat,
+_entrance,  
+_flor,  
+
+tp_id,  
+last_tp_id,  
+last_tp_changed,
+
+credit,
+deposit,
+
+last_payment_sum,
+last_payment_date,
+last_payment_method,
+'-',
+to_payments_date,
+prosrochennyh_dney,  
+
+status,  
+forum_activity,
+bonus,
+disable_date,
+disable_comments,
+uid 
+from marketing_report_2
+$WHERE 
+    ORDER BY $SORT $DESC 
+    LIMIT $PG, $PAGE_ROWS;
+ ;");
 
  return $self if($self->{errno});
 
@@ -517,7 +699,7 @@ GROUP BY u.uid
 
 
  if ($self->{TOTAL} >= 0) {
-    $self->query($db, "SELECT count(*) FROM users
+    $self->query($db, "SELECT count(*) FROM marketing_report_2
     $WHERE;");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
@@ -531,3 +713,122 @@ GROUP BY u.uid
 
 
 
+
+__END__
+
+CREATE TEMPORARY TABLE IF NOT EXISTS marketing_report_2
+(
+login varchar(40) not null default '',
+fio varchar(40) not null default '',
+registration date,
+aid smallint unsigned not null default 0,  
+_segment varchar(40) not null default '',
+_district varchar(40) not null default '',
+address_street varchar(40) not null default '',
+address_build varchar(6) not null default '',
+address_flat varchar(6) not null default '',
+_entrance tinyint unsigned not null default 0,  
+_flor tinyint unsigned not null default 0,  
+
+tp_id smallint unsigned not null default 0,  
+last_tp_id smallint unsigned not null default 0,  
+last_tp_changed date not null default '0000-00-00',
+
+credit double(10,2) unsigned not null default 0,
+deposit double(10,2) unsigned not null default 0,
+
+last_payment_sum double(10,2) unsigned not null default 0,
+last_payment_date datetime not null,
+last_payment_method tinyint unsigned not null default 0,  
+to_payments_date date not null default '0000-00-00',
+prosrochennyh_dney smallint unsigned not null default 0,  
+
+status tinyint unsigned not null default 0,  
+forum_activity varchar(40) not null default '',
+bonus varchar(40) not null default '',
+disable_date datetime not null,
+disable_comments varchar(40) not null default '',
+uid int unsigned not null default 0
+);
+
+insert into marketing_report_2
+(
+login,
+fio,
+registration,
+aid,  
+_segment,
+_district,
+address_street,
+address_build,
+address_flat,
+_entrance,  
+_flor,  
+
+tp_id,  
+last_tp_id,  
+last_tp_changed,
+
+credit,
+deposit,
+
+last_payment_sum,
+last_payment_date,
+last_payment_method,  
+to_payments_date,
+prosrochennyh_dney,  
+
+status,  
+forum_activity,
+bonus,
+disable_date,
+disable_comments,
+uid
+)
+
+SELECT 
+u.id,
+pi.fio,
+u.registration,
+0,
+_segment.name,
+_district.name,
+pi.address_street,
+pi.address_build,
+pi.address_flat,
+pi._entrance, 
+pi._flor,
+
+dv.tp_id,
+SUBSTRING_INDEX(@last_tp_info:=GET_LAST_TP(u.uid), ',', 1 ) AS last_tp_id, 
+SUBSTRING_INDEX(SUBSTRING_INDEX(@last_tp_info, ',', 2 ),',',-1) AS last_tp_changed,
+
+@user_deposit := if(c.name IS NULL, b.deposit, cb.deposit) AS user_deposit,
+@user_credit := if(c.name IS NULL, 0, c.credit) AS user_credit,
+
+
+SUBSTRING_INDEX(@last_payment_info:=GET_LAST_PAYMENT_INFO(u.uid), ',', 1 ) AS last_payment_sum, 
+@last_payment_date := SUBSTRING_INDEX(SUBSTRING_INDEX(@last_payment_info, ',', 2 ),',',-1) AS last_payment_date,
+SUBSTRING_INDEX(SUBSTRING_INDEX(@last_payment_info, ',', 3 ),',',-1) AS last_payment_method,
+if(tp.day_fee>0, curdate() + interval (@user_deposit / tp.day_fee) day, 0) AS to_payments_date,
+if ( @user_deposit + @user_credit < 0, NOW()-@last_payment_date, 0) AS prosrochennyh_dney,
+
+u.disable, 
+'activnost na forume',
+'bonus actions',
+if (u.disable=1, SUBSTRING_INDEX(@disable_info:=GET_ACTION_INFO(u.uid, 9, ''), ',', 1), '') AS DISABLE_DATE,
+if (u.disable=1, SUBSTRING_INDEX(SUBSTRING_INDEX(@disable_info, ',', 2 ),',',-1), '') AS DISABLE_COMMENTS,
+u.uid
+
+FROM users u
+INNER JOIN users_pi pi ON (u.uid=pi.uid)
+INNER JOIN dv_main  dv ON (u.uid=dv.uid)
+INNER JOIN tarif_plans tp ON (tp.id=dv.tp_id)
+     LEFT JOIN bills b ON (u.bill_id=b.id)
+     LEFT JOIN groups g ON (u.gid=g.gid)
+     LEFT JOIN companies c ON (u.company_id=c.id)
+     LEFT JOIN bills cb ON (c.bill_id=cb.id)
+LEFT JOIN _segment_list _segment ON (_segment.id=pi._segment)
+LEFT JOIN _district_list _district ON (_district.id=pi._district)
+WHERE u.domain_id='$admin->{DOMAIN_ID}' 
+GROUP BY u.uid 

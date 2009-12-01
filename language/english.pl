@@ -60,6 +60,7 @@ $_CREDIT='Credit';
 $_SUM='Sum';
 $_NO_SUM='Enter sum';
 $_PAYMENTS='Payments';
+$_EXTERNAL_PAYMENTS='External Payments';
 $_NUM='Number';
 $_DESCRIBE='Description';
 $_OPERATOR='Operator';
