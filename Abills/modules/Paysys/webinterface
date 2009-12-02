@@ -407,22 +407,22 @@ sub paysys_import_parse {
 #**********************************************************
 sub paysys_payment {
   
-  if ($FORM{PAYMENT_SYSTEM} == 1) {
+  if ($FORM{PAYMENT_SYSTEM} == 41) {
    	 paysys_webmoney();
 	 }
-	elsif($FORM{PAYMENT_SYSTEM} == 2) {
+	elsif($FORM{PAYMENT_SYSTEM} == 42) {
      paysys_rupay();
 	 }
-	elsif($FORM{PAYMENT_SYSTEM} == 3) {
+	elsif($FORM{PAYMENT_SYSTEM} == 43) {
      paysys_smsproxy();
 	 }
-	elsif($FORM{PAYMENT_SYSTEM} == 5 || $FORM{SHOPORDERNUMBER}) {
+	elsif($FORM{PAYMENT_SYSTEM} == 45 || $FORM{SHOPORDERNUMBER}) {
      paysys_portmone();
 	 }
-	elsif($FORM{PAYMENT_SYSTEM} == 6) {
+	elsif($FORM{PAYMENT_SYSTEM} == 46) {
      paysys_ukrpays();
 	 }
-	elsif($FORM{PAYMENT_SYSTEM} == 8) {
+	elsif($FORM{PAYMENT_SYSTEM} == 48) {
      paysys_privatbank();
 	 }
 	else {
