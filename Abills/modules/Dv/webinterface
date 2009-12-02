@@ -3228,6 +3228,12 @@ elsif($FORM{del}) {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
+   if ($tariffs->{TOTAL} == 0) { 
+     $html->message('info', $_INFO, "$ERR_SMALL_DEPOSIT");
+     return 0;	
+    }
+
+
    $tariffs->{PARAMS} .= form_period($period) if ($conf{DV_USER_CHG_TP_SHEDULE} && ! $conf{DV_USER_CHG_TP_NPERIOD});	
    $tariffs->{ACTION}='set';
    $tariffs->{LNG_ACTION}=$_CHANGE;
