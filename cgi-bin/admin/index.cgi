@@ -2682,7 +2682,7 @@ if ($FORM{AID}) {
 
   $FORM{DOMAIN_ID}  = $admin_form->{DOMAIN_ID};
   $LIST_PARAMS{AID} = $admin_form->{AID};  	
-  $pages_qs = "&AID = $admin_form->{AID}&subf=$FORM{subf}";
+  $pages_qs = "&AID=$admin_form->{AID}&subf=$FORM{subf}";
 
 
   my $A_LOGIN = $html->form_main({ CONTENT => $html->form_select('AID', 

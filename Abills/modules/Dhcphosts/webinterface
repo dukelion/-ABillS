@@ -1068,7 +1068,7 @@ foreach my $line (@$list) {
        }
 
       #Check nas port
-      push @OPTION82_MATCHES, "binary-to-ascii(10, 8, \":\", substring(option agent.circuit-id, 4, 2)) = \"0:$INFO{OPTION82_NAS_PORT}\"" if ($INFO{OPTION82_NAS_PORT} && $INFO{OPTION82_NAS_PORT} > 0);
+      push @OPTION82_MATCHES, "binary-to-ascii(10, 8, \":\", substring(option agent.circuit-id, 5, 1)) = \"$INFO{OPTION82_NAS_PORT}\"" if ($INFO{OPTION82_NAS_PORT} && $INFO{OPTION82_NAS_PORT} > 0);
 
       #Client MAC
       push @OPTION82_MATCHES, "binary-to-ascii(10, 8, \"\", substring(option agent.circuit-id, 6, 1)) = \"$INFO{CLIENT_MAC}\"" if ($INFO{CLIENT_MAC} ne '0:0:0:0:0:0' );
