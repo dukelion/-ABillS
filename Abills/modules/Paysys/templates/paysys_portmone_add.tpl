@@ -16,7 +16,7 @@
 <input type='hidden' name='sid' value='$FORM{sid}'>
 <input type='hidden' name='IP' value='$ENV{REMOTE_ADDR}'>
 <input type='hidden' name='index' value='$index'>
-<input type='hidden' name='PAYMENT_SYSTEM' value='1'>
+<input type='hidden' name='PAYMENT_SYSTEM' value='45'>
 
 
 <input type=hidden name='ADD_PARAM[1][NAME]' value='UID' /> 

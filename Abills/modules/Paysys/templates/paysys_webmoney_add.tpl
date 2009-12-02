@@ -13,7 +13,7 @@
 <input type='hidden' name='sid' value='$FORM{sid}'>
 <input type='hidden' name='IP' value='$ENV{REMOTE_ADDR}'>
 <input type='hidden' name='index' value='$index'>
-<input type='hidden' name='PAYMENT_SYSTEM' value='1'>
+<input type='hidden' name='PAYMENT_SYSTEM' value='11'>
 %TEST_MODE%
 <table width=300>
 <tr bgcolor=$_COLORS[0]><th colspan='2' align=right>Webmoney</th></tr>

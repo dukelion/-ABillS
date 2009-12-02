@@ -552,12 +552,9 @@ sub report_2 {
 
 
 
-=comments
-REQUEST_DATE
-
-=cut
 
 
+my $CHARSET = "CHARACTER SET '$CONF->{dbcharset}'" if ($CONF->{dbcharset});
 
  my $WHERE = ($#WHERE_RULES > -1) ? ' WHERE '. join(' and ', @WHERE_RULES)  : '';
 
@@ -595,7 +592,7 @@ bonus varchar(40) not null default '',
 disable_date datetime not null,
 disable_comments varchar(40) not null default '',
 uid int unsigned not null default 0
-) CHARACTER SET '$CONF->{dbcharset}' ;", 'do');
+) $CHARSET ;", 'do');
 
  $self->query($db, "
 insert into marketing_report_2
