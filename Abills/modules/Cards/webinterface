@@ -70,8 +70,8 @@ sub cards_main {
   	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.00 or higher. http://abills.net.ua/");
   	return 0;
    }
-   
- 
+
+
 
 if ($FORM{change}) {
   my @ORDERS  = ();    
@@ -165,6 +165,11 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
 }
 
 
+if ($Cards->{errno}) {
+	$html->message('err',$_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
+ }
+
+
 if($FORM{print_cards}) {
 	cards_print();
   exit;
@@ -221,7 +226,7 @@ my $table;
 
 my @total_arr=();
 if (defined($FORM{SERIA})) {
-  $pages_qs.="&SERIA=$FORM{SERIA}&PAGE_ROWS=$PAGE_ROWS";
+  $pages_qs.="&SERIA=$FORM{SERIA}&PAGE_ROWS=$PAGE_ROWS" if (! $FORM{search});
   my @pin = ();
   @pin = ("PIN") if ($conf{CARDS_SHOW_PINS}) ;
 
@@ -253,8 +258,10 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
                          });
 
 
+
   foreach $line (@$list) {
    	@pin = ("$line->[14]") if ($conf{CARDS_SHOW_PINS}) ;
+   	$pages_qs =~ s/SERIA=[a-z0-9\*,\ ]+&//g;
    	$table->addrow(
    	    $html->form_input("IDS", "$line->[0]:$line->[1]", {TYPE => 'checkbox'}). $html->b($line->[0]) , 
   	    $line->[1],
@@ -268,7 +275,7 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
   		  $line->[9],
   		  $line->[10],
   		  @pin,
-  		  $html->button($_DEL, "index=$index&del=1&ID=$line->[1]$pages_qs", { MESSAGE => "$_DEL [$line->[0]$line->[1]] ?" })
+  		  $html->button($_DEL, "index=$index&del=1&ID=$line->[1]&SERIA=$line->[0]$pages_qs", { MESSAGE => "$_DEL [$line->[0]$line->[1]] ?" })
   		);
     }
 
