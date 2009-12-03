@@ -709,9 +709,8 @@ $conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} 
 $html->tpl_show(_include('paysys_webmoney_add', 'Paysys'), \%info);
 }
 
-
 #**********************************************************
-#
+# version 1.5.001
 #**********************************************************
 sub paysys_ukrpays () {
 

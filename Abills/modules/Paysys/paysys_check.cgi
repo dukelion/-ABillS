@@ -1621,15 +1621,6 @@ if($FORM{hash}) {
     #Add payments
     my $er = 1;
     
-    
-    #if ($FORM{LMI_PAYEE_PURSE} =~ /^(\S)/ ) {
-    #  my $payment_unit = 'WM'.$1;
-    #  $payments->exchange_info(0, { SHORT_NAME => "$payment_unit"  });
-    #  if ($payments->{TOTAL} > 0) {
-    #  	$er = $payments->{ER_RATE};
-    #   }
-    # }
-    
     $payments->add($user, {SUM          => $FORM{amount},
     	                     DESCRIBE     => 'Ukrpays', 
     	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{46}) ? 46 : '2',, 
@@ -1680,11 +1671,12 @@ if($FORM{hash}) {
     $status = $output2;
    }
   else {
-  	$status = 'payment complete';
+  	$status = 'ok';
    }
 
   $output2 .= "CHECK_SUM: $checksum\n";
 }
+
 
    print $status;
 }
