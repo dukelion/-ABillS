@@ -128,6 +128,8 @@ while(my($k, $v)=each %FORM) {
  	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
 }
 
+#my $rew `echo $output2 >> /tmp/ukrpays`;
+
 if( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) ) {
 	osmp_payments();
  }
@@ -1606,7 +1608,7 @@ if($FORM{hash}) {
   my $checksum = $md5->hexdigest();	
 
   my $info = '';
-	my $user = $users->info($FORM{login});
+	my $user = $users->info($FORM{order});
 	
   if ($FORM{hash} ne $checksum) {
   	$status = "Incorect checksum '$checksum'";
@@ -1654,7 +1656,7 @@ if($FORM{hash}) {
   $Paysys->add({ SYSTEM_ID      => 46, 
   	             DATETIME       => '', 
   	             SUM            => $FORM{amount},
-  	             UID            => $FORM{login}, 
+  	             UID            => $FORM{order}, 
                  IP             => $FORM{IP} || '0.0.0.0',
                  TRANSACTION_ID => "UKRPAYS:$FORM{id_ups}",
                  INFO           => "STATUS, $status\n$info",

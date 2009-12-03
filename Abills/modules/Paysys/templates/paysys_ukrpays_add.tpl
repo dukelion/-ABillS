@@ -3,7 +3,7 @@
 
 <input type='hidden' name='order' value='%UID%'>
 <input type='hidden' name='login' value='%UID%'>
-<input type='hidden' name='sus_url' value='http://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?TRUE=1&amp;index=$index'>
+<input type='hidden' name='sus_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?TRUE=1&amp;index=$index'>
 <input type='hidden' name='lang' value='%LANG%'>
 <input type='hidden' name='service_id' value='$conf{PAYSYS_UKRPAYS_SERVICE_ID}'>
 
