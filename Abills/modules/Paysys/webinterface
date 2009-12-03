@@ -717,6 +717,16 @@ sub paysys_ukrpays () {
 if ($FORM{FALSE}) {
 	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{OPERATION_ID}");
  }
+if ($FORM{TRUE}) {
+  my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'OPERATION_ID '}", UID => $LIST_PARAMS{UID} });
+  if ($Paysys->{TOTAL} > 0) {
+  	$html->message('info', $_INFO, "$_ADDED '$FORM{OPERATION_ID}' ");
+   }
+	else {
+		$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{OPERATION_ID}");
+	 }
+	return 0;
+ }
 elsif ($FORM{LMI_PAYMENT_NO}) {
 	my $users = Users->new($db, $admin, \%conf); 
 	my $user = $users->info($FORM{UID});
