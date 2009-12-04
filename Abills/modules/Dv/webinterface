@@ -3530,7 +3530,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   
   if ($Dv->{STATUS} > 0) {
     $Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $service_status_colors[$Dv->{STATUS}]). ' ';
-    $Dv->{STATUS}  .= ($user->{DISABLE}) ? $html->b("($_ACCOUNT $_DISABLE)") : $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1", {   	 ex_params  => ' ID="ACTIVATE"' });
+    $Dv->{STATUS}  .= ($user->{DISABLE} == 2) ? $html->b("($_ACCOUNT $_DISABLE)") : $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1", {   	 ex_params  => ' ID="ACTIVATE"' });
     #   JAVASCRIPT => ' onclick="obj_disable(ACTIVATE, \'Wait...\')"'  	 } );
    }  
   else {
