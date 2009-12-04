@@ -277,14 +277,25 @@ elsif($FORM{print}) {
       $Docs->account_info($list->[0]->[9]);	
      }
     $Docs->{ACCOUNT_ID}=$Docs->{ACCT_ID};
-    
+
     push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+    for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+	    $PAYMENTS_METHODS{"$i"}="$PAYMENT_METHODS[$i]";
+     }
+
+    my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+
+    while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
+	    $PAYMENTS_METHODS{$k}=$v;
+     }
+
     my $method = 0;
 
     $list = $Payments->list({ ID => $Docs->{PAYMENT_ID} });
     if ($Payments->{TOTAL} > 0) {
     	$method=$list->[0]->[6];
-      $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$method];
+      $Docs->{PAYMENT_METHOD} = $PAYMENTS_METHODS{$method};
      }
 
     #print "// $Docs->{ACCOUNT_ID} // $Docs->{PAYMENT_METHOD}";
