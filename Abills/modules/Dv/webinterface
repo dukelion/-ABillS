@@ -4884,12 +4884,12 @@ sub dv_wizard_user {
         $html->message('err', "Dv:$_ERROR", "Dv Modules [$Dv->{errno}] $err_strs{$Dv->{errno}}");	
         return 0;
        }
-      else {
-#        if (! $add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-#          $Dv->{UID}=$UID;
-#          $Dv->{ACTIVATE}=$add_values{1}{ACTIVATE};
-#          dv_get_month_fee($Dv);
-#         }
+      elsif (! $FORM{SERIAL}) {
+        if (! $add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+          $Dv->{UID}=$UID;
+          $Dv->{ACTIVATE}=$add_values{1}{ACTIVATE};
+          dv_get_month_fee($Dv);
+         }
        }
 
 
@@ -5233,7 +5233,6 @@ sub dv_get_month_fee {
   	  $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN");	
      }
    }
-
 
   #Get month fee
   if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {

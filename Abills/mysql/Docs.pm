@@ -289,8 +289,6 @@ sub accounts_list {
   my $self = shift;
   my ($attr) = @_;
 
- $self->{debug}=1;
-
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
