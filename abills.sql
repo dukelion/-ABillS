@@ -719,11 +719,6 @@ CREATE TABLE `networks` (
   UNIQUE KEY `id` (`id`)
 )  ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `payments`
-#
 
 CREATE TABLE `payments` (
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
