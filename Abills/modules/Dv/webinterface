@@ -529,10 +529,11 @@ sub dv_user {
         ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
          $Dv->{POSTPAID_ABON} || 
          $Dv->{PAYMENT_TYPE} == 1 )) {
+
       if ($users->{ACTIVATE} ne '0000-00-00') {
         my ($Y, $M, $D)=split(/-/, $users->{ACTIVATE}, 3);
         $M--;
-        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400 + ( ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} * 86400 : 0 ) ) );
+        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400 ) );
        }
       else {
         my ($Y, $M, $D)=split(/-/, $DATE, 3);
