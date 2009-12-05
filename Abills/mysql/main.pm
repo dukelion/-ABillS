@@ -70,6 +70,7 @@ sub connect {
   $self->{db} = DBI->connect("DBI:mysql:database=$dbname;host=$dbhost", "$dbuser", "$dbpasswd") or print 
        "Content-Type: text/html\n\nError: Unable connect to server '$dbhost:$dbname'\n";
   
+  
   #For mysql 5 or highter
   $self->{db}->do("set names ".$attr->{CHARSET}) if ($attr->{CHARSET});
  
