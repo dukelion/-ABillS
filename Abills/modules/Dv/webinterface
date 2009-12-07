@@ -3529,15 +3529,15 @@ elsif ($conf{DV_IP_DISCOVERY}) {
     return 0;	
    }
   
-  if ($Dv->{STATUS} > 0) {
+  
+  if ($Dv->{STATUS} == 2) {
     $Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $service_status_colors[$Dv->{STATUS}]). ' ';
-    $Dv->{STATUS}  .= ($user->{DISABLE} == 2) ? $html->b("($_ACCOUNT $_DISABLE)") : $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1", {   	 ex_params  => ' ID="ACTIVATE"' });
+    $Dv->{STATUS}  .= ($user->{DISABLE} > 0) ? $html->b("($_ACCOUNT $_DISABLE)") : $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1", {   	 ex_params  => ' ID="ACTIVATE"' });
     #   JAVASCRIPT => ' onclick="obj_disable(ACTIVATE, \'Wait...\')"'  	 } );
    }  
   else {
-  	$Dv->{STATUS}    = $service_status[$Dv->{STATUS}];
+  	$Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $service_status_colors[$Dv->{STATUS}]); 
    }
-  
   
   if ($conf{DV_USER_CHG_TP}) {
     $Dv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid );
