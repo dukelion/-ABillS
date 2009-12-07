@@ -65,6 +65,7 @@ sub cfg2hash {
 
 	foreach my $line (@payments_methods_arr) {
 		 my ($k, $v)=split(/:/, $line, 2);
+		 $k =~ s/^\s+//;
 		 $hush{$k}=$v;
 	 }
 

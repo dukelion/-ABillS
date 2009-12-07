@@ -143,23 +143,27 @@ sub docs_invoice_add  {
     $Docs->{ACCOUNT_ID}=$Docs->{ACCT_ID};
     
     push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+    for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+	    $PAYMENTS_METHODS{"$i"}="$PAYMENT_METHODS[$i]";
+     }
+
+    my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+
+    while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
+	    $PAYMENTS_METHODS{$k}=$v;
+     }
+
     my $method = 0;
 
 
     $list = $Payments->list({ ID => $Docs->{PAYMENT_ID} });
     if ($Payments->{TOTAL} > 0) {
     	$method=$list->[0]->[6];
-    	
+
     	if ($conf{DOCS_PAYMENT_METHODS}) {
-    		$conf{DOCS_PAYMENT_METHODS} =~ s/[\r\n]//g;
-    		my @methods_arr  = split(/;/, $conf{DOCS_PAYMENT_METHODS});
-    		my %methods_hash = ();
-    		foreach my $line (@methods_arr) {
-    			my ($k, $v)=split(/:/, $line);
-    			$k =~ s/^\s+//;
-    			$methods_hash{$k}=$v;
-    		 }
-        
+    		my %methods_hash = %{ cfg2hash($conf{DOCS_PAYMENT_METHODS}) };
+
         if ($methods_hash{$method}) {
           $Docs->{PAYMENT_METHOD}=$methods_hash{$method};
          }
@@ -270,8 +274,6 @@ elsif($FORM{print}) {
   #print "!!! $Docs->{PAYMENT_ID}";
 
   if ($Docs->{PAYMENT_ID}) {
-    
-
     my $list = $Docs->accounts_list({ PAYMENT_ID => $Docs->{PAYMENT_ID} });
     if ($Docs->{TOTAL} > 0) {
       $Docs->account_info($list->[0]->[9]);	
@@ -295,11 +297,27 @@ elsif($FORM{print}) {
     $list = $Payments->list({ ID => $Docs->{PAYMENT_ID} });
     if ($Payments->{TOTAL} > 0) {
     	$method=$list->[0]->[6];
-      $Docs->{PAYMENT_METHOD} = $PAYMENTS_METHODS{$method};
+    	
+    	if ($conf{DOCS_PAYMENT_METHODS}) {
+        my %methods_hash = %{ cfg2hash($conf{DOCS_PAYMENT_METHODS}) };        
+
+        if ($methods_hash{$method}) {
+          $Docs->{PAYMENT_METHOD}=$methods_hash{$method};
+         }
+        else {
+        	$Docs->{PAYMENT_METHOD}=$methods_hash{0};
+         }
+    	 }
+    	else {
+        $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$method];
+       }
      }
 
     #print "// $Docs->{ACCOUNT_ID} // $Docs->{PAYMENT_METHOD}";
    }
+
+
+
 
   
   if ($conf{DOCS_VAT_INCLUDE}) {
