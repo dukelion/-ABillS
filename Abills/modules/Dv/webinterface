@@ -278,8 +278,8 @@ sub dv_users_list {
   }
  
  
- $FORM{GROUP_SEL}    = sel_groups();
- $FORM{STATUS_SEL}   = $html->form_select('STATUS', 
+ $Dv->{GROUP_SEL}    = sel_groups();
+ $Dv->{STATUS_SEL}   = $html->form_select('STATUS', 
                                           { 
  	                                          SELECTED     => $FORM{STATUS},
  	                                          SEL_HASH     => { '' => "$_ALL",
@@ -295,7 +295,7 @@ sub dv_users_list {
 
  
  form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_users_search', 'Dv'),
- 	                                            { %FORM },
+ 	                                            { %$Dv, %FORM },
  	                                            { notprint => 1 })    });
 
 
