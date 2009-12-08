@@ -920,9 +920,10 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
                              });
 
     my $sql = Abills::SQL->connect($conf{dbtype}, $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, 
-                                                    $conf{'SQLCMD_HOST'. $id .'_DB'}, 
-                                                    $conf{'SQLCMD_HOST'. $id .'_USER'}, 
-                                                    $conf{'SQLCMD_HOST'. $id .'_PASSWD'},
+                                                  $conf{'SQLCMD_HOST'. $id .'_DB'}, 
+                                                  $conf{'SQLCMD_HOST'. $id .'_USER'}, 
+                                                  $conf{'SQLCMD_HOST'. $id .'_PASSWD'},
+
     { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
 
 
@@ -940,10 +941,20 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
     $FORM{DB_ID}=$id;
     $Sqlcmd = Sqlcmd->new($db_slave, $admin, \%conf);
     
-    $Sqlcmd->query($db_slave, 'SHOW SLAVE STATUS \G;');
+    my $query = "SHOW SLAVE STATUS;";
+    my $q = $db_slave->prepare("$query",  { "mysql_use_result" => ($query !~ /!SELECT/gi ) ? 0 : 1   } ) || die $db_slave->errstr;
+    $q->execute(); 
     
-    foreach my $line ( @{ $Sqlcmd->{list} }) {
-      $table->addrow($line->[0], $line->[1]);
+    $Sqlcmd->{MYSQL_FIELDS_NAMES} = $q->{NAME};
+    
+    #print @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} };
+
+    while(my @row = $q->fetchrow()) {
+    	my $i=0;
+      foreach my $field ( @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} } ) {     
+        $table->addrow($field, $row[$i]);
+        $i++;
+       }
      }
 
     push @servers, $table->show();
@@ -958,7 +969,9 @@ my $table = $html->table({ width        => '100%',
                          });
  
 for($i=0; $i<= $#servers; $i+=2) {
-	$table->addrow($servers[$i], $servers[$i+1]);
+  $table->addtd( $table->td($servers[$i]), 
+                 $table->td($servers[$i+1])
+                );
 }
 
 print $table->show();
