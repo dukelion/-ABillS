@@ -342,7 +342,7 @@ sub form_input {
   
 
   
-  $self->{FORM_INPUT}="<input type=\"$type\" name=\"$name\" value=\"$value\"$state$size$class$ex_params/>";
+  $self->{FORM_INPUT}="<input type=\"$type\" name=\"$name\" value=\"$value\"$state$size$class$ex_params ID=\"$name\"/>";
 
   if (defined($self->{NO_PRINT}) && ( !defined($attr->{OUTPUT2RETURN}) )) {
   	$self->{OUTPUT} .= $self->{FORM_INPUT};
@@ -410,7 +410,7 @@ sub form_select {
 	
 	my $ex_params =  (defined($attr->{EX_PARAMS})) ? $attr->{EX_PARAMS} : '';
 			
-	$self->{SELECT} = "<select name=\"$name\" $ex_params>\n";
+	$self->{SELECT} = "<select name=\"$name\" $ex_params ID=\"$name\">\n";
   
   if (defined($attr->{SEL_OPTIONS})) {
     foreach my $k (keys ( %{ $attr->{SEL_OPTIONS} } ) ) {
