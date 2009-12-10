@@ -797,6 +797,8 @@ sub traffic_user_get2 {
 
   return \%result;
 }
+
+
 #**********************************************************
 # traffic_user_get
 # Get used traffic from DB
