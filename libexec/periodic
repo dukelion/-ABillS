@@ -672,7 +672,7 @@ sub debetors_group_create {
   foreach my $line (sort @DEBETORS_GROUP) {
     # DEBETOR_GROUP_ID:DEPOSIT:LAST_PAYNMENT_DAYS:USER_GID
     my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS, $USER_GID) = split(/:/, $line);  
-    $USER_GID = 0 if (! $USER_GID);    
+    $USER_GID = -1 if (! $USER_GID);    
     $DEBETORS_GIDS{$GID}="$USER_GID";
     $USERS_GIDS{$USER_GID}="$GID:$DEPOSIT:$LAST_PAYMENTS_DAYS";
    } 

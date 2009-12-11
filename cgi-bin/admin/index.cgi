@@ -3965,26 +3965,36 @@ if (defined($FORM{DATE})) {
 
  }   
 else{ 
+  $type=($FORM{TYPE}) ? $FORM{TYPE} : 'DATE';
+   
   #Fees###################################################
   my @TITLE = ("$_DATE", "$_USERS", "$_COUNT", $_SUM);
-  if ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD') {
+  if ($type eq 'METHOD') {
   	$TITLE[0]=$_METHOD;
   	@CHART_TYPE= ('pie');
    }
-  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'USER') {
+  elsif ($type eq 'USER') {
   	$TITLE[0]=$_USERS;
   	$type="search=1&LOGIN_EXPR";
   	$index=3;
   	$graph_type='';
    }
-  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'FIO')  {
+  elsif ($type eq 'ADMINS')  {
+    $TITLE[0]=$_ADMINS;
+    $graph_type='';
+   }
+  elsif ($type eq 'FIO')  {
     $TITLE[0]=$_FIO;
     $graph_type='';
    }
-  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'HOURS')  {
+  elsif ($FORM{ADMINS})  {
+    $TITLE[0]=$_USERS;
+    $graph_type='';
+   } 
+  elsif ($type eq 'HOURS')  {
     $TITLE[0]=$_HOURS;
    }
-  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD')  {
+  elsif ($type eq 'METHOD')  {
     $TITLE[0]=$_TYPE;
    }
 
@@ -4001,10 +4011,10 @@ else{
   foreach my $line (@$list) {
 
     my $main_column = '';
-    if ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD') {
+    if ($type eq 'METHOD') {
     	$main_column = $FEES_METHODS[$line->[0]];
      }
-    elsif($FORM{TYPE} && ($FORM{TYPE} eq 'FIO' || $FORM{TYPE} eq 'USER')) {
+    elsif($type eq 'FIO' || $type eq 'USER' || $FORM{ADMINS}) {
       if (! $line->[0] || $line->[0] eq '') {
         $main_column = $html->button($html->color_mark("!!! UNKNOWN", $_COLORS[6]), "index=11&UID=$line->[4]");
        }
@@ -4015,6 +4025,7 @@ else{
     else { 
       $main_column = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
      }
+
     
     $table_fees->addrow(
     $main_column,
@@ -4022,7 +4033,7 @@ else{
     $line->[2], 
     $html->b($line->[3]) );
 
-    if ($FORM{TYPE} && $FORM{TYPE} eq 'METHOD') {
+    if ($type eq 'METHOD') {
       $DATA_HASH{TYPE}[$num+1]  = $line->[3];
       $CHART{X_TEXT}[$num]      = $line->[0];
       $num++;
@@ -4144,14 +4155,14 @@ if (defined($FORM{DATE})) {
 
   $list = $payments->list( { %LIST_PARAMS } );
   $table = $html->table( { width      => '100%',
-                            caption    => "$_PAYMENTS",
-                              title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE,   $_DEPOSIT, 
+                           caption    => "$_PAYMENTS",
+                              title    => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE,   $_DEPOSIT, 
                                    $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP'],
-                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
-                            qs         => $pages_qs,
-                            pages      => $payments->{TOTAL},
-                            ID         => 'REPORTS_PAYMENTS'
-                           } );
+                           cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
+                           qs         => $pages_qs,
+                           pages      => $payments->{TOTAL},
+                           ID         => 'REPORTS_PAYMENTS'
+                        } );
 
   my $pages_qs .= "&subf=2" if (! $FORM{subf});
   foreach my $line (@$list) {
@@ -4173,27 +4184,42 @@ if (defined($FORM{DATE})) {
   }
  }   
 else{ 
+  if ($FORM{TYPE}) {
+    $type = $FORM{TYPE};
+    $pages_qs .= "&TYPE=$type";
+   }
+  else {
+  	$type = 'DATE';
+   }
+
+
+  
+  
   my @CAPTION = ("$_DATE", "$_USERS", "$_COUNT", $_SUM);
-  if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
+  if ($type eq 'PAYMENT_METHOD') {
   	$CAPTION[0]=$_PAYMENT_METHOD;
   	$graph_type='pie';
   	@CHART_TYPE=('pie');
    }
-  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'USER') {
+  elsif ($type eq 'USER') {
   	$CAPTION[0]=$_USERS;
   	$type="search=1&LOGIN_EXPR";
   	$index=2;
   	$graph_type='';
    }
-  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'FIO') {
+  elsif ($type eq 'FIO') {
   	$CAPTION[0]=$_FIO;
   	$graph_type='';
    }
-  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'ADMINS')  {
+  elsif ($type eq 'ADMINS')  {
     $CAPTION[0]=$_ADMINS;
     $graph_type='';
    }
-  elsif ($FORM{TYPE} && $FORM{TYPE} eq 'HOURS')  {
+  elsif ($FORM{ADMINS})  {
+    $CAPTION[0]=$_USERS;
+    $graph_type='';
+   }
+  elsif ($type eq 'HOURS')  {
     $CAPTION[0]=$_HOURS;
    }
   
@@ -4211,10 +4237,10 @@ else{
   foreach my $line (@$list) {
     my $main_column = '';
 
-    if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
+    if ($type eq 'PAYMENT_METHOD') {
     	$main_column = $PAYMENT_METHODS[$line->[0]];
      }
-    elsif($FORM{TYPE} && ($FORM{TYPE} eq 'FIO' || $FORM{TYPE} eq 'USER')) {
+    elsif($type eq 'FIO' || $type eq 'USER' || $FORM{ADMINS}) {
       if (! $line->[0] || $line->[0] eq '') {
         $main_column = $html->button($html->color_mark("!!! UNKNOWN", $_COLORS[6]), "index=11&UID=$line->[4]");
        }
@@ -4222,6 +4248,10 @@ else{
         $main_column = $html->button($line->[0], "index=11&UID=$line->[4]");
        }
      }
+    #elsif ($FORM{TYPE} && $FORM{TYPE} eq 'ADMINS')  {
+    #  $CAPTION[0]=$_ADMINS;
+    #  $graph_type='';
+    # }
     else { 
       $main_column = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
      }
@@ -4234,7 +4264,10 @@ else{
       $html->b($line->[3]) );
 
 
-    if ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_METHOD') {
+    if ($type eq 'ADMINS') { 
+    	
+     }
+    elsif ($type eq 'PAYMENT_METHOD') {
       $DATA_HASH{TYPE}[$num+1]  = $line->[3];
       $CHART{X_TEXT}[$num]    = $PAYMENT_METHODS[$line->[0]];
       $num++;
