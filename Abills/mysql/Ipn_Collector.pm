@@ -117,7 +117,10 @@ sub user_ips {
 		 '',
 		 u.activate,
 		 dv.netmask,
-		 dv.ip
+		 dv.ip,
+     calls.acct_input_gigawords,
+     calls.acct_output_gigawords
+
 		 FROM (users u, dv_main dv)
 		 LEFT JOIN companies c ON (u.company_id=c.id)
 		 LEFT JOIN bills b ON (u.bill_id=b.id)

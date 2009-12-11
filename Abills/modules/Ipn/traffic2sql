@@ -130,7 +130,7 @@ $log = $ARGV->{log} if ($ARGV->{log});
 my $FLOW_CAT = $ARGV->{FLOW_CAT} || '/usr/local/bin/flow-cat';
 my $FLOW_PRINT = $ARGV->{FLOW_PRINT} || '/usr/local/bin/flow-print';
 
-$Ipn->{debug}=1 if ($debug > 2);
+$Ipn->{debug}  = 1 if ($debug > 2);
 $conf{MB_SIZE} = $conf{KBYTE_SIZE} * $conf{KBYTE_SIZE};
 
 
