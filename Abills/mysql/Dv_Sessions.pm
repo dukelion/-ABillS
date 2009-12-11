@@ -50,11 +50,24 @@ sub del {
 
   if ($attr->{DELETE_USER}) {
     $self->query($db, "DELETE FROM dv_log WHERE uid='$attr->{DELETE_USER}';", 'do');
-  }
-  else {
-    $self->query($db, "DELETE FROM dv_log 
-     WHERE uid='$uid' and start='$session_start' and nas_id='$nas_id' and acct_session_id='$session_id';", 'do');
    }
+  else {
+  	$self->query($db, "show tables LIKE 'traffic_prepaid_sum'");
+  	
+  	if ($self->{TOTAL} > 0) {
+      $self->query($db, "UPDATE traffic_prepaid_sum pl, dv_log l SET 
+         traffic_in=traffic_in-(l.recv + 4294967296 * acct_input_gigawords),
+         traffic_out=traffic_out-(l.sent + 4294967296 * acct_output_gigawords)
+         WHERE pl.uid=l.uid AND l.uid='$uid' and l.start='$session_start' and l.nas_id='$nas_id' 
+          and l.acct_session_id='$session_id';", 'do');
+  	 }
+  	
+     $self->query($db, "DELETE FROM dv_log 
+       WHERE uid='$uid' and start='$session_start' and nas_id='$nas_id' and acct_session_id='$session_id';", 'do');
+   }
+
+   
+
 
   return $self;
 }
