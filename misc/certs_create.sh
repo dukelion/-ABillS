@@ -123,13 +123,19 @@ express_oplata () {
 
   read _SEND_MAIL
   if [ w${_SEND_MAIL} = wy ]; then
-    EO_EMAIL="asm@yes.net.ua";
-
+    EO_EMAIL="onwave@express-oplata.ru";
+  
     echo -n "Enter comments: "
-
     read COMMENTS
 
-    ( echo "${COMMENTS}"; uuencode /usr/abills/Certs//express_oplata_public.pem express_oplata_public.pem ) | mail -s "Public Cert" $EO_EMAIL
+    echo -n "BCC: "
+    read BCC_EMAIL
+
+    if [ w${BCC_EMAIL} != w ]; them
+      BCC_EMAIL="-b" ${BCC_EMAIL}
+    fi; 
+
+    ( echo "${COMMENTS}"; uuencode /usr/abills/Certs//express_oplata_public.pem express_oplata_public.pem ) | mail -s "Public Cert" ${BCC_EMAIL} $EO_EMAIL
     
     echo "Cert sended to Expres-Oplata"
   fi;
