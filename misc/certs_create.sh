@@ -11,7 +11,7 @@ CA_pl=CA.pl;
 
 hostname=`hostname`;
 password=whatever;
-VERSION=0.6;
+VERSION=0.7;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -131,7 +131,7 @@ express_oplata () {
     echo -n "BCC: "
     read BCC_EMAIL
 
-    if [ w${BCC_EMAIL} != w ]; them
+    if [ w${BCC_EMAIL} != w ]; then
       BCC_EMAIL="-b" ${BCC_EMAIL}
     fi; 
 
