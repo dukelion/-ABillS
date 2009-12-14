@@ -123,7 +123,7 @@ $users = Users->new($db, $admin, \%conf);
 
 
 #DEbug
-my $output2 = "DATE: $DATE $TIME =========================\n";
+my $output2 = '';
 while(my($k, $v)=each %FORM) {
  	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
 }
@@ -143,8 +143,8 @@ elsif($FORM{operation} || $ENV{'QUERY_STRING'} =~ /operation=/) {
 	require "Comepay.pm";
 	exit;
  }
-elsif ($FORM{EO}) {
-	require "express_oplata.pm";
+elsif ($FORM{'<OPERATION id'} || $FORM{'%3COPERATION%20id'}) {
+	require "Express-oplata.pm";
 	exit;
  }
 elsif($FORM{ACT}) {
@@ -220,13 +220,7 @@ sub payments {
   else {
     print "Error: Unknown payment system";
     if (scalar keys %FORM > 0) {
-   	  if (open(FILE, ">>paysys_check.log")) {
-  	    print FILE $output2;
-	      close(FILE);
-	     }
-      else {
-  	    $html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/$FORM{tpl_name}' $!\n");
-       }
+    	mk_log($output2);
     }
    }
 }
@@ -1748,4 +1742,21 @@ sub wm_validate {
   my $digest = uc($md5->hexdigest());	
   
   return $digest;
+}
+
+
+#**********************************************************
+# mak_log
+#**********************************************************
+sub mk_log {
+  my ($message, $attr) = @_;
+ 
+  if (open(FILE, ">>paysys_check.log")) {
+    print FILE "$DATE $TIME =========================\n";
+    print FILE $message;
+	  close(FILE);
+	 }
+  else {
+    print "Can;t open file 'paysys_check.log' $! \n";
+   }
 }
