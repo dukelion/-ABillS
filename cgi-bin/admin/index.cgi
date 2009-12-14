@@ -2080,7 +2080,8 @@ sub form_system_changes {
                    8  => "$_ENABLE",
                    9  => "$_DISABLE",
                    10 => "$_DELETED",
-                   11 => "$ERR_WRONG_PASSWD");
+                   11 => "$ERR_WRONG_PASSWD",
+                   13 => "Online $_DEL");
 
  
 if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {
@@ -2186,7 +2187,8 @@ sub form_changes {
                    9  => "$_DISABLE",
                    10 => "$_DELETED",
                    11 => '',
-                   12 => "$_DELETED $_USER");
+                   12 => "$_DELETED $_USER",
+                   13 => "Online $_DELETE");
  
 if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {
 	$admin->action_del( $FORM{del} );

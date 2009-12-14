@@ -104,7 +104,8 @@ sub user_status {
     framed_ip_address, 
     CID, 
     CONNECT_INFO, 
-    nas_id
+    nas_id,
+    uid
 )
     values (
     '$DATA->{ACCT_STATUS_TYPE}', 
@@ -116,7 +117,8 @@ sub user_status {
      INET_ATON('$DATA->{FRAMED_IP_ADDRESS}'), 
     '$DATA->{CALLING_STATION_ID}', 
     '$DATA->{CONNECT_INFO}', 
-    '$DATA->{NAS_ID}'
+    '$DATA->{NAS_ID}',
+    '$DATA->{UID}'
   );";
 
   $self->query($db, "$sql", 'do');

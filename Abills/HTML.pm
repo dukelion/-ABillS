@@ -1371,7 +1371,10 @@ sub tpl_show {
 #    	$tpl =~ s/\%$var\%/$exec_content/g;
 #     }
 #    els
-    if (defined($variables_ref->{$var})) {
+    
+    if ($attr->{SKIP_VARS} && $attr->{SKIP_VARS} =~ /$var/) {
+     }
+    elsif (defined($variables_ref->{$var})) {
     	$tpl =~ s/\%$var$delimiter$default%/$variables_ref->{$var}/g;
      }
     else {

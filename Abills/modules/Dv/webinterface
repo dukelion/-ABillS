@@ -843,7 +843,7 @@ else {
 	$tarif_info->{EXT_BILL_ACCOUNT}='';
 }
 
-$html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info);
+$html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info, { SKIP_VARS => 'IP' });
 
 my $list = $tariffs->list({ %LIST_PARAMS });	
 
@@ -1168,6 +1168,11 @@ elsif($FORM{del} || $FORM{dellist}) {
                                           [ "ACCT_SESSION_ID", $FORM{del}        ]
                                         ]
                                } );
+   
+
+    my $MODULE = (defined($self->{MODULE})) ? $self->{MODULE} : '';
+    my $action_type = ($attr->{TYPE}) ? $attr->{TYPE} : '';
+
     
     $html->message('info', $_DELETED, $table->show());	
    }

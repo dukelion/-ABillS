@@ -1725,10 +1725,10 @@ sub neg_deposit_filter_former () {
       	my $rad_pairs = $1;
         my @p = split(/,/, $rad_pairs);
         foreach my $line (@p) {
-          if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/ ) {
+        	
+          if ($line =~ /([a-zA-Z0-9\-]{6,25})\s?\+\=(.{1,200})/ ) {
             my $left=$1;
             my $right=$2;
-    
             #$right =~ s/\"//g;
             push( @{ $RAD_PAIRS->{"$left"} }, $right ); 
            }
