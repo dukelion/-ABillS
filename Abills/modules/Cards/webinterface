@@ -923,8 +923,7 @@ if ($Cards->{errno}) {
                             rows       => [ [ "$_TOTAL:", $html->b($Cards->{TOTAL}) ] ]
                         });
    print $table->show();	
-
-  
+ 
 }
 
 
@@ -1392,6 +1391,7 @@ $Cards->{TARIF_PLAN_SEL}=$html->form_select('TP_ID',
 
 		
 
+
 		
 		  print $html->form_main({ CONTENT => $table->show(),
                               
@@ -1402,268 +1402,10 @@ $Cards->{TARIF_PLAN_SEL}=$html->form_select('TP_ID',
 	                         SUBMIT  => { 
 	                         	            change_permits  => "$_CHANGE" 
 	                         	           },
-	            T      => 1,
+#                              	            T      => 1,
                                           DESC      => 'DESC'
                                         });
-            my $serial = 0;
-            my $count = $FORM{COUNT} || 1;
-
-            if ($Cards->{TOTAL} > 0) {
-              $serial = $list->[0]->[0];
-             }
-
-      $serial++;
-
-     if($FORM{CARDS_PAYMENT_PIN_LENGTH}) {
-        $FORM{CARDS_PAYMENT_PIN_LENGTH} = $conf{CARDS_PAYMENT_PIN_LENGTH} || 8;
-       }
-
-
-
-
-      my @CARDS_OUTPUT = ();
-      
-      #Import from other systems
-      if ($FORM{import}) {
-
-
-        
-        
-       }
-      else {
-     	
-      	if ($FORM{TYPE} && ! $FORM{TP_ID}) {
-      		$html->message('err', "$_INFO", "$ERR_SELECT_TARIF_PLAN");
-      	 }
-        elsif ($FORM{TYPE}) {
-        	require "Abills/modules/Dv/webinterface";
-
- 
-
-          $FORM{add}   = 1;
-          $FORM{create}= 1;
-          if (! $FORM{BEGIN}) {
-             my $list = $user->list({ PAGE_ROWS => 1, 
-             	                        SORT      => 8,
-             	                        DESC      => 'DESC'
-             	                        
-             	                        });
-             $FORM{BEGIN}      = $list->[0][7];
-             $FORM{LOGIN_BEGIN}= $list->[0][7];
-            }
-
-         	my $return = cards_users_add({ EXTRA_TPL => $dv_tpl, 
-         		                             NO_PRINT  => 1  
-         		                             });
-          
-          my $added_count = 0;
-
-          if (ref($return) eq 'ARRAY') {
-    	      foreach my $line (@$return) {
-              #%FORM = ( add => 1);
-     	        #%FORM = %FORM_BASE;
-  	 	        #while(my($k, $v)= each %$line) {
-  	 	  	    #  $FORM{$k}=clearquotes($v);
-  	 	        # }
-
-        	 	  $FORM{'1.LOGIN'}      = $line->{LOGIN};
-    	    	  $FORM{'1.PASSWORD'}   = $line->{PASSWORD};
-  	   	      $FORM{'1.CREATE_BILL'}= 1;
-  	   	      $FORM{'4.TP_ID'}      = $FORM{TP_ID};
-        
-              $line->{UID} = dv_wizard_user({ SHORT_REPORT => 1 });
-       
-    	 	      if ( $line->{UID} < 1) {
-    	 	  	     $html->message('err', "$_ERROR", "$_LOGIN: '$line->{LOGIN}'");
-        	 	  	 last if (! $line->{SKIP_ERRORS} );
-  	      	   }
-  	 	        else {
-  	 	          #Confim card creation
-  	 	          $added_count++;
-    	 	        #$table->addrow("$FORM{'1.LOGIN'}", "$UID", "$FORM{ex_message}");
-    	 	  	    
-  	   	  	    push @CARDS_OUTPUT, { PIN         => $pin,
-   	 	  	      	LOGIN       => $FORM{'1.LOGIN'},
-  	 	  	      	PASSWORD    => $FORM{'1.PASSWORD'},
-  	 	  	      	PIN         => $FORM{'1.PASSWORD'},
-                  NUMBER      => $line->{NUMBER},
-                  SERIA       => $line->{SERIA},
-                  EXPIRE_DATE => ($EXPIRE_DATE ne '0000-00-00') ? $EXPIRE_DATE : '' ,
-                  DATE        => "$DATE $TIME",
-                  SUM         => sprintf("%.2f", $FORM{SUM}),
-                  DILLER_ID   => $diller->{ID},
-                  TARF_PLAN   => $FORM{TP_ID}
-                   };
-  	 	  	    
-  	 	  	      if(cards_users_gen_confim({ %$line, 
-  	 	  	    	                          SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  }) == 0) {
-  	 	  		     return 0;
-  	 	  		 }
-  	 	    }
-
-
-
-  	    }
-
-         }
-        	
-        	
-         } 
-        else {
-          for (my $i=$serial; $i<$serial+$count; $i++) {
-        	  if ($FORM{TYPE}) {
-        		  my $password = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
-        	   }
-        	
-        	
-            my $pin         = mk_unique_value($FORM{CARDS_PAYMENT_PIN_LENGTH}, { SYMBOLS => '1234567890' });
-            $i              = sprintf("%s%.11d", $FORM{SERIAL}, $i);
-            my $EXPIRE_DATE = '0000-00-00';
-
-            $Cards->cards_add({ SERIAL    => "",
-                              NUMBER    => "$i",
-                              PIN       => "$pin",
-                              SUM       => "$FORM{SUM}",
-                              STATUS    => 0,
-                              EXPIRE    => "$EXPIRE_DATE",
-                              DILLER_ID => $diller->{ID}
-                            });
-
-            if ($Cards->{errno}) {
-              $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
-              return 0;
-             }
-            else {
-            	my $sum = 0;
-              #Take fees
-              if ($diller->{PERCENTAGE} > 0) {
-                $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $diller->{PERCENTAGE})));
-               }
-              else {
-            	  $Cards->dillers_tp_info({ ID => $diller->{TP_ID} });
-            	
-            	  if ($Cards->{TOTAL} > 0) {
-                  if ($Cards->{PERCENTAGE} > 0) {
-              	    $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $Cards->{PERCENTAGE})));
-                   }
-
-                  if ( $Cards->{OPERATION_PAYMENT} > 0) {
-                	  $sum += $Cards->{OPERATION_PAYMENT};
-                   }
-                 }
-             	  else {
-             	  	$sum = $FORM{SUM};
-            	   }
-               }
-              
-
-              
-
-
-              $fees->take($user, $sum,
-                                    {  DESCRIBE     => "$_ICARDS $Cards->{SERIAL}$Cards->{NUMBER}",
-                                       METHOD       => 0,
-                                       EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
-                                       CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
-                                     });
-
-                push @CARDS_OUTPUT, { 
-                	LOGIN       => '-',
-                	PIN         => $pin,
-                  NUMBER      => $i,
-                  EXPIRE_DATE => ($EXPIRE_DATE ne '0000-00-00') ? $EXPIRE_DATE : '' ,
-                  DATE        => "$DATE $TIME",
-                  SUM         => sprintf("%.2f", $FORM{SUM}),
-                  DILLER_ID   => $diller->{ID}
-                   };
-  
-             }
-
-
-           }
-
-         }
-        }
-
-
-      #Show cards
-      if ($FORM{EXPORT} eq 'xml') {
-        print "<CARDS>";
-        foreach my $card_info (@CARDS_OUTPUT) {
-          print "<CARD>
-          <LOGIN>$card_info->{PIN}</LOGIN>
-          <PIN>$card_info->{PIN}</PIN>
-          <NUMBER>$card_info->{NUMBER}</NUMBER>
-          <EXPIRE_DATE>$card_info->{EXPIRE_DATE}</EXPIRE_DATE>
-          <CREATED_DATE>$card_info->{DATE}</CREATED_DATE>
-          <SUM>$card_info->{SUM}</SUM>
-          <DILLER_ID>$card_info->{DILLER_ID}</DILLER_ID></CARD>\n";
-         }
-        print "</CARDS>";
-       }
-      elsif ($FORM{EXPORT} eq 'text' ) {
-        foreach my $card_info (@CARDS_OUTPUT) {
-          print "$card_info->{LOGIN}\t$card_info->{PIN}\t$card_info->{NUMBER}\t$card_info->{EXPIRE_DATE}\t$card_info->{DATE}\t$card_info->{SUM}\t$card_info->{DILLER_ID}\n";
-         }
-       }
-      elsif ($FORM{EXPORT} eq 'order_print') {
-        my $content = "Print Cards
-        ";
-        foreach my $card_info (@CARDS_OUTPUT) {
-        	$content .= "$card_info->{PIN}\t$card_info->{NUMBER}\t$card_info->{EXPIRE_DATE}\t$card_info->{DATE}\t$card_info->{SUM}\t$card_info->{DILLER_ID}\n";
-         }
-
-        sendmail("$user->{FROM}", "$conf{ADMIN_MAIL}", "Cards Print", "$content", "$conf{MAIL_CHARSET}", "$FORM{PRIORITY} ($MAIL_PRIORITY{$FORM{PRIORITY}})");
-        
-        $html->message('info', "$_INFO", "$_SENDED $_ORDER_PRINT");
-       }
-      else {
-        foreach my $card_info (@CARDS_OUTPUT) {
-          $html->tpl_show(_include('cards_check', 'Cards'), $card_info );
-         }
-       }
-
-
-     return 1;
-          }
-
-
-
-  $Cards->{OP_SID} = mk_unique_value(16);
-
-  if ($attr->{RESELLER}) {
-    $Cards->{TYPE_SEL} = $html->form_select('TYPE', { 
- 	                                       SELECTED      => $FORM{TYPE},
- 	                                       SEL_ARRAY     => [$_PAYMENTS, "$_SERVICES ($_LOGIN + $_PASSWD)"],
- 	                                       ARRAY_NUM_ID  => 1,
- 	                                       EX_PARAMS         => 'onchange=\'samechanged(this)\''
- 	                                     });
-
-    $Cards->{TP_SEL}=$html->form_select('TP_ID', { 
- 	                                         SELECTED          => $FORM{TP_ID},
- 	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $tariffs->list({ PAGE_ROWS => 1, SORT => 1, DESC => 'desc', DOMAIN_ID => $user->{DOMAIN_ID}
- 	                                         	 }) }],
- 	                                         MULTI_ARRAY_KEY   => 0,
- 	                                         MULTI_ARRAY_VALUE => 1,
- 	                                         EX_PARAMS         => '', #'STYLE=\'background-color: #dddddd\' name=\'TP_ID\'',
- 	                                         NO_ID             => 1
- 	                                        });
-
-
-    $html->tpl_show(_include('cards_reseller_cod_gen', 'Cards'),
-         { COUNT => 1, 
-         	 SUM => 0.00, 
-         	 %$Cards
-         	 },
-         { ID => 'CARD_GEN' });
-   }
-  else {
-    $html->tpl_show(_include('cards_dillers_cod_gen', 'Cards'),
-         { COUNT => 1, SUM => 0.00, %$Cards},
-         { ID => 'CARD_GEN' });
-   }
-        return 0;
-
+}
 }
 
 
@@ -1980,6 +1722,9 @@ if ($FORM{add}) {
 #
 #**********************************************************
 sub cards_dillers_list {
+
+
+
   my $list = $Cards->cards_dillers_list({ %LIST_PARAMS });
 	my $table = $html->table( { width      => '100%',
                            caption    => "$_DILLERS",
