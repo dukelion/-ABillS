@@ -1402,9 +1402,7 @@ $Cards->{TARIF_PLAN_SEL}=$html->form_select('TP_ID',
 	                         SUBMIT  => { 
 	                         	            change_permits  => "$_CHANGE" 
 	                         	           },
-#                              	            T      => 1,
-                                          DESC      => 'DESC'
-                                        });
+                             });
 }
 }
 
