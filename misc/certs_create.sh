@@ -132,7 +132,7 @@ express_oplata () {
     read BCC_EMAIL
 
     if [ w${BCC_EMAIL} != w ]; then
-      BCC_EMAIL="-b" ${BCC_EMAIL}
+      BCC_EMAIL="-b ${BCC_EMAIL}"
     fi; 
 
     ( echo "${COMMENTS}"; uuencode /usr/abills/Certs//express_oplata_public.pem express_oplata_public.pem ) | mail -s "Public Cert" ${BCC_EMAIL} $EO_EMAIL
