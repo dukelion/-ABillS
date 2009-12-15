@@ -528,7 +528,7 @@ if ($NAS->{NAS_TYPE} eq 'exppp') {
    }
        
   #Local ip tables
-  if (defined($EX_PARAMS->{nets})) {
+  if ($EX_PARAMS->{nets}) {
     $RAD_PAIRS->{'Exppp-Local-IP-Table'} = (defined($CONF->{DV_EXPPP_NETFILES})) ? "$CONF->{DV_EXPPP_NETFILES}$self->{TT_INTERVAL}.nets" : "$self->{TT_INTERVAL}.nets";
    }
 
@@ -1168,7 +1168,7 @@ sub ex_traffic_params {
  
    my $nets = 0;
 
-   $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, LENGTH(nets), expression
+   $self->query($db, "SELECT id, in_price, out_price, prepaid, in_speed, out_speed, net_id, expression
              FROM trafic_tarifs
              WHERE interval_id='$self->{TT_INTERVAL}';");
 
@@ -1187,10 +1187,11 @@ sub ex_traffic_params {
      $EX_PARAMS{speed}{$line->[0]}{IN}= $line->[4];
      $EX_PARAMS{speed}{$line->[0]}{OUT}= $line->[5];
      $expr{$line->[0]}=$line->[7] if (length($line->[7]) > 5);
-     $nets+=$line->[6] if (defined($line->[6]));
+     $EX_PARAMS{nets} = 1 if ($line->[6] > 0);
+#     $nets+=$line->[6] if (defined($line->[6]));
     }
 
-   $EX_PARAMS{nets}=$nets if ($nets > 20);
+#   $EX_PARAMS{nets}=$nets if ($nets > 0);
    #$EX_PARAMS{speed}=int($speeds{0}) if (defined($speeds{0}));
 
 #Get tarfic limit if prepaid > 0 or
