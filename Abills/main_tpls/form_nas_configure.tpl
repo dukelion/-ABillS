@@ -13,7 +13,6 @@ function Process(version, INTERNAL_SUBNET, wds, SSID){
 	} else if (version == 'freebsd') {
               var commandversion = '\\\\&version=freebsd';
               commandbegin = commandbegin.replace('wget -O', 'fetch -o')
-              alert(commandbegin);
         } else { 
 		var commandversion = ''; 
 	}
