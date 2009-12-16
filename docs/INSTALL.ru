@@ -187,9 +187,11 @@
   
   INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, 
     Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, 
-    Lock_tables_priv, Create_tmp_table_priv) 
+    Lock_tables_priv, Create_tmp_table_priv, Create_view_priv,
+    Show_view_priv, Execute_priv, Event_priv, Trigger_priv) 
   VALUES ('localhost', 'abills', 'abills', 'Y', 'Y', 'Y', 'Y', 'Y', 
-    'Y', 'Y', 'Y', 'Y', 'Y');
+    'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y');
+  
   CREATE DATABASE abills;
   flush privileges;
 
@@ -215,7 +217,7 @@
 
 Если нужно шифрование трафика для веб-интерфейса, тогда создаём сертификаты. Apache должен быть собран с mod_ssl.
 
-  # /usr/abills/misc/sslcerts.sh apache
+  # /usr/abills/misc/certs_create.sh apache
 
 Вносим в конфигурационый файл следующие опции **httpd.conf**.
 
@@ -440,4 +442,9 @@
 Если всё правильно настроено, в файле логов **/usr/abills/var/log/abills.log** должна появиться строка \\
 
   2005-02-23 12:55:55 LOG_INFO: AUTH [testuser] NAS: 1 (xxx.xxx.xxx.xxx) GT: 0.03799
+
+===Дополнительно===
+  * [[abills:docs:manual:ng_car|FreeBSD ng_car  шейпер]]
+  * [[abills:docs:manual:freebsd_dummynet|FreeBSD Dummynet/table  шейпер]]
+  * [[abills:docs:linux:pppd_radattr:ru|Настройка ОС Linux]]
 
