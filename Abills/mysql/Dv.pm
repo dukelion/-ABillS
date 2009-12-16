@@ -81,6 +81,8 @@ sub info {
   if (defined($attr->{IP})) {
   	$WHERE = "WHERE dv.ip=INET_ATON('$attr->{IP}')";
    }
+
+  $admin->{DOMAIN_ID}=0 if (! defined($admin->{DOMAIN_ID}));
   
   $self->query($db, "SELECT dv.uid, dv.tp_id, 
    tp.name, 
