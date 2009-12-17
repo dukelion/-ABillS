@@ -108,7 +108,7 @@ NAT_REAL_TO_FAKE_TABLE_NUM=31;
 # nat configuration
 for IP in ${NAT_IPS}; do
   if [ w$1 = wstart ]; then
-    echo ${IPFW} nat ` expr ${NAT_FIRST_RULE} + 1 ` config ip ${IP} log deny_in
+    echo ${IPFW} nat ` expr ${NAT_FIRST_RULE} + 1 ` config ip ${IP} log
     echo ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ` expr ${NAT_FIRST_RULE} + 1 `
   fi;
 done;
