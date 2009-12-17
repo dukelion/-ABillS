@@ -789,7 +789,7 @@ sub hangup_mpd5 {
   my @commands=("\t",
                 "Username: \t$NAS->{NAS_MNG_USER}",
                 "Password: \t$NAS->{NAS_MNG_PASSWORD}",
-                "\] \tlink $ctl_port",
+                "\\[\\] \tlink $ctl_port",
                 "\] \tclose",
                 "\] \texit");
 
