@@ -40,7 +40,8 @@ sub mail_spam_awl {
                               title      => [$_USER, "E-Mail", "IP", "$_COUNT", "$_SCORE"],
                               cols_align => ['left', 'left', 'right', 'right',  'right' ],
                               qs         => $pages_qs,
-                              pages      => $Mail->{TOTAL}
+                              pages      => $Mail->{TOTAL},
+                              ID         => 'SPAM_AWL'
                           } );
 
   foreach my $line (@$list) {
@@ -636,7 +637,7 @@ sub mail_user_boxes {
   $Mail->{DISABLE}=' checked' if($Mail->{DISABLE} == 1);
   
   
- $Mail->{DOMAINS_SEL}=$html->form_select('DOMAIN_ID', 
+  $Mail->{DOMAINS_SEL}=$html->form_select('DOMAIN_ID', 
                                 { 
  	                                SELECTED          => $Mail->{DOMAIN_ID},
  	                                SEL_MULTI_ARRAY   => $Mail->domain_list({ BACKUP_MX => 0 }),
@@ -977,6 +978,13 @@ foreach my $t (@access_actions) {
 #**********************************************************
 sub mail_wizard {
 	my ($attr) = @_;
+
+
+  if (! $permissions{0}{1} ) {
+    $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");
+	  return 0;
+   }
+
 
   my $fees     = Finance->fees($db, $admin, \%conf);
   my $payments = Finance->payments($db, $admin, \%conf);

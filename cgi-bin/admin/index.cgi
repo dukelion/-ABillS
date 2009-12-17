@@ -127,13 +127,13 @@ require "../../language/$html->{language}.pl";
 
 if ($admin->{errno}) {
   print "Content-type: text/html\n\n";
-  my $message = 'Access Deny';
+  my $message = "$ERR_ACCESS_DENY";
 
   if ($admin->{errno} == 2) {
-  	$message = "Account Disabled or $admin->{errstr}";
+  	$message = "Account $_DISABLED or $admin->{errstr}";
    }
   elsif ($admin->{errno} == 4) {
-  	$message = "Wrong password";
+  	$message = "$ERR_WRONG_PASSWD";
    }
   elsif (! defined($REMOTE_USER)) {
     $message = "Wrong password";
@@ -661,7 +661,7 @@ sub form_companies {
 
 if ($FORM{add}) {
   if (! $permissions{0}{1} ) {
-    $html->message('err', $_ERROR, "Access Deny");  	
+    $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
     return 0;
    }
 
@@ -673,7 +673,7 @@ if ($FORM{add}) {
  }
 elsif($FORM{change}) {
   if (! $permissions{0}{4} ) {
-    $html->message('err', $_ERROR, "Access Deny");  	
+    $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
     return 0;
    }
 
@@ -1042,11 +1042,11 @@ sub form_groups {
 
 if ($FORM{add}) {
   if (! $permissions{0}{1} ) {
-    $html->message('err', $_ERROR, "Access Deny");  	
+    $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
     return 0;
    }
   elsif ($LIST_PARAMS{GID} || $LIST_PARAMS{GIDS}) {
-    $html->message('err', $_ERROR, "Access Deny");
+    $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");
    }
   else {
     $users->group_add( { %FORM });
@@ -1057,7 +1057,7 @@ if ($FORM{add}) {
 }
 elsif($FORM{change}){
   if (! $permissions{0}{4} ) {
-    $html->message('err', $_ERROR, "Access Deny");  	
+    $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
     return 0;
    }
 
@@ -1187,7 +1187,7 @@ sub user_pi {
   
  if($FORM{add}) {
    if (! $permissions{0}{1} ) {
-      $html->message('err', $_ERROR, "Access Deny");  	
+      $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
     	return 0;
     }
 
@@ -1198,7 +1198,7 @@ sub user_pi {
   }
  elsif($FORM{change}) {
    if (! $permissions{0}{4} ) {
-      $html->message('err', $_ERROR, "Access Deny");  	
+      $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
     	return 0;
     }
 
@@ -1339,7 +1339,7 @@ if(defined($attr->{USER})) {
 
   if ($FORM{change}) {
     if (! $permissions{0}{4} ) {
-      $html->message('err', $_ERROR, "Access Deny");  	
+      $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
     	print "</td></table>\n";
     	return 0;
      }
@@ -1473,7 +1473,7 @@ print "</ul></div>
 }
 elsif ( $FORM{add}) {
   if (! $permissions{0}{1} ) {
-    $html->message('err', $_ERROR, "Access Deny");  	
+    $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
   	return 0;
    }
 

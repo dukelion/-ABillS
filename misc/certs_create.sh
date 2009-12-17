@@ -103,7 +103,7 @@ express_oplata () {
   echo
 
   CERT_LENGTH=1024;
-
+  password="whatever"
   # Private key
   echo ${OPENSSL};
   ${OPENSSL} genrsa  -passout pass:${password} -out express_oplata_private.pem ${CERT_LENGTH} 
@@ -135,7 +135,7 @@ express_oplata () {
       BCC_EMAIL="-b ${BCC_EMAIL}"
     fi; 
 
-    ( echo "${COMMENTS}"; uuencode /usr/abills/Certs//express_oplata_public.pem express_oplata_public.pem ) | mail -s "Public Cert" ${BCC_EMAIL} $EO_EMAIL
+    ( echo "${COMMENTS}"; uuencode /usr/abills/Certs/express_oplata_public.pem express_oplata_public.pem ) | mail -s "Public Cert" ${BCC_EMAIL} $EO_EMAIL
     
     echo "Cert sended to Expres-Oplata"
   fi;
