@@ -1,11 +1,11 @@
 #!/bin/sh
-# Shape upper 
+# Shape/NAT upper  
 #
 
 #traffic Class numbers
 
 CLASSES_NUMS='2 3'
-VERSION=2.0
+VERSION=2.1
 
 
 
@@ -89,27 +89,39 @@ else if [ w$1 = w ]; then
 fi;
 
 
+
+#ipfw 10 add divert 8668 ip from 3.3.3.0/24 to any
+#ipfw 20 add divert 8778 ip from 4.4.4.0/24 to any
+#ipfw 30 add fwd 1.1.1.254 ip from 1.1.1.1 to any
+#ipfw 40 add fwd 2.2.2.254 ip from 2.2.2.2 to any
+#ipfw 50 add divert 8668 ip from any to 1.1.1.1
+#ipfw 60 add divert 8778 ip from any to 2.2.2.2 
+
 #NAT Section
 # options         IPFIREWALL_FORWARD
 # options         IPFIREWALL_NAT          #ipfw kernel nat support
 # options         LIBALIAS
 #if [ w${abills_nat_enable} != w ] ; then
 
+NAT_IPS="";
+ISP_GW2="";
 
-if [ w$2 = wnat ] ; then
+if [ w${NAT_IPS} != w  ] ; then
 
-FAKE_NET=10.0.0.0/16
+FAKE_NET="10.0.0.0/16"
 NAT_TABLE=20
 NAT_FIRST_RULE=20
-NAT_IPS="195.58.232.218"
 NAT_REAL_TO_FAKE_TABLE_NUM=31;
+NAT_FAKE_IP_TABLE_NUM=31;
+
 
 
 # nat configuration
 for IP in ${NAT_IPS}; do
   if [ w$1 = wstart ]; then
-    echo ${IPFW} nat ` expr ${NAT_FIRST_RULE} + 1 ` config ip ${IP} log
-    echo ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ` expr ${NAT_FIRST_RULE} + 1 `
+    ${IPFW} nat ` expr ${NAT_FIRST_RULE} + 1 ` config ip ${IP} log
+    ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ` expr ${NAT_FIRST_RULE} + 1 `
+    ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${FAKE_NET} ` expr ${NAT_FIRST_RULE} + 1 `
   fi;
 done;
 
@@ -119,8 +131,12 @@ done;
 #${IPFW} add 17000 nat tablearg ip from table\(20\) to not 193.138.244.2 out
 
 if [ w$1 = wstart ]; then
-  echo ${IPFW} add 10 nat 21 ip from ${FAKE_NET} to any
-  echo ${IPFW} add 20 nat 21 ip from any to table\(${NAT_REAL_TO_FAKE_TABLE_NUM}\)
+  ${IPFW} add 10 nat tablearg ip from table\(` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 `\) to any
+  ${IPFW} add 20 nat tablearg ip from any to table\(${NAT_REAL_TO_FAKE_TABLE_NUM}\)
+  
+  if [ w${ISP_GW2} != w ]; then
+    ${IPFW} add 30 add fwd ${ISP_GW2} ip from ${NAT_IPS} to any
+  fi;
 else if [ w$1 = wstop ]; then
   ${IPFW} delete 10 20
 fi;
