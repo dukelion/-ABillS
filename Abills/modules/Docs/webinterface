@@ -1492,7 +1492,137 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub docs_tax_exports {
 
+
+
+if ($FORM{d}) {
+my ($y, $m, $d)=split(/-/, $DATE);
+my $file_prefix = "26590025388695J1201502100000";
+my $filename = $file_prefix. "01$m$y".'.xml';
+
+	
+	
+my $doc = qq{
+<?xml version="1.0" encoding="windows-1251"?>
+<DECLAR xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="J1201502.xsd">
+	<DECLARHEAD>
+		<TIN>25388695</TIN>
+		<C_DOC>J12</C_DOC>
+		<C_DOC_SUB>015</C_DOC_SUB>
+		<C_DOC_VER>2</C_DOC_VER>
+		<C_DOC_TYPE>0</C_DOC_TYPE>
+		<C_DOC_CNT>1</C_DOC_CNT>
+		<C_REG>26</C_REG>
+		<C_RAJ>59</C_RAJ>
+		<PERIOD_MONTH>12</PERIOD_MONTH>
+		<PERIOD_TYPE>1</PERIOD_TYPE>
+		<PERIOD_YEAR>2009</PERIOD_YEAR>
+		<C_DOC_STAN>1</C_DOC_STAN>
+		<D_FILL>10122009</D_FILL>
+		<SOFTWARE>OPZ 1.23</SOFTWARE>
+	</DECLARHEAD>
+	<DECLARBODY>
+		<HNUM>12/2009</HNUM>
+		<HZY>2009</HZY>
+		<HZKV xsi:nil="true"></HZKV>
+		<HZM>12</HZM>
+		<HNAME>ТОВ "Навігатор-Онлайн"</HNAME>
+		<HLOC>м.Київ, вул. Ванди Василевської, 13, корп.1</HLOC>
+		<HNPDV>253886926129</HNPDV>
+		<HNSPDV>100091816</HNSPDV>
+		<H01G01D>01122009</H01G01D>
+		<H02G01D>31122009</H02G01D>
+		<H03G01S>3 роки</H03G01S>
+		<T1RXXXXGKOR ROWNUM="1">0</T1RXXXXGKOR>
+		<T1RXXXXG2D ROWNUM="1">01122009</T1RXXXXG2D>
+		<T1RXXXXG3S ROWNUM="1">444444</T1RXXXXG3S>
+		<T1RXXXXGTYPE ROWNUM="1">1</T1RXXXXGTYPE>
+		<T1RXXXXG4S ROWNUM="1">Фінайті ТОВ</T1RXXXXG4S>
+		<T1RXXXXGNREZ ROWNUM="1">0</T1RXXXXGNREZ>
+		<T1RXXXXG5 ROWNUM="1">360815526540</T1RXXXXG5>
+		<T1RXXXXG6 ROWNUM="1">100.00</T1RXXXXG6>
+		<T1RXXXXG7 ROWNUM="1">83.33</T1RXXXXG7>
+		<T1RXXXXG8 ROWNUM="1">16.67</T1RXXXXG8>
+		<T1RXXXXG9 xsi:nil="true" ROWNUM="1"></T1RXXXXG9>
+		<T1RXXXXG10 xsi:nil="true" ROWNUM="1"></T1RXXXXG10>
+		<T1RXXXXG11 xsi:nil="true" ROWNUM="1"></T1RXXXXG11>
+		<T1RXXXXG12 xsi:nil="true" ROWNUM="1"></T1RXXXXG12>
+		<T1RXXXXG13 xsi:nil="true" ROWNUM="1"></T1RXXXXG13>
+		<T1RXXXXG14 xsi:nil="true" ROWNUM="1"></T1RXXXXG14>
+		<T1R01G6>100.00</T1R01G6>
+		<T1R01G7>83.33</T1R01G7>
+		<T1R01G8>16.67</T1R01G8>
+		<T1R01G9 xsi:nil="true"></T1R01G9>
+		<T1R01G10 xsi:nil="true"></T1R01G10>
+		<T1R01G11 xsi:nil="true"></T1R01G11>
+		<T1R01G12 xsi:nil="true"></T1R01G12>
+		<T1R01G13 xsi:nil="true"></T1R01G13>
+		<T1R01G14 xsi:nil="true"></T1R01G14>
+		<T2RXXXXGKOR ROWNUM="1">0</T2RXXXXGKOR>
+		<T2RXXXXGKOR ROWNUM="2">0</T2RXXXXGKOR>
+		<T2RXXXXGKOR ROWNUM="3">0</T2RXXXXGKOR>
+		<T2RXXXXG2D ROWNUM="1">02122009</T2RXXXXG2D>
+		<T2RXXXXG2D ROWNUM="2">12122009</T2RXXXXG2D>
+		<T2RXXXXG2D ROWNUM="3">22122009</T2RXXXXG2D>
+		<T2RXXXXG3S ROWNUM="1">222</T2RXXXXG3S>
+		<T2RXXXXG3S ROWNUM="2">333</T2RXXXXG3S>
+		<T2RXXXXG3S ROWNUM="3">444</T2RXXXXG3S>
+		<T2RXXXXGTYPE ROWNUM="1">1</T2RXXXXGTYPE>
+		<T2RXXXXGTYPE ROWNUM="2">1</T2RXXXXGTYPE>
+		<T2RXXXXGTYPE ROWNUM="3">1</T2RXXXXGTYPE>
+		<T2RXXXXG4S ROWNUM="1">Шенк Процес Україна ТОВ</T2RXXXXG4S>
+		<T2RXXXXG4S ROWNUM="2">Татуріна Ірина Миколаївна</T2RXXXXG4S>
+		<T2RXXXXG4S ROWNUM="3">Ірина Миколаївна</T2RXXXXG4S>
+		<T2RXXXXGNREZ ROWNUM="1">0</T2RXXXXGNREZ>
+		<T2RXXXXGNREZ ROWNUM="2">0</T2RXXXXGNREZ>
+		<T2RXXXXGNREZ ROWNUM="3">0</T2RXXXXGNREZ>
+		<T2RXXXXG5 ROWNUM="1">312411026506</T2RXXXXG5>
+		<T2RXXXXG5 xsi:nil="true" ROWNUM="2"></T2RXXXXG5>
+		<T2RXXXXG5 ROWNUM="2"> X </T2RXXXXG5>
+		<T2RXXXXG6 ROWNUM="1">600.00</T2RXXXXG6>
+		<T2RXXXXG6 ROWNUM="2">75.00</T2RXXXXG6>
+		<T2RXXXXG6 ROWNUM="3">5.00</T2RXXXXG6>
+		<T2RXXXXG7 ROWNUM="1">500.00</T2RXXXXG7>
+		<T2RXXXXG7 ROWNUM="2">62.50</T2RXXXXG7>
+		<T2RXXXXG7 ROWNUM="3">0.50</T2RXXXXG7>
+		<T2RXXXXG8 ROWNUM="1">100.00</T2RXXXXG8>
+		<T2RXXXXG8 ROWNUM="2">12.50</T2RXXXXG8>
+		<T2RXXXXG8 ROWNUM="3">1.50</T2RXXXXG8>
+		<T2RXXXXG9 xsi:nil="true" ROWNUM="1"></T2RXXXXG9>
+		<T2RXXXXG9 xsi:nil="true" ROWNUM="2"></T2RXXXXG9>
+		<T2RXXXXG10 xsi:nil="true" ROWNUM="1"></T2RXXXXG10>
+		<T2RXXXXG10 xsi:nil="true" ROWNUM="2"></T2RXXXXG10>
+		<T2RXXXXG11 xsi:nil="true" ROWNUM="1"></T2RXXXXG11>
+		<T2RXXXXG11 xsi:nil="true" ROWNUM="2"></T2RXXXXG11>
+		<T2R01G6>675.00</T2R01G6>
+		<T2R01G7>562.50</T2R01G7>
+		<T2R01G8>112.50</T2R01G8>
+		<T2R01G9 xsi:nil="true"></T2R01G9>
+		<T2R01G10 xsi:nil="true"></T2R01G10>
+		<T2R01G11 xsi:nil="true"></T2R01G11>
+	</DECLARBODY>
+</DECLAR>};
+
+
+my $filesize = length($doc);
+print "Content-Type: text/plain; filename=\"$filename\"\n".
+      "Content-Disposition: attachment; filename=\"$filename\" size=$filesize;".
+      "\n\n";
+
+print  $doc;
+
+}
+
+
+print $html->button("_EXPORT", "qindex=$index&d=1");
+
+
+
+}
 
 
 

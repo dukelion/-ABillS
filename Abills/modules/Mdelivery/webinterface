@@ -2,13 +2,16 @@
 
 
 my %MAIL_PRIORITY = (2 => 'High', 
-                      3 => 'Normal', 
-                      4 => 'Low');
+                     3 => 'Normal', 
+                     4 => 'Low');
 
 
 require "Mdelivery.pm";
 Mdelivery->import();
 my $Mdelivery = Mdelivery->new($db, $admin, $conf);
+
+my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000');
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT" );
 
 
 #*******************************************************************
@@ -17,8 +20,7 @@ my $Mdelivery = Mdelivery->new($db, $admin, $conf);
 #*******************************************************************
 sub mdelivery_main {
  my $period = $FORM{period} || 0;
- 
- 
+
  if ($FORM{sent}) {
    $FORM{DATE}="$FORM{date_Y}-". ($FORM{date_M}+1) ."-$FORM{date_D}" if ($period != 0);
    $Mdelivery->add({ %FORM });
@@ -33,9 +35,81 @@ sub mdelivery_main {
  	                                SEL_HASH  => \%MAIL_PRIORITY
  	                               });
 
- $Mdelivery->{EXTRA} = "<tr><td>$_TO:</td><td bgcolor='$_COLORS[2]'>". sel_groups() ."</td></tr>\n";
+ $status_sel = $html->form_select('STATUS', 
+                                          { 
+ 	                                          SELECTED     => $FORM{STATUS},
+ 	                                          SEL_HASH     => { '' => "$_ALL",
+ 	                                          	                0  => $service_status[0],
+ 	                                          	                1  => $service_status[1],
+ 	                                          	                },
+                                            NO_ID       => 1,
+                                            STYLE        => \@service_status_colors,
+ 	                                        });
+
+ my @rows = ( [ "$_GROUP: ", sel_groups() ], 
+              [ "$_ACCOUNT $_STATUS:", $status_sel ] ); 
+ 
+
+  
+ my $table = $html->table({ width      => '100%',
+                            caption    => $_EXTRA,
+                            rows       => \@rows
+                          });
+ 
+ 
+
+ $Mdelivery->{EXTRA2} .= "<tr><th colspan=2>". $table->show() ."</th></tr>\n";
+
+
+ if (in_array('Dv', \@MODULES)) {
+   use Tariffs;
+   #my $Dv       = Dv->new($db, $admin, \%conf);
+   my $tariffs  = Tariffs->new($db, \%conf, $admin);
+
+   my $tp_sel = $html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $Dv->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => [ ['', $_ALL], @{ $tariffs->list({ MODULE => 'Dv' }) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+   
+
+   
+   $status_sel = $html->form_select('DV_STATUS', 
+                                          { 
+ 	                                          SELECTED     => $FORM{DV_STATUS},
+ 	                                          SEL_HASH     => { '' => "$_ALL",
+ 	                                          	                0  => $service_status[0],
+ 	                                          	                1  => $service_status[1],
+ 	                                          	                2  => $service_status[2],
+ 	                                          	                3  => $service_status[3],  
+ 	                                          	                4  => $service_status[4]    
+ 	                                          	                },
+                                            NO_ID       => 1,
+                                            STYLE        => \@service_status_colors,
+ 	                                        });
+
+   
+   my @rows = ( [ "$_TARIF_PLAN: ", $tp_sel ], 
+                [ "$_STATUS:", $status_sel ] ); 
+ 
+
+
+ 	 my $table = $html->table({ width      => '100%',
+                              caption    => 'Internte',
+                              rows       => \@rows
+                          });
+ 	 $Mdelivery->{EXTRA2} .= "<tr><th colspan=2>". $table->show() ."</th></tr>\n";
+  }
+
+  $Mdelivery->{EXTRA2} .= $html->tpl_show(templates('form_address'), $Mdelivery, { OUTPUT2RETURN => 1 }); 
+  
+
 
  $html->tpl_show(templates('mail_form'), $Mdelivery); 
+ 
+ #$html->tpl_show(_include('mdelivery_form', 'Mdelivery'), {  $Mdelivery });
 }
 
 
@@ -54,6 +128,33 @@ if ($FORM{info}) {
 
   $Mdelivery->{PRIORITY}="$Mdelivery->{PRIORITY} ($MAIL_PRIORITY{$Mdelivery->{PRIORITY}})";
   $html->tpl_show(_include('mdelivery_form', 'Mdelivery'), $Mdelivery); 
+  
+  my $list = $Mdelivery->user_list({ %LIST_PARAMS, MDELIVERY_ID => $FORM{info} });  
+  my $table = $html->table({ width      => '100%',
+                            caption    => $_USERS,
+                            title      => ["$_LOGIN", "$_FIO", "$_STATUS", '-' ],
+                            cols_align => ['left', 'left', 'center', 'center' ],
+                            qs         => "&info=$FORM{info}",
+                            pages      => $Mdelivery->{TOTAL}
+                          });
+
+  foreach my $line (@$list) {
+    my $delete = $html->button($_DEL, "index=$index&info=$FORM{info}&del_user=$line->[5]", { MESSAGE =>  "$_DEL [$line->[0]]?" });
+
+    $table->addrow($html->button($line->[0], "index=15&UID=$line->[4]"), 
+      $line->[1], 
+      ($line->[2]) ? $_SENDED : '', 
+      $delete);
+   }
+
+  print $table->show();
+  
+  $table = $html->table({ width      => '100%',
+                          cols_align => ['right', 'right', 'right', 'right'],
+                          rows       => [ [ "$_TOTAL:", "$Mdelivery->{TOTAL}" ] ]
+                        });
+
+  print $table->show(); 
  }
 elsif ($FORM{del} && $FORM{is_js_confirmed}) {
   $Mdelivery->del($FORM{del});
@@ -69,7 +170,7 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
  my $list = $Mdelivery->list({ %LIST_PARAMS });  
  my $table = $html->table({ width      => '100%',
                             caption    => $_LIST,
-                            title      => ["ID", "$_DATE", "$_SUBJECT", "$_FROM", "$_ADMIN",  "$_ADDED", "$_SIZE", "$_STATUS", '-', '-'],
+                            title      => ["ID", "$_DATE", "$_SUBJECT", "$_FROM", "$_ADMIN",  "$_ADDED", "$_SIZE", "$_STATUS", '-', '-' ],
                             cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'center', 'center', 'center'],
                             qs         => $pages_qs,
                             pages      => $Mdelivery->{TOTAL}
@@ -77,6 +178,8 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
 
  foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]]?" });
+  
+  $table->{rowcolor} = ($FORM{info} && $FORM{info} == $line->[0]) ? $_COLORS[0] : undef;
 
   $table->addrow("$line->[0]", 
     $line->[1], 
@@ -85,10 +188,10 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
     $line->[4],  
     $line->[5], 
     $line->[6], 
-    $line->[7], 
+    ($line->[7]) ? $_SENDED : '', 
     $html->button($_INFO, "index=$index&info=$line->[0]"),
     $delete);
-}
+ }
 print $table->show();
 
 
@@ -127,30 +230,34 @@ foreach my $line (@$list) {
 
 
 
-foreach my $line (@ids) {
-	$Mdelivery->info($line);
+foreach my $mdelivery_id (@ids) {
+	$Mdelivery->info($mdelivery_id);
 
-  $LIST_PARAMS{GID}=$Mdelivery->{GID} if ($Mdelivery->{GID} && $Mdelivery->{GID} > 0);
-  $LIST_PARAMS{UID}=$Mdelivery->{UID} if ($Mdelivery->{UID} && $Mdelivery->{UID} > 0);
-  $LIST_PARAMS{PAGE_ROWS}=1000000;
- 
-  my $user_list = $users->list({ %LIST_PARAMS });
+#  $LIST_PARAMS{GID}=$Mdelivery->{GID} if ($Mdelivery->{GID} && $Mdelivery->{GID} > 0);
+#  $LIST_PARAMS{UID}=$Mdelivery->{UID} if ($Mdelivery->{UID} && $Mdelivery->{UID} > 0);
+  $LIST_PARAMS{PAGE_ROWS}    = 1000000;
+  $LIST_PARAMS{MDELIVERY_ID} = $mdelivery_id;
+#  my $user_list = $users->list({ %LIST_PARAMS });
 
+  my $user_list = $Mdelivery->user_list({ %LIST_PARAMS, STATUS => 0 });
+  my @users_ids = ();
 
   foreach $u (@$user_list) {
-  	 my $mail = ($u->[$users->{SEARCH_FIELDS_COUNT} + 7] && $u->[$users->{SEARCH_FIELDS_COUNT} + 7] ne '') ? $u->[$users->{SEARCH_FIELDS_COUNT} + 7] : $u->[0] .'@'. $conf{USERS_MAIL_DOMAIN};
+  	 my $mail = ($u->[4] && $u->[4] ne '') ? $u->[4] : $u->[0] .'@'. $conf{USERS_MAIL_DOMAIN};
      $Mdelivery->{SENDER} = ($Mdelivery->{SENDER} ne '') ? $Mdelivery->{SENDER} : $conf{ADMIN_MAIL};
-  	 $debug_output .= "LOGIN: $u->[0] E-mail: $mail $Mdelivery->{SUBJECT}" if ($debug > 0);
+  	 $debug_output .= "LOGIN: $u->[0] E-mail: $mail $Mdelivery->{SUBJECT}\n" if ($debug > 0);
+     push @users_ids, $u->[3];
+
      sendmail("$Mdelivery->{SENDER}", 
           "$mail", 
           "$Mdelivery->{SUBJECT}", 
           "$Mdelivery->{TEXT}", 
           "$conf{MAIL_CHARSET}", 
           "$Mdelivery->{PRIORITY} ($MAIL_PRIORITY{$Mdelivery->{PRIORITY}})");
-
    }
  
-  $Mdelivery->change({ ID => $line });
+  $Mdelivery->user_list_change({ MDELIVERY_ID => $mdelivery_id, UID => join(';', @users_ids) });
+  $Mdelivery->change({ ID => $mdelivery_id });
 }
 
 

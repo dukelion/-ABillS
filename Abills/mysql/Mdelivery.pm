@@ -1,5 +1,5 @@
 package Mdelivery;
-# Users manage functions
+# Mail delivery functions
 #
 
 use strict;
@@ -30,7 +30,6 @@ sub new {
   my $self = { };
   bless($self, $class);
   
-  #$self->{debug}=1;
   return $self;
 }
 
@@ -115,9 +114,8 @@ sub change {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "UPDATE mdelivery_list SET STATUS=1
-     WHERE id='$attr->{ID}';");
-  
+  $self->query($db, "UPDATE mdelivery_list SET status=1 WHERE id='$attr->{ID}';", 'do');
+
   return $self;
 }
 
@@ -133,8 +131,11 @@ sub del {
   my ($id) = @_;
 
   $self->query($db, "DELETE from mdelivery_list WHERE id='$id';", 'do');
+  $self->user_list_del({ MDELIVERY_ID => $id });
 
-#  $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}");
+
+  $admin->system_action_add("$id", { TYPE => 10 });
+
   return $self->{result};
 }
 
@@ -147,11 +148,11 @@ sub add {
   my $self = shift;
   my ($attr) = @_;
 
+
+
+
   my $DATA = defaults();
   %DATA = $self->get_data($attr, { default => $DATA });
-
-
-
 
   $self->query($db, "INSERT INTO mdelivery_list (date, added, subject, sender, aid, text, uid, gid,
      priority)
@@ -163,9 +164,169 @@ sub add {
      '$DATA{GID}',
      '$DATA{PRIORITY}');", 'do');
 
-
+    $self->user_list_add({ %$attr, MDELIVERY_ID => $self->{INSERT_ID} });
 
   return $self;
+}
+
+
+#**********************************************************
+# 
+# 
+#**********************************************************
+sub user_list_add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my @WHERE_RULES = ();
+  my $JOIN_TABLES = '';
+
+  if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', "u.disable") };  
+   }
+
+  if ($attr->{GID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', "u.gid") };  
+   }
+
+  if (defined($attr->{DV_STATUS}) && $attr->{DV_STATUS} ne '') {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{DV_STATUS}, 'INT', "dv.disable") };  
+  	$JOIN_TABLES = "LEFT JOIN dv_main dv ON (u.uid=dv.uid)";
+   }
+
+  if ($attr->{TP_ID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', "dv.tp_id") };  
+  	$JOIN_TABLES = "LEFT JOIN dv_main dv ON (u.uid=dv.uid)";
+   }
+
+ if ($attr->{ADDRESS_STREET}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street') };
+  }
+
+ if ($attr->{ADDRESS_BUILD}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build') };
+  }
+
+ if ($attr->{ADDRESS_FLAT}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat') };
+  }
+
+
+  $WHERE = ($#WHERE_RULES>-1) ? ' WHERE '. join(' AND ', @WHERE_RULES) : '';  
+
+  $self->query($db, "INSERT INTO mdelivery_users (uid, mdelivery_id) SELECT u.uid, $attr->{MDELIVERY_ID} FROM users u
+     LEFT JOIN users_pi pi ON (u.uid=pi.uid)
+     $JOIN_TABLES
+     $WHERE
+     ORDER BY $SORT;");
+
+  return $self;
+}
+
+#**********************************************************
+# 
+# 
+#**********************************************************
+sub user_list_change {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my @WHERE_RULES = ("mdelivery_id='$attr->{MDELIVERY_ID}'");
+
+  if ($attr->{UID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', "uid") };  
+   }
+  elsif ($attr->{ID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', "id") };
+   }
+
+  $WHERE = ($#WHERE_RULES>-1) ? join(' AND ', @WHERE_RULES) : '';
+
+
+  my $status = 1;
+  $self->query($db, "UPDATE mdelivery_users SET status='$status' WHERE $WHERE;", 'do');
+
+  return $self;
+}
+
+
+
+
+#**********************************************************
+# 
+# 
+#**********************************************************
+sub user_list_del {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my @WHERE_RULES = ();
+
+  if ($attr->{UID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', "uid") };  
+   }
+  elsif ($attr->{MDELIVERY_ID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{MDELIVERY_ID}, 'INT', "mdelivery_id") };
+   }
+  elsif ($attr->{ID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', "id") };
+   }
+
+  $WHERE = ($#WHERE_RULES>-1) ? join(' AND ', @WHERE_RULES) : '';
+
+  $self->query($db, "DELETE FROM mdelivery_users WHERE $WHERE;", 'do');
+
+  return $self;
+}
+
+
+
+#**********************************************************
+# 
+# 
+#**********************************************************
+sub user_list {
+  my $self = shift;
+  my ($attr) = @_;
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
+  my @WHERE_RULES = ("u.uid=mdl.uid");
+
+  if ($attr->{MDELIVERY_ID}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{MDELIVERY_ID}, 'INT', "mdl.mdelivery_id") };
+   } 
+
+  if (defined($attr->{STATUS})) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', "mdl.status") };
+   } 
+
+
+  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
+  $self->query($db, "SELECT u.id, pi.fio, mdl.status, mdl.uid, pi.email FROM (mdelivery_users mdl, users u)
+     LEFT JOIN users_pi pi ON (mdl.uid=pi.uid)
+     $WHERE
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+
+  my $list = $self->{list};
+  
+  if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT count(*)
+     FROM mdelivery_users mdl, users u
+     $WHERE;");
+
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+
+
+  return $list;
 }
 
 
@@ -184,8 +345,7 @@ sub list {
   }
 
  if ($attr->{DATE}) {
-    my $value = $self->search_expr($attr->{DATE}, 'INT');
-    push @WHERE_RULES, "md.date$value";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'INT', "md.date") }
   }
 
 
@@ -207,8 +367,7 @@ sub list {
      FROM mdelivery_list md
      LEFT JOIN admins a ON (md.aid=a.aid) $WHERE;");
 
-    my $a_ref = $self->{list}->[0];
-    ($self->{TOTAL}) = @$a_ref;
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
   return $list;
 }
