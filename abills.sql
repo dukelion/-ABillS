@@ -682,13 +682,13 @@ CREATE TABLE `nas_groups` (
   `main_page` VARCHAR(120) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `domain_id` (`domain_id`,`name`)
-) COMMENT='Nas servers groups'; 
+) COMMENT='NAS servers groups'; 
 
 CREATE TABLE `nas_ippools` (
   `pool_id` int(10) unsigned NOT NULL default 0,
   `nas_id` smallint(5) unsigned NOT NULL default '0',
   UNIQUE KEY `nas` (`nas_id`,`pool_id`)
-)  ;
+) COMMENT='NAS IP Pools';
 
 
 CREATE TABLE `netflow_address` (
@@ -1205,5 +1205,7 @@ INSERT INTO `admin_actions` VALUES ('LOGIN:test','2009-08-03 11:42:53',153485476
 
 INSERT INTO `nas` (id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, mng_password, alive) VALUES (1,'NAS Server','','NAS Server','127.0.0.1','mpd5', 0,'127.0.0.1:5005','admin', ENCODE('secretpass','test12345678901234567890'),300);
 INSERT INTO `ippools` ( id, nas, ip, counts, name, priority) VALUES (1,1,167772161,256,'Main',0);
+
+INSERT INTO `nas_ippools` (pool_id, nas_id) VALUES (1,1);
 
 
