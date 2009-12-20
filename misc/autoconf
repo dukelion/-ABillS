@@ -920,6 +920,8 @@ sub other_options {
 	
 	#ntpdate_flags="europe.pool.ntp.org"
   #ntpdate_enable="YES"
+  
+  # named_enable="YES"
 }
 
 1

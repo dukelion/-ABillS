@@ -27,8 +27,12 @@ add 65001 allow tcp from any to me 1723 via %VPN_INTERFACE%
 add 65012 reset log tcp from any to any via %VPN_INTERFACE%
 add 65013 deny log udp from any to any via %VPN_INTERFACE%
 
-#NAT configuration
-add 65010 divert 8668 ip4 from any to any via %EXTERNAL_INTERFACE%
+#NAT configuration with natd
+#add 65010 divert 8668 ip4 from any to any via %EXTERNAL_INTERFACE%
+#NAT FreeBSD > 7.
+nat 123 config ip %EXTERNAL_IP% log
+add 65030 nat 123 ip from %VPN_NET% to any
+add 65040 nat 123 ip from any to %EXTERNAL_IP%
 
 #Extrnal interface Netbios BLOCK
 add 65100 deny udp from any 135-139 to any via %EXTERNAL_INTERFACE% # netbios низя

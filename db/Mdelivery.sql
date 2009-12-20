@@ -12,3 +12,13 @@ CREATE TABLE `mdelivery_list` (
   `status` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) COMMENT='Mdelivery list';
+
+CREATE TABLE `mdelivery_users` (
+  `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `mdelivery_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `status` TINYINT(1) UNSIGNED NOT NULL default '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `mdelivery_id` (`mdelivery_id`, `uid`)
+) COMMENT='Mdelivery users';
