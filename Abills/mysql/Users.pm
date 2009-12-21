@@ -701,11 +701,11 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{CONTRACT_DATE}", 'INT', 'pi.contract_date', { EXT_FIELD => 1 }) };
   }
 
- if (defined($admin->{DOMAIN_ID})) {
- 	 push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 1 }) };
-  }
- elsif ($attr->{DOMAIN_ID}) {
+ if ($attr->{DOMAIN_ID}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 1 }) };
+  }
+ elsif (defined($admin->{DOMAIN_ID})) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 1 }) };
   }
 
 
