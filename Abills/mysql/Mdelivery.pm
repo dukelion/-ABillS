@@ -26,7 +26,8 @@ my $uid;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
-  
+
+  $admin->{MODULE}='Mdelivery';  
   my $self = { };
   bless($self, $class);
   
@@ -148,9 +149,6 @@ sub add {
   my $self = shift;
   my ($attr) = @_;
 
-
-
-
   my $DATA = defaults();
   %DATA = $self->get_data($attr, { default => $DATA });
 
@@ -163,8 +161,12 @@ sub add {
      '$DATA{UID}',
      '$DATA{GID}',
      '$DATA{PRIORITY}');", 'do');
+   
+  $self->{MDELIVERY_ID}=$self->{INSERT_ID};
 
-    $self->user_list_add({ %$attr, MDELIVERY_ID => $self->{INSERT_ID} });
+  $self->user_list_add({ %$attr, MDELIVERY_ID => $self->{MDELIVERY_ID} });
+
+  $admin->system_action_add("$self->{MDELIVERY_ID}", { TYPE => 1 });
 
   return $self;
 }
@@ -338,6 +340,12 @@ sub list {
   my $self = shift;
   my ($attr) = @_;
 
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
   @WHERE_RULES = ();
   
  if (defined($attr->{STATUS})) {
@@ -372,5 +380,71 @@ sub list {
   return $list;
 }
 
+
+
+#**********************************************************
+#
+#**********************************************************
+sub attachment_add () {
+  my $self = shift;
+  my ($attr) = @_;
+
+ $self->query($db,  "INSERT INTO mdelivery_attachments ".
+        " (message_id, filename, content_type, content_size, content, ".
+        " create_time, create_by, change_time, change_by, message_type) " .
+        " VALUES ".
+        " ('$attr->{MSG_ID}', '$attr->{FILENAME}', '$attr->{CONTENT_TYPE}', '$attr->{FILESIZE}', ?, ".
+        " current_timestamp, '$attr->{UID}', current_timestamp, '0', '$attr->{MESSAGE_TYPE}')", 
+        'do', { Bind => [ $attr->{CONTENT}  ] } );
+        
+        
+
+  return $self;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub attachment_info () {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my $WHERE  ='';
+  
+  if ($attr->{MSG_ID}) {
+    $WHERE = "message_id='$attr->{MSG_ID}'";
+   }
+  elsif ($attr->{ID}) {
+  	$WHERE = "id='$attr->{ID}'";
+   }
+
+  $self->query($db,  "SELECT id, filename, 
+    content_type, 
+    content_size,
+    content
+   FROM  mdelivery_attachments 
+   WHERE $WHERE" );
+
+
+  if ($self->{TOTAL} < 1) {
+    return $self 
+   }
+  elsif ($self->{TOTAL} == 1) {
+    ($self->{ATTACHMENT_ID},
+     $self->{FILENAME}, 
+     $self->{CONTENT_TYPE},
+     $self->{FILESIZE},
+     $self->{CONTENT}
+    )= @{ $self->{list}->[0] };
+    
+    return $self;
+   }
+  else {
+  	return $self->{list};
+   }
+
+
+}
 
 1

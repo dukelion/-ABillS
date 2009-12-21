@@ -59,7 +59,7 @@ sub cfg2hash {
   my ($cfg, $attr) = @_;
   my %hush = ();
  
-
+  return \%hush if (! $cfg);
   $cfg =~ s/\n//g;
 	my @payments_methods_arr = split(/;/, $cfg);
 
@@ -246,7 +246,6 @@ sub sendmail {
      }	
    }
   
-  
   $message =~ s/#.+//g;
   
   if ($message =~ s/Subject: (.+)//g ) {
@@ -261,7 +260,51 @@ sub sendmail {
 
   
   $to_addresses =~ s/[\n\r]//g;
-  
+
+  if ($attr->{ATTACHMENTS}) {
+  	my $boundary = "_----------=_10167391557129230";
+  	$header .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\n";
+
+$message = qq{
+This is a multi-part message in MIME format. 
+
+--$boundary
+Content-Transfer-Encoding: binary
+Content-Type: text/plain
+
+$message
+};
+
+
+  	
+    foreach my $attachment ( @{ $attr->{ATTACHMENTS} } ) {
+  	  my $data = encode_base64($attachment->{CONTENT});
+  	  $message .=  qq{ 
+
+--$boundary
+Content-Type: $attachment->{CONTENT_TYPE}; name="$attachment->{FILENAME}" 
+Content-Transfer-Encoding: base64 
+Content-Disposition: attachment; filename="$attachment->{FILENAME}" 
+
+$data  	  
+}
+ 	
+    }
+
+#$message .=  qq{ 
+#
+#--$boundary
+#
+#.
+#};
+
+  }
+
+
+
+
+#$attr->{TEST}=1;
+ 
   my @emails_arr = split(/;/, $to_addresses);
   foreach my $to (@emails_arr) {
     if ($attr->{TEST}) {

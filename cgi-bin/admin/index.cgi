@@ -5213,7 +5213,22 @@ sub form_sendmail {
  $user->{FROM} = $FORM{FROM} || $conf{ADMIN_MAIL};
 
  if ($FORM{sent}) {
-   sendmail("$user->{FROM}", "$user->{EMAIL}", "$FORM{SUBJECT}", "$FORM{TEXT}", "$conf{MAIL_CHARSET}", "$FORM{PRIORITY} ($MAIL_PRIORITY{$FORM{PRIORITY}})");
+
+   my @ATTACHMENTS = ();
+   for(my $i=1; $i<=2; $i++) {
+       if ($FORM{'FILE_UPLOAD_'. $i}) {
+         push @ATTACHMENTS, {
+           FILENAME      => $FORM{'FILE_UPLOAD_'. $i}{filename},
+           CONTENT_TYPE  => $FORM{'FILE_UPLOAD_'. $i}{'Content-Type'},
+           FILESIZE      => $FORM{'FILE_UPLOAD_'. $i}{Size},
+           CONTENT       => $FORM{'FILE_UPLOAD_'. $i}{Contents},
+          };
+        }
+    }
+
+   sendmail("$user->{FROM}", "$user->{EMAIL}", "$FORM{SUBJECT}", "$FORM{TEXT}", 
+     "$conf{MAIL_CHARSET}", "$FORM{PRIORITY} ($MAIL_PRIORITY{$FORM{PRIORITY}})", 
+     { ATTACHMENTS => ($#ATTACHMENTS > -1) ? \@ATTACHMENTS : undef });
    my $table = $html->table({ width    => '100%',
                               rows     => [ [ "$_USER:",    "$user->{LOGIN}" ],
                                             [ "E-Mail:",    "$user->{EMAIL}" ],

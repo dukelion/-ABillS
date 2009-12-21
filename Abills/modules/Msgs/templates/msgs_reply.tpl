@@ -21,7 +21,8 @@ samechanged('STATE');
 <tr><th colspan='2'><textarea name='REPLY_TEXT' cols='90' rows='11'>%REPLY_TEXT%</textarea></th></tr>
 
 %ATTACHMENT%
-<tr><td>$_ATTACHMENT:</td><td><input name='FILE_UPLOAD' type='file' size='40' class='fixed'>
+<tr><td>$_ATTACHMENT:</td><td><input name='FILE_UPLOAD_1' type='file' size='40' class='fixed'>
+<tr><td>$_ATTACHMENT:</td><td><input name='FILE_UPLOAD_2' type='file' size='40' class='fixed'>
 <!--   <input class='button' type='submit' name='AttachmentUpload' value='$_ADD'>--></td></tr>  
 <tr><td>$_STATUS:</td><td>%STATE_SEL% %RUN_TIME%</td></tr>
 </table>

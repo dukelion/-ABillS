@@ -22,3 +22,19 @@ CREATE TABLE `mdelivery_users` (
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `mdelivery_id` (`mdelivery_id`, `uid`)
 ) COMMENT='Mdelivery users';
+
+
+CREATE TABLE `mdelivery_attachments` (
+   `id` int(11) unsigned NOT NULL auto_increment,
+   `message_id` int(11) unsigned NOT NULL default '0',
+   `filename` varchar(250) default NULL,
+   `content_size` varchar(30) default NULL,
+   `content_type` varchar(250) default NULL,
+   `content` longblob NOT NULL,
+   `create_time` datetime NOT NULL default '0000-00-00 00:00:00',
+   `create_by` int(11) NOT NULL default '0',
+   `change_time` datetime NOT NULL default '0000-00-00 00:00:00',
+   `change_by` int(11) NOT NULL default '0',
+   PRIMARY KEY  (`id`),
+   KEY `article_attachment_article_id` (`message_id`)
+) COMMENT='Mdelivery Attachment table';

@@ -5,7 +5,7 @@
 #traffic Class numbers
 
 CLASSES_NUMS='2 3'
-VERSION=2.1
+VERSION=2.3
 
 
 
@@ -111,8 +111,8 @@ if [ w${NAT_IPS} != w  ] ; then
 FAKE_NET="10.0.0.0/16"
 NAT_TABLE=20
 NAT_FIRST_RULE=20
-NAT_REAL_TO_FAKE_TABLE_NUM=31;
-NAT_FAKE_IP_TABLE_NUM=31;
+NAT_REAL_TO_FAKE_TABLE_NUM=33;
+NAT_FAKE_IP_TABLE_NUM=33;
 
 
 
@@ -124,6 +124,13 @@ for IP in ${NAT_IPS}; do
     ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${FAKE_NET} ` expr ${NAT_FIRST_RULE} + 1 `
   fi;
 done;
+#Second way
+#${IPFW} nat 22 config ip 192.168.72.140 log
+#${IPFW} table 33 add 192.168.72.140 22
+#${IPFW} table 34 add 172.19.0.0/16 22
+#${IPFW} 30 add fwd 192.168.72.1 ip from 192.168.72.140 to any    
+
+
 
 # nat real to fake
 #${IPFW} add 00600 nat tablearg ip from any to table\(21\) in recv ${EXTERNAL_INTERFACE}
@@ -131,14 +138,14 @@ done;
 #${IPFW} add 17000 nat tablearg ip from table\(20\) to not 193.138.244.2 out
 
 if [ w$1 = wstart ]; then
-  ${IPFW} add 10 nat tablearg ip from table\(` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 `\) to any
-  ${IPFW} add 20 nat tablearg ip from any to table\(${NAT_REAL_TO_FAKE_TABLE_NUM}\)
+  ${IPFW} add 60010 nat tablearg ip from table\(` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 `\) to any
+  ${IPFW} add 60020 nat tablearg ip from any to table\(${NAT_REAL_TO_FAKE_TABLE_NUM}\)
   
   if [ w${ISP_GW2} != w ]; then
     ${IPFW} add 30 add fwd ${ISP_GW2} ip from ${NAT_IPS} to any
   fi;
 else if [ w$1 = wstop ]; then
-  ${IPFW} delete 10 20
+  ${IPFW} delete 60010 60020
 fi;
 fi;
 
