@@ -553,7 +553,9 @@ sub dv_user {
         $Dv->{ABON_DATE} = "$Y-$M-$D";
        }
       }
-	  $Dv->{SHEDULE}=$html->button("$_SHEDULE", "UID=$FORM{UID}&shedule=status&index=". ($index+4));
+      
+    $Dv->{NETMASK_COLOR} = ($Dv->{NETMASK} ne '255.255.255.255') ? $_COLORS[0] : $_COLORS[1];
+    $Dv->{SHEDULE}=$html->button("$_SHEDULE", "UID=$FORM{UID}&shedule=status&index=". ($index+4));
 	} 
 
 
