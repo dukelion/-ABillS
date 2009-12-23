@@ -417,3 +417,6 @@ $_ERR_SEARCH_VAL_TOSMALL='Search value to small';
 $ERR_NO_FREE_IP_IN_POOL='No free IPs in pool';
 $_GUEST_ACCOUNT='Guest account';
 $_REQUESTS='Requests';
+
+$_RETURN_TO_START_PAGE="Return to start page";
+$_LOGIN_IN_TO_HOTSPOT="Login to hotspot";
