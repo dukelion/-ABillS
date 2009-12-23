@@ -39,7 +39,7 @@ NETS_TABLE_START_NUM=2
 USER_CLASS_TRAFFIC_NUM=10
 
 
-if [ w$1 = wstart -a w$2 = w -a w${NG_SHAPPER} = w ]; then
+if [ w$1 = wstart -a w$2 = w -a w${NG_SHAPPER} != w ]; then
 
 
 #Load kernel modules
