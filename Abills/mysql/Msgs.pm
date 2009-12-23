@@ -186,7 +186,7 @@ sub messages_list {
    if ($attr->{STATE} == 4) {
    	 push @WHERE_RULES, @{ $self->search_expr('0000-00-00 00:00:00', 'INT', 'm.admin_read') };
     }
-   if ($attr->{STATE} == 7) {
+   elsif ($attr->{STATE} == 7) {
 
     }
    else {

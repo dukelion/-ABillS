@@ -482,7 +482,6 @@ sub msgs_admin {
 
   my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
   
-  
 #    $Msgs->{CHAPTER_NAME}=$html->form_select('CHAPTER', 
 #                                          { 
 # 	                                          SELECTED          => $Msgs->{CHAPTER},
@@ -1078,6 +1077,36 @@ sub msgs_user {
   $LIST_PARAMS{SORT}       = '5 DESC'; # '11, 5 DESC';
   $LIST_PARAMS{INNER_MSG}  = 0;
 
+  $LIST_PARAMS{STATE}=undef if ($FORM{STATE} == 3);
+  $LIST_PARAMS{PRIORITY}=undef if ($FORM{PRIORITY} == 5);
+
+  #$pages_qs .= "&UID=$FORM{UID}" if ($FORM{UID});
+
+  if (! defined($FORM{STATE}) && ! $FORM{ALL_MSGS}) {
+     $FORM{STATE}=0;
+   }
+  
+my $i = 0;
+my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs") : $html->b($_ALL);;
+
+foreach my $name ( @msg_status) {
+	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
+    $LIST_PARAMS{STATE}=$FORM{STATE};
+    $status_bar .= ' :: '. $html->b($name);
+	 }
+	else {
+	  $status_bar .= ' :: ' .$html->button("$name", "index=$index&STATE=$i$pages_qs");
+	 }
+
+  $i++;
+}
+
+  if (defined($FORM{ALL_MSGS})) {
+    $pages_qs.="&ALL_MSGS=1";
+   }
+  else {
+    $pages_qs.="&STATE=$FORM{STATE}";
+   }
   
 
 
@@ -1090,7 +1119,8 @@ sub msgs_user {
                               cols_align   => ['left', 'left', 'left', 'right', 'right', 'left', 'center', 'center'],
                               qs           => $pages_qs,
                               pages        => $Msgs->{TOTAL},
-                              ID           => 'MSGS_LIST'
+                              ID           => 'MSGS_LIST',
+                              header       => $status_bar
                            });
 
 
