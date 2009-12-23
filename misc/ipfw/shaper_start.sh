@@ -5,9 +5,12 @@
 #traffic Class numbers
 
 CLASSES_NUMS='2 3'
-VERSION=2.3
+VERSION=2.4
 
-
+#Enable NG shapper
+NG_SHAPPER=1
+# NAT IP
+NAT_IPS="";
 
 
 IPFW=/sbin/ipfw
@@ -36,7 +39,7 @@ NETS_TABLE_START_NUM=2
 USER_CLASS_TRAFFIC_NUM=10
 
 
-if [ w$1 = wstart -a w$2 = w ]; then
+if [ w$1 = wstart -a w$2 = w -a w${NG_SHAPPER} = w ]; then
 
 
 #Load kernel modules
@@ -103,7 +106,6 @@ fi;
 # options         LIBALIAS
 #if [ w${abills_nat_enable} != w ] ; then
 
-NAT_IPS="";
 ISP_GW2="";
 
 if [ w${NAT_IPS} != w  ] ; then
