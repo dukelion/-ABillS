@@ -322,6 +322,10 @@ sub online {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
+ if ($attr->{DOMAIN_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'u.domain_id') };
+  }
+
 
  if (defined($attr->{FRAMED_IP_ADDRESS})) {
  	 push @WHERE_RULES, "framed_ip_address=INET_ATON('$attr->{FRAMED_IP_ADDRESS}')";

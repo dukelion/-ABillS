@@ -2,7 +2,7 @@
 
 
 use strict;
-use vars qw(%RAD_REQUEST %RAD_REPLY %RAD_CHECK %conf 
+use vars qw(%RAD_REQUEST %RAD_REPLY %RAD_CHECK  %REQUEST %conf 
  $begin_time
  $nas
 );
@@ -51,19 +51,19 @@ sub sql_connect {
   my $db  = $sql->{db};
   #$rc = $dbh->ping;
 
-  $RAD_REQUEST{NAS_IDENTIFIER}='' if (! $RAD_REQUEST{NAS_IDENTIFIER});
+  $REQUEST{NAS_IDENTIFIER}='' if (! $RAD_REQUEST{NAS_IDENTIFIER});
 
-  if (! $NAS_INFO{$RAD_REQUEST{NAS_IP_ADDRESS}.'_'.$RAD_REQUEST{NAS_IDENTIFIER}}) {
+  if (! $NAS_INFO{$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}}) {
     $nas = Nas->new($db, \%conf);
-    if (get_nas_info($db, \%RAD_REQUEST) == 0) {		
-      $NAS_INFO{$RAD_REQUEST{NAS_IP_ADDRESS}.'_'.$RAD_REQUEST{NAS_IDENTIFIER}}=$nas;
+    if (get_nas_info($db, \%REQUEST) == 0) {		
+      $NAS_INFO{$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}}=$nas;
      }
     else {
     	return; 
      }
    }
   else {
-  	$nas = $NAS_INFO{$RAD_REQUEST{NAS_IP_ADDRESS}.'_'.$RAD_REQUEST{NAS_IDENTIFIER}};
+  	$nas = $NAS_INFO{$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}};
    }
   
   return $db;
@@ -77,12 +77,12 @@ sub authorize {
   $begin_time = check_time();
 
   convert_radpairs();
-
   my $db = sql_connect();
   
+  
   if ( $db ) {
-  	if (auth($db, \%RAD_REQUEST, $nas, { pre_auth => 1 }) == 0) {
-      if ( auth($db, \%RAD_REQUEST, $nas) == 0 ) {
+  	if (auth($db, \%REQUEST, $nas, { pre_auth => 1 }) == 0) {
+      if ( auth($db, \%REQUEST, $nas) == 0 ) {
          #$RAD_CHECK{'User-Password'} = 'test12345';
     	   return RLM_MODULE_OK;
        }
@@ -98,12 +98,13 @@ sub authorize {
 #**********************************************************
 sub authenticate {
   $begin_time = check_time();
-  convert_radpairs();
 
+  convert_radpairs();
   my $db = sql_connect();
   
+  
   if ( $db ) {
-    if ( auth($db, \%RAD_REQUEST, $nas) == 0 ) {
+    if ( auth($db, \%REQUEST, $nas) == 0 ) {
     	return RLM_MODULE_OK;
      }
    }
@@ -120,25 +121,12 @@ sub authenticate {
 #**********************************************************
 sub accounting {
   $begin_time = check_time();
+
   convert_radpairs();
-
   my $db = sql_connect();
+
   if ( $db ) {
-#  	 my $rrr = '';
-#  	 while(my($k, $v) = each %RAD_REQUEST) {
-#  	 	  $rrr .= "$k , $v \n";
-#  	 	  if ($k eq 'MPD_INPUT_OCTETS') {
-#  	 	  	foreach my $l (@{ $v }) {
-#  	 	  		 $rrr .= "--- $l";
-#  	 	  	 }
-#  	 	   }
-#  	   }
-#  	 
-#  	 reset %RAD_REQUEST;
-
-
-#  	 my $zz = `echo "$rrr" >> /tmp/test_rlm`;
-     my $ret = acct($db, \%RAD_REQUEST, $nas);
+    my $ret = acct($db, \%REQUEST, $nas);
    }
 
 	return RLM_MODULE_OK;
@@ -149,14 +137,15 @@ sub accounting {
 # 
 #**********************************************************
 sub convert_radpairs {
-	my %r = ();
+	%REQUEST = ();
 
 	while(my($k, $v)=each %RAD_REQUEST) {
 		$k =~ s/-/_/g;
 		$k =~ tr/[a-z]/[A-Z]/;
-		$r{$k}=$v;
+		$REQUEST{$k}=$v;
 	 }
-  %RAD_REQUEST = %r;
+
+  #return \%REQUEST;
 }
 
 

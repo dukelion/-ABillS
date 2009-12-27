@@ -38,10 +38,12 @@ NETS_TABLE_START_NUM=2
 #First Class traffic users
 USER_CLASS_TRAFFIC_NUM=10
 
+echo -n $1
 
 if [ w$1 = wstart -a w$2 = w -a w${NG_SHAPPER} != w ]; then
 
 
+echo -n "ng_car shapper"
 #Load kernel modules
 kldload ng_ether
 kldload ng_car
@@ -80,6 +82,9 @@ done;
   ${IPFW}  add 10015 allow ip from any to any via ng*
 #done
 else if [ w$1 = wstop -a w$2 = w ]; then
+
+  echo -n "ng_car shapper" 
+
   for num in ${CLASSES_NUMS}; do
     ${IPFW} delete ` expr 9100 + ${num} \* 10 + 5 ` ` expr 9100 + ${num} \* 10 `  ` expr 9000 + ${num} \* 10 ` ` expr 10100 + ${num} \* 10 ` ` expr 9000 + ${num} \* 10 + 5 ` ` expr 10100 + ${num} \* 10 + 5 ` 
   done;
@@ -110,6 +115,7 @@ ISP_GW2="";
 
 if [ w${NAT_IPS} != w  ] ; then
 
+echo -n "NAT"
 FAKE_NET="10.0.0.0/16"
 NAT_TABLE=20
 NAT_FIRST_RULE=20

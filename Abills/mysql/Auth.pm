@@ -809,9 +809,11 @@ sub Auth_CID {
       my $counter=0;
 
       for(my $i=0; $i<=5; $i++) {
-      	#print "$MAC_DIGITS_NEED[$i]) == hex($MAC_DIGITS_GET[$i]\n";
-      	
-         if(hex($MAC_DIGITS_NEED[$i]) == hex($MAC_DIGITS_GET[$i])) {
+      	 if (! defined($MAC_DIGITS_NEED[$i])) {
+           $RAD_PAIRS->{'Reply-Message'}="Wrong CID '$RAD->{CALLING_STATION_ID}'";
+           return 1, $RAD_PAIRS;
+      	 	}
+         elsif(hex($MAC_DIGITS_NEED[$i]) == hex($MAC_DIGITS_GET[$i])) {
 	         $counter++;
           }
         }
@@ -1586,12 +1588,13 @@ if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
   if ($self->{TOTAL} > 0) {
   	my $list = $self->{list}->[0];
     my $password = $list->[0];
-    $self->{'RAD_CHECK'}{'User-Password'}="$password";
     if ($CONF->{RADIUS2}) {
        print "Cleartext-Password := \"$password\"";
+       $self->{'RAD_CHECK'}{'Cleartext-Password'}="$password";
      }
     else {
        print "User-Password == \"$password\"";
+       $self->{'RAD_CHECK'}{'User-Password'}="$password";
      }
     return 0;
    }
