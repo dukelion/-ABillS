@@ -289,14 +289,14 @@ sub online {
  
  my @WHERE_RULES = ();
  
- if (defined($attr->{ZAPED})) {
+ if ($attr->{ZAPED}) {
  	 push @WHERE_RULES, "c.status=2";
   }
  elsif ($attr->{ALL}) {
 
   }
  else {
-   push @WHERE_RULES, "(c.status=1 or c.status>=3)";
+   push @WHERE_RULES, "((c.status=1 or c.status>=3) AND c.status<10)";
   } 
  
  if (defined($attr->{USER_NAME})) {
@@ -375,7 +375,7 @@ sub online {
    dv.tp_id
    
  FROM dv_calls c
- LEFT JOIN users u     ON (u.id=c.uid)
+ LEFT JOIN users u     ON (u.uid=c.uid)
  LEFT JOIN dv_main dv  ON (dv.uid=u.uid)
  LEFT JOIN users_pi pi ON (pi.uid=u.uid)
 
@@ -1132,10 +1132,7 @@ elsif (defined($attr->{PERIOD}) ) {
 elsif($attr->{DATE}) {
 	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
 }
-#else {
-#	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')=curdate()";
-#}
-#From To
+
 
 
  push @WHERE_RULES, "u.uid=l.uid";
@@ -1328,9 +1325,6 @@ sub reports {
    elsif ($attr->{TYPE} eq 'GID') {
          $date = "u.gid"
     }
-#   elsif ($attr->{GID} eq 'GID') {
-#   	 $date = "u.gid"
-#    }
    else {
      $date = "u.id";   	
     }  

@@ -61,9 +61,6 @@ sub accounting {
 
  $RAD->{ACCT_INPUT_GIGAWORDS}  = 0 if (! $RAD->{ACCT_INPUT_GIGAWORDS});
  $RAD->{ACCT_OUTPUT_GIGAWORDS} = 0 if (! $RAD->{ACCT_OUTPUT_GIGAWORDS});
-
-#   print "aaa $acct_status_type '$RAD->{ACCT_STATUS_TYPE}'  /$RAD->{SESSION_START}/"; 
-#my $a=`echo "test $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}}"  >> /tmp/12211 `;
  
  $RAD->{FRAMED_IP_ADDRESS} = '0.0.0.0' if(! defined($RAD->{FRAMED_IP_ADDRESS}));
 
@@ -77,7 +74,7 @@ if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
 }  
 
 #Start
-if ($acct_status_type == 1) { 
+if ($acct_status_type == 1) {
   $self->query($db, "SELECT count(user_name) FROM dv_calls 
     WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
     
@@ -111,6 +108,10 @@ if ($acct_status_type == 1) {
      }
 
     # 
+    $self->query($db, "DELETE FROM dv_calls WHERE nas_id='$NAS->{NAS_ID}' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}');", 'do');
+
+    my $a = `echo "DELETE FROM dv_calls WHERE nas_id='$NAS->{NAS_ID}' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'); // $self->{UID}" >> /tmp/nnnn`;
+
     my $sql = "INSERT INTO dv_calls
      (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
       acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id, tp_id,
@@ -129,6 +130,9 @@ if ($acct_status_type == 1) {
       '$self->{TP_ID}', '$self->{UID}',
       '$self->{JOIN_SERVICE}');";
     $self->query($db, "$sql", 'do');
+
+    
+
   }
  }
 # Stop status
@@ -445,10 +449,6 @@ sub rt_billing {
    ) = @{ $self->{list}->[0] };
 
   # Giga word check  
-
-  #if ($RAD->{INTERIUM_INBYTE} == -1) {
-  #	 return 0;
-  # }
   
   my $Billing = Billing->new($db, $conf);	
 

@@ -46,9 +46,7 @@ sub new {
   	}
   
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
-
   $Billing = Billing->new($db, $CONF);
-
 
   return $self;
 }
@@ -133,37 +131,37 @@ sub dv_auth {
     $RAD_PAIRS->{'Reply-Message'}="Service not allow";
     return 1, $RAD_PAIRS;
    }
-
+  $self->{USER_NAME}=$RAD->{USER_NAME};
   ($self->{LOGINS}, 
-     $self->{FILTER}, 
-     $self->{IP}, 
-     $self->{NETMASK}, 
-     $self->{TP_NUM}, 
-     $self->{USER_SPEED}, 
-     $self->{CID},
-     $self->{TOTAL_TIME_LIMIT}, $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT}, $self->{TIME_LIMIT},
-     $self->{TOTAL_TRAF_LIMIT}, $self->{DAY_TRAF_LIMIT},  $self->{WEEK_TRAF_LIMIT},   $self->{MONTH_TRAF_LIMIT}, $self->{OCTETS_DIRECTION},
-     $self->{NAS}, 
-     $self->{SESSION_START}, 
-     $self->{DAY_BEGIN}, 
-     $self->{DAY_OF_WEEK}, 
-     $self->{DAY_OF_YEAR},
-     $self->{DISABLE},
-     $self->{MAX_SESSION_DURATION},
-     $self->{PAYMENT_TYPE},
-     $self->{CREDIT_TRESSHOLD},
-     $self->{TP_RAD_PAIRS},
-     $self->{INTERVALS},
-     $self->{ACCOUNT_AGE},
-     $self->{CALLBACK},
-     $self->{PORT},
-     $self->{TRAFFIC_TRANSFER_PERIOD},
-     $self->{NEG_DEPOSIT_FILTER_ID},
-     $self->{EXT_BILL_ACCOUNT},
-     $self->{TP_CREDIT},
-     $self->{TP_IPPOOL},
-     $self->{JOIN_SERVICE},
-     $self->{TP_ID}
+   $self->{FILTER}, 
+   $self->{IP}, 
+   $self->{NETMASK}, 
+   $self->{TP_NUM}, 
+   $self->{USER_SPEED}, 
+   $self->{CID},
+   $self->{TOTAL_TIME_LIMIT}, $self->{DAY_TIME_LIMIT},  $self->{WEEK_TIME_LIMIT},   $self->{MONTH_TIME_LIMIT}, $self->{TIME_LIMIT},
+   $self->{TOTAL_TRAF_LIMIT}, $self->{DAY_TRAF_LIMIT},  $self->{WEEK_TRAF_LIMIT},   $self->{MONTH_TRAF_LIMIT}, $self->{OCTETS_DIRECTION},
+   $self->{NAS}, 
+   $self->{SESSION_START}, 
+   $self->{DAY_BEGIN}, 
+   $self->{DAY_OF_WEEK}, 
+   $self->{DAY_OF_YEAR},
+   $self->{DISABLE},
+   $self->{MAX_SESSION_DURATION},
+   $self->{PAYMENT_TYPE},
+   $self->{CREDIT_TRESSHOLD},
+   $self->{TP_RAD_PAIRS},
+   $self->{INTERVALS},
+   $self->{ACCOUNT_AGE},
+   $self->{CALLBACK},
+   $self->{PORT},
+   $self->{TRAFFIC_TRANSFER_PERIOD},
+   $self->{NEG_DEPOSIT_FILTER_ID},
+   $self->{EXT_BILL_ACCOUNT},
+   $self->{TP_CREDIT},
+   $self->{TP_IPPOOL},
+   $self->{JOIN_SERVICE},
+   $self->{TP_ID}
     ) = @{ $self->{list}->[0] };
 
 #DIsable
@@ -324,8 +322,7 @@ my $ATTR;
 if ($self->{PAYMENT_TYPE} == 0) {
   #if not defined user credit use TP credit
   $self->{CREDIT} = $self->{TP_CREDIT} if ($self->{CREDIT} == 0 && ! $CONF->{user_credit_change});
- 
-  
+
   $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
 
   #Check EXT_BILL_ACCOUNT
@@ -340,7 +337,6 @@ if ($self->{PAYMENT_TYPE} == 0) {
     #Filtering with negative deposit
     if ($self->{NEG_DEPOSIT_FILTER_ID}) {
       return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
-      #return 1, $RAD_PAIRS;
      }
     else {
     	return 1, $RAD_PAIRS;
@@ -444,7 +440,6 @@ foreach my $line (@periods) {
           push (@time_limits, $session_time_limit) if ($self->{$line . '_TIME_LIMIT'} > 0);
          }
 
-        #print "$line / $traf_limit / $session_traf_limit". "------\n";
         if ($traf_limit > $session_traf_limit && $self->{$line . '_TRAF_LIMIT'} > 0) {
       	  $traf_limit = $session_traf_limit;
          }
@@ -456,8 +451,6 @@ foreach my $line (@periods) {
 
       }
 }
-
-
 
 #set time limit
  for(my $i=0; $i<=$#time_limits; $i++) {
@@ -508,78 +501,8 @@ foreach my $line (@periods) {
 
 ####################################################################
 # Vendor specific return
-
-# ExPPP
-if ($NAS->{NAS_TYPE} eq 'exppp') {
-  #$traf_tarif 
-  my $EX_PARAMS = $self->ex_traffic_params({ 
-  	                                        traf_limit => $traf_limit, 
-                                            deposit    => $self->{DEPOSIT},
-                                            MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
-
-  #global Traffic
-  if ($EX_PARAMS->{traf_limit} > 0) {
-    $RAD_PAIRS->{'Exppp-Traffic-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE});
-   }
-
-  #Local traffic
-  if ($EX_PARAMS->{traf_limit_lo} > 0) {
-    $RAD_PAIRS->{'Exppp-LocalTraffic-Limit'} = int($EX_PARAMS->{traf_limit_lo} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE});
-   }
-       
-  #Local ip tables
-  if ($EX_PARAMS->{nets}) {
-    $RAD_PAIRS->{'Exppp-Local-IP-Table'} = (defined($CONF->{DV_EXPPP_NETFILES})) ? "$CONF->{DV_EXPPP_NETFILES}$self->{TT_INTERVAL}.nets" : "$self->{TT_INTERVAL}.nets";
-   }
-
-=comments
-        print "Exppp-Traffic-In-Limit = $trafic_inlimit,";
-        print "Exppp-Traffic-Out-Limit = $trafic_outlimit,";
-        print "Exppp-LocalTraffic-In-Limit = $trafic_lo_inlimit,";
-        print "Exppp-LocalTraffic-Out-Limit = $trafic_lo_outlimit,";
-=cut
- }
-# Mikrotik (http://www.mikrotik.com)
-elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
-  #$traf_tarif 
-  my $EX_PARAMS = $self->ex_traffic_params( { 
-  	                                        traf_limit => $traf_limit, 
-                                            deposit    => $self->{DEPOSIT},
-                                            MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
-
-  #global Traffic
-  if ($EX_PARAMS->{traf_limit} > 0) {
-    #Gigaword limit  	
-  	if ($EX_PARAMS->{traf_limit} > 4096) {
-  		
-  		my $giga_limit = $EX_PARAMS->{traf_limit} / 4096;
-  		
-  		$RAD_PAIRS->{'Mikrotik-Recv-Limit-Gigawords'}=int($giga_limit);
-  		$RAD_PAIRS->{'Mikrotik-Xmit-Limit-Gigawords'}=int($giga_limit);
-  		$EX_PARAMS->{traf_limit} = $EX_PARAMS->{traf_limit} - int($giga_limit) * 4096;
-  	 }
-  	
-    $RAD_PAIRS->{'Mikrotik-Recv-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
-    $RAD_PAIRS->{'Mikrotik-Xmit-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
-   }
-
-#Shaper
-  if ($self->{USER_SPEED} > 0) {
-    $RAD_PAIRS->{'Mikrotik-Rate-Limit'} = "$self->{USER_SPEED}k";
-   }
-  elsif (defined($EX_PARAMS->{speed}->{0})) {
-    $RAD_PAIRS->{'Ascend-Xmit-Rate'} = int($EX_PARAMS->{speed}->{0}->{IN}) * $CONF->{KBYTE_SIZE};
-    $RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT})* $CONF->{KBYTE_SIZE};
-   }
- }
-# Cisco Shaper
-#
-# lcp:interface-config#1=rate-limit input 256000 7500 7500 
-#  conform-action continue 
-#   exceed-action drop
-######################
-# MPD
-elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
+#MPD5
+if ($NAS->{NAS_TYPE} eq 'mpd5') {
   
   if (! $CONF->{mpd_filters}) {
   	
@@ -641,23 +564,65 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd5') {
 	
 	#$RAD_PAIRS->{'Session-Timeout'}=604800;
  }
-elsif ($NAS->{NAS_TYPE} eq 'mpd4' && $RAD_PAIRS->{'Session-Timeout'} > 604800) {
-	$RAD_PAIRS->{'Session-Timeout'}=604800;
- }
-elsif ($NAS->{NAS_TYPE} eq 'mpd') {
+# ExPPP
+if ($NAS->{NAS_TYPE} eq 'exppp') {
+  #$traf_tarif 
   my $EX_PARAMS = $self->ex_traffic_params({ 
-  	                                        traf_limit          => $traf_limit, 
-                                            deposit             => $self->{DEPOSIT},
+  	                                        traf_limit => $traf_limit, 
+                                            deposit    => $self->{DEPOSIT},
                                             MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
 
   #global Traffic
   if ($EX_PARAMS->{traf_limit} > 0) {
     $RAD_PAIRS->{'Exppp-Traffic-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE});
    }
-  # MPD have some problem with long time out value max timeout set to 7 days
-  if ($RAD_PAIRS->{'Session-Timeout'} > 604800)    {
-  	 $RAD_PAIRS->{'Session-Timeout'}=604800;
+
+  #Local traffic
+  if ($EX_PARAMS->{traf_limit_lo} > 0) {
+    $RAD_PAIRS->{'Exppp-LocalTraffic-Limit'} = int($EX_PARAMS->{traf_limit_lo} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE});
    }
+       
+  #Local ip tables
+  if ($EX_PARAMS->{nets}) {
+    $RAD_PAIRS->{'Exppp-Local-IP-Table'} = (defined($CONF->{DV_EXPPP_NETFILES})) ? "$CONF->{DV_EXPPP_NETFILES}$self->{TT_INTERVAL}.nets" : "$self->{TT_INTERVAL}.nets";
+   }
+ }
+# Mikrotik
+elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
+  #$traf_tarif 
+  my $EX_PARAMS = $self->ex_traffic_params( { 
+  	                                        traf_limit => $traf_limit, 
+                                            deposit    => $self->{DEPOSIT},
+                                            MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
+
+  #global Traffic
+  if ($EX_PARAMS->{traf_limit} > 0) {
+    #Gigaword limit  	
+  	if ($EX_PARAMS->{traf_limit} > 4096) {
+  		
+  		my $giga_limit = $EX_PARAMS->{traf_limit} / 4096;
+  		
+  		$RAD_PAIRS->{'Mikrotik-Recv-Limit-Gigawords'}=int($giga_limit);
+  		$RAD_PAIRS->{'Mikrotik-Xmit-Limit-Gigawords'}=int($giga_limit);
+  		$EX_PARAMS->{traf_limit} = $EX_PARAMS->{traf_limit} - int($giga_limit) * 4096;
+  	 }
+  	
+    $RAD_PAIRS->{'Mikrotik-Recv-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
+    $RAD_PAIRS->{'Mikrotik-Xmit-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
+   }
+
+  #Shaper
+  if ($self->{USER_SPEED} > 0) {
+    $RAD_PAIRS->{'Mikrotik-Rate-Limit'} = "$self->{USER_SPEED}k";
+   }
+  elsif (defined($EX_PARAMS->{speed}->{0})) {
+    $RAD_PAIRS->{'Ascend-Xmit-Rate'} = int($EX_PARAMS->{speed}->{0}->{IN}) * $CONF->{KBYTE_SIZE};
+    $RAD_PAIRS->{'Ascend-Data-Rate'} = int($EX_PARAMS->{speed}->{0}->{OUT})* $CONF->{KBYTE_SIZE};
+   }
+ }
+# MPD4
+elsif ($NAS->{NAS_TYPE} eq 'mpd4' && $RAD_PAIRS->{'Session-Timeout'} > 604800) {
+	$RAD_PAIRS->{'Session-Timeout'}=604800;
  }
 ###########################################################
 # pppd + RADIUS plugin (Linux) http://samba.org/ppp/
@@ -699,7 +664,7 @@ elsif ($NAS->{NAS_TYPE} eq 'pppd' or ($NAS->{NAS_TYPE} eq 'lepppd')) {
     $RAD_PAIRS->{'PPPD-Upstream-Speed-Limit'} = int($EX_PARAMS->{speed}->{0}->{IN}); 
    }
  }
-#Chillispot www.chillispot.org
+#Chillispot
 elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
 	
 	my $EX_PARAMS = $self->ex_traffic_params({ traf_limit          => $traf_limit, 
@@ -737,8 +702,7 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
      WHERE uid='$self->{UID}';", 'do');
  }
 
-#chack TP Radius Pairs
-
+#check TP Radius Pairs
   if ($self->{TP_RAD_PAIRS}) {
     $self->{TP_RAD_PAIRS} =~ s/\r|\n//g;
     my @p = split(/,/, $self->{TP_RAD_PAIRS});
@@ -757,17 +721,15 @@ if( $self->{ACCOUNT_AGE} > 0 && $self->{ACCOUNT_ACTIVATE} eq '0000-00-00') {
            delete $RAD_PAIRS->{"$left"};
    	      }
    	     else {
-   	     	 #next if (! $self->{"$left"});
    	       $RAD_PAIRS->{"$left"}="$right";
    	      }
        }
      }
    }
 
-#OK
+  #OK
   return 0, $RAD_PAIRS, '';
 }
-	
 
 
 #*********************************************************
@@ -787,7 +749,6 @@ sub Auth_CID {
    }
  
  	my @CID_POOL = split(/;/, $self->{CID});
-
 
   foreach my $TEMP_CID (@CID_POOL) { if ($TEMP_CID ne '') {
 
@@ -841,7 +802,6 @@ sub Auth_CID {
 
    $RAD_PAIRS->{'Reply-Message'}="Wrong CID '$RAD->{CALLING_STATION_ID}'";
    return 1, $RAD_PAIRS;
-
 }
 
 
@@ -934,20 +894,20 @@ sub authentication {
    }
 
   ($self->{UID}, 
-     $self->{PASSWD}, 
-     $self->{SESSION_START}, 
-     $self->{DAY_BEGIN}, 
-     $self->{DAY_OF_WEEK}, 
-     $self->{DAY_OF_YEAR},
-     $self->{COMPANY_ID},
-     $self->{DISABLE},
-     $self->{BILL_ID},
-     $self->{CREDIT},
-     $self->{ACCOUNT_ACTIVATE},
-     $self->{REDUCTION},
-     $self->{EXT_BILL_ID},
-     $self->{ACC_EXPIRE}
-    ) = @{ $self->{list}->[0] };
+   $self->{PASSWD}, 
+   $self->{SESSION_START}, 
+   $self->{DAY_BEGIN}, 
+   $self->{DAY_OF_WEEK}, 
+   $self->{DAY_OF_YEAR},
+   $self->{COMPANY_ID},
+   $self->{DISABLE},
+   $self->{BILL_ID},
+   $self->{CREDIT},
+   $self->{ACCOUNT_ACTIVATE},
+   $self->{REDUCTION},
+   $self->{EXT_BILL_ID},
+   $self->{ACC_EXPIRE}
+   ) = @{ $self->{list}->[0] };
 
 
 #Auth chap
@@ -962,60 +922,9 @@ elsif (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})) {
  }
 #Auth MS-CHAP v1,v2
 elsif(defined($RAD->{MS_CHAP_CHALLENGE})) {
-#  # Its an MS-CHAP V2 request
-#  # See draft-ietf-radius-ms-vsa-01.txt,
-#  # draft-ietf-pppext-mschap-v2-00.txt, RFC 2548, RFC3079
-#  $RAD->{MS_CHAP_CHALLENGE} =~ s/^0x//;
-#  my $challenge = pack("H*", $RAD->{MS_CHAP_CHALLENGE});
-#  my ($usersessionkey, $lanmansessionkey, $ms_chap2_success);
-#
-#  if (defined($RAD->{MS_CHAP2_RESPONSE})) {
-#     $RAD->{MS_CHAP2_RESPONSE} =~ s/^0x//; 
-#     my $rad_response = pack("H*", $RAD->{MS_CHAP2_RESPONSE});
-#     my ($ident, $flags, $peerchallenge, $reserved, $response) = unpack('C C a16 a8 a24', $rad_response);
-#
-#
-#     if (check_mschapv2(($RAD_PAIRS{'Callback-Number'}) ? "$RAD_PAIRS{'Callback-Number'}:$RAD->{USER_NAME}" : $RAD->{USER_NAME},
-#       $self->{PASSWD}, $challenge, $peerchallenge, $response, $ident,
-# 	     \$usersessionkey, \$lanmansessionkey, \$ms_chap2_success) == 1) {
-#         $RAD_PAIRS{'MS-CHAP-Error'}="\"Wrong MS-CHAP2 password\"";
-#         $RAD_PAIRS{'Reply-Message'}=$RAD_PAIRS{'MS-CHAP-Error'};
-#         return 1, \%RAD_PAIRS;
-#	    }
-#
-#     $RAD_PAIRS{'MS-CHAP2-SUCCESS'} = '0x' . bin2hex($ms_chap2_success);
-#     my ($send, $recv) = Radius::MSCHAP::mppeGetKeys($usersessionkey, $response, 16);
-#
-#
-## MPPE Sent/Recv Key Not realizet now.
-##        print "\n--\n'$usersessionkey'\n'$response'\n'$send'\n'$recv'\n--\n";
-##        $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex( substr(encode_mppe_key($send, $radsecret, $challenge), 0, 16));
-##	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex( substr(encode_mppe_key($recv, $radsecret, $challenge), 0, 16));
-#
-##        my $radsecret = 'test';
-##         $RAD_PAIRS{'MS-MPPE-Send-Key'}="0x".bin2hex(encode_mppe_key($send, $radsecret, $challenge));
-##	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}="0x".bin2hex(encode_mppe_key($recv, $radsecret, $challenge));
-##        $RAD_PAIRS{'MS-MPPE-Send-Key'}='0x4f835a2babe6f2600a731fd89ef25a38';
-##	       $RAD_PAIRS{'MS-MPPE-Recv-Key'}='0x27ac8322247937ad3010161f1d5bbe5c';
-#	       
-#        }
-#       else {
-#         my $message;
-#  
-#         if (check_mschap("$self->{PASSWD}", "$RAD->{MS_CHAP_CHALLENGE}", "$RAD->{MS_CHAP_RESPONSE}", 
-#	           \$usersessionkey, \$lanmansessionkey, \$message) == 0) {
-#           $message = "Wrong MS-CHAP password";
-#           $RAD_PAIRS{'MS-CHAP-Error'}="\"$message\"";
-#           $RAD_PAIRS{'Reply-Message'}=$message;
-#           return 1, \%RAD_PAIRS;
-#          }
-#        }
-#       # 1      Encryption-Allowed 
-#       # 2      Encryption-Required 
-#       $RAD_PAIRS{'MS-MPPE-Encryption-Policy'} = '0x00000001';
-#       $RAD_PAIRS{'MS-MPPE-Encryption-Types'} = '0x00000006';      
+     
  }
-##End MSchap auth
+#End MS-CHAP auth
 elsif($NAS->{NAS_AUTH_TYPE} == 1) {
   if (check_systemauth("$RAD->{USER_NAME}", "$RAD->{USER_PASSWORD}") == 0) { 
     $RAD_PAIRS{'Reply-Message'}="Wrong password '$RAD->{USER_PASSWORD}' $NAS->{NAS_AUTH_TYPE}";
@@ -1031,15 +940,11 @@ else {
    }
 }
 
-
-
 if ($RAD->{CISCO_AVPAIR}) {
   if ($RAD->{CISCO_AVPAIR} =~ /client-mac-address=(\S+)/) {
     $RAD->{CALLING_STATION_ID}=$1;
   }
 }
-
-
 
 #DIsable
 if ($self->{DISABLE}) {
@@ -1053,7 +958,6 @@ if($self->{errno}) {
   $RAD_PAIRS{'Reply-Message'}=$self->{errstr};
   return 1, \%RAD_PAIRS;
  }
-
 
 
 $self->check_bill_account();
@@ -1096,7 +1000,7 @@ sub check_bill_account() {
   	 } 
    }
   else {
-#get sum from bill account
+  #get sum from bill account
     $self->query($db, "SELECT ROUND(deposit, 2) FROM bills WHERE id='$self->{BILL_ID}';");
     if($self->{errno}) {
       return $self;
@@ -1139,10 +1043,8 @@ sub check_company_account () {
    $self->{DISABLE},
    $self->{COMPANY_CREDIT}
     ) = @{ $self->{list}->[0]  };
-
   
   $self->{CREDIT}=$self->{COMPANY_CREDIT} if ($self->{CREDIT} == 0);
-
 
   return $self;
 }
@@ -1190,11 +1092,7 @@ sub ex_traffic_params {
      $EX_PARAMS{speed}{$line->[0]}{OUT}= $line->[5];
      $expr{$line->[0]}=$line->[7] if (length($line->[7]) > 5);
      $EX_PARAMS{nets} = 1 if ($line->[6] > 0);
-#     $nets+=$line->[6] if (defined($line->[6]));
     }
-
-#   $EX_PARAMS{nets}=$nets if ($nets > 0);
-   #$EX_PARAMS{speed}=int($speeds{0}) if (defined($speeds{0}));
 
 #Get tarfic limit if prepaid > 0 or
 # expresion exist
@@ -1222,13 +1120,10 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
    }   
 
   if ($self->{TRAFFIC_TRANSFER_PERIOD}) {
-    #$prepaids{0} = $prepaids{0} * $self->{TRAFFIC_TRANSFER_PERIOD} ;
-    #$prepaids{1} = $prepaids{1} * $self->{TRAFFIC_TRANSFER_PERIOD} ;
     my $interval = undef;
   	if ($self->{ACCOUNT_ACTIVATE} ne '0000-00-00') {
       $interval = "(DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACCOUNT_ACTIVATE}' - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} * 30 DAY && 
        DATE_FORMAT(start, '%Y-%m-%d')<='$self->{ACCOUNT_ACTIVATE}')";
-
   	 }
     else {
     	$interval = "(DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate() - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} MONTH, '%Y-%m') AND 
@@ -1242,9 +1137,7 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
                                                  TP_ID    => $self->{TP_ID},
                                                  TP_NUM   => $self->{TP_NUM},
                                                });
-                                           
-     
- #     print $prepaids{0}."\n";
+
     if ($Billing->{TOTAL} > 0) {
       if($self->{OCTETS_DIRECTION} == 1) {
  	      $prepaids{0} += $prepaids{0} * $self->{TRAFFIC_TRANSFER_PERIOD} - $transfer_traffic->{TRAFFIC_IN} if ( $prepaids{0} > $transfer_traffic->{TRAFFIC_IN} );
@@ -1262,17 +1155,12 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
      }
    }
 
-  #print $prepaids{0}."\n";
-
   if ($self->{TOTAL} == 0) {
     $trafic_limits{0}=$prepaids{0} || 0;
     $trafic_limits{1}=$prepaids{1} || 0;
    }
   else {
-    #my $used = $self->{list}->[0];
     #Check global traffic
-   
-
     if ($used_traffic->{TRAFFIC_COUNTER} < $prepaids{0}) {
       $trafic_limits{0}=$prepaids{0} - $used_traffic->{TRAFFIC_COUNTER};
      }
@@ -1307,20 +1195,20 @@ if ((defined($prepaids{0}) && $prepaids{0} > 0 ) || (defined($prepaids{1}) && $p
   	                                                        debug        => 0 });
   	                                                        
   if ($RESULT->{TRAFFIC_LIMIT}) {
-  	#print "LIMIT: $RESULT->{TRAFFIC_LIMIT} USED: $used_traffic->{TRAFFIC_SUM}";
   	$trafic_limits{0} =  $RESULT->{TRAFFIC_LIMIT} - $used_traffic->{TRAFFIC_COUNTER};
-   if ($RESULT->{SPEED_IN}) {
-        $EX_PARAMS{speed}{0}{IN}=$RESULT->{SPEED_IN};
-   }
 
-  if ($RESULT->{SPEED_OUT}) {
-        $EX_PARAMS{speed}{0}{OUT}=$RESULT->{SPEED_OUT};
-   }
-
-  if ($RESULT->{SPEED}) {
+    if ($RESULT->{SPEED}) {
         $EX_PARAMS{speed}{0}{IN}=$RESULT->{SPEED};
         $EX_PARAMS{speed}{0}{OUT}=$RESULT->{SPEED};
-   }
+     }
+    else {
+      if ($RESULT->{SPEED_IN}) {
+        $EX_PARAMS{speed}{0}{IN}=$RESULT->{SPEED_IN};
+       }
+      if ($RESULT->{SPEED_OUT}) {
+        $EX_PARAMS{speed}{0}{OUT}=$RESULT->{SPEED_OUT};
+       }
+     }
   }
   #End expresion   
  }
@@ -1430,8 +1318,9 @@ sub get_ip {
 
  my $used_pools = join(', ', @used_pools_arr); 
 
-#get active address and delete from pool
- $self->query($db, "SELECT  c.framed_ip_address
+ #get active address and delete from pool
+ # Select from active users and reserv ips
+ $self->query($db, "SELECT c.framed_ip_address
   FROM (dv_calls c, nas_ippools np) 
   WHERE c.nas_id=np.nas_id AND np.pool_id in ( $used_pools ) AND (status=1 or status>=3);");
 
@@ -1457,8 +1346,13 @@ sub get_ip {
  my $assign_ip = ($#ips_arr > -1) ? $ips_arr[rand ($#ips_arr+1)] : undef;
 
  if ($assign_ip) {
+   
+   # Make reserv ip
+   $self->query($db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, status)
+      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$assign_ip', '$nas_num', '11');", 'do');
+ 
    $assign_ip = int2ip($assign_ip);
-   return $assign_ip; 	
+   return $assign_ip;
   }
  else { # no addresses available in pools
    if ($attr->{TP_POOLS}) {
@@ -1588,6 +1482,7 @@ if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
   if ($self->{TOTAL} > 0) {
   	my $list = $self->{list}->[0];
     my $password = $list->[0];
+    
     if ($CONF->{RADIUS2}) {
        print "Cleartext-Password := \"$password\"";
        $self->{'RAD_CHECK'}{'Cleartext-Password'}="$password";
@@ -1608,90 +1503,6 @@ if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
   print "Auth-Type := Accept\n";
   return 0;
 }
-
-
-
-
-######################################################################
-## Overrideable function that checks a MSCHAP password response
-## $p is the current request
-## $username is the users (rewritten) name
-## $pw is the ascii plaintext version of the correct password if known
-## rfc2548 Microsoft Vendor-specific RADIUS Attributes
-#sub check_mschap {
-#  my ($pw, $challenge, $response, $usersessionkeydest, $lanmansessionkeydest, $message) = @_;
-#
-#  #use lib $Bin;
-#  use Abills::MSCHAP;
-#
-#  $response =~ s/^0x//; 
-#  $challenge =~ s/^0x//;
-#  $challenge = pack("H*", $challenge);
-#  $response = pack("H*", $response);
-#  my($ident, $flags, $lmresponse, $ntresponse) = unpack('C C a24 a24', $response);
-#
-#
-#  if ($flags == 1) {
-#    my $upw = Radius::MSCHAP::ASCIItoUnicode($pw);
-#    #return Radius::MSCHAP::NtChallengeResponse($challenge, $upw);
-#    return unless Radius::MSCHAP::NtChallengeResponse($challenge, $upw) eq $ntresponse;
-#    # Maybe generate a session key. 
-#    
-#    $$usersessionkeydest = Radius::MSCHAP::NtPasswordHash(Radius::MSCHAP::NtPasswordHash($upw))
-#	if defined $usersessionkeydest;
-#    $$lanmansessionkeydest = Radius::MSCHAP::LmPasswordHash($pw)
-#	if defined $lanmansessionkeydest;
-#
-##      $RAD_PAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpaAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpaAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpaAIRS{'MS-CHAP-MPPE-Keys'} = '0x' . unpack("H*", (pack('a8 a16', Radius::MSCHAP::LmPasswordHash($pw), 
-##                                                                            Radius::MSCHAP::NtPasswordHash( Radius::MSCHAP::NtPasswordHash(Radius::MSCHAP::ASCIItoUnicode($pw)))))). "0000000000000000";
-#   }
-#  else {
-#     $$message = "MS-CHAP LM-response not implemented";
-#     #log_print('LOG_ERR', "MS-CHAP LM-response not implemented");
-#     return 0;
-#   }
-#  
-#  return 1;
-#
-#}
-#
-#
-#
-######################################################################
-## $p is the current request
-## Overrideable function that checks a MSCHAP password response
-## $username is the users (rewritten) name
-## $pw is the ascii plaintext version of the correct password if known
-## $sessionkeydest is a ref to a string where the sesiosn key for MPPE will be returned
-#sub check_mschapv2 {
-#  my ($username, $pw, $challenge, $peerchallenge, $response, $ident,
-#	$usersessionkeydest, $lanmansessionkeydest,  $ms_chap2_success) = @_;
-#
-#  use Abills::MSCHAP;
-#
-#  my $upw = Radius::MSCHAP::ASCIItoUnicode($pw);
-#  return 1
-#  unless &Radius::MSCHAP::GenerateNTResponse($challenge, $peerchallenge, $username, $upw) 
-#	       eq $response;
-#
-#
-#    # Maybe generate a session key. 
-#    $$usersessionkeydest = Radius::MSCHAP::NtPasswordHash
-#	(Radius::MSCHAP::NtPasswordHash($upw))
-#	if defined $usersessionkeydest;
-#    $$lanmansessionkeydest = Radius::MSCHAP::LmPasswordHash($pw)
-#	if defined $lanmansessionkeydest;
-#
-#   
-#    $$ms_chap2_success=pack('C a42', $ident,
-#			  &Radius::MSCHAP::GenerateAuthenticatorResponseHash
-#			  ($$usersessionkeydest, $response, $peerchallenge, $challenge, "$username"))
-#			  if defined $ms_chap2_success;
-#
-#
-#    return 0;
-#}
-
 
 #**********************************************************
 #
@@ -1757,7 +1568,6 @@ sub neg_deposit_filter_former () {
 	
 	return 0, $RAD_PAIRS;;
 }
-
 
 1
 
