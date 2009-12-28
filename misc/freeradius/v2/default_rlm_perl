@@ -15,12 +15,10 @@ authenticate {
 
 authorize { 
   preprocess 
-  abills_preauth 
   mschap 
   files 
   perl
 #  sql
-#  abills_auth 
  } 
  
 preacct { 

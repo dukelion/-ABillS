@@ -11,7 +11,7 @@ use vars  qw(%conf $db
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 2.4;
+my $VERSION = 2.5;
 my $config_file = '/usr/abills/libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
@@ -481,7 +481,7 @@ sub check_install {
       my @params_arr = split(/,/, $params);
       foreach my $param ( @params_arr ) {
         my ($param_name2, $param_value2)=split(/=/, $param, 2);
-        print "'$param_name2', $param_value2 \n";
+        #print "'$param_name2', $param_value2 \n";
         
         if ($param_name2 =~ /^!/) {
         	print "aaaa";

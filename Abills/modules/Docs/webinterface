@@ -1561,51 +1561,109 @@ my $doc = qq{
 		<T1R01G11 xsi:nil="true"></T1R01G11>
 		<T1R01G12 xsi:nil="true"></T1R01G12>
 		<T1R01G13 xsi:nil="true"></T1R01G13>
-		<T1R01G14 xsi:nil="true"></T1R01G14>
-		<T2RXXXXGKOR ROWNUM="1">0</T2RXXXXGKOR>
-		<T2RXXXXGKOR ROWNUM="2">0</T2RXXXXGKOR>
-		<T2RXXXXGKOR ROWNUM="3">0</T2RXXXXGKOR>
-		<T2RXXXXG2D ROWNUM="1">02122009</T2RXXXXG2D>
-		<T2RXXXXG2D ROWNUM="2">12122009</T2RXXXXG2D>
-		<T2RXXXXG2D ROWNUM="3">22122009</T2RXXXXG2D>
-		<T2RXXXXG3S ROWNUM="1">222</T2RXXXXG3S>
-		<T2RXXXXG3S ROWNUM="2">333</T2RXXXXG3S>
-		<T2RXXXXG3S ROWNUM="3">444</T2RXXXXG3S>
-		<T2RXXXXGTYPE ROWNUM="1">1</T2RXXXXGTYPE>
-		<T2RXXXXGTYPE ROWNUM="2">1</T2RXXXXGTYPE>
-		<T2RXXXXGTYPE ROWNUM="3">1</T2RXXXXGTYPE>
-		<T2RXXXXG4S ROWNUM="1">Шенк Процес Україна ТОВ</T2RXXXXG4S>
-		<T2RXXXXG4S ROWNUM="2">Татуріна Ірина Миколаївна</T2RXXXXG4S>
-		<T2RXXXXG4S ROWNUM="3">Ірина Миколаївна</T2RXXXXG4S>
-		<T2RXXXXGNREZ ROWNUM="1">0</T2RXXXXGNREZ>
-		<T2RXXXXGNREZ ROWNUM="2">0</T2RXXXXGNREZ>
-		<T2RXXXXGNREZ ROWNUM="3">0</T2RXXXXGNREZ>
-		<T2RXXXXG5 ROWNUM="1">312411026506</T2RXXXXG5>
-		<T2RXXXXG5 xsi:nil="true" ROWNUM="2"></T2RXXXXG5>
-		<T2RXXXXG5 ROWNUM="2"> X </T2RXXXXG5>
-		<T2RXXXXG6 ROWNUM="1">600.00</T2RXXXXG6>
-		<T2RXXXXG6 ROWNUM="2">75.00</T2RXXXXG6>
-		<T2RXXXXG6 ROWNUM="3">5.00</T2RXXXXG6>
-		<T2RXXXXG7 ROWNUM="1">500.00</T2RXXXXG7>
-		<T2RXXXXG7 ROWNUM="2">62.50</T2RXXXXG7>
-		<T2RXXXXG7 ROWNUM="3">0.50</T2RXXXXG7>
-		<T2RXXXXG8 ROWNUM="1">100.00</T2RXXXXG8>
-		<T2RXXXXG8 ROWNUM="2">12.50</T2RXXXXG8>
-		<T2RXXXXG8 ROWNUM="3">1.50</T2RXXXXG8>
-		<T2RXXXXG9 xsi:nil="true" ROWNUM="1"></T2RXXXXG9>
-		<T2RXXXXG9 xsi:nil="true" ROWNUM="2"></T2RXXXXG9>
-		<T2RXXXXG10 xsi:nil="true" ROWNUM="1"></T2RXXXXG10>
-		<T2RXXXXG10 xsi:nil="true" ROWNUM="2"></T2RXXXXG10>
-		<T2RXXXXG11 xsi:nil="true" ROWNUM="1"></T2RXXXXG11>
-		<T2RXXXXG11 xsi:nil="true" ROWNUM="2"></T2RXXXXG11>
-		<T2R01G6>675.00</T2R01G6>
-		<T2R01G7>562.50</T2R01G7>
-		<T2R01G8>112.50</T2R01G8>
-		<T2R01G9 xsi:nil="true"></T2R01G9>
-		<T2R01G10 xsi:nil="true"></T2R01G10>
-		<T2R01G11 xsi:nil="true"></T2R01G11>
+		<T1R01G14 xsi:nil="true"></T1R01G14>};
+
+
+
+
+
+$LIST_PARAMS{PAGE_ROWS}=1000000;
+$LIST_PARAMS{MONTH} = "$y-$m";
+my $list = $Docs->tax_invoice_reports({ %LIST_PARAMS });
+my %invoice_hash = ();
+
+foreach my $line ( @$list ) {
+  push @{ $invoice_hash{T2RXXXXGKOR} }, $line->[0];
+  push @{ $invoice_hash{T2RXXXXG2D}  }, $line->[1];
+  push @{ $invoice_hash{T2RXXXXG3S}  }, $line->[2];
+  push @{ $invoice_hash{T2RXXXXGTYPE}}, $line->[3];
+  push @{ $invoice_hash{T2RXXXXG4S}  }, $line->[4];
+  push @{ $invoice_hash{T2RXXXXGNREZ}}, $line->[5];
+  push @{ $invoice_hash{T2RXXXXG5}   }, 'X'; #, $line->[6];
+  push @{ $invoice_hash{T2RXXXXG6}   }, sprintf("%.2f", $line->[7]);
+  push @{ $invoice_hash{T2RXXXXG7}   }, sprintf("%.2f", $line->[8]);
+  push @{ $invoice_hash{T2RXXXXG8}   }, sprintf("%.2f", $line->[9]);
+
+  $invoice_hash{T2R01G6}+=$line->[7];
+  $invoice_hash{T2R01G7}+=$line->[8];
+  $invoice_hash{T2R01G8}+=$line->[9];
+
+
+
+  push @{ $invoice_hash{T2RXXXXG9}   }, $line->[10];
+  push @{ $invoice_hash{T2RXXXXG10}  }, $line->[11];
+  push @{ $invoice_hash{T2RXXXXG11}  }, $line->[12];
+}
+
+
+my @arr = ('T2RXXXXGKOR', 'T2RXXXXG2D', 
+  'T2RXXXXG3S',
+  'T2RXXXXGTYPE',
+  'T2RXXXXG4S',
+  'T2RXXXXGNREZ',
+  'T2RXXXXG5',
+  'T2RXXXXG6',
+  'T2RXXXXG7',
+  'T2RXXXXG8',
+  'T2RXXXXG9',
+  'T2RXXXXG10',
+  'T2RXXXXG11');
+
+foreach my $key (@arr) {
+	my $i=1;
+	foreach my $value ( @{ $invoice_hash{$key} } ) {
+		$doc .= ($value) ? "<$key ROWNUM=\"$i\">$value</$key>\n" :  "<$key xsi:nil=\"true\" ROWNUM=\"$i\"></$key>\n" ;
+		$i++;
+	}
+}
+
+#$doc .= qq{		
+#		<T2RXXXXGKOR ROWNUM="1">0</T2RXXXXGKOR>
+#		<T2RXXXXGKOR ROWNUM="2">0</T2RXXXXGKOR>
+#		<T2RXXXXGKOR ROWNUM="3">0</T2RXXXXGKOR>
+#		<T2RXXXXG2D ROWNUM="1">02122009</T2RXXXXG2D>
+#		<T2RXXXXG2D ROWNUM="2">12122009</T2RXXXXG2D>
+#		<T2RXXXXG2D ROWNUM="3">22122009</T2RXXXXG2D>
+#		<T2RXXXXG3S ROWNUM="1">222</T2RXXXXG3S>
+#		<T2RXXXXG3S ROWNUM="2">333</T2RXXXXG3S>
+#		<T2RXXXXG3S ROWNUM="3">444</T2RXXXXG3S>
+#		<T2RXXXXGTYPE ROWNUM="1">1</T2RXXXXGTYPE>
+#		<T2RXXXXGTYPE ROWNUM="2">1</T2RXXXXGTYPE>
+#		<T2RXXXXGTYPE ROWNUM="3">1</T2RXXXXGTYPE>
+#		<T2RXXXXG4S ROWNUM="1">Шенк Процес Україна ТОВ</T2RXXXXG4S>
+#		<T2RXXXXG4S ROWNUM="2">Татуріна Ірина Миколаївна</T2RXXXXG4S>
+#		<T2RXXXXG4S ROWNUM="3">Ірина Миколаївна</T2RXXXXG4S>
+#		<T2RXXXXGNREZ ROWNUM="1">0</T2RXXXXGNREZ>
+#		<T2RXXXXGNREZ ROWNUM="2">0</T2RXXXXGNREZ>
+#		<T2RXXXXGNREZ ROWNUM="3">0</T2RXXXXGNREZ>
+#		<T2RXXXXG5 ROWNUM="1">312411026506</T2RXXXXG5>
+#		<T2RXXXXG5 xsi:nil="true" ROWNUM="2"></T2RXXXXG5>
+#		<T2RXXXXG5 ROWNUM="2"> X </T2RXXXXG5>
+#		<T2RXXXXG6 ROWNUM="1">600.00</T2RXXXXG6>
+#		<T2RXXXXG6 ROWNUM="2">75.00</T2RXXXXG6>
+#		<T2RXXXXG6 ROWNUM="3">5.00</T2RXXXXG6>
+#		<T2RXXXXG7 ROWNUM="1">500.00</T2RXXXXG7>
+#		<T2RXXXXG7 ROWNUM="2">62.50</T2RXXXXG7>
+#		<T2RXXXXG7 ROWNUM="3">0.50</T2RXXXXG7>
+#		<T2RXXXXG8 ROWNUM="1">100.00</T2RXXXXG8>
+#		<T2RXXXXG8 ROWNUM="2">12.50</T2RXXXXG8>
+#		<T2RXXXXG8 ROWNUM="3">1.50</T2RXXXXG8>
+#		<T2RXXXXG9 xsi:nil="true" ROWNUM="1"></T2RXXXXG9>
+#		<T2RXXXXG9 xsi:nil="true" ROWNUM="2"></T2RXXXXG9>
+#		<T2RXXXXG10 xsi:nil="true" ROWNUM="1"></T2RXXXXG10>
+#		<T2RXXXXG10 xsi:nil="true" ROWNUM="2"></T2RXXXXG10>
+#		<T2RXXXXG11 xsi:nil="true" ROWNUM="1"></T2RXXXXG11>
+#		<T2RXXXXG11 xsi:nil="true" ROWNUM="2"></T2RXXXXG11>
+
+$doc .= "
+<T2R01G6>". sprintf("%.2f", $invoice_hash{T2R01G6}). "</T2R01G6 >
+<T2R01G7>". sprintf("%.2f", $invoice_hash{T2R01G7}). "</T2R01G7 >
+<T2R01G8>". sprintf("%.2f", $invoice_hash{T2R01G8}). "</T2R01G8 >
+<T2R01G9 xsi:nil=\"true\" / >
+<T2R01G10 xsi:nil=\"true\" / >
+<T2R01G11 xsi:nil=\"true\" / > 
 	</DECLARBODY>
-</DECLAR>};
+</DECLAR>";
 
 
 my $filesize = length($doc);
@@ -1618,9 +1676,7 @@ print  $doc;
 }
 
 
-print $html->button("_EXPORT", "qindex=$index&d=1");
-
-
+print $html->button("$_EXPORT", "qindex=$index&d=1");
 
 }
 

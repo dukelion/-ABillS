@@ -676,6 +676,100 @@ sub tax_invoice_list {
 
 
 #**********************************************************
+# tax_invoice_reports
+#**********************************************************
+sub tax_invoice_reports {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
+ @WHERE_RULES = ();
+ 
+ if($attr->{LOGIN_EXPR}) {
+ 	 require Users;
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'd.uid') };
+  }
+
+ if ($attr->{FROM_DATE}) {
+    push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+  }
+ elsif ($attr->{MONTH}) {
+    push @WHERE_RULES, "(date_format(d.date, '%Y-%m')='$attr->{MONTH}')";
+  }
+
+
+ if ($attr->{DOC_ID}) {
+    push @WHERE_RULES, $self->search_expr($attr->{DOC_ID}, 'INT', 'd.tax_invoice_id');
+  }
+
+ if ($attr->{SUM}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts') };
+  }
+
+ # Show groups
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+  }
+
+ 
+ if ($attr->{COMPANY_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'd.company_id') };
+ }
+ if ($attr->{UID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'd.uid') };
+ }
+ 
+
+ $WHERE = ($#WHERE_RULES > -1) ? 'AND ' . join(' and ', @WHERE_RULES)  : '';
+
+
+  $self->query($db,   "SELECT 0, DATE_FORMAT(d.date, '%d%m%Y'), d.invoice_id, 1, pi.fio,
+    0, pi._inn, 
+    ROUND(sum(inv_orders.price*counts), 2), 
+    ROUND(sum(inv_orders.price*counts) - sum(inv_orders.price*counts) /6, 2),  
+    ROUND(sum(inv_orders.price*counts) / 6, 2), 
+    '-',  'X', '-', 'X', '-', 'X'
+
+FROM (users u, docs_invoice d)
+LEFT JOIN users_pi pi ON (d.uid=pi.uid)
+LEFT JOIN docs_invoice_orders inv_orders ON (inv_orders.invoice_id=d.id)
+WHERE u.uid=d.uid $WHERE
+GROUP BY d.id
+    ORDER BY $SORT $DESC
+    LIMIT $PG, $PAGE_ROWS;");
+
+
+ $self->{SUM}=0.00;
+ return $self->{list}  if ($self->{TOTAL} < 1);
+ my $list = $self->{list};
+
+#
+# $self->query($db, "SELECT count(DISTINCT d.tax_invoice_id), sum(o.price*o.counts)
+#    FROM (docs_tax_invoices d)
+#    LEFT JOIN docs_tax_invoice_orders o ON (d.id=o.tax_invoice_id)
+#    LEFT JOIN companies c ON (d.company_id=c.id)
+#    $WHERE");
+#
+# ($self->{TOTAL}, $self->{SUM}) = @{ $self->{list}->[0] };
+
+	return $list;
+}
+
+
+
+
+
+
+
+#**********************************************************
 # Bill
 #**********************************************************
 sub tax_invoice_add {
@@ -839,21 +933,6 @@ sub tax_invoice_change {
 
   return $self->{result};
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #**********************************************************
