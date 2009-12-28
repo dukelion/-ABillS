@@ -415,9 +415,6 @@ sub online {
 
     push( @{ $nas_sorted{"$line->[$nas_id_field]"} }, [ @fields ]);
   }
- 
- 
-
 
  $self->{dub_ports} =\%dub_ports;
  $self->{dub_logins}=\%dub_logins;
@@ -550,12 +547,8 @@ sub online_info {
    $self->{ACCT_OUTPUT_GIGAWORDS}
     )= @{ $self->{list}->[0] };
 
-
   return $self;
 }
-
-
-
 
 #**********************************************************
 # Session zap
@@ -603,7 +596,6 @@ sub session_detail {
 
   l.sent2, 
   l.recv2,
-
 
   INET_NTOA(l.ip),
   l.CID,
@@ -705,8 +697,6 @@ else {
   $GROUP = $lupdate;
 }
 
-
- 
  $self->query($db, "SELECT $lupdate, acct_session_id, nas_id, 
    sum(sent1), sum(recv1), sum(sent2), sum(recv2) 
   FROM s_detail 
@@ -723,9 +713,8 @@ else {
     
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
   }
-	
-	
-return $list;
+
+  return $list;
 }
 
 
@@ -739,12 +728,10 @@ sub detail_sum {
  my $lupdate;
  my $GROUP;
 
-my $interval = 3600;
-if ($attr->{INTERVAL}) {
-  $interval = $attr->{INTERVAL};
-}
-
-
+ my $interval = 3600;
+ if ($attr->{INTERVAL}) {
+   $interval = $attr->{INTERVAL};
+  }
 
  $self->query($db, "select ((SELECT  sent1+recv1
   FROM s_detail 
@@ -881,7 +868,6 @@ WHERE
    $rest{$line->[0]} = $line->[4];
   }
 
-
  return 1 if ($attr->{INFO_ONLY});
  
  my $octets_direction = "(sent + 4294967296 * acct_output_gigawords) + (recv + 4294967296 * acct_input_gigawords) ";
@@ -921,9 +907,6 @@ WHERE
        and DATE_FORMAT(start, '%Y-%m-%d')<='$self->{INFO_LIST}->[0]->[3]'";
     }
 
-
-
-
  	 #Get using traffic
    $self->query($db, "select  
      if($rest{0} * $traffic_transfert > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0} * $traffic_transfert - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
@@ -935,7 +918,6 @@ WHERE
       ) 
    GROUP BY 3
    ;");
-
 
   if ($self->{TOTAL} > 0) {
 
@@ -949,7 +931,6 @@ WHERE
     $self->{INFO_LIST}->[0]->[4] += $out;
    }
  }
-
  
  #Check sessions
  #Get using traffic
