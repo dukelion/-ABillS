@@ -1497,8 +1497,6 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
 #**********************************************************
 sub docs_tax_exports {
 
-
-
 if ($FORM{d}) {
 my ($y, $m, $d)=split(/-/, $DATE);
 my $file_prefix = "26590025388695J1201502100000";
@@ -1506,8 +1504,7 @@ my $filename = $file_prefix. "01$m$y".'.xml';
 
 	
 	
-my $doc = qq{
-<?xml version="1.0" encoding="windows-1251"?>
+my $doc = qq{<?xml version="1.0" encoding="windows-1251"?>
 <DECLAR xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="J1201502.xsd">
 	<DECLARHEAD>
 		<TIN>25388695</TIN>
@@ -1617,51 +1614,13 @@ foreach my $key (@arr) {
 	}
 }
 
-#$doc .= qq{		
-#		<T2RXXXXGKOR ROWNUM="1">0</T2RXXXXGKOR>
-#		<T2RXXXXGKOR ROWNUM="2">0</T2RXXXXGKOR>
-#		<T2RXXXXGKOR ROWNUM="3">0</T2RXXXXGKOR>
-#		<T2RXXXXG2D ROWNUM="1">02122009</T2RXXXXG2D>
-#		<T2RXXXXG2D ROWNUM="2">12122009</T2RXXXXG2D>
-#		<T2RXXXXG2D ROWNUM="3">22122009</T2RXXXXG2D>
-#		<T2RXXXXG3S ROWNUM="1">222</T2RXXXXG3S>
-#		<T2RXXXXG3S ROWNUM="2">333</T2RXXXXG3S>
-#		<T2RXXXXG3S ROWNUM="3">444</T2RXXXXG3S>
-#		<T2RXXXXGTYPE ROWNUM="1">1</T2RXXXXGTYPE>
-#		<T2RXXXXGTYPE ROWNUM="2">1</T2RXXXXGTYPE>
-#		<T2RXXXXGTYPE ROWNUM="3">1</T2RXXXXGTYPE>
-#		<T2RXXXXG4S ROWNUM="1">Шенк Процес Україна ТОВ</T2RXXXXG4S>
-#		<T2RXXXXG4S ROWNUM="2">Татуріна Ірина Миколаївна</T2RXXXXG4S>
-#		<T2RXXXXG4S ROWNUM="3">Ірина Миколаївна</T2RXXXXG4S>
-#		<T2RXXXXGNREZ ROWNUM="1">0</T2RXXXXGNREZ>
-#		<T2RXXXXGNREZ ROWNUM="2">0</T2RXXXXGNREZ>
-#		<T2RXXXXGNREZ ROWNUM="3">0</T2RXXXXGNREZ>
-#		<T2RXXXXG5 ROWNUM="1">312411026506</T2RXXXXG5>
-#		<T2RXXXXG5 xsi:nil="true" ROWNUM="2"></T2RXXXXG5>
-#		<T2RXXXXG5 ROWNUM="2"> X </T2RXXXXG5>
-#		<T2RXXXXG6 ROWNUM="1">600.00</T2RXXXXG6>
-#		<T2RXXXXG6 ROWNUM="2">75.00</T2RXXXXG6>
-#		<T2RXXXXG6 ROWNUM="3">5.00</T2RXXXXG6>
-#		<T2RXXXXG7 ROWNUM="1">500.00</T2RXXXXG7>
-#		<T2RXXXXG7 ROWNUM="2">62.50</T2RXXXXG7>
-#		<T2RXXXXG7 ROWNUM="3">0.50</T2RXXXXG7>
-#		<T2RXXXXG8 ROWNUM="1">100.00</T2RXXXXG8>
-#		<T2RXXXXG8 ROWNUM="2">12.50</T2RXXXXG8>
-#		<T2RXXXXG8 ROWNUM="3">1.50</T2RXXXXG8>
-#		<T2RXXXXG9 xsi:nil="true" ROWNUM="1"></T2RXXXXG9>
-#		<T2RXXXXG9 xsi:nil="true" ROWNUM="2"></T2RXXXXG9>
-#		<T2RXXXXG10 xsi:nil="true" ROWNUM="1"></T2RXXXXG10>
-#		<T2RXXXXG10 xsi:nil="true" ROWNUM="2"></T2RXXXXG10>
-#		<T2RXXXXG11 xsi:nil="true" ROWNUM="1"></T2RXXXXG11>
-#		<T2RXXXXG11 xsi:nil="true" ROWNUM="2"></T2RXXXXG11>
-
 $doc .= "
-<T2R01G6>". sprintf("%.2f", $invoice_hash{T2R01G6}). "</T2R01G6 >
-<T2R01G7>". sprintf("%.2f", $invoice_hash{T2R01G7}). "</T2R01G7 >
-<T2R01G8>". sprintf("%.2f", $invoice_hash{T2R01G8}). "</T2R01G8 >
-<T2R01G9 xsi:nil=\"true\" / >
-<T2R01G10 xsi:nil=\"true\" / >
-<T2R01G11 xsi:nil=\"true\" / > 
+<T2R01G6>". sprintf("%.2f", $invoice_hash{T2R01G6}). "</T2R01G6>
+<T2R01G7>". sprintf("%.2f", $invoice_hash{T2R01G7}). "</T2R01G7>
+<T2R01G8>". sprintf("%.2f", $invoice_hash{T2R01G8}). "</T2R01G8>
+<T2R01G9 xsi:nil=\"true\" />
+<T2R01G10 xsi:nil=\"true\" />
+<T2R01G11 xsi:nil=\"true\" /> 
 	</DECLARBODY>
 </DECLAR>";
 
@@ -1673,6 +1632,7 @@ print "Content-Type: text/plain; filename=\"$filename\"\n".
 
 print  $doc;
 
+return 0;
 }
 
 
