@@ -769,7 +769,9 @@ sub table {
    $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\" class=\"tcaption\"><b>$attr->{caption}</b></td></TR>\n";
   }
 
- $self->{table} .= "<tr><td bgcolor=\"$_COLORS[1]\">$attr->{header}</td></tr>\n" if( $attr->{header});
+ if( $attr->{header}) {
+   $self->{table} .= "<tr><td bgcolor=\"$_COLORS[1]\"><div id=\"rules\"><ul><li class=\"center\"> $attr->{header} </li></ul></div></td></tr>\n";
+  }
 
  $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[4]\">
                <TABLE width=\"100%\" cellspacing=\"1\" cellpadding=\"0\" border=\"0\">\n";

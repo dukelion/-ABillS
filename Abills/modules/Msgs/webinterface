@@ -631,11 +631,6 @@ sub msgs_admin {
 
   if ($#A_CHAPTER > -1) {
     $LIST_PARAMS{CHAPTERS} = join(', ', @A_CHAPTER);
-    #$LIST_PARAMS{DONE_DATE}='0000-00-00'; 
-    #$LIST_PARAMS{CLOSED_DATE}='0000-00-00'; 
-    
-    #print "--- $A_PRIVILEGES{$line->[5]} -- ";
-    
     $LIST_PARAMS{UID}=undef if (! $FORM{UID}); 
    }
 
@@ -681,8 +676,6 @@ sub msgs_admin {
   $LIST_PARAMS{STATE}=undef if ($FORM{STATE} == 3);
   $LIST_PARAMS{PRIORITY}=undef if ($FORM{PRIORITY} == 5);
 
-  #$pages_qs .= "&UID=$FORM{UID}" if ($FORM{UID});
-
   if (! defined($FORM{STATE}) && ! $FORM{ALL_MSGS}) {
      $FORM{STATE}=4;
    }
@@ -693,10 +686,10 @@ my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index&
 foreach my $name ( @msg_status) {
 	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
     $LIST_PARAMS{STATE}=$FORM{STATE};
-    $status_bar .= ' :: '. $html->b($name);
+    $status_bar .= ' '.$html->b($name);
 	 }
 	else {
-	  $status_bar .= ' :: ' .$html->button("$name", "index=$index&STATE=$i$pages_qs");
+	  $status_bar .= ' '.$html->button("$name", "index=$index&STATE=$i$pages_qs");
 	 }
 
   $i++;
@@ -736,8 +729,7 @@ function CheckAllINBOX() {
   }
 }
 //-->
-</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n" : '' ). $status_bar
-
+</script>\n<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n" : '' ). $status_bar
                            });
 
 foreach my $line (@$list) {
@@ -1092,10 +1084,10 @@ my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index&
 foreach my $name ( @msg_status) {
 	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
     $LIST_PARAMS{STATE}=$FORM{STATE};
-    $status_bar .= ' :: '. $html->b($name);
+    $status_bar .= ' '. $html->b($name);
 	 }
 	else {
-	  $status_bar .= ' :: ' .$html->button("$name", "index=$index&STATE=$i$pages_qs");
+	  $status_bar .= ' ' .$html->button("$name", "index=$index&STATE=$i$pages_qs");
 	 }
 
   $i++;
@@ -1110,7 +1102,6 @@ foreach my $name ( @msg_status) {
   
 
 
-  #print "Content-type: text/html\n\n";
   my  $list = $Msgs->messages_list({ %LIST_PARAMS });  
 
   my $table = $html->table( { width        => '100%',
@@ -1426,8 +1417,7 @@ function CheckAllINBOX() {
   }
 }
 //-->
-</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n" : '' ). $status_bar
-
+</script>\n <a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a> \n" : '' ). $status_bar
                            });
 
 foreach my $line (@$list) {
@@ -1479,10 +1469,10 @@ my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index&
 foreach my $name ( @msg_status) {
 	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
     $LIST_PARAMS{STATE}=$FORM{STATE};
-    $status_bar .= ' :: '. $html->b($name);
+    $status_bar .= ' '. $html->b($name);
 	 }
 	else {
-	  $status_bar .= ' :: ' .$html->button("$name", "index=$index&STATE=$i$pages_qs");
+	  $status_bar .= ' ' .$html->button("$name", "index=$index&STATE=$i$pages_qs");
 	 }
 
   $i++;
@@ -2221,10 +2211,10 @@ my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index&
 foreach my $name ( @msg_status) {
 	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
     $LIST_PARAMS{STATE}=$FORM{STATE};
-    $status_bar .= ' :: '. $html->b($name);
+    $status_bar .= ' '. $html->b($name);
 	 }
 	else {
-	  $status_bar .= ' :: ' .$html->button("$name", "index=$index&STATE=$i$pages_qs");
+	  $status_bar .= ' ' .$html->button("$name", "index=$index&STATE=$i$pages_qs");
 	 }
 
   $i++;
@@ -2264,9 +2254,9 @@ function CheckAllINBOX() {
   }
 }
 //-->
-</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n" : '' ). $status_bar
-
-                           });
+</script>
+<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a> \n" : '' ). $status_bar
+    });
 
 foreach my $line (@$list) {
   my $state = ($line->[6] == 0) ? $html->b($msg_status[$line->[6]]) : $msg_status[$line->[6]];
