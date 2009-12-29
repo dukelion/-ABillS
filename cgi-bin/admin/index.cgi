@@ -4024,6 +4024,9 @@ else{
         $main_column = $html->button($line->[0], "index=11&UID=$line->[4]");
        }
      }
+    elsif($line->[0] =~ /^\d{4}-\d{2}$/ ) {
+    	$main_column = $html->button($line->[0], "index=$index&MONTH=$line->[0]$pages_qs");
+     }
     else { 
       $main_column = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
      }
@@ -4254,6 +4257,9 @@ else{
     #  $CAPTION[0]=$_ADMINS;
     #  $graph_type='';
     # }
+    elsif($line->[0] =~ /^\d{4}-\d{2}$/ ) {
+    	$main_column = $html->button($line->[0], "index=$index&MONTH=$line->[0]$pages_qs");
+     }
     else { 
       $main_column = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
      }
