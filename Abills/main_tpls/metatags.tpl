@@ -202,14 +202,14 @@ TABLE.border {
 }
 
 #rules .center a {
-  padding:1px 5px;
+  padding:2px 5px;
   font-weight:100;
   font-size:11;
   background:%_COLOR_2%;
   border:1px solid %_COLOR_4%;
   color:#000;
   text-decoration:none;
-  margin:0 1px;
+  margin:1px 1px;
 }
 
 #rules .center a:hover{
