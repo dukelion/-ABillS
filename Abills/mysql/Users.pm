@@ -628,8 +628,7 @@ sub list {
  elsif ($attr->{UID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'u.uid', { EXT_FIELD => 1 }) };
   }
- 
- 
+
  if ($CONF->{EXT_BILL_ACCOUNT}) {
    $self->{SEARCH_FIELDS} .= 'if(company.id IS NULL,ext_b.deposit,ext_cb.deposit), ';
    $self->{SEARCH_FIELDS_COUNT}++;
@@ -702,10 +701,10 @@ sub list {
   }
 
  if ($attr->{DOMAIN_ID}) {
-   push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 1 }) };
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };
   }
  elsif (defined($admin->{DOMAIN_ID})) {
- 	 push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 1 }) };
+ 	 push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };
   }
 
 
@@ -756,6 +755,7 @@ sub list {
  elsif (defined($attr->{GID}) && $attr->{GID} ne '') {
    push @WHERE_RULES,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => 1 }) };
   }
+
 
 
 #Activate

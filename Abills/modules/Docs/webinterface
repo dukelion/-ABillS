@@ -800,21 +800,11 @@ sub docs_tax_invoice {
   my ($Y, $M, $D)=split(/-/, $DATE, 3);  
   my @MONTH_ARR = ('');
   for(my $i=1; $i<13; $i++) {
-	  my $m = sprintf("%02.d", $i);
+	  my $m = sprintf("%.2d", $i);
 	  push @MONTH_ARR, "$Y-$m";
    }
   $FORM{MONTH}="$Y-$M" if (! $FORM{MONTH});
 
-
-  #my $company_users_list = $users->list({ COMPANY_ID => $FORM{COMPANY_ID} });  
-  #my $users_list   =   $html->form_select("UID",
-  #                              { SELECTED          => $FORM{UID},
-  #                                SEL_MULTI_ARRAY   => $company_users_list,
-  #                                MULTI_ARRAY_KEY   => 5+$users->{SEARCH_FIELDS_COUNT},
-  #                                MULTI_ARRAY_VALUE => 0,
-  #                                NO_ID             => 1
-  #                                     });
-  
   my $table = $html->table( { width       => '100%',
   	                          caption     => "$_TAX_INVOICE",
 	                            rowcolor    => $_COLORS[0],
@@ -1498,12 +1488,13 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
 sub docs_tax_exports {
 
 if ($FORM{d}) {
-my ($y, $m, $d)=split(/-/, $DATE);
+my ($y, $m, $d)=split(/-/, ($FORM{MONTH}) ? $FORM{MONTH}.'01' : $DATE);
 my $file_prefix = "26590025388695J1201502100000";
-my $filename = $file_prefix. "01$m$y".'.xml';
+my $filename    = $file_prefix. "01$m$y".'.xml';
 
-	
-	
+my ($fill_y, $fill_m, $fill_d)=split(/-/, ($FORM{DATE}) ? $FORM{DATE} : $DATE);
+my $FILL_DATE   = "$fill_d$fill_m$fill_y";
+
 my $doc = qq{<?xml version="1.0" encoding="windows-1251"?>
 <DECLAR xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="J1201502.xsd">
 	<DECLARHEAD>
@@ -1515,11 +1506,11 @@ my $doc = qq{<?xml version="1.0" encoding="windows-1251"?>
 		<C_DOC_CNT>1</C_DOC_CNT>
 		<C_REG>26</C_REG>
 		<C_RAJ>59</C_RAJ>
-		<PERIOD_MONTH>12</PERIOD_MONTH>
+		<PERIOD_MONTH>$m</PERIOD_MONTH>
 		<PERIOD_TYPE>1</PERIOD_TYPE>
-		<PERIOD_YEAR>2009</PERIOD_YEAR>
+		<PERIOD_YEAR>$y</PERIOD_YEAR>
 		<C_DOC_STAN>1</C_DOC_STAN>
-		<D_FILL>10122009</D_FILL>
+		<D_FILL>$FILL_DATE</D_FILL>
 		<SOFTWARE>OPZ 1.23</SOFTWARE>
 	</DECLARHEAD>
 	<DECLARBODY>
@@ -1562,10 +1553,9 @@ my $doc = qq{<?xml version="1.0" encoding="windows-1251"?>
 
 
 
-
-
 $LIST_PARAMS{PAGE_ROWS}=1000000;
-$LIST_PARAMS{MONTH} = "$y-$m";
+$LIST_PARAMS{MONTH} = $FORM{MONTH} || "$y-$m";
+
 my $list = $Docs->tax_invoice_reports({ %LIST_PARAMS });
 my %invoice_hash = ();
 
@@ -1576,7 +1566,7 @@ foreach my $line ( @$list ) {
   push @{ $invoice_hash{T2RXXXXGTYPE}}, $line->[3];
   push @{ $invoice_hash{T2RXXXXG4S}  }, $line->[4];
   push @{ $invoice_hash{T2RXXXXGNREZ}}, $line->[5];
-  push @{ $invoice_hash{T2RXXXXG5}   }, 'X'; #, $line->[6];
+  push @{ $invoice_hash{T2RXXXXG5}   }, undef; #, $line->[6];
   push @{ $invoice_hash{T2RXXXXG6}   }, sprintf("%.2f", $line->[7]);
   push @{ $invoice_hash{T2RXXXXG7}   }, sprintf("%.2f", $line->[8]);
   push @{ $invoice_hash{T2RXXXXG8}   }, sprintf("%.2f", $line->[9]);
@@ -1587,9 +1577,9 @@ foreach my $line ( @$list ) {
 
 
 
-  push @{ $invoice_hash{T2RXXXXG9}   }, $line->[10];
-  push @{ $invoice_hash{T2RXXXXG10}  }, $line->[11];
-  push @{ $invoice_hash{T2RXXXXG11}  }, $line->[12];
+  push @{ $invoice_hash{T2RXXXXG9}   }, undef; #$line->[10];
+  push @{ $invoice_hash{T2RXXXXG10}  }, undef; #$line->[11];
+  push @{ $invoice_hash{T2RXXXXG11}  }, undef; #$line->[12];
 }
 
 
@@ -1609,7 +1599,7 @@ my @arr = ('T2RXXXXGKOR', 'T2RXXXXG2D',
 foreach my $key (@arr) {
 	my $i=1;
 	foreach my $value ( @{ $invoice_hash{$key} } ) {
-		$doc .= ($value) ? "<$key ROWNUM=\"$i\">$value</$key>\n" :  "<$key xsi:nil=\"true\" ROWNUM=\"$i\"></$key>\n" ;
+		$doc .= ($value) ? "<$key ROWNUM=\"$i\">$value</$key>\n" :  "<$key xsi:nil=\"true\" ROWNUM=\"$i\" />\n" ;
 		$i++;
 	}
 }
@@ -1630,14 +1620,45 @@ print "Content-Type: text/plain; filename=\"$filename\"\n".
       "Content-Disposition: attachment; filename=\"$filename\" size=$filesize;".
       "\n\n";
 
+
+
 print  $doc;
 
 return 0;
 }
 
 
-print $html->button("$_EXPORT", "qindex=$index&d=1");
 
+  my ($Y, $M, $D)=split(/-/, $DATE, 3);  
+  my @MONTH_ARR = ('');
+  for(my $i=1; $i<13; $i++) {
+	  my $m = sprintf("%.2d", $i);
+	  push @MONTH_ARR, "$Y-$m";
+   }
+  $FORM{MONTH}="$Y-$M" if (! $FORM{MONTH});
+
+  my $table = $html->table( { width       => '100%',
+  	                          caption     => "$_EXPORT - $_TAX_INVOICE",
+	                            rowcolor    => $_COLORS[0],
+                              rows        => [[ 
+                                                "$_PERIOD: ", $html->form_select('MONTH', 
+                                                           { SELECTED   => $FORM{MONTH},
+ 	                                                           SEL_ARRAY  => \@MONTH_ARR,
+ 	                                                           NO_ID      => 1
+                                                          } ),
+                                                 "$_CREATED: ", $html->form_input('DATE', "$Y-$M-01"),
+                                          $html->form_input('show', $_CREATE, { TYPE => "SUBMIT" })
+                                         ]],                                   
+                      });
+
+  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                         HIDDEN  => { 
+	                         	            qindex      => $index,
+	                         	            subf       => $FORM{subf},
+	                                      create     => "1",
+	                                      d          => 1
+	                                     }
+	                       });
 }
 
 

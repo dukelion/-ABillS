@@ -798,7 +798,7 @@ sub table {
        $class = " class=\"$class\"";
       }
      my $width = (defined($attr->{cols_width}) && defined(@{$attr->{cols_width}}[$i])  ) ? " width=\"@{$attr->{cols_width}}[$i]\"" : '';
-     $self->{table} .= " <COL align=\"$line\"$class$width>\n";
+     $self->{table} .= " <COL align=\"$line\"$class$width />\n";
      $i++;
     }
    $self->{table} .= "</COLGROUP>\n";
@@ -1089,7 +1089,7 @@ sub button {
   my $message = '';
   
   if ($attr->{MESSAGE}) {
-  	$attr->{MESSAGE} =~ s/'/\\'/g;
+  	$attr->{MESSAGE} =~ s/\'/\\'/g;
   	$attr->{MESSAGE} =~ s/"/\\'/g;
   	$attr->{MESSAGE} =~ s/\n//g;
   	$attr->{MESSAGE} =~ s/\r//g;
@@ -1097,7 +1097,7 @@ sub button {
   	$message = " onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"";
    }
 
-  my $button = "<a href=\"$params\"$ex_attr$message>$name</a>";
+  my $button = ($attr->{BUTTON}) ? "<a class='link_button' href=\"$params\"$ex_attr$message>$name</a>" : "<a href=\"$params\"$ex_attr$message>$name</a>";
 
   return $button;
 }
@@ -1142,10 +1142,8 @@ $head
 };
 
 
-
   if (defined($self->{NO_PRINT})) {
   	$self->{OUTPUT}.=$output;
-  	#print "aaaaaa $self->{OUTPUT}";
   	return $output;
    }
 	else { 
@@ -1280,9 +1278,6 @@ sub date_fld  {
    	 $day   = $mday;
     }
   }
-
-
-
 
 my $result  = "<SELECT name=". $base_name ."D>";
 for (my $i=1; $i<=31; $i++) {
@@ -1420,51 +1415,15 @@ sub test {
  return 0 if (! $CONF->{WEB_DEBUG});
  
  my $output = '';
-#print "<TABLE border=1>
-#<tr><TD colspan=2>FORM</TD></TR>
-#<tr><TD>index</TD><TD>$index</TD></TD></TR>
-#<tr><TD>root_index</TD><TD>root_index</TD></TD></TR>\n";	
   while(my($k, $v)=each %FORM) {
   	$output .= "$k | $v\n" if ($k ne '__BUFFER');
-    #print "<tr><TD>$k</TD><TD>$v</TD></TR>\n";	
    }
-#print "</TABLE>\n";
  $output .= "\n";
-#print "<br><TABLE border=1>
-#<tr><TD colspan=2>COOKIES</TD></TR>
-#<tr><TD>index</TD><TD>$index</TD></TD></TR>\n";	
-  while(my($k, $v)=each %COOKIES) {
-    $output .= "$k | $v\n";
-    #print "<tr><TD>$k</TD><TD>$v</TD></TR>\n";	
-   }
-#print "</TABLE>\n";
-
-
-#print "<br><TABLE border=1>\n";
-#  while(my($k, $v)=each %ENV) {
-#    print "<tr><TD>$k</TD><TD>$v</TD></TR>\n";	
-#   }
-#print "</TABLE>\n";
-
-#print "<br><TABLE border=1>\n";
-#  while(my($k, $v)=each %conf) {
-#    print "<tr><TD>$k</TD><TD>$v</TD></TR>\n";	
-#   }
-#print "</TABLE>\n";
-#
-
-#print "<a href='#' onclick=\"document.write ( 'answer' )\">aaa</a>";
-
-#print "<a href='#' onclick=\"open('aaa','help', 
-# 'height=550,width=450,resizable=0, scrollbars=yes, menubar=no, status=yes');\"><font color=$_COLORS[1]>Debug</font></a>";
-
-print "<a href='#' title='$output' class='noprint'><font color=$_COLORS[1]>Debug</font></a>\n";
-
+ while(my($k, $v)=each %COOKIES) {
+   $output .= "$k | $v\n";
+  }
+ print "<a href='#' title='$output' class='noprint'><font color=$_COLORS[1]>Debug</font></a>\n";
 }
-
-
-
-
 
 #**********************************************************
 # letters_list();
@@ -1474,7 +1433,7 @@ sub letters_list {
  
  my $pages_qs = $attr->{pages_qs} if (defined($attr->{pages_qs}));
  my @alphabet = ('a-z');
-#'97-123'
+
  if ($attr->{EXPR}) {
   push @alphabet, $attr->{EXPR};
   }
@@ -1528,9 +1487,6 @@ sub make_charts {
    }
 
   $PATH .= 'charts';
-#  if (! -f $PATH. "charts.swf") {
-#     return 0;
-#   }
   
   my $suffix = ($attr->{SUFFIX}) ? $attr->{SUFFIX} : '';
 
@@ -1783,8 +1739,6 @@ if (AC_FL_RunContent == 0 || DetectFlashVer == 0) {
 <br>	
 	};
 
-
-
 	if ($attr->{OUTPUT2RETURN}) {
 		 return $output;
    }
@@ -1794,10 +1748,6 @@ if (AC_FL_RunContent == 0 || DetectFlashVer == 0) {
    }
 
   print $output;
-
 }
-
-
-
 
 1

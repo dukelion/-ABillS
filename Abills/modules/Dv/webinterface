@@ -400,7 +400,6 @@ sub dv_user {
      $pi->{ADDRESS_FULL}="$pi->{ADDRESS_STREET} $pi->{ADDRESS_BUILD}, $pi->{ADDRESS_FLAT}";
  
      if ($FORM{pdf}) {
-     	 #print "Content-Type: text/html\n\n";
        print "Content-type: application/pdf\n";
        print "Content-disposition: inline; name=".int(rand(32768)).".pdf\n\n";
        
@@ -522,7 +521,7 @@ sub dv_user {
 	else {
 	  $Dv->{ACTION}='set';
 	  $Dv->{LNG_ACTION}=$_CHANGE;
-	  $Dv->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. ($index + 1)) .']';
+	  $Dv->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. ($index + 1), { BUTTON => 1 });
 
     # Get next payment period
     if ($Dv->{MONTH_ABON} > 0 &&  ! $Dv->{STATUS} && ! $users->{DISABLE} &&
@@ -555,7 +554,7 @@ sub dv_user {
       }
       
     $Dv->{NETMASK_COLOR} = ($Dv->{NETMASK} ne '255.255.255.255') ? $_COLORS[0] : $_COLORS[1];
-    $Dv->{SHEDULE}=$html->button("$_SHEDULE", "UID=$FORM{UID}&shedule=status&index=". ($index+4));
+    $Dv->{SHEDULE}=$html->button("$_SHEDULE", "UID=$FORM{UID}&shedule=status&index=". ($index+4), { BUTTON => 1 });
 	} 
 
 
@@ -572,7 +571,7 @@ sub dv_user {
    }
 
   $Dv->{CALLBACK}         = ($Dv->{CALLBACK} == 1) ? ' checked' : '';
-  $Dv->{REGISTRATION_INFO}= $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1");
+  $Dv->{REGISTRATION_INFO}= $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1", { BUTTON => 1 });
 
   if ($conf{DOCS_PDF_PRINT}) {
     $Dv->{REGISTRATION_INFO_PDF}= '('. $html->button("PDF", "qindex=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1&pdf=1", { ex_params => 'target=_new' } ) .')';
@@ -992,10 +991,9 @@ elsif($FORM{zap}) {
   	                NAS_ID          => $nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
-    $message .= "<p align=center>[".
-    $html->button('Add To log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id&ZAPED=yes"). 
-    "] [".
-    $html->button($_DEL, "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id&ZAPED=yes"). "]</p>\n";
+    $message .= "<p align=center>".
+    $html->button('Add To log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id&ZAPED=1", { BUTTON => 1 }). 
+    $html->button($_DEL, "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id&ZAPED=1", { BUTTON => 1 }). "</p>\n";
    }
   else {
   	$message .= "$_EXIST";
@@ -1194,12 +1192,13 @@ $form_link = '';
 my $cure = '';
 if($FORM{ZAPED}) {
 	$LIST_PARAMS{ZAPED}=1;
-	$form_link = $html->button("On line", "index=$index");
+	$form_link = $html->button("On line", "index=$index", { BUTTON => 1 });
 	$cure = 'Zap';
 	$pages_qs .= "&ZAPED=1";
  } 
 else {
- 	$form_link = $html->button("$_ZAPED", "index=$index&ZAPED=yes"). " ($sessions->{ZAPED})";
+	$sessions->{ZAPED}=0 if (! $sessions->{ZAPED});
+ 	$form_link = $html->button("$_ZAPED ($sessions->{ZAPED})", "index=$index&ZAPED=1", { BUTTON => 1 });
  	$cure='Online';
 }
 
@@ -1252,7 +1251,7 @@ if ($sessions->{TOTAL} > 500)  {
     $line->[5],
     ($line->[6] > 0) ? $html->button("$line->[6]", "index=$index&NAS_ID=$line->[0]&ZAPED=1") : 0,
     $line->[7],
-    $html->button("$_SHOW", "index=$index&NAS_ID=$line->[0]")
+    $html->button("$_SHOW", "index=$index&NAS_ID=$line->[0]", { BUTTON => 1 })
    );
   }
 
@@ -1322,7 +1321,7 @@ function CheckAllINBOX() {
   }
 }
 //-->
-</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n" : undef
+</script>\n<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n" : undef
 
                          } );
 
@@ -1330,19 +1329,14 @@ my $online = $sessions->{nas_sorted};
 #my $nas_list = $nas->list();
 
 foreach my $nas_row (@$nas_list) {
-
   next if (! defined($online->{$nas_row->[0]}));
   next if (($FORM{NAS_ID} && $FORM{NAS_ID} != $nas_row->[0]) && ! $FORM{ZAPED});
-
 
   my $l = $online->{$nas_row->[0]};
   my $total = $#{@$l} + 1;  
   $table->{rowcolor}=$_COLORS[0];
   $table->{extra}="colspan='". ($#CAPTION +1 ) . "' class='small'";
   $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]) .":$nas_row->[3]:$_TOTAL: $total (". $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->[0]", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->[0]' ?" }) .')'  );
-  
-  
-
   
   foreach my $line (@$l) {
     undef($table->{rowcolor});
@@ -1383,16 +1377,15 @@ foreach my $nas_row (@$nas_list) {
       }
 
 
-    if ($line->[$#ACTIVE_FIELDS + 9] > 3)  { $table->{rowcolor}='#FF0000';    }
-    my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+".$line->[$#ACTIVE_FIELDS + 12]."+". $line->[($#ACTIVE_FIELDS + 13)].$pages_qs, { TITLE => 'Zap' }) . ")";
-    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[$#ACTIVE_FIELDS + 13]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->[$#ACTIVE_FIELDS+2]&hangup=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]+$line->[$#ACTIVE_FIELDS + 11]&UID=$line->[$#ACTIVE_FIELDS+3]$pages_qs", { TITLE => 'Hangup' }). ")";
+    if ($line->[$#ACTIVE_FIELDS + 9] > 3)  { $table->{rowcolor}='#FF0000';  }
+    my $zap = $html->button('Z', "index=$index&zap=$nas_row->[0]+".$line->[$#ACTIVE_FIELDS + 12]."+". $line->[($#ACTIVE_FIELDS + 13)].$pages_qs, { TITLE => 'Zap', BUTTON => 1 });
+    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[$#ACTIVE_FIELDS + 13]", { TYPE => 'checkbox', BUTTON => 1  } ) : $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->[$#ACTIVE_FIELDS+2]&hangup=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]+$line->[$#ACTIVE_FIELDS + 11]&UID=$line->[$#ACTIVE_FIELDS+3]$pages_qs", { TITLE => 'Hangup', BUTTON => 1 });
 
 
     $table->addrow(@rows,
-     "(". $html->button('P', "index=$index&NAS_ID=$FORM{NAS_ID}&ping=$line->[$#ACTIVE_FIELDS+2]$pages_qs", { TITLE => 'ping' }) .")",
+     $html->button('P', "index=$index&NAS_ID=$FORM{NAS_ID}&ping=$line->[$#ACTIVE_FIELDS+2]$pages_qs", { TITLE => 'ping', BUTTON => 1 }),
      "$zap",
      "$hangup");
-
   }
 }
 
@@ -1419,12 +1412,10 @@ else {
   	                            ACTIVE_FIELDS => \@ACTIVE_FIELDS 
   	                            }); 
 
-  $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want ZAP all sessions ?" });
+  $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want ZAP all sessions ?", BUTTON => 1 });
  }
-
-
-print  $output;
-	
+ 
+ print  $output;
 }
 
 
@@ -3539,7 +3530,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   
   if ($Dv->{STATUS} == 2) {
     $Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $service_status_colors[$Dv->{STATUS}]). ' ';
-    $Dv->{STATUS}  .= ($user->{DISABLE} > 0) ? $html->b("($_ACCOUNT $_DISABLE)") : $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1", {   	 ex_params  => ' ID="ACTIVATE"' });
+    $Dv->{STATUS}  .= ($user->{DISABLE} > 0) ? $html->b("($_ACCOUNT $_DISABLE)") : $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1", {   	 ex_params  => ' ID="ACTIVATE"', BUTTON => 1 });
     #   JAVASCRIPT => ' onclick="obj_disable(ACTIVATE, \'Wait...\')"'  	 } );
    }  
   else {
@@ -3547,7 +3538,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
    }
   
   if ($conf{DV_USER_CHG_TP}) {
-    $Dv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid );
+    $Dv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid, { BUTTON => 1 } );
    }
 
   # Get next payment period
@@ -3681,7 +3672,7 @@ sub dv_holdup_service {
   chop($del_ids);
 
   if($shedule->{TOTAL} > 0) {
-  	$html->message('info', $_INFO, "$_HOLD_UP $shedule_val{3} -> $shedule_val{0} " . $html->button("$_DEL", "index=$index&del=$del_ids"));
+  	$html->message('info', $_INFO, "$_HOLD_UP $shedule_val{3} -> $shedule_val{0} " . $html->button("$_DEL", "index=$index&del=$del_ids", { BUTTON => 1 }));
   	return 0;
    }
 
@@ -4953,7 +4944,7 @@ sub dv_wizard_user {
         $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail) if ($Mail);
 
         if (in_array('Docs', \@MODULES) ) {
-          $html->message('info', $_INFO, "$_PRINT ". $html->button("$_CONTRACT", "qindex=$index&UID=$UID&PRINT_CONTRACT=$UID&print=1". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new'  }) );
+          $html->message('info', $_INFO, "$_PRINT ". $html->button("$_CONTRACT", "qindex=$index&UID=$UID&PRINT_CONTRACT=$UID&print=1". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new', BUTTON => 1  }) );
          }
         
         #If docs module enable make account

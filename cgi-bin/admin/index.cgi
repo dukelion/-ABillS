@@ -876,7 +876,7 @@ print "<tr bgcolor=\"$_COLORS[3]\"><td colspan=\"2\">\n";
 my $menu;
 while(my($name, $v)=each %$items) {
   my ($subf, $ext_url)=split(/:/, $v, 2);
-  $menu .= (defined($FORM{subf}) && $FORM{subf} eq $subf) ? "::". $html->button($html->b($name), "index=$index&$ext_url&subf=$subf"): "::". $html->button($name, "index=$index&$ext_url&subf=$subf");
+  $menu .= (defined($FORM{subf}) && $FORM{subf} eq $subf) ? ' '. $html->b($name) : ' '. $html->button($name, "index=$index&$ext_url&subf=$subf", { BUTTON => 1 });
 }
 
 print "$menu</td></tr>
@@ -965,7 +965,7 @@ sub user_form {
      my $customers = Customers->new($db, $admin, \%conf);
      my $company = $customers->company->info($FORM{COMPANY_ID});
  	   $user_info->{COMPANY_ID}=$FORM{COMPANY_ID};
-     $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td>". (($company->{COMPANY_ID} > 0) ? $html->button($company->{COMPANY_NAME}, "index=13&COMPANY_ID=$company->{COMPANY_ID}") : '' ). "</td></tr>\n";
+     $user_info->{EXDATA} =  "<tr><td>$_COMPANY:</td><td>". (($company->{COMPANY_ID} > 0) ? $html->button($company->{COMPANY_NAME}, "index=13&COMPANY_ID=$company->{COMPANY_ID}", { BUTTON => 1 }) : '' ). "</td></tr>\n";
     }
    
    if ($admin->{GIDS}) {
@@ -1027,7 +1027,7 @@ sub user_form {
    $user_info->{ACTION}='change';
    $user_info->{LNG_ACTION}=$_CHANGE;
    if ($permissions{0}{3}) {
-   	 $user_info->{PASSWORD} = ($FORM{SHOW_PASSWORD}) ? "$_PASSWD: '$user_info->{PASSWORD}'" : $html->button("$_SHOW $_PASSWD", "index=$index&UID=$LIST_PARAMS{UID}&SHOW_PASSWORD=1");
+   	 $user_info->{PASSWORD} = ($FORM{SHOW_PASSWORD}) ? "$_PASSWD: '$user_info->{PASSWORD}'" : $html->button("$_SHOW $_PASSWD", "index=$index&UID=$LIST_PARAMS{UID}&SHOW_PASSWORD=1", { BUTTON => 1 });
     }
   } 
 
@@ -1258,16 +1258,11 @@ sub user_pi {
 
   
   if (in_array('Docs', \@MODULES) ) {
-    $user_pi->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new'  }) ;
+    $user_pi->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', BUTTON => 1 }) ;
     
     if ($conf{DOCS_CONTRACT_TYPES}) {
-    	
-    	#PREFIX:SUFIX:NAME;
-    	
-    	
     	$conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
       my (@contract_types_list)=split(/;/, $conf{DOCS_CONTRACT_TYPES});
-
 
       my %CONTRACTS_LIST_HASH = ();
       $FORM{CONTRACT_SUFIX}="|$user_pi->{CONTRACT_SUFIX}";
@@ -1328,7 +1323,7 @@ if(defined($attr->{USER})) {
 	   }
   
    	if ($service_func_index > 0 && $menu_items{$key}{$service_func_index}) {
-	  	 $service_func_menu .= $html->button($menu_items{$key}{$service_func_index}, "UID=$user_info->{UID}&index=$key") .' :: ';
+	  	 $service_func_menu .= $html->button($menu_items{$key}{$service_func_index}, "UID=$user_info->{UID}&index=$key") .' ';
  	 	 }
 
    }
@@ -1402,7 +1397,7 @@ if(defined($attr->{USER})) {
     
     print "<TABLE width='100%' border=0>
       <TR bgcolor='$_COLORS[0]'><TH align='right'>$module{$service_func_index}</TH></TR>
-      <TR bgcolor='$_COLORS[2]'><TH align='right'>$service_func_menu</TH></TR>
+      <TR bgcolor='$_COLORS[1]'><TH align='right'><div id='rules'><ul><li class='center'>$service_func_menu</li></ul></div></TH></TR>
     </TABLE>\n";
   
     $functions{$service_func_index}->({ USER => $user_info });
@@ -1617,7 +1612,8 @@ my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$
                   'u.activate'        => "$_ACTIVATE", 
                   'u.expire'          => "$_EXPIRE",
                   'u.credit_date'     => "$_CREDIT $_DATE",
-                  'u.reduction'       => "$_REDUCTION"
+                  'u.reduction'       => "$_REDUCTION",
+                  'u.domain_id'       => 'DOMAIN ID'
                     );
 
 
@@ -1668,18 +1664,13 @@ function CheckAllINBOX() {
 }
 //-->
 </script>\n
-
-<div id='tabs'>
-<ul class=\"user_menu\">
-<li class=\"active\"><a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a></li>
-</ul>
-</div>\n" : undef
+<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n" : undef
 
                           });
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]") : ''; 
-  my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]") : '';
+  my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { BUTTON => 1 }) : ''; 
+  my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { BUTTON => 1 }) : '';
 
   my @fields_array  = ();
   for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++){
@@ -1687,6 +1678,7 @@ foreach my $line (@$list) {
       $line->[5] = ($line->[5] < 0) ? "<font color='$_COLORS[6]'>$line->[5]</font>" : $line->[5];
      }
     push @fields_array, $table->td($line->[5+$i]);
+    print "// $users->{SEARCH_FIELDS_COUNT} //";
    }
 
 
@@ -3115,10 +3107,8 @@ while(my($thema, $colors)=each %profiles ) {
       $line =~ s/#/%23/ig;
       $url .= "&colors=$line";
     }
-  print $html->button("$thema", $url) . ' ::';
+  print ' '. $html->button("$thema", $url, { BUTTON => 1 });
 }
-
-
 
  return 0;
 }
@@ -4798,7 +4788,8 @@ if ($permissions{1} && $permissions{1}{1}) {
  	                                NO_ID             => 1
  	                               });
 
-    $payments->{DOCS_ACCOUNT_ELEMENT}="<tr><td colspan=2>$_ACCOUNT:</td><td>$ACCOUNTS_SEL</td></tr>";
+    $payments->{DOCS_ACCOUNT_ELEMENT}="<tr><th colspan=3 class='form_title'>$_DOCS</th></tr>\n".
+    "<tr><td colspan=2>$_ACCOUNT:</td><td>$ACCOUNTS_SEL</td></tr>";
    }
 
 

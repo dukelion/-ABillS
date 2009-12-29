@@ -78,7 +78,22 @@ form {
   font-size: 12px;
 }
 
+.link_button {
+  font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
+  background-color: %_COLOR_2%;
+  color: %_COLOR_9%;
+  font-size: 11px;
+  padding: 2px;
+  border: 1px outset;
+  text-decoration: none;
+  padding:1px 5px;
+}
 
+a.link_button:hover {
+  background:#ccc;
+  background-color: %_COLOR_3%;
+  border:1px solid #666;
+}
 
 input, textarea {
 	font-family : Verdana, Arial, sans-serif;
@@ -104,7 +119,6 @@ TABLE.border {
   border-width : 1px;
 }
 
-
 .l_user_menu {
       width: 100%;
       border-right: 1px solid #000;
@@ -128,7 +142,6 @@ TABLE.border {
       border-bottom: 1px solid %_COLOR_2%;
       margin: 0;
       }
-
 
 .l_user_menu li a {
       display: block;
@@ -173,9 +186,6 @@ TABLE.border {
       list-style: none;
       display: inline;
       }
-
-
-
 
 #rules {
   float:center;
