@@ -265,7 +265,7 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
 
   foreach $line (@$list) {
    	@pin = ("$line->[14]") if ($conf{CARDS_SHOW_PINS}) ;
-   	$pages_qs =~ s/SERIA=[a-z0-9\*,\ \_]+&//g;
+   	$pages_qs =~ s/SERIA=[a-zA-Z0-9\*,\ \_]+&//g;
    	$table->addrow(
    	    $html->form_input("IDS", "$line->[0]:$line->[1]", {TYPE => 'checkbox'}). $html->b($line->[0]) , 
   	    $line->[1],
