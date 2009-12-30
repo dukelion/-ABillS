@@ -148,9 +148,6 @@ print $table->show();
 
 }
 
-#*******************************************************************
-#
-#*******************************************************************
 sub msgs_admin_add {
 
   $Msgs->{ACTION}='send';
@@ -317,6 +314,7 @@ sub msgs_admin_add {
   
   $html->tpl_show(_include('msgs_send_form', 'Msgs'), $Msgs);
 }
+
 
 #*******************************************************************
 #
@@ -749,8 +747,8 @@ foreach my $line (@$list) {
    $line->[7],      
    $priority,
    $line->[9],
-   $html->button("$_SHOW", "index=$index&chg=$line->[0]&UID=$line->[11]"),
-   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?" }): '') 
+   $html->button("$_SHOW", "index=$index&chg=$line->[0]&UID=$line->[11]", { BUTTON => 1 }),
+   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?", BUTTON => 1 }): '') 
   );
 }
 
@@ -801,7 +799,6 @@ print $table->show();
 #
 #*******************************************************************
 sub msgs_user {
-	 
 
   my @msg_status_all = ("$_OPEN",
                   "$_CLOSED_UNSUCCESSFUL",
@@ -1015,9 +1012,6 @@ sub msgs_user {
 
 
      %params              = ();
-     #$params{STATE}       = 0 if ($FORM{STATE} && $FORM{STATE} == 6); # ? 0 : $FORM{STATE};
-     
-     #my $state            = $FORM{STATE};
  	 	 $params{CLOSED_DATE} = $DATE       if ($state > 0);
  	 	 $params{DONE_DATE}   = $DATE       if ($state > 1);
 
@@ -1065,14 +1059,10 @@ sub msgs_user {
    } 
 
   push @msg_status, $_IN_WORK;
-  #$LIST_PARAMS{ADMIN_READ}= '>0000-00-00 00:00:00';
   $LIST_PARAMS{SORT}       = '5 DESC'; # '11, 5 DESC';
   $LIST_PARAMS{INNER_MSG}  = 0;
-
-  $LIST_PARAMS{STATE}=undef if ($FORM{STATE} == 3);
-  $LIST_PARAMS{PRIORITY}=undef if ($FORM{PRIORITY} == 5);
-
-  #$pages_qs .= "&UID=$FORM{UID}" if ($FORM{UID});
+  $LIST_PARAMS{STATE}      = undef if ($FORM{STATE} == 3);
+  $LIST_PARAMS{PRIORITY}   = undef if ($FORM{PRIORITY} == 5);
 
   if (! defined($FORM{STATE}) && ! $FORM{ALL_MSGS}) {
      $FORM{STATE}=0;
@@ -1125,7 +1115,7 @@ foreach my $line (@$list) {
     $line->[3],
     $line->[4],
     ($line->[5] == 6) ? "<blink>$msg_status_all[$line->[5]]</blink>" :  ( ($line->[5] == 0) ? $html->color_mark($msg_status_all[$line->[5]], $_COLORS[8]) :  $msg_status_all[$line->[5]]),
-    $html->button($_SHOW, "index=$index&ID=$line->[0]&sid=$sid")
+    $html->button($_SHOW, "index=$index&ID=$line->[0]&sid=$sid", { BUTTON => 1 })
   );
 }
 
@@ -1281,6 +1271,7 @@ print $html->form_main({ CONTENT => $table->show(),
 	                     });
 
 	
+
 }
 
 #*******************************************************************
