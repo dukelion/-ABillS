@@ -3744,7 +3744,7 @@ if (defined($FORM{DATE})) {
 	       } 
      	 }
      	else {
-     	  $EX_PARAMS .= '::'. $html->button($v, "index=$index$pages_qs&EX_PARAMS=$k");
+     	  $EX_PARAMS .= '::'. $html->button($v, "index=$index$pages_qs&EX_PARAMS=$k", { BUTTON => 1});
      	 }
 	  }
   
@@ -3754,7 +3754,7 @@ if (defined($FORM{DATE})) {
   for ($i=1; $i<=31; $i++) {
      $days .= ($d == $i) ? ' '. $html->b($i) : ' '.$html->button($i, sprintf("index=$index&DATE=%d-%02.f-%02.f&EX_PARAMS=$FORM{EX_PARAMS}%s%s", $y, $m, $i, 
        (defined($FORM{GID})) ? "&GID=$FORM{GID}" : '', 
-       (defined($FORM{UID})) ? "&UID=$FORM{UID}" : '' ));
+       (defined($FORM{UID})) ? "&UID=$FORM{UID}" : '' ), { BUTTON => 1 });
    }
   
   @rows = ([ "$_YEAR:",  $y ],

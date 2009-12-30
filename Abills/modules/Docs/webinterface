@@ -1488,7 +1488,7 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
 sub docs_tax_exports {
 
 if ($FORM{d}) {
-my ($y, $m, $d)=split(/-/, ($FORM{MONTH}) ? $FORM{MONTH}.'01' : $DATE);
+my ($y, $m, $d)=split(/-/, ($FORM{MONTH}) ? $FORM{MONTH}.'-01' : $DATE);
 my $file_prefix = "26590025388695J1201502100000";
 my $filename    = $file_prefix. "01$m$y".'.xml';
 

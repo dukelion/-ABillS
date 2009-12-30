@@ -1,6 +1,5 @@
 # Mail delivery
 
-
 my %MAIL_PRIORITY = (2 => 'High', 
                      3 => 'Normal', 
                      4 => 'Low');
@@ -12,6 +11,7 @@ my $Mdelivery = Mdelivery->new($db, $admin, $conf);
 
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000');
 my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT" );
+
 
 
 #*******************************************************************
@@ -111,7 +111,7 @@ sub mdelivery_main {
 
 
  	 my $table = $html->table({ width      => '100%',
-                              caption    => 'Internte',
+                              caption    => 'Internet',
                               rows       => \@rows
                           });
  	 $Mdelivery->{EXTRA2} .= "<tr><th colspan=2>". $table->show() ."</th></tr>\n";
@@ -122,8 +122,6 @@ sub mdelivery_main {
 
 
  $html->tpl_show(templates('mail_form'), $Mdelivery); 
- 
- #$html->tpl_show(_include('mdelivery_form', 'Mdelivery'), {  $Mdelivery });
 }
 
 
@@ -173,7 +171,7 @@ rget=_new' }). " $_SIZE: ". int2byte($line->[3]) . ' / ';
                           });
 
   foreach my $line (@$list) {
-    my $delete = $html->button($_DEL, "index=$index&info=$FORM{info}&del_user=$line->[5]", { MESSAGE =>  "$_DEL [$line->[0]]?" });
+    my $delete = $html->button($_DEL, "index=$index&info=$FORM{info}&del_user=$line->[5]", { MESSAGE =>  "$_DEL [$line->[0]]?", BUTTON=>1 });
 
     $table->addrow($html->button($line->[0], "index=15&UID=$line->[3]"), 
       $line->[1], 
@@ -211,30 +209,28 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
                           });
 
  foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]]?" });
-  
-  $table->{rowcolor} = ($FORM{info} && $FORM{info} == $line->[0]) ? $_COLORS[0] : undef;
+   my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]]?", BUTTON=>1 });
 
-  $table->addrow("$line->[0]", 
-    $line->[1], 
-    $line->[2], 
-    $line->[3],  
-    $line->[4],  
-    $line->[5], 
-    $line->[6], 
-    ($line->[7]) ? $_SENDED : '', 
-    $html->button($_INFO, "index=$index&info=$line->[0]"),
-    $delete);
+   $table->{rowcolor} = ($FORM{info} && $FORM{info} == $line->[0]) ? $_COLORS[0] : undef;
+
+   $table->addrow("$line->[0]", 
+     $line->[1], 
+     $line->[2], 
+     $line->[3],  
+     $line->[4],  
+     $line->[5], 
+     $line->[6], 
+     ($line->[7]) ? $_SENDED : '', 
+     $html->button($_INFO, "index=$index&info=$line->[0]", { BUTTON=>1 }),
+     $delete);
  }
 print $table->show();
-
 
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right', 'right', 'right'],
                         rows       => [ [ "$_TOTAL:", "$Mdelivery->{TOTAL}" ] ]
                       });
 print $table->show();
-
 }
 
 
@@ -287,10 +283,7 @@ foreach my $mdelivery_id (@ids) {
         FILESIZE      => $line->[3],
         CONTENT       => $line->[4]
       };
-       
   	 }
-
-    
    }
 
   my $user_list = $Mdelivery->user_list({ %LIST_PARAMS, STATUS => 0 });
@@ -312,12 +305,9 @@ foreach my $mdelivery_id (@ids) {
    }
 
 #exit;
- 
   $Mdelivery->user_list_change({ MDELIVERY_ID => $mdelivery_id, UID => join(';', @users_ids) });
   $Mdelivery->change({ ID => $mdelivery_id });
 }
-
-
 
   $DEBUG .= $debug_output;
   return $debug_output;
