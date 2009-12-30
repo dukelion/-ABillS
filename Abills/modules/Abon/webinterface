@@ -30,28 +30,21 @@ sub abon_user {
     	$ids_hash{$k}=1;
      }
 
-
     my $list = $Abon->user_tariff_list($FORM{UID});
-    
+
     foreach my $line (@$list) {
     	if ($ids_hash{$line->[0]} && $line->[5]) {
     	  delete $ids_hash{$line->[0]} ;
-    	  #push @add_arr, $line->[0];
     	 }
     	elsif($line->[5]) {
     		push @del_arr, $line->[0];
     	 }
      }
 
-
     @new_arr = keys %ids_hash;
-
-
 
     if ($#new_arr > -1) {
       my $list = $Abon->tariff_list({ IDS => join(', ', @new_arr) });  
-
-
       
       foreach my $line (@$list) {
         if(($users->{CREDIT} + $users->{DEPOSIT}) > $line->[1] || $line->[3]) {
@@ -110,13 +103,9 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  #if ($permissions{4}{1}) {
-  #  $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
-  # }
-
   $table->addrow($html->form_input('IDS', "$line->[0]", { TYPE => 'CHECKBOX', 
   	                                                      STATE => ($line->[7] == 1) ? 1 : undef   }),
-     
+
      "$line->[1]",
      $html->form_input('COMMENTS_'.$line->[0], "$line->[2]", { SIZE => 40 }),
      "$line->[3]", 
@@ -169,10 +158,6 @@ sub abon_user_list {
 
 my $delete = '';
 foreach my $line (@$list) {
-  
-  #if ($permissions{0}{1}) {
-  #  $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?" }); 
-  # }
   $table->addrow($html->button("$line->[0]", "index=15&UID=$line->[8]"), 
      "$line->[1]", 
      $line->[2], 
@@ -332,7 +317,6 @@ foreach my $line (@$list) {
 
 
 print $table->show();
-  
 }
 
 
@@ -352,14 +336,8 @@ sub abon_periodic {
   $Abon->{debug}=1 if ($debug > 7);
   my $list = $Abon->periodic_list({ %LIST_PARAMS });
 
- #at.period, at.price, u.uid, if(u.company_id > 0, c.bill_id, u.bill_id),
- # u.id, at.id, at.name,
- # if(c.name IS NULL, b.deposit, cb.deposit),
- # if(u.company_id > 0, c.credit, u.credit),
- # disable,
- # at.id 
- my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
- $m--;
+  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+  $m--;
 
  foreach my $line (@$list) {
   if (defined($line->[7])) {
@@ -434,18 +412,11 @@ sub abon_periodic {
   else {
     print "[ $line->[2] ] $line->[4] - Don't have money account\n";
    }
-
-
-
-
   }
-
 
   $DEBUG .= $debug_output;
   return $debug_output;
 }
-
-
 
 #**********************************************************
 #
@@ -492,16 +463,8 @@ sub abon_get_month_fee {
          }
 
         $message = "$_ABON: ". (($Abon->{COMMENTS}) ? " $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}" : " [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} " ) .$message;
-        
-        #if ($Abon->{TP_INFO}->{ABON_DISTRIBUTION}) {
-        #	$sum = $sum / ( ($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28)) );
-        #	$message .= " - $_ABON_DISTRIBUTION";
-        # }
-        
-        
 
         for (my $i=0; $i<=$periods; $i++) {
-
           if ($active_m+$i > 12) {
           	$active_m=0;
           	$active_y=$active_y+1;
@@ -544,8 +507,6 @@ sub abon_get_month_fee {
 
 
       }
-
-
 }
 
 1
