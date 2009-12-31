@@ -267,7 +267,8 @@ sub user_list_del {
   if ($attr->{UID}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', "uid") };  
    }
-  elsif ($attr->{MDELIVERY_ID}) {
+
+  if ($attr->{MDELIVERY_ID}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{MDELIVERY_ID}, 'INT', "mdelivery_id") };
    }
   elsif ($attr->{ID}) {
