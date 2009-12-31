@@ -55,3 +55,6 @@ local.cf           > [/usr/local/etc/mail/spamassassin]/local.cf
 
 :OS=FREEBSD:exec:/usr/local/etc/rc.d/clamav-clamd restart
 :OS=FREEBSD:exec:/usr/local/etc/rc.d/amavisd restart
+
+:OS=FREEBSD:exec:ln -s /usr/local/www/squirrelmail /usr/local/www/apache22/data/mail
+:OS=FREEBSD:exec:/usr/local/www/apache22/data/mail/configure
