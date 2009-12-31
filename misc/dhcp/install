@@ -1,0 +1,7 @@
+:OS=FREEBSD:dhcpd_enable="YES"  >> [/etc/]/rc.conf
+:OS=FREEBSD:!dhcpd\n*.* /var/log/dhcpd.log >> [/etc/]/syslog.conf 
+:OS=FREEBSD:exec:touch /var/log/dhcpd.log
+:OS=FREEBSD:exec:killall -1 syslogd
+:OS=FREEBSD:www   ALL = NOPASSWD: /usr/local/etc/rc.d/isc-dhcpd >> [/usr/local/etc/]/sudoers
+:OS=FREEBSD:exec:touch /usr/local/etc/dhcpd.conf
+:OS=FREEBSD:exec:chown www /usr/local/etc/dhcpd.conf
