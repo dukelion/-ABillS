@@ -29,6 +29,7 @@ sub mdelivery_main {
      $html->message('info', $_INFO, "$_SENDED");
     }
 
+   my @ATTACHMENTS = ();
 
    for(my $i=1; $i<=2; $i++) {
        if ($FORM{'FILE_UPLOAD_'. $i}) {
@@ -39,8 +40,28 @@ sub mdelivery_main {
            FILENAME     => $FORM{'FILE_UPLOAD_'. $i}{filename},
            CONTENT_TYPE => $FORM{'FILE_UPLOAD_'. $i}{'Content-Type'},
           });
+
+         push @ATTACHMENTS, {
+          	ATTACHMENT_ID => $i,
+            FILENAME      => $FORM{'FILE_UPLOAD_'. $i}{filename}, 
+            CONTENT_TYPE  => $FORM{'FILE_UPLOAD_'. $i}{'Content-Type'},
+            FILESIZE      => $FORM{'FILE_UPLOAD_'. $i}{Size},
+            CONTENT       => $FORM{'FILE_UPLOAD_'. $i}{Contents}
+          };
         }
     }
+ 
+   if ($FORM{SEND_PREVIEW}) {
+     sendmail(($FORM{FROM}) ? $FORM{FROM} : $conf{ADMIN_MAIL}, 
+          "$conf{ADMIN_MAIL}", 
+          "$FORM{SUBJECT}", 
+          "$FORM{TEXT}", 
+          "$conf{MAIL_CHARSET}", 
+          "$FORM{PRIORITY} ($MAIL_PRIORITY{$FORM{PRIORITY}})",
+          { ATTACHMENTS => ($#ATTACHMENTS > -1) ? \@ATTACHMENTS : undef });   	 
+    }
+
+
   }
   
  $Mdelivery->{PERIOD_FORM}=form_period($period);
@@ -119,9 +140,9 @@ sub mdelivery_main {
 
   $Mdelivery->{EXTRA2} .= $html->tpl_show(templates('form_address'), $Mdelivery, { OUTPUT2RETURN => 1 }); 
   
+  $Mdelivery->{EXTRA2} .= "<tr bgcolor=$_COLORS[2]><td colspan=1>$_SEND $_PRE:</td><td><input type=checkbox name=SEND_PREVIEW value=1 checked> $conf{ADMIN_MAIL}</td></tr>\n";
 
-
- $html->tpl_show(templates('mail_form'), $Mdelivery); 
+  $html->tpl_show(templates('mail_form'), $Mdelivery); 
 }
 
 
@@ -142,10 +163,20 @@ if ($FORM{ATTACHMENT}) {
   	return 0;
   }
 elsif ($FORM{info}) {
+  if ($FORM{del_user}) {
+    $Mdelivery->user_list_del({ MDELIVERY_ID=>$FORM{info},  UID => $FORM{del_user} });
+
+    if (! $Mdelivery->{errno}) {
+      $html->message('info', $_INFO, "$_USER $_DELETED");
+     }
+   }
+
   $Mdelivery->info($FORM{info});
   if ($Mdelivery->{errno}) {
     $html->message('err', $_ERROR, "[$Mdelivery->{errno}] $err_strs{$Mdelivery->{errno}}");
    }
+
+
 
   $Mdelivery->{PRIORITY}="$Mdelivery->{PRIORITY} ($MAIL_PRIORITY{$Mdelivery->{PRIORITY}})";
   
@@ -160,7 +191,7 @@ rget=_new' }). " $_SIZE: ". int2byte($line->[3]) . ' / ';
   
   
   $html->tpl_show(_include('mdelivery_form', 'Mdelivery'), $Mdelivery); 
-  
+
   my $list = $Mdelivery->user_list({ %LIST_PARAMS, MDELIVERY_ID => $FORM{info} });  
   my $table = $html->table({ width      => '100%',
                             caption    => $_USERS,
@@ -171,7 +202,7 @@ rget=_new' }). " $_SIZE: ". int2byte($line->[3]) . ' / ';
                           });
 
   foreach my $line (@$list) {
-    my $delete = $html->button($_DEL, "index=$index&info=$FORM{info}&del_user=$line->[5]", { MESSAGE =>  "$_DEL [$line->[0]]?", BUTTON=>1 });
+    my $delete = $html->button($_DEL, "index=$index&info=$FORM{info}&del_user=$line->[3]", { MESSAGE =>  "$_DEL [$line->[0]]?", BUTTON=>1 });
 
     $table->addrow($html->button($line->[0], "index=15&UID=$line->[3]"), 
       $line->[1], 
