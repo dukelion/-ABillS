@@ -46,13 +46,14 @@ if ($FORM{change}) {
    }
  }
 elsif ($FORM{chg}) {
-  
   my $a_list = $Msgs->admins_list({ AID => $FORM{AID} });
-  my %A_PRIVILEGES = ();
-  my %A_MAIL_SEND  = ();
+  my %A_PRIVILEGES        = ();
+  my %A_MAIL_SEND         = ();
+  my %A_DELIGATION_LEVEL  = ();
   
   foreach my $line (@$a_list) {
   	$A_PRIVILEGES{$line->[5]}=$line->[2];
+  	$A_DELIGATION_LEVEL{$line->[5]}=$line->[3];
   	$A_MAIL_SEND{$line->[5]}=$line->[6];
   	$Msgs->{ADMIN}=$line->[0];
    }
@@ -68,12 +69,20 @@ elsif ($FORM{chg}) {
                              cols_align => ['right', 'left', 'center', 'center', 'center' ],
                            });
   
+  my @DELIGATION_LEVEL_ARR = (0, 1, 2, 3, ,4 ,5 ,6, 7, 8, 9, 10);
  
   foreach my $line (@$list) {
     my $privileges =  $html->form_select('PRIORITY_'. $line->[0], 
                                           { 
- 	                                          SELECTED          => (defined($A_PRIVILEGES{$line->[0]})) ? $A_PRIVILEGES{$line->[0]} : 0 ,
+ 	                                          SELECTED          => ($A_PRIVILEGES{$line->[0]}) ? $A_PRIVILEGES{$line->[0]} : 0 ,
  	                                          SEL_ARRAY         => \@privilages_arr,
+ 	                                          ARRAY_NUM_ID      => 1
+ 	                                        });
+
+    my $deligation_level =  $html->form_select('DELIGATION_LEVEL_'. $line->[0], 
+                                          {
+ 	                                          SELECTED          => ($A_DELIGATION_LEVEL{$line->[0]}) ? $A_DELIGATION_LEVEL{$line->[0]} : 0 ,,
+ 	                                          SEL_ARRAY         => \@DELIGATION_LEVEL_ARR,
  	                                          ARRAY_NUM_ID      => 1
  	                                        });
     
@@ -83,7 +92,7 @@ elsif ($FORM{chg}) {
         $privileges,
         $html->form_input('EMAIL_NOTIFY_'. $line->[0], 1, { TYPE => 'checkbox', 
     	  STATE => ($A_MAIL_SEND{$line->[0]}) ? 1 : undef }),
-    	  $html->form_input('PRIORITY_'. $line->[0], 0, { SIZE => 3 }),
+    	  $deligation_level,
      );
    }
   
@@ -102,22 +111,22 @@ my $list = $Msgs->admins_list({ %LIST_PARAMS });
   
   my $table = $html->table( { width      => '100%',
                               caption    => "$_ADMINS",
-                              title      => [$_ADMIN, "$_CHAPTERS", "$_PERMISSION", "$_MESSAGES", 'E-mail', "-"],
-                              cols_align => ['left', 'left', 'center', 'right', 'center', 'center:noprint' ],
+                              title      => [$_ADMIN, "$_CHAPTERS", "$_PERMISSION", "$_MESSAGES", 'E-mail', "$_PRIORITY", "-"],
+                              cols_align => ['left', 'left', 'center', 'right', 'center', 'right', 'center:noprint' ],
                               qs         => $pages_qs,
                               ID         => 'MSGS_ADMINS'
                            });
 
 my %A_PRIVILEGES = ();
 foreach my $line (@$list) {
-  push @{ $A_PRIVILEGES{$line->[0]} }, "$line->[1]|$line->[2]|$line->[3]|$line->[4]|$line->[5]}|$line->[6]";
+  push @{ $A_PRIVILEGES{$line->[0]} }, "$line->[1]|$line->[2]|$line->[3]|$line->[4]|$line->[5]}|$line->[6]|$line->[7]";
 }
 
 foreach my $admin_id (sort keys %A_PRIVILEGES) {
   my $rows = $#{ $A_PRIVILEGES{$admin_id} };
   my @arr = @{ $A_PRIVILEGES{$admin_id} };
 
-  my ($chapter_name, $privilege, $msgs, $aid, $chapter_id, $mail_send) = split(/\|/, $arr[0] );
+  my ($chapter_name, $privilege, $deligation_level, $aid, $chapter_id, $mail_send, $priority_level) = split(/\|/, $arr[0] );
 
   $table->addtd(
                   $table->td($admin_id, { rowspan => ($rows > 0) ? $rows+1 : 1 } ),
@@ -125,18 +134,20 @@ foreach my $admin_id (sort keys %A_PRIVILEGES) {
                   $table->td($privilages_arr[$privilege]), 
                   $table->td($msgs), 
                   $table->td($bool_vals[$mail_send]), 
+                  $table->td($deligation_level),
                   $table->td($html->button("$_CHANGE", "index=$index&chg=$aid&AID=$aid"), { rowspan => ($rows > 0) ? $rows+1 : 1 })
       );
 
 
   if ($rows > 0) {
     for(my $i=1; $i<=$rows; $i++) { 
-      my ($chapter_name, $privilege, $msgs, $aid, $chapter_id, $mail_send) = split(/\|/, $arr[$i] );
+      my ($chapter_name, $privilege, $deligation_level, $aid, $chapter_id, $mail_send, $priority_level) = split(/\|/, $arr[$i] );
       $table->addrow(
        $chapter_name, 
        $privilages_arr[$privilege],
        $msgs,
-       $bool_vals[$mail_send]
+       $bool_vals[$mail_send],
+       $deligation_level
       );
     }
    }
@@ -328,6 +339,7 @@ sub msgs_admin {
                   "$_NEW_MESSAGE",
                   "$_HOLD_UP",
                   "$_ANSWER_WAIT",
+                  "$_DELIGATED"
                   );
 
 
@@ -336,8 +348,30 @@ sub msgs_admin {
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
  
+  #Get admin privileges
+  my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
+  
+  my %A_PRIVILEGES        = ();
+  my %CHAPTERS_DELIGATION = ();
 
-  if ($FORM{change}) {
+  foreach my $line (@$a_list) {
+  	if ($line->[5] > 0) {
+  	  push @A_CHAPTER, "$line->[5]:$line->[3]";
+  	  $CHAPTERS_DELIGATION{$line->[5]}=$line->[3];
+  	  $A_PRIVILEGES{$line->[5]}=$line->[2];
+  	 }
+   }
+
+ 
+
+  if ($FORM{deligate}) {
+  	$Msgs->message_change({ ID          => $FORM{deligate},
+  		                      DELIGATION  => $FORM{level},
+  		                      ADMIN_READ  => "0000-00-00 00:00:00" });
+
+  	$html->message('info', $_INFO, "$_DELIGATED") if (! $Msgs->{errno});
+   }
+  elsif ($FORM{change}) {
     if ($FORM{STATE} > 0) {
       $FORM{DONE_DATE}  ="$DATE" if ($FORM{STATE} == 2); 
       $FORM{CLOSED_DATE}="$DATE";
@@ -454,6 +488,9 @@ sub msgs_admin {
     $Msgs->{ACTION}    ='reply';
     $Msgs->{ACTION_LNG}=$_REPLY;
     
+    
+    
+    
     $Msgs->{STATE_NAME}=$html->color_mark($msg_status[$Msgs->{STATE}], $style[$Msgs->{STATE}]);
 
     $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
@@ -477,9 +514,8 @@ sub msgs_admin {
  	                                          ARRAY_NUM_ID      => 1
  	                                        });
 
+    $Msgs->{DELIGATED} =  $CHAPTERS_DELIGATION{$Msgs->{CHAPTER}} + 1;
 
-  my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
-  
 #    $Msgs->{CHAPTER_NAME}=$html->form_select('CHAPTER', 
 #                                          { 
 # 	                                          SELECTED          => $Msgs->{CHAPTER},
@@ -557,12 +593,8 @@ sub msgs_admin {
 
     my $run_time = '00:00:00';
     if ($reply ne '') {
-    	#$reply =~ s/>/>> /g;
-
-      #if (! $&) {
-  	    $reply =~ s/^/> /g;
-  	    $reply =~ s/\n/> /g;
-  	  # }
+ 	    $reply =~ s/^/> /g;
+ 	    $reply =~ s/\n/> /g;
      }
 
 
@@ -593,7 +625,6 @@ sub msgs_admin {
      }
     
     return 0;
-    #$html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{ATTACHMENT}) {
   	$Msgs->attachment_info({ ID => $FORM{ATTACHMENT} });
@@ -608,28 +639,13 @@ sub msgs_admin {
     $html->message('info', $_INFO, "$_DELETED") if (! $Msgs->{errno});  	
    }
 
-
   if ($Msgs->{errno}) {
      $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
    } 
 
-  
- 
-
-  my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
-  
-  my @A_CHAPTER = ();
-  my %A_PRIVILEGES = ();
-  foreach my $line (@$a_list) {
-  	if ($line->[5] > 0) {
-  	  push @A_CHAPTER, "$line->[5]";
-  	  $A_PRIVILEGES{$line->[5]}=$line->[2];
-  	 }
-   }
-
-  if ($#A_CHAPTER > -1) {
-    $LIST_PARAMS{CHAPTERS} = join(', ', @A_CHAPTER);
-    $LIST_PARAMS{UID}=undef if (! $FORM{UID}); 
+  if (scalar keys %CHAPTERS_DELIGATION > 0) {
+    $LIST_PARAMS{CHAPTERS_DELIGATION} = \%CHAPTERS_DELIGATION;
+    $LIST_PARAMS{UID}      = undef if (! $FORM{UID}); 
    }
 
 
@@ -717,7 +733,7 @@ foreach my $name ( @msg_status) {
                               qs         => $pages_qs,
                               pages      => $Msgs->{TOTAL},
                               ID         => 'MSGS_LIST',
-                              header     => ( ($#A_CHAPTER == -1) ? "<script language=\"JavaScript\" type=\"text/javascript\">
+                              header     => ( (scalar keys %CHAPTERS_DELIGATION == 0) ? "<script language=\"JavaScript\" type=\"text/javascript\">
 <!-- 
 function CheckAllINBOX() {
   for (var i = 0; i < document.users_list.elements.length; i++) {
@@ -733,11 +749,19 @@ function CheckAllINBOX() {
 foreach my $line (@$list) {
   my $state = ($line->[5] == 0) ? $html->b($msg_status[$line->[5]]) : $msg_status[$line->[5]];
 
-  $state .= '<img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[16] eq '0000-00-00 00:00:00');
+  $state .= ' <img src="../img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[16] eq '0000-00-00 00:00:00');
+  if ($line->[21] > 0) {
+    if ($CHAPTERS_DELIGATION{$line->[18]} == $line->[21]) {
+    	$state .= ' <img src="../img/delivered2.png" border="0" alt="'. $_DELIVERED. '"/>' ;
+     }
+    else {
+      $state .= ' <img src="../img/delivered1.png" border="0" alt="'. $_DELIVERED. '"/>' ;
+     }
+   }
   my $priority = $html->color_mark($priority[$line->[8]], $priority_colors[$line->[8]]);
 
   $table->addrow(
-   $line->[0] . ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ), 
+   $line->[0] . ( ($A_PRIVILEGES{$line->[18]} > 2 || scalar keys %CHAPTERS_DELIGATION == 0 ) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ), 
    ($line->[10] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[11]") :  $line->[1],
    $html->button($line->[2], "index=$index&UID=$line->[11]&chg=$line->[0]"), 
    $line->[3],
@@ -1530,8 +1554,9 @@ sub msgs_new {
     %SHOW_PARAMS = (ADMIN_READ => '0000-00-00 00:00:00',
                     GIDS       => ($admin->{GIDS}) ? $admin->{GIDS} : $admin->{GID}
                     );
-    my $a_list = $Msgs->admins_list({ AID => $attr->{AID} });
+    my $a_list    = $Msgs->admins_list({ AID => $attr->{AID} });
     my @A_CHAPTER = ();
+
     foreach my $line (@$a_list) {
   	  if ($line->[5] > 0) {
   	    push @A_CHAPTER, "$line->[5]";

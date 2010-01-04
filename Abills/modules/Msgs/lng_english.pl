@@ -11,3 +11,5 @@ $_MSG_SENDED='Send to administrator';
 $_IN_WORK='In Work';
 $_ANSWER_WAIT='Wait user answer';
 $_UPDATED='Updated';
+$_DELIGATE='Deligate';
+$_DELIGATED='Deligated';

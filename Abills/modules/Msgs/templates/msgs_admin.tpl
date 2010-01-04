@@ -1,7 +1,7 @@
 <FORM action=$SELF_URL METHOD=POST> 
 <input type=hidden name=index value=$index>
 <input type=hidden name=AID value=$FORM{chg}>
-<table width=400>
+<table width=600>
 <tr><td>$_ADMIN</td><td>%ADMIN%</td></tr>
 
 <tr bgcolor='$_COLORS[0]'><th colspan=2>$_CHAPTERS</th></tr>
