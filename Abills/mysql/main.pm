@@ -68,7 +68,7 @@ sub connect {
   bless($self, $class);
   #$self->{debug}=1;
   $self->{db} = DBI->connect("DBI:mysql:database=$dbname;host=$dbhost", "$dbuser", "$dbpasswd") or print 
-       "Content-Type: text/html\n\nError: Unable connect to server '$dbhost:$dbname'\n";
+       "Content-Type: text/html\n\nError: Unable connect to DB server '$dbhost:$dbname'\n";
   
   
   #For mysql 5 or highter
@@ -152,7 +152,6 @@ if (defined($type) && $type eq 'do') {
    }
  }
 else {
-  #print $query;
   $q = $db->prepare($query); # || die $db->errstr;
   if($db->err) {
      $self->{errno} = 3;
@@ -162,7 +161,6 @@ else {
    
      return $self->{errno};
    }
-  #print $query;
   
   if ($attr->{MULTI_QUERY}) {
     foreach my $line ( @{ $attr->{MULTI_QUERY} } ) {
@@ -284,6 +282,10 @@ sub search_expr {
   foreach my $v (@val_arr) { 
     my $expr = '=';
 
+    if ($type eq 'DATE' && ( $v =~ /([=><!]{0,2})(\d{2})[\/\.\-](\d{2})[\/\.\-](\d{4})/ )) {
+    	$v = "$1$4-$3-$2";
+     }
+
     if($type eq 'INT' && $v =~ s/\*//g) {
       $expr = '>';
      }
@@ -296,8 +298,7 @@ sub search_expr {
      }
     elsif ( $v =~ s/^([<>=]{1,2})// ) {
       $expr = $1;
-      
-     }  
+     }
   
     if ($type eq 'IP') {
       $v = "INET_ATON('$v')";
@@ -319,8 +320,6 @@ sub search_expr {
 
     return \@result_arr; 
    }
-
-#  print "$expr- $value \n";
 
   return $value;
 }
@@ -436,9 +435,6 @@ else {
   $self->{CHANGES_LOG}=$CHANGES_LOG;
 }
 
-
-
-# print $CHANGES_LOG;
   chop($CHANGES_QUERY);
   
   my $extended = ($attr->{EXTENDED}) ? $attr->{EXTENDED} : '' ;

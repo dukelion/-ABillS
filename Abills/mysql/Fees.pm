@@ -36,8 +36,6 @@ sub new {
   my $self = { };
   bless($self, $class);
   
-#  $self->{debug}=1;
-  
   $Bill=Bills->new($db, $admin, $CONF); 
 
   return $self;
@@ -181,14 +179,12 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
   }
 
-
  if ($attr->{BILL_ID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{BILL_ID}, 'INT', 'f.bill_id') };
   }
  elsif ($attr->{COMPANY_ID}) {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
   }
-
  
  if ($attr->{AID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'INT', 'f.aid') };
@@ -229,18 +225,16 @@ sub list {
 
  # Date
  if ($attr->{FROM_DATE}) {
-   push @WHERE_RULES, "(date_format(f.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(f.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+ 	    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE}", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') },
+   @{ $self->search_expr("<=$attr->{TO_DATE}", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
   }
  elsif ($attr->{DATE}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'INT', 'date_format(f.date, \'%Y-%m-%d\')') };
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DATE}, 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
   }
  # Month
  elsif ($attr->{MONTH}) {
    push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
   }
- # Date
-
-
 
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
@@ -309,7 +303,8 @@ sub reports {
   }
  elsif ($attr->{INTERVAL}) {
  	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
-   push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')>='$from' and date_format(f.date, '%Y-%m-%d')<='$to'";
+   push @WHERE_RULES, @{ $self->search_expr(">=$from", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') },
+   @{ $self->search_expr("<=$to", 'DATE', 'date_format(f.date, \'%Y-%m-%d\')') };
   }
  elsif (defined($attr->{MONTH})) {
  	 push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";

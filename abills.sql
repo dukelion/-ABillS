@@ -526,6 +526,7 @@ CREATE TABLE `msgs_admins` (
   `chapter_id` int(11) unsigned NOT NULL default '0',
   `priority` tinyint(4) unsigned NOT NULL default '0',
   `email_notify` tinyint(4) unsigned NOT NULL default '0',
+  `deligation_level` tinyint(4) unsigned NOT NULL default '0',
   UNIQUE KEY `aid` (`aid`,`chapter_id`)
 ) COMMENT='Msgs admins';
 
@@ -598,6 +599,7 @@ CREATE TABLE `msgs_messages` (
   `inner_msg` tinyint(1) unsigned NOT NULL default '0',
   `phone` VARCHAR(16) NOT NULL DEFAULT '',
   `dispatch_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `delegation` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   KEY `uid` (`uid`)
 ) COMMENT='Msgs Messages';

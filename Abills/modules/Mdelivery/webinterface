@@ -317,11 +317,15 @@ foreach my $mdelivery_id (@ids) {
   	 }
    }
 
+  $Mdelivery->{debug}=1;
   my $user_list = $Mdelivery->user_list({ %LIST_PARAMS, STATUS => 0 });
   my @users_ids = ();
   
   foreach $u (@$user_list) {
   	 my $mail = ($u->[4] && $u->[4] ne '') ? $u->[4] : $u->[0] .'@'. $conf{USERS_MAIL_DOMAIN};
+  	 
+  	 print "/ $mail /";
+  	 exit;
      $Mdelivery->{SENDER} = ($Mdelivery->{SENDER} ne '') ? $Mdelivery->{SENDER} : $conf{ADMIN_MAIL};
   	 $debug_output .= "LOGIN: $u->[0] E-mail: $mail $Mdelivery->{SUBJECT}\n" if ($debug > 0);
      push @users_ids, $u->[3];

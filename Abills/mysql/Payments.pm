@@ -230,8 +230,7 @@ sub list {
   }
 
  if ($attr->{DATE}) {
-    my $value = $self->search_expr("$attr->{DATE}", 'INT');
-    push @WHERE_RULES,  " date_format(p.date, '%Y-%m-%d')$value ";
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{DATE}", 'INT', 'date_format(p.date, \'%Y-%m-%d\')') };
   }
  elsif ($attr->{MONTH}) {
     my $value = $self->search_expr("$attr->{MONTH}", 'INT');
@@ -239,7 +238,8 @@ sub list {
   }
  # Date intervals
  elsif ($attr->{FROM_DATE}) {
-    push @WHERE_RULES, "(date_format(p.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(p.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+   push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE}", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') },
+   @{ $self->search_expr("<=$attr->{TO_DATE}", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') };
   }
 
  if ($attr->{BILL_ID}) {
@@ -329,7 +329,10 @@ sub reports {
   }
  elsif ($attr->{INTERVAL}) {
  	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
-   push @WHERE_RULES, "date_format(p.date, '%Y-%m-%d')>='$from' and date_format(p.date, '%Y-%m-%d')<='$to'";
+   
+   push @WHERE_RULES, @{ $self->search_expr(">=$from", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') },
+   @{ $self->search_expr("<=$to", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') };
+
    if ($attr->{TYPE} eq 'HOURS') {
      $date = "date_format(p.date, '%H')";
     }

@@ -339,9 +339,7 @@ sub form_input {
 
   my $state = (defined($attr->{STATE})) ? ' checked ' : ''; 
   my $size  = (defined($attr->{SIZE})) ? " SIZE=\"$attr->{SIZE}\"" : '';
-  
 
-  
   $self->{FORM_INPUT}="<input type=\"$type\" name=\"$name\" value=\"$value\"$state$size$class$ex_params ID=\"$name\"/>";
 
   if (defined($self->{NO_PRINT}) && ( !defined($attr->{OUTPUT2RETURN}) )) {
@@ -386,7 +384,6 @@ sub form_main {
       $self->{FORM} .= "<input type=\"submit\" name=\"$k\" value=\"$v\" class=\"button\">\n";
   	}
   }
-
 
 	$self->{FORM}.="</form>\n";
 
@@ -474,7 +471,6 @@ sub form_select {
              $attr->{SEL_HASH}->{$a} cmp $attr->{SEL_HASH}->{$b}
            } keys %{ $attr->{SEL_HASH} }; 
      }
-    
     
     foreach my $k (@H) {
       $self->{SELECT} .= "<option value='$k'";
@@ -709,7 +705,6 @@ sub header {
   }
 
  $CONF->{WEB_TITLE}=$self->{WEB_TITLE} if ($self->{WEB_TITLE});
-
 
  $info{title}   = ($CONF->{WEB_TITLE}) ? $CONF->{WEB_TITLE} : "~AsmodeuS~ Billing System";
  $info{REFRESH} = ($FORM{REFRESH}) ? "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$FORM{REFRESH}; URL=$ENV{REQUEST_URI}\"/>\n" : '';
@@ -954,8 +949,6 @@ sub table_title  {
   my ($op);
   my $img='';
 
-  #print "$FORM{sort} // SORT: $sort, DESC: $desc, PAGE: $pg, $op, $caption, $qs--";
-
   $self->{table_title} = "<tr bgcolor=\"$_COLORS[0]\">";
   my $i=1;
   foreach my $line (@$caption) {
@@ -987,7 +980,7 @@ sub table_title  {
          $self->{table_title} .= $self->button("<img src=\"$IMG_PATH/$img\" width=\"12\" height=\"10\" border=\"0\" alt=\"Sort\" title=\"Sort\" class=\"noprint\">", "$op$qs&pg=$pg&sort=$i&desc=$desc");
        }
      else {
-         $self->{table_title} .= "$line";
+         $self->{table_title} .= '';
        }
 
      $self->{table_title} .= "</th>\n";
@@ -1029,7 +1022,6 @@ sub show  {
   	#$self->{OUTPUT} .= $self->{show};
   	$self->{show} = '';
   }
-  
 
   return $self->{show};
 }
@@ -1120,8 +1112,6 @@ sub message {
    $head = "<tr><th bgcolor=\"$_COLORS[0]\" class=info_message>$caption</th></TR>\n";
   }  
  
- 
- 
 my $output = qq{
 <br>
 <TABLE width="400" border="0" cellpadding="0" cellspacing="0" class="noprint">
@@ -1163,7 +1153,7 @@ sub pre {
  
 my $output = qq{
 <pre>
- $message
+$message
 </pre>
 };
 
@@ -1219,7 +1209,6 @@ sub pages {
 
  my $begin=0;   
 
-
  $self->{pages} = '';
  $begin = ($PG - $PAGE_ROWS * 3 < 0) ? 0 : $PG - $PAGE_ROWS * 3;
 
@@ -1230,12 +1219,11 @@ sub pages {
  
 for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
    $self->{pages} .= ($i == $PG) ? "<b>$i</b> " : $self->button($i, "$argument&pg=$i") .' ';
-}
- 
- 
- return "<div id=\"rules\"><ul><li class=\"center\">". 
-         $self->{pages}.
-        "</li></ul></div>\n";
+ }
+
+return "<div id=\"rules\"><ul><li class=\"center\">\n". 
+        $self->{pages}.
+       "\n</li></ul></div>\n";
 }
 
 
@@ -1307,6 +1295,79 @@ for ($i=2002; $i<=$curyear + 1900+2; $i++) {
    $result .= ">$i\n";
  }	
 $result .= '</select>'."\n";
+
+return $result ;
+}
+
+
+#*******************************************************************
+# Make data field
+# date_fld($base_name)
+#*******************************************************************
+sub date_fld2  {
+ my $self = shift;
+ my ($base_name, $attr) = @_;
+
+ my $form_name = $attr->{FORM_NAME} || 'FORM';
+ my $date = '';
+ 
+ my ($year, $month, $day);
+
+   if ($attr->{DATE}) {
+ 	   $date = $attr->{DATE};
+    }
+   elsif ($FORM{$base_name}) {
+ 	   $date = $FORM{$base_name};
+    }
+   # Default Date
+   elsif (! $attr->{NO_DEFAULT_DATE}) {
+     my($sec,$min,$hour,$mday,$mon,$curyear,$wday,$yday,$isdst) = localtime( time ); # +  ( ($attr->{NEXT_DAY}) ? 86400 : 0 );
+
+     $month = $mon+1;
+     $year  = $curyear + 1900;
+     $day   = $mday;
+
+
+     if ($base_name =~ /to/i) {
+ 	     $day   = ($month!=2?(($month%2)^($month>7))+30:(!($year%400)||!($year%4)&&($year%25)?29:28));
+ 	    }
+     elsif($base_name =~ /from/i) {
+   	   $day=1;
+      }
+     $date = sprintf("%d-%.2d-%.2d", $year, $month, $day);
+    }
+
+
+
+
+my $monthes = "'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'";
+if ($attr->{MONTHES}) {
+	$monthes   = "'".join("', '", @{ $attr->{MONTHES} })."'";
+ }
+
+my $week_days = "'Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'";
+
+if ( $attr->{WEEK_DAYS} ){
+	my @wd = @{ $attr->{WEEK_DAYS} };
+	$wd[0]=$wd[7];
+  pop @wd;
+  $week_days = "'".join("', '", @wd)."'";
+ }
+
+my $tabindex = ($attr->{TABINDEX}) ? "tabindex=$attr->{TABINDEX}": '';
+
+my $result = qq{
+ <input type=text name='$base_name' value='$date' size=12 ID='$base_name' $tabindex> 
+<script language="JavaScript">
+	var o_cal = new tcal ({	'formname': '$form_name',	'controlname': '$base_name'	});
+	
+	// individual template parameters can be modified via the calendar variable
+	o_cal.a_tpl.yearscroll = false;
+	o_cal.a_tpl.weekstart  = 1;
+ 	o_cal.a_tpl.months     = [$monthes];
+	o_cal.a_tpl.weekdays   = [$week_days];
+</script>
+ };
 
 return $result ;
 }

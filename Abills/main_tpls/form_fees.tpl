@@ -1,5 +1,5 @@
 <div class='noprint'>
-<form action='$SELF_URL'>
+<form action='$SELF_URL' name=user>
 <input type=hidden name=UID value='%UID%'>
 <input type=hidden name=index value='$index'>
 <input type=hidden name=subf value='$FORM{subf}'>

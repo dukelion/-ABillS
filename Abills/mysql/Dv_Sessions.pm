@@ -634,8 +634,8 @@ sub session_detail {
    $self->{TP_NAME}, 
    $self->{SENT}, 
    $self->{RECV}, 
-   $self->{SENT2},   #?
-   $self->{RECV2},   #?
+   $self->{SENT2},   
+   $self->{RECV2},   
    $self->{IP}, 
    $self->{CID}, 
    $self->{NAS_ID}, 
@@ -790,6 +790,10 @@ sub periods_totals {
    sum(recv + 4294967296 * acct_input_gigawords), 
    SEC_TO_TIME(sum(duration))
    FROM dv_log $WHERE;");
+
+   if ($self->{TOTAL} == 0) {
+   	 return $self;
+    }
 
   ($self->{sent_0}, 
       $self->{recv_0}, 
@@ -950,7 +954,6 @@ WHERE
     ) =  @{ $self->{list}->[0] };
   }
 
-
  #Check online
  $self->query($db, "select 
   $rest{0} - sum($octets_online_direction) / $CONF->{MB_SIZE},
@@ -1014,7 +1017,6 @@ sub list {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
     push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
   }
-
 
  if ($attr->{LIST_UIDS}) {
    push @WHERE_RULES, "l.uid IN ($attr->{LIST_UIDS})";
@@ -1153,8 +1155,6 @@ elsif($attr->{DATE}) {
      $self->{SUM}) = @{ $self->{list}->[0] };
   }
 
-#  $self->{list}=$list;
-
 return $list;
 }
 
@@ -1206,6 +1206,11 @@ elsif (defined($attr->{PERIOD}) ) {
   min(l.recv + 4294967296 * acct_input_gigawords), max(l.recv + 4294967296 * acct_input_gigawords), avg(l.recv + 4294967296 * acct_input_gigawords), sum(l.recv + 4294967296 * acct_input_gigawords ),
   min(l.recv+l.sent), max(l.recv+l.sent), avg(l.recv+l.sent), sum(l.recv+l.sent)
   FROM dv_log l $WHERE");
+
+  if ($self->{TOTAL} == 0) {
+ 	  return $self;
+   }
+
 
   ($self->{min_dur}, 
    $self->{max_dur}, 
@@ -1318,12 +1323,10 @@ sub reports {
  	 $date = "date_format(l.start, '%Y-%m')";
   }
 
-
  # Compnay
  if ($attr->{COMPANY_ID}) {
    push @WHERE_RULES, "u.company_id=$attr->{COMPANY_ID}"; 
   }
-
 
  # Show groups
  if ($attr->{GIDS}) {
@@ -1332,8 +1335,6 @@ sub reports {
  elsif ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
-
-
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
@@ -1396,7 +1397,6 @@ if ($attr->{FIELDS}) {
       $WHERE 
       GROUP BY l.uid 
       ORDER BY $SORT $DESC");
-   #$WHERE = "WHERE date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'"; 
     }
   }
  elsif ($attr->{TP}) {

@@ -1,4 +1,4 @@
-<form action=$SELF_URL METHOD=GET>
+<form action=$SELF_URL METHOD=GET name=holdup>
 <input type=hidden name=index value=$index>
 <input type=hidden name=sid value=$sid>
 <input type=hidden name=UID value=$FORM{UID}>

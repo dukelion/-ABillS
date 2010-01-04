@@ -564,7 +564,7 @@ sub group_add {
     values ('$DATA{GID}', '$DATA{G_NAME}', '$DATA{G_DESCRIBE}', '$admin->{DOMAIN_ID}');", 'do');
 
 
- $admin->system_action_add("GID:$DATA{GID}", { TYPE => 1 });    
+ $admin->system_action_add("GID:$DATA{GID}", { TYPE => 1 });
  
  return $self;
 }
@@ -664,7 +664,7 @@ sub list {
 
 
  if ($attr->{PASPORT_DATE}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{PASPORT_DATE}, 'STR', 'pi.pasport_date', { EXT_FIELD => 1 }) };
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PASPORT_DATE}, 'DATE', 'pi.pasport_date', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{PASPORT_NUM}) {
@@ -697,7 +697,7 @@ sub list {
   }
 
  if ($attr->{CONTRACT_DATE}) {
-   push @WHERE_RULES, @{ $self->search_expr("$attr->{CONTRACT_DATE}", 'INT', 'pi.contract_date', { EXT_FIELD => 1 }) };
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{CONTRACT_DATE}", 'DATE', 'pi.contract_date', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{DOMAIN_ID}) {
@@ -721,7 +721,7 @@ sub list {
   }
 
  if ($attr->{CREDIT_DATE}) {
-    push @WHERE_RULES,  @{ $self->search_expr($attr->{CREDIT_DATE}, 'INT', 'u.credit_date', { EXT_FIELD => 1 }) };
+    push @WHERE_RULES,  @{ $self->search_expr($attr->{CREDIT_DATE}, 'DATE', 'u.credit_date', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{REDUCTION}) {
@@ -881,8 +881,7 @@ if ($self->{TOTAL} > 0) {
 
    if ($self->{TOTAL} > 0) {
      if ($attr->{PAYMENT}) {
-       my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
-       $WHERE_RULES[$#WHERE_RULES]="p.date$value";
+       $WHERE_RULES[$#WHERE_RULES]=@{ $self->search_expr($attr->{PAYMENTS}, 'INT', 'p.date') };
       }
      elsif($attr->{PAYMENT_DAYS}) {
       my $value = "curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY";
@@ -997,7 +996,6 @@ sub add {
   $admin->action_add("$self->{UID}", "LOGIN:$DATA{LOGIN}", { TYPE => 7 });
 
   if ($attr->{CREATE_BILL}) {
-  	#print "create bill";
   	$self->change($self->{UID}, { 
   		 DISABLE     => int($DATA{DISABLE}),
   		 UID         => $self->{UID},
@@ -1036,13 +1034,6 @@ sub change {
               CREDIT_DATE => 'credit_date',
               DOMAIN_ID   => 'domain_id',
              );
-
-
-  #$attr->{CREDIT}=undef if ($attr->{CREDIT} && $attr->{CREDIT} <= 0);
-
-  
-
-  #$self->{debug}=1;
 
   my $old_info = $self->info($attr->{UID});
   
@@ -1649,4 +1640,375 @@ sub config_del {
 
 
 
+
+#**********************************************************
+# district_list()
+#**********************************************************
+sub district_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+ my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ my @WHERE_RULES = ();
+
+ if ($attr->{NAME}) {
+ 	  push @WHERE_RULES, @{ $self->search_expr($attr->{NAME}, 'STR', 'd.name') };
+  }
+ 
+ if ($attr->{COMMENTS}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'STR', 'd.comments') };
+  }
+
+ my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
+ 
+ $self->query($db, "SELECT d.id, d.name, d.country, d.city, zip, count(s.id) FROM districts d
+     LEFT JOIN streets s ON (d.id=s.district_id)
+   $WHERE 
+   GROUP BY d.id
+   ORDER BY $SORT $DESC");
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT count(*) FROM districts d $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+ return $list;
+}
+
+
+#**********************************************************
+# district_info()
+#**********************************************************
+sub district_info {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ $self->query($db, "select id, name, country, 
+ city, zip,
+ comments FROM districts WHERE id='$attr->{ID}';");
+
+ return $self if ($self->{errno} || $self->{TOTAL} < 1);
+
+ ($self->{ID},
+  $self->{NAME},
+  $self->{COUNTRY},
+  $self->{CITY},
+  $self->{ZIP},
+ 	$self->{COMMENTS}) = @{ $self->{list}->[0] };
+
+ return $self;
+}
+
+#**********************************************************
+# district_info()
+#**********************************************************
+sub district_change {
+ my $self = shift;
+ my ($id, $attr) = @_;
+
+ my %FIELDS = (ID       => 'id',
+               NAME     => 'name',
+               COUNTRY  => 'country',
+               CITY     => 'city',
+               ZIP      => 'zip',
+               COMMENTS => 'comments');
+
+ $self->changes($admin, { CHANGE_PARAM => 'ID',
+		               TABLE        => 'districts',
+		               FIELDS       => \%FIELDS,
+		               OLD_INFO     => $self->district_info({ ID => $id }),
+		               DATA         => $attr
+		              } );
+
+ return $self;
+}
+
+#**********************************************************
+# district_add()
+#**********************************************************
+sub district_add {
+ my $self = shift;
+ my ($attr) = @_;
+
+ $self->query($db, "INSERT INTO districts (name, country, city, zip, comments) 
+   values ('$attr->{NAME}', '$attr->{COUNTRY}', '$attr->{CITY}', '$attr->{ZIP}',  '$attr->{COMMENTS}');", 'do');
+
+ $admin->system_action_add("DISTRICT:$self->{INSERT_ID}:$attr->{NAME}", { TYPE => 1 }) if (! $self->{errno});
+ return $self;
+}
+
+#**********************************************************
+# district_del()
+#**********************************************************
+sub district_del {
+ my $self = shift;
+ my ($id) = @_;
+
+ $self->query($db, "DELETE FROM districts WHERE id='$id';", 'do');
+
+ $admin->system_action_add("DISTRICT:$id", { TYPE => 10 }) if (! $self->{errno});
+ return $self;
+}
+
+
+
+#**********************************************************
+# street_list()
+#**********************************************************
+sub street_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+ @WHERE_RULES = ();
+ 
+ if ($attr->{NAME}) {
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{NAME}, 'STR', 's.name') };
+  }
+
+ if ($attr->{DISTRICT_ID}) {
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 's.district_id') };
+  }
+
+ my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
+
+ $self->query($db, "SELECT s.id, s.name, d.name, count(b.id) FROM streets s
+  LEFT JOIN districts d ON (s.district_id=d.id)
+  LEFT JOIN builds b ON (b.street_id=s.id)
+  $WHERE 
+  GROUP BY s.id
+  ORDER BY $SORT $DESC
+  LIMIT $PG, $PAGE_ROWS;");
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT count(*) FROM streets s $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+ return $list;
+}
+
+
+#**********************************************************
+# street_info()
+#**********************************************************
+sub street_info {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ $self->query($db, "select id, name, district_id FROM streets WHERE id='$attr->{ID}';");
+
+ return $self if ($self->{errno} || $self->{TOTAL} < 1);
+
+ ($self->{ID},
+ 	$self->{NAME},
+ 	$self->{DISTRICT_ID}
+ 	) = @{ $self->{list}->[0] };
+
+ return $self;
+}
+
+#**********************************************************
+# street_change()
+#**********************************************************
+sub street_change {
+ my $self = shift;
+ my ($id, $attr) = @_;
+
+ my %FIELDS = (ID          => 'id',
+               NAME        => 'name',
+               DISTRICT_ID => 'district_id');
+
+ $self->changes($admin, { CHANGE_PARAM => 'ID',
+		               TABLE        => 'streets',
+		               FIELDS       => \%FIELDS,
+		               OLD_INFO     => $self->street_info({ ID => $id }),
+		               DATA         => $attr
+		              } );
+
+ return $self;
+}
+
+
+
+#**********************************************************
+# street_add()
+#**********************************************************
+sub street_add {
+ my $self = shift;
+ my ($attr) = @_;
+
+ $self->query($db, "INSERT INTO streets (name, district_id) values ('$attr->{NAME}', '$attr->{DISTRICT_ID}');", 'do');
+
+ $admin->system_action_add("STREET:$self->{INSERT_ID}:$attr->{NAME}", { TYPE => 1 }) if (! $self->{errno});
+ return $self;
+}
+
+
+#**********************************************************
+# street_del()
+#**********************************************************
+sub street_del {
+ my $self = shift;
+ my ($id) = @_;
+
+ $self->query($db, "DELETE FROM streets WHERE id='$id';", 'do');
+
+ $admin->system_action_add("STREET:$id", { TYPE => 10 }) if (! $self->{errno});
+ return $self;
+}
+
+
+
+#**********************************************************
+# build_list()
+#**********************************************************
+sub build_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+ @WHERE_RULES = ();
+ 
+ if ($attr->{NUMBER}) {
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{NUMBER}, 'STR', 'b.number') };
+  }
+
+ if ($attr->{DISTRICT_ID}) {
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 's.district_id') };
+  }
+
+ if ($attr->{STREET_ID}) {
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'b.street_id') };
+  }
+
+ if ($attr->{FLORS}) {
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{FLORS}, 'INT', 'b.flors') };
+  }
+
+ if ($attr->{ENTRANCES}) {
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{ENTRANCES}, 'INT', 'b.entrances') };
+  }
+
+
+ my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
+
+ $self->query($db, "SELECT b.number, b.flors, b.entrances, s.name, b.added, b.id  FROM builds b
+  LEFT JOIN streets s ON (s.id=b.street_id)
+  $WHERE ORDER BY $SORT $DESC
+  LIMIT $PG, $PAGE_ROWS;");
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT count(*) FROM builds b $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+ return $list;
+}
+
+
+#**********************************************************
+# build_info()
+#**********************************************************
+sub build_info {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ $self->query($db, "select id, 
+   number, 
+   street_id,
+   flors,
+   entrances,
+   added,
+   map_x,
+   map_y
+ FROM builds WHERE id='$attr->{ID}';");
+
+ return $self if ($self->{errno} || $self->{TOTAL} < 1);
+
+ ($self->{ID},
+ 	$self->{NUMBER},
+ 	$self->{STREET_ID},
+ 	$self->{FLORS},
+ 	$self->{ENTRANCES},
+ 	$self->{ADDED},
+ 	$self->{MAP_X},
+ 	$self->{MAP_Y},
+ 	) = @{ $self->{list}->[0] };
+
+ return $self;
+}
+
+#**********************************************************
+# build_change()
+#**********************************************************
+sub build_change {
+ my $self = shift;
+ my ($id, $attr) = @_;
+
+ my %FIELDS = (ID          => 'id',
+               NUMBER      => 'number',
+               STREET_ID   => 'street_id',
+               FLORS       => 'flors',
+               ENTRANCES    => 'entrances',
+               MAP_X       => 'map_x',
+               MAP_Y       => 'map_y'
+               );
+
+ $self->changes($admin, { CHANGE_PARAM => 'ID',
+		               TABLE        => 'builds',
+		               FIELDS       => \%FIELDS,
+		               OLD_INFO     => $self->street_info({ ID => $id }),
+		               DATA         => $attr
+		              } );
+
+ return $self;
+}
+
+
+
+#**********************************************************
+# build_add()
+#**********************************************************
+sub build_add {
+ my $self = shift;
+ my ($attr) = @_;
+
+ $self->query($db, "INSERT INTO builds (number, street_id, flors, entrances, map_x, map_y, added) 
+ values ('$attr->{NUMBER}', '$attr->{STREET_ID}', '$attr->{FLORS}', '$attr->{ENTRANCES}', '$attr->{MAP_X}', '$attr->{MAP_Y}', now());", 'do');
+
+ $admin->system_action_add("BUILD:$self->{INSERT_ID}:$attr->{NAME}", { TYPE => 1 }) if (! $self->{errno});
+ return $self;
+}
+
+
+#**********************************************************
+# build_del()
+#**********************************************************
+sub build_del {
+ my $self = shift;
+ my ($id) = @_;
+
+ $self->query($db, "DELETE FROM builds WHERE id='$id';", 'do');
+
+ $admin->system_action_add("BUILD:$id", { TYPE => 10 }) if (! $self->{errno});
+ return $self;
+}
 1

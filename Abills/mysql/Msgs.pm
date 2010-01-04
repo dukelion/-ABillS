@@ -134,6 +134,10 @@ sub messages_list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{SUBJECT}, 'STR', 'm.subject') };
   }
 
+ if ($attr->{DELIGATION}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DELIGATION}, 'INT', 'm.delegation') };
+  }
+
  if ($attr->{MESSAGE}) {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{MESSAGE}, 'STR', 'm.message') };
   }
@@ -174,7 +178,16 @@ sub messages_list {
    #push @WHERE_RULES, "r.admin_read='$attr->{ADMIN_READ}'";
   }
 
- if ($attr->{CHAPTERS}) {
+
+ if ($attr->{CHAPTERS_DELIGATION}) {
+ 	 my @WHERE_RULES_pre = ();
+ 	 while( my ($chapter, $deligation) =  each %{ $attr->{CHAPTERS_DELIGATION} } ) {
+ 	   push @WHERE_RULES_pre, "(m.chapter='$chapter' AND m.deligation<='$deligation')";
+ 	  }
+
+   push @WHERE_RULES,  "(". join(" or ", @WHERE_RULES_pre) .")";
+  }
+ elsif ($attr->{CHAPTERS}) {
    push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})"; 
   }
  
@@ -187,7 +200,7 @@ sub messages_list {
    	 push @WHERE_RULES, @{ $self->search_expr('0000-00-00 00:00:00', 'INT', 'm.admin_read') };
     }
    elsif ($attr->{STATE} == 7) {
-
+     push @WHERE_RULES, @{ $self->search_expr(">0", 'INT', 'm.deligation')  };
     }
    else {
      push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.state')  };
@@ -249,7 +262,8 @@ m.admin_read,
 if(r.id IS NULL, 0, count(r.id)),
 m.chapter,
 DATE_FORMAT(plan_date, '%w'),
-m.resposible
+m.resposible,
+m.deligation
 
 
 FROM (msgs_messages m)
@@ -407,7 +421,8 @@ sub message_info {
   m.resposible,
   m.inner_msg,
   m.phone,
-  m.dispatch_id
+  m.dispatch_id,
+  m.deligation
     FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN users u ON (m.uid=u.uid)
@@ -450,7 +465,8 @@ sub message_info {
  	 $self->{RESPOSIBLE},
  	 $self->{INNER_MSG},
  	 $self->{PHONE},
- 	 $self->{DISPATCH_ID}
+ 	 $self->{DISPATCH_ID},
+ 	 $self->{DELIGATION}
   )= @{ $self->{list}->[0] };
 	
 	
@@ -490,7 +506,8 @@ sub message_change {
  	              RESPOSIBLE  => 'resposible',
  	              INNER_MSG   => 'inner_msg',
  	              PHONE       => 'phone',
- 	              DISPATCH_ID => 'dispatch_id'
+ 	              DISPATCH_ID => 'dispatch_id',
+ 	              DELIGATION  => 'deligation'
              );
 
   #print "!! $attr->{STATE} !!!";
@@ -690,7 +707,8 @@ sub admins_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db, "SELECT a.id, mc.name, ma.priority, 0, a.aid, if(ma.chapter_id IS NULL, 0, ma.chapter_id), ma.email_notify, a.email
+  $self->query($db, "SELECT a.id, mc.name, ma.priority, ma.deligation_level, a.aid, 
+     if(ma.chapter_id IS NULL, 0, ma.chapter_id), ma.email_notify, a.email
     FROM admins a 
     LEFT join msgs_admins ma ON (a.aid=ma.aid)
     LEFT join msgs_chapters mc ON (ma.chapter_id=mc.id)
@@ -725,8 +743,8 @@ sub admin_change {
   
   my @chapters = split(/, /, $attr->{IDS});
   foreach my $id (@chapters) {
-    $self->query($db, "insert into msgs_admins (aid, chapter_id, priority, email_notify)
-      values ('$DATA{AID}', '$id','". $DATA{'PRIORITY_'. $id}."','". $DATA{'EMAIL_NOTIFY_'. $id}."');", 'do');
+    $self->query($db, "insert into msgs_admins (aid, chapter_id, priority, email_notify, deligation_level)
+      values ('$DATA{AID}', '$id','". $DATA{'PRIORITY_'. $id}."','". $DATA{'EMAIL_NOTIFY_'. $id}."', '". $DATA{'DELIGATION_LEVEL_'. $id}. "');", 'do');
    }
 
 	return $self;

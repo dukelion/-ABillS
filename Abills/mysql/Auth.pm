@@ -1471,7 +1471,7 @@ sub pre_auth {
   my ($self, $RAD, $attr)=@_;
   
   
-if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
+if ($RAD->{MS_CHAP_CHALLENGE} || $RAD->{EAP_MESSAGE}) {
   
   my $login = $RAD->{USER_NAME};
   if ($RAD->{USER_NAME} =~ /:(.+)/) {
@@ -1500,6 +1500,7 @@ if (defined($RAD->{MS_CHAP_CHALLENGE}) || defined($RAD->{EAP_MESSAGE})) {
  }
   
   $self->{'RAD_CHECK'}{'Auth-Type'}="Accept";
+
   print "Auth-Type := Accept\n";
   return 0;
 }

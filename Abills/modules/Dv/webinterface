@@ -1,7 +1,6 @@
 # Dialup vpn web functions
 
 
-
 use Dv;
 use Finance;
 use Fees;
@@ -89,34 +88,36 @@ if ($FORM{set}) {
 
   if ($period > 0) {
 
+    my ($year, $month, $day);
+
     if ($period == 1) {
-      ($FORM{date_Y}, $FORM{date_M}, $FORM{date_D})=split(/-/, $Dv->{ABON_DATE}, 3);
+      ($year, $month, $day)=split(/-/, $Dv->{ABON_DATE}, 3);
      }
     else {
-    	$FORM{date_M}++;
+    	($year, $month, $day)=split(/-/, $FORM{DATE}, 3);
      }
-    #print "--- $FORM{date_Y}, $FORM{date_M}, $FORM{date_D} // $Dv->{ABON_DATE}-- ";
+
  	  use POSIX;
     
-    my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
+    my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
     
     if ($seltime <= time()) {
-      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}, $FORM{date_M}, $FORM{date_Y}  )/". $seltime . "-" . time());
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($year-$month-$day)/". $seltime . "-" . time());
       return 0;
      }
-    elsif($FORM{date_D} > ($FORM{date_M}!=2?(($FORM{date_M}%2)^($FORM{date_M}>7))+30:(!($FORM{date_Y}%400)||!($FORM{date_Y}%4)&&($FORM{date_Y}%25)?29:28))) {
-      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}-$FORM{date_M}-$FORM{date_Y})");
+    elsif($FORM{date_D} > ($month!=2?(($month%2)^($month>7))+30:(!($year%400)||!($year%4)&&($year%25)?29:28))) {
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($year-$month-$day)");
       return 0;
      }
 
     $shedule->add( {UID     => $Dv->{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
-    	             D        => $FORM{date_D},
-                   M        => $FORM{date_M},
-                   Y        => $FORM{date_Y},
+    	             D        => $day,
+                   M        => $month,
+                   Y        => $year,
                    DESCRIBE => "$message<br>
-                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                   $_FROM: '$year-$month-$day'",
                    MODULE   => 'Dv'
                     });
 
@@ -245,7 +246,7 @@ $tariffs->{UID}     = $attr->{USER}->{UID};
 $tariffs->{m}       = $m;
 $tariffs->{TP_ID}   = $Dv->{TP_NUM};
 
-$tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$Dv->{TP_NUM}", { TITLE => "$_TP" } ). "]";
+$tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$Dv->{TP_NUM}", { TITLE => "$_TP", BUTTON => 1 });
 
 
 print $html->tpl_show(templates('form_chg_tp'), $tariffs);
@@ -2145,7 +2146,7 @@ if ($conf{ERROR2DB}) {
 
 
   if ($FORM{search}) {
-    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_Y}-". sprintf("%.2d", $FORM{FROM_M}+1). "-$FORM{FROM_D}/$FORM{TO_Y}-". sprintf("%.2d", $FORM{TO_M}+1) ."-$FORM{TO_D}";
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
    }
 
 
@@ -2290,10 +2291,6 @@ if (defined($attr->{USER}))	{
   	return 0;
   }
 }
-#elsif($FORM{UID}) {
-#	form_users();
-#	return 0;
-#}	
 
 
 if ($FORM{del} && $FORM{is_js_confirmed}) {
@@ -2396,7 +2393,8 @@ my $table = $html->table( { caption     => "$_PERIOD",
 	                          width       => '100%',
                             title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
                             cols_align  => ['left', 'right', 'right', 'right', 'right'],
-                            rowcolor    => $_COLORS[1]
+                            rowcolor    => $_COLORS[1],
+                            ID          => 'DV_STATS_PERIOD'
                            } );
 
 
@@ -2414,8 +2412,8 @@ print $table->show();
 
 $table = $html->table( { width       => '100%',
 	                       rowcolor    => $_COLORS[0],
-                         rows        => [[ "$_FROM: ",  $html->date_fld('from', { MONTHES => \@MONTHES} ),
-                                          "$_TO: ",    $html->date_fld('to', { MONTHES => \@MONTHES } ),
+                         rows        => [[ "$_FROM: ", $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS }),
+                                            "$_TO: ",  $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS } ),
                                           $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
  	                                                               SEL_HASH   => {'' => 'Auto', 
  	                                                               	              'Kb' => 'Kb', 
@@ -2426,7 +2424,8 @@ $table = $html->table( { width       => '100%',
                                                                 } ),
                                           "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit' })
-                                         ]],                                   
+                                         ]],
+                         ID         => 'STATS_PERIODS_SEARCH'
                       });
 
 
@@ -2434,15 +2433,16 @@ $table = $html->table( { width       => '100%',
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { sid   => "$sid",
 	                                    index => "$index",
-	                                    UID   => "$UID" }});
+	                                    UID   => "$UID",
+	                                    },
+	                       NAME    => 'stats'
+	                      });
 
 
 
 if (defined($FORM{show})) {
-  $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
-  $FORM{fromM} = sprintf("%.2d", $FORM{fromM}+1);
-  $FORM{toM}   = sprintf("%.2d", $FORM{toM}+1);
-  $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
+  $pages_qs .= "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}";
+  $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
  }
 elsif (defined($FORM{PERIOD})) {
 	$LIST_PARAMS{PERIOD} = $FORM{PERIOD}; 
@@ -2458,9 +2458,8 @@ if ($sessions->prepaid_rest({
 	                            UID  => $LIST_PARAMS{UID},
 	                            UIDS => $LIST_PARAMS{UIDS}
 	                           })) {
-	#Prepaid: period, traffic_type
-  
 
+	#Prepaid: period, traffic_type
   my $list = $sessions->{INFO_LIST};
 
   my $table = $html->table( { caption     => "$_PREPAID",
@@ -2484,9 +2483,6 @@ if ($sessions->prepaid_rest({
 
   print $table->show();	 
 }
-
-
-
 
 
 $pages_qs .= "&DIMENSION=$FORM{DIMENSION}"  if ($FORM{DIMENSION});
@@ -2545,7 +2541,8 @@ my $table = $html->table( { width       => '640',
                                              [ "$_TRAFFIC $_RECV", int2byte($sessions->{min_recv}), int2byte($sessions->{max_recv}), int2byte($sessions->{avg_recv}),  int2byte($sessions->{total_recv})],
                                              [ "$_TRAFFIC $_SENT", int2byte($sessions->{min_sent}), int2byte($sessions->{max_sent}), int2byte($sessions->{avg_sent}), int2byte($sessions->{total_sent})],
                                              [ "$_TRAFFIC $_SUM",  int2byte($sessions->{min_sum}),  int2byte($sessions->{max_sum}),  int2byte($sessions->{avg_sum}),  int2byte($sessions->{total_sum})]
-                                           ]
+                                           ],
+                            ID           => 'DV_TRAFFIC_CALCULATIONS'
                         } );
 
 print $table->show();
@@ -2584,7 +2581,6 @@ if ($sessions->{errno})	{
      my $customer = Customers->new($db, $admin, \%conf);
      my $company = $customer->company();
 
-#print "Content-type: text/html\n\n";
      my $ulist = $company->admins_list({ COMPANY_ID => $user->{COMPANY_ID}, 
 	                                       UID        => $UID });
 
@@ -2691,8 +2687,8 @@ print $table->show();
 
 $table = $html->table({ width       => '100%',
 	                      rowcolor    => $_COLORS[0],
-                        rows        => [[ "$_FROM: ", $html->date_fld('from', { MONTHES => \@MONTHES} ),
-                                          "$_TO: ",   $html->date_fld('to', { MONTHES => \@MONTHES } ),
+                        rows        => [[ "$_FROM: ", $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS } ),
+                                          "$_TO: ",   $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS } ),
                                           $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
  	                                                               SEL_HASH   => {'' => 'Auto', 
  	                                                               	              'Kb' => 'Kb', 
@@ -2703,7 +2699,8 @@ $table = $html->table({ width       => '100%',
                                                                 } ),
                                          "$_ROWS: ", $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
                                          $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
-                                        ]],                                   
+                                        ]],
+                         ID         => 'STATS_PERIODS_SEARCH'
                         } );
 
 
@@ -2717,17 +2714,16 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { sid   => "$sid",
 	                                    index => "$index",
 	                                    UID   => "$UID",
-	                                    UIDS  => "$FORM{UIDS}" }});
-
-
+	                                    UIDS  => "$FORM{UIDS}",
+	                                    },
+	                       NAME    => 'stats'
+	                     });
 
 #dv_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
-  $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
-  $FORM{fromM} = sprintf("%.2d", $FORM{fromM}+1);
-  $FORM{toM} = sprintf("%.2d", $FORM{toM}+1);
-  $LIST_PARAMS{INTERVAL} = "$FORM{fromY}-$FORM{fromM}-$FORM{fromD}/$FORM{toY}-$FORM{toM}-$FORM{toD}";
+  $pages_qs .= "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}";
+  $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
  }
 elsif (defined($FORM{PERIOD})) {
 	$LIST_PARAMS{PERIOD} = int($FORM{PERIOD}); 
@@ -3055,8 +3051,8 @@ if ($FORM{set}) {
      }
    }
   elsif ($period == 1 && $conf{DV_USER_CHG_TP_SHEDULE}) {
-    
-    my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
+    my ($year, $month, $day)=split(/-/, $FORM{DATE}, 3);
+    my $seltime = POSIX::mktime(0, 0, 0, $day, ($month-1), ($year - 1900));
     
     if ($seltime <= time()) {
       $html->message('info', $_INFO, "$ERR_WRONG_DATA");
@@ -3067,11 +3063,11 @@ if ($FORM{set}) {
     $shedule->add( {UID     => $LIST_PARAMS{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
-    	             D        => sprintf("%02d", $FORM{date_D}),
-                   M        => sprintf("%02d", $FORM{date_M}),
-                   Y        => $FORM{date_Y},
+    	             D        => sprintf("%02d", $day),
+                   M        => sprintf("%02d", $month),
+                   Y        => $year,
                    DESCRIBE => "$message<br>
-                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                   $_FROM: '$year-$month-$day'",
                    MODULE   => 'Dv'
                  } );
 
@@ -3093,10 +3089,6 @@ if ($FORM{set}) {
 
     $Dv->{ABON_DATE}=undef;
     if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE}) {
-    	  #&&
-        #($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
-        # $Dv->{POSTPAID_ABON} || 
-        # $Dv->{PAYMENT_TYPE} == 1 )) {
       if ($user->{ACTIVATE} ne '0000-00-00') {
         my ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
         $M--;
@@ -3128,18 +3120,17 @@ if ($FORM{set}) {
 
     if ($Dv->{ABON_DATE}) {
       
-      ($FORM{date_Y}, $FORM{date_M}, $FORM{date_D})=split(/-/, $Dv->{ABON_DATE}, 3);
-      #print "--- $FORM{date_Y}, $FORM{date_M}, $FORM{date_D} // $Dv->{ABON_DATE}-- ";
+      ($year, $month, $day)=split(/-/, $Dv->{ABON_DATE}, 3);
  	    use POSIX;
     
-      my $seltime = POSIX::mktime(0, 0, 0, $FORM{date_D}, $FORM{date_M}, ($FORM{date_Y} - 1900));
+      my $seltime = POSIX::mktime(0, 0, 0, $day, ($month-1), ($year - 1900));
     
       if ($seltime <= time()) {
-        $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}, $FORM{date_M}, $FORM{date_Y}  )/". $seltime . "-" . time());
+        $html->message('info', $_INFO, "$ERR_WRONG_DATA ($year, $month, $day)/". $seltime . "-" . time());
         return 0;
        }
-      elsif($FORM{date_D} > ($FORM{date_M}!=2?(($FORM{date_M}%2)^($FORM{date_M}>7))+30:(!($FORM{date_Y}%400)||!($FORM{date_Y}%4)&&($FORM{date_Y}%25)?29:28))) {
-        $html->message('info', $_INFO, "$ERR_WRONG_DATA ($FORM{date_D}-$FORM{date_M}-$FORM{date_Y})");
+      elsif($FORM{date_D} > ($FORM{date_M}!=2?(($month%2)^($month>7))+30:(!($year%400)||!($year%4)&&($year%25)?29:28))) {
+        $html->message('info', $_INFO, "$ERR_WRONG_DATA ($year-$month-$day)");
         return 0;
        }
 
@@ -3147,11 +3138,11 @@ if ($FORM{set}) {
       $shedule->add( {UID     => $LIST_PARAMS{UID},
                      TYPE     => 'tp',
                      ACTION   => $FORM{TP_ID},
-    	               D        => $FORM{date_D},
-                     M        => $FORM{date_M},
-                     Y        => $FORM{date_Y},
+    	               D        => $day,
+                     M        => $month,
+                     Y        => $day,
                      DESCRIBE => "$message<br>
-                     $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                     $_FROM: '$year-$month-$day'",
                      MODULE   => 'Dv'
                     });
 
@@ -3641,11 +3632,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
 #
 #**********************************************************
 sub dv_holdup_service {
-
-
-
   my ($hold_up_min_period, $hold_up_max_period)=split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
-
 
   my $shedule = Shedule->new($db, $admin, \%conf);
   
@@ -3677,13 +3664,13 @@ sub dv_holdup_service {
    }
 
   if ($FORM{add}) {
-    my $from_seltime = POSIX::mktime(0, 0, 0, $FORM{FROM_D}, $FORM{FROM_M}, ($FORM{FROM_Y} - 1900));
-    my $to_seltime   = POSIX::mktime(0, 0, 0, $FORM{TO_D}, $FORM{TO_M}, ($FORM{TO_Y} - 1900));
+  	my ($from_year, $from_month, $from_day)=split(/-/, $FORM{FROM_DATE}, 3);
+  	my ($to_year, $to_month, $to_day)=split(/-/, $FORM{TO_DATE}, 3);
+  	
+    my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month-1), ($from_year - 1900));
+    my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day, ($to_month-1), ($to_year - 1900));
     
     my $block_days = ($to_seltime - $from_seltime) / 86400;
-    
-    my $from_month = sprintf("%.2d", $FORM{FROM_M}+1);
-    my $to_month = sprintf("%.2d", $FORM{TO_M}+1);
     
     if ($block_days < $hold_up_min_period) {
     	$html->message('err', "$ERR_WRONG_DATA", "$_MIN $_HOLD_UP   $hold_up_min_period $_DAYS");
@@ -3692,47 +3679,52 @@ sub dv_holdup_service {
     	$html->message('err', "$ERR_WRONG_DATA", "$_MAX $_HOLD_UP   $hold_up_max_period $_DAYS");
      }
     elsif ($from_seltime <= time()) {
-      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($_FROM: $FORM{FROM_D}-$from_month-$FORM{FROM_Y})");
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($_FROM: $FORM{FROM_DATE}");
      }
     elsif ($to_seltime <= time()) {
-      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($_TO: $FORM{TO_D}-$to_month-$FORM{TO_Y})");
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($_TO: $FORM{TO_DATE}");
      }
     else {
       $shedule->add( {UID     => $user->{UID},
                    TYPE     => "status",
                    ACTION   => "3",
-    	             D        => $FORM{FROM_D},
+    	             D        => $from_day,
                    M        => $from_month,
-                   Y        => $FORM{FROM_Y},
+                   Y        => $from_year,
                    DESCRIBE => "$message<br>
-                   $_FROM: '$FORM{FROM_Y}-$from_month-$FORM{FROM_D}'",
+                   $_FROM: '$from_year-$from_month-$from_day'",
                    MODULE   => 'Dv'
                     });
 
-      $shedule->add( {UID     => $user->{UID},
+      $shedule->add({UID    => $user->{UID},
                    TYPE     => "status",
                    ACTION   => "0",
-    	             D        => $to_month,
-                   M        => sprintf("%.2d", $FORM{TO_M}+1),
-                   Y        => $FORM{TO_Y},
+    	             D        => $to_day,
+                   M        => $to_month,
+                   Y        => $to_year,
                    DESCRIBE => "$message<br>
-                   $_FROM: '$FORM{TO_Y}-$to_month-$FORM{TO_D}'",
+                   $_FROM: '$to_year-$to_month-$to_day'",
                    MODULE   => 'Dv'
                     });
   	
 
       if (! $shedule->{errno}) {
-      	$html->message('info', $_INFO, "$_HOLD_UP $FORM{FROM_Y}-$from_month-$FORM{FROM_D} -> $FORM{TO_Y}-$to_month-$FORM{TO_D}  $block_days $_DAYS");
+      	$html->message('info', $_INFO, "$_HOLD_UP $_DATE: $FORM{FROM_DATE} -> $FORM{TO_DATE}   $_DAYS: $block_days");
   	    return 0;
        }
      }
    } 
 
 
-  $Dv->{DATE_FROM}= $html->date_fld('FROM_', { MONTHES => \@MONTHES} );
-  $Dv->{DATE_TO}  = $html->date_fld('TO_', { MONTHES => \@MONTHES } );
+  $Dv->{DATE_FROM}= $html->date_fld2('FROM_DATE', { FORM_NAME => 'holdup',
+  	                                            WEEK_DAYS => \@WEEKDAYS,
+  	                                            MONTHES   => \@MONTHES,
+  	                                            NEXT_DAY  => 1 });
   
-  
+  $Dv->{DATE_TO}  = $html->date_fld2('TO_DATE', { FORM_NAME => 'holdup',
+	                                            WEEK_DAYS => \@WEEKDAYS,
+ 	                                            MONTHES   => \@MONTHES, 
+ 	                                           });
 
 	$html->tpl_show(_include('dv_hold_up', 'Dv'), $Dv);
 }
@@ -5500,15 +5492,11 @@ sub dv_compensation () {
 
 
 if ($FORM{add}) {
-	my $Y = $FORM{from_Y};
-	my $M = $FORM{from_M}+1;
-  my $D = $FORM{from_D}+1;
-	my $from_date = mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0);
+	my ($Y, $M, $D) = split(/-/,  $FORM{FROM_DATE}, 3);
+	my $from_date = mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0);
 
-	$Y = $FORM{to_Y};
-	$M = $FORM{to_M}+1;
-  $D = $FORM{to_D};
-	my $to_date = mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0);
+	($Y, $M, $D) = split(/-/,  $FORM{TO_DATE}, 3);
+	my $to_date = mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0);
 	
 	my $days = ($to_date - $from_date) / 86400 + 1;
   $Dv->info($FORM{UID});
@@ -5530,20 +5518,16 @@ if ($FORM{add}) {
     $html->message('err', $_ERROR, "$_ERROR: [$fees->{errno}] $fees->{errstr} "); 
    }
   else {
-    $html->message('info', $_INFO, "$_FROM: $from_date $_TO: $to_date / $_DAYS: $days / $_SUM $sum");
+    $html->message('info', $_INFO, "$_FROM: $FORM{FROM_DATE} $_TO: $FORM{TO_DATE} / $_DAYS: $days / $_SUM $sum");
    }
 }
 
 
 
-$Dv->{FROM_DATE}=$html->date_fld('from_', { MONTHES => \@MONTHES} );
-$Dv->{TO_DATE}=$html->date_fld('to_', { MONTHES => \@MONTHES } );
+$Dv->{FROM_DATE}=$html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'compensation', WEEK_DAYS => \@WEEKDAYS });
+$Dv->{TO_DATE}=$html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'compensation', WEEK_DAYS => \@WEEKDAYS });
 
 $html->tpl_show(_include('dv_compensation', 'Dv'), $Dv);
-
-	
-	
-	
 }
 
 
@@ -5556,14 +5540,16 @@ sub dv_form_shedule () {
   
 
 if ($FORM{add}) {
+    my ($Y, $M, $D) = split(/-/,  $FORM{DATE}, 3);
+
     $shedule->add( {UID     => $FORM{UID},
                    TYPE     => "$FORM{shedule}",
                    ACTION   => $FORM{ACTION},
-    	             D        => $FORM{date_D},
-                   M        => sprintf("%.2d", $FORM{date_M}+1),
-                   Y        => $FORM{date_Y},
+    	             D        => $D,
+                   M        => $M,
+                   Y        => $Y,
                    DESCRIBE => "$message<br>
-                   $_FROM: '$FORM{date_Y}-$FORM{date_M}-$FORM{date_D}'",
+                   $_FROM: '$FORM{DATE}'",
                    MODULE   => 'Dv'
                     });
 
@@ -5578,7 +5564,7 @@ elsif ($FORM{shedule}) {
 	if ($FORM{shedule} eq 'status') {
     my $table = $html->table( { width       => '100%',
 	                       rowcolor    => $_COLORS[0],
-                         rows        => [[ "$_FROM: ",  $html->date_fld('date_', { MONTHES => \@MONTHES} ),
+                         rows        => [[ "$_FROM: ",  $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'compensation', WEEK_DAYS => \@WEEKDAYS }),
                                           "$_STATUS: ", $html->form_select('ACTION', 
                                           { 
  	                                          SELECTED     => $FORM{ACTION},

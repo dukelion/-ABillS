@@ -10,7 +10,8 @@
  <META name=\"Author\" content=\"~AsmodeuS~\"/>
 
  <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" />
- <script src=\"%JAVASCRIPT%\" type=\"text/javascript\" language=\"javascript\"></script>
+ <script src='%JAVASCRIPT%' type='text/javascript' language='javascript'></script>
+ <script src='/calendar_db.js' language='JavaScript'></script>
 
 <style type=\"text/css\">
 
@@ -77,6 +78,39 @@ form {
   color: %_COLOR_9%;
   font-size: 12px;
 }
+
+a.button_change {
+	color: %_COLOR_9%;
+ 	background:url(/img/button_change.png) no-repeat left;
+ 	padding-left:22px;
+	padding-top:5px;
+	margin:0;
+	display:block;
+	text-decoration:none;
+	overflow:hidden; 
+ 	text-indent:-9000px;
+}
+
+a.button_add { 
+ 	background:url(/img/button_add.png) no-repeat left;
+  display:block;
+  overflow:hidden; 
+ 	text-indent:-60px;
+}
+
+a.button_del { 
+	color: %_COLOR_9%;
+ 	background:url(/img/button_del.png) no-repeat left;
+ 	padding-left:22px;
+	padding-top:5px;
+	margin:0;
+	display:block;
+	text-decoration:none;
+	overflow:hidden; 
+ 	text-indent:-9000px;
+}
+
+
 
 .link_button {
   font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
@@ -226,6 +260,109 @@ TABLE.border {
 .MENU_BACK {
   background:%_COLOR_2%;
 }
+
+
+
+
+
+
+
+/* calendar icon */
+img.tcalIcon {
+	cursor: pointer;
+	margin-left: 1px;
+	vertical-align: middle;
+}
+/* calendar container element */
+div#tcal {
+	position: absolute;
+	visibility: hidden;
+	z-index: 100;
+	width: 158px;
+	padding: 2px 0 0 0;
+}
+/* all tables in calendar */
+div#tcal table {
+	width: 100%;
+	border: 1px solid silver;
+	border-collapse: collapse;
+	background-color: white;
+}
+/* navigation table */
+div#tcal table.ctrl {
+	border-bottom: 0;
+}
+/* navigation buttons */
+div#tcal table.ctrl td {
+	width: 15px;
+	height: 20px;
+}
+/* month year header */
+div#tcal table.ctrl th {
+	background-color: %_COLOR_10%;
+	color: black;
+	border: 0;
+}
+/* week days header */
+div#tcal th {
+	border: 1px solid silver;
+	border-collapse: collapse;
+	text-align: center;
+	padding: 3px 0;
+	font-family: tahoma, verdana, arial;
+	font-size: 10px;
+	background-color: gray;
+	color: white;
+}
+/* date cells */
+div#tcal td {
+	border: 0;
+	border-collapse: collapse;
+	text-align: center;
+	padding: 2px 0;
+	font-family: tahoma, verdana, arial;
+	font-size: 11px;
+	width: 22px;
+	cursor: pointer;
+}
+/* date highlight
+   in case of conflicting settings order here determines the priority from least to most important */
+div#tcal td.othermonth {
+	color: silver;
+}
+div#tcal td.weekend {
+	background-color: %_COLOR_2%;
+}
+div#tcal td.today {
+	border: 1px solid red;
+}
+div#tcal td.selected {
+	background-color: %_COLORS_0%;
+}
+/* iframe element used to suppress windowed controls in IE5/6 */
+iframe#tcalIF {
+	position: absolute;
+	visibility: hidden;
+	z-index: 98;
+	border: 0;
+}
+/* transparent shadow */
+div#tcalShade {
+	position: absolute;
+	visibility: hidden;
+	z-index: 99;
+}
+div#tcalShade table {
+	border: 0;
+	border-collapse: collapse;
+	width: 100%;
+}
+div#tcalShade table td {
+	border: 0;
+	border-collapse: collapse;
+	padding: 0;
+}
+
 
 </style>
 

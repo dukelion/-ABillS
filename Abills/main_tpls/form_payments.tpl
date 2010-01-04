@@ -1,5 +1,5 @@
 <div class='noprint'>
-<form action='$SELF_URL' METHOD='POST'>
+<form action='$SELF_URL' METHOD='POST' nmae=user>
 <input type=hidden name=index value=$index>
 <input type=hidden name=subf value=$FORM{subf}>
 <input type=hidden name=OP_SID value=%OP_SID%>

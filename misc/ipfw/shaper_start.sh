@@ -5,7 +5,7 @@
 #traffic Class numbers
 
 CLASSES_NUMS='2 3'
-VERSION=2.5
+VERSION=2.6
 
 #Enable NG shapper
 NG_SHAPPER=1
@@ -116,7 +116,7 @@ ISP_GW2="";
 
 if [ w${NAT_IPS} != w  ] ; then
 
-echo -n "NAT"
+echo "NAT"
 NAT_TABLE=20
 NAT_FIRST_RULE=20
 NAT_REAL_TO_FAKE_TABLE_NUM=33;
@@ -146,7 +146,7 @@ done;
 #${IPFW} add 17000 nat tablearg ip from table\(20\) to not 193.138.244.2 out
 
 if [ w$1 = wstart ]; then
-  if [ w{NAT_IF} != w ]; then
+  if [ w${NAT_IF} != w ]; then
     NAT_IF="via ${NAT_IF}"
   fi;
 
