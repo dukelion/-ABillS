@@ -11,7 +11,7 @@
 
  <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" />
  <script src='%JAVASCRIPT%' type='text/javascript' language='javascript'></script>
- <script src='/calendar_db.js' language='JavaScript'></script>
+ <script src='/calendar.js' language='JavaScript'></script>
 
 <style type=\"text/css\">
 
