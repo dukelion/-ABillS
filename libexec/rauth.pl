@@ -116,16 +116,12 @@ sub get_nas_info {
  $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if ($RAD->{NAS_IDENTIFIER});
  $nas->info({ %NAS_PARAMS });
 
-## print "$RAD->{NAS_IP_ADDRESS} $RAD->{'NAS-IP-Address'} /// $nas->{errno}) || $nas->{TOTAL}";
-#
 if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
-  # (defined($RAD->{NAS_IDENTIFIER})) ? $RAD->{NAS_IDENTIFIER} : ''
   access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'". (( $RAD->{NAS_IP_ADDRESS} eq '0.0.0.0' ) ? $RAD->{CALLED_STATION_ID} : '') ." [$nas->{errno}] $nas->{errstr}", 0);
   $RAD_REPLY{'Reply-Message'}="Unknow server '$RAD->{NAS_IP_ADDRESS}'";
   return 1;
  }
 elsif(! defined($RAD->{USER_NAME}) || $RAD->{USER_NAME} eq '') {
-  #access_deny("$RAD->{USER_NAME}", "Disabled NAS server '$RAD->{NAS_IP_ADDRESS}'", 0);
   return 1;
  }
 elsif($nas->{NAS_DISABLE} > 0) {
@@ -226,7 +222,8 @@ else {
    	     $RAD_REPLY{"$left"}="$right";
    	    }
        }
-      $RAD_CHECK{'Auth-Type'} = 'Accept';
+
+      $RAD_CHECK{'Auth-Type'} = 'Accept' if (RAD->{CHAP_PASSWORD});
      }
    
    #Show pairs
@@ -266,7 +263,7 @@ sub post_auth {
   my ($RAD) = @_;
   my $reject_info = '';
   if (defined(%RAD_REQUEST)) {
-  #  return 0;
+
     if ($RAD_REQUEST{'Calling-Station-Id'}) {
       $reject_info=" CID $RAD_REQUEST{'Calling-Station-Id'}";
      }
@@ -279,8 +276,6 @@ sub post_auth {
      }
     $log_print->('LOG_WARNING', $RAD->{USER_NAME}, "REJECT Wrong password$reject_info$GT", { NAS => $nas});
    }
-
-  # return RLM_MODULE_OK;
 }
 
 

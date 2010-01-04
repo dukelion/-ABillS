@@ -83,7 +83,6 @@ sub authorize {
   if ( $db ) {
   	if (auth($db, \%REQUEST, $nas, { pre_auth => 1 }) == 0) {
       if ( auth($db, \%REQUEST, $nas) == 0 ) {
-         #$RAD_CHECK{'User-Password'} = 'test12345';
     	   return RLM_MODULE_OK;
        }
      }
@@ -102,15 +101,12 @@ sub authenticate {
   convert_radpairs();
   my $db = sql_connect();
   
-  
   if ( $db ) {
     if ( auth($db, \%REQUEST, $nas) == 0 ) {
     	return RLM_MODULE_OK;
      }
    }
 
-  #$RAD_CHECK{'Auth-Type'} = 'Accept';
-	#return RLM_MODULE_OK;
 	return RLM_MODULE_REJECT;
 }
 
@@ -144,8 +140,6 @@ sub convert_radpairs {
 		$k =~ tr/[a-z]/[A-Z]/;
 		$REQUEST{$k}=$v;
 	 }
-
-  #return \%REQUEST;
 }
 
 
