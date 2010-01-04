@@ -223,7 +223,7 @@ else {
    	    }
        }
 
-      $RAD_CHECK{'Auth-Type'} = 'Accept' if (RAD->{CHAP_PASSWORD});
+      $RAD_CHECK{'Auth-Type'} = 'Accept' if ($RAD->{CHAP_PASSWORD});
      }
    
    #Show pairs
