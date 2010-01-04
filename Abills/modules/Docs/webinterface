@@ -1627,14 +1627,17 @@ print  $doc;
 return 0;
 }
 
-
-
-  my ($Y, $M, $D)=split(/-/, $DATE, 3);  
-  my @MONTH_ARR = ('');
+my @MONTH_ARR = ('');
+my ($Y, $M, $D)=split(/-/, $DATE, 3);
+for (my $year=2009; $year<=$Y; $year++) {
   for(my $i=1; $i<13; $i++) {
 	  my $m = sprintf("%.2d", $i);
-	  push @MONTH_ARR, "$Y-$m";
+	  push @MONTH_ARR, "$year-$m";
+	  
    }
+}
+
+
   $FORM{MONTH}="$Y-$M" if (! $FORM{MONTH});
 
   my $table = $html->table( { width       => '100%',
