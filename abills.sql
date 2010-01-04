@@ -1136,10 +1136,47 @@ CREATE TABLE `help` (
   UNIQUE KEY `function` (`function`)
 );
 
+CREATE TABLE `streets` (
+  `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL DEFAULT '',  
+  `district_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `name_district` (`name`, `district_id`),
+  UNIQUE KEY `name_2` (`name`)
+) COMMENT='Locations streets';
 
-#
-# Структура таблиці `web_online`
-#
+
+CREATE TABLE `districts` (
+  `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) COLLATE cp1251_general_ci NOT NULL DEFAULT '',
+  `country` TINYINT(4) UNSIGNED NOT NULL,
+  `zip` VARCHAR(7) NOT NULL DEFAULT '',
+  `city` VARCHAR(30) NOT NULL DEFAULT '',  
+  `comments` TEXT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `name_2` (`name`)
+) COMMENT='Locations districts';
+
+INSERT INTO districts (name) VALUES ('Main District');
+
+CREATE TABLE `builds` (
+  `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `street_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `number` VARCHAR(10)  NOT NULL DEFAULT '',
+  `flors` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+  `entrances` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+  `added` DATE NOT NULL,
+  `map_x` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `map_y` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `street_id` (`street_id`, `number`)
+) COMMENT='Builds';
+
 
 CREATE TABLE `web_online` (
   `admin` varchar(15) NOT NULL default '',
