@@ -1321,7 +1321,7 @@ sub date_fld2  {
     }
    # Default Date
    elsif (! $attr->{NO_DEFAULT_DATE}) {
-     my($sec,$min,$hour,$mday,$mon,$curyear,$wday,$yday,$isdst) = localtime( time ); # +  ( ($attr->{NEXT_DAY}) ? 86400 : 0 );
+     my($sec,$min,$hour,$mday,$mon,$curyear,$wday,$yday,$isdst) = localtime( time + ( ($attr->{NEXT_DAY}) ? 86400 : 0 ) ); 
 
      $month = $mon+1;
      $year  = $curyear + 1900;
@@ -1331,7 +1331,7 @@ sub date_fld2  {
      if ($base_name =~ /to/i) {
  	     $day   = ($month!=2?(($month%2)^($month>7))+30:(!($year%400)||!($year%4)&&($year%25)?29:28));
  	    }
-     elsif($base_name =~ /from/i) {
+     elsif($base_name =~ /from/i && ! $attr->{NEXT_DAY}) {
    	   $day=1;
       }
      $date = sprintf("%d-%.2d-%.2d", $year, $month, $day);

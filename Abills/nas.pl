@@ -148,7 +148,7 @@ sub telnet_cmd {
  my $dest = sockaddr_in($port, inet_aton("$hostname"));
 
  if(! socket(SH, PF_INET, SOCK_STREAM, getprotobyname('tcp'))) {
- 	 print "ERR: Can't init '$hostname:$port' $!";
+   print "ERR: Can't init '$hostname:$port' $!";
    return 0;
   }
 
@@ -443,7 +443,12 @@ sub hangup_snmp {
 #*******************************************************************
 sub hangup_radius {
   my ($NAS, $PORT, $USER, $attr) = @_;
- 
+
+  if (! $NAS->{NAS_MNG_IP_PORT}) {
+    print "Radius Hangup failed. Can't find NAS IP and port. NAS: $NAS->{NAS_ID} USER: $USER\n";
+    return 'ERR:';
+   }
+
   my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
   log_print('LOG_DEBUG', " HANGUP: User-Name=$USER NAS_MNG: $ip:$mng_port '$NAS->{NAS_MNG_PASSWORD}' \n"); 
 
@@ -777,6 +782,11 @@ sub hangup_mpd4 {
 sub hangup_mpd5 {
   my ($NAS, $PORT, $attr) = @_;
 
+  if (! $NAS->{NAS_MNG_IP_PORT}) {
+    print "MPD Hangup failed. Can't find NAS IP and port. NAS: $NAS->{NAS_ID}\n";
+    return "Error";
+   }
+
   my $ctl_port = "L-$PORT";
   if ($attr->{ACCT_SESSION_ID}) {
         if($attr->{ACCT_SESSION_ID} =~ /^\d+\-(.+)/) {
@@ -785,6 +795,7 @@ sub hangup_mpd5 {
    }
 
   log_print('LOG_DEBUG', " HANGUP: SESSION: $ctl_port NAS_MNG: $NAS->{NAS_MNG_IP_PORT} '$NAS->{NAS_MNG_PASSWORD}'\n");
+  
 
   my @commands=("\t",
                 "Username: \t$NAS->{NAS_MNG_USER}",
@@ -795,7 +806,7 @@ sub hangup_mpd5 {
 
   my $result = telnet_cmd("$NAS->{NAS_MNG_IP_PORT}", \@commands, { debug => 1 });
 
-  return 0;
+  return $result;
 }
 
 #*******************************************************************
