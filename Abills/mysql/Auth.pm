@@ -475,6 +475,10 @@ foreach my $line (@periods) {
    return 1, $RAD_PAIRS;
   }
 
+if ($NAS->{NAS_TYPE} && $NAS->{NAS_TYPE} eq 'ipcad') {
+	return 0, $RAD_PAIRS, '';
+ }
+
 # Return radius attr
  if ($self->{IP} ne '0') {
    $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";

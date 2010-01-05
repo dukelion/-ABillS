@@ -690,7 +690,13 @@ sub list {
   }
 
  if ($attr->{CHANGE_PRICE}) {
- 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{CHANGE_PRICE}", 'INT', 'tp.change_price') };  	
+ 	  my $sql = join('', @{ $self->search_expr("$attr->{CHANGE_PRICE}", 'INT', 'tp.change_price') });  	
+ 	  
+ 	  if (defined($attr->{PRIORITY})) {
+ 	  	$sql = "($sql or tp.priority > '$attr->{PRIORITY}')";
+ 	   }
+ 	  
+ 	  push @WHERE_RULES, $sql;
   }
 
 

@@ -119,7 +119,7 @@ sub online_count {
   my ($attr) = @_;
 
  $self->query($db, "SELECT n.id, n.name, n.ip, n.nas_type,  
-   sum(if (c.status=1 or c.status>=3, 1, 0)),
+   sum(if ((c.status=1 or c.status>=3) AND c.status<11, 1, 0)),
    count(distinct uid),
    sum(if (status=2, 1, 0)), 
    sum(if (status>3, 1, 0))
@@ -132,7 +132,7 @@ sub online_count {
 
  if ($self->{TOTAL} > 0) {
  	 $self->query($db, "SELECT 1, count(uid),  
- 	   sum(if (c.status=1 or c.status>=3, 1, 0)),
+ 	   sum(if ((c.status=1 or c.status>=3) AND c.status<11, 1, 0)),
  	   sum(if (status=2, 1, 0))
    FROM dv_calls c
    GROUP BY 1;");
@@ -164,7 +164,7 @@ sub online {
   		$WHERE = 'WHERE c.status=2';
   	 }
     else {
-  		$WHERE = 'WHERE c.status=1 or c.status>=3';
+  		$WHERE = 'WHERE ((c.status=1 or c.status>=3) AND c.status<11)';
      }
 
   	$self->query($db, "SELECT  count(*) FROM dv_calls c $WHERE;");
@@ -296,7 +296,7 @@ sub online {
 
   }
  else {
-   push @WHERE_RULES, "((c.status=1 or c.status>=3) AND c.status<10)";
+   push @WHERE_RULES, "((c.status=1 or c.status>=3) AND c.status<11)";
   } 
  
  if (defined($attr->{USER_NAME})) {

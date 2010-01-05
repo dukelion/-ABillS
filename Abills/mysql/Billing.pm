@@ -491,16 +491,19 @@ sub session_sum {
  my $sent2 = $RAD->{OUTBYTE2}|| 0; 
  my $recv2 = $RAD->{INBYTE2} || 0;
  
+ $CONF->{MINIMUM_SESSION_TIME}=0;
+ $CONF->{MINIMUM_SESSION_TRAF}=0;
  # Don't calculate if session smaller then $CONF->{MINIMUM_SESSION_TIME} and  $CONF->{MINIMUM_SESSION_TRAF}
  if (! $attr->{FULL_COUNT} && 
      (
-      (defined($CONF->{MINIMUM_SESSION_TIME}) && $SESSION_DURATION < $CONF->{MINIMUM_SESSION_TIME}) || 
-      (defined($CONF->{MINIMUM_SESSION_TRAF}) && $sent + $recv + $sent2 + $recv2 < $CONF->{MINIMUM_SESSION_TRAF})
+      ($CONF->{MINIMUM_SESSION_TIME} && $SESSION_DURATION < $CONF->{MINIMUM_SESSION_TIME}) || 
+      ($CONF->{MINIMUM_SESSION_TRAF} && $sent + $recv + $sent2 + $recv2 < $CONF->{MINIMUM_SESSION_TRAF})
      )
-     ) {
+    ) {
     return -1, 0, 0, 0, 0, 0;
   }
 
+ $self->{HANGUP}=undef;
 
  #If defined TP_NUM
  if ($attr->{TP_NUM}) {
@@ -538,7 +541,9 @@ sub session_sum {
     tp.min_session_cost,
     tp.payment_type,
     tp.octets_direction,
-    tp.traffic_transfer_period
+    tp.traffic_transfer_period,
+    tp.total_time_limit,
+    tp.total_traf_limit
    FROM tarif_plans tp
    WHERE tp.id='$attr->{TP_NUM}';");
 
@@ -556,7 +561,9 @@ sub session_sum {
    ( $self->{MIN_SESSION_COST},
      $self->{PAYMENT_TYPE},
      $self->{OCTETS_DIRECTION},
-     $self->{TRAFFIC_TRANSFER_PERIOD}
+     $self->{TRAFFIC_TRANSFER_PERIOD},
+     $self->{TOTAL_TIME_LIMIT},
+     $self->{TOTAL_TRAF_LIMIT}
     ) = @{ $self->{list}->[0] };
 
   }
@@ -577,7 +584,9 @@ sub session_sum {
     tp.traffic_transfer_period,
     tp.neg_deposit_filter_id,
     dv.join_service,
-    tp.tp_id
+    tp.tp_id,
+    tp.total_time_limit,
+    tp.total_traf_limit
    FROM (users u, 
       dv_main dv) 
    LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id )
@@ -608,6 +617,8 @@ sub session_sum {
    $self->{NEG_DEPOSIT_FILTER},
    $self->{JOIN_SERVICE},
    $self->{TP_ID},
+   $self->{TOTAL_TIME_LIMIT},
+   $self->{TOTAL_TRAF_LIMIT}
   ) = @{ $self->{list}->[0] };
  }
 
@@ -658,6 +669,21 @@ sub session_sum {
  }
 
 
+if ($self->{TOTAL_TIME_LIMIT} && $self->{CHECK_SESSION}) {
+	if ($SESSION_DURATION >= $self->{TOTAL_TIME_LIMIT}) {
+		$self->{HANGUP}=1;
+		return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
+	 }
+ }
+
+if ($self->{TOTAL_TRAF_LIMIT} && $self->{CHECK_SESSION}) {
+	if ($sent + $recv >= $self->{TOTAL_TRAF_LIMIT}) {
+		$self->{HANGUP}=1;
+		return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
+	 }
+ }
+
+
  if ($attr->{USER_INFO}) {
  	 return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
   }
@@ -678,10 +704,11 @@ sub session_sum {
  #session devisions
  my @sd = @{ $self->{TIME_DIVISIONS_ARR} };
  $self->{TI_ID} = 0;
-
+ 
 if(! defined($self->{NO_TPINTERVALS})) {
   if($#sd < 0) {
    	print "Not allow start period" if ($self->{debug});
+   	#$self->{HANGUP}=1;
  	  return -16, 0, 0, 0, 0, 0;	
    }
   
@@ -708,9 +735,7 @@ if(! defined($self->{NO_TPINTERVALS})) {
 
 $sum = $sum * (100 - $self->{REDUCTION}) / 100 if ($self->{REDUCTION} > 0);
 
-
 if (! $attr->{FULL_COUNT}) {
-	#if (! $sum || ! $self->{MIN_SESSION_COST})
   $sum = $self->{MIN_SESSION_COST} if ($self->{MIN_SESSION_COST} && $sum < $self->{MIN_SESSION_COST} && $self->{MIN_SESSION_COST} > 0);
 }
 
@@ -872,7 +897,7 @@ if ($debug == 1) {
      my @intervals = sort { $a <=> $b } keys %$cur_int; 
      $i = -1;
 
-     
+      
      foreach my $int_begin (@intervals) {
        my ($int_id, $int_end) = split(/:/, $cur_int->{$int_begin}, 2);
        $i++;
@@ -943,6 +968,8 @@ if ($debug == 1) {
       }
   }
  
+
+ 
  $self->{TIME_DIVISIONS_ARR} = \@division_time_arr;
  $self->{SUM}=0;
  
@@ -995,8 +1022,6 @@ if(! defined($self->{NO_TPINTERVALS})) {
 
   foreach my $line (@sd) {
     my ($k, $v)=split(/,/,  $line);
-    
- 	  #print "> $k, $v\n" if ($self->{debug});
     if(defined($periods_time_tarif->{$k})) {
    	  $sum += ($v * $periods_time_tarif->{$k}) / $PRICE_UNIT;
      }
@@ -1221,8 +1246,6 @@ sub remaining_time {
           
           
           #Traf calculation
-#30.11             && $periods_traf_tarif->{$int_id} > 0 
-
           if(defined($periods_traf_tarif->{$int_id})
              && $remaining_time == 0 
              && ($attr->{GET_INTERVAL} || ! $CONF->{rt_billing})

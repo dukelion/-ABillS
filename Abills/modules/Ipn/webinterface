@@ -998,10 +998,10 @@ if ($FORM{rows}) {
 
 #PEriods totals
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
-my $table = $html->table( { width => '100%',
-                                   title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
-                                   cols_align => ['left', 'right', 'right', 'right', 'right'],
-                                   rowcolor => $_COLORS[1]
+my $table = $html->table( { width       => '100%',
+                            title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
+                            cols_align  => ['left', 'right', 'right', 'right', 'right'],
+                            rowcolor    => $_COLORS[1]
                                   } );
 for(my $i = 0; $i < 5; $i++) {
 	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", "$sessions->{'duration_'. $i}",
@@ -1602,8 +1602,8 @@ sub ipn_change_status {
   $rule_num = $rule_num + 10000 + $num;
   my $cmd;
 
+  #Enable IPN Session
 	if ($STATUS eq 'ONLINE_ENABLE') {
-    
      $cmd = $conf{IPN_FW_START_RULE};
      $html->message('info', $_INFO, "$_ENABLE IP: $ip") if (! $attr->{QUICK});
      $sessions->online_update({ USER_NAME       => $USER_NAME,

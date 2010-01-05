@@ -104,7 +104,8 @@ sub info {
    dv.turbo_mode,
    tp.abon_distribution,
    tp.credit,
-   tp.tp_id
+   tp.tp_id,
+   tp.priority
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id and tp.domain_id='$admin->{DOMAIN_ID}')
    $WHERE;");
@@ -123,7 +124,7 @@ sub info {
    $self->{IP}, 
    $self->{NETMASK}, 
    $self->{SPEED}, 
-   $self->{IDTER_ID}, 
+   $self->{FILTER_ID}, 
    $self->{CID},
    $self->{STATUS},
    $self->{CALLBACK},
@@ -137,7 +138,8 @@ sub info {
    $self->{TURBO_MODE},
    $self->{ABON_DISTRIBUTION},
    $self->{TP_CREDIT},
-   $self->{TP_NUM}
+   $self->{TP_NUM},
+   $self->{TP_PRIORITY}
   )= @{ $self->{list}->[0] };
   
   
