@@ -491,8 +491,6 @@ sub session_sum {
  my $sent2 = $RAD->{OUTBYTE2}|| 0; 
  my $recv2 = $RAD->{INBYTE2} || 0;
  
- $CONF->{MINIMUM_SESSION_TIME}=0;
- $CONF->{MINIMUM_SESSION_TRAF}=0;
  # Don't calculate if session smaller then $CONF->{MINIMUM_SESSION_TIME} and  $CONF->{MINIMUM_SESSION_TRAF}
  if (! $attr->{FULL_COUNT} && 
      (
@@ -706,10 +704,10 @@ if ($self->{TOTAL_TRAF_LIMIT} && $self->{CHECK_SESSION}) {
  $self->{TI_ID} = 0;
  
 if(! defined($self->{NO_TPINTERVALS})) {
-  if($#sd < 0) {
-   	print "Not allow start period" if ($self->{debug});
-   	#$self->{HANGUP}=1;
- 	  return -16, 0, 0, 0, 0, 0;	
+  if ($#sd < 0) {
+    print "Not allow start period" if ($self->{debug});
+    #$self->{HANGUP}=1;
+    return -16, 0, 0, 0, 0, 0;	
    }
   
   for(my $i=0; $i<=$#sd; $i++) {
@@ -717,21 +715,17 @@ if(! defined($self->{NO_TPINTERVALS})) {
     print "> $k, $v\n" if ($self->{debug});
     $self->{TI_ID}=$k;
     if($periods_time_tarif->{$k} && $periods_time_tarif->{$k} > 0) {
-   	   $sum += ($v * $periods_time_tarif->{$k}) / 60 / 60;
+      $sum += ($v * $periods_time_tarif->{$k}) / 60 / 60;
      }
    
     if( $i == 0 && defined($periods_traf_tarif->{$k}) && $periods_traf_tarif->{$k} > 0) {
-   	    $sum  += $self->traffic_calculations({ %$RAD, 
-   	    	                                     SESSION_START => $SESSION_START, 
-   	    	                                     UIDS          => $self->{UIDS} });
-   	    last;
-
+      $sum  += $self->traffic_calculations({ %$RAD, 
+       	                                     SESSION_START => $SESSION_START, 
+       	                                     UIDS          => $self->{UIDS} });
+      last;
      }
    }
 }
-
-
-
 
 $sum = $sum * (100 - $self->{REDUCTION}) / 100 if ($self->{REDUCTION} > 0);
 
@@ -755,9 +749,6 @@ if ($self->{COMPANY_ID} > 0) {
 
   return $self->{UID}, $sum, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
 }
-
-
-
 
 
 
@@ -855,8 +846,6 @@ sub session_splitter {
     }
   }
 
-
-
 my $tarif_day = 0;
 my $count = 0;
 $start = $start - $day_begin;
@@ -869,7 +858,6 @@ if ($debug == 1) {
  print "DAY_OF_WEEK: $day_of_week DAY_OF_YEAR: $day_of_year\n" if ($debug == 1);
  
  while($duration > 0 && $count < 10) {
-
    if(defined($holidays{$day_of_year}) && defined($time_intervals->{8})) {
      $tarif_day = 8;
     }
@@ -881,7 +869,7 @@ if ($debug == 1) {
     }
    else {
 #   	err();
-   	  return -1;
+     return -1;
     }
 
    $count++;
