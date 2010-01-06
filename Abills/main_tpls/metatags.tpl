@@ -23,6 +23,9 @@ body {
   /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
 }
 
+
+A:hover {text-decoration: none; color: black;}
+
 th.small {
   color: %_COLOR_9%;
   font-size: 10px;
@@ -116,6 +119,7 @@ a.button_del {
   font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
   background-color: %_COLOR_2%;
   color: %_COLOR_9%;
+  border-color : #9F9F9F;
   font-size: 11px;
   padding: 2px;
   border: 1px outset;

@@ -112,7 +112,6 @@ express_oplata () {
   # Publick key
   ${OPENSSL} rsa -in express_oplata_private.pem -out express_oplata_public.pem -pubout \
     -passin pass:${password} 
-   #-passout pass:${password}
 
 
   chmod u=r,go= ${CERT_PATH}/express_oplata_private.pem
