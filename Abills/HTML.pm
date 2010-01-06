@@ -1357,7 +1357,7 @@ if ( $attr->{WEEK_DAYS} ){
 my $tabindex = ($attr->{TABINDEX}) ? "tabindex=$attr->{TABINDEX}": '';
 
 my $result = qq{
- <input type=text name='$base_name' value='$date' size=12 ID='$base_name' $tabindex> 
+<input type=text name='$base_name' value='$date' size=12 ID='$base_name' $tabindex> 
 <script language="JavaScript">
 	var o_cal = new tcal ({	'formname': '$form_name',	'controlname': '$base_name'	});
 	
