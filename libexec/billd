@@ -142,7 +142,6 @@ sub check_lines {
 	$sessions->online( { 
 		                   #%LIST_PARAMS, 
 		                   ALL    => 1, 
-		                   #FIELDS => [0, 1, 2, 3, 4, 5, 6, 7, 8, 26, 29] 
 		                   FIELDS_NAMES => [ 'USER_NAME', 'FIO', 
                              'NAS_PORT_ID', 
                              'CLIENT_IP_NUM',
@@ -175,10 +174,6 @@ sub check_lines {
   foreach my $line (@$list) {
   	$TP_CREDITS{$line->[0]}=$line->[15];
    }
-
-
-  
-
 
 	$LIST_PARAMS{NAS_IDS}=$ARGV->{NAS_IDS} if ($ARGV->{NAS_IDS});
 
@@ -480,7 +475,6 @@ sub check_speed_mikro {
       
   }
 
-
   print $debug_output;
   
   return \%nas_speeds;
@@ -531,7 +525,6 @@ sub check_speed {
 	#Get ng_car speed
 	if ($conf{ng_car}) {
     #Get speed from server
-   
     open(PROCS, "/usr/sbin/ngctl list |") || die "Can't open file '' $!\n";
       while(<PROCS>) {
 		    if (/\s+Name: (class[\d+])_([\-a-zA-Z_0-9]+)/) {
@@ -682,8 +675,7 @@ else {
         }
       
        print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);
-       
-       
+
        $USER_IFACES{$line->[0]}="$line->[1]:$tp_id:$line->[3]:$line->[5]:$line->[6]";
 
        $TP_HASH{$tp}=1;
@@ -694,8 +686,6 @@ else {
   Billing->import();
   my $Billing = Billing->new($db, \%conf);
   my $user = $Billing->get_timeinfo();
-
-
 
   require Tariffs;
   Tariffs->import();
@@ -933,9 +923,6 @@ if ($conf{ng_car})   {
   	 	        }
  	  }
 
- 
-
-
  }
 
 }
@@ -982,9 +969,6 @@ else {
 
 
  #Make speed 
-
-
-
 
   while(my($user, $other)=each %USER_IFACES) {
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
@@ -1061,7 +1045,6 @@ else {
             }
           next;
      	   }
-
 
 #IN SPEED
              # Class, $speed
@@ -1496,10 +1479,6 @@ sub speed_expr {
     exit;
    }
 
-
-
-
-
   #Get Cure speed
   my $nas_speeds = check_speed_mikro({ NAS_IDS => $ARGV->{NAS_IDS} });
 
@@ -1519,10 +1498,8 @@ sub speed_expr {
      next if ($Tariffs->{TOTAL} != 1);
      my $speed_in  = 0;
      my $speed_out = 0;
-     
 
      foreach my $ti (@$ti_list) {
-
        my $tt_list = $Tariffs->tt_list({ TI_ID => $ti->[0] });
        next if ($Tariffs->{TOTAL} != 1);
        
@@ -1627,37 +1604,18 @@ sub speed_expr {
      }
   }
 
-
-
-
-
-
 }
 
 }
-
 
 #print $debug_output;
-
-
 
 #GET TRAFFIC
 
 
 #SET SPEED
 
-	
-	
-	
 }
-
-
-
-
-
-
-
-
 
 #**********************************************************
 # Manage mikrotik bandwidth
@@ -1798,14 +1756,6 @@ sub mikrotik_ext {
   print $result;
 
 }
-
-
-
-
-
-
-
-
 
 __END__
 
