@@ -3,7 +3,6 @@ package Dv;
 #
 
 
-
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION);
 
@@ -169,9 +168,6 @@ sub defaults {
    TURBO_MODE     => 0
   );
 
- 
- 
-
   $self = \%DATA ;
   return $self;
 }
@@ -211,8 +207,6 @@ sub add {
        $tariffs->{ACTIV_PRICE}=0;
       }
    }
-
-
 
   $self->query($db,  "INSERT INTO dv_main (uid, registration, 
              tp_id, 
@@ -338,7 +332,6 @@ sub change {
   $self->{OLD_STATUS}=$old_info->{STATUS};
 
   $self->info($attr->{UID});
-  
 
   return $self;
 }
@@ -650,31 +643,6 @@ sub periodic {
   
   return $self;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 1
  

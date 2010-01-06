@@ -3,7 +3,6 @@ package Dv_Sessions;
 #
 
 
-
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
@@ -66,9 +65,6 @@ sub del {
        WHERE uid='$uid' and start='$session_start' and nas_id='$nas_id' and acct_session_id='$session_id';", 'do');
    }
 
-   
-
-
   return $self;
 }
 
@@ -96,8 +92,6 @@ sub online_update {
   if (defined($attr->{STATUS})) {
   	push @SET_RULES, "status='$attr->{STATUS}'";
    }
-
-
  
   my $SET = ($#SET_RULES > -1) ? join(', ', @SET_RULES)  : '';
 
@@ -796,20 +790,20 @@ sub periods_totals {
     }
 
   ($self->{sent_0}, 
-      $self->{recv_0}, 
-      $self->{duration_0}, 
-      $self->{sent_1}, 
-      $self->{recv_1}, 
-      $self->{duration_1},
-      $self->{sent_2}, 
-      $self->{recv_2}, 
-      $self->{duration_2}, 
-      $self->{sent_3}, 
-      $self->{recv_3}, 
-      $self->{duration_3}, 
-      $self->{sent_4}, 
-      $self->{recv_4}, 
-      $self->{duration_4}) =  @{ $self->{list}->[0] };
+   $self->{recv_0}, 
+   $self->{duration_0}, 
+   $self->{sent_1}, 
+   $self->{recv_1}, 
+   $self->{duration_1},
+   $self->{sent_2}, 
+   $self->{recv_2}, 
+   $self->{duration_2}, 
+   $self->{sent_3}, 
+   $self->{recv_3}, 
+   $self->{duration_3}, 
+   $self->{sent_4}, 
+   $self->{recv_4}, 
+   $self->{duration_4}) =  @{ $self->{list}->[0] };
   
   for(my $i=0; $i<5; $i++) {
     $self->{'sum_'. $i } = $self->{'sent_' . $i } + $self->{'recv_' . $i};
@@ -858,8 +852,6 @@ WHERE
  if($self->{TOTAL} < 1) {
  	  return 1;
   }
-
-
 
  $self->{INFO_LIST}=$self->{list};
  my $login = $self->{INFO_LIST}->[0]->[5];
@@ -1168,15 +1160,14 @@ sub calculation {
 	my ($attr) = @_;
 
   @WHERE_RULES = ();
-#Login
-  
-  
- if ($attr->{UIDS}) {
-   push @WHERE_RULES, "l.uid IN ($attr->{UIDS})";
-  }
- elsif ($attr->{UID}) {
-  	push @WHERE_RULES, "l.uid='$attr->{UID}'";
-  }
+
+#Login  
+if ($attr->{UIDS}) {
+  push @WHERE_RULES, "l.uid IN ($attr->{UIDS})";
+ }
+elsif ($attr->{UID}) {
+	push @WHERE_RULES, "l.uid='$attr->{UID}'";
+ }
 
 if($attr->{INTERVAL}) {
  	 my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);

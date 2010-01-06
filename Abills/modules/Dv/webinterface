@@ -1,6 +1,7 @@
 # Dialup vpn web functions
 
 
+
 use Dv;
 use Finance;
 use Fees;
@@ -85,7 +86,6 @@ if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
 
 
 if ($FORM{set}) {
-
   if ($period > 0) {
 
     my ($year, $month, $day);
@@ -5698,7 +5698,8 @@ my $table = $html->table( { width      => '100%',
                             title      => ['#', "$_NAME", 'NETS',  "$_COMMENTS", '-', '-'],
                             cols_align => ['right', 'left', 'left', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $Dv->{TOTAL}
+                            pages      => $Dv->{TOTAL},
+                            ID         => 'DV_TRAFFIC_CLASSES'
                            });
 
 foreach my $line (@$list) {

@@ -16,7 +16,6 @@ use Radius;
 my $PPPCTL = '/usr/sbin/pppctl';
 my $SUDO = '/usr/local/bin/sudo';
 
-#my $NAS_INFO = nas_params();
 my $NAS;
 my $nas_type = '';
 
@@ -120,7 +119,6 @@ sub get_stats {
     return undef;
   }
 
-
  return \%stats;
 }
 
@@ -152,8 +150,6 @@ sub telnet_cmd {
    return 0;
   }
 
- 
-
  if(! CORE::connect(SH, $dest) ) { 
    print "ERR: Can't connect to '$hostname:$port' $!";
    return 0;
@@ -173,8 +169,6 @@ sub telnet_cmd {
  my $old_fh = select($SH); $| = 1; select($old_fh);
 
  SH->autoflush(1);
-
-
 
 foreach my $line (@$commands) {
 
@@ -211,16 +205,10 @@ foreach my $line (@$commands) {
    };
 
  $res .= "$input\n";
- 
- #print "<pre>$res</pre>";
-
 }
 
-
- #print "<pre>$res</pre>";
  close(SH);
  return $res;
-
 }
 
 
@@ -249,26 +237,9 @@ sub telnet_cmd2 {
 	) or log_print('LOG_DEBUG', "ERR: Can't connect to '$host:$port' $!");
   log_print('LOG_DEBUG', "Connected to $host:$port"); 
 
-	#my $sh = new IO::Select($socket) or return "Can't read";
-	#$sh->can_read($timeout) or return "Time Out";
-
-#$s = IO::Select->new();
-#           $s->add(\*STDIN);
-#           $s->add($socket);
-#@read_from = $s->can_read($timeout) or print "Time Out";
-#
-#foreach $line (@read_from) {
-#    print $line;
-#    # read the pending data from $socket
-#    
-#}
-
-
-
-
 foreach my $line (@$commands) {
   my ($waitfor, $sendtext)=split(/\t/, $line, 2);
-#
+
   $socket->send("$sendtext");
   while(<$socket>) {
     $res .= $_;
@@ -284,7 +255,6 @@ foreach my $line (@$commands) {
 #####################################################################
 # Nas functions 
 
-
 #####################################################################
 # Livingston Portmaster functions
 #*******************************************************************
@@ -299,9 +269,6 @@ sub stats_pm25 {
 
   my $PM25_PORT=$PORT+2;
   my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
-  #my $in  = `$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} IF-MIB::ifInOctets.$PM25_PORT | awk '{print \$4}'`;
-  #my $out = `$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} IF-MIB::ifOutOctets.$PM25_PORT  | awk '{print \$4}'`;
-
 
   my ($in) = snmpget($SNMP_COM .'@'. $NAS->{NAS_IP},  ".1.3.6.1.2.1.2.2.1.10.$PM25_PORT");
   my ($out) = snmpget($SNMP_COM .'@'.$NAS->{NAS_IP}, ".1.3.6.1.2.1.2.2.1.16.$PM25_PORT");
@@ -352,18 +319,12 @@ sub stats_usrns  {
 #USR trafic taker
   my $in  = `a=\`$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} interfaces.ifTable.ifEntry.ifInOctets.$PORT  | awk '{print \$4}'\`; b=\`cat /usr/abills/var/devices/$NAS->{NAS_IP}-$PORT.In\`; c=\`expr \$a - \$b + 0\`; echo \$c`;
   my $out = `a=\`$SNMPWALK -v 1 -c "$SNMP_COM" $NAS->{NAS_IP} interfaces.ifTable.ifEntry.ifOutOctets.$PORT  | awk '{print \$4}'\`; b=\`cat /usr/abills/var/devices/$NAS->{NAS_IP}-$PORT.Out\`; c=\`expr \$a - \$b + 0\`; echo \$c`;
-# $SNMPWALK -v 1 -c $SNMP_COM $SERVER interfaces.ifTable.ifEntry.ifInOctets.$PORT | awk '{print \$4}' `a=`$SNMPWALK -v 1 -c tstats 192.168.101.130 interfaces.ifTable.ifEntry.ifInOctets.$PORT | awk '{print \$4}'`; b=`cat /usr/abills/var/devices/$SERVER-$PORT.In`; c=`expr \$a - \$b + 0`; echo \$c`;
-#
+
   $stats{in} = int($in);
   $stats{out} = int($out);
   
   return %stats;
 }
-
-
-
-
-
 
 ####################################################################
 # Standart FreeBSD ppp
@@ -387,7 +348,6 @@ sub stats_ppp {
 
 while ( <$remote> ) {
       ($radport, $in, $out, $tun) = split(/ +/, $_);
-#      print "--$port, $user, $time, $in, $out, $ip";
       $stats{$NAS->{NAS_IP}}{$radport}{in} = $in;
       $stats{$NAS->{NAS_IP}}{$radport}{out} = $out;
       $stats{$NAS->{NAS_IP}}{$radport}{tun} = $tun;
@@ -478,7 +438,6 @@ sub hangup_radius {
 #*******************************************************************
 sub hangup_mikrotik_telnet {
   my ($NAS_IP, $PORT, $USER) = @_;
-
  
  push @commands, "Login:\t$NAS->{NAS_MNG_USER}";
  push @commands, "Password:\t$NAS->{NAS_MNG_PASSWORD}";
@@ -489,7 +448,6 @@ sub hangup_mikrotik_telnet {
  
   print $result;
 }
-
 
 #*******************************************************************
 # hangup_ipcad
@@ -668,18 +626,10 @@ else {
 #SNMP version
   my $SNMP_COM = $NAS->{NAS_MNG_PASSWORD} || '';
 
-  #$command = "$SNMPWALK -On -v 1 -c \"$SNMP_COM\" $NAS->{NAS_IP} .1.3.6.1.2.1.4.21.1.2.$attr->{FRAMED_IP_ADDRESS} | awk '{print \$4 }'";
-  #log_print('LOG_DEBUG', "$command");
-  #my $INTNUM=`$command`;
-  
   my $INTNUM = snmpget("$SNMP_COM\@$NAS->{NAS_IP}", ".1.3.6.1.2.1.4.21.1.2.$attr->{FRAMED_IP_ADDRESS}");
   log_print('LOG_DEBUG', "SNMP: $SNMP_COM\@$NAS->{NAS_IP} .1.3.6.1.2.1.4.21.1.2.$attr->{FRAMED_IP_ADDRESS}");
-  
-  #$INTNUM =~ s/\n//;
-  #$command = "$SNMPSET -v 1 -c \"$SNMP_COM\" $NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.7.$INTNUM i 2 > /dev/null 2>\&1";
   $exec = snmpset("$SNMP_COM\@$NAS->{NAS_IP}", ".1.3.6.1.2.1.2.2.1.7.$INTNUM", 'integer', 2);
   log_print('LOG_DEBUG', "SNMP: $SNMP_COM\@$NAS->{NAS_IP} .1.3.6.1.2.1.2.2.1.7.$INTNUM integer 2");
-  #$exec=`$command`;
 }
 
  return $exec;
@@ -719,11 +669,7 @@ sub hangup_exppp {
  my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
   
  my $ctl_port = $mng_port + $PORT;
-
-# print "$PPPCTL -p \"$NAS->{NAS_MNG_PASSWORD}\" $NAS->{NAS_IP}:$ctl_port down";
-
  my $out=`$PPPCTL -p "$NAS->{NAS_MNG_PASSWORD}" $NAS->{NAS_IP}:$ctl_port down`;
-
   
  return 0;
 }
@@ -861,7 +807,6 @@ my $GREP='/bin/grep';
 my $ROUTE='/sbin/route';
 my $KILL='/bin/kill';
 
-#my $PPP_ID=`$ROUTE -n | $GREP ppp$PORT | $AWK {'print $8'}`;
 my $PID_FILE="$RUN_DIR/PPP$PORT.pid";
 my $PPP_PID=`$CAT $PID_FILE`;
 my $a = `$KILL -1 $PPP_PID`;
@@ -932,7 +877,6 @@ sub hangup_pppd {
    $result = system ("/usr/bin/sudo /usr/abills/misc/pppd_kill $IP"); 
   }
 
-
  return $result; 
 } 
 
@@ -967,11 +911,6 @@ sub hangup_patton29xx {
        }
 	   }
   }
-
-  
-  
- 
-
 
  return $exec;
 }
@@ -1012,8 +951,6 @@ sub stats_patton29xx {
 
   return %stats;
 }
-
-
 
 
 1
