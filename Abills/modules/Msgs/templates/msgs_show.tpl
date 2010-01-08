@@ -1,4 +1,4 @@
-<FORM action='$SELF_URL' METHOD='POST'  enctype='multipart/form-data'>
+<FORM action='$SELF_URL' METHOD='POST'  enctype='multipart/form-data' name=add_message>
 <input type='hidden' name='index' value='$index'/>
 <input type='hidden' name='UID' value='$FORM{UID}'/>
 <input type='hidden' name='ID' value='%ID%'/>

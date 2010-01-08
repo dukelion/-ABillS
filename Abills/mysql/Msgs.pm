@@ -323,7 +323,7 @@ sub message_add {
 
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
    priority, lock_msg, plan_date, plan_time, user_read, admin_read, inner_msg, resposible, closed_date,
-   phone)
+   phone, dispatch_id)
     values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
         '$DATA{REPLY}',
         '$admin->{AID}',
@@ -338,7 +338,8 @@ sub message_add {
         '$DATA{INNER_MSG}',
         '$DATA{RESPOSIBLE}',
         $CLOSED_DATE,
-        '$DATA{PHONE}'
+        '$DATA{PHONE}',
+        '$DATA{DISPATCH_ID}'
         );", 'do');
 
   $self->{MSG_ID} = $self->{INSERT_ID};
@@ -1224,6 +1225,7 @@ sub dispatch_add {
   $self->query($db, "insert into msgs_dispatch (comments, created, plan_date, resposible, aid)
     values ('$DATA{COMMENTS}', now(), '$DATA{PLAN_DATE}', '$DATA{RESPOSIBLE}', '$admin->{AID}');", 'do');
 
+  $self->{DISPATCH_ID}=$self->{INSERT_ID};
  
   $admin->system_action_add("MGSG_DISPATCH:$self->{INSERT_ID}", { TYPE => 1 });
 	return $self;

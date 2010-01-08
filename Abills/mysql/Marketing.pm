@@ -28,7 +28,7 @@ my $MODULE='Marketing';
 
 my %SEARCH_PARAMS = (TP_ID => 0, 
    SIMULTANEONSLY => 0, 
-   STATUS        => 0, 
+   STATUS         => 0, 
    IP             => '0.0.0.0', 
    NETMASK        => '255.255.255.255', 
    SPEED          => 0, 
@@ -47,12 +47,7 @@ sub new {
   my $self = { };
   
   bless($self, $class);
-  
-  #if ($CONF->{DELETE_USER}) {
-  #  $self->{UID}=$CONF->{DELETE_USER};
-  #  $self->del({ UID => $CONF->{DELETE_USER} });
-  # }
-  
+
   return $self;
 }
 
@@ -330,13 +325,8 @@ sub evolution_users_report {
  $self->{SEARCH_FIELDS_COUNT}= 0;
 
  @WHERE_RULES = ();
- 
 
  my $date = 'aa.datetime'; 
-
- #if ($attr->{PERIOD}) {
- #	 $date = "aa.datetime, \'%Y-%m-%d\')";
- # }
 
  if ($attr->{MODULE}) {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{MODULE}, 'INT', 'aa.module') };
@@ -348,7 +338,6 @@ sub evolution_users_report {
   
  if ($attr->{MONTH}) {
  	 push @WHERE_RULES, "date_format(aa.datetime, '%Y-%m')='$attr->{MONTH}'";
- 	 #$date = "DATE_FORMAT(datetime, \'%Y-%m-%d\')";
   }
  elsif ($attr->{INTERVAL}) {
    my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
@@ -357,7 +346,7 @@ sub evolution_users_report {
 
  my $user = 'u.id';
  if ($attr->{ADDED}) {
- 	 push @WHERE_RULES, "aa.action_type=1";
+ 	 push @WHERE_RULES, "aa.action_type=7";
   }
  elsif ($attr->{DISABLED}) {
  	 

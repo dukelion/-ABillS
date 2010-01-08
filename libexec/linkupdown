@@ -647,13 +647,16 @@ foreach my $line (@FW_ACTIONS) {
 }
 
 
-
 #**********************************************************
 # ng_car shapper
 # 
 #**********************************************************
 sub ng_car_shape {
   my ($user, $tablearg, $shape_type, $speed_in, $speed_out, $attr) = @_;            
+
+  #cir -  Committed Information Rate - согласованная информационная скорость канала (бит/с).
+  #Cbs -  Committed Burst Size - количество бит, которое может быть передано по логическому каналу за интервал времени. 
+  #Ebs – Exceeded/Peak Burst Size -  количество  бит,  на  которое  может  быть  превышено  значение  cbs  за интервал времени.
 
   $speed_in   = 1048576000 if ($speed_in  == 0);
   $speed_out  = 1048576000 if ($speed_out == 0);
@@ -674,8 +677,8 @@ msg %s_%s: setconf { upstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=
             $tablearg,$shape_type,$user,
             $shape_type,$user,$tablearg+1,
             $shape_type,$user,
-            $cbs_in,$ebs_in,$speed_in,
-            $cbs_out,$ebs_out,$speed_out);
+            int($cbs_in),int($ebs_in),$speed_in,
+            int($cbs_out),int($ebs_out),$speed_out);
 }
 
 

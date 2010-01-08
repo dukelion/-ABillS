@@ -1115,6 +1115,7 @@ sub del {
      $self->{info} .= "$table, ";
     }
 
+  $admin->{MODULE}='';
   $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}", {  TYPE => 12 });
   return $self->{result};
 }
