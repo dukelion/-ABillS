@@ -1,6 +1,13 @@
 <table width=300>
 <tr><th align=right bgcolor=$_COLORS[0]>PrivatBank</th></tr>
 <tr><td>
+
+<TABLE width='500'cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1'>
+<TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
+<tr><td bgcolor=$_COLORS[1]>
+
+
+
 <table width=100%>
 <tr><td>$_ORDER:</td><td>%OPERATION_ID%</td></tr>
 <tr><td>$_SUM:</td><td>$FORM{SUM}</td></tr>
@@ -15,6 +22,9 @@
 
 </table>
 
+
+<td></tr></table>
+<td></tr></table>
 
 <FORM id='checkout' name='checkout' method=post action='https://www.verification.privatbank.ua/SENTRY/PaymentGateway/Application/CheckOutPage/CheckoutPage.aspx'>
 

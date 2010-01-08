@@ -1,5 +1,10 @@
 <FORM ACTION='https://www.portmone.com.ua/secure/gate/pay.php' method='POST' >
-<table width=500>
+
+<TABLE width='500'cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1'>
+<TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
+<tr><td bgcolor=$_COLORS[1]>
+
+<table width=100%>
 <tr><th align=right bgcolor=$_COLORS[0] colspan=2>Visa / Mastercard (Portmone)</th></tr>
 
 
@@ -38,6 +43,9 @@
 </a>
 </td></tr>
 </table>
+
+<td></tr></table>
+<td></tr></table>
 
 </FORM>
 
