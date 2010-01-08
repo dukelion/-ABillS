@@ -1,5 +1,5 @@
 <FORM ACTION='https://www.portmone.com.ua/secure/gate/pay.php' method='POST' >
-<table width=400>
+<table width=500>
 <tr><th align=right bgcolor=$_COLORS[0] colspan=2>Visa / Mastercard (Portmone)</th></tr>
 
 
@@ -29,6 +29,14 @@
 <tr><td>$_SUM:</td><td>$FORM{SUM}</td></tr>
 
 <tr><th colspan=2><INPUT TYPE='submit' NAME='submit' VALUE='$_ADD' /></td></tr>
+
+<tr><th colspan=2 align=center>
+<a href='https://secure.privatbank.ua/help/verified_by_visa.html'
+<img src='/img/v-visa.gif' width=140 height=75></a>
+<a href='http://www.mastercard.com/ru/personal/ru/cardholderservices/securecode/mastercard_securecode.html'>
+<img src='/img/mastercard-sc.gif' width=140 height=75>
+</a>
+</td></tr>
 </table>
 
 </FORM>
