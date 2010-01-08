@@ -187,7 +187,6 @@ sub new {
 	                              CONF      => $CONF 
 	                            });
   }
-  
 
   return $self;
 }
