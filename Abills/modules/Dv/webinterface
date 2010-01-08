@@ -265,7 +265,6 @@ sub dv_users_list {
 	 return 0;
   }
 
-
  if ($attr->{TP}) {
  	 $FORM{TP_ID} = $FORM{TP_NUM} if ($FORM{TP_NUM});
    $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
@@ -5173,7 +5172,9 @@ sub dv_wizard_user {
 
   print $html->form_main({ CONTENT => $template,
   	                       HIDDEN  => { index => "$index" },
-	                         SUBMIT  => { add   => "$_ADD"  } 
+	                         SUBMIT  => { add   => "$_ADD"  },
+	                         NAME    => 'user_form'
+	                         
 	                        });
 	
 }

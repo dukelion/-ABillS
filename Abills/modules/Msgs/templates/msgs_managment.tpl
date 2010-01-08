@@ -19,13 +19,13 @@
 <TR><TD>%STATE_NAME%</TD></TR>
 <TR><TD><b>$_PRIORITY:</b> </TD></TR>
 <TR><TD>%PRIORITY_SEL%</TD></TR>
+<TR><TD><b>$_DISPATCH:</b> </TD></TR>
+<TR><TD>%DISPATCH_SEL%</TD></TR>
 <TR><TD><b>$_EXECUTION:</b></TD></TR>
-<TR><TD>$_DATE: <input type=text value='%PLAN_DATE%' name='PLAN_DATE'></TD></TR>
+<TR><TD>$_DATE: %PLAN_DATE%</TD></TR>
 <TR><TD>$_TIME: <input type=text value='%PLAN_TIME%' name='PLAN_TIME'></TD></TR>
 <TR><TD><b>$_CLOSED:</b> %CLOSED_DATE%</TD></TR>
 <TR><TD><b>$_DONE:</b> %DONE_DATE%</TD></TR>
-<!-- <TR><TD><b>$_DISPATCH:</b> %DISPATCH_SEL%</TD></TR> -->
-
 
 
 <TR><TD align=center><input type=submit name=change value='$_CHANGE' class='noprint'></TD></TR>

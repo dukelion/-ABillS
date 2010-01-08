@@ -24,7 +24,7 @@ body {
 }
 
 
-A:hover {text-decoration: none; color: black;}
+A:hover {text-decoration: none; color: %_COLOR_9%;}
 
 th.small {
   color: %_COLOR_9%;

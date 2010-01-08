@@ -166,11 +166,14 @@ sub msgs_admin_add {
 
 
   if ($FORM{send}) {
-    #Add group 
-#    while(my ($k, $v) =each %{ $FORM{FILE_UPLOAD}  } ) {
-#    	print "$k, $v<br>";
-#     }
-# 
+
+    if ($FORM{DISPATCH_CREATE}) {
+      $FORM{COMMENTS}=$FORM{DISPATCH_COMMENTS};
+      $Msgs->dispatch_add({ %FORM, PLAN_DATE => $FORM{DISPATCH_PLAN_DATE} });
+
+      $FORM{DISPATCH_ID}=$Msgs->{DISPATCH_ID};
+      $html->message('info', $_INFO, "$_DISPATCH $_ADDED") if (! $Msgs->{errno});  	 	  
+     }
 
     my $message='';
 
@@ -272,11 +275,19 @@ sub msgs_admin_add {
     $LIST_PARAMS{UID}=undef if (! $FORM{UID}); 
    }
 
-  $Msgs->{DATE}=$html->form_input('MSG_DATE', "$DATE");
-  $Msgs->{INNER_MSG}=' checked';
-  $Msgs->{PLAN_DATE}="$DATE";
-  $Msgs->{PLAN_TIME}="$TIME";
-  
+  $Msgs->{DATE}        = $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS });
+  $Msgs->{INNER_MSG}   = ' checked';
+  $Msgs->{PLAN_DATE}   = $html->date_fld2('PLAN_DATE', { NO_DEFAULT_DATE=>1, MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS });
+  $Msgs->{PLAN_TIME}   = "$TIME";
+  $Msgs->{DISPATCH_SEL}= $html->form_select('DISPATCH_ID', 
+                                          {
+ 	                                          SELECTED          => $Msgs->{DISPATCH_ID} || 0,
+ 	                                          SEL_MULTI_ARRAY   => [[0, ''], @{ $Msgs->dispatch_list({ STATUS => 0 }) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => '2,1',
+ 	                                        }); 
+  $Msgs->{DISPATCH_PLAN_DATE}   = $html->date_fld2('DISPATCH_PLAN_DATE', { NO_DEFAULT_DATE=>1, MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS });
+
   if (! $FORM{UID}) {
     $Msgs->{USER} = $html->form_select('GID', 
                                 { 
@@ -524,6 +535,9 @@ sub msgs_admin {
 # 	                                          MULTI_ARRAY_VALUE => 1,
 # 	                                        });    
     
+    $Msgs->{PLAN_DATE}   = $html->date_fld2('PLAN_DATE', { NO_DEFAULT_DATE=>1, MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS });
+    
+    
     $Msgs->{RESPOSIBLE}=$html->form_select('RESPOSIBLE', 
                                           { 
  	                                          SELECTED          => $Msgs->{RESPOSIBLE} || 0,
@@ -675,8 +689,8 @@ sub msgs_admin {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }); 
 
-    $Msgs->{PLAN_DATE}="0000-00-00";
-    $Msgs->{PLAN_TIME}="00:00:00";
+    $Msgs->{PLAN_DATE} = "0000-00-00";
+    $Msgs->{PLAN_TIME} = "00:00:00";
 
     form_search({ SEARCH_FORM => $html->tpl_show(_include('msgs_search', 'Msgs'),
                                           { %$Msgs, %FORM },
@@ -1468,18 +1482,18 @@ foreach my $line (@$list) {
      $LIST_PARAMS{STATE}=0;
    }
 
+  if (! defined($FORM{sort})) {
+  	$LIST_PARAMS{SORT}=1;
+  	$LIST_PARAMS{DESC}='desc';
+   }
+
   my $list = $Msgs->dispatch_list({ %LIST_PARAMS });
   
   
 my $i = 0;
 $pages_qs='';
 
-
-
-
 my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs") : $html->b($_ALL);
-
-
 
 foreach my $name ( @msg_status) {
 	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
@@ -1958,7 +1972,7 @@ my $graph_type='';
 
 
 #Day reposrt
-if (defined($FORM{DATE})) {
+if ($FORM{DATE}) {
  if (! defined($FORM{sort})) {
    $LIST_PARAMS{SORT}=1;
    $LIST_PARAMS{DESC}=DESC;

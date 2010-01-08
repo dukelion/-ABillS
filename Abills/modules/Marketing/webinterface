@@ -27,8 +27,8 @@ sub marketing_evolution {
 
  $table = $html->table( { width       => '100%',
 	                        rowcolor    => $_COLORS[0],
-                          rows        => [[ "$_FROM: ",  $html->date_fld('FROM_', { MONTHES => \@MONTHES} ),
-                                            "$_TO: ",  $html->date_fld('TO_', { MONTHES => \@MONTHES} ),
+                          rows        => [[ "$_FROM: ",  $html->date_fld2('FROM_DATE', { FORM_NAME=>'marketing',  MONTHES => \@MONTHES} ),
+                                            "$_TO: ",  $html->date_fld2('TO_DATE', { FORM_NAME=>'marketing', MONTHES => \@MONTHES} ),
 #                                            "$_ACTIONS: ". $html->form_select('STATUS', 
 #                                          { 
 # 	                                          SELECTED     => $FORM{STATUS},
@@ -52,7 +52,7 @@ sub marketing_evolution {
  	                               }),
 
                                       
-                                           "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
+                                          "$_ROWS: ",  $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4 } ),
                                           $html->form_input('show', $_SHOW, { TYPE => 'submit' })
                                          ]],                                   
                       });
@@ -64,10 +64,8 @@ sub marketing_evolution {
   my $num       = 0;
   
   if ($FORM{show}) {
-    $pages_qs = "&show=1&FROM_D=$FORM{FROM_D}&FROM_M=$FORM{FROM_M}&FROM_Y=$FORM{FROM_Y}&TO_D=$FORM{TO_D}&TO_M=$FORM{TO_M}&TO_Y=$FORM{TO_Y}&PERIOD=$FORM{PERIOD}";
-    $FORM{FROM_M}++;
-    $FORM{TO_M}++;
-    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}/$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
+    $pages_qs = "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}&PERIOD=$FORM{PERIOD}";
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
    }
   elsif ($FORM{MONTH}) {
   	$LIST_PARAMS{MONTH}=$FORM{MONTH};
@@ -78,9 +76,10 @@ sub marketing_evolution {
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { sid   => "$sid",
 	                                    index => "$index",
-	                                    UID   => "$UID" }});
-
-
+	                                    UID   => "$UID" 
+	                                    },
+	                       NAME    => 'marketing'
+	                       });
 
 if ($FORM{USERS}) {
 	my @caption = ("$_DATE", "$_USER", "$_ADMIN", "$_REGISTRATION"   );
@@ -94,7 +93,7 @@ if ($FORM{USERS}) {
   foreach my $report_name (keys %reports_list) {
 
   	$LIST_PARAMS{$report_name}=1;
-
+    $Marketing->{debug}=1;
     my $list    = $Marketing->evolution_users_report({ %LIST_PARAMS, %FORM });
     my $table   = $html->table( { width      => '100%',
                              caption    => "$_EVOLUTION $_USERS - $reports_list{$report_name}",
@@ -102,6 +101,7 @@ if ($FORM{USERS}) {
                              ID         => 'REPORT_EVOLUTION',
                              pages      => $Marketing->{TOTAL},
                              qs         => $pages_qs,
+                             ID         => 'MARKETIG_EVOLUTION'
                            });
 
 
@@ -197,20 +197,16 @@ $table = $html->table( { width      => '100%',
                                            ] ]
                      } );
 
-#print $table->show();
 
-
-
-
-    print $html->make_charts({  
-	        PERIOD     => $graph_type,
-	        DATA       => \%DATA_HASH,
-	        #AVG        => \%AVG,
-	        TYPE       => ['area', 'column', 'line' ],
-	        TRANSITION => 1,
-          OUTPUT2RETURN => 1,
-          %CHART 
-       });
+print $html->make_charts({  
+      PERIOD     => $graph_type,
+      DATA       => \%DATA_HASH,
+      #AVG        => \%AVG,
+      TYPE       => ['area', 'column', 'line' ],
+      TRANSITION => 1,
+      OUTPUT2RETURN => 1,
+      %CHART 
+   });
 }
 
 
