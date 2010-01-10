@@ -159,18 +159,19 @@ print $table->show();
 
 }
 
+#**********************************************************
+# 
+#**********************************************************
 sub msgs_admin_add {
+  my ($attr)=@_;
 
-  $Msgs->{ACTION}='send';
+  $Msgs->{ACTION}='add';
   $Msgs->{ACTION_LNG}=$_SEND;
 
-
-  if ($FORM{send}) {
-
+  if ($FORM{add}) {
     if ($FORM{DISPATCH_CREATE}) {
       $FORM{COMMENTS}=$FORM{DISPATCH_COMMENTS};
       $Msgs->dispatch_add({ %FORM, PLAN_DATE => $FORM{DISPATCH_PLAN_DATE} });
-
       $FORM{DISPATCH_ID}=$Msgs->{DISPATCH_ID};
       $html->message('info', $_INFO, "$_DISPATCH $_ADDED") if (! $Msgs->{errno});  	 	  
      }
@@ -187,12 +188,10 @@ sub msgs_admin_add {
           	                 });
         }
        $message = "$_TOTAL: $users->{TOTAL}";
-
        $LIST_PARAMS{PAGE_ROWS}=25;
        undef $FORM{UID};
      }
     else {
-    	
       $Msgs->message_add({ %FORM, 
       	      	           ADMIN_READ => (! $FORM{INNER_MSG} || ($FORM{STATE} == 1 || $FORM{STATE} == 2)) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
       	                   IP         => $admin->{SESSION_IP} 
@@ -204,7 +203,6 @@ sub msgs_admin_add {
      }
 
     if (! $Msgs->{errno}) {
-
       #Add attachment
       if ($FORM{FILE_UPLOAD}) {
         $Msgs->attachment_add({ 
@@ -217,16 +215,16 @@ sub msgs_admin_add {
          });
        }
 
-      $html->message('info', $_INFO, "$_SENDED $message");
+      $html->message('info', $_MESSAGES, "$_SENDED $_MESSAGE");
       
       if ($users->{EMAIL}) {
       	$ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
         my $site =  $1 || '';
    	 
        	my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
-           { SITE => $site, 
-           	 DATE => $DATE, 
-           	 TIME => $TIME, 
+           { SITE    => $site, 
+           	 DATE    => $DATE, 
+           	 TIME    => $TIME, 
            	 ID      => $Msgs->{INSERT_ID}, 
            	 SUBJECT => $FORM{SUBJECT},
            	 STATUS  => $msg_status[$FORM{STATE}],
@@ -242,8 +240,9 @@ sub msgs_admin_add {
           undef,
           { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}" ] });
        }
-
      }
+
+    return 0 if ($attr->{SEND_ONLY});
    }
 #  elsif ($FORM{change}) {
 #    if ($FORM{STATE} > 0) {
@@ -289,7 +288,7 @@ sub msgs_admin_add {
   $Msgs->{DISPATCH_PLAN_DATE}   = $html->date_fld2('DISPATCH_PLAN_DATE', { NO_DEFAULT_DATE=>1, MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS });
 
   if (! $FORM{UID}) {
-    $Msgs->{USER} = $html->form_select('GID', 
+    my $USER = $html->form_select('GID', 
                                 { 
  	                                SELECTED          => $FORM{GID},
  	                                SEL_MULTI_ARRAY   => $users->groups_list(),
@@ -297,8 +296,8 @@ sub msgs_admin_add {
  	                                MULTI_ARRAY_VALUE => 1,
  	                                SEL_OPTIONS       => { 0 => $_ALL }
  	                               });
-
-    $Msgs->{SEND_EMAIL} = "<tr><td>$_SEND_MAIL:</td><td><input type=checkbox name=EMAIL value=1 checked></td></tr>";
+    $Msgs->{GROUP_SEND} = "<tr><td>$_GROUP:</td><td>$USER</td></tr>\n".
+       "<tr><td>$_SEND_MAIL:</td><td><input type=checkbox name=EMAIL value=1 checked></td></tr>\n";
    }
 
   
@@ -333,8 +332,13 @@ sub msgs_admin_add {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }); 
 
+  my $message_form = $html->tpl_show(_include('msgs_send_form', 'Msgs'), $Msgs, { OUTPUT2RETURN => 1 });
   
-  $html->tpl_show(_include('msgs_send_form', 'Msgs'), $Msgs);
+  if ($attr->{OUTPUT2RETURN}) {
+  	return $message_form;
+   }
+
+  print $message_form;
 }
 
 

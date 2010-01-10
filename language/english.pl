@@ -136,6 +136,7 @@ $_OTHER='Other';
 $_SQL_BACKUP='SQL backup';
 $_ADMIN='Administrator';
 $_ADMINS='Administrators';
+$_RESPOSIBLE='Resposible';
 $_GROUPS='Groups';
 $_GROUP='Group';
 $_CHANGE_PASSWD='Change password';

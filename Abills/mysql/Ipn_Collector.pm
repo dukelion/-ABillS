@@ -670,11 +670,10 @@ sub ip_in_zone($$$$) {
 sub traffic_add_user {
   my $self = shift;
   my ($DATA) = @_;
- 
+
   my $start = (! $DATA->{START}) ? 'now()':  "'$DATA->{START}'";
   my $stop  = (! $DATA->{STOP}) ?  0 : "'$DATA->{STOP}'";
- 
- 
+
   if ($DATA->{INBYTE} + $DATA->{OUTBYTE} > 0) {
     $self->query($db, "insert into ipn_log (
          uid,

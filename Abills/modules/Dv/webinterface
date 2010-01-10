@@ -214,7 +214,7 @@ elsif($FORM{del}) {
    	    foreach my $line (@$list) {
    	  	  $table->addrow("$line->[3]-$line->[2]-$line->[1]", 
    	  	   "$line->[7] : $TP_HASH{$line->[7]}",
-   	  	   $html->button($_DEL, "index=$index&del_shedule=$line->[13]&UID=$FORM{UID}", { MESSAGE => "$_DEL $line->[3]-$line->[2]-$line->[1]?" }) 
+   	  	   $html->button($_DEL, "index=$index&del_shedule=$line->[13]&UID=$FORM{UID}", { MESSAGE => "$_DEL $line->[3]-$line->[2]-$line->[1]?", BUTTON => 1 }) 
    	  	   );
    	     }
    	  
@@ -854,8 +854,8 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?" }); 
-    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]");
+    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { BUTTON => 1 });
    }
   
   if($FORM{TP_ID} eq $line->[18]) {
@@ -873,7 +873,7 @@ foreach my $line (@$list) {
    $line->[7], 
    $line->[8], 
    $line->[9],
-   $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[18]"),
+   $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[18]", { BUTTON => 1 }),
    $change,
    $delete);
 }
@@ -1559,7 +1559,7 @@ my $Billing = Billing->new($db, \%conf);
 foreach my $line (@$list) {
   if ($permissions{3}{1} && $LIST_PARAMS{UID}) {
     $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", 
-       { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?" }
+       { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?", BUTTON => 1 }
       );
    }
 
@@ -1603,9 +1603,7 @@ foreach my $line (@$list) {
      $line->[7], 
      $line->[10], 
      "$line->[9]", 
-     "(". 
-        $html->button("D", "index=$index&UID=$line->[12]&SESSION_ID=$line->[11]", { TITLE => "$_DETAIL" } )
-      . ")", 
+     $html->button("D", "index=$index&UID=$line->[12]&SESSION_ID=$line->[11]", { TITLE => "$_DETAIL", BUTTON => 1 }), 
      $delete);
 }
 
@@ -1695,10 +1693,6 @@ my %ACCT_TERMINATE_CAUSES_REV = reverse %ACCT_TERMINATE_CAUSES;
       $i++;
      }
 
-
-
-#  $FORM{FIELDS} = 'DATE, USERS_COUNT, SESSIONS, TRAFFIC_SUM, TRAFFIC_2_SUM, DURATION, SUM' if (! $FORM{FIELDS});
-
   my %HIDDEN = ();
 
   $HIDDEN{COMPANY_ID}=$FORM{COMPANY_ID} if ($FORM{COMPANY_ID});
@@ -1730,7 +1724,6 @@ my %ACCT_TERMINATE_CAUSES_REV = reverse %ACCT_TERMINATE_CAUSES;
                                ]
   	       });
 
-
 if ($FORM{TP_ID}) {
   $LIST_PARAMS{TP_ID}=$FORM{TP_ID} ;
   $pages_qs .= "&TP_ID=$FORM{TP_ID}" ;
@@ -1740,7 +1733,6 @@ if ($FORM{COMPANY_ID}) {
  	$LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
   $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
  }
-
 
 my ($tables_sessions);
 my $output = '';
@@ -1760,9 +1752,6 @@ my $graph_type='';
 
 #Day reposrt
 if (defined($FORM{DATE})) {
-
-
-
   #Used Traffic
   $table_sessions = $html->table({ width      => '100%',
 	                                 caption    => "$_SESSIONS", 
@@ -1909,14 +1898,10 @@ else {
                                    ID         => 'DV_REPORTS_SESSIONS'
                                } );
 
-
-  
   my $num = 0;
 
-  
   my $list = $sessions->reports({ %LIST_PARAMS });
-  
-  
+
   foreach my $line (@$list) {
     my @rows = ();
     
@@ -2008,7 +1993,6 @@ else {
 
 
    }
-
 
 if ($graph_type ne 'pie') {
 	
@@ -2149,8 +2133,6 @@ if ($conf{ERROR2DB}) {
 	                      cols_align => ['right', 'right'],
 	                       } );
 
-
-
   my $total = 0;
 	foreach my $line (@{ $Nas->{list} }) {
 		$table->addrow(
@@ -2208,9 +2190,7 @@ my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      =
 	                                                                   PG        => $PG,
 	                                                                   PAGE_ROWS => 25 #$PAGE_ROWS
 	                                                                 });
-	                                                                   
 
-	                                                                   
 my $table = $html->table( { caption => "System $_ERROR",
 	                          width   => '100%',
 	                          pages   => $totals,
@@ -2283,7 +2263,6 @@ if (defined($attr->{USER}))	{
   }
 }
 
-
 if ($FORM{del} && $FORM{is_js_confirmed}) {
 	if(! defined($permissions{3}{1})) {
      $html->message('err', $_ERROR, 'ACCESS DENY');
@@ -2326,7 +2305,7 @@ if ($sessions->{errno})	 {
                                });
 
          foreach my $line (@$list) {
-     	     $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&index=$index&UID=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) . ' :: ';
+     	     $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&index=$index&UID=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6], {BUTTON => 1}) . ' ';
      	     push @uids, $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6];
           }
       
@@ -2334,7 +2313,7 @@ if ($sessions->{errno})	 {
          $LIST_PARAMS{UIDS} .= ',' .join(', ', @uids) if ($#uids > -1);
         }
        elsif($Dv->{JOIN_SERVICE}  > 1) {
-       	 $Dv->{JOIN_SERVICES_USERS} .= $html->button("$_MAIN", "index=$index&UID=$Dv->{JOIN_SERVICE}") .' :: ';
+       	 $Dv->{JOIN_SERVICES_USERS} .= $html->button("$_MAIN", "index=$index&UID=$Dv->{JOIN_SERVICE}", { BUTTON => 1 }) .' ';
         }
 
        my $table = $html->table( { 
@@ -2346,8 +2325,7 @@ if ($sessions->{errno})	 {
 
        print $table->show();
     }
-	   
- 	 }                                    
+   }                                    
 
 
 if ($FORM{rows}) {
@@ -2373,9 +2351,6 @@ if (! $LIST_PARAMS{UID} && $FORM{LOGIN_EXPR}) {
 
   $pages_qs .= "&UID=$LIST_PARAMS{UID}";
 }
-
-
-
 
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
 
@@ -2577,7 +2552,7 @@ if ($sessions->{errno})	{
 
 
      if ($company->{TOTAL} > 0 && $ulist->[0]->[0] > 0) {
-     	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_COMPANY", "&sid=$sid&index=$index&COMPANY_ID=$user->{COMPANY_ID}").' ::';
+     	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_COMPANY", "&sid=$sid&index=$index&COMPANY_ID=$user->{COMPANY_ID}", { BUTTON => 1 }).' ';
 
       }
 
@@ -2590,15 +2565,15 @@ if ($sessions->{errno})	{
                              });
 
        $Dv->{JOIN_SERVICES_USERS} .= (! $FORM{JOIN_STATS}) ? $html->b("$_ALL $_USERS") .' :: ' :
-  	    $html->button("$_ALL", "&sid=$sid&index=$index&JOIN_STATS=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) . ' ::';
+  	    $html->button("$_ALL", "&sid=$sid&index=$index&JOIN_STATS=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6], { BUTTON => 1 }) . ' ';
 
        foreach my $line (@$list) {
      	   if ($FORM{JOIN_STATS} && $FORM{JOIN_STATS}==$line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) {
-     	     $Dv->{JOIN_SERVICES_USERS} .=  $html->b($line->[0]). ' :: ';
+     	     $Dv->{JOIN_SERVICES_USERS} .=  $html->b($line->[0]). ' ';
      	     $UID = $FORM{JOIN_STATS};
      	    }
      	   else {
-     	     $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&sid=$sid&index=$index&JOIN_STATS=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6]) . ' ::';
+     	     $Dv->{JOIN_SERVICES_USERS} .= $html->button("$line->[0]", "&sid=$sid&index=$index&JOIN_STATS=". $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6], { BUTTON => 1 }) . ' ';
           }
 
      	   push @uids, $line->[$Dv->{SEARCH_FIELDS_COUNT} + 6];
@@ -2608,7 +2583,7 @@ if ($sessions->{errno})	{
        $LIST_PARAMS{UIDS}.= ',' .join(', ', @uids) if ($#uids > -1 && ! $FORM{JOIN_STATS});
       }
      elsif($Dv->{JOIN_SERVICE}  > 1) {
-     	 $Dv->{JOIN_SERVICES_USERS} .= $html->button("$_MAIN", "index=$index&UID=$Dv->{JOIN_SERVICE}");
+     	 $Dv->{JOIN_SERVICES_USERS} .= $html->button("$_MAIN", "index=$index&UID=$Dv->{JOIN_SERVICE}", { BUTTON => 1 });
       }
 
      my $table = $html->table( { 
@@ -2800,6 +2775,59 @@ sub dv_session_detail {
 if (defined($attr->{USER}))	{
 	$user = $attr->{USER};
 	$LIST_PARAMS{LOGIN}=$user->{LOGIN};
+	
+	if ($FORM{RECALC}) {
+		$sessions->session_detail({ %FORM });
+
+    use Billing;
+    my $Billing = Billing->new($db, $CONF);
+
+    my($UID, 
+     $SUM, 
+     $BILL_ID, 
+     $TARIF_PLAN, 
+     $TIME_TARIF, 
+     $TRAF_TARIF) = $Billing->session_sum($sessions->{LOGIN}, 
+                                          $sessions->{START_UNIXTIME}, 
+                                          $sessions->{DURATION}, 
+                                            {  OUTBYTE  =>  $sessions->{SENT},
+                                               INBYTE   =>  $sessions->{RECV},
+                                               OUTBYTE2 =>  $sessions->{SENT2},
+                                               INBYTE2  =>  $sessions->{RECV2}
+                                             },
+                                          {
+                                          	disable_rt_billing => 1,
+                                          	TP_NUM             => $sessions->{TP_ID}
+                                           } 
+                                             );
+
+    my $change = '';
+
+    if ($sessions->{SUM} != $SUM) {
+      $change = "$_CHANGE  ". $html->button($_YES, "index=$index&RECALC=1&SESSION_ID=$FORM{SESSION_ID}&UID=$FORM{UID}&change=1", { BUTTON => 1 }). ' ?';
+    
+      if ($FORM{change}) {
+        use Bills;
+        my $Bill = Bills->new($db);
+        $Bill->{debug}=1;
+        $Bill->action('add', "$sessions->{BILL_ID}", $sessions->{SUM}) if ($sessions->{SUM});
+        $Bill->action('take', "$sessions->{BILL_ID}", $SUM) if ($SUM > 0);
+
+        $sessions->query($db, "UPDATE dv_log SET sum='$SUM' WHERE acct_session_id='$sessions->{SESSION_ID}';", 'do');
+
+        if($bill->{errno}) {
+          $html->message('err', $_ERROR, "[$bill->{errno}] $err_strs{$bill->{errno}}");
+         }
+        else {
+          $html->message('info', $_INFO, "$_ADDED: SUM $FORM{sum}, BILL_ID: $FORM{BILL_ID}");  	
+         }
+      	$change = "$_CHANGED";
+       }
+     }
+
+		$html->message('info', "$_RECALCULATE", "$_TARIF_PLAN: $TARIF_PLAN, $_SUM: $sessions->{SUM} -> $SUM  $change");
+	 }
+	
 }
 elsif (defined($LIST_PARAMS{LOGIN}))	{
 
@@ -2847,8 +2875,11 @@ $sessions->{_SENT} = int2byte($sessions->{SENT});
 $sessions->{_RECV} = int2byte($sessions->{RECV}); 
 $sessions->{_SENT2}= int2byte($sessions->{SENT2});
 $sessions->{_RECV2}= int2byte($sessions->{RECV2});
+$sessions->{RECALC}= $html->button($_RECALCULATE, "index=$index&RECALC=1&SESSION_ID=$FORM{SESSION_ID}&UID=$FORM{UID}", { BUTTON => 1 });
 
 $html->tpl_show(_include('dv_session_detail', 'Dv'), $sessions);
+
+
 
 my %ORDERS = (hours    => $_HOURS,
               days     => $_DAYS,
@@ -2890,7 +2921,7 @@ if ($sessions->{TOTAL} > 0) {
                              caption    => "$_INTERVALS",
                              border     => 1,
                              title      => ["$_INTERVAL", "$_TRAFFIC", "$_SENT", "$_RECV", "$_DURATION", "$_SUM"],
-                             cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
+                             cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
                              qs         => $pages_qs,
                              ID         => 'DV_SESSION_DETAIL'
                           } );
@@ -2921,8 +2952,8 @@ if(! $FORM{sort}) {
 $list = $sessions->detail_list({ %LIST_PARAMS, %FORM });
 my $table = $html->table({ width      => '100%',
                            border     => 1,
-                           title      => ["LAST_UPDATE", "$_SESSION_ID", "NAS_ID", "SENT", "RECV", "SENT2", "RECV2"],
-                           cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right'],
+                           title      => ["LAST_UPDATE", "$_SESSION_ID", "NAS ID", "$_ SENT", "$_RECV", "$_SENT 2", "$_RECV 2", "$_SUM"],
+                           cols_align => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right'],
                            pages      => $sessions->{TOTAL},
                            qs         => $pages_qs,
                            ID         => 'DETAIL_LIST'
@@ -2935,7 +2966,9 @@ my $table = $html->table({ width      => '100%',
     int2byte($line->[3]),  
     int2byte($line->[4]), 
     int2byte($line->[5]), 
-    int2byte($line->[6]));
+    int2byte($line->[6]),
+    $line->[7]
+    );
   }
  print $table->show();
 
@@ -4767,8 +4800,6 @@ sub dv_wizard_user {
   my $payments = Finance->payments($db, $admin, \%conf);
   my $users    = Users->new($db, $admin, \%conf); 
 
-
-
   if ($FORM{print}) {
     require "Abills/modules/Docs/webinterface";
     if ($FORM{PRINT_CONTRACT}) {
@@ -4914,14 +4945,26 @@ sub dv_wizard_user {
         $Mail = $Mail->mbox_info({ MBOX_ID => $Mail->{MBOX_ID} });
        	$Mail->{EMAIL_ADDR} = $Mail->{USERNAME} . '@' . $Mail->{DOMAIN};
        }
+
+      # Msgs
+      my $Mail;
+      if (in_array('Msgs', \@MODULES) && $add_values{7}) {
+        require "Abills/modules/Msgs/webinterface";
+        $Msgs = Msgs->new($db, $admin, \%conf);
+        
+        %FORM=%{ $add_values{7} };
+        $FORM{UID}=$UID;
+        $FORM{add}=$UID;
+        msgs_admin_add({ SEND_ONLY => 1 });
+       }
+
       
       # Info
       my $dv = $Dv->info($UID);
       my $pi = $user->pi({ UID => $UID });
       $user  = $user->info($UID, { SHOW_PASSWORD => 1 });
-      
-     
-      
+
+
       if (! $attr->{SHORT_REPORT}) {
         $FORM{ex_message}=$message;
         $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
@@ -5125,7 +5168,17 @@ sub dv_wizard_user {
 
 
     $tpls{"6:E-Mail::"}=$html->tpl_show(_include('mail_box', 'Mail'), $Mail,  { OUTPUT2RETURN => 1, ID => 'MAIL_BOX' });
+  }
+ 
+ #If msgs module added
+ if (in_array('Msgs', \@MODULES)) {
+   require "Abills/modules/Msgs/webinterface";
+   my $Msgs = Msgs->new($db, $admin, \%conf);
+   $FORM{UID}=-1;
+   $tpls{"7:$_MESSAGE::"}=msgs_admin_add({ OUTPUT2RETURN => 1 });
   } 
+
+ 
  
  if ($attr->{TPLS}) {
    while(my($k, $v)=each %{ $attr->{TPLS} } ) {
@@ -5173,8 +5226,8 @@ sub dv_wizard_user {
   print $html->form_main({ CONTENT => $template,
   	                       HIDDEN  => { index => "$index" },
 	                         SUBMIT  => { add   => "$_ADD"  },
-	                         NAME    => 'user_form'
-	                         
+	                         NAME    => 'user_form',
+	                         ENCTYPE => 'multipart/form-data'
 	                        });
 	
 }
@@ -5489,15 +5542,56 @@ sub dv_compensation () {
 
 
 if ($FORM{add}) {
-	my ($Y, $M, $D) = split(/-/,  $FORM{FROM_DATE}, 3);
-	my $from_date = mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0);
+	my ($FROM_Y, $FROM_M, $FROM_D) = split(/-/,  $FORM{FROM_DATE}, 3);
+	my $from_date = mktime(0, 0, 0, $FROM_D, ($FROM_M-1), ($FROM_Y-1900), 0, 0, 0);
 
-	($Y, $M, $D) = split(/-/,  $FORM{TO_DATE}, 3);
-	my $to_date = mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0);
-	
-	my $days = ($to_date - $from_date) / 86400 + 1;
+	($TO_Y, $TO_M, $TO_D) = split(/-/,  $FORM{TO_DATE}, 3);
+
+	my $to_date = mktime(0, 0, 0, $TO_D, ($TO_M-1), ($TO_Y-1900), 0, 0, 0);
+	my $sum        = 0.00;
+	my $days       = 0;
+	$days_in_month = 31;
+
   $Dv->info($FORM{UID});
-  my $sum = sprintf("%.2f", $days * $Dv->{DAY_ABON} + $days * ($Dv->{MONTH_ABON} / 31));
+
+  my $table = $html->table({width      => '400',
+  	  	                    caption    => "$_COMPENSATION $_FROM: $FORM{FROM_DATE} $_TO: $FORM{TO_DATE}",
+                            border     => 1,
+                            title_plain=> ["$_MONTH", "$_DAYS", "$_SUM" ],
+                            cols_align => ['right', 'right', 'right',],
+                            ID         => 'DV_COMPENSATION_DESCRIBE'
+                          });
+
+	if ("$FROM_Y-$FROM_M" eq "$TO_Y-$TO_M") {
+		$days = $TO_D-$FROM_D;
+		$days_in_month = ($FROM_M!=2?(($FROM_M%2)^($FROM_M>7))+30:(!($FROM_Y%400)||!($FROM_Y%4)&&($FROM_Y%25)?29:28));
+		$sum = sprintf("%.2f", $days * $Dv->{DAY_ABON} + $days * ($Dv->{MONTH_ABON} / $days_in_month));
+
+		$table->addrow("$FROM_Y-$FROM_M", $days, $sum);
+	 }
+  elsif ("$FROM_Y-$FROM_M" ne "$TO_Y-$TO_M") {
+  	do {
+  		$days_in_month = ($FROM_M!=2?(($FROM_M%2)^($FROM_M>7))+30:(!($FROM_Y%400)||!($FROM_Y%4)&&($FROM_Y%25)?29:28));
+  		my $month_days = $days_in_month-$FROM_D + 1;
+  		my $month_sum = sprintf("%.2f", $month_days * $Dv->{DAY_ABON} + $month_days * ($Dv->{MONTH_ABON} / $days_in_month));
+  		$sum  += $month_sum;
+  		$days += $month_days;
+
+      $table->addrow("$FROM_Y-$FROM_M", $month_days, $month_sum);
+
+  		if ($FROM_M < 12) {
+  		  $FROM_M=sprintf("%02d", $FROM_M+1);
+  		 }
+      else {
+      	$FROM_M = sprintf("%02d", 1);
+      	$FROM_Y+=1;
+       }
+  	 } while(($FROM_Y <= $TO_Y) && ($FROM_M <= $TO_M));
+   }
+  
+  $table->{color}=$_COLORS[3];
+  
+  $table->addrow($html->b("$_TOTAL:"), $html->b("$days"), $html->b("$sum"));
   
   my $payments     = Payments->new($db, $admin, \%conf);
   $payments->add({  BILL_ID => $users->{BILL_ID},
@@ -5505,8 +5599,8 @@ if ($FORM{add}) {
   	                }, 
   	             	  
   	             	            { SUM            => $sum,
-  	             	            	METHOD         => 4,
-  	                            DESCRIBE       => "$_COMPENSATION. $days $_DAYS. ".$FORM{DESCRIBE},
+  	             	            	METHOD         => 6,
+  	                            DESCRIBE       => "$_COMPENSATION. $_DAYS: $FORM{FROM_DATE}/$FORM{TO_DATE} ($days)". (($FORM{DESCRIBE}) ? ". $FORM{DESCRIBE}" : ''),
   	                            INNER_DESCRIBE => $FORM{INNER_DESCRIBE}
   	                            } );
    
@@ -5515,7 +5609,8 @@ if ($FORM{add}) {
     $html->message('err', $_ERROR, "$_ERROR: [$fees->{errno}] $fees->{errstr} "); 
    }
   else {
-    $html->message('info', $_INFO, "$_FROM: $FORM{FROM_DATE} $_TO: $FORM{TO_DATE} / $_DAYS: $days / $_SUM $sum");
+    $html->message('info', "$_COMPENSATION", "$_COMPENSATION $_SUM: $sum");
+    print $table->show();
    }
 }
 

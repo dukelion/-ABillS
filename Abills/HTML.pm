@@ -360,11 +360,9 @@ sub form_main {
 	my $METHOD = ($attr->{METHOD}) ? $attr->{METHOD} : 'POST';
 	$self->{FORM} =  "<FORM ";
 	$self->{FORM} .= "name=\"$attr->{NAME}\" " if ($attr->{NAME});
+	$self->{FORM} .= "enctype=\"$attr->{ENCTYPE}\" " if ($attr->{ENCTYPE});
 	$self->{FORM} .= "action=\"$SELF_URL\" METHOD=\"$METHOD\">\n";
-	
 
-	
-	
   if (defined($attr->{HIDDEN})) {
   	my $H = $attr->{HIDDEN};
   	while(my($k, $v)=each( %$H)) {

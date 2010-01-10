@@ -576,7 +576,6 @@ sub session_detail {
  my ($attr) = @_;
 
  $WHERE = " and l.uid='$attr->{UID}'" if ($attr->{UID});
- 
 
  $self->query($db, "SELECT 
   l.start,
@@ -607,7 +606,8 @@ sub session_detail {
   
   l.uid,
   l.acct_session_id,
-  l.terminate_cause
+  l.terminate_cause,
+  UNIX_TIMESTAMP(l.start)
  FROM (dv_log l, users u)
  LEFT JOIN tarif_plans tp ON (l.tp_id=tp.id) 
  LEFT JOIN nas n ON (l.nas_id=n.id) 
@@ -646,7 +646,8 @@ sub session_detail {
 
    $self->{UID}, 
    $self->{SESSION_ID},
-   $self->{ACCT_TERMINATE_CAUSE}
+   $self->{ACCT_TERMINATE_CAUSE},
+   $self->{START_UNIXTIME}
     )= @{ $self->{list}->[0] };
 
 
@@ -692,7 +693,7 @@ else {
 }
 
  $self->query($db, "SELECT $lupdate, acct_session_id, nas_id, 
-   sum(sent1), sum(recv1), sum(sent2), sum(recv2) 
+   sum(sent1), sum(recv1), sum(sent2), sum(recv2), sum
   FROM s_detail 
   WHERE id='$attr->{LOGIN}' $WHERE
   GROUP BY $GROUP 

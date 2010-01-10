@@ -107,10 +107,7 @@ if ($acct_status_type == 1) {
       $RAD->{CONNECT_INFO}="$RAD->{CISCO_SERVICE_INFO}";
      }
 
-    # 
     $self->query($db, "DELETE FROM dv_calls WHERE nas_id='$NAS->{NAS_ID}' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}');", 'do');
-
-    my $a = `echo "DELETE FROM dv_calls WHERE nas_id='$NAS->{NAS_ID}' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'); // $self->{UID}" >> /tmp/nnnn`;
 
     my $sql = "INSERT INTO dv_calls
      (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
@@ -224,14 +221,12 @@ elsif ($acct_status_type == 2) {
         '$RAD->{ACCT_OUTPUT_GIGAWORDS}');", 'do');
      }      
     else {
-      #$self->{errstr}    = "ACCT [$RAD->{USER_NAME}] Can't find sessions $RAD->{ACCT_SESSION_ID}";
-      #$self->{sql_errstr}= '';
-      #$self->{errno}     = 1;
       #DEbug only
-      use POSIX qw(strftime);
-      my $DATE_TIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);
-      my $r = `echo "$DATE_TIME $self->{UID} - $RAD->{USER_NAME} / $RAD->{ACCT_SESSION_ID} / Time: $RAD->{ACCT_SESSION_TIME} / $self->{errstr}" >> /tmp/unknown_session.log`;
+      #use POSIX qw(strftime);
+      #my $DATE_TIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);
+      #my $r = `echo "$DATE_TIME $self->{UID} - $RAD->{USER_NAME} / $RAD->{ACCT_SESSION_ID} / Time: $RAD->{ACCT_SESSION_TIME} / $self->{errstr}" >> /tmp/unknown_session.log`;
       #DEbug only end
+      
       return $self;      
      }     
    }
@@ -385,21 +380,20 @@ else {
 
 #detalization for Exppp
 if ($conf->{s_detalization}) {
-
   if($NAS->{NAS_TYPE} ne 'exppp') {
-    $RAD->{INTERIUM_INBYTE}  =$RAD->{INBYTE};
-    $RAD->{INTERIUM_OUTBYTE} =$RAD->{OUTBYTE};
-    $RAD->{INTERIUM_INBYTE2} =$RAD->{INBYTE2}  || 0;
-    $RAD->{INTERIUM_OUTBYTE2}=$RAD->{OUTBYTE2} || 0;
+    $RAD->{INTERIUM_INBYTE}  = $RAD->{INBYTE};
+    $RAD->{INTERIUM_OUTBYTE} = $RAD->{OUTBYTE};
+    $RAD->{INTERIUM_INBYTE2} = $RAD->{INBYTE2}  || 0;
+    $RAD->{INTERIUM_OUTBYTE2}= $RAD->{OUTBYTE2} || 0;
    }
 
   $self->query($db, "INSERT into s_detail (acct_session_id, nas_id, acct_status, last_update, 
-    sent1, recv1, sent2, recv2, id)
+    sent1, recv1, sent2, recv2, id, sum)
   VALUES (\"$RAD->{ACCT_SESSION_ID}\", '$NAS->{NAS_ID}',
    '$acct_status_type', UNIX_TIMESTAMP(),
    '$RAD->{INTERIUM_INBYTE}', '$RAD->{INTERIUM_OUTBYTE}', 
    '$RAD->{INTERIUM_INBYTE2}', '$RAD->{INTERIUM_OUTBYTE2}', 
-   '$RAD->{USER_NAME}');", 'do');
+   '$RAD->{USER_NAME}', '$self->{SUM}');", 'do');
 }
 
 
@@ -471,12 +465,12 @@ sub rt_billing {
                                                    INTERIUM_OUTBYTE1 => $RAD->{INTERIUM_INBYTE1},
                                                    INTERIUM_INBYTE1  => $RAD->{INTERIUM_OUTBYTE1},
 
-                                                   TP_ID => $self->{TP_ID}
+                                                   TP_ID     => $self->{TP_ID},
+                                                   DOMAIN_ID => ($NAS->{DOMAIN_ID}) ? $NAS->{DOMAIN_ID} : 0,
                                                 	},
                                                 { FULL_COUNT => 1 }
                                                 );
-  
-  
+
 #  my $a = `date >> /tmp/echoccc;
 #   echo "
 #   UID: $self->{UID}, 
@@ -494,7 +488,6 @@ sub rt_billing {
 #   OUT2: $RAD->{INTERIUM_OUTBYTE1}
 #   \n" >> /tmp/echoccc`;
 
- 
    $self->query($db, "SELECT traffic_type FROM dv_log_intervals 
      WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' 
            and interval_id='$Billing->{TI_ID}';"  );

@@ -235,7 +235,7 @@ if  ($admin->{MAX_ROWS} > 0) {
 #Global Vars
 @action    = ('add', $_ADD);
 @bool_vals = ($_NO, $_YES);
-@PAYMENT_METHODS = ("$_CASH", 'Bank', "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION");
+@PAYMENT_METHODS = ("$_CASH", 'Bank', "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION", "$_COMPENSATION");
 @status = ("$_ENABLE", "$_DISABLE");
 
 
@@ -3553,19 +3553,16 @@ my $user = $users->info($UID);
 
 my $OP_SID = mk_unique_value(16);
 
- print $html->form_main({HIDDEN  => { index  => "$index",
-                                      subf   => "$index",
-                                      sum    => "$sum",
-                                      OP_SID => "$OP_SID",
-                                      UID    => "$UID",
-                                      BILL_ID => $user->{BILL_ID}
+print $html->form_main({HIDDEN  => { index  => "$index",
+                                     subf   => "$index",
+                                     sum    => "$sum",
+                                     OP_SID => "$OP_SID",
+                                     UID    => "$UID",
+                                     BILL_ID => $user->{BILL_ID}
                                      },
-	                        SUBMIT  => { bm   => "$_BACK_MONEY ?"
+                        SUBMIT  => { bm   => "$_BACK_MONEY ?"
 	                       	           } });
-
 }
-
-
 
 
 #**********************************************************

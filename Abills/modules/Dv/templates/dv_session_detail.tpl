@@ -25,6 +25,7 @@
 <tr bgcolor=$_COLORS[1]><td>$_SUM:</td><td>%SUM%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>$_BILL:</td><td>%BILL_ID%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>ACCT_TERMINATE_CAUSE</td><td>%ACCT_TERMINATE_CAUSE%</td></tr>
+<tr bgcolor=$_COLORS[1]><td align=center colspan=2>%RECALC%</td></tr>
 </table>
 </td></tr></table>
 

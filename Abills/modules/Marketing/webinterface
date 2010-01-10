@@ -29,16 +29,6 @@ sub marketing_evolution {
 	                        rowcolor    => $_COLORS[0],
                           rows        => [[ "$_FROM: ",  $html->date_fld2('FROM_DATE', { FORM_NAME=>'marketing',  MONTHES => \@MONTHES} ),
                                             "$_TO: ",  $html->date_fld2('TO_DATE', { FORM_NAME=>'marketing', MONTHES => \@MONTHES} ),
-#                                            "$_ACTIONS: ". $html->form_select('STATUS', 
-#                                          { 
-# 	                                          SELECTED     => $FORM{STATUS},
-# 	                                          SEL_HASH     => { '' => '',
-# 	                                          	                0  => $_REGISTRATION,
-# 	                                          	                1  => $_DISABLE,
-# 	                                          	                2  => $service_status[2]  
-# 	                                          	                },
-#                                            NO_ID       => 1
-# 	                                        }),
                                          "$_MODULES: " . $html->form_select('MODULE', 
                                 { SELECTED      => $FORM{MODULE},
  	                                SEL_ARRAY     => ['', @MODULES],
@@ -91,9 +81,7 @@ if ($FORM{USERS}) {
                        ); 
 
   foreach my $report_name (keys %reports_list) {
-
   	$LIST_PARAMS{$report_name}=1;
-    $Marketing->{debug}=1;
     my $list    = $Marketing->evolution_users_report({ %LIST_PARAMS, %FORM });
     my $table   = $html->table( { width      => '100%',
                              caption    => "$_EVOLUTION $_USERS - $reports_list{$report_name}",

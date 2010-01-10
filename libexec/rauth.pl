@@ -1,8 +1,5 @@
 #!/usr/bin/perl -w
 
-
-
-
 use vars  qw(%RAD %conf %AUTH
  %RAD_REQUEST %RAD_REPLY %RAD_CHECK 
  %log_levels
@@ -19,7 +16,6 @@ require Abills::Base;
 Abills::Base->import();
 $begin_time = check_time();
 
-# Max session tarffic limit  (Mb)
 my %auth_mod = ();
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
@@ -39,8 +35,6 @@ my $rr  = '';
 #}
 ##print $t;
 #my $a = `echo "$t" >> /tmp/voip_test`;
-
-#if (scalar(%RAD_REQUEST ) < 1 ) {
 
 my $log_print = sub {
   my ($LOG_TYPE, $USER_NAME, $MESSAGE, $attr) = @_;
@@ -81,7 +75,6 @@ if ($RAD->{NAS_IP_ADDRESS}) {
   if($ret == 0) {
     $ret = auth($db, $RAD, $nas);
   }
-  #$db->disconnect();
   
   if ($ret == 0) {
     print $rr;
@@ -146,8 +139,6 @@ sub auth {
  	 $RAD_REPLY{'Reply-Message'}="$conf{tech_works}";
  	 return 1;
   }
-
- 
 
  if ($attr->{'pre_auth'}) {
    $auth_mod{'default'} = Auth->new($db, \%conf);
@@ -223,9 +214,11 @@ else {
    	    }
        }
 
-      $RAD_CHECK{'Auth-Type'} = 'Accept' if ($RAD->{CHAP_PASSWORD});
+      
      }
-   
+
+   $RAD_CHECK{'Auth-Type'} = 'Accept' if ($RAD->{CHAP_PASSWORD});
+
    #Show pairs
    while(my($rs, $ls)=each %RAD_REPLY) {
      if (ref($ls) eq 'ARRAY') {
@@ -244,7 +237,7 @@ else {
    Time::HiRes->import(qw(gettimeofday));
    my $end_time = gettimeofday();
    my $gen_time = $end_time - $begin_time;
-   $GT = sprintf(" GT: %2.5f", $gen_time);
+   $GT = ''; #sprintf(" GT: %2.5f", $gen_time);
   }
 
 
@@ -262,19 +255,23 @@ else {
 sub post_auth {
   my ($RAD) = @_;
   my $reject_info = '';
+
+  # $RAD->{MS_CHAP_CHALLENGE}
   if (defined(%RAD_REQUEST)) {
 
     if ($RAD_REQUEST{'Calling-Station-Id'}) {
-      $reject_info=" CID $RAD_REQUEST{'Calling-Station-Id'}";
+      $reject_info="Wrong password or account not exists CID $RAD_REQUEST{'Calling-Station-Id'}";
      }
-    $log_print->('LOG_WARNING', $RAD_REQUEST{'User-Name'}, "REJECT Wrong password $reject_info$GT", { NAS => $nas});
+
+    $log_print->('LOG_WARNING', '', "REJECT Wrong password$reject_info$GT", { NAS => $nas });
+
     return 0;
    }
   else { 
     if ($RAD->{CALLING_STATION_ID}) {
       $reject_info=" CID $RAD->{CALLING_STATION_ID}";
      }
-    $log_print->('LOG_WARNING', $RAD->{USER_NAME}, "REJECT Wrong password$reject_info$GT", { NAS => $nas});
+    $log_print->('LOG_WARNING', $RAD->{USER_NAME}, "REJECT Wrong password$reject_info$GT", { NAS => $nas });
    }
 }
 

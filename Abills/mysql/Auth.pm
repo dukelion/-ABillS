@@ -65,10 +65,13 @@ sub dv_auth {
      return 1, $RAD_PAIRS;
   }
   
+  
+  
   my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 4096;
 
-  my $DOMAIN_ID = ($NAS->{DOMAIN_ID}) ? "AND tp.domain_id='$NAS->{DOMAIN_ID}'" : '';
+  my $DOMAIN_ID = ($NAS->{DOMAIN_ID}) ? "AND tp.domain_id='$NAS->{DOMAIN_ID}'" : "AND tp.domain_id='0'";
  
+
   $self->query($db, "select  if (dv.logins=0, if(tp.logins is null, 0, tp.logins), dv.logins) AS logins,
   if(dv.filter_id != '', dv.filter_id, if(tp.filter_id is null, '', tp.filter_id)),
   if(dv.ip>0, INET_NTOA(dv.ip), 0),
@@ -166,7 +169,7 @@ sub dv_auth {
 
 #DIsable
 if ($self->{DISABLE}) {
-  $RAD_PAIRS->{'Reply-Message'}="Service Disable";
+  $RAD_PAIRS->{'Reply-Message'}="Service Disabled";
   return 1, $RAD_PAIRS;
  }
 elsif (! $self->{JOIN_SERVICE} && $self->{TP_NUM} < 1) {
@@ -185,7 +188,6 @@ elsif (( $RAD_PAIRS->{'Callback-Number'} || $RAD_PAIRS->{'Ascend-Callback'} ) &&
 
 # Make join service operations
 if ($self->{JOIN_SERVICE}) {
-
  if ($self->{JOIN_SERVICE} > 1) {
   
   $self->query($db, "select  
@@ -282,9 +284,7 @@ if ($self->{JOIN_SERVICE}) {
      }
 
    $self->query($db, "$sql");
-   
-   #print "$sql $self->{NAS}";
-   
+  
    if ($self->{TOTAL} < 1) {
      $RAD_PAIRS->{'Reply-Message'}="You are not authorized to log in $NAS->{NAS_ID} ($RAD->{NAS_IP_ADDRESS})";
      return 1, $RAD_PAIRS;
@@ -421,6 +421,7 @@ if ($self->{UIDS}) {
 
 foreach my $line (@periods) {
      if (($self->{$line . '_TIME_LIMIT'} > 0) || ($self->{$line . '_TRAF_LIMIT'} > 0)) {
+     	  print $self->{$line . '_TIME_LIMIT'}. "/ $line --\n";
         my $session_time_limit=$time_limit;
         my $session_traf_limit=$traf_limit;
 
@@ -451,6 +452,8 @@ foreach my $line (@periods) {
 
       }
 }
+
+
 
 #set time limit
  for(my $i=0; $i<=$#time_limits; $i++) {
@@ -756,12 +759,9 @@ sub Auth_CID {
 
   foreach my $TEMP_CID (@CID_POOL) { if ($TEMP_CID ne '') {
 
-    if (($TEMP_CID =~ /:/ || $TEMP_CID =~ /-/)
+    if (($TEMP_CID =~ /:/ || $TEMP_CID =~ /\-/)
        && $TEMP_CID !~ /\./) {
       @MAC_DIGITS_GET=split(/:|-/, $TEMP_CID);
-        
-      
-      
 
       #NAS MPD 3.18 with patch
       if ($RAD->{CALLING_STATION_ID} =~ /\//) {
@@ -770,7 +770,7 @@ sub Auth_CID {
          ($cid_ip, $RAD->{CALLING_STATION_ID}, $trash) = split(/\//, $RAD->{CALLING_STATION_ID}, 3);
        }
 
-      my @MAC_DIGITS_NEED = split(/:|-/, $RAD->{CALLING_STATION_ID});
+      my @MAC_DIGITS_NEED = split(/:|\-|\./, $RAD->{CALLING_STATION_ID});
       my $counter=0;
 
       for(my $i=0; $i<=5; $i++) {
@@ -863,6 +863,9 @@ sub authentication {
   if ($NAS->{DOMAIN_ID}) {
   	$WHERE = "AND u.domain_id='$NAS->{DOMAIN_ID}'";
    }
+  else {
+  	$WHERE = "AND u.domain_id='0'";
+   }
 
   $self->query($db, "select
   u.uid,
@@ -886,6 +889,7 @@ sub authentication {
         AND (u.activate='0000-00-00' or u.activate <= CURDATE())
        GROUP BY u.id;");
 
+  # my $test =`echo "$self->{UID}//$DOMAIN_ID " >> /tmp/test.log`;
 
   if($self->{errno}) {
   	$RAD_PAIRS{'Reply-Message'}='SQL error';
@@ -925,7 +929,7 @@ elsif (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE})) {
    }      	 	
  }
 #Auth MS-CHAP v1,v2
-elsif(defined($RAD->{MS_CHAP_CHALLENGE})) {
+elsif($RAD->{MS_CHAP_CHALLENGE}) {
      
  }
 #End MS-CHAP auth

@@ -9,7 +9,7 @@ authenticate {
         Auth-Type Perl {
                 perl
         }
-        eap
+#        eap
 }
 
 
