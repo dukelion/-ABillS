@@ -313,11 +313,9 @@ sub search_expr {
    }
 
   if ($field) {
-  
-  	if ($type ne 'INT') {
+  	if ($type ne 'INT' && $type ne 'DATE') {
   		return [ '('. join(' or ', @result_arr)  .')']; 
   	 }
-
     return \@result_arr; 
    }
 

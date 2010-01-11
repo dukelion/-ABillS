@@ -610,9 +610,8 @@ sub credit_operation {
   my $list = $users->list({  
                            CREDIT_DATE  => ">0000-00-00,<=$DATE",
                            CREDIT       => ">$conf{MAX_STABLE_CREDIT}",
-  	                       PAGE_ROWS    => 1000000
+  	                   PAGE_ROWS    => 1000000,
   	                      });
-
 
   foreach my $line (@$list) {
   	$DEBUG .= "$line->[0] (". $line->[5 +  $users->{SEARCH_FIELDS_COUNT}] .") DEPOSIT: $line->[2] CREDIT: $line->[3] CREDIT_DATE: ". $line->[4+$users->{SEARCH_FIELDS_COUNT}] ."\n" if ($debug > 0);
@@ -663,7 +662,6 @@ sub debetors_group_create {
   return 0 if (! $conf{DEBETORS_GROUP});
   $conf{DEBETORS_GROUP} =~ s/\n//g;
 
-  $users->{debug}=1 if ($debug > 5);
 
   my @DEBETORS_GROUP = split(/,/, $conf{DEBETORS_GROUP});  
   my %DEBETORS_GIDS = ();
@@ -693,13 +691,13 @@ foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
     	                    });
 
     }
-
+  
   my $list = $users->list({  
                            GID          => ($USER_GID == -1 && $#DEBETORS_GROUP == 0) ? "!$GID" : $USER_GID,
   	                       PAYMENT_DAYS => "<$LAST_PAYMENTS_DAYS",
   	                       DEPOSIT      => "<=$DEPOSIT",
-                           COMMENTS     => '*',               
-  	                       PAGE_ROWS    => 100000
+                               COMMENTS     => '*',               
+  	                       PAGE_ROWS    => 100000,
   	                      });
   my %EXIST_GROUPS = ();
 
@@ -715,9 +713,9 @@ foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
   	  #Check group if not exist create it
   	  
     	$users->change($uid, { GID     => $GID,
-    		                     UID     => $uid,
-    		                     DISABLE => $line->[4]
-    		                    });
+    		               UID     => $uid,
+    		               DISABLE => $line->[4]
+    		               });
       
       $users->pi_change({ 
       	         UID      => $uid,
@@ -757,8 +755,8 @@ foreach my $DEBETOR_GID (sort { $b <=> $a } keys %DEBETORS_GIDS) {
   	$comments =~ s/$_GROUP $_DEBETORS: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}//gi;
     if ($debug < 5) {
     	$users->change($uid, { GID => $DEBETORS_GIDS{$DEBETOR_GID},
-    		                     UID => $uid 
-    		                    });
+    		               UID => $uid 
+    		               });
       
       $users->pi_change({ 
       	         UID      => $uid,

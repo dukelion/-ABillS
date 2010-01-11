@@ -701,7 +701,8 @@ sub list {
   }
 
  if ($attr->{DOMAIN_ID}) {
-   push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 1 }) };
+   print "!!!!!\n";
   }
  elsif (defined($admin->{DOMAIN_ID})) {
  	 push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };
@@ -863,7 +864,8 @@ if ($self->{TOTAL} > 0) {
        u.activate, 
        u.expire,
        u.gid,
-       b.deposit
+       b.deposit,
+       u.domain_id
      FROM users u
      LEFT JOIN payments p ON (u.uid = p.uid)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
