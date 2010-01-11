@@ -2,14 +2,13 @@
 # Periodic payments web interface
 #
 
-
 use Abon;
 use Fees;
-
 
 my $Abon    = Abon->new($db, $admin, \%conf);
 my $fees    = Fees->new($db, $admin, \%conf);
 my @PERIODS = ($_DAY, $_MONTH, $_QUARTER, $_SIX_MONTH, $_YEAR);
+
 
 #*******************************************************************
 # Change user variant form
@@ -17,7 +16,6 @@ my @PERIODS = ($_DAY, $_MONTH, $_QUARTER, $_SIX_MONTH, $_YEAR);
 #*******************************************************************
 sub abon_user {
  my ($attr) = @_;
-
 
  if ($FORM{change}) {
     my @new_arr  = ();
@@ -124,15 +122,12 @@ print $html->form_main({ CONTENT => $table->show(),
 	                });
 }
 
-
-
 #**********************************************************
 #
 #**********************************************************
 sub abon_user_list {
  my ($attr) = @_;
- 
- 
+
  if ($attr->{ABON_ID}) {
    $LIST_PARAMS{ABON_ID} = $FORM{ABON_ID};
   }
@@ -185,8 +180,7 @@ print $table->show();
 # abon_tariffs()
 #*******************************************************************
 sub abon_tariffs {
-  
-#  $Abon = $Abon->defaults();
+
   $Abon->{ACTION}='add';
   $Abon->{ACTION_LNG}=$_ADD;
   my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
@@ -351,8 +345,6 @@ sub abon_periodic {
                    DATE      => $ADMIN_REPORT{DATE}
                      );
 
-    #$PARAMS{DATE}=$ADMIN_REPORT{DATE} if ($DATE ne '');
-
     $line->[8] = 0 if (! $line->[8]);
     $PARAMS{DESCRIBE} = "$_ABON: $line->[6]. $line->[12]" if ($line->[12]);
 
@@ -459,7 +451,7 @@ sub abon_get_month_fee {
         	$periods = $m - $active_m;
          }
         elsif ($active_m > 0 && ( $active_m >= $m  && $active_y < $y)) {
-        	$periods = 12 - $active_m + $m - 1; 
+        	$periods = 12 - $active_m + $m; 
          }
 
         $message = "$_ABON: ". (($Abon->{COMMENTS}) ? " $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}" : " [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} " ) .$message;
