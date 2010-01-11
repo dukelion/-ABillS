@@ -661,11 +661,17 @@ sub ng_car_shape {
   $speed_in   = 1048576000 if ($speed_in  == 0);
   $speed_out  = 1048576000 if ($speed_out == 0);
 
-  my $cbs_in  = ($speed_in <= 2097152) ? $speed_in/8*1.5 : 2097152/8*1.5; 
-  my $ebs_in  = $cbs_in*2;
-  my $cbs_out = ($speed_out <= 2097152) ? $speed_out/8*1.5 : 2097152/8*1.5;
-  my $ebs_out = $cbs_out*2;
+#  my $cbs_in  = ($speed_in <= 2097152) ? $speed_in/8*1.5 : 2097152/8*1.5; 
+#  my $ebs_in  = $cbs_in*2;
+#  my $cbs_out = ($speed_out <= 2097152) ? $speed_out/8*1.5 : 2097152/8*1.5;
+#  my $ebs_out = $cbs_out*2;
 
+  my $cbs_in  = ($speed_in < 2097152) ? int($speed_in/32) : int($speed_in/104857
+6*16);
+  my $ebs_in  = $cbs_in*2;
+  my $cbs_out = ($speed_out < 2097152) ? int($speed_out/32) : int($speed_out/104
+8576*16);
+  my $ebs_out = $cbs_out*2;
  
 
 push @FW_ACTIONS, sprintf("/usr/sbin/ngctl -f- <<-EOF
