@@ -667,10 +667,10 @@ sub ng_car_shape {
 #  my $ebs_out = $cbs_out*2;
 
 #  my $cbs_in  = ($speed_in < 2097152) ? int($speed_in/32) : int($speed_in/104857
-6*16);
+#6*16);
 #  my $ebs_in  = $cbs_in*2;
 #  my $cbs_out = ($speed_out < 2097152) ? int($speed_out/32) : int($speed_out/104
-8576*16);
+#8576*16);
 #  my $ebs_out = $cbs_out*2;
 
   my $cbs_in  = 64000;
