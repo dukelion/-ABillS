@@ -129,7 +129,9 @@ for IP in ${NAT_IPS}; do
   if [ w$1 = wstart ]; then
     ${IPFW} nat ` expr ${NAT_FIRST_RULE} + 1 ` config ip ${IP} log
     ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ` expr ${NAT_FIRST_RULE} + 1 `
-    ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${FAKE_NET} ` expr ${NAT_FIRST_RULE} + 1 `
+    for f_net in ${FAKE_NET}; do
+      ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${f_net} ` expr ${NAT_FIRST_RULE} + 1 `
+    done;
   fi;
 done;
 #Second way
