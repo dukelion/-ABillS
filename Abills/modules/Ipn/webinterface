@@ -1390,6 +1390,7 @@ sub ipn_user_activate {
                   NAS_ID             => $nas_id,
                   NAS_IP_ADDRESS     => $nas->{NAS_IP},
                   NAS_MNG_USER       => $nas->{NAS_MNG_USER},
+                  NAS_MNG_IP_PORT    => $nas->{NAS_MNG_IP_PORT},
                   TP                 => 0,
                   CALLING_STATION_ID => $ip,
                   CONNECT_INFO       => $FORM{CONNECT_INFO},
@@ -1456,6 +1457,7 @@ sub ipn_user_activate {
   	 	                   FILTER_ID             => "",
   	 	                   NAS_IP_ADDRESS        => $nas->{NAS_IP},
                          NAS_MNG_USER          => $nas->{NAS_MNG_USER},
+                         NAS_MNG_IP_PORT       => $nas->{NAS_MNG_IP_PORT},
   	 	         	 	     });
        }
      else {
@@ -1661,6 +1663,7 @@ if (! $cmd) {
   if ($attr->{NAS_IP_ADDRESS}) {
     $ENV{NAS_IP_ADDRESS}=$attr->{NAS_IP_ADDRESS};
     $ENV{NAS_MNG_USER}=$attr->{NAS_MNG_USER};
+    $ENV{NAS_MNG_IP_PORT}=$attr->{NAS_MNG_IP_PORT};
    }
 
   print "IPN: $cmd\n" if ($DEBUG > 5);
@@ -2545,6 +2548,7 @@ foreach my $line (@$nas_list) {
 	  $nas_info{$line->[0]}{NAS_TYPE}=$line->[4];
 	  $nas_info{$line->[0]}{NAS_IP_ADDRESS}=$line->[9];
 	  $nas_info{$line->[0]}{NAS_MNG_USER}=$line->[10];
+          $nas_info{$line->[0]}{NAS_MNG_IP_PORT}=$line->[11];
    }
 }
 
@@ -2585,6 +2589,7 @@ foreach my $line (@$list)   {
                       NAS_ID                => $nas_id,
                       NAS_IP_ADDRESS        => $nas_info{$nas_id}{NAS_IP_ADDRESS},
                       NAS_MNG_USER          => $nas_info{$nas_id}{NAS_MNG_USER},
+                      NAS_MNG_IP_PORT       => $nas_info{$nas_id}{NAS_MNG_IP_PORT}
   	 	         	 	  });
 
   $debug_output .= "$_DISABLE IP: $ip\n" if ($debug > 1);
@@ -2603,6 +2608,7 @@ foreach my $line (@$list)   {
                 NAS_ID             => $nas_id,
                 NAS_IP_ADDRESS     => $nas_info{$nas_id}{NAS_IP_ADDRESS},
                 NAS_MNG_USER       => $nas_info{$nas_id}{NAS_MNG_USER},
+                NAS_MNG_IP_PORT    => $nas_info{$nas_id}{NAS_MNG_IP_PORT} ,
                 TP                 => 0,
                 CALLING_STATION_ID => $ip,
                 CONNECT_INFO       => $connect_info,
