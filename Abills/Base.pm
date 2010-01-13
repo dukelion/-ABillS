@@ -80,7 +80,7 @@ sub cfg2hash {
 sub in_array {
  my ($value, $array) = @_;
 
- return 0 if (! $value); 
+ return 0 if (! defined($value)); 
  foreach my $line (@$array) {
  	 return 1 if ($value eq $line);
   }
