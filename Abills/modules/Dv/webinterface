@@ -993,8 +993,6 @@ elsif($FORM{zap}) {
                             NAS_PORT        => $nas_port_id,
                             ACCT_SESSION_ID => $acct_session_id
                           });
-
-    #my ($sum, $variant, $time_t, $traf_t) = session_sum("$RAD{USER_NAME}", $ACCT_INFO{LOGIN}, $ACCT_INFO{ACCT_SESSION_TIME}, \%ACCT_INFO);
    }
 
   $html->message('info', $_INFO, $message);
@@ -1060,10 +1058,6 @@ elsif($FORM{tolog}) {
   
         $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
         $ACCT_INFO->{ACCT_STATUS_TYPE}  = 'Stop';    	
-        
-        #while(my($k,$v) = each   %$ACCT_INFO ) {
-  	    #  print "$k./ $v,<br>";
-        #} 	
 
         my $r = $Acct->accounting($ACCT_INFO, $nas);
   
@@ -1417,20 +1411,22 @@ else {
 sub dv_online_search {
 	my ($attr) = @_;
 	
-	my $FIELDS_ALL    = $attr->{FIELDS_ALL};
-	my $ACTIVE_FIELDS = $attr->{ACTIVE_FIELDS};
+my $FIELDS_ALL    = $attr->{FIELDS_ALL};
+my $ACTIVE_FIELDS = $attr->{ACTIVE_FIELDS};
+
 my $table2 = $html->table({ width => '100%' });
 my @arr = ();
 my $i=0;
+   
 foreach my $name ( @$FIELDS_ALL ) {
-  my $ex_info = ''; #($attr->{OIDS_EXINFO}->{$name}{DESCRIBE}) ?  " ($attr->{OIDS_EXINFO}->{$name}{ACCESS})<br>$attr->{OIDS_EXINFO}->{$name}{DESCRIBE}" : '';
+  my $ex_info = ''; 
   push @arr, $html->form_input('fields', "$i", { TYPE => 'checkbox', STATE => (in_array($i, $ACTIVE_FIELDS)) ? 1 : undef  }). ' '. $html->b($name) ." $ex_info";
 
   if ($#arr > 2) {
     $table2->addrow(@arr);
     @arr = ();
   }
-$i++;
+  $i++;
 }
 
 

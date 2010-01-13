@@ -292,7 +292,7 @@ if ($self->{JOIN_SERVICE}) {
   }
 
 #Check CID (MAC) 
-if ($self->{CID} ne '' && $self->{CID} ne "ANY") {
+if ($self->{CID} ne '' && $self->{CID} !~ /ANY/i) {
   my ($ret, $ERR_RAD_PAIRS) = $self->Auth_CID($RAD);
   return $ret, $ERR_RAD_PAIRS if ($ret == 1);
 }
@@ -305,10 +305,17 @@ if ($self->{PORT} > 0 && $self->{PORT} != $RAD->{NAS_PORT}) {
 
 #Check  simultaneously logins if needs
 if ($self->{LOGINS} > 0) {
-  $self->query($db, "SELECT count(*) FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and status <> 2;");
-  my($active_logins) = @{ $self->{list}->[0] };
+  $self->query($db, "SELECT CID FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2 and status < 10);");
+  my($active_logins) = $self->{TOTAL};
+  foreach my $line (@{ $self->{list} }) {
+  	if ($line->[0] ne '' && $line->[0] eq $RAD->{CALLING_STATION_ID}) {
+  		$self->query($db, "UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$RAD->{CALLING_STATION_ID}' and status <> 2;");
+  		$active_logins--;
+  	 }
+   }
+  
   if ($active_logins >= $self->{LOGINS}) {
-    $RAD_PAIRS->{'Reply-Message'}="More then allow login ($self->{LOGINS}/$active_logins)";
+    $RAD_PAIRS->{'Reply-Message'}="More then allow login ($self->{LOGINS}/$self->{TOTAL})";
     return 1, $RAD_PAIRS;
    }
 }
