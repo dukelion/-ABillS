@@ -1326,8 +1326,6 @@ sub expression {
               $counters->{TRAFFIC_SUM}=$counters->{TRAFFIC_IN}+$counters->{TRAFFIC_OUT};
              }
 
-#           	print "--- $ex{EXPR} eq '<' && $counters->{$ex{ARGUMENT}} <=  $ex{PARAMETER} --\n".
-#           	"!!! $ex{EXPR} eq '>' && $counters->{$ex{ARGUMENT}} >=  $ex{PARAMETER}\n !!!!";
            	$counters->{$ex{ARGUMENT}}=0 if (! $counters->{$ex{ARGUMENT}});
            	
             

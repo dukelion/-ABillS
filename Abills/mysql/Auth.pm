@@ -421,7 +421,6 @@ if ($self->{UIDS}) {
 
 foreach my $line (@periods) {
      if (($self->{$line . '_TIME_LIMIT'} > 0) || ($self->{$line . '_TRAF_LIMIT'} > 0)) {
-     	  print $self->{$line . '_TIME_LIMIT'}. "/ $line --\n";
         my $session_time_limit=$time_limit;
         my $session_traf_limit=$traf_limit;
 
