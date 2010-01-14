@@ -114,12 +114,12 @@ if ($acct_status_type == 1) {
       acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id, tp_id,
       uid, join_service)
        values ('$acct_status_type', 
-      \"$RAD->{USER_NAME}\", 
+      '$RAD->{USER_NAME}', 
       $SESSION_START, 
       UNIX_TIMESTAMP(), 
       INET_ATON('$RAD->{NAS_IP_ADDRESS}'),
       '$RAD->{NAS_PORT}', 
-      \"$RAD->{ACCT_SESSION_ID}\", 0, 0, 0, 
+      '$RAD->{ACCT_SESSION_ID}', 0, 0, 0, 
       INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), 
       '$RAD->{CALLING_STATION_ID}', 
       '$RAD->{CONNECT_INFO}', 
@@ -127,9 +127,6 @@ if ($acct_status_type == 1) {
       '$self->{TP_ID}', '$self->{UID}',
       '$self->{JOIN_SERVICE}');";
     $self->query($db, "$sql", 'do');
-
-    
-
   }
  }
 # Stop status
@@ -193,7 +190,7 @@ elsif ($acct_status_type == 2) {
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{SUM}', '$NAS->{NAS_ID}',
         '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
-        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
+        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}', '$RAD->{ACCT_SESSION_ID}', 
         '$self->{BILL_ID}',
         '$RAD->{ACCT_TERMINATE_CAUSE}',
         '$RAD->{ACCT_INPUT_GIGAWORDS}',
@@ -214,7 +211,7 @@ elsif ($acct_status_type == 2) {
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', $self->{CALLS_SUM}+$self->{SUM}, '$NAS->{NAS_ID}',
         '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
-        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
+        '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  '$RAD->{ACCT_SESSION_ID}', 
         '$self->{BILL_ID}',
         '$RAD->{ACCT_TERMINATE_CAUSE}',
         '$RAD->{ACCT_INPUT_GIGAWORDS}',
@@ -236,8 +233,8 @@ elsif ($acct_status_type == 2) {
     #Get connected TP
     $self->query($db, "SELECT tp_id, CONNECT_INFO FROM dv_calls
       WHERE
-      acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
-      user_name=\"$RAD->{USER_NAME}\" and
+      acct_session_id='$RAD->{ACCT_SESSION_ID}' and 
+      user_name='$RAD->{USER_NAME}' and
       nas_id='$NAS->{NAS_ID}';");
 
     ($EXT_ATTR{TP_ID}, $EXT_ATTR{CONNECT_INFO}) = @{ $self->{list}->[0] } if ($self->{TOTAL} > 0);
@@ -282,7 +279,7 @@ elsif ($acct_status_type == 2) {
           VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
           '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', '$self->{SUM}', '$NAS->{NAS_ID}',
           '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
-          '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  \"$RAD->{ACCT_SESSION_ID}\", 
+          '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  '$RAD->{ACCT_SESSION_ID}', 
           '$self->{BILL_ID}',
           '$RAD->{ACCT_TERMINATE_CAUSE}',
           '$RAD->{ACCT_INPUT_GIGAWORDS}',
@@ -303,8 +300,8 @@ elsif ($acct_status_type == 2) {
 }
 
   # Delete from session
-  $self->query($db, "DELETE FROM dv_calls WHERE acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" 
-     and user_name=\"$RAD->{USER_NAME}\" 
+  $self->query($db, "DELETE FROM dv_calls WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}'
+     and user_name='$RAD->{USER_NAME}'
      and nas_id='$NAS->{NAS_ID}';", 'do');
  }
 #Alive status 3
@@ -330,8 +327,8 @@ elsif($acct_status_type eq 3) {
       framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'),
       lupdated=UNIX_TIMESTAMP()
     WHERE
-      acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
-      user_name=\"$RAD->{USER_NAME}\" and
+      acct_session_id='$RAD->{ACCT_SESSION_ID}' and 
+      user_name='$RAD->{USER_NAME}' and
       nas_id='$NAS->{NAS_ID}';", 'do');
 
 
@@ -363,8 +360,8 @@ elsif($acct_status_type eq 3) {
     acct_input_gigawords='$RAD->{ACCT_INPUT_GIGAWORDS}',
     acct_output_gigawords='$RAD->{ACCT_OUTPUT_GIGAWORDS}'
    WHERE
-    acct_session_id=\"$RAD->{ACCT_SESSION_ID}\" and 
-    user_name=\"$RAD->{USER_NAME}\" and
+    acct_session_id='$RAD->{ACCT_SESSION_ID}' and 
+    user_name='$RAD->{USER_NAME}' and
     nas_id='$NAS->{NAS_ID}';", 'do');
  }
 else {
@@ -389,14 +386,12 @@ if ($conf->{s_detalization}) {
 
   $self->query($db, "INSERT into s_detail (acct_session_id, nas_id, acct_status, last_update, 
     sent1, recv1, sent2, recv2, id, sum)
-  VALUES (\"$RAD->{ACCT_SESSION_ID}\", '$NAS->{NAS_ID}',
+  VALUES ('$RAD->{ACCT_SESSION_ID}', '$NAS->{NAS_ID}',
    '$acct_status_type', UNIX_TIMESTAMP(),
    '$RAD->{INTERIUM_INBYTE}', '$RAD->{INTERIUM_OUTBYTE}', 
    '$RAD->{INTERIUM_INBYTE2}', '$RAD->{INTERIUM_OUTBYTE2}', 
    '$RAD->{USER_NAME}', '$self->{SUM}');", 'do');
 }
-
-
 
  return $self;
 }

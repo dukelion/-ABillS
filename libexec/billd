@@ -125,10 +125,10 @@ make_pid($log_dir."/billd.pid", 'clean');
 # Deamon Mode
 #***********************************************************
 sub deamon {
-	
-	
-	
+
 }
+
+
 
 #***********************************************************
 # check_lines
@@ -160,7 +160,8 @@ sub check_lines {
                              'CREDIT',
                              'TP_ID',
                              'DISABLE',
-                             'DV_STATUS' ]
+                             'DV_STATUS',
+                             'SUM' ]
 		                   } );	
 	
   print "==> check_lines\n" if ($debug > 1);
@@ -192,8 +193,13 @@ sub check_lines {
     #If ipcad NAS all checks make in traff2sql 
     next if ($nas_row->[4] eq 'ipcad');
     
+    #if don't have online users skip it
     my $l = $online->{$nas_row->[0]};
-    print "NAS IP: $nas_row->[3]\n NAS_TYPE: $nas_row->[4]\n STATUS: $nas_row->[6]\n Alive: $nas_row->[8]/\n " if ($debug > 0);
+    next if ($#{ $l } < 0);
+    
+    if ($debug > 0) {
+      print "NAS IP: $nas_row->[3]\n NAS_TYPE: $nas_row->[4]\n STATUS: $nas_row->[6]\n Alive: $nas_row->[8]/\n " 
+     }
 
     $NAS{NAS_ID}           = $nas_row->[0];
     $NAS{NAS_IP}           = $nas_row->[3];
@@ -223,6 +229,7 @@ sub check_lines {
       my $deposit                 = $line->[15];
       my $credit                  = ($line->[16] && $line->[16] > 0) ? $line->[16] : (( $line->[17] ) ? $TP_CREDITS{$line->[17]} : 0 ); 
       my $state                   = $line->[18]+$line->[19];
+      my $session_sum             = $line->[20];
       
       
       #hangup connaction if max ext traffic reached
@@ -291,7 +298,7 @@ sub check_lines {
            	                                                      });
             }
 
-           print "Error: Session Calculate / Login: $user_name, Last Alive: $last_alive, Session-ID: $acct_session_id\n$info"; # if ( $debug == 1 );
+           print "Error: Session Calculate / Login: $user_name, Last Alive: $last_alive, Session-ID: $acct_session_id\n$info"; # if ( $debug > 0 );
            next;
           }
          else {
@@ -358,7 +365,7 @@ sub check_lines {
         next if ($Billing->{UID} < 1 && ! $Billing->{HANGUP});
 
         print "> Login: $RAD{USER_NAME} START: $RAD{SESSION_START} DURATION: $RAD{ACCT_SESSION_TIME}\n".
-         "UID: $Billing->{UID} SUM: $Billing->{SUM} BILL_ID: $Billing->{BILL_ID} TARIF_PLAN: $Billing->{TARIF_PLAN} TRAF_TARIF: $Billing->{TRAF_TARIF}\n" if ($debug == 1);
+         "UID: $Billing->{UID} SUM: $Billing->{SUM} BILL_ID: $Billing->{BILL_ID} TARIF_PLAN: $Billing->{TARIF_PLAN} TRAF_TARIF: $Billing->{TRAF_TARIF}\n" if ($debug > 1);
 
         if ( (defined($Billing->{PAYMENT_TYPE}) && $Billing->{PAYMENT_TYPE} == 0) 
                              && ($deposit + $credit <= $Billing->{SUM}) || 
@@ -366,7 +373,7 @@ sub check_lines {
              ) {
 
            #Neg deposit filter
-           if ($Billing->{NEG_DEPOSIT_FILTER} ne '' && $deposit + $credit < 0) {
+           if ($Billing->{NEG_DEPOSIT_FILTER} ne '' && $deposit + $credit + $session_sum < 0) {
               print "Skip with neg deposit filter '$Billing->{NEG_DEPOSIT_FILTER}'\n" if ($debug > 1);
               next;
            	}
@@ -387,6 +394,7 @@ sub check_lines {
      }
    }
 }
+
 
 #**********************************************************
 # Ceck current speed for exppp
@@ -527,7 +535,7 @@ sub check_speed {
     #Get speed from server
     open(PROCS, "/usr/sbin/ngctl list |") || die "Can't open file '' $!\n";
       while(<PROCS>) {
-		    if (/\s+Name: (class[\d+])_([\-a-zA-Z_0-9]+)/) {
+		    if (/\s+Name: (class[\d+])_([a-zA-Z_0-9]+)/) {
 		      my $class = $1;
 		      my $login   = $2;	
 		      print "Login: $login ($class". "_$login)\n" if ($debug > 1);
@@ -635,7 +643,6 @@ else {
 
 	$sessions->online( { %LIST_PARAMS, 
 		                   NAS_ID  => $ARGV->{NAS_IDS}, 
-		                   #FIELDS => [0, 2, 11, 13, 29]   
 		                   FIELDS_NAMES => [ 'USER_NAME', 
 		                   	                 'NAS_PORT_ID', 
 		                   	                 'TP_ID',
@@ -647,12 +654,10 @@ else {
 		               } );	
 
 
-	my $online = $sessions->{nas_sorted};
-  my $nas_list = $nas->list({ %LIST_PARAMS  });
-
-  #my %TP_ARR = ();
-  my %USER_IFACES=();
-  my %TP_HASH = ();
+	my $online     = $sessions->{nas_sorted};
+  my $nas_list   = $nas->list({ %LIST_PARAMS  });
+  my %USER_IFACES= ();
+  my %TP_HASH    = ();
 
   my $NAS_TYPE = '';
   foreach my $nas_row (@$nas_list) {
@@ -675,9 +680,7 @@ else {
         }
       
        print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);
-
        $USER_IFACES{$line->[0]}="$line->[1]:$tp_id:$line->[3]:$line->[5]:$line->[6]";
-
        $TP_HASH{$tp}=1;
      }
   }
@@ -701,12 +704,10 @@ else {
 
   if ($ARGV->{RECONFIGURE}) {
   	print "Reconfigure: $ARGV->{RECONFIGURE}\n" if ($debug > 1);
-
  	  push @FW_ACTIONS, "$IPFW -q flush";
 	  push @FW_ACTIONS, "$IPFW -q pipe flush";
 	  push @FW_ACTIONS, "$IPFW -q table 10 flush";
 	  %pipe_rules = ();
-  	#push @FW_ACTIONS, "$IPFW -q table 2 flush";
    }
 
 
@@ -735,9 +736,7 @@ else {
           POSTPAID            => 1
          });
 
-#    print "RT: $remaining_time\n"  if ($debug == 1);
     my %TT_IDS = %$ret_attr;
-
 
     if (keys %TT_IDS > 0) {
       #Get intervals
@@ -922,18 +921,14 @@ if ($conf{ng_car})   {
   	 	       	   }
   	 	        }
  	  }
-
  }
 
 }
 
-
 #----------------------------------------------------------
 #Old dummy net methods
 else { 
-
   my @static_speeds = ();
-
   my $list = $Dv->list({ SPEED     => '>0', 
   	                     PAGE_ROWS => 100000,
   	                     SORT      => 7,
@@ -967,9 +962,7 @@ else {
     $static_speed_fw_num++;
    }
 
-
- #Make speed 
-
+  #Make speed 
   while(my($user, $other)=each %USER_IFACES) {
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
 
@@ -982,7 +975,6 @@ else {
      	   }
       }
 
-     next;
   	 $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
 
      if ($JOIN_SERVICE > 0) {
@@ -1045,6 +1037,7 @@ else {
             }
           next;
      	   }
+
 
 #IN SPEED
              # Class, $speed
@@ -1114,8 +1107,8 @@ else {
  }
 
 }
-
 }
+
 
 #**********************************************************
 # check Active ppp session and disconnect unknown ip
@@ -1132,7 +1125,6 @@ sub check_speed_change {
 	  $USER_NAME,
 	  $IFACE_ID,
 	  $USER_IP,
-
 	  $attr) = @_;
 
 	my $NAS_TYPE = ($attr->{NAS_TYPE}) ? $attr->{NAS_TYPE} : '';
@@ -1147,8 +1139,6 @@ sub check_speed_change {
    }
 
   my $cmd=`$cmds`;
-	
-	
 	return $cmd;
 }
 
@@ -1190,7 +1180,6 @@ sub check_pptpd {
   		  }
   	 }
    }
-
 }
 
 #**********************************************************
@@ -1211,17 +1200,13 @@ while(my($ip_address, $info)=each %$ip_pid_hash) {
   my $res = '';  
   if ($pid > 0) {
     $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete down`;
-    # /sbin/ifconfig tun$iface delete
    }
   else {
     $res = `/sbin/ifconfig tun$iface delete down`;
    }
-
   print "Killed IP: $ip_address PID: '$pid' -- $res\n";  
-
   get_pid_info($pid) if -f "/var/log/ppp.log";
 }
-
 }
 
 #**********************************************************
@@ -1290,7 +1275,6 @@ else {
      }
   close(IFC);
 
-#  while($ifconfig =~ /tun(\d+): (.+\n\s.+\n\s.*[\n\sa-zA-Z0-9]+\n)/gi) {
   while($ifconfig =~ /tun(\d+): (.+\n\s.+[\n\s.]+[\n\sa-zA-Z0-9]+\n)/gi) {
   
     my $tunnum = $1;
@@ -1356,9 +1340,7 @@ sub check_mikro {
     	$debug_output .= "Skiped Not defined control user NAS_ID: $NAS{NAS_ID}\n" if ($debug > 1);
     	next;
      }
-   
-   
-   
+
     my ($ip, $mng_port)=split(/:/, $NAS{NAS_MNG_IP_PORT}, 2);
     my $cmds = "/usr/bin/ssh -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$NAS{NAS_MNG_USER} ".
       "$NAS{NAS_MNG_USER}\@$ip  \"/ppp active print\" ";
@@ -1374,7 +1356,6 @@ sub check_mikro {
     #$debug_output .= $output if ($debug > 3);
 
     #Analize MK otput
-    #
     #   NAME         SERVICE CALLER-ID         ADDRESS         UPTIME   ENCODING
     #0 R test         pptp    192.168.202.4     10.0.0.10       28m7s    MPPE128...
 
@@ -1409,7 +1390,6 @@ sub check_mikro {
   }  	
 	
 	print $debug_output;
-	
 	#return \%info_hash;
 }
 
@@ -1488,7 +1468,6 @@ sub speed_expr {
   require Tariffs;
   Tariffs->import();
   my $Tariffs = Tariffs->new($db, $admin);
-
 
 #Get TP
   my $list = $Tariffs->list({ %LIST_PARAMS });
@@ -1579,9 +1558,6 @@ sub speed_expr {
       
        #Get last period traffic and speed
        my $cur_speed = $sessions->detail_sum({ LOGIN => $line->[0] });
-       
-
-
        #Set speed
        my $nas_speed_in  = 0;
        my $nas_speed_out = 0;
@@ -1612,9 +1588,7 @@ sub speed_expr {
 
 #GET TRAFFIC
 
-
 #SET SPEED
-
 }
 
 #**********************************************************
@@ -1626,8 +1600,6 @@ sub speed_expr {
 #**********************************************************
 sub mikrotik_ext {
 	my ($attr)=@_;
-
-
 
   my $argv;
 	my $speeds    = $attr->{SPEEDS};

@@ -626,10 +626,6 @@ if(! defined($self->{NO_TPINTERVALS})) {
       $sum  += $self->traffic_calculations({ %$RAD, 
        	                                     SESSION_START => $SESSION_START, 
        	                                     UIDS          => $self->{UIDS} });
-
-      
-      #print "> $k, $v / $periods_traf_tarif->{$k}/ $sum\n";
-
       last;
      }
    }
