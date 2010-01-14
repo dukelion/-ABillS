@@ -62,9 +62,9 @@ elsif(defined($ARGV->{help})){
 
 
 #Demonize section
-print "Start... debug: $debug\n";
 if(defined($ARGV->{'-d'}) && ! defined($ARGV->{'-fg'})){
-  mk_log('LOG_EMERG', "traffci2sql Daemonize..."); 
+  print "Start... debug: $debug\n";
+  mk_log('LOG_INFO', "traffci2sql Daemonize..."); 
   daemonize();
  }
 else {
@@ -577,7 +577,7 @@ if ($debug > 0 || $log_file) {
   else {
   	my $log_message =  "$attr->{LOG} $GT Query: $Ipn->{query_count} ROWS: $Ipn->{TOTAL_FLOWS}"; 
   	$log_message .= $output if ($debug > 0);
-  	mk_log('LOG_EMERG', "$log_message"); 
+  	mk_log('LOG_INFO', "$log_message"); 
    }
   
 
