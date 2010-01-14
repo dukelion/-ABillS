@@ -1319,7 +1319,7 @@ foreach my $nas_row (@$nas_list) {
   next if (($FORM{NAS_ID} && $FORM{NAS_ID} != $nas_row->[0]) && ! $FORM{ZAPED});
 
   my $l = $online->{$nas_row->[0]};
-  my $total = $#{@$l} + 1;  
+  my $total = $#{ $l } + 1;  
   $table->{rowcolor}=$_COLORS[0];
   $table->{extra}="colspan='". ($#CAPTION +1 ) . "' class='small'";
   $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]) .":$nas_row->[3]:$_TOTAL: $total (". $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->[0]", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->[0]' ?" }) .')'  );
