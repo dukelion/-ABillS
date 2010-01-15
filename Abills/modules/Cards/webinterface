@@ -22,7 +22,7 @@ my $payments = Payments->new($db, $admin, \%conf);
 
 my $Cards    = Cards->new($db, $admin, \%conf);
 my @status   = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
-
+my @status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#0000FF', '#808080', '#FF8000');
 
 $conf{CARDS_PIN_SYMBOLS}='0123456789' if (! $conf{CARDS_PIN_SYMBOLS});
 
@@ -66,13 +66,10 @@ sub cards_card_info {
 #**********************************************************
 sub cards_main {
 
-  if ($Cards::VERSION < 5.04) {
-  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.00 or higher. http://abills.net.ua/");
+  if ($Cards::VERSION < 5.06) {
+  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.06 or higher. http://abills.net.ua/");
   	return 0;
    }
-
-
-
 
 if ($FORM{change}) {
   my @ORDERS  = ();    
@@ -105,7 +102,6 @@ if ($FORM{change}) {
                             ORDERS    => [ @ORDERS ],
                           	CREATE    => 1
                           });
-
         }
   }
 
@@ -187,8 +183,6 @@ else {
   $Cards->{DILLERS_SEL}=cards_dillers_sel();
 }
 
-
-
 $Cards->{ADMINS_SEL}=$html->form_select('AID', 
                                           { 
  	                                          SELECTED          => $FORM{AID},
@@ -221,6 +215,9 @@ my $table;
   $Cards->{EXPIRE}=undef if (! $FORM{EXPIRE});
   $Cards->{SERIA}='*' if (! $FORM{SERIA});
 
+  $Cards->{DATE}        = $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
+  $Cards->{CREATED_DATE}= $html->date_fld2('CREATED_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
+  $Cards->{EXPIRE_DATE} = $html->date_fld2('EXPIRE_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
 
   form_search({ SEARCH_FORM => $html->tpl_show(_include('cards_search', 'Cards'), 
   	                                  { %FORM, %$Cards }, 
@@ -239,8 +236,8 @@ if (defined($FORM{SERIA})) {
 
   $table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL: $FORM{SERIA}",
-                           title      => ["$_SERIAL", "$_NUM", "$_LOGIN", "$_SUM", "$_STATUS", "$_EXPIRE", "$_ADDED", 
-                              "$_DILLERS", "$_DATE", "$_SOLD", "$_ADMINS", @pin, '-'],
+                           title      => ["$_SERIAL", "$_NUM", "$_LOGIN", "$_SUM", "$_STATUS", "$_EXPIRE", "$_CREATED", "$_USED $_DATE",
+                              "$_DILLERS", "$_DILLERS $_DATE", "$_SOLD", "$_ADMINS", @pin, '-'],
                            cols_align => ['right', 'right','right','right', 'center', 'right', 'right', 'left', 
                              'right', 'right', 'left', 'right', 'center:noprint'],
                            qs         => $pages_qs,
@@ -264,22 +261,23 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
 
 
   foreach $line (@$list) {
-   	@pin = ("$line->[14]") if ($conf{CARDS_SHOW_PINS}) ;
+   	@pin = ("$line->[15]") if ($conf{CARDS_SHOW_PINS}) ;
    	$pages_qs =~ s/SERIA=[a-zA-Z0-9\*,\ \_]+&//g;
    	$table->addrow(
    	    $html->form_input("IDS", "$line->[0]:$line->[1]", {TYPE => 'checkbox'}). $html->b($line->[0]) , 
   	    $line->[1],
-  	    $html->button($line->[2], "&index=11&UID=$line->[13]"),
+  	    (($line->[2]) ? $html->button($line->[2], "&index=11&UID=$line->[13]") : ''),
   		  $line->[3],
-  		  $status[$line->[4]],
+  		  $html->color_mark($status[$line->[4]], $status_colors[$line->[4]]),
   		  $line->[5],
   		  $line->[6],
-  		  $html->button($line->[7], "index=15&UID=$line->[15]"),
-  		  $line->[8],
+  		  (($line->[7] ne '0000-00-00 00:00:00') ? $line->[7] : ''),
+   		  (($line->[8])? $html->button($line->[7], "index=15&UID=$line->[15]") : ''),
   		  $line->[9],
   		  $line->[10],
+  		  $line->[11],
   		  @pin,
-  		  $html->button($_DEL, "index=$index&del=1&NUMBER=$line->[1]&SERIA=$line->[0]&ID=$line->[16]$pages_qs", { MESSAGE => "$_DEL [$line->[0]$line->[1]] ?" })
+  		  $html->button($_DEL, "index=$index&del=1&NUMBER=$line->[1]&SERIA=$line->[0]&ID=$line->[16]$pages_qs", { MESSAGE => "$_DEL [$line->[0]$line->[1]] ?", BUTTON => 1 })
   		);
     }
 
@@ -337,8 +335,8 @@ else {
   		  $line->[5],
   		  $line->[6],
   		  $line->[7],
-  		  $html->button($_SHOW, "index=$index$pages_qs&SERIA=$line->[0]"),
-  		  $html->button($_DEL, "index=$index$pages_qs&del=1&SERIA=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+  		  $html->button($_SHOW, "index=$index$pages_qs&SERIA=$line->[0]", { BUTTON => 1 }),
+  		  $html->button($_DEL, "index=$index$pages_qs&del=1&SERIA=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 })
   		   
   		   );
 
@@ -359,13 +357,13 @@ else {
                           title_plain => [$_STATUS, "$_COUNT", "$_SUM" ],
                           cols_align  => ['right', 'right', 'right'],
                           rows        => [ \@total_arr,
-                                           [ "$_TOTAL:",   $html->b($Cards->{TOTAL}), $Cards->{TOTAL_SUM}       ],
-                                           [ "$_USED",     $Cards->{USED}           , $Cards->{USED_SUM}        ],
-                                           [ "$_ENABLE:",  $Cards->{ENABLED}        , $Cards->{ENABLED_SUM}     ],
-                                           [ "$_DISABLE:", $Cards->{DISABLED}       , $Cards->{DISABLED_SUM}    ],
-                                           [ "$_DELETED",  $Cards->{DELETED}        , $Cards->{DELETED_SUM}     ],
-                                           [ "$_RETURNED", $Cards->{RETURNED}       , $Cards->{RETURNED_SUM}    ],
-                                           [ "$_SOLD",     $Cards->{DILLER_SOLD}    , $Cards->{DILLER_SOLD_SUM} ]
+                                           [ $html->b("$_TOTAL:"),   $html->b($Cards->{TOTAL}), $html->b($Cards->{TOTAL_SUM})       ],
+                                           [ $html->color_mark("$_USED:", $status_colors[2]),     $Cards->{USED}           , $Cards->{USED_SUM}        ],
+                                           [ "$_ENABLE:",      $Cards->{ENABLED}        , $Cards->{ENABLED_SUM}     ],
+                                           [ $html->color_mark("$_DISABLE:", $_COLORS[6]), $Cards->{DISABLED}       , $Cards->{DISABLED_SUM}    ],
+#                                           [ "$_DELETED:",  $Cards->{DELETED}        , $Cards->{DELETED_SUM}     ],
+                                           [ $html->color_mark("$_RETURNED", '#FF8000'), $Cards->{RETURNED}       , $Cards->{RETURNED_SUM}    ],
+                                           [ "$_SOLD:",     $Cards->{DILLER_SOLD}    , $Cards->{DILLER_SOLD_SUM} ]
                                         ]
                         });
 
@@ -424,6 +422,7 @@ sub cards_add {
    	  else {
    	    $html->message('info', $_INFO, "$_ADDED: $added $_CARDS");
    	    print "<textarea cols='70' rows='30'>$export</textarea>\n";
+   	    return 0;
    	   }
     }
  }
@@ -511,8 +510,8 @@ sub cards_bruteforce () {
  		      $line->[1], 
   		    $line->[2],
   		    $line->[3],
-  		    $html->button("$_SHOW", "index=$index&UID=$line->[4]"), 
-  		    $html->button($_DEL, "index=$index$pages_qs&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+  		    $html->button("$_SHOW", "index=$index&UID=$line->[4]", { BUTTON => 1 }), 
+  		    $html->button($_DEL, "index=$index$pages_qs&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1  })
   		  );
    }
 
@@ -536,9 +535,6 @@ sub cards_bruteforce () {
 sub cards_users_add  {
   my ($attr) = @_;
 
-
-  
-
   if ($FORM{create}) {
       my $export       = '';
     	my $begin        = $FORM{BEGIN} || 0;
@@ -549,9 +545,6 @@ sub cards_users_add  {
       my $DATA_ARRAY   = ();
       $FORM{LOGIN_LENGTH} =6 if (! $FORM{LOGIN_LENGTH});
       $FORM{PASSWD_LENGTH}=6 if (! $FORM{PASSWD_LENGTH});  
-
-      
-
 
       if ($FORM{LOGIN_FILE}) {
       	 $html->message('info', $_INFO, "$_FILE: $FORM{LOGIN_FILE}{filename}");
@@ -601,7 +594,6 @@ sub cards_users_add  {
            $begin++;
           }
 
-        
       	$table = $html->table({ width  => '100%',
                                 rows   => [ [$_NAME,   $FORM{FILE_DATA}{filename} ],
                                             [$_TOTAL,  $#DATA_ARRAY+1 ],
@@ -905,9 +897,9 @@ if ($Cards->{errno}) {
   		  $status[$line->[6]],
   		  $line->[7],
   		  $line->[8],
-  		  $html->button($_INFO, "index=$index$pages_qs&info=$line->[0]"),
-  		  $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]"),
-  		  $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" })
+  		  $html->button($_INFO, "index=$index$pages_qs&info=$line->[0]", { BUTTON => 1 }),
+  		  $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]", { BUTTON => 1 }),
+  		  $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 })
 		   );
     }
 
@@ -1788,8 +1780,8 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?" }); 
-    $change = $html->button($_CHANGE, "index=$index&chg=$line->[4]");
+    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1  }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[4]", { BUTTON => 1 });
    }
   
   if($FORM{chg} eq $line->[4]) {
@@ -1814,7 +1806,6 @@ $table = $html->table( { width      => '100%',
                          rows       => [ [ "$_TOTAL:", $html->b($tariffs->{TOTAL}) ] ]
                      } );
 print $table->show();
-	
 }
 
 
@@ -1822,7 +1813,6 @@ print $table->show();
 #
 #**********************************************************
 sub cards_diller_stats {
-
 	$LIST_PARAMS{DILLER_ID}=$diller->{ID};
 
   $FORM{PAGE_ROWS}=$FORM{rows} if ($FORM{rows});
@@ -2053,11 +2043,7 @@ else {
                            qs           => $pages_qs,
                            pages        => $Cards->{TOTAL}
                          });
- 
 
-  
-  
-  
   my $list = $Cards->cards_report_days({ %LIST_PARAMS, 
   	                                     SERIA => '' 
  	                                     });
@@ -2073,14 +2059,10 @@ else {
   	    );
     }
 
-
    print $table->show();
 }
-
    
 }
-
-
 
 
 #**********************************************************
@@ -2102,7 +2084,6 @@ else {
  my $list = $Cards->cards_list({ %LIST_PARAMS, 
   	                              SERIA => $FORM{SERIA} || '' 
  	                              });
-
 
  my $i               = 0;
  my %page_print_hash = ();
