@@ -116,7 +116,7 @@ sub online_count {
    sum(if ((c.status=1 or c.status>=3) AND c.status<11, 1, 0)),
    count(distinct uid),
    sum(if (status=2, 1, 0)), 
-   sum(if (status>3, 1, 0))
+   sum(if (status>3 and status<11, 1, 0))
  FROM dv_calls c, nas n
  WHERE c.nas_id=n.id 
  GROUP BY c.nas_id
@@ -367,7 +367,6 @@ sub online {
    c.acct_session_id,
    c.CID,
    dv.tp_id
-   
  FROM dv_calls c
  LEFT JOIN users u     ON (u.uid=c.uid)
  LEFT JOIN dv_main dv  ON (dv.uid=u.uid)
@@ -376,14 +375,13 @@ sub online {
  LEFT JOIN bills b ON (u.bill_id=b.id)
  LEFT JOIN companies company ON (u.company_id=company.id)
  LEFT JOIN bills cb ON (company.bill_id=cb.id)
- 
+
  $WHERE
  ORDER BY $SORT $DESC;");
 
  my %dub_logins = ();
  my %dub_ports  = ();
  my %nas_sorted = ();
-
 
  if ($self->{TOTAL} < 1) {
  	 $self->{dub_ports} =\%dub_ports;
@@ -583,27 +581,21 @@ sub session_detail {
   l.duration,
   l.tp_id,
   tp.name,
-
   l.sent + 4294967296 * acct_output_gigawords, 
   l.recv + 4294967296 * acct_input_gigawords,
-
   l.sent2, 
   l.recv2,
-
   INET_NTOA(l.ip),
   l.CID,
   l.nas_id,
   n.name,
   n.ip,
   l.port_id,
-  
   l.minp,
   l.kb,
   l.sum,
-
   l.bill_id,
   u.id,
-  
   l.uid,
   l.acct_session_id,
   l.terminate_cause,
@@ -636,14 +628,11 @@ sub session_detail {
    $self->{NAS_NAME},
    $self->{NAS_IP},
    $self->{NAS_PORT}, 
-
    $self->{TIME_TARIFF},
    $self->{TRAF_TARIFF},
    $self->{SUM}, 
-
    $self->{BILL_ID}, 
    $self->{LOGIN}, 
-
    $self->{UID}, 
    $self->{SESSION_ID},
    $self->{ACCT_TERMINATE_CAUSE},
