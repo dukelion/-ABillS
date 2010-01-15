@@ -4712,6 +4712,8 @@ elsif ($type eq 'monthly') {
 sub dv_cards {
 	require "Abills/modules/Cards/webinterface";
 
+  $FROM{CARDS_FORM}=1;
+
   my $dv_tpl = dv_wizard_user({ OUTPUT2RETURN => 1,
   	                            NO_EXTRADATA  => 1,
   	                            TPLS          => { '2:' => '',
@@ -4937,7 +4939,7 @@ sub dv_wizard_user {
        }
 
       # Msgs
-      if (in_array('Msgs', \@MODULES) && $add_values{7} && ! defined($FROM{BEGIN})) {
+      if (in_array('Msgs', \@MODULES) && $add_values{7} && $FORM{'7.SUBJECT'}) {
         require "Abills/modules/Msgs/webinterface";
         my $Msgs = Msgs->new($db, $admin, \%conf);
         
@@ -5160,7 +5162,7 @@ sub dv_wizard_user {
   }
  
  #If msgs module added
- if (in_array('Msgs', \@MODULES) && ! defined($FROM{BEGIN})) {
+ if (in_array('Msgs', \@MODULES) && ! defined($FROM{CARDS_FORM})) {
    require "Abills/modules/Msgs/webinterface";
    my $Msgs = Msgs->new($db, $admin, \%conf);
    $FORM{UID}=-1;
