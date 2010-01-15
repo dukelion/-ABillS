@@ -4937,7 +4937,7 @@ sub dv_wizard_user {
        }
 
       # Msgs
-      if (in_array('Msgs', \@MODULES) && $add_values{7}) {
+      if (in_array('Msgs', \@MODULES) && $add_values{7} && ! defined($FROM{BEGIN})) {
         require "Abills/modules/Msgs/webinterface";
         my $Msgs = Msgs->new($db, $admin, \%conf);
         
@@ -5160,7 +5160,7 @@ sub dv_wizard_user {
   }
  
  #If msgs module added
- if (in_array('Msgs', \@MODULES)) {
+ if (in_array('Msgs', \@MODULES) && ! defined($FROM{BEGIN})) {
    require "Abills/modules/Msgs/webinterface";
    my $Msgs = Msgs->new($db, $admin, \%conf);
    $FORM{UID}=-1;
