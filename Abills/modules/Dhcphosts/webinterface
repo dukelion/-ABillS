@@ -50,7 +50,6 @@ if ($FORM{MAKE}) {
                                                            {}, { OUTPUT2RETURN => 1 });
   $html->tpl_show(_include('dhcphosts_ipguard', 'Dhcphosts'), { ETHER_CONTENT => "$ethers_content",
 	 	                                                           });
-
 }
 
 #*******************************************************************
@@ -83,8 +82,6 @@ sub dhcphosts_mac_block_show {
 	     	next;
 	     }
 
-
-
       #Chack status
       my $status = ($line->[10] == 1 || $line->[14+$Dhcphosts->{SEARCH_FIELDS_COUNT}] == 1 ) ? 1 : 0;	    
 
@@ -98,7 +95,6 @@ sub dhcphosts_mac_block_show {
        }
 
       $deposit = 0 if (! $deposit);
-
       
       my %INFO = (
             IP      => ($conf{DHCPHOSTS_IPGUARD_FORMAT} && $conf{DHCPHOSTS_IPGUARD_FORMAT} eq 'MAC') ? '0.0.0.0' : $line->[11],
@@ -125,16 +121,13 @@ sub dhcphosts_mac_block_show {
       	                              STATUS  => $pair_status[$status],
       	                              %INFO
       	                         }); 
-      	
        }
 
       $ethers_content .= "\n";
-      
     };
 
   $ethers_content .= $html->tpl_show(_include('dhcphosts_ipguard_static', 'Dhcphosts'), 
                                                            undef, { OUTPUT2RETURN => 1 });
-
 
 	return  $ethers_content;
 }
@@ -522,7 +515,7 @@ function CheckAllINBOX() {
 
    print $html->form_main({ CONTENT => $table->show(),
 	                          HIDDEN  => { index  => $index },
-                            SUBMIT  => { config => 'dhcp.conf' },
+                            SUBMIT  => { config => "$_SHOW ".' dhcpd.conf, '. $_RECONFIGURE},
                             NAME    => 'dhcp_list'
                           });
 
@@ -604,11 +597,8 @@ sub dhcphosts_hosts {
 #
 #**********************************************************
 sub dhcphosts_routes {
-
   $Dhcphosts->{ACTION}='add';
   $Dhcphosts->{ACTION_LNG}=$_ADD;
-  
-
 
   if ($FORM{add}) {
     $Dhcphosts->route_add({ %FORM });
@@ -620,9 +610,8 @@ sub dhcphosts_routes {
 	  $FORM{SRC}    = ip2int($FORM{SRC});
 	  $FORM{MASK}   = ip2int($FORM{MASK});
 	  $FORM{ROUTER} = ip2int($FORM{ROUTER});
-
 	  $Dhcphosts->route_change({ %FORM });
-    
+
     if (! $Dhcphosts->{errno}) {
 	    $html->message('info', $_CHANGED, "$_CHANGED [$FORM{ID}] $FORM{SRC} ");
 	   }
@@ -660,7 +649,8 @@ sub dhcphosts_routes {
 				title      => ['#', "$_HOSTS_NETWORKS_NAME", "$_HOSTS_NETWORKS_NET", "NETMASK","$_HOSTS_ROUTER" ,"-","-"],
 				cols_align => ['left', 'left', 'right','right', 'right', 'center:noprint','center:noprint'],
 				qs         => $pages_qs,
-				pages      => $Dhcphosts->{TOTAL}
+				pages      => $Dhcphosts->{TOTAL},
+				ID         => 'DHCPHOSTS_ROUTES'
     });
 
 
@@ -671,19 +661,18 @@ sub dhcphosts_routes {
 	    $line->[2],
 	    $line->[3],
 	    $line->[4],
-	    $html->button($_DEL, "index=$index&del=$line->[0]&NET_ID=".$FORM{NET_ID}, { MESSAGE => "$_DEL $line->[0]?" }),
-	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&NET_ID=".$FORM{NET_ID})
+	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&NET_ID=".$FORM{NET_ID}, { BUTTON => 1 } ),
+	    $html->button($_DEL, "index=$index&del=$line->[0]&NET_ID=".$FORM{NET_ID}, { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }),
       );
     };
 
    print $table->show();
 
-  $table = $html->table( { width      => '100%',
+   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Dhcphosts->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($Dhcphosts->{TOTAL}) ] ]
                        } );
   print $table->show();
-
 };
 
 #**********************************************************
@@ -799,11 +788,7 @@ sub dhcphosts_user {
      }
   }
 
-   
-  
   $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel({ AUTOSIGN => 1 });
-
-
 
   $Dhcphosts->{STATUS_SEL} = $html->form_select('STATUS',
 			                                   {   SELECTED => $FORM{STATUS},
@@ -821,16 +806,14 @@ sub dhcphosts_user {
   else {
     $Dhcphosts->{OPTION_82}=' checked';
    }
-  
+
   $Dhcphosts->{SWITCH_SEL} = $html->form_select('NAS_ID',
                                           {
                                                   SELECTED          => $Dhcphosts->{NAS_ID},
                                                   SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list() } ],
                                                   MULTI_ARRAY_KEY   => 0,
                                                   MULTI_ARRAY_VALUE => 1,
-     #                                             EX_PARAMS         => (! $Dhcphosts->{OPTION_82}) ? "DISABLED STYLE='background-color: $_COLORS[3]'" : ''
                                            });
-
   dhcphosts_hosts();
 
   $html->tpl_show(_include('dhcphosts_host', 'Dhcphosts'), { %{ $Dhcphosts->host_defaults() }, 
@@ -870,12 +853,10 @@ sub dhcphosts_get_static_ip {
   	                                    PAGE_ROWS => 100000
                      	                });
 
-
     foreach my $line (@$list) {
       $users_ips{$line->[2]}=1;
      }
-  
-  
+
     for(my $ip_cur=$start_ip; $ip_cur<=$end_ip; $ip_cur++) {
   	  if (! $users_ips{$ip_cur}) {
   		  return int2ip($ip_cur);
@@ -883,7 +864,7 @@ sub dhcphosts_get_static_ip {
      }
   	$html->message('err', $_ERROR, "$ERR_NO_FREE_IP_IN_POOL");
 	}
-	
+
 	return $ip;
 }
 
@@ -938,9 +919,6 @@ sub dhcphosts_config {
   	 $NAS_MACS{$line->[0]}="$line->[1],$1";
   	}
    }
-  
-#  my @networks = split(/, /, $attr->{NETWORKS});
-#foreach my $NET_ID (@networks) {
 
 my $list = $Dhcphosts->networks_list({ DISABLE   => 0, 
 	                                     PAGE_ROWS => 10000, 
@@ -953,11 +931,11 @@ foreach my $line (@$list) {
   $INFO{OPTION82_POOLS}='';
   $Dhcphosts->network_info($NET_ID);
   
-  $INFO{DNS}        = ($Dhcphosts->{DNS}) ? "option domain-name-servers $Dhcphosts->{DNS};"  : undef;
-  $INFO{DOMAINNAME} = ($Dhcphosts->{DOMAINNAME}) ? "option domain-name \"$Dhcphosts->{DOMAINNAME}\";" : undef;
+  $INFO{DNS}          = ($Dhcphosts->{DNS}) ? "option domain-name-servers $Dhcphosts->{DNS};"  : undef;
+  $INFO{DOMAINNAME}   = ($Dhcphosts->{DOMAINNAME}) ? "option domain-name \"$Dhcphosts->{DOMAINNAME}\";" : undef;
   
-  $INFO{ROUTERS}    = "option routers $Dhcphosts->{ROUTERS};" if ($Dhcphosts->{ROUTERS} ne '0.0.0.0');
-  $INFO{DATETIME}   = "$DATE $TIME / Dhcphosts";
+  $INFO{ROUTERS}      = "option routers $Dhcphosts->{ROUTERS};" if ($Dhcphosts->{ROUTERS} ne '0.0.0.0');
+  $INFO{DATETIME}     = "$DATE $TIME / Dhcphosts";
   
   $INFO{NETWORK_NAME} = $Dhcphosts->{NAME};
   $INFO{BLOCK_NETWORK}= $Dhcphosts->{BLOCK_NETWORK};
@@ -970,8 +948,6 @@ foreach my $line (@$list) {
   $INFO{AUTHORITATIVE}= ($Dhcphosts->{AUTHORITATIVE}) ? 'authoritative;' : '';
   $INFO{DENY_UNKNOWN_CLIENTS}= ($Dhcphosts->{DENY_UNKNOWN_CLIENTS}) ? 'deny unknown-clients;' : '';
   
-
-  
   if ($Dhcphosts->{IP_RANGE_FIRST} ne '0.0.0.0') {
     $INFO{RANGE}        = "range $Dhcphosts->{IP_RANGE_FIRST} $Dhcphosts->{IP_RANGE_LAST};";
    }
@@ -980,17 +956,14 @@ foreach my $line (@$list) {
    }
 
   #Add static route
-
   my $list = $Dhcphosts->routes_list({ NET_ID => $NET_ID });  
   if ($Dhcphosts->{TOTAL} > 0) {
     my $routes="";
 
     foreach my $line (@$list) {
-      #($src,$mask,$router)=$sth->fetchrow_array()){
       my $src    = $line->[2];
       my $mask   = $line->[3]; 
       my $router = $line->[4];
-      #print "// $src,$mask,$router\n";
       
       my @ip=split(/\./,$src);
       my @ip2=split(/\./,$router);    
@@ -1006,14 +979,13 @@ foreach my $line (@$list) {
     chop $routes;
     chop $routes;
     $routes.=";";
-   # MS routes: adds extras to supplement routers option
+
+    # MS routes: adds extras to supplement routers option
     $INFO{NET_ROUTES}="option ms-classless-static-routes $routes\n";
 
     # RFC3442 routes: overrides routers option
     $INFO{NET_ROUTES_RFC3442}="option rfc3442-classless-static-routes $routes\n";
    }
-
-
 
   #Make hosts
   $INFO->{NETWORK}='';
@@ -1215,12 +1187,6 @@ sub mask2bitlen {
 #  option classless-route-xp code 249 = string;
 #  option classless-route  16:0a:0b:00:c0:a8:32:01:14:c0:a8:50:c0:a8:32:01:17:c0:a8:5a:c0:a8:32:01:20:0a:0a:0a:0a:c0:a8:32:02:14:c0:a8:00:c0:a8:32:01;
 #  option classless-route-xp 16:0a:0b:00:c0:a8:32:01:14:c0:a8:50:c0:a8:32:01:17:c0:a8:5a:c0:a8:32:01:20:0a:0a:0a:0a:c0:a8:32:02:14:c0:a8:00:c0:a8:32:01;
-# make_classless_option({
-#        "172.16.0.0/12" => "10.0.0.1",
-#        "10.0.0.0/8" => "10.0.0.1",
-#        "0.0.0.0/0" => "192.168.0.1",
-#        "192.168.234.0/24" => "192.168.0.5"
-#        });
 #**********************************************************
 sub make_classless_option {
     my $routes = shift;

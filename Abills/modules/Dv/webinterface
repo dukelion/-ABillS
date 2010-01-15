@@ -141,7 +141,6 @@ if ($FORM{set}) {
         dv_get_month_fee($Dv);
        }
 
-    	
       $html->message('info', $_CHANGED, "$_CHANGED");
       $Dv->info($Dv->{UID});
     }
@@ -3079,7 +3078,6 @@ if ($FORM{set}) {
       return 0;
      }
 
-    $FORM{date_M}++;    
     $shedule->add( {UID     => $LIST_PARAMS{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
@@ -3134,33 +3132,29 @@ if ($FORM{set}) {
         $Dv->{ABON_DATE} = "$Y-$M-$D";
        }
     }
-
-
     
 
     if ($Dv->{ABON_DATE}) {
-      
       ($year, $month, $day)=split(/-/, $Dv->{ABON_DATE}, 3);
  	    use POSIX;
-    
+   
       my $seltime = POSIX::mktime(0, 0, 0, $day, ($month-1), ($year - 1900));
-    
+
       if ($seltime <= time()) {
         $html->message('info', $_INFO, "$ERR_WRONG_DATA ($year, $month, $day)/". $seltime . "-" . time());
         return 0;
        }
-      elsif($FORM{date_D} > ($FORM{date_M}!=2?(($month%2)^($month>7))+30:(!($year%400)||!($year%4)&&($year%25)?29:28))) {
+      elsif($FORM{date_D} > ($month!=2?(($month%2)^($month>7))+30:(!($year%400)||!($year%4)&&($year%25)?29:28))) {
         $html->message('info', $_INFO, "$ERR_WRONG_DATA ($year-$month-$day)");
         return 0;
        }
-
 
       $shedule->add( {UID     => $LIST_PARAMS{UID},
                      TYPE     => 'tp',
                      ACTION   => $FORM{TP_ID},
     	               D        => $day,
                      M        => $month,
-                     Y        => $day,
+                     Y        => $year,
                      DESCRIBE => "$message<br>
                      $_FROM: '$year-$month-$day'",
                      MODULE   => 'Dv'
