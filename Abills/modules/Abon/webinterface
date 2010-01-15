@@ -474,9 +474,11 @@ sub abon_get_month_fee {
             $DATE    = "$active_y-$m-$active_d";
             $TIME    = "00:00:00";
             
-            #if ($Abon->{TP_INFO}->{PERIOD_ALIGNMENT}) { #  $users-
-            >change($Abon->{UID}, { ACTIVATE => '0000-00-00', # 
-            UID      => $Abon->{UID} }); # } }
+            #if ($Abon->{TP_INFO}->{PERIOD_ALIGNMENT}) { 
+            #  $users->change($Abon->{UID}, { ACTIVATE => '0000-00-00', 
+            #  UID      => $Abon->{UID} }); 
+            # } 
+            }
          
           if ($Abon->{COMMENTS}) {
           	$message .= $Abon->{COMMENTS};
@@ -498,5 +500,7 @@ sub abon_get_month_fee {
 
       }
 }
+
+
 
 1
