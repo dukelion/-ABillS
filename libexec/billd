@@ -228,6 +228,7 @@ sub check_lines {
       my $duration_sec            = $line->[14];
       my $deposit                 = $line->[15];
       my $credit                  = ($line->[16] && $line->[16] > 0) ? $line->[16] : (( $line->[17] ) ? $TP_CREDITS{$line->[17]} : 0 ); 
+      my $tp_num                  = $line->[17];
       my $state                   = $line->[18]+$line->[19];
       my $session_sum             = $line->[20];
       
@@ -360,11 +361,24 @@ sub check_lines {
          $Billing->{TARIF_PLAN}, 
          $Billing->{TIME_TARIF}, 
          $Billing->{TRAF_TARIF}) = $Billing->session_sum("$RAD{USER_NAME}", 
-                                                       $RAD{SESSION_START}, 
-                                                       $RAD{ACCT_SESSION_TIME}, 
-                                                       \%RAD);
+                                                         $RAD{SESSION_START}, 
+                                                         $RAD{ACCT_SESSION_TIME}, 
+                                                         \%RAD,
+                                                         { UID    => $uid,
+                                                         	 TP_NUM => $tp_num});
 
-        next if ($Billing->{UID} < 1 && ! $Billing->{HANGUP});
+        if ($Billing->{UID} < 1 && ! $Billing->{HANGUP}) {
+        	if ($Billing->{UID} == -1) {
+        		print "Less than minimun session trafic and time\n" if ($debug > 2);
+        	 }
+        	elsif ($Billing->{UID} == -2) {
+        		print "Can't find user account\n";
+        	 }
+        	elsif ($Billing->{UID} == -3) {
+        		print "Sql error\n";
+        	 }
+        	next
+         }
 
         print "START: $RAD{SESSION_START} DURATION: $RAD{ACCT_SESSION_TIME} ".
          "UID: $Billing->{UID} SUM: $Billing->{SUM} BILL_ID: $Billing->{BILL_ID} TARIF_PLAN: $Billing->{TARIF_PLAN} TRAF_TARIF: $Billing->{TRAF_TARIF}\n" if ($debug > 2);

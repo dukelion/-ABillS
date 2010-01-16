@@ -35,7 +35,7 @@ sub new {
   my $self = { };
   bless($self, $class);
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
-  #$self->{debug}=1;
+
   return $self;
 }
 
@@ -368,7 +368,7 @@ sub get_traffic_ipn {
 # Return 
 # >= 0 - session sum
 # -1 Less than minimun session trafic and time
-# -2 Not found user in users db
+# -2 Can't find user account
 # -3 SQL Error
 # -4 Company not found
 # -5 TP not found
@@ -405,8 +405,70 @@ sub session_sum {
 
  $self->{HANGUP}=undef;
 
+ if ($attr->{UID}) {
+   $self->query($db, "SELECT 
+    UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')),
+    DAYOFWEEK(FROM_UNIXTIME($SESSION_START)),
+    DAYOFYEAR(FROM_UNIXTIME($SESSION_START)),
+    u.reduction,
+    u.bill_id,
+    u.activate,
+    u.company_id,
+    u.domain_id
+   FROM users u
+   WHERE  u.uid='$attr->{UID}';");
+
+   if($self->{errno}) {
+     return -3, 0, 0, 0, 0, 0;
+    }
+   #user not found
+   elsif ($self->{TOTAL} < 1) {
+     return -2, 0, 0, 0, 0, 0;	
+    }
+
+  $self->{UID}=$attr->{UID};
+  ($self->{DAY_BEGIN}, 
+   $self->{DAY_OF_WEEK}, 
+   $self->{DAY_OF_YEAR}, 
+   $self->{REDUCTION},
+   $self->{BILL_ID}, 
+   $self->{ACTIVATE},
+   $self->{COMPANY_ID},
+   $attr->{DOMAIN_ID}
+  ) = @{ $self->{list}->[0] };	
+ 	
+ 	$self->query($db, "SELECT 
+    tp.min_session_cost,
+    tp.payment_type,
+    tp.octets_direction,
+    tp.traffic_transfer_period,
+    tp.total_time_limit,
+    tp.total_traf_limit,
+    tp.tp_id
+   FROM tarif_plans tp
+   WHERE tp.id='$attr->{TP_NUM}' AND tp.domain_id='$attr->{DOMAIN_ID}';");
+
+   if($self->{errno}) {
+     return -3, 0, 0, 0, 0, 0;
+    }
+   #TP not found
+   elsif ($self->{TOTAL} < 1) {
+     return -5, 0, 0, 0, 0, 0;	
+    }
+
+   $self->{TP_NUM}=$attr->{TP_NUM};
+
+   ( $self->{MIN_SESSION_COST},
+     $self->{PAYMENT_TYPE},
+     $self->{OCTETS_DIRECTION},
+     $self->{TRAFFIC_TRANSFER_PERIOD},
+     $self->{TOTAL_TIME_LIMIT},
+     $self->{TOTAL_TRAF_LIMIT},
+     $self->{TP_ID},
+    ) = @{ $self->{list}->[0] };
+  }
  #If defined TP_NUM
- if ($attr->{TP_NUM}) {
+ elsif ($attr->{TP_NUM}) {
    $self->query($db, "SELECT 
     u.uid,
     UNIX_TIMESTAMP(DATE_FORMAT(FROM_UNIXTIME($SESSION_START), '%Y-%m-%d')),
@@ -447,7 +509,6 @@ sub session_sum {
     tp.tp_id
    FROM tarif_plans tp
    WHERE tp.id='$attr->{TP_NUM}' AND tp.domain_id='$attr->{DOMAIN_ID}';");
-
 
    if($self->{errno}) {
      return -3, 0, 0, 0, 0, 0;
@@ -601,7 +662,7 @@ if ($self->{TOTAL_TRAF_LIMIT} && $self->{CHECK_SESSION}) {
                          	 TP_ID  => $self->{TP_ID} 
                          	 }
                         );
- 
+
  #session devisions
  my @sd = @{ $self->{TIME_DIVISIONS_ARR} };
  $self->{TI_ID} = 0;
