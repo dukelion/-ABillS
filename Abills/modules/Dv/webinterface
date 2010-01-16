@@ -4983,14 +4983,14 @@ sub dv_wizard_user {
             $FORM{UID}       = $UID;
 
             $FORM{'IDS'}     = '1, 2';
-            $FORM{'ORDER_1'}= "$_DV";
-            $FORM{'COUNT_1'}= 1;
+            $FORM{'ORDER_1'} = "$_DV";
+            $FORM{'COUNT_1'} = 1;
             $FORM{'UNIT_1'}  = 0;
             $FORM{'SUM_1'}   = $tariffs->{MONTH_FEE};
 
             if ($tariffs->{ACTIV_PRICE}) {
-              $FORM{'ORDER_2'}= "$_ACTIVATE";
-              $FORM{'COUNT_2'}= 1;  
+              $FORM{'ORDER_2'} = "$_ACTIVATE";
+              $FORM{'COUNT_2'} = 1;  
               $FORM{'UNIT_2'}  = 0;
               $FORM{'SUM_2'}   = $tariffs->{ACTIV_PRICE};
              }
@@ -5119,6 +5119,17 @@ sub dv_wizard_user {
  	                                NO_ID      => 1
  	                               });
      }
+
+  $pi_form{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { FORM_NAME => 'users_pi',
+  	                                                            WEEK_DAYS => \@WEEKDAYS,
+  	                                                            MONTHES   => \@MONTHES,
+  	                                                            DATE      => $user_pi->{PASPORT_DATE}
+  	                                                            });
+
+  $pi_form{CONTRACT_DATE} = $html->date_fld2('CONTRACT_DATE', { FORM_NAME => 'users_pi',
+  	                                                              WEEK_DAYS => \@WEEKDAYS,
+  	                                                              MONTHES   => \@MONTHES,
+  	                                                              DATE      => $user_pi->{CONTRACT_DATE} });
 
  
  $pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), undef, { OUTPUT2RETURN => 1 });
