@@ -389,7 +389,7 @@ sub check_lines {
              ) {
 
            #Neg deposit filter
-           if ($Billing->{NEG_DEPOSIT_FILTER} ne '' && $deposit + $credit + $session_sum < 0) {
+           if ($Billing->{NEG_DEPOSIT_FILTER} && $deposit + $credit + $session_sum < 0) {
               print "Skip with neg deposit filter '$Billing->{NEG_DEPOSIT_FILTER}'\n" if ($debug > 1);
               next;
            	}

@@ -50,7 +50,8 @@ sub hangup {
    #hangup_mikrotik_telnet($NAS, $PORT, $USER);
   }
  elsif ($nas_type eq 'chillispot') {
-   hangup_radius($NAS, $PORT, $USER);
+   $NAS->{NAS_MNG_IP_PORT}="$NAS->{NAS_IP}:3799" if (! $NAS->{NAS_MNG_IP_PORT});
+   hangup_radius($NAS, $PORT, $USER, $attr);
   }
  elsif ($nas_type eq 'usr') {
    hangup_snmp($NAS, $PORT, { OID   => '.1.3.6.1.4.1.429.4.10.13.'. $PORT,
