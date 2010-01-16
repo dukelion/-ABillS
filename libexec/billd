@@ -137,7 +137,7 @@ sub check_lines {
 	require Billing;
 	Billing->import();
 
-  $sessions->{debug}=1 if ($debug > 2);
+  $sessions->{debug}=1 if ($debug > 4);
 
 	$sessions->online( { 
 		                   #%LIST_PARAMS, 
@@ -198,7 +198,7 @@ sub check_lines {
     next if ($#{ $l } < 0);
     
     if ($debug > 0) {
-      print "NAS IP: $nas_row->[3]\n NAS_TYPE: $nas_row->[4]\n STATUS: $nas_row->[6]\n Alive: $nas_row->[8]/\n " 
+      print "NAS IP: $nas_row->[3] NAS_TYPE: $nas_row->[4] STATUS: $nas_row->[6] Alive: $nas_row->[8] Online: ". ($#{ $l }+1) ."\n";
      }
 
     $NAS{NAS_ID}           = $nas_row->[0];
@@ -231,7 +231,9 @@ sub check_lines {
       my $state                   = $line->[18]+$line->[19];
       my $session_sum             = $line->[20];
       
-      
+      if ($debug > 1) {
+        printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $user_name, int2ip($client_ip), $duration, $acct_input_octets, $acct_output_octets, $deposit);
+       }    
       #hangup connaction if max ext traffic reached
       if ($acct_input_octets_ext > $exppp_hanguplimit 
          || $acct_output_octets_ext > $exppp_hanguplimit 
@@ -364,8 +366,8 @@ sub check_lines {
 
         next if ($Billing->{UID} < 1 && ! $Billing->{HANGUP});
 
-        print "> Login: $RAD{USER_NAME} START: $RAD{SESSION_START} DURATION: $RAD{ACCT_SESSION_TIME}\n".
-         "UID: $Billing->{UID} SUM: $Billing->{SUM} BILL_ID: $Billing->{BILL_ID} TARIF_PLAN: $Billing->{TARIF_PLAN} TRAF_TARIF: $Billing->{TRAF_TARIF}\n" if ($debug > 1);
+        print "START: $RAD{SESSION_START} DURATION: $RAD{ACCT_SESSION_TIME} ".
+         "UID: $Billing->{UID} SUM: $Billing->{SUM} BILL_ID: $Billing->{BILL_ID} TARIF_PLAN: $Billing->{TARIF_PLAN} TRAF_TARIF: $Billing->{TRAF_TARIF}\n" if ($debug > 2);
 
         if ( (defined($Billing->{PAYMENT_TYPE}) && $Billing->{PAYMENT_TYPE} == 0) 
                              && ($deposit + $credit <= $Billing->{SUM}) || 
