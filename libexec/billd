@@ -198,7 +198,7 @@ sub check_lines {
     next if ($#{ $l } < 0);
     
     if ($debug > 0) {
-      print "NAS IP: $nas_row->[3] NAS_TYPE: $nas_row->[4] STATUS: $nas_row->[6] Alive: $nas_row->[8] Online: ". ($#{ $l }+1) ."\n";
+      print "NAS: ($nas_row->[0]) $nas_row->[3] NAS_TYPE: $nas_row->[4] STATUS: $nas_row->[6] Alive: $nas_row->[8] Online: ". ($#{ $l }+1) ."\n";
      }
 
     $NAS{NAS_ID}           = $nas_row->[0];
