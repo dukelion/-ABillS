@@ -117,7 +117,15 @@ if (scalar( %RAD_REQUEST ) < 1) {
   else {
     require Nas;
     $nas = Nas->new($db, \%conf);	
-    my %NAS_PARAMS = ('IP' => "$RAD->{NAS_IP_ADDRESS}");
+    my %NAS_PARAMS = ();
+
+    if ($RAD->{NAS_IP_ADDRESS} eq '0.0.0.0') {
+ 	    %NAS_PARAMS = ( CALLED_STATION_ID => $RAD->{CALLED_STATION_ID} );
+     }
+    else {
+      $NAS_PARAMS{'IP'} = "$RAD->{NAS_IP_ADDRESS}";
+     }
+
     $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
     $nas->info({ %NAS_PARAMS });
 
@@ -219,11 +227,6 @@ sub acct {
       	 }
        }
      }
-
-
-      
-
-
    }
   # From client
   else {
