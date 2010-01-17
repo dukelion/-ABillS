@@ -245,23 +245,28 @@ sub pi_add {
       if ($line->[0] =~ /ifu(\S+)/) {
     	  my $value = $1;
     	  push @info_fields_arr, $value;
-    	  $attr->{$value} =~ s/^ +|[ \n]+$//g;
-    	  
-        push @info_fields_val, "'$attr->{$value}'";
+        if (defined($attr->{$value})) {
+    	    $attr->{$value} =~ s/^ +|[ \n]+$//g;
+         }
+   	    else {
+   	    	$attr->{$value} = '';
+   	     }
+   	    push @info_fields_val, "'$attr->{$value}'";
+    	   
         
         #my ($position, $type, $name)=split(/:/, $line->[1]);
         #if ($type == 7) {
         #	
         # }
        }
-
      }
 
     $info_fields = ', '. join(', ', @info_fields_arr) if ($#info_fields_arr > -1);
     $info_fields_val = ', '. join(', ', @info_fields_val) if ($#info_fields_arr > -1);
    }
 
-  my ($prefix, $sufix); 
+  my $prefix='';
+  my $sufix =''; 
   if ($attr->{CONTRACT_TYPE}) {
   	($prefix, $sufix)=split(/\|/, $attr->{CONTRACT_TYPE});
   	

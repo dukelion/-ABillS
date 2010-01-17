@@ -295,7 +295,7 @@ sub dv_users_list {
  
  form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_users_search', 'Dv'),
  	                                            { %$Dv, %FORM },
- 	                                            { notprint => 1 })    });
+ 	                                            { OUTPUT2RETURN => 1 })    });
 
 
  print $html->letters_list({ pages_qs => $pages_qs  }); 
@@ -1514,7 +1514,7 @@ if (! $list) {
 
   form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_sessions_search', 'Dv'),
  	                                            { %FORM, %$sessions },
- 	                                            { notprint => 1 })  	
+ 	                                            { OUTPUT2RETURN => 1 })  	
                                             });
   if ($FORM{search}) { 
     $sessions = Dv_Sessions->new($db, $admin, \%conf);
@@ -2106,7 +2106,7 @@ if ($conf{ERROR2DB}) {
 
   form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_errors_search', 'Dv'),
  	                                            { %FORM, %$Dv },
- 	                                            { notprint => 1 })    });
+ 	                                            { OUTPUT2RETURN => 1 })    });
 
   
 	if (! $FORM{sort}) {
@@ -4475,7 +4475,7 @@ foreach my $line (@$list) {
     $USER_INFO{DEPOSIT}, 
     $USER_INFO{CREDIT});
   
-  my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { notprint => 1 });
+  my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { OUTPUT2RETURN => 1 });
 
   sendmail("$conf{ADMIN_MAIL}", 
            "$email", 
@@ -5241,79 +5241,90 @@ sub dv_wizard_user {
 sub dv_registration  {
 	my ($attr) = @_;
 
-  $Dv->{SEL_LANGUAGE} = $attr->{SEL_LANGUAGE};
+  my $captcha;
+  if ($conf{REGISTRATION_CAPTCHA}) {
+    use Authen::Captcha;
+
+    # create a new object
+    $captcha = Authen::Captcha->new(
+       data_folder   => $base_dir.'/cgi-bin/captcha/',
+       output_folder => $base_dir.'/cgi-bin/captcha/',
+      );
+
+    my $number_of_characters = 5;
+    my $md5sum = $captcha->generate_code($number_of_characters);
+    
+    $Dv->{CAPTCHA}  = "
+     <input type=hidden name=C value=$md5sum>
+     <tr><td align=right><img src='/captcha/". $md5sum.".png'></td><td><input type='text' name='CCODE'></td></tr>";
+   }
+
 
 	if ($FORM{reg}) {
-
-    if ($FORM{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
-      $html->{NO_PRINT}=1;
-      $Dv->{MESSAGE} = $html->message('err', $_ERROR, "$_WRONG_EMAIL");
-      $html->{NO_PRINT}=undef;
-	    $html->tpl_show(_include('dv_registration', 'Dv'), undef);
-
-      return 0;
+    if ($conf{REGISTRATION_CAPTCHA} && $captcha->check_code("$FORM{CCODE}", "$FORM{C}") != 1) {
+     	$Dv->{MESSAGE} = $html->message('err', $_ERROR, "$_WRONG_CAPTCHA");  
      }
-
-    my $password = mk_unique_value(8);
+    elsif ($FORM{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
+      $Dv->{MESSAGE} = $html->message('err', $_ERROR, "$_WRONG_EMAIL");
+     }
+    elsif(! $FORM{ACCEPT_RULES}) {
+      $html->message('err', $_ERROR, "$ERR_ACCEPT_RULES");
+     }
+    else {
+      my $password = mk_unique_value(8);
     
-    my $user=$users->add({ LOGIN       => $FORM{LOGIN}, 
-    	                     CREATE_BILL => 1,
-    	                     PASSWORD    => $password });
-    my $message = '';
-    if (! $user->{errno}) {
-   	  my $UID = $user->{UID};
-   	  $user = $user->info($UID);
+      my $user=$users->add({ LOGIN       => $FORM{LOGIN}, 
+      	                     CREATE_BILL => 1,
+    	                       PASSWORD    => $password });
+      my $message = '';
+      if (! $user->{errno}) {
+   	    my $UID = $user->{UID};
+   	    $user = $user->info($UID);
 
-      #3 personal info
-      $user->pi_add({ UID   => "$UID", 
+        #3 personal info
+        $user->pi_add({ UID   => "$UID", 
       	              FIO   => "$FORM{FIO}",
       	              EMAIL => "$FORM{EMAIL}" });
 
-      if ($user->{errno}) {
-	      $Dv->{MESSAGE} = $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");		
-	      $html->tpl_show(_include('dv_registration', 'Dv'), undef, { notprint => 1 });
-	      return 0;
-       }
+        if ($user->{errno}) {
+	        $Dv->{MESSAGE} = $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");		
+	        goto REG_FORM;
+         }
       
-      #4 Dv
-      $conf{SHARING_DEFAULT_TP} = 0 if (! $conf{SHARING_DEFAULT_TP});
-   	  $Dv->add({ UID   => $UID, 
-   	  	         TP_ID => $FORM{TP_ID} || $conf{SHARING_DEFAULT_TP}
-   	  	             });
+        #4 Dv
+        $conf{SHARING_DEFAULT_TP} = 0 if (! $conf{SHARING_DEFAULT_TP});
+   	    $Dv->add({ UID   => $UID, 
+   	  	           TP_ID => $FORM{TP_ID} || $conf{SHARING_DEFAULT_TP}
+   	  	              });
 
-  		if (! $Dv->{errno}) {
-	  	  $html->tpl_show(_include('dv_reg_complete', 'Dv'), { %$Dv, %FORM });
-
-        #Send mail 
-  	    my $message = $html->tpl_show(_include('dv_reg_complete_mail', 'Dv'), { %$Dv, %FORM, PASSWORD => "$password" }, { notprint => 1 });
-
-  	    sendmail("$conf{ADMIN_MAIL}", "$FORM{EMAIL}", "$_REGISTRATION", 
-              "$message", "$conf{MAIL_CHARSET}", '');
-
-       }
-      else {
-        $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
-       }
-		  return 0;
-		 }
-		else {
-	    if ($user->{errno} == 7) {
-        $html->message('err', $_ERROR, "$_USER_EXIST");		
-	     }
-	    else {
-	      $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");		
-	     }
-		 }
-		
-
-
-	 }
-	else {
-
-		#$html->message('err', $_ERROR, "$_REGISTRATION");
+    		if (! $Dv->{errno}) {
+	    	  $html->tpl_show(_include('dv_reg_complete', 'Dv'), { %$Dv, %FORM });
+          #Send mail 
+  	      my $message = $html->tpl_show(_include('dv_reg_complete_mail', 'Dv'), { %$Dv, %FORM, PASSWORD => "$password" }, { OUTPUT2RETURN => 1 });
+    	    sendmail("$conf{ADMIN_MAIL}", "$FORM{EMAIL}", "$_REGISTRATION", 
+               "$message", "$conf{MAIL_CHARSET}", '');
+         }
+        else {
+          $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
+         }
+   		  return 0;
+		   }
+		  else {
+	      if ($user->{errno} == 7) {
+          $html->message('err', $_ERROR, "$_USER_EXIST");		
+	       }
+	      else {
+	        $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");		
+	       }
+		   }
+    }
 	 }
 
-	 $Dv->{TP_SEL} = $html->form_select('TP_ID', 
+
+  $Dv->{SEL_LANGUAGE} = $attr->{SEL_LANGUAGE};
+  $Dv->{RULES} = $html->tpl_show(templates('form_accept_rules'), {  }, { OUTPUT2RETURN => 1 });
+
+	$Dv->{TP_SEL} = $html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $FORM{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS, MODULE => 'Dv', TP_GID => '>0' }),
@@ -5321,8 +5332,11 @@ sub dv_registration  {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 	
+
+REG_FORM:
+
   $html->tpl_show(_include('dv_registration', 'Dv'), 
-      $Dv, 
+      { %$Dv, %FORM }, 
       { ID => 'DV_REGISTRATION' });
 
 	return 0;
