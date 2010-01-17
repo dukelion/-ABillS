@@ -301,10 +301,6 @@ $data
   }
 
 
-
-
-#$attr->{TEST}=1;
- 
   my @emails_arr = split(/;/, $to_addresses);
   foreach my $to (@emails_arr) {
     if ($attr->{TEST}) {

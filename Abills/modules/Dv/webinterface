@@ -5240,13 +5240,86 @@ sub dv_wizard_user {
 #**********************************************************
 sub dv_registration  {
 	my ($attr) = @_;
-	if ($FORM{registration}) {
+
+  $Dv->{SEL_LANGUAGE} = $attr->{SEL_LANGUAGE};
+
+	if ($FORM{reg}) {
+
+    if ($FORM{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
+      $html->{NO_PRINT}=1;
+      $Dv->{MESSAGE} = $html->message('err', $_ERROR, "$_WRONG_EMAIL");
+      $html->{NO_PRINT}=undef;
+	    $html->tpl_show(_include('dv_registration', 'Dv'), undef);
+
+      return 0;
+     }
+
+    my $password = mk_unique_value(8);
+    
+    my $user=$users->add({ LOGIN       => $FORM{LOGIN}, 
+    	                     CREATE_BILL => 1,
+    	                     PASSWORD    => $password });
+    my $message = '';
+    if (! $user->{errno}) {
+   	  my $UID = $user->{UID};
+   	  $user = $user->info($UID);
+
+      #3 personal info
+      $user->pi_add({ UID   => "$UID", 
+      	              FIO   => "$FORM{FIO}",
+      	              EMAIL => "$FORM{EMAIL}" });
+
+      if ($user->{errno}) {
+	      $Dv->{MESSAGE} = $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");		
+	      $html->tpl_show(_include('dv_registration', 'Dv'), undef, { notprint => 1 });
+	      return 0;
+       }
+      
+      #4 Dv
+      $conf{SHARING_DEFAULT_TP} = 0 if (! $conf{SHARING_DEFAULT_TP});
+   	  $Dv->add({ UID   => $UID, 
+   	  	         TP_ID => $FORM{TP_ID} || $conf{SHARING_DEFAULT_TP}
+   	  	             });
+
+  		if (! $Dv->{errno}) {
+	  	  $html->tpl_show(_include('dv_reg_complete', 'Dv'), { %$Dv, %FORM });
+
+        #Send mail 
+  	    my $message = $html->tpl_show(_include('dv_reg_complete_mail', 'Dv'), { %$Dv, %FORM, PASSWORD => "$password" }, { notprint => 1 });
+
+  	    sendmail("$conf{ADMIN_MAIL}", "$FORM{EMAIL}", "$_REGISTRATION", 
+              "$message", "$conf{MAIL_CHARSET}", '');
+
+       }
+      else {
+        $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
+       }
+		  return 0;
+		 }
+		else {
+	    if ($user->{errno} == 7) {
+        $html->message('err', $_ERROR, "$_USER_EXIST");		
+	     }
+	    else {
+	      $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");		
+	     }
+		 }
 		
-		
+
+
 	 }
 	else {
-		$html->message('info', $_INFO, "$_REGISTRATION");
+
+		#$html->message('err', $_ERROR, "$_REGISTRATION");
 	 }
+
+	 $Dv->{TP_SEL} = $html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS, MODULE => 'Dv', TP_GID => '>0' }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
 	
   $html->tpl_show(_include('dv_registration', 'Dv'), 
       $Dv, 

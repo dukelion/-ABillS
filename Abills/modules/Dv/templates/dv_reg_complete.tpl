@@ -1,4 +1,8 @@
-<table width=400>
+<TABLE width=500 cellspacing=0 cellpadding=0 border=0>
+<TR><TD bgcolor=#E1E1E1>
+<TABLE width=100% cellspacing=1 cellpadding=0 border=0>
+<TR><TD bgcolor=#FFFFFF>
+<table width=100%>
 <tr><th bgcolor=$_COLORS[0]>
 Congratulation
 </th></tr>
@@ -12,3 +16,6 @@ Congratulation
 </td>
 </tr>
 </table>
+
+</td></tr></table>
+</td></tr></table>
