@@ -685,7 +685,7 @@ elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
                                              MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC }); 
   #global Traffic 
   if ($EX_PARAMS->{traf_limit} > 0) { 
- #   $RAD_PAIRS->{'ChilliSpot-Max-Total-Octets'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE}); 
+    $RAD_PAIRS->{'ChilliSpot-Max-Total-Octets'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE}); 
    } 
 
   #Shaper for chillispot 
