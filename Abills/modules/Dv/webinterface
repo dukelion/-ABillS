@@ -5262,7 +5262,7 @@ sub dv_registration  {
 
 	if ($FORM{reg}) {
     if ($conf{REGISTRATION_CAPTCHA} && $captcha->check_code("$FORM{CCODE}", "$FORM{C}") != 1) {
-     	$Dv->{MESSAGE} = $html->message('err', $_ERROR, "$_WRONG_CAPTCHA");  
+     	$Dv->{MESSAGE} = $html->message('err', $_ERROR, "$ERR_WRONG_CAPTCHA");  
      }
     elsif ($FORM{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
       $Dv->{MESSAGE} = $html->message('err', $_ERROR, "$_WRONG_EMAIL");

@@ -428,4 +428,4 @@ $_REQUESTS='Requests';
 
 $_RETURN_TO_START_PAGE="Return to start page";
 $_LOGIN_IN_TO_HOTSPOT="Login to hotspot";
-$_WRONG_CAPTCHA='Wrong Captcha';
+$ERR_WRONG_CAPTCHA='Wrong Captcha';
