@@ -126,7 +126,10 @@ if (scalar( %RAD_REQUEST ) < 1) {
       $NAS_PARAMS{'IP'} = "$RAD->{NAS_IP_ADDRESS}";
      }
 
-    $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if (defined($RAD->{NAS_IDENTIFIER}));
+    if ($RAD->{NAS_IDENTIFIER}) {
+      $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER};
+     }
+
     $nas->info({ %NAS_PARAMS });
 
     my $acct;

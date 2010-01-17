@@ -103,9 +103,7 @@ sub get_nas_info {
  if ($RAD->{NAS_IP_ADDRESS} eq '0.0.0.0') {
  	 %NAS_PARAMS = ( CALLED_STATION_ID => $RAD->{CALLED_STATION_ID} );
   }
- 	
- 	
- 
+
  $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if ($RAD->{NAS_IDENTIFIER});
  $nas->info({ %NAS_PARAMS });
 
