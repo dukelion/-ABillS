@@ -351,6 +351,26 @@ sub form_input {
 
 
 #*******************************************************************
+# form_input
+#*******************************************************************
+sub form_textarea {
+	my $self = shift;
+	my ($name, $value, $attr)=@_;
+
+  my $cols  = $attr->{COLS} || 45; 
+  my $rows  = $attr->{ROWS} || 4;
+
+  $self->{FORM_INPUT}="<textarea id='$name' name='$name' cols=$cols rows=$rows>$value</textarea>";
+
+  if (defined($self->{NO_PRINT}) && ( !defined($attr->{OUTPUT2RETURN}) )) {
+  	$self->{OUTPUT}    .= $self->{FORM_INPUT};
+  	$self->{FORM_INPUT} = '';
+  }
+
+	return $self->{FORM_INPUT};
+}
+
+#*******************************************************************
 # form_main
 #*******************************************************************
 sub form_main {
