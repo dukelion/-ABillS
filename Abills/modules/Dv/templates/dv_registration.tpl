@@ -14,6 +14,7 @@
         }
 </script>
 
+
 <FORM action='$SELF_URL' METHOD=POST ID='REGISTRATION'>
 <input type=hidden name=index value=$index>
 <input type=hidden name=DOMAIN_ID value=$FORM{DOMAIN_ID}>
@@ -27,7 +28,7 @@
 <tr><th colspan=2 class=form_title>$_REGISTRATION - Internet</th></tr>
 <tr><td align=right width=50%>$_LANGUAGE:</td><td  width=50%>%SEL_LANGUAGE%</td></tr>
 <tr><td align=right>$_LOGIN:</td><td><input type=text name='LOGIN' value='%LOGIN%'></td></tr>
-<tr><td align=right>$_FIO:</td><td><input type=text name='FIO' value='%FIO%'></td></tr>
+<tr><td align=right>$_FIO:</td><td><input type=text name='FIO' value='%FIO%' size=40></td></tr>
 <tr><td align=right>E-MAIL:</td><td><input type=text name='EMAIL' value='%EMAIL%'></td></tr>
 <tr><td align=right>$_TARIF_PLAN:</td><td>%TP_SEL%</td></tr>
 %PAYMENTS%
