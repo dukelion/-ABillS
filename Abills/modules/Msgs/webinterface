@@ -2429,5 +2429,75 @@ sub msgs_unreg_requests {
   msgs_unreg_requests_list({ LIST_ONLY => 1 })
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub msgs_registration  {
+	my ($attr) = @_;
+
+	if ($FORM{reg}) {
+    if ($attr->{CAPTCHA} && $attr->{CAPTCHA_OBJ}->check_code("$FORM{CCODE}", "$FORM{C}") != 1) {
+     	$Msgs->{MESSAGE} = $html->message('err', $_ERROR, "$ERR_WRONG_CAPTCHA");  
+     }
+    elsif ($FORM{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
+      $Msgs->{MESSAGE} = $html->message('err', $_ERROR, "$_WRONG_EMAIL");
+     }
+    elsif(! $FORM{ACCEPT_RULES}) {
+      $html->message('err', $_ERROR, "$ERR_ACCEPT_RULES");
+     }
+    else {
+      my $password = mk_unique_value(8);
+    
+      my $user=$users->add({ LOGIN       => $FORM{LOGIN}, 
+      	                     CREATE_BILL => 1,
+    	                       PASSWORD    => $password });
+      my $message = '';
+      if (! $user->{errno}) {
+   	    my $UID = $user->{UID};
+   	    $user   = $user->info($UID);
+
+        #3 personal info
+        $user->pi_add({ %FORM,
+        	              UID   => "$UID", 
+      	                FIO   => "$FORM{FIO}",
+      	                EMAIL => "$FORM{EMAIL}",
+      	               });
+
+        if ($user->{errno}) {
+	        $Msgs->{MESSAGE} = $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");		
+	        goto REG_FORM;
+         }
+        else {
+        	$html->tpl_show(_include('msgs_reg_complete', 'Msgs'), { %$Msgs, %FORM });
+          #Send mail to user
+          my $message = $html->tpl_show(_include('msgs_reg_complete_mail', 'Msgs'), { %$Msgs, %FORM, PASSWORD => "$password" }, { OUTPUT2RETURN => 1 });
+ 	        sendmail("$conf{ADMIN_MAIL}", "$FORM{EMAIL}", "$_REGISTRATION", 
+               "$message", "$conf{MAIL_CHARSET}", '');
+         }
+
+   		  return 2;
+		   }
+		  else {
+	      if ($user->{errno} == 7) {
+          $html->message('err', $_ERROR, "$_USER_EXIST");		
+	       }
+	      else {
+	        $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");		
+	       }
+	      goto REG_FORM;
+		   }
+    }
+	 }
+
+
+REG_FORM:
+  $html->tpl_show(_include('msgs_registration', 'Msgs'), 
+      { %$Msgs, %FORM, %$attr }, 
+      { ID => 'MSGS_REGISTRATION' });
+
+	return 0;
+}
+
 1
 
