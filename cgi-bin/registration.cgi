@@ -116,20 +116,27 @@ elsif($#REGISTRATION > -1) {
   if ($conf{REGISTRATION_CAPTCHA}) {
     use Authen::Captcha;
 
-    # create a new object
-    $INFO_HASH{CAPTCHA_OBJ} = Authen::Captcha->new(
-       data_folder   => $base_dir.'/cgi-bin/captcha/',
-       output_folder => $base_dir.'/cgi-bin/captcha/',
-      );
+    if (! -d $base_dir.'/cgi-bin/captcha/') {
+    	if (! mkdir("$base_dir/cgi-bin/captcha/")) {
+    	   $html->message('err', $_ERROR, "$ERR_CANT_CREATE_FILE '$base_dir/cgi-bin/captcha/' $_ERROR: $!\n");
+    	   $html->message('info', $_INFO, "$_NOT_EXIST '$base_dir/cgi-bin/captcha/'");
+    	  }
+     }
+    else {
+      # create a new object
+      $INFO_HASH{CAPTCHA_OBJ} = Authen::Captcha->new(
+         data_folder   => $base_dir.'/cgi-bin/captcha/',
+         output_folder => $base_dir.'/cgi-bin/captcha/',
+        );
 
-    my $number_of_characters = 5;
-    my $md5sum = $INFO_HASH{CAPTCHA_OBJ}->generate_code($number_of_characters);
+      my $number_of_characters = 5;
+      my $md5sum = $INFO_HASH{CAPTCHA_OBJ}->generate_code($number_of_characters);
     
-    $INFO_HASH{CAPTCHA}  = "
-     <input type=hidden name=C value=$md5sum>
-     <tr><td align=right><img src='/captcha/". $md5sum.".png'></td><td><input type='text' name='CCODE'></td></tr>";
+      $INFO_HASH{CAPTCHA}  = "
+       <input type=hidden name=C value=$md5sum>
+       <tr><td align=right><img src='/captcha/". $md5sum.".png'></td><td><input type='text' name='CCODE'></td></tr>";
+     }
    }
-
   $INFO_HASH{RULES}        = $html->tpl_show(templates('form_accept_rules'), {  }, { OUTPUT2RETURN => 1 });
   if (! $FORM{DOMAIN_ID}) {
   	$FORM{DOMAIN_ID}=0;
