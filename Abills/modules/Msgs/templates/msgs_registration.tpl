@@ -14,11 +14,11 @@
         }
 </script>
 
+
 <FORM action='$SELF_URL' METHOD=POST ID='REGISTRATION'>
 <input type=hidden name=index value=$index>
 <input type=hidden name=DOMAIN_ID value=$FORM{DOMAIN_ID}>
 <input type=hidden name=module value=Msgs>
-
 
 <TABLE width=500 cellspacing=0 cellpadding=0 border=0>
 <TR><td bgcolor=#E1E1E1>
@@ -28,14 +28,14 @@
 <tr><th colspan=2 class=form_title>$_REGISTRATION - $_MESSAGES</th></tr>
 <tr><td align=right width=50%>$_LANGUAGE:</td><td  width=50%>%SEL_LANGUAGE%</td></tr>
 <tr><td align=right>$_LOGIN:</td><td><input type=text name='LOGIN' value='%LOGIN%'></td></tr>
-<tr><td align=right>$_FIO:</td><td><input type=text name='FIO' value='%FIO%'></td></tr>
+<tr><td align=right>$_FIO:</td><td><input type=text name='FIO' value='%FIO%' size=40></td></tr>
 <tr><td align=right>$_PHONE:</td><td><input type=text name='PHONE' value='%PHONE%'></td></tr>
 
 <tr><td align=right>$_CITY:</td><td><input type=text name=CITY value='%CITY%'></td></tr> 
 <tr><td align=right>$_ZIP:</td><td><input type=text name=ZIP value='%ZIP%' size=8></td></TR>
-<tr><td align=right>$_ADDRESS_STREET:</td><td><input type=text name=ADDRESS_STREET value='%ADDRESS_STREET%' size=45>
+<tr><td align=right>$_ADDRESS_STREET:</td><td><input type=text name=ADDRESS_STREET value='%ADDRESS_STREET%' size=40>
 
-<tr><td align=right>$_ADDRESS_BUILD:</td><td><input type=text name=ADDRESS_BUILD value='%ADDRESS_BUILD%'> $_ADDRESS_FLAT:<input type=text name=ADDRESS_FLAT value='' size=8></td></TR>
+<tr><td align=right>$_ADDRESS_BUILD:</td><td><input type=text name=ADDRESS_BUILD value='%ADDRESS_BUILD%' size=8> $_ADDRESS_FLAT:<input type=text name=ADDRESS_FLAT value='' size=8></td></TR>
 
 
 

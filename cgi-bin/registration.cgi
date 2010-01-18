@@ -71,15 +71,6 @@ if ($conf{LANGS}) {
 
 my %INFO_HASH = ();
 
-$INFO_HASH{SEL_LANGUAGE} = $html->form_select('language', 
-                                { EX_PARAMS => 'onChange="selectLanguage()"',
- 	                                SELECTED  => $html->{language},
- 	                                SEL_HASH  => \%LANG,
- 	                                NO_ID     => 1 });
-
-
-
-
 my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 my $payments = Finance->payments($db, $admin, \%conf);
@@ -93,8 +84,15 @@ if (! defined( @REGISTRATION ) ) {
 	exit;
 }
 
-$html->{language}=$FORM{language} if (defined($FORM{language}));
+$html->{language}=$FORM{language} if ($FORM{language});
 require "../language/$html->{language}.pl";
+$INFO_HASH{SEL_LANGUAGE} = $html->form_select('language', 
+                                { EX_PARAMS => 'onChange="selectLanguage()"',
+ 	                                SELECTED  => $html->{language},
+ 	                                SEL_HASH  => \%LANG,
+ 	                                NO_ID     => 1 });
+
+
 
 if ($FORM{FORGOT_PASSWD}) {
 	password_recovery();
@@ -137,7 +135,9 @@ elsif($#REGISTRATION > -1) {
        <tr><td align=right><img src='/captcha/". $md5sum.".png'></td><td><input type='text' name='CCODE'></td></tr>";
      }
    }
-  $INFO_HASH{RULES}        = $html->tpl_show(templates('form_accept_rules'), {  }, { OUTPUT2RETURN => 1 });
+  $INFO_HASH{RULES}    = $html->tpl_show(templates('form_accept_rules'), {  }, { OUTPUT2RETURN => 1 });
+  $INFO_HASH{language} = $html->{language};
+  
   if (! $FORM{DOMAIN_ID}) {
   	$FORM{DOMAIN_ID}=0;
   	$INFO_HASH{DOMAIN_ID}=0;

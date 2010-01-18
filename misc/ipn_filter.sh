@@ -8,7 +8,11 @@ VERSION=0.1
 debug=1;
 
 if [ w$4 = w ]; then
-  echo "ABillS IPN filter $version";
+  if [ w${debug} = w0 ]; then
+    exit;
+  fi;
+ 
+  echo "ABillS IPN filter $version. Debug mode: ${debug}";
   echo "Not enought arguments"
   echo "ipn_filter.sh %STATUS (ONLINE_ENABLE,ONLINE_DISABLE,HANGUP) \"%LOGIN\" \"%IP\" \"%FILTER_ID\" \"%UID\" debug"
   exit;
