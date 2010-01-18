@@ -5241,27 +5241,8 @@ sub dv_wizard_user {
 sub dv_registration  {
 	my ($attr) = @_;
 
-  my $captcha;
-  if ($conf{REGISTRATION_CAPTCHA}) {
-    use Authen::Captcha;
-
-    # create a new object
-    $captcha = Authen::Captcha->new(
-       data_folder   => $base_dir.'/cgi-bin/captcha/',
-       output_folder => $base_dir.'/cgi-bin/captcha/',
-      );
-
-    my $number_of_characters = 5;
-    my $md5sum = $captcha->generate_code($number_of_characters);
-    
-    $Dv->{CAPTCHA}  = "
-     <input type=hidden name=C value=$md5sum>
-     <tr><td align=right><img src='/captcha/". $md5sum.".png'></td><td><input type='text' name='CCODE'></td></tr>";
-   }
-
-
 	if ($FORM{reg}) {
-    if ($conf{REGISTRATION_CAPTCHA} && $captcha->check_code("$FORM{CCODE}", "$FORM{C}") != 1) {
+    if ($attr->{CAPTCHA} && $attr->{CAPTCHA_OBJ}->check_code("$FORM{CCODE}", "$FORM{C}") != 1) {
      	$Dv->{MESSAGE} = $html->message('err', $_ERROR, "$ERR_WRONG_CAPTCHA");  
      }
     elsif ($FORM{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
@@ -5282,7 +5263,8 @@ sub dv_registration  {
    	    $user = $user->info($UID);
 
         #3 personal info
-        $user->pi_add({ UID   => "$UID", 
+        $user->pi_add({ %FORM, 
+        	            UID   => "$UID", 
       	              FIO   => "$FORM{FIO}",
       	              EMAIL => "$FORM{EMAIL}" });
 
@@ -5303,11 +5285,13 @@ sub dv_registration  {
   	      my $message = $html->tpl_show(_include('dv_reg_complete_mail', 'Dv'), { %$Dv, %FORM, PASSWORD => "$password" }, { OUTPUT2RETURN => 1 });
     	    sendmail("$conf{ADMIN_MAIL}", "$FORM{EMAIL}", "$_REGISTRATION", 
                "$message", "$conf{MAIL_CHARSET}", '');
+
+          return 2;
          }
         else {
           $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
          }
-   		  return 0;
+   		  
 		   }
 		  else {
 	      if ($user->{errno} == 7) {
@@ -5316,13 +5300,15 @@ sub dv_registration  {
 	      else {
 	        $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");		
 	       }
+		    goto REG_FORM;
 		   }
     }
 	 }
 
 
-  $Dv->{SEL_LANGUAGE} = $attr->{SEL_LANGUAGE};
-  $Dv->{RULES} = $html->tpl_show(templates('form_accept_rules'), {  }, { OUTPUT2RETURN => 1 });
+	
+
+REG_FORM:
 
 	$Dv->{TP_SEL} = $html->form_select('TP_ID', 
                                           { 
@@ -5331,12 +5317,10 @@ sub dv_registration  {
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
-	
 
-REG_FORM:
 
   $html->tpl_show(_include('dv_registration', 'Dv'), 
-      { %$Dv, %FORM }, 
+      { %$Dv, %$attr, %FORM }, 
       { ID => 'DV_REGISTRATION' });
 
 	return 0;
