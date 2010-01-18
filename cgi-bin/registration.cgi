@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# Sharing registration
+# Main  registration engine
 #
 
 
@@ -10,6 +10,8 @@ use vars qw($begin_time %FORM %LANG $CHARSET
   $html
   $users
   $Bin
+  $ERR_WRONG_DATA
+  $DATE $TIME
  );
 BEGIN {
  my $libpath = '../';
@@ -76,12 +78,13 @@ $INFO_HASH{SEL_LANGUAGE} = $html->form_select('language',
  	                                NO_ID     => 1 });
 
 
-#my $Paysys = Paysys->new($db, undef, \%conf);
+
 
 my $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 my $payments = Finance->payments($db, $admin, \%conf);
 $users = Users->new($db, $admin, \%conf); 
+#my $Paysys = Paysys->new($db, undef, \%conf);
 
 
 if (! defined( @REGISTRATION ) ) {
@@ -93,31 +96,71 @@ if (! defined( @REGISTRATION ) ) {
 $html->{language}=$FORM{language} if (defined($FORM{language}));
 require "../language/$html->{language}.pl";
 
-
-if ($FORM{module}) {
-	my $m = $FORM{module};
-	require "Abills/modules/$m/config";
-	require "Abills/modules/$m/webinterface";
-	$m = lc($m);
-	my $function = $m . '_registration';
-  $function->();
- }
-elsif ($FORM{FORGOT_PASSWD}) {
+if ($FORM{FORGOT_PASSWD}) {
 	password_recovery();
  }
 elsif($#REGISTRATION > -1) {
-  if($#REGISTRATION > 0 && ! $FORM{registration}) {
-    foreach my $m (@REGISTRATION) {
-      $html->{OUTPUT} .= $html->button($m, "module=$m", { BUTTON => 1 }) . ' ';
+
+	my $m = $REGISTRATION[0];
+	if ($FORM{module}) {
+	  $m = $FORM{module};
+	 }
+  else {
+    if($#REGISTRATION > 0 && ! $FORM{registration}) {
+      foreach my $m (@REGISTRATION) {
+        $html->{OUTPUT} .= $html->button($m, "module=$m", { BUTTON => 1 }) . ' ';
+     }
     }
    }
 
-	my $m = $REGISTRATION[0];
+  if ($conf{REGISTRATION_CAPTCHA}) {
+    use Authen::Captcha;
+
+    # create a new object
+    $INFO_HASH{CAPTCHA_OBJ} = Authen::Captcha->new(
+       data_folder   => $base_dir.'/cgi-bin/captcha/',
+       output_folder => $base_dir.'/cgi-bin/captcha/',
+      );
+
+    my $number_of_characters = 5;
+    my $md5sum = $INFO_HASH{CAPTCHA_OBJ}->generate_code($number_of_characters);
+    
+    $INFO_HASH{CAPTCHA}  = "
+     <input type=hidden name=C value=$md5sum>
+     <tr><td align=right><img src='/captcha/". $md5sum.".png'></td><td><input type='text' name='CCODE'></td></tr>";
+   }
+
+  $INFO_HASH{RULES}        = $html->tpl_show(templates('form_accept_rules'), {  }, { OUTPUT2RETURN => 1 });
+  if (! $FORM{DOMAIN_ID}) {
+  	$FORM{DOMAIN_ID}=0;
+  	$INFO_HASH{DOMAIN_ID}=0;
+   }
+
 	require "Abills/modules/$m/config";
 	require "Abills/modules/$m/webinterface";
 	$m = lc($m);
 	my $function = $m . '_registration';
-  $function->({ %INFO_HASH });
+  my $return = $function->({ %INFO_HASH });
+  
+
+  #Send E-mail to admin after registration
+  if ($return && $return == 2) {
+  	my $message = qq{
+New Registrations
+=========================================
+Username: $FORM{LOGIN}
+Fio:      $FORM{FIO}
+DATE:     $DATE $TIME
+IP:       $ENV{REMOTE_ADDR}
+Module:   $m
+=========================================
+
+};
+
+    sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "New registrations", 
+              "$message", "$conf{MAIL_CHARSET}", "");
+   }
+  
  }
 else {
 
