@@ -1,7 +1,7 @@
-<form action='$SELF_URL' METHOD='POST' ENCTYPE='multipart/form-data'>
+<form action='$SELF_URL' METHOD='POST' ENCTYPE='multipart/form-data' id='CARDS_ADD'>
 <input type='hidden' name='index' value='$index'>
 
-<table>
+<table width=400>
 <tr bgcolor='$_COLORS[0]' align='right'><th colspan=2>$_ICARDS : %TYPE_CAPTION%</th></tr>
 <tr><td>$_SERIAL:</td><td><input type='text' name='SERIAL' value='%SERIAL%'></td></tr>
 <tr><td>$_BEGIN:</td><td><input type=text name='BEGIN' value='%BEGIN%'></td></tr>
@@ -18,9 +18,9 @@
 %EXPARAMS%
 </td></tr>
 <tr bgcolor='$_COLORS[0]'><th colspan=2>&nbsp;</th></tr>
-<tr><td>$_EXPIRE:</td><td><input type='text' name='EXPIRE' value='%EXPIRE%'> Text<br>
+<tr><td>$_EXPIRE:</td><td><input type='text' name='EXPIRE' value='%EXPIRE%'>
 <tr bgcolor='$_COLORS[0]'><th colspan=2>$_EXPORT:</th></tr>
-<tr><td colspan='2'><input type='radio' name='EXPORT' value='TEXT'> Text<br>
+<tr><td colspan='2'><input type='radio' name='EXPORT' value='TEXT' checked> Text<br>
 <input type='radio' name='EXPORT' value='XML'> XML<br>
 </td></tr>
 <tr bgcolor='$_COLORS[0]'><th colspan=2>-</th></tr>

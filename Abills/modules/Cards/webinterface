@@ -281,7 +281,6 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
   		);
     }
 
-  
   $op_sid = mk_unique_value(8);
 
   print $html->form_main({ CONTENT => $table->show().
@@ -306,9 +305,7 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
    
  }
 else {
-  
   my $list = $Cards->cards_list({ %LIST_PARAMS });
-  
 
 	$table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL",
@@ -321,7 +318,6 @@ else {
                            qs         => $pages_qs,
                            pages      => $Cards->{SERIAL}
                                });
-
 
   my $total_cards = 0;
   my $total_sum  = 0;
@@ -384,21 +380,22 @@ sub cards_add {
       $html->message('err', $_ERROR, "$_NO_SUM");
      }
     else {
-      my $export = '';
-    	my $begin = $FORM{BEGIN} || 0;
-  	  my $count = $FORM{COUNT} || 0;
-  	  
-  	  my $i = 0;
-  	  my $added=0;
+      my $export      = '';
+    	my $begin       = $FORM{BEGIN} || 0;
+  	  my $count       = $FORM{COUNT} || 0;
+  	  my $pin_symbols = $FORM{PASSWD_SYMBOLS} || $conf{CARDS_PIN_SYMBOLS};  
+  	  my $pin_length  = $FORM{PASSWD_LENGTH} || $conf{CARDS_PAYMENT_PIN_LENGTH};  
+  	  my $added       = 0;
+
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
-#        REPLAY:
-          my $pin    = mk_unique_value($conf{CARDS_PAYMENT_PIN_LENGTH} || 8, { SYMBOLS => $conf{CARDS_PIN_SYMBOLS} || undef });
+          my $pin    = mk_unique_value($pin_length || 8, { SYMBOLS => $pin_symbols || undef });
   	 	    my $serial = sprintf("%s%.11d", $FORM{SERIAL}, $i);
+          my $sum    = sprintf("%.2f", $FORM{SUM});
 
           $Cards->cards_add({ SERIAL    => "$FORM{SERIAL}",
         	                    NUMBER    => "$i",
             	                PIN       => "$pin",
-           	                  SUM       => "$FORM{SUM}",
+           	                  SUM       => $sum,
         	                    STATUS    => 0,
         	                    EXPIRE    => "$FORM{EXPIRE}",
         	                    DILLER_ID => int($FORM{DILLER_ID})
@@ -408,7 +405,7 @@ sub cards_add {
        	    $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
        	    return 0;
            }
-        $export .= (defined($FORM{EXPORT}) && $FORM{EXPORT} eq 'XML' ) ? "<CARD SERIA='$serial' PIN='$pin' SUM='$FORM{SUM}' EXPIRE='$FORM{EXPIRE}'/>\n" : "$serial\t$pin\t$FORM{SUM}\t$FORM{EXPIRE}\n";
+        $export .= (defined($FORM{EXPORT}) && $FORM{EXPORT} eq 'XML' ) ? "<CARD SERIA='$serial' PIN='$pin' SUM='$sum' EXPIRE='$FORM{EXPIRE}'/>\n" : "$serial\t$pin\t$sum\t$FORM{EXPIRE}\n";
   	    $added++;
   	   }
 
@@ -421,7 +418,8 @@ sub cards_add {
    	   }
    	  else {
    	    $html->message('info', $_INFO, "$_ADDED: $added $_CARDS");
-   	    print "<textarea cols='70' rows='30'>$export</textarea>\n";
+   	    print $html->form_textarea('CARDS_EXPORT', $export, {  COLS => 70, 
+   	    	                                                     ROWS => 30 });
    	    return 0;
    	   }
     }
@@ -447,9 +445,7 @@ sub cards_bruteforce_clean {
 
   $conf{CARDS_BRUTE_CLEAN_PERIOD}=2 if (! $conf{CARDS_BRUTE_CLEAN_PERIOD});
 
-
   $Cards->bruteforce_del({ PERIOD => $conf{CARDS_BRUTE_CLEAN_PERIOD} });
-	
   $DEBUG .= $debug_output;
   return $debug_output;
 }
@@ -660,7 +656,8 @@ $LOGIN_NUMBER=$begin;
        }
 
  	    $html->message('info', $_INFO, "$_CREATED: $generated");
-      print "<textarea cols='70' rows='30'>$export</textarea>\n";
+ 	    print $html->form_textarea('CARDS_EXPORT', $export, {  COLS => 70, 
+   	    	                                                     ROWS => 30 });
    	 }
    	  
    return \@DATA_ARRAY;

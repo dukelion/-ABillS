@@ -111,8 +111,19 @@ elsif($#REGISTRATION > -1) {
     }
    }
 
+  $conf{REGISTRATION_CAPTCHA}=1 if (! defined($conf{REGISTRATION_CAPTCHA}));
+
   if ($conf{REGISTRATION_CAPTCHA}) {
-    use Authen::Captcha;
+    eval { require Authen::Captcha; };
+    if (! $@) {
+      Authen::Captcha->import();
+     }
+    else {
+      print "Can't load 'Authen::Captcha'. Please Install it from http://cpan.org $@";
+      exit; #return 0;
+     }
+
+    #use Authen::Captcha;
 
     if (! -d $base_dir.'/cgi-bin/captcha/') {
     	if (! mkdir("$base_dir/cgi-bin/captcha/")) {
