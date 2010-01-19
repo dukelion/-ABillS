@@ -1,8 +1,6 @@
 # Card System
 
 
-
-
 eval { require Cards; };
 if (! $@) {
   Cards->import();
@@ -272,7 +270,7 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
   		  $line->[5],
   		  $line->[6],
   		  (($line->[7] ne '0000-00-00 00:00:00') ? $line->[7] : ''),
-   		  (($line->[8])? $html->button($line->[7], "index=15&UID=$line->[15]") : ''),
+   		  (($line->[8])? $html->button($line->[8], "index=15&UID=$line->[16]") : ''),
   		  $line->[9],
   		  $line->[10],
   		  $line->[11],
@@ -418,6 +416,20 @@ sub cards_add {
    	   }
    	  else {
    	    $html->message('info', $_INFO, "$_ADDED: $added $_CARDS");
+   	    
+   	    $export = encode_base64(qq{<OPERATION id="4684519" status="new" type="execute" processing="0" sync="0">
+	<CRDATE>20091214T15:38:07</CRDATE>
+	<ACCOUNT>55</ACCOUNT>
+	<SERVICE>1</SERVICE>
+	<TARGET>
+		<KEYATTR value="1234343"/>
+	</TARGET>
+	<SUM>46.05</SUM>
+	<POINT>1002</POINT>
+	<POINT_TRANS>13</POINT_TRANS>
+	<CHK>13</CHK>
+</OPERATION>});
+   	    
    	    print $html->form_textarea('CARDS_EXPORT', $export, {  COLS => 70, 
    	    	                                                     ROWS => 30 });
    	    return 0;
@@ -1846,8 +1858,8 @@ sub cards_diller_stats {
 
   my $table = $html->table( { width       => '100%',
 	                       rowcolor    => $_COLORS[0],
-                         rows        => [[ "$_FROM: ",  $html->date_fld('CREATED_FROM_', { MONTHES => \@MONTHES} ),
-                                          "$_TO: ",    $html->date_fld('CREATED_TO_', { MONTHES => \@MONTHES } ),
+                         rows        => [[ "$_FROM: ",  $html->date_fld2('CREATED_FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'cards_list', WEEK_DAYS => \@WEEKDAYS } ),
+                                           "$_TO: ",    $html->date_fld2('CREATED_TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'cards_list', WEEK_DAYS => \@WEEKDAYS } ),
                                           $html->form_select('TYPE', 
                                              { SELECTED   => $FORM{TYPE},
  	                                             SEL_HASH   => { CARDS => $_ICARDS,
@@ -1858,8 +1870,9 @@ sub cards_diller_stats {
  	                                            }),
  	                                        "$_STATUS: ".  $html->form_select('STATUS', 
                                              { SELECTED   => $FORM{STATUS},
- 	                                             SEL_HASH   => { 0 => "$_ENABLE",
- 	                                             	               2 => "$_USED"
+ 	                                             SEL_HASH   => { '' => "$_ALL",
+ 	                                             	               1  => "$_ENABLE",
+ 	                                             	               3  => "$_USED"
  	                                             	               },
  	                                             SORT_KEY   => 1,
  	                                             NO_ID      => 1 
@@ -1882,10 +1895,10 @@ sub cards_diller_stats {
   my @pin = ();
   @pin = ("PIN") if ($conf{CARDS_SHOW_PINS});
 
-	if(defined($FORM{CREATED_FROM_D}) && defined($FORM{CREATED_TO_D})) {
-	  $pages_qs = "&CREATED_TO_Y=$FORM{CREATED_TO_Y}&CREATED_TO_M=$FORM{CREATED_TO_M}&CREATED_TO_D=$FORM{CREATED_TO_D}&CREATED_FROM_Y=$FORM{CREATED_FROM_Y}&CREATED_FROM_M=$FORM{CREATED_FROM_M}&CREATED_FROM_D=$FORM{CREATED_FROM_D}";
-	  $LIST_PARAMS{CREATED_FROM_DATE}="$FORM{CREATED_FROM_Y}-". sprintf("%.2d", ($FORM{CREATED_FROM_M}+1)). "-$FORM{CREATED_FROM_D}";
-	  $LIST_PARAMS{CREATED_TO_DATE}="$FORM{CREATED_TO_Y}-". sprintf("%.2d", ($FORM{CREATED_TO_M}+1)) ."-$FORM{CREATED_TO_D}";
+	if($FORM{CREATED_FROM_DATE} && $FORM{CREATED_TO_DATE}) {
+		$pages_qs = "&CREATED_TO_DATE=$FORM{CREATED_TO_DATE}&CREATED_FROM_DATE=$FORM{CREATED_FROM_DATE}";
+	  $LIST_PARAMS{CREATED_FROM_DATE}=$FORM{CREATED_FROM_DATE};
+	  $LIST_PARAMS{CREATED_TO_DATE}=$FORM{CREATED_TO_DATE};
 	  $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
    }	 
   else {
@@ -1895,11 +1908,15 @@ sub cards_diller_stats {
    }
 
 
-  if (! $FORM{SORT}) {
+  if (! $FORM{sort}) {
     $LIST_PARAMS{SORT}=1;
     $LIST_PARAMS{DESC}='DESC';
    }
 
+  if (defined($FORM{STATUS}) && $FORM{STATUS} ne '') {
+    $LIST_PARAMS{STATUS}=$FORM{STATUS};
+    $pages_qs .= "&STATUS=$FORM{STATUS}";
+   }
 
 #Group by TP
 if ($FORM{TYPE} eq 'TP') {
@@ -1923,10 +1940,10 @@ if($FORM{print_cards}) {
 }
 
 if ($FORM{TP_ID}) {
-  $table = $html->table( { width       => '100',
+  $table = $html->table( { width       => '200',
                            qs          => $pages_qs,
-                           title_plain => [ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex_params   => 'target=_new' }),
-                            $html->button('CSV', "qindex=$index&csv=1&print_cards=1&$pages_qs", { ex_params   => 'target=_new' }) ],
+                           title_plain => [ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex_params   => 'target=_new', BUTTON => 1 }),
+                            $html->button('CSV', "qindex=$index&csv=1&print_cards=1&$pages_qs", { ex_params   => 'target=_new', BUTTON => 1 }) ],
                            ID          => 'PRINT_CARDS_LIST',
                          });
   print $table->show();
@@ -1964,8 +1981,8 @@ if ($FORM{TP_ID}) {
       );
      }
     else {
-   	  @rows = ($html->button($line->[0], "&index=$index&CREATED_DATE=$line->[0]". ( ($line->[4] > 0)  ? "&TYPE=TP&TP_ID=$line->[4]" : '&TYPE=CARDS' ). "&PAGE_ROWS=$FORM{PAGE_ROWS}"),
-  	    (! $line->[4]) ? $_PAYMENTS : $html->button($line->[1], "&index=$index&TP_ID=$line->[4]&CREATED_DATE=$line->[0]&TYPE=TP&PAGE_ROWS=$FORM{PAGE_ROWS}"),
+   	  @rows = ($html->button($line->[0], "&index=$index&CREATED_DATE=$LIST_PARAMS{CREATED_DATE}&PAGE_ROWS=$LIST_PARAMS{PAGE_ROWS}". ( ($line->[4] > 0)  ? "&TYPE=TP&TP_ID=$line->[4]" : '&TYPE=CARDS&PAYMENTS=1' )),
+  	    (! $line->[4]) ? $_PAYMENTS : $html->button($line->[1], "&index=$index$pages_qs&TP_ID=$line->[4]"),
   	    $line->[2],
   		  $line->[3],
   		  $line->[4]
@@ -1996,6 +2013,12 @@ elsif ($FORM{TYPE} eq 'CARDS') {
     $pages_qs .= "&CREATED_DATE=$LIST_PARAMS{CREATED_DATE}";
    }
 
+  if ($FORM{PAYMENTS}) {
+    $LIST_PARAMS{PAYMENTS}=1;
+    $pages_qs .= "&PAYMENTS=1";
+   }
+
+
   my $list = $Cards->cards_list({ %LIST_PARAMS, 
   	                              SERIA => '' 
  	                              });
@@ -2016,9 +2039,9 @@ elsif ($FORM{TYPE} eq 'CARDS') {
    	$table->addrow(
    	    $line->[0], 
   	    $line->[1],
-  	    ($user->{UID}) ? $line->[2] : $html->button($line->[2], "&index=11&UID=$line->[13]"),
+  	    ($user->{UID}) ? "$_PAYMENTS" : $html->button($line->[2], "&index=11&UID=$line->[13]"),
   		  $line->[3],
-  		  $status[$line->[4]],
+  		  $html->color_mark($status[$line->[4]], $status_colors[$line->[4]]),
   		  $line->[5],
   		  $line->[6],
   		);
@@ -2051,7 +2074,8 @@ else {
   	     $line->[1],
   		   $line->[2],
   	     $html->button("$_PRINT $_SUM", '#',  {  NEW_WINDOW      => "$_SELF_URL?qindex=$index&print=$line->[0]&sid=$FORM{sid}",
-      	                                   NEW_WINDOW_SIZE => "480:640",  
+      	                                         NEW_WINDOW_SIZE => "480:640",  
+      	                                         BUTTON => 1
       	                                 } ),  		
   	    );
     }
@@ -2146,19 +2170,7 @@ elsif (scalar keys %page_print_hash > 0) {
   	                                         debug        => $debug
   	                                        }
   	                                       ); 
-
-
-
 }
-
-
-
-
-
-sub sel_groups {
-}
-
-
 
 
 1

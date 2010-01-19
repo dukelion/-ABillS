@@ -1,3 +1,4 @@
+<div calls=noprint id=CARDS_ADD>
 <form action='$SELF_URL' METHOD='POST' ENCTYPE='multipart/form-data' id='CARDS_ADD'>
 <input type='hidden' name='index' value='$index'>
 
@@ -28,3 +29,4 @@
 </table>
 <input type='submit' name='create' value='$_CREATE'>
 </form>
+</div>
