@@ -299,7 +299,4 @@ sub access_deny {
   return 1;
 }
 
-
-
-
 1

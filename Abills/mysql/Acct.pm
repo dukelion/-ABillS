@@ -134,20 +134,20 @@ elsif ($acct_status_type == 2) {
 
 
   my $Billing = Billing->new($db, $conf);	
-
+#IPN Service
   if ( $NAS->{NAS_EXT_ACCT} || $NAS->{NAS_TYPE} eq 'ipcad') {
- 
-
     $self->query($db, "SELECT 
-       acct_input_octets,
-       acct_output_octets,
-       ex_input_octets,
-       ex_output_octets,
-       tp_id,
-       sum,
-       uid
-    FROM dv_calls 
-    WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
+       dv.acct_input_octets,
+       dv.acct_output_octets,
+       dv.ex_input_octets,
+       dv.ex_output_octets,
+       dv.tp_id,
+       dv.sum,
+       dv.uid,
+       u.bill_id,
+       u.company_id
+    FROM (dv_calls dv, users u)
+    WHERE dv.uid=u.uid AND dv.user_name='$RAD->{USER_NAME}' AND dv.acct_session_id='$RAD->{ACCT_SESSION_ID}';");
 
     if($self->{errno}) {
  	    return $self;
@@ -164,21 +164,23 @@ elsif ($acct_status_type == 2) {
      $RAD->{INBYTE2},
      $RAD->{OUTBYTE2},
      $self->{TARIF_PLAN},
-     $self->{SUM}
+     $self->{SUM},
+     $self->{UID},
+     $self->{BILL_ID},
+     $self->{COMPANY_ID}
     ) = @{ $self->{list}->[0] };
 
-    ($self->{UID}, 
-     undef, 
-     $self->{BILL_ID}, 
-     $self->{TARIF_PLAN}, 
-     $self->{TIME_TARIF}, 
-     $self->{TRAF_TARIF}) = $Billing->session_sum("$RAD->{USER_NAME}", 
-                                                   $RAD->{SESSION_START}, 
-                                                   $RAD->{ACCT_SESSION_TIME}, 
-                                                   $RAD, 
-                                                   { USER_INFO => 1 } );
+    if ($self->{COMPANY_ID} > 0) {
+       $self->query($db, "SELECT bill_id FROM companies WHERE id='$self->{COMPANY_ID}';");
+       if ($self->{TOTAL} < 1) {
+         $self->{errno}=2;
+         $self->{errstr}="Company not exists '$self->{COMPANY_ID}'";
+         return $self;
+    	  }
 
-    
+       ($self->{BILL_ID})= @{ $self->{list}->[0] };
+     }
+
     if ($self->{UID} > 0 ) {
       $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp,  
         sum, nas_id, port_id,
@@ -231,13 +233,11 @@ elsif ($acct_status_type == 2) {
     my %EXT_ATTR = ();
     
     #Get connected TP
-    $self->query($db, "SELECT tp_id, CONNECT_INFO FROM dv_calls
+    $self->query($db, "SELECT uid, tp_id, CONNECT_INFO FROM dv_calls
       WHERE
-      acct_session_id='$RAD->{ACCT_SESSION_ID}' and 
-      user_name='$RAD->{USER_NAME}' and
-      nas_id='$NAS->{NAS_ID}';");
+      acct_session_id='$RAD->{ACCT_SESSION_ID}' and nas_id='$NAS->{NAS_ID}';");
 
-    ($EXT_ATTR{TP_ID}, $EXT_ATTR{CONNECT_INFO}) = @{ $self->{list}->[0] } if ($self->{TOTAL} > 0);
+    ($EXT_ATTR{UID}, $EXT_ATTR{TP_NUM}, $EXT_ATTR{CONNECT_INFO}) = @{ $self->{list}->[0] } if ($self->{TOTAL} > 0);
   
     ($self->{UID}, 
      $self->{SUM}, 
@@ -255,7 +255,7 @@ elsif ($acct_status_type == 2) {
       $self->{errstr} = "ACCT [$RAD->{USER_NAME}] Not exist";
      }
     elsif($self->{UID} == -3) {
-      my $filename   = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
+      my $filename     = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";
       $RAD->{SQL_ERROR}="$Billing->{errno}:$Billing->{errstr}";
       $self->{errno} = 1;
       $self->{errstr}= "SQL Error ($Billing->{errstr}) SESSION: '$filename'";
@@ -300,9 +300,8 @@ elsif ($acct_status_type == 2) {
 }
 
   # Delete from session
-  $self->query($db, "DELETE FROM dv_calls WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}'
-     and user_name='$RAD->{USER_NAME}'
-     and nas_id='$NAS->{NAS_ID}';", 'do');
+  $self->query($db, "DELETE FROM dv_calls WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' and user_name='$RAD->{USER_NAME}' 
+    and nas_id='$NAS->{NAS_ID}';", 'do');
  }
 #Alive status 3
 elsif($acct_status_type eq 3) {
@@ -330,8 +329,6 @@ elsif($acct_status_type eq 3) {
       acct_session_id='$RAD->{ACCT_SESSION_ID}' and 
       user_name='$RAD->{USER_NAME}' and
       nas_id='$NAS->{NAS_ID}';", 'do');
-
-
 
   	return $self;
    }
@@ -403,7 +400,6 @@ if ($conf->{s_detalization}) {
 sub rt_billing {
 	my $self = shift;
   my ($RAD, $NAS)=@_;
-  
 
   $self->query($db, "SELECT lupdated, UNIX_TIMESTAMP()-lupdated, 
    if($RAD->{INBYTE} >= acct_input_octets, $RAD->{INBYTE} - acct_input_octets, acct_input_octets),
@@ -412,7 +408,8 @@ sub rt_billing {
    if($RAD->{OUTBYTE2} >= ex_output_octets, $RAD->{OUTBYTE2} - ex_output_octets, ex_output_octets),
    acct_session_id,
    sum,
-   tp_id
+   tp_id,
+   uid
    FROM dv_calls 
   WHERE user_name='$RAD->{USER_NAME}' and acct_session_id='$RAD->{ACCT_SESSION_ID}';");
 
@@ -425,7 +422,6 @@ sub rt_billing {
     return $self;
    }
 
-
   ($RAD->{INTERIUM_SESSION_START},
    $RAD->{INTERIUM_ACCT_SESSION_TIME},
    $RAD->{INTERIUM_INBYTE},
@@ -434,10 +430,9 @@ sub rt_billing {
    $RAD->{INTERIUM_OUTBYTE1},
    $RAD->{ACCT_SESSION_ID},
    $self->{CALLS_SUM},
-   $self->{TP_ID}
+   $self->{TP_NUM},
+   $self->{UID}
    ) = @{ $self->{list}->[0] };
-
-  # Giga word check  
   
   my $Billing = Billing->new($db, $conf);	
 
@@ -459,11 +454,12 @@ sub rt_billing {
                                                    INTERIUM_INBYTE   => $RAD->{INTERIUM_INBYTE},
                                                    INTERIUM_OUTBYTE1 => $RAD->{INTERIUM_INBYTE1},
                                                    INTERIUM_INBYTE1  => $RAD->{INTERIUM_OUTBYTE1},
-
-                                                   TP_ID     => $self->{TP_ID},
-                                                   DOMAIN_ID => ($NAS->{DOMAIN_ID}) ? $NAS->{DOMAIN_ID} : 0,
                                                 	},
-                                                { FULL_COUNT => 1 }
+                                                { FULL_COUNT => 1,
+                                                  TP_NUM     => $self->{TP_NUM},
+                                                  UID        => $self->{UID},
+                                                  DOMAIN_ID  => ($NAS->{DOMAIN_ID}) ? $NAS->{DOMAIN_ID} : 0,
+                                                	  }
                                                 );
 
 #  my $a = `date >> /tmp/echoccc;
@@ -539,8 +535,6 @@ sub rt_billing {
       $self->query($db, "UPDATE bills SET deposit=deposit-$self->{SUM} WHERE id='$self->{BILL_ID}';", 'do');
      }
    }
-	
 }
-
 
 1

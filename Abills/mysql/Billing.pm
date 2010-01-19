@@ -929,7 +929,6 @@ sub time_calculation() {
 	my ($attr) = @_;
   my $sum = 0;
 
-
   delete $self->{errno};
   delete $self->{errstr};
 
@@ -974,8 +973,6 @@ if(! defined($self->{NO_TPINTERVALS})) {
 }
 
   $sum = $sum * (100 - $attr->{REDUCTION}) / 100 if (defined($attr->{REDUCTION}) && $attr->{REDUCTION} > 0);
-#$sum = $CONF->{MIN_SESSION_COST} if ($sum < $self->{MIN_SESSION_COST} && $self->{MIN_SESSION_COST} > 0);
-
   $self->{SUM}=$sum;
   return $self;
 }
@@ -1411,9 +1408,6 @@ sub expression {
 	return $RESULT;
 }
 
-
-
-
 #**********************************************************
 # get expresion result
 #**********************************************************
@@ -1432,7 +1426,6 @@ sub get_result {
 
   return \%RESULT;
 }
-
 
 
 1
