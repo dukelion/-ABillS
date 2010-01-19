@@ -1,6 +1,7 @@
 package Abills::PDF;
 #PDF outputs
 
+
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
    @_COLORS
@@ -1210,6 +1211,63 @@ for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
 # date_fld($base_name)
 #*******************************************************************
 sub date_fld  {
+ my $self = shift;
+ my ($base_name, $attr) = @_;
+ 
+ my $MONTHES = $attr->{MONTHES};
+
+ my($sec,$min,$hour,$mday,$mon,$curyear,$wday,$yday,$isdst) = localtime(time);
+ 
+ if ($attr->{DATE}) {
+ 	 my ($y, $m, $d)=split(/-/, $attr->{DATE});
+ 	 $mday=$d;
+  }
+ else {
+   $mday=1;
+  }
+ 
+ my $day = $FORM{$base_name.'D'} || $mday;
+ my $month = $FORM{$base_name.'M'} || $mon;
+ my $year = $FORM{$base_name.'Y'} || $curyear + 1900;
+
+
+my $result  = "<SELECT name=". $base_name ."D>";
+for (my $i=1; $i<=31; $i++) {
+   $result .= sprintf("<option value=%.2d", $i);
+   $result .= ' selected' if($day == $i ) ;
+   $result .= ">$i\n";
+ }	
+$result .= '</select>';
+
+
+$result  .= "<SELECT name=". $base_name ."M>";
+
+my $i=0;
+foreach my $line (@$MONTHES) {
+   $result .= sprintf("<option value=%.2d", $i);
+   $result .= ' selected' if($month == $i ) ;
+   
+   $result .= ">$line\n";
+   $i++
+}
+$result .= '</select>';
+
+$result  .= "<SELECT name=". $base_name ."Y>";
+for ($i=2002; $i<=$curyear + 1900+2; $i++) {
+   $result .= "<option value=$i";
+   $result .= ' selected' if($year eq $i ) ;
+   $result .= ">$i\n";
+ }	
+$result .= '</select>'."\n";
+
+return $result ;
+}
+
+#*******************************************************************
+# Make data field
+# date_fld($base_name)
+#*******************************************************************
+sub date_fld2  {
  my $self = shift;
  my ($base_name, $attr) = @_;
  
