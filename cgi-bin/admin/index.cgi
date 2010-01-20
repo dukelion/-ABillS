@@ -2201,7 +2201,7 @@ sub form_changes {
                    1  => "$_ADDED",
                    2  => "$_CHANGED",
                    3  => "$_CHANGED $_TARIF_PLAN",
-                   4  => "$_CHANGED $_STATUS",
+                   4  => "$_STATUS",
                    5  => "$_CHANGED $_CREDIT",
                    6  => "$_INFO",
                    7  => "$_REGISTRATION",
@@ -2210,7 +2210,8 @@ sub form_changes {
                    10 => "$_DELETED",
                    11 => '',
                    12 => "$_DELETED $_USER",
-                   13 => "Online $_DELETE");
+                   13 => "Online $_DELETE",
+                   14 => "$_HOLD_UP");
  
 if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {
 	$admin->action_del( $FORM{del} );
@@ -5446,19 +5447,16 @@ $info{ACTION_LNG}=$_CHANGE;
 if ($FORM{create}) {
    $FORM{create} =~ s/ |\///g;
    my ($module, $file, $lang)=split(/:/, $FORM{create}, 3);
- 
    my $filename = ($module) ? "$sys_templates/$module/templates/$file" : "$main_templates_dir/$file";
 
    if ($lang ne '') {
    	  $file =~ s/\.tpl/_$lang/;
    	  $file .= '.tpl';
     }
-   
+
    $main_tpl_name = $file;
-   
    $info{TPL_NAME} = "$module"._."$file";
 
- 
    if (-f  $filename ) {
 	  open(FILE, $filename) || $html->message('err', $_ERROR, "Can't open file '$filename' $!\n");;
   	  while(<FILE>) {
@@ -5468,20 +5466,15 @@ if ($FORM{create}) {
    }
 
   $info{TEMPLATE} =~ s/\\"/"/g;
-  
-
   show_tpl_info($filename);
  }
 elsif ($FORM{SHOW}) {
 	print $html->header();
-
   my ($module, $file, $lang)=split(/:/, $FORM{SHOW}, 3);
   $file =~ s/.tpl//;
-
   $file =~ s/ |\///g;
 
   $html->{language}=$lang if ($lang ne '');
-
 
   if ($module) {
     my $realfilename = "$prefix/Abills/modules/$module/lng_$html->{language}.pl";
@@ -5500,14 +5493,12 @@ elsif ($FORM{SHOW}) {
    }
 
   print "<center>";
-
   if ($module) {
     $html->tpl_show(_include("$file", "$module"), { LNG_ACTION => $_ADD },  ); 
    }
   else {
     $html->tpl_show(templates("$file"), { LNG_ACTION => $_ADD }, );  	
    } 
-
   print "</center>\n";
 	
 	return 0;
@@ -5532,9 +5523,7 @@ elsif ($FORM{change}) {
 
   $info{TEMPLATE} = $FORM2{template};
   $info{TPL_NAME} = $FORM{tpl_name};
-  
   $info{TEMPLATE} = convert($info{TEMPLATE}, { '2_tpl' => 1 });
-  
   $info{TEMPLATE} =~ s/"/\\"/g;
 	
 	if (open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}")) {
@@ -5561,9 +5550,7 @@ elsif ($FORM{FILE_UPLOAD}) {
   else {
     open(FILE, ">$conf{TPL_DIR}/$FORM{FILE_UPLOAD}{filename}") or $html->message('err', $_ERROR, "$_ERROR  '$!'");
       binmode FILE;
-      #while(<$FORM{FILE_UPLOAD}{Contents}>) {  
-      	print FILE $FORM{FILE_UPLOAD}{Contents};
-      # }
+     	print FILE $FORM{FILE_UPLOAD}{Contents};
     close(FILE);
     $html->message('info', $_INFO, "$_ADDED: '$FORM{FILE_UPLOAD}{filename}' $_SIZE: $FORM{FILE_UPLOAD}{Size}");
    }
@@ -5605,7 +5592,6 @@ elsif($FORM{tpl_name}) {
    }
 }
 
-
 #$html->tpl_show(templates('form_template_editor'), { %info });
 
 $info{TEMPLATE} = convert($info{TEMPLATE}, { from_tpl => 1 });
@@ -5644,8 +5630,6 @@ $table->{rowcolor}= $_COLORS[0];
 $table->{extra}   = "colspan='". ( 6 + $#caption )."' class='small'";
 $table->addrow("$_PRIMARY: ($main_templates_dir) ");
 if (-d $main_templates_dir ) {
-
-
     my $tpl_describe = get_tpl_describe("$main_templates_dir/describe.tpls");
 
     opendir DIR, "$main_templates_dir" or die "Can't open dir '$sys_templates/main_tpls' $!\n";
@@ -5759,14 +5743,11 @@ foreach my $module (sort @MODULES) {
        }
 
       $table->addrow(@rows);
-
      }
-
    }
 }
 
 print $table->show();
-
 
 my $table = $html->table( { width       => '600',
 	                          caption     => $_OTHER,
@@ -5810,13 +5791,11 @@ my $table = $html->table( { width       => '600',
 #**********************************************************
 sub get_tpl_describe {
   my ($file) = @_;
-
   my %tpls_describe = ();
 
 if (! -f  $file ) {
   return \%tpls_describe;
 }
-
 
   my %tpls_describe = ();
 
@@ -5828,10 +5807,7 @@ if (! -f  $file ) {
 	close(FILE);
 
   my @arr = split(/\n/,  $content); 
-
-
 	foreach my $line (@arr) {
-	
 		if ($line =~ /^#/) {
 			next;
 		 }
@@ -5841,7 +5817,6 @@ if (! -f  $file ) {
 		  $tpls_describe{$tpl}=$describe;
 		 }
 	 }
-	
 	return \%tpls_describe;
 }
 
@@ -5967,7 +5942,6 @@ sub form_period  {
 # form_dictionary();
 #*******************************************************************
 sub form_dictionary {
-
 	my $sub_dict = $FORM{SUB_DICT} || '';
 
  ($sub_dict, undef) = split(/\./, $sub_dict, 2);
@@ -6068,7 +6042,8 @@ sub form_dictionary {
 
 	$table = $html->table( { width       => '600',
                            title_plain => ["$_NAME", "$_VALUE", "-"],
-                           cols_align  => ['left', 'left', 'center']
+                           cols_align  => ['left', 'left', 'center'],
+                           ID          => 'FORM_DICTIONARY'
                         } );
 
   foreach my $k (sort keys %main_dictionary) {
@@ -6266,8 +6241,6 @@ sub weblog {
 #
 #**********************************************************
 sub form_bruteforce {
-	
-	
 if(defined($FORM{del}) && $FORM{is_js_confirmed} && $permissions{0}{5} ) {
    $users->bruteforce_del({ LOGIN => $FORM{del} });
    $html->message('info', $_INFO, "$_DELETED # $FORM{del}");
@@ -6282,7 +6255,8 @@ if(defined($FORM{del}) && $FORM{is_js_confirmed} && $permissions{0}{5} ) {
                               title      => [$_LOGIN, $_PASSWD, $_DATE, $_COUNT, 'IP', '-', '-'],
                               cols_align => ['left', 'left', 'right', 'right', 'center', 'center'],
                               pages      => $users->{TOTAL},
-                              qs         => $pages_qs
+                              qs         => $pages_qs,
+                              ID         => 'FORM_BRUTEFORCE'
                            } );
 
   foreach my $line (@$list) {
@@ -6291,8 +6265,8 @@ if(defined($FORM{del}) && $FORM{is_js_confirmed} && $permissions{0}{5} ) {
       $line->[2], 
       $line->[3], 
       $line->[4], 
-      $html->button($_INFO, "index=$index&LOGIN=$line->[0]"), 
-      (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }) : ''
+      $html->button($_INFO, "index=$index&LOGIN=$line->[0]", { BUTTON => 1 }), 
+      (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }) : ''
       );
    }
   print $table->show();
@@ -6350,7 +6324,6 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
 if ($Tariffs->{errno}) {
     $html->message('err', $_ERROR, "[$Tariffs->{errno}] $err_strs{$Tariffs->{errno}}");	
  }
-
 
 $Tariffs->{USER_CHG_TP} = ($Tarrifs->{USER_CHG_TP}) ? 'checked' : '';
 $html->tpl_show(templates('form_tp_group'), $Tarrifs);
@@ -6426,7 +6399,6 @@ sub _external {
 # Information fields
 #**********************************************************
 sub form_info_fields {
-	
 	if ($FORM{USERS_ADD}) {
 		if (length($FORM{FIELD_ID}) > 15) {
 			$html->message('err', $_ERROR, "$ERR_WRONG_DATA");
@@ -6547,8 +6519,6 @@ sub form_info_fields {
 	                       	              },
 	                       	  NAME    => 'company_fields'
                          });
-
-	
 }
 
 
@@ -6591,14 +6561,11 @@ sub form_info_lists {
   if ($users->{errno}) {
     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");
    }
-
-
 	
   my $list = $users->config_list({ PARAM => 'if*',
   	                               VALUE => '2:*'});
 
   my %lists_hash = ();
-
 
   foreach my $line (@$list) {
     my $field_name       = '';
@@ -6663,7 +6630,6 @@ sub form_info_lists {
 	                       	              },
 	                       	  NAME    => 'list_add'
                          });
-	
  }
 }
 

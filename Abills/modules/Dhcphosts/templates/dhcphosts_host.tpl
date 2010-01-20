@@ -1,9 +1,11 @@
-<FORM action='$SELF_URL' MATHOD='POST'>
+<dir class=noprint id=dhcphosts_host>
+<FORM action='$SELF_URL' MATHOD='POST' id=form_host>
 <input type=hidden name=index value=$index>
 <input type=hidden name=UID value=$FORM{UID}>
 <input type=hidden name=ID value=$FORM{chg}>
 <table>
 
+<tr><th class=form_title colspan=2>DHCP</th></tr>			
 <tr><td>$_HOSTS_HOSTNAME:</td><td><input type=text name=HOSTNAME value='%HOSTNAME%'></td></tr>			
 <tr><td>$_HOSTS_NETWORKS:</td><td>%NETWORKS_SEL%</td></tr>
 <tr><td>IP:</td><td><input type=text name=IP value='%IP%' size=15> $_AUTO: <input type=checkbox name=AUTO_IP value=1></td></tr>			
@@ -21,3 +23,4 @@
 </table>
 <input type=submit name=%ACTION% value='%ACTION_LNG%'>
 </FORM>
+</div>

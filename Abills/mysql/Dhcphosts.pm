@@ -734,35 +734,23 @@ sub hosts_list {
 
 
   if ($attr->{OPTION_82}) {
-    my $value = $self->search_expr("$attr->{OPTION_82}", 'INT');
-    push @WHERE_RULES, "h.option_82$value";
-    $self->{SEARCH_FIELDS} .= 'h.option_82, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{OPTION_82}", 'INT', 'h.option_82', { EXT_FIELD => 1 }) };
   }
 
   if ($attr->{PORTS}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{PORTS}", 'STR', 'h.ports') };
-    $self->{SEARCH_FIELDS} .= 'h.ports, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{PORTS}", 'STR', 'h.ports', { EXT_FIELD => 1 }) };
   }
 
   if ($attr->{NAS_ID}) {
-    my $value = $self->search_expr("$attr->{NAS_ID}", 'INT');
-    push @WHERE_RULES, "h.nas$value";
-    $self->{SEARCH_FIELDS} .= 'h.nas, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{NAS_ID}", 'INT', 'h.nas', { EXT_FIELD => 1 }) };
   }
 
   if ($attr->{VID}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{VID}", 'INT', 'h.vid') };
-    $self->{SEARCH_FIELDS} .= 'h.vid, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{VID}", 'INT', 'h.vid', { EXT_FIELD => 1 }) };
   }
 
   if ($attr->{BOOT_FILE}) {
-    push @WHERE_RULES, @{ $self->search_expr("$attr->{BOOT_FILE}", 'STR', 'h.boot_file') };
-    $self->{SEARCH_FIELDS} .= 'h.boot_file, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{BOOT_FILE}", 'STR', 'h.boot_file', { EXT_FIELD => 1 }) };
    }
 
 

@@ -82,7 +82,6 @@ sub connect {
 sub disconnect {
   my $self = shift;
 
-
   $self->{db}->disconnect;
   return $self;
 }
@@ -408,6 +407,7 @@ sub changes {
            }
           elsif($k eq 'STATUS') {
             $self->{CHG_STATUS}=$OLD_DATA->{$k}.'->'.$DATA{$k};
+            $self->{'STATUS'}=$DATA{$k};
            }
           elsif($k eq 'TP_ID') {
             $self->{CHG_TP}=$OLD_DATA->{$k}.'->'.$DATA{$k};
@@ -462,21 +462,18 @@ else {
      }
 
     if($self->{'STATUS'}) {
-      $admin->action_add($DATA{UID}, "$self->{'STATUS'}", { TYPE => 4});
+      $admin->action_add($DATA{UID}, "$self->{'STATUS'}", { TYPE => ($self->{'STATUS'}==3) ? 14 : 4 });
      }
 
     if($self->{CHG_CREDIT}) {
       $admin->action_add($DATA{UID}, "$self->{'CHG_CREDIT'}", { TYPE => 5 });
      }
-
-
    }
   elsif(defined($admin)) {
     $admin->system_action_add("$CHANGES_LOG", { TYPE => 2 });
    }
   return $self->{result};
 }
-
 
 
 1

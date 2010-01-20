@@ -573,7 +573,7 @@ sub dv_user {
   $Dv->{REGISTRATION_INFO}= $html->button("$_REGISTRATION", "index=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1", { BUTTON => 1 });
 
   if ($conf{DOCS_PDF_PRINT}) {
-    $Dv->{REGISTRATION_INFO_PDF}= '('. $html->button("PDF", "qindex=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1&pdf=1", { ex_params => 'target=_new' } ) .')';
+    $Dv->{REGISTRATION_INFO_PDF}= $html->button("PDF", "qindex=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1&pdf=1", { ex_params => 'target=_new', BUTTON => 1 } );
    }
 
 
@@ -615,16 +615,14 @@ sub dv_user {
         }
       }
      elsif($Dv->{JOIN_SERVICE}  > 1) {
-     	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_MAIN", "index=15&UID=$Dv->{JOIN_SERVICE}");
+     	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_MAIN", "index=15&UID=$Dv->{JOIN_SERVICE}", { BUTTON => 1 });
       }
-
 
  	   $Dv->{JOIN_SERVICE} = $html->tpl_show(_include('dv_user_join_service', 'Dv'), $Dv, { OUTPUT2RETURN => 1 });
  	 }                                    
  	else {
  		$Dv->{JOIN_SERVICE}='';
  	}                                        
-
 
   my $nas = Nas->new($db, \%conf);  
   $list = $nas->ip_pools_list({ STATIC => 1 });
@@ -640,7 +638,6 @@ sub dv_user {
  
   
   $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
-  
   return 0; 
 }
 
@@ -884,7 +881,6 @@ $table = $html->table( { width      => '100%',
                          rows       => [ [ "$_TOTAL:", $html->b($tariffs->{TOTAL}) ] ]
                      } );
 print $table->show();
-
 }
 
 
@@ -982,9 +978,8 @@ elsif($FORM{zap}) {
   	                NAS_ID          => $nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
-    $message .= "<p align=center>".
-    $html->button('Add To log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id&ZAPED=1", { BUTTON => 1 }). 
-    $html->button($_DEL, "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id&ZAPED=1", { BUTTON => 1 }). "</p>\n";
+    $message .=  $html->button('Add To log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id&ZAPED=1", { BUTTON => 1 }).' '.
+    $html->button($_DEL, "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id&ZAPED=1", { BUTTON => 1 });
    }
   else {
   	$message .= "$_EXIST";
@@ -1239,10 +1234,8 @@ if ($sessions->{TOTAL} > 500)  {
     $html->button("$_SHOW", "index=$index&NAS_ID=$line->[0]", { BUTTON => 1 })
    );
   }
-
   print $table->show();
-  
-  
+
   if (! $FORM{NAS_ID} && ! $FORM{ZAPED} && ! $FORM{FILTER}) {
   	print dv_online_search({ FIELDS_ALL => \@FIELDS_ALL }); 
   	
@@ -1253,10 +1246,6 @@ if ($sessions->{TOTAL} > 500)  {
   	$LIST_PARAMS{NAS_ID}=$FORM{NAS_ID};
    }
 }
-
-
-
-
 
 my @CAPTION = (); 
 my @ACTIVE_FIELDS = (0,1,2,3,4,5,6,7,8);
@@ -1274,9 +1263,6 @@ elsif ($admin->{WEB_OPTIONS} =~ /DV_MONITOR=(.+);/) {
 foreach my $field_id (@ACTIVE_FIELDS) {
 	push @CAPTION, $FIELDS_ALL[$field_id];
 }
-
-
-
 
 
 if (defined($FORM{FILTER})) {
@@ -1376,10 +1362,6 @@ foreach my $nas_row (@$nas_list) {
 
 
 my $output = $table->show();
-
-
-
-
 
 if ($FORM{ZAPED}) {
   $output = $html->form_main({ CONTENT => $output,
@@ -1509,7 +1491,6 @@ if (! $list) {
                       21 => 'Port-Reinit',
                       22 => 'Port-Disabled'
                     }
-
  	                                        });
 
   form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_sessions_search', 'Dv'),
@@ -2804,7 +2785,6 @@ if (defined($attr->{USER}))	{
       if ($FORM{change}) {
         use Bills;
         my $Bill = Bills->new($db);
-        $Bill->{debug}=1;
         $Bill->action('add', "$sessions->{BILL_ID}", $sessions->{SUM}) if ($sessions->{SUM});
         $Bill->action('take', "$sessions->{BILL_ID}", $SUM) if ($SUM > 0);
 
@@ -3531,6 +3511,8 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   
   $Dv->info($LIST_PARAMS{UID});
   
+  $user->{DV_STATUS} = $Dv->{STATUS};
+
   if ($Dv->{TOTAL} < 1) {
   	$html->message('info', $_INFO, "$_NOT_ACTIVE");
     return 0;	
@@ -3640,17 +3622,20 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
   if ($conf{DV_USER_SERVICE_HOLDUP}) {
   	#$_HOLD_UP
-  	dv_holdup_service();
+  	dv_holdup_service($Dv);
    }
 
 }
+
+
 
 
 #**********************************************************
 #
 #**********************************************************
 sub dv_holdup_service {
-  my ($hold_up_min_period, $hold_up_max_period)=split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
+  my ($attr)=@_;
+  my ($hold_up_min_period, $hold_up_max_period, $hold_up_period)=split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
 
   my $shedule = Shedule->new($db, $admin, \%conf);
   
@@ -3733,6 +3718,20 @@ sub dv_holdup_service {
      }
    } 
 
+  if ($hold_up_period) {
+     my $list = $admin->action_list({ UID       => $user->{UID}, 
+     	                                TYPE      => 14,  
+     	                                FROM_DATE => (strftime "%Y-%m-%d", localtime(time - 86400 * $hold_up_period)),
+     	                                TO_DATE   => "$DATE", });
+     if ($admin->{TOTAL} > 0) {
+     	 return 0;
+      }
+   }
+
+  if(($user->{DV_STATUS} && $user->{DV_STATUS} != 3) || $user->{DISABLE}) {
+  	return 0;
+   }
+
 
   $Dv->{DATE_FROM}= $html->date_fld2('FROM_DATE', { FORM_NAME => 'holdup',
   	                                                WEEK_DAYS => \@WEEKDAYS,
@@ -3745,14 +3744,6 @@ sub dv_holdup_service {
  	                                            });
 
 	$html->tpl_show(_include('dv_hold_up', 'Dv'), $Dv);
-}
-
-#**********************************************************
-# dv_periodic_ppp_clean
-# Kill ppp deamons fot down interfaces 
-#**********************************************************
-sub dv_periodic_ppp_clean {
-  #my $a = `count=\`ifconfig -d | grep PID | wc -l\`; if [ \${count} != 0 ]; thenecho \${count}; ifconfig -d | grep PID | awk '{ print \$4 }' | xargs kill -1; fi;`;
 }
 
 #**********************************************************
@@ -4435,6 +4426,9 @@ if ($d == 1) {
   $DEBUG .= $debug_output;
   return $debug_output;
 }
+
+
+
 
 #**********************************************************
 # user_warnings

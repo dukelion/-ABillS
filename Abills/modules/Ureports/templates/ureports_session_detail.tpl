@@ -12,5 +12,3 @@
 <tr bgcolor=$_COLORS[2]><td>$_MESSAGE:</td><td>%BODY%</td></tr>
 </table>
 </td></tr></table>
-
-
