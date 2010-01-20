@@ -561,8 +561,8 @@ if ($conf{ng_car}) {
 		      open(SUB_NG, "/usr/sbin/ngctl msg $class". "_$login: getconf|")  || die "Can't open $!\n";
 		        while(<SUB_NG>) {
 		        	if(/Args:\s*{ upstream={ cbs=\d+ ebs=\d+ cir=(\d+) greenAction=\d yellowAction=\d redAction=\d mode=\d } downstream={ cbs=\d+ ebs=\d+ cir=(\d+) greenAction=\d yellowAction=\d redAction=\d mode=\d } }/) {
-		        		$LOGINS_SPEEDS{$login}{$class_id}{OUT}= $1 / 1024;
-		        		$LOGINS_SPEEDS{$login}{$class_id}{IN} = $2 / 1024;
+		        		$LOGINS_SPEEDS{$login}{$class_id}{IN} = $1 / 1024;
+		        		$LOGINS_SPEEDS{$login}{$class_id}{OUT} = $2 / 1024;
 		        	 }
 		         }
 		      close(SUB_NG);
