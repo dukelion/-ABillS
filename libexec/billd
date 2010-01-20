@@ -546,8 +546,8 @@ sub check_speed {
   my %rule_speed = ();
   my %pipe_rules = ();
   
-	#Get ng_car speed
-	if ($conf{ng_car}) {
+#Get ng_car speed
+if ($conf{ng_car}) {
     #Get speed from server
     open(PROCS, "/usr/sbin/ngctl list |") || die "Can't open file '' $!\n";
       while(<PROCS>) {
@@ -571,45 +571,30 @@ sub check_speed {
 		  }
 	  close(PROCS);	
 
-if ($debug > 1 || $ARGV->{SHOW_SPEED}) {
-
-    foreach my $login ( sort keys %LOGINS_SPEEDS) {
-    #while(my($login, $spees_hash) = each %LOGINS_SPEEDS) {
-    	my $spees_hash = $LOGINS_SPEEDS{$login};
-    	
-    	
-    	print "$login: \n";
-    	while(my($direction, $speed) = each %$spees_hash) {
-    		print "  $direction  IN: $speed->{IN} OUT: $speed->{OUT}\n";
-    	 }
-     }
-
+    if ($debug > 1 || $ARGV->{SHOW_SPEED}) {
+      foreach my $login ( sort keys %LOGINS_SPEEDS) {
+      	my $spees_hash = $LOGINS_SPEEDS{$login};
+      	print "$login: \n";
+      	while(my($direction, $speed) = each %$spees_hash) {
+    		  print "  $direction  IN: $speed->{IN} OUT: $speed->{OUT}\n";
+    	   }
+       }
      return 0 if(defined($ARGV->{SHOW_SPEED}));
-    
-    
-}
-
-    #Get speed from billing
-		#return 0;
-	 }
-else {	
-	
+    }
+	#return 0;
+ }
+else {
 #----------------------------------------------------------	
 # old shaper check
 #----------------------------------------------------------
-
 	$conf{JOIN_SERVICE_FW_FIRST_RULE} = 40000 if (! $conf{JOIN_SERVICE_FW_FIRST_RULE});
   #Get IPFW speed rules
-
-
 	my $result = `$IPFW pipe show; $IPFW show`;
 	my @rules = split(/\n/, $result);
 	# key1 interface; key2 rule number; value speed
-	
 	my %speeds_rotations = ('Kbit' => 1,
 	                        'Mbit' => 1000);
-	                        
-  
+
 	#Parce all ipfw rules
 	foreach my $line (@rules) {
      #Parce ipfw pipe rules
@@ -618,8 +603,6 @@ else {
      	 	 $pipe_rules{$1}=$speed;
      	  }
 	 }
-
-#====
 
   #debug 
   if ($debug > 0) {
@@ -638,10 +621,9 @@ else {
  
  
   my $users_table_number = $conf{FW_TABLE_USERS} || 10;
-
   my $nets_table_number  = 2;
-  
-  my $out_interface  = 'em0';
+  my $out_interface      = 'em0';
+
   if (! $conf{ng_car}) {
   	$out_interface = `/sbin/route get 91.203.4.17 | grep interface: | awk '{ print \$2 }'`;
   }
@@ -651,8 +633,6 @@ else {
   
   my $via_if_in          = ($conf{FW_DIRECTION_IN}) ? $conf{FW_DIRECTION_IN} : ' out xmit '. $out_interface;
   my $via_if_out         = ($conf{FW_DIRECTION_OUT}) ? $conf{FW_DIRECTION_OUT} : ' in recv '. $out_interface;
-
-
 
   #Get online users                             
   $sessions->{debug}=1 if ($debug > 4);
@@ -669,7 +649,6 @@ else {
 		                   	                  ]
 		               } );	
 
-
 	my $online     = $sessions->{nas_sorted};
   my $nas_list   = $nas->list({ %LIST_PARAMS  });
   my %USER_IFACES= ();
@@ -683,7 +662,7 @@ else {
 
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
-                           #IFACE : TP : SPEED  :IP
+       #IFACE : TP : SPEED  :IP
        my $tp = 0;
        my $tp_id = 0;
        if ($line->[4] > 0) {
@@ -694,13 +673,13 @@ else {
        else {
          $tp = $line->[2];
         }
-      
        print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);
-       $USER_IFACES{$line->[0]}="$line->[1]:$tp_id:$line->[3]:$line->[5]:$line->[6]";
+       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]";
        $TP_HASH{$tp}=1;
      }
   }
 
+# Table shaper
   require Billing;
   Billing->import();
   my $Billing = Billing->new($db, \%conf);
@@ -733,7 +712,6 @@ else {
   	my $tp    = $line->[0];
 
   	print "TP: $tp ($tp_id)\n" if ($debug == 2 || $ARGV->{SHOW_SPEED});
-
     my ($remaining_time, $ret_attr); 
 
     ($user->{TIME_INTERVALS},
@@ -756,42 +734,38 @@ else {
 
     if (keys %TT_IDS > 0) {
       #Get intervals
-      while(my($k, $v)=each( %TT_IDS)) {
- 	      print " INTERVAL: $k, $v\n" if ($debug == 2);
-        
+      while(my($k, $interval_id)=each( %TT_IDS)) {
+ 	      print " INTERVAL: $k, $interval_id\n" if ($debug == 2);
         if (($k eq 'TT' || $k eq 'FIRST_INTERVAL') && ! $speeds{$tp}{IN}) {
- 	        my $list = $tariffs->tt_list({ TI_ID => $v });
+ 	        my $list = $tariffs->tt_list({ TI_ID => $interval_id });
  	        foreach my $line (@$list)  {
- 	        	
- 	        	my $traf_type = $line->[0];
- 	        	my $pipe_rule_in  = sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 20);
-            my $pipe_rule_out = sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 20 + 1);
-
- 	      	  my $speed_in      = $line->[4];
- 	      	  my $speed_out     = $line->[5];
+ 	      	  my $traf_type  = $line->[0];
+ 	      	  my $speed_in   = $line->[4];
+ 	      	  my $speed_out  = $line->[5];
              
  	      	  $speeds{$tp}{IN}{$traf_type}=$speed_in;
  	      	  $speeds{$tp}{OUT}{$traf_type}=$speed_out;
-	      	  
+
+#Table shaper section START
+if (! $conf{ng_car}) {
+ 	        	my $pipe_rule_in  = sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 20);
+            my $pipe_rule_out = sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 20 + 1);
 	      	  my $dest_ip = ($traf_type == 0) ? 'any' : "table\\($nets_table_number, $traf_type\\)";
 	      	  
  	      	  if ($speed_in > 0) {
-            	if ($ARGV->{RECONFIGURE}) { 
+            	if ($ARGV->{RECONFIGURE}) {
  	       	  	  push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in pipe $pipe_rule_in ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
  	      	  	 }
 
  	      	  	if (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_in) { 
- 	      	  		
- 	      	  		 #print $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_in;
- 	      	  		
-   	      	  	 push @FW_ACTIONS, "$IPFW pipe $pipe_rule_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
- 	      	  	   print "Change TP: $tp IN: ". ( ($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set'  ) ." -> $speed_in\n";
+   	      	  	 push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
+ 	      	  	   print "Change TP: $tp Class: $traf_type IN: ". ( ($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set'  ) ." -> $speed_in\n";
            	  	 delete $pipe_rules{$pipe_rule_in};
            	   }
  	      	   }
             else{
             	if ($ARGV->{RECONFIGURE}) {
-                push @FW_ACTIONS, "$IPFW add $pipe_rule_in allow ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
+                push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in allow ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
                }
              }
 
@@ -801,25 +775,27 @@ else {
                }
 
       	      if (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_out) {
-                 push @FW_ACTIONS, "$IPFW pipe $pipe_rule_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
+                 push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
              
-                 print "Change TP: $tp OUT: ". ( ($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set'  ) ." -> $speed_out\n";
+                 print "Change TP: $tp Class: $traf_type OUT: ". ( ($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set'  ) ." -> $speed_out\n";
                  delete $pipe_rules{$pipe_rule_out};
                }
  	      	   }
             else{
             	if ($ARGV->{RECONFIGURE}) {
-                push @FW_ACTIONS, "$IPFW add $pipe_rule_out allow ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
+                push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out allow ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
                }
              }
 
-            print "  Traffic Class: $traf_type IN: $line->[4] OUT: $line->[5] Pipe: $pipe_rule_in / $pipe_rule_out \n" if ($debug == 2 || $ARGV->{SHOW_SPEED});
+            print "  Traffic Class: $traf_type Class: $traf_type IN: $line->[4] OUT: $line->[5] Pipe: $pipe_rule_in / $pipe_rule_out \n" if ($debug == 2 || $ARGV->{SHOW_SPEED});
+    }
+#Table shaper section END
+
    	      }
          }
       }
     }
    }
-
 
   if($ARGV->{SHOW_SPEED}) {
   	 return 0;
@@ -833,40 +809,32 @@ else {
   	$cmd_debug='debug';
    }
 
-
-
 #----------------------------------------------------------
 # New NG car methods
-if ($conf{ng_car})   {
+if ($conf{ng_car}) {
   while(my($user, $other)=each %USER_IFACES) {
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
-
   	 $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
-
-
 
      if ($JOIN_SERVICE > 0) {
 
       }
      #No shaper definition
      elsif (! $LOGINS_SPEEDS{$user}) {
-        $debug_outputs .= "  ! Speed not defined\n";	
+        $debug_outputs .= "  ! Speed not defined. Set speed\n";	
         print $debug_outputs if ($debug > 0); 
-
         $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
                   	NAS_TYPE => $NAS_TYPE,
                   	debug    => ( $debug > 1) ? ' debug' : undef 
                   	});
-
         next;
       }
-     
+
      #User base speed
      if ($SPEED > 0)  {
-     	  $debug_outputs .= " IN:  0, $SPEED ng_car: $LOGINS_SPEEDS{$user}{0}{IN}\n".
-     	                    " OUT: 0, $SPEED ng_car: $LOGINS_SPEEDS{$user}{0}{OUT}\n";
-        
-     	
+     	  $debug_outputs .= " USER_SPEED IN:  0, $SPEED ng_car: $LOGINS_SPEEDS{$user}{0}{IN}\n".
+     	                    " USER_SPEED OUT: 0, $SPEED ng_car: $LOGINS_SPEEDS{$user}{0}{OUT}\n";
+
       	if ($JOIN_SERVICE > 0) {
           if ($SPEED != $LOGINS_SPEEDS{$user}{0}{IN} || $SPEED != $LOGINS_SPEEDS{$user}{0}{OUT}) {
             $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
@@ -884,13 +852,10 @@ if ($conf{ng_car})   {
            	 });
            next;
      	   }
-
      	} 
-   #TP SPEED
+     #TP SPEED
    	 elsif(defined($speeds{$TP})) {
-  	 	 $debug_outputs .= " IN:  ";
-
-      	if ($JOIN_SERVICE > 0) {
+       if ($JOIN_SERVICE > 0) {
           if (! $LOGINS_SPEEDS{$user}{0}{IN} ||  
               ! $LOGINS_SPEEDS{$user}{0}{OUT} || 
               ! defined($speeds{$TP}{IN}{0}) || 
@@ -906,223 +871,220 @@ if ($conf{ng_car})   {
           next;
      	   }
 
-
-#IN SPEED
-             # Class, $speed
-             
-          if ($speeds{$TP}){
-  	 	       while(my($class_id, $v)=each %{ $speeds{$TP}{IN} }) {
-  	 	       	  $debug_outputs .= "  $class_id, $v ng_car: $LOGINS_SPEEDS{$user}{$class_id}{IN}";
-  	 	       	  next if (! $v);
+       if ($speeds{$TP}){
+  	 	       while(my($class_id, $tp_speed_in)=each %{ $speeds{$TP}{IN} }) {
+  	 	       	  my $tp_speed_out = $speeds{$TP}{OUT}{$class_id} || 0;
   	 	       	  
-  	 	       	  if (! $LOGINS_SPEEDS{$user}{$class_id}{IN} || $LOGINS_SPEEDS{$user}{$class_id}{IN} != $v) {
+  	 	       	  $debug_outputs .= "Class: $class_id Speed: $tp_speed_in/$tp_speed_out ng_car_speed: ".
+  	 	       	  (($LOGINS_SPEEDS{$user}{$class_id}{IN}) ? $LOGINS_SPEEDS{$user}{$class_id}{IN} : 'not set') .
+  	 	       	  '/'.
+  	 	       	  (($LOGINS_SPEEDS{$user}{$class_id}{OUT}) ? $LOGINS_SPEEDS{$user}{$class_id}{IN} : 'not set' ). 
+  	 	       	  "\n";
+
+  	 	       	  $tp_speed_in=0 if (! $tp_speed_in);
+  	 	       	  $tp_speed_out=0 if (! $tp_speed_out);
+
+  	 	       	  if (! $LOGINS_SPEEDS{$user}{$class_id}{IN} || $LOGINS_SPEEDS{$user}{$class_id}{IN} != $tp_speed_in) {
                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
                   	 NAS_TYPE => $NAS_TYPE,
                   	 debug    => ( $debug > 1) ? ' debug' : undef });
-                  #goto ENDWHILE;
-                  next;
+  	 	           }
+                elsif (! $LOGINS_SPEEDS{$user}{$class_id}{OUT} || $LOGINS_SPEEDS{$user}{$class_id}{OUT} != $tp_speed_out) {
+                  $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+                  	 NAS_TYPE => $NAS_TYPE,
+                  	 debug    => ( $debug > 1) ? ' debug' : undef });
   	 	           }
               }
-           }
-
-   	 	 $debug_outputs .= " OUT: ";
-  	 	       while(my($class_id, $v)=each %{ $speeds{$TP}{OUT} }) {
-  	 	       	  $debug_outputs .= "  $class_id, $v ng_car: $LOGINS_SPEEDS{$user}{$class_id}{IN}";
-                next if (! $v);
-  	 	       	  if (! $LOGINS_SPEEDS{$user}{$class_id}{OUT} || $LOGINS_SPEEDS{$user}{$class_id}{OUT} != $v) {
-                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
-                    	NAS_TYPE => $NAS_TYPE,
-                    	debug    => ( $debug > 1) ? ' debug' : undef });
-                   next;
-  	 	       	   }
-  	 	        }
+        }
  	  }
  }
 
+  print $debug_outputs;
+  return 0;
 }
-
 #----------------------------------------------------------
 #Old dummy net methods
 else { 
-  my @static_speeds = ();
-  my $list = $Dv->list({ SPEED     => '>0', 
-  	                     PAGE_ROWS => 100000,
-  	                     SORT      => 7,
-  	                     GROUP_BY  => 'dv.speed' });
-  
-  my $static_speed_fw_num = 50000;
-  foreach my $line (@$list) {
-  	my $speed = $line->[6];
-  	
-   	if ($ARGV->{RECONFIGURE}) {
-  	  push @FW_ACTIONS, "$IPFW add $static_speed_fw_num pipe $static_speed_fw_num ip from table\\($users_table_number, 1$speed\\) to any $via_if_in";
-  	 }
- 	      	  	
- 	  if (! $pipe_rules{$static_speed_fw_num} || $pipe_rules{$static_speed_fw_num} != $speed) { 
-   	    push @FW_ACTIONS, "$IPFW pipe $static_speed_fw_num config bw ". $speed ."Kbit/s queue ". (( $speed / 10 > 1000) ? 1000 : int( $speed / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
- 	      print "Change Static Speed IN: ". (($pipe_rules{$static_speed_fw_num}) ? $pipe_rules{$static_speed_fw_num} : 'Not set' ) ." -> $speed\n";
-        delete $pipe_rules{$static_speed_fw_num};
-      }  
-    $static_speed_fw_num++;
-    
-   	if ($ARGV->{RECONFIGURE}) {
-      push @FW_ACTIONS, "$IPFW add $static_speed_fw_num pipe $static_speed_fw_num ip from any to table\\($users_table_number, 1$speed\\) $via_if_out";
-     }
 
- 	  if (! $pipe_rules{$static_speed_fw_num} || $pipe_rules{$static_speed_fw_num} != $speed) {
-        push @FW_ACTIONS, "$IPFW pipe $static_speed_fw_num config bw ". $speed ."Kbit/s queue ". (( $speed / 10 > 1000) ? 1000 : int( $speed / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
-             
-        print "Change Static Speed OUT: ". (($pipe_rules{$static_speed_fw_num}) ? $pipe_rules{$static_speed_fw_num} : 'Not set' ) ." -> $speed\n";
-        delete $pipe_rules{$static_speed_fw_num};
-     }
-    $static_speed_fw_num++;
-   }
-
-  #Make speed 
-  while(my($user, $other)=each %USER_IFACES) {
-  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
-
-     if ($ARGV->{RECONFIGURE}) {
-     	  if ($SPEED > 0) {
-     	    push @FW_ACTIONS, "$IPFW table 10 add $IP 1$SPEED";
-     	   }
-     	  else {
-     	    push @FW_ACTIONS, "$IPFW table 10 add $IP $TP";
-     	   }
-      }
-
-  	 $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
-
-     if ($JOIN_SERVICE > 0) {
-
-      }
-     #No shaper definition
-     elsif (! $rule_speed{$IFACE}) {
-        $debug_outputs .= "  ! No interface\n";	
-        print $debug_outputs if ($debug > 0); 
-
-        $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
-                  	NAS_TYPE => $NAS_TYPE,
-                  	debug    => ( $debug > 1) ? ' debug' : undef 
-                  	});
-
-        next;
-      }
-
-  	 
-     if ($SPEED > 0)  {
-     	  my $fw_num = $START_FW[0] + $IFACE * 2;
-     	  $debug_outputs .= " IN:  0, $SPEED ipfw: $fw_num / $rule_speed{$IFACE}{$fw_num}\n".
-     	                    " OUT: 0, $SPEED ipfw: ". $rule_speed{$IFACE}{$fw_num + 1} ."\n";
-        
-     	
-      	if ($JOIN_SERVICE > 0) {
-      	  my $pipe_in = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2;
-      	  my $pipe_out = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2 + 1;
- 
-          if ($pipe_rules{$pipe_in} != $SPEED || $pipe_rules{$pipe_out} != $SPEED) {
-            $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
-            	 NAS_TYPE => $NAS_TYPE,
-            	 debug    => ( $debug > 1) ? ' debug' : undef 
-           	 });
-            }
-      	  
-          next;
-     	   }
-     	  elsif ($SPEED != $rule_speed{$IFACE}{$fw_num} || $SPEED != $rule_speed{$IFACE}{$fw_num + 1} ) {
-           $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
-           	 NAS_TYPE => $NAS_TYPE,
-           	 debug    => ( $debug > 1) ? ' debug' : undef 
-           	 });
-           next;
-     	   }
-
-     	}
-  	 elsif(defined($speeds{$TP})) {
-  	 	 $debug_outputs .= " IN:  ";
-
-      	if ($JOIN_SERVICE > 0) {
-      	  my $pipe_in = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2;
-      	  my $pipe_out = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2 + 1;
- 
-          if (! $pipe_rules{$pipe_in} ||  ! $pipe_rules{$pipe_out} || $pipe_rules{$pipe_in} != $speeds{$TP}{IN}{0} || int($pipe_rules{$pipe_out}) != $speeds{$TP}{OUT}{0}) {
-            $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
-            	 NAS_TYPE => $NAS_TYPE,
-            	 debug    => ( $debug > 1) ? ' debug' : undef 
-           	 });
-            }
-          next;
-     	   }
-
-
-#IN SPEED
-             # Class, $speed
-  	 	       while(my($k, $v)=each %{ $speeds{$TP}{IN} }) {
-  	 	       	  next if ($v == 0);
-  	 	       	  my $fw_num = $START_FW[$k] + $IFACE * 2;
-  	 	       	  $debug_outputs .= "  $k, $v ipfw: $fw_num";
-  	 	       	  if (! $rule_speed{$IFACE}{$fw_num}) {
-                  $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
-                  	 NAS_TYPE => $NAS_TYPE,
-                  	 debug    => ( $debug > 1) ? ' debug' : undef });
-                  goto ENDWHILE;
-                  next;
-  	 	       	   }
-  	 	       	  else {
-  	 	       	    $debug_outputs .= "/ $rule_speed{$IFACE}{$fw_num}\n";
-     	            
-     	            if ($rule_speed{$IFACE}{$fw_num} != $v) {
-                    $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
-                    	NAS_TYPE => $NAS_TYPE,
-                    	debug    => ( $debug > 1) ? ' debug' : undef });
-                    goto ENDWHILE;
-                    next;
-     	             }
-                 }
-  	 	        }
-
-   	 	 $debug_outputs .= " OUT: ";
-  	 	       while(my($k, $v)=each %{ $speeds{$TP}{OUT} }) {
-  	 	       	  next if ($v == 0);
-  	 	       	  my $fw_num = $START_FW[$k] + $IFACE * 2 + 1 ;
-  	 	       	  $debug_outputs .= "  $k, $v ipfw: $fw_num";
-
-  	 	       	  if (! defined($rule_speed{$IFACE}{$fw_num})) {
-                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
-                    	NAS_TYPE => $NAS_TYPE,
-                    	debug    => ( $debug > 1) ? ' debug' : undef });
-                   next;
-  	 	       	   }
-  	 	       	  else {
-  	 	       	    $debug_outputs .= "/ $rule_speed{$IFACE}{$fw_num}\n";
-     	            
-     	            if ($rule_speed{$IFACE}{$fw_num} != $v) {
-                    $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
-                    	 NAS_TYPE => $NAS_TYPE,
-                    	 debug => ( $debug > 1) ? ' debug' : undef });
-                    next;
-     	             }
-    	 	       	 }
-  	 	        }
-
-  	  }
-  	 else {
-  	 	 $debug_outputs .= " IN:  N/S (TP: $TP)\n";
-  	  }
-
-  	 ENDWHILE:
-  	 print $debug_outputs if ($debug == 2); 
-   }
-
-
+#  my @static_speeds = ();
+#  my $list = $Dv->list({ SPEED     => '>0', 
+#  	                     PAGE_ROWS => 100000,
+#  	                     SORT      => 7,
+#  	                     GROUP_BY  => 'dv.speed' });
+#  
+#  my $static_speed_fw_num = 50000;
+#  foreach my $line (@$list) {
+#  	my $speed = $line->[6];
+#  	
+#   	if ($ARGV->{RECONFIGURE}) {
+#  	  push @FW_ACTIONS, "$IPFW add $static_speed_fw_num pipe $static_speed_fw_num ip from table\\($users_table_number, 1$speed\\) to any $via_if_in";
+#  	 }
+# 	      	  	
+# 	  if (! $pipe_rules{$static_speed_fw_num} || $pipe_rules{$static_speed_fw_num} != $speed) { 
+#   	    push @FW_ACTIONS, "$IPFW pipe $static_speed_fw_num config bw ". $speed ."Kbit/s queue ". (( $speed / 10 > 1000) ? 1000 : int( $speed / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
+# 	      print "Change Static Speed IN: ". (($pipe_rules{$static_speed_fw_num}) ? $pipe_rules{$static_speed_fw_num} : 'Not set' ) ." -> $speed\n";
+#        delete $pipe_rules{$static_speed_fw_num};
+#      }  
+#    $static_speed_fw_num++;
+#    
+#   	if ($ARGV->{RECONFIGURE}) {
+#      push @FW_ACTIONS, "$IPFW add $static_speed_fw_num pipe $static_speed_fw_num ip from any to table\\($users_table_number, 1$speed\\) $via_if_out";
+#     }
+#
+# 	  if (! $pipe_rules{$static_speed_fw_num} || $pipe_rules{$static_speed_fw_num} != $speed) {
+#        push @FW_ACTIONS, "$IPFW pipe $static_speed_fw_num config bw ". $speed ."Kbit/s queue ". (( $speed / 10 > 1000) ? 1000 : int( $speed / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
+#             
+#        print "Change Static Speed OUT: ". (($pipe_rules{$static_speed_fw_num}) ? $pipe_rules{$static_speed_fw_num} : 'Not set' ) ." -> $speed\n";
+#        delete $pipe_rules{$static_speed_fw_num};
+#     }
+#    $static_speed_fw_num++;
+#   }
+#
+#  #Make speed 
+#  while(my($user, $other)=each %USER_IFACES) {
+#  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
+#
+#     if ($ARGV->{RECONFIGURE}) {
+#     	  if ($SPEED > 0) {
+#     	    push @FW_ACTIONS, "$IPFW table 10 add $IP 1$SPEED";
+#     	   }
+#     	  else {
+#     	    push @FW_ACTIONS, "$IPFW table 10 add $IP $TP";
+#     	   }
+#      }
+#
+#  	 $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
+#
+#     if ($JOIN_SERVICE > 0) {
+#
+#      }
+#     #No shaper definition
+#     elsif (! $rule_speed{$IFACE}) {
+#        $debug_outputs .= "  ! No interface\n";	
+#        print $debug_outputs if ($debug > 0); 
+#
+#        $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+#                  	NAS_TYPE => $NAS_TYPE,
+#                  	debug    => ( $debug > 1) ? ' debug' : undef 
+#                  	});
+#
+#        next;
+#      }
+#
+#  	 
+#     if ($SPEED > 0)  {
+#     	  my $fw_num = $START_FW[0] + $IFACE * 2;
+#     	  $debug_outputs .= " IN:  0, $SPEED ipfw: $fw_num / $rule_speed{$IFACE}{$fw_num}\n".
+#     	                    " OUT: 0, $SPEED ipfw: ". $rule_speed{$IFACE}{$fw_num + 1} ."\n";
+#        
+#     	
+#      	if ($JOIN_SERVICE > 0) {
+#      	  my $pipe_in = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2;
+#      	  my $pipe_out = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2 + 1;
+# 
+#          if ($pipe_rules{$pipe_in} != $SPEED || $pipe_rules{$pipe_out} != $SPEED) {
+#            $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+#            	 NAS_TYPE => $NAS_TYPE,
+#            	 debug    => ( $debug > 1) ? ' debug' : undef 
+#           	 });
+#            }
+#      	  
+#          next;
+#     	   }
+#     	  elsif ($SPEED != $rule_speed{$IFACE}{$fw_num} || $SPEED != $rule_speed{$IFACE}{$fw_num + 1} ) {
+#           $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+#           	 NAS_TYPE => $NAS_TYPE,
+#           	 debug    => ( $debug > 1) ? ' debug' : undef 
+#           	 });
+#           next;
+#     	   }
+#
+#     	}
+#  	 elsif(defined($speeds{$TP})) {
+#  	 	 $debug_outputs .= " IN:  ";
+#
+#      	if ($JOIN_SERVICE > 0) {
+#      	  my $pipe_in = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2;
+#      	  my $pipe_out = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $JOIN_SERVICE * 2 + 0 * 2 + 1;
+# 
+#          if (! $pipe_rules{$pipe_in} ||  ! $pipe_rules{$pipe_out} || $pipe_rules{$pipe_in} != $speeds{$TP}{IN}{0} || int($pipe_rules{$pipe_out}) != $speeds{$TP}{OUT}{0}) {
+#            $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+#            	 NAS_TYPE => $NAS_TYPE,
+#            	 debug    => ( $debug > 1) ? ' debug' : undef 
+#           	 });
+#            }
+#          next;
+#     	   }
+#
+#
+##IN SPEED
+#             # Class, $speed
+#  	 	       while(my($k, $v)=each %{ $speeds{$TP}{IN} }) {
+#  	 	       	  next if ($v == 0);
+#  	 	       	  my $fw_num = $START_FW[$k] + $IFACE * 2;
+#  	 	       	  $debug_outputs .= "  $k, $v ipfw: $fw_num";
+#  	 	       	  if (! $rule_speed{$IFACE}{$fw_num}) {
+#                  $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+#                  	 NAS_TYPE => $NAS_TYPE,
+#                  	 debug    => ( $debug > 1) ? ' debug' : undef });
+#                  goto ENDWHILE;
+#                  next;
+#  	 	       	   }
+#  	 	       	  else {
+#  	 	       	    $debug_outputs .= "/ $rule_speed{$IFACE}{$fw_num}\n";
+#     	            
+#     	            if ($rule_speed{$IFACE}{$fw_num} != $v) {
+#                    $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+#                    	NAS_TYPE => $NAS_TYPE,
+#                    	debug    => ( $debug > 1) ? ' debug' : undef });
+#                    goto ENDWHILE;
+#                    next;
+#     	             }
+#                 }
+#  	 	        }
+#
+#   	 	 $debug_outputs .= " OUT: ";
+#  	 	       while(my($k, $v)=each %{ $speeds{$TP}{OUT} }) {
+#  	 	       	  next if ($v == 0);
+#  	 	       	  my $fw_num = $START_FW[$k] + $IFACE * 2 + 1 ;
+#  	 	       	  $debug_outputs .= "  $k, $v ipfw: $fw_num";
+#
+#  	 	       	  if (! defined($rule_speed{$IFACE}{$fw_num})) {
+#                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+#                    	NAS_TYPE => $NAS_TYPE,
+#                    	debug    => ( $debug > 1) ? ' debug' : undef });
+#                   next;
+#  	 	       	   }
+#  	 	       	  else {
+#  	 	       	    $debug_outputs .= "/ $rule_speed{$IFACE}{$fw_num}\n";
+#     	            
+#     	            if ($rule_speed{$IFACE}{$fw_num} != $v) {
+#                    $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
+#                    	 NAS_TYPE => $NAS_TYPE,
+#                    	 debug => ( $debug > 1) ? ' debug' : undef });
+#                    next;
+#     	             }
+#    	 	       	 }
+#  	 	        }
+#
+#  	  }
+#  	 else {
+#  	 	 $debug_outputs .= " IN:  N/S (TP: $TP)\n";
+#  	  }
+#
+#  	 ENDWHILE:
+#  	 print $debug_outputs if ($debug == 2); 
+#   }
+#
+#
  foreach my $cmd (@FW_ACTIONS) {
    print $cmd."\n" if ($debug > 2);
    if ($debug < 5) {
    	 system($cmd);
     }
  }
-
 }
+
 }
 
 
