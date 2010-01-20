@@ -39,11 +39,15 @@ sub dhcphosts_periodic {
 sub dhcphosts_mac_static {
 
 if ($FORM{MAKE}) {
-  open(FILE, ">$conf{TPL_DIR}/Dhcphosts_dhcphosts_ipguard_static.tpl") || $html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/Dhcphosts_dhcphosts_ipguard_static.tpl' $!\n");
-	  print FILE "$FORM{ETHERS}";
-	close(FILE);
-
-  print $html->message('info', $_INFO, "$_CHANGED '$conf{TPL_DIR}/Dhcphosts_dhcphosts_ipguard_static.tpl'");
+  if (! open(FILE, ">$conf{TPL_DIR}/Dhcphosts_dhcphosts_ipguard_static.tpl")) {
+  	$html->message('err', $_ERROR, "Can't open file '$conf{TPL_DIR}/Dhcphosts_dhcphosts_ipguard_static.tpl' $!\n");
+  	
+   }
+  else {
+    print FILE "$FORM{ETHERS}";
+	  close(FILE);
+    print $html->message('info', $_INFO, "$_CHANGED '$conf{TPL_DIR}/Dhcphosts_dhcphosts_ipguard_static.tpl'");
+   }
  }
 
 	my $ethers_content =  $html->tpl_show(_include('dhcphosts_ipguard_static', 'Dhcphosts'), 
@@ -107,7 +111,6 @@ sub dhcphosts_mac_block_show {
       
       #DENY
       if ($status == 1 || ((defined($conf{DHCPHOSTS_DEPOSITCHECK}) && $deposit < $conf{DHCPHOSTS_DEPOSITCHECK}) || (defined($conf{DHCPHOSTS_EXT_DEPOSITCHECK}) && $deposit < $conf{DHCPHOSTS_EXT_DEPOSITCHECK} ) ) ) {
-
          next if ($DENY_TEMPLATE eq '');
          $ethers_content .= tpl_parse($DENY_TEMPLATE, {  
       	                              STATUS  => $pair_status[1],
@@ -151,13 +154,12 @@ sub dhcphosts_mac_block_make {
 		
 		return 1;
 	 }
-	
+
 	open(FILE, ">$var_dir/ipguard") || return "Can't open '$var_dir/ipguard' $!";
 	  print FILE "$attr->{ETHER_CONTENT}";
 	close(FILE);
 
   $DEBUG .= $debug_output;
-  
 	return 1;
 }
 
@@ -165,8 +167,6 @@ sub dhcphosts_mac_block_make {
 # 
 #*******************************************************************
 sub dhcphosts_mac_block {
-  
-  
   if ($FORM{MAKE}) {
   	my $ret = dhcphosts_mac_block_make($FORM{ETHER_CONTENT});
   	if ($ret eq '1') {
@@ -181,7 +181,6 @@ sub dhcphosts_mac_block {
   $html->tpl_show(_include('dhcphosts_ipguard', 'Dhcphosts'), { ETHER_CONTENT => "$ethers_content",
 	 	                                                            FILE          => "$var_dir/ipguard"
 	 	                                                           });
-	 
 }
 
 #*******************************************************************
@@ -539,10 +538,9 @@ sub dhcphosts_hosts {
     form_search({ SEARCH_FORM => $html->tpl_show(_include('dhcphosts_search', 'Dhcphosts'), 
   	                                  { %$Dhcphosts, %FORM }, 
   	                                  { OUTPUT2RETURN => 1 })  
-	            });
+	              });
    }
-  
- 
+
   my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS });
   my $table = $html->table({ width      => '100%',
 				                     caption    => "$_HOSTS_USER",
@@ -553,20 +551,19 @@ sub dhcphosts_hosts {
 				                     ID         => 'DHCP_HOSTS'
                            });
 
-  my $i=4;
   foreach my $line (@$list) {
-
    	$status=$line->[10]+$line->[8];
-	  if ($status == 0)    { $table->{rowcolor}=$_COLORS[2]; }
-	  elsif($status == 1 ) { $table->{rowcolor}=$_COLORS[6]; }
-	  elsif($status == 2 ) { $table->{rowcolor}=$_COLORS[1]; }
+   	my $status_color=$_COLORS[9];
+	  if ($status == 0)    { $status_color=$_COLORS[9]; }
+	  elsif($status == 1 ) { $status_color=$_COLORS[6]; }
+	  elsif($status == 2 ) { $status_color=$_COLORS[6]; }
 
-	  if (($line->[12 + $Dhcphosts->{SEARCH_FIELDS_COUNT}]==1) && $status)
-         { $table->{rowcolor}=$_COLORS[0]; 
-           }
-          else {
-            $table->{rowcolor}=undef; 
-           }
+	  if (($line->[12 + $Dhcphosts->{SEARCH_FIELDS_COUNT}]==1) && $status) { 
+	  	$table->{rowcolor}=$_COLORS[0]; 
+     }
+    else {
+      $table->{rowcolor}=undef; 
+     }
  
     $table->addrow(
 	    $line->[0], 
@@ -575,13 +572,12 @@ sub dhcphosts_hosts {
 	    $line->[3],
 	    $line->[5].": ".$line->[4],
 	    $line->[6],
-	    $status[$line->[10]]."/".$line->[8],
+	    $html->color_mark($status[$line->[10]]."/".$line->[8], $status_color),
 	    $line->[9],
 	    $line->[7],
-	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]),
-	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]. "&IP=$line->[11]", { MESSAGE => "$_DEL $line->[0]?" })
+	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}], { BUTTON => 1 }),
+	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]. "&IP=$line->[11]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
      );
-	   $i++;
    };
   print $table->show();	
 
@@ -697,7 +693,6 @@ sub dhcphosts_user {
      }
     elsif ($FORM{MAC} !~ /[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/i) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: MAC ");
-      #00:19:5b:4f:98:7a	
      }
     elsif(! $FORM{HOSTNAME}) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: $_HOSTS_HOSTNAME  ");
@@ -708,6 +703,16 @@ sub dhcphosts_user {
        }
 
       $Dhcphosts->host_check({ %FORM });
+
+      if (! $Dhcphosts->{errno} && $FORM{PORTS} && $FORM{NAS_ID}) {
+      	my $list = $Dhcphosts->hosts_list({ NAS_ID => $FORM{NAS_ID}, PORTS => $FORM{PORTS} });
+      	if ($Dhcphosts->{TOTAL} > 0) {
+          $Dhcphosts->{errno}=8;
+          $Dhcphosts->{LOGIN}=$list->[0][1];
+          $Dhcphosts->{UID}=$list->[0][13+$Dhcphosts->{SEARCH_FIELDS_COUNT}];
+    	   }
+       }
+
       if (! $Dhcphosts->{errno}) {
         $Dhcphosts->host_add({ %FORM });
         if (! $Dhcphosts->{errno}) {
@@ -734,6 +739,15 @@ sub dhcphosts_user {
        }
 
       $Dhcphosts->host_check({ %FORM });
+      if (! $Dhcphosts->{errno} && $FORM{PORTS} && $FORM{NAS_ID}) {
+      	$Dhcphosts->{debug}=1;
+      	my $list = $Dhcphosts->hosts_list({ NAS_ID => $FORM{NAS_ID}, PORTS => $FORM{PORTS} });
+      	if ($Dhcphosts->{TOTAL} > 0) {
+          $Dhcphosts->{errno}=8;
+          $Dhcphosts->{LOGIN}=$list->[0][1];
+          $Dhcphosts->{UID}=$list->[0][13+$Dhcphosts->{SEARCH_FIELDS_COUNT}];
+    	   }
+       }
       
       if (! $Dhcphosts->{errno}) {
 	      $Dhcphosts->host_change({ %FORM });
@@ -782,6 +796,10 @@ sub dhcphosts_user {
     	 }
 
      	$html->message('err', $_ERROR, "[7] $_EXIST $FORM{IP}/$FORM{MAC} $login");
+     }
+    elsif ($Dhcphosts->{errno} == 8) {
+    	my $login = $html->button("$Dhcphosts->{LOGIN}", "index=15&UID=$Dhcphosts->{UID}&MODULE=Dhcphosts");
+     	$html->message('err', $_ERROR, "Option 82 $_EXIST NAS: $FORM{NAS_ID} $_PORT: $FORM{PORTS} $login");
      }
     else {
       $html->message('err', $_ERROR, "[$Dhcphosts->{errno}] $err_strs{$Dhcphosts->{errno}}");
@@ -931,7 +949,7 @@ foreach my $line (@$list) {
   $INFO{OPTION82_POOLS}='';
   $Dhcphosts->network_info($NET_ID);
   
-  $INFO{DNS}          = ($Dhcphosts->{DNS}) ? "option domain-name-servers $Dhcphosts->{DNS};"  : undef;
+  $INFO{DNS}          = ($Dhcphosts->{DNS}) ? "option domain-name-servers $Dhcphosts->{DNS}" : undef;
   $INFO{DOMAINNAME}   = ($Dhcphosts->{DOMAINNAME}) ? "option domain-name \"$Dhcphosts->{DOMAINNAME}\";" : undef;
   
   $INFO{ROUTERS}      = "option routers $Dhcphosts->{ROUTERS};" if ($Dhcphosts->{ROUTERS} ne '0.0.0.0');
@@ -1051,8 +1069,6 @@ foreach my $line (@$list) {
       my $matches = join(' and ', @OPTION82_MATCHES);
 
       $INFO{OPTION82_CLASS} .= "# LOGIN: $line->[1]\nclass \"$INFO{OPTION82_NAS_NAME}-$INFO{OPTION82_NAS_MAC}-port-$INFO{OPTION82_NAS_PORT}\" { match if $matches ;  \n}\n\n";
-
-
     	$INFO{OPTION82_POOLS} .= "pool { range $line->[11]; allow members of \"$INFO{OPTION82_NAS_NAME}-$INFO{OPTION82_NAS_MAC}-port-$INFO{OPTION82_NAS_PORT}\"; }\n";
      }
     else {
@@ -1097,11 +1113,6 @@ if ($attr->{reconfig} || $FORM{reconfig} ) {
   $html->message('info', $_INFO, "DHCP $_RECONFIGURE '$conf{DHCPHOSTS_CONFIG}'") if (! $attr->{QUITE});
  }
 else {
-  
-  #$INFO{SUBNETS} = $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
-  #                                 \%INFO,
-  #                                 { notprint => 1 } );	 
-
   my $conf_content = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
 
 	print "<textarea cols=90 rows=20>$conf_content</textarea>\n";
@@ -1110,7 +1121,6 @@ else {
 		                                      config   => 'dhcp.conf' },
                              SUBMIT  => { reconfig => $_RECONFIGURE }
                          } );
-	
 }
 	
 }
@@ -1224,7 +1234,6 @@ sub auto_net_sign {
 my %network_hash = ();
 my $list = $Dhcphosts->networks_list({ PAGE_ROWS => 10000 });
 $ip = ip2int($ip);
-
 
 foreach my $line (@$list) {
 	my $first_ip = ip2int($line->[2]);
