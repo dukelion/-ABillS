@@ -814,7 +814,7 @@ if (! $conf{ng_car}) {
 if ($conf{ng_car}) {
   while(my($user, $other)=each %USER_IFACES) {
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
-  	 $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
+  	 $debug_outputs .= "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
 
      if ($JOIN_SERVICE > 0) {
 
@@ -878,7 +878,7 @@ if ($conf{ng_car}) {
   	 	       	  $debug_outputs .= "Class: $class_id Speed: $tp_speed_in/$tp_speed_out ng_car_speed: ".
   	 	       	  (($LOGINS_SPEEDS{$user}{$class_id}{IN}) ? $LOGINS_SPEEDS{$user}{$class_id}{IN} : 'not set') .
   	 	       	  '/'.
-  	 	       	  (($LOGINS_SPEEDS{$user}{$class_id}{OUT}) ? $LOGINS_SPEEDS{$user}{$class_id}{IN} : 'not set' ). 
+  	 	       	  (($LOGINS_SPEEDS{$user}{$class_id}{OUT}) ? $LOGINS_SPEEDS{$user}{$class_id}{OUT} : 'not set' ). 
   	 	       	  "\n";
 
   	 	       	  $tp_speed_in=0 if (! $tp_speed_in);
