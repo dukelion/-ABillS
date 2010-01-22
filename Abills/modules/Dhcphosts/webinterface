@@ -704,7 +704,7 @@ sub dhcphosts_user {
 
       $Dhcphosts->host_check({ %FORM });
 
-      if (! $Dhcphosts->{errno} && $FORM{PORTS} && $FORM{NAS_ID}) {
+      if (! $Dhcphosts->{errno} && $FORM{OPTION_82} && $FORM{PORTS} && $FORM{NAS_ID}) {
       	my $list = $Dhcphosts->hosts_list({ NAS_ID => $FORM{NAS_ID}, PORTS => $FORM{PORTS} });
       	if ($Dhcphosts->{TOTAL} > 0) {
           $Dhcphosts->{errno}=8;
@@ -739,7 +739,7 @@ sub dhcphosts_user {
        }
 
       $Dhcphosts->host_check({ %FORM });
-      if (! $Dhcphosts->{errno} && $FORM{PORTS} && $FORM{NAS_ID}) {
+      if (! $Dhcphosts->{errno} && $FORM{OPTION_82} && $FORM{PORTS} && $FORM{NAS_ID}) {
       	$Dhcphosts->{debug}=1;
       	my $list = $Dhcphosts->hosts_list({ NAS_ID => $FORM{NAS_ID}, PORTS => $FORM{PORTS} });
       	if ($Dhcphosts->{TOTAL} > 0) {
@@ -949,7 +949,7 @@ foreach my $line (@$list) {
   $INFO{OPTION82_POOLS}='';
   $Dhcphosts->network_info($NET_ID);
   
-  $INFO{DNS}          = ($Dhcphosts->{DNS}) ? "option domain-name-servers $Dhcphosts->{DNS}" : undef;
+  $INFO{DNS}          = ($Dhcphosts->{DNS}) ? "option domain-name-servers $Dhcphosts->{DNS};" : undef;
   $INFO{DOMAINNAME}   = ($Dhcphosts->{DOMAINNAME}) ? "option domain-name \"$Dhcphosts->{DOMAINNAME}\";" : undef;
   
   $INFO{ROUTERS}      = "option routers $Dhcphosts->{ROUTERS};" if ($Dhcphosts->{ROUTERS} ne '0.0.0.0');
