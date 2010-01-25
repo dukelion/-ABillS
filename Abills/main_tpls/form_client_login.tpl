@@ -24,9 +24,9 @@
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'><TR><TD bgcolor='$_COLORS[1]'>
 <TABLE width='100%' cellspacing='0' cellpadding='0' border='0'>
 <TR><TD colspan=2>&nbsp;</TD></TR>
-<TR><TD>&nbsp;$_LANGUAGE:</TD><TD>%SEL_LANGUAGE%</TD></TR>
-<TR><TD>&nbsp;$_LOGIN:</TD><TD><input type='text' name='user'></TD></TR>
-<TR><TD>&nbsp;$_PASSWD:</TD><TD><input type='password' name='passwd'></TD></TR>
+<TR><TD align=right width=50%>&nbsp;$_LANGUAGE: &nbsp;</TD><TD  width=50%>%SEL_LANGUAGE%</TD></TR>
+<TR><TD align=right>&nbsp;$_LOGIN: &nbsp;</TD><TD><input type='text' name='user'></TD></TR>
+<TR><TD align=right>&nbsp;$_PASSWD: &nbsp;</TD><TD><input type='password' name='passwd'></TD></TR>
 <tr><th colspan='2'><input type='submit' name='logined' value=' $_ENTER '></th></TR>
 <TR><TD colspan=2>&nbsp;</TD></TR>
 </TABLE>
