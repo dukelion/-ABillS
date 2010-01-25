@@ -108,7 +108,9 @@ sub get_nas_info {
  $nas->info({ %NAS_PARAMS });
 
 if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
-  access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'". (( $RAD->{NAS_IP_ADDRESS} eq '0.0.0.0' ) ? $RAD->{CALLED_STATION_ID} : '') ." [$nas->{errno}] $nas->{errstr}", 0);
+  access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'". 
+    (($RAD->{NAS_IDENTIFIER}) ? " Nas-Identifier: $RAD->{NAS_IDENTIFIER}" : ''  )
+    .' '. (( $RAD->{NAS_IP_ADDRESS} eq '0.0.0.0' ) ? $RAD->{CALLED_STATION_ID} : ''), 0);
   $RAD_REPLY{'Reply-Message'}="Unknow server '$RAD->{NAS_IP_ADDRESS}'";
   return 1;
  }
@@ -252,20 +254,22 @@ else {
 #*******************************************************************
 sub post_auth {
   my ($RAD) = @_;
+  
   my $reject_info = '';
 
   # $RAD->{MS_CHAP_CHALLENGE}
   if (defined(%RAD_REQUEST)) {
+    if ($RAD_REPLY{'Reply-Message'}) {
+      return 0;
+     }
 
     if ($RAD_REQUEST{'Calling-Station-Id'}) {
       $reject_info="Wrong password or account not exists CID $RAD_REQUEST{'Calling-Station-Id'}";
      }
-
-    $log_print->('LOG_WARNING', '', "REJECT Wrong password$reject_info$GT", { NAS => $nas });
-
+    $log_print->('LOG_WARNING', $RAD_REQUEST{'User-Name'}, "REJECT $reject_info$GT", { NAS => $nas });
     return 0;
    }
-  else { 
+  else {
     if ($RAD->{CALLING_STATION_ID}) {
       $reject_info=" CID $RAD->{CALLING_STATION_ID}";
      }

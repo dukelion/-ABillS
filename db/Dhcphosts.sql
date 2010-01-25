@@ -70,3 +70,13 @@ CREATE TABLE `dhcphosts_leases` (
   KEY `ip` (`ip`),
   KEY `nas_id` (`nas_id`)
 ) COMMENT='Dhcphosts leaseds';
+
+CREATE TABLE `dhcphosts_log` (
+  `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `datetime` DATETIME NOT NULL,
+  `hostname` VARCHAR(20) NOT NULL DEFAULT '',
+  `message_type` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `message` VARCHAR(90) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) COMMENT='Dhcphosts log';

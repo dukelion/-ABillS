@@ -1,17 +1,16 @@
-$_HOSTS_NETWORKS='Hosts Networks';
-$_HOSTS_ROUTES='Hosts routes';
-
-
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = (
-                   "01:0:DHCP:dhcphosts_hosts:"           => 11,
-		               "02:0:DHCP:dhcphosts_user:UID"         => 20,
+                   "01:0:DHCP:dhcphosts_hosts:"                   => 11,
+		               "02:0:DHCP:dhcphosts_user:UID"                 => 20,
+		               "03:2:DHCP  $_LOG:dhcphosts_log:UID"           => 15,
 		               "10:0:DHCP $_NETWORKS:dhcphosts_networks:"     => 5,
 		               "11:10:DHCP $_NETWORKS:dhcphosts_networks:"    => 5,
 		               "12:11:$_HOSTS_ROUTES:dhcphosts_routes:NET_ID" => 5,
 		               "13:10:IP guard:dhcphosts_mac_block:"          => 5,
                    "14:13:Static:dhcphosts_mac_static:"           => 5,
-                   "15:0:DHCP:dhcphosts_monitor:"                 => 6
+                   "15:0:DHCP:dhcphosts_monitor:"                 => 6,
+                   "16:0:DHCP $_LOG:dhcphosts_log:"               => 4,
+                   
                    );
 
 %PERIODIC = (

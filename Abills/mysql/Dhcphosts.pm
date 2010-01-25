@@ -968,6 +968,130 @@ sub leases_clear {
 
 
 
+
+#**********************************************************
+# host_add()
+#**********************************************************
+sub log_add {
+  my $self=shift;
+  my ($attr)=@_;
+
+  my %DATA = $self->get_data($attr); 
+
+  $self->query($db, "INSERT INTO dhcphosts_log (datetime, hostname, message_type, message) 
+    VALUES('$DATA{DATETIME}', '$DATA{HOSTNAME}', '$DATA{MESSAGE_TYPE}', '$DATA{MESSAGE}');", 'do');
+  
+  return $self;
+}
+
+#**********************************************************
+# host_delete()
+#**********************************************************
+sub log_del {
+  my $self=shift;
+  my ($attr)=@_;
+  my $uid;
+  my $action; 
+
+  if ($attr->{DATE}) {
+  	$WHERE = "datetime='$attr->{DATETIME}'";
+   }
+
+  $self->query($db, "DELETE FROM dhcphosts_log where $WHERE", 'do');
+
+  $admin->system_action_add("DHCPLOG", { TYPE => 10 }); 
+  return $self;
+};
+
+
+#**********************************************************
+# hosts_list()
+#**********************************************************
+sub log_list {
+ my $self = shift;
+ my ($attr) = @_;
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+
+ @WHERE_RULES = ();
+ $self->{SEARCH_FIELDS}='';
+ $self->{SEARCH_FIELDS_COUNT} = 0;
+ my @ids = ();
+ if ($attr->{UID}) {
+  	my $line = $self->hosts_list({ UID => $attr->{UID} });
+  	
+  	if ($self->{TOTAL} > 0) {
+  		foreach my $line ( @{ $line } ) {
+  			 push @ids, $line->[11], $line->[6];
+  		 }
+  	 }
+    @WHERE_RULES = ();
+    if ($#ids > -1) {
+      $attr->{MESSAGE} ='%'. join("%,%", @ids) . '%';
+    }
+   $self->{IDS}=\@ids;
+  }
+
+ if ($attr->{ID}) {
+   push @WHERE_RULES, "l.id='$attr->{ID}'"; 
+  }
+
+
+ if ($attr->{LOGIN_EXPR}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN_EXPR}", 'STR', 'u.id') };
+  }
+
+ if ($attr->{GIDS}) {
+   push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
+  }
+ elsif ($attr->{GID}) {
+   push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
+  }
+
+
+ if ($attr->{HOSTNAME}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{HOSTNAME}", 'STR', 'l.hostname') };
+  }
+ 
+ if ($attr->{MAC}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{MAC}", 'STR', 'l.mac') };
+  }
+
+ if ($attr->{MESSAGE}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{MESSAGE}", 'STR', 'l.message') };
+  }
+
+ if ($attr->{MESSAGE_TYPE}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{MESSAGE_TYPE}", 'INT', 'l.message_type') };
+  }
+
+
+
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+
+ $self->query($db, "SELECT l.datetime, l.hostname, l.message_type, l.message
+     FROM (dhcphosts_log l)
+     $WHERE
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0) {
+    $self->query($db, "SELECT count(*) FROM dhcphosts_log l
+     $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+  }
+
+ return $list;
+}
+
+
 1
 
 

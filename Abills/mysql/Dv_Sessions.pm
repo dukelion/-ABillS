@@ -113,12 +113,12 @@ sub online_count {
   my ($attr) = @_;
 
  $self->query($db, "SELECT n.id, n.name, n.ip, n.nas_type,  
-   sum(if ((c.status=1 or c.status>=3) AND c.status<11, 1, 0)),
+   sum(if (c.status=1 or c.status>=3, 1, 0)),
    count(distinct uid),
    sum(if (status=2, 1, 0)), 
-   sum(if (status>3 and status<11, 1, 0))
+   sum(if (status>3, 1, 0))
  FROM dv_calls c, nas n
- WHERE c.nas_id=n.id 
+ WHERE c.nas_id=n.id AND c.status<11
  GROUP BY c.nas_id
  ORDER BY $SORT $DESC;");
 
@@ -126,9 +126,10 @@ sub online_count {
 
  if ($self->{TOTAL} > 0) {
  	 $self->query($db, "SELECT 1, count(uid),  
- 	   sum(if ((c.status=1 or c.status>=3) AND c.status<11, 1, 0)),
+ 	   sum(if (c.status=1 or c.status>=3, 1, 0)),
  	   sum(if (status=2, 1, 0))
-   FROM dv_calls c
+   FROM dv_calls c 
+   WHERE c.status<11
    GROUP BY 1;");
 
    (undef,

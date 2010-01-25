@@ -247,7 +247,7 @@ sub dhcphosts_monitor {
                      $state_hash_rev{$line->[6]},
                      $line->[7],
                      $line->[8],
-                     "(". $html->button('P', "index=$index&ping=$line->[1]", { TITLE => 'ping' }) .")"
+                     "(". $html->button('P', "index=$index&ping=$line->[1]", { TITLE => 'ping', BUTTON => 1 }) .")"
                      );
     }
    print  $table->show();
@@ -1250,4 +1250,67 @@ foreach my $line (@$list) {
 
   return 0;	
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub dhcphosts_log {
+	
+my %DHCP_MESSAGE_TYPES = (
+  DHCPDISCOVER          =>  1,
+  DHCPOFFER             =>  2,
+  DHCPREQUEST           =>  3,
+  DHCPDECLINE           =>  4,
+  DHCPACK               =>  5,
+  DHCPNAK               =>  6,
+  DHCPRELEASE           =>  7,
+  DHCPINFORM            =>  8,
+  DHCPLEASEQUERY        =>  10,
+  DHCPLEASEUNASSIGNED   =>  11,
+  DHCPLEASEUNKNOWN      =>  12,
+  DHCPLEASEACTIVE       =>  13 
+ );
+
+%DHCP_MESSAGE_TYPES_REV = reverse %DHCP_MESSAGE_TYPES;
+	 my $list = $Dhcphosts->log_list({ %LIST_PARAMS });
+   my $table = $html->table({ width    => '100%',
+                     			  caption    => "$_LOG",
+				                    title      => ["$_DATE $_TIME", "HOSTNAME", "$_MESSAGE $_TYPE", "$_MESSAGE", "-" ],
+				                    cols_align => ['right', 'left', 'left',  'left', 'center:noprint' ],
+				                    ID         => 'MONITOR_DHCP',
+                  				  qs         => $pages_qs,
+				                    pages      => $Dhcphosts->{TOTAL},
+                          });
+
+	 
+   foreach my $line (@$list) {
+      $table->addrow($line->[0],
+                     $line->[1],
+                     $DHCP_MESSAGE_TYPES_REV{$line->[2]},
+                     color_marks($line->[3], $Dhcphosts->{IDS}),
+                     );
+    }
+   print  $table->show();
+
+  $table = $html->table( { width      => '100%',
+                           cols_align => ['right', 'right'],
+                           rows       => [ [ "$_TOTAL:", $html->b($Dhcphosts->{TOTAL}) ] ]
+                       } );
+  print $table->show();	
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub color_marks {
+  my ($message, $ids) = @_;
+  
+  foreach my $id (@{ $ids }) {
+  	my $replace = $html->b($id);
+  	$message =~ s/$id/$replace/g;
+   }
+
+  return $message;
+}
+
 1

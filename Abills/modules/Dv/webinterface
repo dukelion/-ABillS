@@ -20,8 +20,8 @@ my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
 my %FORM_BASE = ();
 
-my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000');
-my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT" );
+my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$_SMALL_DEPOSIT" );
 
 
 #*******************************************************************
@@ -947,9 +947,6 @@ if ($FORM{zapall}) {
   $html->message('info', $_INFO, "Zapped all sessions");
  }
 elsif($FORM{zap}) {
-  
-  
-  
   my($nas_id, $nas_port_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
   $sessions->zap($nas_id, $nas_port_id, $acct_session_id, { %FORM });
 
@@ -1209,7 +1206,6 @@ my @FIELDS_ALL = ("$_USER", "$_FIO", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_
 
 
 if ($sessions->{TOTAL} > 500)  {
-	
   my $table = $html->table( { width      => '100%',
                             caption    => "Online $_TOTAL",
                             border     => 1,

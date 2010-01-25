@@ -6,8 +6,6 @@ use vars qw(%RAD_REQUEST %RAD_REPLY %RAD_CHECK  %REQUEST %conf
  $begin_time
  $nas
 );
-#use Data::Dumper;
-
 
 # This is hash wich hold original request from radius
 #my %RAD_REQUEST;
@@ -51,7 +49,10 @@ sub sql_connect {
   my $db  = $sql->{db};
   #$rc = $dbh->ping;
 
-  $REQUEST{NAS_IDENTIFIER}='' if (! $RAD_REQUEST{NAS_IDENTIFIER});
+  convert_radpairs();
+  $REQUEST{NAS_IDENTIFIER}='' if (! $REQUEST{NAS_IDENTIFIER});
+
+  my $test = `echo "$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}" >> /tmp/nas`;
 
   if (! $NAS_INFO{$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}}) {
     $nas = Nas->new($db, \%conf);
@@ -59,7 +60,7 @@ sub sql_connect {
       $NAS_INFO{$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}}=$nas;
      }
     else {
-    	return; 
+    	return 0; 
      }
    }
   else {
@@ -76,10 +77,7 @@ sub sql_connect {
 sub authorize {
   $begin_time = check_time();
 
-  convert_radpairs();
   my $db = sql_connect();
-  
-  
   if ( $db ) {
   	if (auth($db, \%REQUEST, $nas, { pre_auth => 1 }) == 0) {
       if ( auth($db, \%REQUEST, $nas) == 0 ) {
@@ -98,9 +96,8 @@ sub authorize {
 sub authenticate {
   $begin_time = check_time();
 
-  convert_radpairs();
   my $db = sql_connect();
-  
+
   if ( $db ) {
     if ( auth($db, \%REQUEST, $nas) == 0 ) {
     	return RLM_MODULE_OK;
@@ -118,7 +115,6 @@ sub authenticate {
 sub accounting {
   $begin_time = check_time();
 
-  convert_radpairs();
   my $db = sql_connect();
 
   if ( $db ) {
