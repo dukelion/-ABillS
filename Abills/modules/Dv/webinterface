@@ -3729,7 +3729,6 @@ sub dv_holdup_service {
   	return 0;
    }
 
-
   $Dv->{DATE_FROM}= $html->date_fld2('FROM_DATE', { FORM_NAME => 'holdup',
   	                                                WEEK_DAYS => \@WEEKDAYS,
   	                                                MONTHES   => \@MONTHES,
