@@ -259,7 +259,6 @@ sub check_lines {
 
       #Get stats from nas servers which don't support rad Alive
       my $external_stats = get_stats(\%NAS, $nas_port_id);
-
       if ( $NAS{NAS_ALIVE} > 0 
            && ( $last_alive > $NAS{NAS_ALIVE} * $error_alive_count )) {
 
@@ -280,7 +279,7 @@ sub check_lines {
 
            my $r = $Acct->accounting($ACCT_INFO, \%NAS);
            my $info = '';
-           
+
            if ($debug > 0) {
            	 foreach my $k (sort keys %$ACCT_INFO) {
  	  	          $info .= sprintf("%-28s | %-30s |\n", $k, (defined($ACCT_INFO->{$k})) ? $ACCT_INFO->{$k} : '' );
