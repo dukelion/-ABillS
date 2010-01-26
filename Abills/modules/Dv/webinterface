@@ -83,8 +83,6 @@ if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
        }
  }
 
-
-
 if ($FORM{set}) {
   if ($period > 0) {
 
@@ -230,14 +228,9 @@ elsif($FORM{del}) {
  	                                        });
 
    $tariffs->{PARAMS} .= form_period($period, { ABON_DATE => $Dv->{ABON_DATE} });	
-
-
-   
-   $tariffs->{ACTION}='set';
+   $tariffs->{ACTION}  ='set';
    $tariffs->{LNG_ACTION}=$_CHANGE;
   }
-
- 
 
 my $tp_index = $index + 6;
 
@@ -246,11 +239,7 @@ $tariffs->{m}       = $m;
 $tariffs->{TP_ID}   = $Dv->{TP_NUM};
 
 $tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$Dv->{TP_NUM}", { TITLE => "$_TP", BUTTON => 1 });
-
-
 print $html->tpl_show(templates('form_chg_tp'), $tariffs);
-
-
 }
 
 
@@ -804,7 +793,6 @@ $tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID',
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
-
 my $nas = Nas->new($db, \%conf);
 
 $tarif_info->{IP_POOLS_SEL} = $html->form_select('IPPOOL', 
@@ -1156,11 +1144,6 @@ elsif($FORM{del} || $FORM{dellist}) {
 
 }
 
-
-
-
-
-
 # online count
 my $list = $sessions->online_count( { %LIST_PARAMS, FIELDS => \@ACTIVE_FIELDS } );	
 my $nas_list = $nas->list();
@@ -1169,7 +1152,7 @@ $form_link = '';
 my $cure = '';
 if($FORM{ZAPED}) {
 	$LIST_PARAMS{ZAPED}=1;
-	$form_link = $html->button("On line", "index=$index", { BUTTON => 1 });
+	$form_link = $html->button("Online", "index=$index", { BUTTON => 1 });
 	$cure = 'Zap';
 	$pages_qs .= "&ZAPED=1";
  } 
