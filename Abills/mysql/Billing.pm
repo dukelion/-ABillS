@@ -387,6 +387,7 @@ sub session_sum {
  my $sum = 0;
  $attr->{DOMAIN_ID}=0 if (! $attr->{DOMAIN_ID});
  $CONF->{rt_billing}=undef if ($attr->{disable_rt_billing});
+ $self->{TI_ID} = 0;
  
  my $sent  = $RAD->{OUTBYTE} || 0; #from server
  my $recv  = $RAD->{INBYTE}  || 0; #to server
@@ -665,7 +666,6 @@ if ($self->{TOTAL_TRAF_LIMIT} && $self->{CHECK_SESSION}) {
 
  #session devisions
  my @sd = @{ $self->{TIME_DIVISIONS_ARR} };
- $self->{TI_ID} = 0;
 
 if(! defined($self->{NO_TPINTERVALS})) {
   if ($#sd < 0) {

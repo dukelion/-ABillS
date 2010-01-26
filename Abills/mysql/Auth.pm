@@ -413,7 +413,6 @@ my @direction_sum = (
 push @time_limits, $self->{MAX_SESSION_DURATION} if ($self->{MAX_SESSION_DURATION} > 0);
 
 
-
 my @periods = ('TOTAL', 'DAY', 'WEEK', 'MONTH');
 my %SQL_params = (TOTAL => '',
                   DAY   => "and DATE_FORMAT(start, '%Y-%m-%d')=curdate()",
@@ -421,10 +420,14 @@ my %SQL_params = (TOTAL => '',
                   MONTH => "and date_format(start, '%Y-%m')=date_format(curdate(), '%Y-%m')" 
                   );
 
-my $WHERE = "='$self->{UID}'";
+my $WHERE = "uid='$self->{UID}'";
 if ($self->{UIDS}) {
-  $WHERE = " IN ($self->{UIDS})";
-}
+  $WHERE = "uid IN ($self->{UIDS})";
+ }
+elsif($self->{PAYMENT_TYPE} == 3) {
+	$WHERE="CID='$self->{CID}'";
+ }
+
 
 foreach my $line (@periods) {
      if (($self->{$line . '_TIME_LIMIT'} > 0) || ($self->{$line . '_TRAF_LIMIT'} > 0)) {
@@ -435,7 +438,7 @@ foreach my $line (@periods) {
                                   if(". $self->{$line . '_TRAF_LIMIT'} ." > 0, ". $self->{$line . '_TRAF_LIMIT'} ." - $direction_sum[$self->{OCTETS_DIRECTION}], 0),
                                   1
             FROM dv_log
-            WHERE uid $WHERE $SQL_params{$line}
+            WHERE $WHERE $SQL_params{$line}
             GROUP BY 3;");
 
         if ($self->{TOTAL} == 0) {
