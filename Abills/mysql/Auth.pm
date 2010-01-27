@@ -305,10 +305,10 @@ if ($self->{PORT} > 0 && $self->{PORT} != $RAD->{NAS_PORT}) {
 
 #Check  simultaneously logins if needs
 if ($self->{LOGINS} > 0) {
-  $self->query($db, "SELECT CID FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2 and status < 10);");
+  $self->query($db, "SELECT CID, acct_input_octets+acct_output_octets FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2 and status < 10);");
   my($active_logins) = $self->{TOTAL};
   foreach my $line (@{ $self->{list} }) {
-  	if ($line->[0] ne '' && $line->[0] eq $RAD->{CALLING_STATION_ID}) {
+  	if ($line->[0] ne '' && $line->[0] eq $RAD->{CALLING_STATION_ID} && $line->[1] == 0) {
   		$self->query($db, "UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$RAD->{CALLING_STATION_ID}' and status <> 2;", 'do');
   		$active_logins--;
   	 }
@@ -425,7 +425,7 @@ if ($self->{UIDS}) {
   $WHERE = "uid IN ($self->{UIDS})";
  }
 elsif($self->{PAYMENT_TYPE} == 2) {
-	$WHERE="CID='$self->{CID}'";
+	$WHERE="CID='$RAD->{CALLING_STATION_ID}'";
  }
 
 
