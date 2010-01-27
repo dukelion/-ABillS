@@ -193,15 +193,15 @@ my $table = $html->table( { width      => '100%',
                        } );
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" }); 
+  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1  }); 
 
   $table->addrow($html->b($line->[0]), 
    "$line->[1]", 
    "$line->[2]", 
    $html->color_mark($status[$line->[3]], $state_colors[$line->[3]]),
-   $html->button($_NAS, "index=". ($index - 3) ."&GID=$line->[0]"), 
-   $html->button($_CHANGE, "index=$index&chg=$line->[0]"),
-   $html->button($_TEMPLATES, "index=". ($index+1). "&NAS_GID=$line->[0]"),
+   $html->button($_NAS, "index=". ($index - 3) ."&GID=$line->[0]", { BUTTON => 1 }), 
+   $html->button($_CHANGE, "index=$index&chg=$line->[0]", { BUTTON => 1 }),
+   $html->button($_TEMPLATES, "index=". ($index+1). "&NAS_GID=$line->[0]", { BUTTON => 1 }),
    $delete);
 }
 print $table->show();
@@ -314,12 +314,8 @@ elsif ($FORM{SHOW}) {
       require $lang_file;
      }
    }
-  
-  
-
 
   if ($module) {
- 	
     print  $html->tpl_show(_include("$file", "$module"), { LNG_ACTION => $_ADD },  { OUTPUT2RETURN => 1 }); 
     
    }
@@ -446,27 +442,6 @@ $info{TEMPLATE} = convert($info{TEMPLATE}, { from_tpl => 1 });
 $html->tpl_show(templates('form_template_editor'), { %info, TEMPLATE => '__TEMPLATE__' });
 $html->{__TEMPLATE__}=$info{TEMPLATE};
 
-
-
-#$html->{OUTPUT} .= qq{
-#<form action='$SELF_URL' METHOD='POST'>
-#<input type="hidden" name="index" value='$index'>
-#<input type="hidden" name="tpl_name" value='$info{TPL_NAME}'>
-#<input type="hidden" name="NAS_GID" value='$FORM{NAS_GID}'>
-#<table>
-#<tr bgcolor="$_COLORS[0]"><th>$_TEMPLATES</th></tr>
-#<tr bgcolor="$_COLORS[0]"><td>$info{TPL_NAME}</td></tr>
-#<tr><td>
-#   <textarea cols="100" rows="30" name="template">$info{TEMPLATE}</textarea>
-#</td></tr>
-#</table>
-#<input type="submit" name="change" value='$info{ACTION_LNG}'>
-#</form> 
-#};
-
-
-
-
 my @caption = keys %LANG;
 
 my $table = $html->table( { width       => '100%',
@@ -549,9 +524,9 @@ if ( -f "$sys_templates/$module/templates/describe.tpls" ) {
       $describe = ($tpls_describe{$file}) ? $tpls_describe{$file} : '';
 
       my @rows = ("$file", $size, $mtime, $describe,
-         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&NAS_GID=$FORM{NAS_GID}&SHOW=$module:$file" }) .'<br>'.
-         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($html->b($_CHANGE), "index=$index&NAS_GID=$FORM{NAS_GID}&tpl_name=$module"."_$file") : $html->button($_CREATE, "index=$index&NAS_GID=$FORM{NAS_GID}&create=$module:$file") ). '<br>'.
-         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&NAS_GID=$FORM{NAS_GID}&del=$module". "_$file", { MESSAGE => "$_DEL $file" }) : '' )
+         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&NAS_GID=$FORM{NAS_GID}&SHOW=$module:$file", BUTTON => 1 }) .'<br>'.
+         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($html->b($_CHANGE),  "index=$index&NAS_GID=$FORM{NAS_GID}&tpl_name=$module"."_$file", { BUTTON => 1 }) : $html->button($_CREATE, "index=$index&NAS_GID=$FORM{NAS_GID}&create=$module:$file", { BUTTON => 1  }) ). '<br>'.
+         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&NAS_GID=$FORM{NAS_GID}&del=$module". "_$file", { MESSAGE => "$_DEL $file", BUTTON => 1 }) : '' )
         );
       
       
@@ -559,9 +534,9 @@ if ( -f "$sys_templates/$module/templates/describe.tpls" ) {
 
       foreach my $lang (@caption) {
       	 my $f = '_'.$file.'_'.$lang.'.tpl';
-      	
-         push @rows,  ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&NAS_GID=$FORM{NAS_GID}&SHOW=$module:$file:$lang" }) .'<br>'. $html->button($html->b($_CHANGE), "index=$index&NAS_GID=$FORM{NAS_GID}&tpl_name=$module"."$f") : $html->button($_CREATE, "index=$index&NAS_GID=$FORM{NAS_GID}&create=$module:$file".'.tpl'.":$lang") ).'<br>'.
-         ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_DEL, "index=$index&NAS_GID=$FORM{NAS_GID}&del=$module". "$f", { MESSAGE => "$_DEL $file" }) : '');
+
+         push @rows,  ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&NAS_GID=$FORM{NAS_GID}&SHOW=$module:$file:$lang", BUTTON => 1 }) .'<br>'. $html->button($html->b($_CHANGE), "index=$index&NAS_GID=$FORM{NAS_GID}&tpl_name=$module"."$f") : $html->button($_CREATE, "index=$index&NAS_GID=$FORM{NAS_GID}&create=$module:$file".'.tpl'.":$lang", { BUTTON => 1 }) ).'<br>'.
+         ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_DEL, "index=$index&NAS_GID=$FORM{NAS_GID}&del=$module". "$f", { MESSAGE => "$_DEL $file", BUTTON => 1 }) : '');
        }
 
       $table->addrow(@rows);
@@ -572,7 +547,7 @@ if ( -f "$sys_templates/$module/templates/describe.tpls" ) {
 
 
 while(my($k, $v) = each %templates) {
-  $table->addrow($html->b($k), "$v", $html->button($_CHANGE, "index=$index&NAS_GID=$FORM{NAS_GID}&tpl_name=$k"));
+  $table->addrow($html->b($k), "$v", $html->button($_CHANGE, "index=$index&NAS_GID=$FORM{NAS_GID}&tpl_name=$k", { button => 1 }));
 }
 print $table->show();
 
@@ -604,11 +579,10 @@ my $table = $html->table( { width       => '600',
          $blksize,$blocks)=stat("$conf{TPL_DIR}/$file");
          $mtime = strftime "%Y-%m-%d %H-%M-%S", localtime($mtime);
 
-      $table->addrow("<a href='/images/$admin->{DOMAIN_ID}/$FORM{NAS_GID}/$file'>/images/$admin->{DOMAIN_ID}/$FORM{NAS_GID}/$file</a>", 
+      $table->addrow($html->button("/images/$admin->{DOMAIN_ID}/$FORM{NAS_GID}/$file", '', { GLOBAL_URL => "/images/$admin->{DOMAIN_ID}/$FORM{NAS_GID}/$file", BUTTON => 1 } ).   
          $size, $mtime, $describe,
-         $html->button($_DEL, "index=$index&file_del=$file", { MESSAGE => "$_DEL '$file'" }));
+         $html->button($_DEL, "index=$index&NAS_GID=$FORM{NAS_GID}&file_del=$file", { MESSAGE => "$_DEL '$file'", BUTTON => 1 }));
      }
-
    }
  print $table->show();
  
@@ -743,18 +717,13 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 
                               'center:noprint', 'center:noprint' ],
                             ID         => 'NAS_LIST',
-                            header     => "<div id='tabs'>
-<ul class=\"user_menu\">
-<li class=\"active\"><a href='$SELF_URL?index=$index#FORM_NAS'>$_ADD</a></li>
-</ul>
-</div>\n"
-
+                            header     => $html->button("$_ADD", "$SELF_URL?index=$index#FORM_NAS", { BUTTON => 1 })
                            });
 
 
 my $list = $nas->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?" }); 
+  my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?", BUTTON => 1 }); 
 
   $table->addrow('', 
     $line->[1], 
@@ -762,8 +731,7 @@ foreach my $line (@$list) {
     $line->[3], $line->[4], 
     $line->[5], 
     $status[$line->[6]],
-    #$html->button("IP POOLs", "index=". ($index+1) ."&NAS_ID=$line->[0]"),
-    $html->button("$_INFO", "index=$index&NAS_ID=$line->[0]"),
+    $html->button("$_INFO", "index=$index&NAS_ID=$line->[0]", { BUTTON => 1, BUTTON => 1 }),
     $delete);
 }
 print $table->show();
@@ -774,8 +742,6 @@ $table = $html->table( { width      => '100%',
                      } );
 
 print $table->show();
-
-
 
   if (defined($conf{nas_servers})) {
   	%nas_descr = ( %nas_descr,  %{$conf{nas_servers}} );
@@ -900,8 +866,8 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[8]&IP_POOLS=1", { MESSAGE => "$_DEL POOL $line->[9]?" }); 
-  my $change = $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[8]&IP_POOLS=1"); 
+  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[8]&IP_POOLS=1", { MESSAGE => "$_DEL POOL $line->[9]?", BUTTON => 1 }); 
+  my $change = $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[8]&IP_POOLS=1", { BUTTON => 1 }); 
 
   $table->addrow(
     $html->form_input('ids', $line->[8], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef ,  OUTPUT2RETURN => 1 }),
@@ -939,7 +905,7 @@ $table = $html->table( { width      => '100%',
 
 $list = $nas->ip_pools_list({ %LIST_PARAMS });	
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[8]", { MESSAGE => "$_DEL NAS $line->[4]?" }); 
+  my $delete = $html->button($_DEL, "index=61$pages_qs&del=$line->[8]", { MESSAGE => "$_DEL NAS $line->[4]?", BUTTON => 1 }); 
 
   $table->addrow($html->button($line->[0], "index=60&NAS_ID=$line->[9]"), 
     $line->[1],
@@ -1144,18 +1110,14 @@ my $table = $html->table( { width      => '100%',
                             title      => ['-', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_AGE, '-', '-'],
                             cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
                             ID         => 'DV_TARIF_PLANS',
-                            header     => "<div id='tabs'>
-<ul class=\"user_menu\">
-<li class=\"active\"><a href='$SELF_URL?index=$index#TP_FORM'>$_ADD</a></li>
-</ul>
-</div>\n"
-                                  } );
+                            header     => $html->button($_ADD, "$SELF_URL?index=$index#TP_FORM", { BUTTON => 1 })
+                         } );
 
 my ($delete, $change);
 foreach my $line (@$list) {
 #  if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?" }); 
-    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]");
+    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { BUTTON => 1 });
 #   }
   
   if($FORM{TP_ID} eq $line->[18]) {
@@ -1165,7 +1127,7 @@ foreach my $line (@$list) {
   	undef($table->{rowcolor});
    }
   
-  $table->addrow('', #$html->b($line->[0]), 
+  $table->addrow('', 
    $html->button($line->[1], "index=$index&TP_ID=$line->[18]"),
    $bool_vals[$line->[2]], 
    $bool_vals[$line->[3]], 
