@@ -11,7 +11,7 @@ $DEBUG
 );
 #use strict;
 
-my $version = 0.3;
+my $version = 0.4;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -30,9 +30,9 @@ my $html = Abills::HTML->new( { IMG_PATH => 'img/',
 my $begin_time = check_time();
 
 require Abills::SQL;
-my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd},
+  { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef });
 my $db  = $sql->{db};
-
 
 
 require Dv;
@@ -98,9 +98,6 @@ if ($ARGV->{REPORT_ID}) {
  }
 
 
-
-
-
 my $debug_output = ureports_periodic_reports({ %$ARGV });
 
 print $debug_output;
@@ -114,7 +111,7 @@ sub ureports_send_reports {
 
   if ($type == 0) {
   	my $subject = $attr->{SUBJECT} || '';
-  	if (! sendmail($conf{ADMIN_MAIL}, $destination, $subject, $message, $conf{MAIL_CHARSET})) {
+  	if (! sendmail($conf{ADMIN_MAIL}, $destination, $subject, $message."\n[$attr->{REPORT_ID}]", $conf{MAIL_CHARSET})) {
 
   		 return 0;
   	 }
@@ -127,8 +124,6 @@ sub ureports_send_reports {
   elsif($type == 2) {
   	
    }
- 
- 
  
   return 1;
 }
@@ -153,6 +148,7 @@ sub ureports_periodic_reports {
   my $list = $tariffs->list({ %LIST_PARAMS });
   $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+  my $reports_type = 0;
 
  foreach my $line (@$list) {
      my $TP_ID = $line->[0];
@@ -325,12 +321,12 @@ sub ureports_periodic_reports {
         }
 
 
-#Semd reports secton
+#Send reports section
        if (scalar keys %PARAMS > 0) {
          	 	 ureports_send_reports($user{DESTINATION_TYPE}, 
          	 	                       $user{DESTINATION_ID}, 
          	 	                       $PARAMS{MESSAGE}, 
-         	 	                       { SUBJECT => $PARAMS{SUBJECT} });
+         	 	                       { SUBJECT => $PARAMS{SUBJECT}, REPORT_ID => $user{REPORT_ID} });
          	 	 
          	 	 $Ureports->tp_user_reports_update({ UID       => $user{UID},
          	 	 	                                   REPORT_ID => $user{REPORT_ID} 
@@ -353,7 +349,6 @@ sub ureports_periodic_reports {
                	  }
                  elsif($debug > 0) {
                	   $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
-                   #$debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
                   }
                 }
          	 	  }	
@@ -367,9 +362,7 @@ sub ureports_periodic_reports {
   	           REPORT_ID   => $user{REPORT_ID},
   	           STATUS      => 0
   	         });
-
         }
-
       }
   }
 
