@@ -558,9 +558,6 @@ my $table = $html->table( { width       => '600',
                             cols_align  => ['left', 'right', 'right', 'left', 'center', 'center']
                          } );
 
-
-  #$conf{TPL_DIR}="$conf{MAIN_TPL_DIR}/$domain_path";
-
 	if (-d "$conf{TPL_DIR}" ) {
     opendir DIR, "$conf{TPL_DIR}" or die "Can't open dir '$conf{MAIN_TPL_DIR}/$domain_path' $!\n";
       my @contents = grep  !/^\.\.?$/ && !/\.tpl$/  , readdir DIR;
@@ -579,7 +576,7 @@ my $table = $html->table( { width       => '600',
          $blksize,$blocks)=stat("$conf{TPL_DIR}/$file");
          $mtime = strftime "%Y-%m-%d %H-%M-%S", localtime($mtime);
 
-      $table->addrow($html->button("/images/$admin->{DOMAIN_ID}/$FORM{NAS_GID}/$file", '', { GLOBAL_URL => "/images/$admin->{DOMAIN_ID}/$FORM{NAS_GID}/$file", BUTTON => 1 } ).   
+      $table->addrow($html->button("/images/$admin->{DOMAIN_ID}/$FORM{NAS_GID}/$file", '', { GLOBAL_URL => "/images/$admin->{DOMAIN_ID}/$FORM{NAS_GID}/$file" } ),
          $size, $mtime, $describe,
          $html->button($_DEL, "index=$index&NAS_GID=$FORM{NAS_GID}&file_del=$file", { MESSAGE => "$_DEL '$file'", BUTTON => 1 }));
      }
