@@ -731,8 +731,8 @@ sub tax_invoice_reports {
  $WHERE = ($#WHERE_RULES > -1) ? 'AND ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db,   "SELECT 0, DATE_FORMAT(d.date, '%d%m%Y'), d.invoice_id, 1, pi.fio,
-    0, pi._inn, 
+  $self->query($db,   "SELECT 0, DATE_FORMAT(d.date, '%d%m%Y'), d.invoice_id, pi.fio,
+    pi._inn, 
     ROUND(sum(inv_orders.price*counts), 2), 
     ROUND(sum(inv_orders.price*counts) - sum(inv_orders.price*counts) /6, 2),  
     ROUND(sum(inv_orders.price*counts) / 6, 2), 
