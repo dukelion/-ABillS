@@ -424,7 +424,7 @@ my $WHERE = "uid='$self->{UID}'";
 if ($self->{UIDS}) {
   $WHERE = "uid IN ($self->{UIDS})";
  }
-elsif($self->{PAYMENT_TYPE} == 3) {
+elsif($self->{PAYMENT_TYPE} == 2) {
 	$WHERE="CID='$self->{CID}'";
  }
 
