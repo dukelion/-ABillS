@@ -88,7 +88,6 @@ my $access_deny = sub {
 
 my $log_print = sub {
   my ($level, $text, $attr) = @_;
-
   #if ($conf{debugmods} =~ /$level/) {
   #  if (defined($conf{foreground}) && $conf{foreground} == 1) {
   #    print "$DATE $TIME $level: $text\n";
@@ -99,7 +98,6 @@ my $log_print = sub {
   #    close(FILE);
   #   }
   # }
-
 };
 
 
@@ -194,13 +192,13 @@ sub acct {
       foreach my $line  (@{ $RAD->{MPD_OUTPUT_OCTETS} }) {
          my($class, $byte)=split(/:/, $line);
          $class = ($class == 0) ? '' : $class + 1;
-         $RAD->{'INBYTE'. $class }	= $byte;
+         $RAD->{'OUTBYTE'. $class }	= $byte;
         }
 
       foreach my $line  (@{ $RAD->{MPD_INPUT_OCTETS} }) {
          my($class, $byte)=split(/:/, $line);
          $class = ($class == 0) ? '' : $class + 1;
-         $RAD->{'OUTBYTE' . $class}	= $byte;
+         $RAD->{'INBYTE' . $class}	= $byte;
         }
      }
     elsif ($nas->{NAS_TYPE} eq 'exppp') {
@@ -238,8 +236,6 @@ sub acct {
 
     ($RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = ($RAD->{ACCT_OUTPUT_GIGAWORDS}, $RAD->{ACCT_INPUT_GIGAWORDS}); 
 
-
-    
     if ($nas->{NAS_TYPE} eq 'mpd5' && $RAD->{MPD_INPUT_OCTETS}) {
     	
    	  if (ref $RAD->{MPD_INPUT_OCTETS} eq 'ARRAY') {
@@ -265,10 +261,6 @@ sub acct {
 #          $class = ($class == 0) ? '' : $class + 1;
 #          $RAD->{'OUTBYTE' . $class}	= $byte;
 #       }
-
-      
-      #my $xxx = `echo "$RAD->{INBYTE} /  $RAD->{OUTBYTE} / $RAD->{MPD_INPUT_OCTETS}[0]" >> /tmp/test_rlm`;
-      
      }
     elsif ($nas->{NAS_TYPE} eq 'exppp') {
       #reverse byte parameters
@@ -338,8 +330,6 @@ if (-d $conf{extern_acct_dir}) {
 
 my $Acct;
 
-
-
 if(defined($ACCT{$nas->{NAS_TYPE}})) {
   if (! defined($acct_mod{"$nas->{NAS_TYPE}"})) {
     require $ACCT{$nas->{NAS_TYPE}} . ".pm";
@@ -353,20 +343,6 @@ else {
   $acct_mod{'default'} = Acct->new($db, \%conf);
 	$r = $acct_mod{"default"}->accounting($RAD, $nas);
 }
-
-
-#if(defined($ACCT{$nas->{NAS_TYPE}})) {
-#  require $ACCT{$nas->{NAS_TYPE}} . ".pm";
-#  $ACCT{$nas->{NAS_TYPE}}->import();
-#  $Acct = $ACCT{$nas->{NAS_TYPE}}->new($db, \%conf);
-#
-#}
-#else {
-#  require Acct;
-#  Acct->import();
-#  $Acct = Acct->new($db, \%conf);
-#  $r = $Acct->accounting($RAD, $nas);
-#}
 
 
 if ($Acct->{errno}) {
