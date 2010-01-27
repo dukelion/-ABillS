@@ -458,7 +458,6 @@ foreach my $line (@periods) {
           $RAD_PAIRS->{'Reply-Message'}="Rejected! $line Traffic limit utilized '$traf_limit Mb'";
           return 1, $RAD_PAIRS;
          }
-
       }
 }
 
@@ -477,7 +476,6 @@ foreach my $line (@periods) {
    	 $time_limit=$to_expire;
     }
   }
-
 
  if ($time_limit > 0) {
    $RAD_PAIRS->{'Session-Timeout'} = "$time_limit";
