@@ -309,7 +309,7 @@ if ($self->{LOGINS} > 0) {
   my($active_logins) = $self->{TOTAL};
   foreach my $line (@{ $self->{list} }) {
   	if ($line->[0] ne '' && $line->[0] eq $RAD->{CALLING_STATION_ID}) {
-  		$self->query($db, "UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$RAD->{CALLING_STATION_ID}' and status <> 2;");
+  		$self->query($db, "UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$RAD->{CALLING_STATION_ID}' and status <> 2;", 'do');
   		$active_logins--;
   	 }
    }
