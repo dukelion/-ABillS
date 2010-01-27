@@ -536,8 +536,18 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
 
     if ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/) {
        if (! $CONF->{ng_car}) {
-         push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all shape ". ($line->[2] * 1024)." 4000";
-         push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all shape ". ($line->[3] * 1024) ." 4000";
+         if ( $line->[2] == 0 ) {
+            push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all pass";
+          } 
+         else {
+           push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all shape ". ($line->[2] * 1024)." 4000";
+          }
+         if ( $line->[3] == 0 ) {
+           push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all pass";
+          } 
+         else {
+           push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all shape ". ($line->[3] * 1024) ." 4000";
+          }
         }
 
    	   next ;
