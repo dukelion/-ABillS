@@ -392,52 +392,35 @@ sub check_install {
  	#Execute some command
  	#:PARAMS_NAME=PARAMS_VALUE:exec COMMAND
  	elsif ($file =~ /^:(\S{0,100}):exec:(.+)/) {
- 		my $param  = $1;
+ 		my $params = $1;
     my $value  = $2;
  		
  		my $param_name  = '';
  		my $param_value = '';
- 		my $skip        = 0;
-    if ($param) {
-    	 my @param_arr = split(/,/, $param);
-    	 foreach my $p (@param_arr) {
-         my ($param_name_tmp, $param_value_tmp)=split(/=/, $p, 2);
-         if ($param_name_tmp =~ /^!(\S+)/) {
-           my $val =  $1;
-           if ($ARGV->{$val} && $ARGV->{$val} eq $param_value_tmp) {
-           	 $skip=1;
-           	 
-           	 last;
-         	  }
-          }
-         else {
-        	 $param_name  = $param_name_tmp;
-         	 $param_value = $param_value_tmp;
-         	}
-        }
+
+    if ($params) {
+      my $skip=0;
+      
+      my @params_arr = split(/,/, $params);
+      foreach my $param ( @params_arr ) {
+        my ($param_name2, $param_value2)=split(/=/, $param, 2);
+        if (! defined($ARGV->{$param_name2}) || $ARGV->{$param_name2} ne $param_value2) {
+        	$skip=1;
+        	last;
+         }
+        elsif ($param_name2 =~ /^!(\S+)/) {
+          my $val = $1;
+          if ($ARGV->{$val} && $ARGV->{$val} eq $param_value2) {
+           	$skip=1;
+           	last;
+         	 }
+         }
+       }
+
+      next if ($skip);
      }
-  
     
-    next if ($skip);
-
-#    if ($param_value =~ /^!(\S+)/) {
-#      my $skip_params = $1;
-#      
-#      if ($ARGV->{$skip_params} && $ARGV->{$skip_params} )
-#      delete $ARGV->{$param_name}  
-#     }
-    
-
-    if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value)) {
-      $config_body = "$value\n";
-     }  		
-    elsif (! $param) {
-    	$config_body = "$value\n";
-     }
-    else {
-      next;
-     }
-
+   	$config_body = "$value\n";
 
     #my $res = system("$config_body");
     print "EXECUTE: $config_body\n" if ($debug > 1);
@@ -452,15 +435,12 @@ sub check_install {
     	$exec_cmd = $config_body;
      }
 
-
-
     $exec_cmd = _parse($exec_cmd, \%DEFAULT_VALUE, \%DEFAULT_DESCRIBE); 
     my $exec_file = '';
  
     if ($exec_cmd =~ /(\S+)/) {
     	$exec_file = $1;
      }
-  
 
     if ($exec_file =~ /\// &&  ! -x $exec_file ) {
     	print "File '$exec_file' not exist or not executeble\n";
@@ -477,9 +457,6 @@ sub check_install {
    } 
  	elsif ($file =~ /^:(\S{0,100}):(.+) (>{1,2}) +\[(\S+)\]\/(.+)/) {
  		my $params      = $1;
- 		#my $param_value = $2;
- 		my $param_name  = '' ;
- 		my $param_value = '';
  		my $value       = $2;
  		$type           = $3;
  	  $folder         = $4;
@@ -489,55 +466,42 @@ sub check_install {
     
     my %PARAMS_HASH         =  ();
     my %EXCLUDE_PARAMS_HASH =  ();
-    my $skip=0;
+    
+    #Check params
     if ($params) {
+    	my $skip=0;
+      
       my @params_arr = split(/,/, $params);
       foreach my $param ( @params_arr ) {
         my ($param_name2, $param_value2)=split(/=/, $param, 2);
-        #print "'$param_name2', $param_value2 \n";
-        
-        if ($param_name2 =~ /^!(\S+)/) {
+        if (! defined($ARGV->{$param_name2}) || $ARGV->{$param_name2} ne $param_value2) {
+        	$skip=1;
+        	last;
+         }
+        elsif ($param_name2 =~ /^!(\S+)/) {
           my $val = $1;
           if ($ARGV->{$val} && $ARGV->{$val} eq $param_value2) {
-           	 $skip=1;
-           	 last;
-         	  }
-        	$EXCLUDE_PARAMS_HASH{$param_name2}=$param_value2;
-         }
-        else {
-          $PARAMS_HASH{$param_name2}=$param_value2;
-          $param_name  = $param_name2;
-          $param_value = $param_value2;
+           	$skip=1;
+           	last;
+         	 }
          }
        }
+
+      next if ($skip);
      }
 
-    next if ($skip);
-    
-    if ((defined($ARGV->{$param_name}) && $ARGV->{$param_name} eq $param_value) ) {
-     #&&     (! $ARGV->{ keys %EXCLUDE_PARAMS_HASH } ) ) {
-      #If result is file
-      if ($value =~ /^FILE=(\S+)/) {
-        $config_body = get_file($conf{WORK_DIR}."/$program/".$1);
-       }
-      else {
-      	$config_body = "$value\n";
-       }
-     }  		
-    elsif (! $params) {
-    	$config_body = "$value\n";
+    if ($value =~ /^FILE=(\S+)/) {
+      $config_body = get_file($conf{WORK_DIR}."/$program/".$1);
      }
     else {
-    	next;
+   	  $config_body = "$value\n";
      }
- 		
  	 }
 	elsif($file =~ /^(\S+) +([>]{1,2}) +\[(\S+)\]\/(.+)/) {
  	  my $config = $1;
  	  $type   = $2;
  	  $folder = $3;
  	  $dest   = $4;
-
     $config_body = get_file($conf{WORK_DIR}."/$program/$config");
    }
   else {
@@ -552,7 +516,7 @@ sub check_install {
     	if (! mkdir($folder))  {
           print "Can't Create '$folder' Error: $!\n";
           exit;
-         }
+       }
     	print "mkdir $folder\n" if ($debug == 2);
      }
 
