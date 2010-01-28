@@ -1175,6 +1175,7 @@ sub check_ifaces {
   get_db_info($ip_pid_hash);
 
 
+  my $unallow_ips = 0;
 while(my($ip_address, $info)=each %$ip_pid_hash) {
   my($pid, $iface)=split(/:/, $info, 2);
   if ($conf{DV_PPP_UNCHECKED}) {
@@ -1194,7 +1195,10 @@ while(my($ip_address, $info)=each %$ip_pid_hash) {
   print "Killed IP: $ip_address IF: $iface PID: '$pid' -- $res\n";  
 
   get_pid_info($pid) if (-f "/var/log/ppp.log" && $pid > 0);
+  $unallow_ips++;
 }
+
+print "Unallow ips: $unallow_ips\n";
 }
 
 #**********************************************************
