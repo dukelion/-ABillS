@@ -28,10 +28,10 @@ require Abills::Base;
 Abills::Base->import();
 my $begin_time = check_time();
 
-my $debug=0;
+my $debug        = 0;
 my $debug_output = '';
-my $ARGV = parse_arguments(\@ARGV);
-my $log_dir = $var_dir.'/log';
+my $ARGV         = parse_arguments(\@ARGV);
+my $log_dir      = $var_dir.'/log';
 
 
 if (defined($ARGV->{debug})) {
@@ -1204,7 +1204,9 @@ sub get_db_info {
  my ($ip_pid_hash) = @_;
  my $list = $sessions->online({ FIELDS => [3] });	
  foreach my $line (@$list) {
-   delete $ip_pid_hash->{int2ip("$line->[0]")};
+ 	 my $ip = int2ip("$line->[0]");
+ 	 print "exist: $ip\n" if ($debug > 2);
+   delete $ip_pid_hash->{$ip};
   }
 }
 
@@ -1262,30 +1264,6 @@ elsif ($attr->{MPD}) {
       $ifconfig .= $l;
      }
   close(IFC);
-
-$ifconfig = qq{
-em4: flags=8802<BROADCAST,SIMPLEX,MULTICAST> metric 0 mtu 1500
-        options=19b<RXCSUM,TXCSUM,VLAN_MTU,VLAN_HWTAGGING,VLAN_HWCSUM,TSO4>
-        ether 00:30:48:d9:ed:c0
-        media: Ethernet autoselect
-        status: no carrier
-em5: flags=8802<BROADCAST,SIMPLEX,MULTICAST> metric 0 mtu 1500
-        options=19b<RXCSUM,TXCSUM,VLAN_MTU,VLAN_HWTAGGING,VLAN_HWCSUM,TSO4>
-        ether 00:30:48:d9:ed:c1
-        media: Ethernet autoselect
-        status: no carrier
-lo0: flags=8049<UP,LOOPBACK,RUNNING,MULTICAST> metric 0 mtu 16384
-        inet6 fe80::1%lo0 prefixlen 64 scopeid 0x7
-        inet6 ::1 prefixlen 128
-        inet 127.0.0.1 netmask 0xff000000
-pflog0: flags=0<> metric 0 mtu 33160
-pfsync0: flags=0<> metric 0 mtu 1460
-        syncpeer: 224.0.0.240 maxupd: 128
-ng2: flags=88d1<UP,POINTOPOINT,RUNNING,NOARP,SIMPLEX,MULTICAST> metric 0 mtu 1480
-        inet 10.10.0.1 --> 10.2.6.105 netmask 0xffffffff
-ng9: flags=88d1<UP,POINTOPOINT,RUNNING,NOARP,SIMPLEX,MULTICAST> metric 0 mtu 1492
-        inet 10.10.0.1 --> 10.1.2.129 netmask 0xffffffff
-};
 
   while($ifconfig =~ /ng(\d+): .+\n\s+inet\s+[0-9\.]+\s+\-\->\s+([0-9\.]+).+\n/gi) {
      my $if     = $1;
