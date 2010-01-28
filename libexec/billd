@@ -101,9 +101,9 @@ $LIST_PARAMS{NAS_IDS}   = $ARGV->{NAS_IDS} || undef;
 $LIST_PARAMS{PAGE_ROWS} = 100000;
 $LIST_PARAMS{DISABLE}   = 0;
 
-if (defined($ARGV->{checkppp}))      { check_ppp();               }
-elsif (defined($ARGV->{checkpppd}))  { check_ppp({ LINUX => 1 }); }
-elsif (defined($ARGV->{checkmpd}))   { check_ppp({ MPD   => 1 }); }
+if (defined($ARGV->{checkppp}))      { check_ifaces();               }
+elsif (defined($ARGV->{checkpppd}))  { check_ifaces({ LINUX => 1 }); }
+elsif (defined($ARGV->{checkmpd}))   { check_ifaces({ MPD   => 1 }); }
 elsif (defined($ARGV->{checkspeed})) { check_speed();             }
 elsif (defined($ARGV->{check_pptpd})){ check_pptpd();             }
 elsif (defined($ARGV->{checkspeed_mikro}))   { check_speed_mikro();  }
@@ -1167,30 +1167,9 @@ sub check_pptpd {
 }
 
 #**********************************************************
-# check Active mpd5 session and disconnect unknown ip
+# check Active interfaces
 #**********************************************************
-sub checkmpd {
-  my ($attr)=@_;
-my $ip_pid_hash = get_if_info($attr);
-get_db_info($ip_pid_hash);
-
-
-while(my($ip_address, $info)=each %$ip_pid_hash) {
-  my($pid, $iface)=split(/:/, $info, 2);
-  if ($conf{DV_PPP_UNCHECKED}) {
-    next if ($ip_address =~ /$conf{DV_PPP_UNCHECKED}/);
-   }
-  
-  print "Killed IP: $ip_address PID: '$pid' --\n";  
-}
-	
-	
-}
-
-#**********************************************************
-# check Active FreeBSD ppp session and disconnect unknown ip
-#**********************************************************
-sub check_ppp {
+sub check_ifaces {
   my ($attr) = @_;
   my $ip_pid_hash = get_if_info($attr);
   get_db_info($ip_pid_hash);
@@ -1203,14 +1182,18 @@ while(my($ip_address, $info)=each %$ip_pid_hash) {
    }
   
   my $res = '';  
-  if ($pid > 0) {
+  if ($attr->{MPD}) {
+  	
+   }
+  elsif ($pid > 0) {
     $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete down`;
    }
   else {
     $res = `/sbin/ifconfig tun$iface delete down`;
    }
-  print "Killed IP: $ip_address PID: '$pid' -- $res\n";  
-  get_pid_info($pid) if -f "/var/log/ppp.log";
+  print "Killed IP: $ip_address IF: $iface PID: '$pid' -- $res\n";  
+
+  get_pid_info($pid) if (-f "/var/log/ppp.log" && $pid > 0);
 }
 }
 
@@ -1273,17 +1256,43 @@ if ($attr->{LINUX}) {
   close(IFC); 
  }
 #mpd5
-elsif ($attr->{MPD5}) {
+elsif ($attr->{MPD}) {
   open (IFC, "$IFCONFIG |") || die "Can't open file '$IFCONFIG' $!";
     while (my $l = <IFC>) {
       $ifconfig .= $l;
      }
   close(IFC);
 
-  while($ifconfig =~ /ng(\d+): (.+\n\s.+[\n\s.]+[\n\sa-zA-Z0-9]+\n)/gi) {
+$ifconfig = qq{
+em4: flags=8802<BROADCAST,SIMPLEX,MULTICAST> metric 0 mtu 1500
+        options=19b<RXCSUM,TXCSUM,VLAN_MTU,VLAN_HWTAGGING,VLAN_HWCSUM,TSO4>
+        ether 00:30:48:d9:ed:c0
+        media: Ethernet autoselect
+        status: no carrier
+em5: flags=8802<BROADCAST,SIMPLEX,MULTICAST> metric 0 mtu 1500
+        options=19b<RXCSUM,TXCSUM,VLAN_MTU,VLAN_HWTAGGING,VLAN_HWCSUM,TSO4>
+        ether 00:30:48:d9:ed:c1
+        media: Ethernet autoselect
+        status: no carrier
+lo0: flags=8049<UP,LOOPBACK,RUNNING,MULTICAST> metric 0 mtu 16384
+        inet6 fe80::1%lo0 prefixlen 64 scopeid 0x7
+        inet6 ::1 prefixlen 128
+        inet 127.0.0.1 netmask 0xff000000
+pflog0: flags=0<> metric 0 mtu 33160
+pfsync0: flags=0<> metric 0 mtu 1460
+        syncpeer: 224.0.0.240 maxupd: 128
+ng2: flags=88d1<UP,POINTOPOINT,RUNNING,NOARP,SIMPLEX,MULTICAST> metric 0 mtu 1480
+        inet 10.10.0.1 --> 10.2.6.105 netmask 0xffffffff
+ng9: flags=88d1<UP,POINTOPOINT,RUNNING,NOARP,SIMPLEX,MULTICAST> metric 0 mtu 1492
+        inet 10.10.0.1 --> 10.1.2.129 netmask 0xffffffff
+};
 
+  while($ifconfig =~ /ng(\d+): .+\n\s+inet\s+[0-9\.]+\s+\-\->\s+([0-9\.]+).+\n/gi) {
+     my $if     = $1;
+     my $addr   = $2;
+     my $pid    = 0;
+     $ip_pid_hash{"$addr"}="$pid:$if";
    }	
-
  }
 #For FreeBSD ppp
 else {

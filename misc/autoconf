@@ -416,7 +416,6 @@ sub check_install {
          	 }
          }
        }
-
       next if ($skip);
      }
     
@@ -508,10 +507,9 @@ sub check_install {
  	  next;
    }
 
-   
   $config_body = _parse($config_body, \%DEFAULT_VALUE, \%DEFAULT_DESCRIBE); 
 
-    #Copy config
+  #Copy config
     if (! -d $folder ) {
     	if (! mkdir($folder))  {
           print "Can't Create '$folder' Error: $!\n";
