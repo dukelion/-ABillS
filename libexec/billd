@@ -42,6 +42,7 @@ elsif(defined($ARGV->{help})){
   print "Help:
 CHECK exist connections
   checkppp    - check Active ppp on FreeBSD session and disconnect unknown ip
+  checkmpd    - check Active mpd5 on FreeBSD session and disconnect unknown ip
   checkpppd   - check Active pppd on Linux session and disconnect unknown ip
   check_pptpd - chack Active PoPToP deamon on Linux
   checkmikro  - check Active ppp on Mikrotik session and disconnect unknown ip.
@@ -102,6 +103,7 @@ $LIST_PARAMS{DISABLE}   = 0;
 
 if (defined($ARGV->{checkppp}))      { check_ppp();               }
 elsif (defined($ARGV->{checkpppd}))  { check_ppp({ LINUX => 1 }); }
+elsif (defined($ARGV->{checkmpd}))   { check_ppp({ MPD   => 1 }); }
 elsif (defined($ARGV->{checkspeed})) { check_speed();             }
 elsif (defined($ARGV->{check_pptpd})){ check_pptpd();             }
 elsif (defined($ARGV->{checkspeed_mikro}))   { check_speed_mikro();  }
@@ -554,7 +556,7 @@ if ($conf{ng_car}) {
 		      my $class = $1;
 		      my $login   = $2;	
 		      print "Login: $login ($class". "_$login)\n" if ($debug > 1);
-		      
+
 		      $class =~ /(\d+)$/;
 		      my $class_id = $1;
 		      open(SUB_NG, "/usr/sbin/ngctl msg $class". "_$login: getconf|")  || die "Can't open $!\n";
@@ -566,21 +568,19 @@ if ($conf{ng_car}) {
 		         }
 		      close(SUB_NG);
 		    }
-		
 		  }
 	  close(PROCS);	
 
     if ($debug > 1 || $ARGV->{SHOW_SPEED}) {
       foreach my $login ( sort keys %LOGINS_SPEEDS) {
-      	my $spees_hash = $LOGINS_SPEEDS{$login};
+      	my $speed_hash = $LOGINS_SPEEDS{$login};
       	print "$login: \n";
-      	while(my($direction, $speed) = each %$spees_hash) {
+      	while(my($direction, $speed) = each %$speed_hash) {
     		  print "  $direction  IN: $speed->{IN} OUT: $speed->{OUT}\n";
     	   }
        }
      return 0 if(defined($ARGV->{SHOW_SPEED}));
     }
-	#return 0;
  }
 else {
 #----------------------------------------------------------	
@@ -899,7 +899,12 @@ if ($conf{ng_car}) {
  	  }
 
    print $debug_outputs if ($changed || $debug > 0);
+   delete $LOGINS_SPEEDS{$user};
  }
+
+#  while(my ($user, $val) = each %LOGINS_SPEEDS) {
+#  	print "$user\n";
+#   }
 
   return 0;
 }
@@ -1162,6 +1167,27 @@ sub check_pptpd {
 }
 
 #**********************************************************
+# check Active mpd5 session and disconnect unknown ip
+#**********************************************************
+sub checkmpd {
+  my ($attr)=@_;
+my $ip_pid_hash = get_if_info($attr);
+get_db_info($ip_pid_hash);
+
+
+while(my($ip_address, $info)=each %$ip_pid_hash) {
+  my($pid, $iface)=split(/:/, $info, 2);
+  if ($conf{DV_PPP_UNCHECKED}) {
+    next if ($ip_address =~ /$conf{DV_PPP_UNCHECKED}/);
+   }
+  
+  print "Killed IP: $ip_address PID: '$pid' --\n";  
+}
+	
+	
+}
+
+#**********************************************************
 # check Active FreeBSD ppp session and disconnect unknown ip
 #**********************************************************
 sub check_ppp {
@@ -1246,7 +1272,20 @@ if ($attr->{LINUX}) {
      }
   close(IFC); 
  }
-#For FreeBSD
+#mpd5
+elsif ($attr->{MPD5}) {
+  open (IFC, "$IFCONFIG |") || die "Can't open file '$IFCONFIG' $!";
+    while (my $l = <IFC>) {
+      $ifconfig .= $l;
+     }
+  close(IFC);
+
+  while($ifconfig =~ /ng(\d+): (.+\n\s.+[\n\s.]+[\n\sa-zA-Z0-9]+\n)/gi) {
+
+   }	
+
+ }
+#For FreeBSD ppp
 else {
   open (IFC, "$IFCONFIG |") || die "Can't open file '$IFCONFIG' $!";
     while (my $l = <IFC>) {

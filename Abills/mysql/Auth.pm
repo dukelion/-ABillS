@@ -2,8 +2,6 @@ package Auth;
 # Auth functions
 
 
-
-
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
@@ -31,7 +29,6 @@ my $CONF;
 my $debug =0;
 
 
-
 #**********************************************************
 # Init 
 #**********************************************************
@@ -57,18 +54,14 @@ sub new {
 sub dv_auth {
   my $self = shift;
   my ($RAD, $NAS, $attr) = @_;
-	
-	
+
   my ($ret, $RAD_PAIRS) = $self->authentication($RAD, $NAS, $attr);
 
   if ($ret == 1) {
      return 1, $RAD_PAIRS;
   }
-  
-  
-  
-  my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 4096;
 
+  my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 4096;
   my $DOMAIN_ID = ($NAS->{DOMAIN_ID}) ? "AND tp.domain_id='$NAS->{DOMAIN_ID}'" : "AND tp.domain_id='0'";
  
 
@@ -268,7 +261,6 @@ if ($self->{JOIN_SERVICE}) {
   foreach my $line ( @{ $self->{list} }) {
   	$self->{UIDS} .= ", $line->[0]";
    }
-
 }
 
 #Check allow nas server
@@ -354,7 +346,6 @@ else {
   $self->{DEPOSIT}=0;
  }
 
-
   if ($self->{INTERVALS} > 0)  {
      ($self->{TIME_INTERVALS}, $self->{INTERVAL_TIME_TARIF}, $self->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($self->{TP_ID});
      ($remaining_time, $ATTR) = $Billing->remaining_time($self->{DEPOSIT}, {
@@ -392,7 +383,6 @@ else {
  elsif($remaining_time > 0) {
     push (@time_limits, $remaining_time);
   }
-
 
 
 #Periods Time and traf limits
@@ -773,7 +763,6 @@ sub Auth_CID {
    }
  
  	my @CID_POOL = split(/;/, $self->{CID});
-
   foreach my $TEMP_CID (@CID_POOL) { if ($TEMP_CID ne '') {
 
     if (($TEMP_CID =~ /:/ || $TEMP_CID =~ /\-/)
@@ -791,19 +780,11 @@ sub Auth_CID {
       my $counter=0;
 
       for(my $i=0; $i<=5; $i++) {
-      	 if (! defined($MAC_DIGITS_NEED[$i])) {
-           $RAD_PAIRS->{'Reply-Message'}="Wrong CID '$RAD->{CALLING_STATION_ID}'";
-           return 1, $RAD_PAIRS;
-      	 	}
-         elsif(hex($MAC_DIGITS_NEED[$i]) == hex($MAC_DIGITS_GET[$i])) {
+         if(defined($MAC_DIGITS_NEED[$i]) && hex($MAC_DIGITS_NEED[$i]) == hex($MAC_DIGITS_GET[$i])) {
 	         $counter++;
           }
-        }
-
-      if ($counter eq '6') {
-   	    return 0;
-	     }
-
+       }
+      return 0 if ($counter eq '6');
      }
     # If like MPD CID
     # 192.168.101.2 / 00:0e:0c:4a:63:56 
@@ -821,10 +802,9 @@ sub Auth_CID {
 
   }
 
-   $RAD_PAIRS->{'Reply-Message'}="Wrong CID '$RAD->{CALLING_STATION_ID}'";
-   return 1, $RAD_PAIRS;
+ $RAD_PAIRS->{'Reply-Message'}="Wrong CID '$RAD->{CALLING_STATION_ID}'";
+ return 1, $RAD_PAIRS;
 }
-
 
 #**********************************************************
 # User authentication
@@ -835,8 +815,7 @@ sub Auth_CID {
 sub authentication {
   my $self = shift;
   my ($RAD, $NAS, $attr) = @_;
-  
- 
+
   my $SECRETKEY = (defined($CONF->{secretkey})) ? $CONF->{secretkey} : '';
   my %RAD_PAIRS = ();
   
@@ -854,19 +833,13 @@ sub authentication {
     	$number = $CONF->{DV_CALLBACK_PREFIX}.$number;
      }
     if ($NAS->{NAS_TYPE} eq 'lucent_max') {
-    #	$RAD_PAIRS{'Ascend-Callback'}='Callback-Yes';
     	$RAD_PAIRS{'Ascend-Dial-Number'}=$number;
-    	
-    	
-    	
     	$RAD_PAIRS{'Ascend-Data-Svc'}         = 'Switched-modem';
       $RAD_PAIRS{'Ascend-Send-Auth'}        = 'Send-Auth-None';
       $RAD_PAIRS{'Ascend-CBCP-Enable'}      = 'CBCP-Enabled';
       $RAD_PAIRS{'Ascend-CBCP-Mode'}        = 'CBCP-Profile-Callback';
       $RAD_PAIRS{'Ascend-CBCP-Trunk-Group'} = 5;
       $RAD_PAIRS{'Ascend-Callback-Delay'}   = 30;
-    	
-    	#$RAD_PAIRS{'Ascend-Send-Secret'}='';
      }
     else {
       $RAD_PAIRS{'Callback-Number'}=$number;
@@ -905,8 +878,6 @@ sub authentication {
         AND (u.expire='0000-00-00' or u.expire > CURDATE())
         AND (u.activate='0000-00-00' or u.activate <= CURDATE())
        GROUP BY u.id;");
-
-  # my $test =`echo "$self->{UID}//$DOMAIN_ID " >> /tmp/test.log`;
 
   if($self->{errno}) {
   	$RAD_PAIRS{'Reply-Message'}='SQL error';
@@ -1494,10 +1465,9 @@ sub bin2hex ($) {
 #*******************************************************************
 sub pre_auth {
   my ($self, $RAD, $attr)=@_;
-  
-  
+
 if ($RAD->{MS_CHAP_CHALLENGE} || $RAD->{EAP_MESSAGE}) {
-  
+
   my $login = $RAD->{USER_NAME};
   if ($RAD->{USER_NAME} =~ /:(.+)/) {
     $login = $1;	 
@@ -1558,7 +1528,6 @@ sub neg_deposit_filter_former () {
          }
        }
 
-
    $NEG_DEPOSIT_FILTER_ID =~ s/\%IP\%/$RAD_PAIRS->{'Framed-IP-Address'}/g;
    $NEG_DEPOSIT_FILTER_ID =~ s/\%LOGIN\%/$RAD->{'USER_NAME'}/g;
 	
@@ -1590,8 +1559,6 @@ sub neg_deposit_filter_former () {
     	$RAD_PAIRS->{'Filter-Id'} = "$NEG_DEPOSIT_FILTER_ID";
     }
 
-	
-	
 	return 0, $RAD_PAIRS;;
 }
 

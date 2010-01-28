@@ -11,7 +11,7 @@ use vars  qw(%conf $db
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 2.5;
+my $VERSION = 2.6;
 my $config_file = '/usr/abills/libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
@@ -281,12 +281,11 @@ sub programs_info {
  close(FILE);
 
 
- my %DEFAULT_VALUE = (WORK_DIR => $conf{WORK_DIR}
-                       );
+ my %DEFAULT_VALUE    = (WORK_DIR => $conf{WORK_DIR}
+                          );
  my %DEFAULT_DESCRIBE = ();
-
- my %PARAMS_VALUES = ();
- my %PARAMS_HASH   = ();
+ my %PARAMS_VALUES    = ();
+ my %PARAMS_HASH      = ();
  
 # :DEFAULT:CLAMAV=1:Configure Clamav
 # :DEFAULT:CLAMAV=exec:hostname:Configure Clamav
@@ -305,8 +304,10 @@ foreach my $file (@files) {
  			  }
 
  			 print "DEFAULT: $name / $value / $describe \n" if ($debug > 2);
- 			 $DEFAULT_DESCRIBE{"$name"}=$describe;
- 			 $DEFAULT_VALUE{"$name"}   =$value;
+ 			 $DEFAULT_DESCRIBE{"$name"}= $describe;
+ 			 $DEFAULT_VALUE{"$name"}   = $value;
+ 			 $PARAMS_VALUES{"$name"}   = $value;
+ 			 $PARAMS_HASH{"$name"}     = $value;
  		  }
  	   next;
  	 }
@@ -318,7 +319,6 @@ foreach my $file (@files) {
  		my $value       = $2;
     
     $value =~ s/\\n/\n/g;
-    
 
     if ($params) {
       my @params_arr = split(/,/, $params);
@@ -372,6 +372,7 @@ sub check_install {
  	
 
  	 # :DEFAULT:DEFAULT_VALUE_NAME=DEFAULT_VALUE_VALUE:DESCRIBE
+ 	 # Get default values
  	 if ($file =~ /^:DEFAULT:(.+)/) {
      my $value = $1;
  		 if ($value =~ /(\S+)=(.+|):(.+)/) {
@@ -380,8 +381,10 @@ sub check_install {
  			 my $describe = $3;
  			
  			 print "DEFAULT: $name / $value / $describe \n" if ($debug > 2);
- 			 $DEFAULT_DESCRIBE{"$name"}=$describe;
- 			 $DEFAULT_VALUE{"$name"}=$value;
+ 			 $DEFAULT_DESCRIBE{"$name"}= $describe;
+ 			 $DEFAULT_VALUE{"$name"}   = $value;
+			 $ARGV->{"$name"}          = $value;
+ 			 $ARGV->{"$name"}          = $value;
  		  }
  	   next;
  	  }
