@@ -1184,7 +1184,7 @@ while(my($ip_address, $info)=each %$ip_pid_hash) {
   
   my $res = '';  
   if ($attr->{MPD}) {
-  	
+  	$res = `/usr/sbin/ngctl shutdown ng$iface:`; if ($debug < 3);
    }
   elsif ($pid > 0) {
     $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete down`;
@@ -1198,7 +1198,7 @@ while(my($ip_address, $info)=each %$ip_pid_hash) {
   $unallow_ips++;
 }
 
-print "Unallow ips: $unallow_ips\n";
+print "Unallow ips: $unallow_ips\n" if ($debug > 1);
 }
 
 #**********************************************************
