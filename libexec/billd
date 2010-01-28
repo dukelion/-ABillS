@@ -1209,7 +1209,7 @@ sub get_db_info {
  my $list = $sessions->online({ FIELDS => [3] });	
  foreach my $line (@$list) {
  	 my $ip = int2ip("$line->[0]");
- 	 print "exist: $ip\n" if ($debug > 2);
+ 	 print "exist: $ip\n" if ($debug > 3);
    delete $ip_pid_hash->{$ip};
   }
 }

@@ -1554,26 +1554,27 @@ $LIST_PARAMS{MONTH} = $FORM{MONTH} || "$y-$m";
 my $list = $Docs->tax_invoice_reports({ %LIST_PARAMS });
 my %invoice_hash = ();
 
+my $num = 1;
 foreach my $line ( @$list ) {
   push @{ $invoice_hash{T2RXXXXG2D}  }, $line->[1];
-  push @{ $invoice_hash{T2RXXXXG3D}  }, $line->[1];
-  push @{ $invoice_hash{T2RXXXXG4S}  }, $line->[2];
-  push @{ $invoice_hash{T2RXXXXG5S}  }, 'ом';
-  push @{ $invoice_hash{T2RXXXXG6S}   }, $line->[3];
-  push @{ $invoice_hash{T2RXXXXG7}   }, $line->[4];
-  push @{ $invoice_hash{T2RXXXXG8}   }, sprintf("%.2f", $line->[5]);
-  push @{ $invoice_hash{T2RXXXXG9}   }, sprintf("%.2f", $line->[6]);
-  push @{ $invoice_hash{T2RXXXXG10}   }, sprintf("%.2f", $line->[7]);
+  push @{ $invoice_hash{T2RXXXXG3D}  }, $line->[2];
+  push @{ $invoice_hash{T2RXXXXG4S}  }, 'ом';
+  push @{ $invoice_hash{T2RXXXXG5S}  }, $line->[3];
+  push @{ $invoice_hash{T2RXXXXG6S}   }, ''; # | $line->[3];
+  push @{ $invoice_hash{T2RXXXXG7}   }, sprintf("%.2f", $line->[5]);
+  push @{ $invoice_hash{T2RXXXXG8}   }, sprintf("%.2f", $line->[6]);
+  push @{ $invoice_hash{T2RXXXXG9}   }, sprintf("%.2f", $line->[7]);
 
-  $invoice_hash{T2R01G8} += $line->[5];
-  $invoice_hash{T2R01G9} += $line->[6];
-  $invoice_hash{T2R01G10}+= $line->[7];
-
+  $invoice_hash{T2R01G7} += $line->[5];
+  $invoice_hash{T2R01G8} += $line->[6];
+  $invoice_hash{T2R01G9} += $line->[7];
 
 
-  push @{ $invoice_hash{T2RXXXXG9}   }, undef; 
-  push @{ $invoice_hash{T2RXXXXG10}  }, undef; 
-  push @{ $invoice_hash{T2RXXXXG11}  }, undef; 
+
+
+  #push @{ $invoice_hash{T2RXXXXG10}  }, undef; 
+  #push @{ $invoice_hash{T2RXXXXG11}  }, undef; 
+  $num++;
 }
 
 
@@ -1605,9 +1606,10 @@ foreach my $key (@arr) {
 }
 
 $doc .= "
+<T2R01G7>". sprintf("%.2f", $invoice_hash{T2R01G7}). "</T2R01G7>
 <T2R01G8>". sprintf("%.2f", $invoice_hash{T2R01G8}). "</T2R01G8>
 <T2R01G9>". sprintf("%.2f", $invoice_hash{T2R01G9}). "</T2R01G9>
-<T2R01G10>". sprintf("%.2f", $invoice_hash{T2R01G10}). "</T2R01G10>
+		<T1R01G10 xsi:nil=\"true\"></T1R01G10>
 		<T1R01G11 xsi:nil=\"true\"></T1R01G11>
 		<T1R01G12 xsi:nil=\"true\"></T1R01G12>
 		<T1R01G13 xsi:nil=\"true\"></T1R01G13>
