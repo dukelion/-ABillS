@@ -5283,10 +5283,17 @@ sub dv_registration  {
 
 REG_FORM:
 
+  if ($conf{DV_REGISTRATION_TP_GIDS}) {
+  	 $LIST_PARAMS{TP_GID}=$conf{DV_REGISTRATION_TP_GIDS};
+   }
+  else {
+  	 $LIST_PARAMS{TP_GID} = '>0';
+   }
+
 	$Dv->{TP_SEL} = $html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $FORM{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS, MODULE => 'Dv', TP_GID => '>0' }),
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS, MODULE => 'Dv' }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });

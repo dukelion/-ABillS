@@ -6,7 +6,7 @@
 
 
 
-use vars qw($begin_time %FORM %LANG $CHARSET 
+use vars qw($begin_time %FORM %LANG %conf $CHARSET 
   @MODULES
   @REGISTRATION
   $PROGRAM
@@ -14,7 +14,9 @@ use vars qw($begin_time %FORM %LANG $CHARSET
   $users
   $Bin
   $ERR_WRONG_DATA
-  $DATE $TIME
+  $DATE 
+  $time
+  
  );
 BEGIN {
  my $libpath = '../';
