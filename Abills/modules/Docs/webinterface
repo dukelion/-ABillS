@@ -1527,7 +1527,7 @@ my %invoice_hash = ();
 my $num = 1;
 foreach my $line ( @$list ) {
   push @{ $invoice_hash{T2RXXXXG2D}  }, $line->[1];
-  push @{ $invoice_hash{T2RXXXXG3D}  }, $line->[2];
+  push @{ $invoice_hash{T2RXXXXG3S}  }, $line->[2];
   push @{ $invoice_hash{T2RXXXXG4S}  }, 'ом';
   push @{ $invoice_hash{T2RXXXXG5S}  }, $line->[3];
   push @{ $invoice_hash{T2RXXXXG6S}   }, ''; # | $line->[3];
@@ -1579,23 +1579,16 @@ $doc .= "
 <T2R01G7>". sprintf("%.2f", $invoice_hash{T2R01G7}). "</T2R01G7>
 <T2R01G8>". sprintf("%.2f", $invoice_hash{T2R01G8}). "</T2R01G8>
 <T2R01G9>". sprintf("%.2f", $invoice_hash{T2R01G9}). "</T2R01G9>
-		<T1R01G10 xsi:nil=\"true\"></T1R01G10>
-		<T1R01G11 xsi:nil=\"true\"></T1R01G11>
-		<T1R01G12 xsi:nil=\"true\"></T1R01G12>
-		<T1R01G13 xsi:nil=\"true\"></T1R01G13>
-		<T1R01G14 xsi:nil=\"true\"></T1R01G14>
-		<T1R01G15 xsi:nil=\"true\"></T1R01G15>
-		<T1R01G16 xsi:nil=\"true\"></T1R01G16>
-		<T1R02G8 xsi:nil=\"true\"></T1R02G8>
-		<T1R02G9 xsi:nil=\"true\"></T1R02G9>
-		<T1R02G10 xsi:nil=\"true\"></T1R02G10>
+<T2R01G10 xsi:nil=\"true\" />
+<T2R01G11 xsi:nil=\"true\" />
+<T2R01G12 xsi:nil=\"true\" />
+<T2R02G7 xsi:nil=\"true\" />
+<T2R02G8 xsi:nil=\"true\" />
+<T2R02G9 xsi:nil=\"true\" />
+<T2R02G10 xsi:nil=\"true\" />
+<T2R02G11 xsi:nil=\"true\" />
+<T2R02G12 xsi:nil=\"true\" /> 
 
-		<T1R02G11 xsi:nil=\"true\"></T1R02G11>
-		<T1R02G12 xsi:nil=\"true\"></T1R02G12>
-		<T1R02G13 xsi:nil=\"true\"></T1R02G13>
-		<T1R02G14 xsi:nil=\"true\"></T1R02G14>
-		<T1R02G15 xsi:nil=\"true\"></T1R02G15>
-		<T1R02G16 xsi:nil=\"true\"></T1R02G16>
 	</DECLARBODY>
 </DECLAR>";
 
