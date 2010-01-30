@@ -16,13 +16,16 @@
 :DEFAULT:FIRST_INTERFACE=0:First interface number
 :DEFAULT:INTERFACE_COUNT=100:Create interfaces
 :DEFAULT:INTERFACE_TYPE=pptp:Interface type pptp, l2tp
-:OS=FREEBSD:exec:INTERFACES=%WORK_DIR%/mpd/if_create.sh -conf -s %FIRST_INTERFACE% -c %INTERFACE_COUNT% -t %INTERFACE_TYPE%
-mpd.conf           > [/usr/local/etc/mpd4]/mpd.conf
-#MPD5
+:DEFAULT:MPD_IPPOOL_FIRST=10.0.0.1:
+:DEFAULT:MPD_IPPOOL_LAST=10.0.0.10:
+:DEFAULT:MPD5=1:
+:OS=FREEBSD,!MPD5=1:exec:INTERFACES=%WORK_DIR%/mpd/if_create.sh -conf -s %FIRST_INTERFACE% -c %INTERFACE_COUNT% -t %INTERFACE_TYPE%
+:!MPD5=1:FILE=mpd.conf           > [/usr/local/etc/mpd4]/mpd.conf
+#MPD5 config
 :MPD5=1:FILE=mpd5.conf   > [/usr/local/etc/mpd5]/mpd.conf
 mpd.dictionary     >> [/usr/local/etc/raddb]/dictionary 
-:OS=FREEBSD:exec:IF_LINKS=%WORK_DIR%/mpd/if_create.sh -links -s %FIRST_INTERFACE% -c %INTERFACE_COUNT% -t %INTERFACE_TYPE%
-mpd.links          > [/usr/local/etc/mpd4]/mpd.links
+:OS=FREEBSD,!MPD5=1:exec:IF_LINKS=%WORK_DIR%/mpd/if_create.sh -links -s %FIRST_INTERFACE% -c %INTERFACE_COUNT% -t %INTERFACE_TYPE%
+:!MPD5=1:mpd.links          > [/usr/local/etc/mpd4]/mpd.links
 :OS=FREEBSD:mpd_enable="YES"  >> [/etc]/rc.conf
 #radius.conf        > [/etc]/radius.conf
 #Logs

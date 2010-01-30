@@ -52,7 +52,6 @@ if(! -f $config_file ) {
      print "Skiped...\n";
     }
    else {
-
     foreach my $k ( sort keys %mk_config ) {
        my $v = $mk_config{$k};
        print "$k [$v]: ";
@@ -144,7 +143,7 @@ if(! -f $config_file ) {
            my $add_mysql_user = "USE mysql;".
                  "INSERT INTO user (Host, User, Password) VALUES ('$mk_config{dbhost}','$mk_config{dbuser}', password('$mk_config{dbpasswd}'));".
                  "INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, Lock_tables_priv, Create_tmp_table_priv, Trigger_priv,Create_view_priv, Show_view_priv, Execute_priv, Event_priv) VALUES ('$mk_config{dbhost}', '$mk_config{dbname}', '$mk_config{dbuser}', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'); ".
-                 "CREATE DATABASE $mk_config{dbname} DEFAULT CHARACTER SET cp1251 COLLATE cp1251_general_ci;".
+                 "CREATE DATABASE $mk_config{dbname} DEFAULT CHARACTER SET $mk_config{dbcharset} COLLATE cp1251_general_ci;".
                  "flush privileges;";
 
            if (confirm_yn("Your DB not configure for ABillS using. Configure? ", "y")) {
@@ -375,7 +374,7 @@ sub check_install {
  	 # Get default values
  	 if ($file =~ /^:DEFAULT:(.+)/) {
      my $value = $1;
- 		 if ($value =~ /(\S+)=(.+|):(.+)/) {
+ 		 if ($value =~ /(\S+)=(.+|):(.{0,500})/) {
  			 my $name     = $1;
  			 my $value    = $2;
  			 my $describe = $3;
@@ -383,7 +382,7 @@ sub check_install {
  			 print "DEFAULT: $name / $value / $describe \n" if ($debug > 2);
  			 $DEFAULT_DESCRIBE{"$name"}= $describe;
  			 $DEFAULT_VALUE{"$name"}   = $value;
-       if (! $ARGV->{"$name"}) {
+       if (! defined($ARGV->{"$name"})) {
 			   $ARGV->{"$name"}          = $value;
 			  }
  		  }
@@ -404,23 +403,22 @@ sub check_install {
       my @params_arr = split(/,/, $params);
       foreach my $param ( @params_arr ) {
         my ($param_name2, $param_value2)=split(/=/, $param, 2);
-        if (! defined($ARGV->{$param_name2}) || $ARGV->{$param_name2} ne $param_value2) {
-        	$skip=1;
-        	last;
-         }
-        elsif ($param_name2 =~ /^!(\S+)/) {
+        if ($param_name2 =~ /^!(\S+)/) {
           my $val = $1;
           if ($ARGV->{$val} && $ARGV->{$val} eq $param_value2) {
            	$skip=1;
            	last;
          	 }
          }
+        elsif (! defined($ARGV->{$param_name2}) || $ARGV->{$param_name2} ne $param_value2) {
+        	$skip=1;
+        	last;
+         }
        }
       next if ($skip);
      }
-    
+   
    	$config_body = "$value\n";
-
     #my $res = system("$config_body");
     print "EXECUTE: $config_body\n" if ($debug > 1);
     my $exec_cmd = '';
@@ -465,7 +463,6 @@ sub check_install {
     
     my %PARAMS_HASH         =  ();
     my %EXCLUDE_PARAMS_HASH =  ();
-    
     #Check params
     if ($params) {
     	my $skip=0;
@@ -489,7 +486,9 @@ sub check_install {
       next if ($skip);
      }
 
-    if ($value =~ /^FILE=(\S+)/) {
+
+
+     if ($value =~ /^FILE=(\S+)/) {
       $config_body = get_file($conf{WORK_DIR}."/$program/".$1);
      }
     else {
