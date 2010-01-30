@@ -19,7 +19,7 @@ CREATE TABLE `admin_system_actions` (
   `datetime` DATETIME NOT NULL,
   `ip` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
   `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
-  `module` VARCHAR(10) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  `module` VARCHAR(10) NOT NULL DEFAULT '',
   `action_type` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
@@ -559,7 +559,7 @@ CREATE TABLE `msgs_dispatch` (
   `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `created` DATETIME NOT NULL,
   `plan_date` DATE NOT NULL,
-  `comments` TEXT COLLATE latin1_swedish_ci NOT NULL,
+  `comments` TEXT NOT NULL,
   `state` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
   `closed_date` DATE NOT NULL,
   `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
@@ -599,7 +599,8 @@ CREATE TABLE `msgs_messages` (
   `inner_msg` tinyint(1) unsigned NOT NULL default '0',
   `phone` VARCHAR(16) NOT NULL DEFAULT '',
   `dispatch_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
-  `delegation` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+  `deligation` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+  `deligation_level` tinyint(4) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `uid` (`uid`)
 ) COMMENT='Msgs Messages';
@@ -681,7 +682,7 @@ CREATE TABLE `nas_groups` (
   `disable` tinyint(6) unsigned NOT NULL default '0',
   `domain_id` smallint(6) unsigned not null default 0,
   `default` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
-  `main_page` VARCHAR(120) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  `main_page` VARCHAR(120) NOT NULL DEFAULT '',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `domain_id` (`domain_id`,`name`)
 ) COMMENT='NAS servers groups'; 
@@ -741,12 +742,6 @@ CREATE TABLE `payments` (
   KEY `uid` (`uid`)
 )  ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `s_detail`
-#
-
 CREATE TABLE `s_detail` (
   `acct_session_id` varchar(25) NOT NULL default '',
   `nas_id` smallint(5) unsigned NOT NULL default '0',
@@ -758,6 +753,7 @@ CREATE TABLE `s_detail` (
   `sent2` int(10) unsigned NOT NULL default '0',
   `recv2` int(10) unsigned NOT NULL default '0',
   `id` varchar(16) NOT NULL default '',
+  `sum` double(14,6) NOT NULL default '0.000000';
   KEY `sid` (`acct_session_id`)
 ) ;
 
@@ -878,9 +874,9 @@ CREATE TABLE `trafic_tarifs` (
 
 CREATE TABLE `traffic_classes` (
   `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(25) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
-  `nets` TEXT COLLATE latin1_swedish_ci,
-  `comments` TEXT COLLATE latin1_swedish_ci NOT NULL,
+  `name` VARCHAR(25) NOT NULL DEFAULT '',
+  `nets` TEXT,
+  `comments` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
@@ -1120,9 +1116,9 @@ CREATE TABLE `sqlcmd_history` (
   `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `datetime` DATETIME NOT NULL,
   `aid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '000000',
-  `sql_query` TEXT COLLATE latin1_swedish_ci NOT NULL,
+  `sql_query` TEXT NOT NULL,
   `db_id` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
-  `comments` TEXT COLLATE latin1_swedish_ci NOT NULL,
+  `comments` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `aid` (`aid`)
@@ -1150,7 +1146,7 @@ CREATE TABLE `streets` (
 
 CREATE TABLE `districts` (
   `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(100) COLLATE cp1251_general_ci NOT NULL DEFAULT '',
+  `name` VARCHAR(100) NOT NULL DEFAULT '',
   `country` TINYINT(4) UNSIGNED NOT NULL,
   `zip` VARCHAR(7) NOT NULL DEFAULT '',
   `city` VARCHAR(30) NOT NULL DEFAULT '',  
