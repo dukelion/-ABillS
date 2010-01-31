@@ -21,7 +21,7 @@ my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 my %FORM_BASE = ();
 
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
-my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$_SMALL_DEPOSIT" );
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT" );
 
 
 #*******************************************************************
@@ -61,7 +61,6 @@ if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
         my ($Y, $M, $D)=split(/-/, $users->{ACTIVATE}, 3);
         $M--;
         $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400 + ( ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} * 86400 : 0 ) ) );
-
        }
       else {
         my ($Y, $M, $D)=split(/-/, $DATE, 3);
@@ -72,14 +71,12 @@ if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
          }
 
         if ($conf{START_PERIOD_DAY}) {
-          $D=sprintf("%02d", $conf{START_PERIOD_DAY}); 
+          $D=$conf{START_PERIOD_DAY}; 
          }
         else {
           $D='01';
          }
-
-        $M = sprintf("%02d", $M);
-        $Dv->{ABON_DATE} = "$Y-$M-$D";
+        $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
        }
  }
 
@@ -530,14 +527,12 @@ sub dv_user {
           $Y++;
          }
         if ($conf{START_PERIOD_DAY}) {
-          $D=sprintf("%02d", $conf{START_PERIOD_DAY}); 
+          $D=$conf{START_PERIOD_DAY}; 
          }
         else {
           $D='01';
          }
-
-        $M = sprintf("%02d", $M);
-        $Dv->{ABON_DATE} = "$Y-$M-$D";
+        $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
        }
       }
       
@@ -3070,7 +3065,6 @@ if ($FORM{set}) {
         my ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
         $M--;
         $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400 + ( ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} * 86400 : 0 ) ) );
-
        }
       else {
         my ($Y, $M, $D)=split(/-/, $DATE, 3);
@@ -3086,12 +3080,9 @@ if ($FORM{set}) {
         else {
           $D='01';
          }
-
-        $M = sprintf("%02d", $M);
-        $Dv->{ABON_DATE} = "$Y-$M-$D";
+        $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
        }
     }
-    
 
     if ($Dv->{ABON_DATE}) {
       ($year, $month, $day)=split(/-/, $Dv->{ABON_DATE}, 3);
@@ -3155,8 +3146,6 @@ elsif($FORM{del}) {
 
   $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
 }
-
-
 
   $shedule->info( {UID      => $user->{UID},
                    TYPE     => 'tp',
@@ -3530,14 +3519,13 @@ elsif ($conf{DV_IP_DISCOVERY}) {
        }
 
       if ($conf{START_PERIOD_DAY}) {
-          $D=sprintf("%02d", $conf{START_PERIOD_DAY}); 
+          $D=$conf{START_PERIOD_DAY}; 
         }
       else {
         $D='01';
        }
 
-      $M = sprintf("%02d", $M);
-      $Dv->{ABON_DATE} = "$Y-$M-$D";
+      $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
      }
   }
 
