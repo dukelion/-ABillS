@@ -5,7 +5,7 @@
 		               "03:2:DHCP  $_LOG:dhcphosts_log:UID"           => 15,
 		               "10:0:DHCP $_NETWORKS:dhcphosts_networks:"     => 5,
 		               "11:10:DHCP $_NETWORKS:dhcphosts_networks:"    => 5,
-		               "12:11:$_HOSTS_ROUTES:dhcphosts_routes:NET_ID" => 5,
+		               "12:11:$_ROUTES:dhcphosts_routes:NET_ID" => 5,
 		               "13:10:IP guard:dhcphosts_mac_block:"          => 5,
                    "14:13:Static:dhcphosts_mac_static:"           => 5,
                    "15:0:DHCP:dhcphosts_monitor:"                 => 6,
