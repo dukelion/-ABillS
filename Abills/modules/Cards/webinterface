@@ -151,8 +151,8 @@ if ($FORM{change}) {
    }
 }
 elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
-  $Cards->cards_del({ SERIA  => $FORM{SERIA}, 
-  	                  NUMBER => $FORM{NUMBER},
+  $Cards->cards_del({ #SERIA  => $FORM{SERIA}, 
+  	                  #NUMBER => $FORM{NUMBER},
   	                  ID     => $FORM{ID},  
   	                 });
   if (! $Cards->{errno}) {
@@ -229,7 +229,7 @@ if (defined($FORM{SERIA})) {
   $pages_qs.="&SERIA=$FORM{SERIA}&PAGE_ROWS=$PAGE_ROWS" if (! $FORM{search});
   my @pin = ();
   @pin = ("PIN") if ($conf{CARDS_SHOW_PINS}) ;
-
+  
   my $list = $Cards->cards_list({ %LIST_PARAMS, SERIA => $FORM{SERIA} });
 
   $table = $html->table( { width      => '100%',
@@ -260,7 +260,15 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
 
   foreach $line (@$list) {
    	@pin = ("$line->[15]") if ($conf{CARDS_SHOW_PINS}) ;
-   	$pages_qs =~ s/SERIA=[a-zA-Z0-9\*,\ \_]+&//g;
+
+    $pages_qs =~ s/SERIA=[a-zA-Z0-9\*,\ \_]+&//g;	   	  
+   	if (! $FORM{search}) {
+   	  $pages_qs .= "&NUMBER=$line->[1]&SERIA=$line->[0]";
+   	 }
+   	else {
+   	  $pages_qs .= "&SERIA=$FORM{SERIA}";
+   	 }
+
    	$table->addrow(
    	    $html->form_input("IDS", "$line->[0]:$line->[1]", {TYPE => 'checkbox'}). $html->b($line->[0]) , 
   	    $line->[1],
@@ -275,7 +283,7 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
   		  $line->[10],
   		  $line->[11],
   		  @pin,
-  		  $html->button($_DEL, "index=$index&del=1&NUMBER=$line->[1]&SERIA=$line->[0]&ID=$line->[16]$pages_qs", { MESSAGE => "$_DEL [$line->[0]$line->[1]] ?", BUTTON => 1 })
+  		  $html->button($_DEL, "index=$index&del=1&ID=$line->[17]$pages_qs", { MESSAGE => "$_DEL [$line->[0]$line->[1]] ?", BUTTON => 1 })
   		);
     }
 
