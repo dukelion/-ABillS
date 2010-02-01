@@ -1042,13 +1042,7 @@ sub online_alive {
     and acct_session_id='$attr->{SESSION_ID}'
     and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')
     ;");
-  
-#  my $a = `echo "SELECT count(*) FROM dv_calls
-#   WHERE  user_name = '$attr->{LOGIN}'  
-#    and acct_session_id='$attr->{SESSION_ID}'
-#    and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')
-#    ;" >> /tmp/ipn.log`;
-  
+ 
   if ($self->{TOTAL} > 0) {
     my $sql = "UPDATE dv_calls SET  lupdated=UNIX_TIMESTAMP(),
     CONNECT_INFO='$attr->{CONNECT_INFO}'
@@ -1058,8 +1052,6 @@ sub online_alive {
 
     $self->query($db, $sql, 'do' );
     $self->{TOTAL} = 1;
-    
-#    my $a = `echo "==ALIVE $sql" >> /tmp/ipn.log`;
    }
 
   return $self;	
@@ -1076,11 +1068,9 @@ sub ipn_log_rotate {
  my $version = $self->db_version();
  #Detail Daily rotate
  if ($attr->{DETAIL} && $version > 4.1 ) {
- 	#my $DATE = $admin->{DATE};
- 	#$DATE =~ s/-/_/g;
-        my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));
+   my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));
 
- 	my @rq = (
+  	my @rq = (
     'CREATE TABLE IF NOT EXISTS ipn_traf_detail_new LIKE ipn_traf_detail;',
     'RENAME TABLE 
       ipn_traf_detail TO ipn_traf_detail_'. $DATE .
@@ -1146,11 +1136,8 @@ sub user_detail {
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-
-  undef @WHERE_RULES; 
-  my @GROUP_RULES = (); 
-
-
+ undef @WHERE_RULES; 
+ my @GROUP_RULES = (); 
  
 if ($attr->{INTERVAL}) {
   my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
@@ -1165,10 +1152,6 @@ if ($attr->{INTERVAL}) {
 	    $attr->{START_DATE} = "$1$2$3";
 	   }
   }
-
-  #if (! $to) {
-  #  $attr->{FINISH_DATE}=$DATE;
-  # }
 
   my  $s_time = ($to =~ /^\d{4}-\d{2}-\d{2}$/) ? 'DATE_FORMAT(s_time, \'%Y-%m-%d\')' : 's_time' ;
 
@@ -1300,52 +1283,11 @@ foreach my $table (@tables) {
     $WHERE
     $GROUP_BY
     ";
-
-#print "$sql\n" if ($debug > 0);  
-#print "DATE: $date =============================================\n";
-
-#my $q = $db->prepare($sql);
-#$q->execute();
-#my $total = 0;
-#while (my ($src_addr,$dst_addr,$src_port,$dst_port,$protocol,$size,
-#  $f_time,$s_time,$nas_id) = $q->fetchrow_array()) {
-#
-#  if ($FORMAT eq 'tab_delimeter' ){
-#    print "$src_addr\t$src_port\t$dst_addr\t$dst_port\t$protocol\t$size\t$f_time\t$s_time\t$nas_id";
-#   }
-#  else {
-#    printf("%-15s|%-5s|%-15s|%-5s|%4s|%-8s|%-19s|%-19s|%-3s|\n", $src_addr, $src_port, $dst_addr, 
-#     $dst_port, $protocol, $size, $f_time, $s_time, $nas_id);
-#   }
-#  $total += $size;
-
-#}
-
-#print "=================SUM: $total\n";
-
 }
  
  my $sql = join(" UNION ", @sql_arr);
  $self->query($db, "$sql LIMIT $PG,$PAGE_ROWS");
- 
-# $self->query($db, "SELECT  s_time,	f_time,
-#  INET_NTOA(src_addr),
-#  src_port,
-#  INET_NTOA(dst_addr),
-#  dst_port,
-#  protocol,
-#  $size,
-#  nas_id
-#  
-#   FROM ipn_traf_detail
-#
-#  $WHERE
-#  $GROUP_BY
-#  ORDER BY $SORT $DESC 
-#  LIMIT $PG, $PAGE_ROWS
-#   ;");
-
-  $list = $self->{list};
+ $list = $self->{list};
 
   
   
@@ -1364,7 +1306,39 @@ foreach my $table (@tables) {
   return $list;	
 }
 
+#**********************************************************
+# List
+#**********************************************************
+sub unknown_ips_list {
+ my $self = shift;
+ my ($attr) = @_;
+ $WHERE = '';
 
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 2;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+
+ $self->query($db, "SELECT 
+  datetime,
+  INET_NTOA(src_ip),
+  INET_NTOA(dst_ip),
+  size,
+  nas_id
+  FROM ipn_unknow_ips
+  $WHERE
+  ORDER BY $SORT $DESC 
+  LIMIT $PG, $PAGE_ROWS
+  ;");
+
+ my $list = $self->{list};
+
+ $self->query($db, "SELECT count(*), sum(size) from ipn_unknow_ips;");
+ ($self->{TOTAL}, $self->{TOTAL_TRAFFIC}) = @{ $self->{list}->[0] };
+
+  return $list;
+}
 1
 
 

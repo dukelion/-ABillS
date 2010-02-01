@@ -312,7 +312,9 @@ sub change {
        $user->change($attr->{UID}, { EXPIRE => $EXPITE_DATE, UID => $attr->{UID} });
      }
    }
-  elsif (($old_info->{STATUS} == 2 && $attr->{STATUS} == 0) || ($old_info->{STATUS} == 4 && $attr->{STATUS} == 0)) {
+  elsif (($old_info->{STATUS} == 2 && $attr->{STATUS} == 0) || 
+         ($old_info->{STATUS} == 4 && $attr->{STATUS} == 0) || 
+         ($old_info->{STATUS} == 5 && $attr->{STATUS} == 0)) {
     my $tariffs = Tariffs->new($db, $CONF, $admin);
     $self->{TP_INFO}=$tariffs->info(0, { ID => $old_info->{TP_ID} });
    }
