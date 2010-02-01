@@ -32,7 +32,6 @@ sub new {
   my $self = { };
 
   bless($self, $class);
-
   return $self;
 }
 
@@ -66,10 +65,7 @@ sub info {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
- 
-
- 
- $self->query($db, "SELECT s.h, s.d, s.m, s.y, s.counts, s.action, s.date, s.uid, s.id, a.id 
+ $self->query($db, "SELECT s.h, s.d, s.m, s.y, s.counts, s.action, s.date, s.comments, s.uid, s.id, a.id 
     FROM shedule s
     LEFT JOIN admins a ON (a.aid=s.aid) 
     $WHERE;");
@@ -87,6 +83,7 @@ sub info {
    $self->{COUNTS},
    $self->{ACTION},
    $self->{DATE}, 
+   $self->{COMMENTS}, 
    $self->{UID}, 
    $self->{SHEDULE_ID},
    $self->{ADMIN_NAME}
@@ -141,6 +138,11 @@ sub list {
     push @WHERE_RULES, "s.module='$attr->{MODULE}'";
   }
 
+ if ($attr->{COMMENTS}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{COMMENTS}", 'STR', 's.comments') };
+  }
+
+
  # Show groups
  if ($attr->{GIDS}) {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
@@ -148,12 +150,10 @@ sub list {
  elsif ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
- 
-
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
   
- $self->query($db, "SELECT s.h, s.d, s.m, s.y, s.counts, u.id, s.type, s.action, s.module, a.id, s.date, a.aid, s.uid, s.id  
+ $self->query($db, "SELECT s.h, s.d, s.m, s.y, s.counts, u.id, s.type, s.action, s.module, a.id, s.date, s.comments, a.aid, s.uid, s.id  
     FROM shedule s
     LEFT JOIN users u ON (u.uid=s.uid)
     LEFT JOIN admins a ON (a.aid=s.aid) 
@@ -187,7 +187,6 @@ sub add {
  my $self = shift;
  my ($attr) = @_;
 
- my $DESCRIBE=(defined($attr->{DESCRIBE})) ? $attr->{DESCRIBE} : '';
  my $H=(defined($attr->{H})) ? $attr->{H} : '*';
  my $D=(defined($attr->{D})) ? $attr->{D} : '*';
  my $M=(defined($attr->{M})) ? $attr->{M} : '*';
@@ -197,9 +196,10 @@ sub add {
  my $TYPE=(defined($attr->{TYPE})) ? $attr->{TYPE} : '';
  my $ACTION=(defined($attr->{ACTION})) ? $attr->{ACTION} : '';
  my $MODULE=(defined($attr->{MODULE})) ? $attr->{MODULE} : '';
+ my $COMMENTS=(defined($attr->{COMMENTS})) ? $attr->{COMMENTS} : '';
  
- $self->query($db, "INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date, module) 
-        VALUES ('$H', '$D', '$M', '$Y', '$UID', '$TYPE', '$ACTION', '$admin->{AID}', now(), '$MODULE');", 'do');
+ $self->query($db, "INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date, module, comments) 
+        VALUES ('$H', '$D', '$M', '$Y', '$UID', '$TYPE', '$ACTION', '$admin->{AID}', now(), '$MODULE', '$COMMENTS');", 'do');
 
  if ($self->{errno}) {
      $self->{errno} = 7;
@@ -213,9 +213,6 @@ sub add {
 }
 
 
-
-
-
 #**********************************************************
 # Add new shedule
 # add($self)
@@ -227,9 +224,7 @@ sub del {
 
  if ($attr->{IDS}) {
    $self->query($db, "DELETE FROM shedule WHERE id IN ( $attr->{IDS} );", 'do');
-   
    $admin->system_action_add("SHEDULE:$attr->{IDS} UID:$self->{UID}", { TYPE => 10 });    
-
    return $self;	
   }
 
@@ -237,7 +232,6 @@ sub del {
 
  if ($self->{TOTAL} > 0) {
    $self->query($db, "DELETE FROM shedule WHERE id='$attr->{ID}';", 'do');
-   
    $admin->system_action_add("SHEDULE:$attr->{ID} UID:$self->{UID}", { TYPE => 10 });    
   } 
   

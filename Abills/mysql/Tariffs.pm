@@ -59,7 +59,8 @@ my %FIELDS = ( ID               => 'id',
                MIN_USE          => 'min_use',
                ABON_DISTRIBUTION=> 'abon_distribution',
                DOMAIN_ID        => 'domain_id',
-               PRIORITY         => 'priority'
+               PRIORITY         => 'priority',
+               SMALL_DEPOSIT_BLOCK => 'small_deposit_block'
 
              );
 
@@ -129,7 +130,7 @@ sub ti_list {
     $begin_end =  "TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), "; 
     $TP_ID = $attr->{TP_ID};
    }
-#   if(sum(tt.in_price+tt.out_price) IS NULL || sum(tt.in_price+tt.out_price)=0, 0, sum(tt.in_price+tt.out_price)),
+
   $self->query($db, "SELECT i.id, i.day, $begin_end
    i.tarif,
    count(tt.id),
@@ -177,7 +178,6 @@ sub ti_change {
   	$self->info($DATA{TI_ID});
    }
 
-#  $admin->action_add(0, "$CHANGES_LOG");
 	return $self;
 }
 
@@ -410,6 +410,7 @@ sub defaults {
             ABON_DISTRIBUTION=> 0,
             DOMAIN_ID        => 0,
             PRIORITY         => 0,
+            SMALL_DEPOSIT_BLOCK => 0,
          );   
  
   $self = \%DATA;
@@ -447,6 +448,7 @@ sub add {
      period_alignment,
      min_use,
      abon_distribution,
+     small_deposit_block,
      domain_id,
      priority
      )
@@ -469,6 +471,7 @@ sub add {
      '$DATA{PERIOD_ALIGNMENT}', 
      '$DATA{MIN_USE}',
      '$DATA{ABON_DISTRIBUTION}',
+     '$DATA{SMALL_DEPOSIT_BLOCK}',
      '$admin->{DOMAIN_ID}',
      '$DATA{PRIORITY}'
      );", 'do' );
@@ -490,17 +493,13 @@ sub change {
   my $self = shift;
   my ($tp_id, $attr) = @_;
 
-  #if ($tp_id != $attr->{CHG_TP_ID}) {
-  #	 $FIELDS{CHG_TP_ID}='tp_id';
-  # }
- 
-
-  $attr->{REDUCTION_FEE}=0      if (! $attr->{REDUCTION_FEE});
-  $attr->{POSTPAID_DAY_FEE}=0   if (! $attr->{POSTPAID_DAY_FEE});
-  $attr->{POSTPAID_MONTH_FEE}=0 if (! $attr->{POSTPAID_MONTH_FEE});
-  $attr->{EXT_BILL_ACCOUNT}=0   if (! $attr->{EXT_BILL_ACCOUNT});
-  $attr->{PERIOD_ALIGNMENT}=0   if (! $attr->{PERIOD_ALIGNMENT});
-  $attr->{ABON_DISTRIBUTION}=0  if (! $attr->{ABON_DISTRIBUTION});
+  $attr->{REDUCTION_FEE}=0       if (! $attr->{REDUCTION_FEE});
+  $attr->{POSTPAID_DAY_FEE}=0    if (! $attr->{POSTPAID_DAY_FEE});
+  $attr->{POSTPAID_MONTH_FEE}=0  if (! $attr->{POSTPAID_MONTH_FEE});
+  $attr->{EXT_BILL_ACCOUNT}=0    if (! $attr->{EXT_BILL_ACCOUNT});
+  $attr->{PERIOD_ALIGNMENT}=0    if (! $attr->{PERIOD_ALIGNMENT});
+  $attr->{ABON_DISTRIBUTION}=0   if (! $attr->{ABON_DISTRIBUTION});
+  $attr->{SMALL_DEPOSIT_BLOCK}=0 if (! $attr->{SMALL_DEPOSIT_BLOCK});
 
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
@@ -510,10 +509,6 @@ sub change {
 		                EXTENDED     => ($attr->{MODULE}) ? "and module='$attr->{MODULE}'" : undef,
 		                EXT_CHANGE_INFO  => "TP_ID:$tp_id"
 		              } );
-
-  #if ($tp_id != $attr->{CHG_TP_ID}) {
-  #	 $attr->{TP_ID} = $attr->{CHG_TP_ID};
-  # }
 
   $self->info($attr->{TP_ID}, { MODULE => $attr->{MODULE} });
 
@@ -533,7 +528,6 @@ sub del {
    }
   	
   $self->query($db, "DELETE FROM tarif_plans WHERE tp_id='$id'$WHERE;", 'do');
-  
   $admin->system_action_add("TP:$id", { TYPE => 10 });    
 
  return $self;
@@ -588,6 +582,7 @@ sub info {
       period_alignment,
       min_use,
       abon_distribution,
+      small_deposit_block,
       tp_id,
       domain_id,
       priority
@@ -638,13 +633,11 @@ sub info {
    $self->{PERIOD_ALIGNMENT}, 
    $self->{MIN_USE},
    $self->{ABON_DISTRIBUTION},
+   $self->{SMALL_DEPOSIT_BLOCK},
    $self->{TP_ID},
    $self->{DOMAIN_ID},
    $self->{PRIORITY}
   ) = @{ $self->{list}->[0] };
-
-
-
 
   return $self;
 }
@@ -699,8 +692,6 @@ sub list {
  	  push @WHERE_RULES, $sql;
   }
 
-
-
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db, "SELECT tp.id, 
@@ -720,7 +711,8 @@ sub list {
     tp.credit,
     tp.min_use,
     tp.abon_distribution,
-    tp.tp_id
+    tp.tp_id,
+    tp.small_deposit_block
     FROM (tarif_plans tp)
     LEFT JOIN intervals i ON (i.tp_id=tp.tp_id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)
@@ -786,26 +778,10 @@ sub  tt_defaults {
       TT_SPEED_IN   => 0,
       TT_SPEED_OUT  => 0);
 
-#      TT_DESCRIBE_1 => '',
-#      TT_PRICE_IN_1 => '0.00000',
-#      TT_PRICE_OUT_1 => '0.00000',
-#      TT_PRICE_NETS_1 => '',
-#      TT_PREPAID_1 => 0,
-#      TT_SPEED_1 => 0,
-#
-#      TT_DESCRIBE_2 => '',
-#      TT_PRICE_IN_2 => 0,
-#      TT_PRICE_OUT_2 => 0,
-#      TT_NETS_2 => '',
-#      TT_PREPAID_2 => 0,
-#      TT_SPEED_2 => 0
-#     );
-	
   while(my($k, $v) = each %TT_DEFAULTS) {
     $self->{$k}=$v;
    }	
 	
-  #$self = \%DATA;
 	return $self;
 }
 
@@ -852,7 +828,6 @@ if (defined($attr->{form})) {
 
   return $self;
 }
-
 	
 	return $self->{list};
 }
@@ -916,7 +891,6 @@ sub  tt_add {
     ('$DATA{TI_ID}', '$DATA{TT_ID}',   '$DATA{TT_DESCRIBE}', '$DATA{TT_PRICE_IN}',  '$DATA{TT_PRICE_OUT}',
      '$DATA{TT_NET_ID}', '$DATA{TT_PREPAID}', '$DATA{TT_SPEED_IN}', '$DATA{TT_SPEED_OUT}', '$DATA{TT_EXPRASSION}')", 'do');
 
-
   if ($attr->{DV_EXPPP_NETFILES} && $attr->{TT_NET_ID}) {
     $self->create_nets({ TI_ID => $DATA{TI_ID} });
    }
@@ -950,11 +924,8 @@ sub  tt_change {
     WHERE 
     interval_id='$attr->{TI_ID}' and id='$DATA{TT_ID}';", 'do');
 
-
   $admin->system_action_add("TT: TI:$attr->{TI_ID}", { TYPE => 2 });    
-
   $self->tt_info({ TI_ID => $attr->{TI_ID}, TT_ID => $DATA{TT_ID}  });
-
 
   if ($attr->{DV_EXPPP_NETFILES} && $attr->{TT_NET_ID}) {
     $self->create_nets({ TI_ID => $attr->{TI_ID} });
@@ -972,8 +943,6 @@ sub create_nets {
 	my $self = shift;
   my ($attr) = @_;
   my $body = '';
-
-
 
   my $list = $self->tt_list({ TI_ID => $attr->{TI_ID}, SHOW_NETS => 1 });
 
@@ -1093,21 +1062,6 @@ sub holidays_del {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #**********************************************************
 # add()
 #**********************************************************
@@ -1161,9 +1115,7 @@ sub traffic_class_change {
 
 
 #**********************************************************
-# Delete user info from all tables
 #
-# del(attr);
 #**********************************************************
 sub traffic_class_del {
   my $self = shift;
@@ -1193,7 +1145,6 @@ sub traffic_class_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{NETS}, 'STR', 'nets') };
   }
 
-
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT id, name, nets
@@ -1203,14 +1154,7 @@ sub traffic_class_list {
 
  my $list = $self->{list};
 
-# if ($self->{TOTAL} >= 0) {
-#    $self->query($db, "SELECT count(u.id) FROM (users u, dv_main dv) 
-#    LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
-#    $WHERE");
-#    ($self->{TOTAL}) = @{ $self->{list}->[0] };
-#   }
-
-  return $list;
+ return $list;
 }
 
 

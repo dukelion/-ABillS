@@ -5385,27 +5385,48 @@ if ($FORM{del} && $FORM{is_js_confirmed}) {
    }
 }
 
+my %TYPES = ('tp'    => "$_CHANGE $_TARIF_PLAN",
+             'fees'  => "$_FEES",
+             'status'=> "$_STATUS",
+             ); 
 
 my $list = $shedule->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             border     => 1,
-                            title      => ["$_HOURS", "$_DAY", "$_MONTH", "$_YEAR", "$_COUNT", "$_USER", "$_TYPE", "$_VALUE", "$_MODULES", "$_ADMINS", "$_CREATED", "-"],
+                            caption    => "$_SHEDULE",
+                            title      => ["$_HOURS", "$_DAY", "$_MONTH", "$_YEAR", "$_COUNT", "$_USER", "$_TYPE", "$_VALUE", "$_MODULES", "$_ADMINS", "$_CREATED", "$_COMMENTS", "-"],
                             cols_align => ['right', 'right', 'right', 'right', 'right', 'left', 'right', 'right', 'right', 'left', 'right', 'center'],
                             qs         => $pages_qs,
                             pages      => $shedule->{TOTAL},
                             ID         => 'SHEDULE'
                           });
-
+my ($y, $m, $d)=split(/-/, $DATE, 3);
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[13]", { MESSAGE =>  "$_DEL [$line->[13]]?",  BUTTON => 1 }) : '-'; 
+  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[14]", { MESSAGE =>  "$_DEL [$line->[14]]?",  BUTTON => 1 }) : '-'; 
+  my $value = "$line->[7]";
+  
+  if ($line->[6] eq 'status') {
+  	my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
+    my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT" );
+  	$value = $html->color_mark($service_status[$line->[7]], $service_status_colors[$line->[7]])
+   }
+  
+  if (int($line->[3].$line->[2].$line->[1]) <= int($y.$m.$d)) {
+  	$table->{rowcolor}=$_COLORS[6];
+   }
+  else {
+  	$table->{rowcolor}=undef;
+   }
+  
   $table->addrow($html->b($line->[0]), $line->[1], $line->[2], 
     $line->[3],  $line->[4],  
-    $html->button($line->[5], "index=15&UID=$line->[12]"), 
-    "$line->[6]", 
-    "$line->[7]", 
+    $html->button($line->[5], "index=15&UID=$line->[13]"), 
+    ($TYPES{$line->[6]}) ? $TYPES{$line->[6]} : $line->[6], 
+    $value,
     "$line->[8]", 
     "$line->[9]", 
     "$line->[10]", 
+    "$line->[11]", 
     $delete);
 }
 
