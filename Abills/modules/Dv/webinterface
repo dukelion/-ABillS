@@ -51,7 +51,6 @@ sub dv_chg_tp {
 
  my $shedule = Shedule->new($db, $admin, \%conf);
 
-  
 if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
         ($users->{DEPOSIT}+$users->{CREDIT} > 0 || 
          $Dv->{POSTPAID_ABON} || 
@@ -111,9 +110,8 @@ if ($FORM{set}) {
     	             D        => $day,
                    M        => $month,
                    Y        => $year,
-                   DESCRIBE => "$message<br>
-                   $_FROM: '$year-$month-$day'",
-                   MODULE   => 'Dv'
+                   MODULE   => 'Dv',
+                   COMMENTS => "$_FROM: $Dv->{TP_ID}:$Dv->{TP_NAME}"
                     });
 
     if ($shedule->{errno}) {
@@ -399,7 +397,6 @@ sub dv_user {
      else {
        $html->tpl_show(templates('form_user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
        $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
-
 
        if (in_array('Mail', \@MODULES)) {
          require "Abills/modules/Mail/webinterface";
@@ -724,10 +721,6 @@ elsif (defined($FORM{TP_ID})) {
   	         $_NAME => $tariffs->{NAME_SEL}
   	       }, 
   	{ 
-#  	 $_INFO          => ":TP_ID=$tariffs->{TP_ID}",
-#     $_USERS         => "11:TP_ID=$tariffs->{TP_ID}",
-#     $_INTERVALS     => "73:TP_ID=$tariffs->{TP_ID}",
-#     $_NAS           => "72:TP_ID=$tariffs->{TP_ID}"
   	 },
   	{
   		f_args => { %F_ARGS }
@@ -763,7 +756,6 @@ if ($tariffs->{errno}) {
  }
 
 
-#my $i=0;
 $tarif_info->{SEL_OCTETS_DIRECTION} = $html->form_select('OCTETS_DIRECTION', 
                                           { 
  	                                          SELECTED     => $tarif_info->{OCTETS_DIRECTION},
@@ -805,6 +797,7 @@ $tarif_info->{POSTPAID_DAY_FEE}  = ($tarif_info->{POSTPAID_DAY_FEE})  ? 'checked
 $tarif_info->{POSTPAID_MONTH_FEE}= ($tarif_info->{POSTPAID_MONTH_FEE})? 'checked' : '';
 $tarif_info->{PERIOD_ALIGNMENT}  = ($tarif_info->{PERIOD_ALIGNMENT})  ? 'checked' : ''; 
 $tarif_info->{ABON_DISTRIBUTION} = ($tarif_info->{ABON_DISTRIBUTION}) ? 'checked' : ''; 
+$tarif_info->{SMALL_DEPOSIT_BLOCK} = ($tarif_info->{SMALL_DEPOSIT_BLOCK}) ? 'checked' : ''; 
 
 
 if ($conf{EXT_BILL_ACCOUNT}) {
@@ -3005,9 +2998,8 @@ if ($FORM{set}) {
     	             D        => $D,
                    M        => $M,
                    Y        => $Y,
-                   DESCRIBE => "$message<br>
-                   $_FROM: '$Y-$M-$D'",
-                   MODULE   => 'Dv'
+                   MODULE   => 'Dv',
+                   COMMENTS => "$_FROM: $Dv->{TP_ID}:$Dv->{TP_NAME}"
                  } );
      }	
     else {
@@ -3038,9 +3030,8 @@ if ($FORM{set}) {
     	             D        => sprintf("%02d", $day),
                    M        => sprintf("%02d", $month),
                    Y        => $year,
-                   DESCRIBE => "$message<br>
-                   $_FROM: '$year-$month-$day'",
-                   MODULE   => 'Dv'
+                   MODULE   => 'Dv',
+                   COMMENTS => "$_FROM: $Dv->{TP_ID}:$Dv->{TP_NAME}"
                  } );
 
     if ($shedule->{errno}) {
@@ -3105,9 +3096,8 @@ if ($FORM{set}) {
     	               D        => $day,
                      M        => $month,
                      Y        => $year,
-                     DESCRIBE => "$message<br>
-                     $_FROM: '$year-$month-$day'",
-                     MODULE   => 'Dv'
+                     MODULE   => 'Dv',
+                     COMMENTS => "$_FROM: $Dv->{TP_ID}:$Dv->{TP_NAME}"
                     });
 
       if ($shedule->{errno}) {
@@ -3224,7 +3214,6 @@ sub dv_user_info {
     elsif (($list->[0]->[3] > 0 && ($list->[0]->[2] + $list->[0]->[3] < 0)) || 
            ($list->[0]->[3] == 0 && $list->[0]->[2] + $list->[0]->[6]) < 0 ) {
       $html->tpl_show(templates('form_neg_deposit'), $user);
-      #$html->message('err', $_ERROR, "$_NEGATIVE_DEPOSIT. $_DEPOSIT: $list->[0]->[2] $_CREDIT: $list->[0]->[3] ", { ID => 14 });
       return 0;
      }
     elsif ($list->[0]->[5] && $list->[0]->[5] == 1) {
@@ -3232,7 +3221,6 @@ sub dv_user_info {
        return 0;
      }
 
-    #print "Content-Type: text/html\n\n";
   	#Get user NAS server from ip pools
   	$nas = Nas->new($db, \%conf);
     $list = $nas->nas_ip_pools_list();
@@ -3251,10 +3239,7 @@ sub dv_user_info {
      }
  	
   	#get  PBHK identifier (IP or MAC) from NAS and account info
-  	#my $result = `/usr/bin/rsh -l snake 77.87.152.66 show arp`;
-
     my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
-    #print "<!-- $isg_cmd -->";
     my $result = `$isg_cmd`;
 
 =comments
@@ -3405,9 +3390,8 @@ pROFILRE
    }
  }
 elsif ($conf{DV_IP_DISCOVERY}) {
-
 	$Dv->{DHCP_LEASES_MAC} = dv_dhcp_get_mac($user->{REMOTE_ADDR}, { CHECK_STATIC => 1 });
-	
+
  	if ($Dv->{DHCP_LEASES_MAC} eq '') {
  		$html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC: $_NOT_EXIST. DHCP $_ERROR ", { ID => 112 });
     return 0; 
@@ -3420,23 +3404,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
    }
   else {
   	$html->tpl_show(_include('dv_guest_mode', 'Dv'), $Dv);  
-    
-#    $table = $html->table({ width       => '500',
-#                          rowcolor    => $_COLORS[0],
-#                          rows        => [
-#                          [$_GUEST_MODE],
-#                          [ "MAC: ", $Dv->{DHCP_LEASES_MAC},
-#                          $html->form_input('discovery', $_REGISTRATION, { TYPE => 'submit', OUTPUT2RETURN => 1 })
-#                                         ]],                                   
-#                         });
-#      
-#    print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-#  	                     HIDDEN  => { index => "$index",
-#  	                         	        CID   => "$Dv->{DHCP_LEASES_MAC}",
-#  	                         	        sid   => $sid    },
-#	                       });
-
-  }
+   }
 }  
 
   if ($FORM{activate}) {
@@ -3446,8 +3414,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
     	            });
 
   	  if (! $Dv->{errno}) {
-  	  	$html->message('info', $_INFO, "$_ACTIVATE CID: $Dv->{ISG_CID_CUR}");
-
+  	  	$html->message('info', $_INFO, "$_ACTIVATE CID: $Dv->{ISG_CID_CUR}") if ($Dv->{ISG_CID_CUR});
   	  	dv_get_month_fee($Dv) if (! $Dv->{STATUS});
   	   }
   	  else {
@@ -3478,19 +3445,26 @@ elsif ($conf{DV_IP_DISCOVERY}) {
    }
   
   $Dv->info($LIST_PARAMS{UID});
-  
   $user->{DV_STATUS} = $Dv->{STATUS};
 
   if ($Dv->{TOTAL} < 1) {
   	$html->message('info', $_INFO, "$_NOT_ACTIVE");
     return 0;	
    }
-  
-  
+
   if ($Dv->{STATUS} == 2) {
     $Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $service_status_colors[$Dv->{STATUS}]). ' ';
-    $Dv->{STATUS}  .= ($user->{DISABLE} > 0) ? $html->b("($_ACCOUNT $_DISABLE)") : $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1", {   	 ex_params  => ' ID="ACTIVATE"', BUTTON => 1 });
-    #   JAVASCRIPT => ' onclick="obj_disable(ACTIVATE, \'Wait...\')"'  	 } );
+    $Dv->{STATUS}  .= ($user->{DISABLE} > 0) ? $html->b("($_ACCOUNT $_DISABLE)") : $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1", { ex_params  => ' ID="ACTIVATE"', BUTTON => 1 });
+   }
+  elsif ($Dv->{STATUS} == 5) {
+    $Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $service_status_colors[$Dv->{STATUS}]). ' ';
+    
+    if ($Dv->{MONTH_ABON} <= $user->{DEPOSIT}) { 
+      $Dv->{STATUS}  .= ($user->{DISABLE} > 0) ? $html->b("($_ACCOUNT $_DISABLE)") : $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1", {   	 ex_params  => ' ID="ACTIVATE"', BUTTON => 1 });
+     }
+    else {
+    	$html->tpl_show(templates('form_neg_deposit'), $user);
+     }
    }  
   else {
   	$Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $service_status_colors[$Dv->{STATUS}]); 
@@ -3663,8 +3637,6 @@ sub dv_holdup_service {
     	             D        => $from_day,
                    M        => $from_month,
                    Y        => $from_year,
-                   DESCRIBE => "$message<br>
-                   $_FROM: '$from_year-$from_month-$from_day'",
                    MODULE   => 'Dv'
                     });
 
@@ -3674,8 +3646,6 @@ sub dv_holdup_service {
     	             D        => $to_day,
                    M        => $to_month,
                    Y        => $to_year,
-                   DESCRIBE => "$message<br>
-                   $_FROM: '$to_year-$to_month-$to_day'",
                    MODULE   => 'Dv'
                     });
 
@@ -4027,6 +3997,7 @@ sub dv_monthly_fees {
  	 my $TP_ID       = $line->[0];
  	 my $min_use_sum = $line->[16];
  	 my $abon_distrib= $line->[17];
+ 	 my $small_deposit_block = $line->[19];
  	 my $postpaid    = $line->[4];
    my $month_fee   = $line->[6];
    my $activate_date = "<='$ADMIN_REPORT{DATE}'";
@@ -4035,7 +4006,6 @@ sub dv_monthly_fees {
    $TP_INFO{REDUCTION}        = $line->[11];
 
    my %used_traffic = ();
-  
    #Monthfee & min use
  	 if ($month_fee > 0 || $min_use_sum > 0) {
  	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $TP_INFO{POSTPAID_MONTHLY} REDUCTION: $TP_INFO{REDUCTION} EXT_BILL_ID: $line->[14] CREDIT: $line->[15] MIN_USE: $min_use_sum ABON_DISTR: $abon_distrib\n" if ($debug > 1);
@@ -4093,7 +4063,6 @@ sub dv_monthly_fees {
            );
 
        $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: ". ($u->[9 +$extfield_count ]  ) ." Fees: $line->[6] REDUCTION: $user{REDUCTION} DEPOSIT: $u->[2] CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE} TP: $u->[11]\n" if ($debug > 3); 	
-
       
        if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {
          my %FEES_PARAMS = (
@@ -4102,10 +4071,17 @@ sub dv_monthly_fees {
 
        
          my $sum = 0;
-         
          #***************************************************************
          #Min use Makes only 1 of month
-         if ($min_use_sum > 0) {
+         if ($small_deposit_block && $month_fee > $user{DEPOSIT}) {
+     	      $Dv->change({ UID    => $user{UID}, 
+            	            STATUS => 5 
+    	       });
+            $debug_output .= " SMALL_DEPOSIT_BLOCK" if ($debug > 3);
+          }
+         #***************************************************************
+         #Min use Makes only 1 of month
+         elsif ($min_use_sum > 0) {
            
            next if ($d != $START_PERIOD_DAY && ! $conf{DV_MIN_USER_FULLPERIOD});
            #Check activation dae
@@ -4185,9 +4161,6 @@ sub dv_monthly_fees {
                  }
                }
              }
-           
-                  
- 
           }
          #***************************************************************
          #Month Fee
@@ -4313,6 +4286,7 @@ if ($d == 1) {
            PAGE_ROWS  => 1000000,
            TP_CREDIT  => '>=0',
            COMPANY_ID => '>=0',
+           %DV_LIST_PARAMS
  	     	 });
 
        my $extfield_count = $Dv->{SEARCH_FIELDS_COUNT};
@@ -5318,20 +5292,15 @@ sub dv_get_month_fee {
   	  $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN");	
      }
    }
-
   #Get month fee
   if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-
      my $sum   = $Dv->{TP_INFO}->{MONTH_FEE};
-
      my $users = Users->new($db, $admin, \%conf); 
      my $user  = $users->info($Dv->{UID});
 
      if ($Dv->{TP_INFO}->{EXT_BILL_ACCOUNT})  {
      	 $user->{BILL_ID}=$user->{EXT_BILL_ID} if ($user->{EXT_BILL_ID});
       }
-
-
 
      my $message = ''; 
      #Current Month
@@ -5681,8 +5650,6 @@ if ($FORM{add}) {
     	             D        => $D,
                    M        => $M,
                    Y        => $Y,
-                   DESCRIBE => "$message<br>
-                   $_FROM: '$FORM{DATE}'",
                    MODULE   => 'Dv'
                     });
 
