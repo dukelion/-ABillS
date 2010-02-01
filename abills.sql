@@ -757,11 +757,6 @@ CREATE TABLE `s_detail` (
   KEY `sid` (`acct_session_id`)
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `shedule`
-#
 
 CREATE TABLE `shedule` (
   `id` int(10) unsigned NOT NULL auto_increment,
@@ -776,16 +771,12 @@ CREATE TABLE `shedule` (
   `y` varchar(4) NOT NULL default '*',
   `h` char(2) NOT NULL default '*',
   `module` varchar(12) NOT NULL default '',
+  `comments` varchar(120) NOT NULL default '', 
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `uniq_action` (`h`,`d`,`m`,`y`,`type`,`uid`),
   KEY `date_type_uid` (`date`,`type`,`uid`)
-)  ;
-
-# --------------------------------------------------------
-#
-# Структура таблиці `tarif_plans`
-#
+) COMMENT='Shedules';
 
 CREATE TABLE `tarif_plans` (
   `id` smallint(5) unsigned NOT NULL default '0',
@@ -825,6 +816,7 @@ CREATE TABLE `tarif_plans` (
   `period_alignment` tinyint(1) NOT NULL DEFAULT '0',
   `min_use` double(14,2) unsigned NOT NULL DEFAULT '0.00',
   `abon_distribution` tinyint(1) NOT NULL DEFAULT '0',
+  `small_deposit_block` tinyint(1) NOT NULL DEFAULT '0',
   `domain_id` smallint(6) unsigned not null default 0,
   `total_time_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
   `total_traf_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',

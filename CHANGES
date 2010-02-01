@@ -1,5 +1,60 @@
 =====0.51=====
-11.01.2001\\
+01.02.2010\\
+  * Добавлено поле коментарии для расписания. 
+  * Улутшена визуализация журнала расписаний. Выделение красным не выполненых расписаний.
+  * Добавлена опция блокирующая аккаунт если недостаточно средств для снятия месячной абонплаты.
+  * Лог ведения неучтённог трафика вынесен в базу (/Reports/ Ipn/ Unknown IPs)
+
+MySQL\\
+
+  ALTER TABLE `shedule` ADD COLUMN `comments` varchar(120) NOT NULL default '';
+  ALTER TABLE `tarif_plans` ADD COLUMN `small_deposit_block` tinyint(1) NOT NULL DEFAULT '0';
+  CREATE TABLE `ipn_unknow_ips` (
+  `src_ip` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `dst_ip` INTEGER(11) UNSIGNED NOT NULL,
+  `size` INTEGER(11) UNSIGNED NOT NULL,
+  `nas_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `datetime` DATETIME NOT NULL
+  ) COMMENT='Ipn unknow ips';  
+  
+30.01.2010\\
+  * В фетчер сетей добавлена возможность поднимать статические рауты на нужные интерфейсы.
+  * Добавлена программа выявления несанкционированных PPPoE  серверов.
+
+29.01.2010\\
+  * Добавлена возможность выбора группы тарифных планов при регистрации
+  * Обновлён экспорт налоговых до версии OPZ 1.27
+
+26.01.2010\\
+  * Добавлена возможность просмотра лога DHCP сервера из админ интерфейса с привязкой к пользователям\\
+MySQL:
+  CREATE TABLE `dhcphosts_log` (
+   `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+   `datetime` DATETIME NOT NULL,
+   `hostname` VARCHAR(20) NOT NULL DEFAULT '',
+   `message_type` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+   `message` VARCHAR(90) NOT NULL DEFAULT '',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `id` (`id`)
+  ) COMMENT='Dhcphosts log'; 
+  CREATE TABLE `streets` (
+    `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(100) NOT NULL DEFAULT '',
+    `district_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `id` (`id`),
+    UNIQUE KEY `name` (`name`),
+    UNIQUE KEY `name_district` (`name`, `district_id`),
+    UNIQUE KEY `name_2` (`name`)
+  ) COMMENT='Locations streets';
+
+
+20.01.2010\\
+  * Добавлена проверка на дублирование комутатора и порта для Option 82.
+  * Для услуги "Приостановка сервиса" была добавлена настройка периода за который можно приостановить услугу. Например не чаще чем раз в 60 дней.
+  * Доработана форма регистрации через веб пользователя через портал. Добавлена капча
+  * Добавлена возможность регистрации для модуля Msgs.
+11.01.2010\\
   * Изменён вид календаря для дат
   * Ввод даты в любом формате при поиске (22.11.2008,22/11/2008,22-11-2008, 2008-11-22)
   * Добавлен экспорт в программу "Податкова Звітність" (Украина) в модуле Docs.
