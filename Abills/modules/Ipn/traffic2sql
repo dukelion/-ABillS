@@ -61,7 +61,6 @@ elsif(defined($ARGV->{help})){
 }
 
 
-
 #Demonize section
 if(defined($ARGV->{'-d'}) && ! defined($ARGV->{'-fg'})){
   print "Start... debug: $debug\n";

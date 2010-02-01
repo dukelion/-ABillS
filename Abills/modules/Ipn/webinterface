@@ -1,7 +1,5 @@
 # IPN web functions
 
-
-
 use Ipn;
 use Ipn_Collector;
 use Dv;
