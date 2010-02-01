@@ -11,7 +11,7 @@ CA_pl=CA.pl;
 
 hostname=`hostname`;
 password=whatever;
-VERSION=0.7;
+VERSION=0.8;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -187,14 +187,15 @@ if [ w${CERT_TYPE} = wssh ]; then
     echo -n "Connect to remote host: ${HOST}  (y/n): "
     read CONNECT
     if [ w${CONNECT} = wy ]; then
-      ssh -o StrictHostKeyChecking=no -i ${CERT_PATH}${id_dsa_file}.pub  ${USER}@${HOST}
+      ssh -o StrictHostKeyChecking=no -i ${CERT_PATH}${id_dsa_file}  ${USER}@${HOST}
+      exit;
     fi;
+  else 
+    echo 
+    echo "Copy ${CERT_PATH}${id_dsa_file}.pub to REMOTE_HOST User home dir (/home/${USER}/.ssh/authorized_keys) "
+    echo 
+    exit;
   fi;
-
-
-  echo 
-  echo "Copy ${CERT_PATH}${id_dsa_file}.pub to REMOTE_HOST User home dir (/home/${USER}/.ssh/authorized_keys) "
-  echo 
 
 #**********************************************************
 #Apache Certs
