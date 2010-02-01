@@ -1196,8 +1196,8 @@ sub ipn_user_activate {
   $Dv->info( $LIST_PARAMS{UID} );
 
   if ($Dv->{STATUS} > 0) {
-  	my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" );
-  	$html->message('err', $_ERROR, "$service_status[$Dv->{STATUS}]");
+  	my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT" );
+  	#$html->message('err', $_ERROR, "$service_status[$Dv->{STATUS}]", { ID => 162 });
   	require "modules/Dv/webinterface";
   	dv_user_info();
   	
@@ -1207,9 +1207,8 @@ sub ipn_user_activate {
   if (! $user->{UID})  {
      $ENV{REMOTE_ADDR} = $Dv->{IP} if ($Dv->{IP} ne '0.0.0.0');
      $IP_INPUT = $html->form_input('REMOTE_ADDR', "$ENV{REMOTE_ADDR}", { OUTPUT2RETURN => 1});
-
      $ip = ($FORM{REMOTE_ADDR}) ? $FORM{REMOTE_ADDR} : $ENV{REMOTE_ADDR};
-   } 
+   }
   else {
     $ip = $ENV{REMOTE_ADDR};
    }
@@ -1235,7 +1234,7 @@ sub ipn_user_activate {
    }
 
   if ($nas_id < 1) {
-  	$html->message('err', $_ERROR, "$_NOT_EXIST IP '$ip' ");
+  	$html->message('err', $_ERROR, "$_NOT_EXIST IP '$ip' ", { ID => 161 });
   	if (! $user->{UID}) {
       $IP_INPUT .= " NAS: ". $html->form_select('NAS_ID', 
                                     { 
@@ -1308,12 +1307,9 @@ sub ipn_user_activate {
                   PORT               => 0
                  );
 
-    
-    
-    
     my $Auth = Auth->new($db, \%conf);
     my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $nas, { SECRETKEY => $conf{secretkey}
- 	                                      } );
+                                      } );
 
     if ($r == 1) {
        $html->message('err', $_ERROR, "$RAD_PAIRS->{'Reply-Message'}");
@@ -1381,39 +1377,15 @@ sub ipn_user_activate {
 
      $html->message('info', $_INFO, "$_DISABLE IP: $ip");
    }
-
-#  my $nas_list = $html->form_select('NAS_ID', 
-#                                    { 
-# 	                                   SELECTED  => $FORM{NAS_ID},
-# 	                                   SEL_MULTI_ARRAY   => $nas->list(),
-# 	                                   MULTI_ARRAY_KEY   => 0,
-# 	                                   MULTI_ARRAY_VALUE => 1,
-# 	                                  });
-#  	   $nas_list. 
-#  	   "TP:". $html->form_input('TP_ID', "0") ,
-
-
-#  my %nas_types = ();
-#  foreach my $line ( @{ $nas->list() }) {
-#  	$nas_types{$line->[0]}=$line->[4];
-#   }
-
   
   my @ACTION = ( 'ACTIVE', "$_LOGON" ); 
   my %HIDDEN = ();
-#  my $nas = '';
-
   my $table;
   my $online_session = '';
-  
-  my $list = $sessions->online( );
+  my $list   = $sessions->online( );
   
   if ($sessions->{TOTAL} > 0){
-
-
-
-
-   $table = $html->table( { width       => '100%',
+    $table = $html->table( { width       => '100%',
                             caption     => "Online",
                             border      => 1,
                             title_plain => ["$_USER", "$_PORT", "IP", "$_DURATION", "$_RECV", "$_SENT", '-' ],
@@ -1470,9 +1442,6 @@ $html->tpl_show(_include('ipn_form_active', 'Ipn'), { IP             => $ip,
 	                                                    ONLINE         => $online_session,
 	                                                    %HIDDEN
 	                                                    });
-
-
-
 }
 
 #**********************************************************
@@ -1807,12 +1776,7 @@ foreach $line (@$list) {
 	 $html->button($_DEL, "index=$index&$pages_qs&del=$line->[4]", { MESSAGE => "$_DEL '$line->[1]?" })
 	);
 }
-
-
-
-
 print $table->show();
-
 }
 
 
@@ -1917,9 +1881,6 @@ sub ipn_user_add {
      return 0;
   }
 
-
-
-
  $Ipn->{TP_SEL}=$html->form_select('TP_ID', 
                                           { 
  	                                          SEL_MULTI_ARRAY   => $tariffs->list(),
@@ -1963,57 +1924,6 @@ sub ipn_user_add {
  $html->tpl_show(_include('ipn_form_user_add', 'Ipn'), $Ipn);	
 }
 
-
-##**********************************************************
-##
-##**********************************************************
-#sub ipn_ipfw {
-#	
-#my $fw = "00010       71       3320 deny log logamount 100 tcp from any to any 25 via rl0
-#01101       93       9935 deny ip from 192.168.0.101 to any via rl0
-#01102      270      17456 deny ip from 192.168.0.102 to any via rl0
-#01103        5        994 deny ip from 192.168.0.103 to any via rl0
-#01104        0          0 deny ip from 192.168.0.104 to any via rl0
-#01105       53       3026 deny ip from 192.168.0.105 to any via rl0
-#01106        6       1092 deny ip from 192.168.0.106 to any via rl0
-#01107       84       8657 deny ip from 192.168.0.107 to any via rl0
-#01108        5        994 deny ip from 192.168.0.108 to any via rl0
-#01109      755      47240 deny ip from 192.168.0.109 to any via rl0
-#01110        5       1175 deny ip from 192.168.0.110 to any via rl0
-#01111      443      29484 deny ip from 192.168.0.111 to any via rl0
-#01112       86       7552 deny ip from 192.168.0.112 to any via rl0
-#50000    54112   19223594 count ip from any to any in recv tun0
-#50001    56557    5803097 count ip from any to any out xmit tun0
-#65535 43820756 9909262975 allow ip from any to any
-#";
-#
-#my @rows = split(/\n/, $fw);
-#
-#
-#$table = $html->table( { width       => '100%',
-#                         caption     => "ipfw",
-#                         border      => 1,
-#                         title       => ["$_NUM", "$_IN", "$_OUT", "$_TYPE", "-"],
-#                         cols_align  => ['right', 'right', 'center'],
-#                     });
-#
-#
-#foreach my $row (@rows) {
-#	my ($num, $in, $out,  $type, $protocol, $other)=split(/ +/, $row, 6);
-#	$table->addrow($num, $in, $out,  $type, $protocol, $other);
-#}
-#
-#print	 $table->show();
-#	
-#}
-
-#**********************************************************
-#
-#**********************************************************
-sub ipn_use_allmonthes  {
-
-}
-
 #**********************************************************
 #
 #**********************************************************
@@ -2047,9 +1957,6 @@ my @ARR = ( ["IP / HOST / URL:", $html->form_input('IP', "$ip", { OUTPUT2RETURN 
 		 }
 		push @ARR, [ 'IP:', $ip ];
 	 }
-
-
-
 my $table = $html->table( { width       => '400',
                             border      => 1,
                             rows        => \@ARR
@@ -2093,10 +2000,6 @@ my $table = $html->table( { width       => '400',
           TIME_INTERVALS      => $TIME_INTERVALS,
           INTERVAL_TIME_TARIF => $INTERVAL_TIME_TARIF,
           INTERVAL_TRAF_TARIF => $INTERVAL_TRAF_TARIF,
-          #SESSION_START       => $user->{SESSION_START},
-          #DAY_BEGIN           => $user->{DAY_BEGIN},
-          #DAY_OF_WEEK         => $user->{DAY_OF_WEEK},
-          #DAY_OF_YEAR         => $user->{DAY_OF_YEAR},
           REDUCTION           => $user->{REDUCTION},
           POSTPAID            => 1 
          });
@@ -2530,4 +2433,49 @@ foreach my $line (@$list)   {
   return $debug_output;
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub ipn_unknow_ips {
+
+ if (! $FORM{sort}) {
+ 	 $LIST_PARAMS{SORT}=1;
+ 	 $LIST_PARAMS{DESC}='desc';
+  }
+
+ my $list = $Ipn->unknown_ips_list({ %LIST_PARAMS });
+ my $table = $html->table( { caption     => "Unknown IPs list",
+	                           width       => '100%',
+                             title       => ["$_DATE", "$_FROM", "$_TO", "$_SIZE", 'NAS' ],
+                             cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
+                             pages       => $Ipn->{TOTAL},
+                             qs          => $pages_qs,
+                             ID          => 'IPN_UNKNOWN_LIST'
+                           });
+
+ foreach my $line  (@$list) {
+   $table->addrow($line->[0], 
+   $line->[1], 
+   $line->[2], 
+   $line->[3], 
+   $line->[4], 
+   );
+  }
+  print $table->show();
+
+  $table = $html->table( { width    => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ ["$_TOTAL: ". $html->b($Ipn->{TOTAL}), 
+                                          "$_TRAFFIC: ".   $html->b(int2byte($Ipn->{TOTAL_TRAFFIC})) ] ]
+                       } );
+  print $table->show();	
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub ipn_use_allmonthes {
+	
+	
+}
 1

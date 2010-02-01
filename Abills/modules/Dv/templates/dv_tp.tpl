@@ -1,19 +1,16 @@
-<div class='noprint'>
+<div class='noprint' name='FORM_TP'>
 <form action='$SELF_URL' METHOD='POST'>
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='TP_ID' value='%TP_ID%'>
-<table border='0'>
-  <tr><th>#</th><td><input type='text' name='ID' value='%ID%'></td></tr>
+<table border='0' width=600>
+  <tr><th colspan='2' class=form_title>$_TARIF_PLAN</th></tr>
+  <tr><th align='left'>#</th><td><input type='text' name='ID' value='%ID%'></td></tr>
   <tr><td>$_NAME:</td><td><input type=text name=NAME value='%NAME%'></td></tr>
 
   <tr><td>$_GROUP:</td><td>%GROUPS_SEL%</td></tr>
 
   <tr><td>$_UPLIMIT:</td><td><input type=text name=ALERT value='%ALERT%'></td></tr>
   <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEOUSLY value='%SIMULTANEOUSLY%'></td></tr>
-<!--
-  <tr><td>$_BEGIN:</td><td><input type=text name=BEGIN value='%BEGIN%'></td></tr>
-  <tr><td>$_END:</td><td><input type=text name=END value='%END%'></td></tr>
--->
   <tr><th colspan=2 bgcolor=$_COLORS[0]>$_ABON</th></tr> 
   <tr><td>$_DAY_FEE:</td><td><input type=text name=DAY_FEE value='%DAY_FEE%'></td></tr>
   <tr><td>$_POSTPAID:</td><td><input type=checkbox name=POSTPAID_DAY_FEE value=1 %POSTPAID_DAY_FEE%></td></tr>
@@ -22,20 +19,18 @@
   <tr bgcolor=$_COLORS[2]><td>$_POSTPAID:</td><td><input type=checkbox name=POSTPAID_MONTH_FEE value=1 %POSTPAID_MONTH_FEE%></td></tr>
   <tr bgcolor=$_COLORS[2]><td>$_MONTH_ALIGNMENT:</td><td><input type=checkbox name='PERIOD_ALIGNMENT' value='1' %PERIOD_ALIGNMENT%></td></tr>
   <tr bgcolor=$_COLORS[2]><td>$_ABON_DISTRIBUTION:</td><td><input type=checkbox name='ABON_DISTRIBUTION' value='1' %ABON_DISTRIBUTION%></td></tr>
-
+  <tr bgcolor=$_COLORS[2]><td>$_SMALL_DEPOSIT_BLOCK:</td><td><input type=checkbox name='SMALL_DEPOSIT_BLOCK' value='1' %SMALL_DEPOSIT_BLOCK%></td></tr>
   <tr><td>$_REDUCTION:</td><td><input type=checkbox name=REDUCTION_FEE value=1 %REDUCTION_FEE%></td></tr>
   
   
   %EXT_BILL_ACCOUNT%
   
-<!--   <tr><td>$_GROUP:</td><td>%GROUP_SEL%</td></tr> -->
-<!--  <tr><td>$_HOUR_TARIF (1 Hour):</td><td><input type=text name=TIME_TARIF value='%TIME_TARIF%'></td></tr> -->
- <tr><th colspan=2 bgcolor=$_COLORS[0]>$_TIME_LIMIT (sec)</th></tr> 
+ <tr><th colspan=2 bgcolor='$_COLORS[0]'>$_TIME_LIMIT (sec)</th></tr> 
   <tr><td>$_DAY</td><td><input type=text name=DAY_TIME_LIMIT value='%DAY_TIME_LIMIT%'></td></tr> 
   <tr><td>$_WEEK</td><td><input type=text name=WEEK_TIME_LIMIT value='%WEEK_TIME_LIMIT%'></td></tr>
   <tr><td>$_MONTH</td><td><input type=text name=MONTH_TIME_LIMIT value='%MONTH_TIME_LIMIT%'></td></tr>
   <tr><td>$_TOTAL</td><td><input type=text name=TOTAL_TIME_LIMIT value='%TOTAL_TIME_LIMIT%'></td></tr>
- <tr><th colspan=2 bgcolor=$_COLORS[0]>$_TRAF_LIMIT (Mb)</th></tr>
+ <tr><th colspan=2 bgcolor='$_COLORS[0]'>$_TRAF_LIMIT (Mb)</th></tr>
   <tr><td>$_DAY</td><td><input type=text name=DAY_TRAF_LIMIT value='%DAY_TRAF_LIMIT%'></td></tr>
   <tr><td>$_WEEK</td><td><input type=text name=WEEK_TRAF_LIMIT value='%WEEK_TRAF_LIMIT%'></td></tr>
   <tr><td>$_MONTH</td><td><input type=text name=MONTH_TRAF_LIMIT value='%MONTH_TRAF_LIMIT%'></td></tr>
@@ -58,9 +53,10 @@
   <tr><td>$_NEG_DEPOSIT_FILTER_ID:</td><td><input type=text name=NEG_DEPOSIT_FILTER_ID value='%NEG_DEPOSIT_FILTER_ID%'></td></tr>
   <tr><td>IP Pool:</td><td>%IP_POOLS_SEL%</td></tr>
   <tr><td>$_PRIORITY:</td><td><input type=text name=PRIORITY value='%PRIORITY%' size=5></td></tr>
-  <tr><th colspan=2>RADIUS Parameters (,)</th></tr>
+  <tr><th colspan=2 bgcolor=$_COLORS[2]>RADIUS Parameters (,)</th></tr>
   <tr><th colspan=2><textarea cols=55 rows=5 name=RAD_PAIRS>%RAD_PAIRS%</textarea></th></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
 </div>
+

@@ -18,12 +18,13 @@ if ($#ARGV < 1) {
    FLOWTOOLS_FT_BACKUP=dir - Backup old flow-tools ft* file. For debug only
    debug      - Set debug mode (1,2)
    DETAIL_ONLY- Make IP detalisation only
-   UNKNOWN_IP_LOG - Disabled unknown ip login
+   DISABLE_UNKNOWN_IP_LOG - Disabled unknown ip login
    PREPAID_STORE - Use alternative prepaid store for prepaid traffic colection.
    TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysation
    AMON_ALIVE - Second for Amon Alive Alive interval (default value 120).
    VIRUS_ALERT=1000 - Count of small PKG
    LOG_FILE   - Debug log file for traffic2sql
+   TRAFFIC_CLASS - Add all traffic as TRAFFIC_CLASS
    
    -d         - Deamon mode
    -fg        - foreground mode
@@ -86,9 +87,8 @@ my $db  = $sql->{db};
 my $IF_NAME=($ARGV->{INTERFACE}) ? $ARGV->{INTERFACE} : '';
 
 
-if ($ARGV->{UNKNOWN_IP_LOG}) {
+if (! $ARGV->{DISABLE_UNKNOWN_IP_LOG}) {
   $conf{UNKNOWN_IP_LOG}=1;	
-  print "UNKNOWN_IP_LOG=$conf{UNKNOWN_IP_LOG}\n" if ($debug > 0);
  }
 if ($ARGV->{DETAIL_ONLY}) {
   $conf{IPN_DETAIL}=1;	
@@ -115,7 +115,6 @@ my $Acct = Acct->new($db, \%conf);
 
 
 my $NAS_ID = 0;
-my $unknown_ip_log = $var_dir."log/ipn/unknown_ip.log";
 my $log = $var_dir."log/ipn/trafd_". $NAS_ID. "_" .$IF_NAME;
 
 
@@ -132,9 +131,6 @@ my $FLOW_PRINT = $ARGV->{FLOW_PRINT} || '/usr/local/bin/flow-print';
 
 $Ipn->{debug}  = 1 if ($debug > 2);
 $conf{MB_SIZE} = $conf{KBYTE_SIZE} * $conf{KBYTE_SIZE};
-
-
-
 
 
 my %PROTOCOLS = ('tcp'    => 1,
@@ -164,9 +160,7 @@ if (defined($ARGV->{'-d'})) {
   while(1) {
 	  $begin_time = check_time();
   	$Ipn->user_ips({ NAS_ID => $NAS_IDS });
-
   	flow_capture();
-
     my $UPDATE_TIME = 10;
 	  sleep $UPDATE_TIME;
   }
@@ -188,8 +182,6 @@ sub flow_capture {
   if ($ARGV->{FLOWTOOLS_IP_AGGREGATION}) {
     $FLOWTOOLS_IP_AGGREGATION='awk \'BEGIN { ip1=0 };  { ips[$1"  "$2]+=$6 }; END { for (i in ips) { print i" "1" "0" "0" "ips[i]" "0; } }\' |';
    }
-
-  $unknown_ip_log = "$flow_dir/unknown_ip.log";
 
   #Get flow tools files
   opendir DIR, $flow_dir or die "Can't open dir '$flow_dir' $!\n";
@@ -233,12 +225,9 @@ sub flow_capture {
     else {
        print "Unknow File name format\n";
      }
-
-    #print "End:". (gettimeofday() - $begin_time) . "\n";
     $begin_time = check_time();
   }
-  
-  
+
   return 0;
 }
 
@@ -251,12 +240,9 @@ sub flow_capture {
 sub processing {
  my ($attr) = @_;
 
-my $IN_ARRAY  = $Ipn->{IN};
-
-my $unknow_ip = '';
-foreach my $line (@$IN_ARRAY) {
+foreach my $line (@{ $Ipn->{IN} }) {
   my($from, $to, $size)=split(/\//, $line, 3);
-  $unknow_ip .= sprintf("%15s -> %15s %10s\n", int2ip($from), int2ip($to), $size); 
+  $Ipn->unknown_add($from, $to, $size, 0);
  }
 
 $Ipn->traffic_agregate_nets();
@@ -343,9 +329,9 @@ if ($Ipn->{INTERIM}{$ip}) {
                                                      });
          }
         else {
-	        ($used_traffic) = $Ipn->traffic_user_get({ UID          => $uid, 
+	        ($used_traffic) = $Ipn->traffic_user_get({ UID           => $uid, 
                                                      ACTIVATE      => $Ipn->{USERS_INFO}->{ACTIVATE}->{$uid},
-                                                     TRAFFIC_IN   => $in,
+                                                     TRAFFIC_IN    => $in,
                                                      TRAFFIC_OUT   => $out,
                                                      TRAFFIC_ID    => $k
                                                      });
@@ -430,10 +416,9 @@ elsif($total_user_sum > 0 && $uid > 0) {
 
   #Put user data to database
   if ($uid > 0) {
- 	  
     $Ipn->{$ip}{IN}=0 if (! $Ipn->{$ip}{IN});
     $Ipn->{$ip}{OUT}=0 if (! $Ipn->{$ip}{OUT});
-    
+
     $Ipn->{$ip}{IN}  = $Ipn->{$ip}{IN} + $total_in;
     $Ipn->{$ip}{OUT} = $Ipn->{$ip}{OUT}+ $total_out;
 
@@ -567,8 +552,7 @@ if ($debug > 0 || $log_file) {
 
   my $speed = int2byte(($Ipn->{TRAFFIC_SUM}+$Ipn->{UNKNOWN_TRAFFIC_SUM}) / $attr->{SESSION_INTERVAL});
 
-	my $output = "$unknow_ip$registred$GT/Query: $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS}/". int2byte($Ipn->{TRAFFIC_SUM}) ." Unknown: $Ipn->{UNKNOWN_TRAFFIC_ROWS}/". int2byte($Ipn->{UNKNOWN_TRAFFIC_SUM}) ." Speed: $speed/sec.\n";
-	$output .= " Unknown: $#{$Ipn->{IN}}/$Ipn->{INTERIM}{0}{OUT}" if ($Ipn->{IN});
+	my $output = "$registred$GT/Query: $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS}/". int2byte($Ipn->{TRAFFIC_SUM}) ." Unknown: $Ipn->{UNKNOWN_TRAFFIC_ROWS}/". int2byte($Ipn->{UNKNOWN_TRAFFIC_SUM}) ." Speed: $speed/sec.\n";
 	$output .= "\n";
 
   if ($debug > 0 && ! defined($ARGV->{'-d'})) {
@@ -584,12 +568,6 @@ if ($debug > 0 || $log_file) {
   $Ipn->{TRAFFIC_SUM}=0;
   $Ipn->{UNKNOWN_TRAFFIC_SUM}=0;
 }
-elsif($unknow_ip ne '') {
-  open(FILE, ">>$unknown_ip_log") or die "Can't open '$unknown_ip_log' $!";
-    print FILE ">> $DATE $TIME\n";
-    print FILE $unknow_ip;
-  close(FILE);
-}
 
 }
 
@@ -602,7 +580,8 @@ sub get_collector_data {
  
 print "$log\n" if ($debug > 1);
 
-$Ipn->traffic_agregate_clean();
+$Ipn->traffic_agregate_clean() if (! defined($ARGV->{TRAFFIC_CLASS}));
+
 $Ipn->{TOTAL_FLOWS}=0;
 my %DATA=();
 
@@ -628,7 +607,7 @@ while( <LOG> ) {
     $DATA{PROTOCOL} = $9;
 	  #$DATA{IF_NAME}  = '0';
 
-    $Ipn->traffic_agregate_users({ %DATA, DEBUG => $debug });
+    $Ipn->traffic_agregate_users({ %DATA, DEBUG => $debug, TRAFFIC_CLASS => (defined($ARGV->{TRAFFIC_CLASS}) ? $ARGV->{TRAFFIC_CLASS} : undef ) });
  	 }
   #Ipcad log analize
   elsif (/ (\d+)\.(\d+)\.(\d+)\.(\d+)[ |\t]+(\d+)\.(\d+)\.(\d+)\.(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\d+)[ |\t]+(\S+)/) {
