@@ -888,7 +888,6 @@ elsif ($FORM{hangup}) {
    }
 
   require "Abills/nas.pl";
-  
   my $ret = hangup($nas, "$nas_port_id", "$user_name", { ACCT_SESSION_ID   => "$acct_session_id",
   	                                                     FRAMED_IP_ADDRESS => "$FORM{FRAMED_IP_ADDRESS}",
   	                                                     UID               => $FORM{UID} });
@@ -908,8 +907,7 @@ elsif ($FORM{hangup}) {
 
      $message = $table->show();
      sleep 3;
-     
-     weblog('hangup', "$user_name");
+     $admin->action_add("$FORM{UID}", "$user_name", { MODULE => 'Dv', TYPE => 15 });
    }
   elsif ($ret == 1) {
    	$message = 'NAS NOT supported yet';
@@ -973,28 +971,21 @@ elsif($FORM{tolog}) {
   	$sessions->online( { SESSION_IDS  => $FORM{dellist},
   		                   ZAPED        => 1,
   		                   FIELDS_NAMES => [ 
-
                          INPUT_OCTETS,
                          OUTPUT_OCTETS,
-
                          INPUT_OCTETS2,
                          OUTPUT_OCTETS2,
-                                                  
+
                          ACCT_SESSION_TIME,
                          ACCT_SESSION_ID,
 
                          NAS_PORT_ID,
                          NAS_IP,
                          CLIENT_IP,
-
                          CONNECT_INFO,
                          CID,
-
                          USER_NAME,
-
-                         
                          SESSION_START
-                         
   		                   ] } );	
 
    my $online_list = $sessions->{nas_sorted}; 
