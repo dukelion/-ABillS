@@ -113,7 +113,6 @@ if ($FORM{change}) {
   if ($Cards->{CARDS_INFO}) {
     if ($line->[13] > 0) {
       my $users = Users->new($db, $admin, \%conf); 
-   
       foreach my $line (@{ $Cards->{CARDS_INFO} }) {
         user_del({ USER => $users->info($line->[13]) });
        }
@@ -208,11 +207,9 @@ else {
 }
 
 my $table;
-
   $Cards->{SUM}=undef if (! $FORM{SUM});
   $Cards->{EXPIRE}=undef if (! $FORM{EXPIRE});
   $Cards->{SERIA}='*' if (! $FORM{SERIA});
-
   $Cards->{DATE}        = $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
   $Cards->{CREATED_DATE}= $html->date_fld2('CREATED_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
   $Cards->{EXPIRE_DATE} = $html->date_fld2('EXPIRE_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
@@ -222,11 +219,9 @@ my $table;
   	                                  { OUTPUT2RETURN => 1 })  
 	            });
 
-
-
 my @total_arr=();
 if (defined($FORM{SERIA})) {
-  $pages_qs.="&SERIA=$FORM{SERIA}&PAGE_ROWS=$PAGE_ROWS" if (! $FORM{search});
+  $pages_qs.="&PAGE_ROWS=$PAGE_ROWS" if (! $FORM{search});
   my @pin = ();
   @pin = ("PIN") if ($conf{CARDS_SHOW_PINS}) ;
   
@@ -260,15 +255,6 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
 
   foreach $line (@$list) {
    	@pin = ("$line->[15]") if ($conf{CARDS_SHOW_PINS}) ;
-
-    $pages_qs =~ s/SERIA=[a-zA-Z0-9\*,\ \_]+&//g;	   	  
-   	if (! $FORM{search}) {
-   	  $pages_qs .= "&NUMBER=$line->[1]&SERIA=$line->[0]";
-   	 }
-   	else {
-   	  $pages_qs .= "&SERIA=$FORM{SERIA}";
-   	 }
-
    	$table->addrow(
    	    $html->form_input("IDS", "$line->[0]:$line->[1]", {TYPE => 'checkbox'}). $html->b($line->[0]) , 
   	    $line->[1],
@@ -283,7 +269,8 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex
   		  $line->[10],
   		  $line->[11],
   		  @pin,
-  		  $html->button($_DEL, "index=$index&del=1&ID=$line->[17]$pages_qs", { MESSAGE => "$_DEL [$line->[0]$line->[1]] ?", BUTTON => 1 })
+  		  $html->button($_DEL, "index=$index&del=1&ID=$line->[17]". ( (! $FORM{search}) ? "&NUMBER=$line->[1]&SERIA=$line->[0]" :   '' ) .
+  		    "$pages_qs", { MESSAGE => "$_DEL [$line->[0]$line->[1]] ?", BUTTON => 1 })
   		);
     }
 
@@ -339,12 +326,10 @@ else {
   		  $line->[7],
   		  $html->button($_SHOW, "index=$index$pages_qs&SERIA=$line->[0]", { BUTTON => 1 }),
   		  $html->button($_DEL, "index=$index$pages_qs&del=1&SERIA=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 })
-  		   
-  		   );
-
+	   );
      $total_cards += $line->[3];
      $total_sum   += $line->[2] * $line->[3];
-    }
+   }
   print $table->show();	
   
   
