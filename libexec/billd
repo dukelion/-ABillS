@@ -270,7 +270,6 @@ sub check_lines {
                                                     ACCT_SESSION_ID => $acct_session_id
                                                   });
 
-           
            $ACCT_INFO->{INBYTE}               = $acct_input_octets;
            $ACCT_INFO->{OUTBYTE}              = $acct_output_octets;
            $ACCT_INFO->{INBYTE2}              = $acct_input_octets_ext;
@@ -293,7 +292,6 @@ sub check_lines {
  		           $info .= sprintf("%-28s | %-30s |\n", $k, (defined($Acct->{$k})) ? $Acct->{$k} : '' );
   	         }
             }
-
            if ($NAS{NAS_TYPE} eq 'ipcad') {
      	        my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID      => "$acct_session_id",
               	                                                      FRAMED_IP_ADDRESS    => int2ip($client_ip),
@@ -324,8 +322,7 @@ sub check_lines {
         	                        });
        }
       
-      
-     
+    
         # periodic check deposit, stats and statu
 
         my %RAD = (USER_NAME         => "$user_name",
@@ -820,7 +817,7 @@ if ($conf{ng_car}) {
 
       }
      #No shaper definition
-     elsif (! $LOGINS_SPEEDS{$user}) {
+     elsif (! $LOGINS_SPEEDS{$user} && ( $SPEED > 0 || $SPEED != $LOGINS_SPEEDS{$user}{0}{IN} || $SPEED != $LOGINS_SPEEDS{$user}{0}{OUT} )) {
         $debug_outputs .= "  ! Speed not defined. Set speed\n";	
         $changed = 1;
         $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
