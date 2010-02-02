@@ -1305,7 +1305,7 @@ elsif ($FORM{hangup}) {
      $message = $table->show();
      sleep 3;
      
-     weblog('hangup', "$user_name");
+     #weblog('hangup', "$user_name");
    }
   elsif ($ret == 1) {
    	$message = 'NAS NOT supported yet';
