@@ -74,16 +74,13 @@ sub del {
 sub online_update {
 	my $self = shift;
 	my ($attr) = @_;
-
-
   my @SET_RULES = ();
   
   push @SET_RULES, 'lupdated=UNIX_TIMESTAMP()' if (defined($attr->{STATUS}) && $attr->{STATUS} == 5);
-  
+
   if (defined($attr->{in})) {
    	push @SET_RULES, "acct_input_octets='$attr->{in}'";
    }
-
   if (defined($attr->{out})) {
   	push @SET_RULES, "acct_output_octets='$attr->{out}'";
    }

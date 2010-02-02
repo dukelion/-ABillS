@@ -94,6 +94,8 @@ sub user_status {
 
  my $SESSION_START = 'now()';
 
+ $self->{debug}=1;
+
  my $sql = "INSERT INTO dv_calls
    (status, 
     user_name, 
@@ -105,7 +107,8 @@ sub user_status {
     CID, 
     CONNECT_INFO, 
     nas_id,
-    uid
+    uid,
+    tp_id
 )
     values (
     '$DATA->{ACCT_STATUS_TYPE}', 
@@ -118,13 +121,11 @@ sub user_status {
     '$DATA->{CALLING_STATION_ID}', 
     '$DATA->{CONNECT_INFO}', 
     '$DATA->{NAS_ID}',
-    '$DATA->{UID}'
+    '$DATA->{UID}',
+    '$DATA->{TP_ID}'
   );";
 
   $self->query($db, "$sql", 'do');
-	
-#	my $a = `echo "==ACTIVE $sql" >> /tmp/ipn.log`;
-	
  return $self;
 }
 
@@ -178,9 +179,7 @@ sub acct_stop {
   else {
     return $self;
   }
- 
- 
- 
+
   my $ACCT_TERMINATE_CAUSE = (defined($attr->{ACCT_TERMINATE_CAUSE})) ? $attr->{ACCT_TERMINATE_CAUSE} : 0;
 
   my	$sql="select u.uid, calls.framed_ip_address, 
