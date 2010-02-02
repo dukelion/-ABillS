@@ -3688,7 +3688,6 @@ if ($attr->{FIELDS}) {
 
 
   $FIELDS .= $table2->show();
-  
  }  
 
 
