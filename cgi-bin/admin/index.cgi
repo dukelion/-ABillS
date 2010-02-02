@@ -558,7 +558,7 @@ sub check_permissions {
 
   if ($admin->{errno}) {
     if ($admin->{errno} == 4) {
-      $admin->system_action_add("$login:$password", { TYPE => 11 });        	
+      $admin->system_action_add("$login:$password", { TYPE => 11 });
       $admin->{errno} = 4;
      }
     return 1;
@@ -2103,7 +2103,9 @@ sub form_system_changes {
                    9  => "$_DISABLE",
                    10 => "$_DELETED",
                    11 => "$ERR_WRONG_PASSWD",
-                   13 => "Online $_DEL");
+                   13 => "Online $_DEL",
+                   
+                   );
 
  
 if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {
@@ -2211,7 +2213,8 @@ sub form_changes {
                    11 => '',
                    12 => "$_DELETED $_USER",
                    13 => "Online $_DELETE",
-                   14 => "$_HOLD_UP");
+                   14 => "$_HOLD_UP",
+                   15 => "$_HANGUP");
  
 if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {
 	$admin->action_del( $FORM{del} );
@@ -6245,17 +6248,6 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
  print  $html->button($_CREATE, "index=$index&mk_backup=1", { BUTTON => 1 });
 }
 
-
-#******************************************************************
-#
-#*******************************************************************
-sub weblog {
-	my ($action, $value) = @_;
-
-  open(FILE, ">>$conf{WEB_LOGFILE}") || $html->message('err', $_ERROR, "Can't open file '$conf{WEB_LOGFILE}' $!");
-    print FILE "$DATE $TIME $admin->{A_LOGIN} $admin->{SESSION_IP} $action:$value\n";
-  close(FILE);
-}
 
 #**********************************************************
 #
