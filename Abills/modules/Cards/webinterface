@@ -106,7 +106,7 @@ if ($FORM{change}) {
  	$Cards->cards_change({ %FORM });
 
   if (! $Cards->{errno}) {
-     $html->message('info', $_CHANGED, "$_CHANGED: $FORM{IDS} ");
+    $html->message('info', $_CHANGED.':'.$status[($FORM{STATUS}-1)], "$_CHANGED: $FORM{IDS} ");
    }
   
   #Delete users accounts
@@ -424,20 +424,6 @@ sub cards_add {
    	   }
    	  else {
    	    $html->message('info', $_INFO, "$_ADDED: $added $_CARDS");
-   	    
-   	    $export = encode_base64(qq{<OPERATION id="4684519" status="new" type="execute" processing="0" sync="0">
-	<CRDATE>20091214T15:38:07</CRDATE>
-	<ACCOUNT>55</ACCOUNT>
-	<SERVICE>1</SERVICE>
-	<TARGET>
-		<KEYATTR value="1234343"/>
-	</TARGET>
-	<SUM>46.05</SUM>
-	<POINT>1002</POINT>
-	<POINT_TRANS>13</POINT_TRANS>
-	<CHK>13</CHK>
-</OPERATION>});
-   	    
    	    print $html->form_textarea('CARDS_EXPORT', $export, {  COLS => 70, 
    	    	                                                     ROWS => 30 });
    	    return 0;
