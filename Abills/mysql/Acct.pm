@@ -457,7 +457,7 @@ sub rt_billing {
                                                 	},
                                                 { FULL_COUNT => 1,
                                                   TP_NUM     => $self->{TP_NUM},
-                                                  UID        => $self->{UID},
+                                                  UID        => ($self->{TP_NUM}) ? $self->{UID} : undef,
                                                   DOMAIN_ID  => ($NAS->{DOMAIN_ID}) ? $NAS->{DOMAIN_ID} : 0,
                                                 	  }
                                                 );
@@ -496,10 +496,10 @@ sub rt_billing {
 
      if ($intrval_traffic{$traffic_type}) {
        $self->query($db, "UPDATE dv_log_intervals SET  
-                                                    sent=sent+'". $RAD->{'INTERIUM_OUTBYTE'. $RAD_TRAFF_SUFIX[$traffic_type]} ."', 
-                                                    recv=recv+'". $RAD->{'INTERIUM_INBYTE'. $RAD_TRAFF_SUFIX[$traffic_type]} ."', 
-                                                    duration=duration+'$RAD->{INTERIUM_ACCT_SESSION_TIME}', 
-                                                    sum=sum+'$self->{SUM}'
+                               sent=sent+'". $RAD->{'INTERIUM_OUTBYTE'. $RAD_TRAFF_SUFIX[$traffic_type]} ."', 
+                               recv=recv+'". $RAD->{'INTERIUM_INBYTE'. $RAD_TRAFF_SUFIX[$traffic_type]} ."', 
+                               duration=duration+'$RAD->{INTERIUM_ACCT_SESSION_TIME}', 
+                               sum=sum+'$self->{SUM}'
                          WHERE interval_id='$Billing->{TI_ID}' and acct_session_id='$RAD->{ACCT_SESSION_ID}' and traffic_type='$traffic_type';", 'do');
       }
      else {
@@ -522,13 +522,18 @@ sub rt_billing {
     $self->{errstr}= "ACCT [$RAD->{USER_NAME}] Not allow start period '$filename'";
     $Billing->mk_session_log($RAD);
    }
+  elsif ($self->{UID} == -5) {
+    $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] Can't find TP: $self->{TP_NUM} Session id: $RAD->{ACCT_SESSION_ID}";
+    $self->{errno} = 1;
+    print "ACCT [$RAD->{USER_NAME}] Can't find TP: $self->{TP_NUM} Session id: $RAD->{ACCT_SESSION_ID}\n";
+   }
   elsif ($self->{SUM} < 0) {
     $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE})";
    }
   elsif ($self->{UID} <= 0) {
     $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE}), $self->{UID}";
     $self->{errno} = 1;
-    print "ACCT [$RAD->{USER_NAME}] /$RAD->{ACCT_STATUS_TYPE}/ small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE}), $self->{UID}\n";
+    print "ACCT [$RAD->{USER_NAME}] /$RAD->{ACCT_STATUS_TYPE}/ small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE}), ! $self->{UID}\n";
    }
   else {
     if ($self->{SUM} > 0) {

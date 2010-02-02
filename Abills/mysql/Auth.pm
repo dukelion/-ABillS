@@ -1342,10 +1342,9 @@ sub get_ip {
  my $assign_ip = ($#ips_arr > -1) ? $ips_arr[rand ($#ips_arr+1)] : undef;
 
  if ($assign_ip) {
-   
    # Make reserv ip
-   $self->query($db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, status)
-      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$assign_ip', '$nas_num', '11');", 'do');
+   $self->query($db, "INSERT INTO dv_calls (started, user_name, uid, framed_ip_address, nas_id, status, acct_session_id)
+      VALUES (now(), '$self->{USER_NAME}', '$self->{UID}', '$assign_ip', '$nas_num', '11', 'IP');", 'do');
  
    $assign_ip = int2ip($assign_ip);
    return $assign_ip;
