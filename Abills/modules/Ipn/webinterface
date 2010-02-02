@@ -127,23 +127,18 @@ if (defined($FORM{DATE})) {
 }
 else {
 	if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID}, INFO_ONLY => 1 })) {
-	  #Prepaid: period, traffic_type
-  
-    
-    my $list = $Ipn->prepaid_rest({ UID  => $LIST_PARAMS{UID}, 
-  	                                INFO => $sessions->{INFO_LIST} });
+  my $list = $Ipn->prepaid_rest({ UID  => $LIST_PARAMS{UID}, 
+	                                INFO => $sessions->{INFO_LIST} });
 
-
-
-
-    my $table = $html->table( { caption     => "$_PREPAID",
+  my $table = $html->table( { caption   => "$_PREPAID",
 	                          width       => '100%',
                             title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
                             cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
-                            rowcolor    => $_COLORS[1]
+                            rowcolor    => $_COLORS[1],
+                            ID          => 'IPN_PREPAID',
                            } );
 	
- 	  foreach my $line  (@$list) {
+  foreach my $line  (@$list) {
 	     $table->addrow($line->[0], 
          $line->[1], 
          $line->[2], 
@@ -157,7 +152,6 @@ else {
   }
 	
 	$graph_type='month_stats';
-	
 }
 
    my $list = $Ipn->reports_users({ %LIST_PARAMS });
@@ -166,10 +160,9 @@ else {
 	                                   caption    => "$_SESSIONS", 
                                      title      => ["$_DATE", "TT", "$_NAME", "IN", "OUT", "$_TOTAL", "$_SUM"],
                                      cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right'],
-                                     qs         => $pages_qs             
+                                     qs         => $pages_qs,
+                                     ID         => 'IPN_SESSIONS'
                                  } );
-
-
     my %report = ();
     foreach my $line (@$list) {
        push  @{ $report{"$line->[0]"} }, [ @$line ];
@@ -178,12 +171,9 @@ else {
     my $num = 0;
     foreach my $k ( sort %report) {  
       my $v=$report{$k};
-      
       next if (ref($k) eq 'ARRAY');
-
       my @stats_array = @$v;
 	    $table_sessions->{rowcolor}=$_COLORS[1];
-  
       my $user_total_in=0;
       my $user_total_out=0;
       my $user_sum = 0;
@@ -206,7 +196,6 @@ else {
       $user_total_in+=$stats_array[0][3];
       $user_total_out+=$stats_array[0][4];
       $user_sum+=$stats_array[0][5];
-
       $totals{IN}{$stats_array[0][1]}  += $stats_array[0][3];
       $totals{OUT}{$stats_array[0][1]} += $stats_array[0][4];
       $totals{SUM}{$stats_array[0][1]} += $stats_array[0][5];
@@ -332,7 +321,7 @@ if (! $list) {
   my $nas = Nas->new($db);
   $SEL_NAS  = $html->form_select('NAS_ID', 
                                         { 
- 	                                        SELECTED          => $Dv->{TP_ID},
+ 	                                        SELECTED          => $FORM{NAS_ID},
  	                                        SEL_MULTI_ARRAY   => $nas->list({ %LIST_PARAMS, PAGE_ROWS => 1000 }),
  	                                        MULTI_ARRAY_KEY   => 0,
  	                                        MULTI_ARRAY_VALUE => '1,4,3',
@@ -802,8 +791,6 @@ else {
             
       $DATA_HASH{TRAFFIC_OUT}[$num] = $line->[2];
       $DATA_HASH{TRAFFIC_IN}[$num]  = $line->[3];
-
-
       $totals{TRAFFIC_IN} += $line->[2];
       $totals{TRAFFIC_OUT}+= $line->[3];
       $totals{SUM}        += $line->[4];
@@ -857,135 +844,136 @@ $html->make_charts({
 #**********************************************************
 # stats
 #**********************************************************
-sub ipn_stats {
-	my ($attr) = @_;
- 
-if (defined($attr->{USER}))	{
-	my $user = $attr->{USER};
-
-	$UID = $user->{UID};
-	$LIST_PARAMS{UID} = $UID;
-	if (! defined($FORM{sort})) {
-	  $LIST_PARAMS{SORT}=2;
-	  $LIST_PARAMS{DESC}=DESC;
-   }
-
-  if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
- 	  $html->message('err', $_ERROR, "$_EXIST $FORM{OP_SID} eq $COOKIES{OP_SID}");
-   }
-  elsif ($FORM{bm}) {
-    use Bills;
-    my $Bill = Bills->new($db);
-    $Bill->action('add', "$FORM{BILL_ID}", $FORM{sum});
-    if($bill->{errno}) {
-      $html->message('err', $_ERROR, "[$bill->{errno}] $err_strs{$bill->{errno}}");
-     }
-    else {
-      $html->message('info', $_INFO, "$_ADDED: SUM $FORM{sum}, BILL_ID: $FORM{BILL_ID}");  	
-     }
-   }
-  elsif($FORM{SESSION_ID}) {
-  	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
-  	ipn_session_detail({ USER => $attr->{USER} });
-  	
-  	return 0;
-  }
-
-}
-
-if ($FORM{del} && $FORM{is_js_confirmed}) {
-	if(! defined($permissions{3}{1})) {
-     $html->message('err', $_ERROR, 'ACCESS DENY');
-     return 0;
-	 } 
-
-	my ($UID, $session_id, $nas_id, $session_start_date, $session_start_time, $sum, $login)=split(/ /, $FORM{del}, 7);
-	$sessions->del($UID, $session_id, $nas_id, "$session_start_date $session_start_time");
-  if (! $sessions->{errno})	 {
-  	$html->message('info', $_DELETED, "$_LOGIN: $login<br> SESSION_ID: $session_id<br> NAS_ID: $nas_id<br> SESSION_START: $session_start_date $session_start_time<br> $_SUM: $sum");
-    form_back_money('log', $sum, { UID => $UID }); #
-    return 0;
-   }
-}
-
-if ($sessions->{errno})	 {
-	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
- }
-
-
-if ($FORM{rows}) {
-  $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
-  $conf{list_max_recs}=$FORM{rows};
-  $pages_qs .= "&rows=$conf{list_max_recs}";
- }
-
-
-#PEriods totals
-my $list = $sessions->periods_totals({ %LIST_PARAMS });
-my $table = $html->table( { width       => '100%',
-                            title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
-                            cols_align  => ['left', 'right', 'right', 'right', 'right'],
-                            rowcolor    => $_COLORS[1],
-                            ID          => 'IPN_PERIODS_TOTALS'
-                         } );
-
-for(my $i = 0; $i < 5; $i++) {
-	  $table->addrow($html->button($PERIODS[$i], "index=$index&period=$i$pages_qs"),
-	  	   "$sessions->{'duration_'. $i}",
-	       int2byte($sessions->{'sent_'. $i}), 
-	       int2byte($sessions->{'recv_'. $i}), 
-	       int2byte($sessions->{'sum_'. $i})
-	       );
- }
-print $table->show();
-
-$table = $html->table( { width => '640',
-	                       rowcolor => $_COLORS[0],
-                         title_plain => [ "$_FROM: ", $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'client_stats', WEEK_DAYS => \@WEEKDAYS, WEEK_DAYS => \@WEEKDAYS } ),
-                                   "$_TO: ", $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'client_stats', WEEK_DAYS => \@WEEKDAYS, WEEK_DAYS => \@WEEKDAYS } ),
-                                   "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>",
-                                   "<input type=submit name=show value=$_SHOW>"
-                                    ],                                   
-                                  } );
-print $html->form_main({ CONTENT => $table->show(),
-	                       HIDDEN  => { index => "$index",
-	                       	            UID   => "$UID" },
-                         NAME    => 'client_stats',
-                      });
-ipn_stats_calculation($sessions);
-
-if (defined($FORM{show})) {
-  $pages_qs .= "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}";
-  $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
- }
-elsif (defined($FORM{period})) {
-	$LIST_PARAMS{PERIOD} = $FORM{period}+0; 
-	$pages_qs .= "&period=$FORM{period}";
-}
-elsif($FORM{DATE}) {
-	$LIST_PARAMS{DATE} = $FORM{DATE}; 
-	$pages_qs .= "&DATE=$FORM{DATE}";
-}
-
-if (! defined($FORM{sort})) {
-  $LIST_PARAMS{SORT}=2;
-  $LIST_PARAMS{DESC}=DESC;
- }
-
-#Session List
-$list = $sessions->list({ %LIST_PARAMS });	
-
-$table = $html->table( { width      => '640',
-	                       rowcolor   => $_COLORS[1],
-                         title_plain=> ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
-                         cols_align => ['right', 'right', 'right', 'right'],
-                         rows       => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
-                         ID         =>  'IPN_CLIENTS_STATS'
-                               } );
-$table->show();
-
-ipn_sessions($list, $sessions);
-}
+#sub ipn_stats {
+#	my ($attr) = @_;
+# 
+# print "Content-Typoe: text/html\n\n";
+# 
+#if (defined($attr->{USER}))	{
+#	my $user = $attr->{USER};
+#
+#	$UID = $user->{UID};
+#	$LIST_PARAMS{UID} = $UID;
+#	if (! defined($FORM{sort})) {
+#	  $LIST_PARAMS{SORT}=2;
+#	  $LIST_PARAMS{DESC}=DESC;
+#   }
+#
+#  if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
+# 	  $html->message('err', $_ERROR, "$_EXIST $FORM{OP_SID} eq $COOKIES{OP_SID}");
+#   }
+#  elsif ($FORM{bm}) {
+#    use Bills;
+#    my $Bill = Bills->new($db);
+#    $Bill->action('add', "$FORM{BILL_ID}", $FORM{sum});
+#    if($bill->{errno}) {
+#      $html->message('err', $_ERROR, "[$bill->{errno}] $err_strs{$bill->{errno}}");
+#     }
+#    else {
+#      $html->message('info', $_INFO, "$_ADDED: SUM $FORM{sum}, BILL_ID: $FORM{BILL_ID}");  	
+#     }
+#   }
+#  elsif($FORM{SESSION_ID}) {
+#  	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
+#  	ipn_session_detail({ USER => $attr->{USER} });
+#  	
+#  	return 0;
+#  }
+#
+#}
+#
+#if ($FORM{del} && $FORM{is_js_confirmed}) {
+#	if(! defined($permissions{3}{1})) {
+#     $html->message('err', $_ERROR, 'ACCESS DENY');
+#     return 0;
+#	 } 
+#
+#	my ($UID, $session_id, $nas_id, $session_start_date, $session_start_time, $sum, $login)=split(/ /, $FORM{del}, 7);
+#	$sessions->del($UID, $session_id, $nas_id, "$session_start_date $session_start_time");
+#  if (! $sessions->{errno})	 {
+#  	$html->message('info', $_DELETED, "$_LOGIN: $login<br> SESSION_ID: $session_id<br> NAS_ID: $nas_id<br> SESSION_START: $session_start_date $session_start_time<br> $_SUM: $sum");
+#    form_back_money('log', $sum, { UID => $UID }); #
+#    return 0;
+#   }
+#}
+#
+#if ($sessions->{errno})	 {
+#	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
+# }
+#
+#
+#if ($FORM{rows}) {
+#  $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
+#  $conf{list_max_recs}=$FORM{rows};
+#  $pages_qs .= "&rows=$conf{list_max_recs}";
+# }
+#
+#
+##PEriods totals
+#my $list = $sessions->periods_totals({ %LIST_PARAMS });
+#my $table = $html->table( { width       => '100%',
+#                            title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
+#                            cols_align  => ['left', 'right', 'right', 'right', 'right'],
+#                            rowcolor    => $_COLORS[1],
+#                            ID          => 'IPN_PERIODS_TOTALS'
+#                         } );
+#
+#for(my $i = 0; $i < 5; $i++) {
+#	  $table->addrow($html->button($PERIODS[$i], "index=$index&period=$i$pages_qs"),
+#	  	   "$sessions->{'duration_'. $i}",
+#	       int2byte($sessions->{'sent_'. $i}), 
+#	       int2byte($sessions->{'recv_'. $i}), 
+#	       int2byte($sessions->{'sum_'. $i})
+#	       );
+# }
+#print $table->show();
+#
+#$table = $html->table( { width => '640',
+#	                       rowcolor => $_COLORS[0],
+#                         title_plain => [ "$_FROM: ", $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'client_stats', WEEK_DAYS => \@WEEKDAYS, WEEK_DAYS => \@WEEKDAYS } ),
+#                                   "$_TO: ", $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'client_stats', WEEK_DAYS => \@WEEKDAYS, WEEK_DAYS => \@WEEKDAYS } ),
+#                                   "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>",
+#                                   "<input type=submit name=show value=$_SHOW>"
+#                                    ],                                   
+#                                  } );
+#print $html->form_main({ CONTENT => $table->show(),
+#	                       HIDDEN  => { index => "$index",
+#	                       	            UID   => "$UID" },
+#                         NAME    => 'client_stats',
+#                      });
+#ipn_stats_calculation($sessions);
+#
+#if (defined($FORM{show})) {
+#  $pages_qs .= "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}";
+#  $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
+# }
+#elsif (defined($FORM{period})) {
+#	$LIST_PARAMS{PERIOD} = $FORM{period}+0; 
+#	$pages_qs .= "&period=$FORM{period}";
+#}
+#elsif($FORM{DATE}) {
+#	$LIST_PARAMS{DATE} = $FORM{DATE}; 
+#	$pages_qs .= "&DATE=$FORM{DATE}";
+#}
+#
+#if (! defined($FORM{sort})) {
+#  $LIST_PARAMS{SORT}=2;
+#  $LIST_PARAMS{DESC}=DESC;
+# }
+#
+##Session List
+#$list = $sessions->list({ %LIST_PARAMS });	
+#$table = $html->table( { width      => '640',
+#	                       rowcolor   => $_COLORS[1],
+#                         title_plain=> ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
+#                         cols_align => ['right', 'right', 'right', 'right'],
+#                         rows       => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
+#                         ID         =>  'IPN_CLIENTS_STATS'
+#                               } );
+#$table->show();
+#
+#ipn_sessions($list, $sessions);
+#}
 
 
 #*******************************************************************
@@ -1014,84 +1002,84 @@ print $table->show();
 #**********************************************************
 # form_stats
 #**********************************************************
-sub ipn_user_stats {
-	if (! defined($FORM{sort})) {
-	  $LIST_PARAMS{SORT}=2;
-	  $LIST_PARAMS{DESC}=DESC;
-   }
-
-if ($sessions->{errno})	 {
-	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
- }
-
-
-if ($FORM{rows}) {
-  $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
-  $conf{list_max_recs}=$FORM{rows};
-  $pages_qs .= "&rows=$conf{list_max_recs}";
- }
-
-
-#PEriods totals
-my $list = $sessions->periods_totals({ %LIST_PARAMS });
-my $table = $html->table( { width       => '100%',
-                            title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
-                            cols_align  => ['left', 'right', 'right', 'right', 'right'],
-                            rowcolor    => $_COLORS[1]
-                        } );
-
-for(my $i = 0; $i < 5; $i++) {
-	  $table->addrow("<a href='$SELF_URL?index=$index&period=$i$pages_qs'>$PERIODS[$i]</a>", "$sessions->{'duration_'. $i}",
-	  int2byte($sessions->{'sent_'. $i}), int2byte($sessions->{'recv_'. $i}), int2byte($sessions->{'sum_'. $i}));
- }
-print $table->show();
-
-
-print "<form action=$SELF_URL>
-<input type=hidden name=sid value='$sid'>
-<input type=hidden name=index value='$index'>
-<input type=hidden name=UID value='$UID'>\n";
-
-$table = $html->table( { width       => '640',
-	                       rowcolor    => $_COLORS[0],
-                         title_plain => [ "$_FROM: ", $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES,   } ),
-                                   "$_TO: ", $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES } ),
-                                   "$_ROWS: ",  "<input type=text name=rows value='$conf{list_max_recs}' size=4>",
-                                   "<input type=submit name=show value=$_SHOW>"
-                                    ],                                   
-                                  } );
-print $table->show();
-print "</form>\n";
-
-ipn_stats_calculation($sessions);
-
-if (defined($FORM{show})) {
-  $pages_qs .= "&show=y&fromd=$FORM{fromd}&fromm=$FORM{fromm}&fromy=$FORM{fromy}&tod=$FORM{tod}&tom=$FORM{tom}&toy=$FORM{toy}";
-  $FORM{fromm}++;
-  $FORM{tom}++;
-  $FORM{fromm} = sprintf("%.2d", $FORM{fromm}++);
-  $FORM{tom} = sprintf("%.2d", $FORM{tom}++);
-  $LIST_PARAMS{INTERVAL} = "$FORM{fromy}-$FORM{fromm}-$FORM{fromd}/$FORM{toy}-$FORM{tom}-$FORM{tod}";
- }
-elsif ($FORM{period}) {
-	$LIST_PARAMS{PERIOD} = $FORM{period}; 
-	$pages_qs .= "&period=$FORM{period}";
-}
-
-#Session List
-$list = $sessions->list({ %LIST_PARAMS });	
-
-$table = $html->table( { width       => '640',
-	                       caption     => '',
-	                       rowcolor    => $_COLORS[1],
-                         title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
-                         cols_align  => ['right', 'right', 'right', 'right'],
-                         rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
-                     } );
-print $table->show();	
-
-ipn_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
-}
+#sub ipn_user_stats {
+#	if (! defined($FORM{sort})) {
+#	  $LIST_PARAMS{SORT}=2;
+#	  $LIST_PARAMS{DESC}=DESC;
+#   }
+#
+#print "Content-Typoe: text/html\n\n";
+#
+#if ($sessions->{errno})	 {
+#	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
+# }
+#
+#if ($FORM{rows}) {
+#  $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
+#  $conf{list_max_recs}=$FORM{rows};
+#  $pages_qs .= "&rows=$conf{list_max_recs}";
+# }
+#
+#
+##PEriods totals
+#my $list = $sessions->periods_totals({ %LIST_PARAMS });
+#my $table = $html->table( { width       => '100%',
+#                            title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
+#                            cols_align  => ['left', 'right', 'right', 'right', 'right'],
+#                            rowcolor    => $_COLORS[1]
+#                        } );
+#
+#for(my $i = 0; $i < 5; $i++) {
+#	  $table->addrow($html->button($PERIODS[$i], "index=$index&period=$i$pages_qs"),
+#	  "$sessions->{'duration_'. $i}",
+#	  int2byte($sessions->{'sent_'. $i}), 
+#	  int2byte($sessions->{'recv_'. $i}), 
+#	  int2byte($sessions->{'sum_'. $i}));
+# }
+#print $table->show();
+#
+#$table = $html->table( { width       => '640',
+#	                       rowcolor    => $_COLORS[0],
+#                         title_plain => [ "$_FROM: ", $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'client_stats', WEEK_DAYS => \@WEEKDAYS   } ),
+#                                          "$_TO: ", $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'client_stats', WEEK_DAYS => \@WEEKDAYS } ),
+#                                          "$_ROWS: ",  $html->form_input('rows', "$conf{list_max_recs}", { SIZE => 4 }),
+#                                          $html->form_input('show', $_SHOW, { TYPE => 'submit' })
+#                                    ],                                   
+#                                  } );
+#                                  
+#print $html->form_main({ CONTENT => $table->show(),
+# 	                       HIDDEN  => { index   => "$index",
+# 	                       	            UID     => $UID,
+# 	                       	            sid     => $sid
+# 	                       	            },
+#                         NAME    => 'client_stats',
+#                       });
+#
+#ipn_stats_calculation($sessions);
+#
+#if ($FORM{show}) {
+#  $pages_qs .= "&show=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}";
+#  $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
+# }
+#elsif ($FORM{period}) {
+#	$LIST_PARAMS{PERIOD} = $FORM{period}; 
+#	$pages_qs .= "&period=$FORM{period}";
+#}
+#
+##Session List
+#$list = $sessions->list({ %LIST_PARAMS });	
+#
+#$table = $html->table( { width       => '640',
+#	                       caption     => '',
+#	                       rowcolor    => $_COLORS[1],
+#                         title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC", "$_SUM"],
+#                         cols_align  => ['right', 'right', 'right', 'right'],
+#                         rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, int2byte($sessions->{TRAFFIC}), $sessions->{SUM} ] ],
+#                     } );
+#print $table->show();	
+#
+#ipn_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
+#}
 
 
 
@@ -1161,14 +1149,6 @@ $table = $html->table( { width      => '100%',
 print $table->show();
 }
 
-
-
-
-
-
-
-
-	
 #**********************************************************
 #
 #**********************************************************
@@ -1187,9 +1167,8 @@ sub ipn_form_user {
 sub ipn_user_activate {
   my $nas  = Nas->new($db, \%conf);	
 
-  my $ip = '0.0.0.0';
+  my $ip       = '0.0.0.0';
   my $IP_INPUT = '';
-
   my $Dv = Dv->new($db, $admin, \%conf);  
   $Dv->info( $LIST_PARAMS{UID} );
 
@@ -1213,7 +1192,7 @@ sub ipn_user_activate {
 
 
   my $nas_id = 0; 
-  if (! $user->{UID} && defined ($FORM{NAS_ID}))  {
+  if (! $user->{UID} && $FORM{NAS_ID})  {
     $nas_id=int($FORM{NAS_ID});
    }
   else {
@@ -1271,10 +1250,8 @@ sub ipn_user_activate {
   		$html->message('err', $_ERROR, "[$Ipn->{errno}] $err_strs{$Ipn->{errno}}");
   	 }
   	else {
-
   		$html->message('info', $_INFO, "ALIVED");
   	 } 
-
   	return 0;
    }
   elsif ($FORM{ACTIVE}) {
@@ -1283,11 +1260,8 @@ sub ipn_user_activate {
       $html->message('err', $_ERROR, "Unknown NAS");  	
      }
     else {
-      
-      
       my $user  = $users->info( $LIST_PARAMS{UID} );
       $nas->info({ NAS_ID => $nas_id });
-      
       my %DATA = (ACCT_STATUS_TYPE   => 1, 
                   USER_NAME          => $user->{LOGIN}, 
                   SESSION_START      => 0, 
@@ -1297,10 +1271,9 @@ sub ipn_user_activate {
                   NAS_IP_ADDRESS     => $nas->{NAS_IP},
                   NAS_MNG_USER       => $nas->{NAS_MNG_USER},
                   NAS_MNG_IP_PORT    => $nas->{NAS_MNG_IP_PORT},
-                  TP                 => 0,
+                  TP_ID              => $Dv->{TP_ID},
                   CALLING_STATION_ID => $ip,
                   CONNECT_INFO       => $FORM{CONNECT_INFO},
-                  #UID                => $LIST_PARAMS{UID},
                   UID                => $user->{UID}, 
                   PORT               => 0
                  );
@@ -1313,24 +1286,20 @@ sub ipn_user_activate {
        $html->message('err', $_ERROR, "$RAD_PAIRS->{'Reply-Message'}");
     	 return 0;
      }
-     
-     
-     $Ipn->user_status({ %DATA });
-     $DATA{PORT}=$Ipn->{PORT} || 0;
-     $DATA{FILTER_ID}=$RAD_PAIRS->{'Filter-Id'} || '';
-     
-     ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
 
-     if ($ENV{HTTP_REFERER} && $html->{SID}) {
-       my $red = `echo $ENV{HTTP_REFERER} >> /tmp/redirect`;
-       print "Location: $ENV{HTTP_REFERER}". "\n\n";
-       exit;
-      }
+    $Ipn->user_status({ %DATA });
+    $DATA{PORT}=$Ipn->{PORT} || 0;
+    $DATA{FILTER_ID}=$RAD_PAIRS->{'Filter-Id'} || '';
+    ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
+
+    if ($ENV{HTTP_REFERER} && $html->{SID}) {
+      print "Location: $ENV{HTTP_REFERER}". "\n\n";
+      exit;
+     }
     }
    }
   elsif ($FORM{LOGOUT}) {
-  	 my $user  = $users->info( $LIST_PARAMS{UID} );
-
+  	 my $user = $users->info( $LIST_PARAMS{UID} );
   	 my $list = $sessions->online({ USER_NAME  => $user->{LOGIN},
   	 	                              SESSION_ID => $FORM{SESSION_ID} });
   	 
@@ -1349,7 +1318,6 @@ sub ipn_user_activate {
        $html->message('err', $_NAS, "$nas->{errstr}");
   	   return 0;
       }
-   
 
      if ($nas->{NAS_TYPE} eq 'ipcad') {
    	   ipn_change_status({ STATUS              => 'HANGUP',
@@ -1365,12 +1333,10 @@ sub ipn_user_activate {
        }
      else {
        require "Abills/nas.pl";
-
        my $ret = hangup($nas, "$nas_port_id", "$user_name", 
                                                 { ACCT_SESSION_ID   => "$FORM{SESSION_ID}",
   	                                              FRAMED_IP_ADDRESS => "$FORM{FRAMED_IP_ADDRESS}",
   	                                              UID               => $user->{LOGIN} });
-   	
       }
 
      $html->message('info', $_INFO, "$_DISABLE IP: $ip");
@@ -1399,7 +1365,6 @@ sub ipn_user_activate {
        if ($line->[11] == $LIST_PARAMS{UID}) {
          @ACTION=('LOGOUT', "$_HANGUP");    	
          $HIDDEN{SESSION_ID} = $line->[21];
-         #delete $ACTION{ACTIVE};
          if ($line->[17] == 11) {
        	   $html->message('err', $_ERROR, "$_DISABLE");
        	   return 0;
@@ -1417,10 +1382,9 @@ sub ipn_user_activate {
        $line->[4], 
        int2byte($line->[5]), 
        int2byte($line->[6]),
-       $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]&REMOTE_ADDR=$online_ip&sid=$html->{SID}")
+       $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]&REMOTE_ADDR=$online_ip&sid=$html->{SID}", { BUTTON => 1})
        )  if ($line->[11] == $LIST_PARAMS{UID});
     }
-
     $online_session = $table->show({ OUTPUT2RETURN => 1 });	
    } 
   else {
@@ -1664,20 +1628,15 @@ foreach my $nas_row (@$nas_list) {
       int2byte($line->[6]), 
       $line->[7],
      "$status",
-     "(". $html->button("$_DETAIL", "index=$index&DETAIL=$line->[21]", { TITLE => 'Detail' }) .")",
-     "(". $html->button('P', "index=$index&ping=$ip", { TITLE => 'ping' }) .")",
-     "(". $html->button('H', "index=$index&HANGUP=$ip&SESSION_ID=$line->[9]", { TITLE => 'Hangup' }) .")"
+      $html->button("$_DETAIL", "index=$index&DETAIL=$line->[21]", { TITLE => 'Detail', BUTTON => 1 }),
+      $html->button('P', "index=$index&ping=$ip", { TITLE => 'ping', BUTTON => 1  }),
+      $html->button('H', "index=$index&HANGUP=$ip&SESSION_ID=$line->[9]", { TITLE => 'Hangup', BUTTON => 1  })
      );
 
 
     $num++;
     $DATA_HASH{MONEY}[$num]  = $line->[7];
-    #$DATA_HASH{COMPUTERS}[$num]  = $num;
-    #$DATA_HASH{DURATION}[$num] = time2sec($line->[4]);
     push @X_TEXT,  "$line->[2]:$line->[0]";
-
-
-
   }
 }
 
@@ -1770,8 +1729,8 @@ foreach $line (@$list) {
 	 $line->[1],
 	 $line->[2],
 	 $line->[3],
-	 $html->button($_CHANGE, "index=$index&chg=$line->[4]"),
-	 $html->button($_DEL, "index=$index&$pages_qs&del=$line->[4]", { MESSAGE => "$_DEL '$line->[1]?" })
+	 $html->button($_CHANGE, "index=$index&chg=$line->[4]", { BUTTON => 1 }),
+	 $html->button($_DEL, "index=$index&$pages_qs&del=$line->[4]", { MESSAGE => "$_DEL '$line->[1]?", BUTTON => 1 })
 	);
 }
 print $table->show();
@@ -1839,7 +1798,6 @@ sub ipn_user_add {
      ($comp_number, $comp_name)=split(/:/, $allow_comps{$FORM{IP}}) if ($allow_comps{$FORM{IP}});
 
      if ($FORM{ACTIVATE}) {
-
        my %DATA = (ACCT_STATUS_TYPE  => 1, 
                    USER_NAME         => $LOGIN, 
                    SESSION_START     => 0, 
@@ -1847,7 +1805,7 @@ sub ipn_user_add {
                    FRAMED_IP_ADDRESS => $FORM{IP}, 
                    CONNECT_INFO      => 'ADMIN_ACTIVATE',
                    NAS_ID            => $FORM{NAS_ID},
-                   TP                => $FORM{TP_ID},
+                   TP_ID             => $Dv->{TP_ID},
                    NAS_PORT          => $comp_number,
                    UID               => $UID,
                    FILTER_ID         => "" );
@@ -1982,9 +1940,6 @@ my $table = $html->table( { width       => '400',
    }
 
 	$Dv->info($LIST_PARAMS{UID});
-	
-	
-
 	require Billing;
   Billing->import();
   my $Billing = Billing->new($db, \%conf);
@@ -2397,7 +2352,7 @@ foreach my $line (@$list)   {
                 NAS_IP_ADDRESS     => $nas_info{$nas_id}{NAS_IP_ADDRESS},
                 NAS_MNG_USER       => $nas_info{$nas_id}{NAS_MNG_USER},
                 NAS_MNG_IP_PORT    => $nas_info{$nas_id}{NAS_MNG_IP_PORT} ,
-                TP                 => 0,
+                TP_ID              => $Dv->{TP_ID},
                 CALLING_STATION_ID => $ip,
                 CONNECT_INFO       => $connect_info,
                 UID                => $uid,
