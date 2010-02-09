@@ -3588,7 +3588,7 @@ sub dv_holdup_service {
   my $del_ids = '';
   foreach $line ( @$list ) {
   	$shedule_val{$line->[7]}="$line->[3]-$line->[2]-$line->[1]";
-  	$del_ids .= "$line->[13],";
+  	$del_ids .= "$line->[14],";
    }
   
   chop($del_ids);
@@ -5607,8 +5607,6 @@ if ($FORM{add}) {
    }
 }
 
-
-
 $Dv->{FROM_DATE}=$html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'compensation', WEEK_DAYS => \@WEEKDAYS });
 $Dv->{TO_DATE}=$html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'compensation', WEEK_DAYS => \@WEEKDAYS });
 
@@ -5660,7 +5658,6 @@ elsif ($FORM{shedule}) {
                                             NO_ID       => 1
  	                                        }),
  	                                        $html->form_input('add', $_ADD, { TYPE => 'submit' })
-                                           
                                          ]],                                   
                       });
 
@@ -5701,17 +5698,18 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
                           });
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[13]&UID=$line->[12]", { MESSAGE =>  "$_DEL [$line->[13]]?" }) : '-'; 
+  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE =>  "$_DEL [$line->[13]]?", BUTTON => 1 }) : '-'; 
 
 
   $table->addrow($html->b($line->[0]), $line->[1], $line->[2], 
     $line->[3],  $line->[4],  
-    $html->button($line->[5], "index=15&UID=$line->[12]"), 
+    $html->button($line->[5], "index=15&UID=$line->[13]"), 
     "$line->[6]", 
     ($line->[6] eq 'status') ? $html->color_mark($service_status[$line->[7]], $service_status_colors[ $line->[7]]) : $line->[7], 
     "$line->[8]", 
     "$line->[9]", 
-    "$line->[10]", $delete);
+    "$line->[10]", 
+    $delete);
 }
 
 print $table->show();
@@ -5733,9 +5731,7 @@ sub dv_traffic_classes {
 
   $tariffs->{ACTION}='add';
   $tariffs->{LNG_ACTION}=$_ADD;
- 	
 
-  
   if ($FORM{add}) {
     $tariffs->traffic_class_add({ %FORM });
     if (! $tariffs->{errno}) {
@@ -5796,19 +5792,12 @@ foreach my $line (@$list) {
     "$line->[1]", 
     "$line->[2]", 
     "$line->[3]",  
-    $html->button("$_CHANGE", "index=$index&chg=$line->[0]" ),
-    $html->button("$_DEL", "index=$index&del=$line->[0]",  { MESSAGE => "$_DEL $line->[0]?" })
+    $html->button("$_CHANGE", "index=$index&chg=$line->[0]", { BUTTON => 1 } ),
+    $html->button("$_DEL", "index=$index&del=$line->[0]",  { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
    );
 }
 print $table->show();
-
-#$table = $html->table( { width      => '100%',
-#                         cols_align => ['right', 'right'],
-#                         rows       => [ [ "$_TOTAL:", $html->b($Dv->{TOTAL}) ] ]
-#                        } );
-#print $table->show();
-
-  
+ 
 return 0; 	
 }
 
