@@ -632,8 +632,6 @@ sub session_sum {
    }
  }
 
-
-
 if ($self->{TOTAL_TIME_LIMIT} && $self->{CHECK_SESSION}) {
 	if ($SESSION_DURATION >= $self->{TOTAL_TIME_LIMIT}) {
 		$self->{HANGUP}=1;
@@ -711,7 +709,6 @@ if ($self->{COMPANY_ID} > 0) {
   $sum = $sum + ((100 + $self->{COMPANY_VAT}) / 100) if ($self->{COMPANY_VAT});
 }
 
-
   return $self->{UID}, sprintf("%.6f", $sum), $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
 }
 
@@ -749,15 +746,10 @@ sub time_intervals {
  foreach my $line (@$list) {
    #$time_periods{INTERVAL_DAY}{INTERVAL_START}="INTERVAL_ID:INTERVAL_END";
    $time_periods{$line->[0]}{$line->[1]} = "$line->[5]:$line->[2]";
-
-   #$periods_time_tarif{INTERVAL_ID} = "INTERVAL_PRICE";
    $periods_time_tarif{$line->[5]} = $line->[3];
-
-   # Trffic price
-   
-   $periods_traf_tarif{$line->[5]} = $line->[4]; # if ($line->[4] > 0);
+   # Traffic price
+   $periods_traf_tarif{$line->[5]} = $line->[4]; 
   }
-
 
  return (\%time_periods, \%periods_time_tarif, \%periods_traf_tarif); 
 }
@@ -953,8 +945,6 @@ sub time_calculation() {
  #session devisions
  my @sd = @{ $self->{TIME_DIVISIONS_ARR} };
 
-
-
 if(! defined($self->{NO_TPINTERVALS})) {
   if($#sd < 0) {
    	$self->{errno} = 3;
@@ -963,13 +953,10 @@ if(! defined($self->{NO_TPINTERVALS})) {
 
   foreach my $line (@sd) {
     my ($k, $v)=split(/,/,  $line);
-    if(defined($periods_time_tarif->{$k})) {
+    if($periods_time_tarif->{$k}) {
    	  $sum += ($v * $periods_time_tarif->{$k}) / $PRICE_UNIT;
      }
    }
-
-
-
 }
 
   $sum = $sum * (100 - $attr->{REDUCTION}) / 100 if (defined($attr->{REDUCTION}) && $attr->{REDUCTION} > 0);
@@ -1018,7 +1005,6 @@ sub remaining_time {
   my ($deposit, 
       $attr) = @_;
 
-
   my %ATTR = ();
   my ($session_start,  
       $day_begin,
@@ -1034,9 +1020,6 @@ sub remaining_time {
     );
     $PRICE_UNIT = $PRICE_UNITS{$attr->{PRICE_UNIT}} if  (defined($PRICE_UNITS{$attr->{PRICE_UNIT}}));
    }
-   
-
-  
 
   if (! defined($attr->{SESSION_START})) {
   	 $self->get_timeinfo();
@@ -1086,9 +1069,6 @@ sub remaining_time {
  $session_start = $session_start - $day_begin;
  
  #If use post paid service
- 
-
-
  while(($deposit > 0 || (defined($attr->{POSTPAID}) && $attr->{POSTPAID}>0 )) && $count < 50) {
 
    if ($time_limit != 0 && $time_limit < $remaining_time) {
@@ -1120,7 +1100,6 @@ sub remaining_time {
   # Time check
   # $session_start
      $count++;
-
      my $cur_int = $time_intervals->{$tarif_day};
      my $i;
      my $prev_tarif = '';
@@ -1200,8 +1179,6 @@ sub remaining_time {
               #Traffic tarif price
               $traf_price = $periods_traf_tarif->{$int_id};
              }
-
-            
             # 20.01.2007
             #$remaining_time += $int_duration;
             if ($price > 0) {
@@ -1233,26 +1210,21 @@ sub remaining_time {
             $deposit -= ($int_duration / $PRICE_UNIT * $price);
             $session_start += $int_duration;
             $remaining_time += $int_duration;
-            #print "DP $deposit ($int_prepaid > $int_duration) $session_start\n";
            }
           elsif($int_prepaid <= $int_duration) {
             $deposit =  0;    	
             $session_start += int($int_prepaid);
             $remaining_time += int($int_prepaid);
-            #print "DL '$deposit' ($int_prepaid <= $int_duration) $session_start\n";
            }
-
         }
        elsif($i == $#intervals) {
-       	  print "!! LAST@@@@ $i == Interval counts: $#intervals\n" if ($debug == 1);
+       	  print "!! LAST@@@@ $i == Interval counts: $#intervals\n" if ($debug > 1);
        	  $prev_tarif = "$tarif_day:$int_begin";
-
-
 
        	  if (defined($time_intervals->{0}) && $tarif_day != 0) {
        	    $tarif_day = 0;
        	    $cur_int   = $time_intervals->{$tarif_day};
-       	    print "Go to TIME_INTERVALS\n" if ($debug == 1);
+       	    print "Go to TIME_INTERVALS\n" if ($debug > 1);
        	    goto TIME_INTERVALS;
        	   }
        	  elsif($session_start < 86400) {
@@ -1319,7 +1291,6 @@ sub expression {
     my %ex = ();
     my $counters;
 
-
     while(my($id, $expresion_text) = each %{ $expr } ) {
   	  $expresion_text =~ s/\n|[\r]//g;
   	  my @expresions_array = split(/;/, $expresion_text);
@@ -1349,7 +1320,6 @@ sub expression {
             	 }
              }
 
-  	      	
             if ($self->{PERIOD_TRAFFIC}) {
             	$counters = $self->{PERIOD_TRAFFIC};
              }
@@ -1360,7 +1330,6 @@ sub expression {
   	      	  	                                       UIDS   => $attr->{UIDS},
      	                                                 PERIOD => $start_period,
      	                                                 TRAFFIC_CLASS => $attr->{TRAFFIC_CLASS}
-     	                                                 
    	                                                }); 
   	      	     }	
   	      	    else {	
@@ -1381,8 +1350,7 @@ sub expression {
              }
 
            	$counters->{$ex{ARGUMENT}}=0 if (! $counters->{$ex{ARGUMENT}});
-           	
-            
+
             if($ex{EXPR} eq '<' && $counters->{$ex{ARGUMENT}}  <=  $ex{PARAMETER}) {
              	print "EXPR: $ex{EXPR} RES: $ex{ARGUMENT} RES VAL: $counters->{$ex{ARGUMENT}}\n" if ($debug > 0);
              	$RESULT = get_result($right);
@@ -1399,7 +1367,6 @@ sub expression {
             	last if ($ex{ARGUMENT} !~ /SESSION/);
              }
   	       }
-
         }
       }
     }
@@ -1416,11 +1383,9 @@ sub get_result {
 
   my %RESULT = ();
   my @right_arr=split(/,/, $right);
-  #print "RESULTS: " if ($debug > 0) ;
   foreach my $line (@right_arr) {
     if ($line =~ /([A-Z0-9_]+):([0-9\.]+)/) {
  	    $RESULT{$1}=$2;
-      #print "$1/$RESULT{$1}\n" if ($self->{debug} > 0) ;
  	   }
 	 }
 

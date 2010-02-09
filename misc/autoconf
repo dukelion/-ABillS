@@ -466,11 +466,16 @@ sub check_install {
     #Check params
     if ($params) {
     	my $skip=0;
-      
       my @params_arr = split(/,/, $params);
       foreach my $param ( @params_arr ) {
         my ($param_name2, $param_value2)=split(/=/, $param, 2);
-        if (! defined($ARGV->{$param_name2}) || $ARGV->{$param_name2} ne $param_value2) {
+        if ( $param_name2 =~ /^!(.+)/) {
+        	 $param_name2 = $1;
+        	 if (defined($ARGV->{$param_name2}) && $ARGV->{$param_name2} eq $param_value2) {
+        	   $skip=1;	
+        	  }
+         }
+        elsif (! defined($ARGV->{$param_name2}) || $ARGV->{$param_name2} ne $param_value2) {
         	$skip=1;
         	last;
          }
@@ -482,7 +487,6 @@ sub check_install {
          	 }
          }
        }
-
       next if ($skip);
      }
 
