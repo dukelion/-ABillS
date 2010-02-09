@@ -1386,7 +1386,7 @@ sub check_mikro {
       my $ret = hangup(\%NAS, "0", "$user", { ACCT_SESSION_ID   => "",
         	                                    FRAMED_IP_ADDRESS => $ip
         	                                   });
-      print "Hangup '$user' IP: $ip Uptime: Session-ID: NAS_ID: $NAS{NAS_ID}\n"; 
+      print "Hangup '$user' IP: $ip Uptime: $uptime Session-ID: NAS_ID: $NAS{NAS_ID}\n"; 
      }
   }  	
 	print $debug_output;
