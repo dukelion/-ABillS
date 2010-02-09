@@ -79,7 +79,7 @@ $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 
 my $default_alive_interval = 120;
 my $exppp_hanguplimit = 3500000000;
-my $error_alive_count = $conf{ERROR_ALIVE_COUNT} || 5;
+my $error_alive_count = $conf{ERROR_ALIVE_COUNT} || 3;
 
 
 if ($admin->{errno}) {
@@ -276,7 +276,7 @@ sub check_lines {
            $ACCT_INFO->{OUTBYTE2}             = $acct_output_octets_ext;
            $ACCT_INFO->{ACCT_STATUS_TYPE}     = 'Stop';
            $ACCT_INFO->{ACCT_SESSION_TIME}    = $acct_session_time;
-           $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
+           $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 2;
 
            my $r = $Acct->accounting($ACCT_INFO, \%NAS);
            my $info = '';
@@ -304,7 +304,7 @@ sub check_lines {
            next;
           }
          else {
-           print "Error: Lost Alive / Login: $user_name, Last Alive: $last_alive, Session-ID: $acct_session_id\n"; # if ( $debug == 1 );
+           print "Error: Lost Alive / Login: $user_name, Last Alive: $last_alive, Session-ID: $acct_session_id NAS: $NAS{NAS_ID}/$NAS{NAS_IP}\n"; # if ( $debug == 1 );
            $sessions->zap($nas_row->[0], $nas_port_id, $acct_session_id);
           }
        } 
@@ -1386,7 +1386,7 @@ sub check_mikro {
       my $ret = hangup(\%NAS, "0", "$user", { ACCT_SESSION_ID   => "",
         	                                    FRAMED_IP_ADDRESS => $ip
         	                                   });
-      print "Hangup '$user' IP: $ip Uptime: $uptime Session-ID: NAS_ID: $NAS{NAS_ID}\n"; 
+      print "Hangup '$user' IP: $ip Uptime: $uptime Session-ID: NAS: $NAS{NAS_ID}/$NAS{NAS_IP}\n"; 
      }
   }  	
 	print $debug_output;
