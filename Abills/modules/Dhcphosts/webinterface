@@ -1272,6 +1272,7 @@ my %DHCP_MESSAGE_TYPES = (
  );
 
 %DHCP_MESSAGE_TYPES_REV = reverse %DHCP_MESSAGE_TYPES;
+
 	 my $list = $Dhcphosts->log_list({ %LIST_PARAMS });
    my $table = $html->table({ width    => '100%',
                      			  caption    => "$_LOG",

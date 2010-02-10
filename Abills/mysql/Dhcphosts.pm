@@ -1011,12 +1011,6 @@ sub log_list {
  my $self = shift;
  my ($attr) = @_;
 
- $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- $PG = ($attr->{PG}) ? $attr->{PG} : 0;
- $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
-
-
  @WHERE_RULES = ();
  $self->{SEARCH_FIELDS}='';
  $self->{SEARCH_FIELDS_COUNT} = 0;
@@ -1035,6 +1029,11 @@ sub log_list {
     }
    $self->{IDS}=\@ids;
   }
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  if ($attr->{ID}) {
    push @WHERE_RULES, "l.id='$attr->{ID}'"; 
