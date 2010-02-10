@@ -1278,25 +1278,25 @@ sub ipn_user_activate {
                   PORT               => 0
                  );
 
-    my $Auth = Auth->new($db, \%conf);
-    my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $nas, { SECRETKEY => $conf{secretkey}
+      my $Auth = Auth->new($db, \%conf);
+      my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $nas, { SECRETKEY => $conf{secretkey}
                                       } );
 
-    if ($r == 1) {
-       $html->message('err', $_ERROR, "$RAD_PAIRS->{'Reply-Message'}");
-    	 return 0;
-     }
+      if ($r == 1) {
+        $html->message('err', $_ERROR, "$RAD_PAIRS->{'Reply-Message'}");
+       }
+      else {
+        $Ipn->user_status({ %DATA });
+        $DATA{PORT}=$Ipn->{PORT} || 0;
+        $DATA{FILTER_ID}=$RAD_PAIRS->{'Filter-Id'} || '';
+        ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
 
-    $Ipn->user_status({ %DATA });
-    $DATA{PORT}=$Ipn->{PORT} || 0;
-    $DATA{FILTER_ID}=$RAD_PAIRS->{'Filter-Id'} || '';
-    ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
-
-    if ($ENV{HTTP_REFERER} && $html->{SID}) {
-      print "Location: $ENV{HTTP_REFERER}". "\n\n";
-      exit;
+        if ($ENV{HTTP_REFERER} && $html->{SID}) {
+          print "Location: $ENV{HTTP_REFERER}". "\n\n";
+          exit;
+         }
+       }
      }
-    }
    }
   elsif ($FORM{LOGOUT}) {
   	 my $user = $users->info( $LIST_PARAMS{UID} );
@@ -1356,7 +1356,8 @@ sub ipn_user_activate {
                             cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                             qs          => $pages_qs,
                             ID          => 'IPN_ONLINE'
-                               } );
+                          } );
+
   foreach my $line (@$list) {
     my $online_ip = int2ip($line->[3]);
     $online_ips{$ip}=1;
