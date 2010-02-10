@@ -133,9 +133,6 @@ sub user_ips {
 		  and dv.ip > 0 and u.disable=0 and dv.disable=0
 		  and (un.nas_id IN ($DATA->{NAS_ID}) or un.nas_id IS NULL)
 		 GROUP BY u.uid;";
-		  
-		
-		  
    }
   elsif ( $CONF->{IPN_DEPOSIT_OPERATION} ) {
   	$sql="select u.uid, calls.framed_ip_address, calls.user_name,
