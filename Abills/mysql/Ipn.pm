@@ -93,9 +93,6 @@ sub user_status {
  my ($DATA) = @_;
 
  my $SESSION_START = 'now()';
-
- $self->{debug}=1;
-
  my $sql = "INSERT INTO dv_calls
    (status, 
     user_name, 

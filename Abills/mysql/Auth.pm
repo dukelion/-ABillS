@@ -297,21 +297,22 @@ if ($self->{PORT} > 0 && $self->{PORT} != $RAD->{NAS_PORT}) {
 
 #Check  simultaneously logins if needs
 if ($self->{LOGINS} > 0) {
-  $self->query($db, "SELECT CID, acct_input_octets+acct_output_octets FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2 and status < 10);");
+  $self->query($db, "SELECT CID, acct_input_octets+acct_output_octets FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2 and status < 11);");
+
   my($active_logins) = $self->{TOTAL};
   foreach my $line (@{ $self->{list} }) {
+  	# Zap session with same CID
   	if ($line->[0] ne '' && $line->[0] eq $RAD->{CALLING_STATION_ID} && $line->[1] == 0) {
   		$self->query($db, "UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$RAD->{CALLING_STATION_ID}' and status <> 2;", 'do');
   		$active_logins--;
   	 }
    }
-  
+
   if ($active_logins >= $self->{LOGINS}) {
     $RAD_PAIRS->{'Reply-Message'}="More then allow login ($self->{LOGINS}/$self->{TOTAL})";
     return 1, $RAD_PAIRS;
    }
 }
-
 
 my @time_limits = ();
 my $remaining_time=0;
@@ -321,7 +322,6 @@ my $ATTR;
 if ($self->{PAYMENT_TYPE} == 0) {
   #if not defined user credit use TP credit
   $self->{CREDIT} = $self->{TP_CREDIT} if ($self->{CREDIT} == 0 && ! $CONF->{user_credit_change});
-
   $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
 
   #Check EXT_BILL_ACCOUNT
