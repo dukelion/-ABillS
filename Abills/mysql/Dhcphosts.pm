@@ -993,12 +993,14 @@ sub log_del {
   my $uid;
   my $action; 
 
-  if ($attr->{DATE}) {
+  if ($attr->{DAYS_OLD}) {
+  	$WHERE = "datetime < curdate() - INTERVAL $attr->{DAYS_OLD} day";
+   } 
+  elsif ($attr->{DATE}) {
   	$WHERE = "datetime='$attr->{DATETIME}'";
    }
 
   $self->query($db, "DELETE FROM dhcphosts_log where $WHERE", 'do');
-
   $admin->system_action_add("DHCPLOG", { TYPE => 10 }); 
   return $self;
 };

@@ -14,7 +14,7 @@
                    );
 
 %PERIODIC = (
-              daily   => [ 'dhcphosts_periodic', 'dhcphosts_mac_block_make' ]
+              daily   => [ 'dhcphosts_periodic', 'dhcphosts_mac_block_make', 'dhcphosts_log_clean' ]
              );
 
 1
