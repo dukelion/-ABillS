@@ -57,7 +57,6 @@ sub traffic_calculations {
   
 ####################################################################
 # Prepaid local and global traffic separately
-
 my %traf_price  = ();
 my %prepaid     = ( 0 => 0, 
                     1 => 0);
@@ -657,7 +656,7 @@ if ($self->{TOTAL_TRAF_LIMIT} && $self->{CHECK_SESSION}) {
                          $self->{DAY_BEGIN},
                          $self->{DAY_OF_WEEK}, 
                          $self->{DAY_OF_YEAR},
-                         { TP_NUM => $self->{TP_NUM},
+                         { 
                          	 TP_ID  => $self->{TP_ID} 
                          	 }
                         );
@@ -774,11 +773,11 @@ sub session_splitter {
  my $debug = $self->{debug} || 0;
  my @division_time_arr = ();
 
- if (defined($attr->{TP_ID})) {
+ if ($attr->{TP_ID}) {
    ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $self->time_intervals($attr->{TP_ID});
   }
  else {
-   $time_intervals      = $attr->{TIME_INTERVALS}  if (defined($attr->{TIME_INTERVALS}));
+   $time_intervals      = $attr->{TIME_INTERVALS}     if (defined($attr->{TIME_INTERVALS}));
    $periods_time_tarif  = $attr->{PERIODS_TIME_TARIF} if (defined($attr->{PERIODS_TIME_TARIF}));
    $periods_traf_tarif  = $attr->{PERIODS_TIME_TARIF} if (defined($attr->{PERIODS_TRAF_TARIF}));
  }
@@ -901,9 +900,7 @@ if ($debug == 1) {
         print "\n" if($debug == 1);    
       }
   }
- 
 
- 
  $self->{TIME_DIVISIONS_ARR} = \@division_time_arr;
  $self->{SUM}=0;
  

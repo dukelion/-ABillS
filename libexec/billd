@@ -1134,8 +1134,7 @@ sub check_speed_change {
 #**********************************************************
 sub check_pptpd {
   my ($attr) = @_;
-  
-  #my $ps = 'ps axj | grep pp';
+
   my $ps = 'ps axj';
   my %procs_hash = ();
   open(PROCS, "$ps |") || die "Can't open file '$ps' $!\n";
@@ -1175,8 +1174,26 @@ sub check_ifaces {
   my $ip_pid_hash = get_if_info($attr);
   get_db_info($ip_pid_hash);
 
+  my %NAS       = ();
+  if ($ARGV->{NAS_IDS}) {
+    my $list = $nas->list({ NAS_IDS => $ARGV->{NAS_IDS} });
+    foreach my $line (@$list) {
+      $debug_output .= "NAS ID: $line->[0] MNG_INFO: $line->[10]\@$line->[9] $line->[12]\n" if ($debug > 2);
+      $NAS{NAS_ID}    = $line->[0];
+      $NAS{NAS_IP}    = $line->[3];
+      $NAS{NAS_TYPE}  = $line->[4];
+      $NAS{NAS_ALIVE} = $line->[8] || 0;
+      $NAS{NAS_MNG_IP_PORT}  = $line->[9];
+      $NAS{NAS_MNG_USER}     = $line->[10]; 
+      $NAS{NAS_MNG_PASSWORD} = $line->[11]; 
+      if ($NAS{NAS_MNG_USER} eq '') {
+      	$debug_output .= "Skiped Not defined control user NAS_ID: $NAS{NAS_ID}\n" if ($debug > 1);
+      	next;
+       }
+    }
+  }
 
-  my $unallow_ips = 0;
+my $unallow_ips = 0;
 while(my($ip_address, $info)=each %$ip_pid_hash) {
   my($pid, $iface)=split(/:/, $info, 2);
   if ($conf{DV_PPP_UNCHECKED}) {
@@ -1185,9 +1202,10 @@ while(my($ip_address, $info)=each %$ip_pid_hash) {
   
   my $res = '';  
   if ($attr->{MPD}) {
-  	
-  	
-  	$res = `/usr/sbin/ngctl shutdown ng$iface:` if ($debug < 3);
+     my $ret = hangup(\%NAS, "0", "", { ACCT_SESSION_ID   => "",
+       	                                FRAMED_IP_ADDRESS => $ip_address,
+       	                                IFACE             => "ng$iface"
+        	                                   });
    }
   elsif ($pid > 0) {
     $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete down`;
@@ -1307,8 +1325,6 @@ else {
         }
       elsif ($line =~ /PID (\d+)/gi) {
          $pid = $1;
-         #chomp($pid);
-         #chop($pid);
        }
      }
 
