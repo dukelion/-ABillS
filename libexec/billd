@@ -212,7 +212,6 @@ sub check_lines {
     $NAS{NAS_MNG_PASSWORD} = $nas_row->[11]; 
     $NAS{NAS_EXT_ACCT}     = $nas_row->[13];
 
-    
     foreach my $line (@$l) {
     	my $user_name               = $line->[0];
     	my $nas_port_id             = $line->[2];
@@ -813,7 +812,7 @@ if ($conf{ng_car}) {
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
   	 $debug_outputs = "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
 
-     if ($JOIN_SERVICE > 0) {
+     if ($JOIN_SERVICE) {
 
       }
      #No shaper definition
@@ -1203,6 +1202,8 @@ print "Unallow ips: $unallow_ips\n" if ($debug > 1);
 #**********************************************************
 sub get_db_info {
  my ($ip_pid_hash) = @_;
+ 
+ $sessions->{debug}=1;
  my $list = $sessions->online({ FIELDS => [3] });	
  foreach my $line (@$list) {
  	 my $ip = int2ip("$line->[0]");

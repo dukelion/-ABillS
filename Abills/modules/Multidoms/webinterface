@@ -384,7 +384,7 @@ elsif ($FORM{FILE_UPLOAD}) {
   $FORM{FILE_UPLOAD}{filename} =~ s/[^$safe_filename_characters]//g; 
   
   
-  if ($FORM{FILE_UPLOAD}{filename} !~ /(swf|css|js|png|gif|jpg)$/i) {
+  if ($FORM{FILE_UPLOAD}{filename} !~ /(swf|css|js|png|gif|jpg|htc)$/i) {
   	$html->message('err', $_ERROR, "$ERR_WRONG_FILE_NAME '$FORM{FILE_UPLOAD}{filename}'");
    }
   else {
