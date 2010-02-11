@@ -143,7 +143,7 @@ if ($attr->{Bind}) {
 
  }
 
-if (defined($type) && $type eq 'do') {
+if ($type && $type eq 'do') {
 #  print $query;
   $q = $db->do($query, undef, @Array);
   if (defined($db->{'mysql_insertid'})) {
@@ -163,7 +163,7 @@ else {
   
   if ($attr->{MULTI_QUERY}) {
     foreach my $line ( @{ $attr->{MULTI_QUERY} } ) {
-      $q ->execute( @$line );
+      $q->execute( @$line );
       if($db->err) {
         $self->{errno} = 3;
 
@@ -175,7 +175,7 @@ else {
      }
    }
   else {
-    $q ->execute();
+    $q->execute();
     if($db->err) {
       $self->{errno} = 3;
 
@@ -186,9 +186,7 @@ else {
      }
     $self->{TOTAL} = $q->rows;
   }
-
   $self->{Q}=$q;
-
 #  $self->{NUM_OF_FIELDS} = $q->{NUM_OF_FIELDS};
 }
 
@@ -209,9 +207,20 @@ if($db->err) {
 
 if ($self->{TOTAL} > 0) {
   my @rows;
-  while(my @row = $q->fetchrow()) {
-    push @rows, \@row;
-  }
+  
+#  if ($type && $type eq 'fields_list') {
+#    my @rows_h = ();
+#    while(my $row_hashref = $q->fetchrow_hashref()) {
+#      push @rows_h, $row_hashref;
+#     }
+#  	$self->{list_hash} = \@rows_h;
+#   }
+#  else {
+    while(my @row = $q->fetchrow()) {
+      push @rows, \@row;
+     }
+#   }
+ 
   $self->{list} = \@rows;
  }
 else {

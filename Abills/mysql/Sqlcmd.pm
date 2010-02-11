@@ -41,10 +41,6 @@ sub info {
   my ($attr) = @_;
 
  my $list;
- 
-# $attr->{fields}='' if (! $attr->{fields});
-# my @fields = split(/, /, $attr->{fields});
- 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 0;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  my $DATE = $attr->{DATE} || '0000-00-00';
@@ -100,9 +96,7 @@ sub info {
         my @res = $q->fetchrow();
         $Rows_hash{"$names->[$i]"}="$res[2] / $res[3]";
       }
-      
       push @rows, \%Rows_hash;
-
     }
 
 
@@ -110,16 +104,13 @@ sub info {
     $list = \@rows;
     #show indexes
     # SHOW INDEX FROM $row_array[0];
-
     return $list;
   }
  elsif ($type eq 'showtriggers') {
     $self->query($db, "SHOW TRIGGERS");
- 	      
  	  return $self->{list}     
   }
 
-  
   return $self;
 }
 
@@ -204,8 +195,6 @@ foreach my $query (@QUERY_ARRAY) {
   push @{ $self->{EXECUTED_QUERY} }, $query;
 }
  
- #$self->query($db, "$attr->{QUERY};");
-
   $admin->system_action_add("SQLCMD:$attr->{QUERY}", { TYPE => 1 });    
   my $list = \@rows;
   return $list;
