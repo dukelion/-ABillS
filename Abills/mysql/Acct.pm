@@ -31,9 +31,6 @@ my %ACCT_TYPES = ('Start'          => 1,
                   ); 
 
 
-
-
-
 #**********************************************************
 # Init 
 #**********************************************************
@@ -67,7 +64,8 @@ sub accounting {
  if (length($RAD->{ACCT_SESSION_ID}) > 25) {
    $RAD->{ACCT_SESSION_ID} = substr($RAD->{ACCT_SESSION_ID}, 0, 24);
   }
- 
+
+#Call back function
 if ($RAD->{USER_NAME} =~ /(\d+):(\S+)/) {
   $RAD->{USER_NAME}=$2;
   $RAD->{CALLING_STATION_ID}=$1;

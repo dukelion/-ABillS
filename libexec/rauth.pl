@@ -240,9 +240,7 @@ else {
    $GT = sprintf(" GT: %2.5f", $gen_time);
   }
 
-
   my $CID = ($RAD->{CALLING_STATION_ID}) ? " CID: $RAD->{CALLING_STATION_ID} " : '';
-
   $log_print->('LOG_INFO', $RAD->{USER_NAME}, "$CID$GT", { NAS => $nas});
   return $r;
 }
