@@ -875,14 +875,13 @@ if ($conf{ng_car}) {
   	 	       	  my $tp_speed_out = $speeds{$TP}{OUT}{$class_id} || 0;
   	 	       	  $tp_speed_in     = 0 if (! $tp_speed_in);
 
-  	 	       	  my $info = "  Class: $class_id ng_car_speed: ".
-  	 	       	  (($LOGINS_SPEEDS{$user}{$class_id}{IN}) ? $LOGINS_SPEEDS{$user}{$class_id}{IN} : 'not set') .
-  	 	       	  '/'.
-  	 	       	  (($LOGINS_SPEEDS{$user}{$class_id}{OUT}) ? $LOGINS_SPEEDS{$user}{$class_id}{OUT} : 'not set' ). 
-  	 	       	  " Speed: $tp_speed_in/$tp_speed_out\n";
+                $LOGINS_SPEEDS{$user}{$class_id}{IN} = 0 if (! $LOGINS_SPEEDS{$user}{$class_id}{IN});
+                $LOGINS_SPEEDS{$user}{$class_id}{OUT} = 0 if (! $LOGINS_SPEEDS{$user}{$class_id}{OUT});
 
-  	 	       	  if ((! $LOGINS_SPEEDS{$user}{$class_id}{IN} && $tp_speed_in > 0)
-  	 	       	   || $LOGINS_SPEEDS{$user}{$class_id}{IN} != $tp_speed_in) {
+  	 	       	  my $info = "  Class: $class_id ng_car_speed: $LOGINS_SPEEDS{$user}{$class_id}{IN}/".
+  	 	       	  "$LOGINS_SPEEDS{$user}{$class_id}{OUT} Speed: $tp_speed_in/$tp_speed_out\n";
+
+  	 	       	  if ($LOGINS_SPEEDS{$user}{$class_id}{IN} != $tp_speed_in) {
                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
                   	 NAS_TYPE => $NAS_TYPE,
                   	 debug    => ( $debug > 1) ? ' debug' : undef });
@@ -890,8 +889,7 @@ if ($conf{ng_car}) {
                   $changed = 1; 
                   $debug_outputs .= " [Changed] ". $info;
   	 	           }
-                elsif ((! $LOGINS_SPEEDS{$user}{$class_id}{OUT} && $tp_speed_out > 0)
-                  || $LOGINS_SPEEDS{$user}{$class_id}{OUT} != $tp_speed_out) {
+                elsif ($LOGINS_SPEEDS{$user}{$class_id}{OUT} != $tp_speed_out) {
                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
                   	 NAS_TYPE => $NAS_TYPE,
                   	 debug    => ( $debug > 1) ? ' debug' : undef });
