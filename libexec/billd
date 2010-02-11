@@ -652,9 +652,7 @@ else {
 		               } );	
 
 	my $online     = $sessions->{nas_sorted};
-	
-	
-  my $nas_list   = $nas->list({ %LIST_PARAMS  });
+  my $nas_list   = $nas->list({ %LIST_PARAMS });
   my %USER_IFACES= ();
   my %TP_HASH    = ();
 
@@ -698,7 +696,6 @@ else {
   my $tp_list = $tariffs->list({ MODULE => 'Dv',  
   	                             #TP_ID => join(';',  keys %TP_HASH) 
   	                            });
-  
   my @FW_ACTIONS = ();
 
   if ($ARGV->{RECONFIGURE}) {
@@ -884,7 +881,8 @@ if ($conf{ng_car}) {
   	 	       	  (($LOGINS_SPEEDS{$user}{$class_id}{OUT}) ? $LOGINS_SPEEDS{$user}{$class_id}{OUT} : 'not set' ). 
   	 	       	  " Speed: $tp_speed_in/$tp_speed_out\n";
 
-  	 	       	  if (! $LOGINS_SPEEDS{$user}{$class_id}{IN} || $LOGINS_SPEEDS{$user}{$class_id}{IN} != $tp_speed_in) {
+  	 	       	  if ((! $LOGINS_SPEEDS{$user}{$class_id}{IN} && $tp_speed_in > 0)
+  	 	       	   || $LOGINS_SPEEDS{$user}{$class_id}{IN} != $tp_speed_in) {
                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
                   	 NAS_TYPE => $NAS_TYPE,
                   	 debug    => ( $debug > 1) ? ' debug' : undef });
@@ -892,7 +890,8 @@ if ($conf{ng_car}) {
                   $changed = 1; 
                   $debug_outputs .= " [Changed] ". $info;
   	 	           }
-                elsif (! $LOGINS_SPEEDS{$user}{$class_id}{OUT} || $LOGINS_SPEEDS{$user}{$class_id}{OUT} != $tp_speed_out) {
+                elsif ((! $LOGINS_SPEEDS{$user}{$class_id}{OUT} && $tp_speed_out > 0)
+                  || $LOGINS_SPEEDS{$user}{$class_id}{OUT} != $tp_speed_out) {
                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
                   	 NAS_TYPE => $NAS_TYPE,
                   	 debug    => ( $debug > 1) ? ' debug' : undef });
