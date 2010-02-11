@@ -237,7 +237,7 @@ else {
    Time::HiRes->import(qw(gettimeofday));
    my $end_time = gettimeofday();
    my $gen_time = $end_time - $begin_time;
-   $GT = ''; #sprintf(" GT: %2.5f", $gen_time);
+   $GT = sprintf(" GT: %2.5f", $gen_time);
   }
 
 
