@@ -161,7 +161,6 @@ sub online {
 
   	$self->query($db, "SELECT  count(*) FROM dv_calls c $WHERE;");
     $self->{TOTAL} = $self->{list}->[0][0];
-
   	return $self;
    }
 
@@ -263,7 +262,6 @@ sub online {
    }
 
   my $RES_FIELDS_COUNT = $#RES_FIELDS;
- 
 
   if ($attr->{FIELDS_NAMES}) {
   	$fields='';
@@ -274,7 +272,6 @@ sub online {
   	 }
     $RES_FIELDS_COUNT--;
    }
-
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
