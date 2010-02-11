@@ -229,9 +229,9 @@ sub online {
    JOIN_SERVICE    => 'c.join_service',
 
    PHONE           => 'pi.phone',
-   CLIENT_IP       => 'INET_NTOA(c.framed_ip_address)',
+   CLIENT_IP       => 'INET_NTOA(c.framed_ip_address) AS client_ip',
    UID             => 'u.uid',
-   NAS_IP          => 'INET_NTOA(c.nas_ip_address)',
+   NAS_IP          => 'INET_NTOA(c.nas_ip_address) AS nas_ip',
    DEPOSIT         => 'if(company.name IS NULL, b.deposit, cb.deposit)',
    CREDIT          => 'if(u.company_id=0, u.credit, if (u.credit=0, company.credit, u.credit))',
    STARTED         => 'if(date_format(c.started, "%Y-%m-%d")=curdate(), date_format(c.started, "%H:%i:%s"), c.started)',
@@ -324,12 +324,9 @@ sub online {
  	 push @WHERE_RULES, "dv.tp_id='$attr->{TP_ID}'";
   }
 
- 
-
  if ($attr->{NAS_ID}) {
  	 push @WHERE_RULES, "nas_id IN ($attr->{NAS_ID})";
-  }
- 
+  } 
  
  if ($attr->{FILTER}) {
  	 my $filter_field = '';
@@ -372,7 +369,7 @@ sub online {
  LEFT JOIN bills cb ON (company.bill_id=cb.id)
 
  $WHERE
- ORDER BY $SORT $DESC;");
+ ORDER BY $SORT $DESC;", 'fields_list');
 
  my %dub_logins = ();
  my %dub_ports  = ();
