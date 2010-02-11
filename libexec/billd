@@ -538,8 +538,6 @@ sub check_speed {
    }
 
 	my %LOGINS_SPEEDS = ();
-
-
   my %rule_speed = ();
   my %pipe_rules = ();
   
@@ -550,7 +548,12 @@ if ($conf{ng_car}) {
       while(<PROCS>) {
 		    if (/\s+Name: (class[\d+])_([a-zA-Z_0-9]+)/) {
 		      my $class = $1;
-		      my $login   = $2;	
+		      my $login = $2;	
+
+		      if ($ARGV->{LOGINS} && $ARGV->{LOGINS} ne $login) {
+		      	 next;
+		       }
+
 		      print "Login: $login ($class". "_$login)\n" if ($debug > 1);
 
 		      $class =~ /(\d+)$/;
@@ -645,6 +648,11 @@ else {
 		               } );	
 
 	my $online     = $sessions->{nas_sorted};
+	
+	if ($ARGV->{LOGINS}) {
+		$LIST_PARAMS{USER_NAME}=$ARGV->{LOGINS};
+	 }
+	
   my $nas_list   = $nas->list({ %LIST_PARAMS  });
   my %USER_IFACES= ();
   my %TP_HASH    = ();
