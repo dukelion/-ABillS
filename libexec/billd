@@ -635,6 +635,10 @@ else {
   #Get online users                             
   $sessions->{debug}=1 if ($debug > 4);
 
+	if ($ARGV->{LOGINS}) {
+		$LIST_PARAMS{USER_NAME}=$ARGV->{LOGINS};
+	 }
+
 	$sessions->online( { %LIST_PARAMS, 
 		                   NAS_ID  => $ARGV->{NAS_IDS}, 
 		                   FIELDS_NAMES => [ 'USER_NAME', 
@@ -649,9 +653,6 @@ else {
 
 	my $online     = $sessions->{nas_sorted};
 	
-	if ($ARGV->{LOGINS}) {
-		$LIST_PARAMS{USER_NAME}=$ARGV->{LOGINS};
-	 }
 	
   my $nas_list   = $nas->list({ %LIST_PARAMS  });
   my %USER_IFACES= ();
@@ -820,11 +821,12 @@ if ($conf{ng_car}) {
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
   	 $debug_outputs = "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
 
-     if ($JOIN_SERVICE) {
+     if ($JOIN_SERVICE > 0) {
 
       }
      #No shaper definition
-     elsif (! $LOGINS_SPEEDS{$user} && ( $SPEED > 0 || $SPEED != $LOGINS_SPEEDS{$user}{0}{IN} || $SPEED != $LOGINS_SPEEDS{$user}{0}{OUT} )) {
+     elsif (! $LOGINS_SPEEDS{$user} &&  $SPEED > 0 || 
+      ($SPEED > 0 && ($SPEED != $LOGINS_SPEEDS{$user}{0}{IN} || $SPEED != $LOGINS_SPEEDS{$user}{0}{OUT}))) {
         $debug_outputs .= "  ! Speed not defined. Set speed\n";	
         $changed = 1;
         $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
