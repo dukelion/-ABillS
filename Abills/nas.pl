@@ -751,6 +751,11 @@ sub hangup_mpd5 {
                 "\] \tclose",
                 "\] \texit");
 
+
+  if ($attr->{IFACE}) {
+  	$commands[3]="\\[\\] \tiface $attr->{IFACE}";
+   }
+
   my $result = telnet_cmd("$NAS->{NAS_MNG_IP_PORT}", \@commands, { debug => 1 });
 
   return $result;
