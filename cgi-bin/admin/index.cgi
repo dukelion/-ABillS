@@ -2212,7 +2212,7 @@ sub form_changes {
                    10 => "$_DELETED",
                    11 => '',
                    12 => "$_DELETED $_USER",
-                   13 => "Online $_DELETE",
+                   13 => "Online $_DELETED",
                    14 => "$_HOLD_UP",
                    15 => "$_HANGUP");
  

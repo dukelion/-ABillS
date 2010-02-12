@@ -364,8 +364,6 @@ sub changes {
      }
    }
 
-
-
   $OLD_DATA = $attr->{OLD_INFO}; #  $self->info($uid);
   if($OLD_DATA->{errno}) {
      $self->{errno}  = $OLD_DATA->{errno};
@@ -376,14 +374,10 @@ sub changes {
   my $CHANGES_QUERY = "";
   my $CHANGES_LOG = "";
 
-
-
   while(my($k, $v)=each(%DATA)) {
   	#print "$k, $v<br>\n";
     $OLD_DATA->{$k} = '' if (! $OLD_DATA->{$k});
-    if (defined($FIELDS->{$k}) && $OLD_DATA->{$k} ne $DATA{$k}){
-    	
-    	  
+    if (defined($FIELDS->{$k}) && defined($DATA{$k}) && $OLD_DATA->{$k} ne $DATA{$k}){
         if ($k eq 'PASSWORD' || $k eq 'NAS_MNG_PASSWORD') {
           $CHANGES_LOG .= "$k *->*;";
           $CHANGES_QUERY .= "$FIELDS->{$k}=ENCODE('$DATA{$k}', '$CONF->{secretkey}'),";

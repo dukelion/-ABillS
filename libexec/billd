@@ -1387,7 +1387,7 @@ sub check_mikro {
 
     my @rows = split(/\n/, $output);
     foreach my $line (@rows) {
-    	if ($line =~ /(\d+) (\S) (\S+)\s+(\S+)\s+(\S+)\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+([0-9dhms\.]+)\s+/) {
+    	if ($line =~ /(\d+) (\S) ([\S]+)\s{0,4}\.{0,3}\s+(\S+)\s+(\S+)\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+([0-9dhms\.]+)\s+/) {
     		my $iface     = $1;
     		my $state     = $2;
     		my $username  = $3;

@@ -704,8 +704,9 @@ elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
 #Auto assing MAC in first connect
 if( $CONF->{MAC_AUTO_ASSIGN} && 
     $self->{CID} eq '' && 
-    ($RAD->{CALLING_STATION_ID} && $RAD->{CALLING_STATION_ID} =~ /:|\-/ && $RAD->{CALLING_STATION_ID} !~ /\// )
-      ) {
+    $RAD->{CALLING_STATION_ID} && 
+    $RAD->{CALLING_STATION_ID} =~ /:|\-/ && $RAD->{CALLING_STATION_ID} !~ /\// 
+   ) {
   $self->query($db, "UPDATE dv_main SET cid='$RAD->{CALLING_STATION_ID}'
      WHERE uid='$self->{UID}';", 'do');
  }
@@ -1297,18 +1298,15 @@ sub get_ip {
  my @used_pools_arr = ();
 
  foreach my $line (@$list) {
- 
     my $sip   = $line->[0]; 
     my $count = $line->[1];
     my $id    = $line->[2];
-
     push @used_pools_arr, $id;
     my %pools = ();
 
     for(my $i=$sip; $i<=$sip+$count; $i++) {
       $pools{$i}=1;
      }
-
     push @pools_arr, \%pools;
   }
 
@@ -1318,15 +1316,12 @@ sub get_ip {
  # Select from active users and reserv ips
  $self->query($db, "SELECT c.framed_ip_address
   FROM (dv_calls c, nas_ippools np) 
-  WHERE c.nas_id=np.nas_id AND np.pool_id in ( $used_pools ) AND (status=1 or status>=3);");
-
+  WHERE c.nas_id=np.nas_id AND np.pool_id in ( $used_pools ) AND (status=1 or (status>=3 and status < 11));");
  $list = $self->{list};
  $self->{USED_IPS}=0;
 
-
-
  my %pool = %{ $pools_arr[0] };
- 
+
  for(my $i=0; $i<=$#pools_arr; $i++) {
    %pool = %{ $pools_arr[$i] };
    foreach my $ip (@$list) {
@@ -1357,7 +1352,6 @@ sub get_ip {
      return -1;
     }
   }
-
  return 0;
 }
 

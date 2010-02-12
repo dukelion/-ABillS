@@ -105,8 +105,6 @@ if ($acct_status_type == 1) {
       $RAD->{CONNECT_INFO}="$RAD->{CISCO_SERVICE_INFO}";
      }
 
-    $self->query($db, "DELETE FROM dv_calls WHERE nas_id='$NAS->{NAS_ID}' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}');", 'do');
-
     my $sql = "INSERT INTO dv_calls
      (status, user_name, started, lupdated, nas_ip_address, nas_port_id, acct_session_id, acct_session_time,
       acct_input_octets, acct_output_octets, framed_ip_address, CID, CONNECT_INFO, nas_id, tp_id,
@@ -125,6 +123,7 @@ if ($acct_status_type == 1) {
       '$self->{TP_ID}', '$self->{UID}',
       '$self->{JOIN_SERVICE}');";
     $self->query($db, "$sql", 'do');
+    $self->query($db, "DELETE FROM dv_calls WHERE nas_id='$NAS->{NAS_ID}' AND framed_ip_address=INET_ATON('$RAD->{FRAMED_IP_ADDRESS}') AND acct_session_id='IP';", 'do');
   }
  }
 # Stop status
@@ -217,11 +216,10 @@ elsif ($acct_status_type == 2) {
      }      
     else {
       #DEbug only
-      #use POSIX qw(strftime);
-      #my $DATE_TIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);
-      #my $r = `echo "$DATE_TIME $self->{UID} - $RAD->{USER_NAME} / $RAD->{ACCT_SESSION_ID} / Time: $RAD->{ACCT_SESSION_TIME} / $self->{errstr}" >> /tmp/unknown_session.log`;
+      use POSIX qw(strftime);
+      my $DATE_TIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);
+      my $r = `echo "$DATE_TIME $self->{UID} - $RAD->{USER_NAME} / $RAD->{ACCT_SESSION_ID} / Time: $RAD->{ACCT_SESSION_TIME} / $self->{errstr}" >> /tmp/unknown_session.log`;
       #DEbug only end
-      
       return $self;      
      }     
    }

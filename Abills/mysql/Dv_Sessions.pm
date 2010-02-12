@@ -385,9 +385,7 @@ sub online {
 
 
  my $list = $self->{list};
- 
  my $nas_id_field = $RES_FIELDS_COUNT+10;
- 
  foreach my $line (@$list) {
  	  $dub_logins{$line->[0]}++;
  	  $dub_ports{$line->[$nas_id_field]}{$line->[$port_id]}++;
