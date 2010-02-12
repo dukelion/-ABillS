@@ -416,7 +416,7 @@ sub dv_user {
    }
   elsif ($FORM{add}) {
     if (! $permissions{0}{1} ) {
-      $html->message('err', $_ERROR, "Access Deny");  	
+      $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
     	return 0;
      }
 
@@ -443,7 +443,7 @@ sub dv_user {
    }
 	elsif($FORM{set}) {
     if (! $permissions{0}{4} ) {
-      $html->message('err', $_ERROR, "Access Deny");  	
+      $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
     	return 0;
      }
 
@@ -4611,18 +4611,8 @@ elsif ($type eq 'monthly') {
     $_SUM,         $sessions->{SUM});
 }
 
- 
   return $REPORT;
 }
-
-
-
-
-
-
-
-
-
 
 #*******************************************************************
 # Make cards
@@ -4630,8 +4620,12 @@ elsif ($type eq 'monthly') {
 sub dv_cards {
 	require "Abills/modules/Cards/webinterface";
 
-  $FROM{CARDS_FORM}=1;
+  if ( $admin->{MODULES} && ! $admin->{MODULES}{Cards} ) {
+    $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	  	
+  	return 0;
+   }
 
+  $FROM{CARDS_FORM}=1;
   my $dv_tpl = dv_wizard_user({ OUTPUT2RETURN => 1,
   	                            NO_EXTRADATA  => 1,
   	                            TPLS          => { '2:' => '',
@@ -4656,8 +4650,6 @@ sub dv_cards {
                              title      => ["$_LOGIN", "ID", "$_INFO"],
                              cols_align => ['left', 'right', 'right'],
                             });
-
-
 
   if (ref($return) eq 'ARRAY') {
   	 foreach my $line (@$return) {
