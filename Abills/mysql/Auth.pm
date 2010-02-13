@@ -1313,7 +1313,7 @@ sub get_ip {
  $self->query($db, "SELECT c.framed_ip_address
   FROM dv_calls c
   INNER JOIN nas_ippools np ON (c.nas_id=np.nas_id)
-  WHERE np.pool_id in ( $used_pools ) AND (status=1 or status>=3);");
+  WHERE np.pool_id in ( $used_pools ) AND (status<>2);");
   
  $list = $self->{list};
  $self->{USED_IPS}=0;

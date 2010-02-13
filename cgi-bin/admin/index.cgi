@@ -3425,9 +3425,7 @@ if ($attr->{NAS}) {
    }
   
   $pages_qs = "&NAS_ID=$nas->{NAS_ID}";
-
   $nas->{STATIC}=' checked' if ($nas->{STATIC});
-  
   $html->tpl_show(templates('form_ip_pools'), { %$nas, INDEX => 62 });
  }
 elsif($FORM{NAS_ID}) {
@@ -3442,10 +3440,6 @@ else {
 if ($nas->{errno}) {
   $html->message('err', $_ERROR, "$err_strs{$nas->{errno}}");
  }
-
-
-
-
 
 my $list = $nas->nas_ip_pools_list({ %LIST_PARAMS });	
 my $table = $html->table( { width      => '100%',
@@ -3479,7 +3473,7 @@ foreach my $line (@$list) {
 
 
 print $html->form_main({  CONTENT => $table->show(),
-	                        HIDDEN  => { index  => "$index",
+	                        HIDDEN  => { index  => "62",
                                        NAS_ID => "$FORM{NAS_ID}",
                                      },
 	                        SUBMIT  => { set   => "$_SET"
@@ -3487,8 +3481,6 @@ print $html->form_main({  CONTENT => $table->show(),
 
 
 return 0;
-
-
 }
 
 #**********************************************************
