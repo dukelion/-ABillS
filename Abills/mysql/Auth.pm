@@ -1274,9 +1274,6 @@ sub get_ip {
  my $self = shift;
  my ($nas_num, $nas_ip, $attr) = @_;
 
-#get ip pool
- my $WHERE = '';
-
  if ($attr->{TP_IPPOOL}) {
    $self->query($db, "SELECT ippools.ip, ippools.counts, ippools.id FROM ippools
      WHERE ippools.id='$attr->{TP_IPPOOL}'
@@ -1292,7 +1289,6 @@ sub get_ip {
    return 0;
   }
 
- 
  my @pools_arr      = ();
  my $list           = $self->{list};
  my @used_pools_arr = ();
@@ -1315,8 +1311,10 @@ sub get_ip {
  #get active address and delete from pool
  # Select from active users and reserv ips
  $self->query($db, "SELECT c.framed_ip_address
-  FROM (dv_calls c, nas_ippools np) 
-  WHERE c.nas_id=np.nas_id AND np.pool_id in ( $used_pools ) AND (status=1 or (status>=3 and status < 11));");
+  FROM dv_calls c
+  INNER JOIN nas_ippools np ON (c.nas_id=np.nas_id)
+  WHERE np.pool_id in ( $used_pools ) AND (status=1 or status>=3);");
+  
  $list = $self->{list};
  $self->{USED_IPS}=0;
 
