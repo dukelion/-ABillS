@@ -1047,8 +1047,13 @@ if ($attr->{ACCT_SESSION_ID}) {
 
 
 if ($attr->{TERMINATE_CAUSE}) {
-	push @WHERE_RULES, @{ $self->search_expr($attr->{TERMINATE_CAUSE}, 'INT', 'l.terminate_cause') };
+	push @WHERE_RULES, @{ $self->search_expr($attr->{TERMINATE_CAUSE}, 'INT', 'l.terminate_cause', { EXT_FIELD => 1 }) };
  }
+elsif ($attr->{SHOW_TERMINATE_CAUSE}) {
+	$self->{SEARCH_FIELDS}.="l.terminate_cause,";
+	$self->{SEARCH_FIELDS_COUNT}+=1;
+}
+
 
 if ($attr->{FROM_DATE}) {
    push @WHERE_RULES, "(date_format(l.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.start, '%Y-%m-%d')<='$attr->{TO_DATE}')";
@@ -1095,7 +1100,9 @@ elsif($attr->{DATE}) {
 
 
  $self->query($db, "SELECT u.id, l.start, SEC_TO_TIME(l.duration), l.tp_id,
-  l.sent + 4294967296 * acct_output_gigawords, l.recv + 4294967296 * acct_input_gigawords, l.CID, l.nas_id, l.ip, l.sum, INET_NTOA(l.ip), 
+  l.sent + 4294967296 * acct_output_gigawords, l.recv + 4294967296 * acct_input_gigawords, l.CID, l.nas_id, l.ip, l.sum, 
+  $self->{SEARCH_FIELDS}
+  INET_NTOA(l.ip), 
   l.acct_session_id, 
   l.uid, 
   UNIX_TIMESTAMP(l.start),

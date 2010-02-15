@@ -1332,8 +1332,6 @@ sub form_users {
   	return 0;
    }
 
-
-
 if(defined($attr->{USER})) {
 
   my $user_info = $attr->{USER};
