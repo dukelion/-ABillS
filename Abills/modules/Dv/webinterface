@@ -1446,7 +1446,8 @@ if (! $list) {
                       19 => 'Supplicant-Restart',
                       20 => 'Reauthentication-Failure',
                       21 => 'Port-Reinit',
-                      22 => 'Port-Disabled'
+                      22 => 'Port-Disabled',
+                      23 => 'Lost-Alive',
                     }
  	                                        });
 
