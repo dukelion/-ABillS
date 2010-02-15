@@ -410,7 +410,10 @@ sub cards_add {
     }
  }
 
-  $Cards->{DILLERS_SEL} = cards_dillers_sel();
+  $Cards->{DILLERS_SEL}    = cards_dillers_sel();
+  $Cards->{PASSWD_LENGTH}  = $conf{CARDS_PAYMENT_PIN_LENGTH} if ($conf{CARDS_PAYMENT_PIN_LENGTH});
+  $Cards->{PASSWD_SYMBOLS} = $conf{CARDS_PIN_SYMBOLS} if ($conf{CARDS_PIN_SYMBOLS});
+  
 	$Cards->{CARDS_TYPE}  = $html->tpl_show(_include('cards_payment', 'Cards'), $Cards, { notprint => 1 });
 	$Cards->{TYPE_CAPTION}= $_PAYMENTS;
 	$html->tpl_show(_include('cards_add', 'Cards'), $Cards);
