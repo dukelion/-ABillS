@@ -1404,26 +1404,7 @@ sub dv_sessions {
   my ($list, $sessions) = @_;
 #Session List
 
-if (! $list) {
-  if (! defined($FORM{sort})) {
-	  $LIST_PARAMS{SORT} = 2;
-	  $LIST_PARAMS{DESC} = 'DESC';
-  }
-
-  my $nas = Nas->new($db, \%conf);
-  $sessions->{SEL_NAS} = $html->form_select('NAS_ID', 
-                                          { 
- 	                                          SELECTED          => $FORM{NAS_ID},
- 	                                          SEL_MULTI_ARRAY   => [['', $_ALL], @{ $nas->list({ %LIST_PARAMS }) } ],
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
- 	                                        });
-
-  $sessions->{TERMINATE_CAUSE_SEL} = $html->form_select('TERMINATE_CAUSE', 
-                                          { 
- 	                                          SELECTED          => $FORM{TERMINATE_CAUSE},
- 	                                          SEL_HASH          => {
-                      '' => '',
+  my %ACCT_TERMINATE_CAUSES = (                      '' => '',
                       0  => 'Unknown',
                       1  => 'User-Request',
                       2  => 'Lost-Carrier',
@@ -1447,9 +1428,30 @@ if (! $list) {
                       20 => 'Reauthentication-Failure',
                       21 => 'Port-Reinit',
                       22 => 'Port-Disabled',
-                      23 => 'Lost-Alive',
-                    }
+                      23 => 'Lost-Alive');
+
+if (! $list) {
+  if (! defined($FORM{sort})) {
+	  $LIST_PARAMS{SORT} = 2;
+	  $LIST_PARAMS{DESC} = 'DESC';
+  }
+
+  my $nas = Nas->new($db, \%conf);
+  $sessions->{SEL_NAS} = $html->form_select('NAS_ID', 
+                                          { 
+ 	                                          SELECTED          => $FORM{NAS_ID},
+ 	                                          SEL_MULTI_ARRAY   => [['', $_ALL], @{ $nas->list({ %LIST_PARAMS }) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
+
+  $sessions->{TERMINATE_CAUSE_SEL} = $html->form_select('TERMINATE_CAUSE', 
+                                          { 
+ 	                                          SELECTED          => $FORM{TERMINATE_CAUSE},
+ 	                                          SEL_HASH          => \%ACCT_TERMINATE_CAUSES
+ 	                                        });
+
+  $sessions->{SHOW_TERMINATE_CAUSE} = 'checked' if ($FORM{SHOW_TERMINATE_CAUSE});
 
   form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_sessions_search', 'Dv'),
  	                                            { %FORM, %$sessions },
@@ -1472,11 +1474,17 @@ if ($sessions->{TOTAL} < 1) {
 
 
 
+my @caption = ("$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
+                             "CID", "NAS", "IP", "$_SUM");
+
+if ($sessions->{SEARCH_FIELDS_COUNT}) {
+	push @caption, 'TC';
+}
+
 my $table = $html->table( { width      => '100%',
                             caption    => "$_SESSIONS",
                             border     => 1,
-                            title      => ["$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
-                             "CID", "NAS", "IP", "$_SUM", "-", "-"],
+                            title      => [ @caption, "-", "-"],
                             cols_align => ['left', 'right', 'right', 'RIGHT', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $sessions->{TOTAL},
@@ -1488,12 +1496,10 @@ my $delete = '';
 use Billing;
 my $Billing = Billing->new($db, \%conf);	
 
-
-
 foreach my $line (@$list) {
   if ($permissions{3}{1} && $LIST_PARAMS{UID}) {
-    $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", 
-       { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?", BUTTON => 1 }
+    $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=". ($line->[12+$sessions->{SEARCH_FIELDS_COUNT}]). "+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", 
+       { MESSAGE => "$_DEL Session SESSION_ID ". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}])."?", BUTTON => 1 }
       );
    }
 
@@ -1525,6 +1531,11 @@ foreach my $line (@$list) {
 #     $TARIF_PLAN, 
 #     $TIME_TARIF, 
 #     $TRAF_TARIF\n";
+  my @rows=();
+  for(my $i=1; $i<=$sessions->{SEARCH_FIELDS_COUNT}; $i++) {
+  	push @rows, $ACCT_TERMINATE_CAUSES{$line->[9+$i]};
+   }
+
 
   $table->addrow(
      $html->button("$line->[0]", "index=11&UID=$line->[12]"),
@@ -1535,9 +1546,10 @@ foreach my $line (@$list) {
      int2byte($line->[5], { DIMENSION => $FORM{DIMENSION} }), 
      $line->[6],
      $line->[7], 
-     $line->[10], 
+     $line->[10+$sessions->{SEARCH_FIELDS_COUNT}], 
      "$line->[9]", 
-     $html->button("D", "index=$index&UID=$line->[12]&SESSION_ID=$line->[11]", { TITLE => "$_DETAIL", BUTTON => 1 }), 
+     @rows,
+     $html->button("D", "index=$index&UID=". ($line->[12+$sessions->{SEARCH_FIELDS_COUNT}])."&SESSION_ID=". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}]), { TITLE => "$_DETAIL", BUTTON => 1 }), 
      $delete);
 }
 
