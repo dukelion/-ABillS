@@ -248,7 +248,6 @@ sub check_lines {
 
         my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
         	                                                      FRAMED_IP_ADDRESS    => int2ip($client_ip),
-           	                                                    ACCT_TERMINATE_CAUSE => 15,
            	                                                    UID                  => $uid,
            	                                                    debug                => $debug
            	                                                  }); 
@@ -277,7 +276,7 @@ sub check_lines {
            $ACCT_INFO->{OUTBYTE2}             = $acct_output_octets_ext;
            $ACCT_INFO->{ACCT_STATUS_TYPE}     = 'Stop';
            $ACCT_INFO->{ACCT_SESSION_TIME}    = $acct_session_time;
-           $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 2;
+           $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 23;
 
            my $r = $Acct->accounting($ACCT_INFO, \%NAS);
            my $info = '';
@@ -296,7 +295,6 @@ sub check_lines {
            if ($NAS{NAS_TYPE} eq 'ipcad') {
      	        my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID      => "$acct_session_id",
               	                                                      FRAMED_IP_ADDRESS    => int2ip($client_ip),
-              	                                                      ACCT_TERMINATE_CAUSE => $ACCT_INFO->{ACCT_TERMINATE_CAUSE},
               	                                                      UID                  => $uid,
            	                                                      });
             }
@@ -397,7 +395,6 @@ sub check_lines {
 
            my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
            	                                                       FRAMED_IP_ADDRESS    => int2ip($client_ip),
-           	                                                       ACCT_TERMINATE_CAUSE => 16,
            	                                                       UID                  => $Billing->{UID},
            	                                                       debug                => $debug
            	                                                      }); 
