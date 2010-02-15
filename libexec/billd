@@ -141,6 +141,8 @@ sub check_lines {
 
   $sessions->{debug}=1 if ($debug > 4);
 
+  $sessions->online_del({ SESSIONS_LIST => [ 'IP' ] });
+
 	$sessions->online( { 
 		                   #%LIST_PARAMS, 
 		                   ALL    => 1, 
