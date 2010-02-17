@@ -305,7 +305,7 @@ sub traffic_agregate_users {
 
   if (defined($users_ips->{$DATA->{DST_IP}})) {
     if (defined($DATA->{TRAFFIC_CLASS})) {
-      $self->{INTERIM}{$DATA->{DST_IP}}{$DATA->{TRAFFIC_CLASS}}{OUT}+=$DATA->{SIZE};
+      $self->{INTERIM}{$DATA->{DST_IP}}{$DATA->{TRAFFIC_CLASS}}{IN}+=$DATA->{SIZE};
      }
     else {
       push @{ $self->{AGREGATE_USERS}{$users_ips->{$DATA->{DST_IP}}}{IN} }, { %$DATA };
