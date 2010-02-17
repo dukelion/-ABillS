@@ -119,7 +119,7 @@ my $CLIENT_IP = 'any';
 my $fw_step = 1000;
 
 
-my $IPFW='/sbin/ipfw';
+my $IPFW='/sbin/ipfw -q';
 #my @START_FW = (3000, 2000, 1000);
 
 # Arguments
@@ -515,28 +515,30 @@ print "\nEND: =====================================\n" if ($debug > 0);
 #------------------------------------------------------------------------------
 #Use ngcar shapper
    if ($conf{ng_car}) {
-  	 # First out traffic table, second in
-  	 my $tp_table_number = $conf{FW_TABLE_USERS}|| 10;
-
-  	 $tp_table_number += $nets_id{$traf_type} * 2 - 2 if ($nets_id{$traf_type} && $traf_type > 0);
-
-  	 push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
-  	 push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1) ." delete $CLIENT_IP";
-
-     my $tablearg = ($user->{UID} * 5 + 1000000 + $traf_type * 2);
-
-  	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP/$BIT_MASK ". $tablearg;
-     push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1). " add $CLIENT_IP/$BIT_MASK ". ($tablearg + 1);
+   	 # First out traffic table, second in
+   	 my $tp_table_number = $conf{FW_TABLE_USERS}|| 10;
 
      #Add user to unlime rules
      if ($speed_in + $speed_out  == 0) {
-       my $tp_table_number = $conf{FW_TABLE_USERS} - 1;
-       push @FW_ACTIONS, "$IPFW table $tp_table_number/$BIT_MASK add $CLIENT_IP ";
+       push @FW_ACTIONS, "$IPFW table ".($tp_table_number - 1)." add $CLIENT_IP/$BIT_MASK ";
       }
      else {
+       if ( $traf_type > 0 ) {
+      	 $tp_table_number = $tp_table_number + $traf_type * 2
+        }
+
+  	   push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
+  	   push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1) ." delete $CLIENT_IP";
+
+       my $tablearg_in  = $user->{UID} + 1000000 + 1000000 * ($traf_type*2);
+       my $tablearg_out = $user->{UID} + 1000000 + 1000000 * ($traf_type*2+1);
+
+    	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP/$BIT_MASK ". $tablearg_in;
+       push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1). " add $CLIENT_IP/$BIT_MASK ". $tablearg_out;
+
        $speed_in  = $speed_in * 1024;
        $speed_out = $speed_out * 1024;
-       ng_car_shape("$USER", $tablearg, "class$traf_type", $speed_in, $speed_out);
+       ng_car_shape("$USER", $tablearg_in, $tablearg_out, "class$traf_type", $speed_in, $speed_out);
       }
     }
 #------------------------------------------------------------------------------
@@ -620,13 +622,12 @@ elsif ($ACTION eq 'down') {
     	my $tp_table_number = $conf{FW_TABLE_USERS} || 10;
       for(my $i=0; $i<=$conf{SHAPER_CLASSES}; $i++) {
         push @FW_ACTIONS, sprintf("/usr/sbin/ngctl shutdown %s_%s:", 'class'.$i, $USER);
-  
+        
         push @FW_ACTIONS, "$IPFW table ". ($tp_table_number + $i * 2) ." delete $CLIENT_IP";
         push @FW_ACTIONS, "$IPFW table ". ($tp_table_number + $i * 2 + 1) ." delete $CLIENT_IP";
        }
-      
-      push @FW_ACTIONS, "$IPFW table ". ($conf{FW_TABLE_USERS} - 1) ." delete $CLIENT_IP";
-      
+
+      push @FW_ACTIONS, "$IPFW table ". ($conf{FW_TABLE_USERS} - 1) ." delete $CLIENT_IP";      
      }
     else {
 	    push @FW_ACTIONS, "$IPFW table $users_table_number delete $CLIENT_IP";
@@ -652,7 +653,8 @@ foreach my $line (@FW_ACTIONS) {
 # 
 #**********************************************************
 sub ng_car_shape {
-  my ($user, $tablearg, $shape_type, $speed_in, $speed_out, $attr) = @_;            
+  my ($user, $tablearg_in, $tablearg_out,
+      $shape_type, $speed_in, $speed_out, $attr) = @_;            
 
   #cir -  Committed Information Rate - согласованная информационная скорость канала (бит/с).
   #Cbs -  Committed Burst Size - количество бит, которое может быть передано по логическому каналу за интервал времени. 
@@ -683,10 +685,10 @@ push @FW_ACTIONS, sprintf("/usr/sbin/ngctl -f- <<-EOF
 mkpeer ipfw: car %s upper
 name ipfw:%s %s_%s
 connect %s_%s: ipfw: lower %s
-msg %s_%s: setconf { upstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=1 redAction=2 mode=2 }                      downstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=1 redAction=2 mode=2 } }",
-            $tablearg,
-            $tablearg,$shape_type,$user,
-            $shape_type,$user,$tablearg+1,
+msg %s_%s: setconf { upstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=1 redAction=2 mode=2 }  downstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=1 redAction=2 mode=2 } }",
+            $tablearg_in,
+            $tablearg_in,$shape_type,$user,
+            $shape_type,$user,$tablearg_out,
             $shape_type,$user,
             int($cbs_in),int($ebs_in),$speed_in,
             int($cbs_out),int($ebs_out),$speed_out);
