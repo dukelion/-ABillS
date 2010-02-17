@@ -13,7 +13,7 @@
   * Mysql версии 5.0 и выше
   * Freeradius 1 или 2 и выше
   * apache 1.3.xx  и выше
-  * perl  v5.8.8
+  * perl  v5.8.8  и выше
 
 =====Замечания по установкe операционной системы.=====
 ===FreeBSD===
@@ -23,6 +23,167 @@
   * [[http://www.seteved.ru/index.php?option=com_content&task=view&id=180&Itemid=29|Установка FreeBSD 7 в картинках, для начинающих]]
 
 ===Linux===
+
+=====MySQL=====
+Загрузить пакет MySQL можно по адресу [http://www.mysql.com]\\
+Пример настройки для MySQL версии 5.1
+
+  # tar xvfz mysql-5.1.x.tar.gz
+  # cd mysql-5.1.x
+  # ./configure
+  # make
+  # make install
+
+Создаём пользователя и базу.
+
+  # mysql --default-character-set=cp1251 -u root -p
+
+  use mysql;
+  INSERT INTO user (Host, User, Password) 
+    VALUES ('localhost','abills', password('sqlpassword'));
+  
+  INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, 
+    Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, 
+    Lock_tables_priv, Create_tmp_table_priv, Create_view_priv,
+    Show_view_priv, Execute_priv, Event_priv, Trigger_priv) 
+  VALUES ('localhost', 'abills', 'abills', 'Y', 'Y', 'Y', 'Y', 'Y', 
+    'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y');
+  
+  CREATE DATABASE abills;
+  flush privileges;
+
+
+Загружаем таблицы в базу. \\
+
+  # mysql --default-character-set=cp1251 -D abills < abills.sql
+
+=====Web Server=====
+
+
+
+
+=====Apache=====
+ [[http://www.apache.org|Apache]]\\
+ Веб-сервер должен быть собран  с поддержкой ''mod_rewrite''\\
+
+  # ./configure --prefix=/usr/local/apache --enable-rewrite=shared
+  # make
+  # make install
+
+Если нужно шифрование трафика для веб-интерфейса, тогда создаём сертификаты. Apache должен быть собран с mod_ssl.
+
+  # /usr/abills/misc/certs_create.sh apache
+
+Вносим в конфигурационый файл следующие опции **httpd.conf**.
+
+  #Abills version 0.5
+  Listen 9443
+  <VirtualHost _default_:9443>
+    DocumentRoot "/usr/abills/cgi-bin"
+    #ServerName www.example.com:9443
+    #ServerAdmin admin@example.com
+    ErrorLog /var/log/httpd/abills-error.log
+    #TransferLog /var/log/httpd/abills-access.log
+    CustomLog /var/log/httpd/abills-access_log common
+   
+    <IfModule ssl_module>
+      #   SSL Engine Switch:
+      #   Enable/Disable SSL for this virtual host.
+      SSLEngine on
+      SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
+      SSLCertificateFile /usr/abills/Certs/server.crt
+      SSLCertificateKeyFile /usr/abills/Certs/server.key
+      <FilesMatch "\.(cgi)$">
+        SSLOptions +StdEnvVars
+      </FilesMatch>
+      BrowserMatch ".*MSIE.*" \
+         nokeepalive ssl-unclean-shutdown \
+         downgrade-1.0 force-response-1.0
+  
+      CustomLog /var/log/abills-ssl_request.log \
+          "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+    </IfModule>
+  
+  
+  # User interface
+    <Directory "/usr/abills/cgi-bin">
+      <IfModule ssl_module>
+        SSLOptions +StdEnvVars
+      </IfModule>
+  
+      <IfModule mod_rewrite.c>
+        RewriteEngine on
+        RewriteCond %{HTTP:Authorization} ^(.*)
+        RewriteRule ^(.*) - [E=HTTP_CGI_AUTHORIZATION:%1]
+        Options Indexes ExecCGI SymLinksIfOwnerMatch
+      </IfModule>
+   
+      AddHandler cgi-script .cgi
+      Options Indexes ExecCGI FollowSymLinks
+      AllowOverride none
+      DirectoryIndex index.cgi         
+  
+      Order allow,deny
+      Allow from all
+  
+     <Files ~ "\.(db|log)$">
+       Order allow,deny
+       Deny from all
+     </Files>
+    
+    #For hotspot solution
+    #ErrorDocument 404 "/abills/"
+    #directoryIndex "/abills" index.cgi
+   </Directory>
+  
+   #Admin interface
+   <Directory "/usr/abills/cgi-bin/admin">
+     <IfModule ssl_module>
+       SSLOptions +StdEnvVars
+     </IfModule>
+  
+     AddHandler cgi-script .cgi
+     Options Indexes ExecCGI FollowSymLinks
+     AllowOverride none
+     DirectoryIndex index.cgi
+     order deny,allow
+     allow from all
+   </Directory>
+  
+  </VirtualHost>
+
+
+Или включаем ** abills/misc/apache/abills_httpd.conf ** в конфигурационный файл apache
+
+  Include /usr/abills/misc/apache/abills_httpd.conf
+
+=====Perl modules=====
+Для работы системы нужны модули.\\
+
+| **DBI**        |                           |
+| **DBD-mysql** |                           |
+| **Digest-MD5** | для Chap авторизации      |
+| **Digest-MD4** | для MS-Chap авторизации   |
+| **Crypt-DES**  | для MS-Chap авторизации   |
+| **Digest-SHA1**| для MS-ChapV2 авторизации |
+| **libnet**     | Нужен только при авторизации из UNIX passwd |
+| **Time-HiRes** | Нужен только для тестирования скорости выполнения авторизациИ, аккаунтинга, и страниц веб-интерфейса |
+
+Эти модули можно загрузить с сайта [http://www.cpan.org] или установка с консоли.
+
+  # cd /root 
+  # perl -MCPAN -e shell 
+  o conf prerequisites_policy ask 
+  install    DBI      
+  install    DBD::mysql    
+  install    Digest::MD5 
+  install    Digest::MD4 
+  install    Crypt::DES 
+  install    Digest::SHA1 
+  install    Bundle::libnet 
+  install    Time::HiRes 
+  quit 
+
 
 =====Radius=====
 Загрузить пакет FreeRadius можно по адресу [http://www.freeradius.org]
@@ -162,193 +323,9 @@
 
   DEFAULT Auth-Type = Accept
 
-
-
-
-
-
-
-
-
-
-
-
-
-=====MySQL=====
-Загрузить пакет MySQL можно по адресу [http://www.mysql.com]\\
-
-  # tar xvfz mysql-4.1.16.tar.gz
-  # cd mysql-4.1.16
-  # ./configure
-  # make
-  # make install
-
-Создаём пользователя и базу.
-
-  # mysql -u root -p
-
-  use mysql;
-  INSERT INTO user (Host, User, Password) 
-    VALUES ('localhost','abills', password('sqlpassword'));
-  
-  INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, 
-    Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, 
-    Lock_tables_priv, Create_tmp_table_priv, Create_view_priv,
-    Show_view_priv, Execute_priv, Event_priv, Trigger_priv) 
-  VALUES ('localhost', 'abills', 'abills', 'Y', 'Y', 'Y', 'Y', 'Y', 
-    'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y');
-  
-  CREATE DATABASE abills;
-  flush privileges;
-
-
-Загружаем таблицы в базу. \\
-
-  # mysql -D abills < abills.sql
-
-Если возникают трудности с кодировками используйте флаг ''--default-character-set=''
-
-=====Web Server=====
-
-
-
-
-=====Apache=====
- [[http://www.apache.org|Apache]]\\
- Веб-сервер должен быть собран  с поддержкой ''mod_rewrite''\\
-
-  # ./configure --prefix=/usr/local/apache --enable-rewrite=shared
-  # make
-  # make install
-
-Если нужно шифрование трафика для веб-интерфейса, тогда создаём сертификаты. Apache должен быть собран с mod_ssl.
-
-  # /usr/abills/misc/certs_create.sh apache
-
-Вносим в конфигурационый файл следующие опции **httpd.conf**.
-
-  #Abills version 0.5
-  Listen 9443
-  <VirtualHost _default_:9443>
-  
-    DocumentRoot "/usr/abills/cgi-bin"
-    #ServerName www.example.com:9443
-    #ServerAdmin admin@example.com
-    ErrorLog /var/log/httpd/abills-error.log
-    #TransferLog /var/log/httpd/abills-access.log
-    CustomLog /var/log/httpd/abills-access_log common
-   
-    <IfModule ssl_module>
-      #   SSL Engine Switch:
-      #   Enable/Disable SSL for this virtual host.
-      SSLEngine on
-      SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
-      SSLCertificateFile /usr/abills/Certs/server.crt
-      SSLCertificateKeyFile /usr/abills/Certs/server.key
-      <FilesMatch "\.(cgi)$">
-        SSLOptions +StdEnvVars
-      </FilesMatch>
-      BrowserMatch ".*MSIE.*" \
-         nokeepalive ssl-unclean-shutdown \
-         downgrade-1.0 force-response-1.0
-  
-      CustomLog /var/log/abills-ssl_request.log \
-          "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
-    </IfModule>
-  
-  
-  # User interface
-    <Directory "/usr/abills/cgi-bin">
-      <IfModule ssl_module>
-        SSLOptions +StdEnvVars
-      </IfModule>
-  
-      <IfModule mod_rewrite.c>
-        RewriteEngine on
-        RewriteCond %{HTTP:Authorization} ^(.*)
-        RewriteRule ^(.*) - [E=HTTP_CGI_AUTHORIZATION:%1]
-        Options Indexes ExecCGI SymLinksIfOwnerMatch
-      </IfModule>
-   
-      AddHandler cgi-script .cgi
-      Options Indexes ExecCGI FollowSymLinks
-      AllowOverride none
-      DirectoryIndex index.cgi         
-  
-      Order allow,deny
-      Allow from all
-  
-     <Files ~ "\.(db|log)$">
-       Order allow,deny
-       Deny from all
-     </Files>
-    
-    #For hotspot solution
-    #ErrorDocument 404 "/abills/"
-    #directoryIndex "/abills" index.cgi
-   </Directory>
-  
-   #Admin interface
-   <Directory "/usr/abills/cgi-bin/admin">
-     <IfModule ssl_module>
-       SSLOptions +StdEnvVars
-     </IfModule>
-  
-     AddHandler cgi-script .cgi
-     Options Indexes ExecCGI FollowSymLinks
-     AllowOverride none
-     DirectoryIndex index.cgi
-     order deny,allow
-     allow from all
-   </Directory>
-  
-  </VirtualHost>
-
-
-Или включаем ** abills/misc/apache/abills_httpd.conf ** в конфигурационный файл apache
-
-  Include /usr/abills/misc/apache/abills_httpd.conf
-
-=====Perl modules=====
-Для работы системы нужны модули.\\
-
-| **DBI**        |                           |
-| **DBD-mysql** |                           |
-| **Digest-MD5** | для Chap авторизации      |
-| **Digest-MD4** | для MS-Chap авторизации   |
-| **Crypt-DES**  | для MS-Chap авторизации   |
-| **Digest-SHA1**| для MS-ChapV2 авторизации |
-| **libnet**     | Нужен только при авторизации из UNIX passwd |
-| **Time-HiRes** | Нужен только для тестирования скорости выполнения авторизациИ, аккаунтинга, и страниц веб-интерфейса |
-
-Эти модули можно загрузить с сайта [http://www.cpan.org] или установка с консоли.
-
-  # cd /root 
-  # perl -MCPAN -e shell 
-  o conf prerequisites_policy ask 
-  install    DBI      
-  install    DBD::mysql    
-  install    Digest::MD5 
-  install    Digest::MD4 
-  install    Crypt::DES 
-  install    Digest::SHA1 
-  install    Bundle::libnet 
-  install    Time::HiRes 
-  quit 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+для автоматического запуска радиуса в FreeBSD внести изменения в **/etc/rc.conf** добавить \\
+Код:
+   radiusd_enable="YES"
 
 
 =====ABillS=====
@@ -389,6 +366,7 @@
   # chown -Rf www /usr/abills/cgi-bin
   # chown -Rf www /usr/abills/Abills/templates
   # chown -Rf www /usr/abills/backup
+  # mkdir /usr/abills/var/ /usr/abills/var/log
   
 Веб интерфейс администратора:\\
 **https://your.host:9443/admin/**\\
