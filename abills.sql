@@ -753,7 +753,7 @@ CREATE TABLE `s_detail` (
   `sent2` int(10) unsigned NOT NULL default '0',
   `recv2` int(10) unsigned NOT NULL default '0',
   `id` varchar(16) NOT NULL default '',
-  `sum` double(14,6) NOT NULL default '0.000000';
+  `sum` double(14,6) NOT NULL default '0.000000',
   KEY `sid` (`acct_session_id`)
 ) ;
 
