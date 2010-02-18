@@ -816,7 +816,7 @@ CREATE TABLE `tarif_plans` (
   `period_alignment` tinyint(1) NOT NULL DEFAULT '0',
   `min_use` double(14,2) unsigned NOT NULL DEFAULT '0.00',
   `abon_distribution` tinyint(1) NOT NULL DEFAULT '0',
-  `small_deposit_block` smallint(6) NOT NULL default '0',
+  `small_deposit_action` smallint(6) NOT NULL default '0',
   `domain_id` smallint(6) unsigned not null default 0,
   `total_time_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
   `total_traf_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
