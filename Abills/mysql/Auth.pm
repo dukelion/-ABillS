@@ -332,7 +332,6 @@ if ($self->{PAYMENT_TYPE} == 0) {
   #Check deposit
   if($self->{DEPOSIT} <= 0) {
     $RAD_PAIRS->{'Reply-Message'}="\"Negativ deposit '$self->{DEPOSIT}'. Rejected!\"";
-
     #Filtering with negative deposit
     if ($self->{NEG_DEPOSIT_FILTER_ID}) {
       return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
