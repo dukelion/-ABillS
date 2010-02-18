@@ -60,8 +60,7 @@ my %FIELDS = ( ID               => 'id',
                ABON_DISTRIBUTION=> 'abon_distribution',
                DOMAIN_ID        => 'domain_id',
                PRIORITY         => 'priority',
-               SMALL_DEPOSIT_BLOCK => 'small_deposit_block'
-
+               SMALL_DEPOSIT_ACTION => 'small_deposit_action'
              );
 
 #**********************************************************
@@ -410,7 +409,7 @@ sub defaults {
             ABON_DISTRIBUTION=> 0,
             DOMAIN_ID        => 0,
             PRIORITY         => 0,
-            SMALL_DEPOSIT_BLOCK => 0,
+            SMALL_DEPOSIT_ACTION => 0,
          );   
  
   $self = \%DATA;
@@ -448,7 +447,7 @@ sub add {
      period_alignment,
      min_use,
      abon_distribution,
-     small_deposit_block,
+     small_deposit_action,
      domain_id,
      priority
      )
@@ -471,7 +470,7 @@ sub add {
      '$DATA{PERIOD_ALIGNMENT}', 
      '$DATA{MIN_USE}',
      '$DATA{ABON_DISTRIBUTION}',
-     '$DATA{SMALL_DEPOSIT_BLOCK}',
+     '$DATA{SMALL_DEPOSIT_ACTION}',
      '$admin->{DOMAIN_ID}',
      '$DATA{PRIORITY}'
      );", 'do' );
@@ -499,7 +498,7 @@ sub change {
   $attr->{EXT_BILL_ACCOUNT}=0    if (! $attr->{EXT_BILL_ACCOUNT});
   $attr->{PERIOD_ALIGNMENT}=0    if (! $attr->{PERIOD_ALIGNMENT});
   $attr->{ABON_DISTRIBUTION}=0   if (! $attr->{ABON_DISTRIBUTION});
-  $attr->{SMALL_DEPOSIT_BLOCK}=0 if (! $attr->{SMALL_DEPOSIT_BLOCK});
+  $attr->{SMALL_DEPOSIT_ACTION}=0 if (! $attr->{SMALL_DEPOSIT_ACTION});
 
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
@@ -582,7 +581,7 @@ sub info {
       period_alignment,
       min_use,
       abon_distribution,
-      small_deposit_block,
+      small_deposit_action,
       tp_id,
       domain_id,
       priority
@@ -633,7 +632,7 @@ sub info {
    $self->{PERIOD_ALIGNMENT}, 
    $self->{MIN_USE},
    $self->{ABON_DISTRIBUTION},
-   $self->{SMALL_DEPOSIT_BLOCK},
+   $self->{SMALL_DEPOSIT_ACTION},
    $self->{TP_ID},
    $self->{DOMAIN_ID},
    $self->{PRIORITY}
@@ -712,7 +711,7 @@ sub list {
     tp.min_use,
     tp.abon_distribution,
     tp.tp_id,
-    tp.small_deposit_block
+    tp.small_deposit_action
     FROM (tarif_plans tp)
     LEFT JOIN intervals i ON (i.tp_id=tp.tp_id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)

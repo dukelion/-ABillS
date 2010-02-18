@@ -378,9 +378,6 @@ sub list {
  if ($attr->{GROUP_BY}) {
  	 $GROUP_BY = $attr->{GROUP_BY};
   }
- 
- 	
-
 
  $self->{SEARCH_FIELDS} = '';
  $self->{SEARCH_FIELDS_COUNT}=0;
@@ -583,8 +580,8 @@ sub list {
 
 #DIsable
  if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
-   push @WHERE_RULES, "dv.disable='$attr->{STATUS}'"; 
- }
+   push @WHERE_RULES,  @{ $self->search_expr($attr->{STATUS}, 'INT', 'dv.disable') };
+  }
  
  if (defined($attr->{LOGIN_STATUS})) {
    push @WHERE_RULES, "u.disable='$attr->{LOGIN_STATUS}'"; 

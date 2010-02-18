@@ -268,14 +268,22 @@ sub list {
     push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
+ my $ext_tables  = '';
+ my $login_field = '';
+ if($attr->{FIO}) {
+   $ext_tables = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
+   $login_field  = "pi.fio,";  
+  }
+
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT p.id, u.id, p.date, p.sum, p.dsc, p.last_deposit, p.method, 
+ $self->query($db, "SELECT p.id, u.id, $login_field p.date, p.sum, p.dsc, p.last_deposit, p.method, 
       p.ext_id, p.bill_id, if(a.name is null, 'Unknown', a.name),  
       INET_NTOA(p.ip), p.uid, p.inner_describe
     FROM payments p
     LEFT JOIN users u ON (u.uid=p.uid)
     LEFT JOIN admins a ON (a.aid=p.aid)
+    $ext_tables
     $WHERE 
     GROUP BY p.id
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
@@ -362,8 +370,6 @@ sub reports {
  	 $date = "date_format(p.date, '%Y-%m')";
   }
 
-
-
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
   $self->query($db, "SELECT $date, count(DISTINCT p.uid), count(*), sum(p.sum), p.uid 
@@ -392,9 +398,7 @@ sub reports {
    $self->{TOTAL}=0; 
    $self->{SUM}=0.00;
   }
- 
 
-	
 	return $list;
 }
 

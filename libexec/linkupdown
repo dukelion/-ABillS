@@ -526,7 +526,7 @@ print "\nEND: =====================================\n" if ($debug > 0);
        if ( $traf_type > 0 ) {
       	 $tp_table_number = $tp_table_number + $traf_type * 2
         }
-       my $prefix = 1000000;
+       my $prefix = 10000;
   	   push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
   	   push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1) ." delete $CLIENT_IP";
 

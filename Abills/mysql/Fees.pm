@@ -236,18 +236,25 @@ sub list {
  elsif ($attr->{MONTH}) {
    push @WHERE_RULES, "date_format(f.date, '%Y-%m')='$attr->{MONTH}'";
   }
-
+ 
+ my $ext_tables  = '';
+ my $login_field = '';
+ if($attr->{FIO}) {
+   $ext_tables = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
+   $login_field  = "pi.fio,";  
+  }
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT f.id, u.id, f.date, f.sum, f.dsc, f.method,
+ $self->query($db, "SELECT f.id, u.id, $login_field f.date, f.sum, f.dsc, f.method,
    f.last_deposit, f.bill_id, 
    if(a.name is NULL, 'Unknown', a.name), 
-              INET_NTOA(f.ip),
+   INET_NTOA(f.ip),
    f.uid, f.inner_describe
     FROM fees f
     LEFT JOIN users u ON (u.uid=f.uid)
     LEFT JOIN admins a ON (a.aid=f.aid)
+    $ext_tables
     $WHERE 
     GROUP BY f.id
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
@@ -294,10 +301,6 @@ sub reports {
  if ($attr->{BILL_ID}) {
    push @WHERE_RULES, "f.BILL_ID IN ( $attr->{BILL_ID} )";
   }
-
-
-
-
  
  if($attr->{DATE}) {
    push @WHERE_RULES, "date_format(f.date, '%Y-%m-%d')='$attr->{DATE}'";
@@ -373,9 +376,6 @@ if ($self->{TOTAL} > 0 || $PG > 0 ) {
 	
 	return $list;
 }
-
-
-
 
 
 1

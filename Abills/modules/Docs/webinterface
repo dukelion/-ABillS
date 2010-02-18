@@ -87,12 +87,12 @@ sub docs_invoice_add  {
 
      if(! $Docs->{errno}) {
        if ($conf{DOCS_PDF_PRINT}) {
-  	     $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}] $_DATE: $FORM{DATE} (". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }) . ')');
+  	     $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}] $_DATE: $FORM{DATE} ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
    	     return 0;
         }
        else {
-         $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}] $_DATE: $FORM{DATE} (". 
-           $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', BUTTON => 1 }) . ")");
+         $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}] $_DATE: $FORM{DATE} ". 
+           $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', BUTTON => 1 }) );
          $Docs->docs_invoice_info($Docs->{DOC_ID});
         }
       }
@@ -895,12 +895,12 @@ sub docs_account {
         }
 
        if ($conf{DOCS_PDF_PRINT}) {
-       	 $html->message('info', "$_ACCOUNT $_ADDED", "$_ACCOUNT $_ADDED. (". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }).")" );
+       	 $html->message('info', "$_ACCOUNT $_ADDED", "$_ACCOUNT $_ADDED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
        	 return 0;
         }
        else {
-         $html->message('info', "$_ACCOUNT $_ADDED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE} (".
-          $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', BUTTON => 1 }) .")");
+         $html->message('info', "$_ACCOUNT $_ADDED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE} ".
+          $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', BUTTON => 1 }) );
           #return 0;
         }
        	

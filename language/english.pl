@@ -399,7 +399,7 @@ $_JOIN_SERVICE='Join Service';
 $_MAIN='Main';
 $_CHANNELS='Channels';
 $_ABON_DISTRIBUTION='Abon. payments distribution';
-$_SMALL_DEPOSIT_BLOCK='Block if deposit small then abon. payments';
+$_SMALL_DEPOSIT_ACTION='If deposit small then abon. payments';
 $_GUEST_MODE='Guest mode. Please registration your address';
 
 $_LOGON='Logon';

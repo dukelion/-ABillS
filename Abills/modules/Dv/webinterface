@@ -95,11 +95,11 @@ if ($FORM{set}) {
     my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
     
     if ($seltime <= time()) {
-      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($year-$month-$day)/". $seltime . "-" . time());
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ". $html->color_mark("$_DATE: $year-$month-$day", $_COLORS[6]));
       return 0;
      }
     elsif($FORM{date_D} > ($month!=2?(($month%2)^($month>7))+30:(!($year%400)||!($year%4)&&($year%25)?29:28))) {
-      $html->message('info', $_INFO, "$ERR_WRONG_DATA ($year-$month-$day)");
+      $html->message('info', $_INFO, "$ERR_WRONG_DATA ". $html->color_mark("$_DATE: $year-$month-$day", $_COLORS[6]));
       return 0;
      }
 
@@ -796,7 +796,14 @@ $tarif_info->{POSTPAID_DAY_FEE}  = ($tarif_info->{POSTPAID_DAY_FEE})  ? 'checked
 $tarif_info->{POSTPAID_MONTH_FEE}= ($tarif_info->{POSTPAID_MONTH_FEE})? 'checked' : '';
 $tarif_info->{PERIOD_ALIGNMENT}  = ($tarif_info->{PERIOD_ALIGNMENT})  ? 'checked' : ''; 
 $tarif_info->{ABON_DISTRIBUTION} = ($tarif_info->{ABON_DISTRIBUTION}) ? 'checked' : ''; 
-$tarif_info->{SMALL_DEPOSIT_BLOCK} = ($tarif_info->{SMALL_DEPOSIT_BLOCK}) ? 'checked' : ''; 
+$tarif_info->{SMALL_DEPOSIT_ACTION_SEL} = $html->form_select('SMALL_DEPOSIT_ACTION', 
+                                          { 
+ 	                                          SELECTED          => $tarif_info->{SMALL_DEPOSIT_ACTION},
+ 	                                          SEL_MULTI_ARRAY   => [['', ''], ['-1', "$_HOLD_UP"], @{ $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $admin->{DOMAIN_ID} })	 } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
 
 
 if ($conf{EXT_BILL_ACCOUNT}) {
@@ -4038,11 +4045,11 @@ sub dv_monthly_fees {
      if ($abon_distrib) {
      	 $month_fee = $month_fee / $days_in_month;
       }    
-     
+
 	   my $ulist = $Dv->list({ 
          ACTIVATE     => $activate_date,
          EXPIRE       => ">'$ADMIN_REPORT{DATE}'",
-         STATUS       => 0,
+         STATUS       => "0;5",
          LOGIN_STATUS => 0,
          TP_ID        => $TP_ID,
          SORT         => 1,
@@ -4050,7 +4057,7 @@ sub dv_monthly_fees {
          TP_CREDIT    => '>=0',
          %DV_LIST_PARAMS
  	   	 });
- 
+
      my $extfield_count = $Dv->{SEARCH_FIELDS_COUNT};
 
      foreach my $u (@$ulist) {
@@ -4172,14 +4179,24 @@ sub dv_monthly_fees {
 	           #***************************************************************
              #Min use Makes only 1 of month
              if ($small_deposit_block && $month_fee > $user{DEPOSIT}) {
-     	         $Dv->change({ UID    => $user{UID}, 
-            	               STATUS => 5 
-    	          });
+     	         if ($small_deposit_block == -1) {
+     	           $Dv->change({ UID    => $user{UID}, 
+            	                 STATUS => 5 });
+    	           }
+               else {
+     	           $Dv->change({ UID    => $user{UID}, 
+            	                 TP_ID  => $small_deposit_block });
+            	  }
+
                $debug_output .= " SMALL_DEPOSIT_BLOCK" if ($debug > 3);
                next;
               }
+             elsif ($small_deposit_block && $month_fee < $user{DEPOSIT}) {
+   	           $Dv->change({ UID    => $user{UID}, 
+           	                 STATUS => 0 });
+              }
 
-              #take fees in first day of month
+             #take fees in first day of month
               $FEES_PARAMS{DESCRIBE}="$_MONTH_FEE ($TP_ID)";  
               $FEES_PARAMS{DESCRIBE} .= " - $_ABON_DISTRIBUTION" if ($abon_distrib);
 
