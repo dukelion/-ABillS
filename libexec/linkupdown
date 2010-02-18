@@ -526,12 +526,12 @@ print "\nEND: =====================================\n" if ($debug > 0);
        if ( $traf_type > 0 ) {
       	 $tp_table_number = $tp_table_number + $traf_type * 2
         }
-
+       my $prefix = 1000000;
   	   push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
   	   push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1) ." delete $CLIENT_IP";
 
-       my $tablearg_in  = $user->{UID} + 1000000 + 1000000 * ($traf_type*2);
-       my $tablearg_out = $user->{UID} + 1000000 + 1000000 * ($traf_type*2+1);
+       my $tablearg_in  = $user->{UID} + $prefix + $prefix * ($traf_type*2);
+       my $tablearg_out = $user->{UID} + $prefix + $prefix * ($traf_type*2+1);
 
     	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP/$BIT_MASK ". $tablearg_in;
        push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1). " add $CLIENT_IP/$BIT_MASK ". $tablearg_out;
@@ -659,6 +659,11 @@ sub ng_car_shape {
   #cir -  Committed Information Rate - согласованная информационная скорость канала (бит/с).
   #Cbs -  Committed Burst Size - количество бит, которое может быть передано по логическому каналу за интервал времени. 
   #Ebs – Exceeded/Peak Burst Size -  количество  бит,  на  которое  может  быть  превышено  значение  cbs  за интервал времени.
+
+#$cbs_in = 128000;
+#$ebs_in = 128000;
+#$cbs_out = 256000;
+#$ebs_out = 258000 * 2;
 
   $speed_in   = 1048576000 if ($speed_in  == 0);
   $speed_out  = 1048576000 if ($speed_out == 0);
