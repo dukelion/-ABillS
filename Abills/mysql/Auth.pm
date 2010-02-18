@@ -297,12 +297,12 @@ if ($self->{PORT} > 0 && $self->{PORT} != $RAD->{NAS_PORT}) {
 
 #Check  simultaneously logins if needs
 if ($self->{LOGINS} > 0) {
-  $self->query($db, "SELECT CID, acct_input_octets+acct_output_octets FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2 and status < 11);");
+  $self->query($db, "SELECT CID FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2 and status < 11);");
 
   my($active_logins) = $self->{TOTAL};
   foreach my $line (@{ $self->{list} }) {
   	# Zap session with same CID
-  	if ($line->[0] ne '' && $line->[0] eq $RAD->{CALLING_STATION_ID} && $line->[1] == 0) {
+  	if ($line->[0] ne '' && $line->[0] eq $RAD->{CALLING_STATION_ID}) {
   		$self->query($db, "UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$RAD->{CALLING_STATION_ID}' and status <> 2;", 'do');
   		$active_logins--;
   	 }
@@ -1313,8 +1313,10 @@ sub get_ip {
  $self->query($db, "SELECT c.framed_ip_address
   FROM dv_calls c
   INNER JOIN nas_ippools np ON (c.nas_id=np.nas_id)
-  WHERE np.pool_id in ( $used_pools ) AND (status<>2);");
-  
+  WHERE np.pool_id in ( $used_pools );");
+
+ # AND (status<>2)
+
  $list = $self->{list};
  $self->{USED_IPS}=0;
 
