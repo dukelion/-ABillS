@@ -361,17 +361,12 @@ CREATE TABLE `filters` (
   UNIQUE KEY `filter` (`filter`)
 )  ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `groups`
-#
-
 CREATE TABLE `groups` (
   `gid` smallint(4) unsigned NOT NULL default '0',
   `name` varchar(30) NOT NULL default '',
   `descr` varchar(200) NOT NULL default '',
   `domain_id` smallint(6) unsigned not null default 0,
+  `separate_docs` tinyint(1) unsigned not null default 0,
   PRIMARY KEY  (`gid`),
   UNIQUE KEY `name` (`domain_id`, `name`)
 ) ;
