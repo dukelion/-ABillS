@@ -340,7 +340,7 @@ require Finance;
 Finance->import();
 my $payments = Finance->payments($db, $admin, \%conf); 
 
-$ADMIN_REPORT{PAYMENTS}  =  sprintf("%-14s|%-18s| %8s| %20s| %12s| %15s| %19s|\n", $_LOGIN, "$_FIO", $_SUM, 
+$ADMIN_REPORT{PAYMENTS}  =  sprintf("%-14s|%-28s| %8s| %20s| %12s| %15s| %19s|\n", $_LOGIN, "$_FIO", $_SUM, 
     $_DESCRIBE, 'Admins.', 'IP', $_DATE);
 $ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
 
@@ -352,7 +352,7 @@ $LIST_PARAMS{PAGE_ROWS}=1000000;
 $list = $payments->list({ %LIST_PARAMS, FIO => '*' });
 
 foreach my $line (@$list) {
-   $ADMIN_REPORT{PAYMENTS} .= sprintf ("%-14s|%-18s| %8.4f| %20s| %12s| %15s| %19s|\n", 
+   $ADMIN_REPORT{PAYMENTS} .= sprintf ("%-14s|%-28s| %8.4f| %20s| %12s| %15s| %19s|\n", 
     $line->[1], 
     $line->[2],
     $line->[4], 
@@ -373,14 +373,14 @@ $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n",
 my $fees = Finance->fees($db, $admin, \%conf);
 
 # Daily fees report
-$ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-18s| %8s| %20s| %12s| %15s| %8s\n", $_LOGIN, $_FIO, $_SUM, $_DESCRIBE, $_TYPE, $_ADMINS, 'IP', $_DEPOSIT);
+$ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-28s| %8s| %20s| %12s| %15s| %8s\n", $_LOGIN, $_FIO, $_SUM, $_DESCRIBE, $_TYPE, $_ADMINS, 'IP', $_DEPOSIT);
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
 
 
 $list = $fees->list( { %LIST_PARAMS, FIO => '*' } );
 foreach my $line (@$list) {
 
-  $ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-18s| %8.4f| %20s| %12s | %12s| %15s| %8.4f\n", 
+  $ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-28s| %8.4f| %20s| %12s | %12s| %15s| %8.4f\n", 
     ($line->[1]) ? $line->[1] : "!Unknown", 
     ($line->[2]) ? $line->[2] : "", 
     $line->[4],

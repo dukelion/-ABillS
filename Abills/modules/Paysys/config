@@ -2,8 +2,9 @@
 %FUNCTIONS_LIST = (
                    #"01:0:Paysys:paysys_webmoney:UID"     => 2,
                    "02:0:Paysys:paysys_log:"              => 4,
-                   "03:0:Import:paysys_import_payments:"  => 2,
-                   "04:0:Import:paysys_import_fees:"      => 3
+                   "03:2:Privat 24:paysys_p24:"           => 4,
+                   "05:0:Import:paysys_import_payments:"  => 2,
+                   "06:0:Import:paysys_import_fees:"      => 3
                    );
 
 %USER_FUNCTION_LIST = ("01:0:$_BALANCE_RECHARCHE:paysys_payment:"  => 40,

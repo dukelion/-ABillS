@@ -1313,52 +1313,28 @@ else {
 }
 
 
-
-##**********************************************************
-##
-##**********************************************************
-#sub hex2bin {
-#   my ($temp) = @_;
-#
-#   my $data="";
-#   my $len = length($temp);
-#   
-#   for (my $i=0; $i<$len; $i+=2) {
-#     $data .= chr(hex(substr($temp,$i,2)));
-#    }
-#
-#   return $data;
-#}
-
 #**********************************************************
-# 
+#
 #**********************************************************
-sub wm_validate {
- eval { require Digest::MD5; };
- if (! $@) {
-    Digest::MD5->import();
+sub paysys_p24 {
+	require "modules/Paysys/P24.pm";
+	
+	my $info =  p24({ CARD_INFO => '4149600779390328' });
+	
+	my $table = $html->table({ caption => 'CARD_INFO', 
+		                         width   => '100%' 
+		                         });
+
+	while(my ($k, $v) = each %{ $info->{data}->{info}->[0]->{cardbalance}->[0]->{card}->[0] } ) {
+		 $table->addrow($k, $v->[0]);
+		 $table->{caption} = 'CARD: '. $v->[0] if ($k eq 'account');
    }
- else {
-    print "Can't load 'Digest::MD5' check http://www.cpan.org";
-  }
 
-  my $md5 = new Digest::MD5;
-  $md5->reset;
+	while(my($k, $v) = each %{  @{ $info->{data}->{info} }[0]->{cardbalance}->[0] } ) {
+  	 $table->addrow($k, $v->[0]) if ($k ne 'card');
+	 }
 
-	$md5->add($FORM{LMI_PAYEE_PURSE}); 
-	$md5->add($FORM{LMI_PAYMENT_AMOUNT});
-  $md5->add($FORM{LMI_PAYMENT_NO});
-  $md5->add($FORM{LMI_MODE}); 
-  $md5->add($FORM{LMI_SYS_INVS_NO});
-  $md5->add($FORM{LMI_SYS_TRANS_NO});
-  $md5->add($FORM{LMI_SYS_TRANS_DATE});
-  $md5->add($FORM{LMI_SECRET_KEY}); 
-  $md5->add($FORM{LMI_PAYER_PURSE}); 
-  $md5->add($FORM{LMI_PAYER_WM}); 
-
-  my $digest = uc($md5->hexdigest());	
-  
-  print $digest;
+ 	print $table->show();
 }
 
 1
