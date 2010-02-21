@@ -516,12 +516,15 @@ sub group_info {
  my $self = shift;
  my ($gid) = @_;
  
- $self->query($db, "select g.name, g.descr, g.domain_id FROM groups g WHERE g.gid='$gid';");
+ $self->query($db, "select g.name, g.descr, g.separate_docs, g.domain_id FROM groups g WHERE g.gid='$gid';");
 
  return $self if ($self->{errno} || $self->{TOTAL} < 1);
 
  ($self->{G_NAME},
- 	$self->{G_DESCRIBE}) = @{ $self->{list}->[0] };
+ 	$self->{G_DESCRIBE},
+ 	$self->{SEPARATE_DOCS},
+ 	$self->{DOMAIN_ID}
+ 	) = @{ $self->{list}->[0] };
  
  $self->{GID}=$gid;
 
@@ -539,9 +542,13 @@ sub group_change {
                G_NAME     => 'name',
                G_DESCRIBE => 'descr',
                CHG        => 'gid',
+               SEPARATE_DOCS => 'separate_docs'
                );
 
  $attr->{CHG}=$gid;
+ 
+ $attr->{SEPARATE_DOCS}=($attr->{SEPARATE_DOCS}) ? 1 : 0;
+ 
  $self->changes($admin, { CHANGE_PARAM => 'CHG',
 		               TABLE        => 'groups',
 		               FIELDS       => \%FIELDS,
@@ -549,7 +556,6 @@ sub group_change {
 		               DATA         => $attr,
 		               EXT_CHANGE_INFO  => "GID:$gid"
 		              } );
-
 
  return $self;
 }
@@ -565,8 +571,8 @@ sub group_add {
 
  %DATA = $self->get_data($attr); 
  
- $self->query($db, "INSERT INTO groups (gid, name, descr, domain_id)
-    values ('$DATA{GID}', '$DATA{G_NAME}', '$DATA{G_DESCRIBE}', '$admin->{DOMAIN_ID}');", 'do');
+ $self->query($db, "INSERT INTO groups (gid, name, descr, separate_docs, domain_id)
+    values ('$DATA{GID}', '$DATA{G_NAME}', '$DATA{G_DESCRIBE}', '$DATA{SEPARATE_DOCS}', '$admin->{DOMAIN_ID}');", 'do');
 
 
  $admin->system_action_add("GID:$DATA{GID}", { TYPE => 1 });
@@ -607,8 +613,6 @@ sub list {
 
  $self->{SEARCH_FIELDS} = '';
  $self->{SEARCH_FIELDS_COUNT}=0;
-
-
 
  undef @WHERE_RULES;
  my $search_fields = '';
