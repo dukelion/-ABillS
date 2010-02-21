@@ -1071,7 +1071,6 @@ sub docs_print {
     require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
    }
 
-  
 	if (defined(@MONTHES_LIT) && $ATTR->{DATE}) {
     my ($y, $m, $d)=split(/-/, $ATTR->{DATE}, 3);
     $ATTR->{FROM_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
@@ -1096,10 +1095,8 @@ sub docs_print {
      LOCALE           => $conf{LOCALE}
   	  });
 
-
 	my $template = $type;
   print $html->header() if ($FORM{qindex});
-
 
   if ($LIST_PARAMS{COMPANY_ID}) {
 
@@ -1107,15 +1104,22 @@ sub docs_print {
   else {
     $users = $user if ($user->{UID});
    }
-  
 
+  my $tpl_sufix = '';
   if ($Docs->{UID}) {
     $users->info($Docs->{UID}) if (! $users->{BILL_ID});
     $users->pi({  UID => $Docs->{UID} }) ;
     $users->{ADDRESS_FULL}="$users->{ADDRESS_STREET}, $users->{ADDRESS_BUILD}, $users->{ADDRESS_FLAT}"; 
+    
+    if ($users->{GID}) {
+       $users->group_info($users->{GID});
+       if ($users->{SEPARATE_DOCS}) {
+       	 $tpl_sufix = "_$users->{GID}"; 
+        }
+     }
    }
 
-	$html->tpl_show(_include("docs_$template", 'Docs', 
+	$html->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
 	    { pdf => $FORM{pdf} }), { %$users, %$ATTR });
 }
 
