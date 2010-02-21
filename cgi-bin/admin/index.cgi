@@ -1091,11 +1091,10 @@ elsif(defined($FORM{GID})){
       return 0;
      }
 
-    $users->{ACTION}='change';
-    $users->{LNG_ACTION}=$_CHANGE;
-
-    $html->tpl_show(templates('form_groups'), $users);
-  #}
+  $users->{ACTION}='change';
+  $users->{LNG_ACTION}=$_CHANGE;
+  $users->{SEPARATE_DOCS} = ($users->{SEPARATE_DOCS}) ?  'checked' : '';
+  $html->tpl_show(templates('form_groups'), $users);
  
   return 0;
  }
@@ -1128,7 +1127,7 @@ foreach my $line (@$list) {
   $table->addrow($html->b($line->[0]), 
    "$line->[1]", 
    "$line->[2]", 
-   $html->button($line->[3], "index=27&GID=$line->[0]&subf=15", { BUTTON => 1 }), 
+   $html->button($line->[3], "index=27&GID=$line->[0]&subf=15"), 
    $html->button($_INFO, "index=27&GID=$line->[0]", { BUTTON => 1 }),
    $delete);
 }
@@ -4565,17 +4564,16 @@ if (defined($attr->{USER})) {
     	$Docs->account_info($FORM{ACCOUNT_ID});
       if ($Docs->{TOTAL} == 0) {
       	$FORM{ACCOUNT_SUM}=0;
-       } 
+       }
       else {
       	$FORM{ACCOUNT_SUM} = $Docs->{TOTAL_SUM};
        }
      }
 
    	if ($FORM{ACCOUNT_SUM} && $FORM{ACCOUNT_SUM} != $FORM{SUM})  {
-      	$html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
+      $html->message('err', "$_PAYMENTS: $ERR_WRONG_SUM", "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
      }
     else {
-
       my $er = $payments->exchange_info($FORM{ER});
       $FORM{ER} = $er->{ER_RATE};
       $payments->add($user, { %FORM } );  
