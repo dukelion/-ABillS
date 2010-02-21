@@ -3718,10 +3718,10 @@ sub dv_periodic_logrotate {
 sub dv_daily_fees {
   my ($attr) =@_;
 
-	my $debug = $attr->{DEBUG} || 0;
-  my $debug_output = '';
+ my $debug = $attr->{DEBUG} || 0;
+ my $debug_output = '';
 
-  my $DOMAIN_ID = $attr->{DOMAIN_ID} || 0;
+ my $DOMAIN_ID = $attr->{DOMAIN_ID} || 0;
 
  $debug_output .= "DV: Daily periodic payments\n" if ($debug > 1);
 
@@ -3760,7 +3760,6 @@ sub dv_daily_fees {
          %DV_LIST_PARAMS
  	   	 });
 
-
      foreach my $u (@$ulist) {
      	  #Check bill id and deposit 
          my %user = (
@@ -3773,10 +3772,7 @@ sub dv_daily_fees {
             CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14]
            );
 
-#print "$user{LOGIN} / $user{BILL_ID} \n";
         if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
-          #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $user{DEPOSIT} / $u->[3] / BILL_ID: $user->{BILL_ID}\n"; 	
-
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
           if($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $TP_INFO{POSTPAID_DAILY} == 1 ) {
              #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
