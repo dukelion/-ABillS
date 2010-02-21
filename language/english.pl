@@ -169,6 +169,7 @@ $_RESET='Reset';
 $_RESETED='Successfuly reset';
 $_FILTERS='Filters';
 $_DOCS='Documents';
+$_SEPARATE_DOCS='Separate Docs';
 $_NAS_CONFIG='NAS configuration';
 $_NAS_STATISTIC='NAS statistics';
 $_NAS='NAS';
