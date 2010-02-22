@@ -300,10 +300,10 @@ if ($Ipn->{INTERIM}{$ip}) {
      my $in = (defined($v->{IN})) ? int($v->{IN}) : 0;
      my $out = (defined($v->{OUT})) ? int($v->{OUT}) : 0;
      
-     $TRAFFIC_CLASS_SUM{$k}{IN}=$in;
-     $TRAFFIC_CLASS_SUM{$k}{OUT}=$out;
+     $TRAFFIC_CLASS_SUM{$k}{IN} = $in;
+     $TRAFFIC_CLASS_SUM{$k}{OUT}= $out;
       
-     $total_in += $in;
+     $total_in  += $in;
      $total_out += $out;
       
       
@@ -410,7 +410,6 @@ if ($Ipn->{INTERIM}{$ip}) {
  }
 #If user Don't have interium traffic
 elsif($total_user_sum > 0 && $uid > 0) {
-
 }
 
   #Put user data to database

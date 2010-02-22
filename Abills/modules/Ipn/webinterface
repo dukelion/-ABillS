@@ -1283,7 +1283,7 @@ sub ipn_user_activate {
                                       } );
 
       if ($r == 1) {
-        $html->message('err', $_ERROR, "$RAD_PAIRS->{'Reply-Message'}");
+        $html->message('err', $_ERROR, "- $RAD_PAIRS->{'Reply-Message'}");
        }
       else {
         $Ipn->user_status({ %DATA });
