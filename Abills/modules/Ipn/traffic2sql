@@ -218,7 +218,7 @@ sub flow_capture {
       	my $status = system("mv $flow_dir/$log $ARGV->{FLOWTOOLS_FT_BACKUP}")
        }
       else {
-        my $status = unlink("$flow_dir/$log");
+        #my $status = unlink("$flow_dir/$log");
        }
      }
     else {
@@ -535,7 +535,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
      ) if ($debug > 0);
 }
 
-if ($debug > 0 || $log_file) {
+if ($debug > 0 || $ARGV->{LOG_FILE}) {
 	my $GT = '';
 
 	if ($begin_time > 0) {
@@ -545,23 +545,17 @@ if ($debug > 0 || $log_file) {
     $GT = sprintf(" GT: %2.5f", $gen_time);
    }
 
-  $Ipn->{TRAFFIC_SUM}=0 if (! $Ipn->{TRAFFIC_SUM});
-  $Ipn->{UNKNOWN_TRAFFIC_SUM}=0 if (! $Ipn->{UNKNOWN_TRAFFIC_SUM});
-
-  my $speed = int2byte(($Ipn->{TRAFFIC_SUM}+$Ipn->{UNKNOWN_TRAFFIC_SUM}) / $attr->{SESSION_INTERVAL});
-
-	my $output = "$registred$GT/Query: $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS}/". int2byte($Ipn->{TRAFFIC_SUM}) ." Unknown: $Ipn->{UNKNOWN_TRAFFIC_ROWS}/". int2byte($Ipn->{UNKNOWN_TRAFFIC_SUM}) ." Speed: $speed/sec.\n";
-	$output .= "\n";
-
-  if ($debug > 0 && ! defined($ARGV->{'-d'})) {
-    print $output;
-   }
-  else {
-  	my $log_message =  "$attr->{LOG} $GT Query: $Ipn->{query_count} ROWS: $Ipn->{TOTAL_FLOWS}"; 
-  	$log_message .= $output if ($debug > 0);
-  	mk_log('LOG_INFO', "$log_message"); 
+ 	my $log_message  = '';
+  if ($debug > 0) {
+		  $Ipn->{TRAFFIC_SUM}=0 if (! $Ipn->{TRAFFIC_SUM});
+      $Ipn->{UNKNOWN_TRAFFIC_SUM}=0 if (! $Ipn->{UNKNOWN_TRAFFIC_SUM});
+      my $speed = int2byte(($Ipn->{TRAFFIC_SUM}+$Ipn->{UNKNOWN_TRAFFIC_SUM}) / $attr->{SESSION_INTERVAL});
+     	my $output = "$registred$GT/Query: $Ipn->{query_count}/ Stats Rows: $Ipn->{TRAFFIC_ROWS}/". int2byte($Ipn->{TRAFFIC_SUM}) ." Unknown: $Ipn->{UNKNOWN_TRAFFIC_ROWS}/". int2byte($Ipn->{UNKNOWN_TRAFFIC_SUM}) ." Speed: $speed/sec.\n";
+  	  $log_message .= $output;
    }
   
+  $log_message .=  "$attr->{LOG} $GT Query: $Ipn->{query_count} ROWS: $Ipn->{TOTAL_FLOWS}"; 
+  mk_log('LOG_INFO', "$log_message"); 
 
   $Ipn->{TRAFFIC_SUM}=0;
   $Ipn->{UNKNOWN_TRAFFIC_SUM}=0;
@@ -748,19 +742,20 @@ sub daemonize {
 #**********************************************************
 sub mk_log {
   my ($type, $message) = @_;
-  
-  if ($debug < $log_levels{$type}) {
-    return 0;
-   }
 
-  my $DATETIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);  
   if ($ARGV->{LOG_FILE} || defined($ARGV->{'-d'}) ) {
+    #if ($debug < $log_levels{$type}) {
+    #  return 0;
+    # }
+
+    my $DATETIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);  
+    $log_file = $ARGV->{LOG_FILE} if ($ARGV->{LOG_FILE});
     open(FILE, ">> $log_file") || die "Can't open file '$log_file' $!\n";
       print FILE "$DATETIME $type: $message\n";
     close(FILE);
    }
   else {
-  	print "$DATETIME $message\n";
+  	print "$message\n";
    }
 };
 
