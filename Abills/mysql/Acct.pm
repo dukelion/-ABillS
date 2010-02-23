@@ -215,10 +215,13 @@ elsif ($acct_status_type == 2) {
      }      
     else {
       #DEbug only
-      use POSIX qw(strftime);
-      my $DATE_TIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);
-      my $r = `echo "$DATE_TIME $self->{UID} - $RAD->{USER_NAME} / $RAD->{ACCT_SESSION_ID} / Time: $RAD->{ACCT_SESSION_TIME} / $self->{errstr}" >> /tmp/unknown_session.log`;
-      #DEbug only end
+      if ($conf->{ACCT_DEBUG}) {
+        use POSIX qw(strftime);
+        my $DATE_TIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);
+        my $r = `echo "$DATE_TIME $self->{UID} - $RAD->{USER_NAME} / $RAD->{ACCT_SESSION_ID} / Time: $RAD->{ACCT_SESSION_TIME} / $self->{errstr}" >> /tmp/unknown_session.log`;
+        #DEbug only end
+       }
+
       return $self;      
      }     
    }
