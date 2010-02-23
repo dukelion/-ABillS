@@ -21,7 +21,7 @@
 %INFO_FIELDS%
 
 <TR><th colspan=2  bgcolor='$_COLORS[2]'>:$_COMMENTS:</th></TR>
-<TR><th colspan=2><textarea name=COMMENTS rows=5 cols=45>%COMMENTS%</textarea></th></TR>
+<TR><th colspan=2><textarea name=COMMENTS rows=5 cols=60>%COMMENTS%</textarea></th></TR>
 
 </TABLE>
 
