@@ -34,6 +34,7 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    51 => "24_non_STOP",
                    52 => "24_non_STOP_SELF",
                    53 => "Express_Oplata",
+                   54 => "Privat Bank - Privat 24",
                   );
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
@@ -424,6 +425,9 @@ sub paysys_payment {
 	 }
 	elsif($FORM{PAYMENT_SYSTEM} == 48) {
      paysys_privatbank();
+	 }
+	elsif($FORM{PAYMENT_SYSTEM} == 54) {
+     paysys_privatbank_p24();
 	 }
 	else {
 	  my %info = ();
@@ -1319,7 +1323,7 @@ else {
 sub paysys_p24 {
 	require "modules/Paysys/P24.pm";
 	
-	my $info =  p24({ CARD_INFO => '4149600779390328' });
+	my $info =  p24({ CARD_INFO => $conf{'PAYSYS_P24_CARD'} });
 	
 	my $table = $html->table({ caption => 'CARD_INFO', 
 		                         width   => '100%' 
@@ -1336,6 +1340,19 @@ sub paysys_p24 {
 
  	print $table->show();
 }
+
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_privatbank_p24 {
+	require "modules/Paysys/P24.pm";
+
+print << "";	
+
+
+}
+
 
 1
 
