@@ -28,7 +28,7 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    45 => "Portmone",
                    46 => "Ukrpays",
                    47 => "USMP",
-                   48 => "PrivatBank",
+                   48 => "Privat Bank (Visa/Master Cards)",
                    49 => "Pegas",
                    50 => "Comepay",
                    51 => "24_non_STOP",
@@ -408,6 +408,13 @@ sub paysys_import_parse {
 #**********************************************************
 sub paysys_payment {
   
+  $FORM{SUM}=sprintf("%.2f", $FORM{SUM} || 0);
+  
+  if ($FORM{pre} && $FORM{SUM} <= 0) {
+    $html->message('err', $_ERROR, "$ERR_WRONG_SUM");  	
+  	goto PRE_LABEL;
+   }
+
   if ($FORM{PAYMENT_SYSTEM} == 41) {
    	 paysys_webmoney();
 	 }
@@ -430,6 +437,7 @@ sub paysys_payment {
      paysys_privatbank_p24();
 	 }
 	else {
+		PRE_LABEL:
 	  my %info = ();
 	  $info{OPERATION_ID}   = mk_unique_value(8, {  SYMBOLS => '0123456789' });
 	  my %PAY_SYSTEM_ACCOUNTS = (41 => 'PAYSYS_WEBMONEY_ACCOUNTS',
@@ -437,13 +445,13 @@ sub paysys_payment {
 	                             43 => 'PAYSYS_SMSPROXY',
 	                             45 => 'PAYSYS_PORTMONE_PAYEE_ID',
 	                             46 => 'PAYSYS_UKRPAYS_SECRETKEY',
-	                             48 => 'PAYSYS_PB_MERID' );
+	                             48 => 'PAYSYS_PB_MERID',
+	                             54 => 'PAYSYS_P24_MERCHANT_ID' );
 	  
 	  while(my($k, $v) = each %PAY_SYSTEMS) {
 	  	delete $PAY_SYSTEMS{$k} if (! $conf{$PAY_SYSTEM_ACCOUNTS{$k}});
 	   }
-	  
-	  
+
 	  $info{PAY_SYSTEM_SEL} = $html->form_select('PAYMENT_SYSTEM', 
                                           { 
  	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
@@ -1346,11 +1354,7 @@ sub paysys_p24 {
 #
 #**********************************************************
 sub paysys_privatbank_p24 {
-	require "modules/Paysys/P24.pm";
-
-print << "";	
-
-
+  $html->tpl_show(_include('paysys_privatbank_p24_add', 'Paysys'), \%info);
 }
 
 
