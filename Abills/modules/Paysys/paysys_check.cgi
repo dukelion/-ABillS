@@ -204,6 +204,9 @@ sub payments {
   if ($FORM{LMI_PAYMENT_NO}) { # || $FORM{LMI_HASH}) {
   	wm_payments();
    }
+  elsif ($FORM{pay_way}) {
+  	p24_payments();
+   }
   elsif($FORM{rupay_action}) {
   	rupay_payments();
    }
@@ -290,10 +293,6 @@ sub portmone_payments {
 	     }
 	
 	#money added sucesfully
-	
-  #print "Content-Type: text/html\n\n";
-  #print "// $ENV{SCRIPT_NAME} $ENV{REQUEST_URI}//";
-  
 	my $home_url = '/index.cgi';
   $home_url = $ENV{SCRIPT_NAME};
   $home_url =~ s/paysys_check.cgi/index.cgi/;
@@ -312,24 +311,33 @@ sub portmone_payments {
 
 
 #**********************************************************
-#
+#MerID=100000000918471  
+#OrderID=test00000001g5hg45h45
+#AcqID=414963
+#Signature=e2DkM6RYyNcn6+okQQX2BNeg/+k=
+#ECI=5
+#IP=217.117.65.41
+#CountryBIN=804
+#CountryIP=804
+#ONUS=1
+#Time=22/01/2007 13:56:38
+#Signature2=nv7CcUe5t9vm+uAo9a52ZLHvRv4=
+#ReasonCodeDesc=Transaction is approved.
+#ResponseCode=1
+#ReasonCode=1
+#ReferenceNo=702308304646
+#PaddedCardNo=XXXXXXXXXXXX3982
+#AuthCode=073291
 #**********************************************************
 sub privatbank_payments {
   #Get order
-
-
   my $status = 0;
 
   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'OrderID'}", 
       	                     INFO           => '-',
-      	                     
   	                         });
 
-
- 
-
  if ($Paysys->{TOTAL} > 0) {
-	 
    if (	$FORM{ReasonCode} == 1 ) {     
 	      #$html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{SHOPORDERNUMBER }");
 	      my $uid = $list->[0][7];
@@ -350,26 +358,6 @@ sub privatbank_payments {
           $status = 4;
          }
         else{
-        	
-#MerID=100000000918471  
-#OrderID=test00000001g5hg45h45
-#AcqID=414963
-#Signature=e2DkM6RYyNcn6+okQQX2BNeg/+k=
-#ECI=5
-#IP=217.117.65.41
-#CountryBIN=804
-#CountryIP=804
-#ONUS=1
-#Time=22/01/2007 13:56:38
-#Signature2=nv7CcUe5t9vm+uAo9a52ZLHvRv4=
-#ReasonCodeDesc=Transaction is approved.
-#ResponseCode=1
-#ReasonCode=1
-#ReferenceNo=702308304646
-#PaddedCardNo=XXXXXXXXXXXX3982
-#AuthCode=073291
-
-        	
    	      $Paysys->change({ ID        => $list->[0][0],
    	      	                PAYSYS_IP => $ENV{'REMOTE_ADDR'},
  	                          INFO      => "ReasonCode: $FORM{ReasonCode}\n Authcode: $FORM{AuthCode}\n PaddedCardNo: $FORM{PaddedCardNo}\n ResponseCode: $FORM{ResponseCode}\n ReasonCodeDesc: $FORM{ReasonCodeDesc}\n IP: $FORM{IP}\n Signature: $FORM{Signature}" 
@@ -378,15 +366,15 @@ sub privatbank_payments {
 
 	      if ($conf{PAYSYS_EMAIL_NOTICE}) {
 	      	my $message = "\n".
-	      	 "System: Portmone\n".
+	      	 "System: Privat Bank\n".
 	      	 "DATE: $DATE $TIME\n".
 	      	 "LOGIN: $user->{LOGIN} [$uid]\n".
 	      	 "\n".
        	   "\n".
-	      	 "ID: $FORM{SHOPORDERNUMBER}\n".
+	      	 "ID: $list->[0][0]\n".
 	      	 "SUM: $sum\n";
 
-          sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Portmone Add", 
+          sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Privat Bank Add", 
               "$message", "$conf{MAIL_CHARSET}", "2 (High)");
 	      	
 	       }

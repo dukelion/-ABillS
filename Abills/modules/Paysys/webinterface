@@ -1039,7 +1039,7 @@ elsif ($FORM{SHOPORDERNUMBER}) {
 else {
   #Info section  
   
-  $Paysys->add({ SYSTEM_ID      => 5, 
+  $Paysys->add({ SYSTEM_ID      => 45, 
   	             DATETIME       => "'$DATE $TIME'", 
   	             SUM            => $FORM{SUM},
   	             UID            => $user->{UID}, 
@@ -1217,21 +1217,15 @@ $info{SUM_VAL_SEL}=$html->form_select('sum_val',
 # vadim.ignatkin@pbank.com.ua
 #**********************************************************
 sub paysys_privatbank {
-	
-	my %info = ();
+my %info = ();
 	
 if ($FORM{FALSE}) {
-	
-	
 	if ($FORM{ReasonCode} == 11 ) {
     $FORM{ReasonCodeDesc}="$ERR_INVALID_SIGNATURE";
 	 }
 	elsif ($FORM{ReasonCode} == 2 ) {
     $FORM{ReasonCodeDesc}="$ERR_TRANSACTION_DECLINED";
 	 }
-
-	
-	
 	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID} [$FORM{ReasonCode}/$FORM{ResponseCode}] $FORM{ReasonCodeDesc} ");
 	$html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
 
@@ -1258,7 +1252,7 @@ else {
 	 }
 	
 	#Info section  
-  $Paysys->add({ SYSTEM_ID      => 8, 
+  $Paysys->add({ SYSTEM_ID      => 48, 
   	             DATETIME       => "'$DATE $TIME'", 
   	             SUM            => $FORM{SUM},
   	             UID            => $user->{UID}, 
@@ -1273,24 +1267,10 @@ else {
   	return 0;
    }
 	
-}	
+} 
 
-
-
-  
   $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
-  
-
-
   $info{OPERATION_ID}  = $FORM{OPERATION_ID};  
-  #$conf{PAYSYS_PB_PW}="j8O5Eek7";
-  #$conf{PAYSYS_PB_MERID}="100000000918471";
-  #$info{OPERATION_ID}="Test_Merchant_Name_";
-  #$info{AMOUNT}=100;
-  #$info{AMOUNT2}=20;
-  
-
-  
   $info{AMOUNT}  = sprintf("%.12d", int($FORM{SUM}*100));
   $info{AMOUNT2} = sprintf("%.12d", int($info{AMOUNT2}));
   $info{AdditionalData} = "index=$index&UID=$user->{UID}";
@@ -1300,28 +1280,38 @@ else {
   use Digest::SHA1;
 
   my $ctx = Digest::SHA1->new;
-  #               Password+         MerID+                 AcqID+   OrderID+            PurchaseAmt+PurchaseCurrency+PurchaseAmt2+PurchaseCurrency2+AdditionalData+Reversal
   $ctx->add($conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$info{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'.$info{AdditionalData});
-  #           $str = "j8O5Eek7".  "100000000918471".     "414963".$orderID           .$amount.      "980".$amount2.      "840";
-  #$ctx->add('xxxxxxxx10000000091811141496397000000009180980');
   $info{HASH} = $ctx->b64digest();
   $info{SignatureMethod} = 'SHA1'; 
-
-
-
-#MD5 Signature
-#----------------------------
-#  my $md5 = new Digest::MD5;
-#  $md5->reset;
-#  $md5->add($conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'); 
-#  $info{HASH} = $md5->b64digest();
   $info{HASH}=$info{HASH}.'=';  
-  
-
-  #print "// ". $conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$FORM{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840' ."//\n";
   $info{DESCRIBE}      = $FORM{DESCRIBE};
 
   $html->tpl_show(_include('paysys_pb_add', 'Paysys'), \%info);
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_p24_get_payments {
+	require "modules/Paysys/P24.pm";
+	
+	my $info =  p24({ HISTORY => 1 });
+	
+	my $table = $html->table({ caption => "$_HISTORY", 
+		                         width   => '100%' 
+		                         });
+
+	while(my ($k, $v) = each %{ $info->{data}->{info}->[0]->{cardbalance}->[0]->{card}->[0] } ) {
+		 $table->addrow($k, $v->[0]);
+		 $table->{caption} = 'CARD: '. $v->[0] if ($k eq 'account');
+   }
+
+	while(my($k, $v) = each %{  @{ $info->{data}->{info} }[0]->{cardbalance}->[0] } ) {
+  	 $table->addrow($k, $v->[0]) if ($k ne 'card');
+	 }
+
+ 	print $table->show();
 }
 
 
@@ -1354,6 +1344,60 @@ sub paysys_p24 {
 #
 #**********************************************************
 sub paysys_privatbank_p24 {
+my %info = ();
+	
+if ($FORM{FALSE}) {
+	if ($FORM{ReasonCode} == 11 ) {
+    $FORM{ReasonCodeDesc}="$ERR_INVALID_SIGNATURE";
+	 }
+	elsif ($FORM{ReasonCode} == 2 ) {
+    $FORM{ReasonCodeDesc}="$ERR_TRANSACTION_DECLINED";
+	 }
+
+	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID} [$FORM{ReasonCode}/$FORM{ResponseCode}] $FORM{ReasonCodeDesc} ");
+	$html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+	return 0;
+ }
+elsif ($FORM{TRUE}) {
+   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OrderID}", 
+   	                          UID => $LIST_PARAMS{UID} });
+
+   if ($Paysys->{TOTAL} > 0) {
+	    $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OPERATION_ID}");
+	   }
+    else {
+    	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
+     }
+  $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+
+  return 0;
+ }
+else {
+	if ($FORM{SUM} <= 0 ) {
+		$html->message('info', $_ERROR, "$ERR_WRONG_SUM $FORM{SUM}");
+		return 0;
+	 }
+	
+	#Info section  
+  $Paysys->add({ SYSTEM_ID      => 54,
+  	             DATETIME       => "'$DATE $TIME'", 
+  	             SUM            => $FORM{SUM},
+  	             UID            => $user->{UID}, 
+                 IP             => "$ENV{'REMOTE_ADDR'}",
+                 TRANSACTION_ID => "$FORM{OPERATION_ID}",
+                 INFO           => '-',
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+               });
+
+  if ($Paysys->{errno}) {
+  	$html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
+  	return 0;
+   }
+	
+} 
+
+  $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+
   $html->tpl_show(_include('paysys_privatbank_p24_add', 'Paysys'), \%info);
 }
 
