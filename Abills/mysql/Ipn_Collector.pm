@@ -34,9 +34,6 @@ require Tariffs;
 Tariffs->import();
 my $Tariffs;
 
-
-
-
 my %ips = ();
 my $db;
 my $CONF;
@@ -833,7 +830,33 @@ sub traffic_add {
   return $self;
 }
 
+#**********************************************************
+# Acct_stop
+#**********************************************************
+sub acct_update {
+  my $self = shift;
+  my ($DATA) = @_;
 
+  $self->query($db, "UPDATE dv_calls SET
+      sum=sum+$DATA->{SUM},
+      acct_input_octets=acct_input_octets+$DATA->{INTERIUM_INBYTE},
+      acct_output_octets=acct_output_octets+$DATA->{INTERIUM_OUTBYTE},
+      ex_input_octets=ex_input_octets + $DATA->{INBYTE2},
+      ex_output_octets=ex_output_octets + $DATA->{OUTBYTE2},
+      acct_input_gigawords='$DATA->{ACCT_INPUT_GIGAWORDS}',
+      acct_output_gigawords='$DATA->{ACCT_OUTPUT_GIGAWORDS}',
+      status='3',
+      acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
+      framed_ip_address=INET_ATON('$DATA->{FRAMED_IP_ADDRESS}'),
+      lupdated=UNIX_TIMESTAMP()
+    WHERE
+      acct_session_id='$DATA->{ACCT_SESSION_ID}' and 
+      user_name='$DATA->{USER_NAME}' and
+      nas_id='$DATA->{NAS_ID}';", 'do');
+
+
+  return $self;
+}
 
 #**********************************************************
 # Acct_stop

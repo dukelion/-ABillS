@@ -74,13 +74,9 @@ else {
   }
  }	
 
-
-
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db  = $sql->{db};
-
-
 
 # Get options ==============================================
 my $IF_NAME=($ARGV->{INTERFACE}) ? $ARGV->{INTERFACE} : '';
@@ -148,11 +144,7 @@ if (-f $log) {
 }
 
 
-
 $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
-
-
-
 Time::HiRes->import(qw(gettimeofday));
 
 if (defined($ARGV->{'-d'})) {
@@ -305,10 +297,9 @@ if ($Ipn->{INTERIM}{$ip}) {
       
      $total_in  += $in;
      $total_out += $out;
-      
-      
      my $sum_in  = 0;
      my $sum_out = 0;
+
      #Get price and calculate traffic
      my $OCTETS_DIRECTION = $Ipn->{$ip}{OCTET_DIRECTION};
      my $price_in =  ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceIn}) ) ? $intervals->{$user_tp_interval}->{ZONES}->{$k}->{PriceIn} : 0;
@@ -318,7 +309,6 @@ if ($Ipn->{INTERIM}{$ip}) {
      if ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PREPAID_TSUM}) ) {
 
         my $used_traffic;
-
         if ($ARGV->{PREPAID_STORE}) {
 	        ($used_traffic) = $Ipn->traffic_user_get2({ UID          => $uid, 
                                                       ACTIVATE     => $Ipn->{USERS_INFO}->{ACTIVATE}->{$uid},
@@ -334,7 +324,6 @@ if ($Ipn->{INTERIM}{$ip}) {
                                                      TRAFFIC_OUT   => $out,
                                                      TRAFFIC_ID    => $k
                                                      });
-        	
          }
         my $online  = 0;
 
@@ -397,8 +386,6 @@ if ($Ipn->{INTERIM}{$ip}) {
    	      } );
       }
 
-
-     
      $extended .= sprintf("   %d| %10s| %10s| Price:%5s%5s = %f/%f=%f\n", $k, $in, $out, 
        $price_in,
        $price_out,
@@ -414,13 +401,14 @@ elsif($total_user_sum > 0 && $uid > 0) {
 
   #Put user data to database
   if ($uid > 0) {
-    $Ipn->{$ip}{IN}=0 if (! $Ipn->{$ip}{IN});
-    $Ipn->{$ip}{OUT}=0 if (! $Ipn->{$ip}{OUT});
-
+    $Ipn->{$ip}{IN}  = 0 if (! $Ipn->{$ip}{IN});
+    $Ipn->{$ip}{OUT} = 0 if (! $Ipn->{$ip}{OUT});
     $Ipn->{$ip}{IN}  = $Ipn->{$ip}{IN} + $total_in;
     $Ipn->{$ip}{OUT} = $Ipn->{$ip}{OUT}+ $total_out;
 
     %RAD = (  NAS_PORT          => 0,
+              INTERIUM_INBYTE   => $total_in,
+              INTERIUM_OUTBYTE  => $total_out,
    	          INBYTE            => $Ipn->{$ip}{IN} || 0,
    	          OUTBYTE           => $Ipn->{$ip}{OUT} || 0,
    	          ACCT_INPUT_GIGAWORDS  => $Ipn->{$ip}{ACCT_INPUT_GIGAWORDS}  || 0,
@@ -431,19 +419,24 @@ elsif($total_user_sum > 0 && $uid > 0) {
               USER_NAME         => $login,
               ACCT_SESSION_ID   => $session_id,
               ACCT_SESSION_TIME => 0,
-              ACCT_STATUS_TYPE  => 'Alive'
+              ACCT_STATUS_TYPE  => 'Alive',
             );
 
 
     if ($Ipn->{INTERIM}{$ip}) {
+      $Ipn->acct_update( { %RAD, 
+      	                   NAS_ID  => $Ipn->{$ip}{NAS_ID} || $NAS_ID,
+      	                   SUM     => sprintf("%.6f", $total_user_sum || 0) 
+      	                 } );
+      
       #Make accounting
-      $Acct->{SUM}=sprintf("%.6f", $total_user_sum || 0);
-      my $r = $Acct->accounting(\%RAD, { NAS_ID       => $Ipn->{$ip}{NAS_ID} || $NAS_ID, 
-    	                                   NAS_TYPE     => 'other',
-    	                                   NAS_EXT_ACCT => 1,
-    	                                   IPN_COLLECTOR=> 1
-    	                                   
-    	                                });
+      #$Acct->{SUM}=sprintf("%.6f", $total_user_sum || 0);
+      #my $r = $Acct->accounting(\%RAD, { NAS_ID       => $Ipn->{$ip}{NAS_ID} || $NAS_ID, 
+    	#                                   NAS_TYPE     => 'other',
+    	#                                   NAS_EXT_ACCT => 1,
+    	#                                   IPN_COLLECTOR=> 1
+    	#                                   
+    	#                                });
      }
 
     #Hangup users with negative deposit
