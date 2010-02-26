@@ -361,8 +361,8 @@ sub cards_add {
 
   $Cards->defaults();
   if ($FORM{create}) {
-    if (! $FORM{SUM} || $FORM{SUM} == 0 ) {
-      $html->message('err', $_ERROR, "$_NO_SUM");
+    if (! $FORM{SUM} || $FORM{SUM} <= 0 ) {
+      $html->message('err', $_ERROR, "$ERR_WRONG_SUM");
      }
     else {
       my $export      = '';
