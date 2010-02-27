@@ -53,7 +53,6 @@ sub docs_contract {
         	 }
          }
        }
-			
 		 }
 		docs_print($contract_tpl, { %$admin, %$Docs, %$attr });
 	 }
@@ -124,10 +123,8 @@ sub docs_invoice_add  {
       $Docs->{'ORDER_COUNT_'.$i} = $count;
       $Docs->{'ORDER_PRICE_'.$i} = $line->[4];
       $Docs->{'ORDER_SUM_'.$i}   = $sum;
-
       $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[4]);
       $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - $sum / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum);
-
 		  $i++;
 		  $Docs->{TOTAL_SUM}+=$sum;
 		 }
@@ -1117,6 +1114,8 @@ sub docs_print {
        	 $tpl_sufix = "_$users->{GID}"; 
         }
      }
+    print "Content-Type: text/html\n\n";
+    print $tpl_sufix;
    }
 
 	$html->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
