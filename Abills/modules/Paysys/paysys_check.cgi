@@ -511,7 +511,12 @@ elsif ($command eq 'cancel') {
       $RESULT_HASH{result}=1;
    }
   elsif ($payments->{TOTAL} < 1) {
-  	$RESULT_HASH{result}=79;
+  	if ($conf{PAYSYS_PEGAS})  {
+  		$RESULT_HASH{result}=0;
+  	 }
+  	else {
+  	  $RESULT_HASH{result}=79;
+  	 }
    }
   else {
 	  my %user = (

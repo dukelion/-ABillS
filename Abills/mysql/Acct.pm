@@ -314,7 +314,6 @@ elsif($acct_status_type eq 3) {
       acct_output_gigawords='$RAD->{ACCT_OUTPUT_GIGAWORDS}',";
      }
 
-
     $self->query($db, "UPDATE dv_calls SET
       $ipn_fields
       status='$acct_status_type',

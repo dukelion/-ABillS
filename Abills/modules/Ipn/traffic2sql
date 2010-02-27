@@ -37,7 +37,6 @@ if ($#ARGV < 1) {
 
 # Get nas servers is
 my $NAS_IDS=$ARGV[0];
-
 my $debug = 0;
 
 
@@ -422,21 +421,19 @@ elsif($total_user_sum > 0 && $uid > 0) {
               ACCT_STATUS_TYPE  => 'Alive',
             );
 
-
     if ($Ipn->{INTERIM}{$ip}) {
       $Ipn->acct_update( { %RAD, 
       	                   NAS_ID  => $Ipn->{$ip}{NAS_ID} || $NAS_ID,
       	                   SUM     => sprintf("%.6f", $total_user_sum || 0) 
       	                 } );
-      
       #Make accounting
       #$Acct->{SUM}=sprintf("%.6f", $total_user_sum || 0);
       #my $r = $Acct->accounting(\%RAD, { NAS_ID       => $Ipn->{$ip}{NAS_ID} || $NAS_ID, 
     	#                                   NAS_TYPE     => 'other',
     	#                                   NAS_EXT_ACCT => 1,
     	#                                   IPN_COLLECTOR=> 1
-    	#                                   
-    	#                                });
+    	#    	                                });
+    	
      }
 
     #Hangup users with negative deposit
@@ -500,9 +497,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
     		print "$DATE $TIME Hangup. Lost AMON ALIVE: $last_alive UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug > 0);
 
         my $netmask = 32;
-
         my $cmd = $conf{IPN_FW_STOP_RULE} || '';
-
         print 'Error: Not defined stop rules. Check $conf{IPN_FW_STOP_RULE}' if ($cmd eq '');
 
         $cmd =~ s/\%IP/$ip_addr/g;
@@ -510,7 +505,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
         $cmd =~ s/\%MASK/$netmask/g;
         $cmd =~ s/\%LOGIN/$login/g;
 
-        print "$cmd" if ($debug>0); 
+        print "$cmd" if ($debug>0);
         system("$cmd");
         $Ipn->acct_stop({ SESSION_ID           => $session_id,
          	                ACCT_TERMINATE_CAUSE => 10 });

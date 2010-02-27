@@ -158,6 +158,7 @@ sub list {
     LEFT JOIN users u ON (u.uid=s.uid)
     LEFT JOIN admins a ON (a.aid=s.aid) 
    $WHERE
+  ORDER BY $SORT $DESC
   LIMIT $PG, $PAGE_ROWS");
 
  my $list = $self->{list};

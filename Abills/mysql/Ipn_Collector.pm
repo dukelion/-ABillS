@@ -8,7 +8,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
 
 use Exporter;
-$VERSION = 2.01;
+$VERSION = 5.00;
 @ISA = ('Exporter');
 @EXPORT = qw(
   &ip_in_zone
@@ -65,7 +65,6 @@ sub new {
    }
 
   $CONF->{IPN_DETAIL_MIN_SIZE} = 0 if (! $CONF->{IPN_DETAIL_MIN_SIZE});
-
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
   
   $self->{TRAFFIC_ROWS}=0;

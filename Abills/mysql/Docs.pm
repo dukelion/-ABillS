@@ -34,7 +34,6 @@ sub new {
    }
 
   $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD}=30 if (! $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD});
-
   return $self;
 }
 

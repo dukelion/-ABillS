@@ -11,7 +11,7 @@ CA_pl=CA.pl;
 
 hostname=`hostname`;
 password=whatever;
-VERSION=0.8;
+VERSION=1.0;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -78,9 +78,9 @@ done
 if [ ! -d ${CERT_PATH} ] ; then
   mkdir ${CERT_PATH};
 fi
+cd ${CERT_PATH};
 
-
-
+#Default Cert user
 if [ w${CERT_USER} = w ];  then
   APACHE_USER=www;
 else 
@@ -88,14 +88,95 @@ else
 fi;
 
 
-cd ${CERT_PATH};
+
+
+#**********************************************************
+#Apache Certs
+#**********************************************************
+apache_cert () {
+  echo "*******************************************************************************"
+  echo "Creating Apache server private key and certificate"
+  echo "When prompted enter the server name in the Common Name field."
+  echo "*******************************************************************************"
+  echo
+
+  ${OPENSSL} genrsa -des3 -passout pass:${password} -out server.key ${CERT_LENGTH}
+
+  ${OPENSSL} req -new -key server.key -out server.csr \
+  -passin pass:${password} -passout pass:${password}
+
+  ${OPENSSL} x509 -req -days ${days} -in server.csr -signkey server.key -out server.crt \
+   -passin pass:${password}
+
+  chmod u=r,go= ${CERT_PATH}/server.key
+  chmod u=r,go= ${CERT_PATH}/server.crt
+  chown ${APACHE_USER} server.crt server.csr
+
+  cp ${CERT_PATH}/server.key ${CERT_PATH}/server.key.org
+
+  ${OPENSSL} rsa -in server.key.org -out server.key \
+   -passin pass:${password} -passout pass:${password}
+
+  #Cert info
+  #${OPENSSL} x509 -in server.crt -noout -subject
+  cert_info server.crt
+
+  chmod 400 server.key
+}
+
+
+#**********************************************************
+# Create SSH certs
+#**********************************************************
+ssh_key () {
+  echo "**************************************************************************"
+  echo "Creating SSH authentication Key"
+  echo " Make ssh-keygen with empty password."
+  echo "**************************************************************************"
+  echo
+
+  if [ w${CERT_TYPE} = w ]; then
+    id_dsa_file=id_dsa;
+  else
+    id_dsa_file=id_dsa.$2;
+  fi;
+  
+  USER=$2; 
+   
+  ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}${id_dsa_file}"
+
+  chown ${APACHE_USER} ${CERT_PATH}${id_dsa_file}
+  chmod u=r,go= ${CERT_PATH}/${id_dsa_file}.pub
+  echo "Set Cert user: ${CERT_USER}";
+
+  echo -n "Upload file to remote host (y/n): "
+  read UPLOAD
+  if [ w${UPLOAD} = wy ]; then
+    echo -n "Enter host: "
+    read HOST
+    
+    echo "Make upload to: ${HOST} "
+    ssh ${USER}@${HOST} "mkdir ~/.ssh"
+    scp ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOST}:~/.ssh/authorized_keys
+    
+    echo -n "Connect to remote host: ${HOST}  (y/n): "
+    read CONNECT
+    if [ w${CONNECT} = wy ]; then
+      ssh -o StrictHostKeyChecking=no -i ${CERT_PATH}${id_dsa_file}  ${USER}@${HOST}
+      exit;
+    fi;
+  else 
+    echo 
+    echo "Copy ${CERT_PATH}${id_dsa_file}.pub to REMOTE_HOST User home dir (/home/${USER}/.ssh/authorized_keys) "
+    echo 
+  fi;
+ }
 
 #**********************************************************
 # create Express Oplata Certs
 # www.express-oplata.ru/
 #**********************************************************
 express_oplata () {
-
   echo "#*******************************************************************************"
   echo "#Creating Express Oplata"
   echo "#"
@@ -112,7 +193,6 @@ express_oplata () {
   # Publick key
   ${OPENSSL} rsa -in express_oplata_private.pem -out express_oplata_public.pem -pubout \
     -passin pass:${password} 
-
 
   chmod u=r,go= ${CERT_PATH}/express_oplata_private.pem
   chmod u=r,go= ${CERT_PATH}/express_oplata_public.pem
@@ -141,115 +221,53 @@ express_oplata () {
 
 }
 
-if [ w${CERT_TYPE} = wexpress_oplata ]; then
-  express_oplata;
-  exit;
-fi;
-
-
-
-
 #**********************************************************
-#SSH certs
+# Information about Certs
 #**********************************************************
-if [ w${CERT_TYPE} = wssh ]; then
-  echo "**************************************************************************"
-  echo "Creating SSH authentication Key"
-  echo " Make ssh-keygen with empty password."
-  echo "**************************************************************************"
-  echo
+cert_info () {
+  echo "******************************************************************************"
+  echo "Cert info $2"
+  echo "******************************************************************************"
 
-  if [ w${CERT_TYPE} = w ]; then
-    id_dsa_file=id_dsa;
-  else
-    id_dsa_file=id_dsa.$2;
-  fi;
-  
-  USER=$2; 
-   
-  ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}${id_dsa_file}"
-
-  chown ${APACHE_USER} ${CERT_PATH}${id_dsa_file}
-  chmod u=r,go= ${CERT_PATH}/${id_dsa_file}.pub
-  echo "Set Cert user: ${CERT_USER}";
-
-
-  echo -n "Upload file to remote host (y/n): "
-  read UPLOAD
-  if [ w${UPLOAD} = wy ]; then
-    echo -n "Enter host: "
-    read HOST
-    
-    echo "Make upload to: ${HOST} "
-    ssh ${USER}@${HOST} "mkdir ~/.ssh"
-    scp ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOST}:~/.ssh/authorized_keys
-    
-    echo -n "Connect to remote host: ${HOST}  (y/n): "
-    read CONNECT
-    if [ w${CONNECT} = wy ]; then
-      ssh -o StrictHostKeyChecking=no -i ${CERT_PATH}${id_dsa_file}  ${USER}@${HOST}
-      exit;
-    fi;
-  else 
-    echo 
-    echo "Copy ${CERT_PATH}${id_dsa_file}.pub to REMOTE_HOST User home dir (/home/${USER}/.ssh/authorized_keys) "
-    echo 
+  FILENAME=$1;
+  if [ w$FILENAME = w ] ; then 
+    echo "Select Cert file";
     exit;
+  else 
+    echo "Cert file: $FILENAME";
   fi;
 
+  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
+}
+
 #**********************************************************
-#Apache Certs
+# postfix
 #**********************************************************
-else if [ w${CERT_TYPE} = wapache ]; then
+postfix_cert () {
+  echo "******************************************************************************"
+  echo "Make POSTFIX TLS sertificats"
+  echo "******************************************************************************"
 
-  echo "*******************************************************************************"
-  echo "Creating Apache server private key and certificate"
-  echo "When prompted enter the server name in the Common Name field."
-  echo "*******************************************************************************"
-  echo
+  ${OPENSSL} req -new -x509 -nodes -out smtpd.pem -keyout smtpd.pem -days ${days} \
+    -passin pass:${password} -passout pass:${password}
+}
 
-  cd ${CERT_PATH};
-
-  ${OPENSSL} genrsa -des3 -passout pass:${password} -out server.key ${CERT_LENGTH}
-  
-  ${OPENSSL} req -new -key server.key -out server.csr \
-  -passin pass:${password} -passout pass:${password}
-  
-  ${OPENSSL} x509 -req -days ${days} -in server.csr -signkey server.key -out server.crt \
-   -passin pass:${password}
-
-  chmod u=r,go= ${CERT_PATH}/server.key
-  chmod u=r,go= ${CERT_PATH}/server.crt
-  chown ${APACHE_USER} server.crt server.csr
-
-  cp ${CERT_PATH}/server.key ${CERT_PATH}/server.key.org
-
-  ${OPENSSL} rsa -in server.key.org -out server.key \
-   -passin pass:${password} -passout pass:${password}
-
-  #Cert info
-  ${OPENSSL} x509 -in server.crt -noout -subject
-
-  chmod 400 server.key
-
-exit;
 #**********************************************************
 # eap for radius
 #**********************************************************
-else if [ w${CERT_TYPE} = weap ]; then
+eap_cert () {
   echo "*******************************************************************************"
   echo "Make RADIUS EAP"
   echo "*******************************************************************************"
 
   CERT_EAP_PATH=${CERT_PATH}/eap
-  if [ ! -f ${CERT_EAP_PATH} ] ; then
+  if [ ! -d ${CERT_EAP_PATH} ] ; then
     mkdir ${CERT_EAP_PATH};
   fi
 
   cd ${CERT_EAP_PATH}
 
-
-  if [ w$2 = wclient ]; then
+if [ w$2 = wclient ]; then
   echo "*******************************************************************************"
   echo "Creating client private key and certificate"
   echo "When prompted enter the client name in the Common Name field. This is the same"
@@ -282,10 +300,8 @@ else if [ w${CERT_TYPE} = weap ]; then
 
   # Convert certificate from PEM format to DER format
   ${OPENSSL} x509 -inform PEM -outform DER -in cert-clt.pem -out cert-clt.der
-
   exit;
-
-  fi;
+fi;
 
 
   echo "
@@ -300,7 +316,6 @@ extendedKeyUsage = 1.3.6.1.5.5.7.3.1
   #
   ${OPENSSL} gendh > ${CERT_EAP_PATH}/dh
   date > ${CERT_EAP_PATH}/random
-
 
   # needed if you need to start from scratch otherwise the CA.pl -newca command doesn't copy the new
   # private key into the CA directories
@@ -339,7 +354,6 @@ extendedKeyUsage = 1.3.6.1.5.5.7.3.1
   echo "*******************************************************************************"
   echo
 
-
   # Create a PKCS#12 file, using the previously created CA certificate/key
   # The certificate in demoCA/cacert.pem is the same as in newreq.pem. Instead of
   # using "-in demoCA/cacert.pem" we could have used "-in newreq.pem" and then omitted
@@ -360,672 +374,60 @@ echo "When prompted enter the server name in the Common Name field."
 echo "*******************************************************************************"
 echo
 
-
 # Request a new PKCS#10 certificate.
 # First, newreq.pem will be overwritten with the new certificate request
 ${OPENSSL} req -new -keyout newreq.pem -out newreq.pem -days ${days} \
 -passin pass:${password} -passout pass:${password}
-
 
 # Sign the certificate request. The policy is defined in the ${OPENSSL}.cnf file.
 # The request generated in the previous step is specified with the -infiles option and
 # the output is in newcert.pem
 # The -extensions option is necessary to add the OID for the extended key for server authentication
 
-
 ${OPENSSL} ca -policy policy_anything -out newcert.pem -passin pass:${password} -key ${password} \
 -extensions xpserver_ext -extfile xpextensions -infiles newreq.pem
-
 
 # Create a PKCS#12 file from the new certificate and its private key found in newreq.pem
 # and place in file cert-srv.p12
 ${OPENSSL} pkcs12 -export -in newcert.pem -inkey newreq.pem -out cert-srv.p12 -clcerts \
 -passin pass:${password} -passout pass:${password}
 
-
 # parse the PKCS#12 file just created and produce a PEM format certificate and key in cert-srv.pem
 ${OPENSSL} pkcs12 -in cert-srv.p12 -out cert-srv.pem -passin pass:${password} -passout pass:${password}
-
 
 # Convert certificate from PEM format to DER format
 ${OPENSSL} x509 -inform PEM -outform DER -in cert-srv.pem -out cert-srv.der
 
-
 #clean up
 rm newcert.pem newreq.pem
 
-#**********************************************************
-# postfix
-#**********************************************************
-else if [ w${CERT_TYPE} = wpostfix_tls ]; then
-  echo "******************************************************************************"
-  echo "Make POSTFIX TLS sertificats"
-  echo "******************************************************************************"
+}
+
+
+
+#Cert functions
+case ${CERT_TYPE} in
+        ssh) 
+              ssh_key;
+                ;;
+        apache)
+              apache_cert;
+                ;;
+        wexpress_oplata)
+              wexpress_oplata;
+                ;;
+        info)
+              cert_info $2;
+                ;;
+        postfix)
+              postfix_cert;
+                ;;
+        eap)
+              eap_cert; 
+                ;;
+esac;
 
-  cd ${CERT_PATH};
 
-  ${OPENSSL} req -new -x509 -nodes -out smtpd.pem -keyout smtpd.pem -days ${days} \
-   -passin pass:${password} -passout pass:${password}
-
-#**********************************************************
-# Information about Certs
-#**********************************************************
-else if [ w${CERT_TYPE} = winfo ]; then
-
-  echo "******************************************************************************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-i;
-fi;
-fi;
-
-echo "${CERT_TYPE} Done...";
-
-***************"
-  echo "Cert info $2"
-  echo "******************************************************************************"
-  FILENAME=$2; 
-  if [ w$FILENAME = w ] ; then 
-    echo "Select Cert file";
-    exit;
-  fi;
-
-  ${OPENSSL} x509 -in ${FILENAME} -noout -subject  -startdate -enddate
-   
-
-
-fi;
-fi;
-fi;
-fi;
-fi;
 
 echo "${CERT_TYPE} Done...";
 
