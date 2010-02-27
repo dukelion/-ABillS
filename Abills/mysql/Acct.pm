@@ -133,6 +133,8 @@ elsif ($acct_status_type == 2) {
     $self->query($db, "SELECT 
        dv.acct_input_octets,
        dv.acct_output_octets,
+       dv.acct_input_gigawords,
+       dv.acct_output_gigawords,
        dv.ex_input_octets,
        dv.ex_output_octets,
        dv.tp_id,
@@ -155,6 +157,8 @@ elsif ($acct_status_type == 2) {
     (
      $RAD->{INBYTE},
      $RAD->{OUTBYTE},
+     $RAD->{ACCT_INPUT_GIGAWORDS},
+     $RAD->{ACCT_OUTPUT_GIGAWORDS},
      $RAD->{INBYTE2},
      $RAD->{OUTBYTE2},
      $self->{TARIF_PLAN},
