@@ -175,12 +175,22 @@ elsif ($acct_status_type == 2) {
          $self->{errstr}="Company not exists '$self->{COMPANY_ID}'";
          return $self;
     	  }
-
        ($self->{BILL_ID})= @{ $self->{list}->[0] };
      }
 
+    if ($RAD->{INBYTE} > 4294967296) {
+    	$RAD->{ACCT_INPUT_GIGAWORDS} = int($RAD->{INBYTE}/4294967296);
+    	$RAD->{INBYTE} = $RAD->{INBYTE} - $RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296;
+     }
+
+    if ($RAD->{OUTBYTE} > 4294967296) {
+    	$RAD->{ACCT_OUTPUT_GIGAWORDS} = int($RAD->{OUTBYTE}/4294967296);
+    	$RAD->{OUTBYTE} = $RAD->{OUTBYTE} - $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296;
+     }
+
+
     if ($self->{UID} > 0 ) {
-      $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp,  
+      $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv,  
         sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
         bill_id,
@@ -188,7 +198,7 @@ elsif ($acct_status_type == 2) {
         acct_input_gigawords,
         acct_output_gigawords) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
-        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{SUM}', '$NAS->{NAS_ID}',
+        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{SUM}', '$NAS->{NAS_ID}',
         '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
         '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}', '$RAD->{ACCT_SESSION_ID}', 
         '$self->{BILL_ID}',
@@ -202,14 +212,14 @@ elsif ($acct_status_type == 2) {
 
     if (! $self->{errno} ) {
       #return $self;
-      $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb, sum, nas_id, port_id,
+      $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, kb, sum, nas_id, port_id,
         ip, CID, sent2, recv2, acct_session_id, 
         bill_id,
         terminate_cause,
         acct_input_gigawords,
         acct_output_gigawords) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
-        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', $self->{CALLS_SUM}+$self->{SUM}, '$NAS->{NAS_ID}',
+        '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TRAF_TARIF}', $self->{CALLS_SUM}+$self->{SUM}, '$NAS->{NAS_ID}',
         '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
         '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  '$RAD->{ACCT_SESSION_ID}', 
         '$self->{BILL_ID}',
@@ -270,13 +280,13 @@ elsif ($acct_status_type == 2) {
       $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE}), $self->{UID}";
      }
     else {
-      $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, minp, kb,  sum, nas_id, port_id,
+      $self->query($db, "INSERT INTO dv_log (uid, start, tp_id, duration, sent, recv, kb,  sum, nas_id, port_id,
           ip, CID, sent2, recv2, acct_session_id, 
           bill_id,
           terminate_cause,
           acct_input_gigawords,
           acct_output_gigawords ) 
-          VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$self->{TARIF_PLAN}', '$RAD->{ACCT_SESSION_TIME}', 
+          VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}), '$RAD->{ACCT_SESSION_TIME}', 
           '$RAD->{OUTBYTE}', '$RAD->{INBYTE}', '$self->{TIME_TARIF}', '$self->{TRAF_TARIF}', '$self->{SUM}', '$NAS->{NAS_ID}',
           '$RAD->{NAS_PORT}', INET_ATON('$RAD->{FRAMED_IP_ADDRESS}'), '$RAD->{CALLING_STATION_ID}',
           '$RAD->{OUTBYTE2}', '$RAD->{INBYTE2}',  '$RAD->{ACCT_SESSION_ID}', 
