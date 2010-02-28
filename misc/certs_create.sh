@@ -6,12 +6,12 @@
 SSL=/usr/local/${OPENSSL}
 export PATH=/usr/src/crypto/${OPENSSL}/apps/:${SSL}/bin/:${SSL}/ssl/misc:${PATH}
 export LD_LIBRARY_PATH=${SSL}/lib
-CA_pl=CA.pl;
+CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.0;
+VERSION=1.2;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -266,6 +266,8 @@ eap_cert () {
   fi
 
   cd ${CERT_EAP_PATH}
+  echo 
+  pwd
 
 if [ w$2 = wclient ]; then
   echo "*******************************************************************************"
@@ -341,7 +343,7 @@ extendedKeyUsage = 1.3.6.1.5.5.7.3.1
   echo "*******************************************************************************"
   echo
 
-  CA_pl=`which ${CA_pl}`;
+  #CA_pl=`which ${CA_pl}`;
   if [ -f ${CA_pl} ] ; then
     echo "newreq.pem" | ${CA_pl} -newca > /dev/null
   else 
