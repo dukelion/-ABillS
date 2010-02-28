@@ -239,25 +239,24 @@ sub check_lines {
         printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $user_name, int2ip($client_ip), $duration, $acct_input_octets, $acct_output_octets, $deposit);
        }    
       #hangup connaction if max ext traffic reached
-      if ($acct_input_octets_ext > $exppp_hanguplimit 
-         || $acct_output_octets_ext > $exppp_hanguplimit 
-         || $state 
-         ) {
-
-        print "Hangup Login: $user_name STATUS: $line->[18]/$line->[19] $acct_input_octets, $acct_output_octets, $acct_input_octets_ext, $acct_output_octets_ext, Session-ID: $acct_session_id - ";
-
-        my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
-        	                                                      FRAMED_IP_ADDRESS    => int2ip($client_ip),
-           	                                                    UID                  => $uid,
-           	                                                    debug                => $debug
-           	                                                  }); 
-           	                                                  
-           if ($ret !~ /^ERR/i) {
-              print "Done";
-            }
-           print "\n";
-        next;
-       }     
+#      if (($NAS{NAS_TYPE} eq 'exppp' && ($acct_input_octets_ext > $exppp_hanguplimit 
+#         || $acct_output_octets_ext > $exppp_hanguplimit))
+#         || $state 
+#         ) {
+#        print "Hangup Login: $user_name STATUS: $line->[18]/$line->[19] $acct_input_octets, $acct_output_octets, $acct_input_octets_ext, $acct_output_octets_ext, Session-ID: $acct_session_id - ";
+#
+#        my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
+#        	                                                      FRAMED_IP_ADDRESS    => int2ip($client_ip),
+#           	                                                    UID                  => $uid,
+#           	                                                    debug                => $debug
+#           	                                                  }); 
+#           	                                                  
+#           if ($ret !~ /^ERR/i) {
+#              print "Done";
+#            }
+#           print "\n";
+#        next;
+#       }
 
       #Get stats from nas servers which don't support rad Alive
       my $external_stats = get_stats(\%NAS, $nas_port_id);
@@ -382,7 +381,9 @@ sub check_lines {
 
         if ( (defined($Billing->{PAYMENT_TYPE}) && $Billing->{PAYMENT_TYPE} == 0) 
                              && ($deposit + $credit <= $Billing->{SUM}) || 
-              $Billing->{HANGUP}
+              $Billing->{HANGUP} || 
+              $state ||
+              ($NAS{NAS_TYPE} eq 'exppp' && ($acct_input_octets_ext > $exppp_hanguplimit || $acct_output_octets_ext > $exppp_hanguplimit))
              ) {
 
            #Neg deposit filter

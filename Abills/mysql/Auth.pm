@@ -506,9 +506,9 @@ if ($NAS->{NAS_TYPE} && $NAS->{NAS_TYPE} eq 'ipcad') {
 # Vendor specific return
 #MPD5
 if ($NAS->{NAS_TYPE} eq 'mpd5') {
-  
+
   if (! $CONF->{mpd_filters}) {
-  	
+
    }
   elsif (! $NAS->{NAS_EXT_ACCT}) {
     $self->query($db, "SELECT tt.id, tc.nets, in_speed, out_speed
@@ -516,6 +516,7 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
              LEFT JOIN traffic_classes tc ON (tt.net_id=tc.id)
              WHERE tt.interval_id='$self->{TT_INTERVAL}' ORDER BY 1 DESC;");
 
+  
  
   foreach my $line ( @{ $self->{list} } ) {
   	my $class_id    = $line->[0];
