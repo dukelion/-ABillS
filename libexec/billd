@@ -540,6 +540,7 @@ sub check_speed {
 	my %LOGINS_SPEEDS = ();
   my %rule_speed = ();
   my %pipe_rules = ();
+  my %fw_ips     = ();
   
 #Get ng_car speed
 if ($conf{ng_car}) {
@@ -570,6 +571,16 @@ if ($conf{ng_car}) {
 		  }
 	  close(PROCS);	
 
+    # Get global ips
+    open(IPFW, "/sbin/ipfw table 10 list |") || die "Can't open file '' $!\n";
+      while(<IPFW>) {
+      	if (/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/) {
+      		$fw_ips{$1}=1;
+      	 }   
+       }
+    close(IPFW);
+
+    #show speed
     if ($debug > 1 || $ARGV->{SHOW_SPEED}) {
       foreach my $login ( sort keys %LOGINS_SPEEDS) {
       	my $speed_hash = $LOGINS_SPEEDS{$login};
@@ -676,7 +687,7 @@ else {
          $tp = $line->[2];
         }
        print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);
-       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]";
+       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]:$line->[4]";
        $TP_HASH{$tp}=1;
      }
   }
@@ -815,7 +826,7 @@ if (! $conf{ng_car}) {
 if ($conf{ng_car}) {
   while(my($user, $other)=each %USER_IFACES) {
   	 my $changed = 0;
-  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP)=split(/:/, $other);
+  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID)=split(/:/, $other);
   	 $debug_outputs = "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
 
      if ($JOIN_SERVICE > 0) {
@@ -881,6 +892,8 @@ if ($conf{ng_car}) {
   	 	       	  my $info = "  Class: $class_id ng_car_speed: $LOGINS_SPEEDS{$user}{$class_id}{IN}/".
   	 	       	  "$LOGINS_SPEEDS{$user}{$class_id}{OUT} Speed: $tp_speed_in/$tp_speed_out\n";
 
+                
+         
   	 	       	  if ($LOGINS_SPEEDS{$user}{$class_id}{IN} != $tp_speed_in) {
                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
                   	 NAS_TYPE => $NAS_TYPE,
@@ -894,6 +907,13 @@ if ($conf{ng_car}) {
                   	 debug    => ( $debug > 1) ? ' debug' : undef });
                   $changed = 1;
                   $debug_outputs .= " [Changed] ". $info;
+  	 	           }
+  	 	          elsif (! $fw_ips{$IP}) {
+                  $debug_outputs .= check_speed_change($user, $IFACE, $IP, {
+                  	 NAS_TYPE => $NAS_TYPE,
+                  	 debug    => ( $debug > 1) ? ' debug' : undef });
+                  $changed = 1;
+                  $debug_outputs .= " [Changed] ". $info .' lost ip';
   	 	           }
               }
         }
@@ -1565,7 +1585,7 @@ sub speed_expr {
 
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
-                           #IFACE : TP : SPEED  :IP
+       #IFACE : TP : SPEED  :IP
        my $tp    = 0;
        my $tp_id = 0;
        if ($line->[5] > 0) {
@@ -1587,16 +1607,14 @@ sub speed_expr {
          $nas_speed_out = ($nas_speeds->{$nas_row->[0]}{OUT}) ? $nas_speeds->{$nas_row->[0]}{OUT} : 0;
         }
        
-       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$speed_in/$speed_out Cur speed: $cur_speed NAS SPEED: $nas_speed_in/$nas_speed_out TRAFF: $sessions->{TOTAL_TRAFFIC} JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);            
+       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$speed_in/$speed_out Cur speed: $cur_speed NAS SPEED: $nas_speed_in/$nas_speed_out TRAFF: $sessions->{TOTAL_TRAFFIC} JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);
        
        next if ($ARGV->{SHOW_CUR_SPEED});
        if ($cur_speed >= $AVG_SPEED) {
        	 print " ==> $SET_SPEED";
         }
-       
-       
-       $USER_IFACES{$line->[0]}="$line->[1]:$tp_id:$line->[3]:$line->[5]:$line->[6]";
 
+       $USER_IFACES{$line->[0]}="$line->[1]:$tp_id:$line->[3]:$line->[5]:$line->[6]:$line->[4]";
        $TP_HASH{$tp}=1;
      }
   }
