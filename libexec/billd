@@ -913,7 +913,7 @@ if ($conf{ng_car}) {
                   	 NAS_TYPE => $NAS_TYPE,
                   	 debug    => ( $debug > 1) ? ' debug' : undef });
                   $changed = 1;
-                  $debug_outputs .= " [Changed] ". $info .' lost ip';
+                  $debug_outputs .= " [Changed] ". $info ." lost ip $IP\n";
   	 	           }
               }
         }
