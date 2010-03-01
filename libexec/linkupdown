@@ -43,6 +43,7 @@
 my $debug=0;
 
 $debug=1 if ($#ARGV > -1 && $ARGV[$#ARGV] eq 'debug');
+my $debug_fw = 0;
 
 #If not anought arguments
 if ( $#ARGV < 3 ) {
@@ -159,7 +160,6 @@ elsif($ARGV[0] eq 'pppd' || $ARGV[0] eq 'mikrotik') {
   	$inum = 0;
    }
   $OS = 'Linux';
-
  }
 # FreeBSD PPP
 else {
@@ -211,7 +211,6 @@ else {
   $LIST_PARAMS{LOGIN} = "$USER";
 }
 
-
   my $user = $Dv->info(0, { LOGIN => $USER });	  
   if($Dv->{errno}) {
      print "Error: User not exist ([$Dv->{errno}] $Dv->{errstr})\n";
@@ -223,7 +222,6 @@ else {
     my $a = `echo "$DATE $TIME / $USER - Not exist" >> /tmp/linkupdown`;    
     exit 1;
    }
-
 
   if ($ARGV[0] eq 'ipn') {
     if ($conf{IPN_FW_RULE_UID}) {
@@ -270,7 +268,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
  	  if ($user->{JOIN_SERVICE} > 1) {
   	  $user = $Dv->info($user->{JOIN_SERVICE});
      }   
-
     $user->{JOIN_SERVICE}=$user->{UID}	
    }
   elsif(($OS eq '' || $OS eq 'FreeBSD') && ! $user->{SPEED}) {
@@ -499,6 +496,9 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
     	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP/$BIT_MASK ". $tablearg_in;
        push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1). " add $CLIENT_IP/$BIT_MASK ". $tablearg_out;
+       if ($debug_fw) {
+        	my $z = `echo "$USER / $tp_table_number / $CLIENT_IP/$BIT_MASK " >> /tmp/fw_ip`;
+        }
 
        $speed_in  = $speed_in * 1024;
        $speed_out = $speed_out * 1024;
@@ -570,8 +570,6 @@ else {
        }
 }
 #-----------------------------------------------------
-
-
     }
     
   }
