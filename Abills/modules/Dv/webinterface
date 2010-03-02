@@ -517,7 +517,12 @@ sub dv_user {
        }
       else {
         my ($Y, $M, $D)=split(/-/, $DATE, 3);
-        $M++;
+        if ($conf{START_PERIOD_DAY} && $conf{START_PERIOD_DAY} > $D) {
+         }
+        else {
+          $M++;
+         }
+
         if ($M == 13) {
           $M = 1;
           $Y++;
