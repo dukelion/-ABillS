@@ -41,7 +41,7 @@ o_cal.a_tpl.weekdays   = ['¬с', 'ѕн', '¬т', '—р', '„т', 'ѕт', '—уб'];
 <form action='$SELF_URL' METHOD='POST' NAME=user_form>
 <input type=hidden name='index' value='$index'>
 <input type=hidden name=COMPANY_ID value='%COMPANY_ID%'>
-<TABLE width='420' cellspacing='0' cellpadding='3'>
+<TABLE width='450' cellspacing='0' cellpadding='3'>
 %EXDATA%
 <TR><TD colspan=2>&nbsp;</TD></TR>
 

@@ -493,9 +493,6 @@ sub dv_user {
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
-
-	  
-	  
 	  $Dv->{ACTION}='add';
 	  $Dv->{LNG_ACTION}=$_ACTIVATE;
 	 }
@@ -539,8 +536,19 @@ sub dv_user {
       
     $Dv->{NETMASK_COLOR} = ($Dv->{NETMASK} ne '255.255.255.255') ? $_COLORS[0] : $_COLORS[1];
     $Dv->{SHEDULE}=$html->button("$_SHEDULE", "UID=$FORM{UID}&shedule=status&index=". ($index+4), { BUTTON => 1 });
-	} 
+    
+    my $list = $sessions->online({ UID => $Dv->{UID} });
+    if ($sessions->{TOTAL} > 0) {
+       my $table = $html->table( { width      => '450',
+                                   caption    => "Online",
+                                  } );
+       foreach my $line (@$list) {
+       	 $table->addrow(int2ip($line->[3]), $line->[4], int2byte($line->[5]), int2byte($line->[6]), "$_NAS: $line->[18]");
+        }
 
+      $Dv->{ONLINE_TABLE}=$table->show();
+    }
+	} 
 
   $Dv->{STATUS_SEL}          = $html->form_select('STATUS', 
                                           { 
@@ -561,7 +569,6 @@ sub dv_user {
     $Dv->{REGISTRATION_INFO_PDF}= $html->button("PDF", "qindex=$index&UID=$Dv->{UID}&REGISTRATION_INFO=1&pdf=1", { ex_params => 'target=_new', BUTTON => 1 } );
    }
 
-
   $Dv->{TURBO_MODE_SEL} = $html->form_select('TURBO_MODE', 
                                           { 
  	                                          SELECTED     => $Dv->{TURBO_MODE} || 0,
@@ -571,7 +578,6 @@ sub dv_user {
  	                                             ],
  	                                          ARRAY_NUM_ID => 1
  	                                        });
-
 
   #Join Service
   if($attr->{USER}->{COMPANY_ID}) {
@@ -619,7 +625,7 @@ sub dv_user {
  	                                          MULTI_ARRAY_KEY   => 8,
  	                                          MULTI_ARRAY_VALUE => '1',
  	                                          NO_ID             => 1
- 	                                        });
+ 		                                        });
  
   
   $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
@@ -2084,7 +2090,6 @@ if ($conf{ERROR2DB}) {
 
 
   $list = $Nas->log_list({ %LIST_PARAMS  });
-
   my $table = $html->table( { 
   	                    caption    => $_TOTAL,
 	                      width      => '100%',
@@ -5153,10 +5158,6 @@ sub dv_wizard_user {
   $template =~ s/<\/form>//ig;
   $template =~ s/(<input .*?type=submit.*?>)//gi;
   $template =~ s/<hr>//gi;
-  
-#  print "<textarea cols=120 rows=3>$1 / $2 / $3</textarea><br>\n";
-
-
 
   $template = "<table width=\"100%\">$template</table>";
   if ($attr->{OUTPUT2RETURN}) {
