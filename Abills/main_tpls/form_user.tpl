@@ -1,6 +1,5 @@
 <SCRIPT TYPE=\"text/javascript\">
 <!-- 
-
 function add_comments () {
 
 if (document.user_form.DISABLE.checked) {

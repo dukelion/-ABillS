@@ -3,7 +3,6 @@
 </TABLE>
 <form action='$SELF_URL' method='post' name='users_pi'>
 
-
 <input type=hidden name=index value=$index>
 <input type=hidden name=UID value='%UID%'>
 <TABLE width=450 cellspacing=0 cellpadding=3>

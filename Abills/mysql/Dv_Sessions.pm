@@ -2,7 +2,6 @@ package Dv_Sessions;
 # Dv Stats functions
 #
 
-
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
