@@ -5158,8 +5158,7 @@ sub form_sendmail {
 #*******************************************************************
 sub form_search {
   my ($attr) = @_;
-  
- 
+
   my %SEARCH_DATA = $admin->get_data(\%FORM);  
 
 if (defined($attr->{HIDDEN_FIELDS})) {
@@ -5178,7 +5177,6 @@ if (defined($attr->{SIMPLE})) {
 	my $SEARCH_FIELDS = $attr->{SIMPLE};
 	while(my($k, $v)=each( %$SEARCH_FIELDS )) {
     $SEARCH_DATA{SEARCH_FORM}.="<tr><td>$k:</td><td>";
-	
 	  if ( ref $v eq 'HASH' ) {
       $SEARCH_DATA{SEARCH_FORM}.=$html->form_select("$k",
 			                                   {   SELECTED => $FORM{$k},
@@ -5188,7 +5186,6 @@ if (defined($attr->{SIMPLE})) {
 	  else {
 	    $SEARCH_DATA{SEARCH_FORM}.=$html->form_input("$v", '%'. $v .'%');
 	   }
-
     $SEARCH_DATA{SEARCH_FORM}.="</td></tr>\n";
 	 }
 
@@ -5289,17 +5286,13 @@ elsif($search_form{$FORM{type}}) {
        }
 
       $info{INFO_FIELDS}.= "<tr><td colspan=2>$name:</td><td>$input</td></tr>\n";
-
       $i++;
      }
 
 
     $info{CREDIT_DATE} = $html->date_fld2('CREDIT_DATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 12 });
-
     $info{PAYMENTS} = $html->date_fld2('PAYMENTS', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 14 });
-
     $info{REGISTRATION} = $html->date_fld2('REGISTRATION', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 16 });
-
     $info{ACTIVATE} = $html->date_fld2('ACTIVATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 17 });
     $info{EXPIRE} = $html->date_fld2('EXPIRE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 18 });
    

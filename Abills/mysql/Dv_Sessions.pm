@@ -302,6 +302,9 @@ sub online {
  	 push @WHERE_RULES, "c.acct_session_id IN ($w)";
   }
  
+ if ($attr->{UID}) {
+ 	 push @WHERE_RULES, "c.uid LIKE '$attr->{UID}'";
+  }
 
  # Show groups
  if ($attr->{GIDS}) {

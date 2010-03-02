@@ -1027,7 +1027,7 @@ sub log_list {
   	 }
     @WHERE_RULES = ();
     if ($#ids > -1) {
-      $attr->{MESSAGE} ='%'. join("%,%", @ids) . '%';
+      $attr->{MESSAGE} ='% '. join(" %,% ", @ids) . ' %';
     }
    $self->{IDS}=\@ids;
   }
@@ -1041,7 +1041,6 @@ sub log_list {
    push @WHERE_RULES, "l.id='$attr->{ID}'"; 
   }
 
-
  if ($attr->{LOGIN_EXPR}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN_EXPR}", 'STR', 'u.id') };
   }
@@ -1052,7 +1051,6 @@ sub log_list {
  elsif ($attr->{GID}) {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
-
 
  if ($attr->{HOSTNAME}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{HOSTNAME}", 'STR', 'l.hostname') };
@@ -1065,6 +1063,11 @@ sub log_list {
  if ($attr->{MESSAGE}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{MESSAGE}", 'STR', 'l.message') };
   }
+
+if ($attr->{FROM_DATE}) {
+   push @WHERE_RULES, "(date_format(l.datetime, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.datetime, '%Y-%m-%d')<='$attr->{TO_DATE}')";
+ }
+
 
  if ($attr->{MESSAGE_TYPE}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{MESSAGE_TYPE}", 'INT', 'l.message_type') };
