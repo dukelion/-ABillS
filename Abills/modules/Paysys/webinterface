@@ -1320,9 +1320,14 @@ sub paysys_p24_get_payments {
 #**********************************************************
 sub paysys_p24 {
 	require "modules/Paysys/P24.pm";
-	
-	my $info =  p24({ CARD_INFO => $conf{'PAYSYS_P24_CARD'} });
-	
+
+	my $info =  p24({ CARD_INFO => $conf{'PAYSYS_P24_CARDNUM'} });
+
+  if ($info->{data}->{error}) {
+  	$html->message('err', $_ERROR, "$info->{data}->{error}->[0]->{message}");
+   }
+
+
 	my $table = $html->table({ caption => 'CARD_INFO', 
 		                         width   => '100%' 
 		                         });
