@@ -4390,24 +4390,25 @@ if ($d == 1) {
 # 
 #**********************************************************
 sub dv_users_warning_messages {
+ my ($attr) = @_;
+ 
 
 
  $ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_TARIF_PLAN, $_DEPOSIT, $_CREDIT).
    "---------------------------------------------------------------\n";
- if (defined($ADMIN_REPORT{NO_USERS_WARNINGS})) {
+ if ($ADMIN_REPORT{NO_USERS_WARNINGS}) {
    return 0;
   }
 
+
 my %LIST_PARAMS = (USERS_WARNINGS => 1 ) ;
 my $list = $Dv->list( { %LIST_PARAMS } );
-
 return 0 if ($Dv->{TOTAL} < 1);
 my %USER_INFO = ();
 
 
 foreach my $line (@$list) {
   #u.id, u.email, u.tp_id, u.credit, u.deposit, tp.name, tp.uplimit
-
   $USER_INFO{LOGIN}  = $line->[0];
   $USER_INFO{TP_NAME}= $line->[5];
   $USER_INFO{TP_ID}  = $line->[2];
@@ -4415,17 +4416,15 @@ foreach my $line (@$list) {
   $USER_INFO{CREDIT} = $line->[3];
   
   my $email = ((! defined($line->[1])) || $line->[1] eq '') ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : "$line->[1]";
-  
- 
+
   $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
     $USER_INFO{LOGIN}, 
     $USER_INFO{TP_ID}, 
     $USER_INFO{TP_NAME},  
     $USER_INFO{DEPOSIT}, 
     $USER_INFO{CREDIT});
-  
-  my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { OUTPUT2RETURN => 1 });
 
+  my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { OUTPUT2RETURN => 1 });
   sendmail("$conf{ADMIN_MAIL}", 
            "$email", 
            "$_BILL_INFO", 
@@ -4436,8 +4435,6 @@ foreach my $line (@$list) {
 
 $ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
 $_TOTAL: $Dv->{TOTAL}\n";
-
-
 }
 
 
