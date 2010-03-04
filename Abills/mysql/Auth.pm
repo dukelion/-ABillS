@@ -1461,8 +1461,8 @@ sub pre_auth {
 
 if ($RAD->{MS_CHAP_CHALLENGE} || $RAD->{EAP_MESSAGE}) {
 
-  my $login = $RAD->{USER_NAME};
-  if ($RAD->{USER_NAME} =~ /:(.+)/) {
+  my $login = $RAD->{USER_NAME} || '';
+  if ($login =~ /:(.+)/) {
     $login = $1;	 
   }
 
