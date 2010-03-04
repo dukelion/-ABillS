@@ -908,7 +908,7 @@ if ($conf{ng_car}) {
                   $changed = 1;
                   $debug_outputs .= " [Changed] ". $info;
   	 	           }
-  	 	          elsif (! $fw_ips{$IP}) {
+  	 	          elsif (! $fw_ips{$IP} && ($tp_speed_out > 0 || $tp_speed_in > 0)) {
                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, {
                   	 NAS_TYPE => $NAS_TYPE,
                   	 debug    => ( $debug > 1) ? ' debug' : undef });

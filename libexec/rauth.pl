@@ -47,7 +47,7 @@ my $log_print = sub {
 
       $Nas->log_add({LOG_TYPE => $log_levels{$LOG_TYPE},
                      ACTION   => 'AUTH', 
-                     USER_NAME=> "$USER_NAME",
+                     USER_NAME=> $USER_NAME || '-',
                      MESSAGE  => "$MESSAGE"
                     });
 
