@@ -231,12 +231,9 @@ sub acct {
   else {
     $RAD->{INBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # FROM client
     $RAD->{OUTBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0; # TO client
-
     ($RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = ($RAD->{ACCT_OUTPUT_GIGAWORDS}, $RAD->{ACCT_INPUT_GIGAWORDS}); 
 
     if ($nas->{NAS_TYPE} eq 'mpd5' && $RAD->{MPD_INPUT_OCTETS}) {
-    	my $rrw = `echo "$RAD->{MPD_INPUT_OCTETS}" >> /tmp/traf`;
-    	
    	  if (ref $RAD->{MPD_INPUT_OCTETS} eq 'ARRAY') {
         foreach my $line  (@{ $RAD->{MPD_INPUT_OCTETS} }) {
           my($class, $byte)=split(/:/, $line);
@@ -257,7 +254,7 @@ sub acct {
            }
 
           ($class, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS});
-          if ($class == 0) {
+          if ($class == 1) {
             $RAD->{'OUTBYTE2'}	= $byte;
            }
        }

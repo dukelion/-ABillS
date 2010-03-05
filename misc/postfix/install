@@ -40,8 +40,8 @@ local.cf           > [/usr/local/etc/mail/spamassassin]/local.cf
 
 :OS=FREEBSD:exec:/usr/local/etc/rc.d/postfix restart
 :OS=FREEBSD:exec:/usr/local/etc/rc.d/courier-authdaemond restart
-:OS=FREEBSD:exec:/usr/local/etc/rc.d/courier-imap-imapd.sh restart
-:OS=FREEBSD:exec:/usr/local/etc/rc.d/courier-imap-pop3d.sh restart
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/courier-imap-imapd restart
+:OS=FREEBSD:exec:/usr/local/etc/rc.d/courier-imap-pop3d restart
 
 #AMaViS config
 
