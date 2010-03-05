@@ -122,13 +122,13 @@ $users = Users->new($db, $admin, \%conf);
 %PAYSYS_PAYMENTS_METHODS=%{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
 
 
-#DEbug
+#debug =========================================
 my $output2 = '';
 while(my($k, $v)=each %FORM) {
  	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
 }
-
 #my $rew `echo $output2 >> /tmp/ukrpays`;
+#END debug =====================================
 
 if( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) ) {
 	osmp_payments();
@@ -170,10 +170,16 @@ if ($ip_num > $first_ip && $ip_num < $last_ip){
         exit;
  } 
 #USMP
-elsif('192.168.0.1,77.222.138.142,195.10.218.120' =~ /$ENV{REMOTE_ADDR}/ && ! $conf{PAYSYS_USMP_OLD}) {
+elsif('77.222.138.142,195.10.218.120' =~ /$ENV{REMOTE_ADDR}/ && ! $conf{PAYSYS_USMP_OLD}) {
   usmp_payments_v2();
   exit;
  }
+elsif ($FORM{pay_way}) {
+ 	require "P24.pm";
+ 	p24_payments();
+ 	exit;
+ }
+
 
 print "Content-Type: text/html\n\n";
 
@@ -190,7 +196,6 @@ else {
 my $md5 = new Digest::MD5;
 
 
-#DEbug
 payments();
 
 
@@ -203,9 +208,6 @@ sub payments {
 
   if ($FORM{LMI_PAYMENT_NO}) { # || $FORM{LMI_HASH}) {
   	wm_payments();
-   }
-  elsif ($FORM{pay_way}) {
-  	p24_payments();
    }
   elsif($FORM{rupay_action}) {
   	rupay_payments();

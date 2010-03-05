@@ -211,10 +211,6 @@ if ($uid > 0) {
     require $lang_file;
    }
 
-#  if ($COOKIES{lastindex}) {
-#  	$index=$COOKIES{lastindex};
-#   }
-
   if ($FORM{qindex}) {
     if(defined($module{$FORM{qindex}})) {
  	   	require "Abills/modules/$module{$FORM{qindex}}/webinterface";

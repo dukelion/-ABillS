@@ -169,10 +169,8 @@ sub acct {
   $RAD->{INTERIUM_INBYTE2}  = 0;
   $RAD->{INTERIUM_OUTBYTE2} = 0;
 
-
   $RAD->{INBYTE2}  = 0;
   $RAD->{OUTBYTE2} = 0;
-
   
   #Cisco-AVPair
   if ($RAD->{CISCO_AVPAIR}) {
