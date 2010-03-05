@@ -250,12 +250,12 @@ sub acct {
       else {
           my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS});
           if ($class == 1) {
-            $RAD->{'INBYTE2'}	= $byte;
+            $RAD->{'OUTBYTE2'}	= $byte;
            }
 
           ($class, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS});
           if ($class == 1) {
-            $RAD->{'OUTBYTE2'}	= $byte;
+            $RAD->{'INBYTE2'}	= $byte;
            }
        }
      }
