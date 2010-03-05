@@ -293,7 +293,7 @@ if ($Ipn->{INTERIM}{$ip}) {
      
      $TRAFFIC_CLASS_SUM{$k}{IN} = $in;
      $TRAFFIC_CLASS_SUM{$k}{OUT}= $out;
-      
+
      $total_in  += $in;
      $total_out += $out;
      my $sum_in  = 0;
@@ -559,7 +559,7 @@ sub get_collector_data {
  
 print "$log\n" if ($debug > 1);
 
-$Ipn->traffic_agregate_clean() if (! defined($ARGV->{TRAFFIC_CLASS}));
+$Ipn->traffic_agregate_clean(); # if (! defined($ARGV->{TRAFFIC_CLASS}));
 
 $Ipn->{TOTAL_FLOWS}=0;
 my %DATA=();
