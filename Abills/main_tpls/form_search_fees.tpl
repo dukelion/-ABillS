@@ -1,4 +1,5 @@
 <!-- FEES -->
+
 <tr><td colspan='2'><hr/></td></tr>
 <tr><td>$_GROUP:</td><td>%GROUPS_SEL%</td></td></tr>
 <tr><td>$_OPERATOR (ID):</td><td><input type='text' name='A_LOGIN' value='%A_LOGIN%'/></td></tr>
