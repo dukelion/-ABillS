@@ -235,6 +235,7 @@ sub acct {
     ($RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = ($RAD->{ACCT_OUTPUT_GIGAWORDS}, $RAD->{ACCT_INPUT_GIGAWORDS}); 
 
     if ($nas->{NAS_TYPE} eq 'mpd5' && $RAD->{MPD_INPUT_OCTETS}) {
+    	my $rrw = `echo "$RAD->{MPD_INPUT_OCTETS}" >> /tmp/traf`;
     	
    	  if (ref $RAD->{MPD_INPUT_OCTETS} eq 'ARRAY') {
         foreach my $line  (@{ $RAD->{MPD_INPUT_OCTETS} }) {
@@ -249,16 +250,17 @@ sub acct {
           $RAD->{'OUTBYTE' . $class}	= $byte;
          }
        }
-#      else {
-#          my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS});
-#          $class = ($class == 0) ? '' : $class + 1;
-#          $RAD->{'INBYTE'. $class }	= $byte;
-#
-#
-#          my($class, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS});
-#          $class = ($class == 0) ? '' : $class + 1;
-#          $RAD->{'OUTBYTE' . $class}	= $byte;
-#       }
+      else {
+          my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS});
+          if ($class == 1) {
+            $RAD->{'INBYTE2'}	= $byte;
+           }
+
+          ($class, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS});
+          if ($class == 0) {
+            $RAD->{'OUTBYTE2'}	= $byte;
+           }
+       }
      }
     elsif ($nas->{NAS_TYPE} eq 'exppp') {
       #reverse byte parameters
