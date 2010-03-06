@@ -885,6 +885,7 @@ CREATE TABLE `users` (
   `expire` date NOT NULL default '0000-00-00',
   `credit` double(10,2) NOT NULL default '0.00',
   `reduction` double(6,2) NOT NULL default '0.00',
+  `reduction_date` date not null default '0000-00-00',
   `registration` date default '0000-00-00',
   `password` blob NOT NULL,
   `uid` int(11) unsigned NOT NULL auto_increment,
