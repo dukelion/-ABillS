@@ -126,6 +126,7 @@ sub info {
    if(c.name IS NULL, b.uid, cb.uid),
    if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id),
    u.credit_date,
+   u.reduction_date,
    if(c.name IS NULL, 0, c.credit),
    u.domain_id,
    $password
@@ -161,6 +162,7 @@ sub info {
    $self->{BILL_OWNER},
    $self->{EXT_BILL_ID},
    $self->{CREDIT_DATE},
+   $self->{REDUCTION_DATE},
    $self->{COMPANY_CREDIT},
    $self->{DOMAIN_ID},
    $self->{PASSWORD}
@@ -207,6 +209,7 @@ sub defaults_pi {
    ZIP            => '',
    CITY           => '',
    CREDIT_DATE    => '0000-00-00',
+   REDUCTION_DATE => '0000-00-00',
    ACCEPT_RULES   => 0
   );
  
@@ -448,6 +451,7 @@ sub defaults {
    CREDIT         => 0, 
    CREDIT_DATE    => '0000-00-00',
    REDUCTION      => '0.00', 
+   REDUCTION_DATE => '0000-00-00',
    SIMULTANEONSLY => 0, 
    DISABLE        => 0, 
    COMPANY_ID     => 0,
@@ -737,6 +741,10 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{REDUCTION}, 'INT', 'u.reduction', { EXT_FIELD => 1 }) };
   }
 
+ if ($attr->{REDUCTION_DATE}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{REDUCTION_DATE}, 'INT', 'u.reduction_date', { EXT_FIELD => 1 }) };
+  }
+
  if ($attr->{COMMENTS}) {
    push @WHERE_RULES,  @{ $self->search_expr($attr->{COMMENTS}, 'STR', 'pi.comments', { EXT_FIELD => 1 }) };
   }
@@ -991,11 +999,11 @@ sub add {
   
   $DATA{DISABLE} = int($DATA{DISABLE});
   $self->query($db,  "INSERT INTO users (id, activate, expire, credit, reduction, 
-           registration, disable, company_id, gid, password, credit_date, domain_id)
+           registration, disable, company_id, gid, password, credit_date, reduction_date, domain_id)
            VALUES ('$DATA{LOGIN}', '$DATA{ACTIVATE}', '$DATA{EXPIRE}', '$DATA{CREDIT}', '$DATA{REDUCTION}', 
            now(),  '$DATA{DISABLE}', 
            '$DATA{COMPANY_ID}', '$DATA{GID}', 
-           ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}'), '$DATA{CREDIT_DATE}', '$admin->{DOMAIN_ID}'
+           ENCODE('$DATA{PASSWORD}', '$CONF->{secretkey}'), '$DATA{CREDIT_DATE}', '$DATA{REDUCTION_DATE}', '$admin->{DOMAIN_ID}'
            );", 'do');
   
   return $self if ($self->{errno});
@@ -1042,6 +1050,7 @@ sub change {
               BILL_ID     => 'bill_id',
               EXT_BILL_ID => 'ext_bill_id',
               CREDIT_DATE => 'credit_date',
+              REDUCTION_DATE => 'reduction_date',
               DOMAIN_ID   => 'domain_id',
              );
 

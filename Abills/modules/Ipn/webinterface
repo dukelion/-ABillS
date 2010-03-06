@@ -2233,30 +2233,27 @@ sub ipn_detail_rotate {
   my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
   return '' if ($attr->{SRESTART});
-  
-  
+
   # Clean s_detail table
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
-
   if ($d == 1) {
     $DEBUG .= "Make log rotate\n" if ($debug > 0);
-
     $Ipn->ipn_log_rotate({ 
-    	                        DETAIL => 1,
-    	                        LOG    => 1,
-  	                          PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} || 180 
+  	                        DETAIL => 1,
+   	                        LOG    => 1,
+ 	                          PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} || 180 
   	                      });
 
     $debug_output .= "Make IPN details rotate\n" if ($debug > 0);
    }
-  elsif ($conf{IPN_DETAIL}) {
+  else { # if ($conf{IPN_DETAIL}) {
     $debug_output .= "Ipn rotate daily details\n" if ($debug > 0);
     $Ipn->ipn_log_rotate({ 
-    	                        DETAIL => 1,
-  	                          PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} 
+    	                     DETAIL => 1,
+  	                       PERIOD => $conf{IPN_DETAIL_CLEAN_PERIOD} 
   	                      });
-  	
    }
+
   $DEBUG .= $debug_output;
   return $debug_output;
 }

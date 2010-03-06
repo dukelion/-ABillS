@@ -54,7 +54,12 @@ $_DATE: <input type=text name='CREDIT_DATE' value='%CREDIT_DATE%' size=12>
 </TD></TR>
 <TR><TD>$_EXPIRE:</TD><TD><input type=text name=EXPIRE value='%EXPIRE%' size=12>	
 	<script language='JavaScript'>var o_cal = new tcal ({	'formname': 'user_form',	'controlname': 'EXPIRE'	});</script></TD></TR>
-<TR><TD>$_REDUCTION (%):</TD><TD><input type=text name=REDUCTION value='%REDUCTION%' size=8></TD></TR>
+<TR><TD>$_REDUCTION (%):</TD><TD><input type=text name=REDUCTION value='%REDUCTION%' size=8>
+
+$_DATE: <input type=text name='REDUCTION_DATE' value='%REDUCTION_DATE%' size=12> 
+<script language='JavaScript'>var o_cal = new tcal ({	'formname': 'user_form',	'controlname': 'REDUCTION_DATE'	});</script>
+
+</TD></TR>
 <TR><TD rowspan=2>$_DISABLE:</TD><TD><input type=checkbox name=DISABLE value='1' onClick=\"add_comments();\" %DISABLE%> %DISABLE_MARK%</TD></TR>
  <TR><TD>%DISABLE_COMMENTS%<input type=text name=ACTION_COMMENTS value='%ACTION_COMMENTS%'  size=30 style='visibility: hidden;'>%ACTION_COMMENTS%</TD></TR>
 <TR><TD>$_REGISTRATION</TD><TD>%REGISTRATION%</TD></TR>

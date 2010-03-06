@@ -67,6 +67,7 @@ $ADMIN_REPORT{HOSTNAME}=hostname();
 
 my @daily_functions=(
                      'credit_operation',
+                     'reduction_operation',
                      'admin_report_daily'
                      );
 
@@ -522,7 +523,9 @@ sub backup {
 
  $admin->query($db, "SHOW TABLE STATUS");
  my @ignore_tables_arr = ("--ignore-table=\"$conf{dbname}.ipn_traf_detail\"",
-                          "--ignore-table=\"$conf{dbname}.s_detail\"" );
+                          "--ignore-table=\"$conf{dbname}.s_detail\"",
+                          "--ignore-table=\"$conf{dbname}.ipn_log_backup\"",
+                          "--ignore-table=\"$conf{dbname}.ipn_unknow_ips\"" );
 
  my @tables = ();
  foreach my $table (@{ $admin->{list} }) {
@@ -538,7 +541,6 @@ sub backup {
 
  my $ignore_tables = join(' ', @ignore_tables_arr);
 
-
  $DEBUG .= "DB backup\n" if ($debug > 1);
  #print qq{ $MYSQLDUMP -v --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" --ignore-table="$conf{dbname}.ipn_traf_detail" --ignore-table="$conf{dbname}.s_detail" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz };
  $conf{dbcharset}='latin1' if (!$conf{dbcharset});
@@ -549,7 +551,6 @@ sub backup {
    my $res = `$cmd`;
    $DEBUG .= "Backup created: $res ($conf{BACKUP_DIR}/stats-$DATE.sql.gz)" if ($debug > 1);
   }
-
 
  return if ($D > 1) ;
  #Move rotate tables
@@ -577,13 +578,9 @@ sub backup {
 
     $DEBUG .= $vars{datadir}."/$conf{dbname}/$table.* -> $conf{BACKUP_DIR}/$DATE/$table".".gz ($res)\n" if ($debug > 2);
     $DEBUG .= "$cmd\n" if ($debug > 4);
- 
-
-    
    } 
 
   }
-
 
   return;
 }
@@ -599,9 +596,9 @@ sub credit_operation {
   $conf{MAX_STABLE_CREDIT}=0 if (! $conf{MAX_STABLE_CREDIT});
 
   my $list = $users->list({  
-                           CREDIT_DATE  => ">0000-00-00,<=$DATE",
+                           CREDIT_DATE  => ">0000-00-00,<=$ADMIN_REPORT{DATE}",
                            CREDIT       => ">$conf{MAX_STABLE_CREDIT}",
-  	                   PAGE_ROWS    => 1000000,
+  	                       PAGE_ROWS    => 1000000,
   	                      });
 
   foreach my $line (@$list) {
@@ -624,7 +621,7 @@ sub credit_operation {
  my $Company = $customer->company();
 
  $list = $Company->list({  
-                           CREDIT_DATE  => "$DATE",
+                           CREDIT_DATE  => "$ADMIN_REPORT{DATE}",
                            CREDIT       => ">$conf{MAX_STABLE_CREDIT}",
   	                       PAGE_ROWS    => 1000000
   	                      });
@@ -639,11 +636,37 @@ sub credit_operation {
                       });
      }
   }
-	
-	
  return 0;
 }
 
+
+#*******************************************************************
+# Reset reduction
+# 
+#*******************************************************************
+sub reduction_operation {
+	$DEBUG .= "Reset reduction\n" if ($debug > 1);
+
+  # For users
+  my $list = $users->list({  
+                           REDUCTION_DATE  => ">0000-00-00,<=$ADMIN_REPORT{DATE}",
+                           REDUCTION       => ">0",
+  	                       PAGE_ROWS    => 1000000,
+  	                      });
+
+  foreach my $line (@$list) {
+  	$DEBUG .= "$line->[0] (". $line->[5 +  $users->{SEARCH_FIELDS_COUNT}] .") DEPOSIT: $line->[2] CREDIT: $line->[3] CREDIT_DATE: ". $line->[4+$users->{SEARCH_FIELDS_COUNT}] ."\n" if ($debug > 0);
+    if ($debug < 5) {
+    	$users->change($line->[5 + $users->{SEARCH_FIELDS_COUNT}], { REDUCTION      => '0.00',
+    		                           REDUCTION_DATE => '0000-00-00',
+    		                           DISABLE     => $line->[4] || 0,
+    		                           UID         => $line->[5 + $users->{SEARCH_FIELDS_COUNT}]
+    		                           });
+     }
+  }
+
+ return 0;
+}
 #*******************************************************************
 # Create debeters group
 # debeters_group_create()

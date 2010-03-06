@@ -78,7 +78,6 @@ sub user_del {
   my ($attr) = @_;
  
   $self->query($db, "DELETE FROM ipn_log WHERE uid='$attr->{UID}';", 'do');
-
   #$admin->action_add($attr->{UID}, "$attr->{UID}", { TYPE => 10 });
   return $self;   
 }
@@ -1061,29 +1060,25 @@ sub ipn_log_rotate {
   my $self = shift;
 	my ($attr) = @_;
   
+ my @rq = (); 
  my $version = $self->db_version();
  #Detail Daily rotate
  if ($attr->{DETAIL} && $version > 4.1 ) {
    my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));
-
-  	my @rq = (
+   @rq = (
     'CREATE TABLE IF NOT EXISTS ipn_traf_detail_new LIKE ipn_traf_detail;',
-    'RENAME TABLE 
-      ipn_traf_detail TO ipn_traf_detail_'. $DATE .
-      ', ipn_traf_detail_new TO ipn_traf_detail;'
+    'RENAME TABLE ipn_traf_detail TO ipn_traf_detail_'. $DATE .
+      ', ipn_traf_detail_new TO ipn_traf_detail;',
+    'DELETE FROM ipn_unknow_ips;'  
       );
-
-  foreach my $query (@rq) {
-    $self->query($db, "$query", 'do'); 
-   }
   }
  else {
-   $self->query($db, "DELETE from ipn_traf_detail WHERE f_time < f_time - INTERVAL $attr->{PERIOD} DAY;", 'do');
+   @rq = ("DELETE FROM ipn_traf_detail WHERE f_time < f_time - INTERVAL $attr->{PERIOD} DAY;");
   }
 
  #IPN log rotate
  if ($attr->{LOG} && $version > 4.1) {
-   my @rq = (
+   push @rq, 
     'DROP TABLE IF EXISTS ipn_log_new;',
     'CREATE TABLE ipn_log_new LIKE ipn_log;',
 
@@ -1105,13 +1100,11 @@ sub ipn_log_rotate {
     'RENAME TABLE 
       ipn_log  TO ipn_log_backup, 
       ipn_log_new TO ipn_log;',
-    'DELETE FROM ipn_log_backup  WHERE start >= \''. $admin->{DATE}. '\' - INTERVAL '. $attr->{PERIOD} .' DAY; '
-      );
+    'DELETE FROM ipn_log_backup  WHERE start >= \''. $admin->{DATE}. '\' - INTERVAL '. $attr->{PERIOD} .' DAY; ';
+  }
 
-   foreach my $query (@rq) {
-     $self->query($db, "$query", 'do');
-    }
-
+ foreach my $query (@rq) {
+   $self->query($db, "$query", 'do');
   }
 
  return $self;
