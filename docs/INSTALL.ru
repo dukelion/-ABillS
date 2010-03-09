@@ -45,9 +45,9 @@
   INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, 
     Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, 
     Lock_tables_priv, Create_tmp_table_priv, Create_view_priv,
-    Show_view_priv, Execute_priv, Event_priv, Trigger_priv) 
+    Show_view_priv, Execute_priv) 
   VALUES ('localhost', 'abills', 'abills', 'Y', 'Y', 'Y', 'Y', 'Y', 
-    'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y');
+    'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y');
   
   CREATE DATABASE abills;
   flush privileges;
@@ -240,6 +240,12 @@
   }
 
 ====Версия 2.xx====
+
+Для работы с freeradius 2 нужно указать параметр в конфигурационном файле abills:\\
+**/usr/abills/libexec/config.pl**  
+  $conf{RADIUS2}=1; 
+
+
 
 в **raddb/radiusd.conf** в секции ''modules'' описываем секции:
 

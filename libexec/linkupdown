@@ -458,7 +458,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     #FreeBSD ipfw pipe shaper
     else {
       my $dest_ip = 'any';
-      #User ipfw table if more then 5 networks
       # Networks tables
       if ($#nets_arr > -1) {
       	#print "Error: Traff_type: $traf_type User: $USER \n" if (! $traf_type || ! $nets_id{$traf_type});
@@ -488,6 +487,8 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
       	 $tp_table_number = $tp_table_number + $traf_type * 2
         }
        my $prefix = 10000;
+       # Delete from unlim table
+       #push @FW_ACTIONS, "$IPFW table ".($tp_table_number - 1)." delete $CLIENT_IP";
   	   push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
   	   push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1) ." delete $CLIENT_IP";
 

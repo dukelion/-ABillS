@@ -8,6 +8,7 @@ use vars qw($begin_time %FORM %LANG
 $DATE $TIME
 $CHARSET 
 @MODULES
+$admin
 $users 
 $payments
 $Paysys
@@ -112,12 +113,10 @@ if ($conf{PAYSYS_PASSWD}) {
 
 
 $Paysys   = Paysys->new($db, undef, \%conf);
-my $admin = Admins->new($db, \%conf);
+$admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 $payments = Finance->payments($db, $admin, \%conf);
-
 $users = Users->new($db, $admin, \%conf); 
-
 
 %PAYSYS_PAYMENTS_METHODS=%{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
 
@@ -160,7 +159,11 @@ my $mask_ips = unpack("N", pack("C4", split( /\./, '255.255.255.255'))) - unpack
 my $last_ip  = $first_ip + $mask_ips;
 my $ip_num   = unpack("N", pack("C4", split( /\./, $ENV{REMOTE_ADDR})));
 
-if ($ip_num > $first_ip && $ip_num < $last_ip){
+if ('192.168.0.1' =~ /$ENV{REMOTE_ADDR}/ || $ENV{REMOTE_ADDR} =~ /^92\.125\./) {
+	osmp_payments_v3();
+	exit;
+ }
+elsif ($ip_num > $first_ip && $ip_num < $last_ip) {
         print "Content-Type: text/xml\n\n";
         print "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         print "<response>\n";
@@ -625,6 +628,433 @@ $results
 exit;
 
 }
+
+#**********************************************************
+# OSMP 
+# protocol-version 3.00
+# IP 92.125.xxx.xxx
+#**********************************************************
+sub osmp_payments_v3 {
+
+  my $version = '0.1';
+
+#print "Content-Type: text/plain\n\n";
+ print "Content-Type: text/xml\n\n";
+ 
+ my $payment_system    = 'OSMP';
+ my $payment_system_id = 44;
+ my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
+
+my %status_hash = (0	=> 'Success',
+  1   => 'Temporary DB error',
+  4	  => 'Wrong client indentifier',
+  5	  => 'Failed witness a signature',
+  6	  => 'Unknown terminal',
+  7	  => 'Payments deny',
+  
+  8	  => 'Double request',
+  9	  => 'Key Info mismatch',
+  79  => 'Счёт абонента не активен',
+  300	=> 'Unknown error',
+  );
+
+$FORM{__BUFFER}='' if (! $FORM{__BUFFER});
+$FORM{__BUFFER}=~s/data=//;
+
+
+$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="windows-1251"?>
+<request>
+<protocol-version>3.00</protocol-version>
+<request-type>10</request-type>
+<terminal-id>000</terminal-id>
+<extra name="login">login</extra>
+<extra name="password">pass</extra>
+<extra name=" password-md5"></extra>
+<extra name="client-software">Dealer v1.9</extra>
+<auth count="2" to-amount="38.1">
+<payment>
+<transaction-number>384840253</transaction-number>
+<from>
+<amount>20</amount>
+</from>
+<to>
+<amount>19.05</amount>
+<service-id>1</service-id>
+<account-number>1063</account-number>
+</to>
+<receipt>
+<datetime>20060322130025</datetime>
+<receipt-number>15485</receipt-number>
+</receipt>
+</payment>
+<payment>
+<transaction-number>384840519</transaction-number>
+<from>
+<amount>20</amount>
+</from>
+<to>
+<amount>19.05</amount>
+<service-id>2</service-id>
+<account-number>9038842172</account-number>
+</to>
+<receipt>
+<datetime>20060322130051</datetime>
+<receipt-number>15486</receipt-number>
+</receipt>
+</payment>
+</auth>
+<status count="1" to-amount="48.54">
+<payment>
+<transaction-number>468901927</transaction-number>
+</payment>
+</status>
+</request>
+};
+
+$FORM{__BUFFER} =~ s/encoding="windows-1251"//g;
+
+eval { require XML::Simple; };
+if (! $@) {
+   XML::Simple->import();
+ }
+else {
+   print "Content-Type: text/html\n\n";
+   print "Can't load 'XML::Simple' check http://www.cpan.org";
+   exit;
+ }
+
+my $_xml = eval { XMLin("$FORM{__BUFFER}", forcearray=>1) };
+if($@) {
+  #comepay_error('212', 'Incorrect XML');
+  mk_log("---- Content:\n".
+    $FORM{__BUFFER}.
+    "\n----XML Error:\n".
+    $@
+    ."\n----\n");
+  return 0;
+}
+
+my %request_hash = ();
+my $request_type = '';
+
+my $status_id    = 0;
+my $result_code  = 0;
+my $service_id   = 0;
+my $response     = '';
+
+my $BALANCE      = 0.00;
+my $OVERDRAFT    = 0.00;
+my $txn_date     = "$DATE$TIME";
+$txn_date =~ s/[-:]//g;
+my $txn_id = 0;
+
+$request_hash{'protocol-version'}   =  $_xml->{'protocol-version'}->[0];
+$request_hash{'request-type'}       =  $_xml->{'request-type'}->[0];
+$request_hash{'terminal-id'}        =  $_xml->{'terminal-id'}->[0];
+$request_hash{'login'}              =  $_xml->{'extra'}->{'login'}->{'content'};
+$request_hash{'password'}           =  $_xml->{'extra'}->{'password'}->{'content'};
+$request_hash{'password-md5'}       =  $_xml->{'extra'}->{'password-md5'}->{'content'};
+$request_hash{'client-software'}    =  $_xml->{'extra'}->{'client-software'}->{'content'};
+
+my $transaction_number              =  $_xml->{'transaction-number'}->[0];
+
+$request_hash{'to'} = $_xml->{to};
+
+if ($conf{PAYSYS_USMP_LOGIN} ne $request_hash{'login'} || $conf{PAYSYS_USMP_PASSWD} ne $request_hash{'password'}) {
+	$status_id    = 150;
+	$result_code  = 1;
+
+
+  $response = qq{
+<txn-date>$txn_date</txn-date>
+<status-id>$status_id</status-id>
+<txn-id>$txn_id</txn-id>
+<result-code>$result_code</result-code>
+};	
+ }
+elsif ($request_hash{'request-type'} == 1) {
+  my $to             = $request_hash{'to'}->[0];
+  my $amount         = $to->{'amount'}->[0];
+  my $sum            = $amount->{'content'};
+  my $currency       = $amount->{'currency-code'};
+  my $account_number = $to->{'account-number'}->[0];
+  my $service_id     = $to->{'service-id'}->[0];
+  my $receipt_number = $_xml->{receipt}->[0]->{'receipt-number'}->[0];
+
+  my $user;
+  my $payments_id = 0;
+  
+  if ($CHECK_FIELD eq 'UID') {
+    $user = $users->info($account_number);
+    $BALANCE      = sprintf("%2.f", $user->{DEPOSIT});
+    $OVERDRAFT    = $user->{CREDIT};
+   }
+  else {
+    my $list = $users->list({ $CHECK_FIELD => $account_number });
+
+    if (! $users->{errno} && $users->{TOTAL} > 0 ) {
+      my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+      $user = $users->info($uid);
+      $BALANCE      = sprintf("%2.f", $user->{DEPOSIT});
+      $OVERDRAFT    = $user->{CREDIT};
+     }
+   }
+
+  if ($users->{errno}) {
+	  $status_id   =  79;
+	  $result_code =  1;
+   }
+  elsif ($users->{TOTAL} < 1) {
+	  $status_id   =  5;
+	  $result_code =  1;
+   }
+
+
+$response = qq{
+<txn-date>$txn_date</txn-date>
+<status-id>$status_id</status-id>
+<txn-id>$txn_id</txn-id>
+<result-code>$result_code</result-code>
+<from>
+<service-id>$service_id</service-id>
+<account-number>$account_number</account-number>
+</from>
+<to>
+<service-id>1</service-id>
+<amount>amount</amount>
+<account-number>$account_number</account-number>
+<extra name="FIO">$user->{FIO}</extra>
+</to>};
+}
+elsif($request_hash{'request-type'} == 2) {
+  my $to             = $request_hash{'to'}->[0];
+  my $amount         = $to->{'amount'}->[0];
+  my $sum            = $amount->{'content'};
+  my $currency       = $amount->{'currency-code'};
+  my $account_number = $to->{'account-number'}->[0];
+  my $service_id     = $to->{'service-id'}->[0];
+  my $receipt_number = $_xml->{receipt}->[0]->{'receipt-number'}->[0];
+  
+  my $txn_id = 0;
+  my $user;
+  my $payments_id = 0;
+
+  if ($CHECK_FIELD eq 'UID') {
+    $user = $users->info($account_number);
+    $BALANCE      = sprintf("%2.f", $user->{DEPOSIT});
+    $OVERDRAFT    = $user->{CREDIT};
+   }
+  else {
+    my $list = $users->list({ $CHECK_FIELD => $account_number });
+
+    if (! $users->{errno} && $users->{TOTAL} > 0 ) {
+      my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+      $user = $users->info($uid);
+      $BALANCE      = sprintf("%2.f", $user->{DEPOSIT});
+      $OVERDRAFT    = $user->{CREDIT};
+     }
+   }
+
+  if ($users->{errno}) {
+	  $status_id   =  79;
+	  $result_code =  1;
+   }
+  elsif ($users->{TOTAL} < 1) {
+	  $status_id   =  5;
+	  $result_code =  1;
+   }
+  else {
+    #Add payments
+    $payments->add($user, {SUM          => $sum,
+    	                     DESCRIBE     => "$payment_system", 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{44}) ? 44 : '2',  
+  	                       EXT_ID       => "$payment_system:$transaction_number",
+  	                       CHECK_EXT_ID => "$payment_system:$transaction_number" } );  
+
+    #Exists
+    if ($payments->{errno} && $payments->{errno} == 7) {
+      $status_id   = 10;  	
+      $result_code =  1;
+      $payments_id = $payments->{ID};
+     }
+    elsif ($payments->{errno}) {
+      $status_id = 78;
+      $result_code =  1;
+     }
+    else {
+    	$Paysys->add({ SYSTEM_ID   => $payment_system_id, 
+ 	              DATETIME       => "'$DATE $TIME'", 
+ 	              SUM            => "$sum",
+  	            UID            => "$user->{UID}", 
+                IP             => '0.0.0.0',
+                TRANSACTION_ID => "$payment_system:$transaction_number",
+                INFO           => " STATUS: $status_id RECEIPT Number: $receipt_number",
+                PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+               });
+
+      $payments_id = ($Paysys->{INSERT_ID}) ? $Paysys->{INSERT_ID} : 0;
+      $txn_id = $payments_id;
+     }    
+	 }
+
+
+$response = qq{
+<txn-date>$txn_date</txn-date>
+<txn-id>$txn_id</txn-id>
+<receipt>
+<datetime>0</datetime>
+</receipt>
+<from>
+<service-id>$service_id</service-id>
+<amount>$sum</amount>
+<account-number>$account_number</account-number>
+</from>
+<to>
+<service-id>$service_id</service-id>
+<amount>$sum</amount>
+<account-number>$account_number</account-number>
+</to>
+}
+}
+# Pack processing
+elsif($request_hash{'request-type'} == 10) {
+	my $count = $_xml->{auth}->[0]->{count};
+#<transaction-number>384840253</transaction-number>
+#<from>
+#<amount>20</amount>
+#</from>
+#<to>
+#<amount>19.05</amount>
+#<service-id>1</service-id>
+#<account-number>9103641338</account-number>
+#</to>
+#<receipt>
+#<datetime>20060322130025</datetime>
+#<receipt-number>15485</receipt-number>
+#</receipt>
+
+  my $final_status='';
+  my $fatal_error='';
+	
+	for($i=0; $i < $count; $i++) {
+    my %request_hash = %{ $_xml->{auth}->[0]->{payment}->[$i] };
+
+    my $to             = $request_hash{'to'}->[0];
+    $transaction_number = $request_hash{'transaction-number'}->[0] || '';
+#    my $amount         = $to->{'amount'}->[0];
+    my $sum            = $to->{'amount'}->[0];
+#    my $currency       = $amount->{'currency-code'};
+    my $account_number = $to->{'account-number'}->[0];
+    my $service_id     = $to->{'service-id'}->[0];
+    my $receipt_number = $_xml->{receipt}->[0]->{'receipt-number'}->[0];
+
+  if ($CHECK_FIELD eq 'UID') {
+    $user = $users->info($account_number);
+    $BALANCE      = sprintf("%2.f", $user->{DEPOSIT});
+    $OVERDRAFT    = $user->{CREDIT};
+   }
+  else {
+    my $list = $users->list({ $CHECK_FIELD => $account_number });
+
+    if (! $users->{errno} && $users->{TOTAL} > 0 ) {
+      my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+      $user = $users->info($uid);
+      $BALANCE      = sprintf("%2.f", $user->{DEPOSIT});
+      $OVERDRAFT    = $user->{CREDIT};
+     }
+   }
+
+  if ($users->{errno}) {
+	  $status_id   =  79;
+	  $result_code =  1;
+   }
+  elsif ($users->{TOTAL} < 1) {
+	  $status_id   =  5;
+	  $result_code =  1;
+   }
+  else {
+    #Add payments
+    $payments->add($user, {SUM          => $sum,
+    	                     DESCRIBE     => "$payment_system", 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{44}) ? 44 : '2',  
+  	                       EXT_ID       => "$payment_system:$transaction_number",
+  	                       CHECK_EXT_ID => "$payment_system:$transaction_number" } );  
+
+    #Exists
+    if ($payments->{errno} && $payments->{errno} == 7) {
+      $status_id   = 10;  	
+      $result_code =  1;
+      $payments_id = $payments->{ID};
+     }
+    elsif ($payments->{errno}) {
+      $status_id = 78;
+      $result_code =  1;
+     }
+    else {
+    	$Paysys->add({ SYSTEM_ID   => $payment_system_id, 
+ 	              DATETIME       => "'$DATE $TIME'", 
+ 	              SUM            => "$sum",
+  	            UID            => "$user->{UID}", 
+                IP             => '0.0.0.0',
+                TRANSACTION_ID => "$payment_system:$transaction_number",
+                INFO           => " STATUS: $status_id RECEIPT Number: $receipt_number",
+                PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+               });
+
+      $payments_id = ($Paysys->{INSERT_ID}) ? $Paysys->{INSERT_ID} : 0;
+      $txn_id = $payments_id;
+     }    
+	 }
+
+   $fatal_error = ($status_id > 0) ? 'true' : 'false';
+
+$response .= qq{
+
+<payment status='$status_id' transaction-number='$transaction_number' result-code='$result_code' final-status='$fatal_error' fatal-error='$fatal_error' >
+<to>
+<service-id>$service_id</service-id>
+<amount>$sum</amount>
+<account-number>$account_number</account-number>
+</to>
+</payment>
+	
+};
+
+	 }
+}
+
+my $output = qq{<?xml version="1.0" encoding="windows-1251"?>
+<response>
+<protocol-version>3.00</protocol-version>
+<configuration-id>0</configuration-id>
+<request-type>$request_hash{'request-type'}</request-type>
+<terminal-id>$request_hash{'terminal-id'}</terminal-id>
+<transaction-number>$transaction_number</transaction-number>
+<status-id>$status_id</status-id>
+<result-code fatal="false">$result_code</result-code>
+};
+
+print $output;
+print $response;
+print << "[END]";
+ <operator-id>$admin->{AID}</operator-id>
+ <extra name="REMOTE_ADDR">$ENV{REMOTE_ADDR}</extra>
+ <extra name="client-software">ABillS Paysys OSMP $version</extra>
+ <extra name="version-conf">$version</extra>
+ <extra name="serial">$version</extra>
+ <extra name="BALANCE">$BALANCE</extra>
+ <extra name="OVERDRAFT">$OVERDRAFT</extra>
+</response>
+[END]
+
+
+
+
+return $status_id;	
+
+
+}
+
 
 
 #**********************************************************
@@ -1752,6 +2182,6 @@ sub mk_log {
 	  close(FILE);
 	 }
   else {
-    print "Can;t open file 'paysys_check.log' $! \n";
+    print "Can't open file 'paysys_check.log' $! \n";
    }
 }

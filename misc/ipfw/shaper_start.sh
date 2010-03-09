@@ -5,7 +5,7 @@
 #traffic Class numbers
 
 CLASSES_NUMS='2 3'
-VERSION=2.6
+VERSION=2.7
 
 #Enable NG shapper
 NG_SHAPPER=1
@@ -56,11 +56,6 @@ for num in ${CLASSES_NUMS}; do
 #  FW_NUM=`expr  `;
   echo "Traffic: ${num} "
 
-  #Unlim traffic
-  ${IPFW} add ` expr 9000 + ${num} \* 10 ` allow ip from table\(9\) to table\(${num}\) ${IN_DIRECTION}
-  ${IPFW} add ` expr 9000 + ${num} \* 10 + 5 ` allow ip from table\(${num}\) to table\(9\) ${OUT_DIRECTION}
-
-
   #Shaped traffic
   ${IPFW} add ` expr 9100 + ${num} \* 10 ` skipto ` expr 10100 + ${num} \* 10 ` ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to table\(${num}\) ${IN_DIRECTION}
   ${IPFW} add ` expr 9100 + ${num} \* 10 + 5 ` skipto ` expr 10100 + ${num} \* 10 + 5 ` ip from table\(${num}\) to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2 + 1 `\) ${OUT_DIRECTION}
@@ -69,18 +64,21 @@ for num in ${CLASSES_NUMS}; do
   ${IPFW} add ` expr 10100 + ${num} \* 10 ` netgraph tablearg ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to any ${IN_DIRECTION}
   ${IPFW} add ` expr 10100 + ${num} \* 10 + 5 ` netgraph tablearg ip from any to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2 + 1 `\) ${OUT_DIRECTION}
 
+  #Unlim traffic
+  ${IPFW} add ` expr 10200 + ${num} \* 10 ` allow ip from table\(9\) to table\(${num}\) ${IN_DIRECTION}
+  ${IPFW} add ` expr 10200 + ${num} \* 10 + 5 ` allow ip from table\(${num}\) to table\(9\) ${OUT_DIRECTION}
+
 
 #  ${IPFW}  add ` expr 9000 + ${num} \* 10 ` netgraph tablearg ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to table\(${num}\) out via ${EXTERNAL_INTERFACE}
 #  ${IPFW}  add ` expr 9000 + ${num} \* 10 + 5 ` netgraph tablearg ip from table\(${num}\) to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2 + 1 `\) out via ${INTERNAL_INTERFACE}
 done;
 
   echo "Global shaper"
-  ${IPFW} add 9000 allow ip from table\(9\) to any ${IN_DIRECTION}
-  ${IPFW} add 9005 allow ip from any to table\(9\) ${OUT_DIRECTION}
-
-  ${IPFW}  add 10000 netgraph tablearg ip from table\(10\) to any ${IN_DIRECTION}
-  ${IPFW}  add 10010 netgraph tablearg ip from any to table\(11\) ${OUT_DIRECTION}
-  ${IPFW}  add 10015 allow ip from any to any via ng*
+  ${IPFW} add 10000 netgraph tablearg ip from table\(10\) to any ${IN_DIRECTION}
+  ${IPFW} add 10010 netgraph tablearg ip from any to table\(11\) ${OUT_DIRECTION}
+  ${IPFW} add 10020 allow ip from table\(9\) to any ${IN_DIRECTION}
+  ${IPFW} add 10025 allow ip from any to table\(9\) ${OUT_DIRECTION}
+  ${IPFW} add 10030 allow ip from any to any via ng*
 #done
 else if [ w$1 = wstop -a w$2 = w ]; then
 

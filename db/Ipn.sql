@@ -49,3 +49,12 @@ CREATE TABLE `traffic_prepaid_sum` (
   `traffic_out` BIGINT(14) UNSIGNED NOT NULL DEFAULT '0',
   KEY `uid` (`uid`, `started`, `traffic_class`)
 ) COMMENT='Prepaid traffic summary';
+
+
+CREATE TABLE `ipn_unknow_ips` (
+`src_ip` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+`dst_ip` INTEGER(11) UNSIGNED NOT NULL,
+`size` INTEGER(11) UNSIGNED NOT NULL,
+`nas_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+`datetime` DATETIME NOT NULL
+) COMMENT='Ipn unknow ips';  
