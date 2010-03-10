@@ -161,7 +161,7 @@ my $last_ip  = $first_ip + $mask_ips;
 my $ip_num   = unpack("N", pack("C4", split( /\./, $ENV{REMOTE_ADDR})));
 
 if ('192.168.0.1' =~ /$ENV{REMOTE_ADDR}/ || $ENV{REMOTE_ADDR} =~ /^92\.125\./) {
-	osmp_payments_v3();
+	osmp_payments_v4();
 	exit;
  }
 elsif ($ip_num > $first_ip && $ip_num < $last_ip) {
@@ -632,7 +632,7 @@ exit;
 
 #**********************************************************
 # OSMP 
-# protocol-version 3.00
+# protocol-version 4.00
 # IP 92.125.xxx.xxx
 # $conf{PAYSYS_OSMP_LOGIN}
 # $conf{PAYSYS_OSMP_PASSWD}
@@ -640,12 +640,12 @@ exit;
 # $conf{PAYSYS_OSMP_TERMINAL_ID}
 #
 #**********************************************************
-sub osmp_payments_v3 {
+sub osmp_payments_v4 {
 
   my $version = '0.2';
   $debug      =  1;
 
-#print "Content-Type: text/plain\n\n";
+ #print "Content-Type: text/plain\n\n";
  print "Content-Type: text/xml\n\n";
  
  my $payment_system    = 'OSMP';
@@ -654,9 +654,26 @@ sub osmp_payments_v3 {
  $FORM{__BUFFER}='' if (! $FORM{__BUFFER});
  $FORM{__BUFFER}=~s/data=//;
 
-
-$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="windows-1251"?><request><protocol-version>4.00</protocol-version><request-type>10</request-type><terminal-id>0</terminal-id><extra name="login">login</extra><extra name="password-md5">0B5722D749618F25A028C1FAB33C080B</extra><extra name="client-software">Dealer v0</extra><extra name="serial">1</extra><auth count="1" to-amount="10.00"><payment><transaction-number>35910</transaction-number><from><amount>10.00</amount></from><to><amount>10.00</amount><service-id>1</service-id><account-number>3337</account-number></to><receipt><datetime>20100310153533</datetime><receipt-number>0</receipt-number></receipt></payment></auth></request>
-};
+#
+#$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="utf-8"?>
+#<request>
+#<terminal-id>000</terminal-id>
+#<extra name="login">login</extra>
+#<extra name="password">pass</extra>
+#
+#<status count="3">
+#<payment>
+#<transaction-number>1</transaction-number>
+#</payment>
+#<payment>
+#<transaction-number>123456789</transaction-number>
+#</payment>
+#<payment>
+#<transaction-number>3</transaction-number>
+#</payment>
+#</status>
+#</request>
+#};
 
  if ($debug == 1) {
  	mk_log($FORM{__BUFFER});
@@ -701,17 +718,16 @@ $txn_date =~ s/[-:]//g;
 my $txn_id = 0;
 
 $request_hash{'protocol-version'}   =  $_xml->{'protocol-version'}->[0];
-$request_hash{'request-type'}       =  $_xml->{'request-type'}->[0];
+$request_hash{'request-type'}       =  $_xml->{'request-type'}->[0] || 0;
 $request_hash{'terminal-id'}        =  $_xml->{'terminal-id'}->[0];
 $request_hash{'login'}              =  $_xml->{'extra'}->{'login'}->{'content'};
 $request_hash{'password'}           =  $_xml->{'extra'}->{'password'}->{'content'};
 $request_hash{'password-md5'}       =  $_xml->{'extra'}->{'password-md5'}->{'content'};
 $request_hash{'client-software'}    =  $_xml->{'extra'}->{'client-software'}->{'content'};
 
-my $transaction_number              =  $_xml->{'transaction-number'}->[0];
+my $transaction_number              =  $_xml->{'transaction-number'}->[0] || '';
 
 $request_hash{'to'} = $_xml->{to};
-
 
 if ($conf{PAYSYS_OSMP_LOGIN} ne $request_hash{'login'} || 
  ($request_hash{'password'} && $conf{PAYSYS_OSMP_PASSWD} ne $request_hash{'password'})) {
@@ -725,6 +741,45 @@ if ($conf{PAYSYS_OSMP_LOGIN} ne $request_hash{'login'} ||
 <txn-id>$txn_id</txn-id>
 <result-code>$result_code</result-code>
 };	
+ }
+elsif (defined($_xml->{'status'})) {
+	my $count = $_xml->{'status'}->[0]->{count};
+  my @payments_arr=();
+  my %payments_status = ();
+  
+  for(my $i=0; $i<$count; $i++) {
+  	push @payments_arr, $_xml->{'status'}->[0]->{'payment'}->[$i]->{'transaction-number'}->[0];
+   }  
+
+  my $ext_ids = '\'OSMP:'. join("', 'OSMP:", @payments_arr)."'";
+  my $list = $payments->list({ EXT_IDS => $ext_ids, PAGE_ROWS => 100000  });
+
+  if ($payments->{errno}) {
+     $status_id=78;
+   }
+  else {
+    foreach my $line (@$list) {
+  	  my $ext = $line->[7];
+  	  $ext =~ s/OSMP://g;
+  	  $payments_status{$ext}=$line->[0];
+     }
+
+    foreach my $id (@payments_arr) {
+      if ($id < 1) {
+    	  $status_id=160;
+       }
+      elsif ($payments_status{$id}) {
+    	  $status_id=60;
+       }          
+      else {
+        $status_id=10;
+       }
+
+      $response .= qq{ 
+<payment transaction-number="$id" status="$status_id" result-code="0" final-status="true" fatal-error="true">
+</payment>\n };
+     }	
+   }
  }
 elsif ($request_hash{'request-type'} == 1) {
   my $to             = $request_hash{'to'}->[0];
@@ -949,7 +1004,7 @@ elsif($request_hash{'request-type'} == 10) {
 
 $response .= qq{
 
-<payment status='$status_id' transaction-number='$transaction_number' result-code='$result_code' final-status='$fatal_error' fatal-error='$fatal_error' >
+<payment status='$status_id' transaction-number='$transaction_number' result-code='$result_code' >
 <to>
 <service-id>$service_id</service-id>
 <amount>$sum</amount>
@@ -964,7 +1019,7 @@ $response .= qq{
 
 my $output = qq{<?xml version="1.0" encoding="windows-1251"?>
 <response>
-<protocol-version>3.00</protocol-version>
+<protocol-version>4.00</protocol-version>
 <configuration-id>0</configuration-id>
 <request-type>$request_hash{'request-type'}</request-type>
 <terminal-id>$request_hash{'terminal-id'}</terminal-id>
@@ -1259,9 +1314,7 @@ elsif($request_type eq 'GetStatus') {
      }
   
   my $ext_ids = '\'USMP:'. join("', 'USMP:", @payments_arr)."'";
-
-  
-  my $list = $payments->list({ EXT_IDS => $ext_ids  });
+  my $list = $payments->list({ EXT_IDS => $ext_ids, PAGE_ROWS=>10000  });
   
 
   if ($payments->{errno}) {
