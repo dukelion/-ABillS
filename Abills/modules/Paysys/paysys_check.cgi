@@ -641,8 +641,8 @@ exit;
 #**********************************************************
 sub osmp_payments_v3 {
 
-  my $version = '0.1';
-  $debug = 1;
+  my $version = '0.2';
+  $debug      =  1;
 
 #print "Content-Type: text/plain\n\n";
  print "Content-Type: text/xml\n\n";
@@ -668,8 +668,8 @@ $FORM{__BUFFER}='' if (! $FORM{__BUFFER});
 $FORM{__BUFFER}=~s/data=//;
 
 
-$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="windows-1251"?><request><protocol-version>4.00</protocol-version><request-type>10</request-type><terminal-id>0</terminal-id><extra name="login">login</extra><extra name="password-md5">0B5722D749618F25A028C1FAB33C080B</extra><extra name="client-software">Dealer v0</extra><extra name="serial">1</extra><auth count="1" to-amount="10.00"><payment><transaction-number>35910</transaction-number><from><amount>10.00</amount></from><to><amount>10.00</amount><service-id>1</service-id><account-number>3337</account-number></to><receipt><datetime>20100310153533</datetime><receipt-number>0</receipt-number></receipt></payment></auth></request>
-};
+#$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="windows-1251"?><request><protocol-version>4.00</protocol-version><request-type>10</request-type><terminal-id>0</terminal-id><extra name="login">login</extra><extra name="password-md5">0B5722D749618F25A028C1FAB33C080B</extra><extra name="client-software">Dealer v0</extra><extra name="serial">1</extra><auth count="1" to-amount="10.00"><payment><transaction-number>35910</transaction-number><from><amount>10.00</amount></from><to><amount>10.00</amount><service-id>1</service-id><account-number>3337</account-number></to><receipt><datetime>20100310153533</datetime><receipt-number>0</receipt-number></receipt></payment></auth></request>
+#};
 
  if ($debug == 1) {
  	mk_log($FORM{__BUFFER});
@@ -886,20 +886,6 @@ $response = qq{
 # Pack processing
 elsif($request_hash{'request-type'} == 10) {
 	my $count = $_xml->{auth}->[0]->{count};
-#<transaction-number>384840253</transaction-number>
-#<from>
-#<amount>20</amount>
-#</from>
-#<to>
-#<amount>19.05</amount>
-#<service-id>1</service-id>
-#<account-number>9103641338</account-number>
-#</to>
-#<receipt>
-#<datetime>20060322130025</datetime>
-#<receipt-number>15485</receipt-number>
-#</receipt>
-
   my $final_status='';
   my $fatal_error='';
 	
@@ -987,7 +973,7 @@ $response .= qq{
 	
 };
 
-	 }
+}
 }
 
 my $output = qq{<?xml version="1.0" encoding="windows-1251"?>
@@ -1001,9 +987,7 @@ my $output = qq{<?xml version="1.0" encoding="windows-1251"?>
 <result-code fatal="false">$result_code</result-code>
 };
 
-print $output;
-print $response;
-print << "[END]";
+$output .= $response . qq{
  <operator-id>$admin->{AID}</operator-id>
  <extra name="REMOTE_ADDR">$ENV{REMOTE_ADDR}</extra>
  <extra name="client-software">ABillS Paysys OSMP $version</extra>
@@ -1011,10 +995,13 @@ print << "[END]";
  <extra name="serial">$version</extra>
  <extra name="BALANCE">$BALANCE</extra>
  <extra name="OVERDRAFT">$OVERDRAFT</extra>
-</response>
-[END]
+</response>};
 
+print $output;
 
+if ($debug > 0) {
+ 	mk_log("RESPONSE:\n". $output);
+ }
 
 
 return $status_id;	
