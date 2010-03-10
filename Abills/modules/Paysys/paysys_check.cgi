@@ -647,11 +647,6 @@ sub osmp_payments_v3 {
 #print "Content-Type: text/plain\n\n";
  print "Content-Type: text/xml\n\n";
  
- if ($debug == 1) {
- 	mk_log($FORM{__BUFFER});
- }
-
- 
  my $payment_system    = 'OSMP';
  my $payment_system_id = 44;
  my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
@@ -673,54 +668,13 @@ $FORM{__BUFFER}='' if (! $FORM{__BUFFER});
 $FORM{__BUFFER}=~s/data=//;
 
 
-#$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="windows-1251"?>
-#<request>
-#<protocol-version>3.00</protocol-version>
-#<request-type>10</request-type>
-#<terminal-id>000</terminal-id>
-#<extra name="login">login</extra>
-#<extra name="password">pass</extra>
-#<extra name=" password-md5"></extra>
-#<extra name="client-software">Dealer v1.9</extra>
-#<auth count="2" to-amount="38.1">
-#<payment>
-#<transaction-number>384840253</transaction-number>
-#<from>
-#<amount>20</amount>
-#</from>
-#<to>
-#<amount>19.05</amount>
-#<service-id>1</service-id>
-#<account-number>1063</account-number>
-#</to>
-#<receipt>
-#<datetime>20060322130025</datetime>
-#<receipt-number>15485</receipt-number>
-#</receipt>
-#</payment>
-#<payment>
-#<transaction-number>384840519</transaction-number>
-#<from>
-#<amount>20</amount>
-#</from>
-#<to>
-#<amount>19.05</amount>
-#<service-id>2</service-id>
-#<account-number>9038842172</account-number>
-#</to>
-#<receipt>
-#<datetime>20060322130051</datetime>
-#<receipt-number>15486</receipt-number>
-#</receipt>
-#</payment>
-#</auth>
-#<status count="1" to-amount="48.54">
-#<payment>
-#<transaction-number>468901927</transaction-number>
-#</payment>
-#</status>
-#</request>
-#};
+$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="windows-1251"?><request><protocol-version>4.00</protocol-version><request-type>10</request-type><terminal-id>0</terminal-id><extra name="login">login</extra><extra name="password-md5">0B5722D749618F25A028C1FAB33C080B</extra><extra name="client-software">Dealer v0</extra><extra name="serial">1</extra><auth count="1" to-amount="10.00"><payment><transaction-number>35910</transaction-number><from><amount>10.00</amount></from><to><amount>10.00</amount><service-id>1</service-id><account-number>3337</account-number></to><receipt><datetime>20100310153533</datetime><receipt-number>0</receipt-number></receipt></payment></auth></request>
+};
+
+ if ($debug == 1) {
+ 	mk_log($FORM{__BUFFER});
+ }
+
 
 $FORM{__BUFFER} =~ s/encoding="windows-1251"//g;
 
@@ -772,7 +726,8 @@ my $transaction_number              =  $_xml->{'transaction-number'}->[0];
 $request_hash{'to'} = $_xml->{to};
 
 
-if ($conf{PAYSYS_OSMP_LOGIN} ne $request_hash{'login'} || $conf{PAYSYS_OSMP_PASSWD} ne $request_hash{'password'}) {
+if ($conf{PAYSYS_OSMP_LOGIN} ne $request_hash{'login'} || 
+ ($request_hash{'password'} && $conf{PAYSYS_OSMP_PASSWD} ne $request_hash{'password'})) {
 	$status_id    = 150;
 	$result_code  = 1;
 
