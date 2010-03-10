@@ -45,7 +45,7 @@ use Paysys;
 use Finance;
 use Admins;
 
-my $debug  = 0;
+my $debug  = $conf{PAYSYS_DEBUG} || 0;
 my $html   = Abills::HTML->new();
 my $sql    = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser},
     $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
@@ -122,6 +122,7 @@ $users = Users->new($db, $admin, \%conf);
 
 
 #debug =========================================
+
 my $output2 = '';
 while(my($k, $v)=each %FORM) {
  	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
@@ -650,26 +651,12 @@ sub osmp_payments_v3 {
  my $payment_system    = 'OSMP';
  my $payment_system_id = 44;
  my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
-
-my %status_hash = (0	=> 'Success',
-  1   => 'Temporary DB error',
-  4	  => 'Wrong client indentifier',
-  5	  => 'Failed witness a signature',
-  6	  => 'Unknown terminal',
-  7	  => 'Payments deny',
-  
-  8	  => 'Double request',
-  9	  => 'Key Info mismatch',
-  79  => 'Счёт абонента не активен',
-  300	=> 'Unknown error',
-  );
-
-$FORM{__BUFFER}='' if (! $FORM{__BUFFER});
-$FORM{__BUFFER}=~s/data=//;
+ $FORM{__BUFFER}='' if (! $FORM{__BUFFER});
+ $FORM{__BUFFER}=~s/data=//;
 
 
-#$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="windows-1251"?><request><protocol-version>4.00</protocol-version><request-type>10</request-type><terminal-id>0</terminal-id><extra name="login">login</extra><extra name="password-md5">0B5722D749618F25A028C1FAB33C080B</extra><extra name="client-software">Dealer v0</extra><extra name="serial">1</extra><auth count="1" to-amount="10.00"><payment><transaction-number>35910</transaction-number><from><amount>10.00</amount></from><to><amount>10.00</amount><service-id>1</service-id><account-number>3337</account-number></to><receipt><datetime>20100310153533</datetime><receipt-number>0</receipt-number></receipt></payment></auth></request>
-#};
+$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="windows-1251"?><request><protocol-version>4.00</protocol-version><request-type>10</request-type><terminal-id>0</terminal-id><extra name="login">login</extra><extra name="password-md5">0B5722D749618F25A028C1FAB33C080B</extra><extra name="client-software">Dealer v0</extra><extra name="serial">1</extra><auth count="1" to-amount="10.00"><payment><transaction-number>35910</transaction-number><from><amount>10.00</amount></from><to><amount>10.00</amount><service-id>1</service-id><account-number>3337</account-number></to><receipt><datetime>20100310153533</datetime><receipt-number>0</receipt-number></receipt></payment></auth></request>
+};
 
  if ($debug == 1) {
  	mk_log($FORM{__BUFFER});
@@ -891,7 +878,6 @@ elsif($request_hash{'request-type'} == 10) {
 	
 	for($i=0; $i < $count; $i++) {
     my %request_hash = %{ $_xml->{auth}->[0]->{payment}->[$i] };
-
     my $to             = $request_hash{'to'}->[0];
     $transaction_number = $request_hash{'transaction-number'}->[0] || '';
 #    my $amount         = $to->{'amount'}->[0];
@@ -1004,9 +990,7 @@ if ($debug > 0) {
  }
 
 
-return $status_id;	
-
-
+return $status_id;
 }
 
 
