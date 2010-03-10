@@ -642,9 +642,15 @@ exit;
 sub osmp_payments_v3 {
 
   my $version = '0.1';
+  $debug = 1;
 
 #print "Content-Type: text/plain\n\n";
  print "Content-Type: text/xml\n\n";
+ 
+ if ($debug == 1) {
+ 	mk_log($FORM{__BUFFER});
+ }
+
  
  my $payment_system    = 'OSMP';
  my $payment_system_id = 44;
