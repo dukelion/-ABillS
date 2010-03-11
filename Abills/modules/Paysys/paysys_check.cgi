@@ -997,10 +997,11 @@ elsif($request_hash{'request-type'} == 10) {
 
       $payments_id = ($Paysys->{INSERT_ID}) ? $Paysys->{INSERT_ID} : 0;
       $txn_id = $payments_id;
+      $status_id = 51;
      }    
 	 }
 
-   $fatal_error = ($status_id > 0) ? 'true' : 'false';
+   $fatal_error = ($status_id != 51) ? 'true' : 'false';
 
 #<response requestTimeout="60"><request-type>10</request-type>
 #<terminal-id>17698</terminal-id>
@@ -1013,7 +1014,7 @@ elsif($request_hash{'request-type'} == 10) {
 
 
 $response .= qq{
-<payment status="$status_id" transaction-number="$transaction_number" final-status="true" fatal-error="$fatal_error">
+<payment status="$status_id" transaction-number="$transaction_number" result-code="$result_code" final-status="true" fatal-error="$fatal_error">
 <to>
 <service-id>$service_id</service-id>
 <amount>$sum</amount>
@@ -1027,14 +1028,13 @@ $response .= qq{
 }
 
 my $output = qq{<?xml version="1.0" encoding="windows-1251"?>
-<response>
+<response requestTimeout="60">
 <protocol-version>4.00</protocol-version>
 <configuration-id>0</configuration-id>
 <request-type>$request_hash{'request-type'}</request-type>
 <terminal-id>$request_hash{'terminal-id'}</terminal-id>
 <transaction-number>$transaction_number</transaction-number>
 <status-id>$status_id</status-id>
-<result-code fatal="false">$result_code</result-code>
 };
 
 $output .= $response . qq{
