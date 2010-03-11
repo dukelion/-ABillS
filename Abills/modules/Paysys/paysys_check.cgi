@@ -1003,8 +1003,7 @@ elsif($request_hash{'request-type'} == 10) {
    $fatal_error = ($status_id > 0) ? 'true' : 'false';
 
 $response .= qq{
-
-<payment status='$status_id' transaction-number='$transaction_number' result-code='$result_code' >
+<payment status="$status_id" transaction-number="$transaction_number" result-code="$result_code">
 <to>
 <service-id>$service_id</service-id>
 <amount>$sum</amount>
