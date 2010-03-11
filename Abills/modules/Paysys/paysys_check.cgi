@@ -963,8 +963,8 @@ elsif($request_hash{'request-type'} == 10) {
 	  $result_code =  1;
    }
   elsif ($users->{TOTAL} < 1) {
-	  $status_id   =  5;
-	  $result_code =  1;
+	  $status_id   =  0;
+	  $result_code =  0;
    }
   else {
     #Add payments
@@ -1001,18 +1001,7 @@ elsif($request_hash{'request-type'} == 10) {
      }    
 	 }
 
-   $fatal_error = ($status_id != 51) ? 'true' : 'false';
-
-#<response requestTimeout="60"><request-type>10</request-type>
-#<terminal-id>17698</terminal-id>
-#<payment status="150" transaction-number="36726" result-code="233" final-status="true" fatal-error="true"><to />
-#</payment>
-#<configuration-id>1261368566</configuration-id>
-#<extra name="BALANCE">41404.77</extra>
-#<extra name="OVERDRAFT">-0.00</extra>
-#</response>
-
-
+   $fatal_error = ($status_id != 51 && $status_id != 0) ? 'true' : 'false';
 $response .= qq{
 <payment status="$status_id" transaction-number="$transaction_number" result-code="$result_code" final-status="true" fatal-error="$fatal_error">
 <to>
