@@ -290,7 +290,7 @@ CREATE TABLE `dv_main` (
   `logins` tinyint(3) unsigned NOT NULL default '0',
   `registration` date default '0000-00-00',
   `ip` int(10) unsigned NOT NULL default '0',
-  `filter_id` varchar(15) NOT NULL default '',
+  `filter_id` varchar(150) NOT NULL default '',
   `speed` int(10) unsigned NOT NULL default '0',
   `netmask` int(10) unsigned NOT NULL default '4294967294',
   `cid` varchar(35) NOT NULL default '',
