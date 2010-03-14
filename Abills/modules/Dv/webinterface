@@ -383,7 +383,6 @@ sub dv_user {
      if ($FORM{pdf}) {
        print "Content-type: application/pdf\n";
        print "Content-disposition: inline; name=".int(rand(32768)).".pdf\n\n";
-       
 
      	 $html->tpl_show(_include('dv_user_info', 'Dv', { pdf => 1 }), { %$user, 
      	 	                                                               %$pi, 
@@ -627,7 +626,7 @@ sub dv_user {
  		                                        });
  
   
-  $html->tpl_show(_include('dv_user', 'Dv'), $Dv);
+  $html->tpl_show(_include('dv_user', 'Dv'), $Dv, {  });
   return 0; 
 }
 
@@ -683,9 +682,6 @@ sub dv_tp {
  $tarif_info = $tariffs->defaults();
  $tarif_info->{LNG_ACTION} = $_ADD;
  $tarif_info->{ACTION}     = 'ADD_TP';
-
-
-
 
 if($FORM{ADD_TP}) {
   $FORM{TP_ID} = $FORM{CHG_TP_ID};
@@ -778,8 +774,6 @@ $tarif_info->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE',
  	                                          SEL_ARRAY    => \@Payment_Types,
  	                                          ARRAY_NUM_ID => 1
  	                                        });
-
-
 
 $tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID', 
                                           { 

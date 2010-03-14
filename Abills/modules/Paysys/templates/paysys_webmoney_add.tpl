@@ -1,10 +1,10 @@
 <form id=pay name=pay method='POST' action='https://merchant.webmoney.ru/lmi/payment.asp'>
 
 <input type='hidden' name='LMI_RESULT_URL' value='$conf{PAYSYS_LMI_RESULT_URL}'>
-<input type='hidden' name='LMI_SUCCESS_URL' value='http://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?TRUE=1'>
+<input type='hidden' name='LMI_SUCCESS_URL' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?TRUE=1'>
 <input type='hidden' name='LMI_SUCCESS_METHOD' value='0'>
 
-<input type='hidden' name='LMI_FAIL_URL' value='http://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?FALSE=1&LMI_PAYMENT_NO=%LMI_PAYMENT_NO%&PAYMENT_SYSTEM=1&index=$index'>
+<input type='hidden' name='LMI_FAIL_URL' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?FALSE=1&LMI_PAYMENT_NO=%LMI_PAYMENT_NO%&PAYMENT_SYSTEM=1&index=$index'>
 <input type='hidden' name='LMI_FAIL_METHOD' value='2'>
 <input type='hidden' name='LMI_PAYMENT_NO' value='%LMI_PAYMENT_NO%'>
 

@@ -3,7 +3,6 @@
 # Check payments incomming request
 #
 
-
 use vars qw($begin_time %FORM %LANG 
 $DATE $TIME
 $CHARSET 
@@ -160,9 +159,13 @@ my $mask_ips = unpack("N", pack("C4", split( /\./, '255.255.255.255'))) - unpack
 my $last_ip  = $first_ip + $mask_ips;
 my $ip_num   = unpack("N", pack("C4", split( /\./, $ENV{REMOTE_ADDR})));
 
-if ('192.168.0.1' =~ /$ENV{REMOTE_ADDR}/ || $ENV{REMOTE_ADDR} =~ /^92\.125\./) {
+if ($ENV{REMOTE_ADDR} =~ /^92\.125\./) {
 	osmp_payments_v4();
 	exit;
+ }
+elsif ($ENV{REMOTE_ADDR} =~ /^192.168.0.1/) {
+ 	require "Erip.pm";
+ 	exit;
  }
 elsif ($ip_num > $first_ip && $ip_num < $last_ip) {
         print "Content-Type: text/xml\n\n";
@@ -675,13 +678,6 @@ sub osmp_payments_v4 {
 #</request>
 #};
 
- if ($debug == 1) {
- 	mk_log($FORM{__BUFFER});
- }
-
-
-$FORM{__BUFFER} =~ s/encoding="windows-1251"//g;
-
 eval { require XML::Simple; };
 if (! $@) {
    XML::Simple->import();
@@ -692,16 +688,25 @@ else {
    exit;
  }
 
+$FORM{__BUFFER} =~ s/encoding="windows-1251"//g;
 my $_xml = eval { XMLin("$FORM{__BUFFER}", forcearray=>1) };
+
 if($@) {
-  #comepay_error('212', 'Incorrect XML');
   mk_log("---- Content:\n".
-    $FORM{__BUFFER}.
-    "\n----XML Error:\n".
-    $@
-    ."\n----\n");
+      $FORM{__BUFFER}.
+      "\n----XML Error:\n".
+      $@
+      ."\n----\n");
+
   return 0;
 }
+else {
+  if ($debug == 1) {
+ 	  mk_log($FORM{__BUFFER});
+   }
+}
+
+
 
 my %request_hash = ();
 my $request_type = '';

@@ -27,7 +27,7 @@ my $Billing;
 my $db;
 my $CONF;
 my $debug =0;
-
+my $RAD_PAIRS;
 
 #**********************************************************
 # Init 
@@ -498,7 +498,9 @@ if ($NAS->{NAS_TYPE} && $NAS->{NAS_TYPE} eq 'ipcad') {
   }
 
   $RAD_PAIRS->{'Framed-IP-Netmask'}="$self->{NETMASK}" if (defined( $RAD_PAIRS->{'Framed-IP-Address'} ));
-  $RAD_PAIRS->{'Filter-Id'} = "$self->{FILTER}" if (length( $self->{FILTER} ) > 0); 
+  if (length( $self->{FILTER} ) > 0) {
+    $self->neg_deposit_filter_former($RAD, $NAS, $self->{FILTER}, { USER_FILTER => 1, RAD_PAIRS => $RAD_PAIRS });
+   }
 
 
 
@@ -1500,9 +1502,12 @@ sub neg_deposit_filter_former () {
 	my $self = shift;
 	my ($RAD, $NAS, $NEG_DEPOSIT_FILTER_ID, $attr) = @_;
 	
-	 my $RAD_PAIRS ;
-	
-      # Return radius attr    
+	if ($attr->{RAD_PAIRS}) {
+	  $RAD_PAIRS = $attr->{RAD_PAIRS};
+	 }
+		
+	if (! $attr->{USER_FILTER}) {
+    # Return radius attr    
       if ($self->{IP} ne '0') {
         $RAD_PAIRS->{'Framed-IP-Address'} = "$self->{IP}";
        }
@@ -1520,6 +1525,7 @@ sub neg_deposit_filter_former () {
           $RAD_PAIRS->{'Framed-IP-Address'} = "$ip";
          }
        }
+    }
 
    $NEG_DEPOSIT_FILTER_ID =~ s/\%IP\%/$RAD_PAIRS->{'Framed-IP-Address'}/g;
    $NEG_DEPOSIT_FILTER_ID =~ s/\%LOGIN\%/$RAD->{'USER_NAME'}/g;
@@ -1552,7 +1558,11 @@ sub neg_deposit_filter_former () {
     	$RAD_PAIRS->{'Filter-Id'} = "$NEG_DEPOSIT_FILTER_ID";
     }
 
-	return 0, $RAD_PAIRS;;
+  if ($attr->{USER_FILTER}) {
+    return 0;
+   }
+
+	return 0, $RAD_PAIRS;
 }
 
 1
