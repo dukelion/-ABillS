@@ -45,11 +45,9 @@ else {
 
 <table>
 <tr><th class=form_title colspan=2>$_MESSAGES</th></tr>
-<tr><td>$_DATE:</td><td>%DATE%</td></tr>
+<tr><td>$_DATE:</td><td valign=center>%DATE%  &nbsp; &nbsp; &nbsp; &nbsp; $_INNER: <input type=checkbox name=INNER_MSG value=1 %INNER_MSG%> </td></tr>
 <tr><td>$_CHAPTERS:</td><td>%CHAPTER_SEL%</td></tr>
 <tr><td>$_SUBJECT:</td><td><input type='text' name='SUBJECT' value='%SUBJECT%' size='50'/></td></tr>
-
-<tr><td>$_INNER</td><td><input type=checkbox name=INNER_MSG value=1 %INNER_MSG%></td></tr>
 %GROUP_SEND%
 <tr><th bgcolor='$_COLORS[0]' colspan='2'>$_MESSAGE</th></tr>
 <tr><th colspan='2'><textarea name='MESSAGE' cols='70' rows='9'>%MESSAGE%</textarea></th></tr>
