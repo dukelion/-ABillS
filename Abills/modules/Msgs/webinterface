@@ -176,14 +176,25 @@ sub msgs_admin_add {
     my $message='';
 
     if  (! $FORM{INNER_MSG} && (defined($FORM{GID}) || ($FORM{GID} == 0 && $FORM{UID} == 0 ) ) ) {
-       my $list = $users->list({ GID => $FORM{GID}, PAGE_ROWS => 100000 });
+       my $Dv;
+       if ($conf{MSGS_REDIRECT_FILTER}) {
+         require "Dv.pm";
+         $Dv = Dv->new($db, $admin, \%conf);
+        }
+
+       my $list = $users->list({ GID => $FORM{GID}, PAGE_ROWS => 1000000, DISABLE => 0 });
        foreach my $line (@$list) {
           $FORM{UID}=$line->[5+$users->{SEARCH_FIELDS_COUNT}];
           $Msgs->message_add({ %FORM, 
           	                   ADMIN_READ => (! $FORM{INNER_MSG}) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
           	                   IP         => $admin->{SESSION_IP} 
           	                 });
+
+          if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
+            $Dv->change({ UID => $FORM{UID}, FILTER_ID => $conf{MSGS_REDIRECT_FILTER_ADD} });	
+           }
         }
+
        $message = "$_TOTAL: $users->{TOTAL}";
        $LIST_PARAMS{PAGE_ROWS}=25;
        undef $FORM{UID};
@@ -212,7 +223,7 @@ sub msgs_admin_add {
          });
        }
 
-      $html->message('info', $_MESSAGES, "$_SENDED $_MESSAGE");
+      $html->message('info', $_MESSAGES, "$_SENDED $_MESSAGE $message");
       
       if ($users->{EMAIL}) {
       	$ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
@@ -913,7 +924,6 @@ sub msgs_user {
    }
  	}
  elsif ($FORM{ID}) {
-
    if ($FORM{reply}) {
  	   $Msgs->message_change({ UID        => $LIST_PARAMS{UID},
  	 	                         ID         => $FORM{ID},
@@ -974,16 +984,13 @@ sub msgs_user {
           { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}",
           	                 "X-ABillS-Reply-ID: $Msgs->{REPLY_ID}" ] });
       }
-   
      }
     }
 
  	 $Msgs->message_info($FORM{ID}, { UID => $LIST_PARAMS{UID} });
 
-   $Msgs->{ACTION}    = 'reply';
-   $Msgs->{ACTION_LNG}= $_REPLY;
-
-
+   $Msgs->{ACTION}       = 'reply';
+   $Msgs->{ACTION_LNG}   = $_REPLY;
    $Msgs->{STATE_NAME}   = ($Msgs->{STATE} == 6) ? "<blink>$msg_status_all[$Msgs->{STATE}]</blink>" :  ( ($Msgs->{STATE} == 0) ? $html->color_mark($msg_status_all[$Msgs->{STATE}], $_COLORS[8]) :  $msg_status_all[$Msgs->{STATE}]);
    $Msgs->{PRIORITY_TEXT}= $html->color_mark($priority[$Msgs->{PRIORITY}], $priority_colors[$Msgs->{PRIORITY}]);
 
@@ -1043,6 +1050,16 @@ sub msgs_user {
  	 	                         USER_READ   => "$DATE $TIME",
  	 	                         %params
  	 	                        });
+ 	 	 if ($conf{MSGS_REDIRECT_FILTER_DEL}) {
+       require "Dv.pm";
+       my $Dv = Dv->new($db, $admin, \%conf);
+       $Dv->change({ UID => $LIST_PARAMS{UID}, FILTER_ID => '' });	
+       if ($conf{MSGS_REDIRECT_FILTER_DEL} =~ /EXEC:(.+)/) {
+       	 my $cmd = $1;
+       	 $cmd =~ s/\%IP\%/$ENV{REMOTE_ADDR}/g;
+       	 my $res = `$cmd`;
+        }
+ 	 	  }
  	  }
 
  	 #return 0;
