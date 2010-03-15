@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.2;
+VERSION=1.3;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -135,13 +135,13 @@ ssh_key () {
   echo "**************************************************************************"
   echo
 
+  USER=$1;
+
   if [ w${CERT_TYPE} = w ]; then
     id_dsa_file=id_dsa;
   else
-    id_dsa_file=id_dsa.$2;
+    id_dsa_file=id_dsa.$1;
   fi;
-  
-  USER=$2; 
    
   ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}${id_dsa_file}"
 
@@ -410,7 +410,7 @@ rm newcert.pem newreq.pem
 #Cert functions
 case ${CERT_TYPE} in
         ssh) 
-              ssh_key;
+              ssh_key $2;
                 ;;
         apache)
               apache_cert;
