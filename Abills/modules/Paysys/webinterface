@@ -33,7 +33,8 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    53 => "Express_Oplata",
                    54 => "Privat Bank - Privat 24",
                    55 => "Pay4",
-                   56 => "ÀÈÑ ÅÐÈÏ"
+                   56 => "ÀÈÑ ÅÐÈÏ",
+                   57 => "EasySoft"
                   );
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
