@@ -174,13 +174,13 @@ sub msgs_admin_add {
      }
 
     my $message='';
+    my $Dv;
+    if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
+       require "Dv.pm";
+       $Dv = Dv->new($db, $admin, \%conf);
+     }
 
     if  (! $FORM{INNER_MSG} && (defined($FORM{GID}) || ($FORM{GID} == 0 && $FORM{UID} == 0 ) ) ) {
-       my $Dv;
-       if ($conf{MSGS_REDIRECT_FILTER}) {
-         require "Dv.pm";
-         $Dv = Dv->new($db, $admin, \%conf);
-        }
 
        my $list = $users->list({ GID => $FORM{GID}, PAGE_ROWS => 1000000, DISABLE => 0 });
        foreach my $line (@$list) {
@@ -207,6 +207,9 @@ sub msgs_admin_add {
       	                 
       if (! $FORM{INNER_MSG}) {
       	$users->pi({ UID => $FORM{UID} });
+        if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
+          $Dv->change({ UID => $FORM{UID}, FILTER_ID => $conf{MSGS_REDIRECT_FILTER_ADD} });	
+         }
        }
      }
 
