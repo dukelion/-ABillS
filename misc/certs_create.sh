@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.3;
+VERSION=1.4;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -27,18 +27,20 @@ fi;
 if [ w$1 = w ] ; then
   echo "Create SSL Certs and SSH keys. Version: ${VERSION} ";
   echo "certs_create.sh [apache|eap|postfix_tls|ssh|express_oplata] -D";
-  echo " apache        - Create apache SSL cert"
-  echo " eap           - Create Server and users SSL Certs"
-  echo " postfix_tls   - Create postfix TLS Certs"
-  echo " info [file]   - Get info from SSL cert"
-  echo " ssh [USER]    - Create SSH DSA Keys"
+  echo " apache         - Create apache SSL cert"
+  echo " eap            - Create Server and users SSL Certs"
+  echo " postfix_tls    - Create postfix TLS Certs"
+  echo " express_oplata - Express oplata payment system"
+  echo " easysoft       - Easysoft payment system"
+  echo " info [file]    - Get info from SSL cert"
+  echo " ssh [USER]     - Create SSH DSA Keys"
   echo "                USER - SSH remote user"
-  echo " -D [PATH]     - Path for ssl certs"
-  echo " -U [username] - Cert owner (Default: apache=www, postfix=vmail)"
-  echo " -LENGTH       - Cert length (Default: 1024)"
-  echo " -DAYS         - Cert period in days (Default: 730)"
-  echo " -PASSSWORD    - Password for Certs (Default: whatever)"
-  echo " -HOSTNAME     - Hostname for Certs (default: system hostname)"
+  echo " -D [PATH]      - Path for ssl certs"
+  echo " -U [username]  - Cert owner (Default: apache=www, postfix=vmail)"
+  echo " -LENGTH        - Cert length (Default: 1024)"
+  echo " -DAYS          - Cert period in days (Default: 730)"
+  echo " -PASSSWORD     - Password for Certs (Default: whatever)"
+  echo " -HOSTNAME      - Hostname for Certs (default: system hostname)"
   
 
   exit;
@@ -88,7 +90,50 @@ else
 fi;
 
 
+#**********************************************************
+# easysoft payments system
+# http://easysoft.com.ua/
+#**********************************************************
+easysoft_cert () {
+  echo "#*******************************************************************************"
+  echo "#Creating EasySoft certs"
+  echo "#"
+  echo "#*******************************************************************************"
+  echo
 
+  CERT_LENGTH=1024;
+  # Private key
+  ${OPENSSL} genrsa -out easysoft.ppk ${CERT_LENGTH} 
+  ${OPENSSL} req -new -key easysoft.ppk -out easysoft.req 
+  #${OPENSSL} ca -in easysoft.req -out easysoft.cer 
+  ${OPENSSL} x509 -req -days 730 -in easysoft.req -signkey easysoft.ppk -out easysoft.cer
+
+  chmod u=r,go= ${CERT_PATH}/easysoft.cer
+  chown ${APACHE_USER} ${CERT_PATH}/easysoft.cer
+
+#  
+#  echo -n "Send public key '${CERT_PATH}/express_oplata_public.pem' to Express Oplata? (y/n): ";
+#
+#  read _SEND_MAIL
+#  if [ w${_SEND_MAIL} = wy ]; then
+#    EO_EMAIL="onwave@express-oplata.ru";
+#  
+#    echo -n "Enter comments: "
+#    read COMMENTS
+#
+#    echo -n "BCC: "
+#    read BCC_EMAIL
+#
+#    if [ w${BCC_EMAIL} != w ]; then
+#      BCC_EMAIL="-b ${BCC_EMAIL}"
+#    fi; 
+#
+#    ( echo "${COMMENTS}"; uuencode /usr/abills/Certs/express_oplata_public.pem express_oplata_public.pem ) | mail -s "Public Cert" ${BCC_EMAIL} $EO_EMAIL
+#    
+#    echo "Cert sended to Expres-Oplata"
+#  fi;	
+
+}
 
 #**********************************************************
 #Apache Certs
@@ -423,6 +468,9 @@ case ${CERT_TYPE} in
                 ;;
         postfix)
               postfix_cert;
+                ;;
+        easysoft)
+              easysoft_cert;
                 ;;
         eap)
               eap_cert; 
