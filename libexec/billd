@@ -680,8 +680,7 @@ else {
     foreach my $line (@$l) {
        my $duration = time2sec($line->[7]);
        my $started = $line->[8];
-        
-       print "$duration / $started\n";
+
        #IFACE : TP : SPEED  :IP
        my $tp = 0;
        my $tp_id = 0;
