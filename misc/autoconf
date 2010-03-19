@@ -443,7 +443,6 @@ sub check_install {
     	print "File '$exec_file' not exist or not executeble\n";
     	return 0;
      }
-print $exec_cmd;
     my $res = `$exec_cmd`;
    	print "RESULT: $res\n" if ($debug > 1);
    	if ($exec_params_name ne '') {

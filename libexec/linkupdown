@@ -606,7 +606,11 @@ foreach my $line (@FW_ACTIONS) {
     print "$line\n";	
    }	
   else {
-    system("$line");
+    if (system("$line")) {
+      open(FILE, ">>/tmp/linkupdown.log") or print "Can't open file\n";
+        print FILE "Error: $! '$line' \n";  
+      close(FILE);
+     }
    }
 }
 
