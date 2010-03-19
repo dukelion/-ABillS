@@ -17,6 +17,9 @@
                    "16:15:$_TAX_INVOICE:docs_tax_invoice_list:" => 4,
                    "17:16:Export:docs_tax_exports:"             => 4,
                    "18:15:$_ACTS:docs_acts_list:"               => 4,
+                   "19:15:$_ACCOUNTS:docs_accounts_list:"       => 4,
+                   "20:15:$_INVOICE:docs_invoice_list:"         => 4,
+                   
 #                   "13:10:$_CONTRACTS:docs_contractst:"        => 8
 
                    );

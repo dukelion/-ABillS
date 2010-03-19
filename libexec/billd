@@ -10,12 +10,11 @@ use vars  qw(%RAD %conf @MODULES $db $DATE $TIME $GZIP $MYSQLDUMP %ADMIN_REPORT 
  @START_FW
  $SNMPWALK
  $SNMPSET
-
  $var_dir
  $db
- 
  $base_dir
  );
+
 use strict;
 
 use FindBin '$Bin';
@@ -659,6 +658,7 @@ else {
 		                   	                 'UID',
 		                   	                 'JOIN_SERVICE',
 		                   	                 'CLIENT_IP',
+		                   	                 'DURATION'
 		                   	                  ]
 		               } );	
 
@@ -671,10 +671,13 @@ else {
   foreach my $nas_row (@$nas_list) {
     next if (! $online->{$nas_row->[0]});
 
+
+
     $NAS_TYPE = $nas_row->[4];
 
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
+       my $duration = $line->[7];
        #IFACE : TP : SPEED  :IP
        my $tp = 0;
        my $tp_id = 0;
@@ -686,8 +689,8 @@ else {
        else {
          $tp = $line->[2];
         }
-       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6]\n" if ($debug > 1);
-       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]:$line->[4]";
+       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6] UID:$line->[4] DURATION:$duration\n" if ($debug > 1);
+       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]:$line->[4]:$duration";
        $TP_HASH{$tp}=1;
      }
   }
@@ -826,8 +829,8 @@ if (! $conf{ng_car}) {
 if ($conf{ng_car}) {
   while(my($user, $other)=each %USER_IFACES) {
   	 my $changed = 0;
-  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID)=split(/:/, $other);
-  	 $debug_outputs = "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
+  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID, $DURATION)=split(/:/, $other);
+  	 $debug_outputs = "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE DURATION: $DURATION\n";
 
      if ($JOIN_SERVICE > 0) {
 
@@ -890,7 +893,7 @@ if ($conf{ng_car}) {
                 $LOGINS_SPEEDS{$user}{$class_id}{OUT} = 0 if (! $LOGINS_SPEEDS{$user}{$class_id}{OUT});
 
   	 	       	  my $info = "  Class: $class_id ng_car_speed: $LOGINS_SPEEDS{$user}{$class_id}{IN}/".
-  	 	       	  "$LOGINS_SPEEDS{$user}{$class_id}{OUT} Speed: $tp_speed_in/$tp_speed_out\n";
+  	 	       	  "$LOGINS_SPEEDS{$user}{$class_id}{OUT} Speed: $tp_speed_in/$tp_speed_out Duration: $DURATION\n";
 
                 
          

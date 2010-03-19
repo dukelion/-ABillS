@@ -232,7 +232,6 @@ if($FORM{del} && $FORM{is_js_confirmed}) {
    }
  }
 elsif($FORM{print}) {
-  
   $Docs->docs_invoice_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
   ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
   $Docs->{TOTAL_SUM}=0.00;
@@ -376,7 +375,8 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($Docs->{TOTAL}) ] ]
+                         rows       => [ [ $html->button("$_PRINT $_LIST", "index=$index&print_list=1$pages_qs", { BUTTON => 1 }), "$_TOTAL:", $html->b($Docs->{TOTAL})
+                          ] ]
                       } );
 
 
