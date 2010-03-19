@@ -678,9 +678,10 @@ else {
 
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
-       my $duration = $line->[7];
+       my $duration = time2sec($line->[7]);
        my $started = $line->[8];
-
+        
+       print "$duration / $started\n";
        #IFACE : TP : SPEED  :IP
        my $tp = 0;
        my $tp_id = 0;
@@ -832,7 +833,7 @@ if (! $conf{ng_car}) {
 if ($conf{ng_car}) {
   while(my($user, $other)=each %USER_IFACES) {
   	 my $changed = 0;
-  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID, $DURATION, $STARTED)=split(/:/, $other);
+  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID, $DURATION, $STARTED)=split(/:/, $other, 8);
   	 $debug_outputs = "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE DURATION: $DURATION ($STARTED)\n";
 
      if ($JOIN_SERVICE > 0) {
