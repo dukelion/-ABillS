@@ -658,7 +658,8 @@ else {
 		                   	                 'UID',
 		                   	                 'JOIN_SERVICE',
 		                   	                 'CLIENT_IP',
-		                   	                 'DURATION'
+		                   	                 'DURATION',
+		                   	                 'STARTED'
 		                   	                  ]
 		               } );	
 
@@ -678,6 +679,8 @@ else {
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
        my $duration = $line->[7];
+       my $started = $line->[8];
+
        #IFACE : TP : SPEED  :IP
        my $tp = 0;
        my $tp_id = 0;
@@ -689,8 +692,8 @@ else {
        else {
          $tp = $line->[2];
         }
-       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6] UID:$line->[4] DURATION:$duration\n" if ($debug > 1);
-       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]:$line->[4]:$duration";
+       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6] UID:$line->[4] DURATION:$duration STARTED:$started \n" if ($debug > 1);
+       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]:$line->[4]:$duration:$started";
        $TP_HASH{$tp}=1;
      }
   }
@@ -829,8 +832,8 @@ if (! $conf{ng_car}) {
 if ($conf{ng_car}) {
   while(my($user, $other)=each %USER_IFACES) {
   	 my $changed = 0;
-  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID, $DURATION)=split(/:/, $other);
-  	 $debug_outputs = "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE DURATION: $DURATION\n";
+  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID, $DURATION, $STARTED)=split(/:/, $other);
+  	 $debug_outputs = "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE DURATION: $DURATION ($STARTED)\n";
 
      if ($JOIN_SERVICE > 0) {
 
@@ -893,7 +896,7 @@ if ($conf{ng_car}) {
                 $LOGINS_SPEEDS{$user}{$class_id}{OUT} = 0 if (! $LOGINS_SPEEDS{$user}{$class_id}{OUT});
 
   	 	       	  my $info = "  Class: $class_id ng_car_speed: $LOGINS_SPEEDS{$user}{$class_id}{IN}/".
-  	 	       	  "$LOGINS_SPEEDS{$user}{$class_id}{OUT} Speed: $tp_speed_in/$tp_speed_out Duration: $DURATION\n";
+  	 	       	  "$LOGINS_SPEEDS{$user}{$class_id}{OUT} Speed: $tp_speed_in/$tp_speed_out\n";
 
                 
          
