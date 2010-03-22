@@ -4,12 +4,12 @@ FIO:Наименование клиента:russian:(x=125;y=461;font_size=6,x=125;y=271;font_size=
 #PHONE:Номер телефона клиента:russian:x=0;y=0
 #DATE:Дата создания счета:russian:(x=350;y=753)
 #NUMBER:Номер счёта:russian:(x=250;y=753)
-#FROM_DATE_LIT:Дата прописью:russian:x=;y=
+FROM_DATE_LIT:Дата прописью:russian:x=;y=
 #ORDER:Товар. Табличная часть:russian:x=;y=
 TOTAL_SUM:Полная стоимость товара:russian:(x=315;y=375;font_size=8,x=315;y=185;font_size=8)
 #VAT:Процентная ставка налога:russian:
-#SUM_LIT:Сума прописью:russian:(x=192;y=390)
-ADRESS_FULL:Полный адрес клиента:russian:(x=270;y=462;font_size=4,x=270;y=272;font_size=4)
+SUM_LIT:Сума прописью:russian:(x=192;y=390)
+ADDRESS_FULL:Полный адрес клиента:russian:(x=270;y=462;font_size=4,x=270;y=272;font_size=4)
 #EXPIRE_DATE:Дата окончания действия счета:russian:(x=158;y=570;)
 CONTRACT_ID:Номер Контракта:russian:(x=135;y=415;font_size=8,x=135;y=225;font_size=8)
 CONTRACT_DATE:Дата Контракта:russian:(x=200;y=415;font_size=8,x=200;y=225;font_size=8)

@@ -69,13 +69,14 @@ sub docs_invoice_list {
  @WHERE_RULES = ("d.id=o.invoice_id");
  
  if($attr->{LOGIN_EXPR}) {
- 	 require Users;
-	 push @WHERE_RULES, "d.uid='$attr->{UID}'"; 
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
+  }
+ elsif($attr->{CUSTOMER}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{CUSTOMER}, 'STR', 'd.customer') };
   }
  
- if($attr->{CUSTOMER}) {
-   $attr->{CUSTOMER} =~ s/\*/\%/ig;
-	 push @WHERE_RULES, "d.customer='$attr->{CUSTOMER}'"; 
+ if($attr->{AID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'STR', 'a.id') };
   }
  
  if ($attr->{FROM_DATE}) {
@@ -83,13 +84,11 @@ sub docs_invoice_list {
   }
 
  if ($attr->{DOC_ID}) {
- 	  my $value = $self->search_expr($attr->{DOC_ID}, 'INT');
-    push @WHERE_RULES, "d.acct_id$value";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DOC_ID}, 'INT', 'd.acct_id') };
   }
 
  if ($attr->{SUM}) {
- 	  my $value = $self->search_expr($attr->{SUM}, 'INT');
-    push @WHERE_RULES, "o.price * o.counts$value";
+ 	  push @WHERE_RULES, @{ $self->search_expr($attr->{SUM}, 'INT', 'o.price * o.counts') };
   }
 
  # Show groups
@@ -105,15 +104,25 @@ sub docs_invoice_list {
  if ($attr->{UID}) {
    push @WHERE_RULES, "d.uid='$attr->{UID}'"; 
  }
- 
+
+ if ($attr->{FULL_INFO}) {
+   $self->{EXT_FIELDS}=",
+ 	 pi.address_street,
+   pi.address_build,
+   pi.address_flat,
+   if (d.phone<>0, d.phone, pi.phone),
+   pi.contract_date";
+  }
+
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db,   "SELECT d.invoice_id, d.date, d.customer,  sum(o.price * o.counts), u.id, a.name, d.created, d.uid, d.id
+  $self->query($db,   "SELECT d.invoice_id, d.date, if(d.customer='-', pi.fio, d.customer), sum(o.price * o.counts), u.id, a.name, d.created, d.uid, d.id $self->{EXT_FIELDS}
     FROM (docs_invoice d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
+    LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     $WHERE
     GROUP BY d.id 
     ORDER BY $SORT $DESC
@@ -123,10 +132,10 @@ sub docs_invoice_list {
  return $self->{list}  if ($self->{TOTAL} < 1);
  my $list = $self->{list};
 
-
  $self->query($db, "SELECT count(*)
     FROM (docs_invoice d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
+    LEFT JOIN admins a ON (d.aid=a.aid)
     $WHERE");
 
  ($self->{TOTAL}) = @{ $self->{list}->[0] };
@@ -295,17 +304,15 @@ sub accounts_list {
 
 
  @WHERE_RULES = ("d.id=o.acct_id");
- 
- if($attr->{LOGIN_EXPR}) {
- 	 require Users;
-	 push @WHERE_RULES, "d.uid='$attr->{UID}'"; 
-  }
 
  if($attr->{CUSTOMER}) {
    $attr->{CUSTOMER} =~ s/\*/\%/ig;
 	 push @WHERE_RULES, "d.customer LIKE '$attr->{CUSTOMER}'"; 
   }
-
+ elsif($attr->{LOGIN_EXPR}) {
+   $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+	 push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'"; 
+  }
  
  if ($attr->{FROM_DATE}) {
     push @WHERE_RULES, "(date_format(d.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(d.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
@@ -325,6 +332,10 @@ sub accounts_list {
     push @WHERE_RULES, "o.price * o.counts$value";
   }
 
+ if($attr->{AID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{AID}, 'STR', 'a.id') };
+  }
+
  # Show groups
  if ($attr->{GIDS}) {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
@@ -342,14 +353,22 @@ sub accounts_list {
    push @WHERE_RULES, "d.uid='$attr->{UID}'"; 
  }
  
+ if ($attr->{FULL_INFO}) {
+   $self->{EXT_FIELDS}=",
+ 	 pi.address_street,
+   pi.address_build,
+   pi.address_flat,
+   if (d.phone<>0, d.phone, pi.phone),
+   pi.contract_date";
+  }
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
-
-  $self->query($db,   "SELECT d.acct_id, d.date, d.customer,  sum(o.price * o.counts), d.payment_id, u.id, a.name, d.created, d.uid, d.id
+ $self->query($db,   "SELECT d.acct_id, d.date, if(d.customer='-', pi.fio, d.customer),  sum(o.price * o.counts), d.payment_id, u.id, a.name, d.created, d.uid, d.id $self->{EXT_FIELDS}
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
+    LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     $WHERE
     GROUP BY d.acct_id 
     ORDER BY $SORT $DESC
@@ -502,6 +521,7 @@ sub account_info {
    pi.address_flat,
    if (d.phone<>0, d.phone, pi.phone),
    pi.contract_id,
+   pi.contract_date,
    d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day,
    u.company_id,
    c.name
@@ -537,6 +557,7 @@ sub account_info {
    $self->{ADDRESS_FLAT}, 
    $self->{PHONE},
    $self->{CONTRACT_ID},
+   $self->{CONTRACT_DATE},
    $self->{EXPIRE_DATE},
    $self->{COMPANY_ID},
    $self->{COMPANY_NAME}
