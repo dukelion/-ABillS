@@ -5194,7 +5194,7 @@ if (defined($attr->{SIMPLE})) {
 elsif ($attr->{TPL}) {
 	#defined();
  }
-else {
+elsif(! $FORM{pdf}) {
   my $group_sel = sel_groups();
   my %search_form = ( 
      2  => 'form_search_payments',
@@ -5202,16 +5202,12 @@ else {
      11 => 'form_search_users'
     );
 
-
 $FORM{type}=11 if ($FORM{type} == 15);
-
 
 if( $FORM{LOGIN_EXPR} && $admin->{MIN_SEARCH_CHARS} && length($FORM{LOGIN_EXPR}) < $admin->{MIN_SEARCH_CHARS}) {
 	$html->message('err', $_ERROR, "$_ERR_SEARCH_VAL_TOSMALL. $_MIN: $admin->{MIN_SEARCH_CHARS}");
 	return 0;
 }
-
-
 
 if (defined($attr->{SEARCH_FORM})) {
 	$SEARCH_DATA{SEARCH_FORM} = $attr->{SEARCH_FORM}
@@ -5295,10 +5291,8 @@ elsif($search_form{$FORM{type}}) {
     $info{REGISTRATION} = $html->date_fld2('REGISTRATION', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 16 });
     $info{ACTIVATE} = $html->date_fld2('ACTIVATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 17 });
     $info{EXPIRE} = $html->date_fld2('EXPIRE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 18 });
-   
     $info{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 27 });
    }
-
 	
 	$SEARCH_DATA{SEARCH_FORM} =  $html->tpl_show(templates($search_form{$FORM{type}}), { %FORM, %info, GROUPS_SEL => $group_sel }, { notprint => 1 });
 	$SEARCH_DATA{SEARCH_FORM} .= $html->form_input('type', "$FORM{type}", { TYPE => 'hidden' });
@@ -5329,7 +5323,7 @@ $SEARCH_DATA{SEL_TYPE}.="</tr>
 </table>\n</td></tr>\n";
 }
 
-$html->tpl_show(templates('form_search'), \%SEARCH_DATA);
+  $html->tpl_show(templates('form_search'), \%SEARCH_DATA);
 }
 
 if ($FORM{search}) {

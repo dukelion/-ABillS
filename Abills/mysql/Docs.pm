@@ -641,16 +641,38 @@ sub tax_invoice_list {
  if ($attr->{UID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'd.uid') };
  }
- 
+
+ my $EXT_TABLES = '';
+ if ($attr->{FULL_INFO}) {
+   $EXT_TABLES = "LEFT JOIN users u ON (d.uid=u.uid)
+      LEFT JOIN users_pi pi ON (pi.uid=u.uid)";
+
+   $self->{EXT_FIELDS}=",
+   if(d.vat>0, FORMAT(sum(o.price * o.counts) / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)),
+   pi.fio,
+   pi.address_street,
+   pi.address_build,
+   pi.address_flat,
+   pi.phone,
+   c.contract_id,
+   c.contract_date,
+   d.company_id,
+   d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day";
+  } 
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db,   "SELECT d.tax_invoice_id, d.date, c.name, sum(o.price * o.counts), a.name, d.created, d.uid, d.company_id, d.id
+
+
+
+
+  $self->query($db,   "SELECT d.tax_invoice_id, d.date, c.name, sum(o.price * o.counts), a.name, d.created, d.uid, d.company_id, d.id $self->{EXT_FIELDS}
     FROM (docs_tax_invoices d)
     LEFT JOIN docs_tax_invoice_orders o ON (d.id=o.tax_invoice_id)
     LEFT JOIN companies c ON (d.company_id=c.id)
     LEFT JOIN admins a ON (d.aid=a.aid)
+    $EXT_TABLES
     $WHERE
     GROUP BY d.tax_invoice_id 
     ORDER BY $SORT $DESC
@@ -843,7 +865,7 @@ sub tax_invoice_info {
    sum(o.price * o.counts), 
    if(d.vat>0, FORMAT(sum(o.price * o.counts) / ((100+d.vat)/ d.vat), 2), FORMAT(0, 2)),
    u.id, 
-   a.name, 
+   c.name, 
    d.created, 
    d.uid, 
    d.id,

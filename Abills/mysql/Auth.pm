@@ -503,7 +503,6 @@ if ($NAS->{NAS_TYPE} && $NAS->{NAS_TYPE} eq 'ipcad') {
    }
 
 
-
 ####################################################################
 # Vendor specific return
 #MPD5
@@ -559,7 +558,6 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
       push @{$RAD_PAIRS->{'mpd-limit'} }, "in#" . ($self->{TOTAL}-$line->[0]) ."#$line->[0]=flt". ($class_id) ." pass";
       push @{$RAD_PAIRS->{'mpd-limit'} }, "out#". ($self->{TOTAL}-$line->[0]) ."#$line->[0]=flt". ($class_id+1) ." pass";
      }
-
     #mpd-limit+=in#1#1=flt1 pass,
     #mpd-limit+=out#1#1=flt2 pass,
     
@@ -572,7 +570,6 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
     #mpd-limit+=in#2#0=all shape 64000 4000,
     #mpd-limit+=out#1#1=flt2 pass,
     #mpd-limit+=out#2#0=all rate-limit 1024000 150000 300000,
-
    }
 
 
@@ -580,8 +577,18 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
 	
 	#$RAD_PAIRS->{'Session-Timeout'}=604800;
  }
+elsif($CONF->{cisco_shaper} && $NAS->{NAS_TYPE} eq 'cisco') {
+  #$traf_tarif 
+  my $EX_PARAMS = $self->ex_traffic_params( { 
+  	                                        traf_limit => $traf_limit, 
+                                            deposit    => $self->{DEPOSIT},
+                                            MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
+
+	push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit output $EX_PARAMS->{speed}->{0}->{OUT} 320000 320000 conform-action transmit exceed-action drop";
+	push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit input $EX_PARAMS->{speed}->{0}->{IN} 32000 32000 conform-action transmit exceed-action drop";
+ }
 # ExPPP
-if ($NAS->{NAS_TYPE} eq 'exppp') {
+elsif ($NAS->{NAS_TYPE} eq 'exppp') {
   #$traf_tarif 
   my $EX_PARAMS = $self->ex_traffic_params({ 
   	                                        traf_limit => $traf_limit, 
