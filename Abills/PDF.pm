@@ -706,8 +706,9 @@ sub header {
  my $admin_name=$ENV{REMOTE_USER};
  my $admin_ip=$ENV{REMOTE_ADDR};
 
- $self->{header} = "Content-type: application/pdf\n";
- $self->{header}.= "Content-disposition: inline; name=".int(rand(32768)).".pdf\n\n";
+ my $filename = int(rand(32768)).'.pdf';
+ $self->{header} = "Content-type: application/pdf; filename=$filename\n";
+ $self->{header}.= "Content-disposition: inline; name=\"$filename\"\n\n";
 
  return $self->{header};
 }
@@ -1492,8 +1493,7 @@ for my $key (sort keys %$tpl_describe) {
 
     my $text = '';
     $doc_page   = $1 if ($pattern =~ /page=(\d+)/);
-    #$attr->{DOCS_IN_FILE}=100;
-    my $work_page = ($attr->{DOCS_IN_FILE}) ? $doc_page + $page_count * ($multi_doc_count - 1) - ($page_count * $attr->{DOCS_IN_FILE} * int( ($multi_doc_count - 1) / $attr->{DOCS_IN_FILE})) : $doc_page + $page_count * $multi_doc_count-2;
+    my $work_page = ($attr->{DOCS_IN_FILE}) ? $doc_page + $page_count * int($multi_doc_count - 1) - ($page_count * $attr->{DOCS_IN_FILE} * int( ($multi_doc_count - 1) / $attr->{DOCS_IN_FILE})) : $doc_page + $page_count * $multi_doc_count-$page_count;
     my $page = $pdf->openpage($work_page);
     if (! $page) {
     	print "Content-Type: text/plain\n\n";
