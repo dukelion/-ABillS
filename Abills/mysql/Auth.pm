@@ -581,7 +581,7 @@ elsif($CONF->{cisco_shaper} && $NAS->{NAS_TYPE} eq 'cisco') {
   #$traf_tarif 
   if ($self->{USER_SPEED} > 0) {
     push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit output". ( $self->{USER_SPEED} * 1024) ." 320000 320000 conform-action transmit exceed-action drop";
-	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#2=rate-limit input ". ($self->{USER_SPEED} * 1024) ." 32000 32000 conform-action transmit exceed-action drop";
+	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit input ". ($self->{USER_SPEED} * 1024) ." 32000 32000 conform-action transmit exceed-action drop";
    }
   else {
     my $EX_PARAMS = $self->ex_traffic_params( { 
@@ -591,10 +591,10 @@ elsif($CONF->{cisco_shaper} && $NAS->{NAS_TYPE} eq 'cisco') {
 
     if ($EX_PARAMS->{speed}->{1}->{OUT}) {
   	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit output access-group 101 ". ($EX_PARAMS->{speed}->{1}->{OUT} * 1024) ." 1000000  1000000 conform-action transmit exceed-action drop";
-      push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#2=rate-limit input access-group 102 ". ($EX_PARAMS->{speed}->{1}->{IN} * 1024). " 1000000 1000000 conform-action transmit exceed-action drop";
+      push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit input access-group 102 ". ($EX_PARAMS->{speed}->{1}->{IN} * 1024). " 1000000 1000000 conform-action transmit exceed-action drop";
      }
 
-	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit output". ( $EX_PARAMS->{speed}->{0}->{OUT} * 1024) ." 320000 320000 conform-action transmit exceed-action drop" if ($EX_PARAMS->{speed}->{0}->{OUT} && $EX_PARAMS->{speed}->{0}->{OUT} > 0);
+	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit output ". ( $EX_PARAMS->{speed}->{0}->{OUT} * 1024) ." 320000 320000 conform-action transmit exceed-action drop" if ($EX_PARAMS->{speed}->{0}->{OUT} && $EX_PARAMS->{speed}->{0}->{OUT} > 0);
 	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit input ". ($EX_PARAMS->{speed}->{0}->{IN} * 1024) ."  32000 32000 conform-action transmit exceed-action drop" if ($EX_PARAMS->{speed}->{0}->{IN} && $EX_PARAMS->{speed}->{0}->{IN} > 0);
    }
  }
