@@ -1355,8 +1355,8 @@ $text
 
 
 #**********************************************************
-# show tamplate
-# tpl_show
+# 
+# get_pdf
 # 
 # template
 # variables_ref
@@ -1436,21 +1436,16 @@ sub tpl_show {
   my $self = shift;
   my ($filename, $variables_ref, $attr) = @_;	
 
+  print "Content-Type: text/plain\n\n" if ($attr->{debug});
+
   $debug = 0;
   $filename        =~ s/\.[a-z]{3}$//;
   my $tpl_describe = tpl_describe($filename);
-  
-
   $filename        = $filename.'.pdf';
   my $pdf          = PDF::API2->open($filename);
   my $tpl;
-  
 
-  
-  #$DATE    =~ /(\d{4})-(\d{2})-(\d{2})-/;
-  #my $moddate = "$1$1$3";
-  #$TIME    =~ /(\d{2}):(\d{2}):(\d{2})-/;
-  my $moddate.= ''; #"$1$1$3";
+  my $moddate.= '';
   $attr->{DOCS_IN_FILE} = 0 if (! $attr->{DOCS_IN_FILE});
   
   $pdf->info(
@@ -1464,18 +1459,13 @@ sub tpl_show {
         'Keywords'     => ""
     ); 
 
-
-
 my $multi_doc_count = 0;
 my $page_count      = $pdf->pages;
-
-my $font_name = 'Verdana';
-my $encode    = 'windows-1251';
-
-my $font = $pdf->corefont($font_name, -encode => "$encode");
+my $font_name       = 'Verdana';
+my $encode          = 'windows-1251';
+my $font            = $pdf->corefont($font_name, -encode => "$encode");
 
 MULTIDOC_LABEL:
-
 
 for my $key (sort keys %$tpl_describe) { 
   my @patterns = ();
@@ -1502,8 +1492,13 @@ for my $key (sort keys %$tpl_describe) {
 
     my $text = '';
     $doc_page   = $1 if ($pattern =~ /page=(\d+)/);
-    my $work_page = ($attr->{DOCS_IN_FILE}) ? $doc_page + $page_count * ($multi_doc_count - 1) - ($page_count * $attr->{DOCS_IN_FILE} * int( ($multi_doc_count - 1) / $attr->{DOCS_IN_FILE})) : $doc_page + $page_count * $multi_doc_count;
+    #$attr->{DOCS_IN_FILE}=100;
+    my $work_page = ($attr->{DOCS_IN_FILE}) ? $doc_page + $page_count * ($multi_doc_count - 1) - ($page_count * $attr->{DOCS_IN_FILE} * int( ($multi_doc_count - 1) / $attr->{DOCS_IN_FILE})) : $doc_page + $page_count * $multi_doc_count-2;
     my $page = $pdf->openpage($work_page);
+    if (! $page) {
+    	print "Content-Type: text/plain\n\n";
+    	print "Can't open page: $work_page '$!'\n";
+     }
 
     #Make img_insertion
     if ($pattern =~ /img=([0-9a-zA-Z_\.]+)/) {
@@ -1514,22 +1509,17 @@ for my $key (sort keys %$tpl_describe) {
        }
       else {  
     	  print "make image '$CONF->{TPL_DIR}/$img_file'\n" if ($debug > 0);
-
         my $img_height  = ($pattern =~ /img_height=([0-9a-zA-Z_\.]+)/) ? $1 : 100; 
         my $img_width   = ($pattern =~ /img_width=([0-9a-zA-Z_\.]+)/) ? $1 : 100;
-
 
     	  my $gfx=$page->gfx;
     	  my $img = $pdf->image_jpeg("$CONF->{TPL_DIR}/$img_file"); #, 200, 200);
         $gfx->image($img, $x, ($y - $img_height + 10), $img_width, $img_height); #, 596, 842);
-
         $gfx->close;
         $gfx->stroke;
-      
     	  next;
     	 }
      }
-
 
     $text_file  = $1 if ($pattern =~ /text=([0-9a-zA-Z_\.]+)/);
     $font_size  = $1 if ($pattern =~ /font_size=(\d+)/);
@@ -1606,7 +1596,6 @@ for my $key (sort keys %$tpl_describe) {
 
 
 if ($attr->{MULTI_DOCS} && $multi_doc_count <= $#{ $attr->{MULTI_DOCS} }) {
-  
   if ($attr->{DOCS_IN_FILE} && $multi_doc_count > 0 && $multi_doc_count % $attr->{DOCS_IN_FILE} == 0) {
   	my $outfile = $attr->{SAVE_AS};
   	my $filenum = int($multi_doc_count / $attr->{DOCS_IN_FILE});
@@ -1621,10 +1610,9 @@ if ($attr->{MULTI_DOCS} && $multi_doc_count <= $#{ $attr->{MULTI_DOCS} }) {
     $pdf = PDF::API2->open($filename);
     $font = $pdf->corefont($font_name, -encode => "$encode");
    }
-  
+
   $variables_ref = $attr->{MULTI_DOCS}[$multi_doc_count];
   print "Doc: $multi_doc_count\n" if ($attr->{debug});
-  #print %$variables_ref  ;
 
   if ($multi_doc_count > 0) {
     for(my $i=1; $i<=$page_count; $i++) {
@@ -1635,7 +1623,6 @@ if ($attr->{MULTI_DOCS} && $multi_doc_count <= $#{ $attr->{MULTI_DOCS} }) {
   $multi_doc_count++;  
   goto MULTIDOC_LABEL;
 }
-
 
 
 if ($attr->{SAVE_AS}) {
