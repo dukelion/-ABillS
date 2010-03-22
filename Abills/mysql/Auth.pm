@@ -580,7 +580,7 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
 elsif($CONF->{cisco_shaper} && $NAS->{NAS_TYPE} eq 'cisco') {
   #$traf_tarif 
   if ($self->{USER_SPEED} > 0) {
-    push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit output". ( $self->{USER_SPEED} * 1024) ." 320000 320000 conform-action transmit exceed-action drop";
+    push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit output ". ( $self->{USER_SPEED} * 1024) ." 320000 320000 conform-action transmit exceed-action drop";
 	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit input ". ($self->{USER_SPEED} * 1024) ." 32000 32000 conform-action transmit exceed-action drop";
    }
   else {
