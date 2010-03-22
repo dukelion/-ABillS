@@ -930,7 +930,7 @@ sub dhcphosts_config {
   my $nas_list = $Nas->list();
 
   foreach my $line (@$nas_list) {
-  	if ($line->[12] =~ /Called-Station-Id=\"(.+)\"/i){
+  	if ($line->[12] =~ /Called-Station-Id=[\"\'](.+)[\'\"]/i){
   	 $NAS_MACS{$line->[0]}="$line->[1],$1";
   	}
    }
