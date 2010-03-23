@@ -2,6 +2,7 @@ package Docs;
 # Documents functions functions
 #
 
+
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
@@ -389,7 +390,7 @@ sub accounts_list {
 
  ($self->{TOTAL}) = @{ $self->{list}->[0] };
 
-	return $list;
+ return $list;
 }
 
 #**********************************************************
