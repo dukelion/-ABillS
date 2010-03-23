@@ -163,7 +163,10 @@ if ($ENV{REMOTE_ADDR} =~ /^92\.125\./) {
 	osmp_payments_v4();
 	exit;
  }
-elsif ($ENV{REMOTE_ADDR} =~ /^93\.183\.196\.26$/ || $ENV{REMOTE_ADDR} =~ /^195\.230\.131\.50$/) {
+elsif ($ENV{REMOTE_ADDR} =~ /^93\.183\.196\.26$/ || 
+       $ENV{REMOTE_ADDR} =~ /^195\.230\.131\.50$/||
+       $ENV{REMOTE_ADDR} =~ /^93\.183\.196\.28$/ ||
+       $ENV{REMOTE_ADDR} =~ /^192\.168\.0\.1$/ ) {
  	require "Easysoft.pm";
  	exit;
  } 
