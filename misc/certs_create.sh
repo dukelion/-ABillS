@@ -103,10 +103,11 @@ easysoft_cert () {
 
   CERT_LENGTH=1024;
   # Private key
-  ${OPENSSL} genrsa -out easysoft.ppk ${CERT_LENGTH} 
-  ${OPENSSL} req -new -key easysoft.ppk -out easysoft.req 
+  ${OPENSSL} genrsa -out easysoft_private.ppk ${CERT_LENGTH} 
+  ${OPENSSL} req -new -key easysoft_private.ppk -out easysoft.req 
   #${OPENSSL} ca -in easysoft.req -out easysoft.cer 
-  ${OPENSSL} x509 -req -days 730 -in easysoft.req -signkey easysoft.ppk -out easysoft.cer
+  ${OPENSSL} x509 -req -days 730 -in easysoft.req -signkey easysoft_private.ppk -out easysoft.cer
+  ${OPENSSL}  rsa -in  /usr/abills/Certs/easysoft_private.ppk -out /usr/abills/Certs/easysoft_public.pem -pubout
 
   chmod u=r,go= ${CERT_PATH}/easysoft.cer
   chown ${APACHE_USER} ${CERT_PATH}/easysoft.cer

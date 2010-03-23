@@ -359,7 +359,9 @@ sub accounts_list {
    pi.address_build,
    pi.address_flat,
    if (d.phone<>0, d.phone, pi.phone),
-   pi.contract_date";
+   pi.contract_id,
+   pi.contract_date,
+   if(u.company_id > 0, c.bill_id, u.bill_id)";
   }
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
@@ -369,6 +371,7 @@ sub accounts_list {
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
+    LEFT JOIN companies c ON (u.company_id=c.id)
     $WHERE
     GROUP BY d.acct_id 
     ORDER BY $SORT $DESC
