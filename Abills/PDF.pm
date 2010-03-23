@@ -1492,12 +1492,12 @@ for my $key (sort keys %$tpl_describe) {
     next if ($x == 0 && $y == 0);
 
     my $text = '';
-    $doc_page   = $1 if ($pattern =~ /page=(\d+)/);
-    my $work_page = ($attr->{DOCS_IN_FILE}) ? $doc_page + $page_count * int($multi_doc_count - 1) - ($page_count * $attr->{DOCS_IN_FILE} * int( ($multi_doc_count - 1) / $attr->{DOCS_IN_FILE})) : $doc_page + $page_count * $multi_doc_count-$page_count;
+    $doc_page   = ($pattern =~ /page=(\d+)/) ? $1 : 1;
+    my $work_page = ($attr->{DOCS_IN_FILE}) ? $doc_page + $page_count * int($multi_doc_count - 1) - ($page_count * $attr->{DOCS_IN_FILE} * int( ($multi_doc_count - 1) / $attr->{DOCS_IN_FILE})) : $doc_page + (($multi_doc_count) ? $page_count * $multi_doc_count - $page_count : 0);
     my $page = $pdf->openpage($work_page);
     if (! $page) {
     	print "Content-Type: text/plain\n\n";
-    	print "Can't open page: $work_page '$!'\n";
+    	print "Can't open page: $work_page ($pattern) '$!' / $doc_page + $page_count * $multi_doc_count\n";
      }
 
     #Make img_insertion
@@ -1588,11 +1588,8 @@ for my $key (sort keys %$tpl_describe) {
     else {
       $txt->text($text);
      }
-
   }
-
 }
-
 
 
 if ($attr->{MULTI_DOCS} && $multi_doc_count <= $#{ $attr->{MULTI_DOCS} }) {
