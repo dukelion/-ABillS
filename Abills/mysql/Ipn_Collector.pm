@@ -155,8 +155,8 @@ sub user_ips {
       LEFT JOIN bills cb ON (c.bill_id=cb.id)
       LEFT JOIN dv_main dv ON (u.uid=dv.uid)
       LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
-    WHERE u.id=calls.user_name and u.domain_id=0
-    and calls.nas_id IN ($DATA->{NAS_ID});";
+    WHERE u.id=calls.user_name and u.domain_id=0 and calls.status<10
+    and calls.nas_id IN ($DATA->{NAS_ID}) ;";
   }
   else {
   	$sql = "SELECT u.uid, calls.framed_ip_address, calls.user_name, 
@@ -177,7 +177,7 @@ sub user_ips {
     dv.ip
     FROM (dv_calls calls, users u)
     LEFT JOIN dv_main dv ON (u.uid=dv.uid)
-   WHERE u.id=calls.user_name and u.domain_id=0
+   WHERE u.id=calls.user_name and u.domain_id=0 and calls.status<10
    and calls.nas_id IN ($DATA->{NAS_ID});";
   }  
   
