@@ -30,12 +30,10 @@ sub docs_contract {
 
     my ($y, $m, $d)=split(/-/, (($users->{CONTRACT_DATE}) ? $users->{CONTRACT_DATE} : $DATE ) , 3);
     $Docs->{CONTRACT_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
-    
-    #$Docs->{ADDRESS_FULL}="$Docs->{ADDRESS_STREET} $Docs->{ADDRESS_BUILD}, $Docs->{ADDRESS_FLAT}"; 
-		
+
 		%{ $attr } = %{ Docs }, %{ $user_main_info };
 		my $contract_tpl = 'contract';
-		
+
 		if ($Docs->{CONTRACT_SUFIX}) {
 			if ($conf{DOCS_CONTRACT_TYPES}) {
     	  #PREFIX:SUFIX:NAME;
@@ -391,7 +389,7 @@ if ($FORM{print_list}) {
 
   #print "Content-Type: text/html\n\n";
   print $html->header() if ($FORM{qindex});  
-  my $single_tpl = $html->tpl_show(_include('docs_invoice', 'Docs'), undef, 
+  my $single_tpl = $html->tpl_show(_include('docs_invoice', 'Docs', { pdf => $FORM{pdf} }), undef, 
                                            { MULTI_DOCS   => \@MULTI_ARR, 
   	                                         #SAVE_AS      => $save_filename,
   	                                         #DOCS_IN_FILE => $docs_in_file,
@@ -503,12 +501,17 @@ if ($FORM{print_list}) {
     my %D = ();
     $D{NUMBER}     = $line->[0];
     $D{DATE}       = $line->[1];
-    $D{FIO}        = $line->[2];
-    $D{ADDRESS}    = "$line->[10], $line->[11], $line->[12]";
-    $D{TOTAL_SUM}  = sprintf("%.2f", $line->[3]);
-    $D{CONTRACT_ID}= $line->[13];
-    $D{CONTRACT_DATE}="$line->[14]";
-
+    my ($y, $m, $d)=split(/-/, $line->[1], 3);
+    $D{FROM_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
+    $D{DATE_EURO_STANDART} = "$d.$m.$y";
+    $D{FIO}           = $line->[2];
+    $D{ADDRESS}       = "$line->[10], $line->[11], $line->[12]";
+    $D{TOTAL_SUM}     = sprintf("%.2f", $line->[3]);
+    $D{CONTRACT_ID}   = $line->[14];
+    $D{CONTRACT_DATE} = "$line->[15]";
+    $D{BILL_ID}       = $line->[16];
+    $D{UID}           = $line->[8];
+    
     if ($conf{DOCS_VAT_INCLUDE}) {
    	   $D{ORDER_TOTAL_SUM_VAT}  = sprintf("%.2f", $D{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
    	   $D{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f", $D{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
@@ -559,9 +562,8 @@ if ($FORM{print_list}) {
     print "UID: LOGIN: $line->[0] FIO: $line->[1] SUM: $line->[2]\n" if ($debug > 2);
 	 }
 
-  #print "Content-Type: text/html\n\n";
   print $html->header() if ($FORM{qindex});  
-  my $single_tpl = $html->tpl_show(_include('docs_account', 'Docs'), undef, 
+  my $single_tpl = $html->tpl_show(_include('docs_account', 'Docs', { pdf => $FORM{pdf} }), undef, 
                                            { MULTI_DOCS   => \@MULTI_ARR, 
   	                                         #SAVE_AS      => $save_filename,
   	                                         #DOCS_IN_FILE => $docs_in_file,
@@ -614,7 +616,8 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ $html->button("$_PRINT $_LIST", "qindex=$index&print_list=1$pages_qs". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new'  }), "$_TOTAL:", $html->b($Docs->{TOTAL}) ] ]
+                         rows       => [ [ (($user->{UID}) ? '' : $html->button("$_PRINT $_LIST", "qindex=$index&print_list=1$pages_qs". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new'  }) ), 
+                         "$_TOTAL:", $html->b($Docs->{TOTAL}) ] ]
                       } );
 
 
@@ -738,7 +741,7 @@ if ($FORM{print_list}) {
 
   #print "Content-Type: text/html\n\n";
   print $html->header() if ($FORM{qindex});  
-  my $single_tpl = $html->tpl_show(_include('docs_tax_invoice', 'Docs'), undef, 
+  my $single_tpl = $html->tpl_show(_include('docs_tax_invoice', 'Docs', { pdf => $FORM{pdf} }), undef, 
                                            { MULTI_DOCS   => \@MULTI_ARR, 
   	                                         #SAVE_AS      => $save_filename,
   	                                         #DOCS_IN_FILE => $docs_in_file,
@@ -1246,7 +1249,7 @@ sub docs_account {
   
   
   
-  $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users });
+  $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users }) if (! $FORM{pdf});
 }
 
 
