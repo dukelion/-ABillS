@@ -78,6 +78,11 @@ if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
  }
 
 if ($FORM{set}) {
+  if (! $permissions{0}{1} ) {
+      $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
+    	return 0;
+    }
+
   if ($period > 0) {
 
     my ($year, $month, $day);
