@@ -100,6 +100,9 @@ sub docs_invoice_list {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
+ if (defined($attr->{PAYMENT_METHOD}) && $attr->{PAYMENT_METHOD} ne '') {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_METHOD}, 'INT', 'p.method') };
+  }
  
  #DIsable
  if ($attr->{UID}) {
@@ -112,18 +115,20 @@ sub docs_invoice_list {
    pi.address_build,
    pi.address_flat,
    if (d.phone<>0, d.phone, pi.phone),
-   pi.contract_date";
+   pi.contract_date,
+   u.id";
   }
 
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
 
-  $self->query($db,   "SELECT d.invoice_id, d.date, if(d.customer='-', pi.fio, d.customer), sum(o.price * o.counts), u.id, a.name, d.created, d.uid, d.id $self->{EXT_FIELDS}
+  $self->query($db,   "SELECT d.invoice_id, d.date, if(d.customer='-', pi.fio, d.customer), sum(o.price * o.counts), u.id, a.name, d.created, p.method, d.uid, d.id $self->{EXT_FIELDS}
     FROM (docs_invoice d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
+    LEFT JOIN payments p ON (d.payment_id=p.id)
     $WHERE
     GROUP BY d.id 
     ORDER BY $SORT $DESC
@@ -137,6 +142,7 @@ sub docs_invoice_list {
     FROM (docs_invoice d, docs_invoice_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
+    LEFT JOIN payments p ON (d.payment_id=p.id)
     $WHERE");
 
  ($self->{TOTAL}) = @{ $self->{list}->[0] };
@@ -221,21 +227,17 @@ sub docs_invoice_add {
 	my ($attr) = @_;
  
   %DATA = $self->get_data($attr, { default => \%DATA }); 
-  
- 
+
   if ($attr->{ORDER}) {
     push @{ $attr->{ORDERS} }, "$attr->{ORDER}|0|1|$attr->{SUM}";
    }
-  
-  
+
   if (! defined($attr->{ORDERS}) || $#{ $attr->{ORDERS} } < 0) {
   	$self->{errno}=1;
   	$self->{errstr}="No orders";
-
   	return $self;
   }
-  
-  
+
   $DATA{DATE}       = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
   $DATA{INVOICE_ID} = ($attr->{INVOICE_ID}) ? $attr->{INVOICE_ID}  : $self->docs_nextid({ TYPE => 'INVOICE' });
 
