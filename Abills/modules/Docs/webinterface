@@ -339,10 +339,15 @@ elsif (! $LIST_PARAMS{UID}) {
 	            });
 }
 
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=1;
+  $LIST_PARAMS{DESC}='DESC';
+}
+
+
 if ($FORM{print_list}) {
 	my $list = $Docs->docs_invoice_list( { %FORM, %LIST_PARAMS, 
                                          FULL_INFO  => 1 } );
-
   my @MULTI_ARR = ();
   my $doc_num   = 0;
   
@@ -439,11 +444,6 @@ if ($FORM{print_list}) {
   	                                         debug        => $debug
   	                                       }); 
 	return 0;
-}
-
-if (! defined($FORM{sort})) {
-  $LIST_PARAMS{SORT}=1;
-  $LIST_PARAMS{DESC}='DESC';
 }
 
 my $list = $Docs->docs_invoice_list( { %LIST_PARAMS } );
@@ -544,6 +544,12 @@ else {
 	            });
 }
 
+if (! $FORM{sort}) {
+  $LIST_PARAMS{SORT}=1;
+  $LIST_PARAMS{DESC}='DESC';
+}
+
+
 if ($FORM{print_list}) {
 	my $list = $Docs->accounts_list( { %FORM, %LIST_PARAMS, 
                                      FULL_INFO  => 1 } );
@@ -552,7 +558,6 @@ if ($FORM{print_list}) {
   my $doc_num   = 0;
   
   foreach my $line (@$list) {
-
     my %D = ();
     $D{NUMBER}     = $line->[0];
     $D{DATE}       = $line->[1];
@@ -560,7 +565,7 @@ if ($FORM{print_list}) {
     $D{FROM_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
     $D{DATE_EURO_STANDART} = "$d.$m.$y";
     $D{FIO}           = $line->[2];
-    $D{ADDRESS}       = "$line->[11], $line->[12], $line->[13]";
+    $D{ADDRESS_FULL}  = "$line->[11], $line->[12], $line->[13]";
     $D{TOTAL_SUM}     = sprintf("%.2f", $line->[3]);
     $D{CONTRACT_ID}   = $line->[15];
     $D{CONTRACT_DATE} = "$line->[16]";
@@ -625,11 +630,6 @@ if ($FORM{print_list}) {
   	                                         debug        => $debug
   	                                       }); 
 	return 0;
-}
-
-if (! $FORM{sort}) {
-  $LIST_PARAMS{SORT}=1;
-  $LIST_PARAMS{DESC}='DESC';
 }
 
 my @CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS, $_USER, $_ADMIN, $_TIME, "$_PAYMENT_METHOD", '-', '-');

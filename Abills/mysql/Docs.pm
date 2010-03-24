@@ -305,7 +305,6 @@ sub accounts_list {
  $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
-
  @WHERE_RULES = ("d.id=o.acct_id");
 
  if($attr->{CUSTOMER}) {
