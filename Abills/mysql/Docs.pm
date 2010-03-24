@@ -159,6 +159,10 @@ sub docs_invoice_info {
 
   $WHERE = ($attr->{UID}) ? "and d.uid='$attr->{UID}'" : '';
   
+  print "Content-Type: text/html\n\n";
+  $self->{debug}=1;
+  
+  
   $self->query($db, "SELECT 
    d.invoice_id,
    d.date,
