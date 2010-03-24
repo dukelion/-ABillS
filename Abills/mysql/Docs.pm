@@ -323,6 +323,10 @@ sub accounts_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_ID}, 'INT', 'd.payment_id') };
   }
 
+ if (defined($attr->{PAYMENT_METHOD}) && $attr->{PAYMENT_METHOD} ne '') {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_METHOD}, 'INT', 'p.method') };
+  }
+
  if ($attr->{DOC_ID}) {
  	  my $value = $self->search_expr($attr->{DOC_ID}, 'INT');
     push @WHERE_RULES, "d.acct_id$value";
@@ -367,12 +371,13 @@ sub accounts_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db,   "SELECT d.acct_id, d.date, if(d.customer='-', pi.fio, d.customer),  sum(o.price * o.counts), d.payment_id, u.id, a.name, d.created, d.uid, d.id $self->{EXT_FIELDS}
+ $self->query($db,   "SELECT d.acct_id, d.date, if(d.customer='-', pi.fio, d.customer),  sum(o.price * o.counts), d.payment_id, u.id, a.name, d.created, p.method, d.uid, d.id $self->{EXT_FIELDS}
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     LEFT JOIN companies c ON (u.company_id=c.id)
+    LEFT JOIN payments p ON (d.payment_id=p.id)
     $WHERE
     GROUP BY d.acct_id 
     ORDER BY $SORT $DESC
@@ -386,6 +391,8 @@ sub accounts_list {
  $self->query($db, "SELECT count(*)
     FROM (docs_acct d, docs_acct_orders o)    
     LEFT JOIN users u ON (d.uid=u.uid)
+    LEFT JOIN admins a ON (d.aid=a.aid)
+    LEFT JOIN payments p ON (d.payment_id=p.id)
     $WHERE");
 
  ($self->{TOTAL}) = @{ $self->{list}->[0] };
@@ -631,8 +638,7 @@ sub tax_invoice_list {
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
-
- @WHERE_RULES = ();
+  @WHERE_RULES = ();
  
  if($attr->{LOGIN_EXPR}) {
  	 require Users;
