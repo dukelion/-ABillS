@@ -455,6 +455,18 @@ print $table->show();
 sub docs_accounts_list {
 
 my @payments_status = ("$_UNPAID", "$_PAID", "$_PARTLY_PAID");
+push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+  $PAYMENTS_METHODS{$i}=$PAYMENT_METHODS[$i];
+ }
+
+my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
+  $PAYMENTS_METHODS{$k}=$v;
+ }
+
+
 
 if ($LIST_PARAMS{UID} || $FORM{UID}) {
 	docs_account();
@@ -480,7 +492,15 @@ else {
                                      NO_ID        => 1
  	                                  });
 
-  form_search({ SEARCH_FORM => ($FORM{pdf}) ? '' : $html->tpl_show(_include('docs_search', 'Docs'), 
+  $info{PAYMENT_METHOD_SEL} = $html->form_select('PAYMENT_METHOD', 
+                                { SELECTED     => (defined($FORM{PAYMENT_METHOD}) && $FORM{PAYMENT_METHOD} ne '') ? $FORM{METHOD} : '',
+ 	                                SEL_HASH     => { '' => $_ALL, %PAYMENTS_METHODS },
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1
+ 	                               });
+
+
+  form_search({ SEARCH_FORM => ($FORM{pdf}) ? '' : $html->tpl_show(_include('docs_account_search', 'Docs'), 
   	                                  { %info, %FORM }, 
   	                                  { notprint => 1 })  
 	            });
@@ -575,7 +595,7 @@ if ($FORM{print_list}) {
 }
 
 
-my @CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS, $_USER, $_ADMIN, $_TIME, '-', '-');
+my @CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS, $_USER, $_ADMIN, $_TIME, "$_PAYMENT_METHOD", '-', '-');
 if ( $user->{UID} ) {
 	@CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS);
 }
@@ -607,6 +627,7 @@ foreach my $line (@$list) {
     push @rows, $html->button($line->[5], "index=11&UID=$line->[8]"),
     "$line->[6]", 
     "$line->[7]", 
+    ("$line->[8]") ? $PAYMENTS_METHODS{$line->[8]} : '', 
     $html->button($_PRINT, "qindex=$index&print=$line->[9]&UID=$line->[8]". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new', BUTTON => 1 }), 
     $delete;
    }
