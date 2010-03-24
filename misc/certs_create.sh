@@ -110,7 +110,7 @@ easysoft_cert () {
   ${OPENSSL}  rsa -in  /usr/abills/Certs/easysoft_private.ppk -out /usr/abills/Certs/easysoft_public.pem -pubout
 
   chmod u=r,go= ${CERT_PATH}/easysoft.cer
-  chown ${APACHE_USER} ${CERT_PATH}/easysoft.cer
+  chown ${APACHE_USER} ${CERT_PATH}/easysoft.cer ${CERT_PATH}/easysoft_private.ppk ${CERT_PATH}/easysoft_public.pem
 
 #  
 #  echo -n "Send public key '${CERT_PATH}/express_oplata_public.pem' to Express Oplata? (y/n): ";
