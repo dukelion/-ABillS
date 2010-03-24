@@ -221,6 +221,18 @@ sub docs_invoice {
 #**********************************************************
 sub docs_invoice_list {
 
+push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
+  $PAYMENTS_METHODS{$i}=$PAYMENT_METHODS[$i];
+ }
+
+my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
+  $PAYMENTS_METHODS{$k}=$v;
+ }
+
+
 if($FORM{del} && $FORM{is_js_confirmed}) {
   $Docs->docs_invoice_del($FORM{del});
   if(! $Docs->{errno}) {
@@ -316,7 +328,14 @@ elsif($FORM{print}) {
   return 0;
  }
 elsif (! $LIST_PARAMS{UID}) {
-  form_search({ SEARCH_FORM => ($FORM{pdf}) ? '' : $html->tpl_show(_include('docs_search', 'Docs'), 
+  $info{PAYMENT_METHOD_SEL} = $html->form_select('PAYMENT_METHOD', 
+                                { SELECTED     => (defined($FORM{PAYMENT_METHOD}) && $FORM{PAYMENT_METHOD} ne '') ? $FORM{METHOD} : '',
+ 	                                SEL_HASH     => { '' => $_ALL, %PAYMENTS_METHODS },
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1
+ 	                               });
+
+  form_search({ SEARCH_FORM => ($FORM{pdf}) ? '' : $html->tpl_show(_include('docs_invoice_search', 'Docs'), 
   	                                  { %info, %FORM }, 
   	                                  { notprint => 1 })  
 	            });
@@ -331,19 +350,33 @@ if ($FORM{print_list}) {
   
   foreach my $line (@$list) {
     my %D = ();
-    $D{NUMBER}     = $line->[0];
-    $D{DATE}       = $line->[1];
-    $D{FIO}        = $line->[2];
-    $D{ADDRESS}    = "$line->[10], $line->[11], $line->[12]";
-    $D{TOTAL_SUM}  = sprintf("%.2f", $line->[3]);
-    $D{CONTRACT_ID}= $line->[13];
-    $D{CONTRACT_DATE}="$line->[14]";
+    $D{INVOICE_ID}   = $line->[0];
+    $D{DATE}         = $line->[1];
+    
+    my ($y, $m, $d)=split(/-/, $line->[1], 3);
+    $D{FROM_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
+    $D{DATE_EURO_STANDART} = "$d.$m.$y";
+    $D{FIO}           = $line->[2];
+    $D{LOGIN}         = $line->[16];
+    $D{ACCOUNT_ID}    = $line->[8];
+
+    
+    $D{FIO}          = $line->[2];
+    $D{ADDRESS_FULL} = "$line->[11], $line->[12], $line->[13]";
+    $D{TOTAL_SUM}    = sprintf("%.2f", $line->[3]);
+    $D{CONTRACT_ID}  = $line->[14];
+    $D{CONTRACT_DATE}= "$line->[15]";
+    $D{PAYMENT_METHOD}= $PAYMENTS_METHODS{"$line->[7]"};
+    $D{TOTAL_SUM}    = $line->[3];
 
     if ($conf{DOCS_VAT_INCLUDE}) {
    	   $D{ORDER_TOTAL_SUM_VAT}  = sprintf("%.2f", $D{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
    	   $D{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f", $D{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
    	   $D{TOTAL_SUM_VAT}        = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
      }
+
+   $D{ORDER_PRICE_WITHOUT_VAT_1}=$D{TOTAL_SUM_WITHOUT_VAT} || 0,00;
+   $D{ORDER_TOTAL_SUM_VAT}=$D{TOTAL_SUM_VAT} || 0,00;
 
    if ($Docs->{TOTAL} > 0) {
    	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $D{TOTAL_SUM});
@@ -407,35 +440,32 @@ if (! defined($FORM{sort})) {
 
 my $list = $Docs->docs_invoice_list( { %LIST_PARAMS } );
 
-if ($conf{DOCS_PDF_PRINT}) {
-	$pages_qs .= "&pdf=1";
-}
-
-
 my $table = $html->table( { width      => '100%',
                             caption    => "$_INVOICE",
                             border     => 1,
-                            title      => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, '-', '-'],
+                            title      => ['#', $_DATE, $_CUSTOMER, $_SUM, $_USER, $_ADMIN, $_TIME, $_PAYMENT_METHOD, '-', '-'],
                             cols_align => ['right', 'right', 'left', 'right', 'left', 'left', 'right', 'center'],
                             qs         => $pages_qs,
                             pages      => $Docs->{TOTAL},
                             ID         => 'DOCS_INVOCE'
                           });
 
-
-
+if ($conf{DOCS_PDF_PRINT}) {
+	$pages_qs .= "&pdf=1";
+}
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&UID=$line->[7]", { MESSAGE => "$_DEL ?", BUTTON => 1 }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[9]&UID=$line->[8]", { MESSAGE => "$_DEL ?", BUTTON => 1 }) : ''; 
 
   $table->addrow("$line->[0]", 
    "$line->[1]",
    "$line->[2]", 
    "$line->[3]", 
-   $html->button($line->[4], "index=11&UID=$line->[7]"),
+   $html->button($line->[4], "index=11&UID=$line->[8]"),
    "$line->[5]", 
    "$line->[6]", 
-   $html->button($_PRINT, "qindex=$index&print=$line->[8]&UID=$line->[7]$pages_qs", { ex_params => 'target=_new', BUTTON => 1 }) ,
+   $PAYMENTS_METHODS{"$line->[7]"}, 
+   $html->button($_PRINT, "qindex=$index&print=$line->[9]&UID=$line->[8]$pages_qs", { ex_params => 'target=_new', BUTTON => 1 }) ,
    $delete);
 }
 print $table->show();
@@ -617,18 +647,18 @@ foreach my $line (@$list) {
   my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[9]&UID=$line->[8]", { MESSAGE => "$_DEL ID $line->[8] ?", BUTTON => 1 }) : ''; 
 
   @rows = ( "$line->[0]", 
-   $html->button("$line->[1]", "qindex=$index&print=$line->[9]&UID=$line->[8]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new' }), 
+   $html->button("$line->[1]", "qindex=$index&print=$line->[10]&UID=$line->[9]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new' }), 
    "$line->[2]", 
    "$line->[3]", 
-   ($line->[4]) ? (($user->{UID}) ? $payments_status[1] : $html->button($payments_status[1], "index=2&UID=$line->[8]&ID=$line->[4]") ) :  $html->color_mark($payments_status[0], $_COLORS[6]) 
+   ($line->[4]) ? (($user->{UID}) ? $payments_status[1] : $html->button($payments_status[1], "index=2&UID=$line->[9]&ID=$line->[4]") ) :  $html->color_mark($payments_status[0], $_COLORS[6]) 
    );  
 
   if ( ! $user->{UID}  ) {
-    push @rows, $html->button($line->[5], "index=11&UID=$line->[8]"),
+    push @rows, $html->button($line->[5], "index=11&UID=$line->[9]"),
     "$line->[6]", 
-    "$line->[7]", 
-    ("$line->[8]") ? $PAYMENTS_METHODS{$line->[8]} : '', 
-    $html->button($_PRINT, "qindex=$index&print=$line->[9]&UID=$line->[8]". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new', BUTTON => 1 }), 
+    "$line->[8]", 
+    ("$line->[9]") ? $PAYMENTS_METHODS{$line->[9]} : '', 
+    $html->button($_PRINT, "qindex=$index&print=$line->[10]&UID=$line->[9]". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new', BUTTON => 1 }), 
     $delete;
    }
 
