@@ -339,11 +339,10 @@ elsif (! $LIST_PARAMS{UID}) {
 	            });
 }
 
-if (! defined($FORM{sort})) {
-  $LIST_PARAMS{SORT}=1;
+if (! $FORM{sort}) {
+  $LIST_PARAMS{SORT}='2,1';
   $LIST_PARAMS{DESC}='DESC';
 }
-
 
 if ($FORM{print_list}) {
 	my $list = $Docs->docs_invoice_list( { %FORM, %LIST_PARAMS, 
@@ -545,10 +544,9 @@ else {
 }
 
 if (! $FORM{sort}) {
-  $LIST_PARAMS{SORT}=1;
+  $LIST_PARAMS{SORT}='2,1';
   $LIST_PARAMS{DESC}='DESC';
 }
-
 
 if ($FORM{print_list}) {
 	my $list = $Docs->accounts_list( { %FORM, %LIST_PARAMS, 
@@ -725,6 +723,11 @@ else {
   	                                  { %info, %FORM }, 
   	                                  { notprint => 1 })
 	            });
+
+if (! $FORM{sort}) {
+  $LIST_PARAMS{SORT}='2,1';
+  $LIST_PARAMS{DESC}='DESC';
+}
  
 
 if ($FORM{print_list}) {
@@ -811,14 +814,6 @@ if ($FORM{print_list}) {
 
 	return 0;
 }
-
-
-
-if (! defined($FORM{sort})) {
-  $LIST_PARAMS{SORT}=1;
-  $LIST_PARAMS{DESC}='DESC';
-}
-
 
 my $list = $Docs->tax_invoice_list( { %LIST_PARAMS, COMPANY_ID => $FORM{COMPANY_ID} } );
 my $table = $html->table( { width      => '100%',
