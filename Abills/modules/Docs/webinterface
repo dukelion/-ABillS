@@ -361,8 +361,8 @@ if ($FORM{print_list}) {
     $D{FIO}          = $line->[2];
     $D{ADDRESS_FULL} = "$line->[11], $line->[12], $line->[13]";
     $D{TOTAL_SUM}    = sprintf("%.2f", $line->[3]);
-    $D{CONTRACT_ID}  = $line->[14];
-    $D{CONTRACT_DATE}= "$line->[15]";
+    $D{CONTRACT_ID}  = $line->[14] || '';
+    $D{CONTRACT_DATE}= "$line->[15]" || '0000-00-00';
     $D{PAYMENT_METHOD}= $PAYMENTS_METHODS{"$line->[7]"};
     $D{TOTAL_SUM}    = $line->[3];
 
