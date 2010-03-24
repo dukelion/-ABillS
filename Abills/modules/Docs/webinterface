@@ -277,7 +277,7 @@ elsif($FORM{print}) {
   if ($Docs->{PAYMENT_ID}) {
     my $list = $Docs->accounts_list({ PAYMENT_ID => $Docs->{PAYMENT_ID} });
     if ($Docs->{TOTAL} > 0) {
-      $Docs->account_info($list->[0]->[9]);	
+      $Docs->account_info($list->[0]->[10]);	
      }
     $Docs->{ACCOUNT_ID}=$Docs->{ACCT_ID};
 
@@ -544,11 +544,6 @@ else {
 	            });
 }
 
-if (! $FORM{sort}) {
-  $LIST_PARAMS{SORT}=1;
-  $LIST_PARAMS{DESC}='DESC';
-}
-
 if ($FORM{print_list}) {
 	my $list = $Docs->accounts_list( { %FORM, %LIST_PARAMS, 
                                      FULL_INFO  => 1 } );
@@ -632,6 +627,10 @@ if ($FORM{print_list}) {
 	return 0;
 }
 
+if (! $FORM{sort}) {
+  $LIST_PARAMS{SORT}=1;
+  $LIST_PARAMS{DESC}='DESC';
+}
 
 my @CAPTION = ('#', $_DATE, $_CUSTOMER, $_SUM, $_STATUS, $_USER, $_ADMIN, $_TIME, "$_PAYMENT_METHOD", '-', '-');
 if ( $user->{UID} ) {
