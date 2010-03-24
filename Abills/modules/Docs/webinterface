@@ -267,9 +267,6 @@ elsif($FORM{print}) {
        
       $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[4]);
       $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - $sum / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum);
-
-      
-      		  
 		  $Docs->{TOTAL_SUM}+=$sum;
 		  $i++;
    	 }
@@ -315,6 +312,7 @@ elsif($FORM{print}) {
     	else {
         $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$method];
        }
+
      }
    }
   
@@ -356,59 +354,74 @@ if ($FORM{print_list}) {
     $D{FROM_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
     $D{DATE_EURO_STANDART} = "$d.$m.$y";
     $D{FIO}           = $line->[2];
-    $D{LOGIN}         = $line->[16];
+    $D{LOGIN}         = $line->[15];
     $D{ACCOUNT_ID}    = $line->[8];
-    $D{FIO}          = $line->[2];
-    $D{ADDRESS_FULL} = "$line->[11], $line->[12], $line->[13]";
-    $D{TOTAL_SUM}    = sprintf("%.2f", $line->[3]);
-    $D{CONTRACT_ID}  = $line->[14] || '';
-    $D{CONTRACT_DATE}= "$line->[15]" || '0000-00-00';
-    $D{PAYMENT_METHOD}= $PAYMENTS_METHODS{"$line->[7]"};
-    $D{TOTAL_SUM}    = $line->[3];
+    $D{FIO}           = $line->[2];
+    $D{ADDRESS_FULL}  = "$line->[10], $line->[11], $line->[12]";
+    $D{TOTAL_SUM}     = sprintf("%.2f", $line->[3]);
+    $D{CONTRACT_ID}   = $line->[13] || '';
+    $D{CONTRACT_DATE} = "$line->[14]" || '0000-00-00';
+    
+     	my $method=$line->[7];
+    	
+    	if ($conf{DOCS_PAYMENT_METHODS}) {
+        my %methods_hash = %{ cfg2hash($conf{DOCS_PAYMENT_METHODS}) };        
+
+        if ($methods_hash{$method}) {
+          $D{PAYMENT_METHOD}=$methods_hash{$method};
+         }
+        else {
+        	$D{PAYMENT_METHOD}=$methods_hash{0};
+         }
+    	 }
+    	else {
+        $D{PAYMENT_METHOD} = $PAYMENT_METHODS[$method];
+       }
+    $D{TOTAL_SUM}     = $line->[3];
 
     if ($conf{DOCS_VAT_INCLUDE}) {
    	   $D{ORDER_TOTAL_SUM_VAT}  = sprintf("%.2f", $D{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
-   	   $D{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f", $D{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
-   	   $D{TOTAL_SUM_VAT}        = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
+   	   $D{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f", $D{TOTAL_SUM} - $D{ORDER_TOTAL_SUM_VAT});
+   	   $D{TOTAL_SUM_VAT}        = sprintf("%.2f", $D{TOTAL_SUM} - $D{TOTAL_SUM_WITHOUT_VAT});
      }
 
-   $D{ORDER_PRICE_WITHOUT_VAT_1}=$D{TOTAL_SUM_WITHOUT_VAT} || 0,00;
-   $D{ORDER_TOTAL_SUM_VAT}=$D{TOTAL_SUM_VAT} || 0,00;
+    $D{ORDER_PRICE_WITHOUT_VAT_1}=$D{TOTAL_SUM_WITHOUT_VAT} || 0,00;
+    $D{ORDER_TOTAL_SUM_VAT}=$D{TOTAL_SUM_VAT} || 0,00;
 
-   if ($Docs->{TOTAL} > 0) {
-   	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $D{TOTAL_SUM});
-      $Docs->{FROM_DATE_LIT}='';
-
-     my $list = $Docs->{ORDERS};
-     my $i=0;
-     foreach my $line (@$list) {
-   	   $i++;
-   	   $Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", 
-   	     $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[2]*$line->[4])) if (! $conf{DOCS_PDF_PRINT});
-   	   
-   	   my $count = $line->[2] || 1;
-   	   my $sum   = sprintf("%.2f", $count*$line->[4]);
-   	   
-   	   $D{'ORDER_NUM_'.$i}   = $i;
-       $D{'ORDER_NAME_'.$i}  = $line->[1];
-       $D{'ORDER_COUNT_'.$i} = $count;
-       $D{'ORDER_PRICE_'.$i} = $line->[4];
-       $D{'ORDER_SUM_'.$i}   = $sum;
-       
-       $D{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[3]);
-       $D{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum );
-      }
-
-     $D{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $D{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $D{TOTAL_SUM} );
-     $Docs->{'TOTAL_SUM_VAT'}   = sprintf("%.2f", $D{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
-     
-      my $i=0; 
-      foreach my $field_id ( @{ $Company->{INFO_FIELDS_ARR} } ) {
-         my($position, $type, $name)=split(/:/, $Company->{INFO_FIELDS_HASH}->{$field_id});
-         $Company->{$field_id}=$Company->{INFO_FIELDS_VAL}->[$i];
-         $i++;
-       }
-    }
+#   if ($Docs->{TOTAL} > 0) {
+#   	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $D{TOTAL_SUM});
+#      $Docs->{FROM_DATE_LIT}='';
+#
+#     my $list = $Docs->{ORDERS};
+#     my $i=0;
+#     foreach my $line (@$list) {
+#   	   $i++;
+#   	   $Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", 
+#   	     $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[2]*$line->[4])) if (! $conf{DOCS_PDF_PRINT});
+#   	   
+#   	   my $count = $line->[2] || 1;
+#   	   my $sum   = sprintf("%.2f", $count*$line->[4]);
+#   	   
+#   	   $D{'ORDER_NUM_'.$i}   = $i;
+#       $D{'ORDER_NAME_'.$i}  = $line->[1];
+#       $D{'ORDER_COUNT_'.$i} = $count;
+#       $D{'ORDER_PRICE_'.$i} = $line->[4];
+#       $D{'ORDER_SUM_'.$i}   = $sum;
+#       
+#       $D{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[3]);
+#       $D{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum );
+#      }
+#
+#     $D{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $D{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $D{TOTAL_SUM} );
+#     $Docs->{'TOTAL_SUM_VAT'}   = sprintf("%.2f", $D{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
+#     
+#      my $i=0; 
+#      foreach my $field_id ( @{ $Company->{INFO_FIELDS_ARR} } ) {
+#         my($position, $type, $name)=split(/:/, $Company->{INFO_FIELDS_HASH}->{$field_id});
+#         $Company->{$field_id}=$Company->{INFO_FIELDS_VAL}->[$i];
+#         $i++;
+#       }
+#    }
 #-----------------------
     push @MULTI_ARR, { %D, 
                        DOC_NUMBER => sprintf("%.6d",  $doc_num),
