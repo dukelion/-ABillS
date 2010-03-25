@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.5;
+VERSION=1.6;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -31,7 +31,7 @@ if [ w$1 = w ] ; then
   echo " eap            - Create Server and users SSL Certs"
   echo " postfix_tls    - Create postfix TLS Certs"
   echo " express_oplata - Express oplata payment system"
-  echo " easysoft       - Easysoft payment system"
+  echo " easysoft [public_key] - Easysoft payment system"
   echo " info [file]    - Get info from SSL cert"
   echo " ssh [USER]     - Create SSH DSA Keys"
   echo "                USER - SSH remote user"
@@ -95,11 +95,21 @@ fi;
 # http://easysoft.com.ua/
 #**********************************************************
 easysoft_cert () {
-  echo "#*******************************************************************************"
+  echo "#******************************************************************************"
   echo "#Creating EasySoft certs"
   echo "#"
-  echo "#*******************************************************************************"
+  echo "#******************************************************************************"
   echo
+
+  if [ w$1 = w  ]; then
+    echo "Enter path to EasySoft public key: ";
+    read EASYSOFT_PUBLIC_KEY
+  else
+    EASYSOFT_PUBLIC_KEY=$1;
+  fi;
+
+  ${OPENSSL} x509 -inform pem -in ${EASYSOFT_PUBLIC_KEY} -pubkey -out ${OPENSSL}/easysoft-public-key.pem > /usr/abills/Certs/easysoft_server_public.pem
+
 
   CERT_LENGTH=1024;
   # Private key
@@ -107,32 +117,13 @@ easysoft_cert () {
   ${OPENSSL} req -new -key easysoft_private.ppk -out easysoft.req 
   #${OPENSSL} ca -in easysoft.req -out easysoft.cer 
   ${OPENSSL} x509 -req -days 730 -in easysoft.req -signkey easysoft_private.ppk -out easysoft.cer
-  ${OPENSSL}  rsa -in  /usr/abills/Certs/easysoft_private.ppk -out /usr/abills/Certs/easysoft_public.pem -pubout
+  ${OPENSSL} rsa -in  /usr/abills/Certs/easysoft_private.ppk -out /usr/abills/Certs/easysoft_public.pem -pubout
 
   chmod u=r,go= ${CERT_PATH}/easysoft.cer
   chown ${APACHE_USER} ${CERT_PATH}/easysoft.cer ${CERT_PATH}/easysoft_private.ppk ${CERT_PATH}/easysoft_public.pem
 
-#  
-#  echo -n "Send public key '${CERT_PATH}/express_oplata_public.pem' to Express Oplata? (y/n): ";
-#
-#  read _SEND_MAIL
-#  if [ w${_SEND_MAIL} = wy ]; then
-#    EO_EMAIL="onwave@express-oplata.ru";
-#  
-#    echo -n "Enter comments: "
-#    read COMMENTS
-#
-#    echo -n "BCC: "
-#    read BCC_EMAIL
-#
-#    if [ w${BCC_EMAIL} != w ]; then
-#      BCC_EMAIL="-b ${BCC_EMAIL}"
-#    fi; 
-#
-#    ( echo "${COMMENTS}"; uuencode /usr/abills/Certs/express_oplata_public.pem express_oplata_public.pem ) | mail -s "Public Cert" ${BCC_EMAIL} $EO_EMAIL
-#    
-#    echo "Cert sended to Expres-Oplata"
-#  fi;	
+  echo "Sert created: ";
+  echo "Send this file to EasyPay: ${CERT_PATH}/easysoft.cer";
 
 }
 
@@ -471,7 +462,7 @@ case ${CERT_TYPE} in
               postfix_cert;
                 ;;
         easysoft)
-              easysoft_cert;
+              easysoft_cert $2;
                 ;;
         eap)
               eap_cert; 
