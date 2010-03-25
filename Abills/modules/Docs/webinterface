@@ -209,7 +209,7 @@ sub docs_invoice {
     $Docs->{CUSTOMER}= $users->{FIO} || '-';
     $Docs->{CAPTION} = $_INVOICE;
 
-    $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users });
+    $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users }) if (! $FORM{pdf});
    }
 
 
@@ -388,7 +388,6 @@ if ($FORM{print_list}) {
    	   $D{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f", $D{TOTAL_SUM} - $D{ORDER_TOTAL_SUM_VAT});
    	   $D{TOTAL_SUM_VAT}        = sprintf("%.2f", $D{TOTAL_SUM} - $D{TOTAL_SUM_WITHOUT_VAT});
      }
-
     $D{ORDER_PRICE_WITHOUT_VAT_1}=$D{TOTAL_SUM_WITHOUT_VAT} || 0,00;
     $D{ORDER_TOTAL_SUM_VAT}=$D{TOTAL_SUM_VAT} || 0,00;
 
@@ -502,8 +501,6 @@ my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
 while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
   $PAYMENTS_METHODS{$k}=$v;
  }
-
-
 
 if ($LIST_PARAMS{UID} || $FORM{UID}) {
 	docs_account();
