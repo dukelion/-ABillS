@@ -2178,7 +2178,7 @@ sub mk_log {
   my ($message, $attr) = @_;
  
   if (open(FILE, ">>paysys_check.log")) {
-    print FILE "$DATE $TIME $ENV{REMOTE_ADDR}=========================\n";
+    print FILE "\n$DATE $TIME $ENV{REMOTE_ADDR}=========================\n";
     print FILE $message;
 	  close(FILE);
 	 }
