@@ -93,6 +93,7 @@ fi;
 #**********************************************************
 # easysoft payments system
 # http://easysoft.com.ua/
+# kabanets@easysoft.com.ua
 #**********************************************************
 easysoft_cert () {
   echo "#******************************************************************************"
@@ -123,7 +124,7 @@ easysoft_cert () {
   chown ${APACHE_USER} ${CERT_PATH}/easysoft.cer ${CERT_PATH}/easysoft_private.ppk ${CERT_PATH}/easysoft_public.pem
 
   echo "Sert created: ";
-  echo "Send this file to EasyPay: ${CERT_PATH}/easysoft.cer";
+  echo "Send this file to EasyPay (kabanets@easysoft.com.ua): ${CERT_PATH}/easysoft.cer";
 
 }
 
