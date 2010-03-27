@@ -6,6 +6,7 @@ if (! $@) {
   Cards->import();
  }
 else {
+  print "Content-Type: text/html\n\n" if ($user->{UID});
   print "Can't load 'Cards'. Purchase this module http://abills.net.ua $@";
   exit; #return 0;
  }
@@ -224,6 +225,11 @@ if (defined($FORM{SERIA})) {
   @pin = ("PIN") if ($conf{CARDS_SHOW_PINS}) ;
   
   my $list = $Cards->cards_list({ %LIST_PARAMS, SERIA => $FORM{SERIA} });
+
+  if($Cards->{errno}) {
+    $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");  	
+  	return 0;
+   }
 
   $table = $html->table( { width      => '100%',
                            caption    => "$_SERIAL: $FORM{SERIA}",

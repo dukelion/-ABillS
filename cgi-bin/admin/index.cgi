@@ -115,6 +115,7 @@ if ($admin->{DOMAIN_ID}) {
 }
 
 $index = 0;
+
 $html = Abills::HTML->new({ CONF     => \%conf, 
                             NO_PRINT => 0, 
                             PATH     => $conf{WEB_IMG_SCRIPT_PATH} || '../',

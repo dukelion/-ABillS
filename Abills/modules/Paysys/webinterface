@@ -819,7 +819,7 @@ sub paysys_periodic () {
      	$res_hash{$res_arr->[$i]{ordernumber}}=$i;
      }
     
-    my $list = $Paysys->list({ DATE => $DATE, PAYMENT_SYSTEM => 5, INFO => '-' });
+    my $list = $Paysys->list({ DATE => $DATE, PAYMENT_SYSTEM => 45, INFO => '-' });
     my $users = Users->new($db, $admin, \%conf); 
     foreach my $line (@$list) {
     	#Add payments to abills

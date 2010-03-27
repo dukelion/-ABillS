@@ -1855,17 +1855,15 @@ elsif($FORM{LMI_HASH}) {
 	
   if (! in_array($FORM{LMI_PAYEE_PURSE}, \@ACCOUNTS)) {
   	$status = 'Not valid money account';
-  	#return 0;
    }
   elsif (defined($FORM{LMI_MODE}) && $FORM{LMI_MODE} == 1) {
   	$status = 'Test mode';
-  	#return 0;
    }
   elsif (length($FORM{LMI_HASH}) != 32 ) {
   	$status = 'Not MD5 checksum';
    }
   elsif ($FORM{LMI_HASH} ne $checksum) {
-  	$status = "Incorect checksum '$checksum'";
+  	$status = "Incorect checksum \"$checksum/$FORM{LMI_HASH}\"";
    }
   elsif ($user->{errno}) {
 		$status = "ERROR: $user->{errno}";
@@ -1875,9 +1873,7 @@ elsif($FORM{LMI_HASH}) {
 	 }
   else {
     #Add payments
-    my $er = 1;
-    
-    
+    my $er = 1;  
     if ($FORM{LMI_PAYEE_PURSE} =~ /^(\S)/ ) {
       my $payment_unit = 'WM'.$1;
       $payments->exchange_info(0, { SHORT_NAME => "$payment_unit"  });

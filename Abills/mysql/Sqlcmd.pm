@@ -150,16 +150,13 @@ sub list {
 my @rows = ();
 
 foreach my $query (@QUERY_ARRAY) {
-
 	next if (length($query) < 5);
-
   my $q = $db->prepare("$query",  { "mysql_use_result" => ($query !~ /!SELECT/gi ) ? 0 : 1   } ) || die $db->errstr;
   if($db->err) {
      $self->{errno} = 3;
      $self->{sql_errno}=$db->err;
      $self->{sql_errstr}=$db->errstr;
      $self->{errstr}=$db->errstr;
-   
      return $self->{errno};
    }
   $q->execute(); 
@@ -184,7 +181,6 @@ foreach my $query (@QUERY_ARRAY) {
 
 
    $self->{TOTAL} = $q->rows;
-
 
    while(my @row = $q->fetchrow()) {
      push @rows, \@row;

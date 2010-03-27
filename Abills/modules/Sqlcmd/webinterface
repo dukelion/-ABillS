@@ -28,7 +28,7 @@ sub sqlcmd {
 my $FORM2  = ();
 my @pairs = split(/&/, $FORM{__BUFFER});
 
-$liST_PARAMS{PAGE_ROWS}=15;
+$LIST_PARAMS{PAGE_ROWS}=15;
 
 
 if ($FORM{QUERY_ID}) {
@@ -102,11 +102,9 @@ if ($FORM{WIZARD}) {
  $Sqlcmd->{SQL_HISTORY} = $table->show({ OUTPUT2RETURN => 1 });
  
 
- $html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, \%FORM });
- 
-
- 
-  my $list = $Sqlcmd->list( { %FORM2 } ) if (defined($FORM2{QUERY}) && length($FORM2{QUERY}) > 10);
+if (! $FORM{FIELD}) {
+ $html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, \%FORM }) ;
+ my $list = $Sqlcmd->list( { %FORM2 } ) if (defined($FORM2{QUERY}) && length($FORM2{QUERY}) > 10);
 
 
 if ($FORM{QUERY} && ! $FORM{xml}) {
@@ -155,14 +153,10 @@ if ($Sqlcmd->{errno}) {
   return 0;
  }
 
-
 $pages_qs .= "&QUERY=$FORM{QUERY}";
-
 
   my @CAPTION = ();
   @CAPTION = @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} } if ($Sqlcmd->{MYSQL_FIELDS_NAMES});
- 
-
   $table = $html->table( { width   => '100%',
                            border  => 1,
   	                       caption => $_RESULT,
@@ -188,29 +182,184 @@ $pages_qs .= "&QUERY=$FORM{QUERY}";
                         } );
 
   print $table->show();
-
+}
 
 if ($FORM{TABLE_INFO}) {
+  if ($FORM{FIELD}) {
+    if ($FORM{change}) {
+    	
+    	if ($FORM{COLUMN_TYPE} =~ /INT/ig) {
+    		$FORM{COLLATION} = "";
+    	 }
+    	elsif ($FORM{COLLATION}) {
+    	  $FORM{COLLATION} = " COLLATE $FORM{COLLATION} ";
+    	  $FORM{AUTO_INCREMENT}='';
+    	 }
+    	
+    	$FORM{DEFAULT} = "''" if (! $FORM{DEFAULT});
+    	
+    	my $query = "ALTER TABLE $FORM{TABLE_INFO} CHANGE COLUMN $FORM{FIELD} $FORM{NAME} $FORM{COLUMN_TYPE}($FORM{COLUMN_LENGTH}) $FORM{AUTO_INCREMENT} $FORM{COLLATION} $FORM{ATTRIBUTE_TYPE} DEFAULT $FORM{DEFAULT} ";
+    	
+    	print $query;
+    	$Sqlcmd->list({ QUERY => $query });
+     }
+
+    my $list = $Sqlcmd->list({ QUERY => "SHOW FULL COLUMNS FROM $CONF->{dbname}.$FORM{TABLE_INFO} LIKE '$FORM{FIELD}' " });
+    $FORM{NAME}            = $FORM{FIELD};
+    
+    if ($list->[0]->[1] =~ /(\S+)\((\d+)\)\s?(.{0-30})?/) {
+      $FORM{COLUMN_TYPE}     = uc($1);
+      $FORM{COLUMN_LENGTH}   = $2;
+      $FORM{ATTRIBUTE_TYPE}  = $3;
+     }
+    $FORM{COLLATION}=$list->[0]->[2];
+    $FORM{DEFAULT}  =$list->[0]->[5];
+    $FORM{AUTO_INCREMENT}= ($list->[0]->[6] eq 'auto_increment') ? 'checked' : '';
+    
+my %COLUMN_TYPES = (
+    # most used
+    'INT' => 'INT',
+    'VARCHAR' => 'VARCHAR',
+    'TEXT' => 'TEXT',
+    'DATE' => 'DATE',
+
+    # numeric
+    'NUMERIC' => [
+        'TINYINT',
+        'SMALLINT',
+        'MEDIUMINT',
+        'INT',
+        'BIGINT',
+        '-',
+        'DECIMAL',
+        'FLOAT',
+        'DOUBLE',
+        'REAL',
+        '-',
+        'BIT',
+        'BOOLEAN',
+        'SERIAL',
+    ],
+    # Date/Time
+    'DATE and TIME' => [
+        'DATE',
+        'DATETIME',
+        'TIMESTAMP',
+        'TIME',
+        'YEAR',
+    ],
+
+    # Text
+    'STRING' => [
+        'CHAR',
+        'VARCHAR',
+        '-',
+        'TINYTEXT',
+        'TEXT',
+        'MEDIUMTEXT',
+        'LONGTEXT',
+        '-',
+        'BINARY',
+         'BINARY',
+        'VARBINARY',
+        '-',
+        'TINYBLOB',
+        'MEDIUMBLOB',
+        'BLOB',
+        'LONGBLOB',
+        '-',
+        'ENUM',
+        'SET',
+    ],
+
+    'SPATIAL' => [
+        'GEOMETRY',
+        'POINT',
+        'LINESTRING',
+        'POLYGON',
+        'MULTIPOINT',
+        'MULTILINESTRING',
+        'MULTIPOLYGON',
+        'GEOMETRYCOLLECTION',
+    ]
+);
+
+    $Sqlcmd->{COLUMN_TYPE_SEL} = $html->form_select('COLUMN_TYPE', 
+                                                   {
+                                                   	 SELECTED => $FORM{COLUMN_TYPE},
+                                                   	 SEL_HASH => \%COLUMN_TYPES,
+                                                   	 NO_ID    => 1
+                                                   }
+                                                  );
+
+    my @ATTRIBUTE_TYPES = (
+      '',
+      'BINARY',
+      'UNSIGNED',
+      'UNSIGNED ZEROFILL',
+      'on update CURRENT_TIMESTAMP'
+     );
+
+    $Sqlcmd->{ATTRIBUTE_TYPE_SEL} = $html->form_select('ATTRIBUTE_TYPE', 
+                                                   {
+                                                   	 SELECTED  => $FORM{ATTRIBUTE_TYPE},
+                                                   	 SEL_ARRAY => \@ATTRIBUTE_TYPES,
+                                                   	 NO_ID     => 1
+                                                   }
+                                                  );
+
+    $Sqlcmd->query($db, "SHOW COLLATION");
+    my $COLLATION_HASH = ('' => '');
+    foreach my $line (@{ $Sqlcmd->{list} } ) {
+    	push @{ $COLLATION_HASH{$line->[1]} }, $line->[0];
+     }
+
+    $Sqlcmd->{COLLATION_SEL} = $html->form_select('COLLATION', 
+                                                   {
+                                                   	 SELECTED => "$FORM{COLLATION}",
+                                                   	 SEL_HASH => \%COLLATION_HASH
+                                                   }
+                                                  );
+
+    $html->tpl_show(_include('sqlcmd_field', 'Sqlcmd'), { %$Sqlcmd, %FORM });  	
+   }
+  
+  my $list = $Sqlcmd->list({ QUERY => "SHOW FULL COLUMNS FROM $CONF->{dbname}.$FORM{TABLE_INFO}" });
+  @CAPTION = @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} } if ($Sqlcmd->{MYSQL_FIELDS_NAMES});
+
   $table = $html->table( { width        => '100%',
                            border       => 1,
                            caption      => $FORM{TABLE_INFO},
-                           title_plain  => [$_NAME, $_TYPE, "$_MAX $_LENGTH", "NO NULL", 'INDEX', 'PRIMARY_INDEX'], 
+                           #title_plain  => [$_NAME, $_TYPE, "$_MAX $_LENGTH", "NO NULL", 'INDEX', 'PRIMARY_INDEX'], 
+                           title_plain  => [ @CAPTION, '-' ]
                        } );
-	
+  
+  foreach my $line (@$list) {
+  	$table->{rowcolor} = ($line->[0] eq $FORM{FIELD}) ? $_COLORS[0] : undef;
 
-
-
-	my $i=0;
-	foreach my $line (@CAPTION) {
-		$table->addrow($html->form_input('FIELDS', $line, {TYPE => 'CHECKBOX' } ). " $line", 
-		 "$Sqlcmd->{MYSQL_TYPE_NAME}->[$i] ($Sqlcmd->{MYSQL_LENGTH}->[$i])",
-	 	 $Sqlcmd->{MYSQL_MAX_LENGTH}->[$i],
-	 	 $bool_vals[$Sqlcmd->{MYSQL_IS_NOT_NULL}->[$i]],
-		 $bool_vals[$Sqlcmd->{MYSQL_IS_KEY}->[$i]],
-		 $bool_vals[$Sqlcmd->{MYSQL_IS_PRIMARY_KEY}->[$i]]
-		 );
-		$i++;
-	 }
+	 	$table->addrow($html->form_input('FIELDS', $line, {TYPE => 'CHECKBOX' } ). " $line->[0]", 
+	 	 $line->[1],
+	 	 $line->[2],
+	 	 $line->[3],
+	 	 $line->[4],
+	 	 $line->[5],
+	 	 $line->[6],
+	 	 $line->[7],
+	 	 $line->[8],
+	 	 $html->button($_CHANGE, "index=$index&TABLE_INFO=$FORM{TABLE_INFO}&FIELD=$line->[0]", { BUTTON => 1 })
+	 	 );
+   }
+	#my $i=0;
+	#foreach my $line (@CAPTION) {
+	#	$table->addrow($html->form_input('FIELDS', $line, {TYPE => 'CHECKBOX' } ). " $line", 
+	#	 "$Sqlcmd->{MYSQL_TYPE_NAME}->[$i] ($Sqlcmd->{MYSQL_LENGTH}->[$i])",
+	# 	 $Sqlcmd->{MYSQL_MAX_LENGTH}->[$i],
+	# 	 $bool_vals[$Sqlcmd->{MYSQL_IS_NOT_NULL}->[$i]],
+	#	 $bool_vals[$Sqlcmd->{MYSQL_IS_KEY}->[$i]],
+	#	 $bool_vals[$Sqlcmd->{MYSQL_IS_PRIMARY_KEY}->[$i]]
+	#	 );
+	#	$i++;
+	# }
 
 
   $table2 = $html->table({ width        => '100%',
@@ -292,6 +441,7 @@ sub sqlcmd_tables {
 	sqlcmd_cluster_info();
 	#SHOW TABLE STATUS FROM abills;
   #$table{size} = Index_length + Data_length
+  # ALTER TABLE `abon_tariffs` CHANGE `name` `name` VARCHAR( 20 ) CHARACTER SET cp1251 COLLATE cp1251_general_ci NOT NULL DEFAULT ''
   $FORM{sort} = 1 if (! $FORM{sort});
 
   my $list = $Sqlcmd->info({ TYPE => 'showtables', %LIST_PARAMS, %FORM });
@@ -308,6 +458,7 @@ sub sqlcmd_tables {
                   'Type',
                   'Row_format',
                   "Comment",
+                  'Collation',
                   'Rows',
                   "Size",
                   "-");
