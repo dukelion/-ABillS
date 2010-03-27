@@ -60,10 +60,7 @@ my $CONF;
 
 
 my $row_number = 0;
-
-
 #require "Abills/templates.pl";
-
 
 #**********************************************************
 # Create Object
@@ -162,7 +159,6 @@ sub new {
   #Make  PDF output
   if ($FORM{pdf} || $attr->{pdf}) {
     $FORM{pdf}=1;
-
     eval { require PDF::API2; };
     if (! $@) {
       PDF::API2->import();
@@ -170,11 +166,10 @@ sub new {
       $self = Abills::PDF->new( { IMG_PATH  => $IMG_PATH,
       	                          NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
       	                          CONF      => $CONF
-      	                          
-	                            
 	                            });
      }
     else {
+    	print "Content-Type: text/html\n\n";
       print "Can't load 'PDF::API2'. Get it from http://cpan.org $@";
       exit; #return 0;
      }
@@ -452,7 +447,6 @@ sub form_select {
   elsif (defined($attr->{SEL_MULTI_ARRAY})){
     my $key   = $attr->{MULTI_ARRAY_KEY};
     my $value = $attr->{MULTI_ARRAY_VALUE};
-    
 	  my $H = $attr->{SEL_MULTI_ARRAY};
 
 	  foreach my $v (@$H) {
@@ -471,10 +465,7 @@ sub form_select {
       else {
         $self->{SELECT} .= "$v->[$value]";
        }
-     
       $self->{SELECT} .= "\n";
-
-
      }
    }
   elsif (defined($attr->{SEL_HASH})) {
@@ -490,15 +481,57 @@ sub form_select {
      }
     
     foreach my $k (@H) {
-      $self->{SELECT} .= "<option value='$k'";
-      $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$k];' " if ($attr->{STYLE});
-      $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
+      if(ref $attr->{SEL_HASH}->{$k} eq 'ARRAY') {
+        $self->{SELECT}.="<optgroup label=\"$k\" title=\"$k\">\n";
 
-      $self->{SELECT} .= ">";
-      $self->{SELECT} .= "$k:" if (! $attr->{NO_ID});
-      $self->{SELECT} .= "$attr->{SEL_HASH}{$k}\n";	
+        foreach my $val ( @{ $attr->{SEL_HASH}->{$k} } ) {
+          $self->{SELECT} .= "<option value='$val'";
+          $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$val];' " if ($attr->{STYLE});
+          $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $val eq $attr->{SELECTED});
+
+          $self->{SELECT} .= ">";
+          #$self->{SELECT} .= "$val:" if (! $attr->{NO_ID});
+          $self->{SELECT} .= "$val\n";	
+         }
+         $self->{SELECT}.="</optgroup>";
+       }
+      else {
+        $self->{SELECT} .= "<option value='$k'";
+        $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$k];' " if ($attr->{STYLE});
+        $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
+        $self->{SELECT} .= ">";
+        $self->{SELECT} .= "$k:" if (! $attr->{NO_ID});
+        $self->{SELECT} .= "$attr->{SEL_HASH}{$k}\n";	
+       }
      }
    }
+#  elsif (defined($attr->{SEL_HASH_GROUP})) {
+#    my @H = ();
+#
+#	  if ($attr->{SORT_KEY}) {
+#	  	@H = sort keys %{ $attr->{SEL_HASH} };
+#	  }
+#	  else {
+#	    @H = sort {
+#             $attr->{SEL_HASH_GROUP}->{$a} cmp $attr->{SEL_HASH_GROUP}->{$b}
+#           } keys %{ $attr->{SEL_HASH_GROUP} }; 
+#     }
+#    
+#    foreach my $k_main (@H) {
+#      $self->{SELECT}.="<optgroup label=\"$k_main\" title=\"$k_main\">\n";
+#
+#      while(my ($k, $v)=each %{ $attr->{SEL_HASH_GROUP}->{$k_main} } ) {
+#        $self->{SELECT} .= "<option value='$k'";
+#        $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$k];' " if ($attr->{STYLE});
+#        $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
+#
+#        $self->{SELECT} .= ">";
+#        $self->{SELECT} .= "$k:" if (! $attr->{NO_ID});
+#        $self->{SELECT} .= "$attr->{SEL_HASH}{$k}\n";	
+#       }
+#      $self->{SELECT}.="</optgroup>";
+#     }
+#   }
 	
 	$self->{SELECT} .= "</select>\n";
 
@@ -572,8 +605,8 @@ sub menu () {
  my $sub_menu_array;
  my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
 
- # make navigate line 
- if ($index > 0) {
+# make navigate line 
+if ($index > 0) {
   $root_index = $index;	
   my $h = $menu_items->{$root_index};
 

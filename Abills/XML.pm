@@ -350,7 +350,6 @@ sub getCookies {
 sub menu {
  my $self = shift;
  my ($menu_items, $menu_args, $permissions, $attr) = @_;
- 
 
  return 0 if ($FORM{index} > 0);
  
@@ -370,17 +369,12 @@ while((my($findex, $hash)=each(%$menu_items))) {
     }
 }
 
-
-
 my $h = $new_hash{0};
 my @last_array = ();
 
+
 my @menu_sorted = sort {
-   $h->{$b} <=> $h->{$a}
-     ||
-   length($a) <=> length($b)
-     ||
-   $a cmp $b
+   $b cmp $a
 } keys %$h;
 
 for(my $parent=1; $parent<$#menu_sorted + 1; $parent++) { 
@@ -388,13 +382,9 @@ for(my $parent=1; $parent<$#menu_sorted + 1; $parent++) {
   my $level = 0;
   my $prefix = '';
   my $ID = $menu_sorted[$parent];
-  
 
   next if((! defined($attr->{ALL_PERMISSIONS})) && (! $permissions->{$parent-1}) && $parent == 0);
-#  next if (! defined($permissions->{($parent-1)}));  
   $menu_text .= "<MENU NAME=\"$fl->{$ID}\" ID=\"$ID\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\" DESCRIBE=\"$val\" TYPE=\"MAIN\"/>\n ";
-
-  #next;
   if (defined($new_hash{$ID})) {
     $level++;
     $prefix .= "   ";
@@ -402,7 +392,7 @@ for(my $parent=1; $parent<$#menu_sorted + 1; $parent++) {
       my $mi = $new_hash{$ID};
 
       while(my($k, $val)=each %$mi) {
-         $menu_text .= "$prefix<MENU NAME=\"$fl->{$k}\" ID=\"$k\" EX_ARGS=\"". $self->link_former("$EX_ARGS") ."\" DESCRIBE=\"$val\" TYPE=\"SUB\" PARENT=\"$ID\"/>\n ";
+        $menu_text .= "$prefix<MENU NAME=\"$fl->{$k}\" ID=\"$k\" EX_ARGS=\"". $self->link_former("$EX_ARGS") ."\" DESCRIBE=\"$val\" TYPE=\"SUB\" PARENT=\"$ID\"/>\n ";
 
         if (defined($new_hash{$k})) {
       	   $mi = $new_hash{$k};
@@ -423,132 +413,10 @@ for(my $parent=1; $parent<$#menu_sorted + 1; $parent++) {
     }
     delete($new_hash{0}{$parent});
    }
-
-# return 0;
 }
-
 
  return ($menu_navigator, $menu_text);
 }
-
-sub menu2 () {
- my $self = shift;
- my ($menu_items, $menu_args, $permissions, $attr) = @_;
-
- my $menu_navigator = '';
- my $root_index     = 0;
- my %tree           = ();
- my %menu           = ();
- my $sub_menu_array;
- my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
- my $fl = $attr->{FUNCTION_LIST};
-
- # make navigate line 
- if ($index > 0) {
-   $root_index = $index;
-   my $h = $menu_items->{$root_index};
-
-   while(my ($par_key, $name) = each ( %$h )) {
-
-     my $ex_params = (defined($FORM{$menu_args->{$root_index}})) ? '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}" : '';
-    
-     $menu_navigator =  " ". $self->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
-     $tree{$root_index}='y';
-     if ($par_key > 0) {
-        $root_index = $par_key;
-        $h = $menu_items->{$par_key};
-      }
-    }
-}
-
-$FORM{root_index} = $root_index;
-if ($root_index > 0) {
-  my $ri = $root_index-1;
-  if (defined($permissions) && (! defined($permissions->{$ri}))) {
-	  $self->{ERROR} = "Access deny";
-	  return '', '';
-   }
-}
-
-
-my @s = sort {
-   length($a) <=> length($b)
-     ||
-   $a cmp $b
-} keys %$menu_items;
-
-
-
-foreach my $ID (@s) {
- 	my $VALUE_HASH = $menu_items->{$ID};
- 	foreach my $parent (keys %$VALUE_HASH) {
-# 		print "$parent, $ID<br>";
-    push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
-   }
-}
-
- my @last_array = ();
-
-    my $menu_text = "\n<NAVIGATOR>\n";
- 	  my $level  = 0;
- 	  my $prefix = '';
-    
-    my $parent = 0;
-
- 	  label:
- 	  $sub_menu_array =  \@{$menu{$parent}};
- 	  my $m_item='';
- 	  
- 	  my %table_items = ();
- 	  
- 	  while(my $sm_item = pop @$sub_menu_array) {
- 	     my($ID, $name)=split(/:/, $sm_item, 2);
- 	     next if((! defined($attr->{ALL_PERMISSIONS})) && (! $permissions->{$ID-1}) && $parent == 0);
-
-       if(! defined($menu_args->{$ID}) || (defined($menu_args->{$ID}) && defined($FORM{$menu_args->{$ID}})) ) {
-       	   my $ext_args = "$EX_ARGS";
-       	   if (defined($menu_args->{$ID})) {
-       	     $ext_args = "&$menu_args->{$ID}=$FORM{$menu_args->{$ID}}";
-       	     $name = "<b>$name</b>" if ($name !~ /<b>/);
-       	    }
-
-       	   #my $link = $self->button($name, "index=$ID$ext_args");
-    	       if($parent == 0) {
- 	        	   $menu_text .= "<ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\" TYPE=\"MAIN\" />\n";
-	            }
- 	           elsif(defined($tree{$ID})) {
-   	           $menu_text .= "<ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\" TYPE=\"TREE\" />\n"; 
- 	            }
- 	           else {
- 	             $menu_text .= "  <ITEM NAME=\"$fl->{$ID}\" ID=\"$ID\" DESCRIBE=\"$name\" EX_ARGS=\"". $self->link_former($EX_ARGS) ."\" TYPE=\"SUB\" PARENT=\"$parent\" />\n"; 
- 	            }
-         }
-        else {
-          #next;
-         }
-
- 	     if(defined($tree{$ID})) {
- 	     	 $level++;
- 	     	 $prefix .= "&#160;&#160;&#160;";
-         push @last_array, $parent;
-         $parent = $ID;
- 	     	 $sub_menu_array = \@{$menu{$parent}};
- 	      }
- 	   }
-
-    if ($#last_array > -1) {
-      $parent = pop @last_array;	
-      #print "POP/$#last_array/$parent/<br>\n";
-      $level--;
-      $prefix = substr($prefix, 0, $level * 6 * 3);
-      goto label;
-     }
-
- $menu_text .= "</NAVIGATOR>\n";
-
- return ($menu_navigator, $menu_text);
-}
-
 
 #*******************************************************************
 # heder off main page
