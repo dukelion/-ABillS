@@ -573,9 +573,7 @@ sub msgs_admin {
 
     $Msgs->{EXT_INFO}=$html->tpl_show(_include('msgs_managment', 'Msgs'), 
       $Msgs, { notprint => 1 } );
-
-
-   
+  
     #$Msgs->{THREADS} = $html->button($Msgs->{SUBJECT}. " ($_DATE: $Msgs->{DATE}) ", "");
     #if ($Msgs->{REPLIES_COUNT} > 0) {
     #	foreach my $line (@{ $Msgs->{REPLIES_COUNT} }) {
@@ -646,9 +644,8 @@ sub msgs_admin {
  	 	               ID         => $FORM{chg},
  	 	               ADMIN_READ => "$DATE $TIME",
  	 	               });
- 	 	               
      }
-    
+
     return 0;
    }
   elsif ($FORM{ATTACHMENT}) {
@@ -666,28 +663,28 @@ sub msgs_admin {
 
   if ($Msgs->{errno}) {
      $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
-   } 
+   }
 
   if (scalar keys %CHAPTERS_DELIGATION > 0) {
     $LIST_PARAMS{CHAPTERS_DELIGATION} = \%CHAPTERS_DELIGATION;
     $LIST_PARAMS{UID}      = undef if (! $FORM{UID}); 
    }
 
-
   if (! $FORM{UID}) {
     $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
                                           { 
  	                                          SELECTED          => $FORM{STATE} || 3,
- 	                                          SEL_ARRAY         => [@msg_status, "$_ALL" ],
+ 	                                          SEL_OPTIONS       => { '' => $_ALL },
+ 	                                          SEL_ARRAY         => [@msg_status],
  	                                          STYLE             => \@style,
  	                                          ARRAY_NUM_ID      => 0
  	                                        });
 
-
 	  $Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
                                           { 
  	                                          SELECTED          => $FORM{PRIORITY} || 5,
- 	                                          SEL_ARRAY         => [@priority,  "$_ALL" ],
+ 	                                          SEL_OPTIONS       => { '' => $_ALL },
+ 	                                          SEL_ARRAY         => [@priority],
  	                                          STYLE             => \@priority_colors,
  	                                          ARRAY_NUM_ID      => 1
  	                                        });
@@ -858,6 +855,9 @@ sub msgs_user {
                   "$_ANSWER_WAIT",
                   );
 
+
+  $FORM{ID}=$Msgs->{LAST_ID} if ($Msgs->{LAST_ID});
+
 	 $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
                                           { 
  	                                          SELECTED          => $FORM{STATE} || 0,
@@ -975,8 +975,6 @@ sub msgs_user {
            	 MESSAGE => $FORM{REPLY_TEXT},
            	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}           	  
            	 }, { OUTPUT2RETURN => 1 } );
-
-
 
         sendmail("$conf{ADMIN_MAIL}",
           "$line->[7]",
@@ -1510,6 +1508,7 @@ sub msgs_new {
     $Msgs->messages_new({ %SHOW_PARAMS });
 
     if ($Msgs->{TOTAL} > 0 && $Msgs->{UNREAD} > 0) {
+    	
       return "($Msgs->{UNREAD})";
      }
 
@@ -1519,6 +1518,7 @@ sub msgs_new {
     %SHOW_PARAMS = (ADMIN_READ => '0000-00-00 00:00:00',
                     GIDS       => ($admin->{GIDS}) ? $admin->{GIDS} : $admin->{GID}
                     );
+
     my $a_list    = $Msgs->admins_list({ AID => $attr->{AID} });
     my @A_CHAPTER = ();
 
@@ -1537,7 +1537,6 @@ sub msgs_new {
       return "($Msgs->{UNREAD}/$Msgs->{TODAY}/$Msgs->{OPENED})";
      }
    }
-
 
   return '';
 }
