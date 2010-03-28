@@ -191,7 +191,18 @@ sub msgs_admin_add {
           	                 });
 
           if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
-            $Dv->change({ UID => $FORM{UID}, FILTER_ID => $conf{MSGS_REDIRECT_FILTER_ADD} });	
+          	$conf{MSGS_REDIRECT_FILTER_ADD}=~/(EXEC:.+;)?(RAD:.+)?/;
+          	my $cmd = $1;
+          	my $rad = $2;
+          	if ( $cmd ne '') {
+   		         tpl_parse($cmd, { ACTION => 'start', %FORM });
+       	    	 $cmd =~ s/\%IP\%/$ENV{REMOTE_ADDR}/g;
+            	 my $res = `$cmd`;
+          	 }
+     
+            if ($rad ne '') {
+              $Dv->change({ UID => $FORM{UID}, FILTER_ID => $rad });	
+             }
            }
         }
 
@@ -845,7 +856,6 @@ print $table->show();
 #
 #*******************************************************************
 sub msgs_user {
-
   my @msg_status_all = ("$_OPEN",
                   "$_CLOSED_UNSUCCESSFUL",
                   "$_CLOSED_SUCCESSFUL",
@@ -2292,14 +2302,10 @@ print $table->show();
 #
 #**********************************************************
 sub msgs_unreg_requests {
-
-
   if ($FORM{add}) {
     $Msgs->unreg_requests_add({ %FORM });
-
     $html->message('info', $_INFO, "$_ADDED") if (! $Msgs->{errno});  	
    }
-
 
   if ($Msgs->{errno}) {
      $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
@@ -2315,7 +2321,6 @@ sub msgs_unreg_requests {
  	                                          STYLE             => \@priority_colors,
  	                                          ARRAY_NUM_ID      => 1
  	                                        });
-
 
   $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
                                           { 
@@ -2333,7 +2338,6 @@ sub msgs_unreg_requests {
  	                                        }); 
 
   $Msgs->{DATE} = "$DATE $TIME";
-
   $Msgs->{CHAPTER_SEL} = $html->form_select('CHAPTER', 
                                           { 
  	                                          SELECTED          => $Msgs->{CHAPTER},
@@ -2342,12 +2346,9 @@ sub msgs_unreg_requests {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
-
-
   $Msgs->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $Msgs, { notprint => 1 });
   $html->tpl_show(_include('msgs_unreg_request', 'Msgs'), $Msgs);	
-  
-  
+
   msgs_unreg_requests_list({ LIST_ONLY => 1 })
 }
 
