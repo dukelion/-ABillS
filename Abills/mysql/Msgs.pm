@@ -1070,7 +1070,6 @@ sub messages_reports {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
-
  if ($attr->{DATE}) {
     push @WHERE_RULES, "date_format(m.date, '%Y-%m-%d')='$attr->{DATE}'";
     $date = "date_format(m.date, '%Y-%m-%d')";
