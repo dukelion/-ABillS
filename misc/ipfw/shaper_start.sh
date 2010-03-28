@@ -14,6 +14,9 @@ NAT_IPS="";
 FAKE_NET="10.0.0.0/16"
 NAT_IF="";
 
+#Negative deposit forward
+NEG_DEPOSIT_FWD="1"
+
 IPFW=/sbin/ipfw
 EXTERNAL_INTERFACE=`/sbin/route get 91.203.4.17 | grep interface: | awk '{ print $2 }'`
 INTERNAL_INTERFACE=ng*
@@ -139,7 +142,6 @@ done;
 #${IPFW} 30 add fwd 192.168.72.1 ip from 192.168.72.140 to any    
 
 
-
 # nat real to fake
 #${IPFW} add 00600 nat tablearg ip from any to table\(21\) in recv ${EXTERNAL_INTERFACE}
 # nat fake to real
@@ -150,7 +152,6 @@ if [ w$1 = wstart ]; then
     NAT_IF="via ${NAT_IF}"
   fi;
 
-
   ${IPFW} add 60010 nat tablearg ip from table\(` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 `\) to any $NAT_IF
   ${IPFW} add 60020 nat tablearg ip from any to table\(${NAT_REAL_TO_FAKE_TABLE_NUM}\) $NAT_IF
   
@@ -159,6 +160,35 @@ if [ w$1 = wstart ]; then
   fi;
 else if [ w$1 = wstop ]; then
   ${IPFW} delete 60010 60020
+fi;
+fi;
+
+fi;
+
+
+#FWD Section
+if [ w${NEG_DEPOSIT_FWD} != w ]; then
+  if [ w${WEB_SERVER_IP} = w ]; then
+    WEB_SERVER_IP=127.0.0.1;
+  fi;
+
+INTERNAL_IF="ng*";
+FWD_RULE=10014;
+
+
+#Forwarding
+if [ w$1 = wstart ]; then
+  echo "Negative Deposit Forward Section - start"; 
+  ${IPFW} add ${FWD_RULE} fwd ${WEB_SERVER_IP},80 tcp from table\(32\) to any dst-port 80,443 via ${INTERNAL_IF}
+  ${IPFW} add `expr ${FWD_RULE}+10` deny ip from table\(32\) to any via ${INTERNAL_IF}
+else if [ w$1 = wstop ]; then
+  echo "Negative Deposit Forward Section - stop:"; 
+  ${IPFW} delete ${FWD_RULE}
+  ${IPFW} delete `expr ${FWD_RULE}+10`
+else if [ w$1 = wshow ]; then
+  echo "Negative Deposit Forward Section - status:"; 
+  ${IPFW} show ${FWD_RULE}
+fi;
 fi;
 fi;
 
