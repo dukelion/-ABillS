@@ -1113,13 +1113,12 @@ my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index&
 
 foreach my $name ( @msg_status) {
 	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
-    $LIST_PARAMS{STATE}=$FORM{STATE};
+    $LIST_PARAMS{STATE}=($FORM{STATE} == 0) ? '0;6' : $FORM{STATE};
     $status_bar .= ' '. $html->b($name);
 	 }
 	else {
 	  $status_bar .= ' ' .$html->button("$name", "index=$index&STATE=$i$pages_qs");
 	 }
-
   $i++;
 }
 
@@ -1129,8 +1128,6 @@ foreach my $name ( @msg_status) {
   else {
     $pages_qs.="&STATE=$FORM{STATE}";
    }
-  
-
 
   my  $list = $Msgs->messages_list({ %LIST_PARAMS });  
   my $table = $html->table( { width        => '100%',
@@ -1143,12 +1140,9 @@ foreach my $name ( @msg_status) {
                               header       => $status_bar
                            });
 
-
 foreach my $line (@$list) {
-#  my $state = '<img src="img/red_dot.gif" border="0" alt="No reply"/>' if ($line->[5] eq '');
-  
   $table->{rowcolor} = ($line->[0] == $FORM{ID}) ? $_COLORS[0] : undef ;
-  
+
   $table->addrow(
     ($line->[15] ne '0000-00-00 00:00:00') ? $html->button($line->[2], "index=$index&ID=$line->[0]&sid=$sid") : $html->button($html->b($line->[2]), "index=$index&ID=$line->[0]&sid=$sid"), 
     $line->[3],
