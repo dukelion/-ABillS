@@ -436,7 +436,7 @@ sub msgs_admin {
  	  if ($FORM{RUN_TIME}) {
    	 	 my ($h, $min, $sec)=split(/:/, $FORM{RUN_TIME}, 3);
    	 	 $FORM{RUN_TIME}=$h*60*60+$min*60+$sec;
-   	  }
+   	 }
 
     $Msgs->message_reply_add({ %FORM, 
     	                         AID   => $admin->{AID},
@@ -507,7 +507,6 @@ sub msgs_admin {
           undef,
           { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}",
           	                 "X-ABillS-REPLY-ID: $Msgs->{REPLY_ID}" ] });
-
      }
     
     goto MSG_LABEL;
@@ -525,8 +524,8 @@ sub msgs_admin {
     $Msgs->{ACTION}    ='reply';
     $Msgs->{ACTION_LNG}=$_REPLY;
 
-    $Msgs->{STATE_NAME}=$html->color_mark($msg_status[$Msgs->{STATE}], $style[$Msgs->{STATE}]);
-    $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
+    $Msgs->{STATE_NAME}= $html->color_mark($msg_status[$Msgs->{STATE}], $style[$Msgs->{STATE}]);
+    $Msgs->{STATE_SEL} = $html->form_select('STATE', 
                                           { 
  	                                          SELECTED          => $Msgs->{STATE} || 0,
  	                                          SEL_ARRAY         => \@msg_status,
@@ -557,9 +556,7 @@ sub msgs_admin {
 # 	                                          MULTI_ARRAY_VALUE => 1,
 # 	                                        });    
     
-    $Msgs->{PLAN_DATE}   = $html->date_fld2('PLAN_DATE', { NO_DEFAULT_DATE=>1, MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS });
-    
-    
+    $Msgs->{PLAN_DATE} = $html->date_fld2('PLAN_DATE', { NO_DEFAULT_DATE=>1, MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS });
     $Msgs->{RESPOSIBLE}=$html->form_select('RESPOSIBLE', 
                                           { 
  	                                          SELECTED          => $Msgs->{RESPOSIBLE} || 0,
@@ -605,8 +602,10 @@ sub msgs_admin {
        }
 
       $line->[2] = convert($line->[2], { text2html => 1 });
+
       $line->[2] =~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
       $line->[2] =~ s/&gt; (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
+
       
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
           REPLY_ID   => $line->[0],
@@ -639,10 +638,10 @@ sub msgs_admin {
 
       	 }, { notprint => 1 });
     
-    $Msgs->{MESSAGE}=convert($Msgs->{MESSAGE}, { text2html => 1 });
+
+    $Msgs->{MESSAGE}=convert($Msgs->{MESSAGE}, { text2html => 1, SHOW_URL => 1 });
     $Msgs->{SUBJECT}=convert($Msgs->{SUBJECT}, { text2html => 1 });
-    
-    
+
    
     if ($Msgs->{FILENAME}) {
       $Msgs->{ATTACHMENT}="$_ATTACHMENT: ". $html->button("$Msgs->{FILENAME}", "qindex=$index&ATTACHMENT=$Msgs->{ATTACHMENT_ID}", { TARGET => '_new' }). " ($_SIZE: ". int2byte($Msgs->{FILESIZE}) .')';
@@ -1043,7 +1042,7 @@ sub msgs_user {
       $html->message('info', $_INFO, "$msg_status[$Msgs->{STATE}] $_DATE: $Msgs->{CLOSED_DATE}");  	
      }
      
-     $Msgs->{MESSAGE}=convert($Msgs->{MESSAGE}, { text2html => 1 });
+     $Msgs->{MESSAGE}=convert($Msgs->{MESSAGE}, { text2html => 1, SHOW_URL => 1 });
      $Msgs->{SUBJECT}=convert($Msgs->{SUBJECT}, { text2html => 1 });
    
     if ($Msgs->{FILENAME}) {
