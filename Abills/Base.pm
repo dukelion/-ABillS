@@ -112,6 +112,9 @@ sub convert {
      $text =~ s/>/&gt;/g;
      $text =~ s/\"/&quot;/g;
      $text =~ s/\n/<br>\n/gi;
+     if ($attr->{SHOW_URL}) {
+       $text =~ s/(http:\/\/[a-z\.0-9\/]+)/<a href=\'$1\' target=_new>$1<\/a>/ig;
+      }
    }
 	elsif($attr->{'from_tpl'}) {
      $text =~ s/textarea/__textarea__/g;
