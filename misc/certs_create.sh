@@ -109,7 +109,7 @@ easysoft_cert () {
     EASYSOFT_PUBLIC_KEY=$1;
   fi;
 
-  ${OPENSSL} x509 -inform pem -in ${EASYSOFT_PUBLIC_KEY} -pubkey -out ${OPENSSL}/easysoft-public-key.pem > /usr/abills/Certs/easysoft_server_public.pem
+  ${OPENSSL} x509 -inform pem -in ${EASYSOFT_PUBLIC_KEY} -pubkey -out ${CERT_PATH}/easysoft_public_key.pem > ${CERT_PATH}/easysoft_server_public.pem
 
 
   CERT_LENGTH=1024;

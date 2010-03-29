@@ -497,10 +497,12 @@ for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
   $PAYMENTS_METHODS{$i}=$PAYMENT_METHODS[$i];
  }
 
-my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
-while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
-  $PAYMENTS_METHODS{$k}=$v;
- }
+if ($conf{PAYSYS_PAYMENTS_METHODS}) {
+  my %PAYSYS_PAYMENT_METHODS = %{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
+  while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
+    $PAYMENTS_METHODS{$k}=$v;
+   }
+}
 
 if ($LIST_PARAMS{UID} || $FORM{UID}) {
 	docs_account();
@@ -658,8 +660,8 @@ foreach my $line (@$list) {
   if ( ! $user->{UID}  ) {
     push @rows, $html->button($line->[5], "index=11&UID=$line->[9]"),
     "$line->[6]", 
-    "$line->[8]", 
-    ("$line->[9]") ? $PAYMENTS_METHODS{$line->[9]} : '', 
+    "$line->[7]", 
+    ($PAYMENTS_METHODS{$line->[8]}) ? $PAYMENTS_METHODS{$line->[8]} : $line->[8], 
     $html->button($_PRINT, "qindex=$index&print=$line->[10]&UID=$line->[9]". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new', BUTTON => 1 }), 
     $delete;
    }
