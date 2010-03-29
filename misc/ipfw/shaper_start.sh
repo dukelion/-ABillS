@@ -15,7 +15,7 @@ FAKE_NET="10.0.0.0/16"
 NAT_IF="";
 
 #Negative deposit forward
-NEG_DEPOSIT_FWD="1"
+NEG_DEPOSIT_FWD=
 
 IPFW=/sbin/ipfw
 EXTERNAL_INTERFACE=`/sbin/route get 91.203.4.17 | grep interface: | awk '{ print $2 }'`
