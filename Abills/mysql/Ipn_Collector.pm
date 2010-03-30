@@ -66,7 +66,6 @@ sub new {
 
   $CONF->{IPN_DETAIL_MIN_SIZE} = 0 if (! $CONF->{IPN_DETAIL_MIN_SIZE});
   $CONF->{MB_SIZE} = $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE};
-  
   $self->{TRAFFIC_ROWS}=0;
   $self->{UNKNOWN_TRAFFIC_ROWS}=0;
 
@@ -155,7 +154,7 @@ sub user_ips {
       LEFT JOIN bills cb ON (c.bill_id=cb.id)
       LEFT JOIN dv_main dv ON (u.uid=dv.uid)
       LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)
-    WHERE u.id=calls.user_name and u.domain_id=0 and dv.status<11
+    WHERE u.id=calls.user_name and u.domain_id=0 and calls.status<11
     and calls.nas_id IN ($DATA->{NAS_ID}) ;";
   }
   else {
@@ -177,7 +176,7 @@ sub user_ips {
     dv.ip
     FROM (dv_calls calls, users u)
     LEFT JOIN dv_main dv ON (u.uid=dv.uid)
-   WHERE u.id=calls.user_name and u.domain_id=0 and dv.status<11
+   WHERE u.id=calls.user_name and u.domain_id=0 and calls.status<11
    and calls.nas_id IN ($DATA->{NAS_ID});";
   }  
   
@@ -650,17 +649,6 @@ sub traffic_add_user {
       );", 'do');
    }
 
-  if ($self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}}) {
-  	#Take money from bill
-    if ($DATA->{SUM} > 0) {
-   	  $self->query($db, "UPDATE bills SET deposit=deposit-$DATA->{SUM} WHERE id='$self->{USERS_INFO}->{BILL_ID}->{$DATA->{UID}}';", 'do');
-     }
-    #If negative deposit hangup
-    if ($self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}} - $DATA->{SUM} < 0) {
-      $self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}}=$self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}} - $DATA->{SUM};
-     }
-   }
-
   return $self;
 }
 
@@ -850,9 +838,19 @@ sub acct_update {
       lupdated=UNIX_TIMESTAMP()
     WHERE
       acct_session_id='$DATA->{ACCT_SESSION_ID}' and 
-      user_name='$DATA->{USER_NAME}' and
+      uid='$DATA->{UID}' and
       nas_id='$DATA->{NAS_ID}';", 'do');
 
+  if ($self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}}) {
+  	#Take money from bill
+    if ($DATA->{SUM} > 0) {
+   	  $self->query($db, "UPDATE bills SET deposit=deposit-$DATA->{SUM} WHERE id='$self->{USERS_INFO}->{BILL_ID}->{$DATA->{UID}}';", 'do');
+     }
+    #If negative deposit hangup
+    if ($self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}} - $DATA->{SUM} < 0) {
+      $self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}}=$self->{USERS_INFO}->{DEPOSIT}->{$DATA->{UID}} - $DATA->{SUM};
+     }
+   }
 
   return $self;
 }
