@@ -667,6 +667,12 @@ sub msgs_admin {
   	return 0;
    }
   elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  	if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
+       require "Dv.pm";
+       $Dv = Dv->new($db, $admin, \%conf);
+       $Dv->change({ UID => $FORM{UID}, FILTER_ID => '' });
+     }
+
     $Msgs->message_del({ ID => $FORM{del}, UID => $UID  });
     $html->message('info', $_INFO, "$_DELETED") if (! $Msgs->{errno});  	
    }
