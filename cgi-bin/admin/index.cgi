@@ -5950,20 +5950,18 @@ sub form_dictionary {
   	while(my($k, $v)=each %FORM) {
   		 if ($k =~ /$sub_dict/ && $k ne '__BUFFER') {
   		    my ($pre, $key)=split(/_/, $k, 2);
-
  		      $key =~ s/\%40/\@/;
-
           if ($key =~ /@/) {
    		    	$v =~ s/\\'/'/g;
    		    	$v =~ s/\\"/"/g;
+   		    	$v =~ s/\;$//g;
    		    	$out .= "$key=$v;\n"; 
   		     }
   		    else {
   		      $key =~ s/\%24/\$/;
-  		    	$out .= "$key=\"$v\";\n"; 
+  		      $v =~ s/'/\\'/;
+  		    	$out .= "$key='$v';\n"; 
   		     }
-
-  		    #print '$_'."$key=\"$v\";<br>\n";
   		    $i++;
   		  }
   		  

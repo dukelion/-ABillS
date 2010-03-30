@@ -697,12 +697,16 @@ sub form_passwd {
  my ($attr)=@_;
  my $hidden_inputs;
 
- 
+ $conf{PASSWD_SYMBOLS}='\[a-zA-Z0-9_\-\$\#\@\!\*\&\^\%\]' if (! $conf{PASSWD_SYMBOLS}); 
+
 if ($FORM{newpassword} eq '') {
 
  }
 elsif (length($FORM{newpassword}) < $conf{PASSWD_LENGTH}) {
-  $html->message('err', $_ERROR, $err_strs{6});
+  $html->message('err', $_ERROR, $ERR_SHORT_PASSWD);
+ }
+elsif ($FORM{newpassword} !~ /^[$conf{PASSWD_SYMBOLS}]*$/) {
+  $html->message('err', $_ERROR, $ERR_SYMBOLS_PASSWD);
  }
 elsif ($FORM{newpassword} eq $FORM{confirm}) {
   %INFO = ( PASSWORD => $FORM{newpassword},
@@ -721,7 +725,7 @@ elsif ($FORM{newpassword} eq $FORM{confirm}) {
   return 0;
 }
 elsif($FORM{newpassword} ne $FORM{confirm}) {
-  $html->message('err', $_ERROR, $err_strs{5});
+  $html->message('err', $_ERROR, $ERR_WRONG_CONFIRM);
 }
 
  my $password_form;

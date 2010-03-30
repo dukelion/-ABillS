@@ -253,6 +253,7 @@ $ERR_WRONG_NAME='Wrong name';
 $ERR_ENTER_USER_NAME='Enter user login';
 $ERR_SHORT_PASSWD='Short password. Minimum 6 symbols';
 $ERR_WRONG_PASSWD='Wrong password';
+$ERR_SYMBOLS_PASSWD='Wrong chars in password.';
 $ERR_WRONG_CONFIRM='Wrong Confirmation';
 $ERR_NAME_TOOLONG='Login is too long';
 $ERR_WRONG_DATA="Wrong data input";
