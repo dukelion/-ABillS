@@ -424,7 +424,8 @@ elsif($total_user_sum > 0 && $uid > 0) {
     if ($Ipn->{INTERIM}{$ip}) {
       $Ipn->acct_update( { %RAD, 
       	                   NAS_ID  => $Ipn->{$ip}{NAS_ID} || $NAS_ID,
-      	                   SUM     => sprintf("%.6f", $total_user_sum || 0) 
+      	                   SUM     => sprintf("%.6f", $total_user_sum || 0),
+      	                   UID     => $uid
       	                 } );
       #Make accounting
       #$Acct->{SUM}=sprintf("%.6f", $total_user_sum || 0);
