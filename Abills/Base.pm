@@ -113,7 +113,7 @@ sub convert {
      $text =~ s/\"/&quot;/g;
      $text =~ s/\n/<br>\n/gi;
      if ($attr->{SHOW_URL}) {
-       $text =~ s/(http:\/\/[a-z\.0-9\/]+)/<a href=\'$1\' target=_new>$1<\/a>/ig;
+       $text =~ s/([https|http]+:\/\/[a-z\.0-9\/\?\&\-\_\#:\=]+)/<a href=\'$1\' target=_new>$1<\/a>/ig;
       }
    }
 	elsif($attr->{'from_tpl'}) {
