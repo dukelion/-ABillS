@@ -187,6 +187,9 @@ sub acct {
     $RAD->{OUTBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # TO client
 
     if ($nas->{NAS_TYPE} eq 'mpd5' && $RAD->{MPD_INPUT_OCTETS}) {
+  	  $RAD->{INBYTE} = 0;   # FROM client
+      $RAD->{OUTBYTE} = 0; # TO client
+
       foreach my $line  (@{ $RAD->{MPD_OUTPUT_OCTETS} }) {
          my($class, $byte)=split(/:/, $line);
          $class = ($class == 0) ? '' : $class + 1;
