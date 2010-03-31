@@ -44,13 +44,11 @@ my $log_print = sub {
 
   if ($conf{debugmods} =~ /$LOG_TYPE/) {
     if ($conf{ERROR2DB} && $attr->{NAS}) {
-
       $Nas->log_add({LOG_TYPE => $log_levels{$LOG_TYPE},
                      ACTION   => 'AUTH', 
                      USER_NAME=> $USER_NAME || '-',
                      MESSAGE  => "$MESSAGE"
                     });
-
      }
     else {
       log_print("$LOG_TYPE", "AUTH [$USER_NAME] NAS: $Nas->{NAS_ID} ($Nas->{NAS_IP}) $MESSAGE");      
@@ -70,12 +68,11 @@ if ($RAD->{NAS_IP_ADDRESS}) {
     post_auth($RAD);
     exit 0;
    }
-
   
   if($ret == 0) {
     $ret = auth($db, $RAD, $nas);
   }
-  
+
   if ($ret == 0) {
     print $rr;
    }
@@ -123,7 +120,6 @@ elsif($nas->{NAS_DISABLE} > 0) {
 }
 
   $nas->{at} = 0 if (defined($RAD->{CHAP_PASSWORD}) && defined($RAD->{CHAP_CHALLENGE}));
-  
   return 0;
 }
 
@@ -153,8 +149,6 @@ sub auth {
     }
    return $r;	
   }
-
-
  $rr = '';
 
 
@@ -213,12 +207,9 @@ else {
    	     $RAD_REPLY{"$left"}="$right";
    	    }
        }
-
-      
      }
 
    $RAD_CHECK{'Auth-Type'} = 'Accept' if ($RAD->{CHAP_PASSWORD});
-
    #Show pairs
    while(my($rs, $ls)=each %RAD_REPLY) {
      if (ref($ls) eq 'ARRAY') {
