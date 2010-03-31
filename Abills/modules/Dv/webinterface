@@ -4417,6 +4417,8 @@ foreach my $line (@$list) {
   $USER_INFO{TP_ID}  = $line->[2];
   $USER_INFO{DEPOSIT}= $line->[4];
   $USER_INFO{CREDIT} = $line->[3];
+  $USER_INFO{PHONE}  = $line->[7];
+  $USER_INFO{FIO}    = $line->[8];
   
   my $email = ((! defined($line->[1])) || $line->[1] eq '') ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : "$line->[1]";
 
