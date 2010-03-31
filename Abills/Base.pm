@@ -250,7 +250,6 @@ sub sendmail {
    }
   
   $message =~ s/#.+//g;
-  
   if ($message =~ s/Subject: (.+)//g ) {
   	$subject=$1;
    }
@@ -259,6 +258,9 @@ sub sendmail {
    }
   if ($message =~ s/X-Priority: (.+)//g ) {
   	$priority=$1;
+   }
+  if ($message =~ s/To: (.+)//gi ) {
+  	$to_addresses=$1;
    }
 
   
@@ -277,8 +279,6 @@ Content-Type: text/plain
 
 $message
 };
-
-
   	
     foreach my $attachment ( @{ $attr->{ATTACHMENTS} } ) {
   	  my $data = encode_base64($attachment->{CONTENT});
@@ -293,16 +293,7 @@ $data
 }
  	
     }
-
-#$message .=  qq{ 
-#
-#--$boundary
-#
-#.
-#};
-
   }
-
   my @emails_arr = split(/;/, $to_addresses);
   foreach my $to (@emails_arr) {
     if ($attr->{TEST}) {
