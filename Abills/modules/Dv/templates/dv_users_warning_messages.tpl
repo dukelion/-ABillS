@@ -1,6 +1,8 @@
 From: $conf{ADMIN_MAIL}
+#Uncomment parameters
 #Subject: Low deposit
 #X-Priority: 2 (High)
+#To: mail@host.com
 
 Шановний користувач %FIO% (%LOGIN%).
 
