@@ -187,8 +187,8 @@ sub acct {
     $RAD->{OUTBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # TO client
 
     if ($nas->{NAS_TYPE} eq 'mpd5' && $RAD->{MPD_INPUT_OCTETS}) {
-  	  $RAD->{INBYTE} = 0;   # FROM client
-      $RAD->{OUTBYTE} = 0; # TO client
+  	  $RAD->{INBYTE} = 0;
+      $RAD->{OUTBYTE} = 0;
 
       foreach my $line  (@{ $RAD->{MPD_OUTPUT_OCTETS} }) {
          my($class, $byte)=split(/:/, $line);
@@ -206,7 +206,6 @@ sub acct {
       #reverse byte parameters
       $RAD->{INBYTE}  = $RAD->{ACCT_OUTPUT_OCTETS} || 0;   # FROM client
       $RAD->{OUTBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0; # TO client
-  
       $RAD->{INBYTE2}  = $RAD->{EXPPP_ACCT_LOCALOUTPUT_OCTETS} || 0;             # From client
       $RAD->{OUTBYTE2} = $RAD->{EXPPP_ACCT_LOCALINPUT_OCTETS} || 0;            # To client
       
@@ -237,6 +236,9 @@ sub acct {
     ($RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = ($RAD->{ACCT_OUTPUT_GIGAWORDS}, $RAD->{ACCT_INPUT_GIGAWORDS}); 
 
     if ($nas->{NAS_TYPE} eq 'mpd5' && $RAD->{MPD_INPUT_OCTETS}) {
+  	  $RAD->{INBYTE} = 0; 
+      $RAD->{OUTBYTE} = 0;
+
    	  if (ref $RAD->{MPD_INPUT_OCTETS} eq 'ARRAY') {
         foreach my $line  (@{ $RAD->{MPD_INPUT_OCTETS} }) {
           my($class, $byte)=split(/:/, $line);

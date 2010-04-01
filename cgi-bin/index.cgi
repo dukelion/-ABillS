@@ -102,21 +102,14 @@ require Admins;
 Admins->import();
 $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { DOMAIN_ID => $FORM{DOMAIN_ID} });
-
 $conf{WEB_TITLE} = $admin->{DOMAIN_NAME} if ($admin->{DOMAIN_NAME});
-
-
-
 
 require "Abills/templates.pl";
 $html->{METATAGS}=templates('metatags_client');
 
 my $uid = 0;
 my $page_qs;
-
-
 my %OUTPUT = ();
-
 my $login = $FORM{user} || '';
 my $passwd = $FORM{passwd} || '';
 
@@ -129,10 +122,8 @@ $user=Users->new($db, $admin, \%conf);
 my %uf_menus = ();
 
 if ($uid > 0) {
-
   $UID = $uid;
   my $default_index = 10;
-  
   #Quick Amon Alive Update
   # $ENV{HTTP_USER_AGENT} =~ /^AMon /
   if ($FORM{ALIVE}) {
@@ -225,7 +216,9 @@ if ($uid > 0) {
  	 	require "Abills/modules/$module{$index}/webinterface";
    }
 
-  if ($index != 0 && defined($functions{$index})) {
+  $index=$default_index if ($index == 0);
+
+  if (defined($functions{$index})) {
     if (! $FORM{index} && $user->{DEPOSIT} + $user->{CREDIT} < 0) {
       $html->tpl_show(templates('form_neg_deposit'), $user);
       $html->tpl_show(templates('form_client_info'), $user);
@@ -335,9 +328,11 @@ sub mk_menu {
     %USER_FUNCTION_LIST = ();
   }
 
-  $menu_names{1000}    = "$_LOGOUT";
-  $functions{1000}     = 'logout';
-  $menu_items{1000}{0} = $_LOGOUT;
+  if (! $conf{PASSWORDLESS_ACCESS}) {
+    $menu_names{1000}    = "$_LOGOUT";
+    $functions{1000}     = 'logout';
+    $menu_items{1000}{0} = $_LOGOUT;
+  }
 }
 
 #**********************************************************
@@ -497,8 +492,6 @@ sub auth_radius {
 	my ($login, $passwd, $sid)=@_;
   my $res = 0;
   
-  print "Content-Type: text/html\n\n";
-  
   my $check_access = $conf{check_access};
  
   #check password throught ftp access
@@ -558,8 +551,6 @@ if ($conf{PASSWORDLESS_ACCESS}) {
     my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 	  my $list = $sessions->online({ FRAMED_IP_ADDRESS => "$REMOTE_ADDR" });
 
-    
-    
     if ($sessions->{TOTAL} == 1) {
       $login   = $list->[0]->[0];
       $ret     = $list->[0]->[11];

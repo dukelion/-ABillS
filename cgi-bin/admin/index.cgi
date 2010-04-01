@@ -5524,6 +5524,7 @@ elsif ($FORM{change}) {
   $info{TPL_NAME} = $FORM{tpl_name};
   $info{TEMPLATE} = convert($info{TEMPLATE}, { '2_tpl' => 1 });
   $info{TEMPLATE} =~ s/"/\\"/g;
+  $info{TEMPLATE} =~ s/\@/\\@/g;
 	
 	if (open(FILE, ">$conf{TPL_DIR}/$FORM{tpl_name}")) {
 	  print FILE "$info{TEMPLATE}";
@@ -5537,7 +5538,7 @@ elsif ($FORM{change}) {
   $main_tpl_name = $FORM{tpl_name};
   $main_tpl_name =~ s/^_//;
   $info{TEMPLATE} =~ s/\\"/"/g;
-	
+  $info{TEMPLATE} =~ s/\\\@/\@/g;
  }
 elsif ($FORM{FILE_UPLOAD}) {
   $FORM{FILE_UPLOAD}{filename} =~ tr/ /_/;

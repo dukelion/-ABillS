@@ -516,33 +516,28 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
              FROM trafic_tarifs tt
              LEFT JOIN traffic_classes tc ON (tt.net_id=tc.id)
              WHERE tt.interval_id='$self->{TT_INTERVAL}' ORDER BY 1 DESC;");
-
-  
  
   foreach my $line ( @{ $self->{list} } ) {
   	my $class_id    = $line->[0];
     my $filter_name = 'flt';
 
     if ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/) {
-       if (! $CONF->{ng_car}) {
-         if ( $line->[2] == 0 ) {
+         if ( $line->[2] == 0 || $CONF->{ng_car}) {
             push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all pass";
           } 
-         else {
+         elsif(! $CONF->{ng_car}) {
            push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all shape ". ($line->[2] * 1024)." 4000";
           }
-         if ( $line->[3] == 0 ) {
+
+         if ( $line->[3] == 0 || $CONF->{ng_car}) {
            push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all pass";
           } 
-         else {
+         elsif(! $CONF->{ng_car}) {
            push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all shape ". ($line->[3] * 1024) ." 4000";
           }
-        }
-
    	   next ;
-      }
+     }
     elsif($line->[1]) {
-      #$line->[1] = '' if (! $line->[1]) ;
       $line->[1] =~ s/[\n\r]//g;
       my @net_list = split(/;/, $line->[1]);
   	
