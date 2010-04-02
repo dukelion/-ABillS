@@ -741,7 +741,7 @@ sub dhcphosts_user {
       	my $list = $Dhcphosts->hosts_list({ NAS_ID => $FORM{NAS_ID}, 
       		                                  PORTS  => $FORM{PORTS} 
       		                                 });
-      	if ($Dhcphosts->{TOTAL} > 0 && $FORM{UID} != $list->[0][13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]) {
+      	if ($Dhcphosts->{TOTAL} > 0 && $FORM{ID} != $list->[0][0]) {
           $Dhcphosts->{errno}=8;
           $Dhcphosts->{LOGIN}=$list->[0][1];
           $Dhcphosts->{UID}=$list->[0][13+$Dhcphosts->{SEARCH_FIELDS_COUNT}];

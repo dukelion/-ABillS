@@ -4182,7 +4182,7 @@ sub dv_monthly_fees {
            if($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $TP_INFO{POSTPAID_MONTHLY} == 1) {
 	           #***************************************************************
              #Min use Makes only 1 of month
-             if ($small_deposit_block && $month_fee > $user{DEPOSIT}) {
+             if ($small_deposit_block && $month_fee > $user{DEPOSIT}+$user{CREDIT}) {
      	         if ($small_deposit_block == -1) {
      	           $Dv->change({ UID    => $user{UID}, 
             	                 STATUS => 5 });

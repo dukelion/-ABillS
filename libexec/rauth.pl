@@ -140,7 +140,7 @@ sub auth {
    $auth_mod{'default'} = Auth->new($db, \%conf);
    $r = $auth_mod{'default'}->pre_auth($RAD);
    if ($auth_mod{'default'}->{errno}) {
-     $log_print->('LOG_INFO', $RAD->{USER_NAME}, "MS-CHAP PREAUTH FAILED$GT", { NAS => $nas });
+     $log_print->('LOG_INFO', $RAD->{USER_NAME}, "MS-CHAP PREAUTH FAILED. Wrong password or login$GT", { NAS => $nas });
     }
    else {
       while(my($k, $v)=each(%{ $auth_mod{'default'}->{'RAD_CHECK'} })) {
