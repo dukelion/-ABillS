@@ -738,8 +738,10 @@ sub dhcphosts_user {
 
       $Dhcphosts->host_check({ %FORM });
       if (! $Dhcphosts->{errno} && $FORM{OPTION_82} && $FORM{PORTS} && $FORM{NAS_ID}) {
-      	my $list = $Dhcphosts->hosts_list({ NAS_ID => $FORM{NAS_ID}, PORTS => $FORM{PORTS} });
-      	if ($Dhcphosts->{TOTAL} > 0) {
+      	my $list = $Dhcphosts->hosts_list({ NAS_ID => $FORM{NAS_ID}, 
+      		                                  PORTS  => $FORM{PORTS} 
+      		                                 });
+      	if ($Dhcphosts->{TOTAL} > 0 && $FORM{UID} != $list->[0][13+$Dhcphosts->{SEARCH_FIELDS_COUNT}) {
           $Dhcphosts->{errno}=8;
           $Dhcphosts->{LOGIN}=$list->[0][1];
           $Dhcphosts->{UID}=$list->[0][13+$Dhcphosts->{SEARCH_FIELDS_COUNT}];
