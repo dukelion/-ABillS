@@ -5,7 +5,7 @@
 #traffic Class numbers
 
 CLASSES_NUMS='2 3'
-VERSION=2.7
+VERSION=2.8
 
 #Enable NG shapper
 NG_SHAPPER=1
@@ -60,8 +60,8 @@ for num in ${CLASSES_NUMS}; do
   echo "Traffic: ${num} "
 
   #Shaped traffic
-  ${IPFW} add ` expr 9100 + ${num} \* 10 ` skipto ` expr 10100 + ${num} \* 10 ` ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to table\(${num}\) ${IN_DIRECTION}
-  ${IPFW} add ` expr 9100 + ${num} \* 10 + 5 ` skipto ` expr 10100 + ${num} \* 10 + 5 ` ip from table\(${num}\) to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2 + 1 `\) ${OUT_DIRECTION}
+  ${IPFW} add ` expr 10000 - ${num} \* 10 ` skipto ` expr 10100 + ${num} \* 10 ` ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to table\(${num}\) ${IN_DIRECTION}
+  ${IPFW} add ` expr 10000 - ${num} \* 10 + 5 ` skipto ` expr 10100 + ${num} \* 10 + 5 ` ip from table\(${num}\) to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2 + 1 `\) ${OUT_DIRECTION}
 
 
   ${IPFW} add ` expr 10100 + ${num} \* 10 ` netgraph tablearg ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to any ${IN_DIRECTION}
@@ -180,11 +180,14 @@ FWD_RULE=10014;
 if [ w$1 = wstart ]; then
   echo "Negative Deposit Forward Section - start"; 
   ${IPFW} add ${FWD_RULE} fwd ${WEB_SERVER_IP},80 tcp from table\(32\) to any dst-port 80,443 via ${INTERNAL_IF}
-  ${IPFW} add `expr ${FWD_RULE}+10` deny ip from table\(32\) to any via ${INTERNAL_IF}
+  #If use proxy
+  #${IPFW} add ${FWD_RULE} fwd ${WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_IF}
+  ${IPFW} add `expr ${FWD_RULE}+10` allow ip from table\(32\) to ${DNS_IP} dst-port 53 via ${INTERNAL_IF}
+  ${IPFW} add `expr ${FWD_RULE}+20` allow tcp from table\(32\) to ${MY_IP} dst-port 9443 via ${INTERNAL_IF}
+  ${IPFW} add `expr ${FWD_RULE}+30` deny ip from table\(32\) to any via ${INTERNAL_IF}
 else if [ w$1 = wstop ]; then
   echo "Negative Deposit Forward Section - stop:"; 
-  ${IPFW} delete ${FWD_RULE}
-  ${IPFW} delete `expr ${FWD_RULE}+10`
+  ${IPFW} delete ${FWD_RULE} ` expr ${FWD_RULE}+10 ` ` expr ${FWD_RULE}+20 ` ` expr ${FWD_RULE}+30 `
 else if [ w$1 = wshow ]; then
   echo "Negative Deposit Forward Section - status:"; 
   ${IPFW} show ${FWD_RULE}
@@ -193,3 +196,4 @@ fi;
 fi;
 
 fi;
+

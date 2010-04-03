@@ -479,7 +479,7 @@ sub add {
 
   $self->{TP_ID}=$self->{INSERT_ID};
 
-  $admin->system_action_add("TP:$DATA{TP_ID}", { TYPE => 1 });    
+  $admin->system_action_add("TP:$DATA{TP_ID}", { TYPE => 1 });
   return $self;
 }
 

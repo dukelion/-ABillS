@@ -407,7 +407,6 @@ sub paysys_import_parse {
 #
 #**********************************************************
 sub paysys_payment {
-  
   $FORM{SUM}=sprintf("%.2f", $FORM{SUM} || 0);
   
   if ($FORM{pre} && $FORM{SUM} <= 0) {

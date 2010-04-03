@@ -983,12 +983,11 @@ if($self->{errno}) {
 
 
 #*******************************************************************
-#Chack Company account if ACCOUNT_ID > 0
-# check_company_account()
+#Check Bill account
+# check_bill_account()
 #*******************************************************************
 sub check_bill_account() {
   my $self = shift;
-
 
   if ($CONF->{EXT_BILL_ACCOUNT} && $self->{EXT_BILL_ID}) {
     $self->query($db, "SELECT id, ROUND(deposit, 2) FROM bills 
@@ -1039,23 +1038,19 @@ sub check_company_account () {
                             disable,
                             credit FROM companies WHERE id='$self->{COMPANY_ID}';");
 
- 
   if($self->{errno}) {
  	  return $self;
    }
   elsif ($self->{TOTAL} < 1) {
     $self->{errstr}="Company ID '$self->{COMPANY_ID}' Not Exist";
-
     $self->{errno}=1;
     return $self;
    }
-
 
   ($self->{BILL_ID},
    $self->{DISABLE},
    $self->{COMPANY_CREDIT}
     ) = @{ $self->{list}->[0]  };
-  
   $self->{CREDIT}=$self->{COMPANY_CREDIT} if ($self->{CREDIT} == 0);
 
   return $self;
