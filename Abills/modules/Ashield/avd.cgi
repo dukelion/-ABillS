@@ -120,6 +120,12 @@ while(my($k, $v)=each %FORM) {
 print "Content-Type: text/html\n\n";
 mk_log($FORM{'__BUFFER'});
 
+my @pairs = split(/&/, $FORM{'__BUFFER'});
+foreach my $line (@pairs) {
+	my ($ke, $val)=split(/=/, $line, 2);
+	$FORM{$key}=$val;
+}
+
 avd_add({ CONTENT    => $FORM{'xml'},
 	        checkword  => $FORM{'checkword'}
      	});
