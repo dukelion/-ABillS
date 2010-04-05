@@ -213,12 +213,11 @@ elsif ($ENV{'REQUEST_METHOD'} eq "POST") {
  }
 
 if (! defined($ENV{CONTENT_TYPE}) || $ENV{CONTENT_TYPE} !~ /boundary/ ) {
-
   @pairs = split(/&/, $buffer);
   $FORM{__BUFFER}=$buffer if ($#pairs > -1);
 
   foreach my $pair (@pairs) {
-    my ($side, $value) = split(/=/, $pair);
+    my ($side, $value) = split(/=/, $pair, 2);
     if (defined($value)) {
       $value =~ tr/+/ /;
       $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;

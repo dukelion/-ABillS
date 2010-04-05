@@ -118,8 +118,73 @@ while(my($k, $v)=each %FORM) {
 #END debug =====================================
 
 print "Content-Type: text/html\n\n";
-mk_log($output2);
+mk_log($FORM{'__BUFFER'});
 
+avd_add({ CONTENT    => $FORM{'xml'},
+	        checkword  => $FORM{'checkword'}
+     	});
+
+
+#**********************************************************
+# mak_log
+#**********************************************************
+sub avd_add {
+  my ($attr) = @_;
+
+#$attr->{CONTENT} = qq{xml=<?xml version="1.0" encoding="UTF-8"?>
+#<personal-office timestamp="20100406015006">
+#  <login>galaktika</login>
+#  <name></name>
+#  <lastname>-</lastname>
+#  <action>
+#    <type>1</type>
+#    <agentuuid>927f210d-d21d-b211-9ca9-a118a14d0e34</agentuuid>
+#    <groupuuid>ebe76ffc-69e1-4757-b2b3-41506832bc9b</groupuuid>
+#    <groupname>AV+AS</groupname>
+#    <tariffplancode>STANDART</tariffplancode>
+#  </action>
+#</personal-office>
+#&checkword=827ccb0eea8a706c4c34a16891f84e7b};
+#
+##$attr->{CONTENT} =~ /(.+)/;
+##print "\n$1\n";
+#
+#my @Arr = split(/&/, $attr->{CONTENT});
+#
+#
+#
+#my($k, $val) = split(/=/, $Arr[0], 2);
+
+eval { require XML::Simple; };
+if (! $@) {
+   XML::Simple->import();
+ }
+else {
+   print "Content-Type: text/plain\n\n";
+   print "Can't load 'XML::Simple' check http://www.cpan.org";
+   mk_log("---- Error: Can't load 'XML::Simple' check http://www.cpan.org\n");
+   exit;
+ }
+
+$FORM{xml} =~ s/encoding="windows-1251"//g;
+my $_xml = eval { XMLin("$FORM{xml}", forcearray=>1) };
+
+if($@) {
+  mk_log("---- Content:\n".
+      $FORM{xml}.
+      "\n----XML Error:\n".
+      $@
+      ."\n----\n");
+  return 0;
+ }
+else {
+  if ($debug > 0) {
+ 	  mk_log($FORM{xml});
+   }
+}
+
+ my $aa = `echo  "$attr->{CONTENT} // $attr->{checkword}//" >> /tmp/text.avd`;
+}
 
 
 
