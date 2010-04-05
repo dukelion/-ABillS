@@ -6057,9 +6057,9 @@ sub form_dictionary {
   	  }
      
      $table->addrow(
-        $html->form_input('NAME', "$k"), 
-        $html->form_input("$k", "$v"), 
-        $html->form_input($sub_dict ."_". $k, "$v2")
+        $html->form_input('NAME', "$k", { SIZE => 30 }), 
+        $html->form_input("$k", "$v", { SIZE => 45 }), 
+        $html->form_input($sub_dict ."_". $k, "$v2", { SIZE => 45 })
        ); 
    }
 
@@ -6273,7 +6273,7 @@ if(defined($FORM{del}) && $FORM{is_js_confirmed} && $permissions{0}{5} ) {
 sub form_tp_groups {
 
  use Tariffs;
- my $Tariffs = Tariffs->new($db, \%conf);
+ my $Tariffs = Tariffs->new($db, \%conf, $admin);
 
  $Tarrifs = $Tariffs->tp_group_defaults();
  $Tariffs->{LNG_ACTION}=$_ADD;

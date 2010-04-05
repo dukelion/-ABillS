@@ -322,11 +322,6 @@ CREATE TABLE `exchange_rate` (
   UNIQUE KEY `id` (`id`)
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `fees`
-#
 
 CREATE TABLE `fees` (
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
@@ -346,12 +341,6 @@ CREATE TABLE `fees` (
   KEY `date` (`date`),
   KEY `uid` (`uid`)
 ) ;
-
-# --------------------------------------------------------
-
-#
-# Структура таблиці `filters`
-#
 
 CREATE TABLE `filters` (
   `id` smallint(5) unsigned NOT NULL auto_increment,

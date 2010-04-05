@@ -2,8 +2,6 @@ package Iptv;
 # Iptv  managment functions
 #
 
-
-
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION);
 
@@ -23,10 +21,7 @@ use Tariffs;
 use Users;
 use Fees;
 
-
-
 my $uid;
-
 my $MODULE='Iptv';
 
 #**********************************************************
@@ -47,9 +42,6 @@ sub new {
   
   return $self;
 }
-
-
-
 
 #**********************************************************
 # User information
@@ -73,11 +65,10 @@ sub user_info {
     $self->{DEPOSIT}  = $users->{DEPOSIT};
     $self->{ACCOUNT_ACTIVATE} = $users->{ACTIVATE};
     $WHERE =  "WHERE service.uid='$uid'";
-   }
-  
+   }  
   
   $WHERE =  "WHERE service.uid='$uid'";
-  
+
   $self->query($db, "SELECT service.uid, 
    service.tp_id, 
    tp.name, 
@@ -93,10 +84,8 @@ sub user_info {
    tp.postpaid_monthly_fee,
    tp.payment_type,
    tp.period_alignment
-   
-   
      FROM iptv_main service
-     LEFT JOIN tarif_plans tp ON (service.tp_id=tp.id)
+     LEFT JOIN tarif_plans tp ON (service.tp_id=tp.tp_id)
    $WHERE;");
 
   if ($self->{TOTAL} < 1) {
@@ -149,9 +138,6 @@ sub defaults {
    PIN            =>
   );
 
- 
- 
-
   $self = \%DATA ;
   return $self;
 }
@@ -168,30 +154,22 @@ sub user_add {
 
   if ($DATA{TP_ID} > 0 && ! $DATA{STATUS}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
-
      $self->{TP_INFO}=$tariffs->info($DATA{TP_ID});
-
      #Take activation price
      if($tariffs->{ACTIV_PRICE} > 0) {
        my $user = Users->new($db, $admin, $CONF);
        $user->info($DATA{UID});
        
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0) {
-         
-         #print "$user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE}";
-         
          $self->{errno}=15;
        	 return $self; 
         }
 
        my $fees = Fees->new($db, $admin, $CONF);
        $fees->take($user, $tariffs->{ACTIV_PRICE}, { DESCRIBE  => "ACTIV TP" });  
-
        $tariffs->{ACTIV_PRICE}=0;
       }
    }
-
-
 
   $self->query($db,  "INSERT INTO iptv_main (uid, registration, 
              tp_id, 
@@ -208,9 +186,7 @@ sub user_add {
          );", 'do');
 
   return $self if ($self->{errno});
-
   $admin->action_add("$DATA{UID}", "", { TYPE => 1 });
-
   return $self;
 }
 
@@ -223,9 +199,7 @@ sub user_add {
 sub user_change {
   my $self = shift;
   my ($attr) = @_;
-  
 
-  
   my %FIELDS = (SIMULTANEONSLY => 'logins',
               STATUS           => 'disable',
               IP               => 'ip',
@@ -237,27 +211,17 @@ sub user_change {
               VOD              => 'vod',
              );
   
-  $attr->{VOD} = (! defined($attr->{CALLBACK})) ? 0 : 1;
-
+  $attr->{VOD} = (! defined($attr->{VOD})) ? 0 : 1;
   my $old_info = $self->user_info($attr->{UID});
-  
   
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
-
      $self->{TP_INFO}=$tariffs->info($attr->{TP_ID});
-     
-     
-    
      my $user = Users->new($db, $admin, $CONF);
 
      $user->info($attr->{UID});
-     
      if ($old_info->{STATUS} == 2 && (defined($attr->{STATUS}) && $attr->{STATUS} == 0) && $tariffs->{ACTIV_PRICE} > 0) {
-       
-       
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0 && $tariffs->{POSTPAID_FEE} == 0) {
-        
          $self->{errno}=15;
        	 return $self; 
         }
@@ -280,7 +244,6 @@ sub user_change {
 
      if ($tariffs->{AGE} > 0) {
        my $user = Users->new($db, $admin, $CONF);
-
        use POSIX qw(strftime);
        my $EXPITE_DATE = strftime( "%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}) );
        #"curdate() + $tariffs->{AGE} days";
@@ -302,14 +265,9 @@ sub user_change {
                    DATA         => $attr
                   } );
 
-
   $self->user_info($attr->{UID});
-  
-
   return $self;
 }
-
-
 
 #**********************************************************
 # Delete user info from all tables
@@ -325,9 +283,6 @@ sub user_del {
   $admin->action_add($self->{UID}, "$self->{UID}", { TYPE => 10 });
   return $self->{result};
 }
-
-
-
 
 #**********************************************************
 # list()
@@ -569,12 +524,8 @@ else {
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
 }
-
-
   return $list;
 }
-
-
 
 
 #**********************************************************
@@ -597,12 +548,9 @@ sub user_tp_channels_list {
   }
   
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
-	
-
-
- return $self if($self->{errno});
 
  my $list = $self->{list};
+ return $self if($self->{errno});
 
  if ($self->{TOTAL} >= 0) {
     $self->query($db, "SELECT count(u.id) FROM (users u, iptv_main service) $WHERE");
@@ -621,8 +569,7 @@ sub channel_info {
   my ($attr) = @_;
 
   $WHERE =  "WHERE id='$attr->{ID}'";
-  
-  
+
   $self->query($db, "SELECT id,
    name,
    num,
@@ -637,7 +584,6 @@ sub channel_info {
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
-
 
   ($self->{ID},
    $self->{NAME}, 
@@ -666,10 +612,7 @@ sub channel_defaults {
    PORT          => 0, 
    DESCRIBE      => '', 
    DISABLE       => 0
-  );
-
- 
- 
+  ); 
 
   $self = \%DATA ;
   return $self;
@@ -845,34 +788,9 @@ sub tp_defaults {
    DISABLE       => 0
   );
 
- 
- 
-
   $self = \%DATA ;
   return $self;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #**********************************************************
 # add()
@@ -941,10 +859,6 @@ sub channel_ti_change {
   return $self;
 }
 
-
-
-
-
 #**********************************************************
 # list()
 #**********************************************************
@@ -953,15 +867,12 @@ sub channel_ti_list {
  my ($attr) = @_;
  my @list = ();
 
-
-
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  undef @WHERE_RULES;
-
 
  # Start letter 
  if ($attr->{NAME}) {
@@ -987,7 +898,6 @@ sub channel_ti_list {
  if ($attr->{IDS}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{IDS}, 'INT', 'c.id') };
   }
-
  
  if ($attr->{INTERVAL_ID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{TI}, 'INT', 'ic.interval_id') };
@@ -996,7 +906,6 @@ sub channel_ti_list {
  if ($attr->{MANDATORY}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{MANDATORY}, 'INT', 'ic.mandatory') };
   }
-
 
 #DIsable
  if (defined($attr->{DISABLE})) {
@@ -1031,9 +940,3 @@ sub channel_ti_list {
 }
 
 1
-
-
-
-
-
-

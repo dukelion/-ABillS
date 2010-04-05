@@ -56,13 +56,6 @@ sub iptv_close_period {
 
 }
 
-
-
-
-
-
-
-
 #*******************************************************************
 # Change user variant form
 # form_chg_vid()
@@ -182,11 +175,9 @@ my $tp_index = $index + 4;
 $tariffs->{UID}=$attr->{USER}->{UID};
 $tariffs->{m}=$m;
 $tariffs->{TP_ID} = $user->{TP_ID};
-$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
-
+$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME}". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP", BUTTON => 1 } );
 
 print $html->tpl_show(templates('form_chg_tp'), $tariffs);
-
 }
 
 
@@ -309,7 +300,6 @@ sub iptv_user {
 
       $html->message('info', $_INFO, "$_ADDED");	
      }
-
     #if ($conf{VOIP_ASTERISK_USERS}) {
     #	iptv_mk_users_conf();
     # }
@@ -322,7 +312,6 @@ sub iptv_user {
       iptv_get_month_fee($Iptv) if (! $FORM{STATUS});
       $html->message('info', $_INFO, "$_CHANGED");	
      }
-
 #    if ($conf{VOIP_ASTERISK_USERS}) {
 #    	iptv_mk_users_conf();
 #     }
@@ -334,24 +323,15 @@ sub iptv_user {
      }
 	 }
 
-
   if ($Iptv->{errno}) {
     $html->message('err', $_ERROR, "[$Iptv->{errno}] $err_strs{$Iptv->{errno}}");
    }
-
-
   my $user = $Iptv->user_info($FORM{UID});
-
-  
-
-
   if($user->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
-	  $user = $Iptv->defaults();
-	  $user->{ACTION}='add';
-	  $user->{LNG_ACTION}=$_ACTIVATE;
-	  
-	  
+	  $user              = $Iptv->defaults();
+	  $user->{ACTION}    = 'add';
+	  $user->{LNG_ACTION}= $_ACTIVATE;
     $user->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
  	                                          SELECTED          => $user->{TP_ID},
@@ -363,7 +343,7 @@ sub iptv_user {
 	else {
 	  $user->{ACTION}='set';
 	  $user->{LNG_ACTION}=$_CHANGE;
-    $user->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='. $FORM{UID}.'&index='. ($index + 1)) .']';
+    $user->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='. $FORM{UID}.'&index='. ($index + 1), { BUTTON => 1 });
 	 } 
 
    $user->{STATUS_SEL}          = $html->form_select('STATUS', 
@@ -682,15 +662,11 @@ print $table->show();
 # form_tp
 #**********************************************************
 sub iptv_tp {
- 
  my $tarif_info;
  my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
-
  $tarif_info = $tariffs->defaults();
  $tarif_info->{LNG_ACTION}=$_ADD;
  $tarif_info->{ACTION}='ADD_TP';
-
-
 
 if($FORM{ADD_TP}) {
   $FORM{TP_ID} = $FORM{CHG_TP_ID};
@@ -706,7 +682,6 @@ if($FORM{ADD_TP}) {
   }
  }
 elsif (defined($FORM{TP_ID})) {
- 
   $tarif_info = $tariffs->info( $FORM{TP_ID} );
 
   if ($tariffs->{errno}) {
@@ -911,8 +886,6 @@ $output .= form_search({
 
 
 my $list = $Iptv->channel_list({ %LIST_PARAMS });	
-
-
 my $table = $html->table( { width      => '100%',
 	                          caption    => "$_CHANNELS",
                             border     => 1,
@@ -947,10 +920,7 @@ $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
                          rows       => [ [ "$_TOTAL:", $html->b($Iptv->{TOTAL}) ] ]
                      } );
-
 print $table->show();
-
- 
 }
   
 #*******************************************************************
@@ -959,10 +929,7 @@ print $table->show();
 sub iptv_online {
 
 my $nas = Nas->new($db, \%conf);
-
-
 my $message;
-
 
 if ($FORM{ping}) {
   if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
@@ -1030,8 +997,8 @@ elsif($FORM{zap}) {
   	                NAS_ID          => $nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
-    $message .= "<p align=\"center\">[". $html->button('add to log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id"). "]
-        [". $html->button("$_DEL", "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id"). "]</p>";
+    $message .= "<p align=\"center\">". $html->button('add to log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id", { BUTTON => 1 }). "
+         ". $html->button("$_DEL", "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id", { BUTTON => 1 }). "</p>";
    }
   else {
   	$message = "$_EXIST";
@@ -1940,11 +1907,6 @@ sub iptv_daily_fees {
  require Tariffs;
  Tariffs->import();
  my $tariffs = Tariffs->new($db, $conf);
-
-# require Fees;
-# Fees->import();
-# my $fees = Fees->new($db, $admin, $conf);
-
  my $list = $tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });
 
  foreach my $line (@$list) {
@@ -1959,27 +1921,19 @@ sub iptv_daily_fees {
          TP       => $line->[0]
  	   	 });
 
-#     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
-#      u.uid, u.account_id, u.email, u.tp_id
      foreach my $u (@$ulist) {
         my %user = (
             ACCOUNT_ID => $u->[7],
             UID        => $u->[6],
             BILL_ID    => $u->[12]  
          );
-#          print " $u->[0] $line->[6] $u->[2] $u->[3]\n"; 	
 
         if($line->[5] > 0  || $u->[2] + $u->[3] > 0 ) {
           $fees->take(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE" } );  
          }
       }
-
  	  }
   }
-
-
-
-
 }
 
 
@@ -2004,7 +1958,6 @@ sub iptv_monthly_fees {
  	
  	 $users->config_info({ PARAM => 'IPTV_CLOSED_PERIOD' });
    if ($users->{VALUE} ne '1') {
-    	
      $debug_output	.= "Period not closed\n" if ($debug > 1);
      $DEBUG .= $debug_output;
      return $debug_output;
@@ -2013,8 +1966,6 @@ sub iptv_monthly_fees {
 
 
  my $list = $tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });
-
-
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
  $m--;
@@ -2082,7 +2033,6 @@ sub iptv_monthly_fees {
                             METHOD   => 1 
                             );  
 
-       
          my $sum = 0;
          $START_PERIOD_DAY = ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} : 1;
 
@@ -2099,7 +2049,6 @@ sub iptv_monthly_fees {
              $sum = $sum * (100 - $user{REDUCTION}) / 100;
             }
 
-          
            #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
             if($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $tp_postpaid == 1) {
 
@@ -2165,7 +2114,6 @@ sub iptv_monthly_fees {
          SORT       => 1,
          PAGE_ROWS  => 1000000,
          SHOW_CHANNELS => 1,
-
          MONTH_PRICE => '>0'
  	   	 });
 
@@ -2209,16 +2157,8 @@ sub iptv_monthly_fees {
                  }
                }
         }
-
-
-
-
      }
  }
-
-
-
-
 
  if ($conf{IPTV_CLOSE_PERIOD}) {
    	$users->config_del('IPTV_CLOSED_PERIOD');
@@ -2270,8 +2210,6 @@ foreach my $line (@$list) {
 
 $ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
 $_TOTAL: $Iptv->{TOTAL}\n";
-
-
 }
 
 
@@ -2298,8 +2236,6 @@ sub iptv_sheduler {
   	$users->info( $uid );
   	iptv_user_channels({ QUIET  => 1 });
    }
-
-
 }
 
 
@@ -2325,7 +2261,6 @@ foreach my $line (@$list) {
                PASSWORD  => $line->[8],         
                );
 
-
   $content .=  $html->tpl_show(_include('iptv_users_conf', 'Iptv'), \%info, { OUTPUT2RETURN => 1 });
 }
 
@@ -2341,13 +2276,9 @@ close(FILE);
 sub iptv_report {
 	my ($type, $attr)=@_;
   my $REPORT = "Module: Iptv\n";
-  
   %LIST_PARAMS = %{$attr->{LIST_PARAMS}} if (defined($attr->{LIST_PARAMS}));
-
- 
   return $REPORT;
 }
-
 
 
 #**********************************************************
@@ -2371,13 +2302,8 @@ sub iptv_get_month_fee {
 
     $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN");	
    }
-
-
   #Get month fee
   if ($Iptv->{TP_INFO}->{MONTH_FEE} > 0) {
-
-
-
      my $sum   = $Iptv->{TP_INFO}->{MONTH_FEE};
      my $users = Users->new($db, $admin, \%conf); 
      my $user  = $users->info($Iptv->{UID});
@@ -2385,8 +2311,6 @@ sub iptv_get_month_fee {
      if ($Iptv->{TP_INFO}->{EXT_BILL_ACCOUNT})  {
      	 $user->{BILL_ID}=$user->{EXT_BILL_ID} if ($user->{EXT_BILL_ID});
       }
-
-
 
      my $message = ''; 
      #Current Month
@@ -2470,11 +2394,7 @@ sub iptv_get_month_fee {
 
           $m++;
          }
-
-
       }
-
-
 }
 
 1

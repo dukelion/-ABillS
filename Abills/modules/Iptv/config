@@ -13,7 +13,6 @@
                    "14:6:$_CLOSED $_PERIOD:iptv_close_period"=> 5,
                    "20:0:$_TV:iptv_online:"                  => 6,
                    "21:0:$_TV:iptv_report:"                  => 4,
-
                    );
 
 
