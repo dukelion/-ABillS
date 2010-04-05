@@ -118,11 +118,27 @@ while(my($k, $v)=each %FORM) {
 #END debug =====================================
 
 print "Content-Type: text/html\n\n";
+
+$FORM{'__BUFFER'}=qq{xml=<?xml version="1.0" encoding="UTF-8"?>
+<personal-office timestamp="20100406015006">
+  <login>galaktika</login>
+  <name></name>
+  <lastname>-</lastname>
+  <action>
+    <type>1</type>
+    <agentuuid>927f210d-d21d-b211-9ca9-a118a14d0e34</agentuuid>
+    <groupuuid>ebe76ffc-69e1-4757-b2b3-41506832bc9b</groupuuid>
+    <groupname>AV+AS</groupname>
+    <tariffplancode>STANDART</tariffplancode>
+  </action>
+</personal-office>
+&checkword=827ccb0eea8a706c4c34a16891f84e7b};
+
 mk_log($FORM{'__BUFFER'});
 
 my @pairs = split(/&/, $FORM{'__BUFFER'});
 foreach my $line (@pairs) {
-	my ($ke, $val)=split(/=/, $line, 2);
+	my ($key, $val)=split(/=/, $line, 2);
 	$FORM{$key}=$val;
 }
 
@@ -173,11 +189,11 @@ else {
  }
 
 $FORM{xml} =~ s/encoding="windows-1251"//g;
-my $_xml = eval { XMLin("$FORM{xml}", forcearray=>1) };
+my $_xml = eval { XMLin("$attr->{CONTENT}", forcearray=>1) };
 
 if($@) {
   mk_log("---- Content:\n".
-      $FORM{xml}.
+      $attr->{CONTENT}.
       "\n----XML Error:\n".
       $@
       ."\n----\n");
@@ -185,11 +201,18 @@ if($@) {
  }
 else {
   if ($debug > 0) {
- 	  mk_log($FORM{xml});
+ 	  mk_log($attr->{CONTENT});
    }
 }
+  print << "[END]";
+  
+$_xml->{'login'}->[0];
+$_xml->{'lastname'}->[0];
 
- my $aa = `echo  "$attr->{CONTENT} // $attr->{checkword}//" >> /tmp/text.avd`;
+Type: $_xml->{'action'}->[0]->{type}->[0];
+TP: $_xml->{'action'}->[0]->{tariffplancode}->[0];
+[END]
+
 }
 
 
@@ -206,6 +229,6 @@ sub mk_log {
 	  close(FILE);
 	 }
   else {
-    print "Can't open file 'paysys_check.log' $! \n";
+    print "Can't open file '/tmp/avd.log' $! \n";
    }
 }
