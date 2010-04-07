@@ -207,6 +207,9 @@ if ($_xml->{'action'}->[0]->{type}->[0] == 1) {
   my $login = $_xml->{'login'}->[0];
   $users->list({ LOGIN => $_xml->{'login'}->[0] });
 
+  my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+  $users->info($uid);
+
   if ($users->{error}) {
 	  mk_log("Error user '$login'");
    }
