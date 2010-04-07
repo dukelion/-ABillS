@@ -159,14 +159,16 @@ my $mask_ips = unpack("N", pack("C4", split( /\./, '255.255.255.255'))) - unpack
 my $last_ip  = $first_ip + $mask_ips;
 my $ip_num   = unpack("N", pack("C4", split( /\./, $ENV{REMOTE_ADDR})));
 
-if ($ENV{REMOTE_ADDR} =~ /^92\.125\./) {
+if ($ENV{REMOTE_ADDR} =~ /^92\.125\./
+   || $ENV{REMOTE_ADDR} =~ /^192\.168\.0\.1$/
+   ) {
 	osmp_payments_v4();
 	exit;
  }
 elsif ($ENV{REMOTE_ADDR} =~ /^93\.183\.196\.26$/ || 
        $ENV{REMOTE_ADDR} =~ /^195\.230\.131\.50$/||
-       $ENV{REMOTE_ADDR} =~ /^93\.183\.196\.28$/ ||
-       $ENV{REMOTE_ADDR} =~ /^192\.168\.0\.1$/ ) {
+       $ENV{REMOTE_ADDR} =~ /^93\.183\.196\.28$/
+        ) {
  	require "Easysoft.pm";
  	exit;
  } 
@@ -651,11 +653,9 @@ exit;
 #
 #**********************************************************
 sub osmp_payments_v4 {
+ my $version = '0.2';
+ $debug      =  1;
 
-  my $version = '0.2';
-  $debug      =  1;
-
- #print "Content-Type: text/plain\n\n";
  print "Content-Type: text/xml\n\n";
  
  my $payment_system    = 'OSMP';
@@ -665,25 +665,14 @@ sub osmp_payments_v4 {
  $FORM{__BUFFER}=~s/data=//;
 
 #
-#$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="utf-8"?>
-#<request>
-#<terminal-id>000</terminal-id>
-#<extra name="login">login</extra>
-#<extra name="password">pass</extra>
-#
-#<status count="3">
-#<payment>
-#<transaction-number>1</transaction-number>
-#</payment>
-#<payment>
-#<transaction-number>123456789</transaction-number>
-#</payment>
-#<payment>
-#<transaction-number>3</transaction-number>
-#</payment>
-#</status>
-#</request>
-#};
+$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="UTF-8"?><request>
+<protocol-version>4.00</protocol-version><request-type>10</request-type><terminal-id>1</terminal-id>
+<extra name="login">login</extra><extra name="password-md5">1a1dc91c907325c69271ddf0c944bc72</extra>
+<extra name="client-software">Dealer v0</extra><auth count="1" to-amount="1.00"><payment>
+<transaction-number>155</transaction-number><from><amount>1.00</amount></from><to><amount>1.00</amount>
+<service-id>1</service-id><account-number>234456</account-number></to><receipt><datetime>20100407155326</datetime>
+<receipt-number>407155313</receipt-number></receipt></payment></auth></request>
+};
 
 eval { require XML::Simple; };
 if (! $@) {
@@ -793,6 +782,7 @@ elsif (defined($_xml->{'status'})) {
      }	
    }
  }
+#User info
 elsif ($request_hash{'request-type'} == 1) {
   my $to             = $request_hash{'to'}->[0];
   my $amount         = $to->{'amount'}->[0];
@@ -847,6 +837,7 @@ $response = qq{
 <extra name="FIO">$user->{FIO}</extra>
 </to>};
 }
+# Payments
 elsif($request_hash{'request-type'} == 2) {
   my $to             = $request_hash{'to'}->[0];
   my $amount         = $to->{'amount'}->[0];
@@ -869,10 +860,10 @@ elsif($request_hash{'request-type'} == 2) {
     my $list = $users->list({ $CHECK_FIELD => $account_number });
 
     if (! $users->{errno} && $users->{TOTAL} > 0 ) {
-      my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
-      $user = $users->info($uid);
-      $BALANCE      = sprintf("%2.f", $user->{DEPOSIT});
-      $OVERDRAFT    = $user->{CREDIT};
+      my $uid     = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+      $user       = $users->info($uid);
+      $BALANCE    = sprintf("%2.f", $user->{DEPOSIT});
+      $OVERDRAFT  = $user->{CREDIT};
      }
    }
 
@@ -903,7 +894,7 @@ elsif($request_hash{'request-type'} == 2) {
       $result_code =  1;
      }
     else {
-    	$Paysys->add({ SYSTEM_ID   => $payment_system_id, 
+    	$Paysys->add({ SYSTEM_ID => $payment_system_id, 
  	              DATETIME       => "'$DATE $TIME'", 
  	              SUM            => "$sum",
   	            UID            => "$user->{UID}", 
@@ -917,7 +908,6 @@ elsif($request_hash{'request-type'} == 2) {
       $txn_id = $payments_id;
      }    
 	 }
-
 
 $response = qq{
 <txn-date>$txn_date</txn-date>
@@ -955,18 +945,18 @@ elsif($request_hash{'request-type'} == 10) {
     my $receipt_number = $_xml->{receipt}->[0]->{'receipt-number'}->[0];
 
   if ($CHECK_FIELD eq 'UID') {
-    $user = $users->info($account_number);
-    $BALANCE      = sprintf("%2.f", $user->{DEPOSIT});
-    $OVERDRAFT    = $user->{CREDIT};
+    $user       = $users->info($account_number);
+    $BALANCE    = sprintf("%2.f", $user->{DEPOSIT});
+    $OVERDRAFT  = $user->{CREDIT};
    }
   else {
     my $list = $users->list({ $CHECK_FIELD => $account_number });
 
     if (! $users->{errno} && $users->{TOTAL} > 0 ) {
-      my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
-      $user = $users->info($uid);
-      $BALANCE      = sprintf("%2.f", $user->{DEPOSIT});
-      $OVERDRAFT    = $user->{CREDIT};
+      my $uid    = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+      $user      = $users->info($uid);
+      $BALANCE   = sprintf("%2.f", $user->{DEPOSIT});
+      $OVERDRAFT = $user->{CREDIT};
      }
    }
 
@@ -993,7 +983,7 @@ elsif($request_hash{'request-type'} == 10) {
       $payments_id = $payments->{ID};
      }
     elsif ($payments->{errno}) {
-      $status_id = 78;
+      $status_id   = 78;
       $result_code =  1;
      }
     else {

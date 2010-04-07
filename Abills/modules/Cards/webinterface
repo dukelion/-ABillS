@@ -695,11 +695,8 @@ sub cards_users_gen_confim {
 #
 #**********************************************************
 sub cards_user_payment () {
-	
-  #if (! $user) {
-   	$user = Users->new($db, $admin, \%conf);
-  # }
 
+ 	$user = Users->new($db, $admin, \%conf);
 	
 	if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_OLDSTYLE})) {
 		my $BRUTE_LIMIT = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
@@ -763,6 +760,19 @@ sub cards_user_payment () {
         $user_new->del();
       }
 
+     if ($Cards->{DILLER_ID}) {
+        $Cards->diller_info({ ID => $Cards->{DILLER_ID} });
+        if ($Cards->{PAYMENT_TYPE} == 2 && $Cards->{OPERATION_PAYMENT} > 0) {
+           my $fees = Finance->fees($db, $admin, \%conf);        	
+#           $fees->take($user, $sum,
+#                               {  DESCRIBE     => "$_ICARDS $Cards->{SERIAL}$Cards->{NUMBER}",
+#                                  METHOD       => 0,
+#                                  EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
+#                                  CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
+#                                });
+         }
+      }
+
      #$db->commit();
      return 0;
     }
@@ -772,8 +782,7 @@ sub cards_user_payment () {
     }
 	 }
 	
-	$html->tpl_show(_include('cards_payment_add', 'Cards'), $Cards);
-	
+	$html->tpl_show(_include('cards_payment_add', 'Cards'), $Cards);	
 }
 
 
@@ -1326,7 +1335,6 @@ sub cards_diller_add {
  	$Cards->{LNG_ACTION}=$_ADD;
 
 if ($FORM{add}) {
-	
 	   if (! $FORM{TYPE} && $FORM{SUM} && $FORM{SUM} <= 0 ) {
 	   	 print $html->header();
 	   	 $html->message('err', $_ERROR, "$ERR_WRONG_SUM");
@@ -1681,7 +1689,7 @@ sub cards_dillers_tp {
   $Cards->{LNG_ACTION} = $_ADD;
   $Cards->{ACTION}     = 'add';
 
-  my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
+  my @Payment_Types    = ($_PREPAID, $_POSTPAID, $_ACTIVATION_PAYMENTS); 
 
 if ($FORM{add}) {
   $Cards->dillers_tp_add({ %FORM });

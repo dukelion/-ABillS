@@ -1765,34 +1765,6 @@ $Docs->{MONTH}=$m;
 
 my $doc = $html->tpl_show(_include('docs_tax_export', 'Docs'), { %$Docs }, { OUTPUT2RETURN => 1 });
 
-#		<T1RXXXXGKOR ROWNUM="1">0</T1RXXXXGKOR>
-#		<T1RXXXXG2D ROWNUM="1">01122009</T1RXXXXG2D>
-#		<T1RXXXXG3S ROWNUM="1">444444</T1RXXXXG3S>
-#		<T1RXXXXGTYPE ROWNUM="1">1</T1RXXXXGTYPE>
-#		<T1RXXXXG4S ROWNUM="1">????? ???</T1RXXXXG4S>
-#		<T1RXXXXGNREZ ROWNUM="1">0</T1RXXXXGNREZ>
-#		<T1RXXXXG5 ROWNUM="1">360815526540</T1RXXXXG5>
-#		<T1RXXXXG6 ROWNUM="1">100.00</T1RXXXXG6>
-#		<T1RXXXXG7 ROWNUM="1">83.33</T1RXXXXG7>
-#		<T1RXXXXG8 ROWNUM="1">16.67</T1RXXXXG8>
-#		<T1RXXXXG9 xsi:nil="true" ROWNUM="1"></T1RXXXXG9>
-#		<T1RXXXXG10 xsi:nil="true" ROWNUM="1"></T1RXXXXG10>
-#		<T1RXXXXG11 xsi:nil="true" ROWNUM="1"></T1RXXXXG11>
-#		<T1RXXXXG12 xsi:nil="true" ROWNUM="1"></T1RXXXXG12>
-#		<T1RXXXXG13 xsi:nil="true" ROWNUM="1"></T1RXXXXG13>
-#		<T1RXXXXG14 xsi:nil="true" ROWNUM="1"></T1RXXXXG14>
-#		<T1R01G6>100.00</T1R01G6>
-#		<T1R01G7>83.33</T1R01G7>
-#		<T1R01G8>16.67</T1R01G8>
-#		<T1R01G9 xsi:nil="true"></T1R01G9>
-#		<T1R01G10 xsi:nil="true"></T1R01G10>
-#		<T1R01G11 xsi:nil="true"></T1R01G11>
-#		<T1R01G12 xsi:nil="true"></T1R01G12>
-#		<T1R01G13 xsi:nil="true"></T1R01G13>
-#		<T1R01G14 xsi:nil="true"></T1R01G14>};
-
-
-
 $LIST_PARAMS{PAGE_ROWS}=1000000;
 $LIST_PARAMS{MONTH} = $FORM{MONTH} || "$y-$m";
 my $list = $Docs->tax_invoice_reports({ %LIST_PARAMS });
@@ -1802,7 +1774,7 @@ my $num = 1;
 foreach my $line ( @$list ) {
   push @{ $invoice_hash{T2RXXXXG2D}  }, $line->[1];
   push @{ $invoice_hash{T2RXXXXG3S}  }, $line->[2];
-  push @{ $invoice_hash{T2RXXXXG4S}  }, '??';
+  push @{ $invoice_hash{T2RXXXXG4S}  }, 'ом';
   push @{ $invoice_hash{T2RXXXXG5S}  }, $line->[3];
   push @{ $invoice_hash{T2RXXXXG6S}   }, ''; # | $line->[3];
   push @{ $invoice_hash{T2RXXXXG7}   }, sprintf("%.2f", $line->[5]);
@@ -1812,12 +1784,6 @@ foreach my $line ( @$list ) {
   $invoice_hash{T2R01G7} += $line->[5];
   $invoice_hash{T2R01G8} += $line->[6];
   $invoice_hash{T2R01G9} += $line->[7];
-
-
-
-
-  #push @{ $invoice_hash{T2RXXXXG10}  }, undef; 
-  #push @{ $invoice_hash{T2RXXXXG11}  }, undef; 
   $num++;
 }
 
