@@ -208,8 +208,6 @@ if ($_xml->{'action'}->[0]->{type}->[0] == 1) {
   $users->list({ LOGIN => $_xml->{'login'}->[0] });
 
   my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
-  $users->info($uid);
-
   if ($users->{error}) {
 	  mk_log("Error user '$login'");
    }
@@ -217,6 +215,7 @@ if ($_xml->{'action'}->[0]->{type}->[0] == 1) {
 	  mk_log("Can't find user '$login'");
    }
   else {
+	  $users->info($uid);
     $Tariffs->info(0, { NAME => "$_xml->{'action'}" });
     $Fees->take($users, "$Tariffs->{MONTH_FEE}", 
                      { DESCRIBE  => "Dr.Web", 
