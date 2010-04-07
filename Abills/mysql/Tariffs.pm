@@ -553,6 +553,9 @@ sub info {
   if($attr->{ID}) {
   	push @WHERE_RULES, "id='$attr->{ID}'";
    }
+  elsif($attr->{NAME}) {
+  	push @WHERE_RULES, "name='$attr->{NAME}'";
+   }
   else {
   	push @WHERE_RULES, "tp_id='$id'";
    }

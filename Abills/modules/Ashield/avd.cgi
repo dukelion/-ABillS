@@ -40,6 +40,11 @@ use Abills::HTML;
 use Users;
 use Finance;
 use Admins;
+use Ashield;
+use Fees;
+
+
+
 
 my $debug  = $conf{PAYSYS_DEBUG} || 0;
 my $html   = Abills::HTML->new();
@@ -48,6 +53,11 @@ my $sql    = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $
 my $db     = $sql->{db};
 #Operation status
 my $status = '';
+
+my $Ashield = Ashield->new($db, $admin, \%conf);
+my $Tariffs = Tariffs->new($db, \%conf, $admin);
+my $Fees    = Fees->new($db, $admin, \%conf);
+
 
 #Check allow ips
 if ($conf{PAYSYS_IPS}) {
@@ -119,20 +129,20 @@ while(my($k, $v)=each %FORM) {
 
 print "Content-Type: text/html\n\n";
 
-$FORM{'__BUFFER'}=qq{xml=<?xml version="1.0" encoding="UTF-8"?>
-<personal-office timestamp="20100406015006">
-  <login>galaktika</login>
-  <name></name>
-  <lastname>-</lastname>
-  <action>
-    <type>1</type>
-    <agentuuid>927f210d-d21d-b211-9ca9-a118a14d0e34</agentuuid>
-    <groupuuid>ebe76ffc-69e1-4757-b2b3-41506832bc9b</groupuuid>
-    <groupname>AV+AS</groupname>
-    <tariffplancode>STANDART</tariffplancode>
-  </action>
-</personal-office>
-&checkword=827ccb0eea8a706c4c34a16891f84e7b};
+#$FORM{'__BUFFER'}=qq{xml=<?xml version="1.0" encoding="UTF-8"?>
+#<personal-office timestamp="20100406015006">
+#  <login>galaktika</login>
+#  <name></name>
+#  <lastname>-</lastname>
+#  <action>
+#    <type>1</type>
+#    <agentuuid>927f210d-d21d-b211-9ca9-a118a14d0e34</agentuuid>
+#    <groupuuid>ebe76ffc-69e1-4757-b2b3-41506832bc9b</groupuuid>
+#    <groupname>AV+AS</groupname>
+#    <tariffplancode>STANDART</tariffplancode>
+#  </action>
+#</personal-office>
+#&checkword=827ccb0eea8a706c4c34a16891f84e7b};
 
 mk_log($FORM{'__BUFFER'});
 
@@ -152,30 +162,6 @@ avd_add({ CONTENT    => $FORM{'xml'},
 #**********************************************************
 sub avd_add {
   my ($attr) = @_;
-
-#$attr->{CONTENT} = qq{xml=<?xml version="1.0" encoding="UTF-8"?>
-#<personal-office timestamp="20100406015006">
-#  <login>galaktika</login>
-#  <name></name>
-#  <lastname>-</lastname>
-#  <action>
-#    <type>1</type>
-#    <agentuuid>927f210d-d21d-b211-9ca9-a118a14d0e34</agentuuid>
-#    <groupuuid>ebe76ffc-69e1-4757-b2b3-41506832bc9b</groupuuid>
-#    <groupname>AV+AS</groupname>
-#    <tariffplancode>STANDART</tariffplancode>
-#  </action>
-#</personal-office>
-#&checkword=827ccb0eea8a706c4c34a16891f84e7b};
-#
-##$attr->{CONTENT} =~ /(.+)/;
-##print "\n$1\n";
-#
-#my @Arr = split(/&/, $attr->{CONTENT});
-#
-#
-#
-#my($k, $val) = split(/=/, $Arr[0], 2);
 
 eval { require XML::Simple; };
 if (! $@) {
@@ -204,7 +190,8 @@ else {
  	  mk_log($attr->{CONTENT});
    }
 }
-  print << "[END]";
+
+print << "[END]";
   
 $_xml->{'login'}->[0];
 $_xml->{'lastname'}->[0];
@@ -213,8 +200,29 @@ Type: $_xml->{'action'}->[0]->{type}->[0];
 TP: $_xml->{'action'}->[0]->{tariffplancode}->[0];
 [END]
 
-}
 
+#Add fees
+
+if ($_xml->{'action'}->[0]->{type}->[0] == 1) {
+  my $login = $_xml->{'login'}->[0];
+  $users->list({ LOGIN => $_xml->{'login'}->[0] });
+
+  if ($users->{error}) {
+	  mk_log("Error user '$login'");
+   }
+  elsif($users->{TOTAL}) {	
+	  mk_log("Can't find user '$login'");
+   }
+  else {
+    $Tariffs->info(0, { NAME => "$_xml->{'action'}" });
+    $Fees->take($users, "$Tariffs->{MONTH_FEE}", 
+                     { DESCRIBE  => "Dr.Web", 
+ 	                    DATE      => "$DATE $TIME"
+  	                           });  
+  }
+ }
+
+}
 
 
 #**********************************************************
@@ -232,3 +240,5 @@ sub mk_log {
     print "Can't open file '/tmp/avd.log' $! \n";
    }
 }
+
+1
