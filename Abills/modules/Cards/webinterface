@@ -42,11 +42,10 @@ sub cards_card_info {
 
   if ($Cards->{UID} > 0) {
   	$Cards->cards_service_info({ UID => $Cards->{UID} });
-  	
-    $Cards->{AGE}       =$_UNLIMITED if (! $Cards->{AGE});
-    $Cards->{TIME_LIMIT}=$_UNLIMITED if (! $Cards->{TIME_LIMIT});
-    $Cards->{TRAF_LIMIT}=$_UNLIMITED if (! $Cards->{TRAF_LIMIT});
-    $Cards->{SPEED}     =$_UNLIMITED if (! $Cards->{SPEED});
+    $Cards->{AGE}       = $_UNLIMITED if (! $Cards->{AGE});
+    $Cards->{TIME_LIMIT}= $_UNLIMITED if (! $Cards->{TIME_LIMIT});
+    $Cards->{TRAF_LIMIT}= $_UNLIMITED if (! $Cards->{TRAF_LIMIT});
+    $Cards->{SPEED}     = $_UNLIMITED if (! $Cards->{SPEED});
    }
 
   $FORM{LOGIN}    = $Cards->{LOGIN};
@@ -55,17 +54,14 @@ sub cards_card_info {
   $html->tpl_show(_include('cards_card_info', 'Cards'), 
   	                                  { %$Cards }, 
   	                                  );
-
-
- 
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub cards_main {
-  if ($Cards::VERSION < 5.06) {
-  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.06 or higher. http://abills.net.ua/");
+  if ($Cards::VERSION < 5.15) {
+  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.15 or higher. http://abills.net.ua/");
   	return 0;
    }
 
@@ -602,7 +598,6 @@ sub cards_users_add  {
 $LOGIN_NUMBER=$begin;
 #Create numeric or random logins
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
- 	  	
           my $LOGIN_LENGTH = (length("$FORM{LOGIN_PREFIX}$LOGIN_NUMBER") < $FORM{LOGIN_LENGTH}) ? $FORM{LOGIN_LENGTH} - length($FORM{LOGIN_PREFIX}) : $FORM{LOGIN_LENGTH};
           my $password = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
   	 	    my $serial   = sprintf("%s%.11d", $FORM{SERIAL}, $i);
@@ -620,7 +615,6 @@ $LOGIN_NUMBER=$begin;
           $export .= ($FORM{EXPORT} eq 'XML') ? "<CARD LOGIN='$login' PASSWORD='$password' ID='$serial' EXPIRE='$FORM{EXPIRE}'/>\n" : "$login\t$password\t$serial\t$FORM{EXPIRE}\n";
   	      $LOGIN_NUMBER++;
   	      $generated++;
-
   	      push @DATA_ARRAY, { LOGIN      => "$login",
   	      	                  PASSWORD   => "$password",
   	      	                  SERIAL     => "$FORM{SERIAL}",
@@ -656,17 +650,15 @@ elsif ($FORM{del}  && $FORM{is_js_confirmed} ) {
   $Cards = $Cards->defaults();
   $Cards->{EXPARAMS}   = $attr->{EXTRA_TPL};
   $Cards->{DILLERS_SEL}= cards_dillers_sel();
-
-  $Cards->{STATUS_SEL}=$html->form_select('STATUS', { 
+  $Cards->{STATUS_SEL} = $html->form_select('STATUS', { 
  	                                         SEL_ARRAY    => ['', @status ],
  	                                         ARRAY_NUM_ID => 1,
  	                                         NO_ID        => 1
  	                                        });
 
-	$Cards->{CARDS_TYPE}=$html->tpl_show(_include('cards_logins', 'Cards'), $Cards, { OUTPUT2RETURN => 1 });
+	$Cards->{CARDS_TYPE} = $html->tpl_show(_include('cards_logins', 'Cards'), $Cards, { OUTPUT2RETURN => 1 });
 	$html->tpl_show(_include('cards_add', 'Cards'), $Cards);
 }
-
 
 
 
@@ -695,13 +687,11 @@ sub cards_users_gen_confim {
 #
 #**********************************************************
 sub cards_user_payment () {
-
  	$user = Users->new($db, $admin, \%conf);
-	
+ 	
 	if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_OLDSTYLE})) {
 		my $BRUTE_LIMIT = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
-
-	  my $brute = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
+	  my $brute       = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
     $Cards->cards_info({ %FORM });
    
     if ($Cards->{error}) {
@@ -720,6 +710,10 @@ sub cards_user_payment () {
 	 	  $html->message('err', $_ERROR, "$_NOT_EXIST");
 	 	  $Cards->bruteforce_add({ UID => $LIST_PARAMS{UID}, PIN => $FORM{PIN} });
 	   }
+	  elsif ($Cards->{SUM} < 1) {
+	 	  $html->message('err', $_ERROR, "$_SUM: $Cards->{SUM}");
+	 	  return 0;
+	   }
     elsif ($Cards->{UID} == $LIST_PARAMS{UID}) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA");
 	    return 0;
@@ -729,13 +723,14 @@ sub cards_user_payment () {
 	    return 0;
 	   }
   
+ 
    $user->info($LIST_PARAMS{UID});
-   
    $payments->add($user, { SUM          => $Cards->{SUM},
                            METHOD       => 2, 
                            EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
                            CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
                          });  
+
 
    
    if (! $payments->{errno}) {
@@ -761,24 +756,31 @@ sub cards_user_payment () {
       }
 
      if ($Cards->{DILLER_ID}) {
-        $Cards->diller_info({ ID => $Cards->{DILLER_ID} });
+        $Cards->cards_diller_info({ ID => $Cards->{DILLER_ID} });
         if ($Cards->{PAYMENT_TYPE} == 2 && $Cards->{OPERATION_PAYMENT} > 0) {
+  	       my $user_new = Users->new($db, $admin, \%conf);
+           $user_new->info( $Cards->{UID} );
+
            my $fees = Finance->fees($db, $admin, \%conf);        	
-#           $fees->take($user, $sum,
-#                               {  DESCRIBE     => "$_ICARDS $Cards->{SERIAL}$Cards->{NUMBER}",
-#                                  METHOD       => 0,
+           $fees->take($user_new, $Cards->{OPERATION_PAYMENT},
+                               {  DESCRIBE     => "Card activate: $Cards->{ID}",
+                                  METHOD       => 0,
 #                                  EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
 #                                  CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
-#                                });
+                                });
          }
       }
-
      #$db->commit();
      return 0;
     }
-   elsif ($payments->{errno} == 7) {
-	   $db->rollback();
-	   $html->message('err', $_ERROR, "$status[2]");
+   elsif ($payments->{errno}) {
+	   if ($payments->{errno} == 7) {
+       $html->message('err', $_ERROR, "$status[2]");
+	    }
+     else {
+     	 $html->message('err', $_ERROR, "$_ERROR");
+      }
+     $db->rollback();
     }
 	 }
 	
@@ -976,14 +978,14 @@ my @days_arr = sort keys %$report_hash;
    my $v=$report_hash->{$k};
 
  	 $table->addrow($html->button($k, "index=$index&DATE=$k"), 
- 	   ($v->{ENABLE})   ? $v->{ENABLE} : 0,
- 	   ($v->{ENABLE_SUM})   ? $v->{ENABLE_SUM} : 0.00,
+ 	   ($v->{ENABLE})    ? $v->{ENABLE} : 0,
+ 	   ($v->{ENABLE_SUM})? $v->{ENABLE_SUM} : 0.00,
 
  	   ($v->{USED})     ? $v->{USED} : 0,
- 	   ($v->{USED_SUM})     ? $v->{USED_SUM} : 0.00,
+ 	   ($v->{USED_SUM}) ? $v->{USED_SUM} : 0.00,
 
- 	   ($v->{DISABLE})  ? $v->{DISABLE} : 0,
- 	   ($v->{DISABLE_SUM})  ? $v->{DISABLE_SUM} : 0.00,
+ 	   ($v->{DISABLE})     ? $v->{DISABLE} : 0,
+ 	   ($v->{DISABLE_SUM}) ? $v->{DISABLE_SUM} : 0.00,
 
  	   ($v->{RETURNED}) ? $v->{RETURNED} : 0,
  	   ($v->{RETURNED_SUM}) ? $v->{RETURNED_SUM} : 0.00,
@@ -1195,7 +1197,7 @@ sub cards_diller_face {
      return 0; 	
    }
 
-  if ($user->{DEPOSIT} + $user->{CREDIT} > 0) {
+  if (($user->{DEPOSIT} + $user->{CREDIT} > 0 && $self->{PAYMENT_TYPE} == 0) || $self->{PAYMENT_TYPE} > 0) {
   	if (cards_diller_add() > 0) {
   	  return 0;	
   	 }
@@ -1349,7 +1351,6 @@ if ($FORM{add}) {
      	  print "Content-Type: text/xml; filename=\"cards_$DATE.xml\"\n".
   	    "Content-Disposition: attachment; filename=\"cards_$DATE.xml\"; size=$Msgs->{FILESIZE}".
   	    "\n\n";
-
      	  print "<?xml version=\"1.0\" encoding=\"$html->{CHARSET}\"?>\n";
      	}
      elsif ($FORM{EXPORT} && $FORM{EXPORT} eq 'text') {
@@ -1366,7 +1367,6 @@ if ($FORM{add}) {
            print "$_ICARDS $_EXIST ";
            exit;
       }
-
 
      my $list = $Cards->cards_list({ SERIA     => '',
                                      PAGE_ROWS => 1,
@@ -1387,19 +1387,15 @@ if ($FORM{add}) {
        }
 
       my @CARDS_OUTPUT = ();
-      
       #Import from other systems
       if ($FORM{import}) {
-        
        }
       else {
-     	
       	if ($FORM{TYPE} && ! $FORM{TP_ID}) {
       		$html->message('err', "$_INFO", "$ERR_SELECT_TARIF_PLAN");
       	 }
         elsif ($FORM{TYPE}) {
         	require "Abills/modules/Dv/webinterface";
-
           $FORM{add}   = 1;
           $FORM{create}= 1;
           if (! $FORM{BEGIN}) {
@@ -1458,8 +1454,6 @@ if ($FORM{add}) {
   	    }
 
          }
-        	
-        	
          } 
         else {
           for (my $i=$serial; $i<$serial+$count; $i++) {
@@ -1508,13 +1502,15 @@ if ($FORM{add}) {
             	   }
                }
 
-              $fees->take($user, $sum,
+              #If prepaid or postpaid service
+              if ($Cards->{PAYMENT_TYPE} < 2) {
+                $fees->take($user, $sum,
                                     {  DESCRIBE     => "$_ICARDS $Cards->{SERIAL}$Cards->{NUMBER}",
                                        METHOD       => 0,
                                        EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
                                        CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
                                      });
-
+               }
                 push @CARDS_OUTPUT, { 
                 	LOGIN       => '-',
                 	PIN         => $pin,
@@ -1524,7 +1520,6 @@ if ($FORM{add}) {
                   SUM         => sprintf("%.2f", $FORM{SUM}),
                   DILLER_ID   => $diller->{ID}
                    };
-  
              }
            }
          }
@@ -1556,9 +1551,7 @@ if ($FORM{add}) {
         foreach my $card_info (@CARDS_OUTPUT) {
         	$content .= "$card_info->{PIN}\t$card_info->{NUMBER}\t$card_info->{EXPIRE_DATE}\t$card_info->{DATE}\t$card_info->{SUM}\t$card_info->{DILLER_ID}\n";
          }
-
         sendmail("$user->{FROM}", "$conf{ADMIN_MAIL}", "Cards Print", "$content", "$conf{MAIL_CHARSET}", "$FORM{PRIORITY} ($MAIL_PRIORITY{$FORM{PRIORITY}})");
-        
         $html->message('info', "$_INFO", "$_SENDED $_ORDER_PRINT");
        }
       else {

@@ -4676,7 +4676,6 @@ sub dv_cards {
     $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	  	
   	return 0;
    }
-
   $FROM{CARDS_FORM}=1;
   my $dv_tpl = dv_wizard_user({ OUTPUT2RETURN => 1,
   	                            NO_EXTRADATA  => 1,
@@ -4685,10 +4684,7 @@ sub dv_cards {
                               });
 
 	my $return = cards_users_add({ EXTRA_TPL => $dv_tpl  });
-  
-
   $FORM{add}=1;
-
   if (scalar keys %FORM_BASE < 1) {
   	%FORM_BASE=%FORM;
    }

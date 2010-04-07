@@ -111,15 +111,14 @@ sub take {
             INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}',
             '$user->{COMPANY_VAT}', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do');
 
-
     if($self->{errno}) {
       return $self;
      }
-  }
+   }
   else {
     $self->{errno}=14;
     $self->{errstr}='No Bill';
-  }
+   }
 
 
   return $self;

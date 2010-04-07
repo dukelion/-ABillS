@@ -182,12 +182,12 @@ if [ w$1 = wstart ]; then
   ${IPFW} add ${FWD_RULE} fwd ${WEB_SERVER_IP},80 tcp from table\(32\) to any dst-port 80,443 via ${INTERNAL_IF}
   #If use proxy
   #${IPFW} add ${FWD_RULE} fwd ${WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_IF}
-  ${IPFW} add `expr ${FWD_RULE}+10` allow ip from table\(32\) to ${DNS_IP} dst-port 53 via ${INTERNAL_IF}
-  ${IPFW} add `expr ${FWD_RULE}+20` allow tcp from table\(32\) to ${MY_IP} dst-port 9443 via ${INTERNAL_IF}
-  ${IPFW} add `expr ${FWD_RULE}+30` deny ip from table\(32\) to any via ${INTERNAL_IF}
+  ${IPFW} add `expr ${FWD_RULE} + 10` allow ip from table\(32\) to ${DNS_IP} dst-port 53 via ${INTERNAL_IF}
+  ${IPFW} add `expr ${FWD_RULE} + 20` allow tcp from table\(32\) to ${MY_IP} dst-port 9443 via ${INTERNAL_IF}
+  ${IPFW} add `expr ${FWD_RULE} + 30` deny ip from table\(32\) to any via ${INTERNAL_IF}
 else if [ w$1 = wstop ]; then
   echo "Negative Deposit Forward Section - stop:"; 
-  ${IPFW} delete ${FWD_RULE} ` expr ${FWD_RULE}+10 ` ` expr ${FWD_RULE}+20 ` ` expr ${FWD_RULE}+30 `
+  ${IPFW} delete ${FWD_RULE} ` expr ${FWD_RULE} + 10 ` ` expr ${FWD_RULE} + 20 ` ` expr ${FWD_RULE} + 30 `
 else if [ w$1 = wshow ]; then
   echo "Negative Deposit Forward Section - status:"; 
   ${IPFW} show ${FWD_RULE}
