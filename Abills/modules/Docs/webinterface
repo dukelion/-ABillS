@@ -648,7 +648,7 @@ my $table = $html->table( { width      => '100%',
 my @rows = ();
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[10]&UID=$line->[9]", { MESSAGE => "$_DEL ID $line->[9] ?", BUTTON => 1 }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[10]&UID=$line->[9]", { MESSAGE => "$_DEL ID $line->[10] ?", BUTTON => 1 }) : ''; 
 
   @rows = ( "$line->[0]", 
    $html->button("$line->[1]", "qindex=$index&print=$line->[10]&UID=$line->[9]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new' }), 

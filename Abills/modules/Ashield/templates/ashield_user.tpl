@@ -10,7 +10,7 @@
 </td></tr>
 -->
 <tr><td>E-mail:</td><td><input type=text name=EMAIL value='%EMAIL%'></td></tr>	
-<tr><td>$_STATUS:</td><td>%STATUS_SEL%</td></tr>
+<!-- <tr><td>$_STATUS:</td><td>%STATUS_SEL%</td></tr> -->
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>
