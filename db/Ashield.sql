@@ -1,0 +1,22 @@
+CREATE TABLE `ashield_main` (
+  `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `gid` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `status` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `expire` DATE NOT NULL,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `uid` (`uid`)
+) COMMENT='Ashield users';
+
+CREATE TABLE `ashield_avd_log` (
+  `uid` INTEGER(11) UNSIGNED NOT NULL,
+  `state` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `agentuuid` VARCHAR(36) NOT NULL DEFAULT '',
+  `groupuuid` VARCHAR(36) NOT NULL DEFAULT '',
+  `groupname` VARCHAR(20) NOT NULL DEFAULT '',
+  `tariffplancode` VARCHAR(20) NOT NULL DEFAULT '',
+  `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `date` DATE NOT NULL,
+  `id` INTEGER(11) NOT NULL AUTO_INCREMENT,
+  UNIQUE KEY `id` (`id`)
+) COMMENT='Ashield AV Desc Subscribes';
