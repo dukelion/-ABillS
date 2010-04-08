@@ -2774,7 +2774,7 @@ $html->tpl_show(templates('form_admin'), $admin_form);
 my $table = $html->table({ width      => '100%',
 	                         caption    => $_ADMINS,
                            border     => 1,
-                           title      => ['ID', $_NAME, $_FIO, $_CREATE, $_STATUS,  $_GROUPS, 'Domain', 
+                           title      => ['ID',"$_LOGIN", $_FIO, $_CREATE, $_STATUS,  $_GROUPS, 'Domain', 
                               '-', '-', '-', '-', '-', '-'],
                            cols_align => ['right', 'left', 'left', 'right', 'left', 'left', 'center', 
                               'center', 'center', 'center', 'center', 'center'],
