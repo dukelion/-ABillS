@@ -386,6 +386,9 @@ sub ashield_user {
   	    	my $message = '';
   	    	if ($dr_web_errors{$result_hash->{error}->[0]->{code}->[0]}) {
   	    		$message = $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]};
+  	    		if ($result_hash->{error}->[0]->{code}->[0] == 18) {
+  	    			$Ashield->user_add({ %FORM, UID => $LIST_PARAMS{UID} });
+  	    		 }
   	    	 }
   	    	else {
   	    		$message = "[$result_hash->{error}->[0]->{code}->[0]] $result_hash->{error}->[0]->{message}->[0]";

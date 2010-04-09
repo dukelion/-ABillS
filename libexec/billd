@@ -341,11 +341,9 @@ sub check_lines {
                $JOIN_SERVICE_STATS{"$line->[0]"}{OUTBYTE}= $line->[2];
              }
             }
-
            $RAD{INBYTE} = $JOIN_SERVICE_STATS{$join_service}{INBYTE} || 0;
            $RAD{OUTBYTE}= $JOIN_SERVICE_STATS{$join_service}{OUTBYTE} || 0;
          }
-
 
          #Check active sessions
          $Billing->{CHECK_SESSION}=1;
@@ -384,11 +382,10 @@ sub check_lines {
               $state ||
               ($NAS{NAS_TYPE} eq 'exppp' && ($acct_input_octets_ext > $exppp_hanguplimit || $acct_output_octets_ext > $exppp_hanguplimit))
              ) {
-
            #Neg deposit filter
            if ($Billing->{NEG_DEPOSIT_FILTER} && $deposit + $credit + $session_sum < 0) {
-              print "Skip with neg deposit filter '$Billing->{NEG_DEPOSIT_FILTER}'\n" if ($debug > 1);
-              next;
+             print "Skip with neg deposit filter '$Billing->{NEG_DEPOSIT_FILTER}'\n" if ($debug > 1);
+             next;
            	}
 
            print "Hanguped Login: $RAD{USER_NAME} DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $Billing->{SUM} SESSION_ID: $acct_session_id - ";

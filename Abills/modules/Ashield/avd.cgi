@@ -202,7 +202,7 @@ else {
 
 #Add fees
 
-if ($_xml->{'action'}->[0]->{type}->[0] == 1) {
+if ($_xml->{'action'}->[0]->{type}->[0] < 4) {
   my $login = $_xml->{'login'}->[0];
   my $list = $users->list({ LOGIN => $login });
 

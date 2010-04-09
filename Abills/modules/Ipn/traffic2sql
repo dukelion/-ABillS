@@ -442,8 +442,8 @@ elsif($total_user_sum > 0 && $uid > 0) {
            defined($Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}) && 
             $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid} < 0)  {
          my @ip_array = split(/\./, $ip_addr, 4);
-         
          my $num = 0;
+
          if ($conf{IPN_FW_RULE_UID}) {
   	       $num = $uid;
           }
@@ -455,9 +455,8 @@ elsif($total_user_sum > 0 && $uid > 0) {
          my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $num;
          print "$DATE $TIME Hangup UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug>0);
          my $netmask = 32;
-
          my $cmd = $conf{IPN_FW_STOP_RULE} || '';
-         
+
          #If session online hangup it
          if ( $session_id ) {
            if ($cmd eq '') {
@@ -493,18 +492,14 @@ elsif($total_user_sum > 0 && $uid > 0) {
          }
 
         my $rule_num = $conf{IPN_FW_FIRST_RULE} + 10000 + $num;
-
     		print "$DATE $TIME Hangup. Lost AMON ALIVE: $last_alive UID: $uid DEPOSIT: $Ipn->{USERS_INFO}->{DEPOSIT}->{$uid}\n" if ($debug > 0);
-
         my $netmask = 32;
         my $cmd = $conf{IPN_FW_STOP_RULE} || '';
         print 'Error: Not defined stop rules. Check $conf{IPN_FW_STOP_RULE}' if ($cmd eq '');
-
         $cmd =~ s/\%IP/$ip_addr/g;
         $cmd =~ s/\%NUM/$rule_num/g;
         $cmd =~ s/\%MASK/$netmask/g;
         $cmd =~ s/\%LOGIN/$login/g;
-
         print "$cmd" if ($debug>0);
         system("$cmd");
         $Ipn->acct_stop({ SESSION_ID           => $session_id,
