@@ -7,8 +7,10 @@ use HTTP::Request::Common;
 
 my $ua = new LWP::UserAgent();
 
+use Abills::Base;
 use Ashield;
 use Fees;
+
 
 my $Ashield = Ashield->new($db, $admin, \%conf);
 my $Tariffs = Tariffs->new($db, \%conf, $admin);
@@ -391,9 +393,9 @@ sub ashield_user {
   	    		 }
   	    	 }
   	    	else {
-  	    		$message = "[$result_hash->{error}->[0]->{code}->[0]] $result_hash->{error}->[0]->{message}->[0]";
+  	    		$message = "$result_hash->{error}->[0]->{message}->[0]";
   	    	 }
-          $html->message('err', $_ERROR, "Dr.Web: $message");
+          $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $message");
          }
         else {        	
           $html->message('info', $_INFO, "Dr.Web: $_USER $_ADDED");
