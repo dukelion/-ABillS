@@ -30,11 +30,6 @@ require "Abills/defs.conf";
 #
 #====End config
 
-
-
-
-
-
 use vars qw(%conf 
   %FUNCTIONS_LIST
   @PAYMENT_METHODS  
