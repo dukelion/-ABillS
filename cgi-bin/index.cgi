@@ -1054,8 +1054,9 @@ print $table->show();
 sub form_period  {
  my ($period) = @_;
 
- my @periods = ("$_NOW", "$_DATE");
- my $date_fld = $html->date_fld('date_', { MONTHES => \@MONTHES });
+ my @periods = ("$_NEXT_PERIOD", "$_DATE");
+ #my $date_fld = $html->date_fld('date_', { MONTHES => \@MONTHES });
+ my $date_fld = $html->date_fld2('DATE', { FORM_NAME => 'user', MONTHES => \@MONTHES, WEEK_DAYS => \@WEEKDAYS, NEXT_DAY => 1 });
  my $form_period='';
 
  $form_period .= "<tr><td>$_DATE:</td><td>";
