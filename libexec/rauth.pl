@@ -38,8 +38,6 @@ my $rr  = '';
 
 my $log_print = sub {
   my ($LOG_TYPE, $USER_NAME, $MESSAGE, $attr) = @_;
-
-
   my $Nas = $attr->{NAS}; 
 
   if ($conf{debugmods} =~ /$LOG_TYPE/) {

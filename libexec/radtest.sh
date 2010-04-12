@@ -33,7 +33,8 @@ if [ t$1 = 'tauth' ] ; then
         NAS_IP_ADDRESS=${NAS_IP_ADDRESS} \
         CALLING_STATION_ID="192.168.40.146"\
         USER_PASSWORD="${USER_PASSWORD}"\
-        USER_NAME="${USER_NAME}"
+        USER_NAME="${USER_NAME}"\
+        CISCO_AVPAIR="client-mac-address=000f.ea3d.92ef"
 
 #        CHAP_PASSWORD="0x5acd1cc26b6f8bf084fb616925769362af"
 #NAS_IDENTIFIER="vpn1.imperial.net.ua"\
