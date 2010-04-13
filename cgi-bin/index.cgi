@@ -221,7 +221,7 @@ if ($uid > 0) {
   if (defined($functions{$index})) {
     if (! $FORM{index} && $user->{DEPOSIT} + $user->{CREDIT} < 0) {
       $html->tpl_show(templates('form_neg_deposit'), $user);
-      $html->tpl_show(templates('form_client_info'), $user);
+      form_info();
      }
     else {
       $functions{$index}->();

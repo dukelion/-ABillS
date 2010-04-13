@@ -189,18 +189,13 @@ sub acct {
   	  ($RAD->{INBYTE}, $RAD->{OUTBYTE},
       $RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = (0,0,0,0); 
 
-
-      foreach my $line  (@{ $RAD->{MPD_OUTPUT_OCTETS} }) {
-         my($class, $byte)=split(/:/, $line);
-         $class = ($class == 0) ? '' : $class + 1;
-         $RAD->{'OUTBYTE'. $class }	= $byte;
-        }
-
-      foreach my $line  (@{ $RAD->{MPD_INPUT_OCTETS} }) {
-         my($class, $byte)=split(/:/, $line);
-         $class = ($class == 0) ? '' : $class + 1;
-         $RAD->{'INBYTE' . $class}	= $byte;
-        }
+      for(my $i=0; $i<$#{ $RAD->{MPD_INPUT_OCTETS} }; $i++) {
+        my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS}->[$i]);
+        $class = ($class == 0) ? '' : $class + 1;
+        $RAD->{'OUTBYTE' . $class}	= $byte;
+        ($class, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS}->[$i]);
+        $RAD->{'INBYTE'. $class }	= $byte;
+       }
      }
     elsif ($nas->{NAS_TYPE} eq 'exppp') {
       #reverse byte parameters
@@ -240,17 +235,13 @@ sub acct {
       $RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = (0,0,0,0); 
 
    	  if (ref $RAD->{MPD_INPUT_OCTETS} eq 'ARRAY') {
-        foreach my $line  (@{ $RAD->{MPD_INPUT_OCTETS} }) {
-          my($class, $byte)=split(/:/, $line);
+        for(my $i=0; $i<$#{ $RAD->{MPD_INPUT_OCTETS} }; $i++) {
+          my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS}->[$i]);
           $class = ($class == 0) ? '' : $class + 1;
+          $RAD->{'OUTBYTE' . $class}= $byte;
+          ($class, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS}->[$i]);
           $RAD->{'INBYTE'. $class }	= $byte;
-         }
-
-        foreach my $line  (@{ $RAD->{MPD_OUTPUT_OCTETS} }) {
-          my($class, $byte)=split(/:/, $line);
-          $class = ($class == 0) ? '' : $class + 1;
-          $RAD->{'OUTBYTE' . $class}	= $byte;
-         }
+        }
        }
       else {
           my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS});
