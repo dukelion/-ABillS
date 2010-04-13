@@ -187,14 +187,14 @@ sub acct {
 
     if ($nas->{NAS_TYPE} eq 'mpd5' && $RAD->{MPD_INPUT_OCTETS}) {
   	  ($RAD->{INBYTE}, $RAD->{OUTBYTE},
-      $RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = (0,0,0,0); 
+       $RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = (0,0,0,0); 
 
-      for(my $i=0; $i<$#{ $RAD->{MPD_INPUT_OCTETS} }; $i++) {
+      for(my $i=0; $i<=$#{ $RAD->{MPD_INPUT_OCTETS} }; $i++) {
         my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS}->[$i]);
         $class = ($class == 0) ? '' : $class + 1;
-        $RAD->{'OUTBYTE' . $class}	= $byte;
-        ($class, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS}->[$i]);
-        $RAD->{'INBYTE'. $class }	= $byte;
+        $RAD->{'INBYTE' . $class}	= $byte;
+        (undef, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS}->[$i]);
+        $RAD->{'OUTBYTE'. $class }	= $byte;
        }
      }
     elsif ($nas->{NAS_TYPE} eq 'exppp') {
@@ -212,10 +212,6 @@ sub acct {
     elsif ($nas->{NAS_TYPE} eq 'lepppd') {
       $RAD->{INBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0;   # FROM client
       $RAD->{OUTBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # TO client
-
-      #$RAD->{'INBYTE'} = $RAD->{'PPPD_INPUT_OCTETS_ZONES_0'};
-      #$RAD->{'OUTBYTE'} = $RAD->{'PPPD_OUTPUT_OCTETS_ZONES_0'};
-
       for(my $i=0; $i<4; $i++) {
       	if (defined($RAD->{'PPPD_INPUT_OCTETS_ZONES_'.$i})) {
           $RAD->{'INBYTE'.($i + 1)} = $RAD->{'PPPD_INPUT_OCTETS_ZONES_'.$i};
@@ -235,11 +231,11 @@ sub acct {
       $RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = (0,0,0,0); 
 
    	  if (ref $RAD->{MPD_INPUT_OCTETS} eq 'ARRAY') {
-        for(my $i=0; $i<$#{ $RAD->{MPD_INPUT_OCTETS} }; $i++) {
+        for(my $i=0; $i<=$#{ $RAD->{MPD_INPUT_OCTETS} }; $i++) {
           my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS}->[$i]);
           $class = ($class == 0) ? '' : $class + 1;
           $RAD->{'OUTBYTE' . $class}= $byte;
-          ($class, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS}->[$i]);
+          (undef, $byte)=split(/:/, $RAD->{MPD_OUTPUT_OCTETS}->[$i]);
           $RAD->{'INBYTE'. $class }	= $byte;
         }
        }
