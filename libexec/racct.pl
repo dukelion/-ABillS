@@ -173,11 +173,15 @@ sub acct {
   
   #Cisco-AVPair
   if ($RAD->{CISCO_AVPAIR}) {
-  	 if ($RAD->{CISCO_AVPAIR} =~ /client-mac-address=(\S+)/) {
-  		 $RAD->{CALLING_STATION_ID}=$1;
-      }
-     if ($RAD->{NAS_PORT} && $RAD->{NAS_PORT} == 0 && ($RAD->{CISCO_NAS_PORT} && $RAD->{CISCO_NAS_PORT} =~ /\d\/\d\/\d\/(\d+)/)) {
-     	 $RAD->{NAS_PORT}=$1;
+    if ($RAD->{CISCO_AVPAIR} =~ /client-mac-address=([a-f0-9\.\-\:]+)/) {
+      $RAD->{CALLING_STATION_ID}=$1;
+      if ($RAD->{CALLING_STATION_ID} =~ /(\S{2})(\S{2})\.(\S{2})(\S{2})\.(\S{2})(\
+S{2})/) {
+        $RAD->{CALLING_STATION_ID}="$1:$2:$3:$4:$5:$6";
+       }
+    }
+    elsif (defined($RAD->{NAS_PORT}) && $RAD->{NAS_PORT} == 0 && ($RAD->{CISCO_NAS_PORT} && $RAD->{CISCO_NAS_PORT} =~ /\d\/\d\/\d\/(\d+)/)) {
+     	$RAD->{NAS_PORT}=$1;
       }
    }
 
