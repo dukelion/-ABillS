@@ -254,7 +254,6 @@ sub dv_users_list {
  if ($attr->{TP}) {
  	 $FORM{TP_ID} = $FORM{TP_NUM} if ($FORM{TP_NUM});
    $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
-   #$pages_qs .= "&TP_ID=$FORM{TP_ID}";
   }
  elsif($FORM{TP_ID} || $FORM{TP_NUM}) {
  	 $FORM{TP_ID} = $FORM{TP_NUM} if ($FORM{TP_NUM});
@@ -4928,7 +4927,7 @@ sub dv_wizard_user {
         
         #If docs module enable make account
         if (in_array('Docs', \@MODULES)) {
-          $tariffs->info($dv->{TP_ID});
+          $tariffs->info(0, { ID => $dv->{TP_ID} });
           $LIST_PARAMS{UID} = $UID;
 
           if ($tariffs->{MONTH_FEE} + $tariffs->{ACTIV_PRICE} > 0) {
@@ -4962,7 +4961,12 @@ sub dv_wizard_user {
       return $UID;
     }
    else {
-     $html->message('err', "[$users->{errno}] $err_strs{$users->{errno}}", "$_LOGIN: '$add_values{1}{LOGIN}'");	
+     if ($users->{errno} == 7) {
+     	 $html->message('err', "$_ERROR", "$_LOGIN: '$add_values{1}{LOGIN}' $_USER_EXIST");	
+      }
+     else {
+       $html->message('err', "[$users->{errno}] $err_strs{$users->{errno}}", "$_LOGIN: '$add_values{1}{LOGIN}'");	
+      }
      return 0 if ($attr->{SHORT_REPORT});
     }
    
