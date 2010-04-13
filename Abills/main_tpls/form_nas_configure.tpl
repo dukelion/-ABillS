@@ -12,7 +12,7 @@ function Process(version, INTERNAL_SUBNET, wds, SSID){
 		var commandversion = '\\\\&version=coova'; 
 	} else if (version == 'freebsd') {
               var commandversion = '\\\\&version=freebsd';
-              commandbegin = commandbegin.replace('wget -O', 'fetch -o')
+              commandbegin = commandbegin.replace('wget -O', '/usr/bin/fetch -o')
         } else { 
 		var commandversion = ''; 
 	}

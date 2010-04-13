@@ -29,7 +29,6 @@ if ($#ARGV < 1) {
    -d         - Deamon mode
    -fg        - foreground mode
 
-
    FLOW_CAT   - Flow tools flow-cat location
    FLOW_PRINT - Flow tools flow-print location\n";
   exit;
@@ -106,12 +105,8 @@ use POSIX qw(strftime mktime ctime);
 require Acct;
 Acct->import();
 my $Acct = Acct->new($db, \%conf);
-
-
 my $NAS_ID = 0;
 my $log = $var_dir."log/ipn/trafd_". $NAS_ID. "_" .$IF_NAME;
-
-
 
 if ($NAS_IDS eq '') {
 	print "You don't specify NAS ID\n";
@@ -142,7 +137,6 @@ if (-f $log) {
   exit;
 }
 
-
 $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
 Time::HiRes->import(qw(gettimeofday));
 
@@ -166,8 +160,6 @@ else {
 sub flow_capture {
   my ($attr) = @_;
 
-  
-  
   my $FLOWTOOLS_IP_AGGREGATION='';
   if ($ARGV->{FLOWTOOLS_IP_AGGREGATION}) {
     $FLOWTOOLS_IP_AGGREGATION='awk \'BEGIN { ip1=0 };  { ips[$1"  "$2]+=$6 }; END { for (i in ips) { print i" "1" "0" "0" "ips[i]" "0; } }\' |';
@@ -197,7 +189,6 @@ sub flow_capture {
   	                 SESSION_INTERVAL => $session_interval,
   	                 LOG              => $log
   	                  });
-
        }
 
       # Delete log file
@@ -400,10 +391,8 @@ elsif($total_user_sum > 0 && $uid > 0) {
 
   #Put user data to database
   if ($uid > 0) {
-    $Ipn->{$ip}{IN}  = 0 if (! $Ipn->{$ip}{IN});
-    $Ipn->{$ip}{OUT} = 0 if (! $Ipn->{$ip}{OUT});
-    $Ipn->{$ip}{IN}  = $Ipn->{$ip}{IN} + $total_in;
-    $Ipn->{$ip}{OUT} = $Ipn->{$ip}{OUT}+ $total_out;
+    $Ipn->{$ip}{IN}  = (! $Ipn->{$ip}{IN})  ? $total_in : $Ipn->{$ip}{IN} + $total_in;
+    $Ipn->{$ip}{OUT} = (! $Ipn->{$ip}{OUT}) ? $total_out : $Ipn->{$ip}{OUT}+ $total_out;
 
     %RAD = (  NAS_PORT          => 0,
               INTERIUM_INBYTE   => $total_in,
