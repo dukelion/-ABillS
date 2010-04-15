@@ -954,10 +954,7 @@ elsif($FORM{zap}) {
                                           [ "SESSION_ID", $acct_session_id ],
                                         ]
                                } );
-
   $message = $table->show();
-
-  
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
   	                NAS_PORT        => $nas_port_id,
   	                NAS_ID          => $nas->{NAS_ID} });  
@@ -1068,15 +1065,12 @@ elsif($FORM{tolog}) {
     return 0;
    }
 
-
   $ACCT_INFO->{INBYTE}           = $ACCT_INFO->{ACCT_INPUT_OCTETS};
   $ACCT_INFO->{OUTBYTE}          = $ACCT_INFO->{ACCT_OUTPUT_OCTETS};
   $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS};
   $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFO->{ACCT_EX_OUTPUT_OCTETS};
   $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
   $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
-
-
 
   # Exppp VENDOR params           
   my $r = $Acct->accounting($ACCT_INFO, $nas);
@@ -1127,14 +1121,10 @@ elsif($FORM{del} || $FORM{dellist}) {
                                         ]
                                } );
    
-
     my $MODULE = (defined($self->{MODULE})) ? $self->{MODULE} : '';
     my $action_type = ($attr->{TYPE}) ? $attr->{TYPE} : '';
-
-    
     $html->message('info', $_DELETED, $table->show());	
    }
-
 }
 
 # online count
@@ -1284,7 +1274,6 @@ foreach my $nas_row (@$nas_list) {
   foreach my $line (@$l) {
     undef($table->{rowcolor});
     undef($table->{extra});
-
     my @rows  = ();
     for(my $i=0; $i<=$#ACTIVE_FIELDS; $i++) {
     	  my $value=$line->[$i]; 
@@ -1309,21 +1298,18 @@ foreach my $nas_row (@$nas_list) {
  	  	    if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
     	   }	
     	  # Dub ports color green
-    	  elsif ($ACTIVE_FIELDS[$i] == 2) {
-           if (defined($dub_ports->{$nas_row->[0]}{$line->[$i]}) && $dub_ports->{$nas_row->[0]}{$line->[$i]} > 1) { $table->{rowcolor}='#00FF40';    }    	  	
+    	  elsif ($nas_row->[4] ne 'ipcad' && $ACTIVE_FIELDS[$i] == 2) {
+           if (defined($dub_ports->{$nas_row->[0]}{$line->[$i]}) && $dub_ports->{$nas_row->[0]}{$line->[$i]} > 1) { $table->{rowcolor}='#00FF40';    }
     	   }
     	  elsif ($ACTIVE_FIELDS[$i] == 3) {
     	  	$value = int2ip($line->[$i]);
     	   }
-    	  
     	  push @rows, $value;
       }
-
 
     if ($line->[$#ACTIVE_FIELDS + 9] > 3)  { $table->{rowcolor}='#FF0000';  }
     my $zap = $html->button('Z', "index=$index&zap=$nas_row->[0]+".$line->[$#ACTIVE_FIELDS + 12]."+". $line->[($#ACTIVE_FIELDS + 13)].$pages_qs, { TITLE => 'Zap', BUTTON => 1 });
     my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[$#ACTIVE_FIELDS + 13]", { TYPE => 'checkbox', BUTTON => 1  } ) : $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->[$#ACTIVE_FIELDS+2]&hangup=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]+$line->[$#ACTIVE_FIELDS + 11]&UID=$line->[$#ACTIVE_FIELDS+3]$pages_qs", { TITLE => 'Hangup', BUTTON => 1 });
-
 
     $table->addrow(@rows,
      $html->button('P', "index=$index&NAS_ID=$FORM{NAS_ID}&ping=$line->[$#ACTIVE_FIELDS+2]$pages_qs", { TITLE => 'ping', BUTTON => 1 }),
@@ -1331,7 +1317,6 @@ foreach my $nas_row (@$nas_list) {
      "$hangup");
   }
 }
-
 
 my $output = $table->show();
 
@@ -1366,7 +1351,6 @@ sub dv_online_search {
 	
 my $FIELDS_ALL    = $attr->{FIELDS_ALL};
 my $ACTIVE_FIELDS = $attr->{ACTIVE_FIELDS};
-
 my $table2 = $html->table({ width => '100%' });
 my @arr = ();
 my $i=0;
@@ -1374,7 +1358,6 @@ my $i=0;
 foreach my $name ( @$FIELDS_ALL ) {
   my $ex_info = ''; 
   push @arr, $html->form_input('fields', "$i", { TYPE => 'checkbox', STATE => (in_array($i, $ACTIVE_FIELDS)) ? 1 : undef  }). ' '. $html->b($name) ." $ex_info";
-
   if ($#arr > 2) {
     $table2->addrow(@arr);
     @arr = ();

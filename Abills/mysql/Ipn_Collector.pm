@@ -245,13 +245,9 @@ sub user_ips {
      #$self->{INTERIM}{$line->[3]}{TIME}=$line->[10];
   	 $users_info{PAYMENT_TYPE}{$line->[0]} = $line->[9];
   	 $users_info{DEPOSIT}{$line->[0]}   = $line->[8];
-  	 
-
      $users_info{REDUCTION}{$line->[0]} = $line->[13];
      $users_info{ACTIVATE}{$line->[0]}  = $line->[15];
  	   $users_info{BILL_ID}{$line->[0]}   = $line->[7];  	 
- 	 	
-  	 #push @clients_lst, $line->[1];
    }
  
   $self->{USERS_IPS}     = \%ips;

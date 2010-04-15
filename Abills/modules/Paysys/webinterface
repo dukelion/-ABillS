@@ -1294,20 +1294,86 @@ else {
 #**********************************************************
 sub paysys_p24_get_payments {
 	require "modules/Paysys/P24.pm";
+
+
+$table = $html->table({ width       => '100%',
+	                      rowcolor    => $_COLORS[0],
+                        rows        => [[ "$_FROM: ", $html->date_fld2('START_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS } ),
+                                          "$_TO: ",   $html->date_fld2('END_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS } ),
+                                          $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
+                                        ]],
+                         ID         => 'STATS_PERIODS_SEARCH'
+                        } );
+
+print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+	                       HIDDEN  => { sid   => "$sid",
+	                                    index => "$index",
+	                                    UID   => "$UID",
+	                                    UIDS  => "$FORM{UIDS}",
+	                                    },
+	                       NAME    => 'stats'
+	                     });
 	
-	my $info =  p24({ HISTORY => 1 });
+	my $info =  p24({ HISTORY => 1, %FORM });
 	
-	my $table = $html->table({ caption => "$_HISTORY", 
-		                         width   => '100%' 
+	my $table = $html->table({ caption     => "$_LOG", 
+		                         title_plain => ['appcode',	"$_USER",	'rest',	'description',	'trandate',	'amount',	'card',	'cardamount', 'termainal'] ,
+		                         width       => '100%' 
 		                         });
 
-	while(my ($k, $v) = each %{ $info->{data}->{info}->[0]->{cardbalance}->[0]->{card}->[0] } ) {
-		 $table->addrow($k, $v->[0]);
-		 $table->{caption} = 'CARD: '. $v->[0] if ($k eq 'account');
+  if ($info->{data}->{error}) {
+  	$html->message('err', $_ERROR, "$info->{data}->{error}->[0]->{message}");
+   }
+
+  
+  my %BINDING_IDS=();
+  if ($conf{PAYSYS_P24_EXPR}) {
+  	my($BINDING_FIELD, $BINDING_EXPR) = split(/:/, $conf{PAYSYS_P24_EXPR}, 2);
+    
+    foreach my $line ( @{ $info->{data}->{info}->[0]->{statements}->[0]->{statement} }) {
+  	  if (convert($line->{'description'}, { utf82win => 1 }) =~ /$BINDING_EXPR/g ) {
+  		  $BINDING_IDS{$line->{'appcode'}}=$1; 
+  	   }
+     }
+    
+    my $ids = join(', ', values %BINDING_IDS);
+    my $users = Users->new($db, $admin, \%conf); 
+	  $ids =~ s/, /', '/g;
+	  my $list  = $users->list({ $BINDING_FIELD => "$ids",  
+	     	                       PAGE_ROWS      => 1000000 
+	     	                        });
+
+    my $binding_field_id = 5;
+    if ($BINDING_FIELD eq 'LOGIN') {
+      $binding_field_id = 0;
+     }
+    elsif($BINDING_FIELD eq 'FIO') {
+    	$binding_field_id = 1;
+     }
+
+    foreach my $line (@$list) {
+      $binding_hash{lc($line->[$binding_field_id])}=$line->[5+$users-{SEARCH_FIELDS_COUNT}].":$line->[0]:$line->[1]:$line->[5]";
+     }  
+  }
+
+  #print %{ $info->{data}->{info}->[0]->{statements}->[0]->{statement} };
+	foreach my $line ( @{ $info->{data}->{info}->[0]->{statements}->[0]->{statement} }) {
+		my $description = convert($line->{'description'}, { utf82win => 1 });
+
+		$table->addrow($line->{'appcode'},
+		  ($binding_hash{$BINDING_IDS{$line->{'appcode'}}}) ? $binding_hash{$BINDING_IDS{$line->{'appcode'}}} : '',	
+		 	$line->{'rest'},	
+		  convert($line->{'description'}, { utf82win => 1 }),	
+		 	$line->{'trandate'},	
+		 	$line->{'amount'},	
+		 	$line->{'card'},	
+		 	$line->{'cardamount'}, 
+		 	$line->{'termainal'}
+		 	);
    }
 
 	while(my($k, $v) = each %{  @{ $info->{data}->{info} }[0]->{cardbalance}->[0] } ) {
-  	 $table->addrow($k, $v->[0]) if ($k ne 'card');
+  	$table->addrow($k, $v->[0]) if ($k ne 'card');
 	 }
 
  	print $table->show();
@@ -1319,6 +1385,10 @@ sub paysys_p24_get_payments {
 #**********************************************************
 sub paysys_p24 {
 	require "modules/Paysys/P24.pm";
+
+
+  paysys_p24_get_payments();
+
 
 	my $info =  p24({ CARD_INFO => $conf{'PAYSYS_P24_CARDNUM'} });
 
@@ -1341,16 +1411,16 @@ sub paysys_p24 {
 	 }
 
  	print $table->show();
+
+
 }
 
 
 #**********************************************************
-#
+# User portal payments system with privat 24
 #**********************************************************
 sub paysys_privatbank_p24 {
 my %info = ();
-	
-
 	
 if ($FORM{FALSE}) {
 	if ($FORM{status} == 11 ) {
@@ -1405,7 +1475,6 @@ else {
 } 
 
   $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
-
   $html->tpl_show(_include('paysys_privatbank_p24_add', 'Paysys'), \%info);
 }
 

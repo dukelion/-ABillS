@@ -122,8 +122,9 @@ sub convert {
 	elsif($attr->{'2_tpl'}) {
      $text =~ s/__textarea__/textarea/g;
    }
-  elsif( $attr->{win2utf8} ) { $text = win2utf8($text); } 
-	elsif(defined($attr->{win2koi})) { $text = win2koi($text);	 }
+  elsif( $attr->{win2utf8}) { $text = win2utf8($text); } 
+  elsif( $attr->{utf82win}) { $text = utf82win($text); } 
+	elsif( $attr->{win2koi} ) { $text = win2koi($text);	 }
 	elsif( $attr->{koi2win} ) { $text = koi2win($text); }
   elsif( $attr->{win2iso} ) { $text = win2iso($text); }
   elsif( $attr->{iso2win} ) { $text = iso2win($text); }
@@ -179,12 +180,9 @@ return $pvdcoderdos;
 # http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1251.TXT
 #**********************************************************
 sub win2utf8 {
-
+	my ($text)=@_;
   #my $TestLine='ÀàÁáÂâÃãÄäÅå¨¸ÆæÇçÈèÉéÊêËëÌìÍíÎîÏïÐðÑñÒòÓóÔôÕõÖö×÷ØøÙùÚúÛûÜüÝýÞþßÿ³²';
-
-  my $TestLine="º";
-
-  my @ChArray=split('',$_[0]);
+  my @ChArray=split('',$text);
   my $Unicode='';
   my $Code='';
   for(@ChArray){
@@ -199,15 +197,37 @@ sub win2utf8 {
     elsif($Code==0xb2){$Unicode.="&#".(0x406).";";}
     elsif($Code==0xaf){$Unicode.="&#".(0x407).";";}
     elsif($Code==0xbf){$Unicode.="&#".(0x457).";";}
-    
-   
-    
     else{$Unicode.=$_;}
    }
 
   return $Unicode;
  }
 
+#**********************************************************
+# http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1251.TXT
+#**********************************************************
+sub utf82win {
+	my ($text)=@_;
+  my @ChArray=split('',$text);
+  my $Unicode='';
+  my $Code='';
+  for(@ChArray){
+    $Code=ord;
+    #return $Code;
+    if(($Code>=0xc0+0x350)&&($Code<=0xff+0x350)){$Unicode.=chr($Code-0x350);}
+    elsif($Code==0xa8+0x350){$Unicode.=chr(0x401-0x350);}
+    elsif($Code==0xb8+0x350){$Unicode.=chr(0x451-0x350);}
+    elsif($Code==0xb3+0x350){$Unicode.=chr(0x456-0x350);}
+    elsif($Code==0xaa+0x350){$Unicode.=chr(0x404-0x350);}
+    elsif($Code==0xba+0x350){$Unicode.=chr(0x454-0x350);}
+    elsif($Code==0xb2+0x350){$Unicode.=chr(0x406-0x350);}
+    elsif($Code==0xaf+0x350){$Unicode.=chr(0x407-0x350);}
+    elsif($Code==0xbf+0x350){$Unicode.=chr(0x457-0x350);}
+    else{$Unicode.=$_;}
+   }
+
+  return $Unicode;
+ }
 
 #**********************************************************
 # Parse comand line arguments

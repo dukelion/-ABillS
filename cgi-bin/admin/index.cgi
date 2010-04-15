@@ -5627,14 +5627,11 @@ $table->{extra}   = "colspan='". ( 6 + $#caption )."' class='small'";
 $table->addrow("$_PRIMARY: ($main_templates_dir) ");
 if (-d $main_templates_dir ) {
     my $tpl_describe = get_tpl_describe("$main_templates_dir/describe.tpls");
-
     opendir DIR, "$main_templates_dir" or die "Can't open dir '$sys_templates/main_tpls' $!\n";
       my @contents = grep  !/^\.\.?$/  , readdir DIR;
     closedir DIR;
-
     $table->{rowcolor}=undef;
     $table->{extra}=undef;
-
     foreach my $file (sort @contents) {
       if (-d "$main_templates_dir".$file) {
       	next;
@@ -5657,12 +5654,11 @@ if (-d $main_templates_dir ) {
         $mtime = strftime "%Y-%m-%d", localtime($mtime);
        }
 
-
       # LANG
       my @rows = (
       "$file", $size, $mtime, 
          (($tpl_describe->{$file}) ? $tpl_describe->{$file} : '' ),
-         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }) .'<br>'.
+         $html->button($_SHOW, "#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }) .'<br>'.
          ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name="."_$file") : $html->button($_CREATE, "index=$index&create=:$file") ) .'<br>'.
          ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($_DEL, "index=$index&del=". "_$file", { MESSAGE => "$_DEL '$file'" }) : '' )
       );    
@@ -5670,14 +5666,11 @@ if (-d $main_templates_dir ) {
       $file =~ s/\.tpl//;
       foreach my $lang (@caption) {
       	 my $f = '_'.$file.'_'.$lang.'.tpl';
-
          push @rows,  ((-f "$conf{TPL_DIR}/$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang" }).'<br>'. $html->button($html->b($_CHANGE), "index=$index&tpl_name=$f") : $html->button($_CREATE, "index=$index&create=:$file".'.tpl'.":$lang") ).'<br>'.
          ( (-f "$conf{TPL_DIR}/$f") ? $html->button($_DEL, "index=$index&del=$f", { MESSAGE => "$_DEL '$f'" }) : '' );
-
        }
- 
-      $table->{rowcolor} = ($file.'.tpl' eq $main_tpl_name) ? $_COLORS[0] : undef;
 
+      $table->{rowcolor} = ($file.'.tpl' eq $main_tpl_name) ? $_COLORS[0] : undef;
       $table->addrow(
          @rows
          );

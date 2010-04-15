@@ -1100,30 +1100,23 @@ sub link_former {
 sub button {
   my $self = shift;
   my ($name, $params, $attr)=@_;
-
   my $ex_attr = ($attr->{ex_params}) ? $attr->{ex_params} : '';
-
-  
   $params = ($attr->{GLOBAL_URL})? $attr->{GLOBAL_URL} : "$SELF_URL?$params";
   $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
   $params = $self->link_former($params);
-
   
   $ex_attr=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
-  
   if ( $attr->{NEW_WINDOW} ) {
     my $x = 640;
     my $y = 480;
-
+    $params='#';
     if ($attr->{NEW_WINDOW_SIZE}) {
     	($x, $y)=split(/:/, $attr->{NEW_WINDOW_SIZE});
-     }
-   
+     }   
     $ex_attr .= " onclick=\"window.open('$attr->{NEW_WINDOW}', null,
             'toolbar=0,location=0,directories=0,status=1,menubar=0,'+
             'scrollbars=1,resizable=1,'+
             'width=$x, height=$y');\"";
-
     $params = '#';
    }
   

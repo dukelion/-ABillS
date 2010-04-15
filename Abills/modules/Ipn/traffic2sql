@@ -242,14 +242,12 @@ my $registred = '';
 
 foreach my $ip ( sort keys %$session_ids) {  
   if ($ip == 0) {	next; }
-
   my $uid           = $ips->{$ip};
   my $login         = $logins->{$uid};
   my $tariif_plan   = $tps->{$uid} || 0;
   my $session_id    = $session_ids->{$ip};
   my $ip_stats      = $Ipn->{INTERIM}{$ip};
   my $interium_time = $interim_times->{$session_id} || 0;	
-
   my $total_in       = 0; 
   my $total_out      = 0;
   my $extended       = '';
@@ -297,7 +295,6 @@ if ($Ipn->{INTERIM}{$ip}) {
 
      # Work with prepaid traffic
      if ( defined($intervals->{$user_tp_interval}->{ZONES}->{$k}->{PREPAID_TSUM}) ) {
-
         my $used_traffic;
         if ($ARGV->{PREPAID_STORE}) {
 	        ($used_traffic) = $Ipn->traffic_user_get2({ UID          => $uid, 
@@ -544,8 +541,7 @@ sub get_collector_data {
  
 print "$log\n" if ($debug > 1);
 
-$Ipn->traffic_agregate_clean(); # if (! defined($ARGV->{TRAFFIC_CLASS}));
-
+$Ipn->traffic_agregate_clean();
 $Ipn->{TOTAL_FLOWS}=0;
 my %DATA=();
 

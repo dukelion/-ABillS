@@ -607,10 +607,12 @@ foreach my $line (@FW_ACTIONS) {
    }	
   else {
     if (system("$line")) {
-    	my $error = "Error: $?/$! '$line' \n";
-      open(FILE, ">>/tmp/linkupdown.log") or print "Can't open file\n";
-        print FILE $error;  
-      close(FILE);
+      my $error = "$DATE $TIME Error: $?/$! '$line' \n";
+      if ($error !~ /shutdown/) {
+        open(FILE, ">>/tmp/linkupdown.log") or print "Can't open file\n";
+          print FILE $error;  
+        close(FILE);
+       }
      }
    }
 }
