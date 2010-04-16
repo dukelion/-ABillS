@@ -1437,7 +1437,9 @@ sub tpl_show {
   my $self = shift;
   my ($filename, $variables_ref, $attr) = @_;	
 
-  print "Content-Type: text/plain\n\n" if ($attr->{debug});
+  if ($attr->{debug}) {
+    print "Content-Type: text/plain\n\n";
+   }
 
   $debug = 0;
   $filename        =~ s/\.[a-z]{3}$//;
@@ -1448,7 +1450,7 @@ sub tpl_show {
 
   my $moddate.= '';
   $attr->{DOCS_IN_FILE} = 0 if (! $attr->{DOCS_IN_FILE});
-  
+
   $pdf->info(
         'Author'       => "ABillS pdf manager",
         'CreationDate' => "D:20020911000000+01'00'",

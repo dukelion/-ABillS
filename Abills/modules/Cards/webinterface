@@ -247,8 +247,8 @@ function CheckAllINBOX() {
 }
 //-->
 </script>\n <a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a> \n". 
-$html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs", { ex_params   => 'target=_new' }).
-' '.$html->button('CSV', "qindex=$index&csv=1&print_cards=1&$pages_qs", { ex_params   => 'target=_new' })
+$html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($FORM{SERIA})? "&SERIA=$FORM{SERIA}" : '' ), { ex_params   => 'target=_new' }).
+' '.$html->button('CSV', "qindex=$index&csv=1&print_cards=1&$pages_qs". (($FORM{SERIA})? "&SERIA=$FORM{SERIA}" : '' ), { ex_params   => 'target=_new' })
                          });
 
 
@@ -2057,9 +2057,8 @@ else {
  my $i               = 0;
  my %page_print_hash = ();
  my @MULTI_ARR       = ();
- 
+
  foreach my $line (@$list) {
-  
    if ($FORM{csv}) {
    	 if ($FORM{SERIA}) {
        print "$line->[0]$line->[1]\t$line->[2]\t$line->[14]\t-\t$line->[3]\t$line->[5]\t-\t-\t\n";
@@ -2073,12 +2072,12 @@ else {
    if ($FORM{SERIA}) {
      $page_print_hash{'SERIAL_'.$i} = "$line->[0]$line->[1]";
      $page_print_hash{'LOGIN_'.$i}  = "$line->[2]";
-     $page_print_hash{'PIN_'.$i}    = "$line->[14]";
+     $page_print_hash{'PIN_'.$i}    = "$line->[15]";
      $page_print_hash{'TP_'.$i}     = "";
      $page_print_hash{'SUM_'.$i}    = "$line->[3]";
      $page_print_hash{'EXPIRE_'.$i} = "$line->[5]";
      $page_print_hash{'AGE_'.$i}    = "";
-     $page_print_hash{'TIME_LIMIT_'.$i} = $line->[7] / 3600;
+     $page_print_hash{'TIME_LIMIT_'.$i} = sprintf("%2.f",$line->[7] / 3600);
     }
    else {
      $page_print_hash{'SERIAL_'.$i} = "$line->[0]";
@@ -2088,7 +2087,7 @@ else {
      $page_print_hash{'SUM_'.$i}    = "$line->[14]";
      $page_print_hash{'EXPIRE_'.$i} = "$line->[5]";
      $page_print_hash{'AGE_'.$i}    = "$line->[6]";
-     $page_print_hash{'TIME_LIMIT_'.$i} = $line->[7] / 3600;
+     $page_print_hash{'TIME_LIMIT_'.$i} = sprintf("%2.f",$line->[7] / 3600);
     }
  
    if ( $i && ! ($i % 9)) {

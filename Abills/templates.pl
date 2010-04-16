@@ -22,9 +22,6 @@ sub _include {
   if ($admin->{DOMAIN_ID}) {
  	  $domain_path="$admin->{DOMAIN_ID}/";
    }
-
-  #print "$module // $tpl - $Bin .'../Abills/templates/'. $module . '_' . $tpl .$sufix\n";
-
   if ($FORM{NAS_GID} && -f $Bin .'/../Abills/templates/'. $domain_path.'/'. $FORM{NAS_GID} .'/'.$module . '_' . $tpl . "_$html->{language}".$sufix) {
     return ($FORM{pdf}) ? $Bin .'/../Abills/templates/'. $domain_path.'/'. $FORM{NAS_GID} .'/'. $module . '_' . $tpl . "_$html->{language}" . $sufix : tpl_content($Bin .'/../Abills/templates/'. $domain_path.'/'. $FORM{NAS_GID} .'/'.$module . '_' . $tpl . "_$html->{language}".$sufix);
    }

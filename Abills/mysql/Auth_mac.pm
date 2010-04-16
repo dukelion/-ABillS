@@ -52,14 +52,16 @@ sub user_info {
   my $EXT_TABLES = '';
   
   if ($conf->{AUTH_MAC_DHCP}) {
-  	
-  	if ($RAD->{CALLING_STATION_ID} =~ /([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})\.([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})\.([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})/) {
+  	if ($RAD->{CALLING_STATION_ID} && $RAD->{CALLING_STATION_ID} =~ /([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})\.([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})\.([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})/) {
   		$RAD->{CALLING_STATION_ID} = "$1:$2:$3:$4:$5:$6";
   	 }
+    elsif ($RAD->{USER_NAME} =~ /([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})/i) {
+      $RAD->{CALLING_STATION_ID} = "$1:$2:$3:$4:$5:$6";
+     }
   	else { 
   		$RAD->{CALLING_STATION_ID} =~ s/\-/:/g;
   	 }
-  	
+
     $WHERE = " and dhcp.mac='$RAD->{CALLING_STATION_ID}'";	
     $EXT_TABLES = "INNER JOIN dhcphosts_hosts dhcp ON (dhcp.uid=u.uid)";
    }
