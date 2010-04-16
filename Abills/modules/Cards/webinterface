@@ -2061,7 +2061,7 @@ else {
  foreach my $line (@$list) {
    if ($FORM{csv}) {
    	 if ($FORM{SERIA}) {
-       print "$line->[0]$line->[1]\t$line->[2]\t$line->[14]\t-\t$line->[3]\t$line->[5]\t-\t-\t\n";
+       print "$line->[0]$line->[1]\t$line->[2]\t$line->[15]\t-\t$line->[3]\t$line->[5]\t-\t-\t\n";
    	  }
    	 else {
    	   print "$line->[0]\t$line->[1]\t$line->[2]\t$line->[3]\t$line->[14]\t$line->[5]\t$line->[6]\t$line->[7]\n";
