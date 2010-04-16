@@ -111,7 +111,7 @@ sub convert {
 		 $text =~ s/</&lt;/g;
      $text =~ s/>/&gt;/g;
      $text =~ s/\"/&quot;/g;
-     $text =~ s/\n/<br>\n/gi;
+     $text =~ s/\n/<br/>\n/gi;
      if ($attr->{SHOW_URL}) {
        $text =~ s/([https|http]+:\/\/[a-z\.0-9\/\?\&\-\_\#:\=]+)/<a href=\'$1\' target=_new>$1<\/a>/ig;
       }
@@ -406,21 +406,14 @@ sub show_log {
      }
  close(FILE);
 
- my $total  = 0;
- $total = $#err_recs;
+ my $total  = $#err_recs;
  my @list;
 
  return (\@list, \%types, $total) if ($total < 0);
-
-  
-# my $output;
- #my $i = 0;
  for (my $i = $total - $PG; $i>=($total - $PG) - $PAGE_ROWS && $i >= 0; $i--) {
-    push @list, "$err_recs[$i]";
-#    $output .= "$i / $err_recs[$i]<br>";
-   }
+   push @list, "$err_recs[$i]";
+  }
  
-# print "$output";
  $total++;
  return (\@list, \%types, $total);
 } 
