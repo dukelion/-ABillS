@@ -17,7 +17,7 @@ sub _include {
   my ($tpl, $module, $attr) = @_;
   my $result = '';
   
-  my $sufix = ($attr->{pdf}) ? '.pdf' : '.tpl';
+  my $sufix = ($attr->{pdf} || $FORM{pdf}) ? '.pdf' : '.tpl';
 
   if ($admin->{DOMAIN_ID}) {
  	  $domain_path="$admin->{DOMAIN_ID}/";

@@ -2112,7 +2112,7 @@ elsif (scalar keys %page_print_hash > 0) {
 
   my $single_tpl = $html->tpl_show(_include('cards_print', 'Cards'), undef, 
                                            { MULTI_DOCS   => \@MULTI_ARR, 
-  	                                         SAVE_AS      => $save_filename,
+  	                                         #SAVE_AS      => $save_filename,
   	                                         DOCS_IN_FILE => $docs_in_file || 10,
   	                                         debug        => $debug
   	                                        }
