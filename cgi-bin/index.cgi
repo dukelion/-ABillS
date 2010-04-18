@@ -113,8 +113,6 @@ my %OUTPUT = ();
 my $login = $FORM{user} || '';
 my $passwd = $FORM{passwd} || '';
 
-
-
 $user=Users->new($db, $admin, \%conf); 
 
 ($uid, $sid, $login) = auth("$login", "$passwd", "$sid");
@@ -153,6 +151,9 @@ if ($uid > 0) {
      push @m, "40:0:$_FINANCES:form_payments:::";
      push @m, "41:40:$_FEES:form_fees:::";
      push @m, "42:40:$_PAYMENTS:form_payments:::";
+     if ($conf{MONEY_TRANSFER}) {
+     	 push @m, "43:40:$_MONEY_TRANSFER:form_money_transfer:::";
+      }
    }
   push @m, "17:0:$_PASSWD:form_passwd:::" if($conf{user_chg_passwd});
   mk_menu(\@m);
@@ -955,7 +956,7 @@ sub form_fees {
 		$LIST_PARAMS{DESC}='DESC';
 	 }
 	
- my @FEES_METHODS = ($_ONE_TIME, $_ABON, $_FINE, $_ACTIVATE);
+ my @FEES_METHODS = ($_ONE_TIME, $_ABON, $_FINE, $_ACTIVATE, $_MONEY_TRANSFER);
  push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
 
 my $fees = Finance->fees($db, $admin, \%conf);
@@ -991,7 +992,6 @@ $table = $html->table( { width      => '100%',
                          rowcolor   => $_COLORS[2]
                       } );
 print $table->show();
-
 }
 
 
@@ -999,8 +999,7 @@ print $table->show();
 # form_period
 #*******************************************************************
 sub form_payments {
-	
-my @PAYMENT_METHODS = ('Cash', 'Bank', 'Internet Card', 'Credit Card', 'Bonus');
+@PAYMENT_METHODS = ("$_CASH", "$_BANK", "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION", "$_COMPENSATION", "$_MONEY_TRANSFER");
 push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
 my $payments = Finance->payments($db, $admin, \%conf);
@@ -1038,27 +1037,21 @@ print $table->show();
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right', 'right', 'right'],
                         rows       => [ [ "$_TOTAL:", $html->b($payments->{TOTAL}), 
-                                          "$_SUM", $html->b($payments->{SUM}) 
+                                          "$_SUM:", $html->b($payments->{SUM}) 
                                        ] ],
                         rowcolor   => $_COLORS[2]
                       });
 print $table->show();
 }
 
-
-
-
 #*******************************************************************
 # form_period
 #*******************************************************************
 sub form_period  {
  my ($period) = @_;
-
  my @periods = ("$_NEXT_PERIOD", "$_DATE");
- #my $date_fld = $html->date_fld('date_', { MONTHES => \@MONTHES });
  my $date_fld = $html->date_fld2('DATE', { FORM_NAME => 'user', MONTHES => \@MONTHES, WEEK_DAYS => \@WEEKDAYS, NEXT_DAY => 1 });
  my $form_period='';
-
  $form_period .= "<tr><td>$_DATE:</td><td>";
 
  my $i=0;
@@ -1072,10 +1065,80 @@ sub form_period  {
    $i++;
  }
  $form_period .= "$date_fld</td></tr>\n";
-
-
  return $form_period;	
 }
 
+#**********************************************************
+# transfer funds between users accounts 
+#**********************************************************
+sub form_money_transfer {
+	my ($attr) = @_;
+
+if ($FORM{s2} || $FORM{transfer}) {
+  $FORM{SUM} = sprintf("%.2f", $FORM{SUM});
+
+	if ($user->{DEPOSIT} < $FORM{SUM}) {
+	  $html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
+	 }
+	elsif (! $FORM{SUM}) {
+	  $html->message('err', $_ERROR, "$ERR_WRONG_SUM");
+	 }
+	elsif (! $FORM{RECIPIENT}) {
+		$html->message('err', $_ERROR, "$_SELECT_USER");
+	 }
+	elsif ($FORM{RECIPIENT} == $user->{UID}) {
+		$html->message('err', $_ERROR, "$_USER_NOT_EXIST");
+	 }
+	else {
+		my $user2=Users->new($db, $admin, \%conf); 
+		$user2->info(int($FORM{RECIPIENT}));
+		if ($user2->{TOTAL} < 1) {
+			$html->message('err', $_ERROR, "$_USER_NOT_EXIST");
+		 }
+	  else {
+	  	$user2->pi({ UID => $user2->{UID} });
+      
+	    if (! $FORM{ACCEPT} && $FORM{transfer}) {
+		    $html->message('err', $_ERROR, "$ERR_ACCEPT_RULES");
+		    $html->tpl_show(templates('form_money_transfer_s2'), { %$user2, %FORM });	
+	     }
+	   	elsif ($FORM{transfer}) {
+    		#Fees 
+    		my $Fees = Finance->fees($db, $admin, \%conf);
+        $Fees->take($user, $FORM{SUM}, { DESCRIBE => "$_USER: $user2->{UID}", 
+        	                               METHOD   => 4 });  
+        if ($fees->{errno}) {
+          $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
+         }
+        else {
+        	$html->message('info', $_FEES, "$_TAKE SUM: $FORM{SUM}");
+        	my $Payments = Finance->payments($db, $admin, \%conf);
+          $Payments->add($user2, { DESCRIBE => "$_USER: $user->{UID}",
+          	                       INNER_DESCRIBE=> "$Fees->{INSERT_ID}",
+          	                       SUM      => $FORM{SUM},
+          	                       METHOD   => 7
+          	                      });  
+
+          if ($Payments->{errno}) {
+            $html->message('err', $_ERROR, "[$Payments->{errno}] $err_strs{$Payments->{errno}}");	
+           } 
+          else {
+            $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} # $Payments->{INSERT_ID}");
+           }
+         }
+
+    		#Payments
+        $html->tpl_show(templates('form_money_transfer_s3'), { %FORM, %$user2 });			
+	     }
+	    elsif ($FORM{s2}) {
+	      $html->tpl_show(templates('form_money_transfer_s2'), { %$user2, %FORM });	
+	     }
+	    return 0; 	
+	   }
+	 }
+}
+
+ $html->tpl_show(templates('form_money_transfer_s1'), \%FORM); 	
+}
 
 1

@@ -111,7 +111,7 @@ sub convert {
 		 $text =~ s/</&lt;/g;
      $text =~ s/>/&gt;/g;
      $text =~ s/\"/&quot;/g;
-     $text =~ s/\n/<br/>\n/gi;
+     $text =~ s/\n/<br\/>\n/gi;
      if ($attr->{SHOW_URL}) {
        $text =~ s/([https|http]+:\/\/[a-z\.0-9\/\?\&\-\_\#:\=]+)/<a href=\'$1\' target=_new>$1<\/a>/ig;
       }

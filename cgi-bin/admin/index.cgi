@@ -1,13 +1,12 @@
 #!/usr/bin/perl
 # 
 # http://www.maani.us/charts/index.php
-#use vars qw($begin_time);
 
 
 
 BEGIN {
   my $libpath = '../../';
- 
+
   $sql_type='mysql';
   unshift(@INC, $libpath ."Abills/$sql_type/");
   unshift(@INC, $libpath);
@@ -32,8 +31,9 @@ require "Abills/defs.conf";
 
 use vars qw(%conf 
   %FUNCTIONS_LIST
-  @PAYMENT_METHODS  
+  @PAYMENT_METHODS
   @EX_PAYMENT_METHODS  
+  @FEES_METHODS
 
   @state_colors
   %permissions
@@ -111,7 +111,6 @@ if ($admin->{DOMAIN_ID}) {
 }
 
 $index = 0;
-
 $html = Abills::HTML->new({ CONF     => \%conf, 
                             NO_PRINT => 0, 
                             PATH     => $conf{WEB_IMG_SCRIPT_PATH} || '../',
@@ -213,13 +212,9 @@ elsif  ($admin->{GID} > 0) {
   $LIST_PARAMS{GID}=$admin->{GID} 
  }
 
-
-
-
 if  ($admin->{DOMAIN_ID} > 0) {
   $LIST_PARAMS{DOMAIN_ID}=$admin->{DOMAIN_ID};
  }
-
 
 if  ($admin->{MAX_ROWS} > 0) {
   $LIST_PARAMS{PAGE_ROWS}=$admin->{MAX_ROWS};
@@ -232,11 +227,9 @@ if  ($admin->{MAX_ROWS} > 0) {
 #Global Vars
 @action    = ('add', $_ADD);
 @bool_vals = ($_NO, $_YES);
-@PAYMENT_METHODS = ("$_CASH", 'Bank', "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION", "$_COMPENSATION");
-@status = ("$_ENABLE", "$_DISABLE");
-
-
-
+@PAYMENT_METHODS = ("$_CASH", "$_BANK", "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION", "$_COMPENSATION", "$_MONEY_TRANSFER");
+@FEES_METHODS = ($_ONE_TIME, $_ABON, $_FINE, $_ACTIVATE, $_MONEY_TRANSFER);
+@status    = ("$_ENABLE", "$_DISABLE");
 my %menu_items  = ();
 my %menu_names  = ();
 my $maxnumber   = 0;
@@ -4862,11 +4855,7 @@ sub form_fees  {
 
  use Finance;
  my $fees = Finance->fees($db, $admin, \%conf);
-
  my %BILL_ACCOUNTS = ();
-
-
- my @FEES_METHODS = ($_ONE_TIME, $_ABON, $_FINE, $_ACTIVATE);
  push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
 
 
@@ -4908,7 +4897,7 @@ if ($attr->{USER}) {
           $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
          }
         else {
-        	$html->message('info', $_PAYMENTS, "$_TAKE SUM: $fees->{SUM} $_DATE: $FEES_DATE");
+        	$html->message('info', $_FEES, "$_TAKE SUM: $fees->{SUM} $_DATE: $FEES_DATE");
          }
        }
       else { 
@@ -4936,7 +4925,7 @@ if ($attr->{USER}) {
         $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
        }
       else {
-        $html->message('info', $_PAYMENTS, "$_TAKE SUM: $fees->{SUM}");
+        $html->message('info', $_FEES, "$_TAKE SUM: $fees->{SUM}");
         
         #External script
         if ($conf{external_fees}) {

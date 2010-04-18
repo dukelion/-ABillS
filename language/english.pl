@@ -226,7 +226,7 @@ $_EXCHANGE_RATE = "Exchange rate";
 $_MONEY = 'Money';
 $_REPLY = 'Reply';
 
-$_BANK_INFO='BANK';
+$_BANK='BANK';
 $_TAX_NUMBER='Tax number ';
 $_BANK_NAME='Bank name';
 $_COR_BANK_ACCOUNT='Corr. account';
@@ -431,3 +431,4 @@ $_REQUESTS='Requests';
 $_RETURN_TO_START_PAGE="Return to start page";
 $_LOGIN_IN_TO_HOTSPOT="Login to hotspot";
 $ERR_WRONG_CAPTCHA='Wrong Captcha';
+$_MONEY_TRANSFER='Money Transfer';
