@@ -2930,7 +2930,7 @@ print $table->show();
 #**********************************************************
 sub dv_user_chg_tp {
   my ($attr) = @_;
-# my $user;
+
  my $shedule = Shedule->new($db, $admin, \%conf);
  my $period = $FORM{period} || 0;
  
@@ -2939,8 +2939,7 @@ sub dv_user_chg_tp {
    return 0;
   }
 
- if(defined($LIST_PARAMS{UID})) {
-   #$user = $attr->{USER};
+ if($LIST_PARAMS{UID}) {
    $Dv = $Dv->info($LIST_PARAMS{UID});
    if($Dv->{TOTAL} < 1) {
  	   $html->message('info', $_INFO, "$_NOT_ACTIVE");
@@ -2954,12 +2953,41 @@ sub dv_user_chg_tp {
 
  #Get TP groups
  $tariffs->tp_group_info($Dv->{TP_GID});
- 
  if (! $tariffs->{USER_CHG_TP}) {
  	  $html->message('err', "$_CHANGE $_TARIF_PLAN", "$_NOT_ALLOW", { ID => 140 });
  	  return 0;
   }
 
+
+
+if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $user->{DISABLE} &&
+        ($user->{DEPOSIT}+$user->{CREDIT} > 0 || 
+         $Dv->{POSTPAID_ABON} || 
+         $Dv->{PAYMENT_TYPE} == 1 )) {
+
+
+      if ($user->{ACTIVATE} ne '0000-00-00') {
+        my ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
+        $M--;
+        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400 + ( ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} * 86400 : 0 ) ) );
+       }
+      else {
+        my ($Y, $M, $D)=split(/-/, $DATE, 3);
+        $M++;
+        if ($M == 13) {
+          $M = 1;
+          $Y++;
+         }
+
+        if ($conf{START_PERIOD_DAY}) {
+          $D=$conf{START_PERIOD_DAY}; 
+         }
+        else {
+          $D='01';
+         }
+        $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
+       }
+ }
 
 if ($FORM{set}) {
 	use POSIX;
@@ -2988,7 +3016,6 @@ if ($FORM{set}) {
          $Y++;
        }
      $M = sprintf("%02d", $M);
-    
      my $seltime = POSIX::mktime(0, 0, 0, $D, $M, ($Y - 1900));
 
     if ($seltime > time()) {
@@ -3178,9 +3205,7 @@ elsif($FORM{del}) {
      $html->message('info', $_INFO, "$ERR_SMALL_DEPOSIT", { ID => 142 });
      return 0;	
     }
-
-
-   $tariffs->{PARAMS} .= form_period($period) if ($conf{DV_USER_CHG_TP_SHEDULE} && ! $conf{DV_USER_CHG_TP_NPERIOD});	
+   $tariffs->{PARAMS} .= form_period($period, { ABON_DATE => $Dv->{ABON_DATE} }) if ($conf{DV_USER_CHG_TP_SHEDULE} && ! $conf{DV_USER_CHG_TP_NPERIOD});	
    $tariffs->{ACTION}='set';
    $tariffs->{LNG_ACTION}=$_CHANGE;
   }
@@ -3451,6 +3476,35 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   	$html->message('info', $_INFO, "$_NOT_ACTIVE");
     return 0;	
    }
+  
+  # Get next payment period
+  if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{STATUS} && ! $user->{DISABLE} &&
+        ($user->{DEPOSIT}+$user->{CREDIT} > 0 || 
+         $Dv->{POSTPAID_ABON} || 
+         $Dv->{PAYMENT_TYPE} == 1 )) {
+    if ($user->{ACTIVATE} ne '0000-00-00') {
+      my ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
+      $M--;
+      $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400) );
+     }
+    else {
+      my ($Y, $M, $D)=split(/-/, $DATE, 3);
+      $M++;
+      if ($M == 13) {
+        $M = 1;
+        $Y++;
+       }
+
+      if ($conf{START_PERIOD_DAY}) {
+        $D=$conf{START_PERIOD_DAY}; 
+       }
+      else {
+        $D='01';
+       }
+
+      $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
+     }
+  }
 
   if ($Dv->{STATUS} == 2) {
     $Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $service_status_colors[$Dv->{STATUS}]). ' ';
@@ -3474,36 +3528,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
     $Dv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid, { BUTTON => 1 } );
    }
 
-  # Get next payment period
-  if ($Dv->{MONTH_ABON}> 0 &&  ! $Dv->{STATUS} && ! $user->{DISABLE} &&
-        ($user->{DEPOSIT}+$user->{CREDIT} > 0 || 
-         $Dv->{POSTPAID_ABON} || 
-         $Dv->{PAYMENT_TYPE} == 1 )) {
-    if ($user->{ACTIVATE} ne '0000-00-00') {
-      my ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
-      $M--;
-      $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400) );
-     }
-    else {
-      my ($Y, $M, $D)=split(/-/, $DATE, 3);
-      $M++;
-      if ($M == 13) {
-        $M = 1;
-        $Y++;
-       }
-
-      if ($conf{START_PERIOD_DAY}) {
-          $D=$conf{START_PERIOD_DAY}; 
-        }
-      else {
-        $D='01';
-       }
-
-      $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
-     }
-  }
-
-  
+ 
   #Activate Cisco ISG Account
   if ($conf{DV_ISG}) {
     if ($user->{DISABLE}) {
@@ -3559,6 +3584,10 @@ elsif ($conf{DV_IP_DISCOVERY}) {
      }
    }
 
+
+
+
+  
 
   $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
   if ($conf{DV_USER_SERVICE_HOLDUP}) {

@@ -1048,7 +1048,8 @@ print $table->show();
 # form_period
 #*******************************************************************
 sub form_period  {
- my ($period) = @_;
+ my ($period, $attr) = @_;
+
  my @periods = ("$_NEXT_PERIOD", "$_DATE");
  my $date_fld = $html->date_fld2('DATE', { FORM_NAME => 'user', MONTHES => \@MONTHES, WEEK_DAYS => \@WEEKDAYS, NEXT_DAY => 1 });
  my $form_period='';
@@ -1061,9 +1062,11 @@ sub form_period  {
    	                                                   STATE         => ($i eq $period) ? 1 : undef, 
    	                                                   OUTPUT2RETURN => 1
    	                                                  });
-   $form_period .= $t;       
+
+   $form_period .= ($i == 0) ? $t ."($attr->{ABON_DATE})" : $t;       
    $i++;
  }
+
  $form_period .= "$date_fld</td></tr>\n";
  return $form_period;	
 }

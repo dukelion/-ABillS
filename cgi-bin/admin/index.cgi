@@ -5875,12 +5875,9 @@ sub tpl_describe {
 #*******************************************************************
 sub form_period  {
  my ($period, $attr) = @_;
-
-
  my @periods = ("$_NOW", "$_NEXT_PERIOD", "$_DATE");
  my $date_fld = $html->date_fld2('DATE', { FORM_NAME => 'user', MONTHES => \@MONTHES, WEEK_DAYS => \@WEEKDAYS, NEXT_DAY => 1 });
  my $form_period='';
-
  $form_period .= "<tr><td ". (($attr->{TD_EXDATA}) ? $attr->{TD_EXDATA} : '' ) .
   " rowspan=". ( ($attr->{ABON_DATE}) ? 3 : 2 ) .">$_DATE:</td><td>";
 
@@ -5902,7 +5899,7 @@ sub form_period  {
 
    if ($i == 1) {
      next if (! $attr->{ABON_DATE});
-     $period .= "$period_name ($attr->{ABON_DATE})" ;
+     $period .= "$period_name  ($attr->{ABON_DATE})" ;
     }
    elsif($i == 2) {
      $period .= "$period_name $date_fld"   	

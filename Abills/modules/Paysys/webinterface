@@ -82,8 +82,7 @@ sub paysys_import_form {
   my $debug = $FORM{DEBUG} || 0;
   my $table ;
 
-	if ($FORM{IMPORT}) {
-			
+	if ($FORM{IMPORT}) {			
 			#Default import extration	
       my $import_expr = ($attr->{IMPORT_EXPR}) ? $attr->{IMPORT_EXPR} : '(\d+)\t(.+)\t(\d+)\t(\S+)\t([0-9.,]+)\t(\d{2}-\d{2}-\d{4})\t(.+)\t(.+):ID, FIO, PHONE, CONTRACT_ID, SUM, DATE, ADDRESS, DESCRIBE';
 
@@ -94,21 +93,14 @@ sub paysys_import_form {
       	$import_expr   = $conf{'PAYSYS_IMPORT_EXPRATION_'. $attr->{IMPORT_TYPE}};
       	$BINDING_FIELD = $conf{'PAYSYS_IMPORT_BINDING_'.$attr->{IMPORT_TYPE}} if ($conf{'PAYSYS_IMPORT_BINDING_'.$FORM{IMPORT_TYPE}});
        }
-      #else {
-      #	
-      # }
 
-  
-      
       my ($DATA_ARR, $BINDING_IDS);
       my %binding_hash = ();      
       my $total_count  = 0;
       my $total_sum    = 0;
 
-      
       #Confirmation
       if (defined($FORM{IDS})) {
-     	 
       	 my @IDS =  split(/, /, $FORM{IDS});
        	 for (my $i=0; $i<=$#IDS; $i++) {
        	 	 my $ID = $IDS[$i];
@@ -142,14 +134,9 @@ sub paysys_import_form {
         print $table2->show();
        }
 
-
-
        push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
-
        my $ids = join(', ', @$BINDING_IDS);
-
        my $users = Users->new($db, $admin, \%conf); 
-	     #$users->{debug}=1;
 	     $ids =~ s/, /', '/g;
 	     my $list  = $users->list({ $BINDING_FIELD => "list:'$ids'",  
 	     	                          PAGE_ROWS      => 1000000 
@@ -1327,22 +1314,31 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 
   
   my %BINDING_IDS=();
+  #$conf{PAYSYS_P24_EXPR}="FIO:^(\\S+)";
+  $conf{PAYSYS_P24_EXPR}="FIO:([3]+)";
   if ($conf{PAYSYS_P24_EXPR}) {
   	my($BINDING_FIELD, $BINDING_EXPR) = split(/:/, $conf{PAYSYS_P24_EXPR}, 2);
     
     foreach my $line ( @{ $info->{data}->{info}->[0]->{statements}->[0]->{statement} }) {
-  	  if (convert($line->{'description'}, { utf82win => 1 }) =~ /$BINDING_EXPR/g ) {
+    	my $describe = convert($line->{'description'}, { utf82win => 1 });
+  	  if ($describe =~ /$BINDING_EXPR/g ) {
   		  $BINDING_IDS{$line->{'appcode'}}=$1; 
+  		  print "//$BINDING_IDS{$line->{'appcode'}}//";
   	   }
      }
     
     my $ids = join(', ', values %BINDING_IDS);
     my $users = Users->new($db, $admin, \%conf); 
-	  $ids =~ s/, /', '/g;
-	  my $list  = $users->list({ $BINDING_FIELD => "$ids",  
+	  #$ids =~ s/, /', '/g;
+	  #$ids = 'оепебнд+';
+
+	  $users->{debug}=1;
+
+	  my $list  = $users->list({ $BINDING_FIELD => $ids,  
 	     	                       PAGE_ROWS      => 1000000 
 	     	                        });
 
+    print "total: $users->{TOTAL}// ". "'$ids'/";
     my $binding_field_id = 5;
     if ($BINDING_FIELD eq 'LOGIN') {
       $binding_field_id = 0;
@@ -1359,9 +1355,15 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
   #print %{ $info->{data}->{info}->[0]->{statements}->[0]->{statement} };
 	foreach my $line ( @{ $info->{data}->{info}->[0]->{statements}->[0]->{statement} }) {
 		my $description = convert($line->{'description'}, { utf82win => 1 });
-
-		$table->addrow($line->{'appcode'},
-		  ($binding_hash{$BINDING_IDS{$line->{'appcode'}}}) ? $binding_hash{$BINDING_IDS{$line->{'appcode'}}} : '',	
+    my $ID          = $line->{'appcode'};
+    
+		$table->addrow($ID,
+		  (($binding_hash{$BINDING_IDS{$line->{'appcode'}}}) ? $binding_hash{$BINDING_IDS{$line->{'appcode'}}} : $html->form_input('UID_'. $ID, "$FORM{UID}")).
+		  $html->form_input('IDS', "$ID", { TYPE => 'hidden'}).
+		  $html->form_input('SUM_'.$ID, "$line->{'amount'}", { TYPE => 'hidden'})	.
+		  $html->form_input('DESCRIBE_'.$ID, "$description", { TYPE => 'hidden'})	
+		  	
+		  	,	
 		 	$line->{'rest'},	
 		  convert($line->{'description'}, { utf82win => 1 }),	
 		 	$line->{'trandate'},	
@@ -1376,7 +1378,14 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
   	$table->addrow($k, $v->[0]) if ($k ne 'card');
 	 }
 
- 	print $table->show();
+  print $html->form_main({ CONTENT => $table->show(),
+  	                       HIDDEN  => { index       => "$index",
+  	                       	           },
+	                         SUBMIT  => { 
+	                         	            IMPORT  => "IMPORT" 
+	                         	           },
+	                         NAME    => 'FORM_IMPORT'
+	                        });
 }
 
 
