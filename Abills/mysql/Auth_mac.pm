@@ -245,6 +245,45 @@ else {
 
 
 
+#*******************************************************************
+# Authorization module
+# pre_auth()
+#*******************************************************************
+sub pre_auth {
+  my ($self, $RAD, $attr)=@_;
+
+if ($RAD->{MS_CHAP_CHALLENGE} || $RAD->{EAP_MESSAGE}) {
+  my $login = $RAD->{USER_NAME} || '';
+  if ($login =~ /:(.+)/) {
+    $login = $1;	 
+  }
+
+  $self->query($db, "SELECT DECODE(password, '$CONF->{secretkey}') FROM users WHERE id='$login';");
+  if ($self->{TOTAL} > 0) {
+  	my $list = $self->{list}->[0];
+    my $password = $list->[0];
+    
+    if ($CONF->{RADIUS2}) {
+       print "Cleartext-Password := \"$password\"";
+       $self->{'RAD_CHECK'}{'Cleartext-Password'}="$password";
+     }
+    else {
+       print "User-Password == \"$password\"";
+       $self->{'RAD_CHECK'}{'User-Password'}="$password";
+     }
+    return 0;
+   }
+
+  $self->{errno} = 1;
+  $self->{errstr} = "USER: '$login' not exist";
+  return 1;
+ }
+  
+  $self->{'RAD_CHECK'}{'Auth-Type'}="Accept";
+
+  print "Auth-Type := Accept\n";
+  return 0;
+}
 
 
 1

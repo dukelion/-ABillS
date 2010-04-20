@@ -371,6 +371,7 @@ $admin->{SEL_TYPE} = $html->form_select('type',
 
 
 #Domains sel
+print "// $permissions{10} //";
 if (in_array('Multidoms', \@MODULES) && $permissions{10}) {
   require "Abills/modules/Multidoms/webinterface";
   $admin->{SEL_DOMAINS} = "$_DOMAINS:" . $html->form_main({ CONTENT => multidoms_domains_sel(),

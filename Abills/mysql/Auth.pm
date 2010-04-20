@@ -960,6 +960,9 @@ if ($RAD->{CISCO_AVPAIR}) {
      }
   }
 }
+elsif ($RAD->{'TUNNEL_CLIENT_ENDPOINT:0'}) {
+  $RAD->{CALLING_STATION_ID}=$RAD->{'TUNNEL_CLIENT_ENDPOINT:0'};
+}
 
 #DIsable
 if ($self->{DISABLE}) {
@@ -1472,8 +1475,19 @@ sub bin2hex ($) {
 sub pre_auth {
   my ($self, $RAD, $attr)=@_;
 
-if ($RAD->{MS_CHAP_CHALLENGE} || $RAD->{EAP_MESSAGE}) {
+if ($attr->{NAS_TYPE} eq 'mac_auth') {
+   my $password = $RAD->{USER_NAME};
 
+   if ($CONF->{RADIUS2}) {
+       print "Cleartext-Password := \"$password\"";
+       $self->{'RAD_CHECK'}{'Cleartext-Password'}="$password";
+     }
+    else {
+       print "User-Password == \"$password\"";
+       $self->{'RAD_CHECK'}{'User-Password'}="$password";
+     }
+ }
+elsif ($RAD->{MS_CHAP_CHALLENGE} || $RAD->{EAP_MESSAGE}) {
   my $login = $RAD->{USER_NAME} || '';
   if ($login =~ /:(.+)/) {
     $login = $1;	 

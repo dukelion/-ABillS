@@ -135,13 +135,20 @@ sub auth {
   }
 
  if ($attr->{'pre_auth'}) {
-   $auth_mod{'default'} = Auth->new($db, \%conf);
-   $r = $auth_mod{'default'}->pre_auth($RAD);
-   if ($auth_mod{'default'}->{errno}) {
+   my $nas_type = ($AUTH{$nas->{NAS_TYPE}}) ? $nas->{NAS_TYPE} : 'default';
+   if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
+     require $AUTH{$nas->{NAS_TYPE}} . ".pm";
+     $AUTH{$nas->{NAS_TYPE}}->import();
+    }
+
+   $auth_mod{$nas_type} = Auth->new($db, \%conf);
+   $r = $auth_mod{$nas_type}->pre_auth($RAD, $nas);
+
+   if ($auth_mod{$nas_type}->{errno}) {
      $log_print->('LOG_INFO', $RAD->{USER_NAME}, "MS-CHAP PREAUTH FAILED. Wrong password or login$GT", { NAS => $nas });
     }
    else {
-      while(my($k, $v)=each(%{ $auth_mod{'default'}->{'RAD_CHECK'} })) {
+      while(my($k, $v)=each(%{ $auth_mod{$nas_type}->{'RAD_CHECK'} })) {
       	$RAD_CHECK{$k}=$v;
        }
     }
