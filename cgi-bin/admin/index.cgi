@@ -150,11 +150,10 @@ if ($FORM{OP_SID}) {
   $html->setCookie('OP_SID', $FORM{OP_SID}, "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
 }
 
-
 if (defined($FORM{DOMAIN_ID})) {
   $html->setCookie('DOMAIN_ID', "$FORM{DOMAIN_ID}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+  $COOKIES{DOMAIN_ID}=$FORM{DOMAIN_ID};
  }
-
 
 #Admin Web_options
 if ($FORM{AWEB_OPTIONS}) {
@@ -260,12 +259,7 @@ foreach my $m (@MODULES) {
 
     $module_fl{"$ID"}=$maxnumber;
     $menu_args{$maxnumber}=$ARGS if ($ARGS && $ARGS ne '');
- 
-    #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB}<br>";
-    
     if($SUB > 0) {
-    #	my $dd = `     echo "$maxnumber | $module_fl{$SUB} | $SUB  | $NAME" >> /tmp/tttt `;
-
       $menu_items{$maxnumber}{$module_fl{$SUB}}=$NAME;
      } 
     else {
@@ -379,13 +373,15 @@ $admin->{SEL_TYPE} = $html->form_select('type',
 #Domains sel
 if (in_array('Multidoms', \@MODULES) && $permissions{10}) {
   require "Abills/modules/Multidoms/webinterface";
+  $FORM{DOMAIN_ID}=$COOKIES{DOMAIN_ID};
+  $admin->{DOMAIN_ID}=$FORM{DOMAIN_ID};
+  $LIST_PARAMS{DOMAIN_ID}=$admin->{DOMAIN_ID};
   $admin->{SEL_DOMAINS} = "$_DOMAINS:" . $html->form_main({ CONTENT => multidoms_domains_sel(),
 	                       HIDDEN  => { index      => $index, 
 	                       	            COMPANY_ID => $FORM{COMPANY_ID} 
 	                       	            },
 	                       SUBMIT  => { action   => "$_CHANGE"
 	                       	           } });
-  print "$FORM{DOMAIN_ID}";
  }
 
 
@@ -432,9 +428,6 @@ if ($admin->{WEB_OPTIONS}{qm} && ! $FORM{xml}) {
   $admin->{QUICK_MENU} .= "</tr></table>\n</td></tr>\n";
 }
 
-
-#print "\n\n\n --------------\n$admin->{QUICK_MENU}\n\n\n --------------\n";
-
 $html->tpl_show(templates('header'), $admin);
 print $admin->{QUICK_MENU} if ($admin->{QUICK_MENU});
 
@@ -477,7 +470,6 @@ if ($functions{$index}) {
      }
   	else {
   	  $functions{$index}->({ USER => $ui });
-  	  #$LIST_PARAMS{LOGIN} = '11111';
   	}
    }
   elsif ($index == 0) {
@@ -502,12 +494,7 @@ if ($begin_time > 0) {
 print "</td></tr>";
 $html->tpl_show(templates('footer'), $admin);
 print "</table>\n";
-#print ';
 $html->test();
-
-
-
-
 
 
 

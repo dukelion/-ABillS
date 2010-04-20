@@ -198,6 +198,10 @@ sub list {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{A_LOGIN}, 'STR', 'a.id') };
  }
 
+ if ($attr->{DOMAIN_ID}) {
+   push @WHERE_RULES, "u.domain_id='$attr->{DOMAIN_ID}' ";
+  }
+
  # Show debeters
  if ($attr->{DESCRIBE}) {
     push @WHERE_RULES, @{ $self->search_expr($attr->{DESCRIBE}, 'STR', 'f.dsc') };

@@ -229,6 +229,10 @@ sub list {
    push @WHERE_RULES, "p.method IN ($attr->{METHOD}) ";
   }
 
+ if ($attr->{DOMAIN_ID}) {
+   push @WHERE_RULES, "u.domain_id='$attr->{DOMAIN_ID}' ";
+  }
+
  if ($attr->{DATE}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{DATE}", 'INT', 'date_format(p.date, \'%Y-%m-%d\')') };
   }
