@@ -252,7 +252,20 @@ else {
 sub pre_auth {
   my ($self, $RAD, $attr)=@_;
 
-if ($RAD->{MS_CHAP_CHALLENGE} || $RAD->{EAP_MESSAGE}) {
+
+if ($attr->{NAS_TYPE} eq 'mac_auth') {
+   my $password = $RAD->{USER_NAME};
+
+   if ($CONF->{RADIUS2}) {
+       print "Cleartext-Password := \"$password\";";
+       $self->{'RAD_CHECK'}{'Cleartext-Password'}="$password";
+     }
+    else {
+       print "User-Password == \"$password\";";
+       $self->{'RAD_CHECK'}{'User-Password'}="$password";
+     }
+ }
+elsif ($RAD->{MS_CHAP_CHALLENGE} || $RAD->{EAP_MESSAGE}) {
   my $login = $RAD->{USER_NAME} || '';
   if ($login =~ /:(.+)/) {
     $login = $1;	 
@@ -264,11 +277,11 @@ if ($RAD->{MS_CHAP_CHALLENGE} || $RAD->{EAP_MESSAGE}) {
     my $password = $list->[0];
     
     if ($CONF->{RADIUS2}) {
-       print "Cleartext-Password := \"$password\"";
+       print "Cleartext-Password := \"$password\";\n";
        $self->{'RAD_CHECK'}{'Cleartext-Password'}="$password";
      }
     else {
-       print "User-Password == \"$password\"";
+       print "User-Password == \"$password\";\n";
        $self->{'RAD_CHECK'}{'User-Password'}="$password";
      }
     return 0;
@@ -279,7 +292,7 @@ if ($RAD->{MS_CHAP_CHALLENGE} || $RAD->{EAP_MESSAGE}) {
   return 1;
  }
   
-  $self->{'RAD_CHECK'}{'Auth-Type'}="Accept";
+  $self->{'RAD_CHECK'}{'Auth-Type'}="Accept-";
 
   print "Auth-Type := Accept\n";
   return 0;

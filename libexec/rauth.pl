@@ -136,12 +136,18 @@ sub auth {
 
  if ($attr->{'pre_auth'}) {
    my $nas_type = ($AUTH{$nas->{NAS_TYPE}}) ? $nas->{NAS_TYPE} : 'default';
+   
+   print $nas_type;
+   
    if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
      require $AUTH{$nas->{NAS_TYPE}} . ".pm";
      $AUTH{$nas->{NAS_TYPE}}->import();
+     $auth_mod{"$nas->{NAS_TYPE}"} = $AUTH{$nas->{NAS_TYPE}}->new($db, \%conf);
+    }
+   else {
+     $auth_mod{$nas_type} = Auth->new($db, \%conf);
     }
 
-   $auth_mod{$nas_type} = Auth->new($db, \%conf);
    $r = $auth_mod{$nas_type}->pre_auth($RAD, $nas);
 
    if ($auth_mod{$nas_type}->{errno}) {
