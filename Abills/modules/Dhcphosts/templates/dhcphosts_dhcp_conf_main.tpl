@@ -27,7 +27,7 @@ if exists agent.circuit-id {
 	log ( info, concat( \"o82 Lease for \", 
 	  binary-to-ascii (10, 8, \".\", leased-address), 
 	\" raw option-82 info is CID: \", 
-	  binary-to-ascii (10, 8, \".\", option agent.circuit-id), 
+	  binary-to-ascii (16, 8, \":\", substring(hardware, 1, 7)), 
 	\" AID: \",
 	  binary-to-ascii(16, 8, \".\", option agent.remote-id)));
 }
