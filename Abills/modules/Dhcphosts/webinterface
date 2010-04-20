@@ -1060,7 +1060,8 @@ foreach my $line (@$list) {
       push @OPTION82_MATCHES, "binary-to-ascii(10, 8, \":\", substring(option agent.circuit-id, 5, 1)) = \"$INFO{OPTION82_NAS_PORT}\"" if ($INFO{OPTION82_NAS_PORT} && $INFO{OPTION82_NAS_PORT} > 0);
 
       #Client MAC
-      push @OPTION82_MATCHES, "binary-to-ascii(10, 8, \"\", substring(option agent.circuit-id, 6, 1)) = \"$INFO{CLIENT_MAC}\"" if ($INFO{CLIENT_MAC} ne '0:0:0:0:0:0' );
+      push @OPTION82_MATCHES, "binary-to-ascii (16, 8, \":\", substring(hardware, 1, 7))=\"$INFO{CLIENT_MAC}\"" if ($INFO{CLIENT_MAC} ne '0:0:0:0:0:0' && $conf{DHCPHOSTS_O82_USE_MAC});
+      #push @OPTION82_MATCHES, "binary-to-ascii(10, 8, \"\", substring(option agent.circuit-id, 6, 1)) = \"-$INFO{CLIENT_MAC}\"" if ($INFO{CLIENT_MAC} ne '0:0:0:0:0:0' );
 
       #Vlan option
       push @OPTION82_MATCHES, "binary-to-ascii (10, 16, \"\", substring( option agent.circuit-id, 2, 2)) = \"$INFO{CLIENT_VLAN}\" " if ($INFO{CLIENT_VLAN} > 0 );

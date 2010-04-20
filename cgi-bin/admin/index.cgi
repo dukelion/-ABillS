@@ -150,6 +150,12 @@ if ($FORM{OP_SID}) {
   $html->setCookie('OP_SID', $FORM{OP_SID}, "Fri, 1-Jan-2038 00:00:01", '', $domain, $secure);
 }
 
+
+if (defined($FORM{DOMAIN_ID})) {
+  $html->setCookie('DOMAIN_ID', "$FORM{DOMAIN_ID}", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+ }
+
+
 #Admin Web_options
 if ($FORM{AWEB_OPTIONS}) {
   my %WEB_OPTIONS = ( language  => 1,
@@ -371,7 +377,6 @@ $admin->{SEL_TYPE} = $html->form_select('type',
 
 
 #Domains sel
-print "// $permissions{10} //";
 if (in_array('Multidoms', \@MODULES) && $permissions{10}) {
   require "Abills/modules/Multidoms/webinterface";
   $admin->{SEL_DOMAINS} = "$_DOMAINS:" . $html->form_main({ CONTENT => multidoms_domains_sel(),
@@ -380,6 +385,7 @@ if (in_array('Multidoms', \@MODULES) && $permissions{10}) {
 	                       	            },
 	                       SUBMIT  => { action   => "$_CHANGE"
 	                       	           } });
+  print "$FORM{DOMAIN_ID}";
  }
 
 
