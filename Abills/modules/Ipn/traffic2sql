@@ -369,7 +369,8 @@ if ($Ipn->{INTERIM}{$ip}) {
             IP						 => $ip,
             INTERVAL       => $user_tp_interval,
             SESSION_ID     => $session_id,    
-            SUM						 => ($k == 0) ? $total_user_sum : $traf_class_sum
+            #SUM						 => ($k == 0) ? $total_user_sum : $traf_class_sum
+            SUM						 => $traf_class_sum
    	      } );
       }
 
