@@ -78,7 +78,7 @@ if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
  }
 
 if ($FORM{set}) {
-  if (! $permissions{0}{1} ) {
+  if (! $permissions{0}{4} ) {
       $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
     	return 0;
     }
@@ -94,8 +94,7 @@ if ($FORM{set}) {
     	($year, $month, $day)=split(/-/, $FORM{DATE}, 3);
      }
 
- 	  use POSIX;
-    
+ 	  use POSIX;    
     my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
     
     if ($seltime <= time()) {
@@ -174,7 +173,6 @@ elsif($FORM{del}) {
   	  $tariffs->{LNG_ACTION}     = $_DEL;
   }
  else {
-  
    my $tp_list = $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $admin->{DOMAIN_ID} });
 
    #Sheduler fot TP change
@@ -226,7 +224,12 @@ elsif($FORM{del}) {
  	                                        });
 
    $tariffs->{PARAMS} .= form_period($period, { ABON_DATE => $Dv->{ABON_DATE} });	
-   $tariffs->{ACTION}  ='set';
+
+   if ($permissions{0}{4} ) {
+     $tariffs->{ACTION}  ='set';
+    }
+
+   
    $tariffs->{LNG_ACTION}=$_CHANGE;
   }
 
