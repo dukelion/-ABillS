@@ -175,36 +175,42 @@ sub msgs_admin_add {
 
     my $message='';
     my $Dv;
+    my $cmd = '';
+    my $rad = '';
     if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
        require "Dv.pm";
        $Dv = Dv->new($db, $admin, \%conf);
+     	 $conf{MSGS_REDIRECT_FILTER_ADD}=~/(EXEC:.+;)?(RAD:.+)?/;
+       $cmd = $1;
+       $rad = $2;
+       $cmd =~ s/EXEC://;
      }
 
     if  (! $FORM{INNER_MSG} && (defined($FORM{GID}) || ($FORM{GID} == 0 && $FORM{UID} == 0 ) ) ) {
 
        my $list = $users->list({ GID => $FORM{GID}, PAGE_ROWS => 1000000, DISABLE => 0 });
+       my @uids = ();
        foreach my $line (@$list) {
           $FORM{UID}=$line->[5+$users->{SEARCH_FIELDS_COUNT}];
+          push @uids, $FORM{UID};
+
           $Msgs->message_add({ %FORM, 
           	                   ADMIN_READ => (! $FORM{INNER_MSG}) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
           	                   IP         => $admin->{SESSION_IP} 
           	                 });
 
           if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
-          	$conf{MSGS_REDIRECT_FILTER_ADD}=~/(EXEC:.+;)?(RAD:.+)?/;
-          	my $cmd = $1;
-          	my $rad = $2;
-          	if ( $cmd ne '') {
-   		         tpl_parse($cmd, { ACTION => 'start', %FORM });
-       	    	 $cmd =~ s/\%IP\%/$ENV{REMOTE_ADDR}/g;
-            	 my $res = `$cmd`;
-          	 }
-     
             if ($rad ne '') {
               $Dv->change({ UID => $FORM{UID}, FILTER_ID => $rad });	
              }
            }
         }
+
+      	if ( $cmd ne '') {
+	         $cmd=tpl_parse($cmd, { ACTION => 'add', UIDS => "UIDS ".join(',', @uids) });
+         	 my $res = `$cmd`;
+      	 }
+
 
        $message = "$_TOTAL: $users->{TOTAL}";
        $LIST_PARAMS{PAGE_ROWS}=25;
@@ -218,10 +224,17 @@ sub msgs_admin_add {
       	                 
       if (! $FORM{INNER_MSG}) {
       	$users->pi({ UID => $FORM{UID} });
-        if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
-          $Dv->change({ UID => $FORM{UID}, FILTER_ID => $conf{MSGS_REDIRECT_FILTER_ADD} });	
-         }
-       }
+          if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
+          	if ( $cmd ne '') {
+   	          $cmd=tpl_parse($cmd, { ACTION => 'add', UIDS => "UIDS ".$FORM{UID} });
+         	    my $res = `$cmd`;
+          	 }
+     
+            if ($rad ne '') {
+              $Dv->change({ UID => $FORM{UID}, FILTER_ID => $rad });	
+             }
+           }       
+        }
      }
 
     if (! $Msgs->{errno}) {

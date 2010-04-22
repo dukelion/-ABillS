@@ -113,7 +113,7 @@ if ($conf{PAYSYS_PASSWD}) {
 
 $Paysys   = Paysys->new($db, undef, \%conf);
 $admin = Admins->new($db, \%conf);
-$admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
+$admin->info($conf{SYSTEM_ADMIN_ID}, { IP => $ENV{REMOTE_ADDR} });
 $payments = Finance->payments($db, $admin, \%conf);
 $users = Users->new($db, $admin, \%conf); 
 
