@@ -7,6 +7,9 @@ DEBUG=1;
 IP=$1;
 MYSQL_USER=root;
 MYSQL_DB=abills;
+MYSQL_HOST=localhost
+MYSQL=/usr/local/bin/mysql
+
 MSGS_TABLE_NUM=100
 
 if [ w$1 = w ]; then
@@ -19,7 +22,7 @@ fi;
 #Add online filter
 if [ w$1 = wadd ]; then
   SQL="select INET_NTOA(framed_ip_address) from dv_calls WHERE uid IN ($3);";
-  OUTPUT=`mysql -D ${MYSQL_DB} -u ${MYSQL_USER} -e "$SQL"`;
+  OUTPUT=`${MYSQL} -h ${MYSQL_HOST} -D ${MYSQL_DB} -u ${MYSQL_USER} -e "$SQL"`;
 
   for LINE in ${OUTPUT}; do
   

@@ -229,7 +229,6 @@ sub msgs_admin_add {
    	          $cmd=tpl_parse($cmd, { ACTION => 'add', UIDS => "UIDS ".$FORM{UID} });
          	    my $res = `$cmd`;
           	 }
-     
             if ($rad ne '') {
               $Dv->change({ UID => $FORM{UID}, FILTER_ID => $rad });	
              }
