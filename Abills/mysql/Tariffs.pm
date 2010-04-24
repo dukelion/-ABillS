@@ -1084,8 +1084,6 @@ sub traffic_class_add {
 }
 
 
-
-
 #**********************************************************
 # change()
 #**********************************************************
@@ -1093,13 +1091,12 @@ sub traffic_class_change {
   my $self = shift;
   my ($attr) = @_;
   
-  
-  my %FIELDS = (ID => 'id',
-              NAME           => 'name',
-              NETS           => 'nets',
-              COMMENTS       => 'comments'
+  my %FIELDS = (ID        => 'id',
+              NAME        => 'name',
+              NETS        => 'nets',
+              COMMENTS    => 'comments',
+              CHANGED     => 'changed'
              );
-  
 
   $self->changes($admin, { CHANGE_PARAM => 'ID',
                    TABLE        => 'traffic_classes',
@@ -1108,9 +1105,7 @@ sub traffic_class_change {
                    DATA         => $attr
                   } );
 
-
   $self->traffic_class_info($attr->{ID});
-
   return $self;
 }
 
@@ -1122,15 +1117,12 @@ sub traffic_class_change {
 sub traffic_class_del {
   my $self = shift;
   my ($attr) = @_;
-
  
   $self->query($db, "DELETE from traffic_classes WHERE id='$attr->{ID}';", 'do');
 
   $admin->action_add($self->{UID}, "$self->{UID}", { TYPE => 10 });
   return $self->{result};
 }
-
-
 
 
 #**********************************************************
@@ -1149,7 +1141,7 @@ sub traffic_class_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT id, name, nets
+ $self->query($db, "SELECT id, name, nets, comments, changed
      FROM traffic_classes;");
 
  return $self if($self->{errno});
@@ -1168,10 +1160,8 @@ sub traffic_class_list {
 sub traffic_class_info {
   my $self = shift;
   my ($id, $attr) = @_;
-
   
   $WHERE =  "WHERE id='$id'";
-  
 
   $self->query($db, "SELECT id, name, comments, nets
      FROM traffic_classes
@@ -1183,17 +1173,13 @@ sub traffic_class_info {
      return $self;
    }
 
-
   ($self->{ID},
    $self->{NAME}, 
    $self->{COMMENTS},
    $self->{NETS}, 
   )= @{ $self->{list}->[0] };
-  
-  
+
   return $self;
 }
-
-
 
 1

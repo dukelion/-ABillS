@@ -18,7 +18,6 @@ use Tariffs;
 
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $payments = Payments->new($db, $admin, \%conf);
-
 my $Cards    = Cards->new($db, $admin, \%conf);
 my @status   = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
 my @status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#0000FF', '#808080', '#FF8000');
@@ -100,7 +99,6 @@ if ($FORM{change}) {
   }
 
  	$Cards->cards_change({ %FORM });
-
   if (! $Cards->{errno}) {
     $html->message('info', $_CHANGED.':'.$status[($FORM{STATUS}-1)], "$_CHANGED: $FORM{IDS} ");
    }
@@ -202,9 +200,9 @@ else {
 }
 
 my $table;
-  $Cards->{SUM}=undef if (! $FORM{SUM});
+  $Cards->{SUM}   =undef if (! $FORM{SUM});
   $Cards->{EXPIRE}=undef if (! $FORM{EXPIRE});
-  $Cards->{SERIA}='*' if (! $FORM{SERIA});
+  $Cards->{SERIA} ='*'   if (! $FORM{SERIA});
   $Cards->{DATE}        = $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
   $Cards->{CREATED_DATE}= $html->date_fld2('CREATED_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
   $Cards->{EXPIRE_DATE} = $html->date_fld2('EXPIRE_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
@@ -247,8 +245,8 @@ function CheckAllINBOX() {
 }
 //-->
 </script>\n <a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a> \n". 
-$html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($FORM{SERIA})? "&SERIA=$FORM{SERIA}" : '' ), { ex_params   => 'target=_new' }).
-' '.$html->button('CSV', "qindex=$index&csv=1&print_cards=1&$pages_qs". (($FORM{SERIA})? "&SERIA=$FORM{SERIA}" : '' ), { ex_params   => 'target=_new' })
+$html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($FORM{SERIA} && $pages_qs !~ /SERIA/)? "&SERIA=$FORM{SERIA}" : '' ), { ex_params   => 'target=_new' }).
+' '.$html->button('CSV', "qindex=$index&csv=1&print_cards=1&$pages_qs". (($FORM{SERIA} && $pages_qs !~ /SERIA/) ? "&SERIA=$FORM{SERIA}" : '' ), { ex_params   => 'target=_new' })
                          });
 
 
@@ -2038,10 +2036,9 @@ else {
 #
 #**********************************************************
 sub cards_print {
-	
 if ($FORM{csv}) {
   print "Content-Type: text/plain; filename=\"cards_$FORM{CREATE_DATE}.csv\"\n".
-  	    "Content-Disposition: attachment; filename=\"cards_$FORM{CREATE_DATE}.csv\"; size=$Msgs->{FILESIZE}".
+  	    "Content-Disposition: attachment; filename=\"cards_$FORM{CREATE_DATE}.csv\"; size=".
   	    "\n\n";
 
   print "SERIAL\tLOGIN\tPASSWORD/PIN\tTARIF_PLAN\tSUM\tEXPIRE\tAGE\tTIME_LIMIT\n";

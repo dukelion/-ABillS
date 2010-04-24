@@ -5794,7 +5794,7 @@ sub dv_traffic_classes {
      }
    }
 	elsif($FORM{change}) {
-    $tariffs->traffic_class_change({ %FORM });
+    $tariffs->traffic_class_change({ %FORM, CHANGED => "$DATE $TIME" });
 
     if (! $tariffs->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
@@ -5802,12 +5802,8 @@ sub dv_traffic_classes {
    }
 	elsif($FORM{chg}) {
     $tariffs->traffic_class_info($FORM{chg});
-  
-  
  	  $tariffs->{ACTION}='change';
 	  $tariffs->{LNG_ACTION}=$_CHANGE;
-
-
     if (! $tariffs->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
      }
@@ -5828,12 +5824,10 @@ sub dv_traffic_classes {
 
 
 my $list = $tariffs->traffic_class_list( { %LIST_PARAMS } );
-
-
 my $table = $html->table( { width      => '100%',
                             caption    => "$_TRAFFIC_CLASS",
                             border     => 1,
-                            title      => ['#', "$_NAME", 'NETS',  "$_COMMENTS", '-', '-'],
+                            title      => ['#', "$_NAME", 'NETS',  "$_COMMENTS", "$_CHANGED", '-', '-'],
                             cols_align => ['right', 'left', 'left', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Dv->{TOTAL},
@@ -5841,12 +5835,13 @@ my $table = $html->table( { width      => '100%',
                            });
 
 foreach my $line (@$list) {
-  $line->[2] =~ s/\n/<br>/g;
+  $line->[2] =~ s/\n/<br\/>/g;
   $table->addrow(
     "$line->[0]",
     "$line->[1]", 
     "$line->[2]", 
     "$line->[3]",  
+    "$line->[4]",  
     $html->button("$_CHANGE", "index=$index&chg=$line->[0]", { BUTTON => 1 } ),
     $html->button("$_DEL", "index=$index&del=$line->[0]",  { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
    );
