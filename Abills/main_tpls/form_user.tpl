@@ -61,7 +61,7 @@ $_DATE: <input type=text name='REDUCTION_DATE' value='%REDUCTION_DATE%' size=12>
 
 </TD></TR>
 <TR><TD rowspan=2>$_DISABLE:</TD><TD><input type=checkbox name=DISABLE value='1' onClick=\"add_comments();\" %DISABLE%> %DISABLE_MARK%</TD></TR>
- <TR><TD>%DISABLE_COMMENTS%<input type=text name=ACTION_COMMENTS value='%ACTION_COMMENTS%'  size=30 style='visibility: hidden;'>%ACTION_COMMENTS%</TD></TR>
+ <TR><TD>%DISABLE_COMMENTS%<input type=text name=ACTION_COMMENTS value='%DISABLE_COMMENTS%'  size=30 style='visibility: hidden;'>%ACTION_COMMENTS%</TD></TR>
 <TR><TD>$_REGISTRATION</TD><TD>%REGISTRATION%</TD></TR>
 <TR><td colspan='2'>%PASSWORD%</TD></TR>
 </TABLE>

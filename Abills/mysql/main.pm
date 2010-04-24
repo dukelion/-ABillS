@@ -462,7 +462,7 @@ else {
       $admin->action_add($DATA{UID}, "$self->{'CHG_TP'}", { TYPE => 3});
      }
 
-    if($self->{'STATUS'}) {
+    if(defined($self->{'STATUS'}) && $self->{'STATUS'} ne '') {
       $admin->action_add($DATA{UID}, "$self->{'STATUS'}", { TYPE => ($self->{'STATUS'}==3) ? 14 : 4 });
      }
 
