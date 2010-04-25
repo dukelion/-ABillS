@@ -5499,6 +5499,10 @@ elsif ($FORM{change}) {
      }
    }
 
+  if ($FORM{FORMAT} && $FORM{FORMAT} eq 'unix') {
+  	$FORM2{template} =~ s/\r//g;
+   }
+
   $info{TEMPLATE} = $FORM2{template};
   $info{TPL_NAME} = $FORM{tpl_name};
   $info{TEMPLATE} = convert($info{TEMPLATE}, { '2_tpl' => 1 });
@@ -5584,6 +5588,12 @@ print << "[END]";
 <tr bgcolor="$_COLORS[0]"><td>$info{TPL_NAME}</td></tr>
 <tr><td>
    <textarea cols="100" rows="30" name="template">$info{TEMPLATE}</textarea>
+</td></tr>
+<tr bgcolor=$_COLORS[2]><td>FORMAT: 
+<select name=FORMAT>
+  <option value=unix>Unix</option>
+  <option value=win>Win</option>
+</select>
 </td></tr>
 <tr><td>$conf{TPL_DIR}/$info{TPL_NAME}</td></tr>
 </table>
