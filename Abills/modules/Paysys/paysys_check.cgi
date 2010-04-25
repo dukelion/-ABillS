@@ -160,7 +160,6 @@ my $last_ip  = $first_ip + $mask_ips;
 my $ip_num   = unpack("N", pack("C4", split( /\./, $ENV{REMOTE_ADDR})));
 
 if ($ENV{REMOTE_ADDR} =~ /^92\.125\./
-   || $ENV{REMOTE_ADDR} =~ /^192\.168\.0\.1$/
    ) {
 	osmp_payments_v4();
 	exit;
@@ -172,7 +171,7 @@ elsif ($ENV{REMOTE_ADDR} =~ /^93\.183\.196\.26$/ ||
  	require "Easysoft.pm";
  	exit;
  } 
-elsif ($ENV{REMOTE_ADDR} =~ /^192.168.0.1/) {
+elsif ($ENV{REMOTE_ADDR} =~ /^192.168.1.1/) {
  	require "Erip.pm";
  	exit;
  }
@@ -233,10 +232,12 @@ sub payments {
    }
   elsif($FORM{smsid}) {
     smsproxy_payments();
-    exit;
    }
   elsif ($FORM{sign}) {
   	usmp_payments();
+   }
+  elsif ($FORM{lr_paidto}) {
+ 		require "Libertyreserve.pm";
    }
   else {
     print "Error: Unknown payment system";
@@ -1568,8 +1569,6 @@ if ($conf{PAYSYS_USMP_V2}) {
 	
 }
 
-
-
 my $err_code = 0;
 
 #Check user account
@@ -1611,7 +1610,6 @@ if (!$err_code) {
     if ($payments->{errno}) {
       err_trap(7, $payments->{errstr});
      }  
-    
 
     $Paysys->add({ SYSTEM_ID   => 47, 
  	              DATETIME       => "'$DATE $TIME'", 
@@ -1622,15 +1620,10 @@ if (!$err_code) {
                 INFO           => "STATUS: $err_code",
                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
-
      }
-   }    
-
-
+   }
 
 print "code=$err_code&message=Done&date=" . get_date();
-
-
 }
 
 
@@ -1821,9 +1814,6 @@ elsif ($FORM{rupay_action} eq 'update') {
 #
 #**********************************************************
 sub wm_payments {
-
-
-
 #Pre request section
 if($FORM{'LMI_PREREQUEST'} && $FORM{'LMI_PREREQUEST'} == 1) { 
 
@@ -2109,7 +2099,6 @@ sub err_trap {
   die "Paysys database error: $error\n";
 }
 
-
 #**********************************************************
 # Get Date
 #**********************************************************
@@ -2149,7 +2138,6 @@ sub wm_validate {
   
   return $digest;
 }
-
 
 #**********************************************************
 # mak_log

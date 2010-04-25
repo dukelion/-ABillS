@@ -23,8 +23,7 @@ sub sqlcmd {
  if (! sqlcmd_cluster_info() ) {
  	  return 0;
   }
- 
- 
+
 my $FORM2  = ();
 my @pairs = split(/&/, $FORM{__BUFFER});
 
@@ -39,21 +38,18 @@ if ($FORM{QUERY_ID}) {
   $Sqlcmd->{QUERY}= $FORM{QUERY};
  }
 else {
+  foreach my $pair (@pairs) {
+    my ($side, $value) = split(/=/, $pair);
+    $value =~ tr/+/ /;
+    $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
 
-foreach my $pair (@pairs) {
-   my ($side, $value) = split(/=/, $pair);
-   $value =~ tr/+/ /;
-   $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
-
-   if (defined($FORM2{$side})) {
-     $FORM2{$side} .= ", $value";
-    }
-   else {
-     $FORM2{$side} = $value;
-    }
- }
-
- 
+    if (defined($FORM2{$side})) {
+      $FORM2{$side} .= ", $value";
+     }
+    else {
+      $FORM2{$side} = $value;
+     }
+  }
  
 if ($FORM{WIZARD}) {
 	my @f = split(/, /, $FORM{FIELDS});
@@ -196,16 +192,17 @@ if ($FORM{TABLE_INFO}) {
     	  $FORM{AUTO_INCREMENT}='';
     	 }
     	
+    	$FORM{COLUMN_LENGTH}="($FORM{COLUMN_LENGTH})" if ($FORM{COLUMN_LENGTH});
     	$FORM{DEFAULT} = "''" if (! $FORM{DEFAULT});
     	
-    	my $query = "ALTER TABLE $FORM{TABLE_INFO} CHANGE COLUMN $FORM{FIELD} $FORM{NAME} $FORM{COLUMN_TYPE}($FORM{COLUMN_LENGTH}) $FORM{AUTO_INCREMENT} $FORM{COLLATION} $FORM{ATTRIBUTE_TYPE} DEFAULT $FORM{DEFAULT} ";
+    	my $query = "ALTER TABLE $FORM{TABLE_INFO} CHANGE COLUMN $FORM{FIELD} $FORM{NAME} $FORM{COLUMN_TYPE}$FORM{COLUMN_LENGTH} $FORM{AUTO_INCREMENT} $FORM{COLLATION} $FORM{ATTRIBUTE_TYPE} DEFAULT $FORM{DEFAULT} ";
     	
     	print $query;
     	$Sqlcmd->list({ QUERY => $query });
      }
 
     my $list = $Sqlcmd->list({ QUERY => "SHOW FULL COLUMNS FROM $CONF->{dbname}.$FORM{TABLE_INFO} LIKE '$FORM{FIELD}' " });
-    $FORM{NAME}            = $FORM{FIELD};
+    $FORM{NAME}              = $FORM{FIELD};
     
     if ($list->[0]->[1] =~ /(\S+)\((\d+)\)\s?(.{0-30})?/) {
       $FORM{COLUMN_TYPE}     = uc($1);

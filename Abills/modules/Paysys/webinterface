@@ -34,7 +34,8 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    54 => "Privat Bank - Privat 24",
                    55 => "Pay4",
                    56 => "ÀÈÑ ÅÐÈÏ",
-                   57 => "EasySoft"
+                   57 => "EasySoft",
+                   58 => "Liberty Reserve"
                   );
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
@@ -422,6 +423,9 @@ sub paysys_payment {
 	elsif($FORM{PAYMENT_SYSTEM} == 54) {
      paysys_privatbank_p24();
 	 }
+	elsif($FORM{PAYMENT_SYSTEM} == 58) {
+     paysys_lr();
+	 }
 	else {
 		PRE_LABEL:
 	  my %info = ();
@@ -432,7 +436,8 @@ sub paysys_payment {
 	                             45 => 'PAYSYS_PORTMONE_PAYEE_ID',
 	                             46 => 'PAYSYS_UKRPAYS_SECRETKEY',
 	                             48 => 'PAYSYS_PB_MERID',
-	                             54 => 'PAYSYS_P24_MERCHANT_ID' );
+	                             54 => 'PAYSYS_P24_MERCHANT_ID',
+	                             58 => 'PAYSYS_LR_ACCOUNT_NUMBER' );
 	  
 	  while(my($k, $v) = each %PAY_SYSTEMS) {
 	  	delete $PAY_SYSTEMS{$k} if (! $conf{$PAY_SYSTEM_ACCOUNTS{$k}});
@@ -1487,6 +1492,94 @@ else {
   $html->tpl_show(_include('paysys_privatbank_p24_add', 'Paysys'), \%info);
 }
 
+
+#**********************************************************
+# Payment system: Liberty Reserver
+# https://www.libertyreserve.com
+#
+#  $conf{PAYSYS_LR_ACCOUNT_NUMBER} = "U4035898"; # Enter your account
+#  $conf{PAYSYS_LR_STORE_NAME} = ""; # Enter the name of your store
+#  $conf{PAYSYS_LR_SECURITY_WORD} = ""; # Your store's security word
+#  $conf{PAYSYS_LR_EMAIL} = ""; # Your e-mail
+#
+#**********************************************************
+sub paysys_lr {
+	my ($attr)=@_;
+
+
+if ($FORM{FALSE}) {
+	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{OPERATION_ID}");
+ }
+elsif ($FORM{LMI_PAYMENT_NO}) {
+	my $users = Users->new($db, $admin, \%conf); 
+	my $user = $users->info($FORM{UID});
+	
+	if ($user->{errno}) {
+		$html->message('err', $_ERROR, "$_ERROR $user->{errno}");
+	 }
+	elsif ($user->{TOTAL} < 0) {
+		$html->message('err', $_ERROR, "$_NOT_EXIST");
+	 }
+	else {
+    if ($conf{PAYSYS_LMI_RESULT_URL}) {
+    	$html->message('info', $_INFO, "$_ADDED ID: $FORM{LMI_PAYMENT_NO}");
+     }
+    else {
+      my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'LMI_PAYMENT_NO'}", UID => $LIST_PARAMS{UID} });
+
+      if ($Paysys->{TOTAL} > 0) {
+	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
+
+	      if ($conf{PAYSYS_EMAIL_NOTICE}) {
+	      	my $message = "\n".
+	      	 "System: Webmoney\n".
+	      	 "$_DATE: $DATE $TIME\n".
+	      	 "$_LOGIN: $user->{LOGIN} [$LIST_PARAMS{UID}]\n".
+	      	 "\n".
+       	   "\n".
+	      	 "ID: $FORM{LMI_PAYMENT_NO}\n".
+	      	 "$_SUM: $list->[0][3]\n";
+
+          sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Webmoney Add", 
+              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
+	      	
+	       }
+	     }
+      else {
+    	  $html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO} $_ERR_NO_TRANSACTION");
+       }
+     }
+	 }
+
+  return 0;
+ }
+  
+
+my %info = ();
+$info{LMI_PAYMENT_NO} = $FORM{OPERATION_ID};
+
+if ($conf{PAYSYS_WEBMONEY_TESTMODE}) {
+  my ($LMI_MODE, $LMI_SIM_MODE)=split(/:/, $conf{PAYSYS_WEBMONEY_TESTMODE}, 2);
+  $info{TEST_MODE}="
+   <input type='hidden' name='LMI_SIM_MODE' value='$LMI_SIM_MODE'>
+   <font color='red'>$_TEST_MODE (LMI_MODE: $LMI_MODE, LMI_SIM_MODE: $LMI_SIM_MODE)</font>"; 
+ }
+
+my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
+$info{ACCOUNTS_SEL}=$html->form_select('LMI_PAYEE_PURSE', 
+                                      { 
+ 	                                      SELECTED  => $FORM{sum_val},
+ 	                                      SEL_ARRAY => \@ACCOUNTS,
+ 	                                      NO_ID     => 1
+                                       });
+
+$info{LMI_PAYMENT_AMOUNT}=$FORM{SUM};
+
+$conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '' ) ."/paysys_check.cgi" if (! $conf{PAYSYS_LMI_RESULT_URL});
+
+
+$html->tpl_show(_include('paysys_lr_add', 'Paysys'), \%info);	
+}
 
 1
 
