@@ -454,7 +454,6 @@ sub osmp_payments {
 
 
  print "Content-Type: text/xml\n\n";
-# print "Content-Type: text/html\n\n";
  my $txn_id            = 'osmp_txn_id';
  my $payment_system    = 'OSMP';
  my $payment_system_id = 44;
@@ -494,7 +493,6 @@ my $results = '';
 #Check user account
 #https://service.someprovider.ru:8443/payment_app.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
 if ($command eq 'check') {
-
   my $list = $users->list({ $CHECK_FIELD => $FORM{account} });
 
   if ($users->{errno}) {
@@ -508,8 +506,6 @@ if ($command eq 'check') {
     $status = 0; 
    }
 
-
-
 $RESULT_HASH{result} = $status;
 
 #For OSMP
@@ -517,7 +513,6 @@ if ($payment_system_id == 44) {
   $RESULT_HASH{$txn_id}= $FORM{txn_id} ;
   $RESULT_HASH{prv_txn}= $FORM{prv_txn};
  }
-
 }
 #Cancel payments
 elsif ($command eq 'cancel') {
@@ -557,7 +552,6 @@ elsif ($command eq 'balance') {
  }
 #https://service.someprovider.ru:8443/payment_app.cgi?command=pay&txn_id=1234567&txn_date=20050815120133&account=0957835959&sum=10.45
 elsif ($command eq 'pay') {
-
   my $user;
   my $payments_id = 0;
 
@@ -621,8 +615,6 @@ $RESULT_HASH{$txn_id}= $FORM{txn_id};
 $RESULT_HASH{prv_txn}= $payments_id;
 $RESULT_HASH{sum}    = $FORM{sum};
 }
- 
-
 
 #Result output
 $RESULT_HASH{comment}=$status_hash{$RESULT_HASH{result}} if ($RESULT_HASH{result} && ! $RESULT_HASH{comment});
@@ -638,9 +630,7 @@ $results
 </response> 
 [END]
 
-
 exit;
-
 }
 
 #**********************************************************
