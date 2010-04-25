@@ -1506,78 +1506,25 @@ else {
 sub paysys_lr {
 	my ($attr)=@_;
 
-
 if ($FORM{FALSE}) {
 	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{OPERATION_ID}");
+	return 0;
  }
-elsif ($FORM{LMI_PAYMENT_NO}) {
-	my $users = Users->new($db, $admin, \%conf); 
-	my $user = $users->info($FORM{UID});
-	
-	if ($user->{errno}) {
-		$html->message('err', $_ERROR, "$_ERROR $user->{errno}");
+elsif ($FORM{lr_merchant_ref}) {
+  my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{lr_merchant_ref}", UID => $LIST_PARAMS{UID} });
+  if ($Paysys->{TOTAL} > 0) {
+    $html->message('err', $_ERROR, "$_ADDED $_SUM: $FORM{lr_amnt} $_TRANSACTION ID: $FORM{OPERATION_ID}");
 	 }
-	elsif ($user->{TOTAL} < 0) {
-		$html->message('err', $_ERROR, "$_NOT_EXIST");
-	 }
-	else {
-    if ($conf{PAYSYS_LMI_RESULT_URL}) {
-    	$html->message('info', $_INFO, "$_ADDED ID: $FORM{LMI_PAYMENT_NO}");
-     }
-    else {
-      my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'LMI_PAYMENT_NO'}", UID => $LIST_PARAMS{UID} });
-
-      if ($Paysys->{TOTAL} > 0) {
-	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{LMI_PAYMENT_NO}");
-
-	      if ($conf{PAYSYS_EMAIL_NOTICE}) {
-	      	my $message = "\n".
-	      	 "System: Webmoney\n".
-	      	 "$_DATE: $DATE $TIME\n".
-	      	 "$_LOGIN: $user->{LOGIN} [$LIST_PARAMS{UID}]\n".
-	      	 "\n".
-       	   "\n".
-	      	 "ID: $FORM{LMI_PAYMENT_NO}\n".
-	      	 "$_SUM: $list->[0][3]\n";
-
-          sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Webmoney Add", 
-              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
-	      	
-	       }
-	     }
-      else {
-    	  $html->message('err', $_ERROR, "$_FAILED ID: $FORM{LMI_PAYMENT_NO} $_ERR_NO_TRANSACTION");
-       }
-     }
-	 }
-
+  else {
+    $html->message('err', $_ERROR, "$_FAILED ID: $FORM{lr_merchant_ref} $_ERR_NO_TRANSACTION");
+   }
   return 0;
  }
   
 
 my %info = ();
-$info{LMI_PAYMENT_NO} = $FORM{OPERATION_ID};
-
-if ($conf{PAYSYS_WEBMONEY_TESTMODE}) {
-  my ($LMI_MODE, $LMI_SIM_MODE)=split(/:/, $conf{PAYSYS_WEBMONEY_TESTMODE}, 2);
-  $info{TEST_MODE}="
-   <input type='hidden' name='LMI_SIM_MODE' value='$LMI_SIM_MODE'>
-   <font color='red'>$_TEST_MODE (LMI_MODE: $LMI_MODE, LMI_SIM_MODE: $LMI_SIM_MODE)</font>"; 
- }
-
-my @ACCOUNTS = split(/;/, $conf{PAYSYS_WEBMONEY_ACCOUNTS});
-$info{ACCOUNTS_SEL}=$html->form_select('LMI_PAYEE_PURSE', 
-                                      { 
- 	                                      SELECTED  => $FORM{sum_val},
- 	                                      SEL_ARRAY => \@ACCOUNTS,
- 	                                      NO_ID     => 1
-                                       });
-
-$info{LMI_PAYMENT_AMOUNT}=$FORM{SUM};
-
+$html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
 $conf{PAYSYS_LMI_RESULT_URL} = "http://$ENV{SERVER_NAME}". ( ($ENV{SERVER_PORT} != 80) ? ":$ENV{SERVER_PORT}" : '' ) ."/paysys_check.cgi" if (! $conf{PAYSYS_LMI_RESULT_URL});
-
-
 $html->tpl_show(_include('paysys_lr_add', 'Paysys'), \%info);	
 }
 
