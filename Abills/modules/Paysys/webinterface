@@ -1510,13 +1510,13 @@ if ($FORM{FALSE}) {
 	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{OPERATION_ID}");
 	return 0;
  }
-elsif ($FORM{lr_merchant_ref}) {
-  my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{lr_merchant_ref}", UID => $LIST_PARAMS{UID} });
+elsif ($FORM{TRUE}) {
+  my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OPERATION_ID}", UID => $LIST_PARAMS{UID} });
   if ($Paysys->{TOTAL} > 0) {
-    $html->message('err', $_ERROR, "$_ADDED $_SUM: $FORM{lr_amnt} $_TRANSACTION ID: $FORM{OPERATION_ID}");
+    $html->message('err', $_ERROR, "$_ADDED $_SUM: $list->[0]->[3] $_TRANSACTION ID: $FORM{OPERATION_ID}");
 	 }
   else {
-    $html->message('err', $_ERROR, "$_FAILED ID: $FORM{lr_merchant_ref} $_ERR_NO_TRANSACTION");
+    $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
    }
   return 0;
  }
