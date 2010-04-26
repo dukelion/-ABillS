@@ -721,7 +721,7 @@ if ($FORM{FALSE}) {
 	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{OPERATION_ID}");
  }
 if ($FORM{TRUE}) {
-  my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'OPERATION_ID'}", UID => $LIST_PARAMS{UID} });
+  my $list = $Paysys->list({ TRANSACTION_ID => "UKRPAYS:$FORM{'OPERATION_ID'}", UID => $LIST_PARAMS{UID} });
   if ($Paysys->{TOTAL} > 0) {
   	$html->message('info', $_INFO, "$_ADDED '$FORM{OPERATION_ID}' ");
    }

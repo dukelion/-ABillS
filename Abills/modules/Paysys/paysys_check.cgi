@@ -1971,11 +1971,10 @@ elsif($FORM{LMI_HASH}) {
 
 #**********************************************************
 # http://ukrpays.com/
-# version: Ver. 1.5.001
+# version Ver. 2.0.005
 #**********************************************************
 sub ukrpays_payments {
 #Pre request section
-
 
 if($FORM{hash}) {
   $md5->reset;
@@ -2017,9 +2016,7 @@ if($FORM{hash}) {
        }
       else {
         $info = "PAYMENT ERROR: $payments->{errno}\n";
-       }
-
-      
+       }      
      }
     else {
     	$status = "Added $payments->{INSERT_ID}\n";
