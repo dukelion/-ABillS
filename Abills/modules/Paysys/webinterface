@@ -713,7 +713,7 @@ $html->tpl_show(_include('paysys_webmoney_add', 'Paysys'), \%info);
 }
 
 #**********************************************************
-# version 1.5.001
+# version Ver. 2.0.005
 #**********************************************************
 sub paysys_ukrpays () {
 
@@ -721,7 +721,7 @@ if ($FORM{FALSE}) {
 	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{OPERATION_ID}");
  }
 if ($FORM{TRUE}) {
-  my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'OPERATION_ID '}", UID => $LIST_PARAMS{UID} });
+  my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'OPERATION_ID'}", UID => $LIST_PARAMS{UID} });
   if ($Paysys->{TOTAL} > 0) {
   	$html->message('info', $_INFO, "$_ADDED '$FORM{OPERATION_ID}' ");
    }
@@ -730,50 +730,6 @@ if ($FORM{TRUE}) {
 	 }
 	return 0;
  }
-elsif ($FORM{LMI_PAYMENT_NO}) {
-	my $users = Users->new($db, $admin, \%conf); 
-	my $user = $users->info($FORM{UID});
-	
-	if ($user->{errno}) {
-		$html->message('err', $_ERROR, "$_ERROR $user->{errno}");
-	 }
-	elsif ($user->{TOTAL} < 0) {
-		$html->message('err', $_ERROR, "$_NOT_EXIST");
-	 }
-	else {
-    if ($conf{PAYSYS_LMI_RESULT_URL}) {
-    	$html->message('info', $_INFO, "$_ADDED ID: $FORM{OPERATION_ID}");
-     }
-    else {
-      my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{'OPERATION_ID '}", UID => $LIST_PARAMS{UID} });
-
-      if ($Paysys->{TOTAL} > 0) {
-	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OPERATION_ID}");
-
-	      if ($conf{PAYSYS_EMAIL_NOTICE}) {
-	      	my $message = "\n".
-	      	 "System: Portmone\n".
-	      	 "$_DATE: $DATE $TIME\n".
-	      	 "$_LOGIN: $user->{LOGIN} [$LIST_PARAMS{UID}]\n".
-	      	 "\n".
-       	   "\n".
-	      	 "ID: $FORM{OPERATION_ID}\n".
-	      	 "$_SUM: $list->[0][3]\n";
-
-          sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "Paysys Ukrpays Add", 
-              "$message", "$conf{MAIL_CHARSET}", "2 (High)");
-	      	
-	       }
-	     }
-      else {
-    	  $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
-       }
-     }
-	 }
-
-  return 0;
- }
-  
 
 my %info = (UID => $LIST_PARAMS{UID});
 $info{AMOUNT}  = sprintf("%.2f", $FORM{SUM});
