@@ -125,7 +125,7 @@ if ($debug > 0) {
   while(my($k, $v)=each %FORM) {
  	  $output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
   }
-  my $row = `echo "$output2" >> /tmp/paysys_debug`;
+  mk_log($output2);
 }
 #END debug =====================================
 

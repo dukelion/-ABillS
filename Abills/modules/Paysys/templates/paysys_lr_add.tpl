@@ -6,15 +6,12 @@
   <input type='hidden' name='lr_comments' value='Balance recharge'>
   <input type='hidden' name='lr_merchant_ref' value='$FORM{OPERATION_ID}'>
 
+<!-- urls are taken from  SCIstore settings in your account -->
   <input type='hidden' name='lr_status_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi'>
   <input type='hidden' name='lr_status_url_method' value='POST'>
-     
+
   <input type='hidden' name='lr_success_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?TRUE=1&index=$index'>
   <input type='hidden' name='lr_fail_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?FALSE=1&index=$index'>
-
-      
-<!-- urls are taken from  SCIstore settings in your account -->     
-
 <!-- baggage fields -->
   <input type='hidden' name='UID' value='$LIST_PARAMS{UID}'>
   <input type='hidden' name='OPERATION_ID' value='$FORM{OPERATION_ID}'>
