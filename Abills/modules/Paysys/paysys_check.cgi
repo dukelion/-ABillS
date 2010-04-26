@@ -119,14 +119,14 @@ $users = Users->new($db, $admin, \%conf);
 
 %PAYSYS_PAYMENTS_METHODS=%{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
 
-
 #debug =========================================
-
 my $output2 = '';
-while(my($k, $v)=each %FORM) {
- 	$output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
+if ($debug > 0) {
+  while(my($k, $v)=each %FORM) {
+ 	  $output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
+  }
+  my $row = `echo "$output2" >> /tmp/paysys_debug`;
 }
-#my $rew `echo $output2 >> /tmp/ukrpays`;
 #END debug =====================================
 
 if( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) ) {
