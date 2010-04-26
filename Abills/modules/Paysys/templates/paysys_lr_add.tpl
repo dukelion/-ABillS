@@ -10,14 +10,15 @@
   <input type='hidden' name='lr_status_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi'>
   <input type='hidden' name='lr_status_url_method' value='POST'>
 
-  <input type='hidden' name='lr_success_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?TRUE=1&index=$index&OPERATION_ID=$FORM{OPERATION_ID}'>
+  <input type='hidden' name='lr_success_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?TRUE=1&index=$index&OPERATION_ID=$FORM{OPERATION_ID}&PAYMENT_SYSTEM=$FORM{PAYMENT_SYSTEM}'>
   <input type='hidden' name='lr_success_url_method' value='LINK'>
-  <input type='hidden' name='lr_fail_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?FALSE=1&index=$index&OPERATION_ID=$FORM{OPERATION_ID}'>
+  <input type='hidden' name='lr_fail_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?FALSE=1&index=$index&OPERATION_ID=$FORM{OPERATION_ID}&PAYMENT_SYSTEM=$FORM{PAYMENT_SYSTEM}'>
   <input type='hidden' name='lr_fail_url_method' value='LINK'>
 <!-- baggage fields -->
   <input type='hidden' name='UID' value='$LIST_PARAMS{UID}'>
   <input type='hidden' name='OPERATION_ID' value='$FORM{OPERATION_ID}'>
   <input type='hidden' name='PAYMENT_SYSTEM' value='$FORM{PAYMENT_SYSTEM}'>
+  <input type='hidden' name='IP' value='$ENV{REMOTE_ADDR}'>
 
 <table width=400>
 <tr bgcolor=$_COLORS[0]><th colspan=2>LIberty Reserve</th></tr>
