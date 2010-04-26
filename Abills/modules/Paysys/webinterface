@@ -1513,7 +1513,7 @@ if ($FORM{FALSE}) {
 elsif ($FORM{TRUE}) {
   my $list = $Paysys->list({ TRANSACTION_ID => "LR:$FORM{OPERATION_ID}", UID => $LIST_PARAMS{UID} });
   if ($Paysys->{TOTAL} > 0) {
-    $html->message('err', $_ERROR, "$_ADDED $_SUM: $list->[0]->[3] $_TRANSACTION ID: LR:$FORM{OPERATION_ID}");
+    $html->message('err', $_INFO, "$_ADDED $_SUM: $list->[0]->[3] $_TRANSACTION ID: LR:$FORM{OPERATION_ID}");
 	 }
   else {
     $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");

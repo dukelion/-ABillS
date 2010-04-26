@@ -95,6 +95,7 @@ $html->setCookie('language', "$FORM{language}", "Fri, 1-Jan-2038 00:00:01", $web
 
 if (defined($FORM{sid})) {
   $html->setCookie('sid', "$FORM{sid}", "$cookies_time", $web_path, $domain, $secure);
+  $COOKIES{sid}=$FORM{sid};
 }
 #===========================================================
 
