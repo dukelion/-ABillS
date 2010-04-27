@@ -1980,6 +1980,7 @@ if($FORM{hash}) {
   $md5->reset;
 	$md5->add($FORM{id_ups}); 
 	$md5->add($FORM{order});
+	$md5->add($FORM{note}) if (defined($FORM{note}));
   $md5->add($FORM{amount});
   $md5->add($FORM{date}); 
   $md5->add($conf{PAYSYS_UKRPAYS_SECRETKEY});
@@ -2000,8 +2001,7 @@ if($FORM{hash}) {
 	 }
   else {
     #Add payments
-    my $er = 1;
-    
+    my $er = 1;    
     $payments->add($user, {SUM          => $FORM{amount},
     	                     DESCRIBE     => 'Ukrpays', 
     	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{46}) ? 46 : '2',, 
