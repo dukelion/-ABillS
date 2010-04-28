@@ -1265,7 +1265,7 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	my $info =  p24({ HISTORY => 1, %FORM });
 	
 	my $table = $html->table({ caption     => "$_LOG", 
-		                         title_plain => ['appcode',	"$_USER",	'rest',	'description',	'trandate',	'amount',	'card',	'cardamount', 'termainal'] ,
+		                         title_plain => ['appcode',	"$_USER (UID)",	'rest',	'description',	'trandate',	'amount',	'card',	'cardamount', 'termainal'] ,
 		                         width       => '100%' 
 		                         });
 
@@ -1284,7 +1284,7 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
     	my $describe = convert($line->{'description'}, { utf82win => 1 });
   	  if ($describe =~ /$BINDING_EXPR/g ) {
   		  $BINDING_IDS{$line->{'appcode'}}=$1; 
-  		  print "//$BINDING_IDS{$line->{'appcode'}}//";
+  		  print "//$line->{'appcode'} -> $BINDING_IDS{$line->{'appcode'}}//<br>";
   	   }
      }
     
@@ -1293,8 +1293,7 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	  #$ids =~ s/, /', '/g;
 	  #$ids = 'оепебнд+';
 
-	  $users->{debug}=1;
-
+    $users->{debug}=1;
 	  my $list  = $users->list({ $BINDING_FIELD => $ids,  
 	     	                       PAGE_ROWS      => 1000000 
 	     	                        });
@@ -1317,16 +1316,18 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	foreach my $line ( @{ $info->{data}->{info}->[0]->{statements}->[0]->{statement} }) {
 		my $description = convert($line->{'description'}, { utf82win => 1 });
     my $ID          = $line->{'appcode'};
+    my ($LOGIN, $BIND, $UID)=split(/:/, $binding_hash{$BINDING_IDS{$line->{'appcode'}}});
     
 		$table->addrow($ID,
-		  (($binding_hash{$BINDING_IDS{$line->{'appcode'}}}) ? $binding_hash{$BINDING_IDS{$line->{'appcode'}}} : $html->form_input('UID_'. $ID, "$FORM{UID}")).
+		  (($binding_hash{$BINDING_IDS{$line->{'appcode'}}}) ? $html->button($LOGIN, "index=15&UID=$UID").'<br/>' : $html->form_input('UID_'. $ID, "$FORM{UID}")).
 		  $html->form_input('IDS', "$ID", { TYPE => 'hidden'}).
+		  $html->form_input('UID_'.$ID, "$UID", { TYPE => 'hidden'})	.
 		  $html->form_input('SUM_'.$ID, "$line->{'amount'}", { TYPE => 'hidden'})	.
 		  $html->form_input('DESCRIBE_'.$ID, "$description", { TYPE => 'hidden'})	
 		  	
 		  	,	
 		 	$line->{'rest'},	
-		  convert($line->{'description'}, { utf82win => 1 }),	
+		  $description,	
 		 	$line->{'trandate'},	
 		 	$line->{'amount'},	
 		 	$line->{'card'},	

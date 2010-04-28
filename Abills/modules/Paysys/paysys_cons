@@ -115,11 +115,17 @@ sub paysys_import_form {
 
 	my $content = '';
 	my $filename = $ARGV->{FILE};
-	open(FILE, "$filename") || die "Can't open file '$filename' $!\n";
-	  while(<FILE>) {
-	  	$content .= $_;
-	   }
-	close(FILE);
+	
+	if ($attr->{POP_SERVER}) {
+		
+	 }
+  else {
+	  open(FILE, "$filename") || die "Can't open file '$filename' $!\n";
+	    while(<FILE>) {
+	  	  $content .= $_;
+	     }
+	  close(FILE);
+	}
   
   ($DATA_ARR, $BINDING_IDS)=payasys_import_parse($content, $import_expr, $BINDING_FIELD);
 #Make users binding hash
@@ -271,7 +277,6 @@ sub payasys_import_parse {
                elsif ($EXPR_IDS[$i] eq 'DATE' && $DATA_HASH{$EXPR_IDS[$i]} =~ /^(\d{2})[.-](\d{2})[.-](\d{4})$/) {
                  $DATA_HASH{$EXPR_IDS[$i]} = "$3-$2-$1";
                 }
-               
         	    }
 
              push @DATA_ARR, { %DATA_HASH };
@@ -313,7 +318,6 @@ sub help {
    }
 
   my $import_rules = '';
- 
   for(my $i=0; $i<=$#import_rules_arr; $i++) {
     $import_rules .= "      $i - $import_rules_arr[$i]\n";
    }

@@ -1,10 +1,12 @@
 #!/bin/sh
 # Clean Mysql logs
 # Freeradius log
+# 
+# /etc/crontab
+# 12  9    *   *  *    root   /usr/abills/misc/mysql_clean.sh
 
-
-VERSION=0.3;
-MYSQL_BIN_PREFIX='abills-bin.';
+VERSION=0.4;
+MYSQL_BIN_PREFIX='*-bin.';
 MYSQL=`which mysql`;
 
 if [ w${MYSQL} = w ]; then

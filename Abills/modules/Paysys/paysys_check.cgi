@@ -2012,7 +2012,7 @@ if($FORM{hash}) {
 
     if ($payments->{errno}) {
       if ($payments->{errno} == 7) {
-        $info = "PAYMENTS DUBLICATE: UKRPAYS:$FORM{id_ups}\n";
+        $info = "duplicate\n";
        }
       else {
         $info = "PAYMENT ERROR: $payments->{errno}\n";
@@ -2028,7 +2028,6 @@ if($FORM{hash}) {
    }
 
   $status =~ s/'/\\'/g;
-
   #Info section  
   $Paysys->add({ SYSTEM_ID      => 46, 
   	             DATETIME       => '', 
@@ -2042,7 +2041,7 @@ if($FORM{hash}) {
 
   if ($Paysys->{errno}) {
     if ($Paysys->{errno}==7) {
-      $output2 = "TRANSACTION DUBLICATE: UKRPAYS:$FORM{id_ups}\n";
+      $output2 = "duplicate\n";
      }
     else {
       $status = $output2;
@@ -2052,10 +2051,7 @@ if($FORM{hash}) {
   else {
   	$status = 'ok';
    }
-
-  $output2 .= "CHECK_SUM: $checksum\n";
 }
-
 
    print $status;
 }
