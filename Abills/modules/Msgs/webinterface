@@ -193,8 +193,8 @@ sub msgs_admin_add {
        foreach my $line (@$list) {
           $FORM{UID}=$line->[5+$users->{SEARCH_FIELDS_COUNT}];
           push @uids, $FORM{UID};
-
-          $Msgs->message_add({ %FORM, 
+          $Msgs->message_add({ %FORM,
+          	                   STATE      =>  (! $FORM{STATE} || $FORM{STATE} == 0) ? 6 : $FORM{STATE}, 
           	                   ADMIN_READ => (! $FORM{INNER_MSG}) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
           	                   IP         => $admin->{SESSION_IP} 
           	                 });
@@ -217,7 +217,8 @@ sub msgs_admin_add {
        undef $FORM{UID};
      }
     else {
-      $Msgs->message_add({ %FORM, 
+      $Msgs->message_add({ %FORM,
+      	          	       STATE      =>  (! $FORM{STATE} || $FORM{STATE} == 0) ? 6 : $FORM{STATE},  
       	      	           ADMIN_READ => (! $FORM{INNER_MSG} || ($FORM{STATE} == 1 || $FORM{STATE} == 2)) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
       	                   IP         => $admin->{SESSION_IP} 
       	                 });
@@ -494,12 +495,10 @@ sub msgs_admin {
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
     
     $users->pi({ UID => $FORM{UID} });
-    
     if ($users->{EMAIL}) {
     	 $ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
        my $site =  $1 || '';
-    	 
-   	 
+
     	 my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
            { SITE => $site, 
            	 DATE => $DATE, 
@@ -634,15 +633,11 @@ sub msgs_admin {
       	  
       	  	);
      }
-
-
     my $run_time = '00:00:00';
     if ($reply ne '') {
  	    $reply =~ s/^/> /g;
  	    $reply =~ s/\n/> /g;
      }
-
-
     $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), 
       { %$Msgs, 
       	REPLY_TEXT => $reply,
@@ -765,16 +760,12 @@ foreach my $name ( @msg_status) {
   else {
     $pages_qs.="&STATE=$FORM{STATE}";
    }
-  
 
   $LIST_PARAMS{CHAPTERS}=$FORM{CHAPTER};
-
   my $list = $Msgs->messages_list({ %LIST_PARAMS, 
   	                                DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
   	                               });
-  
-  
-  
+
   my  $table = $html->table( { width      => '100%',
                               caption    => "$_MESSAGES",
                               title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", 
@@ -903,7 +894,7 @@ sub msgs_user {
 
  if ($FORM{send}) {
    $Msgs->message_add({ UID       => $user->{UID},  
-   	                    STATE     => 1, 
+   	                    STATE     => ($FORM{STATE}) ? $FORM{STATE} : 0, 
    	                    USER_READ => "$DATE $TIME",
    	                    IP        => $ENV{'REMOTE_ADDR'},
    	                    %FORM 
