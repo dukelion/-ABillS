@@ -39,6 +39,7 @@ my %PI_FIELDS = (EMAIL          => 'email',
               PASPORT_DATE   => 'pasport_date',
               PASPORT_GRANT  => 'pasport_grant',
               ACCEPT_RULES   => 'accept_rules',
+              LOCATION_ID    => 'location_id'
               
              );
 
@@ -210,7 +211,8 @@ sub defaults_pi {
    CITY           => '',
    CREDIT_DATE    => '0000-00-00',
    REDUCTION_DATE => '0000-00-00',
-   ACCEPT_RULES   => 0
+   ACCEPT_RULES   => 0,
+   LOCATION_ID    => 0
   );
  
   $self = \%DATA;
@@ -255,12 +257,6 @@ sub pi_add {
    	    	$attr->{$value} = '';
    	     }
    	    push @info_fields_val, "'$attr->{$value}'";
-    	   
-        
-        #my ($position, $type, $name)=split(/:/, $line->[1]);
-        #if ($type == 7) {
-        #	
-        # }
        }
      }
 
@@ -272,8 +268,6 @@ sub pi_add {
   my $sufix =''; 
   if ($attr->{CONTRACT_TYPE}) {
   	($prefix, $sufix)=split(/\|/, $attr->{CONTRACT_TYPE});
-  	
- 	
   	#$self->query($db,  "SET \@CONTRACT_PREFIX:='$prefix';") if ($prefix);
   	#$self->query($db,  "SET \@CONTRACT_SUFIX:='$sufix';") if ($sufix);
    }
@@ -281,7 +275,7 @@ sub pi_add {
 
   $self->query($db,  "INSERT INTO users_pi (uid, fio, phone, address_street, address_build, address_flat, 
           email, contract_id, contract_date, comments, pasport_num, pasport_date,  pasport_grant, zip, 
-          city, accept_rules, contract_sufix
+          city, accept_rules, location_id, contract_sufix
            $info_fields)
            VALUES ('$DATA{UID}', '$DATA{FIO}', '$DATA{PHONE}', \"$DATA{ADDRESS_STREET}\", 
             \"$DATA{ADDRESS_BUILD}\", \"$DATA{ADDRESS_FLAT}\",
@@ -292,7 +286,7 @@ sub pi_add {
             '$DATA{PASPORT_GRANT}',
             '$DATA{ZIP}',
             '$DATA{CITY}',
-            '$DATA{ACCEPT_RULES}',
+            '$DATA{ACCEPT_RULES}', '$DATA{LOCATION_ID}',
             '$sufix'
             $info_fields_val );", 'do');
   
@@ -353,7 +347,8 @@ sub pi {
   pi.pasport_grant,
   pi.zip,
   pi.city,
-  pi.accept_rules
+  pi.accept_rules,
+  pi.location_id
   $info_fields
     FROM users_pi pi
     WHERE pi.uid='$UID';");
@@ -382,6 +377,7 @@ sub pi {
    $self->{ZIP},
    $self->{CITY},
    $self->{ACCEPT_RULES},
+   $self->{LOCATION_ID},
    @INFO_ARR
   )= @{ $self->{list}->[0] };
 	
@@ -394,6 +390,21 @@ sub pi {
   	$i++;
    }
 
+ if ($self->{LOCATION_ID} > 0 ) {
+   $self->query($db, "select d.id, d.city, d.name, s.name, b.number  
+     FROM users_pi pi 
+     LEFT JOIN builds b ON (b.id=pi.location_id)
+     LEFT JOIN streets s  ON (s.id=b.street_id)
+     LEFT JOIN districts d  ON (d.id=s.district_id)
+     WHERE pi.uid='$self->{UID}'");
+
+    ($self->{DISTRICT_ID}, 
+     $self->{CITY}, 
+     $self->{ADDRESS_DISTRICT}, 
+     $self->{ADDRESS_STREET}, 
+     $self->{ADDRESS_BUILD}, 
+    )= @{ $self->{list}->[0] };
+  }
 
 	return $self;
 }
@@ -406,8 +417,7 @@ sub pi_change {
 	my $self   = shift;
   my ($attr) = @_;
 
-
-	my $list = $self->config_list({ PARAM => 'ifu*'});
+  my $list = $self->config_list({ PARAM => 'ifu*'});
   if ($self->{TOTAL} > 0) {
     foreach my $line (@$list) {
       if ($line->[0] =~ /ifu(\S+)/) {

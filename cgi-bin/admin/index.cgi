@@ -287,8 +287,8 @@ $users = Users->new($db, $admin, \%conf);
 # Show only function results whithout main windows
 if ($FORM{qindex}) {
   $index = $FORM{qindex};
-  
   if ($FORM{header}) {
+  	$html->{METATAGS}=templates('metatags');  
   	print $html->header();
    }
   
@@ -708,7 +708,7 @@ elsif($FORM{COMPANY_ID}) {
     $company->{DISABLE} = ($company->{DISABLE} > 0) ? 'checked' : '';
     
     if ($conf{EXT_BILL_ACCOUNT} && $company->{EXT_BILL_ID}) {
-      $company->{EXDATA} = $html->tpl_show(templates('form_ext_bill'), $company, { notprint => 1 });
+      $company->{EXDATA} = $html->tpl_show(templates('form_ext_bill'), $company, { OUTPUT2RETURN => 1 });
      }
 
 #Info fields
@@ -965,9 +965,9 @@ sub user_form {
    	 $user_info->{GID} = sel_groups();
     }
 
-   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
+   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { OUTPUT2RETURN => 1 });
 
-   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
+   $user_info->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { OUTPUT2RETURN => 1 }) if ($conf{EXT_BILL_ACCOUNT});
 
    if ($user_info->{DISABLE} > 0) {
      $user_info->{DISABLE} = ' checked';
@@ -986,10 +986,10 @@ sub user_form {
    $user_info->{COMPANY_NAME}=$html->color_mark("$_NOT_EXIST ID: $user_info->{COMPANY_ID}", $_COLORS[6]) if ($user_info->{COMPANY_ID} && ! $user_info->{COMPANY_NAME}) ;
 
    $user_info->{EXDATA} = $html->tpl_show(templates('form_user_exdata'), 
-                                          $user_info, { notprint => 1 });
+                                          $user_info, { OUTPUT2RETURN => 1 });
    if ($conf{EXT_BILL_ACCOUNT} && $user_info->{EXT_BILL_ID}) {
      $user_info->{EXDATA} .= $html->tpl_show(templates('form_ext_bill'), 
-                                             $user_info, { notprint => 1 });
+                                             $user_info, { OUTPUT2RETURN => 1 });
     }
 
    if ($user_info->{DISABLE} > 0) {
@@ -1171,9 +1171,63 @@ sub user_info {
 sub user_pi {
   my ($attr) = @_;
 
-  my $user = $attr->{USER};
-  
- if($FORM{add}) {
+  my $user;
+  if ($attr->{USER}) {
+    $user = $attr->{USER};
+   }
+  else {
+  	$user = $users->info( $FORM{UID} );
+   }
+ 
+ if ($FORM{address}) {
+   print "Content-Type: text/html\n\n";
+   my $js_list = ''; 	
+ 	 my $id        =   $FORM{'JsHttpRequest'};
+   my $jsrequest =   $FORM{'jsrequest'};
+   ($id, undef) = split(/-/,$id);   	
+
+   if ($FORM{STREET}) {
+     my $list = $users->build_list({ STREET_ID => $FORM{STREET} });
+     if ($users->{TOTAL} > 0) {
+       foreach my $line (@$list) {
+         $js_list .= qq{<div class='spisok' onclick='insert(\\"p3\\",\\"$line->[0]\\",\\"l3\\",  \\"$line->[5]\\")'>$line->[0]<\\/div>};
+        }
+      }
+     else {
+       $js_list .= qq{<div class='spisok' onclick='insert(\\"p3\\",\\"\\",\\"l3\\", \\"$line->[0]\\")'>-<\\/div>};
+      }
+     print qq{JsHttpRequest.dataReady({ "id": "$id", 
+   	     "js": { "list": "$js_list" }, 
+         "text": "" }) };
+    }
+   elsif ($FORM{DISTRICT_ID}) {
+     my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID} });
+     if ($users->{TOTAL} > 0) {
+       foreach my $line (@$list) {
+         $js_list .= qq{<div class='spisok' onclick='insert(\\"p2\\",\\"$line->[1]\\",\\"l2\\", \\"$line->[0]\\")'>$line->[1]<\\/div>};
+        }
+      }
+     else {
+       $js_list = qq{<div class='spisok' onclick='insert(\\"p2\\",\\"$line->[1]\\",\\"l2\\", \\"$line->[0]\\")'>-<\\/div>};
+      }
+
+     print qq{JsHttpRequest.dataReady({ "id": "$id", 
+   	    "js": { "list": "$js_list" }, 
+        "text": "" }) };
+    } 	
+   else {
+     my $list = $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000 });
+     foreach my $line (@$list) {
+       $js_list .= qq{<div class='spisok' onclick='insert(\\"p1\\",\\"$line->[1]\\",\\"l1\\", \\"$line->[0]\\")'>$line->[1]<\\/div>};
+      }
+     print qq{JsHttpRequest.dataReady({ "id": "$id", 
+   	    "js": { "list": "$js_list" }, 
+        "text": "" }) };
+    }
+
+ 	 exit;
+  } 
+ elsif($FORM{add}) {
    if (! $permissions{0}{1} ) {
       $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
     	return 0;
@@ -1237,16 +1291,10 @@ sub user_pi {
     else {
     	$input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]", { SIZE => 40 });
      }
-    
   	$user_pi->{INFO_FIELDS}.= "<tr><td>$name:</td><td>$input</td></tr>\n";
-
     $i++;
    }
 
-
-  
-
-  
   if (in_array('Docs', \@MODULES) ) {
     $user_pi->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', BUTTON => 1 }) ;
     
@@ -1275,7 +1323,6 @@ sub user_pi {
    }
 
   $index=30;
-  
   $user_pi->{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { FORM_NAME => 'users_pi',
   	                                                            WEEK_DAYS => \@WEEKDAYS,
   	                                                            MONTHES   => \@MONTHES,
@@ -1288,17 +1335,33 @@ sub user_pi {
   	                                                              DATE      => $user_pi->{CONTRACT_DATE} });
 
   
-  $user_pi->{ADDRESS_STREET_SEL} = $html->form_select("ADDRESS_STREET", 
-                                { SELECTED          => $users->{ADDRESS_STREET} || $FORM{ADDRESS_STREET},
- 	                                SEL_MULTI_ARRAY   => $users->street_list({ PAGE_ROWS => 1000 }), 
- 	                                MULTI_ARRAY_KEY   => 0,
- 	                                MULTI_ARRAY_VALUE => 1,
- 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
- 	                                NO_ID             => 1
- 	                               });
+#  $user_pi->{ADDRESS_STREET_SEL} = $html->form_select("ADDRESS_STREET", 
+#                                { SELECTED          => $users->{ADDRESS_STREET} || $FORM{ADDRESS_STREET},
+# 	                                SEL_MULTI_ARRAY   => $users->street_list({ PAGE_ROWS => 1000 }), 
+# 	                                MULTI_ARRAY_KEY   => 0,
+# 	                                MULTI_ARRAY_VALUE => 1,
+# 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
+# 	                                NO_ID             => 1
+# 	                               });
 
   
-  $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $user_pi, { notprint => 1 });
+  
+  if ($conf{ADDRESS_REGISTER}) {
+  	#$user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address2'), $user_pi, { OUTPUT2RETURN => 1 });
+#    $user_pi->{DISTRICT_SEL} = $html->form_select("DISTRICT", 
+#                                { SELECTED          => $user->{DISTRICT} || $FORM{DISTRICT},
+# 	                                SEL_MULTI_ARRAY   => $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000 }), 
+# 	                                MULTI_ARRAY_KEY   => 0,
+# 	                                MULTI_ARRAY_VALUE => 1,
+# 	                                #SEL_OPTIONS       => { 0 => '-N/S-'},
+# 	                                NO_ID             => 1
+# 	                               });
+  	
+  	$user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
+   }
+  else {
+    $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });	
+   }
 
   $html->tpl_show(templates('form_pi'), $user_pi);
 }
@@ -1316,7 +1379,6 @@ sub form_users {
    }
 
 if(defined($attr->{USER})) {
-
   my $user_info = $attr->{USER};
   if ($users->{errno}) {
     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
@@ -1375,7 +1437,6 @@ if(defined($attr->{USER})) {
     return 0;
    }
   else {
-    
     if (! $permissions{0}{4}) {
       @action = ();
      }
@@ -1384,7 +1445,7 @@ if(defined($attr->{USER})) {
      }
 
     user_form($user_info);
-    
+
     #$service_func_index
     if ($functions{$service_func_index}) {
       $index = $service_func_index;
@@ -1417,9 +1478,6 @@ if(defined($attr->{USER})) {
     
     user_pi({ USER => $user_info });
    }
-
-
-
 
 my $payments_menu = (defined($permissions{1})) ? '<li class=umenu_item>'. $html->button($_PAYMENTS, "UID=$user_info->{UID}&index=2").'</li>' : '';
 my $fees_menu     = (defined($permissions{2})) ? '<li class=umenu_item>' .$html->button($_FEES, "UID=$user_info->{UID}&index=3").'</li>' : '';
@@ -1454,10 +1512,7 @@ my %userform_menus = (
              19	=>  $_BILL
              );
 
-
 $userform_menus{17}=$_PASSWD if ($permissions{0}{3});
-
-
 
 while(my($k, $v)=each %uf_menus) {
 	$userform_menus{$k}=$v;
@@ -1470,7 +1525,6 @@ while(my($k, $v)=each (%userform_menus) ) {
 }
 
 print "<li class=umenu_item>". $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }).'</li>' if (defined($permissions{0}{5}));
-
 print "</ul></div>
 
 </td></tr>
@@ -1502,7 +1556,6 @@ elsif ( $FORM{add}) {
 
     $user_info = $users->info( $user_info->{UID}, { SHOW_PASSWORD => 1 } );
     $html->tpl_show(templates('form_user_info'), $user_info);
-
     $LIST_PARAMS{UID}=$user_info->{UID};
     $index=2;
     form_payments({ USER => $user_info });
@@ -1555,17 +1608,11 @@ elsif ($FORM{MULTIUSER}) {
   	 }
     $html->message('info', $_MULTIUSER_OP, "$_TOTAL: ". $#multiuser_arr+1 ." IDS: $FORM{IDS}");
    }
-	
 }
-
-
 
 if (! $permissions{0}{2}) {
 	return 0;
 }
-
-
-
 
 if ($FORM{COMPANY_ID}) {
   print '<p>'. $html->b("$_COMPANY:") .  $FORM{COMPANY_ID}. "</p>\n";
@@ -1628,9 +1675,6 @@ my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$
                   'u.domain_id'       => 'DOMAIN ID'
                     );
 
-
-
-
 if ($users->{EXTRA_FIELDS}) {
   foreach my $line (@{ $users->{EXTRA_FIELDS} }) {
     if ($line->[0] =~ /ifu(\S+)/) {
@@ -1653,9 +1697,6 @@ for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++) {
 	push @TITLE, '-';
 	$TITLE[5+$i] = $SEARCH_TITLES{$EX_TITLE_ARR[$i]} || "$_SEARCR";
 }
-
-
-
 
 #User list
 my $table = $html->table( { width      => '100%',
@@ -1692,10 +1733,7 @@ foreach my $line (@$list) {
     push @fields_array, $table->td($line->[5+$i]);
    }
 
-
-
   my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { TYPE => 'checkbox', }) : '';
-
   $table->addtd(
                   $table->td(
                   $multiuser.$html->button($line->[0], "index=15&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]") ), 
@@ -1748,8 +1786,6 @@ else {
   print $table->show();
   print $table2->show() if (! $admin->{MAX_ROWS});	
 }
-
-
 }
 
 
@@ -1768,7 +1804,6 @@ sub user_del {
   foreach my $mod (@MODULES) {
   	$mods .= "$mod,";
   	require "Abills/modules/$mod/webinterface";
-  	
    }
 
   if ($user_info->{errno}) {
@@ -2129,7 +2164,7 @@ $search_params{TYPE_SEL} = $html->form_select('TYPE',
 
 
 form_search({ HIDDEN_FIELDS => $LIST_PARAMS{AID},
-	            SEARCH_FORM   => $html->tpl_show(templates('form_history_search'), \%search_params, { notprint => 1 })
+	            SEARCH_FORM   => $html->tpl_show(templates('form_history_search'), \%search_params, { OUTPUT2RETURN => 1 })
 	           });
 
 
@@ -2236,7 +2271,7 @@ $search_params{TYPE_SEL} = $html->form_select('TYPE',
  	                               });
 
 form_search({ HIDDEN_FIELDS => $LIST_PARAMS{AID},
-	            SEARCH_FORM   => $html->tpl_show(templates('form_history_search'), \%search_params, { notprint => 1 })
+	            SEARCH_FORM   => $html->tpl_show(templates('form_history_search'), \%search_params, { OUTPUT2RETURN => 1 })
 	           });
 
 
@@ -3211,7 +3246,7 @@ if ($nas->{errno}) {
  	                               });
 
   $nas->{NAS_DISABLE}   = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
-  $nas->{ADDRESS_TPL}   = $html->tpl_show(templates('form_address'), $nas, { notprint => 1 });
+  $nas->{ADDRESS_TPL}   = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1 });
   $nas->{NAS_GROUPS_SEL}= sel_nas_groups({ GID => $nas->{GID} });
 
   $html->tpl_show(templates('form_nas'), $nas);
@@ -5274,7 +5309,7 @@ elsif($search_form{$FORM{type}}) {
     $info{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 27 });
    }
 	
-	$SEARCH_DATA{SEARCH_FORM} =  $html->tpl_show(templates($search_form{$FORM{type}}), { %FORM, %info, GROUPS_SEL => $group_sel }, { notprint => 1 });
+	$SEARCH_DATA{SEARCH_FORM} =  $html->tpl_show(templates($search_form{$FORM{type}}), { %FORM, %info, GROUPS_SEL => $group_sel }, { OUTPUT2RETURN => 1 });
 	$SEARCH_DATA{SEARCH_FORM} .= $html->form_input('type', "$FORM{type}", { TYPE => 'hidden' });
  }
 
@@ -6657,7 +6692,6 @@ $users->{COUNTRY_SEL} = $html->form_select('COUNTRY',
 
 $html->tpl_show(templates('form_district'), $users);
 
-
 my $table = $html->table({ width      => '100%',
 	                         caption    => $_DISTRICTS,
                            title      => ["#", "$_NAME", "$_COUNTRY", "$_CITY", "$_ZIP", "$_STREETS", '-', '-'],
@@ -6745,7 +6779,7 @@ $users->{DISTRICTS_SEL} = $html->form_select("DISTRICT_ID",
  	                                NO_ID             => 1
  	                               });
 
-$html->tpl_show(templates('form_street_search'), $users);
+#$html->tpl_show(templates('form_street_search'), $users);
 
 $LIST_PARAMS{DISTRICT_ID}=$FORM{DISTRICT_ID} if ($FORM{DISTRICT_ID});
 

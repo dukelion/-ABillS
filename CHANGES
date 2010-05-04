@@ -1,4 +1,39 @@
 =====0.51=====
+29.04.2010\\
+  * Добавленна возможность перевода средст между акаунтами абонентов
+  * Добавленна дата изминения класов трафика
+MySQL:\\
+  ALTER TABLE traffic_classes ADD COLUMN `changed` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00';
+
+
+09.04.2010\\
+  * В тарифных планах дилера появилась возможность снимать деньги после активации карточек.
+  * Обновлён модуль Ashield (Dr.Web)
+
+01.04.2010\\
+MySQL:\\
+  ALTER TABLE users_pi CHANGE phone phone varchar(30) not null default '';
+    CREATE TABLE `districts` (
+      `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+      `name` VARCHAR(100) NOT NULL DEFAULT '',
+      `country` TINYINT(4) UNSIGNED NOT NULL,
+      `zip` VARCHAR(7) NOT NULL DEFAULT '',
+      `city` VARCHAR(30) NOT NULL DEFAULT '',
+      `comments` TEXT NOT NULL,
+     PRIMARY KEY (`id`),
+     UNIQUE KEY `id` (`id`),
+     UNIQUE KEY `name` (`name`),
+     UNIQUE KEY `name_2` (`name`)
+   ) COMMENT='Locations districts';  
+
+
+31.03.2010\\
+  * Массовая печать документов найденных через поиск
+  * Добавлена возможность контролировать вводимые пользователями символы пароля
+  * Добавлен Армянский словарь
+  * Добавлены платёжные системы 4PAY, EasySoft.
+  * Добавлена возможность перенаправлять пользователей на пользовательский портал после отправки им сообщения администратором.
+
 16.03.2010\\
   * Расширенно поле Filter-Id учётной записи пользователя. Добавлено возможность вводить в него дополнительные RADIUS пары.\\
 

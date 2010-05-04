@@ -5109,8 +5109,13 @@ sub dv_wizard_user {
   	                                                              DATE      => $user_pi->{CONTRACT_DATE} });
 
  
- $pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), undef, { OUTPUT2RETURN => 1 });
- 
+if ($conf{pi_date_2}) {
+ 	$pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
+ }
+else {
+  $pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), undef, { OUTPUT2RETURN => 1 });
+ }
+
  $dv_defaults->{JOIN_SERVICE}='';
  my %tpls = (
 	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults,    { OUTPUT2RETURN => 1, ID => 'FORM_USER'     }),  

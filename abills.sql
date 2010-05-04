@@ -853,6 +853,7 @@ CREATE TABLE `traffic_classes` (
   `name` VARCHAR(25) NOT NULL DEFAULT '',
   `nets` TEXT,
   `comments` TEXT NOT NULL,
+  `changed` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
@@ -944,6 +945,7 @@ CREATE TABLE `users_pi` (
   `zip` varchar(7) NOT NULL default '',
   `city` varchar(20) NOT NULL default '',
   `accept_rules` tinyint(1) unsigned NOT NULL default '0',
+  `location_id` INTEGER(11) UNSIGNED NOT NULL default '0',
   PRIMARY KEY  (`uid`)
 ) COMMENT='Users personal info';
 
