@@ -453,10 +453,17 @@ sub report_2 {
  if ($attr->{DISTRICT}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT}, 'STR', '_district') };
   }
+ elsif ($attr->{DISTRICT_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'address_district_id') };
+  }
 
  if ($attr->{ADDRESS_STREET}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'address_street') };
   }
+ elsif ($attr->{ADDRESS_STREET_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET_ID}, 'INT', 'address_street_id') };
+  }
+
 
  if ($attr->{ADDRESS_BUILD}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'address_build') };
@@ -539,13 +546,8 @@ sub report_2 {
   }
 
 
-
-
-
-
 my $CHARSET = "CHARACTER SET '$CONF->{dbcharset}'" if ($CONF->{dbcharset});
-
- my $WHERE = ($#WHERE_RULES > -1) ? ' WHERE '. join(' and ', @WHERE_RULES)  : '';
+my $WHERE = ($#WHERE_RULES > -1) ? ' WHERE '. join(' and ', @WHERE_RULES)  : '';
 
 $self->query($db, "
 CREATE TEMPORARY TABLE IF NOT EXISTS marketing_report_2
@@ -556,7 +558,9 @@ registration date,
 aid smallint unsigned not null default 0,  
 _segment varchar(40) not null default '',
 _district varchar(40) not null default '',
+address_district_id smallint unsigned not null default 0,
 address_street varchar(40) not null default '',
+address_street_id int unsigned not null default 0,
 address_build varchar(6) not null default '',
 address_flat varchar(6) not null default '',
 _entrance tinyint unsigned not null default 0,  
@@ -583,6 +587,7 @@ disable_comments varchar(40) not null default '',
 uid int unsigned not null default 0
 ) $CHARSET ;", 'do');
 
+
  $self->query($db, "
 insert into marketing_report_2
 
@@ -592,9 +597,11 @@ pi.fio,
 u.registration,
 '',
 _segment.name,
-_district.name,
-pi.address_street,
-pi.address_build,
+districts.name,
+districts.id,
+streets.name,
+streets.id,
+builds.number,
 pi.address_flat,
 pi._entrance, 
 pi._flor,
@@ -634,10 +641,11 @@ INNER JOIN tarif_plans tp ON (tp.id=dv.tp_id)
      LEFT JOIN companies c ON (u.company_id=c.id)
      LEFT JOIN bills cb ON (c.bill_id=cb.id)
 LEFT JOIN _segment_list _segment ON (_segment.id=pi._segment)
-LEFT JOIN _district_list _district ON (_district.id=pi._district)
+ LEFT JOIN builds ON (builds.id=pi.location_id)
+ LEFT JOIN streets  ON (streets.id=builds.street_id)
+ LEFT JOIN districts   ON (districts.id=streets.district_id)
 WHERE u.domain_id='$admin->{DOMAIN_ID}'
-GROUP BY u.uid 
-", 'do');
+GROUP BY u.uid", 'do');
 
 
  $self->query($db, "SELECT login,

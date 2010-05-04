@@ -1,9 +1,5 @@
 # Marketing reports
 
-
-
-
-
 use Tariffs;
 use Marketing;
 
@@ -356,8 +352,21 @@ while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
  	                                SEL_OPTIONS   => { '' => $_ALL }
  	                               });
 
+  $Marketing->{DISTRICT_SEL} = $html->form_select('DISTRICT_ID', 
+                                         { 
+ 	                                         SELECTED  => $FORM{DISTRICT_ID},
+ 	                                         SEL_MULTI_ARRAY   => [['', $_ALL], @{ $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000 }) } ],
+ 	                                         MULTI_ARRAY_KEY   => 0,
+ 	                                         MULTI_ARRAY_VALUE => 1,
+ 	                                        });
 
-
+  $Marketing->{ADDRESS_STREET_SEL} = $html->form_select('ADDRESS_STREET_ID', 
+                                         { 
+ 	                                         SELECTED  => $FORM{ADDRESS_STREET_ID},
+ 	                                         SEL_MULTI_ARRAY   => [['', $_ALL], @{ $users->street_list({ %LIST_PARAMS, PAGE_ROWS => 1000 }) } ],
+ 	                                         MULTI_ARRAY_KEY   => 0,
+ 	                                         MULTI_ARRAY_VALUE => 1,
+ 	                                        });
 
   $Marketing->{STATUS_SEL}=$html->form_select('STATUS', 
                                           { 
@@ -370,6 +379,23 @@ while(my($k, $v) = each %PAYSYS_PAYMENT_METHODS ) {
                                             NO_ID       => 1
  	                                        });
 
+  my $tp_list = $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $admin->{DOMAIN_ID} });
+
+  $Marketing->{TP_ID_SEL} = $html->form_select('TP_ID', 
+                                         { 
+ 	                                         SELECTED  => $FORM{TP_ID},
+ 	                                         SEL_MULTI_ARRAY   => [['', $_ALL], @$tp_list ],
+ 	                                         MULTI_ARRAY_KEY   => 0,
+ 	                                         MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+  $Marketing->{PRE_TP_ID_SEL} = $html->form_select('PRE_TP_ID', 
+                                         { 
+ 	                                         SELECTED  => $FORM{PRE_TP_ID},
+ 	                                         SEL_MULTI_ARRAY   => [['', $_ALL], @$tp_list ],
+ 	                                         MULTI_ARRAY_KEY   => 0,
+ 	                                         MULTI_ARRAY_VALUE => 1,
+ 	                                        });
 
 
 $html->tpl_show(_include('marketing_report2', 'Marketing'), { %$Marketing, %FORM }, { });
@@ -377,7 +403,6 @@ $html->tpl_show(_include('marketing_report2', 'Marketing'), { %$Marketing, %FORM
 
 
 my %TARIF_PLANS_HASH = ();
-my $list = $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $admin->{DOMAIN_ID} });
 foreach my $line (@$list) {
 	$TARIF_PLANS_HASH{$line->[0]}="$line->[0]:$line->[1]";
 }

@@ -1,6 +1,37 @@
 =====0.51=====
+03.05.1020\\
+  * Добавлен журнал адресов
+MySQL:
+  ALTER TABLE users_pi ADD COLUMN `location_id` INTEGER(11) UNSIGNED NOT NULL default '0';
+  INSERT INTO districts (name) VALUES ('Main District');
+  
+  CREATE TABLE `builds` (
+    `id` INTEGER(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `street_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+    `number` VARCHAR(10)  NOT NULL DEFAULT '',
+    `flors` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+    `entrances` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+    `added` DATE NOT NULL,
+    `map_x` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+    `map_y` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `id` (`id`),
+    UNIQUE KEY `street_id` (`street_id`, `number`)
+  ) COMMENT='Builds';
+  
+  CREATE TABLE `streets` (
+    `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(100) NOT NULL DEFAULT '',
+    `district_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `id` (`id`),
+    UNIQUE KEY `name` (`name`),
+    UNIQUE KEY `name_district` (`name`, `district_id`),
+    UNIQUE KEY `name_2` (`name`)
+  ) COMMENT='Locations streets';
+
 29.04.2010\\
-  * Добавленна возможность перевода средст между акаунтами абонентов
+  * Добавленна возможность перевода средств между аккаунтами абонентов
   * Добавленна дата изминения класов трафика
 MySQL:\\
   ALTER TABLE traffic_classes ADD COLUMN `changed` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00';
