@@ -304,14 +304,17 @@ sub msgs_admin_add {
 
   if ($#A_CHAPTER > -1) {
     $LIST_PARAMS{CHAPTERS} = join(', ', @A_CHAPTER);
-    #$LIST_PARAMS{DONE_DATE}='0000-00-00'; 
-    #$LIST_PARAMS{CLOSED_DATE}='0000-00-00'; 
     $LIST_PARAMS{UID}=undef if (! $FORM{UID}); 
    }
 
-  $Msgs->{DATE}        = $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS });
+  $Msgs->{DATE}        = $html->date_fld2('DATE', { MONTHES   => \@MONTHES, 
+  	                                                FORM_NAME => ($FORM{DV_WIZARD})  ? 'add_message' : 'user_form', 
+  	                                                WEEK_DAYS => \@WEEKDAYS });
   $Msgs->{INNER_MSG}   = ' checked';
-  $Msgs->{PLAN_DATE}   = $html->date_fld2('PLAN_DATE', { NO_DEFAULT_DATE=>1, MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS });
+  $Msgs->{PLAN_DATE}   = $html->date_fld2('PLAN_DATE', { NO_DEFAULT_DATE=>1, 
+  	                                                     MONTHES   => \@MONTHES, 
+  	                                                     FORM_NAME => ($FORM{DV_WIZARD})  ? 'add_message' : 'user_form', 
+  	                                                     WEEK_DAYS => \@WEEKDAYS });
   $Msgs->{PLAN_TIME}   = "$TIME";
   $Msgs->{DISPATCH_SEL}= $html->form_select('DISPATCH_ID', 
                                           {

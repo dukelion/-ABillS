@@ -4778,7 +4778,6 @@ sub dv_wizard_user {
   my %add_values = ();
 
   if ($FORM{add}) {
-
   	foreach my $k ( sort %FORM) {
       if ($k =~ m/^[0-9]+\.[_a-zA-Z0-9]+$/) { #  && $k !~ /__|[a-z]/) {
         $k =~ s/%22//g;
@@ -5097,13 +5096,13 @@ sub dv_wizard_user {
  	                               });
      }
 
-  $pi_form{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { FORM_NAME => 'users_pi',
+  $pi_form{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { FORM_NAME => 'user_form',
   	                                                            WEEK_DAYS => \@WEEKDAYS,
   	                                                            MONTHES   => \@MONTHES,
   	                                                            DATE      => $user_pi->{PASPORT_DATE}
   	                                                            });
 
-  $pi_form{CONTRACT_DATE} = $html->date_fld2('CONTRACT_DATE', { FORM_NAME => 'users_pi',
+  $pi_form{CONTRACT_DATE} = $html->date_fld2('CONTRACT_DATE', { FORM_NAME => 'user_form',
   	                                                              WEEK_DAYS => \@WEEKDAYS,
   	                                                              MONTHES   => \@MONTHES,
   	                                                              DATE      => $user_pi->{CONTRACT_DATE} });
