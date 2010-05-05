@@ -1190,12 +1190,18 @@ sub user_pi {
      my $list = $users->build_list({ STREET_ID => $FORM{STREET} });
      if ($users->{TOTAL} > 0) {
        foreach my $line (@$list) {
-         $js_list .= qq{<div class='spisok' onclick='insert(\\"p3\\",\\"$line->[0]\\",\\"l3\\",  \\"$line->[5]\\")'>$line->[0]<\\/div>};
+         $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[5]'>$line->[0]</option>"; 
         }
       }
      else {
-       $js_list .= qq{<div class='spisok' onclick='insert(\\"p3\\",\\"\\",\\"l3\\", \\"$line->[0]\\")'>-<\\/div>};
+       $js_list .= "<option class='spisok' value='p3||l3|0'>$_NOT_EXIST</option>"; 
       }
+
+      my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
+      $size = 2 if ($size < 2); 
+      $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='build'>".
+        $js_list . "</select>";
+
      print qq{JsHttpRequest.dataReady({ "id": "$id", 
    	     "js": { "list": "$js_list" }, 
          "text": "" }) };
@@ -1204,12 +1210,17 @@ sub user_pi {
      my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID} });
      if ($users->{TOTAL} > 0) {
        foreach my $line (@$list) {
-         $js_list .= qq{<div class='spisok' onclick='insert(\\"p2\\",\\"$line->[1]\\",\\"l2\\", \\"$line->[0]\\")'>$line->[1]<\\/div>};
+         $js_list .= "<option class='spisok' value='p2|$line->[1]|l2|$line->[0]'>$line->[1]</option>"; 
         }
       }
      else {
-       $js_list = qq{<div class='spisok' onclick='insert(\\"p2\\",\\"$line->[1]\\",\\"l2\\", \\"$line->[0]\\")'>-<\\/div>};
+       $js_list .= "<option class='spisok' value='p2||l2|0'>$_NOT_EXIST</option>"; 
       }
+
+     my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
+     $size = 2 if ($size < 2);
+     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='street'>".
+         $js_list . "</select>";
 
      print qq{JsHttpRequest.dataReady({ "id": "$id", 
    	    "js": { "list": "$js_list" }, 
@@ -1218,13 +1229,17 @@ sub user_pi {
    else {
      my $list = $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000 });
      foreach my $line (@$list) {
-       $js_list .= qq{<div class='spisok' onclick='insert(\\"p1\\",\\"$line->[1]\\",\\"l1\\", \\"$line->[0]\\")'>$line->[1]<\\/div>};
+     	 $js_list .= "<option class='spisok' value='p1|$line->[1]|l1|$line->[0]'>$line->[1]</option>"; 
       }
+
+     my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
+     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='block'>".
+       $js_list . "</select>";
+
      print qq{JsHttpRequest.dataReady({ "id": "$id", 
    	    "js": { "list": "$js_list" }, 
         "text": "" }) };
     }
-
  	 exit;
   } 
  elsif($FORM{add}) {

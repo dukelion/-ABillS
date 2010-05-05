@@ -4912,6 +4912,7 @@ sub dv_wizard_user {
       # Msgs
       if (in_array('Msgs', \@MODULES) && $add_values{7} && $FORM{'7.SUBJECT'}) {
         require "Abills/modules/Msgs/webinterface";
+        $FORM{INNER_MSG}=1;
         my $Msgs = Msgs->new($db, $admin, \%conf);
         
         %FORM=%{ $add_values{7} };

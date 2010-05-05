@@ -11,7 +11,7 @@ div.lists
 	position: absolute;
 	display: none;
 	background-color: #ffffff;
-	border: 1px solid #000000;
+	/*border: 1px solid #000000;*/
 }
 div
 {
@@ -25,7 +25,7 @@ input.input,div.lists
 }
 div.fix
 {
-	position: fixed;
+	postion: fixed;
 }
 div.spisok
 {
@@ -37,6 +37,7 @@ div.spisok:hover
 	border: 1px solid #000000;
 }
 </style>
+
 
 <script language=\"JavaScript\" type=\"text/javascript\">
 function openwindow(params) {
@@ -53,7 +54,13 @@ function time_line(state) {
 	}
 }
 
-function insert (teg, value, hide_teg, key) {
+function insert (id) {
+	var arr = id.value.split(\"|\");
+	var teg = arr[\"0\"];
+	var value = arr[\"1\"];
+	var hide_teg = arr[\"2\"];
+	var key = arr[\"3\"];
+
 	document.getElementById(teg).value = value;
 	document.getElementById(hide_teg).style.display = \"\";
 
@@ -211,13 +218,12 @@ function build (go) {
 <TR><TH colspan=2 class=form_title>$_ADDRESS</TH></TR>
 <TR bgcolor='$_COLORS[2]'><TD>$_DISTRICTS:</TD><TD>
 <div><input name=\"ADDRESS_DISTRICT\" id=\"p1\" type=\"text\" class=\"input\" value=\"%ADDRESS_DISTRICT%\" onkeyup=\"district()\" onclick=\"district('0'); hide_unhide('l1')\"> 
-<a href=\"javascript:openwindow('$SELF_URL?qindex=68&header=1')\"  class=link_button>$_ADD</a></div>
+</div>
 <div id=\"l1\" class=\"lists\"></div>
 </TD></TR>
 
 <TR bgcolor='$_COLORS[2]'><TD>$_ADDRESS_STREET:</TD><TD>
-<div><input name=\"ADDRESS_STREET\" id=\"p2\" type=\"text\" class=\"input\" value=\"%ADDRESS_STREET%\" onkeyup=\"street()\" onclick=\"hide_unhide('l2')\"> 
-<!-- <a href=\"javascript:openwindow('$SELF_URL?qindex=68&header=1')\"  class=link_button>$_ADD</a> --> </div>
+<div><input name=\"ADDRESS_STREET\" id=\"p2\" type=\"text\" class=\"input\" value=\"%ADDRESS_STREET%\" onkeyup=\"street()\" onclick=\"hide_unhide('l2')\"></div>
 <div id=\"l2\" class=\"lists\"></div>
 </TD></TR>
 
