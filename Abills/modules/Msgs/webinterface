@@ -194,7 +194,7 @@ sub msgs_admin_add {
           $FORM{UID}=$line->[5+$users->{SEARCH_FIELDS_COUNT}];
           push @uids, $FORM{UID};
           $Msgs->message_add({ %FORM,
-          	                   STATE      =>  (! $FORM{STATE} || $FORM{STATE} == 0) ? 6 : $FORM{STATE}, 
+          	                   STATE      => ((! $FORM{STATE} || $FORM{STATE} == 0) && ! $FORM{INNER_MSG}) ? 6 : $FORM{STATE}, 
           	                   ADMIN_READ => (! $FORM{INNER_MSG}) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
           	                   IP         => $admin->{SESSION_IP} 
           	                 });
@@ -218,7 +218,7 @@ sub msgs_admin_add {
      }
     else {
       $Msgs->message_add({ %FORM,
-      	          	       STATE      =>  (! $FORM{STATE} || $FORM{STATE} == 0) ? 6 : $FORM{STATE},  
+      	          	       STATE      => ((! $FORM{STATE} || $FORM{STATE} == 0) && ! $FORM{INNER_MSG}) ? 6 : $FORM{STATE},
       	      	           ADMIN_READ => (! $FORM{INNER_MSG} || ($FORM{STATE} == 1 || $FORM{STATE} == 2)) ? "$DATE $TIME" : '0000-00-00 00:00:00',  
       	                   IP         => $admin->{SESSION_IP} 
       	                 });
