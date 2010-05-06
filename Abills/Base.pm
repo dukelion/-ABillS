@@ -124,8 +124,8 @@ sub convert {
    }
   elsif( $attr->{win2utf8}) { $text = win2utf8($text); } 
   elsif( $attr->{utf82win}) { $text = utf82win($text); } 
-	elsif( $attr->{win2koi} ) { $text = win2koi($text);	 }
-	elsif( $attr->{koi2win} ) { $text = koi2win($text); }
+  elsif( $attr->{win2koi} ) { $text = win2koi($text);	 }
+  elsif( $attr->{koi2win} ) { $text = koi2win($text); }
   elsif( $attr->{win2iso} ) { $text = win2iso($text); }
   elsif( $attr->{iso2win} ) { $text = iso2win($text); }
   elsif( $attr->{win2dos} ) { $text = win2dos($text); }

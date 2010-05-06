@@ -458,19 +458,23 @@ sub ashield_user {
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
+
   	$table = $html->table( { width      => '400',
   		                       caption    => "$_INFO",
   		                       title_plain=> ["$_PARAMS", "$_VALUE"],
                              cols_align => ['left', 'left'],
                             });
  
+ 
+ 
     while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
     	$table->addrow($k, 
-    	               ( ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : $v->[0]
+    	               ( ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : convert($v->[0], { utf82win => 1 })
     	              );
     	
       }
     print $table->show();
+
     my $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
       	  login      => "$users->{LOGIN}",
       	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
