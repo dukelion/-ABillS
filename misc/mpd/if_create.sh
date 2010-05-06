@@ -14,6 +14,7 @@ help () {
  -conf  - Create mpd.conf interfaces
  -links - Create mpd.links interfaces
  -h     - help
+ -pppoe_interfaces - pppoe interfaces
  
 ";
 }
@@ -43,6 +44,10 @@ for _switch ; do
                 mpd_links=1
                 shift
                 ;;
+        -pppoe_interfaces)
+                pppoe_interfaces="$2"
+                shift; shift;
+                ;;
         -h)     help; exit;
                 ;;
         esac
@@ -55,15 +60,37 @@ interfaces_list="";
 intefaces_records="";
 links_list="";
 
+if [ w`echo "${pppoe_interfaces}" | sed -n "/-/p"` != w ]; then
+  FIRST_IF=`echo "${pppoe_interfaces}" | awk -F - '{ print $1 }' | sed  's/[a-z]*//'`
+  LAST_IF=`echo "${pppoe_interfaces}" | awk  -F - '{ print $2 }' | sed  's/[a-z]*//'`
+  IF_PREFIX=`echo "${pppoe_interfaces}" | awk  -F - '{ print $2 }' | sed 's/\([a-z]*\)[0-9]*/\1/'`
+  
+  pppoe_interfaces="";
+  while [ ${FIRST_IF} -lt ${LAST_IF}  ] ; do
+    pppoe_interfaces="${pppoe_interfaces} ${IF_PREFIX}${FIRST_IF}";
+    FIRST_IF=`expr ${FIRST_IF} + 1`
+  done;
+fi;
 
 while [ ${start} -lt ${count}  ]  
  do
    #echo "${start}";
    #mpd.conf
    if [ w${mpd_links} = w1 ]; then
-     links_list=${links_list}"${interface_type}${start}: 
+
+     if [ w${interface_type} = wpppoe ]; then
+       for if in ${pppoe_interfaces}; do
+         links_list="${links_list}${interface_type}${start}: 
+        set link type ${interface_type}
+        set pppoe iface ${if}
+"
+         start=`expr ${start} + 1`
+       done;
+     else
+       links_list=${links_list}"${interface_type}${start}: 
         set link type ${interface_type}
 ";
+     fi;
    else
      interfaces_list="${interfaces_list}  load ${interface_type}${start}
 ";    
