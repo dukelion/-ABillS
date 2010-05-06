@@ -1233,6 +1233,7 @@ sub user_pi {
       }
 
      my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
+     $size=2 if ($size < 2);
      $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='block'>".
        $js_list . "</select>";
 
