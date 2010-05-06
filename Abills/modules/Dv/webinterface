@@ -5109,7 +5109,7 @@ sub dv_wizard_user {
   	                                                              DATE      => $user_pi->{CONTRACT_DATE} });
 
  
-if ($conf{pi_date_2}) {
+if ($conf{ADDRESS_REGISTER}) {
  	$pi_form{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
  }
 else {
