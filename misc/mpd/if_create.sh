@@ -1,5 +1,9 @@
 #!/bin/sh
 #Make mpd interfaces
+#
+# Example:
+# Create pppoe for multiple interfaces
+# ./if_create.sh -links -c 1000 -pppoe_interfaces vlan100-vlan200 -t pppoe
 
 start=0;
 count=100;
