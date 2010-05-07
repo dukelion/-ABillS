@@ -90,6 +90,7 @@ while [ ${start} -lt ${count}  ]
 "
          start=`expr ${start} + 1`
        done;
+       start=`expr ${start} - 1`
      else
        links_list=${links_list}"${interface_type}${start}: 
         set link type ${interface_type}
