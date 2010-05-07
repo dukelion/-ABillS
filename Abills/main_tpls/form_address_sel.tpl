@@ -41,16 +41,13 @@ div.spisok:hover
 
 <script language=\"JavaScript\" type=\"text/javascript\">
 
-window.onload = function ()
-{
+window.onload = function () {
     district('0');
 }
-
 
 function openwindow(params) {
   window.open(params, \"calendar\", \"width=400,height=500,status=yes\");
  }
-
 
 function time_line(state) {
 	if (state == 1) {
@@ -88,7 +85,6 @@ function insert (id) {
 	}
 }
 
-
 function hide_unhide (teg) {
 	if (document.getElementById(teg).innerHTML != \"\") {
 		if (document.getElementById(teg).style.display == \"\") {
@@ -101,8 +97,12 @@ function hide_unhide (teg) {
 }
 
 function district(go) {
-	document.getElementById(\"p1\").value = document.getElementById(\"p2\").value = document.getElementById(\"p3\").value = \"\";
+  if (go == 1) {
+	  document.getElementById(\"p1\").value = document.getElementById(\"p2\").value = document.getElementById(\"p3\").value = \"\";
+	 }
+
 	go = go || '1';
+
 	if (document.getElementById(\"p1\").value.length > 0 || go == 0) {
 		JsHttpRequest.query	(
 			\"$SELF_URL\",
@@ -187,21 +187,17 @@ function build (go) {
 				\"address\": 1,
 				\"STREET\": document.getElementById(\"STREET_ID\").value,
 			},			
-	  function(result, errors) 
-			{
+	  function(result, errors) {
 				document.getElementById(\"debug\").innerHTML = errors;
-				if (result[\"list\"] != \"\")
-				{
+				if (result[\"list\"] != \"\")	{
 					document.getElementById(\"l3\").innerHTML = result[\"list\"];
-					if (go == 1)
-					{
+					if (go == 1) {
 						document.getElementById(\"l3\").style.display = \"block\";
 					}
 				}
 			},
 			true,
-			function (state) 
-			{
+			function (state) {
 				time_line(state);
 			}
 		);

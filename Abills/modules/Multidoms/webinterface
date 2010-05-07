@@ -671,6 +671,8 @@ elsif ($FORM{add}) {
     $FORM{NAS_MNG_PASSWORD}='secrete' if (! $FORM{NAS_MNG_PASSWORD});
   	$FORM{NAS_NAME}="NAS_$FORM{NAS_IP}" if (! $FORM{NAS_NAME});
   	
+    #$FORM{NAS_RAD_PAIRS}=",WISPr-Redirection-URL=\"\"" if ($FORM{NAS_TYPE}='mikrotik');
+  	
     $nas->add({	%FORM, DOMAIN_ID => $admin->{DOMAIN_ID}	});
 
     if (! $nas->{errno}) {
