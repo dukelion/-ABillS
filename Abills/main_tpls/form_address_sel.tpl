@@ -217,7 +217,7 @@ function build (go) {
 
 <TR><TH colspan=2 class=form_title>$_ADDRESS</TH></TR>
 <TR bgcolor='$_COLORS[2]'><TD>$_DISTRICTS:</TD><TD>
-<div><input name=\"ADDRESS_DISTRICT\" id=\"p1\" type=\"text\" class=\"input\" value=\"%ADDRESS_DISTRICT%\" onkeyup=\"district()\" onclick=\"district('0'); hide_unhide('l1')\"> 
+<div><input name=\"ADDRESS_DISTRICT\" id=\"p1\" type=\"text\" class=\"input\" value=\"%ADDRESS_DISTRICT%\" onkeyup=\"district()\" onclick=\"district('1'); hide_unhide('l1')\"> 
 </div>
 <div id=\"l1\" class=\"lists\"></div>
 </TD></TR>
