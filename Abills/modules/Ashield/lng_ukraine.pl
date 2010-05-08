@@ -1,9 +1,9 @@
-$_VIRUSES='Viruses';
-$_STATIONS='Stations';
-$_PUBLIC='Public';
-$_PRIVATE='Private';
-$_AGENT='Agent';
-$_COMP_NAME='Computer name';
+$_VIRUSES='Вируси';
+$_STATIONS='Рабоча станція';
+$_PUBLIC='Ge,ksxybq';
+$_PRIVATE='Приватнbй';
+$_AGENT='Агент';
+$_COMP_NAME='Назва комп\'ютера';
 
 
 $_STATUS_1 = 'создание новой подписки';

@@ -268,8 +268,8 @@ else {
       else {
 	     ($blankline, $datas) = split(/[\r]\n/, $datas, 2);
         if (grep(/^$name$/, keys(%FORM))) {
-        	print "Content-Type: text/html\n\n";
-        	print "/$name // $FORM{$name}<br>";
+        #	print "Content-Type: text/html\n\n";
+        #	print "/$name // $FORM{$name}<br>";
         	
           if (@{ $FORM{$name} } > 0) {
             push(@{$FORM{$name}}, $datas);

@@ -360,15 +360,17 @@ sub ashield_user {
     if ($FORM{EMAIL} !~ /(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/) {
     	$html->message('err', $_ERROR, "$_WRONG_EMAIL");
      }
-  	else {	
+  	else {
     	$Ashield->{ACTIVATE}='0000-00-00'; #$attr->{USER}->{ACTIVATE};
       if (! $FORM{STATUS}) {
         #ashield_get_month_fee($Ashield);
         #ashield_drweb_user();
+        my ($fio1, $fio2)=split(/ /, $users->{FIO}, 2);
+        
         my $result_hash=ashield_drweb_request('interfaces/user_registration.php', {
       	  login      => "$users->{LOGIN}",
-      	  name       => $users->{FIO} || '-',
-      	  lastname   => "-",
+      	  name       => $fio2 || '-',
+      	  lastname   => $fio1 || '-',
       	  password   => "$users->{PASSWORD}",
       	  email      => $FORM{EMAIL} || '-',
       	  contract   => "$users->{CONTRACT_ID}",
@@ -458,21 +460,17 @@ sub ashield_user {
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
-
   	$table = $html->table( { width      => '400',
   		                       caption    => "$_INFO",
   		                       title_plain=> ["$_PARAMS", "$_VALUE"],
                              cols_align => ['left', 'left'],
                             });
- 
- 
- 
+
     while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
     	$table->addrow($k, 
     	               ( ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : convert($v->[0], { utf82win => 1 })
     	              );
-    	
-      }
+     }
     print $table->show();
 
     my $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
@@ -482,32 +480,50 @@ sub ashield_user {
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
-  	$table = $html->table( { width      => '400',
+  	$table = $html->table( { width      => '100%',
   		                       caption    => "Agents",
-  		                       title_plain=> ["$_PARAMS", "$_TARIF_PLAN", "$_VALUE"],
+  		                       title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", 
+  		                       "$_ACTIVATE", "Online",
+  		                       "$_CREATED", "$_CHANGED", "URL"],
                              cols_align => ['left', 'left'],
                             });
- 
- 
+
     foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) {
+    	my $result_hash2 = ashield_drweb_request('api/2.0/get-customer-info.ds', { id => $k->{uuid}->[0] }); 
+
+      $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0] =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+      my $create = "$1-$2-$3 $4:$5:$6";
+    	$result_hash2->{customers}->[0]->{customer}->[0]->{modifiedtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+    	my $changed = "$1-$2-$3 $4:$5:$6";
+      my $activated	= $result_hash2->{customers}->[0]->{customer}->[0]->{activated}->[0];
+      my $online	= $result_hash2->{customers}->[0]->{customer}->[0]->{online}->[0];
     	
-    	$table->addrow($k->{agentuuid}->[0], 
+    	my $name = $result_hash2->{customers}->[0]->{customer}->[0]->{name}->[0] || $k->{uuid}->[0];
+    	
+    	$table->addrow($name,
+#    	               $k->{agentuuid}->[0], 
     	               $k->{tariffplancode}->[0],
-    	               $k->{uuid}->[0]
+    	               ($activated eq 'no') ? $_NO: $_YES,
+                     ($online eq 'no') ? $_NO : $_YES,
+    	               $create,
+    	               $changed,
+    	               $html->button("$_DOWNLOAD", '', { 
+    	               	  GLOBAL_URL => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]", 
+    	                  TITLE      => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]" 
+    	                  })
     	              );
-    	
-      }
+     }
     print $table->show();
 
 
     my $list =  $Ashield->ashield_avd_list({ %LIST_PARAMS  });
-  	$table = $html->table( { width      => '100%',
-  		                       caption    => "$_LOG",
-  		                       title_plain=> ["$_LOGIN", "$_STETE", "$_AGENT ID",
-  		                       "$_GROUP ID", "$_GROUP $_NAME", "$_TARIF_PLAN", "$_DATE"],
-                             cols_align => ['left', 'left'],
-                             pages      => $Ashield->{TOTAL}
-                            });
+  	$table = $html->table({ width      => '100%',
+  		                      caption    => "$_LOG",
+  		                      title_plain=> ["$_LOGIN", "$_STETE", "$_AGENT ID",
+  		                      "$_GROUP ID", "$_GROUP $_NAME", "$_TARIF_PLAN", "$_DATE"],
+                            cols_align => ['left', 'left'],
+                            pages      => $Ashield->{TOTAL}
+                          });
  
  
     foreach my $line (@$list) {
@@ -979,59 +995,84 @@ sub ashield_drweb_groups {
   }
 }
 
-##**********************************************************
-##
-##**********************************************************
-#sub ashield_drweb_user {
-#  my ($attr)=@_;
+#**********************************************************
 #
-#if ($FORM{add}) {
-#  my $result_hash = ashield_drweb_request('api/2.0/add-customer.ds', 
-#                           { id          => $FORM{UID},
-#                           	 name        => 'user',
-#                             password    => '123456',
-#                             #group       => undef,
-#                             #expire      => undef,
-#                             #blockbeg    => undef,
-#                             #blockend    => undef,
-#                             #description => undef,
-#                           	});
-#    if ($result_hash->{error}) {
-#      $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $result_hash->{error}->[0]->{message}->[0]");
-#      return 0;
-#     }
-#    else {
-#      $html->message('info', $_INFO, "Dr.Web $_USER $_ADDED");
-#      return 1;
-#     }
-# }
-#elsif($FORM{change}) {
-#	
-# } 
-#elsif($FORM{del}) {
-#   if ($result_hash->{error}) {
-#      $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $result_hash->{error}->[0]->{message}->[0]");
-#      return 0;
-#     }
-#    else {
-#      $html->message('info', $_INFO, "Dr.Web: $_GROUP $_ADDED");
-#      return 1;
-#     }
-# }
-#elsif ($FORM{info}) {
-#	my $result_hash = ashield_drweb_request('api/2.0/get-customer-info.ds', { id => $FORM{info} }); 
-#	if ($result_hash->{error}) {
-#    $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $result_hash->{error}->[0]->{message}->[0]");
-#    return 0;
-#   }
-#  else {
-#    $html->message('info', $_INFO, "Dr.Web $_GROUP $_ADDED");
-#    return 1;
-#   }
-# }
-#
-#
-#}
+#**********************************************************
+sub ashield_drweb_user {
+  my ($attr)=@_;
+
+if ($FORM{add}) {
+  my $result_hash = ashield_drweb_request('api/2.0/add-customer.ds', 
+                           { id          => $FORM{UID},
+                           	 name        => 'user',
+                             password    => '123456',
+                             #group       => undef,
+                             #expire      => undef,
+                             #blockbeg    => undef,
+                             #blockend    => undef,
+                             #description => undef,
+                           	});
+    if ($result_hash->{error}) {
+      $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $result_hash->{error}->[0]->{message}->[0]");
+      return 0;
+     }
+    else {
+      $html->message('info', $_INFO, "Dr.Web $_USER $_ADDED");
+      return 1;
+     }
+ }
+elsif($FORM{change}) {
+	
+ } 
+elsif($FORM{del}) {
+   if ($result_hash->{error}) {
+      $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $result_hash->{error}->[0]->{message}->[0]");
+      return 0;
+     }
+    else {
+      $html->message('info', $_INFO, "Dr.Web: $_GROUP $_ADDED");
+      return 1;
+     }
+ }
+elsif ($FORM{info}) {
+	my $result_hash = ashield_drweb_request('api/2.0/get-customer-info.ds', { id => $FORM{info} }); 
+	if ($result_hash->{error}) {
+    $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $result_hash->{error}->[0]->{message}->[0]");
+    return 0;
+   }
+
+$table = $html->table( { width      => '400',
+                         border     => 1,
+                         caption    => "$_STATS",
+                      } );
+
+while (my($k, $v)=each %{ $result_hash->{customers}->[0]->{customer}->[0] }){
+  next if ($k =~ /from|till|virus|stations/);
+  my $val = $v;
+  
+  if (ref $v eq 'ARRAY') {
+  	$val = $v->[0];
+   }
+
+  if(ref $val eq 'HASH') {
+  	my $val2 = '';
+  	while(my($k, $v)=each %{ $val }) {
+  	  $val2 .= " $k / ";
+  	  $val2 .= (ref $v eq 'ARRAY') ? $v->[0] : $v;
+  	  $val2 .= "<br/>";
+  	 }
+    $val = $val2;
+   } 
+
+  $table->addrow($k, 
+   $val
+  );
+ }
+print $table->show();
+}
+
+
+}
 
 
 
@@ -1484,6 +1525,11 @@ else {
 
 $FORM{__BUFFER} =~ s/encoding="windows-1251"//g;
 my $_xml = eval { XMLin("$content", forcearray=>1) };
+
+
+#print "Content-Type: text/html\n\n";
+#print "<textarea cols=60 rows=10>$content</textarea>\n";
+
 
 if($@) {
   #mk_log("---- Content:\n".
