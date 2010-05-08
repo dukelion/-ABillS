@@ -3,8 +3,9 @@ $_STATIONS='Stations';
 $_PUBLIC='Public';
 $_PRIVATE='Private';
 $_AGENT='Agent';
+$_AGENTS='Agents';
 $_COMP_NAME='Computer name';
-
+$_DRWEB_CABINET='Dr.Web Cabinet';
 
 $_STATUS_1 = 'создание новой подписки';
 $_STATUS_2 = 'смена тарифного пакета';

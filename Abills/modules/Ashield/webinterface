@@ -460,7 +460,7 @@ sub ashield_user {
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
-  	$table = $html->table( { width      => '400',
+  	$table = $html->table( { width      => '450',
   		                       caption    => "$_INFO",
   		                       title_plain=> ["$_PARAMS", "$_VALUE"],
                              cols_align => ['left', 'left'],
@@ -481,7 +481,7 @@ sub ashield_user {
       	  	});
 
   	$table = $html->table( { width      => '100%',
-  		                       caption    => "Agents",
+  		                       caption    => "$_AGENTS",
   		                       title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", 
   		                       "$_ACTIVATE", "Online",
   		                       "$_CREATED", "$_CHANGED", "URL"],
@@ -1041,7 +1041,7 @@ elsif ($FORM{info}) {
     return 0;
    }
 
-$table = $html->table( { width      => '400',
+$table = $html->table( { width      => '450',
                          border     => 1,
                          caption    => "$_STATS",
                       } );
@@ -1084,7 +1084,7 @@ sub ashield_drweb_report {
   ashield_drweb_groups();
 
 my $result_hash = ashield_drweb_request('api/2.0/get-server-info.ds');
-my $table = $html->table( { width      => '400',
+my $table = $html->table( { width      => '450',
                             border     => 1,
                             caption    => "$_INFO",
                             rows       => [[ 'Version:', $result_hash->{server}->[0]->{version}->[0] ],
@@ -1094,7 +1094,7 @@ my $table = $html->table( { width      => '400',
                          } );
 print $table->show();
 
-$table = $html->table( { width      => '400',
+$table = $html->table( { width      => '450',
                          border     => 1,
                          caption    => "$_STATS",
                       } );
@@ -1108,7 +1108,7 @@ while (my($k, $v)=each %{ $result_hash->{server}->[0]->{statistics}->[0] }){
 print $table->show();
 
 
-$table = $html->table( { width       => '400',
+$table = $html->table( { width       => '450',
                          border      => 1,
                          caption     => "$_VIRUSES",
                          title_plain => [$_COUNT, $_NAME],
@@ -1118,7 +1118,7 @@ foreach my $val ( @{ $result_hash->{server}->[0]->{statistics}->[0]->{viruses}->
  }
 print $table->show();
 
-$table = $html->table( { width      => '400',
+$table = $html->table( { width      => '450',
                          border     => 1,
                          caption    => "$_STATIONS",
                          } );
