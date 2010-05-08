@@ -3917,10 +3917,6 @@ if (defined($FORM{DATE})) {
     #$delete
      );
   }
-
-
-
-
  }   
 else{ 
   $type=($FORM{TYPE}) ? $FORM{TYPE} : 'DATE';
@@ -4007,6 +4003,10 @@ else{
    	    $CHART{X_LINE}[$num]=$line->[0];
    	    $CHART{X_TEXT}[$num]=$line->[0];
    	    $num++;
+       }
+      elsif ($type eq 'HOURS') {
+      	$graph_type='day_stats';
+      	$num = $line->[0];
        }
 
       $DATA_HASH{USERS}[$num]  = $line->[1];      
@@ -4127,8 +4127,6 @@ if (defined($FORM{DATE})) {
 
   my $pages_qs .= "&subf=2" if (! $FORM{subf});
   foreach my $line (@$list) {
-    #my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=2&del=$line->[0]&UID=". $line->[11] ."$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
-
     $table->addrow($html->b($line->[0]), 
     $html->button($line->[1], "index=15&UID=$line->[11]"), 
     $line->[2], 
@@ -4140,11 +4138,10 @@ if (defined($FORM{DATE})) {
     ($conf{EXT_BILL_ACCOUNT} && $attr->{USER}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
     "$line->[9]", 
     "$line->[10]", 
-    #$delete
     );
   }
  }   
-else{ 
+else { 
   if ($FORM{TYPE}) {
     $type = $FORM{TYPE};
     $pages_qs .= "&TYPE=$type";
@@ -4153,9 +4150,6 @@ else{
   	$type = 'DATE';
    }
 
-
-  
-  
   my @CAPTION = ("$_DATE", "$_USERS", "$_COUNT", $_SUM);
   if ($type eq 'PAYMENT_METHOD') {
   	$CAPTION[0]=$_PAYMENT_METHOD;
@@ -4183,7 +4177,7 @@ else{
   elsif ($type eq 'HOURS')  {
     $CAPTION[0]=$_HOURS;
    }
-  
+
   $table = $html->table({ width      => '100%',
 	                        caption    => $_PAYMENTS, 
                           title      => \@CAPTION,
@@ -4191,7 +4185,6 @@ else{
                           qs         => $pages_qs,
                           ID         => 'REPORT_PAYMENTS'
                         });
-
 
   $list = $payments->reports({ %LIST_PARAMS });
 
@@ -4219,7 +4212,6 @@ else{
     else { 
       $main_column = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
      }
-
   	
     $table->addrow(
       $main_column, 
@@ -4227,13 +4219,12 @@ else{
       $line->[2], 
       $html->b($line->[3]) );
 
-
     if ($type eq 'ADMINS') { 
     	
      }
     elsif ($type eq 'PAYMENT_METHOD') {
-      $DATA_HASH{TYPE}[$num+1]  = $line->[3];
-      $CHART{X_TEXT}[$num]    = $PAYMENT_METHODS[$line->[0]];
+      $DATA_HASH{TYPE}[$num+1] = $line->[3];
+      $CHART{X_TEXT}[$num]     = $PAYMENT_METHODS[$line->[0]];
       $num++;
      }
     else {
@@ -4244,6 +4235,10 @@ else{
    	    $CHART{X_LINE}[$num]=$line->[0];
    	    $CHART{X_TEXT}[$num]=$line->[0];
    	    $num++;
+       }
+      elsif ($type eq 'HOURS') {
+      	$graph_type='day_stats';
+      	$num = $line->[0];
        }
 
       $DATA_HASH{USERS}[$num]  = $line->[1];      

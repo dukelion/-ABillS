@@ -20,7 +20,7 @@ CREATE TABLE `dhcphosts_hosts` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `cid` (`ip`),
   UNIQUE KEY `mac` (`mac`),
-  UNIQUE KEY `host_network` (`hostname`,`network`)
+  UNIQUE KEY `host` (`hostname)
 ) COMMENT='Dhcphosts hosts';
 
 
