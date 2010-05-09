@@ -116,7 +116,7 @@ sub paysys_import_form {
 	my $content = '';
 	my $filename = $ARGV->{FILE};
 	
-	if ($attr->{POP_SERVER}) {
+	if ($attr->{EMAIL_CHECK}) {
 		
 	 }
   else {
@@ -203,20 +203,18 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
 
     $total_count++;
     $total_sum+=$DATA_ARR->[$i]->{SUM};
-
    }
 
   print "
   TOTAL: $total_count SUM: $total_sum
   ADDED: $total_added_count SUM: $total_added_sum\n";
-
 }
 
 #**********************************************************
 # Import fees from_file
 #**********************************************************
 sub paysys_import_fees {
- paysys_import_form({ TYPE           => 'FEES',
+  paysys_import_form({ TYPE           => 'FEES',
  	                    BINDING_FIELDS => $conf{PAYSYS_FEES_BINDING},
                       IMPORT_EXPR    => $conf{PAYSYS_FEES_IMPORT},
                       IMPORT_RULES   => FEES
@@ -228,7 +226,7 @@ sub paysys_import_fees {
 # Import fees from_file
 #**********************************************************
 sub paysys_import_payments {
- paysys_import_form({ TYPE          => 'PAYMENTS',
+  paysys_import_form({ TYPE          => 'PAYMENTS',
  	                    IMPORT_RULE   => $ARGV->{IMPORT_RULE},
                       IMPORT_RULES  => $conf{PAYSYS_IMPORT_RULES}
                     });
@@ -328,9 +326,10 @@ Paysys console interface:
   TYPE=[PAYMENST|FEES] - Operation TYPE
   IMPORT_RULE=         - for payments import type id
 $import_rules    
+  EMAIL_CHECK          - Check E-mail for documents
   FILE=                - Import FILE
-  DATE=                - Import Date
-  DEBUG=1,2..5         - Debug Mode
+  DATE=                - Import Date  
+  DEBUG=1,2..5         - Debug Mode  
   DECODE=              - Decode from other charsets
     win2koi 
     koi2win
