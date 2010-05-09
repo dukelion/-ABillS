@@ -822,8 +822,10 @@ if (! $conf{ng_car}) {
 
   	  if ($speed > 0) {
        	if ($ARGV->{RECONFIGURE}) {
- 	  	    push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in pipe $pipe_rule_in ip from table\\($users_table_number, 1$speed\\) to $dest_ip $via_if_in";
-          push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in pipe $pipe_rule_out ip from $dest_ip to table\\($users_table_number, 1$speed\\) $via_if_in";
+       		my $table_class = (length("$speed") > 5) ? "$speed" : "1$speed";
+
+ 	  	    push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in pipe $pipe_rule_in ip from table\\($users_table_number, $table_class\\) to $dest_ip $via_if_in";
+          push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in pipe $pipe_rule_out ip from $dest_ip to table\\($users_table_number, $table_class\\) $via_if_in";
 	  	   }
 
 	  	  if (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed) {
