@@ -1913,6 +1913,10 @@ sub build_list {
  $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
+ if ($SORT == 1 && $DESC eq '') {
+ 	 $SORT = "length(b.number), b.number";
+  }
+
  @WHERE_RULES = ();
  
  if ($attr->{NUMBER}) {
