@@ -55,6 +55,7 @@ $_ACCEPT_RULES='С правилами ознакомлен';
 $_MONTH_ALIGNMENT='Выравнивание месяца';
 $_PAYMENT_NOTEXIST='Оплаты не существует';
 $_INNER='Внутреннее';
+$_COMMISSION='Комиссия';
 $_SEND_MAIL='Отправить e-mail';
 $_IMPORT='Импорт';
 $_SERIAL='Серия';

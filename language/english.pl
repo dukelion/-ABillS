@@ -432,3 +432,4 @@ $_RETURN_TO_START_PAGE="Return to start page";
 $_LOGIN_IN_TO_HOTSPOT="Login to hotspot";
 $ERR_WRONG_CAPTCHA='Wrong Captcha';
 $_MONEY_TRANSFER='Money Transfer';
+$_COMMISSION='Commission';

@@ -1078,10 +1078,18 @@ sub form_period  {
 sub form_money_transfer {
 	my ($attr) = @_;
 
+  my $deposit_limit  = 0;
+  my $transfer_price = 0;
+
+  if ($conf{MONEY_TRANSFER} =~ /:/) {
+    ($deposit_limit, $transfer_price)=split(/:/, $conf{MONEY_TRANSFER});
+   }
+  $transfer_price = sprintf("%.2f", $transfer_price);
+
 if ($FORM{s2} || $FORM{transfer}) {
   $FORM{SUM} = sprintf("%.2f", $FORM{SUM});
 
-	if ($user->{DEPOSIT} < $FORM{SUM}) {
+	if ($user->{DEPOSIT} < $FORM{SUM} + $deposit_limit + $transfer_price) {
 	  $html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
 	 }
 	elsif (! $FORM{SUM}) {
@@ -1115,19 +1123,30 @@ if ($FORM{s2} || $FORM{transfer}) {
           $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
          }
         else {
-        	$html->message('info', $_FEES, "$_TAKE SUM: $FORM{SUM}");
+        	$html->message('info', $_FEES, "$_TAKE SUM: $FORM{SUM}". (($transfer_price >0) ? " $_COMMISSION $_SUM: $transfer_price" : '' ));
         	my $Payments = Finance->payments($db, $admin, \%conf);
-          $Payments->add($user2, { DESCRIBE => "$_USER: $user->{UID}",
-          	                       INNER_DESCRIBE=> "$Fees->{INSERT_ID}",
-          	                       SUM      => $FORM{SUM},
-          	                       METHOD   => 7
+          $Payments->add($user2, { DESCRIBE       => "$_USER: $user->{UID}",
+          	                       INNER_DESCRIBE => "$Fees->{INSERT_ID}",
+          	                       SUM            => $FORM{SUM},
+          	                       METHOD         => 7
           	                      });  
 
           if ($Payments->{errno}) {
             $html->message('err', $_ERROR, "[$Payments->{errno}] $err_strs{$Payments->{errno}}");	
            } 
           else {
-            $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} # $Payments->{INSERT_ID}");
+          	my $message = "# $Payments->{INSERT_ID} $_MONEY_TRANSFER $_SUM: $FORM{SUM}";
+            if ($transfer_price > 0) {
+          		my $Fees = Finance->fees($db, $admin, \%conf);
+              $Fees->take($user, $transfer_price, { DESCRIBE => "$_USER: $user2->{UID} $_COMMISSION", 
+        	                                          METHOD   => 4 });
+              if (! $fees->{errno}) {
+                #$message .= " $_COMMISSION $_SUM: $transfer_price";	
+               }
+             }
+
+            $html->message('info', $_PAYMENTS, $message);
+            $users2->{PAYMENT_ID}=$Payments->{INSERT_ID};
            }
          }
 
@@ -1135,6 +1154,7 @@ if ($FORM{s2} || $FORM{transfer}) {
         $html->tpl_show(templates('form_money_transfer_s3'), { %FORM, %$user2 });			
 	     }
 	    elsif ($FORM{s2}) {
+	    	$user2->{COMMISSION} = "$_COMMISSION: $transfer_price";
 	      $html->tpl_show(templates('form_money_transfer_s2'), { %$user2, %FORM });	
 	     }
 	    return 0; 	
