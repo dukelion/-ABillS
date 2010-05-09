@@ -621,7 +621,6 @@ else {
   	   }
      }
    }
-
 }
  
  
@@ -633,8 +632,8 @@ else {
   	$out_interface = `/sbin/route get 91.203.4.17 | grep interface: | awk '{ print \$2 }'`;
   }
   
-  $conf{FW_DIRECTION_OUT}=$ARGV->{FW_DIRECTION_OUT} if ($ARGV->{FW_DIRECTION_OUT});
-  $conf{FW_DIRECTION_IN}=$ARGV->{FW_DIRECTION_IN} if ($ARGV->{FW_DIRECTION_IN});
+  $conf{FW_DIRECTION_OUT}= $ARGV->{FW_DIRECTION_OUT} if ($ARGV->{FW_DIRECTION_OUT});
+  $conf{FW_DIRECTION_IN} = $ARGV->{FW_DIRECTION_IN} if ($ARGV->{FW_DIRECTION_IN});
   
   my $via_if_in          = ($conf{FW_DIRECTION_IN}) ? $conf{FW_DIRECTION_IN} : ' out xmit '. $out_interface;
   my $via_if_out         = ($conf{FW_DIRECTION_OUT}) ? $conf{FW_DIRECTION_OUT} : ' in recv '. $out_interface;
@@ -706,7 +705,6 @@ else {
   my $tariffs = Tariffs->new($db, $admin);
   my %speeds = ();
   
-  #foreach my $tp (keys (%TP_HASH)) {
   my $tp_list = $tariffs->list({ MODULE => 'Dv',  
   	                             #TP_ID => join(';',  keys %TP_HASH) 
   	                            });
@@ -721,7 +719,7 @@ else {
    }
 
 
-  #GET TP speed
+#GET TP speed
   foreach my $line ( @$tp_list ) {
   	my $tp_id = $line->[18];
   	my $tp    = $line->[0];
@@ -763,8 +761,8 @@ else {
 
 #Table shaper section START
 if (! $conf{ng_car}) {
- 	        	my $pipe_rule_in  = sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 20);
-            my $pipe_rule_out = sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 20 + 1);
+ 	        	my $pipe_rule_in  = sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 10);
+            my $pipe_rule_out = sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 10 + 1);
 	      	  my $dest_ip = ($traf_type == 0) ? 'any' : "table\\($nets_table_number, $traf_type\\)";
 	      	  
  	      	  if ($speed_in > 0) {
@@ -790,7 +788,7 @@ if (! $conf{ng_car}) {
                }
 
       	      if (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_out) {
-                 push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
+                 push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
              
                  print "Change TP: $tp Class: $traf_type OUT: ". ( ($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set'  ) ." -> $speed_out\n";
                  delete $pipe_rules{$pipe_rule_out};
@@ -805,12 +803,44 @@ if (! $conf{ng_car}) {
             print "  Traffic Class: $traf_type Class: $traf_type IN: $line->[4] OUT: $line->[5] Pipe: $pipe_rule_in / $pipe_rule_out \n" if ($debug == 2 || $ARGV->{SHOW_SPEED});
     }
 #Table shaper section END
-
    	      }
          }
       }
     }
    }
+#Static speed form ipfw dummynet shaper
+if (! $conf{ng_car}) {
+   $admin->query($db, "select speed from dv_main group by speed order by 1;");
+   my $num = 0;
+   $START_FW[0]+=5000;
+
+   foreach my $line ( @{ $admin->{list} } ) {
+      my $pipe_rule_in  = sprintf("%.5d", $START_FW[0] + $num * 10);
+      my $pipe_rule_out = sprintf("%.5d", $START_FW[0] + $num * 10 + 1);
+   	  my $dest_ip = 'any';
+      my $speed = $line->[0];
+
+  	  if ($speed > 0) {
+       	if ($ARGV->{RECONFIGURE}) {
+ 	  	    push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in pipe $pipe_rule_in ip from table\\($users_table_number, 1$speed\\) to $dest_ip $via_if_in";
+          push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in allow ip from table\\($users_table_number, 1$speed\\) to $dest_ip $via_if_in";
+	  	   }
+
+	  	  if (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed) {
+  	  	   push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw ". $speed ."Kbit/s queue ". (( $speed / 10 > 1000) ? 1000 : int( $speed / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
+	  	     
+	  	     print "Change user_speed: ". ( ($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set'  ) ." -> $speed\n";
+	  	     
+	  	     push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw ". $speed ."Kbit/s queue ". (( $speed / 10 > 1000) ? 1000 : int( $speed / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
+
+           delete $pipe_rules{$pipe_rule_in};
+           delete $pipe_rules{$pipe_rule_out};
+         }
+	     }
+    $num++;
+  }
+}
+#End static speed
 
   if($ARGV->{SHOW_SPEED}) {
   	 return 0;
@@ -925,10 +955,6 @@ if ($conf{ng_car}) {
    print $debug_outputs if ($changed || $debug > 0);
    delete $LOGINS_SPEEDS{$user};
  }
-
-#  while(my ($user, $val) = each %LOGINS_SPEEDS) {
-#  	print "$user\n";
-#   }
 
   return 0;
 }

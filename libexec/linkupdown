@@ -497,9 +497,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
     	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP/$BIT_MASK ". $tablearg_in;
        push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1). " add $CLIENT_IP/$BIT_MASK ". $tablearg_out;
-       if ($debug_fw) {
-        	my $z = `echo "$USER / $tp_table_number / $CLIENT_IP/$BIT_MASK " >> /tmp/fw_ip`;
-        }
 
        $speed_in  = $speed_in * 1024;
        $speed_out = $speed_out * 1024;
