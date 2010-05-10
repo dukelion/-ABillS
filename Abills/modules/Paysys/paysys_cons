@@ -117,7 +117,7 @@ sub paysys_import_form {
 	my $filename = $ARGV->{FILE};
 	
 	if ($attr->{EMAIL_CHECK}) {
-		
+		paysys_import_pop3();
 	 }
   else {
 	  open(FILE, "$filename") || die "Can't open file '$filename' $!\n";
@@ -293,6 +293,26 @@ sub payasys_import_parse {
 #**********************************************************
 sub paysys_import_pop3 {
 	
+	 use Net::POP3;
+
+ # Constructors
+ #$pop = Net::POP3->new('pop3host');
+ my $pop = Net::POP3->new('localhost', Timeout => 60);
+
+ my $username='test@test.net';
+ my $password='123456';
+
+ if ($pop->login($username, $password) > 0) {
+ my $msgnums = $pop->list; # hashref of msgnum => size
+ foreach my $msgnum (keys %$msgnums) {
+   print "-----------------\n";
+   my $msg = $pop->get($msgnum);
+   $full_message = join('', @$msg);
+#   print $full_message;
+   my ($header, $message)=split(/\n\n/, $full_message);
+   print $message."\n";
+ #$pop->delete($msgnum);
+ }
 	
 }
 
@@ -342,6 +362,7 @@ $import_rules
 [END]
 	
 }
+
 
 
 1

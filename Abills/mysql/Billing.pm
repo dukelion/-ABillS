@@ -414,9 +414,10 @@ sub session_sum {
     u.bill_id,
     u.activate,
     u.company_id,
-    u.domain_id
+    u.domain_id,
+    u.credit
    FROM users u
-   WHERE  u.uid='$attr->{UID}';");
+   WHERE u.uid='$attr->{UID}';");
 
    if($self->{errno}) {
      return -3, 0, 0, 0, 0, 0;
@@ -434,7 +435,8 @@ sub session_sum {
    $self->{BILL_ID}, 
    $self->{ACTIVATE},
    $self->{COMPANY_ID},
-   $attr->{DOMAIN_ID}
+   $attr->{DOMAIN_ID},
+   $self->{CREDIT}
   ) = @{ $self->{list}->[0] };	
  	
  	$self->query($db, "SELECT 
@@ -444,7 +446,8 @@ sub session_sum {
     tp.traffic_transfer_period,
     tp.total_time_limit,
     tp.total_traf_limit,
-    tp.tp_id
+    tp.tp_id,
+    tp.neg_deposit_filter_id
    FROM tarif_plans tp
    WHERE tp.id='$attr->{TP_NUM}' AND tp.domain_id='$attr->{DOMAIN_ID}';");
 
@@ -465,6 +468,7 @@ sub session_sum {
      $self->{TOTAL_TIME_LIMIT},
      $self->{TOTAL_TRAF_LIMIT},
      $self->{TP_ID},
+     $self->{NEG_DEPOSIT_FILTER},
     ) = @{ $self->{list}->[0] };
   }
  #If defined TP_NUM
@@ -477,7 +481,7 @@ sub session_sum {
     u.reduction,
     u.bill_id,
     u.activate,
-    u.company_id
+    u.company_id,
    FROM users u
    WHERE  u.id='$USER_NAME' and u.domain_id='$attr->{DOMAIN_ID}';");
 
@@ -496,7 +500,7 @@ sub session_sum {
    $self->{REDUCTION},
    $self->{BILL_ID}, 
    $self->{ACTIVATE},
-   $self->{COMPANY_ID}
+   $self->{COMPANY_ID},
   ) = @{ $self->{list}->[0] };	
  	
  	$self->query($db, "SELECT 
@@ -599,7 +603,7 @@ sub session_sum {
        FROM ( dv_main dv,  tarif_plans tp)
        WHERE dv.tp_id=tp.id, tp.domain_id='$attr->{DOMAIN_ID}'
        and dv.uid='$self->{JOIN_SERVICE}';");
-	
+
      if($self->{errno}) {
        return -3, 0, 0, 0, 0, 0;
       }
@@ -638,6 +642,14 @@ if ($self->{TOTAL_TIME_LIMIT} && $self->{CHECK_SESSION}) {
 	 }
  }
 
+if ($self->{NEG_DEPOSIT_FILTER}) {
+  $self->query($db, "SELECT deposit FROM bills WHERE id='$self->{BILL_ID}';");
+	( $self->{DEPOSIT}  ) = @{ $self->{list}->[0] };
+	if ($self->{DEPOSIT} + $self->{CREDIT} < 0) {
+		return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
+	 }
+}
+
 if ($self->{TOTAL_TRAF_LIMIT} && $self->{CHECK_SESSION}) {
 	if ($sent + $recv >= $self->{TOTAL_TRAF_LIMIT}) {
 		$self->{HANGUP}=1;
@@ -650,7 +662,6 @@ if ($self->{TOTAL_TRAF_LIMIT} && $self->{CHECK_SESSION}) {
   }
 
  $tariffs = Tariffs->new($db, $CONF);
-
  $self->session_splitter($SESSION_START,
                          $SESSION_DURATION,
                          $self->{DAY_BEGIN},
