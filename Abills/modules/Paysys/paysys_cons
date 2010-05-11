@@ -90,9 +90,15 @@ sub paysys_import_form {
   if ($attr->{IMPORT_RULES}) {
     @import_types = split(/,/, $attr->{IMPORT_RULES});
    }
+
   my $table ;
   #Default import extration	
   my $import_expr = ($attr->{IMPORT_EXPR}) ? $attr->{IMPORT_EXPR} : '(\d+)\t(.+)\t(\d+)\t(\S+)\t([0-9.,]+)\t(\d{2}-\d{2}-\d{4})\t(.+)\t(.+):ID, FIO, PHONE, CONTRACT_ID, SUM, DATE, ADDRESS, DESCRIBE';
+  
+  if (defined($conf{PAYSYS_EMAIL_CHECK_ID})) {
+    $attr->{IMPORT_RULE}=$conf{PAYSYS_EMAIL_CHECK_ID};
+    $attr->{BINDING_FIELDS}=$conf{'PAYSYS_IMPORT_BINDING_'.$conf{PAYSYS_EMAIL_CHECK_ID}};
+   }
 
   #Default Binding field
   my $BINDING_FIELD = ($attr->{BINDING_FIELDS}) ? $attr->{BINDING_FIELDS} : 'CONTRACT_ID';
@@ -108,16 +114,16 @@ sub paysys_import_form {
   my $total_sum    = 0;
 	my $total_added_count = 0;
   my $total_added_sum   = 0;
-	if (! $ARGV->{FILE}) {
+	if (! $ARGV->{FILE} && ! defined($ARGV->{EMAIL_CHECK})) {
 		print "Select file!!!\n";
 		exit;
 	 }
 
 	my $content = '';
-	my $filename = $ARGV->{FILE};
+	my $filename = $ARGV->{FILE} || '';
 	
-	if ($attr->{EMAIL_CHECK}) {
-		paysys_import_pop3();
+	if ($ARGV->{EMAIL_CHECK}) {
+		$content = paysys_import_pop3();
 	 }
   else {
 	  open(FILE, "$filename") || die "Can't open file '$filename' $!\n";
@@ -172,7 +178,7 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
                         } );
             }
            if ($payments->{errno} && $payments->{errno} == 7) {
-             print "ERROR: $_EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$ID\n";
+             print "ERROR: EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$ID\n";
             }
          }
         elsif ($ARGV->{TYPE} eq 'FEES') {
@@ -293,27 +299,26 @@ sub payasys_import_parse {
 #**********************************************************
 sub paysys_import_pop3 {
 	
-	 use Net::POP3;
-
+ my $content = '';
+ use Net::POP3;
  # Constructors
- #$pop = Net::POP3->new('pop3host');
+ my ($host, $username, $password) = split(/:/, $conf{PAYSYS_EMAIL_CHECK}, 3);
  my $pop = Net::POP3->new('localhost', Timeout => 60);
 
- my $username='test@test.net';
- my $password='123456';
-
- if ($pop->login($username, $password) > 0) {
- my $msgnums = $pop->list; # hashref of msgnum => size
- foreach my $msgnum (keys %$msgnums) {
-   print "-----------------\n";
-   my $msg = $pop->get($msgnum);
-   $full_message = join('', @$msg);
+if ($pop->login($username, $password) > 0) {
+  my $msgnums = $pop->list; # hashref of msgnum => size
+  foreach my $msgnum (keys %$msgnums) {
+    #print "-----------------\n";
+    my $msg = $pop->get($msgnum);
+    $full_message = join('', @$msg);
 #   print $full_message;
-   my ($header, $message)=split(/\n\n/, $full_message);
-   print $message."\n";
+    my ($header, $message)=split(/\n\n/, $full_message);
+    #print $message."\n";
+    $content .= $message;
  #$pop->delete($msgnum);
- }
-	
+   }
+}
+	return $content;
 }
 
 
