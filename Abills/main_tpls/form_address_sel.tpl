@@ -214,7 +214,7 @@ function build (go) {
 <div class=\"timeline\"><div id=\"time\" class=\"fix\"></div></div>
 <div id=\"debug\"></div>
 
-<input type=hidden name=STREET_ID value='' ID='STREET_ID'>
+<input type=hidden name=STREET_ID value='%STREET_ID%' ID='STREET_ID'>
 <input type=hidden name=LOCATION_ID value='%LOCATION_ID%' ID='LOCATION_ID'>
 <input type=hidden name=DISTRICT_ID value='%DISTRICT_ID%' ID='DISTRICT_ID'>
 
