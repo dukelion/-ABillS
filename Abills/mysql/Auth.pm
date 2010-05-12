@@ -322,8 +322,8 @@ my $ATTR;
 if ($self->{PAYMENT_TYPE} == 0) {
   #if not defined user credit use TP credit
   $self->{CREDIT} = $self->{TP_CREDIT} if ($self->{CREDIT} == 0 && ! $CONF->{user_credit_change});
-  $self->{DEPOSIT}=$self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
-
+  $self->{DEPOSIT}= $self->{DEPOSIT}+$self->{CREDIT}-$self->{CREDIT_TRESSHOLD};
+  
   #Check EXT_BILL_ACCOUNT
   if ($self->{EXT_BILL_ACCOUNT} &&  $self->{EXT_BILL_DEPOSIT} < 0 && $self->{DEPOSIT} > 0 ) {
   	$self->{DEPOSIT} = $self->{EXT_BILL_DEPOSIT}+$self->{CREDIT};
@@ -345,7 +345,7 @@ else {
   $self->{DEPOSIT}=0;
  }
 
-  if ($self->{INTERVALS} > 0)  {
+  if ($self->{INTERVALS} > 0 && $self->{DEPOSIT} > 0)  {
      ($self->{TIME_INTERVALS}, $self->{INTERVAL_TIME_TARIF}, $self->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($self->{TP_ID});
      ($remaining_time, $ATTR) = $Billing->remaining_time($self->{DEPOSIT}, {
     	    TIME_INTERVALS      => $self->{TIME_INTERVALS},
@@ -356,7 +356,7 @@ else {
           DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
           DAY_OF_YEAR         => $self->{DAY_OF_YEAR},
           REDUCTION           => $self->{REDUCTION},
-          POSTPAID            => $self->{PAYMENT_TYPE}
+          POSTPAID            => $self->{PAYMENT_TYPE},
          });
      print "RT: $remaining_time" if ($debug == 1);
    }
@@ -375,6 +375,10 @@ else {
     return 1, $RAD_PAIRS;
   }
  elsif ($remaining_time == -2) {
+    if ($self->{NEG_DEPOSIT_FILTER_ID}) {
+      return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+     }
+
     $RAD_PAIRS->{'Reply-Message'}="Not Allow time";
     $RAD_PAIRS->{'Reply-Message'} .= " Interval: $ATTR->{TT}" if ($ATTR->{TT});
     return 1, $RAD_PAIRS;
@@ -400,7 +404,6 @@ my @direction_sum = (
  );
 
 push @time_limits, $self->{MAX_SESSION_DURATION} if ($self->{MAX_SESSION_DURATION} > 0);
-
 
 my @periods = ('TOTAL', 'DAY', 'WEEK', 'MONTH');
 my %SQL_params = (TOTAL => '',

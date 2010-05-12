@@ -847,10 +847,8 @@ if ($debug == 1) {
    my $prev_tarif = '';
 
    TIME_INTERVALS:
-     #my @intervals = sort keys %$cur_int;
      my @intervals = sort { $a <=> $b } keys %$cur_int; 
      $i = -1;
-
       
      foreach my $int_begin (@intervals) {
        my ($int_id, $int_end) = split(/:/, $cur_int->{$int_begin}, 2);
@@ -1139,12 +1137,11 @@ sub remaining_time {
          	 $int_begin = 0;
           }
         } 
-       
+
        print "Day: $tarif_day Session_start: $session_start => Int Begin: $int_begin End: $int_end Int ID: $int_id\n" if ($debug == 1);
 
        if (($int_begin <= $session_start) && ($session_start < $int_end)) {
           $int_duration = $int_end-$session_start;
-          
           print " <<!=\n" if ($debug == 1);    
 
           # if defined prev_tarif
@@ -1152,7 +1149,6 @@ sub remaining_time {
             	my ($p_day, $p_begin)=split(/:/, $prev_tarif, 2);
             	$int_end=$p_begin;
             	print "Prev tarif $prev_tarif / INT end: $int_end \n" if ($debug == 1);
-            	
            }
 
           #Time calculations/ Time tariff price
@@ -1176,7 +1172,6 @@ sub remaining_time {
              && $remaining_time == 0 
              && ($attr->{GET_INTERVAL} || ! $CONF->{rt_billing})
              ) {
-
             $ATTR{TT}=$int_id if (! defined($ATTR{TT}));            
             if ($periods_traf_tarif->{$int_id} > 0) {
               print "This tarif with traffic counts\n" if ($debug == 1);
@@ -1187,8 +1182,6 @@ sub remaining_time {
               #Traffic tarif price
               $traf_price = $periods_traf_tarif->{$int_id};
              }
-            # 20.01.2007
-            #$remaining_time += $int_duration;
             if ($price > 0) {
               $int_prepaid = int($deposit / $price * $PRICE_UNIT);
              }
@@ -1244,13 +1237,12 @@ sub remaining_time {
              	 # return -2;
               }
       	   }
-       	  #return $remaining_time;
        	  next;
         }
       }
 
   return -2, \%ATTR if ($remaining_time == 0);
- 
+
   if ($session_start >= 86400) {
     $session_start=0;
     $day_of_week = ($day_of_week + 1 > 7) ? 1 : $day_of_week+1;

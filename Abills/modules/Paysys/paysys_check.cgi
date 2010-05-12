@@ -1986,18 +1986,17 @@ if($FORM{hash}) {
   $md5->add($conf{PAYSYS_UKRPAYS_SECRETKEY});
 
   my $checksum = $md5->hexdigest();	
-
   my $info = '';
 	my $user = $users->info($FORM{order});
-	
+
   if ($FORM{hash} ne $checksum) {
-  	$status = "Incorect checksum '$checksum'";
+  	$status = "ERROR: Incorect checksum '$checksum'";
    }
   elsif ($user->{errno}) {
 		$status = "ERROR: $user->{errno}";
 	 }
 	elsif ($user->{TOTAL} < 0) {
-		$status = "User not exist";
+		$status = "ERROR: User not exist";
 	 }
   else {
     #Add payments
@@ -2015,7 +2014,7 @@ if($FORM{hash}) {
         $info = "duplicate\n";
        }
       else {
-        $info = "PAYMENT ERROR: $payments->{errno}\n";
+        $info = "ERROR: PAYMENT $payments->{errno}\n";
        }      
      }
     else {
@@ -2048,7 +2047,7 @@ if($FORM{hash}) {
      }
     $status = $output2;
    }
-  else {
+  elsif ($status ~! /ERROR/)  {
   	$status = 'ok';
    }
 }
