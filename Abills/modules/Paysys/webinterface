@@ -402,7 +402,7 @@ sub paysys_payment {
   	goto PRE_LABEL;
    }
 
-  if ($FORM{PAYMENT_SYSTEM} == 41) {
+  if ($FORM{PAYMENT_SYSTEM} == 41 && $FORM{LMI_PAYMENT_NO}) {
    	 paysys_webmoney();
 	 }
 	elsif($FORM{PAYMENT_SYSTEM} == 42) {
