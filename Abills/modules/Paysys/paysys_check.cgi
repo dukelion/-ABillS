@@ -2047,7 +2047,7 @@ if($FORM{hash}) {
      }
     $status = $output2;
    }
-  elsif ($status ~! /ERROR/)  {
+  elsif ($status !~ /ERROR/)  {
   	$status = 'ok';
    }
 }
@@ -2136,3 +2136,5 @@ sub mk_log {
     print "Can't open file 'paysys_check.log' $! \n";
    }
 }
+
+1
