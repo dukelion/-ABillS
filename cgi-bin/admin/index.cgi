@@ -1801,7 +1801,7 @@ if ($permissions{0}{7}) {
 else {
   print $table->show();
   print $table2->show() if (! $admin->{MAX_ROWS});	
-}
+ }
 }
 
 
@@ -1826,6 +1826,12 @@ sub user_del {
     $html->message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
    }
   else {
+  	if ($conf{external_userdel}) {
+      if (! _external($conf{external_userdel}, { LOGIN => $email_u, %FORM,  %$user_info }) ) {
+         $html->message('err', $_DELETED, "External cmd: $conf{external_userdel}");
+        }
+     }
+
     $html->message('info', $_DELETED, "UID: [$user_info->{UID}] $_DELETED $users->{info} $_MODULES: $mods");
    }
  

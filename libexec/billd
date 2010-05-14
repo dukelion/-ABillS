@@ -42,6 +42,7 @@ elsif(defined($ARGV->{help})){
 CHECK exist connections
   checkppp    - check Active ppp on FreeBSD session and disconnect unknown ip
   checkmpd    - check Active mpd5 on FreeBSD session and disconnect unknown ip
+  check_cisco_cid - check Cisco cids
   checkpppd   - check Active pppd on Linux session and disconnect unknown ip
   check_pptpd - chack Active PoPToP deamon on Linux
   checkmikro  - check Active ppp on Mikrotik session and disconnect unknown ip.
@@ -108,6 +109,7 @@ elsif (defined($ARGV->{check_pptpd})){ check_pptpd();             }
 elsif (defined($ARGV->{checkspeed_mikro}))   { check_speed_mikro();  }
 elsif (defined($ARGV->{checkmikro})) {	check_mikro();            }
 elsif (defined($ARGV->{speed_expr})) {  speed_expr();             }
+elsif (defined($ARGV->{check_cisco_cid})) { check_cisco_cid() }
 else {
   check_lines();
 }
@@ -1750,6 +1752,14 @@ sub mikrotik_ext {
 	 }
 
   print $result;
+
+}
+
+#**************************************************
+#
+#**************************************************
+sub check_cisco_cid {
+
 
 }
 
