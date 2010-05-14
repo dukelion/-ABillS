@@ -121,7 +121,7 @@ sub paysys_import_form {
   my $total_sum         = 0;
 	my $total_added_count = 0;
   my $total_added_sum   = 0;
-	if (! $ARGV->{FILE} && ! defined($ARGV->{EMAIL_CHECK})) {
+	if (! $ARGV->{FILE} && ! $attr->{CONTENT}) {
 		print "Select file!!!\n";
 		exit;
 	 }
@@ -456,12 +456,12 @@ sub paysys_import_ftp {
 
  if ($ARGV->{FTP_CHECK} ne '') {
  	 $ARGV->{FTP_CHECK}--;
-   if (! $mailboxes[$ARGV->{FTP_CHECK}]) {
-   	 print "Not defined mail box '$ARGV->{FTP_CHECK}'\n";
+   if (! $hosts[$ARGV->{FTP_CHECK}]) {
+   	 print "Not defined FTP '$ARGV->{FTP_CHECK}'\n";
    	 exit;
     }
    else {
-     @mailboxes = ($mailboxes[$ARGV->{FTP_CHECK}]);
+     @hosts = ($hosts[$ARGV->{FTP_CHECK}]);
     }
   } 
 
@@ -478,76 +478,21 @@ if ($ftp->login("$username","$password")) {
     $ftp->cwd("$dir")
       or die "Cannot change working directory '$dir' ", $ftp->message;
    }
-  
-  $ftp->get("files")
-   or die "get failed ", $ftp->message;
-  
-  my $files = $ftp->ls('$files');
-  
-  
-  foreach my $file (@$files) {
+
+  my $files_arr = $ftp->ls("$files");
+  foreach my $filename (@$files_arr) {
     my $content = '';
-    my $uidl = $pop->uidl($msgnum);
-    my $msg  = $pop->get($msgnum);
-    $full_message = join('', @$msg);
-    #print $full_message;
+    $ftp->get("$filename")
+     or die "Ftp get failed '$filename' ", $ftp->message;
+    print $filename."\n" if ($debug > 2);
 
-    next;
-    my ($header, $message)=split(/\n\n/, $full_message, 2);
-
-    # Parse header
-    my @lines = split(/\n/,  $header);
-    my $boundary   = '';
-    my $date       = '';
-    my $subject    = '';
-    my $message_id = '';
-    
-    foreach $line (@lines) {
-    	if ($line =~ /boundary="(.+)"/) {
-    		$boundary = $1;
-    	 }
-      elsif ($line =~ /Subject: (.+)/) {
-    		$subject = $1;
-    	 }
-      elsif ($line =~ /Date: (.+)/) {
-    		$date = $1;
-    	 }
-      elsif ($line =~ /Message-ID: (.+)/) {
-    		$message_id = $1;
-    	 }
-     }
-
-    my @parts = ();
-    if ($boundary ne '') {
-    	@parts = split(/--$boundary/, $message);
-     }
-
-    if ($#parts > -1) {
-      foreach my $part (@parts) {
- 	    	my $filename = '';
-      	my $encoding  = '';
-
-    	  my ($part_header, $part_body)=split(/\n\n/, $part, 2);
-    	  my @lines = split(/\n/,  $part_header);
-        foreach $line (@lines) {
-        	if ($line =~ /filename="(.+)"/) {
-    		    $filename = $1;
-    	     }
-          elsif ($line =~ /Content-Transfer-Encoding: (.+)/) {
-          	$encoding = $1;
-           }
-         }
-        
-        if ($encoding eq 'base64') {
-        	$content .= decode_base64($part_body);
-         }
-
-       }
-     }
-    else {
-    	#print $message;
-      $content .= $message;
-     }
+    $filename =~ /\/([a-zA-Z0-9\.\-\_\?]+)$/;
+    my $local_filename = $1;
+	  open(FILE, "$local_filename") || die "Can't open file '$filename' $!\n";
+	    while(<FILE>) {
+	  	  $content .= $_;
+	     }
+	  close(FILE);
 
     if (paysys_import_form({ TYPE          => $ARGV->{TYPE},
                              IMPORT_RULE   => $ARGV->{IMPORT_RULE},
@@ -555,14 +500,12 @@ if ($ftp->login("$username","$password")) {
                              CONTENT       => $content
                            }) ) {
       #$pop->delete($msgnum);
-      print "Delete\n" if ($debug == 1);
-     }  
+      print "Delete LOCAL:$local_filename 'FTP:$filename'\n" if ($debug == 1);
+     }
     else {
     	  my $message = "
-   Date:  $date
-   Subject: $subject
-   Message id: $message_id
-   
+   Filename: $filename
+  
    $content
    
    Error: $error_str
