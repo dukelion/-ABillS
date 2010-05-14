@@ -412,7 +412,7 @@ if ($pop->login($username, $password)) {
                              IMPORT_RULES  => $conf{PAYSYS_IMPORT_RULES},
                              CONTENT       => $content
                            }) ) {
-      #$pop->delete($msgnum);
+      $pop->delete($msgnum);
       print "Delete\n" if ($debug == 1);
      }  
     else {
@@ -499,7 +499,9 @@ if ($ftp->login("$username","$password")) {
                              IMPORT_RULES  => $conf{PAYSYS_IMPORT_RULES},
                              CONTENT       => $content
                            }) ) {
-      #$pop->delete($msgnum);
+      unlink $local_filename;
+      $ftp->delete ("$filename")
+        or die "Ftp del failed '$filename'\n", $ftp->message;
       print "Delete LOCAL:$local_filename 'FTP:$filename'\n" if ($debug == 1);
      }
     else {
