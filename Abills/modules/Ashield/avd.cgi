@@ -43,9 +43,6 @@ use Admins;
 use Ashield;
 use Fees;
 
-
-
-
 my $debug  = $conf{PAYSYS_DEBUG} || 0;
 my $html   = Abills::HTML->new();
 my $sql    = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser},
@@ -221,10 +218,20 @@ if ($_xml->{'action'}->[0]->{type}->[0] < 4) {
     	mk_log("Tariff not exists. TP: '". $_xml->{'action'}->[0]->{tariffplancode}->[0]."'");
      }
     else {
+      my $sum = $Tariffs->{MONTH_FEE};  
+      if ($Tariffs->{PERIOD_ALIGNMENT}) {
+        	my ($y, $m, $d)=split(/-/, $DATE);
+          my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+
+          $conf{START_PERIOD_DAY} = 1;
+          $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
+        }
+
       $Fees->take($users, "$Tariffs->{MONTH_FEE}", 
                      { DESCRIBE  => "Dr.Web TP:". $_xml->{'action'}->[0]->{tariffplancode}->[0], 
  	                     DATE      => "$DATE $TIME"
-  	                           });  
+  	                  });
+
       if (! $Fees->{error}) {
         $Ashield->ashield_avd_add({ UID => $users->{UID},
       	 STATE      => $_xml->{'action'}->[0]->{type}->[0],

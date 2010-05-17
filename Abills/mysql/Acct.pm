@@ -270,7 +270,6 @@ elsif ($acct_status_type == 2) {
       $RAD->{SQL_ERROR}="$Billing->{errno}:$Billing->{errstr}";
       $self->{errno} = 1;
       $self->{errstr}= "SQL Error ($Billing->{errstr}) SESSION: '$filename'";
-
       $Billing->mk_session_log($RAD);
       return $self;
      }

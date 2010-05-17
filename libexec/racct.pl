@@ -3,6 +3,7 @@
 #
 
 use vars  qw(%RAD %conf %ACCT
+ $DATE $TIME
  %RAD_REQUEST %RAD_REPLY %RAD_CHECK 
  $begin_time
  $access_deny
@@ -155,8 +156,7 @@ sub acct {
  my ($db, $RAD, $nas) = @_;
  my $GT = '';
  my $r = 0;
- 
- 
+  
  if ($RAD->{SERVICE_TYPE} && defined($USER_TYPES{$RAD->{SERVICE_TYPE}}) && $USER_TYPES{$RAD->{SERVICE_TYPE}} == 6) {
    log_print('LOG_DEBUG', "ACCT [$RAD->{USER_NAME}] $RAD->{SERVICE_TYPE}");
    return 0;	
@@ -175,8 +175,7 @@ sub acct {
   if ($RAD->{CISCO_AVPAIR}) {
     if ($RAD->{CISCO_AVPAIR} =~ /client-mac-address=([a-f0-9\.\-\:]+)/) {
       $RAD->{CALLING_STATION_ID}=$1;
-      if ($RAD->{CALLING_STATION_ID} =~ /(\S{2})(\S{2})\.(\S{2})(\S{2})\.(\S{2})(\
-S{2})/) {
+      if ($RAD->{CALLING_STATION_ID} =~ /(\S{2})(\S{2})\.(\S{2})(\S{2})\.(\S{2})(\S{2})/) {
         $RAD->{CALLING_STATION_ID}="$1:$2:$3:$4:$5:$6";
        }
     }
@@ -319,8 +318,6 @@ if (-d $conf{extern_acct_dir}) {
    }
 }
 
-
-
 my $Acct;
 
 if(defined($ACCT{$nas->{NAS_TYPE}})) {
@@ -341,6 +338,14 @@ else {
 if ($Acct->{errno}) {
   $access_deny->("$RAD->{USER_NAME}", "[$r->{errno}] $r->{errstr}", $nas->{NAS_ID});
  }
+
+ if ($conf{ACCT_DEBUG} && $begin_time > 0)  {
+   Time::HiRes->import(qw(gettimeofday));
+   my $end_time = gettimeofday();
+   my $gen_time = $end_time - $begin_time;
+   my $gt = sprintf(" GT: %2.5f", $gen_time);
+   my $aaa = `echo "$DATE $TIME $RAD->{USER_NAME} $acct_status_type $gt" >> /tmp/acct.time`;
+  }
 
   return $r;
 }
