@@ -394,8 +394,10 @@ sub list {
          LEFT JOIN users_pi pi ON u.uid = pi.uid
          WHERE
                u.uid=dv.uid
+           and u.disable = 0
            and u.bill_id=b.id
            and dv.tp_id = tp.id
+           and dv.disabl = 0
            and b.deposit<tp.uplimit AND tp.uplimit > 0 AND b.deposit+u.credit>0
          GROUP BY u.uid
          ORDER BY u.id;");
@@ -494,7 +496,6 @@ sub list {
    $self->{SEARCH_FIELDS_COUNT}++;
   }
 
-
  if ($attr->{SPEED}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{SPEED}, 'INT', 'dv.speed') };
    $self->{SEARCH_FIELDS} .= 'dv.speed, ';
@@ -508,22 +509,21 @@ sub list {
   }
 
  if ($attr->{CID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'STR', 'dv.cid') };
-    $self->{SEARCH_FIELDS} .= 'dv.cid, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'STR', 'dv.cid') };
+   $self->{SEARCH_FIELDS} .= 'dv.cid, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{FILTER_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{FILTER_ID}, 'STR', 'dv.filter_id') };
-    $self->{SEARCH_FIELDS} .= 'dv.filter_id, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{FILTER_ID}, 'STR', 'dv.filter_id') };
+   $self->{SEARCH_FIELDS} .= 'dv.filter_id, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  if ($attr->{COMMENTS}) {
    $attr->{COMMENTS} =~ s/\*/\%/ig;
    push @WHERE_RULES, "u.comments LIKE '$attr->{COMMENTS}'";
   }
-
 
  if ($attr->{FIO}) {
    $attr->{FIO} =~ s/\*/\%/ig;
@@ -548,7 +548,6 @@ sub list {
    $self->{SEARCH_FIELDS} .= 'tp.payment_type, ';
    $self->{SEARCH_FIELDS_COUNT}++;
   }
-
 
  # Show debeters
  if ($attr->{DEBETERS}) {

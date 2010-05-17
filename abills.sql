@@ -930,7 +930,7 @@ CREATE TABLE `users_nas` (
 CREATE TABLE `users_pi` (
   `uid` int(11) unsigned NOT NULL auto_increment,
   `fio` varchar(60) NOT NULL default '',
-  `phone` bigint(16) unsigned NOT NULL default '0',
+  `phone` varchar(16) NOT NULL default '',
   `email` varchar(250) NOT NULL default '',
   `address_street` varchar(100) NOT NULL default '',
   `address_build` varchar(10) NOT NULL default '',

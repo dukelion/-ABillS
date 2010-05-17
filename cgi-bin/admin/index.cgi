@@ -1187,7 +1187,7 @@ sub user_pi {
    ($id, undef) = split(/-/,$id);   	
 
    if ($FORM{STREET}) {
-     my $list = $users->build_list({ STREET_ID => $FORM{STREET} });
+     my $list = $users->build_list({ STREET_ID => $FORM{STREET}, PAGE_ROWS => 10000 });
      if ($users->{TOTAL} > 0) {
        foreach my $line (@$list) {
          $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[5]'>$line->[0]</option>"; 
@@ -1207,7 +1207,7 @@ sub user_pi {
          "text": "" }) };
     }
    elsif ($FORM{DISTRICT_ID}) {
-     my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID} });
+     my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID}, PAGE_ROWS => 1000 });
      if ($users->{TOTAL} > 0) {
        foreach my $line (@$list) {
          $js_list .= "<option class='spisok' value='p2|$line->[1]|l2|$line->[0]'>$line->[1]</option>"; 

@@ -576,7 +576,7 @@ sub hangup_cisco {
  my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
 
 #POD Version
-if ($mng_port == 1700) {
+if ($mng_port && $mng_port == 1700) {
 	hangup_radius($NAS, $PORT, "$user", $attr);
  }
 #Rsh version

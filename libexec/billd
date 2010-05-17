@@ -616,7 +616,6 @@ else {
     print "Show rules\n" if ($debug > 1);
     while(my($iface, $rules)=each %rule_speed) {
   	  print "Interface: $iface\n" if ($debug > 1);
-  	  
   	  foreach my $line ( sort keys %$rules ) {
   	 	  # ID -> Speed
   	 	  print " $line -> $rules->{$line}\n" if ($debug == 2);
@@ -624,8 +623,7 @@ else {
      }
    }
 }
- 
- 
+
   my $users_table_number = $conf{FW_TABLE_USERS} || 10;
   my $nets_table_number  = 2;
   my $out_interface      = 'em0';
@@ -633,10 +631,10 @@ else {
   if (! $conf{ng_car}) {
   	$out_interface = `/sbin/route get 91.203.4.17 | grep interface: | awk '{ print \$2 }'`;
   }
-  
+
   $conf{FW_DIRECTION_OUT}= $ARGV->{FW_DIRECTION_OUT} if ($ARGV->{FW_DIRECTION_OUT});
   $conf{FW_DIRECTION_IN} = $ARGV->{FW_DIRECTION_IN} if ($ARGV->{FW_DIRECTION_IN});
-  
+
   my $via_if_in          = ($conf{FW_DIRECTION_IN}) ? $conf{FW_DIRECTION_IN} : ' out xmit '. $out_interface;
   my $via_if_out         = ($conf{FW_DIRECTION_OUT}) ? $conf{FW_DIRECTION_OUT} : ' in recv '. $out_interface;
 
@@ -648,7 +646,7 @@ else {
 	 }
 
 	$sessions->online( { %LIST_PARAMS, 
-		                   NAS_ID  => $ARGV->{NAS_IDS}, 
+		                   NAS_ID       => $ARGV->{NAS_IDS}, 
 		                   FIELDS_NAMES => [ 'USER_NAME', 
 		                   	                 'NAS_PORT_ID', 
 		                   	                 'TP_ID',
@@ -669,9 +667,6 @@ else {
   my $NAS_TYPE = '';
   foreach my $nas_row (@$nas_list) {
     next if (! $online->{$nas_row->[0]});
-
-
-
     $NAS_TYPE = $nas_row->[4];
 
     my $l = $online->{$nas_row->[0]};
@@ -757,6 +752,13 @@ else {
  	      	  my $traf_type  = $line->[0];
  	      	  my $speed_in   = $line->[4];
  	      	  my $speed_out  = $line->[5];
+            my $expresion  = $line->[8];
+            
+            
+
+            if ($expresion) {
+              print "// $expresion \n";
+            }            
              
  	      	  $speeds{$tp}{IN}{$traf_type}=$speed_in;
  	      	  $speeds{$tp}{OUT}{$traf_type}=$speed_out;
@@ -1759,6 +1761,70 @@ sub mikrotik_ext {
 #
 #**************************************************
 sub check_cisco_cid {
+
+	$sessions->online( { 
+		                   #%LIST_PARAMS, 
+		                   ALL    => 1, 
+		                   FIELDS_NAMES => [ 'USER_NAME', 
+		                         'CID',
+		                         'DV_CID',
+                             'NAS_PORT_ID', 
+                             'CLIENT_IP',
+                             'ACCT_SESSION_ID', 
+                             'UID' ]
+		                   } );	
+	
+  print "==> check_lines\n" if ($debug > 1);
+
+	$LIST_PARAMS{NAS_IDS}=$ARGV->{NAS_IDS} if ($ARGV->{NAS_IDS});
+	my $online = $sessions->{nas_sorted};
+  my $nas_list = $nas->list({ %LIST_PARAMS, TYPE => 'cisco' });
+  my %NAS  = ();
+  foreach my $nas_row (@$nas_list) {
+    my $l = $online->{$nas_row->[0]};
+    next if ($#{ $l } < 0);
+    
+    if ($debug > 0) {
+      print "NAS: ($nas_row->[0]) $nas_row->[3] NAS_TYPE: $nas_row->[4] STATUS: $nas_row->[6] Alive: $nas_row->[8] Online: ". ($#{ $l }+1) ."\n";
+     }
+
+    $NAS{NAS_ID}           = $nas_row->[0];
+    $NAS{NAS_IP}           = $nas_row->[3];
+    $NAS{NAS_TYPE}         = $nas_row->[4];
+    $NAS{NAS_ALIVE}        = $nas_row->[8] || 0;
+    $NAS{NAS_MNG_IP_PORT}  = $nas_row->[9];
+    $NAS{NAS_MNG_USER}     = $nas_row->[10]; 
+    $NAS{NAS_MNG_PASSWORD} = $nas_row->[11]; 
+    $NAS{NAS_EXT_ACCT}     = $nas_row->[13];
+
+    foreach my $line (@$l) {
+    	my $user_name               = $line->[0];
+    	my $cid                     = $line->[1];
+    	my $dv_cid                  = $line->[2];
+    	my $nas_port_id             = $line->[3];
+    	my $client_ip               = $line->[4];
+	    my $acct_session_id         = $line->[5];
+      my $uid                     = $line->[6];
+      
+      next if ($dv_cid =~ /any/ig);
+      next if ($dv_cid eq '');
+
+      if ($dv_cid ne $cid) {
+      	print "Wrong CID: Hangup $user_name CID: $dv_cid Online CID: $cid\n";
+        my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
+        	                                                      FRAMED_IP_ADDRESS    => $client_ip,
+           	                                                    UID                  => $uid,
+           	                                                    debug                => $debug
+           	                                                  }); 
+       }
+
+      if ($debug > 1) {
+        printf("%-14s|%16s|%-14s\n", $user_name, $client_ip, $cid);
+       }    
+     } 
+ 
+ }
+
 
 
 }

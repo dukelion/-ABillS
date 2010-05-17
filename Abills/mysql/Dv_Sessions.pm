@@ -210,12 +210,13 @@ sub online {
    CLIENT_IP_NUM  => 'c.framed_ip_address',
    DURATION       => 'SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started))',
 
-   INPUT_OCTETS   => 'c.acct_input_octets + 4294967296 * acct_input_gigawords', 
-   OUTPUT_OCTETS  => 'c.acct_output_octets + 4294967296 * acct_output_gigawords', 
-   INPUT_OCTETS2  => 'c.ex_input_octets', 
+   INPUT_OCTETS   => 'c.acct_input_octets + 4294967296 * acct_input_gigawords',
+   OUTPUT_OCTETS  => 'c.acct_output_octets + 4294967296 * acct_output_gigawords',
+   INPUT_OCTETS2  => 'c.ex_input_octets',
    OUTPUT_OCTETS2 => 'c.ex_output_octets',
  
-   CID             => 'c.CID',                           
+   CID             => 'c.CID',
+   DV_CID          => 'dv.cid',
    ACCT_SESSION_ID => 'c.acct_session_id',
    TP_ID           => 'dv.tp_id',
    CONNECT_INFO    => 'c.CONNECT_INFO',

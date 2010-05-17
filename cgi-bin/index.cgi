@@ -841,8 +841,7 @@ if ($attr->{FIELDS}) {
  }  
 
 
-if ($attr->{PERIOD_FORM}) {
-	
+if ($attr->{PERIOD_FORM}) {	
   	my @rows = ("$_FROM: ".  $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_reports', WEEK_DAYS => \@WEEKDAYS }) .
                " $_TO: ".   $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_reports', WEEK_DAYS => \@WEEKDAYS } ) );
 
@@ -949,7 +948,7 @@ if (defined($FORM{DATE})) {
 }
 
 #*******************************************************************
-# form_period
+# form_fees
 #*******************************************************************
 sub form_fees {
 	if (! $FORM{sort}) {
@@ -997,7 +996,7 @@ print $table->show();
 
 
 #*******************************************************************
-# form_period
+# form_payments
 #*******************************************************************
 sub form_payments {
 @PAYMENT_METHODS = ("$_CASH", "$_BANK", "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION", "$_COMPENSATION", "$_MONEY_TRANSFER");
@@ -1052,23 +1051,23 @@ sub form_period  {
  my ($period, $attr) = @_;
 
  my @periods = ("$_NEXT_PERIOD", "$_DATE");
- my $date_fld = $html->date_fld2('DATE', { FORM_NAME => 'user', MONTHES => \@MONTHES, WEEK_DAYS => \@WEEKDAYS, NEXT_DAY => 1 });
+ $attr->{TP}->{date_fld} = $html->date_fld2('DATE', { FORM_NAME => 'user', MONTHES => \@MONTHES, WEEK_DAYS => \@WEEKDAYS, NEXT_DAY => 1 });
  my $form_period='';
  $form_period .= "<tr><td>$_DATE:</td><td>";
+ $period=1;
 
- my $i=0;
- foreach my $t (@periods) {
+ for(my $i=$#periods; $i>-1; $i--) {
+ 	 my $t = $periods[$i];
    $form_period .= "<BR/><BR/>";
    $form_period .= $html->form_input('period', "$i", { TYPE          => "radio", 
    	                                                   STATE         => ($i eq $period) ? 1 : undef, 
    	                                                   OUTPUT2RETURN => 1
    	                                                  });
 
-   $form_period .= ($i == 0) ? $t ."($attr->{ABON_DATE})" : $t;       
-   $i++;
+   $form_period .= ($i == 0) ? ($attr->{ABON_DATE}) ? $t ." ($attr->{ABON_DATE})" : "$_NOW" : $t. " $attr->{TP}->{date_fld}";
  }
 
- $form_period .= "$date_fld</td></tr>\n";
+ $form_period .= "</td></tr>\n";
  return $form_period;	
 }
 

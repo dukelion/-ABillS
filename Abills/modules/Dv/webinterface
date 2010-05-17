@@ -3208,9 +3208,10 @@ elsif($FORM{del}) {
      $html->message('info', $_INFO, "$ERR_SMALL_DEPOSIT", { ID => 142 });
      return 0;	
     }
-   $tariffs->{PARAMS} .= form_period($period, { ABON_DATE => $Dv->{ABON_DATE} }) if ($conf{DV_USER_CHG_TP_SHEDULE} && ! $conf{DV_USER_CHG_TP_NPERIOD});	
-   $tariffs->{ACTION}='set';
-   $tariffs->{LNG_ACTION}=$_CHANGE;
+
+   $tariffs->{PARAMS}   .= form_period($period, { ABON_DATE => $Dv->{ABON_DATE}, TP => $tariffs }) if ($conf{DV_USER_CHG_TP_SHEDULE} && ! $conf{DV_USER_CHG_TP_NPERIOD});	
+   $tariffs->{ACTION}    = 'set';
+   $tariffs->{LNG_ACTION}= $_CHANGE;
   }
 
    $tariffs->{UID}=$attr->{USER}->{UID};
