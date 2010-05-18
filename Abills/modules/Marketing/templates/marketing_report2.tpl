@@ -301,7 +301,7 @@ o_cal.a_tpl.weekdays   = ['¬с', 'ѕн', '¬т', '—р', '„т', 'ѕт', '—уб'];
 
 
 <tr>
-  <td>$_DEBTS_DAYS:</td><td><input type=text name=DEBTS_DAYS value='%DEBTS_DAYS%'></td>
+  <td>$_DEBTS_DAYS (<>):</td><td><input type=text name=DEBTS_DAYS value='%DEBTS_DAYS%'></td>
   <td></td><td></td>
 </tr>
 
