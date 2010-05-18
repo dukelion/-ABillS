@@ -5,7 +5,7 @@
 #traffic Class numbers
 
 CLASSES_NUMS='2 3'
-VERSION=2.8
+VERSION=2.9
 
 #Enable NG shapper
 NG_SHAPPER=1
@@ -14,8 +14,9 @@ NAT_IPS="";
 FAKE_NET="10.0.0.0/16"
 NAT_IF="";
 
-#Negative deposit forward
+#Negative deposit forward (default: )
 NEG_DEPOSIT_FWD=
+FWD_WEB_SERVER_IP=127.0.0.1;
 
 IPFW=/sbin/ipfw
 EXTERNAL_INTERFACE=`/sbin/route get 91.203.4.17 | grep interface: | awk '{ print $2 }'`
@@ -169,19 +170,19 @@ fi;
 #FWD Section
 if [ w${NEG_DEPOSIT_FWD} != w ]; then
   if [ w${WEB_SERVER_IP} = w ]; then
-    WEB_SERVER_IP=127.0.0.1;
+    FWD_WEB_SERVER_IP=127.0.0.1;
   fi;
 
 INTERNAL_IF="ng*";
 FWD_RULE=10014;
 
 
-#Forwarding
+#Forwarding start
 if [ w$1 = wstart ]; then
   echo "Negative Deposit Forward Section - start"; 
-  ${IPFW} add ${FWD_RULE} fwd ${WEB_SERVER_IP},80 tcp from table\(32\) to any dst-port 80,443 via ${INTERNAL_IF}
+  ${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},80 tcp from table\(32\) to any dst-port 80,443 via ${INTERNAL_IF}
   #If use proxy
-  #${IPFW} add ${FWD_RULE} fwd ${WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_IF}
+  #${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_IF}
   ${IPFW} add `expr ${FWD_RULE} + 10` allow ip from table\(32\) to ${DNS_IP} dst-port 53 via ${INTERNAL_IF}
   ${IPFW} add `expr ${FWD_RULE} + 20` allow tcp from table\(32\) to ${MY_IP} dst-port 9443 via ${INTERNAL_IF}
   ${IPFW} add `expr ${FWD_RULE} + 30` deny ip from table\(32\) to any via ${INTERNAL_IF}

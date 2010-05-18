@@ -30,11 +30,11 @@ if [ t$1 = 'tauth' ] ; then
 
   ./rauth.pl \
         SERVICE_TYPE=VPN \
-        NAS_IP_ADDRESS=${NAS_IP_ADDRESS} \
-        CALLING_STATION_ID="192.168.40.146"\
+        NAS_IP_ADDRESS=${NAS_IP_ADDRESS}\
         USER_PASSWORD="${USER_PASSWORD}"\
-        USER_NAME="${USER_NAME}"\
-        CISCO_AVPAIR="client-mac-address=000f.ea3d.92e1"
+        USER_NAME="${USER_NAME}"
+
+#        CISCO_AVPAIR="client-mac-address=000f.ea3d.92e1"
 
 #        CHAP_PASSWORD="0x5acd1cc26b6f8bf084fb616925769362af"
 #NAS_IDENTIFIER="vpn1.imperial.net.ua"\

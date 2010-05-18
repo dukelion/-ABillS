@@ -46,7 +46,7 @@ sub hangup {
    hangup_radpppd($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'mikrotik') {
-   hangup_radius($NAS, $PORT, $USER);
+   hangup_radius($NAS, $PORT, $USER, $attr);
    #hangup_mikrotik_telnet($NAS, $PORT, $USER);
   }
  elsif ($nas_type eq 'chillispot') {

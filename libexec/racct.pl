@@ -16,7 +16,6 @@ unshift(@INC, $Bin . '/../', $Bin ."/../Abills/$conf{dbtype}");
 
 require Abills::Base;
 Abills::Base->import();
-my $begin_time = check_time();
 my %acct_mod = ();
 
 require Abills::SQL;
@@ -89,16 +88,6 @@ my $access_deny = sub {
 
 my $log_print = sub {
   my ($level, $text, $attr) = @_;
-  #if ($conf{debugmods} =~ /$level/) {
-  #  if (defined($conf{foreground}) && $conf{foreground} == 1) {
-  #    print "$DATE $TIME $level: $text\n";
-  #   }
-  #  else {
-  #    open(FILE, ">>$conf{LOGFILE}") || die "Can't open file '$conf{LOGFILE}' $!\n";
-  #      print FILE "$DATE $TIME $level: $text\n";
-  #    close(FILE);
-  #   }
-  # }
 };
 
 
@@ -154,9 +143,10 @@ if (scalar( %RAD_REQUEST ) < 1) {
 #*******************************************************************
 sub acct {
  my ($db, $RAD, $nas) = @_;
- my $GT = '';
  my $r = 0;
-  
+
+ my $begin_time = check_time();
+
  if ($RAD->{SERVICE_TYPE} && defined($USER_TYPES{$RAD->{SERVICE_TYPE}}) && $USER_TYPES{$RAD->{SERVICE_TYPE}} == 6) {
    log_print('LOG_DEBUG', "ACCT [$RAD->{USER_NAME}] $RAD->{SERVICE_TYPE}");
    return 0;	
