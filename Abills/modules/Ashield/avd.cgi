@@ -219,6 +219,7 @@ if ($_xml->{'action'}->[0]->{type}->[0] < 4) {
      }
     else {
       my $sum = $Tariffs->{MONTH_FEE};  
+      $Tariffs->{PERIOD_ALIGNMENT}=1;
       if ($Tariffs->{PERIOD_ALIGNMENT}) {
         	my ($y, $m, $d)=split(/-/, $DATE);
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
@@ -227,7 +228,7 @@ if ($_xml->{'action'}->[0]->{type}->[0] < 4) {
           $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
         }
 
-      $Fees->take($users, "$Tariffs->{MONTH_FEE}", 
+      $Fees->take($users, "$sum", 
                      { DESCRIBE  => "Dr.Web TP:". $_xml->{'action'}->[0]->{tariffplancode}->[0], 
  	                     DATE      => "$DATE $TIME"
   	                  });

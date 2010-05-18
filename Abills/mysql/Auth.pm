@@ -285,8 +285,10 @@ if ($self->{JOIN_SERVICE}) {
 
 #Check CID (MAC) 
 if ($self->{CID} ne '' && $self->{CID} !~ /ANY/i) {
-  my ($ret, $ERR_RAD_PAIRS) = $self->Auth_CID($RAD);
-  return $ret, $ERR_RAD_PAIRS if ($ret == 1);
+	if ($NAS->{NAS_TYPE} ne 'cisco' && ! $RAD->{CALLING_STATION_ID}) {
+    my ($ret, $ERR_RAD_PAIRS) = $self->Auth_CID($RAD);
+    return $ret, $ERR_RAD_PAIRS if ($ret == 1);
+   }
 }
 
 #Check port
