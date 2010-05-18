@@ -302,13 +302,13 @@ if ($self->{LOGINS} > 0) {
   $self->query($db, "SELECT CID FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2 and status < 11);");
 
   my($active_logins) = $self->{TOTAL};
-  foreach my $line (@{ $self->{list} }) {
-  	# Zap session with same CID
-  	if ($line->[0] ne '' && $line->[0] eq $RAD->{CALLING_STATION_ID}) {
-  		$self->query($db, "UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$RAD->{CALLING_STATION_ID}' and status <> 2;", 'do');
-  		$active_logins--;
-  	 }
-   }
+#  foreach my $line (@{ $self->{list} }) {
+#  	# Zap session with same CID
+#  	if ($line->[0] ne '' && $line->[0] eq $RAD->{CALLING_STATION_ID}) {
+#  		$self->query($db, "UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$RAD->{CALLING_STATION_ID}' and status <> 2;", 'do');
+#  		$active_logins--;
+#  	 }
+#   }
 
   if ($active_logins >= $self->{LOGINS}) {
     $RAD_PAIRS->{'Reply-Message'}="More then allow login ($self->{LOGINS}/$self->{TOTAL})";

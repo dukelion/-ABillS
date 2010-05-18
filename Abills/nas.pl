@@ -423,6 +423,7 @@ sub hangup_radius {
   $r->load_dictionary($conf{'dictionary'});
 
   $r->add_attributes ({ Name => 'User-Name', Value => "$USER" });
+  $r->add_attributes ({ Name => 'Framed-IP-Address', Value => "$attr->{FRAMED_IP_ADDRESS}"});
   $r->send_packet (POD_REQUEST) and $type = $r->recv_packet;
 
   if( ! defined $type ) {
