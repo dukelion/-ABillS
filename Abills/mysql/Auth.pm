@@ -474,7 +474,7 @@ foreach my $line (@periods) {
   }
 
  if ($time_limit > 0) {
-   $RAD_PAIRS->{'Session-Timeout'} = "$time_limit";
+   $RAD_PAIRS->{'Session-Timeout'} = ($self->{NEG_DEPOSIT_FILTER_ID} && $time_limit < 5) ? int($time_limit+600) : "$time_limit";
   }
  elsif($time_limit < 0) {
    $RAD_PAIRS->{'Reply-Message'}="Rejected! Time limit utilized '$time_limit'";
