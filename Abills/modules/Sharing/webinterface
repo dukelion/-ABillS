@@ -348,7 +348,6 @@ $LIST_PARAMS{SORT}=1;
 $LIST_PARAMS{DESC}=DESC;
 my $list = $Sharing->errors_list( { %LIST_PARAMS } );
 
-
 my $table = $html->table( { width      => '100%',
                             caption    => "Sharing",
                             border     => 1,

@@ -51,9 +51,6 @@ sub sql_connect {
 
   convert_radpairs();
   $REQUEST{NAS_IDENTIFIER}='' if (! $REQUEST{NAS_IDENTIFIER});
-
-  my $test = `echo "$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}" >> /tmp/nas`;
-
   if (! $NAS_INFO{$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}}) {
     $nas = Nas->new($db, \%conf);
     if (get_nas_info($db, \%REQUEST) == 0) {		
