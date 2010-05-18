@@ -204,17 +204,13 @@ print $table->show();
 sub sharing_traffic_tariffs {
 	my ($attr) = @_;
 
-
   $Sharing->{ACTION}='add';
   $Sharing->{LNG_ACTION}=$_ADD;
- 
   
 if (defined($FORM{tt})) {
   #$Sharing = $attr->{TP};
   $Sharing->tt_defaults();
   $Sharing->{TI_ID} = $FORM{tt};
-
-
 
   if($FORM{add}) {
     $Sharing->tt_add({ %FORM });
@@ -256,9 +252,7 @@ elsif($attr->{TP}) {
   #$Sharing = $attr->{TP};
   $Sharing->tt_defaults();
 
-  if ($FORM{change}) {
-
-    
+  if ($FORM{change}) {    
     $Sharing->tt_change( { 
     	TT_DESCRIBE_0  => $FORM{TT_DESCRIBE_0},
       TT_PRICE_IN_0  => $FORM{TT_PRICE_IN_0},
@@ -298,18 +292,15 @@ elsif (defined($FORM{TP_ID})) {
   return 0;
  }
 
-
-
-
   
-       my $table2 = $html->table({ width       => '100%',
+      my $table2 = $html->table({ width       => '100%',
                                    title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
                                    cols_align  => ['center', 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'center', 'center', 'center'],
                                    caption     => "$_TRAFIC_TARIFS"
                                   } );
 
-       my $list_tt = $Sharing->tt_list({ TP_ID => $FORM{TP_ID} });
-       foreach my $line (@$list_tt) {
+      my $list_tt = $Sharing->tt_list({ TP_ID => $FORM{TP_ID} });
+      foreach my $line (@$list_tt) {
           $max_traffic_class_id=$line->[0] if ($line->[0] > $max_traffic_class_id);
           $table2->addrow($line->[0], 
            $line->[1], 
@@ -348,77 +339,10 @@ elsif (defined($FORM{TP_ID})) {
 # Analize error log
 #**********************************************************
 sub sharing_error {
-#	$conf{SHARING_APACHE_ERROR_LOG} = '/usr/log/httpd/error_log' if (! $conf{SHARING_APACHE_ERROR_LOG});
-#
   if ($FORM{UID}) {
     my $user_info = $users->info( $FORM{UID} );
 	  $LIST_PARAMS{LOGIN}=$user_info->{LOGIN};
    }
-#	
-#
-#	my @error_log_arr = ();
-#	my $total_lines = 0;
-#	my $log_size    = 0;
-#	
-#	if ($conf{SHARING_APACHE_ERROR_LOG} !~ /ssh/) {
-#	   $log_size = -s $conf{SHARING_APACHE_ERROR_LOG};
-#	 }
-#
-#	open(LOG_FILE, "$conf{SHARING_APACHE_ERROR_LOG}") || print $html->message('err', $_ERROR, "Can't open file '$conf{SHARING_APACHE_ERROR_LOG}' ");
-#	  while(<LOG_FILE>)  {
-#      if(/\[(.+)\] \[(\S+)\] \[client (\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\] (.+)/) {
-#
-#        if ($LIST_PARAMS{LOGIN}) {
-#          my $message = $4;          
-#     		  my $user = '';
-#     		  if ($message =~ /user (\S+):/) {
-#   		   	  $user = $1;
-#		       }
-#          next if ($user !~ /^$LIST_PARAMS{LOGIN}$/i || $user eq '');f:
-#         }
-#
-#        push @error_log_arr, $_;
-#        $total_lines++;
-#        $log_size += length($_);
-#       }
-#	   }
-#	close(LOG_FILE);
-#
-#  my $table = $html->table( { width      => '100%',
-#                            caption    => "$_ERROR",
-#                            border     => 1,
-#                            title      => [$_DATE, $_USER, $_TYPE, 'IP', $_MESSAGE ],
-#                            cols_align => ['right', 'center', 'right', 'left', 'right', 'center:noprint'],
-#                            qs         => $pages_qs,
-#                            pages      => $total_lines
-#                           });
-#
-#
-#	for(my $i=$total_lines - $PG; $i>=($total_lines - $PG) - $PAGE_ROWS && $i >=0; $i-- ) {
-#
-#	  #[Mon Jun 25 17:00:52 2007] [error] [client 192.168.202.4] Directory index forbidden by rule: /usr/music/
-#		if ($error_log_arr[$i] =~ /\[(.+)\] \[(\S+)\] \[client (\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\] (.+)/ ) {
-#		  my $date   = $1; 
-#		  my $type   = $2; 
-#		  my $client = $3; 
-#		  my $message= $4;
-#		  my $user   = '';
-#		  
-#		  if ($message =~ /user (\S+):/) {
-#		  	 $user = $1;
-#		  	 $message =~ s/user (\S+)://;
-#		   }
-#
-#		  $table->addrow("$date", 
-#		    ($user ne '') ? $html->button($user, "index=7&type=11&search=1&LOGIN_EXPR=$user") : '', 
-#		    $type, 
-#		    $client, 
-#		    $message);
-#		 }
-#	 }
-#	
-#	print $table->show();
-
 
 $LIST_PARAMS{SORT}=1;
 $LIST_PARAMS{DESC}=DESC;
@@ -435,7 +359,6 @@ my $table = $html->table( { width      => '100%',
                            });
 
 foreach my $line (@$list) {
- 
   $table->addrow(
    "$line->[0]",
    $html->button("$line->[2]", "index=15&LOGIN=$line->[2]"), 
@@ -453,20 +376,7 @@ $table = $html->table( { width      => '100%',
                          rows       => [ [ "$_TOTAL:", "$Sharing->{TOTAL}" ]
                                         ]
                         } );
-
-
-
-#$table = $html->table( { width      => '100%',
-#                         cols_align => ['right', 'right'],
-#                         rows       => [ [ "$_TOTAL:", "$total_lines" ],
-#                                         [ "$_SIZE:", int2byte($log_size)     ] 
-#                                        ]
-#                        } );
-
-
-
 print $table->show();
-
 }
 
 #**********************************************************
@@ -502,10 +412,6 @@ sub sharing_users_list {
    $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
    $pages_qs .= "&letter=$FORM{letter}";
   } 
-
-
-
-
 
 my $list = $Sharing->list( { %LIST_PARAMS } );
 
@@ -657,7 +563,6 @@ foreach my $line (@$list) {
 }
 
 print $table->show();
-
 }
 
 
@@ -1727,17 +1632,7 @@ print $table->show();
 if ($not_expr ne '') {
   print "<textarea cols=150 rows=10>$not_expr</textarea>";
 }
-
-
-
 }
-
-
-
-
-
-
-
 
 #**********************************************************
 #
@@ -1746,7 +1641,6 @@ sub sharing_registration  {
 	my ($attr) = @_;
 	
 	if ($FORM{reg}) {
-
     if ($FORM{EMAIL} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
       $html->{NO_PRINT}=1;
       $Sharing->{MESSAGE} = $html->message('err', $_ERROR, "$_WRONG_EMAIL");
@@ -1806,9 +1700,6 @@ sub sharing_registration  {
 	      $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");		
 	     }
 		 }
-		
-
-
 	 }
 	else {
 
