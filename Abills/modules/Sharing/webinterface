@@ -41,16 +41,15 @@ if($FORM{ADD_TP}) {
   }
  }
 elsif (defined($FORM{TP_ID})) {
- 
   $tarif_info = $Tariffs->info( $FORM{TP_ID}, { MODULE => 'Sharing' });
-
   if ($Tariffs->{errno}) {
     $html->message('err', $_ERROR, "[$Tariffs->{errno}] $err_strs{$Tariffs->{errno}}");	
     return 0;
    }
 
-  #$pages_qs = "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
   $LIST_PARAMS{TP} = $FORM{TP_ID};
+  $FORM{TP_NUM}    = $Tariffs->{ID};
+  
   %F_ARGS = ( TP => $Tariffs );
   
   $Tariffs->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('TP_ID', 
@@ -292,7 +291,7 @@ elsif (defined($FORM{TP_ID})) {
 
   
       my $table2 = $html->table({ width       => '100%',
-                                   title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
+                                   title_plain => ["#", "$_ _TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
                                    cols_align  => ['center', 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'center', 'center', 'center'],
                                    caption     => "$_TRAFIC_TARIFS"
                                   } );
@@ -325,12 +324,11 @@ elsif (defined($FORM{TP_ID})) {
   	 }
   }
 
-  $Sharing->{SEL_TT_ID} = $html->form_select('TT_ID', 
+$Sharing->{SEL_TT_ID} = $html->form_select('TT_ID', 
                                 { SELECTED    => $Sharing->{TT_ID},
  	                                SEL_HASH   => \%TT_IDS,
- 	                               });
-  
-  $html->tpl_show(_include('sharing_tt', 'Sharing'), $Sharing);
+ 	                               });  
+$html->tpl_show(_include('sharing_tt', 'Sharing'), $Sharing);
 }
 
 #**********************************************************
@@ -1701,7 +1699,7 @@ sub sharing_registration  {
 		#$html->message('err', $_ERROR, "$_REGISTRATION");
 	 }
 
-	 $Sharing->{TP_SEL} = $html->form_select('TP_ID', 
+  $Sharing->{TP_SEL} = $html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $FORM{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ %LIST_PARAMS, MODULE => 'Sharing', TP_GID => '>0' }),
@@ -1709,8 +1707,7 @@ sub sharing_registration  {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 	
-   $html->tpl_show(_include('sharing_registration', 'Sharing'), undef);
-
+  $html->tpl_show(_include('sharing_registration', 'Sharing'), undef);
 	return 0;
 }
 
@@ -1719,18 +1716,13 @@ sub sharing_registration  {
 #**********************************************************
 sub sharing_additions {
 	my ($attr) = @_;
-
-
   $Sharing->{ACTION}='add';
   $Sharing->{LNG_ACTION}=$_ADD;
- 
-  
+
 if (defined($FORM{tt})) {
   #$Sharing = $attr->{TP};
   $Sharing->additions_defaults();
   $Sharing->{TI_ID} = $FORM{tt};
-
-
 
   if($FORM{add}) {
     $Sharing->additions_add({ %FORM });
@@ -1739,9 +1731,7 @@ if (defined($FORM{tt})) {
      }
    }
   elsif($FORM{change}) {
-
     $Sharing->additions_change({ %FORM });
-
     if(! $Sharing->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED"); 
      }
@@ -1774,8 +1764,6 @@ elsif($attr->{TP}) {
   $Sharing->additions_defaults();
 
   if ($FORM{change}) {
-
-    
     $Sharing->tt_change( { 
     	TT_DESCRIBE_0  => $FORM{TT_DESCRIBE_0},
       TT_PRICE_IN_0  => $FORM{TT_PRICE_IN_0},
@@ -1797,7 +1785,6 @@ elsif($attr->{TP}) {
 
     });
 
-
     if ($Sharing->{errno}) {
       my $messages = "($Sharing->{errstr})" if($Sharing->{errstr});
       $html->message('err', $_ERROR, "[$Sharing->{errno}] $err_strs{$Sharing->{errno}} $message");	
@@ -1806,7 +1793,6 @@ elsif($attr->{TP}) {
       $html->message('info', $_INFO, "$_INTERVALS");
      }
    }
-
    my $list = $Sharing->tt_list({ TP_ID => $FORM{TP_ID} });
  }
 elsif (defined($FORM{TP_ID})) {
@@ -1814,31 +1800,26 @@ elsif (defined($FORM{TP_ID})) {
   sharing_tp();
   return 0;
  }
-
-
-
-
   
-       my $table = $html->table({ width       => '100%',
-                                   title_plain => ["#", "$_NAME", "$_TRAFFIC", "$_SUM", "-", "-"],
-                                   cols_align  => ['right', 'left', 'right', 'right', 'center', 'center'],
-                                   caption     => "$_EXTRA_TRAFFIC"
-                                  } );
 
-       my $list_tt = $Sharing->additions_list({ TP_ID => $FORM{TP_ID} });
-       foreach my $line (@$list_tt) {
+my $table = $html->table({ width       => '100%',
+                           title_plain => ["#", "$_NAME", "$_TRAFFIC", "$_SUM", "-", "-"],
+                           cols_align  => ['right', 'left', 'right', 'right', 'center', 'center'],
+                           caption     => "$_EXTRA_TRAFFIC"
+                         });
 
-          $table->addrow($line->[0], 
-           $line->[1], 
-           $line->[2], 
-           $line->[3], 
-           $html->button($_CHANGE, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&chg=$line->[0]", { BUTTON => 1 }),
-           $html->button($_DEL, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
-        }
+my $list_tt = $Sharing->additions_list({ TP_ID => $FORM{TP_NUM} });
+foreach my $line (@$list_tt) {
+   $table->addrow($line->[0], 
+     $line->[1], 
+     $line->[2], 
+     $line->[3], 
+     $html->button($_CHANGE, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&chg=$line->[0]", { BUTTON => 1 }),
+     $html->button($_DEL, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
+ }
 
-       print $table->show();
-  
-       $html->tpl_show(_include('sharing_addition', 'Sharing'), $Sharing);	
+print $table->show();
+$html->tpl_show(_include('sharing_addition', 'Sharing'), $Sharing);	
 	
 }
 
@@ -1848,10 +1829,6 @@ elsif (defined($FORM{TP_ID})) {
 #**********************************************************
 sub sharing_addition_buy {
   my ($attr) = @_;
-  #print "content-Type: text/html\n\n";  
-  #$Sharing->{debug}=1;
-
-
   $user_si = $Sharing->info($LIST_PARAMS{UID});
   
   if (! $user_si->{TP_ID}) {
@@ -1860,7 +1837,6 @@ sub sharing_addition_buy {
    }
   
 	my $list = $Sharing->additions_list({ TP_ID => $user_si->{TP_ID} });
-
 
 	if ($Sharing->{TOTAL} > 0) {
     if ($FORM{BUY}) {
@@ -1886,7 +1862,6 @@ sub sharing_addition_buy {
     	
      }
 
-
     $html->form_main({ CONTENT => "$_EXTRA_TRAFIC: ". $html->form_select('ID', 
                                           { 
  	                                          SELECTED          => 0,
@@ -1897,8 +1872,7 @@ sub sharing_addition_buy {
 	                                          HIDDEN  => { index => "$index" },
 	                                          SUBMIT  => { BUY  => "$_BUY" } 
 	                        });
-	
-	 }
+	}
 	
 }
 
@@ -1916,7 +1890,6 @@ sub sharing_periodic_monthly_fees {
 
  use Users;
  my $users = Users->new($db, $admin, \%conf); 
- #$Tariffs->{debug}=1;
  my $list = $Tariffs->list({ MODULE => 'Sharing',  %LIST_PARAMS });
 
 
@@ -2085,9 +2058,6 @@ sub sharing_periodic {
   return $debug_output;
 }
 
-
-
-
 #***********************************************************
 # sharing_sheduler
 #***********************************************************
@@ -2095,7 +2065,6 @@ sub sharing_sheduler {
 	my ($type, $action, $uid)=@_;
 
   my $user = $Sharing->info($uid);  	
-  $Sharing->{debug}=1;
   if ($type eq 'tp') {
     $Sharing->change({UID   => $uid, 
           	          TP_ID => $action 
@@ -2104,15 +2073,10 @@ sub sharing_sheduler {
     if ($Sharing->{errno} && $Sharing->{errno} == 15) {
     	return $Sharing->{errno};
      }
-
    }
 
   return 0;
 }
-
-
-
-
 
 #***********************************************************
 # sharing_sheduler
