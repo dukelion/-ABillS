@@ -1,12 +1,3 @@
--- MySQL dump 8.22
---
--- Host: localhost    Database: stats
----------------------------------------------------------
--- Server version	3.23.53-log
-
---
--- Table structure for table 'dunes'
---
 CREATE TABLE dunes (
   err_id smallint(5) unsigned NOT NULL default '0',
   win_err_handle varchar(30) NOT NULL default '',
@@ -14,11 +5,6 @@ CREATE TABLE dunes (
   error_text varchar(200) NOT NULL default '',
   solution text
 ) COMMENT='Dunes';
-
---
--- Dumping data for table 'dunes'
---
-
 
 INSERT INTO dunes VALUES (600,'PENDING','Операция    не завершена.','An operation is pending','Произошла    внутренняя ошибка. Перегрузите компьютер для    того члобы убедиться, что все недавние изменения    конфигурации вступили в силу.');
 INSERT INTO dunes VALUES (601,'ERROR_INVALID_PORT_HANDLE','Обнаружен неверный индекс порта.','The port handle is invalid','Произошла внутренняя ошибка.    Перегрузите компьютер для того члобы убедиться,    что все недавние изменения конфигурации    вступили в силу.');
