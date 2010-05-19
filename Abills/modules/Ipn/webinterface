@@ -39,7 +39,7 @@ sub ipn_detail {
  	 $LIST_PARAMS{DESC}='DESC';
   }
 if (defined($FORM{search})) {
-  $pages_qs .= "&search=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}";
+  #$pages_qs .= "&search=1&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}";
   $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
  }
 
