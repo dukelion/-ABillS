@@ -28,10 +28,8 @@ sub sharing_tp {
  $tarif_info->{LNG_ACTION}=$_ADD;
  $tarif_info->{ACTION}='ADD_TP';
 
-
 if($FORM{ADD_TP}) {
-  $FORM{TP_ID} = $FORM{CHG_TP_ID};
-  
+  $FORM{TP_ID} = $FORM{CHG_TP_ID};  
   if ($FORM{TP_ID} < 1) {
   	$html->message('err', $_ERROR, "$_ERROR ID = 0");
    }
@@ -65,7 +63,7 @@ elsif (defined($FORM{TP_ID})) {
 	                                          HIDDEN  => { index => "$index" },
 	                                          SUBMIT  => { show  => "$_SHOW" } 
 	                        });
-  
+
   func_menu({ 
   	         'ID' =>   $Tariffs->{TP_ID}, 
   	         $_NAME => $Tariffs->{NAME_SEL}
@@ -163,8 +161,8 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?" }); 
-    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]");
+    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { BUTTON => 1 });
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
@@ -175,15 +173,15 @@ foreach my $line (@$list) {
    }
   
   $table->addrow($html->b($line->[0]), 
-   $html->button($line->[1], "index=$index&TP_ID=$line->[0]"),
+   $html->button($line->[1], "index=$index&TP_ID=$line->[0]", { BUTTON => 1 }),
    $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], 
    $line->[5], 
    $line->[6], 
    $line->[7], 
    $line->[8], 
    $line->[9],
-   $html->button($_TRAFIC_TARIFS, "index=". ($index + 2) ."&subf=". ($index + 2) ."&TRAFFIC=$line->[0]&TP_ID=$line->[18]"),
-   $html->button($_EXTRA_TRAFIC, "index=". ($index + 3) ."&subf=". ($index + 3) ."&TRAFFIC=$line->[0]&TP_ID=$line->[18]"),
+   $html->button($_TRAFIC_TARIFS, "index=". ($index + 2) ."&subf=". ($index + 2) ."&TRAFFIC=$line->[0]&TP_ID=$line->[18]", { BUTTON => 1 }),
+   $html->button($_EXTRA_TRAFIC, "index=". ($index + 3) ."&subf=". ($index + 3) ."&TRAFFIC=$line->[0]&TP_ID=$line->[18]", { BUTTON => 1 }),
    $change,
    $delete);
 }
@@ -310,8 +308,8 @@ elsif (defined($FORM{TP_ID})) {
            $line->[5], 
            $line->[6], 
            convert($line->[7], { text2html => 'yes'  }),
-           $html->button($_CHANGE, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&chg=$line->[0]"),
-           $html->button($_DEL, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" } ));
+           $html->button($_CHANGE, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&chg=$line->[0]", { BUTTON => 1 }),
+           $html->button($_DEL, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
         }
 
        print $table2->show();
@@ -441,7 +439,7 @@ my $table = $html->table( { width      => '100%',
                            });
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[7+$Sharing->{SEARCH_FIELDS_COUNT}]) : ''; 
+  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[7+$Sharing->{SEARCH_FIELDS_COUNT}], { BUTTON => 1 }) : ''; 
   
   my @fields_array  = ();
   for(my $i=0; $i<$Sharing->{SEARCH_FIELDS_COUNT}; $i++){
@@ -457,7 +455,7 @@ foreach my $line (@$list) {
    "$status[$line->[5]]",
    @fields_array, 
    $payments, 
-   $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[7+$Sharing->{SEARCH_FIELDS_COUNT}])
+   $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[7+$Sharing->{SEARCH_FIELDS_COUNT}], { BUTTON => 1 })
 
    );
 }
@@ -541,7 +539,7 @@ my $delete = '';
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
     $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", 
-       { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?" }
+       { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?", BUTTON => 1 }
       );
    }
 
@@ -1022,7 +1020,7 @@ sub sharing_user_info {
   }
   
   if ($conf{SHARING_USER_CHG_TP}) {
-    $Sharing->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+1).'&sid='.$sid );
+    $Sharing->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+1).'&sid='.$sid, { BUTTON => 1 } );
    }
 
   
@@ -1185,8 +1183,7 @@ my $tp_index = $index - 8;
 $Tariffs->{UID}=$attr->{USER}->{UID};
 $Tariffs->{m}=$m;
 $Tariffs->{TP_ID} = $user->{TP_ID};
-$Tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} [". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP" } ). "]";
-
+$Tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP", BUTTON => 1 } );
 
 print $html->tpl_show(templates('form_chg_tp'), $Tariffs);
 }
@@ -1202,7 +1199,6 @@ sub sharing_user_chg_tp {
  	 sharing_addition_buy();
  	 return 0;
   }
-
 
  my $user_sharing;
 
@@ -1240,7 +1236,6 @@ if ($FORM{set}) {
  	use POSIX;
 
   if ($conf{SHARING_USER_CHG_TP_NPERIOD} && $user_sharing->{TP_ID} > 0) {
-
      my $Y;
      my $M;
      my $D;
@@ -1276,7 +1271,6 @@ if ($FORM{set}) {
       $FORM{UID}=$LIST_PARAMS{UID};
       
       if ($user_sharing->{TP_ID} == $FORM{TP_ID}) {
-
       	my $user = Users->new($db, $admin, \%conf);
       	
       	my $tariffs = Tariffs->new($db, \%conf, $admin);
@@ -1354,7 +1348,12 @@ if ($FORM{set}) {
     $user_sharing->change({ %FORM });
 
     if ($user_sharing->{errno}) {
-      $html->message('err', $_ERROR, "[$user_sharing->{errno}] $err_strs{$user_sharing->{errno}}");
+      if ($user_sharing->{errno} == 15) {
+      	$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
+       }
+      else {
+        $html->message('err', $_ERROR, "[$user_sharing->{errno}] $err_strs{$user_sharing->{errno}}");
+       } 
      }
     else {
       $html->message('info', $_CHANGED, "$_CHANGED --");
@@ -1369,8 +1368,6 @@ elsif($FORM{del}) {
 
   $html->message('info', $_DELETED, "$_DELETED [$FORM{SHEDULE_ID}]");
 }
-
-
 
   $shedule->info( {UID      => $user_sharing->{UID},
                    TYPE     => 'tp',
@@ -1493,7 +1490,7 @@ sub sharing_user  {
 	else {
 	  $Sharing->{ACTION}='set';
 	  $Sharing->{LNG_ACTION}=$_CHANGE;
-	  $Sharing->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$FORM{UID}.'&index='. ($index + 4)) .']';
+	  $Sharing->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$FORM{UID}.'&index='. ($index + 4), { BUTTON => 1 });
 
   if ($conf{SHARING_SAMBA_ADD}) {
     my $user_info = $users->info( $FORM{UID} );
@@ -1680,11 +1677,10 @@ sub sharing_registration  {
 	  	  $html->tpl_show(_include('sharing_reg_complete', 'Sharing'), { %$Sharing, %FORM });
 
         #Send mail 
-  	    my $message = $html->tpl_show(_include('sharing_reg_complete_mail', 'Sharing'), { %$Sharing, %FORM, PASSWORD => "$password" }, { notprint => 1 });
+  	    my $message = $html->tpl_show(_include('sharing_reg_complete_mail', 'Sharing'), { %$Sharing, %FORM, PASSWORD => "$password" }, { OUTPUT2RETURN => 1 });
 
   	    sendmail("$conf{ADMIN_MAIL}", "$FORM{EMAIL}", "REGISTRATION", 
               "$message", "$conf{MAIL_CHARSET}", '');
-
        }
       else {
         $html->message('err', $_ERROR, "[$Sharing->{errno}] $err_strs{$Sharing->{errno}}");
@@ -1836,8 +1832,8 @@ elsif (defined($FORM{TP_ID})) {
            $line->[1], 
            $line->[2], 
            $line->[3], 
-           $html->button($_CHANGE, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&chg=$line->[0]"),
-           $html->button($_DEL, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?" } ));
+           $html->button($_CHANGE, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&chg=$line->[0]", { BUTTON => 1 }),
+           $html->button($_DEL, "index=$index&TP_ID=$FORM{TP_ID}&tt=$FORM{TP_ID}&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
         }
 
        print $table->show();
@@ -2209,8 +2205,8 @@ foreach my $line (@$list) {
     "$line->[2]", 
     "$line->[3]", 
     "$line->[4]",
-    $html->button($_CHANGE, "index=$index&chg=$line->[5]"),
-    $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL $line->[1]?" })
+    $html->button($_CHANGE, "index=$index&chg=$line->[5]", { BUTTON => 1 }),
+    $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL $line->[1]?", BUTTON => 1 })
    );
 }
 

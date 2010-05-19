@@ -1144,19 +1144,16 @@ sub add {
   
   my %DATA = $self->get_data($attr, { default => defaults() }); 
 
+  
 
   if ($DATA{TP_ID} > 0) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
      $tariffs->info($DATA{TP_ID});
-     
      if($tariffs->{ACTIV_PRICE} > 0) {
        my $user = Users->new($db, $admin, $CONF);
        $user->info($DATA{UID});
        
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE}) {
-         
-
-         
          $self->{errno}=15;
        	 return $self; 
         }
@@ -1220,7 +1217,9 @@ sub change {
 
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
-     $tariffs->info($attr->{TP_ID});
+      $tariffs->{debug}=1;
+     #$tariffs->info($attr->{TP_ID});
+     $tariffs->info(0,  { ID => $attr->{TP_ID} });
      
      if($tariffs->{CHANGE_PRICE} > 0) {
        my $user = Users->new($db, $admin, $CONF);
