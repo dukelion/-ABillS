@@ -1217,8 +1217,6 @@ sub change {
 
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);
-      $tariffs->{debug}=1;
-     #$tariffs->info($attr->{TP_ID});
      $tariffs->info(0,  { ID => $attr->{TP_ID} });
      
      if($tariffs->{CHANGE_PRICE} > 0) {
