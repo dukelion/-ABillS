@@ -39,6 +39,18 @@ if (defined($ARGV->{debug})) {
   print "Debug mode $debug\n";
 }
 elsif(defined($ARGV->{help})){
+	
+	#get plugins
+	opendir DIR, "$Bin/billd.plugins/" or die "Can't open dir '$Bin/billd.plugins/' $!\n";
+    my @contents = grep /\.pm$/  , readdir DIR;
+  closedir DIR;
+  
+  my $plugins = '';
+  foreach my $p (@contents) {
+  	$p =~ s/\.pm//;
+  	$plugins .= "  $p\n";
+  }
+  
   print "Help:
 CHECK exist connections
   checkppp    - check Active ppp on FreeBSD session and disconnect unknown ip
@@ -52,8 +64,10 @@ CHECK speed
      SHOW_SPEED=1  - Only show current speed
   checkspeed_mikro - check cure speed for user on Mikrotik. Arguments NAS_IDS=xx
   speed_expr       - Speed Expration
-    SHOW_CUR_SPEED - Show current users speed
-CHECK connection Alive
+  SHOW_CUR_SPEED - Show current users speed
+ PLUGINS
+$plugins
+ CHECK connection Alive
   checklines  - Check alive connections
   -d          - deamon mode
 

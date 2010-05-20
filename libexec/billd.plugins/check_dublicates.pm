@@ -1,6 +1,6 @@
-# billd plugion
+# billd plugin
 #
-# Check dublicate logins and hangup it
+# DESCRIBE: Check dublicate logins and hangup it
 #
 #**********************************************************
 
@@ -12,7 +12,7 @@ check_dublicates();
 #**********************************************************
 sub check_dublicates {
 
-print "Check dublicates\n";
+print "Check dublicates\n" if ($debug > 1);
 
 $admin->query($db, "SELECT c.user_name, INET_NTOA(framed_ip_address), c.nas_port_id, 
    if (dv.logins > 0, dv.logins, tp.logins), c.acct_session_id, c.uid,
@@ -32,7 +32,7 @@ $admin->query($db, "SELECT c.user_name, INET_NTOA(framed_ip_address), c.nas_port
 my %logins = ();
 
 foreach my $line ( @{ $admin->{list} } ) {
-	print "$line->[0] $line->[1] $line->[2] $line->[3]\n";	
+	print "$line->[0] $line->[1] $line->[2] $line->[3]\n" if ($debug > 1);	
 
   my %NAS = ( 
    NAS_ID           => $line->[6],
