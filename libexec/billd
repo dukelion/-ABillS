@@ -13,6 +13,7 @@ use vars  qw(%RAD %conf @MODULES $db $DATE $TIME $GZIP $MYSQLDUMP %ADMIN_REPORT 
  $var_dir
  $db
  $base_dir
+ $admin
  );
 
 use strict;
@@ -74,7 +75,7 @@ Admins->import();
 
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 $db = $sql->{db};
-my $admin = Admins->new($db, \%conf);
+$admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 
 my $default_alive_interval = 120;
@@ -111,7 +112,13 @@ elsif (defined($ARGV->{checkmikro})) {	check_mikro();            }
 elsif (defined($ARGV->{speed_expr})) {  speed_expr();             }
 elsif (defined($ARGV->{check_cisco_cid})) { check_cisco_cid() }
 else {
-  check_lines();
+  my $action = $ARGV[0];
+  if (-f "$Bin/billd.plugins/$action".'.pm') {
+  	require "$Bin/billd.plugins/$action".'.pm';
+   }
+  else {
+    check_lines();
+   }
 }
 
 

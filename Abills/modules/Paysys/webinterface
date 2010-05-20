@@ -734,6 +734,7 @@ if ($FORM{TRUE}) {
 my %info = (UID => $LIST_PARAMS{UID});
 $info{AMOUNT}  = sprintf("%.2f", $FORM{SUM});
 
+$conf{PAYSYS_UKRPAYS_URL}='https://ukrpays.com/frontend/frontend.php' if (! $conf{PAYSYS_UKRPAYS_URL});
 
 $html->tpl_show(_include('paysys_ukrpays_add', 'Paysys'), \%info);
 }

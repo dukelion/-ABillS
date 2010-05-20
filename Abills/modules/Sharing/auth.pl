@@ -9,7 +9,7 @@ use vars qw(%conf $DATE $TIME);
 
 #Main debug section
 my $prog = join ' ',$0,@ARGV;
-my $a = `echo "Begin" >> /tmp/sharing_env`;
+#my $a = `echo "Begin" >> /tmp/sharing_env`;
 my $aa = '';
 while(my ($k, $v)=each %ENV) {
   $aa .= "$k - $v\n";
@@ -82,7 +82,7 @@ my $debug = " URI: $ENV{URI}
  ===EXT
  $aa
  === \n";
- $a = `echo "$debug" >> /tmp/sharing_env`;
+# $a = `echo "$debug" >> /tmp/sharing_env`;
 
 
   if (auth()) {
