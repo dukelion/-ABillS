@@ -2,7 +2,6 @@
 <input type='hidden' name='index' value='$index'/>
 <input type='hidden' name='ID' value='%ID%'/>
 <input type='hidden' name='BUILDS' value='$FORM{BUILDS}'/>
-<input type='hidden' name='STREET_ID' value='$FORM{BUILDS}'/>
 <TABLE>
 <TR><TH class='form_title' colspan='2'>$_ADDRESS_BUILD</TH></TR>
 <TR><TD>$_NUM:</TD><TD><input type='text' name='NUMBER' value='%NUMBER%' size=6 /></TD></TR>
