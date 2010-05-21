@@ -6895,6 +6895,7 @@ $users->{STREET_SEL} = $html->form_select("STREET_ID",
 $html->tpl_show(templates('form_build'), $users);
 
 $LIST_PARAMS{DISTRICT_ID}=$FORM{DISTRICT_ID} if ($FORM{DISTRICT_ID});
+$pages_qs .= "&BUILDS=$FORM{BUILDS}" if ($FORM{BUILDS});
 
 my $list = $users->build_list({ %LIST_PARAMS, STREET_ID => $FORM{BUILDS} });
 
