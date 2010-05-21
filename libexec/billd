@@ -14,6 +14,7 @@ use vars  qw(%RAD %conf @MODULES $db $DATE $TIME $GZIP $MYSQLDUMP %ADMIN_REPORT 
  $db
  $base_dir
  $admin
+ $debug
  );
 
 use strict;
@@ -28,7 +29,7 @@ require Abills::Base;
 Abills::Base->import();
 my $begin_time = check_time();
 
-my $debug        = 0;
+$debug        = 0;
 my $debug_output = '';
 my $ARGV         = parse_arguments(\@ARGV);
 my $log_dir      = $var_dir.'/log';
