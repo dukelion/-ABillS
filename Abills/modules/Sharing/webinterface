@@ -1021,16 +1021,13 @@ sub sharing_user_info {
     $Sharing->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+1).'&sid='.$sid, { BUTTON => 1 } );
    }
 
-  
   $Sharing->{STATUS} = $status[$Sharing->{DISABLE}];
   $html->tpl_show(_include('sharing_user_info', 'Sharing'), $Sharing);
-  
-  
+
   #Show rest traffic
 if ($Sharing->prepaid_rest({ UID => $LIST_PARAMS{UID} })) {
 	#Prepaid: period, traffic_type
   my $list = $Sharing->{INFO_LIST};
-
   my $table = $html->table( { caption     => "$_PREPAID",
 	                            width       => '100%',
                               title_plain => ["$_TRAFF $_TYPE", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
@@ -1060,8 +1057,6 @@ if ($Sharing->{EXTRA_TRAFIC}) {
 
   print $table->show();	 
  }
-
-
 }
   
 }

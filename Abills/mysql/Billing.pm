@@ -286,6 +286,29 @@ sub get_traffic {
      $result{TRAFFIC_IN_2}
     )=@{ $self->{list}->[0] };
   }
+
+  $self->query($db, "SELECT sum(acct_output_octets)  / $CONF->{MB_SIZE} + sum(acct_output_gigawords) * 4096,  
+                            sum(acct_input_octets)  / $CONF->{MB_SIZE} + sum(acct_input_gigawords) * 4096, 
+                            sum(acct_output_octets) / $CONF->{MB_SIZE}, 
+                            sum(ex_input_octets) / $CONF->{MB_SIZE},
+                            1
+       FROM dv_calls 
+       WHERE uid $WHERE
+       GROUP BY 5;");
+
+  if ($self->{TOTAL} > 0) {
+    my ($TRAFFIC_OUT, 
+     $TRAFFIC_IN,
+     $TRAFFIC_OUT_2,
+     $TRAFFIC_IN_2
+     )=@{ $self->{list}->[0] };
+     
+     $result{TRAFFIC_OUT}+= $TRAFFIC_OUT;
+     $result{TRAFFIC_IN} += $TRAFFIC_IN;
+     $result{TRAFFIC_OUT_2} += $TRAFFIC_OUT_2;
+     $result{TRAFFIC_IN_2} += $TRAFFIC_IN_2;     
+   }
+
   
   $self->{PERIOD_TRAFFIC}=\%result;
   
@@ -1290,7 +1313,6 @@ sub expression {
 
     my %ex = ();
     my $counters;
-
     while(my($id, $expresion_text) = each %{ $expr } ) {
   	  $expresion_text =~ s/\n|[\r]//g;
   	  my @expresions_array = split(/;/, $expresion_text);

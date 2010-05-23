@@ -32,7 +32,7 @@ $admin->query($db, "SELECT c.user_name, INET_NTOA(framed_ip_address), c.nas_port
 my %logins = ();
 
 foreach my $line ( @{ $admin->{list} } ) {
-	print "$line->[0] $line->[1] $line->[2] $line->[3]\n" if ($debug > 1);	
+  print "$line->[0] $line->[1] $line->[2] $line->[3]\n" if ($debug > 1);	
 
   my %NAS = ( 
    NAS_ID           => $line->[6],
@@ -46,9 +46,9 @@ foreach my $line ( @{ $admin->{list} } ) {
 	$logins{$line->[0]}++;
 
 	if ($logins{$line->[0]} > $line->[3]) {
-		 print "Hangap dublicate\n";
-		 my $ret = hangup(\%NAS, "$line->[3]", "$line->[0]", { ACCT_SESSION_ID      => $line->[4],
-        	                                                 FRAMED_IP_ADDRESS    => $line->[2],
+		 print "Hangap dublicate '$line->[0]'\n";
+		 my $ret = hangup(\%NAS, "$line->[2]", "$line->[0]", { ACCT_SESSION_ID      => $line->[4],
+        	                                                 FRAMED_IP_ADDRESS    => $line->[1],
            	                                               UID                  => $line->[5],
            	                                               debug                => $debug
         	                                                  }); 

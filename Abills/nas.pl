@@ -879,6 +879,7 @@ sub hangup_pppd {
 
    print $remote "$IP\n";
    $result =  <$remote> ;
+   print "Hanguped: $IP\n" if ($debug > 1);
   }
  else {
    $result = system ("/usr/bin/sudo /usr/abills/misc/pppd_kill $IP"); 

@@ -673,12 +673,8 @@ sub prepaid_rest {
  my $login = $self->{INFO_LIST}->[0]->[3];
 
  return 1 if ($attr->{INFO_ONLY});
- 
- 
 
  $self->{EXTRA_TRAFIC} = $self->{INFO_LIST}->[0]->[9];  
- 
-
  $self->{EXTRA_TRAFIC_USE} = $self->{INFO_LIST}->[0]->[10];  
  
  #Check sessions
