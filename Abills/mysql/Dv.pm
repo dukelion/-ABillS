@@ -398,7 +398,7 @@ sub list {
            and u.disable = 0
            and u.bill_id=b.id
            and dv.tp_id = tp.id
-           and dv.disabl = 0
+           and dv.disable = 0
            and b.deposit<tp.uplimit AND tp.uplimit > 0 AND b.deposit+u.credit>0
          GROUP BY u.uid
          ORDER BY u.id;");
