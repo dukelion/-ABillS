@@ -245,6 +245,14 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr(">=$attr->{FROM_DATE}", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') },
    @{ $self->search_expr("<=$attr->{TO_DATE}", 'DATE', 'date_format(p.date, \'%Y-%m-%d\')') };
   }
+ elsif ($attr->{PAYMENT_DAYS}) {
+ 	 my $expr = '=';
+ 	 if ($attr->{PAYMENT_DAYS} =~ s/^(<|>)//) {
+ 	   $expr = $1;
+ 	  }
+ 	 push @WHERE_RULES, "p.date $expr curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY";
+  } 
+
 
  if ($attr->{BILL_ID}) {
  	 push @WHERE_RULES, @{ $self->search_expr("$attr->{BILL_ID}", 'INT', 'p.bill_id') };
@@ -369,6 +377,13 @@ sub reports {
  elsif (defined($attr->{MONTH})) {
  	 push @WHERE_RULES, "date_format(p.date, '%Y-%m')='$attr->{MONTH}'";
    $date = "date_format(p.date, '%Y-%m-%d')";
+  } 
+ elsif ($attr->{PAYMENT_DAYS}) {
+ 	 my $expr = '=';
+ 	 if ($attr->{PAYMENT_DAYS} =~ /(<|>)/) {
+ 	   $expr = $1;
+ 	  }
+ 	 push @WHERE_RULES, "p.date $expr curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY";
   } 
  else {
  	 $date = "date_format(p.date, '%Y-%m')";

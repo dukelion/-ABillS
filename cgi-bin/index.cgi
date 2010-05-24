@@ -344,26 +344,22 @@ sub form_info {
   my ($attr) = @_;
   use POSIX qw(strftime);
   
+  my $Payments = Finance->payments($db, $admin, \%conf);
+  
   if ( $conf{user_credit_change}) {
-    my ($sum, $days, $price, $month_changes) = split(/:/, $conf{user_credit_change}) ;
+    my ($sum, $days, $price, $month_changes, $Payments_expr) = split(/:/, $conf{user_credit_change}) ;
     $month_changes = 0 if (!$month_changes);
-
-
-
     my $credit_date = strftime "%Y-%m-%d", localtime(time + int($days) * 86400);
 
-      if (in_array('Dv', \@MODULES) ) {
+    if (in_array('Dv', \@MODULES) ) {
         require "Abills/modules/Dv/webinterface";
         my $Dv       = Dv->new($db, $admin, \%conf);
-
         $Dv->info($user->{UID});
         $sum = $Dv->{TP_CREDIT} if ($Dv->{TP_CREDIT} > 0);
-       }
+     }
 
-    if ($month_changes) {
-      
+    if ($month_changes) {      
       my ($y, $m, $d) = split(/\-/, $DATE);
-      
       $admin->action_list({ UID       => $user->{UID},
       	                    TYPE      => 5,
       	                    FROM_DATE => "$y-$m-01",
@@ -375,7 +371,35 @@ sub form_info {
         $sum = 0;
        }
      }
-
+    #PERIOD=days;MAX_CREDIT_SUM=sum;MIN_PAYMENT_SUM=sum;
+    if ($Payments_expr) {
+    	my $params = (PERIOD          => 0,
+    	              MAX_CREDIT_SUM  => 1000,
+    	              MIN_PAYMENT_SUM => 1,
+    	              PERCENT         => 100
+    	              );
+    	my @params_arr = split(/;/, $Payments_expr);
+    	
+    	foreach my $line (@params_arr) {
+    		my ($k, $v)=split(/=/, $line);
+    		$params{$k}=$v;
+    	 }
+      
+      $Payments->list({ UID          => $user->{UID}, 
+      	                PAYMENT_DAYS => ">$params{PERIOD}",
+      	                SUM          => ">$params{MIN_PAYMENT_SUM}"
+      	                });
+    	
+    	if ($Payments->{TOTAL} > 0) {
+    	  $sum = $Payments->{SUM} / 100 *  $params{PERCENT};
+    	  if ($sum > $params{MAX_CREDIT_SUM}) {
+    		  $sum=$params{MAX_CREDIT_SUM};
+    	   }
+    	 }
+    	else {
+    		$sum = 0;
+    	 }
+     }
 
 
     
@@ -427,11 +451,11 @@ sub form_info {
   
   $user->pi();
   
-  my $payments = Finance->payments($db, $admin, \%conf);
+  
   $LIST_PARAMS{PAGE_ROWS}=1;
   $LIST_PARAMS{DESC}='desc';
   $LIST_PARAMS{SORT}=1;
-  my $list = $payments->list( { %LIST_PARAMS } );
+  my $list = $Payments->list( { %LIST_PARAMS } );
   
   $user->{PAYMENT_DATE}=$list->[0]->[2];
   $user->{PAYMENT_SUM}=$list->[0]->[3];
@@ -1002,20 +1026,20 @@ sub form_payments {
 @PAYMENT_METHODS = ("$_CASH", "$_BANK", "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION", "$_COMPENSATION", "$_MONEY_TRANSFER");
 push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
-my $payments = Finance->payments($db, $admin, \%conf);
+my $Payments = Finance->payments($db, $admin, \%conf);
 
 if (! $FORM{sort}) {
   $LIST_PARAMS{sort}=1;
   $LIST_PARAMS{DESC}='DESC';
 }
-my $list  = $payments->list( { %LIST_PARAMS } );
+my $list  = $Payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,
                             title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_DEPOSIT], # $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left'],
                             qs         => $pages_qs,
-                            pages      => $payments->{TOTAL},
+                            pages      => $Payments->{TOTAL},
                             ID         => 'PAYMENTS'
                            } );
 
@@ -1036,8 +1060,8 @@ print $table->show();
 
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right', 'right', 'right'],
-                        rows       => [ [ "$_TOTAL:", $html->b($payments->{TOTAL}), 
-                                          "$_SUM:", $html->b($payments->{SUM}) 
+                        rows       => [ [ "$_TOTAL:", $html->b($Payments->{TOTAL}), 
+                                          "$_SUM:", $html->b($Payments->{SUM}) 
                                        ] ],
                         rowcolor   => $_COLORS[2]
                       });
