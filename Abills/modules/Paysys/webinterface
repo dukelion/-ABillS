@@ -397,7 +397,7 @@ sub paysys_import_parse {
 sub paysys_payment {
   $FORM{SUM}=sprintf("%.2f", $FORM{SUM} || 0);
   
-  if ($FORM{pre} && $FORM{SUM} <= 0) {
+  if ($FORM{pre} && $FORM{SUM} <= 0 && $FORM{PAYMENT_SYSTEM} != 43) {
     $html->message('err', $_ERROR, "$ERR_WRONG_SUM");  	
   	goto PRE_LABEL;
    }
