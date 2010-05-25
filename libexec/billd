@@ -628,7 +628,7 @@ else {
 	foreach my $line (@rules) {
      #Parce ipfw pipe rules
      if ($line =~ /^(\d+):\s+(\S+)\s+(\w+)/) {
-       my $num = $1;
+       my $num = int($1);
        my $speed = $2 * $speeds_rotations{$3};
      	 $pipe_rules{$num}=$speed;
      	}
@@ -812,8 +812,8 @@ else {
 
 #Table shaper section START
 if (! $conf{ng_car}) {
- 	        	my $pipe_rule_in  = sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 10);
-            my $pipe_rule_out = sprintf("%.5d", $START_FW[$traf_type] + $tp_id * 10 + 1);
+ 	        	my $pipe_rule_in  = int($START_FW[$traf_type] + $tp_id * 10);
+            my $pipe_rule_out = int($START_FW[$traf_type] + $tp_id * 10 + 1);
 	      	  my $dest_ip = ($traf_type == 0) ? 'any' : "table\\($nets_table_number, $traf_type\\)";
 	      	  
  	      	  if ($speed_in > 0) {
