@@ -2757,6 +2757,7 @@ if ($FORM{AID}) {
    	return 0;
    }
   elsif($FORM{change}) {
+  	$admin_form->{MAIN_SESSION_IP}=$admin->{SESSION_IP};
     $admin_form->change({	%FORM  });
     if (! $admin_form->{errno}) {
       $html->message('info', $_CHANGED, "$_CHANGED ");	

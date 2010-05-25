@@ -445,7 +445,7 @@ else {
    }
 
   $CHANGES_LOG = $attr->{EXT_CHANGE_INFO}.' '.$CHANGES_LOG if ($attr->{EXT_CHANGE_INFO});
-  if (defined($DATA{UID}) && $DATA{UID} > 0 && defined($admin)) { 
+  if (defined($DATA{UID}) && $DATA{UID} > 0 && defined($admin)) {
     if ($self->{'DISABLE'}) {
       $admin->action_add($DATA{UID}, "", { TYPE => 9, ACTION_COMMENTS => $DATA{ACTION_COMMENTS} });
      }
@@ -471,7 +471,15 @@ else {
      }
    }
   elsif(defined($admin)) {
-    $admin->system_action_add("$CHANGES_LOG", { TYPE => 2 });
+    if ($self->{'DISABLE'}) {
+      $admin->system_action_add("$CHANGES_LOG", { TYPE => 9 });
+     }
+    elsif ($self->{'ENABLE'}) {
+      $admin->system_action_add("$CHANGES_LOG", { TYPE => 8 });
+     }
+    else {
+      $admin->system_action_add("$CHANGES_LOG", { TYPE => 2 });
+     }
    }
   return $self->{result};
 }

@@ -4428,8 +4428,6 @@ if ($d == 1) {
 #**********************************************************
 sub dv_users_warning_messages {
  my ($attr) = @_;
- 
-
 
  $ADMIN_REPORT{USERS_WARNINGS} = sprintf("%-14s| %4s|%-20s| %9s| %8s|\n", $_LOGIN, 'TP', $_TARIF_PLAN, $_DEPOSIT, $_CREDIT).
    "---------------------------------------------------------------\n";

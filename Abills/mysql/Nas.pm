@@ -199,7 +199,7 @@ sub change {
   ); 
 
   $attr->{CHANGED}=1;
-
+  $admin->{MODULE}='';
 
   $self->changes($admin, { CHANGE_PARAM => 'NAS_ID',
 		                TABLE           => 'nas',
@@ -210,8 +210,7 @@ sub change {
 		              } );
 
   $self->info({ NAS_ID => $self->{NAS_ID} });
-  
-  
+
   return $self;
 }
 

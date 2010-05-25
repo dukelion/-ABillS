@@ -870,9 +870,12 @@ sub authentication {
 
     $RAD->{USER_NAME}=$login;
    }
+  elsif ($RAD->{USER_NAME} =~ / /) {
+    $RAD_PAIRS{'Reply-Message'}="Login Not Exist or Expire. Space in login '$RAD->{USER_NAME}'";
+    return 1, \%RAD_PAIRS;
+   }
 
   my $WHERE  = '';
-
   if ($NAS->{DOMAIN_ID}) {
   	$WHERE = "AND u.domain_id='$NAS->{DOMAIN_ID}'";
    }
