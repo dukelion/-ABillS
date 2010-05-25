@@ -207,7 +207,7 @@ else {
 
   my $user = $Dv->info(0, { LOGIN => $USER });	  
   if($Dv->{errno}) {
-     print "Error: User not exist ([$Dv->{errno}] $Dv->{errstr})\n";
+     print "Error: User not exist '$USER' ([$Dv->{errno}] $Dv->{errstr})\n";
      my $a = `echo "$DATE $TIME / $USER - $Dv->{errno}" >> /tmp/linkupdown`;    
      exit 1;
    }

@@ -627,10 +627,11 @@ else {
 	#Parce all ipfw rules
 	foreach my $line (@rules) {
      #Parce ipfw pipe rules
-     if ($line =~ /^(\d+):\s+(\S+) (\w+)/) {
+     if ($line =~ /^(\d+):\s+(\S+)\s+(\w+)/) {
+       my $num = $1;
        my $speed = $2 * $speeds_rotations{$3};
-     	 	 $pipe_rules{$1}=$speed;
-     	  }
+     	 $pipe_rules{$num}=$speed;
+     	}
 	 }
 
   #debug 
