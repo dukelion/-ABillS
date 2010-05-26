@@ -2081,7 +2081,7 @@ sub form_bills {
 
   foreach my $line (@$list) {
     if($line->[3] ne '') {
-      $BILLS_HASH{$line->[0]}="$line->[0] : $html->color_mark($line->[3], $_COLORS[6]) :$line->[1]";
+      $BILLS_HASH{$line->[0]}="$line->[0] : $line->[3] :$line->[1]";
      }
     elsif($line->[2] ne '') {
     	$BILLS_HASH{$line->[0]}=">> $line->[0] : Personal :$line->[1]";

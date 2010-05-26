@@ -237,7 +237,7 @@ elsif ($acct_status_type == 2) {
         #DEbug only end
        }
 
-      return $self;      
+#      return $self;      
      }     
    }
   else {
@@ -542,7 +542,7 @@ sub rt_billing {
   elsif ($self->{UID} <= 0) {
     $self->{LOG_DEBUG} =  "ACCT [$RAD->{USER_NAME}] small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE}), $self->{UID}";
     $self->{errno} = 1;
-    print "ACCT [$RAD->{USER_NAME}] /$RAD->{ACCT_STATUS_TYPE}/ small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE}), ! $self->{UID}\n";
+    #print "ACCT [$RAD->{USER_NAME}] /$RAD->{ACCT_STATUS_TYPE}/ small session ($RAD->{ACCT_SESSION_TIME}, $RAD->{INBYTE}, $RAD->{OUTBYTE}), ! $self->{UID}\n";
    }
   else {
     if ($self->{SUM} > 0) {
