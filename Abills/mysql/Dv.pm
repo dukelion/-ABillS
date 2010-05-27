@@ -385,7 +385,6 @@ sub list {
  @WHERE_RULES = ("u.uid = dv.uid");
  
  if ($attr->{USERS_WARNINGS}) {
- 	 $self->{debug}=1;
    $self->query($db, "SELECT u.id, pi.email, dv.tp_id, u.credit, b.deposit, tp.name, tp.uplimit, pi.phone,
       pi.fio
          FROM (users u,
