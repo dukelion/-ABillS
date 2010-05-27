@@ -321,7 +321,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 #    print "RT: $remaining_time\n"  if ($debug == 1);
     my %TT_IDS = %$ret_attr;
 
-
     if (keys %TT_IDS > 0) {
       require Tariffs;
       Tariffs->import();
@@ -457,7 +456,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
     #FreeBSD ipfw pipe shaper
     else {
-      my $dest_ip = 'any';
+      #my $dest_ip = 'any';
       # Networks tables
       if ($#nets_arr > -1) {
       	#print "Error: Traff_type: $traf_type User: $USER \n" if (! $traf_type || ! $nets_id{$traf_type});
@@ -468,7 +467,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
         	  push @FW_ACTIONS, "$IPFW table $table_number add $line $traf_type";
            }
          }
-        $dest_ip = "table\\($table_number\\)";
+       # $dest_ip = "table\\($table_number\\)";
        }
 
      my $table_debug = 1;

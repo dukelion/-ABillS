@@ -549,7 +549,7 @@ sub parse_fw {
 #**********************************************************
 # Ceck current speed for exppp
 #**********************************************************
-sub check_speed {		
+sub check_speed {
 	
   if (! $ARGV->{NAS_IDS}) {
     print "NAS not specify. Example:\n";
@@ -740,7 +740,8 @@ else {
 #GET TP speed
   my %tp_exprasions = ();
   my %static_speeds = ();
-
+  my %nets_hash     = ();
+ 
   foreach my $line ( @$tp_list ) {
   	my $tp_id = $line->[18];
   	my $tp    = $line->[0];
@@ -770,12 +771,13 @@ else {
       while(my($k, $interval_id)=each( %TT_IDS)) {
  	      print " INTERVAL: $k, $interval_id\n" if ($debug > 1);
         if (($k eq 'TT' || $k eq 'FIRST_INTERVAL') && ! $speeds{$tp}{IN}) {
- 	        my $list = $tariffs->tt_list({ TI_ID => $interval_id });
+ 	        my $list = $tariffs->tt_list({ TI_ID => $interval_id, SHOW_NETS => 1 });
  	        foreach my $line (@$list)  {
  	      	  my $traf_type  = $line->[0];
  	      	  my $speed_in   = $line->[4];
  	      	  my $speed_out  = $line->[5];
             my $expresion  = $line->[8];
+            $nets_hash{$line->[0]} = $line->[10];
 
             if ($expresion) {
             	my %ex = ();
@@ -787,7 +789,6 @@ else {
   	            foreach my $expresion (@expresions_array) {
   	              print "ID: $id EXPR: $expresion\n" if ($debug > 2);
   	              my($left, $right)=split(/=/, $expresion);
-
 
             	    if($left =~ /([A-Z0-9_]+)(<|>)([A-Z0-9_0-9\.]+)/) {
     	              $ex{ARGUMENT}  = $1;
@@ -855,10 +856,31 @@ if (! $conf{ng_car}) {
     }
 #Table shaper section END
    	      }
-         }
+        }
       }
     }
    }
+
+
+#Make traffic class table
+if ($ARGV->{RECONFIGURE}) {
+   push @FW_ACTIONS, "$IPFW -q table $nets_table_number flush";
+   while(my($traf_type, $nets) = each %nets_hash ){
+     if (! $nets) {
+     	  next;
+      }
+     $nets =~ s/[\r]?\n//g;
+     $nets =~ s/;/,/g;
+     my @nets_arr = split(/;|,/, $nets);
+     if ($#nets_arr > -1) {
+     	 #print "Error: Traff_type: $traf_type User: $USER \n" if (! $traf_type || ! $nets_id{$traf_type});
+       foreach my $line (@nets_arr) {
+      	 push @FW_ACTIONS, "$IPFW -q table $nets_table_number add $line $traf_type";
+        }
+      }
+   }
+}
+
 
   if($ARGV->{SHOW_SPEED}) {
   	 return 0;
@@ -959,8 +981,6 @@ if ($conf{ng_car}) {
   	 	       	  my $info = "  Class: $class_id ng_car_speed: $LOGINS_SPEEDS{$user}{$class_id}{IN}/".
   	 	       	  "$LOGINS_SPEEDS{$user}{$class_id}{OUT} Speed: $tp_speed_in/$tp_speed_out\n";
 
-                
-         
   	 	       	  if ($LOGINS_SPEEDS{$user}{$class_id}{IN} != $tp_speed_in) {
                   $debug_outputs .= check_speed_change($user, $IFACE, $IP, { 
                   	 NAS_TYPE => $NAS_TYPE,
