@@ -653,6 +653,10 @@ if($FORM{NAS_ID}) {
   	return 0;
    }
   elsif($FORM{change}) {
+  	if ($FORM{NAS_TYPE} eq 'mikrotik') {
+  		$FORM{NAS_INDENTIFIER} = $admin->{DOMAIN_ID};
+  	 }
+
     $nas->change({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} || 0 });  
     if (! $nas->{errno}) {
     	 multidoms_reseller_nas_reconfig();
@@ -670,6 +674,10 @@ elsif ($FORM{add}) {
 #  else {
     $FORM{NAS_MNG_PASSWORD}='secrete' if (! $FORM{NAS_MNG_PASSWORD});
   	$FORM{NAS_NAME}="NAS_$FORM{NAS_IP}" if (! $FORM{NAS_NAME});
+  	
+  	if ($FORM{NAS_TYPE} eq 'mikrotik') {
+  		$FORM{NAS_INDENTIFIER} = $admin->{DOMAIN_ID};
+  	 }
   	
     #$FORM{NAS_RAD_PAIRS}=",WISPr-Redirection-URL=\"\"" if ($FORM{NAS_TYPE}='mikrotik');
   	
