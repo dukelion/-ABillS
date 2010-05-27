@@ -1048,7 +1048,7 @@ foreach my $line (@$list) {
          ($INFO{OPTION82_NAS_NAME}, $INFO{OPTION82_NAS_MAC})=split(/,/, $NAS_MACS{$line->[14]}, 2);
     	   $INFO{OPTION82_NAS_MAC} =~ s/^00/0/;
     	   $INFO{OPTION82_NAS_MAC} =~ s/:0/:/g;
-    	   $INFO{OPTION82_NAS_MAC} =~ lc($INFO{OPTION82_NAS_MAC});
+    	   $INFO{OPTION82_NAS_MAC} = lc($INFO{OPTION82_NAS_MAC});
 
          push @OPTION82_MATCHES, "binary-to-ascii(16, 8, \":\", substring(option agent.remote-id, 2, 6)) = \"$INFO{OPTION82_NAS_MAC}\"";
     	 }
