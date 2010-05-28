@@ -5,7 +5,7 @@
 #traffic Class numbers
 
 CLASSES_NUMS='2 3'
-VERSION=2.9
+VERSION=3.0
 
 #Enable NG shapper
 NG_SHAPPER=1
@@ -17,6 +17,8 @@ NAT_IF="";
 #Negative deposit forward (default: )
 NEG_DEPOSIT_FWD=
 FWD_WEB_SERVER_IP=127.0.0.1;
+#Your user portal IP (Default: me)
+USER_PORTLA_IP=
 
 IPFW=/sbin/ipfw
 EXTERNAL_INTERFACE=`/sbin/route get 91.203.4.17 | grep interface: | awk '{ print $2 }'`
@@ -172,20 +174,26 @@ if [ w${NEG_DEPOSIT_FWD} != w ]; then
   if [ w${WEB_SERVER_IP} = w ]; then
     FWD_WEB_SERVER_IP=127.0.0.1;
   fi;
+  
+  if [ w${DNS_IP} = w ]; then
+    DNS_IP=`cat /etc/resolv.conf | grep nameserver | awk '{ print $2 }' | head -1`
+  fi;
 
-INTERNAL_IF="ng*";
+  if [ w${USER_PORTLA_IP} = w ]; then
+    USER_PORTLA_IP=me
+  fi;
+
 FWD_RULE=10014;
-
 
 #Forwarding start
 if [ w$1 = wstart ]; then
   echo "Negative Deposit Forward Section - start"; 
-  ${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},80 tcp from table\(32\) to any dst-port 80,443 via ${INTERNAL_IF}
+  ${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},80 tcp from table\(32\) to any dst-port 80,443 via ${INTERNAL_INTERFACE}
   #If use proxy
-  #${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_IF}
-  ${IPFW} add `expr ${FWD_RULE} + 10` allow ip from table\(32\) to ${DNS_IP} dst-port 53 via ${INTERNAL_IF}
-  ${IPFW} add `expr ${FWD_RULE} + 20` allow tcp from table\(32\) to ${MY_IP} dst-port 9443 via ${INTERNAL_IF}
-  ${IPFW} add `expr ${FWD_RULE} + 30` deny ip from table\(32\) to any via ${INTERNAL_IF}
+  #${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_INTERFACE}
+  ${IPFW} add `expr ${FWD_RULE} + 10` allow ip from table\(32\) to ${DNS_IP} dst-port 53 via ${INTERNAL_INTERFACE}
+  ${IPFW} add `expr ${FWD_RULE} + 20` allow tcp from table\(32\) to ${USER_PORTLA_IP} dst-port 9443 via ${INTERNAL_INTERFACE}
+  ${IPFW} add `expr ${FWD_RULE} + 30` deny ip from table\(32\) to any via ${INTERNAL_INTERFACE}
 else if [ w$1 = wstop ]; then
   echo "Negative Deposit Forward Section - stop:"; 
   ${IPFW} delete ${FWD_RULE} ` expr ${FWD_RULE} + 10 ` ` expr ${FWD_RULE} + 20 ` ` expr ${FWD_RULE} + 30 `

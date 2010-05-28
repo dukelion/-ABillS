@@ -103,11 +103,25 @@ sub get_nas_info {
  $nas->info({ %NAS_PARAMS });
 
 if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
-  access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'". 
-    (($RAD->{NAS_IDENTIFIER}) ? " Nas-Identifier: $RAD->{NAS_IDENTIFIER}" : ''  )
-    .' '. (( $RAD->{NAS_IP_ADDRESS} eq '0.0.0.0' ) ? $RAD->{CALLED_STATION_ID} : ''), 0);
-  $RAD_REPLY{'Reply-Message'}="Unknow server '$RAD->{NAS_IP_ADDRESS}'";
-  return 1;
+	if ($RAD->{MIKROTIK_HOST_IP}) {
+		
+		$nas->info({ NAS_ID => $RAD->{NAS_IDENTIFIER} });
+		if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
+      access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'". 
+        (($RAD->{NAS_IDENTIFIER}) ? " Nas-Identifier: $RAD->{NAS_IDENTIFIER}" : ''  )
+       .' '. (( $RAD->{NAS_IP_ADDRESS} eq '0.0.0.0' ) ? $RAD->{CALLED_STATION_ID} : ''), 0);
+      $RAD_REPLY{'Reply-Message'}="Unknow server '$RAD->{NAS_IP_ADDRESS}'";
+      return 1;
+		 }
+	  $nas->{NAS_IP}=$RAD->{NAS_IP_ADDRESS};
+	 }
+  else {
+    access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'". 
+      (($RAD->{NAS_IDENTIFIER}) ? " Nas-Identifier: $RAD->{NAS_IDENTIFIER}" : ''  )
+     .' '. (( $RAD->{NAS_IP_ADDRESS} eq '0.0.0.0' ) ? $RAD->{CALLED_STATION_ID} : ''), 0);
+    $RAD_REPLY{'Reply-Message'}="Unknow server '$RAD->{NAS_IP_ADDRESS}'";
+    return 1;
+   }
  }
 elsif(! defined($RAD->{USER_NAME}) || $RAD->{USER_NAME} eq '') {
   return 1;
