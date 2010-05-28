@@ -718,7 +718,7 @@ if ($nas->{errno}) {
 
 my $table = $html->table( { width      => '100%',
                             caption    => "$_NAS",
-                            title      => ["-", "$_NAME", "NAS-Identifier", "IP", 
+                            title      => ["ID", "$_NAME", "NAS-Identifier", "IP", 
                              "$_TYPE", "$_GROUP", 
                              "$_STATUS", '-', '-' ],
                             cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 
@@ -732,7 +732,7 @@ my $list = $nas->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?", BUTTON => 1 }); 
 
-  $table->addrow('', 
+  $table->addrow($line->[1], 
     $line->[1], 
     $line->[2], 
     $line->[3], $line->[4], 
