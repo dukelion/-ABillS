@@ -112,7 +112,7 @@ Billing->import();
 my $Billing   = Billing->new($db, \%conf);
 my $fw_step   = 1000;
 my $IPFW      = '/sbin/ipfw -q';
-#my @START_FW = (3000, 2000, 1000);
+my @START_FW = (3000, 2000, 1000);
 
 # Arguments
 my ($ACTION, $INTERFACE, $USER, $HISADDR, $inum);
@@ -391,10 +391,9 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 #    if (! $START_FW[$traf_type]) {
 #       $START_FW[$traf_type]=$START_FW[0]+$traf_type*$fw_step;
 #     }
-
-#    if ($inum ne '-' ) {
-#      $fw_num_in    = $START_FW[$traf_type] + $inum * 2;
-#      $fw_num_out   = $START_FW[$traf_type] + $inum * 2 + 1;
+    if ($inum ne '-' ) {
+      $fw_num_in    = $START_FW[$traf_type] + $inum * 2;
+      $fw_num_out   = $START_FW[$traf_type] + $inum * 2 + 1;
 #
 #      if ($user->{JOIN_SERVICE}) {
 #        $pipe_num_in = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $user->{JOIN_SERVICE} * 2 + $traf_type * $fw_step;
@@ -404,7 +403,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 #        $pipe_num_in  = $START_FW[$traf_type] + $inum * 2 ;
 #        $pipe_num_out = $START_FW[$traf_type] + $inum * 2 + 1;
 #       }
-#     }
+     }
 
     my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN}  : 0;
     my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} : 0;
