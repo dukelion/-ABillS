@@ -30,7 +30,6 @@ sub dv_chg_tp {
  my ($attr) = @_;
 
  my $user;
-
  if(defined($attr->{USER})) {
    $user = $attr->{USER};
    $Dv = $Dv->info($user->{UID});
@@ -3798,7 +3797,6 @@ sub dv_daily_fees {
         if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
           if($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $TP_INFO{POSTPAID_DAILY} == 1 ) {
-             #print "  UID: $u->[0] / $line->[5] / DEPOSIT: $u->[2] / $u->[3] / BILL_ID: $u->[12]\n"; 	
              my $sum = $line->[5];
              # IF TP have PARIODIC PAYMENTS USER reduction
              if ($TP_INFO{REDUCTION} == 1 && $user{REDUCTION} > 0) {
@@ -3813,7 +3811,6 @@ sub dv_daily_fees {
                DESCRIBE => "$_DAY_FEE ($TP_ID)",
                DATE     => "$ADMIN_REPORT{DATE} $TIME",
                METHOD   => 1 );
-
 
              if ($debug > 4) {
                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
@@ -4000,7 +3997,6 @@ sub dv_monthly_fees {
  my $users = Users->new($db, $admin, \%conf); 
  my $list = $tariffs->list({ %LIST_PARAMS });
 
-
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
  my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
@@ -4051,7 +4047,7 @@ sub dv_monthly_fees {
        	 $activate_date = "='$activate_date'";
         }
        
-       my $report_list = $sessions->reports({ 
+       my $report_list = $sessions->reports({
                      INTERVAL   => $interval,
                      TP_ID      => $TP_ID,
 	   	              });
@@ -4088,7 +4084,8 @@ sub dv_monthly_fees {
             ACTIVATE   => $u->[10 + $extfield_count],
             DEPOSIT    => $u->[2],
             CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14],
-            COMPANY_ID => $u->[7 + $extfield_count]
+            COMPANY_ID => $u->[7 + $extfield_count],
+            DV_STATUS  => $u->[5]
            );
 
        $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: ". ($u->[9 +$extfield_count ]  ) ." Fees: $line->[6] REDUCTION: $user{REDUCTION} DEPOSIT: $u->[2] CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE} TP: $u->[11]\n" if ($debug > 3); 	
@@ -4103,7 +4100,6 @@ sub dv_monthly_fees {
          #***************************************************************
          #Min use Makes only 1 of month
          if ($min_use_sum > 0) {
-           
            next if ($d != $START_PERIOD_DAY && ! $conf{DV_MIN_USER_FULLPERIOD});
            #Check activation dae
            my $min_use = $min_use_sum;
@@ -4162,10 +4158,8 @@ sub dv_monthly_fees {
               }
              $sum = $sum * (100 - $user{REDUCTION}) / 100;
             }
-           
-           
+
            if($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $TP_INFO{POSTPAID_MONTHLY} == 1) {
-              
               if ($d == $START_PERIOD_DAY) {
                 if ($debug > 4) {
                   $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
@@ -4203,28 +4197,25 @@ sub dv_monthly_fees {
               }
 
              #take fees in first day of month
-              $FEES_PARAMS{DESCRIBE}="$_MONTH_FEE ($TP_ID)";  
-              $FEES_PARAMS{DESCRIBE} .= " - $_ABON_DISTRIBUTION" if ($abon_distrib);
+             $FEES_PARAMS{DESCRIBE}="$_MONTH_FEE ($TP_ID)";  
+             $FEES_PARAMS{DESCRIBE} .= " - $_ABON_DISTRIBUTION" if ($abon_distrib);
+             # If activation set to monthly fees taken throught 30 days
+             if($user{ACTIVATE} ne '0000-00-00') {
+               #Block small deposit
+               if ($small_deposit_block && $month_fee > $user{DEPOSIT}+$user{CREDIT}) {
+     	           if ($small_deposit_block == -1) {
+     	             $Dv->change({ UID    => $user{UID}, 
+            	                   STATUS => 5 });
+    	            }
+                 else {
+     	             $Dv->change({ UID    => $user{UID}, 
+            	                   TP_ID  => $small_deposit_block });
+            	    }
 
-              # If activation set to monthly fees taken throught 30 days
-              if($user{ACTIVATE} ne '0000-00-00') {
-              	
-              	             #Block small deposit
-             if ($small_deposit_block && $month_fee > $user{DEPOSIT}+$user{CREDIT}) {
-     	         if ($small_deposit_block == -1) {
-     	           $Dv->change({ UID    => $user{UID}, 
-            	                 STATUS => 5 });
-    	           }
-               else {
-     	           $Dv->change({ UID    => $user{UID}, 
-            	                 TP_ID  => $small_deposit_block });
-            	  }
+                 $debug_output .= " SMALL_DEPOSIT_BLOCK" if ($debug > 3);
+                 next;
+                }
 
-               $debug_output .= " SMALL_DEPOSIT_BLOCK" if ($debug > 3);
-               next;
-              }
-
-              	
    	            my ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
                 $activate_m--;
                 my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
@@ -4257,21 +4248,19 @@ sub dv_monthly_fees {
                  #print "   $user{LOGIN} $line->[6] $user{DEPOSIT} $USER{CREDIT} $u->[10] - $u->[11]\n"; 	
                }
               elsif (($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib) {
-
-             #Block small deposit
-             if ($small_deposit_block && $month_fee > $user{DEPOSIT}+$user{CREDIT}) {
-     	         if ($small_deposit_block == -1) {
-     	           $Dv->change({ UID    => $user{UID}, 
+                #Block small deposit
+                if ($small_deposit_block && $month_fee > $user{DEPOSIT}+$user{CREDIT}) {
+     	            if ($small_deposit_block == -1) {
+     	              $Dv->change({ UID    => $user{UID}, 
             	                 STATUS => 5 });
-    	           }
-               else {
-     	           $Dv->change({ UID    => $user{UID}, 
+    	             }
+                  else {
+     	             $Dv->change({ UID    => $user{UID}, 
             	                 TP_ID  => $small_deposit_block });
-            	  }
-
-               $debug_output .= " SMALL_DEPOSIT_BLOCK" if ($debug > 3);
-               next;
-              }
+            	     }
+                  $debug_output .= " SMALL_DEPOSIT_BLOCK" if ($debug > 3);
+                  next;
+                 }
 
                 if ($debug > 4) {
                   $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
@@ -4281,6 +4270,21 @@ sub dv_monthly_fees {
                   $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
                  }
                }
+             }
+            else {
+               #Block small deposit
+               if ($user{DV_STATUS}==0 && $small_deposit_block) {
+    	            if ($small_deposit_block == -1) {
+    	              $Dv->change({ UID    => $user{UID}, 
+                	                STATUS => 5 });
+    	             }
+                  else {
+     	             $Dv->change({ UID    => $user{UID}, 
+            	                 TP_ID  => $small_deposit_block });
+            	     }
+                  $debug_output .= " SMALL_DEPOSIT_BLOCK" if ($debug > 3);
+                  next;
+                 }
              }
           }
         }
@@ -5325,7 +5329,6 @@ sub dv_get_month_fee {
     my $date  = ($user->{ACTIVATE} ne '0000-00-00') ? $user->{ACTIVATE} : $DATE;
     my $time  = ($user->{ACTIVATE} ne '0000-00-00') ? '00:00:00' : $TIME;
 
-
     if (! $Dv->{OLD_STATUS} || $Dv->{OLD_STATUS} == 2) {
       $fees->take($user, $Dv->{TP_INFO}->{ACTIV_PRICE}, 
                               { DESCRIBE  => "$_ACTIVATE $_TARIF_PLAN", 
@@ -5364,8 +5367,6 @@ sub dv_get_month_fee {
 
           $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
           $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
-          
-          #my $ddd  = $days_in_month * ($days_in_month - $d + $conf{START_PERIOD_DAY});
          }
        
         return 0 if ($sum == 0);

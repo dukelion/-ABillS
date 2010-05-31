@@ -452,7 +452,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
       }
    }
 
-
     #FreeBSD ipfw pipe shaper
     else {
       #my $dest_ip = 'any';
@@ -684,10 +683,8 @@ foreach my $id (keys %{ $attr->{SPEEDS} }) {
 sub mikrotik_ext {
 	my ($attr)=@_;
 
-
 	my $speeds    = $attr->{SPEEDS};
 	my $nets      = $attr->{NETS};
-
   my $proto     = $argv->{PROTO} || 'pptp';
   my $nas_host  = $argv->{NAS_HOST} || '';
   my $nas_admin = $argv->{NAS_ADMIN}|| 'admin';
@@ -702,15 +699,11 @@ sub mikrotik_ext {
   my $protoup = (grep /pppoe/, @check_int) ? "pppoe" : "pptp";
   $INTERFACE="<$protoup-$USER>";
 
-
 	my @commands  = ();
-
   $INTERFACE="<$proto-$USER>";
 
   if($ACTION eq 'down') {
-
     foreach my $traf_type (sort keys %$speeds) {
-        
         my @nets_arr = ();
         if ($nets->{$traf_type}) {
             $nets->{$traf_type} =~ s/[\r]?\n//g;
@@ -805,34 +798,32 @@ sub mikrotik_ext {
 	 }
 
   print $result;
-
 }
 
 
 #*****************************************************
 # Parse fw params
 #*****************************************************
-sub parse_fw {
-  my ($part) = @_;
-  my $result = '';
-  my %params = ();
-
-  $part =~ s/\"|//g;
-  if ($part =~ / (\d+)/) {
-    $params{item} = $1;
-   }
-
-  while($part =~ / ([a-zA-Z\-]+)=([a-zA-Z\-\.0-9\/<>_]+)/g) {
-    my $key = $1;
-    my $val = $2;
-    $result .= "$key // $val\n";
-    $params{"$key"}=$val;
-   }
-
-  print "\n---\n". $result if ($debug > 0);
-
-  return \%params;
-}
+#sub parse_fw {
+#  my ($part) = @_;
+#  my $result = '';
+#  my %params = ();
+#
+#  $part =~ s/\"|//g;
+#  if ($part =~ / (\d+)/) {
+#    $params{item} = $1;
+#   }
+#
+#  while($part =~ / ([a-zA-Z\-]+)=([a-zA-Z\-\.0-9\/<>_]+)/g) {
+#    my $key = $1;
+#    my $val = $2;
+#    $result .= "$key // $val\n";
+#    $params{"$key"}=$val;
+#   }
+#
+#  print "\n---\n". $result if ($debug > 0);
+#  return \%params;
+#}
 
 
 1
