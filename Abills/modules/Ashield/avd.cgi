@@ -1,6 +1,5 @@
 #!/usr/bin/perl -w
-# Paysys processing system
-# Check payments incomming request
+# AVD processing system
 #
 
 use vars qw($begin_time %FORM %LANG 
@@ -10,8 +9,6 @@ $CHARSET
 $admin
 $users 
 $payments
-$Paysys
-%PAYSYS_PAYMENTS_METHODS
 );
 
 BEGIN {
@@ -21,7 +18,6 @@ BEGIN {
  unshift(@INC, $libpath ."Abills/$sql_type/");
  unshift(@INC, $libpath);
  unshift(@INC, $libpath . 'libexec/');
- unshift(@INC, $libpath . 'Abills/modules/Paysys');
 
  eval { require Time::HiRes; };
  if (! $@) {
@@ -80,7 +76,7 @@ if ($conf{PAYSYS_IPS}) {
   if (! $allow) {
   	print "Content-Type: text/html\n\n";
   	print "Error: IP '$ENV{REMOTE_ADDR}' DENY by System";
-    sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "ABillS - Paysys", 
+    sendmail("$conf{ADMIN_MAIL}", "$conf{ADMIN_MAIL}", "ABillS - Ashield", 
               "IP '$ENV{REMOTE_ADDR}' DENY by System", "$conf{MAIL_CHARSET}", "2 (High)");
   	exit;
    } 
@@ -155,6 +151,11 @@ avd_add({ CONTENT    => $FORM{'xml'},
 
 #**********************************************************
 # mak_log
+#1. Оформление новой подписки.
+#2. Смена тарифного плана.
+#3. Возобновление подписки.
+#4. Активация блокировки.
+#5. Отказ от услуги.
 #**********************************************************
 sub avd_add {
   my ($attr) = @_;
@@ -187,19 +188,8 @@ else {
    }
 }
 
-#print << "[END]";
-#  
-#$_xml->{'login'}->[0];
-#$_xml->{'lastname'}->[0];
-#
-#Type: $_xml->{'action'}->[0]->{type}->[0];
-#TP: $_xml->{'action'}->[0]->{tariffplancode}->[0];
-#[END]
-
-
 #Add fees
-
-if ($_xml->{'action'}->[0]->{type}->[0] < 4) {
+if ($_xml->{'action'}->[0]->{type}->[0] < 5 && $_xml->{'action'}->[0]->{type}->[0] > 1) {
   my $login = $_xml->{'login'}->[0];
   my $list = $users->list({ LOGIN => $login });
 
@@ -227,11 +217,13 @@ if ($_xml->{'action'}->[0]->{type}->[0] < 4) {
           $conf{START_PERIOD_DAY} = 1;
           $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
         }
-
-      $Fees->take($users, "$sum", 
+      
+      if (! $conf{ASHIELD_DRWEBAVD_FREE_PERIOD} && $_xml->{'action'}->[0]->{type}->[0] == 1) {
+        $Fees->take($users, "$sum", 
                      { DESCRIBE  => "Dr.Web TP:". $_xml->{'action'}->[0]->{tariffplancode}->[0], 
  	                     DATE      => "$DATE $TIME"
   	                  });
+       }
 
       if (! $Fees->{error}) {
         $Ashield->ashield_avd_add({ UID => $users->{UID},

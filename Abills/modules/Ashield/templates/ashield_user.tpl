@@ -9,7 +9,7 @@
 <script language='JavaScript'>var o_cal = new tcal ({	'formname': 'user_form',	'controlname': 'EXPIRE'	});</script>
 </td></tr>
 -->
-<tr><td>E-mail:</td><td><input type=text name=EMAIL value='%EMAIL%'></td></tr>	
+<tr><td>E-mail:</td><td>%EMAIL%</td></tr>	
 <!-- <tr><td>$_STATUS:</td><td>%STATUS_SEL%</td></tr> -->
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>

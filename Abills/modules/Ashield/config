@@ -15,10 +15,10 @@
 #                       "03:1:$_ROUTES:voip_user_routes:"     => 0
                       );
 
-#%PERIODIC = ( 
+%PERIODIC = ( 
 #  #report  => [ 'ashield_report' ]);
 #  daily   => [ 'ashield_daily' ],
-#  monthly => [ 'ashield_monthly' ] );
+  monthly => [ 'ashield_monthly' ] );
 
 
 

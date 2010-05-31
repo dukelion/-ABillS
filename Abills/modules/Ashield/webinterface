@@ -344,8 +344,8 @@ sub ashield_user {
  	$Ashield->{UID}=$FORM{UID};	  
   $users->info($LIST_PARAMS{UID}, { SHOW_PASSWORD => 1 });
   $users->pi({ ID => $users->{UID} });
-  $Ashield->{EMAIL}=$users->{EMAIL};
-  
+  $Ashield->{EMAIL}=($users->{EMAIL}) ? $users->{EMAIL} .$html->form_input('EMAIL', "$users->{EMAIL}", { TYPE => 'hidden', OUTPUT2RETURN => 1 }) : $html->form_input('EMAIL', '', { OUTPUT2RETURN => 1 });
+
   my %subscribe_state = (
   1 => $_STATUS_1,
   2 => $_STATUS_2,
@@ -451,7 +451,6 @@ sub ashield_user {
     #$user->{CHANGE_TP_BUTTON}= $html->button($_CHANGE, 'UID='. $FORM{UID}.'&index='. ($index + 1), { BUTTON => 1 });
     
     $Ashield->{STATUS}=$service_status[$Ashield->{STATUS}];
-
     
     my $result_hash=ashield_drweb_request('interfaces/user_info.php', {
       	  login      => "$users->{LOGIN}",
@@ -460,24 +459,12 @@ sub ashield_user {
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
-  	#$table = $html->table( { width      => '450',
-  	#	                       caption    => "$_INFO",
-  	#	                       title_plain=> ["$_PARAMS", "$_VALUE"],
-    #                         cols_align => ['left', 'left'],
-    #                        });
-
     while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
-    	#$table->addrow($k, 
-    	#               ( ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : convert($v->[0], { utf82win => 1 })
-    	#              );
       $Ashield->{$k}=( ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : convert($v->[0], { utf82win => 1 });
      }
-    #print $table->show();
-
 
     $html->tpl_show(_include('ashield_client_info', 'Ashield'), $Ashield);
-
-    my $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
+    $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
       	  login      => "$users->{LOGIN}",
       	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
       	  },
@@ -1139,14 +1126,14 @@ print $table->show();
 ##**********************************************************
 ## monthly_fees
 ##**********************************************************
-#sub ashield_monthly_fees {
-# my ($attr) = @_;
-#
-# my $debug = $attr->{DEBUG} || 0;
-# my $debug_output = '';
-# $debug_output .= "Ashield - Monthly pariodic payments\n" if ($debug > 1);
-#
-#
+sub ashield_monthly {
+ my ($attr) = @_;
+
+ my $debug = $attr->{DEBUG} || 0;
+ my $debug_output = '';
+ $debug_output .= "Ashield - Monthly pariodic payments\n" if ($debug > 1);
+
+
 # use Users;
 # my $users = Users->new($db, $admin, \%conf); 
 # my $list = $tariffs->list({ %LIST_PARAMS, MODULE => 'Ashield' });
@@ -1343,11 +1330,11 @@ print $table->show();
 #                         VALUE   => "$DATE $TIME"
 #                         });
 #  }
-#
-#
-#  $DEBUG .= $debug_output;
-#  return $debug_output;
-#}
+
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
 #
 #
 ##**********************************************************
