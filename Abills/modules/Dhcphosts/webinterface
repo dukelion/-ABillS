@@ -380,8 +380,6 @@ sub leaseparse {
 # 
 #*******************************************************************
 sub dhcphosts_networks {
-  
- 
   $Dhcphosts->{ACTION}='add';
   $Dhcphosts->{ACTION_LNG}=$_ADD;
 
@@ -389,7 +387,6 @@ sub dhcphosts_networks {
   	print $html->message('err', $_ERROR, "$_HOSTS_NETWORKS_NAME - '$FORM{NAME}' $ERR_WRONG_DATA");
   	return 0;
    }
-
   
   if ($FORM{config}) {
   	dhcphosts_config({ NETWORKS => $FORM{IDS} });
@@ -1146,7 +1143,7 @@ sub dhcphosts_reconfigure {
   open STDERR, '/dev/null';
 
   my $res = `$conf{DHCPHOSTS_RECONFIGURE}`;
-  print $res if ($debug > 1);
+  print $res if ($debug > 2);
 
   return 0;
 }
