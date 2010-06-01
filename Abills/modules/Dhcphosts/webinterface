@@ -245,7 +245,7 @@ sub dhcphosts_monitor {
                      $state_hash_rev{$line->[6]},
                      $line->[7],
                      $line->[8],
-                     "(". $html->button('P', "index=$index&ping=$line->[1]", { TITLE => 'ping', BUTTON => 1 }) .")"
+                     $html->button('P', "index=$index&ping=$line->[1]", { TITLE => 'ping', BUTTON => 1 })
                      );
     }
    print  $table->show();
@@ -1142,6 +1142,8 @@ sub dhcphosts_reconfigure {
    }
   
  	dhcphosts_mac_block_make();
+
+  open STDERR, '/dev/null';
 
   my $res = `$conf{DHCPHOSTS_RECONFIGURE}`;
   print $res if ($debug > 1);

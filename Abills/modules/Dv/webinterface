@@ -3341,7 +3341,6 @@ pROFILRE
   	      $Dv->{ISG_SESSION_DURATION}=$2;
   	     }
   	 }
-	
 
 	
 	  #$Dv->{ISG_CID_CUR} = '192.168.0.1';
@@ -3374,11 +3373,10 @@ pROFILRE
              my $result = `$isg_cmd`;
             }
 
- 
            #Active service (TURBO mode)
            $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=activate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$service_name\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
      
-           print "<!-- $isg_cmd -->"; 
+           #print "<!-- $isg_cmd -->"; 
            my $result = `$isg_cmd`;
            $result = `/bin/echo \`date \"+ %Y-%m-%d %H:%M:%S\"\` \"$user->{LOGIN} $service_name \" >> /usr/abills/var/log/turbo.log`;
 
@@ -5447,21 +5445,15 @@ sub dv_dhcp_get_mac_add {
   
   use Dhcphosts;
   my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
-
   my @dhcp_nets = split(/;/, $conf{DV_IP_DISCOVERY});
-  
 
   foreach my $nets (@dhcp_nets) {
   	my ($id, $net)=split(/:/, $nets);
-
   	my $start_ip ='0.0.0.0';
   	my $bit_mask =0;
-
   	($start_ip, $bit_mask)=split(/\//, $net) if ($net);
-
   	my $mask = 0b0000000000000000000000000000001;
   	my $address_count = sprintf("%d", $mask << (32  - $bit_mask) );
-  	#print "Content-Type: text/html\n\n";
 
   	if (ip2int($ip) >= ip2int($start_ip) && ip2int($ip) <= ip2int($start_ip) + $address_count) {
       my $list = $Dhcphosts->hosts_list({ 
@@ -5470,7 +5462,6 @@ sub dv_dhcp_get_mac_add {
       	                                  DESC      => 'DESC',
       	                                  PAGE_ROWS => 1
       	                                    });
-      	
       #make Discovery	                                  
       my $new_ip;
       if ($Dhcphosts->{errno}) {
@@ -5519,8 +5510,7 @@ sub dv_dhcp_get_mac_add {
       
       return 0;
   	 }
-   }
-  
+   }  
  
   $html->message('err', $_ACTIVATE, "$_ERROR: Can't find assign network IP: '$ip' ", { ID => 120 }); 
   return 0;
