@@ -127,13 +127,6 @@ if ($uid > 0) {
   # $ENV{HTTP_USER_AGENT} =~ /^AMon /
   if ($FORM{ALIVE}) {
  	  require "Abills/modules/Ipn/webinterface";
-
-# 	  my $text = '';
-# 	  while(my($k, $v)=each %FORM) {
-# 	    $text .= "$k, $v\n";
-# 	    }
-#    my $aa = `echo "$text\n=====\n" >> /tmp/amon`;
-
     print $html->header();
     $LIST_PARAMS{LOGIN}=$user->{LOGIN};
     ipn_user_activate();
@@ -141,10 +134,8 @@ if ($uid > 0) {
     print $html->tpl_show(templates('form_client_start'), \%OUTPUT);
  	  exit;
    }
-  
-  
-  accept_rules() if ($conf{ACCEPT_RULES});
 
+  accept_rules() if ($conf{ACCEPT_RULES});
   my @m = (
    "10:0:$_USER_INFO:form_info:::",
    );
@@ -280,15 +271,9 @@ sub mk_menu {
    }
 
   foreach my $m (@MODULES) {
-
     if(my $return = do "Abills/modules/$m/config") {
      }
-#                 warn "couldn't parse Abills/modules/$m/config: $@" if $@;
-#                 warn "couldn't do Abills/modules/$m/config: $!"    unless defined $return;
-#                 warn "couldn't run "."Abills/modules/$m/config"       unless $return;
-#       }
 
-#  	require "Abills/modules/$m/config";
     my %module_fl=();
 
     next if (keys %USER_FUNCTION_LIST < 1);
@@ -299,9 +284,7 @@ sub mk_menu {
       my($ID, $SUB, $NAME, $FUNTION_NAME, $ARGS)=split(/:/, $line, 5);
       $ID = int($ID);
       my $v = $USER_FUNCTION_LIST{$line};
-
       $module_fl{"$ID"}=$maxnumber;
-      #$fl .= "$FUNTION_NAME $maxnumber\n";
       
       if ($index < 1 && $ARGS eq 'defaultindex') {
         $default_index=$maxnumber;
@@ -310,7 +293,6 @@ sub mk_menu {
       elsif ($ARGS ne '' && $ARGS ne 'defaultindex') {
         $menu_args{$maxnumber}=$ARGS;
        }
-      #print "$line -- $ID, $SUB, $NAME, $FUNTION_NAME  // $module_fl{$SUB} PARENT: $v<br/>";
      
       if($SUB > 0) {
         $menu_items{$maxnumber}{$module_fl{$SUB}}=$NAME;
@@ -321,12 +303,10 @@ sub mk_menu {
           $uf_menus{$maxnumber}=$NAME;
          }
       }
-
       $menu_names{$maxnumber} = $NAME;
       $functions{$maxnumber}  = $FUNTION_NAME if ($FUNTION_NAME  ne '');
       $module{$maxnumber}     = $m;
     }
-
     %USER_FUNCTION_LIST = ();
   }
 

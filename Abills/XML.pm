@@ -372,13 +372,14 @@ while((my($findex, $hash)=each(%$menu_items))) {
 my $h = $new_hash{0};
 my @last_array = ();
 
-
 my @menu_sorted = sort {
    $b cmp $a
 } keys %$h;
 
-for(my $parent=1; $parent<$#menu_sorted + 1; $parent++) { 
+
+for(my $parent=0; $parent<$#menu_sorted + 1; $parent++) { 
   my $val = $h->{$menu_sorted[$parent]};
+
   my $level = 0;
   my $prefix = '';
   my $ID = $menu_sorted[$parent];
@@ -641,8 +642,6 @@ sub table_title  {
   my ($op);
   my $img='';
 
-#  print "$sort, $desc, $pg, $op, $caption, $qs";
-
   $self->{table_title} = "<TITLE columns=\"". ($#{ $caption } + 1) ."\">\n";
   my $i=1;
   foreach my $line (@$caption) {
@@ -802,9 +801,6 @@ sub date_fld  {
  my $month = $FORM{$base_name.'M'} || $mon;
  my $year = $FORM{$base_name.'Y'} || $curyear + 1900;
 
-
-
-# print "$base_name -";
 my $result  = "<SELECT name=\"". $base_name ."D\">";
 for (my $i=1; $i<=31; $i++) {
    $result .= sprintf("<option value=\"%.2d\"", $i);
@@ -818,7 +814,6 @@ my $i=0;
 foreach my $line (@$MONTHES) {
    $result .= sprintf("<option value=\"%.2d\"", $i);
    $result .= ' selected="1"' if($month == $i ) ;
-   
    $result .= ">$line</option>\n";
    $i++
 }
@@ -854,8 +849,6 @@ sub date_fld2  {
  my $year = $FORM{$base_name.'Y'} || $curyear + 1900;
 
 
-
-# print "$base_name -";
 my $result  = "<SELECT name=\"". $base_name ."D\">";
 for (my $i=1; $i<=31; $i++) {
    $result .= sprintf("<option value=\"%.2d\"", $i);
@@ -871,7 +864,6 @@ my $i=0;
 foreach my $line (@$MONTHES) {
    $result .= sprintf("<option value=\"%.2d\"", $i);
    $result .= ' selected="1"' if($month == $i ) ;
-   
    $result .= ">$line</option>\n";
    $i++
 }
