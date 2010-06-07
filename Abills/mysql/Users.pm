@@ -1020,7 +1020,8 @@ sub add {
   
   $self->{UID}   = $self->{INSERT_ID};
   $self->{LOGIN} = $DATA{LOGIN};
-
+  
+  $admin->{MODULE}='';
   $admin->action_add("$self->{UID}", "LOGIN:$DATA{LOGIN}", { TYPE => 7 });
 
   if ($attr->{CREATE_BILL}) {

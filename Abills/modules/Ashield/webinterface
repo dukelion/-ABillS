@@ -1,5 +1,5 @@
 # Ashield
-#
+# 5530068 
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -154,7 +154,7 @@ my $list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Ashield' });
 my $table = $html->table( { width       => '100%',
                             caption     => "$_TARIF_PLANS",
                             border      => 1,
-                            title_plain => ['#', $_NAME, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE,                              $_AGE, $_GROUP, '-', '-' ],
+                            title_plain => ['#', $_NAME, $_PAYMENT_TYPE, $_DAY_FEE, $_MONTH_FEE, $_AGE, $_GROUP, '-', '-' ],
                             cols_align  => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
                             ID          => 'ASHIELD_TARIF_PLANS'
                                   } );
@@ -383,7 +383,6 @@ sub ashield_user {
   	    	my %dr_web_errors = ( 6 => $ERR_WRONG_PASSWD,
   	    	                     18 => "$_LOGIN - $_EXIST",
   	    	                     20 => "'$FORM{EMAIL}' $_WRONG_EMAIL",
-  	    	                     
   	    	                     );
   	    	
   	    	
@@ -446,12 +445,7 @@ sub ashield_user {
  	                                        });
 	 }
 	else {
-	  #$user->{ACTION}          = 'set';
-	  #$user->{LNG_ACTION}      = $_CHANGE;
-    #$user->{CHANGE_TP_BUTTON}= $html->button($_CHANGE, 'UID='. $FORM{UID}.'&index='. ($index + 1), { BUTTON => 1 });
-    
     $Ashield->{STATUS}=$service_status[$Ashield->{STATUS}];
-    
     my $result_hash=ashield_drweb_request('interfaces/user_info.php', {
       	  login      => "$users->{LOGIN}",
       	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
@@ -471,33 +465,58 @@ sub ashield_user {
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
+    my ($y, $m, $d)=split(/-/, $DATE, 3);
+    my $cur_date="$y$m$d"; 
   	$table = $html->table( { width      => '100%',
   		                       caption    => "$_AGENTS",
   		                       title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", 
   		                       "$_ACTIVATE", "Online",
-  		                       "$_CREATED", "$_CHANGED", "URL"],
+  		                       "$_CREATED", "$_EXPIRES", "URL"],
                              cols_align => ['left', 'left'],
                             });
 
     foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) {
     	my $result_hash2 = ashield_drweb_request('api/2.0/get-customer-info.ds', { id => $k->{uuid}->[0] }); 
-
       $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0] =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
       my $create = "$1-$2-$3 $4:$5:$6";
-    	$result_hash2->{customers}->[0]->{customer}->[0]->{modifiedtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-    	my $changed = "$1-$2-$3 $4:$5:$6";
+    	#$result_hash2->{customers}->[0]->{customer}->[0]->{modifiedtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+    	#my $changed = "$1-$2-$3 $4:$5:$6";
       my $activated	= $result_hash2->{customers}->[0]->{customer}->[0]->{activated}->[0];
       my $online	= $result_hash2->{customers}->[0]->{customer}->[0]->{online}->[0];
     	
     	my $name = $result_hash2->{customers}->[0]->{customer}->[0]->{name}->[0] || $k->{uuid}->[0];
     	
+    	my $status = '';
+    	$result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+    	my $expire = "$1$2$3";
+    	if ($expire > 0 && $expire > $cur_date) {
+    		$expire =~ /(\d{4})(\d{2})(\d{2})/;
+    		$status = "$_EXPIRE: $1-$2-$3";
+    	 }
+    	else {
+      	$blockbeg = $result_hash2->{customers}->[0]->{customer}->[0]->{blocking}->[0]->{begin}->[0];
+      	if ($blockbeg > 0 ) {
+   			  $blockbeg =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+  		    $blockbeg = "$1$2$3";
+  		   }
+
+    	  $blockend = $result_hash2->{customers}->[0]->{customer}->[0]->{blocking}->[0]->{end}->[0];
+  		  $blockend =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+   		  $blockend = "$1$2$3";
+    		if ($blockbeg > 0 && $blockbeg < $cur_date && $blockend < $cur_date) {
+    			$blockbeg =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
+    			$blockend =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
+    		  $status = "$_STATUS_4: $blockbeg - $blockend";
+    	   }
+    	 }
+
     	$table->addrow($name,
 #    	               $k->{agentuuid}->[0], 
     	               $k->{tariffplancode}->[0],
     	               ($activated eq 'no') ? $_NO: $_YES,
                      ($online eq 'no') ? $_NO : $_YES,
     	               $create,
-    	               $changed,
+    	               $status,
     	               $html->button("$_DOWNLOAD", '', { 
     	               	  GLOBAL_URL => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]", 
     	                  TITLE      => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]" 
@@ -789,9 +808,6 @@ print $html->tpl_show(templates('form_chg_tp'), $Tariffs);
 sub ashield_users_list {
  my ($attr)=@_;
 
-
- return 0;
-
  if (! $permissions{0}{2}) {
 	 return 0;
   }
@@ -825,9 +841,9 @@ sub ashield_users_list {
  	                                        });
 
  
- form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_users_search', 'Dv'),
- 	                                            { %$Ashield, %FORM },
- 	                                            { OUTPUT2RETURN => 1 })    });
+ form_search({ SEARCH_FORM => '' }); #$html->tpl_show(_include('dv_users_search', 'Dv'),
+ 	                                   #         { %$Ashield, %FORM },
+ 	                                   #         { OUTPUT2RETURN => 1 })    });
 
 
  print $html->letters_list({ pages_qs => $pages_qs  }); 
@@ -838,7 +854,7 @@ sub ashield_users_list {
   } 
 
 
-my $list = $Ashield->list( { %LIST_PARAMS } );
+my $list = $Ashield->user_list( { %LIST_PARAMS } );
 
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-');
 my @EX_TITLE_ARR  = split(/, /, $Ashield->{SEARCH_FIELDS});
@@ -867,16 +883,16 @@ elsif ($Ashield->{TOTAL} == 1) {
 	return 0;
 }
 
-
-
 my $table = $html->table( { width      => '100%',
-                            caption    => "Internet - $_USERS",
+                            caption    => "Ashield - $_USERS",
                             border     => 1,
                             title      => \@TITLE,
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $Ashield->{TOTAL}
+                            pages      => $Ashield->{TOTAL},
+                            ID         => 'ASHIELD_USERS'
                            });
+
 
 foreach my $line (@$list) {
   my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Ashield->{SEARCH_FIELDS_COUNT}]) : ''; 
@@ -887,7 +903,7 @@ foreach my $line (@$list) {
    }
 
   $table->addrow(
-   $html->button("$line->[0]", "index=15&UID=". $line->[6+$Ashield->{SEARCH_FIELDS_COUNT}]), 
+   $html->button("$line->[0]", "index=15&MODULE=Ashield&UID=". $line->[6+$Ashield->{SEARCH_FIELDS_COUNT}]), 
    "$line->[1]",
    "$line->[2]", 
    "$line->[3]", 
@@ -1129,208 +1145,146 @@ print $table->show();
 sub ashield_monthly {
  my ($attr) = @_;
 
+ my $START_PERIOD_DAY = ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} : 1;
+ $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+ my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+ my $cur_date="$y$m$d";
+ if ($d != $START_PERIOD_DAY) {
+   return $debug_output;
+  }
+ 
  my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
  $debug_output .= "Ashield - Monthly pariodic payments\n" if ($debug > 1);
+ 
+ $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID}); 
+ 
+ my %SERVICE_LIST_PARAMS = ();
+ $SERVICE_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
 
 
-# use Users;
-# my $users = Users->new($db, $admin, \%conf); 
-# my $list = $tariffs->list({ %LIST_PARAMS, MODULE => 'Ashield' });
-# $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
-# my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
-# $m--;
-#
-# my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
-##Get Preview month begin end
-# if ($m == 0) {
-#   $m = 12;
-#   $y--;
-#  }
-# $m = sprintf("%02.d", $m);
-# my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
-#
-# my $pre_month_begin = "$y-$m-01";
-# my $pre_month_end   = "$y-$m-$days_in_month";
-#
-# foreach my $line (@$list) {
-# 	 my $TP_ID       = $line->[0];
-# 	 my $min_use     = $line->[15];
-# 	 my $postpaid    = $line->[4];
-#   my $tp_postpaid = $line->[12];
-#   my $month_fee   = $line->[6];
-#
-#   my %used_traffic = ();
-#
-#   #Monthfee & min use
-# 	 if ($month_fee > 0 || $min_use > 0) {
-# 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $line->[12] REDUCTION: $line->[11] EXT_BILL_ID: $line->[13] CREDIT: $line->[14] MIN_USE: $min_use\n" if ($debug > 1);
-#
-#     my $ulist = $Ashield->user_list({ 
-#         ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
-#         EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
-#         STATUS     => 0,
-#         LOGIN_STATUS => 0,
-#         TP_ID      => $TP_ID,
-#         SORT       => 1,
-#         PAGE_ROWS  => 1000000,
-# 	   	 });
-#
-#
-#     foreach my $u (@$ulist) {
-#       $debug_output .= " Login: $u->[0] ($u->[7])  TP_ID: $u->[10] Fees: $line->[6] REDUCTION: $u->[14]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 3); 	
-#       #Check bill id and deposit 
-#       
-#       my %user = (
-#            LOGIN      => $u->[0],  
-#            UID        => $u->[7],
-#            BILL_ID    => ($line->[13] > 0) ? $u->[15] : $u->[13],
-#            REDUCTION  => $u->[14],
-#            ACTIVATE   => $u->[11],
-#            DEPOSIT    => $u->[2],
-#            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14]
-#           );
-#       
-#       #Check bill ID and deposit
-#       if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {
-#         my %FEES_PARAMS = (
-#                            DATE     => $ADMIN_REPORT{DATE},
-#                            METHOD   => 1 
-#                            );  
-#
-#         my $sum = 0;
-#         $START_PERIOD_DAY = ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} : 1;
-#
-#         #Min use 
-#         if ($min_use > 0 && $d == $START_PERIOD_DAY) {
-#
-#          }
-#         #Month Fee
-#         else {
-#           #Make sum 
-#           $sum = $month_fee;
-#    
-#           if ($line->[11] == 1 && $user{REDUCTION} > 0) {
-#             $sum = $sum * (100 - $user{REDUCTION}) / 100;
-#            }
-#
-#           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
-#            if($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $tp_postpaid == 1) {
-#
-#              #take fees in first day of month
-#              $FEES_PARAMS{DESCRIBE}="$_MONTH_FEE ($_TV/$TP_ID)";  
-#
-#              if (($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $conf{IPTV_CLOSE_PERIOD}) {
-#                if ($debug > 4) {
-#                  $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
-#                 }
-#                else {
-#                  $fees->take(\%user, $sum, { %FEES_PARAMS } );  
-#                  $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
-#                 }
-#               }
-#             # If activation set to monthly fees taken throught 30 days
-#              elsif($user{ACTIVATE} ne '0000-00-00') {
-#                my ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
-#                $activate_m--;
-#                my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
-#                if ($date_unixtime - $active_unixtime > 30 * 86400) {
-#                  if ($debug > 4) {
-#                    $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
-#                   }
-#                  else {
-#                    $fees->take(\%user, $sum, { %FEES_PARAMS } );
-#                    $debug_output .= " $user{LOGIN} UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} CHANGE ACTIVATE\n" if ($debug > 0);
-#                    if ($fees->{errno}) {
-#                    	print "Error: [$fees->{errno}] $fees->{errstr} ";
-#                    	if ($fees->{errno} == 14 ) {
-#                 	 	    print "[ $user{UID} ] $user{LOGIN} - Don't have money account";
-#               	       }
-#               	      print "\n";
-#               	     }
-#                    else {
-#                      $users->change($user{UID}, { 
-#                	                        UID      => $user{UID},
-#                	                        ACTIVATE => $ADMIN_REPORT{DATE} } 
-#                 	             );
-#                     }
-#                   }
-#                 }
-#                 #print "   $user{LOGIN} $line->[6] $user{DEPOSIT} $USER{CREDIT} $u->[10] - $u->[11]\n"; 	
-#               }
-#             }
-#         
-#          }
-#        }
-#       else {
-#      	 print "[ $user{UID} ] $user{LOGIN} - Don't have money account\n";
-#        }
-# 	  }
-#  }
-#
-##Channels fees
-#     $ulist = $Ashield->user_list({ 
-#         ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
-#         EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
-#         STATUS     => 0,
-#         LOGIN_STATUS => 0,
-#         TP_ID      => $TP_ID,
-#         SORT       => 1,
-#         PAGE_ROWS  => 1000000,
-#         SHOW_CHANNELS => 1,
-#         MONTH_PRICE => '>0'
-# 	   	 });
-#
-#     foreach my $u (@$ulist) {
-#       my $channel_num   =  $u->[14];
-#       my $sum           =  $u->[16];
-#       $debug_output .= " Login: $u->[0] ($u->[7])  TP_ID: $u->[10] Channel: $channel_num Month Price: $sum REDUCTION: $u->[14]  $u->[2] $u->[3] $u->[10] - $u->[11]\n" if ($debug > 3); 	
-#       #Check bill id and deposit 
-#       
-#       my %user = (
-#            LOGIN      => $u->[0],  
-#            UID        => $u->[5],
-#            BILL_ID    => ($line->[13] > 0) ? $u->[12] : $u->[10],
-#            REDUCTION  => $u->[11],
-#            ACTIVATE   => '0000-00-00',
-#            DEPOSIT    => $u->[1],
-#            CREDIT     => ($u->[2] > 0) ? $u->[2] : $line->[14]
-#           );  
-#       
-#       if($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $tp_postpaid == 1) {
-#              #take fees in first day of month
-#              $FEES_PARAMS{DESCRIBE}="$_MONTH_FEE ($_TV $_CHANNELS:$channel_num)";  
-#
-#              if (($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $conf{IPTV_CLOSE_PERIOD}) {
-#                if ($debug > 4) {
-#                  $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
-#                 }
-#                else {
-#                  $fees->take(\%user, $sum, { %FEES_PARAMS } );  
-#
-#                  if ($fees->{errno}) {
-#                    	print "Error: [ $user{UID} ] $user{LOGIN} SUM: $sum [$fees->{errno}] $fees->{errstr} ";
-#                    	if ($fees->{errno} == 14 ) {
-#                 	 	    print "UID: $user{UID} LOGIN: $user{LOGIN} - Don't have money account";
-#               	       }
-#               	      print "\n";
-#             	     }
-#                  else {
-#                    $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
-#                   }
-#                 }
-#               }
-#        }
-#     }
-# }
-#
-# if ($conf{IPTV_CLOSE_PERIOD}) {
-#   	$users->config_del('IPTV_CLOSED_PERIOD');
-#  	$users->config_add({ PARAM   => 'IPTV_CLOSED_PERIOD',
-#                         VALUE   => "$DATE $TIME"
-#                         });
-#  }
+ #Billing TPS
+ my $list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Ashield' });	
+ my %TPS_HASH = ();
+ foreach my $line (@$list) {
+   $TPS_HASH{$line->[1]}{NAME}=$line->[1];
+   $TPS_HASH{$line->[1]}{PAYMENT_TYPE}=$line->[4]; 
+   $TPS_HASH{$line->[1]}{DAY_FEE}=$line->[5];
+   $TPS_HASH{$line->[1]}{MONTH_FEE}=$line->[6];
+  } 
 
+ #Drweb users list
+ my %drweb_info = ();
+ my $result_hash2 = ashield_drweb_request('api/2.0/get-customer-info.ds', { }); 
+ foreach my $customer ( @{ $result_hash2->{customers}->[0]->{customer} }) {
+ 	  my $id = $customer->{id}->[0];
+   	foreach my $customer_info ( sort keys %$customer ) {
+   		my $val = $customer->{$customer_info};
+    
+      if ($customer_info eq 'blocking') {
+        $drweb_info{$id}{blockbeg} = $customer->{blocking}->[0]->{begin}->[0];
+        $drweb_info{$id}{blockend} = $customer->{blocking}->[0]->{end}->[0];
+        next;
+       }
+      elsif (ref $val eq 'ARRAY') {
+  	    $val = $val->[0];
+       }  
+      
+      if(ref $val eq 'HASH') {
+  	    my $val2 = '';
+  	    while(my($k, $v)=each %{ $val }) {
+    	    $val2 .= " $k / ";
+    	    $val2 .= (ref $v eq 'ARRAY') ? $v->[0] : $v;
+  	      $val2 .= "\n";
+  	     }
+        $val = $val2;
+       }
+   		$drweb_info{$id}{$customer_info} = $val;
+   	  $debug_output .= "$customer_info => $val\n" if ($debug > 4);
+   	 }
+ 	}
+
+
+ 
+ #Billing Users list
+ $list = $Ashield->user_list( { %SERVICE_LIST_PARAMS } );
+ foreach my $line ( @$list ) {
+ 	 my %user = ( LOGIN   => $line->[0],
+ 	               UID     => $line->[7],
+ 	               BILL_ID => $line->[12],
+ 	               DEPOSIT => $line->[2],
+ 	               CREDIT  => $line->[3],
+ 	               REDUCTION => $line->[13],
+ 	                 );
+
+   $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
+      	  login      => "$line->[0]",
+      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
+      	  },
+      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+      	  	});
+
+   foreach my $agent (@{ $result_hash->{agents}->[0]->{agent} }) {
+   	 my $agent_id = $agent->{uuid}->[0];
+   	 my $tp_name  = $agent->{tariffplancode}->[0];
+   	 my $sum      = $TPS_HASH{$tp_name}{MONTH_FEE};
+ 	   $debug_output .= "> $line->[0] TP: $tp_name $agent_id $drweb_info{$agent_id}{activated}\n" if ($debug > 0);;
+     
+     
+ 	   if ($drweb_info{$agent_id}{expires}  && $drweb_info{$agent_id}{expires} < $cur_date) {
+ 	   	 $debug_output .= "Expire\n" if ($debug > 1);
+ 	    }
+ 	   elsif ($drweb_info{$agent_id}{activated} eq 'yes') {
+ 	     $debug_output .= "Deposit: $line->[2] Credit: $line->[3] PAYMENT_TYPE: $TPS_HASH{$tp_name}{PAYMENT_TYPE}".
+             " DAY FEES: $TPS_HASH{$tp_name}{DAY_FEE} MONTH FEES: $TPS_HASH{$tp_name}{MONTH_FEE}".
+             "BLOCK BEGIN: $drweb_info{$agent_id}{blockbeg} BLOCK END: $drweb_info{$agent_id}{blockend}\n" if ($debug > 1);;
+       #Get fees
+       if ($line->[2] + $line->[3] > 0 || $TPS_HASH{$tp_name}{PAYMENT_TYPE}) {
+       	  my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
+ 	     	 	   id       => $agent_id, 
+	     	 	   blockbeg => '20200101',
+ 	     	 	   blockend => '20200101'
+ 	     	 	   }); 
+ 	       
+ 	         if ( $result->{error} ) {
+ 	           print "Fees: '$cur_date' $result->{error}->[0]->{code}->[0] / $result->{error}->[0]->{message}->[0]\n" if ($debug > 0);
+ 	          }
+ 	         else {
+ 	       	   $debug_output .= "$result->{customers}->[0]->{customer}->[0]->{id}->[0] ".
+ 	            "BLOCKING: $result->{customers}->[0]->{customer}->[0]->{blockbeg}->[0]\n" if ($debug > 4);
+
+             if ($debug > 4) {
+               $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
+              }
+             else {
+               $fees->take(\%user, $sum, { %FEES_PARAMS } );  
+               $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
+              }
+ 	          }
+        }
+       #Block 
+ 	     else {
+ 	     	 if ($drweb_info{$agent_id}{blockbeg} < $cur_date && $drweb_info{$agent_id}{blockend} < $cur_date) {
+ 	     	   my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
+ 	     	 	   id      => $agent_id, 
+ 	     	 	   blockbeg => $cur_date,
+ 	     	 	   #blockend => '20200101'
+ 	     	 	   }); 
+ 	       
+ 	         if ( $result->{error} ) {
+ 	           print "Block $lien->[0] '$cur_date' $result->{error}->[0]->{code}->[0] / $result->{error}->[0]->{message}->[0]\n";
+ 	          }
+ 	         else {
+ 	       	   $debug_output .= "$result->{customers}->[0]->{customer}->[0]->{id}->[0] ".
+ 	            "BLOCKING: $result->{customers}->[0]->{customer}->[0]->{blockbeg}->[0]\n" if ($debug > 0);
+ 	          }
+ 	       }
+ 	      }
+ 	    }
+ 	   #exit;
+    }
+	
+  }
 
   $DEBUG .= $debug_output;
   return $debug_output;
@@ -1514,7 +1468,7 @@ else {
    exit;
  }
 
-$FORM{__BUFFER} =~ s/encoding="windows-1251"//g;
+#$FORM{__BUFFER} =~ s/encoding="windows-1251"//g;
 my $_xml = eval { XMLin("$content", forcearray=>1) };
 
 
