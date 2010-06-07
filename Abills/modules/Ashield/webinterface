@@ -504,10 +504,12 @@ sub ashield_user {
   		  $blockend =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
    		  $blockend = "$1$2$3";
     		if ($blockbeg > 0 && $blockbeg < $cur_date && $blockend < $cur_date) {
-    			$blockbeg =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
-    			$blockend =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
-    		  $status = "$_STATUS_4: $blockbeg - $blockend";
     	   }
+
+   			$blockbeg =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
+   			$blockend =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
+
+        $status = "$_STATUS_4: $blockbeg - $blockend" if ($blockbeg > 0);
     	 }
 
     	$table->addrow($name,
