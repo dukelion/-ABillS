@@ -154,7 +154,7 @@ sub paysys_import_form {
    }
 
   foreach my $line (@$list) {
- 	  $binding_hash{lc($line->[$binding_field_id])}=$line->[5+$users->{SEARCH_FIELDS_COUNT}].":$line->[0]:$line->[1]";
+ 	  $binding_hash{lc($line->[$binding_field_id])}=$line->[5+$users->{SEARCH_FIELDS_COUNT}].":$line->[0]:". (($line->[1]) ? $line->[1] : '');
    }
 
 my $error = 0;
@@ -179,15 +179,15 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
        if ($ARGV->{TYPE} eq 'PAYMENTS') {
        	   if ($debug < 5) {
        	   	  if (! $DATA_ARR->[$i]->{DATE} && $DATA_ARR->[$i]->{DATE_DMY}) {
-       	   	  	$DATA_ARR->[$i]->{DATE_DMY}=~/(\d{4})(\d{2})(\d{2})/;
+       	   	  	$DATA_ARR->[$i]->{DATE_DMY}=~/(\d{2})(\d{2})(\d{4})/;
        	   	  	$DATA_ARR->[$i]->{DATE}="$3-$2-$1";
        	   	   }
        	   	  my $date = $DATA_ARR->[$i]->{DATE} || $DATE;
        	   	  
               $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
                        DESCRIBE     => $describe, 
- 	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 0, 
- 	                     DATE         => $DATA_ARR->[$i]->{DATE} || undef, 
+ 	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 2, 
+ 	                     DATE         => $date, 
                        EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$attr->{IMPORT_RULE}.$ID",
                        CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$attr->{IMPORT_RULE}.$ID",
                        INNER_DESCRIBE => $inner_describe

@@ -1212,15 +1212,15 @@ sub ashield_monthly {
  $list = $Ashield->user_list( { %SERVICE_LIST_PARAMS } );
  foreach my $line ( @$list ) {
  	 my %user = ( LOGIN   => $line->[0],
- 	               UID     => $line->[7],
- 	               BILL_ID => $line->[12],
- 	               DEPOSIT => $line->[2],
- 	               CREDIT  => $line->[3],
- 	               REDUCTION => $line->[13],
+ 	              UID     => $line->[7],
+ 	              BILL_ID => $line->[12],
+ 	              DEPOSIT => $line->[2],
+ 	              CREDIT  => $line->[3],
+ 	              REDUCTION => $line->[13],
  	                 );
 
    $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
-      	  login      => "$line->[0]",
+      	  login      => "$user{LOGIN}",
       	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
       	  },
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
@@ -1230,7 +1230,7 @@ sub ashield_monthly {
    	 my $agent_id = $agent->{uuid}->[0];
    	 my $tp_name  = $agent->{tariffplancode}->[0];
    	 my $sum      = $TPS_HASH{$tp_name}{MONTH_FEE};
- 	   $debug_output .= "> $line->[0] TP: $tp_name $agent_id $drweb_info{$agent_id}{activated}\n" if ($debug > 0);;
+ 	   $debug_output .= "> $user{LOGIN} TP: $tp_name $agent_id $drweb_info{$agent_id}{activated}\n" if ($debug > 0);;
      
      
  	   if ($drweb_info{$agent_id}{expires}  && $drweb_info{$agent_id}{expires} < $cur_date) {
