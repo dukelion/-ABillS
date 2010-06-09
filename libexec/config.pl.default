@@ -51,7 +51,7 @@ $conf{secretkey}="test12345678901234567890";
 $conf{s_detalization}=1; #make session detalization recomended for vpn leathed lines
 $conf{ERROR2DB}=1;
 
-$conf{version}='0.51b'; #01.06.2010
+$conf{version}='0.52b'; #01.06.2010
 
 #Octets direction
 # server - Count octets from server side
