@@ -1239,30 +1239,30 @@ else {
 }
 
 
-sub utf2win {
-  my($s)=@_;
-  return''if(!defined$s)||''eq$s;
-        my($r,$l)=('',length$s);
-        my@uM=(0x80,0xE0,0xF0,0xF8,0xFC,0xFE);
-        my@us=(0x00,0xC0,0xE0,0xF0,0xF8,0xFC);
-        my@um=(0x7F,0x1F,0x0F,0x07,0x03,0x01);
-doo: for(my$i=0;$i<$l;){
-                my($c,$n,$d)=(ord(substr($s,$i++,1)),-1);
-                for(my$j=0;$j<6;$j++){
-                        $n=$j,$c&=$um[$j],last if($c&$uM[$j])==$us[$j]}
-                $r.='?',next if$n<0;
-                for(my$j=0;$j<$n;$j++){
-                        $r.='?',next doo if$i>=$l||((($d=ord(substr($s,$i,1)))&0xC0)!=0x80);
-                        $i++;$c<<=6;$c|=($d&0x3F)}
-                $r.='?',next if$c>0xFFFD||($c>=0xD800&&$c<=0xDFFF);
-                if($c>1039&&$c<1104){$c=chr($c-1040+192)
-                }elsif($c==1025){$c=chr(168)
-                }elsif($c==1105){$c=chr(184)
-                }elsif($c==13||$c==10||($c>31&&$c<256)){$c=chr($c);
-                }else{$c='?'}
-                $r.=$c}
-        $r
- }
+#sub utf2win {
+#  my($s)=@_;
+#  return''if(!defined$s)||''eq$s;
+#        my($r,$l)=('',length$s);
+#        my@uM=(0x80,0xE0,0xF0,0xF8,0xFC,0xFE);
+#        my@us=(0x00,0xC0,0xE0,0xF0,0xF8,0xFC);
+#        my@um=(0x7F,0x1F,0x0F,0x07,0x03,0x01);
+#doo: for(my$i=0;$i<$l;){
+#                my($c,$n,$d)=(ord(substr($s,$i++,1)),-1);
+#                for(my$j=0;$j<6;$j++){
+#                        $n=$j,$c&=$um[$j],last if($c&$uM[$j])==$us[$j]}
+#                $r.='?',next if$n<0;
+#                for(my$j=0;$j<$n;$j++){
+#                        $r.='?',next doo if$i>=$l||((($d=ord(substr($s,$i,1)))&0xC0)!=0x80);
+#                        $i++;$c<<=6;$c|=($d&0x3F)}
+#                $r.='?',next if$c>0xFFFD||($c>=0xD800&&$c<=0xDFFF);
+#                if($c>1039&&$c<1104){$c=chr($c-1040+192)
+#                }elsif($c==1025){$c=chr(168)
+#                }elsif($c==1105){$c=chr(184)
+#                }elsif($c==13||$c==10||($c>31&&$c<256)){$c=chr($c);
+#                }else{$c='?'}
+#                $r.=$c}
+#        $r
+# }
 
 
 #**********************************************************
@@ -1326,12 +1326,14 @@ if ($conf{PAYSYS_P24_MERCHANT_YUR}) {
   if ($conf{PAYSYS_P24_EXPR}) {
   	my($BINDING_FIELD, $BINDING_EXPR) = split(/:/, $conf{PAYSYS_P24_EXPR}, 2);
     while(my ($k, $v) = each %{ $info->{row} } ) {
+
+    	next if ($v->{col}->{BPL_C_ACC}->{content} ne $conf{PAYSYS_P24_CARDNUM});
+
     	my $describe = convert( $v->{col}->{BPL_OSND}->{content},{ utf82win => 1 });
   	  if ($describe =~ /$BINDING_EXPR/g ) {
-  	  	my $ID = utf2win($v->{col}->{BPL_NUM_DOC}->{content}, { utf82win => 1 });
+  	  	my $ID = $k; # convert($v->{col}->{BPL_NUM_DOC}->{content}, { utf82win => 1 });
   	  	$ID =~ s/ //g;
   		  $BINDING_IDS{$ID}=$1; 
-  		  print "/$BINDING_IDS{$ID}/<br>";
   	   }
      }
     
@@ -1358,24 +1360,19 @@ if ($conf{PAYSYS_P24_MERCHANT_YUR}) {
  
  
   while(my ($k, $v) = each %{ $info->{row} } ) {
-    my $ID          = utf2win($v->{col}->{BPL_NUM_DOC}->{content}, { utf82win => 1 });
+    my $ID          = $k; # convert($v->{col}->{BPL_NUM_DOC}->{content}, { utf82win => 1 });
     $ID =~ s/ //g;
     my ($LOGIN, $BIND, $UID);
     if ($BINDING_IDS{$ID} ne '') {
-    	
       ($LOGIN, $BIND, $UID)=split(/:/, $binding_hash{$BINDING_IDS{$ID}});
-
-      print "$LOGIN, $BIND, $UID // $binding_hash{$BINDING_IDS{$ID}} // $BINDING_IDS{$ID} // '$ID' <br>" if ($binding_hash{$BINDING_IDS{$ID}});
-     }
+     }    
     
-    
-    
-    my $description = convert( $v->{col}->{BPL_OSND}->{content},{ utf82win => 1 });
+    my $description = convert( $v->{col}->{BPL_OSND}->{content}, { utf82win => 1 });
     my $sum         = $v->{col}->{BPL_SUM}->{content};
     my $date        = $v->{col}->{BPL_DAT_OD}->{content};
     $date =~ s/([0-9\-\:\ ])/$1/;
-    $table->addrow( $html->form_input('IDS', "$ID", { TYPE => 'checkbox'}).$ID,
-		  (($UID>0) ? $html->button($LOGIN, "index=15&UID=$UID").'<br/>' : $html->form_input('UID_'. $ID, "$FORM{UID}")).
+    $table->addrow( ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) ? $html->form_input('IDS', "$ID", { TYPE => 'checkbox'}).$ID : '',
+		  (($UID>0) ? $html->button($LOGIN, "index=15&UID=$UID").'<br/>' :  ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) ?  $html->form_input('UID_'. $ID, "$FORM{UID}") : '' ) .
 		  
 		  $html->form_input('UID_'.$ID, "$UID", { TYPE => 'hidden'})	.
 		  $html->form_input('SUM_'.$ID, "$sum", { TYPE => 'hidden'})	.
@@ -1424,7 +1421,6 @@ else {
      }
   }
 
-  #print %{ $info->{data}->{info}->[0]->{statements}->[0]->{statement} };
 	foreach my $line ( @{ $info->{data}->{info}->[0]->{statements}->[0]->{statement} }) {
 		my $description = convert($line->{'description'}, { utf82win => 1 });
     my $ID          = $line->{'appcode'};

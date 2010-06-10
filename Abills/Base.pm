@@ -205,6 +205,7 @@ sub win2utf8 {
 
 #**********************************************************
 # http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1251.TXT
+# http://www.utf8-chartable.de/unicode-utf8-table.pl
 #**********************************************************
 sub utf82win {
 	my ($text)=@_;
@@ -214,14 +215,14 @@ sub utf82win {
   my $Code='';
   for(@ChArray){
     $Code=ord;
-    #return $Code;
     if($Code==0x0406) { $Unicode.=chr(0xB2); }
-    elsif($Code==0x0456) { $Unicode.=chr(0xB3); }
-    elsif($Code==0x0491) { $Unicode.=chr(0xB4); }
-    elsif($Code==0x0457) { $Unicode.=chr(0xBF); }
-    elsif(($Code>=410)&&($Code<=0xff+0x44f)){$Unicode.=chr($Code-0x350);}
-    elsif($Code==0x404)  { $Unicode.=chr(0xAA); }
-    elsif($Code==0x2116) { $Unicode.=chr(0xB9); }
+    elsif($Code==0x0454)    { $Unicode.=chr(0xBA); } #
+    elsif($Code==0x0456)    { $Unicode.=chr(0xB3); } # CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I
+    elsif($Code==0x0491)    { $Unicode.=chr(0xB4); } # 
+    elsif($Code==0x0457)    { $Unicode.=chr(0xBF); }
+    elsif(($Code>=0x410)&&($Code<=0xff+0x44f)){$Unicode.=chr($Code-0x350);}
+    elsif($Code==0x404)     { $Unicode.=chr(0xAA); }
+    elsif($Code==0x2116)    { $Unicode.=chr(0xB9); }
     elsif($Code==0xa8+0x350){$Unicode.=chr(0x401-0x350);}
     elsif($Code==0xb8+0x350){$Unicode.=chr(0x451-0x350);}
     elsif($Code==0xb3+0x350){$Unicode.=chr(0x456-0x350);}
@@ -230,11 +231,18 @@ sub utf82win {
     elsif($Code==0xb2+0x350){$Unicode.=chr(0x406-0x350);}
     elsif($Code==0xaf+0x350){$Unicode.=chr(0x407-0x350);}
     elsif($Code==0xbf+0x350){$Unicode.=chr(0x457-0x350);}
-    else{ $Unicode.=$_; }
+    #elsif($Code==0x49){ $Unicode.='I';     	}
+    #elsif($Code==0x69){ $Unicode.='i';     	}
+    #elsif($Code==0x3F){ $Unicode.='?';     	}
+    #elsif($Code==0x20){ $Unicode.=' ';     	}
+    #elsif($Code==0x2C){ $Unicode.=',';     	}
+    #elsif($Code==0x2E){ $Unicode.='.';     	}
+    #elsif($Code==0x64){ $Unicode.='d';     	}
+    else{ $Unicode.= $_; 	}
    }
 
   return $Unicode;
- }
+}
 
 #**********************************************************
 # Parse comand line arguments
