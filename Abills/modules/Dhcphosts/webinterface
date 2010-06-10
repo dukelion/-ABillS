@@ -951,6 +951,7 @@ foreach my $line (@$list) {
   $INFO{ROUTERS}      = ($Dhcphosts->{ROUTERS} ne '0.0.0.0') ? "option routers $Dhcphosts->{ROUTERS};" : '';
   $INFO{DATETIME}     = "$DATE $TIME / Dhcphosts";
   
+  $INFO{NETWORK_ID}   = $Dhcphosts->{ID};
   $INFO{NETWORK_NAME} = $Dhcphosts->{NAME};
   $INFO{BLOCK_NETWORK}= $Dhcphosts->{BLOCK_NETWORK};
   $INFO{BLOCK_MASK}   = $Dhcphosts->{BLOCK_MASK};

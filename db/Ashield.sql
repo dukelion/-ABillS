@@ -20,3 +20,16 @@ CREATE TABLE `ashield_avd_log` (
   `id` INTEGER(11) NOT NULL AUTO_INCREMENT,
   UNIQUE KEY `id` (`id`)
 ) COMMENT='Ashield AV Desc Subscribes';
+
+
+
+CREATE TABLE `ashield_tps` (
+  `id` smallint(6) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(25) NOT NULL,
+  `payment_type` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `daily_payment` double(14,2) unsigned NOT NULL DEFAULT '0.00',
+  `monthly_payment` double(14,2) unsigned NOT NULL DEFAULT '0.00',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `name` (`name`)
+) COMMENT='Ashield tarif plans';
