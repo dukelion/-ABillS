@@ -16,7 +16,7 @@ CREATE TABLE `ashield_avd_log` (
   `groupname` VARCHAR(20) NOT NULL DEFAULT '',
   `tariffplancode` VARCHAR(20) NOT NULL DEFAULT '',
   `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
-  `date` DATE NOT NULL,
+  `date` DATETIME NOT NULL,
   `id` INTEGER(11) NOT NULL AUTO_INCREMENT,
   UNIQUE KEY `id` (`id`)
 ) COMMENT='Ashield AV Desc Subscribes';

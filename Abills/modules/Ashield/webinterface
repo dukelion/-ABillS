@@ -429,13 +429,13 @@ sub ashield_user {
       $html->message('err', $_ERROR, "[$Ashield->{errno}] $err_strs{$Ashield->{errno}}");
      }
    }
-  my $user = $Ashield->user_info($LIST_PARAMS{UID});
-  if($user->{TOTAL} < 1) {
+  my $service = $Ashield->user_info($LIST_PARAMS{UID});
+  if($service->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
-	  $user              = $Ashield->defaults();
-	  $user->{ACTION}    = 'add';
-	  $user->{LNG_ACTION}= $_ACTIVATE;
-    $user->{TP_ID}=$html->form_select('TP_ID', 
+	  $service              = $Ashield->defaults();
+	  $service->{ACTION}    = 'add';
+	  $service->{LNG_ACTION}= $_ACTIVATE;
+    $service->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
  	                                          SELECTED          => $user->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Ashield'}),
@@ -483,9 +483,7 @@ sub ashield_user {
     	#my $changed = "$1-$2-$3 $4:$5:$6";
       my $activated	= $result_hash2->{customers}->[0]->{customer}->[0]->{activated}->[0];
       my $online	= $result_hash2->{customers}->[0]->{customer}->[0]->{online}->[0];
-    	
     	my $name = $result_hash2->{customers}->[0]->{customer}->[0]->{name}->[0] || $k->{uuid}->[0];
-    	
     	my $status = '';
     	$result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
     	my $expire = "$1$2$3";
@@ -528,13 +526,21 @@ sub ashield_user {
     print $table->show();
 
 
+    return 0 if ($user->{UID});
+ 
+    if (! $FORM{sort}) {
+    	$LIST_PARAMS{SORT}=7;
+    	$LIST_PARAMS{DESC}='DESC';
+     }
+
     my $list =  $Ashield->ashield_avd_list({ %LIST_PARAMS  });
   	$table = $html->table({ width      => '100%',
   		                      caption    => "$_LOG",
-  		                      title_plain=> ["$_LOGIN", "$_STETE", "$_AGENT ID",
+  		                      title      => ["$_LOGIN", "$_STATE", "$_AGENT ID",
   		                      "$_GROUP ID", "$_GROUP $_NAME", "$_TARIF_PLAN", "$_DATE"],
-                            cols_align => ['left', 'left'],
-                            pages      => $Ashield->{TOTAL}
+                            cols_align => ['left', 'left', 'left', 'left', 'left'],
+                            pages      => $Ashield->{TOTAL},
+                            qs         => "&UID=$LIST_PARAMS{UID}"
                           });
  
  

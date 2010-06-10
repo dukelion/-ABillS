@@ -122,20 +122,20 @@ while(my($k, $v)=each %FORM) {
 
 print "Content-Type: text/html\n\n";
 
-#$FORM{'__BUFFER'}=qq{xml=<?xml version="1.0" encoding="UTF-8"?>
-#<personal-office timestamp="20100607193208">
-#  <login>test2</login>
-#  <name>-</name>
-#  <lastname>-</lastname>
-#  <action>
-#    <type>1</type>
-#    <agentuuid>c4c4e78b-d21d-b211-b94d-f627387fdbbf</agentuuid>
-#    <groupuuid>91644cc3-1dc1-42dc-a41e-5ea001f5538d</groupuuid>
-#    <groupname>AV+AS+PC</groupname>
-#    <tariffplancode>PREMIUM</tariffplancode>
-#  </action>
-#</personal-office>
-#&checkword=827ccb0eea8a706c4c34a16891f84e7b};
+$FORM{'__BUFFER'}=qq{xml=<?xml version="1.0" encoding="UTF-8"?>
+<personal-office timestamp="20100610203403">
+  <login>test3</login>
+  <name>test tewtst</name>
+  <lastname>test</lastname>
+  <action>
+    <type>3</type>
+    <agentuuid>3bccbd92-d21d-b211-8dbc-ea17cb6d883e</agentuuid>
+    <groupuuid>ebe76ffc-69e1-4757-b2b3-41506832bc9b</groupuuid>
+    <groupname>AV+AS</groupname>
+    <datetime>20100610203403</datetime>
+  </action>
+</personal-office>
+&checkword=827ccb0eea8a706c4c34a16891f84e7b};
 
 mk_log($FORM{'__BUFFER'});
 
@@ -189,11 +189,15 @@ else {
    }
 }
 
-#Add fees
-if ($_xml->{'action'}->[0]->{type}->[0] < 4) {
-  my $login = $_xml->{'login'}->[0];
-  my $list = $users->list({ LOGIN => $login });
 
+my $status  = $_xml->{'action'}->[0]->{type}->[0];
+my $agent   = $_xml->{'action'}->[0]->{agentuuid}->[0];
+
+if ($status < 4) {
+  my $login   = $_xml->{'login'}->[0];
+  my $list    = $users->list({ LOGIN => $login });
+  my $TP_NAME = $_xml->{'action'}->[0]->{tariffplancode}->[0];
+  
   my $uid = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
   if ($users->{error}) {
 	  mk_log("Error user '$login'");
@@ -204,78 +208,114 @@ if ($_xml->{'action'}->[0]->{type}->[0] < 4) {
   else {
   	require "Abills/modules/Ashield/webinterface";
 	  my $user = $users->info($uid);
-    $Tariffs->info(0, { NAME => "$_xml->{'action'}->[0]->{tariffplancode}->[0]" });
-  
-    if ($Tariffs->{TOTAL} < 1) {
-    	mk_log("Tariff not exists. TP: '". $_xml->{'action'}->[0]->{tariffplancode}->[0]."'");
-     }
-    else {
-      my $agents_result_hash=ashield_drweb_request('interfaces/user_agents.php', {
+	  
+	  if ( $status == 3 ) {
+       #get TP
+	     my $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
+      	  login      => "$users->{LOGIN}",
+      	  id         => "$agent",
+      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
+      	  },
+      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+      	  	});
+
+       foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) { 
+	       if ($k->{uuid}->[0] eq $agent) {
+	       	 $TP_NAME = $k->{tariffplancode}->[0];
+	       	 last;
+	        }
+	      }
+	    } 
+
+      $Tariffs->info(0, { NAME => "$TP_NAME", MODULE => 'Ashield' });
+
+      if ($Tariffs->{TOTAL} < 1) {
+    	  mk_log("Tariff not exists. TP: '$TP_NAME'");
+       }
+      else {
+        my $agents_result_hash=ashield_drweb_request('interfaces/user_agents.php', {
        	  login      => "$users->{LOGIN}",
       	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
       	  },
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
-     my $agetnt_count = $#{ $agents_result_hash->{agents}->[0]->{agent} };
+        my $agetnt_count = $#{ $agents_result_hash->{agents}->[0]->{agent} };
 
-      
-      my $sum = $Tariffs->{MONTH_FEE};  
-      $Tariffs->{PERIOD_ALIGNMENT}=1;
-      if ($Tariffs->{PERIOD_ALIGNMENT}) {
+        my $sum = $Tariffs->{MONTH_FEE};  
+        $Tariffs->{PERIOD_ALIGNMENT}=1;
+        if ($Tariffs->{PERIOD_ALIGNMENT}) {
         	my ($y, $m, $d)=split(/-/, $DATE);
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
           $conf{START_PERIOD_DAY} = 1;
           $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
-        }
+         }
       
-      if ($conf{ASHIELD_DRWEBAVD_FREE_PERIOD} &&  $agetnt_count == 0
-            && $_xml->{'action'}->[0]->{type}->[0] == 1) {
-        print "Free Activate\n" if ($debug > 0);    	
-       }
-      elsif($_xml->{'action'}->[0]->{type}->[0] < 4 && ($user->{DEPOSIT} + $user->{CREDIT} > 0 || $Tariffs->{PAYMENT_TYPE})) {
-        $Fees->take($users, "$sum", 
-                     { DESCRIBE  => "Dr.Web TP:". $_xml->{'action'}->[0]->{tariffplancode}->[0], 
+        if ($conf{ASHIELD_DRWEBAVD_FREE_PERIOD} &&  $agetnt_count == 0
+            && $status == 1) {
+          print "Free Activate\n" if ($debug > 0);    	
+         }
+        elsif($status < 4 && ($user->{DEPOSIT} + $user->{CREDIT} > 0 || $Tariffs->{PAYMENT_TYPE})) {
+          $Fees->take($users, "$sum", 
+                     { DESCRIBE  => "Dr.Web TP: $TP_NAME", 
  	                     DATE      => "$DATE $TIME"
   	                  });
-  	    print "Activate\n" if ($debug > 0);    	
-       }
-      #block account
-      else {
-        my ($y, $m, $d)=split(/-/, $DATE, 3);
-        my $cur_date="$y$m$d"; 
 
-      	my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
+
+       	  my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
+ 	     	 	   id       => $agent, 
+ 	     	 	   blockbeg => '00000000',
+ 	     	 	   blockend => '00000000'
+ 	     	 	   }); 
+
+ 	        if ( $result->{error} ) { 	      	 
+ 	        	 my $code = $result->{error}->[0]->{code}->[0];
+ 	           if ($code == 17) {
+ 	           	 print "'$_xml->{'action'}->[0]->{agentuuid}->[0]', Customer Not Exist\n";
+ 	            }
+             else {
+           	   print "Block '$user->{LOGIN}' '$cur_date' $code / $result->{error}->[0]->{message}->[0]\n";
+              }
+ 	         }
+          else {    
+  	        print "Activate\n" if ($debug > 0);
+  	       }
+         }
+      #block account
+        else {
+          my ($y, $m, $d)=split(/-/, $DATE, 3);
+          my $cur_date="$y$m$d"; 
+
+        	my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
  	     	 	   id       => $_xml->{'action'}->[0]->{agentuuid}->[0], 
  	     	 	   blockbeg => $cur_date,
- 	     	 	   blockend => '20200101'
+ 	     	 	   blockend => '20300101'
  	     	 	   }); 
  	       
- 	      if ( $result->{error} ) { 	      	 
- 	      	 my $code = $result->{error}->[0]->{code}->[0];
- 	         if ($code == 17) {
- 	         	 print "'$_xml->{'action'}->[0]->{agentuuid}->[0]', Customer Not Exist\n";
- 	          }
-           else {
-           	 print "Block $line->[0] '$cur_date' $code / $result->{error}->[0]->{message}->[0]\n";
-            }
- 	       }
- 	      else {
- 	         print "$result->{customers}->[0]->{customer}->[0]->{id}->[0] ".
- 	          "BLOCKING: $result->{customers}->[0]->{customer}->[0]->{blockbeg}->[0]\n" if ($debug > 0);
- 	       }
-       }
-
+ 	        if ( $result->{error} ) { 	      	 
+ 	        	 my $code = $result->{error}->[0]->{code}->[0];
+ 	           if ($code == 17) {
+ 	           	 print "'$_xml->{'action'}->[0]->{agentuuid}->[0]', Customer Not Exist\n";
+ 	            }
+             else {
+           	   print "Block '$user->{LOGIN}' '$cur_date' $code / $result->{error}->[0]->{message}->[0]\n";
+              }
+ 	         }
+ 	        else {
+ 	           print "$result->{customers}->[0]->{customer}->[0]->{id}->[0] ".
+ 	            "BLOCKING: $result->{customers}->[0]->{customer}->[0]->{blockbeg}->[0]\n" if ($debug > 0);
+ 	         }
+         }
+      }
       if (! $Fees->{error}) {
         $Ashield->ashield_avd_add({ UID => $users->{UID},
       	 STATE      => $_xml->{'action'}->[0]->{type}->[0],
          AGENTUUID  => $_xml->{'action'}->[0]->{agentuuid}->[0],
          GROUPUUID  => $_xml->{'action'}->[0]->{groupuuid}->[0],
          GROUPNAME  => $_xml->{'action'}->[0]->{groupname}->[0],
-         TARIFFPLANCODE  => $_xml->{'action'}->[0]->{tariffplancode}->[0],
+         TARIFFPLANCODE  => $TP_NAME,
          TP_ID      => $Tariffs->{TP_ID} });
        }
-    }
   }
  }
 
