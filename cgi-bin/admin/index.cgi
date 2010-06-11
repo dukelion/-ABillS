@@ -4538,17 +4538,13 @@ sub form_payments () {
  my ($attr) = @_; 
  use Finance;
  my $payments = Finance->payments($db, $admin, \%conf);
-
  
  return 0 if (! $permissions{1});
 
-
  %PAYMENTS_METHODS = ();
-
  my %BILL_ACCOUNTS = ();
 
  if ($FORM{print}) {
- 	 #print "Content-Type: text/html\n\n";
    require "Abills/modules/Docs/webinterface";
    if ($FORM{ACCOUNT_ID}) {
    	 docs_account({ %FORM  });
@@ -4559,7 +4555,6 @@ sub form_payments () {
    exit;
   }
 
-
 if (defined($attr->{USER})) { 
   my $user = $attr->{USER};
   $payments->{UID} = $user->{UID};
@@ -4568,7 +4563,6 @@ if (defined($attr->{USER})) {
     $BILL_ACCOUNTS{$user->{BILL_ID}} = "$_PRIMARY : $user->{BILL_ID}" if ($user->{BILL_ID}); 
     $BILL_ACCOUNTS{$user->{EXT_BILL_ID}} = "$_EXTRA : $user->{EXT_BILL_ID}" if ($user->{EXT_BILL_ID}); 
    }
-
 
   if (in_array('Docs', \@MODULES) ) {
     $FORM{QUICK}=1;
@@ -4584,17 +4578,15 @@ if (defined($attr->{USER})) {
     ($DATE, $TIME)=split(/ /, $FORM{DATE});
    }
 
-
   if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	  $html->message('err', $_ERROR, "$_EXIST");
    }
-  elsif ($FORM{add} && $FORM{SUM})	{
+  elsif ($FORM{add} && $FORM{SUM}) {
     if( $FORM{ACCOUNT_ID} && $FORM{ACCOUNT_ID} eq 'create' ) {
     	$LIST_PARAMS{UID}= $FORM{UID};
     	$FORM{create}    = 1;
     	$FORM{CUSTOMER}  = '-';
     	$FORM{ORDER}     = $FORM{DESCRIBE};
-
     	docs_account();    	
      }
     elsif($FORM{ACCOUNT_ID}) {
@@ -4727,8 +4719,9 @@ if ($permissions{1} && $permissions{1}{1}) {
   	my $ACCOUNTS_SEL = $html->form_select("ACCOUNT_ID", 
                                 { SELECTED          => $FORM{ACCOUNT_ID},
  	                                SEL_MULTI_ARRAY   => $Docs->accounts_list({ UID => $user->{UID}, PAYMENT_ID => 0, PAGE_ROWS => 100, SORT => 2, DESC => 'DESC' }), 
- 	                                MULTI_ARRAY_KEY   => 9,
+ 	                                MULTI_ARRAY_KEY   => 10,
  	                                MULTI_ARRAY_VALUE => '0,1,3',
+ 	                                MULTI_ARRAY_VALUE_PREFIX => "$_NUM: ,$_DATE: ,$_SUM:",
  	                                SEL_OPTIONS       => { 0 => '', create => $_CREATE },
  	                                NO_ID             => 1
  	                               });

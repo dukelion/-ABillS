@@ -446,7 +446,13 @@ sub form_select {
   elsif (defined($attr->{SEL_MULTI_ARRAY})){
     my $key   = $attr->{MULTI_ARRAY_KEY};
     my $value = $attr->{MULTI_ARRAY_VALUE};
-	  my $H = $attr->{SEL_MULTI_ARRAY};
+	  my $H     = $attr->{SEL_MULTI_ARRAY};
+    my @MULTI_ARRAY_VALUE_PREFIX = ();
+
+    if ($attr->{MULTI_ARRAY_VALUE_PREFIX}) {
+    	@MULTI_ARRAY_VALUE_PREFIX = split(/,/, $attr->{MULTI_ARRAY_VALUE_PREFIX});
+     }
+ 
 
 	  foreach my $v (@$H) {
       $self->{SELECT} .= "<option value='$v->[$key]'";
@@ -457,8 +463,10 @@ sub form_select {
 
       if ($value =~ /,/) {
       	my @values = split(/,/, $value);
+      	my $key_num = 0;
       	foreach my $val_keys (@values) {
-      	  $self->{SELECT} .= $v->[int($val_keys)]."; ";	
+      	  $self->{SELECT} .= (($attr->{MULTI_ARRAY_VALUE_PREFIX} && $MULTI_ARRAY_VALUE_PREFIX[$key_num]) ? ' '.$MULTI_ARRAY_VALUE_PREFIX[$key_num] : "; ") . $v->[int($val_keys)];	
+      	  $key_num++;
       	 }
        }
       else {

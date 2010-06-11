@@ -4838,8 +4838,6 @@ sub dv_wizard_user {
          }
         elsif($FORM{'5.SUM'} + 0 < 0) {
           my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
-          
-          
           $fees->take($user, abs($FORM{'5.SUM'}), { DESCRIBE => 'MIGRATION',  ER => $er->{ER_RATE} } );  
 
           if ($fees->{errno}) {
@@ -4862,7 +4860,7 @@ sub dv_wizard_user {
     	   }
        }
 
-      
+      my $user_fees;
    	  $Dv->add({ UID => $UID, %{$add_values{4}} });
       if ($Dv->{errno}) {
         $html->message('err', "Dv:$_ERROR", "Dv Modules [$Dv->{errno}] $err_strs{$Dv->{errno}}");	
@@ -4872,10 +4870,9 @@ sub dv_wizard_user {
         if (! $add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
           $Dv->{UID}=$UID;
           $Dv->{ACTIVATE}=$add_values{1}{ACTIVATE};
-          dv_get_month_fee($Dv);
+          $user_fees = dv_get_month_fee($Dv);
          }
        }
-
 
       # Add E-Mail account
       my $Mail;
@@ -4942,11 +4939,10 @@ sub dv_wizard_user {
          }
         
         #If docs module enable make account
-        if (in_array('Docs', \@MODULES)) {
-          $tariffs->info(0, { ID => $dv->{TP_ID} });
+        if (in_array('Docs', \@MODULES) && $FORM{'4.NO_ACCOUNT'}) {
           $LIST_PARAMS{UID} = $UID;
 
-          if ($tariffs->{MONTH_FEE} + $tariffs->{ACTIV_PRICE} > 0) {
+          if ($user_fees->{MONTH_FEE} + $user_fees->{ACTIVATE} > 0) {
             require "Abills/modules/Docs/lng_$html->{language}.pl";
             require "Abills/modules/Docs/webinterface";
 
@@ -4959,13 +4955,13 @@ sub dv_wizard_user {
             $FORM{'ORDER_1'} = "$_DV";
             $FORM{'COUNT_1'} = 1;
             $FORM{'UNIT_1'}  = 0;
-            $FORM{'SUM_1'}   = $tariffs->{MONTH_FEE};
+            $FORM{'SUM_1'}   = $user_fees->{MONTH_FEE};
 
             if ($tariffs->{ACTIV_PRICE}) {
               $FORM{'ORDER_2'} = "$_ACTIVATE";
               $FORM{'COUNT_2'} = 1;  
               $FORM{'UNIT_2'}  = 0;
-              $FORM{'SUM_2'}   = $tariffs->{ACTIV_PRICE};
+              $FORM{'SUM_2'}   = $user_fees->{MONTH_FEE};
              }
 
             $FORM{'create'}  = 1;
@@ -5320,6 +5316,9 @@ REG_FORM:
 sub dv_get_month_fee {
   my ($Dv, $attr) = @_;
 
+  my %total_sum =( ACTIVATE  => 0,
+  	               MONTH_FEE => 0 ) ;
+  
   #Get active price
   if ($Dv->{TP_INFO}->{ACTIV_PRICE}) {
     my $users = Users->new($db, $admin, \%conf); 
@@ -5332,10 +5331,12 @@ sub dv_get_month_fee {
                               { DESCRIBE  => "$_ACTIVATE $_TARIF_PLAN", 
    	                            DATE      => "$date $time"
   	                           });  
+      $total_sum{ACTIVATE} = $Dv->{TP_INFO}->{ACTIV_PRICE};
   	  $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN");	
      }
    }
   #Get month fee
+  
   if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
      my $sum   = $Dv->{TP_INFO}->{MONTH_FEE};
      my $users = Users->new($db, $admin, \%conf); 
@@ -5351,7 +5352,7 @@ sub dv_get_month_fee {
 
      my ($active_y, $active_m, $active_d)=split(/-/, $Dv->{ACTIVATE}, 3);	 
      if (int("$y$m$d") < int("$active_y$active_m$active_d")) {
-     	  return ;
+     	  return \%total_sum;
       }
 
         if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT} && ! $Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
@@ -5367,7 +5368,7 @@ sub dv_get_month_fee {
           $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
          }
        
-        return 0 if ($sum == 0);
+        return \%total_sum if ($sum == 0);
         
         my $periods = 0;
         if ($active_m > 0 && $active_m < $m) {
@@ -5382,7 +5383,7 @@ sub dv_get_month_fee {
          	$sum = $sum * (100 - $users->{REDUCTION}) / 100;
          }          
 
-        $message .= "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{TP_ID})";
+        $message .= "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{ID})";
         
         if ($Dv->{TP_INFO}->{ABON_DISTRIBUTION}) {
         	$sum = $sum / ( ($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28)) );
@@ -5421,20 +5422,19 @@ sub dv_get_month_fee {
         	                            DATE      => "$DATE $TIME"
         	                           });  
         
+          $total_sum{MONTH_FEE} += $sum;
+        
           if ($fees->{errno}) {
         	  $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}");	
            }
           else {
             $html->message('info', $_INFO, $message);	
            }
-
           $m++;
          }
-
-
       }
 
-
+  return \%total_sum;
 }
 
 #**********************************************************

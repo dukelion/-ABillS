@@ -225,7 +225,7 @@ sub marketing_internet {
  	                                        }),
                                     $_TARIF_PLAN =>  $html->form_select('TP_ID', 
                                           { 
- 	                                          SELECTED          => $FORM{TP_ID},
+ 	                                          SELECTED          => $FORM{ID},
  	                                          SEL_MULTI_ARRAY   => [['', ''], @{ $tariffs->list() }],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
@@ -586,6 +586,8 @@ print $table->show();
 
 
 }
+
+
 
 1
 
