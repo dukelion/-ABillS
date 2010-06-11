@@ -122,20 +122,20 @@ while(my($k, $v)=each %FORM) {
 
 print "Content-Type: text/html\n\n";
 
-$FORM{'__BUFFER'}=qq{xml=<?xml version="1.0" encoding="UTF-8"?>
-<personal-office timestamp="20100610203403">
-  <login>test3</login>
-  <name>test tewtst</name>
-  <lastname>test</lastname>
-  <action>
-    <type>3</type>
-    <agentuuid>3bccbd92-d21d-b211-8dbc-ea17cb6d883e</agentuuid>
-    <groupuuid>ebe76ffc-69e1-4757-b2b3-41506832bc9b</groupuuid>
-    <groupname>AV+AS</groupname>
-    <datetime>20100610203403</datetime>
-  </action>
-</personal-office>
-&checkword=827ccb0eea8a706c4c34a16891f84e7b};
+#$FORM{'__BUFFER'}=qq{xml=<?xml version="1.0" encoding="UTF-8"?>
+#<personal-office timestamp="20100610203403">
+#  <login>test3</login>
+#  <name>test tewtst</name>
+#  <lastname>test</lastname>
+#  <action>
+#    <type>3</type>
+#    <agentuuid>3bccbd92-d21d-b211-8dbc-ea17cb6d883e</agentuuid>
+#    <groupuuid>ebe76ffc-69e1-4757-b2b3-41506832bc9b</groupuuid>
+#    <groupname>AV+AS</groupname>
+#    <datetime>20100610203403</datetime>
+#  </action>
+#</personal-office>
+#&checkword=827ccb0eea8a706c4c34a16891f84e7b};
 
 mk_log($FORM{'__BUFFER'});
 
