@@ -8,7 +8,7 @@ my $tariffs   = Tariffs->new($db, \%conf, $admin);
 
 
 my %FORM_BASE = ();
-my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT" );
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT" );
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000');
 
 
@@ -204,7 +204,8 @@ print $html->make_charts({
 #*******************************************************************
 sub marketing_internet {
 
- @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" ); 
+ #@service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE" ); 
+ @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT" );
 
  $table = $html->table( { width       => '100%',
 	                        rowcolor    => $_COLORS[0],
@@ -218,8 +219,8 @@ sub marketing_internet {
  	                                          	                2  => $service_status[2],  
  	                                          	                3  => $service_status[3],
  	                                          	                4  => $service_status[4],  
-
  	                                          	                },
+ 	                                          SORT_KEY    => 1,
                                             NO_ID       => 1
  	                                        }),
                                     $_TARIF_PLAN =>  $html->form_select('TP_ID', 
