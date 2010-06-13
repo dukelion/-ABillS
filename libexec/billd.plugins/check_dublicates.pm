@@ -9,10 +9,13 @@ check_dublicates();
 
 #**********************************************************
 #
+#
 #**********************************************************
 sub check_dublicates {
 
 print "Check dublicates\n" if ($debug > 1);
+
+$conf{DV_SIM_CID} = 1 if (! $conf{DV_SIM_CID});
 
 $admin->query($db, "SELECT c.user_name, INET_NTOA(framed_ip_address), c.nas_port_id, 
    if (dv.logins > 0, dv.logins, tp.logins), c.acct_session_id, c.uid,
@@ -21,7 +24,8 @@ $admin->query($db, "SELECT c.user_name, INET_NTOA(framed_ip_address), c.nas_port
    nas.nas_type,
    mng_host_port,
    mng_user,
-   mng_password
+   mng_password,
+   c.CID
                   FROM dv_calls c, dv_main dv, tarif_plans tp, nas
                   WHERE c.uid=dv.uid 
                   AND c.status<11
@@ -30,6 +34,7 @@ $admin->query($db, "SELECT c.user_name, INET_NTOA(framed_ip_address), c.nas_port
                   ;");	
 
 my %logins = ();
+my %CIDS   = ();
 
 foreach my $line ( @{ $admin->{list} } ) {
   print "$line->[0] $line->[1] $line->[2] $line->[3]\n" if ($debug > 1);	
@@ -44,8 +49,9 @@ foreach my $line ( @{ $admin->{list} } ) {
   );
 	
 	$logins{$line->[0]}++;
+  $CIDS{$line->[0]}{$line->[12]}++;
 
-	if ($logins{$line->[0]} > $line->[3]) {
+	if ($logins{$line->[0]} > $line->[3] || $CIDS{$line->[0]}{$line->[12]} > $conf{DV_SIM_CID}) {
 		 print "Hangap dublicate '$line->[0]'\n";
 		 my $ret = hangup(\%NAS, "$line->[2]", "$line->[0]", { ACCT_SESSION_ID      => $line->[4],
         	                                                 FRAMED_IP_ADDRESS    => $line->[1],
