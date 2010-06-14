@@ -958,6 +958,7 @@ if ($conf{ng_car}) {
   	 	       	  my $tp_speed_out = $speeds{$TP}{OUT}{$class_id} || 0;
   	 	       	  $tp_speed_in     = 0 if (! $tp_speed_in);
 
+
                 if ($conf{octets_direction} eq 'server') {
                   my $s_in = $tp_speed_in;
                   my $s_out= $tp_speed_out;
