@@ -15,7 +15,10 @@ sub check_dublicates {
 
 print "Check dublicates\n" if ($debug > 1);
 
-$conf{DV_SIM_CID} = 1 if (! $conf{DV_SIM_CID});
+# TOTAL : SAME CID
+$conf{DV_SIM_CONTROL} = "1:2" if (! $conf{DV_SIM_CONTROL});
+
+my ($UNIQUE_CIDS, $SAME_CIDS) = split(/:/, $conf{DV_SIM_CONTROL});
 
 $admin->query($db, "SELECT c.user_name, INET_NTOA(framed_ip_address), c.nas_port_id, 
    if (dv.logins > 0, dv.logins, tp.logins), c.acct_session_id, c.uid,
@@ -48,10 +51,19 @@ foreach my $line ( @{ $admin->{list} } ) {
    NAS_MNG_PASSWORD => $line->[11]
   );
 	
-	$logins{$line->[0]}++;
+	$logins{$line->[0]}{TOTAL}++;
+  if ($CIDS{$line->[0]}{$line->[12]}) {
+    $logins{$line->[0]}{SAME_CID}++;
+   }
+  else {
+  	$logins{$line->[0]}{UNIQUE_CID}++;
+   }
+
   $CIDS{$line->[0]}{$line->[12]}++;
 
-	if ($logins{$line->[0]} > $line->[3] || $CIDS{$line->[0]}{$line->[12]} > $conf{DV_SIM_CID}) {
+
+	#if ($logins{$line->[0]} > $line->[3] || $CIDS{$line->[0]}{$line->[12]} > $conf{DV_SIM_CID}) {
+	if (int($logins{$line->[0]}{UNIQUE_CID}) > $UNIQUE_CIDS || int($CIDS{$line->[0]}{$line->[12]}) > SAME_CIDS) {
 		 print "Hangap dublicate '$line->[0]'\n";
 		 my $ret = hangup(\%NAS, "$line->[2]", "$line->[0]", { ACCT_SESSION_ID      => $line->[4],
         	                                                 FRAMED_IP_ADDRESS    => $line->[1],
