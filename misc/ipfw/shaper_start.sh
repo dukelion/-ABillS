@@ -5,10 +5,13 @@
 #traffic Class numbers
 
 CLASSES_NUMS='2 3'
-VERSION=3.0
+VERSION=3.1
 
 #Enable NG shapper
-NG_SHAPPER=1
+
+if [ w != w`grep ng_car /usr/abills/libexec/config.pl` ]; then
+  NG_SHAPPER=1
+fi;
 # NAT IP
 NAT_IPS="";
 FAKE_NET="10.0.0.0/16"

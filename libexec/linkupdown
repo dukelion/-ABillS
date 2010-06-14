@@ -115,7 +115,8 @@ my $IPFW      = '/sbin/ipfw -q';
 my @START_FW = (3000, 2000, 1000);
 
 # Arguments
-my ($ACTION, $INTERFACE, $USER, $HISADDR, $inum);
+my ($ACTION, $INTERFACE, $USER, $HISADDR);
+my $inum=0;
 
 #MPD
 if ($ARGV[0] eq 'mpd') {
@@ -217,29 +218,6 @@ else {
     exit 1;
    }
 
-#  if ($ARGV[0] eq 'ipn') {
-#    if ($conf{IPN_FW_RULE_UID}) {
-#      $user = $Dv->info(0, { LOGIN => $USER });
-#      #$inum = $user->{UID};
-#     }
-#
-#    $conf{IPN_FW_FIRST_RULE}=20000 if (! $conf{IPN_FW_FIRST_RULE});
-#    $START_FW[0]=$START_FW[0]+$conf{IPN_FW_FIRST_RULE};
-#    $START_FW[1]=$START_FW[1]+$conf{IPN_FW_FIRST_RULE};
-#    $START_FW[2]=$START_FW[2]+$conf{IPN_FW_FIRST_RULE};
-#   }
-
-
-#if ($inum ne '-' ) {
-#  foreach my $num (@START_FW) {
-#    $fw_num     = $num + $inum * 2;
-#    $pipe_num   = $num + $inum * 2;
-#    $fw_nums   .= ' ' . ($fw_num)   .' '. ($fw_num +1);
-#    $pipe_nums .= ' ' . ($pipe_num) .' '. ($pipe_num+1);
-#   }
-#}
-
-
 # Mask
 my $BIT_MASK = 32;
 if ($user->{NETMASK} ne '255.255.255.255') {
@@ -264,30 +242,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
      }   
     $user->{JOIN_SERVICE}=$user->{UID}	
    }
-#  elsif($OS eq 'FreeBSD' && ! $user->{SPEED}) {
-#  	if ($conf{ng_car}) {
-#  	 }
-#    else {
-#    	$inum      = '-';
-#    	#if ($INTERFACE =~ /tun/ || $INTERFACE =~ /ng/) {
-#  	  #   $INTERFACE = '-';
-#  	  # }
-#      
-##      my $result = `$IPFW show`;
-##      if ($result ne '') {
-##   	    my @rows = split(/\n/, $result);
-##        foreach my $line (@rows) {
-##        	  my($num, undef)=split(/ /, $line);
-##         	  $num =~ s/^0//;
-##         	  $IPFW_NUMS{$num}=1;
-##          }
-##       }
-#    }
-#   }
-
-  #$INTERFACE=~s/\n//;
-  #my $via_if_in  = ($INTERFACE ne '-') ? "via $INTERFACE in" : ' in ';
-  #my $via_if_out = ($INTERFACE ne '-') ? "via $INTERFACE out" : ' out ';
 
   #If set individual user speed
   if ($user->{SPEED} > 0) {
@@ -388,21 +342,9 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
   foreach my $traf_type (sort keys %speeds) {
     my $speed = $speeds{$traf_type};
-#    if (! $START_FW[$traf_type]) {
-#       $START_FW[$traf_type]=$START_FW[0]+$traf_type*$fw_step;
-#     }
     if ($inum ne '-' ) {
       $fw_num_in    = $START_FW[$traf_type] + $inum * 2;
       $fw_num_out   = $START_FW[$traf_type] + $inum * 2 + 1;
-#
-#      if ($user->{JOIN_SERVICE}) {
-#        $pipe_num_in = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $user->{JOIN_SERVICE} * 2 + $traf_type * $fw_step;
-#        $pipe_num_out = $conf{JOIN_SERVICE_FW_FIRST_RULE} + $user->{JOIN_SERVICE} * 2 + 1 + $traf_type * $fw_step ;
-#       }
-#      else {
-#        $pipe_num_in  = $START_FW[$traf_type] + $inum * 2 ;
-#        $pipe_num_out = $START_FW[$traf_type] + $inum * 2 + 1;
-#       }
      }
 
     my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN}  : 0;
@@ -492,8 +434,14 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
        my $tablearg_out = $user->{UID} + $prefix + $prefix * ($traf_type*2+1);
     	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP/$BIT_MASK ". $tablearg_in;
        push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1). " add $CLIENT_IP/$BIT_MASK ". $tablearg_out;
-       $speed_in  = $speed_in * 1024;
-       $speed_out = $speed_out * 1024;
+       if ($conf{octets_direction} eq 'server') {
+         $speed_in  = $speed_out * 1024;
+         $speed_out = $speed_in * 1024;
+        }
+       else {
+         $speed_in  = $speed_in * 1024;
+         $speed_out = $speed_out * 1024;
+        }
        ng_car_shape("$USER", $tablearg_in, $tablearg_out, "class$traf_type", $speed_in, $speed_out);
       }
     }
