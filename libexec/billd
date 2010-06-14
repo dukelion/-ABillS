@@ -958,6 +958,13 @@ if ($conf{ng_car}) {
   	 	       	  my $tp_speed_out = $speeds{$TP}{OUT}{$class_id} || 0;
   	 	       	  $tp_speed_in     = 0 if (! $tp_speed_in);
 
+                if ($conf{octets_direction} eq 'server') {
+                  my $s_in = $tp_speed_in;
+                  my $s_out= $tp_speed_out;
+                  $tp_speed_in=$s_out;
+                  $tp_speed_out=$s_in;
+                 } 
+
              	  if (defined($tp_exprasions{$TP}) && defined($tp_exprasions{$TP}{$class_id})) {
      	 	          print "Make exprasion\n" if ($debug > 2);
      	 	          $Billing->{PERIOD_TRAFFIC}=undef;
@@ -978,12 +985,6 @@ if ($conf{ng_car}) {
                 $LOGINS_SPEEDS{$user}{$class_id}{IN} = 0 if (! $LOGINS_SPEEDS{$user}{$class_id}{IN});
                 $LOGINS_SPEEDS{$user}{$class_id}{OUT} = 0 if (! $LOGINS_SPEEDS{$user}{$class_id}{OUT});
 
-                if ($conf{octets_direction} eq 'server') {
-                  my $s_in = $LOGINS_SPEEDS{$user}{$class_id}{IN};
-                  my $s_out= $LOGINS_SPEEDS{$user}{$class_id}{OUT};
-                  $LOGINS_SPEEDS{$user}{$class_id}{IN}=$s_out;
-                  $LOGINS_SPEEDS{$user}{$class_id}{OUT}=$s_in;
-                 } 
 
   	 	       	  my $info = "  Class: $class_id ng_car_speed: $LOGINS_SPEEDS{$user}{$class_id}{IN}/".
   	 	       	  "$LOGINS_SPEEDS{$user}{$class_id}{OUT} Speed: $tp_speed_in/$tp_speed_out\n";
