@@ -978,6 +978,13 @@ if ($conf{ng_car}) {
                 $LOGINS_SPEEDS{$user}{$class_id}{IN} = 0 if (! $LOGINS_SPEEDS{$user}{$class_id}{IN});
                 $LOGINS_SPEEDS{$user}{$class_id}{OUT} = 0 if (! $LOGINS_SPEEDS{$user}{$class_id}{OUT});
 
+                if ($conf{octets_direction} eq 'server') {
+                  my $s_in = $LOGINS_SPEEDS{$user}{$class_id}{IN};
+                  my $s_out= $LOGINS_SPEEDS{$user}{$class_id}{OUT};
+                  $LOGINS_SPEEDS{$user}{$class_id}{IN}=$s_out;
+                  $LOGINS_SPEEDS{$user}{$class_id}{OUT}=$s_in;
+                 } 
+
   	 	       	  my $info = "  Class: $class_id ng_car_speed: $LOGINS_SPEEDS{$user}{$class_id}{IN}/".
   	 	       	  "$LOGINS_SPEEDS{$user}{$class_id}{OUT} Speed: $tp_speed_in/$tp_speed_out\n";
 
