@@ -347,8 +347,16 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
       $fw_num_out   = $START_FW[$traf_type] + $inum * 2 + 1;
      }
 
-    my $speed_in  = (defined($speed->{IN}))  ? $speed->{IN}  : 0;
-    my $speed_out = (defined($speed->{OUT})) ? $speed->{OUT} : 0;
+    my $speed_in  = 0;
+    my $speed_out = 0;
+    if ($conf{octets_direction} eq 'server') {
+      $speed_in  = ($speed->{OUT})  ? $speed->{OUT}  : 0;
+      $speed_out = ($speed->{IN}) ? $speed->{IN} : 0;
+     }
+    else {
+    	$speed_in  = ($speed->{IN})  ? $speed->{IN}  : 0;
+      $speed_out = ($speed->{OUT}) ? $speed->{OUT} : 0;
+     }
 
  	  my @nets_arr = ();
  	  if ($nets{$traf_type}) {
@@ -434,15 +442,9 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
        my $tablearg_out = $user->{UID} + $prefix + $prefix * ($traf_type*2+1);
     	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP/$BIT_MASK ". $tablearg_in;
        push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1). " add $CLIENT_IP/$BIT_MASK ". $tablearg_out;
-       if ($conf{octets_direction} eq 'server') {
-         $speed_in  = $speed_out * 1024;
-         $speed_out = $speed_in * 1024;
-        }
-       else {
-         $speed_in  = $speed_in * 1024;
-         $speed_out = $speed_out * 1024;
-        }
-       ng_car_shape("$USER", $tablearg_in, $tablearg_out, "class$traf_type", $speed_in, $speed_out);
+       ng_car_shape("$USER", $tablearg_in, $tablearg_out, "class$traf_type", 
+          $speed_in * 1024, 
+          $speed_out * 1024);
       }
     }
 #------------------------------------------------------------------------------
@@ -594,6 +596,7 @@ foreach my $id (keys %{ $attr->{SPEEDS} }) {
   my $name = "ads-$proto-$USER";
   my $speed_in  = $attr->{SPEEDS}->{$id}->{IN};
   my $speed_out = $attr->{SPEEDS}->{$id}->{OUT};
+  
   $cmd = '';
   
   if ($id == 0) {

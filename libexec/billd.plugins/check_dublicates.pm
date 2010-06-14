@@ -63,7 +63,7 @@ foreach my $line ( @{ $admin->{list} } ) {
 
 
 	#if ($logins{$line->[0]} > $line->[3] || $CIDS{$line->[0]}{$line->[12]} > $conf{DV_SIM_CID}) {
-	if (int($logins{$line->[0]}{UNIQUE_CID}) > $UNIQUE_CIDS || int($CIDS{$line->[0]}{$line->[12]}) > SAME_CIDS) {
+	if (int($logins{$line->[0]}{UNIQUE_CID}) > $UNIQUE_CIDS || int($CIDS{$line->[0]}{$line->[12]}) > $SAME_CIDS) {
 		 print "Hangap dublicate '$line->[0]'\n";
 		 my $ret = hangup(\%NAS, "$line->[2]", "$line->[0]", { ACCT_SESSION_ID      => $line->[4],
         	                                                 FRAMED_IP_ADDRESS    => $line->[1],
