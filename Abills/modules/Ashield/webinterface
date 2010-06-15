@@ -344,7 +344,7 @@ sub ashield_user {
  	$Ashield->{UID}=$FORM{UID};	  
   $users->info($LIST_PARAMS{UID}, { SHOW_PASSWORD => 1 });
   $users->pi({ ID => $users->{UID} });
-  $Ashield->{EMAIL}=($users->{EMAIL}) ? $users->{EMAIL} .$html->form_input('EMAIL', "$users->{EMAIL}", { TYPE => 'hidden', OUTPUT2RETURN => 1 }) : $html->form_input('EMAIL', '', { OUTPUT2RETURN => 1 });
+  $Ashield->{EMAIL}=($users->{EMAIL}) ? $users->{EMAIL} . $html->form_input('EMAIL', "$users->{EMAIL}", { TYPE => 'hidden', OUTPUT2RETURN => 1 }) : $html->form_input('EMAIL', '', { OUTPUT2RETURN => 1 });
 
   my %subscribe_state = (
   1 => $_STATUS_1,
@@ -429,20 +429,16 @@ sub ashield_user {
       $html->message('err', $_ERROR, "[$Ashield->{errno}] $err_strs{$Ashield->{errno}}");
      }
    }
+
   my $service = $Ashield->user_info($LIST_PARAMS{UID});
   if($service->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
-	  $service              = $Ashield->defaults();
-	  $service->{ACTION}    = 'add';
-	  $service->{LNG_ACTION}= $_ACTIVATE;
-    $service->{TP_ID}=$html->form_select('TP_ID', 
-                                         { 
- 	                                          SELECTED          => $user->{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Ashield'}),
- 	                                          MULTI_ARRAY_KEY   => 18,
- 	                                          MULTI_ARRAY_VALUE => '0,1',
- 	                                          NO_ID             => 1
- 	                                        });
+	  $service               = $Ashield->defaults();
+	  $service->{ACTION}     = 'add';
+	  $service->{LNG_ACTION} = $_REGISTRATION;
+
+	  $html->tpl_show(_include('ashield_client_subcribe', 'Ashield'), {%$user,  %$Ashield, %$service });
+	  return 0;
 	 }
 	else {
     $Ashield->{STATUS}=$service_status[$Ashield->{STATUS}];
@@ -566,12 +562,14 @@ sub ashield_user {
  	                                          STYLE        => \@service_status_colors,
  	                                          ARRAY_NUM_ID => 1
  	                                        });
-   
+  $Ashield->{EMAIL}="EMAIL"; 
   if ($Ashield->{STATUS} > 0) { 
     $Ashield->{STATUS_COLOR} = $service_status_colors[$Ashield->{STATUS}] ;
    }
 
-  $html->tpl_show(_include('ashield_user', 'Ashield'), { %$Ashield, %$user });
+
+ 
+  $html->tpl_show(_include('ashield_user', 'Ashield'), { %$Ashield, %$user, %$service });
   return 0; 	
 }
 
