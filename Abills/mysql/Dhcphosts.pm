@@ -130,7 +130,7 @@ sub network_add {
 
   $self->query($db,"INSERT INTO dhcphosts_networks 
      (name,network,mask, routers, coordinator, phone, dns, suffix, disable,
-      ip_range_first, ip_range_last, comments,  deny_unknown_clients,  authoritative) 
+      ip_range_first, ip_range_last, comments,  deny_unknown_clients,  authoritative, net_parent) 
      VALUES('$DATA{NAME}', INET_ATON('$DATA{NETWORK}'), INET_ATON('$DATA{MASK}'), INET_ATON('$DATA{ROUTERS}'),
        '$DATA{COORDINATOR}', '$DATA{PHONE}', '$DATA{DNS}', '$DATA{DOMAINNAME}',
        '$DATA{DISABLE}',
@@ -138,7 +138,8 @@ sub network_add {
        INET_ATON('$DATA{IP_RANGE_LAST}'),
        '$DATA{COMMENTS}',
        '$DATA{DENY_UNKNOWN_CLIENTS}',
-       '$DATA{AUTHORITATIVE}'
+       '$DATA{AUTHORITATIVE}',
+       '$DATA{NET_PARENT}',
        )", 'do');
 
   $admin->system_action_add("DHCPHOSTS_NET:$self->{INSERT_ID}", { TYPE => 1 });    
@@ -187,6 +188,7 @@ sub network_change {
    COMMENTS        => 'comments',
    DENY_UNKNOWN_CLIENTS => 'deny_unknown_clients',
    AUTHORITATIVE   => 'authoritative',
+   NET_PARENT      => 'net_parent',
    );
 
 
@@ -200,8 +202,6 @@ sub network_change {
 		               DATA         => $attr,
 		               EXT_CHANGE_INFO  => "DHCPHOSTS_NET:$attr->{ID}"
 		              } );
-
-
 
   return $self;
 }
@@ -231,7 +231,8 @@ sub network_info {
    INET_NTOA(ip_range_last),
    comments,
    deny_unknown_clients,
-   authoritative
+   authoritative,
+   net_parent
   FROM dhcphosts_networks
 
   WHERE id='$id';");
@@ -258,10 +259,9 @@ sub network_info {
    $self->{IP_RANGE_LAST},
    $self->{COMMENTS},
    $self->{DENY_UNKNOWN_CLIENTS},
-   $self->{AUTHORITATIVE}
+   $self->{AUTHORITATIVE},
+   $self->{NET_PARENT}
    ) = @{ $self->{list}->[0] };
-
-
     
   return $self;
 }
@@ -284,8 +284,6 @@ sub networks_list {
    push @WHERE_RULES, "disable='$attr->{DISABLE}'"; 
   }
 
-
-
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT 
@@ -293,7 +291,8 @@ sub networks_list {
      INET_NTOA(mask),
      coordinator,
      phone,
-     disable
+     disable,
+     net_parent
      FROM dhcphosts_networks
      $WHERE
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
