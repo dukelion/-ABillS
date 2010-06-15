@@ -461,6 +461,8 @@ sub ashield_user {
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
+
+
     my ($y, $m, $d)=split(/-/, $DATE, 3);
     my $cur_date="$y$m$d"; 
   	$table = $html->table( { width      => '100%',

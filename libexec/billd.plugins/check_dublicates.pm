@@ -34,6 +34,7 @@ $admin->query($db, "SELECT c.user_name, INET_NTOA(framed_ip_address), c.nas_port
                   AND c.status<11
                   AND dv.tp_id=tp.id AND tp.domain_id=0
                   AND c.nas_id=nas.id
+                  ORDER BY c.user_name, c.CID
                   ;");	
 
 my %logins = ();
