@@ -529,6 +529,11 @@ foreach my $line (@FW_ACTIONS) {
         close(FILE);
        }
      }
+    if ($conf{SHAPER_DEBUG} && $line=~/delete/) {
+        open(FILE, ">>/tmp/linkupdown2.log") or print "Can't open file\n";
+          print FILE "$DATE $TIME: $line]\n";  
+        close(FILE);
+     }
    }
 }
 
