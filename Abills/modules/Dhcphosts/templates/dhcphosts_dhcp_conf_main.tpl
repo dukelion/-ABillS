@@ -33,11 +33,13 @@ if exists agent.circuit-id {
 }
 
 %OPTION82_CLASS%
+# reserve for old version
+#shared-network NETWORK_NAME {
+#List of subnets
+# %_SUBNETS_%
+#}
 
-shared-network NETWORK_NAME {
- #List of subnets
- %SUBNETS%
-}
+%NETWORKS%
 
 #List of hosts
 %HOSTS%
