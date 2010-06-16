@@ -1,3 +1,8 @@
+=====0.52=====
+16.06.2010
+Добавленная возможность создавать сети  и подсети для DHCP
+  ALTER TABLE dhcphosts_networks ADD COLUMN `net_parent` smallint(5) unsigned NOT NULL DEFAULT '0';
+
 =====0.51=====
 22.05.2010 \\
   * Добавлена платёжная система Liberty Reserver

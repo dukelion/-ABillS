@@ -51,6 +51,7 @@ CREATE TABLE `dhcphosts_networks` (
   `comments` varchar(250) not null default '',
   `deny_unknown_clients` tinyint(1) unsigned not null default 0,
   `authoritative` tinyint(1) unsigned not null default 0,
+  `net_parent` smallint(5) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`)
 ) COMMENT='Dhcphost networks';

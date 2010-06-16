@@ -170,6 +170,9 @@ sub network_change {
   my $self = shift;
   my ($attr) = @_;
  
+ 
+  $self->{debug}=1;
+ 
  my %FIELDS = (
    ID              => 'id',
    NAME            => 'name',
@@ -282,6 +285,10 @@ sub networks_list {
  undef @WHERE_RULES;
  if (defined($attr->{DISABLE})) {
    push @WHERE_RULES, "disable='$attr->{DISABLE}'"; 
+  }
+
+ if (defined($attr->{PARENT}) && $attr->{PARENT} ne '') {
+ 	 push @WHERE_RULES, "net_parent='$attr->{PARENT}'"; 
   }
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';

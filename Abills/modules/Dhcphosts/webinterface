@@ -383,6 +383,7 @@ sub dhcphosts_networks {
   $Dhcphosts->{ACTION}='add';
   $Dhcphosts->{ACTION_LNG}=$_ADD;
 
+
   if ($FORM{NAME} and $FORM{NAME} !~ /^[0-9a-zA-Z_\-]+$/) {
   	print $html->message('err', $_ERROR, "$_HOSTS_NETWORKS_NAME - '$FORM{NAME}' $ERR_WRONG_DATA");
   	return 0;
@@ -453,11 +454,19 @@ sub dhcphosts_networks {
   }
 
 
-   $Dhcphosts->{DISABLE}=' checked' if($Dhcphosts->{DISABLE});
-   $Dhcphosts->{DENY_UNKNOWN_CLIENTS}=' checked' if($Dhcphosts->{DENY_UNKNOWN_CLIENTS});
-   $Dhcphosts->{AUTHORITATIVE}=' checked' if($Dhcphosts->{AUTHORITATIVE});
+   $Dhcphosts->{DISABLE}             = ' checked' if($Dhcphosts->{DISABLE});
+   $Dhcphosts->{DENY_UNKNOWN_CLIENTS}= ' checked' if($Dhcphosts->{DENY_UNKNOWN_CLIENTS});
+   $Dhcphosts->{AUTHORITATIVE}       = ' checked' if($Dhcphosts->{AUTHORITATIVE});
    
    my $net_defaults = $Dhcphosts->network_defaults();
+
+   $Dhcphosts->{PARENT_SEL} = $html->form_select('NET_PARENT',
+                                          {
+                                                  SELECTED          => $Dhcphosts->{NET_PARENT},
+                                                  SEL_MULTI_ARRAY   => [['', ''], @{ $Dhcphosts->networks_list({ PARENT => 0 }) } ],
+                                                  MULTI_ARRAY_KEY   => 0,
+                                                  MULTI_ARRAY_VALUE => 1,
+                                           });   
    
    
    $html->tpl_show(_include('dhcphosts_network', 'Dhcphosts'), { %$net_defaults, %$Dhcphosts });
@@ -466,7 +475,7 @@ sub dhcphosts_networks {
    my $table = $html->table( { width      => '100%',
 				caption    => "$_HOSTS_NETWORKS",
 				title      => ['#', "$_HOSTS_NETWORKS_NAME", "$_HOSTS_NETWORKS_NET", "$_HOSTS_NETWORKS_COORDINATOR", 
-				  "$_HOSTS_NETWORKS_COORDINATOR_PHONE", "$_STATUS", "-","-", '-'],
+				  "$_HOSTS_NETWORKS_COORDINATOR_PHONE", "$_STATUS", "$_TYPE", "-","-", '-'],
 				cols_align => ['left', 'left', 'left', 'left', 'left', 'center:noprint', 'center:noprint','center:noprint',
 				 'center:noprint' ],
 				qs         => $pages_qs,
@@ -500,6 +509,7 @@ function CheckAllINBOX() {
 	    $line->[4],
 	    $line->[5],
 	    $status[$line->[6]],
+	    ($line->[7]) ? "$_SUBNET: $line->[7]" : "$_NETWORK",
 	    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }),
 	    $html->button($_CHANGE, "index=$index&chg=$line->[0]"),
 	    $html->button("Routes", "index=".($index+1)."&NET_ID=$line->[0]") 	    	    
@@ -938,6 +948,8 @@ my $list = $Dhcphosts->networks_list({ DISABLE   => 0,
 	                                     PAGE_ROWS => 10000, 
 	                                     SORT      => 2  
 	                                     });  
+
+my %SUBNETS = ();  
   
 foreach my $line (@$list) {
   my $NET_ID = $line->[0];
@@ -996,10 +1008,9 @@ foreach my $line (@$list) {
     $routes.=";";
 
     # MS routes: adds extras to supplement routers option
-    $INFO{NET_ROUTES}="option ms-classless-static-routes $routes\n";
-
+    $INFO{NET_ROUTES}="option ms-classless-static-routes $routes";
     # RFC3442 routes: overrides routers option
-    $INFO{NET_ROUTES_RFC3442}="option rfc3442-classless-static-routes $routes\n";
+    $INFO{NET_ROUTES_RFC3442}="option rfc3442-classless-static-routes $routes";
    }
 
   #Make hosts
@@ -1084,12 +1095,34 @@ foreach my $line (@$list) {
     }
    }  
 
-  $INFO{SUBNETS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
+  $SUBNETS{$line->[7]}{$line->[0]} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
                                    \%INFO, 
                                    { OUTPUT2RETURN => 1  });	 
 
+  $INFO{SUBNETS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_subnet', 'Dhcphosts'), 
+                                   \%INFO, 
+                                   { OUTPUT2RETURN => 1  });	                                   
 }
 
+
+$INFO{NETWORKS}='';
+foreach my $id (sort keys %{ $SUBNETS{0} } ) {
+	my $net_content = $SUBNETS{0}{$id};
+	$INFO{NETWORKS} .= "#share network - $id 
+shared-network NETWORK_NAME_$id {	 
+$net_content";
+  #Add subnets
+  while(my($id_sub, $subnet_content) = each %{ $net_content{$id} }) {
+  	$INFO{NETWORKS} .= "  # $id_sub\n  $subnet_content";
+   }
+
+$INFO{NETWORKS} .="}
+#========================\n";
+}
+
+
+#my $conf_content = $html->tpl_show(_include('dhcphosts_dhcp_conf_main', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
+#	print "<table><tr><td><pre>$conf_content</pre></td></tr></table>\n";
 
 
 if ($attr->{reconfig} || $FORM{reconfig} ) {

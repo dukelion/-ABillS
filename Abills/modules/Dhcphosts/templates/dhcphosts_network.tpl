@@ -18,6 +18,7 @@
 <tr><td>$_HOSTS_NETWORKS_COORDINATOR:</td><td colspan=2><input type=text name='COORDINATOR' value='%COORDINATOR%'></td></tr>
 <tr><td>$_HOSTS_NETWORKS_COORDINATOR_PHONE:</td><td colspan=2><input type=text name='PHONE' value='%PHONE%'></td></tr>
 <tr><td>$_DISABLE:</td><td colspan=2><input type=checkbox name='DISABLE' value=1 %DISABLE%></td></tr>
+<tr><td>$_TYPE:</td><td colspan=2>%PARENT_SEL%</td></tr>
 </table>
 <input type=submit name=%ACTION% value='%ACTION_LNG%'>
 </form>
