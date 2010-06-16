@@ -240,7 +240,7 @@ if ($status < 4) {
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
-        my $agetnt_count = $#{ $agents_result_hash->{agents}->[0]->{agent} };
+        my $agent_count = $#{ $agents_result_hash->{agents}->[0]->{agent} };
 
         my $sum = $Tariffs->{MONTH_FEE};  
         $Tariffs->{PERIOD_ALIGNMENT}=1;
@@ -251,7 +251,7 @@ if ($status < 4) {
           $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
          }
       
-        if ($conf{ASHIELD_DRWEBAVD_FREE_PERIOD} &&  $agetnt_count == 0
+        if ($conf{ASHIELD_DRWEB_FREE_PERIOD} &&  $agent_count == 0
             && $status == 1) {
           print "Free Activate\n" if ($debug > 0);    	
          }
