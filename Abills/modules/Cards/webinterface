@@ -2117,4 +2117,64 @@ elsif (scalar keys %page_print_hash > 0) {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub cards_report_payments {
+  my $table = $html->table( { width       => '100%',
+	                       rowcolor    => $_COLORS[0],
+                         rows        => [[ "$_FROM: ",  $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'cards_list', WEEK_DAYS => \@WEEKDAYS } ),
+                                           "$_TO: ",    $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'cards_list', WEEK_DAYS => \@WEEKDAYS } ),
+                                           "$_ROWS: " .  $html->form_input('rows', ($FORM{rows} || int($conf{list_max_recs}) ), { SIZE => 4, OUTPUT2RETURN => 1 } ),
+                                           $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
+                                         ]],                                   
+                      });
+
+  if ($FORM{show}) {
+  	$pages_qs .= "&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}&rows=$FORM{rows}&show=1";
+  	$FORM{PAGE_ROWS}=$FORM{rows};
+  	$FORM{PG}=$FORM{pg};
+  	#$LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
+  }
+
+  print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+  	                       HIDDEN  => { index  => "$index",
+  	                       	            SERIA  => '',
+  	                       	            sid    => $sid,
+  	                       	            UID    => $FORM{UID},
+  	                       	           },
+	                         NAME    => 'cards_list'
+	                        });
+
+  my @caption = ("$_DATE", "$_SUM", "$_USERS", "$_FIO", "$_ICARDS");
+  my $list = $Cards->cards_report_payments({ %FORM });
+  $table = $html->table( { width      => '100%',
+                           caption    => "$_LOG",
+                           title      => \@caption,
+                           cols_align => ['right', 'left', 'right', 'right' ],
+                           qs         => $pages_qs,
+                           pages      => $Cards->{TOTAL},
+                           ID         => 'CARDS_PAYMENTS_LIST',
+                         });
+
+  foreach $line (@$list) {
+   	$table->addrow( $line->[0],
+   	$html->button("$line->[1]", "index=15&UID=$line->[7]"),
+   	$line->[2],
+   	$line->[3],
+   	$line->[4],
+   	$line->[5],
+   	$line->[6], );
+   }
+  
+  print $table->show();
+
+  $table = $html->table( { width      => '100%',
+                           cols_align => [ 'right', 'right'],
+                           rows       => [ [ "$_TOTAL:", $html->b($Cards->{TOTAL}), "$_SUM:",  $html->b($Cards->{TOTAL_SUM}) ] ]
+                        });
+  print $table->show();	
+}
+
+
 1

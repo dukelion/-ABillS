@@ -1,14 +1,15 @@
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("01:0:$_ICARDS:cards_main:"                 => 5,
-#                   "05:1:$_ICARDS:cards_main:"            => 5,
-                   "04:1:$_ADD:cards_add:"                => 5,
+%FUNCTIONS_LIST = ("01:0:$_ICARDS:cards_main:"              => 5,
+#                   "05:1:$_ICARDS:cards_main:"             => 5,
+                   "04:1:$_ADD:cards_add:"                  => 5,
                    "05:1:$_BRUTE_ATACK:cards_bruteforce:"   => 5,
                    "06:1:$_DILLERS $_TARIF_PLANS:cards_dillers_tp:"     => 5,
-                   "08:0:$_ICARDS:cards_user_payment:UID" => 2,
-                   "09:0:$_ICARDS:cards_report:"          => 4,
-                   "11:8:$_DILLERS:cards_report_dillers:" => 4,
-                   "12:0:$_DILLERS:cards_dillers_list:"   => 1,
-                   "13:0:$_DILLERS:cards_diller:UID"      => 15,
+                   "08:0:$_ICARDS:cards_user_payment:UID"   => 2,
+                   "09:0:$_ICARDS:cards_report:"            => 4,
+                   #"11:9:$_DILLERS:cards_report_dillers:"   => 4,
+                   "12:9:$_PAYMENTS:cards_report_payments:" => 4,
+                   "15:0:$_DILLERS:cards_dillers_list:"     => 1,
+                   "16:0:$_DILLERS:cards_diller:UID"        => 15,
                    );
 
 %USER_FUNCTION_LIST = ("01:0:$_ICARDS:cards_user_payment:"  => 0,

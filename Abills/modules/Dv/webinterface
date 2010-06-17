@@ -2546,6 +2546,7 @@ if ($sessions->{errno})	{
 
 if ($FORM{rows}) {
   $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
+  $LIST_PARAMS{PG}=$FORM{rows};
   $conf{list_max_recs}=$FORM{rows};
   $pages_qs .= "&rows=$conf{list_max_recs}";
  }
