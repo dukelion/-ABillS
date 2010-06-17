@@ -4,9 +4,6 @@
    %DOMAINNAME%
    #IP Range
    %RANGE%
-   # Old config params
-   #deny unknown-clients;
-   #authoritative;   
    %DENY_UNKNOWN_CLIENTS%
    %AUTHORITATIVE%   
    %ROUTERS%

@@ -1113,7 +1113,6 @@ shared-network NETWORK_NAME_$id {
 $net_content";
   #Add subnets
   while(my($id_sub, $subnet_content) = each %{ $SUBNETS{$id} }) {
-  	print "/$id_sub/<br>";
   	$INFO{NETWORKS} .= "\n #SUBNET $id_sub\n $subnet_content";
    }
 
