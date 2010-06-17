@@ -41,7 +41,6 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
 
-$Paysys->{debug}=1;
 
 #require "modules/Paysys/paysys_cons";
 
@@ -1620,6 +1619,7 @@ my %info = ();
 	require "modules/Paysys/Qiwi.pm";
 
 if ($FORM{send_invoice}) {
+	$FORM{COMMENT}=$user->{LOGIN};
   my $result = qiwi_invoice_request(\%FORM);
 
   if ($result->{'result-code'}->[0]->{fatal} eq 'true') {
@@ -1704,7 +1704,7 @@ foreach my $line (@$list) {
     "$line->[2]", 
     "$line->[3]", 
     "$PAY_SYSTEMS{$line->[4]}", 
-    $html->button("$line->[5]", "index=2&EXT_ID=$line->[5]&search=1"),
+    $html->button("$line->[5]", "index=2&EXT_ID=QIWI:$line->[5]&search=1"),
     "$line->[6]",
     $status_hash{$res_hash{$line->[5]}},
     $html->button($_INFO, "index=$index&info=$line->[0]"),
