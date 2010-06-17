@@ -41,6 +41,8 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
 
+$Paysys->{debug}=1;
+
 #require "modules/Paysys/paysys_cons";
 
 #**********************************************************
@@ -802,7 +804,7 @@ sub paysys_periodic () {
         my $user = $users->info($uid);
         $payments->add($user, {SUM      => $sum,
     	                     DESCRIBE     => 'PORTMONE', 
-    	                     METHOD       => '2', 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{54}) ? 54 : '2',  
   	                       EXT_ID       => "PM:$order_num",
   	                       CHECK_EXT_ID => "PM:$order_num" } );  
 
@@ -1625,44 +1627,7 @@ if ($FORM{send_invoice}) {
    }
   else {
  	  $html->message('info', "$_INFO", "$_INVOICE_SENDED ID: '$FORM{OPERATION_ID}' $_PHONE: $FORM{PHONE}");
- 	 }
-
-  return 0;
- }
-elsif ($FORM{FALSE}) {
-	if ($FORM{ReasonCode} == 11 ) {
-    $FORM{ReasonCodeDesc}="$ERR_INVALID_SIGNATURE";
-	 }
-	elsif ($FORM{ReasonCode} == 2 ) {
-    $FORM{ReasonCodeDesc}="$ERR_TRANSACTION_DECLINED";
-	 }
-	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID} [$FORM{ReasonCode}/$FORM{ResponseCode}] $FORM{ReasonCodeDesc} ");
-	$html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
-
-	return 0;
- }
-elsif ($FORM{TRUE}) {
-   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OrderID}", 
-   	                          UID => $LIST_PARAMS{UID} });
-
-   if ($Paysys->{TOTAL} > 0) {
-	    $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OPERATION_ID}");
-	   }
-    else {
-    	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OPERATION_ID} $_ERR_NO_TRANSACTION");
-     }
-  $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
-
-  return 0;
- }
-else {
-	if ($FORM{SUM} <= 0 ) {
-		$html->message('info', $_ERROR, "$ERR_WRONG_SUM $FORM{SUM}");
-		return 0;
-	 }
-	
-	#Info section  
-  $Paysys->add({ SYSTEM_ID      => 48, 
+ 	  $Paysys->add({ SYSTEM_ID    => 59, 
   	             DATETIME       => "'$DATE $TIME'", 
   	             SUM            => $FORM{SUM},
   	             UID            => $user->{UID}, 
@@ -1671,32 +1636,89 @@ else {
                  INFO           => '-',
                  PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
+ 	 }
 
-  if ($Paysys->{errno}) {
-  	$html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
-  	return 0;
-   }
-	
-} 
-
-  $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
-  $info{OPERATION_ID}  = $FORM{OPERATION_ID};  
-  $info{AMOUNT}  = sprintf("%.12d", int($FORM{SUM}*100));
-  $info{AMOUNT2} = sprintf("%.12d", int($info{AMOUNT2}));
-  $info{AdditionalData} = "index=$index&UID=$user->{UID}";
-
-#SHA1 signature
-#----------------------------
-  use Digest::SHA1;
-
-  my $ctx = Digest::SHA1->new;
-  $ctx->add($conf{PAYSYS_PB_PW}.$conf{PAYSYS_PB_MERID}.'414963'.$info{OPERATION_ID}.$info{AMOUNT}.'980'.$info{AMOUNT2}.'840'.$info{AdditionalData});
-  $info{HASH} = $ctx->b64digest();
-  $info{SignatureMethod} = 'SHA1'; 
-  $info{HASH}=$info{HASH}.'=';  
-  $info{DESCRIBE}      = $FORM{DESCRIBE};
+  return 0;
+ }
 
   $html->tpl_show(_include('paysys_qiwi_add', 'Paysys'), \%info);
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub paysys_qiwi_list {
+  my %info = ();
+	require "modules/Paysys/Qiwi.pm";
+
+my $list = $Paysys->list( { %LIST_PARAMS, PAYMENT_SYSTEM => 59 } );	
+my $table = $html->table( { width      => '100%',
+                            caption    => "Paysys",
+                            border     => 1,
+                            title      => ['ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "IP", "$_STATUS", '-', '-'],
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $Paysys->{TOTAL},
+                            ID         => 'PAYSYS'
+                           });
+
+
+my %status_hash = (
+10 => 'Не обработана',
+20 => 'Отправлен запрос провайдеру',
+25 => 'Авторизуется',
+30 => 'Авторизована',
+48 => 'Проходит финансовый контроль',
+49 => 'Проходит финансовый контроль',
+50 => 'Проводится',
+51 => 'Проведена (51)',
+58 => 'Перепроводится',
+59 => 'Принята к оплате',
+60 => 'Проведена',
+61 => 'Проведена',
+125 => 'Не смогли отправить провайдеру',
+130 => 'Отказ от провайдера',
+148 => 'Не прошел фин. контроль',
+149 => 'Не прошел фин. контроль',
+150 => 'Ошибка на терминале',
+160 => 'Не проведена',
+);
+
+my @ids_arr = ();
+foreach my $line (@$list) {
+  push @ids_arr, $line->[5];
+}
+
+
+my $result = qiwi_status({ IDS => \@ids_arr });
+
+my %res_hash = ();
+foreach my $id ( keys %{ $result->{'bills-list'}->[0]->{bill} } ) {
+	$res_hash{$id}=$result->{'bills-list'}->[0]->{bill}->{$id}->{status};
+}
+
+foreach my $line (@$list) {
+  $table->addrow($line->[0],
+    $html->button("$line->[1]", "index=15&UID=$line->[7]"), 
+    "$line->[2]", 
+    "$line->[3]", 
+    "$PAY_SYSTEMS{$line->[4]}", 
+    $html->button("$line->[5]", "index=2&EXT_ID=$line->[5]&search=1"),
+    "$line->[6]",
+    $status_hash{$res_hash{$line->[5]}},
+    $html->button($_INFO, "index=$index&info=$line->[0]"),
+    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
+   );
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right', 'right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL}), "$_SUM", $html->b($Paysys->{SUM}) ] ]
+                        } );
+print $table->show();
+
 }
 
 1
