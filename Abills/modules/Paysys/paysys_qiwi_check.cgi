@@ -103,7 +103,10 @@ my %status_hash = (
 149 => 'Не прошел фин. контроль',
 150 => 'Ошибка на терминале',
 160 => 'Не проведена',
+161 => 'Отменен (Истекло время)'
 );
+
+
 
 my @ids_arr = ();
 foreach my $line (@$list) {
@@ -120,7 +123,10 @@ foreach my $id ( keys %{ $result->{'bills-list'}->[0]->{bill} } ) {
 
 foreach my $line (@$list) {
   print "$line->[1] LOGIN: $line->[2] SUM: $line->[3] PAYSYS: $line->[4] PAYSYS_ID: $line->[5]  $line->[6] STATUS: $res_hash{$line->[5]}\n" if ($debug > 0);
-  if ( $res_hash{$line->[5]} == 60 ||  $res_hash{$line->[5]} == 61) {
+  if ($res_hash{$line->[5]} == 50) {
+  	
+   }
+  elsif ( $res_hash{$line->[5]} == 60 ||  $res_hash{$line->[5]} == 61 || $res_hash{$line->[5]} == 51) {
   	 my $user = $Users->info($line->[7]);
      $payments->add($user, {SUM      => $line->[3],
     	                     DESCRIBE     => 'QIWI', 
@@ -130,7 +136,13 @@ foreach my $line (@$list) {
 
      $Paysys->change({ ID        => $line->[0],
      	                 PAYSYS_IP => $ENV{'REMOTE_ADDR'},
- 	                     INFO      => "$_DATE: $DATE $TIME"
+ 	                     INFO      => "$_DATE: $DATE $TIME $res_hash{$line->[5]} - $status_hash{$res_hash{$line->[5]}}"
+      	            });
+   }
+  elsif (in_array($res_hash{$line->[5]}, [ 160, 161 ])) {
+     $Paysys->change({ ID        => $line->[0],
+     	                 PAYSYS_IP => $ENV{'REMOTE_ADDR'},
+ 	                     INFO      => "$_DATE: $DATE $TIME $res_hash{$line->[5]} - $status_hash{$res_hash{$line->[5]}}"
       	            });
    }
 }
@@ -145,7 +157,7 @@ sub	help {
 
 print << "[END]";	
   QIWI checker:
-    debug=... - debug mode
+    DEBUG=... - debug mode
     help      - this help
 [END]
 
