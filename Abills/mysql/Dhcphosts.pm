@@ -139,7 +139,7 @@ sub network_add {
        '$DATA{COMMENTS}',
        '$DATA{DENY_UNKNOWN_CLIENTS}',
        '$DATA{AUTHORITATIVE}',
-       '$DATA{NET_PARENT}',
+       '$DATA{NET_PARENT}'
        )", 'do');
 
   $admin->system_action_add("DHCPHOSTS_NET:$self->{INSERT_ID}", { TYPE => 1 });    
