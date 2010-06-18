@@ -1623,7 +1623,11 @@ if ($FORM{send_invoice}) {
   my $result = qiwi_invoice_request(\%FORM);
 
   if ($result->{'result-code'}->[0]->{fatal} eq 'true') {
-  	$html->message('err', "$_ERROR", "$_ERROR: $result->{'result-code'}->[0]->{content}");
+  	my $error = "$result->{'result-code'}->[0]->{content}";
+  	if ($result->{'result-code'}->[0]->{content} == 150) {
+  	   $error .= 'Ошибка на терминале';
+  	 }
+  	$html->message('err', "$_ERROR", "$_ERROR: $error");
    }
   else {
  	  $html->message('info', "$_INFO", "$_INVOICE_SENDED ID: '$FORM{OPERATION_ID}' $_PHONE: $FORM{PHONE}");
@@ -1652,11 +1656,11 @@ sub paysys_qiwi_list {
   my %info = ();
 	require "modules/Paysys/Qiwi.pm";
 
-my $list = $Paysys->list( { %LIST_PARAMS, PAYMENT_SYSTEM => 59 } );	
+my $list = $Paysys->list( { %LIST_PARAMS, PAYMENT_SYSTEM => 59, INFO => '-'  } );	
 my $table = $html->table( { width      => '100%',
                             caption    => "Paysys",
                             border     => 1,
-                            title      => ['ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "IP", "$_STATUS", '-', '-'],
+                            title      => ['ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "IP", "$_STATUS", '-'],
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Paysys->{TOTAL},
@@ -1708,7 +1712,6 @@ foreach my $line (@$list) {
     "$line->[6]",
     $status_hash{$res_hash{$line->[5]}},
     $html->button($_INFO, "index=$index&info=$line->[0]"),
-    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
    );
 }
 print $table->show();
