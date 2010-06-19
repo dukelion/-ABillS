@@ -33,8 +33,6 @@ BEGIN {
   }
 }
 
-
-
 require "config.pl";
 use Abills::Base;
 use Abills::SQL;
@@ -129,7 +127,12 @@ if ($debug > 0) {
 }
 #END debug =====================================
 
-if( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) ) {
+my $ip_num   = unpack("N", pack("C4", split( /\./, $ENV{REMOTE_ADDR})));
+if ($ip_num >= ip2int('213.186.115.164') && $ip_num <= ip2int('213.186.115.190')) {
+  require "Ibox.pm";
+	exit;
+ }
+elsif( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) ) {
 	osmp_payments();
  }
 elsif ($FORM{SHOPORDERNUMBER}) {
@@ -157,7 +160,7 @@ elsif($FORM{ACT}) {
 my $first_ip = unpack("N", pack("C4", split( /\./, '79.142.16.0')));
 my $mask_ips = unpack("N", pack("C4", split( /\./, '255.255.255.255'))) - unpack("N", pack("C4", split( /\./, '255.255.240.0')));
 my $last_ip  = $first_ip + $mask_ips;
-my $ip_num   = unpack("N", pack("C4", split( /\./, $ENV{REMOTE_ADDR})));
+
 
 if ($ENV{REMOTE_ADDR} =~ /^92\.125\./
    ) {
@@ -246,10 +249,6 @@ sub payments {
     }
    }
 }
-
-
-
-
 
 #**********************************************************
 #
