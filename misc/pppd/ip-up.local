@@ -54,7 +54,14 @@ if [ -f /var/run/radattr.$1 ]
 #### Filters
    if [ w${FILTERS} != w ] ; then
      #Put there filters rule
-     echo "Filter: ${FILTERS}"
+     #echo "Filter: ${FILTERS}"
+
+     #Max TCP Sessions filter
+     FILTER_ID=`echo ${FILTERS} | awk -F: '{ print $1 }'`;
+     if [ w${FILTER_ID} = wMAX_TCP ]; then
+       COUNT=`echo ${FILTERS} | awk -F: '{ print $2 }'`;
+       
+     fi;
    fi;
 
  fi;
