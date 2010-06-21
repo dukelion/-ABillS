@@ -25,10 +25,6 @@ my @priority_colors = (
 '#E06161',
 "$_COLORS[6]");
 
-# Deleted 
-# Stalled
-# Rejected
-
 #*******************************************************************
 # Message system admins
 #*******************************************************************
@@ -187,7 +183,6 @@ sub msgs_admin_add {
      }
 
     if  (! $FORM{INNER_MSG} && (defined($FORM{GID}) || ($FORM{GID} == 0 && $FORM{UID} == 0 ) ) ) {
-
        my $list = $users->list({ GID => $FORM{GID}, PAGE_ROWS => 1000000, DISABLE => 0 });
        my @uids = ();
        foreach my $line (@$list) {
@@ -251,8 +246,10 @@ sub msgs_admin_add {
        }
 
       $html->message('info', $_MESSAGES, "$_SENDED $_MESSAGE $message");
-      
-      if ($users->{EMAIL}) {
+      if ($FORM{INNER_MSG}) {
+      	msgs_notify_admins()
+       }
+      elsif ($users->{EMAIL}) {
       	$ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
         my $site =  $1 || '';
    	 
@@ -279,17 +276,6 @@ sub msgs_admin_add {
 
     return 0 if ($attr->{SEND_ONLY});
    }
-#  elsif ($FORM{change}) {
-#    if ($FORM{STATE} > 0) {
-#      $FORM{DONE_DATE}="$DATE" if ($FORM{STATE} == 2); 
-#      $FORM{CLOSED_DATE}="$DATE"; 
-#     }
-#
-#    $Msgs->message_change({ %FORM });
-#    
-#    $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});
-#   }
-
 
   my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
   
@@ -478,14 +464,13 @@ sub msgs_admin {
 
 
 
-     %params = ();
-     $params{STATE}       = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
-     $params{STATE}       = ($FORM{STATE} == 0) ? 6 : $FORM{STATE} ;
-     my $state=$FORM{STATE};
- 	 	 $params{CLOSED_DATE} = $DATE       if ($state > 0);
- 	 	 $params{DONE_DATE}   = $DATE       if ($state > 1);
+    %params = ();
+    $params{STATE}       = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
+    $params{STATE}       = ($FORM{STATE} == 0) ? 6 : $FORM{STATE} ;
+    my $state=$FORM{STATE};
+ 	 	$params{CLOSED_DATE} = $DATE       if ($state > 0);
+	 	$params{DONE_DATE}   = $DATE       if ($state > 1);
 
-    
  	  $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
  	 	                        ID        => $FORM{ID},
  	 	                        USER_READ => "0000-00-00 00:00:00",
@@ -537,7 +522,6 @@ sub msgs_admin {
     $Msgs->message_info($FORM{chg});
     $Msgs->{ACTION}    ='reply';
     $Msgs->{ACTION_LNG}=$_REPLY;
-
     $Msgs->{STATE_NAME}= $html->color_mark($msg_status[$Msgs->{STATE}], $style[$Msgs->{STATE}]);
     $Msgs->{STATE_SEL} = $html->form_select('STATE', 
                                           { 
@@ -548,7 +532,6 @@ sub msgs_admin {
  	                                          EX_PARAMS         => "onchange='samechanged(this)'"
  	                                        },
  	                                          );
-
 
     $Msgs->{PRIORITY_TEXT}=$html->color_mark($priority[$Msgs->{PRIORITY}], $priority_colors[$Msgs->{PRIORITY}]);
 	  $Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
@@ -616,10 +599,8 @@ sub msgs_admin {
        }
 
       $line->[2] = convert($line->[2], { text2html => 1 });
-
       $line->[2] =~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
       $line->[2] =~ s/&gt; (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
-
       
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
           REPLY_ID   => $line->[0],
@@ -645,13 +626,10 @@ sub msgs_admin {
       { %$Msgs, 
       	REPLY_TEXT => $reply,
      	  RUN_TIME => "$_RUN_TIME ($_MINS):". $html->form_input('RUN_TIME', "$run_time", { EX_PARAMS => " STYLE='background-color: $_COLORS[3]' DISABLED size=9"} ),
-
-      	 }, { notprint => 1 });
-    
+    	 }, { notprint => 1 });
 
     $Msgs->{MESSAGE}=convert($Msgs->{MESSAGE}, { text2html => 1, SHOW_URL => 1 });
     $Msgs->{SUBJECT}=convert($Msgs->{SUBJECT}, { text2html => 1 });
-
    
     if ($Msgs->{FILENAME}) {
       $Msgs->{ATTACHMENT}="$_ATTACHMENT: ". $html->button("$Msgs->{FILENAME}", "qindex=$index&ATTACHMENT=$Msgs->{ATTACHMENT_ID}", { TARGET => '_new' }). " ($_SIZE: ". int2byte($Msgs->{FILESIZE}) .')';
@@ -861,6 +839,41 @@ $table = $html->table({ width      => '100%',
 print $table->show();
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub msgs_notify_admins {
+  my ($attr)=@_;
+
+  my $list = $Msgs->admins_list({ EMAIL_NOTIFY=> 1,
+  	                              CHAPTER_ID     => $FORM{CHAPTER}
+     	                         });     
+foreach my $line (@$list) {
+  next if (! $line->[7]);
+	$ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
+  my $site =  $1 || '';
+
+  my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
+           { SITE    => $site, 
+     DATE    => $DATE, 
+     TIME    => $TIME,
+     ID      => "$Msgs->{INSERT_ID}/$Msgs->{REPLY_ID}", 
+     SUBJECT => $FORM{REPLY_SUBJECT},
+     STATUS  => $msg_status[$FORM{STATE}],
+     MESSAGE => $FORM{REPLY_TEXT},
+     ATTACHMENT => $FORM{FILE_UPLOAD}{filename}      
+     }, { OUTPUT2RETURN => 1 } );
+
+  sendmail("$conf{ADMIN_MAIL}",
+          "$line->[7]",
+          "$conf{WEB_TITLE} - $_NEW_MESSAGE",
+          "$message",
+          "$conf{MAIL_CHARSET}",
+          undef,
+          { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}",
+         	                 "X-ABillS-Reply-ID: $Msgs->{REPLY_ID}" ] });
+ }
+}
 
 
 #*******************************************************************
@@ -917,34 +930,35 @@ sub msgs_user {
        }      
      $html->message('info', $_INFO, "$_MESSSAGE # $Msgs->{MSG_ID}. $_MSG_SENDED ");
 
-     my $list = $Msgs->admins_list({ EMAIL_NOTIFY   => 1,
-     	                               CHAPTEr_ID     => $FORM{CHAPTER}
-     	                              });     
-     foreach my $line (@$list) {
-        next if (! $line->[7]);
-        
-     	  $ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
-        my $site =  $1 || '';
-
-      	my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
-           { SITE => $site, 
-           	 DATE => $DATE, 
-           	 TIME => $TIME, 
-           	 ID      => $Msgs->{INSERT_ID}, 
-           	 SUBJECT => $FORM{SUBJECT},
-           	 STATUS  => $msg_status_all[$FORM{STATE}],
-           	 MESSAGE => $FORM{MESSAGE},
-           	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
-            }, { OUTPUT2RETURN => 1 } );
-    	 
-        sendmail("$conf{ADMIN_MAIL}",
-          "$line->[7]",
-          "$conf{WEB_TITLE} - $_NEW_MESSAGE",
-          "$message",
-          "$conf{MAIL_CHARSET}",
-          undef,
-          { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}" ] });
-      }
+#     my $list = $Msgs->admins_list({ EMAIL_NOTIFY   => 1,
+#     	                               CHAPTEr_ID     => $FORM{CHAPTER}
+#     	                              });     
+#     foreach my $line (@$list) {
+#        next if (! $line->[7]);
+#        
+#     	  $ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
+#        my $site =  $1 || '';
+#
+#      	my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
+#           { SITE => $site, 
+#           	 DATE => $DATE, 
+#           	 TIME => $TIME, 
+#           	 ID      => $Msgs->{INSERT_ID}, 
+#           	 SUBJECT => $FORM{SUBJECT},
+#           	 STATUS  => $msg_status_all[$FORM{STATE}],
+#           	 MESSAGE => $FORM{MESSAGE},
+#           	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
+#            }, { OUTPUT2RETURN => 1 } );
+#    	 
+#        sendmail("$conf{ADMIN_MAIL}",
+#          "$line->[7]",
+#          "$conf{WEB_TITLE} - $_NEW_MESSAGE",
+#          "$message",
+#          "$conf{MAIL_CHARSET}",
+#          undef,
+#          { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}" ] });
+#      }
+    msgs_notify_admins();
    }
  	}
  elsif ($FORM{ID}) {
@@ -975,37 +989,8 @@ sub msgs_user {
           });
         }      
 
-     $html->message('info', $_INFO, "$_REPLY");  
-
-     my $list = $Msgs->admins_list({ EMAIL_NOTIFY   => 1,
-     	                               CHAPTER_ID     => $FORM{CHAPTER}
-     	                              });     
-     foreach my $line (@$list) {
-        next if (! $line->[7]);
-
-      	$ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
-        my $site =  $1 || '';
-
-       	my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
-           { SITE    => $site, 
-           	 DATE    => $DATE, 
-           	 TIME    => $TIME,
-	           ID      => "$Msgs->{INSERT_ID}/$Msgs->{REPLY_ID}", 
-           	 SUBJECT => $FORM{REPLY_SUBJECT},
-           	 STATUS  => $msg_status[$FORM{STATE}],
-           	 MESSAGE => $FORM{REPLY_TEXT},
-           	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}           	  
-           	 }, { OUTPUT2RETURN => 1 } );
-
-        sendmail("$conf{ADMIN_MAIL}",
-          "$line->[7]",
-          "$conf{WEB_TITLE} - $_NEW_MESSAGE",
-          "$message",
-          "$conf{MAIL_CHARSET}",
-          undef,
-          { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}",
-          	                 "X-ABillS-Reply-ID: $Msgs->{REPLY_ID}" ] });
-      }
+      $html->message('info', $_INFO, "$_REPLY");  
+      msgs_notify_admins();
      }
     }
 
