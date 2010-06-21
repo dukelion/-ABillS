@@ -551,7 +551,6 @@ sub msgs_admin {
 
 
     $Msgs->{PRIORITY_TEXT}=$html->color_mark($priority[$Msgs->{PRIORITY}], $priority_colors[$Msgs->{PRIORITY}]);
-
 	  $Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
                                           { 
  	                                          SELECTED          => $Msgs->{PRIORITY} || 2,
