@@ -560,7 +560,8 @@ sub msgs_admin {
  	                                          ARRAY_NUM_ID      => 1
  	                                        });
 
-    $Msgs->{DELIGATED} =  $CHAPTERS_DELIGATION{$Msgs->{CHAPTER}} + 1;
+    $Msgs->{DELIGATED}      =  $CHAPTERS_DELIGATION{$Msgs->{CHAPTER}} + 1;
+    $Msgs->{DELIGATED_DOWN} =  0;
 
 #    $Msgs->{CHAPTER_NAME}=$html->form_select('CHAPTER', 
 #                                          { 

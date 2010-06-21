@@ -13,3 +13,5 @@ $_ANSWER_WAIT='Wait user answer';
 $_UPDATED='Updated';
 $_DELIGATE='Deligate';
 $_DELIGATED='Deligated';
+$_UP='Up';
+$_DOWN='Down';
