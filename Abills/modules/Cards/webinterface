@@ -2132,9 +2132,9 @@ sub cards_report_payments {
 
   if ($FORM{show}) {
   	$pages_qs .= "&FROM_DATE=$FORM{FROM_DATE}&TO_DATE=$FORM{TO_DATE}&rows=$FORM{rows}&show=1";
-  	$FORM{PAGE_ROWS}=$FORM{rows};
-  	$FORM{PG}=$FORM{pg};
-  	#$LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
+  	$LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
+  	$LIST_PARAMS{FROM_DATE}=$FORM{FROM_DATE};
+  	$LIST_PARAMS{TO_DATE}=$FORM{TO_DATE};
   }
 
   print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
@@ -2146,8 +2146,8 @@ sub cards_report_payments {
 	                         NAME    => 'cards_list'
 	                        });
 
-  my @caption = ("$_DATE", "$_SUM", "$_USERS", "$_FIO", "$_ICARDS");
-  my $list = $Cards->cards_report_payments({ %FORM });
+  my @caption = ("$_DATE", "$_USERS", "$_SUM", "$_FIO", "$_ICARDS");
+  my $list = $Cards->cards_report_payments({ %LIST_PARAMS });
   $table = $html->table( { width      => '100%',
                            caption    => "$_LOG",
                            title      => \@caption,
