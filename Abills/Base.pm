@@ -222,6 +222,7 @@ sub utf82win {
     elsif($Code==0x0457)    { $Unicode.=chr(0xBF); }
     elsif(($Code>=0x410)&&($Code<=0xff+0x44f)){$Unicode.=chr($Code-0x350);}
     elsif($Code==0x404)     { $Unicode.=chr(0xAA); }
+    elsif($Code==0x407)     { $Unicode.=chr(0xAF); }
     elsif($Code==0x2116)    { $Unicode.=chr(0xB9); }
     elsif($Code==0xa8+0x350){$Unicode.=chr(0x401-0x350);}
     elsif($Code==0xb8+0x350){$Unicode.=chr(0x451-0x350);}
@@ -238,7 +239,7 @@ sub utf82win {
     #elsif($Code==0x2C){ $Unicode.=',';     	}
     #elsif($Code==0x2E){ $Unicode.='.';     	}
     #elsif($Code==0x64){ $Unicode.='d';     	}
-    else{ $Unicode.= $_; 	}
+    else{ $Unicode.= $_;  	}
    }
 
   return $Unicode;

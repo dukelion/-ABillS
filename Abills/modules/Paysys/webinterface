@@ -1268,6 +1268,11 @@ sub paysys_p24_get_payments {
     return 0;
    }
 
+my $total_in = 0;
+my $total_out = 0;
+my $total_in_sum = 0;
+my $total_out_sum = 0;
+
 
 $table = $html->table({ width       => '100%',
 	                      rowcolor    => $_COLORS[0],
@@ -1368,10 +1373,10 @@ if ($conf{PAYSYS_P24_MERCHANT_YUR}) {
     $ID =~ s/ //g;
     my ($LOGIN, $BIND, $UID);
     if ($BINDING_IDS{$ID} ne '') {
-      ($LOGIN, $BIND, $UID)=split(/:/, $binding_hash{$BINDING_IDS{$ID}});
+      ($LOGIN, $FIO, $UID, $SEARCH_FIELD)=split(/:/, $binding_hash{$BINDING_IDS{$ID}});
      }    
     
-    my $description = convert( $v->{col}->{BPL_OSND}->{content}, { utf82win => 1 });
+    my $description = convert($v->{col}->{BPL_OSND}->{content}, { utf82win => 1 });
     my $sum         = $v->{col}->{BPL_SUM}->{content};
     my $date        = $v->{col}->{BPL_DAT_OD}->{content};
     $date =~ s/([0-9\-\:\ ])/$1/;
@@ -1389,7 +1394,7 @@ if ($conf{PAYSYS_P24_MERCHANT_YUR}) {
     else {
     	$table_id_col = ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) ? $html->form_input('IDS', "$ID", { TYPE => 'checkbox'}).$ID : '';
 
-    	$table_login_col = (($UID>0) ? $html->button($LOGIN, "index=15&UID=$UID").'<br/>'.$html->form_input('CONTRACT_ID_'.$ID, "$BINDING_IDS{$ID}", { TYPE => 'hidden'}) :  ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) ?  $html->form_input($BINDING_FIELD.'_'. $ID, $FORM{$BINDING_FIELD.'_'.$ID}) : '' ) .
+    	$table_login_col = (($UID>0) ? $html->button($LOGIN, "index=15&UID=$UID").'<br/>'. $FIO .'<br/>'.$html->form_input('CONTRACT_ID_'.$ID, "$BINDING_IDS{$ID}", ) :  ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) ?  $html->form_input($BINDING_FIELD.'_'. $ID, $FORM{$BINDING_FIELD.'_'.$ID}) : '' ) .
 		  $html->form_input('UID_'.$ID, "$UID", { TYPE => 'hidden'})	.
 		  $html->form_input('SUM_'.$ID, "$sum", { TYPE => 'hidden'})	.
 		  $html->form_input('DATE_'.$ID, "$date", { TYPE => 'hidden'})	.
@@ -1407,8 +1412,17 @@ if ($conf{PAYSYS_P24_MERCHANT_YUR}) {
        ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM})  ? $html->b($v->{col}->{BPL_C_ACC}->{content}) : $v->{col}->{BPL_C_ACC}->{content},
        ''
      );
+   
+    if ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) {
+ 	    $total_in++;
+ 	    $total_sum_in+=$sum ;
+ 	   }
+ 	  if ($v->{col}->{BPL_A_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) {
+ 	    $total_out++;
+  	  $total_sum_out+=$sum;
+  	 }
    }
-}
+ }
 else {
   if ($conf{PAYSYS_P24_EXPR}) {
     foreach my $line ( @{ $info->{data}->{info}->[0]->{statements}->[0]->{statement} }) {
@@ -1435,19 +1449,19 @@ else {
      }
 
     foreach my $line (@$list) {
-      $binding_hash{lc($line->[$binding_field_id])}="$line->[0]:$line->[1]:".$line->[5+$users->{SEARCH_FIELDS_COUNT}];
+      $binding_hash{lc($line->[$binding_field_id])}="$line->[0]:$line->[1]:".$line->[5+$users->{SEARCH_FIELDS_COUNT}]."";
      }
   }
 
 	foreach my $line ( @{ $info->{data}->{info}->[0]->{statements}->[0]->{statement} }) {
 		my $description = convert($line->{'description'}, { utf82win => 1 });
     my $ID          = $line->{'appcode'};
-    my ($LOGIN, $BIND, $UID)=split(/:/, $binding_hash{$BINDING_IDS{$line->{'appcode'}}});
+    my ($LOGIN, $BIND, $UID, $CONTRACT_ID)=split(/:/, $binding_hash{$BINDING_IDS{$line->{'appcode'}}});
     my $date = $line->{'trandate'};
     my $sum  = $line->{'amount'};
     
 		$table->addrow($ID,
-		  (($binding_hash{$BINDING_IDS{$ID}}) ? $html->button($LOGIN, "index=15&UID=$UID").'<br/>' : $html->form_input('UID_'. $ID, "$FORM{UID}")).
+		  (($binding_hash{$BINDING_IDS{$ID}}) ? $html->button($LOGIN, "index=15&UID=$UID").'<br/>'.$BIND.' / '.$CONTRACT_ID : $html->form_input('UID_'. $ID, "$FORM{UID}")).
 		  $html->form_input('IDS', "$ID", { TYPE => 'hidden'}).
 		  $html->form_input('UID_'.$ID, "$UID", { TYPE => 'hidden'})	.
 		  $html->form_input('SUM_'.$ID, "$sum", { TYPE => 'hidden'})	.
@@ -1478,6 +1492,17 @@ else {
 	                         	           },
 	                         NAME    => 'FORM_IMPORT'
 	                        });
+
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right', 'right', 'right'],
+                         rows       => [ [ "IN $_TOTAL:", $html->b($total_in), "$_SUM", $html->b($total_in_sum) ],
+                                         [ "OUT $_TOTAL:", $html->b($total_out), "$_SUM", $html->b($total_out_sum) ]
+                                          ]
+                        } );
+print $table->show();
+
+
 }
 
 
