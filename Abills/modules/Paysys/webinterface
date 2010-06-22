@@ -1287,7 +1287,7 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       NAME    => 'stats'
 	                     });
 	
-	my $info =  p24({ HISTORY => 1, %FORM });
+	my $info =  p24({ HISTORY => 1, DATE => $DATE, %FORM });
 	
 	my($BINDING_FIELD, $BINDING_EXPR);
   if ($conf{PAYSYS_P24_EXPR}) {
