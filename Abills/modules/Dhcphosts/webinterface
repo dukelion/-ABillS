@@ -685,7 +685,6 @@ sub dhcphosts_user {
 
 
   if ($FORM{add}) {
-    
     if ($FORM{AUTO_IP} && ! $FORM{NETWORK}) {
     	$html->message('err', $_ERROR, "$ERR_WRONG_DATA: Select network");
      }
@@ -712,9 +711,11 @@ sub dhcphosts_user {
       if (! $Dhcphosts->{errno} && $FORM{OPTION_82} && $FORM{PORTS} && $FORM{NAS_ID}) {
       	my $list = $Dhcphosts->hosts_list({ NAS_ID => $FORM{NAS_ID}, PORTS => $FORM{PORTS} });
       	if ($Dhcphosts->{TOTAL} > 0) {
-          $Dhcphosts->{errno}=8;
-          $Dhcphosts->{LOGIN}=$list->[0][1];
-          $Dhcphosts->{UID}=$list->[0][13+$Dhcphosts->{SEARCH_FIELDS_COUNT}];
+          #$Dhcphosts->{errno} = 8;
+          $Dhcphosts->{LOGIN} = $list->[0][1];
+          $Dhcphosts->{UID}   = $list->[0][13+$Dhcphosts->{SEARCH_FIELDS_COUNT}];
+        	my $login = $html->button("$Dhcphosts->{LOGIN}", "index=15&UID=$Dhcphosts->{UID}&MODULE=Dhcphosts");
+        	$html->message('err', $_ERROR, "Option 82 $_EXIST NAS: $FORM{NAS_ID} $_PORT: $FORM{PORTS} $login");
     	   }
        }
 
