@@ -349,7 +349,7 @@ else {
   $self->{DEPOSIT}=0;
  }
 
-  if ($self->{INTERVALS} > 0 && $self->{DEPOSIT} > 0)  {
+  if ($self->{INTERVALS} > 0 && ($self->{DEPOSIT} > 0 || $self->{PAYMENT_TYPE} > 0))  {
      ($self->{TIME_INTERVALS}, $self->{INTERVAL_TIME_TARIF}, $self->{INTERVAL_TRAF_TARIF}) = $Billing->time_intervals($self->{TP_ID});
      ($remaining_time, $ATTR) = $Billing->remaining_time($self->{DEPOSIT}, {
     	    TIME_INTERVALS      => $self->{TIME_INTERVALS},

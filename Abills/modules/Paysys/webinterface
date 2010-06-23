@@ -1417,7 +1417,7 @@ if ($conf{PAYSYS_P24_MERCHANT_YUR}) {
  	    $total_in++;
  	    $total_sum_in+=$sum ;
  	   }
- 	  if ($v->{col}->{BPL_A_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) {
+ 	  elsif ($v->{col}->{BPL_A_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) {
  	    $total_out++;
   	  $total_sum_out+=$sum;
   	 }
@@ -1474,8 +1474,17 @@ else {
 		 	$sum,	
 		 	$line->{'card'},	
 		 	$line->{'cardamount'}, 
-		 	$line->{'termainal'}
+		  convert($line->{'termainal'}, { utf82win => 1 })
 		 	);
+
+    if ($line->{'card'} eq $conf{PAYSYS_P24_CARDNUM}) {
+ 	    $total_in++;
+ 	    $total_sum_in+=$sum ;
+ 	   }
+ 	  elsif ($v->{col}->{BPL_A_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) {
+ 	    $total_out++;
+  	  $total_sum_out+=$sum;
+  	 }
    }
 
 	while(my($k, $v) = each %{  @{ $info->{data}->{info} }[0]->{cardbalance}->[0] } ) {

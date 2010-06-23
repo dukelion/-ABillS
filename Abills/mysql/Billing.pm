@@ -1064,7 +1064,6 @@ sub remaining_time {
      $day_of_year   = $attr->{DAY_OF_YEAR};
    }
 
-
   my $REDUCTION = (defined($attr->{REDUCTION})) ? $attr->{REDUCTION} : 0;
   $deposit = $deposit + ($deposit * (100 - $REDUCTION) / 100) if ($REDUCTION > 0);
 
@@ -1125,7 +1124,6 @@ sub remaining_time {
     }
   
   print "Count:  $count Remain Time: $remaining_time\n" if ($debug == 1);
-
   # Time check
   # $session_start
      $count++;
