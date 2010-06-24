@@ -245,6 +245,11 @@ sub payments {
   else {
     print "Error: Unknown payment system";
     if (scalar keys %FORM > 0) {
+     	if ($debug == 0) {
+     	  while(my($k, $v)=each %FORM) {
+	        $output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
+        }
+       }
     	mk_log($output2);
     }
    }
