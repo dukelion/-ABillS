@@ -192,7 +192,7 @@ elsif('77.222.138.142,195.10.218.120' =~ /$ENV{REMOTE_ADDR}/ && ! $conf{PAYSYS_U
   usmp_payments_v2();
   exit;
  }
-elsif ($FORM{pay_way}) {
+elsif ($FORM{payment} && $FORM{payment}=~/pay_way/) {
  	require "P24.pm";
  	p24_payments();
  	exit;
