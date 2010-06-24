@@ -8,3 +8,4 @@ $ERR_INVALID_SIGNATURE='Неправильний електронний підпис';
 $ERR_TRANSACTION_DECLINED='Транзакція відхилена';
 $_GET_INVOICE='Отримати рахунок';
 $_INVOICE_SENDED='Рахунок відправлено';
+$_TEST_PAYMENT='Тестовий платіж';

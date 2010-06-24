@@ -1554,31 +1554,28 @@ sub paysys_p24 {
 sub paysys_privatbank_p24 {
 my %info = ();
 	
-if ($FORM{FALSE}) {
-	if ($FORM{status} == 11 ) {
-    $FORM{ReasonCodeDesc}="$ERR_INVALID_SIGNATURE";
-	 }
-	elsif ($FORM{status} == 2 ) {
-    $FORM{ReasonCodeDesc}="$ERR_TRANSACTION_DECLINED";
-	 }
-	elsif ($FORM{status} == 1 ) {
-    $FORM{ReasonCodeDesc}="$_ERR_NO_TRANSACTION";
-	 }
-
-	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{order} [$FORM{status}] $FORM{ReasonCodeDesc} ");
-	$html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
-	return 0;
- }
-elsif ($FORM{TRUE}) {
-   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{order}", 
-   	                          UID => $LIST_PARAMS{UID} });
+if ($FORM{OrderID}) {
+   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OrderID}", 
+   	                          UID            => $LIST_PARAMS{UID} });
 
    if ($Paysys->{TOTAL} > 0) {
-	    $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{order}");
+	    $Paysys->info({ ID => $list->[0][0] });
+	    
+	    if ($Paysys->{INFO} =~ /STATE: ok/) {
+	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OrderID}");	
+	     }
+	    elsif ($Paysys->{INFO} =~ /STATE: test/) {
+	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OrderID} ($_TEST_PAYMENT)");	
+	     }
+	    else {
+	      $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID}");
+	     }
+	    
 	  }
    else {
-    	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{order} $_ERR_NO_TRANSACTION");
+    	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID} $_ERR_NO_TRANSACTION");
     }
+
   $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
   return 0;
  }

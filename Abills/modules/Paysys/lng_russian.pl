@@ -8,3 +8,4 @@ $ERR_INVALID_SIGNATURE='Неправильная подпись. ОБратитесь к администратору';
 $ERR_TRANSACTION_DECLINED='Транзакция отвергнута';
 $_GET_INVOICE='Получить счёт';
 $_INVOICE_SENDED='Счёт отправлен';
+$_TEST_PAYMENT='Тестовый платёж';

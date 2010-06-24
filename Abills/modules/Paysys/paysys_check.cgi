@@ -121,7 +121,7 @@ $users = Users->new($db, $admin, \%conf);
 my $output2 = '';
 if ($debug > 0) {
   while(my($k, $v)=each %FORM) {
- 	  $output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
+ 	  $output2 .= "$k -> $v\n"	if ($k ne '__BUFFER');
   }
   mk_log($output2);
 }
@@ -247,7 +247,7 @@ sub payments {
     if (scalar keys %FORM > 0) {
      	if ($debug == 0) {
      	  while(my($k, $v)=each %FORM) {
-	        $output2 .= "$k, $v\n"	if ($k ne '__BUFFER');
+	        $output2 .= "$k -> $v\n"	if ($k ne '__BUFFER');
         }
        }
     	mk_log($output2);
