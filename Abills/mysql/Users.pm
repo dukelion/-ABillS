@@ -397,13 +397,15 @@ sub pi {
      LEFT JOIN streets s  ON (s.id=b.street_id)
      LEFT JOIN districts d  ON (d.id=s.district_id)
      WHERE pi.uid='$self->{UID}'");
-
-    ($self->{DISTRICT_ID}, 
-     $self->{CITY}, 
-     $self->{ADDRESS_DISTRICT}, 
-     $self->{ADDRESS_STREET}, 
-     $self->{ADDRESS_BUILD}, 
-    )= @{ $self->{list}->[0] };
+   
+    if ($self->{TOTAL} > 0) {
+      ($self->{DISTRICT_ID}, 
+       $self->{CITY}, 
+       $self->{ADDRESS_DISTRICT}, 
+       $self->{ADDRESS_STREET}, 
+       $self->{ADDRESS_BUILD}, 
+      )= @{ $self->{list}->[0] };
+     }
   }
 
 	return $self;

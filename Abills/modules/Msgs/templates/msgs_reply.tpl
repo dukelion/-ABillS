@@ -24,6 +24,8 @@ samechanged('STATE');
 <tr><td>$_ATTACHMENT:</td><td><input name='FILE_UPLOAD' type='file' size='40' class='fixed'>
 <!--   <input class='button' type='submit' name='AttachmentUpload' value='$_ADD'>--></td></tr>  
 <tr><td>$_STATUS:</td><td>%STATE_SEL% %RUN_TIME%</td></tr>
+<tr><td>$_CHANGE $_CHAPTERS:</td><td>%CHAPTERS_SEL%</td></tr>
+<tr><td>$_INNER:</td><td><input type=checkbox name=INNER_MSG value=1></td></tr>
 </table>
 <input type='hidden' name='sid' value='$sid'/>
 <input type='submit' name='%ACTION%' value='  %ACTION_LNG%  '/>

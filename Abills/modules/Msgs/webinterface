@@ -383,16 +383,13 @@ sub msgs_admin {
 
 
   @msg_status = @msg_status_all;
-   
+
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
- 
   #Get admin privileges
   my $a_list = $Msgs->admins_list({ AID => $admin->{AID} });
-  
   my %A_PRIVILEGES        = ();
   my %CHAPTERS_DELIGATION = ();
-
   foreach my $line (@$a_list) {
   	if ($line->[5] > 0) {
   	  push @A_CHAPTER, "$line->[5]:$line->[3]";
@@ -400,8 +397,6 @@ sub msgs_admin {
   	  $A_PRIVILEGES{$line->[5]}=$line->[2];
   	 }
    }
-
- 
 
   if ($FORM{deligate}) {
   	$Msgs->message_change({ ID          => $FORM{deligate},
@@ -421,7 +416,6 @@ sub msgs_admin {
     $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});
     $FORM{chg}=$FORM{ID} if ($FORM{ID});
     goto MSG_LABEL;
-    
    }
   elsif ($FORM{add_dispatch}) {
   	my @ids = split(/, /, $FORM{del});
@@ -439,49 +433,49 @@ sub msgs_admin {
    	 	 my ($h, $min, $sec)=split(/:/, $FORM{RUN_TIME}, 3);
    	 	 $FORM{RUN_TIME}=$h*60*60+$min*60+$sec;
    	 }
-
-    $Msgs->message_reply_add({ %FORM, 
+    
+    if ( $FORM{REPLY_SUBJECT} || $FORM{REPLY_TEXT} || $FORM{FILE_UPLOAD} )  {
+      $Msgs->message_reply_add({ %FORM, 
     	                         AID   => $admin->{AID},
     	                         IP    => $admin->{SESSION_IP},
     	                       });
 
-    my $reply_id =  $Msgs->{INSERT_ID};
+      my $reply_id =  $Msgs->{INSERT_ID};
 
-     if (! $Msgs->{errno}) {
-       #Add attachment
-       if ($FORM{FILE_UPLOAD}) {
-         $Msgs->attachment_add({ 
-           MSG_ID       => $Msgs->{INSERT_ID},
-           CONTENT      => $FORM{FILE_UPLOAD}{Contents},
-           FILESIZE     => $FORM{FILE_UPLOAD}{Size},
-           FILENAME     => $FORM{FILE_UPLOAD}{filename},
-           CONTENT_TYPE => $FORM{FILE_UPLOAD}{'Content-Type'},
-           UID          => $FORM{UID},
-           MESSAGE_TYPE  => 1
-          });
-        }      
+       if (! $Msgs->{errno}) {
+         #Add attachment
+         if ($FORM{FILE_UPLOAD}) {
+           $Msgs->attachment_add({ 
+             MSG_ID       => $Msgs->{INSERT_ID},
+             CONTENT      => $FORM{FILE_UPLOAD}{Contents},
+             FILESIZE     => $FORM{FILE_UPLOAD}{Size},
+             FILENAME     => $FORM{FILE_UPLOAD}{filename},
+             CONTENT_TYPE => $FORM{FILE_UPLOAD}{'Content-Type'},
+             UID          => $FORM{UID},
+             MESSAGE_TYPE  => 1
+            });
+          }      
+       }
      }
 
 
-
     %params = ();
+    $params{CHAPTER}=$FORM{CHAPTER_ID} if ($FORM{CHAPTER_ID});
     $params{STATE}       = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
     $params{STATE}       = ($FORM{STATE} == 0) ? 6 : $FORM{STATE} ;
     my $state=$FORM{STATE};
  	 	$params{CLOSED_DATE} = $DATE       if ($state > 0);
 	 	$params{DONE_DATE}   = $DATE       if ($state > 1);
-
  	  $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
  	 	                        ID        => $FORM{ID},
  	 	                        USER_READ => "0000-00-00 00:00:00",
  	 	                        ADMIN_READ=> "$DATE $TIME",
- 	 	                        #CHAPTER   => 
  	 	                        %params
  	 	                      });
 
     $FORM{chg} = $FORM{ID};
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
-    
+
     $users->pi({ UID => $FORM{UID} });
     if ($users->{EMAIL}) {
     	 $ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
@@ -545,13 +539,13 @@ sub msgs_admin {
     $Msgs->{DELIGATED}      =  $CHAPTERS_DELIGATION{$Msgs->{CHAPTER}} + 1;
     $Msgs->{DELIGATED_DOWN} =  0;
 
-#    $Msgs->{CHAPTER_NAME}=$html->form_select('CHAPTER', 
-#                                          { 
-# 	                                          SELECTED          => $Msgs->{CHAPTER},
-# 	                                          SEL_MULTI_ARRAY   => $Msgs->chapters_list({ }),
-# 	                                          MULTI_ARRAY_KEY   => 0,
-# 	                                          MULTI_ARRAY_VALUE => 1,
-# 	                                        });    
+    $Msgs->{CHAPTERS_SEL}=$html->form_select('CHAPTER_ID', 
+                                          { 
+ 	                                          SELECTED          => '',
+ 	                                          SEL_MULTI_ARRAY   => [['', ''], @{ $Msgs->chapters_list( ) } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });    
     
     $Msgs->{PLAN_DATE} = $html->date_fld2('PLAN_DATE', { NO_DEFAULT_DATE=>1, MONTHES => \@MONTHES, FORM_NAME => 'add_message', WEEK_DAYS => \@WEEKDAYS });
     $Msgs->{RESPOSIBLE}=$html->form_select('RESPOSIBLE', 
@@ -601,21 +595,29 @@ sub msgs_admin {
       $line->[2] = convert($line->[2], { text2html => 1 });
       $line->[2] =~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
       $line->[2] =~ s/&gt; (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
+
+      my $msg_color = $_COLORS[0];
+      
+      if ($line->[13]) {
+      	$msg_color = $_COLORS[0]
+       }
+      elsif ($line->[12] > 0) {
+      	$msg_color = $_COLORS[2];
+       } 
       
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
           REPLY_ID   => $line->[0],
           DATE       => $line->[1],
           CAPTION    => convert($line->[5], { text2html => 1 }),
-          PERSON     =>	"$line->[3]" . (($line->[12]) ? " ($_ADMIN)" : ""),
+          PERSON     =>	"$line->[3]" . (($line->[12]) ? " ($_ADMIN)". (($line->[13]) ? " $_INNER" : '') : ""),
       	  MESSAGE    => $line->[2],
       	  QUOTING    => $html->button($_QUOTING, "&index=$index&chg=$FORM{chg}&UID=$FORM{UID}&QUOTING=$line->[0]", { BUTTON => 1 }),
       	  DELETE     => $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=$line->[0]&UID=$Msgs->{UID}", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }),
       	  ATTACHMENT =>  ($line->[7]) ? "$_ATTACHMENT: ". $html->button("$line->[7]", "qindex=$index&ATTACHMENT=$line->[9]", { TARGET => '_new' }). " ($_SIZE: ". int2byte($line->[8]) .')' : '',
-      	  COLOR      => ($line->[12] > 0) ? $_COLORS[2] : $_COLORS[1],
+      	  COLOR      => $msg_color,
       	  RUN_TIME   => ($line->[11] ne '00:00:00') ? "$_RUN_TIME: $line->[11]" : ''
       	  }, { notprint => 1 }, 
-      	  
-      	  	);
+   	  	);
      }
     my $run_time = '00:00:00';
     if ($reply ne '') {
@@ -1002,7 +1004,7 @@ sub msgs_user {
    $Msgs->{PRIORITY_TEXT}= $html->color_mark($priority[$Msgs->{PRIORITY}], $priority_colors[$Msgs->{PRIORITY}]);
 
  	 if ($Msgs->{ID} && $Msgs->{ID} > 0) {
-  	  my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID} });
+  	  my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID}, INNER_MSG => 0 });
      my $reply = '';
 
      foreach my $line (@$list) {

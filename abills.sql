@@ -599,6 +599,7 @@ CREATE TABLE `msgs_reply` (
   `caption` varchar(40) NOT NULL default '',
   `ip` int(11) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
+  `inner_msg` tinyint(1) unsigned NOT NULL default '0',
   run_time int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),

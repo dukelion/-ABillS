@@ -835,7 +835,6 @@ sub messages_reply_list {
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = (defined($attr->{DESC})) ? $attr->{DESC} : 'DESC';
 
-
  @WHERE_RULES = ();
  
  if($attr->{LOGIN_EXPR}) {
@@ -846,15 +845,12 @@ sub messages_reply_list {
     push @WHERE_RULES, "(date_format(m.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(m.date, '%Y-%m-%d')<='$attr->{TO_DATE}')";
   }
 
- if ($attr->{MSG_ID}) {
- 	  my $value = $self->search_expr($attr->{MSG_ID}, 'INT');
-    push @WHERE_RULES, "m.id$value";
+ if (defined($attr->{INNER_MSG})) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{INNER_MSG}, 'INT', 'mr.inner_msg') }; 
   }
 
-
  if (defined($attr->{REPLY})) {
- 	  my $value = $self->search_expr($attr->{REPLY}, '');
-    push @WHERE_RULES, "m.reply$value";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{REPLY}, '', 'm.reply') };
   }
 
  # Show groups
@@ -872,17 +868,15 @@ sub messages_reply_list {
 
  #DIsable
  if ($attr->{STATE}) {
-   my $value = $self->search_expr($attr->{STATE}, 'INT');
-   push @WHERE_RULES, "m.state$value"; 
+   push @WHERE_RULES, @{ $self->search_expr($attr->{STATE}, 'INT', 'm.state') }; 
   }
 
  if ($attr->{ID}) {
-   my $value = $self->search_expr($attr->{ID}, 'INT');
-   push @WHERE_RULES, "mr.id$value"; 
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'mr.id') }; 
   }
  
 
- $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
+ $WHERE = ($#WHERE_RULES > -1) ? 'and ' . join(' and ', @WHERE_RULES)  : '';
 
   $self->query($db,   "SELECT mr.id,
     mr.datetime,
@@ -896,16 +890,16 @@ sub messages_reply_list {
     ma.id,
     mr.uid,
     SEC_TO_TIME(mr.run_time),
-    mr.aid
+    mr.aid,
+    mr.inner_msg
     FROM (msgs_reply mr)
     LEFT JOIN users u ON (mr.uid=u.uid)
     LEFT JOIN admins a ON (mr.aid=a.aid)
     LEFT JOIN msgs_attachments ma ON (mr.id=ma.message_id and ma.message_type=1 )
-    WHERE main_msg='$attr->{MSG_ID}'
+    WHERE main_msg='$attr->{MSG_ID}' $WHERE
     GROUP BY mr.id 
     ORDER BY datetime ASC;");
     #LIMIT $PG, $PAGE_ROWS    ;");
-
  
  return $self->{list};
 }
@@ -928,13 +922,15 @@ sub message_reply_add {
    aid,
    status,
    uid,
-   run_time
+   run_time,
+   inner_msg
    )
     values ('$DATA{ID}', '$DATA{REPLY_SUBJECT}', '$DATA{REPLY_TEXT}',  now(),
         INET_ATON('$DATA{IP}'), 
         '$DATA{AID}',
         '$DATA{STATE}',
-        '$DATA{UID}', '$DATA{RUN_TIME}'
+        '$DATA{UID}', '$DATA{RUN_TIME}',
+        '$DATA{INNER_MSG}'
     );", 'do');
  
   
@@ -957,8 +953,6 @@ sub attachment_add () {
         " ('$attr->{MSG_ID}', '$attr->{FILENAME}', '$attr->{CONTENT_TYPE}', '$attr->{FILESIZE}', ?, ".
         " current_timestamp, '$attr->{UID}', current_timestamp, '0', '$attr->{MESSAGE_TYPE}')", 
         'do', { Bind => [ $attr->{CONTENT}  ] } );
-        
-        
 
   return $self;
 }
