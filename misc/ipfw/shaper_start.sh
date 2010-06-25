@@ -12,8 +12,9 @@ VERSION=3.1
 if [ w != w`grep ng_car /usr/abills/libexec/config.pl` ]; then
   NG_SHAPPER=1
 fi;
-# NAT IP
+# NAT External IP
 NAT_IPS="";
+# Fake net 
 FAKE_NET="10.0.0.0/16"
 NAT_IF="";
 

@@ -477,7 +477,7 @@ sub msgs_admin {
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
 
     $users->pi({ UID => $FORM{UID} });
-    if ($users->{EMAIL}) {
+    if ($users->{EMAIL} && ! $FORM{INNER_MSG}) {
     	 $ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
        my $site =  $1 || '';
 
