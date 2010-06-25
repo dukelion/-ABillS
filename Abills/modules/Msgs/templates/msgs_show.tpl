@@ -4,6 +4,7 @@
 <input type='hidden' name='ID' value='%ID%'/>
 <input type='hidden' name='PARENT' value='%PARENT%'/>
 <input type='hidden' name='CHAPTER' value='%CHAPTER%'/>
+<input type='hidden' name='INNER_MSG' value='%INNER_MSG%'/>
 
 
 <TABLE width='100%' cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1' valign='top'>

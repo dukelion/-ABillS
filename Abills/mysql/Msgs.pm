@@ -930,7 +930,7 @@ sub message_reply_add {
         '$DATA{AID}',
         '$DATA{STATE}',
         '$DATA{UID}', '$DATA{RUN_TIME}',
-        '$DATA{INNER_MSG}'
+        '$DATA{REPLY_INNER_MSG}'
     );", 'do');
  
   
