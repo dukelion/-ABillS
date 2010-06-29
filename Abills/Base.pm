@@ -299,12 +299,11 @@ sub sendmail {
   	$to_addresses=$1;
    }
 
-  
   $to_addresses =~ s/[\n\r]//g;
 
   if ($attr->{ATTACHMENTS}) {
   	my $boundary = "_----------=_10167391557129230";
-  	$header .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\n";
+  	$header .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\n\n";
 
 $message = qq{
 This is a multi-part message in MIME format. 
