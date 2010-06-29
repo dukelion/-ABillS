@@ -1174,15 +1174,14 @@ sub docs_account {
 	                            });
        	 
        	 my $content = docs_account({ OUTPUT2RETURN => 1 });
-
        	 sendmail("$conf{ADMIN_MAIL}", "$users->{EMAIL}", "ABillS - $_ACCOUNT", "$message", "$conf{MAIL_CHARSET}",
-       	  { ATTACHMENTS => [ CONTENT      => $content,
-       	  	                 CONTENT_TYPE => 'Content-type: application/pdf',
-       	  	                 FILENAME     => 'account.pdf',
+       	  '',       	  
+       	  { ATTACHMENTS => [ { CONTENT      => $content,
+       	  	                   CONTENT_TYPE => 'Content-type: application/pdf',
+       	  	                   FILENAME     => 'account.pdf' }
        	  	                 ] });
 
          $html = $html_old;
-
        	 return 0;
         }
        else {
