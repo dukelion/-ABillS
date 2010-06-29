@@ -87,7 +87,6 @@ sub new {
    }
  
   $self->{OUTPUT}='';
-
   $self->{colors} = $attr->{colors} if (defined($attr->{colors}));
  
   %FORM = form_parse();
@@ -95,8 +94,8 @@ sub new {
 
   $SORT = $FORM{sort} || 1;
   $DESC = ($FORM{desc}) ? 'DESC' : '';
-  $PG = $FORM{pg} || 0;
-  $OP = $FORM{op} || '';
+  $PG   = $FORM{pg} || 0;
+  $OP   = $FORM{op} || '';
   $self->{CHARSET}=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
    
   if ($FORM{PAGE_ROWS}) {
@@ -146,7 +145,6 @@ sub new {
   
   $pages_qs = '';
   $index = $FORM{index} || 0;
-  
   
   if ($attr->{language}) {
     $self->{language}=$attr->{language};
@@ -1633,10 +1631,7 @@ if ($attr->{SAVE_AS}) {
   $tpl = $pdf->stringify();
   $pdf->end;
  
- 
- 
-  print $tpl;
-
+  #print $tpl;
 
   if($attr->{OUTPUT2RETURN}) {
 		return $tpl;
