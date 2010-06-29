@@ -321,15 +321,17 @@ $message
   	  $message .=  qq{ 
 
 --$boundary
-Content-Type: $attachment->{CONTENT_TYPE}; name="$attachment->{FILENAME}" 
-Content-Transfer-Encoding: base64 
-Content-Disposition: attachment; filename="$attachment->{FILENAME}" 
+Content-Type: $attachment->{CONTENT_TYPE}; name="$attachment->{FILENAME}"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="$attachment->{FILENAME}"
 
-$data  	  
+$data
+  	  
 }
  	
     }
   }
+
   my @emails_arr = split(/;/, $to_addresses);
   foreach my $to (@emails_arr) {
     if ($attr->{TEST}) {
