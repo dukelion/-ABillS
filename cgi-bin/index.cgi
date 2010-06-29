@@ -151,12 +151,18 @@ if ($uid > 0) {
   mk_menu(\@m);
 
   $html->{SID}=$sid;
-  (undef, $OUTPUT{MENU}) = $html->menu(\%menu_items, \%menu_args, undef, 
+  
+  if (-f '../Abills/templates/_form_client_custom_menu.tpl') {
+    $OUTPUT{MENU}=$html->tpl_show(templates('form_client_custom_menu'), $user, { OUTPUT2RETURN => 1 });
+   }
+  else {
+   (undef, $OUTPUT{MENU}) = $html->menu(\%menu_items, \%menu_args, undef, 
      { EX_ARGS         => "&sid=$sid", 
      	 ALL_PERMISSIONS => 1,
      	 FUNCTION_LIST   => \%functions
      });
-  
+   }
+
   if ($html->{ERROR}) {
   	$html->message('err',  $_ERROR, "$html->{ERROR}");
   	exit;

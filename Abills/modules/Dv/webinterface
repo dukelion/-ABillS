@@ -1401,9 +1401,7 @@ my $table = $html->table( { width       => '100%',
 # dv_sessions()
 #**********************************************************
 sub dv_sessions {
-  my ($list, $sessions) = @_;
-#Session List
-
+  my ($list, $sessions, $attr) = @_;
   my %ACCT_TERMINATE_CAUSES = (                      '' => '',
                       0  => 'Unknown',
                       1  => 'User-Request',
@@ -1502,35 +1500,6 @@ foreach my $line (@$list) {
        { MESSAGE => "$_DEL Session SESSION_ID ". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}])."?", BUTTON => 1 }
       );
    }
-
-#  my($UID, 
-#     $SUM, 
-#     $BILL_ID, 
-#     $TARIF_PLAN, 
-#     $TIME_TARIF, 
-#     $TRAF_TARIF) = $Billing->session_sum("$line->[0]", 
-#                                            $line->[13], 
-#                                            $line->[14], 
-#                                            {  OUTBYTE  =>  $line->[4],
-#                                               INBYTE   =>  $line->[5],
-#                                               OUTBYTE2 =>  $line->[15],
-#                                               INBYTE2  =>  $line->[16]
-#                                             });
-  
-# = $Billing->session_sum("$RAD->{USER_NAME}", 
-#                                                 $RAD->{SESSION_START}, 
-#                                                 $RAD->{ACCT_SESSION_TIME}, 
-#                                                 $RAD);
-#
-  
-  $SUM = ''; #sprintf("%.6f", $SUM);
-  #my $n = ($SUM != $line->[9])  ? '!!!' : '';
-  #my $test = "<br>$n <b>$SUM</b>";
-#  , 
-#     $BILL_ID, 
-#     $TARIF_PLAN, 
-#     $TIME_TARIF, 
-#     $TRAF_TARIF\n";
   my @rows=();
   for(my $i=1; $i<=$sessions->{SEARCH_FIELDS_COUNT}; $i++) {
   	push @rows, $ACCT_TERMINATE_CAUSES{$line->[9+$i]};
@@ -1553,7 +1522,11 @@ foreach my $line (@$list) {
      $delete);
 }
 
-print $table->show();
+if ($attr->{OUTPUT2RETURN}) {
+  return  $table->show();
+ }
+ 
+ print $table->show();
 }
 
 
@@ -2162,7 +2135,6 @@ while(my($k,$v)=each %$types) {
   $table->addrow($html->button($k, "index=$index&LOG_TYPE=$k$pages_qs"), $v);
 }
 
-
 $table->addrow($_SIZE, int2byte((-s $conf{LOGFILE}))) if ($login eq '');
 
 print $table->show();
@@ -2267,8 +2239,7 @@ if ($sessions->{errno})	 {
                                   ["$_JOIN_SERVICE:",  $Dv->{JOIN_SERVICES_USERS} ]
                                     ]
                            } );
-
-       print $table->show();
+       $sessions->{JOIN_SERVICE_STATS} .= $table->show();
     }
    }                                    
 
@@ -2318,7 +2289,7 @@ for(my $i = 0; $i < 5; $i++) {
 	 );
  }
 
-print $table->show();
+$sessions->{PERIOD_STATS} = $table->show();
 
 
 $table = $html->table( { width       => '100%',
@@ -2339,9 +2310,7 @@ $table = $html->table( { width       => '100%',
                          ID         => 'STATS_PERIODS_SEARCH'
                       });
 
-
-
-print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+$sessions->{PERIOD_STATS} .= $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { sid   => "$sid",
 	                                    index => "$index",
 	                                    UID   => "$UID",
@@ -2373,11 +2342,12 @@ if ($sessions->prepaid_rest({
 	#Prepaid: period, traffic_type
   my $list = $sessions->{INFO_LIST};
 
-  my $table = $html->table( { caption     => "$_PREPAID",
+  my $table = $html->table( { caption   => "$_PREPAID",
 	                          width       => '100%',
                             title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
                             cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
-                            rowcolor    => $_COLORS[1]
+                            rowcolor    => $_COLORS[1],
+                            ID          => 'PREAPID_TRAFIC'
                            } );
 	
 	foreach my $line  (@$list) {
@@ -2392,7 +2362,7 @@ if ($sessions->prepaid_rest({
      );
    }
 
-  print $table->show();	 
+  $sessions->{PREPAID_INFO} = $table->show();	 
 }
 
 
@@ -2403,7 +2373,7 @@ if (! defined($FORM{sort})) {
   $LIST_PARAMS{DESC}=DESC;
  }
 
-dv_stats_calculation($sessions);
+$sessions->{TOTALS_AVG}=dv_stats_calculation($sessions);
 
 #Session List
 $list = $sessions->list({ %LIST_PARAMS });	
@@ -2427,10 +2397,13 @@ $table = $html->table( { caption     => "$_SUM",
                                             int2byte($sessions->{TRAFFIC2_OUT}, { DIMENSION => $FORM{DIMENSION} }),
                                             int2byte($sessions->{TRAFFIC2_OUT}+$sessions->{TRAFFIC2_IN}, { DIMENSION => $FORM{DIMENSION} }), 
                                             $sessions->{SUM} ] ],
+                         ID          => 'TOTALS_FULL'
                      } );
-print $table->show();
 
-dv_sessions($list, $sessions);
+$sessions->{TOTALS_FULL} = $table->show();
+$sessions->{SESSIONS} = dv_sessions($list, $sessions, { OUTPUT2RETURN => 1 });
+
+$html->tpl_show(_include('dv_stats', 'Dv'), $sessions);
 }
 
 
@@ -2442,8 +2415,6 @@ sub dv_stats_calculation  {
  my ($sessions) = @_;
 
 $sessions->calculation({ %LIST_PARAMS }); 
-
-
 my $table = $html->table( { width       => '640',
 	                          rowcolor    => $_COLORS[1],
                             title_plain => ["-", "$_MIN", "$_MAX", "$_AVG", "$_TOTAL"],
@@ -2456,7 +2427,7 @@ my $table = $html->table( { width       => '640',
                             ID           => 'DV_TRAFFIC_CALCULATIONS'
                         } );
 
-print $table->show();
+return $table->show();
 }
 
 #**********************************************************
@@ -2464,15 +2435,11 @@ print $table->show();
 #**********************************************************
 sub dv_user_stats {
 
-
-
  if(defined($FORM{SESSION_ID})) {
   	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
   	dv_session_detail({ LOGIN => $LIST_PARAMS{LOGIN} });
   	return 0;
   }
-
-
 
 if ($sessions->{errno})	{
 	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
@@ -2480,25 +2447,21 @@ if ($sessions->{errno})	{
 
 #Join Service
   if($user->{COMPANY_ID}) {
-
      if ($FORM{COMPANY_ID}) {
      	  $users=Users->new($db, $admin, \%conf); 
      	  dv_use();
      	  return 0;
      	}
 
-     use Customers;	
-
+     use Customers;
      my $customer = Customers->new($db, $admin, \%conf);
-     my $company = $customer->company();
-
+     my $company  = $customer->company();
      my $ulist = $company->admins_list({ COMPANY_ID => $user->{COMPANY_ID}, 
 	                                       UID        => $UID });
 
 
      if ($company->{TOTAL} > 0 && $ulist->[0]->[0] > 0) {
      	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_COMPANY", "&sid=$sid&index=$index&COMPANY_ID=$user->{COMPANY_ID}", { BUTTON => 1 }).' ';
-
       }
 
      $Dv->info($UID);
@@ -2537,12 +2500,8 @@ if ($sessions->{errno})	{
                                   ["$_JOIN_SERVICE: ",  $Dv->{JOIN_SERVICES_USERS} ]
                                     ]
                            } );
-
-     print $table->show();
-
- 	   
+     $sessions->{JOIN_SERVICE_STATS} .= $table->show();
  	 }
-
 
 if ($FORM{rows}) {
   $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
@@ -2552,7 +2511,6 @@ if ($FORM{rows}) {
  }
 
 #online sessions
-
 my $list = $sessions->online( { USER_NAME => $LIST_PARAMS{LOGIN}, 
 	                              FIELDS    => [0, 3, 9, 4, 5, 6 ] } );
 
@@ -2574,7 +2532,7 @@ if ($sessions->{TOTAL} > 0) {
                    int2byte($line->[5])
                   );  	
    }
-  print $table->show();
+  $sessions->{ONLINE} = $table->show();
 }
 
 
@@ -2592,7 +2550,7 @@ for(my $i = 0; $i < 5; $i++) {
 	  $table->addrow($html->button("$PERIODS[$i]", "index=$index&PERIOD=$i$pages_qs"), "$sessions->{'duration_'. $i}",
 	  int2byte($sessions->{'sent_'. $i}), int2byte($sessions->{'recv_'. $i}), int2byte($sessions->{'sum_'. $i}));
  }
-print $table->show();
+$sessions->{PERIOD_STATS} .= $table->show();
 
 
 
@@ -2612,23 +2570,16 @@ $table = $html->table({ width       => '100%',
                                          "$_ROWS: ", $html->form_input('rows', int($conf{list_max_recs}), { SIZE => 4, OUTPUT2RETURN => 1 } ),
                                          $html->form_input('show', $_SHOW, { TYPE => 'submit', OUTPUT2RETURN => 1 })
                                         ]],
-                         ID         => 'STATS_PERIODS_SEARCH'
+                         ID         => 'STATS_PERIODS_SEARCH',
                         } );
 
-
-
-
-#if (! defined($UID)) {
-#	$UID=$FORM{UID};
-#}
-
-print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
+$sessions->{PERIOD_STATS} .= $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { sid   => "$sid",
 	                                    index => "$index",
 	                                    UID   => "$UID",
 	                                    UIDS  => "$FORM{UIDS}",
 	                                    },
-	                       NAME    => 'stats'
+	                       NAME    => 'stats',
 	                     });
 
 #dv_stats_calculation($sessions);
@@ -2647,11 +2598,7 @@ if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID},
 	                            UIDS => $LIST_PARAMS{UIDS} 
 	                            })) {
 
-	#Prepaid: period, traffic_type
-  
-
-  my $list = $sessions->{INFO_LIST};
-
+  my $list  = $sessions->{INFO_LIST};
   my $table = $html->table( { caption     => "$_PREPAID",
 	                            width       => '100%',
                               title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
@@ -2671,7 +2618,7 @@ if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID},
      );
    }
 
-  print $table->show();	 
+  $sessions->{PREPAID_INFO} = $table->show();	 
 }
 
 
@@ -2684,7 +2631,6 @@ if (! $FORM{sort}) {
 }
 
 $list = $sessions->list({ %LIST_PARAMS });	
-
 $table = $html->table( {  caption     => "$_SUM",
 	                        width       => '100%',
 	                        rowcolor    => $_COLORS[1],
@@ -2701,11 +2647,12 @@ $table = $html->table( {  caption     => "$_SUM",
                                             int2byte($sessions->{TRAFFIC2_OUT}+$sessions->{TRAFFIC2_IN}, { DIMENSION => $FORM{DIMENSION} }), 
                                             $sessions->{SUM} ] ]                               
                              } );
-print $table->show();	
-
-dv_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
 
 
+$sessions->{TOTALS_FULL} = $table->show();
+$sessions->{SESSIONS} = dv_sessions($list, $sessions, { OUTPUT2RETURN => 1 }) if ( $sessions->{TOTAL} > 0);
+
+$html->tpl_show(_include('dv_stats', 'Dv'), $sessions);
 }
 
 
@@ -2824,12 +2771,9 @@ $sessions->{RECALC}= $html->button($_RECALCULATE, "index=$index&RECALC=1&SESSION
 
 $html->tpl_show(_include('dv_session_detail', 'Dv'), $sessions);
 
-
-
 my %ORDERS = (hours    => $_HOURS,
               days     => $_DAYS,
               sessions => $_SESSIONS  );
-
 
 print $html->form_main({ CONTENT => $html->form_select('PERIOD', 
                                           { 
@@ -2857,8 +2801,6 @@ print $html->form_main({ CONTENT => $html->form_select('PERIOD',
 
 $pages_qs .= "&PERIOD=$FORM{PERIOD}" if (defined($FORM{PERIOD})); 
 
-
-
 #Log intervals
 my $list = $sessions->list_log_intervals({ ACCT_SESSION_ID =>  $FORM{SESSION_ID} });
 if ($sessions->{TOTAL} > 0) {
@@ -2882,13 +2824,9 @@ if ($sessions->{TOTAL} > 0) {
   }
 
   print $table->show();
-
 }
 
-
-
 #Log detail list
-
 if(! $FORM{sort}) {
   $LIST_PARAMS{SORT}=1;
   $LIST_PARAMS{DESC}='DESC';
@@ -2915,17 +2853,15 @@ my $table = $html->table({ width      => '100%',
     $line->[7]
     );
   }
- print $table->show();
 
+print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
                          rows       => [ ["$_TOTAL:", $html->b($sessions->{TOTAL}) ] ]
                        } );
 print $table->show();
-
 }
-
 
 
 #**********************************************************
@@ -2960,8 +2896,6 @@ sub dv_user_chg_tp {
  	  $html->message('err', "$_CHANGE $_TARIF_PLAN", "$_NOT_ALLOW", { ID => 140 });
  	  return 0;
   }
-
-
 
 if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $user->{DISABLE} &&
         ($user->{DEPOSIT}+$user->{CREDIT} > 0 || 

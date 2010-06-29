@@ -173,7 +173,6 @@ sub new {
       print "Can't load 'PDF::API2'. Get it from http://cpan.org $@";
       exit; #return 0;
      }
-
    }
   elsif (defined($FORM{xml})) {
     require Abills::XML;
