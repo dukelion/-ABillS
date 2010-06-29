@@ -192,7 +192,7 @@ sub paysys_import_form {
  	                     DATE         => $DATA_ARR->[$i]->{DATE} || undef, 
                        EXT_ID       => $ext_id,
                        CHECK_EXT_ID => $ext_id,
-                       INNER_DESRIBE => ''
+                       INNER_DESCRIBE => ''
                         } );
 
 
@@ -220,9 +220,9 @@ sub paysys_import_form {
                 my $user = $users->info($uid);
                 $fees->take($user, $DATA_ARR->[$i]->{SUM}, { 
  	                     DESCRIBE      => $DATA_ARR->[$i]->{DESCRIBE} || '', 
- 	                     INNER_DESRIBE => $DATA_ARR->[$i]->{EXT_ID} || '', 
+ 	                     INNER_DESCRIBE => $DATA_ARR->[$i]->{EXT_ID} || '', 
  	                     DATE          => $DATA_ARR->[$i]->{DATE} || undef, 
- 	                     INNER_DESRIBE => '',
+ 	                     INNER_DESCRIBE => '',
  	                 #    METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD}, 
                    #    EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
                    #    CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"
