@@ -303,7 +303,7 @@ sub sendmail {
 
   if ($attr->{ATTACHMENTS}) {
   	my $boundary = "_----------=_10167391557129230";
-  	$header .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\n\n";
+  	$header .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\n";
 
 $message = qq{
 This is a multi-part message in MIME format. 
@@ -325,7 +325,7 @@ Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="$attachment->{FILENAME}"
 
 $data
-  	  
+
 }
  	
     }
