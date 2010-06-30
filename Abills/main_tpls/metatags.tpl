@@ -53,6 +53,79 @@ th, li {
   font-size: 12px;
 }
 
+/* odd items 1,3,5,7,... */
+table tr.odd th,
+.odd {
+  background: %_COLOR_1%;
+  height: 24;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+/* even items 2,4,6,8,... */
+table tr.even th,
+.even {
+  background: %_COLOR_2%;
+  height: 24;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+/* marked table rows */
+table tr.marked th,
+table tr.marked {
+    background:  %_COLOR_0%;
+    color:   %_COLOR_9%;
+}
+
+/* hovered items */
+.odd:hover,
+.even:hover,
+.hover {
+    background: %_COLOR_0%;
+    color: %_COLOR_9%;
+}
+
+/* hovered table rows */
+table tr.odd:hover th,
+table tr.even:hover th,
+table tr.hover th {
+    background:  %_COLOR_0%;
+    color:  %_COLOR_9%;
+}
+
+/* hovered table rows */
+table tr.odd:hover td,
+table tr.even:hover td,
+table tr.hover td {
+    background:  %_COLOR_0%;
+    color:  %_COLOR_9%;
+}
+
+/* Active table row */
+.row_active {
+  background-color: %_COLOR_0%;
+  color: %_COLOR_9%;
+  height: 24;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+/* red mark */
+.red {
+  background-color: %_COLOR_6%;
+}
+
+/* green mark */
+.green {
+  background-color: #00D235;
+}
+
+/* total summary */
+.total {
+  background-color: %_COLOR_3%;
+}
+
 .form_title {
   background-color: %_COLOR_0%;
   color: %_COLOR_9%;

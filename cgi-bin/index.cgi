@@ -3,8 +3,6 @@
 #
 #
 
-
-
 use vars qw($begin_time %LANG $CHARSET @MODULES $USER_FUNCTION_LIST 
 $UID $user $admin 
 $sid
@@ -433,11 +431,8 @@ sub form_info {
   	 }
    }
 
-  
-  
   $user->pi();
-  
-  
+
   $LIST_PARAMS{PAGE_ROWS}=1;
   $LIST_PARAMS{DESC}='desc';
   $LIST_PARAMS{SORT}=1;
@@ -460,13 +455,8 @@ sub form_info {
 	                                 sid   => $sid,
 	                                 index => "$index"
 	                    }});
-  	
    }
 }
-
-
-
-
 
 
 #**********************************************************
@@ -486,7 +476,6 @@ if ($conf{LANGS}) {
 		$LANG{$lang}=$lang_name;
 	 } 
 }
-
  
  $first_page{SEL_LANGUAGE} = $html->form_select('language', 
                                 { EX_PARAMS => 'onChange="selectLanguage()"',
@@ -505,7 +494,7 @@ sub auth_radius {
   my $res = 0;
   
   my $check_access = $conf{check_access};
- 
+
   #check password throught ftp access
   if ($conf{check_access} && $conf{check_access}{NAS_IP} =~ /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):21/) {
   	my $ftpserver = $1;
@@ -552,9 +541,7 @@ sub auth {
  my $HTTP_X_FORWARDED_FOR = $ENV{'HTTP_X_FORWARDED_FOR'} || '';
  my $ip = "$REMOTE_ADDR/$HTTP_X_FORWARDED_FOR";
 
-
  $conf{PASSWORDLESS_ACCESS}=$ENV{USER_CHECK_DEPOSIT} if (! $conf{PASSWORDLESS_ACCESS});
-
 
 #Passwordless Access
 if ($conf{PASSWORDLESS_ACCESS}) {
@@ -739,9 +726,6 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
 
  return 0;
 }
-
-
-
 
 #**********************************************************
 #

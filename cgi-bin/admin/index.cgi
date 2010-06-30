@@ -597,7 +597,7 @@ my @rows = ();
 
 for(my $parent=1; $parent<$#menu_sorted; $parent++) { 
   my $val = $new_hash{0}{$parent};
-  $table->{rowcolor}=$_COLORS[0];      
+  $table->{rowcolor}='row_active';
 
   if (! defined($permissions{($parent-1)})) {
   	next;
@@ -612,7 +612,7 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
    }
 
   if (defined($new_hash{$parent})) {
-    $table->{rowcolor}=$_COLORS[1];
+    $table->{rowcolor}='even';
     my $mi = $new_hash{$parent};
 
       foreach my $k ( sort keys %$mi) {
@@ -1150,7 +1150,7 @@ sub user_info {
   
   
   $table = $html->table({ width      => '100%',
-  	                      rowcolor   => $_COLORS[2],
+  	                      rowcolor   => 'even',
   	                      border     => 0,
                           cols_align => ['left:noprint'],
                           rows       => [ [ "$_USER: ". $html->button($html->b($user_info->{LOGIN}), "index=15&UID=$user_info->{UID}"). " (UID: $user_info->{UID})" ] ]
@@ -2423,7 +2423,7 @@ if(defined($attr->{TP})) {
      push ( @{$visual_view{$line->[1]}}, "$h_b|$h_e|$color|$line->[0]")  ;
 
     if (($FORM{tt} eq $line->[0]) || ($FORM{chg} eq $line->[0])) {
-       $table->{rowcolor}=$_COLORS[0];      
+       $table->{rowcolor}='row_active';
      }
     else {
     	 undef($table->{rowcolor});
@@ -2488,7 +2488,7 @@ if ($tarif_plan->{errno}) {
 $table = $html->table({ width       => '100%',
 	                      title_plain => [$_DAYS, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14,15,16,17,18, 19, 20, 21, 22, 23],
                         caption     => "$_INTERVALS",
-                        rowcolor    => $_COLORS[1]
+                        rowcolor    => 'odd'
                         });
 
 
@@ -2967,7 +2967,7 @@ foreach my $k ( sort keys %menu_items ) {
   my $v = $menu_items{$k};
   
   if (defined($menu_items{$k}{0}) && $k > 0) {
-  	$table->{rowcolor}=$_COLORS[0];
+  	$table->{rowcolor}='row_active';
   	$table->addrow("$k:", $html->b($menu_items{$k}{0}), '');
     $k--;
     my $actions_list = $actions[$k];
@@ -2989,10 +2989,9 @@ foreach my $k ( sort keys %menu_items ) {
 
 if (in_array('Multidoms', \@MODULES)) {
   	my $k=10;
-  	
-  	$table->{rowcolor}=$_COLORS[0];
+
+  	$table->{rowcolor}='row_active';
   	$table->addrow("10:", $html->b($_DOMAINS), '');
-    
     my $actions_list  = $actions[9];
     my $action_index  = 0;
     $table->{rowcolor}= undef;
@@ -3287,7 +3286,7 @@ my $list = $nas->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=61&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?", BUTTON => 1  }); 
   
-  $table->{rowcolor} = ($FORM{NAS_ID} && $FORM{NAS_ID} == $line->[0]) ? $_COLORS[0] : undef ;
+  $table->{rowcolor} = ($FORM{NAS_ID} && $FORM{NAS_ID} == $line->[0]) ? 'row_active' : undef ;
   
   $table->addrow($line->[0], 
     $line->[1], 
@@ -3496,7 +3495,7 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=62$pages_qs&del=$line->[9]", { MESSAGE => "$_DEL POOL $line->[9]?", BUTTON => 1 }); 
   my $change = $html->button($_CHANGE, "index=62$pages_qs&chg=$line->[9]", { BUTTON => 1 }); 
-  $table->{rowcolor} = ($line->[9] eq $FORM{chg}) ? $_COLORS[0] : undef;
+  $table->{rowcolor} = ($line->[9] eq $FORM{chg}) ? 'row_active' : undef;
 
   $table->addrow(
     ($line->[11]) ? 'static' : $html->form_input('ids', $line->[9], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef }),
@@ -3749,7 +3748,7 @@ if ($attr->{PERIOD_FORM}) {
    }
 
 	$table = $html->table( { width    => '100%',
-	                         rowcolor => $_COLORS[1],
+	                         rowcolor => 'odd',
                            rows     => [[@rows, 
  	                                        ($attr->{XML}) ? 
  	                                          $html->form_input('NO_MENU', 1, { TYPE => 'hidden' }).
@@ -3834,13 +3833,11 @@ if (defined($FORM{DATE})) {
    }  
 
   $table = $html->table({ width      => '100%',
-                          rowcolor   => $_COLORS[1],
+                          rowcolor   => 'odd',
                           cols_align => ['right', 'left'],
                           rows       => [ @rows ]
                          });
-
   print $table->show();
-
 }
 
 }
@@ -4037,7 +4034,7 @@ else{
                               "$_USERS: ". $html->b($fees->{USERS}), 
                               "$_TOTAL: ". $html->b($fees->{TOTAL}), 
                               "$_SUM: ". $html->b($fees->{SUM}) ] ],
-                           rowcolor   => $_COLORS[2]
+                           rowcolor   => 'even'
                           });
   print $table->show();
   
@@ -4268,7 +4265,7 @@ else {
                            "$_USERS: ". $html->b($payments->{USERS}),
                            "$_TOTAL: ". $html->b($payments->{TOTAL}), 
                            "$_SUM: ". $html->b($payments->{SUM}) ] ],
-                           rowcolor   => $_COLORS[2]
+                           rowcolor   => 'even'
                        } );
 
   print $table->show();
@@ -4466,7 +4463,7 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
   my $val    = $h->{$parent};
   my $level  = 0;
   my $prefix = '';
-  $table->{rowcolor}=$_COLORS[0];      
+  $table->{rowcolor}='row_active';
 
   next if (! defined($permissions{($parent-1)}));  
 
@@ -4805,7 +4802,7 @@ if (! $admin->{MAX_ROWS}) {
                         rows       => [ [ "$_TOTAL:", $html->b($payments->{TOTAL}), 
                                           "$_USERS:", $html->b($payments->{TOTAL_USERS}), 
                                           "$_SUM",    $html->b($payments->{SUM}) ] ],
-                        rowcolor   => $_COLORS[2]
+                        rowcolor   => 'even'
                       });
   print $table->show();
  }
@@ -5114,7 +5111,7 @@ if (! $admin->{MAX_ROWS}) {
                                            "$_USERS:", $html->b($fees->{TOTAL_USERS}),
                                            "$_SUM:",   $html->b($fees->{SUM})
                                              ] ],
-                         rowcolor   => $_COLORS[2]
+                         rowcolor   => 'even'
                      } );
   print $table->show();
  }
@@ -5161,13 +5158,12 @@ sub form_sendmail {
                                             [ "$_FROM:",    "$user->{FROM}"  ],
                                             [ "PRIORITY:",  "$FORM{PRIORITY} (". $MAIL_PRIORITY{$FORM{PRIORITY}} .")"]    
                                            ],
-                              rowcolor => $_COLORS[1]
+                              rowcolor => 'odd'
                               });
 
    $html->message('info', $_SENDED, $table->show());
    return 0;
   }
-
 
  $user->{EXTRA} = "<tr><td>$_TO:</td><td bgcolor='$_COLORS[2]'>$user->{EMAIL}</td></tr>\n";
  $user->{PRIORITY_SEL}=$html->form_select('PRIORITY', 
@@ -5415,7 +5411,7 @@ foreach my $line (@$list) {
    }
   
   if (int($line->[3].$line->[2].$line->[1]) <= int($y.$m.$d)) {
-  	$table->{rowcolor}=$_COLORS[6];
+  	$table->{rowcolor}='red';
    }
   else {
   	$table->{rowcolor}=undef;
@@ -5661,7 +5657,7 @@ my $table = $html->table( { width       => '100%',
 use POSIX qw(strftime);
 
 #Main templates section
-$table->{rowcolor}= $_COLORS[0];
+$table->{rowcolor}= 'row_active';
 $table->{extra}   = "colspan='". ( 6 + $#caption )."' class='small'";
 $table->addrow("$_PRIMARY: ($main_templates_dir) ");
 if (-d $main_templates_dir ) {
@@ -5709,7 +5705,7 @@ if (-d $main_templates_dir ) {
          ( (-f "$conf{TPL_DIR}/$f") ? $html->button($_DEL, "index=$index&del=$f", { MESSAGE => "$_DEL '$f'" }) : '' );
        }
 
-      $table->{rowcolor} = ($file.'.tpl' eq $main_tpl_name) ? $_COLORS[0] : undef;
+      $table->{rowcolor} = ($file.'.tpl' eq $main_tpl_name) ? 'row_active' : undef;
       $table->addrow(
          @rows
          );
@@ -5719,7 +5715,7 @@ if (-d $main_templates_dir ) {
 
 
 foreach my $module (sort @MODULES) {
-	$table->{rowcolor}=$_COLORS[0];
+	$table->{rowcolor}='row_active';
 	$table->{extra}="colspan='". ( 6 + $#caption )."' class='small'";
 	
 	$table->addrow("$module ($sys_templates/$module/templates)");
@@ -6018,7 +6014,7 @@ sub form_dictionary {
    foreach my $file (@contents) {
     if (-f "../../language/". $file) {
         if ($sub_dict. ".pl" eq $file) {
-          $table->{rowcolor}=$_COLORS[0];      
+          $table->{rowcolor}='row_active';
          }
         else {
     	    undef($table->{rowcolor});
@@ -6078,7 +6074,7 @@ sub form_dictionary {
   	  }
   	 else {
   	 	 $v2 = '--';
-  	 	 $table->{rowcolor}=$_COLORS[0];
+  	 	 $table->{rowcolor}='row_active';
   	  }
      
      $table->addrow(
@@ -6088,7 +6084,7 @@ sub form_dictionary {
        ); 
    }
 
-   $table->{rowcolor}=$_COLORS[0];
+   $table->{rowcolor}='row_active';
    $table->addrow("$_TOTAL", "$i", ''); 
 
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
@@ -6359,7 +6355,7 @@ foreach my $line (@$list) {
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
-  	$table->{rowcolor}=$_COLORS[0];
+  	$table->{rowcolor}='row_active';
    }
   else {
   	undef($table->{rowcolor});

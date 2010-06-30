@@ -1142,7 +1142,7 @@ foreach my $name ( @msg_status) {
                            });
 
 foreach my $line (@$list) {
-  $table->{rowcolor} = ($line->[0] == $FORM{ID}) ? $_COLORS[0] : undef ;
+  $table->{rowcolor} = ($line->[0] == $FORM{ID}) ? 'row_active' : undef ;
 
   $table->addrow(
     ($line->[15] ne '0000-00-00 00:00:00') ? $html->button($line->[2], "index=$index&ID=$line->[0]&sid=$sid") : $html->button($html->b($line->[2]), "index=$index&ID=$line->[0]&sid=$sid"), 
@@ -1169,7 +1169,7 @@ $table = $html->table( { width      => '100%',
                                            $html->color_mark("$_CLOSED_UNSUCCESSFUL: ". $html->b( $Msgs->{UNMAKED} ), $msgs_status_colors[1]),
                                            $html->color_mark("$_CLOSED_SUCCESSFUL: ". $html->b( $Msgs->{CLOSED} ), $msgs_status_colors[2]),
                                         ] ],
-                         rowcolor   => $_COLORS[3]
+                         rowcolor   => 'total'
                         } );
 print $table->show();
 }
@@ -1729,7 +1729,7 @@ if (! $dates{$date})  {
   if ($FORM{SHOW_TYPE} eq 'chapters' || $FORM{SHOW_TYPE} eq 'admins') {
     $table2 = $html->table({ width       => '100%',
                             caption     => $caption . " / $date",
-                            rowcolor    => $_COLORS[1]
+                            rowcolor    => 'odd'
                           });
 
     my $list = $Msgs->messages_list({ %LIST_PARAMS, 
@@ -1846,7 +1846,7 @@ else {
 
 my $i=0;
 my @table_rows = ();
-$table->{rowcolor}=$_COLORS[1];
+$table->{rowcolor}='odd';
 foreach my $line (@main_table_rows) {
   $i++;
   push @table_rows, $table->td($line, { valign=>'top' });
@@ -2034,9 +2034,8 @@ $table = $html->table( { width      => '100%',
                                            "$_COUNT: ".        $html->b( $Msgs->{TOTAL} ),
                                            "$_RUN_TIME".       $html->b( $Msgs->{RUN_TIME} )
                                         ] ],
-                         rowcolor   => $_COLORS[2]
-                               } );
-
+                         rowcolor   => 'total'
+                      } );
 print $table_sessions->show() . $table->show(). $output;
 }
 

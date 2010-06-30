@@ -83,9 +83,7 @@ if ($FORM{set}) {
     }
 
   if ($period > 0) {
-
     my ($year, $month, $day);
-
     if ($period == 1) {
       ($year, $month, $day)=split(/-/, $Dv->{ABON_DATE}, 3);
      }
@@ -847,7 +845,7 @@ foreach my $line (@$list) {
    }
   
   if($FORM{TP_ID} eq $line->[18]) {
-  	$table->{rowcolor}=$_COLORS[0];
+  	$table->{rowcolor}='row_active';
    }
   else {
   	undef($table->{rowcolor});
@@ -1185,7 +1183,7 @@ if ($sessions->{TOTAL} > 500)  {
                          } );
 
   foreach my $line (@$list) {
-    $table->{rowcolor}= ($line->[0] == $FORM{NAS_ID}) ?  $_COLORS[0] : undef;
+    $table->{rowcolor}= ($line->[0] == $FORM{NAS_ID}) ? 'row_active' : undef;
 
     $table->addrow($line->[0],
     $line->[1],
@@ -1269,8 +1267,8 @@ foreach my $nas_row (@$nas_list) {
 
   my $l = $online->{$nas_row->[0]};
   my $total = $#{ $l } + 1;  
-  $table->{rowcolor}=$_COLORS[0];
-  $table->{extra}="colspan='". ($#CAPTION +1 ) . "' class='small'";
+  $table->{rowcolor}= 'row_active';
+  $table->{extra}   = "colspan='". ($#CAPTION +1 ) . "' class='small'";
   $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]) .":$nas_row->[3]:$_TOTAL: $total (". $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->[0]", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->[0]' ?" }) .')'  );
   
   foreach my $line (@$l) {
@@ -1949,7 +1947,7 @@ $table = $html->table( { width      => '100%',
                                            
                                            "$_DURATION: ". $html->b($sessions->{DURATION}), 
                                            "$_SUM: ". $html->b($sessions->{SUM}) ] ],
-                         rowcolor   => $_COLORS[2]
+                         rowcolor   => 'even'
                                } );
 
 print $table_sessions->show() . $table->show();
@@ -2275,7 +2273,7 @@ my $table = $html->table( { caption     => "$_PERIOD",
 	                          width       => '100%',
                             title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
                             cols_align  => ['left', 'right', 'right', 'right', 'right'],
-                            rowcolor    => $_COLORS[1],
+                            rowcolor    => 'odd',
                             ID          => 'DV_STATS_PERIOD'
                            } );
 
@@ -2293,7 +2291,7 @@ $sessions->{PERIOD_STATS} = $table->show();
 
 
 $table = $html->table( { width       => '100%',
-	                       rowcolor    => $_COLORS[0],
+	                       rowcolor    => 'odd',
                          rows        => [[ "$_FROM: ", $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS }),
                                             "$_TO: ",  $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS } ),
                                           $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
@@ -2346,7 +2344,7 @@ if ($sessions->prepaid_rest({
 	                          width       => '100%',
                             title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
                             cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
-                            rowcolor    => $_COLORS[1],
+                            rowcolor    => 'odd',
                             ID          => 'PREAPID_TRAFIC'
                            } );
 	
@@ -2385,7 +2383,7 @@ if ($sessions->{TOTAL} < 1) {
 
 $table = $html->table( { caption     => "$_SUM",
 	                       width       => '100%',
-	                       rowcolor    => $_COLORS[1],
+	                       rowcolor    => 'odd',
                          title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC $_SENT", "$_TRAFFIC $_RECV", "$_TRAFFIC $_SUM",
                            "$_TRAFFIC 2 $_SENT", "$_TRAFFIC 2 $_RECV",  "$_TRAFFIC $_SUM", "$_SUM"],
                          cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right'],
@@ -2416,7 +2414,7 @@ sub dv_stats_calculation  {
 
 $sessions->calculation({ %LIST_PARAMS }); 
 my $table = $html->table( { width       => '640',
-	                          rowcolor    => $_COLORS[1],
+	                          rowcolor    => 'odd',
                             title_plain => ["-", "$_MIN", "$_MAX", "$_AVG", "$_TOTAL"],
                             cols_align  => ['left', 'right', 'right', 'right', 'right'],
                             rows        => [ [ $_DURATION,  $sessions->{min_dur}, $sessions->{max_dur}, $sessions->{avg_dur},  $sessions->{total_dur} ],
@@ -2519,7 +2517,7 @@ if ($sessions->{TOTAL} > 0) {
 	                            width       => '100%',
                               title_plain => ["$_LOGIN", "IP", "CID", "$_DURATION", "$_SEND", "$_RECV"],
                               cols_align  => ['left', 'right', 'right', 'right', 'right', 'right' ],
-                              rowcolor    => $_COLORS[1],
+                              rowcolor    => 'odd',
                               ID          => 'ONLINE'
                             } );
 
@@ -2542,7 +2540,7 @@ my $table = $html->table( { caption     => "$_PERIOD",
 	                          width       => '100%',
                             title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
                             cols_align  => ['left', 'right', 'right', 'right', 'right'],
-                            rowcolor    => $_COLORS[1],
+                            rowcolor    => 'odd',
                             ID          => 'DV_STATS_PERIOD'
                           } );
 
@@ -2556,7 +2554,7 @@ $sessions->{PERIOD_STATS} .= $table->show();
 
 
 $table = $html->table({ width       => '100%',
-	                      rowcolor    => $_COLORS[0],
+	                      rowcolor    => 'row_active',
                         rows        => [[ "$_FROM: ", $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS } ),
                                           "$_TO: ",   $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS } ),
                                           $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},
@@ -2603,7 +2601,7 @@ if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID},
 	                            width       => '100%',
                               title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
                               cols_align  => ['left', 'right', 'right', 'right', 'right', 'right', 'right'],
-                              rowcolor    => $_COLORS[1],
+                              rowcolor    => 'odd',
                               ID          => 'DV_STATS_PREPAID'
                            } );
 	
@@ -2633,7 +2631,7 @@ if (! $FORM{sort}) {
 $list = $sessions->list({ %LIST_PARAMS });	
 $table = $html->table( {  caption     => "$_SUM",
 	                        width       => '100%',
-	                        rowcolor    => $_COLORS[1],
+	                        rowcolor    => 'odd',
                          title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC $_SENT", "$_TRAFFIC $_RECV",  "$_TRAFFIC $_SUM",
                            "$_TRAFFIC 2 $_SENT", "$_TRAFFIC 2 $_RECV",  "$_TRAFFIC $_SUM", "$_SUM"],
 
@@ -3485,8 +3483,8 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   	 }
     #Self hangup
     elsif ($Dv->{CID} eq $Dv->{ISG_CID_CUR}) {
-      $table = $html->table({ width       => '500',
-	                          rowcolor    => $_COLORS[0],
+      $table = $html->table({ width     => '500',
+	                          rowcolor    => 'row_active',
                             rows        => [[ "$_DURATION: ", $Dv->{ISG_SESSION_DURATION},
                             ($Dv->{CURE_SERVICE} !~ /TP/ && !$Dv->{TURBO_MODE_RUN}) ? $html->form_input('logon', "$_LOGON ", { TYPE => 'submit', OUTPUT2RETURN => 1 }) : '',
                             $html->form_input('hangup', $_HANGUP, { TYPE => 'submit', OUTPUT2RETURN => 1 })
@@ -5628,7 +5626,7 @@ if ($FORM{add}) {
 elsif ($FORM{shedule}) {
 	if ($FORM{shedule} eq 'status') {
     my $table = $html->table( { width       => '100%',
-	                       rowcolor    => $_COLORS[0],
+	                       rowcolor    => 'row_active',
                          rows        => [[ "$_FROM: ",  $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'compensation', WEEK_DAYS => \@WEEKDAYS }),
                                           "$_STATUS: ", $html->form_select('ACTION', 
                                           { 
