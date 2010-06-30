@@ -261,7 +261,8 @@ if(r.id IS NULL, 0, count(r.id)),
 m.chapter,
 DATE_FORMAT(plan_date, '%w'),
 m.resposible,
-m.deligation
+m.deligation,
+m.inner_msg
 
 
 FROM (msgs_messages m)

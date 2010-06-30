@@ -15,3 +15,4 @@ $_DELIGATE='Deligate';
 $_DELIGATED='Deligated';
 $_UP='Up';
 $_DOWN='Down';
+$_INNER_MSGS_CHAR='I';

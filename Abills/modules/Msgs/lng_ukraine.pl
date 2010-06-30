@@ -15,3 +15,4 @@ $_DELIGATE='Делиговано';
 $_DELIGATED='Делигувати';
 $_UP='В верх';
 $_DOWN='Вниз';
+$_INNER_MSGS_CHAR='В';
