@@ -593,10 +593,9 @@ sub msgs_admin {
       $line->[2] = convert($line->[2], { text2html => 1 });
       $line->[2] =~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
       $line->[2] =~ s/&gt; (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
-
       my $msg_color = $_COLORS[1];
       
-      if ($line->[13]) {      	
+      if ($line->[13]) {
       	$msg_color = $_COLORS[0]
        }
       elsif ($line->[12] > 0) {
