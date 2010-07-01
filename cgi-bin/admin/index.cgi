@@ -305,11 +305,9 @@ if ($FORM{qindex}) {
        }
      }
 
-
     if ($lang_file ne '') {
       require $lang_file;
      }
-
  	 	require "Abills/modules/$module{$index}/webinterface";
    }
   if ($functions{$index}) {
@@ -390,7 +388,7 @@ print "<table width='100%' border='0' cellpadding='0' cellspacing='1'>\n";
 $admin->{DATE}=$DATE;
 $admin->{TIME}=$TIME;
 if(defined($conf{tech_works})) {
-  $admin->{TECHWORK} = "<tr><th bgcolor='#FF0000' colspan='2'>$conf{tech_works}</th></tr>\n";
+  $admin->{TECHWORK} = "<tr><th class='red' bgcolor='#FF0000' colspan='2'>$conf{tech_works}</th></tr>\n";
 }
 
 #Quick Menu
@@ -436,7 +434,6 @@ $menu_text
 </td><td bgcolor='$_COLORS[0]' height='50' class='noprint'>$navigat_menu</td></tr>
 <tr class='CONTENT'><td valign='top' align='center'>";
 
-
 if ($functions{$index}) {
   if(defined($module{$index})) {
     my $lang_file = '';
@@ -454,10 +451,8 @@ if ($functions{$index}) {
     if ($lang_file ne '') {
       require $lang_file;
      }
-
  	 	require "Abills/modules/$module{$index}/webinterface";
    }
-
  	  
   if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne '' && ! $FORM{add})) {
   	my $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
@@ -496,33 +491,12 @@ $html->tpl_show(templates('footer'), $admin);
 print "</table>\n";
 $html->test();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #**********************************************************
 #
 # check_permissions()
 #**********************************************************
 sub check_permissions {
   my ($login, $password, $attr)=@_;
-
 
   $login =~ s/"/\\"/g;
   $login =~ s/'/\''/g;
@@ -538,8 +512,6 @@ sub check_permissions {
 
   $admin->info(0, { %PARAMS } );
 
-  
-
   if ($admin->{errno}) {
     if ($admin->{errno} == 4) {
       $admin->system_action_add("$login:$password", { TYPE => 11 });
@@ -552,8 +524,7 @@ sub check_permissions {
   	$admin->{errstr} = 'DISABLED';
   	return 2;
    }
-  
-  
+
   if ($admin->{WEB_OPTIONS}) {
     my @WO_ARR = split(/;/, $admin->{WEB_OPTIONS}	);
     foreach my $line (@WO_ARR) {
@@ -563,7 +534,6 @@ sub check_permissions {
    }
   
   %permissions = %{ $admin->get_permissions() };
-
   return 0;
 }
 
@@ -591,7 +561,6 @@ my $table2 = $html->table({ width    => '100%',
 	                          border   => 0 
 	                        });
 
-
 my $table;
 my @rows = ();
 
@@ -612,12 +581,11 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
    }
 
   if (defined($new_hash{$parent})) {
-    $table->{rowcolor}='even';
+    $table->{rowcolor}='odd';
     my $mi = $new_hash{$parent};
 
       foreach my $k ( sort keys %$mi) {
         $val=$mi->{$k};
-        
         $table->addrow("&nbsp;&nbsp;&nbsp; ". $html->button($val, "index=$k"));
         delete($new_hash{$parent}{$k});
       }
@@ -675,7 +643,6 @@ elsif($FORM{change}) {
 elsif($FORM{COMPANY_ID}) {
   
   INFO:
-
   $company->info($FORM{COMPANY_ID});
   $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
   $LIST_PARAMS{BILL_ID}=$company->{BILL_ID};
@@ -697,7 +664,6 @@ elsif($FORM{COMPANY_ID}) {
   	 	 f_args => { COMPANY => $company }
   	 	} 
   	 );
- 
 
   #Sub functions
   if (! $FORM{subf}) {
@@ -759,7 +725,7 @@ else {
                               pages      => $company->{TOTAL},
                               qs         => $pages_qs,
                               ID         => 'COMPANY_ID'
-                                 } );
+                            } );
 
 
   foreach my $line (@$list) {
@@ -780,14 +746,11 @@ else {
                        } );
   print $table->show();
 }
-
   if ($company->{errno}) {
     $html->message('info', $_ERROR, "[$company->{errno}] $err_strs{$company->{errno}}");
    }
 
 }
-
-
 
 #**********************************************************
 # Functions menu
@@ -797,7 +760,6 @@ sub form_companie_admins {
 
  my $customer = Customers->new($db, $admin, \%conf);
  my $company = $customer->company();
-
 
  if ($FORM{change}) {
     $company->admins_change({ %FORM });
@@ -842,8 +804,6 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       	            COMPANY_ID => $FORM{COMPANY_ID} },
 	                       SUBMIT  => { change   => "$_CHANGE"
 	                       	           } });
-
-
 }
 
 
@@ -869,7 +829,6 @@ while(my($name, $v)=each %$items) {
 print "$menu</td></tr>
 </TABLE>\n";
 
-
 if ($FORM{subf}) {
   if ($functions{$FORM{subf}}) {
  	  if(defined($module{$index})) {
@@ -881,9 +840,6 @@ if ($FORM{subf}) {
   	$html->message('err', $_ERROR, "Function not Defined");
    }
  } 
-
-
- 
 }
 
 #**********************************************************
@@ -4394,8 +4350,6 @@ foreach my $line (@m) {
 }
 
 
-
-
 #**********************************************************
 # mk_navigator()
 #**********************************************************
@@ -4435,8 +4389,6 @@ while((my($findex, $hash)=each(%menu_items))) {
     }
 }
 
-
-
 my $h = $new_hash{0};
 my @last_array = ();
 
@@ -4455,9 +4407,9 @@ if (defined($admin->{WEB_OPTIONS}{qm})) {
 
 my $table = $html->table({ width      => '100%',
                            border     => 1,
-                           cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center']
+                           cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right'],
+                           ID         => 'PROFILE_FUNCTION_LIST'                           
                          });
-
 
 for(my $parent=1; $parent<$#menu_sorted; $parent++) { 
   my $val    = $h->{$parent};
@@ -4475,21 +4427,16 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
     $prefix .= "&nbsp;&nbsp;&nbsp;";
     label:
       while(my($k, $val)=each %{ $new_hash{$parent} }) {
-
-      #foreach my $k (keys %{ $new_hash{$parent} }) {
-        #my $val = ''; #$mi->{$k};
-
         my $checked = undef;
         if (defined($qm{$k})) { 
         	$checked = 1;  
         	$val = $html->b($val);
          }
-
         
         $table->addrow("$k ". $html->form_input('qm_item', "$k", { TYPE          => 'checkbox',
        	                                                           OUTPUT2RETURN => 1,
        	                                                           STATE         => $checked  
-       	                                           }),  
+       	                                        }),  
                      "$prefix ". $html->button($val, "index=$k"), 
                      $html->form_input("qm_name_$k", $qm{$k}, { OUTPUT2RETURN => 1 }) );
 
@@ -4512,17 +4459,11 @@ for(my $parent=1; $parent<$#menu_sorted; $parent++) {
      }
     delete($new_hash{0}{$parent});
    }
-
-# return 0;
 }
-
-
-
 
 print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       HIDDEN  => { index        => "$index",
 	                       	            AWEB_OPTIONS => 1,
-	                       	            
                                      },
 	                       SUBMIT  => { quick_set => "$_SET"
 	                       	           } });
@@ -4644,7 +4585,6 @@ if (defined($attr->{USER})) {
         	  });
   	     }
       }
-
      }
    }
   elsif($FORM{del} && $FORM{is_js_confirmed}) {
@@ -4693,8 +4633,6 @@ $payments->{SEL_METHOD} = $html->form_select('METHOD',
  	                                SORT_KEY     => 1
  	                               });
 
-
-
 if ($permissions{1} && $permissions{1}{1}) {
    $payments->{OP_SID} = mk_unique_value(16);
    
@@ -4706,11 +4644,10 @@ if ($permissions{1} && $permissions{1}{1}) {
  	                               }).
  	                             "</td></tr>\n";
     }
-
    
-   if ($permissions{1}{4}) {
-   	 $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>". $html->form_input('DATE', "$DATE $TIME"). "</td></tr>\n";
-    }
+  if ($permissions{1}{4}) {
+    $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>". $html->form_input('DATE', "$DATE $TIME"). "</td></tr>\n";
+   }
 
   if (in_array('Docs', \@MODULES) ) {
   	my $ACCOUNTS_SEL = $html->form_select("ACCOUNT_ID", 
@@ -4757,8 +4694,6 @@ if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=1;
   $LIST_PARAMS{DESC}=DESC;
  }
-
-
 
 $LIST_PARAMS{ID}=$FORM{ID} if ($FORM{ID});
 
@@ -6106,20 +6041,21 @@ sub form_webserver_info {
 		                         caption     => 'WEB server info',
 		                         width       => '600',
                              title_plain => ["$_NAME", "$_VALUE", "-"],
-                             cols_align  => ['left', 'left', 'center']
+                             cols_align  => ['left', 'left', 'center'],
+                             ID          => 'WEBSERVER_INFO'
                           } );
 
  foreach my $k (sort keys %ENV) {
     $table->addrow($k, $ENV{$k}, '');
   }
- print $table->show();
- 
+ print $table->show(); 
 
  $table = $html->table( {
 		                         caption     => '/var/log/httpd/abills-error.log',
 		                         width       => '100%',
                              title_plain => ["$_DATE", "$_ERROR", "CLIENT", "LOG"],
-                             cols_align  => ['left', 'left', 'center']
+                             cols_align  => ['left', 'left', 'left', 'left'],
+                             ID          => 'WEBSERVER_LOG'
                           } );
 
  if ( -f $web_error_log) {
@@ -6207,8 +6143,6 @@ sub sel_groups {
 # Make SQL backup
 #*******************************************************************
 sub form_sql_backup {
-
-
 if ($FORM{mk_backup}) {
    $conf{dbcharset}='latin1' if (!$conf{dbcharset});
    print "$MYSQLDUMP --default-character-set=$conf{dbcharset} --host=$conf{dbhost} --user=\"$conf{dbuser}\" --password=\"****\" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/abills-$DATE.sql.gz<br>";

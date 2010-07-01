@@ -268,8 +268,8 @@ else {
       else {
 	     ($blankline, $datas) = split(/[\r]\n/, $datas, 2);
         if (grep(/^$name$/, keys(%FORM))) {
-        	print "Content-Type: text/html\n\n";
-        	print "/$name // $FORM{$name}<br>";
+#        	print "Content-Type: text/html\n\n";
+#        	print "/$name // $FORM{$name}<br>";
         	
           if (@{ $FORM{$name} } > 0) {
             push(@{$FORM{$name}}, $datas);
@@ -647,9 +647,8 @@ my @s = sort {
 
 
 foreach my $ID (@s) {
- 	my $VALUE_HASH = $menu_items->{$ID};
- 	foreach my $parent (keys %$VALUE_HASH) {
- 		#print "$parent, $ID<br>";
+  my $VALUE_HASH = $menu_items->{$ID};
+  foreach my $parent (keys %$VALUE_HASH) {
     push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
    }
 }
