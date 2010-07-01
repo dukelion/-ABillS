@@ -3926,7 +3926,6 @@ sub dv_monthly_fees {
  $DV_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
 
  my $users = Users->new($db, $admin, \%conf); 
- $tariffs->{debug}=1;
  my $list = $tariffs->list({ %LIST_PARAMS });
 
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
