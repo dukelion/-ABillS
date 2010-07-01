@@ -13,10 +13,10 @@
   <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEOUSLY value='%SIMULTANEOUSLY%'></td></tr>
   <tr><th colspan=2 bgcolor=$_COLORS[0]>$_ABON</th></tr> 
   <tr><td>$_DAY_FEE:</td><td><input type=text name=DAY_FEE value='%DAY_FEE%'></td></tr>
-  <tr><td>$_POSTPAID:</td><td><input type=checkbox name=POSTPAID_DAY_FEE value=1 %POSTPAID_DAY_FEE%></td></tr>
+  <tr><td>$_DAY_FEE $_POSTPAID:</td><td><input type=checkbox name=POSTPAID_DAY_FEE value=1 %POSTPAID_DAY_FEE%></td></tr>
   
   <tr bgcolor=$_COLORS[2]><td>$_MONTH_FEE:</td><td><input type=text name=MONTH_FEE value='%MONTH_FEE%'></td></tr>
-  <tr bgcolor=$_COLORS[2]><td>$_POSTPAID:</td><td><input type=checkbox name=POSTPAID_MONTH_FEE value=1 %POSTPAID_MONTH_FEE%></td></tr>
+  <tr bgcolor=$_COLORS[2]><td>$_MONTH_FEE $_POSTPAID:</td><td><input type=checkbox name=POSTPAID_MONTH_FEE value=1 %POSTPAID_MONTH_FEE%></td></tr>
   <tr bgcolor=$_COLORS[2]><td>$_MONTH_ALIGNMENT:</td><td><input type=checkbox name='PERIOD_ALIGNMENT' value='1' %PERIOD_ALIGNMENT%></td></tr>
   <tr bgcolor=$_COLORS[2]><td>$_ABON_DISTRIBUTION:</td><td><input type=checkbox name='ABON_DISTRIBUTION' value='1' %ABON_DISTRIBUTION%></td></tr>
   <tr bgcolor=$_COLORS[2]><td>$_SMALL_DEPOSIT_ACTION:</td><td>%SMALL_DEPOSIT_ACTION_SEL%</td></tr>

@@ -3926,6 +3926,7 @@ sub dv_monthly_fees {
  $DV_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
 
  my $users = Users->new($db, $admin, \%conf); 
+ $tariffs->{debug}=1;
  my $list = $tariffs->list({ %LIST_PARAMS });
 
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
@@ -4020,13 +4021,10 @@ sub dv_monthly_fees {
            );
 
        $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: ". ($u->[9 +$extfield_count ]  ) ." Fees: $line->[6] REDUCTION: $user{REDUCTION} DEPOSIT: $u->[2] CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE} TP: $u->[11]\n" if ($debug > 3); 	
-      
        if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {
          my %FEES_PARAMS = (
                             DATE     => $ADMIN_REPORT{DATE},
                             METHOD   => 1 );  
-
-       
          my $sum = 0;
          #***************************************************************
          #Min use Makes only 1 of month
@@ -4117,7 +4115,6 @@ sub dv_monthly_fees {
            if ($TP_INFO{REDUCTION} == 1 && $user{REDUCTION} > 0) {
              $sum = $sum * (100 - $user{REDUCTION}) / 100;
             }
-
            #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
            if($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $TP_INFO{POSTPAID_MONTHLY} == 1) {
 	           #***************************************************************

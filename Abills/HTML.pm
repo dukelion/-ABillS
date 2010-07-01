@@ -927,7 +927,7 @@ sub addtd {
   my $extra=(defined($self->{extra})) ? $self->{extra} : '';
 
   $row_number++;
-  $self->{rows} .= "<tr class='$class' id='row_$row_number'>";
+  $self->{rows} .= "<tr>";
   foreach my $val (@row) {
      $self->{rows} .= "$val";
    }
