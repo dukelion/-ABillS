@@ -121,6 +121,21 @@ table tr.hover td {
   background-color: #00D235;
 }
 
+.static {
+  background: %_COLOR_1%;
+  height: 24;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+table tr.even th,
+.even {
+  background: %_COLOR_2%;
+  height: 24;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
 /* total summary */
 .total {
   background-color: %_COLOR_3%;

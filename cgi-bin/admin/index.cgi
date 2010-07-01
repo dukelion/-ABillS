@@ -3656,13 +3656,12 @@ if ($attr->{FIELDS}) {
   $LIST_PARAMS{FIELDS}=$FORM{FIELDS};
   $pages_qs="&FIELDS=$FORM{FIELDS}";
 
-  my $table2 = $html->table({ width => '100%' });
+  my $table2 = $html->table({ width => '100%', rowcolor => 'static' });
   my @arr = ();
   my $i=0;
 
   foreach my $line (sort keys %{ $attr->{FIELDS} }) {
   	my ($id, $k, $align)=split(/:/, $line);
-  	
   	push @arr, $html->form_input("FIELDS", $k, { TYPE => 'checkbox', STATE => (defined($fields_hash{$k})) ? 'checked' : undef }). " $attr->{FIELDS}{$line}";
   	$i++;
   	if ($#arr > 1) {
@@ -3674,7 +3673,6 @@ if ($attr->{FIELDS}) {
   if ($#arr > -1 ) {
     $table2->addrow(@arr);
    }
-
 
   $FIELDS .= $table2->show();
  }  
@@ -3730,11 +3728,6 @@ if ($attr->{PERIOD_FORM}) {
    }
 	
 }
-
-
-
-
-
 
 if (defined($FORM{DATE})) {
   ($y, $m, $d)=split(/-/, $FORM{DATE}, 3);	
@@ -4008,9 +4001,6 @@ else{
 
 }
 
-
-
-
 #**********************************************************
 #
 #**********************************************************
@@ -4071,7 +4061,7 @@ sub report_payments {
   my $num       = 0;
 
  
-if (defined($FORM{DATE})) {
+if ($FORM{DATE}) {
 	$graph_type = '';
 
   $list = $payments->list( { %LIST_PARAMS } );
@@ -4119,6 +4109,7 @@ else {
   elsif ($type eq 'USER') {
   	$CAPTION[0]=$_USERS;
   	$type="search=1&LOGIN_EXPR";
+  	$LIST_PARAMS{METHODS}=$FORM{METHODS};
   	$index=2;
   	$graph_type='';
    }
@@ -4152,7 +4143,9 @@ else {
     my $main_column = '';
 
     if ($type eq 'PAYMENT_METHOD') {
-    	$main_column = $PAYMENT_METHODS[$line->[0]];
+    	$pages_qs =~ s/TYPE=PAYMENT_METHOD//;
+    	$pages_qs =~ s/FIELDS=[0-9,\ ]+&//;
+    	$main_column = $html->button($PAYMENTS_METHODS{$line->[0]},"index=$index&TYPE=USER&METHODS=$line->[0]$pages_qs&FIELDS=$line->[0]");
      }
     elsif($type eq 'FIO' || $type eq 'USER' || $FORM{ADMINS}) {
       if (! $line->[0] || $line->[0] eq '') {
@@ -4213,7 +4206,7 @@ else {
 
 }
 
-  print $table->show();	
+  print $table->show();
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right', 'right', 'right'],
@@ -4225,7 +4218,7 @@ else {
                        } );
 
   print $table->show();
-  
+
   if ($graph_type ne '') {
     print $html->make_charts({  
 	        PERIOD     => $graph_type,
