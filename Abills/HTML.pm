@@ -52,7 +52,6 @@ $VERSION = 2.00;
 @EXPORT_OK = ();
 %EXPORT_TAGS = ();
 
-my $bg='';
 my $class = '';
 my $debug;
 my %log_levels;
@@ -893,7 +892,7 @@ sub addrow {
   
   my $extra=($self->{extra}) ? $self->{extra} : '';
 
-  $row_number++;  
+  $row_number++;
   $self->{rows} .= "<tr class='$class' id='row_$row_number'>";
   
   foreach my $val (@row) {
@@ -913,17 +912,22 @@ sub addtd {
   my $self = shift;
   my (@row) = @_;
 
-  if (defined($self->{rowcolor})) {
-    $bg = $self->{rowcolor};
+  if ($self->{rowcolor}) {
+    if ($self->{rowcolor} =~ /^#/) {
+    	$class = "' bgcolor='$self->{rowcolor}'";
+     }
+    else {
+      $class = "$self->{rowcolor}";
+     }
    }  
   else {
-  	$bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
+  	$class = ($class eq 'odd') ? 'even' : 'odd';
    }
   
   my $extra=(defined($self->{extra})) ? $self->{extra} : '';
 
-
-  $self->{rows} .= "<tr bgcolor=\"$bg\">";
+  $row_number++;
+  $self->{rows} .= "<tr class='$class' id='row_$row_number'>";
   foreach my $val (@row) {
      $self->{rows} .= "$val";
    }
@@ -931,8 +935,6 @@ sub addtd {
   $self->{rows} .= "</TR>\n";
   return $self->{rows};
 }
-
-
 
 
 #*******************************************************************
@@ -988,7 +990,7 @@ sub table_title_plain {
   foreach my $line (@$caption) {
     $self->{table_title} .= "<th class='table_title'>$line</th>";
    }
-	
+
   $self->{table_title} .= "</TR>\n";
   return $self->{table_title};
 }
