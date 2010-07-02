@@ -890,7 +890,7 @@ sub addrow {
   	$class = ($class eq 'odd') ? 'even' : 'odd';
    }
   
-  my $extra=($self->{extra}) ? $self->{extra} : '';
+  my $extra=($self->{extra}) ? ' '.$self->{extra} : '';
 
   $row_number++;
   $self->{rows} .= "<tr class='$class' id='row_$row_number'>";
@@ -970,8 +970,8 @@ sub td {
    }
   else {
     $td = "<TD $extra>";
-   	$td .= $value if (defined($value));
-  	$td .= "</TD>";
+    $td .= $value if (defined($value));
+    $td .= "</TD>";
    }
 
   return $td;

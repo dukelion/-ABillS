@@ -5643,13 +5643,11 @@ if (-d $main_templates_dir ) {
 
 
 foreach my $module (sort @MODULES) {
-	$table->{rowcolor}='row_active';
-	$table->{extra}="colspan='". ( 6 + $#caption )."' class='small'";
-	
+	$table->{rowcolor}="row_active";
+	$table->{extra}="colspan='". ( 6 + $#caption )."'";
 	$table->addrow("$module ($sys_templates/$module/templates)");
-	if (-d "$sys_templates/$module/templates" ) {
-		
 
+	if (-d "$sys_templates/$module/templates" ) {
 		my $tpl_describe = get_tpl_describe("$sys_templates/$module/templates/describe.tpls");
 		
     opendir DIR, "$sys_templates/$module/templates" or die "Can't open dir '$sys_templates/$module/templates' $!\n";

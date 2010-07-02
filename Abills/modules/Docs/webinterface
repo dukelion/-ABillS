@@ -1236,6 +1236,8 @@ sub docs_account {
    if ($Docs->{TOTAL} > 0) {
    	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
       $Docs->{FROM_DATE_LIT}='';
+      
+     (undef, $Docs->{TIME}) = split(/ /,  $Docs->{CREATED}, 2);
 
      my $list = $Docs->{ORDERS};
      my $i=0;
