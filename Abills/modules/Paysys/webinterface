@@ -1299,6 +1299,8 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
   	($BINDING_FIELD, $BINDING_EXPR) = split(/:/, $conf{PAYSYS_P24_EXPR}, 2);
    }
 
+  #print %{ $info->{data}->{info}->[0]->{vitiazsybr}->[0]->{row} };
+
 	my $table = $html->table({ caption     => "$_LOG", 
 		                         title_plain => ['ID',	"$_USER ($BINDING_FIELD)",	"$_REST",	"$_COMMENTS",	$_DATE,	"$_SUM",	'card',	'cardamount', 'termainal'] ,
 		                         width       => '100%',
@@ -1328,7 +1330,7 @@ if ($conf{PAYSYS_P24_MERCHANT_YUR}) {
 	my %added_payments; 
 	my $payments_ids = ();
   if ($conf{PAYSYS_P24_EXPR}) {
-    while(my ($k, $v) = each %{ $info->{row} } ) {
+    while(my ($k, $v) = each %{ $info->{data}->{info}->[0]->{vitiazsybr}->[0]->{row} } ) {
     	$payments_ids{$k}=1;
     	next if ($v->{col}->{BPL_C_ACC}->{content} ne $conf{PAYSYS_P24_CARDNUM});
     	my $describe = convert( $v->{col}->{BPL_OSND}->{content},{ utf82win => 1 });
@@ -1351,7 +1353,7 @@ if ($conf{PAYSYS_P24_MERCHANT_YUR}) {
     my $users = Users->new($db, $admin, \%conf); 
 	  my $list  = $users->list({ $BINDING_FIELD => $ids,  
 	     	                       PAGE_ROWS      => 1000000 
-	     	                        });
+	     	                     });
     my $binding_field_id = 5;
     if ($BINDING_FIELD eq 'LOGIN') {
       $binding_field_id = 0;
@@ -1368,7 +1370,7 @@ if ($conf{PAYSYS_P24_MERCHANT_YUR}) {
      }  
   }
 
-  while(my ($k, $v) = each %{ $info->{row} } ) {
+  while(my ($k, $v) = each %{ $info->{data}->{info}->[0]->{vitiazsybr}->[0]->{row} } ) {
     my $ID          = $k;
     $ID =~ s/ //g;
     my ($LOGIN, $BIND, $UID);
