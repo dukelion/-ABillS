@@ -2291,7 +2291,7 @@ $sessions->{PERIOD_STATS} = $table->show();
 
 
 $table = $html->table( { width       => '100%',
-	                       rowcolor    => 'odd',
+	                       rowcolor    => 'row_active',
                          rows        => [[ "$_FROM: ", $html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS }),
                                             "$_TO: ",  $html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS } ),
                                           $html->form_select('DIMENSION', { SELECTED   => $FORM{DIMENSION},

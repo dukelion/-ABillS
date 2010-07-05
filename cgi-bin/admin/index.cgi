@@ -561,6 +561,8 @@ my $table2 = $html->table({ width    => '100%',
 	                          border   => 0 
 	                        });
 
+$table2->{rowcolor}='row_active';
+
 my $table;
 my @rows = ();
 
@@ -4321,7 +4323,6 @@ if ($permissions{4} && $permissions{4}{4}) {
 if ($permissions{4} && $permissions{4}{5}) {
   push @m, "67:66:$_SYSTEM $_LOG:form_system_changes:::";
 }
-
 
 if ($permissions{0} && $permissions{0}{1}) {
   push @m, "24:11:$_ADD:user_form:::" ;
