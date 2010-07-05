@@ -83,8 +83,6 @@ foreach my $line (@$list) {
     $sent = $sent + $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296;
    }
 
-
-
 if ($prepaid{0} + $prepaid{1} > 0) {
   #Get traffic from begin of month
   $used_traffic = $self->get_traffic({ UID    => $self->{UID},
@@ -163,37 +161,33 @@ if ($prepaid{0} + $prepaid{1} > 0) {
     }
 
    # If left global prepaid traffic set traf price to 0
-
-   
-   if ((int($used_traffic->{TRAFFIC_SUM}) + int($used_traffic->{ONLINE}) / int($CONF->{MB_SIZE}))  < $prepaid{'0'}) {
+   if (int($used_traffic->{TRAFFIC_SUM}) < $prepaid{'0'}) {
      $traf_price{in}{0} = 0;
      $traf_price{out}{0} = 0;
     }
    # 
-   elsif ($used_traffic->{TRAFFIC_SUM} + ($used_traffic->{ONLINE}) / $CONF->{MB_SIZE} > $prepaid{0} 
-            && $used_traffic->{TRAFFIC_SUM} < $prepaid{0}) {
-     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM} * $CONF->{MB_SIZE} + $used_traffic->{ONLINE}) - $prepaid{0} * $CONF->{MB_SIZE};
-    
+   elsif ($used_traffic->{TRAFFIC_SUM} > $prepaid{0} 
+            && $used_traffic->{TRAFFIC_SUM} - $used_traffic->{ONLINE} / $CONF->{MB_SIZE} < $prepaid{0}) {
+
+     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM} - $prepaid{0}) * $CONF->{MB_SIZE};
      $sent = ($self->{OCTETS_DIRECTION}==2) ?  $not_prepaid : $not_prepaid / 2;
      $recv = ($self->{OCTETS_DIRECTION}==1) ?  $not_prepaid : $not_prepaid / 2;
     }
 
    # If left local prepaid traffic set traf price to 0
-
-   if ($used_traffic->{TRAFFIC_SUM_2} + ($used_traffic->{ONLINE2}) / $CONF->{MB_SIZE} < $prepaid{1}) {
+   if ($used_traffic->{TRAFFIC_SUM_2} < $prepaid{1}) {
      $traf_price{in}{1} = 0;
      $traf_price{out}{1} = 0;
     }
-   elsif ( ($used_traffic->{TRAFFIC_SUM_2} + ($used_traffic->{ONLINE2}) / $CONF->{MB_SIZE} > $prepaid{1}) 
-      && ( $used_traffic->{TRAFFIC_SUM_2}  < $prepaid{1}) ) {
-     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM_2} * $CONF->{MB_SIZE} + $used_traffic->{ONLINE2}) - $prepaid{1} * $CONF->{MB_SIZE};
+   elsif ( $used_traffic->{TRAFFIC_SUM_2} > $prepaid{1} 
+      && ( $used_traffic->{TRAFFIC_SUM_2} - $used_traffic->{ONLINE2} / $CONF->{MB_SIZE} < $prepaid{1}) ) {
+     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM_2} - $prepaid{1}) * $CONF->{MB_SIZE};
      $sent2 = ($self->{OCTETS_DIRECTION}==2) ?  $not_prepaid : $not_prepaid / 2;
      $recv2 = ($self->{OCTETS_DIRECTION}==1) ?  $not_prepaid : $not_prepaid / 2;
     }
  }
 #Expration 
 elsif (scalar(keys %expr) > 0) {
-	
   my $RESULT = $self->expression($self->{UID}, \%expr, { RAD_ALIVE => ($RAD->{ACCT_STATUS_TYPE} && $RAD->{ACCT_STATUS_TYPE} eq 'Alive')  ? 1 : 0,
                                                          debug     => 0,
                                                          SESSION_TRAFFIC   =>
@@ -206,7 +200,6 @@ elsif (scalar(keys %expr) > 0) {
                                                            
                                                           });
 
-  
   if (! $RESULT->{PRICE_IN} && ! $RESULT->{PRICE_OUT} && defined($RESULT->{PRICE})) {
   	$RESULT->{PRICE_IN} = $RESULT->{PRICE};
   	$RESULT->{PRICE_OUT}= $RESULT->{PRICE};
@@ -214,10 +207,7 @@ elsif (scalar(keys %expr) > 0) {
   
   $traf_price{in}{0} = $RESULT->{PRICE_IN} if (defined($RESULT->{PRICE_IN}));
   $traf_price{out}{0}= $RESULT->{PRICE_OUT} if (defined($RESULT->{PRICE_OUT}));
-  
-  
 }
-
 
 
 #####################################################################
@@ -251,8 +241,7 @@ sub get_traffic {
      TRAFFIC_OUT_2 => 0,
      TRAFFIC_IN_2  => 0
 	);
-  
-  
+
   my $period = "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')";
   if ($attr->{PERIOD}) {
     $period = $attr->{PERIOD};
@@ -303,15 +292,13 @@ sub get_traffic {
      $TRAFFIC_IN_2
      )=@{ $self->{list}->[0] };
      
-     $result{TRAFFIC_OUT}+= $TRAFFIC_OUT;
-     $result{TRAFFIC_IN} += $TRAFFIC_IN;
+     $result{TRAFFIC_OUT}   += $TRAFFIC_OUT;
+     $result{TRAFFIC_IN}    += $TRAFFIC_IN;
      $result{TRAFFIC_OUT_2} += $TRAFFIC_OUT_2;
-     $result{TRAFFIC_IN_2} += $TRAFFIC_IN_2;     
+     $result{TRAFFIC_IN_2}  += $TRAFFIC_IN_2;     
    }
-
   
   $self->{PERIOD_TRAFFIC}=\%result;
-  
 	return \%result;
 }
 
@@ -335,8 +322,7 @@ sub get_traffic_ipn {
      TRAFFIC_OUT_2 => 0,
      TRAFFIC_IN_2  => 0
 	);
-  
-  
+
   my $period = "DATE_FORMAT(start, '%Y-%m')=DATE_FORMAT(curdate(), '%Y-%m')";
   if ($attr->{PERIOD}) {
     $period = $attr->{PERIOD};
