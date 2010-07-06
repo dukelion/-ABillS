@@ -12,7 +12,7 @@
 <input type='hidden' name='merchant' value='$conf{PAYSYS_P24_MERCHANT_ID}' />
 <input type='hidden' name='order' value='$FORM{OPERATION_ID}' />
 <input type='hidden' name='details' value='Account Rechards' />
-<input type='hidden' name='ext_details' value='Account Rechards' />
+<input type='hidden' name='ext_details' value='%FIO% %CONTRACT_ID% %CONTRACT_DATE%' />
 <input type='hidden' name='pay_way' value='privat24' />
 <input type='hidden' name='return_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi' />
 <input type='hidden' name='server_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi' />
