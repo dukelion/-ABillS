@@ -1286,8 +1286,8 @@ sub ipn_user_activate {
        }
       else {
         $Ipn->user_status({ %DATA });
-        $DATA{PORT}=$Ipn->{PORT} || 0;
-        $DATA{FILTER_ID}=$RAD_PAIRS->{'Filter-Id'} || '';
+        $DATA{PORT}       = $Ipn->{PORT} || 0;
+        $DATA{FILTER_ID}  = $RAD_PAIRS->{'Filter-Id'} || '';
         ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
 
         if ($ENV{HTTP_REFERER} && $html->{SID}) {
@@ -1423,7 +1423,6 @@ sub ipn_change_status {
   my $USER_NAME       = $attr->{USER_NAME} || '';
   my $ACCT_SESSION_ID = $attr->{ACCT_SESSION_ID} || '';
   my $FILTER_ID       = $attr->{FILTER_ID} || '';
-  #my $PORT            = $attr->{NAS_PORT} || 0;
   my $UID             = $attr->{UID} || 0;
   my $PORT            = $attr->{PORT} || 0;
   my $DEBUG           = $attr->{DEBUG} || 0;
@@ -1501,9 +1500,10 @@ if (! $cmd) {
   $cmd =~ s/\%PORT/$PORT/g;
 
   if ($attr->{NAS_IP_ADDRESS}) {
-    $ENV{NAS_IP_ADDRESS}=$attr->{NAS_IP_ADDRESS};
-    $ENV{NAS_MNG_USER}=$attr->{NAS_MNG_USER};
-    $ENV{NAS_MNG_IP_PORT}=$attr->{NAS_MNG_IP_PORT};
+    $ENV{NAS_IP_ADDRESS} = $attr->{NAS_IP_ADDRESS};
+    $ENV{NAS_MNG_USER}   = $attr->{NAS_MNG_USER};
+    $ENV{NAS_MNG_IP_PORT}= $attr->{NAS_MNG_IP_PORT};
+    $ENV{NAS_ID}         = $attr->{NAS_ID};
    }
 
   print "IPN: $cmd\n" if ($DEBUG > 5);
@@ -1749,8 +1749,6 @@ sub ipn_user_add {
  foreach my $line (@$list) {
    $allow_comps{$line->[2]}="$line->[0]:$line->[1]";
   }
-
-
 	
  if ($FORM{add}) {
      my $Dv       = Dv->new($db, $admin, \%conf);

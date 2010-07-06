@@ -1394,9 +1394,9 @@ if ($conf{PAYSYS_P24_MERCHANT_YUR}) {
     	$table_login_col = '';
      }
     else {
-    	$table_id_col = ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) ? $html->form_input('IDS', "$ID", { TYPE => 'checkbox'}).$ID : '';
+    	$table_id_col = ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM} && $description ne 'Account Rechards') ? $html->form_input('IDS', "$ID", { TYPE => 'checkbox'}).$ID : '';
 
-    	$table_login_col = (($UID>0) ? $html->button($LOGIN, "index=15&UID=$UID").'<br/>'. $FIO .'<br/>'.$html->form_input('CONTRACT_ID_'.$ID, "$BINDING_IDS{$ID}", ) :  ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM}) ?  $html->form_input($BINDING_FIELD.'_'. $ID, $FORM{$BINDING_FIELD.'_'.$ID}) : '' ) .
+    	$table_login_col = (($UID>0) ? $html->button($LOGIN, "index=15&UID=$UID").'<br/>'. $FIO .'<br/>'.$html->form_input('CONTRACT_ID_'.$ID, "$BINDING_IDS{$ID}", ) :  ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM} && $description ne 'Account Rechards') ?  $html->form_input($BINDING_FIELD.'_'. $ID, $FORM{$BINDING_FIELD.'_'.$ID}) : '' ) .
 		  $html->form_input('UID_'.$ID, "$UID", { TYPE => 'hidden'})	.
 		  $html->form_input('SUM_'.$ID, "$sum", { TYPE => 'hidden'})	.
 		  $html->form_input('DATE_'.$ID, "$date", { TYPE => 'hidden'})	.
