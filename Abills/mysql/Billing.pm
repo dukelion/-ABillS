@@ -87,18 +87,17 @@ if ($prepaid{0} + $prepaid{1} > 0) {
   #Get traffic from begin of month
   $used_traffic = $self->get_traffic({ UID    => $self->{UID},
   	                                   UIDS   => $self->{UIDS},
- 	                                     PERIOD => $traffic_period
+ 	                                     PERIOD => $traffic_period,
+ 	                                     STATS_ONLY => 1
    	                                  });
 
-   #Traffic transfert function
+  #Traffic transfert function
   if ($self->{TRAFFIC_TRANSFER_PERIOD}) {
     my $tp = $self->{TP_NUM};
-    
     my $interval = undef;
   	if ($self->{ACTIVATE} ne '0000-00-00') {
       $interval = "(DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACTIVATE}' - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} * 30 DAY && 
        DATE_FORMAT(start, '%Y-%m-%d')<='$self->{ACTIVATE}')";
-
   	 }
     else {
     	$interval = "(DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate() - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} MONTH, '%Y-%m') AND 
@@ -109,7 +108,7 @@ if ($prepaid{0} + $prepaid{1} > 0) {
     my $transfer_traffic=$self->get_traffic({ UID      => $self->{UID},
     	                                        UIDS     => $self->{UIDS},
                                               INTERVAL => $interval,
-                                              TP_ID    => $tp
+                                              TP_ID    => $tp,
                                             });
 
      if($self->{OCTETS_DIRECTION} == 1) {
@@ -122,7 +121,7 @@ if ($prepaid{0} + $prepaid{1} > 0) {
        $prepaid{1} += $prepaid{1} - $transfer_traffic->{TRAFFIC_OUT_2} if ( $prepaid{1} > $transfer_traffic->{TRAFFIC_OUT_2} );
       }
      else {
- 	     $prepaid{0}   += $prepaid{0} - ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}) if ($prepaid{0} > ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}));
+ 	     $prepaid{0} += $prepaid{0} - ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}) if ($prepaid{0} > ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}));
        $prepaid{1} += $prepaid{1} - ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) if ( $prepaid{1} > ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) );
       }   
    }
@@ -141,35 +140,34 @@ if ($prepaid{0} + $prepaid{1} > 0) {
    $used_traffic->{ONLINE}=0;
    #Recv / IN
    if($self->{OCTETS_DIRECTION} == 1) {
-     $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_IN};
-     $used_traffic->{TRAFFIC_SUM_2}=$used_traffic->{TRAFFIC_IN_2};
+     $used_traffic->{TRAFFIC_SUM}   = $used_traffic->{TRAFFIC_IN};
+     $used_traffic->{TRAFFIC_SUM_2} = $used_traffic->{TRAFFIC_IN_2};
      $used_traffic->{ONLINE} = $recv;
      $used_traffic->{ONLINE2}= $recv2;
     }
    #Sent / Out
    elsif($self->{OCTETS_DIRECTION}==2) {
-   	 $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_OUT};
-     $used_traffic->{TRAFFIC_SUM_2}=$used_traffic->{TRAFFIC_OUT_2};
-   	 $used_traffic->{ONLINE}=$sent;
-   	 $used_traffic->{ONLINE2}=$sent2;
+   	 $used_traffic->{TRAFFIC_SUM}  = $used_traffic->{TRAFFIC_OUT};
+     $used_traffic->{TRAFFIC_SUM_2}= $used_traffic->{TRAFFIC_OUT_2};
+   	 $used_traffic->{ONLINE} = $sent;
+   	 $used_traffic->{ONLINE2}= $sent2;
     }
    else {
-     $used_traffic->{TRAFFIC_SUM}=$used_traffic->{TRAFFIC_OUT} + $used_traffic->{TRAFFIC_IN};
+     $used_traffic->{TRAFFIC_SUM}   = $used_traffic->{TRAFFIC_OUT} + $used_traffic->{TRAFFIC_IN};
      $used_traffic->{TRAFFIC_SUM_2} = $used_traffic->{TRAFFIC_OUT_2} + $used_traffic->{TRAFFIC_IN_2};
-     $used_traffic->{ONLINE}=$sent + $recv;
-     $used_traffic->{ONLINE2}=$sent2 + $recv2;
+     $used_traffic->{ONLINE}  = $sent + $recv;
+     $used_traffic->{ONLINE2} = $sent2 + $recv2;
     }
 
    # If left global prepaid traffic set traf price to 0
-   if (int($used_traffic->{TRAFFIC_SUM}) < $prepaid{'0'}) {
+   if ($used_traffic->{TRAFFIC_SUM} + $used_traffic->{ONLINE} / $CONF->{MB_SIZE} < $prepaid{'0'}) {
      $traf_price{in}{0} = 0;
      $traf_price{out}{0} = 0;
     }
    # 
-   elsif ($used_traffic->{TRAFFIC_SUM} > $prepaid{0} 
-            && $used_traffic->{TRAFFIC_SUM} - $used_traffic->{ONLINE} / $CONF->{MB_SIZE} < $prepaid{0}) {
-
-     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM} - $prepaid{0}) * $CONF->{MB_SIZE};
+   elsif ($used_traffic->{TRAFFIC_SUM} + $used_traffic->{ONLINE} / $CONF->{MB_SIZE} > $prepaid{0} 
+            && $used_traffic->{TRAFFIC_SUM} < $prepaid{0}) {
+     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM} + $used_traffic->{ONLINE} / $CONF->{MB_SIZE} - $prepaid{0}) *  $CONF->{MB_SIZE};
      $sent = ($self->{OCTETS_DIRECTION}==2) ?  $not_prepaid : $not_prepaid / 2;
      $recv = ($self->{OCTETS_DIRECTION}==1) ?  $not_prepaid : $not_prepaid / 2;
     }
@@ -179,9 +177,9 @@ if ($prepaid{0} + $prepaid{1} > 0) {
      $traf_price{in}{1} = 0;
      $traf_price{out}{1} = 0;
     }
-   elsif ( $used_traffic->{TRAFFIC_SUM_2} > $prepaid{1} 
-      && ( $used_traffic->{TRAFFIC_SUM_2} - $used_traffic->{ONLINE2} / $CONF->{MB_SIZE} < $prepaid{1}) ) {
-     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM_2} - $prepaid{1}) * $CONF->{MB_SIZE};
+   elsif ( $used_traffic->{TRAFFIC_SUM_2} + $used_traffic->{ONLINE2} / $CONF->{MB_SIZE} > $prepaid{1} 
+      && ( $used_traffic->{TRAFFIC_SUM_2} < $prepaid{1}) ) {
+     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM_2} + $used_traffic->{ONLINE2} / $CONF->{MB_SIZE} - $prepaid{1}) * $CONF->{MB_SIZE};
      $sent2 = ($self->{OCTETS_DIRECTION}==2) ?  $not_prepaid : $not_prepaid / 2;
      $recv2 = ($self->{OCTETS_DIRECTION}==1) ?  $not_prepaid : $not_prepaid / 2;
     }
@@ -274,7 +272,12 @@ sub get_traffic {
      $result{TRAFFIC_OUT_2},
      $result{TRAFFIC_IN_2}
     )=@{ $self->{list}->[0] };
-  }
+   }
+
+  if ($attr->{STATS_ONLY}) {
+    $self->{PERIOD_TRAFFIC}=\%result;
+	  return \%result;
+   }
 
   $self->query($db, "SELECT sum(acct_output_octets)  / $CONF->{MB_SIZE} + sum(acct_output_gigawords) * 4096,  
                             sum(acct_input_octets)  / $CONF->{MB_SIZE} + sum(acct_input_gigawords) * 4096, 
