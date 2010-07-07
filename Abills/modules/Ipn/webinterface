@@ -2453,12 +2453,13 @@ foreach my $line (@$list)   {
 	$online_uids{$line->[5]}=1;
 }
 
-$list = $Dv->list({ IP           => '>0.0.0.0',
+$list = $Dv->list({ LOGIN        => $attr->{LOGINS} || undef,
+	                  IP           => '>0.0.0.0',
 	                  DISABLE      => 0,
 	                  LOGIN_STATUS => 0,
 	                  FILTER_ID    => '*',
 	                  PAGE_ROWS    => 1000000,
-	                  TP_ID        => '>0',
+	                  TP_ID        => $attr->{NAS_IDS} || '>0',
 	                  PORT         => '>=0'
                  });
 
