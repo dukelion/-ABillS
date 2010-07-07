@@ -833,7 +833,7 @@ WHERE
  ");
 
  if($self->{TOTAL} < 1) {
- 	  return 1;
+ 	  return 0;
   }
 
  $self->{INFO_LIST}=$self->{list};
