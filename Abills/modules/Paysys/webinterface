@@ -294,7 +294,7 @@ function CheckAllINBOX() {
               $html->form_input(IDS, $ID, { TYPE => 'checkbox' }) .  $ID,
               $html->form_input('FIO_'.$ID, $DATA_ARR->[$i]->{FIO} || '', { SIZE => 40}) . "$info", 
               $html->form_input('PHONE_'.$ID, $DATA_ARR->[$i]->{PHONE} || '', { SIZE => 12}),
-              $html->form_input('CONTRACT_ID_'. $ID, $DATA_ARR->[$i]->{CONTRACT_ID} || '', { SIZE => 12 }),
+              ($BINDING_FIELD eq 'CONTRACT_ID') ? $DATA_ARR->[$i]->{CONTRACT_ID} : $html->form_input('CONTRACT_ID_'. $ID, $DATA_ARR->[$i]->{CONTRACT_ID} || '', { SIZE => 12 }),
               $DATA_ARR->[$i]->{SUM},
               $DATA_ARR->[$i]->{DATE} || $FORM{DATE},
               $DATA_ARR->[$i]->{BANK_ACCOUNT},

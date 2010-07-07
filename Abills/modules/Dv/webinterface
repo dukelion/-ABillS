@@ -4038,9 +4038,9 @@ sub dv_monthly_fees {
 
            #Min use Alignment
            if (! $conf{DV_MIN_USER_FULLPERIOD} && $user{ACTIVATE} ne '0000-00-00') {
-             	 my ($activated_y, $activated_m, $activated_d)=split(/-/, $user{ACTIVATE}, 3);
-             	 my $days_in_month=($activated_m!=2?(($activated_m%2)^($activated_m>7))+30:(!($activated_y%400)||!($activated_y%4)&&($activated_y%25)?29:28)); 
-     	         $min_use = sprintf("%.2f", $min_use / $days_in_month * ($days_in_month - $activated_d + $START_PERIOD_DAY));
+             my ($activated_y, $activated_m, $activated_d)=split(/-/, $user{ACTIVATE}, 3);
+             my $days_in_month=($activated_m!=2?(($activated_m%2)^($activated_m>7))+30:(!($activated_y%400)||!($activated_y%4)&&($activated_y%25)?29:28)); 
+     	       $min_use = sprintf("%.2f", $min_use / $days_in_month * ($days_in_month - $activated_d + $START_PERIOD_DAY));
            	}
 
            my $used = ($used_traffic{$user{UID}}) ? $used_traffic{$user{UID}} : 0;
@@ -4100,7 +4100,7 @@ sub dv_monthly_fees {
                     $users->change($user{UID}, { 
          	                        UID      => $user{UID},
         	                        ACTIVATE => '0000-00-00' });
-        	          }
+        	         }
                  }
                }
              }
