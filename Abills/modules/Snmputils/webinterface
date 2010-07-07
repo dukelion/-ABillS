@@ -896,12 +896,8 @@ sub snmputils_dlink_pb_add {
   #Convert to D-Link port value
   #   my $first_port = 0b10000000000000000000000000000000;
   #     my $port_binding = ($port > 1) ? $first_port >> $port - 1 : $first_port;
-  #     
   #     my @ar =  unpack("A2A2A2A2", sprintf("%.8x",  $port_binding));
-  #
   #     printf("\n%.32b\n",  $port_binding);
-
-  #print $port_list;
   my $port_count = $#{ $sw_info->{PORT_STATE} };
 
   $port_list=~s/ //g;
@@ -909,8 +905,6 @@ sub snmputils_dlink_pb_add {
 	my @get_port_arr = split(/,/, $port_list);
   my @port_array = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-
-  #print "POrt Count: $port_count<br>";
 
   $port_count=30;
   foreach my $id (@get_port_arr) {
@@ -924,9 +918,6 @@ sub snmputils_dlink_pb_add {
    	  $port_array[$id-1]=1;
    	 }
    }
-#  for(my $i=0; $i<=$port_count; $i++) {
-#  	$port_array[$i]=(in_array(($i+1), \@get_arr)) ? 1 : 0;
-#   }
 
   my $unpack_ = "H2H2H2H2";
   if ($sw_info->{version} =~ /3550/) {
@@ -940,7 +931,6 @@ sub snmputils_dlink_pb_add {
 
   my $port_binding = '';
   foreach my $c (@ar) {
-    #print "$c:";
     $port_binding .= chr(hex($c));
    }
      
@@ -981,9 +971,6 @@ sub snmputils_dlink_pb_add {
    	  $message .= " Ok\n";
      }
    }
-
-
-
 
   return $message;	
 }
@@ -1059,8 +1046,7 @@ sub snmputils_dlink_pb_list {
 
   my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
 	my $SWITCH_INFO = $attr->{SWITCH_INFO} || snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
-	
-	
+
   my %PREFIX  = ( 1 => 'IP',
                   2 => 'MAC',
                   4 => 'PORT',
@@ -1085,7 +1071,6 @@ sub snmputils_dlink_pb_list {
     print "OID: '$SWITCH_INFO->{oid_prefix}'<br>$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n";
     return 0;
    }
-
   
   print "OID Prefix: $SWITCH_INFO->{oid_prefix} / $SWITCH_INFO->{oid_sufix}{STATE}\n" if ($debug > 0);
 
@@ -1097,7 +1082,6 @@ sub snmputils_dlink_pb_list {
 
     #Blocked address
     if($line =~ /^[\d\.]{0,2}\d\.\d\.(\d)\.\d+\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/ ) {
-    	
     	#       MAC / 2 -> MAC
     	$BLOCK_HASH{$2}{$1}=$3;
     	print "Block<br>\n" if ($debug > 0);
@@ -1146,8 +1130,7 @@ sub snmputils_dlink_pb_list {
   		  $info{$PREFIX{$1}}{$2}=$3;
   	   }
     }
-   }
-	
+   }	
 	
 	return \%info, \%BLOCK_HASH;
 }
@@ -1177,14 +1160,10 @@ sub snmputils_dlink_ip_mac_port{
                        MNG_HOST     => $Nas->{NAS_IP},
                        RAD_PAIRS    => $Nas->{NAS_RAD_PAIRS},
                        DEBUG        => $debug
-                     );
-
-
-  	
+                     );  	
   	my $info = snmputils_dlink_pb({ %CONF_HASH });
   	$html->pre($info);
    }
-
 
   if ($SNMP_COMMUNITY eq '@') {
   	$html->message('err', $_ERROR, 'No SNMP community');
@@ -1796,9 +1775,6 @@ sub snmputils_zyxel_smf {
    }
 
   my $SWITCH_INFO = snmputils_zyxel_smf_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
-
-
-
 
   print "$SWITCH_INFO->{version}/$SWITCH_INFO->{firmware}/$SWITCH_INFO->{firmware2}";
 

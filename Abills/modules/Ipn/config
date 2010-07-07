@@ -33,7 +33,7 @@ if ($conf{IPN_CLUBMONITOR}) {
 }
 
 %PERIODIC = (
-             monthly => [ 'ipn_detail_rotate', 'ipn_periodic_session_restart' ]
+             monthly => [ 'ipn_detail_rotate', 'ipn_periodic_session_restart', 'ipn_start_active' ]
             );
 
 1

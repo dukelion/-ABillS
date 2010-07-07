@@ -188,7 +188,7 @@ sub paysys_import_form {
                 my $ext_id = $DATA_ARR->[$i]->{EXT_ID_VAL} || "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID";
                 $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
  	                     DESCRIBE     => $DATA_ARR->[$i]->{DESCRIBE} || '', 
- 	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 0, 
+ 	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 1, 
  	                     DATE         => $DATA_ARR->[$i]->{DATE} || undef, 
                        EXT_ID       => $ext_id,
                        CHECK_EXT_ID => $ext_id,

@@ -1527,7 +1527,6 @@ if (! $cmd) {
     system($cmd);
     print "IPN FILTER: $cmd\n" if ($DEBUG > 5);
    }
-
 }
 
 
@@ -2282,7 +2281,6 @@ my $nas = Nas->new($db);
 
 my $nas_list = $nas->list({ NAS_IDS   => $attr->{NAS_IDS}, 
 	                          PAGE_ROWS => 10000 });
-#ID => IP
 my %nas_info = ();
 foreach my $line (@$nas_list) {
 	if ($line->[4] eq 'ipcad') {
@@ -2385,6 +2383,161 @@ foreach my $line (@$list)   {
   $DEBUG .= $debug_output;
   return $debug_output;
 }
+
+
+#**********************************************************
+# ipn_periodic_session_restart
+#**********************************************************
+sub ipn_start_active {
+	my ($attr) = @_;
+  my $debug  = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+
+  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+
+  if (! defined($attr->{LOGON_ACTIVE_USERS})) {
+	  $DEBUG .= $debug_output;
+    return $debug_output;
+   }
+
+#Get online
+my $Dv  = Dv->new($db, $admin, \%conf);  
+my $nas = Nas->new($db);
+
+
+my $nas_list = $nas->list({ NAS_IDS   => $attr->{NAS_IDS}, 
+	                          PAGE_ROWS => 10000 });
+
+my %nas_info = ();
+foreach my $line (@$nas_list) {
+	if ($line->[4] eq 'ipcad') {
+	  $nas_info{$line->[0]}{NAS_IP}=$line->[3]; 
+	  $nas_info{$line->[0]}{NAS_ID}=$line->[0];
+	  $nas_info{$line->[0]}{NAS_TYPE}=$line->[4];
+	  $nas_info{$line->[0]}{NAS_IP_ADDRESS}=$line->[9];
+	  $nas_info{$line->[0]}{NAS_MNG_USER}=$line->[10];
+    $nas_info{$line->[0]}{NAS_MNG_IP_PORT}=$line->[11];
+   }
+}
+
+my @nas_ids_arr = keys %nas_info;
+
+if ($#nas_ids_arr < 0) {
+  $DEBUG .= $debug_output;
+  return $debug_output;
+ }
+
+#Get puuls for nas
+my $poll_list = $nas->nas_ip_pools_list({  });
+
+my %nas_pools_hash = ();  
+# Get valid NAS
+foreach my $line (@$poll_list) {
+	$nas_pools_hash{$line->[3]}="$line->[4]:$line->[10]" if ($line->[10] && defined($nas_info{$line->[10]}));
+ }
+
+#Get TPs
+my %TPS = ();
+my $tp_list = $tariffs->list({ MODULES => 'Dv' });
+foreach my $line (@$tp_list) {
+	$TPS{$line->[0]}=$line->[4] if ($line->[4]);
+}
+
+
+my $list = $sessions->online({ NAS_ID => join(', ', @nas_ids_arr),
+	                             FIELDS => [ 0, 21, 27, 23, 12, 22, 10 ] });
+
+my $count = 0;
+my %online_uids = ();
+foreach my $line (@$list)   {
+	$online_uids{$line->[5]}=1;
+}
+
+$list = $Dv->list({ IP           => '>0.0.0.0',
+	                  DISABLE      => 0,
+	                  LOGIN_STATUS => 0,
+	                  FILTER_ID    => '*',
+	                  PAGE_ROWS    => 1000000,
+	                  TP_ID        => '>0',
+	                  PORT         => '>=0'
+                 });
+
+foreach my $line (@$list)   {
+  my $filter_id    = $line->[8];
+  my $login        = $line->[0];
+  my $ip           = $line->[6];
+  my $connect_info = '';
+  my $uid          = $line->[10];
+  my $nas_id       = 0;
+  my $tp_id        = $line->[13];
+  my $port         = $line->[7];
+  my $ip_num = unpack("N", pack("C4", split( /\./, $ip))); 
+
+  if ($online_uids{$uid}) {
+  	next;
+   }
+  elsif (! $line->[2]) {
+  	print "Error: Can't finde bills  UID: '$uid'\n";
+  	next;
+   }
+  elsif ($line->[2]+$line->[3] <= 0 && !  $TPS{$tp_id}) {
+  	next;
+   }
+
+  $debug_output .= "LOGIN: $login IP: $ip NAS_ID: $nas_id CONNECT_INFO: $connect_info UID: $uid FILTER_ID: $filter_id\n" if ($debug > 3);
+
+  reset %nas_pools_hash;
+  #while(my ($start_ip, $key) = each %nas_pools_hash ) {
+  foreach my $start_ip (keys %nas_pools_hash) {
+  	my ($end_ip, $id)=split(/:/, $nas_pools_hash{$start_ip}, 2);
+   	if ( ($start_ip <= $ip_num) && ($ip_num <= $end_ip) ) {
+ 	  	$nas_id=$id;
+  	  last;
+ 	   }
+   }
+
+  #Activate
+  if (int($nas_id) < 1) {
+    $debug_output .= "Unknown NAS\n";  	
+   }
+  else {
+    $debug_output .= "$login $uid $ip -> $nas_id\n" if ($debug > 1);
+    $count++;
+
+    my %DATA = (ACCT_STATUS_TYPE   => 1, 
+                USER_NAME          => $login, 
+                SESSION_START      => 0, 
+                ACCT_SESSION_ID    => mk_unique_value(10), 
+                FRAMED_IP_ADDRESS  => $ip, 
+                NAS_ID             => $nas_id,
+                NAS_IP_ADDRESS     => $nas_info{$nas_id}{NAS_IP_ADDRESS},
+                NAS_MNG_USER       => $nas_info{$nas_id}{NAS_MNG_USER},
+                NAS_MNG_IP_PORT    => $nas_info{$nas_id}{NAS_MNG_IP_PORT} ,
+                TP_ID              => $tp_id,
+                CALLING_STATION_ID => $ip,
+                CONNECT_INFO       => $connect_info,
+                UID                => $uid,
+                QUICK              => 1,
+                NAS_PORT           => $port,
+                HINT               => 'NOPASS',
+                DEBUG              => $debug,
+                FILTER_ID          => $filter_id
+               );
+    
+      $Ipn->user_status({ %DATA });
+      ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
+      $debug_output .= "$_ACTIVATE IP: $ip\n" if ($debug > 1);
+   }
+
+  
+}
+
+  $debug_output .= "Total: $count\n" if ($debug > 0);
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
+}
+
 
 #**********************************************************
 #

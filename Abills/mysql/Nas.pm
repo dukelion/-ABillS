@@ -393,9 +393,8 @@ sub ip_pools_list {
  if(defined($self->{NAS_ID})) {
  	 push @WHERE_RULES, "pool.nas='$self->{NAS_ID}'"; 
   }
- 
- my $WHERE = ($#WHERE_RULES > -1) ? "and " . join(' and ', @WHERE_RULES)  : '';
 
+ my $WHERE = ($#WHERE_RULES > -1) ? "and " . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db, "SELECT nas.name, pool.name, 
    pool.ip, pool.ip + pool.counts, pool.counts, pool.priority,
@@ -404,7 +403,6 @@ sub ip_pools_list {
     FROM ippools pool, nas 
     WHERE pool.nas=nas.id
     $WHERE  ORDER BY $SORT $DESC");
-
 
  return $self->{list};	
 }

@@ -1060,16 +1060,21 @@ sub ipn_log_rotate {
   my $self = shift;
 	my ($attr) = @_;
   
+  my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));  
+  $self->query($db, "SHOW TABLES LIKE 'ipn_traf_detail_$DATE';");
+  return $self if ($self->{TOTAL} > 0);
+  
+  
  my @rq = (); 
  my $version = $self->db_version();
  #Detail Daily rotate
  if ($attr->{DETAIL} && $version > 4.1 ) {
-   my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));
    @rq = (
     'CREATE TABLE IF NOT EXISTS ipn_traf_detail_new LIKE ipn_traf_detail;',
     'RENAME TABLE ipn_traf_detail TO ipn_traf_detail_'. $DATE .
-      ', ipn_traf_detail_new TO ipn_traf_detail;',
-    'DELETE FROM ipn_unknow_ips;'  
+    ', ipn_traf_detail_new TO ipn_traf_detail;',
+    'DELETE FROM ipn_unknow_ips;',
+    
       );
   }
  else {
