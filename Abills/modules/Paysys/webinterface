@@ -88,15 +88,12 @@ sub paysys_import_form {
 	if ($FORM{IMPORT}) {
 			#Default import extration	
       my $import_expr = ($attr->{IMPORT_EXPR}) ? $attr->{IMPORT_EXPR} : '(\d+)\t(.+)\t(\d+)\t(\S+)\t([0-9.,]+)\t(\d{2}-\d{2}-\d{4})\t(.+)\t(.+):ID, FIO, PHONE, CONTRACT_ID, SUM, DATE, ADDRESS, DESCRIBE';
-
       #Default Binding field
       my $BINDING_FIELD = ($attr->{BINDING_FIELDS}) ? $attr->{BINDING_FIELDS} : 'CONTRACT_ID';
-
       if (defined($attr->{IMPORT_TYPE})) {
       	$import_expr   = $conf{'PAYSYS_IMPORT_EXPRATION_'. $attr->{IMPORT_TYPE}};
       	$BINDING_FIELD = $conf{'PAYSYS_IMPORT_BINDING_'.$attr->{IMPORT_TYPE}} if ($conf{'PAYSYS_IMPORT_BINDING_'.$FORM{IMPORT_TYPE}});
        }
-
       my ($DATA_ARR, $BINDING_IDS);
       my %binding_hash = ();      
       my $total_count  = 0;
@@ -128,7 +125,6 @@ sub paysys_import_form {
       elsif($FORM{FILE_DATA}) {
 	      my $content = $FORM{"FILE_DATA"}{'Contents'};
 	      ($DATA_ARR, $BINDING_IDS)=paysys_import_parse($content, $import_expr, $BINDING_FIELD);
-       
         my $table2 = $html->table({ width  => '100%',
                                     rows   => [ [ $_NAME,   $FORM{FILE_DATA}{filename} ],
                                                 [ $_TOTAL,  $#{ $DATA_ARR }+1 ],
@@ -145,12 +141,9 @@ sub paysys_import_form {
        	  if ($id eq '') {
        	  	next;
        	   }
-
           $ids .= "$id, ";
         }
-       
-       
-       
+
        if ($ids eq '') {
        	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
        	 return 0;
@@ -251,7 +244,8 @@ sub paysys_import_form {
                             caption    => "$_PRE Import - $import_types[$FORM{IMPORT_TYPE}]",
                             border     => 1,
                             title      => ['ID', "$_FIO", "$_PHONE", "$_CONTRACT_ID", "$_SUM", 
-                            "$_DATE", "$_BANK $_ACCOUNT", "$_TYPE", "$_ADDRESS", "$_DESCRIBE", '_BINDING', '-'],
+                            "$_DATE", "$_BANK $_ACCOUNT", "$_TYPE", "$_ADDRESS", "$_DESCRIBE", 
+                            "$_INNER $_DESCRIBE", "$_BINDING", '-'],
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             ID         => 'PAYSYS_IMPORT_LIST',
@@ -301,6 +295,7 @@ function CheckAllINBOX() {
               $PAYMENT_METHOD_SEL,
               $DATA_ARR->[$i]->{ADDRESS},
               $html->form_input('DESCRIBE_'.$ID, $DATA_ARR->[$i]->{DESCRIBE} || ''),
+              $html->form_input('INNER_DESCRIBE_'.$ID, $DATA_ARR->[$i]->{INNER_DESCRIBE} || ''),
               $html->form_input($BINDING_FIELD.'_'.$ID, $DATA_ARR->[$i]->{$BINDING_FIELD} || '')
              );
           

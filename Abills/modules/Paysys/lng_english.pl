@@ -9,3 +9,4 @@ $ERR_TRANSACTION_DECLINED='Transaction is declined';
 $_GET_INVOICE='Get invoice';
 $_INVOICE_SENDED='Invoice sended';
 $_TEST_PAYMENT='Test payment';
+$_BINDING='Binding';
