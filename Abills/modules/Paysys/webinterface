@@ -114,6 +114,7 @@ sub paysys_import_form {
        	 	   TYPE           => $FORM{'TYPE_'.$ID},
        	 	   PAYMENT_METHOD => $FORM{'PAYMENT_METHOD_'.$ID},
        	 	   DESCRIBE       => $FORM{'DESCRIBE_'.$ID},
+       	 	   INNER_DESCRIBE => $FORM{'INNER_DESCRIBE_'.$ID},
        	 	   ADDRESS        => $FORM{'ADDRESS_'.$ID},
        	 	   $BINDING_FIELD => $FORM{$BINDING_FIELD.'_'.$ID}
        	 	   );
@@ -175,6 +176,7 @@ sub paysys_import_form {
        if ($FORM{PAYMENTS}) {
  	         for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
          	   my $ID = $DATA_ARR->[$i]->{PAYSYS_EXT_ID} || $i;
+         	   
              if ($binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})}) {
                 my($uid, $login, $fio)=split(/:/, $binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})});
                 my $user   = $users->info($uid);
