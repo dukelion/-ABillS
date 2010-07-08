@@ -9,8 +9,6 @@ use Tariffs;
 use Socket;
 
 
-
-
 my $Ipn      = Ipn->new($db, \%conf);
 my $Ipn_Collector = Ipn_Collector->new($db, \%conf);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);

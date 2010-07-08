@@ -192,7 +192,7 @@ sub paysys_import_form {
  	                     DATE         => $DATA_ARR->[$i]->{DATE} || undef, 
                        EXT_ID       => $ext_id,
                        CHECK_EXT_ID => $ext_id,
-                       INNER_DESCRIBE => ''
+                       INNER_DESCRIBE => $DATA_ARR->[$i]->{INNER_DESCRIBE} || ''
                         } );
 
 
@@ -222,7 +222,7 @@ sub paysys_import_form {
  	                     DESCRIBE      => $DATA_ARR->[$i]->{DESCRIBE} || '', 
  	                     INNER_DESCRIBE => $DATA_ARR->[$i]->{EXT_ID} || '', 
  	                     DATE          => $DATA_ARR->[$i]->{DATE} || undef, 
- 	                     INNER_DESCRIBE => '',
+ 	                     INNER_DESCRIBE => $DATA_ARR->[$i]->{INNER_DESCRIBE} || '',
  	                 #    METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD}, 
                    #    EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
                    #    CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"
