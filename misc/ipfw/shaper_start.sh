@@ -88,7 +88,9 @@ done;
   ${IPFW} add 10010 netgraph tablearg ip from any to table\(11\) ${OUT_DIRECTION}
   ${IPFW} add 10020 allow ip from table\(9\) to any ${IN_DIRECTION}
   ${IPFW} add 10025 allow ip from any to table\(9\) ${OUT_DIRECTION}
-  ${IPFW} add 10030 allow ip from any to any via ${INTERNAL_INTERFACE} 
+  if [ ${INTERNAL_INTERFACE} = w"ng*" ]; then
+    ${IPFW} add 10030 allow ip from any to any via ${INTERNAL_INTERFACE} 
+  fi;
 #done
 else if [ w$1 = wstop -a w$2 = w ]; then
 
