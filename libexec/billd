@@ -188,7 +188,8 @@ sub check_lines {
                              'TP_ID',
                              'DISABLE',
                              'DV_STATUS',
-                             'SUM' ]
+                             'SUM',
+                             'CALLS_TP_ID' ]
 		                   } );	
 	
   print "==> check_lines\n" if ($debug > 1);
@@ -257,10 +258,23 @@ sub check_lines {
       my $tp_num                  = $line->[17];
       my $state                   = $line->[18]+$line->[19];
       my $session_sum             = $line->[20];
+      my $calls_tp_id             = $line->[21];
       
       if ($debug > 1) {
         printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $user_name, int2ip($client_ip), $duration, $acct_input_octets, $acct_output_octets, $deposit);
-       }    
+       } 
+      
+      
+      if ($calls_tp_id ne $tp_num) {
+        print "Hanguped Login: Change TP $user_name DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum SESSION_ID: $acct_session_id - ";
+        my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
+       	                                                        FRAMED_IP_ADDRESS    => int2ip($client_ip),
+           	                                                    UID                  => $uid,
+           	                                                    debug                => $debug
+           	                                                  }); 
+        next; 
+      }
+          
       #hangup connaction if max ext traffic reached
 #      if (($NAS{NAS_TYPE} eq 'exppp' && ($acct_input_octets_ext > $exppp_hanguplimit 
 #         || $acct_output_octets_ext > $exppp_hanguplimit))

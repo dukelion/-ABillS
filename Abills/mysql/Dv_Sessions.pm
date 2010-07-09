@@ -219,6 +219,7 @@ sub online {
    DV_CID          => 'dv.cid',
    ACCT_SESSION_ID => 'c.acct_session_id',
    TP_ID           => 'dv.tp_id',
+   CALLS_TP_ID     => 'c.tp_id',
    CONNECT_INFO    => 'c.CONNECT_INFO',
    SPEED           => 'dv.speed',   
    SUM             => 'c.sum',
