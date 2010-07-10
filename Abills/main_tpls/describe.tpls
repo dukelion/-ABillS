@@ -1,6 +1,12 @@
 # $tpl, $lang, $describe
 form_client_hotspot_start.tpl:russian:Первая страница отображаемая пользователям при заходе на Hotspot
-form_client_hotspot_start.tpl:english:Firt page loding for hotspot users
+form_client_hotspot_start.tpl:english:First page loding for hotspot users
 admin_report_day.tpl:russian:Форма дневного отчёта приходящена на E-mail администратору
 admin_report_month.tpl:russian:Форма месячного отчёта приходящена на E-mail администратору
 form_chg_tp.tpl:russian:Форма изминения тарифного плана
+form_buy_cards.tpl:english:Buy cards interface
+form_buy_cards_card.tpl:english:Buy cards interface card designe
+
+form_buy_cards.tpl:russian:Форма покупки карточек
+form_buy_cards_card.tpl:russian:Дизайн карточки из формы покупки
+
