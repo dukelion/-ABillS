@@ -73,9 +73,6 @@ sub new {
   return $self;
 }
 
-
-
-
 #**********************************************************
 # Time_intervals
 # ti_add
@@ -89,7 +86,6 @@ sub ti_del {
 	$admin->system_action_add("TI:$id", { TYPE => 10 });
 	return $self;
 }
-
 
 #**********************************************************
 # Time_intervals
@@ -120,9 +116,7 @@ sub ti_list {
   if ($SORT eq '1') { $SORT = "2, 3"; }  
   my $begin_end = "i.begin, i.end,";   
   my $TP_ID = $self->{TP_ID};  
-  
 
-    
   if (defined($attr->{TP_ID})) {
     $begin_end =  "TIME_TO_SEC(i.begin), TIME_TO_SEC(i.end), "; 
     $TP_ID = $attr->{TP_ID};
@@ -165,8 +159,6 @@ sub ti_change {
 		               OLD_INFO     => $self->ti_info($ti_id),
 		               DATA         => $attr
 		              } );
-
-
 
   if ($ti_id == $DATA{TI_ID}) {
   	$self->ti_info($ti_id);

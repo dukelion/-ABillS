@@ -508,7 +508,7 @@ sub ashield_user {
         $status = "$_STATUS_4: $blockbeg - $blockend" if ($blockbeg > 0);
     	 }
 
-    	$table->addrow($name,
+    	$table->addrow(convert($name, { utf82win => 1 }),
 #    	               $k->{agentuuid}->[0], 
     	               $k->{tariffplancode}->[0],
     	               ($activated eq 'no') ? $_NO: $_YES,

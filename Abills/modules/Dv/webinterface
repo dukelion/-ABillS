@@ -4373,6 +4373,7 @@ return 0 if ($Dv->{TOTAL} < 1);
 my %USER_INFO = ();
 
 
+
 foreach my $line (@$list) {
   #u.id, u.email, u.tp_id, u.credit, u.deposit, tp.name, tp.uplimit
   $USER_INFO{LOGIN}  = $line->[0];
