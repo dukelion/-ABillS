@@ -95,6 +95,7 @@ sub messages_list {
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = (defined($attr->{DESC})) ? $attr->{DESC} : 'DESC';
+ $PG = (defined($attr->{PG})) ? $attr->{PG} : 0;
 
  @WHERE_RULES = ();
  

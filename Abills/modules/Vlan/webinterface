@@ -291,15 +291,12 @@ sub vlan_user_info {
 sub vlan_create {
   my ($attr) = @_;	
 
-
   $| = 1;
 
 $debug = $attr->{DEBUG} || 0;
 my $debug_output = '';
 
-
 $attr->{NAS_IDS} = $attr->{LOCAL_NAS_IDS}  if ($attr->{LOCAL_NAS_IDS});
-
 my $list = $Nas->list({ PAGE_ROWS => 100000, 
  	                      TYPE      => 'vlan', 
  	                      DISABLE   => 0,
@@ -307,7 +304,6 @@ my $list = $Nas->list({ PAGE_ROWS => 100000,
 	                    });
 
 my %NAS_COMMANDS = ();
-#my $NAS_ID = 0;
 my %DHCP_SUBNETS = () ;
 
 #make static hash
@@ -340,7 +336,6 @@ foreach my $line (@$list) {
   	next;
    }
 
-
   my $NAS_ID          = '';
   my $nas_mng_ip_port = '';
   my $nas_mng_user    = '';
@@ -356,8 +351,6 @@ foreach my $line (@$list) {
   
     ($nas_mng_ip, $nas_mng_port)=split(/:/, $nas_mng_ip_port);
     $nas_mng_port = 22 if (! $nas_mng_port);
-
-
   	$ENV{NAS_IP_ADDRESS} = $nas_mng_ip;
     $ENV{NAS_MNG_USER}   = $nas_mng_user;
     $ENV{NAS_MNG_IP_PORT}= "$nas_mng_ip:$nas_mng_port";
@@ -406,12 +399,6 @@ foreach my $line (@$list) {
     else {
       $INFO{VLAN_IF_BIT_NETMASK} = 32;	
      }
-    
-#    if ($INFO{VLAN_IF_IP} eq '0.0.0.0') {
-#    	$debug_output .= "!!! No IP for user '$line->[0]' Vlan [$INFO{VLAN_ID}] ";
-#    	next;
-#     }
-
     
     $INFO{PARENT_INTERFACE}=$parent_interface;
     if ($INFO{DHCP} == 1 && $INFO{VLAN_IF_IP} ne '0.0.0.0') {
@@ -673,8 +660,6 @@ sub vlan_dhcp {
                                { notprint => 1 }
                                );
 
-
-
   # DHCP Section
   my $DHCPCONF  = ($conf{DHCPHOSTS_CONFIG}) ?  $conf{DHCPHOSTS_CONFIG} :  '/usr/local/etc/dhcpd.conf';
   #my $dhcp_sufix = '';
@@ -683,15 +668,12 @@ sub vlan_dhcp {
   	$DHCPCONF = "$conf{TPL_DIR}/dhcpd.conf$dhcp_sufix";
    }
 
-  
-  
-
   $attr->{INFO}{DATETIME}="DATE: $DATE $TIME";
 
   my $debug_output='';
   my $dhcp_conf = $html->tpl_show($main_tpl, $attr->{INFO}, { notprint => 1 });
-  #Make dhcp conf and relaod DHCP
-  
+
+  #Make dhcp conf and reload DHCP
   $debug_output .= "$DHCPCONF\n" . $dhcp_conf if ($debug > 4);
   
   open(FILE, ">$DHCPCONF") || die "Can't open file '$DHCPCONF' $!\n";
@@ -720,7 +702,6 @@ sub vlan_dhcp {
  if ($debug > 2) {
 	 print $cmd."\n";
   }  
-
 
   $DEBUG .= $debug_output;	
 	return $debug_output;

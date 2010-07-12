@@ -16,3 +16,4 @@ $_DELIGATED='Deligated';
 $_UP='Up';
 $_DOWN='Down';
 $_INNER_MSGS_CHAR='I';
+$_ACTIVE='Active';

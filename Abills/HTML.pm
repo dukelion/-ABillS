@@ -501,6 +501,19 @@ sub form_select {
          }
          $self->{SELECT}.="</optgroup>";
        }
+      elsif(ref $attr->{SEL_HASH}->{$k} eq 'HASH') {
+        $self->{SELECT}.="<optgroup label=\"$k\" title=\"$k\">\n";
+
+        foreach my $val ( sort keys %{ $attr->{SEL_HASH}->{$k} } ) {
+          $self->{SELECT} .= "<option value='$val'";
+          $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$val];' " if ($attr->{STYLE});
+          $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $val eq $attr->{SELECTED});
+
+          $self->{SELECT} .= ">";
+          $self->{SELECT} .= "$attr->{SEL_HASH}->{$k}->{$val}\n";	
+         }
+         $self->{SELECT}.="</optgroup>";
+       }
       else {
         $self->{SELECT} .= "<option value='$k'";
         $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$k];' " if ($attr->{STYLE});

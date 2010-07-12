@@ -681,15 +681,16 @@ sub msgs_admin {
  	                                          SEL_OPTIONS       => { '' => $_ALL },
  	                                          #SEL_ARRAY         => [@msg_status],
  	                                          STYLE             => \@style,
- 	                                          SEL_HASH          => { $msg_status[0] => [ $msg_status[0],
- 	                                          	                                         $msg_status[3],
- 	                                          	                                         $msg_status[4],
- 	                                          	                                         $msg_status[5],
- 	                                          	                                         $msg_status[6],
- 	                                          	                                         $msg_status[7],
- 	                                          	                                         ],
- 	                                          	                     $msg_status[1] => [ $msg_status[1] ],
- 	                                          	                     $msg_status[2] => [ $msg_status[2] ],
+ 	                                          SEL_HASH          => { $msg_status[0] => { 0 => $msg_status[0],
+ 	                                          	                                         3 =>$msg_status[3],
+ 	                                          	                                         4 =>$msg_status[4],
+ 	                                          	                                         5 =>$msg_status[5],
+ 	                                          	                                         6 =>$msg_status[6],
+ 	                                          	                                         7 =>$msg_status[7],
+ 	                                          	                                         '0;3;4;5;6;7' => $_ACTIVE,
+ 	                                          	                                        },
+ 	                                          	                     $msg_status[1] => { 1 => $msg_status[1] },
+ 	                                          	                     $msg_status[2] => { 2 => $msg_status[2] },
  	                                          	                       },
  	                                          ARRAY_NUM_ID      => 0
  	                                        });
@@ -726,12 +727,12 @@ sub msgs_admin {
   $LIST_PARAMS{STATE}=undef if ($FORM{STATE} == 3);
   $LIST_PARAMS{PRIORITY}=undef if ($FORM{PRIORITY} == 5);
 
-  if (! defined($FORM{STATE}) && ! $FORM{ALL_MSGS}) {
+  if (! defined($FORM{STATE}) && ! $FORM{ALL_MSGS} && ! $FORM{ALL_OPENED}) {
      $FORM{STATE}=4;
    }
   
 my $i = 0;
-my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs") : $html->b($_ALL);;
+my $status_bar = ''; 
 
 foreach my $name ( @msg_status) {
 	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
@@ -741,18 +742,26 @@ foreach my $name ( @msg_status) {
 	else {
 	  $status_bar .= ' '.$html->button("$name", "index=$index&STATE=$i$pages_qs");
 	 }
-
   $i++;
 }
 
-  if (defined($FORM{ALL_MSGS})) {
-    $pages_qs.="&ALL_MSGS=1";
-   }
-  else {
-    $pages_qs.="&STATE=$FORM{STATE}";
-   }
+
+if ($FORM{ALL_MSGS}) {
+	 $status_bar = $html->b($_ALL). ' '. $html->button("$_ACTIVE", "index=$index&ALL_OPENED=1$pages_qs") . $status_bar;
+	 $pages_qs.="&ALL_MSGS=1";
+ }
+elsif ($FORM{ALL_OPENED}) {
+	$status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs").' '.$html->b("$_ACTIVE") .$status_bar;
+	$LIST_PARAMS{STATE} = "0;3;4;5;6;7";
+	$pages_qs.="&ALL_OPENED=1";	
+ }
+else {
+  $pages_qs.="&STATE=$FORM{STATE}";
+  $status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs").' '.$html->button("$_ACTIVE", "index=$index&ALL_OPENED=1$pages_qs").$status_bar;
+}
 
   $LIST_PARAMS{CHAPTERS}=$FORM{CHAPTER};
+  
   my $list = $Msgs->messages_list({ %LIST_PARAMS, 
   	                                DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
   	                               });
