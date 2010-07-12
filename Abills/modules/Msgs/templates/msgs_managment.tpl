@@ -1,7 +1,7 @@
 <TABLE border='0' width=100%>
 
 <TR><TD align=center>
-<b>$_DELIGATE</b><br><a class=link_button href='$SELF_URL?index=$index&deligate=$FORM{chg}&level=%DELIGATED_DOWN%'>$_DOWN (%DELIGATED_DOWN%)</a>&nbsp;
+<b>$_COMPETENCE</b><br><a class=link_button href='$SELF_URL?index=$index&deligate=$FORM{chg}&level=%DELIGATED_DOWN%'>$_DOWN (%DELIGATED_DOWN%)</a>&nbsp;
 <a class=link_button href='$SELF_URL?index=$index&deligate=$FORM{chg}&level=%DELIGATED%'>$_UP (%DELIGATED%)</a>
 </TD></TR>
 

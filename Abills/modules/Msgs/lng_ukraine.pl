@@ -17,3 +17,4 @@ $_UP='В верх';
 $_DOWN='Вниз';
 $_INNER_MSGS_CHAR='В';
 $_ACTIVE='Всі відкриті';
+$_COMPETENCE='Компетенція';
