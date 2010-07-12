@@ -523,7 +523,8 @@ foreach my $line (@$list) {
      }
 
    system($cmds) if ($debug < 5);
-   $debug_output .= "$cmds\n" if ($debug > 2 || $conf{VLAN_CMD_DEBUG});
+   $debug_output .= "$cmds\n" if ($debug > 2);
+   print $cmds if ($conf{VLAN_CMD_SHOW});
   }
 
 
