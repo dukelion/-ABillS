@@ -394,6 +394,12 @@ foreach my $line (@$list) {
    
     if (($INFO{VLAN_IF_NETMASK} && $line->[12] ne '255.255.255.255') || ! $INFO{VLAN_IF_NETMASK}) {
       $INFO{VLAN_IF_NETMASK} = $line->[12];
+      
+      my $ips   = 4294967296 - ip2int($INFO{VLAN_IF_NETMASK});
+      $INFO{VLAN_IF_BIT_NETMASK} = 32 - length(sprintf("%b", $ips)) + 1 ;
+     }
+    else {
+      $INFO{VLAN_IF_BIT_NETMASK} = 32;	
      }
     
 #    if ($INFO{VLAN_IF_IP} eq '0.0.0.0') {
@@ -441,11 +447,9 @@ foreach my $line (@$list) {
 
     if (! $vlans_info->{$INFO{VLAN_ID}}) {
       push @commands, tpl_parse($conf{VLAN_IF_CREATE}, \%INFO);
-      #"$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $INFO{PARENT_INTERFACE} up";
 
       if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
         push @commands, tpl_parse($conf{VLAN_IF_IP}, \%INFO);
-        #"$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
        }
 
       #Start PPPOE
@@ -501,8 +505,7 @@ foreach my $line (@$list) {
 	  
 	  $debug_output .= "DELETED VLAN $vlan_id, $ip\n" if ($debug > 3);
 	  push @commands, tpl_parse($conf{VLAN_IF_DESTROY}, { VLAN_ID => $vlan_id, PARENT_INTERFACE => $parent_interface });
-	  #"$IFCONFIG vlan$vlan_id destroy";
-	  push @client_interfaces_unused, "vlan$vlan_id";
+    push @client_interfaces_unused, "vlan$vlan_id";
 	  delete $client_interfaces{"vlan$vlan_id"};
   }
 
@@ -512,15 +515,20 @@ foreach my $line (@$list) {
     my $cmds = '';
     foreach my $cmd ( @commands ) {
       $cmds .= ($sudo ne '') ? "$sudo $cmd; " : "$cmd; ";
-      #$cmds .= "$cmd;";
      }
 
     if ($nas_mng_ip && $nas_mng_ip ne '') {
+    	$ENV{NAS_IP_ADDRESS} = $nas_mng_ip;
+      $ENV{NAS_MNG_USER}   = $nas_mng_user;
+      $ENV{NAS_MNG_IP_PORT}= "$nas_mng_ip:$nas_mng_port";
+      $ENV{NAS_ID}         = $NAS_ID;
+      $ENV{NAS_TYPE}       = 'vlan';
+
       $cmds = "$SSH -p $nas_mng_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$nas_mng_user $nas_mng_user\@$nas_mng_ip \"$cmds\" ";
      }
 
    system($cmds) if ($debug < 5);
-   $debug_output .= "$cmds\n" if ($debug > 2);
+   $debug_output .= "$cmds\n" if ($debug > 2 || $conf{VLAN_CMD_DEBUG});
   }
 
 

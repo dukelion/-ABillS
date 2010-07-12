@@ -1507,7 +1507,7 @@ if (! $cmd) {
   print "IPN: $cmd\n" if ($DEBUG > 5);
   system($cmd);
   
-  print "/!!!! $conf{IPN_FILTER} //! $FILTER_ID /";
+#  print "/!!!! $conf{IPN_FILTER} //! $FILTER_ID /";
   
   if ($conf{IPN_FILTER} && ($STATUS ne 'ONLINE_ENABLE' || ($STATUS eq 'ONLINE_ENABLE' && $FILTER_ID ne '') ) ) {
   	#$FILTER_ID = "" if ($FILTER_ID eq '');

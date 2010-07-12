@@ -679,8 +679,18 @@ sub msgs_admin {
                                           { 
  	                                          SELECTED          => $FORM{STATE} || 3,
  	                                          SEL_OPTIONS       => { '' => $_ALL },
- 	                                          SEL_ARRAY         => [@msg_status],
+ 	                                          #SEL_ARRAY         => [@msg_status],
  	                                          STYLE             => \@style,
+ 	                                          SEL_HASH          => { $msg_status[0] => [ $msg_status[0],
+ 	                                          	                                         $msg_status[3],
+ 	                                          	                                         $msg_status[4],
+ 	                                          	                                         $msg_status[5],
+ 	                                          	                                         $msg_status[6],
+ 	                                          	                                         $msg_status[7],
+ 	                                          	                                         ],
+ 	                                          	                     $msg_status[1] => [ $msg_status[1] ],
+ 	                                          	                     $msg_status[2] => [ $msg_status[2] ],
+ 	                                          	                       },
  	                                          ARRAY_NUM_ID      => 0
  	                                        });
 
