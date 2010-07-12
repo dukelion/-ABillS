@@ -357,10 +357,15 @@ foreach my $line (@$list) {
     ($nas_mng_ip, $nas_mng_port)=split(/:/, $nas_mng_ip_port);
     $nas_mng_port = 22 if (! $nas_mng_port);
 
- 	  $ENV{NAS_IP_ADDRESS}=$nas_mng_ip;
- 	  $ENV{NAS_IP_PORT}   =$nas_mng_port;
-    $ENV{NAS_MNG_USER}  =$nas_mng_user;
-    $ENV{NAS_MNG_PASSWD}=$nas_mng_passwd;
+
+  	$ENV{NAS_IP_ADDRESS} = $nas_mng_ip;
+    $ENV{NAS_MNG_USER}   = $nas_mng_user;
+    $ENV{NAS_MNG_IP_PORT}= "$nas_mng_ip:$nas_mng_port";
+    $ENV{NAS_ID}         = $NAS_ID;
+    $ENV{NAS_TYPE}       = 'vlan';
+ 	  $ENV{NAS_IP_PORT}    = $nas_mng_port;
+    $ENV{NAS_MNG_USER}   = $nas_mng_user;
+    $ENV{NAS_MNG_PASSWD} = $nas_mng_passwd;
    }
 
 
@@ -463,18 +468,14 @@ foreach my $line (@$list) {
       $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP}/$INFO{VLAN_IF_NETMASK} Created\n" if ($debug > 0);
      }
     elsif ($vlans_info->{$INFO{VLAN_ID}} && $vlans_info->{$INFO{VLAN_ID}} ne $INFO{VLAN_IF_IP}) {
-      #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} destroy";
-      #push @commands, "$IFCONFIG vlan$INFO{VLAN_ID} create vlan $INFO{VLAN_ID} vlandev $parent_interface";
       #Set VLAN IP
       if ($INFO{VLAN_IF_IP} ne '0.0.0.0') {
         push @commands, tpl_parse($conf{VLAN_IF_IP}, \%INFO); 
-        #"$IFCONFIG vlan$INFO{VLAN_ID} inet $INFO{VLAN_IF_IP} netmask $INFO{VLAN_IF_NETMASK}";
         $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $INFO{VLAN_IF_IP} Changed\n" if ($debug > 0);
        }
       #Destroy VLAN
       else {
         push @commands, tpl_parse($conf{VLAN_IP_DELETE}, { VLAN_IF_IP => $vlans_info->{$INFO{VLAN_ID}}, VLAN_ID => $INFO{VLAN_ID} });
-        #"$IFCONFIG vlan$INFO{VLAN_ID} delete $INFO{VLAN_IF_IP}";
         $debug_output .= "Vlan ID: $INFO{VLAN_ID} IP: $vlans_info->{$INFO{VLAN_ID}} Deleted\n" if ($debug > 0);
        }
 
@@ -518,12 +519,6 @@ foreach my $line (@$list) {
      }
 
     if ($nas_mng_ip && $nas_mng_ip ne '') {
-    	$ENV{NAS_IP_ADDRESS} = $nas_mng_ip;
-      $ENV{NAS_MNG_USER}   = $nas_mng_user;
-      $ENV{NAS_MNG_IP_PORT}= "$nas_mng_ip:$nas_mng_port";
-      $ENV{NAS_ID}         = $NAS_ID;
-      $ENV{NAS_TYPE}       = 'vlan';
-
       $cmds = "$SSH -p $nas_mng_port -o StrictHostKeyChecking=no -i $base_dir/Certs/id_dsa.$nas_mng_user $nas_mng_user\@$nas_mng_ip \"$cmds\" ";
      }
 
