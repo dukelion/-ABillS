@@ -426,13 +426,11 @@ sub form_select {
       $self->{SELECT} .= ">". $attr->{SEL_OPTIONS}->{$k} ."\n";	
      }
    }
-  
-  
+
   if (defined($attr->{SEL_ARRAY})){
 	  my $H = $attr->{SEL_ARRAY};
 	  my $i=0;
-	  
-  
+
 	  foreach my $v (@$H) {
       my $id = (defined($attr->{ARRAY_NUM_ID})) ? $i : $v;
       $self->{SELECT} .= "<option value='$id'";
@@ -451,7 +449,6 @@ sub form_select {
     if ($attr->{MULTI_ARRAY_VALUE_PREFIX}) {
     	@MULTI_ARRAY_VALUE_PREFIX = split(/,/, $attr->{MULTI_ARRAY_VALUE_PREFIX});
      }
- 
 
 	  foreach my $v (@$H) {
       $self->{SELECT} .= "<option value='$v->[$key]'";
@@ -494,7 +491,6 @@ sub form_select {
           $self->{SELECT} .= "<option value='$val'";
           $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$val];' " if ($attr->{STYLE});
           $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $val eq $attr->{SELECTED});
-
           $self->{SELECT} .= ">";
           #$self->{SELECT} .= "$val:" if (! $attr->{NO_ID});
           $self->{SELECT} .= "$val\n";	
@@ -507,8 +503,9 @@ sub form_select {
         foreach my $val ( sort keys %{ $attr->{SEL_HASH}->{$k} } ) {
           $self->{SELECT} .= "<option value='$val'";
           $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$val];' " if ($attr->{STYLE});
-          $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $val eq $attr->{SELECTED});
-
+           if (defined($attr->{SELECTED}) && $val eq $attr->{SELECTED}) {
+            $self->{SELECT} .=' selected'	
+           }
           $self->{SELECT} .= ">";
           $self->{SELECT} .= "$attr->{SEL_HASH}->{$k}->{$val}\n";	
          }

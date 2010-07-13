@@ -190,6 +190,10 @@ sub messages_list {
    push @WHERE_RULES, "m.chapter IN ($attr->{CHAPTERS})"; 
   }
  
+ if ($attr->{CHAPTER}) {
+ 	 push @WHERE_RULES, "m.chapter='$attr->{CHAPTER}'"; 
+  }
+ 
  if ($attr->{UID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'm.uid') };
  }
