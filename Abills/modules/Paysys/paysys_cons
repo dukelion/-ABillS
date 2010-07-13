@@ -355,8 +355,6 @@ if ($pop->login($username, $password)) {
     my $uidl = $pop->uidl($msgnum);
     my $msg  = $pop->get($msgnum);
     $full_message = join('', @$msg);
-    #print $full_message;
-
     my ($header, $message)=split(/\n\n/, $full_message, 2);
 
     # Parse header
@@ -409,9 +407,12 @@ if ($pop->login($username, $password)) {
        }
      }
     else {
-    	#print $message;
       $content .= $message;
      }
+
+   if ($ARGV->{DECODE}) {
+   	 $content = convert($content, { $ARGV->{DECODE} => 1 });
+    }
 
     if (paysys_import_form({ TYPE          => $ARGV->{TYPE},
                              IMPORT_RULE   => $ARGV->{IMPORT_RULE},
@@ -499,6 +500,10 @@ if ($ftp->login("$username","$password")) {
 	  	  $content .= $_;
 	     }
 	  close(FILE);
+
+    if ($ARGV->{DECODE}) {
+    	$content = convert($content, { $ARGV->{DECODE} => 1 });
+     }
 
     if (paysys_import_form({ TYPE          => $ARGV->{TYPE},
                              IMPORT_RULE   => $ARGV->{IMPORT_RULE},

@@ -206,7 +206,7 @@ sub msgs_admin_add {
            	 DATE    => $DATE, 
            	 TIME    => $TIME, 
            	 ID      => $Msgs->{INSERT_ID}, 
-           	 SUBJECT => $FORM{SUBJECT},
+           	 SUBJECT => $FORM{SUBJECT}.' / '.$FORM{REPLY_SUBJECT},
            	 STATUS  => $msg_status[$FORM{STATE}],
            	 MESSAGE => $FORM{MESSAGE},
            	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
@@ -221,11 +221,10 @@ sub msgs_admin_add {
             { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}" ] });
         }
 
-      	if ( $cmd ne '') {
+       if ( $cmd ne '') {
 	         $cmd=tpl_parse($cmd, { ACTION => 'add', UIDS => "UIDS ".join(',', @uids) });
          	 my $res = `$cmd`;
       	 }
-
 
        $message = "$_TOTAL: $users->{TOTAL}";
        $LIST_PARAMS{PAGE_ROWS}=25;
@@ -480,7 +479,7 @@ sub msgs_admin {
 
 
     %params = ();
-    $params{CHAPTER}=$FORM{CHAPTER_ID} if ($FORM{CHAPTER_ID});
+    $params{CHAPTER}     = $FORM{CHAPTER_ID} if ($FORM{CHAPTER_ID});
     $params{STATE}       = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
     $params{STATE}       = ($FORM{STATE} == 0) ? 6 : $FORM{STATE} ;
     my $state=$FORM{STATE};
@@ -899,7 +898,7 @@ foreach my $line (@$list) {
      DATE    => $DATE, 
      TIME    => $TIME,
      ID      => "$Msgs->{INSERT_ID}/$Msgs->{REPLY_ID}", 
-     SUBJECT => $FORM{SUBJECT} || $FORM{REPLY_SUBJECT},
+     SUBJECT => $FORM{SUBJECT}.' / '.$FORM{REPLY_SUBJECT},
      STATUS  => $msg_status[$FORM{STATE}],
      MESSAGE => $FORM{REPLY_TEXT},
      ATTACHMENT => $FORM{FILE_UPLOAD}{filename}      
