@@ -1,6 +1,7 @@
 <form method='POST' action='$SELF_URL'>
 <input type='hidden' name='SUM' value='$FORM{SUM}' />
-<input type='hidden' name='UID' value='$LIST_PARAMS{UID}'>
+<input type='hidden' name='sid' value='$FORM{sid}'/>
+<input type='hidden' name='UID' value='$LIST_PARAMS{UID}'/>
 <input type='hidden' name='index' value='$index' />
 <input type='hidden' name='PAYMENT_SYSTEM' value='$FORM{PAYMENT_SYSTEM}' />
 <input type='hidden' name='OPERATION_ID' value='$FORM{OPERATION_ID}' />

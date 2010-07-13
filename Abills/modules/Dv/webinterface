@@ -2515,7 +2515,7 @@ my $list = $sessions->online( { USER_NAME => $LIST_PARAMS{LOGIN},
 if ($sessions->{TOTAL} > 0) {
   my $table = $html->table( { caption     => "Online",
 	                            width       => '100%',
-                              title_plain => ["$_LOGIN", "IP", "CID", "$_DURATION", "$_SEND", "$_RECV"],
+                              title_plain => ["$_LOGIN", "IP", "CID", "$_DURATION", "$_RECV", "$_SEND"],
                               cols_align  => ['left', 'right', 'right', 'right', 'right', 'right' ],
                               rowcolor    => 'odd',
                               ID          => 'ONLINE'
