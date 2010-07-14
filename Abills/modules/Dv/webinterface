@@ -2763,8 +2763,8 @@ $sessions->{ACCT_TERMINATE_CAUSE} = "$sessions->{ACCT_TERMINATE_CAUSE} : ". $ACC
 
 $sessions->{_SENT} = int2byte($sessions->{SENT}); 
 $sessions->{_RECV} = int2byte($sessions->{RECV}); 
-$sessions->{_SENT2}= int2byte($sessions->{SENT2});
-$sessions->{_RECV2}= int2byte($sessions->{RECV2});
+$sessions->{_RECV2}= int2byte($sessions->{SENT2});
+$sessions->{_SENT2}= int2byte($sessions->{RECV2});
 $sessions->{RECALC}= $html->button($_RECALCULATE, "index=$index&RECALC=1&SESSION_ID=$FORM{SESSION_ID}&UID=$FORM{UID}", { BUTTON => 1 });
 
 $html->tpl_show(_include('dv_session_detail', 'Dv'), $sessions);

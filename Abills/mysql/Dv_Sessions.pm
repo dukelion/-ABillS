@@ -1112,7 +1112,7 @@ elsif($attr->{DATE}) {
   l.uid, 
   UNIX_TIMESTAMP(l.start),
   l.duration,
-  l.sent2, l.recv2
+  l.recv2, l.sent2
   FROM (dv_log l, users u)
   $WHERE
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");

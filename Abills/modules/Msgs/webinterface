@@ -756,7 +756,7 @@ $pages_qs =~ s/\&ALL_OPENED=1|\&ALL_MSGS=1//;
 $pages_qs =~ s/STATE=\d+//;
 
 foreach my $name ( @msg_status) {
-	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
+	if (defined($FORM{STATE}) && $FORM{STATE} == $i && $FORM{STATE} ne '') {
     $LIST_PARAMS{STATE}=$FORM{STATE};
     $status_bar .= ' '.$html->b($name);
 	 }

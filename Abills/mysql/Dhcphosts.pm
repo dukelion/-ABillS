@@ -737,7 +737,6 @@ sub hosts_list {
     $extra_fields = ', if(company.id IS NULL, b.deposit, cb.deposit) + u.credit';
    }
 
-
   if ($attr->{OPTION_82}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{OPTION_82}", 'INT', 'h.option_82', { EXT_FIELD => 1 }) };
   }
