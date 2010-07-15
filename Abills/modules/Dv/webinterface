@@ -3676,7 +3676,7 @@ sub dv_daily_fees {
 
  my $DOMAIN_ID = $attr->{DOMAIN_ID} || 0;
  
- if ($ARGV->{USERS_WARNINGS_TEST}) {
+ if ($ADMIN_REPORT{USERS_WARNINGS_TEST}) {
  	  return $debug_output;;
   }
 
