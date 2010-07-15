@@ -3673,10 +3673,9 @@ sub dv_daily_fees {
 
  my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
-
  my $DOMAIN_ID = $attr->{DOMAIN_ID} || 0;
  
- if ($ADMIN_REPORT{USERS_WARNINGS_TEST}) {
+ if ($attr->{USERS_WARNINGS_TEST}) {
  	  return $debug_output;;
   }
 
@@ -4370,7 +4369,7 @@ sub dv_users_warning_messages {
    return 0;
   }
 
-
+ my $debug = $attr->{DEBUG} || 0;
 
 my %LIST_PARAMS = (USERS_WARNINGS => 1 );
 $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN}); 
@@ -4396,14 +4395,16 @@ foreach my $line (@$list) {
     $USER_INFO{TP_NAME},  
     $USER_INFO{DEPOSIT}, 
     $USER_INFO{CREDIT});
-
-  my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { OUTPUT2RETURN => 1 });
-  sendmail("$conf{ADMIN_MAIL}", 
+  
+  if ($debug < 5) {
+    my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { OUTPUT2RETURN => 1 });
+    sendmail("$conf{ADMIN_MAIL}", 
            "$email", 
            "$_BILL_INFO", 
            "$message", 
            "$conf{MAIL_CHARSET}", 
            "2 (High)");
+  }
 }
 
 $ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
