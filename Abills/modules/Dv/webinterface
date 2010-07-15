@@ -4409,6 +4409,13 @@ foreach my $line (@$list) {
 
 $ADMIN_REPORT{USERS_WARNINGS} .= "---------------------------------------------------------------
 $_TOTAL: $Dv->{TOTAL}\n";
+
+  if ($debug > 5) {
+    $debug_output = $ADMIN_REPORT{USERS_WARNINGS};
+   }
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
 }
 
 
