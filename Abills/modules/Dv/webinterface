@@ -3675,6 +3675,10 @@ sub dv_daily_fees {
  my $debug_output = '';
 
  my $DOMAIN_ID = $attr->{DOMAIN_ID} || 0;
+ 
+ if ($ARGV->{USERS_WARNINGS_TEST}) {
+ 	  return $debug_output;;
+  }
 
  $debug_output .= "DV: Daily periodic payments\n" if ($debug > 1);
 
@@ -4367,12 +4371,12 @@ sub dv_users_warning_messages {
   }
 
 
-my %LIST_PARAMS = (USERS_WARNINGS => 1 ) ;
+
+my %LIST_PARAMS = (USERS_WARNINGS => 1 );
+$LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN}); 
 my $list = $Dv->list( { %LIST_PARAMS } );
 return 0 if ($Dv->{TOTAL} < 1);
 my %USER_INFO = ();
-
-
 
 foreach my $line (@$list) {
   #u.id, u.email, u.tp_id, u.credit, u.deposit, tp.name, tp.uplimit
