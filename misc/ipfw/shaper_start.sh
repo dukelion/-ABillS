@@ -2,10 +2,12 @@
 # Shape/NAT upper  
 #
 
+# REQUIRE: NETWORKING vlan_up shaper_up
+
 #traffic Class numbers
 
 CLASSES_NUMS='2 3'
-VERSION=3.1
+VERSION=3.2
 
 #Enable NG shapper
 

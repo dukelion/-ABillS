@@ -4387,7 +4387,9 @@ foreach my $line (@$list) {
   $USER_INFO{PHONE}  = $line->[7];
   $USER_INFO{FIO}    = $line->[8];
   
-  my $email = ((! defined($line->[1])) || $line->[1] eq '') ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : "$line->[1]";
+  my $email = ((! defined($line->[1])) || $line->[1] eq '') ? (($conf{USERS_MAIL_DOMAIN}) ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : '') : "$line->[1]";
+
+  if ($email eq '') {  next; }
 
   $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
     $USER_INFO{LOGIN}, 
