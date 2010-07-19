@@ -62,8 +62,6 @@ sub sql_connect {
   	return $db;
    }
   
-  return $db;
-  
   $REQUEST{NAS_IDENTIFIER}='' if (! $REQUEST{NAS_IDENTIFIER});
   if (! $NAS_INFO{$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}}) {
     $nas = Nas->new($db, \%conf);
@@ -89,11 +87,6 @@ sub sql_connect {
 sub authorize {
   $begin_time = check_time();
 
-  if ($REQUEST{'DHCP-Message-Type'}) {
-  	return RLM_MODULE_OK;
-   }
-
-
   my $db = sql_connect();
   if ( $db ) {
   	if (auth($db, \%REQUEST, $nas, { pre_auth => 1 }) == 0) {
@@ -113,13 +106,7 @@ sub authorize {
 sub authenticate {
   $begin_time = check_time();
 
-  if ($REQUEST{'DHCP-Message-Type'}) {
-  	return RLM_MODULE_OK;
-   }
-
-
   my $db = sql_connect();
-
   if ( $db ) {
     if ( auth($db, \%REQUEST, $nas) == 0 ) {
     	return RLM_MODULE_OK;
@@ -138,12 +125,6 @@ sub accounting {
   $begin_time = check_time();
 
   my $db = sql_connect();
-
-  if ($REQUEST{'DHCP-Message-Type'}) {
-  	return RLM_MODULE_OK;
-   }
-
-
   if ( $db ) {
     my $ret = acct($db, \%REQUEST, $nas);
    }
