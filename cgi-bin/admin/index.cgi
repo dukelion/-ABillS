@@ -1375,8 +1375,6 @@ if(defined($attr->{USER})) {
  	 	 }
 
    }
-  #
-  
  
   form_passwd({ USER => $user_info }) if (defined($FORM{newpassword}));
 
@@ -1565,7 +1563,6 @@ elsif ($FORM{MULTIUSER}) {
   	foreach my $uid (@multiuser_arr) {
   		if ($FORM{DEL} && $FORM{MU_DEL}) {
   	    my $user_info = $users->info( $uid );
-  	    #$user_info->del();
         user_del({ USER => $user_info });
 
         if ($users->{errno}) {
@@ -4488,7 +4485,7 @@ sub form_payments () {
    exit;
   }
 
-if (defined($attr->{USER})) { 
+if (defined($attr->{USER})) {
   my $user = $attr->{USER};
   $payments->{UID} = $user->{UID};
 
@@ -4551,34 +4548,9 @@ if (defined($attr->{USER})) {
      	      return 0;
            }
          }
-
-        #Add number 
-        if ($FORM{ACCOUNT_ID}) {
-         	$Docs->account_change({ ID         => $FORM{ACCOUNT_ID},
-        		                      PAYMENT_ID => $payments->{PAYMENT_ID}
-      		                        });
-        	if ($Docs->{errno}) {
-        		$html->message('err', "$_ACCOUNT $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
-      	   }
-      	  elsif ($Docs->{TOTAL_SUM} != $FORM{SUM})  {
-      		  $html->message('err', $_ERROR, "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
-      	   }
-         }
-      
-        #Docs
-        if ($FORM{CREATE_INVOICE}) {
-          require "Abills/modules/Docs/webinterface";
-          docs_invoice_add({
-          	DATE       => $DATE,
-          	CUSTOMER   => '-', 
-          	PHONE      => '',
-            UID        => $FORM{UID},
-            ORDER      => "$FORM{DESCRIBE}" || '-',
-            SUM        => $FORM{SUM},
-            create     => 1,
-            PAYMENT_ID => $payments->{PAYMENT_ID}
-        	  });
-  	     }
+        #Make cross modules Functions
+        $attr->{USER}->{DEPOSIT}+=$FORM{SUM};
+        cross_modules_call('_payments_maked', { %$attr, PAYMENTS_ID => $payments->{PAYMENT_ID} });
       }
      }
    }
@@ -6852,6 +6824,25 @@ $table = $html->table( { width      => '640',
 print $table->show();
 
 }
+
+
+#**********************************************************
+# Calls function for all registration modules if function exist 
+#
+# cross_modules_call(function_sufix, attr) 
+#**********************************************************
+sub cross_modules_call  {
+  my ($funtion_sufix, $attr) = @_;
+
+  foreach my $mod (@MODULES) {
+     require "Abills/modules/$mod/webinterface";
+     my $function = lc($mod).$funtion_sufix;
+     if (defined(&$function)) {
+     	  $function->({ USER => $attr->{USER} });
+      }
+   }
+}
+
 
 1
 

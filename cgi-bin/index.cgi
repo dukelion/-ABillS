@@ -1158,4 +1158,23 @@ if ($FORM{s2} || $FORM{transfer}) {
  $html->tpl_show(templates('form_money_transfer_s1'), \%FORM); 	
 }
 
+
+#**********************************************************
+# Calls function for all registration modules if function exist 
+#
+# cross_modules_call(function_sufix, attr) 
+#**********************************************************
+sub cross_modules_call  {
+  my ($funtion_sufix, $attr) = @_;
+
+  foreach my $mod (@MODULES) {
+     require "Abills/modules/$mod/webinterface";
+     my $function = lc($mod).$funtion_sufix;
+     if (defined(&$function)) {
+     	  $function->({ USER => $attr->{USER} });
+      }
+   }
+}
+
+
 1

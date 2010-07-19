@@ -1907,5 +1907,40 @@ for (my $year=2009; $year<=$Y; $year++) {
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub docs_payments_maked {
+	my ($attr) = @_;
+
+#Add account number 
+if ($FORM{ACCOUNT_ID}) {
+ 	$Docs->account_change({ ID         => $FORM{ACCOUNT_ID},
+ 		                      PAYMENT_ID => $attr->{PAYMENT_ID}
+                       });
+
+ 	if ($Docs->{errno}) {
+ 		$html->message('err', "$_ACCOUNT $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
+   }
+  elsif ($Docs->{TOTAL_SUM} != $FORM{SUM})  {
+    $html->message('err', $_ERROR, "$_ACCOUNT $_SUM: $Docs->{TOTAL_SUM} / $_PAYMENTS $_SUM: $FORM{SUM}");
+   }
+ }
+      
+#Docs
+if ($FORM{CREATE_INVOICE}) {
+  docs_invoice_add({
+        	DATE       => $DATE,
+        	CUSTOMER   => '-', 
+        	PHONE      => '',
+          UID        => $FORM{UID},
+          ORDER      => "$FORM{DESCRIBE}" || '-',
+          SUM        => $FORM{SUM},
+          create     => 1,
+          PAYMENT_ID => $attr->{PAYMENT_ID}
+      	  });
+}	
+}
+
 
 1
