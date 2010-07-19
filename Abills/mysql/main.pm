@@ -66,11 +66,9 @@ sub connect {
   my $self = { };
   my ($dbhost, $dbname, $dbuser, $dbpasswd, $attr) = @_;
   bless($self, $class);
-  #$self->{debug}=1;
-  $self->{db} = DBI->connect("DBI:mysql:database=$dbname;host=$dbhost", "$dbuser", "$dbpasswd") or print 
+  $self->{db} = DBI->connect_cached("DBI:mysql:database=$dbname;host=$dbhost", "$dbuser", "$dbpasswd") or print 
        "Content-Type: text/html\n\nError: Unable connect to DB server '$dbhost:$dbname'\n";
-  
-  
+
   #For mysql 5 or highter
   $self->{db}->do("set names ".$attr->{CHARSET}) if ($attr->{CHARSET});
  
@@ -81,7 +79,6 @@ sub connect {
 
 sub disconnect {
   my $self = shift;
-
   $self->{db}->disconnect;
   return $self;
 }
@@ -249,12 +246,7 @@ sub get_data {
   	 next if (! $params->{$k} && defined($DATA{$k})) ;
   	 $v =~ s/^ +|[ \n]+$//g if ($v);
   	 $DATA{$k}=$v;
-     #print "--$k, '$v'<br>\n";
    }
-
-#  while(my($k, $v)=each %DATA) {
-#  	print "$k, $v<br>\n";
-#  }
   
 	return %DATA;
 }

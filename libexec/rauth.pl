@@ -272,6 +272,15 @@ sub post_auth {
   
   my $reject_info = '';
 
+  if ($RAD_REQUEST{'DHCP-Message-Type'}) {
+    $RAD_REPLY{'DHCP-Your-IP-Address'} = '192.168.1.221';
+    $RAD_REPLY{'DHCP-Subnet-Mask'} = '255.255.255.0';
+    $RAD_REPLY{'DHCP-Router-Address'} = '192.168.1.220';
+    $RAD_REPLY{'DHCP-IP-Address-Lease-Time'} = 8600;
+ 	
+  	return RLM_MODULE_OK;
+   }
+
   # $RAD->{MS_CHAP_CHALLENGE}
   if (defined(%RAD_REQUEST)) {
     if ($RAD_REPLY{'Reply-Message'}) {

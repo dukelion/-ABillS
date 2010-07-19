@@ -505,7 +505,8 @@ sub reports_users {
  my $self=shift;
  my ($attr) = @_;
  
- 
+ $self->query($db, "SET SQL_BIG_SELECTS=1;");
+
 my $GROUP   = '1';
 my $date    = '';
  
@@ -529,12 +530,9 @@ if ($attr->{INTERVAL}) {
   push @WHERE_RULES, "date_format(start, '%Y-%m-%d')>='$from' and date_format(start, '%Y-%m-%d')<='$to'";
 
    $attr->{TYPE}='-' if (! $attr->{TYPE});
-
-
    if ($attr->{TYPE} eq 'HOURS' ) {
      $date = "date_format(l.start, '\%H'), count(DISTINCT l.uid)";
     }
-   
    elsif ($attr->{TYPE} eq 'DAYS_TCLASS') {
      $date = "date_format(l.start, '%Y-%m-%d'), '-', l.traffic_class, tt.descr";
      $GROUP = '1,3';
@@ -655,10 +653,8 @@ sub reports {
  my $self = shift;
  my ($attr) = @_;
 
-  my $table_name = "ipn_traf_log_". $Y."_".$M;
-
+ my $table_name = "ipn_traf_log_". $Y."_".$M;
  undef @WHERE_RULES; 
-
  my $GROUP = '';
  my $size  = 'size';
  
@@ -666,7 +662,6 @@ sub reports {
  	  $GROUP = "GROUP BY $attr->{GROUPS}";
  	  $size = "sum(size)";
   }
-
 
 if ($attr->{SRC_ADDR}) {
    push @WHERE_RULES, "src_addr=INET_ATON('$attr->{SRC_ADDR}')";
@@ -684,11 +679,7 @@ if (defined($attr->{DST_PORT}) && $attr->{DST_PORT} =~ /^\d+$/ ) {
    push @WHERE_RULES, "dst_port='$attr->{DST_PORT}'";
  }
 
-
-
 my $f_time = 'f_time';
-
-
 #Interval from date to date
 if ($attr->{INTERVAL}) {
  	my ($from, $to)=split(/\//, $attr->{INTERVAL}, 2);
@@ -728,24 +719,14 @@ elsif($attr->{INTERVAL_TYPE} eq 2) {
   $GROUP="GROUP BY 1";
   $size = 'sum(size)';
 }
-#elsif($attr->{INTERVAL_TYPE} eq 'sessions') {
-#	$WHERE = '';
-#  $lupdate = "f_time";
-#  $GROUP=2;
-#}
 else {
   $lupdate = "f_time";
 }
 
-
-
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
-
-
-  my $list;
+ my $list;
 
 if (defined($attr->{HOSTS})) {
-
  	 $self->query($db, "SELECT INET_NTOA(src_addr), sum(size), count(*)
      from $table_name
      $WHERE
@@ -795,10 +776,7 @@ else {
   ;");
 }
 
-  #
-
  $list = $self->{list};
-
 
  $self->query($db, "SELECT 
   count(*),  suuuuuuum(size)
@@ -808,8 +786,6 @@ else {
 
   ($self->{COUNT},
    $self->{SUM}) = @$self->{list}->[0];
-
-
  return $list;
 }
 

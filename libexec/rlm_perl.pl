@@ -7,26 +7,19 @@ use vars qw(%RAD_REQUEST %RAD_REPLY %RAD_CHECK  %REQUEST %conf
  $nas
 );
 
-# This is hash wich hold original request from radius
-#my %RAD_REQUEST;
-# In this hash you add values that will be returned to NAS.
-#my %RAD_REPLY;
-#This is for check items
-#my %RAD_CHECK;
-
 #
 # This the remapping of return values 
 #
-	use constant  RLM_MODULE_REJECT=>    0;#  /* immediately reject the request */
-	use constant	RLM_MODULE_FAIL=>      1;#  /* module failed, don't reply */
-	use constant	RLM_MODULE_OK=>        2;#  /* the module is OK, continue */
-	use constant	RLM_MODULE_HANDLED=>   3;#  /* the module handled the request, so stop. */
-	use constant	RLM_MODULE_INVALID=>   4;#  /* the module considers the request invalid. */
-	use constant	RLM_MODULE_USERLOCK=>  5;#  /* reject the request (user is locked out) */
-	use constant	RLM_MODULE_NOTFOUND=>  6;#  /* user not found */
-	use constant	RLM_MODULE_NOOP=>      7;#  /* module succeeded without doing anything */
-	use constant	RLM_MODULE_UPDATED=>   8;#  /* OK (pairs modified) */
-	use constant	RLM_MODULE_NUMCODES=>  9;#  /* How many return codes there are */
+use constant  RLM_MODULE_REJECT=>    0;#  /* immediately reject the request */
+use constant	RLM_MODULE_FAIL=>      1;#  /* module failed, don't reply */
+use constant	RLM_MODULE_OK=>        2;#  /* the module is OK, continue */
+use constant	RLM_MODULE_HANDLED=>   3;#  /* the module handled the request, so stop. */
+use constant	RLM_MODULE_INVALID=>   4;#  /* the module considers the request invalid. */
+use constant	RLM_MODULE_USERLOCK=>  5;#  /* reject the request (user is locked out) */
+use constant	RLM_MODULE_NOTFOUND=>  6;#  /* user not found */
+use constant	RLM_MODULE_NOOP=>      7;#  /* module succeeded without doing anything */
+use constant	RLM_MODULE_UPDATED=>   8;#  /* OK (pairs modified) */
+use constant	RLM_MODULE_NUMCODES=>  9;#  /* How many return codes there are */
 
 use FindBin '$Bin';
 my $debug = 1;
@@ -40,6 +33,21 @@ require $Bin ."/racct.pl";
 $nas = undef;
 my %NAS_INFO = ();
 
+
+#**********************************************************
+# 
+#**********************************************************
+sub convert_radpairs {
+	%REQUEST = ();
+
+	while(my($k, $v)=each %RAD_REQUEST) {
+		$k =~ s/-/_/g;
+		$k =~ tr/[a-z]/[A-Z]/;
+		$REQUEST{$k}=$v;
+	 }
+}
+
+
 #**********************************************************
 # Function to handle authenticate
 #
@@ -47,9 +55,15 @@ my %NAS_INFO = ();
 sub sql_connect {
 	my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
   my $db  = $sql->{db};
-  #$rc = $dbh->ping;
 
   convert_radpairs();
+ 
+  if ($REQUEST{'DHCP-Message-Type'}) {
+  	return $db;
+   }
+  
+  return $db;
+  
   $REQUEST{NAS_IDENTIFIER}='' if (! $REQUEST{NAS_IDENTIFIER});
   if (! $NAS_INFO{$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}}) {
     $nas = Nas->new($db, \%conf);
@@ -67,12 +81,18 @@ sub sql_connect {
   return $db;
 }
 
+
 #**********************************************************
 # Function to handle authorize
 #
 #**********************************************************
 sub authorize {
   $begin_time = check_time();
+
+  if ($REQUEST{'DHCP-Message-Type'}) {
+  	return RLM_MODULE_OK;
+   }
+
 
   my $db = sql_connect();
   if ( $db ) {
@@ -92,6 +112,11 @@ sub authorize {
 #**********************************************************
 sub authenticate {
   $begin_time = check_time();
+
+  if ($REQUEST{'DHCP-Message-Type'}) {
+  	return RLM_MODULE_OK;
+   }
+
 
   my $db = sql_connect();
 
@@ -114,28 +139,17 @@ sub accounting {
 
   my $db = sql_connect();
 
+  if ($REQUEST{'DHCP-Message-Type'}) {
+  	return RLM_MODULE_OK;
+   }
+
+
   if ( $db ) {
     my $ret = acct($db, \%REQUEST, $nas);
    }
 
 	return RLM_MODULE_OK;
 }
-
-
-#**********************************************************
-# 
-#**********************************************************
-sub convert_radpairs {
-	%REQUEST = ();
-
-	while(my($k, $v)=each %RAD_REQUEST) {
-		$k =~ s/-/_/g;
-		$k =~ tr/[a-z]/[A-Z]/;
-		$REQUEST{$k}=$v;
-	 }
-}
-
-
 
 
 

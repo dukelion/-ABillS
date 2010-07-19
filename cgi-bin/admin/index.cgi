@@ -3199,7 +3199,8 @@ if ($nas->{errno}) {
   'chillispot'=> 'Chillispot (www.chillispot.org)',
   'openvpn'   => 'OpenVPN with RadiusPlugin',
   'vlan'      => 'Vlan managment',
-  'qbridge'   => 'Q-BRIDGE'
+  'qbridge'   => 'Q-BRIDGE',
+  'dhcp'      => 'DHCP FreeRadius in DHCP mode'
  );
 
 
@@ -4886,6 +4887,7 @@ if ($attr->{USER}) {
      }
     #Add now
     else {
+    	delete $FORM{DATE};
       $fees->take($user, $FORM{SUM}, { %FORM } );  
       if ($fees->{errno}) {
         $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
