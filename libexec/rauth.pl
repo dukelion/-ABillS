@@ -278,7 +278,7 @@ sub post_auth {
     $RAD_REPLY{'DHCP-Router-Address'} = '192.168.1.220';
     $RAD_REPLY{'DHCP-IP-Address-Lease-Time'} = 8600;
  	
-  	return RLM_MODULE_OK;
+  	return 2;
    }
 
   # $RAD->{MS_CHAP_CHALLENGE}
