@@ -501,7 +501,7 @@ sub table {
  $self->{table} .= ">\n";
 
  if (defined($attr->{title})) {
- 	 $self->{table} .= $self->table_title($SORT, $DESC, $PG, $OP, $attr->{title}, $attr->{qs});
+ 	 $self->{table} .= $self->table_title($SORT, $DESC, $PG, $attr->{title}, $attr->{qs});
   }
  elsif(defined($attr->{title_plain})) {
    $self->{table} .= $self->table_title_plain($attr->{title_plain});
@@ -625,7 +625,7 @@ sub table_title_plain {
 #*******************************************************************
 # Show table column  titles with wort derectives
 # Arguments 
-# table_title($sort, $desc, $pg, $get_op, $caption, $qs);
+# table_title($sort, $desc, $pg, $caption, $qs);
 # $sort - sort column
 # $desc - DESC / ASC
 # $pg - page id
@@ -633,9 +633,7 @@ sub table_title_plain {
 #*******************************************************************
 sub table_title  {
   my $self = shift;
-  my ($sort, $desc, $pg, $get_op, $caption, $qs)=@_;
-  my ($op);
-  my $img='';
+  my ($sort, $desc, $pg, $caption, $qs)=@_;
 
   $self->{table_title} = "<TITLE columns=\"". ($#{ $caption } + 1) ."\">\n";
   my $i=1;
@@ -657,6 +655,7 @@ sub table_title  {
      $self->{table_title} .= "/>\n";
      $i++;
    }
+
  $self->{table_title} .= "</TITLE>\n";
  return $self->{table_title};
 }
@@ -709,7 +708,7 @@ sub link_former {
 
 #**********************************************************
 #
-# del_button($op, $del, $message, $attr)
+# button($name, $params, $attr)
 #**********************************************************
 sub button {
   my $self = shift;

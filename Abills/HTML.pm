@@ -836,7 +836,7 @@ sub table {
 
  if (defined($attr->{title})) {
    $SORT = $LIST_PARAMS{SORT};
- 	 $self->{table} .= $self->table_title($SORT, $DESC, $PG, $OP, $attr->{title}, $attr->{qs});
+ 	 $self->{table} .= $self->table_title($SORT, $DESC, $PG, $attr->{title}, $attr->{qs});
   }
  elsif(defined($attr->{title_plain})) {
    $self->{table} .= $self->table_title_plain($attr->{title_plain});
@@ -1001,7 +1001,7 @@ sub table_title_plain {
 #*******************************************************************
 # Show table column  titles with wort derectives
 # Arguments 
-# table_title($sort, $desc, $pg, $get_op, $caption, $qs);
+# table_title($sort, $desc, $pg, $caption, $qs);
 # $sort - sort column
 # $desc - DESC / ASC
 # $pg - page id
@@ -1009,7 +1009,7 @@ sub table_title_plain {
 #*******************************************************************
 sub table_title  {
   my $self = shift;
-  my ($sort, $desc, $pg, $get_op, $caption, $qs)=@_;
+  my ($sort, $desc, $pg, $caption, $qs)=@_;
   my ($op);
   my $img='';
 
@@ -1037,9 +1037,6 @@ sub table_title  {
          if ($FORM{index}) {
          	  $op="index=$FORM{index}";
          	}
-         else {
-         	  $op="op=$get_op";
-          }
 
          $self->{table_title} .= $self->button("<img src=\"$IMG_PATH/$img\" width=\"12\" height=\"10\" border=\"0\" alt=\"Sort\" title=\"Sort\" class=\"noprint\">", "$op$qs&pg=$pg&sort=$i&desc=$desc");
        }
