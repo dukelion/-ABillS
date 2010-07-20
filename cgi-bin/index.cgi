@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 # ABillS User Web interface
 #
-#
+
 
 use vars qw($begin_time %LANG $CHARSET @MODULES $USER_FUNCTION_LIST 
 $UID $user $admin 
@@ -29,9 +29,6 @@ BEGIN {
  unshift(@INC, $libpath ."Abills/");
  unshift(@INC, $libpath);
  unshift(@INC, $libpath . 'libexec/');
-
- 
-
  eval { require Time::HiRes; };
  if (! $@) {
     Time::HiRes->import(qw(gettimeofday));

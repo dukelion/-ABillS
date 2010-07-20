@@ -3,16 +3,13 @@
 # http://www.maani.us/charts/index.php
 
 
-
 BEGIN {
   my $libpath = '../../';
-
   $sql_type='mysql';
   unshift(@INC, $libpath ."Abills/$sql_type/");
   unshift(@INC, $libpath);
   unshift(@INC, $libpath . 'libexec/');
   unshift(@INC, $libpath . 'Abills/');
-
   eval { require Time::HiRes; };
   if (! $@) {
     Time::HiRes->import(qw(gettimeofday));

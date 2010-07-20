@@ -1,5 +1,5 @@
 # 0.5
-$CHARSET = 'windows-1251';
+$CHARSET='windows-1251';
 
 @PERIODS=('Today', 'Yesterday', 'Week', 'Month', 'All sessions', 'From activation');
 @MONTHES=('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',  'September', 'October', 'November', 'December');
