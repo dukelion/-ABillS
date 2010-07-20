@@ -18,7 +18,6 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
    $DESC
    $PG
    $PAGE_ROWS
-   $OP
    $SELF_URL
    $SESSION_IP
    @MONTHES
@@ -45,7 +44,6 @@ $VERSION = 2.01;
    $DESC
    $PG
    $PAGE_ROWS
-   $OP
    $SELF_URL
    $SESSION_IP
 );
@@ -77,14 +75,13 @@ sub new {
      $self->{NO_PRINT}=1;
    }
 
-
   %FORM     = form_parse();
   %COOKIES  = getCookies();
   $SORT     = $FORM{SORT} || 1;
   $DESC     = ($FORM{desc}) ? 'DESC' : '';
   $PG       = $FORM{pg} || 0;
-  $OP       = $FORM{op} || '';
   $PAGE_ROWS = $FORM{PAGE_ROWS} || 25;
+  $self->{CHARSET}=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
   $domain   = $ENV{SERVER_NAME};
   $web_path = '';
   $secure   = '';
@@ -445,7 +442,7 @@ sub header {
  my $JAVASCRIPT = ($attr->{PATH}) ? "$attr->{PATH}functions.js" : "functions.js";
  my $css = ''; #css();
 
-my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
+my $CHARSET=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : $self->{CHARSET} || 'windows-1251';
 $CHARSET=~s/ //g;
 $self->{header} .= qq{<?xml version="1.0"  encoding="$CHARSET" ?>};
 
@@ -515,9 +512,7 @@ sub table {
  	   if($FORM{index}) {
  	   	 $op = "index=$FORM{index}";
  	    }
- 	   else {
- 	   	 $op = "op=$OP";
- 	    }
+
  	   my %ATTR = ();
  	   if (defined($attr->{recs_on_page})) {
  	   	 $ATTR{recs_on_page}=$attr->{recs_on_page};

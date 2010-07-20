@@ -17,7 +17,6 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
    $DESC
    $PG
    $PAGE_ROWS
-   $OP
    $SELF_URL
    $SESSION_IP
    @MONTHES
@@ -44,7 +43,6 @@ $VERSION = 2.00;
    $DESC
    $PG
    $PAGE_ROWS
-   $OP
    $SELF_URL
    $SESSION_IP
 );
@@ -90,7 +88,6 @@ sub new {
   $SORT    = $FORM{sort} || 1;
   $DESC    = ($FORM{desc}) ? 'DESC' : '';
   $PG      = $FORM{pg} || 0;
-  $OP      = $FORM{op} || '';
   $self->{CHARSET}=(defined($attr->{CHARSET})) ? $attr->{CHARSET} : 'windows-1251';
    
   if ($FORM{PAGE_ROWS}) {
@@ -179,7 +176,6 @@ sub new {
     $self = Abills::XML->new( { IMG_PATH  => $IMG_PATH,
 	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1 ,
 	                              CONF      => $CONF,
-	                              CHARSET   => $attr->{CHARSET}
 	                            });
   }
 
@@ -721,7 +717,6 @@ foreach my $ID (@s) {
 
     if ($#last_array > -1) {
       $parent = pop @last_array;	
-      #print "POP/$#last_array/$parent/<br>\n";
       $level--;
       $prefix = substr($prefix, 0, $level * 6 * 3);
       goto label;
@@ -868,9 +863,6 @@ sub table {
  	   my $op;
  	   if($FORM{index}) {
  	   	 $op = "index=$FORM{index}";
- 	    }
- 	   else {
- 	   	 $op = "op=$OP";
  	    }
  	   my %ATTR = ();
  	   if (defined($attr->{recs_on_page})) {
