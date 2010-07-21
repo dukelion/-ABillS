@@ -7,11 +7,12 @@
 <input type='hidden' name='BUY_CARDS' value='1'>
 <input type='hidden' name='TP_ID' value='$FORM{TP_ID}'>
 <input type='hidden' name='UID' value='%UID%'>
+<input type='hidden' name='DOMAIN_ID' value='%DOMAIN_ID%'>
 <table width=300>
-<tr bgcolor=$_COLORS[0]><th colspan='2' class=form_title>$_BALANCE_RECHARCHE</th></tr>
+<tr bgcolor=$_COLORS[0]><th colspan='2' class=form_title>$_ICARDS - $_BUY</th></tr>
 <tr><td>ID:</td><td>%OPERATION_ID%</td></tr>
 <tr><td>$_SUM:</td><td>%SUM%</td></tr>
-<tr><td>$_DESCRIBE:</td><td></td></tr>
+<tr><td>$_DESCRIBE:</td><td>Hotspot</td></tr>
 <tr><td>$_PAY_SYSTEM:</td><td><select name=PAYMENT_SYSTEM  ID=PAYMENT_SYSTEM>
 <option value='46'>Ukrpays
 <!-- 
@@ -23,5 +24,5 @@
 </select>
 </td></tr>
 </table>
-<input type='submit' name=pre value='$_ADD'>
+<input type='submit' name=pre value='$_BUY'>
 </form>
