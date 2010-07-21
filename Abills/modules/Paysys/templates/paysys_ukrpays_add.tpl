@@ -5,7 +5,7 @@
 
 <input type='hidden' name='order' value='%UID%'>
 <input type='hidden' name='login' value='%UID%'>
-<input type='hidden' name='sus_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?TRUE=1&index=$index&PAYMENT_SYSTEM=46&OPERATION_ID=$FORM{OPERATION_ID}&TP_ID=$FORM{TP_ID}'>
+<input type='hidden' name='sus_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?TRUE=1&index=$index&PAYMENT_SYSTEM=46&OPERATION_ID=$FORM{OPERATION_ID}&TP_ID=$FORM{TP_ID}&DOMAIN_ID=$FORM{DOMAIN_ID}'>
 <input type='hidden' name='lang' value='%LANG%'>
 <input type='hidden' name='note' value='$FORM{OPERATION_ID}'>
 <input type='hidden' name='service_id' value='$conf{PAYSYS_UKRPAYS_SERVICE_ID}'>

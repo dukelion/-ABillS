@@ -435,3 +435,4 @@ $_MONEY_TRANSFER='Money Transfer';
 $_COMMISSION='Commission';
 
 $_PAY_SYSTEM='Payment system';
+$_BUY='Buy';
