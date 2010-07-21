@@ -1991,6 +1991,41 @@ if($FORM{hash}) {
 
   my $checksum = $md5->hexdigest();	
   my $info = '';
+  
+  if ($FORM{order} =~ /\d{8}/) {
+  	#Info section  
+	  if ($FORM{hash} ne $checksum) {
+    	$status = "ERROR: Incorect checksum '$checksum'";
+     }
+    else {
+      $Paysys->add({ SYSTEM_ID      => 46, 
+  	             DATETIME       => '', 
+  	             SUM            => $FORM{amount},
+  	             UID            => 0, 
+                 IP             => $FORM{IP} || '0.0.0.0',
+                 TRANSACTION_ID => "UKRPAYS:$FORM{id_ups}",
+                 INFO           => "STATUS, $status\n$info\nCards buy",
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+               });
+
+      if ($Paysys->{errno}) {
+        if ($Paysys->{errno}==7) {
+          $output2 = "duplicate\n";
+         }
+        else {
+          $status = $output2;
+         }
+        $status = $output2;
+       }
+      elsif ($status !~ /ERROR/)  {
+  	    $status = 'ok';
+       }
+     }
+  	print $status;
+  	return 0;
+   }
+  
+  
 	my $user = $users->info($FORM{order});
 
   if ($FORM{hash} ne $checksum) {

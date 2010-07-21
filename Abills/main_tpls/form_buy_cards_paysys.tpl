@@ -13,11 +13,13 @@
 <tr><td>$_SUM:</td><td>%SUM%</td></tr>
 <tr><td>$_DESCRIBE:</td><td></td></tr>
 <tr><td>$_PAY_SYSTEM:</td><td><select name=PAYMENT_SYSTEM  ID=PAYMENT_SYSTEM>
+<option value='46'>Ukrpays
+<!-- 
 <option value='45'>Portmone
 <option value='48'>Privat Bank (Visa/Master Cards)
 <option value='54'>Privat Bank - Privat 24
-<option value='46'>Ukrpays
 <option value='41'>Webmoney
+-->
 </select>
 </td></tr>
 </table>
