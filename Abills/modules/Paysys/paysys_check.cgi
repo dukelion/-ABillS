@@ -1998,13 +1998,14 @@ if($FORM{hash}) {
     	$status = "ERROR: Incorect checksum '$checksum'";
      }
     else {
+    	$status = 'ok';
       $Paysys->add({ SYSTEM_ID      => 46, 
   	             DATETIME       => '', 
   	             SUM            => $FORM{amount},
   	             UID            => 0, 
                  IP             => $FORM{IP} || '0.0.0.0',
                  TRANSACTION_ID => "UKRPAYS:$FORM{id_ups}",
-                 INFO           => "STATUS, $status\n$info\nCards buy",
+                 INFO           => "STATUS: $status\n$info\nCards buy",
                  PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
@@ -2050,7 +2051,7 @@ if($FORM{hash}) {
 
     if ($payments->{errno}) {
       if ($payments->{errno} == 7) {
-        $info = "duplicate\n";
+        $info = "dublicate\n";
        }
       else {
         $info = "ERROR: PAYMENT $payments->{errno}\n";
@@ -2079,7 +2080,7 @@ if($FORM{hash}) {
 
   if ($Paysys->{errno}) {
     if ($Paysys->{errno}==7) {
-      $output2 = "duplicate\n";
+      $output2 = "dublicate\n";
      }
     else {
       $status = $output2;
