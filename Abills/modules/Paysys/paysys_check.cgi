@@ -2002,10 +2002,10 @@ if($FORM{hash}) {
       $Paysys->add({ SYSTEM_ID      => 46, 
   	             DATETIME       => '', 
   	             SUM            => $FORM{amount},
-  	             UID            => 0, 
+  	             UID            => $FORM{order}, 
                  IP             => $FORM{IP} || '0.0.0.0',
                  TRANSACTION_ID => "UKRPAYS:$FORM{id_ups}",
-                 INFO           => "STATUS: $status\n$info\nCards buy",
+                 INFO           => "STATUS: $status\nOPERATION_ID: $FORM{OPERATION_ID}\n$info\nCards buy",
                  PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
