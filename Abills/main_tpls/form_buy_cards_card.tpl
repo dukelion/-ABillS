@@ -9,7 +9,7 @@
 
 <tr bgcolor=$_COLORS[0]><td align=center>
 
-<a href='$SELF_URL?BUY_CARDS=1&TP_ID=%TP_ID%&DOMAIN_ID=%DOMAIN_ID%'>$_CARDS %TP_NAME%</a>
+<a href='$SELF_URL?BUY_CARDS=1&TP_ID=%TP_ID%&DOMAIN_ID=%DOMAIN_ID%'><b>$_CARDS %TP_NAME%</b></a>
 
 <br>$_AGE: %AGE%
 <br> $_SPEED $_RECV: %SPEED_IN%
