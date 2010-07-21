@@ -6829,11 +6829,11 @@ print $table->show();
 # cross_modules_call(function_sufix, attr) 
 #**********************************************************
 sub cross_modules_call  {
-  my ($funtion_sufix, $attr) = @_;
+  my ($function_sufix, $attr) = @_;
 
   foreach my $mod (@MODULES) {
      require "Abills/modules/$mod/webinterface";
-     my $function = lc($mod).$funtion_sufix;
+     my $function = lc($mod).$function_sufix;
      if (defined(&$function)) {
      	  $function->({ USER => $attr->{USER} });
       }

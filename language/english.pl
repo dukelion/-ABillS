@@ -433,3 +433,5 @@ $_LOGIN_IN_TO_HOTSPOT="Login to hotspot";
 $ERR_WRONG_CAPTCHA='Wrong Captcha';
 $_MONEY_TRANSFER='Money Transfer';
 $_COMMISSION='Commission';
+
+$_PAY_SYSTEM='Payment system';

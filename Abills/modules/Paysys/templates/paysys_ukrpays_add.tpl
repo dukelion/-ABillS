@@ -1,3 +1,5 @@
+<!-- UKRPAYS START -->
+
 <FORM ACTION='$conf{PAYSYS_UKRPAYS_URL}' method='POST'>
 <INPUT TYPE='HIDDEN' NAME='OPERATION_ID' VALUE='$FORM{OPERATION_ID}'>
 
@@ -29,11 +31,10 @@
 </a>
 </td></tr>
 
-
 </table>
 
-
 <td></tr></table>
 <td></tr></table>
-
 </FORM>
+
+<!-- UKRPAYS END -->

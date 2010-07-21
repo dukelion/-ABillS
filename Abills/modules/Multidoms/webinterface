@@ -947,13 +947,12 @@ sub multidoms_reseller_tp {
  $tarif_info->{TT_PRICE_OUT}= '0.00';
  #$tarif_info->{TT_SPEED_IN} = 512;
  #$tarif_info->{TT_SPEED_OUT}= 512;
- 
-
 
  $tarif_info->{LNG_ACTION} = $_ADD;
  $tarif_info->{ACTION}     = 'ADD_TP';
-
  $FORM{PAYMENT_TYPE}=1 if (! $FORM{PAYMENT_TYPE});
+ 
+ $FORM{ACTIV_PRICE}=$FORM{PRICE};
 
 if (defined($FORM{TOTAL_TIME_TYPE})) {
 	if($FORM{TOTAL_TIME_TYPE} == 2) {
@@ -971,8 +970,6 @@ if (defined($FORM{TOTAL_TIME_TYPE})) {
 }
 
 
-
-
 if($FORM{ADD_TP}) {
    if (! $FORM{TP_ID}) {
    	  my $list = $tariffs->list({ PAGE_ROWS => 1, SORT => 1, DESC => 'desc' });
@@ -985,7 +982,6 @@ if($FORM{ADD_TP}) {
    	   }
     }
 
-
   $FORM{ID}=$FORM{TP_ID};
   if ($FORM{TP_ID} < 1) {
   	$html->message('err', $_ERROR, "$_ERROR ID = 0");
@@ -996,33 +992,31 @@ if($FORM{ADD_TP}) {
   else {
    $FORM{SIMULTANEOUSLY} = 1;
    
+#   print "Content-Type: text/html\n\n";
+#   $tariffs->{debug}=1;
+   
+   
    $tariffs->add( { %FORM, MODULE => 'Dv' });
    if (! $tariffs->{errno}) {
-     $html->message('info', $_ADDED, "$_ADDED '$FORM{ID}' $FORM{NAME}");
-     
+     $html->message('info', $_ADDED, "ID: '$FORM{ID}' $_NAME: '$FORM{NAME}'");
      $tariffs->ti_add({ TP_ID    => $tariffs->{TP_ID}, 
      	                     TI_DAY   => 0,
      	                     TI_BEGIN => '00:00:00',
      	                     TI_END   => '24:00:00',
      	                     TI_TARIF => $FORM{TI_TARIF}  });
-
      $tariffs->tt_add({ TI_ID         => $tariffs->{INTERVAL_ID}, 
      	                 TT_PRICE_IN    => $FORM{TT_PRICE_IN},
      	                 TT_PRICE_OUT   => $FORM{TT_PRICE_OUT},
                        TT_SPEED_IN    => $FORM{TT_SPEED_IN},
                        TT_SPEED_OUT   => $FORM{TT_SPEED_OUT}
                         });
-     
     }
-
-
   }
 
   $tarif_info->{LNG_ACTION} = $_ADD;
   $tarif_info->{ACTION}     = 'ADD_TP';
  }
 elsif (defined($FORM{TP_ID})) {
- 
   $tarif_info = $tariffs->info( $FORM{TP_ID} );
 
   if ($tariffs->{errno}) {
@@ -1062,8 +1056,6 @@ elsif (defined($FORM{TP_ID})) {
   	       }, 
   	{ 
     	$_INFO          => ":TP_ID=$tariffs->{TP_ID}",
-#     $_USERS         => "11:TP_ID=$tariffs->{TP_ID}",
-#     $_INTERVALS     => "73:TP_ID=$tariffs->{TP_ID}",
       $_NAS           => ($index+1).":TP_ID=$tariffs->{TP_ID}"
   	 },
   	{
@@ -1080,9 +1072,6 @@ elsif (defined($FORM{TP_ID})) {
      
     if (! $tariffs->{errno}) {
        $tariffs->ti_change($FORM{TI_ID}, { %FORM });
-
-#print "Content-Type: text/html\n\n";
-#$tariffs->{debug}=1;
        $tariffs->tt_change({ %FORM, TT_ID => 0 });	 
        $html->message('info', $_CHANGED, "$_CHANGED $tariffs->{TP_ID}");
      }
@@ -1119,7 +1108,7 @@ my $table = $html->table( { width      => '100%',
                             title      => ['-', $_NAME,  $_HOUR_TARIF, $_TRAFIC_TARIFS, $_PAYMENT_TYPE, $_AGE, '-', '-'],
                             cols_align => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
                             ID         => 'DV_TARIF_PLANS',
-                            header     => $html->button($_ADD, "$SELF_URL?index=$index#TP_FORM", { BUTTON => 1 })
+                            header     => $html->button($_ADD, "index=$index#TP_FORM", { BUTTON => 1 })
                          } );
 
 my ($delete, $change);
@@ -1154,8 +1143,6 @@ $table = $html->table( { width      => '100%',
                      } );
 print $table->show();
 
-
-
 $tarif_info->{REDUCTION_FEE}     = ($tarif_info->{REDUCTION_FEE})     ? 'checked' : '';
 $tarif_info->{POSTPAID_DAY_FEE}  = ($tarif_info->{POSTPAID_DAY_FEE})  ? 'checked' : '';
 $tarif_info->{POSTPAID_MONTH_FEE}= ($tarif_info->{POSTPAID_MONTH_FEE})? 'checked' : '';
@@ -1189,11 +1176,6 @@ $tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID',
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
-#$tarif_info->{HOURS} = 1;
-#$tarif_info->{DAYS}  = 1;
-
-
-
 if ($tarif_info->{TOTAL_TIME_LIMIT} > 0) {
   if ($tarif_info->{TOTAL_TIME_LIMIT} < 3600) {
 	  $tarif_info->{PERIOD_30M} = 'checked';
@@ -1209,10 +1191,9 @@ if ($tarif_info->{TOTAL_TIME_LIMIT} > 0) {
    }
 }
 
+$tarif_info->{PRICE}= $tarif_info->{ACTIV_PRICE};
 
 $html->tpl_show(_include('multidoms_reseller_tp', 'Multidoms'), $tarif_info);
-
-
 }
 
 
@@ -1537,11 +1518,6 @@ if ($Cards->{errno}) {
 #**********************************************************
 sub cards_report_dillers {
 	my ($attr) = @_;
-
-
-#  print "Content-Type: text/html\n\n";
-#  print "aaaaaaaaa";
-	
 	
 if ($FORM{DILLER_ID}) {
 	$LIST_PARAMS{DILLER_ID}=$FORM{DILLER_ID};

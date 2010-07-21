@@ -167,6 +167,7 @@ $_FINANCES='Денежные операции';
 $_MONETARY_UNIT='Денежная единица';
 $_INTERVALS='Интервалы';
 $_MAILBOXES='Почтовые ящики';
+$_PAY_SYSTEM='Платёжная система';
 $_REMAIN='Осталось';
 $ERR_CREDIT_CHANGE_LIMIT_REACH='Использованы все попытки изменения кредита ';
 $_OTHER='Другое';

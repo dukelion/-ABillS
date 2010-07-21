@@ -412,6 +412,7 @@ sub paysys_import_parse {
 #
 #**********************************************************
 sub paysys_payment {
+	my ($attr)=@_;
   $FORM{SUM}=sprintf("%.2f", $FORM{SUM} || 0);
   
   if ($FORM{pre} && $FORM{SUM} <= 0 && $FORM{PAYMENT_SYSTEM} != 43) {
@@ -432,7 +433,7 @@ sub paysys_payment {
      paysys_portmone();
 	 }
 	elsif($FORM{PAYMENT_SYSTEM} == 46) {
-     paysys_ukrpays();
+     return paysys_ukrpays($attr);
 	 }
 	elsif($FORM{PAYMENT_SYSTEM} == 48) {
      paysys_privatbank();
@@ -470,8 +471,8 @@ sub paysys_payment {
  	                                          SEL_HASH  => \%PAY_SYSTEMS,
  	                                          NO_ID     => 1
  	                                        });
-
-	  $html->tpl_show(_include('paysys_main', 'Paysys'), \%info);
+  
+	  return $html->tpl_show(_include('paysys_main', 'Paysys'), \%info, { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
 	 }
 }
 
@@ -737,6 +738,7 @@ $html->tpl_show(_include('paysys_webmoney_add', 'Paysys'), \%info);
 # version Ver. 2.0.005
 #**********************************************************
 sub paysys_ukrpays () {
+  my ($attr) = @_;
 
 if ($FORM{FALSE}) {
 	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{OPERATION_ID}");
@@ -754,10 +756,8 @@ if ($FORM{TRUE}) {
 
 my %info = (UID => $LIST_PARAMS{UID});
 $info{AMOUNT}  = sprintf("%.2f", $FORM{SUM});
-
 $conf{PAYSYS_UKRPAYS_URL}='https://ukrpays.com/frontend/frontend.php' if (! $conf{PAYSYS_UKRPAYS_URL});
-
-$html->tpl_show(_include('paysys_ukrpays_add', 'Paysys'), \%info);
+return $html->tpl_show(_include('paysys_ukrpays_add', 'Paysys'), \%info,  { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
 }
 
 
