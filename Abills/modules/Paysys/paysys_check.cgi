@@ -2007,7 +2007,7 @@ if($FORM{hash}) {
     my $er = 1;    
     $payments->add($user, {SUM          => $FORM{amount},
     	                     DESCRIBE     => 'Ukrpays', 
-    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{46}) ? 46 : '2',, 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{46}) ? 46 : '2', 
   	                       EXT_ID       => "UKRPAYS:$FORM{id_ups}", 
   	                       CHECK_EXT_ID => "UKRPAYS:$FORM{id_ups}", 
   	                       ER           => $er

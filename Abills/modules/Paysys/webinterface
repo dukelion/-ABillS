@@ -742,6 +742,7 @@ sub paysys_ukrpays () {
 
 if ($FORM{FALSE}) {
 	$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{OPERATION_ID}");
+	return 0;
  }
 if ($FORM{TRUE}) {
   my $list = $Paysys->list({ INFO => "*$FORM{'OPERATION_ID'}*", UID => $LIST_PARAMS{UID} });
@@ -749,14 +750,16 @@ if ($FORM{TRUE}) {
   	$html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0]->[3] $_TRANSACTION ID: '$FORM{OPERATION_ID}' ");
    }
 	else {
-		$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{OPERATION_ID}");
+		$html->message('err', $_ERROR, "$_FAILED $_TRANSACTION ID: $FORM{OPERATION_ID} $_NOT_EXIST");
+		return 0;
 	 }
-	return 0;
+	return 1;
  }
 
 my %info = (UID => $LIST_PARAMS{UID});
 $info{AMOUNT}  = sprintf("%.2f", $FORM{SUM});
 $conf{PAYSYS_UKRPAYS_URL}='https://ukrpays.com/frontend/frontend.php' if (! $conf{PAYSYS_UKRPAYS_URL});
+
 return $html->tpl_show(_include('paysys_ukrpays_add', 'Paysys'), \%info,  { OUTPUT2RETURN => $attr->{OUTPUT2RETURN} });
 }
 

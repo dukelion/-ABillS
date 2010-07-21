@@ -39,7 +39,6 @@ my %NAS_INFO = ();
 #**********************************************************
 sub convert_radpairs {
 	%REQUEST = ();
-
 	while(my($k, $v)=each %RAD_REQUEST) {
 		$k =~ s/-/_/g;
 		$k =~ tr/[a-z]/[A-Z]/;
@@ -115,8 +114,6 @@ sub authenticate {
 
 	return RLM_MODULE_REJECT;
 }
-
-
 
 #**********************************************************
 # accounting()
