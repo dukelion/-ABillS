@@ -108,6 +108,7 @@ my $page_qs;
 my %OUTPUT = ();
 my $login = $FORM{user} || '';
 my $passwd = $FORM{passwd} || '';
+delete($conf{PASSWORDLESS_ACCESS}) if ($FORM{xml});
 
 $user=Users->new($db, $admin, \%conf); 
 
@@ -167,7 +168,6 @@ if ($uid > 0) {
   $OUTPUT{TIME} = $TIME;
   $OUTPUT{LOGIN}= $login;
   $OUTPUT{IP}   = $ENV{REMOTE_ADDR};
-
   $pages_qs     = "&UID=$user->{UID}&sid=$sid";
 
   if ($COOKIES{lastindex}) {
