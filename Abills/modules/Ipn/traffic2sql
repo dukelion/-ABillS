@@ -338,10 +338,8 @@ if ($Ipn->{INTERIM}{$ip}) {
         	#if online have more then log + online make last traffic calculation
           if ($used_traffic->{$k}{TRAFFIC_SUM} + $online / $conf{MB_SIZE} > $prepaid ) {
             my $not_prepaid = ($used_traffic->{$k}{TRAFFIC_SUM} * $conf{MB_SIZE} + $online ) - $prepaid * $conf{MB_SIZE};
-    
             my $sent = ($OCTETS_DIRECTION == 2) ?  $not_prepaid : $not_prepaid / 2;
             my $recv = ($OCTETS_DIRECTION == 1) ?  $not_prepaid : $not_prepaid / 2;
-
             $sum_in    = $recv / $conf{MB_SIZE} * $price_in if ($price_in > 0); 
             $sum_out   = $sent / $conf{MB_SIZE} * $price_out if ($price_out > 0);
            }
@@ -414,14 +412,6 @@ elsif($total_user_sum > 0 && $uid > 0) {
       	                   SUM     => sprintf("%.6f", $total_user_sum || 0),
       	                   UID     => $uid
       	                 } );
-      #Make accounting
-      #$Acct->{SUM}=sprintf("%.6f", $total_user_sum || 0);
-      #my $r = $Acct->accounting(\%RAD, { NAS_ID       => $Ipn->{$ip}{NAS_ID} || $NAS_ID, 
-    	#                                   NAS_TYPE     => 'other',
-    	#                                   NAS_EXT_ACCT => 1,
-    	#                                   IPN_COLLECTOR=> 1
-    	#    	                                });
-    	
      }
 
     #Hangup users with negative deposit
