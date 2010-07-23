@@ -1272,6 +1272,7 @@ sub ipn_user_activate {
                   TP_ID              => $Dv->{TP_ID},
                   CALLING_STATION_ID => $ip,
                   NAS_PORT           => $Dv->{PORT},
+                  FILTER_ID          => $Dv->{FILTER_ID},
                   CONNECT_INFO       => $FORM{CONNECT_INFO},
                   UID                => $user->{UID}, 
                  );
@@ -1279,7 +1280,6 @@ sub ipn_user_activate {
       my $Auth = Auth->new($db, \%conf);
       my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $nas, { SECRETKEY => $conf{secretkey}
                                       } );
-
       if ($r == 1) {
         $html->message('err', $_ERROR, "- $RAD_PAIRS->{'Reply-Message'}");
        }
@@ -1335,7 +1335,6 @@ sub ipn_user_activate {
   	                                              FRAMED_IP_ADDRESS => "$FORM{FRAMED_IP_ADDRESS}",
   	                                              UID               => $user->{LOGIN} });
       }
-
      $html->message('info', $_INFO, "$_DISABLE IP: $ip");
    }
   
@@ -1486,7 +1485,7 @@ if (! $cmd) {
   print "Error: Not defined external command for status: $STATUS\n";
   return 0;
 }
-
+else {
 
   $cmd =~ s/\%IP/$ip/g;
   $cmd =~ s/\%MASK/$netmask/g;
@@ -1506,14 +1505,9 @@ if (! $cmd) {
 
   print "IPN: $cmd\n" if ($DEBUG > 5);
   system($cmd);
-  
-#  print "/!!!! $conf{IPN_FILTER} //! $FILTER_ID /";
-  
-  if ($conf{IPN_FILTER} && ($STATUS ne 'ONLINE_ENABLE' || ($STATUS eq 'ONLINE_ENABLE' && $FILTER_ID ne '') ) ) {
-  	#$FILTER_ID = "" if ($FILTER_ID eq '');
-  	
-  	
+}
 
+  if ($conf{IPN_FILTER} && ($STATUS ne 'ONLINE_ENABLE' || ($STATUS eq 'ONLINE_ENABLE' && $FILTER_ID ne '') ) ) {
   	$cmd = "$conf{IPN_FILTER}";
     $cmd =~ s/\%STATUS/$STATUS/g;
     $cmd =~ s/\%IP/$ip/g;
@@ -1521,7 +1515,6 @@ if (! $cmd) {
     $cmd =~ s/\%FILTER_ID/$FILTER_ID/g;
     $cmd =~ s/\%UID/$UID/g;
     $cmd =~ s/\%PORT/$PORT/g;
-
     system($cmd);
     print "IPN FILTER: $cmd\n" if ($DEBUG > 5);
    }

@@ -36,7 +36,8 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    56 => "ÀÈÑ ÅÐÈÏ",
                    57 => "EasySoft",
                    58 => "Liberty Reserve",
-                   59 => "QIWI"
+                   59 => "QIWI",
+                   60 => "Ibox"
                   );
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
