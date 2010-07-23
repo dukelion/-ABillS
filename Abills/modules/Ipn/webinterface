@@ -1316,7 +1316,7 @@ sub ipn_user_activate {
   	   return 0;
       }
 
-     if ($nas->{NAS_TYPE} eq 'ipcad') {
+     if ($nas->{NAS_TYPE} eq 'ipcad' || $nas->{NAS_TYPE} eq 'other' || $nas->{NAS_TYPE} eq 'dhcp') {
    	   ipn_change_status({ STATUS              => 'HANGUP',
   	 	                   USER_NAME             => $user->{LOGIN}, 
   	 	                   FRAMED_IP_ADDRESS     => $ip,
