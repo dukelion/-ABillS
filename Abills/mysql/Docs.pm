@@ -34,8 +34,6 @@ sub new {
     $self->del({ UID => $CONF->{DELETE_USER} });
    }
 
-  $self->{debug}=1;
-
   $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD}=30 if (! $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD});
   return $self;
 }
