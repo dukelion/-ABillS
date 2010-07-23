@@ -5,15 +5,13 @@
 
 require "Dunes.pm";
 Dunes->import();
-my $Dunes = Dunes->new($db, $admin, $conf);
+my $Dunes = Dunes->new($db, $admin, \%conf);
 
 #**********************************************************
 # dunes_list
 #**********************************************************
 sub dunes_list {
  my ($attr)=@_;
-
-
 
 print $html->form_main({ CONTENT => "ID: " . $html->form_input('ID', "$FORM{ID}"),
                    HIDDEN  => { index => "$index"
@@ -43,8 +41,6 @@ if ($Dunes->{TOTAL} == 1) {
   print $table->show();	
 }
 
-
-
 my $table = $html->table( { width        => '100%',
                             caption      => "Dunes",
                             border       => 1,
@@ -52,6 +48,7 @@ my $table = $html->table( { width        => '100%',
                             cols_align   => ['left', 'left'],
                             qs           => $pages_qs,
                             pages        => $Dunes->{TOTAL}
+                            ID           => 'DUNES_LIST'
                            });
 
 foreach my $line (@$list) {
@@ -66,20 +63,11 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", "<b>$Dunes->{TOTAL}</b>" ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($Dunes->{TOTAL}) ] ]
                         } );
 print $table->show();
 
 }
-
-#<table width=100%>
-#<tr><th bgcolor=$_BG0><b>($err_id)</b> $error_text<hr size=1>$translate</th></tr
-#>
-#<tr><td bgcolor=FFFFFF>$en_err</td></tr>
-#<tr><td bgcolor=FFFFFF>$solution</td></tr>
-#</table>
-
-
 
 1
 

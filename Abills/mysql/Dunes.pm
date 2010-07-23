@@ -2,8 +2,6 @@ package Dunes;
 # 
 #
 
-
-
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION);
 
@@ -34,8 +32,6 @@ sub new {
 }
 
 
-
-
 #**********************************************************
 # User information
 # info()
@@ -60,15 +56,12 @@ sub info {
      return $self;
    }
 
-  my $ar = $self->{list}->[0];
-
   ($self->{ERR_ID},
    $self->{WIN_ERR_HANDLE}, 
    $self->{TRANSLATE}, 
    $self->{ERROR_TEXT}, 
    $self->{SOLUTION}
-  )= @$ar;
-  
+  )= @{ $self->{list}->[0] };
   
   return $self;
 }
@@ -99,7 +92,6 @@ sub add {
         INET_ATON('$DATA{NETMASK}'), '$DATA{SPEED}', '$DATA{FILTER_ID}', LOWER('$DATA{CID}'));", 'do');
 
   return $self if ($self->{errno});
-#  $admin->action_add("$DATA{UID}", "ACTIVE");
   return $self;
 }
 
@@ -123,8 +115,6 @@ sub change {
               UID              => 'uid',
               FILTER_ID        => 'filter_id'
              );
-
-
 
   $self->changes($admin, { CHANGE_PARAM => 'UID',
                    TABLE        => 'dv_main',
@@ -187,10 +177,6 @@ sub list {
 
   return $list;
 }
-
-
-
-
 
 
 1
