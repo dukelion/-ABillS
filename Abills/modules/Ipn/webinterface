@@ -1323,6 +1323,7 @@ sub ipn_user_activate {
   	 	                   ACCT_TERMINATE_CAUSE  => 1,
   	 	                   UID                   => $LIST_PARAMS{UID},
   	 	                   FILTER_ID             => $Dv->{FILTER_ID},
+  	 	                   NAS_ID                => $nas->{NAS_ID},
   	 	                   NAS_IP_ADDRESS        => $nas->{NAS_IP},
                          NAS_MNG_USER          => $nas->{NAS_MNG_USER},
                          NAS_MNG_IP_PORT       => $nas->{NAS_MNG_IP_PORT},
