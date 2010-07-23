@@ -255,7 +255,7 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($
    	$table->addrow(
    	    $html->form_input("IDS", "$line->[0]:$line->[1]", {TYPE => 'checkbox'}). $html->b($line->[0]) , 
   	    $line->[1],
-  	    (($line->[2]) ? $html->button($line->[2], "&index=11&UID=$line->[13]") : ''),
+  	    (($line->[2]) ? $html->button($line->[2], "&index=11&UID=$line->[14]") : ''),
   		  $line->[3],
   		  $html->color_mark($status[$line->[4]], $status_colors[$line->[4]]),
   		  $line->[5],
