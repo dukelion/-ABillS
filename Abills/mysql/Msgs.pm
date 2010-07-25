@@ -1544,7 +1544,9 @@ sub unreg_requests_add {
    email,
    address_street,
    address_build,
-   address_flat )
+   address_flat,
+   country_id,
+   company )
     values (now(), '$admin->{AID}', INET_ATON('$admin->{SESSION_IP}'),  '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{REQUEST}',  '$DATA{STATE}',
         '$DATA{PRIORITY}',
         '$DATA{FIO}',
@@ -1552,7 +1554,9 @@ sub unreg_requests_add {
         '$DATA{EMAIL}',
         '$DATA{ADDRESS_STREET}',
         '$DATA{ADDRESS_BUILD}',
-        '$DATA{ADDRESS_FLAT}'
+        '$DATA{ADDRESS_FLAT}',
+        '$DATA{COUNTRY}',
+        '$DATA{COMPANY}'
         );", 'do');
 
   $self->{MSG_ID} = $self->{INSERT_ID};
@@ -1565,7 +1569,7 @@ sub unreg_requests_add {
 
 
 #**********************************************************
-# Bill
+# unreg_requests_del
 #**********************************************************
 sub unreg_requests_del {
 	my $self = shift;
@@ -1616,7 +1620,9 @@ sub unreg_requests_info {
     m.address_flat,
     m.ip,
     m.closed_date,
-    m.uid
+    m.uid,
+    m.company_name,
+    m.country_id
     FROM (msgs_unreg_requests m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN admins ra ON (m.received_admin=ra.aid)
@@ -1647,7 +1653,9 @@ sub unreg_requests_info {
    $self->{ADDRESS_FLAT},
    $self->{IP},
    $self->{CLOSED_DATE},
-   $self->{UID}
+   $self->{UID},
+   $self->{COMPANY},
+   $self->{COUNTRY},
   )= @{ $self->{list}->[0] };
 	
 	return $self;
@@ -1655,7 +1663,7 @@ sub unreg_requests_info {
 
 
 #**********************************************************
-# change()
+# unreg_requests_change()
 #**********************************************************
 sub unreg_requests_change {
   my $self = shift;
@@ -1680,10 +1688,11 @@ sub unreg_requests_change {
      ADDRESS_FLAT      => 'address_flat',
      IP                => 'ip',
      CLOSED_DATE       => 'closed_date',
-     UID               => 'uid'
+     UID               => 'uid',
+     COMPANY           => 'company',
+     COUNTRY           => 'country_id',
+     
              );
-
-  #print "!! $attr->{STATE} !!!";
   $attr->{STATUS} = ($attr->{STATUS}) ? $attr->{STATUS} : 0;
 
   $admin->{MODULE}=$MODULE;
