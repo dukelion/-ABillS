@@ -519,36 +519,8 @@ sub form_select {
        }
      }
    }
-#  elsif (defined($attr->{SEL_HASH_GROUP})) {
-#    my @H = ();
-#
-#	  if ($attr->{SORT_KEY}) {
-#	  	@H = sort keys %{ $attr->{SEL_HASH} };
-#	  }
-#	  else {
-#	    @H = sort {
-#             $attr->{SEL_HASH_GROUP}->{$a} cmp $attr->{SEL_HASH_GROUP}->{$b}
-#           } keys %{ $attr->{SEL_HASH_GROUP} }; 
-#     }
-#    
-#    foreach my $k_main (@H) {
-#      $self->{SELECT}.="<optgroup label=\"$k_main\" title=\"$k_main\">\n";
-#
-#      while(my ($k, $v)=each %{ $attr->{SEL_HASH_GROUP}->{$k_main} } ) {
-#        $self->{SELECT} .= "<option value='$k'";
-#        $self->{SELECT} .= " style='COLOR:$attr->{STYLE}->[$k];' " if ($attr->{STYLE});
-#        $self->{SELECT} .=' selected' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
-#
-#        $self->{SELECT} .= ">";
-#        $self->{SELECT} .= "$k:" if (! $attr->{NO_ID});
-#        $self->{SELECT} .= "$attr->{SEL_HASH}{$k}\n";	
-#       }
-#      $self->{SELECT}.="</optgroup>";
-#     }
-#   }
-	
-	$self->{SELECT} .= "</select>\n";
 
+	$self->{SELECT} .= "</select>\n";
 	return $self->{SELECT};
 }
 

@@ -204,15 +204,22 @@ if ($FORM{TABLE_INFO}) {
     my $list = $Sqlcmd->list({ QUERY => "SHOW FULL COLUMNS FROM $CONF->{dbname}.$FORM{TABLE_INFO} LIKE '$FORM{FIELD}' " });
     $FORM{NAME}              = $FORM{FIELD};
     
+   
     if ($list->[0]->[1] =~ /(\S+)\((\d+)\)\s?(.{0-30})?/) {
       $FORM{COLUMN_TYPE}     = uc($1);
+      
+      
+      
       $FORM{COLUMN_LENGTH}   = $2;
       $FORM{ATTRIBUTE_TYPE}  = $3;
+     }
+    else {
+    	$FORM{COLUMN_TYPE}= uc($list->[0]->[1]);
      }
     $FORM{COLLATION}=$list->[0]->[2];
     $FORM{DEFAULT}  =$list->[0]->[5];
     $FORM{AUTO_INCREMENT}= ($list->[0]->[6] eq 'auto_increment') ? 'checked' : '';
-    
+
 my %COLUMN_TYPES = (
     # most used
     'INT' => 'INT',
@@ -446,10 +453,7 @@ sub sqlcmd_tables {
   if ($Sqlcmd->{errno}) {
     $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}}");	
     return 0;
-   }
-
-
-  
+   }  
 
   my @ACTIVE_FIELDS = ('Name', 
                   'Type',
@@ -459,8 +463,7 @@ sub sqlcmd_tables {
                   'Rows',
                   "Size",
                   "-");
-  
-  
+
   @ACTIVE_FIELDS = split(/, /, $FORM{'fields'}) if ($FORM{'fields'});
   $ACTIVE_FIELDS[0] = 'Name' if ($ACTIVE_FIELDS[0] ne 'Name');
   
@@ -490,7 +493,6 @@ sub sqlcmd_tables {
   	$i++;
   }
 
-  #print $sorted[0]->{$ACTIVE_FIELDS[$FORM{sort}-1]} ;
   my @sorted_ids = sort { 
      if($ACTIVE_FIELDS[$FORM{sort}-1] eq 'Name') {
        $SORT_HASH{$a} cmp $SORT_HASH{$b}
@@ -528,20 +530,15 @@ sub sqlcmd_tables {
       @table_rows,
       $html->button($_SHOW, "index=". ($index - 1).  "&TABLE_INFO=$line->{'Name'}&QUERY=SELECT * FROM $line->{'Name'} LIMIT $PAGE_ROWS")
      );
-    
-    
-    
+
     $tables_total++;
     $tables_size+=$line->{'Index_length'} + $line->{'Data_length'};
    }
-  #print $table->show();
 
   my $table2 = $html->table( { width       => '100%',
                            cols_align  => ['right', 'right', 'right', 'right'],
                            rows        => [ [ "$_TOTAL:", "$tables_total", "$_SIZE:", int2byte("$tables_size") ] ]
                        } );
-  #print $table2->show();
-  
   
 my $table3 = $html->table({ width => '100%' });
 my @arr = ();
@@ -583,8 +580,6 @@ print $html->form_main({ CONTENT => $table->show().
                               METHOD  => 'GET',
                               SUBMIT  => { $_SHOW    => "$_SHOW" }
                            });
-
-
 }
 
 
@@ -629,8 +624,6 @@ my $dms = $DMS_vals{SELECT} + $DMS_vals{INSERT} + $DMS_vals{REPLACE} + $DMS_vals
 
 
 # First part of main report
-
-
   my $table = $html->table( { width    => '100%',
   	                          caption  => "$_INFO",
                               border   => 1,
