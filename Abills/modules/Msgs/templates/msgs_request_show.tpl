@@ -22,13 +22,15 @@
 <tr bgcolor=$_COLORS[3]><td colspan=4> 
 <table cellspacing='1' cellpadding='0' border='0' width=100%>
 <tr><th align=left bgcolor='$_COLORS[1]'>$_FIO:</th><th align=left  bgcolor=$_COLORS[1]> %FIO% </th></tr>
+<tr><th align=left bgcolor='$_COLORS[1]'>$_COMPANY:</th><td bgcolor='$_COLORS[1]'> %COMPANY%</td></tr>
 <tr><th align=left bgcolor='$_COLORS[1]'>$_PHONE:</th><td bgcolor='$_COLORS[1]'> %PHONE% </td></tr>
 <tr><th align=left bgcolor='$_COLORS[1]'>$_ADDRESS:</th><td bgcolor='$_COLORS[1]'> %ADDRESS_STREET%  %ADDRESS_BUILD% %ADDRESS_FLAT%</td></tr>
+<tr><th align=left bgcolor='$_COLORS[1]'>E-mail:</th><td bgcolor='$_COLORS[1]'> %EMAIL%</td></tr>
 </table>
 </td></tr>
 <tr><td bgcolor='$_COLORS[1]' colspan='4'>&nbsp; %REQUEST%</td></tr>
 <tr><td bgcolor='$_COLORS[2]' colspan='4' class=small></td></tr>
-<tr><td colspan='4' bgcolor='$_COLORS[2]' align=center><textarea cols=50 rows=5 name=COMMENTS>%COMMENTS%</textarea></td></tr>
+<tr><td colspan='4' bgcolor='$_COLORS[2]' align=center><textarea cols=65 rows=20 name=COMMENTS>%COMMENTS%</textarea></td></tr>
 <tr><td colspan='4' bgcolor='$_COLORS[1]' align=center><input type=submit name=change value=$_CHANGE></td></tr>
 </TABLE>
 

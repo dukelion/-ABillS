@@ -1621,7 +1621,7 @@ sub unreg_requests_info {
     m.ip,
     m.closed_date,
     m.uid,
-    m.company_name,
+    m.company,
     m.country_id
     FROM (msgs_unreg_requests m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)

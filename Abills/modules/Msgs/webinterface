@@ -2088,6 +2088,7 @@ sub msgs_unreg_requests_list {
  	                                        });
 
   	$Msgs->{STATE_NAME}=$html->color_mark($msg_status[$Msgs->{STATE}], $style[$Msgs->{STATE}]);
+
     $html->tpl_show(_include('msgs_request_show', 'Msgs'), $Msgs);	    
     return 0 
    }
@@ -2225,7 +2226,7 @@ foreach my $line (@$list) {
    $line->[8],
    $html->button($_SHOW, "#", 
       { NEW_WINDOW      => "$SELF_URL?qindex=". (($attr->{LIST_ONLY}) ? $index - 1 : $index ). "&chg=$line->[0]",
-      	NEW_WINDOW_SIZE => "640:600",
+      	NEW_WINDOW_SIZE => "640:700",
       	 }),
 
    ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?" }): '') 
@@ -2263,8 +2264,6 @@ print $html->form_main({ CONTENT => $table->show(), #$table2->show(),
 	                       SUBMIT  => ($#A_CHAPTER == -1) ? { delete => $_DEL } : undef,
 	                       NAME    => 'users_list'
 	                     });
-
-
 
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right'],
