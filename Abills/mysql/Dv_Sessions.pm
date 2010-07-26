@@ -676,7 +676,7 @@ else {
 }
 
  $self->query($db, "SELECT $lupdate, acct_session_id, nas_id, 
-   sum(sent1), sum(recv1), sum(sent2), sum(recv2), sum
+   sum(sent1), sum(recv1), sum(recv2), sum(sent2) sum
   FROM s_detail 
   WHERE id='$attr->{LOGIN}' $WHERE
   GROUP BY $GROUP 
