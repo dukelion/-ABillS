@@ -1,3 +1,4 @@
+$CONTENT_LANGUAGE='RU';
 $_TOTAL='Всего';
 $_NOT_EXIST='Не существует';
 $_MAX_ROWS='Максимальное число строк поиска';

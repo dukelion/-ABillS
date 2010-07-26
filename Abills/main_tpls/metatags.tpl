@@ -8,6 +8,7 @@
  <META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\"/>
  <META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=%CHARSET%\"/>
  <META name=\"Author\" content=\"~AsmodeuS~\"/>
+ <META HTTP-EQUIV=\"content-language\" content=\"%CONTENT_LANGUAGE%\"/>
 
  <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" />
  <script src='%JAVASCRIPT%' type='text/javascript' language='javascript'></script>

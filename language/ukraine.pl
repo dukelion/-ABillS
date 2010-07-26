@@ -1,3 +1,4 @@
+$CONTENT_LANGUAGE='UK';
 $_LOG='Журнал';
 $_RECV='Отримано';
 $_RESPOSIBLE='Відповідальний';

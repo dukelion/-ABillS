@@ -79,7 +79,6 @@ sub new {
    }
  
   $self->{OUTPUT}='';
-
   $self->{colors} = $attr->{colors} if (defined($attr->{colors}));
  
   %FORM    = form_parse();
@@ -116,8 +115,7 @@ sub new {
   $SELF_URL = (defined($ENV{HTTP_HOST})) ? "$prot://$ENV{HTTP_HOST}$ENV{SCRIPT_NAME}" : '';
 
   $SESSION_IP = $ENV{REMOTE_ADDR} || '0.0.0.0';
-
-  
+ 
   @_COLORS = ('#FDE302',  # 0 TH
             '#FFFFFF',  # 1 TD.1
             '#eeeeee',  # 2 TD.2
@@ -136,13 +134,10 @@ sub new {
 	                 PG        => $PG,
 	                 PAGE_ROWS => $PAGE_ROWS,
 	                );
-
   %functions = ();
-  
   $pages_qs = '';
   $index = $FORM{index} || 0;
-  
-  
+
   if ($attr->{language}) {
     $self->{language}=$attr->{language};
    }
@@ -178,7 +173,7 @@ sub new {
 	                              CONF      => $CONF,
 	                              CHARSET   => $attr->{CHARSET}
 	                            });
-  }
+   }
 
   return $self;
 }
@@ -712,15 +707,12 @@ sub header {
  my $admin_ip    = $ENV{REMOTE_ADDR};
  $self->{header} = "Content-Type: text/html\n\n";
 
-
  if ($self->{colors}) {
    @_COLORS = split(/, /, $self->{colors});
   }
  elsif (defined($COOKIES{colors}) && $COOKIES{colors} ne '') {
    @_COLORS = split(/, /, $COOKIES{colors});
   }
-
-
 
  my %info = (
   JAVASCRIPT => 'functions.js',
@@ -743,6 +735,7 @@ sub header {
  $info{title}   = ($CONF->{WEB_TITLE}) ? $CONF->{WEB_TITLE} : "~AsmodeuS~ Billing System";
  $info{REFRESH} = ($FORM{REFRESH}) ? "<META HTTP-EQUIV=\"Refresh\" CONTENT=\"$FORM{REFRESH}; URL=$ENV{REQUEST_URI}\"/>\n" : '';
  $info{CHARSET} = $self->{CHARSET};
+ $info{CONTENT_LANGUAGE}=$attr->{CONTENT_LANGUAGE} if ($attr->{CONTENT_LANGUAGE});
 
  $self->{header} .= $self->tpl_show($self->{METATAGS}, \%info, { OUTPUT2RETURN => 1  });
  return $self->{header};

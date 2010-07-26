@@ -1,4 +1,14 @@
 <html>
+<head>
+ %REFRESH%
+ <META HTTP-EQUIV=\"Cache-Control\" content=\"no-cache,no-cache,no-store,must-revalidate\"/>
+ <META HTTP-EQUIV=\"Expires\" CONTENT=\"-1\"/>
+ <META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\"/>
+ <META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=%CHARSET%\"/>
+ <META name=\"Author\" content=\"~AsmodeuS~\"/>
+ <META HTTP-EQUIV=\"content-language\" content=\"%CONTENT_LANGUAGE%\"/>
+</head>
+
 <style type=\"text/css\">
 
 body {

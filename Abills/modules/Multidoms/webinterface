@@ -726,7 +726,7 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 
                               'center:noprint', 'center:noprint' ],
                             ID         => 'NAS_LIST',
-                            header     => $html->button("$_ADD", "$SELF_URL?index=$index#FORM_NAS", { BUTTON => 1 })
+                            header     => $html->button("$_ADD", "index=$index#FORM_NAS", { BUTTON => 1 })
                            });
 
 
