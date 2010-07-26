@@ -1537,7 +1537,7 @@ sub unreg_requests_add {
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
-  $self->query($db, "insert into msgs_unreg_requests (datetime, received_admin, ip, subject, chapter, request, state,
+  $self->query($db, "insert into msgs_unreg_requests (datetime, received_admin, ip, subject, comments, chapter, request, state,
    priority,
    fio,
    phone,
@@ -1547,7 +1547,7 @@ sub unreg_requests_add {
    address_flat,
    country_id,
    company )
-    values (now(), '$admin->{AID}', INET_ATON('$admin->{SESSION_IP}'),  '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{REQUEST}',  '$DATA{STATE}',
+    values (now(), '$admin->{AID}', INET_ATON('$admin->{SESSION_IP}'),  '$DATA{SUBJECT}', '$DATA{COMMENTS}', '$DATA{CHAPTER}', '$DATA{REQUEST}',  '$DATA{STATE}',
         '$DATA{PRIORITY}',
         '$DATA{FIO}',
         '$DATA{PHONE}', 

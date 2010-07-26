@@ -30,7 +30,7 @@
 </td></tr>
 <tr><td bgcolor='$_COLORS[1]' colspan='4'>&nbsp; %REQUEST%</td></tr>
 <tr><td bgcolor='$_COLORS[2]' colspan='4' class=small></td></tr>
-<tr><td colspan='4' bgcolor='$_COLORS[2]' align=center><textarea cols=65 rows=20 name=COMMENTS>%COMMENTS%</textarea></td></tr>
+<tr><td colspan='4' bgcolor='$_COLORS[2]' align=center><textarea cols=70 rows=20 name=COMMENTS>%COMMENTS%</textarea></td></tr>
 <tr><td colspan='4' bgcolor='$_COLORS[1]' align=center><input type=submit name=change value=$_CHANGE></td></tr>
 </TABLE>
 

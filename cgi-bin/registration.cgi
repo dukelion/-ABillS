@@ -14,10 +14,12 @@ use vars qw($begin_time %FORM %LANG %conf $CHARSET
   $users
   $Bin
   $ERR_WRONG_DATA
-  $DATE 
-  $time
-  
+  $ERR_CANT_CREATE_FILE
+  $DATE
+  $TIME
+  $sid
  );
+
 BEGIN {
  my $libpath = '../';
  
