@@ -172,7 +172,7 @@ foreach my $line (@$list) {
    }
   
   $table->addrow($html->b($line->[0]), 
-   $html->button($line->[1], "index=$index&TP_ID=$line->[0]", { BUTTON => 1 }),
+   $html->button($line->[1], "index=$index&TP_ID=$line->[18]"),
    $bool_vals[$line->[2]], $bool_vals[$line->[3]], $Payment_Types[$line->[4]], 
    $line->[5], 
    $line->[6], 
@@ -1218,12 +1218,11 @@ sub sharing_user_chg_tp {
 
  #Get TP groups
  $Tariffs->tp_group_info($user_sharing->{TP_GID});
- 
+
  if (! $Tariffs->{USER_CHG_TP} && $Tariffs->{TOTAL} > 0) {
  	  $html->message('err', $_ERROR, "$_NOT_ALLOW / $Tariffs->{USER_CHG_TP} /");
  	  return 0;
   }
-
 
 if ($FORM{set}) {
  	use POSIX;
@@ -1340,6 +1339,9 @@ if ($FORM{set}) {
     $FORM{UID}=$LIST_PARAMS{UID};
     $user_sharing->change({ %FORM });
 
+    print "Content-Type: text/html\n\n";
+    print $users->{EXPIRE}. "!!!!!!!!!!";
+
     if ($user_sharing->{errno}) {
       if ($user_sharing->{errno} == 15) {
       	$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
@@ -1404,9 +1406,7 @@ elsif($FORM{del}) {
    $Tariffs->{m}=$m;
    $Tariffs->{TP_ID}   = $user->{TP_ID};
    $Tariffs->{TP_NAME} = "$user_sharing->{TP_ID}:$user_sharing->{TP_NAME}";
-
    $html->tpl_show(templates('form_chg_tp'), $Tariffs);
-   
    
    sharing_addition_buy();
 }

@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
 
-
 use strict;
-use vars qw(%RAD_REQUEST %RAD_REPLY %RAD_CHECK  %REQUEST %conf 
+use vars qw(%RAD_REQUEST %RAD_REPLY %RAD_CHECK  %REQUEST 
+ %conf 
  $begin_time
  $nas
 );
