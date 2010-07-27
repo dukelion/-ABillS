@@ -1264,9 +1264,8 @@ if ($FORM{set}) {
       
       if ($user_sharing->{TP_ID} == $FORM{TP_ID}) {
       	my $user = Users->new($db, $admin, \%conf);
-      	
       	my $tariffs = Tariffs->new($db, \%conf, $admin);
-        $tariffs->info($FORM{TP_ID});
+        $tariffs->info(0, { ID => $FORM{TP_ID} });
       
         if($tariffs->{CHANGE_PRICE} > 0) {
           $user->info($LIST_PARAMS{UID});
@@ -1280,6 +1279,7 @@ if ($FORM{set}) {
            }
          }
 
+        my $message = '';
         if ($tariffs->{AGE} > 0) {
           use POSIX qw(strftime);
           my $EXPITE_DATE = strftime( "%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}) );
@@ -1288,9 +1288,11 @@ if ($FORM{set}) {
        	                                ACTIVATE => $ACTIVATE_DATE,
        	                                UID      => $LIST_PARAMS{UID} 
        	                           });
+         
+          $message = ": $ACTIVATE_DATE $_EXPIRE: $EXPITE_DATE";
          }
 
-        $html->message('info', $_INFO, "$_ACTIVATE");
+        $html->message('info', $_INFO, "$_ACTIVATE $message");
        }
       else {
         $user_sharing->change({ UID   => $LIST_PARAMS{UID},
@@ -1338,10 +1340,6 @@ if ($FORM{set}) {
   else {
     $FORM{UID}=$LIST_PARAMS{UID};
     $user_sharing->change({ %FORM });
-
-    print "Content-Type: text/html\n\n";
-    print $users->{EXPIRE}. "!!!!!!!!!!";
-
     if ($user_sharing->{errno}) {
       if ($user_sharing->{errno} == 15) {
       	$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
@@ -1351,7 +1349,7 @@ if ($FORM{set}) {
        } 
      }
     else {
-      $html->message('info', $_CHANGED, "$_CHANGED --");
+      $html->message('info', $_CHANGED, "$_CHANGED $_TARIF_PLAN");
       $user_sharing->info($user->{UID});
     }
   }
