@@ -83,9 +83,6 @@ sub multidoms_reseller_nas_groups {
 
 
 if (defined($FORM{NAS_GID})) {
- 
-
- 
   $nas->nas_group_info({ ID => $FORM{NAS_GID} });
 
   if ($nas->{errno}) {
@@ -95,8 +92,6 @@ if (defined($FORM{NAS_GID})) {
 
   $pages_qs .= "&NAS_GID=$FORM{NAS_GID}&subf=$FORM{subf}";
   %F_ARGS    = ( NAS_GID => $FORM{NAS_GID} );
-
-
   
   $nas->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('NAS_GID', 
                                           { 
@@ -111,9 +106,6 @@ if (defined($FORM{NAS_GID})) {
 	                                          SUBMIT  => { show  => "$_SHOW" },
 	                                          OUTPUT2RETURN     => 1,
 	                                       });
-  
-
-
  
   func_menu({ 
   	         'ID' =>   $nas->{ID}, 
@@ -1482,7 +1474,6 @@ if ($Cards->{errno}) {
                            ID         => 'CARDS_DILLERS'
                           });
 
-
   foreach $line (@$list) {
    	$table->addrow($line->[0], 
   	    $line->[1],
@@ -1579,11 +1570,8 @@ elsif ($FORM{SERIAL}) {
 
      $table->{rowcolor} = undef;
 
-
   foreach $line (@$list) {
-   	#my $button
-   	my $button = ($LIST_PARAMS{GROUP}) ? $html->button($line->[0], "index=$index&SERIAL=$line->[0]$pages_qs") : $html->button($line->[0], "index=$index&DILLER_ID=$line->[18]$pages_qs");
-
+  	my $button = ($LIST_PARAMS{GROUP}) ? $html->button($line->[0], "index=$index&SERIAL=$line->[0]$pages_qs") : $html->button($line->[0], "index=$index&DILLER_ID=$line->[18]$pages_qs");
    	$table->addrow(
    	    $button,
   	    $line->[1],
@@ -1623,17 +1611,25 @@ $table->{rowcolor} = $_COLORS[3];
      $Cards->{SOLD_TOTAL},  
      $Cards->{SOLD_TOTAL_SUM},
      $Cards->{SOLD_TOTAL_PERCENTAGE},
-     
      $Cards->{RETURN_TOTAL},  
      $Cards->{RETURN_TOTAL_SUM},
      $Cards->{COUNT_TOTAL},
      $Cards->{COUNT_TOTAL_SUM} );
-
 print $table->show();
-	
 }
 
 
+#**********************************************************
+#
+#**********************************************************
+sub multidoms_paysys {
+	my ($attr) = @_;
+
+  $Multidoms->{ACTION}     = 'add';
+  $Multidoms->{LNG_ACTION} = $_ADD;
+
+  $html->tpl_show(_include('multidoms_paysys', 'Multidoms'), { %FORM, %$Multidoms });	
+}
   
 
 1
