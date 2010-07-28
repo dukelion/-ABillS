@@ -179,9 +179,10 @@ CREATE TABLE `companie_admins` (
 ) COMMENT='Companie Super Users';
 
 CREATE TABLE `config` (
-  `param` varchar(20) NOT NULL default '',
+  `param` varchar(30) NOT NULL default '',
   `value` varchar(200) NOT NULL default '',
-  UNIQUE KEY `param` (`param`)
+  `domain_id` smallint(6) unsigned not null default '0',
+  UNIQUE KEY `param` (`domain_id`, `param`)
 ) COMMENT='System config' ;
 
 CREATE TABLE `docs_acct` (

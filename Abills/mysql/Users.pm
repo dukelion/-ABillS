@@ -1589,6 +1589,8 @@ sub config_list {
     push @WHERE_RULES, "value LIKE '$attr->{VALUE}'";
   }
 
+ push @WHERE_RULES, 'domain_id=\''.($admin->{DOMAIN_ID} || $attr->{DOMAIN_ID} || 0).'\'';
+
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
  
  $self->query($db, "SELECT param, value FROM config $WHERE ORDER BY $SORT $DESC");
@@ -1610,12 +1612,14 @@ sub config_info {
  my $self = shift;
  my ($attr) = @_;
  
- $self->query($db, "select param, value FROM config WHERE param='$attr->{PARAM}';");
+ $self->query($db, "select param, value, domain_id FROM config WHERE param='$attr->{PARAM}' AND domain_id='$attr->{DOMAIN_ID}';");
 
  return $self if ($self->{errno} || $self->{TOTAL} < 1);
 
  ($self->{PARAM},
- 	$self->{VALUE}) = @{ $self->{list}->[0] };
+ 	$self->{VALUE},
+ 	$self->{DOMAIN_ID},
+ 	) = @{ $self->{list}->[0] };
 
  return $self;
 }
@@ -1627,13 +1631,14 @@ sub config_change {
  my $self = shift;
  my ($param, $attr) = @_;
 
- my %FIELDS = (PARAM    => 'param',
-               NAME     => 'value');
+ my %FIELDS = (PARAM     => 'param',
+               NAME      => 'value',
+               DOMAIN_ID => 'DOMAIN_ID');
 
  $self->changes($admin, { CHANGE_PARAM => 'PARAM',
 		               TABLE        => 'config',
 		               FIELDS       => \%FIELDS,
-		               OLD_INFO     => $self->config_info({ PARAMS => $param }),
+		               OLD_INFO     => $self->config_info({ PARAMS => $param, DOMAIN_ID => $attr->{DOMAIN_ID} }),
 		               DATA         => $attr
 		              } );
 
@@ -1648,7 +1653,7 @@ sub config_add {
  my $self = shift;
  my ($attr) = @_;
 
- $self->query($db, "INSERT INTO config (param, value) values ('$attr->{PARAM}', '$attr->{VALUE}');", 'do');
+ $self->query($db, "INSERT INTO config (param, value, domain_id) values ('$attr->{PARAM}', '$attr->{VALUE}', '$attr->{DOMAIN_ID}');", 'do');
 
  return $self;
 }

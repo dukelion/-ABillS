@@ -1623,12 +1623,18 @@ print $table->show();
 sub multidoms_paysys {
 	my ($attr) = @_;
 
+
+  print "Content-Type: text/html\n\n";
+  $user->{debug}=1;
+
   if ($FORM{add}) {
-  	$user->config_add({ PARAM => 'PAYSYS_UKRPAYS_ID_'.$admin->{DOMAIN_ID},
-                        VALUE => $FORM{PAYSYS_UKRPAYS_ID}
+  	$user->config_add({ PARAM     => 'PAYSYS_UKRPAYS_SERVICE_ID',
+                        VALUE     => $FORM{PAYSYS_UKRPAYS_SERVICE_ID},
+                        DOMAIN_ID => $admin->{DOMAIN_ID}
                       });
-  	$user->config_add({ PARAM => 'PAYSYS_UKRPAYS_KEY_'.$admin->{DOMAIN_ID},
-                        VALUE => $FORM{PAYSYS_UKRPAYS_KEY}
+  	$user->config_add({ PARAM => 'PAYSYS_UKRPAYS_SECRETKEY',
+                        VALUE => $FORM{PAYSYS_UKRPAYS_SECRETKEY},
+                        DOMAIN_ID => $admin->{DOMAIN_ID}
                       });
 
 		if (! $user->{errno}) {
@@ -1636,27 +1642,30 @@ sub multidoms_paysys {
 		 }
    }
   elsif($FORM{change}) {
-  	$user->config_change({ PARAM => 'PAYSYS_UKRPAYS_ID_'.$admin->{DOMAIN_ID},
-                        VALUE => $FORM{PAYSYS_UKRPAYS_ID}
-                      });
+  	$user->config_change({ PARAM     => 'PAYSYS_UKRPAYS_SERVICE_ID',
+                           VALUE     => $FORM{PAYSYS_UKRPAYS_SERVICE_ID},
+                           DOMAIN_ID => $admin->{DOMAIN_ID}
+                         });
 
-  	$user->config_change({ PARAM => 'PAYSYS_UKRPAYS_KEY_'.$admin->{DOMAIN_ID},
-                        VALUE => $FORM{PAYSYS_UKRPAYS_KEY}
-                      });
+  	$user->config_change({ PARAM     => 'PAYSYS_UKRPAYS_SECRETKEY',
+                           VALUE     => $FORM{PAYSYS_UKRPAYS_SECRETKEY},
+                           DOMAIN_ID => $admin->{DOMAIN_ID}
+                         });
 
 		if (! $user->{errno}) {
 			$html->message('info', $_INFO, "$_ADDED: PAYSYS_UKRPAYS_ID");
 		 }
    }
 
-  my $list = $user->config_list({ PARAM => 'PAYSYS_UKRPAYS_ID_'.$admin->{DOMAIN_ID}
-  	                        .';PAYSYS_UKRPAYS_KEY_'.$admin->{DOMAIN_ID}, SORT => 2 });
+  
+  my $list = $user->config_list({ PARAM      => 'PAYSYS_UKRPAYS_SERVICE_ID;PAYSYS_UKRPAYS_SECRETKEY', 
+  	                              DOMAIN_ID  => $admin->{DOMAIN_ID},
+  	                              SORT       => 2 });
 
   if ($user->{TOTAL}) {
   	$Multidoms->{ACTION}     = 'change';
     $Multidoms->{LNG_ACTION} = $_CHANGE;
     foreach my $line ( @$list ) {
-  	  $line->[0] =~ s/_(\d+)$//;
   	  $Multidoms->{$line->[0]}=$line->[1];
      }
    }

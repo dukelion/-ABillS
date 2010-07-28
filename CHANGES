@@ -1,4 +1,27 @@
 =====0.52=====
+28.07.2010\\
+MySQL:
+
+  ALTER TABLE `config` CHANGE COLUMN `param` `param` varchar(30) NOT NULL default '';
+  ALTER TABLE `config` ADD`domain_id` smallint(6) unsigned not null default '0';
+  ALTER TABLE `config` DROP KEY `param`;
+  ALTER TABLE `config` ADD UNIQUE KEY `param` (`domain_id`, `param`);
+
+25.07.2010
+  * Добавлена подача клиентами заявок  на подключения через веб интерфейс
+MySQL:
+
+  ALTER TABLE users_pi ADD COLUMN `country_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE msgs_unreg_requests ADD COLUMN `country_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE msgs_unreg_requests ADD COLUMN `location_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE msgs_unreg_requests ADD COLUMN `company` VARCHAR(60)  NOT NULL DEFAULT '';   
+   
+20.07.2010
+  * Добавлена раздел активные сообщения куда попадают все не закрытые сообщения
+  * Добавлена автоматическая активизация сервисов с "отключён за неуплату" и "недостаточно средств" сразу после внесение денег на счёт абонента
+  * Добавлена возможность кросмодульная (во всех модуля после определённого действия) обработка сообщений
+  * Добавлена рассылка на E-mail счетов после их создания
+  * Добавлена возможность включения всех активных пользователей (с положительным депозитом) для модуля Ipn.
 25.06.2010
   * Добавлены платёжные системы Ibox, OSMP QIWI
   * Добавлен перенос сообщений технической поддержки между разделами
@@ -10,6 +33,8 @@ MySQL:\\
 
 16.06.2010
   * Добавленная возможность создавать сети  и подсети для DHCP
+
+MySQL:\\
   ALTER TABLE dhcphosts_networks ADD COLUMN `net_parent` smallint(5) unsigned NOT NULL DEFAULT '0';
 
 =====0.51=====
