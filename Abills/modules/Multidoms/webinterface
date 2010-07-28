@@ -983,11 +983,6 @@ if($FORM{ADD_TP}) {
    }
   else {
    $FORM{SIMULTANEOUSLY} = 1;
-   
-#   print "Content-Type: text/html\n\n";
-#   $tariffs->{debug}=1;
-   
-   
    $tariffs->add( { %FORM, MODULE => 'Dv' });
    if (! $tariffs->{errno}) {
      $html->message('info', $_ADDED, "ID: '$FORM{ID}' $_NAME: '$FORM{NAME}'");
@@ -1622,10 +1617,6 @@ print $table->show();
 #**********************************************************
 sub multidoms_paysys {
 	my ($attr) = @_;
-
-
-  print "Content-Type: text/html\n\n";
-  $user->{debug}=1;
 
   if ($FORM{add}) {
   	$user->config_add({ PARAM     => 'PAYSYS_UKRPAYS_SERVICE_ID',
