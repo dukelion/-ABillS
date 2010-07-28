@@ -284,6 +284,8 @@ sub sendmail {
     	$header .= "$line\n";
      }	
    }
+
+#  $attr->{TEST}=1;
   
   $message =~ s/#.+//g;
   if ($message =~ s/Subject: (.+)//g ) {
@@ -302,33 +304,28 @@ sub sendmail {
   $to_addresses =~ s/[\n\r]//g;
 
   if ($attr->{ATTACHMENTS}) {
-  	my $boundary = "_----------=_10167391557129230";
-  	$header .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\nMIME-Version: 1.0\n";
+        my $boundary = "----------581DA1EE12D00AAA";
+        $header .= "MIME-Version: 1.0
+Content-Type: multipart/mixed;\n boundary=\"$boundary\"\n";
 
-$message = qq{
-This is a multi-part message in MIME format. 
+$message = qq{--$boundary
+Content-Type: text/plain; charset=windows-1251
+Content-Transfer-Encoding: quoted-printable
 
---$boundary
-Content-Transfer-Encoding: binary
-Content-Type: text/plain
-
-$message
-};
+$message};
   	
     foreach my $attachment ( @{ $attr->{ATTACHMENTS} } ) {
   	  my $data = encode_base64($attachment->{CONTENT});
   	  $message .=  qq{ 
-
 --$boundary
-Content-Type: $attachment->{CONTENT_TYPE}; name="$attachment->{FILENAME}"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="$attachment->{FILENAME}"
+Content-Type: $attachment->{CONTENT_TYPE};\n name="$attachment->{FILENAME}"
+Content-transfer-encoding: base64
+Content-Disposition: attachment;\n filename="$attachment->{FILENAME}"
 
-$data
-
-}
+$data}
  	
     }
+$message .= "--$boundary"."--\n\n";
   }
 
   my @emails_arr = split(/;/, $to_addresses);
@@ -346,8 +343,9 @@ $data
       open(MAIL, "| $SENDMAIL -t $to") || die "Can't open file '$SENDMAIL' $!\n";
         print MAIL "To: $to\n";
         print MAIL "From: $from\n";
-        print MAIL "Content-Type: text/plain; charset=$charset\n";
+        print MAIL "Content-Type: text/plain; charset=$charset\n" if (! $attr->{ATTACHMENTS});
         print MAIL "X-Priority: $priority\n" if ($priority);
+        print MAIL "X-Mailer: ABillS\n";
         print MAIL $header;
         print MAIL "Subject: $subject \n\n";
         print MAIL "$message";
@@ -774,7 +772,7 @@ sub encode_base64 ($;$) {
     $res =~ s/.{$padding}$/'=' x $padding/e if $padding;
     # break encoded string into lines of no more than 76 characters each
     if (length $eol) {
-	$res =~ s/(.{1,76})/$1$eol/g;
+	$res =~ s/(.{1,72})/$1$eol/g;
     }
     return $res;
 }
