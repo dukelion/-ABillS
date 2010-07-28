@@ -732,7 +732,6 @@ sub list {
  	 push @WHERE_RULES, @{ $self->search_expr("$admin->{DOMAIN_ID}", 'INT', 'u.domain_id', { EXT_FIELD => 0 }) };
   }
 
-
  if ($attr->{REGISTRATION}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{REGISTRATION}", 'INT', 'u.registration', { EXT_FIELD => 1 }) };
   }

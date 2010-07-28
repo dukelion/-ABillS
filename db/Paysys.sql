@@ -9,7 +9,9 @@ CREATE TABLE `paysys_log` (
   `ip` int(11) unsigned NOT NULL default '0',
   `code` blob NOT NULL,
   `paysys_ip` int(11) unsigned NOT NULL DEFAULT '0',
+  `domain_id` smallint(6) unsigned not null default '0',
+  `status` tinyint(2) unsigned not null default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `ps_transaction_id` (`transaction_id`)
+  UNIQUE KEY `ps_transaction_id` (`domain_id`, `transaction_id`)
 ) COMMENT='Paysys log';

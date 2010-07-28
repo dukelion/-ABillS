@@ -50,6 +50,13 @@ my $db     = $sql->{db};
 #Operation status
 my $status = '';
 
+if ($Paysys::VERSION < 3.2) {
+	print "Content=-Type: text/html\n\n";
+ 	print "Please update module 'Paysys' to version 3.2 or higher. http://abills.net.ua/";
+ 	return 0;
+ }
+
+
 #Check allow ips
 if ($conf{PAYSYS_IPS}) {
 	$conf{PAYSYS_IPS}=~s/ //g;
@@ -1320,9 +1327,7 @@ elsif($request_type eq 'GetStatus') {
   	my $ext = $line->[7];
   	$ext =~ s/USMP://g;
   	$payments_status{$ext}=$line->[0];
-   }
-
-  
+   }  
 
 print << "[END]";
 <?xml version="1.0" encoding="utf-8"?>
@@ -1992,8 +1997,10 @@ if($FORM{hash}) {
   my $checksum = $md5->hexdigest();	
   my $info = '';
   
-  if ($FORM{order} =~ /\d{8}/) {
-  	#Info section  
+  if ($FORM{order} =~ /(\d{8}):(\d+)/) {
+  	#Info section
+  	my $operation_id = $1;
+  	my $domain_id    = $2;
 	  if ($FORM{hash} ne $checksum) {
     	$status = "ERROR: Incorect checksum '$checksum'";
      }
@@ -2005,8 +2012,9 @@ if($FORM{hash}) {
   	             UID            => $FORM{order}, 
                  IP             => $FORM{IP} || '0.0.0.0',
                  TRANSACTION_ID => "UKRPAYS:$FORM{id_ups}",
-                 INFO           => "STATUS: $status\nOPERATION_ID: $FORM{order}\n$info\nCards buy",
-                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+                 INFO           => "STATUS: $status\nOPERATION_ID: $operation_id\n$info\nCards buy",
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+                 DOMAIN_ID      => $domain_id                 
                });
 
       if ($Paysys->{errno}) {

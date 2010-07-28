@@ -482,6 +482,11 @@ sub paysys_payment {
 #**********************************************************
 sub paysys_log {
  	
+if ($Paysys::VERSION < 3.2) {
+ 	$html->message('info', "UPDATE", "Please update module 'Paysys' to version 3.2 or higher. http://abills.net.ua/");
+ 	return 0;
+ }
+
 
 if ($FORM{info}) {
 	$Paysys->info({ID => $FORM{info} });
@@ -552,7 +557,7 @@ my $list = $Paysys->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "Paysys",
                             border     => 1,
-                            title      => ['ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "IP", '-', '-'],
+                            title      => ['ID', "$_LOGIN", "$_DATE", "$_SUM", "$_PAY_SYSTEM", "$_TRANSACTION", "IP", "$_STATUS", '-', '-'],
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Paysys->{TOTAL},
@@ -562,12 +567,13 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
  
   $table->addrow($line->[0],
-    $html->button("$line->[1]", "index=15&UID=$line->[7]"), 
+    $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
     "$line->[2]", 
     "$line->[3]", 
     "$PAY_SYSTEMS{$line->[4]}", 
     $html->button("$line->[5]", "index=2&EXT_ID=$line->[5]&search=1"),
     "$line->[6]",
+    "$line->[7]",
     $html->button($_INFO, "index=$index&info=$line->[0]"),
     $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
    );
@@ -635,7 +641,7 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
  
   $table->addrow($line->[0],
-    $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
+     $line->[1]
     "$line->[2]", 
     "$line->[3]", 
     "$PAY_SYSTEMS{$line->[4]}", 
@@ -648,7 +654,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right', 'right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL}), "$_SUM", $html->b($Paysys->{SUM}) ] ]
+                         rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL}), "$_SUM:", $html->b($Paysys->{SUM}) ] ]
                         } );
 print $table->show();	
 
@@ -798,10 +804,10 @@ sub paysys_periodic () {
     	#Add payments to abills
     	$debug_output .= "Unfinished payment ID: $line->[0]/$line->[5]\n" if ($debug > 2);
     	if (defined($res_hash{$line->[5]})) {
-    		my $uid = $line->[7];
-	      my $sum = $line->[3];
+    		my $uid       = $line->[8];
+	      my $sum       = $line->[3];
         my $order_num = $line->[5];
-        my $user = $users->info($uid);
+        my $user      = $users->info($uid);
         $payments->add($user, {SUM      => $sum,
     	                     DESCRIBE     => 'PORTMONE', 
     	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{54}) ? 54 : '2',  
@@ -979,9 +985,6 @@ elsif ($FORM{SHOPORDERNUMBER}) {
       	                         UID            => $LIST_PARAMS{UID} ,
       	                         });
 
-
-
-
       if ($Paysys->{TOTAL} > 0) {
 	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{SHOPORDERNUMBER }");
 
@@ -1056,8 +1059,7 @@ $html->tpl_show(_include('paysys_portmone_add', 'Paysys'), \%info);
 #
 #**********************************************************
 sub paysys_smsproxy {
-	
-	my %info = ();
+  my %info = ();
 	
 if ($FORM{CODE}) {
 	my $list = $Paysys->info({ CODE => "$FORM{CODE}", UID => 0  });
@@ -1090,8 +1092,7 @@ if ($FORM{CODE}) {
         if ($payments->{TOTAL} > 0) {
       	  $er = $payments->{ER_RATE};
          }
-    
-        
+
         $payments->add($user, {SUM  => $Paysys->{SUM},
  	                     DESCRIBE     => 'SMSProxy', 
  	                     METHOD       => '2', 
@@ -1738,7 +1739,7 @@ foreach my $id ( keys %{ $result->{'bills-list'}->[0]->{bill} } ) {
 
 foreach my $line (@$list) {
   $table->addrow($line->[0],
-    $html->button("$line->[1]", "index=15&UID=$line->[7]"), 
+    $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
     "$line->[2]", 
     "$line->[3]", 
     "$PAY_SYSTEMS{$line->[4]}", 
