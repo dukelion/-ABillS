@@ -641,7 +641,7 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
  
   $table->addrow($line->[0],
-     $line->[1]
+     $line->[1],
     "$line->[2]", 
     "$line->[3]", 
     "$PAY_SYSTEMS{$line->[4]}", 
