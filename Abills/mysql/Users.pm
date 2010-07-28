@@ -1581,8 +1581,7 @@ sub config_list {
  my @WHERE_RULES = ();
 
  if ($attr->{PARAM}) {
-    $attr->{PARAM} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "param LIKE '$attr->{PARAM}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{PARAM}, 'STR', 'param') };
   }
  
  if ($attr->{VALUE}) {
@@ -1642,8 +1641,6 @@ sub config_change {
  return $self;
 }
 
-
-
 #**********************************************************
 # group_add()
 #**********************************************************
@@ -1656,8 +1653,6 @@ sub config_add {
  return $self;
 }
 
-
-
 #**********************************************************
 # group_add()
 #**********************************************************
@@ -1668,11 +1663,6 @@ sub config_del {
  $self->query($db, "DELETE FROM config WHERE param='$id';", 'do');
  return $self;
 }
-
-
-
-
-
 
 #**********************************************************
 # district_list()

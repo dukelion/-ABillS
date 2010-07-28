@@ -6350,6 +6350,7 @@ sub form_info_fields {
                               border     => 1,
                               title      => [$_NAME, 'SQL field', $_TYPE, $_PRIORITY, '-'],
                               cols_align => ['left', 'left', 'left', 'right', 'center', 'center' ],
+                              ID         => 'INFO_FIELDS'
                            } );
 
 
