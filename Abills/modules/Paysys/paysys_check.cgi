@@ -2014,7 +2014,8 @@ if($FORM{hash}) {
                  TRANSACTION_ID => "UKRPAYS:$FORM{id_ups}",
                  INFO           => "STATUS: $status\nOPERATION_ID: $operation_id\n$info\nCards buy",
                  PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
-                 DOMAIN_ID      => $domain_id                 
+                 DOMAIN_ID      => $domain_id,
+                 STATUS         => 1,
                });
 
       if ($Paysys->{errno}) {
