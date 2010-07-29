@@ -396,9 +396,7 @@ sub msgs_admin {
                   "$_DELIGATED"
                   );
 
-
   @msg_status = @msg_status_all;
-
   $Msgs->{ACTION}='send';
   $Msgs->{ACTION_LNG}=$_SEND;
   #Get admin privileges
@@ -426,21 +424,20 @@ sub msgs_admin {
       $FORM{CLOSED_DATE}="$DATE";
      }
 
+    $FORM{INNER_MSG}=1 if ($FORM{INNER_MSG} eq 'Yes');
     $Msgs->message_change({ %FORM, USER_READ => "0000-00-00 00:00:00" });
-    
     $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});
     $FORM{chg}=$FORM{ID} if ($FORM{ID});
     goto MSG_LABEL;
    }
   elsif ($FORM{add_dispatch}) {
   	my @ids = split(/, /, $FORM{del});
-  	
   	for my $id (@ids) {
   		$Msgs->message_change({ DISPATCH_ID => $FORM{DISPATCH_ID}, 
   			                      ID          => $id 
   			                      });
   	 }
- 	
+
   	$html->message('info', $_INFO, "$_DISPATCH $_ADD # $FORM{IDS}") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{reply}) {
@@ -451,9 +448,9 @@ sub msgs_admin {
     
     if ( $FORM{REPLY_SUBJECT} || $FORM{REPLY_TEXT} || $FORM{FILE_UPLOAD} )  {
       $Msgs->message_reply_add({ %FORM, 
-    	                         AID   => $admin->{AID},
-    	                         IP    => $admin->{SESSION_IP},
-    	                       });
+    	                           AID   => $admin->{AID},
+    	                           IP    => $admin->{SESSION_IP},
+    	                         });
 
       my $reply_id =  $Msgs->{INSERT_ID};
 
@@ -472,7 +469,6 @@ sub msgs_admin {
           }      
        }
      }
-
 
     %params = ();
     $params{CHAPTER}     = $FORM{CHAPTER_ID} if ($FORM{CHAPTER_ID});
@@ -495,7 +491,6 @@ sub msgs_admin {
     if ($users->{EMAIL} && ! $FORM{INNER_MSG}) {
     	 $ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
        my $site =  $1 || '';
-
     	 my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
            { SITE => $site, 
            	 DATE => $DATE, 
