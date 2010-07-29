@@ -553,7 +553,7 @@ sub msgs_admin {
     $Msgs->{CHAPTERS_SEL}=$html->form_select('CHAPTER_ID', 
                                           { 
  	                                          SELECTED          => '',
- 	                                          SEL_MULTI_ARRAY   => [['', ''], @{ $Msgs->chapters_list( ) } ],
+ 	                                          SEL_MULTI_ARRAY   => [['', ''], @{ $Msgs->chapters_list({ CHAPTERS => join(',', keys %A_PRIVILEGES) }) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });    
@@ -717,7 +717,7 @@ sub msgs_admin {
     $Msgs->{CHAPTER_SEL}=$html->form_select('CHAPTER', 
                                           { 
  	                                          SELECTED          => $Msgs->{CHAPTER} || $FORM{CHAPTER},
- 	                                          SEL_MULTI_ARRAY   => [ [ undef, "$_ALL" ], @{ $Msgs->chapters_list() } ],
+ 	                                          SEL_MULTI_ARRAY   => [ [ undef, "$_ALL" ], @{ $Msgs->chapters_list({ CHAPTERS => join(',', keys %A_PRIVILEGES) }) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }); 

@@ -223,7 +223,7 @@ my $BIT_MASK = 32;
 if ($user->{NETMASK} ne '255.255.255.255') {
   my $ips   = 4294967296 - ip2int($user->{NETMASK});
   $BIT_MASK = 32 - length(sprintf("%b", $ips)) + 1 ;
-  $BIT_MASK = 32 if ($BIT_MASK = 0);
+  $BIT_MASK = 32 if ($BIT_MASK == 0);
  }
 
 
