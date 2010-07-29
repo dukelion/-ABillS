@@ -18,7 +18,7 @@ if ($#ARGV < 1) {
    FLOWTOOLS_FT_BACKUP=dir - Backup old flow-tools ft* file. For debug only
    debug      - Set debug mode (1,2)
    DETAIL_ONLY- Make IP detalisation only
-   DISABLE_UNKNOWN_IP_LOG - Disabled unknown ip login
+   UNKNOWN_IP_LOG - Disabled unknown ip login
    PREPAID_STORE - Use alternative prepaid store for prepaid traffic colection.
    TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysation
    AMON_ALIVE - Second for Amon Alive Alive interval (default value 120).
@@ -80,9 +80,9 @@ my $db  = $sql->{db};
 my $IF_NAME=($ARGV->{INTERFACE}) ? $ARGV->{INTERFACE} : '';
 
 
-if (! $ARGV->{DISABLE_UNKNOWN_IP_LOG}) {
-  $conf{UNKNOWN_IP_LOG}=1;	
- }
+
+$conf{UNKNOWN_IP_LOG}=$ARGV->{UNKNOWN_IP_LOG};
+
 if ($ARGV->{DETAIL_ONLY}) {
   $conf{IPN_DETAIL}=1;	
   print "DETAIL_ONLY=$conf{IPN_DETAIL}\n" if ($debug > 0);
