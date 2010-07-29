@@ -82,7 +82,10 @@ sub qiwi_check {
 	my ($attr)=@_;
 	require "Abills/modules/Paysys/Qiwi.pm";
 
-my $list = $Paysys->list( { %LIST_PARAMS, PAYMENT_SYSTEM => 59, INFO => '-' } );	
+my $list = $Paysys->list( { %LIST_PARAMS, 
+	                          PAYMENT_SYSTEM => 59, 
+	                          INFO => '-',
+	                          PAGE_ROWS => 1000000 } );	
 
 my %status_hash = (
 10 => 'Не обработана',
@@ -113,7 +116,8 @@ foreach my $line (@$list) {
   push @ids_arr, $line->[5];
 }
 
-my $result = qiwi_status({ IDS => \@ids_arr });
+my $result = qiwi_status({ IDS   => \@ids_arr,
+	                         DEBUG => $debug });
 
 my %res_hash = ();
 foreach my $id ( keys %{ $result->{'bills-list'}->[0]->{bill} } ) {
