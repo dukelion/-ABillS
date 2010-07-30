@@ -104,7 +104,6 @@ sub docs_invoice_add  {
   }
 
   $Docs->{TOTAL_SUM}=0.00;
-
   if ($Docs->{ORDERS}) {
 		my $i = 1;
 		my @ORDERS = @{ $Docs->{ORDERS} };
@@ -173,10 +172,6 @@ sub docs_invoice_add  {
 
   $Docs->{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
   $Docs->{'TOTAL_SUM_VAT'}        = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
-
-
-
-
   docs_print('invoice', $Docs) if (! $FORM{QUICK});
 }
 

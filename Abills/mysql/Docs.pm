@@ -257,7 +257,6 @@ sub docs_invoice_add {
   $self->{DOC_ID}=$self->{INSERT_ID};
   
   
-  
   foreach my $line (@{ $attr->{ORDERS} }) {
     my ($order, $unit, $count,  $sum)=split(/\|/, $line, 4);
     $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price)
@@ -265,10 +264,8 @@ sub docs_invoice_add {
   }
 
   return $self if($self->{errno});
-  
   $self->{INVOICE_ID}=$DATA{INVOICE_ID};
   $self->docs_invoice_info($self->{DOC_ID});
-
 	return $self;
 }
 

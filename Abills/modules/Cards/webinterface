@@ -69,33 +69,33 @@ if ($FORM{change}) {
   
   my $FROM = '';
 
-  #Make invoce if using Doc module
-  if (in_array('Docs', \@MODULES) && $FORM{INVOICE}) {
-     require "Abills/modules/Docs/webinterface";
-     $list = $Cards->cards_list({ IDS  => $FORM{IDS}, 
-     	                            ROWS => 1000000 
-     	                          });
-       my %DILLERS_LIST = ();
-       foreach my $line (@$list) {
-    	   $DILLERS_LIST{"$line->[7]"}{"$line->[1]:$line->[3]"}++ if ($line->[7] ne '') ;
-        }
-
-#Invoice for 'give back' dillers
-       while(my ($diller, $cards) = each (%DILLERS_LIST)) {
-         @ORDERS = ();
-         while(my ($k, $v) = each (%$cards)) {
-           my ($seria, $price)=split(/:/, $k, 2);
-           push @ORDERS, "$_ICARDS $_SERIAL: $seria $_SUM: $price|0|$v|$price";
-          }
-         $FROM .= "$diller, ";
-
- 		     docs_invoice_add({ FROM      => $diller,
- 		     	                  CUSTOMER  => $diller,
-                            ORDERS    => [ @ORDERS ],
-                          	CREATE    => 1
-                          });
-        }
-  }
+#  #Make invoce if using Doc module
+#  if (in_array('Docs', \@MODULES) && $FORM{INVOICE}) {
+#     require "Abills/modules/Docs/webinterface";
+#     $list = $Cards->cards_list({ IDS  => $FORM{IDS}, 
+#     	                            ROWS => 1000000 
+#     	                          });
+#       my %DILLERS_LIST = ();
+#       foreach my $line (@$list) {
+#    	   $DILLERS_LIST{"$line->[7]"}{"$line->[1]:$line->[3]"}++ if ($line->[7] ne '') ;
+#        }
+#
+##Invoice for 'give back' dillers
+#       while(my ($diller, $cards) = each (%DILLERS_LIST)) {
+#         @ORDERS = ();
+#         while(my ($k, $v) = each (%$cards)) {
+#           my ($seria, $price)=split(/:/, $k, 2);
+#           push @ORDERS, "$_ICARDS $_SERIAL: $seria $_SUM: $price|0|$v|$price";
+#          }
+#         $FROM .= "$diller, ";
+#
+# 		     docs_invoice_add({ FROM      => $diller,
+# 		     	                  CUSTOMER  => $diller,
+#                            ORDERS    => [ @ORDERS ],
+#                          	CREATE    => 1
+#                          });
+#        }
+#  }
 
  	$Cards->cards_change({ %FORM });
   if (! $Cards->{errno}) {
@@ -134,8 +134,8 @@ if ($FORM{change}) {
 
  		   docs_invoice_add({ CUSTOMER  => $Cards->{NAME},
                          	ORDERS    => [ @ORDERS ],
-                         	CREATE    => 1,
-                         	FROM      => $FROM
+                         	create    => 1,
+                         	FROM      => $FROM,                         	   
                        });
    	 }
     return 0;
