@@ -353,7 +353,7 @@ foreach my $line (@$list) {
     $nas_mng_port = 22 if (! $nas_mng_port);
   	$ENV{NAS_IP_ADDRESS} = $nas_mng_ip;
     $ENV{NAS_MNG_USER}   = $nas_mng_user;
-    $ENV{NAS_MNG_IP_PORT}= "$nas_mng_ip:$nas_mng_port";
+    $ENV{NAS_MNG_IP_PORT}= (($nas_mng_ip) ? $nas_mng_ip : '').':'.(($nas_mng_port) ? $nas_mng_port : '');
     $ENV{NAS_ID}         = $NAS_ID;
     $ENV{NAS_TYPE}       = 'vlan';
  	  $ENV{NAS_IP_PORT}    = $nas_mng_port;
