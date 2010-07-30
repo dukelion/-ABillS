@@ -4368,6 +4368,8 @@ sub dv_users_warning_messages {
    return 0;
   }
 
+ my $debug_output = '';
+
  my $debug = $attr->{DEBUG} || 0;
 
 my %LIST_PARAMS = (USERS_WARNINGS => 1 );

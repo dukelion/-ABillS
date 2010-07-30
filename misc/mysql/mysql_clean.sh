@@ -5,7 +5,7 @@
 # /etc/crontab
 # 12  9    *   *  *    root   /usr/abills/misc/mysql_clean.sh
 
-VERSION=0.4;
+VERSION=0.5;
 MYSQL_BIN_PREFIX='*-bin.';
 MYSQL=`which mysql`;
 
@@ -62,8 +62,8 @@ WORK_BIN=`${MYSQL} -u ${USER} --password=${PASSWORD} -e "show master status;" | 
 
 for file in  `ls ${MYSQL_BIN_PREFIX}0*`; do
 
-  if [ ${file} != ${WORK_BIN} ]; then
-    if [ ${file} != ${WORK_BIN}index ] ; then
+  if [ w${file} != w${WORK_BIN} ]; then
+    if [ w${file} != w${WORK_BIN}index ] ; then
       echo "${file}";
       rm ${MYSQL_DATADIR}/${file};
     fi;
