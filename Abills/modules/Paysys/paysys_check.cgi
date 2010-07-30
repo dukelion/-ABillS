@@ -1986,21 +1986,33 @@ sub ukrpays_payments {
 #Pre request section
 
 if($FORM{hash}) {
-  $md5->reset;
-	$md5->add($FORM{id_ups}); 
-	$md5->add($FORM{order});
-	$md5->add($FORM{note}) if (defined($FORM{note}));
-  $md5->add($FORM{amount});
-  $md5->add($FORM{date}); 
-  $md5->add($conf{PAYSYS_UKRPAYS_SECRETKEY});
-
-  my $checksum = $md5->hexdigest();	
   my $info = '';
   
   if ($FORM{order} =~ /(\d{8}):(\d+)/) {
   	#Info section
   	my $operation_id = $1;
   	my $domain_id    = $2;
+
+    my $list = $user->config_list({ PARAM      => 'PAYSYS_UKRPAYS_SERVICE_ID;PAYSYS_UKRPAYS_SECRETKEY', 
+  	                              DOMAIN_ID  => $domain_id,
+  	                              SORT       => 2 });
+
+    if ($user->{TOTAL}) {
+      foreach my $line ( @$list ) {
+    	  $conf{$line->[0]}=$line->[1];
+       }
+     }
+
+    $md5->reset;
+	  $md5->add($FORM{id_ups}); 
+	  $md5->add($FORM{order});
+	  $md5->add($FORM{note}) if (defined($FORM{note}));
+    $md5->add($FORM{amount});
+    $md5->add($FORM{date}); 
+    $md5->add($conf{PAYSYS_UKRPAYS_SECRETKEY});
+
+    my $checksum = $md5->hexdigest();	
+
 	  if ($FORM{hash} ne $checksum) {
     	$status = "ERROR: Incorect checksum '$checksum'";
      }
@@ -2034,6 +2046,16 @@ if($FORM{hash}) {
   	print $status;
   	return 0;
    }
+
+  $md5->reset;
+	$md5->add($FORM{id_ups}); 
+	$md5->add($FORM{order});
+	$md5->add($FORM{note}) if (defined($FORM{note}));
+  $md5->add($FORM{amount});
+  $md5->add($FORM{date}); 
+  $md5->add($conf{PAYSYS_UKRPAYS_SECRETKEY});
+
+  my $checksum = $md5->hexdigest();	
   
   
 	my $user = $users->info($FORM{order});

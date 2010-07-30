@@ -536,7 +536,7 @@ my %info = ();
 $info{PAY_SYSTEMS_SEL}=$html->form_select('PAYMENT_SYSTEM', 
                                           { 
  	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
- 	                                          SEL_HASH  => \%PAY_SYSTEMS,
+ 	                                          SEL_HASH  => { '' => $_ALL, %PAY_SYSTEMS },
  	                                          NO_ID     => 1
  	                                        });
 

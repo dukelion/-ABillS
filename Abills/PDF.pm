@@ -1526,15 +1526,12 @@ for my $key (sort keys %$tpl_describe) {
     $font_color = $1 if ($pattern =~ /font_color=(\S+)/);
     $encode     = $1 if ($pattern =~ /encode=(\S+)/);
     $align      = $1 if ($align   =~ /align=(\S+)/);
-    
-    #print "$key / $pattern\n";
 
     if ($pattern =~ /font_name=(\S+)/) {
     	$font_name  = $1;
       $font = $pdf->corefont($font_name, -encode => "$encode");
      }
     #my $font = $pdf->ttfont('arialbold');
-
     
     my $txt  = $page->text;
     $txt->font($font,$font_size);
@@ -1596,11 +1593,11 @@ if ($attr->{MULTI_DOCS} && $multi_doc_count <= $#{ $attr->{MULTI_DOCS} }) {
   if ($attr->{DOCS_IN_FILE} && $multi_doc_count > 0 && $multi_doc_count % $attr->{DOCS_IN_FILE} == 0) {
   	my $outfile = $attr->{SAVE_AS};
   	my $filenum = int($multi_doc_count / $attr->{DOCS_IN_FILE});
-  	
+
   	$outfile =~ s/\.pdf/$filenum\.pdf/;
-  	
+
   	print "Save to: $outfile\n" if ($self->{debug});
-  	
+
   	$pdf->saveas("$outfile") ;
   	$pdf->end;
     
@@ -1622,6 +1619,7 @@ if ($attr->{MULTI_DOCS} && $multi_doc_count <= $#{ $attr->{MULTI_DOCS} }) {
 }
 
 
+
 if ($attr->{SAVE_AS}) {
   $pdf->saveas("$attr->{SAVE_AS}") ;
   $pdf->end;
@@ -1631,8 +1629,6 @@ if ($attr->{SAVE_AS}) {
   $tpl = $pdf->stringify();
   $pdf->end;
  
-  #print $tpl;
-
   if($attr->{OUTPUT2RETURN}) {
 		return $tpl;
 	 }
