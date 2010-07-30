@@ -424,7 +424,6 @@ sub msgs_admin {
       $FORM{CLOSED_DATE}="$DATE";
      }
 
-    $FORM{INNER_MSG}=1 if ($FORM{INNER_MSG} eq 'Yes');
     $Msgs->message_change({ %FORM, USER_READ => "0000-00-00 00:00:00" });
     $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});
     $FORM{chg}=$FORM{ID} if ($FORM{ID});
@@ -577,7 +576,7 @@ sub msgs_admin {
 
     
     $Msgs->{MSG_CLOSED_DATE}=$html->form_input('MSG_CLOSED_DATE', "");
-    $Msgs->{INNER_MSG} = $bool_vals[$Msgs->{INNER_MSG}];
+    $Msgs->{INNER_MSG_TEXT} = $bool_vals[$Msgs->{INNER_MSG}];
     $Msgs->{EXT_INFO}  = $html->tpl_show(_include('msgs_managment', 'Msgs'), 
       $Msgs, { OUTPUT2RETURN => 1 } );
   
@@ -891,7 +890,7 @@ foreach my $line (@$list) {
      ID      => "$Msgs->{INSERT_ID}/$Msgs->{REPLY_ID}", 
      SUBJECT => $FORM{SUBJECT}.' / '.$FORM{REPLY_SUBJECT},
      STATUS  => $msg_status[$FORM{STATE}],
-     MESSAGE => $FORM{REPLY_TEXT},
+     MESSAGE => $FORM{MESSAGE} || $FORM{REPLY_TEXT},
      ATTACHMENT => $FORM{FILE_UPLOAD}{filename}      
      }, { OUTPUT2RETURN => 1 } );
 
@@ -919,10 +918,8 @@ sub msgs_user {
                   "$_HOLD_UP",
                   "$_ANSWER_WAIT",
                   );
-
-
-  $FORM{ID}=$Msgs->{LAST_ID} if ($Msgs->{LAST_ID});
-
+ 
+   $FORM{ID}=$Msgs->{LAST_ID} if ($Msgs->{LAST_ID});
 	 $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
                                           { 
  	                                          SELECTED          => $FORM{STATE} || 0,
@@ -1111,14 +1108,14 @@ sub msgs_user {
   $LIST_PARAMS{PRIORITY}   = undef if ($FORM{PRIORITY} == 5);
 
   if (! defined($FORM{STATE}) && ! $FORM{ALL_MSGS}) {
-     $FORM{STATE}=0;
+     $FORM{ALL_OPENED}=1
    }
   
-my $i = 0;
-my $status_bar = (defined($FORM{STATE})) ? $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs") : $html->b($_ALL);;
-
+$pages_qs =~ s/\&ALL_OPENED=1|\&ALL_MSGS=1//;
+$pages_qs =~ s/STATE=\d+//;
+my $i=0;
 foreach my $name ( @msg_status) {
-	if (defined($FORM{STATE}) && $FORM{STATE} == $i) {
+	if (defined($FORM{STATE}) && $FORM{STATE} == $i && $FORM{STATE} ne '') {
     $LIST_PARAMS{STATE}=($FORM{STATE} == 0) ? '0;6' : $FORM{STATE};
     $status_bar .= ' '. $html->b($name);
 	 }
@@ -1128,13 +1125,21 @@ foreach my $name ( @msg_status) {
   $i++;
 }
 
-  if (defined($FORM{ALL_MSGS})) {
-    $pages_qs.="&ALL_MSGS=1";
-   }
-  else {
-    $pages_qs.="&STATE=$FORM{STATE}";
-   }
-
+#======================
+if ($FORM{ALL_OPENED} || $FORM{STATE} eq '0;3;4;5;6;7') {
+	$status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs").' '.$html->b("$_ACTIVE") .$status_bar;
+	$LIST_PARAMS{STATE} = "0;3;4;5;6;7";
+	$pages_qs.="&ALL_OPENED=1";	
+ }
+elsif ($FORM{ALL_MSGS} || $FORM{STATE} eq '' ) {
+	$status_bar = $html->b($_ALL). ' '. $html->button("$_ACTIVE", "index=$index&ALL_OPENED=1$pages_qs") . $status_bar;
+	$pages_qs.="&ALL_MSGS=1";
+ }
+else {
+  $status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs").' '.$html->button("$_ACTIVE", "index=$index&ALL_OPENED=1$pages_qs").$status_bar;
+  $pages_qs.="&STATE=$FORM{STATE}";
+}
+#===================================
   my  $list = $Msgs->messages_list({ %LIST_PARAMS });  
   my $table = $html->table( { width        => '100%',
                               caption      => "$_MESSAGES",
