@@ -279,16 +279,16 @@ sub post_auth {
         my $xid = $RAD_REQUEST{'DHCP-Transaction-Id'};
         my $msgtype = $RAD_REQUEST{'DHCP-Message-Type'};
 
-use constant  RLM_MODULE_REJECT=>    0;#  /* immediately reject the request */
-use constant	RLM_MODULE_FAIL=>      1;#  /* module failed, don't reply */
-use constant	RLM_MODULE_OK=>        2;#  /* the module is OK, continue */
-use constant	RLM_MODULE_HANDLED=>   3;#  /* the module handled the request, so stop. */
-use constant	RLM_MODULE_INVALID=>   4;#  /* the module considers the request invalid. */
-use constant	RLM_MODULE_USERLOCK=>  5;#  /* reject the request (user is locked out) */
-use constant	RLM_MODULE_NOTFOUND=>  6;#  /* user not found */
-use constant	RLM_MODULE_NOOP=>      7;#  /* module succeeded without doing anything */
-use constant	RLM_MODULE_UPDATED=>   8;#  /* OK (pairs modified) */
-use constant	RLM_MODULE_NUMCODES=>  9;#  /* How many return codes there are */
+#use constant  RLM_MODULE_REJECT=>    0;#  /* immediately reject the request */
+#use constant	RLM_MODULE_FAIL=>      1;#  /* module failed, don't reply */
+#use constant	RLM_MODULE_OK=>        2;#  /* the module is OK, continue */
+#use constant	RLM_MODULE_HANDLED=>   3;#  /* the module handled the request, so stop. */
+#use constant	RLM_MODULE_INVALID=>   4;#  /* the module considers the request invalid. */
+#use constant	RLM_MODULE_USERLOCK=>  5;#  /* reject the request (user is locked out) */
+#use constant	RLM_MODULE_NOTFOUND=>  6;#  /* user not found */
+#use constant	RLM_MODULE_NOOP=>      7;#  /* module succeeded without doing anything */
+#use constant	RLM_MODULE_UPDATED=>   8;#  /* OK (pairs modified) */
+#use constant	RLM_MODULE_NUMCODES=>  9;#  /* How many return codes there are */
 my $message = '';
 my $yiaddr  = '192.168.0.33'; 
 my $mask    = '255.255.255.0'; 
@@ -314,7 +314,7 @@ my $lease   = 600;
 #        {
 #                $RAD_REQUEST{'Tmp-String-0'} = 'no IP from DB.';
 #        }
-        return RLM_MODULE_NOTFOUND;
+        return 6;
 
   	
     $RAD_REPLY{'DHCP-Your-IP-Address'} = '192.168.0.23';
