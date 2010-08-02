@@ -46,14 +46,14 @@ sub abon_user {
       
       foreach my $line (@$list) {
         if(($users->{CREDIT} + $users->{DEPOSIT}) > $line->[1] || $line->[3]) {
-        	$Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->[4] || 0;
+        	$Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->[5] || 0;
         	$Abon->{TP_INFO}->{MONTH_FEE}        = $line->[1];
-          $Abon->{TP_INFO}->{TP_ID}            = $line->[6];
+          $Abon->{TP_INFO}->{TP_ID}            = $line->[7];
           $Abon->{TP_INFO}->{NAME}             = $line->[0]; 
-          $Abon->{COMMENTS}                    = $FORM{'COMMENTS_'.$line->[6]}; 
+          $Abon->{COMMENTS}                    = $FORM{'COMMENTS_'.$line->[7]}; 
           
  
-          my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[6]]" . (($FORM{'COMMENTS_'.$line->[6]})? $FORM{'COMMENTS_'.$line->[6]} : "$line->[0]"),
+          my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[7]]" . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
                          METHOD   => 1  );
           
           if ($line->[2] == 1 && $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} == 1) {
@@ -103,7 +103,6 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
   $table->addrow($html->form_input('IDS', "$line->[0]", { TYPE => 'CHECKBOX', 
   	                                                      STATE => ($line->[7] == 1) ? 1 : undef   }),
-
      "$line->[1]",
      $html->form_input('COMMENTS_'.$line->[0], "$line->[2]", { SIZE => 40 }),
      "$line->[3]", 
@@ -112,7 +111,6 @@ foreach my $line (@$list) {
      "$line->[6]"
    );
  }
-
 
 print $html->form_main({ CONTENT => $table->show(),
 	                 HIDDEN  => { index  => "$index", 
@@ -222,6 +220,7 @@ sub abon_tariffs {
 	                       SUBMIT  => { show   => "$_SHOW"} 
 	                        });
   
+   
     func_menu({ 
   	       'ID' =>   $Abon->{ID}, 
   	        $_NAME => $Abon->{NAME_SEL}
@@ -257,14 +256,30 @@ sub abon_tariffs {
                                           { 
  	                                          SELECTED  => $FORM{PERIOD},
  	                                          SEL_ARRAY => \@PERIODS,
- 	                                          ARRAY_NUM_ID => 'y'
+ 	                                          ARRAY_NUM_ID => 1
  	                                          
  	                                        });
 
   $Abon->{PAYMENT_TYPE_SEL} =  $html->form_select('PAYMENT_TYPE', 
                                 { SELECTED      => $Abon->{PAYMENT_TYPE} || $FORM{PAYMENT_TYPE},
  	                                SEL_ARRAY     => [$_PREPAID, $_POSTPAID],
- 	                                ARRAY_NUM_ID  => 'y'
+ 	                                ARRAY_NUM_ID  => 1
+ 	                               });
+
+  $Abon->{PRIORITY} =  $html->form_select('PRIORITY', 
+                                { SELECTED      => $Abon->{PRIORITY} || 0,
+ 	                                SEL_ARRAY     => [0,1,2,3,4,5,6,7,8,9,10,11,13,13,14,15],
+ 	                                ARRAY_NUM_ID  => 1
+ 	                               });
+
+  my @ACCOUNT_PRIORITY = ($_MAIN, 
+                         "$_EXTRA $_BILL",
+                         "$_MAIN, $_EXTRA $_BILL");
+
+  $Abon->{ACCOUNT_SEL} =  $html->form_select('ACCOUNT', 
+                                { SELECTED      => $Abon->{ACCOUNT} || 0,
+ 	                                SEL_ARRAY     => \@ACCOUNT_PRIORITY,
+ 	                                ARRAY_NUM_ID  => 1
  	                               });
 
   $Abon->{PERIOD_ALIGNMENT}  = ($Abon->{PERIOD_ALIGNMENT})  ? 'checked' : ''; 
@@ -283,11 +298,11 @@ sub abon_tariffs {
 
   $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);
 
- my $list = $Abon->tariff_list();
+ my $list = $Abon->tariff_list({ %LIST_PARAMS });
  my $table = $html->table( { width     => '100%',
                             caption    => "$_ABON",
-                            title      => [$_NAME, $_SUM, $_PERIOD, $_PAYMENT_TYPE, $_USERS, '-', '-'],
-                            cols_align => ['left', 'right', 'left', 'right', 'center', 'center'],
+                            title      => [$_NAME, $_SUM, $_PERIOD, $_PAYMENT_TYPE, $_PRIORITY, $_USERS, '-', '-'],
+                            cols_align => ['left', 'right', 'left', 'right', 'right', 'center', 'center'],
                             qs         => $pages_qs,
                             ID         => 'ABON_TARIFFS'
                            });
@@ -296,15 +311,16 @@ sub abon_tariffs {
 my $delete = '';
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[6]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[7]", { MESSAGE => "$_DEL $line->[0]?" }); 
    }
 
   $table->addrow($html->button("$line->[0]", "index=$index&ABON_ID=$line->[6]"), 
      "$line->[1]", 
      $PERIODS[$line->[2]], 
      $Payment_Types[$line->[3]], 
-     $html->button("$line->[5]", "index=". ($index-2). "&ABON_ID=$line->[6]"), 
-     $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[6]"), 
+     $line->[4], 
+     $html->button("$line->[6]", "index=". ($index-2). "&ABON_ID=$line->[7]"), 
+     $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[7]"), 
      $delete
    );
  }
@@ -335,7 +351,7 @@ sub abon_periodic {
 
  foreach my $line (@$list) {
   if (defined($line->[7])) {
-     my %user = (
+    my %user = (
        UID     => $line->[2],
        BILL_ID => ($line->[14]) ? $line->[15] : $line->[3]
       );
@@ -347,16 +363,10 @@ sub abon_periodic {
 
     $line->[8] = 0 if (! $line->[8]);
     $PARAMS{DESCRIBE} = "$_ABON: $line->[6]. $line->[12]" if ($line->[12]);
-
-
-    #print "$user{UID} - ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0\n" if (! $line->[8] );
     if($line->[8] && ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
      	#Get day fee
 
-
      	$line->[13] = $ADMIN_REPORT{DATE} if (! $line->[13] && $line->[0] == 1 && $d == 1);
-
-      $line->[13] = $ADMIN_REPORT{DATE} if (! $line->[13] && $line->[0] == 0);
 
      	if ($line->[0] == 0) {
          $fees->take(\%user, $line->[1], { %PARAMS } ); 
@@ -364,8 +374,6 @@ sub abon_periodic {
          	                           TP_ID => "$line->[10]", 
          	                           DATE  => $ADMIN_REPORT{DATE} 
          	                          });
-
-         #print "$line->[0] Day fee<Br>\n"; 
        }
     	#Get month fee
     	elsif ($line->[0] == 1 && $ADMIN_REPORT{DATE} eq $line->[13]) {
@@ -373,7 +381,6 @@ sub abon_periodic {
          $Abon->user_tariff_update({ UID   => "$line->[2]", 
          	                           DATE  => $DATE, 
          	                           TP_ID => "$line->[10]" });
-
        }
     	#Get quarter fee
     	elsif ($line->[0] == 2 && $ADMIN_REPORT{DATE} eq $line->[13]) {
@@ -381,7 +388,6 @@ sub abon_periodic {
          $Abon->user_tariff_update({ UID   => "$line->[2]", 
          	                           DATE  => $DATE, 
          	                           TP_ID => "$line->[10]" });
-
        }
     	#Get six month fee
     	elsif ($line->[0] == 3 && $ADMIN_REPORT{DATE} eq $line->[13]) {

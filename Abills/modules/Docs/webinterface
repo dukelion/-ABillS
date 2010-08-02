@@ -200,10 +200,8 @@ sub docs_invoice {
     $Docs->{OP_SID}  = mk_unique_value(16);
     $Docs->{CUSTOMER}= $users->{FIO} || '-';
     $Docs->{CAPTION} = $_INVOICE;
-
     $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users }) if (! $FORM{pdf});
    }
-
 
   docs_invoice_list();
 }

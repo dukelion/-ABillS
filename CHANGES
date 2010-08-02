@@ -1,12 +1,27 @@
 =====0.52=====
+
+03.08.2010 \\
+  * Добавлена возможность выставлять приоритет снятия денег в модуле Abon
+
+MySQL:
+  ALTER TABLE abon_tariffs  ADD COLUMN `priority` tinyint(1) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE abon_tariffs  ADD COLUMN   `account` tinyint(1) unsigned NOT NULL DEFAULT '0';
+
+
 28.07.2010\\
+
+  * Добавлена работа модуля Paysys c  мультидоменной платформой (Multidoms). **Обязательно обновите все модули Paysys  перед обновлением системы.**
+
 MySQL:
 
   ALTER TABLE `config` CHANGE COLUMN `param` `param` varchar(30) NOT NULL default '';
-  ALTER TABLE `config` ADD`domain_id` smallint(6) unsigned not null default '0';
+  ALTER TABLE `config` ADD COLUMN `domain_id` smallint(6) unsigned not null default '0';
   ALTER TABLE `config` DROP KEY `param`;
   ALTER TABLE `config` ADD UNIQUE KEY `param` (`domain_id`, `param`);
-
+  ALTER TABLE `paysys_log` ADD COLUMN `domain_id` smallint(6) unsigned not null default '0';
+  ALTER TABLE `paysys_log` ADD COLUMN `status` tinyint(2) unsigned not null default '0';
+  ALTER TABLE `paysys_log` DROP KEY `ps_transaction_id`;
+  ALTER TABLE `paysys_log` ADD UNIQUE KEY `ps_transaction_id` (`domain_id`, `transaction_id`);
 25.07.2010
   * Добавлена подача клиентами заявок  на подключения через веб интерфейс
 MySQL:

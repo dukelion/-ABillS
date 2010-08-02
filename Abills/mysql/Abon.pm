@@ -88,7 +88,9 @@ sub tariff_info {
    period_alignment,
    nonfix_period, 
    ext_bill_account,
-   id
+   id,
+   priority,
+   account
    
      FROM abon_tariffs
    $WHERE;");
@@ -106,7 +108,9 @@ sub tariff_info {
    $self->{PERIOD_ALIGNMENT},
    $self->{NONFIX_PERIOD},
    $self->{EXT_BILL_ACCOUNT},
-   $self->{ABON_ID}
+   $self->{ABON_ID},
+   $self->{PRIORITY},
+   $self->{ACCOUNT}
   )= @{ $self->{list}->[0] };
   
 
@@ -144,9 +148,11 @@ sub tariff_add {
   
   %DATA = $self->get_data($attr); 
 
-  $self->query($db,  "INSERT INTO abon_tariffs (id, name, period, price, payment_type, period_alignment, nonfix_period, ext_bill_account)
+  $self->query($db,  "INSERT INTO abon_tariffs (id, name, period, price, payment_type, period_alignment, nonfix_period, ext_bill_account,
+         priority, account)
         VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}', '$DATA{PAYMENT_TYPE}', '$DATA{PERIOD_ALIGNMENT}',
-        '$DATA{NONFIX_PERIOD}', '$DATA{EXT_BILL_ACCOUNT}');", 'do');
+        '$DATA{NONFIX_PERIOD}', '$DATA{EXT_BILL_ACCOUNT}',
+        '$DATA{PRIORITY}', '$DATA{ACCOUNT}');", 'do');
 
   return $self if ($self->{errno});
   $admin->system_action_add("ABON_ID:$DATA{ID}", { TYPE => 1 });    
@@ -170,7 +176,9 @@ sub tariff_change {
               PAYMENT_TYPE     => 'payment_type',
               PERIOD_ALIGNMENT => 'period_alignment',
               NONFIX_PERIOD    => 'nonfix_period', 
-              EXT_BILL_ACCOUNT => 'ext_bill_account'
+              EXT_BILL_ACCOUNT => 'ext_bill_account',
+              PRIORITY         => 'priority',
+              ACCOUNT          => 'account'
              );
 
   $attr->{PERIOD_ALIGNMENT}=0   if (! $attr->{PERIOD_ALIGNMENT});
@@ -213,6 +221,12 @@ sub tariff_list {
  my ($attr) = @_;
  @WHERE_RULES = ();
 
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? int($attr->{PAGE_ROWS}) : 25;
+
+
  if ($attr->{IDS}) {
     push @WHERE_RULES, "id IN ($attr->{IDS})";
   }
@@ -220,6 +234,7 @@ sub tariff_list {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT name, price, period, payment_type, 
+     priority,
      period_alignment,
      count(ul.uid),
      id 
@@ -490,9 +505,7 @@ sub periodic_list {
             )
           )
         )
-       )
-      ,
-      
+       ),
       if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
        if (at.period = 1, DATE_FORMAT(ul.date + INTERVAL 1 MONTH, '%Y-%m-01'), 
          if (at.period = 2, CONCAT(YEAR(ul.date + INTERVAL 3 MONTH), '-' ,(QUARTER((ul.date + INTERVAL 3 MONTH))*3-2), '-01'), 
@@ -506,7 +519,8 @@ sub periodic_list {
        )
       ),
    at.ext_bill_account,
-   if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id) AS ext_bill_id
+   if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id) AS ext_bill_id,
+   at.priority
   FROM (abon_tariffs at, abon_user_list ul, users u)
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN companies c ON (u.company_id=c.id)
@@ -516,20 +530,11 @@ at.id=ul.tp_id and
 ul.uid=u.uid
 
 $WHERE
-ORDER BY 1;");
+ORDER BY at.priority;");
 
  my $list = $self->{list};
-
-
   
   return $list;
 }
-
-
-
-
-
-
-
 
 1

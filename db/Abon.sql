@@ -7,6 +7,8 @@ CREATE TABLE `abon_tariffs` (
   `period_alignment` tinyint(1) NOT NULL DEFAULT '0',
   `ext_bill_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `nonfix_period` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `priority` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `account` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
