@@ -3961,28 +3961,22 @@ sub dv_monthly_fees {
 
  	   #get used  traffic for min use functions
  	   my %processed_users = ();
-     if ($min_use_sum > 0 ) { );
-       if ($d != $START_PERIOD_DAY && ! $conf{DV_MIN_USER_FULLPERIOD} && $month_fee == 0) {
-         next;
+     if ($min_use_sum > 0 && $START_PERIOD_DAY && $conf{DV_MIN_USER_FULLPERIOD}) { 
+       my $interval = "$pre_month_begin/$pre_month_end";
+       if ($conf{DV_MIN_USER_FULLPERIOD}) {
+       	 $activate_date = strftime "%Y-%m-%d", localtime($date_unixtime - 86400 * 30);
+       	 $interval      = "$activate_date/$ADMIN_REPORT{DATE}";
+     	   $activate_date = "='$activate_date'";
         }
-       elsif ($d == $START_PERIOD_DAY && $conf{DV_MIN_USER_FULLPERIOD}) { 
-         my $interval = "$pre_month_begin/$pre_month_end";
-
-         if ($conf{DV_MIN_USER_FULLPERIOD}) {
-         	 $activate_date = strftime "%Y-%m-%d", localtime($date_unixtime - 86400 * 30);
-         	 $interval      = "$activate_date/$ADMIN_REPORT{DATE}";
-       	   $activate_date = "='$activate_date'";
-          }
       
-         my $report_list = $sessions->reports({
+       my $report_list = $sessions->reports({
                      INTERVAL   => $interval,
                      TP_ID      => $TP_ID,
 	   	              });
   
-	       foreach my $l (@$report_list) {
- 	  	     $used_traffic{$l->[7]}=$l->[6];
-          }
-        }
+       foreach my $l (@$report_list) {
+ 	  	   $used_traffic{$l->[7]}=$l->[6];
+         }
       }
 
      if ($abon_distrib) {
