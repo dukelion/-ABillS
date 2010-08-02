@@ -3862,9 +3862,6 @@ my $Billing = Billing->new($db, $CONF);
                             DATE     => $ADMIN_REPORT{DATE},
                             METHOD   => 0 );  
 
-
-         #my $result_sufix = ($traffic_class > 0) ? $traffic_class + 1 : '';
-
          if ($RESULT->{'TRAFFIC_IN'}) {
          	 $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ".$RESULT->{'TRAFFIC_IN'} ."SUM: $RESULT->{PRICE_IN}";
          	 $sum     = $RESULT->{'TRAFFIC_IN'} * $RESULT->{PRICE_IN}; #(($RESULT->{PRICE_IN}) ? $RESULT->{PRICE_IN} : 0);
@@ -3890,14 +3887,8 @@ my $Billing = Billing->new($db, $CONF);
           }
 
          $debug_output .= " Login: $u->[0] ($u->[8])  TP_ID: $u->[11] Payments: $sum REDUCTION: $u->[15] $u->[2] $u->[3] $u->[10] - $user{ACTIVATE}\n" if ($debug > 0); 	
-         
-
-
-
         }
-
 }
-
       }
 }
 
@@ -3971,7 +3962,7 @@ sub dv_monthly_fees {
  	   #get used  traffic for min use functions
  	   my %processed_users = ();
      if ($min_use_sum > 0 ) {
-       next if ($d != $START_PERIOD_DAY && ! $conf{DV_MIN_USER_FULLPERIOD});
+       next if ($d != $START_PERIOD_DAY && ! $conf{DV_MIN_USER_FULLPERIOD} && $month_fee == 0);
        my $interval = "$pre_month_begin/$pre_month_end";
        
        if ($conf{DV_MIN_USER_FULLPERIOD}) {
