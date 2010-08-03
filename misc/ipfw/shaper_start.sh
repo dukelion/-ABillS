@@ -7,10 +7,9 @@
 #traffic Class numbers
 
 CLASSES_NUMS='2 3'
-VERSION=3.2
+VERSION=4.0
 
 #Enable NG shapper
-
 if [ w != w`grep ng_car /usr/abills/libexec/config.pl` ]; then
   NG_SHAPPER=1
 fi;
@@ -26,8 +25,11 @@ FWD_WEB_SERVER_IP=127.0.0.1;
 #Your user portal IP (Default: me)
 USER_PORTLA_IP=
 
+#Session Limit
+SESSION_LIMIT=
+
 IPFW=/sbin/ipfw
-EXTERNAL_INTERFACE=`/sbin/route get 91.203.4.17 | grep interface: | awk '{ print $2 }'`
+EXTERNAL_INTERFACE=`/sbin/route get default | grep interface: | awk '{ print $2 }'`
 INTERNAL_INTERFACE=ng*
 
 PKG_DIRECTION="TO_SERVER"
@@ -95,7 +97,6 @@ done;
   fi;
 #done
 else if [ w$1 = wstop -a w$2 = w ]; then
-
   echo -n "ng_car shapper" 
 
   for num in ${CLASSES_NUMS}; do
@@ -212,5 +213,22 @@ fi;
 fi;
 fi;
 
+fi;
+
+
+#Session limit section
+if [ w$1 = wSESSION_LIMIT ]; then
+  echo "Session limit";
+  if [ w$1 = wstart ]; then
+    ${IPFW} 00400   skipto 65010 tcp from table\(34\) to any dst-port 80,443 via ${INTERNAL_INTERFACE}
+    ${IPFW} 00401   skipto 65010 udp from table\(34\) to any dst-port 53 via ${INTERNAL_INTERFACE}
+    ${IPFW} 00402   skipto 60010 tcp from table\(34\) to any via ${EXTERNAL_INTERFACE}
+    ${IPFW} 64001   allow tcp from table\(34\) to any setup via ${INTERNAL_INTERFACE} in limit src-addr 40
+    ${IPFW} 64002   allow udp from table\(34\) to any via ${INTERNAL_INTERFACE} in limit src-addr 10
+    ${IPFW} 64003   allow icmp from table\(34\) to any via ${INTERNAL_INTERFACE} in limit src-addr 10
+  else if [ w$1 = wstop ]; then
+    ${IPFW} delete 00400 00401 00402 64001 64002 64003
+   fi; 
+  fi;
 fi;
 
