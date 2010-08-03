@@ -16,6 +16,7 @@ my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 
 
 my %FORM_BASE = ();
+my %TRAFFIC_NAMES = ();
 
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
 my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT" );
@@ -1466,10 +1467,10 @@ if ($sessions->{TOTAL} < 1) {
 	return 0;
 }
 
-
-
-my @caption = ("$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", "$_SENT", "$_RECV", 
-                             "CID", "NAS", "IP", "$_SUM");
+my @caption = ("$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", 
+(($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : '') ." $_SENT", 
+(($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : '') ." $_RECV", 
+"CID", "NAS", "IP", "$_SUM");
 
 if ($sessions->{SEARCH_FIELDS_COUNT}) {
 	push @caption, 'TC';
@@ -2171,7 +2172,6 @@ if (defined($attr->{USER}))	{
   elsif($FORM{SESSION_ID}) {
   	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
   	dv_session_detail({ USER => $attr->{USER} });
-  	
   	return 0;
   }
 }
@@ -2205,10 +2205,9 @@ if ($sessions->{errno})	 {
 	$html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
  }
 
+  $Dv->info($FORM{UID});
 #Join Service
   if($users->{COMPANY_ID}) {
-     $Dv->info($FORM{UID});
-
      if ($Dv->{JOIN_SERVICE}) {
        if ($Dv->{JOIN_SERVICE} == 1) {
          my @uids = ();
@@ -2329,6 +2328,15 @@ elsif($FORM{DATE}) {
 	$pages_qs .= "&DATE=$FORM{DATE}";
 }
 
+$tariffs->ti_list( { TP_ID => $Dv->{TP_NUM} });
+if ($tariffs->{TOTAL} > 0) {
+	$tariffs->tt_list({ TI_ID => $tariffs->{list}->[0]->[0] });
+  foreach my $line ( @{ $tariffs->{list} } ) {
+  	$TRAFFIC_NAMES{$line->[0]}=$line->[6];
+   }
+ }
+
+
 #Show rest of prepaid traffic
 if ($sessions->prepaid_rest({ 
 	                            UID  => $LIST_PARAMS{UID},
@@ -2337,7 +2345,6 @@ if ($sessions->prepaid_rest({
 
 	#Prepaid: period, traffic_type
   my $list = $sessions->{INFO_LIST};
-
   my $table = $html->table( { caption   => "$_PREPAID",
 	                          width       => '100%',
                             title_plain => ["$_TRAFF $_TYPE", "$_BEGIN", "$_END", "$_START", "$_TOTAL (MB)", "$_REST (MB)", "$_OVERQUOTA (MB)"],
@@ -2348,7 +2355,7 @@ if ($sessions->prepaid_rest({
 	
 	foreach my $line  (@$list) {
 	  $table->addrow(
-	    $line->[0], 
+	    $line->[0].':'. (($TRAFFIC_NAMES{$line->[0]})? $TRAFFIC_NAMES{$line->[0]} : ''), 
       $line->[1], 
       $line->[2], 
       $line->[3], 
@@ -2382,8 +2389,14 @@ if ($sessions->{TOTAL} < 1) {
 $table = $html->table( { caption     => "$_SUM",
 	                       width       => '100%',
 	                       rowcolor    => 'odd',
-                         title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC $_SENT", "$_TRAFFIC $_RECV", "$_TRAFFIC $_SUM",
-                           "$_TRAFFIC 2 $_SENT", "$_TRAFFIC 2 $_RECV",  "$_TRAFFIC $_SUM", "$_SUM"],
+                         title_plain => ["$_SESSIONS", "$_DURATION", 
+                            (($TRAFFIC_NAMES{0})? $TRAFFIC_NAMES{0} : "$_TRAFFIC"). " $_SENT", 
+                            (($TRAFFIC_NAMES{0})? $TRAFFIC_NAMES{0} : "$_TRAFFIC"). " $_RECV", 
+                            (($TRAFFIC_NAMES{0})? $TRAFFIC_NAMES{0} : "$_TRAFFIC"). " $_SUM",
+                            (($TRAFFIC_NAMES{1})? $TRAFFIC_NAMES{1} : "$_TRAFFIC 2"). " $_SENT", 
+                            (($TRAFFIC_NAMES{1})? $TRAFFIC_NAMES{1} : "$_TRAFFIC 2"). " $_RECV",  
+                            (($TRAFFIC_NAMES{1})? $TRAFFIC_NAMES{1} : "$_TRAFFIC 2"). " $_SUM", 
+                           "$_SUM"],
                          cols_align  => ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right'],
                          rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, 
                                             int2byte($sessions->{TRAFFIC_IN}, { DIMENSION => $FORM{DIMENSION} }), 
@@ -2454,7 +2467,6 @@ if ($sessions->{errno})	{
      my $company  = $customer->company();
      my $ulist = $company->admins_list({ COMPANY_ID => $user->{COMPANY_ID}, 
 	                                       UID        => $UID });
-
 
      if ($company->{TOTAL} > 0 && $ulist->[0]->[0] > 0) {
      	 $Dv->{JOIN_SERVICES_USERS} = $html->button("$_COMPANY", "&sid=$sid&index=$index&COMPANY_ID=$user->{COMPANY_ID}", { BUTTON => 1 }).' ';
@@ -2578,6 +2590,17 @@ $sessions->{PERIOD_STATS} .= $html->form_main({ CONTENT => $table->show({ OUTPUT
 	                       NAME    => 'stats',
 	                     });
 
+
+
+$Dv->info($user->{UID});
+$tariffs->ti_list( { TP_ID => $Dv->{TP_NUM} });
+if ($tariffs->{TOTAL} > 0) {
+	$tariffs->tt_list({ TI_ID => $tariffs->{list}->[0]->[0] });
+  foreach my $line ( @{ $tariffs->{list} } ) {
+  	$TRAFFIC_NAMES{$line->[0]}=$line->[6];
+   }
+ }
+
 #dv_stats_calculation($sessions);
 
 if (defined($FORM{show})) {
@@ -2604,7 +2627,7 @@ if ($sessions->prepaid_rest({ UID => $LIST_PARAMS{UID},
                            } );
 	
 	foreach my $line  (@$list) {
-	  $table->addrow($line->[0], 
+	  $table->addrow($line->[0] .':'. (($TRAFFIC_NAMES{$line->[0]}) ? $TRAFFIC_NAMES{$line->[0]} : ""),
       $line->[1], 
       $line->[2], 
       $line->[3], 
@@ -2630,8 +2653,14 @@ $list = $sessions->list({ %LIST_PARAMS });
 $table = $html->table( {  caption     => "$_SUM",
 	                        width       => '100%',
 	                        rowcolor    => 'odd',
-                         title_plain => ["$_SESSIONS", "$_DURATION", "$_TRAFFIC $_SENT", "$_TRAFFIC $_RECV",  "$_TRAFFIC $_SUM",
-                           "$_TRAFFIC 2 $_SENT", "$_TRAFFIC 2 $_RECV",  "$_TRAFFIC $_SUM", "$_SUM"],
+                         title_plain => ["$_SESSIONS", "$_DURATION", 
+                         (($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : "$_TRAFFIC")  ." $_SENT", 
+                         (($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : "$_TRAFFIC")  ." $_RECV",  
+                         (($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : "$_TRAFFIC")  ." $_SUM",
+                         (($TRAFFIC_NAMES{1}) ? $TRAFFIC_NAMES{1} : "$_TRAFFIC")  ." $_SENT", 
+                         (($TRAFFIC_NAMES{1}) ? $TRAFFIC_NAMES{1} : "$_TRAFFIC")  ." $_RECV",  
+                         (($TRAFFIC_NAMES{1}) ? $TRAFFIC_NAMES{1} : "$_TRAFFIC")  ." $_SUM", 
+                         "$_SUM"],
 
                           cols_align  => ['right', 'right', 'right', 'right'],
                           rows        => [ [ $sessions->{TOTAL}, $sessions->{DURATION}, 
@@ -2688,7 +2717,7 @@ if (defined($attr->{USER}))	{
                                           	disable_rt_billing => 1,
                                           	TP_NUM             => $sessions->{TP_ID}
                                            } 
-                                             );
+                                          );
 
     my $change = '';
 
@@ -2765,7 +2794,20 @@ $sessions->{_RECV2}= int2byte($sessions->{SENT2});
 $sessions->{_SENT2}= int2byte($sessions->{RECV2});
 $sessions->{RECALC}= $html->button($_RECALCULATE, "index=$index&RECALC=1&SESSION_ID=$FORM{SESSION_ID}&UID=$FORM{UID}", { BUTTON => 1 });
 
-$html->tpl_show(_include('dv_session_detail', 'Dv'), $sessions);
+$Dv->info($FORM{UID});
+$tariffs->ti_list( { TP_ID => $Dv->{TP_NUM} });
+if ($tariffs->{TOTAL} > 0) {
+	$tariffs->tt_list({ TI_ID => $tariffs->{list}->[0]->[0] });
+  foreach my $line ( @{ $tariffs->{list} } ) {
+  	$TRAFFIC_NAMES{$line->[0]}=$line->[6];
+   }
+ }
+
+
+$html->tpl_show(_include('dv_session_detail', 'Dv'), { %$sessions,
+  TRAFFIC_NAMES_0 => $TRAFFIC_NAMES{0},
+  TRAFFIC_NAMES_1 => $TRAFFIC_NAMES{1}
+ });
 
 my %ORDERS = (hours    => $_HOURS,
               days     => $_DAYS,

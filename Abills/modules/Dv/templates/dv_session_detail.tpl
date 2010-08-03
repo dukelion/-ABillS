@@ -6,10 +6,10 @@
 <tr bgcolor=$_COLORS[1]><td>$_END:</td><td align=right>%STOP%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>$_DURATION</td><td align=right>%DURATION%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>$_TARIF_PLAN</td><td>[%TP_ID%] %TP_NAME%</td></tr>
-<tr bgcolor=$_COLORS[1]><td>$_SENT:</td><td align=right>%_SENT% (%SENT%)</td></tr>
-<tr bgcolor=$_COLORS[1]><td>$_RECV:</td><td  align=right>%_RECV% (%RECV%)</td></tr>
-<tr bgcolor=$_COLORS[1]><td>$_SENT 2:</td><td align=right>%_SENT2% (%SENT2%)</td></tr>
-<tr bgcolor=$_COLORS[1]><td>$_RECV 2:</td><td align=right>%_RECV2% (%RECV2%)</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_SENT (%TRAFFIC_NAMES_0%):</td><td align=right>%_SENT% (%SENT%)</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_RECV (%TRAFFIC_NAMES_0%):</td><td  align=right>%_RECV% (%RECV%)</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_SENT 2 (%TRAFFIC_NAMES_1%):</td><td align=right>%_SENT2% (%SENT2%)</td></tr>
+<tr bgcolor=$_COLORS[1]><td>$_RECV 2 (%TRAFFIC_NAMES_1%):</td><td align=right>%_RECV2% (%RECV2%)</td></tr>
 <tr bgcolor=$_COLORS[1]><td>IP:</td><td align=right>%IP%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>CID:</td><td align=right>%CID%</td></tr>
 <tr bgcolor=$_COLORS[0]><th colspan=2>$_NAS</th></tr>
