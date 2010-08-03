@@ -44,7 +44,6 @@ sub dv_chg_tp {
 
  my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_TARIF_PLAN;
  my $period = $FORM{period} || 0;
-
  my $shedule = Shedule->new($db, $admin, \%conf);
 
 if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $users->{DISABLE} &&
@@ -5785,7 +5784,7 @@ sub dv_payments_maked {
 	my ($attr) = @_;
 	
 	$Dv->info($attr->{USER}->{UID});
-	if ($Dv->{STATUS} > 3 && $attr->{USER}->{DEPOSIT} + $attr->{USER}->{CREDIT} > $Dv->{MONTH_ABON} + $Dv->{DAY_ABON}) {
+	if ($Dv->{STATUS} > 3 && ($attr->{USER}->{DEPOSIT} + $attr->{USER}->{CREDIT} > $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} || $Dv->{ABON_DISTRIBUTION})) {
 		$Dv->change({ UID     => $attr->{USER}->{UID},
 			            STATUS  => 0  });
 
