@@ -4547,7 +4547,8 @@ if (defined($attr->{USER})) {
          }
         #Make cross modules Functions
         $attr->{USER}->{DEPOSIT}+=$FORM{SUM};
-        cross_modules_call('_payments_maked', { %$attr, PAYMENTS_ID => $payments->{PAYMENT_ID} });
+        $FORM{PAYMENTS_ID} = $payments->{PAYMENT_ID};
+        cross_modules_call('_payments_maked', { %$attr, PAYMENT_ID => $payments->{PAYMENT_ID} });
       }
      }
    }
@@ -6836,7 +6837,7 @@ sub cross_modules_call  {
      require "Abills/modules/$mod/webinterface";
      my $function = lc($mod).$function_sufix;
      if (defined(&$function)) {
-     	  $function->({ USER => $attr->{USER} });
+     	  $function->($attr);
       }
    }
 }

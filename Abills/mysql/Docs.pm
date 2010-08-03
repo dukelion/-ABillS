@@ -369,7 +369,8 @@ sub accounts_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db,   "SELECT d.acct_id, d.date, if(d.customer='-' or d.customer='', pi.fio, d.customer),  sum(o.price * o.counts), d.payment_id, u.id, a.name, d.created, p.method, d.uid, d.id $self->{EXT_FIELDS}
+ $self->query($db,   "SELECT d.acct_id, d.date, if(d.customer='-' or d.customer='', pi.fio, d.customer),  sum(o.price * o.counts), 
+     d.payment_id, u.id, a.name, d.created, p.method, d.uid, d.id $self->{EXT_FIELDS}
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
@@ -448,11 +449,9 @@ sub account_add {
   $DATA{DATE}    = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
   $DATA{ACCT_ID} = ($attr->{ACCT_ID}) ? $attr->{ACCT_ID}  : $self->docs_nextid({ TYPE => 'ACCOUNT' });
 
-  
-
-  $self->query($db, "insert into docs_acct (acct_id, date, created, customer, phone, aid, uid)
+  $self->query($db, "insert into docs_acct (acct_id, date, created, customer, phone, aid, uid, payment_id)
       values ('$DATA{ACCT_ID}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 
-      \"$admin->{AID}\", \"$DATA{UID}\");", 'do');
+      \"$admin->{AID}\", \"$DATA{UID}\", '$DATA{PAYMENT_ID}');", 'do');
  
   return $self if($self->{errno});
   $self->{DOC_ID}=$self->{INSERT_ID};

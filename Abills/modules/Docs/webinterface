@@ -1791,19 +1791,14 @@ foreach my $line ( @$list ) {
   push @{ $invoice_hash{T2RXXXXG3S}  }, $line->[2];
   push @{ $invoice_hash{T2RXXXXG4S}  }, 'ом';
   push @{ $invoice_hash{T2RXXXXG5S}  }, $line->[3];
-  push @{ $invoice_hash{T2RXXXXG6}  }, ''; # | $line->[3];
+  push @{ $invoice_hash{T2RXXXXG6}   }, ''; # | $line->[3];
   push @{ $invoice_hash{T2RXXXXG7}   }, sprintf("%.2f", $line->[5]);
   push @{ $invoice_hash{T2RXXXXG8}   }, sprintf("%.2f", $line->[6]);
   push @{ $invoice_hash{T2RXXXXG9}   }, sprintf("%.2f", $line->[7]);
 
   push @{ $invoice_hash{T2RXXXXG10} }, '';
-  push @{ $invoice_hash{T2RXXXXG10} }, '';
-  push @{ $invoice_hash{T2RXXXXG11} }, '';
   push @{ $invoice_hash{T2RXXXXG11} }, '';
   push @{ $invoice_hash{T2RXXXXG12} }, '';
-  push @{ $invoice_hash{T2RXXXXG12} }, '';
-
-
   $invoice_hash{T2R01G7} += $line->[5];
   $invoice_hash{T2R01G8} += $line->[6];
   $invoice_hash{T2R01G9} += $line->[7];
@@ -1816,7 +1811,7 @@ my @arr = (
   'T2RXXXXG3S',
   'T2RXXXXG4S',
   'T2RXXXXG5S',
-  'T2RXXXXG6S',
+  'T2RXXXXG6',
   'T2RXXXXG7',
   'T2RXXXXG8',
   'T2RXXXXG9',
@@ -1927,7 +1922,6 @@ if ($FORM{ACCOUNT_ID}) {
    }
  }
       
-#Docs
 if ($FORM{CREATE_INVOICE}) {
   docs_invoice_add({
         	DATE       => $DATE,

@@ -511,6 +511,7 @@ sub msgs_admin {
           	                 "X-ABillS-REPLY-ID: $Msgs->{REPLY_ID}" ] });
      }
     elsif($FORM{INNER_MSG}) {
+    	print "helloooo";
       msgs_notify_admins();    	
      }
     
@@ -884,13 +885,15 @@ foreach my $line (@$list) {
   my $site =  $1 || '';
 
   my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
-           { SITE    => $site, 
+           { SITE    => $site,
+     LOGIN   => $Msgs->{LOGIN} || $FORM{LOGIN},
+     UID     => $Msgs->{UID} || $FORM{UID},
      DATE    => $DATE, 
      TIME    => $TIME,
      ID      => "$Msgs->{INSERT_ID}/$Msgs->{REPLY_ID}", 
      SUBJECT => $FORM{SUBJECT}.' / '.$FORM{REPLY_SUBJECT},
      STATUS  => $msg_status[$FORM{STATE}],
-     MESSAGE => $FORM{MESSAGE} || $FORM{REPLY_TEXT},
+     MESSAGE => $FORM{MESSAGE} || $FORM{REPLY_TEXT} || $Msgs->{MESSAGE},
      ATTACHMENT => $FORM{FILE_UPLOAD}{filename}      
      }, { OUTPUT2RETURN => 1 } );
 
@@ -1334,12 +1337,10 @@ sub msgs_dispatch {
     exit;
    } 
   elsif ($FORM{change}) {
-    
      if ($FORM{STATE} > 0) {
       $FORM{DONE_DATE}="$DATE" if ($FORM{STATE} == 2); 
       $FORM{CLOSED_DATE}="$DATE";
      }
-
     
     $Msgs->dispatch_change({ %FORM });
     $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});  	

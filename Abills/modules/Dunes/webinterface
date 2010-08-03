@@ -47,7 +47,7 @@ my $table = $html->table( { width        => '100%',
                             title_plain  => ["$_NUMBER", 'win_err_handle', "$_TEXT"],
                             cols_align   => ['left', 'left'],
                             qs           => $pages_qs,
-                            pages        => $Dunes->{TOTAL}
+                            pages        => $Dunes->{TOTAL},
                             ID           => 'DUNES_LIST'
                            });
 
