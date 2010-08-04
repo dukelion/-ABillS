@@ -485,8 +485,6 @@ sub dv_user {
 
   if($Dv->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
-	  #$Dv = $Dv->defaults();
-	  
     $Dv->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
  	                                          SELECTED          => $Dv->{TP_ID},
@@ -3542,7 +3540,6 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   #Turbo mode Enable function
   if ($conf{DV_TURBO_MODE} && ! $Dv->{TURBO_MODE}) {
     my (@turbo_mods) = split(/;/, $conf{DV_TURBO_MODE});
-
     if($Dv->{TURBO_MODE_RUN}) {
        $html->message('info', $_INFO, "TURBO $_ENABLE $Dv->{TURBO_MODE_RUN} sec.");
      } 
@@ -3558,17 +3555,11 @@ elsif ($conf{DV_IP_DISCOVERY}) {
      }
    }
 
-
-
-
-  
-
   $html->tpl_show(_include('dv_user_info', 'Dv'), $Dv);
   if ($conf{DV_USER_SERVICE_HOLDUP}) {
   	#$_HOLD_UP
   	dv_holdup_service($Dv);
    }
-
 }
 
 

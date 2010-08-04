@@ -211,6 +211,7 @@ sub docs_invoice {
 #**********************************************************
 sub docs_invoice_list {
 
+
 push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
 for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
@@ -253,8 +254,7 @@ elsif($FORM{print}) {
       $Docs->{'ORDER_NAME_'.$i}  = $line->[1];
       $Docs->{'ORDER_COUNT_'.$i} = $line->[2];
       $Docs->{'ORDER_PRICE_'.$i} = $line->[4];
-      $Docs->{'ORDER_SUM_'.$i}   = $sum;
-       
+      $Docs->{'ORDER_SUM_'.$i}   = $sum;       
       $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[4]);
       $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - $sum / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum);
 		  $Docs->{TOTAL_SUM}+=$sum;
@@ -308,7 +308,7 @@ elsif($FORM{print}) {
   
   if ($conf{DOCS_VAT_INCLUDE}) {
    	 $Docs->{ORDER_TOTAL_SUM_VAT}  = sprintf("%.2f", $Docs->{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
-   	 $Docs->{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f",$Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
+   	 $Docs->{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f", $Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
    	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
    }
  
@@ -356,8 +356,7 @@ if ($FORM{print_list}) {
     $D{CONTRACT_ID}   = $line->[13] || '';
     $D{CONTRACT_DATE} = "$line->[14]" || '0000-00-00';
     
-     	my $method=$line->[7];
-    	
+    my $method=$line->[7];
     	if ($conf{DOCS_PAYMENT_METHODS}) {
         my %methods_hash = %{ cfg2hash($conf{DOCS_PAYMENT_METHODS}) };        
 
@@ -380,42 +379,6 @@ if ($FORM{print_list}) {
      }
     $D{ORDER_PRICE_WITHOUT_VAT_1}=$D{TOTAL_SUM_WITHOUT_VAT} || 0,00;
     $D{ORDER_TOTAL_SUM_VAT}=$D{TOTAL_SUM_VAT} || 0,00;
-
-#   if ($Docs->{TOTAL} > 0) {
-#   	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $D{TOTAL_SUM});
-#      $Docs->{FROM_DATE_LIT}='';
-#
-#     my $list = $Docs->{ORDERS};
-#     my $i=0;
-#     foreach my $line (@$list) {
-#   	   $i++;
-#   	   $Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", 
-#   	     $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[2]*$line->[4])) if (! $conf{DOCS_PDF_PRINT});
-#   	   
-#   	   my $count = $line->[2] || 1;
-#   	   my $sum   = sprintf("%.2f", $count*$line->[4]);
-#   	   
-#   	   $D{'ORDER_NUM_'.$i}   = $i;
-#       $D{'ORDER_NAME_'.$i}  = $line->[1];
-#       $D{'ORDER_COUNT_'.$i} = $count;
-#       $D{'ORDER_PRICE_'.$i} = $line->[4];
-#       $D{'ORDER_SUM_'.$i}   = $sum;
-#       
-#       $D{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[3]);
-#       $D{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum );
-#      }
-#
-#     $D{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $D{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $D{TOTAL_SUM} );
-#     $Docs->{'TOTAL_SUM_VAT'}   = sprintf("%.2f", $D{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
-#     
-#      my $i=0; 
-#      foreach my $field_id ( @{ $Company->{INFO_FIELDS_ARR} } ) {
-#         my($position, $type, $name)=split(/:/, $Company->{INFO_FIELDS_HASH}->{$field_id});
-#         $Company->{$field_id}=$Company->{INFO_FIELDS_VAL}->[$i];
-#         $i++;
-#       }
-#    }
-#-----------------------
     push @MULTI_ARR, { %D, 
                        DOC_NUMBER => sprintf("%.6d",  $doc_num),
     	                };
@@ -425,7 +388,16 @@ if ($FORM{print_list}) {
 
   #print "Content-Type: text/html\n\n";
   print $html->header() if ($FORM{qindex});  
-  my $single_tpl = $html->tpl_show(_include('docs_invoice', 'Docs', { pdf => $FORM{pdf} }), undef, 
+  my $invoice_file = ($D{PAYMENT_METHOD}) ?  'docs_invoice_'.$D{PAYMENT_METHOD} : 'docs_invoice';
+  
+  
+  my $invoice_content = _include($invoice_file, 'Docs', { pdf => $FORM{pdf} });
+
+  if ($invoice_content =~ /No such t/) {
+	  $invoice_content = _include('docs_invoice_1', 'Docs', { pdf => $FORM{pdf} });
+   }
+  
+  my $single_tpl = $html->tpl_show( $invoice_content, undef, 
                                            { MULTI_DOCS   => \@MULTI_ARR, 
   	                                         #SAVE_AS      => $save_filename,
   	                                         #DOCS_IN_FILE => $docs_in_file,
@@ -469,7 +441,7 @@ print $table->show();
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
                          rows       => [ [ $html->button("$_PRINT $_LIST", "qindex=$index&print_list=1$pages_qs". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''), { BUTTON => 1, ex_params => 'target=new'  }), "$_TOTAL:", $html->b($Docs->{TOTAL})
-                          ] ]
+                        ] ]
                       } );
 
 print $table->show();
@@ -723,12 +695,10 @@ if ($FORM{print_list}) {
 	my $list = $Docs->tax_invoice_list( { %LIST_PARAMS, 
 		                                    COMPANY_ID => $FORM{COMPANY_ID},
 		                                    FULL_INFO  => 1 } );
-
   my @MULTI_ARR = ();
   my $doc_num   = 0;
   
   foreach my $line (@$list) {
-
     my %D = ();
     $D{NUMBER}=        $line->[0];
     $D{DATE}  =        $line->[1];
@@ -741,9 +711,6 @@ if ($FORM{print_list}) {
    	   $D{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f", $D{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
    	   $D{TOTAL_SUM_VAT}        = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
      }
-
-
-
 
    if ($Docs->{TOTAL} > 0) {
    	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $D{TOTAL_SUM});
@@ -764,12 +731,9 @@ if ($FORM{print_list}) {
        $D{'ORDER_COUNT_'.$i} = $count;
        $D{'ORDER_PRICE_'.$i} = $line->[4];
        $D{'ORDER_SUM_'.$i}   = $sum;
-       
        $D{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[3]);
        $D{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum );
-      }
-
-     
+      }     
 
      $D{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $D{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $D{TOTAL_SUM} );
      $Docs->{'TOTAL_SUM_VAT'}   = sprintf("%.2f", $D{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
@@ -782,8 +746,7 @@ if ($FORM{print_list}) {
        }
     }
 #-----------------------
-
-    
+   
     push @MULTI_ARR, { %D, 
                        DOC_NUMBER => sprintf("%.6d",  $doc_num),
     	                };
@@ -799,8 +762,6 @@ if ($FORM{print_list}) {
   	                                         #DOCS_IN_FILE => $docs_in_file,
   	                                         debug        => $debug
   	                                       }); 
-
-
 	return 0;
 }
 
@@ -1099,11 +1060,8 @@ sub docs_reports {
 #**********************************************************
 sub docs_account {
  my ($attr) = @_;
-
  $Docs->account_defaults();		
  $Docs->{DATE}=$DATE;
-
- 
 
  if ($FORM{create}) {
    if ($FORM{OP_SID} and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
@@ -1309,14 +1267,11 @@ sub docs_account {
                                      NO_ID       => 1
  	                                  });
 
-  $Docs->{OP_SID}  = mk_unique_value(16);
+  
   $users->pi({  $users->{UID} });
-
+  $Docs->{OP_SID}  = mk_unique_value(16);
   $Docs->{CUSTOMER}= $users->{FIO} || '-';
-  $Docs->{CAPTION} = $_ACCOUNT;
-  
-  
-  
+  $Docs->{CAPTION} = $_ACCOUNT;  
   $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users }) if (! $FORM{pdf});
 }
 
@@ -1433,55 +1388,6 @@ sub docs_summary {
                                      { MULTI_PRINT => \@MULTI_ARR });
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #**********************************************************
 # docs_tax_invoice_list
 #**********************************************************
@@ -1519,11 +1425,7 @@ else {
   	                                  { notprint => 1 }),
   	            HIDDEN_FIELDS => { COMPANY_ID => $FORM{COMPANY_ID} || undef }
 	            });
-
-
-
 #  Date  Customer  Sum  User  Administrators  Time  
-
 if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=1;
   $LIST_PARAMS{DESC}='DESC';
@@ -1594,10 +1496,7 @@ sub docs_acts {
 
 use Dv_Sessions;
 my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
-
-
   #$LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
-
   $Docs->{DATE}     = $FORM{DATE} || $DATE;
   $Docs->{DONE_DATE}= $DATE;
   $Docs->{FROM_DATE}= $DATE;
@@ -1672,9 +1571,7 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
 
    if ($Docs->{TOTAL} > 0) {
    	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
-      $Docs->{FROM_DATE_LIT}='';
-     
-
+     $Docs->{FROM_DATE_LIT}='';
      $Docs->{'TOTAL_SUM'}             = sprintf("%.2f", $Docs->{TOTAL_SUM});
      $Docs->{'TOTAL_SUM_WITHOUT_VAT'} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
      $Docs->{'TOTAL_SUM_VAT'}         = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
@@ -1720,12 +1617,12 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
    }
 
   #$Docs->{COMPANY_VAT}=$user->{COMPANY_VAT}.' %';
-  $Docs->{OP_SID}  = mk_unique_value(16);
+  
   $users->pi({  $users->{UID} });
-
   $Docs->{CUSTOMER}=  $users->{FIO} || '-';
   $Docs->{CAPTION} =  $_ACCOUNT;
-
+  $Docs->{OP_SID}  = mk_unique_value(16);
+  
   my ($Y, $M, $D)=split(/-/, $DATE, 3);  
   my @MONTH_ARR = ('');
   for(my $i=1; $i<13; $i++) {
@@ -1733,8 +1630,6 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
    }
 
   $FORM{MONTH}="$Y-$M" if (! $FORM{MONTH});
-  
-
   my $table = $html->table( { width       => '100%',
   	                          caption     => "$_ACTS",
 	                            rowcolor    => $_COLORS[0],

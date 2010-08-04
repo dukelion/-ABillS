@@ -1,5 +1,16 @@
+<script language=\"JavaScript\" type=\"text/javascript\">
+<!--
+function postthread(param) {
+       param = document.getElementById(param);
+//       param.disabled = true;
+       param.value='Posting...';
+       param.style.backgroundColor='#dddddd'; 
+}
+-->
+</script>
+
 <div class='noprint'>
-<form action='$SELF_URL' METHOD='POST' name='user'>
+<form action='$SELF_URL' METHOD='POST' name='user' onsubmit=\"postthread('submitbutton');\">
 <input type=hidden name=index value=$index>
 <input type=hidden name=subf value=$FORM{subf}>
 <input type=hidden name=OP_SID value=%OP_SID%>
@@ -22,6 +33,6 @@
 
 
 </TABLE>
-<input type=submit name=add value='$_ADD'>
+<input type=submit name=add value='$_ADD' ID='submitbutton' >
 </form>
 </div>
