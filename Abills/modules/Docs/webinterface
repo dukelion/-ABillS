@@ -145,25 +145,22 @@ sub docs_invoice_add  {
 	    $PAYMENTS_METHODS{$k}=$v;
      }
 
-    my $method = 0;
-
-
     $list = $Payments->list({ ID => $Docs->{PAYMENT_ID} });
     if ($Payments->{TOTAL} > 0) {
-    	$method=$list->[0]->[6];
+    	$Docs->{PAYMENT_METHOD_ID}=$list->[0]->[6];
 
     	if ($conf{DOCS_PAYMENT_METHODS}) {
     		my %methods_hash = %{ cfg2hash($conf{DOCS_PAYMENT_METHODS}) };
 
-        if ($methods_hash{$method}) {
-          $Docs->{PAYMENT_METHOD}=$methods_hash{$method};
+        if ($methods_hash{$Docs->{PAYMENT_METHOD_ID}}) {
+          $Docs->{PAYMENT_METHOD}=$methods_hash{$Docs->{PAYMENT_METHOD_ID}};
          }
         else {
         	$Docs->{PAYMENT_METHOD}=$methods_hash{0};
          }
     	 }
     	else {
-        $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$method];
+        $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$Docs->{PAYMENT_METHOD_ID}];
        }
      }
    }
@@ -172,7 +169,18 @@ sub docs_invoice_add  {
 
   $Docs->{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
   $Docs->{'TOTAL_SUM_VAT'}        = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
-  docs_print('invoice', $Docs) if (! $FORM{QUICK});
+  
+  my $invoice_file = ($Docs->{PAYMENT_METHOD_ID}) ?  'docs_invoice_'.$Docs->{PAYMENT_METHOD_ID} : 'docs_invoice';
+  my $invoice_content = _include($invoice_file, 'Docs', { pdf => $FORM{pdf} });
+
+  if ($invoice_content =~ /No such t/) {
+	  $invoice_file = 'invoice';
+   }
+  else {
+  	$invoice_file = 'invoice_'.$Docs->{PAYMENT_METHOD_ID};
+   }
+  
+  docs_print("$invoice_file", $Docs) if (! $FORM{QUICK});
 }
 
 
@@ -238,8 +246,7 @@ elsif($FORM{print}) {
   $Docs->docs_invoice_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
   ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
   $Docs->{TOTAL_SUM}=0.00;
-  
- 
+   
   if ($Docs->{ORDERS}) {
 		my $i = 1;
 		my @ORDERS = @{ $Docs->{ORDERS} };
@@ -283,24 +290,22 @@ elsif($FORM{print}) {
 	    $PAYMENTS_METHODS{$k}=$v;
      }
 
-    my $method = 0;
-
     $list = $Payments->list({ ID => $Docs->{PAYMENT_ID} });
     if ($Payments->{TOTAL} > 0) {
-    	$method=$list->[0]->[6];
+    	$Docs->{PAYMENT_METHOD_ID}=$list->[0]->[6];
     	
     	if ($conf{DOCS_PAYMENT_METHODS}) {
         my %methods_hash = %{ cfg2hash($conf{DOCS_PAYMENT_METHODS}) };        
 
-        if ($methods_hash{$method}) {
-          $Docs->{PAYMENT_METHOD}=$methods_hash{$method};
+        if ($methods_hash{$Docs->{PAYMENT_METHOD_ID}}) {
+          $Docs->{PAYMENT_METHOD}=$methods_hash{$Docs->{PAYMENT_METHOD_ID}};
          }
         else {
         	$Docs->{PAYMENT_METHOD}=$methods_hash{0};
          }
     	 }
     	else {
-        $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$method];
+        $Docs->{PAYMENT_METHOD} = $PAYMENT_METHODS[$Docs->{PAYMENT_METHOD_ID}];
        }
 
      }
@@ -311,8 +316,18 @@ elsif($FORM{print}) {
    	 $Docs->{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f", $Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
    	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
    }
- 
-  docs_print('invoice', $Docs);
+
+  my $invoice_file = ($Docs->{PAYMENT_METHOD_ID}) ?  'docs_invoice_'.$Docs->{PAYMENT_METHOD_ID} : 'docs_invoice';
+  my $invoice_content = _include($invoice_file, 'Docs', { pdf => $FORM{pdf} });
+
+  if ($invoice_content =~ /No such t/) {
+	  $invoice_file = 'invoice';
+   }
+  else {
+  	$invoice_file = 'invoice_'.$Docs->{PAYMENT_METHOD_ID};
+   }
+
+  docs_print($invoice_file, $Docs);
   return 0;
  }
 elsif (! $LIST_PARAMS{UID}) {
@@ -389,12 +404,10 @@ if ($FORM{print_list}) {
   #print "Content-Type: text/html\n\n";
   print $html->header() if ($FORM{qindex});  
   my $invoice_file = ($D{PAYMENT_METHOD}) ?  'docs_invoice_'.$D{PAYMENT_METHOD} : 'docs_invoice';
-  
-  
   my $invoice_content = _include($invoice_file, 'Docs', { pdf => $FORM{pdf} });
 
   if ($invoice_content =~ /No such t/) {
-	  $invoice_content = _include('docs_invoice_1', 'Docs', { pdf => $FORM{pdf} });
+	  $invoice_content = _include('docs_invoice', 'Docs', { pdf => $FORM{pdf} });
    }
   
   my $single_tpl = $html->tpl_show( $invoice_content, undef, 

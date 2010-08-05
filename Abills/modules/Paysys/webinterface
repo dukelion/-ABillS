@@ -487,10 +487,8 @@ if ($Paysys::VERSION < 3.2) {
  	return 0;
  }
 
-
 if ($FORM{info}) {
 	$Paysys->info({ID => $FORM{info} });
-  
   my @info_arr = split(/\n/, $Paysys->{INFO});
   my $table = $html->table( { width => '100%' });
   foreach my $line (@info_arr) {
@@ -499,7 +497,6 @@ if ($FORM{info}) {
    }
 
   $Paysys->{INFO}=$table->show();
-
   $table = $html->table( { width   => '500',
   	                       caption => $_INFO,
                            rows => [ [ "ID",            $Paysys->{ID}       ],
@@ -529,23 +526,20 @@ if ($Paysys->{errno}) {
   $html->message('err', $_ERROR, "[$Paysys->{errno}] $err_strs{$Paysys->{errno}}");
  }
 
-
-
-
 my %info = ();
-$info{PAY_SYSTEMS_SEL}=$html->form_select('PAYMENT_SYSTEM', 
+
+if (! $user) {
+  $info{PAY_SYSTEMS_SEL}=$html->form_select('PAYMENT_SYSTEM', 
                                           { 
  	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
  	                                          SEL_HASH  => { '' => $_ALL, %PAY_SYSTEMS },
  	                                          NO_ID     => 1
  	                                        });
-
-
-form_search({ SEARCH_FORM => $html->tpl_show(_include('paysys_search', 'Paysys'), 
+  form_search({ SEARCH_FORM => $html->tpl_show(_include('paysys_search', 'Paysys'), 
 	                         { %info, %FORM }, 
-	                         { notprint => 1 })  
+	                         { OUTPUT2RETURN => 1 })  
 	            });
-
+}
 
 
 if (! defined($FORM{sort})) {
@@ -561,7 +555,7 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Paysys->{TOTAL},
-                            ID         => 'PAYSYS'
+                            ID         => 'PAYSYS_LOG'
                            });
 
 foreach my $line (@$list) {
@@ -574,8 +568,8 @@ foreach my $line (@$list) {
     $html->button("$line->[5]", "index=2&EXT_ID=$line->[5]&search=1"),
     "$line->[6]",
     "$line->[7]",
-    $html->button($_INFO, "index=$index&info=$line->[0]"),
-    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
+    $html->button($_INFO, "index=$index&info=$line->[0]", { BUTTON => 1 }),
+    ($user) ? '-' : $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?",  BUTTON => 1 })
    );
 }
 print $table->show();
@@ -585,8 +579,6 @@ $table = $html->table( { width      => '100%',
                          rows       => [ [ "$_TOTAL:", $html->b($Paysys->{TOTAL}), "$_SUM", $html->b($Paysys->{SUM}) ] ]
                         } );
 print $table->show();
-
-
 }
 
 #**********************************************************

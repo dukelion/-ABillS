@@ -5,3 +5,4 @@
 <tr><td>$_TRANSACTION:</td><td><input type=text name='TRANSACTION' value='%TRANSACTION%'></td></tr>
 <tr><td>$_INFO:</td><td><input type=text name='INFO' value='%INFO%'></td></tr>
 
+

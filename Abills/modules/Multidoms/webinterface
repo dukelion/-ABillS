@@ -224,15 +224,13 @@ sub multidoms_reseller_nas_groups_templates {
     $FORM{subf}=$index;
     multidoms_reseller_nas_groups();
     return 0;
- }
+   }
 	
   my $safe_filename_characters = "a-zA-Z0-9_.-"; 
   my $sys_templates = '../Abills/modules';
   my $main_templates_dir = '../Abills/main_tpls/';
   my $template = '';
   my %info = ();
-  
- 
   my $domain_path = '';
   
   if ($admin->{DOMAIN_ID}) {
@@ -241,8 +239,7 @@ sub multidoms_reseller_nas_groups_templates {
 	  $conf{TPL_DIR} = "$conf{TPL_DIR}/$domain_path/$FORM{NAS_GID}";
    }
 
-
-$info{ACTION_LNG}=$_CHANGE;
+ $info{ACTION_LNG}=$_CHANGE;
 
 
 if ($FORM{create}) {
@@ -275,21 +272,15 @@ if ($FORM{create}) {
 
 
   $info{TEMPLATE} =~ s/\\"/"/g;
-
   $info{TEMPLATE}=~s/\%BODY\%/__BODY__/g;
-
   show_tpl_info($filename);
  }
 elsif ($FORM{SHOW}) {
 	print $html->header();
-
   my ($module, $file, $lang)=split(/:/, $FORM{SHOW}, 3);
   $file =~ s/.tpl//;
-
   $file =~ s/ |\///g;
-
   $html->{language}=$lang if ($lang ne '');
-
 
   if ($module) {
     my $realfilename = "$prefix/Abills/modules/$module/lng_$html->{language}.pl";
@@ -316,7 +307,6 @@ elsif ($FORM{SHOW}) {
    } 
 
   print "</center>\n";
-	
 	return 0;
  }
 elsif ($FORM{change}) {
@@ -474,9 +464,7 @@ if ( -f "$sys_templates/$module/templates/describe.tpls" ) {
 		    $tpls_describe{$tpl}=$describe;
   		 }
 	   }
-	
   }
-	
 }
 
 
@@ -493,8 +481,10 @@ if ( -f "$sys_templates/$module/templates/describe.tpls" ) {
       'Cards:cards_card_info.tpl',
       ':form_buy_cards.tpl',
       ':form_buy_cards_card.tpl',
+      ':form_buy_cards_card_paysys.tpl',
       ':form_hotspot_login.tpl',
-      ':form_client_hotspot_start.tpl'
+      ':form_client_hotspot_start.tpl',
+      ':form_client_start.tpl',
     );
 
     $table->{rowcolor}= undef;

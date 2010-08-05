@@ -20,5 +20,10 @@ if ($conf{PAYSYS_P24_MERCHANT_ID}) {
  
 %PERIODIC = (daily   => [ 'paysys_periodic' ],
              );
+             
+%RESELLER_FUNCTION_LIST = (
+                        "44:0:$_PAY_SYSTEM:paysys_log:"               => 20,
+                       );
+
 
 1
