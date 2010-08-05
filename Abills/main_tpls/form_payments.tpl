@@ -2,8 +2,8 @@
 <!--
 function postthread(param) {
        param = document.getElementById(param);
-//       param.disabled = true;
-       param.value='Posting...';
+//       var id = setTimeout(param.disabled=true,10);
+       param.value='$_IN_PROGRESS...';
        param.style.backgroundColor='#dddddd'; 
 }
 -->

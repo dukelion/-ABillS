@@ -10,3 +10,11 @@ form_buy_cards_card.tpl:english:Buy cards interface card designe
 form_buy_cards.tpl:russian:Форма покупки карточек
 form_buy_cards_card.tpl:russian:Дизайн карточки из формы покупки
 
+form_buy_cards_card_paysys.tpl:Платёжные системы для покупки карточек
+form_client_start.tpl:Общий шаблон страници пользователя
+form_hotspot_login.tpl:Форма логина для Hotspot
+cards_card_info.tpl:Информация о карточке
+
+form_payment.tpl:Форма оплаты
+form_fees.tpl:Форма снятия денег
+form_password.tpl:форма изминения пароля

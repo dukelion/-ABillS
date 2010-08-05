@@ -437,3 +437,4 @@ $_COMMISSION='Commission';
 
 $_PAY_SYSTEM='Payment system';
 $_BUY='Buy';
+$_IN_PROGRESS='In progress';
