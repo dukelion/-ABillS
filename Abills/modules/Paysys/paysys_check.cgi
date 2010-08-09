@@ -195,7 +195,7 @@ elsif ($ip_num > $first_ip && $ip_num < $last_ip) {
         exit;
  } 
 #USMP
-elsif('77.222.138.142,195.10.218.120' =~ /$ENV{REMOTE_ADDR}/ && ! $conf{PAYSYS_USMP_OLD}) {
+elsif('77.222.138.142,195.10.218.120,192.168.1.50' =~ /$ENV{REMOTE_ADDR}/ && ! $conf{PAYSYS_USMP_OLD}) {
   usmp_payments_v2();
   exit;
  }
@@ -1074,44 +1074,35 @@ else {
 $FORM{__BUFFER}='' if (! $FORM{__BUFFER});
 $FORM{__BUFFER}=~s/data=//;
 
-
-#
-#$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="utf-8"?>
-#<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-#  <soap:Body>
-#    <ProcessPayment xmlns="http://usmp.com.ua/">
-#      <request>
-#        <Serial>VZJxfNNYJ4XGtwm2T</Serial>
-#        <KeyWord>WrnVmkcYMPDYxvNvLQDKRB</KeyWord>
-#        <Payments>
-#          <PaymentDetails>
-#            <Date>DateTime</Date>
-#            <PayElementID>int</PayElementID>
-#            <Account>string</Account>
-#            <Amount>int</Amount>
-#            <ChequeNumber>int</ChequeNumber>
-#          </PaymentDetails>
-#          <PaymentDetails>
-#            <Date>DateTime</Date>
-#            <PayElementID>int</PayElementID>
-#            <Account>string</Account>
-#            <Amount>int</Amount>
-#            <ChequeNumber>int</ChequeNumber>
-#          </PaymentDetails>
-#        </Payments>
-#      </request>
-#    </ProcessPayment>
-#  </soap:Body>
-#</soap:Envelope>
-#
-#};
+$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<soap:Body>
+<ProcessPayment xmlns="http://usmp.com.ua/">
+<request>
+<Serial>Serial1</Serial>
+<KeyWord>KeyWord</KeyWord>
+<Payments>
+<PaymentDetails>
+<Date>2010-08-09T15:24:42.000000+03:00</Date>
+<PayElementID>100</PayElementID>
+<Account>test</Account>
+<Amount>150</Amount>
+<ChequeNumber>12</ChequeNumber>
+</PaymentDetails>
+</Payments>
+</request>
+</ProcessPayment>
+</soap:Body>
+</soap:Envelope>
+};
 
 
 my $_xml = eval { XMLin("$FORM{__BUFFER}", forcearray=>1) };
 
 if($@) {
 	print "Content-Type: text/xml\n\n";
-  usmp_error_msg('212', 'Incorrect XML');
+  usmp_error_msg('212', 'Incorrect XML', { RESPONSE => $request_type,
+  	                                       RESULT   => $request_type  });
 
 	my $content = $FORM{__BUFFER};
   open(FILE, ">>paysys_xml.log") or die "Can't open file 'paysys_xml.log' $!\n";
@@ -1149,14 +1140,10 @@ my $id    = 0;
 my $accid = ''; 
 my $sum   = 0;  
 my $date  = ''; 
-my $ChequeNumber = ''; 
-
-
+my $ChequeNumber = '';
 
 $request_hash{'KeyWord'} = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{KeyWord}->[0];
 $request_hash{'Serial'}  = $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{Serial}->[0];
-
-
 my $err_code = 0;
 my $type     = '';
 print "Content-Type: text/xml\n\n";
@@ -1170,15 +1157,18 @@ $conf{PAYSYS_USMP_MAXSUM} = (! $conf{PAYSYS_USMP_MAXSUM}) ? 100000 : $conf{PAYSY
 # }
 
 if (! $request_hash{'Serial'} || ! $request_hash{'KeyWord'}) {
-  usmp_error_msg('212', 'Incorrect XML');
+  usmp_error_msg('212', 'Incorrect XML', { RESPONSE => $request_type,
+  	                                       RESULT   => $request_type  });
   return 0;
  }
 elsif ($request_hash{'Serial'} ne $conf{'PAYSYS_USMP_SERIAL'}){
-  usmp_error_msg('211', 'IncorrectSerial');
+  usmp_error_msg('211', 'IncorrectSerial', { RESPONSE => $request_type,
+ 	                                           RESULT   => $request_type  });
   return 0;
  }
 elsif($request_hash{'KeyWord'} ne $conf{'PAYSYS_USMP_KEYWORD'}) {
-  usmp_error_msg('210', 'IncorrectKeyWord');
+  usmp_error_msg('210', 'IncorrectKeyWord', { RESPONSE => $request_type,
+  	                                          RESULT   => $request_type  });
   return 0;
  }
 #add money
@@ -1186,9 +1176,7 @@ elsif($request_type eq 'ProcessPayment') {
   $type = 'ProcessPaymentsResponse';
   my @result_arr = ();
   my $user;
-
   my @payments_arr = @{ $_xml->{'soap:Body'}->[0]->{$request_type}->[0]->{request}->[0]->{Payments}->[0]->{PaymentDetails} };
-
 
   for(my $i=0; $i<=$#payments_arr; $i++) {
     my $id           = $payments_arr[$i]->{ChequeNumber}->[0];
@@ -1197,8 +1185,6 @@ elsif($request_type eq 'ProcessPayment') {
     my $sum          = $payments_arr[$i]->{Amount}->[0] / 100;
     my $date         = $payments_arr[$i]->{Date}->[0];
     my $PayElementID = $payments_arr[$i]->{PayElementID}->[0];
-  
- 
   
     $result_arr[$i]{ChequeNumber}= $id;
     $result_arr[$i]{Status}      = 0;
@@ -1299,7 +1285,6 @@ print << "[END]";
   </soap:Body>
 </soap:Envelope>
 [END]
-
  }
 #Get payments statua   
 elsif($request_type eq 'GetStatus') {
@@ -1320,7 +1305,8 @@ elsif($request_type eq 'GetStatus') {
   
 
   if ($payments->{errno}) {
-     usmp_error_msg('108', "Payments error");
+     usmp_error_msg('108', "Payments error", { RESPONSE => $request_type,
+  	                                           RESULT   => $request_type  });
    }
 
   foreach my $line (@$list) {
@@ -1378,11 +1364,13 @@ elsif($request_type eq 'GetLimit') {
 
   my $user ;
   if ($users->{errno}) {
-    usmp_error_msg('113', "Can't  find account");
+    usmp_error_msg('113', "Can't  find account", { RESPONSE => $request_type,
+  	                                               RESULT   => $request_type  });
     return 0;
    }
   elsif ($users->{TOTAL} < 1) {
-    usmp_error_msg('113', "Can't  find account");
+    usmp_error_msg('113', "Can't  find account", { RESPONSE => $request_type,
+  	                                               RESULT   => $request_type  });
     return 0;
    }
   else {
@@ -1418,7 +1406,8 @@ elsif($request_type eq 'ValidatePhone') {
 	
 	
 	if ($accid eq '') {
-    usmp_error_msg('113', "Can't  find account");
+    usmp_error_msg('113', "Can't  find account", { RESPONSE => $request_type,
+  	                                               RESULT   => $request_type  });
     return 0;
    }
 
@@ -1514,17 +1503,21 @@ print << "[END]";
 #
 #**********************************************************
 sub usmp_error_msg {
-  my ($code, $message) = @_;
+  my ($code, $message, $attr) = @_;
+
+  my $type_response = ($attr->{RESPONSE}) ? $attr->{RESPONSE}.'Response': 'GetStatusResponse';
+  my $type_result   = ($attr->{RESULT}) ?  $attr->{RESULT}.'Result': 'GetStatusResult';
+  
 print << "[END]";
 <?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <soap:Body>
-    <GetStatusResponse xmlns="http://usmp.com.ua/">
-      <GetStatusResult xsi:type="ErrorMessageResponse">
+    <$type_response xmlns="http://usmp.com.ua/">
+      <$type_result xsi:type="ErrorMessageResponse">
         <ErrorCode>$code</ErrorCode>
         <ErrorMessage>$message</ErrorMessage>
-      </GetStatusResult>
-    </GetStatusResponse>
+      </$type_result>
+    </$type_response>
   </soap:Body>
 </soap:Envelope>
 [END]
@@ -1585,7 +1578,7 @@ else {
 	$user = $users->info($uid); 
 }
 
-if (!$err_code) {    
+if (!$err_code) {
 	$date =~ s/\s/%20/;
 	$date =~ s/:/%3A/g;
 	my $data = "account=" . $accid . "&date=" . $date . "&hash=" . $hash . "&id=" . $id . "&sum=" . $summ . "&testMode=0&type=1";
