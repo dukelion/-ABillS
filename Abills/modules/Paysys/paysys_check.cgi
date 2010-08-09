@@ -114,8 +114,6 @@ if ($conf{PAYSYS_PASSWD}) {
   }
 }
 
-
-
 $Paysys   = Paysys->new($db, undef, \%conf);
 $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => $ENV{REMOTE_ADDR} });

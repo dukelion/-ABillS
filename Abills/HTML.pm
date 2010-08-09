@@ -1169,22 +1169,20 @@ $head
 sub pre {
  my $self = shift;
  my ($message, $attr) = @_;
- 
- 
+
 my $output = qq{
 <pre>
 $message
 </pre>
 };
 
-  if ($self->{NO_PRINT} || $attr->{OUTPUT2RETURN}) {
-  	$self->{OUTPUT}.=$output;
-  	return $output;
-   }
-	else { 
- 	  print $output;
-	 }
-
+if ($self->{NO_PRINT} || $attr->{OUTPUT2RETURN}) {
+ 	$self->{OUTPUT}.=$output;
+ 	return $output;
+ }
+else { 
+  print $output;
+ }
 }
 
 
@@ -1206,7 +1204,7 @@ sub b {
 sub color_mark {
  my $self = shift;
  my ($message, $color) = @_;
- 
+
  my $output = "<font color=$color>$message</font>";
 
  return $output;
@@ -1245,7 +1243,6 @@ return "<div id=\"rules\"><ul><li class=\"center\">\n".
         $self->{pages}.
        "\n</li></ul></div>\n";
 }
-
 
 
 #*******************************************************************
@@ -1728,9 +1725,6 @@ sub make_charts {
 
    	$data .= "</chart_type>\n";
    }
-  
-  
-
 
     #Make right text
     if (defined($attr->{AVG}{MONEY}) && $attr->{AVG}{MONEY} > 0) {
@@ -1829,6 +1823,18 @@ if (AC_FL_RunContent == 0 || DetectFlashVer == 0) {
    }
 
   print $output;
+}
+
+
+#**********************************************************
+# Braske line
+#
+#**********************************************************
+sub br () {
+	my $self = shift;
+	my ($attr) = @_;
+	
+	return '<br/>';
 }
 
 1

@@ -2610,7 +2610,6 @@ else {
 my $tyear = $year - 1900;
 my $curtime = POSIX::mktime(0, 1, 1, 1, $month, $tyear);
 my ($sec,$min,$hour,$mday,$mon, $gyear,$gwday,$yday,$isdst) = gmtime($curtime);
-#print  "($sec,$min,$hour,$mday,$mon,$gyear,$gwday,$yday,$isdst)<br>";
 
 print "<br><TABLE width=\"400\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">
 <tr><TD bgcolor=\"$_COLORS[4]\">
@@ -5594,15 +5593,15 @@ if (-d $main_templates_dir ) {
       my @rows = (
       "$file", $size, $mtime, 
          (($tpl_describe->{$file}) ? $tpl_describe->{$file} : '' ),
-         $html->button($_SHOW, "#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file", BUTTON => 1, SIZE => 10 }) .'<br>'.
-         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name="."_$file", { BUTTON => 1, }) : $html->button($_CREATE, "index=$index&create=:$file", { BUTTON => 1, }) ) .'<br>'.
+         $html->button($_SHOW, "#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file", BUTTON => 1, SIZE => 10 }) .$html->br().
+         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name="."_$file", { BUTTON => 1, }) : $html->button($_CREATE, "index=$index&create=:$file", { BUTTON => 1, }) ) .$html->br().
          ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($_DEL, "index=$index&del=". "_$file", { MESSAGE => "$_DEL '$file'", BUTTON => 1, }) : '' )
       );    
 
       $file =~ s/\.tpl//;
       foreach my $lang (@caption) {
       	 my $f = '_'.$file.'_'.$lang.'.tpl';
-        push @rows,  ((-f "$conf{TPL_DIR}/$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang" , BUTTON => 1}).'<br>'. $html->button($html->b($_CHANGE), "index=$index&tpl_name=$f", { BUTTON => 1 }) : $html->button($_CREATE, "index=$index&create=:$file".'.tpl'.":$lang", { BUTTON => 1 }) ).'<br>'.
+        push @rows,  ((-f "$conf{TPL_DIR}/$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang" , BUTTON => 1}).$html->br(). $html->button($html->b($_CHANGE), "index=$index&tpl_name=$f", { BUTTON => 1 }) : $html->button($_CREATE, "index=$index&create=:$file".'.tpl'.":$lang", { BUTTON => 1 }) ).$html->br().
          ( (-f "$conf{TPL_DIR}/$f") ? $html->button($_DEL, "index=$index&del=$f", { MESSAGE => "$_DEL '$f'", BUTTON => 1 }) : '' );
        }
 
@@ -5650,8 +5649,8 @@ foreach my $module (sort @MODULES) {
       # LANG
       my @rows = ("$file", $size, $mtime, 
          (($tpl_describe->{$file}) ? $tpl_describe->{$file} : '' ),
-         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file", BUTTON => 1 }) .'<br>'.
-         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name=$module"."_$file", { BUTTON => 1 }) : $html->button($_CREATE, "index=$index&create=$module:$file", { BUTTON => 1 }) ). '<br>'.
+         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file", BUTTON => 1 }) .$html->br().
+         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name=$module"."_$file", { BUTTON => 1 }) : $html->button($_CREATE, "index=$index&create=$module:$file", { BUTTON => 1 }) ). $html->br().
          ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file", BUTTON => 1 }) : '' )
         );
       
@@ -5661,7 +5660,7 @@ foreach my $module (sort @MODULES) {
       foreach my $lang (@caption) {
       	  my $f = '_'.$file.'_'.$lang.'.tpl';
       	
-        push @rows,  ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang", { BUTTON => 1 } }) .'<br>'. $html->button($html->b($_CHANGE), "index=$index&tpl_name=$module"."$f", {  BUTTON => 1 } ) : $html->button($_CREATE, "index=$index&create=$module:$file".'.tpl'.":$lang", { BUTTON => 1 }) ).'<br>'.
+        push @rows,  ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang", { BUTTON => 1 } }) .$html->br(). $html->button($html->b($_CHANGE), "index=$index&tpl_name=$module"."$f", {  BUTTON => 1 } ) : $html->button($_CREATE, "index=$index&create=$module:$file".'.tpl'.":$lang", { BUTTON => 1 }) ).$html->br().
          ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_DEL, "index=$index&del=$module". "$f", { MESSAGE => "$_DEL $file", BUTTON => 1 }) : '');
        }
 
@@ -6108,7 +6107,7 @@ sub sel_groups {
 sub form_sql_backup {
 if ($FORM{mk_backup}) {
    $conf{dbcharset}='latin1' if (!$conf{dbcharset});
-   print "$MYSQLDUMP --default-character-set=$conf{dbcharset} --host=$conf{dbhost} --user=\"$conf{dbuser}\" --password=\"****\" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/abills-$DATE.sql.gz<br>";
+   print "$MYSQLDUMP --default-character-set=$conf{dbcharset} --host=$conf{dbhost} --user=\"$conf{dbuser}\" --password=\"****\" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/abills-$DATE.sql.gz".$html->br();
    my $res = `$MYSQLDUMP --default-character-set=$conf{dbcharset} --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/abills-$DATE.sql.gz`;
    $html->message('info', $_INFO, "Backup created: $res ($conf{BACKUP_DIR}/abills-$DATE.sql.gz)");
  }

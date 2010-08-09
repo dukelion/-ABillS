@@ -884,7 +884,7 @@ my $message;
 if ($FORM{ping}) {
   if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
     my $res = `/sbin/ping -c 5 $FORM{ping}`;
-    $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
+    $html->message('info', $_INFO,  "Ping  $FORM{ping}". $html->br(). 'Result:' . $html->br(). $html->pre($res));
    }
   else {
     $html->message('err', $_ERROR,  "$ERR_WRONG_DATA");
@@ -1932,13 +1932,13 @@ $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right', 'right', 'right', 'right', 'right'],
                          rows       => [ [ "$_USERS: ".       $html->b( $sessions->{USERS} ),
                                            "$_SESSIONS: ".    $html->b( $sessions->{SESSIONS} ), 
-                                           "$_TRAFFIC: ".     $html->b( int2byte($sessions->{TRAFFIC}) ) ."<BR>".
-                                           "$_TRAFFIC IN: ".  $html->b( int2byte($sessions->{TRAFFIC_IN}) ) ."<BR>".
+                                           "$_TRAFFIC: ".     $html->b( int2byte($sessions->{TRAFFIC}) ) .$html->br().
+                                           "$_TRAFFIC IN: ".  $html->b( int2byte($sessions->{TRAFFIC_IN}) ) .$html->br().
                                            "$_TRAFFIC OUT: ". $html->b( int2byte($sessions->{TRAFFIC_OUT}) ) 
                                            , 
                                            
-                                           "$_TRAFFIC 2: ". $html->b(int2byte($sessions->{TRAFFIC_2})) ."<br>".
-                                           "$_TRAFFIC 2 IN: ". $html->b( int2byte($sessions->{TRAFFIC_2_IN}) ) ."<BR>".
+                                           "$_TRAFFIC 2: ". $html->b(int2byte($sessions->{TRAFFIC_2})) .$html->br().
+                                           "$_TRAFFIC 2 IN: ". $html->b( int2byte($sessions->{TRAFFIC_2_IN}) ) .$html->br().
                                            "$_TRAFFIC 2 OUT: ". $html->b( int2byte($sessions->{TRAFFIC_2_OUT}) )
                                           , 
                                            
@@ -3191,7 +3191,7 @@ elsif($FORM{del}) {
    	 next if ($line->[0] == $Dv->{TP_ID});
    	 
    	 $table->addrow($line->[0], 
-   	   $html->b($line->[1]).'<br>'.$line->[19],
+   	   $html->b($line->[1]).$html->br().convert($line->[19], { text2html => 1  }),
    	   $html->form_input('TP_ID', "$line->[0]", { TYPE => 'radio', OUTPUT2RETURN => 1 })
    	   );
     }
@@ -5152,7 +5152,6 @@ else {
  if ($attr->{TPLS}) {
    while(my($k, $v)=each %{ $attr->{TPLS} } ) {
    	  $tpls{$k}=$v;
-   	  #print "$k, $v<br>";   	
      }
   }
 
@@ -5816,8 +5815,9 @@ my $table = $html->table( { width      => '100%',
                             ID         => 'DV_TRAFFIC_CLASSES'
                            });
 
+my $br = $html->br();
 foreach my $line (@$list) {
-  $line->[2] =~ s/\n/<br\/>/g;
+  $line->[2] =~ s/\n/$br/g;
   $table->addrow(
     "$line->[0]",
     "$line->[1]", 
