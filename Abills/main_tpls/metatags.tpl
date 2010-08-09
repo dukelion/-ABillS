@@ -203,14 +203,12 @@ a.button_del {
 }
 
 
-
 .link_button {
   font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
   background-color: %_COLOR_2%;
   color: %_COLOR_9%;
   border-color : #9F9F9F;
   font-size: 11px;
-  padding: 2px;
   border: 1px outset;
   text-decoration: none;
   padding:1px 5px;

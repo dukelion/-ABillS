@@ -3158,6 +3158,7 @@ elsif($FORM{del}) {
                                             ]
                                } );
   	$tariffs->{TARIF_PLAN_SEL} = $table->show({ OUTPUT2RETURN => 1 }). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", { TYPE => 'HIDDEN', OUTPUT2RETURN => 1 });
+ 	  $tariffs->{TARIF_PLAN_TABLE} = $tariffs->{TARIF_PLAN_SEL};
   	$tariffs->{ACTION}='del';
   	$tariffs->{LNG_ACTION}=$_DEL;
   }
@@ -3174,6 +3175,28 @@ elsif($FORM{del}) {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
+   $table = $html->table( { width      => '100%',
+  		                      caption    => "$_TRAFIF_PLANS",
+                            cols_align => ['left', 'left'],
+                         } );
+
+   my $list = $tariffs->list({ TP_GID       => $Dv->{TP_GID}, 
+ 	                             CHANGE_PRICE => '<='. ($user->{DEPOSIT} + $user->{CREDIT}), 
+ 	                             MODULE       => 'Dv',
+ 	                             PRIORITY     => $Dv->{TP_PRIORITY},
+ 	                             COMMENTS     => '*'
+ 	                           });
+
+   foreach my $line (@$list) {
+   	 next if ($line->[0] == $Dv->{TP_ID});
+   	 
+   	 $table->addrow($line->[0], 
+   	   $html->b($line->[1]).'<br>'.$line->[19],
+   	   $html->form_input('TP_ID', "$line->[0]", { TYPE => 'radio', OUTPUT2RETURN => 1 })
+   	   );
+    }
+   $tariffs->{TARIF_PLAN_TABLE}=$table->show({ OUTPUT2RETURN => 1 });
+
    if ($tariffs->{TOTAL} == 0) { 
      $html->message('info', $_INFO, "$ERR_SMALL_DEPOSIT", { ID => 142 });
      return 0;	
@@ -3189,7 +3212,7 @@ elsif($FORM{del}) {
    $tariffs->{TP_ID}   = $Dv->{TP_ID};
    $tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME}";
 
-   $html->tpl_show(templates('form_chg_tp'), $tariffs);
+   $html->tpl_show(templates('form_client_chg_tp'), $tariffs);
 }
 
 

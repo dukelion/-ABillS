@@ -58,7 +58,8 @@ my %FIELDS = ( ID               => 'id',
                ABON_DISTRIBUTION=> 'abon_distribution',
                DOMAIN_ID        => 'domain_id',
                PRIORITY         => 'priority',
-               SMALL_DEPOSIT_ACTION => 'small_deposit_action'
+               SMALL_DEPOSIT_ACTION => 'small_deposit_action',
+               COMMENTS        => 'comments'
              );
 
 #**********************************************************
@@ -400,6 +401,7 @@ sub defaults {
             DOMAIN_ID        => 0,
             PRIORITY         => 0,
             SMALL_DEPOSIT_ACTION => 0,
+            COMMENTS         => ''
          );   
  
   $self = \%DATA;
@@ -439,7 +441,8 @@ sub add {
      abon_distribution,
      small_deposit_action,
      domain_id,
-     priority
+     priority,
+     comments
      )
     values ('$DATA{ID}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', 
@@ -462,13 +465,11 @@ sub add {
      '$DATA{ABON_DISTRIBUTION}',
      '$DATA{SMALL_DEPOSIT_ACTION}',
      '$admin->{DOMAIN_ID}',
-     '$DATA{PRIORITY}'
+     '$DATA{PRIORITY}',
+     '$DATA{COMMENTS}'
      );", 'do' );
-
-
-
+     
   $self->{TP_ID}=$self->{INSERT_ID};
-
   $admin->system_action_add("TP:$DATA{TP_ID}", { TYPE => 1 });
   return $self;
 }
@@ -577,7 +578,8 @@ sub info {
       small_deposit_action,
       tp_id,
       domain_id,
-      priority
+      priority,
+      comments
     FROM tarif_plans
     WHERE $WHERE;");
 
@@ -628,7 +630,8 @@ sub info {
    $self->{SMALL_DEPOSIT_ACTION},
    $self->{TP_ID},
    $self->{DOMAIN_ID},
-   $self->{PRIORITY}
+   $self->{PRIORITY},
+   $self->{COMMENTS},
   ) = @{ $self->{list}->[0] };
 
   return $self;
@@ -654,6 +657,11 @@ sub list {
  if (defined($attr->{TP_ID})) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'tp.id') };
   }
+
+ if ($attr->{COMMENTS}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'STR', 'tp.comments', { EXT_FIELD => 1 }) };
+  }
+
 
  if (defined($attr->{MODULE})) {
    push @WHERE_RULES, "tp.module='$attr->{MODULE}'"; 
@@ -704,7 +712,9 @@ sub list {
     tp.min_use,
     tp.abon_distribution,
     tp.tp_id,
+    $self->{SEARCH_FIELDS}
     tp.small_deposit_action
+    
     FROM (tarif_plans tp)
     LEFT JOIN intervals i ON (i.tp_id=tp.tp_id)
     LEFT JOIN trafic_tarifs tt ON (tt.interval_id=i.id)

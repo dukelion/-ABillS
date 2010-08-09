@@ -18,8 +18,6 @@ my $SUDO = '/usr/local/bin/sudo';
 
 my $NAS;
 my $nas_type = '';
-
-
 my %stats = ();
 
 
@@ -76,7 +74,7 @@ sub hangup {
  elsif ($nas_type eq 'openvpn') {
    hangup_openvpn($NAS, $PORT, $USER);
   } 
- elsif ($nas_type eq 'ipcad') {
+ elsif ($nas_type eq 'ipcad' || $nas_type eq 'dhcp') {
    hangup_ipcad($NAS, $PORT, $USER, $attr);
   }
  elsif ($nas_type eq 'patton')  {
@@ -133,15 +131,12 @@ sub telnet_cmd {
  my($hostname, $commands, $attr)=@_;
  my $port = 23;
 
-
  if ($hostname =~ /:/) {
    ($hostname, $port)=split(/:/, $hostname, 2);
  }
 
  my $debug   = ($attr->{debug}) ? 1 : 0;
  my $timeout = defined($attr->{'TimeOut'}) ? $attr->{'TimeOut'} : 5;
- 
-
 
  use Socket;
  my $dest = sockaddr_in($port, inet_aton("$hostname"));

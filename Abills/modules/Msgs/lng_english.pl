@@ -18,3 +18,5 @@ $_DOWN='Down';
 $_INNER_MSGS_CHAR='I';
 $_ACTIVE='Active';
 $_COMPETENCE='Competence';
+$_QUESTIONS='Questions';
+$_QUESTION='Question';

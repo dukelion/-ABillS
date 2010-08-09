@@ -55,6 +55,8 @@
   <tr><td>$_PRIORITY:</td><td><input type=text name=PRIORITY value='%PRIORITY%' size=5></td></tr>
   <tr><th colspan=2 bgcolor=$_COLORS[2]>RADIUS Parameters (,)</th></tr>
   <tr><th colspan=2><textarea cols=55 rows=5 name=RAD_PAIRS>%RAD_PAIRS%</textarea></th></tr>
+  <tr><th colspan=2 bgcolor=$_COLORS[2]>$_DESCRIBE</th></tr>
+  <tr><th colspan=2><textarea cols=55 rows=5 name=COMMENTS>%COMMENTS%</textarea></th></tr>
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>

@@ -18,3 +18,5 @@ $_DOWN='Ниже';
 $_INNER_MSGS_CHAR='В';
 $_ACTIVE='Все открытые';
 $_COMPETENCE='Компетенция';
+$_QUESTIONS='Вопросы';
+$_QUESTION='Вопрос';

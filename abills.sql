@@ -586,6 +586,7 @@ CREATE TABLE `msgs_messages` (
   `dispatch_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
   `deligation` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
   `deligation_level` tinyint(4) unsigned NOT NULL default '0',
+  `survey_id` smallint(6) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   KEY `uid` (`uid`)
 ) COMMENT='Msgs Messages';
@@ -601,6 +602,7 @@ CREATE TABLE `msgs_reply` (
   `ip` int(11) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
   `inner_msg` tinyint(1) unsigned NOT NULL default '0',
+  `survey_id` smallint(6) unsigned NOT NULL DEFAULT '0',
   run_time int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
@@ -810,6 +812,7 @@ CREATE TABLE `tarif_plans` (
   `total_time_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
   `total_traf_limit` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
   `priority` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `comments` text not null default '',
   PRIMARY KEY  (`id`,`module`, `domain_id`),
   UNIQUE KEY `tp_id` (`tp_id`),
   KEY `name` (`name`, `domain_id`)

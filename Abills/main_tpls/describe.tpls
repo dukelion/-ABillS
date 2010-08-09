@@ -9,12 +9,29 @@ form_buy_cards_card.tpl:english:Buy cards interface card designe
 
 form_buy_cards.tpl:russian:Форма покупки карточек
 form_buy_cards_card.tpl:russian:Дизайн карточки из формы покупки
+form_buy_cards_paysys.tpl:russian:Платёжные системы для покупки карточек
 
-form_buy_cards_card_paysys.tpl:Платёжные системы для покупки карточек
-form_client_start.tpl:Общий шаблон страници пользователя
-form_hotspot_login.tpl:Форма логина для Hotspot
-cards_card_info.tpl:Информация о карточке
+form_client_start.tpl:russian:Общий шаблон страници пользователя
+form_hotspot_login.tpl:russian:Форма логина для Hotspot
+cards_card_info.tpl:russian:Информация о карточке
 
-form_payment.tpl:Форма оплаты
-form_fees.tpl:Форма снятия денег
-form_password.tpl:форма изминения пароля
+form_payment.tpl:russian:Форма оплаты
+form_fees.tpl:russian:Форма снятия денег
+form_password.tpl:russian:форма изминения пароля
+
+
+form_buy_cards.tpl:english:Cards buy form
+form_buy_cards_card.tpl:english:Prepaid Cards design blank
+form_buy_cards_paysys.tpl:english:Paysys form
+
+form_client_start.tpl:english:Main user template
+form_hotspot_login.tpl:english:Hotspot login form
+cards_card_info.tpl:english:Cards information template
+
+form_payment.tpl:english:Payments form
+form_fees.tpl:english:Fees form
+form_password.tpl:english:Change password form
+
+
+form_company.tpl:english:Company add/change template
+form_company.tpl:russian:Шаблон компании

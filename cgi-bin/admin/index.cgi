@@ -5594,16 +5594,16 @@ if (-d $main_templates_dir ) {
       my @rows = (
       "$file", $size, $mtime, 
          (($tpl_describe->{$file}) ? $tpl_describe->{$file} : '' ),
-         $html->button($_SHOW, "#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }) .'<br>'.
-         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name="."_$file") : $html->button($_CREATE, "index=$index&create=:$file") ) .'<br>'.
-         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($_DEL, "index=$index&del=". "_$file", { MESSAGE => "$_DEL '$file'" }) : '' )
+         $html->button($_SHOW, "#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file", BUTTON => 1, SIZE => 10 }) .'<br>'.
+         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name="."_$file", { BUTTON => 1, }) : $html->button($_CREATE, "index=$index&create=:$file", { BUTTON => 1, }) ) .'<br>'.
+         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($_DEL, "index=$index&del=". "_$file", { MESSAGE => "$_DEL '$file'", BUTTON => 1, }) : '' )
       );    
 
       $file =~ s/\.tpl//;
       foreach my $lang (@caption) {
       	 my $f = '_'.$file.'_'.$lang.'.tpl';
-         push @rows,  ((-f "$conf{TPL_DIR}/$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang" }).'<br>'. $html->button($html->b($_CHANGE), "index=$index&tpl_name=$f") : $html->button($_CREATE, "index=$index&create=:$file".'.tpl'.":$lang") ).'<br>'.
-         ( (-f "$conf{TPL_DIR}/$f") ? $html->button($_DEL, "index=$index&del=$f", { MESSAGE => "$_DEL '$f'" }) : '' );
+        push @rows,  ((-f "$conf{TPL_DIR}/$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang" , BUTTON => 1}).'<br>'. $html->button($html->b($_CHANGE), "index=$index&tpl_name=$f", { BUTTON => 1 }) : $html->button($_CREATE, "index=$index&create=:$file".'.tpl'.":$lang", { BUTTON => 1 }) ).'<br>'.
+         ( (-f "$conf{TPL_DIR}/$f") ? $html->button($_DEL, "index=$index&del=$f", { MESSAGE => "$_DEL '$f'", BUTTON => 1 }) : '' );
        }
 
       $table->{rowcolor} = ($file.'.tpl' eq $main_tpl_name) ? 'row_active' : undef;
@@ -5650,9 +5650,9 @@ foreach my $module (sort @MODULES) {
       # LANG
       my @rows = ("$file", $size, $mtime, 
          (($tpl_describe->{$file}) ? $tpl_describe->{$file} : '' ),
-         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file" }) .'<br>'.
-         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name=$module"."_$file") : $html->button($_CREATE, "index=$index&create=$module:$file") ). '<br>'.
-         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file" }) : '' )
+         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file", BUTTON => 1 }) .'<br>'.
+         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name=$module"."_$file", { BUTTON => 1 }) : $html->button($_CREATE, "index=$index&create=$module:$file", { BUTTON => 1 }) ). '<br>'.
+         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file", BUTTON => 1 }) : '' )
         );
       
       
@@ -5661,8 +5661,8 @@ foreach my $module (sort @MODULES) {
       foreach my $lang (@caption) {
       	  my $f = '_'.$file.'_'.$lang.'.tpl';
       	
-         push @rows,  ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang" }) .'<br>'. $html->button($html->b($_CHANGE), "index=$index&tpl_name=$module"."$f") : $html->button($_CREATE, "index=$index&create=$module:$file".'.tpl'.":$lang") ).'<br>'.
-         ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_DEL, "index=$index&del=$module". "$f", { MESSAGE => "$_DEL $file" }) : '');
+        push @rows,  ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang", { BUTTON => 1 } }) .'<br>'. $html->button($html->b($_CHANGE), "index=$index&tpl_name=$module"."$f", {  BUTTON => 1 } ) : $html->button($_CREATE, "index=$index&create=$module:$file".'.tpl'.":$lang", { BUTTON => 1 }) ).'<br>'.
+         ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_DEL, "index=$index&del=$module". "$f", { MESSAGE => "$_DEL $file", BUTTON => 1 }) : '');
        }
 
       $table->addrow(@rows);
@@ -5697,14 +5697,13 @@ my $table = $html->table( { width       => '600',
         $mtime = strftime "%Y-%m-%d", localtime($mtime);
 
       $table->addrow("$file", $size, $mtime, $describe,
-         $html->button($_DEL, "index=$index&file_del=$file", { MESSAGE => "$_DEL '$file'" }));
+         $html->button($_DEL, "index=$index&file_del=$file", { MESSAGE => "$_DEL '$file'", BUTTON => 1 }));
      }
 
    }
  print $table->show();
  
  $html->tpl_show(templates('form_fileadd'), undef);
-
 }
 
 

@@ -3,6 +3,7 @@
                    "02:0:$_MESSAGES:msgs_admin:"        => 5,
                    "03:2:$_CHAPTERS:msgs_chapters:"     => 5,
                    "04:2:$_ADMINS:msgs_admins:"         => 5,
+                   "05:2:$_SURVEY:msgs_survey:"         => 5,
                    "08:0:$_MESSAGES:msgs_reports:"      => 4,
                    
                     );

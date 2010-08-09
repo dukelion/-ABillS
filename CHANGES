@@ -1,6 +1,16 @@
 =====0.52=====
 
-03.08.2010 \\
+09.08.2010 \\
+  * Добавлено поле описания тарифного плана. Изменён вид выбора тарифного плана для клиентов
+
+MySQL:\\
+  ALTER TABLE tarif_plans ADD COLUMN comments text not null default '';
+  ALTER TABLE msgs_messages ADD COLUMN `survey_id` smallint(6) unsigned NOT NULL DEFAULT 0;
+  ALTER TABLE msgs_reply ADD COLUMN `survey_id` smallint(6) unsigned NOT NULL DEFAULT 0;
+
+
+02.08.2010 \\
+  * Добавлена возможность одновременно использовать минимальную наработку и месячную абонплату
   * Добавлена возможность выставлять приоритет снятия денег в модуле Abon
 
 MySQL:
@@ -29,8 +39,8 @@ MySQL:
   ALTER TABLE users_pi ADD COLUMN `country_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
   ALTER TABLE msgs_unreg_requests ADD COLUMN `country_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
   ALTER TABLE msgs_unreg_requests ADD COLUMN `location_id` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0';
-  ALTER TABLE msgs_unreg_requests ADD COLUMN `company` VARCHAR(60)  NOT NULL DEFAULT '';   
-   
+  ALTER TABLE msgs_unreg_requests ADD COLUMN `company` VARCHAR(60)  NOT NULL DEFAULT '';
+
 20.07.2010
   * Добавлена раздел активные сообщения куда попадают все не закрытые сообщения
   * Добавлена автоматическая активизация сервисов с "отключён за неуплату" и "недостаточно средств" сразу после внесение денег на счёт абонента

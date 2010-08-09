@@ -325,9 +325,10 @@ sub message_add {
 
   my $CLOSED_DATE = ($DATA{STATE} == 1 || $DATA{STATE} == 2 ) ? 'now()' : "'0000-00-00 00:00:00'";
 
+  $self->{debug}=1;
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
    priority, lock_msg, plan_date, plan_time, user_read, admin_read, inner_msg, resposible, closed_date,
-   phone, dispatch_id)
+   phone, dispatch_id, survey_id)
     values ('$DATA{UID}', '$DATA{SUBJECT}', '$DATA{CHAPTER}', '$DATA{MESSAGE}', INET_ATON('$DATA{IP}'), now(), 
         '$DATA{REPLY}',
         '$admin->{AID}',
@@ -343,7 +344,8 @@ sub message_add {
         '$DATA{RESPOSIBLE}',
         $CLOSED_DATE,
         '$DATA{PHONE}',
-        '$DATA{DISPATCH_ID}'
+        '$DATA{DISPATCH_ID}',
+        '$DATA{SURVEY_ID}'
         );", 'do');
 
   $self->{MSG_ID} = $self->{INSERT_ID};
@@ -427,7 +429,8 @@ sub message_info {
   m.inner_msg,
   m.phone,
   m.dispatch_id,
-  m.deligation
+  m.deligation,
+  m.survey_id
     FROM (msgs_messages m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN users u ON (m.uid=u.uid)
@@ -471,7 +474,8 @@ sub message_info {
  	 $self->{INNER_MSG},
  	 $self->{PHONE},
  	 $self->{DISPATCH_ID},
- 	 $self->{DELIGATION}
+ 	 $self->{DELIGATION},
+ 	 $self->{SURVEY_ID}
   )= @{ $self->{list}->[0] };
 	
 	
@@ -589,14 +593,11 @@ sub chapters_list {
 sub chapter_add {
 	my $self = shift;
 	my ($attr) = @_;
-  
- 
+
   %DATA = $self->get_data($attr, { default => \%DATA }); 
- 
 
   $self->query($db, "insert into msgs_chapters (name, inner_chapter)
     values ('$DATA{NAME}', '$DATA{INNER_CHAPTER}');", 'do');
-
  
   $admin->system_action_add("MGSG_CHAPTER:$self->{INSERT_ID}", { TYPE => 1 });
 	return $self;
@@ -1706,6 +1707,297 @@ sub unreg_requests_change {
                   } );
 
   return $self->{result};
+}
+
+
+
+#**********************************************************
+# survey_subjects_list
+#**********************************************************
+sub survey_subjects_list {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+  @WHERE_RULES = ();
+ 
+ if($attr->{NAME}) {
+	 push @WHERE_RULES, "mc.name='$attr->{NAME}'"; 
+  }
+
+ if($attr->{CHAPTERS}) {
+	 push @WHERE_RULES, "mc.id IN ($attr->{CHAPTERS})"; 
+  }
+
+ if(defined($attr->{INNER_CHAPTER})) {
+	 push @WHERE_RULES, "mc.inner_chapter IN ($attr->{INNER_CHAPTER})"; 
+  }
+
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
+ $self->query($db,   "SELECT  ms.id, ms.name, ms.comments, ms.aid, ms.created
+    FROM msgs_survey_subjects ms
+    $WHERE
+    GROUP BY ms.id 
+    ORDER BY $SORT $DESC;");
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0 ) {
+   $self->query($db, "SELECT count(*)
+     FROM msgs_survey_subjects ms
+     $WHERE");
+
+   ($self->{TOTAL}) = @{ $self->{list}->[0] };
+  }
+ 
+	return $list;
+}
+
+
+#**********************************************************
+# survey_subjects_add
+#**********************************************************
+sub survey_subject_add {
+	my $self = shift;
+	my ($attr) = @_;
+
+  %DATA = $self->get_data($attr, { default => \%DATA }); 
+
+  $self->query($db, "insert into msgs_survey_subjects (name, comments, aid, created)
+    values ('$DATA{NAME}', '$DATA{COMMENTS}', '$admin->{AID}', now());", 'do');
+ 
+	return $self;
+}
+
+
+
+
+#**********************************************************
+# chapter_survey_subjects
+#**********************************************************
+sub survey_subject_del {
+	my $self = shift;
+	my ($attr) = @_;
+
+  @WHERE_RULES=();
+
+  if ($attr->{ID}) {
+  	 push @WHERE_RULES, "id='$attr->{ID}'";
+   }
+
+  $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
+  $self->query($db, "DELETE FROM msgs_survey_subjects WHERE $WHERE", 'do');
+
+	return $self;
+}
+
+#**********************************************************
+# survey_subjects_info
+#**********************************************************
+sub survey_subject_info {
+	my $self = shift;
+	my ($id, $attr) = @_;
+
+
+  $self->query($db, "SELECT id, name, comments, aid, created
+    FROM msgs_survey_subjects 
+  WHERE id='$id'");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  ($self->{ID}, 
+   $self->{NAME},
+   $self->{COMMENTS},
+   $self->{AID},
+   $self->{CREATED},
+  )= @{ $self->{list}->[0] };
+
+	return $self;
+}
+
+
+#**********************************************************
+# survey_subjects_change()
+#**********************************************************
+sub survey_subject_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  $attr->{INNER_CHAPTER} = ($attr->{INNER_CHAPTER}) ? 1 : 0;
+  
+  my %FIELDS = (ID            => 'id',
+                NAME          => 'name',
+                COMMENTS      => 'comments', 
+             );
+
+  $admin->{MODULE}=$MODULE;
+  $self->changes($admin,  { CHANGE_PARAM => 'ID',
+                   TABLE        => 'msgs_survey_subjects',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $self->survey_subject_info($attr->{ID}),
+                   DATA         => $attr,
+                  } );
+
+  return $self->{result};
+}
+
+
+#**********************************************************
+# survey_subjects_list
+#**********************************************************
+sub survey_questions_list {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+
+  @WHERE_RULES = ();
+  
+  if ($attr->{SURVEY}) {
+	 push @WHERE_RULES, "mq.survey_id='$attr->{SURVEY}'"; 
+  }
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
+
+ $self->query($db,   "SELECT  mq.num, mq.question, mq.comments, mq.params, mq.user_comments, mq.id
+    FROM msgs_survey_questions mq
+    $WHERE
+    ORDER BY $SORT $DESC;");
+
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} > 0 ) {
+   $self->query($db, "SELECT count(*)
+     FROM msgs_survey_questions mq
+     $WHERE");
+
+   ($self->{TOTAL}) = @{ $self->{list}->[0] };
+  }
+ 
+	return $list;
+}
+
+
+#**********************************************************
+# survey_questions_add
+#**********************************************************
+sub survey_question_add {
+	my $self = shift;
+	my ($attr) = @_;
+
+  %DATA = $self->get_data($attr, { default => \%DATA }); 
+
+  $self->query($db, "insert into msgs_survey_questions (num, question, comments, params, user_comments, survey_id)
+    values ('$DATA{NUM}', '$DATA{QUESTION}', '$DATA{COMMENTS}', '$DATA{PARAMS}', '$DATA{USER_COMMENTS}', '$DATA{SURVEY}');", 'do');
+ 
+	return $self;
+}
+
+
+#**********************************************************
+# urvey_questions_del
+#**********************************************************
+sub survey_question_del {
+	my $self = shift;
+	my ($attr) = @_;
+
+  @WHERE_RULES=();
+
+  if ($attr->{ID}) {
+  	 push @WHERE_RULES, "id='$attr->{ID}'";
+   }
+
+  $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
+  $self->query($db, "DELETE FROM msgs_survey_questions WHERE $WHERE", 'do');
+
+	return $self;
+}
+
+#**********************************************************
+# survey_questions_info
+#**********************************************************
+sub survey_question_info {
+	my $self = shift;
+	my ($id, $attr) = @_;
+
+
+  $self->query($db, "SELECT id, num, question, comments, user_comments, survey_id
+    FROM msgs_survey_questions 
+  WHERE id='$id'");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+  ($self->{ID}, 
+   $self->{NUM},
+   $self->{QUESTION},
+   $self->{COMMENTS},
+   $self->{PARAMS},
+   $self->{USER_COMMENTS},
+   $self->{SURVEY},
+  )= @{ $self->{list}->[0] };
+
+	return $self;
+}
+
+
+#**********************************************************
+# survey_questions_change()
+#**********************************************************
+sub survey_question_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  $attr->{INNER_CHAPTER} = ($attr->{INNER_CHAPTER}) ? 1 : 0;
+  
+  my %FIELDS = (ID           => 'id',
+                NUM          => 'name',
+                QUESTION     => 'question',
+                COMMENTS     => 'comments', 
+                PARAMS       => 'params',
+                USER_COMMENTS=> 'user_comments',
+                SURVEY       => 'survey_id',
+             );
+
+  $attr->{USER_COMMENTS} = ($attr->{USER_COMMENTS}) ? 1 : 0;
+
+  $admin->{MODULE}=$MODULE;
+  $self->changes($admin,  { CHANGE_PARAM => 'ID',
+                   TABLE        => 'msgs_survey_questions',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $self->survey_question_info($attr->{ID}),
+                   DATA         => $attr,
+                  } );
+
+  return $self->{result};
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub survey_answer_show {
+	
+	
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub survey_answer_add {
+	
+	
 }
 
 1

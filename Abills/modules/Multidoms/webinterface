@@ -481,7 +481,7 @@ if ( -f "$sys_templates/$module/templates/describe.tpls" ) {
       'Cards:cards_card_info.tpl',
       ':form_buy_cards.tpl',
       ':form_buy_cards_card.tpl',
-      ':form_buy_cards_card_paysys.tpl',
+      ':form_buy_cards_paysys.tpl',
       ':form_hotspot_login.tpl',
       ':form_client_hotspot_start.tpl',
       ':form_client_start.tpl',
