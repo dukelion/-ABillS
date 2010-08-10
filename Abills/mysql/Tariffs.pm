@@ -733,7 +733,14 @@ sub list {
 #**********************************************************
 sub nas_list {
   my $self = shift;
-  $self->query($db, "SELECT nas_id FROM tp_nas WHERE tp_id='$self->{TP_ID}';");
+  my ($attr) = @_;
+
+  if ($attr->{NAS_ID}) {
+    $self->query($db, "SELECT tp_id FROM tp_nas WHERE nas_id='$self->{NAS_ID}';");
+   }
+  else {
+    $self->query($db, "SELECT nas_id FROM tp_nas WHERE tp_id='$self->{TP_ID}';");
+   }
 	return $self->{list};
 }
 

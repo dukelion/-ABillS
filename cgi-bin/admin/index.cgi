@@ -822,7 +822,7 @@ print "<tr bgcolor=\"$_COLORS[3]\"><td colspan=\"2\">\n";
 my $menu;
 while(my($name, $v)=each %$items) {
   my ($subf, $ext_url)=split(/:/, $v, 2);
-  $menu .= (defined($FORM{subf}) && $FORM{subf} eq $subf) ? ' '. $html->b($name) : ' '. $html->button($name, "index=$index&$ext_url&subf=$subf", { BUTTON => 1 });
+  $menu .= ($FORM{subf} && $FORM{subf} eq $subf) ? ' '. $html->b($name) : ' '. $html->button($name, "index=$index&$ext_url&subf=$subf", { BUTTON => 1 });
 }
 
 print "$menu</td></tr>

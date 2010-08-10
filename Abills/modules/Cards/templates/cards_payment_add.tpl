@@ -8,5 +8,5 @@
 <tr><td>PIN:</td><td><input type='text' name='PIN'></td></tr>
 </table>
 
-<input type='submit' name='add' value='$_ADD' ID='submitButton' onClick=\"this.form.add.disabled = true;  this.form.add.style.backgroundColor='#dddddd';\">
+<input type='submit' name='add' value='$_ADD' ID='submitButton'>
 </form>
