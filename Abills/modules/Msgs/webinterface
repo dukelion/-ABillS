@@ -442,16 +442,12 @@ sub msgs_admin {
   	$html->message('info', $_INFO, "$_DISPATCH $_ADD # $FORM{IDS}") if (! $Msgs->{errno});  	
    }
   elsif ($FORM{reply}) {
-
-    if ($FORM{SURVEY}) {
-     }
- 	  else {
  	    if ($FORM{RUN_TIME}) {
    	 	  my ($h, $min, $sec)=split(/:/, $FORM{RUN_TIME}, 3);
    	 	  $FORM{RUN_TIME}=$h*60*60+$min*60+$sec;
    	   }
     
-      if ( $FORM{REPLY_SUBJECT} || $FORM{REPLY_TEXT} || $FORM{FILE_UPLOAD} )  {
+      if ( $FORM{REPLY_SUBJECT} || $FORM{REPLY_TEXT} || $FORM{FILE_UPLOAD} || $FORM{SURVEY_ID})  {
         $Msgs->message_reply_add({ %FORM, 
     	                           AID   => $admin->{AID},
     	                           IP    => $admin->{SESSION_IP},
@@ -473,7 +469,6 @@ sub msgs_admin {
               });
             }      
          }
-       }
 
       %params = ();
       $params{CHAPTER}     = $FORM{CHAPTER_ID} if ($FORM{CHAPTER_ID});
@@ -490,7 +485,6 @@ sub msgs_admin {
  	 	                      });
 
       $FORM{chg} = $FORM{ID};
-    
     }
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
 
@@ -528,6 +522,10 @@ sub msgs_admin {
     MSG_LABEL:
     if ($FORM{reply_del} && $FORM{is_js_confirmed}){
     	$Msgs->message_reply_del({ ID => $FORM{reply_del} });
+    	
+    	if ($FORM{SURVEY_ID}) {
+    		$Msgs->survey_answer_del({ SURVEY_ID => $FORM{SURVEY_ID}, UID => $FORM{UID} });
+    	 }
     	$html->message('info', $_INFO, "$_DELETED [$FORM{reply_del}] ") if (! $Msgs->{errno});  	
      }    
 
@@ -600,9 +598,19 @@ sub msgs_admin {
     my $reply = '';
     if ($Msgs->{TOTAL} == 0) {
        $reply = $Msgs->{MESSAGE};
-      }
+     }
+
+    if ($Msgs->{SURVEY_ID}) {
+   	   $Msgs->{REPLY} .= msgs_survey_show({ SURVEY_ID => $Msgs->{SURVEY_ID} });
+     }
 
     foreach my $line (@$list) {
+ 	    if ($line->[14]) {
+    	  $Msgs->{REPLY} .= msgs_survey_show({ SURVEY_ID => $line->[14], MSG_ID => $line->[0] });
+    	  $Msgs->{SURVEY_ID}=undef;
+    	  next if ($Msgs->{TOTAL});
+       }
+    	
       if ($FORM{QUOTING} && $FORM{QUOTING} == $line->[0]) {
          $reply = $line->[2];
        }
@@ -638,13 +646,16 @@ sub msgs_admin {
  	    $reply =~ s/^/> /g;
  	    $reply =~ s/\n/> /g;
      }
-    $Msgs->{REPLY} .= ($Msgs->{SURVEY_ID}) ? $html->tpl_show(_include('msgs_survey', 'Msgs'), { %$Msgs, ACTION_LNG => "$_SEND" , SURVEY => msgs_survey_show({ SURVEY_ID => $Msgs->{SURVEY_ID} })  }, { OUTPUT2RETURN => 1 }) : $html->tpl_show(_include('msgs_reply', 'Msgs'), 
-      { %$Msgs, 
+
+    
+    if (! $Msgs->{ACTIVE_SURWEY}) {
+   	  $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), { %$Msgs, 
       	REPLY_TEXT => $reply,
      	  RUN_TIME   => "$_RUN_TIME ($_MINS):". $html->form_input('RUN_TIME', "$run_time", { EX_PARAMS => " STYLE='background-color: $_COLORS[3]' DISABLED size=9"} ),
      	  INNER_MSG  => ($FORM{INNER_MSG}) ? ' checked ' : '',
      	  SURVEY_SEL => msgs_survey_sel()
     	 }, { OUTPUT2RETURN => 1 });
+     }
 
     $Msgs->{MESSAGE}=convert($Msgs->{MESSAGE}, { text2html => 1, SHOW_URL => 1 });
     $Msgs->{SUBJECT}=convert($Msgs->{SUBJECT}, { text2html => 1 });
@@ -971,7 +982,7 @@ sub msgs_user {
     msgs_notify_admins();
    }
  	}
- elsif ($FORM{ID}) {
+ elsif($FORM{ID}) {
    if ($FORM{reply}) {
  	   $Msgs->message_change({ UID        => $LIST_PARAMS{UID},
  	 	                         ID         => $FORM{ID},
@@ -1003,6 +1014,13 @@ sub msgs_user {
       msgs_notify_admins();
      }
     }
+   elsif ($FORM{change}) {
+ 	   $Msgs->message_change({ UID        => $LIST_PARAMS{UID},
+	 	                         ID         => $FORM{ID},
+ 	 	                         ADMIN_READ => "0000-00-00 00:00:00",
+ 	 	                         STATE      => $FORM{STATE}
+ 	 	                       });
+    }
 
  	 $Msgs->message_info($FORM{ID}, { UID => $LIST_PARAMS{UID} });
 
@@ -1012,39 +1030,48 @@ sub msgs_user {
    $Msgs->{PRIORITY_TEXT}= $html->color_mark($priority[$Msgs->{PRIORITY}], $priority_colors[$Msgs->{PRIORITY}]);
 
  	 if ($Msgs->{ID} && $Msgs->{ID} > 0) {
-  	  my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID}, INNER_MSG => 0 });
+  	 my $list = $Msgs->messages_reply_list({ MSG_ID => $Msgs->{ID}, INNER_MSG => 0 });
      my $reply = '';
 
-     foreach my $line (@$list) {
-       if ($FORM{QUOTING} && $FORM{QUOTING} == $line->[0]) {
-          $reply = $line->[2];
-        }
-      
-       $line->[2] = convert($line->[2], { text2html => 1 });
-       $line->[2] =~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
-       $line->[2] =~ s/&gt; (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
+     if ($Msgs->{SURVEY_ID}) {
+      	$Msgs->{REPLY} .= msgs_survey_show({ SURVEY_ID => $Msgs->{SURVEY_ID} });
+      } 
 
-       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
-          REPLY_ID => $line->[0],
-          DATE     => $line->[1],
-          CAPTION  => convert($line->[5], { text2html => 1 }),
-          PERSON   =>	$line->[3],
-      	  MESSAGE  => $line->[2],
-      	  COLOR    => ($line->[12] == 0) ? $_COLORS[2] : $_COLORS[1],
-      	  QUOTING  => $html->button($_QUOTING, "index=$index&QUOTING=$line->[0]&ID=$FORM{ID}&sid=$sid", { BUTTON => 1 }),
-      	  ATTACHMENT =>  ($line->[7]) ? "$_ATTACHMENT: ". $html->button("$line->[7]", "qindex=$index&ATTACHMENT=$line->[9]", { TARGET => '_new' }). " ($_SIZE: ". int2byte($line->[8]) .')' : '',
-      	  }, { OUTPUT2RETURN => 1 } );
-      }
+     foreach my $line (@$list) {
+     	 
+       if ($line->[14]) {
+         $Msgs->{REPLY} .= msgs_survey_show({ SURVEY_ID => $line->[14] });       	        
+        }
+       else {
+         if ($FORM{QUOTING} && $FORM{QUOTING} == $line->[0]) {
+            $reply = $line->[2];
+          }
+         $line->[2] = convert($line->[2], { text2html => 1 });
+         $line->[2] =~ s/> (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
+         $line->[2] =~ s/&gt; (.+)/<font color='$_COLORS[8]'> > $1 <\/font>/g;
+
+         $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply_show', 'Msgs'), {
+            REPLY_ID => $line->[0],
+            DATE     => $line->[1],
+            CAPTION  => convert($line->[5], { text2html => 1 }),
+            PERSON   =>	$line->[3],
+      	    MESSAGE  => $line->[2],
+        	  COLOR    => ($line->[12] == 0) ? $_COLORS[2] : $_COLORS[1],
+        	  QUOTING  => $html->button($_QUOTING, "index=$index&QUOTING=$line->[0]&ID=$FORM{ID}&sid=$sid", { BUTTON => 1 }),
+        	  ATTACHMENT =>  ($line->[7]) ? "$_ATTACHMENT: ". $html->button("$line->[7]", "qindex=$index&ATTACHMENT=$line->[9]", { TARGET => '_new' }). " ($_SIZE:   ". int2byte($line->[8]) .')' : '',
+      	    }, { OUTPUT2RETURN => 1 } );
     
-    if ($reply ne '') {
-      $reply =~ s/^/> /g;
-  	  $reply =~ s/\n/> /g;
+        if ($reply ne '') {
+          $reply =~ s/^/> /g;
+  	      $reply =~ s/\n/> /g;
+         }
+       }
      }
 
-    if ($Msgs->{STATE} < 1 || $Msgs->{STATE} == 6) {
+    if (! $Msgs->{ACTIVE_SURWEY} && ($Msgs->{STATE} < 1 || $Msgs->{STATE} == 6)) {
       $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), 
-       { %$Msgs, REPLY_TEXT => $reply }, { OUTPUT2RETURN => 1 });
-      }
+         { %$Msgs, REPLY_TEXT => $reply }, { OUTPUT2RETURN => 1 });
+     }
     else {
       $html->message('info', $_INFO, "$msg_status[$Msgs->{STATE}] $_DATE: $Msgs->{CLOSED_DATE}");  	
      }
@@ -1057,7 +1084,6 @@ sub msgs_user {
      }  
 
      $html->tpl_show(_include('msgs_show', 'Msgs'), $Msgs);
-
      %params              = ();
  	 	 $params{CLOSED_DATE} = $DATE       if ($state > 0);
  	 	 $params{DONE_DATE}   = $DATE       if ($state > 1);
@@ -1067,6 +1093,7 @@ sub msgs_user {
  	 	                         USER_READ   => "$DATE $TIME",
  	 	                         %params
  	 	                        });
+
  	 	 if ($conf{MSGS_REDIRECT_FILTER_DEL}) {
        require "Dv.pm";
        my $Dv = Dv->new($db, $admin, \%conf);
@@ -2547,7 +2574,6 @@ sub msgs_survey_questions {
  
   $Msgs->{USER_COMMENTS} = ($Msgs->{USER_COMMENTS}) ? 'checked' : '';
   $html->tpl_show(_include('msgs_survey_question', 'Msgs'), $Msgs);  
-  $Msgs->{debug}=1;
   my $list = $Msgs->survey_questions_list({ SURVEY => $FORM{SURVEY}, %LIST_PARAMS });
   my $table = $html->table( { width      => '100%',
                               caption    => "$_SURVEY",
@@ -2556,12 +2582,12 @@ sub msgs_survey_questions {
                            });
 
 foreach my $line (@$list) {
-  my $params  = $html->form_select('PARAMS_'. $line->[0], 
+  my $params  = ($line->[3]) ? $html->form_select('PARAMS_'. $line->[0], 
                                           { 
  	                                          SELECTED          => '',
  	                                          SEL_ARRAY         => [ split(/;/, $line->[3]) ],
  	                                          ARRAY_NUM_ID      => 1
- 	                                        });
+ 	                                        }) : '';
   $table->addrow(
     $line->[0], 
     $line->[1], 
@@ -2583,23 +2609,29 @@ print $table->show();
 sub msgs_survey_show {
   my ($attr) = @_;
   
+  my %answers = ();
   if ($FORM{change}) {
+  	$FORM{UID}=$user->{UID} || $LIST_PARAMS{UID};
     $Msgs->survey_answer_add({ %FORM });
-    $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});  	
-   }
-  else {
-    $Msgs->survey_answer_show($FORM{chg});
-    $Msgs->{ACTION}='change';
-    $Msgs->{ACTION_LNG}=$_CHANGE;
-    $html->message('info', $_INFO, "$_CHANGING") if (! $Msgs->{errno});  	  	
+    delete $FORM{change};
+    $html->message('info', $_INFO, "$_SENDED");
    }
 
   if ($Msgs->{errno}) {
      $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
-   } 
+   }
 
-  $Msgs->{debug}=1;
 
+  my $list = $Msgs->survey_answer_show({ SURVEY_ID => $attr->{SURVEY_ID}, UID => $user->{UID} || $LIST_PARAMS{UID} });
+  if ($Msgs->{TOTAL} > 0) {
+    foreach my $line (@$list) {
+ 	    $answers{$line->[0]}{ANSWER}  = $line->[2];
+ 	    $answers{$line->[0]}{COMMENTS}= $line->[3];
+     }
+   }
+  else {
+  	$Msgs->{ACTIVE_SURWEY}=1;
+   }
   my $list = $Msgs->survey_questions_list({ SURVEY => $attr->{SURVEY_ID} });
   my $table = $html->table( { width      => '100%',
                               caption    => "$_SURVEY",
@@ -2608,22 +2640,52 @@ sub msgs_survey_show {
                            });
 
 foreach my $line (@$list) {
-  my $params  = $html->form_select('PARAMS_'. $line->[0], 
+  my @params_arr = split(/;/, $line->[3]);
+
+  if ( scalar(keys %answers) > 0 ) {
+    $table->addrow(
+        '',
+        $line->[0],
+        $html->b($line->[1]). $html->br().$line->[2], 
+        $params_arr[$answers{$line->[5]}{ANSWER}], 
+        $answers{$line->[5]}{COMMENTS}
+      );
+   }
+  else {
+    my $params  = ($line->[3]) ? $html->form_select('PARAMS_'. $line->[5], 
                                           { 
- 	                                          SELECTED          => '',
- 	                                          SEL_ARRAY         => [ split(/;/, $line->[3]) ],
- 	                                          ARRAY_NUM_ID      => 1
- 	                                        });
-  $table->addrow(
-    $line->[0],
-    $html->b($line->[1]). '<br>'.  
-    $line->[2], 
-    $params, 
-    ($line->[4]) ? $html->form_input('USER_COMMENTS', '', { SIZE => 60 }) : '',
-   );
+ 	                                          SELECTED       => (defined($answers{$line->[5]}))? $answers{$line->[5]}{ANSWER} : '',
+ 	                                          SEL_ARRAY      => \@params_arr,
+ 	                                          ARRAY_NUM_ID   => 1,
+ 	                                          NO_ID          => 1
+ 	                                        }) : '';
+     $table->addrow(
+        $html->form_input('IDS', $line->[5], { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
+        $line->[0],
+        $html->b($line->[1]). $html->br().  
+        $line->[2], 
+        $params, 
+        ($line->[4]) ? $html->form_input('USER_COMMENTS_'.$line->[5], ((defined($answers{$line->[5]})) ? $answers{$line->[5]}{COMMENTS} : ''), { SIZE => 60, OUTPUT2RETURN => 1 }) : '',
+      );
+  }
 }
 
-  return $table->show();
+
+  my $del_button = $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=$attr->{MSG_ID}&UID=$Msgs->{UID}&SURVEY_ID=$attr->{SURVEY_ID}", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 });
+
+  if ( scalar(keys %answers) > 0 ) {
+  	return $table->show({ OUTPUT2RETURN => 1 }).(($user->{UID}) ? '' : $del_button);
+   }
+	else {
+    return $html->tpl_show(_include('msgs_survey', 'Msgs'), { %$Msgs, 
+    	                                                      ACTION     => 'change',
+  	                                                        ACTION_LNG => "$_SEND", 
+  	                                                        SURVEY_ID  => $attr->{SURVEY_ID},
+  	                                                        SURVEY     => $table->show({ OUTPUT2RETURN => 1 }),
+  	                                                        DELETE     => ($user->{UID}) ? '' : $del_button,	
+  	                                                         },
+                                                            { OUTPUT2RETURN => 1 });
+   }
 }
 
 1

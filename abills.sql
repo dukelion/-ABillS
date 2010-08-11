@@ -637,6 +637,41 @@ CREATE TABLE `msgs_unreg_requests` (
   KEY `datetime` (`datetime`)
 ) COMMENT='Msgs from unregister users';
 
+CREATE TABLE `msgs_survey_questions` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `survey_id` smallint(6) unsigned NOT NULL DEFAULT 0,
+  `num` tinyint(4) unsigned NOT NULL DEFAULT '0',
+  `question` varchar(200) NOT NULL,
+  `params` varchar(250) NOT NULL,
+  `comments` text NOT NULL,
+  `user_comments` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) COMMENT 'Messages Survey questions';
+
+CREATE TABLE `msgs_survey_subjects` (
+  `id` smallint(6) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) NOT NULL,
+  `comments` text NOT NULL,
+  `aid` smallint(6) unsigned NOT NULL DEFAULT '0',
+  `created` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `name` (`name`)
+) COMMENT 'Messages Survey Subjects';
+
+
+CREATE TABLE `msgs_survey_answers` (
+  `question_id` int(11) unsigned NOT NULL DEFAULT '0',
+  `uid` int(11) unsigned NOT NULL DEFAULT '0',
+  `answer` tinyint(4) unsigned NOT NULL DEFAULT '0',
+  `comments` text NOT NULL,
+  `date_time` datetime NOT NULL,
+  `survey_id` smallint(6) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`uid`,`question_id`)
+) COMMENT 'Messages Survey Answers';
+
+
 CREATE TABLE `nas` (
   `id` smallint(5) unsigned NOT NULL auto_increment,
   `name` varchar(30) default NULL,

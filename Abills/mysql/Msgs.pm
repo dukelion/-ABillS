@@ -325,7 +325,6 @@ sub message_add {
 
   my $CLOSED_DATE = ($DATA{STATE} == 1 || $DATA{STATE} == 2 ) ? 'now()' : "'0000-00-00 00:00:00'";
 
-  $self->{debug}=1;
   $self->query($db, "insert into msgs_messages (uid, subject, chapter, message, ip, date, reply, aid, state, gid,
    priority, lock_msg, plan_date, plan_time, user_read, admin_read, inner_msg, resposible, closed_date,
    phone, dispatch_id, survey_id)
@@ -898,7 +897,8 @@ sub messages_reply_list {
     mr.uid,
     SEC_TO_TIME(mr.run_time),
     mr.aid,
-    mr.inner_msg
+    mr.inner_msg,
+    mr.survey_id
     FROM (msgs_reply mr)
     LEFT JOIN users u ON (mr.uid=u.uid)
     LEFT JOIN admins a ON (mr.aid=a.aid)
@@ -920,7 +920,6 @@ sub message_reply_add {
 	my ($attr) = @_;
   
   %DATA = $self->get_data($attr, { default => \%DATA }); 
-
   $self->query($db, "insert into msgs_reply (main_msg,
    caption,
    text,
@@ -930,14 +929,16 @@ sub message_reply_add {
    status,
    uid,
    run_time,
-   inner_msg
+   inner_msg,
+   survey_id
    )
     values ('$DATA{ID}', '$DATA{REPLY_SUBJECT}', '$DATA{REPLY_TEXT}',  now(),
         INET_ATON('$DATA{IP}'), 
         '$DATA{AID}',
         '$DATA{STATE}',
         '$DATA{UID}', '$DATA{RUN_TIME}',
-        '$DATA{REPLY_INNER_MSG}'
+        '$DATA{REPLY_INNER_MSG}',
+        '$DATA{SURVEY_ID}'
     );", 'do');
  
   
@@ -1971,7 +1972,6 @@ sub survey_question_change {
              );
 
   $attr->{USER_COMMENTS} = ($attr->{USER_COMMENTS}) ? 1 : 0;
-
   $admin->{MODULE}=$MODULE;
   $self->changes($admin,  { CHANGE_PARAM => 'ID',
                    TABLE        => 'msgs_survey_questions',
@@ -1988,17 +1988,59 @@ sub survey_question_change {
 #
 #**********************************************************
 sub survey_answer_show {
+  my $self = shift;
+  my ($attr) = @_;
 	
+  $self->query($db, "SELECT question_id,
+  uid,
+  answer,
+  comments,
+  date_time,
+  survey_id FROM msgs_survey_answers WHERE survey_id='$attr->{SURVEY_ID}' AND uid='$attr->{UID}';");
 	
+	return $self->{list};
 }
 
 #**********************************************************
 #
 #**********************************************************
 sub survey_answer_add {
+  my $self = shift;
+  my ($attr) = @_;
+
+  
+  my @ids = split(/, /,  $attr->{IDS});
+	foreach my $id (@ids) {
+		my $sql = "INSERT INTO msgs_survey_answers (question_id,
+  uid,
+  answer,
+  comments,
+  date_time,
+  survey_id)
+  values('$id', 
+  '$attr->{UID}', 
+  '". $attr->{'PARAMS_'. $id}."', 
+  '". $attr->{'USER_COMMENTS_'. $id} ."', 
+  now(), 
+  '$attr->{SURVEY_ID}');";
+  
+    $self->query($db, $sql, 'do');
+	 }
 	
-	
+	return $self;
 }
+
+
+#**********************************************************
+#
+#**********************************************************
+sub survey_answer_del {
+  my $self = shift;
+  my ($attr) = @_;
+  $self->query($db, "DELETE FROM msgs_survey_answers WHERE survey_id='$attr->{SURVEY_ID}' AND uid='$attr->{UID}';", 'do');
+	return $self;
+}
+
 
 1
 

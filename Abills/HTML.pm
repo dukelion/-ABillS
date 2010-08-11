@@ -263,7 +263,10 @@ else {
 #        	print "Content-Type: text/html\n\n";
 #        	print "/$name // $FORM{$name}<br>";
         	
-          if (@{ $FORM{$name} } > 0) {
+          if (defined($FORM{$name})) {
+             $FORM{$name} .= ", $datas";
+           }   
+          elsif (@{ $FORM{$name} } > 0) {
             push(@{$FORM{$name}}, $datas);
            }
           else {
