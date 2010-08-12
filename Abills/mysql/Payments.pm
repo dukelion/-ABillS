@@ -47,13 +47,9 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
-  
   $Bill=Bills->new($db, $admin, $CONF); 
-  
-  #$self->{debug}=1;
   return $self;
 }
-
 
 
 #**********************************************************
@@ -108,7 +104,6 @@ sub add {
    }
   
   #$db->{AutoCommit}=0; 
-
   $user->{BILL_ID} = $attr->{BILL_ID} if ($attr->{BILL_ID});
   
   if ($user->{BILL_ID} > 0) {
@@ -251,8 +246,7 @@ sub list {
  	   $expr = $1;
  	  }
  	 push @WHERE_RULES, "p.date $expr curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY";
-  } 
-
+  }
 
  if ($attr->{BILL_ID}) {
  	 push @WHERE_RULES, @{ $self->search_expr("$attr->{BILL_ID}", 'INT', 'p.bill_id') };
@@ -289,7 +283,7 @@ sub list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT p.id, u.id, $login_field p.date, p.sum, p.dsc, p.last_deposit, p.method, 
+ $self->query($db, "SELECT p.id, u.id, $login_field p.date, p.dsc, p.sum, p.last_deposit, p.method, 
       p.ext_id, p.bill_id, if(a.name is null, 'Unknown', a.name),  
       INET_NTOA(p.ip), p.uid, p.inner_describe
     FROM payments p

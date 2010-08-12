@@ -955,7 +955,7 @@ my $list = $fees->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_FEES",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_TYPE, $_DEPOSIT, 'BILL ID'],
+                            title      => ['', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_TYPE, $_BILL],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'left', 'right', 'right'],
                             qs         => $pages_qs,
                             pages      => $fees->{TOTAL},
@@ -966,11 +966,13 @@ my $table = $html->table( { width      => '100%',
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
 
-  $table->addrow($html->b($line->[0]), $line->[1], $line->[2], 
+  $table->addrow('', 
+   $line->[1], 
+   $line->[2], 
    $line->[3], 
    $line->[4],  
-   $FEES_METHODS[$line->[5]], 
-   "$line->[6]",
+   $line->[5],
+   $FEES_METHODS[$line->[6]],
    "$line->[7]",
    );
 }
@@ -1003,15 +1005,15 @@ my $list  = $Payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_DEPOSIT], # $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
-                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left'],
+                            title      => ['', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT ], # $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
+                            cols_align => ['right', 'left', 'left', 'right', 'right', 'left', 'right', 'right', 'left', 'left'],
                             qs         => $pages_qs,
                             pages      => $Payments->{TOTAL},
                             ID         => 'PAYMENTS'
                            } );
 
 foreach my $line (@$list) {
-  $table->addrow($html->b($line->[0]), 
+  $table->addrow('', 
   $html->button($line->[1], "index=15&UID=$line->[11]"), 
   $line->[2], 
   $line->[3], 

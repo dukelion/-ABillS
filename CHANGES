@@ -1,5 +1,43 @@
 =====0.52=====
 
+11.08.2010 \\
+  * Добавлена возможность вести опросы пользователей в модуле Тех. Поддержки (Msgs)
+
+MySQL:\\
+  CREATE TABLE `msgs_survey_questions` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `survey_id` smallint(6) unsigned NOT NULL DEFAULT 0,
+    `num` tinyint(4) unsigned NOT NULL DEFAULT '0',
+    `question` varchar(200) NOT NULL,
+    `params` varchar(250) NOT NULL,
+    `comments` text NOT NULL,
+    `user_comments` tinyint(1) unsigned NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `id` (`id`)
+  )  COMMENT 'Messages Survey questions';
+  
+  CREATE TABLE `msgs_survey_subjects` (
+    `id` smallint(6) unsigned NOT NULL AUTO_INCREMENT,
+    `name` varchar(20) NOT NULL,
+    `comments` text NOT NULL,
+    `aid` smallint(6) unsigned NOT NULL DEFAULT '0',
+    `created` datetime NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `id` (`id`),
+    UNIQUE KEY `name` (`name`)
+  ) COMMENT 'Messages Survey Subjects';
+  
+  CREATE TABLE `msgs_survey_answers` (
+    `question_id` int(11) unsigned NOT NULL DEFAULT '0',
+    `uid` int(11) unsigned NOT NULL DEFAULT '0',
+    `answer` tinyint(4) unsigned NOT NULL DEFAULT '0',
+    `comments` text NOT NULL,
+    `date_time` datetime NOT NULL,
+    `survey_id` smallint(6) unsigned NOT NULL DEFAULT '0',
+    PRIMARY KEY (`uid`,`question_id`)
+  )   COMMENT 'Messages Survey Answers';
+
+
 09.08.2010 \\
   * Добавлено поле описания тарифного плана. Изменён вид выбора тарифного плана для клиентов
 

@@ -649,6 +649,7 @@ sub list {
   $DESC = (defined($attr->{DESC})) ? $attr->{DESC} : '';
  
   my @WHERE_RULES = ();
+  $self->{SEARCH_FIELDS} ='';
 
  if (defined($attr->{TP_GID})) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{TP_GID}, 'INT', 'tp.gid') };

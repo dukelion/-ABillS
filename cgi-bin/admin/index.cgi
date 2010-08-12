@@ -4631,9 +4631,7 @@ if ($permissions{1} && $permissions{1}{1}) {
 
    if (in_array('Docs', \@MODULES) ) {
      $payments->{DOCS_ACCOUNT_ELEMENT} .= "<tr><td colspan=2>$_INVOICE:</td><td>". $html->form_input('CREATE_INVOICE', '1', { TYPE => 'checkbox', STATE => 1 }). "</td></tr>\n";
-    }
-
-   
+    }   
 
    $html->tpl_show(templates('form_payments'), $payments);
  }
@@ -4665,7 +4663,7 @@ my $list = $payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE,   $_DEPOSIT, 
+                            title      => ['ID', $_LOGIN, $_DATE, $_DESCRIBE,  $_SUM, $_DEPOSIT, 
                                    $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP', '-'],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                             qs         => $pages_qs,
@@ -4681,15 +4679,14 @@ foreach my $line (@$list) {
   $table->addrow($html->b($line->[0]), 
   $html->button($line->[1], "index=15&UID=$line->[11]"), 
   $line->[2], 
-  $line->[3], 
-  $line->[4] . ( ($line->[12] ) ? ' ('. $html->b($line->[12]) .') ' : '' ), 
+  $line->[3].( ($line->[12] ) ? $html->br(). $html->b($line->[12]) : '' ), 
+  $line->[4], 
   "$line->[5]", 
   $PAYMENTS_METHODS{$line->[6]}, 
   "$line->[7]", 
   ($conf{EXT_BILL_ACCOUNT} && $attr->{USER}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
   "$line->[9]", 
-  "$line->[10]", 
-  
+  "$line->[10]",   
   $delete);
 }
 
@@ -4934,8 +4931,6 @@ if ($attr->{USER}) {
  	                               }).
  	                             "</td></tr>\n";
       }
-    
-
 
     $fees->{SEL_METHOD} =  $html->form_select('METHOD', 
                                 { SELECTED      => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
@@ -4976,7 +4971,7 @@ my $list = $fees->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_FEES",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_TYPE, $_DEPOSIT, "$_BILLS", $_ADMINS, 'IP','-'],
+                            title      => ['ID', $_LOGIN, $_DATE, $_DESCRIBE,  $_SUM, $_DEPOSIT, $_TYPE, "$_BILLS", $_ADMINS, 'IP','-'],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $fees->{TOTAL},
@@ -4992,10 +4987,10 @@ foreach my $line (@$list) {
   $table->addrow($html->b($line->[0]), 
   $html->button($line->[1], "index=15&UID=".$line->[10]), 
   $line->[2], 
-  $line->[3], 
-  $line->[4] . ( ($line->[11] ) ? ' ('. $html->b($line->[11]) .') ' : '' ), 
-  $FEES_METHODS[$line->[5]], 
-  "$line->[6]",
+  $line->[3]. ( ($line->[11] ) ? $html->br(). $html->b($line->[11]) : '' ), 
+  $line->[4], 
+  "$line->[5]",
+  $FEES_METHODS[$line->[6]], 
   ($BILL_ACCOUNTS{$line->[7]}) ? $BILL_ACCOUNTS{$line->[7]} : "$line->[7]",
   "$line->[8]", 
   "$line->[9]",
@@ -5010,7 +5005,7 @@ if (! $admin->{MAX_ROWS}) {
                          rows       => [ [ "$_TOTAL:", $html->b($fees->{TOTAL}), 
                                            "$_USERS:", $html->b($fees->{TOTAL_USERS}),
                                            "$_SUM:",   $html->b($fees->{SUM})
-                                             ] ],
+                                       ] ],
                          rowcolor   => 'even'
                      } );
   print $table->show();

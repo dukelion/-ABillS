@@ -219,7 +219,7 @@ sub check_lines {
 
   foreach my $nas_row (@$nas_list) {
     #If ipcad NAS all checks make in traff2sql 
-    next if ($nas_row->[4] eq 'ipcad');
+    #next if ($nas_row->[4] eq 'ipcad');
     
     #if don't have online users skip it
     my $l = $online->{$nas_row->[0]};
@@ -265,8 +265,8 @@ sub check_lines {
        } 
       
       
-      if ($calls_tp_id ne $tp_num) {
-        print "Hanguped Login: Change TP $user_name DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum SESSION_ID: $acct_session_id - ";
+      if ($calls_tp_id ne $tp_num || $state) {
+        print "Hanguped Login: Change TP $user_name DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum SESSION_ID: $acct_session_id\n";
         my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
        	                                                        FRAMED_IP_ADDRESS    => int2ip($client_ip),
            	                                                    UID                  => $uid,
@@ -295,6 +295,7 @@ sub check_lines {
 #        next;
 #       }
 
+      next if ($NAS{NAS_TYPE} eq 'ipcad');
       #Get stats from nas servers which don't support rad Alive
       my $external_stats = get_stats(\%NAS, $nas_port_id);
       if ( $NAS{NAS_ALIVE} > 0 
@@ -417,7 +418,6 @@ sub check_lines {
         if ( (defined($Billing->{PAYMENT_TYPE}) && $Billing->{PAYMENT_TYPE} == 0) 
                              && ($deposit + $credit <= $Billing->{SUM}) || 
               $Billing->{HANGUP} || 
-              $state ||
               ($NAS{NAS_TYPE} eq 'exppp' && ($acct_input_octets_ext > $exppp_hanguplimit || $acct_output_octets_ext > $exppp_hanguplimit))
              ) {
            #Neg deposit filter
@@ -560,6 +560,27 @@ sub parse_fw {
   return \%params;
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub check_speed_linux {
+	my ($attr) = @_;
+	my %speeds = ();
+  open(PROCS, 'for if in `ifconfig | grep ppp | awk \'{print $1}\'`; do echo $if `tc class show dev $if | grep root`; done; |') || die "Can't open file '' $!\n";
+      while(<PROCS>) {
+		    if (/ppp(\d+)\sclass\shtb\s\d+:\d+\sroot\srate\s(\d+)/) {
+          my $iface = $1;
+          my $speed = $2;
+          print "$iface - $speed\n";   
+          $speeds{$iface}=$speed;
+
+		    }
+		  }
+	 close(PROCS);
+}
+
+
 #**********************************************************
 # Ceck current speed for exppp
 #**********************************************************
@@ -575,7 +596,11 @@ sub check_speed {
   my %rule_speed = ();
   my %pipe_rules = ();
   my %fw_ips     = ();
+  my $OS  = `uname`;
   
+  chop($OS);
+  
+if ($OS ne 'Linux') {
   # Get global ips
   open(IPFW, "/sbin/ipfw table 10 list |") || die "Can't open file '' $!\n";
     while(<IPFW>) {
@@ -584,7 +609,8 @@ sub check_speed {
     	 }   
      }
   close(IPFW);
-  
+}
+
 #Get ng_car speed
 if ($conf{ng_car}) {
     #Get speed from server
@@ -626,6 +652,11 @@ if ($conf{ng_car}) {
      return 0 if(defined($ARGV->{SHOW_SPEED}));
     }
  }
+# Check linux shapper
+elsif ($OS eq 'Linux') {
+   check_speed_linux();
+   exit;	
+ }
 else {
 #----------------------------------------------------------	
 # old shaper check
@@ -666,12 +697,11 @@ else {
   my $out_interface      = 'em0';
 
   if (! $conf{ng_car}) {
-  	$out_interface = `/sbin/route get 91.203.4.17 | grep interface: | awk '{ print \$2 }'`;
+  	$out_interface = `/sbin/route get default | grep interface: | awk '{ print \$2 }'`;
   }
 
   $conf{FW_DIRECTION_OUT}= $ARGV->{FW_DIRECTION_OUT} if ($ARGV->{FW_DIRECTION_OUT});
   $conf{FW_DIRECTION_IN} = $ARGV->{FW_DIRECTION_IN} if ($ARGV->{FW_DIRECTION_IN});
-
   my $via_if_in          = ($conf{FW_DIRECTION_IN}) ? $conf{FW_DIRECTION_IN} : ' out xmit '. $out_interface;
   my $via_if_out         = ($conf{FW_DIRECTION_OUT}) ? $conf{FW_DIRECTION_OUT} : ' in recv '. $out_interface;
 
