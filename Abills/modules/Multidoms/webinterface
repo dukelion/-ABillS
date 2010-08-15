@@ -24,9 +24,8 @@ use Payments;
 use Fees;
 use Tariffs;
 use Nas;
-my $tariffs  = Tariffs->new($db, \%conf, $admin);
-my $payments = Payments->new($db, $admin, \%conf);
-
+my $tariffs    = Tariffs->new($db, \%conf, $admin);
+my $payments   = Payments->new($db, $admin, \%conf);
 my $Cards      = Cards->new($db, $admin, \%conf);
 my $Multidoms  = Multidoms->new($db, $admin, \%conf);
 my $nas        = Nas->new($db, \%conf);	
@@ -625,8 +624,31 @@ if($FORM{NAS_ID}) {
   	{
   		f_args => { %F_ARGS }
   	 });
+ 
+  $Multidoms->nas_tp_info({ NAS_ID    => $FORM{NAS_ID},
+  	                        DOMAIN_ID => $admin->{DOMAIN_ID} });
+ 
+  if ($FORM{TP_ID}) {
+  	$Cards->dillers_tp_info({ ID => $FORM{TP_ID} });
+  	
+  	if ($Cards->{ACTIVATE_PRICE} <= $user->{DEPOSIT}+$user->{CREDIT}) {
+    	$Multidoms->nas_tp_add({ %FORM, DOMAIN_ID => $admin->{DOMAIN_ID} });
+    	if (! $Multidoms->{error}) {
+         my %PARAMS = ( 
+               DESCRIBE => "TP_ID: $FORM{TP_ID} $_ACTIVATE",
+               METHOD   => 1 );
 
-  if ($FORM{NAS_TPS}) {
+         my $Fees     = Finance->fees($db, $admin, \%conf);
+         $Fees->take($user, $Cards->{ACTIVATE_PRICE}, { %PARAMS } );
+       	 $html->message('info', $_INFO, "$_ACTIVATE");
+    	   $Multidoms->{TP_ID}=$FORM{TP_ID};	
+    	  }
+     }
+    else {
+    	$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
+     }
+   }
+  elsif ($FORM{NAS_TPS}) {
   	multidoms_nas_tps({ NAS => $nas });
   	return 0;
    }
@@ -651,6 +673,28 @@ if($FORM{NAS_ID}) {
 
   $nas->{LNG_ACTION}=$_CHANGE;
   $nas->{ACTION}='change';
+  $table = $html->table( { width       => '100%',
+  		                     caption     => "$_TARIF_PLANS",
+  		                     title_plain => [$_TARIF_PLAN, "$_BONUS $_ICARDS", "-"],
+                           cols_align  => ['left', 'left', 'left'],
+                         } );
+
+  my $list = $Cards->dillers_tp_list({ 
+  	                          TP_GID       => $Dv->{TP_GID}, 
+ 	                            NAS_TP       => 1,
+ 	                            COMMENTS     => '*'
+ 	                           });
+
+   foreach my $line (@$list) {
+   	 $table->addrow(
+   	   $html->b($line->[0]).$html->br().convert($line->[5], { text2html => 1  }),
+   	   ($Multidoms->{TP_ID} == $line->[4]) ? $line->[6]-$Multidoms->{BONUS_CARDS} : $line->[6],
+   	   ($Multidoms->{TP_ID} == $line->[4]) ? $html->b($_ACTIV)." ($Multidoms->{DATETIME})" : $html->form_input('TP_ID', "$line->[4]", { TYPE => 'radio', OUTPUT2RETURN => 1 }),
+   	   );
+    }
+
+  $nas->{TARIF_PLAN_TABLE}=$table->show({ OUTPUT2RETURN => 1 });
+  $html->tpl_show(_include('multidoms_nas_tps', 'Multidoms'), { %FORM, %$nas });
  }
 elsif ($FORM{add}) {
 #  if (! $FORM{NAS_MNG_PASSWORD}) {
@@ -685,7 +729,6 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
   	multidoms_reseller_nas_reconfig();
     $html->message('info', $_INFO, "$_DELETED [$FORM{del}]");
    }
-
 }
 
 if ($nas->{errno}) {
@@ -703,7 +746,7 @@ if ($nas->{errno}) {
 my $table = $html->table( { width      => '100%',
                             caption    => "$_NAS",
                             title      => ["ID", "$_NAME", "NAS-Identifier", "IP", 
-                             "$_TYPE", "$_GROUP", "$_STATUS", '-', '-', '-'],
+                             "$_TYPE", "$_GROUP", "$_STATUS", '-', '-' ],
                             cols_align => ['center', 'left', 'left', 'right', 'left', 'left', 'center', 'left', 
                               'center:noprint', 'center:noprint', 'center:noprint' ],
                             ID         => 'NAS_LIST',
@@ -721,7 +764,7 @@ foreach my $line (@$list) {
     $line->[5], 
     $status[$line->[6]],
     $html->button("$_INFO", "index=$index&NAS_ID=$line->[0]", { BUTTON => 1 }),
-    $html->button("$_TARIF_PLANS", "index=$index&NAS_ID=$line->[0]&NAS_TPS=1", { BUTTON => 1 }),
+    #$html->button("$_TARIF_PLANS", "index=$index&NAS_ID=$line->[0]&NAS_TPS=1", { BUTTON => 1 }),
     $delete);
 }
 print $table->show();
@@ -762,6 +805,8 @@ print $table->show();
   $nas->{NAS_GROUPS_SEL}= sel_nas_groups({ GID => $nas->{GID} });
 
   $html->tpl_show(_include('multidoms_reseller_nas', 'Multidoms'), { %FORM, %$nas });
+  
+
 }
 
 #**********************************************************
@@ -1420,9 +1465,6 @@ if ($Multidoms->{errno}) {
 #**********************************************************
 sub cards_dillers_sel {
   my $dillers_sel = '';
-
-
-
   $dillers_sel=$html->form_select('DILLER_ID', { 
  	                                         SELECTED          => $FORM{DILLER_ID},
  	                                         SEL_MULTI_ARRAY   => [['', ''] , @{ $Multidoms->multidoms_domains_list({ DISABLE => 0, SORT => 2,  PAGE_ROWS => 10000 }) }],

@@ -17,6 +17,11 @@
   <tr><td>$_CHANGE:</td><td><input type=text name=CHANGE_PRICE value='%CHANGE_PRICE%'></td></tr>
   <tr><td>$_CREDIT:</td><td><input type=text name=CREDIT value='%CREDIT%'></td></tr>
   <tr><td>$_MIN_USE:</td><td><input type=text name=MIN_USE value='%MIN_USE%'></td></tr>
+  <tr><td>$_NAS:</td><td><input type=checkbox name=NAS_TP value='1' %NAS_TP%></td></tr>
+  <tr><td>$_BONUS $_CARDS:</td><td><input type=text name=BONUS_CARDS value='%BONUS_CARDS%'></td></tr>
+
+<tr><th colspan=2>$_COMMENTS</th></tr>
+<tr><th colspan=2><textarea cols=60 rows=6 name=COMMENTS>%COMMENTS%</textarea></th></tr>
 
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>

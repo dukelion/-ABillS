@@ -20,4 +20,4 @@ clients.conf     > [/usr/local/etc/raddb]/clients.conf
 :OS=FREEBSD,FREERADIUS=2,RLM_PERL=1:FILE=v2/default_rlm_perl  > [/usr/local/etc/raddb]/sites-enabled/abills_default
 :FREERADIUS=2:exec:touch /usr/abills/var/log/abills.log; chown freeradius /usr/abills/var/log/abills.log
 
-:OS=FREEBSD:exec: LD_P=`grep -c LD_PRELOAD /usr/local/etc/rc.d/radiusd`; if [ w$LD_P = w0 ]; then  PERL_VERSION=`pkg_info | grep perl- | sed "s/.*-\([0-9\.]*\).*/\1/g"`; sed -i '' -e "s,run_rc_command,start_precmd=\\\"export LD_PRELOAD=/usr/local/lib/perl5/${PERL_VERSION}/mach/CORE/libperl.so\\\"; run_rc_command,g" "/usr/local/etc/rc.d/radiusd"; fi; /usr/local/etc/rc.d/radiusd restart
+#:OS=FREEBSD:exec: LD_P=`grep -c LD_PRELOAD /usr/local/etc/rc.d/radiusd`; if [ w$LD_P = w0 ]; then  PERL_VERSION=`pkg_info | grep perl- | sed "s/.*-\([0-9\.]*\).*/\1/g"`; sed -i '' -e "s,run_rc_command,start_precmd=\\\"export LD_PRELOAD=/usr/local/lib/perl5/${PERL_VERSION}/mach/CORE/libperl.so\\\"; run_rc_command,g" "/usr/local/etc/rc.d/radiusd"; fi; /usr/local/etc/rc.d/radiusd restart

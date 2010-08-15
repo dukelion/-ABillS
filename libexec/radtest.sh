@@ -3,7 +3,7 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.2
+VERSION=0.3
 
 USER_NAME=test
 USER_PASSWORD=123456
@@ -14,7 +14,8 @@ VOIP_NAS_IP_ADDRESS=192.168.202.15
 VOIP_USER_NAME=200
 VOIP_CHAP_PASSWORD=''; #123456
 
-
+RAUTH="./rauth.pl";
+RACCT="./racct.pl";
 echo `pwd -P`;
 echo $1 
 
@@ -28,14 +29,13 @@ fi;
 
 if [ t$1 = 'tauth' ] ; then
 
-  ./rauth.pl \
+  ${RAUTH} \
         SERVICE_TYPE=VPN \
         NAS_IP_ADDRESS=${NAS_IP_ADDRESS}\
         USER_PASSWORD="${USER_PASSWORD}"\
         USER_NAME="${USER_NAME}"
 
 #        CISCO_AVPAIR="client-mac-address=000f.ea3d.92e1"
-
 #        CHAP_PASSWORD="0x5acd1cc26b6f8bf084fb616925769362af"
 #NAS_IDENTIFIER="vpn1.imperial.net.ua"\
 #        USER_PASSWORD="test12345"\
@@ -76,13 +76,20 @@ if [ t$1 = 'tauth' ] ; then
    echo "" 
    echo "Auth test end"
 
+elif [ t$1 = tdhcp ]; then
+   ${RAUTH} \
+       USER_NAME="00:04:76:4e:c1:d5"\
+       USER_PASSWORD="dhcpuser"\
+       NAS_IP_ADDRESS=${NAS_IP_ADDRESS}\
+       NAS_PORT="3232235816"\
+       DHCP_MESSAGE_TYPE="DHCP-Discover"
 
 elif [ t$1 = 'tacct' ]; then
-   echo "Accounting test";
+  echo "Accounting test";
 
   if [ t$2 = 'tStart' ]; then
-   echo Start;
-   ./racct.pl \
+    echo Start;
+    ${RACCT} \
         USER_NAME="${USER_NAME}" \
         SERVICE_TYPE=Framed-User \
         FRAMED_PROTOCOL=PPP \
@@ -99,8 +106,8 @@ elif [ t$1 = 'tacct' ]; then
 #        CALLING_STATION_ID="192.168.101.4" \
 
    elif [ t$2 = 'tAlive' ] ; then
-            echo Alive;
-      ./racct.pl \
+      echo Alive;
+      ${RACCT} \
         USER_NAME="${USER_NAME}" \
         SERVICE_TYPE=Framed-User \
         FRAMED_PROTOCOL=PPP \
@@ -124,8 +131,8 @@ elif [ t$1 = 'tacct' ]; then
         ACCT_SESSION_TIME=100 
 
    elif [ t$2 = 'tStop' ] ; then
-      echo Stop;
-      ./racct.pl \
+     echo Stop;
+     ${RACCT}  \
         USER_NAME="${USER_NAME}" \
         SERVICE_TYPE=Framed-User \
         FRAMED_PROTOCOL=PPP \
@@ -169,7 +176,7 @@ elif [ t$1 = 'tvoip' ] ; then
  echo "Voip";
   if [ t$2 = 'tauth' ] ; then
    echo Auth;
-   ./rauth.pl NAS_IP_ADDRESS="${VOIP_NAS_IP_ADDRESS}" \
+     ${RAUTH}  NAS_IP_ADDRESS="${VOIP_NAS_IP_ADDRESS}" \
      NAS_PORT_TYPE="Virtual" \
      NAS_IDENTIFIER="" \
      CLIENT_IP_ADDRESS="192.168.101.17" \
@@ -190,7 +197,7 @@ elif [ t$1 = 'tvoip' ] ; then
   elif [ t$2 = 'tStart' ] ; then
     echo "Start\n";
 
-   ./rauth.pl NAS_IP_ADDRESS="${VOIP_NAS_IP_ADDRESS}" \
+    ${RAUTH} NAS_IP_ADDRESS="${VOIP_NAS_IP_ADDRESS}" \
        CHAP_PASSWORD="0x0338b5a0e6ade0557eb9e5d208fe0f5eee" \
        H323_CONF_ID="h323-conf-id=16000 647BEE1D 80F000A F453DBFD"\
        H323_GW_ID="h323-gw-id=ASMODEUSGK"\
@@ -208,7 +215,7 @@ elif [ t$1 = 'tvoip' ] ; then
        HUNTGROUP_NAME="voips"
 
 # RadAliasAuth
-#   ./rauth.pl NAS_IP_ADDRESS="192.168.101.17" \
+#      ${RAUTH}  NAS_IP_ADDRESS="192.168.101.17" \
 #       USER_PASSWORD="101"\
 #       H323_CONF_ID="h323-conf-id=16000 647BEE1D 80F000A F453DBFD"\
 #       H323_GW_ID="h323-gw-id=ASMODEUSGK"\
@@ -225,7 +232,7 @@ elif [ t$1 = 'tvoip' ] ; then
 #       HUNTGROUP_NAME="voips"
 
 
-   ./racct.pl ACCT_UNIQUE_SESSION_ID="7ae849dcfba1c03f"\
+    ${RACCT}  ACCT_UNIQUE_SESSION_ID="7ae849dcfba1c03f"\
       H323_CONF_ID="h323-conf-id=16000 647BEE1D 80F000A F453DBFD"\
       NAS_PORT_TYPE="Virtual"\
       H323_CALL_ORIGIN="h323-call-origin=proxy"\
@@ -247,13 +254,9 @@ elif [ t$1 = 'tvoip' ] ; then
       CALLED_STATION_ID="613"
 
 
-
-
-
-
    elif [ t$2 = 'tStop' ] ; then
-    echo "Voip Stop"
-   ./racct.pl  ACCT_UNIQUE_SESSION_ID="7ae849dcfba1c03f"\
+     echo "Voip Stop"
+     ${RACCT}  ACCT_UNIQUE_SESSION_ID="7ae849dcfba1c03f"\
    H323_CONF_ID="h323-conf-id=16000 647BEE1D 80F000A F453DBFD"\
    NAS_PORT_TYPE="Virtual"\
    H323_CALL_ORIGIN="h323-call-origin=proxy"\
@@ -278,21 +281,7 @@ elif [ t$1 = 'tvoip' ] ; then
    CALLED_STATION_ID="613"\
    ACCT_DELAY_TIME="0"\
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- fi
+fi
 
 else 
  echo "Arguments (auth | acct | authgt | acctgt)"
@@ -303,6 +292,8 @@ else
 VoIP Functions
        voip auth 
        voip acct (Stop|Start|Alive)
+DHCP Function
+       dhcp   - test radius dhcp 
   "
 fi
 

@@ -1724,6 +1724,9 @@ $Cards->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE',
  	                                          ARRAY_NUM_ID => 1
  	                                        });
 
+
+$Cards->{NAS_TP}=($Cards->{NAS_TP}) ? 'checked': '';
+
 $html->tpl_show(_include('cards_dillers_tp', 'Cards'), $Cards);
 
 my $list = $Cards->dillers_tp_list({ %LIST_PARAMS });	
@@ -1799,8 +1802,7 @@ sub cards_diller_stats {
                 TOTAL_SUM   => sprintf("%.2f", $total_sum),
                 DILLER_ID   => $diller->{ID},
                 DETAILS     => undef
-                
-                 } );
+               } );
 		return 0;
 	 }
 

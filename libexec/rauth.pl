@@ -177,6 +177,10 @@ sub auth {
   }
  $rr = '';
 
+if ($RAD->{DHCP_MESSAGE_TYPE}) {
+	$nas->{NAS_TYPE}='dhcp';
+}
+
 
 if(defined($AUTH{$nas->{NAS_TYPE}})) {
   if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
@@ -193,6 +197,8 @@ else {
                                        { MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC}  } );
 }
 
+
+my $tt = `echo "/$nas->{NAS_TYPE}/ $r" >> /tmp/rad`;
 %RAD_REPLY = %$RAD_PAIRS;
 
 #If Access deny
@@ -272,59 +278,58 @@ sub post_auth {
   
   my $reject_info = '';
 
-  if ($RAD_REQUEST{'DHCP-Message-Type'}) {
-        my $ciaddr = $RAD_REQUEST{'DHCP-Client-IP-Address'};
-        my $giaddr = $RAD_REQUEST{'DHCP-Gateway-IP-Address'};
-        my $chaddr = $RAD_REQUEST{'DHCP-Client-Hardware-Address'};
-        my $xid = $RAD_REQUEST{'DHCP-Transaction-Id'};
-        my $msgtype = $RAD_REQUEST{'DHCP-Message-Type'};
+#  if ($RAD_REQUEST{'DHCP-Message-Type'}) {
+#        my $ciaddr = $RAD_REQUEST{'DHCP-Client-IP-Address'};
+#        my $giaddr = $RAD_REQUEST{'DHCP-Gateway-IP-Address'};
+#        my $chaddr = $RAD_REQUEST{'DHCP-Client-Hardware-Address'};
+#        my $xid = $RAD_REQUEST{'DHCP-Transaction-Id'};
+#        my $msgtype = $RAD_REQUEST{'DHCP-Message-Type'};
+#
+##use constant  RLM_MODULE_REJECT=>    0;#  /* immediately reject the request */
+##use constant	RLM_MODULE_FAIL=>      1;#  /* module failed, don't reply */
+##use constant	RLM_MODULE_OK=>        2;#  /* the module is OK, continue */
+##use constant	RLM_MODULE_HANDLED=>   3;#  /* the module handled the request, so stop. */
+##use constant	RLM_MODULE_INVALID=>   4;#  /* the module considers the request invalid. */
+##use constant	RLM_MODULE_USERLOCK=>  5;#  /* reject the request (user is locked out) */
+##use constant	RLM_MODULE_NOTFOUND=>  6;#  /* user not found */
+##use constant	RLM_MODULE_NOOP=>      7;#  /* module succeeded without doing anything */
+##use constant	RLM_MODULE_UPDATED=>   8;#  /* OK (pairs modified) */
+##use constant	RLM_MODULE_NUMCODES=>  9;#  /* How many return codes there are */
+#my $message = '';
+#my $yiaddr  = '192.168.1.33'; 
+#my $mask    = '255.255.255.0'; 
+#my $gw      = '192.168.1.32'; 
+#my $lease   = 600;
+#
+#        if ( $yiaddr and $mask and $gw ) {
+#                $RAD_REPLY{'DHCP-Your-IP-Address'} = $yiaddr;
+#                $RAD_REPLY{'DHCP-Subnet-Mask'}     = $mask;
+#                $RAD_REPLY{'DHCP-Router-Address'}  = $gw;
+#                $RAD_REPLY{'DHCP-IP-Address-Lease-Time'} = $lease;
+#                $RAD_REPLY{'DHCP-Client-IP-Address'}=$yiaddr;
+#                if ( $message ) {
+#                        $RAD_REQUEST{'Tmp-String-0'} = $message;
+#                } else {
+#                        $RAD_REQUEST{'Tmp-String-0'} = 'OK';
+#                };
+#                return 2;
+#        };
+##        if ( $message ) {
+##                $RAD_REQUEST{'Tmp-String-0'} = $message;
+##        } else
+##        {
+##                $RAD_REQUEST{'Tmp-String-0'} = 'no IP from DB.';
+##        }
+##        return 6;
+#
+#  	
+#    $RAD_REPLY{'DHCP-Your-IP-Address'} = '192.168.0.23';
+#    $RAD_REPLY{'DHCP-Subnet-Mask'} = '255.255.255.0';
+#    #$RAD_REPLY{'DHCP-Router-Address'} = '192.168.1.220';
+#    $RAD_REPLY{'DHCP-IP-Address-Lease-Time'} = 8600;
+#  	return 2;
+#   }
 
-#use constant  RLM_MODULE_REJECT=>    0;#  /* immediately reject the request */
-#use constant	RLM_MODULE_FAIL=>      1;#  /* module failed, don't reply */
-#use constant	RLM_MODULE_OK=>        2;#  /* the module is OK, continue */
-#use constant	RLM_MODULE_HANDLED=>   3;#  /* the module handled the request, so stop. */
-#use constant	RLM_MODULE_INVALID=>   4;#  /* the module considers the request invalid. */
-#use constant	RLM_MODULE_USERLOCK=>  5;#  /* reject the request (user is locked out) */
-#use constant	RLM_MODULE_NOTFOUND=>  6;#  /* user not found */
-#use constant	RLM_MODULE_NOOP=>      7;#  /* module succeeded without doing anything */
-#use constant	RLM_MODULE_UPDATED=>   8;#  /* OK (pairs modified) */
-#use constant	RLM_MODULE_NUMCODES=>  9;#  /* How many return codes there are */
-my $message = '';
-my $yiaddr  = '192.168.0.33'; 
-my $mask    = '255.255.255.0'; 
-my $gw      = '192.168.0.32'; 
-my $lease   = 600;
-
-        if ( $yiaddr and $mask and $gw ) {
-                $RAD_REPLY{'DHCP-Your-IP-Address'} = $yiaddr;
-                $RAD_REPLY{'DHCP-Subnet-Mask'}     = $mask;
-                $RAD_REPLY{'DHCP-Router-Address'}  = $gw;
-                $RAD_REPLY{'DHCP-IP-Address-Lease-Time'} = $lease;
-                $RAD_REPLY{'DHCP-Client-IP-Address'}=$yiaddr;
-                if ( $message ) {
-                        $RAD_REQUEST{'Tmp-String-0'} = $message;
-                } else {
-                        $RAD_REQUEST{'Tmp-String-0'} = 'OK';
-                };
-                return 2;
-        };
-#        if ( $message ) {
-#                $RAD_REQUEST{'Tmp-String-0'} = $message;
-#        } else
-#        {
-#                $RAD_REQUEST{'Tmp-String-0'} = 'no IP from DB.';
-#        }
-        return 6;
-
-  	
-    $RAD_REPLY{'DHCP-Your-IP-Address'} = '192.168.0.23';
-    $RAD_REPLY{'DHCP-Subnet-Mask'} = '255.255.255.0';
-    #$RAD_REPLY{'DHCP-Router-Address'} = '192.168.1.220';
-    $RAD_REPLY{'DHCP-IP-Address-Lease-Time'} = 8600;
-  	return 2;
-   }
-
-  # $RAD->{MS_CHAP_CHALLENGE}
   if (defined(%RAD_REQUEST)) {
     if ($RAD_REPLY{'Reply-Message'}) {
       return 0;
