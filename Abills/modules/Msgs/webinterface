@@ -2455,13 +2455,20 @@ REG_FORM:
 sub msgs_survey_sel {
   my ($attr) = @_;
 
-  return $html->form_select('SURVEY_ID', 
+
+  my $list = $Msgs->survey_subjects_list({ PAGE_ROWS => 10000 });
+
+  if ($Msgs->{TOTAL} > 0) {
+    return $html->form_select('SURVEY_ID', 
                           { 
                             SELECTED          => '',
-                            SEL_MULTI_ARRAY   => [ [ undef, "" ], @{ $Msgs->survey_subjects_list({ PAGE_ROWS => 10000 }) } ],
+                            SEL_MULTI_ARRAY   => [ [ undef, "" ], @{ $list }) } ],
                             MULTI_ARRAY_KEY   => 0,
                             MULTI_ARRAY_VALUE => 1,
                       }); 
+  }
+ 
+  return '';
 }
 
 
