@@ -446,7 +446,7 @@ sub msgs_admin {
    	 	  my ($h, $min, $sec)=split(/:/, $FORM{RUN_TIME}, 3);
    	 	  $FORM{RUN_TIME}=$h*60*60+$min*60+$sec;
    	   }
-    
+      
       if ( $FORM{REPLY_SUBJECT} || $FORM{REPLY_TEXT} || $FORM{FILE_UPLOAD} || $FORM{SURVEY_ID})  {
         $Msgs->message_reply_add({ %FORM, 
     	                           AID   => $admin->{AID},
@@ -469,7 +469,7 @@ sub msgs_admin {
               });
             }      
          }
-
+        }
       %params = ();
       $params{CHAPTER}     = $FORM{CHAPTER_ID} if ($FORM{CHAPTER_ID});
       $params{STATE}       = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
@@ -485,7 +485,7 @@ sub msgs_admin {
  	 	                      });
 
       $FORM{chg} = $FORM{ID};
-    }
+
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
 
     $users->pi({ UID => $FORM{UID} });
