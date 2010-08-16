@@ -133,13 +133,16 @@ sub list {
     push @WHERE_RULES, "s.d='$attr->{D}'";
   }
 
-
  if ($attr->{MODULE}) {
     push @WHERE_RULES, "s.module='$attr->{MODULE}'";
   }
 
  if ($attr->{COMMENTS}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{COMMENTS}", 'STR', 's.comments') };
+  }
+
+ if ($attr->{ACTION}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{ACTION}", 'STR', 's.action') };
   }
 
 

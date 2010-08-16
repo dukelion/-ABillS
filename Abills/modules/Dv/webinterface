@@ -461,6 +461,19 @@ sub dv_user {
      }
 
     $Dv->change({ %FORM });
+    
+    if ($FORM{STATUS} == 0) {
+    	my $Shedule = Shedule->new($db, $admin, \%conf);
+  	  my $list = $Shedule->list({ UID    => $user->{UID},
+                              MODULE => 'Dv',
+                              TYPE   => 'status',
+                              ACTION => '0'
+                              });
+       if ($Shedule->{TOTAL} == 1) {
+       	 $Shedule->del({ UID    => $FORM{UID},
+                         IDS    => $line->[0][14]  });
+        }
+     }
 
     if (! $Dv->{errno}) {
       $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
@@ -3629,12 +3642,12 @@ sub dv_holdup_service {
   if ($FORM{add}) {
   	my ($from_year, $from_month, $from_day)=split(/-/, $FORM{FROM_DATE}, 3);
   	my ($to_year, $to_month, $to_day)=split(/-/, $FORM{TO_DATE}, 3);
-  	
+
     my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month-1), ($from_year - 1900));
     my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day, ($to_month-1), ($to_year - 1900));
-    
+
     my $block_days = ($to_seltime - $from_seltime) / 86400;
-    
+
     if ($block_days < $hold_up_min_period) {
     	$html->message('err', "$ERR_WRONG_DATA", "$_MIN $_HOLD_UP   $hold_up_min_period $_DAYS");
      }
