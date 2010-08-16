@@ -2462,7 +2462,7 @@ sub msgs_survey_sel {
     return $html->form_select('SURVEY_ID', 
                           { 
                             SELECTED          => '',
-                            SEL_MULTI_ARRAY   => [ [ undef, "" ], @{ $list }) } ],
+                            SEL_MULTI_ARRAY   => [ [ undef, "" ], @{ $list } ],
                             MULTI_ARRAY_KEY   => 0,
                             MULTI_ARRAY_VALUE => 1,
                       }); 
