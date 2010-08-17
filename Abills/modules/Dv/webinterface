@@ -374,8 +374,11 @@ sub dv_user {
 
  	$Dv->{UID}=$FORM{UID} || $LIST_PARAMS{UID} ;	  
   
-  
-  if ($FORM{REGISTRATION_INFO}) {
+  if ($FORM{pay_to}) {
+  	dv_pay_to();
+  	return 0;
+   }
+  elsif ($FORM{REGISTRATION_INFO}) {
      # Info
      my $users = Users->new($db, $admin, \%conf); 
      my $dv    = $Dv->info($Dv->{UID});
@@ -463,15 +466,18 @@ sub dv_user {
     $Dv->change({ %FORM });
     
     if ($FORM{STATUS} == 0) {
+    	
+    	
     	my $Shedule = Shedule->new($db, $admin, \%conf);
-  	  my $list = $Shedule->list({ UID    => $user->{UID},
+    	$Shedule->{debug}=1;
+  	  my $list = $Shedule->list({ UID    => $FORM{UID},
                               MODULE => 'Dv',
                               TYPE   => 'status',
                               ACTION => '0'
                               });
        if ($Shedule->{TOTAL} == 1) {
        	 $Shedule->del({ UID    => $FORM{UID},
-                         IDS    => $line->[0][14]  });
+                         IDS    => $list->[0][14]  });
         }
      }
 
@@ -5860,4 +5866,35 @@ sub dv_payments_maked {
 		dv_get_month_fee($Dv);
 	 }
 }
+
+
+#**********************************************************
+# Pay to function
+#**********************************************************
+sub dv_pay_to {
+	my ($attr) = @_;
+
+  my $sum = 0;
+  if ($FORM{DATE}) {
+ 	  my ($from_year, $from_month, $from_day)=split(/-/, $FORM{DATE}, 3);
+	  my ($to_year, $to_month, $to_day)=split(/-/, $FORM{TO_DATE}, 3);
+    my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month-1), ($from_year - 1900));
+    my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day, ($to_month-1), ($to_year - 1900));
+    my $block_days = ($to_seltime - $from_seltime) / 86400;
+   }
+
+  
+  print $html->form_main({ CONTENT => "$_DATE: ".$html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS }),
+	                                          HIDDEN  => { index => 2,
+	                                          	           UID   => $FORM{UID},
+	                                          	           SUM   => $sum,
+	                                          	           DESCRIBE => "$_PAY_TO: $FORM{DATE}"
+	                                          	},
+	                                          SUBMIT  => { pay_to  => "$_ADD" } 
+	                                       });
+
+  
+	
+}
 1
+

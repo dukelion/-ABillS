@@ -72,6 +72,11 @@ else {
   }
  }	
 
+
+if ($conf{IPN_DB}) {
+	($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd})=split(/:/, $conf{IPN_DB}, 5);
+}
+
 require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db  = $sql->{db};

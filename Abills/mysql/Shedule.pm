@@ -141,7 +141,7 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{COMMENTS}", 'STR', 's.comments') };
   }
 
- if ($attr->{ACTION}) {
+ if (defined($attr->{ACTION})) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{ACTION}", 'STR', 's.action') };
   }
 

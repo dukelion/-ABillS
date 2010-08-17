@@ -583,13 +583,12 @@ sub ip_in_zone($$$$) {
 
     for (my $i=0; $i<=$#{$zones{$zoneid}}; $i++) {
 	     my $adr_hash = \%{ $zones{$zoneid}[$i] };
-       
        my $a_ip  = $$adr_hash{'IP'}; 
        my $a_msk = $$adr_hash{'Mask'}; 
        my $a_neg = $$adr_hash{'Neg'};
        my $a_ports_ref = \@{ $$adr_hash{'Ports'} };
-       if ( (( $a_ip & $a_msk) == ($ip_num & $a_msk)) && # aa?an niaiaaaao
-              (is_exist($a_ports_ref, $port)) ) {       # E ii?o niaiaaaao
+       if ( (( $a_ip & $a_msk) == ($ip_num & $a_msk)) &&
+              (is_exist($a_ports_ref, $port)) ) {
 
 	        if ($a_neg) {
 		        $res = 0;
@@ -600,7 +599,6 @@ sub ip_in_zone($$$$) {
 	         }
 	      }
     }
-
     return $res;									  												      
 }
 

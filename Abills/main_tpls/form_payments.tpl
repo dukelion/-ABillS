@@ -18,7 +18,7 @@ function postthread(param) {
 
 <TABLE>
 <TR><TH class='form_title' colspan=3>$_PAYMENTS</TH></TR>
-<TR><TD colspan=2>$_SUM:</TD><TD><input type=text name=SUM></TD></TR>
+<TR><TD colspan=2>$_SUM:</TD><TD><input type=text name=SUM value='$FORM{SUM}'></TD></TR>
 <TR><TD rowspan=2>$_DESCRIBE:</TD><TD>$_USER:</TD><TD><input type=text name=DESCRIBE value='%DESCRIBE%' size=40></TD></TR>
 <TR> <TD>$_INNER:</TD><TD><input type=text name=INNER_DESCRIBE size=40></TD></TR>
 <TR><TD colspan=2>$_EXCHANGE_RATE:</TD><TD>%SEL_ER%</TD></TR>

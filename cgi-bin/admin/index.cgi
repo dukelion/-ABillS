@@ -3852,18 +3852,18 @@ if (defined($FORM{DATE})) {
     #my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=3&del=$line->[0]&UID=".$line->[10], 
     #  { MESSAGE => "$_DEL ID: $line->[0]?" }) : ''; 
 
-    $table_fees->addrow($html->b($line->[0]), 
-    $html->button($line->[1], "index=15&UID=".$line->[10]), 
-    $line->[2], 
-    $line->[3], 
-    $line->[4] . ( ($line->[11] ) ? ' ('. $html->b($line->[11]) .') ' : '' ), 
-    $FEES_METHODS[$line->[5]], 
-    "$line->[6]",
-    ($BILL_ACCOUNTS{$line->[7]}) ? $BILL_ACCOUNTS{$line->[7]} : "$line->[7]",
-    "$line->[8]", 
-    "$line->[9]",
-  
-    #$delete
+    $table_fees->addrow(
+    $html->b($line->[0]), 
+      $html->button($line->[1], "index=15&UID=".$line->[10]), 
+      $line->[2], 
+      $line->[3]. ( ($line->[11] ) ? $html->br(). $html->b($line->[11]) : '' ), 
+      $line->[4], 
+      "$line->[5]",
+      $FEES_METHODS[$line->[6]], 
+      ($BILL_ACCOUNTS{$line->[7]}) ? $BILL_ACCOUNTS{$line->[7]} : "$line->[7]",
+      "$line->[8]", 
+      "$line->[9]",
+      #$delete
      );
   }
  }   
