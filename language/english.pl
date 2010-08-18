@@ -439,3 +439,4 @@ $_PAY_SYSTEM='Payment system';
 $_BUY='Buy';
 $_IN_PROGRESS='In progress';
 $_SURVEY='Survey';
+$_PAY_TO='Pay to date';

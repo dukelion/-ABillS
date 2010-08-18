@@ -419,7 +419,7 @@ if ($pop->login($username, $password)) {
                              IMPORT_RULES  => $conf{PAYSYS_IMPORT_RULES},
                              CONTENT       => $content
                            }) ) {
-      $pop->delete($msgnum);
+      #$pop->delete($msgnum);
       print "Delete\n" if ($debug == 1);
      }  
     else {

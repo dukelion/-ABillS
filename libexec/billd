@@ -565,7 +565,8 @@ sub parse_fw {
 #**********************************************************
 sub check_speed_linux {
 	my ($attr) = @_;
-
+  
+  my $NAS_TYPE = '';
   my $debug_outputs = '';
   my $cmd_debug='';
 
@@ -575,21 +576,31 @@ sub check_speed_linux {
 
   #$conf{KBYTE_SIZE} = 1024 if (! $conf{KBYTE_SIZE});
 	my %PORTS_SPEEDS = ();
-	print "test";
+  #In 
   open(PROCS, 'for if in `ifconfig | grep ppp | awk \'{print $1}\'`; do echo $if `tc class show dev $if | grep root`; done; |') || die "Can't open file '' $!\n";
       while(<PROCS>) {
 		    if (/ppp(\d+)\sclass\shtb\s\d+:\d+\sroot\srate\s(\d+)(\S+)/) {
           my $iface = $1;
           my $sufix = $3;
           my $speed = ($sufix eq 'bit') ? $2 / 1000 : $2;
-          
 #          print "$iface - $speed - $sufix\n";   
           $PORTS_SPEEDS{$iface}{0}{IN}=$speed;
-          $PORTS_SPEEDS{$iface}{0}{OUT}=$speed;
 		    }
 		  }
 	 close(PROCS);
 
+  #out
+  #ppp15 police 0x2e28 rate 2048Kbit burst 12Kb mtu 2Kb action drop 
+  open(PROCS, 'for if in `ifconfig | grep ppp | awk \'{print $1}\'`; do echo $if `tc filter show dev $if parent ffff: | grep police`; done; |') || die "Can't open file '' $!\n";
+      while(<PROCS>) {
+		    if (/ppp(\d+)\spolice\s[a-fx0-9]+\srate\s(\d+)(\S+)/) {
+          my $iface = $1;
+          my $sufix = $3;
+          my $speed = ($sufix eq 'bit') ? $2 / 1000 : $2;
+          $PORTS_SPEEDS{$iface}{0}{OUT}=$speed;
+		    }
+		  }
+	 close(PROCS);
 # Table shaper
   require Billing;
   Billing->import();
@@ -603,13 +614,13 @@ sub check_speed_linux {
   my %TP_HASH = ();  
   my $tp_list = $tariffs->list({ MODULE => 'Dv',  
   	                            });
-  my @FW_ACTIONS = ();
 #GET TP speed
   my %tp_exprasions = ();
   my %static_speeds = ();
   my %nets_hash     = ();
  
   foreach my $line ( @$tp_list ) {
+  	
   	my $tp_id = $line->[18];
   	my $tp    = $line->[0];
     $TP_HASH{$tp}=$tp_id;
@@ -633,7 +644,7 @@ sub check_speed_linux {
 
     my %TT_IDS = %$ret_attr;
 
-    if (keys %TT_IDS > 0) {
+    if (scalar(keys %TT_IDS) > 0) {
       #Get intervals
       while(my($k, $interval_id)=each( %TT_IDS)) {
  	      print " INTERVAL: $k, $interval_id\n" if ($debug > 1);
@@ -709,7 +720,6 @@ sub check_speed_linux {
   my $nas_list   = $nas->list({ %LIST_PARAMS });
   my %USER_IFACES= ();
 
-  my $NAS_TYPE = '';
   foreach my $nas_row (@$nas_list) {
     next if (! $online->{$nas_row->[0]});
     $NAS_TYPE = $nas_row->[4];
@@ -1007,8 +1017,8 @@ else {
   my $NAS_TYPE = '';
   foreach my $nas_row (@$nas_list) {
     next if (! $online->{$nas_row->[0]});
-    $NAS_TYPE = $nas_row->[4];
-
+    $NAS_TYPE = $nas_row->[4] || '';
+    
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
        my $duration = time2sec($line->[7]);
@@ -1017,7 +1027,7 @@ else {
        #IFACE : TP : SPEED  :IP
        my $tp = 0;
        my $tp_id = 0;
-       if ($line->[4] > 0) {
+       if (int($line->[4]) > 0) {
           $Dv->info($line->[4]);
           $tp    = $Dv->{TP_ID};
           $tp_id = $Dv->{TP_NUM};
@@ -1447,6 +1457,11 @@ sub check_speed_change {
      $cmds = "$Bin/linkupdown mpd down ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;".
              "$Bin/linkupdown mpd up ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;";
    }
+  elsif ($NAS_TYPE =~ /pppd/) {
+     $cmds = "$Bin/linkupdown pppd up $1 'username' $4;".
+             "$Bin/linkupdown  pppd up $1 'username' $4;";
+   }
+  
 
   my $cmd=`$cmds`;
 	return $cmd;

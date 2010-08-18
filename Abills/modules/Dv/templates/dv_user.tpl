@@ -4,7 +4,8 @@
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='UID' value='$FORM{UID}'>
 <table cellspacing='0' cellpadding='3' width=450>
-<tr bgcolor=$_COLORS[2]><td>$_TARIF_PLAN:</td><th  align='left' valign='middle'>[%TP_ID%] %TP_NAME% %CHANGE_TP_BUTTON%</th></tr>
+<tr bgcolor=$_COLORS[2]><td>$_TARIF_PLAN:</td><th  align='left' valign='middle'>[%TP_ID%] %TP_NAME% 
+<br>%CHANGE_TP_BUTTON% <a href='$SELF?index=$index&UID=$FORM{UID}&pay_to=1' class=link_button>$_PAY_TO</a></th></tr>
 %JOIN_SERVICE%
 <tr><td>$_SIMULTANEOUSLY:</td><td><input type=text name=SIMULTANEONSLY value='%SIMULTANEONSLY%'></td></tr>
 <tr><td>IP:</td><td><input type=text name=IP value='%IP%'> Static IP Pool: %STATIC_IP_POOL%</td></tr>

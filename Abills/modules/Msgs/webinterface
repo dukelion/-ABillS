@@ -99,9 +99,7 @@ if ($Msgs->{errno}) {
  } 
 
 
-my $list = $Msgs->admins_list({ %LIST_PARAMS });
-  
-  
+  my $list = $Msgs->admins_list({ %LIST_PARAMS });
   my $table = $html->table( { width      => '100%',
                               caption    => "$_ADMINS",
                               title      => [$_ADMIN, "$_CHAPTERS", "$_PERMISSION", "$_MESSAGES", 'E-mail', "$_PRIORITY", "-"],
@@ -530,8 +528,8 @@ sub msgs_admin {
      }    
 
     $Msgs->message_info($FORM{chg});
-    $Msgs->{ACTION}    ='reply';
-    $Msgs->{ACTION_LNG}=$_REPLY;
+    $Msgs->{ACTION}    = 'reply';
+    $Msgs->{ACTION_LNG}= $_REPLY;
     $Msgs->{STATE_NAME}= $html->color_mark($msg_status[$Msgs->{STATE}], $style[$Msgs->{STATE}]);
     $Msgs->{STATE_SEL} = $html->form_select('STATE', 
                                           { 
@@ -648,7 +646,7 @@ sub msgs_admin {
      }
 
     
-    if (! $Msgs->{ACTIVE_SURWEY}) {
+    if (! $Msgs->{ACTIVE_SURWEY} && $A_PRIVILEGES{$Msgs->{CHAPTER}}) {
    	  $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), { %$Msgs, 
       	REPLY_TEXT => $reply,
      	  RUN_TIME   => "$_RUN_TIME ($_MINS):". $html->form_input('RUN_TIME', "$run_time", { EX_PARAMS => " STYLE='background-color: $_COLORS[3]' DISABLED size=9"} ),
@@ -906,6 +904,7 @@ foreach my $line (@$list) {
   my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
            { SITE    => $site,
      LOGIN   => $Msgs->{LOGIN} || $FORM{LOGIN},
+     ADMIN   => ( $FORM{INNER_MSG} ) ? $admin->{A_LOGIN} : '', 
      UID     => $Msgs->{UID} || $FORM{UID},
      DATE    => $DATE, 
      TIME    => $TIME,

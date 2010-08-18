@@ -374,11 +374,7 @@ sub dv_user {
 
  	$Dv->{UID}=$FORM{UID} || $LIST_PARAMS{UID} ;	  
   
-  if ($FORM{pay_to}) {
-  	dv_pay_to();
-  	return 0;
-   }
-  elsif ($FORM{REGISTRATION_INFO}) {
+  if ($FORM{REGISTRATION_INFO}) {
      # Info
      my $users = Users->new($db, $admin, \%conf); 
      my $dv    = $Dv->info($Dv->{UID});
@@ -443,7 +439,6 @@ sub dv_user {
    	  dv_get_month_fee($Dv) if (! $FORM{STATUS});
       $html->message('info', $_INFO, "$_ADDED");	
      }
-
    }
 	elsif($FORM{set}) {
     if (! $permissions{0}{4} ) {
@@ -515,6 +510,12 @@ sub dv_user {
 	  $Dv->{LNG_ACTION}=$_ACTIVATE;
 	 }
 	else {
+		
+    if ($FORM{pay_to}) {
+  	  dv_pay_to({ Dv => $Dv });
+  	  return 0;
+     }
+		
 	  $Dv->{ACTION}='set';
 	  $Dv->{LNG_ACTION}=$_CHANGE;
 	  $Dv->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. ($index + 1), { BUTTON => 1 });
@@ -3714,7 +3715,7 @@ sub dv_holdup_service {
   $Dv->{DATE_TO}  = $html->date_fld2('TO_DATE', { FORM_NAME => 'holdup',
 	                                                WEEK_DAYS => \@WEEKDAYS,
  	                                                MONTHES   => \@MONTHES, 
- 	                                            });
+ 	                                             });
 
 	$html->tpl_show(_include('dv_hold_up', 'Dv'), $Dv);
 }
@@ -5874,27 +5875,55 @@ sub dv_payments_maked {
 sub dv_pay_to {
 	my ($attr) = @_;
 
-  my $sum = 0;
+  my $Dv = $attr->{Dv};
+  
+
+  
   if ($FORM{DATE}) {
- 	  my ($from_year, $from_month, $from_day)=split(/-/, $FORM{DATE}, 3);
-	  my ($to_year, $to_month, $to_day)=split(/-/, $FORM{TO_DATE}, 3);
-    my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month-1), ($from_year - 1900));
-    my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day, ($to_month-1), ($to_year - 1900));
-    my $block_days = ($to_seltime - $from_seltime) / 86400;
+ 	  my ($from_year, $from_month, $from_day)=split(/-/, $DATE, 3);
+	  my ($to_year, $to_month, $to_day)=split(/-/, $FORM{DATE}, 3);
+    $Dv->{ACTION_LNG}= "$_PAYMENTS";
+    $Dv->{DATE}      = "$DATE - $FORM{DATE}";
+    $Dv->{SUM}       = 0.00;
+    $Dv->{DAYS}      = 0;
+
+    if ($Dv->{MONTH_ABON} && $Dv->{ABON_DISTRIBUTION} || $Dv->{DAY_ABON}) {
+      if ($from_year.'-'.$from_month eq $to_year.'-'.$to_month) {
+		    $Dv->{DAYS} = $to_day-$from_day;
+		    my $days_in_month = ($FROM_M!=2?(($FROM_M%2)^($FROM_M>7))+30:(!($FROM_Y%400)||!($FROM_Y%4)&&($FROM_Y%25)?29:28));
+		    $Dv->{SUM} = sprintf("%.2f", $Dv->{DAYS} * $Dv->{DAY_ABON} + $Dv->{DAYS} * ($Dv->{MONTH_ABON} / $days_in_month));
+    	 }
+      elsif ("$from_year-$from_month" ne "$to_year-$to_month") {
+  	    do {
+  		    $days_in_month = ($from_month!=2?(($from_month%2)^($from_month>7))+30:(!($from_year%400)||!($from_year%4)&&($from_year%25)?29:28));
+  		    my $month_days = $days_in_month-$from_day + 1;
+  		    my $month_sum = sprintf("%.2f", $month_days * $Dv->{DAY_ABON} + $month_days * ($Dv->{MONTH_ABON} / $days_in_month));
+  		    $Dv->{SUM}  += $month_sum;
+  		    $Dv->{DAYS} += $month_days;
+      		if ($from_month < 12) {
+  	    	  $from_month=sprintf("%02d", $from_month+1);
+  		     }
+          else {
+      	    $from_month = sprintf("%02d", 1);
+      	    $from_year+=1;
+           }
+  	    } while(($from_year <= $to_year) && ($from_month <= $to_month));
+      }
+     }
+    elsif ($Dv->{MONTH_ABON}) {
+    	$Dv->{SUM} = $Dv->{MONTH_ABON};
+     } 
+    else {
+    	$Dv->{SUM} = 0;
+     }
+    $index = 2;
    }
-
+  else {
+  	$Dv->{ACTION_LNG}="$_RECALCULATE";
+  	$Dv->{DATE} = $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'pay_to', WEEK_DAYS => \@WEEKDAYS });
+   }
   
-  print $html->form_main({ CONTENT => "$_DATE: ".$html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'stats', WEEK_DAYS => \@WEEKDAYS }),
-	                                          HIDDEN  => { index => 2,
-	                                          	           UID   => $FORM{UID},
-	                                          	           SUM   => $sum,
-	                                          	           DESCRIBE => "$_PAY_TO: $FORM{DATE}"
-	                                          	},
-	                                          SUBMIT  => { pay_to  => "$_ADD" } 
-	                                       });
-
-  
-	
+  $html->tpl_show(_include('dv_pay_to', 'Dv'), $Dv);
 }
 1
 

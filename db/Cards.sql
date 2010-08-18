@@ -48,7 +48,7 @@ CREATE TABLE `cards_users` (
 
 CREATE TABLE `dillers_tps` (
   `id` SMALLINT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(100) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  `name` VARCHAR(100) NOT NULL DEFAULT '',
   `payment_type` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
   `percentage` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
   `operation_payment` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00',
@@ -56,7 +56,11 @@ CREATE TABLE `dillers_tps` (
   `change_price` DOUBLE(14,2) UNSIGNED NOT NULL DEFAULT '0.00',
   `credit` DOUBLE(10,2) UNSIGNED NOT NULL DEFAULT '0.00',
   `min_use` DOUBLE(14,3) UNSIGNED NOT NULL DEFAULT '0.000',
-  `payment_expr` VARCHAR(240) COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  `payment_expr` VARCHAR(240) NOT NULL DEFAULT '',
+  `nas_tp` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `gid` int(11) unsigned NOT NULL DEFAULT '0',
+  `comments` text NOT NULL,
+  `bonus_cards` int(11) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
