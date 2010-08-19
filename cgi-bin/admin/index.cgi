@@ -637,7 +637,6 @@ elsif($FORM{change}) {
     $html->message('info', $_INFO, $_CHANGED. " # $company->{ACCOUNT_NAME}");
     goto INFO;  	 
    }
-
  }
 elsif($FORM{COMPANY_ID}) {
   
@@ -700,9 +699,7 @@ elsif($FORM{COMPANY_ID}) {
       else {
     	  $input = $html->form_input($field_id, "$company->{INFO_FIELDS_VAL}->[$i]", { SIZE => 40 });
        }
-    
   	  $company->{INFO_FIELDS}.= "<tr><td>$name:</td><td>$input</td></tr>\n";
-
       $i++;
      }
 
@@ -830,9 +827,14 @@ print "$menu</td></tr>
 
 if ($FORM{subf}) {
   if ($functions{$FORM{subf}}) {
- 	  if(defined($module{$index})) {
-  	 	require "Abills/modules/$module{$index}/webinterface";
+    if(defined($module{$FORM{subf}})) {
+   	  if (-f "../../Abills/modules/$module{$FORM{subf}}/lng_$html->{language}.pl") {
+        require "../../Abills/modules/$module{$FORM{subf}}/lng_$html->{language}.pl";
+       }
+
+  	 	require "Abills/modules/$module{$FORM{subf}}/webinterface";
      }
+
     $functions{$FORM{subf}}->($f_args->{f_args});
    }
   else {
