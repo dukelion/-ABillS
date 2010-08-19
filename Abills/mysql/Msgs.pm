@@ -1,4 +1,6 @@
-package Msgs; # Message system #
+package Msgs; 
+# Message system 
+#
 
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION

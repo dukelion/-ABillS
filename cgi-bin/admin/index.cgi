@@ -45,7 +45,9 @@ use vars qw(%conf
  
   $begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST 
   $index
-  $UID $user $admin $sid);
+  $UID $user $admin $sid
+  $ui
+  );
 #
 #use strict;
 
@@ -452,7 +454,7 @@ if ($functions{$index}) {
    }
  	  
   if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne '' && ! $FORM{add})) {
-  	my $ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
+  	$ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
 
   	if($ui->{errno}==2) {
   		$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
