@@ -612,7 +612,8 @@ sub form_companies {
 
   my $customer = Customers->new($db, $admin, \%conf);
   my $company = $customer->company();
-
+  
+  
 if ($FORM{add}) {
   if (! $permissions{0}{1} ) {
     $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
@@ -706,6 +707,8 @@ elsif($FORM{COMPANY_ID}) {
     $html->tpl_show(templates('form_company'), $company);
   }
 
+
+  
  }
 elsif($FORM{del} && $FORM{is_js_confirmed}  && $permissions{0}{5} ) {
    $company->del( $FORM{del} );
@@ -809,6 +812,8 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 sub func_menu {
   my ($header, $items, $f_args)=@_; 
  
+  return '' if ($FORM{pdf});
+ 
 print "<TABLE width=\"100%\" bgcolor=\"$_COLORS[2]\">\n";
 
 while(my($k, $v)=each %$header) {
@@ -831,7 +836,6 @@ if ($FORM{subf}) {
    	  if (-f "../../Abills/modules/$module{$FORM{subf}}/lng_$html->{language}.pl") {
         require "../../Abills/modules/$module{$FORM{subf}}/lng_$html->{language}.pl";
        }
-
   	 	require "Abills/modules/$module{$FORM{subf}}/webinterface";
      }
 

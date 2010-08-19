@@ -670,7 +670,6 @@ return 0;
 sub docs_tax_invoice_list {
 	my ($attr) = @_;
 
-
 if (! $attr->{COMPANY} ) {
   if ($LIST_PARAMS{COMPANY_ID} || $FORM{COMPANY_ID}) {
 	  docs_tax_invoice();
@@ -825,7 +824,7 @@ sub docs_tax_invoice {
 
  if (! $attr->{COMPANY} && ! $FORM{qindex}) {
    $FORM{subf}=$FORM{index};
-   $index=13;
+   #$index=13;
    $index2=$FORM{index};
    form_companies();
    return 0;
@@ -834,7 +833,7 @@ sub docs_tax_invoice {
    $Company->info($FORM{COMPANY_ID});
   }
  else {
-  	$Company = $attr->{COMPANY};
+   $Company = $attr->{COMPANY};
   }
  $Docs->{DATE}     =$DATE;
  $Docs->{DONE_DATE}=$DATE;
@@ -900,7 +899,7 @@ sub docs_tax_invoice {
         }
 
        if ($conf{DOCS_PDF_PRINT}) {
-       	 $html->message('info', $_ADDED, "$_TAX_INVOICE $_ADDED. ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&COMPANY_ID=$FORM{COMPANY_ID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
+       	 $html->message('info', $_ADDED, "$_TAX_INVOICE $_ADDED. ". $html->button($_PRINT, "qindex=". (($FORM{subf}) ? $FORM{subf} : $index) ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&COMPANY_ID=$FORM{COMPANY_ID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
        	 return 0;
         }
       
