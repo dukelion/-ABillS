@@ -632,6 +632,7 @@ CREATE TABLE `msgs_unreg_requests` (
   `ip` INTEGER(11) UNSIGNED NOT NULL,
   `closed_date` DATETIME NOT NULL,
   `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `connection_time` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `datetime` (`datetime`)

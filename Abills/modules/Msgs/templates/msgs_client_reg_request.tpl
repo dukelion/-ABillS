@@ -1,6 +1,6 @@
 
 
-<FORM action='$SELF_URL' METHOD='POST'  enctype='multipart/form-data'>
+<FORM action='$SELF_URL' METHOD='POST'  enctype='multipart/form-data' name=reg_request_form>
 <input type='hidden' name='index' value='$index'/>
 <input type='hidden' name='ID' value='%ID%'/>
 <input type=hidden name=module value=Msgs>
@@ -24,7 +24,20 @@
 <tr><td>$_FIO:</td><td><input type='text' name='FIO' value='%FIO%' size='45'/></td></tr>
 <tr><td>$_PHONE:</td><td><input type='text' name='PHONE' value='%PHONE%' size='45'/></td></tr>
 <tr><td>E-mail:</td><td><input type='text' name='EMAIL' value='%EMAIL%' size='45'/></td></tr>
+<tr><td>$_CONNECTION_TIME:</td><td><input type='text' name='CONNECTION_TIME' value='%CONNECTION_TIME%' ID='CONNECTION_TIME'/> 
 
+<script language=\"JavaScript\">
+	var o_cal = new tcal ({	'formname': 'reg_request_form',	'controlname': 'CONNECTION_TIME'	});
+	
+	// individual template parameters can be modified via the calendar variable
+	o_cal.a_tpl.yearscroll = false;
+	o_cal.a_tpl.weekstart  = 1;
+ 	o_cal.a_tpl.months     = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+	o_cal.a_tpl.weekdays   = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Суб'];
+</script>
+
+
+</td></tr>
 
 %CAPTCHA%
 %ADDRESS_TPL%

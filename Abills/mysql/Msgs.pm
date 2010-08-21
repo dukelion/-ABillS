@@ -1550,7 +1550,9 @@ sub unreg_requests_add {
    address_build,
    address_flat,
    country_id,
-   company )
+   company,
+   CONNECTION_TIME,
+   location_id )
     values (now(), '$admin->{AID}', INET_ATON('$admin->{SESSION_IP}'),  '$DATA{SUBJECT}', '$DATA{COMMENTS}', '$DATA{CHAPTER}', '$DATA{REQUEST}',  '$DATA{STATE}',
         '$DATA{PRIORITY}',
         '$DATA{FIO}',
@@ -1560,16 +1562,15 @@ sub unreg_requests_add {
         '$DATA{ADDRESS_BUILD}',
         '$DATA{ADDRESS_FLAT}',
         '$DATA{COUNTRY}',
-        '$DATA{COMPANY}'
+        '$DATA{COMPANY}',
+        '$DATA{CONNECTION_TIME}',
+        '$DATA{LOCATION_ID}'        
         );", 'do');
 
   $self->{MSG_ID} = $self->{INSERT_ID};
   
 	return $self;
 }
-
-
-
 
 
 #**********************************************************
@@ -1626,7 +1627,8 @@ sub unreg_requests_info {
     m.closed_date,
     m.uid,
     m.company,
-    m.country_id
+    m.country_id,
+    m.connection_time
     FROM (msgs_unreg_requests m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN admins ra ON (m.received_admin=ra.aid)
@@ -1660,6 +1662,8 @@ sub unreg_requests_info {
    $self->{UID},
    $self->{COMPANY},
    $self->{COUNTRY},
+   $self->{CONNECTION_TIME},
+   $self->{LOCATION_ID},
   )= @{ $self->{list}->[0] };
 	
 	return $self;
@@ -1695,7 +1699,8 @@ sub unreg_requests_change {
      UID               => 'uid',
      COMPANY           => 'company',
      COUNTRY           => 'country_id',
-     
+     CONNECTION_TIME   => 'connection_time',
+     LOCATION_ID       => 'location_id'
              );
   $attr->{STATUS} = ($attr->{STATUS}) ? $attr->{STATUS} : 0;
 

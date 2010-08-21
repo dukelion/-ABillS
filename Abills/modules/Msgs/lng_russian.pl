@@ -20,3 +20,4 @@ $_ACTIVE='Все открытые';
 $_COMPETENCE='Компетенция';
 $_QUESTIONS='Вопросы';
 $_QUESTION='Вопрос';
+$_CONNECTION_TIME='Желаемое время подключения';

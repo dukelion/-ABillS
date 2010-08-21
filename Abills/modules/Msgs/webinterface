@@ -923,9 +923,6 @@ foreach my $line (@$list) {
      ATTACHMENT => $FORM{FILE_UPLOAD}{filename}      
      }, { OUTPUT2RETURN => 1 } );
 
-  print $html->pre($message);
-
-  return 0;
   sendmail("$conf{ADMIN_MAIL}",
           "$line->[7]",
           "$conf{WEB_TITLE} - $_NEW_MESSAGE",
@@ -2390,7 +2387,7 @@ sub msgs_unreg_requests {
 sub msgs_registration  {
 	my ($attr) = @_;
 
-  $FORM{REGISTRATION_REQUEST} = 1 if ($conf{MSG_REG_REQUEST});
+  $FORM{REGISTRATION_REQUEST} = 1 if ($conf{MSGS_REG_REQUEST});
   if ($FORM{REGISTRATION_REQUEST}) {
   	msgs_unreg_requests();
   	
@@ -2649,7 +2646,9 @@ sub msgs_survey_show {
   else {
   	$Msgs->{ACTIVE_SURWEY}=1;
    }
-  my $list = $Msgs->survey_questions_list({ SURVEY => $attr->{SURVEY_ID} });
+
+  $list = $Msgs->survey_questions_list({ SURVEY => $attr->{SURVEY_ID} });
+
   my $table = $html->table( { width      => '100%',
                               caption    => "$_SURVEY",
                               cols_align => ['left', 'left', 'right', 'center:noprint', 'center:noprint'],

@@ -20,3 +20,4 @@ $_ACTIVE='Active';
 $_COMPETENCE='Competence';
 $_QUESTIONS='Questions';
 $_QUESTION='Question';
+$_CONNECTION_TIME='Connection time';

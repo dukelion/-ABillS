@@ -36,9 +36,6 @@
 <tr><td align=right>$_ADDRESS_STREET:</td><td><input type=text name=ADDRESS_STREET value='%ADDRESS_STREET%' size=40>
 
 <tr><td align=right>$_ADDRESS_BUILD:</td><td><input type=text name=ADDRESS_BUILD value='%ADDRESS_BUILD%' size=8> $_ADDRESS_FLAT:<input type=text name=ADDRESS_FLAT value='' size=8></td></TR>
-
-
-
 <tr><td align=right>E-MAIL:</td><td><input type=text name='EMAIL' value='%EMAIL%'></td></tr>
 
 %PAYMENTS%
