@@ -308,7 +308,7 @@ sub payasys_import_parse {
              push @DATA_ARR, { %DATA_HASH };
              push @BINDING_IDS, $DATA_HASH{$BINDING_FIELD} if ($DATA_HASH{$BINDING_FIELD});
             }
-           else {
+           elsif ($line ne '') {
             print "'$line'<br>\n";	
            }
         }
@@ -365,7 +365,7 @@ if ($pop->login($username, $password)) {
     my $message_id = '';
     
     foreach $line (@lines) {
-    	if ($line =~ /boundary="(.+)"/) {
+    	if ($line =~ /boundary="(.+)"/i) {
     		$boundary = $1;
     	 }
       elsif ($line =~ /Subject: (.+)/) {
@@ -390,18 +390,19 @@ if ($pop->login($username, $password)) {
       	my $encoding  = '';
 
     	  my ($part_header, $part_body)=split(/\n\n/, $part, 2);
-    	  my @lines = split(/\n/,  $part_header);
+    	  my @lines = ();
+    	  @lines = split(/\n/,  $part_header) if ($part_header);
         foreach $line (@lines) {
-        	if ($line =~ /filename="(.+)"/) {
+        	if ($line =~ /filename="(.+)"/i) {
     		    $filename = $1;
     	     }
-          elsif ($line =~ /Content-Transfer-Encoding: (.+)/) {
+          elsif ($line =~ /Content-Transfer-Encoding: (.+)/i) {
           	$encoding = $1;
            }
          }
         
         if ($encoding eq 'base64') {
-        	$content .= decode_base64($part_body);
+        	$content .= "\n".decode_base64($part_body);
          }
 
        }
@@ -410,16 +411,16 @@ if ($pop->login($username, $password)) {
       $content .= $message;
      }
 
-   if ($ARGV->{DECODE}) {
-   	 $content = convert($content, { $ARGV->{DECODE} => 1 });
-    }
+    if ($ARGV->{DECODE}) {
+   	  $content = convert($content, { $ARGV->{DECODE} => 1 });
+     }
 
     if (paysys_import_form({ TYPE          => $ARGV->{TYPE},
                              IMPORT_RULE   => $ARGV->{IMPORT_RULE},
                              IMPORT_RULES  => $conf{PAYSYS_IMPORT_RULES},
                              CONTENT       => $content
                            }) ) {
-      #$pop->delete($msgnum);
+      $pop->delete($msgnum);
       print "Delete\n" if ($debug == 1);
      }  
     else {
@@ -441,7 +442,7 @@ if ($pop->login($username, $password)) {
            "2 (High)");
      }
    }
-}
+ }
 else {
   print "POP3 Error: Wrong login or password $!\n";
 }
