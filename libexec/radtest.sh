@@ -78,11 +78,16 @@ if [ t$1 = 'tauth' ] ; then
 
 elif [ t$1 = tdhcp ]; then
    ${RAUTH} \
-       USER_NAME="00:04:76:4e:c1:d5"\
-       USER_PASSWORD="dhcpuser"\
-       NAS_IP_ADDRESS=${NAS_IP_ADDRESS}\
-       NAS_PORT="3232235816"\
-       DHCP_MESSAGE_TYPE="DHCP-Discover"
+    DHCP_DHCP_SERVER_INDENTIFIER=192.168.1.200\
+    DHCP_YOUR_IP_ADDRESS=192.168.1.101\
+    DHCP_INTERFACE_INDEX=192.168.1.200\
+    DHCP_CLIENT_HARDWARE_ADDRESS=0x0004764ec1d5\
+    NAS_IP_ADDRESS=${NAS_IP_ADDRESS}
+ #      USER_NAME="00:04:76:4e:c1:d5"\
+ #      USER_PASSWORD="dhcpuser"\
+ #      NAS_IP_ADDRESS=${NAS_IP_ADDRESS}\
+ #      NAS_PORT="3232235816"\
+ #      DHCP_MESSAGE_TYPE="DHCP-Discover"
 
 elif [ t$1 = 'tacct' ]; then
   echo "Accounting test";

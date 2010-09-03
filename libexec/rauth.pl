@@ -28,14 +28,6 @@ Auth->import();
 
 my $GT  = '';
 my $rr  = '';
-
-#my $t = "\n\n";
-#while(my($k, $v)=each(%$RAD)) {
-#	$t .= "$k=\\\"$v\\\"\n";
-#}
-##print $t;
-#my $a = `echo "$t" >> /tmp/voip_test`;
-
 my $log_print = sub {
   my ($LOG_TYPE, $USER_NAME, $MESSAGE, $attr) = @_;
   my $Nas = $attr->{NAS}; 
@@ -57,6 +49,7 @@ my $log_print = sub {
 
 my $RAD = get_radius_params();
 if ($RAD->{NAS_IP_ADDRESS}) {
+
   my $ret = get_nas_info($db, $RAD);
   if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
     auth($db, $RAD, $nas, { pre_auth => 1 });
@@ -66,15 +59,16 @@ if ($RAD->{NAS_IP_ADDRESS}) {
     post_auth($RAD);
     exit 0;
    }
-  
+
   if($ret == 0) {
     $ret = auth($db, $RAD, $nas);
   }
 
+
   if ($ret == 0) {
     print $rr;
    }
-  else {
+  elsif($RAD_REPLY{'Reply-Message'}) {
     print "Reply-Message = \"$RAD_REPLY{'Reply-Message'}\"\n";
    }
 
@@ -102,9 +96,9 @@ sub get_nas_info {
  $NAS_PARAMS{NAS_IDENTIFIER}=$RAD->{NAS_IDENTIFIER} if ($RAD->{NAS_IDENTIFIER});
  $nas->info({ %NAS_PARAMS });
 
+
 if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
-	if ($RAD->{MIKROTIK_HOST_IP}) {
-		
+	if ($RAD->{MIKROTIK_HOST_IP}) {		
 		$nas->info({ NAS_ID => $RAD->{NAS_IDENTIFIER} });
 		if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
       access_deny("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'". 
@@ -123,7 +117,7 @@ if (defined($nas->{errno}) || $nas->{TOTAL} < 1) {
     return 1;
    }
  }
-elsif(! defined($RAD->{USER_NAME}) || $RAD->{USER_NAME} eq '') {
+elsif(! $nas->{NAS_TYPE} eq 'dhcp' && (! defined($RAD->{USER_NAME}) || $RAD->{USER_NAME} eq '')) {
   return 1;
  }
 elsif($nas->{NAS_DISABLE} > 0) {
@@ -256,6 +250,8 @@ my $tt = `echo "/$nas->{NAS_TYPE}/ $r" >> /tmp/rad`;
    $log_print->('LOG_DEBUG', $RAD->{USER_NAME}, "$rr", { NAS => $nas});
  }
 
+
+
  if ($begin_time > 0)  {
    Time::HiRes->import(qw(gettimeofday));
    my $end_time = gettimeofday();
@@ -358,7 +354,6 @@ sub access_deny {
   my ($user_name, $message, $nas_num) = @_;
 
   $log_print->('LOG_WARNING', $user_name, "$message", { NAS => $nas});
-
   #External script for error connections
   if ($conf{AUTH_ERROR_CMD}) {
   	 my @cmds = split(/;/, $conf{AUTH_ERROR_CMD});
@@ -371,7 +366,7 @@ sub access_deny {
   	 	 	   }
   	 	  }
   	  }
-
+    
   return 1;
 }
 

@@ -7,7 +7,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
 
 use Exporter;
-$VERSION = 2.01;
+$VERSION = 2.02;
 @ISA = ('Exporter');
 @EXPORT = qw(
   &check_chap
@@ -559,23 +559,8 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
       push @{$RAD_PAIRS->{'mpd-limit'} }, "in#" . ($self->{TOTAL}-$line->[0]) ."#$line->[0]=flt". ($class_id) ." pass";
       push @{$RAD_PAIRS->{'mpd-limit'} }, "out#". ($self->{TOTAL}-$line->[0]) ."#$line->[0]=flt". ($class_id+1) ." pass";
      }
-    #mpd-limit+=in#1#1=flt1 pass,
-    #mpd-limit+=out#1#1=flt2 pass,
-    
-    #mpd-limit+=out#2#0=all rate-limit 1024000 150000 300000,
-    #mpd-limit+=in#2#0=all shape 64000 4000,  	
-  	
-    #mpd-filter+=1#1=match dst net 10.0.0.0/8,
-    #mpd-filter+=2#1=match src net 10.0.0.0/8,
-    #mpd-limit+=in#1#1=flt1 pass,
-    #mpd-limit+=in#2#0=all shape 64000 4000,
-    #mpd-limit+=out#1#1=flt2 pass,
-    #mpd-limit+=out#2#0=all rate-limit 1024000 150000 300000,
    }
-
-
   }
-	
 	#$RAD_PAIRS->{'Session-Timeout'}=604800;
  }
 elsif($CONF->{cisco_shaper} && $NAS->{NAS_TYPE} eq 'cisco') {
@@ -591,12 +576,12 @@ elsif($CONF->{cisco_shaper} && $NAS->{NAS_TYPE} eq 'cisco') {
                                             MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC });
 
     if ($EX_PARAMS->{speed}->{1}->{OUT}) {
-  	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit output access-group 101 ". ($EX_PARAMS->{speed}->{1}->{OUT} * 1024) ." 1000000  1000000 conform-action transmit exceed-action drop";
-      push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit input access-group 102 ". ($EX_PARAMS->{speed}->{1}->{IN} * 1024). " 1000000 1000000 conform-action transmit exceed-action drop";
+  	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit output access-group 101 ". ($EX_PARAMS->{speed}->{1}->{IN} * 1024) ." 1000000  1000000 conform-action transmit exceed-action drop";
+      push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit input access-group 102 ". ($EX_PARAMS->{speed}->{1}->{OUT} * 1024). " 1000000 1000000 conform-action transmit exceed-action drop";
      }
 
-	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit output ". ( $EX_PARAMS->{speed}->{0}->{OUT} * 1024) ." 320000 320000 conform-action transmit exceed-action drop" if ($EX_PARAMS->{speed}->{0}->{OUT} && $EX_PARAMS->{speed}->{0}->{OUT} > 0);
-	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit input ". ($EX_PARAMS->{speed}->{0}->{IN} * 1024) ."  32000 32000 conform-action transmit exceed-action drop" if ($EX_PARAMS->{speed}->{0}->{IN} && $EX_PARAMS->{speed}->{0}->{IN} > 0);
+	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit output ". ( $EX_PARAMS->{speed}->{0}->{IN} * 1024) ." 320000 320000 conform-action transmit exceed-action drop" if ($EX_PARAMS->{speed}->{0}->{IN} && $EX_PARAMS->{speed}->{0}->{IN} > 0);
+	  push @{ $RAD_PAIRS->{'Cisco-AVpair'} }, "lcp:interface-config#1=rate-limit input ". ($EX_PARAMS->{speed}->{0}->{OUT} * 1024) ."  32000 32000 conform-action transmit exceed-action drop" if ($EX_PARAMS->{speed}->{0}->{OUT} && $EX_PARAMS->{speed}->{0}->{OUT} > 0);
    }
  }
 # ExPPP
