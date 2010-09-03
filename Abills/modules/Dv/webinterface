@@ -3766,16 +3766,14 @@ sub dv_daily_fees {
 
  my $list = $tariffs->list({ %LIST_PARAMS });
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
-
+ 
  foreach my $line (@$list) {
  	 if ($line->[5] > 0) {
  	   #$LIST_PARAMS{TP}=$line->[0];
      my $TP_ID = $line->[0];
-   
      my %TP_INFO = ();
      $TP_INFO{POSTPAID_DAILY} = $line->[12];
      $TP_INFO{REDUCTION}      = $line->[11];
-
  	   $debug_output .= "TP ID: $TP_ID DF: $line->[5] MF: $line->[6] POSTPAID: $TP_INFO{POSTPAID_DAILY} REDUCTION: $TP_INFO{REDUCTION} EXT_BILL: $line->[13] CREDIT: $line->[14]\n" if ($debug > 1);
 
  	   my $ulist = $Dv->list({
@@ -3799,7 +3797,7 @@ sub dv_daily_fees {
             REDUCTION  => $u->[15],
             ACTIVATE   => $u->[12],
             DEPOSIT    => $u->[2],
-            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14]
+            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[15]
            );
 
         if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
@@ -3911,12 +3909,12 @@ my $Billing = Billing->new($db, $CONF);
          %user = (
             LOGIN      => $u->[0],  
             UID        => $u->[6+ $extfield_count],
-            BILL_ID    => ($tp_line->[13] > 0) ? $u->[14 + $extfield_count] : $u->[12 + $extfield_count],
+            BILL_ID    => ($tp_line->[14] > 0) ? $u->[14 + $extfield_count] : $u->[12 + $extfield_count],
 
             REDUCTION  => $u->[13 + $extfield_count],
             ACTIVATE   => $u->[10 + $extfield_count],
             DEPOSIT    => $u->[2],
-            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14],
+            CREDIT     => ($u->[3] > 0) ? $u->[3] : $tp_line->[15],
             COMPANY_ID => $u->[7 + $extfield_count]
            );
 
@@ -4080,10 +4078,13 @@ sub dv_monthly_fees {
             REDUCTION  => $u->[13 + $extfield_count],
             ACTIVATE   => $u->[10 + $extfield_count],
             DEPOSIT    => $u->[2],
-            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14],
+            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[15],
             COMPANY_ID => $u->[7 + $extfield_count],
             DV_STATUS  => $u->[5]
            );
+
+
+      
 
        $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: ". ($u->[9 +$extfield_count ]  ) ." Fees: $line->[6] REDUCTION: $user{REDUCTION} DEPOSIT: $u->[2] CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE} TP: $u->[11]\n" if ($debug > 3); 	
        if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {
@@ -4343,11 +4344,11 @@ if ($d == 1) {
          %user = (
             LOGIN      => $u->[0],  
             UID        => $u->[6+ $extfield_count],
-            BILL_ID    => ($tp_line->[13] > 0) ? $u->[14 + $extfield_count] : $u->[12 + $extfield_count],
+            BILL_ID    => ($tp_line->[14] > 0) ? $u->[14 + $extfield_count] : $u->[12 + $extfield_count],
             REDUCTION  => $u->[13 + $extfield_count],
             ACTIVATE   => $u->[10 + $extfield_count],
             DEPOSIT    => $u->[2],
-            CREDIT     => ($u->[3] > 0) ? $u->[3] : $line->[14],
+            CREDIT     => ($u->[3] > 0) ? $u->[3] : $tp_line->[15],
             COMPANY_ID => $u->[7 + $extfield_count]
            );
 
