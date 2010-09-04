@@ -3,7 +3,7 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.3
+VERSION=0.4
 
 USER_NAME=test
 USER_PASSWORD=123456
@@ -156,8 +156,8 @@ elif [ t$1 = 'tacct' ]; then
         ACCT_OUTPUT_OCTETS=10000 \
         EXPPP_ACCT_LOCALINPUT_OCTETS=12000000 \
         EXPPP_ACCT_LOCALOUTPUT_OCTETS=13000000 \
-        ACCT_OUTPUT_GIGAWORDS=0 \
-        ACCT_OUTPUT_PACKETS=0 \
+        ACCT_OUTPUT_GIGAWORDS=1 \
+        ACCT_OUTPUT_PACKETS=1111 \
         ACCT_SESSION_TIME=100 \
 
 

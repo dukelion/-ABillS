@@ -78,10 +78,10 @@ foreach my $line (@$list) {
     $sent2 = $RAD->{INTERIUM_OUTBYTE1} || 0; 
     $recv2 = $RAD->{INTERIUM_INBYTE1}  || 0;
    }
-  elsif ($RAD->{ACCT_INPUT_GIGAWORDS} || $RAD->{ACCT_OUTPUT_GIGAWORDS}) {
-    $recv = $recv + $RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296;
-    $sent = $sent + $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296;
-   }
+  #elsif ($RAD->{ACCT_INPUT_GIGAWORDS} || $RAD->{ACCT_OUTPUT_GIGAWORDS}) {
+  #  $recv = $recv + $RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296;
+  #  $sent = $sent + $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296;
+  # }
 
 if ($prepaid{0} + $prepaid{1} > 0) {
   #Get traffic from begin of month
@@ -137,6 +137,7 @@ if ($prepaid{0} + $prepaid{1} > 0) {
      $sent = $sent + $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296;
     }
 
+
    $used_traffic->{ONLINE}=0;
    #Recv / IN
    if($self->{OCTETS_DIRECTION} == 1) {
@@ -168,8 +169,8 @@ if ($prepaid{0} + $prepaid{1} > 0) {
    elsif ($used_traffic->{TRAFFIC_SUM} + $used_traffic->{ONLINE} / $CONF->{MB_SIZE} > $prepaid{0} 
             && $used_traffic->{TRAFFIC_SUM} < $prepaid{0}) {
      my $not_prepaid = ($used_traffic->{TRAFFIC_SUM} + $used_traffic->{ONLINE} / $CONF->{MB_SIZE} - $prepaid{0}) *  $CONF->{MB_SIZE};
-     $sent = ($self->{OCTETS_DIRECTION}==2) ?  $not_prepaid : $not_prepaid / 2;
-     $recv = ($self->{OCTETS_DIRECTION}==1) ?  $not_prepaid : $not_prepaid / 2;
+     $sent = ($self->{OCTETS_DIRECTION}==2) ?  $not_prepaid : ($self->{OCTETS_DIRECTION}==1) ? $sent : $not_prepaid / 2;
+     $recv = ($self->{OCTETS_DIRECTION}==1) ?  $not_prepaid : ($self->{OCTETS_DIRECTION}==2) ? $recv : $not_prepaid / 2;
     }
 
    # If left local prepaid traffic set traf price to 0
@@ -217,7 +218,7 @@ elsif (scalar(keys %expr) > 0) {
  my $lo_in  = (defined($traf_price{in}{1})) ?  $recv2 / $CONF->{MB_SIZE} * $traf_price{in}{1} : 0;
  my $lo_out = (defined($traf_price{out}{1})) ?  $sent2 / $CONF->{MB_SIZE} * $traf_price{out}{1} : 0;
  $traf_sum  = $lo_in + $lo_out + $gl_in + $gl_out;
- 
+
  return $traf_sum;
 }
 

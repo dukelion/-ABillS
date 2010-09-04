@@ -93,7 +93,7 @@ $conf{MAX_SESSION_TRAFFIC} = 2047;
 #Auto assigning MAC in first connect
 $conf{MAC_AUTO_ASSIGN}=1;
 $conf{KBYTE_SIZE} = 1024;
-# Check script rannig time
+# Check script runnig time
 $conf{time_check}=1;
 
 # Debug mod 
