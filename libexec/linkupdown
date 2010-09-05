@@ -498,7 +498,8 @@ elsif ($ACTION eq 'down') {
    }
   else {
     if ($conf{ng_car}) {
-    	my $tp_table_number = $conf{FW_TABLE_USERS} || 10;
+      my $tp_table_number = $conf{FW_TABLE_USERS} || 10;
+      $USER =~ s/\./__/g;
       for(my $i=0; $i<=$conf{SHAPER_CLASSES}; $i++) {
         push @FW_ACTIONS, sprintf("/usr/sbin/ngctl shutdown %s_%s:", 'class'.$i, $USER);
         
@@ -562,6 +563,7 @@ sub ng_car_shape {
   my $ebs_in = $cbs_in*2;
   my $cbs_out = ($speed_out <= 5242880) ? 64000 : 256000;
   my $ebs_out = $cbs_out*2;
+  $user =~ s/\./__/g;
 
 push @FW_ACTIONS, sprintf("/usr/sbin/ngctl -f- <<-EOF
 mkpeer ipfw: car %s upper
