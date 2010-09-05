@@ -459,12 +459,9 @@ sub dv_user {
      }
 
     $Dv->change({ %FORM });
-    
+
     if ($FORM{STATUS} == 0) {
-    	
-    	
     	my $Shedule = Shedule->new($db, $admin, \%conf);
-    	$Shedule->{debug}=1;
   	  my $list = $Shedule->list({ UID    => $FORM{UID},
                               MODULE => 'Dv',
                               TYPE   => 'status',
@@ -495,7 +492,6 @@ sub dv_user {
    }
 
   $Dv->info($Dv->{UID});
-
 
   if($Dv->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
@@ -566,7 +562,22 @@ sub dv_user {
         }
 
       $Dv->{ONLINE_TABLE}=$table->show();
-    }
+     }
+
+    $list = $admin->action_list({ TYPE => '4;14', UID => $FORM{UID}, PAGE_ROWS => 1, DESC => 'desc' });
+    if ($admin->{TOTAL} > 0) {
+      $list->[0]->[2] =~ /(\d{4}-\d{2}-\d{2})/;
+      my $status_date = $1;
+   	
+   	  my ($from_year, $from_month, $from_day)=split(/-/, $status_date, 3);
+  	  my ($to_year, $to_month, $to_day)=split(/-/, $DATE, 3);
+      my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month-1), ($from_year - 1900));
+      my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day, ($to_month-1), ($to_year - 1900));
+
+      my $days = ($to_seltime - $from_seltime) / 86400;
+    
+      $Dv->{STATUS_INFO} = "$_FROM: $status_date ($_DAYS: $days)";
+     }
 	} 
 
   $Dv->{STATUS_SEL}          = $html->form_select('STATUS', 
@@ -645,7 +656,6 @@ sub dv_user {
  	                                          MULTI_ARRAY_VALUE => '1',
  	                                          NO_ID             => 1
  		                                        });
- 
   
   $html->tpl_show(_include('dv_user', 'Dv'), $Dv, {  });
   return 0; 
@@ -4799,7 +4809,7 @@ sub dv_wizard_user {
     #print $table->show();
     # Password
     $add_values{1}{GID} = $admin->{GID} if ($admin->{GID});
-    my $user=$users->add({ %{$add_values{1}} });
+    my $user=$users->add({ %{$add_values{1}}, CREATE_EXT_BILL => $FORM{'5.EXT_BILL_DEPOSIT'} });
     my $message = '';
     if (! $user->{errno}) {
    	  $UID = $user->{UID};
@@ -4811,9 +4821,9 @@ sub dv_wizard_user {
           $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{6}");
          }
         elsif ($FORM{'2.newpassword'} eq $FORM{'2.confirm'}) {
-          $add_values{2}{PASSWORD}=$FORM{'2.newpassword'};
-          $add_values{2}{UID}=$UID;
-          $add_values{2}{DISABLE}=$FORM{'1.DISABLE'};
+          $add_values{2}{PASSWORD}= $FORM{'2.newpassword'};
+          $add_values{2}{UID}     = $UID;
+          $add_values{2}{DISABLE} = $FORM{'1.DISABLE'};
          }
         elsif($FORM{'2.newpassword'} ne $FORM{'2.confirm'}) {
           $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{5}");
@@ -4859,8 +4869,44 @@ sub dv_wizard_user {
          }
        }
 
+      # Ext bill add
+      if ($FORM{'5.EXT_BILL_DEPOSIT'}) {
+      	$add_values{5}{SUM}     = $FORM{'5.EXT_BILL_DEPOSIT'};
+
+        if($FORM{'5.EXT_BILL_DEPOSIT'} + 0 > 0) {
+          my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
+          $payments->add($user, { %{ $add_values{5} }, 
+          	                      BILL_ID => $user->{EXT_BILL_ID}, 
+          	                      ER      => $er->{ER_RATE} 
+          	                    } );  
+
+          if ($payments->{errno}) {
+            $html->message('err', "$_PAYMENTS : $_ERROR", "[$payments->{errno}] $err_strs{$payments->{errno}}");	
+            return 0;
+           }
+          else {
+            $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
+           }
+         }
+        elsif($FORM{'5.EXT_BILL_DEPOSIT'} + 0 < 0) {
+          my $er = ($FORM{'5.ER'}) ? $payments->exchange_info($FORM{'5.ER'}) : { ER_RATE => 1 } ;  
+          $fees->take($user, abs($FORM{'5.EXT_BILL_DEPOSIT'}), { BILL_ID  => $user->{EXT_BILL_ID},
+          	                                                     DESCRIBE => 'MIGRATION',  
+          	                                                     ER       => $er->{ER_RATE} 
+          	                                                   } );  
+
+          if ($fees->{errno}) {
+            $html->message('err', "$_ERROR : $_FEES", "[$fees->{errno}] $err_strs{$fees->{errno}}");	
+            return 0;
+           }
+          else {
+            $message = "$_SUM: $FORM{'5.EXT_BILL_DEPOSIT'} $er->{ER_SHORT_NAME}";
+           }
+         }
+       }
+
+
       #4 Dv
-      
       if ( $add_values{4}{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ &&  $add_values{4}{IP} ne '0.0.0.0') {
       	my $list = $Dv->list({ IP => $add_values{4}{IP} });
       	if ($Dv->{TOTAL} > 0 && $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}] != $FORM{UID}) {

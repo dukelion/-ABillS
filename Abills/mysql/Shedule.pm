@@ -104,7 +104,7 @@ sub list {
 
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PG    = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
  @WHERE_RULES =();

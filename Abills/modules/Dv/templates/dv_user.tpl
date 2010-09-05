@@ -1,3 +1,20 @@
+
+<script language=\"JavaScript\" type=\"text/javascript\">
+<!--
+function check_status(object, text) {
+    var status     = '%STATUS%';
+    var new_status = document.getElementById('STATUS').value;
+    
+    if (status == 3 && new_status == 0) {
+      return confirmLink(object, '$_SUM $_ACTIVATE %TP_ACTIVATION_PRICE%');
+     }
+
+    return ;
+}
+-->
+</script>
+
+
 %ONLINE_TABLE%
 <br>
 <form action='$SELF_URL' method='post'>
@@ -15,11 +32,11 @@
 <tr><td>CID:</td><td><input type=text name='CID' value='%CID%'>
 <tr><td>$_PORT:</td><td><input type=text name='PORT' value='%PORT%'>
 <tr><td>Callback:</td><td><input type='checkbox' name='CALLBACK' value='1' %CALLBACK%>
-<tr><td>$_STATUS:</td><td bgcolor=%STATUS_COLOR%>%STATUS_SEL% <span style='background:$_COLORS[1]'>&nbsp; %SHEDULE% &nbsp;</span>
+<tr><td>$_STATUS:</td><td bgcolor=%STATUS_COLOR%>%STATUS_SEL% <span style='background:$_COLORS[1]'>&nbsp; %SHEDULE% &nbsp;<br><i>%STATUS_INFO%</i></span>
 </td></tr>
 <tr><td>TURBO:</td><td>%TURBO_MODE_SEL%</td></tr>
 <tr><td>$_ABON:</td><td>%ABON_DATE%</td></tr>
 <tr><td colspan='2'>%REGISTRATION_INFO%  %REGISTRATION_INFO_PDF%</td></tr>
 </table>
-<input type=submit name='%ACTION%' value='%LNG_ACTION%' class='noprint'>
+<input type=submit name='%ACTION%' value='%LNG_ACTION%' class='noprint' onclick=\"return check_status(this, 'Удалить 77?')\">
 </form>
