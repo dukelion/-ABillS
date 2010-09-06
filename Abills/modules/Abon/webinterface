@@ -40,7 +40,6 @@ sub abon_user {
      }
 
     @new_arr = keys %ids_hash;
-
     if ($#new_arr > -1) {
       my $list = $Abon->tariff_list({ IDS => join(', ', @new_arr) });  
       
@@ -51,7 +50,6 @@ sub abon_user {
           $Abon->{TP_INFO}->{TP_ID}            = $line->[7];
           $Abon->{TP_INFO}->{NAME}             = $line->[0]; 
           $Abon->{COMMENTS}                    = $FORM{'COMMENTS_'.$line->[7]}; 
-          
  
           my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[7]]" . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
                          METHOD   => 1  );
@@ -66,9 +64,10 @@ sub abon_user {
 
           #$Abon->user_tariff_update({ UID   => "$users->{UID}", 
         	#                            TP_ID => "$line->[6]", 
-        	#                            DATE  => $DATE, });
+        	#                            DATE  => $DATE, 
+        	#                          });
 
-          push @add_arr, $line->[6];
+          push @add_arr, $line->[7];
          }
         else {
       	  $html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
@@ -77,6 +76,7 @@ sub abon_user {
      }
 
       delete $FORM{IDS};
+      
       $Abon->user_tariff_change({ %FORM, 
       	                         IDS => join(', ', @add_arr),
       	                         DEL => join(', ', @del_arr) }) ;  
@@ -101,7 +101,7 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  $table->addrow($html->form_input('IDS', "$line->[0]", { TYPE => 'CHECKBOX', 
+  $table->addrow($line->[0] . $html->form_input('IDS', "$line->[0]", { TYPE => 'CHECKBOX', 
   	                                                      STATE => ($line->[7] == 1) ? 1 : undef   }),
      "$line->[1]",
      $html->form_input('COMMENTS_'.$line->[0], "$line->[2]", { SIZE => 40 }),
