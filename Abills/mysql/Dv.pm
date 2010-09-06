@@ -23,10 +23,7 @@ use Tariffs;
 use Users;
 use Fees;
 
-
-
 my $uid;
-
 my $MODULE='Dv';
 
 #**********************************************************
@@ -317,9 +314,18 @@ sub change {
    }
   elsif (($old_info->{STATUS} == 2 && $attr->{STATUS} == 0) || 
          ($old_info->{STATUS} == 4 && $attr->{STATUS} == 0) || 
-         ($old_info->{STATUS} == 5 && $attr->{STATUS} == 0)) {
+         ($old_info->{STATUS} == 5 && $attr->{STATUS} == 0)         
+          ) {
     my $tariffs = Tariffs->new($db, $CONF, $admin);
     $self->{TP_INFO}=$tariffs->info(0, { ID => $old_info->{TP_ID} });
+   }
+  elsif ($old_info->{STATUS} == 3 && $attr->{STATUS} == 0 && $attr->{STATUS_DAYS}) {
+     my $user = Users->new($db, $admin, $CONF);
+     $user->info($attr->{UID});
+
+     my $fees = Fees->new($db, $admin, $CONF);
+     my ($perios, $sum)=split(/:/, $CONF->{DV_REACTIVE_PERIOD}, 2);
+     $fees->take($user, $sum, { DESCRIBE  => "REACTIVE" });
    }
 
   $attr->{JOIN_SERVICE} = ($attr->{JOIN_SERVICE}) ? $attr->{JOIN_SERVICE} : 0;

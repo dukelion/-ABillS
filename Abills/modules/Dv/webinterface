@@ -577,6 +577,11 @@ sub dv_user {
       my $days = ($to_seltime - $from_seltime) / 86400;
     
       $Dv->{STATUS_INFO} = "$_FROM: $status_date ($_DAYS: $days)";
+      if ($conf{DV_REACTIVE_PERIOD}) {
+      	 my ($period, $sum) = split(/:/, $conf{DV_REACTIVE_PERIOD});
+         $Dv->{STATUS_DAYS} = $days if ($period < $days);
+         $Dv->{REACTIVE_SUM}= $sum  if ($period < $days);
+       }
      }
 	} 
 
@@ -4116,7 +4121,7 @@ sub dv_monthly_fees {
            if (! $conf{DV_MIN_USER_FULLPERIOD} && $user{ACTIVATE} ne '0000-00-00') {
              my ($activated_y, $activated_m, $activated_d)=split(/-/, $user{ACTIVATE}, 3);
              my $days_in_month=($activated_m!=2?(($activated_m%2)^($activated_m>7))+30:(!($activated_y%400)||!($activated_y%4)&&($activated_y%25)?29:28)); 
-     	       $min_use = sprintf("%.2f", $min_use / $days_in_month * ($days_in_month - $activated_d + $START_PERIOD_DAY));
+     	       $min_use = sprintf("%.5f", $min_use / $days_in_month * ($days_in_month - $activated_d + $START_PERIOD_DAY));
            	}
 
            my $used = ($used_traffic{$user{UID}}) ? $used_traffic{$user{UID}} : 0;
@@ -5419,7 +5424,7 @@ sub dv_get_month_fee {
            }
 
           $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
-          $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
+          $sum = sprintf("%.5f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
          }
        
         return \%total_sum if ($sum == 0);
@@ -5923,9 +5928,7 @@ sub dv_pay_to {
 	my ($attr) = @_;
 
   my $Dv = $attr->{Dv};
-  
 
-  
   if ($FORM{DATE}) {
  	  my ($from_year, $from_month, $from_day)=split(/-/, $DATE, 3);
 	  my ($to_year, $to_month, $to_day)=split(/-/, $FORM{DATE}, 3);

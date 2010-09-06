@@ -2,11 +2,13 @@
 <script language=\"JavaScript\" type=\"text/javascript\">
 <!--
 function check_status(object, text) {
-    var status     = '%STATUS%';
+    var status       = '%STATUS%';
+    var status_days  = '%STATUS_DAYS%';
+    var reactive_sum = '%REACTIVE_SUM%';
     var new_status = document.getElementById('STATUS').value;
     
-    if (status == 3 && new_status == 0) {
-      return confirmLink(object, '$_SUM $_ACTIVATE %TP_ACTIVATION_PRICE%');
+    if (status == 3 && new_status == 0 && status_days > 0) {
+      return confirmLink(object, '$_SUM $_ACTIVATE: '+reactive_sum);
      }
 
     return ;
@@ -20,6 +22,7 @@ function check_status(object, text) {
 <form action='$SELF_URL' method='post'>
 <input type=hidden name='index' value='$index'>
 <input type=hidden name='UID' value='$FORM{UID}'>
+<input type=hidden name='STATUS_DAYS' value='%STATUS_DAYS%'>
 <table cellspacing='0' cellpadding='3' width=450>
 <tr bgcolor=$_COLORS[2]><td>$_TARIF_PLAN:</td><th  align='left' valign='middle'>[%TP_ID%] %TP_NAME% 
 <br>%CHANGE_TP_BUTTON% <a href='$SELF?index=$index&UID=$FORM{UID}&pay_to=1' class=link_button>$_PAY_TO</a></th></tr>
