@@ -1074,7 +1074,12 @@ sub form_money_transfer {
   my $transfer_price = 0;
 
   if ($conf{MONEY_TRANSFER} =~ /:/) {
-    ($deposit_limit, $transfer_price)=split(/:/, $conf{MONEY_TRANSFER});
+    ($deposit_limit, $transfer_price, $no_companies)=split(/:/, $conf{MONEY_TRANSFER});
+    
+    if ($no_companies eq 'NO_COMPANIES' && $user->{COMPANY_ID}) {
+    	 $html->message('info', $_ERROR, "$ERR_ACCESS_DENY");
+    	 return 0;
+     }
    }
   $transfer_price = sprintf("%.2f", $transfer_price);
 

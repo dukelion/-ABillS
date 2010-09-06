@@ -574,7 +574,7 @@ sub dv_user {
       my $from_seltime = POSIX::mktime(0, 0, 0, $from_day, ($from_month-1), ($from_year - 1900));
       my $to_seltime   = POSIX::mktime(0, 0, 0, $to_day, ($to_month-1), ($to_year - 1900));
 
-      my $days = ($to_seltime - $from_seltime) / 86400;
+      my $days = int(($to_seltime - $from_seltime) / 86400);
     
       $Dv->{STATUS_INFO} = "$_FROM: $status_date ($_DAYS: $days)";
       if ($conf{DV_REACTIVE_PERIOD}) {

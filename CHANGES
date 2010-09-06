@@ -1,4 +1,34 @@
 =====0.52=====
+06.09.2010 \\
+  * Добавлена возможность запускать внешние программы при само регистрации абонентов
+  * Добавлена возможность отключать корпоративным пользователям возможность перевода средств между аккаунтами
+  * Добавлена возможность повторно снимать активационный платёж для аккаунтом с слишком большим периодом не активности абонента
+19.08.2010 \\
+  * В заявку на подключения добавлено поле желаемая дата подключения
+MySQL: \\
+  ALTER TABLE msgs_unreg_requests ADD COLUMN `connection_time` DATETIME NOT NULL;
+
+18.08.2010 \\
+  * Добавлена функция "оплатить до"  в модуль [[abills:docs:modules:dv:ru|Dv]]
+  * Добавлена функция контроля скорости для Linux  серверов доступа
+15.08.2010 \\
+  * Более гибкие тарифные планы для продавцов карточек
+
+MySQL:\\
+  ALTER TABLE `dillers_tps` ADD COLUMN `nas_tp` tinyint(1) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE `dillers_tps` ADD COLUMN `gid` int(11) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE `dillers_tps` ADD COLUMN `comments` text NOT NULL;
+  ALTER TABLE `dillers_tps` ADD COLUMN `bonus_cards` int(11) unsigned NOT NULL DEFAULT '0';
+  
+  CREATE TABLE `multidoms_nas_tps` (
+    `nas_id` smallint(6) unsigned NOT NULL,
+    `domain_id` smallint(6) unsigned NOT NULL DEFAULT '0',
+    `tp_id` smallint(6) unsigned NOT NULL,
+    `datetime` datetime NOT NULL,
+    `bonus_cards` int(11) unsigned NOT NULL DEFAULT '0',
+    PRIMARY KEY (`domain_id`,`tp_id`,`nas_id`)
+  ) COMMENT='Multidoms Dillers NAS TPS. For postpaid cards fees';
+
 
 11.08.2010 \\
   * Добавлена возможность вести опросы пользователей в модуле Тех. Поддержки (Msgs)
