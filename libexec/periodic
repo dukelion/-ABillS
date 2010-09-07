@@ -350,14 +350,15 @@ $LIST_PARAMS{SORT}=2;
 $LIST_PARAMS{DESC}='DESC';
 $LIST_PARAMS{PAGE_ROWS}=1000000;
 
+
 $list = $payments->list({ %LIST_PARAMS, FIO => '*' });
 
 foreach my $line (@$list) {
    $ADMIN_REPORT{PAYMENTS} .= sprintf ("%-14s|%-28s| %8.4f| %20s| %12s| %15s| %19s|\n", 
     $line->[1], 
     $line->[2],
-    $line->[4], 
     $line->[5], 
+    $line->[4], 
     $line->[6], 
     $line->[7], 
     $line->[3]);
