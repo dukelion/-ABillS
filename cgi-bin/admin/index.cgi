@@ -2212,7 +2212,9 @@ sub form_changes {
                    12 => "$_DELETED $_USER",
                    13 => "Online $_DELETED",
                    14 => "$_HOLD_UP",
-                   15 => "$_HANGUP");
+                   15 => "$_HANGUP",
+                   16 => "$_CHANGE $_GROUP",
+                   );
  
 if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {
 	$admin->action_del( $FORM{del} );

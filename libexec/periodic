@@ -377,19 +377,19 @@ my $fees = Finance->fees($db, $admin, \%conf);
 $ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-28s| %8s| %20s| %12s| %15s| %8s\n", $_LOGIN, $_FIO, $_SUM, $_DESCRIBE, $_TYPE, $_ADMINS, 'IP', $_DEPOSIT);
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
 
-
 $list = $fees->list( { %LIST_PARAMS, FIO => '*' } );
 foreach my $line (@$list) {
 
   $ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-28s| %8.4f| %20s| %12s | %12s| %15s| %8.4f\n", 
     ($line->[1]) ? $line->[1] : "!Unknown", 
     ($line->[2]) ? $line->[2] : "", 
-    $line->[4],
-    $line->[5], 
+     $line->[5],
+    $line->[4], 
     $line->[6], 
     $line->[9], 
     $line->[10],
-    $line->[7]);
+    $line->[7]
+   );
 }
 
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
@@ -684,7 +684,7 @@ sub debetors_group_create {
   foreach my $line (sort @DEBETORS_GROUP) {
     # DEBETOR_GROUP_ID:DEPOSIT:LAST_PAYNMENT_DAYS:USER_GID
     my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS, $USER_GID) = split(/:/, $line);  
-    $USER_GID = -1 if (! defined($USER_GID));    
+    $USER_GID = -1 if (! defined($USER_GID) || $USER_GID eq '');    
     $DEBETORS_GIDS{$GID}="$USER_GID";
     $USERS_GIDS{$USER_GID}="$GID:$DEPOSIT:$LAST_PAYMENTS_DAYS";
    } 

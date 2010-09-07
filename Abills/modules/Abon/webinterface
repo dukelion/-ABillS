@@ -338,7 +338,7 @@ sub abon_periodic {
 
  my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
- $debug_output .= "ABON: Monthly periodic payments\n" if ($debug > 1);
+ $debug_output .= "ABON: Periodic payments\n" if ($debug > 1);
 
  $LIST_PARAMS{LOGIN}=$attr->{LOGIN} if ($attr->{LOGIN});
  $LIST_PARAMS{TP_ID}=$attr->{TP_ID} if ($attr->{TP_ID});
@@ -351,6 +351,7 @@ sub abon_periodic {
 
  foreach my $line (@$list) {
   if (defined($line->[7])) {
+  	
     my %user = (
        UID     => $line->[2],
        BILL_ID => ($line->[14]) ? $line->[15] : $line->[3]
@@ -359,13 +360,12 @@ sub abon_periodic {
     my %PARAMS = ( DESCRIBE  => "$_ABON: [$line->[10]] $line->[6]",
                    METHOD    => 1,
                    DATE      => $ADMIN_REPORT{DATE}
-                     );
+                  );
 
     $line->[8] = 0 if (! $line->[8]);
     $PARAMS{DESCRIBE} = "$_ABON: $line->[6]. $line->[12]" if ($line->[12]);
     if($line->[8] && ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
      	#Get day fee
-
      	$line->[13] = $ADMIN_REPORT{DATE} if (! $line->[13] && $line->[0] == 1 && $d == 1);
 
      	if ($line->[0] == 0) {
