@@ -2213,7 +2213,7 @@ sub form_changes {
                    13 => "Online $_DELETED",
                    14 => "$_HOLD_UP",
                    15 => "$_HANGUP",
-                   16 => "$_CHANGE $_GROUP",
+                   26 => "$_CHANGE $_GROUP",
                    );
  
 if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {

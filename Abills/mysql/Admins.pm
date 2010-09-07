@@ -24,8 +24,6 @@ my $db;
 my $aid;
 my $IP;
 
-
-
 #**********************************************************
 #
 #**********************************************************
@@ -123,8 +121,7 @@ sub set_permissions {
   
   $self->{CHANGED_AID}=$self->{AID};
   $self->{AID}=$self->{MAIN_AID};
-  $IP=$self->{MAIN_SESSION_IP};
-  
+  $IP=$self->{MAIN_SESSION_IP};  
   
   $self->system_action_add("AID:$self->{CHANGED_AID} PERMISION:", { TYPE => 2 });
   $self->{AID}= $self->{CHANGED_AID};

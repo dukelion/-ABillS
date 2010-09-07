@@ -385,7 +385,6 @@ sub changes {
          }
         else {
         	if (! $OLD_DATA->{$k} && ($DATA{$k} eq '0' || $DATA{$k} eq '')) {
-        	#  print "$k $OLD_DATA->{$k} && length($DATA{$k}) == 0) || (! $OLD_DATA->{$k} && $DATA{$k} eq 0 )<br>";
         		next;
            }
 
@@ -404,6 +403,9 @@ sub changes {
            }
           elsif($k eq 'TP_ID') {
             $self->{CHG_TP}=$OLD_DATA->{$k}.'->'.$DATA{$k};
+           }
+          elsif($k eq 'GID') {
+            $self->{CHG_GID}=$OLD_DATA->{$k}.'->'.$DATA{$k};
            }
           elsif($k eq 'CREDIT') {
             $self->{CHG_CREDIT}=$OLD_DATA->{$k}.'->'.$DATA{$k};
@@ -452,6 +454,10 @@ else {
 
     if($self->{'CHG_TP'}) {
       $admin->action_add($DATA{UID}, "$self->{'CHG_TP'}", { TYPE => 3});
+     }
+
+    if($self->{CHG_GID}) {
+      $admin->action_add($DATA{UID}, "$self->{CHG_GID}", { TYPE => 26 });
      }
 
     if(defined($self->{'STATUS'}) && $self->{'STATUS'} ne '') {

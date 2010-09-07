@@ -4210,7 +4210,7 @@ sub dv_monthly_fees {
              # If activation set to monthly fees taken throught 30 days
              if($user{ACTIVATE} ne '0000-00-00') {
                #Block small deposit
-               if ($small_deposit_block && $month_fee > $user{DEPOSIT}+$user{CREDIT}) {
+               if ($small_deposit_block && $month_fee > $user{DEPOSIT}+$user{CREDIT} && $date_unixtime - $active_unixtime > 30 * 86400) {
      	           if ($small_deposit_block == -1) {
      	             $Dv->change({ UID    => $user{UID}, 
             	                   STATUS => 5 });

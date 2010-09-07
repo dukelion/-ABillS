@@ -540,6 +540,15 @@ function CheckAllINBOX() {
 sub dhcphosts_hosts {
   if (! $FORM{UID}) {
     $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel({ SEARCH  => 1 });
+    $Dhcphosts->{SWITCH_SEL} = $html->form_select('NAS_ID',
+                                          {
+                                                  SELECTED          => $Dhcphosts->{NAS_ID},
+                                                  SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list() } ],
+                                                  MULTI_ARRAY_KEY   => 0,
+                                                  MULTI_ARRAY_VALUE => 1,
+                                           });
+
+    
     form_search({ SEARCH_FORM => $html->tpl_show(_include('dhcphosts_search', 'Dhcphosts'), 
   	                                  { %$Dhcphosts, %FORM }, 
   	                                  { OUTPUT2RETURN => 1 })  
@@ -580,7 +589,7 @@ sub dhcphosts_hosts {
 	    $html->color_mark($status[$line->[10]]."/".$line->[8], $status_color),
 	    $line->[9],
 	    $line->[7],
-	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}], { BUTTON => 1 }),
+	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&MODULE=Dhcphosts&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}], { BUTTON => 1 }),
 	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]. "&IP=$line->[11]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
      );
    };
