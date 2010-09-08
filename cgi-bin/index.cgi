@@ -433,14 +433,13 @@ sub form_info {
   my $list = $Payments->list( { %LIST_PARAMS } );
   
   $user->{PAYMENT_DATE}=$list->[0]->[2];
-  $user->{PAYMENT_SUM}=$list->[0]->[3];
+  $user->{PAYMENT_SUM}=$list->[0]->[4];
   if ($conf{EXT_BILL_ACCOUNT} && $user->{EXT_BILL_ID} > 0) {
     $user->{EXT_DATA}=$html->tpl_show(templates('form_ext_bill'), 
                                              $user, { OUTPUT2RETURN => 1 });
    }
   
   $user->{DISABLE} = ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6])  : $_ENABLE;
-  
   $html->tpl_show(templates('form_client_info'), $user);
 
   if ($conf{user_chg_pi}) {
