@@ -122,7 +122,7 @@ foreach my $admin_id (sort keys %A_PRIVILEGES) {
   $table->addtd(
                   $table->td($admin_id, { rowspan => ($rows > 0) ? $rows+1 : 1 } ),
                   $table->td($chapter_name), 
-                  $table->td($privilages_arr[$privilege]), 
+                  $table->td(($rows == 0) ? $_ALL : $privilages_arr[$privilege]), 
                   $table->td($msgs), 
                   $table->td($bool_vals[$mail_send]), 
                   $table->td($deligation_level),
@@ -442,7 +442,7 @@ sub msgs_admin {
   	for my $id (@ids) {
   		$Msgs->message_change({ DISPATCH_ID => $FORM{DISPATCH_ID}, 
   			                      ID          => $id 
-  			                      });
+  			                   });
   	 }
 
   	$html->message('info', $_INFO, "$_DISPATCH $_ADD # $FORM{IDS}") if (! $Msgs->{errno});  	
@@ -476,6 +476,7 @@ sub msgs_admin {
             }      
          }
         }
+
       %params = ();
       $params{CHAPTER}     = $FORM{CHAPTER_ID} if ($FORM{CHAPTER_ID});
       $params{STATE}       = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
@@ -483,14 +484,14 @@ sub msgs_admin {
       my $state=$FORM{STATE};
    	 	$params{CLOSED_DATE} = $DATE       if ($state > 0);
 	   	$params{DONE_DATE}   = $DATE       if ($state > 1);
- 	    $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
+	    $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
  	 	                        ID        => $FORM{ID},
  	 	                        USER_READ => "0000-00-00 00:00:00",
  	 	                        ADMIN_READ=> "$DATE $TIME",
  	 	                        %params
  	 	                      });
 
-      $FORM{chg} = $FORM{ID};
+    $FORM{chg} = $FORM{ID};
 
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
 
@@ -654,7 +655,7 @@ sub msgs_admin {
      }
 
     
-    if (! $Msgs->{ACTIVE_SURWEY} && $A_PRIVILEGES{$Msgs->{CHAPTER}}) {
+    if (! $Msgs->{ACTIVE_SURWEY} && ($A_PRIVILEGES{$Msgs->{CHAPTER}} || scalar keys %A_PRIVILEGES == 0)) {
    	  $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), { %$Msgs, 
       	REPLY_TEXT => $reply,
      	  RUN_TIME   => "$_RUN_TIME ($_MINS):". $html->form_input('RUN_TIME', "$run_time", { EX_PARAMS => " STYLE='background-color: $_COLORS[3]' DISABLED size=9"} ),

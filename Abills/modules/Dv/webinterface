@@ -1615,12 +1615,9 @@ my %ACCT_TERMINATE_CAUSES = (
                     );
 
 my %ACCT_TERMINATE_CAUSES_REV = reverse %ACCT_TERMINATE_CAUSES;
-
-    my $i=1; 
-    my $list = $users->config_list({ PARAM => 'ifu*'  });
-    my %INFO_LISTS = (); 
-
-    
+my $i=1; 
+my $list = $users->config_list({ PARAM => 'ifu*'  });
+my %INFO_LISTS = (); 
 
     foreach my $line (@$list) {
       my $field_id       = '';
@@ -1637,7 +1634,6 @@ my %ACCT_TERMINATE_CAUSES_REV = reverse %ACCT_TERMINATE_CAUSES;
         foreach my $line (@$list) {
           $INFO_LISTS{$field_id}{$line->[0]}=$line->[1];
          }
-    	
        }
       $i++;
      }
@@ -1724,7 +1720,6 @@ if (defined($FORM{DATE})) {
 
       $AVG{USERS}    = $line->[1] if ($AVG{USERS} < $line->[1]);
       $AVG{TRAFFIC}  = $line->[3] if ($AVG{TRAFFIC} < $line->[3]);
-
       $AVG{DURATION} = time2sec($line->[5]) if ($AVG{DURATION} < time2sec($line->[5]));
       $AVG{MONEY}    = $line->[6] if ($AVG{MONEY} < $line->[6]);
 
@@ -1766,15 +1761,14 @@ if (defined($FORM{DATE})) {
         $html->b($line->[6]) );
      }
   }
-
  }
 else {
   #Used Traffic
   my @caption     = ();  
-  my @field_align = ();
- 
+  my @field_align = (); 
   my %fields_hash = (); 
   my @fields_arr  = ();
+
   if ($FORM{FIELDS}) {
   	@fields_arr = split(/, /, $FORM{FIELDS});
    	foreach my $line (@fields_arr) {
@@ -1791,7 +1785,6 @@ else {
   	    $fields_arr[$i]=$val;
   	    $i++;
   	   }
-      
      }
    }
   else {
@@ -1803,7 +1796,7 @@ else {
 
     if ($FORM{TYPE} eq 'USER') {
     	$caption[0]="$_USER";
-  	  $caption[1]="$_LOGINS";
+  	  #$caption[1]="$_LOGINS";
      }
     elsif ($FORM{TYPE} eq 'TERMINATE_CAUSE') {
     	$caption[0]="$_ERROR";
@@ -1812,15 +1805,8 @@ else {
      }
     elsif ($FORM{TYPE} eq 'TP') {
     	$caption[0]="$_TARIF_PLAN";
-
     	@CHART_TYPE2  = ('column', 'line');
     	$CHART{AXIS_CATEGORY_skip}=0;
-
-    	my $list = $tariffs->list();
-   	
-    	foreach my $line (@$list) {
-    		$TP_NAMES{$line->[0]}=$line->[1];
-    	 }
      }
     elsif($FORM{TYPE} eq 'GID') {
     	@CHART_TYPE2  = ('column', 'line');
@@ -1848,12 +1834,10 @@ else {
                                } );
 
   my $num = 0;
-
   my $list = $sessions->reports({ %LIST_PARAMS });
 
   foreach my $line (@$list) {
-    my @rows = ();
-    
+    my @rows = ();    
     if ($FORM{FIELDS}) {
       for(my $i=0; $i<=$#caption; $i++) {
         if ($fields_arr[$i] =~ /TRAFFIC/) {
@@ -1866,7 +1850,14 @@ else {
         	push @rows, ($INFO_LISTS{$fields_arr[$i]}{$line->[$i]}) ? $INFO_LISTS{$fields_arr[$i]}{$line->[$i]} : '';
          }
         elsif ($fields_arr[$i] =~ 'TP') {
-        	push @rows, $button = $line->[0].'. ' .$html->button($TP_NAMES{$line->[0]}, "index=$index&TP_ID=$line->[0]$pages_qs");
+ 	    	  if (scalar keys %TP_NAMES == 0) {
+ 	    	    my $list = $tariffs->list();
+    	      foreach my $line (@$list) {
+    		      $TP_NAMES{$line->[0]}=$line->[1];
+    	       }
+           }
+        	
+        	push @rows, $button = (($FORM{TYPE} eq 'TP') ? $line->[0] : $line->[1]).'. ' .$html->button($TP_NAMES{(($FORM{TYPE} eq 'TP') ? $line->[0] : $line->[1])}, "index=$index&TP_ID=". (($FORM{TYPE} eq 'TP') ? $line->[0] : $line->[1]) ."$pages_qs");
          }
         elsif ($fields_arr[$i] =~ 'GID') {
         	push @rows, $button = $line->[0].'. ' .$html->button($GROUP_NAMES{$line->[0]}, "index=$index&GID=$line->[0]$pages_qs");
