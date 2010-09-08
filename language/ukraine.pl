@@ -253,6 +253,7 @@ $_ROWS='Рядків';
 $_DAY_DURATION='Денний час';
 $_PARAMS='Параметри';
 $_EXCHANGE_RATE='Курс обміну';
+$_SERVICE='Послуга';
 $_ADDED='Добавлено';
 $_BACK_PAY='Повернення';
 $_REGISTRATION='Реєстрація';

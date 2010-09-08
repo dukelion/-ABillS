@@ -3272,7 +3272,6 @@ sub dv_user_info {
   	#Get user NAS server from ip pools
   	$nas = Nas->new($db, \%conf);
     $list = $nas->nas_ip_pools_list();
-    
     foreach my $line (@$list) {
     	if ($line->[3] <= ip2int($user->{REMOTE_ADDR}) && ip2int($user->{REMOTE_ADDR}) <= $line->[4]) {
     		$NAS_ID = $line->[0];
@@ -3405,11 +3404,9 @@ pROFILRE
 
   	       foreach my $line (@arr) {
              my($key, $val)=split(/ = /, $line);
-
              $val =~ s/\"//g;
              $key =~ s/\t//g;
-             $key =~ s/ //g;
-        
+             $key =~ s/ //g;        
              $RAD_PAIRS{$key}=$val;
              #MAC as ID
              if ($val =~ /\$MA(\S+)/) {
@@ -3544,7 +3541,8 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   else {
   	$Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $service_status_colors[$Dv->{STATUS}]); 
    }
-  
+
+  $user->{SERVICE_STATUS} = $Dv->{STATUS};  
   if ($conf{DV_USER_CHG_TP}) {
     $Dv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid, { BUTTON => 1 } );
    }

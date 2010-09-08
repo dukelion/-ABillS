@@ -169,7 +169,8 @@ if ($uid > 0) {
   $OUTPUT{LOGIN}= $login;
   $OUTPUT{IP}   = $ENV{REMOTE_ADDR};
   $pages_qs     = "&UID=$user->{UID}&sid=$sid";
-
+  $OUTPUT{STATE}= ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6])  : $_ENABLE;
+  
   if ($COOKIES{lastindex}) {
   	$index=$COOKIES{lastindex};
     $html->setCookie('lastindex', '', "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
@@ -225,9 +226,6 @@ if ($uid > 0) {
     $functions{$default_index}->();
    }
 
-
-
-
   $OUTPUT{BODY}=$html->{OUTPUT};
   $html->{OUTPUT}='';
   if ($conf{AMON_UPDATE}  && $ENV{HTTP_USER_AGENT} =~ /AMon \[(\S+)\]/) {
@@ -238,9 +236,8 @@ if ($uid > 0) {
      }
    }
   
-  
-  $OUTPUT{BODY}=$html->tpl_show(templates('form_client_main'), \%OUTPUT);
-
+  $OUTPUT{STATE} = ($user->{SERVICE_STATUS}) ? $user->{SERVICE_STATUS}  : $OUTPUT{STATE};
+  $OUTPUT{BODY}  = $html->tpl_show(templates('form_client_main'), \%OUTPUT);
  }
 else {
   form_login();
@@ -452,6 +449,12 @@ sub form_info {
 	                                 sid   => $sid,
 	                                 index => "$index"
 	                    }});
+   }
+
+
+  if (in_array('Dv', \@MODULES) ) {
+     require "Abills/modules/Dv/webinterface";
+     dv_user_info();
    }
 }
 

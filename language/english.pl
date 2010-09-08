@@ -292,6 +292,7 @@ $_ENABLE='Enable';
 $_COMPANY='Company';
 $_ADD_USER='Add user';
 $_CREDIT_TRESSHOLD='Credit Threshold';
+$_SERVICE='Service';
 $_SERVICES='Services';
 $_FUNCTIONS_LIST='Functions list';
 $_COMPANIES='Companies';
