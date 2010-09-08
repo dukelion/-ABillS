@@ -265,7 +265,7 @@ sub check_lines {
        } 
       
       
-      if (($calls_tp_id ne $tp_num || $state || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0)) && $online_state < 4 ) {
+      if (($calls_tp_id ne $tp_num || $state || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0)) && $online_state != 2 ) {
         print "Hanguped Login: Change TP $user_name DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum SESSION_ID: $acct_session_id\n";
         my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
        	                                                        FRAMED_IP_ADDRESS    => int2ip($client_ip),
