@@ -127,7 +127,7 @@ foreach my $admin_id (sort keys %A_PRIVILEGES) {
                   $table->td($bool_vals[$mail_send]), 
                   $table->td($deligation_level),
                   $table->td($html->button("$_CHANGE", "index=$index&chg=$aid&AID=$aid"), { rowspan => ($rows > 0) ? $rows+1 : 1 })
-      );
+                );
 
   if ($rows > 0) {
     for(my $i=1; $i<=$rows; $i++) { 
@@ -844,7 +844,7 @@ foreach my $line (@$list) {
   $table->addrow(
    $line->[0] . ( ($A_PRIVILEGES{$line->[18]} > 2 || scalar keys %CHAPTERS_DELIGATION == 0 ) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ).
      ( ($line->[22]) ? $html->b( "($_INNER_MSGS_CHAR)") : "" ), 
-   ($line->[10] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[11]") :  $line->[1],
+   ($line->[11] > 0)  ? $html->button($line->[1], "index=11&UID=$line->[11]") :  $line->[1],
    $html->button($line->[2], "index=$index&UID=$line->[11]&chg=$line->[0]"), 
    $line->[3],
    $line->[4],

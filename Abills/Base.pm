@@ -33,6 +33,7 @@ $VERSION = 2.00;
   &tpl_parse
   &encode_base64
   &cfg2hash
+  &clearquotes
  );
 
 @EXPORT_OK = ();
@@ -845,17 +846,18 @@ sub get_radius_params {
 
 #**********************************************************
 # For clearing quotes
-# clearquotes( $text )
+# clearquotes( $text, $attr_hash )
 #**********************************************************
 sub clearquotes {
- my $text = shift;
+ my ($text,$attr) = @_;
  if ($text ne '""') {
-   $text =~ s/\"//g;
+   my $extra = $attr->{EXTRA} || '';
+   $text =~ s/\"$extra//g;
   }
  else {
  	 $text = '';
   }
- return "$text";
+ return $text;
 }
 
 #**********************************************************

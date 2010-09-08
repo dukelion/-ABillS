@@ -552,10 +552,8 @@ sub cards_users_add  {
             }
             
            for(my $i=2; $i<=$#params; $i++) {
-           	 #print "$params[$i]<br>\n";
            	 my($k, $v)=split(/=/, $params[$i], 2);
            	 $v =~ s/\"//g;
-           	 
            	 $USER_HASH{$k}=$v;
            	 if (defined($FORM{EXPORT}) && $FORM{EXPORT} eq 'XML') {
            	 	  $other.="<$k>$v</$k>";
@@ -566,11 +564,10 @@ sub cards_users_add  {
             }
 
            $export .= (defined($FORM{EXPORT}) && $FORM{EXPORT} eq 'XML') ? "<LOGIN>$USER_HASH{LOGIN}</LOGIN><PASSWORD>$USER_HASH{PASSWORD}</PASSWORD><ID>$serial</ID><EXPIRE>$FORM{EXPIRE}</EXPIRE>\n" : "$USER_HASH{LOGIN}\t$USER_HASH{PASSWORD}\t$serial\t$FORM{EXPIRE}$other\n";
-
            push @DATA_ARRAY, { %USER_HASH };
            $generated++;
            $begin++;
-          }
+         }
 
       	$table = $html->table({ width  => '100%',
                                 rows   => [ [$_NAME,   $FORM{FILE_DATA}{filename} ],
@@ -583,7 +580,7 @@ sub cards_users_add  {
        }
 
 
-#Get last number if begin not set
+      #Get last number if begin not set
       if ($begin == 0) {
        	my $list = $Cards->cards_list({ SERIA    => "$SERIAL",
                   		                  PAGE_ROWS => 1,
@@ -592,8 +589,8 @@ sub cards_users_add  {
         $begin = int($list->[0][1])+1;          		                   
        }
 
-$LOGIN_NUMBER=$begin;
-#Create numeric or random logins
+      $LOGIN_NUMBER=$begin;
+      #Create numeric or random logins
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
           my $LOGIN_LENGTH = (length("$FORM{LOGIN_PREFIX}$LOGIN_NUMBER") < $FORM{LOGIN_LENGTH}) ? $FORM{LOGIN_LENGTH} - length($FORM{LOGIN_PREFIX}) : $FORM{LOGIN_LENGTH};
           my $password = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
@@ -617,8 +614,7 @@ $LOGIN_NUMBER=$begin;
   	      	                  SERIAL     => "$FORM{SERIAL}",
   	      	                  NUMBER     => $i,
   	      	                  DILLER_ID  => $FORM{DILLER_ID},
-   	                          PIN        => ($FORM{PAYMENT_OPERATION}) ? "$password" : $password
-  	      	                  
+   	                          PIN        => ($FORM{PAYMENT_OPERATION}) ? "$password" : $password  	      	                  
       	                    };
   	   }
 
@@ -632,7 +628,7 @@ $LOGIN_NUMBER=$begin;
 
  	    $html->message('info', $_INFO, "$_CREATED: $generated");
  	    print $html->form_textarea('CARDS_EXPORT', $export, {  COLS => 70, 
-   	    	                                                     ROWS => 30 });
+   	    	                                                   ROWS => 30 });
    	 }
    	  
    return \@DATA_ARRAY;

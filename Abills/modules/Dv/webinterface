@@ -4718,13 +4718,17 @@ sub dv_cards {
   	return 0;
    }
   $FROM{CARDS_FORM}=1;
+  
+  
+  
   my $dv_tpl = dv_wizard_user({ OUTPUT2RETURN => 1,
   	                            NO_EXTRADATA  => 1,
   	                            TPLS          => { '2:' => '',
                                                    '3:' => '' } 
                               });
 
-	my $return = cards_users_add({ EXTRA_TPL => $dv_tpl  });
+	my $cards_hash = cards_users_add({ EXTRA_TPL => $dv_tpl  });
+
   $FORM{add}=1;
   if (scalar keys %FORM_BASE < 1) {
   	%FORM_BASE=%FORM;
@@ -4740,24 +4744,23 @@ sub dv_cards {
                              cols_align => ['left', 'right', 'right'],
                             });
 
-  if (ref($return) eq 'ARRAY') {
-  	 foreach my $line (@$return) {
+  if (ref($cards_hash) eq 'ARRAY') {
+  	 foreach my $line (@$cards_hash) {
         %FORM = ();
      	  %FORM = %FORM_BASE;
-
   	 	  while(my($k, $v)= each %$line) {
-  	 	  	 $FORM{$k}=clearquotes($v);
-  	 	    }
+ 	 	  	  $FORM{$k}=clearquotes($v);
+  	 	   }
 
   	 	  $FORM{'1.LOGIN'}      = $line->{LOGIN};
   	 	  $FORM{'1.PASSWORD'}   = $line->{PASSWORD};
   	 	  $FORM{'1.CREATE_BILL'}= 1;
+  	 	  
         
         $line->{UID} = dv_wizard_user({ SHORT_REPORT => 1 });
        
   	 	  if ( $line->{UID} < 1) {
-  	 	  	 $html->message('err', "$_ERROR", "$_LOGIN: '$line->{LOGIN}'");
-  	 	  	 
+  	 	  	 $html->message('err', "$_ERROR", "$_LOGIN: '$line->{LOGIN}'");  	 	  	 
   	 	  	 last if (! $line->{SKIP_ERRORS} );
   	 	   }
   	 	  else {
@@ -4769,7 +4772,6 @@ sub dv_cards {
   	 	  		}
   	 	   }
   	  }
-
    }
   
 
@@ -4806,14 +4808,13 @@ sub dv_wizard_user {
 
   if ($FORM{add}) {
   	foreach my $k ( sort %FORM) {
-      if ($k =~ m/^[0-9]+\.[_a-zA-Z0-9]+$/) { #  && $k !~ /__|[a-z]/) {
+      if ($k =~ m/^[0-9]+\.[_a-zA-Z0-9]+$/) {
         $k =~ s/%22//g;
         my ($id, $main_key)=split(/\./, $k, 2);
         $add_values{$id}{$main_key}=$FORM{$k};
        }
   	 }
 
-    #print $table->show();
     # Password
     $add_values{1}{GID} = $admin->{GID} if ($admin->{GID});
     my $user=$users->add({ %{$add_values{1}}, CREATE_EXT_BILL => $FORM{'5.EXT_BILL_DEPOSIT'} });

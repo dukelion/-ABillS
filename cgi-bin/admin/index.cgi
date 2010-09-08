@@ -5939,7 +5939,7 @@ sub form_dictionary {
        	 $main_dictionary{"$name"}=$value;
         }
        elsif ($_ !~ /^#|^\n/){
-         $main_dictionary{"$name"}=clearquotes($value);
+         $main_dictionary{"$name"}=clearquotes($value, { EXTRA => "|\'|;" });
         }
 	   }
 	close(FILE);
@@ -5955,7 +5955,7 @@ sub form_dictionary {
        	   $sub_dictionary{"$name"}=$value;
           }
 	    	 elsif ($_ !~ /^#|^\n/) {
-           $sub_dictionary{"$name"}=clearquotes($value) 
+           $sub_dictionary{"$name"}=clearquotes($value, { EXTRA => "|\'|;" }) 
           }
 	     }
 	  close(FILE);
@@ -6064,22 +6064,6 @@ sub form_config {
 
 	print $table->show();
 }
-
-#*******************************************************************
-# For clearing quotes
-# clearquotes( $text )
-#*******************************************************************
-sub clearquotes {
- my $text = shift;
- if ($text ne '""') {
-   $text =~ s/\"|\'|;//g;
-  }
- else {
- 	 $text = '';
-  }
- return "$text";
-}
-
 
 #*******************************************************************
 # sel_groups();
