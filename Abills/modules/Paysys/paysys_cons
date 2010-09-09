@@ -160,11 +160,12 @@ sub paysys_import_form {
 my $error = 0;
 for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
   my $ID = $DATA_ARR->[$i]->{PAYSYS_EXT_ID} || $i;
+  $DATA_ARR->[$i]->{DATE} = $DATE if (! $DATA_ARR->[$i]->{DATE});
   if ($binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})}) {
        my($uid, $login, $fio)=split(/:/, $binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})});
        
        next if ($DATA_ARR->[$i]->{SUM} == 0);
-       $error          = 0;
+       $error             = 0;
        my $user           = $users->info($uid);
        my $describe       = $DATA_ARR->[$i]->{DESCRIBE} || ''; 
        my $inner_describe = $DATA_ARR->[$i]->{INNER_DESCRIBE} || '';
@@ -182,12 +183,10 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
        	   	  	$DATA_ARR->[$i]->{DATE_DMY}=~/(\d{2})(\d{2})(\d{4})/;
        	   	  	$DATA_ARR->[$i]->{DATE}="$3-$2-$1";
        	   	   }
-       	   	  my $date = $DATA_ARR->[$i]->{DATE} || $DATE;
-       	   	  
               $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
                        DESCRIBE     => $describe, 
  	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 2, 
- 	                     DATE         => $date, 
+ 	                     DATE         => $DATA_ARR->[$i]->{DATE}, 
                        EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$attr->{IMPORT_RULE}.$ID",
                        CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$attr->{IMPORT_RULE}.$ID",
                        INNER_DESCRIBE => $inner_describe
@@ -225,7 +224,7 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
           }
         }
        else {
-         $error_str .= "ERROR: NOT_EXIST $BINDING_FIELD - $DATA_ARR->[$i]->{$BINDING_FIELD} / $DATA_ARR->[$i]->{DATE} / $DATA_ARR->[$i]->{SUM}\n ";
+         $error_str .= "ERROR: NOT_EXIST BIND_FIELD: $BINDING_FIELD - $DATA_ARR->[$i]->{$BINDING_FIELD} DATE: $DATA_ARR->[$i]->{DATE} SUM: $DATA_ARR->[$i]->{SUM}\n ";
          print $error_str;
         }
 
@@ -568,7 +567,7 @@ sub help {
 print << "[END]"
 Paysys console interface:
 
-  TYPE=[PAYMENST|FEES] - Operation TYPE
+  TYPE=[PAYMENTS|FEES] - Operation TYPE
   IMPORT_RULE=         - for payments import type id
 $import_rules    
   EMAIL_CHECK=...      - Check E-mail for documents. E-mail box number. Default read all mailboxes with import rule.
