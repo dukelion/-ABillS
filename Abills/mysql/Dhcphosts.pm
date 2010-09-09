@@ -170,9 +170,6 @@ sub network_change {
   my $self = shift;
   my ($attr) = @_;
  
- 
-  $self->{debug}=1;
- 
  my %FIELDS = (
    ID              => 'id',
    NAME            => 'name',

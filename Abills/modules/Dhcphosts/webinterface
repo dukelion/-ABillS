@@ -430,7 +430,7 @@ sub dhcphosts_networks {
     
     if (! $Dhcphosts->{errno}) {
 	    $html->message('info', $_CHANGED, "$_CHANGED [$FORM{ID}] $FORM{NAME} ");
-	   }
+      }
 	 }
   elsif ($FORM{chg}) {
 	  $Dhcphosts->network_info( $FORM{chg} );

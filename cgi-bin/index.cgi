@@ -378,8 +378,6 @@ sub form_info {
     		$sum = 0;
     	 }
      }
-
-
     
     if ($user->{DISABLE}) {
     	
@@ -454,8 +452,8 @@ sub form_info {
   if (in_array('Dv', \@MODULES) ) {
      require "Abills/modules/Dv/webinterface";
      while(my($k, $v)=each %functions) {
-     if ($v eq 'dv_user_info') {
-       	 $index = $k;
+     if ($v eq 'dv_user_chg_tp') {
+       	 $index = $k-2;
        	 last;
         }
       }
