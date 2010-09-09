@@ -10,15 +10,16 @@ var confirmMsg  = 'Do you really want delete';
  *
  * @return  boolean  whether to run the query or not
  */
-function confirmLink(theLink, theSqlQuery)
+function confirmLink(theLink, theSqlQuery, CustomMsg)
 {
-    // Confirmation is not required in the configuration file
-    // or browser is Opera (crappy js implementation)
-    if (confirmMsg == '') { // || typeof(window.opera) != 'undefined') {
-        return true;
-    }
+    if (CustomMsg != '') {
+        confirmMsg = CustomMsg;
+     }
+    else {
+    	confirmMsg = confirmMsg + ' :\n';
+     }
 
-    var is_confirmed = confirm(confirmMsg + ' :\n' + theSqlQuery);
+    var is_confirmed = confirm(confirmMsg + theSqlQuery);
     if (is_confirmed) {
         theLink.href += '&is_js_confirmed=1';
     }

@@ -453,6 +453,12 @@ sub form_info {
 
   if (in_array('Dv', \@MODULES) ) {
      require "Abills/modules/Dv/webinterface";
+     while(my($k, $v)=each %functions) {
+     if ($v eq 'dv_user_info') {
+       	 $index = $k;
+       	 last;
+        }
+      }
      dv_user_info();
    }
 }

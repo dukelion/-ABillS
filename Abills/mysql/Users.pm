@@ -22,28 +22,6 @@ use main;
 @ISA  = ("main");
 my $uid;
 
-my %PI_FIELDS = (EMAIL          => 'email',
-              FIO            => 'fio',
-              PHONE          => 'phone',
-              ADDRESS_BUILD  => 'address_build',
-              ADDRESS_STREET => 'address_street',
-              ADDRESS_FLAT   => 'address_flat',
-              ZIP            => 'zip',
-              CITY           => 'city',
-              COMMENTS       => 'comments',
-              UID            => 'uid',
-              CONTRACT_ID    => 'contract_id',
-              CONTRACT_DATE  => 'contract_date',
-              CONTRACT_SUFIX => 'contract_sufix',
-              PASPORT_NUM    => 'pasport_num',
-              PASPORT_DATE   => 'pasport_date',
-              PASPORT_GRANT  => 'pasport_grant',
-              ACCEPT_RULES   => 'accept_rules',
-              LOCATION_ID    => 'location_id'
-              
-             );
-
-
 
 #**********************************************************
 # Init 
@@ -61,14 +39,9 @@ sub new {
    }
 
   my $self = { };
-
   bless($self, $class);
-
   return $self;
 }
-
-
-
 
 
 #**********************************************************
@@ -96,8 +69,6 @@ sub info {
     if (defined($attr->{DISABLE})) {
     	$WHERE .= " and u.disable='$attr->{DISABLE}'";
      }
-    
-    #$PASSWORD = "if(DECODE(password, '$SECRETKEY')='$attr->{PASSWORD}', 0, 1)";
    }
   elsif(defined($attr->{LOGIN})) {
     $WHERE = "WHERE u.id='$attr->{LOGIN}'";
@@ -201,6 +172,7 @@ sub defaults_pi {
    ADDRESS_STREET => '', 
    ADDRESS_BUILD  => '', 
    ADDRESS_FLAT   => '', 
+   COUNTRY_ID     => 0, 
    EMAIL          => '', 
    COMMENTS       => '',
    CONTRACT_ID    => '',
@@ -273,12 +245,12 @@ sub pi_add {
    }
 
 
-  $self->query($db,  "INSERT INTO users_pi (uid, fio, phone, address_street, address_build, address_flat, 
+  $self->query($db,  "INSERT INTO users_pi (uid, fio, phone, address_street, address_build, address_flat, country_id,
           email, contract_id, contract_date, comments, pasport_num, pasport_date,  pasport_grant, zip, 
           city, accept_rules, location_id, contract_sufix
            $info_fields)
            VALUES ('$DATA{UID}', '$DATA{FIO}', '$DATA{PHONE}', \"$DATA{ADDRESS_STREET}\", 
-            \"$DATA{ADDRESS_BUILD}\", \"$DATA{ADDRESS_FLAT}\",
+            \"$DATA{ADDRESS_BUILD}\", \"$DATA{ADDRESS_FLAT}\", '$DATA{COUNTRY_ID}',
             '$DATA{EMAIL}', '$DATA{CONTRACT_ID}', '$DATA{CONTRACT_DATE}',
             '$DATA{COMMENTS}',
             '$DATA{PASPORT_NUM}',
@@ -334,9 +306,10 @@ sub pi {
   
   $self->query($db, "SELECT pi.fio, 
   pi.phone, 
+  pi.country_id,
   pi.address_street, 
   pi.address_build,
-  pi.address_flat,
+  pi.address_flat,  
   pi.email,  
   pi.contract_id,
   pi.contract_date,
@@ -363,6 +336,7 @@ sub pi {
 	  
   ($self->{FIO}, 
    $self->{PHONE}, 
+   $self->{COUNTRY_ID}, 
    $self->{ADDRESS_STREET}, 
    $self->{ADDRESS_BUILD}, 
    $self->{ADDRESS_FLAT}, 
@@ -418,6 +392,29 @@ sub pi {
 sub pi_change {
 	my $self   = shift;
   my ($attr) = @_;
+
+
+my %PI_FIELDS = (EMAIL       => 'email',
+              FIO            => 'fio',
+              PHONE          => 'phone',
+              COUNTRY_ID     => 'country_id',
+              ADDRESS_BUILD  => 'address_build',
+              ADDRESS_STREET => 'address_street',
+              ADDRESS_FLAT   => 'address_flat',
+              ZIP            => 'zip',
+              CITY           => 'city',
+              COMMENTS       => 'comments',
+              UID            => 'uid',
+              CONTRACT_ID    => 'contract_id',
+              CONTRACT_DATE  => 'contract_date',
+              CONTRACT_SUFIX => 'contract_sufix',
+              PASPORT_NUM    => 'pasport_num',
+              PASPORT_DATE   => 'pasport_date',
+              PASPORT_GRANT  => 'pasport_grant',
+              ACCEPT_RULES   => 'accept_rules',
+              LOCATION_ID    => 'location_id'
+             );
+
 
   my $list = $self->config_list({ PARAM => 'ifu*'});
   if ($self->{TOTAL} > 0) {

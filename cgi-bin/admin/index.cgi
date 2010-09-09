@@ -1339,6 +1339,18 @@ sub user_pi {
   	$user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
    }
   else {
+  	my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
+  	my @countries_arr  = split(/\n/, $countries);
+    my %countries_hash = ();
+    foreach my $c (@countries_arr) {
+    	my ($id, $name)=split(/:/, $c);
+    	$countries_hash{int($id)}=$name;
+     }
+    $user_pi->{COUNTRY_SEL} = $html->form_select('COUNTRY_ID', 
+                                { SELECTED   => $user_pi->{COUNTRY_ID},
+ 	                                SEL_HASH   => {'' => '', %countries_hash },
+ 	                                NO_ID      => 1
+ 	                               });
     $user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });	
    }
 

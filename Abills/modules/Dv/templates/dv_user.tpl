@@ -8,7 +8,7 @@ function check_status(object, text) {
     var new_status = document.getElementById('STATUS').value;
     
     if (status == 3 && new_status == 0 && status_days > 0) {
-      return confirmLink(object, '$_SUM $_ACTIVATE: '+reactive_sum);
+      return confirmLink(object, '$_SUM $_ACTIVATE: ' + reactive_sum, '  ');
      }
 
     return ;

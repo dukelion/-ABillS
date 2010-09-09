@@ -18,7 +18,7 @@ cards_card_info.tpl:russian:Информация о карточке
 form_payment.tpl:russian:Форма оплаты
 form_fees.tpl:russian:Форма снятия денег
 form_password.tpl:russian:форма изминения пароля
-
+countries.tpl:russian:список доступных стран
 
 form_buy_cards.tpl:english:Cards buy form
 form_buy_cards_card.tpl:english:Prepaid Cards design blank
@@ -31,7 +31,7 @@ cards_card_info.tpl:english:Cards information template
 form_payment.tpl:english:Payments form
 form_fees.tpl:english:Fees form
 form_password.tpl:english:Change password form
-
+countries.tpl:english:Countries list
 
 form_company.tpl:english:Company add/change template
 form_company.tpl:russian:Шаблон компании
