@@ -664,7 +664,7 @@ sub list {
   }
 
  if ($attr->{PHONE}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{PHONE}, 'INT', 'pi.phone', { EXT_FIELD => 1 }) };
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PHONE}, 'STR', 'pi.phone', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{EMAIL}) { 
@@ -682,6 +682,10 @@ sub list {
 
  if ($attr->{ADDRESS_FLAT}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat', { EXT_FIELD => 1 }) };
+  }
+
+ if ($attr->{COUNTRY_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{COUNTRY_ID}, 'STR', 'pi.country_id', { EXT_FIELD => 1 }) };
   }
 
 

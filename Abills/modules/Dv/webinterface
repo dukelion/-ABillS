@@ -3542,12 +3542,18 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   	$Dv->{STATUS}   = $html->color_mark($service_status[$Dv->{STATUS}], $service_status_colors[$Dv->{STATUS}]); 
    }
 
+  while(my($k, $v)=each %functions) {
+    if ($v eq 'dv_user_info') {
+     	 $index = $k;
+     	 last;
+     }
+   }
+
   $user->{SERVICE_STATUS} = $Dv->{STATUS};  
   if ($conf{DV_USER_CHG_TP}) {
     $Dv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid, { BUTTON => 1 } );
    }
 
- 
   #Activate Cisco ISG Account
   if ($conf{DV_ISG}) {
     if ($user->{DISABLE}) {

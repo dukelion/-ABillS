@@ -5153,7 +5153,6 @@ if (defined($attr->{SEARCH_FORM})) {
  } 
 elsif($search_form{$FORM{type}}) {
   if ($FORM{type} == 2) {
-
    push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
    %PAYMENTS_METHODS = ();
    
@@ -5188,7 +5187,9 @@ elsif($search_form{$FORM{type}}) {
 
     my $i=0; 
     my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2  });
-
+    if ($users->{TOTAL} > 0) {
+    	 $info{INFO_FIELDS}.= "<tr><th colspan='3' bgcolor='$_COLORS[0]'>$_INFO_FIELDS</th></tr>\n"
+      }
     foreach my $line (@$list) {
       my $field_id       = '';
       if ($line->[0] =~ /ifu(\S+)/) {
@@ -5225,12 +5226,31 @@ elsif($search_form{$FORM{type}}) {
      }
 
 
-    $info{CREDIT_DATE} = $html->date_fld2('CREDIT_DATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 12 });
-    $info{PAYMENTS} = $html->date_fld2('PAYMENTS', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 14 });
+    $info{CREDIT_DATE}  = $html->date_fld2('CREDIT_DATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 12 });
+    $info{PAYMENTS}     = $html->date_fld2('PAYMENTS', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 14 });
     $info{REGISTRATION} = $html->date_fld2('REGISTRATION', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 16 });
-    $info{ACTIVATE} = $html->date_fld2('ACTIVATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 17 });
-    $info{EXPIRE} = $html->date_fld2('EXPIRE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 18 });
+    $info{ACTIVATE}     = $html->date_fld2('ACTIVATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 17 });
+    $info{EXPIRE}       = $html->date_fld2('EXPIRE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 18 });
     $info{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 27 });
+
+    if ($conf{ADDRESS_REGISTER}) {
+     	$info{ADDRESS_FORM} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
+     }
+    else {
+  	  my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
+  	  my @countries_arr  = split(/\n/, $countries);
+      my %countries_hash = ();
+      foreach my $c (@countries_arr) {
+    	  my ($id, $name)=split(/:/, $c);
+    	  $countries_hash{int($id)}=$name;
+       }
+      $user_pi->{COUNTRY_SEL} = $html->form_select('COUNTRY_ID', 
+                                { SELECTED   => $FORM{COUNTRY_ID},
+ 	                                SEL_HASH   => {'' => '', %countries_hash },
+ 	                                NO_ID      => 1
+ 	                               });
+      $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });	
+     }
    }
 	
 	$SEARCH_DATA{SEARCH_FORM} =  $html->tpl_show(templates($search_form{$FORM{type}}), { %FORM, %info, GROUPS_SEL => $group_sel }, { OUTPUT2RETURN => 1 });

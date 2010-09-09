@@ -332,7 +332,7 @@ sub msgs_admin_add {
   $Msgs->{DISPATCH_SEL}= $html->form_select('DISPATCH_ID', 
                                           {
  	                                          SELECTED          => $Msgs->{DISPATCH_ID} || 0,
- 	                                          SEL_MULTI_ARRAY   => [[0, ''], @{ $Msgs->dispatch_list({ STATUS => 0 }) } ],
+ 	                                          SEL_MULTI_ARRAY   => [[0, ''], @{ $Msgs->dispatch_list({ STATE => 0 }) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => '2,1',
  	                                        }); 
@@ -579,10 +579,11 @@ sub msgs_admin {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }); 
 
+    
     $Msgs->{DISPATCH_SEL}=$html->form_select('DISPATCH_ID', 
                                           { 
  	                                          SELECTED          => $Msgs->{DISPATCH_ID} || 0,
- 	                                          SEL_MULTI_ARRAY   => [[0, ''], @{ $Msgs->dispatch_list({ STATUS => 0 }) } ],
+ 	                                          SEL_MULTI_ARRAY   => [[0, ''], @{ $Msgs->dispatch_list({ STATE => 0 }) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        }); 
@@ -860,9 +861,6 @@ foreach my $line (@$list) {
 }
 
 my $total_msgs = $Msgs->{TOTAL};
-
-
-
 my $table2 = $html->table({ width      => '100%',
                             caption    => "$_DISPATCHES",
                             cols_align => ['center', 'center', 'center'],
@@ -872,8 +870,7 @@ my $table2 = $html->table({ width      => '100%',
  	                                             SEL_MULTI_ARRAY   => [ [ undef, "$_ALL" ], @{ $Msgs->dispatch_list({ STATE => 0 }) } ],
  	                                             MULTI_ARRAY_KEY   => 0,
  	                                             MULTI_ARRAY_VALUE => 1,
- 	                                            })
-                                             , 
+ 	                                            }), 
                                             $html->form_input('add_dispatch', "$_ADD", { TYPE => 'submit', OUTPUT2RETURN => 1   }) 
                                           ] ]
                       });
@@ -2278,26 +2275,6 @@ foreach my $line (@$list) {
 }
 
 my $total_msgs = $Msgs->{TOTAL};
-
-
-
-#my $table2 = $html->table({ width      => '100%',
-#                            caption    => "$_DISPATCHES",
-#                            cols_align => ['center', 'center', 'center'],
-#                            rows       => [ [ "$_DISPATCH:" ,  
-#                                              $html->form_select('DISPATCH_ID',  { 
-# 	                                             SELECTED          => $Msgs->{DISPATCH_ID},
-# 	                                             SEL_MULTI_ARRAY   => [ [ undef, "$_ALL" ], @{ $Msgs->dispatch_list({ STATE => 0 }) } ],
-# 	                                             MULTI_ARRAY_KEY   => 0,
-# 	                                             MULTI_ARRAY_VALUE => 1,
-# 	                                            })
-#                                             , 
-#                                            $html->form_input('add_dispatch', "$_ADD", { TYPE => 'submit', OUTPUT2RETURN => 1   }) 
-#                                          ] ]
-#                      });
-
-
-
 
 print $html->form_main({ CONTENT => $table->show(), #$table2->show(),
 	                       HIDDEN  => { index            => "$index",
