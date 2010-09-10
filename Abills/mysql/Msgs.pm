@@ -116,7 +116,6 @@ sub messages_list {
  	 push @WHERE_RULES, "m.inner_msg='$attr->{INNER_MSG}'"; 
   }
 
- $self->{debug}=1;
  if ($attr->{PLAN_FROM_DATE}) {
     push @WHERE_RULES, "(date_format(m.plan_date, '%Y-%m-%d')>='$attr->{PLAN_FROM_DATE}' and date_format(m.plan_date, '%Y-%m-%d')<='$attr->{PLAN_TO_DATE}')";
   }

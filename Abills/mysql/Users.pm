@@ -688,6 +688,9 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{COUNTRY_ID}, 'STR', 'pi.country_id', { EXT_FIELD => 1 }) };
   }
 
+ if ($attr->{LOCATION_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 1 }) };
+  }
 
  if ($attr->{PASPORT_DATE}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{PASPORT_DATE}, 'DATE', 'pi.pasport_date', { EXT_FIELD => 1 }) };
