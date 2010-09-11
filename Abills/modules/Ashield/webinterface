@@ -1318,7 +1318,13 @@ sub ashield_monthly {
                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
               }
              else {
+             	 my %FEES_PARAMS = ( DESCRIBE => 'Dr.Web '. $_MONTH_FEE,
+             	                     METHOD   => 1 );
+
                $fees->take(\%user, $sum, { %FEES_PARAMS } );  
+               if ($fees->{error}) {
+               	  print "Error: User: $user->{LOGIN} Fees error: $fees->{error}\n";
+               	}
                $debug_output .= " $user{LOGIN}  UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n" if ($debug > 0);
               }
  	          }
