@@ -84,6 +84,12 @@ sub take {
      $self->{errstr} = 'ERROR_ENTER_SUM';
      return $self;
    }
+  elsif ($user->{UID} <= 0) {
+     $self->{errno}  = 18;
+     $self->{errstr} = 'ERROR_ENTER_UID';
+     return $self;
+   }
+
   
   $user->{BILL_ID} = $attr->{BILL_ID} if ($attr->{BILL_ID});
   $sum = sprintf("%.6f", $sum);

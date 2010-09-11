@@ -20,6 +20,14 @@ my $fees    = Fees->new($db, $admin, \%conf);
 my $debug = 0;
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]");
 my @service_status = ( "$_ENABLE", "$_DISABLE");
+my %dr_web_errors = ( 4 => "$_LOGIN $_NOT_EXIST",
+ 	    	              6 => $ERR_WRONG_PASSWD,
+ 	    	             12 => "$_LOGIN $_NOT_EXIST",
+ 	    	             18 => "$_LOGIN - $_EXIST",
+ 	    	             20 => "'$FORM{EMAIL}' $_WRONG_EMAIL",
+	    	             );
+
+
 
 #1. Оформление новой подписки.
 #2. Смена тарифного плана.
@@ -345,13 +353,6 @@ sub ashield_user {
   $users->info($LIST_PARAMS{UID}, { SHOW_PASSWORD => 1 });
   $users->pi({ ID => $users->{UID} });
   $Ashield->{EMAIL}=($users->{EMAIL}) ? $users->{EMAIL} . $html->form_input('EMAIL', "$users->{EMAIL}", { TYPE => 'hidden', OUTPUT2RETURN => 1 }) : $html->form_input('EMAIL', '', { OUTPUT2RETURN => 1 });
-
- 	my %dr_web_errors = ( 4 => "$_LOGIN $_NOT_EXIST",
-  	    	              6 => $ERR_WRONG_PASSWD,
-  	    	             18 => "$_LOGIN - $_EXIST",
-  	    	             20 => "'$FORM{EMAIL}' $_WRONG_EMAIL",
-  	    	             );
-
 
   my %subscribe_state = (
   1 => $_STATUS_1,
@@ -898,7 +899,7 @@ if ($drweb_total_users != $Ashield->{TOTAL}) {
   my $table = $html->table( { width      => '100%',
                             caption    => "$_NOT_EXIST",
                             border     => 1,
-                            title      => \@TITLE,
+                            title      => [ id, "$_GROUP", '-'],
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint'],
                             ID         => 'ASHIELD_UNKNOWN_USERS'
                            });
@@ -906,7 +907,7 @@ if ($drweb_total_users != $Ashield->{TOTAL}) {
 
   
   while(my ($k, $v)=each  %drweb_logins) {
-  	$table->addrow($k, $v, "$_NOT_EXITS", $html->button("$_ADD", "add=1&LOGIN=>$k&index=".($index + 1) ));
+  	$table->addrow($k, $v, $html->button("$_ADD", "add=1&LOGIN=>$k&index=".($index + 1),  { BUTTON => 1 } ));
    }
   print $table->show();
   
@@ -917,7 +918,7 @@ if ($drweb_total_users != $Ashield->{TOTAL}) {
   print $table->show();
 }
 
-my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-');
+my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, AGENTS, '-', '-');
 my @EX_TITLE_ARR  = split(/, /, $Ashield->{SEARCH_FIELDS});
 
 my %SEARCH_TITLES = ('INET_NTOA(dv.ip)'      => 'IP',
@@ -948,7 +949,7 @@ my $table = $html->table( { width      => '100%',
                             caption    => "Ashield - $_USERS",
                             border     => 1,
                             title      => \@TITLE,
-                            cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint'],
+                            cols_align => ['left', 'left', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Ashield->{TOTAL},
                             ID         => 'ASHIELD_USERS'
@@ -956,11 +957,26 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Ashield->{SEARCH_FIELDS_COUNT}]) : ''; 
+  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Ashield->{SEARCH_FIELDS_COUNT}], { BUTTON => 1 }) : ''; 
   
   my @fields_array  = ();
   for(my $i=0; $i<$Ashield->{SEARCH_FIELDS_COUNT}; $i++){
      push @fields_array, $line->[6+$i];
+   }
+
+  my $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
+      	  login      => $line->[0],
+      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
+      	  },
+      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+      	  	});
+
+  my $agents =  0;
+  if ($result_hash->{error}->[0]->{code}->[0]) {
+    $agents = "[$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]}";
+   }
+  else {
+    $agents = $#{ $result_hash->{agents}->[0]->{agent} } + 1;
    }
 
   $table->addrow(
@@ -970,10 +986,10 @@ foreach my $line (@$list) {
    "$line->[3]", 
    "$line->[4]", 
    ($line->[5] > 0) ? $html->color_mark($service_status[$line->[5]], $service_status_colors[$line->[5]]) : "$service_status[$line->[5]]",
-   @fields_array, 
+   @fields_array,
+   $agents, 
    $payments, 
-   $html->button("$_STATS", "index=". ((! $FORM{TP_SHOW}) ? $index + 3 : $index - 9 ) ."&UID=". $line->[6+$Ashield->{SEARCH_FIELDS_COUNT}])
-
+   $html->button("$_STATS", "index=". ((! $FORM{TP_SHOW}) ? $index + 3 : $index - 9 ) ."&UID=". $line->[6+$Ashield->{SEARCH_FIELDS_COUNT}],  { BUTTON => 1 })
    );
 }
 print $table->show();
@@ -1319,7 +1335,8 @@ sub ashield_monthly {
               }
              else {
              	 my %FEES_PARAMS = ( DESCRIBE => 'Dr.Web '. $_MONTH_FEE,
-             	                     METHOD   => 1 );
+             	                     METHOD   => 1,
+             	                     DATE     => $ADMIN_REPORT{DATE} );
 
                $fees->take(\%user, $sum, { %FEES_PARAMS } );  
                if ($fees->{error}) {

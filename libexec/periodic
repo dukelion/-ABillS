@@ -228,6 +228,7 @@ else {
    MODULES=[modules_list,...] - Make periodic process only for this modules
    SKIP_MODULES=[modules_list]- Skip this module in periodic proccess
    NO_ADM_REPORT              - Don't send report to admin via e-mail
+   LOGINS                     - Periodic action for some logins
    DEBUG                      - Show debug output\n";
  exit;
 }
