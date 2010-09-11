@@ -1167,7 +1167,7 @@ sub ashield_monthly {
  
  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID}); 
  
- my %SERVICE_LIST_PARAMS = ();
+ my %SERVICE_LIST_PARAMS = ( PAGE_ROWS => 1000000 );
  $SERVICE_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
 
 
@@ -1215,6 +1215,7 @@ sub ashield_monthly {
 
  
  #Billing Users list
+ $Ashield->{debug}=1;
  $list = $Ashield->user_list( { %SERVICE_LIST_PARAMS } );
  foreach my $line ( @$list ) {
  	 my %user = ( LOGIN   => $line->[0],

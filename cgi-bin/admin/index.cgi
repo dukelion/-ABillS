@@ -3822,12 +3822,15 @@ sub report_fees_month {
 #**********************************************************
 sub report_fees {
 
+  if (! $permissions{2} || ! $permissions{2}{0}) {
+  	$html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
+  	return 0;
+  }
+
   push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
-  
   for(my $i=0; $i<=$#FEES_METHODS; $i++) {
   	$METHODS_HASH{"$i:$i"}="$FEES_METHODS[$i]";
    }
-
 
   reports({ DATE        => $FORM{DATE}, 
   	        REPORT      => '',
@@ -4032,9 +4035,12 @@ sub report_payments_month {
 #
 #**********************************************************
 sub report_payments {
+  if (! $permissions{1} || ! $permissions{1}{0}) {
+  	$html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
+  	return 0;
+  }
 
   my %METHODS_HASH = ();
-  
   push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
   for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
