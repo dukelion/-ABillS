@@ -346,6 +346,13 @@ sub ashield_user {
   $users->pi({ ID => $users->{UID} });
   $Ashield->{EMAIL}=($users->{EMAIL}) ? $users->{EMAIL} . $html->form_input('EMAIL', "$users->{EMAIL}", { TYPE => 'hidden', OUTPUT2RETURN => 1 }) : $html->form_input('EMAIL', '', { OUTPUT2RETURN => 1 });
 
+ 	my %dr_web_errors = ( 4 => "$_LOGIN $_NOT_EXIST",
+  	    	              6 => $ERR_WRONG_PASSWD,
+  	    	             18 => "$_LOGIN - $_EXIST",
+  	    	             20 => "'$FORM{EMAIL}' $_WRONG_EMAIL",
+  	    	             );
+
+
   my %subscribe_state = (
   1 => $_STATUS_1,
   2 => $_STATUS_2,
@@ -380,12 +387,6 @@ sub ashield_user {
       	  	});
       	
   	    if ($result_hash->{error}) {
-  	    	my %dr_web_errors = ( 6 => $ERR_WRONG_PASSWD,
-  	    	                     18 => "$_LOGIN - $_EXIST",
-  	    	                     20 => "'$FORM{EMAIL}' $_WRONG_EMAIL",
-  	    	                     );
-  	    	
-  	    	
   	    	my $message = '';
   	    	if ($dr_web_errors{$result_hash->{error}->[0]->{code}->[0]}) {
   	    		$message = $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]};
@@ -449,17 +450,28 @@ sub ashield_user {
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
+    if ($result_hash->{error}->[0]->{code}->[0]) {
+      $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+      return 0;
+     }
+
     while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
       $Ashield->{$k}=( ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : convert($v->[0], { utf82win => 1 });
      }
 
     $html->tpl_show(_include('ashield_client_info', 'Ashield'), $Ashield);
+
     $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
       	  login      => "$users->{LOGIN}",
       	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
       	  },
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
+
+    if ($result_hash->{error}->[0]->{code}->[0]) {
+      $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+      return 0;
+     }
 
 
 
@@ -820,6 +832,16 @@ sub ashield_users_list {
 	 return 0;
   }
 
+
+ my $result_hash = ashield_drweb_request('api/2.0/get-customer-info.ds', {  }); 
+ my $drweb_total_users = $result_hash->{customers}->[0]->{total};
+ my %drweb_logins = ();
+ 
+ foreach my $line  (@{ $result_hash->{customers}->[0]->{customer} } ) {
+ 	 $drweb_logins{$line->{name}->[0]}=keys %{ $line->{group} };
+  } 
+ 
+
  if ($attr->{TP}) {
  	 $FORM{TP_ID} = $FORM{TP_NUM} if ($FORM{TP_NUM});
    $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
@@ -862,7 +884,38 @@ sub ashield_users_list {
   } 
 
 
+
+
 my $list = $Ashield->user_list( { %LIST_PARAMS } );
+
+if ($drweb_total_users != $Ashield->{TOTAL}) {
+	my %ashield_users = ();
+	my $list2 = $Ashield->user_list( { %LIST_PARAMS,  PAGE_ROWS => 100000 } );
+	foreach my $line ( @$list2) {
+		$ashield_users{$line->[0]}=$line->[5];
+	 }
+
+  my $table = $html->table( { width      => '100%',
+                            caption    => "$_NOT_EXIST",
+                            border     => 1,
+                            title      => \@TITLE,
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint'],
+                            ID         => 'ASHIELD_UNKNOWN_USERS'
+                           });
+
+
+  
+  while(my ($k, $v)=each  %drweb_logins) {
+  	$table->addrow($k, $v, "$_NOT_EXITS", $html->button("$_ADD", "add=1&LOGIN=>$k&index=".($index + 1) ));
+   }
+  print $table->show();
+  
+  $table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($drweb_total_users) ] ]
+                        } );
+  print $table->show();
+}
 
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, '-', '-');
 my @EX_TITLE_ARR  = split(/, /, $Ashield->{SEARCH_FIELDS});
