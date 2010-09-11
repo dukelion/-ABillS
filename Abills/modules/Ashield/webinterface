@@ -1271,7 +1271,7 @@ sub ashield_monthly {
  $list = $Ashield->user_list( { %SERVICE_LIST_PARAMS } );
  foreach my $line ( @$list ) {
  	 my %user = ( LOGIN   => $line->[0],
- 	              UID     => $line->[7],
+ 	              UID     => $line->[6],
  	              BILL_ID => $line->[12],
  	              DEPOSIT => $line->[2],
  	              CREDIT  => $line->[3],
