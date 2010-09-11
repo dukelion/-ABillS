@@ -1268,7 +1268,6 @@ sub ashield_monthly {
 
  
  #Billing Users list
- $Ashield->{debug}=1;
  $list = $Ashield->user_list( { %SERVICE_LIST_PARAMS } );
  foreach my $line ( @$list ) {
  	 my %user = ( LOGIN   => $line->[0],
@@ -1326,13 +1325,13 @@ sub ashield_monthly {
         }
        #Block 
  	     else {
- 	     	 if ($drweb_info{$agent_id}{blockbeg} < $cur_date && $drweb_info{$agent_id}{blockend} < $cur_date) {
+ 	     	 if (($drweb_info{$agent_id}{blockbeg} < $cur_date && $drweb_info{$agent_id}{blockend} < $cur_date) || $drweb_info{$agent_id}{blockbeg} > $cur_date) {
  	     	   my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
  	     	 	   id      => $agent_id, 
  	     	 	   blockbeg => $cur_date,
  	     	 	   #blockend => '20200101'
  	     	 	   }); 
- 	       
+	       
  	         if ( $result->{error} ) {
  	           print "Block $lien->[0] '$cur_date' $result->{error}->[0]->{code}->[0] / $result->{error}->[0]->{message}->[0]\n";
  	          }
