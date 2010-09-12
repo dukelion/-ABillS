@@ -1660,7 +1660,10 @@ my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$
                   'u.expire'          => "$_EXPIRE",
                   'u.credit_date'     => "$_CREDIT $_DATE",
                   'u.reduction'       => "$_REDUCTION",
-                  'u.domain_id'       => 'DOMAIN ID'
+                  'u.domain_id'       => 'DOMAIN ID',
+                  'builds.number'     => "$_BUILDS",
+                  'streets.name'      => "$_STREETS",
+                  'districts.name'    => "$_DISTRICTS"
                     );
 
 if ($users->{EXTRA_FIELDS}) {
@@ -1683,8 +1686,9 @@ my @EX_TITLE_ARR  = split(/, /, $users->{SEARCH_FIELDS});
 
 for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++) {
 	push @TITLE, '-';
-	$TITLE[5+$i] = $SEARCH_TITLES{$EX_TITLE_ARR[$i]} || "$_SEARCR";
-}
+	$TITLE[5+$i] = $SEARCH_TITLES{$EX_TITLE_ARR[$i]} || "$_SEARCH";
+ }
+
 
 #User list
 my $table = $html->table( { width      => '100%',

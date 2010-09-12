@@ -265,7 +265,7 @@ sub search_expr {
   my ($value, $type, $field, $attr)=@_;
 
  	if ($attr->{EXT_FIELD}) {
-    $self->{SEARCH_FIELDS} .= "$field, ";
+    $self->{SEARCH_FIELDS} .= ($attr->{EXT_FIELD} ne '1') ? "$attr->{EXT_FIELD}, " : "$field, ";
     $self->{SEARCH_FIELDS_COUNT}++;
  	 }	
  

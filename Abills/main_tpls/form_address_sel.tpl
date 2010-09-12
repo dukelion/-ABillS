@@ -76,7 +76,7 @@ function insert (id) {
 	}
 	if (teg == 'p2') {
 		document.getElementById('STREET_ID').value = key;
-		document.getElementById('LOCATION_ID').value = key;
+		//document.getElementById('LOCATION_ID').value = key;
 		build('0');
 	}
 	if (teg == 'p3') {

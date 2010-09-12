@@ -671,26 +671,41 @@ sub list {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{EMAIL}, 'STR', 'pi.email', { EXT_FIELD => 1 }) }; 
  	}
 
-
- if ($attr->{ADDRESS_STREET}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street', { EXT_FIELD => 1 }) };
+ if ($attr->{LOCATION_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name, builds.number' }) };
+   $EXT_TABLES .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+   LEFT JOIN streets ON (streets.id=builds.street_id)";
+   $self->{SEARCH_FIELDS_COUNT}++;
   }
+ else {
+   if ($attr->{STREET_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name' }) };
+     $EXT_TABLES .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+     LEFT JOIN streets ON (streets.id=builds.street_id)";
+    }
+   elsif ($attr->{DISTRICT_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name' }) };
+     $EXT_TABLES .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+      LEFT JOIN streets ON (streets.id=builds.street_id)
+      LEFT JOIN districts ON (districts.id=streets.district_id) ";
+    }
+   elsif ($attr->{ADDRESS_STREET}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street', { EXT_FIELD => 1 }) };
+    }
+ 
+   if ($attr->{ADDRESS_BUILD}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
+    }
 
- if ($attr->{ADDRESS_BUILD}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
+   if ($attr->{COUNTRY_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{COUNTRY_ID}, 'STR', 'pi.country_id', { EXT_FIELD => 1 }) };
+   }
   }
 
  if ($attr->{ADDRESS_FLAT}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat', { EXT_FIELD => 1 }) };
   }
 
- if ($attr->{COUNTRY_ID}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{COUNTRY_ID}, 'STR', 'pi.country_id', { EXT_FIELD => 1 }) };
-  }
-
- if ($attr->{LOCATION_ID}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 1 }) };
-  }
 
  if ($attr->{PASPORT_DATE}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{PASPORT_DATE}, 'DATE', 'pi.pasport_date', { EXT_FIELD => 1 }) };
