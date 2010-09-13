@@ -915,7 +915,7 @@ if ($drweb_total_users != $Ashield->{TOTAL}) {
                          cols_align => ['right', 'right'],
                          rows       => [ [ "$_TOTAL:", $html->b($drweb_total_users) ] ]
                         } );
-  print $table->show();
+#  print $table->show();
 }
 
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_TARIF_PLANS, $_STATUS, AGENTS, '-', '-');
