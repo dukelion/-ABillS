@@ -6871,6 +6871,17 @@ sub cross_modules_call  {
    }
 }
 
+#**********************************************************
+# Get function index
+#
+# get_function_index($function_name, $attr) 
+#**********************************************************
+sub get_function_index  {
+  my ($function_name, $attr) = @_;
+  my $function_index = 0;
+  
+  return $function_index;
+}
 
 1
 

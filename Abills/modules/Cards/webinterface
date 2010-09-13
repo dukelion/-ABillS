@@ -1700,7 +1700,6 @@ elsif ($FORM{chg}) {
 
  	$Cards->{ACTION}='change';
  	$Cards->{LNG_ACTION}=$_CHANGE;
-
  }
 elsif ($FORM{del} && $FORM{is_js_confirmed}) {
   $Cards->dillers_tp_del({ ID => $FORM{del} });
@@ -1715,7 +1714,7 @@ if ($Cards->{errno}) {
 
 $Cards->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE', 
                                           { 
- 	                                          SELECTED     => $tarif_info->{PAYMENT_TYPE},
+ 	                                          SELECTED     => $Cards->{PAYMENT_TYPE},
  	                                          SEL_ARRAY    => \@Payment_Types,
  	                                          ARRAY_NUM_ID => 1
  	                                        });
