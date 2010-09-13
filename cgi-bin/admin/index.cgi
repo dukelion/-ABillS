@@ -1326,17 +1326,9 @@ sub user_pi {
   
   
   if ($conf{ADDRESS_REGISTER}) {
-  	#$user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address2'), $user_pi, { OUTPUT2RETURN => 1 });
-#    $user_pi->{DISTRICT_SEL} = $html->form_select("DISTRICT", 
-#                                { SELECTED          => $user->{DISTRICT} || $FORM{DISTRICT},
-# 	                                SEL_MULTI_ARRAY   => $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000 }), 
-# 	                                MULTI_ARRAY_KEY   => 0,
-# 	                                MULTI_ARRAY_VALUE => 1,
-# 	                                #SEL_OPTIONS       => { 0 => '-N/S-'},
-# 	                                NO_ID             => 1
-# 	                               });
-  	
-  	$user_pi->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
+  	my $add_address_index = get_function_index('form_districts');
+  	$user_pi->{ADD_ADDRESS_LINK} = $html->button("$_ADD", "index=$add_address_index", { BUTTON => 1 });
+  	$user_pi->{ADDRESS_TPL}      = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
    }
   else {
   	my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
@@ -6879,6 +6871,13 @@ sub cross_modules_call  {
 sub get_function_index  {
   my ($function_name, $attr) = @_;
   my $function_index = 0;
+  
+  while(my($k, $v)=each %functions) {
+    if ($v eq "$function_name") {
+         $function_index = $k;
+         last;
+     }
+   }
   
   return $function_index;
 }
