@@ -11,6 +11,8 @@ $admin
 $users 
 $payments
 $Paysys
+$debug
+%conf
 %PAYSYS_PAYMENTS_METHODS
 );
 
@@ -42,7 +44,8 @@ use Paysys;
 use Finance;
 use Admins;
 
-my $debug  = $conf{PAYSYS_DEBUG} || 0;
+$debug  = $conf{PAYSYS_DEBUG} || 0;
+
 my $html   = Abills::HTML->new();
 my $sql    = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser},
     $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
@@ -167,8 +170,7 @@ my $mask_ips = unpack("N", pack("C4", split( /\./, '255.255.255.255'))) - unpack
 my $last_ip  = $first_ip + $mask_ips;
 
 
-if ($ENV{REMOTE_ADDR} =~ /^92\.125\./
-   ) {
+if ($ENV{REMOTE_ADDR} =~ /^92\.125\./) {
 	osmp_payments_v4();
 	exit;
  }
@@ -193,7 +195,7 @@ elsif ($ip_num > $first_ip && $ip_num < $last_ip) {
         exit;
  } 
 #USMP
-elsif('77.222.138.142,195.10.218.120,192.168.1.50' =~ /$ENV{REMOTE_ADDR}/ && ! $conf{PAYSYS_USMP_OLD}) {
+elsif('77.222.138.142,195.10.218.120' =~ /$ENV{REMOTE_ADDR}/ && ! $conf{PAYSYS_USMP_OLD}) {
   usmp_payments_v2();
   exit;
  }
@@ -446,10 +448,6 @@ sub osmp_payments {
 	if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
   $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
   my ($REMOTE_USER,$REMOTE_PASSWD) = split(/:/, decode_base64($ENV{HTTP_CGI_AUTHORIZATION}));  
-
-#  print "Content-Type: text/html\n\n";
-#  print "($REMOTE_PASSWD ne $password || $REMOTE_USER ne $user)";
-
   if ((! $REMOTE_PASSWD) || ($REMOTE_PASSWD && $REMOTE_PASSWD ne $password) 
     || (! $REMOTE_USER) || ($REMOTE_USER && $REMOTE_USER ne $user)) {
     print "WWW-Authenticate: Basic realm=\"Billing system\"\n";
@@ -481,8 +479,6 @@ my %status_hash = (0	=> 'Success',
   300	=> 'Unknown error',
   );
 
-
-
  #For pegas
  if ($conf{PAYSYS_PEGAS}) {
  	 $txn_id            = 'txn_id';
@@ -498,6 +494,8 @@ my $command = $FORM{command};
 $FORM{account} =~ s/^0+//g if ($FORM{account});
 my %RESULT_HASH=( result => 300 );
 my $results = '';
+
+mk_log("$payment_system: $ENV{QUERY_STRING}") if ($debug > 0);
 
 #Check user account
 #https://service.someprovider.ru:8443/payment_app.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
@@ -658,21 +656,23 @@ sub osmp_payments_v4 {
 
  print "Content-Type: text/xml\n\n";
  
+ #my $payment_system    = 'OSMP';
+ #my $payment_system_id = 44;
  my $payment_system    = 'OSMP';
- my $payment_system_id = 44;
+ my $payment_system_id = 61;
  my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
  $FORM{__BUFFER}='' if (! $FORM{__BUFFER});
  $FORM{__BUFFER}=~s/data=//;
 
 #
-$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="UTF-8"?><request>
-<protocol-version>4.00</protocol-version><request-type>10</request-type><terminal-id>1</terminal-id>
-<extra name="login">login</extra><extra name="password-md5">1a1dc91c907325c69271ddf0c944bc72</extra>
-<extra name="client-software">Dealer v0</extra><auth count="1" to-amount="1.00"><payment>
-<transaction-number>155</transaction-number><from><amount>1.00</amount></from><to><amount>1.00</amount>
-<service-id>1</service-id><account-number>234456</account-number></to><receipt><datetime>20100407155326</datetime>
-<receipt-number>407155313</receipt-number></receipt></payment></auth></request>
-};
+#$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="UTF-8"?><request>
+#<protocol-version>4.00</protocol-version><request-type>10</request-type><terminal-id>1</terminal-id>
+#<extra name="login">login</extra><extra name="password-md5">1a1dc91c907325c69271ddf0c944bc72</extra>
+#<extra name="client-software">Dealer v0</extra><auth count="1" to-amount="1.00"><payment>
+#<transaction-number>155</transaction-number><from><amount>1.00</amount></from><to><amount>1.00</amount>
+#<service-id>1</service-id><account-number>234456</account-number></to><receipt><datetime>20100407155326</datetime>
+#<receipt-number>407155313</receipt-number></receipt></payment></auth></request>
+#};
 
 eval { require XML::Simple; };
 if (! $@) {
@@ -752,7 +752,7 @@ elsif (defined($_xml->{'status'})) {
   	push @payments_arr, $_xml->{'status'}->[0]->{'payment'}->[$i]->{'transaction-number'}->[0];
    }  
 
-  my $ext_ids = '\'OSMP:'. join("', 'OSMP:", @payments_arr)."'";
+  my $ext_ids = "'$payment_system:". join("', '$payment_system:", @payments_arr)."'";
   my $list = $payments->list({ EXT_IDS => $ext_ids, PAGE_ROWS => 100000  });
 
   if ($payments->{errno}) {
@@ -761,7 +761,7 @@ elsif (defined($_xml->{'status'})) {
   else {
     foreach my $line (@$list) {
   	  my $ext = $line->[7];
-  	  $ext =~ s/OSMP://g;
+  	  $ext =~ s/$payment_system://g;
   	  $payments_status{$ext}=$line->[0];
      }
 
@@ -1031,7 +1031,7 @@ my $output = qq{<?xml version="1.0" encoding="windows-1251"?>
 $output .= $response . qq{
  <operator-id>$admin->{AID}</operator-id>
  <extra name="REMOTE_ADDR">$ENV{REMOTE_ADDR}</extra>
- <extra name="client-software">ABillS Paysys OSMP $version</extra>
+ <extra name="client-software">ABillS Paysys $payment_system $version</extra>
  <extra name="version-conf">$version</extra>
  <extra name="serial">$version</extra>
  <extra name="BALANCE">$BALANCE</extra>

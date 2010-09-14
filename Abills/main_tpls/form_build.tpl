@@ -6,8 +6,9 @@
 <TR><TH class='form_title' colspan='2'>$_ADDRESS_BUILD</TH></TR>
 <TR><TD>$_NUM:</TD><TD><input type='text' name='NUMBER' value='%NUMBER%' size=6 /></TD></TR>
 <TR><TD>$_ADDRESS_STREET:</TD><TD>%STREET_SEL%</TD></TR>
-<TR><TD>$_FLORS:</TD><TD><input type='text' name='FLORS' value='%FLORS%' size=6 /></TD></TR>
 <TR><TD>$_ENTRANCES:</TD><TD><input type='text' name='ENTRANCES' value='%ENTRANCES%' size=6  /></TD></TR>
+<TR><TD>$_FLORS:</TD><TD><input type='text' name='FLORS' value='%FLORS%' size=6 /></TD></TR>
+<TR><TD>$_FLATS:</TD><TD><input type='text' name='FLATS' value='%FLATS%' size=6  /></TD></TR>
 <TR><TD>$_MAP:</TD><TD>X: <input type='text' name='MAP_X' value='%MAP_X%' size=6 /> Y: <input type='text' name='MAP_Y' value='%MAP_Y%' size=6/></TD></TR>
 <TR><TD>$_ADDED:</TD><TD>%ADDED%</TD></TR>
 </TABLE>

@@ -1958,7 +1958,7 @@ sub build_list {
 
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
 
- $self->query($db, "SELECT b.number, b.flors, b.entrances, s.name, b.added, b.id  FROM builds b
+ $self->query($db, "SELECT b.number, b.flors, b.entrances, b.flats, s.name, b.added, b.id  FROM builds b
   LEFT JOIN streets s ON (s.id=b.street_id)
   $WHERE ORDER BY $SORT $DESC
   LIMIT $PG, $PAGE_ROWS;");
@@ -1986,9 +1986,10 @@ sub build_info {
    street_id,
    flors,
    entrances,
+   flats,
    added,
    map_x,
-   map_y
+   map_y   
  FROM builds WHERE id='$attr->{ID}';");
 
  return $self if ($self->{errno} || $self->{TOTAL} < 1);
@@ -1998,6 +1999,7 @@ sub build_info {
  	$self->{STREET_ID},
  	$self->{FLORS},
  	$self->{ENTRANCES},
+ 	$self->{FLATS},
  	$self->{ADDED},
  	$self->{MAP_X},
  	$self->{MAP_Y},
@@ -2017,7 +2019,8 @@ sub build_change {
                NUMBER      => 'number',
                STREET_ID   => 'street_id',
                FLORS       => 'flors',
-               ENTRANCES    => 'entrances',
+               FLATS       => 'flats',
+               ENTRANCES   => 'entrances',
                MAP_X       => 'map_x',
                MAP_Y       => 'map_y'
                );
@@ -2041,8 +2044,8 @@ sub build_add {
  my $self = shift;
  my ($attr) = @_;
 
- $self->query($db, "INSERT INTO builds (number, street_id, flors, entrances, map_x, map_y, added) 
- values ('$attr->{NUMBER}', '$attr->{STREET_ID}', '$attr->{FLORS}', '$attr->{ENTRANCES}', '$attr->{MAP_X}', '$attr->{MAP_Y}', now());", 'do');
+ $self->query($db, "INSERT INTO builds (number, street_id, flors, flats, entrances, map_x, map_y, added) 
+ values ('$attr->{NUMBER}', '$attr->{STREET_ID}', '$attr->{FLORS}', '$attr->{FLATS}', '$attr->{ENTRANCES}', '$attr->{MAP_X}', '$attr->{MAP_Y}', now());", 'do');
 
  $admin->system_action_add("BUILD:$self->{INSERT_ID}:$attr->{NAME}", { TYPE => 1 }) if (! $self->{errno});
  return $self;

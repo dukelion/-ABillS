@@ -174,6 +174,13 @@ sub info {
      d.name,
      a.min_search_chars,
      a.max_rows,
+     a.address,
+     a.cell_phone,
+     a.pasport_num,
+     a.pasport_date,
+     a.pasport_grant,
+     a.inn,
+     a.birthday,
      $PASSWORD
      FROM 
       admins a
@@ -192,7 +199,7 @@ sub info {
    }
 
   my $a_ref = $self->{list}->[0];
-  if ($a_ref->[15] == 1) {
+  if ($a_ref->[22] == 1) {
      $self->{errno}  = 4;
      $self->{errstr} = 'ERROR_WRONG_PASSWORD';
      $self->{AID}    = $a_ref->[0],
@@ -213,7 +220,14 @@ sub info {
    $self->{DOMAIN_ID},
    $self->{DOMAIN_NAME},
    $self->{MIN_SEARCH_CHARS},
- 	 $self->{MAX_ROWS}
+ 	 $self->{MAX_ROWS},
+ 	 $self->{ADDRESS},
+ 	 $self->{CELL_PHONE},
+ 	 $self->{PASPORT_NUM},
+ 	 $self->{PASPORT_DATE},
+ 	 $self->{PASPORT_GRANT},
+ 	 $self->{INN},
+ 	 $self->{BIRTHDAY},
     )= @$a_ref;
   
   if ($self->{GIDS} > 0) {
@@ -285,8 +299,14 @@ sub change {
            A_COMMENTS  => 'comments',
            DOMAIN_ID   => 'domain_id',
            MIN_SEARCH_CHARS => 'min_search_chars',
- 	         MAX_ROWS    => 'max_rows'
-           
+ 	         MAX_ROWS    => 'max_rows',           
+           ADDRESS     => 'address',
+           CELL_PHONE  => 'cell_phone',
+           PASPORT_NUM   =>'pasport_num',
+           PASPORT_DATE  => 'pasport_date',
+           PASPORT_GRANT => 'pasport_grant',
+           INN           => 'inn',
+           BIRTHDAY      => 'birthday'           
    );
 
 
@@ -315,11 +335,12 @@ sub add {
   %DATA = $self->get_data($attr); 
 
   $self->query($db, "INSERT INTO admins (id, name, regdate, phone, disable, gid, email, comments, password, domain_id,
-  min_search_chars, max_rows) 
+  min_search_chars, max_rows,
+  address, cell_phone, pasport_num, pasport_date, pasport_grant, inn, birthday) 
    VALUES ('$DATA{A_LOGIN}', '$DATA{A_FIO}', now(),  '$DATA{A_PHONE}', '$DATA{DISABLE}', '$DATA{GID}', 
    '$DATA{EMAIL}', '$DATA{A_COMMENTS}', '$DATA{PASSWORD}', '$DATA{DOMAIN_ID}',
-   '$DATA{MIN_SEARCH_CHARS}',
- 	 '$DATA{MAX_ROWS}');", 'do');
+   '$DATA{MIN_SEARCH_CHARS}', '$DATA{MAX_ROWS}',
+   '$DATA{ADDRESS}', '$DATA{CELL_PHONE}', '$DATA{PASPORT_NUM}', '$DATA{PASPORT_DATE}', '$DATA{PASPORT_GRANT}', '$DATA{INN}', '$DATA{BIRTHDAY}');", 'do');
 
   $self->{AID}=$self->{INSERT_ID};
 
@@ -392,15 +413,13 @@ sub action_info {
 sub action_del {
   my $self = shift;
   my ($id) = @_;
-  
 
   $self->action_info($id);
-  
+
   if ($self->{TOTAL} > 0) {
     $self->query($db, "DELETE FROM admin_actions WHERE id='$id';", 'do');
     $self->system_action_add("ACTION:$id DATETIME:$self->{DATETIME} UID:$self->{UID} CHANGED:$self->{ACTION}", { TYPE => 10 });    
    }
-
 }
 
 
@@ -493,21 +512,6 @@ sub action_list {
 
   return $list;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #**********************************************************
 #  system_action_add()
@@ -603,8 +607,6 @@ sub system_action_list {
   return $list;
 }
 
-
-
 #**********************************************************
 # password()
 #**********************************************************
@@ -645,7 +647,6 @@ sub online {
    $online_users .= "$self->{A_LOGIN} - $self->{SESSION_IP};\n";
    $online_count++;
   }
-
 
  return ($online_users, $online_count);
 }

@@ -1049,6 +1049,7 @@ else {
 	  push @FW_ACTIONS, "$IPFW -q pipe flush";
 	  push @FW_ACTIONS, "$IPFW -q table 10 flush";
 	  %pipe_rules = ();
+	  %fw_ips     = ();
    }
 
 # Table shaper

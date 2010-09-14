@@ -441,3 +441,8 @@ $_BUY='Buy';
 $_IN_PROGRESS='In progress';
 $_SURVEY='Survey';
 $_PAY_TO='Pay to date';
+
+$_CELL_PHONE='Cell phone';
+$_INN='Tax number';
+$_BIRTHDAY='Birthday';
+

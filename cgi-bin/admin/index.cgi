@@ -45,7 +45,9 @@ use vars qw(%conf
  
   $begin_time %LANG $CHARSET @MODULES $FUNCTIONS_LIST $USER_FUNCTION_LIST 
   $index
-  $UID $user $admin $sid
+  $UID 
+  $user 
+  $admin $sid
   $ui
   );
 #
@@ -764,12 +766,12 @@ sub form_companie_admins {
 
  if ($FORM{change}) {
     $company->admins_change({ %FORM });
-    if (! $user->{errno}) {
+    if (! $company->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");
      }
    }
- if ($user->{errno}) {
-   $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}");	
+ if ($company->{errno}) {
+   $html->message('err', $_ERROR, "[company->{errno}] $err_strs{$company->{errno}}");	
   }
 
 my $table = $html->table( { width      => '100%',
@@ -945,7 +947,6 @@ sub user_form {
   }
  else {
  	 $FORM{UID}=$user_info->{UID};
-
    $user_info->{COMPANY_NAME}=$html->color_mark("$_NOT_EXIST ID: $user_info->{COMPANY_ID}", $_COLORS[6]) if ($user_info->{COMPANY_ID} && ! $user_info->{COMPANY_NAME}) ;
 
    $user_info->{EXDATA} = $html->tpl_show(templates('form_user_exdata'), 
@@ -1969,7 +1970,7 @@ elsif($attr->{TP}) {
   
   my $list = $tarif_plan->nas_list();
   foreach my $nas_id (@$list) {
-     $allow_nas{$nas_id->[0]}=1;
+    $allow_nas{$nas_id->[0]}=1;
    }
 
   $EX_HIDDEN_PARAMS{TP_ID}=$tarif_plan->{TP_ID};
@@ -2020,7 +2021,6 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                       SUBMIT  => { change   => "$_CHANGE",
 	                       	            default  => $_DEFAULT 
 	                       	           } });
-
 }
 
 
@@ -2764,6 +2764,13 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
 if ($admin_form->{errno}) {
   $html->message('err', $_ERROR, $err_strs{$admin_form->{errno}});	
  }
+
+$admin_form->{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { FORM_NAME => 'users_pi',
+	                                                            WEEK_DAYS => \@WEEKDAYS,
+ 	                                                            MONTHES   => \@MONTHES,
+ 	                                                            DATE      => $user_pi->{PASPORT_DATE}
+                                                            });
+
 
 $admin_form->{DISABLE} = ($admin_form->{DISABLE} > 0) ? 'checked' : '';
 $admin_form->{GROUP_SEL} = sel_groups();

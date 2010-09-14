@@ -37,8 +37,33 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    57 => "EasySoft",
                    58 => "Liberty Reserve",
                    59 => "QIWI",
-                   60 => "Ibox"
+                   60 => "Ibox",
+                   61 => "OSMPv4",
                   );
+
+my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
+                   PAYSYS_RUPAY_ID           => 42,
+                   PAYSYS_SMSPROXY           => 43,
+                   PAYSYS_OSMP_ACCOUNT_KEY   => 44,
+                   PAYSYS_PORTMONE_PAYEE_ID  => 45,
+                   PAYSYS_UKRPAYS_SERVICE_ID => 46,
+                   PAYSYS_USMP_ACCOUNT_KEY   => 47,
+                   PAYSYS_PB_MERID           => 48,
+                   PAYSYS_PEGAS              => 49,
+                   PAYSYS_COMEPAY            => 50,
+                   PAYSYS_24_NON_STOP_SECRET => 51,
+                   PAYSYS_24_NON_STOP_SECRET => 52,
+                   PAYSYS_EXPRESS_OPLATA     => 53,
+                   PAYSYS_P24_MERCHANT_ID    => 54,
+                   PAYSYS_PAY4               => 55,
+                   PAYSYS_ERIPT              => 56,
+                   PAYSYS_EASYPAY_SERVICE_ID => 57,
+                   PAYSYS_LR_ACCOUNT_NUMBER  => 58,
+                   PAYSYS_QIWI_TERMINAL_ID   => 59,
+                   PAYSYS_IBOX_ACCOUNT_KEY   => 60,
+                   PAYSYS_OSMP_ACCOUNT_KEY   => 61,
+                  );
+
 
 my @status = ('ENABLE', 'DISABLE', 'USED');
 
@@ -528,11 +553,20 @@ if ($Paysys->{errno}) {
 
 my %info = ();
 
-if (! $user) {
+if (! $user->{UID}) {
+	my %ACTIVE_SYSTEMS = %PAY_SYSTEMS;
+	
+	while(my($k, $v)=each %CONF_OPTIONS) {
+		if (! $conf{$k}) {
+			#print "'$k' -> $conf{$k} // $v<br>\n";
+		  delete $ACTIVE_SYSTEMS{$v};
+		 }
+	 }
+	
   $info{PAY_SYSTEMS_SEL}=$html->form_select('PAYMENT_SYSTEM', 
                                           { 
  	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
- 	                                          SEL_HASH  => { '' => $_ALL, %PAY_SYSTEMS },
+ 	                                          SEL_HASH  => { '' => $_ALL, %ACTIVE_SYSTEMS },
  	                                          NO_ID     => 1
  	                                        });
   form_search({ SEARCH_FORM => $html->tpl_show(_include('paysys_search', 'Paysys'), 

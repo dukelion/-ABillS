@@ -1192,6 +1192,7 @@ CREATE TABLE `builds` (
   `added` DATE NOT NULL,
   `map_x` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   `map_y` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
+  `flats` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `street_id` (`street_id`, `number`)
