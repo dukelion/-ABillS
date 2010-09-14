@@ -908,11 +908,11 @@ sub docs_tax_invoice {
          $FORM{qindex}    = $index;
          $html->{NO_PRINT}= undef;
 
-         docs_print('tax_invoice', { %$Docs, %$Company,  A_FIO => $admin->{A_FIO} });
+         docs_print('tax_invoice', { %$Docs, %$Company });
          exit;
         }
        else {
-         docs_print('tax_invoice', { %$Docs, %$Company, A_FIO => $admin->{A_FIO} });
+         docs_print('tax_invoice', { %$Docs, %$Company });
         }
 
        $FORM{'print'}=1;
@@ -978,7 +978,7 @@ sub docs_tax_invoice {
      
 #     $Company->{_ipn_u}='123456790';
 #     exit;
-     docs_print('tax_invoice', { %$Docs, %$Company, A_FIO => $admin->{A_FIO} });
+     docs_print('tax_invoice', { %$Docs, %$Company });
     }
    else {
 
@@ -1331,6 +1331,7 @@ sub docs_print {
     $attr->{DATE_EURO_STANDART}="$d.$m.$y";
    }
 
+  $attr->{A_FIO} = $admin->{A_FIO};
 
   $attr->{SUM_LIT} = int2ml("$attr->{TOTAL_SUM}", { 
   	 ONES             => \@ones,
@@ -1614,7 +1615,7 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
        $i++;
      }
 
-     docs_print('act', { %$Docs, %$Company, A_FIO => $admin->{A_FIO} });
+     docs_print('act', { %$Docs, %$Company });
     }
    else {
 

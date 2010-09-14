@@ -1,4 +1,17 @@
 =====0.52=====
+14.09.2010\\
+  * Добавлены новые поля  в журнал адресов **квартир в доме**, в журнал администраторов **адрес**, **мобильный телефон**, **день рождения**, **ИНН**, **паспорт**
+
+  ALTER TABLE `builds` ADD COLUMN `flats` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE `admins` ADD COLUMN `address` VARCHAR(60) NOT NULL DEFAULT '';
+  ALTER TABLE `admins` ADD COLUMN `cell_phone` varchar(20) NOT NULL DEFAULT '';
+  ALTER TABLE `admins` ADD COLUMN `pasport_num` varchar(16) NOT NULL default '';
+  ALTER TABLE `admins` ADD COLUMN `pasport_date` date NOT NULL default '0000-00-00';
+  ALTER TABLE `admins` ADD COLUMN `pasport_grant` varchar(100) NOT NULL default '';
+  ALTER TABLE `admins` ADD COLUMN `inn` varchar(20) NOT NULL default '';
+  ALTER TABLE `admins` ADD COLUMN `birthday` DATE NOT NULL default '0000-00-00';
+
+   
 06.09.2010 \\
   * Добавлена возможность запускать внешние программы при само регистрации абонентов
   * Добавлена возможность отключать корпоративным пользователям возможность перевода средств между аккаунтами

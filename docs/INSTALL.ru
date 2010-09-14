@@ -369,10 +369,11 @@
 
 Установить права на чтение и запись вебсервером для файлов веб интерфейса \\
 
+  # mkdir /usr/abills/var/ /usr/abills/var/log /usr/abills/backup
   # chown -Rf www /usr/abills/cgi-bin
   # chown -Rf www /usr/abills/Abills/templates
   # chown -Rf www /usr/abills/backup
-  # mkdir /usr/abills/var/ /usr/abills/var/log
+
   
 Веб интерфейс администратора:\\
 **https://your.host:9443/admin/**\\
