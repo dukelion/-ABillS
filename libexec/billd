@@ -949,21 +949,23 @@ else {
 #----------------------------------------------------------
 	$conf{JOIN_SERVICE_FW_FIRST_RULE} = 40000 if (! $conf{JOIN_SERVICE_FW_FIRST_RULE});
   #Get IPFW speed rules
-	my $result = `$IPFW pipe show; $IPFW show`;
-	my @rules = split(/\n/, $result);
-	# key1 interface; key2 rule number; value speed
-	my %speeds_rotations = ('Kbit' => 1,
-	                        'Mbit' => 1000);
+  if (! $ARGV->{RECONFIGURE}) {
+	  my $result = `$IPFW pipe show; $IPFW show`;
+	  my @rules = split(/\n/, $result);
+	  # key1 interface; key2 rule number; value speed
+	  my %speeds_rotations = ('Kbit' => 1,
+	                          'Mbit' => 1000);
 
-	#Parce all ipfw rules
-	foreach my $line (@rules) {
-     #Parce ipfw pipe rules
-     if ($line =~ /^(\d+):\s+(\S+)\s+(\w+)/) {
-       my $num = int($1);
-       my $speed = $2 * $speeds_rotations{$3};
-     	 $pipe_rules{$num}=$speed;
-     	}
-	 }
+	  #Parce all ipfw rules
+	  foreach my $line (@rules) {
+      #Parce ipfw pipe rules
+      if ($line =~ /^(\d+):\s+(\S+)\s+(\w+)/) {
+        my $num = int($1);
+        my $speed = $2 * $speeds_rotations{$3};
+     	  $pipe_rules{$num}=$speed;
+     	 }
+	  }
+  }
 
   #debug 
   if ($debug > 0) {

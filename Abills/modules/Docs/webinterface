@@ -1345,6 +1345,21 @@ sub docs_print {
      LOCALE           => $conf{LOCALE}
   	  });
 
+  if ($Docs->{VAT}) {
+   	 $Docs->{VAT_LIT}              = int2ml("$attr->{TOTAL_SUM}", { 
+  	 ONES             => \@ones,
+     TWOS             => \@twos,
+     FIFTH            => \@fifth,
+     ONE              => \@one,
+     ONEST            => \@onest,
+     TEN              => \@ten,
+     TENS             => \@tens,
+     HUNDRED          => \@hundred,
+     MONEY_UNIT_NAMES => $conf{MONEY_UNIT_NAMES} || \@money_unit_names,
+     LOCALE           => $conf{LOCALE}
+  	  });
+   }
+
 	my $template = $type;
   print $html->header() if ($FORM{qindex});
 

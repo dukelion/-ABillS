@@ -8,6 +8,8 @@ FROM_DATE_LIT:Дата прописью:russian:x=;y=
 #ORDER:Товар. Табличная часть:russian:x=;y=
 TOTAL_SUM:Полная стоимость товара:russian:(x=315;y=375;font_size=8,x=315;y=185;font_size=8)
 #VAT:Процентная ставка налога:russian:
+#VAT_LIT:Vat literal:english:
+#VAT_LIT:Vat literal:russian:
 SUM_LIT:Сума прописью:russian:(x=192;y=390)
 ADDRESS_FULL:Полный адрес клиента:russian:(x=270;y=462;font_size=4,x=270;y=272;font_size=4)
 #EXPIRE_DATE:Дата окончания действия счета:russian:(x=158;y=570;)
