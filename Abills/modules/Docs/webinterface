@@ -1193,7 +1193,7 @@ sub docs_account {
    
    if ($conf{DOCS_VAT_INCLUDE}) {
    	 $Docs->{ORDER_TOTAL_SUM_VAT}  = sprintf("%.2f", $Docs->{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
-   	 $Docs->{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f",$Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
+   	 $Docs->{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f", $Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
    	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
     }
 
@@ -1345,8 +1345,8 @@ sub docs_print {
      LOCALE           => $conf{LOCALE}
   	  });
 
-  if ($Docs->{VAT}) {
-   	 $Docs->{VAT_LIT}              = int2ml("$attr->{TOTAL_SUM}", { 
+  if ($Docs->{ORDER_TOTAL_SUM_VAT}) {
+   	 $attr->{ORDER_TOTAL_SUM_VAT_LIT}              = int2ml("$attr->{ORDER_TOTAL_SUM_VAT}", { 
   	 ONES             => \@ones,
      TWOS             => \@twos,
      FIFTH            => \@fifth,
