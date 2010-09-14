@@ -5670,8 +5670,10 @@ if ($FORM{add}) {
 	 }
   elsif ("$FROM_Y-$FROM_M" ne "$TO_Y-$TO_M") {
   	do {
+  		$FROM_D--;
   		$days_in_month = ($FROM_M!=2?(($FROM_M%2)^($FROM_M>7))+30:(!($FROM_Y%400)||!($FROM_Y%4)&&($FROM_Y%25)?29:28));
-  		my $month_days = $days_in_month-$FROM_D + 1;
+  		my $month_days = ($FROM_M == $TO_M) ? $TO_D : $days_in_month-$FROM_D;
+  		$FROM_D=0;
   		my $month_sum = sprintf("%.2f", $month_days * $Dv->{DAY_ABON} + $month_days * ($Dv->{MONTH_ABON} / $days_in_month));
   		$sum  += $month_sum;
   		$days += $month_days;
@@ -5942,9 +5944,11 @@ sub dv_pay_to {
 		    $Dv->{SUM} = sprintf("%.2f", $Dv->{DAYS} * $Dv->{DAY_ABON} + $Dv->{DAYS} * ($Dv->{MONTH_ABON} / $days_in_month));
     	 }
       elsif ("$from_year-$from_month" ne "$to_year-$to_month") {
+      	$from_day--;
   	    do {
   		    $days_in_month = ($from_month!=2?(($from_month%2)^($from_month>7))+30:(!($from_year%400)||!($from_year%4)&&($from_year%25)?29:28));
-  		    my $month_days = $days_in_month-$from_day + 1;
+  		    my $month_days = ($from_month == $to_month) ? $to_day : $days_in_month-$from_day;
+  		    $from_day = 0;
   		    my $month_sum = sprintf("%.2f", $month_days * $Dv->{DAY_ABON} + $month_days * ($Dv->{MONTH_ABON} / $days_in_month));
   		    $Dv->{SUM}  += $month_sum;
   		    $Dv->{DAYS} += $month_days;
