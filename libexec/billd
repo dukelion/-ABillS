@@ -61,7 +61,7 @@ CHECK exist connections
   check_pptpd - chack Active PoPToP deamon on Linux
   checkmikro  - check Active ppp on Mikrotik session and disconnect unknown ip.
 CHECK speed
-  checkspeed       - check cure speed for user on FreeBSD NAS. Arguments NAS_IDS=xx
+  checkspeed       - check cure speed for user on FreeBSD and Linux NAS. Arguments NAS_IDS=xx
      SHOW_SPEED=1  - Only show current speed
   checkspeed_mikro - check cure speed for user on Mikrotik. Arguments NAS_IDS=xx
   speed_expr       - Speed Expration
@@ -886,6 +886,7 @@ sub check_speed {
   chop($OS);
   # Check linux shapper
   if ($OS eq 'Linux') {
+    print "> Linux nas\n"  if ($debug > 1);
     check_speed_linux();
     exit;	
   }
