@@ -579,7 +579,7 @@ sub check_speed_linux {
   #$conf{KBYTE_SIZE} = 1024 if (! $conf{KBYTE_SIZE});
 	my %PORTS_SPEEDS = ();
   #In 
-  open(PROCS, 'for if in `ifconfig | grep ppp | awk \'{print $1}\'`; do echo $if `tc class show dev $if | grep root`; done; |') || die "Can't open file '' $!\n";
+  open(PROCS, 'for if in `/sbin/ifconfig | grep ppp | awk \'{print $1}\'`; do echo $if `tc class show dev $if | grep root`; done; |') || die "Can't open file '' $!\n";
       while(<PROCS>) {
 		    if (/ppp(\d+)\sclass\shtb\s\d+:\d+\sroot\srate\s(\d+)(\S+)/) {
           my $iface = $1;
@@ -593,7 +593,7 @@ sub check_speed_linux {
 
   #out
   #ppp15 police 0x2e28 rate 2048Kbit burst 12Kb mtu 2Kb action drop 
-  open(PROCS, 'for if in `ifconfig | grep ppp | awk \'{print $1}\'`; do echo $if `tc filter show dev $if parent ffff: | grep police`; done; |') || die "Can't open file '' $!\n";
+  open(PROCS, 'for if in `/sbin/ifconfig | grep ppp | awk \'{print $1}\'`; do echo $if `tc filter show dev $if parent ffff: | grep police`; done; |') || die "Can't open file '' $!\n";
       while(<PROCS>) {
 		    if (/ppp(\d+)\spolice\s[a-fx0-9]+\srate\s(\d+)(\S+)/) {
           my $iface = $1;
