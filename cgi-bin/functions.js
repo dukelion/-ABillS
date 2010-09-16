@@ -12,7 +12,7 @@ var confirmMsg  = 'Do you really want delete';
  */
 function confirmLink(theLink, theSqlQuery, CustomMsg)
 {
-    if (CustomMsg != '') {
+    if (CustomMsg != undefined ) {
         confirmMsg = CustomMsg;
      }
     else {

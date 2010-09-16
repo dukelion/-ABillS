@@ -6043,7 +6043,7 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 # form_webserver_info()
 #*******************************************************************
 sub form_webserver_info {
-  my $web_error_log = "/var/log/httpd/abills-error.log";
+  my $web_error_log = $conf{WEB_SERVER_ERROR_LOG} || "/var/log/httpd/abills-error.log";
 
 	my $table = $html->table( {
 		                         caption     => 'WEB server info',
