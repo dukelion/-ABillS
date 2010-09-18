@@ -51,6 +51,13 @@ CREATE TABLE `admins` (
   `domain_id` smallint(6) unsigned not null default '0',
   `min_search_chars` tinyint(2) unsigned NOT NULL DEFAULT '0',
   `max_rows` smallint(6) unsigned NOT NULL DEFAULT '0',
+  `address` VARCHAR(60) NOT NULL DEFAULT '',
+  `cell_phone` varchar(20) NOT NULL DEFAULT '',
+  `pasport_num` varchar(16) NOT NULL default '',
+  `pasport_date` date NOT NULL default '0000-00-00',
+  `pasport_grant` varchar(100) NOT NULL default '',
+  `inn` varchar(20) NOT NULL default '',
+  `birthday` DATE NOT NULL default '0000-00-00',
   PRIMARY KEY  (`aid`),
   UNIQUE KEY `aid` (`aid`),
   UNIQUE KEY `id` (`id`)

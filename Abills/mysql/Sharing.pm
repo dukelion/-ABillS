@@ -51,14 +51,14 @@ sub new {
 #**********************************************************
 sub session_del {
   my $self = shift;
-  my ($uid, $session_id, $nas_id, $session_start, $attr) = @_;
+  my ($attr) = @_;
 
   if ($attr->{DELETE_USER}) {
     $self->query($db, "DELETE FROM sharing_log WHERE uid='$attr->{DELETE_USER}';", 'do');
   }
   else {
     $self->query($db, "DELETE FROM sharing_log 
-     WHERE uid='$uid' and start='$session_start' and nas_id='$nas_id' and acct_session_id='$session_id';", 'do');
+     WHERE start='$attr->{START}' and username='$attr->{USER_NAME}' and url='$attr->{FILE}';", 'do');
    }
 
   return $self;
@@ -1470,15 +1470,12 @@ sub list {
 sub sessions_list {
  my $self = shift;
  my ($attr) = @_;
- 
- 
+
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
- 
- 
  $WHERE = '';
  my @WHERE_RULES = ();
 
@@ -1490,7 +1487,6 @@ sub sessions_list {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
     push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
   }
-
 
 #NAS ID
  if ($attr->{NAS_ID}) {

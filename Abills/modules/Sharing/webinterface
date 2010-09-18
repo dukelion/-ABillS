@@ -475,6 +475,21 @@ print $table->show();
 sub sharing_sessions {
   my ($list, $attr) = @_;
 
+if ($FORM{del} && $FORM{is_js_confirmed}) {
+	if(! defined($permissions{3}{1})) {
+     $html->message('err', $_ERROR, 'ACCESS DENY');
+     return 0;
+	 }
+
+  $Sharing->session_del({
+	    USER_NAME => $FORM{USER_NAME},
+	    FILE  => $FORM{FILE},
+	    START => $FORM{START}
+	});
+}
+
+
+
 if (! $list) {
   if (! defined($FORM{sort})) {
 	  $LIST_PARAMS{SORT} = 2;
@@ -503,17 +518,6 @@ if (! $list) {
 
  	                                        });
 
-
-#  form_search({ SEARCH_FORM =>  	
-#  	"<tr><td colspan=2><hr></td></tr>
-#     <tr><td>SUM (>,<)</td><td><input type=text name=SUM value='%SUM%'></td></tr>
-#     <tr><td>IP (>,<)</td><td><input type=text name=IP value='%IP%'></td></tr>
-#     <tr><td>CID</td><td><input type=text name=CID value='%CID%'></td></tr>
-#     <tr><td>NAS</td><td>$SEL_NAS</td></tr>
-#     <tr><td>NAS Port</td><td><input type=text name=NAS_PORT value='%NAS_PORT%'></td></tr>
-#  	 <tr><td>$_HANGUP $_STATUS:</td><td>$TERMINATE_CAUSE_SEL</td></tr>\n"
-# });
-
   $list = $Sharing->sessions_list({ %LIST_PARAMS });	
 }
 
@@ -536,11 +540,10 @@ my $delete = '';
 
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
-    $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", 
-       { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?", BUTTON => 1 }
+    $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=1&USER_NAME=$line->[0]&FILE=$line->[8]&START=$line->[1]", 
+       { MESSAGE => "$_DEL $_LOGIN: $line->[0] FILE: $line->[9]?", BUTTON => 1 }
       );
    }
-
 
   $table->addrow(
      $html->button("$line->[0]", "index=7&type=11&search=1&LOGIN_EXPR=$line->[0]"),
@@ -554,7 +557,8 @@ foreach my $line (@$list) {
      $line->[8], 
      int2byte($line->[9]), 
      $line->[10],
-     $delete);
+     $delete
+     );
 }
 
 print $table->show();

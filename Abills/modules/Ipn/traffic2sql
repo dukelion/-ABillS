@@ -246,7 +246,12 @@ my %RAD = ();
 my $registred = '';
 
 foreach my $ip ( sort keys %$session_ids) {  
-  if ($ip == 0) {	next; }
+	#my $mask = 32;
+	#if (length($ip)) {
+	#  ($ip, $mask)=unpack('N4N4', $ip);	
+	# }
+
+  if (length($ip) < 2) {	next; }
   my $uid           = $ips->{$ip};
   my $login         = $logins->{$uid};
   my $tariif_plan   = $tps->{$uid} || 0;
@@ -257,7 +262,6 @@ foreach my $ip ( sort keys %$session_ids) {
   my $total_out      = 0;
   my $extended       = '';
   my $total_user_sum = 0;
-
   # Get interval ID
   my $user_tp_interval  = (defined($tp_interval->{ $tariif_plan })) ? $tp_interval->{ $tariif_plan } : 0;
 
@@ -271,9 +275,17 @@ foreach my $ip ( sort keys %$session_ids) {
        $interium_time,
        $total_user_sum
       );
+   } 
+  
+  my $ip_addr;
+	if (length($ip)>10) {
+	  my ($ip_, $mask_)=unpack('N4N4', $ip);	
+	  $ip_addr = int2ip($ip_);
+	 }
+  else {
+    $ip_addr = int2ip($ip);
    }
- 
-  my $ip_addr = int2ip($ip);
+
   my %TRAFFIC_CLASS_SUM = ();
 
 #parse  traffic stats
@@ -361,7 +373,7 @@ if ($Ipn->{INTERIM}{$ip}) {
      $total_user_sum += $traf_class_sum ;
 
      if ($uid > 0) {
-   	    $Ipn->traffic_add_user( {
+  	   $Ipn->traffic_add_user( {
    	        START					 => $attr->{START} || undef,
    	        STOP					 => $attr->{STOP} || undef,
    	        UID            => "$uid",
@@ -496,8 +508,7 @@ elsif($total_user_sum > 0 && $uid > 0) {
        $RAD{INBYTE},  $RAD{OUTBYTE}, 
        $total_in, $total_out, 
        $interium_time, 
-       $extended
-     ) if ($debug > 0);
+       $extended) if ($debug > 0);
 }
 
 if ($debug > 0 || $ARGV->{LOG_FILE}) {

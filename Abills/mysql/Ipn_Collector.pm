@@ -39,13 +39,11 @@ my $db;
 my $CONF;
 my $debug = 0;
 
-my %intervals = ();
+my %intervals   = ();
 my %tp_interval = ();
-
+my %ip_range    = ();
 my @zoneids;
 my %ip_class_tables = ();
-
-#my @clients_lst = ();
 
 #**********************************************************
 # Init 
@@ -82,7 +80,6 @@ sub new {
 sub user_ips {
   my $self = shift;
   my ($DATA) = @_;
-
   
   my $sql;
   
@@ -93,7 +90,6 @@ sub user_ips {
   	for(my $i=$1; $i<=$2; $i++) {
   	  push @nas_arr, $i;
      }
-
     $DATA->{NAS_ID} = join(',', @nas_arr);
    }
 
@@ -200,48 +196,44 @@ sub user_ips {
   $self->{0}{IN}=0;
  	$self->{0}{OUT}=0;
 
-
-
-
   foreach my $line (@$list) {
-     #UID
-  	 $ips{$line->[1]}         = $line->[0];
-
-  
+     my $ip            = $line->[1];
+  	 
 
      #Get IP/mask
      if ($line->[16] && $line->[16] < 4294967295) {
-       my $first_ip =  $line->[17] & $line->[16];
-       for(my $i=0; $i<=4294967295 -  $line->[16]; $i++) {
-       	 my $ip = $first_ip+$i;
-     	   $ips{$ip}=$line->[0];
-     	   #print int2ip($first_ip+$i)."\n";
-     	   $session_ids{$ip} = "v$ip" if (! $session_ids{$ip});
-     	   $self->{$ip}{OCTET_DIRECTION} = $line->[12];
-        }
+       #my $first_ip =  $line->[17] & $line->[16];
+       #for(my $i=0; $i<=4294967295 -  $line->[16]; $i++) {
+       #	 my $ip            = $first_ip+$i;
+     	 #  $ips{$ip}         =$line->[0];
+     	 #  #print int2ip($first_ip+$i)."\n";
+     	 #  $session_ids{$ip} = "v$ip" if (! $session_ids{$ip});
+     	 #  $self->{$ip}{OCTET_DIRECTION} = $line->[12];
+       # }
+       my $count = 4294967295-$line->[16];
+       $ip = pack('N4N4', $ip, $count);
+       $ip_range{$line->[0]}=$ip;
       }
-
-
+     $ips{$ip}         = $line->[0];
      #IN / OUT octets
-  	 $self->{$line->[1]}{IN}  = $line->[4];
-  	 $self->{$line->[1]}{OUT} = $line->[5];
+  	 $self->{$ip}{IN}  = $line->[4];
+  	 $self->{$ip}{OUT} = $line->[5];
      
-     $self->{$line->[1]}{ACCT_INPUT_GIGAWORDS}  = $line->[18] || 0;
-  	 $self->{$line->[1]}{ACCT_OUTPUT_GIGAWORDS} = $line->[19] || 0;
+     $self->{$ip}{ACCT_INPUT_GIGAWORDS}  = $line->[18] || 0;
+  	 $self->{$ip}{ACCT_OUTPUT_GIGAWORDS} = $line->[19] || 0;
 
      #user NAS
-     $self->{$line->[1]}{NAS_ID} = $line->[11];
-     
+     $self->{$ip}{NAS_ID}            = $line->[11];
      #Octet direction
-     $self->{$line->[1]}{OCTET_DIRECTION} = $line->[12];
+     $self->{$ip}{OCTET_DIRECTION}   = $line->[12];
      
-  	 $users_info{TPS}{$line->[0]}       = $line->[6];
+  	 $users_info{TPS}{$line->[0]}    = $line->[6];
    	 #User login
-   	 $users_info{LOGINS}{$line->[0]}    = $line->[2];
+   	 $users_info{LOGINS}{$line->[0]} = $line->[2];
      #Session ID
-     $session_ids{$line->[1]}           = $line->[3];
-     $interim_times{$line->[3]}         = $line->[10];
-     $connect_info{$line->[3]}          = $line->[14];
+     $session_ids{$ip}               = $line->[3];
+     $interim_times{$line->[3]}      = $line->[10];
+     $connect_info{$line->[3]}        = $line->[14];
      #$self->{INTERIM}{$line->[3]}{TIME}=$line->[10];
   	 $users_info{PAYMENT_TYPE}{$line->[0]} = $line->[9];
   	 $users_info{DEPOSIT}{$line->[0]}   = $line->[8];
@@ -281,17 +273,30 @@ sub traffic_agregate_users {
 
   my $users_ips=$self->{USERS_IPS};
   my $y = 0;
- 
   if (defined($users_ips->{$DATA->{SRC_IP}})) {
+    my $uid = $users_ips->{$DATA->{SRC_IP}};
     if (defined($DATA->{TRAFFIC_CLASS})) {
       $self->{INTERIM}{$DATA->{SRC_IP}}{$DATA->{TRAFFIC_CLASS}}{OUT}+=$DATA->{SIZE};
      }
     else {
- 	    push @{ $self->{AGREGATE_USERS}{$users_ips->{$DATA->{SRC_IP}}}{OUT} }, { %$DATA };
+ 	    push @{ $self->{AGREGATE_USERS}{$uid}{OUT} }, { %$DATA };
  	   }
 
- 	  $DATA->{UID}=$users_ips->{$DATA->{SRC_IP}};
+ 	  $DATA->{UID}=$uid;
  		$y++;
+   }
+  else {
+  	while(my($uid, $ip_count)=each %ip_range) {
+  		my ($ip, $count)=unpack('N4N4', $ip_count);
+  		my $last_ip = $ip+$count;
+  		
+  		if ($ip <= $DATA->{SRC_IP} && $DATA->{SRC_IP} <= $last_ip ) {
+  			push @{ $self->{AGREGATE_USERS}{$uid}{OUT} }, { %$DATA };
+  			$DATA->{UID}=$uid;
+  			$y++;
+  			last;
+  		 }
+  	 }
    }
 
   if (defined($users_ips->{$DATA->{DST_IP}})) {
@@ -305,21 +310,34 @@ sub traffic_agregate_users {
     
 	  $y++;
    }
-  #Unknown Ips
-  elsif ($y < 1) {
-  	$DATA->{UID}=0;
-    if ($CONF->{UNKNOWN_IP_LOG}) {
-  	  $self->{INTERIM}{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
-      push @{ $self->{IN} }, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
-     }
+  else {
+  	while(my($uid, $ip_count)=each %ip_range) {
+  		my ($ip, $count)=unpack('N4N4', $ip_count);
+  		my $last_ip = $ip+$count;
+  		
+  		if ($ip <= $DATA->{DST_IP} && $DATA->{DST_IP} <= $last_ip ) {
+  			push @{ $self->{AGREGATE_USERS}{$uid}{IN} }, { %$DATA };
+  			$DATA->{UID}=$uid;
+  			$y++;
+  			last;
+  		 }
+  	 }
+    #Unknown Ips
+    if ($y < 1) {
+  	  $DATA->{UID}=0;
+      if ($CONF->{UNKNOWN_IP_LOG}) {
+  	    $self->{INTERIM}{$DATA->{UID}}{OUT}+=$DATA->{SIZE};
+        push @{ $self->{IN} }, "$DATA->{SRC_IP}/$DATA->{DST_IP}/$DATA->{SIZE}";	
+       }
 
-    if ($DATA->{DEBUG}) {
-      $self->{UNKNOWN_TRAFFIC_ROWS}++;
-      $self->{UNKNOWN_TRAFFIC_SUM}+=$DATA->{SIZE};
+      if ($DATA->{DEBUG}) {
+        $self->{UNKNOWN_TRAFFIC_ROWS}++;
+        $self->{UNKNOWN_TRAFFIC_SUM}+=$DATA->{SIZE};
+       }
+      return $self;
      }
-
-    return $self;
    }
+
   
   if ($DATA->{DEBUG}) {
     $self->{TRAFFIC_ROWS}++;
@@ -356,7 +374,7 @@ sub traffic_agregate_nets {
   my ($DATA) = @_;
 
   my $AGREGATE_USERS  = $self->{AGREGATE_USERS}; 
-  my $ips             = $self->{USERS_IPS};
+  #my $ips             = $self->{USERS_IPS};
   my $user_info       = $self->{USERS_INFO};
   $Dv                 = Dv->new($db, undef, $CONF);
   #Get user and session TP
@@ -400,7 +418,6 @@ sub traffic_agregate_nets {
      }
 
    my $data_hash;
-   
    #Get agrigation data
    if (defined($AGREGATE_USERS->{$uid})) {
      $data_hash = $AGREGATE_USERS->{$uid};
@@ -412,7 +429,8 @@ sub traffic_agregate_nets {
 
    my %zones;
    @zoneids = @{ $intervals{$tp_interval{$TP_ID}}{ZONEIDS} };
-   
+   my $user_ip=$ip_range{$uid} if ($ip_range{$uid});
+
    if (defined($data_hash->{OUT})) {
       #Get User data array
       my $DATA_ARRAY_REF = $data_hash->{OUT};
@@ -421,7 +439,7 @@ sub traffic_agregate_nets {
   	    if ( $#zoneids > -1 ) {
   	      foreach my $zid (@zoneids) {
     	      if (ip_in_zone($DATA->{DST_IP}, $DATA->{DST_PORT}, $self->{ZONES}{$zid}{TRAFFIC_CLASS}, \%ip_class_tables)) {
-		          $self->{INTERIM}{$DATA->{SRC_IP}}{"$zid"}{OUT} += $DATA->{SIZE};
+		          $self->{INTERIM}{(($user_ip) ? $user_ip : $DATA->{SRC_IP})}{"$zid"}{OUT} += $DATA->{SIZE};
 	  	        print " $zid ". int2ip($DATA->{SRC_IP}) .":$DATA->{SRC_PORT} -> ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT}  $DATA->{SIZE} / " . (($zones{$zid}{PriceOut}) ? $zones{$zid}{PriceOut} : 0.00 )."\n" if ($self->{debug});;
 		          last;
 		         }
@@ -441,7 +459,7 @@ sub traffic_agregate_nets {
   	    if ($#zoneids > -1) {
  	        foreach my $zid (@zoneids) {
  		        if (ip_in_zone($DATA->{SRC_IP}, $DATA->{SRC_PORT}, $self->{ZONES}{$zid}{TRAFFIC_CLASS}, \%ip_class_tables)) {
-	    	      $self->{INTERIM}{$DATA->{DST_IP}}{"$zid"}{IN} += $DATA->{SIZE};
+	    	      $self->{INTERIM}{(($user_ip) ? $user_ip : $DATA->{DST_IP})}{"$zid"}{IN} += $DATA->{SIZE};
     		      print " $zid ". int2ip($DATA->{DST_IP}) .":$DATA->{DST_PORT} <- ". int2ip($DATA->{SRC_IP})  .":$DATA->{SRC_PORT}  $DATA->{SIZE} / $zones{$zid}{PriceIn}\n" if ($self->{debug});
   		        last;
 		         }
@@ -492,7 +510,6 @@ sub get_zone {
 
   foreach my $line (@$list) {
       $zoneid=$line->[0];
-
       $zones{$zoneid}{PriceIn}      = $line->[1]+0;
       $zones{$zoneid}{PriceOut}     = $line->[2]+0;
       $zones{$zoneid}{PREPAID_TSUM} = $line->[3]+0;
@@ -739,7 +756,7 @@ sub traffic_user_get {
   my $uid        = $attr->{UID};
   my $traffic_id = $attr->{TRAFFIC_ID} || 0;
   my $from       = $attr->{FROM} || '';
-  my %result = ();
+  my %result     = ();
 
 
   if ($attr->{DATE_TIME}) {

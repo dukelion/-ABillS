@@ -124,9 +124,14 @@ if(! -f $config_file ) {
          my $read;
          my $res;
          my $mysql='/usr/local/bin/mysql';
+         MYSQL_PROGRAM:
+         if ( ! -f $mysql) {
+           print "Can't find '$mysql' enter path\n";
+           chop($read = <STDIN>);
+           $mysql = $read if ($read ne '');
+           goto MYSQL_PROGRAM;
+          }
          print "MySQL path [$mysql]: ";
-         chop($read = <STDIN>);
-         $mysql = $read if ($read ne '');
 
          my $mysql_root_user   = 'root';
          my $mysql_root_passwd = '';
