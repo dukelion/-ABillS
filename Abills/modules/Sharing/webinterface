@@ -536,12 +536,10 @@ my $table = $html->table( { width        => '100%',
                          } );
 
 my $delete = '';
-
-
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
-    $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=1&USER_NAME=$line->[0]&FILE=$line->[8]&START=$line->[1]", 
-       { MESSAGE => "$_DEL $_LOGIN: $line->[0] FILE: $line->[9]?", BUTTON => 1 }
+    $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=1&USER_NAME=$line->[0]&FILE=$line->[8]&START=$line->[1]".(($FORM{UID})? "&UID=$FORM{UID}" : '' ), 
+       { MESSAGE => "$_DEL $_LOGIN: $line->[0] FILE: $line->[8]?", BUTTON => 1 }
       );
    }
 
@@ -569,7 +567,6 @@ print $table->show();
 #  
 #*******************************************************************
 sub sharing_stats {
-
 	my $user_info = $users->info( $UID );
 	$LIST_PARAMS{LOGIN}=$user_info->{LOGIN};
   
@@ -712,10 +709,8 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                                    index => "$index",
 	                                    UID   => $LIST_PARAMS{UID} }});
 
-
-
 if (defined($FORM{show})) {
-  $pages_qs .= "&show=y&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
+  $pages_qs .= "&show=1&fromD=$FORM{fromD}&fromM=$FORM{fromM}&fromY=$FORM{fromY}&toD=$FORM{toD}&toM=$FORM{toM}&toY=$FORM{toY}";
   $FORM{fromM}++;
   $FORM{toM}++;
   $FORM{fromM} = sprintf("%.2d", $FORM{fromM}++);
