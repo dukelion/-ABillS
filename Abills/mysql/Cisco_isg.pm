@@ -1,5 +1,6 @@
 package Cisco_isg;
 # Cisco_isg AAA functions
+# FreeRadius DHCP  functions
 # http://www.cisco.com/en/US/docs/ios/12_2sb/isg/coa/guide/isgcoa4.html
 
 use strict;
@@ -7,7 +8,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
 
 use Exporter;
-$VERSION = 2.11;
+$VERSION = 2.12;
 @ISA = ('Exporter');
 @EXPORT = qw();
 @EXPORT_OK = ();
@@ -18,12 +19,10 @@ use main;
 use Billing;
 use Auth;
 
-
 @ISA  = ("main");
 my ($db, $conf, $Billing);
 
-
-my %RAD_PAIRS=();
+my %RAD_REPLY=();
 
 
 #**********************************************************
@@ -46,9 +45,15 @@ sub new {
 #**********************************************************
 sub user_info {
   my $self = shift;
-  my ($RAD, $NAS) = @_;
+  my ($RAD_REQUEST, $NAS) = @_;
 
-  my $WHERE = " and dv.CID='$RAD->{USER_NAME}'";
+  my $WHERE;
+  if ($RAD_REQUEST->{'DHCP_MESSAGE_TYPE'}) {
+  	$WHERE = " and dv.CID='$RAD_REQUEST->{USER_NAME}'";
+   }
+  else {
+    $WHERE = " and dv.CID='$RAD_REQUEST->{USER_NAME}'";
+   }
 
   $self->query($db, "SELECT 
    u.id,
@@ -92,7 +97,6 @@ sub user_info {
   	return $self;
    }
 
-
   ($self->{USER_NAME},
    $self->{UID},
    $self->{TP_ID}, 
@@ -124,13 +128,12 @@ sub user_info {
   
   #Chack Company account if ACCOUNT_ID > 0
   $self->check_company_account() if ($self->{COMPANY_ID} > 0);
-
   $self->check_bill_account();
 
-if($self->{errno}) {
-  $RAD_PAIRS{'Reply-Message'}=$self->{errstr};
-  return 1, \%RAD_PAIRS;
- }
+  if($self->{errno}) {
+    $RAD_REPLY{'Reply-Message'}=$self->{errstr};
+    return 1, \%RAD_REPLY;
+   }
 
   return $self;
 }
@@ -141,75 +144,78 @@ if($self->{errno}) {
 #**********************************************************
 sub auth {
   my $self = shift;
-  my ($RAD, $NAS) = @_;
+  my ($RAD_REQUEST, $NAS) = @_;
 
-  my %RAD_PAIRS=();
+  my %RAD_REPLY=();
+  
+#ISG Section  
 #Make TP
-  if ($RAD->{USER_NAME} =~ /^TP_/) {
-  	return  $self->make_tp($RAD);
+  if ($RAD_REQUEST->{USER_NAME} =~ /^TP_/) {
+  	return  $self->make_tp($RAD_REQUEST);
  	 }
-  elsif ($RAD->{USER_NAME} =~ /\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}/) {
+  elsif ($RAD_REQUEST->{USER_NAME} =~ /\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}/) {
 #Get statis DHCP address
-    $RAD->{CALLING_STATION_ID}=$RAD->{USER_NAME};
+    $RAD_REQUEST->{CALLING_STATION_ID}=$RAD_REQUEST->{USER_NAME};
     $self->query($db, "SELECT dhcphosts_hosts.mac
       FROM dhcphosts_hosts, users u
     WHERE dhcphosts_hosts.uid=u.uid 
-    and dhcphosts_hosts.ip=INET_ATON('$RAD->{USER_NAME}');");
+    and dhcphosts_hosts.ip=INET_ATON('$RAD_REQUEST->{USER_NAME}');");
 
     if ($self->{TOTAL} > 0) {
-      ($RAD->{USER_NAME}
+      ($RAD_REQUEST->{USER_NAME}
        )= @{ $self->{list}->[0] };
      }
     else {
       if ($conf->{DHCPHOSTS_LEASES} eq 'db') {
         $self->query($db, "SELECT hardware, UNIX_TIMESTAMP(ends)-UNIX_TIMESTAMP() FROM dhcphosts_leases
-          WHERE ip=INET_ATON('$RAD->{USER_NAME}');");
+          WHERE ip=INET_ATON('$RAD_REQUEST->{USER_NAME}');");
  
         if ($self->{TOTAL} > 0) {
-          ($RAD->{USER_NAME},
-           $RAD_PAIRS{'Session-Timeout'}
+          ($RAD_REQUEST->{USER_NAME},
+           $RAD_REPLY{'Session-Timeout'}
            )= @{ $self->{list}->[0] };
          }
        }
       else {
-        $RAD->{USER_NAME} = get_isg_mac($RAD->{USER_NAME});	
+        $RAD_REQUEST->{USER_NAME} = get_isg_mac($RAD_REQUEST->{USER_NAME});	
        }
      }
 
-  
-    if ($RAD->{USER_NAME} eq '') {
-      $RAD_PAIRS{'Reply-Message'}="Can't find MAC in DHCP";
-      return 1, \%RAD_PAIRS;
+    if ($RAD_REQUEST->{USER_NAME} eq '') {
+      $RAD_REPLY{'Reply-Message'}="Can't find MAC in DHCP";
+      return 1, \%RAD_REPLY;
      }
-   }	
+   }
+  # Free radius dhcp
+  elsif ($RAD_REQUEST->{DHCP_CLIENT_HARDWARE_ADDRESS}) {
+  	$RAD_REQUEST->{USER_NAME}=$RAD_REQUEST->{DHCP_CLIENT_HARDWARE_ADDRESS};
+   }  
 
-
-    
-  $self->user_info($RAD, $NAS);
+  $self->user_info($RAD_REQUEST, $NAS);
 
   if($self->{errno}) {
-    $RAD_PAIRS{'Reply-Message'}=$self->{errstr};
-    return 1, \%RAD_PAIRS;
+    $RAD_REPLY{'Reply-Message'}=$self->{errstr};
+    return 1, \%RAD_REPLY;
    }
   elsif ($self->{TOTAL} < 1) {
     $self->{errno} = 2;
     $self->{errstr} = 'ERROR_NOT_EXIST';
-    $RAD_PAIRS{'Reply-Message'}="User Not Exist '$RAD->{USER_NAME}'";
-    return 1, \%RAD_PAIRS;
+    $RAD_REPLY{'Reply-Message'}="User Not Exist '$RAD_REQUEST->{USER_NAME}'";
+    return 1, \%RAD_REPLY;
    }
   elsif (! defined($self->{PAYMENT_TYPE})) {
-    $RAD_PAIRS{'Reply-Message'}="Service not allow";
-    return 1, \%RAD_PAIRS;
+    $RAD_REPLY{'Reply-Message'}="Service not allow";
+    return 1, \%RAD_REPLY;
    }
 
 
-  $RAD_PAIRS{'User-Name'}=$self->{USER_NAME};
-  $RAD->{USER_NAME}=$self->{USER_NAME};
+  $RAD_REPLY{'User-Name'}=$self->{USER_NAME};
+  $RAD_REQUEST->{USER_NAME}=$self->{USER_NAME};
 
 #DIsable
 if ($self->{DISABLE} ||  $self->{DV_DISABLE} || $self->{USER_DISABLE}) {
-  $RAD_PAIRS{'Reply-Message'}="Account Disable";
-  return 1, \%RAD_PAIRS;
+  $RAD_REPLY{'Reply-Message'}="Account Disable";
+  return 1, \%RAD_REPLY;
 }
 
 my $service = "TP_$self->{TP_ID}"; 
@@ -222,10 +228,9 @@ if ($self->{PAYMENT_TYPE} == 0) {
 
   if($self->{DEPOSIT}  <= 0) {
   	if (! $self->{NEG_DEPOSIT_FILTER_ID}) {
-      $RAD_PAIRS{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
-      return 1, \%RAD_PAIRS;
+      $RAD_REPLY{'Reply-Message'}="Negativ deposit '$self->{DEPOSIT}'. Rejected!";
+      return 1, \%RAD_REPLY;
      }
-
     $service = $self->{NEG_DEPOSIT_FILTER_ID};
    }
 }
@@ -233,39 +238,96 @@ else {
   $self->{DEPOSIT}=0;
 }
 
-#IP
-if ($self->{IP} ne '0.0.0.0') {
-	$RAD_PAIRS{'Framed-IP-Address'}=$self->{IP};
- }
 
-my $debug = 0;
 
-if ($self->{TT_COUNTS} > 0) {
-  $self->query($db, "SELECT id FROM trafic_tarifs WHERE interval_id='$self->{INTERVAL_ID}';");
-  foreach my $line ( @{ $self->{list} }) {
-  	push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "ATP_$self->{TP_ID}_$line->[0]";
-   }
+if ($NAS->{NAS_TYPE} eq 'dhcp') {
+  # Do nothing if port is magistral, i.e. 25.26.27.28
+  #if($port == 25 || $port == 26 || $port == 27 || $port == 28) {
+  #   &radiusd::radlog(L_ERR, " --- Port is gigabit upling, returinig NOOP --- ");
+  #   return RLM_MODULE_NOOP;
+  # }
+
+  my $REQUEST_TYPE = $RAD_REQUEST->{'DHCP_MESSAGE_TYPE'};
+
+	if ($self->{IP} ne '0.0.0.0') {
+	  $RAD_REPLY{'DHCP-Your-IP-Address'}=$self->{IP};
+	 }
+	else {
+    my $ip = $self->get_ip($NAS->{NAS_ID}, "$RAD_REQUEST->{NAS_IP_ADDRESS}", { TP_IPPOOL => $self->{TP_IPPOOL} });
+    if ($ip eq '-1') {
+      $RAD_REPLY{'Reply-Message'}="Rejected! There is no free IPs in address pools (USED: $self->{USED_IPS})";
+      return 1, \%RAD_REPLY;
+     }
+    elsif($ip eq '0') {
+      #$RAD_REPLY->{'Reply-Message'}="$self->{errstr} ($NAS->{NAS_ID})";
+      #return 1, $RAD_REPLY;
+     }
+    else {
+      $RAD_REPLY{'DHCP-Your-IP-Address'} = "$ip";
+     }
+	 }
+
+   $RAD_REPLY{'DHCP-Subnet-Mask'}        = '255.255.255.255';
+   $RAD_REPLY{'DHCP-IP-Address-Lease-Time'} = 86000;
+
+   if($REQUEST_TYPE eq "DHCP-Request") {
+#      # Writing lease to DB
+#      $dbh->do("INSERT INTO ip_dhcp_leases(date_leased, date_updated, ip, mask, gw, mac, switch, port)
+#                                VALUES(unix_timestamp(), unix_timestamp(), inet_aton('$ip'), inet_aton('$mask'), inet_aton('$gw'),
+#                                '$UMAC', '$switch', '$port')");
+#      &radiusd::radlog(L_ERR, " --- DHCP-Request END.Lease writen. --- ") if $DEBUG;
+#                                return RLM_MODULE_OK;
+    }
+   elsif($REQUEST_TYPE eq "DHCP-Discover") {
+     # Just return OK
+#     &radiusd::radlog(L_ERR, " --- RLM_MODULE_OK ---") if $DEBUG;
+     return 2;
+    }
+   
+   #$self->dhcp_accounting($RAD_REQUEST, $NAS);
  }
+#Cisco ISG section
 else {
-  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "A$service";
+  #IP
+  if ($self->{IP} ne '0.0.0.0') {
+	  $RAD_REPLY{'Framed-IP-Address'}=$self->{IP};
+   }
+
+  my $debug = 0;
+  if ($self->{TT_COUNTS} > 0) {
+    $self->query($db, "SELECT id FROM trafic_tarifs WHERE interval_id='$self->{INTERVAL_ID}';");
+    foreach my $line ( @{ $self->{list} }) {
+  	  push @{ $RAD_REPLY{'Cisco-Account-Info'} }, "ATP_$self->{TP_ID}_$line->[0]";
+     }
+   }
+  else {
+    push @{ $RAD_REPLY{'Cisco-Account-Info'} }, "A$service";
+  }
+
+  if ($service =~ /^TP/) {
+    push @{ $RAD_REPLY{'Cisco-Account-Info'} }, "NTURBO_SPEED1";
+    push @{ $RAD_REPLY{'Cisco-Account-Info'} }, "NTURBO_SPEED2";
+    push @{ $RAD_REPLY{'Cisco-Account-Info'} }, "NTURBO_SPEED3";
+   }
+  push @{ $RAD_REPLY{'cisco-avpair'} }, "subscriber:accounting-list=BH_ACCNT_LIST1";
+
+  $RAD_REPLY{'Idle-Timeout'} = 1800;
+  $RAD_REPLY{'Acct-Interim-Interval'}=6000;
 }
 
-
-if ($service =~ /^TP/) {
-  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED1";
-  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED2";
-  push @{ $RAD_PAIRS{'Cisco-Account-Info'} }, "NTURBO_SPEED3";
-}
-  push @{ $RAD_PAIRS{'cisco-avpair'} }, "subscriber:accounting-list=BH_ACCNT_LIST1";
-
-
-  $RAD_PAIRS{'Idle-Timeout'} = 1800;
-  $RAD_PAIRS{'Acct-Interim-Interval'}=6000;
-
-  return 0, \%RAD_PAIRS;
+  return 0, \%RAD_REPLY;
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub dhcp_accounting {
+  my $self = shift;
+  my ($RAD_REQUEST, $NAS) = @_;
 
+	
+	return $self;
+}
 
 
 #**********************************************************
@@ -274,7 +336,7 @@ if ($service =~ /^TP/) {
 #**********************************************************
 sub make_tp {
   my $self = shift;
-  my ($RAD, $NAS) = @_;
+  my ($RAD_REQUEST, $NAS) = @_;
 
   my %speeds = ();
   my %expr   = ();
@@ -283,14 +345,14 @@ sub make_tp {
   my $TT_ID  = 0;
   my $debug  = 0;
 
-  if ($RAD->{USER_NAME} =~ /TP_(\d+)_(\d+)/) {
+  if ($RAD_REQUEST->{USER_NAME} =~ /TP_(\d+)_(\d+)/) {
     $TP_ID = $1;
     $TT_ID = $2;
    }
-  elsif ($RAD->{USER_NAME} =~ /TP_(\d+)/) {
+  elsif ($RAD_REQUEST->{USER_NAME} =~ /TP_(\d+)/) {
   	$TP_ID = $1;
    }
-  my $RAD_PAIRS ;
+  my $RAD_REPLY ;
 
 
 $self->query($db, "select  
@@ -309,21 +371,20 @@ $self->query($db, "select
 
 
   if($self->{errno}) {
-  	$RAD_PAIRS->{'Reply-Message'}='SQL error';
-  	return 1, $RAD_PAIRS;
+  	$RAD_REPLY->{'Reply-Message'}='SQL error';
+  	return 1, $RAD_REPLY;
    }
   elsif ($self->{TOTAL} < 1) {
-    $RAD_PAIRS->{'Reply-Message'}="Can't find TP '$TP_ID' TT: '$TT_ID'";
-    return 1, $RAD_PAIRS;
+    $RAD_REPLY->{'Reply-Message'}="Can't find TP '$TP_ID' TT: '$TT_ID'";
+    return 1, $RAD_REPLY;
    }
-
 
    (
      $self->{SESSION_START}, 
      $self->{DAY_BEGIN}, 
      $self->{DAY_OF_WEEK}, 
      $self->{DAY_OF_YEAR},
-     $self->{TP_RAD_PAIRS},
+     $self->{TP_RAD_REPLY},
      $self->{IN_SPEED},
      $self->{OUT_SPEED}
     ) = @{ $self->{list}->[0] };
@@ -331,30 +392,30 @@ $self->query($db, "select
 #chack TP Radius Pairs
 
   if ($TT_ID > 0) {
-     push @{ $RAD_PAIRS->{'cisco-avpair'} }, "ip:traffic-class=input access-group name ACL_IN_INTERNET_$TT_ID priority ". (($TT_ID + 1) * 100);
-     push @{ $RAD_PAIRS->{'cisco-avpair'} }, "ip:traffic-class=output access-group name ACL_OUT_INTERNET_$TT_ID priority ". (($TT_ID + 1) * 100);
-     push @{ $RAD_PAIRS->{'cisco-avpair'} }, "ip:traffic-class=out default drop";
-     push @{ $RAD_PAIRS->{'cisco-avpair'} }, "ip:traffic-class=in default drop";
-     push @{ $RAD_PAIRS->{'cisco-avpair'} }, "subscriber:accounting-list=BH_ACCNT_LIST_$TT_ID";
+     push @{ $RAD_REPLY->{'cisco-avpair'} }, "ip:traffic-class=input access-group name ACL_IN_INTERNET_$TT_ID priority ". (($TT_ID + 1) * 100);
+     push @{ $RAD_REPLY->{'cisco-avpair'} }, "ip:traffic-class=output access-group name ACL_OUT_INTERNET_$TT_ID priority ". (($TT_ID + 1) * 100);
+     push @{ $RAD_REPLY->{'cisco-avpair'} }, "ip:traffic-class=out default drop";
+     push @{ $RAD_REPLY->{'cisco-avpair'} }, "ip:traffic-class=in default drop";
+     push @{ $RAD_REPLY->{'cisco-avpair'} }, "subscriber:accounting-list=BH_ACCNT_LIST_$TT_ID";
     }
   else {
 
-  if ($self->{TP_RAD_PAIRS}) {
-    my @p = split(/,/, $self->{TP_RAD_PAIRS});
+  if ($self->{TP_RAD_REPLY}) {
+    my @p = split(/,/, $self->{TP_RAD_REPLY});
     foreach my $line (@p) {
       if ($line =~ /([a-zA-Z0-9\-]{6,25})\+\=(.{1,200})/gi) {
         my $left = $1;
         my $right= $2;
         $right =~ s/\"//g;
-        push @{ $RAD_PAIRS->{"$left"} }, $right; 
+        push @{ $RAD_REPLY->{"$left"} }, $right; 
        }      
       else {
          my($left, $right)=split(/=/, $line, 2);
          if ($left =~ s/^!//) {
-           delete $RAD_PAIRS->{"$left"};
+           delete $RAD_REPLY->{"$left"};
    	      }
    	     else {  
-   	       $RAD_PAIRS->{"$left"}="$right";
+   	       $RAD_REPLY->{"$left"}="$right";
    	      }
        }
      }
@@ -447,12 +508,10 @@ $self->query($db, "select
 
     
     if ($speed_in_rule ne '' || $speed_out_rule ne '') {
-      $RAD_PAIRS->{'Cisco-Service-Info'} = "Q$speed_out_rule;$speed_in_rule";
+      $RAD_REPLY->{'Cisco-Service-Info'} = "Q$speed_out_rule;$speed_in_rule";
      }
 
-
-	
-	return 0, $RAD_PAIRS;
+	return 0, $RAD_REPLY;
 }
 
 
@@ -468,7 +527,6 @@ sub get_isg_mac {
   my $l_ip = ();
 
  open (FILE, "$logfile") or print "Can't read file '$logfile' $!";
-
    while (<FILE>) {
       next if /^#|^$/;
 
@@ -488,9 +546,6 @@ sub get_isg_mac {
        }
    }
  close FILE;
-
-
-
 	
 	return ($list{$ip}{hardware}) ?  $list{$ip}{hardware} : '';
 }

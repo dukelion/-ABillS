@@ -815,6 +815,7 @@ sub check_time {
 #**********************************************************
 sub get_radius_params {
  my %RAD=();
+
  if ($#ARGV > 1) {
     foreach my $pair (@ARGV) {
         my ($side, $value) = split(/=/, $pair, 2);

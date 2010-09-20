@@ -46,10 +46,10 @@ my $log_print = sub {
    }
 };
 
-
 my $RAD = get_radius_params();
-if ($RAD->{NAS_IP_ADDRESS}) {
+$RAD->{NAS_IP_ADDRESS}=$RAD->{DHCP_GATEWAY_IP_ADDRESS} if ($RAD->{DHCP_GATEWAY_IP_ADDRESS});
 
+if ($RAD->{NAS_IP_ADDRESS}) {
   my $ret = get_nas_info($db, $RAD);
   if (defined($ARGV[0]) && $ARGV[0] eq 'pre_auth') {
     auth($db, $RAD, $nas, { pre_auth => 1 });
@@ -63,7 +63,6 @@ if ($RAD->{NAS_IP_ADDRESS}) {
   if($ret == 0) {
     $ret = auth($db, $RAD, $nas);
   }
-
 
   if ($ret == 0) {
     print $rr;
@@ -175,7 +174,6 @@ if ($RAD->{DHCP_MESSAGE_TYPE}) {
 	$nas->{NAS_TYPE}='dhcp';
 }
 
-
 if(defined($AUTH{$nas->{NAS_TYPE}})) {
   if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
     require $AUTH{$nas->{NAS_TYPE}} . ".pm";
@@ -186,19 +184,16 @@ if(defined($AUTH{$nas->{NAS_TYPE}})) {
   ($r, $RAD_PAIRS) = $auth_mod{"$nas->{NAS_TYPE}"}->auth($RAD, $nas);
 }
 else {
-  $auth_mod{'default'} = Auth->new($db, \%conf); # if (! $auth_mod{'default'});
+  $auth_mod{'default'} = Auth->new($db, \%conf); 
   ($r, $RAD_PAIRS) = $auth_mod{"default"}->dv_auth($RAD, $nas, 
                                        { MAX_SESSION_TRAFFIC => $conf{MAX_SESSION_TRAFFIC}  } );
 }
 
-
-my $tt = `echo "/$nas->{NAS_TYPE}/ $r" >> /tmp/rad`;
 %RAD_REPLY = %$RAD_PAIRS;
 
 #If Access deny
  if($r == 1){
     my $message = "$RAD_PAIRS->{'Reply-Message'} ";
-
     if ($RAD_PAIRS->{'Reply-Message'} eq 'SQL error') {
     	undef %auth_mod;
      }
@@ -273,58 +268,18 @@ sub post_auth {
   my ($RAD) = @_;
   
   my $reject_info = '';
+  if ($RAD{'DHCP_MESSAGE_TYPE'}) {
+    if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
+      require $AUTH{$nas->{NAS_TYPE}} . ".pm";
+      $AUTH{$nas->{NAS_TYPE}}->import();
+     }
 
-#  if ($RAD_REQUEST{'DHCP-Message-Type'}) {
-#        my $ciaddr = $RAD_REQUEST{'DHCP-Client-IP-Address'};
-#        my $giaddr = $RAD_REQUEST{'DHCP-Gateway-IP-Address'};
-#        my $chaddr = $RAD_REQUEST{'DHCP-Client-Hardware-Address'};
-#        my $xid = $RAD_REQUEST{'DHCP-Transaction-Id'};
-#        my $msgtype = $RAD_REQUEST{'DHCP-Message-Type'};
-#
-##use constant  RLM_MODULE_REJECT=>    0;#  /* immediately reject the request */
-##use constant	RLM_MODULE_FAIL=>      1;#  /* module failed, don't reply */
-##use constant	RLM_MODULE_OK=>        2;#  /* the module is OK, continue */
-##use constant	RLM_MODULE_HANDLED=>   3;#  /* the module handled the request, so stop. */
-##use constant	RLM_MODULE_INVALID=>   4;#  /* the module considers the request invalid. */
-##use constant	RLM_MODULE_USERLOCK=>  5;#  /* reject the request (user is locked out) */
-##use constant	RLM_MODULE_NOTFOUND=>  6;#  /* user not found */
-##use constant	RLM_MODULE_NOOP=>      7;#  /* module succeeded without doing anything */
-##use constant	RLM_MODULE_UPDATED=>   8;#  /* OK (pairs modified) */
-##use constant	RLM_MODULE_NUMCODES=>  9;#  /* How many return codes there are */
-#my $message = '';
-#my $yiaddr  = '192.168.1.33'; 
-#my $mask    = '255.255.255.0'; 
-#my $gw      = '192.168.1.32'; 
-#my $lease   = 600;
-#
-#        if ( $yiaddr and $mask and $gw ) {
-#                $RAD_REPLY{'DHCP-Your-IP-Address'} = $yiaddr;
-#                $RAD_REPLY{'DHCP-Subnet-Mask'}     = $mask;
-#                $RAD_REPLY{'DHCP-Router-Address'}  = $gw;
-#                $RAD_REPLY{'DHCP-IP-Address-Lease-Time'} = $lease;
-#                $RAD_REPLY{'DHCP-Client-IP-Address'}=$yiaddr;
-#                if ( $message ) {
-#                        $RAD_REQUEST{'Tmp-String-0'} = $message;
-#                } else {
-#                        $RAD_REQUEST{'Tmp-String-0'} = 'OK';
-#                };
-#                return 2;
-#        };
-##        if ( $message ) {
-##                $RAD_REQUEST{'Tmp-String-0'} = $message;
-##        } else
-##        {
-##                $RAD_REQUEST{'Tmp-String-0'} = 'no IP from DB.';
-##        }
-##        return 6;
-#
-#  	
-#    $RAD_REPLY{'DHCP-Your-IP-Address'} = '192.168.0.23';
-#    $RAD_REPLY{'DHCP-Subnet-Mask'} = '255.255.255.0';
-#    #$RAD_REPLY{'DHCP-Router-Address'} = '192.168.1.220';
-#    $RAD_REPLY{'DHCP-IP-Address-Lease-Time'} = 8600;
-#  	return 2;
-#   }
+    $auth_mod{"$nas->{NAS_TYPE}"} = $AUTH{$nas->{NAS_TYPE}}->new($db, \%conf);
+    my ($r, $RAD_PAIRS) = $auth_mod{"$nas->{NAS_TYPE}"}->auth($RAD, $nas);
+
+    %RAD_REPLY = %$RAD_PAIRS;
+    return $r;
+   }
 
   if (defined(%RAD_REQUEST)) {
     if ($RAD_REPLY{'Reply-Message'}) {

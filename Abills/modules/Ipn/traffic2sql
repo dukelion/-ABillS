@@ -246,11 +246,6 @@ my %RAD = ();
 my $registred = '';
 
 foreach my $ip ( sort keys %$session_ids) {  
-	#my $mask = 32;
-	#if (length($ip)) {
-	#  ($ip, $mask)=unpack('N4N4', $ip);	
-	# }
-
   if (length($ip) < 2) {	next; }
   my $uid           = $ips->{$ip};
   my $login         = $logins->{$uid};

@@ -68,6 +68,9 @@ CREATE TABLE `dhcphosts_leases` (
   `hostname` varchar(30) NOT NULL DEFAULT '',
   `nas_id` smallint(6) NOT NULL DEFAULT '0',
   `ip` int(11) unsigned NOT NULL DEFAULT '0',
+  `port` smallint(6) unsigned NOT NULL DEFAULT '0',
+  `vlan` smallint(6) unsigned NOT NULL DEFAULT '0',
+  `switch_mac` varchar(17) NOT NULL DEFAULT '',
   KEY `ip` (`ip`),
   KEY `nas_id` (`nas_id`)
 ) COMMENT='Dhcphosts leaseds';
