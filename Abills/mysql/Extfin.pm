@@ -1060,9 +1060,6 @@ sub extfin_debetors {
 
   @WHERE_RULES = ();
 
-
-  $self->{debug}=1;
-
   # Show groups
   if ($attr->{GIDS}) {
     push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 

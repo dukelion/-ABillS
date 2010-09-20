@@ -317,7 +317,6 @@ foreach my $mdelivery_id (@ids) {
   	 }
    }
 
-#  $Mdelivery->{debug}=1;
   my $user_list = $Mdelivery->user_list({ %LIST_PARAMS, STATUS => 0 });
   my @users_ids = ();
   
