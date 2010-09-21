@@ -102,11 +102,6 @@ sub paysys_import_form {
   #Default import extration	
   my $import_expr = ($attr->{IMPORT_EXPR}) ? $attr->{IMPORT_EXPR} : '(\d+)\t(.+)\t(\d+)\t(\S+)\t([0-9.,]+)\t(\d{2}-\d{2}-\d{4})\t(.+)\t(.+):ID, FIO, PHONE, CONTRACT_ID, SUM, DATE, ADDRESS, DESCRIBE';
   
-  #if (defined($conf{PAYSYS_EMAIL_CHECK_ID})) {
-  #  $attr->{IMPORT_RULE}   = $conf{PAYSYS_EMAIL_CHECK_ID};
-  #  $attr->{BINDING_FIELDS}= $conf{'PAYSYS_IMPORT_BINDING_'.$conf{PAYSYS_EMAIL_CHECK_ID}};
-  # }
-
   #Default Binding field
   my $BINDING_FIELD = ($attr->{BINDING_FIELDS}) ? $attr->{BINDING_FIELDS} : 'CONTRACT_ID';
 
@@ -141,7 +136,8 @@ sub paysys_import_form {
 	}
   
   ($DATA_ARR, $BINDING_IDS)=payasys_import_parse($content, $import_expr, $BINDING_FIELD);
-#Make users binding hash
+
+  #Make users binding hash
   my $ids = join(', ', @$BINDING_IDS);
   my $users = Users->new($db, $admin, \%conf); 
   $ids =~ s/, /', '/g;
@@ -166,6 +162,7 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
        
        next if ($DATA_ARR->[$i]->{SUM} == 0);
        $error             = 0;
+       $error_str         = '';
        my $user           = $users->info($uid);
        my $describe       = $DATA_ARR->[$i]->{DESCRIBE} || ''; 
        my $inner_describe = $DATA_ARR->[$i]->{INNER_DESCRIBE} || '';
@@ -193,9 +190,8 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
                         } );
             }
            if ($payments->{errno} && $payments->{errno} == 7) {
-             $error_str = "ERROR: EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$ID PaymetsID: $payments->{ID}\n";
+           	 $error_str = "ERROR: EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$ID\n";
              $error=1;
-             print $error_str;
             }
          }
         elsif ($ARGV->{TYPE} eq 'FEES') {
@@ -212,9 +208,8 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
            }
 
           if ($fees->{errno} && $fees->{errno} == 7) {
-           	$error_str .= "ERROR: EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$ID\n";
+           	$error_str = "ERROR: EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$ID\n";
            	$error=1;
-           	print $error_str;
            }
          }
 
@@ -224,9 +219,10 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
           }
         }
        else {
-         $error_str .= "ERROR: NOT_EXIST BIND_FIELD: $BINDING_FIELD - $DATA_ARR->[$i]->{$BINDING_FIELD} DATE: $DATA_ARR->[$i]->{DATE} SUM: $DATA_ARR->[$i]->{SUM}\n ";
-         print $error_str;
+         $error_str = "ERROR: NOT_EXIST BIND_FIELD: $BINDING_FIELD - $DATA_ARR->[$i]->{$BINDING_FIELD} DATE: $DATA_ARR->[$i]->{DATE} SUM: $DATA_ARR->[$i]->{SUM}\n ";
         }
+
+    print $error_str if ($error_str ne '');
 
     $total_count++;
     $total_sum+=$DATA_ARR->[$i]->{SUM};
@@ -553,12 +549,10 @@ sub paysys_import {
 # Main iport  parser
 #**********************************************************
 sub help {
-	
 	my @import_types = ();
 	if ($conf{PAYSYS_IMPORT_RULES}) {
 	  @import_rules_arr = split(/,/, $conf{PAYSYS_IMPORT_RULES}) ;
    }
-
   my $import_rules = '';
   for(my $i=0; $i<=$#import_rules_arr; $i++) {
     $import_rules .= "      $i - $import_rules_arr[$i]\n";
@@ -585,7 +579,6 @@ $import_rules
   help                 - this help
 
 [END]
-	
 }
 
 
