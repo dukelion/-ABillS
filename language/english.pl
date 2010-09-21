@@ -445,4 +445,5 @@ $_PAY_TO='Pay to date';
 $_CELL_PHONE='Cell phone';
 $_INN='Tax number';
 $_BIRTHDAY='Birthday';
+$_FLATS='Flats';
 

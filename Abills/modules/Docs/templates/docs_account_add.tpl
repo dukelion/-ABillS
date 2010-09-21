@@ -5,6 +5,7 @@
 <input type=hidden name='sid' value='$FORM{sid}'>
 <input type=hidden name='OP_SID' value='%OP_SID%'>
 <input type=hidden name='VAT' value='%VAT%'>
+<input type=hidden name='SEND_EMAIL' value='1'>
 <Table>
 <tr><th align=right class='form_title' colspan=2>%CAPTION%</th></tr>
 %FORM_ACCT_ID%

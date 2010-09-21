@@ -279,7 +279,6 @@ sub pi {
   my ($attr) = @_;
   
   my $UID = ($attr->{UID}) ? $attr->{UID} : $self->{UID};
-  
 
 #Make info fields use
   my $info_fields = '';
@@ -300,9 +299,6 @@ sub pi {
     $self->{INFO_FIELDS_ARR}  = \@info_fields_arr;
     $self->{INFO_FIELDS_HASH} = \%info_fields_hash;
    }
-
-
-  
   
   $self->query($db, "SELECT pi.fio, 
   pi.phone, 
@@ -1955,21 +1951,34 @@ sub build_list {
 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ENTRANCES}, 'INT', 'b.entrances') };
   }
 
-
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
+ my $sql = '';
+ if ($attr->{CONNECTIONS}) {
+	 $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name, 
+     count(pi.uid),
+	   b.added, b.id  FROM builds b
+     LEFT JOIN streets s ON (s.id=b.street_id)
+     LEFT JOIN users_pi pi ON (b.id=pi.location_id)
+     $WHERE 
+     GROUP BY b.id
+     ORDER BY $SORT $DESC
+     LIMIT $PG, $PAGE_ROWS    
+     ;";
+  }
+ else {
+ 	 $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name, b.added, b.id  FROM builds b
+     LEFT JOIN streets s ON (s.id=b.street_id)
+     $WHERE ORDER BY $SORT $DESC
+     LIMIT $PG, $PAGE_ROWS;";
+  }
 
- $self->query($db, "SELECT b.number, b.flors, b.entrances, b.flats, s.name, b.added, b.id  FROM builds b
-  LEFT JOIN streets s ON (s.id=b.street_id)
-  $WHERE ORDER BY $SORT $DESC
-  LIMIT $PG, $PAGE_ROWS;");
-
+ $self->query($db, "$sql");
  my $list = $self->{list};
 
  if ($self->{TOTAL} > 0) {
     $self->query($db, "SELECT count(*) FROM builds b $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
-
  return $list;
 }
 

@@ -1154,7 +1154,7 @@ sub user_pi {
      my $list = $users->build_list({ STREET_ID => $FORM{STREET}, PAGE_ROWS => 10000 });
      if ($users->{TOTAL} > 0) {
        foreach my $line (@$list) {
-         $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[5]'>$line->[0]</option>"; 
+         $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[6]'>$line->[0]</option>"; 
         }
       }
      else {
@@ -6814,21 +6814,17 @@ $html->tpl_show(templates('form_build'), $users);
 $LIST_PARAMS{DISTRICT_ID}=$FORM{DISTRICT_ID} if ($FORM{DISTRICT_ID});
 $pages_qs .= "&BUILDS=$FORM{BUILDS}" if ($FORM{BUILDS});
 
-my $list = $users->build_list({ %LIST_PARAMS, STREET_ID => $FORM{BUILDS} });
 
+my $list = $users->build_list({ %LIST_PARAMS, STREET_ID => $FORM{BUILDS}, CONNECTIONS => 1 });
 
-my $table = $html->table({ width      => '640',
+my $table = $html->table({ width      => '100%',
 	                         caption    => $_BUILDS,
-                           title      => ["$_NUM", "$_FLORS", "$_ENTRANCES", "$_STREETS", "$_ADDED",   '-', '-'],
+                           title      => ["$_NUM", "$_FLORS", "$_ENTRANCES", "$_FLATS", "$_STREETS", "$_CENNECTED $_USERS", "$_ADDED",   '-', '-'],
                            cols_align => ['right', 'left', 'left', 'right', 'center', 'center'],
                            pages      => $users->{TOTAL},                           
                            qs         => $pages_qs,
                            ID         => 'STREET_LIST'
                           });
-
-
-
-
 
 
 foreach my $line (@$list) {
@@ -6837,9 +6833,10 @@ foreach my $line (@$list) {
      $line->[2], 
      $line->[3], 
      $line->[4], 
-   
-     $html->button($_CHANGE, "index=$index&chg=$line->[5]&BUILDS=$FORM{BUILDS}", { BUTTON => 1 }), 
-     $html->button($_DEL, "index=$index&del=$line->[5]&BUILDS=$FORM{BUILDS}", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
+     $line->[5], 
+     $line->[6], 
+     $html->button($_CHANGE, "index=$index&chg=$line->[7]&BUILDS=$FORM{BUILDS}", { BUTTON => 1 }), 
+     $html->button($_DEL, "index=$index&del=$line->[7]&BUILDS=$FORM{BUILDS}", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
 }
 print $table->show();	
 
