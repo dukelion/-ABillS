@@ -34,6 +34,7 @@ sub hangup {
  $NAS = $Nas;
  $nas_type = $NAS->{NAS_TYPE};
 
+
  if ($nas_type eq 'exppp') {
    hangup_exppp($NAS, $PORT, $attr);
   }

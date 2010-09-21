@@ -292,6 +292,9 @@ sub online {
  if (defined($attr->{USER_NAME})) {
  	 push @WHERE_RULES, "c.user_name LIKE '$attr->{USER_NAME}'";
   }
+ elsif ($attr->{UID}) {
+         push @WHERE_RULES, "c.uid='$attr->{UID}'";
+  }
 
  if (defined($attr->{SESSION_ID})) {
  	 push @WHERE_RULES, "c.acct_session_id LIKE '$attr->{SESSION_ID}'";
@@ -303,9 +306,6 @@ sub online {
  	 push @WHERE_RULES, "c.acct_session_id IN ($w)";
   }
  
- if ($attr->{UID}) {
- 	 push @WHERE_RULES, "c.uid LIKE '$attr->{UID}'";
-  }
 
  # Show groups
  if ($attr->{GIDS}) {

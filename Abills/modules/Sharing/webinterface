@@ -607,15 +607,35 @@ if (defined($attr->{USER}))	{
 #	return 0;
 #}	
 
-
 if ($FORM{del} && $FORM{is_js_confirmed}) {
+	if(! defined($permissions{3}{1})) {
+     $html->message('err', $_ERROR, 'ACCESS DENY');
+     return 0;
+	 }
+
+  $Sharing->session_del({
+	    USER_NAME => $FORM{USER_NAME},
+	    FILE  => $FORM{FILE},
+	    START => $FORM{START}
+	});
+	
+  if (! $sessions->{errno})	 {
+ 	  my $table = $html->table( { 
+	                          width => '100%',
+                            rows  => [["$_LOGIN: ",        $FORM{USER_NAME} ],
+                                     ["$_FILE: ",      $FORM{FILE} ]
+                                    ]
+                           } );
+    $html->message('info', $_DELETED, $table->show());
+  }
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
 	if(! defined($permissions{3}{1})) {
      $html->message('err', $_ERROR, 'ACCESS DENY');
      return 0;
 	 } 
 
 	my ($UID, $session_id, $nas_id, $session_start_date, $session_start_time, $sum, $login)=split(/ /, $FORM{del}, 7);
-	$sessions->del($UID, $session_id, $nas_id, "$session_start_date $session_start_time");
   if (! $sessions->{errno})	 {
   	my $table = $html->table( { 
 	                          width => '100%',

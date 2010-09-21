@@ -6311,6 +6311,12 @@ sub _external {
 	my ($file, $attr) = @_;
   
   my $arguments = '';
+  $attr->{LOGIN}      = $users->{LOGIN};
+  $attr->{DEPOSIT}    = $users->{DEPOSIT};
+  $attr->{CREDIT}     = $users->{CREDIT};
+  $attr->{GID}        = $users->{GID};
+  $attr->{COMPANY_ID} = $users->{COMPANY_ID};
+  
   while(my ($k, $v) = each %$attr) {
   	if ($k ne '__BUFFER' && $k =~ /[A-Z0-9_]/) {
   		$arguments .= " $k=\"$v\"";
