@@ -277,7 +277,16 @@ sub post_auth {
     $auth_mod{"$nas->{NAS_TYPE}"} = $AUTH{$nas->{NAS_TYPE}}->new($db, \%conf);
     my ($r, $RAD_PAIRS) = $auth_mod{"$nas->{NAS_TYPE}"}->auth($RAD, $nas);
 
+    my $message = $RAD->{USER_NAME};
+
     %RAD_REPLY = %$RAD_PAIRS;
+    if ($r == 2) {
+      $log_print->('LOG_INFO', $RAD->{USER_NAME}, "$message$GT", { NAS => $nas});
+     }
+    else {
+    	access_deny("$RAD->{USER_NAME}", "$message$GT", $nas->{NAS_ID});
+     }
+
     return $r;
    }
 
