@@ -1997,13 +1997,18 @@ sub survey_question_change {
 sub survey_answer_show {
   my $self = shift;
   my ($attr) = @_;
+
+  my $WHERE = ($attr->{REPLY_ID}) ? "AND reply_id='$attr->{REPLY_ID}'" : "AND msg_id='$attr->{MSG_ID}' AND reply_id='0' ";
 	
   $self->query($db, "SELECT question_id,
   uid,
   answer,
   comments,
   date_time,
-  survey_id FROM msgs_survey_answers WHERE survey_id='$attr->{SURVEY_ID}' AND uid='$attr->{UID}';");
+  survey_id 
+  FROM msgs_survey_answers 
+  WHERE survey_id='$attr->{SURVEY_ID}' 
+  AND uid='$attr->{UID}' $WHERE;");
 	
 	return $self->{list};
 }
@@ -2023,13 +2028,18 @@ sub survey_answer_add {
   answer,
   comments,
   date_time,
-  survey_id)
-  values('$id', 
+  survey_id,
+  msg_id,
+  reply_id)
+  values ('$id', 
   '$attr->{UID}', 
   '". $attr->{'PARAMS_'. $id}."', 
   '". $attr->{'USER_COMMENTS_'. $id} ."', 
   now(), 
-  '$attr->{SURVEY_ID}');";
+  '$attr->{SURVEY_ID}',
+  '$attr->{MSG_ID}',
+  '$attr->{REPLY_ID}'
+  );";
   
     $self->query($db, $sql, 'do');
 	 }
@@ -2044,7 +2054,10 @@ sub survey_answer_add {
 sub survey_answer_del {
   my $self = shift;
   my ($attr) = @_;
-  $self->query($db, "DELETE FROM msgs_survey_answers WHERE survey_id='$attr->{SURVEY_ID}' AND uid='$attr->{UID}';", 'do');
+  
+  my $WHERE = ($attr->{REPLY_ID}) ? "AND reply_id='$attr->{REPLY_ID}'" : "'$attr->{MSG_ID}'";
+  
+  $self->query($db, "DELETE FROM msgs_survey_answers WHERE survey_id='$attr->{SURVEY_ID}' AND uid='$attr->{UID}' $WHERE;", 'do');
 	return $self;
 }
 

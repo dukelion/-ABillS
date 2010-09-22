@@ -1,4 +1,10 @@
 =====0.52=====
+
+20.09.2010\\
+  ALTER TABLE dhcphosts_leases ADD COLUMN `port` smallint(6) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE dhcphosts_leases ADD COLUMN `vlan` smallint(6) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE dhcphosts_leases ADD COLUMN `switch_mac` varchar(17) NOT NULL DEFAULT '';
+
 14.09.2010\\
   * Добавлены новые поля  в журнал адресов **квартир в доме**, в журнал администраторов **адрес**, **мобильный телефон**, **день рождения**, **ИНН**, **паспорт**
 

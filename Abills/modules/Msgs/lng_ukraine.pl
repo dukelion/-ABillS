@@ -21,3 +21,4 @@ $_COMPETENCE='Компетенція';
 $_QUESTIONS='Питання';
 $_QUESTION='Питання';
 $_CONNECTION_TIME='Бажаний час підключення';
+$_NO_SUBJECT='Без теми';

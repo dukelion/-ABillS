@@ -676,7 +676,9 @@ CREATE TABLE `msgs_survey_answers` (
   `comments` text NOT NULL,
   `date_time` datetime NOT NULL,
   `survey_id` smallint(6) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`uid`,`question_id`)
+  `msg_id` int(11) unsigned NOT NULL DEFAULT '0',
+  `reply_id` int(11) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`uid`, `msg_id`, `reply_id`, `question_id`)
 ) COMMENT 'Messages Survey Answers';
 
 

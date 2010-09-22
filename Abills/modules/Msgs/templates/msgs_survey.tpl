@@ -4,6 +4,7 @@
 <br>
 <input type='hidden' name='sid' value='$sid'/>
 <input type='hidden' name='SURVEY_ID' value='%SURVEY_ID%'/>
+<input type='hidden' name='REPLY_ID' value='%REPLY_ID%'/>
 <input type='hidden' name='STATE' value='0'/>
 <input type='submit' name='%ACTION%' value='  %ACTION_LNG%  '/>
 %DELETE%

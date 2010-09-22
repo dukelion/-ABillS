@@ -21,3 +21,4 @@ $_COMPETENCE='Competence';
 $_QUESTIONS='Questions';
 $_QUESTION='Question';
 $_CONNECTION_TIME='Connection time';
+$_NO_SUBJECT='No subject';
