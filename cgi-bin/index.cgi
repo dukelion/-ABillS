@@ -1073,6 +1073,8 @@ sub form_money_transfer {
   my $deposit_limit  = 0;
   my $transfer_price = 0;
 
+  $admin->{SESSION_IP}=$ENV{REMOTE_ADDR};
+
   if ($conf{MONEY_TRANSFER} =~ /:/) {
     ($deposit_limit, $transfer_price, $no_companies)=split(/:/, $conf{MONEY_TRANSFER});
     
@@ -1136,7 +1138,8 @@ if ($FORM{s2} || $FORM{transfer}) {
             if ($transfer_price > 0) {
           		my $Fees = Finance->fees($db, $admin, \%conf);
               $Fees->take($user, $transfer_price, { DESCRIBE => "$_USER: $user2->{UID} $_COMMISSION", 
-        	                                          METHOD   => 4 });
+        	                                          METHOD   => 4,
+        	                                           });
               if (! $fees->{errno}) {
                 #$message .= " $_COMMISSION $_SUM: $transfer_price";	
                }
