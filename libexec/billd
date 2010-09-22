@@ -910,7 +910,8 @@ if ($conf{ng_car}) {
 		    if (/\s+Name: (class[\d+])_([a-zA-Z_0-9\-]+)/) {
 		      my $class = $1;
 		      my $login = $2;
-                      $login =~ s/__/\./g;	
+          $login =~ s/__/\./g;
+          $login =~ s/___/\@/g;
 
 		      if ($ARGV->{LOGINS} && $ARGV->{LOGINS} ne $login) {
 		      	 next;
