@@ -145,9 +145,11 @@ sub paysys_import_form {
  	                           PAGE_ROWS      => 1000000 
 	     	                   });
   $binding_field_id = 5;
+  $binding_field_id++ if ($conf{EXT_BILL_ACCOUNT});
   if ($BINDING_FIELD eq 'LOGIN') {
     $binding_field_id = 0;
    }
+
 
   foreach my $line (@$list) {
  	  $binding_hash{lc($line->[$binding_field_id])}=$line->[5+$users->{SEARCH_FIELDS_COUNT}].":$line->[0]:". (($line->[1]) ? $line->[1] : '');
