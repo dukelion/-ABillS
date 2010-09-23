@@ -316,34 +316,12 @@ my %shedule_type = ('tp'      => $_TARIF_PLAN,
 # admin_report_daily
 #**********************************************************
 sub admin_report_daily {
-
-##closed users account
-#$ADMIN_REPORT{CLOSED} = sprintf ("%-14s| %4s|%-20s| %9s| %8s| %19s|\n", $_LOGIN, 'V', 
-#     $_NAME, $_DEPOSIT, $_CREDIT, $_LAST_LOGIN);
-#$ADMIN_REPORT{CLOSED}.= "---------------------------------------------------------\n";
-#my %LIST_PARAMS = ( DISABLE => 'y' ) ;
-#$LIST_PARAMS{PAGE_ROWS}=10000;
-#
-#my $list = $users->list( { %LIST_PARAMS } );
-#foreach my $line (@$list) {
-#   $ADMIN_REPORT{CLOSED} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f| %19s|\n", 
-#     $line->[0], 
-#     $line->[9], 
-#     $line->[4], 
-#     $line->[2], 
-#     $line->[3], 
-#     $line->[10]);
-#}
-#$ADMIN_REPORT{CLOSED} .= "---------------------------------------------------------\n$_TOTAL: $users->{TOTAL}\n";
-
-
 #Payments
 require Finance;
 Finance->import();
 my $payments = Finance->payments($db, $admin, \%conf); 
 
-$ADMIN_REPORT{PAYMENTS}  =  sprintf("%-14s|%-28s| %8s| %20s| %12s| %15s| %19s|\n", $_LOGIN, "$_FIO", $_SUM, 
-    $_DESCRIBE, 'Admins.', 'IP', $_DATE);
+$ADMIN_REPORT{PAYMENTS}  =  sprintf("%-14s|%-28s| %20s| %8s| %12s| %15s| %19s|\n", $_LOGIN, "$_FIO", $_DESCRIBE, $_SUM, 'Admins.', 'IP', $_DATE);
 $ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
 
 $LIST_PARAMS{DATE}=$YESTERDAY;
@@ -354,14 +332,15 @@ $LIST_PARAMS{PAGE_ROWS}=1000000;
 $list = $payments->list({ %LIST_PARAMS, FIO => '*' });
 
 foreach my $line (@$list) {
-   $ADMIN_REPORT{PAYMENTS} .= sprintf ("%-14s|%-28s| %8.4f| %20s| %12s| %15s| %19s|\n", 
+  $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s|%-28s| %20s| %8.4f| %12s| %15s| %19s|\n", 
     $line->[1], 
     $line->[2],
     $line->[4], 
     $line->[5], 
     $line->[6], 
     $line->[7], 
-    $line->[3]);
+    $line->[3]
+    );
 }
 
 $ADMIN_REPORT{PAYMENTS} .= "---------------------------------------------------------\n";
@@ -375,14 +354,14 @@ $ADMIN_REPORT{PAYMENTS} .= sprintf("%-14s| %8s|\n%-14s| %8s|\n",
 my $fees = Finance->fees($db, $admin, \%conf);
 
 # Daily fees report
-$ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-28s| %8s| %20s| %12s| %15s| %8s\n", $_LOGIN, $_FIO, $_SUM, $_DESCRIBE, $_TYPE, $_ADMINS, 'IP', $_DEPOSIT);
+$ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-28s| %8s| %20s| %12s| %15s| %8s\n", $_LOGIN, $_FIO, $_DESCRIBE, $_SUM, $_TYPE, $_ADMINS, 'IP', $_DEPOSIT);
 $ADMIN_REPORT{FEES} .= "---------------------------------------------------------\n";
 
 
 $list = $fees->list( { %LIST_PARAMS, FIO => '*' } );
 foreach my $line (@$list) {
 
-  $ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-28s| %8.4f| %20s| %12s | %12s| %15s| %8.4f\n", 
+  $ADMIN_REPORT{FEES} .= sprintf ("%-14s|%-28s| %20s| %8.4f| %12s | %12s| %15s| %8.4f\n", 
     ($line->[1]) ? $line->[1] : "!Unknown", 
     ($line->[2]) ? $line->[2] : "", 
     $line->[4],
@@ -685,7 +664,7 @@ sub debetors_group_create {
   foreach my $line (sort @DEBETORS_GROUP) {
     # DEBETOR_GROUP_ID:DEPOSIT:LAST_PAYNMENT_DAYS:USER_GID
     my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS, $USER_GID) = split(/:/, $line);  
-    $USER_GID = -1 if (! defined($USER_GID));    
+    $USER_GID = -1 if (! defined($USER_GID) || $USER_GID eq '');
     $DEBETORS_GIDS{$GID}="$USER_GID";
     $USERS_GIDS{$USER_GID}="$GID:$DEPOSIT:$LAST_PAYMENTS_DAYS";
    } 
