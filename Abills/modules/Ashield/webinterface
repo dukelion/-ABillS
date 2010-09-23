@@ -24,7 +24,7 @@ my %dr_web_errors = ( 4 => "$_LOGIN $_NOT_EXIST",
  	    	              6 => $ERR_WRONG_PASSWD,
  	    	             12 => "$_LOGIN $_NOT_EXIST",
  	    	             18 => "$_LOGIN - $_EXIST",
- 	    	             20 => "'$FORM{EMAIL}' $_WRONG_EMAIL",
+ 	    	             20 => "$_WRONG_EMAIL",
 	    	             );
 
 
@@ -899,7 +899,7 @@ if ($drweb_total_users != $Ashield->{TOTAL}) {
   my $table = $html->table( { width      => '100%',
                             caption    => "$_NOT_EXIST",
                             border     => 1,
-                            title      => [ id, "$_GROUP", '-'],
+                            title      => [ '#', "$_GROUP", '-'],
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint'],
                             ID         => 'ASHIELD_UNKNOWN_USERS'
                            });

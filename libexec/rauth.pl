@@ -268,7 +268,7 @@ sub post_auth {
   my ($RAD) = @_;
   
   my $reject_info = '';
-  if ($RAD{'DHCP_MESSAGE_TYPE'}) {
+  if ($RAD->{'DHCP_MESSAGE_TYPE'}) {
     if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
       require $AUTH{$nas->{NAS_TYPE}} . ".pm";
       $AUTH{$nas->{NAS_TYPE}}->import();
