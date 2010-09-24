@@ -1328,7 +1328,7 @@ sub user_pi {
   
   if ($conf{ADDRESS_REGISTER}) {
   	my $add_address_index = get_function_index('form_districts');
-  	$user_pi->{ADD_ADDRESS_LINK} = $html->button("$_ADD", "index=$add_address_index", { BUTTON => 1 });
+  	$user_pi->{ADD_ADDRESS_LINK} = $html->button("$_ADD $_ADDRESS", "index=$add_address_index", { BUTTON => 1 });
   	$user_pi->{ADDRESS_TPL}      = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
    }
   else {
@@ -3867,7 +3867,7 @@ if (defined($FORM{DATE})) {
   $table_fees = $html->table( { width      => '100%',
                             caption    => "$_FEES",
                             border     => 1,
-                            title      => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE, $_TYPE, $_DEPOSIT, "$_BILLS", $_ADMINS, 'IP','-'],
+                            title      => ['ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_TYPE,  "$_BILLS", $_ADMINS, 'IP','-'],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $fees->{TOTAL},
@@ -3877,9 +3877,6 @@ if (defined($FORM{DATE})) {
 
   $pages_qs .= "&subf=2" if (! $FORM{subf});
   foreach my $line (@$list) {
-    #my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=3&del=$line->[0]&UID=".$line->[10], 
-    #  { MESSAGE => "$_DEL ID: $line->[0]?" }) : ''; 
-
     $table_fees->addrow(
     $html->b($line->[0]), 
       $html->button($line->[1], "index=15&UID=".$line->[10]), 
@@ -3891,7 +3888,6 @@ if (defined($FORM{DATE})) {
       ($BILL_ACCOUNTS{$line->[7]}) ? $BILL_ACCOUNTS{$line->[7]} : "$line->[7]",
       "$line->[8]", 
       "$line->[9]",
-      #$delete
      );
   }
  }   
@@ -4094,7 +4090,7 @@ if ($FORM{DATE}) {
   $list = $payments->list( { %LIST_PARAMS } );
   $table = $html->table( { width      => '100%',
                            caption    => "$_PAYMENTS",
-                              title    => ['ID', $_LOGIN, $_DATE, $_SUM, $_DESCRIBE,   $_DEPOSIT, 
+                              title    => ['ID', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, 
                                    $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP'],
                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                            qs         => $pages_qs,

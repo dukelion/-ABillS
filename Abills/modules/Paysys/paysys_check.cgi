@@ -443,7 +443,8 @@ sub privatbank_payments {
 sub osmp_payments {
 
  if ($conf{PAYSYS_PEGAS_PASSWD}) {
-	my($user, $password)=split(/:/, $conf{PAYSYS_PEGAS_PASSWD});
+
+   my($user, $password)=split(/:/, $conf{PAYSYS_PEGAS_PASSWD});
 	
 	if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
   $ENV{HTTP_CGI_AUTHORIZATION} =~ s/basic\s+//i;
@@ -500,6 +501,7 @@ mk_log("$payment_system: $ENV{QUERY_STRING}") if ($debug > 0);
 #Check user account
 #https://service.someprovider.ru:8443/payment_app.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
 if ($command eq 'check') {
+  print "Content-Type: text/html\n\n $FORM{account} / $CHECK_FIELD";
   my $list = $users->list({ $CHECK_FIELD => $FORM{account} });
 
   if ($users->{errno}) {

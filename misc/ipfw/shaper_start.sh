@@ -148,10 +148,16 @@ for IP in ${NAT_IPS}; do
   fi;
 done;
 #Second way
-#${IPFW} nat 22 config ip 192.168.72.140 log
-#${IPFW} table 33 add 192.168.72.140 22
-#${IPFW} table 34 add 172.19.0.0/16 22
-#${IPFW} 30 add fwd 192.168.72.1 ip from 192.168.72.140 to any    
+EXT_IP="192.168.0.2"
+ISP_IP="192.168.0.1"
+NAT_ID=22
+REDIRECT_IPS="10.0.0.0/24"
+${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${EXT_IP} ${FWD_NAT_ID}
+${IPFW} nat ${NAT_ID} config ip ${EXT_IP} log
+for ip_mask in ${REDIRECT_IPS} ; do
+  ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${ip_mask} ${NAT_ID}
+done;
+${IPFW} 60015 add fwd ${ISP_IP} ip from ${EXT_IP} to any
 
 
 # nat real to fake
