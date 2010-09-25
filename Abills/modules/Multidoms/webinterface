@@ -1,5 +1,5 @@
 # MULTIDOMAIN INTERFACE
-
+#
 
 eval { require Cards; };
 if (! $@) {
@@ -19,19 +19,17 @@ else {
   exit; #return 0;
  }
 
-
 use Payments;
 use Fees;
 use Tariffs;
 use Nas;
+
 my $tariffs    = Tariffs->new($db, \%conf, $admin);
 my $payments   = Payments->new($db, $admin, \%conf);
 my $Cards      = Cards->new($db, $admin, \%conf);
 my $Multidoms  = Multidoms->new($db, $admin, \%conf);
 my $nas        = Nas->new($db, \%conf);	
-
-my @status = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
-
+my @status     = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
 
 
 #**********************************************************
