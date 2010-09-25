@@ -1,5 +1,7 @@
 # Dialup vpn web functions
 #
+#
+
 
 use Dv;
 use Finance;
@@ -3218,7 +3220,7 @@ elsif($FORM{del}) {
 
    foreach my $line (@$list) {
    	 next if ($line->[0] == $Dv->{TP_ID});
-   	 
+   	 $table->{rowcolor}=($table->{rowcolor} eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
    	 $table->addrow($line->[0], 
    	   $html->b($line->[1]).$html->br().convert($line->[19], { text2html => 1  }),
    	   $html->form_input('TP_ID', "$line->[0]", { TYPE => 'radio', OUTPUT2RETURN => 1 })

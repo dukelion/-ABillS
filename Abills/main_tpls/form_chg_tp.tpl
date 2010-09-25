@@ -9,7 +9,6 @@
 <TR><TD>$_TO:</TD><TD>%TARIF_PLAN_SEL%</TD></TR>
 <TR><TD>$_GET $_ABON:</TD><TD><input type=checkbox name=GET_ABON value=1 checked></TD></TR>
 %PARAMS%
-
 <tr><td colspan=2>%SHEDULE_LIST%</td></tr>
 </TABLE>
 <input type=submit name=%ACTION% value=\'%LNG_ACTION%\'>
