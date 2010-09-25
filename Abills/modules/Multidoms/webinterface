@@ -685,7 +685,8 @@ if($FORM{NAS_ID}) {
  	                            COMMENTS     => '*'
  	                           });
 
-   foreach my $line (@$list) {
+   $table->{rowcolor} = $_COLORS[1];
+   foreach my $line (@$list) {   	 
    	 $table->addrow(
    	   $html->b($line->[0]).$html->br().convert($line->[5], { text2html => 1  }),
    	   ($Multidoms->{TP_ID} == $line->[4]) ? $line->[6]-$Multidoms->{BONUS_CARDS} : $line->[6],
@@ -1488,6 +1489,8 @@ sub multidoms_cards_dillers {
  	$Cards->{ACTION}='add';
  	$Cards->{LNG_ACTION}=$_ADD;
 
+  print "cONTENT-tYPE: TEXT/HTML\n\n";
+
 if ($FORM{info}) {
 
   $pages_qs = "&info=$FORM{info}";
@@ -1571,8 +1574,6 @@ if ($Cards->{errno}) {
                             rows       => [ [ "$_TOTAL:", $html->b($Cards->{TOTAL}) ] ]
                         });
    print $table->show();	
-
-  
 }
 
 

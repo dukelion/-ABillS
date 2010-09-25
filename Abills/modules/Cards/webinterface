@@ -1031,6 +1031,7 @@ my @days_arr = sort keys %$report_hash;
 
 }
 
+
 #**********************************************************
 #
 #**********************************************************
@@ -1338,11 +1339,10 @@ if ($FORM{add}) {
 	   	 $html->message('err', $_ERROR, "$ERR_WRONG_SUM");
 	   	 print $html->{OUTPUT};
 	   	 exit;
-	    }
-	
+	    }	
 	
      my $fees = Finance->fees($db, $admin, \%conf);
-     
+
      if ($FORM{EXPORT} && $FORM{EXPORT} eq 'xml') {
      	  print "Content-Type: text/xml; filename=\"cards_$DATE.xml\"\n".
   	    "Content-Disposition: attachment; filename=\"cards_$DATE.xml\"; size=$Msgs->{FILESIZE}".
@@ -1379,8 +1379,31 @@ if ($FORM{add}) {
      $serial++;
 
      if($FORM{CARDS_PAYMENT_PIN_LENGTH}) {
-         $FORM{CARDS_PAYMENT_PIN_LENGTH} = $conf{CARDS_PAYMENT_PIN_LENGTH} || 8;
+       $FORM{CARDS_PAYMENT_PIN_LENGTH} = $conf{CARDS_PAYMENT_PIN_LENGTH} || 8;
+      }
+
+      #Get duiller TP info Take fees
+      my $sum = 0;
+      if ($diller->{PERCENTAGE} > 0) {
        }
+      else {
+         $Cards->dillers_tp_info({ ID => $diller->{TP_ID} });
+            	
+         if ($Cards->{TOTAL} > 0) {
+           if ($Cards->{PERCENTAGE} > 0) {
+             $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $Cards->{PERCENTAGE})));
+            }
+
+           if ( $Cards->{OPERATION_PAYMENT} > 0) {
+          	  $sum += $Cards->{OPERATION_PAYMENT};
+             }
+          }
+         else {
+           $sum = $FORM{SUM};
+     	   }
+      }
+
+
 
       my @CARDS_OUTPUT = ();
       #Import from other systems
@@ -1416,9 +1439,8 @@ if ($FORM{add}) {
     	    	  $FORM{'1.PASSWORD'}   = $line->{PASSWORD};
   	   	      $FORM{'1.CREATE_BILL'}= 1;
   	   	      $FORM{'4.TP_ID'}      = $FORM{TP_ID};
-        
               $line->{UID} = dv_wizard_user({ SHORT_REPORT => 1 });
-       
+
     	 	      if ( $line->{UID} < 1) {
     	 	  	     $html->message('err', "$_ERROR", "$_LOGIN: '$line->{LOGIN}'");
         	 	  	 last if (! $line->{SKIP_ERRORS} );
@@ -1426,8 +1448,7 @@ if ($FORM{add}) {
   	 	        else {
   	 	          #Confim card creation
   	 	          $added_count++;
-    	 	        #$table->addrow("$FORM{'1.LOGIN'}", "$UID", "$FORM{ex_message}");
-
+                $line->{NUMBER} = sprintf("%.11d", $line->{NUMBER}); 
   	   	  	    push @CARDS_OUTPUT, { PIN => $pin,
    	 	  	      	LOGIN       => $FORM{'1.LOGIN'},
   	 	  	      	PASSWORD    => $FORM{'1.PASSWORD'},
@@ -1441,8 +1462,25 @@ if ($FORM{add}) {
                   TARF_PLAN   => $FORM{TP_ID}
                    };
   	 	  	    
+  	 	  	      #If prepaid or postpaid service
+                if ($Cards->{PAYMENT_TYPE} < 2) {
+	                if ($diller->{PERCENTAGE} > 0) {
+                    $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $diller->{PERCENTAGE})));
+                   }
+                  $fees->take($user, $sum,
+                                    {  DESCRIBE     => "$_ICARDS $line->{SERIA}$line->{NUMBER}",
+                                       METHOD       => 0,
+                                       EXT_ID       => "$Cards->{SERIAL}$line->{NUMBER}",
+                                       CHECK_EXT_ID => "$Cards->{SERIAL}$line->{NUMBER}"
+                                     });
+                                     
+                  if ($fees->{errno}) {
+                  	print "Fees Error $fees->{errstr}\n";
+                   }
+                 }
+
   	 	  	      if(cards_users_gen_confim({ %$line, 
-  	 	  	    	                          SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  }) == 0) {
+     	 	  	    	                          SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  }) == 0) {
   	 	  		     return 0;
   	 	  		 }
   	 	    }
@@ -1456,14 +1494,12 @@ if ($FORM{add}) {
         	  if ($FORM{TYPE}) {
         		  my $password = mk_unique_value($FORM{PASSWD_LENGTH}, { SYMBOLS => $FORM{PASSWD_SYMBOLS} || undef });
         	   }
-        	
-        	
+
             my $pin         = mk_unique_value($FORM{CARDS_PAYMENT_PIN_LENGTH}, { SYMBOLS => '1234567890' });
-            $i              = sprintf("%s%.11d", $FORM{SERIAL}, $i);
             my $EXPIRE_DATE = '0000-00-00';
 
             $Cards->cards_add({ SERIAL    => "",
-                              NUMBER    => "$i",
+                              NUMBER    => sprintf("%.11d", $i),
                               PIN       => "$pin",
                               SUM       => "$FORM{SUM}",
                               STATUS    => 0,
@@ -1476,37 +1512,18 @@ if ($FORM{add}) {
               return 0;
              }
             else {
-            	my $sum = 0;
-              #Take fees
-              if ($diller->{PERCENTAGE} > 0) {
-                $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $diller->{PERCENTAGE})));
-               }
-              else {
-            	  $Cards->dillers_tp_info({ ID => $diller->{TP_ID} });
-            	
-            	  if ($Cards->{TOTAL} > 0) {
-                  if ($Cards->{PERCENTAGE} > 0) {
-              	    $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $Cards->{PERCENTAGE})));
-                   }
-
-                  if ( $Cards->{OPERATION_PAYMENT} > 0) {
-                	  $sum += $Cards->{OPERATION_PAYMENT};
-                   }
-                 }
-             	  else {
-             	  	$sum = $FORM{SUM};
-            	   }
-               }
-
-              #If prepaid or postpaid service
               if ($Cards->{PAYMENT_TYPE} < 2) {
+                if ($diller->{PERCENTAGE} > 0) {
+                  $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $diller->{PERCENTAGE})));
+                 }
                 $fees->take($user, $sum,
-                                    {  DESCRIBE     => "$_ICARDS $Cards->{SERIAL}$Cards->{NUMBER}",
+                                    {  DESCRIBE     => "$_ICARDS $Cards->{SERIAL}$i",
                                        METHOD       => 0,
-                                       EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
-                                       CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
+                                       EXT_ID       => "$Cards->{SERIAL}$i",
+                                       CHECK_EXT_ID => "$Cards->{SERIAL}$i"
                                      });
                }
+
                 push @CARDS_OUTPUT, { 
                 	LOGIN       => '-',
                 	PIN         => $pin,
@@ -1517,6 +1534,7 @@ if ($FORM{add}) {
                   DILLER_ID   => $diller->{ID}
                    };
              }
+
            }
          }
         }
@@ -1763,6 +1781,8 @@ $table = $html->table( { width      => '100%',
                      } );
 print $table->show();
 }
+
+
 
 
 #**********************************************************

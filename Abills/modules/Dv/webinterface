@@ -129,7 +129,7 @@ if ($FORM{set}) {
      }
     else {
       #Take fees
-      if ($Dv->{TP_INFO}->{MONTH_FEE} > 0 && ! $Dv->{STATUS}) {
+      if ($Dv->{TP_INFO}->{MONTH_FEE} > 0 && ! $Dv->{STATUS} && $FORM{GET_ABON}) {
         dv_get_month_fee($Dv);
        }
 
@@ -476,7 +476,9 @@ sub dv_user {
 
     if (! $Dv->{errno}) {
       $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
-      dv_get_month_fee($Dv) if (! $FORM{STATUS});
+      if (! $FORM{STATUS} && $FORM{GET_ABON}) {
+        dv_get_month_fee($Dv);
+       }
 
       $html->message('info', $_INFO, "$_CHANGED");	
      }

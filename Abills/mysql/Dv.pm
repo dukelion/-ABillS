@@ -244,8 +244,6 @@ sub change {
   my $self = shift;
   my ($attr) = @_;
   
-
-  
   my %FIELDS = (SIMULTANEONSLY => 'logins',
               STATUS           => 'disable',
               IP               => 'ip',
@@ -281,7 +279,6 @@ sub change {
      
      if ($old_info->{STATUS} == 2 && (defined($attr->{STATUS}) && $attr->{STATUS} == 0) && $tariffs->{ACTIV_PRICE} > 0) {
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0 && $tariffs->{POSTPAID_FEE} == 0) {
-        
          $self->{errno}=15;
        	 return $self; 
         }
@@ -308,7 +305,6 @@ sub change {
 
        use POSIX qw(strftime);
        my $EXPITE_DATE = strftime( "%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}) );
-       #"curdate() + $tariffs->{AGE} days";
        $user->change($attr->{UID}, { EXPIRE => $EXPITE_DATE, UID => $attr->{UID} });
      }
    }
