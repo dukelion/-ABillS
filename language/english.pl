@@ -446,4 +446,6 @@ $_CELL_PHONE='Cell phone';
 $_INN='Tax number';
 $_BIRTHDAY='Birthday';
 $_FLATS='Flats';
+$_ACTION='Action';
+$_EXECUTE='Execute';
 

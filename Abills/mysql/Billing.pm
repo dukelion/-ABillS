@@ -356,22 +356,15 @@ sub get_traffic_ipn {
        FROM ipn_log 
        WHERE uid $WHERE and ($period)
        GROUP BY 1;");
-
  
   foreach my $line (@{ $self->{list} }) {
     if ($line->[0] == $attr->{TRAFFIC_CLASS}) {
       $result{TRAFFIC_OUT}=$line->[1]; 
       $result{TRAFFIC_IN} =$line->[2];
      }
-#    else {
-#      $result{'TRAFFIC_OUT'.($line->[0]+1)}=$line->[1]; 
-#      $result{'TRAFFIC_IN'.($line->[0]+1)} =$line->[2];
-#     }
    }
-
  
   $self->{PERIOD_TRAFFIC}=\%result;
-  
 	return \%result;
 }
 
@@ -428,7 +421,8 @@ sub session_sum {
     u.activate,
     u.company_id,
     u.domain_id,
-    u.credit
+    u.credit,
+    u.ext_bill_id
    FROM users u
    WHERE u.uid='$attr->{UID}';");
 
@@ -449,7 +443,8 @@ sub session_sum {
    $self->{ACTIVATE},
    $self->{COMPANY_ID},
    $attr->{DOMAIN_ID},
-   $self->{CREDIT}
+   $self->{CREDIT},
+   $self->{EXT_BILL_ID}
   ) = @{ $self->{list}->[0] };	
  	
  	$self->query($db, "SELECT 
@@ -495,6 +490,7 @@ sub session_sum {
     u.bill_id,
     u.activate,
     u.company_id,
+    u.ext_bill_id
    FROM users u
    WHERE  u.id='$USER_NAME' and u.domain_id='$attr->{DOMAIN_ID}';");
 
@@ -514,6 +510,7 @@ sub session_sum {
    $self->{BILL_ID}, 
    $self->{ACTIVATE},
    $self->{COMPANY_ID},
+   $self->{EXT_BILL_ID},
   ) = @{ $self->{list}->[0] };	
  	
  	$self->query($db, "SELECT 
@@ -566,7 +563,8 @@ sub session_sum {
     dv.join_service,
     tp.tp_id,
     tp.total_time_limit,
-    tp.total_traf_limit
+    tp.total_traf_limit,
+    u.ext_bill_id
    FROM (users u, 
       dv_main dv) 
    LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id AND tp.domain_id='$attr->{DOMAIN_ID}')
@@ -598,7 +596,8 @@ sub session_sum {
    $self->{JOIN_SERVICE},
    $self->{TP_ID},
    $self->{TOTAL_TIME_LIMIT},
-   $self->{TOTAL_TRAF_LIMIT}
+   $self->{TOTAL_TRAF_LIMIT},
+   $self->{EXT_BILL_ID}
   ) = @{ $self->{list}->[0] };
  }
 
@@ -720,8 +719,7 @@ if (! $attr->{FULL_COUNT}) {
 }
 
 if ($self->{COMPANY_ID} > 0) {
-  $self->query($db, "SELECT bill_id, vat
-    FROM companies
+  $self->query($db, "SELECT bill_id, vat FROM companies
     WHERE id='$self->{COMPANY_ID}';");
 
   if ($self->{TOTAL} < 1) {
@@ -731,6 +729,14 @@ if ($self->{COMPANY_ID} > 0) {
   ($self->{BILL_ID}, $self->{VAT})= @{ $self->{list}->[0] };
   $sum = $sum + ((100 + $self->{COMPANY_VAT}) / 100) if ($self->{COMPANY_VAT});
 }
+
+  if ($CONF->{BONUS_EXT_FUNCTIONS} && $self->{EXT_BILL_ID} && $sum > 0) {
+  	$self->query($db, "SELECT deposit FROM bills WHERE id='$self->{EXT_BILL_ID}';");
+  	($self->{EXT_DEPOSIT})= @{ $self->{list}->[0] };
+  	if ($self->{EXT_DEPOSIT} > $sum) {
+  		$self->{BILL_ID}=$self->{EXT_BILL_ID};
+  	 }
+   }
 
   return $self->{UID}, sprintf("%.6f", $sum), $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
 }

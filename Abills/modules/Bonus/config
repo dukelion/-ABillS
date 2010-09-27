@@ -1,7 +1,7 @@
 #Iner_ID : Main or Sub or if -1 user menu func list
 %FUNCTIONS_LIST = (
                    "01:0:$_BONUS:bonus_users_list:"   => 11,
-                   "02:0:$_BONUS:bonus_user:UID"      => 20,
+                   "02:0:$_BONUS:bonus_user_log:UID"  => 20,
                    "08:0:$_BONUS:bonus_tp:"           => 5
                    );
 

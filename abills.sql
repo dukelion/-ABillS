@@ -776,7 +776,7 @@ CREATE TABLE `payments` (
   UNIQUE KEY `id` (`id`),
   KEY `date` (`date`),
   KEY `uid` (`uid`)
-)  ;
+) COMMENT "Payments log"  ;
 
 CREATE TABLE `s_detail` (
   `acct_session_id` varchar(25) NOT NULL default '',

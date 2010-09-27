@@ -14,7 +14,165 @@ my $Tariffs = Tariffs->new($db, \%conf, $admin);
 
 
 
+#*******************************************************************
+# bonus payments
+#*******************************************************************
+sub bonus_user_log {
+	my ($attr)=@_;
 
+ return 0 if (! $permissions{1});
+ my %ACTIONS = (0 => $_ADD, 1 => "$_TAKE");
+ my @ACTIONS_colors = ('#0000FF', '#FF8000');
+
+if (defined($attr->{USER})) {
+  my $user = $attr->{USER};
+  $payments->{UID} = $user->{UID};
+
+  if ($conf{EXT_BILL_ACCOUNT}) {
+    $BILL_ACCOUNTS{$user->{EXT_BILL_ID}} = "$_EXTRA : $user->{EXT_BILL_ID}" if ($user->{EXT_BILL_ID}); 
+    $Bonus->{BILL_ID}=$user->{EXT_BILL_ID};
+   }
+
+  if($user->{EXT_BILL_ID} < 1) {
+    form_bills({ USER => $user });
+    return 0;
+  }
+
+  if ($FORM{DATE}) {
+    ($DATE, $TIME)=split(/ /, $FORM{DATE});
+   }
+
+  if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
+ 	  $html->message('err', $_ERROR, "$_EXIST");
+   }
+  elsif ($FORM{add} && $FORM{SUM}) {
+      $Bonus->bonus_operation($user, { %FORM } );  
+
+      if ($Bonus->{errno}) {
+        $html->message('err', $_ERROR, "[$Bonus->{errno}] $err_strs{$Bonus->{errno}}");	
+       }
+      else {
+        $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} $er->{ER_SHORT_NAME}");
+        $FORM{BONUS_PAYMENT_ID} = $Bonus->{BONUS_PAYMENT_ID};
+        #cross_modules_call('_payments_maked', { %$attr, PAYMENT_ID => $payments->{PAYMENT_ID} });
+      }
+   }
+  elsif($FORM{del} && $FORM{is_js_confirmed}) {
+  	if (! defined($permissions{1}{2})) {
+      $html->message('err', $_ERROR, "[13] $err_strs{13}");
+      return 0;		
+	   }
+
+    $Bonus->bonus_operation_del($user, $FORM{del});  
+    if ($Bonus->{errno}) {
+      $html->message('err', $_ERROR, "[$Bonus->{errno}] $err_strs{$Bonus->{errno}}");	
+     }
+    else {
+      $html->message('info', $_PAYMENTS, "$_DELETED ID: $FORM{del}");
+     }
+   }
+
+for(my $i=0; $i<=$#BONUS_METHODS; $i++) {
+	$BONUS_METHODS{"$i"}="$BONUS_METHODS[$i]";
+ }
+
+$Bonus->{SEL_METHOD} = $html->form_select('METHOD', 
+                                { SELECTED     => (defined($FORM{METHOD}) && $FORM{METHOD} ne '') ? $FORM{METHOD} : '',
+ 	                                SEL_HASH     => \%BONUS_METHODS,
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1
+ 	                               });
+$Bonus->{ACTION_TYPES}  = $html->form_select('ACTION_TYPE', 
+                                { SELECTED     => (defined($FORM{ACTION_TYPE}) && $FORM{ACTION_TYPE} ne '') ? $FORM{ACTION_TYPE} : '',
+ 	                                SEL_HASH     => \%ACTIONS,
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1,
+ 	                                STYLE        => \@ACTIONS_colors
+ 	                               });
+
+  if ($permissions{1} && $permissions{1}{1}) {
+    $payments->{OP_SID} = mk_unique_value(16);
+    if ($permissions{1}{4}) {
+      $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>". $html->form_input('DATE', "$DATE $TIME"). "</td></tr>\n";
+     }
+    $html->tpl_show(_include('bonus_operation', 'Bonus'), $Bonus);
+   }
+ }
+elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
+	$FORM{subf}=$index;
+	form_admins();
+	return 0;
+ }
+elsif($FORM{UID}) {
+	form_users();
+	return 0;
+ }	
+elsif($index != 7) {
+	form_search({ HIDDEN_FIELDS => { subf => ($FORM{subf}) ? $FORM{subf} : undef,
+		                               COMPANY_ID => $FORM{COMPANY_ID}  } });
+}
+
+return 0 if (! $permissions{1}{0});
+
+if (! defined($FORM{sort})) {
+  $LIST_PARAMS{SORT}=1;
+  $LIST_PARAMS{DESC}=DESC;
+ }
+
+$LIST_PARAMS{ID}=$FORM{ID} if ($FORM{ID});
+
+my $list = $Bonus->bonus_operation_list( { %LIST_PARAMS } );
+my $table = $html->table( { width      => '100%',
+                            caption    => "$_BONUS",
+                            border     => 1,
+                            title      => ['ID', $_LOGIN, $_DATE, $_DESCRIBE,  $_SUM, $_DEPOSIT, $_EXPIRE,
+                                   $_PAYMENT_METHOD, 'EXT ID', "$_BILL", $_ADMINS, 'IP', "$_ACTION", '-'],
+                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
+                            qs         => $pages_qs,
+                            pages      => $Bonus->{TOTAL},
+                            ID         => 'BONUX_LOG'
+                           } );
+
+my $delete = '';
+foreach my $line (@$list) {
+	
+  if ($line->[14]) {
+    $delete = "$_DELETED";
+   }
+  else {
+  	$delete = ($permissions{1}{2} && $line->[4]  > 0) ?  $html->button($_DEL, "index=$index&SUM=$line->[4]&del=$line->[0]&UID=". $line->[13], { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 }) : ''; 
+   }
+
+  $table->addrow($html->b($line->[0]), 
+  $html->button($line->[1], "index=15&UID=$line->[11]"), 
+  $line->[2], 
+  $line->[3].( ($line->[14] ) ? $html->br(). $html->b($line->[14]) : '' ), 
+  $line->[4], 
+  $line->[5], 
+  $line->[6], 
+  $BONUS_METHODS{$line->[7]}, 
+  "$line->[8]", 
+#  ($conf{EXT_BILL_ACCOUNT} && $attr->{USER}) ? $BILL_ACCOUNTS{$line->[8]} : "$line->[8]",
+  "$line->[9]", 
+  "$line->[10]",   
+  "$line->[11]",
+  $html->color_mark($ACTIONS{"$line->[12]"}, $ACTIONS_colors[$line->[12]]),
+  $delete);
+}
+
+print $table->show();
+
+if (! $admin->{MAX_ROWS}) {
+  $table = $html->table({ width      => '100%',
+                        cols_align => ['right', 'right', 'right', 'right', 'right', 'right' ],
+                        rows       => [ [ "$_TOTAL:", $html->b($Bonus->{TOTAL}), 
+                                          "$_USERS:", $html->b($Bonus->{TOTAL_USERS}), 
+                                          "$_SUM",    $html->b($Bonus->{SUM}) ] ],
+                        rowcolor   => 'even'
+                      });
+  print $table->show();
+ }
+}
 
 
 #*******************************************************************
