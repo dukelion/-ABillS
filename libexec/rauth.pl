@@ -50,7 +50,6 @@ my $RAD = get_radius_params();
 #$RAD->{NAS_IP_ADDRESS}=$RAD->{DHCP_GATEWAY_IP_ADDRESS} if ($RAD->{DHCP_GATEWAY_IP_ADDRESS});
 $RAD->{NAS_IP_ADDRESS}=$RAD->{'DHCP-Gateway-IP-Address'} if ($RAD->{'DHCP-Gateway-IP-Address'});
 
-print %$RAD;
 
 if ($RAD->{NAS_IP_ADDRESS}) {
   my $ret = get_nas_info($db, $RAD);
@@ -271,7 +270,6 @@ sub post_auth {
   my ($RAD) = @_;
   
   my $reject_info = '';
-  print "post";
   if ($RAD->{'DHCP-Message-Type'}) {
     if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
       require $AUTH{$nas->{NAS_TYPE}} . ".pm";

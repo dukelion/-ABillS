@@ -1744,6 +1744,7 @@ if ($permissions{0}{7}) {
   my $table3 = $html->table( { width      => '100%',
   	                           caption    => "$_MULTIUSER_OP",
                                cols_align => ['left', 'left'],
+                               rowcolor   => $_COLORS[1],
                                rows       => [ [ $html->form_input('MU_GID', "1", { TYPE => 'checkbox', }). $_GROUP,    sel_groups()],
                                            [ $html->form_input('MU_DISABLE', "1", { TYPE => 'checkbox', }). $_DISABLE,  $html->form_input('DISABLE', "1", { TYPE => 'checkbox', }) . $_CONFIRM ],
                                            [ $html->form_input('MU_DEL', "1", { TYPE => 'checkbox', }). $_DEL,      $html->form_input('DEL', "1", { TYPE => 'checkbox', }) . $_CONFIRM ],

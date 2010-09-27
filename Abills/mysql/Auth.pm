@@ -687,7 +687,6 @@ elsif ($NAS->{NAS_TYPE} eq 'pppd' or ($NAS->{NAS_TYPE} eq 'lepppd')) {
  }
 #Chillispot
 elsif ($NAS->{NAS_TYPE} eq 'chillispot') {
-	
 	my $EX_PARAMS = $self->ex_traffic_params({ traf_limit          => $traf_limit, 
                                              deposit             => $self->{DEPOSIT}, 
                                              MAX_SESSION_TRAFFIC => $MAX_SESSION_TRAFFIC }); 
@@ -1257,6 +1256,9 @@ if (defined($trafic_limits{0}) && $trafic_limits{0} > 0  && $trafic_limits{0} < 
     $trafic_limit = ($trafic_limits{0} > $CONF->{MAX_SESSION_TRAFFIC}) ? $CONF->{MAX_SESSION_TRAFFIC} :  $trafic_limits{0};
    }
   $EX_PARAMS{traf_limit} = ($trafic_limit < 1 && $trafic_limit > 0) ? 1 : int($trafic_limit);
+  if ($self->{REDUCTION}) {
+    $EX_PARAMS{traf_limit} = $EX_PARAMS{traf_limit} * ($self->{REDUCTION} / 100 + 1);
+   }
 }
 
 #Local Traffic limit

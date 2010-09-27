@@ -59,7 +59,8 @@ my %FIELDS = ( ID               => 'id',
                DOMAIN_ID        => 'domain_id',
                PRIORITY         => 'priority',
                SMALL_DEPOSIT_ACTION => 'small_deposit_action',
-               COMMENTS        => 'comments'
+               COMMENTS        => 'comments',
+               BILLS_PRIORITY  => 'bills_priority'
              );
 
 #**********************************************************
@@ -278,14 +279,9 @@ sub tp_group_list {
 sub tp_group_change {
   my $self = shift;
   my ($attr) = @_;
-  
-  
-  $attr->{USER_CHG_TP} = (defined($attr->{USER_CHG_TP}) && $attr->{USER_CHG_TP} == 1 ) ? 1 : 0;
-  
-  
-  %DATA = $self->get_data($attr); 
 
-  
+  $attr->{USER_CHG_TP} = (defined($attr->{USER_CHG_TP}) && $attr->{USER_CHG_TP} == 1 ) ? 1 : 0;
+  %DATA = $self->get_data($attr);   
 
   my %FIELDS = (
     ID          => 'id', 
@@ -401,7 +397,8 @@ sub defaults {
             DOMAIN_ID        => 0,
             PRIORITY         => 0,
             SMALL_DEPOSIT_ACTION => 0,
-            COMMENTS         => ''
+            COMMENTS         => '',
+            BILLS_PRIORITY   => 0 
          );   
  
   $self = \%DATA;
@@ -442,7 +439,8 @@ sub add {
      small_deposit_action,
      domain_id,
      priority,
-     comments
+     comments,
+     bills_priority
      )
     values ('$DATA{ID}', '$DATA{ALERT}', \"$DATA{NAME}\", 
      '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', 
@@ -466,7 +464,8 @@ sub add {
      '$DATA{SMALL_DEPOSIT_ACTION}',
      '$admin->{DOMAIN_ID}',
      '$DATA{PRIORITY}',
-     '$DATA{COMMENTS}'
+     '$DATA{COMMENTS}',
+     '$DATA{BILLS_PRIORITY}'
      );", 'do' );
      
   $self->{TP_ID}=$self->{INSERT_ID};
@@ -483,6 +482,8 @@ sub change {
   my $self = shift;
   my ($tp_id, $attr) = @_;
 
+  $self->{debug}=1;
+
   $attr->{REDUCTION_FEE}=0       if (! $attr->{REDUCTION_FEE});
   $attr->{POSTPAID_DAY_FEE}=0    if (! $attr->{POSTPAID_DAY_FEE});
   $attr->{POSTPAID_MONTH_FEE}=0  if (! $attr->{POSTPAID_MONTH_FEE});
@@ -490,6 +491,7 @@ sub change {
   $attr->{PERIOD_ALIGNMENT}=0    if (! $attr->{PERIOD_ALIGNMENT});
   $attr->{ABON_DISTRIBUTION}=0   if (! $attr->{ABON_DISTRIBUTION});
   $attr->{SMALL_DEPOSIT_ACTION}=0 if (! $attr->{SMALL_DEPOSIT_ACTION});
+  $attr->{BILLS_PRIORITY}=0      if (! $attr->{BILLS_PRIORITY});
 
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
@@ -579,7 +581,8 @@ sub info {
       tp_id,
       domain_id,
       priority,
-      comments
+      comments,
+      bills_priority
     FROM tarif_plans
     WHERE $WHERE;");
 
@@ -632,6 +635,7 @@ sub info {
    $self->{DOMAIN_ID},
    $self->{PRIORITY},
    $self->{COMMENTS},
+   $self->{BILLS_PRIORITY}
   ) = @{ $self->{list}->[0] };
 
   return $self;
@@ -850,8 +854,7 @@ if (defined($attr->{form})) {
 sub  tt_info {
 	my $self = shift;
 	my ($attr) = @_;
-	
-	
+
   $self->query($db, "SELECT id, interval_id, in_price, out_price, prepaid, in_speed, out_speed, 
 	     descr, 
 	     net_id,
@@ -874,7 +877,6 @@ sub  tt_info {
    $self->{TT_NET_ID},
    $self->{TT_EXPRASSION}
   ) = @{ $self->{list}->[0] };
-
 	
 	return $self;
 }
@@ -1030,10 +1032,8 @@ sub holidays_list {
 
   $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
-
   my $year = (defined($attr->{year})) ? $attr->{year} : 'YEAR(CURRENT_DATE)';
   my $format = (defined($attr->{format}) && $attr->{format} eq 'daysofyear') ? "DAYOFYEAR(CONCAT($year, '-', day)) as dayofyear" : 'day';
-
   $self->query($db, "SELECT $format, descr  FROM holidays ORDER BY $SORT $DESC;");
 
 	return $self->{list};
@@ -1065,8 +1065,6 @@ sub holidays_del {
 	my $self = shift;
   my ($id) = @_;
 	$self->query($db, "DELETE from holidays WHERE day='$id';", 'do');
-	
-	
 	$admin->system_action_add("HOLIDAYS:$id", { TYPE => 10 });    
   return $self;
 }

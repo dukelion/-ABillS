@@ -455,7 +455,8 @@ sub session_sum {
     tp.total_time_limit,
     tp.total_traf_limit,
     tp.tp_id,
-    tp.neg_deposit_filter_id
+    tp.neg_deposit_filter_id,
+    tp.bills_priority
    FROM tarif_plans tp
    WHERE tp.id='$attr->{TP_NUM}' AND tp.domain_id='$attr->{DOMAIN_ID}';");
 
@@ -477,6 +478,7 @@ sub session_sum {
      $self->{TOTAL_TRAF_LIMIT},
      $self->{TP_ID},
      $self->{NEG_DEPOSIT_FILTER},
+     $self->{BILLS_PRIORITY}
     ) = @{ $self->{list}->[0] };
   }
  #If defined TP_NUM
@@ -520,7 +522,8 @@ sub session_sum {
     tp.traffic_transfer_period,
     tp.total_time_limit,
     tp.total_traf_limit,
-    tp.tp_id
+    tp.tp_id,
+    tp.bills_priority
    FROM tarif_plans tp
    WHERE tp.id='$attr->{TP_NUM}' AND tp.domain_id='$attr->{DOMAIN_ID}';");
 
@@ -541,6 +544,7 @@ sub session_sum {
      $self->{TOTAL_TIME_LIMIT},
      $self->{TOTAL_TRAF_LIMIT},
      $self->{TP_ID},
+     $self->{BILLS_PRIORITY}
     ) = @{ $self->{list}->[0] };
 
   }
@@ -564,7 +568,8 @@ sub session_sum {
     tp.tp_id,
     tp.total_time_limit,
     tp.total_traf_limit,
-    u.ext_bill_id
+    u.ext_bill_id,
+    tp.bills_priority
    FROM (users u, 
       dv_main dv) 
    LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id AND tp.domain_id='$attr->{DOMAIN_ID}')
@@ -597,7 +602,8 @@ sub session_sum {
    $self->{TP_ID},
    $self->{TOTAL_TIME_LIMIT},
    $self->{TOTAL_TRAF_LIMIT},
-   $self->{EXT_BILL_ID}
+   $self->{EXT_BILL_ID},
+   $self->{BILLS_PRIORITY}
   ) = @{ $self->{list}->[0] };
  }
 
@@ -730,10 +736,10 @@ if ($self->{COMPANY_ID} > 0) {
   $sum = $sum + ((100 + $self->{COMPANY_VAT}) / 100) if ($self->{COMPANY_VAT});
 }
 
-  if ($CONF->{BONUS_EXT_FUNCTIONS} && $self->{EXT_BILL_ID} && $sum > 0) {
+  if ($CONF->{BONUS_EXT_FUNCTIONS} && $self->{EXT_BILL_ID} && $sum > 0 && $self->{BILLS_PRIORITY}) {
   	$self->query($db, "SELECT deposit FROM bills WHERE id='$self->{EXT_BILL_ID}';");
   	($self->{EXT_DEPOSIT})= @{ $self->{list}->[0] };
-  	if ($self->{EXT_DEPOSIT} > $sum) {
+  	if ($self->{EXT_DEPOSIT} > $sum || $self->{BILLS_PRIORITY} == 2) {
   		$self->{BILL_ID}=$self->{EXT_BILL_ID};
   	 }
    }

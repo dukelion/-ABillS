@@ -1,9 +1,6 @@
 # Dialup vpn web functions
 #
 #
-
-
-
 use Dv;
 use Finance;
 use Fees;
@@ -767,19 +764,15 @@ elsif (defined($FORM{TP_ID})) {
   	         'ID' =>   $tariffs->{ID}, 
   	         $_NAME => $tariffs->{NAME_SEL}
   	       }, 
-  	{ 
-  	 },
-  	{
-  		f_args => { %F_ARGS }
-  	 });
+  	       {},
+  	       { f_args => { %F_ARGS }
+  	       });
 
   if ($FORM{subf}) {
-
   	return 0;
    }
   elsif($FORM{change}) {
     $tariffs->change( $FORM{TP_ID}, { %FORM  } );  
-     
     if (! $tariffs->{errno}) {
        $html->message('info', $_CHANGED, "$_CHANGED $tariffs->{ID}");
      }
@@ -850,6 +843,20 @@ $tarif_info->{SMALL_DEPOSIT_ACTION_SEL} = $html->form_select('SMALL_DEPOSIT_ACTI
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
+if ($conf{BONUS_EXT_FUNCTIONS}) {
+	my @BILL_ACCOUNT_PRIORITY = ( "$_PRIMARY $_BILL_ACCOUNT",
+	             "$_EXTRA $_BILL_ACCOUNT, $_PRIMARY $_BILL_ACCOUNT",
+	             "$_EXTRA $_BILL_ACCOUNT" );
+
+  $tarif_info->{BILLS_PRIORITY_SEL} = $html->form_select('BILLS_PRIORITY', 
+                                          { 
+ 	                                          SELECTED          => $tarif_info->{BILLS_PRIORITY},
+ 	                                          SEL_ARRAY         => \@BILL_ACCOUNT_PRIORITY,
+ 	                                          ARRAY_NUM_ID      => 1
+ 	                                        });
+
+	$tarif_info->{BONUS} = $html->tpl_show(_include('bonus_tp_row', 'Bonus'), $tarif_info, { OUTPUT2RETURN => 1 });
+ }
 
 
 if ($conf{EXT_BILL_ACCOUNT}) {
