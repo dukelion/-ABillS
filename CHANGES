@@ -1,13 +1,53 @@
 =====0.52=====
+28.09.2010\\
+  * Добавлена возможность выставлять приоритет денежных счетов (главный, дополнительный) при тарификации по трафику
+
+MySQL:\\
+
+  ALTER TABLE tarif_plans ADD COLUMN `bills_priority` tinyint(5) unsigned NOT NULL DEFAULT '0';
+
+27.09.2010\\
+  * Улучшен модуль работы с бонусами.
+  * Добавлена возможность не снимать абон. плату при изменении тарифа в интерфейсе администратора
+MySQL:\\
+
+  CREATE TABLE `bonus_log` (
+    `date` datetime NOT NULL default '0000-00-00 00:00:00',
+    `sum` double(10,2) NOT NULL default '0.00',
+    `dsc` varchar(80) default NULL,
+    `ip` int(11) unsigned NOT NULL default '0',
+    `last_deposit` double(15,6) NOT NULL default '0.000000',
+    `uid` int(11) unsigned NOT NULL default '0',
+    `aid` smallint(6) unsigned NOT NULL default '0',
+    `id` int(11) unsigned NOT NULL auto_increment,
+    `method` tinyint(4) unsigned NOT NULL default '0',
+    `ext_id` varchar(28) NOT NULL default '',
+    `bill_id` int(11) unsigned NOT NULL default '0',
+    `inner_describe` varchar(80) NOT NULL default '',
+    `action_type` tinyint(11) unsigned NOT NULL default '0',
+    `expire` date NOT NULL default '0000-00-00',
+    PRIMARY KEY  (`id`),
+    UNIQUE KEY `id` (`id`),
+    KEY `date` (`date`),
+    KEY `uid` (`uid`)
+  ) COMMENT "Bonus log"  ;
+
+22.09.2010\\
+  * Доработан механизм опроса для сообщений
+MySQL: \\
+  ALTER TABLE `msgs_survey_answers` ADD COLUMN `msg_id` int(11) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE `msgs_survey_answers` ADD COLUMN  `reply_id` int(11) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE `msgs_survey_answers` DROP PRIMARY KEY, ADD PRIMARY KEY(`uid`, `msg_id`, `reply_id`, `question_id`);
 
 20.09.2010\\
+MySQL: \\
   ALTER TABLE dhcphosts_leases ADD COLUMN `port` smallint(6) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE dhcphosts_leases ADD COLUMN `vlan` smallint(6) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE dhcphosts_leases ADD COLUMN `switch_mac` varchar(17) NOT NULL DEFAULT '';
 
 14.09.2010\\
-  * Добавлены новые поля  в журнал адресов **квартир в доме**, в журнал администраторов **адрес**, **мобильный телефон**, **день рождения**, **ИНН**, **паспорт**
-
+  * Добавлены новые поля  в журнал адресов **квартир в доме**, в журнал администраторов **адрес**, **мобильный телефон**, **день рождения**, **ИНН**, **паспорт**\\
+MySQL: \\
   ALTER TABLE `builds` ADD COLUMN `flats` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
   ALTER TABLE `admins` ADD COLUMN `address` VARCHAR(60) NOT NULL DEFAULT '';
   ALTER TABLE `admins` ADD COLUMN `cell_phone` varchar(20) NOT NULL DEFAULT '';
