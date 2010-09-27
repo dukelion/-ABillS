@@ -366,7 +366,7 @@ sub pi {
      LEFT JOIN builds b ON (b.id=pi.location_id)
      LEFT JOIN streets s  ON (s.id=b.street_id)
      LEFT JOIN districts d  ON (d.id=s.district_id)
-     WHERE pi.uid='$self->{UID}'");
+     WHERE pi.uid='$UID'");
    
     if ($self->{TOTAL} > 0) {
       ($self->{DISTRICT_ID}, 
