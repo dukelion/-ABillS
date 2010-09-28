@@ -347,6 +347,7 @@ sub form_info {
       if ($admin->{TOTAL} >= $month_changes) {
         $user->{CREDIT_CHG_BUTTON} = $html->color_mark("$ERR_CREDIT_CHANGE_LIMIT_REACH. $_TOTAL: $admin->{TOTAL}/$month_changes", $_COLORS[6]);
         $sum = 0;
+        return 0;
        }
      }
     #PERIOD=days;MAX_CREDIT_SUM=sum;MIN_PAYMENT_SUM=sum;

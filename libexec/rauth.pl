@@ -47,9 +47,8 @@ my $log_print = sub {
 };
 
 my $RAD = get_radius_params();
-#$RAD->{NAS_IP_ADDRESS}=$RAD->{DHCP_GATEWAY_IP_ADDRESS} if ($RAD->{DHCP_GATEWAY_IP_ADDRESS});
+$RAD->{NAS_IP_ADDRESS}=$RAD->{DHCP_GATEWAY_IP_ADDRESS} if ($RAD->{DHCP_GATEWAY_IP_ADDRESS});
 $RAD->{NAS_IP_ADDRESS}=$RAD->{'DHCP-Gateway-IP-Address'} if ($RAD->{'DHCP-Gateway-IP-Address'});
-
 
 if ($RAD->{NAS_IP_ADDRESS}) {
   my $ret = get_nas_info($db, $RAD);
@@ -58,7 +57,7 @@ if ($RAD->{NAS_IP_ADDRESS}) {
     exit 0;
    }
   elsif (defined($ARGV[0]) && $ARGV[0] eq 'post_auth') {
-    post_auth($RAD);
+    post_auth($RAD, $nas);
     exit 0;
    }
 
@@ -288,7 +287,10 @@ sub post_auth {
     else {
     	access_deny("$RAD->{USER_NAME}", "$message$GT", $nas->{NAS_ID});
      }
-
+ 
+    while(my($k, $v) = each %RAD_REPLY) {
+    	print "$k, $v\n";
+     }
     return $r;
    }
 

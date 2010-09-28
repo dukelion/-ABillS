@@ -443,7 +443,6 @@ sub privatbank_payments {
 sub osmp_payments {
 
  if ($conf{PAYSYS_PEGAS_PASSWD}) {
-
    my($user, $password)=split(/:/, $conf{PAYSYS_PEGAS_PASSWD});
 	
 	if (defined($ENV{HTTP_CGI_AUTHORIZATION})) {
@@ -459,7 +458,6 @@ sub osmp_payments {
    }
   }
  }
-
 
  print "Content-Type: text/xml\n\n";
  my $txn_id            = 'osmp_txn_id';
@@ -501,7 +499,6 @@ mk_log("$payment_system: $ENV{QUERY_STRING}") if ($debug > 0);
 #Check user account
 #https://service.someprovider.ru:8443/payment_app.cgi?command=check&txn_id=1234567&account=0957835959&sum=10.45
 if ($command eq 'check') {
-  print "Content-Type: text/html\n\n $FORM{account} / $CHECK_FIELD";
   my $list = $users->list({ $CHECK_FIELD => $FORM{account} });
 
   if ($users->{errno}) {
@@ -521,6 +518,7 @@ $RESULT_HASH{result} = $status;
 if ($payment_system_id == 44) {
   $RESULT_HASH{$txn_id}= $FORM{txn_id} ;
   $RESULT_HASH{prv_txn}= $FORM{prv_txn};
+  $RESULT_HASH{comment}= "Balance: $list->[0]->[2]" if ($status == 0);
  }
 }
 #Cancel payments
