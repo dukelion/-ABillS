@@ -1074,27 +1074,27 @@ else {
 $FORM{__BUFFER}='' if (! $FORM{__BUFFER});
 $FORM{__BUFFER}=~s/data=//;
 
-$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="utf-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-<soap:Body>
-<ProcessPayment xmlns="http://usmp.com.ua/">
-<request>
-<Serial>Serial1</Serial>
-<KeyWord>KeyWord</KeyWord>
-<Payments>
-<PaymentDetails>
-<Date>2010-08-09T15:24:42.000000+03:00</Date>
-<PayElementID>100</PayElementID>
-<Account>test</Account>
-<Amount>150</Amount>
-<ChequeNumber>12</ChequeNumber>
-</PaymentDetails>
-</Payments>
-</request>
-</ProcessPayment>
-</soap:Body>
-</soap:Envelope>
-};
+#$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="utf-8"?>
+#<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+#<soap:Body>
+#<ProcessPayment xmlns="http://usmp.com.ua/">
+#<request>
+#<Serial>Serial1</Serial>
+#<KeyWord>KeyWord</KeyWord>
+#<Payments>
+#<PaymentDetails>
+#<Date>2010-08-09T15:24:42.000000+03:00</Date>
+#<PayElementID>100</PayElementID>
+#<Account>test</Account>
+#<Amount>150</Amount>
+#<ChequeNumber>12</ChequeNumber>
+#</PaymentDetails>
+#</Payments>
+#</request>
+#</ProcessPayment>
+#</soap:Body>
+#</soap:Envelope>
+#};
 
 
 my $_xml = eval { XMLin("$FORM{__BUFFER}", forcearray=>1) };

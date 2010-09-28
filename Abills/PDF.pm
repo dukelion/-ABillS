@@ -706,6 +706,7 @@ sub header {
 
  my $filename = int(rand(32768)).'.pdf';
  $self->{header} = "Content-type: application/pdf; filename=$filename\n";
+ $self->{header}.= "Cache-Control: no-cache\n";
  $self->{header}.= "Content-disposition: inline; name=\"$filename\"\n\n";
 
  return $self->{header};
