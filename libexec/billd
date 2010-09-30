@@ -242,11 +242,11 @@ sub check_lines {
     	my $nas_port_id             = $line->[2];
     	my $client_ip               = $line->[3];
     	my $duration                = $line->[4];
-	my $acct_input_octets       = $line->[5];
-	my $acct_output_octets      = $line->[6];
-	my $acct_input_octets_ext   = $line->[7];
-	my $acct_output_octets_ext  = $line->[8];
-	my $acct_session_id         = $line->[9];
+	    my $acct_input_octets       = $line->[5];
+	    my $acct_output_octets      = $line->[6];
+	    my $acct_input_octets_ext   = $line->[7];
+	    my $acct_output_octets_ext  = $line->[8];
+	    my $acct_session_id         = $line->[9];
       my $uid                     = $line->[10];
       my $join_service            = $line->[11];
       my $last_alive              = $line->[12];
@@ -400,7 +400,7 @@ sub check_lines {
                                                          { UID    => $uid,
                                                          	 TP_NUM => $tp_num});
 
-         $Billing->{SUM}=$session_sum if ($conf{rt_billing});
+         $Billing->{SUM}=0 if ($conf{rt_billing});
 
         if ($Billing->{UID} < 1 && ! $Billing->{HANGUP}) {
         	if ($Billing->{UID} == -1) {
@@ -430,7 +430,6 @@ sub check_lines {
            	}
 
            print "Hanguped Login: $RAD{USER_NAME} DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $Billing->{SUM} SESSION_ID: $acct_session_id - ";
-
            my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
            	                                                       FRAMED_IP_ADDRESS    => int2ip($client_ip),
            	                                                       UID                  => $Billing->{UID},
