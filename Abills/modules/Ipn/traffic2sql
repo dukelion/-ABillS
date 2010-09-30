@@ -607,7 +607,7 @@ if ($ARGV->{VIRUS_ALERT}) {
 	my $DATETIME = strftime "%Y-%m-%d %H:%M:%S", localtime(time);  
   while(my($k, $v)= each %virus_allert_ips) {
   	my $user = ($Ipn->{USERS_IPS}{$k}) ? $Ipn->{USERS_INFO}{LOGINS}->{$Ipn->{USERS_IPS}{$k}}.' '. int2ip($k)  : '!!! '.int2ip($k);
-	  $virus_allert_log .= "$DATETIME $user $v\n" if ($v > 1000);
+	  $virus_allert_log .= "$DATETIME $user $v\n" if ($v > int($ARGV->{VIRUS_ALERT}));
    }
   
   if ($virus_allert_log ne '')  {

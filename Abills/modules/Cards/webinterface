@@ -1467,18 +1467,20 @@ if ($FORM{add}) {
   	 	  	    
   	 	  	      #If prepaid or postpaid service
                 if ($Cards->{PAYMENT_TYPE} < 2) {
-	                if ($diller->{PERCENTAGE} > 0) {
+                  if ($diller->{PERCENTAGE} > 0) {
                     $sum = $FORM{SUM} - ($FORM{SUM} / 100 * (100 - (100 - $diller->{PERCENTAGE})));
                    }
-                  $fees->take($user, $sum,
+                  if ($sum > 0) {
+                    $fees->take($user, $sum,
                                     {  DESCRIBE     => "$_ICARDS $line->{SERIA}$line->{NUMBER}",
                                        METHOD       => 0,
                                        EXT_ID       => "$Cards->{SERIAL}$line->{NUMBER}",
                                        CHECK_EXT_ID => "$Cards->{SERIAL}$line->{NUMBER}"
                                      });
                                      
-                  if ($fees->{errno}) {
-                  	print "Fees Error $fees->{errstr}\n";
+                    if ($fees->{errno}) {
+                    	print "Fees Error $fees->{errstr}\n";
+                     }
                    }
                  }
 
