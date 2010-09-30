@@ -2307,7 +2307,8 @@ my $list = $sessions->online({ NAS_ID => join(', ', @nas_ids_arr),
                                  UID,
                                  ACCT_SESSION_ID,
                                  FILTER_ID  
-                                 ];  
+                                ]
+                            })  ;
 my $count = 0;
 foreach my $line (@$list)   {
   my $filter_id = '';
