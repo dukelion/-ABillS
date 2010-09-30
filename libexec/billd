@@ -358,10 +358,9 @@ sub check_lines {
         	                         %$external_stats 
         	                        });
        }
-      
-    
-        # periodic check deposit, stats and statu
 
+
+        # periodic check deposit, stats and statu
         my %RAD = (USER_NAME         => "$user_name",
                    SESSION_START     => time - $acct_session_time,
                    ACCT_SESSION_TIME => $duration_sec,
@@ -385,20 +384,23 @@ sub check_lines {
            $RAD{OUTBYTE}= $JOIN_SERVICE_STATS{$join_service}{OUTBYTE} || 0;
          }
 
+         #if ($session_sum > 0)
          #Check active sessions
          $Billing->{CHECK_SESSION}=1;
 
-        ($Billing->{UID}, 
-         $Billing->{SUM}, 
-         $Billing->{BILL_ID}, 
-         $Billing->{TARIF_PLAN}, 
-         $Billing->{TIME_TARIF}, 
-         $Billing->{TRAF_TARIF}) = $Billing->session_sum("$RAD{USER_NAME}", 
+         ($Billing->{UID}, 
+          $Billing->{SUM}, 
+          $Billing->{BILL_ID}, 
+          $Billing->{TARIF_PLAN}, 
+          $Billing->{TIME_TARIF}, 
+          $Billing->{TRAF_TARIF}) = $Billing->session_sum("$RAD{USER_NAME}", 
                                                          $RAD{SESSION_START}, 
                                                          $RAD{ACCT_SESSION_TIME}, 
                                                          \%RAD,
                                                          { UID    => $uid,
                                                          	 TP_NUM => $tp_num});
+
+         $Billing->{SUM}=$session_sum if ($conf{rt_billing});
 
         if ($Billing->{UID} < 1 && ! $Billing->{HANGUP}) {
         	if ($Billing->{UID} == -1) {
