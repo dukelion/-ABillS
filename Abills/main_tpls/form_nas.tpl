@@ -10,6 +10,7 @@
 <TR><TD>Radius NAS-Identifier:</TD><TD><input type=text name=NAS_INDENTIFIER value='%NAS_INDENTIFIER%'></TD></TR>
 <TR><TD>$_DESCRIBE:</TD><TD><input type=text name=NAS_DESCRIBE value='%NAS_DESCRIBE%'></TD></TR>
 <TR><TD>$_TYPE:</TD><TD>%SEL_TYPE%</TD></TR>
+<TR><TD>MAC:</TD><TD><input type=text name=MAC value='%MAC%'></TD></TR>
 <TR><TD>$_AUTH:</TD><TD>%SEL_AUTH_TYPE%</TD></TR>
 <TR><TD>External Accounting:</TD><TD>%NAS_EXT_ACCT%</TD></TR>
 <TR><TD>Alive (sec.):</TD><TD><input type=text name=NAS_ALIVE value='%NAS_ALIVE%'></TD></TR>

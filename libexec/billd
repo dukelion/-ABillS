@@ -189,7 +189,8 @@ sub check_lines {
                              'DV_STATUS',
                              'SUM',
                              'CALLS_TP_ID',
-                             'STATUS' ]
+                             'STATUS',
+                             'FILTER_ID' ]
 		                   } );	
 	
   print "==> check_lines\n" if ($debug > 1);
@@ -259,6 +260,7 @@ sub check_lines {
       my $session_sum             = $line->[20];
       my $calls_tp_id             = $line->[21];
       my $online_state            = $line->[22];
+      my $filter_id               = $line->[23];
       
       if ($debug > 1) {
         printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $user_name, int2ip($client_ip), $duration, $acct_input_octets, $acct_output_octets, $deposit);
@@ -270,7 +272,8 @@ sub check_lines {
         my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
        	                                                        FRAMED_IP_ADDRESS    => int2ip($client_ip),
            	                                                    UID                  => $uid,
-           	                                                    debug                => $debug
+           	                                                    debug                => $debug,
+           	                                                    FILTER_ID            => $filter_id
            	                                                  }); 
         next; 
       }
@@ -334,6 +337,7 @@ sub check_lines {
      	        my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID      => "$acct_session_id",
               	                                                      FRAMED_IP_ADDRESS    => int2ip($client_ip),
               	                                                      UID                  => $uid,
+              	                                                      FILTER_ID            => $filter_id
            	                                                      });
             }
 
@@ -433,7 +437,8 @@ sub check_lines {
            my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
            	                                                       FRAMED_IP_ADDRESS    => int2ip($client_ip),
            	                                                       UID                  => $Billing->{UID},
-           	                                                       debug                => $debug
+           	                                                       debug                => $debug,
+           	                                                       FILTER_ID            => $filter_id
            	                                                      }); 
            if ($ret !~ /^Err/i) {
               print "Done.";

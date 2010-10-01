@@ -2092,7 +2092,7 @@ if ($FORM{RECALCULATE}) {
      # Work with prepaid traffic
      if ( $prepaid > 0 ) {
      	  my($used_traffic) = $Ipn_Collector->traffic_user_get({ UID      => $LIST_PARAMS{UID}, 
-                                                                  ACTIVATE => $users->{ACTIVATE},
+                                                               ACTIVATE => $users->{ACTIVATE},
      	  	                                                     INTERVAL => "0000-00-00/$line->[0]"   
      	  	                                                   });
         my $online  = 0;
@@ -2263,7 +2263,7 @@ sub ipn_periodic_session_restart {
   my $debug_output = '';
 
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
-  if (!$attr->{SRESTART} && $d != 1) {
+  if (! $attr->{SRESTART} && $d != 1 && $attr->{LOGON_ACTIVE_USERS}) {
 	  $DEBUG .= $debug_output;
     return $debug_output;
    }
@@ -2311,7 +2311,6 @@ my $list = $sessions->online({ NAS_ID => join(', ', @nas_ids_arr),
                             })  ;
 my $count = 0;
 foreach my $line (@$list)   {
-  my $filter_id = '';
   my $login        = $line->[0];
   my $ip           = $line->[1];
   my $nas_id       = $line->[2];
@@ -2328,7 +2327,7 @@ foreach my $line (@$list)   {
   	 	                FRAMED_IP_ADDRESS     => $ip,
   	 	                ACCT_TERMINATE_CAUSE  => 7,
   	 	                UID                   => $uid,
-#  	 	                FILTER_ID             => "$filter_id",
+  	 	                FILTER_ID             => "$filter_id",
                       QUICK                 => 1,
                       DEBUG                 => $debug,
                       NAS_ID                => $nas_id,
@@ -2361,7 +2360,8 @@ foreach my $line (@$list)   {
                 QUICK              => 1,
                 NAS_PORT           => $user->{PORT},
                 HINT               => 'NOPASS',
-                DEBUG              => $debug
+                DEBUG              => $debug,
+                FILTER_ID          => "$filter_id",
                );
     
     my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, 
@@ -2407,8 +2407,6 @@ sub ipn_start_active {
 #Get online
 my $Dv  = Dv->new($db, $admin, \%conf);  
 my $nas = Nas->new($db);
-
-
 my $nas_list = $nas->list({ NAS_IDS   => $attr->{NAS_IDS}, 
 	                          PAGE_ROWS => 10000 });
 
@@ -2446,7 +2444,6 @@ my $tp_list = $tariffs->list({ MODULES => 'Dv' });
 foreach my $line (@$tp_list) {
 	$TPS{$line->[0]}=$line->[4] if ($line->[4]);
 }
-
 
 my $list = $sessions->online({ NAS_ID => join(', ', @nas_ids_arr),
 	                             FIELDS => [ 0, 21, 27, 23, 12, 22, 10 ] });

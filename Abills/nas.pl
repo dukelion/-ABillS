@@ -462,6 +462,7 @@ sub hangup_ipcad {
   my $cmd     = $conf{IPN_FW_STOP_RULE};
   my $ip      = $attr->{FRAMED_IP_ADDRESS};
   my $netmask = $attr->{NETMASK} || 32;
+  my $FILTER_ID = $attr->{FILTER_ID} || '';
   
   my $num = 0;
   if ($attr->{UID} && $conf{IPN_FW_RULE_UID}) {
@@ -480,6 +481,17 @@ sub hangup_ipcad {
     $ENV{NAS_MNG_USER}=$NAS->{NAS_MNG_USER};
    }
 
+  if ($conf{IPN_FILTER}) {
+  	$cmd = "$conf{IPN_FILTER}";
+    $cmd =~ s/\%STATUS/HANGUP/g;
+    $cmd =~ s/\%IP/$ip/g;
+    $cmd =~ s/\%LOGIN/$USER_NAME/g;
+    $cmd =~ s/\%FILTER_ID/$FILTER_ID/g;
+    $cmd =~ s/\%UID/$UID/g;
+    $cmd =~ s/\%PORT/$PORT/g;
+    system($cmd);
+    print "IPN FILTER: $cmd\n" if ($DEBUG > 5);
+   }
 
   $cmd =~ s/\%IP/$ip/g;
   $cmd =~ s/\%MASK/$netmask/g;
