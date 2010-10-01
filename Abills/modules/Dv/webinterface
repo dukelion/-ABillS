@@ -2977,28 +2977,28 @@ if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $user->{DISABLE} &&
          $Dv->{POSTPAID_ABON} || 
          $Dv->{PAYMENT_TYPE} == 1 )) {
 
+   if ($user->{ACTIVATE} ne '0000-00-00') {
+     my ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
+     $M--;
+     $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400 + ( ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} * 86400 : 0 ) ) );
+    }
+   else {
+     my ($Y, $M, $D)=split(/-/, $DATE, 3);
+     $M++;
+     if ($M == 13) {
+       $M = 1;
+       $Y++;
+      }
 
-      if ($user->{ACTIVATE} ne '0000-00-00') {
-        my ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
-        $M--;
-        $Dv->{ABON_DATE} = strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, $M, ($Y-1900), 0, 0, 0)  + 31 * 86400 + ( ($conf{START_PERIOD_DAY}) ? $conf{START_PERIOD_DAY} * 86400 : 0 ) ) );
-       }
-      else {
-        my ($Y, $M, $D)=split(/-/, $DATE, 3);
-        $M++;
-        if ($M == 13) {
-          $M = 1;
-          $Y++;
-         }
+     if ($conf{START_PERIOD_DAY}) {
+       $D=$conf{START_PERIOD_DAY}; 
+      }
+     else {
+       $D='01';
+      }
 
-        if ($conf{START_PERIOD_DAY}) {
-          $D=$conf{START_PERIOD_DAY}; 
-         }
-        else {
-          $D='01';
-         }
-        $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
-       }
+     $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
+    }
  }
 
 if ($FORM{set}) {
@@ -3009,9 +3009,7 @@ if ($FORM{set}) {
    }
   elsif ($conf{DV_USER_CHG_TP_NPERIOD}) {
   	 # Get next month
-     my $Y;
-     my $M;
-     my $D;
+     my ($Y, $M, $D);
 
      if ($user->{ACTIVATE} eq '0000-00-00') {
        # Get next month
@@ -3155,7 +3153,7 @@ if ($FORM{set}) {
       else {
         #Take fees
         if ($Dv->{TP_INFO}->{MONTH_FEE} > 0 && ! $Dv->{STATUS}) {
-          dv_get_month_fee($Dv);
+          dv_get_month_fee($Dv) if (! $FORM{DV_NO_ABON});
           $user->change($user->{UID}, { ACTIVATE => "$DATE",
           	                            UID      => $user->{UID} })
          }

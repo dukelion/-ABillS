@@ -273,7 +273,8 @@ sub check_lines {
        	                                                        FRAMED_IP_ADDRESS    => int2ip($client_ip),
            	                                                    UID                  => $uid,
            	                                                    debug                => $debug,
-           	                                                    FILTER_ID            => $filter_id
+           	                                                    FILTER_ID            => $filter_id,
+           	                                                    %NAS
            	                                                  }); 
         next; 
       }
@@ -337,7 +338,8 @@ sub check_lines {
      	        my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID      => "$acct_session_id",
               	                                                      FRAMED_IP_ADDRESS    => int2ip($client_ip),
               	                                                      UID                  => $uid,
-              	                                                      FILTER_ID            => $filter_id
+              	                                                      FILTER_ID            => $filter_id,
+              	                                                      %NAS
            	                                                      });
             }
 
@@ -438,7 +440,8 @@ sub check_lines {
            	                                                       FRAMED_IP_ADDRESS    => int2ip($client_ip),
            	                                                       UID                  => $Billing->{UID},
            	                                                       debug                => $debug,
-           	                                                       FILTER_ID            => $filter_id
+           	                                                       FILTER_ID            => $filter_id,
+           	                                                       %NAS
            	                                                      }); 
            if ($ret !~ /^Err/i) {
               print "Done.";
@@ -1559,7 +1562,7 @@ while(my($ip_address, $info)=each %$ip_pid_hash) {
      my $ret = hangup(\%NAS, "0", "", { ACCT_SESSION_ID   => "",
        	                                FRAMED_IP_ADDRESS => $ip_address,
        	                                IFACE             => "ng$iface"
-        	                                   });
+  	                                   });
    }
   elsif ($pid > 0) {
     $res = `/bin/kill -9 $pid; /sbin/ifconfig tun$iface delete down`;

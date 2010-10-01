@@ -7,7 +7,6 @@
 #
 #*******************************************************************
 
-
 use BER;
 use SNMP_Session;
 use SNMP_util;
@@ -19,8 +18,6 @@ my $SUDO = '/usr/local/bin/sudo';
 my $NAS;
 my $nas_type = '';
 my %stats = ();
-
-
 
 
 
@@ -459,7 +456,6 @@ sub hangup_ipcad {
   
   $Ipn->acct_stop({ %$attr, SESSION_ID => $attr->{ACCT_SESSION_ID} });
 
-  my $cmd     = $conf{IPN_FW_STOP_RULE};
   my $ip      = $attr->{FRAMED_IP_ADDRESS};
   my $netmask = $attr->{NETMASK} || 32;
   my $FILTER_ID = $attr->{FILTER_ID} || '';
@@ -477,15 +473,16 @@ sub hangup_ipcad {
   $rule_num = $rule_num + 10000 + $num;
 
   if ($NAS->{NAS_MNG_IP_PORT}) {
-    $ENV{NAS_IP_ADDRESS}=$NAS->{NAS_MNG_IP_PORT};
-    $ENV{NAS_MNG_USER}=$NAS->{NAS_MNG_USER};
+    $ENV{NAS_IP_ADDRESS} = $NAS->{NAS_MNG_IP_PORT};
+    $ENV{NAS_MNG_USER}   = $NAS->{NAS_MNG_USER};
     $ENV{NAS_MNG_IP_PORT}= $NAS->{NAS_MNG_IP_PORT};
     $ENV{NAS_ID}         = $NAS->{NAS_ID};
     $ENV{NAS_TYPE}       = $NAS->{NAS_TYPE};
    }
 
+
   if ($conf{IPN_FILTER}) {
-  	$cmd = "$conf{IPN_FILTER}";
+  	my $cmd = "$conf{IPN_FILTER}";
     $cmd =~ s/\%STATUS/HANGUP/g;
     $cmd =~ s/\%IP/$ip/g;
     $cmd =~ s/\%LOGIN/$USER_NAME/g;
@@ -496,6 +493,7 @@ sub hangup_ipcad {
     print "IPN FILTER: $cmd\n" if ($attr->{debug} && $attr->{debug} > 5);
    }
 
+  my $cmd     = $conf{IPN_FW_STOP_RULE};
   $cmd =~ s/\%IP/$ip/g;
   $cmd =~ s/\%MASK/$netmask/g;
   $cmd =~ s/\%NUM/$rule_num/g;
@@ -620,10 +618,10 @@ elsif ($NAS->{NAS_MNG_USER}) {
 
   if ($out =~ /\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\S+)/) { 
     $VIRTUALINT=$1; 
-    $tty=$2; 
-    $line=$3;
-    $cuser=$4;
-    $chost=$5;
+    $tty  = $2; 
+    $line = $3;
+    $cuser= $4;
+    $chost= $5;
 
     print "$VIRTUALINT, $tty, $line, $cuser, $chost";
   }
