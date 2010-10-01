@@ -479,6 +479,9 @@ sub hangup_ipcad {
   if ($NAS->{NAS_MNG_IP_PORT}) {
     $ENV{NAS_IP_ADDRESS}=$NAS->{NAS_MNG_IP_PORT};
     $ENV{NAS_MNG_USER}=$NAS->{NAS_MNG_USER};
+    $ENV{NAS_MNG_IP_PORT}= $NAS->{NAS_MNG_IP_PORT};
+    $ENV{NAS_ID}         = $NAS->{NAS_ID};
+    $ENV{NAS_TYPE}       = $NAS->{NAS_TYPE};
    }
 
   if ($conf{IPN_FILTER}) {
@@ -490,7 +493,7 @@ sub hangup_ipcad {
     $cmd =~ s/\%UID/$UID/g;
     $cmd =~ s/\%PORT/$PORT/g;
     system($cmd);
-    print "IPN FILTER: $cmd\n" if ($DEBUG > 5);
+    print "IPN FILTER: $cmd\n" if ($attr->{debug} && $attr->{debug} > 5);
    }
 
   $cmd =~ s/\%IP/$ip/g;
