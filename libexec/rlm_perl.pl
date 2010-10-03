@@ -54,15 +54,7 @@ sub convert_radpairs {
 sub sql_connect {
 	my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
   my $db  = $sql->{db};
-
   convert_radpairs();
- 
-  if ($RAD_REQUEST{'DHCP-Server-IP-Address'}) {
-    $REQUEST{'NAS_IP_ADDRESS'}=$RAD_REQUEST{'DHCP-Server-IP-Address'};
-   }
-  else {
-  	$REQUEST{'NAS_IP_ADDRESS'}=$RAD_REQUEST{'DHCP-Gateway-IP-Address'};
-   } 
 
   $REQUEST{NAS_IDENTIFIER}='' if (! $REQUEST{NAS_IDENTIFIER});
   if (! $NAS_INFO{$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}}) {

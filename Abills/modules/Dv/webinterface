@@ -5696,7 +5696,7 @@ if ($FORM{add}) {
       	$FROM_M = sprintf("%02d", 1);
       	$FROM_Y+=1;
        }
-  	 } while(($FROM_Y <= $TO_Y) && ($FROM_M <= $TO_M));
+  	 } while(($FROM_Y < $TO_Y) || ($FROM_M <= $TO_M && $FROM_Y == $TO_Y));
    }
   
   $table->{color}=$_COLORS[3];
@@ -5968,7 +5968,7 @@ sub dv_pay_to {
       	    $from_month = sprintf("%02d", 1);
       	    $from_year+=1;
            }
-  	    } while(($from_year <= $to_year) && ($from_month <= $to_month));
+  	    } while(($from_year < $to_year) || ($from_month <= $to_month && $from_month == $to_month));
       }
      }
     elsif ($Dv->{MONTH_ABON}) {

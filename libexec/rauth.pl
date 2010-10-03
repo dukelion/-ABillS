@@ -47,8 +47,8 @@ my $log_print = sub {
 };
 
 my $RAD = get_radius_params();
-$RAD->{NAS_IP_ADDRESS}=$RAD->{DHCP_GATEWAY_IP_ADDRESS} if ($RAD->{DHCP_GATEWAY_IP_ADDRESS});
-$RAD->{NAS_IP_ADDRESS}=$RAD->{'DHCP-Gateway-IP-Address'} if ($RAD->{'DHCP-Gateway-IP-Address'});
+#$RAD->{NAS_IP_ADDRESS}=$RAD->{DHCP_GATEWAY_IP_ADDRESS} if ($RAD->{DHCP_GATEWAY_IP_ADDRESS});
+#$RAD->{NAS_IP_ADDRESS}=$RAD->{'DHCP-Gateway-IP-Address'} if ($RAD->{'DHCP-Gateway-IP-Address'});
 
 if ($RAD->{NAS_IP_ADDRESS}) {
   my $ret = get_nas_info($db, $RAD);
@@ -279,12 +279,14 @@ sub post_auth {
   if ($RAD_REQUEST{'DHCP-Message-Type'}) {
     &radiusd::radlog(L_ERR, " --- START --- ". $RAD_REQUEST{'DHCP-Server-IP-Address'});
 
-    if ($RAD_REQUEST{'DHCP-Server-IP-Address'}) {
-      $RAD_REQUEST{'Nas-IP-Address'}=$RAD_REQUEST{'DHCP-Server-IP-Address'};
+
+    if ($RAD_REQUEST{'DHCP-Gateway-IP-Address'}) {
+    	$RAD_REQUEST{'Nas-IP-Address'}=$RAD_REQUEST{'DHCP-Gateway-IP-Address'};
      }
     else {
-  	  $RAD_REQUEST{'Nas-IP-Address'}=$RAD_REQUEST{'DHCP-Gateway-IP-Address'};
-     } 
+      $RAD_REQUEST{'Nas-IP-Address'}=$RAD_REQUEST{'DHCP-Server-IP-Address'};
+     }
+
     $RAD_REQUEST{'User-Name'}=$RAD_REQUEST{'DHCP-Client-Hardware-Address'};
     my $db = sql_connect();
     #Don't find nas exit
