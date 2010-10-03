@@ -400,12 +400,10 @@ sub show_log {
        }
       
       if (defined($attr->{LOG_TYPE}) && "$log_type" ne "$attr->{LOG_TYPE}:") {
-      	#print "0";
       	next;
        }
 
       if (defined($attr->{DATE}) && $date ne $attr->{DATE}) {
-      	#print "0";
       	next;
        }
       

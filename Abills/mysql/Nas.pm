@@ -483,10 +483,10 @@ sub log_list {
  my ($attr) = @_;
 
   my @WHERE_RULES  = ();
-  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
-  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
-  my $PG = ($attr->{PG}) ? $attr->{PG} : 0;
-  my $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+  $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
 
 
   if(defined($attr->{USER})) {
@@ -520,11 +520,8 @@ sub log_list {
   if($attr->{NAS_ID}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{NAS_ID}, 'INT', 'l.nas_id') };
    }
-
- 
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
-
  
  $self->query($db, "SELECT l.date, l.log_type, l.action, l.user, l.message, l.nas_id
   FROM errors_log l
@@ -532,17 +529,13 @@ sub log_list {
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  my $list = $self->{list};
-
  $self->{OUTPUT_ROWS}=$self->{TOTAL};
-
 
  $self->query($db, "SELECT l.log_type, count(*)
   FROM errors_log l
   $WHERE
   GROUP BY 1
-  ORDER BY 1;");
-
-  
+  ORDER BY 1;");  
 
  return $list;
 }

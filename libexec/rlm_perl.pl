@@ -57,10 +57,13 @@ sub sql_connect {
 
   convert_radpairs();
  
-  if ($REQUEST{'DHCP-Message-Type'}) {
-  	return $db;
+  if ($RAD_REQUEST{'DHCP-Server-IP-Address'}) {
+    $REQUEST{'NAS_IP_ADDRESS'}=$RAD_REQUEST{'DHCP-Server-IP-Address'};
    }
-  
+  else {
+  	$REQUEST{'NAS_IP_ADDRESS'}=$RAD_REQUEST{'DHCP-Gateway-IP-Address'};
+   } 
+
   $REQUEST{NAS_IDENTIFIER}='' if (! $REQUEST{NAS_IDENTIFIER});
   if (! $NAS_INFO{$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}}) {
     $nas = Nas->new($db, \%conf);

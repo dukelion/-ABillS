@@ -2072,7 +2072,6 @@ if ($conf{ERROR2DB}) {
 	  $LIST_PARAMS{DESC}=DESC;
    }
 
-
   if ($FORM{search}) {
     $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
    }
@@ -2103,12 +2102,12 @@ if ($conf{ERROR2DB}) {
 
 
   $table = $html->table( { caption => "$_ERROR",
-	                            width   => '100%',
-	                            title   => [ $_DATE, "$_TYPE", "$_ACTION", "$_USER", "$_TEXT", "NAS"],
-	                            pages   => $total,
-	                            qs      => $pages_qs,
-	                            ID      => 'DV_ERRORS'
-	                         } );
+	                         width   => '100%',
+	                         title   => [ $_DATE, "$_TYPE", "$_ACTION", "$_USER", "$_TEXT", "NAS"],
+	                         pages   => $total,
+	                         qs      => $pages_qs,
+	                         ID      => 'DV_ERRORS'
+	                      } );
 
 	foreach my $line (@$list) {
 		$table->addrow($line->[0],
@@ -2120,8 +2119,7 @@ if ($conf{ERROR2DB}) {
 		);
 	 }
 
-  print $table->show();
-  
+  print $table->show();  
 }
 
 
