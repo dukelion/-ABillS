@@ -4536,6 +4536,7 @@ if (defined($attr->{USER})) {
  	  $html->message('err', $_ERROR, "$_EXIST");
    }
   elsif ($FORM{add} && $FORM{SUM}) {
+  	$FORM{SUM} =~ s/,/\./g;
     if( $FORM{ACCOUNT_ID} && $FORM{ACCOUNT_ID} eq 'create' ) {
     	$LIST_PARAMS{UID}= $FORM{UID};
     	$FORM{create}    = 1;
@@ -4838,6 +4839,7 @@ if ($attr->{USER}) {
 
   $fees->{UID} = $user->{UID};
   if ($FORM{take} && $FORM{SUM}) {
+  	$FORM{SUM} =~ s/,/\./g;
     # add to shedule
     if ($FORM{ER} && $FORM{ER} ne '') {
       my $er     = $fees->exchange_info($FORM{ER});
