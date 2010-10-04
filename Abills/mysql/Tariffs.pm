@@ -482,8 +482,6 @@ sub change {
   my $self = shift;
   my ($tp_id, $attr) = @_;
 
-  $self->{debug}=1;
-
   $attr->{REDUCTION_FEE}=0       if (! $attr->{REDUCTION_FEE});
   $attr->{POSTPAID_DAY_FEE}=0    if (! $attr->{POSTPAID_DAY_FEE});
   $attr->{POSTPAID_MONTH_FEE}=0  if (! $attr->{POSTPAID_MONTH_FEE});

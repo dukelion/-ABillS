@@ -2306,7 +2306,8 @@ my $list = $sessions->online({ NAS_ID => join(', ', @nas_ids_arr),
                                  CONNECT_INFO,
                                  UID,
                                  ACCT_SESSION_ID,
-                                 FILTER_ID  
+                                 FILTER_ID,
+                                 NAS_PORT_ID
                                 ]
                             })  ;
 my $count = 0;
@@ -2319,6 +2320,8 @@ foreach my $line (@$list)   {
   my $uid          = $line->[5];
   $FORM{SESSION_ID}= $line->[6];
   my $filter_id    = $line->[7];
+  my $port         = $line->[8];
+
   $debug_output .= "LOGIN: $login IP: $ip NAS_ID: $nas_id NAS_IP: $nas_ip CONNECT_INFO: $connect_info UID: $uid FILTER_ID: $filter_id\n" if ($debug > 3);
   
   #Hangup and activate
@@ -2330,6 +2333,7 @@ foreach my $line (@$list)   {
   	 	                FILTER_ID             => "$filter_id",
                       QUICK                 => 1,
                       DEBUG                 => $debug,
+                      NAS_PORT              => $port,
                       NAS_ID                => $nas_id,
                       NAS_IP_ADDRESS        => $nas_info{$nas_id}{NAS_IP_ADDRESS},
                       NAS_MNG_USER          => $nas_info{$nas_id}{NAS_MNG_USER},
@@ -2358,7 +2362,7 @@ foreach my $line (@$list)   {
                 CONNECT_INFO       => $connect_info,
                 UID                => $uid,
                 QUICK              => 1,
-                NAS_PORT           => $user->{PORT},
+                NAS_PORT           => $port,
                 HINT               => 'NOPASS',
                 DEBUG              => $debug,
                 FILTER_ID          => "$filter_id",
