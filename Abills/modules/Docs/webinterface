@@ -1389,7 +1389,7 @@ sub docs_print {
 	return $html->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
 	    { pdf           => $FORM{pdf},
 	    	OUTPUT2RETURN => $attr->{OUTPUT2RETURN} }), 
-	    { %$users, %$attr });
+	    { %$users, %$attr  });
 }
 
 
