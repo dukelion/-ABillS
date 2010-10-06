@@ -769,13 +769,6 @@ sub bonus_operation {
            '$DATA{EXT_ID}', '$DATA{INNER_DESCRIBE}', '$DATA{ACTION_TYPE}', '$DATA{EXPIRE}');", 'do');
 
     $self->{BONUS_PAYMENT_ID}=$self->{INSERT_ID};
-
-    #if ($CONF->{payment_chg_activate} && $user->{ACTIVATE} ne '0000-00-00') {
-    #  $user->change($user->{UID}, { UID      => $user->{UID}, 
-    #  	                            ACTIVATE => "$admin->{DATE}",
-    #  	                            EXPIRE   => '0000-00-00' });
-    # }
-    
   }
   else {
     $self->{errno}=14;
