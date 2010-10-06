@@ -309,6 +309,8 @@ sub post_auth {
     	access_deny($RAD_PAIRS->{'User-Name'}, "$message$GT", $nas->{NAS_ID});
      }
  
+    delete($RAD_REQUEST{'User-Name'}); 
+ 
     while(my ($k, $v) = each %$RAD_PAIRS) {
     	$RAD_REPLY{$k}=$v;
      }
