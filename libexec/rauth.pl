@@ -301,18 +301,18 @@ sub post_auth {
     my ($r, $RAD_PAIRS) = $auth_mod{"$nas->{NAS_TYPE}"}->auth(\%RAD_REQUEST, $nas);
     my $message = $RAD_PAIRS->{'Reply-Message'} || '';
 
-    %RAD_REPLY = %$RAD_PAIRS;
+
     if ($r == 2) {
       $log_print->('LOG_INFO', $RAD_PAIRS->{'User-Name'}, $message." ". $RAD_REQUEST{'DHCP-Client-Hardware-Address'} ." $GT", { NAS => $nas});
      }
     else {
-    	access_deny("$RAD_PAIRS->{'User-Name'}", "$message$GT", $nas->{NAS_ID});
+    	access_deny($RAD_PAIRS->{'User-Name'}, "$message$GT", $nas->{NAS_ID});
      }
  
-    #while(my($k, $v) = each %RAD_REPLY) {
-    #	print "$k, $v\n";
-    # }
-    delete($RAD_PAIRS->{'User-Name'});
+    while(my($k, $v) = each %$RAD_PAIRS;) {
+    	$RAD_REPLY{$k}=$v;
+     }
+
     return $r;
    }
 
