@@ -280,8 +280,8 @@ sub evolution_report {
  $self->query($db, "select $date,
   sum(if(action_type = 7, 1, 0)),
   sum(if(action_type = 9, 1, 0))-sum(if(action_type = 8, 1, 0)),
-  sum(if(action_type = 12, 1, 0))
-  
+  sum(if(action_type = 8, 1, 0)),
+  sum(if(action_type = 12, 1, 0))  
   FROM admin_actions aa
   $WHERE 
   GROUP BY 1
@@ -327,7 +327,7 @@ sub evolution_users_report {
  @WHERE_RULES = ();
 
  my $date = 'aa.datetime'; 
-
+ 
  if ($attr->{MODULE}) {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{MODULE}, 'INT', 'aa.module') };
   }
@@ -349,26 +349,20 @@ sub evolution_users_report {
  	 push @WHERE_RULES, "aa.action_type=7";
   }
  elsif ($attr->{DISABLED}) {
- 	 
+   my $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
+   $self->query($db, "select max($date), $user, a.id, u.registration, aa.uid,
+     sum(if(aa.action_type=9, 1, 0)) - sum(if(aa.action_type=8, 1, 0)) As ACTIONS  
+     FROM admin_actions aa 
+     LEFT JOIN users u ON (aa.uid=u.uid) 
+     LEFT JOIN admins a ON (a.aid=aa.aid) 
+     $WHERE and (aa.action_type=9 or aa.action_type<>8)
+     GROUP BY 2 
+     HAVING ACTIONS > 0
+     ORDER BY $SORT $DESC 
+     LIMIT $PG, $PAGE_ROWS;");
 
- my $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
-
-
- $self->query($db, "select max($date), $user, a.id, u.registration, aa.uid,
-   sum(if(aa.action_type=9, 1, 0)) - sum(if(aa.action_type=8, 1, 0)) As ACTIONS  
-   FROM admin_actions aa 
-   LEFT JOIN users u ON (aa.uid=u.uid) 
-   LEFT JOIN admins a ON (a.aid=aa.aid) 
-   $WHERE and (aa.action_type=9 or aa.action_type<>8)
-   GROUP BY 2 
-   HAVING ACTIONS > 0
-   ORDER BY $SORT $DESC 
-   LIMIT $PG, $PAGE_ROWS;");
-
- return $self if($self->{errno});
-
- my $list = $self->{list};
-
+   return $self if($self->{errno});
+   my $list = $self->{list};
 
 # if ($self->{TOTAL} >= 0) {
 #    $self->query($db, "SELECT count(*) FROM (select max($date), $user, a.id, u.registration, aa.uid,
@@ -385,6 +379,9 @@ sub evolution_users_report {
 
 
    return $list;
+  }
+ elsif($attr->{ENABLE}) {
+ 	 push @WHERE_RULES, "aa.action_type=8";
   }
  elsif ($attr->{DELETED}) {
  	 push @WHERE_RULES, "aa.action_type=12";
@@ -805,6 +802,69 @@ SUBSTRING_INDEX(@last_payment_info:=GET_LAST_PAYMENT_INFO(u.uid), ',', 1 ) AS la
 SUBSTRING_INDEX(SUBSTRING_INDEX(@last_payment_info, ',', 3 ),',',-1) AS last_payment_method,
 if(tp.day_fee>0, curdate() + interval (@user_deposit / tp.day_fee) day, 0) AS to_payments_date,
 if ( @user_deposit + @user_credit < 0, NOW()-@last_payment_date, 0) AS prosrochennyh_dney,
+
+u.disable, 
+'activnost na forume',
+'bonus actions',
+if (u.disable=1, SUBSTRING_INDEX(@disable_info:=GET_ACTION_INFO(u.uid, 9, ''), ',', 1), '') AS DISABLE_DATE,
+if (u.disable=1, SUBSTRING_INDEX(SUBSTRING_INDEX(@disable_info, ',', 2 ),',',-1), '') AS DISABLE_COMMENTS,
+u.uid
+
+FROM users u
+INNER JOIN users_pi pi ON (u.uid=pi.uid)
+INNER JOIN dv_main  dv ON (u.uid=dv.uid)
+INNER JOIN tarif_plans tp ON (tp.id=dv.tp_id)
+     LEFT JOIN bills b ON (u.bill_id=b.id)
+     LEFT JOIN groups g ON (u.gid=g.gid)
+     LEFT JOIN companies c ON (u.company_id=c.id)
+     LEFT JOIN bills cb ON (c.bill_id=cb.id)
+LEFT JOIN _segment_list _segment ON (_segment.id=pi._segment)
+LEFT JOIN _district_list _district ON (_district.id=pi._district)
+WHERE u.domain_id='$admin->{DOMAIN_ID}' 
+GROUP BY u.uid 
+rosrochennyh_dney,
+
+u.disable, 
+'activnost na forume',
+'bonus actions',
+if (u.disable=1, SUBSTRING_INDEX(@disable_info:=GET_ACTION_INFO(u.uid, 9, ''), ',', 1), '') AS DISABLE_DATE,
+if (u.disable=1, SUBSTRING_INDEX(SUBSTRING_INDEX(@disable_info, ',', 2 ),',',-1), '') AS DISABLE_COMMENTS,
+u.uid
+
+FROM users u
+INNER JOIN users_pi pi ON (u.uid=pi.uid)
+INNER JOIN dv_main  dv ON (u.uid=dv.uid)
+INNER JOIN tarif_plans tp ON (tp.id=dv.tp_id)
+     LEFT JOIN bills b ON (u.bill_id=b.id)
+     LEFT JOIN groups g ON (u.gid=g.gid)
+     LEFT JOIN companies c ON (u.company_id=c.id)
+     LEFT JOIN bills cb ON (c.bill_id=cb.id)
+LEFT JOIN _segment_list _segment ON (_segment.id=pi._segment)
+LEFT JOIN _district_list _district ON (_district.id=pi._district)
+WHERE u.domain_id='$admin->{DOMAIN_ID}' 
+GROUP BY u.uid 
+AS prosrochennyh_dney,
+
+u.disable, 
+'activnost na forume',
+'bonus actions',
+if (u.disable=1, SUBSTRING_INDEX(@disable_info:=GET_ACTION_INFO(u.uid, 9, ''), ',', 1), '') AS DISABLE_DATE,
+if (u.disable=1, SUBSTRING_INDEX(SUBSTRING_INDEX(@disable_info, ',', 2 ),',',-1), '') AS DISABLE_COMMENTS,
+u.uid
+
+FROM users u
+INNER JOIN users_pi pi ON (u.uid=pi.uid)
+INNER JOIN dv_main  dv ON (u.uid=dv.uid)
+INNER JOIN tarif_plans tp ON (tp.id=dv.tp_id)
+     LEFT JOIN bills b ON (u.bill_id=b.id)
+     LEFT JOIN groups g ON (u.gid=g.gid)
+     LEFT JOIN companies c ON (u.company_id=c.id)
+     LEFT JOIN bills cb ON (c.bill_id=cb.id)
+LEFT JOIN _segment_list _segment ON (_segment.id=pi._segment)
+LEFT JOIN _district_list _district ON (_district.id=pi._district)
+WHERE u.domain_id='$admin->{DOMAIN_ID}' 
+GROUP BY u.uid 
+AS prosrochennyh_dney,
 
 u.disable, 
 'activnost na forume',
