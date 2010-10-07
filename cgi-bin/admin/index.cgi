@@ -4561,7 +4561,6 @@ if (defined($attr->{USER})) {
       my $er = $payments->exchange_info($FORM{ER});
       $FORM{ER} = $er->{ER_RATE};
       $payments->add($user, { %FORM } );  
-
       if ($payments->{errno}) {
         $html->message('err', $_ERROR, "[$payments->{errno}] $err_strs{$payments->{errno}}");	
        }

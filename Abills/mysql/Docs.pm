@@ -532,7 +532,8 @@ sub account_info {
    pi.contract_date,
    d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day,
    u.company_id,
-   c.name
+   c.name,
+   d.payment_id
    
    
     FROM (docs_acct d, docs_acct_orders o)
@@ -568,7 +569,8 @@ sub account_info {
    $self->{CONTRACT_DATE},
    $self->{EXPIRE_DATE},
    $self->{COMPANY_ID},
-   $self->{COMPANY_NAME}
+   $self->{COMPANY_NAME},
+   $self->{PAYMENT_ID}
   )= @{ $self->{list}->[0] };
 	
   

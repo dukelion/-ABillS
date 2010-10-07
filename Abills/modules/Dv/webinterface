@@ -5415,7 +5415,7 @@ sub dv_get_month_fee {
    	                            DATE      => "$date $time"
   	                           });  
       $total_sum{ACTIVATE} = $Dv->{TP_INFO}->{ACTIV_PRICE};
-  	  $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN");	
+  	  $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN") if ($html);	
      }
    }
   #Get month fee

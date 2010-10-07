@@ -582,8 +582,7 @@ if ($FORM{print_list}) {
 
      $D{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $D{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $D{TOTAL_SUM} );
      $Docs->{'TOTAL_SUM_VAT'}   = sprintf("%.2f", $D{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
-     
-      my $i=0; 
+      $i=0;
       foreach my $field_id ( @{ $Company->{INFO_FIELDS_ARR} } ) {
          my($position, $type, $name)=split(/:/, $Company->{INFO_FIELDS_HASH}->{$field_id});
          $Company->{$field_id}=$Company->{INFO_FIELDS_VAL}->[$i];
@@ -1134,10 +1133,10 @@ sub docs_account {
        	   my $html_old = $html;
            PDF::API2->import();
            require Abills::PDF;
-           $html = Abills::PDF->new( { IMG_PATH  => $IMG_PATH,
-      	                          NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
-      	                          CONF      => $CONF
-	                            });
+           $html = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
+      	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+      	                              CONF      => $CONF
+	                                  });
        	 
          	 my $content = docs_account({ OUTPUT2RETURN => 1 });
        	   sendmail("$conf{ADMIN_MAIL}", "$users->{EMAIL}", "ABillS - $_ACCOUNT", "$message", "$conf{MAIL_CHARSET}",
