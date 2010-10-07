@@ -272,7 +272,8 @@ sub dv_users_list {
  	                                          	                1  => $service_status[1],
  	                                          	                2  => $service_status[2],
  	                                          	                3  => $service_status[3],  
- 	                                          	                4  => $service_status[4]    
+ 	                                          	                4  => $service_status[4],
+ 	                                          	                5  => $service_status[5]     
  	                                          	                },
                                             NO_ID       => 1,
                                             STYLE        => \@service_status_colors,
