@@ -461,9 +461,7 @@ sub msgs_admin {
 
         my $reply_id =  $Msgs->{INSERT_ID};
         $FORM{REPLY_ID}=$reply_id;
-        
-        
-        
+
          if (! $Msgs->{errno}) {
            #Add attachment
            if ($FORM{FILE_UPLOAD}) {
@@ -498,7 +496,7 @@ sub msgs_admin {
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
 
     $users->pi({ UID => $FORM{UID} });
-    if ($users->{EMAIL} && ! $FORM{INNER_MSG}) {
+    if ($users->{EMAIL} && ! $FORM{INNER_MSG} && ! $FORM{REPLY_INNER_MSG}) {
     	 $ENV{HTTP_REFERER} =~ m/(https:\/\/[a-zA-Z0-9:\.\-]+)\//g;
        my $site =  $1 || '';
     	 my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
