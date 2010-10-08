@@ -326,6 +326,8 @@ sub post_auth {
     	$out.="$k -> $v\n";
      }
 
+    my $rew = `echo "$out" >> /tmp/rad_dhcp`;
+
     return $r;
    }
 
