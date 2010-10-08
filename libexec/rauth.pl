@@ -315,6 +315,17 @@ sub post_auth {
     	$RAD_REPLY{$k}=$v;
      }
 
+    my $out = "\nREQUEST ======================================\n";
+
+    while(my ($k, $v) = each %RAD_REQUEST) {
+    	$out.="$k -> $v\n";
+     }
+    
+    $out .= "RePLY ======================================\n";
+    while(my ($k, $v) = each %RAD_REPLY) {
+    	$out.="$k -> $v\n";
+     }
+
     return $r;
    }
 
