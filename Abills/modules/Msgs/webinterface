@@ -519,7 +519,7 @@ sub msgs_admin {
           { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}",
           	                 "X-ABillS-REPLY-ID: $Msgs->{REPLY_ID}" ] });
      }
-    elsif($FORM{INNER_MSG}) {
+    elsif($FORM{INNER_MSG} || $FORM{REPLY_INNER_MSG}) {
       msgs_notify_admins();    	
      }
     
