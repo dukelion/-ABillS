@@ -5511,7 +5511,7 @@ sub dv_get_month_fee {
         	  $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}");	
            }
           else {
-            $html->message('info', $_INFO, $message);	
+            $html->message('info', $_INFO, $message) if ($html);	
            }
           $m++;
          }
@@ -5941,6 +5941,7 @@ sub dv_payments_maked {
 	if ($Dv->{STATUS} > 3 && ($attr->{USER}->{DEPOSIT} + $attr->{USER}->{CREDIT} > $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} || $Dv->{ABON_DISTRIBUTION})) {
 		$Dv->change({ UID     => $attr->{USER}->{UID},
 			            STATUS  => 0  });
+    $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE} || '0000-00-00';
 
 		dv_get_month_fee($Dv);
 	 }

@@ -1503,7 +1503,7 @@ else {
     $ENV{NAS_MNG_USER}   = $attr->{NAS_MNG_USER};
     $ENV{NAS_MNG_IP_PORT}= $attr->{NAS_MNG_IP_PORT};
     $ENV{NAS_ID}         = $attr->{NAS_ID};
-    $ENV{NAS_TYPE}       = $attr->{NAS_TYPE};
+    $ENV{NAS_TYPE}       = $attr->{NAS_TYPE} || '';
    }
 
   print "IPN: $cmd\n" if ($DEBUG > 5);

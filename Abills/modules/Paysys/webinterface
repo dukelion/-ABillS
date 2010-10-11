@@ -39,6 +39,7 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    59 => "QIWI",
                    60 => "Ibox",
                    61 => "OSMPv4",
+                   62 => 'LiqPAY'
                   );
 
 my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
@@ -62,6 +63,7 @@ my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
                    PAYSYS_QIWI_TERMINAL_ID   => 59,
                    PAYSYS_IBOX_ACCOUNT_KEY   => 60,
                    PAYSYS_OSMP_ACCOUNT_KEY   => 61,
+                   PAYSYS_LIQPAY_MERCHANT_ID => 62,
                   );
 
 
@@ -470,6 +472,9 @@ sub paysys_payment {
 	elsif($FORM{PAYMENT_SYSTEM} == 58) {
      paysys_lr();
 	 }
+	elsif($FORM{PAYMENT_SYSTEM} == 62) {
+     paysys_liqpay();
+	 }
 	elsif($FORM{PAYMENT_SYSTEM} == 59) {
      paysys_qiwi();
 	 }
@@ -485,7 +490,8 @@ sub paysys_payment {
 	                             48 => 'PAYSYS_PB_MERID',
 	                             54 => 'PAYSYS_P24_MERCHANT_ID',
 	                             58 => 'PAYSYS_LR_ACCOUNT_NUMBER',
-	                             59 => 'PAYSYS_QIWI_TERMINAL_ID' );
+	                             59 => 'PAYSYS_QIWI_TERMINAL_ID',
+	                             62 => 'PAYSYS_LIQPAY_MERCHANT_ID' );
 	  
 	  while(my($k, $v) = each %PAY_SYSTEMS) {
 	  	delete $PAY_SYSTEMS{$k} if (! $conf{$PAY_SYSTEM_ACCOUNTS{$k}});
@@ -558,7 +564,6 @@ if (! $user->{UID}) {
 	
 	while(my($k, $v)=each %CONF_OPTIONS) {
 		if (! $conf{$k}) {
-			#print "'$k' -> $conf{$k} // $v<br>\n";
 		  delete $ACTIVE_SYSTEMS{$v};
 		 }
 	 }
@@ -1639,6 +1644,76 @@ else {
 
 
 #**********************************************************
+# User portal payments system with LiqPAY
+#**********************************************************
+sub paysys_liqpay {
+
+  require "modules/Paysys/Liqpay.pm";
+  my %info = ();
+	
+if ($FORM{add}) {
+	  liqpay_payments();
+#   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OrderID}", 
+#   	                          UID            => $LIST_PARAMS{UID} });
+#
+#   if ($Paysys->{TOTAL} > 0) {
+#	    $Paysys->info({ ID => $list->[0][0] });
+#	    
+#	    if ($Paysys->{INFO} =~ /STATE: ok/) {
+#	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OrderID}");	
+#	     }
+#	    elsif ($Paysys->{INFO} =~ /STATE: test/) {
+#	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OrderID} ($_TEST_PAYMENT)");	
+#	     }
+#	    else {
+#	      $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID}");
+#	     }
+#	    
+#	  }
+#   else {
+#    	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID} $_ERR_NO_TRANSACTION");
+#    }
+
+  #$html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+  return 0;
+ }
+else {
+	if ($FORM{SUM} <= 0 ) {
+		$html->message('info', $_ERROR, "$ERR_WRONG_SUM $FORM{SUM}");
+		return 0;
+	 }
+	
+	#Info section  
+  $Paysys->add({ SYSTEM_ID      => 62,
+  	             DATETIME       => "'$DATE $TIME'", 
+  	             SUM            => $FORM{SUM},
+  	             UID            => $user->{UID}, 
+                 IP             => "$ENV{'REMOTE_ADDR'}",
+                 TRANSACTION_ID => "$FORM{OPERATION_ID}",
+                 INFO           => '-',
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+               });
+
+  if ($Paysys->{errno}) {
+  	$html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
+  	return 0;
+   }
+	
+} 
+  my %methods       = ('card' => "Visa/Master Card", 
+                       'liqpay' =>"LiqPAY"     );
+
+  $info{PAY_WAY_SEL} =  $html->form_select('METHOD', 
+                                { SELECTED  => $FORM{METHOD},
+ 	                                SEL_HASH  => \%methods,
+ 	                                NO_ID     => 1
+ 	                               });
+  
+  #$html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+  $html->tpl_show(_include('paysys_liqpay_add', 'Paysys'), { %info, %$user });
+}
+
+#**********************************************************
 # Payment system: Liberty Reserver
 # https://www.libertyreserve.com
 #
@@ -1673,10 +1748,10 @@ $html->tpl_show(_include('paysys_lr_add', 'Paysys'), \%info);
 }
 
 #**********************************************************
-#
+# Paysys OSMP QIWI
 #**********************************************************
 sub paysys_qiwi {
-my %info = ();
+  my %info = ();
 	require "modules/Paysys/Qiwi.pm";
 
 if ($FORM{send_invoice}) {
@@ -1754,7 +1829,6 @@ my @ids_arr = ();
 foreach my $line (@$list) {
   push @ids_arr, $line->[5];
 }
-
 
 my $result = qiwi_status({ IDS => \@ids_arr });
 
