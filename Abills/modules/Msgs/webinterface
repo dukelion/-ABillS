@@ -528,7 +528,7 @@ sub msgs_admin {
   elsif ($FORM{chg}) {
     MSG_LABEL:
     if ($FORM{reply_del} && $FORM{is_js_confirmed}){
-    	if ($FORM{SURVEY_ID}) {
+    	if ($FORM{SURVEY_ID} && $FORM{CLEAN}) {
     		$Msgs->survey_answer_del({ SURVEY_ID => $FORM{SURVEY_ID}, UID => $FORM{UID}, %FORM });
     	 }
     	else {
@@ -660,7 +660,8 @@ sub msgs_admin {
     
     if (! $Msgs->{ACTIVE_SURWEY} && ($A_PRIVILEGES{$Msgs->{CHAPTER}} || scalar keys %A_PRIVILEGES == 0)) {
    	  $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), { %$Msgs, 
-      	REPLY_TEXT => $reply,
+      	REPLY_TEXT => "",
+      	QUOTING    => "// $reply",
      	  RUN_TIME   => "$_RUN_TIME ($_MINS):". $html->form_input('RUN_TIME', "$run_time", { EX_PARAMS => " STYLE='background-color: $_COLORS[3]' DISABLED size=9"} ),
      	  INNER_MSG  => ($FORM{INNER_MSG}) ? ' checked ' : '',
      	  SURVEY_SEL => msgs_survey_sel()
@@ -2674,8 +2675,11 @@ foreach my $line (@$list) {
 }
 
 
-  my $del_button = $html->button($_DEL, "&index=$index&chg=$FORM{chg}&reply_del=1&UID=$Msgs->{UID}&SURVEY_ID=$attr->{SURVEY_ID}".
-  (($attr->{MAIN_MSG}) ? "&MSG_ID=$attr->{MAIN_MSG}" : "&REPLY_ID=$attr->{REPLY_ID}" ), { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 });
+  my $del_button = '';
+  if ($attr->{REPLY_ID}) {
+    $del_button = $html->button($_DEL, "&index=$index&chg=$FORM{chg}&UID=$Msgs->{UID}&SURVEY_ID=$attr->{SURVEY_ID}".
+    (($attr->{MAIN_MSG}) ? "&MSG_ID=$attr->{MAIN_MSG}&reply_del=1" : "&reply_del=$attr->{REPLY_ID}&REPLY_ID=$attr->{REPLY_ID}" ), { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 });
+   }
 
   if ( scalar(keys %answers) > 0 ) {
   	return $table->show({ OUTPUT2RETURN => 1 }).(($user->{UID}) ? '' : $del_button);
