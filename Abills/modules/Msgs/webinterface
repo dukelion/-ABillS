@@ -2510,6 +2510,7 @@ sub msgs_survey {
                               title      => ['#', "$_NAME", "$_COMMENTS", "$_ADMINS", "$_CREATED",  "-", "-", "-"],
                               cols_align => ['left', 'left', 'right', 'center:noprint', 'center:noprint'],
                               qs         => $pages_qs,
+                              ID         => 'SURVEY_LIST'
                            });
 
 foreach my $line (@$list) {
@@ -2637,10 +2638,11 @@ sub msgs_survey_show {
 
 
 
+  $Msgs->survey_subject_info($attr->{SURVEY_ID});
   $list = $Msgs->survey_questions_list({ SURVEY => $attr->{SURVEY_ID} });
 
   my $table = $html->table( { width      => '100%',
-                              caption    => "$_SURVEY",
+                              caption    => "$_SURVEY - $Msgs->{NAME}",
                               cols_align => ['left', 'left', 'right', 'center:noprint', 'center:noprint'],
                               qs         => $pages_qs,
                            });
