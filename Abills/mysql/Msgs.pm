@@ -1820,7 +1820,7 @@ sub survey_subject_info {
      return $self;
    }
 
-  ($self->{ID}, 
+  ($self->{SURVEY_ID}, 
    $self->{NAME},
    $self->{COMMENTS},
    $self->{AID},
@@ -1840,16 +1840,16 @@ sub survey_subject_change {
   
   $attr->{INNER_CHAPTER} = ($attr->{INNER_CHAPTER}) ? 1 : 0;
   
-  my %FIELDS = (ID            => 'id',
+  my %FIELDS = (SURVEY_ID     => 'id',
                 NAME          => 'name',
                 COMMENTS      => 'comments', 
              );
 
   $admin->{MODULE}=$MODULE;
-  $self->changes($admin,  { CHANGE_PARAM => 'ID',
+  $self->changes($admin,  { CHANGE_PARAM => 'SURVEY_ID',
                    TABLE        => 'msgs_survey_subjects',
                    FIELDS       => \%FIELDS,
-                   OLD_INFO     => $self->survey_subject_info($attr->{ID}),
+                   OLD_INFO     => $self->survey_subject_info($attr->{SURVEY_ID}),
                    DATA         => $attr,
                   } );
 

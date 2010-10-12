@@ -2607,6 +2607,7 @@ print $table->show();
 sub msgs_survey_show {
   my ($attr) = @_;
   my %answers = ();
+  
   if ($FORM{change}) {
   	$FORM{UID}=$user->{UID} || $LIST_PARAMS{UID};
 
