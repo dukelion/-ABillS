@@ -502,9 +502,11 @@ sub msgs_admin {
     	 my $message = $html->tpl_show(_include('msgs_email_notify', 'Msgs'), 
            { SITE => $site, 
            	 DATE => $DATE, 
-           	 TIME => $TIME, 
+           	 TIME => $TIME,
+           	 LOGIN   => $Msgs->{LOGIN} || $FORM{LOGIN} || $ui->{LOGIN},
+           	 UID     => $FORM{UID},
           	 ID      => "$Msgs->{ID} / $reply_id", 
-           	 SUBJECT => $FORM{REPLY_SUBJECT},
+           	 SUBJECT => $FORM{SUBJECT}.' / '.$FORM{REPLY_SUBJECT},
            	 STATUS  => $msg_status[$FORM{STATE}],
            	 MESSAGE => $FORM{REPLY_TEXT},
            	 ATTACHMENT => $FORM{FILE_UPLOAD}{filename}
@@ -519,9 +521,9 @@ sub msgs_admin {
           { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}",
           	                 "X-ABillS-REPLY-ID: $Msgs->{REPLY_ID}" ] });
      }
-    elsif($FORM{INNER_MSG} || $FORM{REPLY_INNER_MSG}) {
+    #elsif($FORM{INNER_MSG} || $FORM{REPLY_INNER_MSG}) {
       msgs_notify_admins();    	
-     }
+    # }
     
     goto MSG_LABEL;
    }
@@ -661,7 +663,7 @@ sub msgs_admin {
     if (! $Msgs->{ACTIVE_SURWEY} && ($A_PRIVILEGES{$Msgs->{CHAPTER}} || scalar keys %A_PRIVILEGES == 0)) {
    	  $Msgs->{REPLY} .= $html->tpl_show(_include('msgs_reply', 'Msgs'), { %$Msgs, 
       	REPLY_TEXT => "",
-      	QUOTING    => "// $reply",
+      	QUOTING    => "$reply",
      	  RUN_TIME   => "$_RUN_TIME ($_MINS):". $html->form_input('RUN_TIME', "$run_time", { EX_PARAMS => " STYLE='background-color: $_COLORS[3]' DISABLED size=9"} ),
      	  INNER_MSG  => ($FORM{INNER_MSG}) ? ' checked ' : '',
      	  SURVEY_SEL => msgs_survey_sel()
