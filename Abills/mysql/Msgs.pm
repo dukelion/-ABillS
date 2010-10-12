@@ -1937,7 +1937,7 @@ sub survey_question_info {
 	my ($id, $attr) = @_;
 
 
-  $self->query($db, "SELECT id, num, question, comments, user_comments, survey_id
+  $self->query($db, "SELECT id, num, question, comments, params, user_comments, survey_id
     FROM msgs_survey_questions 
   WHERE id='$id'");
 
