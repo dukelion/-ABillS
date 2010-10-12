@@ -2,6 +2,7 @@
 # Periodic payments web interface
 #
 
+
 use Abon;
 use Fees;
 
@@ -87,7 +88,6 @@ sub abon_user {
       else {
     	  $html->message('err', $_ERROR, "[$Abon->{errno}] $err_strs{$Abon->{errno}}");	
        }
-
   }
  
 my $list = $Abon->user_tariff_list($FORM{UID});
@@ -147,7 +147,6 @@ sub abon_user_list {
                              pages      => $Abon->{TOTAL},
                              ID         => "ABON_USERS"
                            });
-
 
 my $delete = '';
 foreach my $line (@$list) {
@@ -506,7 +505,6 @@ sub abon_get_month_fee {
 
       }
 }
-
 
 
 1
