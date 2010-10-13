@@ -6,8 +6,8 @@
     <input type='hidden' name='currency' value='UAH' />
     <input type='hidden' name='description' value='Payments ID: $FORM{OPERATION_ID}' />
     <input type='hidden' name='order_id'  value='$FORM{OPERATION_ID}' />
-    <input type='hidden' name='result_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi' />
-    <input type='hidden' name='server_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?TRUE=1&index=$index&OPERATION_ID=$FORM{OPERATION_ID}&PAYMENT_SYSTEM=$FORM{PAYMENT_SYSTEM}' />
+    <input type='hidden' name='result_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/index.cgi?TRUE=1&index=$index&OPERATION_ID=$FORM{OPERATION_ID}&PAYMENT_SYSTEM=$FORM{PAYMENT_SYSTEM}' />
+    <input type='hidden' name='server_url' value='https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi' />
 
 
 <table width=400 border=0>
