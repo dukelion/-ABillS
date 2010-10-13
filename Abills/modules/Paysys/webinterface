@@ -1652,7 +1652,7 @@ sub paysys_liqpay {
   my %info = ();
 	
 if ($FORM{TRUE} || $FORM{status}) {
-   my $order_id = $FORM{order_id};
+   my $order_id = $FORM{order_id} || $FORM{OPERATION_ID};
 
    my $list = $Paysys->list({ TRANSACTION_ID => "$order_id", 
    	                          UID => $LIST_PARAMS{UID} });
