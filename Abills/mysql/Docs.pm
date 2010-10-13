@@ -533,14 +533,14 @@ sub account_info {
    d.date + interval $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD} day,
    u.company_id,
    c.name,
-   d.payment_id
-   
-   
+   d.payment_id,
+   p.method
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN companies c ON (u.company_id=c.id)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
+    LEFT JOIN payments p ON (d.payment_id=p.id)
     WHERE d.id=o.acct_id and d.id='$id' $WHERE
     GROUP BY d.id;");
 
@@ -570,7 +570,8 @@ sub account_info {
    $self->{EXPIRE_DATE},
    $self->{COMPANY_ID},
    $self->{COMPANY_NAME},
-   $self->{PAYMENT_ID}
+   $self->{PAYMENT_ID},
+   $self->{PAYMENT_METHOD_ID}
   )= @{ $self->{list}->[0] };
 	
   

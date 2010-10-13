@@ -4,7 +4,7 @@ use Docs;
 use Fees;
 use Customers;	
 
-$Docs = Docs->new($db, $admin, \%conf);
+$Docs        = Docs->new($db, $admin, \%conf);
 my $Fees     = Fees->new($db, $admin, \%conf);
 my $Payments = Payments->new($db, $admin, \%conf);
 my $Customer = Customers->new($db, $admin, \%conf);
@@ -170,19 +170,19 @@ sub docs_invoice_add  {
   $Docs->{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
   $Docs->{'TOTAL_SUM_VAT'}        = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
   
-  my $invoice_file = 'invoice';
-  if ($Docs->{PAYMENT_METHOD_ID})  {
-    $invoice_file =  'docs_invoice_'.$Docs->{PAYMENT_METHOD_ID};
-    my $invoice_content = _include($invoice_file, 'Docs', { $FORM{pdf} => 1 });
-    if (  $invoice_content =~ /No such tem/ || $invoice_content eq ''  ) {
-      $invoice_file = 'invoice';
-     }
-    else {
-      $invoice_file = 'invoice_'.$Docs->{PAYMENT_METHOD_ID};
-     }
-   }  
+#  my $invoice_file = 'invoice';
+#  if ($Docs->{PAYMENT_METHOD_ID}) {
+#    $invoice_file =  'docs_invoice_'.$Docs->{PAYMENT_METHOD_ID};
+#    my $invoice_content = _include($invoice_file, 'Docs', { $FORM{pdf} => 1 });
+#    if (  $invoice_content =~ /No such tem/ || $invoice_content eq ''  ) {
+#      $invoice_file = 'invoice';
+#     }
+#    else {
+#      $invoice_file = 'invoice_'.$Docs->{PAYMENT_METHOD_ID};
+#     }
+#   }  
 
-  docs_print("$invoice_file", $Docs) if (! $FORM{QUICK});
+  docs_print("invoice", $Docs) if (! $FORM{QUICK});
 }
 
 
@@ -319,19 +319,19 @@ elsif($FORM{print}) {
    	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
    }
 
-  my $invoice_file = 'invoice';
-  if ($Docs->{PAYMENT_METHOD_ID})  {
-    $invoice_file =  'docs_invoice_'.$Docs->{PAYMENT_METHOD_ID};
-    my $invoice_content = _include($invoice_file, 'Docs', { $FORM{pdf} => 1 });
-    if (  $invoice_content =~ /No such tem/ || $invoice_content eq ''  ) {
-      $invoice_file = 'invoice';
-     }
-    else {
-      $invoice_file = 'invoice_'.$Docs->{PAYMENT_METHOD_ID};
-     }
-   }
+#  my $invoice_file = 'invoice';
+#  if ($Docs->{PAYMENT_METHOD_ID})  {
+#    $invoice_file =  'docs_invoice_'.$Docs->{PAYMENT_METHOD_ID};
+#    my $invoice_content = _include($invoice_file, 'Docs', { $FORM{pdf} => 1 });
+#    if (  $invoice_content =~ /No such tem/ || $invoice_content eq ''  ) {
+#      $invoice_file = 'invoice';
+#     }
+#    else {
+#      $invoice_file = 'invoice_'.$Docs->{PAYMENT_METHOD_ID};
+#     }
+#   }
 
-  docs_print($invoice_file, $Docs);
+  docs_print('invoice', $Docs);
   return 0;
  }
 elsif (! $LIST_PARAMS{UID}) {
@@ -1118,7 +1118,6 @@ sub docs_account {
    	        	SUM    => sprintf("%.2f", $line->[3]*$line->[4])
    	        	}, 
    	         { OUTPUT2RETURN => 1 });
-   	     
         }
 
        if ($conf{DOCS_PDF_PRINT}) {
@@ -1226,8 +1225,7 @@ sub docs_account {
        $Docs->{'ORDER_NAME_'.$i}  = $line->[1];
        $Docs->{'ORDER_COUNT_'.$i} = $count;
        $Docs->{'ORDER_PRICE_'.$i} = $line->[4];
-       $Docs->{'ORDER_SUM_'.$i}   = $sum;
-       
+       $Docs->{'ORDER_SUM_'.$i}   = $sum;       
        $Docs->{'ORDER_PRICE_WITHOUT_VAT_'.$i} = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $line->[4] - $line->[4] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $line->[3]);
        $Docs->{'ORDER_SUM_WITHOUT_VAT_'.$i}   = sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $sum - ($sum) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $sum );
       }
@@ -1282,8 +1280,7 @@ sub docs_account {
                                      NO_ID       => 1
  	                                  });
 
-  
-  $users->pi({  $users->{UID} });
+  $users->pi({ $users->{UID} });
   $Docs->{OP_SID}  = mk_unique_value(16);
   $Docs->{CUSTOMER}= $users->{FIO} || '-';
   $Docs->{CAPTION} = $_ACCOUNT;  
@@ -1360,7 +1357,17 @@ sub docs_print {
   	  });
    }
 
-	my $template = $type;
+  my $template = $type;
+
+  #Make individual templates for paments methods
+  if ($attr->{PAYMENT_METHOD_ID} && $FORM{pdf}) {
+    my $new_template =  $template.'_'.$attr->{PAYMENT_METHOD_ID};
+    my $template_content = _include('docs_'.$new_template, 'Docs', { $FORM{pdf} => 1 });
+    if (  $template_content !~ /No such tem/ && $template_content ne ''  ) {
+    	$template = $new_template;
+     }
+   }
+
   print $html->header() if ($FORM{qindex});
 
   if ($LIST_PARAMS{COMPANY_ID}) {

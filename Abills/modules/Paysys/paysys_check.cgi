@@ -2051,9 +2051,7 @@ if($FORM{hash}) {
   $md5->add($FORM{date}); 
   $md5->add($conf{PAYSYS_UKRPAYS_SECRETKEY});
 
-  my $checksum = $md5->hexdigest();	
-  
-  
+  my $checksum = $md5->hexdigest();
 	my $user = $users->info($FORM{order});
 
   if ($FORM{hash} ne $checksum) {
