@@ -448,4 +448,5 @@ $_BIRTHDAY='Birthday';
 $_FLATS='Flats';
 $_ACTION='Action';
 $_EXECUTE='Execute';
+$_PAY='Pay';
 

@@ -73,6 +73,7 @@ $_TEST='Тест';
 $_EXECUTE='Выполнить';
 $_LOGIN_IN_TO_HOTSPOT='Залогиниться к Hotspot';
 $_NEG_DEPOSIT_FILTER_ID='Фильтр негативного Депозита';
+$_PAY='Оплатить';
 $_EXTERNAL_PAYMENTS='Внешние платежи';
 $_MIN_SESSION_COST='Минимальная цена сессии';
 $_BACK_MONEY='Вернуть деньги';

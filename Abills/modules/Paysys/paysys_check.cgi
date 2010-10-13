@@ -140,6 +140,11 @@ if ($ip_num >= ip2int('213.186.115.164') && $ip_num <= ip2int('213.186.115.190')
   require "Ibox.pm";
 	exit;
  }
+elsif( $FORM{sender_phone} && $FORM{pay_way}) {
+  require "Liqpay.pm";
+  liqpay_payments();
+	exit;
+ }
 elsif( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) ) {
 	osmp_payments();
  }
@@ -277,7 +282,7 @@ sub portmone_payments {
 
       if ($Paysys->{TOTAL} > 0) {
 	      #$html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{SHOPORDERNUMBER }");
-	      my $uid = $list->[0][7];
+	      my $uid = $list->[0][8];
 	      my $sum = $list->[0][3];
         my $user = $users->info($uid);
         $payments->add($user, {SUM      => $sum,
@@ -370,7 +375,7 @@ sub privatbank_payments {
  if ($Paysys->{TOTAL} > 0) {
    if (	$FORM{ReasonCode} == 1 ) {     
 	      #$html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{SHOPORDERNUMBER }");
-	      my $uid = $list->[0][7];
+	      my $uid = $list->[0][8];
 	      my $sum = $list->[0][3];
         my $user = $users->info($uid);
         $payments->add($user, {SUM      => $sum,
