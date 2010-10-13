@@ -472,7 +472,7 @@ sub paysys_payment {
 	elsif($FORM{PAYMENT_SYSTEM} == 58) {
      paysys_lr();
 	 }
-	elsif($FORM{PAYMENT_SYSTEM} == 62) {
+	elsif($FORM{PAYMENT_SYSTEM} == 62 || $FORM{pay_way}) {
      paysys_liqpay();
 	 }
 	elsif($FORM{PAYMENT_SYSTEM} == 59) {
@@ -1651,55 +1651,23 @@ sub paysys_liqpay {
   require "modules/Paysys/Liqpay.pm";
   my %info = ();
 	
-if ($FORM{add}) {
-	  liqpay_payments();
-#   my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OrderID}", 
-#   	                          UID            => $LIST_PARAMS{UID} });
-#
-#   if ($Paysys->{TOTAL} > 0) {
-#	    $Paysys->info({ ID => $list->[0][0] });
-#	    
-#	    if ($Paysys->{INFO} =~ /STATE: ok/) {
-#	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OrderID}");	
-#	     }
-#	    elsif ($Paysys->{INFO} =~ /STATE: test/) {
-#	      $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $FORM{OrderID} ($_TEST_PAYMENT)");	
-#	     }
-#	    else {
-#	      $html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID}");
-#	     }
-#	    
-#	  }
-#   else {
-#    	$html->message('err', $_ERROR, "$_FAILED ID: $FORM{OrderID} $_ERR_NO_TRANSACTION");
-#    }
+if ($FORM{TRUE} || $FORM{status}) {
+   my $order_id = $FORM{order_id};
 
-  #$html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+   my $list = $Paysys->list({ TRANSACTION_ID => "$order_id", 
+   	                          UID => $LIST_PARAMS{UID} });
+
+   if ($Paysys->{TOTAL} > 0) {
+	    $html->message('info', $_INFO, "$_ADDED $_SUM: $list->[0][3] ID: $order_id");
+	   }
+    else {
+    	$html->message('err', $_ERROR, "$_FAILED ID: $order_id $_ERR_NO_TRANSACTION");
+     }
+
+  $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
   return 0;
  }
-else {
-	if ($FORM{SUM} <= 0 ) {
-		$html->message('info', $_ERROR, "$ERR_WRONG_SUM $FORM{SUM}");
-		return 0;
-	 }
-	
-	#Info section  
-  $Paysys->add({ SYSTEM_ID      => 62,
-  	             DATETIME       => "'$DATE $TIME'", 
-  	             SUM            => $FORM{SUM},
-  	             UID            => $user->{UID}, 
-                 IP             => "$ENV{'REMOTE_ADDR'}",
-                 TRANSACTION_ID => "$FORM{OPERATION_ID}",
-                 INFO           => '-',
-                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
-               });
 
-  if ($Paysys->{errno}) {
-  	$html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
-  	return 0;
-   }
-	
-} 
   my %methods       = ('card' => "Visa/Master Card", 
                        'liqpay' =>"LiqPAY"     );
 
@@ -1708,8 +1676,7 @@ else {
  	                                SEL_HASH  => \%methods,
  	                                NO_ID     => 1
  	                               });
-  
-  #$html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
+  $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
   $html->tpl_show(_include('paysys_liqpay_add', 'Paysys'), { %info, %$user });
 }
 
