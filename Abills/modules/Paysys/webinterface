@@ -1647,7 +1647,6 @@ else {
 # User portal payments system with LiqPAY
 #**********************************************************
 sub paysys_liqpay {
-
   require "modules/Paysys/Liqpay.pm";
   my %info = ();
 	
@@ -1667,6 +1666,29 @@ if ($FORM{TRUE} || $FORM{status}) {
   $html->setCookie('lastindex', "", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);
   return 0;
  }
+else {
+	if ($FORM{SUM} <= 0 ) {
+		$html->message('info', $_ERROR, "$ERR_WRONG_SUM $FORM{SUM}");
+		return 0;
+	 }
+	
+	#Info section  
+  $Paysys->add({ SYSTEM_ID      => 62,
+  	             DATETIME       => "'$DATE $TIME'", 
+  	             SUM            => $FORM{SUM},
+  	             UID            => $user->{UID}, 
+                 IP             => "$ENV{'REMOTE_ADDR'}",
+                 TRANSACTION_ID => "$FORM{OPERATION_ID}",
+                 INFO           => '-',
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+               });
+
+  if ($Paysys->{errno}) {
+  	$html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
+  	return 0;
+   }
+}
+
 
   my %methods       = ('card' => "Visa/Master Card", 
                        'liqpay' =>"LiqPAY"     );
