@@ -1577,6 +1577,11 @@ sub msgs_new {
     		  elsif (int($MESSAGE_CHAPTER) > 0 && int($MESSAGE_CHAPTER) && $Msgs->{CHAPTER} != int($MESSAGE_CHAPTER)) {
     		  	next
     		   }
+      	  $Msgs->message_change({
+	 	                         ID         => $Msgs->{MSG_ID},
+ 	 	                         ADMIN_READ => "0000-00-00 00:00:00",
+ 	 	                       });
+    		  
     		  print "Location: $URL?GID=$user->{GID}&MESSAGE_CHAPTER=$Msgs->{CHAPTER}", "\n\n";
     		  exit;
     		 }

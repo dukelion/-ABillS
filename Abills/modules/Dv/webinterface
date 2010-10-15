@@ -1470,7 +1470,7 @@ sub dv_sessions {
                       20 => 'Reauthentication-Failure',
                       21 => 'Port-Reinit',
                       22 => 'Port-Disabled',
-                      23 => 'Lost-Alive');
+                      23 => 'Lost-Alive/Billd Calculation');
 
 if (! $list) {
   if (! defined($FORM{sort})) {
@@ -1625,7 +1625,8 @@ my %ACCT_TERMINATE_CAUSES = (
                       'Supplicant-Restart'  =>     19,
                       'Reauthentication-Failure' => 20,
                       'Port-Reinit'         =>     21,
-                      'Port-Disabled'       =>     22       
+                      'Port-Disabled'       =>     22,
+	              'Lost-Alive/Billd Calculation' => 23
                     );
 
 my %ACCT_TERMINATE_CAUSES_REV = reverse %ACCT_TERMINATE_CAUSES;
@@ -2814,7 +2815,8 @@ my %ACCT_TERMINATE_CAUSES = (
                       'Supplicant-Restart'  =>     19,
                       'Reauthentication-Failure' => 20,
                       'Port-Reinit'         =>     21,
-                      'Port-Disabled'       =>     22       
+                      'Port-Disabled'       =>     22,
+                      'Lost-Alive/Billd Calculation' => 23      
                     );
 
 my %ACCT_TERMINATE_CAUSES_VALUE = reverse %ACCT_TERMINATE_CAUSES;

@@ -41,13 +41,12 @@ sub messages_new {
   my $self = shift;
   my ($attr) = @_;
 
-
  my @WHERE_RULES = ();
  my $fields = '';
  
  if ($attr->{USER_READ}) {
    push @WHERE_RULES, "m.user_read='$attr->{USER_READ}' AND admin_read>'0000-00-00 00:00:00' AND m.inner_msg='0'"; 
-   $fields='count(*), \'\', \'\', max(m.id), m.chapter';
+   $fields='count(*), \'\', \'\', max(m.id), m.chapter, m.id';
   }
  elsif ($attr->{ADMIN_READ}) {
  	 $fields = "sum(if(admin_read='0000-00-00 00:00:00', 1, 0)), 
@@ -82,7 +81,7 @@ sub messages_new {
    $WHERE;");
   }
 
- ($self->{UNREAD}, $self->{TODAY}, $self->{OPENED}, $self->{LAST_ID}, $self->{CHAPTER}) = @{ $self->{list}->[0] };
+ ($self->{UNREAD}, $self->{TODAY}, $self->{OPENED}, $self->{LAST_ID}, $self->{CHAPTER}, $self->{MSG_ID}) = @{ $self->{list}->[0] };
 
   return $self;	
 }
@@ -150,7 +149,6 @@ sub messages_list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{PHONE}, 'STR', 'm.phone') };
   }
 
-
  # Show groups
  if ($attr->{GIDS}) {
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
@@ -185,7 +183,6 @@ sub messages_list {
  	 while( my ($chapter, $deligation) =  each %{ $attr->{CHAPTERS_DELIGATION} } ) {
  	   push @WHERE_RULES_pre, "(m.chapter='$chapter' AND m.deligation<='$deligation')";
  	  }
-
    push @WHERE_RULES,  "(". join(" or ", @WHERE_RULES_pre) .")";
   }
  elsif ($attr->{CHAPTERS}) {
@@ -287,8 +284,7 @@ GROUP BY m.id
 
  my $list = $self->{list};
 
- if ($self->{TOTAL} > 0  || $PG > 0) {
-   
+ if ($self->{TOTAL} > 0  || $PG > 0) {   
    $self->query($db, "SELECT count(DISTINCT m.id), 
    sum(if(m.admin_read = '0000-00-00 00:00:00', 1, 0)),
    sum(if(m.state = 0, 1, 0)),
@@ -306,8 +302,6 @@ GROUP BY m.id
     $self->{CLOSED},
     ) = @{ $self->{list}->[0] };
   }
- 
-
 
  $WHERE = '';
  @WHERE_RULES=();
@@ -355,9 +349,6 @@ sub message_add {
 }
 
 
-
-
-
 #**********************************************************
 # Bill
 #**********************************************************
@@ -376,11 +367,8 @@ sub message_del {
   	 }
    }
 
-
-
   if ($attr->{UID}) {
-  	 push @WHERE_RULES, "uid='$attr->{UID}'";
-  	
+  	 push @WHERE_RULES, "uid='$attr->{UID}'";  	
    }
 
   $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';

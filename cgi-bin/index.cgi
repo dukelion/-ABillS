@@ -393,6 +393,7 @@ sub form_info {
               my $Fees = Finance->fees($db, $admin, \%conf);
               $Fees->take($user, $price, { DESCRIBE => "$_CREDIT $_ENABLE" } );              
              }
+            cross_modules_call('_payments_maked', { USER => $user }); 
           }
 
          $user->{CREDIT}=$sum;
