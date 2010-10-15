@@ -302,7 +302,6 @@ if ($self->{PORT} > 0 && $self->{PORT} != $RAD->{NAS_PORT}) {
 #Check  simultaneously logins if needs
 if ($self->{LOGINS} > 0) {
   $self->query($db, "SELECT CID FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2 and status < 11);");
-
   my($active_logins) = $self->{TOTAL};
 #  foreach my $line (@{ $self->{list} }) {
 #  	# Zap session with same CID
@@ -866,7 +865,6 @@ sub authentication {
   else {
   	$WHERE = "AND u.domain_id='0'";
    }
-
   $self->query($db, "select
   u.uid,
   DECODE(password, '$SECRETKEY'),

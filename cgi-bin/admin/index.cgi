@@ -931,7 +931,6 @@ sub user_form {
     }
 
    $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { OUTPUT2RETURN => 1 });
-
    $user_info->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { OUTPUT2RETURN => 1 }) if ($conf{EXT_BILL_ACCOUNT});
 
    if ($user_info->{DISABLE} > 0) {
@@ -1404,6 +1403,8 @@ if(defined($attr->{USER})) {
      }
     else {
       $html->message('info', $_CHANGED, "$_CHANGED $users->{info}");
+
+      cross_modules_call('_payments_maked', { USER => $user_info, }); 
       
       #External scripts 
       if ($conf{external_userchange}) {
@@ -1411,6 +1412,7 @@ if(defined($attr->{USER})) {
      	    return 0;
          }
        }
+      
      }
    }
   elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 15 && $permissions{0}{5} ) {
@@ -4930,7 +4932,7 @@ if ($attr->{USER}) {
 
      foreach my $line (@$list) {
      	 my ($sum, undef) = split(/:/, $line->[7]);
-     	   my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=85&del=$line->[13]", 
+     	   my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=85&del=$line->[14]", 
            { MESSAGE => "$_DEL ID: $line->[13]?", BUTTON => 1 }) : ''; 
 
      	 $table2->addrow($line->[13], "$line->[3]-$line->[2]-$line->[1]", sprintf('%.2f', $sum), $delete);
@@ -6882,11 +6884,11 @@ sub get_function_index  {
   
   while(my($k, $v)=each %functions) {
     if ($v eq "$function_name") {
-         $function_index = $k;
-         last;
+       $function_index = $k;
+       last;
      }
    }
-  
+
   return $function_index;
 }
 

@@ -47,7 +47,7 @@ sub messages_new {
  
  if ($attr->{USER_READ}) {
    push @WHERE_RULES, "m.user_read='$attr->{USER_READ}' AND admin_read>'0000-00-00 00:00:00' AND m.inner_msg='0'"; 
-   $fields='count(*), \'\', \'\', max(m.id)';
+   $fields='count(*), \'\', \'\', max(m.id), m.chapter';
   }
  elsif ($attr->{ADMIN_READ}) {
  	 $fields = "sum(if(admin_read='0000-00-00 00:00:00', 1, 0)), 
@@ -82,7 +82,7 @@ sub messages_new {
    $WHERE;");
   }
 
- ($self->{UNREAD}, $self->{TODAY}, $self->{OPENED}, $self->{LAST_ID}) = @{ $self->{list}->[0] };
+ ($self->{UNREAD}, $self->{TODAY}, $self->{OPENED}, $self->{LAST_ID}, $self->{CHAPTER}) = @{ $self->{list}->[0] };
 
   return $self;	
 }

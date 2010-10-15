@@ -486,7 +486,7 @@ sub logrotate {
 	$DEBUG .= "Brute force log cleaned\n" if ( $debug > 1);
 	
 	 # Clean old backups
-   my $r = `find /usr/abills/backup/ -type f -mtime +30 -delete`;
+   my $r = `find $conf{BACKUP_DIR} -type f -mtime +30 -delete`;
  
    $DEBUG .= "Clean mysql old backups\n" if ( $debug > 1);
 }

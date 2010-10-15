@@ -1567,7 +1567,20 @@ sub msgs_new {
     $Msgs->messages_new({ %SHOW_PARAMS });
 
     if ($Msgs->{TOTAL} > 0 && $Msgs->{UNREAD} > 0) {
-    	
+    	if ($conf{MSGS_UNREAD_FORWARD}) {
+    		my @RULES_ARR = split(/;/, $conf{MSGS_UNREAD_FORWARD});
+    		foreach my $rule (@RULES_ARR){
+    		  my ($USER_GID, $MESSAGE_CHAPTER, $URL)=split(/:/, $rule, 3);
+    		  if (int($USER_GID) > 0 && $user->{GID} != int($USER_GID)) {
+    		  	next
+    		   }
+    		  elsif (int($MESSAGE_CHAPTER) > 0 && int($MESSAGE_CHAPTER) && $Msgs->{CHAPTER} != int($MESSAGE_CHAPTER)) {
+    		  	next
+    		   }
+    		  print "Location: $URL?GID=$user->{GID}&MESSAGE_CHAPTER=$Msgs->{CHAPTER}", "\n\n";
+    		  exit;
+    		 }
+    	 }
       return "($Msgs->{UNREAD})";
      }
 
