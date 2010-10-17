@@ -300,7 +300,17 @@ sub check_lines {
 #        next;
 #       }
 
-      next if ($NAS{NAS_TYPE} eq 'ipcad');
+      if ($NAS{NAS_TYPE} eq 'ipcad') {
+      	next
+       }
+      elsif ($NAS{NAS_TYPE} eq 'dhcp') {
+      	$NAS->{NAS_ALIVE} = 8600 if (! $NAS->{NAS_ALIVE});
+        if ($NAS{NAS_ALIVE} > $duration) {
+        	
+        	next;
+         }
+       }
+
       #Get stats from nas servers which don't support rad Alive
       my $external_stats = get_stats(\%NAS, $nas_port_id);
       if ( $NAS{NAS_ALIVE} > 0 
@@ -325,7 +335,7 @@ sub check_lines {
 
            if ($debug > 0) {
            	 foreach my $k (sort keys %$ACCT_INFO) {
- 	  	          $info .= sprintf("%-28s | %-30s |\n", $k, (defined($ACCT_INFO->{$k})) ? $ACCT_INFO->{$k} : '' );
+ 	  	         $info .= sprintf("%-28s | %-30s |\n", $k, (defined($ACCT_INFO->{$k})) ? $ACCT_INFO->{$k} : '' );
 	           }
 
              $info .= sprintf("%-28s\n", '----------------------------------------------------');
@@ -334,7 +344,7 @@ sub check_lines {
  		           $info .= sprintf("%-28s | %-30s |\n", $k, (defined($Acct->{$k})) ? $Acct->{$k} : '' );
   	         }
             }
-           if ($NAS{NAS_TYPE} eq 'ipcad') {
+           if ($NAS{NAS_TYPE} eq 'ipcad' || $NAS{NAS_TYPE} eq 'dhcp') {
      	        my $ret = hangup(\%NAS, "$nas_port_id", "$line->[0]", { ACCT_SESSION_ID      => "$acct_session_id",
               	                                                      FRAMED_IP_ADDRESS    => int2ip($client_ip),
               	                                                      UID                  => $uid,

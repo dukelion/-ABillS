@@ -30,7 +30,7 @@ my $GT  = '';
 my $rr  = '';
 my $log_print = sub {
   my ($LOG_TYPE, $USER_NAME, $MESSAGE, $attr) = @_;
-  my $Nas = $attr->{NAS}; 
+  my $Nas = $attr->{NAS};
 
   if ($conf{debugmods} =~ /$LOG_TYPE/) {
     if ($conf{ERROR2DB} && $attr->{NAS}) {
@@ -301,7 +301,6 @@ sub post_auth {
     my ($r, $RAD_PAIRS) = $auth_mod{"$nas->{NAS_TYPE}"}->auth(\%RAD_REQUEST, $nas);
     my $message = $RAD_PAIRS->{'Reply-Message'} || '';
 
-
     if ($r == 2) {
       $log_print->('LOG_INFO', $RAD_PAIRS->{'User-Name'}, $message." ". $RAD_REQUEST{'DHCP-Client-Hardware-Address'} ." $GT", { NAS => $nas});
      }
@@ -327,7 +326,6 @@ sub post_auth {
      }
 
     my $rew = `echo "$out" >> /tmp/rad_dhcp`;
-
     return $r;
    }
 
