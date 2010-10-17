@@ -305,7 +305,7 @@ sub check_lines {
        }
       elsif ($NAS{NAS_TYPE} eq 'dhcp') {
       	$NAS{NAS_ALIVE} = 8600 if (! $NAS{NAS_ALIVE});
-        if ($NAS{NAS_ALIVE} < $duration) {
+        if ($NAS{NAS_ALIVE} < $duration_sec) {
           print "Hangup dhcp sessions/ Login: $user_name, Last Alive: $last_alive, Session-ID: $acct_session_id NAS: $NAS{NAS_ID}/$NAS{NAS_IP}\n"; # if ( $debug == 1 );
           $sessions->zap($nas_row->[0], $nas_port_id, $acct_session_id);
         	next;
