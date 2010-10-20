@@ -68,8 +68,7 @@ sub cards_main {
 
 if ($FORM{change}) {
   my @ORDERS  = ();    
-  my $list;
-  
+  my $list;  
   my $FROM = '';
 
 #  #Make invoce if using Doc module
@@ -209,10 +208,12 @@ my $table;
   $Cards->{CREATED_DATE}= $html->date_fld2('CREATED_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
   $Cards->{EXPIRE_DATE} = $html->date_fld2('EXPIRE_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, NO_DEFAULT_DATE => 1 });
 
-  form_search({ SEARCH_FORM => $html->tpl_show(_include('cards_search', 'Cards'), 
+  if (! $FORM{pdf}) {
+    form_search({ SEARCH_FORM => $html->tpl_show(_include('cards_search', 'Cards'), 
   	                                  { %FORM, %$Cards }, 
   	                                  { OUTPUT2RETURN => 1 })  
 	            });
+  }
 
 my @total_arr=();
 if (defined($FORM{SERIA})) {
@@ -2168,7 +2169,7 @@ sub cards_report_payments {
 	                         NAME    => 'cards_list'
 	                        });
 
-  my @caption = ("$_DATE", "$_USERS", "$_SUM", "$_FIO", "$_ICARDS");
+  my @caption = ("$_DATE", "$_USERS", "$_SUM", "$_FIO", "$_ICARDS", "$_DILLERS");
   my $list = $Cards->cards_report_payments({ %LIST_PARAMS });
   $table = $html->table( { width      => '100%',
                            caption    => "$_LOG",
@@ -2181,12 +2182,12 @@ sub cards_report_payments {
 
   foreach $line (@$list) {
    	$table->addrow( $line->[0],
-   	$html->button("$line->[1]", "index=15&UID=$line->[7]"),
+   	$html->button("$line->[1]", "index=15&UID=$line->[6]"),
    	$line->[2],
    	$line->[3],
    	$line->[4],
    	$line->[5],
-   	$line->[6], );
+   	 );
    }
   
   print $table->show();

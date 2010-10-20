@@ -362,15 +362,14 @@ sub leaseparse {
        }
 
 
-      /^\s*starts \d (.*);/ && (  $list{$ip}{starts}=sprintf("%-21s", $1) );
-      /^\s*(abandoned).*/ && (    $list{$ip}{abandoned}=sprintf("%-19s", $1) );
-      /^\s*option agent.circuit-id ([a-b0-9:]+);/ && (    $list{$ip}{circuit_id}=sprintf("%s", $1) );
-      /^\s*option agent.remote-id ([a-b0-9:]+);/ && (    $list{$ip}{remote_id}=sprintf("%s", $1) );
+      /^\s*starts \d (.*);/ && ( $list{$ip}{starts}=sprintf("%-21s", $1) );
+      /^\s*(abandoned).*/ && ( $list{$ip}{abandoned}=sprintf("%-19s", $1) );
+      /^\s*option agent.circuit-id ([a-b0-9:]+);/ && ( $list{$ip}{circuit_id}=sprintf("%s", $1) );
+      /^\s*option agent.remote-id ([a-b0-9:]+);/ && ( $list{$ip}{remote_id}=sprintf("%s", $1) );
    }
 
-   close FILE;
-
-   return \%list;
+  close FILE;
+  return \%list;
 }
 
 
@@ -396,7 +395,6 @@ sub dhcphosts_networks {
    }
   elsif ($FORM{add}) {
     $FORM{ROUTERS}='0.0.0.0' if (! $FORM{ROUTERS}) ;
-
     if($FORM{IP_RANGE_FIRST} ne '0.0.0.0' && (ip2int($FORM{IP_RANGE_FIRST}) < ip2int($FORM{NETWORK}) 
      || ip2int($FORM{IP_RANGE_FIRST}) > ip2int($FORM{NETWORK}) + ( ip2int('255.255.255.255') - ip2int($FORM{MASK}) )
      || ip2int($FORM{IP_RANGE_LAST}) < ip2int($FORM{NETWORK}) 
@@ -1205,7 +1203,7 @@ sub dhcphosts_reconfigure {
 #
 #**********************************************************
 sub convert_ip {
-    my ($cid, $blocked, $attr)=@_;
+  my ($cid, $blocked, $attr)=@_;
 
     if (! $Dhcphosts->{NETWORK}) {
       $Dhcphosts->network_info($net_id);

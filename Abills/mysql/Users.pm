@@ -855,7 +855,6 @@ if ($self->{TOTAL} > 0) {
     	      $attr->{$field_name} =~ s/\*/\%/ig;
             push @WHERE_RULES, "pi.$field_name LIKE '$attr->{$field_name}'"; 
            }
-
           $self->{SEARCH_FIELDS} .= "pi.$field_name, ";
           $self->{SEARCH_FIELDS_COUNT}++;
          }
@@ -966,12 +965,9 @@ if ($self->{TOTAL} > 0) {
      $EXT_TABLES
      $WHERE ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
- return $self if($self->{errno});
-
- 
+ return $self if($self->{errno}); 
 
  $list = $self->{list};
-
 
  if ($self->{TOTAL} == $PAGE_ROWS || $PG > 0) {
     $self->query($db, "SELECT count(u.id) FROM users u 

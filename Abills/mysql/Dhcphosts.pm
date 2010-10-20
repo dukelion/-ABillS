@@ -770,8 +770,6 @@ sub hosts_list {
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  return $self if($self->{errno});
-
-
  my $list = $self->{list};
 
 
