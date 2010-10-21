@@ -739,7 +739,7 @@ if ($self->{COMPANY_ID} > 0) {
   if ($CONF->{BONUS_EXT_FUNCTIONS} && $self->{EXT_BILL_ID} && $sum > 0 && $self->{BILLS_PRIORITY}) {
   	$self->query($db, "SELECT deposit FROM bills WHERE id='$self->{EXT_BILL_ID}';");
   	($self->{EXT_DEPOSIT})= @{ $self->{list}->[0] };
-  	if ($self->{EXT_DEPOSIT} > $sum || $self->{BILLS_PRIORITY} == 2) {
+  	if ($self->{EXT_DEPOSIT} > 0 || $self->{BILLS_PRIORITY} == 2) {
   		$self->{BILL_ID}=$self->{EXT_BILL_ID};
   	 }
    }
