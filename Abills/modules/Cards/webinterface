@@ -132,7 +132,7 @@ if ($FORM{change}) {
          my ($seria, $price)=split(/:/, $k, 2);
          push @ORDERS, "$_ICARDS $_SERIAL: $seria $_SUM: $price|0|$v|$price";
         }
-print "helloooo";
+
  		   docs_invoice_add({ CUSTOMER  => $Cards->{NAME},
                          	ORDERS    => [ @ORDERS ],
                          	create    => 1,

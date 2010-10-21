@@ -262,13 +262,14 @@ sub check_lines {
       my $calls_tp_id             = $line->[21];
       my $online_state            = $line->[22];
       my $filter_id               = $line->[23];
+      my $bill_priority           = $line->[24];
       
       if ($debug > 1) {
         printf("%-14s|%16s|%8s|%10s|%10s|%12s|\n", $user_name, int2ip($client_ip), $duration, $acct_input_octets, $acct_output_octets, $deposit);
        } 
       
       
-      if (($calls_tp_id ne $tp_num || $state || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0)) && $online_state != 2 ) {
+      if (($calls_tp_id ne $tp_num || $state || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0 && $bill_priority == 0)) && $online_state != 2 ) {
         print "Hanguped Login: Change TP $user_name DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum SESSION_ID: $acct_session_id\n";
         my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
        	                                                        FRAMED_IP_ADDRESS    => int2ip($client_ip),

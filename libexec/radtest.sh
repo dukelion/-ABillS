@@ -33,7 +33,8 @@ if [ t$1 = 'tauth' ] ; then
         SERVICE_TYPE=VPN \
         NAS_IP_ADDRESS=${NAS_IP_ADDRESS}\
         USER_PASSWORD="${USER_PASSWORD}"\
-        USER_NAME="${USER_NAME}"
+        USER_NAME="${USER_NAME}"\
+        CALLING_STATION_ID="00:aa:22:33:bb:aa"
 
 #        CISCO_AVPAIR="client-mac-address=000f.ea3d.92e1"
 #        CHAP_PASSWORD="0x5acd1cc26b6f8bf084fb616925769362af"
