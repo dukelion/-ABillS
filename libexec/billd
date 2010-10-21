@@ -190,7 +190,8 @@ sub check_lines {
                              'SUM',
                              'CALLS_TP_ID',
                              'STATUS',
-                             'FILTER_ID' ]
+                             'FILTER_ID',
+                             'TP_BILLS_PRIORITY' ]
 		                   } );	
 	
   print "==> check_lines\n" if ($debug > 1);

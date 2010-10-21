@@ -147,6 +147,7 @@ sub online {
 	my ($attr) = @_;
 
   my $WHERE = '';
+  my $EXT_TABLE = '';
 
   $admin->{DOMAIN_ID}=0 if (! $admin->{DOMAIN_ID});
 
@@ -162,6 +163,7 @@ sub online {
     $self->{TOTAL} = $self->{list}->[0][0];
   	return $self;
    }
+ 
 
   my @FIELDS_ALL = (
    'c.user_name',
@@ -243,7 +245,10 @@ sub online {
    FILTER_ID       => 'dv.filter_id',
    SESSION_START   => 'UNIX_TIMESTAMP(started)',
    DISABLE         => 'u.disable',
-   DV_STATUS       => 'dv.disable'
+   DV_STATUS       => 'dv.disable',
+   
+   TP_NAME            => 'tp.tp_name',
+   TP_BILLS_PRIORITY  => 'tp.bills_priority'
   );
 
 
@@ -269,6 +274,9 @@ sub online {
     $RES_FIELDS_COUNT = 0;
   	foreach my $field ( @{ $attr->{FIELDS_NAMES} } ) {
   	  $fields .= "$FIELDS_NAMES_HASH{$field},\n ";	
+  	  if ($field =~ /TP_BILLS_PRIORITY|TP_NAME/ && $EXT_TABLE !~ /tarif_plans/) {
+  	  	$EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)";
+  	   }
   	  $RES_FIELDS_COUNT++;
   	 }
     $RES_FIELDS_COUNT--;
@@ -344,6 +352,9 @@ sub online {
  	 push @WHERE_RULES, ($attr->{FILTER} =~ s/\*/\%/g) ? "$filter_field LIKE '$attr->{FILTER}'" : "$filter_field='$attr->{FILTER}'";
   }
  
+ 
+  
+ 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT $fields
@@ -371,6 +382,7 @@ sub online {
  LEFT JOIN bills b ON (u.bill_id=b.id)
  LEFT JOIN companies company ON (u.company_id=company.id)
  LEFT JOIN bills cb ON (company.bill_id=cb.id)
+ $EXT_TABLE
 
  $WHERE
  ORDER BY $SORT $DESC;", 'fields_list');

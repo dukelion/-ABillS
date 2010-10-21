@@ -259,8 +259,9 @@ sub docs_invoice_add {
   
   foreach my $line (@{ $attr->{ORDERS} }) {
     my ($order, $unit, $count,  $sum)=split(/\|/, $line, 4);
+    $order =~ s/\'/\\'/g;
     $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price)
-      values ($self->{DOC_ID}, \"$order\", '$count', '$unit', '$sum')", 'do');
+      values ($self->{DOC_ID}, '$order', '$count', '$unit', '$sum')", 'do');
   }
 
   return $self if($self->{errno});
