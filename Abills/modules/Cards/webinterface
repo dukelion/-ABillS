@@ -118,11 +118,12 @@ if ($FORM{change}) {
 
   	if(in_array('Docs', \@MODULES) && $FORM{INVOICE}) {
   		 require "Abills/modules/Docs/webinterface";
+  		 $Cards->{debug}=1;
        my $list = $Cards->cards_list({ IDS => $FORM{IDS}, ROWS => 1000000 });
        my %CARDS_GROUPS = ();
        my %DILLERS_LIST = ();
        foreach my $line (@$list) {
-    	   $CARDS_GROUPS{"$line->[1]:$line->[3]"}++;
+    	   $CARDS_GROUPS{"$line->[0]:$line->[2]"}++;
     	   $DILLERS_LIST{"$line->[7]"}{"$line->[1]:$line->[3]"}++ if ($line->[7] ne 'null') ;
         }
 
@@ -131,11 +132,12 @@ if ($FORM{change}) {
          my ($seria, $price)=split(/:/, $k, 2);
          push @ORDERS, "$_ICARDS $_SERIAL: $seria $_SUM: $price|0|$v|$price";
         }
-
+print "helloooo";
  		   docs_invoice_add({ CUSTOMER  => $Cards->{NAME},
                          	ORDERS    => [ @ORDERS ],
                          	create    => 1,
-                         	FROM      => $FROM,                         	   
+                         	FROM      => $FROM,
+                         	DATE      => $DATE
                        });
    	 }
     return 0;

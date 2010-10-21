@@ -240,14 +240,15 @@ sub docs_invoice_add {
 
   $DATA{DATE}       = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
   $DATA{INVOICE_ID} = ($attr->{INVOICE_ID}) ? $attr->{INVOICE_ID}  : $self->docs_nextid({ TYPE => 'INVOICE' });
+  $DATA{CUSTOMER}   =~ s/\'/\\\'/;
 
   $self->query($db, "insert into docs_invoice (invoice_id, date, created, customer, phone, aid, uid,
     by_proxy_seria,
     by_proxy_person,
     by_proxy_date,
     payment_id)
-      values ('$DATA{INVOICE_ID}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 
-      \"$admin->{AID}\", \"$DATA{UID}\",
+      values ('$DATA{INVOICE_ID}', $DATA{DATE}, now(), '$DATA{CUSTOMER}', '$DATA{PHONE}', 
+      '$admin->{AID}', '$DATA{UID}',
       '$DATA{BY_PROXY_SERIA}',
       '$DATA{BY_PROXY_PERSON}',
       '$DATA{BY_PROXY_DATE}',
@@ -259,7 +260,7 @@ sub docs_invoice_add {
   
   foreach my $line (@{ $attr->{ORDERS} }) {
     my ($order, $unit, $count,  $sum)=split(/\|/, $line, 4);
-    $order =~ s/\'/\\'/g;
+    $order =~ s/\'/\\\'/g;
     $self->query($db, "INSERT INTO docs_invoice_orders (invoice_id, orders, counts, unit, price)
       values ($self->{DOC_ID}, '$order', '$count', '$unit', '$sum')", 'do');
   }
