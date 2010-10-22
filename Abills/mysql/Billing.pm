@@ -742,6 +742,7 @@ if ($self->{COMPANY_ID} > 0) {
   	if ($self->{EXT_DEPOSIT} > $sum || $self->{BILLS_PRIORITY} == 2) {
   		$self->{BILL_ID}=$self->{EXT_BILL_ID};
   	 }
+  	my $aaa = `echo "$self->{BILL_ID} / $self->{EXT_BILL_ID} / D: $self->{EXT_DEPOSIT} /  SUM: $sum ! $self->{BILLS_PRIORITY}" >> /tmp/test_bonus`;
    }
 
   return $self->{UID}, sprintf("%.6f", $sum), $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
