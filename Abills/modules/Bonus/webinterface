@@ -31,7 +31,7 @@ if (defined($attr->{USER})) {
    }
 
   if($user->{EXT_BILL_ID} < 1) {
-    form_bills({ USER => $user });
+    form_bills({ USER => $user, EXT_BILL_ONLY => 1 });
     return 0;
   }
 
@@ -90,7 +90,7 @@ $Bonus->{ACTION_TYPES}  = $html->form_select('ACTION_TYPE',
  	                               });
 
   if ($permissions{1} && $permissions{1}{1}) {
-    $payments->{OP_SID} = mk_unique_value(16);
+    $Bonus->{OP_SID} = mk_unique_value(16);
     if ($permissions{1}{4}) {
       $payments->{DATE} = "<tr><td colspan=2>$_DATE:</td><td>". $html->form_input('DATE', "$DATE $TIME"). "</td></tr>\n";
      }

@@ -2042,36 +2042,38 @@ sub form_bills {
   	return 0;
   }
   
-  use Bills;
-  my  $bills = Bills->new($db);
-  my $list = $bills->list({  COMPANY_ONLY => 1,
+  if (! $attr->{EXT_BILL_ONLY}) {
+    use Bills;
+    my  $bills = Bills->new($db);
+    my $list = $bills->list({  COMPANY_ONLY => 1,
   	                         UID          => $user->{UID} 
   	                      });
 
-  my %BILLS_HASH = ();
+    my %BILLS_HASH = ();
 
-  foreach my $line (@$list) {
-    if($line->[3] ne '') {
-      $BILLS_HASH{$line->[0]}="$line->[0] : $line->[3] :$line->[1]";
+    foreach my $line (@$list) {
+      if($line->[3] ne '') {
+        $BILLS_HASH{$line->[0]}="$line->[0] : $line->[3] :$line->[1]";
+       }
+      elsif($line->[2] ne '') {
+    	  $BILLS_HASH{$line->[0]}=">> $line->[0] : Personal :$line->[1]";
+       }
      }
-    elsif($line->[2] ne '') {
-    	$BILLS_HASH{$line->[0]}=">> $line->[0] : Personal :$line->[1]";
-     }
-   }
 
-  $user->{SEL_BILLS} .= $html->form_select('BILL_ID', 
+    $user->{SEL_BILLS} .= $html->form_select('BILL_ID', 
                                 { SELECTED   => '',
  	                                SEL_HASH   => {'' => '', %BILLS_HASH },
  	                                NO_ID      => 1
  	                               });
 
 
-  $user->{CREATE_BILL}=' checked' if (! $FORM{COMPANY_ID} && $user->{BILL_ID} < 1);
-  $user->{BILL_TYPE} = $_PRIMARY;
-  $user->{CREATE_BILL_TYPE} = 'CREATE_BILL';
-  $html->tpl_show(templates('form_chg_bill'), $user);
+    $user->{CREATE_BILL}=' checked' if (! $FORM{COMPANY_ID} && $user->{BILL_ID} < 1);
+    $user->{BILL_TYPE} = $_PRIMARY;
+    $user->{CREATE_BILL_TYPE} = 'CREATE_BILL';
+    $html->tpl_show(templates('form_chg_bill'), $user);
+  }
 
-  if ($conf{EXT_BILL_ACCOUNT}) {
+  if ($conf{EXT_BILL_ACCOUNT} || $attr->{EXT_BILL_ONLY}) {  	
     $html->tpl_show(templates('form_chg_bill'), {
     	   BILL_ID          => $user->{EXT_BILL_ID},
     	   BILL_TYPE        => $_EXTRA,
