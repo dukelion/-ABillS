@@ -1488,8 +1488,8 @@ sub check_speed_change {
              "$Bin/linkupdown mpd up ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;";
    }
   elsif ($NAS_TYPE =~ /pppd/) {
-     $cmds = "$Bin/linkupdown pppd up ppp$IFACE_ID 'username' $USER_IP;".
-             "$Bin/linkupdown  pppd up ppp$IFACE_ID 'username' $USER_IP;";
+     $cmds = "$Bin/linkupdown pppd up ppp$IFACE_ID $USER_NAME $USER_IP;".
+             "$Bin/linkupdown  pppd up ppp$IFACE_ID $USER_NAME $USER_IP;";
    }
   
 

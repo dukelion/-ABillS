@@ -198,7 +198,7 @@ my $users_table_number = $conf{FW_TABLE_USERS} || 10;
 # Flush rules
 my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
 
-if ($ARGV[0] eq 'pppd') {
+if ($ARGV[0] eq 'pppd' && $USER eq 'username') {
 	$LIST_PARAMS{IP}=$HISADDR;
  } 
 else {
