@@ -2557,7 +2557,7 @@ print $table->show();
 sub msgs_survey_questions {
   $Msgs->{ACTION}='add';
   $Msgs->{ACTION_LNG}=$_ADD;
-
+  
   if ($FORM{add}) {
     $Msgs->survey_question_add({ %FORM });
 
@@ -2644,11 +2644,12 @@ sub msgs_survey_show {
   	                                     UID       => $user->{UID} || $LIST_PARAMS{UID},
   	                                     MSG_ID    => $attr->{MSG_ID},
   	                                     REPLY_ID  => $attr->{REPLY_ID} || 0  });
-
+  my $answer_date  = '';
   if ($Msgs->{TOTAL} > 0) {
     foreach my $line (@$list) {
  	    $answers{$line->[0]}{ANSWER}  = $line->[2];
  	    $answers{$line->[0]}{COMMENTS}= $line->[3];
+ 	    $answer_date = $line->[4];
      }
    }
   else {
@@ -2661,7 +2662,7 @@ sub msgs_survey_show {
   $list = $Msgs->survey_questions_list({ SURVEY => $attr->{SURVEY_ID} });
 
   my $table = $html->table( { width      => '100%',
-                              caption    => "$_SURVEY - $Msgs->{NAME}",
+                              caption    => "$_SURVEY - $Msgs->{NAME}". (($answer_date ne '') ? " ($answer_date)" : ''),
                               cols_align => ['left', 'left', 'right', 'center:noprint', 'center:noprint'],
                               qs         => $pages_qs,
                            });

@@ -1958,7 +1958,7 @@ sub survey_question_change {
   $attr->{INNER_CHAPTER} = ($attr->{INNER_CHAPTER}) ? 1 : 0;
   
   my %FIELDS = (ID           => 'id',
-                NUM          => 'name',
+                NUM          => 'num',
                 QUESTION     => 'question',
                 COMMENTS     => 'comments', 
                 PARAMS       => 'params',

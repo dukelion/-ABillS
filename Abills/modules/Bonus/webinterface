@@ -133,8 +133,7 @@ my $table = $html->table( { width      => '100%',
                            } );
 
 my $delete = '';
-foreach my $line (@$list) {
-	
+foreach my $line (@$list) {	
   if ($line->[14]) {
     $delete = "$_DELETED";
    }

@@ -659,7 +659,7 @@ CREATE TABLE `msgs_survey_questions` (
 
 CREATE TABLE `msgs_survey_subjects` (
   `id` smallint(6) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(20) NOT NULL,
+  `name` varchar(60) NOT NULL,
   `comments` text NOT NULL,
   `aid` smallint(6) unsigned NOT NULL DEFAULT '0',
   `created` datetime NOT NULL,
