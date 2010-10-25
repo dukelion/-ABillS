@@ -689,7 +689,7 @@ sub list {
  	  my $sql = join('', @{ $self->search_expr("$attr->{CHANGE_PRICE}", 'INT', 'tp.change_price') });  	
  	  
  	  if (defined($attr->{PRIORITY})) {
- 	  	$sql = "($sql or tp.priority > '$attr->{PRIORITY}')";
+ 	  	$sql = "($sql or (tp.change_price=0 AND tp.priority > '$attr->{PRIORITY}'))";
  	   }
  	  
  	  push @WHERE_RULES, $sql;
