@@ -613,7 +613,6 @@ print $table2->show();
 #**********************************************************
 sub form_companies {
   use Customers;	
-
   my $customer = Customers->new($db, $admin, \%conf);
   my $company = $customer->company();
   
@@ -647,9 +646,19 @@ elsif($FORM{COMPANY_ID}) {
   
   INFO:
   $company->info($FORM{COMPANY_ID});
+  #print contract
+  if ($FORM{PRINT_CONTRACT}) {
+    require "Abills/modules/Docs/webinterface";
+    docs_contract({ COMPANY_CONTRACT => 1, %$company });
+  	return 0;
+   }
+
   $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
   $LIST_PARAMS{BILL_ID}=$company->{BILL_ID};
   $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
+  if (in_array('Docs', \@MODULES) ) {
+    $company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=$index&COMPANY_ID=$FORM{COMPANY_ID}&PRINT_CONTRACT=$FORM{COMPANY_ID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', BUTTON => 1 }) ;
+   }
 
   func_menu({ 
   	         'ID'   => $company->{COMPANY_ID}, 

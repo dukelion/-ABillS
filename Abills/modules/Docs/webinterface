@@ -18,14 +18,15 @@ $conf{DOCS_VAT_INCLUDE}=20 if (! defined($conf{DOCS_VAT_INCLUDE}));
 #**********************************************************
 sub docs_contract {
   my ($attr) = @_;
+
+  $conf{DOCS_LANGUAGE} = $conf{default_language} if (! $conf{DOCS_LANGUAGE});
+	require "../../language/$conf{DOCS_LANGUAGE}.pl";
+  require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
+
 	
 	if ($FORM{UID}) {
 		my $user_main_info = $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
 		$Docs              = $users->pi({ UID => $FORM{UID} });
-
-    $conf{DOCS_LANGUAGE} = $conf{default_language} if (! $conf{DOCS_LANGUAGE});
-		require "../../language/$conf{DOCS_LANGUAGE}.pl";
-		require "../../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
 
     my ($y, $m, $d)=split(/-/, (($users->{CONTRACT_DATE}) ? $users->{CONTRACT_DATE} : $DATE ) , 3);
     $Docs->{CONTRACT_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
@@ -53,6 +54,11 @@ sub docs_contract {
 		 }
 		docs_print($contract_tpl, { %$admin, %$Docs, %$attr });
 	 }
+  else {
+    my ($y, $m, $d)=split(/-/, (($attr->{CONTRACT_DATE}) ? $attr->{CONTRACT_DATE} : $DATE ) , 3);
+    $Docs->{CONTRACT_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
+  	docs_print('contract_company', { %$admin, %$Docs, %$attr });
+   }
 }
 
 
