@@ -23,6 +23,20 @@ $conf{VLAN_CREATE_PPPOE}=undef if (! $conf{VLAN_CREATE_PPPOE});
 
 
 
+#*******************************************************************
+# Delete user from module
+# vlan_user_del()
+#*******************************************************************
+sub vlan_user_del {
+ my ($uid, $attr) = @_;
+
+ $Vlan->{UID}=$uid;
+ $Vlan->del({ UID => $uid });
+
+ return 0;
+}
+
+
 
 #**********************************************************
 # user_vlan

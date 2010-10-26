@@ -14,13 +14,29 @@ my $fees     = Fees->new($db, $admin, \%conf);
 my $payments = Payments->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
-
+my $Nas = Nas->new($db, \%conf);  
 
 my %FORM_BASE = ();
 my %TRAFFIC_NAMES = ();
 
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
 my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT" );
+
+
+#*******************************************************************
+# Delete user from module
+# dv_user_del()
+#*******************************************************************
+sub dv_user_del {
+ my ($uid, $attr) = @_;
+
+ $Dv->{UID}=$uid;
+ $Dv->del({ UID => $uid });
+ $Nas->log_del({ LOGIN => $attr->{LOGIN} });
+
+ return 0;
+}
+
 
 
 #*******************************************************************
@@ -654,8 +670,7 @@ sub dv_user {
  		$Dv->{JOIN_SERVICE}='';
  	}                                        
 
-  my $nas = Nas->new($db, \%conf);  
-  $list = $nas->ip_pools_list({ STATIC => 1 });
+  $list = $Nas->ip_pools_list({ STATIC => 1 });
   
   $Dv->{STATIC_IP_POOL}=$html->form_select('STATIC_IP_POOL', 
                                           { 
@@ -678,17 +693,16 @@ sub dv_get_static_ip {
 	my ($pool_id)=@_;
 	my $ip = '0.0.0.0';
 	
-  my $nas = Nas->new($db, \%conf);  
-  $nas->ip_pools_info($pool_id);
+  $Nas->ip_pools_info($pool_id);
   
   
-  my $start_ip = ip2int($nas->{NAS_IP_SIP});
-  my $end_ip   = $start_ip + $nas->{NAS_IP_COUNT};
+  my $start_ip = ip2int($Nas->{NAS_IP_SIP});
+  my $end_ip   = $start_ip + $Nas->{NAS_IP_COUNT};
 
   my %users_ips = ();
   
   my $list = $Dv->list({ PAGE_ROWS => 100000, 
-  	                     IP        => ">=$nas->{NAS_IP_SIP}" 
+  	                     IP        => ">=$Nas->{NAS_IP_SIP}" 
   	                   });
 
 
@@ -819,12 +833,10 @@ $tarif_info->{GROUPS_SEL} = $html->form_select('TP_GID',
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
-my $nas = Nas->new($db, \%conf);
-
 $tarif_info->{IP_POOLS_SEL} = $html->form_select('IPPOOL', 
                                           { 
  	                                          SELECTED          => $tarif_info->{IPPOOL},
- 	                                          SEL_MULTI_ARRAY   => [['', ''],  @{ $nas->ip_pools_list({ %LIST_PARAMS })	 } ],
+ 	                                          SEL_MULTI_ARRAY   => [['', ''],  @{ $Nas->ip_pools_list({ %LIST_PARAMS })	 } ],
  	                                          MULTI_ARRAY_KEY   => 8,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -927,8 +939,6 @@ print $table->show();
 #*******************************************************************
 sub dv_online {
 
-my $nas = Nas->new($db, \%conf);
-
 my $message;
 if ($FORM{ping}) {
   if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
@@ -941,10 +951,10 @@ if ($FORM{ping}) {
  }
 elsif ($FORM{hangup}) {
   my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
-  $nas->info({ NAS_ID => $nas_id });
+  $Nas->info({ NAS_ID => $nas_id });
   
-  if ($nas->{errno}) {
-    $html->message('err', $_NAS, "$nas->{errstr}");
+  if ($Nas->{errno}) {
+    $html->message('err', $_NAS, "$Nas->{errstr}");
   	return 0;
    }
 
@@ -958,7 +968,7 @@ elsif ($FORM{hangup}) {
                                 caption => $_HANGUPED,
                                 rows    => [ 
                                             [ "$_NAS ID",   $nas_id          ],
-                                            [ "$_NAS IP",   $nas->{NAS_IP}   ],
+                                            [ "$_NAS IP",   $Nas->{NAS_IP}   ],
                                             [ "$_PORT",     $nas_port_id     ],
                                             [ "SESSION_ID", $acct_session_id ],
                                             [ "",           $ret             ] 
@@ -989,13 +999,13 @@ elsif($FORM{zap}) {
   	 return 0;
    }
 
-  $nas->info({NAS_ID => $nas_id });
+  $Nas->info({NAS_ID => $nas_id });
 
   my $table = $html->table( { width   => '100%',
                               caption => $_CLOSED,
                               rows    => [ 
                                           [ "$_NAS ID",   $nas_id],
-                                          [ "$_NAS IP",   $nas->{NAS_IP} ],
+                                          [ "$_NAS IP",   $Nas->{NAS_IP} ],
                                           [ "$_PORT",     $nas_port_id   ],
                                           [ "SESSION_ID", $acct_session_id ],
                                         ]
@@ -1003,7 +1013,7 @@ elsif($FORM{zap}) {
   $message = $table->show();
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
   	                NAS_PORT        => $nas_port_id,
-  	                NAS_ID          => $nas->{NAS_ID} });  
+  	                NAS_ID          => $Nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
     $message .=  $html->button('Add To log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id&ZAPED=1", { BUTTON => 1 }).' '.
@@ -1047,7 +1057,7 @@ elsif($FORM{tolog}) {
   		                   ] } );	
 
    my $online_list = $sessions->{nas_sorted}; 
-   my $nas_list = $nas->list();
+   my $nas_list = $Nas->list();
    my @results = ();
    foreach my $nas_row (@$nas_list) {
      next if (! defined($online_list->{$nas_row->[0]}));
@@ -1100,7 +1110,7 @@ elsif($FORM{tolog}) {
 	  $sessions->online_del({ SESSIONS_LIST => \@del_arr });
    }
   else {
-    $nas->info({ NAS_ID => $FORM{nas_id} });
+    $Nas->info({ NAS_ID => $FORM{nas_id} });
     my $ACCT_INFO = $sessions->online_info({ NAS_ID        => $FORM{nas_id},
                                            NAS_PORT        => $FORM{nas_port_id},
                                            ACCT_SESSION_ID => $FORM{tolog}
@@ -1175,7 +1185,7 @@ elsif($FORM{del} || $FORM{dellist}) {
 
 # online count
 my $list = $sessions->online_count( { %LIST_PARAMS, FIELDS => \@ACTIVE_FIELDS } );	
-my $nas_list = $nas->list();
+my $nas_list = $Nas->list();
 
 $form_link = '';
 my $cure = '';
@@ -1305,7 +1315,7 @@ function CheckAllINBOX() {
                          } );
 
 my $online = $sessions->{nas_sorted};
-#my $nas_list = $nas->list();
+#my $nas_list = $Nas->list();
 
 foreach my $nas_row (@$nas_list) {
   next if (! defined($online->{$nas_row->[0]}));
@@ -1478,11 +1488,10 @@ if (! $list) {
 	  $LIST_PARAMS{DESC} = 'DESC';
   }
 
-  my $nas = Nas->new($db, \%conf);
   $sessions->{SEL_NAS} = $html->form_select('NAS_ID', 
                                           { 
  	                                          SELECTED          => $FORM{NAS_ID},
- 	                                          SEL_MULTI_ARRAY   => [['', $_ALL], @{ $nas->list({ %LIST_PARAMS }) } ],
+ 	                                          SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list({ %LIST_PARAMS }) } ],
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -2038,8 +2047,6 @@ elsif($FORM{UID}) {
 
 #Sql Part
 if ($conf{ERROR2DB}) {
-  my $Nas = Nas->new($db, \%conf);
-  
   my %nas_ids = ( '' => '',
                   0  => 'UNKNOWN',
                  );
@@ -3282,23 +3289,22 @@ sub dv_user_info {
      }
 
   	#Get user NAS server from ip pools
-  	$nas = Nas->new($db, \%conf);
-    $list = $nas->nas_ip_pools_list();
+    $list = $Nas->nas_ip_pools_list();
     foreach my $line (@$list) {
     	if ($line->[3] <= ip2int($user->{REMOTE_ADDR}) && ip2int($user->{REMOTE_ADDR}) <= $line->[4]) {
     		$NAS_ID = $line->[0];
-    		$nas->info({ NAS_ID => $line->[0] });
+    		$Nas->info({ NAS_ID => $line->[0] });
     		next;
     	 }
      }
 
-    if (! $nas->{NAS_ID}) {
+    if (! $Nas->{NAS_ID}) {
     	$html->message('err', $_ERROR, "$ERR_UNKNOWN_IP", { ID => 13 });
     	return 0;
      }
  	
   	#get  PBHK identifier (IP or MAC) from NAS and account info
-    my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
+    my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}";
     my $result = `$isg_cmd`;
 
 =comments
@@ -3399,13 +3405,13 @@ pROFILRE
            my $service_name = 'TURBO_SPEED'. $FORM{SPEED};
            #Deactive cure service (TP Service)
            if ($Dv->{CURE_SERVICE} =~ /TP/) {
-             my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=deactivate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$Dv->{CURE_SERVICE}\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
+             my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=deactivate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$Dv->{CURE_SERVICE}\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}";
              print "<!-- $isg_cmd -->";
              my $result = `$isg_cmd`;
             }
 
            #Active service (TURBO mode)
-           $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=activate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$service_name\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}";
+           $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=activate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$service_name\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}";
      
            #print "<!-- $isg_cmd -->"; 
            my $result = `$isg_cmd`;
@@ -3474,14 +3480,14 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   	   }
   	  else {
   	  	if ($Dv->{ISG_CID_CUR}) {
-  	  	  my $res = `/bin/echo "User-Name=\"$user->{LOGIN}\",cisco-avpair=\"subscriber:commandmy=account-logon\",Cisco-Account-Info=\"S$user->{REMOTE_ADDR}\"" | /usr/local/bin/radclient -x  $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}`;
+  	  	  my $res = `/bin/echo "User-Name=\"$user->{LOGIN}\",cisco-avpair=\"subscriber:commandmy=account-logon\",Cisco-Account-Info=\"S$user->{REMOTE_ADDR}\"" | /usr/local/bin/radclient -x  $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}`;
          }
 
   	  	$html->message('err', $_ACTIVATE, "$_ERROR CID: $Dv->{ISG_CID_CUR}", { ID => 102 });
   	   }
    }
   elsif ($FORM{logon}) {
-  	my $res = `/bin/echo "User-Name=\"$user->{LOGIN}\",cisco-avpair=\"subscriber:commandmy=account-logon\",Cisco-Account-Info=\"S$user->{REMOTE_ADDR}\"" | /usr/local/bin/radclient -x  $nas->{NAS_MNG_IP_PORT} coa $nas->{NAS_MNG_PASSWORD}`;
+  	my $res = `/bin/echo "User-Name=\"$user->{LOGIN}\",cisco-avpair=\"subscriber:commandmy=account-logon\",Cisco-Account-Info=\"S$user->{REMOTE_ADDR}\"" | /usr/local/bin/radclient -x  $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}`;
   	$html->message('info', $_INFO, "$_LOGON");
    }
   elsif ($FORM{discovery}) {  

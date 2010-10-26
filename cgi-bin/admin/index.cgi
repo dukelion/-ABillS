@@ -64,6 +64,7 @@ my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $con
   { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
 
 $db = $sql->{db};
+$sql->{db}->{debug}=1;
 $admin = Admins->new($db, \%conf);
 use Abills::Base;
 
@@ -1793,14 +1794,17 @@ sub user_del {
   my ($attr) = @_;
   
   my $user_info = $attr->{USER};
-  
   $user_info->del();
   $conf{DELETE_USER}=$user_info->{UID};
 
   my $mods = '';
   foreach my $mod (@MODULES) {
   	$mods .= "$mod,";
-  	require "Abills/modules/$mod/webinterface";
+   	require "Abills/modules/$mod/webinterface";
+    my $function = lc($mod).'_user_del';
+    if (defined(&$function)) {
+     	  $function->($user_info->{UID}, $user_info );
+      }
    }
 
   if ($user_info->{errno}) {
@@ -5120,6 +5124,24 @@ sub form_search {
 
   my %SEARCH_DATA = $admin->get_data(\%FORM);  
 
+if ($FORM{search}) {
+	$LIST_PARAMS{LOGIN_EXPR}=$FORM{LOGIN_EXPR};
+  $pages_qs  = "&search=1";
+  $pages_qs .= "&type=$FORM{type}" if ($pages_qs !~ /&type=/);
+	
+	while(my($k, $v)=each %FORM) {
+		if ($k =~ /([A-Z0-9]+|_[a-z0-9]+)/ && $v ne '' && $k ne '__BUFFER') {
+		  $LIST_PARAMS{$k}= $v;
+	    $pages_qs      .= "&$k=$v";
+		 }
+	 }
+
+  if ($FORM{type} ne $index) {
+    $functions{$FORM{type}}->();
+   }
+}
+
+
 if (defined($attr->{HIDDEN_FIELDS})) {
 	my $SEARCH_FIELDS = $attr->{HIDDEN_FIELDS};
 	while(my($k, $v)=each( %$SEARCH_FIELDS )) {
@@ -5305,22 +5327,6 @@ $SEARCH_DATA{SEL_TYPE}.="</tr>
   $html->tpl_show(templates('form_search'), \%SEARCH_DATA);
 }
 
-if ($FORM{search}) {
-	$LIST_PARAMS{LOGIN_EXPR}=$FORM{LOGIN_EXPR};
-  $pages_qs  = "&search=1";
-  $pages_qs .= "&type=$FORM{type}" if ($pages_qs !~ /&type=/);
-	
-	while(my($k, $v)=each %FORM) {
-		if ($k =~ /([A-Z0-9]+|_[a-z0-9]+)/ && $v ne '' && $k ne '__BUFFER') {
-		  $LIST_PARAMS{$k}= $v;
-	    $pages_qs      .= "&$k=$v";
-		 }
-	 }
-
-  if ($FORM{type} ne $index) {
-    $functions{$FORM{type}}->();
-   }
-}
 }
 
 #*******************************************************************

@@ -1,5 +1,4 @@
-#/usr/bin/perl
-# Messages system
+# Helpdesk system
 
 use Msgs;
 my $Msgs  = Msgs->new($db, $admin, \%conf);
@@ -24,6 +23,24 @@ my @priority_colors = (
 "$_COLORS[9]",
 '#E06161',
 "$_COLORS[6]");
+
+
+
+
+#*******************************************************************
+# Delete user from module
+# msgs_user_del()
+#*******************************************************************
+sub msgs_user_del {
+ my ($uid, $attr) = @_;
+
+ $Msgs->{UID}=$uid;
+ $Msgs->message_del({ UID => $uid });
+
+ return 0;
+}
+
+
 
 #*******************************************************************
 # Message system admins

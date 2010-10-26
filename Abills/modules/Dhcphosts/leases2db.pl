@@ -312,7 +312,7 @@ sub make_pid {
     
     my $pid = $pids[0];
     if(verify($pid)) {
-     	print "Proccess running PID: $pid\n";
+     	print "Process running, PID: $pid\n";
    	  return 1;
      }
    }

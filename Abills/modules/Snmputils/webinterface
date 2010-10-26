@@ -926,10 +926,10 @@ sub snmputils_dlink_pb_add {
     print "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
    }
 
-
   #Шаг 4. Задать режим связки IP MAC Port Binding (ARP / ACL):
   if ($oid_sufix{MODE}) {
     my $mode = ($attr->{ACL_IP_MAC}) ? 1 : 0;
+    if ($sw_info->{version} =~ /DES-3526/) { $mode = 0; }
     $message .= $oid_prefix.$oid_sufix{MODE}.".$ip => $mode\n";
   
     if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MODE}.".$ip", "integer", $mode)) {

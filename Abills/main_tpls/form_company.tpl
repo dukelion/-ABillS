@@ -10,7 +10,16 @@
 <TR bgcolor=$_COLORS[1]><TD>$_BILL:</TD><TD>%BILL_ID%</TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_DEPOSIT:</TD><TD>%DEPOSIT%</TD></TR>
 %EXDATA%
-<TR bgcolor=$_COLORS[1]><TD>$_CREDIT:</TD><TD><input type=text name=CREDIT value='%CREDIT%'> $_DATE: <input type=text name=CREDIT_DATE value='%CREDIT_DATE%'></TD></TR>
+<TR bgcolor=$_COLORS[1]><TD>$_CREDIT:</TD><TD><input type=text name=CREDIT value='%CREDIT%'> $_DATE: <input type=text name=CREDIT_DATE value='%CREDIT_DATE%' ID='CREDIT_DATE' size='10'> 
+<script language=\"JavaScript\">
+	var o_cal = new tcal ({	'formname': 'company',	'controlname': 'CREDIT_DATE'	});
+	
+	// individual template parameters can be modified via the calendar variable
+	o_cal.a_tpl.yearscroll = false;
+	o_cal.a_tpl.weekstart  = 1;
+ 	o_cal.a_tpl.months     = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+	o_cal.a_tpl.weekdays   = ['Sun', 'Mon', 'Tue', 'Wen', 'Thu', 'Fri', 'Sat'];
+</script></TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_VAT (%):</TD><TD><input type=text name=VAT value='%VAT%'></TD></TR>
 <TR bgcolor=$_COLORS[1]><TD>$_REGISTRATION:</TD><TD>%REGISTRATION%</TD></TR>
 <TR bgcolor=$_COLORS[0] align=right><TH colspan=2>$_BANK_INFO</th></tr>

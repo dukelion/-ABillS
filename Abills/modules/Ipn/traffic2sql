@@ -18,7 +18,7 @@ if ($#ARGV < 1) {
    FLOWTOOLS_FT_BACKUP=dir - Backup old flow-tools ft* file. For debug only
    debug      - Set debug mode (1,2)
    DETAIL_ONLY- Make IP detalisation only
-   UNKNOWN_IP_LOG - Disabled unknown ip login
+   UNKNOWN_IP_LOG - Enable unknown ip login
    PREPAID_STORE - Use alternative prepaid store for prepaid traffic colection.
    TCOLLECTOR - Total Collector mode. Collect all data to SQL without analysation
    AMON_ALIVE - Second for Amon Alive Alive interval (default value 120).
@@ -638,7 +638,7 @@ sub make_pid {
     
     my $pid = int($pids[0]);
     if($pid > 0 && verify($pid)) {
-      print "Proccess running PID: $pid\n";
+      print "Process running, PID: $pid\n";
       return 1;
      }
    }

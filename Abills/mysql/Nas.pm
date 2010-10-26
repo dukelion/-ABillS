@@ -158,9 +158,6 @@ $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_ty
  return $self;
 }
 
-
-
-
 #**********************************************************
 #
 #**********************************************************
@@ -210,7 +207,6 @@ sub change {
 		              } );
 
   $self->info({ NAS_ID => $self->{NAS_ID} });
-
   return $self;
 }
 
@@ -232,9 +228,6 @@ sub add {
   '$DATA{NAS_ALIVE}', '$DATA{NAS_DISABLE}', '$DATA{NAS_EXT_ACCT}',
   '$DATA{ADDRESS_BUILD}', '$DATA{ADDRESS_STREET}', '$DATA{ADDRESS_FLAT}', '$DATA{ZIP}', '$DATA{CITY}', '$DATA{COUNTRY}', '$DATA{DOMAIN_ID}',
   '$DATA{GID}', '$DATA{MAC}');", 'do');
-
-
-
 
  $admin->system_action_add("NAS_ID:$self->{INSERT_ID}", { TYPE => 1 });    
  return 0;	
@@ -316,7 +309,6 @@ sub ip_pools_info {
  
  my $WHERE = '';
 
-
  $self->query($db, "SELECT id, INET_NTOA(ip), counts, name, priority, static
    FROM ippools  WHERE id='$id';");
 
@@ -349,7 +341,6 @@ sub ip_pools_change {
  my $self = shift;
  my ($attr) = @_; 
 
-
  my %FIELDS = (ID => 'id', 
   POOL_NAME       => 'name', 
   NAS_IP_COUNT    => 'counts', 
@@ -368,7 +359,6 @@ sub ip_pools_change {
 		                DATA         => $attr,
 		                EXT_CHANGE_INFO  => "POOL:$attr->{ID}"
 		              } );
-
   
   return $self;
 }
@@ -569,23 +559,16 @@ sub log_del {
  my $self = shift;
  my ($attr) = @_;
  
- %DATA = $self->get_data($attr); 
-
- #$self->query($db, "INSERT INTO errors_log (date, time, log_type, action, user, message)
- #values (curdate(), curtime(), '$DATA{LOG_TYPE}', '$DATA{ACTION}', '$DATA{USER}', #'$DATA{MESSAGE}');", 'do');
-
+ my $WHERE='';
+ 
+ if ($attr->{LOGIN}) {
+ 	 $WHERE = "user='$attr->{LOGIN}'";
+  }
+ 
+ $self->query($db, "DELETE FROM errors_log WHERE $WHERE;", 'do');
 
  return 0;	
 }
-
-
-
-
-
-
-
-
-
 
 
 #**********************************************************
@@ -656,9 +639,6 @@ $self->query($db, "SELECT id,
  return $self;
 }
 
-
-
-
 #**********************************************************
 #
 #**********************************************************
@@ -703,8 +683,6 @@ sub nas_group_add {
  $self->query($db, "INSERT INTO nas_groups (name, comments, disable, domain_id)
  values ('$DATA{NAME}', '$DATA{COMMENTS}', '$DATA{DISABLE}', '$DATA{DOMAIN_ID}');", 'do');
 
-
-
  $admin->system_action_add("NAS_GROUP_ID:$self->{INSERT_ID}", { TYPE => 1 });    
  return 0;	
 }
@@ -722,14 +700,6 @@ sub nas_group_del {
  $admin->system_action_add("NAS_GROUP_ID:$id", { TYPE => 10 });    
  return 0;	
 }
-
-
-
-
-
-
-
-
 
 
 

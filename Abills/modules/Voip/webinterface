@@ -4,16 +4,26 @@
 use Voip;
 use Voip_Sessions;
 
-my $Voip = Voip->new($db, $admin, \%conf);
+my $Voip     = Voip->new($db, $admin, \%conf);
 my $sessions = Voip_Sessions->new($db, \%conf);
 
-
-
 my $MODULE = ($module{$index}) ? $module{$index} : 'Voip';
-
-
 my $debug = 0;
 
+
+
+#*******************************************************************
+# Delete user from module
+# voip_user_del()
+#*******************************************************************
+sub voip_user_del {
+ my ($uid, $attr) = @_;
+
+ $Voip->{UID}=$uid;
+ $Voip->user_del({ UID => $uid });
+
+ return 0;
+}
 
 
 #*******************************************************************

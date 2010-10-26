@@ -35,11 +35,6 @@ sub new {
 
   my $self = { };
   bless($self, $class);
-  
-  if ($CONF->{DELETE_USER}) {
-    $self->{UID}=$CONF->{DELETE_USER};
-    $self->user_del({ UID => $CONF->{DELETE_USER} });
-   }
 
   return $self;
 }

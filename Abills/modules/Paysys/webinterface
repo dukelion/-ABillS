@@ -72,6 +72,23 @@ my @status = ('ENABLE', 'DISABLE', 'USED');
 
 #require "modules/Paysys/paysys_cons";
 
+
+
+#*******************************************************************
+# Delete user from module
+# paysys_user_del()
+#*******************************************************************
+sub paysys_user_del {
+ my ($uid, $attr) = @_;
+
+ $Paysys->{UID}=$uid;
+ $Paysys->del(0, { UID => $uid });
+
+ return 0;
+}
+
+
+
 #**********************************************************
 # Import fees from_file
 #**********************************************************
@@ -513,7 +530,7 @@ sub paysys_payment {
 #**********************************************************
 sub paysys_log {
  	
-if ($Paysys::VERSION < 3.2) {
+if ($Paysys::VERSION < 3.6) {
  	$html->message('info', "UPDATE", "Please update module 'Paysys' to version 3.2 or higher. http://abills.net.ua/");
  	return 0;
  }

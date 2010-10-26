@@ -13,6 +13,21 @@ my $Company  = $Customer->company();
 #Default 20% VAT
 $conf{DOCS_VAT_INCLUDE}=20 if (! defined($conf{DOCS_VAT_INCLUDE}));
 
+
+#*******************************************************************
+# Delete user from module
+# docs_user_del()
+#*******************************************************************
+sub docs_user_del {
+ my ($uid, $attr) = @_;
+
+ $Docs->{UID}=$uid;
+ $Docs->del({ UID => $uid });
+
+ return 0;
+}
+
+
 #**********************************************************
 # docs_print
 #**********************************************************
@@ -1272,7 +1287,7 @@ sub docs_account {
 	
 	if(! $user->{UID}  ) {
   	$Docs->{FORM_ACCT_ID} = "<tr><td>$_ACCOUNT $_NUM:</td><td><input type='text' name='ACCT_ID' value='%ACCT_ID%'></td></tr>\n";
-    $Docs->{DATE_FIELD}="- <input type=text name=DATE value='%DATE%'>";
+    $Docs->{DATE_FIELD}=$html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'account_add', WEEK_DAYS => \@WEEKDAYS });
     
    }
   else {

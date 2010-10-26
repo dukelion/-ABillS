@@ -28,12 +28,6 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
-
-  if ($CONF->{DELETE_USER}) {
-    $self->{UID}=$CONF->{DELETE_USER};
-    $self->del({ UID => $CONF->{DELETE_USER} });
-   }
-
   $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD}=30 if (! $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD});
   return $self;
 }

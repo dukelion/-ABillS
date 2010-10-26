@@ -31,11 +31,6 @@ sub new {
 
   my $self = { };
   bless($self, $class);
-
-  if ($CONF->{DELETE_USER}) {
-    $self->host_del({ UID => $CONF->{DELETE_USER} });
-   }
- 
   return $self;
 }
 

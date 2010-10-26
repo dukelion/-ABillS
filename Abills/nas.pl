@@ -411,7 +411,7 @@ sub hangup_radius {
   my $r = new Radius(Host   => "$NAS->{NAS_MNG_IP_PORT}", 
                      Secret => "$NAS->{NAS_MNG_PASSWORD}") or return "Can't connect '$NAS->{NAS_MNG_IP_PORT}' $!";
 
-  $conf{'dictionary'}='/usr/abills/Abills/dictionary' if (! $conf{'dictionary'});
+  $conf{'dictionary'}=$base_dir.'/Abills/dictionary' if (! $conf{'dictionary'});
 
   $r->load_dictionary($conf{'dictionary'});
 

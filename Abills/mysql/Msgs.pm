@@ -374,7 +374,7 @@ sub message_del {
   $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
   $self->query($db, "DELETE FROM msgs_messages WHERE $WHERE", 'do');
 
-  $self->message_reply_del({ MAIN_MSG => $attr->{ID} });
+  $self->message_reply_del({ MAIN_MSG => $attr->{ID}, UID => $attr->{UID} });
   $self->query($db, "DELETE FROM msgs_attachments WHERE message_id='$attr->{ID}' and message_type=0", 'do');
 
 	return $self;
@@ -807,6 +807,9 @@ sub message_reply_del {
   elsif ($attr->{ID}) {
     push @WHERE_RULES, "id='$attr->{ID}'";
     $self->query($db, "DELETE FROM msgs_attachments WHERE message_id='$attr->{ID}' and message_type=1", 'do');
+   }
+  elsif ($attr->{UID}) {
+  	push @WHERE_RULES, "id='$attr->{UID}'";
    }
 
   my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
