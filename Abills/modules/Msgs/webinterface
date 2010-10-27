@@ -1011,32 +1011,37 @@ sub msgs_user {
  	}
  elsif($FORM{ID}) {
    if ($FORM{reply}) {
+     my %params              = ();
+ 	 	 $params{CLOSED_DATE} = $DATE       if ($FORM{STATE} > 0);
+ 	 	 $params{DONE_DATE}   = $DATE       if ($FORM{STATE} > 1);
+   	
  	   $Msgs->message_change({ UID        => $LIST_PARAMS{UID},
  	 	                         ID         => $FORM{ID},
  	 	                         ADMIN_READ => "0000-00-00 00:00:00",
- 	 	                         STATE      => $FORM{STATE}
+ 	 	                         STATE      => $FORM{STATE},
+ 	 	                         %params
  	 	                       });
-
-     $Msgs->message_reply_add({ %FORM,
+     if ( $FORM{REPLY_SUBJECT} || $FORM{REPLY_TEXT} || $FORM{FILE_UPLOAD} || $FORM{SURVEY_ID})  {
+       $Msgs->message_reply_add({ %FORM,
      	                          AID  => 0, 
      	                          IP   => $admin->{SESSION_IP},
      	                          UID  => $LIST_PARAMS{UID} 
      	                         });
 
-     if (! $Msgs->{errno}) {
-       #Add attachment
-       if ($FORM{FILE_UPLOAD}) {
-         $Msgs->attachment_add({ 
-           MSG_ID       => $Msgs->{INSERT_ID},
-           CONTENT      => $FORM{FILE_UPLOAD}{Contents},
-           FILESIZE     => $FORM{FILE_UPLOAD}{Size},
-           FILENAME     => $FORM{FILE_UPLOAD}{filename},
-           CONTENT_TYPE => $FORM{FILE_UPLOAD}{'Content-Type'},
-           UID          => $user->{UID},
-           MESSAGE_TYPE  => 1
-          });
-        }      
-
+       if (! $Msgs->{errno}) {
+         #Add attachment
+         if ($FORM{FILE_UPLOAD}) {
+           $Msgs->attachment_add({ 
+             MSG_ID       => $Msgs->{INSERT_ID},
+             CONTENT      => $FORM{FILE_UPLOAD}{Contents},
+             FILESIZE     => $FORM{FILE_UPLOAD}{Size},
+             FILENAME     => $FORM{FILE_UPLOAD}{filename},
+             CONTENT_TYPE => $FORM{FILE_UPLOAD}{'Content-Type'},
+             UID          => $user->{UID},
+             MESSAGE_TYPE  => 1
+            });
+          }      
+       }
       $html->message('info', $_INFO, "$_REPLY");  
       msgs_notify_admins();
      }

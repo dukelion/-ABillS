@@ -959,7 +959,7 @@ elsif ($FORM{hangup}) {
    }
 
   require "Abills/nas.pl";
-  my $ret = hangup($nas, "$nas_port_id", "$user_name", { ACCT_SESSION_ID   => "$acct_session_id",
+  my $ret = hangup($Nas, "$nas_port_id", "$user_name", { ACCT_SESSION_ID   => "$acct_session_id",
   	                                                     FRAMED_IP_ADDRESS => "$FORM{FRAMED_IP_ADDRESS}",
   	                                                     UID               => $FORM{UID} });
 
@@ -1084,7 +1084,7 @@ elsif($FORM{tolog}) {
         $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
         $ACCT_INFO->{ACCT_STATUS_TYPE}  = 'Stop';    	
 
-        my $r = $Acct->accounting($ACCT_INFO, $nas);
+        my $r = $Acct->accounting($ACCT_INFO, $Nas);
   
 
         if ($Acct->{errno}) {
@@ -1129,7 +1129,7 @@ elsif($FORM{tolog}) {
   $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
 
   # Exppp VENDOR params           
-  my $r = $Acct->accounting($ACCT_INFO, $nas);
+  my $r = $Acct->accounting($ACCT_INFO, $Nas);
   
 
   if ($Acct->{errno}) {
@@ -1315,7 +1315,6 @@ function CheckAllINBOX() {
                          } );
 
 my $online = $sessions->{nas_sorted};
-#my $nas_list = $Nas->list();
 
 foreach my $nas_row (@$nas_list) {
   next if (! defined($online->{$nas_row->[0]}));
@@ -3266,8 +3265,7 @@ elsif($FORM{del}) {
 #**********************************************************
 sub dv_user_info {
   my $NAS_ID = 0;
-  
-  my $nas;
+
   if ($conf{DV_ISG}) {
     #Check deposit and disable STATUS
     my $list = $Dv->list({ LOGIN         => $user->{LOGIN}, 
@@ -3500,7 +3498,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
    }
   elsif ($FORM{hangup}) {
   	require "Abills/nas.pl";
-    my $ret = hangup($nas, "0", "$user->{LOGIN}", { ACCT_SESSION_ID   => '',
+    my $ret = hangup($Nas, "0", "$user->{LOGIN}", { ACCT_SESSION_ID   => '',
   	                                                FRAMED_IP_ADDRESS => $user->{REMOTE_ADDR},
   	                                                UID               => $user->{UID} });
    }
