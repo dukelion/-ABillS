@@ -585,6 +585,15 @@ sub list {
    push @WHERE_RULES, "u.disable='$attr->{LOGIN_STATUS}'"; 
   }
 
+ my $EXT_TABLE = '';
+ if ($attr->{EXT_BILL}) {
+   $self->{SEARCH_FIELDS} .= 'if(u.company_id > 0, ext_cb.deposit, ext_b.deposit), ';
+   $self->{SEARCH_FIELDS_COUNT}++;
+ 	 $EXT_TABLE .= "
+     LEFT JOIN bills ext_b ON (u.ext_bill_id = ext_b.id)
+     LEFT JOIN bills ext_cb ON  (company.ext_bill_id=ext_cb.id) ";
+  }
+
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT u.id, 
@@ -608,6 +617,7 @@ sub list {
      LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     $EXT_TABLE
      $WHERE 
      GROUP BY $GROUP_BY
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");

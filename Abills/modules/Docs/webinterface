@@ -1146,7 +1146,7 @@ sub docs_account {
        	 $users->pi({ UID => $user->{UID} });
        	 
        	 if ( $FORM{SEND_EMAIL} && $users->{EMAIL}) {
-         	 my $message  = "$_ACCOUNT:  $Docs->{DOC_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n";
+         	 my $message  = "$_ACCOUNT:  $Docs->{ACCT_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n";
          	 $FORM{print} = $FORM{ACCOUNT_ID};
          	 $FORM{pdf}   = 1;
          	 delete($FORM{create});

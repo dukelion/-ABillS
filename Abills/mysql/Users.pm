@@ -799,8 +799,6 @@ sub list {
    push @WHERE_RULES,  @{ $self->search_expr($attr->{GID}, 'INT', 'u.gid', { EXT_FIELD => 1 }) };
   }
 
-
-
 #Activate
  if ($attr->{ACTIVATE}) {
   push @WHERE_RULES,  @{ $self->search_expr($attr->{ACTIVATE}, 'INT', 'u.activate', { EXT_FIELD => 1 })  };
