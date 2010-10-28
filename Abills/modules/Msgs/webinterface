@@ -2133,15 +2133,17 @@ sub msgs_unreg_requests_list {
 	 }
 	
 	if ($FORM{change}) {
-    
-    $Msgs->unreg_requests_change({ %FORM });
+    my %params              = ();
+ 	 	$params{CLOSED_DATE} = "$DATE $TIME" if ($FORM{STATE} > 0);
+ 	 	$params{DONE_DATE}   = "$DATE $TIME" if ($FORM{STATE} > 1);
+
+    $Msgs->unreg_requests_change({ %FORM, %params });
     $html->message('info', $_INFO, "$_CHANGED") if (! $Msgs->{errno});  	
     
     $Msgs->unreg_requests_info($FORM{ID});
 
     $Msgs->{ACTION}='change';
     $Msgs->{ACTION_LNG}=$_CHANGE;
-
    }
   elsif ($FORM{chg}) {
 
@@ -2391,6 +2393,8 @@ sub msgs_unreg_requests {
  	                                        });
 
   $Msgs->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $Msgs, { OUTPUT2RETURN => 1 });
+  
+  require "../Abills/modules/Msgs/lng_$html->{language}.pl";
 
   if ( $FORM{REGISTRATION_REQUEST} ) {
   	$html->tpl_show(_include('msgs_client_reg_request', 'Msgs'), $Msgs);	
