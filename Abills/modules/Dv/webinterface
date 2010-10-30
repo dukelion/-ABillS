@@ -4231,7 +4231,7 @@ sub dv_monthly_fees {
            	      #
                  }
                }
-              elsif ( $user{EXT_DEPOSIT} == 0) {
+              elsif ( $user{EXT_DEPOSIT} <= 0) {
               	$user{BILL_ID}= $user{MAIN_BILL_ID};
                }
             } 
