@@ -165,7 +165,7 @@ sub info {
     $WHERE = "WHERE a.aid='$aid'";
    }
 
-  $IP = ($attr->{IP})? $attr->{IP} : '0.0.0.0';
+  $IP = ($attr->{IP}) ? $attr->{IP} : '0.0.0.0';
   $self->query($db, "SELECT a.aid, a.id, a.name, a.regdate, a.phone, a.disable, a.web_options, a.gid, 
      count(ag.aid),
      a.email,
@@ -308,19 +308,17 @@ sub change {
            INN           => 'inn',
            BIRTHDAY      => 'birthday'           
    );
-
-
  
   $admin->{MODULE}='';
-  $IP=$self->{MAIN_SESSION_IP};
+  $IP   = $admin->{SESSION_IP};
+  
   $self->changes($admin, { CHANGE_PARAM => 'AID',
 		                       TABLE        => 'admins',
 		                       FIELDS       => \%FIELDS,
-		                       OLD_INFO     => $self->info($self->{AID}, { IP => $self->{MAIN_SESSION_IP} }),
+		                       OLD_INFO     => $self->info($self->{AID}, { IP => $admin->{SESSION_IP} }),
 		                       DATA         => $attr,
-		                       EXT_CHANGE_INFO  => "AID:$attr->{A_LOGIN}"
+		                       EXT_CHANGE_INFO  => "AID:$self->{AID}"
 		                     } );
-
   $self->info($self->{AID});
 	return $self;
 }
@@ -524,6 +522,7 @@ sub system_action_add {
   
   my $MODULE = (defined($self->{MODULE})) ? $self->{MODULE} : '';
   my $action_type = ($attr->{TYPE}) ? $attr->{TYPE} : '';
+  #$IP = ($attr->{IP}) ? $attr->{IP} : '0.0.0.0';
 
   $self->query($db, "INSERT INTO admin_system_actions (aid, ip, datetime, actions, module, action_type) 
     VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$MODULE', '$action_type')", 'do');

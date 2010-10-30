@@ -190,6 +190,9 @@ if ($FORM{AWEB_OPTIONS}) {
     $web_options.="qm=$admin->{WEB_OPTIONS}{qm};";
    }
   
+  #print "Content-Type: text/html\n\n";
+  #print "/ $admin->{SESSION_IP} / ";
+  
   $admin->change({ AID => $admin->{AID}, WEB_OPTIONS => $web_options });
 
   print "Location: $SELF_URL?index=$FORM{index}", "\n\n";
@@ -513,7 +516,6 @@ sub check_permissions {
 
 
   $admin->info(0, { %PARAMS } );
-
   if ($admin->{errno}) {
     if ($admin->{errno} == 4) {
       $admin->system_action_add("$login:$password", { TYPE => 11 });
@@ -2189,7 +2191,7 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
+  my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 }) : ''; 
 
   $table->addrow($html->b($line->[0]),
     $line->[1],
@@ -2298,7 +2300,7 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?" }) : ''; 
+  my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 }) : ''; 
 
   $table->addrow($html->b($line->[0]),
     $html->button($line->[1], "index=15&UID=$line->[8]"), 

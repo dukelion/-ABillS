@@ -2,10 +2,6 @@
 # Main  registration engine
 #
 
-
-
-
-
 use vars qw($begin_time %FORM %LANG %conf $CHARSET 
   @MODULES
   @REGISTRATION
@@ -163,6 +159,11 @@ elsif($#REGISTRATION > -1) {
 
 	require "Abills/modules/$m/config";
 	require "Abills/modules/$m/webinterface";
+
+	if (-f "../Abills/modules/Msgs/lng_$html->{language}.pl") {
+	  require "../Abills/modules/Msgs/lng_$html->{language}.pl";
+	 }
+
 	$m = lc($m);
 	my $function = $m . '_registration';
   my $return = $function->({ %INFO_HASH });
