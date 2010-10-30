@@ -4211,26 +4211,31 @@ sub dv_monthly_fees {
             }
            
            #Get 2 time fees from main account and ext account and from main
-           if ($sum > $user{EXT_DEPOSIT} && $user{EXT_DEPOSIT} > 0 && $conf{BONUS_EXT_FUNCTIONS} && $ext_deposit_op > 0) {
-           	  if ((($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib) || $user{ACTIVATE} ne '0000-00-00') {
-           	  	my ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
-           	  	$activate_m--;
-                my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
-           	  	if ($date_unixtime - $active_unixtime < 30 * 86400) {
-           	  	 }
-           	    else {
-           	      my $ext_deposit_sum = $user{EXT_DEPOSIT};
+           if ($conf{BONUS_EXT_FUNCTIONS} && $ext_deposit_op > 0) {
+           	  if ($sum > $user{EXT_DEPOSIT} && $user{EXT_DEPOSIT} > 0) {
+           	    if ((($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib) || $user{ACTIVATE} ne '0000-00-00') {
+           	  	  my ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
+           	  	  $activate_m--;
+                  my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
+           	  	  if ($date_unixtime - $active_unixtime < 30 * 86400) {
+           	  	   }
+           	      else {
+           	        my $ext_deposit_sum = $user{EXT_DEPOSIT};
 
-                  $FEES_PARAMS{DESCRIBE}="$_MONTH_FEE ($TP_ID)";  
-            	    $fees->take(\%user, $ext_deposit_sum, { %FEES_PARAMS } );
-           	      $sum = $sum - $user{EXT_DEPOSIT};
-           	      $user{BILL_ID}= $user{MAIN_BILL_ID};
-           	     }
-           	    #and after take rest from main DEPOSIT
-           	    #
+                    $FEES_PARAMS{DESCRIBE}="$_MONTH_FEE ($TP_ID)";  
+            	      $fees->take(\%user, $ext_deposit_sum, { %FEES_PARAMS } );
+           	        $sum = $sum - $user{EXT_DEPOSIT};
+           	        $user{BILL_ID}= $user{MAIN_BILL_ID};
+           	       }
+           	      #and after take rest from main DEPOSIT
+           	      #
+                 }
+               }
+              elsif ( $user{EXT_DEPOSIT} == 0) {
+              	$user{BILL_ID}= $user{MAIN_BILL_ID};
                }
             } 
-
+   
            #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
            if($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $TP_INFO{POSTPAID_MONTHLY} == 1) {
 	           #***************************************************************
