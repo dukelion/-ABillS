@@ -785,5 +785,8 @@ sub mikrotik_ext {
 #  return \%params;
 #}
 
+if ($conf{linkupdown_external}) {
+  my $res = `$conf{linkupdown_external} "$ACTION" "$INTERFACE" "$USER" "$HISADDR"`;	
+}
 
 1

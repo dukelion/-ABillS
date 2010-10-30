@@ -9,4 +9,7 @@ pptpd.conf         > [/etc]/pptpd.conf
 pptpd.options      > [/etc/ppp]/pptpd.options
 dictionary.microsoft >> [/etc/radiusclient]/dictionary   
 pppd.dictionary      >> [/etc/radiusclient]/dictionary
+#Patch for gigawords
+exec:mkdir ~/src/ && cd ~/src && wget wget ftp://ftp.samba.org/pub/ppp/ppp-2.4.4.tar.gz && wget http://bugs.gentoo.org/attachment.cgi?id=102981 -O radius-gigawords.patch
+exec:tar zxvf ppp-2.4.4.tar.gz && cd ppp-2.4.4 && patch -p1 -l < ../radius-gigawords.patch && ./configure --prefix=/usr && make && make install
 
