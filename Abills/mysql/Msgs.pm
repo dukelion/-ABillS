@@ -1866,7 +1866,7 @@ sub survey_questions_list {
  
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db,   "SELECT  mq.num, mq.question, mq.comments, mq.params, mq.user_comments, mq.id
+ $self->query($db,   "SELECT  mq.num, mq.question, mq.comments, mq.params, mq.user_comments, mq.fill_default, mq.id
     FROM msgs_survey_questions mq
     $WHERE
     ORDER BY $SORT $DESC;");
@@ -1894,8 +1894,8 @@ sub survey_question_add {
 
   %DATA = $self->get_data($attr, { default => \%DATA }); 
 
-  $self->query($db, "insert into msgs_survey_questions (num, question, comments, params, user_comments, survey_id)
-    values ('$DATA{NUM}', '$DATA{QUESTION}', '$DATA{COMMENTS}', '$DATA{PARAMS}', '$DATA{USER_COMMENTS}', '$DATA{SURVEY}');", 'do');
+  $self->query($db, "insert into msgs_survey_questions (num, question, comments, params, user_comments, survey_id, fill_default)
+    values ('$DATA{NUM}', '$DATA{QUESTION}', '$DATA{COMMENTS}', '$DATA{PARAMS}', '$DATA{USER_COMMENTS}', '$DATA{SURVEY}', '$DATA{FILL_DEFAULT}');", 'do');
  
 	return $self;
 }
@@ -1928,7 +1928,7 @@ sub survey_question_info {
 	my ($id, $attr) = @_;
 
 
-  $self->query($db, "SELECT id, num, question, comments, params, user_comments, survey_id
+  $self->query($db, "SELECT id, num, question, comments, params, user_comments, survey_id, fill_default
     FROM msgs_survey_questions 
   WHERE id='$id'");
 
@@ -1945,6 +1945,7 @@ sub survey_question_info {
    $self->{PARAMS},
    $self->{USER_COMMENTS},
    $self->{SURVEY},
+   $self->{FILL_DEFAULT}
   )= @{ $self->{list}->[0] };
 
 	return $self;
@@ -1959,6 +1960,8 @@ sub survey_question_change {
   my ($attr) = @_;
   
   $attr->{INNER_CHAPTER} = ($attr->{INNER_CHAPTER}) ? 1 : 0;
+  $attr->{USER_COMMENTS} = ($attr->{USER_COMMENTS}) ? 1 : 0;
+  $attr->{FILL_DEFAULT}  = ($attr->{FILL_DEFAULT}) ? 1 : 0;
   
   my %FIELDS = (ID           => 'id',
                 NUM          => 'num',
@@ -1967,9 +1970,10 @@ sub survey_question_change {
                 PARAMS       => 'params',
                 USER_COMMENTS=> 'user_comments',
                 SURVEY       => 'survey_id',
+                FILL_DEFAULT => 'fill_default'
              );
 
-  $attr->{USER_COMMENTS} = ($attr->{USER_COMMENTS}) ? 1 : 0;
+  
   $admin->{MODULE}=$MODULE;
   $self->changes($admin,  { CHANGE_PARAM => 'ID',
                    TABLE        => 'msgs_survey_questions',
@@ -2013,7 +2017,21 @@ sub survey_answer_add {
 
   
   my @ids = split(/, /,  $attr->{IDS});
+  
+  my @fill_default = ();
+  my %fill_default_hash = ();
+  if ($attr->{FILL_DEFAULT}) {
+  	@fill_default = split(/, /,  $attr->{FILL_DEFAULT});
+  	foreach my $id (@fill_default) {
+  	  $fill_default_hash{$id}=1;
+  	 }
+   }
+
 	foreach my $id (@ids) {
+		if ($attr->{FILL_DEFAULT} && ! $fill_default_hash{$id})  {
+			 next;
+		 }
+
 		my $sql = "INSERT INTO msgs_survey_answers (question_id,
   uid,
   answer,

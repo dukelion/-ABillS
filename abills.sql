@@ -653,6 +653,7 @@ CREATE TABLE `msgs_survey_questions` (
   `params` varchar(250) NOT NULL,
   `comments` text NOT NULL,
   `user_comments` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `fill_default` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
 ) COMMENT 'Messages Survey questions';

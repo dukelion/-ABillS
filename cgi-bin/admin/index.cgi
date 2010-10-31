@@ -235,11 +235,11 @@ if  ($admin->{MAX_ROWS} > 0) {
 
 
 #Global Vars
-@action    = ('add', $_ADD);
-@bool_vals = ($_NO, $_YES);
-@PAYMENT_METHODS = ("$_CASH", "$_BANK", "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION", "$_COMPENSATION", "$_MONEY_TRANSFER");
-@FEES_METHODS = ($_ONE_TIME, $_ABON, $_FINE, $_ACTIVATE, $_MONEY_TRANSFER);
-@status    = ("$_ENABLE", "$_DISABLE");
+@action         = ('add', $_ADD);
+@bool_vals      = ($_NO, $_YES);
+@PAYMENT_METHODS= ("$_CASH", "$_BANK", "$_EXTERNAL_PAYMENTS", 'Credit Card', "$_BONUS", "$_CORRECTION", "$_COMPENSATION", "$_MONEY_TRANSFER");
+@FEES_METHODS   = ($_ONE_TIME, $_ABON, $_FINE, $_ACTIVATE, $_MONEY_TRANSFER);
+@status         = ("$_ENABLE", "$_DISABLE");
 my %menu_items  = ();
 my %menu_names  = ();
 my $maxnumber   = 0;

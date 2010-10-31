@@ -9,6 +9,7 @@
 <tr><td>$_PARAMS (;):</td><td><textarea name=PARAMS rows=6 cols=45>%PARAMS%</textarea></td></tr>
 <tr><td>$_COMMENTS:</td><td><textarea name=COMMENTS rows=6 cols=45>%COMMENTS%</textarea></td></tr>
 <tr><td>$_USER $_COMMENTS:</td><td><input type=checkbox name=USER_COMMENTS value=1 %USER_COMMENTS%></td></tr>
+<tr><td>$_DEFAULT:</td><td><input type=checkbox name=FILL_DEFAULT value=1 %FILL_DEFAULT%></td></tr>
 </TABLE>
 
 <input type=submit name='%ACTION%' value='%ACTION_LNG%'>

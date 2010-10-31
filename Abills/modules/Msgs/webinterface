@@ -2579,15 +2579,14 @@ print $table->show();
 }
 
 
-
-
 #**********************************************************
 #
 #**********************************************************
 sub msgs_survey_questions {
   $Msgs->{ACTION}='add';
   $Msgs->{ACTION_LNG}=$_ADD;
-  
+  $Msgs->{FILL_DEFAULT}=1;  
+
   if ($FORM{add}) {
     $Msgs->survey_question_add({ %FORM });
 
@@ -2613,17 +2612,22 @@ sub msgs_survey_questions {
     $html->message('info', $_INFO, "$_DELETED") if (! $Msgs->{errno});
    }
 
+
   if ($Msgs->{errno}) {
      $html->message('err', $_ERROR, "[$Msgs->{errno}] $err_strs{$Msgs->{errno}}");
    } 
 
  
   $Msgs->{USER_COMMENTS} = ($Msgs->{USER_COMMENTS}) ? 'checked' : '';
+  $Msgs->{FILL_DEFAULT} = ($Msgs->{FILL_DEFAULT}) ? 'checked' : '';
+
+
   $html->tpl_show(_include('msgs_survey_question', 'Msgs'), $Msgs);  
   my $list = $Msgs->survey_questions_list({ SURVEY => $FORM{SURVEY}, %LIST_PARAMS });
   my $table = $html->table( { width      => '100%',
                               caption    => "$_SURVEY",
-                              cols_align => ['left', 'left', 'right', 'center:noprint', 'center:noprint'],
+                              title_plain => ['#', "$_QUESTION", "$_PARAMS", "$_COMMENTS", "$_USER $_COMMENTS", $_DEFAULT, '-', '-'],
+                              cols_align => ['left', 'left', 'right', 'center', 'center:noprint', 'center:noprint'],
                               qs         => $pages_qs,
                            });
 
@@ -2640,8 +2644,9 @@ foreach my $line (@$list) {
     $line->[2],
     $params, 
     ($line->[4]) ? $html->form_input('USER_COMMENTS', '') : '',
-    $html->button("$_CHANGE", "index=$index&chg=$line->[5]&SURVEY=$FORM{SURVEY}", { BUTTON => 1 }),
-    $html->button($_DEL, "index=$index&del=$line->[5]&SURVEY=$FORM{SURVEY}", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
+    $bool_vals[$line->[5]],
+    $html->button("$_CHANGE", "index=$index&chg=$line->[6]&SURVEY=$FORM{SURVEY}", { BUTTON => 1 }),
+    $html->button($_DEL, "index=$index&del=$line->[6]&SURVEY=$FORM{SURVEY}", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
    );
 }
 
@@ -2701,13 +2706,15 @@ foreach my $line (@$list) {
   my @params_arr = split(/;/, $line->[3]);
 
   if ( scalar(keys %answers) > 0 ) {
-    $table->addrow(
+    if (defined($answers{$line->[6]}{ANSWER})) {
+      $table->addrow(
         '',
         $line->[0],
         $html->b($line->[1]). $html->br().$line->[2], 
-        $params_arr[$answers{$line->[5]}{ANSWER}], 
-        $answers{$line->[5]}{COMMENTS}
-      );
+        $params_arr[$answers{$line->[6]}{ANSWER}], 
+        $answers{$line->[6]}{COMMENTS}
+        );
+     }
    }
   else {
     my $params  = ($line->[3]) ? $html->form_select('PARAMS_'. $line->[5], 
@@ -2718,12 +2725,13 @@ foreach my $line (@$list) {
  	                                          NO_ID          => 1
  	                                        }) : '';
      $table->addrow(
-        $html->form_input('IDS', $line->[5], { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
+        ($user->{UID}) ? '-' : $html->form_input(FILL_DEFAULT, "$line->[6]", {  TYPE=>'checkbox', STATE => ($line->[5]) ? 1 : undef }),
+        $html->form_input('IDS', $line->[6], { TYPE => 'hidden', OUTPUT2RETURN => 1 }).
         $line->[0],
         $html->b($line->[1]). $html->br().  
         $line->[2], 
         $params, 
-        ($line->[4]) ? $html->form_input('USER_COMMENTS_'.$line->[5], ((defined($answers{$line->[5]})) ? $answers{$line->[5]}{COMMENTS} : ''), { SIZE => 60, OUTPUT2RETURN => 1 }) : '',
+        ($line->[4]) ? $html->form_input('USER_COMMENTS_'.$line->[6], ((defined($answers{$line->[6]})) ? $answers{$line->[6]}{COMMENTS} : ''), { SIZE => 60, OUTPUT2RETURN => 1 }) : '',
       );
   }
 }
