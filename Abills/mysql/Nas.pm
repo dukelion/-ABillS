@@ -242,6 +242,7 @@ sub del {
  my ($id) = @_;
  
  $self->query($db, "DELETE FROM nas WHERE id='$id'", 'do');
+ $self->query($db, "DELETE FROM nas_ippools WHERE nas_id='$id';", 'do');
 
  $admin->system_action_add("NAS_ID:$id", { TYPE => 10 });    
  return 0;	

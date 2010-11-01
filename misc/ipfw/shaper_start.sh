@@ -147,6 +147,8 @@ for IP in ${NAT_IPS}; do
     done;
   fi;
 done;
+
+
 #Second way
 EXT_IP="192.168.0.2"
 ISP_IP="192.168.0.1"
@@ -159,12 +161,7 @@ for ip_mask in ${REDIRECT_IPS} ; do
 done;
 ${IPFW} 60015 add fwd ${ISP_IP} ip from ${EXT_IP} to any
 
-
-# nat real to fake
-#${IPFW} add 00600 nat tablearg ip from any to table\(21\) in recv ${EXTERNAL_INTERFACE}
-# nat fake to real
-#${IPFW} add 17000 nat tablearg ip from table\(20\) to not 193.138.244.2 out
-
+# UP NAT
 if [ w$1 = wstart ]; then
   if [ w${NAT_IF} != w ]; then
     NAT_IF="via ${NAT_IF}"
