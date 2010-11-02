@@ -4115,6 +4115,13 @@ sub dv_monthly_fees {
 
 
        $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: ". ($u->[9 +$extfield_count ]  ) ." Fees: $line->[6] REDUCTION: $user{REDUCTION} DEPOSIT: $u->[2] CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE} TP: $u->[11]\n" if ($debug > 3); 	
+       
+       if (! $user{BILL_ID} && $user{MAIN_BILL_ID}) {
+       	 $user{BILL_ID}=$user{MAIN_BILL_ID};
+       	 $user{MAIN_BILL_ID}=0;
+       	 $ext_deposit_op=0;
+        }
+       
        if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {
          my %FEES_PARAMS = (
                             DATE     => $ADMIN_REPORT{DATE},
@@ -4919,7 +4926,7 @@ sub dv_wizard_user {
        }
 
       # Ext bill add
-      if ($FORM{'5.EXT_BILL_DEPOSIT'}) {
+      if (defined($FORM{'5.EXT_BILL_DEPOSIT'})) {
       	$add_values{5}{SUM}     = $FORM{'5.EXT_BILL_DEPOSIT'};
         
         # if Bonus $conf{BONUS_EXT_FUNCTIONS}
