@@ -4788,8 +4788,10 @@ sub dv_cards {
 
   my $table = $html->table({ width      => '100%',
                              border     => 1,
+                             caption    => "$_USERS",
                              title      => ["$_LOGIN", "ID", "$_INFO"],
                              cols_align => ['left', 'right', 'right'],
+                             ID         => 'ADDED_USERS'
                             });
 
   if (ref($cards_hash) eq 'ARRAY') {
@@ -4802,11 +4804,9 @@ sub dv_cards {
 
   	 	  $FORM{'1.LOGIN'}      = $line->{LOGIN};
   	 	  $FORM{'1.PASSWORD'}   = $line->{PASSWORD};
-  	 	  $FORM{'1.CREATE_BILL'}= 1;
-  	 	  
-        
+  	 	  $FORM{'1.CREATE_BILL'}= 1;        
         $line->{UID} = dv_wizard_user({ SHORT_REPORT => 1 });
-       
+
   	 	  if ( $line->{UID} < 1) {
   	 	  	 $html->message('err', "$_ERROR", "$_LOGIN: '$line->{LOGIN}'");  	 	  	 
   	 	  	 last if (! $line->{SKIP_ERRORS} );
@@ -4814,7 +4814,7 @@ sub dv_cards {
   	 	  else {
   	 	    #Confim card creation
   	 	    $added_count++;
-  	 	    $table->addrow("$FORM{'1.LOGIN'}", "$UID", "$FORM{ex_message}");
+  	 	    $table->addrow($html->button($FORM{'1.LOGIN'}, "index=11&UID=$UID"), "$UID", "$FORM{ex_message}");
   	 	  	if(cards_users_gen_confim({ %$line, SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  }) == 0) {
   	 	  		 return 0;
   	 	  		}
@@ -4827,7 +4827,6 @@ if ($added_count > 0) {
   $html->message('info', $_INFO, "$_ADDED:  $added_count");
   print $table->show();
 }
-
 }
 
 
@@ -4865,7 +4864,8 @@ sub dv_wizard_user {
 
     # Password
     $add_values{1}{GID} = $admin->{GID} if ($admin->{GID});
-    my $user=$users->add({ %{$add_values{1}}, CREATE_EXT_BILL => $FORM{'5.EXT_BILL_DEPOSIT'} });
+
+    my $user=$users->add({ %{$add_values{1}}, CREATE_EXT_BILL => (defined($FORM{'5.EXT_BILL_DEPOSIT'}) ? 1 : 0) });
     my $message = '';
     if (! $user->{errno}) {
    	  $UID = $user->{UID};
@@ -4926,7 +4926,7 @@ sub dv_wizard_user {
        }
 
       # Ext bill add
-      if (defined($FORM{'5.EXT_BILL_DEPOSIT'})) {
+      if ($FORM{'5.EXT_BILL_DEPOSIT'}) {
       	$add_values{5}{SUM}     = $FORM{'5.EXT_BILL_DEPOSIT'};
         
         # if Bonus $conf{BONUS_EXT_FUNCTIONS}
