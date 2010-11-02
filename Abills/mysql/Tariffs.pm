@@ -540,7 +540,6 @@ sub info {
     push @WHERE_RULES, "tp.tp_id='$attr->{TP_ID}'"; 
    }
 
-
   if($attr->{ID}) {
   	push @WHERE_RULES, "id='$attr->{ID}'";
    }

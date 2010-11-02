@@ -135,7 +135,7 @@ sub info {
    $self->{TP_ACTIVATION_PRICE}
   )= @{ $self->{list}->[0] };
   
-  
+
   return $self;
 }
 
@@ -258,6 +258,8 @@ sub change {
 
   
   my $old_info = $self->info($attr->{UID});
+
+  
   
   if ($attr->{TP_ID} && $old_info->{TP_ID} != $attr->{TP_ID}) {
      my $tariffs = Tariffs->new($db, $CONF, $admin);

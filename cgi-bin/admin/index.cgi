@@ -1621,8 +1621,6 @@ if ($FORM{debs}) {
   $LIST_PARAMS{DEBETERS} = 1;
  }  
 
- print $html->letters_list({ pages_qs => $pages_qs  }); 
-
  if ($FORM{letter}) {
    $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
    $pages_qs .= "&letter=$FORM{letter}";
@@ -1645,6 +1643,7 @@ elsif ($users->{TOTAL} == 0) {
 	return 0;
 }
 
+print $html->letters_list({ pages_qs => $pages_qs  }); 
 
 my @TITLE = ($_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, $_STATUS, '-', '-');
 my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$_EXTRA $_DEPOSIT",

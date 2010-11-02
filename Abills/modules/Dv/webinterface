@@ -493,7 +493,7 @@ sub dv_user {
 
     if (! $Dv->{errno}) {
       $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
-      if (! $FORM{STATUS} && $FORM{GET_ABON}) {
+      if (! $FORM{STATUS} && ($FORM{GET_ABON} || ! $FORM{TP_ID} )) {
         dv_get_month_fee($Dv);
        }
 
@@ -5462,7 +5462,6 @@ sub dv_get_month_fee {
      }
    }
   #Get month fee
-  
   if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
      my $sum   = $Dv->{TP_INFO}->{MONTH_FEE};
      my $users = Users->new($db, $admin, \%conf); 
