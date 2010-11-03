@@ -4865,7 +4865,7 @@ sub dv_wizard_user {
     # Password
     $add_values{1}{GID} = $admin->{GID} if ($admin->{GID});
 
-    my $user=$users->add({ %{$add_values{1}}, CREATE_EXT_BILL => (defined($FORM{'5.EXT_BILL_DEPOSIT'}) ? 1 : 0) });
+    my $user=$users->add({ %{$add_values{1}}, CREATE_EXT_BILL => ((defined($FORM{'5.EXT_BILL_DEPOSIT'}) || $FORM{'1.CREATE_EXT_BILL'}) ? 1 : 0) });
     my $message = '';
     if (! $user->{errno}) {
    	  $UID = $user->{UID};
