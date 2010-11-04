@@ -7,8 +7,7 @@
 
 . /etc/rc.subr
 
-# ADD to rc.conf shaper_enable="YES"
-# echo abills_shaper_enable=\"YES\" >> /etc/rc.conf
+# Add the following lines to /etc/rc.conf to enable abills_shapper:
 #
 #   abills_shaper_enable="YES" - Enable abills shapper
 #
@@ -16,6 +15,7 @@
 #
 #   abills_nas_id="" - ABillS NAS ID default 1
 #
+#   abills_ip_sessions="" - ABIllS IP SEssions limit
 #
 
 name="abills_shaper"
@@ -44,7 +44,7 @@ FWD_WEB_SERVER_IP=127.0.0.1;
 USER_PORTLA_IP=
 
 #Session Limit per IP
-SESSION_LIMIT=
+SESSION_LIMIT=${abills_ip_sessions}
 
 IPFW=/sbin/ipfw
 
