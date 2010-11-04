@@ -1,18 +1,36 @@
 #!/bin/sh
-# Shape/NAT upper  
+# Shaper/NAT/Session upper for ABillS 
 #
-
-# REQUIRE: NETWORKING vlan_up shaper_up
-
+# PROVIDE: shaper
+# REQUIRE: NETWORKING mysql vlan_up shaper_up
 #traffic Class numbers
 
-CLASSES_NUMS='2 3'
-VERSION=4.0
+. /etc/rc.subr
 
-#Enable NG shapper
-if [ w != w`grep ng_car /usr/abills/libexec/config.pl` ]; then
-  NG_SHAPPER=1
+# ADD to rc.conf shaper_enable="YES"
+# echo abills_shaper_enable=\"YES\" >> /etc/rc.conf
+#
+#   abills_shaper_enable="YES" - Enable abills shapper
+#
+#   abills_shaper_if="" - ABillS shepper interface default ng*
+#
+#   abills_nas_id="" - ABillS NAS ID default 1
+#
+#
+
+name="abills_shaper"
+rcvar=`set_rcvar`
+load_rc_config $name
+run_rc_command "$1"
+
+
+CLASSES_NUMS='2 3'
+VERSION=5.0
+
+if [ w${abills_shaper_enable} = w ]; then
+  exit;
 fi;
+
 # NAT External IP
 NAT_IPS="";
 # Fake net 
@@ -25,12 +43,18 @@ FWD_WEB_SERVER_IP=127.0.0.1;
 #Your user portal IP (Default: me)
 USER_PORTLA_IP=
 
-#Session Limit
+#Session Limit per IP
 SESSION_LIMIT=
 
 IPFW=/sbin/ipfw
-EXTERNAL_INTERFACE=`/sbin/route get default | grep interface: | awk '{ print $2 }'`
-INTERNAL_INTERFACE=ng*
+
+if [ w${abills_shaper_if} != w ]; then
+  INTERNAL_INTERFACE=${abills_shaper_if}
+else 
+  EXTERNAL_INTERFACE=`/sbin/route get default | grep interface: | awk '{ print $2 }'`
+  INTERNAL_INTERFACE=ng*
+fi;
+
 
 PKG_DIRECTION="TO_SERVER"
 
@@ -43,32 +67,30 @@ else
 fi; 
 
 
+
+#Enable NG shapper
+if [ w != w`grep '^\$conf{ng_car}=1;' /usr/abills/libexec/config.pl` ]; then
+  NG_SHAPPER=1
+fi;
+
 #Main users table num
 USERS_TABLE_NUM=10
-FW_START_NUM=4000
-
-#First class number
-NETS_TABLE_START_NUM=2
-
 #First Class traffic users
 USER_CLASS_TRAFFIC_NUM=10
 
 echo -n $1
 
+#NG Shaper enable
 if [ w$1 = wstart -a w$2 = w -a w${NG_SHAPPER} != w ]; then
-
-
-echo -n "ng_car shapper"
-#Load kernel modules
-kldload ng_ether
-kldload ng_car
-kldload ng_ipfw
-
-
+  echo -n "ng_car shapper"
+  #Load kernel modules
+  kldload ng_ether
+  kldload ng_car
+  kldload ng_ipfw
 
 for num in ${CLASSES_NUMS}; do
-#  FW_NUM=`expr  `;
-  echo "Traffic: ${num} "
+  #  FW_NUM=`expr  `;
+    echo "Traffic: ${num} "
 
   #Shaped traffic
   ${IPFW} add ` expr 10000 - ${num} \* 10 ` skipto ` expr 10100 + ${num} \* 10 ` ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to table\(${num}\) ${IN_DIRECTION}
@@ -81,10 +103,6 @@ for num in ${CLASSES_NUMS}; do
   #Unlim traffic
   ${IPFW} add ` expr 10200 + ${num} \* 10 ` allow ip from table\(9\) to table\(${num}\) ${IN_DIRECTION}
   ${IPFW} add ` expr 10200 + ${num} \* 10 + 5 ` allow ip from table\(${num}\) to table\(9\) ${OUT_DIRECTION}
-
-
-#  ${IPFW}  add ` expr 9000 + ${num} \* 10 ` netgraph tablearg ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to table\(${num}\) out via ${EXTERNAL_INTERFACE}
-#  ${IPFW}  add ` expr 9000 + ${num} \* 10 + 5 ` netgraph tablearg ip from table\(${num}\) to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2 + 1 `\) out via ${INTERNAL_INTERFACE}
 done;
 
   echo "Global shaper"
@@ -96,6 +114,7 @@ done;
     ${IPFW} add 10030 allow ip from any to any via ${INTERNAL_INTERFACE} 
   fi;
 #done
+#Stop ng_car shaper
 else if [ w$1 = wstop -a w$2 = w ]; then
   echo -n "ng_car shapper" 
 
@@ -106,6 +125,17 @@ else if [ w$1 = wstop -a w$2 = w ]; then
   ${IPFW} delete 9000 9005 10000 10010 10015
 else if [ w$1 = w ]; then
     echo "(start|stop|start nat|stop nat)"
+#Start DUMMYNET shaper
+else   
+  echo "DUMMYNET shaper"
+  if [ w${abills_nas_id} = w ]; then
+    abills_nas_id=1;
+  fi;
+
+  /usr/abills/libexec/billd checkspeed NAS_IDS=${abills_nas_id} RECONFIGURE=1 FW_DIRECTION_OUT="${OUT_DIRECTION}" FW_DIRECTION_IN="${IN_DIRECTION}";
+  if [ ${firewall_type} = "/etc/fw.conf" ]; then
+    ${IPFW} ${firewall_type}
+  fi;
   fi;
  fi;
 fi;
@@ -127,6 +157,7 @@ fi;
 
 ISP_GW2="";
 
+#Nat Section
 if [ w${NAT_IPS} != w  ] ; then
 
 echo "NAT"
