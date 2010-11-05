@@ -32,11 +32,7 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = { };
   bless($self, $class);
-
-
   $users = Users->new($db, $admin, $CONF); 
-
-
   return $self;
 }
 
@@ -215,10 +211,6 @@ sub change {
      }
    }
 
-
-
-
-
 	$self->changes($admin, { CHANGE_PARAM => 'COMPANY_ID',
 		               TABLE        => 'companies',
 		               FIELDS       => \%FIELDS,
@@ -263,13 +255,11 @@ sub info {
       if ($line->[0] =~ /ifc(\S+)/) {
     	  push @info_fields_arr, $1;
         $info_fields_hash{$1}="$line->[1]";
-      }
+       }
      }
     $info_fields = ', '. join(', ', @info_fields_arr) if ($#info_fields_arr > -1);
-
     $self->{INFO_FIELDS_ARR}  = \@info_fields_arr;
-    $self->{INFO_FIELDS_HASH} = \%info_fields_hash;
-   
+    $self->{INFO_FIELDS_HASH} = \%info_fields_hash;   
    }
 
   $self->query($db, "SELECT c.id, c.name, c.credit, c.credit_date,
@@ -319,6 +309,14 @@ sub info {
    ) = @{ $self->{list}->[0] };
   
    $self->{INFO_FIELDS_VAL} = \@INFO_ARR;
+  
+   my $i = 0;
+   foreach my $val (@INFO_ARR) {
+   	 $self->{$info_fields_arr[$i]}=$val;
+   	 $self->{'INFO_FIELDS_VAL_'.$i}=$val;
+  	 $i++;
+    }
+
   
    if ($CONF->{EXT_BILL_ACCOUNT} && $self->{EXT_BILL_ID} > 0) {
  	 $self->query($db, "SELECT b.deposit, b.uid

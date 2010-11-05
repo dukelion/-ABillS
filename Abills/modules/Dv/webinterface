@@ -5998,7 +5998,7 @@ sub dv_payments_maked {
 	
 	$Dv->info($attr->{USER}->{UID});
 
-  my $deposit = $attr->{USER}->{DEPOSIT} + (($attr->{USER}->{CREDIT}) ? $attr->{USER}->{CREDIT} : $Dv->{TP_CREDIT});
+  my $deposit = $attr->{USER}->{DEPOSIT} + (($attr->{USER}->{CREDIT} > 0) ? $attr->{USER}->{CREDIT} : $Dv->{TP_CREDIT});
 
 	if ($Dv->{STATUS} > 3 && ($deposit > $Dv->{MONTH_ABON} + $Dv->{DAY_ABON} || $Dv->{ABON_DISTRIBUTION})) {
 		$Dv->change({ UID     => $attr->{USER}->{UID},
