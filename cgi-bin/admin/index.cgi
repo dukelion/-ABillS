@@ -988,6 +988,12 @@ sub user_form {
 
    $user_info->{ACTION}='change';
    $user_info->{LNG_ACTION}=$_CHANGE;
+
+   if ($permissions{5}) {
+     my $info_field_index = get_function_index('form_info_fields');
+     $user_info->{ADD_INFO_FIELD}=$html->button("$_ADD $_INFO_FIELDS", "index=$info_field_index", {  BUTTON => 1, ex_params => ' target=_info_fields' });
+    }
+
    if ($permissions{0}{3}) {
    	 $user_info->{PASSWORD} = ($FORM{SHOW_PASSWORD}) ? "$_PASSWD: '$user_info->{PASSWORD}'" : $html->button("$_SHOW $_PASSWD", "index=$index&UID=$LIST_PARAMS{UID}&SHOW_PASSWORD=1", { BUTTON => 1 });
     }
@@ -1535,7 +1541,6 @@ elsif ( $FORM{add}) {
    }
 
   my $user_info = $users->add({ %FORM });  
-  
   if ($users->{errno}) {
     $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
     user_form();    

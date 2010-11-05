@@ -19,6 +19,7 @@
 <TR><TD>$_GRANT:</TD><TD><textarea name=PASPORT_GRANT rows=3 cols=45>%PASPORT_GRANT%</textarea></TD></TR>
 %INFO_FIELDS%
 
+<TR><TD colspan=2 align=right>%ADD_INFO_FIELD%</TD></TR>
 <TR><th colspan=2  bgcolor='$_COLORS[2]'>:$_COMMENTS:</th></TR>
 <TR><th colspan=2><textarea name=COMMENTS rows=5 cols=60>%COMMENTS%</textarea></th></TR>
 
