@@ -376,7 +376,7 @@ sub action_add {
   	$actions .= ":$attr->{ACTION_COMMENTS}";
    }
 
-  $IP = ($attr->{IP})? $attr->{IP} : '0.0.0.0';
+  $IP = $attr->{IP} if ($attr->{IP});
 
   $self->query($db, "INSERT INTO admin_actions (aid, ip, datetime, actions, uid, module, action_type) 
     VALUES ('$self->{AID}', INET_ATON('$IP'), now(), '$actions', '$uid', '$MODULE', '$action_type')", 'do');
