@@ -3218,7 +3218,7 @@ if ($nas->{errno}) {
   'ppp'       => 'FreeBSD ppp demon',
   'exppp'     => 'FreeBSD ppp demon with extended futures',
   'dslmax'    => 'ASCEND DSLMax',
-  'CeLAN'     => 'CeLAN Switch',
+  'celan'     => 'CeLAN Switch',
   'expppd'    => 'pppd deamon with extended futures',
   'radpppd'   => 'pppd version 2.3 patch level 5.radius.cbcp',
   'lucent_max'=> 'Lucent MAX',

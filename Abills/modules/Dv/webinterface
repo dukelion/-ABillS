@@ -5803,7 +5803,6 @@ sub dv_dhcp_get_mac {
 #**********************************************************
 sub dv_compensation () {
 
-
 if ($FORM{add}) {
 	my ($FROM_Y, $FROM_M, $FROM_D) = split(/-/,  $FORM{FROM_DATE}, 3);
 	my $from_date = mktime(0, 0, 0, $FROM_D, ($FROM_M-1), ($FROM_Y-1900), 0, 0, 0);
@@ -5887,12 +5886,11 @@ $html->tpl_show(_include('dv_compensation', 'Dv'), $Dv);
 
 
 #**********************************************************
-#
+# Shedule form for Dv modules
 #**********************************************************
 sub dv_form_shedule () {
 
   my $shedule = Shedule->new($db, $admin, \%conf);
-  
 
 if ($FORM{add}) {
     my ($Y, $M, $D) = split(/-/,  $FORM{DATE}, 3);
@@ -5917,7 +5915,7 @@ elsif ($FORM{shedule}) {
 	if ($FORM{shedule} eq 'status') {
     my $table = $html->table( { width       => '100%',
 	                       rowcolor    => 'row_active',
-                         rows        => [[ "$_FROM: ",  $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'compensation', WEEK_DAYS => \@WEEKDAYS }),
+                         rows        => [[ "$_FROM: ",  $html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'shedule', WEEK_DAYS => \@WEEKDAYS }),
                                           "$_STATUS: ", $html->form_select('ACTION', 
                                           { 
  	                                          SELECTED     => $FORM{ACTION},
@@ -5936,11 +5934,13 @@ elsif ($FORM{shedule}) {
 
 
     print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
-	                       HIDDEN  => { sid     => "$sid",
-	                                    index   => "$index",
-	                                    shedule => "status",
-	                                    UID     => "$FORM{UID}",
-	                                     }});		
+	                           HIDDEN  => { sid     => "$sid",
+	                                        index   => "$index",
+	                                        shedule => "status",
+	                                        UID     => "$FORM{UID}",
+   	                                     },
+	                           NAME    => 'shedule'
+	                         });		
 	 }
 	
 }
