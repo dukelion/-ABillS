@@ -66,6 +66,7 @@ $html->{language}=$FORM{language} if (defined($FORM{language}) && $FORM{language
 
 require "../language/$html->{language}.pl";
 $sid = $FORM{sid} || ''; # Session ID
+$html->{CHARSET}=$CHARSET if ($CHARSET);
 
 my $cookies_time=gmtime(time()+$conf{web_session_timeout})." GMT";
 
@@ -474,11 +475,23 @@ if ($conf{LANGS}) {
 	 } 
 }
  
+ my %QT_LANG = (
+ byelorussian	=> 22,
+ bulgarian    => 20,
+ english      => 31,
+ french       => 37,
+ polish       => 90,
+ russian      => 96,
+ ukraine      => 129,
+ );
+ 
  $first_page{SEL_LANGUAGE} = $html->form_select('language', 
-                                { EX_PARAMS => 'onChange="selectLanguage()"',
- 	                                SELECTED  => $html->{language},
- 	                                SEL_HASH  => \%LANG,
- 	                                NO_ID     => 1 });
+                                { EX_PARAMS  => 'onChange="selectLanguage()"',
+ 	                                SELECTED   => $html->{language},
+ 	                                SEL_HASH   => \%LANG,
+ 	                                NO_ID      => 1,
+ 	                                EXT_PARAMS => { qt_locale => \%QT_LANG }
+ 	                              });
 
  $OUTPUT{BODY} = $html->tpl_show(templates('form_client_login'), \%first_page);
 }

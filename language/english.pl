@@ -176,6 +176,7 @@ $_NAS='NAS';
 $_NASS='NAS';
 $_PORT='Port';
 $_REDUCTION='Discount';
+$_STATIC='Static';
 
 
 $_SEARCH='Search';

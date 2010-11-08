@@ -56,7 +56,6 @@ my $debug;
 my %log_levels;
 my $IMG_PATH;
 my $row_number = 0;
-#Hash of url params
 
 
 #**********************************************************
@@ -279,17 +278,24 @@ sub form_select {
 
 	  if ($attr->{SORT_KEY}) {
 	  	@H = sort keys %{ $attr->{SEL_HASH} };
-	  }
+	   }
 	  else {
 	    @H = keys %{ $attr->{SEL_HASH} };
      }
     
-    
     foreach my $k (@H) {
       $self->{SELECT} .= "<option value='$k'";
-      $self->{SELECT} .=' selected="1"' if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
-
-      $self->{SELECT} .= ">";
+      $self->{SELECT} .= " selected='1'" if (defined($attr->{SELECTED}) && $k eq $attr->{SELECTED});
+      
+      if ($attr->{EXT_PARAMS}) {
+      	while(my ($ext_k, $ext_v)=each %{ $attr->{EXT_PARAMS} }) {
+          $self->{SELECT} .= " $ext_k='";
+          $self->{SELECT} .= $attr->{EXT_PARAMS}->{$ext_k}->{$k} if ($attr->{EXT_PARAMS}->{$ext_k}->{$k});
+          $self->{SELECT} .= "'";
+         }
+       }
+      
+      $self->{SELECT} .= '>';
       $self->{SELECT} .= "$k:" if (! $attr->{NO_ID});
       $self->{SELECT} .= "$attr->{SEL_HASH}{$k}</option>\n";	
      }

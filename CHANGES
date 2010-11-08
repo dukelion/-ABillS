@@ -1,4 +1,23 @@
 =====0.52=====
+
+07.11.2010\\
+  * Установка скорости на пул адресов
+
+MySQL:\\
+  ALTER TABLE ippools ADD COLUMN `speed` int(10) unsigned NOT NULL default '0';
+
+  * Снятие абон. платы для приостановленных аккаунтов
+
+
+30.10.2010\\
+  * Добавлена опция выбора нужных вопросов при заполнении администратором
+MySQL:\\
+  ALTER TABLE `msgs_survey_questions` ADD COLUMN `fill_default` tinyint(1) unsigned NOT NULL DEFAULT '0';
+
+
+
+25.10.2010\\
+  * Добавлен отдельный тип контракта для корпоративных клиентов
 13.10.2010\\
   * Добавлено перенаправление пользователя на страницу провайдера при получении личного сообщения. Опция $conf{MSGS_UNREAD_FORWARD}. [[abills:docs:msgs:ru|Msgs]] 
   * Добавлена платёжная система Liqpay [[abills:docs:modules:paysys:ru#Liqpay|Liqpay]]

@@ -124,6 +124,7 @@ $_SYMBOLS='Символ';
 $_OCTETS_DIRECTION='Напрямок трафіку';
 $_GRANT='Видано';
 $_PAYMENT_NOTEXIST='Оплати не існує';
+$_STATIC='Статичний';
 $_MANAGE='Управління';
 $_TEST='Тест';
 $_UPLIMIT='Попередження';

@@ -3218,6 +3218,7 @@ if ($nas->{errno}) {
   'ppp'       => 'FreeBSD ppp demon',
   'exppp'     => 'FreeBSD ppp demon with extended futures',
   'dslmax'    => 'ASCEND DSLMax',
+  'CeLAN'     => 'CeLAN Switch',
   'expppd'    => 'pppd deamon with extended futures',
   'radpppd'   => 'pppd version 2.3 patch level 5.radius.cbcp',
   'lucent_max'=> 'Lucent MAX',
@@ -3484,8 +3485,8 @@ my $list = $nas->nas_ip_pools_list({ %LIST_PARAMS });
 my $table = $html->table( { width      => '100%',
                             caption    => "NAS IP POOLs",
                             border     => 1,
-                            title      => ['', "NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", '-', '-'],
-                            cols_align => ['right', 'left', 'right', 'right', 'right', 'center', 'center'],
+                            title      => ['', "NAS", "$_NAME", "$_BEGIN", "$_END", "$_COUNT", "$_PRIORITY", "$_SPEED (Kbits)", '-', '-'],
+                            cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'center', 'center'],
                             qs         => $pages_qs,
                             pages      => $payments->{TOTAL},
                             ID         => 'NAS_IP_POOLS'
@@ -3494,18 +3495,19 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=62$pages_qs&del=$line->[9]", { MESSAGE => "$_DEL POOL $line->[9]?", BUTTON => 1 }); 
-  my $change = $html->button($_CHANGE, "index=62$pages_qs&chg=$line->[9]", { BUTTON => 1 }); 
-  $table->{rowcolor} = ($line->[9] eq $FORM{chg}) ? 'row_active' : undef;
+  my $delete = $html->button($_DEL, "index=62$pages_qs&del=$line->[10]", { MESSAGE => "$_DEL POOL $line->[10]?", BUTTON => 1 }); 
+  my $change = $html->button($_CHANGE, "index=62$pages_qs&chg=$line->[10]", { BUTTON => 1 }); 
+  $table->{rowcolor} = ($line->[10] eq $FORM{chg}) ? 'row_active' : undef;
 
   $table->addrow(
-    ($line->[11]) ? 'static' : $html->form_input('ids', $line->[9], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef }),
+    ($line->[12]) ? 'static' : $html->form_input('ids', $line->[10], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef }),
     $html->button($line->[1], "index=61&NAS_ID=$line->[10]"), 
     $line->[2],
     $line->[7], 
-    $line->[8], 
-    $line->[5],  
-    $line->[6],  
+    $line->[8],
+    $line->[5], 
+    $line->[6],
+    $line->[7],
     $change,
     $delete);
 }
