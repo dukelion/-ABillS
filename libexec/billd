@@ -220,6 +220,8 @@ sub check_lines {
   my $Billing = Billing->new($db, \%conf);	
 
   my %JOIN_SERVICE_STATS = ();
+  my @time = localtime();
+  my $now = $time[0]+$time[1]*60+$time[2]*3600;
 
   foreach my $nas_row (@$nas_list) {
     #if don't have online users skip it
@@ -378,6 +380,58 @@ sub check_lines {
         	                        });
        }
 
+      # If billing configured for CoA usage and NAS support it
+      if ($conf{coa_send} && hascoa(\%NAS)) {
+        if ($uid > 0) {
+          my $Billing = Billing->new($db, \%conf);
+          $Tariffs->info(0, {ID => $tp_num});
+          my $TIME_INTS = $Tariffs->ti_list({TP_ID => "$Tariffs->{TP_ID}"});
+          my $curr_speed_in = 0;
+          my $curr_speed_out = 0;
+          my $new_speed_in = 0;
+          my $new_speed_out = 0;
+          my $last = 0;
+          my $curr = 0;
+          foreach my $interval (@$TIME_INTS) {
+            #if we have more than 1 interval, that works for all days
+          if (($interval->[3] - $interval->[2] < 86400) && ($interval->[1] == 0)) {
+            my $INT_DETL=$Tariffs->tt_list({TI_ID => $interval->[0]});
+            #interval started today
+              if ($now - $interval->[2] >= 0) {
+                #interval ended today
+                if ($now - $interval->[3] >= 0 && $now - $interval->[3] < $conf{billd_interval}){
+                  $last = $now - $interval->[3] < $duration_sec;
+                  $curr_speed_in = $INT_DETL->[0]->[4];
+                  $curr_speed_out = $INT_DETL->[0]->[5];
+                 }
+                #current speed
+                elsif ($now - $interval->[2] >= 0 && $now - $interval->[2] < $conf{billd_interval}) {
+                  $curr = $now - $interval->[2] < $duration_sec;
+                  $new_speed_in = $INT_DETL->[0]->[4];
+                  $new_speed_out = $INT_DETL->[0]->[5];
+                 }
+               }
+              #day change
+              elsif($now + 86400 - $interval->[3] >= 0 && $now + 86400 - $interval->[3] < $conf{billd_interval}) {
+                $last = $now + 86400 - $interval->[3] < $duration_sec;
+                $curr_speed_in = $INT_DETL->[0]->[4];
+                $curr_speed_out = $INT_DETL->[0]->[5];
+               }
+             }
+           }
+           #if we get speed for both intervals, and it was changed
+           if ($curr && $last && ($curr_speed_in != $new_speed_in || $curr_speed_out != $new_speed_out)) {
+             my $ret = setspeed(\%NAS, "$nas_port_id", "$user_name", $new_speed_in, $new_speed_out,
+                                                                   { ACCT_SESSION_ID      => $acct_session_id,
+                                                                     FRAMED_IP_ADDRESS    => int2ip($client_ip),
+                                                                     UID                  => $uid,
+                                                                     debug                => $debug
+                                                                    });
+             print "Change speed: $user_name SESSION_ID: $acct_session_id, SPEED: $curr_speed_in/$curr_speed_out -> $new_speed_in/$new_speed_out".(($ret > -1) ? ", ERROR: $ret" : "")."\n"; # if ($debug == 1);
+           }
+         }
+       }
+      #ENDCOA Section
 
         # periodic check deposit, stats and statu
         my %RAD = (USER_NAME         => "$user_name",

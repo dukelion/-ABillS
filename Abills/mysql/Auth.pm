@@ -769,8 +769,43 @@ sub Auth_CID {
    }
  
  	my @CID_POOL = split(/;/, $self->{CID});
+	#If auth from DHCP
+  if ($CONF->{DHCP_CID_IP} || $CONF->{DHCP_CID_MAC} || $CONF->{DHCP_CID_MPD}) {
+    $self->query($db, "SELECT INET_NTOA(dh.ip), dh.mac
+	       FROM dhcphosts_hosts dh
+         LEFT JOIN users u ON u.uid=dh.uid
+	       WHERE  u.id='$RAD->{USER_NAME}'
+	         AND dh.disable = 0
+           AND dh.mac='$RAD->{CALLING_STATION_ID}'");
+    if($self->{errno}) {
+	      $RAD_PAIRS->{'Reply-Message'}='SQL error';
+        undef $db;
+        return 1, $RAD_PAIRS;
+     }
+    elsif ($self->{TOTAL} >0) {
+	    foreach my $line (@{$self->{list}}) {
+	      my $ip = $line->[0];
+	      my $mac = $line->[1];
+	      if (($RAD->{CALLING_STATION_ID} =~ /:/ || $RAD->{CALLING_STATION_ID} =~ /\-/)
+      		&& $RAD->{CALLING_STATION_ID} !~ /\./ && $CONF->{DHCP_CID_MAC}) {
+          	#MAC
+          	push(@CID_POOL, $mac);
+	       }
+	      elsif ($RAD->{CALLING_STATION_ID} !~ /:/ && $RAD->{CALLING_STATION_ID} !~ /\-/
+    		  && $RAD->{CALLING_STATION_ID} =~ /\./ && $CONF->{DHCP_CID_IP}) {
+    		  #IP
+          push(@CID_POOL, $ip);
+    	   }
+	      elsif ($RAD->{CALLING_STATION_ID} =~ /\// && $CONF->{DHCP_CID_MPD}) {
+		    #MPD IP+MAC
+         	push(@CID_POOL, "$ip/$mac");
+	       }
+	    }
+    }
+  }
+ 	
+ 	
   foreach my $TEMP_CID (@CID_POOL) { if ($TEMP_CID ne '') {
-
     if (($TEMP_CID =~ /:/ || $TEMP_CID =~ /\-/)
        && $TEMP_CID !~ /\./) {
       @MAC_DIGITS_GET=split(/:|-/, $TEMP_CID);

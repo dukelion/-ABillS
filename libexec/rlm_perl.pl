@@ -68,6 +68,7 @@ sub sql_connect {
    }
   else {
   	$nas = $NAS_INFO{$REQUEST{NAS_IP_ADDRESS}.'_'.$REQUEST{NAS_IDENTIFIER}};
+  	$nas->{db} = $db;
    }
   
   return $db;
@@ -124,6 +125,25 @@ sub accounting {
 	return RLM_MODULE_OK;
 }
 
+
+#**********************************************************
+# post_auth
+#
+#**********************************************************
+sub post_auth {
+  $begin_time = check_time();
+
+  my $db = sql_connect();
+  my $return = RLM_MODULE_REJECT;
+  if ( $db ) {
+    if ( inc_postauth($db, \%REQUEST, $nas) == 0 ) {
+    	$return = RLM_MODULE_OK;
+     }
+     $db->disconnect;
+   }
+
+	return RLM_MODULE_REJECT;
+}
 
 
 1

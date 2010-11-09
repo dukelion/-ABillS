@@ -82,7 +82,6 @@ use Abills::Base;
 #    Options Indexes ExecCGI FollowSymLinks
 #
 #**********************************************************
-
 #print "Content-Type: texthtml\n\n";    
 #while(my($k, $v)=each %ENV) {
 #	print "$k, $v\n";
@@ -3229,6 +3228,7 @@ if ($nas->{errno}) {
   'ipcad'     => 'IP accounting daemon with Cisco-like ip accounting export',
   'lepppd'    => 'Linux PPPD IPv4 zone counters',
   'pppd'      => 'pppd + RADIUS plugin (Linux)',
+  'pppd_coa'  => 'pppd + RADIUS plugin + radcoad (Linux)',
   'gnugk'     => 'GNU GateKeeper',
   'cisco'     => 'Cisco (Experimental)',
   'dell'      => 'Dell Switch',

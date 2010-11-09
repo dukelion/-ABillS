@@ -81,6 +81,10 @@ sub hangup {
  elsif ($nas_type eq 'pppd' || $nas_type eq 'lepppd') {
    hangup_pppd($NAS, $PORT, $attr);
   }
+ # http://sourceforge.net/projects/radcoad/
+ elsif ($nas_type eq 'pppd_coa') {
+   hangup_pppd_coa($NAS, $PORT, $attr);
+  }
  else {
    return 1;
   }
@@ -969,5 +973,120 @@ sub stats_patton29xx {
   return %stats;
 }
 
+
+#*******************************************************************
+# hangup_hangup_pppd_coa
+# 
+# Radius-Disconnect messages for radcoad
+# rfc3576
+#*******************************************************************
+sub hangup_pppd_coa {
+  my ($NAS, $PORT, $attr) = @_;
+ 
+  my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
+  log_print('LOG_DEBUG', " HANGUP: NAS_MNG: $ip:$mng_port '$NAS->{NAS_MNG_PASSWORD}' \n"); 
+
+  my %RAD_PAIRS = ();
+  my $type;
+  my $result = 0;
+  my $r = new Radius(Host   => "$NAS->{NAS_MNG_IP_PORT}", 
+                     Secret => "$NAS->{NAS_MNG_PASSWORD}") or return "Can't connect '$NAS->{NAS_MNG_IP_PORT}' $!";
+
+  $conf{'dictionary'}='/usr/abills/Abills/dictionary' if (! $conf{'dictionary'});
+
+  $r->load_dictionary($conf{'dictionary'});
+
+  $r->add_attributes ({ Name => 'Framed-Protocol', Value => 'PPP' },
+                      { Name => 'NAS-Port', Value => "$PORT" });
+  $r->add_attributes ({ Name => 'Framed-IP-Address', Value => "$attr->{FRAMED_IP_ADDRESS}" }) if $attr->{FRAMED_IP_ADDRESS};	      
+  $r->send_packet (POD_REQUEST) and $type = $r->recv_packet;
+
+  if( ! defined $type ) {
+    # No responce from POD server
+    $result = 1;
+    log_print('LOG_DEBUG', "No responce from POD server '$NAS->{NAS_MNG_IP_PORT}' ");
+   }
+  
+  return $result;
+}
+
+#*******************************************************************
+# Set speed for port
+# setspeed($NAS_HASH_REF, $PORT, $USER, $UPSPEED, $DOWNSPEED, $attr);
+#*******************************************************************
+sub setspeed {
+ my ($Nas, $PORT, $USER, $UPSPEED, $DOWNSPEED, $attr) = @_;
+
+ $NAS = $Nas;
+ $nas_type = $NAS->{NAS_TYPE};
+
+ if ($nas_type eq 'pppd_coa') {
+   return setspeed_pppd_coa($NAS, $PORT, $UPSPEED, $DOWNSPEED, $attr);
+  }
+ else {
+   return -1;
+  }
+
+  return 0;
+}
+
+
+#*******************************************************************
+# Check CoA support
+# hascoa($NAS_HASH_REF, $attr);
+#*******************************************************************
+sub hascoa {
+ my ($Nas, $attr) = @_;
+
+ $NAS = $Nas;
+ $nas_type = $NAS->{NAS_TYPE};
+
+ if ($nas_type eq 'pppd_coa') {
+   return 1;
+  }
+ else {
+   return 0;
+  }
+}
+
+
+#*******************************************************************
+# setspeed_pppd_coa
+# 
+# Radius-CoA messages for radcoad
+# rfc3576
+#*******************************************************************
+sub setspeed_pppd_coa {
+  my ($NAS, $PORT, $UPSPEED, $DOWNSPEED, $attr) = @_;
+ 
+  my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
+  log_print('LOG_DEBUG', " SETSPEED: NAS_MNG: $ip:$mng_port '$NAS->{NAS_MNG_PASSWORD}' \n"); 
+
+  my %RAD_PAIRS = ();
+  my $type;
+  my $result = 0;
+  my $r = new Radius(Host   => "$NAS->{NAS_MNG_IP_PORT}", 
+                     Secret => "$NAS->{NAS_MNG_PASSWORD}") or return "Can't connect '$NAS->{NAS_MNG_IP_PORT}' $!";
+
+  $conf{'dictionary'}='/usr/abills/Abills/dictionary' if (! $conf{'dictionary'});
+
+  $r->load_dictionary($conf{'dictionary'});
+
+  $r->add_attributes ({ Name => 'Framed-Protocol', Value => 'PPP' },
+		      { Name => 'NAS-Port', Value => "$PORT" },
+		      { Name => 'PPPD-Upstream-Speed-Limit', Value => "$UPSPEED" },
+		      { Name => 'PPPD-Downstream-Speed-Limit', Value => "$DOWNSPEED" });
+  $r->add_attributes ({ Name => 'Framed-IP-Address', Value => "$attr->{FRAMED_IP_ADDRESS}" }) if $attr->{FRAMED_IP_ADDRESS};	      
+  $r->send_packet (COA_REQUEST) and $type = $r->recv_packet;
+
+  if( ! defined $type ) {
+    # No responce from CoA server
+    log_print('LOG_DEBUG', "No responce from CoA server '$NAS->{NAS_MNG_IP_PORT}'");
+    return 1;
+   }
+  
+  return $result;
+}
+  
 
 1
