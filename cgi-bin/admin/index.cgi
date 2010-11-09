@@ -6918,4 +6918,3 @@ sub get_function_index  {
 }
 
 1
-
