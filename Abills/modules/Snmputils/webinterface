@@ -3382,10 +3382,10 @@ sub snmputils_celan_list {
                   6 => 'MODE');
 
 	my %active = ();
-  my %block = ();
+  my %dynamic = ();
   #Full list 
   my @result = &snmpwalk("$SNMP_COMMUNITY",  '.1.3.6.1.4.1.655.5.15.1.4.2.8.1.2');
-  print '1.3.6.1.2.1.17.7.1.3.1.1<BR>' if ($debug > 0);
+  print '.1.3.6.1.4.1.655.5.15.1.4.2.8.1.2<BR>' if ($debug > 0);
 
   foreach my $line (@result) {
     print "$line<br>\n" if ($debug > 0);
@@ -3403,16 +3403,31 @@ sub snmputils_celan_list {
       if ( $string =~ m/1/g ) {
      	  $active{PORT}{$number.'-'.$mac}=32 - pos($string) + 1;
      	 }
-    #Binding Address
-#    elsif($line =~ /^4\.(\d{1,3})\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\.0:(.+)/g) {
-#      my $vlan  = $1;
-#      my $mac   = $2;
-#      my $state = $3;
-#      $info{ACTIVE}{$vlan.'-'.$mac}=$3;
-#    }
    }	
+
+  my @result = &snmpwalk("$SNMP_COMMUNITY",  '.1.3.6.1.4.1.655.5.15.1.4.4.1.2');
+  print '.1.3.6.1.4.1.655.5.15.1.4.4.1.2<BR>' if ($debug > 0);
+
+  foreach my $line (@result) {
+    print "$line<br>\n" if ($debug > 0);
+    # Get port
+      my ($number, $mac_port)=split(/:/, $line);
+      my @out_arr = unpack("H2H2H2H2H2H2H2H2H2H2", $mac_port); 
+      my $mac  = join(':', @out_arr[0..5]);
+      my $port = join('', @out_arr[6..9]);
+ 	  	if ($debug > 0) {
+	  		 print "$number, $mac -> $port / $out /<br>";
+ 	  	 }
+
+ 	  	$dynamic{MAC}{$number.'-'.$mac}=$mac;
+      $string = join('.', unpack("B32", pack('H*', $port)))."<br>";
+      if ( $string =~ m/1/g ) {
+     	  $dynamic{PORT}{$number.'-'.$mac}=32 - pos($string) + 1;
+     	 }
+   }	
+
 	
-	return \%active, \%block;	
+	return \%active, \%dynamic;	
 }
 
 #*******************************************************************
@@ -3568,7 +3583,7 @@ sub snmputils_celan {
   my @ports = ();
   my %MODES = (0 => 'ARP', 1 => 'ACL' );
   
-  my($ACTIVE_MAC, $BLOCK_MAC) = snmputils_celan_list({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
+  my($ACTIVE_MAC, $DYNAMIC_MAC) = snmputils_celan_list({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
                                                      SWITCH_INFO    => $SWITCH_INFO,
                                                      DEBUG          => $FORM{DEBUG}
 	                                                 });
@@ -3627,6 +3642,44 @@ sub snmputils_celan {
   print $table->show();
   $Snmputils->{ACTIVE}='checked';
   $html->tpl_show(_include('snmputils_mac_port_add', 'Snmputils'), { %$Snmputils, %FORM }); 
+  
+  
+    while(my($vlan_mac, $mac) = each %{ $DYNAMIC_MAC->{MAC} } ) {
+    my ($VLAN, $m)=split(/-/, $vlan_mac, 2);
+    my $state =  $DYNAMIC_MAC->{ACTIVE}{$vlan_mac};
+
+    next if ($m eq '00:00:00:00:00:00');
+
+    if ($FORM{NAS_ID}) {
+      $page_arguments = "&NAS_ID=$FORM{NAS_ID}";
+     }
+    else {
+    	$page_arguments = "&SNMP_HOST=$FORM{SNMP_HOST}&SNMP_COMMUNITY=$FORM{SNMP_COMMUNITY}";
+     }
+
+    my @arr = (
+             $table->td($DYNAMIC_MAC->{PORT}{$vlan_mac}),
+             $table->td($STATUS{$state}, { bgcolor => ($state == 3) ? '#00FF00' : $_COLORS[1]  }),
+             $table->td($VLAN),
+             $table->td( $DYNAMIC_MAC->{MAC}{$vlan_mac} ),
+             $table->td( $DYNAMIC_MAC->{NAME}{$vlan_mac} ),
+             #$table->td($html->button(($state == 3) ? $STATUS{1} : $STATUS{3}, 
+             #  "$page_arguments&TYPE=$FORM{TYPE}&SHOW=1&index=$index&VLAN=$VLAN&MAC=$ACTIVE_MAC->{MAC}{$vlan_mac}&PORT=$ACTIVE_MAC->{PORT}{$vlan_mac}&state=". (($state == 3) ? 1 : 3) )),
+             #$table->td($html->button($_ADD, "index=$index&VLAN=$VLAN&MAC=$DYNAMIC_MAC->{MAC}{$vlan_mac}$page_arguments&TYPE=$FORM{TYPE}&SHOW=1&state=2&PORT=$ACTIVE_MAC->{PORT}{$vlan_mac}", { BUTTON => 1 }))
+      );
+     
+    if($binding->{$DYNAMIC_MAC->{MAC}{$vlan_mac}}) {
+ 		  my ($name, $uid) = split(/:/, $binding->{$DYNAMIC_MAC->{MAC}{$vlan_mac}});
+    	unshift @arr, $table->td($html->button("$name", "index=15&UID=$uid"));
+     }
+    else {
+    	unshift @arr, $table->td('-');
+     }	
+    
+    $table->addtd(@arr);
+   }
+ 
+  print $table->show();  
 }
 
 

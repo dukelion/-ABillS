@@ -3018,21 +3018,27 @@ if ($FORM{set}) {
   elsif ($conf{DV_USER_CHG_TP_NPERIOD}) {
   	 # Get next month
      my ($Y, $M, $D);
-
      if ($user->{ACTIVATE} eq '0000-00-00') {
        # Get next month
        ($Y, $M, $D)=split(/-/, $DATE, 3);
-       $D='01';
       }
      else {
        ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
       }
 
-     $M++;
-     if ($M == 13) {
+
+     if ($Dv->{MONTH_ABON}==0 || $Dv->{ABON_DISTRIBUTION}) {
+     	 ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 86400) )); 
+      }
+     else {
+       $M++;
+       if ($M == 13) {
          $M = 1;
          $Y++;
-       }
+        }
+       $D='01';
+      }
+
      $M = sprintf("%02d", $M);
      my $seltime = POSIX::mktime(0, 0, 0, $D, $M, ($Y - 1900));
 
@@ -3051,8 +3057,8 @@ if ($FORM{set}) {
  	    $FORM{UID}=$LIST_PARAMS{UID};
       $Dv->change({ %FORM });
       $users->change({ ACTIVATE => "$DATE",
-      	               UID      => $LIST_PARAMS{UID}
-      	             })
+      	               UID      => $LIST_PARAMS{UID} 
+      	             });
 
       if ($user->{errno}) {
         $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
