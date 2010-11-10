@@ -3050,6 +3050,9 @@ if ($FORM{set}) {
     else {
  	    $FORM{UID}=$LIST_PARAMS{UID};
       $Dv->change({ %FORM });
+      $users->change({ ACTIVATE => "$DATE",
+      	               UID      => $LIST_PARAMS{UID}
+      	             })
 
       if ($user->{errno}) {
         $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
