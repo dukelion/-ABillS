@@ -178,6 +178,7 @@ for IP in ${NAT_IPS}; do
   fi;
 done;
 
+  # ISP_GW2=1 For redirect to second way
   if [ w${ISP_GW2} != w ]; then
     #Second way
     GW2_IF_IP="192.168.0.2"

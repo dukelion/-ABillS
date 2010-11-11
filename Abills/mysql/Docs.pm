@@ -278,7 +278,7 @@ sub docs_invoice_del {
     #$self->query($db, "DELETE FROM docs_acct WHERE uid='$id'", 'do');
    }
   else {
-    $self->query($db, "DELETE FROM docs_invoice_orders WHERE acct_id='$id'", 'do');
+    $self->query($db, "DELETE FROM docs_invoice_orders WHERE invoice_id='$id'", 'do');
     $self->query($db, "DELETE FROM docs_invoice WHERE id='$id'", 'do');
    }
 
@@ -490,7 +490,7 @@ sub account_del {
 
   if ($id == 0 && $attr->{UID}) {
     #$self->query($db, "DELETE FROM docs_acct_orders WHERE acct_id='$id'", 'do');
-    #$self->query($db, "DELETE FROM docs_acct WHERE uid='$id'", 'do');
+    #$self->query($db, "DELETE FROM docs_acct WHERE uid='$uid'", 'do');
    }
   else {
     $self->query($db, "DELETE FROM docs_acct_orders WHERE acct_id='$id'", 'do');
@@ -620,7 +620,15 @@ sub account_change {
 #**********************************************************
 sub del {
  my $self = shift;
+ my ($attr) = @_;
 
+
+ $self->query($db, "DELETE FROM docs_acct_orders WHERE acct_id IN (SELECT id FROM docs_acct WHERE uid='$attr->{UID}')", 'do');
+ $self->query($db, "DELETE FROM docs_acct WHERE uid='$attr->{UID}'", 'do');
+ $self->query($db, "DELETE FROM docs_invoice_orders WHERE invoice_id IN (SELECT id FROM docs_invoice WHERE uid='$attr->{UID}')", 'do');
+ $self->query($db, "DELETE FROM docs_invoice WHERE uid='$attr->{UID}'", 'do');
+
+ return $self;
 }
 
 

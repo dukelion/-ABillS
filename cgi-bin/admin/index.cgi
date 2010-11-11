@@ -1808,8 +1808,8 @@ sub user_del {
    	require "Abills/modules/$mod/webinterface";
     my $function = lc($mod).'_user_del';
     if (defined(&$function)) {
-     	  $function->($user_info->{UID}, $user_info );
-      }
+     	$function->($user_info->{UID}, $user_info );
+     }
    }
 
   if ($user_info->{errno}) {

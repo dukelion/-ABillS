@@ -531,7 +531,9 @@ sub bonus_periodic_daily {
    my $debug_output = '';
    $debug_output .= "Bonus - Monthly pariodic payments\n" if ($debug > 1);
 
-	
+   #del expired bonus
+
+
    $DEBUG .= $debug_output;
    return $debug_output;
  }
