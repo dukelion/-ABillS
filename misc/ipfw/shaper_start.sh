@@ -25,7 +25,7 @@ run_rc_command "$1"
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.0
+VERSION=5.1
 
 if [ w${abills_shaper_enable} = w ]; then
   exit;
@@ -47,6 +47,8 @@ USER_PORTLA_IP=
 SESSION_LIMIT=${abills_ip_sessions}
 
 IPFW=/sbin/ipfw
+SED=/usr/bin/sed
+BILLING_DIR=/usr/abills
 
 if [ w${abills_shaper_if} != w ]; then
   INTERNAL_INTERFACE=${abills_shaper_if}
@@ -56,9 +58,10 @@ else
 fi;
 
 
-PKG_DIRECTION="TO_SERVER"
+#Octets direction
+PKG_DIRECTION=`cat ${BILLING_DIR}/libexec/config.pl | grep octets_direction | ${SED} "s/\\$conf{octets_direction}='\(.*\)'.*/\1/"`
 
-if [ w${PKG_DIRECTION} = wTO_SERVER ] ; then
+if [ w${PKG_DIRECTION} = wuser ] ; then
   IN_DIRECTION="in recv ${INTERNAL_INTERFACE}"
   OUT_DIRECTION="out xmit ${INTERNAL_INTERFACE}"
 else
