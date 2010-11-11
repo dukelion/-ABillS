@@ -158,8 +158,6 @@ fi;
 # options         LIBALIAS
 #if [ w${abills_nat_enable} != w ] ; then
 
-ISP_GW2="";
-
 #Nat Section
 if [ w${NAT_IPS} != w  ] ; then
 
@@ -168,8 +166,6 @@ NAT_TABLE=20
 NAT_FIRST_RULE=20
 NAT_REAL_TO_FAKE_TABLE_NUM=33;
 NAT_FAKE_IP_TABLE_NUM=33;
-
-
 
 # nat configuration
 for IP in ${NAT_IPS}; do
@@ -182,18 +178,25 @@ for IP in ${NAT_IPS}; do
   fi;
 done;
 
+  if [ w${ISP_GW2} != w ]; then
+    #Second way
+    GW2_IF_IP="192.168.0.2"
+    GW2_IP="192.168.0.1"
+    GW2_REDIRECT_IPS="10.0.0.0/24"
+    NAT_ID=22
+    #Fake IPS
+    ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${GW2_IF_IP} ${FWD_NAT_ID}
+    #NAT configure
+    ${IPFW} nat ${NAT_ID} config ip ${EXT_IP} log
+    #Redirect to second net IPS
+    for ip_mask in ${GW2_REDIRECT_IPS} ; do
+      ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${ip_mask} ${NAT_ID}
+    done;
 
-#Second way
-EXT_IP="192.168.0.2"
-ISP_IP="192.168.0.1"
-NAT_ID=22
-REDIRECT_IPS="10.0.0.0/24"
-${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${EXT_IP} ${FWD_NAT_ID}
-${IPFW} nat ${NAT_ID} config ip ${EXT_IP} log
-for ip_mask in ${REDIRECT_IPS} ; do
-  ${IPFW} table ` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1` add ${ip_mask} ${NAT_ID}
-done;
-${IPFW} 60015 add fwd ${ISP_IP} ip from ${EXT_IP} to any
+    #Forward traffic 2 second way
+    ${IPFW} 60015 add fwd ${GW2_IP} ip from ${GW2_IF_IP} to any
+    #${IPFW} add 30 add fwd ${ISP_GW2} ip from ${NAT_IPS} to any
+  fi;
 
 # UP NAT
 if [ w$1 = wstart ]; then
@@ -203,12 +206,8 @@ if [ w$1 = wstart ]; then
 
   ${IPFW} add 60010 nat tablearg ip from table\(` expr ${NAT_REAL_TO_FAKE_TABLE_NUM} + 1 `\) to any $NAT_IF
   ${IPFW} add 60020 nat tablearg ip from any to table\(${NAT_REAL_TO_FAKE_TABLE_NUM}\) $NAT_IF
-  
-  if [ w${ISP_GW2} != w ]; then
-    ${IPFW} add 30 add fwd ${ISP_GW2} ip from ${NAT_IPS} to any
-  fi;
 else if [ w$1 = wstop ]; then
-  ${IPFW} delete 60010 60020
+  ${IPFW} delete 60010 60020 60015
 fi;
 fi;
 
