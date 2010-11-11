@@ -39,8 +39,7 @@ if (defined($ARGV->{debug})) {
   $debug=$ARGV->{debug} || 1;
   print "Debug mode $debug\n";
 }
-elsif(defined($ARGV->{help})){
-	
+elsif(defined($ARGV->{help})){	
 	#get plugins
 	opendir DIR, "$Bin/billd.plugins/" or die "Can't open dir '$Bin/billd.plugins/' $!\n";
     my @contents = grep /\.pm$/  , readdir DIR;
@@ -733,6 +732,7 @@ sub check_speed_linux {
  	      	  my $speed_in   = $line->[4];
  	      	  my $speed_out  = $line->[5];
             my $expresion  = $line->[8];
+            #ID => NETS
             $nets_hash{$line->[0]} = $line->[10];
 
             if ($expresion) {
@@ -1219,49 +1219,57 @@ else {
  	      	  $speeds{$tp}{IN}{$traf_type}=$speed_in;
  	      	  $speeds{$tp}{OUT}{$traf_type}=$speed_out;
 
-#Table shaper section START
-if (! $conf{ng_car}) {
- 	        	my $pipe_rule_in  = int($START_FW[$traf_type] + $tp_id * 10);
-            my $pipe_rule_out = int($START_FW[$traf_type] + $tp_id * 10 + 1);
-	      	  my $dest_ip = ($traf_type == 0) ? 'any' : "table\\($nets_table_number, $traf_type\\)";
+#Dummynet table shaper section START
+           if (! $conf{ng_car}) {
+ 	           my $pipe_rule_in  = int($START_FW[$traf_type] + $tp_id * 10);
+             my $pipe_rule_out = int($START_FW[$traf_type] + $tp_id * 10 + 1);
+             my $dest_ip = ($traf_type == 0) ? 'any' : "table\\($nets_table_number, $traf_type\\)";
+
+             if ($conf{octets_direction} eq 'server') {
+               my $s_in = $speed_in;
+               my $s_out= $speed_out;
+               $speed_in=$s_out;
+               $speed_out=$s_in;
+              } 
+
 	      	  
- 	      	  if ($speed_in > 0) {
-            	if ($ARGV->{RECONFIGURE}) {
- 	       	  	  push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in pipe $pipe_rule_in ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
- 	      	  	 }
+             if ($speed_in > 0) {
+   	           if ($ARGV->{RECONFIGURE}) {
+  	             push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out pipe $pipe_rule_in ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
+ 	              }
 
- 	      	  	if (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_in) { 
-   	      	  	 push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
- 	      	  	   print "Change TP: $tp Class: $traf_type IN: ". ( ($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set'  ) ." -> $speed_in\n";
-           	  	 delete $pipe_rules{$pipe_rule_in};
-           	   }
- 	      	   }
-            else{
-            	if ($ARGV->{RECONFIGURE}) {
-                push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in allow ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
-               }
-             }
+  	           if (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_out) { 
+  	             push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
+ 	               print "Change TP: $tp Class: $traf_type IN: ". ( ($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set'  ) ." -> $speed_out\n";
+  	             delete $pipe_rules{$pipe_rule_out};
+                }
+              }
+             else{
+   	           if ($ARGV->{RECONFIGURE}) {
+                 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out allow ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
+                }
+              }
 
- 	      	  if ($speed_out > 0) {
-             	if ($ARGV->{RECONFIGURE}) {
-  	      	  	 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out pipe $pipe_rule_out ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
-               }
+ 	      	   if ($speed_out > 0) {
+               if ($ARGV->{RECONFIGURE}) {
+  	      	  	 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out pipe $pipe_rule_in ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
+                }
 
-      	      if (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_out) {
-                 push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
+      	       if (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_in) {
+                 push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
              
-                 print "Change TP: $tp Class: $traf_type OUT: ". ( ($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set'  ) ." -> $speed_out\n";
-                 delete $pipe_rules{$pipe_rule_out};
+                 print "Change TP: $tp Class: $traf_type OUT: ". ( ($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set'  ) ." -> $speed_in\n";
+                 delete $pipe_rules{$pipe_rule_in};
                }
- 	      	   }
-            else{
-            	if ($ARGV->{RECONFIGURE}) {
-                push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out allow ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
-               }
-             }
+ 	      	    }
+             else{
+            	 if ($ARGV->{RECONFIGURE}) {
+                 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in allow ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
+                }
+              }
 
-            print "  Traffic Class: $traf_type Class: $traf_type IN: $line->[4] OUT: $line->[5] Pipe: $pipe_rule_in / $pipe_rule_out \n" if ($debug == 2 || $ARGV->{SHOW_SPEED});
-    }
+             print "  Traffic Class: $traf_type Class: $traf_type IN: $line->[4] OUT: $line->[5] Pipe: $pipe_rule_in / $pipe_rule_out \n" if ($debug == 2 || $ARGV->{SHOW_SPEED});
+            }
 #Table shaper section END
    	      }
         }
@@ -1282,7 +1290,9 @@ if ($ARGV->{RECONFIGURE}) {
      my @nets_arr = split(/;|,/, $nets);
      if ($#nets_arr > -1) {
      	 #print "Error: Traff_type: $traf_type User: $USER \n" if (! $traf_type || ! $nets_id{$traf_type});
+     	 #Skip global net in peer table
        foreach my $line (@nets_arr) {
+       	 next if ($line =~ /0.0.0.0/);
       	 push @FW_ACTIONS, "$IPFW -q table $nets_table_number add $line $traf_type";
         }
       }
@@ -1442,6 +1452,7 @@ else {
   	$static_speeds{$line->[6]}=1;
    }
 
+  #Static speed
 	foreach my $speed ( sort { $a <=> $b } keys %static_speeds) {
   	my $table_class = ($speed > 10000) ? "$speed" : "1$speed";
 

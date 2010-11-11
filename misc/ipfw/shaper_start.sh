@@ -52,7 +52,7 @@ if [ w${abills_shaper_if} != w ]; then
   INTERNAL_INTERFACE=${abills_shaper_if}
 else 
   EXTERNAL_INTERFACE=`/sbin/route get default | grep interface: | awk '{ print $2 }'`
-  INTERNAL_INTERFACE=ng*
+  INTERNAL_INTERFACE="ng*"
 fi;
 
 

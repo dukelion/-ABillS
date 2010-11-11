@@ -3642,9 +3642,8 @@ sub snmputils_celan {
   print $table->show();
   $Snmputils->{ACTIVE}='checked';
   $html->tpl_show(_include('snmputils_mac_port_add', 'Snmputils'), { %$Snmputils, %FORM }); 
-  
-  
-    while(my($vlan_mac, $mac) = each %{ $DYNAMIC_MAC->{MAC} } ) {
+
+  while(my($vlan_mac, $mac) = each %{ $DYNAMIC_MAC->{MAC} } ) {
     my ($VLAN, $m)=split(/-/, $vlan_mac, 2);
     my $state =  $DYNAMIC_MAC->{ACTIVE}{$vlan_mac};
 
