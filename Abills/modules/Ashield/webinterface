@@ -1216,9 +1216,9 @@ print $table->show();
 }
 
 
-##**********************************************************
-## monthly_fees
-##**********************************************************
+#**********************************************************
+# monthly_fees
+#**********************************************************
 sub ashield_monthly {
  my ($attr) = @_;
 
@@ -1319,8 +1319,8 @@ sub ashield_monthly {
        if ($line->[2] + $line->[3] > 0 || $TPS_HASH{$tp_name}{PAYMENT_TYPE}) {
        	  my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
  	     	 	   id       => $agent_id, 
-	     	 	   blockbeg => '20200101',
- 	     	 	   blockend => '20200101'
+	     	 	   blockbeg => 'Неизвестно/Никогда',
+ 	     	 	   blockend => 'Неизвестно/Никогда'
  	     	 	   }); 
  	       
  	         if ( $result->{error} ) {

@@ -37,11 +37,11 @@ sub dhcphosts_periodic {
  my $debug_output = '';
  $debug_output .= "Dhcphosts: Dhcp reconfigure\n" if ($debug > 1);
  
-  dhcphosts_config({ NETWORKS => '-', 
-                     reconfig => 1,
-                     QUITE    => 1,
-                     DEBUG    => $attr->{DEBUG}
-	                  });
+ dhcphosts_config({ NETWORKS => '-', 
+                    reconfig => 1,
+                    QUITE    => 1,
+                    DEBUG    => $attr->{DEBUG}
+	                });
 
   $DEBUG .= $debug_output;
   return $debug_output;
@@ -791,7 +791,6 @@ sub dhcphosts_user {
 	 }
   elsif ($FORM{chg}) {
     $Dhcphosts->host_info( $FORM{chg} );
-
     $FORM{NETWORK}=$Dhcphosts->{NETWORK};
     $Dhcphosts->{ACTION}='change';
     $Dhcphosts->{ACTION_LNG}=$_CHANGE;
@@ -819,7 +818,6 @@ sub dhcphosts_user {
     elsif ($Dhcphosts->{errno} == 7) {
     	my $list = $Dhcphosts->hosts_list({ IP => $FORM{IP} });
 
-
     	my $login = '';
     	if ($Dhcphosts->{TOTAL} > 0) {
    	    $login = $html->button("$list->[0][1]", "index=15&UID=". $list->[0][13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]."&MODULE=Dhcphosts"),
@@ -837,7 +835,6 @@ sub dhcphosts_user {
   }
 
   $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel({ AUTOSIGN => 1 });
-
   $Dhcphosts->{STATUS_SEL} = $html->form_select('STATUS',
 			                                   {   SELECTED => $FORM{STATUS},
 		                                         SEL_HASH => { 0   => "Not Set",
