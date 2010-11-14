@@ -10,4 +10,8 @@
 
 %TOTALS_FULL%
 
+<br/>%DAILY_GRAPH% 
+<br/>%WEEKLY_GRAPH% 
+<br/>%MONTHLY_GRAPH% 
+
 %SESSIONS%

@@ -81,6 +81,7 @@ $_CORRECTION='Корректировка';
 $_COMPENSATION='Компенсация';
 $_CONTRACT='Договор';
 $_FILE='Файл';
+$_GRAPH='График для';
 $_GUEST_ACCOUNT='Гостевой доступ';
 $_LOGOUT='Выход';
 $_ERROR_LOG='Лог ошибок';

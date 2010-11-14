@@ -1297,8 +1297,8 @@ my $dub_logins = $sessions->{dub_logins};
 $table = $html->table( { width      => '100%',
                          caption    => "$cure",
                          border     => 1,
-                         title      => [ @CAPTION, '-', '-', '-' ],
-                         cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
+                         title      => [ @CAPTION, '-', '-', '-', '-' ],
+                         cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint', 'center:noprint' ],
                          qs         => $pages_qs,
                          ID         => 'ONLINE',
                          header     => ($FORM{ZAPED}) ? "<script language=\"JavaScript\" type=\"text/javascript\">
@@ -1324,8 +1324,8 @@ foreach my $nas_row (@$nas_list) {
   my $l = $online->{$nas_row->[0]};
   my $total = $#{ $l } + 1;  
   $table->{rowcolor}= 'row_active';
-  $table->{extra}   = "colspan='". ($#CAPTION +1 ) . "' class='small'";
-  $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]) .":$nas_row->[3]:$_TOTAL: $total (". $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->[0]", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->[0]' ?" }) .')'  );
+  $table->{extra}   = "colspan='". ($#CAPTION + 1 ) . "' class='small'";
+  $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]) .":$nas_row->[3]:$_TOTAL: $total (". $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->[0]", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->[0]' ?" }) .') '. $html->button("", "#", { IMG => ':chart_16.png', IMG_ALT => "$_GRAPH $_NAS", NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?NAS_ID=$nas_row->[0]&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "670:320" }) );
   
   foreach my $line (@$l) {
     undef($table->{rowcolor});
@@ -1370,7 +1370,9 @@ foreach my $nas_row (@$nas_list) {
     $table->addrow(@rows,
      $html->button('P', "index=$index&NAS_ID=$FORM{NAS_ID}&ping=$line->[$#ACTIVE_FIELDS+2]$pages_qs", { TITLE => 'ping', BUTTON => 1 }),
      "$zap",
-     "$hangup");
+     "$hangup",
+     $html->button("", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?LOGIN=$line->[0]&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), IMG_ALT => "$_GRAPH $_USER", NEW_WINDOW_SIZE => "670:320" })
+     );
   }
 }
 
@@ -1392,7 +1394,11 @@ else {
   	                            ACTIVE_FIELDS => \@ACTIVE_FIELDS 
   	                            }); 
 
-  $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want ZAP all sessions ?", BUTTON => 1 });
+  $output .= $html->button('Zap All', "index=$index&zapall=1", { IMG => ':tech_work.png', MESSAGE => "Do you realy want ZAP all sessions ?" }).
+  ' '.$html->button("$_GRAPH $_NAS", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?NAS_ID=all&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "675:720" }).
+  ' '.$html->button("$_GRAPH $_TARIF_PLANS", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?TP_ID=all&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1") , NEW_WINDOW_SIZE => "675:720" }).
+  ' '.$html->button("$_GRAPH $_GROUPS", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?GID=all&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "675:720" })
+  ;
  }
  
  print  $output;
@@ -1522,6 +1528,7 @@ if ($sessions->{TOTAL} < 1) {
 	$html->message('info', $_INFO, "$_NO_RECORD");
 	return 0;
 }
+
 
 my @caption = ("$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN", 
 (($TRAFFIC_NAMES{0}) ? $TRAFFIC_NAMES{0} : '') ." $_SENT", 
@@ -2308,8 +2315,6 @@ if (! $LIST_PARAMS{UID} && $FORM{LOGIN_EXPR}) {
 }
 
 my $list = $sessions->periods_totals({ %LIST_PARAMS });
-
-
 my $table = $html->table( { caption     => "$_PERIOD",
 	                          width       => '100%',
                             title_plain => ["$_PERIOD", "$_DURATION", "$_SEND", "$_RECV", "$_SUM"],
@@ -2454,6 +2459,12 @@ $table = $html->table( { caption     => "$_SUM",
                      } );
 
 $sessions->{TOTALS_FULL} = $table->show();
+if (-f '../graphics.cgi' || -f 'graphics.cgi') {
+	$sessions->{DAILY_GRAPH}  =$html->button('', '#', { IMG_ALT => "$_GRAPH $_DAY", IMG => "/graphics.cgi?LOGIN=$users->{LOGIN}&DAILY=1&SHOW_GRAPH=1" });
+	$sessions->{WEEKLY_GRAPH} = $html->button('', '#', { IMG_ALT => "$_GRAPH $_WEEK", IMG => "/graphics.cgi?LOGIN=$users->{LOGIN}&WEEKLY=1&SHOW_GRAPH=1" });
+	#$sessions->{MONTHLY_GRAPH} = $html->button('Wheekly Graph', '#', { IMG => '/graphics.cgi?UID=9&WEEKLY=1&SHOW_GRAPH=1' });
+}
+
 $sessions->{SESSIONS} = dv_sessions($list, $sessions, { OUTPUT2RETURN => 1 });
 
 $html->tpl_show(_include('dv_stats', 'Dv'), $sessions);
@@ -2719,6 +2730,14 @@ $table = $html->table( {  caption     => "$_SUM",
 
 
 $sessions->{TOTALS_FULL} = $table->show();
+
+if (-f '../graphics.cgi' || -f 'graphics.cgi') {
+	$sessions->{DAILY_GRAPH}  =$html->button('Daily Graph', '#', { IMG => '/graphics.cgi?LOGIN=$LIST_PARAMS{LOGIN}&DAILY=1&SHOW_GRAPH=1' });
+	$sessions->{WEEKLY_GRAPH} = $html->button('Wheekly Graph', '#', { IMG => '/graphics.cgi?LOGIN=$LIST_PARAMS{LOGIN}&WEEKLY=1&SHOW_GRAPH=1' });
+	#$sessions->{MONTHLY_GRAPH} = $html->button('Wheekly Graph', '#', { IMG => '/graphics.cgi?UID=9&WEEKLY=1&SHOW_GRAPH=1' });
+}
+
+
 $sessions->{SESSIONS} = dv_sessions($list, $sessions, { OUTPUT2RETURN => 1 }) if ( $sessions->{TOTAL} > 0);
 
 $html->tpl_show(_include('dv_stats', 'Dv'), $sessions);

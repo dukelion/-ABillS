@@ -450,4 +450,5 @@ $_FLATS='Flats';
 $_ACTION='Action';
 $_EXECUTE='Execute';
 $_PAY='Pay';
+$_GRAPH='Charts for';
 

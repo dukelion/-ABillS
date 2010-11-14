@@ -66,8 +66,7 @@ my $row_number = 0;
 sub new {
   my $class = shift;
   my ($attr) = @_;
-  
-  
+
   $IMG_PATH = (defined($attr->{IMG_PATH})) ? $attr->{IMG_PATH} : '../img/';
   $CONF = $attr->{CONF} if (defined($attr->{CONF}));
 
@@ -1099,6 +1098,11 @@ sub button {
             'scrollbars=1,resizable=1,'+
             'width=$x, height=$y');\"";
     $params = '#';
+   }
+  
+  if ($attr->{IMG}) {
+     my $img_path = ($attr->{IMG}=~s/^://) ? "$IMG_PATH/" : '';
+     $name = "<img alt='$attr->{IMG_ALT}' src='$img_path$attr->{IMG}' border=0> $name";
    }
   
   my $message = '';

@@ -296,6 +296,13 @@ if ($FORM{qindex}) {
   	print $html->header();
    }
   
+  if ($index == -1) {
+  	$html->{METATAGS}=templates('metatags');  
+  	print $html->header();
+  	form_purchase_module({ MODULE => $FORM{MODULE} });
+  	exit;
+   }
+  
   if(defined($module{$index})) {
     my $lang_file = '';
     foreach my $prefix (@INC) {
@@ -6916,5 +6923,25 @@ sub get_function_index  {
 
   return $function_index;
 }
+
+#**********************************************************
+# Get function index
+#
+# get_function_index($function_name, $attr) 
+#**********************************************************
+sub form_purchase_module  {
+  my ($attr) = @_;
+
+  print "<p>модуль '$attr->{MODULE}' не установлен в системе, по вопросам приобретения модуля обратитесь к разработчику
+  <a href='http://abills.net.ua' target=_newa>ABillS.net.ua</a> 
+  
+  <p>
+  Purchase this module '$attr->{MODULE}'. 
+  <p>
+  For more information visit <a href='http://abills.net.ua' target=_newa>ABillS.net.ua</a>";
+
+  return 0;
+}
+
 
 1
