@@ -143,7 +143,7 @@ foreach my $admin_id (sort keys %A_PRIVILEGES) {
                   $table->td($msgs), 
                   $table->td($bool_vals[$mail_send]), 
                   $table->td($deligation_level),
-                  $table->td($html->button("$_CHANGE", "index=$index&chg=$aid&AID=$aid"), { rowspan => ($rows > 0) ? $rows+1 : 1 })
+                  $table->td($html->button("$_CHANGE", "index=$index&chg=$aid&AID=$aid"), { rowspan => ($rows > 0) ? $rows+1 : 1, BUTTON => 1 })
                 );
 
   if ($rows > 0) {
@@ -1610,7 +1610,7 @@ sub msgs_new {
  	 	                         ADMIN_READ => "0000-00-00 00:00:00",
  	 	                       });
     		  
-    		  print "Location: $URL?GID=$user->{GID}&MESSAGE_CHAPTER=$Msgs->{CHAPTER}", "\n\n";
+    		  print "Location: $URL?GID=$user->{GID}&MESSAGE_CHAPTER=$Msgs->{CHAPTER}&MSG_ID=$Msgs->{MSG_ID}", "\n\n";
     		  exit;
     		 }
     	 }
@@ -2321,9 +2321,10 @@ foreach my $line (@$list) {
    $html->button($_SHOW, "#", 
       { NEW_WINDOW      => "$SELF_URL?qindex=". (($attr->{LIST_ONLY}) ? $index - 1 : $index ). "&chg=$line->[0]",
       	NEW_WINDOW_SIZE => "640:700",
+      	BUTTON => 1
       	 }),
 
-   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?" }): '') 
+   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?", BUTTON => 1 }): '') 
   );
 }
 
