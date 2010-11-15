@@ -839,7 +839,8 @@ sub ashield_users_list {
  my %drweb_logins = ();
  
  foreach my $line  (@{ $result_hash->{customers}->[0]->{customer} } ) {
- 	 $drweb_logins{$line->{name}->[0]}=keys %{ $line->{group} };
+ 	 # Computer -> Hash info
+ 	 $drweb_logins{convert($line->{name}->[0], { utf82win => 1 })}=keys %{ $line->{group} };
   } 
  
 
@@ -872,21 +873,13 @@ sub ashield_users_list {
  	                                        });
 
  
- form_search({ SEARCH_FORM => '' }); #$html->tpl_show(_include('dv_users_search', 'Dv'),
- 	                                   #         { %$Ashield, %FORM },
- 	                                   #         { OUTPUT2RETURN => 1 })    });
-
-
+ form_search({ SEARCH_FORM => '' });
  print $html->letters_list({ pages_qs => $pages_qs  }); 
 
  if ($FORM{letter}) {
    $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
    $pages_qs .= "&letter=$FORM{letter}";
   } 
-
-
-
-
 my $list = $Ashield->user_list( { %LIST_PARAMS } );
 
 if ($drweb_total_users != $Ashield->{TOTAL}) {
@@ -1154,10 +1147,66 @@ while (my($k, $v)=each %{ $result_hash->{customers}->[0]->{customer}->[0] }){
  }
 print $table->show();
 }
-
-
 }
 
+
+
+#**********************************************************
+#
+#**********************************************************
+sub ashield_drweb_report_users {
+
+ 
+# my $result_hash=ashield_drweb_request('interfaces/user_info.php', {
+#      	  login          => "*",
+#      	  checkword      => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
+#      	  },
+#      	  { SERVER_ADDR  => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+#      	  	});
+#
+#    if ($result_hash->{error}->[0]->{code}->[0]) {
+#      $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+#      return 0;
+#     }
+#
+#    while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
+#    	print "$k, $v<br>";
+#      $Ashield->{$k}=( ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : convert($v->[0], { utf82win => 1 });
+#     }
+
+ my $result_hash = ashield_drweb_request('api/2.0/get-customer-info.ds', {  }); 
+ my $drweb_total_users = $result_hash->{customers}->[0]->{total};
+ my %drweb_logins = ();
+ 
+ my $list = $Ashield->ashield_avd_list({ LIMIT => 100000 });
+ my %agent_hash = ();
+ foreach my $line (@{ $list }) {
+ 	  $agent_hash{$line->[2]}="$line->[8]:$line->[0]";
+ 	  #print "$line->[2]}=$line->[0]";
+  }
+ 
+ print $drweb_total_users;
+ 
+ my $table = $html->table( { width      => '100%',
+ 	                         title_plain => ['#', "$_USER", $_NAME, $_EXPIRE, 'Last Visit', $_CREATE, $_CHANGED],
+ 	                        });
+ foreach my $line  (@{ $result_hash->{customers}->[0]->{customer} } ) {
+ 	 $drweb_logins{$line->{name}->[0]}=keys %{ $line->{group} };
+ 	 
+ 	 $table->addrow(
+ 	 $agent_hash{$line->{id}->[0]},
+ 	 $line->{id}->[0], 
+ 	 convert($line->{name}->[0], { utf82win => 1 }),
+ 	 $line->{expires}->[0],
+ 	 $line->{lastseenfrom}->[0],
+ 	 $line->{createdtime}->[0],
+ 	  $line->{modifiedtime}->[0]
+ 	 );
+  } 
+
+print $table->show();
+
+}
 
 
 #**********************************************************

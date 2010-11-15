@@ -1,16 +1,16 @@
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("01:0:Ashield:ashield_users_list:"      => 11,
-                   "02:0:Ashield:ashield_user:UID"         => 20,
+%FUNCTIONS_LIST = ("01:0:Ashield:ashield_users_list:"       => 11,
+                   "02:0:Ashield:ashield_user:UID"          => 20,
                    #"03:2:$_TARIF_PLANS:ashield_chg_tp:UID" => 11,
-                   "16:0:Ashield:ashield_drweb_report:"    => 4,
-                   "17:16:Dr.Web:ashield_drweb_report:"    => 4,
-#                   "18:16:Dr.Web:ashield_drweb_user:"      => 4,
-                   "20:0:Ashield:ashield_tp:"              => 5,
-                   "21:20:$_TARIF_PLANS:ashield_tp:"       => 5,
-                   "22:20:$_GROUPS:form_tp_groups:"        => 5,
+                   "16:0:Ashield:ashield_drweb_report:"     => 4,
+                   "17:16:Dr.Web:ashield_drweb_report:"     => 4,
+                   "18:16:$_USERS:ashield_drweb_report_users:" => 4,
+                   "20:0:Ashield:ashield_tp:"               => 5,
+                   "21:20:$_TARIF_PLANS:ashield_tp:"        => 5,
+                   "22:20:$_GROUPS:form_tp_groups:"         => 5,
                    );
 
-%USER_FUNCTION_LIST = ("01:0:$_ANTIVIRUS Dr.Web:ashield_user:"     => 0,
+%USER_FUNCTION_LIST = ("01:0:$_ANTIVIRUS Dr.Web:ashield_user:"=> 0,
 #                       "02:1:$_STATS:ashield_user_stats:"    => 0,
 #                       "03:1:$_ROUTES:voip_user_routes:"     => 0
                       );
