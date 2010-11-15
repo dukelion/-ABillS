@@ -442,7 +442,7 @@ sub snmputils_periodic {
      }
     elsif($type eq 'celan') {
     	$debug_output .= "Static MAC Forwarding\n" if ($debug > 0);
-    	$debug_output .= celan_macs({ %CONF_HASH });
+    	$debug_output .= snmputils_celan_macs({ %CONF_HASH });
      }
     
    }
@@ -3405,7 +3405,7 @@ sub snmputils_celan_list {
      	 }
    }	
 
-  my @result = &snmpwalk("$SNMP_COMMUNITY",  '.1.3.6.1.4.1.655.5.15.1.4.4.1.2');
+  @result = &snmpwalk("$SNMP_COMMUNITY",  '.1.3.6.1.4.1.655.5.15.1.4.4.1.2');
   print '.1.3.6.1.4.1.655.5.15.1.4.4.1.2<BR>' if ($debug > 0);
 
   foreach my $line (@result) {
@@ -3449,7 +3449,6 @@ sub snmputils_celan_add {
   
   
 	my $oid = '.1.3.6.1.4.1.655.5.15.1.4.2.8.1.2.'. $vlan;
-	my $message='';
   $mac =~ s/-|://g;
   
   my $position  = 32 - $port_list;
@@ -3625,7 +3624,7 @@ sub snmputils_celan {
              $table->td( $ACTIVE_MAC->{NAME}{$vlan_mac} ),
              #$table->td($html->button(($state == 3) ? $STATUS{1} : $STATUS{3}, 
              #  "$page_arguments&TYPE=$FORM{TYPE}&SHOW=1&index=$index&VLAN=$VLAN&MAC=$ACTIVE_MAC->{MAC}{$vlan_mac}&PORT=$ACTIVE_MAC->{PORT}{$vlan_mac}&state=". (($state == 3) ? 1 : 3) )),
-             $table->td($html->button($_DEL, "index=$index&VLAN=$VLAN&MAC=$ACTIVE_MAC->{MAC}{$vlan_mac}$page_arguments&TYPE=$FORM{TYPE}&SHOW=1&state=2&PORT=$ACTIVE_MAC->{PORT}{$vlan_mac}", { BUTTON => 1 }))
+             #$table->td($html->button($_DEL, "index=$index&VLAN=$VLAN&MAC=$ACTIVE_MAC->{MAC}{$vlan_mac}$page_arguments&TYPE=$FORM{TYPE}&SHOW=1&state=2&PORT=$ACTIVE_MAC->{PORT}{$vlan_mac}", { BUTTON => 1 }))
       );
      
     if($binding->{$ACTIVE_MAC->{MAC}{$vlan_mac}}) {
@@ -3648,7 +3647,6 @@ sub snmputils_celan {
     my $state =  $DYNAMIC_MAC->{ACTIVE}{$vlan_mac};
 
     next if ($m eq '00:00:00:00:00:00');
-
     if ($FORM{NAS_ID}) {
       $page_arguments = "&NAS_ID=$FORM{NAS_ID}";
      }
@@ -3762,9 +3760,9 @@ sub snmputils_celan_macs {
      	    $debug_output .= "$vid_mac Port: $port\n" if ($debug > 0);
           my ($vid, $mac) = split(/-/, $vid_mac, 2);
 
-          #Don't add mac to 0 vid
-          if ($vid == 0 || $port == 0) {
-          	$debug_output .= "Error: VID: $vid Port: $port Skip\n" if ($debug > 0);
+          #Don't add mac to 0 port
+          if ($port == 0) {
+          	$debug_output .= "Error: Port: $port Skip\n" if ($debug > 0);
           	#print  ;
           	next;
            }

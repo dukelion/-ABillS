@@ -1068,20 +1068,15 @@ elsif($FORM{tolog}) {
         $ACCT_INFO->{OUTBYTE}          = $line->[1];
         $ACCT_INFO->{INBYTE2}          = $line->[2];
         $ACCT_INFO->{OUTBYTE2}         = $line->[3];
-
-        $ACCT_INFO->{ACCT_SESSION_TIME} = $line->[4];
- 
+        $ACCT_INFO->{ACCT_SESSION_TIME} = $line->[4]; 
         $ACCT_INFO->{ACCT_SESSION_ID}   = $line->[5];
         $ACCT_INFO->{NAS_PORT}          = $line->[6];
         $ACCT_INFO->{NAS_IP_ADDRESS}    = $nas_row->[3];
         $ACCT_INFO->{FRAMED_IP_ADDRESS} = $line->[8];
-
-        $ACCT_INFO->{CONNECT_INFO}      = $line->[9];
-  
+        $ACCT_INFO->{CONNECT_INFO}      = $line->[9];  
         $ACCT_INFO->{CALLING_STATION_ID}= $line->[10];
         $ACCT_INFO->{USER_NAME}         = $line->[11];
-        $ACCT_INFO->{SESSION_START}     = $line->[12];
-  
+        $ACCT_INFO->{SESSION_START}     = $line->[12];  
         $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
         $ACCT_INFO->{ACCT_STATUS_TYPE}  = 'Stop';    	
 
@@ -1325,7 +1320,7 @@ foreach my $nas_row (@$nas_list) {
   my $total = $#{ $l } + 1;  
   $table->{rowcolor}= 'row_active';
   $table->{extra}   = "colspan='". ($#CAPTION + 1 ) . "' class='small'";
-  $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]) .":$nas_row->[3]:$_TOTAL: $total (". $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->[0]", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->[0]' ?" }) .') '. $html->button("", "#", { IMG => ':chart_16.png', IMG_ALT => "$_GRAPH $_NAS", NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?NAS_ID=$nas_row->[0]&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "670:320" }) );
+  $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]) .":$nas_row->[3]:$_TOTAL: $total (". $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->[0]", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->[0]' ?" }) .') '. $html->button("", "#", { IMG => ':chart_16.png', IMG_ALT => "$_GRAPH $_NAS", NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?NAS_ID=$nas_row->[0]&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "670:340" }) );
   
   foreach my $line (@$l) {
     undef($table->{rowcolor});
@@ -1371,7 +1366,7 @@ foreach my $nas_row (@$nas_list) {
      $html->button('P', "index=$index&NAS_ID=$FORM{NAS_ID}&ping=$line->[$#ACTIVE_FIELDS+2]$pages_qs", { TITLE => 'ping', BUTTON => 1 }),
      "$zap",
      "$hangup",
-     $html->button("", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?LOGIN=$line->[0]&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), IMG_ALT => "$_GRAPH $_USER", NEW_WINDOW_SIZE => "670:320" })
+     $html->button("", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?LOGIN=$line->[0]&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), IMG_ALT => "$_GRAPH $_USER", NEW_WINDOW_SIZE => "670:340" })
      );
   }
 }

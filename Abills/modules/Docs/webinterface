@@ -1100,6 +1100,7 @@ sub docs_account {
  $Docs->{DATE}=$DATE;
 
  if ($FORM{create}) {
+   $FORM{SUM} =~ s/\,/\./g;
    if ($FORM{OP_SID} and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
  	   $html->message('err', $_ERROR, "$_EXIST");
     }
