@@ -3,14 +3,12 @@
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
-#use MIME::Base64;
 
 my $ua = new LWP::UserAgent();
 
 use Abills::Base;
 use Ashield;
 use Fees;
-
 
 my $Ashield = Ashield->new($db, $admin, \%conf);
 my $Tariffs = Tariffs->new($db, \%conf, $admin);

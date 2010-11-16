@@ -99,7 +99,12 @@ sub defaults {
    RANGE_BEGIN    => 0, 
    RANGE_END      => 0, 
    SUM            => '0.00', 
-   COMMENTS       => ''
+   COMMENTS       => '',
+   EXPIRE         => '0000-00-00',
+   DESCRIBE       => '',
+   METHOD         => 0,
+   EXT_ID         => '',
+   INNER_DESCRIBE => ''
   );
 
  
@@ -494,8 +499,6 @@ sub rule_list {
  if ($attr->{TP_ID}) {
  	 push @WHERE_RULES, "tp_id='$attr->{TP_ID}'"; 
   }
-
-
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
@@ -510,36 +513,6 @@ sub rule_list {
 
   return $list;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -756,6 +729,7 @@ sub bonus_operation {
     	$bill_action_type='add';
      }
 
+
       $Bill->info( { BILL_ID => $user->{EXT_BILL_ID} } );
       $Bill->action($bill_action_type, $user->{EXT_BILL_ID}, $DATA{SUM});
       if($Bill->{errno}) {
@@ -765,7 +739,8 @@ sub bonus_operation {
     my $date = ($DATA{DATE}) ? "'$DATA{DATE}'" : 'now()';
     $self->query($db, "INSERT INTO bonus_log (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, method, ext_id,
            inner_describe, action_type, expire) 
-           values ('$user->{UID}', '$user->{EXT_BILL_ID}', $date, '$DATA{SUM}', '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}', '$DATA{METHOD}', 
+           values ('$user->{UID}', '$user->{EXT_BILL_ID}', $date, '$DATA{SUM}', '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), 
+           '$Bill->{DEPOSIT}', '$admin->{AID}', '$DATA{METHOD}', 
            '$DATA{EXT_ID}', '$DATA{INNER_DESCRIBE}', '$DATA{ACTION_TYPE}', '$DATA{EXPIRE}');", 'do');
 
     $self->{BONUS_PAYMENT_ID}=$self->{INSERT_ID};
@@ -788,7 +763,6 @@ sub bonus_operation {
 sub bonus_operation_del {
   my $self = shift;
   my ($user, $id) = @_;
-
   
   $self->query($db, "SELECT sum, bill_id, action_type from bonus_log WHERE id='$id';");
 
@@ -800,7 +774,6 @@ sub bonus_operation_del {
   elsif($self->{errno}) {
      return $self;
    }
-
 
   my($sum, $bill_id, $action_type) = @{ $self->{list}->[0] };
   my $bill_action = 'take';
@@ -824,13 +797,13 @@ sub bonus_operation_list {
  my $self = shift;
  my ($attr) = @_;
 
-
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
- 
+ $self->{SEARCH_FIELDS} ='';
  undef @WHERE_RULES;
+ my $EXT_TABLES = '';
  
  if ($attr->{UID}) {
     push @WHERE_RULES, "p.uid='$attr->{UID}' ";
@@ -888,6 +861,17 @@ sub bonus_operation_list {
  	 push @WHERE_RULES, "p.date $expr curdate() - INTERVAL $attr->{PAYMENT_DAYS} DAY";
   }
 
+
+ if ($attr->{EXPIRE}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{EXPIRE}", 'INT', 'date_format(p.expire, \'%Y-%m-%d\')') };
+  }
+
+ if ($attr->{DEPOSIT}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{DEPOSIT}", 'INT', 'b.deposit', { EXT_FIELD => 1 }) };
+    $EXT_TABLES .= "INNER JOIN bills b ON p.bill_id=b.id";
+  }
+
+
  if ($attr->{BILL_ID}) {
  	 push @WHERE_RULES, @{ $self->search_expr("$attr->{BILL_ID}", 'INT', 'p.bill_id') };
   }
@@ -914,22 +898,21 @@ sub bonus_operation_list {
     push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
- my $ext_tables  = '';
- my $login_field = '';
  if($attr->{FIO}) {
-   $ext_tables = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
-   $login_field  = "pi.fio,";  
+   $EXT_TABLES .= 'LEFT JOIN users_pi pi ON (u.uid=pi.uid)';
+   $self->{SEARCH_FIELDS} .= 'pi.fio, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
   }
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
- $self->query($db, "SELECT p.id, u.id, $login_field p.date, p.dsc, p.sum, p.last_deposit, p.expire, p.method, 
+ $self->query($db, "SELECT p.id, u.id, $self->{SEARCH_FIELDS} p.date, p.dsc, p.sum, p.last_deposit, p.expire, p.method, 
       p.ext_id, p.bill_id, if(a.name is null, 'Unknown', a.name),  
       INET_NTOA(p.ip), p.action_type, p.uid, p.inner_describe
     FROM bonus_log p
     LEFT JOIN users u ON (u.uid=p.uid)
     LEFT JOIN admins a ON (a.aid=p.aid)
-    $ext_tables
+    $EXT_TABLES
     $WHERE 
     GROUP BY p.id
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
@@ -941,7 +924,9 @@ sub bonus_operation_list {
 
  $self->query($db, "SELECT count(p.id), sum(p.sum), count(DISTINCT p.uid) FROM bonus_log p
   LEFT JOIN users u ON (u.uid=p.uid)
-  LEFT JOIN admins a ON (a.aid=p.aid) $WHERE");
+  LEFT JOIN admins a ON (a.aid=p.aid)
+  $EXT_TABLES
+   $WHERE");
 
  ( $self->{TOTAL},
    $self->{SUM},

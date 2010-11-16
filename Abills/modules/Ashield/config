@@ -10,6 +10,7 @@
                    "22:20:$_GROUPS:form_tp_groups:"         => 5,
                    );
 
+
 %USER_FUNCTION_LIST = ("01:0:$_ANTIVIRUS Dr.Web:ashield_user:"=> 0,
 #                       "02:1:$_STATS:ashield_user_stats:"    => 0,
 #                       "03:1:$_ROUTES:voip_user_routes:"     => 0

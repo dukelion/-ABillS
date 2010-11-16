@@ -529,13 +529,48 @@ sub bonus_periodic_daily {
 
    my $debug = $attr->{DEBUG} || 0;
    my $debug_output = '';
-   $debug_output .= "Bonus - Monthly pariodic payments\n" if ($debug > 1);
+   $debug_output .= "Bonus - Monthly periodic payments\n" if ($debug > 1);
 
    #del expired bonus
+   #list expire
 
+#$Bonus->{debug}=1;
+my $list = $Bonus->bonus_operation_list({ EXPIRE      => $ADMIN_REPORT{DATE},
+	                                        DEPOSIT     => '>0',
+	                                        PAGE_ROWS   => 1000000, } );
+my %last_deposits = ();
+foreach my $line (@$list) {
+	if ($line->[1]) {
+		my $sum     = $line->[5];
+		my $deposit = $line->[2];
+		my %user    = (EXT_BILL_ID => $line->[10],
+		               UID         => $line->[14],
+		               DEPOSIT     => $line->[2]
+		               );
 
-   $DEBUG .= $debug_output;
-   return $debug_output;
+	  $debug_output .= "LOGIN: $line->[1] [$user{UID}] DEPOSIT: $user{DEPOSIT} SUM: $sum EXPIRE: $line->[7] BILL_ID: $line->[10] ADD DATE: $line->[3]\n" if ($debug > 1);
+	  
+	  $deposit = ($last_deposits{$user{UID}}) ? $last_deposits{$user{UID}} : $user{DEPOSIT};
+	  
+	  if ($sum < $deposit) {
+	  	$sum=$deposit;
+	   }
+	 
+    $Bonus->bonus_operation(\%user, { ACTION_TYPE => 1,
+    	                                SUM         => $sum,
+    	                                DESCRIBE    => "$_EXPIRE ID: $line->[0]",  } );  
+
+    if ($Bonus->{errno}) {
+      print "[$Bonus->{errno}] $err_strs{$Bonus->{errno}}";	
+     }
+	  else {
+	  	$last_deposits{$user{UID}} = ($last_deposits{$user{UID}}) ? $last_deposits{$user{UID}} -= $sum : $user{DEPOSIT} -= $sum;
+	   }
+	 }
+ }
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
  }
 
 #**********************************************************
@@ -546,7 +581,7 @@ sub bonus_periodic_monthly {
 
    my $debug = $attr->{DEBUG} || 0;
    my $debug_output = '';
-   $debug_output .= "Bonus - Monthly pariodic payments\n" if ($debug > 1);
+   $debug_output .= "Bonus - Monthly periodic payments\n" if ($debug > 1);
 
    
 
