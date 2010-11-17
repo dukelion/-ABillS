@@ -6845,7 +6845,6 @@ $users->{STREET_SEL} = $html->form_select("STREET_ID",
  	                                SEL_OPTIONS       => { 0 => '-N/S-'},
  	                                NO_ID             => 1
  	                               });
-	
 
 $html->tpl_show(templates('form_build'), $users);
 

@@ -210,7 +210,7 @@ sub dhcphosts_monitor {
  if ($FORM{ping}) {
   if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
     my $res = `$PING -c 5 $FORM{ping}`;
-    $html->message('info', $_INFO,  "Ping  $FORM{ping}<br>Result:<br><pre>$res</pre>");
+    $html->message('info', $_INFO,  "Ping  $FORM{ping}". $html->br(). 'Result:'. $html->br(). $html->pre($res, { OUTPUT2RETURN => 1 }));
    }
   else {
     $html->message('err', $_ERROR,  "$ERR_WRONG_DATA: IP");
@@ -743,12 +743,19 @@ sub dhcphosts_user {
        }
 
       if (! $Dhcphosts->{errno}) {
+      	$FORM{MAC}=uc($FORM{MAC});
         $Dhcphosts->host_add({ %FORM });
         if (! $Dhcphosts->{errno}) {
 	        $html->message('info', $_ADDED, "$_ADDED [$FORM{HOSTNAME}] ");
           dhcphosts_config({ NETWORKS => $FORM{NETWORK}, 
       	                     reconfig => 1 
       	                  });
+      	  # If install Snmputils make make assign
+      	  if (in_array('Snmputils', \@MODULES) && $FORM{NAS_ID}) {
+      	  	require "Abills/modules/Snmputils/webinterface";
+      	    my $return = snmputils_periodic({ NAS_IDS => $FORM{NAS_ID}, DEBUG => 1 });
+      	    print $html->message('info', $_INFO, $html->pre($return, { OUTPUT2RETURN => 1 }));
+      	   }
 	       }
        }
     }
@@ -785,21 +792,38 @@ sub dhcphosts_user {
         if (! $Dhcphosts->{errno}) {
 	        $html->message('info', $_CHANGED, "$_CHANGED [$FORM{ID}] $FORM{NAME} ");
 	        dhcphosts_config({ NETWORKS => $FORM{NETWORK}, reconfig => 1 });
+       	  # If install Snmputils make make assign
+      	  if (in_array('Snmputils', \@MODULES) && $FORM{NAS_ID}) {
+      	  	require "Abills/modules/Snmputils/webinterface";
+      	    my $return = snmputils_periodic({ NAS_IDS => $FORM{NAS_ID}, DEBUG => 1 });
+      	    print $html->message('info', $_INFO, $html->pre($return, { OUTPUT2RETURN => 1 }));
+      	   }
+
 	       }
        }
      }
 	 }
   elsif ($FORM{chg}) {
     $Dhcphosts->host_info( $FORM{chg} );
-    $FORM{NETWORK}=$Dhcphosts->{NETWORK};
-    $Dhcphosts->{ACTION}='change';
-    $Dhcphosts->{ACTION_LNG}=$_CHANGE;
+    $FORM{NETWORK}          = $Dhcphosts->{NETWORK};
+    $Dhcphosts->{ACTION}    = 'change';
+    $Dhcphosts->{ACTION_LNG}= $_CHANGE;
 
     if (! $Dhcphosts->{errstr}) {
 	    $html->message('info', $_CHANGE, "$_CHANGE [$FORM{chg}] ");
 	   }
    }
   elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+ 	  # If install Snmputils make make assign
+ 	  if (in_array('Snmputils', \@MODULES)) {
+ 	  	$Dhcphosts->host_info( $FORM{del} );
+ 	  	if ($Dhcphosts->{NAS_ID}) {
+ 	  		require "Abills/modules/Snmputils/webinterface";
+ 	      my $return = snmputils_periodic({ NAS_IDS => $Dhcphosts->{NAS_ID}, DEBUG => 1 });
+ 	      print $html->message('info', "SNMP", $html->pre($return, { OUTPUT2RETURN => 1 }));
+ 	     }
+	   }
+  	
    	$Dhcphosts->host_del({ ID => $FORM{del} });
 
     if (! $Dhcphosts->{errstr}) {
@@ -854,7 +878,7 @@ sub dhcphosts_user {
 
   $Dhcphosts->{SWITCH_SEL} = $html->form_select('NAS_ID',
                                           {
-                                                  SELECTED          => $Dhcphosts->{NAS_ID},
+                                                  SELECTED          => $Dhcphosts->{NAS_ID} || $FORM{NAS_ID},
                                                   SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list() } ],
                                                   MULTI_ARRAY_KEY   => 0,
                                                   MULTI_ARRAY_VALUE => 1,
@@ -862,9 +886,9 @@ sub dhcphosts_user {
   dhcphosts_hosts();
 
   $html->tpl_show(_include('dhcphosts_host', 'Dhcphosts'), { %{ $Dhcphosts->host_defaults() }, 
-  	    HOSTNAME => $users->{LOGIN} . (($Dhcphosts->{TOTAL}) ? '_'.$Dhcphosts->{TOTAL}+1 : ''),  
+  	    HOSTNAME => $users->{LOGIN} . (($Dhcphosts->{TOTAL}) ? '_'.($Dhcphosts->{TOTAL}+1) : ''),  
   	    %FORM, 
-  	    %$Dhcphosts,  
+  	    %$Dhcphosts,  	    
   	    }); 
 
   #dhcphosts_hosts();

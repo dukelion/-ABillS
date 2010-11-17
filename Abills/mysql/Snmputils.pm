@@ -47,14 +47,14 @@ sub snmputils_nas_ipmac {
   my ($attr) = @_;
 
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
- $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- $DESC = (defined($attr->{DESC})) ? $attr->{DESC} : 'DESC';
+ $SORT      = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC      = (defined($attr->{DESC})) ? $attr->{DESC} : 'DESC';
 
  @WHERE_RULES = ();
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db,   "SELECT un.nas_id, 
-     un.uid, 
+     u.uid, 
      INET_NTOA(d.ip), 
      d.mac,
      if(u.company_id > 0, cb.deposit+u.credit, ub.deposit+u.credit), 
@@ -62,19 +62,18 @@ sub snmputils_nas_ipmac {
      d.vid,
      d.ports,
      d.nas
-   FROM (users u, users_nas un, dhcphosts_hosts d)
+   FROM (users u, dhcphosts_hosts d)
      LEFT JOIN bills ub ON (u.bill_id = ub.id)
      LEFT JOIN companies company ON  (u.company_id=company.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
-            WHERE u.uid=un.uid
-               and un.uid=d.uid and (d.nas='$attr->{NAS_ID}' or un.nas_id='$attr->{NAS_ID}')
+     LEFT JOIN users_nas un ON (u.uid=un.uid)
+            WHERE u.uid=d.uid
+               and (d.nas='$attr->{NAS_ID}' or un.nas_id='$attr->{NAS_ID}')
                and u.disable=0
             ORDER BY $SORT $DESC
             LIMIT $PG, $PAGE_ROWS;");
 
- my $list = $self->{list};
-
-  
+ my $list = $self->{list};  
  return $list;
 }
 

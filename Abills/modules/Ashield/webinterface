@@ -480,21 +480,26 @@ sub ashield_user {
   		                       caption    => "$_AGENTS",
   		                       title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", 
   		                       "$_ACTIVATE", "Online",
-  		                       "$_CREATED", "$_EXPIRES", "URL"],
+  		                       "$_CREATED", "$_EXPIRES", "$_GRACEPERIOD", "URL"],
                              cols_align => ['left', 'left'],
                             });
 
     foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) {
     	my $result_hash2 = ashield_drweb_request('api/2.0/get-customer-info.ds', { id => $k->{uuid}->[0] }); 
-      $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0] =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-      my $create = "$1-$2-$3 $4:$5:$6";
+      my $create = $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
+      if ($result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0] =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
+        $create     = "$1-$2-$3 $4:$5:$6" || $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
+       }
     	#$result_hash2->{customers}->[0]->{customer}->[0]->{modifiedtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
     	#my $changed = "$1-$2-$3 $4:$5:$6";
-      my $activated	= $result_hash2->{customers}->[0]->{customer}->[0]->{activated}->[0];
-      my $online	= $result_hash2->{customers}->[0]->{customer}->[0]->{online}->[0];
-    	my $name = $result_hash2->{customers}->[0]->{customer}->[0]->{name}->[0] || $k->{uuid}->[0];
-    	my $status = '';
+      my $activated	 = $result_hash2->{customers}->[0]->{customer}->[0]->{activated}->[0];
+      my $online	   = $result_hash2->{customers}->[0]->{customer}->[0]->{online}->[0];
+    	my $name       = $result_hash2->{customers}->[0]->{customer}->[0]->{name}->[0] || $k->{uuid}->[0];
+    	my $status     = '';
+    	my $graceperiod= $result_hash2->{customers}->[0]->{customer}->[0]->{graceperiod}->[0] || '';
+
     	$result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+
     	my $expire = "$1$2$3";
     	if ($expire > 0 && $expire > $cur_date) {
     		$expire =~ /(\d{4})(\d{2})(\d{2})/;
@@ -519,13 +524,14 @@ sub ashield_user {
         $status = "$_STATUS_4: $blockbeg - $blockend" if ($blockbeg > 0);
     	 }
 
-    	$table->addrow(convert($name, { utf82win => 1 }),
+    	$table->addrow('<code>'.convert($name, { utf82win => 1 }).'</code>',
 #    	               $k->{agentuuid}->[0], 
     	               $k->{tariffplancode}->[0],
     	               ($activated eq 'no') ? $_NO: $_YES,
                      ($online eq 'no') ? $_NO : $_YES,
     	               $create,
     	               $status,
+    	               $graceperiod,
     	               $html->button("$_DOWNLOAD", '', { 
     	               	  GLOBAL_URL => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]", 
     	                  TITLE      => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]" 
@@ -556,8 +562,8 @@ sub ashield_user {
     foreach my $line (@$list) {
     	$table->addrow($html->button("$line->[0]", "index=15&UID=$line->[8]"), 
     	               $subscribe_state{$line->[1]},
-    	               $line->[2],
-    	               $line->[3],
+    	               '<code>'.$line->[2].'</code>',
+    	               '<code>'.$line->[3].'</code>',
     	               $line->[4],
     	               $line->[5],
     	               $line->[6],
@@ -1148,6 +1154,33 @@ print $table->show();
 }
 
 
+#**********************************************************
+#
+#send-message.ds
+# message Сообщение. Может содержать макрос
+#{link} да
+#logo Изображение, закодированное в base64.
+#Формат BMP нет
+#logo_url Ссылка на веб-страницу, которая будет
+#открыта при нажатии на логотип нет
+#link_url
+#Ссылка, которая будет открыта при
+#нажатии на макрос {link} в
+#сообщении
+#нет
+#link_text Текст, на который будет заменен макрос
+#{link} в сообщении нет
+#customer Идентификатор агента, которому
+#необходимо отправить сообщение да
+#group Название группы, агентам которой
+#необходимо отправить сообщение
+#да
+#**********************************************************
+sub ashield_drweb_send_message {
+
+
+}
+
 
 #**********************************************************
 #
@@ -1172,9 +1205,13 @@ sub ashield_drweb_report_users {
 #      $Ashield->{$k}=( ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : convert($v->[0], { utf82win => 1 });
 #     }
 
- my $result_hash = ashield_drweb_request('api/2.0/get-customer-info.ds', {  }); 
+ my $result_hash = ashield_drweb_request('api/2.0/get-customer-info.ds', { }); 
  my $drweb_total_users = $result_hash->{customers}->[0]->{total};
  my %drweb_logins = ();
+ 
+ 
+ #print %{ $result_hash->{customers}->[0] };
+ print $result_hash->{customers}->[0]->{customer}->[0]->{activated}->[0];
  
  my $list = $Ashield->ashield_avd_list({ LIMIT => 100000 });
  my %agent_hash = ();
@@ -1626,4 +1663,5 @@ else {
 
 
 1
+
 
