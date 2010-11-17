@@ -42,7 +42,7 @@ my $log_print = sub {
                      DB       => $db
                     });
       if ($Nas->{errno}) {
-      	my $a = `echo "$DATE $TIME $Nas->{errno} / $Nas->{srrstr}" >> /tmp/nas_logs `;
+      	my $a = `echo "$Nas->{errno} / $Nas->{srrstr}" >> /tmp/nas_logs `;
        }              
      }
     else {

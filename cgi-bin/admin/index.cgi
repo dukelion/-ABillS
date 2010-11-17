@@ -3226,6 +3226,7 @@ if ($nas->{errno}) {
   'dslmax'    => 'ASCEND DSLMax',
   'celan'     => 'CeLAN Switch',
   'expppd'    => 'pppd deamon with extended futures',
+  'edge_core' => 'EdgeCore Switch',
   'radpppd'   => 'pppd version 2.3 patch level 5.radius.cbcp',
   'lucent_max'=> 'Lucent MAX',
   'mac_auth'  => 'MAC auth',

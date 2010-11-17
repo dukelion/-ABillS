@@ -3637,8 +3637,19 @@ sub snmputils_celan {
     
     $table->addtd(@arr);
    }
+  
+   print $table->show();  
  
-  print $table->show();
+ 
+   return 0 if (! $FORM{DYNAMIC_MACS});
+ 
+   $table = $html->table({ width       => '100%',
+                          caption     => "CeLAN Static MAC",
+                          border      => 1,
+                          title       => ["$_USER", "$_PORT", "$_STATE", "$_NUM", "MAC", "$_NAME", "-" ],
+                          cols_align  => ['left', 'left', 'center', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
+                      });
+
   $Snmputils->{ACTIVE}='checked';
   $html->tpl_show(_include('snmputils_mac_port_add', 'Snmputils'), { %$Snmputils, %FORM }); 
 
