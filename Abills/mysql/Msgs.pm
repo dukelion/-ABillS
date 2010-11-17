@@ -129,7 +129,6 @@ sub messages_list {
  	  push @WHERE_RULES,  @{ $self->search_expr($attr->{MSG_ID}, 'INT', 'm.id') };
   }
 
-
  if (defined($attr->{SUBJECT})) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{SUBJECT}, 'STR', 'm.subject') };
   }
@@ -176,7 +175,6 @@ sub messages_list {
  if ($attr->{REPLY_COUNT}) {
    #push @WHERE_RULES, "r.admin_read='$attr->{ADMIN_READ}'";
   }
-
 
  if ($attr->{CHAPTERS_DELIGATION}) {
  	 my @WHERE_RULES_pre = ();
@@ -226,12 +224,40 @@ sub messages_list {
   }
  
  my $EXT_JOIN = ''; 
+
+ if ($attr->{IP}) {
+    if ($attr->{IP} =~ m/\*/g) {
+      my ($i, $first_ip, $last_ip);
+      my @p = split(/\./, $attr->{IP});
+      for ($i=0; $i<4; $i++) {
+
+         if ($p[$i] eq '*') {
+           $first_ip .= '0';
+           $last_ip .= '255';
+          }
+         else {
+           $first_ip .= $p[$i];
+           $last_ip .= $p[$i];
+          }
+         if ($i != 3) {
+           $first_ip .= '.';
+           $last_ip .= '.';
+          }
+       }
+      push @WHERE_RULES, "(m.ip>=INET_ATON('$first_ip') and m.ip<=INET_ATON('$last_ip'))";
+     }
+    else {
+      push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'm.ip') };
+    }
+
+    $self->{SEARCH_FIELDS} = 'INET_NTOA(m.ip), ';
+    $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
  if ($attr->{FULL_ADDRESS}) {
  	 $EXT_JOIN = 'LEFT JOIN users_pi pi ON (u.uid=pi.uid) ';
-
    $self->{SEARCH_FIELDS} = 'pi.fio, CONCAT(pi.address_street, \' \', pi.address_build, \'/\', pi.address_flat), pi.phone, ';
    $self->{SEARCH_FIELDS_COUNT} += 3;
- 	 
   }
 
  if ($attr->{SHOW_TEXT}) {
@@ -250,7 +276,7 @@ mc.name,
 m.date,
 m.state,
 $self->{SEARCH_FIELDS}
-inet_ntoa(m.ip),
+m.closed_date,
 a.id,
 m.priority,
 CONCAT(m.plan_date, ' ', m.plan_time),

@@ -278,9 +278,9 @@ foreach my $m (@MODULES) {
       $USER_SERVICES{$maxnumber}="$NAME" ;
      }
 
-    $menu_names{$maxnumber}=$NAME;
-    $functions{$maxnumber}=$FUNTION_NAME if ($FUNTION_NAME  ne '');
-    $module{$maxnumber}=$m;
+    $menu_names{$maxnumber}= $NAME;
+    $functions{$maxnumber} = $FUNTION_NAME if ($FUNTION_NAME  ne '');
+    $module{$maxnumber}    = $m;
   }
 }
 
@@ -1406,9 +1406,8 @@ if(defined($attr->{USER})) {
    	if ($service_func_index > 0 && $menu_items{$key}{$service_func_index}) {
 	  	 $service_func_menu .= $html->button($menu_items{$key}{$service_func_index}, "UID=$user_info->{UID}&index=$key") .' ';
  	 	 }
-
    }
- 
+
   form_passwd({ USER => $user_info }) if (defined($FORM{newpassword}));
 
   if ($FORM{change}) {
@@ -1427,7 +1426,6 @@ if(defined($attr->{USER})) {
      }
     else {
       $html->message('info', $_CHANGED, "$_CHANGED $users->{info}");
-
       cross_modules_call('_payments_maked', { USER => $user_info, }); 
       
       #External scripts 
@@ -1491,6 +1489,32 @@ my $payments_menu = (defined($permissions{1})) ? '<li class=umenu_item>'. $html-
 my $fees_menu     = (defined($permissions{2})) ? '<li class=umenu_item>' .$html->button($_FEES, "UID=$user_info->{UID}&index=3").'</li>' : '';
 my $sendmail_manu = '<li class=umenu_item>'. $html->button($_SEND_MAIL, "UID=$user_info->{UID}&index=31"). '</li>';
 
+my $second_menu = '';
+my %userform_menus = (
+             22 =>  $_LOG,
+             21 =>  $_COMPANY,
+             12 =>  $_GROUP,
+             18 =>  $_NAS,
+             20 =>  $_SERVICES,
+             19	=>  $_BILL
+             );
+
+$userform_menus{17}=$_PASSWD if ($permissions{0}{3});
+
+while(my($k, $v)=each %uf_menus) {
+	$userform_menus{$k}=$v;
+}
+
+#while(my($k, $v)=each (%userform_menus) ) {
+foreach my $k (sort { $b <=> $a } keys %userform_menus) {
+	my $v = $userform_menus{$k};
+  my $url =  "index=$k&UID=$user_info->{UID}";
+  my $a = (defined($FORM{$k})) ? $html->b($v) : $v;
+  $second_menu .= "<li class=umenu_item>" . $html->button($a,  "$url").'</li>';
+}
+
+$second_menu .= "<li class=umenu_item>". $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }).'</li>' if (defined($permissions{0}{5}));
+
 print "
 </td><td bgcolor='$_COLORS[3]' valign='top' width='180'>
 <table width='100%' border='0' cellspacing='0' cellpadding='0'><tr><td>
@@ -1508,33 +1532,9 @@ print "
    $service_menu
   </ul></div>
 <div class=l_user_menu>
-<ul class=user_menu>\n";
-
-
-my %userform_menus = (
-             22 =>  $_LOG,
-             21 =>  $_COMPANY,
-             12 =>  $_GROUP,
-             18 =>  $_NAS,
-             20 =>  $_SERVICES,
-             19	=>  $_BILL
-             );
-
-$userform_menus{17}=$_PASSWD if ($permissions{0}{3});
-
-while(my($k, $v)=each %uf_menus) {
-	$userform_menus{$k}=$v;
-}
-
-while(my($k, $v)=each (%userform_menus) ) {
-  my $url =  "index=$k&UID=$user_info->{UID}";
-  my $a = (defined($FORM{$k})) ? $html->b($v) : $v;
-  print "<li class=umenu_item>" . $html->button($a,  "$url").'</li>';
-}
-
-print "<li class=umenu_item>". $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }).'</li>' if (defined($permissions{0}{5}));
-print "</ul></div>
-
+<ul class=user_menu>
+ $second_menu
+</ul></div>
 </td></tr>
 </table>
 </td></tr></table>\n";
@@ -4388,11 +4388,11 @@ push @m, "58:50:$_GROUPS:form_admins_groups:AID::" if ($admin->{GID} == 0);
 
 foreach my $line (@m) {
 	my ($ID, $PARENT, $NAME, $FUNTION_NAME, $ARGS, $OP)=split(/:/, $line);
-  $menu_items{$ID}{$PARENT}=$NAME;
-  $menu_names{$ID}=$NAME;
-  $functions{$ID}=$FUNTION_NAME if ($FUNTION_NAME  ne '');
-  $menu_args{$ID}=$ARGS if ($ARGS ne '');
-  $maxnumber=$ID if ($maxnumber < $ID);
+  $menu_items{$ID}{$PARENT}= $NAME;
+  $menu_names{$ID}         = $NAME;
+  $functions{$ID}          = $FUNTION_NAME if ($FUNTION_NAME  ne '');
+  $menu_args{$ID}          = $ARGS if ($ARGS ne '');
+  $maxnumber               = $ID if ($maxnumber < $ID);
 }
 	
 }
@@ -6916,6 +6916,9 @@ sub get_function_index  {
   while(my($k, $v)=each %functions) {
     if ($v eq "$function_name") {
        $function_index = $k;
+       if ($attr->{ARGS} && $attr->{ARGS} ne $menu_args{$k}) {
+       	 next;
+        }
        last;
      }
    }

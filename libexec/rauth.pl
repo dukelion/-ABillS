@@ -41,6 +41,9 @@ my $log_print = sub {
                      MESSAGE  => "$MESSAGE",
                      DB       => $db
                     });
+      if ($Nas->{errno}) {
+      	my $a = `echo "$DATE $TIME $Nas->{errno} / $Nas->{srrstr}" >> /tmp/nas_logs `;
+       }              
      }
     else {
       log_print("$LOG_TYPE", "AUTH [$USER_NAME] NAS: $Nas->{NAS_ID} ($Nas->{NAS_IP}) $MESSAGE");      

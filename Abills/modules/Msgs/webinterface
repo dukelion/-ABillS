@@ -838,7 +838,7 @@ else {
 
   my  $table = $html->table( { width      => '100%',
                               caption    => "$_MESSAGES",
-                              title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "IP", 
+                              title      => ['#', "$_USER", "$_SUBJECT", "$_CHAPTERS", "$_DATE", "$_STATUS", "$_CLOSED", 
                                "$_ADMIN", "$_PRIORITY", "$_EXECUTION", "-", "-"],
                               cols_align => ['right', 'left', 'left', 'right', 'right', 'left', 'center', 'right', 'left', 'center:noprint', 'center:noprint'],
                               qs         => $pages_qs,
