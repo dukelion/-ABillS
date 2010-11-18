@@ -3405,6 +3405,7 @@ sub snmputils_celan_list {
 
 
   return \%active, \%dynamic	 if ($attr->{ACTIVE_ONLY});
+
   @result = &snmpwalk("$SNMP_COMMUNITY",  '.1.3.6.1.4.1.655.5.15.1.4.4.1.2');
   print '.1.3.6.1.4.1.655.5.15.1.4.4.1.2<BR>' if ($debug > 0);
 
@@ -3600,9 +3601,10 @@ sub snmputils_celan {
   my %MODES = (0 => 'ARP', 1 => 'ACL' );
   
   my($ACTIVE_MAC, $DYNAMIC_MAC) = snmputils_celan_list({ SNMP_COMMUNITY => $SNMP_COMMUNITY,
-                                                     SWITCH_INFO    => $SWITCH_INFO,
-                                                     DEBUG          => $FORM{DEBUG}
-	                                                 });
+                                                         SWITCH_INFO    => $SWITCH_INFO,
+                                                         DEBUG          => $FORM{DEBUG},
+                                                         ACTIVE_ONLY    => 1
+	                                                     });
   #my multiports  section
   my $binding;
   if ($FORM{GET_USERS}) {

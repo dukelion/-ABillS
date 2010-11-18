@@ -1435,4 +1435,40 @@ sub color_marks {
   return $message;
 }
 
+
+#**********************************************************
+#
+#**********************************************************
+sub dhcphosts_payments_maked {
+	my ($attr) = @_;
+
+
+  my $deposit = $attr->{USER}->{DEPOSIT} + $attr->{USER}->{CREDIT};
+  
+  if ($deposit > 0) {
+  	my %NETWORKS=();
+  	my %NAS_IDS =();
+
+    my $list = $Dhcphosts->hosts_list({ UID => $attr->{USER}->{UID}, STATUS => 0, NAS_ID => '>0' });
+    foreach my $line (@$list) {
+      $NETWORKS{$line->[5]}=1;
+      $NAS_IDS{$line->[12]}=1;
+     }
+
+    if (in_array('Snmputils', \@MODULES)) {
+ 	  	if (scalar(keys %NAS_IDS) > 0) {
+  			require "Abills/modules/Snmputils/webinterface";
+        my $return = snmputils_periodic({ NAS_IDS => join(',', keys %NAS_IDS), DEBUG => 1 });
+        if ($return ne ''){
+          print $html->message('info', "SNMP", $html->pre($return, { OUTPUT2RETURN => 1 }));
+         }
+ 	     }
+     }
+  
+    dhcphosts_config({ NETWORKS => join(',', keys %NETWORKS), 
+                       reconfig => 1 });
+	 }
+}
+
+
 1
