@@ -99,6 +99,7 @@ require Admins;
 Admins->import();
 $admin = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { DOMAIN_ID => $FORM{DOMAIN_ID} });
+$admin->{SESSION_IP}=$ENV{REMOTE_ADDR};
 $conf{WEB_TITLE} = $admin->{DOMAIN_NAME} if ($admin->{DOMAIN_NAME});
 
 require "Abills/templates.pl";
@@ -322,6 +323,7 @@ sub form_info {
   my ($attr) = @_;
   use POSIX qw(strftime);
   
+  $admin->{SESSION_IP}=$ENV{REMOTE_ADDR}; 
   my $Payments = Finance->payments($db, $admin, \%conf);
   
   if ( $conf{user_credit_change}) {

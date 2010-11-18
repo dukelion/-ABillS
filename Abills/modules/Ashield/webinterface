@@ -21,6 +21,7 @@ my @service_status = ( "$_ENABLE", "$_DISABLE");
 my %dr_web_errors = ( 4 => "$_LOGIN $_NOT_EXIST",
  	    	              6 => $ERR_WRONG_PASSWD,
  	    	             12 => "$_LOGIN $_NOT_EXIST",
+ 	    	             17 => "Agent $_NOT_EXIST",
  	    	             18 => "$_LOGIN - $_EXIST",
  	    	             20 => "$_WRONG_EMAIL",
 	    	             );
@@ -480,13 +481,22 @@ sub ashield_user {
   		                       caption    => "$_AGENTS",
   		                       title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", 
   		                       "$_ACTIVATE", "Online",
-  		                       "$_CREATED", "$_EXPIRES", "$_GRACEPERIOD", "URL"],
+  		                       "$_CREATED", "$_STATUS", "$_GRACEPERIOD", "URL"],
                              cols_align => ['left', 'left'],
                             });
 
     foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) {
     	my $result_hash2 = ashield_drweb_request('api/2.0/get-customer-info.ds', { id => $k->{uuid}->[0] }); 
+      my $status       = '';
+    	
+   	  if ($result_hash2->{error}->[0]->{code}->[0]) {
+        #$html->message('err', $_ERROR, "'$k->{uuid}->[0]' [$result_hash2->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash2->{error}->[0]->{code}->[0]}");
+        $status = "$dr_web_errors{$result_hash2->{error}->[0]->{code}->[0]}";
+       }
+   	
       my $create = $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
+      
+      $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
       if ($result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0] =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
         $create     = "$1-$2-$3 $4:$5:$6" || $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
        }
@@ -495,10 +505,8 @@ sub ashield_user {
       my $activated	 = $result_hash2->{customers}->[0]->{customer}->[0]->{activated}->[0];
       my $online	   = $result_hash2->{customers}->[0]->{customer}->[0]->{online}->[0];
     	my $name       = $result_hash2->{customers}->[0]->{customer}->[0]->{name}->[0] || $k->{uuid}->[0];
-    	my $status     = '';
     	my $graceperiod= $result_hash2->{customers}->[0]->{customer}->[0]->{graceperiod}->[0] || '';
-
-    	$result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+     	$result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
 
     	my $expire = "$1$2$3";
     	if ($expire > 0 && $expire > $cur_date) {
@@ -1187,60 +1195,67 @@ sub ashield_drweb_send_message {
 #**********************************************************
 sub ashield_drweb_report_users {
 
- 
-# my $result_hash=ashield_drweb_request('interfaces/user_info.php', {
-#      	  login          => "*",
-#      	  checkword      => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
-#      	  },
-#      	  { SERVER_ADDR  => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
-#      	  	});
-#
-#    if ($result_hash->{error}->[0]->{code}->[0]) {
-#      $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
-#      return 0;
-#     }
-#
-#    while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
-#    	print "$k, $v<br>";
-#      $Ashield->{$k}=( ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : convert($v->[0], { utf82win => 1 });
-#     }
-
  my $result_hash = ashield_drweb_request('api/2.0/get-customer-info.ds', { }); 
  my $drweb_total_users = $result_hash->{customers}->[0]->{total};
  my %drweb_logins = ();
- 
- 
  #print %{ $result_hash->{customers}->[0] };
- print $result_hash->{customers}->[0]->{customer}->[0]->{activated}->[0];
+ #print $result_hash->{customers}->[0]->{customer}->[0]->{activated}->[0];
  
  my $list = $Ashield->ashield_avd_list({ LIMIT => 100000 });
  my %agent_hash = ();
  foreach my $line (@{ $list }) {
- 	  $agent_hash{$line->[2]}="$line->[8]:$line->[0]";
+ 	  $agent_hash{$line->[2]}="$line->[8]:$line->[0]:$line->[5]";
  	  #print "$line->[2]}=$line->[0]";
   }
  
- print $drweb_total_users;
- 
- my $table = $html->table( { width      => '100%',
- 	                         title_plain => ['#', "$_USER", $_NAME, $_EXPIRE, 'Last Visit', $_CREATE, $_CHANGED],
+ my $table = $html->table( { width       => '100%',
+ 	                           caption     => "$_AGENTS",
+ 	                           title_plain => ['#', "$_USER", $_NAME, "$_TARIF_PLAN", $_EXPIRE, "$_DOWNLOADED", $_CREATE, $_CHANGED],
  	                        });
+
+ my $date = $DATE.'000000000';
+ $date =~ s/-//g;
+ my $drweb_active_users = 0;
  foreach my $line  (@{ $result_hash->{customers}->[0]->{customer} } ) {
  	 $drweb_logins{$line->{name}->[0]}=keys %{ $line->{group} };
- 	 
+   my $expires = "";
+  
+   if ($line->{expires}->[0] > 0 && $line->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
+     $expires = "$1-$2-$3 $4:$5:$6";
+    }
+   
+   if ($line->{expires}->[0] > $date || $line->{expires}->[0] == 0) {
+     $drweb_active_users++ 
+    }
+    
+   $line->{createdtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+   my $create = "$1-$2-$3 $4:$5:$6";
+   $line->{modifiedtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+ 	 my $changed = "$1-$2-$3 $4:$5:$6";
+
+ 	 my ($uid, $login, $tp) = split(/:/, $agent_hash{$line->{id}->[0]});
+
  	 $table->addrow(
- 	 $agent_hash{$line->{id}->[0]},
+ 	 $html->button($login, "index=15&UID=$uid"),
  	 $line->{id}->[0], 
  	 convert($line->{name}->[0], { utf82win => 1 }),
- 	 $line->{expires}->[0],
- 	 $line->{lastseenfrom}->[0],
- 	 $line->{createdtime}->[0],
- 	  $line->{modifiedtime}->[0]
+ 	 $tp,
+ 	 $expires,
+ 	 ((ref $line->{lastseenfrom}->[0] eq 'HASH') ? '-' : "$_DOWNLOADED" ),
+ 	 $create,
+ 	 $changed
  	 );
   } 
 
 print $table->show();
 
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($drweb_total_users) ],
+                                         [ "$_TOTAL:", $html->b($drweb_active_users) ], 
+                                           ]
+                     } );
+print $table->show();
 }
 
 

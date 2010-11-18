@@ -1464,9 +1464,10 @@ sub dhcphosts_payments_maked {
          }
  	     }
      }
-  
-    dhcphosts_config({ NETWORKS => join(',', keys %NETWORKS), 
+    if (scalar(keys %NETWORKS) > 0) {
+      dhcphosts_config({ NETWORKS => join(',', keys %NETWORKS), 
                        reconfig => 1 });
+     }
 	 }
 }
 
