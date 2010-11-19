@@ -473,16 +473,14 @@ sub ashield_user {
       return 0;
      }
 
-
-
     my ($y, $m, $d)=split(/-/, $DATE, 3);
     my $cur_date="$y$m$d"; 
   	$table = $html->table( { width      => '100%',
   		                       caption    => "$_AGENTS",
   		                       title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", 
-  		                       "$_ACTIVATE", "Online",
-  		                       "$_CREATED", "$_STATUS", "$_GRACEPERIOD", "URL"],
-                             cols_align => ['left', 'left'],
+  		                        "$_ACTIVATE", "Online",
+  		                        "$_CREATED", "$_STATUS", "$_GRACEPERIOD", "URL"],
+  		                       cols_align => ['left', 'left'],
                             });
 
     foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) {
@@ -1201,7 +1199,7 @@ sub ashield_drweb_report_users {
  #print %{ $result_hash->{customers}->[0] };
  #print $result_hash->{customers}->[0]->{customer}->[0]->{activated}->[0];
  
- $Ashield->{debug}=1;
+ 
  my $list = $Ashield->ashield_avd_list({ PAGE_ROWS => 100000 });
  my %agent_hash = ();
  foreach my $line (@{ $list }) {
