@@ -134,12 +134,13 @@ sub post_auth {
   $begin_time = check_time();
 
   my $db = sql_connect();
-  my $return = RLM_MODULE_REJECT;
+#  my $return = RLM_MODULE_REJECT;
   if ( $db ) {
     if ( inc_postauth($db, \%REQUEST, $nas) == 0 ) {
-    	$return = RLM_MODULE_OK;
+#    	$return = RLM_MODULE_OK;
+      return RLM_MODULE_OK;
      }
-     $db->disconnect;
+#     $db->disconnect;
    }
 
 	return RLM_MODULE_REJECT;
