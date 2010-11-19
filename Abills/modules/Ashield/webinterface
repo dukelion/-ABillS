@@ -505,7 +505,7 @@ sub ashield_user {
       my $activated	 = $result_hash2->{customers}->[0]->{customer}->[0]->{activated}->[0];
       my $online	   = $result_hash2->{customers}->[0]->{customer}->[0]->{online}->[0];
     	my $name       = $result_hash2->{customers}->[0]->{customer}->[0]->{name}->[0] || $k->{uuid}->[0];
-    	my $graceperiod= $result_hash2->{customers}->[0]->{customer}->[0]->{graceperiod}->[0] || '';
+    	my $graceperiod= '-'; # $result_hash2->{customers}->[0]->{customer}->[0]->{graceperiod}->[0] || '';
      	$result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
 
     	my $expire = "$1$2$3";
@@ -1201,7 +1201,8 @@ sub ashield_drweb_report_users {
  #print %{ $result_hash->{customers}->[0] };
  #print $result_hash->{customers}->[0]->{customer}->[0]->{activated}->[0];
  
- my $list = $Ashield->ashield_avd_list({ LIMIT => 100000 });
+ $Ashield->{debug}=1;
+ my $list = $Ashield->ashield_avd_list({ PAGE_ROWS => 100000 });
  my %agent_hash = ();
  foreach my $line (@{ $list }) {
  	  $agent_hash{$line->[2]}="$line->[8]:$line->[0]:$line->[5]";
