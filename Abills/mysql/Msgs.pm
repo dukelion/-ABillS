@@ -46,12 +46,12 @@ sub messages_new {
  
  if ($attr->{USER_READ}) {
    push @WHERE_RULES, "m.user_read='$attr->{USER_READ}' AND admin_read>'0000-00-00 00:00:00' AND m.inner_msg='0'"; 
-   $fields='count(*), \'\', \'\', max(m.id), m.chapter, m.id';
+   $fields='count(*), \'\', \'\', max(m.id), m.chapter, m.id, 1';
   }
  elsif ($attr->{ADMIN_READ}) {
  	 $fields = "sum(if(admin_read='0000-00-00 00:00:00', 1, 0)), 
  	  sum(if(plan_date=curdate(), 1, 0)),
- 	  sum(if(state = 0, 1, 0))
+ 	  sum(if(state = 0, 1, 0)), 1,1,1,1
  	   ";
    push @WHERE_RULES, "m.state=0";
   }
@@ -73,15 +73,17 @@ sub messages_new {
  if ($attr->{GIDS}) {
    $self->query($db,   "SELECT $fields 
     FROM (msgs_messages m, users u)
-   $WHERE and u.uid=m.uid;");
+   $WHERE and u.uid=m.uid GROUP BY 7;");
   }
  else {
    $self->query($db,   "SELECT $fields 
     FROM (msgs_messages m)
-   $WHERE;");
+   $WHERE GROUP BY 7;");
   }
 
+if ($self->{TOTAL}){
  ($self->{UNREAD}, $self->{TODAY}, $self->{OPENED}, $self->{LAST_ID}, $self->{CHAPTER}, $self->{MSG_ID}) = @{ $self->{list}->[0] };
+}
 
   return $self;	
 }
