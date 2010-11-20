@@ -268,7 +268,7 @@ else {
 # inc_postauth()
 #*******************************************************************
 sub inc_postauth {
-  my ($db, $RAD_REQUEST, $nas) = @_;
+  my ($db, $RAD, $nas) = @_;
   
   
   use constant    L_DBG=>         1;
@@ -339,15 +339,16 @@ sub inc_postauth {
       return 0;
      }
 
+    my $db = sql_connect();
     if ($RAD_REQUEST{'Calling-Station-Id'}) {
       $reject_info="CID: $RAD_REQUEST{'Calling-Station-Id'}";
      }
     $log_print->('LOG_WARNING', $RAD_REQUEST{'User-Name'}, "REJECT Wrong password or account not exists $reject_info$GT", { NAS => $nas, DB => $db });
     return 0;
    }
-  else {
-    if ($RAD_REQUEST->{CALLING_STATION_ID}) {
-      $reject_info="CID: $RAD_REQUEST->{CALLING_STATION_ID}";
+  else {  	 
+    if ($RAD->{CALLING_STATION_ID}) {
+      $reject_info="CID: $RAD->{CALLING_STATION_ID}";
      }
     $log_print->('LOG_WARNING', $RAD->{USER_NAME}, "REJECT Wrong password or account not exists $reject_info$GT", { NAS => $nas, DB => $db });
    }

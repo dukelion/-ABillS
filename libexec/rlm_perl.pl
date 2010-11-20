@@ -133,7 +133,7 @@ sub accounting {
 sub post_auth {
   $begin_time = check_time();
 
-  my $db = sql_connect();
+#  my $db = sql_connect();
 #  my $return = RLM_MODULE_REJECT;
   if ( $db ) {
     if ( inc_postauth($db, \%REQUEST, $nas) == 0 ) {
