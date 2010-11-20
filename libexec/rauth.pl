@@ -268,7 +268,7 @@ else {
 # inc_postauth()
 #*******************************************************************
 sub inc_postauth {
-  my ($db, $RAD, $nas) = @_;
+  my ($db, $RAD) = @_;
   
   
   use constant    L_DBG=>         1;
@@ -279,6 +279,7 @@ sub inc_postauth {
   use constant    L_CONS=>        128;
 
   my $reject_info = '';
+# DHCP Section  
   if ($RAD_REQUEST{'DHCP-Message-Type'}) {
     &radiusd::radlog(L_ERR, " --- START --- ". $RAD_REQUEST{'DHCP-Server-IP-Address'});
 
@@ -308,9 +309,11 @@ sub inc_postauth {
 
     if ($r == 2) {
       $log_print->('LOG_INFO', $RAD_PAIRS->{'User-Name'}, $message." ". $RAD_REQUEST{'DHCP-Client-Hardware-Address'} ." $GT", { NAS => $nas, DB => $db});
+      $r=0;
      }
-    else {
+    else {    	
     	access_deny($RAD_PAIRS->{'User-Name'}, "$message$GT", $nas->{NAS_ID});
+    	$r=1;
      }
  
     delete($RAD_REQUEST{'User-Name'}); 
@@ -333,6 +336,7 @@ sub inc_postauth {
     my $rew = `echo "$out" >> /tmp/rad_dhcp`;
     return $r;
    }
+# END DHCP SECTION
 
   if (defined(%RAD_REQUEST)) {
     if ($RAD_REPLY{'Reply-Message'}) {
