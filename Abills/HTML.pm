@@ -656,7 +656,7 @@ foreach my $ID (@s) {
        	   my $ext_args = "$EX_ARGS";
        	   if (defined($menu_args->{$ID})) {
        	     $ext_args = "&$menu_args->{$ID}=$FORM{$menu_args->{$ID}}";
-       	     $name = "<b>$name</b>" if ($name !~ /<b>/);
+       	     $name = $self->b($name) if ($name !~ /<b>/);
        	    }
 
        	   my $link = $self->button($name, "index=$ID$ext_args");
@@ -1211,8 +1211,13 @@ sub b {
 sub color_mark {
  my $self = shift;
  my ($message, $color) = @_;
-
- my $output = "<font color=$color>$message</font>";
+ my $output = '';
+ if ($color eq 'code') {
+   $output = "<code>$message</code>";
+  }
+ else {
+   $output = "<font color=$color>$message</font>";
+  }
 
  return $output;
 }
@@ -1243,7 +1248,7 @@ sub pages {
  return $self->{pages} if ($count < $PAGE_ROWS);
  
 for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
-   $self->{pages} .= ($i == $PG) ? "<b>$i</b> " : $self->button($i, "$argument&pg=$i") .' ';
+   $self->{pages} .= ($i == $PG) ? $self->b(($i==0) ? 1 : $i).' ' : $self->button(($i==0 ? 1 : $i), "$argument&pg=$i") .' ';
  }
 
 return "<div id=\"rules\"><ul><li class=\"center\">\n". 
@@ -1533,7 +1538,7 @@ foreach my $line (@alphabet) {
   for (my $i=$first; $i<=$last; $i++) {
     my $l = chr($i);
     if ($FORM{letter} && $FORM{letter} eq $l) {
-      $letters .= "<b>$l </b>\n";
+      $letters .= $self->b("$l ");
      }
     else {
       $letters .= $self->button("$l", "index=$index&letter=$l$pages_qs") . " \n";

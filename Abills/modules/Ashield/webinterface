@@ -26,6 +26,12 @@ my %dr_web_errors = ( 4 => "$_LOGIN $_NOT_EXIST",
  	    	             20 => "$_WRONG_EMAIL",
 	    	             );
 
+  my %subscribe_state = (
+  1 => $_STATUS_1,
+  2 => $_STATUS_2,
+  3 => $_STATUS_3,
+  4 => $_STATUS_4,
+  5 => $_STATUS_5);
 
 
 #1. Оформление новой подписки.
@@ -353,13 +359,6 @@ sub ashield_user {
   $users->pi({ ID => $users->{UID} });
   $Ashield->{EMAIL}=($users->{EMAIL}) ? $users->{EMAIL} . $html->form_input('EMAIL', "$users->{EMAIL}", { TYPE => 'hidden', OUTPUT2RETURN => 1 }) : $html->form_input('EMAIL', '', { OUTPUT2RETURN => 1 });
 
-  my %subscribe_state = (
-  1 => $_STATUS_1,
-  2 => $_STATUS_2,
-  3 => $_STATUS_3,
-  4 => $_STATUS_4,
-  5 => $_STATUS_5);
-
   if ($FORM{add}) {
   	if ($users->{DEPOSIT}+$users->{CREDIT} < 0) {
   		$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
@@ -530,7 +529,7 @@ sub ashield_user {
         $status = "$_STATUS_4: $blockbeg - $blockend" if ($blockbeg > 0);
     	 }
 
-    	$table->addrow('<code>'.convert($name, { utf82win => 1 }).'</code>',
+    	$table->addrow($html->color_mark(convert($name, { utf82win => 1 }), 'code'),
 #    	               $k->{agentuuid}->[0], 
     	               $k->{tariffplancode}->[0],
     	               ($activated eq 'no') ? $_NO: $_YES,
@@ -557,8 +556,8 @@ sub ashield_user {
     my $list =  $Ashield->ashield_avd_list({ %LIST_PARAMS  });
   	$table = $html->table({ width      => '100%',
   		                      caption    => "$_LOG",
-  		                      title      => ["$_LOGIN", "$_STATE", "$_AGENT ID",
-  		                      "$_GROUP ID", "$_GROUP $_NAME", "$_TARIF_PLAN", "$_DATE"],
+  		                      title      => ["$_DATE", "$_LOGIN", "$_STATE", "$_AGENT ID",
+  		                      "$_GROUP ID", "$_GROUP $_NAME", "$_TARIF_PLAN" ],
                             cols_align => ['left', 'left', 'left', 'left', 'left'],
                             pages      => $Ashield->{TOTAL},
                             qs         => "&UID=$LIST_PARAMS{UID}"
@@ -566,13 +565,14 @@ sub ashield_user {
  
  
     foreach my $line (@$list) {
-    	$table->addrow($html->button("$line->[0]", "index=15&UID=$line->[8]"), 
-    	               $subscribe_state{$line->[1]},
-    	               '<code>'.$line->[2].'</code>',
-    	               '<code>'.$line->[3].'</code>',
-    	               $line->[4],
+    	$table->addrow($line->[0],
+    	               $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
+    	               $subscribe_state{$line->[2]},
+    	               $html->color_mark($line->[3],'code'),
+    	               $html->color_mark($line->[4],'code'),
     	               $line->[5],
     	               $line->[6],
+    	               
     	              );
       }
     print $table->show();
@@ -831,8 +831,6 @@ print $html->tpl_show(templates('form_chg_tp'), $Tariffs);
 #}
 
 
-
-
 #**********************************************************
 #
 #**********************************************************
@@ -1007,6 +1005,7 @@ if (! $admin->{MAX_ROWS}) {
 
   return 0;
 }
+
 
 #**********************************************************
 #
@@ -1193,23 +1192,68 @@ sub ashield_drweb_send_message {
 #**********************************************************
 sub ashield_drweb_report_users {
 
- my $result_hash = ashield_drweb_request('api/2.0/get-customer-info.ds', { }); 
+
+ reports({ DATE          => $FORM{DATE}, 
+  	        REPORT        => '',
+  	        HIDDEN        => \%HIDDEN,
+  	        EX_PARAMS     => { HOURS => "$_HOURS",
+  	        	                 USERS => "$_USERS"
+  	        	                 }, 
+            NO_GROUP      => 1,
+  	        PERIOD_FORM		=> 1,
+  	       });
+
+
+ if ($FORM{FROM_DATE}) {
+ 	 my $list = $Ashield->ashield_avd_list({ %LIST_PARAMS, %FORM });
+
+   $table = $html->table({ width      => '100%',
+  		                     caption    => "$_LOG",
+  		                     title      => ["$_DATE", "$_LOGIN", "$_STATE", "$_AGENT ID",
+  		                     "$_GROUP ID", "$_GROUP $_NAME", "$_TARIF_PLAN" ],
+                           cols_align => ['left', 'left', 'left', 'left', 'left'],
+                           qs          => $pages_qs,
+                           pages      => $Ashield->{TOTAL},
+                          });
+ 
+ 
+    foreach my $line (@$list) {
+    	$table->addrow($line->[0],
+    	               $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
+    	               $subscribe_state{$line->[2]},
+    	               $html->color_mark($line->[3], 'code'),
+    	               $html->color_mark($line->[4], 'code'),
+    	               $line->[5],
+    	               $line->[6],    	               
+    	              );
+      }
+    print $table->show();
+ 	
+ 	$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Ashield->{TOTAL}) ],
+                                         #[ "$_TOTAL:", $html->b($drweb_active_users) ], 
+                                           ]
+                     } );
+  print $table->show();
+
+ 	 return 0;
+  }
+
+
+ my $result_hash       = ashield_drweb_request('api/2.0/get-customer-info.ds', { }); 
  my $drweb_total_users = $result_hash->{customers}->[0]->{total};
- my %drweb_logins = ();
- #print %{ $result_hash->{customers}->[0] };
- #print $result_hash->{customers}->[0]->{customer}->[0]->{activated}->[0];
- 
- 
- my $list = $Ashield->ashield_avd_list({ PAGE_ROWS => 100000 });
- my %agent_hash = ();
+ my %drweb_logins      = ();
+ my $list              = $Ashield->ashield_avd_list({ PAGE_ROWS => 100000 });
+ my %agent_hash        = ();
  foreach my $line (@{ $list }) {
- 	  $agent_hash{$line->[2]}="$line->[8]:$line->[0]:$line->[5]";
+ 	  $agent_hash{$line->[2]}="$line->[8]:$line->[1]:$line->[6]";
  	  #print "$line->[2]}=$line->[0]";
   }
  
- my $table = $html->table( { width       => '100%',
- 	                           caption     => "$_AGENTS",
- 	                           title_plain => ['#', "$_USER", $_NAME, "$_TARIF_PLAN", $_EXPIRE, "$_DOWNLOADED", $_CREATE, $_CHANGED],
+ my $table = $html->table({ width       => '100%',
+ 	                          caption     => "$_AGENTS - $_ACTIVE",
+ 	                          title_plain => ["$_LOGIN", "Dr.Web uuid", $_NAME, "$_TARIF_PLAN", $_EXPIRE, "$_DOWNLOADED", $_CREATE, $_CHANGED],
  	                        });
 
  my $date = $DATE.'000000000';
@@ -1236,7 +1280,7 @@ sub ashield_drweb_report_users {
 
  	 $table->addrow(
  	 $html->button($login, "index=15&UID=$uid"),
- 	 $line->{id}->[0], 
+ 	 $html->color_mark($line->{id}->[0], 'code'), 
  	 convert($line->{name}->[0], { utf82win => 1 }),
  	 $tp,
  	 $expires,
