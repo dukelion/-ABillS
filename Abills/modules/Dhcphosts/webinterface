@@ -715,8 +715,8 @@ sub dhcphosts_user {
   	 	$FORM{IP}=dhcphosts_get_static_ip($FORM{NETWORK});
      }
     
-    if ($FORM{IP} eq '0.0.0.0') {
-
+    if ($FORM{IP} eq '0.0.0.0' && ! $FORM{OPTION_82}) {
+      $html->message('err', $_ERROR, "$ERR_WRONG_DATA: IP '0.0.0.0' ");
      }
     elsif ($FORM{MAC} !~ /[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/i) {
       $html->message('err', $_ERROR, "$ERR_WRONG_DATA: MAC ");
@@ -1088,6 +1088,7 @@ foreach my $line (@$list) {
      }
 
     $INFO{CLIENT_MAC} = $line->[6];
+    $INFO{CLIENT_IP}  = $line->[11];
     #Option 82
     if ($line->[12]) {
       $INFO{CLIENT_MAC}    =~ s/^00/0/;
@@ -1137,9 +1138,15 @@ foreach my $line (@$list) {
      }
     else {
       #Static hosts
+      
+      #Skip empty mac or ip
+      if ($INFO{CLIENT_MAC} eq '00:00:00:00:00:00' || $INFO{CLIENT_IP} eq '0.0.0.0') {
+      	next;
+       }
+      
       $INFO{HOSTS} .= $html->tpl_show(_include('dhcphosts_dhcp_conf_host', 'Dhcphosts',), { 
     	  MAC       => $INFO{CLIENT_MAC},
-        IP        => $line->[11],
+        IP        => $INFO{CLIENT_IP},
         ROUTERS   => ($Dhcphosts->{ROUTERS} ne '0.0.0.0') ? $Dhcphosts->{ROUTERS} : convert_ip("0.0.0.1", '', $Dhcphosts),
         LOGIN     => $line->[1],
         HOSTNAME  => $line->[3],
