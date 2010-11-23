@@ -43,7 +43,7 @@ use Help;
 use Abills::Base;
 
 my $html = Abills::HTML->new();
-my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
 my $db = $sql->{db};
 require "../../language/$html->{language}.pl";
 print $html->header({ 
