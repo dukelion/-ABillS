@@ -509,8 +509,8 @@ $html->test();
 sub check_permissions {
   my ($login, $password, $attr)=@_;
 
-  $login =~ s/"/\\"/g;
-  $login =~ s/'/\''/g;
+  $login    =~ s/"/\\"/g;
+  $login    =~ s/'/\''/g;
   $password =~ s/"/\\"/g;
   $password =~ s/'/\\'/g;
 
@@ -3628,8 +3628,7 @@ print $html->form_main({HIDDEN  => { index  => "$index",
 #**********************************************************
 sub form_passwd {
  my ($attr)=@_;
- my $password_form;
- 
+ my $password_form; 
  
  if (defined($FORM{AID})) {
    $password_form->{HIDDDEN_INPUT} = $html->form_input('AID', "$FORM{AID}", { TYPE => 'hidden',
@@ -3643,7 +3642,6 @@ sub form_passwd {
        	                               });
 	 $index=15;
  }
-
 
 $conf{PASSWD_LENGTH}=8 if (! $conf{PASSWD_LENGTH});
 
@@ -3660,11 +3658,10 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
   $html->message('err', $_ERROR, "$ERR_WRONG_CONFIRM");
 }
 
-#$password_form->{GEN_PASSWORD}=mk_unique_value(8);
-$password_form->{PW_CHARS}="abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
-$password_form->{PW_LENGTH}=$conf{PASSWD_LENGTH}+2;
-$password_form->{ACTION}='change';
-$password_form->{LNG_ACTION}="$_CHANGE";
+$password_form->{PW_CHARS}  = "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
+$password_form->{PW_LENGTH} = $conf{PASSWD_LENGTH};
+$password_form->{ACTION}    = 'change';
+$password_form->{LNG_ACTION}= "$_CHANGE";
 $html->tpl_show(templates('form_password'), $password_form);
 
  return 0;
@@ -3816,7 +3813,7 @@ if (defined($FORM{DATE})) {
 	       } 
      	 }
      	else {
-     	  $EX_PARAMS .= '::'. $html->button($v, "index=$index$pages_qs&EX_PARAMS=$k", { BUTTON => 1});
+     	  $EX_PARAMS .= ' '. $html->button($v, "index=$index$pages_qs&EX_PARAMS=$k", { BUTTON => 1});
      	 }
 	  }
   
@@ -4300,9 +4297,6 @@ else {
           %CHART 
        });
    }
-  
-  
-  
 }
 
 #**********************************************************
@@ -4355,7 +4349,6 @@ my @m = (
  "68:5:$_LOCATIONS:form_districts:::",
  "69:68:$_STREETS:form_streets::",
  "75:5:$_HOLIDAYS:form_holidays:::",
-
  
  "85:5:$_SHEDULE:form_shedule:::",
  "86:5:$_BRUTE_ATACK:form_bruteforce:::",
@@ -4432,12 +4425,6 @@ my ($menu_navigator, $menu_text) = $html->menu(\%menu_items,
 
 return  $menu_text, "/".$menu_navigator;
 }
-
-
-
-
-
-
 
 #**********************************************************
 # Functions list
