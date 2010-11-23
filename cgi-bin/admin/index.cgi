@@ -3283,7 +3283,20 @@ if ($nas->{errno}) {
 
   $html->tpl_show(templates('form_nas'), $nas);
 
-my $table = $html->table( { width      => '100%',
+
+
+my $table = $html->table({ width      => '100%',
+                        cols_align => ['right', 'right',],
+                        rows       => [ [ "$_GROUPS:", sel_nas_groups(). $html->form_input("1", "$_SHOW", { TYPE => 'submit' })  ] ]
+                      });
+
+print $html->form_main({  CONTENT => $table->show(),
+	                        HIDDEN  => { index  => "$index",
+                                     },
+                       });
+
+
+$table = $html->table( { width      => '100%',
                             caption    => "$_NAS",
                             title      => ["ID", "$_NAME", "NAS-Identifier", "IP", "$_TYPE", "$_AUTH", 
                              "$_STATUS", "$_DESCRIBE", '-', '-', '-'],
@@ -3292,7 +3305,7 @@ my $table = $html->table( { width      => '100%',
                             ID         => 'NAS_LIST'
                            });
 
-my $list = $nas->list({ %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
+my $list = $nas->list({ %FORM, %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
 foreach my $line (@$list) {
   my $delete = $html->button($_DEL, "index=61&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?", BUTTON => 1  }); 
   
@@ -3511,8 +3524,8 @@ foreach my $line (@$list) {
     ($line->[12]) ? 'static' : $html->form_input('ids', $line->[10], { TYPE => 'checkbox', STATE => ($line->[0]) ? 'checked' : undef }),
     $html->button($line->[1], "index=61&NAS_ID=$line->[10]"), 
     $line->[2],
-    $line->[7], 
-    $line->[8],
+    $line->[8], 
+    $line->[9],
     $line->[5], 
     $line->[6],
     $line->[7],

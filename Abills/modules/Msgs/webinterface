@@ -779,7 +779,7 @@ sub msgs_admin {
 
     $Msgs->{PLAN_DATE} = "0000-00-00";
     $Msgs->{PLAN_TIME} = "00:00:00";
-
+    $Msgs->{MSG_ID}    = undef;
     form_search({ SEARCH_FORM => $html->tpl_show(_include('msgs_search', 'Msgs'),
                                           { %$Msgs, %FORM },
                                           { OUTPUT2RETURN => 1 })

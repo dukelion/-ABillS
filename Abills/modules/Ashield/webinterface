@@ -1247,7 +1247,7 @@ sub ashield_drweb_report_users {
  my $list              = $Ashield->ashield_avd_list({ PAGE_ROWS => 100000 });
  my %agent_hash        = ();
  foreach my $line (@{ $list }) {
- 	  $agent_hash{$line->[2]}="$line->[8]:$line->[1]:$line->[6]";
+ 	  $agent_hash{$line->[3]}="$line->[8]:$line->[1]:$line->[6]";
  	  #print "$line->[2]}=$line->[0]";
   }
  

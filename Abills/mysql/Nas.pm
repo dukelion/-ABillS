@@ -55,7 +55,6 @@ sub list {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{MAC}, 'INT', 'nas.mac') };
    }
 
-
   if($attr->{GID}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', 'nas.gid') };
    }

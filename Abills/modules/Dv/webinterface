@@ -3040,8 +3040,11 @@ if ($FORM{set}) {
        ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
       }
 
-
      if ($Dv->{MONTH_ABON}==0 || $Dv->{ABON_DISTRIBUTION}) {
+     	 my $seltime = POSIX::mktime(0, 0, 0, $D, ($M-1), ($Y - 1900));
+     	 if ($seltime < time()) {
+     	 	 ($Y, $M, $D)=split(/-/, $DATE, 3);
+     	  }
      	 ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 86400) )); 
       }
      else {
@@ -3054,7 +3057,7 @@ if ($FORM{set}) {
       }
 
      $M = sprintf("%02d", $M);
-     my $seltime = POSIX::mktime(0, 0, 0, $D, $M, ($Y - 1900));
+     my $seltime = POSIX::mktime(0, 0, 0, $D, ($M-1), ($Y - 1900));
 
     if ($seltime > time()) {
       $shedule->add( {UID     => $LIST_PARAMS{UID},
