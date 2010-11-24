@@ -1787,6 +1787,20 @@ if ($FORM{send_invoice}) {
 
   return 0;
  }
+  
+  if (in_array('Dv', \@MODULES)) {
+  	use Dv;
+#    use Tariffs;
+    my $Dv       = Dv->new($db, $admin, \%conf);
+#    my $Tariffs  = Tariffs->new($db, \%conf, $admin);
+    $Dv = $Dv->info($user->{UID});
+#    print "Content-Type: text/html\n\n";
+#    print "$info{SUM}=($Dv->{MONTH_ABON} > $info{SUM}) ? $Dv->{MONTH_ABON} : $info{SUM};";
+    if($Dv->{MONTH_ABON} > $FORM{SUM}) {
+    	$FORM{SUM} = $Dv->{MONTH_ABON};
+      $info{DESCRIBE}="$_TARIF_PLAN_SUM";
+     }
+   }
 
   $html->tpl_show(_include('paysys_qiwi_add', 'Paysys'), \%info);
 }

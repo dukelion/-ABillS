@@ -10,3 +10,4 @@ $_GET_INVOICE='Get invoice';
 $_INVOICE_SENDED='Invoice sended';
 $_TEST_PAYMENT='Test payment';
 $_BINDING='Binding';
+$_TARIF_PLAN_SUM='Minimum one month fees';
