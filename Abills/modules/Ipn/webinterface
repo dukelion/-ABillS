@@ -2418,12 +2418,12 @@ my $nas_list = $nas->list({ NAS_IDS   => $attr->{NAS_IDS},
 my %nas_info = ();
 foreach my $line (@$nas_list) {
 	if ($line->[4] eq 'ipcad') {
-	  $nas_info{$line->[0]}{NAS_IP}=$line->[3]; 
-	  $nas_info{$line->[0]}{NAS_ID}=$line->[0];
-	  $nas_info{$line->[0]}{NAS_TYPE}=$line->[4];
-	  $nas_info{$line->[0]}{NAS_IP_ADDRESS}=$line->[9];
-	  $nas_info{$line->[0]}{NAS_MNG_USER}=$line->[10];
-    $nas_info{$line->[0]}{NAS_MNG_IP_PORT}=$line->[11];
+	  $nas_info{$line->[0]}{NAS_IP}         = $line->[3]; 
+	  $nas_info{$line->[0]}{NAS_ID}         = $line->[0];
+	  $nas_info{$line->[0]}{NAS_TYPE}       = $line->[4];
+	  $nas_info{$line->[0]}{NAS_IP_ADDRESS} = $line->[9];
+	  $nas_info{$line->[0]}{NAS_MNG_USER}   = $line->[10];
+    $nas_info{$line->[0]}{NAS_MNG_IP_PORT}= $line->[11];
    }
 }
 
@@ -2440,7 +2440,8 @@ my $poll_list = $nas->nas_ip_pools_list({  });
 my %nas_pools_hash = ();  
 # Get valid NAS
 foreach my $line (@$poll_list) {
-	$nas_pools_hash{$line->[3]}="$line->[4]:$line->[10]" if ($line->[10] && defined($nas_info{$line->[10]}));
+	# 
+	$nas_pools_hash{$line->[3]}="$line->[4]:$line->[11]" if ($line->[11] && defined($nas_info{$line->[11]}));
  }
 
 #Get TPs
@@ -2478,7 +2479,7 @@ foreach my $line (@$list)   {
   my $nas_id       = 0;
   my $tp_id        = $line->[13];
   my $port         = $line->[7];
-  my $ip_num = unpack("N", pack("C4", split( /\./, $ip))); 
+  my $ip_num       = unpack("N", pack("C4", split( /\./, $ip))); 
 
   if ($online_uids{$uid}) {
   	next;
@@ -2494,7 +2495,6 @@ foreach my $line (@$list)   {
   $debug_output .= "LOGIN: $login IP: $ip NAS_ID: $nas_id CONNECT_INFO: $connect_info UID: $uid FILTER_ID: $filter_id\n" if ($debug > 3);
 
   reset %nas_pools_hash;
-  #while(my ($start_ip, $key) = each %nas_pools_hash ) {
   foreach my $start_ip (keys %nas_pools_hash) {
   	my ($end_ip, $id)=split(/:/, $nas_pools_hash{$start_ip}, 2);
    	if ( ($start_ip <= $ip_num) && ($ip_num <= $end_ip) ) {
@@ -2535,8 +2535,6 @@ foreach my $line (@$list)   {
       ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
       $debug_output .= "$_ACTIVATE IP: $ip\n" if ($debug > 1);
    }
-
-  
 }
 
   $debug_output .= "Total: $count\n" if ($debug > 0);
