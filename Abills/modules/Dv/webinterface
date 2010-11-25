@@ -3908,17 +3908,14 @@ my $Billing = Billing->new($db, $CONF);
 
   
   foreach my $tp_line (@$list) {
-     
      my $ti_list = $tariffs->ti_list({ TP_ID => $tp_line->[18] });
-
      next if ($tariffs->{TOTAL} != 1);
 
      $debug_output .= "TP_ID: $tp_line->[0]\n" if ($debug > 6);
      foreach my $ti (@$ti_list) {
 
        my $tt_list = $tariffs->tt_list({ TI_ID => $ti->[0] });
-       next if ($tariffs->{TOTAL} < 1);
-       
+       next if ($tariffs->{TOTAL} < 1);       
        
        my %expr_hash      = ();
        my $traffic_class  = 0;
@@ -4286,6 +4283,7 @@ sub dv_monthly_fees {
            next if ($used >= $min_use);
 
            $sum = $min_use - $used;
+
            if ($TP_INFO{REDUCTION} == 1 && $user{REDUCTION} > 0) {
              if ($user{REDUCTION} >= 100) {
              	 $debug_output .= "UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION} next\n" if ($debug > 3);

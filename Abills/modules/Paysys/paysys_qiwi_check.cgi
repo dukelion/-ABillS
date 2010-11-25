@@ -85,7 +85,7 @@ sub qiwi_check {
 my $list = $Paysys->list( { %LIST_PARAMS, 
 	                          PAYMENT_SYSTEM => 59, 
 	                          INFO => '-',
-	                          PAGE_ROWS => 1000000 } );	
+	                          PAGE_ROWS => 10000000 } );	
 
 my %status_hash = (
 10 => 'Не обработана',
