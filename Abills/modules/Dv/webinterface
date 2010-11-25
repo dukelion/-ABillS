@@ -4323,7 +4323,13 @@ sub dv_monthly_fees {
            
            #Get 2 time fees from main account and ext account and from main
            if ($conf{BONUS_EXT_FUNCTIONS} && $ext_deposit_op > 0) {
-           	  if ($sum > $user{EXT_DEPOSIT} && $user{EXT_DEPOSIT} > 0) {
+         	  	# Small deposit
+        	  	if ($small_deposit_block && $user{EXT_DEPOSIT} + $user{DEPOSIT} + $user{CREDIT} < $sum) {
+       	  		
+           	  		goto SMALL_DEPOSIT_LABEL;
+         	  	 }
+           	  elsif ($sum > $user{EXT_DEPOSIT} && $user{EXT_DEPOSIT} > 0) {
+           	    # Take some sum from ext deposit other from main
            	    if ((($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib) || $user{ACTIVATE} ne '0000-00-00') {
            	  	  my ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
            	  	  $activate_m--;
@@ -4367,6 +4373,7 @@ sub dv_monthly_fees {
 
                #Block small deposit
                if ($small_deposit_block && $sum > $user{DEPOSIT}+$user{CREDIT} && $date_unixtime - $active_unixtime > 30 * 86400) {
+   	             SMALL_DEPOSIT_LABEL:
      	           if ($small_deposit_block == -1) {
      	             $Dv->change({ UID    => $user{UID}, 
             	                   STATUS => 5 });
@@ -4414,11 +4421,11 @@ sub dv_monthly_fees {
                 if ($small_deposit_block && $month_fee > $user{DEPOSIT}+$user{CREDIT}) {
      	            if ($small_deposit_block == -1) {
      	              $Dv->change({ UID    => $user{UID}, 
-            	                 STATUS => 5 });
+            	                    STATUS => 5 });
     	             }
                   else {
      	             $Dv->change({ UID    => $user{UID}, 
-            	                 TP_ID  => $small_deposit_block });
+            	                   TP_ID  => $small_deposit_block });
             	     }
                   $debug_output .= " SMALL_DEPOSIT_BLOCK" if ($debug > 3);
                   next;

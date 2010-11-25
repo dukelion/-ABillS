@@ -1621,6 +1621,8 @@ sub config_list {
 sub config_info {
  my $self = shift;
  my ($attr) = @_;
+
+ $attr->{DOMAIN_ID}=0 if (! $attr->{DOMAIN_ID});
  
  $self->query($db, "select param, value, domain_id FROM config WHERE param='$attr->{PARAM}' AND domain_id='$attr->{DOMAIN_ID}';");
 

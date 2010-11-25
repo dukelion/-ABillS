@@ -133,11 +133,11 @@ foreach my $line (@$list) {
   	 my $user = $Users->info($line->[8]);
   	 
   	 if ($Users->{TOTAL}<1) {
-  	 	 print "$line->[1] LOGIN: $line->[8]:$line->[2] $line->[5] Not exists\n";
+  	 	 print "$line->[1] LOGIN: $line->[8] $line->[2] $line->[5] Not exists\n";
   	 	 next;
   	  }
-  	 else {
-  	 	 print "$line->[1] LOGIN: $line->[8]:$line->[2] $line->[5] [$Users->{error}] $Users->{errstr}\n";
+  	 elsif($Users->{errno}) {
+  	 	 print "$line->[1] LOGIN: $line->[8] $line->[2] $line->[5] [$Users->{error}] $Users->{errstr}\n";
   	 	 next;
   	  }
   	 
@@ -148,7 +148,7 @@ foreach my $line (@$list) {
   	                       CHECK_EXT_ID => "QIWI:$line->[5]" } );  
 
      if($payments->{error}) {
-     	  print "$line->[1] LOGIN: $line->[8]:$line->[2] $line->[5] [$payments->{error}] $payments->{errstr}\n";
+     	  print "Payments: $line->[1] LOGIN: $line->[8]:$line->[2] $line->[5] [$payments->{error}] $payments->{errstr}\n";
      	  next;
       }
 

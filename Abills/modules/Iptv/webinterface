@@ -268,7 +268,7 @@ my $table = $html->table( { width      => '100%',
                          } );
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  $html->button($_PAYMENTS, "index=2&UID=". ($line->[$Iptv->{SEARCH_FIELDS_COUNT} + 6])) : ''; 
+  my $payments = ($permissions{1}) ?  $html->button($_PAYMENTS, "index=2&UID=". ($line->[$Iptv->{SEARCH_FIELDS_COUNT} + 6]), { BUTTON => 1 }) : ''; 
 
   my @fields_array  = ();
   for(my $i=0; $i<$Iptv->{SEARCH_FIELDS_COUNT}; $i++){
@@ -562,7 +562,7 @@ if(defined($attr->{TP})) {
   my $color="AAA000";
   foreach my $line (@$list) {
 
-    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]] ?" }); 
+    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]] ?", BUTTON => 1  }); 
     $color = sprintf("%06x", hex('0x'. $color) + 7000);
      
     #day, $hour|$end = color
@@ -583,8 +583,8 @@ if(defined($attr->{TP})) {
                   $table->td($html->b($DAY_NAMES[$line->[1]])), 
                   $table->td($line->[2]), 
                   $table->td($line->[3]), 
-                  $table->td($html->button("$_CHANNELS", "index=$index$pages_qs&channels=$line->[0]")),
-                  $table->td($html->button("$_CHANGE", "index=$index$pages_qs&chg=$line->[0]")),
+                  $table->td($html->button("$_CHANNELS", "index=$index$pages_qs&channels=$line->[0]", { BUTTON => 1 })),
+                  $table->td($html->button("$_CHANGE", "index=$index$pages_qs&chg=$line->[0]", { BUTTON => 1 })),
                   $table->td($delete),
                   $table->td("&nbsp;", { bgcolor => '#'. $color, rowspan => ($line->[5] > 0) ? 2 : 1 })
      );
@@ -633,7 +633,7 @@ for(my $i=0; $i<9; $i++) {
      	   if (($h >= $h_b) && ($h < $h_e)) {
 #     	   	 print "$i // $h => $h_b && $h <= $h_e // $color <br> \n";
   	   	   $tdcolor = '#'.$color;
-  	 	     $link = $html->button('#', "index=$index&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}&chg=$p");
+  	 	     $link = $html->button('#', "index=$index&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}&chg=$p", { BUTTON => 1 });
   	 	     last;
   	 	    }
   	     else {
@@ -804,8 +804,8 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?" }); 
-    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]");
+    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { BUTTON => 1 });
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
@@ -823,7 +823,7 @@ foreach my $line (@$list) {
    $line->[7], 
    $line->[8], 
    $line->[9],
-   $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[18]"),
+   $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[18]", { BUTTON => 1 }),
    $change,
    $delete);
 }
@@ -913,8 +913,8 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
    if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL $line->[1] / $line->[2]?" }); 
-    $change = $html->button($_CHANGE, "index=$index&chg=$line->[5]");
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL $line->[1] / $line->[2]?", BUTTON => 1 }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[5]", { BUTTON => 1 });
    }
 
    $table->addrow($line->[0], 
@@ -1010,8 +1010,8 @@ elsif($FORM{zap}) {
   	                NAS_ID          => $nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
-    $message .= "<p align=\"center\">". $html->button('add to log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id", { BUTTON => 1 }). "
-         ". $html->button("$_DEL", "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id", { BUTTON => 1 }). "</p>";
+    $message .= $html->button('add to log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id", { BUTTON => 1 }). "
+         ". $html->button("$_DEL", "index=$index&del=$acct_session_id&nas_id=$nas_id&nas_port_id=$nas_port_id", { BUTTON => 1 });
    }
   else {
   	$message = "$_EXIST";
@@ -1094,13 +1094,13 @@ my $cure = '';
 
 
 if($FORM{ZAPED}) {
-	$LIST_PARAMS{ZAPED}='yes';
-	$form_link = $html->button('On line', "index=$index");
+	$LIST_PARAMS{ZAPED}='1';
+	$form_link = $html->button('On line', "index=$index", { BUTTON => 1 });
 	$cure = 'Zap';
  } 
 else {
  	$sessions->online( { ZAPED => 'yes' } );	
- 	$form_link = $html->button($_ZAPED, "index=$index&ZAPED=yes"). " ($sessions->{TOTAL})";
+ 	$form_link = $html->button($_ZAPED, "index=$index&ZAPED=1", { BUTTON => 1 }). " ($sessions->{TOTAL})";
 	$cure = 'Online';
 }
 
@@ -1135,14 +1135,13 @@ foreach my $nas_row (@$nas_list) {
   foreach my $line (@$l) {
     undef($table->{rowcolor});
     undef($table->{extra});
-    #print "$line->[0]<br>";
     if (defined($dub_logins->{$line->[0]}))                   { $bg='#FFFF00';    }
 #    elsif (defined($dub_ports->{$nas_row->[4]}{$line->[2]})) { $bg='#00FF40';    }
     elsif ($line->[9] == 3)                                   { $bg='#FF0000';    }
     else {  $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];    }
 
-    my $zap = "(". $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap'}). ")";
-    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[9]", { TYPE => 'checkbox' } ) : "(". $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup'} ) .")";
+    my $zap    = $html->button('Z', "index=$index&zap=$nas_row->[0]+$line->[9]", { TITLE => 'Zap',  BUTTON => 1 });
+    my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[9]", { TYPE => 'checkbox', { BUTTON => 1 } } ) : $html->button('H', "index=$index&hangup=$nas_row->[0]+$line->[2]+$line->[9]+$line->[0]", { TITLE => 'Hangup', BUTTON => 1 } ) ;
 
     my $user_info =  ''; 
 
@@ -1155,7 +1154,7 @@ foreach my $nas_row (@$nas_list) {
 
     $table->addrow($html->button($line->[0], "index=11&UID=$line->[8]", { TITLE => "$user_info"}), 
       $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], 
-     "(". $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'Ping'}). ")",
+     $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'Ping', BUTTON => 1 }),
      "$zap",
      "$hangup");
   }
@@ -1192,7 +1191,7 @@ else {
 	                              METHOD  => 'GET'
                         });
 
-  $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want zap all sessions ?" });
+  $output .= $html->button('Zap All', "index=$index&zapall=1", { MESSAGE => "Do you realy want zap all sessions ?", BUTTON => 1  });
  }
 
 
@@ -1392,7 +1391,7 @@ sub iptv_user_info {
    }
 
   if ($conf{IPTV_USER_CHG_TP}) {
-    $Iptv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid );
+    $Iptv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid, { BUTTON => 1 });
    }
 
 
@@ -1955,13 +1954,12 @@ sub iptv_daily_Fees {
 #**********************************************************
 # monthly_Fees
 #**********************************************************
-sub iptv_monthly_Fees {
+sub iptv_monthly_fees {
  my ($attr) = @_;
 
  my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
  $debug_output .= "Iptv - Monthly pariodic payments\n" if ($debug > 1);
-
 
  use Users;
  my $users = Users->new($db, $admin, \%conf); 
