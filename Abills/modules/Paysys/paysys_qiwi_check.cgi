@@ -122,21 +122,35 @@ my $result = qiwi_status({ IDS   => \@ids_arr,
 my %res_hash = ();
 foreach my $id ( keys %{ $result->{'bills-list'}->[0]->{bill} } ) {
 	$res_hash{$id}=$result->{'bills-list'}->[0]->{bill}->{$id}->{status};
-
 }
 
 foreach my $line (@$list) {
-  print "$line->[1] LOGIN: $line->[2] SUM: $line->[3] PAYSYS: $line->[4] PAYSYS_ID: $line->[5]  $line->[6] STATUS: $res_hash{$line->[5]}\n" if ($debug > 0);
+  print "$line->[1] LOGIN: $line->[8]:$line->[2] SUM: $line->[3] PAYSYS: $line->[4] PAYSYS_ID: $line->[5]  $line->[6] STATUS: $res_hash{$line->[5]}\n" if ($debug > 0);
   if ($res_hash{$line->[5]} == 50) {
   	
    }
   elsif ( $res_hash{$line->[5]} == 60 ||  $res_hash{$line->[5]} == 61 || $res_hash{$line->[5]} == 51) {
-  	 my $user = $Users->info($line->[7]);
-     $payments->add($user, {SUM      => $line->[3],
+  	 my $user = $Users->info($line->[8]);
+  	 
+  	 if ($Users->{TOTAL}<1) {
+  	 	 print "$line->[1] LOGIN: $line->[8]:$line->[2] $line->[5] Not exists\n";
+  	 	 next;
+  	  }
+  	 else {
+  	 	 print "$line->[1] LOGIN: $line->[8]:$line->[2] $line->[5] [$Users->{error}] $Users->{errstr}\n";
+  	 	 next;
+  	  }
+  	 
+     $payments->add($user, {SUM         => $line->[3],
     	                     DESCRIBE     => 'QIWI', 
     	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{54}) ? 54 : '2',  
   	                       EXT_ID       => "QIWI:$line->[5]",
   	                       CHECK_EXT_ID => "QIWI:$line->[5]" } );  
+
+     if($payments->{error}) {
+     	  print "$line->[1] LOGIN: $line->[8]:$line->[2] $line->[5] [$payments->{error}] $payments->{errstr}\n";
+     	  next;
+      }
 
      $Paysys->change({ ID        => $line->[0],
      	                 PAYSYS_IP => $ENV{'REMOTE_ADDR'},
