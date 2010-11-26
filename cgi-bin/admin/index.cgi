@@ -347,9 +347,14 @@ if ($conf{LANGS}) {
 
 
 $html->{METATAGS}=templates('metatags');
+
+if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne '' && ! $FORM{add})) {
+ 	$ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
+ 	$html->{WEB_TITLE} = "$conf{WEB_TITLE} [$ui->{LOGIN}]";
+ }
+
+
 print $html->header();
-
-
 my ($menu_text, $navigat_menu) = mk_navigator();
 ($admin->{ONLINE_USERS}, $admin->{ONLINE_COUNT}) = $admin->online();
 
@@ -382,10 +387,10 @@ $admin->{SEL_TYPE} = $html->form_select('type',
 #Domains sel
 if (in_array('Multidoms', \@MODULES) && $permissions{10}) {
   require "Abills/modules/Multidoms/webinterface";
-  $FORM{DOMAIN_ID}=$COOKIES{DOMAIN_ID};
-  $admin->{DOMAIN_ID}=$FORM{DOMAIN_ID};
-  $LIST_PARAMS{DOMAIN_ID}=$admin->{DOMAIN_ID};
-  $admin->{SEL_DOMAINS} = "$_DOMAINS:" . $html->form_main({ CONTENT => multidoms_domains_sel(),
+  $FORM{DOMAIN_ID}       = $COOKIES{DOMAIN_ID};
+  $admin->{DOMAIN_ID}    = $FORM{DOMAIN_ID};
+  $LIST_PARAMS{DOMAIN_ID}= $admin->{DOMAIN_ID};
+  $admin->{SEL_DOMAINS}  = "$_DOMAINS:" . $html->form_main({ CONTENT => multidoms_domains_sel(),
 	                       HIDDEN  => { index      => $index, 
 	                       	            COMPANY_ID => $FORM{COMPANY_ID} 
 	                       	            },
@@ -466,7 +471,7 @@ if ($functions{$index}) {
    }
  	  
   if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne '' && ! $FORM{add})) {
-  	$ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
+  	print $ui->{TABLE_SHOW};
 
   	if($ui->{errno}==2) {
   		$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
@@ -1135,14 +1140,14 @@ sub user_info {
 
 	my $user_info = $users->info( $UID , { %FORM });
   
-  
   $table = $html->table({ width      => '100%',
   	                      rowcolor   => 'even',
   	                      border     => 0,
                           cols_align => ['left:noprint'],
                           rows       => [ [ "$_USER: ". $html->button($html->b($user_info->{LOGIN}), "index=15&UID=$user_info->{UID}"). " (UID: $user_info->{UID})" ] ]
                         });
-  print $table->show();
+
+  $user_info->{TABLE_SHOW} = $table->show();
  
   $LIST_PARAMS{UID}=$user_info->{UID};
   $pages_qs =  "&UID=$user_info->{UID}";
@@ -1646,7 +1651,9 @@ if ($users->{errno}) {
 elsif ($users->{TOTAL} == 1) {
 	$FORM{index} = 15;
 	$FORM{UID}   = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
-	form_users({  USER => user_info($list->[0]->[5 + $users->{SEARCH_FIELDS_COUNT}], { %FORM }) });
+	$ui          = user_info($list->[0]->[5 + $users->{SEARCH_FIELDS_COUNT}], { %FORM });
+	print $ui->{TABLE_SHOW};
+	form_users({  USER => $ui });
 	return 0;
  }
 elsif ($users->{TOTAL} == 0) {

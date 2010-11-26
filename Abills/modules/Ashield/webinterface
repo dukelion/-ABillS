@@ -24,7 +24,20 @@ my %dr_web_errors = ( 4 => "$_LOGIN $_NOT_EXIST",
  	    	             17 => "Agent $_NOT_EXIST",
  	    	             18 => "$_LOGIN - $_EXIST",
  	    	             20 => "$_WRONG_EMAIL",
+ 	    	             
+# 	    	             1 Ц — внешними интерфейсами разрешена работа только по
+#протоколу HTTPS.
+#2 Ц ќпераци€ не разрешаетс€. »спользовать данный
+#интерфейс запрещено.
+#4 Ц ID и логин пользовател€ не указаны.
+#5 Ц ѕользователь не найден.
+#99 Ц Ќедостаточно прав дл€ выполнени€ операции.
+#100 Ц —истемна€ ошибка.
+
+ 	    	             
 	    	             );
+
+
 
   my %subscribe_state = (
   1 => $_STATUS_1,
@@ -32,6 +45,20 @@ my %dr_web_errors = ( 4 => "$_LOGIN $_NOT_EXIST",
   3 => $_STATUS_3,
   4 => $_STATUS_4,
   5 => $_STATUS_5);
+
+
+#Interfaces Version -> operation -> file
+my %INTERFACES = ( 1 => 
+                    { USER_ADD  => 'user_registration.php',
+                    	USER_INFO => 'user_info.php',
+                    	},
+                   2 => 
+                    { USER_ADD  => 'new_user.php',
+                    	USER_INFO => 'get_user_info.php'
+                    	 } 
+                  );
+
+my $drweb_version = $conf{ASHIELD_DRWEB_VERSION} || 1;
 
 
 #1. ќформление новой подписки.
@@ -373,14 +400,17 @@ sub ashield_user {
         #ashield_drweb_user();
         my ($fio1, $fio2)=split(/ /, $users->{FIO}, 2);
         
-        my $result_hash=ashield_drweb_request('interfaces/user_registration.php', {
+        my $result_hash=ashield_drweb_request('interfaces/'. $INTERFACES{$drweb_version}{USER_ADD}, {
       	  login      => "$users->{LOGIN}",
       	  name       => $fio2 || '-',
       	  lastname   => $fio1 || '-',
       	  password   => "$users->{PASSWORD}",
       	  email      => $FORM{EMAIL} || '-',
       	  contract   => "$users->{CONTRACT_ID}",
-      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
+      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD},
+      	  #Version 2 params
+     	    billing_id    => $users->{UID},
+     	    billing_login => $users->{LOGIN},
       	  },
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
@@ -442,39 +472,42 @@ sub ashield_user {
 	 }
 	else {
     $Ashield->{STATUS}=$service_status[$Ashield->{STATUS}];
-    my $result_hash=ashield_drweb_request('interfaces/user_info.php', {
+    my $result_hash=ashield_drweb_request('interfaces/'. $INTERFACES{$drweb_version}{USER_INFO}, {
+      	  login      => "$users->{LOGIN}",
+      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD},
+      	  options    => 1,
+      	  subscribes => 1,
+      	  },
+      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+      	  	});
+
+      if ($result_hash->{error}->[0]->{code}->[0]) {
+        $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+        return 0;
+       }
+
+      while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
+        $Ashield->{$k}=( ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : convert($v->[0], { utf82win => 1 });
+       }
+
+      $html->tpl_show(_include('ashield_client_info', 'Ashield'), $Ashield);
+
+    if ($drweb_version == 1) {
+      $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
       	  login      => "$users->{LOGIN}",
       	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
       	  },
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
-    if ($result_hash->{error}->[0]->{code}->[0]) {
-      $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
-      return 0;
-     }
+      if ($result_hash->{error}->[0]->{code}->[0]) {
+        $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+        return 0;
+       }
 
-    while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
-      $Ashield->{$k}=( ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : convert($v->[0], { utf82win => 1 });
-     }
-
-    $html->tpl_show(_include('ashield_client_info', 'Ashield'), $Ashield);
-
-    $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
-      	  login      => "$users->{LOGIN}",
-      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
-      	  },
-      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
-      	  	});
-
-    if ($result_hash->{error}->[0]->{code}->[0]) {
-      $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
-      return 0;
-     }
-
-    my ($y, $m, $d)=split(/-/, $DATE, 3);
-    my $cur_date="$y$m$d"; 
-  	$table = $html->table( { width      => '100%',
+      my ($y, $m, $d)=split(/-/, $DATE, 3);
+      my $cur_date="$y$m$d"; 
+  	  $table = $html->table( { width      => '100%',
   		                       caption    => "$_AGENTS",
   		                       title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", 
   		                        "$_ACTIVATE", "Online",
@@ -482,54 +515,54 @@ sub ashield_user {
   		                       cols_align => ['left', 'left'],
                             });
 
-    foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) {
-    	my $result_hash2 = ashield_drweb_request('api/2.0/get-customer-info.ds', { id => $k->{uuid}->[0] }); 
-      my $status       = '';
+      foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) {
+    	  my $result_hash2 = ashield_drweb_request('api/2.0/get-customer-info.ds', { id => $k->{uuid}->[0] }); 
+        my $status       = '';
     	
-   	  if ($result_hash2->{error}->[0]->{code}->[0]) {
-        #$html->message('err', $_ERROR, "'$k->{uuid}->[0]' [$result_hash2->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash2->{error}->[0]->{code}->[0]}");
-        $status = "$dr_web_errors{$result_hash2->{error}->[0]->{code}->[0]}";
-       }
+   	    if ($result_hash2->{error}->[0]->{code}->[0]) {
+          #$html->message('err', $_ERROR, "'$k->{uuid}->[0]' [$result_hash2->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash2->{error}->[0]->{code}->[0]}");
+          $status = "$dr_web_errors{$result_hash2->{error}->[0]->{code}->[0]}";
+         }
    	
-      my $create = $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
+        my $create = $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
       
-      #$result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
-      if ($create =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
-        $create     = "$1-$2-$3 $4:$5:$6" || $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
-       }
-    	#$result_hash2->{customers}->[0]->{customer}->[0]->{modifiedtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-    	#my $changed = "$1-$2-$3 $4:$5:$6";
-      my $activated	 = $result_hash2->{customers}->[0]->{customer}->[0]->{activated}->[0];
-      my $online	   = $result_hash2->{customers}->[0]->{customer}->[0]->{online}->[0];
-    	my $name       = $result_hash2->{customers}->[0]->{customer}->[0]->{name}->[0] || $k->{uuid}->[0];
-    	my $graceperiod= '-'; # $result_hash2->{customers}->[0]->{customer}->[0]->{graceperiod}->[0] || '';
-     	$result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+        #$result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
+        if ($create =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
+          $create     = "$1-$2-$3 $4:$5:$6" || $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
+         }
+    	  #$result_hash2->{customers}->[0]->{customer}->[0]->{modifiedtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+    	  #my $changed = "$1-$2-$3 $4:$5:$6";
+        my $activated	 = $result_hash2->{customers}->[0]->{customer}->[0]->{activated}->[0];
+        my $online	   = $result_hash2->{customers}->[0]->{customer}->[0]->{online}->[0];
+    	  my $name       = $result_hash2->{customers}->[0]->{customer}->[0]->{name}->[0] || $k->{uuid}->[0];
+    	  my $graceperiod= '-'; # $result_hash2->{customers}->[0]->{customer}->[0]->{graceperiod}->[0] || '';
+     	  $result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
 
-    	my $expire = "$1$2$3";
-    	if ($expire > 0 && $expire > $cur_date) {
-    		$expire =~ /(\d{4})(\d{2})(\d{2})/;
-    		$status = "$_EXPIRE: $1-$2-$3";
-    	 }
-    	else {
-      	$blockbeg = $result_hash2->{customers}->[0]->{customer}->[0]->{blocking}->[0]->{begin}->[0];
-      	if ($blockbeg > 0 ) {
-   			  $blockbeg =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-  		    $blockbeg = "$1$2$3";
-  		   }
+      	my $expire = "$1$2$3";
+      	if ($expire > 0 && $expire > $cur_date) {
+      		$expire =~ /(\d{4})(\d{2})(\d{2})/;
+    	  	$status = "$_EXPIRE: $1-$2-$3";
+    	   } 
+    	  else {
+      	  $blockbeg = $result_hash2->{customers}->[0]->{customer}->[0]->{blocking}->[0]->{begin}->[0];
+      	  if ($blockbeg > 0 ) {
+     			  $blockbeg =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+    		    $blockbeg = "$1$2$3";
+  	  	   }
+  
+      	  $blockend = $result_hash2->{customers}->[0]->{customer}->[0]->{blocking}->[0]->{end}->[0];
+  	  	  $blockend =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+   		    $blockend = "$1$2$3";
+    		  if ($blockbeg > 0 && $blockbeg < $cur_date && $blockend < $cur_date) {
+    	     }
 
-    	  $blockend = $result_hash2->{customers}->[0]->{customer}->[0]->{blocking}->[0]->{end}->[0];
-  		  $blockend =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-   		  $blockend = "$1$2$3";
-    		if ($blockbeg > 0 && $blockbeg < $cur_date && $blockend < $cur_date) {
+   			  $blockbeg =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
+   			  $blockend =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
+
+          $status = "$_STATUS_4: $blockbeg - $blockend" if ($blockbeg > 0);
     	   }
 
-   			$blockbeg =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
-   			$blockend =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
-
-        $status = "$_STATUS_4: $blockbeg - $blockend" if ($blockbeg > 0);
-    	 }
-
-    	$table->addrow($html->color_mark(convert($name, { utf82win => 1 }), 'code'),
+    	  $table->addrow($html->color_mark(convert($name, { utf82win => 1 }), 'code'),
 #    	               $k->{agentuuid}->[0], 
     	               $k->{tariffplancode}->[0],
     	               ($activated eq 'no') ? $_NO: $_YES,
@@ -542,15 +575,21 @@ sub ashield_user {
     	                  TITLE      => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]" 
     	                  })
     	              );
-     }
-    print $table->show();
+         }
+        print $table->show();
 
 
-    return 0 if ($user->{UID});
- 
+      return 0 if ($user->{UID});
+	   }
+	  #DrWeb New Cabinet Version get agents
+	  else {
+
+	   }
+
+    #show abills log
     if (! $FORM{sort}) {
-    	$LIST_PARAMS{SORT}=7;
-    	$LIST_PARAMS{DESC}='DESC';
+   	  $LIST_PARAMS{SORT}=7;
+   	  $LIST_PARAMS{DESC}='DESC';
      }
 
     my $list =  $Ashield->ashield_avd_list({ %LIST_PARAMS  });
@@ -565,7 +604,7 @@ sub ashield_user {
  
  
     foreach my $line (@$list) {
-    	$table->addrow($line->[0],
+    	  $table->addrow($line->[0],
     	               $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
     	               $subscribe_state{$line->[2]},
     	               $html->color_mark($line->[3],'code'),
@@ -574,10 +613,10 @@ sub ashield_user {
     	               $line->[6],
     	               
     	              );
-      }
+        }
     print $table->show();
     return 0;
-	 } 
+	} 
  
 
   $Ashield->{STATUS_SEL}          = $html->form_select('STATUS', 

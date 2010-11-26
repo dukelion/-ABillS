@@ -53,7 +53,8 @@ if (defined($attr->{USER})) {
       	return 0 if ($FORM{'SHORT_REPORT'});
         $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $FORM{SUM} $er->{ER_SHORT_NAME}");
         $FORM{BONUS_PAYMENT_ID} = $Bonus->{BONUS_PAYMENT_ID};
-        $attr->{USER}->{DEPOSIT}+=$FORM{SUM};
+        $attr->{USER}->{EXT_DEPOSIT}+= $FORM{SUM};
+        $attr->{USER}->{DEPOSIT}    += $FORM{SUM};
         cross_modules_call('_payments_maked', { %$attr, PAYMENT_ID => $Bonus->{BONUS_PAYMENT_ID} });
       }
    }
