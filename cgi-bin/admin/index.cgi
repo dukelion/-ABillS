@@ -4547,7 +4547,7 @@ if (defined($attr->{USER})) {
   $payments->{UID} = $user->{UID};
 
   if ($conf{EXT_BILL_ACCOUNT}) {
-    $BILL_ACCOUNTS{$user->{BILL_ID}} = "$_PRIMARY : $user->{BILL_ID}" if ($user->{BILL_ID}); 
+    $BILL_ACCOUNTS{$user->{BILL_ID}}     = "$_PRIMARY : $user->{BILL_ID}" if ($user->{BILL_ID}); 
     $BILL_ACCOUNTS{$user->{EXT_BILL_ID}} = "$_EXTRA : $user->{EXT_BILL_ID}" if ($user->{EXT_BILL_ID}); 
    }
 
