@@ -5660,7 +5660,7 @@ sub dv_get_month_fee {
          
           if ($conf{EXT_BILL_ACCOUNT}) {
           	if ($user->{EXT_BILL_DEPOSIT} < $sum && $user->{MAIN_BILL_ID}) {
-          		my $sum = $sum - $user->{EXT_BILL_DEPOSIT};
+          		$sum = $sum - $user->{EXT_BILL_DEPOSIT};
               $fees->take($users, $user->{EXT_BILL_DEPOSIT}, { DESCRIBE  => $message, 
         	                            METHOD    => 1, 
         	                            DATE      => "$DATE $TIME"
