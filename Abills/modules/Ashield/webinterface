@@ -398,7 +398,7 @@ sub ashield_user {
       if (! $FORM{STATUS}) {
         #ashield_get_month_fee($Ashield);
         #ashield_drweb_user();
-        my ($fio1, $fio2)=split(/ /, $users->{FIO}, 2);
+        my ($fio1, $fio2, $fio3)=split(/ /, $users->{FIO}, 3);
         
         my $result_hash=ashield_drweb_request('interfaces/'. $INTERFACES{$drweb_version}{USER_ADD}, {
       	  login      => "$users->{LOGIN}",
@@ -411,6 +411,9 @@ sub ashield_user {
       	  #Version 2 params
      	    billing_id    => $users->{UID},
      	    billing_login => $users->{LOGIN},
+     	    name          => $fio2 || '-',
+          patronymic    => $fio3 || '-',
+          last_name     => $fio1 || '-',
       	  },
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
@@ -487,8 +490,10 @@ sub ashield_user {
        }
 
       while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
-        $Ashield->{$k}=( ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : convert($v->[0], { utf82win => 1 });
+        $Ashield->{$k}=(ref $v eq 'ARRAY' && ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : (ref $v eq 'ARRAY') ? convert($v->[0], { utf82win => 1 }) : $v;
        }
+
+      $Ashield->{agents_total}=%{ $result_hash->{user}->[0]->{agents}->[0] };
 
       $html->tpl_show(_include('ashield_client_info', 'Ashield'), $Ashield);
 
@@ -504,16 +509,19 @@ sub ashield_user {
         $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
         return 0;
        }
+     }
+    else {
+    	$result_hash = $result_hash->{user}->[0];
+     }
 
-      my ($y, $m, $d)=split(/-/, $DATE, 3);
-      my $cur_date="$y$m$d"; 
-  	  $table = $html->table( { width      => '100%',
-  		                       caption    => "$_AGENTS",
-  		                       title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", 
-  		                        "$_ACTIVATE", "Online",
+    my ($y, $m, $d)=split(/-/, $DATE, 3);
+    my $cur_date="$y$m$d"; 
+  	$table = $html->table({ width      => '100%',
+  		                      caption    => "$_AGENTS",
+  		                      title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", "$_ACTIVATE", "Online",
   		                        "$_CREATED", "$_STATUS", "$_GRACEPERIOD", "URL"],
-  		                       cols_align => ['left', 'left'],
-                            });
+  		                      cols_align => ['left', 'left'],
+                          });
 
       foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) {
     	  my $result_hash2 = ashield_drweb_request('api/2.0/get-customer-info.ds', { id => $k->{uuid}->[0] }); 
@@ -579,12 +587,7 @@ sub ashield_user {
         print $table->show();
 
 
-      return 0 if ($user->{UID});
-	   }
-	  #DrWeb New Cabinet Version get agents
-	  else {
-
-	   }
+    return 0 if ($user->{UID});
 
     #show abills log
     if (! $FORM{sort}) {
