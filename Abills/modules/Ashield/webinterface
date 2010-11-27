@@ -998,6 +998,20 @@ my $table = $html->table( { width      => '100%',
                             ID         => 'ASHIELD_USERS'
                            });
 
+my %agents_list = ();
+if ($drweb_version != 1) {
+	my $result_hash=ashield_drweb_request('interfaces/get_users_list.php', {
+      	  subscribes      => 1,
+      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
+      	  },
+      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+      	  	});
+
+   foreach my $val (@{ $result_hash->{user}->[0]  }) {
+     my $login = $result_hash->{user}->[0]->{login}->[0];
+     $agents_list{$login} = $result_hash->{user}->[0]->{agents};
+   }
+}
 
 foreach my $line (@$list) {
   my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Ashield->{SEARCH_FIELDS_COUNT}], { BUTTON => 1 }) : ''; 
@@ -1007,21 +1021,26 @@ foreach my $line (@$list) {
      push @fields_array, $line->[6+$i];
    }
 
-  my $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
+  if ($drweb_version == 1) {
+    my $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
       	  login      => $line->[0],
       	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
       	  },
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
-  my $agents =  0;
-  if ($result_hash->{error}->[0]->{code}->[0]) {
-    $agents = "[$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]}";
+    my $agents =  0;
+    if ($result_hash->{error}->[0]->{code}->[0]) {
+      $agents = "[$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]}";
+     }
+    else {
+      $agents = $#{ $result_hash->{agents}->[0]->{agent} } + 1;
+     }
    }
   else {
-    $agents = $#{ $result_hash->{agents}->[0]->{agent} } + 1;
-   }
-
+  	$agents=$agents_list{$line->[0]};
+   } 
+ 
   $table->addrow(
    $html->button("$line->[0]", "index=15&MODULE=Ashield&UID=". $line->[6+$Ashield->{SEARCH_FIELDS_COUNT}]), 
    "$line->[1]",
@@ -1465,6 +1484,20 @@ sub ashield_monthly {
    	 }
  	}
 
+my %agents_list = ();
+if ($drweb_version != 1) {
+	my $result_hash=ashield_drweb_request('interfaces/get_users_list.php', {
+      	  subscribes      => 1,
+      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
+      	  },
+      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+      	  	});
+
+   foreach my $val (@{ $result_hash->{user}->[0]  }) {
+     my $login = $result_hash->{user}->[0]->{login}->[0];
+     $agents_list{$login} = $result_hash->{user}->[0];
+   }
+}
 
  
  #Billing Users list
@@ -1477,13 +1510,18 @@ sub ashield_monthly {
  	              CREDIT  => $line->[3],
  	              REDUCTION => $line->[13],
  	                 );
-
-   $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
+   
+   if ($drweb_version == 1) {
+     $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
       	  login      => "$user{LOGIN}",
       	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
       	  },
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
+    }
+   else {
+     $result_hash=$agents_list{$line->[0]};
+    }
 
    foreach my $agent (@{ $result_hash->{agents}->[0]->{agent} }) {
    	 my $agent_id = $agent->{uuid}->[0];

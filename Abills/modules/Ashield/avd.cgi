@@ -111,6 +111,7 @@ my $Ashield = Ashield->new($db, $admin, \%conf);
 my $Tariffs = Tariffs->new($db, \%conf, $admin);
 my $Fees    = Fees->new($db, $admin, \%conf);
 
+my $drweb_version = $conf{ASHIELD_DRWEB_VERSION} || 1;
 
 #debug =========================================
 my $output2 = '';
@@ -193,6 +194,9 @@ else {
 
 my $status  = $_xml->{'action'}->[0]->{type}->[0];
 my $agent   = $_xml->{'action'}->[0]->{agentuuid}->[0];
+my ($y, $m, $d)=split(/-/, $DATE, 3);
+my $cur_date="$y$m$d"; 
+
 
 if ($status < 4) {
   my $login   = $_xml->{'login'}->[0];
@@ -212,14 +216,27 @@ if ($status < 4) {
 	  
 	  if ( $status == 3 ) {
        #get TP
-	     my $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
+	     my $result_hash;
+	     if ($drweb_version == 1) {
+	       $result_hash = ashield_drweb_request('interfaces/user_agents.php', {
       	  login      => "$users->{LOGIN}",
       	  id         => "$agent",
       	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
       	  },
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
-
+         }
+       else {
+       	  $result_hash=ashield_drweb_request('interfaces/get_user_info.php', {
+      	  login      => "$users->{LOGIN}",
+      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD},
+      	  options    => 1,
+      	  subscribes => 1,
+      	  },
+      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+      	  	});
+       	 $result_hash = $result_hash->{user}->[0];
+        } 
        foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) { 
 	       if ($k->{uuid}->[0] eq $agent) {
 	       	 $TP_NAME = $k->{tariffplancode}->[0];
@@ -234,13 +251,26 @@ if ($status < 4) {
     	  mk_log("Tariff not exists. TP: '$TP_NAME'");
        }
       else {
-        my $agents_result_hash=ashield_drweb_request('interfaces/user_agents.php', {
-       	  login      => "$users->{LOGIN}",
-      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
-      	  },
-      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
-      	  	});
-
+		    my $agents_result_hash;
+	      if ($drweb_version == 1) {
+          my $agents_result_hash=ashield_drweb_request('interfaces/user_agents.php', {
+       	    login      => "$users->{LOGIN}",
+      	    checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
+      	    },
+      	     { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+      	  	  });
+         }
+        else {
+        	 $agents_result_hash=ashield_drweb_request('interfaces/get_user_info.php', {
+      	     login      => "$users->{LOGIN}",
+      	     checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD},
+      	     options    => 1,
+      	     subscribes => 1,
+      	    },
+      	   { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+      	  	  });
+       	   $agents_result_hash = $agents_result_hash->{user}->[0];
+         }
         my $agent_count = $#{ $agents_result_hash->{agents}->[0]->{agent} };
 
         my $sum = $Tariffs->{MONTH_FEE};  
@@ -284,9 +314,6 @@ if ($status < 4) {
          }
       #block account
         else {
-          my ($y, $m, $d)=split(/-/, $DATE, 3);
-          my $cur_date="$y$m$d"; 
-
         	my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
  	     	 	   id       => $_xml->{'action'}->[0]->{agentuuid}->[0], 
  	     	 	   blockbeg => $cur_date,
