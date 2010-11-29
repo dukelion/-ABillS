@@ -239,7 +239,7 @@ if ($status < 4) {
         } 
        foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) { 
 	       if ($k->{uuid}->[0] eq $agent) {
-	       	 $TP_NAME = $k->{tariffplancode}->[0];
+	       	 $TP_NAME = $k->{'current-tariff'}->[0] || $k->{tariffplancode}->[0];
 	       	 last;
 	        }
 	      }

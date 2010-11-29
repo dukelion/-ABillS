@@ -570,9 +570,20 @@ sub ashield_user {
           $status = "$_STATUS_4: $blockbeg - $blockend" if ($blockbeg > 0);
     	   }
 
+        my $tp = $k->{'current-tariff'}->[0] || $k->{tariffplancode}->[0];
+#        current-tariff
+#        subscription-period
+#        uuid
+#        unsubscribed
+#        password
+#        createdtime
+#        auto-prolongation
+#        grace-period
+        
+
     	  $table->addrow($html->color_mark(convert($name, { utf82win => 1 }), 'code'),
 #    	               $k->{agentuuid}->[0], 
-    	               $k->{tariffplancode}->[0],
+    	               $tp,
     	               ($activated eq 'no') ? $_NO: $_YES,
                      ($online eq 'no') ? $_NO : $_YES,
     	               $create,
@@ -883,7 +894,6 @@ sub ashield_users_list {
 	 return 0;
   }
 
-
  my $result_hash = ashield_drweb_request('api/2.0/get-customer-info.ds', {  }); 
  my $drweb_total_users = $result_hash->{customers}->[0]->{total};
  my %drweb_logins = ();
@@ -897,7 +907,6 @@ sub ashield_users_list {
  if ($attr->{TP}) {
  	 $FORM{TP_ID} = $FORM{TP_NUM} if ($FORM{TP_NUM});
    $LIST_PARAMS{TP_ID} = $FORM{TP_ID};
-   #$pages_qs .= "&TP_ID=$FORM{TP_ID}";
   }
  elsif($FORM{TP_ID} || $FORM{TP_NUM}) {
  	 $FORM{TP_ID} = $FORM{TP_NUM} if ($FORM{TP_NUM});
@@ -1007,10 +1016,10 @@ if ($drweb_version != 1) {
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
-   foreach my $val (@{ $result_hash->{user}->[0]  }) {
-     my $login = $result_hash->{user}->[0]->{login}->[0];
-     $agents_list{$login} = $result_hash->{user}->[0]->{agents};
-   }
+   foreach my $val (@{ $result_hash->{user}  }) {
+     my $login = $val->{login};
+     $agents_list{$login} = $result_hash->{user}->[0]->{agents}->[0]->{total} ;   
+    }
 }
 
 foreach my $line (@$list) {

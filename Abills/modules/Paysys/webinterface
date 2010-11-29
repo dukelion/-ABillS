@@ -39,7 +39,8 @@ my %PAY_SYSTEMS = (41 => "Webmoney",
                    59 => "QIWI",
                    60 => "Ibox",
                    61 => "OSMPv4",
-                   62 => 'LiqPAY'
+                   62 => 'LiqPAY',
+                   63 => 'UkrNET'
                   );
 
 my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
@@ -64,6 +65,7 @@ my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
                    PAYSYS_IBOX_ACCOUNT_KEY   => 60,
                    PAYSYS_OSMP_ACCOUNT_KEY   => 61,
                    PAYSYS_LIQPAY_MERCHANT_ID => 62,
+                   PAYSYS_UKRNET_ACCOUNT_KEY => 63,
                   );
 
 

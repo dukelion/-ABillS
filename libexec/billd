@@ -209,9 +209,9 @@ sub check_lines {
 
 	$LIST_PARAMS{NAS_IDS}=$ARGV->{NAS_IDS} if ($ARGV->{NAS_IDS});
 
-	my $online = $sessions->{nas_sorted};
+	my $online   = $sessions->{nas_sorted};
   my $nas_list = $nas->list({ %LIST_PARAMS });
-  my %NAS  = ();
+  my %NAS      = ();
 
   require Acct;
   Acct->import();
@@ -283,7 +283,7 @@ sub check_lines {
       }
        
           
-      #hangup connaction if max ext traffic reached
+      #hangup connection if max ext traffic reached
 #      if (($NAS{NAS_TYPE} eq 'exppp' && ($acct_input_octets_ext > $exppp_hanguplimit 
 #         || $acct_output_octets_ext > $exppp_hanguplimit))
 #         || $state 
@@ -333,6 +333,7 @@ sub check_lines {
            $ACCT_INFO->{ACCT_STATUS_TYPE}     = 'Stop';
            $ACCT_INFO->{ACCT_SESSION_TIME}    = $acct_session_time;
            $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 23;
+           $ACCT_INFO->{ACCT_SESSION_ID}      = $acct_session_id;
 
            my $r = $Acct->accounting($ACCT_INFO, \%NAS);
            my $info = '';
