@@ -200,8 +200,8 @@ if ($FORM{AWEB_OPTIONS}) {
 
 
 #===========================================================
-my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP],  # Users
-               [$_LIST, $_ADD, $_DEL, $_ALL, $_DATE],                                 # Payments
+my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP, "$_SHOW $_DELETED"],  # Users
+               [$_LIST, $_ADD, $_DEL, $_ALL, $_DATE],                         # Payments
                [$_LIST, $_GET, $_DEL, $_ALL],                                 # Fees
                [$_LIST, $_DEL],                                               # reports view
                [$_LIST, $_ADD, $_CHANGE, $_DEL, $_ADMINS, "$_SYSTEM $_LOG", $_DOMAINS],                    # system magment
@@ -1140,11 +1140,13 @@ sub user_info {
 
 	my $user_info = $users->info( $UID , { %FORM });
   
+  my $deleted = ($user_info->{DELETED}) ? $html->color_mark($html->b($_DELETED), '#FF0000') : '';
+  
   $table = $html->table({ width      => '100%',
   	                      rowcolor   => 'even',
   	                      border     => 0,
                           cols_align => ['left:noprint'],
-                          rows       => [ [ "$_USER: ". $html->button($html->b($user_info->{LOGIN}), "index=15&UID=$user_info->{UID}"). " (UID: $user_info->{UID})" ] ]
+                          rows       => [ [ "$_USER: ". $html->button($html->b($user_info->{LOGIN}), "index=15&UID=$user_info->{UID}"). " (UID: $user_info->{UID}) $deleted" ] ]
                         });
 
   $user_info->{TABLE_SHOW} = $table->show();
@@ -1518,7 +1520,14 @@ foreach my $k (sort { $b <=> $a } keys %userform_menus) {
   $second_menu .= "<li class=umenu_item>" . $html->button($a,  "$url").'</li>';
 }
 
-$second_menu .= "<li class=umenu_item>". $html->button($_DEL, "index=15&del_user=y&UID=$user_info->{UID}", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }).'</li>' if (defined($permissions{0}{5}));
+
+my $full_delete = '';
+if ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8} && ($user_info->{DELETED})) {
+  $second_menu .= "<li class=umenu_item>". $html->button($_UNDELETE, "index=15&del_user=1&UNDELETE=1&UID=$user_info->{UID}&is_js_confirmed=1").'</li>';
+  $full_delete = "&FULL_DELETE=1";
+}
+
+$second_menu .= "<li class=umenu_item>". $html->button($_DEL, "index=15&del_user=1&UID=$user_info->{UID}$full_delete", { MESSAGE => "$_USER: $user_info->{LOGIN} / $user_info->{UID}" }).'</li>' if (defined($permissions{0}{5}));
 
 print "
 </td><td bgcolor='$_COLORS[3]' valign='top' width='180'>
@@ -1813,9 +1822,30 @@ sub user_del {
   my ($attr) = @_;
   
   my $user_info = $attr->{USER};
-  $user_info->del();
+  
+  if ($FORM{UNDELETE}) {
+  	$user_info->change($user_info->{UID}, { UID => $user_info->{UID}, DELETED => 0 });
+  	$html->message('info', $_UNDELETED, "UID: [$user_info->{UID}] $_UNDELETED $user_info->{LOGIN}");
+    return 0;	
+   }
+  
+  
+  $user_info->del({ %FORM });
   $conf{DELETE_USER}=$user_info->{UID};
 
+  if ($user_info->{errno}) {
+    $html->message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
+   }
+  else {
+  	if ($conf{external_userdel}) {
+      if (! _external($conf{external_userdel}, { LOGIN => $email_u, %FORM,  %$user_info }) ) {
+         $html->message('err', $_DELETED, "External cmd: $conf{external_userdel}");
+        }
+     }
+    $html->message('info', $_DELETED, "UID: [$user_info->{UID}] $_DELETED $users->{info}");
+   }
+
+if ($FORM{FULL_DELETE}) {
   my $mods = '';
   foreach my $mod (@MODULES) {
   	$mods .= "$mod,";
@@ -1838,7 +1868,8 @@ sub user_del {
 
     $html->message('info', $_DELETED, "UID: [$user_info->{UID}] $_DELETED $users->{info} $_MODULES: $mods");
    }
- 
+ }
+
   return 0;
 }
 
@@ -2167,8 +2198,6 @@ elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
  }
 
 
-#u.id, aa.datetime, aa.actions, a.name, INET_NTOA(aa.ip),  aa.UID, aa.aid, aa.id
-
 if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=1;
   $LIST_PARAMS{DESC}=DESC;
@@ -2276,8 +2305,6 @@ elsif($FORM{AID} && ! defined($LIST_PARAMS{AID})) {
 	return 0;
  }
 
-
-#u.id, aa.datetime, aa.actions, a.name, INET_NTOA(aa.ip),  aa.UID, aa.aid, aa.id
 
 if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=1;
@@ -2966,13 +2993,12 @@ sub form_admin_permissions {
   }
 
  %permits = %$p;
- 
 
-my $table = $html->table( { width       => '400',
-                             border      => 1,
-                             caption     => "$_PERMISSION",
-                             title_plain => ['ID', $_NAME, ''],
-                             cols_align  => ['right', 'left', 'center'],
+my $table = $html->table( { width       => '90%',
+                            border      => 1,
+                            caption     => "$_PERMISSION",
+                            title_plain => ['ID', $_NAME, $_DESCRIBE, '-'],
+                            cols_align  => ['right', 'left', 'center'],
                         } );
 
 
@@ -2981,14 +3007,14 @@ foreach my $k ( sort keys %menu_items ) {
   
   if (defined($menu_items{$k}{0}) && $k > 0) {
   	$table->{rowcolor}='row_active';
-  	$table->addrow("$k:", $html->b($menu_items{$k}{0}), '');
+  	$table->addrow("$k:", $html->b($menu_items{$k}{0}), '', '');
     $k--;
     my $actions_list = $actions[$k];
     my $action_index = 0;
     $table->{rowcolor}=undef;
     foreach my $action (@$actions_list) {
 
-      $table->addrow("$action_index", "$action", 
+      $table->addrow("$action_index", "$action", '',
       $html->form_input($k."_$action_index", 'yes', { TYPE          => 'checkbox',
        	                                              OUTPUT2RETURN => 1,
        	                                              STATE         => (defined($permits{$k}{$action_index})) ? '1' : undef  
@@ -3004,12 +3030,12 @@ if (in_array('Multidoms', \@MODULES)) {
   	my $k=10;
 
   	$table->{rowcolor}='row_active';
-  	$table->addrow("10:", $html->b($_DOMAINS), '');
+  	$table->addrow("10:", $html->b($_DOMAINS), '', '');
     my $actions_list  = $actions[9];
     my $action_index  = 0;
     $table->{rowcolor}= undef;
     foreach my $action (@$actions_list) {
-      $table->addrow("$action_index", "$action", 
+      $table->addrow("$action_index", "$action", '',
       $html->form_input($k."_$action_index", 'yes', { TYPE          => 'checkbox',
        	                                              OUTPUT2RETURN => 1,
        	                                              STATE         => (defined($permits{$k}{$action_index})) ? '1' : undef  
@@ -3020,7 +3046,7 @@ if (in_array('Multidoms', \@MODULES)) {
      }
 }
 
-my $table2 = $html->table( { width       => '400',
+my $table2 = $html->table( { width       => '500',
                             border      => 1,
                             caption     => "$_MODULES",
                             title_plain => [$_NAME, ''],

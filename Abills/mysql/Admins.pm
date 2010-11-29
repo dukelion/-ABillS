@@ -66,7 +66,6 @@ sub admins_groups_list {
 sub admin_groups_change {
 	my $self = shift;
 	my ($attr) = @_;
-
   
   $self->query($db, "DELETE FROM admins_groups WHERE aid='$self->{AID}';", 'do');
   my @groups = split(/,/, $attr->{GID});

@@ -919,12 +919,6 @@ INSERT INTO traffic_classes (name, nets) VALUES ('Global', '0.0.0.0/0');
 
 
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `users`
-#
-
 CREATE TABLE `users` (
   `id` varchar(20) NOT NULL default '',
   `activate` date NOT NULL default '0000-00-00',
@@ -942,11 +936,12 @@ CREATE TABLE `users` (
   `ext_bill_id` int(10) unsigned NOT NULL DEFAULT '0',
   `credit_date` date default '0000-00-00',
   `domain_id` smallint(6) unsigned not null default 0,
+  `deleted` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`uid`),
   UNIQUE KEY `id` (domain_id, id),
   KEY `bill_id` (`bill_id`), 
   KEY `company_id` (`company_id`)
-);
+) COMMENT='Users list';
 
 
 CREATE TABLE `web_users_sessions` (

@@ -14,6 +14,7 @@ $_CHANGE='Change';
 $_CHANGING='Changing';
 $_ADDED='Added';
 $_DELETED='Deleted';
+$_UNDELETE='Undelete';
 $_CHANGED='Changed';
 $_ROWS='Rows';
 $_FEES='Fees';

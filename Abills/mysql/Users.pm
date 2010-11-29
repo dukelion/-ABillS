@@ -82,8 +82,6 @@ sub info {
   	$password="DECODE(u.password, '$CONF->{secretkey}')";
    }
 
-
-
   $self->query($db, "SELECT u.uid,
    u.gid, 
    g.name,
@@ -101,6 +99,7 @@ sub info {
    u.reduction_date,
    if(c.name IS NULL, 0, c.credit),
    u.domain_id,
+   u.deleted,
    $password
      FROM users u
      LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -114,7 +113,6 @@ sub info {
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
-
   
   ($self->{UID},
    $self->{GID},
@@ -137,9 +135,16 @@ sub info {
    $self->{REDUCTION_DATE},
    $self->{COMPANY_CREDIT},
    $self->{DOMAIN_ID},
+   $self->{DELETED},
    $self->{PASSWORD}
  )= @{ $self->{list}->[0] };
  
+  if ((! $admin->{permissions}->{0} || ! $admin->{permissions}->{0}->{8}) && ($self->{DELETED})) {
+    $self->{errno} = 2;
+    $self->{errstr} = 'ERROR_NOT_EXIST';
+    return $self;
+   }
+
  
  if ($CONF->{EXT_BILL_ACCOUNT} && $self->{EXT_BILL_ID} && $self->{EXT_BILL_ID} > 0) {
  	 $self->query($db, "SELECT b.deposit, b.uid
@@ -736,6 +741,10 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
+ if ($attr->{CONTRACT_SUFIX}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{CONTRACT_SUFIX}, 'STR', 'pi.contract_sufix', { EXT_FIELD => 1 }) }; 
+  }
+
  if ($attr->{CONTRACT_DATE}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{CONTRACT_DATE}", 'DATE', 'pi.contract_date', { EXT_FIELD => 1 }) };
   }
@@ -812,6 +821,10 @@ sub list {
 #Expire
  if ($attr->{EXPIRE}) {
    push @WHERE_RULES,  @{ $self->search_expr($attr->{EXPIRE}, 'INT', 'u.expire', { EXT_FIELD => 1 })  };
+  }
+
+ if (! $admin->{permissions}->{0} || ! $admin->{permissions}->{0}->{8}) {
+	 push @WHERE_RULES,  @{ $self->search_expr(0, 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
   }
 
 #Info fields
@@ -1075,6 +1088,7 @@ sub change {
               CREDIT_DATE => 'credit_date',
               REDUCTION_DATE => 'reduction_date',
               DOMAIN_ID   => 'domain_id',
+              DELETED     => 'deleted'
              );
 
   my $old_info = $self->info($attr->{UID});
@@ -1143,7 +1157,8 @@ sub del {
   my $self = shift;
   my ($attr) = @_;
 
-  my @clear_db = ('admin_actions', 
+  if ($attr->{FULL_DELETE}) {
+    my @clear_db = ('admin_actions', 
                   'fees', 
                   'payments', 
                   'users_nas', 
@@ -1151,14 +1166,19 @@ sub del {
                   'users_pi');
 
 
-  $self->{info}='';
-  foreach my $table (@clear_db) {
-     $self->query($db, "DELETE from $table WHERE uid='$self->{UID}';", 'do');
-     $self->{info} .= "$table, ";
-    }
+    $self->{info}='';
+    foreach my $table (@clear_db) {
+      $self->query($db, "DELETE from $table WHERE uid='$self->{UID}';", 'do');
+      $self->{info} .= "$table, ";
+     }
 
-  $admin->{MODULE}='';
-  $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}", {  TYPE => 12 });
+    $admin->{MODULE}='';
+    $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}", {  TYPE => 12 });
+   }
+  else {
+  	$self->change($self->{UID}, { DELETED => 1, UID => $self->{UID}  });
+   }
+
   return $self->{result};
 }
 
