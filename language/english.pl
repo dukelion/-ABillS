@@ -452,4 +452,3 @@ $_ACTION='Action';
 $_EXECUTE='Execute';
 $_PAY='Pay';
 $_GRAPH='Charts for';
-

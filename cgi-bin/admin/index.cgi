@@ -2,7 +2,6 @@
 # 
 # http://www.maani.us/charts/index.php
 
-
 BEGIN {
   my $libpath = '../../';
   $sql_type='mysql';
@@ -1440,8 +1439,7 @@ if(defined($attr->{USER})) {
         if (! _external($conf{external_userchange}, { %FORM }) ) {
      	    return 0;
          }
-       }
-      
+       }      
      }
    }
   elsif ($FORM{del_user} && $FORM{is_js_confirmed} && $index == 15 && $permissions{0}{5} ) {
@@ -1651,6 +1649,38 @@ if ($FORM{debs}) {
    $pages_qs .= "&letter=$FORM{letter}";
   } 
 
+my @statuses = ($_ALL, $_DEBETORS, $_DISABLE, $_EXPIRE);
+if ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8}) {
+  push @statuses, $_DELETED,
+}
+
+my $i=0;
+my $users_status = 0;
+foreach my $name ( @statuses ) {
+	if (defined($FORM{USERS_STATUS}) && $FORM{USERS_STATUS} == $i && $FORM{USERS_STATUS} ne '') {
+    if ($i == 1) {
+      $LIST_PARAMS{DEPOSIT}='<0';
+     }
+    elsif ($i == 2) {
+    	$LIST_PARAMS{DISABLE}=1;
+     }
+    elsif ($i == 3) {
+    	$LIST_PARAMS{EXPIRE}="<$DATE,>0000-00-00";
+     }
+    elsif ($i == 4) {
+    	$LIST_PARAMS{DELETED}=1;
+     }
+
+    $pages_qs   .= "&USERS_STATUS=$i";
+    $status_bar .= ' '.$html->b($name);
+    $users_status = $i;
+	 }
+	else {
+	  $status_bar .= ' '.$html->button("$name", "index=$index&USERS_STATUS=$i$pages_qs");
+	 }
+  $i++;
+}
+
 my $list = $users->list( { %LIST_PARAMS } );
 
 if ($users->{errno}) {
@@ -1696,7 +1726,8 @@ my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$
                   'u.domain_id'       => 'DOMAIN ID',
                   'builds.number'     => "$_BUILDS",
                   'streets.name'      => "$_STREETS",
-                  'districts.name'    => "$_DISTRICTS"
+                  'districts.name'    => "$_DISTRICTS",
+                  'u.deleted'         => "$_DELETED"
                     );
 
 if ($users->{EXTRA_FIELDS}) {
@@ -1722,10 +1753,9 @@ for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++) {
 	$TITLE[5+$i] = $SEARCH_TITLES{$EX_TITLE_ARR[$i]} || "$_SEARCH";
  }
 
-
 #User list
 my $table = $html->table( { width      => '100%',
-                            caption    => $_USERS,
+                            caption    => "$_USERS - ". $statuses[$users_status],
                             title      => \@TITLE,
                             cols_align => ['left', 'left', 'right', 'right', 'center', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
@@ -1742,9 +1772,11 @@ function CheckAllINBOX() {
 }
 //-->
 </script>\n
-<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n" : undef
+<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n$status_bar" : undef
+                         });
 
-                          });
+
+
 
 foreach my $line (@$list) {
   my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { BUTTON => 1 }) : ''; 

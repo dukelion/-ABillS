@@ -313,12 +313,6 @@ CREATE TABLE `dv_main` (
   KEY CID (CID)
 ) COMMENT='Dv accounts' ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `exchange_rate`
-#
-
 CREATE TABLE `exchange_rate` (
   `money` varchar(30) NOT NULL default '',
   `short_name` varchar(30) NOT NULL default '',
@@ -328,7 +322,7 @@ CREATE TABLE `exchange_rate` (
   UNIQUE KEY `money` (`money`),
   UNIQUE KEY `short_name` (`short_name`),
   UNIQUE KEY `id` (`id`)
-) ;
+) COMMENT='Exchange rate' ;;
 
 
 CREATE TABLE `fees` (
@@ -368,21 +362,12 @@ CREATE TABLE `groups` (
   UNIQUE KEY `name` (`domain_id`, `name`)
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `holidays`
-#
 
 CREATE TABLE `holidays` (
   `day` varchar(5) NOT NULL default '',
   `descr` varchar(100) NOT NULL default '',
   PRIMARY KEY  (`day`)
 ) ;
-
-#
-# Структура таблиці `intervals`
-#
 
 CREATE TABLE `intervals` (
   `tp_id` smallint(6) unsigned NOT NULL default '0',

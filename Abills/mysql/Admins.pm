@@ -7,7 +7,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
 
 use Exporter;
-$VERSION = 2.01;
+$VERSION = 2.05;
 @ISA = ('Exporter');
 
 @EXPORT = qw(
