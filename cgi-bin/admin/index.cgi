@@ -1681,7 +1681,7 @@ foreach my $name ( @statuses ) {
   $i++;
 }
 
-my $list = $users->list( { %LIST_PARAMS } );
+my $list = $users->list( { %LIST_PARAMS, FULL_LIST => 1 } );
 
 if ($users->{errno}) {
   $html->message('err', $_ERROR, "[$users->{errno}] $err_strs{$users->{errno}}");	
@@ -1806,10 +1806,24 @@ foreach my $line (@$list) {
 }
 
 
-  my $table2 = $html->table( { width      => '100%',
-                             cols_align => ['right', 'right'],
-                             rows       => [ [ "$_TOTAL:", $html->b($users->{TOTAL}) ] ]
-                          });
+  my @totals_rows = ([ $html->button("$_TOTAL:", "index=$index&USERS_STATUS=0"), $html->b($users->{TOTAL}) ],
+                     [ $html->button("$_EXPIRE:", "index=$index&USERS_STATUS=2"), $html->b($users->{TOTAL_EXPIRED}) ],
+                     [ $html->button("$_DISABLE:", "index=$index&USERS_STATUS=3"), $html->b($users->{TOTAL_DISABLED}) ]
+                     );
+                                             
+
+  if ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8}) {
+  	$users->{TOTAL} -= $users->{TOTAL_DELETED};
+  	$totals_rows[0] = [ $html->button("$_TOTAL:", "index=$index&USERS_STATUS=0"), $html->b($users->{TOTAL}) ];
+  	push @totals_rows,  [$html->button("$_DELETED:", "index=$index&USERS_STATUS=4"),  $html->b($users->{TOTAL_DELETED})],
+   }
+
+  
+
+  my $table2 = $html->table({ width      => '100%',
+                              cols_align => ['right', 'right'],
+                               rows       => [ @totals_rows ]
+                            });
 
 
 if ($permissions{0}{7}) {

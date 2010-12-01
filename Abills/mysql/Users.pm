@@ -983,15 +983,22 @@ if ($self->{TOTAL} > 0) {
 
  $list = $self->{list};
 
- if ($self->{TOTAL} == $PAGE_ROWS || $PG > 0) {
-    $self->query($db, "SELECT count(u.id) FROM users u 
+ if ($self->{TOTAL} == $PAGE_ROWS || $PG > 0 || $attr->{FULL_LIST}) {
+    $self->query($db, "SELECT count(u.id), 
+     sum(if(u.expire<curdate() AND u.expire<>'0000-00-00', 1, 0)), 
+     sum(u.disable),
+     sum(u.deleted)
+     FROM users u 
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
      LEFT JOIN companies company ON  (u.company_id=company.id) 
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      $EXT_TABLES
     $WHERE");
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+    ($self->{TOTAL}, 
+     $self->{TOTAL_EXPIRED}, 
+     $self->{TOTAL_DISABLED}, 
+     $self->{TOTAL_DELETED}) = @{ $self->{list}->[0] };
    }
 
   return $list;

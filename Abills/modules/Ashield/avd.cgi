@@ -48,6 +48,21 @@ my $db     = $sql->{db};
 #Operation status
 my $status = '';
 
+$admin = Admins->new($db, \%conf);
+$users = Users->new($db, $admin, \%conf); 
+my $Ashield = Ashield->new($db, $admin, \%conf);
+my $Tariffs = Tariffs->new($db, \%conf, $admin);
+my $Fees    = Fees->new($db, $admin, \%conf);
+
+
+my $drweb_version = $conf{ASHIELD_DRWEB_VERSION} || 1;
+if ($drweb_version != 1) {
+	drweb_periodic();
+	
+	exit;
+}
+
+
 #Check allow ips
 if ($conf{PAYSYS_IPS}) {
 	$conf{PAYSYS_IPS}=~s/ //g;
@@ -103,13 +118,10 @@ if ($conf{PAYSYS_PASSWD}) {
   }
 }
 
-$admin = Admins->new($db, \%conf);
+
+
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 $payments = Finance->payments($db, $admin, \%conf);
-$users = Users->new($db, $admin, \%conf); 
-my $Ashield = Ashield->new($db, $admin, \%conf);
-my $Tariffs = Tariffs->new($db, \%conf, $admin);
-my $Fees    = Fees->new($db, $admin, \%conf);
 
 my $drweb_version = $conf{ASHIELD_DRWEB_VERSION} || 1;
 
@@ -365,5 +377,15 @@ sub mk_log {
     print "Can't open file '/tmp/avd.log' $! \n";
    }
 }
+
+
+#**********************************************************
+# drweb_periodic
+#**********************************************************
+sub drweb_periodic {
+	
+	
+}
+
 
 1
