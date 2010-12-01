@@ -145,7 +145,7 @@ elsif( $FORM{sender_phone} && $FORM{pay_way}) {
   liqpay_payments();
 	exit;
  }
-elsif( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) ) {
+elsif( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ( $FORM{command} && $FORM{account}  ) ) {
 	osmp_payments();
  }
 elsif ($FORM{SHOPORDERNUMBER}) {

@@ -4326,7 +4326,7 @@ sub dv_monthly_fees {
          	  	# Small deposit
         	  	if ($small_deposit_block && $user{EXT_DEPOSIT} + $user{DEPOSIT} + $user{CREDIT} < $sum) {
        	  		
-           	  		goto SMALL_DEPOSIT_LABEL;
+           	  	goto SMALL_DEPOSIT_LABEL;
          	  	 }
            	  elsif ($sum > $user{EXT_DEPOSIT} && $user{EXT_DEPOSIT} > 0) {
            	    # Take some sum from ext deposit other from main
@@ -4350,6 +4350,9 @@ sub dv_monthly_fees {
                }
               elsif ( $user{EXT_DEPOSIT} <= 0) {
               	$user{BILL_ID}= $user{MAIN_BILL_ID};
+               }
+              else {
+              	$user{DEPOSIT} = $user{EXT_DEPOSIT};
                }
             } 
    
