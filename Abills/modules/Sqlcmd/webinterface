@@ -1064,17 +1064,13 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
                                                   $conf{'SQLCMD_HOST'. $id .'_DB'}, 
                                                   $conf{'SQLCMD_HOST'. $id .'_USER'}, 
                                                   $conf{'SQLCMD_HOST'. $id .'_PASSWD'},
-
     { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
 
 
     if (! $sql->{db}) {
-    	$html->messages('info', $_INFO, "Can't connect to '$host'");
-    	
+    	$html->messages('info', $_INFO, "Can't connect to $host '". $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'} ."'");    	
     	return 0;
      }
-
-    
 
     my $db_slave = $sql->{db};
 
@@ -1086,13 +1082,23 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
     my $q = $db_slave->prepare("$query",  { "mysql_use_result" => ($query !~ /!SELECT/gi ) ? 0 : 1   } ) || die $db_slave->errstr;
     $q->execute(); 
     
+    if ($q->err) {
+      $html->message('err', $_ERROR, "$_ERROR: $q->errstr;");      
+     }
     $Sqlcmd->{MYSQL_FIELDS_NAMES} = $q->{NAME};
     
     #print @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} };
 
     while(my @row = $q->fetchrow()) {
     	my $i=0;
-      foreach my $field ( @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} } ) {     
+      foreach my $field ( @{ $Sqlcmd->{MYSQL_FIELDS_NAMES} } ) {
+      	if ($field eq 'Slave_IO_Running' && $row[$i]	ne 'Yes') {
+          $row[$i]=$html->color_mark("$_ERROR", '#FF0000');
+         }
+        elsif ($field eq 'Slave_SQL_Running' && $row[$i]	ne 'Yes') {
+        	$row[$i]=$html->color_mark("$_ERROR", '#FF0000');
+         }
+      	
         $table->addrow($field, $row[$i]);
         $i++;
        }
