@@ -1051,21 +1051,36 @@ my $ret = 1;
 
 my @servers = ();
 
-foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
-    $Sqlcmd_main = Sqlcmd->new($db, $admin, \%conf);
+my $make_slave = "stop slave; DROP DATABASE my_database; load data from master; start slave;";
 
+foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
+    #$Sqlcmd_main = Sqlcmd->new($db, $admin, \%conf);
+    my $sql;
     my $table = $html->table({ width       => '100%',
-    	                         caption     => "$host / " . $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'},
+    	                         caption     => "$id:$host / " . $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'},
     	                         title       => [ 'key', 'val' ],
                                cols_align  => ['left', 'left'],
                              });
 
-    my $sql = Abills::SQL->connect($conf{dbtype}, $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, 
+    if ($id && ! $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}) {
+    	$html->message('err', $_ERROR.' : '. $id .' : '. $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, "$_ERROR: $_NOT_EXIST"); 
+    	$id++;
+    	next     
+     }
+    elsif ($id == 0) {
+      $sql = Abills::SQL->connect($conf{dbtype}, $conf{'dbhost'}, 
+                                                  $conf{'dbname'}, 
+                                                  $conf{'dbuser'}, 
+                                                  $conf{'dbpasswd'},
+      { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
+     }
+    else {
+      $sql = Abills::SQL->connect($conf{dbtype}, $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, 
                                                   $conf{'SQLCMD_HOST'. $id .'_DB'}, 
                                                   $conf{'SQLCMD_HOST'. $id .'_USER'}, 
                                                   $conf{'SQLCMD_HOST'. $id .'_PASSWD'},
-    { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
-
+      { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
+     }
 
     if (! $sql->{db}) {
     	$html->messages('info', $_INFO, "Can't connect to $host '". $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'} ."'");    	
@@ -1074,16 +1089,14 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
 
     my $db_slave = $sql->{db};
 
-
     $FORM{DB_ID}=$id;
-    $Sqlcmd = Sqlcmd->new($db_slave, $admin, \%conf);
-    
-    my $query = "SHOW SLAVE STATUS;";
-    my $q = $db_slave->prepare("$query",  { "mysql_use_result" => ($query !~ /!SELECT/gi ) ? 0 : 1   } ) || die $db_slave->errstr;
+    $Sqlcmd     = Sqlcmd->new($db_slave, $admin, \%conf);
+    my $query   = ($id>0) ? "SHOW SLAVE STATUS;" : "SHOW MASTER STATUS \G;";
+    my $q       = $db_slave->prepare("$query",  { "mysql_use_result" => ($query !~ /!SELECT/gi ) ? 0 : 1   } ) || die $db_slave->errstr;
     $q->execute(); 
     
-    if ($q->err) {
-      $html->message('err', $_ERROR, "$_ERROR: $q->errstr;");      
+    if ($db_slave->err) {
+      $html->message('err', $_ERROR.' : '. $id .' : '. $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, "$_ERROR: ". $db_slave->err .'/'. $db_slave->errstr);      
      }
     $Sqlcmd->{MYSQL_FIELDS_NAMES} = $q->{NAME};
     
@@ -1103,9 +1116,9 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
         $i++;
        }
      }
+    $db_slave->disconnect;
 
     push @servers, $table->show();
-    
     $id++;
 }
 
