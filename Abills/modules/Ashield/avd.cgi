@@ -53,14 +53,86 @@ $users = Users->new($db, $admin, \%conf);
 my $Ashield = Ashield->new($db, $admin, \%conf);
 my $Tariffs = Tariffs->new($db, \%conf, $admin);
 my $Fees    = Fees->new($db, $admin, \%conf);
+my $remote_ip = $ENV{REMOTE_ADDR} || '0.0.0.0';
 
+$FORM{'__BUFFER'}=q{<?xml version="1.0" encoding="UTF-8"?>
+<users-list xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.av-desk.com/static/avdpo/schema/1.0/USERS http://www.av-desk.com/static/avdpo/schema/1.0/users-list.xsd" lang-code="en" status="true">
+  <user id="1" login="drew">
+    <name>Андрей</name>
+    <patronymic></patronymic>
+    <last-name>Сипиев</last-name>
+    <billing-id></billing-id>
+    <billing-login></billing-login>
+    <billing-contract></billing-contract>
+    <email>kaktatak@gmail.com</email>
+    <status>ENABLE</status>
+    <max-agents>-1</max-agents>
+    <address></address>
+    <rights>0</rights>
+    <legal-subject>20</legal-subject>
+    <type>ADMIN</type>
+    <group id="1"><![CDATA[Administrators]]></group>
+    <createdtime>2010-10-07 01:00:08</createdtime>
+    <modifiedtime>2010-10-07 01:00:08</modifiedtime>
+    <avdesk-admin-uuid></avdesk-admin-uuid>
+    <avdesk-admin-login></avdesk-admin-login>
+    <avdesk-admin-password></avdesk-admin-password>
+    <description/>
+  </user>
+  <user id="2" login="abills">
+    <name>abills</name>
+    <patronymic></patronymic>
+    <last-name>billing</last-name>
+    <billing-id></billing-id>
+    <billing-login></billing-login>
+    <billing-contract></billing-contract>
+    <email>abills@mlan.net.ua</email>
+    <status>ENABLE</status>
+    <max-agents>-1</max-agents>
+    <address></address>
+    <rights>0</rights>
+    <legal-subject>20</legal-subject>
+    <type>ADMIN</type>
+    <group id="1"><![CDATA[Administrators]]></group>
+    <createdtime>2010-11-21 22:49:20</createdtime>
+    <modifiedtime>2010-11-21 22:49:20</modifiedtime>
+    <avdesk-admin-uuid></avdesk-admin-uuid>
+    <avdesk-admin-login></avdesk-admin-login>
+    <avdesk-admin-password></avdesk-admin-password>
+    <description/>
+  </user>
+  <user id="3" login="test">
+    <name>-</name>
+    <patronymic>-</patronymic>
+    <last-name>-</last-name>
+    <billing-id>2263</billing-id>
+    <billing-login>test</billing-login>
+    <billing-contract></billing-contract>
+    <email>asm@yes.net.ua</email>
+    <status>ENABLE</status>
+    <max-agents>-1</max-agents>
+    <address></address>
+    <rights>0</rights>
+    <legal-subject>20</legal-subject>
+    <type>USER</type>
+    <group id="3"><![CDATA[Users]]></group>
+    <createdtime>2010-11-27 00:13:45</createdtime>
+    <modifiedtime>2010-11-27 00:13:45</modifiedtime>
+    <avdesk-admin-uuid></avdesk-admin-uuid>
+    <avdesk-admin-login></avdesk-admin-login>
+    <avdesk-admin-password></avdesk-admin-password>
+    <description/>
+  </user>
+</users-list>};
 
 my $drweb_version = $conf{ASHIELD_DRWEB_VERSION} || 1;
+
 if ($drweb_version != 1) {
-	drweb_periodic();
+	drweb_periodic({ CONTENT => $FORM{'__BUFFER'}  });
 	
 	exit;
 }
+
 
 
 #Check allow ips
@@ -76,7 +148,7 @@ if ($conf{PAYSYS_IPS}) {
       last;
 		 }
 		#allow address
-		elsif ($ENV{REMOTE_ADDR} =~ /^$ip/) {
+		elsif ($remote_ip =~ /^$ip/) {
 			$allow=1;
 			last;
 		 }
@@ -123,7 +195,6 @@ if ($conf{PAYSYS_PASSWD}) {
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 $payments = Finance->payments($db, $admin, \%conf);
 
-my $drweb_version = $conf{ASHIELD_DRWEB_VERSION} || 1;
 
 #debug =========================================
 my $output2 = '';
@@ -182,11 +253,12 @@ if (! $@) {
 else {
    print "Content-Type: text/plain\n\n";
    print "Can't load 'XML::Simple' check http://www.cpan.org";
-   mk_log("---- Error: Can't load 'XML::Simple' check http://www.cpan.org\n");
+   mk_log("Error: Can't load 'XML::Simple' check http://www.cpan.org\n");
    exit;
  }
 
-$FORM{xml} =~ s/encoding="windows-1251"//g;
+
+#$FORM{xml} =~ s/encoding="windows-1251"//g;
 my $_xml = eval { XMLin("$attr->{CONTENT}", forcearray=>1) };
 
 if($@) {
@@ -369,7 +441,7 @@ sub mk_log {
   my ($message, $attr) = @_;
  
   if (open(FILE, ">>/tmp/avd.log")) {
-    print FILE "\n$DATE $TIME $ENV{REMOTE_ADDR}=========================\n";
+    print FILE "\n$DATE $TIME $remote_ip=========================\n";
     print FILE $message;
 	  close(FILE);
 	 }
@@ -383,8 +455,40 @@ sub mk_log {
 # drweb_periodic
 #**********************************************************
 sub drweb_periodic {
-	
-	
+	  my ($attr) = @_;
+
+eval { require XML::Simple; };
+if (! $@) {
+   XML::Simple->import();
+ }
+else {
+   print "Content-Type: text/plain\n\n";
+   print "Can't load 'XML::Simple' check http://www.cpan.org";
+   mk_log("Error: Can't load 'XML::Simple' check http://www.cpan.org\n");
+   exit;
+ }
+
+#$FORM{xml} =~ s/encoding="windows-1251"//g;
+my $_xml = eval { XMLin("$attr->{CONTENT}", forcearray=>1) };
+
+if($@) {
+  mk_log("---- Content:\n".
+      $attr->{CONTENT}.
+      "\n----XML Error:\n".
+      $@
+      ."\n----\n");
+  return 0;
+ }
+else {
+  if ($debug > 0) {
+ 	  mk_log($attr->{CONTENT});
+   }
+}
+
+
+
+
+
 }
 
 

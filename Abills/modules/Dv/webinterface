@@ -4320,20 +4320,26 @@ sub dv_monthly_fees {
            if ($TP_INFO{REDUCTION} == 1 && $user{REDUCTION} > 0) {
              $sum = $sum * (100 - $user{REDUCTION}) / 100;
             }
-           
+          
+           my ($activate_y, $activate_m, $activate_d);
+           my $active_unixtime;
+           if ($user{ACTIVATE} ne '0000-00-00') {
+             ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
+             $activate_m--;
+             $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
+            }
+          
            #Get 2 time fees from main account and ext account and from main
            if ($conf{BONUS_EXT_FUNCTIONS} && $ext_deposit_op > 0) {
          	  	# Small deposit
         	  	if ($small_deposit_block && $user{EXT_DEPOSIT} + $user{DEPOSIT} + $user{CREDIT} < $sum) {
-       	  		
-           	  	goto SMALL_DEPOSIT_LABEL;
+       	  		  if (($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib || ( $user{ACTIVATE} ne '0000-00-00' && $date_unixtime - $active_unixtime < 30 * 86400)) {
+           	  	   goto SMALL_DEPOSIT_LABEL;
+           	  	 }
          	  	 }
            	  elsif ($sum > $user{EXT_DEPOSIT} && $user{EXT_DEPOSIT} > 0) {
            	    # Take some sum from ext deposit other from main
            	    if ((($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib) || $user{ACTIVATE} ne '0000-00-00') {
-           	  	  my ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
-           	  	  $activate_m--;
-                  my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
            	  	  if ($date_unixtime - $active_unixtime < 30 * 86400) {
            	  	   }
            	      else {
@@ -4370,10 +4376,6 @@ sub dv_monthly_fees {
              $FEES_PARAMS{DESCRIBE} .= " - $_ABON_DISTRIBUTION" if ($abon_distrib);
              # If activation set to monthly fees taken throught 30 days
              if($user{ACTIVATE} ne '0000-00-00') {
- 	             my ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
-               $activate_m--;
-               my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
-
                #Block small deposit
                if ($small_deposit_block && $sum > $user{DEPOSIT}+$user{CREDIT} && $date_unixtime - $active_unixtime > 30 * 86400) {
    	             SMALL_DEPOSIT_LABEL:

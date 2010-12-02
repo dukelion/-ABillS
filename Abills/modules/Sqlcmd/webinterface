@@ -1054,10 +1054,10 @@ my @servers = ();
 foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
     $Sqlcmd_main = Sqlcmd->new($db, $admin, \%conf);
 
-    my $table = $html->table({ width        => '100%',
-    	                          caption     => "$host / " . $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'},
-    	                          title       => [ 'key', 'val' ],
-                                cols_align  => ['left', 'left'],
+    my $table = $html->table({ width       => '100%',
+    	                         caption     => "$host / " . $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'},
+    	                         title       => [ 'key', 'val' ],
+                               cols_align  => ['left', 'left'],
                              });
 
     my $sql = Abills::SQL->connect($conf{dbtype}, $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, 
