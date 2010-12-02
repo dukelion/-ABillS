@@ -1091,7 +1091,7 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
 
     $FORM{DB_ID}=$id;
     $Sqlcmd     = Sqlcmd->new($db_slave, $admin, \%conf);
-    my $query   = ($id>0) ? "SHOW SLAVE STATUS;" : "SHOW MASTER STATUS \G;";
+    my $query   = ($id>0) ? "SHOW SLAVE STATUS;" : "SHOW MASTER STATUS;";
     my $q       = $db_slave->prepare("$query",  { "mysql_use_result" => ($query !~ /!SELECT/gi ) ? 0 : 1   } ) || die $db_slave->errstr;
     $q->execute(); 
     
