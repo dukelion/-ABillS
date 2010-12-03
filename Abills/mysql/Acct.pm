@@ -338,7 +338,6 @@ elsif($acct_status_type eq 3) {
       acct_session_id='$RAD->{ACCT_SESSION_ID}' and 
       user_name='$RAD->{USER_NAME}' and
       nas_id='$NAS->{NAS_ID}';", 'do');
-
   	return $self;
    }
   elsif ($NAS->{NAS_TYPE} eq 'ipcad') {
@@ -353,7 +352,6 @@ elsif($acct_status_type eq 3) {
     $ex_octets = "ex_input_octets='$RAD->{INBYTE2}',  ex_output_octets='$RAD->{OUTBYTE2}', ";
    }
  
-  
   $self->query($db, "UPDATE dv_calls SET
     status='$acct_status_type',
     acct_session_time=UNIX_TIMESTAMP()-UNIX_TIMESTAMP(started),
@@ -470,6 +468,7 @@ sub rt_billing {
                                                   DOMAIN_ID  => ($NAS->{DOMAIN_ID}) ? $NAS->{DOMAIN_ID} : 0,
                                                 	  }
                                                 );
+
 
 #  my $a = `date >> /tmp/echoccc;
 #   echo "

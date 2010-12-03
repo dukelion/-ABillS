@@ -3,11 +3,12 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.4
+VERSION=0.5
 
 USER_NAME=test
 USER_PASSWORD=123456
 NAS_IP_ADDRESS=127.0.0.1
+ACCT_SESSION_ID='123456789012345';
 
 #Voip defauls
 VOIP_NAS_IP_ADDRESS=192.168.202.15
@@ -17,17 +18,52 @@ VOIP_CHAP_PASSWORD=''; #123456
 RAUTH="./rauth.pl";
 RACCT="./racct.pl";
 echo `pwd -P`;
-echo $1 
+
+ACTION=$1
+shift;
+
+# Proccess command-line options
+#
+for _switch ; do
+        case $_switch in
+        -debug)
+                DEBUG=1;
+                echo "Debug enable"
+                shift; 
+                ;;
+        -v)
+                echo "Version: ${VERSION}";
+                exit;
+                ;;
+        -u)  
+                USER_NAME=$2;
+                shift; shift
+                ;;
+        -p)     USER_PASSWORD=$2;
+                shift; shift
+                ;;
+        -nas)   NAS_IP_ADDRESS=$2;
+                shift; shift
+                ;;
+        -acct)  ACCOUNTING_ACTION=$2;
+                shift; shift
+                ;;
+        -session_id) ACCT_SESSION_ID=$2;
+                shift; shift
+                ;;
+        esac
+done
 
 
-echo -n "USER_NAME (${USER_NAME}): "
-read _input
-if [ w${_input} != w ]; then
-  USER_NAME=${_input}
+if [ w${ACTION} != whelp ]; then
+  echo -n "USER_NAME (${USER_NAME}): "
+  read _input
+  if [ w${_input} != w ]; then
+    USER_NAME=${_input}
+  fi;
 fi;
 
-
-if [ t$1 = 'tauth' ] ; then
+if [ t${ACTION} = 'tauth' ] ; then
 
   ${RAUTH} \
         SERVICE_TYPE=VPN \
@@ -77,7 +113,7 @@ if [ t$1 = 'tauth' ] ; then
    echo "" 
    echo "Auth test end"
 
-elif [ t$1 = tdhcp ]; then
+elif [ t${ACTION} = tdhcp ]; then
 
    ${RAUTH} post_auth \
  DHCP-Your-IP-Address="0.0.0.0"\
@@ -122,9 +158,6 @@ elif [ t$1 = tdhcp ]; then
 
 
    echo "DHCP Request";
-
-
-
 #    DHCP_DHCP_SERVER_INDENTIFIER=192.168.1.200\
 #    DHCP_YOUR_IP_ADDRESS=192.168.1.101\
 #    DHCP_INTERFACE_INDEX=192.168.1.200\
@@ -136,10 +169,10 @@ elif [ t$1 = tdhcp ]; then
  #      NAS_PORT="3232235816"\
  #      DHCP_MESSAGE_TYPE="DHCP-Discover"
 
-elif [ t$1 = 'tacct' ]; then
+elif [ t${ACTION} = 'tacct' ]; then
   echo "Accounting test";
 
-  if [ t$2 = 'tStart' ]; then
+  if [ t${ACCOUNTING_ACTION} = 'tStart' ]; then
     echo Start;
     ${RACCT} \
         USER_NAME="${USER_NAME}" \
@@ -153,11 +186,10 @@ elif [ t$1 = 'tacct' ]; then
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Start \
-        ACCT_SESSION_ID="83419_AA11118757979" \
-
+        ACCT_SESSION_ID="${ACCT_SESSION_ID}" \
 #        CALLING_STATION_ID="192.168.101.4" \
 
-   elif [ t$2 = 'tAlive' ] ; then
+   elif [ t${ACCOUNTING_ACTION} = 'tAlive' ] ; then
       echo Alive;
       ${RACCT} \
         USER_NAME="${USER_NAME}" \
@@ -170,19 +202,19 @@ elif [ t$1 = 'tacct' ]; then
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Interim-Update \
-        ACCT_SESSION_ID="83419_AA11118757979" \
+        ACCT_SESSION_ID="${ACCT_SESSION_ID}" \
         ACCT_DELAY_TIME=0 \
-        ACCT_INPUT_OCTETS=1345980000 \
-        ACCT_INPUT_GIGAWORDS=1 \
-        ACCT_INPUT_PACKETS=12445532225 \
-        ACCT_OUTPUT_OCTETS=17464000 \
+        ACCT_INPUT_OCTETS=13459811 \
+        ACCT_INPUT_GIGAWORDS=0 \
+        ACCT_INPUT_PACKETS=1244553 \
+        ACCT_OUTPUT_OCTETS=1460000 \
         EXPPP_ACCT_LOCALINPUT_OCTETS=12000000 \
         EXPPP_ACCT_LOCALOUTPUT_OCTETS=13000000 \
-        ACCT_OUTPUT_GIGAWORDS=1 \
+        ACCT_OUTPUT_GIGAWORDS=0 \
         ACCT_OUTPUT_PACKETS=0 \
         ACCT_SESSION_TIME=100 
 
-   elif [ t$2 = 'tStop' ] ; then
+   elif [ t${ACCOUNTING_ACTION} = 'tStop' ] ; then
      echo Stop;
      ${RACCT}  \
         USER_NAME="${USER_NAME}" \
@@ -195,7 +227,7 @@ elif [ t$1 = 'tacct' ]; then
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \
         ACCT_STATUS_TYPE=Stop \
-        ACCT_SESSION_ID="83419_AA11118757979" \
+        ACCT_SESSION_ID="${ACCT_SESSION_ID}" \
         ACCT_DELAY_TIME=0 \
         ACCT_INPUT_OCTETS=53045900 \
         ACCT_INPUT_GIGAWORDS=0 \
@@ -207,23 +239,21 @@ elif [ t$1 = 'tacct' ]; then
         ACCT_OUTPUT_PACKETS=1111 \
         ACCT_SESSION_TIME=100 \
 
-
-
    fi
 
 
-elif [ t$1 = 'tacctgt' ]; then
+elif [ t${ACTION} = 'tacctgt' ]; then
 
   echo "Account requirest GT: "
   cat $ACCT_LOG | grep GT | awk '{ print $11"  "$1" "$2" "$5" "$8" "$9 }' | sort -n
 
 
-elif [ t$1 = 'tauthgt' ]; then
+elif [ t${ACTION} = 'tauthgt' ]; then
 
   cat $AUTH_LOG | grep GT | awk '{ print $10"  "$1" "$2" "$5" "$8 }' | sort -n
 
 
-elif [ t$1 = 'tvoip' ] ; then 
+elif [ t${ACTION} = 'tvoip' ] ; then 
 
  echo "Voip";
   if [ t$2 = 'tauth' ] ; then
@@ -246,7 +276,7 @@ elif [ t$1 = 'tvoip' ] ; then
 #     CHAP_PASSWORD="0x06a8f3fb0ab5f4a8e90a590686c845c456" \
  
 
-  elif [ t$2 = 'tStart' ] ; then
+  elif [ t${ACCOUNTING_ACTION} = 'tStart' ] ; then
     echo "Start\n";
 
     ${RAUTH} NAS_IP_ADDRESS="${VOIP_NAS_IP_ADDRESS}" \
@@ -306,7 +336,7 @@ elif [ t$1 = 'tvoip' ] ; then
       CALLED_STATION_ID="613"
 
 
-   elif [ t$2 = 'tStop' ] ; then
+   elif [ t${ACCOUNTING_ACTION} = 'tStop' ] ; then
      echo "Voip Stop"
      ${RACCT}  ACCT_UNIQUE_SESSION_ID="7ae849dcfba1c03f"\
    H323_CONF_ID="h323-conf-id=16000 647BEE1D 80F000A F453DBFD"\
@@ -351,4 +381,8 @@ fi
 
 #   CHAP_PASSWORD=0x01f45d3646ef51e0b34dfca50f17f0d524 \
 #   CHAP_CHALLENGE=0x36373035393933393135333537313734 \
+
+
+
+
 

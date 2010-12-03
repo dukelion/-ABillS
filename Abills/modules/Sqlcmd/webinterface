@@ -1050,8 +1050,23 @@ my $active_host = $FORM{HOST_ID} || 0;
 my $ret = 1;
 
 my @servers = ();
-
-my $make_slave = "stop slave; DROP DATABASE my_database; load data from master; start slave;";
+if ($FORM{SYNC}) {
+  $sql = Abills::SQL->connect($conf{dbtype}, $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_HOSTNAME'}, 
+                                                  $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_DB'}, 
+                                                  $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_USER'}, 
+                                                  $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_PASSWD'},
+  { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
+  my $db_slave = $sql->{db};
+  my $query   = ($id>0) ? "SHOW SLAVE STATUS;" : "SHOW MASTER STATUS;";
+  my $q       = $db_slave->do("stop slave; load data from master; start slave;");
+  if ($db_slave->err) {
+    $html->message('err', $_ERROR.' : '. $id .' : '. $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, "$_ERROR: ". $db_slave->err .'/'. $db_slave->errstr);      
+   }
+  else {
+    $html->message('info', $_INFO.' : '. $FORM{SYNC} .' : '. $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_HOSTNAME'}, "Rebuilding...");
+   }
+  return 0;
+ }
 
 foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
     #$Sqlcmd_main = Sqlcmd->new($db, $admin, \%conf);
@@ -1080,6 +1095,8 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
                                                   $conf{'SQLCMD_HOST'. $id .'_USER'}, 
                                                   $conf{'SQLCMD_HOST'. $id .'_PASSWD'},
       { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
+      
+      $table->addrow($html->button('RESYNC', "index=$index&SYNC=$id", { BUTTON => 1 }), '-');
      }
 
     if (! $sql->{db}) {

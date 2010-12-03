@@ -78,6 +78,32 @@ $FORM{'__BUFFER'}=q{<?xml version="1.0" encoding="UTF-8"?>
     <avdesk-admin-login></avdesk-admin-login>
     <avdesk-admin-password></avdesk-admin-password>
     <description/>
+    <agents total="2">
+      <agent unsubscribed="0" auto-prolongation="">
+        <createdtime>2010-11-27 14:38:13</createdtime>
+        <uuid>hoc-aa2a08c6-570c-5021-8c19-e994c1d4</uuid>
+        <password>6T5iHkRmOIfHy</password>
+        <current-tariff>STANDART</current-tariff>
+        <grace-period>
+          <begin></begin>
+          <end></end>
+        </grace-period>
+        <subscription-period>30</subscription-period>
+        <url>http://drweb.mlan.net.ua:9080/download/download.ds?id=hoc-aa2a08c6-570c-5021-8c19-e994c1d4</url>
+      </agent>
+      <agent unsubscribed="0" auto-prolongation="1">
+        <createdtime>2010-11-27 12:42:36</createdtime>
+        <uuid>hoc-c0196230-aaac-c4f8-4ebf-a4fd6ac3</uuid>
+        <password>28wSxn6ETESfB</password>
+        <current-tariff>CLASSIC</current-tariff>
+        <grace-period>
+          <begin>2010-11-27 13:42:36</begin>
+          <end>2010-12-28 13:42:36</end>
+        </grace-period>
+        <subscription-period>30</subscription-period>
+        <url>http://drweb.mlan.net.ua:9080/download/download.ds?id=hoc-c0196230-aaac-c4f8-4ebf-a4fd6ac3</url>
+      </agent>
+    </agents>
   </user>
   <user id="2" login="abills">
     <name>abills</name>
@@ -100,6 +126,7 @@ $FORM{'__BUFFER'}=q{<?xml version="1.0" encoding="UTF-8"?>
     <avdesk-admin-login></avdesk-admin-login>
     <avdesk-admin-password></avdesk-admin-password>
     <description/>
+    <agents total="0"/>
   </user>
   <user id="3" login="test">
     <name>-</name>
@@ -122,6 +149,7 @@ $FORM{'__BUFFER'}=q{<?xml version="1.0" encoding="UTF-8"?>
     <avdesk-admin-login></avdesk-admin-login>
     <avdesk-admin-password></avdesk-admin-password>
     <description/>
+    <agents total="0"/>
   </user>
 </users-list>};
 
