@@ -47,13 +47,19 @@ my $sql    = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $
 my $db     = $sql->{db};
 #Operation status
 my $status = '';
-
+my $remote_ip = $ENV{REMOTE_ADDR} || '0.0.0.0';
 $admin = Admins->new($db, \%conf);
 $users = Users->new($db, $admin, \%conf); 
-my $Ashield = Ashield->new($db, $admin, \%conf);
-my $Tariffs = Tariffs->new($db, \%conf, $admin);
-my $Fees    = Fees->new($db, $admin, \%conf);
-my $remote_ip = $ENV{REMOTE_ADDR} || '0.0.0.0';
+
+$admin->info($conf{SYSTEM_ADMIN_ID}, { DOMAIN_ID => $FORM{DOMAIN_ID} });
+$admin->{SESSION_IP}=$remote_ip;
+
+my $Ashield   = Ashield->new($db, $admin, \%conf);
+my $Tariffs   = Tariffs->new($db, \%conf, $admin);
+my $Fees      = Fees->new($db, $admin, \%conf);
+
+
+require "Abills/modules/Ashield/webinterface";
 
 $FORM{'__BUFFER'}=q{<?xml version="1.0" encoding="UTF-8"?>
 <users-list xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.av-desk.com/static/avdpo/schema/1.0/USERS http://www.av-desk.com/static/avdpo/schema/1.0/users-list.xsd" lang-code="en" status="true">
@@ -323,7 +329,6 @@ if ($status < 4) {
 	  mk_log("Can't find user '$login'");
    }
   else {
-  	require "Abills/modules/Ashield/webinterface";
 	  my $user = $users->info($uid);
 	  
 	  if ( $status == 3 ) {
@@ -383,8 +388,8 @@ if ($status < 4) {
       	  	  });
        	   $agents_result_hash = $agents_result_hash->{user}->[0];
          }
-        my $agent_count = $#{ $agents_result_hash->{agents}->[0]->{agent} };
 
+        my $agent_count = $#{ $agents_result_hash->{agents}->[0]->{agent} };
         my $sum = $Tariffs->{MONTH_FEE};  
         $Tariffs->{PERIOD_ALIGNMENT}=1;
         if ($Tariffs->{PERIOD_ALIGNMENT}) {
@@ -414,7 +419,7 @@ if ($status < 4) {
  	        if ( $result->{error} ) { 	      	 
  	        	 my $code = $result->{error}->[0]->{code}->[0];
  	           if ($code == 17) {
- 	           	 print "'$_xml->{'action'}->[0]->{agentuuid}->[0]', Customer Not Exist\n";
+ 	           	 print "Drweb portal: '$_xml->{'action'}->[0]->{agentuuid}->[0]', Customer Not Exist\n";
  	            }
              else {
            	   print "Block '$user->{LOGIN}' '$cur_date' $code / $result->{error}->[0]->{message}->[0]\n";
@@ -447,6 +452,7 @@ if ($status < 4) {
  	         }
          }
       }
+
       if (! $Fees->{error}) {
         $Ashield->ashield_avd_add({ UID => $users->{UID},
       	 STATE      => $_xml->{'action'}->[0]->{type}->[0],
@@ -513,11 +519,167 @@ else {
    }
 }
 
+my %users     = ();
+my %subcribes = ();
+my %subcribes_info = ();
+my %active_subcribes = ();
 
+foreach my $user ( @{ $_xml->{user} } ) {
+#	print %{ $user };	
+	my $total_agents = $user->{agents}->[0]->{total};
+  my $login = $user->{login};
+  $users{$login}=$total_agents;
+  
+  #($user->{billing-id}->[0]) ? $user->{billing-id}->[0] : 0;
+  foreach my $agent ( @{ $user->{agents}->[0]->{agent} } ) {
+  	my $uuid  = $agent->{uuid}->[0];
+  	$subcribes{$uuid}=$login;
+  	$subcribes_info{$uuid}{'current-tariff'}      = ($agent->{'current-tariff'}->[0]) ? $agent->{'current-tariff'}->[0] : ''; 
+  	$subcribes_info{$uuid}{'subscription-period'} = ($agent->{'subscription-period'}->[0]) ? $agent->{'subscription-period'}->[0] : ''; 
+  	$subcribes_info{$uuid}{'unsubscribed'}        = $agent->{'unsubscribed'}->[0]; 
+  	$subcribes_info{$uuid}{'password'}            = ($agent->{'password'}->[0]) ? $agent->{'password'}->[0] : ''; 
+  	$subcribes_info{$uuid}{'createdtime'}         = ($agent->{'createdtime'}->[0]) ? $agent->{'createdtime'}->[0] : ''; 
+  	$subcribes_info{$uuid}{'auto-prolongationurl'}= ($agent->{'auto-prolongationurl'}->[0]) ? $agent->{'auto-prolongationurl'}->[0] : ''; 
+  	$subcribes_info{$uuid}{'grace-period'}        = ($agent->{'grace-period'}->[0]) ? $agent->{'grace-period'}->[0] : '';
+   }
+	#exit;
+	#print "/ $users{$user->{login}} \n";
+}
+
+
+#Get Active
+my $list = $Ashield->ashield_avd_list({ PAGE_ROWS => 100000, GROUP_BY => 'log.agentuuid'  });
+foreach my $line ( @$list ) {
+	print "$line->[0] $line->[1] $line->[2] $line->[3]\n" if ($debug > 2);
+	# -> login:status
+	$active_subcribes{$line->[3]}="$line->[1]:$line->[2]";
+}
+
+
+#Get new subcribes
+while(my($uuid, $login)=each %subcribes) {
+	#Subcribe exists check status
+	if ($active_subcribes{$uuid}) {
+		my ($login, $status)=split(/:/, $active_subcribes{$uuid});
+		print "Exists subcribe UUID: $uuid Login: $login Status: \n" if($debug > 1);
+	 }
+	else {	
+		print "New subcribe UUID: $uuid Login: $login\n";
+
+		while(my ($key, $val) = each %{ $subcribes_info{$uuid} } ) {
+			print "  $key -> ";
+			if ($key eq 'grace-period' && ref $subcribes_info{$uuid}{'grace-period'}{'begin'}[0] ne 'HASH') {
+				print "$subcribes_info{$uuid}{'grace-period'}{begin}[0]/$subcribes_info{$uuid}{'grace-period'}{end}[0]";
+			 }
+			elsif ($val) {
+				if (ref $val eq 'ARRAY') {
+					print $val->[0];
+				 }
+				else {
+					print $val;
+				 }	
+			 }
+			print "\n";
+		 }
+
+    #Add agent
+    my $list    = $users->list({ LOGIN => $login });
+    my $uid     = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}] || 0;
+    my $TP_NAME = $subcribes_info{$uuid}{'current-tariff'};
+    $Tariffs->info(0, { NAME => "$TP_NAME", MODULE => 'Ashield' });
+    
+    
+    if ($users->{TOTAL} < 1) {
+    	print "User not exists. Login: '$login'\n";
+    	mk_log("User not exists. Login: '$login'");
+    	next;
+     }
+    elsif ($Tariffs->{TOTAL} < 1) {
+      mk_log("Tariff not exists. TP: '$TP_NAME'");
+      next;
+     }
+    else {
+    	  my $user = $users->info($uid);
+        my $sum = $Tariffs->{MONTH_FEE};  
+        $Tariffs->{PERIOD_ALIGNMENT}=1;
+        if ($Tariffs->{PERIOD_ALIGNMENT}) {
+        	my ($y, $m, $d)=split(/-/, $DATE);
+          my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
+          $conf{START_PERIOD_DAY} = 1;
+          $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
+         }
+      
+        #if ($conf{ASHIELD_DRWEB_FREE_PERIOD} &&  $agent_count == 0 && $status == 1) {
+        if (ref $subcribes_info{$uuid}{'grace-period'}{'begin'}[0] ne 'HASH') {
+          print "grace period: $subcribes_info{$uuid}{'grace-period'}{'begin'}/$subcribes_info{$uuid}{'grace-period'}{'end'}\n" if ($debug > 0);    	
+         }
+        elsif($user->{DEPOSIT} + $user->{CREDIT} > 0 || $Tariffs->{PAYMENT_TYPE}) {
+          $Fees->take($users, "$sum", 
+                     { DESCRIBE  => "Dr.Web TP: $TP_NAME", 
+ 	                     DATE      => "$DATE $TIME"
+  	                  });
+
+       	  my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
+ 	     	 	   id       => $uuid, 
+ 	     	 	   blockbeg => '00000000',
+ 	     	 	   blockend => '00000000'
+ 	     	 	   }); 
+
+ 	        if ( $result->{error} ) { 	      	 
+ 	        	 my $code = $result->{error}->[0]->{code}->[0];
+ 	           if ($code == 17) {
+ 	           	 print "'$uuid', Customer Not Exist\n";
+ 	            }
+             else {
+           	   print "Block '$user->{LOGIN}' '$cur_date' $code / $result->{error}->[0]->{message}->[0]\n";
+              }
+ 	         }
+          else {    
+  	        print "Activate\n" if ($debug > 0);
+  	       }
+         }
+      #block account
+        else {
+        	my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
+ 	     	 	   id       => $uuid, 
+ 	     	 	   blockbeg => $cur_date,
+ 	     	 	   blockend => '20300101'
+ 	     	 	   }); 
+ 	       
+ 	        if ( $result->{error} ) { 	      	 
+ 	        	 my $code = $result->{error}->[0]->{code}->[0];
+ 	           if ($code == 17) {
+ 	           	 print "'$uuid', Customer Not Exist\n";
+ 	            }
+             else {
+           	   print "Block '$user->{LOGIN}' '$cur_date' $code / $result->{error}->[0]->{message}->[0]\n";
+              }
+ 	         }
+ 	        else {
+ 	           print "$result->{customers}->[0]->{customer}->[0]->{id}->[0] ".
+ 	            "BLOCKING: $result->{customers}->[0]->{customer}->[0]->{blockbeg}->[0]\n" if ($debug > 0);
+ 	         }
+         }
+      }
+      
+      if (! $Fees->{error}) {
+        $Ashield->ashield_avd_add({ UID => $users->{UID},
+      	 STATE      => 1,
+         AGENTUUID  => $uuid,
+         TARIFFPLANCODE  => $TP_NAME,
+         TP_ID      => $Tariffs->{TP_ID} });
+       }
+    
+    
+    
+
+	 }
+}
 
 
 
 }
+
 
 
 1
