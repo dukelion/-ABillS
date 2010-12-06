@@ -9,6 +9,8 @@ $CHARSET
 $admin
 $users 
 $payments
+$var_dir
+$html
 );
 
 BEGIN {
@@ -40,9 +42,11 @@ use Ashield;
 use Fees;
 
 require "language/$conf{default_language}.pl";
-my $debug  = $conf{ASHIELD_AVD_DEBUG} || 0;
-my $html   = Abills::HTML->new();
-my $sql    = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser},
+my $drweb_version = $conf{ASHIELD_DRWEB_VERSION} || 1;
+my $debug     = $conf{ASHIELD_AVD_DEBUG} || 0;
+my $debug_log = $var_dir."/log/avd.log";
+$html         = Abills::HTML->new();
+my $sql       = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser},
     $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
 my $db     = $sql->{db};
 #Operation status
@@ -61,108 +65,10 @@ my $Fees      = Fees->new($db, $admin, \%conf);
 
 require "Abills/modules/Ashield/webinterface";
 
-$FORM{'__BUFFER'}=q{<?xml version="1.0" encoding="UTF-8"?>
-<users-list xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.av-desk.com/static/avdpo/schema/1.0/USERS http://www.av-desk.com/static/avdpo/schema/1.0/users-list.xsd" lang-code="en" status="true">
-  <user id="1" login="drew">
-    <name>Андрей</name>
-    <patronymic></patronymic>
-    <last-name>Сипиев</last-name>
-    <billing-id></billing-id>
-    <billing-login></billing-login>
-    <billing-contract></billing-contract>
-    <email>kaktatak@gmail.com</email>
-    <status>ENABLE</status>
-    <max-agents>-1</max-agents>
-    <address></address>
-    <rights>0</rights>
-    <legal-subject>20</legal-subject>
-    <type>ADMIN</type>
-    <group id="1"><![CDATA[Administrators]]></group>
-    <createdtime>2010-10-07 01:00:08</createdtime>
-    <modifiedtime>2010-10-07 01:00:08</modifiedtime>
-    <avdesk-admin-uuid></avdesk-admin-uuid>
-    <avdesk-admin-login></avdesk-admin-login>
-    <avdesk-admin-password></avdesk-admin-password>
-    <description/>
-    <agents total="2">
-      <agent unsubscribed="0" auto-prolongation="">
-        <createdtime>2010-11-27 14:38:13</createdtime>
-        <uuid>hoc-aa2a08c6-570c-5021-8c19-e994c1d4</uuid>
-        <password>6T5iHkRmOIfHy</password>
-        <current-tariff>STANDART</current-tariff>
-        <grace-period>
-          <begin></begin>
-          <end></end>
-        </grace-period>
-        <subscription-period>30</subscription-period>
-        <url>http://drweb.mlan.net.ua:9080/download/download.ds?id=hoc-aa2a08c6-570c-5021-8c19-e994c1d4</url>
-      </agent>
-      <agent unsubscribed="0" auto-prolongation="1">
-        <createdtime>2010-11-27 12:42:36</createdtime>
-        <uuid>hoc-c0196230-aaac-c4f8-4ebf-a4fd6ac3</uuid>
-        <password>28wSxn6ETESfB</password>
-        <current-tariff>CLASSIC</current-tariff>
-        <grace-period>
-          <begin>2010-11-27 13:42:36</begin>
-          <end>2010-12-28 13:42:36</end>
-        </grace-period>
-        <subscription-period>30</subscription-period>
-        <url>http://drweb.mlan.net.ua:9080/download/download.ds?id=hoc-c0196230-aaac-c4f8-4ebf-a4fd6ac3</url>
-      </agent>
-    </agents>
-  </user>
-  <user id="2" login="abills">
-    <name>abills</name>
-    <patronymic></patronymic>
-    <last-name>billing</last-name>
-    <billing-id></billing-id>
-    <billing-login></billing-login>
-    <billing-contract></billing-contract>
-    <email>abills@mlan.net.ua</email>
-    <status>ENABLE</status>
-    <max-agents>-1</max-agents>
-    <address></address>
-    <rights>0</rights>
-    <legal-subject>20</legal-subject>
-    <type>ADMIN</type>
-    <group id="1"><![CDATA[Administrators]]></group>
-    <createdtime>2010-11-21 22:49:20</createdtime>
-    <modifiedtime>2010-11-21 22:49:20</modifiedtime>
-    <avdesk-admin-uuid></avdesk-admin-uuid>
-    <avdesk-admin-login></avdesk-admin-login>
-    <avdesk-admin-password></avdesk-admin-password>
-    <description/>
-    <agents total="0"/>
-  </user>
-  <user id="3" login="test">
-    <name>-</name>
-    <patronymic>-</patronymic>
-    <last-name>-</last-name>
-    <billing-id>2263</billing-id>
-    <billing-login>test</billing-login>
-    <billing-contract></billing-contract>
-    <email>asm@yes.net.ua</email>
-    <status>ENABLE</status>
-    <max-agents>-1</max-agents>
-    <address></address>
-    <rights>0</rights>
-    <legal-subject>20</legal-subject>
-    <type>USER</type>
-    <group id="3"><![CDATA[Users]]></group>
-    <createdtime>2010-11-27 00:13:45</createdtime>
-    <modifiedtime>2010-11-27 00:13:45</modifiedtime>
-    <avdesk-admin-uuid></avdesk-admin-uuid>
-    <avdesk-admin-login></avdesk-admin-login>
-    <avdesk-admin-password></avdesk-admin-password>
-    <description/>
-    <agents total="0"/>
-  </user>
-</users-list>};
 
-my $drweb_version = $conf{ASHIELD_DRWEB_VERSION} || 1;
 
 if ($drweb_version != 1) {
-	drweb_periodic({ CONTENT => $FORM{'__BUFFER'}  });
+	drweb_periodic();
 	
 	exit;
 }
@@ -474,13 +380,13 @@ if ($status < 4) {
 sub mk_log {
   my ($message, $attr) = @_;
  
-  if (open(FILE, ">>/tmp/avd.log")) {
+  if (open(FILE, ">>$debug_log")) {
     print FILE "\n$DATE $TIME $remote_ip=========================\n";
     print FILE $message;
 	  close(FILE);
 	 }
   else {
-    print "Can't open file '/tmp/avd.log' $! \n";
+    print "Can't open file '$debug_log' $! \n";
    }
 }
 
@@ -502,8 +408,121 @@ else {
    exit;
  }
 
+my $xml_content='';
+#$xml_content=q{<?xml version="1.0" encoding="UTF-8"?>
+#<users-list xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.av-desk.com/static/avdpo/schema/1.0/USERS http://www.av-desk.com/static/avdpo/schema/1.0/users-list.xsd" lang-code="en" status="true">
+#  <user id="1" login="drew">
+#    <name>Андрей</name>
+#    <patronymic></patronymic>
+#    <last-name>Сипиев</last-name>
+#    <billing-id></billing-id>
+#    <billing-login></billing-login>
+#    <billing-contract></billing-contract>
+#    <email>kaktatak@gmail.com</email>
+#    <status>ENABLE</status>
+#    <max-agents>-1</max-agents>
+#    <address></address>
+#    <rights>0</rights>
+#    <legal-subject>20</legal-subject>
+#    <type>ADMIN</type>
+#    <group id="1"><![CDATA[Administrators]]></group>
+#    <createdtime>2010-10-07 01:00:08</createdtime>
+#    <modifiedtime>2010-10-07 01:00:08</modifiedtime>
+#    <avdesk-admin-uuid></avdesk-admin-uuid>
+#    <avdesk-admin-login></avdesk-admin-login>
+#    <avdesk-admin-password></avdesk-admin-password>
+#    <description/>
+#    <agents total="2">
+#      <agent unsubscribed="0" auto-prolongation="">
+#        <createdtime>2010-11-27 14:38:13</createdtime>
+#        <uuid>hoc-aa2a08c6-570c-5021-8c19-e994c1d4</uuid>
+#        <password>6T5iHkRmOIfHy</password>
+#        <current-tariff>STANDART</current-tariff>
+#        <grace-period>
+#          <begin></begin>
+#          <end></end>
+#        </grace-period>
+#        <subscription-period>30</subscription-period>
+#        <url>http://drweb.mlan.net.ua:9080/download/download.ds?id=hoc-aa2a08c6-570c-5021-8c19-e994c1d4</url>
+#      </agent>
+#      <agent unsubscribed="0" auto-prolongation="1">
+#        <createdtime>2010-11-27 12:42:36</createdtime>
+#        <uuid>hoc-c0196230-aaac-c4f8-4ebf-a4fd6ac3</uuid>
+#        <password>28wSxn6ETESfB</password>
+#        <current-tariff>CLASSIC</current-tariff>
+#        <grace-period>
+#          <begin>2010-11-27 13:42:36</begin>
+#          <end>2010-12-28 13:42:36</end>
+#        </grace-period>
+#        <subscription-period>30</subscription-period>
+#        <url>http://drweb.mlan.net.ua:9080/download/download.ds?id=hoc-c0196230-aaac-c4f8-4ebf-a4fd6ac3</url>
+#      </agent>
+#    </agents>
+#  </user>
+#  <user id="2" login="abills">
+#    <name>abills</name>
+#    <patronymic></patronymic>
+#    <last-name>billing</last-name>
+#    <billing-id></billing-id>
+#    <billing-login></billing-login>
+#    <billing-contract></billing-contract>
+#    <email>abills@mlan.net.ua</email>
+#    <status>ENABLE</status>
+#    <max-agents>-1</max-agents>
+#    <address></address>
+#    <rights>0</rights>
+#    <legal-subject>20</legal-subject>
+#    <type>ADMIN</type>
+#    <group id="1"><![CDATA[Administrators]]></group>
+#    <createdtime>2010-11-21 22:49:20</createdtime>
+#    <modifiedtime>2010-11-21 22:49:20</modifiedtime>
+#    <avdesk-admin-uuid></avdesk-admin-uuid>
+#    <avdesk-admin-login></avdesk-admin-login>
+#    <avdesk-admin-password></avdesk-admin-password>
+#    <description/>
+#    <agents total="0"/>
+#  </user>
+#  <user id="3" login="test">
+#    <name>-</name>
+#    <patronymic>-</patronymic>
+#    <last-name>-</last-name>
+#    <billing-id>2263</billing-id>
+#    <billing-login>test</billing-login>
+#    <billing-contract></billing-contract>
+#    <email>asm@yes.net.ua</email>
+#    <status>ENABLE</status>
+#    <max-agents>-1</max-agents>
+#    <address></address>
+#    <rights>0</rights>
+#    <legal-subject>20</legal-subject>
+#    <type>USER</type>
+#    <group id="3"><![CDATA[Users]]></group>
+#    <createdtime>2010-11-27 00:13:45</createdtime>
+#    <modifiedtime>2010-11-27 00:13:45</modifiedtime>
+#    <avdesk-admin-uuid></avdesk-admin-uuid>
+#    <avdesk-admin-login></avdesk-admin-login>
+#    <avdesk-admin-password></avdesk-admin-password>
+#    <description/>
+#    <agents total="0"/>
+#  </user>
+#</users-list>
+#};
+
+
+$xml_content=ashield_drweb_request('interfaces/get_users_list.php', {
+      	  subscribes    => 1,
+      	  checkword     => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
+      	  },
+      	  { SERVER_ADDR => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+      	  	});
+
+
+if (! $xml_content || $xml_content eq '') {
+	return 0;
+}
+
 #$FORM{xml} =~ s/encoding="windows-1251"//g;
-my $_xml = eval { XMLin("$attr->{CONTENT}", forcearray=>1) };
+my $_xml = eval { XMLin("$xml_content", forcearray=>1) };
 
 if($@) {
   mk_log("---- Content:\n".
@@ -525,7 +544,6 @@ my %subcribes_info = ();
 my %active_subcribes = ();
 
 foreach my $user ( @{ $_xml->{user} } ) {
-#	print %{ $user };	
 	my $total_agents = $user->{agents}->[0]->{total};
   my $login = $user->{login};
   $users{$login}=$total_agents;
@@ -542,8 +560,6 @@ foreach my $user ( @{ $_xml->{user} } ) {
   	$subcribes_info{$uuid}{'auto-prolongationurl'}= ($agent->{'auto-prolongationurl'}->[0]) ? $agent->{'auto-prolongationurl'}->[0] : ''; 
   	$subcribes_info{$uuid}{'grace-period'}        = ($agent->{'grace-period'}->[0]) ? $agent->{'grace-period'}->[0] : '';
    }
-	#exit;
-	#print "/ $users{$user->{login}} \n";
 }
 
 
@@ -551,7 +567,7 @@ foreach my $user ( @{ $_xml->{user} } ) {
 my $list = $Ashield->ashield_avd_list({ PAGE_ROWS => 100000, GROUP_BY => 'log.agentuuid'  });
 foreach my $line ( @$list ) {
 	print "$line->[0] $line->[1] $line->[2] $line->[3]\n" if ($debug > 2);
-	# -> login:status
+	# uuid -> login:status
 	$active_subcribes{$line->[3]}="$line->[1]:$line->[2]";
 }
 
@@ -561,7 +577,7 @@ while(my($uuid, $login)=each %subcribes) {
 	#Subcribe exists check status
 	if ($active_subcribes{$uuid}) {
 		my ($login, $status)=split(/:/, $active_subcribes{$uuid});
-		print "Exists subcribe UUID: $uuid Login: $login Status: \n" if($debug > 1);
+		print "Exists subcribe UUID: $uuid Login: $login Status: \n" if ($debug > 1);
 	 }
 	else {	
 		print "New subcribe UUID: $uuid Login: $login\n";
@@ -588,7 +604,8 @@ while(my($uuid, $login)=each %subcribes) {
     my $TP_NAME = $subcribes_info{$uuid}{'current-tariff'};
     $Tariffs->info(0, { NAME => "$TP_NAME", MODULE => 'Ashield' });
     
-    
+    next if ($debug > 4);
+
     if ($users->{TOTAL} < 1) {
     	print "User not exists. Login: '$login'\n";
     	mk_log("User not exists. Login: '$login'");
@@ -669,9 +686,6 @@ while(my($uuid, $login)=each %subcribes) {
          TARIFFPLANCODE  => $TP_NAME,
          TP_ID      => $Tariffs->{TP_ID} });
        }
-    
-    
-    
 
 	 }
 }

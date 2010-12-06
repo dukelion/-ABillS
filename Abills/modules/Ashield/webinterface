@@ -1009,10 +1009,10 @@ my $table = $html->table( { width      => '100%',
 my %agents_list = ();
 if ($drweb_version != 1) {
 	my $result_hash=ashield_drweb_request('interfaces/get_users_list.php', {
-      	  subscribes      => 1,
-      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
+      	  subscribes    => 1,
+      	  checkword     => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
       	  },
-      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+      	  { SERVER_ADDR => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
    foreach my $val (@{ $result_hash->{user}  }) {
@@ -1753,10 +1753,12 @@ my $response = $ua -> request( POST $serveraddr,
 				           );
 
 if(! $response->is_success() ) {   
-	$html->message('err', $_ERROR, "BAD:\n".
+	my $message = "BAD:\n".
 	    $response->code(). 
 	    ', '.
-	    $response->status_line());
+	    $response->status_line()."\n";
+	
+	($attr->{CONSOLE}) ? $html->message('err', $_ERROR, $message) : print $message;
 	return ;
 }
 
