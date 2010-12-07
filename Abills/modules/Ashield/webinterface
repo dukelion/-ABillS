@@ -1549,8 +1549,8 @@ if ($drweb_version != 1) {
        if ($line->[2] + $line->[3] > 0 || $TPS_HASH{$tp_name}{PAYMENT_TYPE}) {
        	  my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
  	     	 	   id       => $agent_id, 
-	     	 	   blockbeg => 'Íåèçâåñòíî/Íèêîãäà',
- 	     	 	   blockend => 'Íåèçâåñòíî/Íèêîãäà'
+	     	 	   blockbeg => "$cur_date",
+ 	     	 	   blockend => "$cur_date"
  	     	 	   }); 
  	       
  	         if ( $result->{error} ) {
@@ -1753,7 +1753,7 @@ my $response = $ua -> request( POST $serveraddr,
 				           );
 
 if(! $response->is_success() ) {   
-	my $message = "BAD:\n".
+	my $message = "'$serveraddr' BAD:\n".
 	    $response->code(). 
 	    ', '.
 	    $response->status_line()."\n";

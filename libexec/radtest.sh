@@ -48,6 +48,9 @@ for _switch ; do
         -acct)  ACCOUNTING_ACTION=$2;
                 shift; shift
                 ;;
+        -cid)   CALLING_STATION_ID=$2;
+                shift; shift
+                ;;
         -session_id) ACCT_SESSION_ID=$2;
                 shift; shift
                 ;;
@@ -70,7 +73,7 @@ if [ t${ACTION} = 'tauth' ] ; then
         NAS_IP_ADDRESS=${NAS_IP_ADDRESS}\
         USER_PASSWORD="${USER_PASSWORD}"\
         USER_NAME="${USER_NAME}"\
-        CALLING_STATION_ID="00:aa:22:33:bb:aa"
+        CALLING_STATION_ID="${CALLING_STATION_ID}"
 
 #        CISCO_AVPAIR="client-mac-address=000f.ea3d.92e1"
 #        CHAP_PASSWORD="0x5acd1cc26b6f8bf084fb616925769362af"
@@ -197,7 +200,7 @@ elif [ t${ACTION} = 'tacct' ]; then
         FRAMED_PROTOCOL=PPP \
         FRAMED_IP_ADDRESS=10.0.0.1 \
         FRAMED_IP_NETMASK=0.0.0.0 \
-        CALLING_STATION_ID="192.168.101.4" \
+        CALLING_STATION_ID="${CALLING_STATION_ID}" \
         NAS_IP_ADDRESS=${NAS_IP_ADDRESS} \
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \
@@ -222,7 +225,7 @@ elif [ t${ACTION} = 'tacct' ]; then
         FRAMED_PROTOCOL=PPP \
         FRAMED_IP_ADDRESS=10.0.0.1 \
         FRAMED_IP_NETMASK=0.0.0.0 \
-        CALLING_STATION_ID="192.168.101.4" \
+        CALLING_STATION_ID="${CALLING_STATION_ID}" \
         NAS_IP_ADDRESS=${NAS_IP_ADDRESS} \
         NAS_IDENTIFIER="media.intranet" \
         NAS_PORT_TYPE=Virtual \

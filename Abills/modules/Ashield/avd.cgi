@@ -530,7 +530,7 @@ my $_xml=ashield_drweb_request('interfaces/get_users_list.php', {
       	  	});
 
 if ( $_xml->{error} ) {
-  print "Fees: '$cur_date' $_xml->{error}->[0]->{code}->[0] / $_xml->{error}->[0]->{message}->[0]\n" if ($debug > 0);
+  print "'interfaces/get_users_list.php': '$cur_date' $_xml->{error}->[0]->{code}->[0] / $_xml->{error}->[0]->{message}->[0]\n" if ($debug > 0);
  }
 
 
