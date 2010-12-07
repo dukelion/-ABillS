@@ -11,44 +11,57 @@ $users
 $payments
 $var_dir
 $html
+@_COLORS
 );
 
-BEGIN {
- my $libpath = '../';
- 
- $sql_type='mysql';
- unshift(@INC, $libpath ."Abills/$sql_type/");
- unshift(@INC, $libpath);
- unshift(@INC, $libpath . 'libexec/');
+#BEGIN {
+# my $libpath = '../';
+# 
+# $sql_type='mysql';
+# unshift(@INC, $libpath ."Abills/$sql_type/");
+# unshift(@INC, $libpath);
+# unshift(@INC, $libpath . 'libexec/');
+# unshift(@INC, $libpath . 'Abills');
+#
+# eval { require Time::HiRes; };
+# if (! $@) {
+#    Time::HiRes->import(qw(gettimeofday));
+#    $begin_time = gettimeofday();
+#   }
+# else {
+#    $begin_time = 0;
+#  }
+#}
 
- eval { require Time::HiRes; };
- if (! $@) {
-    Time::HiRes->import(qw(gettimeofday));
-    $begin_time = gettimeofday();
-   }
- else {
-    $begin_time = 0;
-  }
-}
 
-require "config.pl";
-use Abills::Base;
-use Abills::SQL;
-use Abills::HTML;
-use Users;
-use Finance;
-use Admins;
-use Ashield;
-use Fees;
+use FindBin '$Bin';
+require $Bin . '/../libexec/config.pl';
+unshift(@INC, $Bin . "/../Abills/", $Bin . '/../', $Bin . "/../Abills/$conf{dbtype}");
 
-require "language/$conf{default_language}.pl";
+
+require Abills::Base; Abills::Base->import();
+require Abills::SQL;  Abills::SQL->import();
+require Abills::HTML; Abills::HTML->import();
+
+require Users;   Users->import();
+require Admins;  Admins->import();
+require Finance; Finance->import();
+require Ashield; Ashield->import();
+require Fees;    Fees->import();
+
+
+
+require $Bin ."/../language/$conf{default_language}.pl";
 my $drweb_version = $conf{ASHIELD_DRWEB_VERSION} || 1;
 my $debug     = $conf{ASHIELD_AVD_DEBUG} || 0;
 my $debug_log = $var_dir."/log/avd.log";
+
 $html         = Abills::HTML->new();
 my $sql       = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser},
     $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
 my $db     = $sql->{db};
+
+
 #Operation status
 my $status = '';
 my $remote_ip = $ENV{REMOTE_ADDR} || '0.0.0.0';
@@ -521,27 +534,6 @@ if ( $_xml->{error} ) {
  }
 
 
-#if (! $xml_content || $xml_content eq '') {
-#	return 0;
-#}
-#
-##$FORM{xml} =~ s/encoding="windows-1251"//g;
-#my $_xml = eval { XMLin("$xml_content", forcearray=>1) };
-#
-#if($@) {
-#  mk_log("---- Content:\n".
-#      $attr->{CONTENT}.
-#      "\n----XML Error:\n".
-#      $@
-#      ."\n----\n");
-#  return 0;
-# }
-#else {
-#  if ($debug > 0) {
-# 	  mk_log($attr->{CONTENT});
-#   }
-#}
-
 my %users     = ();
 my %subcribes = ();
 my %subcribes_info = ();
@@ -622,7 +614,7 @@ while(my($uuid, $login)=each %subcribes) {
     else {
     	  my $user = $users->info($uid);
         my $sum = $Tariffs->{MONTH_FEE};  
-        $Tariffs->{PERIOD_ALIGNMENT}=1;
+        $Tariffs->{PERIOD_ALIGNMENT}=0;
         if ($Tariffs->{PERIOD_ALIGNMENT}) {
         	my ($y, $m, $d)=split(/-/, $DATE);
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
