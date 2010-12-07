@@ -408,7 +408,7 @@ else {
    exit;
  }
 
-my $xml_content='';
+#my $xml_content='';
 #$xml_content=q{<?xml version="1.0" encoding="UTF-8"?>
 #<users-list xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.av-desk.com/static/avdpo/schema/1.0/USERS http://www.av-desk.com/static/avdpo/schema/1.0/users-list.xsd" lang-code="en" status="true">
 #  <user id="1" login="drew">
@@ -509,34 +509,38 @@ my $xml_content='';
 #};
 
 
-$xml_content=ashield_drweb_request('interfaces/get_users_list.php', {
+my $_xml=ashield_drweb_request('interfaces/get_users_list.php', {
       	  subscribes    => 1,
       	  checkword     => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
       	  },
       	  { SERVER_ADDR => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
-
-if (! $xml_content || $xml_content eq '') {
-	return 0;
-}
-
-#$FORM{xml} =~ s/encoding="windows-1251"//g;
-my $_xml = eval { XMLin("$xml_content", forcearray=>1) };
-
-if($@) {
-  mk_log("---- Content:\n".
-      $attr->{CONTENT}.
-      "\n----XML Error:\n".
-      $@
-      ."\n----\n");
-  return 0;
+if ( $_xml->{error} ) {
+  print "Fees: '$cur_date' $_xml->{error}->[0]->{code}->[0] / $_xml->{error}->[0]->{message}->[0]\n" if ($debug > 0);
  }
-else {
-  if ($debug > 0) {
- 	  mk_log($attr->{CONTENT});
-   }
-}
+
+
+#if (! $xml_content || $xml_content eq '') {
+#	return 0;
+#}
+#
+##$FORM{xml} =~ s/encoding="windows-1251"//g;
+#my $_xml = eval { XMLin("$xml_content", forcearray=>1) };
+#
+#if($@) {
+#  mk_log("---- Content:\n".
+#      $attr->{CONTENT}.
+#      "\n----XML Error:\n".
+#      $@
+#      ."\n----\n");
+#  return 0;
+# }
+#else {
+#  if ($debug > 0) {
+# 	  mk_log($attr->{CONTENT});
+#   }
+#}
 
 my %users     = ();
 my %subcribes = ();

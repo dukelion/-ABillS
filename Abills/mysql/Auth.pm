@@ -1289,7 +1289,7 @@ if (defined($trafic_limits{0}) && $trafic_limits{0} > 0  && $trafic_limits{0} < 
    }
   $EX_PARAMS{traf_limit} = ($trafic_limit < 1 && $trafic_limit > 0) ? 1 : int($trafic_limit);
   if ($self->{REDUCTION}) {
-    $EX_PARAMS{traf_limit} = $EX_PARAMS{traf_limit} * ($self->{REDUCTION} / 100 + 1);
+    $EX_PARAMS{traf_limit} = $EX_PARAMS{traf_limit} * (100 / (100 - $self->{REDUCTION}));
    }
 }
 
