@@ -500,6 +500,10 @@ sub backup {
  if(in_array('backup', \@SKIP_MODULES)) {
     return 0;
   }
+ elsif ($conf{nobackup}) {
+ 	 return 0;
+  }
+
 
  $admin->query($db, "SHOW TABLE STATUS");
  my @ignore_tables_arr = ("--ignore-table=\"$conf{dbname}.ipn_traf_detail\"",
@@ -559,7 +563,6 @@ sub backup {
     $DEBUG .= $vars{datadir}."/$conf{dbname}/$table.* -> $conf{BACKUP_DIR}/$DATE/$table".".gz ($res)\n" if ($debug > 2);
     $DEBUG .= "$cmd\n" if ($debug > 4);
    } 
-
   }
 
   return;

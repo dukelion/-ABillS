@@ -520,6 +520,7 @@ sub ashield_user {
   		                      title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", "$_ACTIVATE", "Online",
   		                        "$_CREATED", "$_STATUS", "$_GRACEPERIOD", "URL"],
   		                      cols_align => ['left', 'left'],
+  		                      ID         => 'DRWEB_AGENTS'
                           });
 
       foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) {
@@ -546,9 +547,15 @@ sub ashield_user {
      	  $result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
 
       	my $expire = "$1$2$3";
+      	my $satus_code = 0;
       	if ($expire > 0 && $expire > $cur_date) {
       		$expire =~ /(\d{4})(\d{2})(\d{2})/;
     	  	$status = "$_EXPIRE: $1-$2-$3";
+    	   } 
+      	elsif ($expire < $cur_date) {
+      		$expire =~ /(\d{4})(\d{2})(\d{2})/;
+    	  	$status = "$_EXPIRE: $1-$2-$3";
+    	  	$satus_code=1;
     	   } 
     	  else {
       	  $blockbeg = $result_hash2->{customers}->[0]->{customer}->[0]->{blocking}->[0]->{begin}->[0];
@@ -561,7 +568,11 @@ sub ashield_user {
   	  	  $blockend =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
    		    $blockend = "$1$2$3";
     		  if ($blockbeg > 0 && $blockbeg < $cur_date && $blockend < $cur_date) {
+    		  	
     	     }
+          else {
+          	$status_code=1;
+           }
 
    			  $blockbeg =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
    			  $blockend =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
@@ -588,10 +599,10 @@ sub ashield_user {
     	               $create,
     	               $status,
     	               $graceperiod,
-    	               $html->button("$_DOWNLOAD", '', { 
+    	               (($satus_code) ? "" : $html->button("$_DOWNLOAD", '', { 
     	               	  GLOBAL_URL => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]", 
     	                  TITLE      => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]" 
-    	                  })
+    	                  }))
     	              );
          }
         print $table->show();
@@ -601,7 +612,7 @@ sub ashield_user {
 
     #show abills log
     if (! $FORM{sort}) {
-   	  $LIST_PARAMS{SORT}=7;
+   	  $LIST_PARAMS{SORT}=1;
    	  $LIST_PARAMS{DESC}='DESC';
      }
 
@@ -623,8 +634,7 @@ sub ashield_user {
     	               $html->color_mark($line->[3],'code'),
     	               $html->color_mark($line->[4],'code'),
     	               $line->[5],
-    	               $line->[6],
-    	               
+    	               $line->[6]    	               
     	              );
         }
     print $table->show();
@@ -1517,7 +1527,7 @@ if ($drweb_version != 1) {
  	              DEPOSIT => $line->[2],
  	              CREDIT  => $line->[3],
  	              REDUCTION => $line->[13],
- 	                 );
+ 	             );
    
    if ($drweb_version == 1) {
      $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
@@ -1582,7 +1592,7 @@ if ($drweb_version != 1) {
  	     	   my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
  	     	 	   id      => $agent_id, 
  	     	 	   blockbeg => $cur_date,
- 	     	 	   #blockend => '20200101'
+ 	     	 	   blockend => '20200101'
  	     	 	   }); 
 	       
  	         if ( $result->{error} ) {
