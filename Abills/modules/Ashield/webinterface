@@ -554,7 +554,7 @@ sub ashield_user {
       		$expire =~ /(\d{4})(\d{2})(\d{2})/;
     	  	$status = "$_EXPIRE: $1-$2-$3";
     	   } 
-      	elsif ($expire > 0 $expire < $cur_date) {
+      	elsif ($expire > 0 && $expire < $cur_date) {
       		$expire =~ /(\d{4})(\d{2})(\d{2})/;
     	  	$status = "$_EXPIRE: $1-$2-$3";
     	  	$satus_code=1;
