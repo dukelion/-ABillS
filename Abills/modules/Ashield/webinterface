@@ -544,15 +544,17 @@ sub ashield_user {
         my $online	   = $result_hash2->{customers}->[0]->{customer}->[0]->{online}->[0];
     	  my $name       = $result_hash2->{customers}->[0]->{customer}->[0]->{name}->[0] || $k->{uuid}->[0];
     	  my $graceperiod= '-'; # $result_hash2->{customers}->[0]->{customer}->[0]->{graceperiod}->[0] || '';
-     	  $result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+     	  my $expire = 0;
+     	  if ($result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
+      	  $expire = "$1$2$3";
+      	 }
 
-      	my $expire = "$1$2$3";
       	my $satus_code = 0;
       	if ($expire > 0 && $expire > $cur_date) {
       		$expire =~ /(\d{4})(\d{2})(\d{2})/;
     	  	$status = "$_EXPIRE: $1-$2-$3";
     	   } 
-      	elsif ($expire < $cur_date) {
+      	elsif ($expire > 0 $expire < $cur_date) {
       		$expire =~ /(\d{4})(\d{2})(\d{2})/;
     	  	$status = "$_EXPIRE: $1-$2-$3";
     	  	$satus_code=1;
