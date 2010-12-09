@@ -1547,16 +1547,32 @@ if ($drweb_version != 1) {
    	 my $agent_id = $agent->{uuid}->[0];
    	 my $tp_name  = $agent->{tariffplancode}->[0];
    	 my $sum      = $TPS_HASH{$tp_name}{MONTH_FEE};
- 	   $debug_output .= "> $user{LOGIN} TP: $tp_name $agent_id $drweb_info{$agent_id}{activated}\n" if ($debug > 0);;
+   	 my $expire   = 0;
+   	 my $blockbeg = 0;
+   	 my $blockend = 0;
+   	 
+   	 if ($drweb_info{$agent_id}{expires} =~ /^(\d{4}\d{2}\d{2})/) {
+   	 	 $expire="$1$2$3";
+   	  }
+
+   	 if ($drweb_info{$agent_id}{blockbeg} =~ /^(\d{4}\d{2}\d{2})/) {
+   	 	 $blockbeg="$1$2$3";
+   	  }
+
+   	 if ($drweb_info{$agent_id}{blockend} =~ /^(\d{4}\d{2}\d{2})/) {
+   	 	 $blockend="$1$2$3";
+   	  }
+
+ 	   $debug_output .= "> $user{LOGIN} TP: $tp_name $agent_id $drweb_info{$agent_id}{activated} EXPIRE: $expire\n" if ($debug > 0);;
      
      
- 	   if ($drweb_info{$agent_id}{expires}  && $drweb_info{$agent_id}{expires} < $cur_date) {
+ 	   if ($expire  && $expire < $cur_date) {
  	   	 $debug_output .= "Expire\n" if ($debug > 1);
  	    }
  	   elsif ($drweb_info{$agent_id}{activated} eq 'yes') {
  	     $debug_output .= "Deposit: $line->[2] Credit: $line->[3] PAYMENT_TYPE: $TPS_HASH{$tp_name}{PAYMENT_TYPE}".
              " DAY FEES: $TPS_HASH{$tp_name}{DAY_FEE} MONTH FEES: $TPS_HASH{$tp_name}{MONTH_FEE}".
-             "BLOCK BEGIN: $drweb_info{$agent_id}{blockbeg} BLOCK END: $drweb_info{$agent_id}{blockend}\n" if ($debug > 1);;
+             "BLOCK BEGIN: $blockbeg BLOCK END: blockend\n" if ($debug > 1);;
        #Get fees
        if ($line->[2] + $line->[3] > 0 || $TPS_HASH{$tp_name}{PAYMENT_TYPE}) {
        	  my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
@@ -1570,7 +1586,7 @@ if ($drweb_version != 1) {
  	          }
  	         else {
  	       	   $debug_output .= "$result->{customers}->[0]->{customer}->[0]->{id}->[0] ".
- 	            "BLOCKING: $result->{customers}->[0]->{customer}->[0]->{blockbeg}->[0]\n" if ($debug > 4);
+ 	            "BLOCKING: $blockbeg\n" if ($debug > 4);
 
              if ($debug > 4) {
                $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
@@ -1590,9 +1606,9 @@ if ($drweb_version != 1) {
         }
        #Block 
  	     else {
- 	     	 if (($drweb_info{$agent_id}{blockbeg} < $cur_date && $drweb_info{$agent_id}{blockend} < $cur_date) || $drweb_info{$agent_id}{blockbeg} > $cur_date) {
+ 	     	 if (($blockbeg < $cur_date && $blockend < $cur_date) || $blockbeg > $cur_date) {
  	     	   my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
- 	     	 	   id      => $agent_id, 
+ 	     	 	   id       => $agent_id, 
  	     	 	   blockbeg => $cur_date,
  	     	 	   blockend => '20200101'
  	     	 	   }); 
@@ -1602,7 +1618,7 @@ if ($drweb_version != 1) {
  	          }
  	         else {
  	       	   $debug_output .= "$result->{customers}->[0]->{customer}->[0]->{id}->[0] ".
- 	            "BLOCKING: $result->{customers}->[0]->{customer}->[0]->{blockbeg}->[0]\n" if ($debug > 0);
+ 	            "BLOCKING: $blockbeg\n" if ($debug > 0);
  	          }
  	       }
  	      }
