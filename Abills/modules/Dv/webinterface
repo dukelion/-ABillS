@@ -335,11 +335,11 @@ if ($Dv->{errno}) {
   return 0;
  }
 elsif ($Dv->{TOTAL} == 1) {
-	form_users({  USER => user_info($list->[0]->[6+$Dv->{SEARCH_FIELDS_COUNT}]) });
+	$ui   = user_info($list->[0]->[6+$Dv->{SEARCH_FIELDS_COUNT}]);
+	print $ui->{TABLE_SHOW};
+	form_users({  USER => $ui });
 	return 0;
 }
-
-
 
 my $table = $html->table( { width      => '100%',
                             caption    => "Internet - $_USERS",
@@ -347,7 +347,8 @@ my $table = $html->table( { width      => '100%',
                             title      => \@TITLE,
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $Dv->{TOTAL}
+                            pages      => $Dv->{TOTAL},
+                            ID         => 'INTERNET_USERS_LIST'
                            });
 
 foreach my $line (@$list) {
