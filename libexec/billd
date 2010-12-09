@@ -888,10 +888,10 @@ sub check_speed_linux {
   	 	       	  $tp_speed_in     = 0 if (! $tp_speed_in);
 
                 if ($conf{octets_direction} eq 'server') {
-                  my $s_in = $tp_speed_in;
-                  my $s_out= $tp_speed_out;
-                  $tp_speed_in=$s_out;
-                  $tp_speed_out=$s_in;
+                  my $s_in      = $tp_speed_in;
+                  my $s_out     = $tp_speed_out;
+                  $tp_speed_in  = $s_out;
+                  $tp_speed_out = $s_in;
                  } 
 
              	  if (defined($tp_exprasions{$TP}) && defined($tp_exprasions{$TP}{$class_id})) {
@@ -1227,37 +1227,37 @@ else {
              my $dest_ip = ($traf_type == 0) ? 'any' : "table\\($nets_table_number, $traf_type\\)";
 
              if ($conf{octets_direction} eq 'server') {
-               my $s_in = $speed_in;
-               my $s_out= $speed_out;
-               $speed_in=$s_out;
-               $speed_out=$s_in;
+               my $s_in   = $speed_in;
+               my $s_out  = $speed_out;
+               $speed_in  = $s_out;
+               $speed_out = $s_in;
               } 
 
 	      	  
              if ($speed_in > 0) {
    	           if ($ARGV->{RECONFIGURE}) {
-  	             push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out pipe $pipe_rule_in ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
+  	             push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in pipe $pipe_rule_in ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
  	              }
 
   	           if (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_out) { 
-  	             push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
+  	             push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
  	               print "Change TP: $tp Class: $traf_type IN: ". ( ($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set'  ) ." -> $speed_out\n";
   	             delete $pipe_rules{$pipe_rule_out};
                 }
               }
              else{
    	           if ($ARGV->{RECONFIGURE}) {
-                 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out allow ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
+                 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in allow ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
                 }
               }
 
  	      	   if ($speed_out > 0) {
                if ($ARGV->{RECONFIGURE}) {
-  	      	  	 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out pipe $pipe_rule_in ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
+  	      	  	 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out pipe $pipe_rule_out ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
                 }
 
       	       if (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_in) {
-                 push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
+                 push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw ". $speed_in ."Kbit/s queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
              
                  print "Change TP: $tp Class: $traf_type OUT: ". ( ($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set'  ) ." -> $speed_in\n";
                  delete $pipe_rules{$pipe_rule_in};
@@ -1265,7 +1265,7 @@ else {
  	      	    }
              else{
             	 if ($ARGV->{RECONFIGURE}) {
-                 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in allow ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
+                 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out allow ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
                 }
               }
 
@@ -1379,10 +1379,10 @@ if ($conf{ng_car}) {
 
 
                 if ($conf{octets_direction} eq 'server') {
-                  my $s_in = $tp_speed_in;
-                  my $s_out= $tp_speed_out;
-                  $tp_speed_in=$s_out;
-                  $tp_speed_out=$s_in;
+                  my $s_in      = $tp_speed_in;
+                  my $s_out     = $tp_speed_out;
+                  $tp_speed_in  = $s_out;
+                  $tp_speed_out = $s_in;
                  } 
 
              	  if (defined($tp_exprasions{$TP}) && defined($tp_exprasions{$TP}{$class_id})) {
