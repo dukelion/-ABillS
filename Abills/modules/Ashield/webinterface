@@ -1551,15 +1551,15 @@ if ($drweb_version != 1) {
    	 my $blockbeg = 0;
    	 my $blockend = 0;
    	 
-   	 if ($drweb_info{$agent_id}{expires} =~ /^(\d{4}\d{2}\d{2})/) {
+   	 if ($drweb_info{$agent_id}{expires} && $drweb_info{$agent_id}{expires} =~ /^(\d{4}\d{2}\d{2})/) {
    	 	 $expire="$1$2$3";
    	  }
 
-   	 if ($drweb_info{$agent_id}{blockbeg} =~ /^(\d{4}\d{2}\d{2})/) {
+   	 if ($drweb_info{$agent_id}{blockbeg} && $drweb_info{$agent_id}{blockbeg} =~ /^(\d{4}\d{2}\d{2})/) {
    	 	 $blockbeg="$1$2$3";
    	  }
 
-   	 if ($drweb_info{$agent_id}{blockend} =~ /^(\d{4}\d{2}\d{2})/) {
+   	 if ($drweb_info{$agent_id}{blockend} && $drweb_info{$agent_id}{blockend} =~ /^(\d{4}\d{2}\d{2})/) {
    	 	 $blockend="$1$2$3";
    	  }
 
