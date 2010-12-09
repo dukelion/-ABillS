@@ -1572,7 +1572,7 @@ if ($drweb_version != 1) {
  	   elsif ($drweb_info{$agent_id}{activated} eq 'yes') {
  	     $debug_output .= "Deposit: $line->[2] Credit: $line->[3] PAYMENT_TYPE: $TPS_HASH{$tp_name}{PAYMENT_TYPE}".
              " DAY FEES: $TPS_HASH{$tp_name}{DAY_FEE} MONTH FEES: $TPS_HASH{$tp_name}{MONTH_FEE}".
-             "BLOCK BEGIN: $blockbeg BLOCK END: blockend\n" if ($debug > 1);;
+             "BLOCK BEGIN: $blockbeg BLOCK END: $blockend\n" if ($debug > 1);;
        #Get fees
        if ($line->[2] + $line->[3] > 0 || $TPS_HASH{$tp_name}{PAYMENT_TYPE}) {
        	  my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 

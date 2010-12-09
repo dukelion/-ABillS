@@ -14,6 +14,7 @@ my $Ipn_Collector = Ipn_Collector->new($db, \%conf);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $users    = Users->new($db, $admin, \%conf); 
+my $Nas      = Nas->new($db);;
 
 my @TT_COLORS = ("$_COLORS[1]", "#80FF80", "#FFFF80", "#BFBFFF");
 
@@ -315,11 +316,10 @@ if (! $list) {
 	  $LIST_PARAMS{DESC} = 'DESC';
   }
 
-  my $nas = Nas->new($db);
   $SEL_NAS  = $html->form_select('NAS_ID', 
                                         { 
  	                                        SELECTED          => $FORM{NAS_ID},
- 	                                        SEL_MULTI_ARRAY   => $nas->list({ %LIST_PARAMS, PAGE_ROWS => 1000 }),
+ 	                                        SEL_MULTI_ARRAY   => $Nas->list({ %LIST_PARAMS, PAGE_ROWS => 1000 }),
  	                                        MULTI_ARRAY_KEY   => 0,
  	                                        MULTI_ARRAY_VALUE => '1,4,3',
  	                                        });
@@ -1162,8 +1162,6 @@ sub ipn_form_user {
 #
 #**********************************************************
 sub ipn_user_activate {
-  my $nas  = Nas->new($db, \%conf);	
-
   my $ip       = '0.0.0.0';
   my $IP_INPUT = '';
   my $Dv = Dv->new($db, $admin, \%conf);  
@@ -1193,7 +1191,7 @@ sub ipn_user_activate {
     $nas_id=int($FORM{NAS_ID});
    }
   else {
-    my $poll_list = $nas->nas_ip_pools_list();
+    my $poll_list = $Nas->nas_ip_pools_list();
     my $ip_num = unpack("N", pack("C4", split( /\./, $ip))); 
   
     # Get valid NAS
@@ -1213,7 +1211,7 @@ sub ipn_user_activate {
       $IP_INPUT .= " NAS: ". $html->form_select('NAS_ID', 
                                     { 
  	                                   SELECTED          => $nas_id,
- 	                                   SEL_MULTI_ARRAY   => $nas->list(),
+ 	                                   SEL_MULTI_ARRAY   => $Nas->list(),
  	                                   MULTI_ARRAY_KEY   => 0,
  	                                   MULTI_ARRAY_VALUE => 1,
  	                                  });
@@ -1258,17 +1256,17 @@ sub ipn_user_activate {
      }
     else {
       my $user  = $users->info( $LIST_PARAMS{UID} );
-      $nas->info({ NAS_ID => $nas_id });
+      $Nas->info({ NAS_ID => $nas_id });
       my %DATA = (ACCT_STATUS_TYPE   => 1, 
                   USER_NAME          => $user->{LOGIN}, 
                   SESSION_START      => 0, 
                   ACCT_SESSION_ID    => mk_unique_value(10), 
                   FRAMED_IP_ADDRESS  => $ip, 
                   NAS_ID             => $nas_id,
-                  NAS_TYPE           => $nas->{NAS_TYPE},
-                  NAS_IP_ADDRESS     => $nas->{NAS_IP},
-                  NAS_MNG_USER       => $nas->{NAS_MNG_USER},
-                  NAS_MNG_IP_PORT    => $nas->{NAS_MNG_IP_PORT},                  
+                  NAS_TYPE           => $Nas->{NAS_TYPE},
+                  NAS_IP_ADDRESS     => $Nas->{NAS_IP},
+                  NAS_MNG_USER       => $Nas->{NAS_MNG_USER},
+                  NAS_MNG_IP_PORT    => $Nas->{NAS_MNG_IP_PORT},                  
                   TP_ID              => $Dv->{TP_ID},
                   CALLING_STATION_ID => $ip,
                   NAS_PORT           => $Dv->{PORT},
@@ -1279,11 +1277,16 @@ sub ipn_user_activate {
 
 
       my $Auth = Auth->new($db, \%conf);
-      my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $nas, { SECRETKEY => $conf{secretkey} });
+      my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $Nas, { SECRETKEY => $conf{secretkey} });
       $DATA{FILTER_ID} = $RAD_PAIRS{'Filter-Id'} if ($RAD_PAIRS{'Filter-Id'});
 
       if ($r == 1) {
-        $html->message('err', $_ERROR, "- $RAD_PAIRS->{'Reply-Message'}");
+        $html->message('err', $_ERROR, "$RAD_PAIRS->{'Reply-Message'}");
+        $Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
+                       ACTION   => 'AUTH', 
+                       USER_NAME=> $user->{LOGIN} || '-',
+                       MESSAGE  => "$RAD_PAIRS->{'Reply-Message'}",
+                      });
        }
       else {
         $Ipn->user_status({ %DATA });
@@ -1311,24 +1314,24 @@ sub ipn_user_activate {
   	 my $ip          = $list->[0]->[10];
      my $nas_port_id = $list->[0]->[2];
      my $user_name   = $list->[0]->[0];
-  	 $nas->info({ NAS_ID => $list->[0]->[18] });
+  	 $Nas->info({ NAS_ID => $list->[0]->[18] });
   
-     if ($nas->{errno}) {
-       $html->message('err', $_NAS, "$nas->{errstr}");
+     if ($Nas->{errno}) {
+       $html->message('err', $_NAS, "$Nas->{errstr}");
   	   return 0;
       }
 
-     if ($nas->{NAS_TYPE} eq 'ipcad' || $nas->{NAS_TYPE} eq 'other' || $nas->{NAS_TYPE} eq 'dhcp') {
+     if ($Nas->{NAS_TYPE} eq 'ipcad' || $Nas->{NAS_TYPE} eq 'other' || $Nas->{NAS_TYPE} eq 'dhcp') {
    	   ipn_change_status({ STATUS              => 'HANGUP',
   	 	                   USER_NAME             => $user->{LOGIN}, 
   	 	                   FRAMED_IP_ADDRESS     => $ip,
   	 	                   ACCT_TERMINATE_CAUSE  => 1,
   	 	                   UID                   => $LIST_PARAMS{UID},
   	 	                   FILTER_ID             => $Dv->{FILTER_ID},
-  	 	                   NAS_ID                => $nas->{NAS_ID},
-  	 	                   NAS_IP_ADDRESS        => $nas->{NAS_IP},
-                         NAS_MNG_USER          => $nas->{NAS_MNG_USER},
-                         NAS_MNG_IP_PORT       => $nas->{NAS_MNG_IP_PORT},
+  	 	                   NAS_ID                => $Nas->{NAS_ID},
+  	 	                   NAS_IP_ADDRESS        => $Nas->{NAS_IP},
+                         NAS_MNG_USER          => $Nas->{NAS_MNG_USER},
+                         NAS_MNG_IP_PORT       => $Nas->{NAS_MNG_IP_PORT},
   	 	         	 	     });
        }
      else {
@@ -1450,6 +1453,13 @@ sub ipn_change_status {
                                 ACCT_SESSION_ID => $ACCT_SESSION_ID,
                                 STATUS          => 10
                                });
+
+     $Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
+                    ACTION   => 'AUTH', 
+                    USER_NAME=> $USER_NAME || '-',
+                    MESSAGE  => "IP: $ip",
+                   });
+
      
    }
 	elsif($STATUS eq 'ONLINE_DISABLE') {
@@ -1581,9 +1591,8 @@ my $table = $html->table( { width      => '100%',
                                } );
 
 
-my $nas = Nas->new($db, \%conf); 
 my $online = $sessions->{nas_sorted};
-my $nas_list = $nas->list({ TYPE => 'ipcad' });
+my $nas_list = $Nas->list({ TYPE => 'ipcad' });
 
 my $graph_type='';
 my %DATA_HASH = ();
@@ -1840,8 +1849,7 @@ sub ipn_user_add {
  	                                          MULTI_ARRAY_VALUE => 1,
                                          });
  
- my $nas = Nas->new($db);
- my $nas_list = $nas->list({ %LIST_PARAMS });
+ my $nas_list = $Nas->list({ %LIST_PARAMS });
  $Ipn->{NAS_SEL} = $html->form_select('NAS_ID', 
                                     { 
  	                                   SEL_MULTI_ARRAY   => $nas_list,
@@ -2271,10 +2279,8 @@ sub ipn_periodic_session_restart {
 
 #Get online
 my $Dv  = Dv->new($db, $admin, \%conf);  
-my $nas = Nas->new($db);
 
-
-my $nas_list = $nas->list({ NAS_IDS   => $attr->{NAS_IDS}, 
+my $nas_list = $Nas->list({ NAS_IDS   => $attr->{NAS_IDS}, 
 	                          PAGE_ROWS => 10000 });
 my %nas_info = ();
 foreach my $line (@$nas_list) {
@@ -2411,8 +2417,7 @@ sub ipn_start_active {
 
 #Get online
 my $Dv  = Dv->new($db, $admin, \%conf);  
-my $nas = Nas->new($db);
-my $nas_list = $nas->list({ NAS_IDS   => $attr->{NAS_IDS}, 
+my $nas_list = $Nas->list({ NAS_IDS   => $attr->{NAS_IDS}, 
 	                          PAGE_ROWS => 10000 });
 
 my %nas_info = ();
@@ -2435,7 +2440,7 @@ if ($#nas_ids_arr < 0) {
  }
 
 #Get puuls for nas
-my $poll_list = $nas->nas_ip_pools_list({  });
+my $poll_list = $Nas->nas_ip_pools_list({  });
 
 my %nas_pools_hash = ();  
 # Get valid NAS
