@@ -974,7 +974,6 @@ sub msgs_user {
                   "$_ANSWER_WAIT",
                   );
  
-   $FORM{ID}=$Msgs->{LAST_ID} if ($Msgs->{LAST_ID});
 	 $Msgs->{STATE_SEL} =  $html->form_select('STATE', 
                                           { 
  	                                          SELECTED          => $FORM{STATE} || 0,
@@ -1015,7 +1014,7 @@ sub msgs_user {
     msgs_notify_admins();
    }
  	}
- elsif($FORM{ID}) {
+ elsif($FORM{ID} || $Msgs->{LAST_ID}) {
    if ($FORM{reply}) {
      my %params              = ();
  	 	 $params{CLOSED_DATE} = $DATE       if ($FORM{STATE} > 0);
@@ -1060,6 +1059,7 @@ sub msgs_user {
  	 	                       });
     }
 
+   $FORM{ID}=$Msgs->{LAST_ID} if ($Msgs->{LAST_ID});
  	 $Msgs->message_info($FORM{ID}, { UID => $LIST_PARAMS{UID} });
 
    $Msgs->{ACTION}       = 'reply';

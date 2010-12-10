@@ -1579,8 +1579,8 @@ if ($drweb_version != 1) {
        	  if ($blockbeg != 0 || $blockend != 0 ) {
        	    $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
  	     	 	   id       => $agent_id, 
- 	     	 	   blockbeg => "$cur_date",
- 	     	 	   blockend => "$cur_date"
+ 	     	 	   blockbeg => "$cur_date".'000000000',
+ 	     	 	   blockend => "$cur_date".'000000000'
 	     	 	   #blockbeg => ($blockbeg == 0) ? undef : "$cur_date".'000000000',
  	     	 	   #blockend => ($blockend == 0) ? undef : "$cur_date".'000000000'
  	     	 	   }); 
@@ -1613,8 +1613,8 @@ if ($drweb_version != 1) {
  	     	 if (($blockbeg < $cur_date && $blockend < $cur_date) || $blockbeg > $cur_date) {
  	     	   my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
  	     	 	   id       => $agent_id, 
- 	     	 	   blockbeg => $cur_date,
- 	     	 	   blockend => '20200101'
+ 	     	 	   blockbeg => $cur_date.'000000000',
+ 	     	 	   blockend => '20200101'.'000000000'
  	     	 	   }); 
 	       
  	         if ( $result->{error} ) {
