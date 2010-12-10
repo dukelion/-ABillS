@@ -1577,8 +1577,8 @@ if ($drweb_version != 1) {
        if ($line->[2] + $line->[3] > 0 || $TPS_HASH{$tp_name}{PAYMENT_TYPE}) {
        	  my $result = ashield_drweb_request('api/2.0/change-customer-info.ds', { 
  	     	 	   id       => $agent_id, 
-	     	 	   blockbeg => "$cur_date",
- 	     	 	   blockend => "$cur_date"
+	     	 	   blockbeg => ($blockbeg == 0) ? undef : "$cur_date",
+ 	     	 	   blockend => ($blockend == 0) ? undef : "$cur_date"
  	     	 	   }); 
  	       
  	         if ( $result->{error} ) {
