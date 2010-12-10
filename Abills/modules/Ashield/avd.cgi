@@ -310,7 +310,7 @@ if ($status < 4) {
 
         my $agent_count = $#{ $agents_result_hash->{agents}->[0]->{agent} };
         my $sum = $Tariffs->{MONTH_FEE};  
-        $Tariffs->{PERIOD_ALIGNMENT}=1;
+#        $Tariffs->{PERIOD_ALIGNMENT}=1;
         if ($Tariffs->{PERIOD_ALIGNMENT}) {
         	my ($y, $m, $d)=split(/-/, $DATE);
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
