@@ -1,3 +1,4 @@
+<input type=hidden name=VIEW value=$FORM{VIEW}>
 <tr><td>$_HOSTS_HOSTNAME:</td><td><input type=text name=HOSTNAME value='%HOSTNAME%'></td></tr>			
 <tr><td>$_HOSTS_NETWORKS:</td><td>%NETWORKS_SEL%</td></tr>
 <tr><td>IP:</td><td><input type=text name=IP value='%IP%'></td></tr>			

@@ -552,12 +552,14 @@ function CheckAllINBOX() {
 # 
 #*******************************************************************
 sub dhcphosts_hosts {
+  
+  my $nas_list =  $Nas->list();
   if (! $FORM{UID}) {
     $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel({ SEARCH  => 1 });
     $Dhcphosts->{SWITCH_SEL} = $html->form_select('NAS_ID',
                                           {
                                                   SELECTED          => $Dhcphosts->{NAS_ID},
-                                                  SEL_MULTI_ARRAY   => [['', $_ALL], @{ $Nas->list() } ],
+                                                  SEL_MULTI_ARRAY   => [['', $_ALL], @$nas_list ],
                                                   MULTI_ARRAY_KEY   => 0,
                                                   MULTI_ARRAY_VALUE => 1,
                                            });
@@ -569,18 +571,31 @@ sub dhcphosts_hosts {
 	              });
    }
 
+  my @TITLE = ('#', "$_USER",  "IP", "$_HOSTS_HOSTNAME","$_HOSTS_NETWORKS_NET", "$_HOSTS_MAC", "$_STATUS", "$_HOSTS_BLOCKTIME", "$_HOSTS_BLOCKED","-","-");
+  
+  my %NAS_HASH = ();
+  if ($FORM{VIEW} && $FORM{VIEW} == 1) {
+  	@TITLE = ('#', "$_USER",  "IP", "$_HOSTS_HOSTNAME","$_HOSTS_NETWORKS_NET", "$_HOSTS_MAC", "$_STATUS", "$_SWITCH", "VLAN", "$_PORT","-","-");
+  	$LIST_PARAMS{VIEW}=$FORM{VIEW};
+  	foreach my $line (@$nas_list) {
+  		$NAS_HASH{$line->[0]}=$line->[1];
+  	 }
+   }
+  
+  
   my $list = $Dhcphosts->hosts_list({ %LIST_PARAMS });
   my $table = $html->table({ width      => '100%',
 				                     caption    => "$_HOSTS_USER",
-				                     title      => ['#', "$_USER",  "IP", "$_HOSTS_HOSTNAME","$_HOSTS_NETWORKS_NET", "$_HOSTS_MAC", "$_STATUS", "$_HOSTS_BLOCKTIME", "$_HOSTS_BLOCKED","-","-"],
+				                     title      => \@TITLE,
 				                     cols_align => ['left', 'left', 'left','left', 'left', 'left','center:noprint','center:noprint'],
 				                     qs         => $pages_qs,
 				                     pages      => $Dhcphosts->{TOTAL},
-				                     ID         => 'DHCP_HOSTS'
+				                     ID         => 'DHCP_HOSTS',
+				                     VIEW       => form_view({ VIEW => { 0 => STANDART, 1 => 'OPTION 82' } })
                            });
 
   foreach my $line (@$list) {
-   	$status=$line->[10]+$line->[8];
+   	$status=$line->[10]+$line->[7];
    	my $status_color=$_COLORS[9];
 	  if ($status == 0)    { $status_color=$_COLORS[9]; }
 	  elsif($status == 1 ) { $status_color=$_COLORS[6]; }
@@ -592,19 +607,36 @@ sub dhcphosts_hosts {
     else {
       $table->{rowcolor}=undef; 
      }
- 
-    $table->addrow(
-	    $line->[0], 
-	    $html->button($line->[1], "index=15&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]."&MODULE=Dhcphosts"),
-	    $line->[11],
-	    $line->[3],
-	    $line->[5].": ".$line->[4],
-	    $line->[6],
-	    $html->color_mark($status[$line->[10]]."/".$line->[8], $status_color),
-	    $line->[9],
-	    $line->[7],
-	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&MODULE=Dhcphosts&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}], { BUTTON => 1 }),
-	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=". $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}]. "&IP=$line->[11]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
+    my $uid = 0;
+    my @arr = ();
+
+    if ($FORM{VIEW}) {
+    	$uid = $line->[14+$Dhcphosts->{SEARCH_FIELDS_COUNT}];
+    	push @arr, $line->[0], 
+  	    $html->button($line->[1], "index=15&UID=$uid&MODULE=Dhcphosts"),
+	      $line->[12],
+	      $line->[3],
+	      $line->[5].": ".$line->[4],
+  	    $line->[6], 
+	      $html->color_mark($status[$line->[7]], $status_color),
+	      $NAS_HASH{$line->[9]}, $line->[10], $line->[11];
+     }
+    else {
+    	$uid = $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}];
+    	push @arr, $line->[0], 
+	      $html->button($line->[1], "index=15&UID=$uid&MODULE=Dhcphosts"),
+	      $line->[11],
+	      $line->[3],
+	      $line->[5].": ".$line->[4],
+	      $line->[6], 
+	      $html->color_mark($status[$line->[7]], $status_color),
+	      $line->[9],
+	      $line->[8]
+     }
+
+    $table->addrow(@arr,
+	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&MODULE=Dhcphosts&UID=$uid", { BUTTON => 1 }),
+	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=$uid&IP=$line->[11]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
      );
    };
   print $table->show();	

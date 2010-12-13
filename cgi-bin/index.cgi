@@ -441,6 +441,20 @@ sub form_info {
    }
   
   $user->{DISABLE} = ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6])  : $_ENABLE;
+  my $deposit = sprintf("%.2f", $user->{DEPOSIT}); # ($user->{DISABLE}) ? $html->color_mark("$_DISABLE", $_COLORS[6])  : $_ENABLE;
+  $user->{DEPOSIT} = ($deposit < $user->{DEPOSIT}) ? $deposit + 0.01 : $deposit;
+  my $sum  = ($user->{DEPOSIT} < 0) ? abs($user->{DEPOSIT}*2) : 0;
+  $pages_qs = "&SUM=$sum&sid=$sid";
+  if (in_array('Docs', \@MODULES) ) {
+  	my $fn_index = get_function_index('docs_accounts_list');
+    $user->{DOCS_ACCOUNT} = $html->button("$_INVOICE_CREATE", "index=$fn_index$pages_qs", { BUTTON => 1} );
+   }
+
+  if (in_array('Paysys', \@MODULES) ) {
+  	my $fn_index = get_function_index('paysys_payment');
+  	$user->{PAYSYS_PAYMENTS} = $html->button("$_BALANCE_RECHARCHE", "index=$fnindex$pages_qs", { BUTTON => 1} );
+   }
+
   $html->tpl_show(templates('form_client_info'), $user);
 
   if ($conf{user_chg_pi}) {
@@ -1198,5 +1212,27 @@ sub cross_modules_call  {
    }
 }
 
+
+#**********************************************************
+# Get function index
+#
+# get_function_index($function_name, $attr) 
+#**********************************************************
+sub get_function_index  {
+  my ($function_name, $attr) = @_;
+  my $function_index = 0;
+  
+  while(my($k, $v)=each %functions) {
+    if ($v eq "$function_name") {
+       $function_index = $k;
+       if ($attr->{ARGS} && $attr->{ARGS} ne $menu_args{$k}) {
+       	 next;
+        }
+       last;
+     }
+   }
+
+  return $function_index;
+}
 
 1

@@ -1178,7 +1178,6 @@ sub docs_account {
          #return 0;
         }
       
-       #print $html->header() if ($FORM{qindex});
        if( $user->{UID} ) {
          $FORM{qindex}    = $index;
          $html->{NO_PRINT}= undef;
@@ -1236,9 +1235,6 @@ sub docs_account {
    	        	SUM    => sprintf("%.2f", $line->[3]*$line->[4])
    	        	}, 
    	         { OUTPUT2RETURN => 1 }) if (! $FORM{pdf});
-
-   	   #$Docs->{ORDER} .= sprintf("<tr><td align=right>%d</td><td>%s</td><td align=right>%d</td><td align=right>%d</td><td align=right>%.2f</td><td align=right>%.2f</td></tr>\n", 
-   	   #  $i, $line->[1], $line->[2], $line->[3], $line->[4], ($line->[2]*$line->[4]));
    	   
    	   my $count = $line->[2] || 1;
    	   my $sum   = sprintf("%.2f", $count*$line->[4]);
@@ -1306,7 +1302,7 @@ sub docs_account {
   $Docs->{OP_SID}  = mk_unique_value(16);
   $Docs->{CUSTOMER}= $users->{FIO} || '-';
   $Docs->{CAPTION} = $_ACCOUNT;  
-  $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users }) if (! $FORM{pdf});
+  $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users, %FORM }) if (! $FORM{pdf});
 }
 
 

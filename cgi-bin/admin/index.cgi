@@ -7026,5 +7026,27 @@ sub form_purchase_module  {
   return 0;
 }
 
+#**********************************************************
+# Get function index
+#
+# form_view($attr) 
+#  VIEW = HASH_REF
+#**********************************************************
+sub form_view  {
+  my ($attr) = @_;
+
+  my %info = ();
+  $info{VIEW_SEL} = $html->form_select('VIEW', 
+                                { SELECTED   => $FORM{VIEW} || 0,
+ 	                                SEL_HASH   => $attr->{VIEW},
+ 	                                NO_ID      => 1,
+ 	                                #EX_PARAMS => 'onChange="selectstype()"'
+ 	                               });
+
+  $info{EX_PARAMS} = '';
+
+  return $html->tpl_show(templates('form_view'), \%info, { OUTPUT2RETURN => 1 });
+}
+
 
 1
