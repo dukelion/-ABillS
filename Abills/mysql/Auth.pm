@@ -106,7 +106,8 @@ sub dv_auth {
   tp.credit,
   tp.ippool,
   dv.join_service,
-  tp.tp_id
+  tp.tp_id,
+  tp.active_day_fee
 
      FROM (dv_main dv)
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id $DOMAIN_ID)
@@ -156,7 +157,8 @@ sub dv_auth {
    $self->{TP_CREDIT},
    $self->{TP_IPPOOL},
    $self->{JOIN_SERVICE},
-   $self->{TP_ID}
+   $self->{TP_ID},
+   $self->{ACTIVE_DAY_FEE}
     ) = @{ $self->{list}->[0] };
 
 #DIsable
@@ -366,10 +368,10 @@ else {
 
 if (defined($ATTR->{TT})) {
   $self->{TT_INTERVAL} = $ATTR->{TT};
-}
+ }
 else {
   $self->{TT_INTERVAL} = 0;
-}
+ }
 
 #check allow period and time out
  if ($remaining_time == -1) {
@@ -455,7 +457,9 @@ foreach my $line (@periods) {
       }
 }
 
-
+if ($self->{ACTIVE_DAY_FEE}) {
+	push @time_limits, 86400 - ($self->{SESSION_START} - $self->{DAY_BEGIN});
+}
 
 #set time limit
  for(my $i=0; $i<=$#time_limits; $i++) {

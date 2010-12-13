@@ -120,6 +120,7 @@ $_HOUR_TARIF='Time tariff';
 $_TRAFIC_TARIFS='Traffic tarifs';
 $_MONTH_FEE='Month fee';
 $_DAY_FEE='Day fee';
+$_ACTIVE_DAY_FEE='Active day fees';
 $_UPLIMIT='Alert';
 $_BEGIN='Begin';
 $_END='END';

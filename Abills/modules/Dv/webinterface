@@ -850,6 +850,8 @@ $tarif_info->{POSTPAID_DAY_FEE}  = ($tarif_info->{POSTPAID_DAY_FEE})  ? 'checked
 $tarif_info->{POSTPAID_MONTH_FEE}= ($tarif_info->{POSTPAID_MONTH_FEE})? 'checked' : '';
 $tarif_info->{PERIOD_ALIGNMENT}  = ($tarif_info->{PERIOD_ALIGNMENT})  ? 'checked' : ''; 
 $tarif_info->{ABON_DISTRIBUTION} = ($tarif_info->{ABON_DISTRIBUTION}) ? 'checked' : ''; 
+$tarif_info->{ACTIVE_DAY_FEE}    = ($tarif_info->{ACTIVE_DAY_FEE})    ? 'checked' : ''; 
+
 $tarif_info->{SMALL_DEPOSIT_ACTION_SEL} = $html->form_select('SMALL_DEPOSIT_ACTION', 
                                           { 
  	                                          SELECTED          => $tarif_info->{SMALL_DEPOSIT_ACTION},
@@ -3810,13 +3812,14 @@ sub dv_daily_fees {
  $debug_output .= "DV: Daily periodic payments\n" if ($debug > 1);
 
 
- $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+ $LIST_PARAMS{TP_ID}     = $attr->{TP_ID} if ($attr->{TP_ID});
  $LIST_PARAMS{DOMAIN_ID} = $DOMAIN_ID;
  
 
  my %DV_LIST_PARAMS = ();
- $DV_LIST_PARAMS{LOGIN}     = $attr->{LOGIN} if ($attr->{LOGIN});
- $DV_LIST_PARAMS{DOMAIN_ID} = $DOMAIN_ID;
+ $DV_LIST_PARAMS{LOGIN}          = $attr->{LOGIN} if ($attr->{LOGIN});
+ $DV_LIST_PARAMS{DOMAIN_ID}      = $DOMAIN_ID;
+ #$DV_LIST_PARAMS{ACTIVE_DAY_FEE} = 1;
 
  my $list = $tariffs->list({ %LIST_PARAMS });
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
@@ -3824,11 +3827,26 @@ sub dv_daily_fees {
  foreach my $line (@$list) {
  	 if ($line->[5] > 0) {
  	   #$LIST_PARAMS{TP}=$line->[0];
-     my $TP_ID = $line->[0];
+     my $TP_ID          = $line->[0];
+     my $active_day_fee = $line->[20];
      my %TP_INFO = ();
      $TP_INFO{POSTPAID_DAILY} = $line->[12];
      $TP_INFO{REDUCTION}      = $line->[11];
  	   $debug_output .= "TP ID: $TP_ID DF: $line->[5] MF: $line->[6] POSTPAID: $TP_INFO{POSTPAID_DAILY} REDUCTION: $TP_INFO{REDUCTION} EXT_BILL: $line->[13] CREDIT: $line->[14]\n" if ($debug > 1);
+
+     #Get active yesterdays logins
+ 	   my %active_logins = ();
+     if ($active_day_fee > 0) { 
+       my $report_list = $sessions->reports({
+                     INTERVAL   => "$attr->{YESTERDAY}/$attr->{YESTERDAY}",
+                     TP_ID      => $TP_ID,
+	   	              });
+  
+       foreach my $l (@$report_list) {
+ 	  	   $active_logins{$l->[7]}=$l->[6];
+        }
+      }
+
 
  	   my $ulist = $Dv->list({
          ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
@@ -3855,8 +3873,14 @@ sub dv_daily_fees {
            );
 
         if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
+          #Active day fees
+          if ($active_day_fee > 0) {
+          	
+           }
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
-          if($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $TP_INFO{POSTPAID_DAILY} == 1 ) {
+          elsif((($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $TP_INFO{POSTPAID_DAILY} == 1) && $active_day_fee==0) || 
+            ($active_day_fee==11 && $active_logins{$user{LOGIN}})
+            ) {
              my $sum = $line->[5];
              # IF TP have PARIODIC PAYMENTS USER reduction
              if ($TP_INFO{REDUCTION} == 1 && $user{REDUCTION} > 0) {
@@ -3907,7 +3931,6 @@ $debug_output .= "Bonus payments\n";
 use Billing;
 my $Billing = Billing->new($db, $CONF);
 
-  
   foreach my $tp_line (@$list) {
      my $ti_list = $tariffs->ti_list({ TP_ID => $tp_line->[18] });
      next if ($tariffs->{TOTAL} != 1);
@@ -3935,13 +3958,13 @@ my $Billing = Billing->new($db, $CONF);
          #last;
 
      	  
-       if (! defined($expr_hash{$traffic_class})) {
-       	 next;
-        }
+         if (! defined($expr_hash{$traffic_class})) {
+       	   next;
+          }
        
-       #Get users for bonus payments
-       #Ipn users for daily payments
-   	   $ulist = $Dv->list({ 
+         #Get users for bonus payments
+         #Ipn users for daily payments
+   	     $ulist = $Dv->list({ 
            ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
            EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
            STATUS     => 0,
@@ -3954,24 +3977,23 @@ my $Billing = Billing->new($db, $CONF);
            %DV_LIST_PARAMS
  	     	 });
 
-       my $extfield_count = $Dv->{SEARCH_FIELDS_COUNT};
-       foreach my $u (@$ulist) {
+         my $extfield_count = $Dv->{SEARCH_FIELDS_COUNT};
+         foreach my $u (@$ulist) {
 
-         %user = (
-            LOGIN      => $u->[0],  
-            UID        => $u->[6+ $extfield_count],
-            BILL_ID    => ($tp_line->[14] > 0) ? $u->[14 + $extfield_count] : $u->[12 + $extfield_count],
+           %user = (
+              LOGIN      => $u->[0],  
+              UID        => $u->[6+ $extfield_count],
+              BILL_ID    => ($tp_line->[14] > 0) ? $u->[14 + $extfield_count] : $u->[12 + $extfield_count],
+              REDUCTION  => $u->[13 + $extfield_count],
+              ACTIVATE   => $u->[10 + $extfield_count],
+              DEPOSIT    => $u->[2],
+              CREDIT     => ($u->[3] > 0) ? $u->[3] : $tp_line->[15],
+              COMPANY_ID => $u->[7 + $extfield_count]
+             );
 
-            REDUCTION  => $u->[13 + $extfield_count],
-            ACTIVATE   => $u->[10 + $extfield_count],
-            DEPOSIT    => $u->[2],
-            CREDIT     => ($u->[3] > 0) ? $u->[3] : $tp_line->[15],
-            COMPANY_ID => $u->[7 + $extfield_count]
-           );
+           $Billing->{PERIOD_TRAFFIC}=undef;
 
-         $Billing->{PERIOD_TRAFFIC}=undef;
-
-         my $RESULT = $Billing->expression($user{UID}, \%expr_hash, 
+           my $RESULT = $Billing->expression($user{UID}, \%expr_hash, 
                                                           { START_PERIOD  => $attr->{YESTERDAY},
                                                           	STOP_PERIOD   => $attr->{DATE}, 
   	                                                        debug         => 0,
@@ -3979,40 +4001,39 @@ my $Billing = Billing->new($db, $CONF);
   	                                                        TRAFFIC_CLASS => $traffic_class
   	                                                        });
 
-         my $message = '';
-         my $sum     = 0;
+           my $message = '';
+           my $sum     = 0;
  
-         my %FEES_PARAMS = (
+           my %FEES_PARAMS = (
                             DATE     => $ADMIN_REPORT{DATE},
                             METHOD   => 0 );  
 
-         if ($RESULT->{'TRAFFIC_IN'}) {
-         	 $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ".$RESULT->{'TRAFFIC_IN'} ."SUM: $RESULT->{PRICE_IN}";
-         	 $sum     = $RESULT->{'TRAFFIC_IN'} * $RESULT->{PRICE_IN}; #(($RESULT->{PRICE_IN}) ? $RESULT->{PRICE_IN} : 0);
-          }
+           if ($RESULT->{'TRAFFIC_IN'}) {
+         	   $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ".$RESULT->{'TRAFFIC_IN'} ."SUM: $RESULT->{PRICE_IN}";
+         	   $sum     = $RESULT->{'TRAFFIC_IN'} * $RESULT->{PRICE_IN}; #(($RESULT->{PRICE_IN}) ? $RESULT->{PRICE_IN} : 0);
+            }
 
-         if ($RESULT->{'TRAFFIC_OUT'}) {
-         	 $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ". $RESULT->{'TRAFFIC_OUT'} ."SUM: $RESULT->{PRICE_OUT}";
-         	 $sum     = $RESULT->{'TRAFFIC_OUT'} * $RESULT->{PRICE_OUT};
-          }
-         elsif ($RESULT->{'TRAFFIC_SUM'}) {
-         	 $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ". $RESULT->{'TRAFFIC_SUM'}." SUM: $RESULT->{PRICE}";
-         	 $sum     = $RESULT->{'TRAFFIC_SUM'} * $RESULT->{PRICE};
-          }
+           if ($RESULT->{'TRAFFIC_OUT'}) {
+         	   $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ". $RESULT->{'TRAFFIC_OUT'} ."SUM: $RESULT->{PRICE_OUT}";
+         	   $sum     = $RESULT->{'TRAFFIC_OUT'} * $RESULT->{PRICE_OUT};
+            }
+           elsif ($RESULT->{'TRAFFIC_SUM'}) {
+         	   $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: ". $RESULT->{'TRAFFIC_SUM'}." SUM: $RESULT->{PRICE}";
+         	   $sum     = $RESULT->{'TRAFFIC_SUM'} * $RESULT->{PRICE};
+            }
 
 
-         if ($sum > 0 && $debug < 5) {
+           if ($sum > 0 && $debug < 5) {
              $payments->add(\%user, 
   	             	            { SUM            => $sum,
   	             	            	METHOD         => 4,
   	                            DESCRIBE       => "$_TRAFFIC_CLASS: $traffic_class $_BONUS",
   	                            } );
+            }
 
+           $debug_output .= " Login: $u->[0] ($u->[8])  TP_ID: $u->[11] Payments: $sum REDUCTION: $u->[15] $u->[2] $u->[3] $u->[10] - $user{ACTIVATE}\n" if ($debug > 0); 	
           }
-
-         $debug_output .= " Login: $u->[0] ($u->[8])  TP_ID: $u->[11] Payments: $sum REDUCTION: $u->[15] $u->[2] $u->[3] $u->[10] - $user{ACTIVATE}\n" if ($debug > 0); 	
-        }
-}
+       }
       }
 }
 

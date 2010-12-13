@@ -21,6 +21,7 @@ sub dhcphosts_user_del {
  my ($uid, $attr) = @_;
 
  $Dhcphosts->{UID}=$uid;
+ $Dhcphosts->{debug}=1;
  $Dhcphosts->host_del({ UID => $uid });
 
  return 0;
@@ -1102,7 +1103,8 @@ foreach my $line (@$list) {
   	                               NAS_ID    => '>=0',
   	                               OPTION_82 => '>=0',
   	                               VID       => '>=0',
-  	                               BOOT_FILE => '*'
+  	                               BOOT_FILE => '*',
+  	                               DELETED   => 0
   	                             });
 
 

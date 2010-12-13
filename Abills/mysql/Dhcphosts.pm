@@ -698,15 +698,29 @@ sub hosts_list {
 
   if ($attr->{EXPIRE}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{EXPIRE}", 'INT', 'h.expire') };
-  }
+   }
 
   if (defined($attr->{STATUS})) {
     push @WHERE_RULES, "h.disable='$attr->{STATUS}'";
-  }
+   }
 
   if (defined($attr->{USER_DISABLE})) {
     push @WHERE_RULES, "u.disable='$attr->{USER_DISABLE}'";
+   }
+
+
+ if (defined($attr->{DELETED})) {
+ 	 push @WHERE_RULES,  @{ $self->search_expr("$attr->{DELETED}", 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
   }
+ elsif (! $admin->{permissions}->{0} || ! $admin->{permissions}->{0}->{8}) {
+	 push @WHERE_RULES,  @{ $self->search_expr(0, 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
+  }
+
+
+  #if (defined($attr->{D})) {
+  #  push @WHERE_RULES, "u.disable='$attr->{USER_DISABLE}'";
+  # }
+
 
   # Deposit chech
   my $EXT_TABLES     = ''; 

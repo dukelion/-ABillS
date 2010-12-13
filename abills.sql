@@ -807,6 +807,7 @@ CREATE TABLE `tarif_plans` (
   `uplimit` double(14,2) NOT NULL default '0.00',
   `name` varchar(40) NOT NULL default '',
   `day_fee` double(14,2) unsigned NOT NULL default '0.00',
+  `active_day_fee` tinyint(1) unsigned NOT NULL default '0',
   `logins` tinyint(4) NOT NULL default '0',
   `day_time_limit` int(10) unsigned NOT NULL default '0',
   `week_time_limit` int(10) unsigned NOT NULL default '0',

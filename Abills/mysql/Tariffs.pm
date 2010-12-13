@@ -22,6 +22,7 @@ my %FIELDS = ( ID               => 'id',
                TP_ID            => 'tp_id', 
                NAME             => 'name',  
                DAY_FEE          => 'day_fee',
+               ACTIVE_DAY_FEE   => 'active_day_fee',
                MONTH_FEE        => 'month_fee',
                REDUCTION_FEE    => 'reduction_fee',
                POSTPAID_DAY_FEE     => 'postpaid_daily_fee',
@@ -60,7 +61,7 @@ my %FIELDS = ( ID               => 'id',
                PRIORITY         => 'priority',
                SMALL_DEPOSIT_ACTION => 'small_deposit_action',
                COMMENTS        => 'comments',
-               BILLS_PRIORITY  => 'bills_priority'
+               BILLS_PRIORITY  => 'bills_priority',
              );
 
 #**********************************************************
@@ -398,7 +399,8 @@ sub defaults {
             PRIORITY         => 0,
             SMALL_DEPOSIT_ACTION => 0,
             COMMENTS         => '',
-            BILLS_PRIORITY   => 0 
+            BILLS_PRIORITY   => 0,
+            ACTIVE_DAY_FEE   => 0
          );   
  
   $self = \%DATA;
@@ -422,7 +424,7 @@ sub add {
  
 
   $self->query($db, "INSERT INTO tarif_plans (id, uplimit, name, 
-     month_fee, day_fee, reduction_fee, 
+     month_fee, day_fee, active_day_fee, reduction_fee, 
      postpaid_daily_fee, 
      postpaid_monthly_fee,
      ext_bill_account,
@@ -443,7 +445,7 @@ sub add {
      bills_priority
      )
     values ('$DATA{ID}', '$DATA{ALERT}', \"$DATA{NAME}\", 
-     '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{REDUCTION_FEE}', 
+     '$DATA{MONTH_FEE}', '$DATA{DAY_FEE}', '$DATA{ACTIVE_DAY_FEE}', '$DATA{REDUCTION_FEE}', 
      '$DATA{POSTPAID_DAY_FEE}', 
      '$DATA{POSTPAID_MONTH_FEE}', 
      '$DATA{EXT_BILL_ACCOUNT}',
@@ -490,6 +492,7 @@ sub change {
   $attr->{ABON_DISTRIBUTION}=0   if (! $attr->{ABON_DISTRIBUTION});
   $attr->{SMALL_DEPOSIT_ACTION}=0 if (! $attr->{SMALL_DEPOSIT_ACTION});
   $attr->{BILLS_PRIORITY}=0      if (! $attr->{BILLS_PRIORITY});
+  $attr->{ACTIVE_DAY_FEE}=0      if (! $attr->{ACTIVE_DAY_FEE});
 
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'tarif_plans',
@@ -554,7 +557,7 @@ sub info {
 
 
   $self->query($db, "SELECT id, name,
-      day_fee, month_fee, reduction_fee, postpaid_daily_fee, postpaid_monthly_fee, 
+      day_fee, active_day_fee, month_fee, reduction_fee, postpaid_daily_fee, postpaid_monthly_fee, 
       ext_bill_account,
       logins, age,
       day_time_limit, week_time_limit,  month_time_limit, total_time_limit, 
@@ -593,6 +596,7 @@ sub info {
   ($self->{ID}, 
    $self->{NAME}, 
    $self->{DAY_FEE}, 
+   $self->{ACTIVE_DAY_FEE},
    $self->{MONTH_FEE}, 
    $self->{REDUCTION_FEE}, 
    $self->{POSTPAID_DAY_FEE}, 
@@ -684,6 +688,10 @@ sub list {
  	 push @WHERE_RULES, @{ $self->search_expr("$attr->{PAYMENT_TYPE}", 'INT', 'tp.payment_type') };  	
   }
 
+ if ($attr->{ACTIVE_DAY_FEE}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{ACTIVE_DAY_FEE}", 'INT', 'tp.active_day_fee') };  	
+  }
+
  if ($attr->{CHANGE_PRICE}) {
  	  my $sql = join('', @{ $self->search_expr("$attr->{CHANGE_PRICE}", 'INT', 'tp.change_price') });  	
  	  
@@ -693,6 +701,9 @@ sub list {
  	  
  	  push @WHERE_RULES, $sql;
   }
+
+
+
 
  my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
@@ -715,7 +726,8 @@ sub list {
     tp.abon_distribution,
     tp.tp_id,
     $self->{SEARCH_FIELDS}
-    tp.small_deposit_action
+    tp.small_deposit_action,
+    active_day_fee
     
     FROM (tarif_plans tp)
     LEFT JOIN intervals i ON (i.tp_id=tp.tp_id)

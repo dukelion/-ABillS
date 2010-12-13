@@ -1738,6 +1738,7 @@ my %invoice_hash = ();
 
 my $num = 1;
 foreach my $line ( @$list ) {
+	push @{ $invoice_hash{T2RXXXXG1}   }, $num;
   push @{ $invoice_hash{T2RXXXXG2D}  }, $line->[1];
   push @{ $invoice_hash{T2RXXXXG3S}  }, $line->[2];
   push @{ $invoice_hash{T2RXXXXG4S}  }, 'ом';
@@ -1758,6 +1759,7 @@ foreach my $line ( @$list ) {
 
 
 my @arr = (
+  'T2RXXXXG1',
   'T2RXXXXG2D', 
   'T2RXXXXG3S',
   'T2RXXXXG4S',
@@ -1773,7 +1775,6 @@ my @arr = (
   'T1RXXXXG14',
   'T1RXXXXG15',
   'T1RXXXXG16',
-
   );
 
 foreach my $key (@arr) {

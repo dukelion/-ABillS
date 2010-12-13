@@ -1,3 +1,7 @@
+<font  color=red size=+2>
+Образец документа<BR>
+</font>
+
 <table style=\"border-collapse:collapse;\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" namo_sheet=\":EmbededSheet1\" width=\"498\">
     <tr>
         <td width=\"133\" height=\"17\" align=\"left\" valign=\"bottom\" style=\"border-top-width:1pt; border-right-width:1; border-left-width:1pt; border-top-color:black; border-right-color:black; border-left-color:black; border-right-style:solid;\">
@@ -78,7 +82,7 @@
 <table border=\"1\" cellspacing=\"0\" bordercolordark=\"white\" bordercolorlight=\"black\">
                 <tr>
                     <td width=\"76\">
-                        <p align=\"center\">&nbsp;321983</p>
+                        <p align=\"center\">&nbsp;000001</p>
                     </td>
                 </tr>
 
@@ -265,7 +269,7 @@
 <table border=\"1\" cellspacing=\"0\" bordercolordark=\"white\" bordercolorlight=\"black\">
                 <tr>
                     <td width=\"76\">
-                        <p align=\"center\">&nbsp;321983</p>
+                        <p align=\"center\">&nbsp;000001</p>
 
                     </td>
                 </tr>

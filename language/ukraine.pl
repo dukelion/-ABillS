@@ -98,6 +98,7 @@ $_DELETED='Знищено';
 $_TO_USER='Кому';
 $_DUNES='Коди комутованого підключенн Windows (DUNES)';
 $_MONETARY_UNIT='Грошова одиниця';
+$_ACTIVE_DAY_FEE='Тільки за активні дні';
 $_FIO='Прізвище ІБ';
 $_DILLERS='Ділери';
 $_MAKE_BACKAUP='Зробити архівування';
