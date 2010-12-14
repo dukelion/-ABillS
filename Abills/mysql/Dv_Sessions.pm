@@ -457,9 +457,9 @@ sub online_del {
             and acct_session_id='$ACCT_SESSION_ID'";
    }
 
-  $self->query($db, "SELECT uid, user_name FROM dv_calls WHERE $WHERE");
+  $self->query($db, "SELECT uid, user_name, started, lupdated-UNIX_TIMESTAMP(started), sum FROM dv_calls WHERE $WHERE");
   foreach my $line ( @{  $self->{list} } ) {
-    $admin->action_add("$line->[0]", "$line->[1]", { MODULE => 'Dv', TYPE => 13 });
+    $admin->action_add("$line->[0]", "START: $line->[2], DURATION: $line->[3], SUM: $line->[3]", { MODULE => 'Dv', TYPE => 13 });
    }
 
   $self->query($db, "DELETE FROM dv_calls WHERE $WHERE;", 'do');

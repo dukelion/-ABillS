@@ -326,6 +326,8 @@ sub check_lines {
                                                     ACCT_SESSION_ID => $acct_session_id
                                                   });
 
+           my $ddddd = `echo "/ $user_name / $ACCT_INFO->{USER_NAME} / $acct_session_id / $ACCT_INFO->{ACCT_SESSION_ID}" >> /tmp/billd`;
+
            $ACCT_INFO->{INBYTE}               = $acct_input_octets;
            $ACCT_INFO->{OUTBYTE}              = $acct_output_octets;
            $ACCT_INFO->{INBYTE2}              = $acct_input_octets_ext;
