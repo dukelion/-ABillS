@@ -452,7 +452,7 @@ sub form_info {
 
   if (in_array('Paysys', \@MODULES) ) {
   	my $fn_index = get_function_index('paysys_payment');
-  	$user->{PAYSYS_PAYMENTS} = $html->button("$_BALANCE_RECHARCHE", "index=$fnindex$pages_qs", { BUTTON => 1} );
+  	$user->{PAYSYS_PAYMENTS} = $html->button("$_BALANCE_RECHARCHE", "index=$fn_index$pages_qs", { BUTTON => 1} );
    }
 
   $html->tpl_show(templates('form_client_info'), $user);
