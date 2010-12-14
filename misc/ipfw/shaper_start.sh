@@ -80,11 +80,14 @@ fi;
 USERS_TABLE_NUM=10
 #First Class traffic users
 USER_CLASS_TRAFFIC_NUM=10
-
-echo -n $1
+ACTION=$1
+echo -n ${ACTION}
+if [ w${ACTION} = wfaststart ]; then
+  ACTION=start
+fi;
 
 #NG Shaper enable
-if [ w$1 = wstart -a w$2 = w -a w${NG_SHAPPER} != w ]; then
+if [ w${ACTION} = wstart -a w$2 = w -a w${NG_SHAPPER} != w ]; then
   echo -n "ng_car shapper"
   #Load kernel modules
   kldload ng_ether
@@ -118,7 +121,7 @@ done;
   fi;
 #done
 #Stop ng_car shaper
-else if [ w$1 = wstop -a w$2 = w ]; then
+else if [ w${ACTION} = wstop -a w$2 = w ]; then
   echo -n "ng_car shapper" 
 
   for num in ${CLASSES_NUMS}; do
@@ -126,7 +129,7 @@ else if [ w$1 = wstop -a w$2 = w ]; then
   done;
 
   ${IPFW} delete 9000 9005 10000 10010 10015
-else if [ w$1 = w ]; then
+else if [ w${ACTION} = w ]; then
     echo "(start|stop|start nat|stop nat)"
 #Start DUMMYNET shaper
 else   
@@ -169,7 +172,7 @@ NAT_FAKE_IP_TABLE_NUM=33;
 
 # nat configuration
 for IP in ${NAT_IPS}; do
-  if [ w$1 = wstart ]; then
+  if [ w${ACTION} = wstart ]; then
     ${IPFW} nat ` expr ${NAT_FIRST_RULE} + 1 ` config ip ${IP} log
     ${IPFW} table ${NAT_REAL_TO_FAKE_TABLE_NUM} add ${IP} ` expr ${NAT_FIRST_RULE} + 1 `
     for f_net in ${FAKE_NET}; do
@@ -200,7 +203,7 @@ done;
   fi;
 
 # UP NAT
-if [ w$1 = wstart ]; then
+if [ w${ACTION} = wstart ]; then
   if [ w${NAT_IF} != w ]; then
     NAT_IF="via ${NAT_IF}"
   fi;
@@ -232,7 +235,7 @@ if [ w${NEG_DEPOSIT_FWD} != w ]; then
 FWD_RULE=10014;
 
 #Forwarding start
-if [ w$1 = wstart ]; then
+if [ w${ACTION} = wstart ]; then
   echo "Negative Deposit Forward Section - start"; 
   ${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},80 tcp from table\(32\) to any dst-port 80,443 via ${INTERNAL_INTERFACE}
   #If use proxy
@@ -240,10 +243,10 @@ if [ w$1 = wstart ]; then
   ${IPFW} add `expr ${FWD_RULE} + 10` allow ip from table\(32\) to ${DNS_IP} dst-port 53 via ${INTERNAL_INTERFACE}
   ${IPFW} add `expr ${FWD_RULE} + 20` allow tcp from table\(32\) to ${USER_PORTLA_IP} dst-port 9443 via ${INTERNAL_INTERFACE}
   ${IPFW} add `expr ${FWD_RULE} + 30` deny ip from table\(32\) to any via ${INTERNAL_INTERFACE}
-else if [ w$1 = wstop ]; then
+else if [ w${ACTION} = wstop ]; then
   echo "Negative Deposit Forward Section - stop:"; 
   ${IPFW} delete ${FWD_RULE} ` expr ${FWD_RULE} + 10 ` ` expr ${FWD_RULE} + 20 ` ` expr ${FWD_RULE} + 30 `
-else if [ w$1 = wshow ]; then
+else if [ w${ACTION} = wshow ]; then
   echo "Negative Deposit Forward Section - status:"; 
   ${IPFW} show ${FWD_RULE}
 fi;
@@ -254,16 +257,16 @@ fi;
 
 
 #Session limit section
-if [ w$1 = wSESSION_LIMIT ]; then
+if [ w${ACTION} = wSESSION_LIMIT ]; then
   echo "Session limit";
-  if [ w$1 = wstart ]; then
+  if [ w${ACTION} = wstart ]; then
     ${IPFW} 00400   skipto 65010 tcp from table\(34\) to any dst-port 80,443 via ${INTERNAL_INTERFACE}
     ${IPFW} 00401   skipto 65010 udp from table\(34\) to any dst-port 53 via ${INTERNAL_INTERFACE}
     ${IPFW} 00402   skipto 60010 tcp from table\(34\) to any via ${EXTERNAL_INTERFACE}
     ${IPFW} 64001   allow tcp from table\(34\) to any setup via ${INTERNAL_INTERFACE} in limit src-addr 40
     ${IPFW} 64002   allow udp from table\(34\) to any via ${INTERNAL_INTERFACE} in limit src-addr 10
     ${IPFW} 64003   allow icmp from table\(34\) to any via ${INTERNAL_INTERFACE} in limit src-addr 10
-  else if [ w$1 = wstop ]; then
+  else if [ w${ACTION} = wstop ]; then
     ${IPFW} delete 00400 00401 00402 64001 64002 64003
    fi; 
   fi;
