@@ -17,6 +17,8 @@
 #
 #   abills_ip_sessions="" - ABIllS IP SEssions limit
 #
+#   abills_nat="EXTERNAL_IP:INTERNAL_IPS:NAT_IF" - Enable abills nat
+#
 
 name="abills_shaper"
 rcvar=`set_rcvar`
@@ -25,17 +27,11 @@ run_rc_command "$1"
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.1
+VERSION=5.5
 
 if [ w${abills_shaper_enable} = w ]; then
   exit;
 fi;
-
-# NAT External IP
-NAT_IPS="";
-# Fake net 
-FAKE_NET="10.0.0.0/16"
-NAT_IF="";
 
 #Negative deposit forward (default: )
 NEG_DEPOSIT_FWD=
@@ -159,10 +155,19 @@ fi;
 # options         IPFIREWALL_FORWARD
 # options         IPFIREWALL_NAT          #ipfw kernel nat support
 # options         LIBALIAS
-#if [ w${abills_nat_enable} != w ] ; then
 
+if [ w${abills_nat} != w ] ; then
 #Nat Section
-if [ w${NAT_IPS} != w  ] ; then
+#if [ w${NAT_IPS} != w  ] ; then
+
+# NAT External IP
+NAT_IPS=`echo ${abills_nat} | awk -F: '{ print $1 }'`;
+# Fake net 
+FAKE_NET=`echo ${abills_nat} | awk -F: '{ print $2 }'`;
+#NAT IF
+NAT_IF=`echo ${abills_nat} | awk -F: '{ print $3 }'`;
+
+
 
 echo "NAT"
 NAT_TABLE=20
@@ -257,15 +262,15 @@ fi;
 
 
 #Session limit section
-if [ w${ACTION} = wSESSION_LIMIT ]; then
-  echo "Session limit";
+if [ w${SESSION_LIMIT} != w ]; then
+  echo "Session limit ${SESSION_LIMIT}";
   if [ w${ACTION} = wstart ]; then
-    ${IPFW} 00400   skipto 65010 tcp from table\(34\) to any dst-port 80,443 via ${INTERNAL_INTERFACE}
-    ${IPFW} 00401   skipto 65010 udp from table\(34\) to any dst-port 53 via ${INTERNAL_INTERFACE}
-    ${IPFW} 00402   skipto 60010 tcp from table\(34\) to any via ${EXTERNAL_INTERFACE}
-    ${IPFW} 64001   allow tcp from table\(34\) to any setup via ${INTERNAL_INTERFACE} in limit src-addr 40
-    ${IPFW} 64002   allow udp from table\(34\) to any via ${INTERNAL_INTERFACE} in limit src-addr 10
-    ${IPFW} 64003   allow icmp from table\(34\) to any via ${INTERNAL_INTERFACE} in limit src-addr 10
+    ${IPFW} add 00400   skipto 65010 tcp from table\(34\) to any dst-port 80,443 via ${INTERNAL_INTERFACE}
+    ${IPFW} add 00401   skipto 65010 udp from table\(34\) to any dst-port 53 via ${INTERNAL_INTERFACE}
+    ${IPFW} add 00402   skipto 60010 tcp from table\(34\) to any via ${EXTERNAL_INTERFACE}
+    ${IPFW} add 64001   allow tcp from table\(34\) to any setup via ${INTERNAL_INTERFACE} in limit src-addr ${SESSION_LIMIT}
+    ${IPFW} add 64002   allow udp from table\(34\) to any via ${INTERNAL_INTERFACE} in limit src-addr ${SESSION_LIMIT}
+    ${IPFW} add 64003   allow icmp from table\(34\) to any via ${INTERNAL_INTERFACE} in limit src-addr ${SESSION_LIMIT}
   else if [ w${ACTION} = wstop ]; then
     ${IPFW} delete 00400 00401 00402 64001 64002 64003
    fi; 
