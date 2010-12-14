@@ -306,6 +306,10 @@ sub inc_postauth {
     $auth_mod{"$nas->{NAS_TYPE}"} = $AUTH{$nas->{NAS_TYPE}}->new($db, \%conf);
     my ($r, $RAD_PAIRS) = $auth_mod{"$nas->{NAS_TYPE}"}->auth(\%RAD_REQUEST, $nas);
     my $message = $RAD_PAIRS->{'Reply-Message'} || '';
+    
+    if ($auth_mod{"$nas->{NAS_TYPE}"}->{INFO}) {
+    	 $message .= $auth_mod{"$nas->{NAS_TYPE}"}->{INFO};
+     }
 
     if ($r == 2) {
       $log_print->('LOG_INFO', $RAD_PAIRS->{'User-Name'}, $message." ". $RAD_REQUEST{'DHCP-Client-Hardware-Address'} ." $GT", { NAS => $nas, DB => $db});

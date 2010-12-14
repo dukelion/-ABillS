@@ -1361,7 +1361,7 @@ sub docs_print {
   	  });
 
   if ($Docs->{ORDER_TOTAL_SUM_VAT}) {
-   	 $attr->{ORDER_TOTAL_SUM_VAT_LIT}              = int2ml("$attr->{ORDER_TOTAL_SUM_VAT}", { 
+   	 $attr->{ORDER_TOTAL_SUM_VAT_LIT} = int2ml("$attr->{ORDER_TOTAL_SUM_VAT}", { 
   	 ONES             => \@ones,
      TWOS             => \@twos,
      FIFTH            => \@fifth,
@@ -1374,6 +1374,10 @@ sub docs_print {
      LOCALE           => $conf{LOCALE}
   	  });
    }
+
+
+  #print "Content-Type: text/html\n\n";
+  #print "// $attr->{ORDER_TOTAL_SUM_VAT_LIT} //";
 
   my $template = $type;
 

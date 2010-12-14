@@ -1,5 +1,5 @@
 #Iner_ID : Main or Sub or if -1 user menu func list
-%FUNCTIONS_LIST = ("01:-1:$_DOCS:null:UID"                      => 15,
+%FUNCTIONS_LIST = ("01:-1:$_DOCS:docs_accounts_list:UID"        => 15,
                    "02:1:$_ACCOUNTS:docs_accounts_list:UID"     => 15,
                    "03:2:$_ADD:docs_account:UID"                => 15,
                    "04:1:$_INVOICES:docs_invoice:UID"           => 15,
