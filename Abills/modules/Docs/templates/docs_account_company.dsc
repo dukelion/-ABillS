@@ -1,41 +1,14 @@
-#Account
-LOGIN:Логин пользователя:russian:
-FIO:Наименование клиента:russian:(x=130;y=684,x=200;y=562;page=2)
-PHONE:Номер телефона клиента:russian:x=0;y=0
-DATE:Дата создания счета:russian:(x=350;y=753)
-NUMBER:Номер счёта:russian:(x=250;y=753)
-FROM_DATE_LIT:Дата прописью:russian:x=;y=
-ORDER:Товар. Табличная часть:russian:x=;y=
-TOTAL_SUM:Полная стоимость товара:russian:(x=446;y=418,x=354;y=602;page=2,x=354;y=588;page=2)
-VAT:Процентная ставка налога:russian:
-SUM_LIT:Сума прописью:russian:(x=192;y=390,x=190;y=454;page=2)
-EXPIRE_DATE:Дата окончания действия счета:russian:(x=158;y=570;)
-CONTRACT_ID:Номер Контракта:russian:(x=355;y=701;page=2,x=255;y=413;page=2)
-CONTRACT_DATE:Дата Контракта:russian:(x=355;y=701;page=2,x=345;y=413;page=2)
+NUMBER:Номер счёта:russian:(x=105;y=802,x=480;y=802)
 
+DAY:Дата создания счета:russian:(x=63;y=788,x=421;y=788)
 
-#Order1 Section
-ORDER_NUM_1:Порядковый номер товара:russian:(x=50;y=503;)
-ORDER_NAME_1:Название услуги, товара:russian:(x=95;y=503;)
-ORDER_COUNT_1:Количество едениц товара:russian:(x=245;y=503;)
-ORDER_PRICE_1:Цена за шт.:russian:
-ORDER_SUM_1:Сума по товару:russian:
-ORDER_PRICE_WITHOUT_VAT_1:Цена товара без налога:russian:(x=328;y=503;)
-ORDER_SUM_WITHOUT_VAT_1:Сума товара без налога:russian:(x=455;y=503;)
+MONTH_LIT:Дата создания счета:russian:(x=100;y=788,x=443;y=788)
 
+LOGIN:логин:russian:(x=130;y=773,x=365;y=773)
 
-#Order2 Section
-ORDER_NUM_2:Порядковый номер товара:russian:(x=50;y=490)
-ORDER_NAME_2:Название услуги, товара:russian:(x=95;y=490)
-ORDER_COUNT_2:Количество едениц товара:russian:(x=245;y=490)
-ORDER_PRICE_2:Цена за шт.:russian:
-ORDER_SUM_2:Сума по товару:russian:
-ORDER_PRICE_WITHOUT_VAT_2:Цена товара без налога:russian:(x=328;y=490)
-ORDER_SUM_WITHOUT_VAT_2:Сума товара без налога:russian:(x=455;y=490)
+FIO:Наименование лиента:russian:(x=120;y=758,x=355;y=758)
 
+#PERIOD:Период оплаты:russian:(x=150;y=728,x=375;y=728)
+TOTAL_SUM:сума:russian:(x=130;y=689,x=370;y=689)
 
-ORDER_TOTAL_SUM_VAT:Сума налога заказа за товар:russian:(x=446;y=432,x=490;y=390,x=505;y=413;page=2)
-TOTAL_SUM_WITHOUT_VAT:Всего, без налога:russian:(x=446;y=447;)
-
-
-
+DESCRIBE:описание:russian:(x=158;y=728,x=385;y=728)

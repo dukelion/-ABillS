@@ -1,13 +1,8 @@
-CONTRACT_ID:№ договорa:russian:(x=320;y=812;font_size=8)
-CONTRACT_DATE:Дата СОСТАВЛЕНИЯ договора:russian:
-FIO:ФИО абонента:russian:(x=150;y=728;font_size=8,x=385;y=162;page=2;font_size=8)
-ADDRESS_FULL:Адрес подключения:russian:(x=450;y=138;page=2;font_size=9)
-PHONE:Контактные телефоны абонента:russian:(x=450;y=113;page=2;font_size=9)
-A_FIO:ФИО Администратора:russian:(x=179;y=738;font_size=8,x=120;y=63;page=2;font_size=8))
-A_COMMENTS:Дополнительные данные админисратора:russian:(x=474;y=738;font_size=8)
-CONTRACT_DATE_LIT:Дата прописью:russian:(x=463;y=775;font_size=8)
-
-
-
-
-
+CONTRACT_DATE:Дата СОСТАВЛЕНИЯ договора:russian:(x=450;y=770;page=1,x=330;y=780;page=4)
+FIO:ФИО абонента:russian:(x=70;y=728,x=350;y=210;page=3,x=343;y=378;page=4)
+PASPORT_NUM:номер паспорта:russian:(x=350;y=190;page=3,x=343;y=368;page=4)
+PASPORT_DATE:дата выдачи паспорта:russian:(x=350;y=170;page=3,x=343;y=348;page=4)
+PASPORT_GRANT:кем выдан паспорт:russian:(x=350;y=180;page=3,x=343;y=358;page=4)
+Inn:Индивидуальный налоговый номер:russian:f(x=350;y=160;page=3,x=343;y=338;page=4)
+CONTRACT_ID:Номер Договора:russian:(x=355;y=802;page=1,x=387;y=791;page=4)
+ADDRESS:Адрес предприятия:russian:(x=350;y=200;page=3)
