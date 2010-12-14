@@ -317,7 +317,7 @@ sub inc_postauth {
      }
     else {    	
     	access_deny($RAD_PAIRS->{'User-Name'}, "$message$GT", $nas->{NAS_ID});
-    	$r=1;
+    	$r=1 if (! $r);
      }
  
     delete($RAD_REQUEST{'User-Name'}); 
