@@ -3847,7 +3847,6 @@ sub dv_daily_fees {
         }
       }
 
-
  	   my $ulist = $Dv->list({
          ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
          EXPIRE    => ">'$ADMIN_REPORT{DATE}'",
@@ -3873,13 +3872,10 @@ sub dv_daily_fees {
            );
 
         if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
-          #Active day fees
-          if ($active_day_fee > 0) {
-          	
-           }
           #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
-          elsif((($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $TP_INFO{POSTPAID_DAILY} == 1) && $active_day_fee==0) || 
-            ($active_day_fee==11 && $active_logins{$user{LOGIN}})
+          #Active day fees
+          if((($user{DEPOSIT} + $user{CREDIT} > 0 || $line->[4] == 1 || $TP_INFO{POSTPAID_DAILY} == 1) && $active_day_fee==0) || 
+            ($active_day_fee==1 && $active_logins{$user{LOGIN}})
             ) {
              my $sum = $line->[5];
              # IF TP have PARIODIC PAYMENTS USER reduction

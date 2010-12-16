@@ -3525,20 +3525,35 @@ sub form_ip_pools {
 if ($attr->{NAS}) {
 	$nas = $attr->{NAS};
 
-  if ($FORM{add}) {
-    $nas->ip_pools_add({ %FORM  });
+ 	if ($FORM{BIT_MASK} && ! $FORM{NAS_IP_COUNT}) {
+ 		my $mask = 0b0000000000000000000000000000001;
+    $FORM{NAS_IP_COUNT} =  sprintf("%d", $mask << ($FORM{BIT_MASK}-1)) -1;
+ 	 }
 
-    if (! $nas->{errno}) {
-       $html->message('info', $_INFO, "$_ADDED");
+  if ($FORM{add}) {
+ 
+    if ($FORM{POOL_SPEED} && ! $FORM{BIT_MASK}) {
+    	$html->message('err', "$_ERROR", "Select Mask");
+     }
+  	else {
+      $nas->ip_pools_add({ %FORM  });
+      if (! $nas->{errno}) {
+        $html->message('info', $_INFO, "$_ADDED");
+       }
      }
    }
   elsif($FORM{change}) {
-    $nas->ip_pools_change({ %FORM, 
+    if ($FORM{POOL_SPEED} && ! $FORM{BIT_MASK}) {
+    	$html->message('err', "$_ERROR", "Select Mask");
+     }
+  	else {
+      $nas->ip_pools_change({ %FORM, 
     	                      ID => $FORM{chg},
     	                      NAS_IP_SIP_INT => ip2int($FORM{NAS_IP_SIP}) });
 
-    if (! $nas->{errno}) {
-       $html->message('info', $_INFO, "$_CHANGED");
+      if (! $nas->{errno}) {
+         $html->message('info', $_INFO, "$_CHANGED");
+       }
      }
    }
   elsif($FORM{chg}) {
@@ -3565,9 +3580,15 @@ if ($attr->{NAS}) {
      }
    }
   
-  $pages_qs = "&NAS_ID=$nas->{NAS_ID}";
-  $nas->{STATIC}=' checked' if ($nas->{STATIC});
-  $html->tpl_show(templates('form_ip_pools'), { %$nas, INDEX => 62 });
+  $pages_qs        = "&NAS_ID=$nas->{NAS_ID}";
+  $nas->{STATIC}   = ' checked' if ($nas->{STATIC});
+  $nas->{BIT_MASK} = $html->form_select('BIT_MASK', 
+                                { SELECTED      => $FORM{BIT_MASK},
+ 	                                SEL_ARRAY     => ['', 32, 31, 30, 29, 28, 27,26,25,24,23,22,21,20,19,18,17,16],
+ 	                                ARRAY_NUM_ID  => 1
+ 	                               });
+  
+  $html->tpl_show(templates('form_ip_pools'), { %FORM, %$nas, INDEX => 62 });
  }
 elsif($FORM{NAS_ID}) {
   $FORM{subf}=$index;
