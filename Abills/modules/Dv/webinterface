@@ -120,15 +120,16 @@ if ($FORM{set}) {
       return 0;
      }
 
-    $shedule->add( {UID     => $Dv->{UID},
+    $shedule->add({UID     => $Dv->{UID},
                    TYPE     => 'tp',
                    ACTION   => $FORM{TP_ID},
     	             D        => $day,
                    M        => $month,
                    Y        => $year,
                    MODULE   => 'Dv',
-                   COMMENTS => "$_FROM: $Dv->{TP_ID}:$Dv->{TP_NAME}"
-                    });
+                   COMMENTS => "$_FROM: $Dv->{TP_ID}:$Dv->{TP_NAME}",
+                   ADMIN_ACTION => 1
+                });
 
     if ($shedule->{errno}) {
       $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");	
@@ -194,7 +195,7 @@ elsif($FORM{del}) {
    	  if ($FORM{del_shedule} && $FORM{is_js_confirmed}) {
    	  	$shedule->del({ ID => $FORM{del_shedule} });
    	  	if (! $shedule->{errno}) {
-   	  		$html->message('info', $_INFO, "$_DELETED $FORM{del_shedule}");
+   	  		$html->message('info', $_INFO, "$_SHEDULE $_DELETED $FORM{del_shedule}");
    	  	 }
    	    $shedule->{TOTAL}=1;
    	   }
@@ -221,7 +222,7 @@ elsif($FORM{del}) {
    	    foreach my $line (@$list) {
    	  	  $table->addrow("$line->[3]-$line->[2]-$line->[1]", 
    	  	   "$line->[7] : $TP_HASH{$line->[7]}",
-   	  	   $html->button($_DEL, "index=$index&del_shedule=$line->[13]&UID=$FORM{UID}", { MESSAGE => "$_DEL $line->[3]-$line->[2]-$line->[1]?", BUTTON => 1 }) 
+   	  	   $html->button($_DEL, "index=$index&del_shedule=$line->[14]&UID=$FORM{UID}", { MESSAGE => "$_DEL $line->[3]-$line->[2]-$line->[1]?", BUTTON => 1 }) 
    	  	   );
    	     }
    	  
@@ -3231,10 +3232,13 @@ elsif($FORM{del}) {
                                              [ "ID:",       "$shedule->{SHEDULE_ID}"   ]  
                                             ]
                                } );
-  	$tariffs->{TARIF_PLAN_SEL} = $table->show({ OUTPUT2RETURN => 1 }). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", { TYPE => 'HIDDEN', OUTPUT2RETURN => 1 });
+  	$tariffs->{TARIF_PLAN_SEL}   = $table->show({ OUTPUT2RETURN => 1 }). $html->form_input('SHEDULE_ID', "$shedule->{SHEDULE_ID}", { TYPE => 'HIDDEN', OUTPUT2RETURN => 1 });
  	  $tariffs->{TARIF_PLAN_TABLE} = $tariffs->{TARIF_PLAN_SEL};
-  	$tariffs->{ACTION}='del';
-  	$tariffs->{LNG_ACTION}=$_DEL;
+  	if (! $shedule->{ADMIN_ACTION}) {
+  	  $tariffs->{ACTION}     = 'del';
+  	  $tariffs->{LNG_ACTION} = $_DEL;
+  	  $tariffs->{ACTION}     = $html->form_input('del', $_DEL, { TYPE => 'submit', OUTPUT2RETURN => 1  } );
+  	 }
   }
  else {
    $tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
@@ -3277,8 +3281,9 @@ elsif($FORM{del}) {
     }
 
    $tariffs->{PARAMS}   .= form_period($period, { ABON_DATE => $Dv->{ABON_DATE}, TP => $tariffs }) if ($conf{DV_USER_CHG_TP_SHEDULE} && ! $conf{DV_USER_CHG_TP_NPERIOD});	
-   $tariffs->{ACTION}    = 'set';
-   $tariffs->{LNG_ACTION}= $_CHANGE;
+   $tariffs->{ACTION}    = $html->form_input('set', $_CHANGE, { TYPE => 'submit', OUTPUT2RETURN => 1  } );
+#   $tariffs->{ACTION}    = 'set';
+#   $tariffs->{LNG_ACTION}= $_CHANGE;
   }
 
    $tariffs->{UID}=$attr->{USER}->{UID};

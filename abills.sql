@@ -795,6 +795,7 @@ CREATE TABLE `shedule` (
   `h` char(2) NOT NULL default '*',
   `module` varchar(12) NOT NULL default '',
   `comments` varchar(120) NOT NULL default '', 
+  `admin_action` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `uniq_action` (`h`,`d`,`m`,`y`,`type`,`uid`),

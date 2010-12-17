@@ -11,5 +11,5 @@
 
 <tr><td colspan=2>%SHEDULE_LIST%</td></tr>
 </TABLE>
-<input type=submit name=%ACTION% value=\'%LNG_ACTION%\'>
+%ACTION%
 </form>

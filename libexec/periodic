@@ -666,10 +666,10 @@ sub debetors_group_create {
 
   foreach my $line (sort @DEBETORS_GROUP) {
     # DEBETOR_GROUP_ID:DEPOSIT:LAST_PAYNMENT_DAYS:USER_GID
-    my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS, $USER_GID) = split(/:/, $line);  
+    my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS, $USER_GID, $LAST_FEES_DAYS) = split(/:/, $line);  
     $USER_GID = -1 if (! defined($USER_GID) || $USER_GID eq '');
     $DEBETORS_GIDS{$GID}="$USER_GID";
-    $USERS_GIDS{$USER_GID}="$GID:$DEPOSIT:$LAST_PAYMENTS_DAYS";
+    $USERS_GIDS{$USER_GID}="$GID:$DEPOSIT:$LAST_PAYMENTS_DAYS:$LAST_FEES_DAYS";
    } 
   
   #Add to debetors group  
@@ -677,7 +677,7 @@ sub debetors_group_create {
 
 foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
 	my $val = $USERS_GIDS{$USER_GID};
-  my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS) = split(/:/, $val);
+  my ($GID, $DEPOSIT, $LAST_PAYMENTS_DAYS, $LAST_FEES_DAYS) = split(/:/, $val);
   $users->group_info($GID);
   if ($users->{TOTAL} < 1) {
       print "DEBETORS Group [$GID] not Exist. Create it\n";
@@ -688,14 +688,27 @@ foreach my $USER_GID (sort { $b <=> $a } keys %USERS_GIDS) {
 
     }
 
+  %LIST_PARAMS = ();
+  if ($LAST_FEES_DAYS && $LAST_FEES_DAYS > 0) {
+  	$LIST_PARAMS{FEES_DAYS}="<$LAST_FEES_DAYS";
+   } 
+  else {
+  	$LIST_PARAMS{PAYMENT_DAYS}="<$LAST_PAYMENTS_DAYS";
+   }
+  
   my $list = $users->list({  
                            GID          => ($USER_GID == -1 && $#DEBETORS_GROUP == 0) ? "!$GID" : $USER_GID,
-  	                       PAYMENT_DAYS => "<$LAST_PAYMENTS_DAYS",
   	                       DEPOSIT      => "<=$DEPOSIT",
-                               COMMENTS     => '*',               
+                           COMMENTS     => '*',               
   	                       PAGE_ROWS    => 100000,
+  	                       %LIST_PARAMS,
   	                      });
   my %EXIST_GROUPS = ();
+  
+  if ($users->{errno}) {
+  	print "ERROR: $users->{errno} $users->{errstr} \n";
+  	exit;
+   }
 
   foreach my $line (@$list) {
     my $uid           = $line->[5 + $users->{SEARCH_FIELDS_COUNT}];

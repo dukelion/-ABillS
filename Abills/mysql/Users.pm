@@ -824,7 +824,7 @@ sub list {
   }
 
  if (! $admin->{permissions}->{0} || ! $admin->{permissions}->{0}->{8} || 
-    ($attr->{USER_STATUS} && $attr->{USER_STATUS} < 3 && ! $attr->{DELETED})) {
+    ($attr->{USER_STATUS} && ! $attr->{DELETED})) {
 	 push @WHERE_RULES,  @{ $self->search_expr(0, 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
   }
  elsif ($attr->{DELETED}) {
@@ -883,8 +883,7 @@ if ($self->{TOTAL} > 0) {
 
  
 #Show last paymenst
- if ($attr->{PAYMENTS} || $attr->{PAYMENT_DAYS}) {
-    
+ if ($attr->{PAYMENTS} || $attr->{PAYMENT_DAYS}) {    
     my @HAVING_RULES = @WHERE_RULES;
     if($attr->{PAYMENTS}) {
       my $value = $self->search_expr($attr->{PAYMENTS}, 'INT');
@@ -962,7 +961,83 @@ if ($self->{TOTAL} > 0) {
 
  	  return $list
   }
- 
+ #Show last fees
+ if ($attr->{FEES} || $attr->{FEES_DAYS}) {    
+    my @HAVING_RULES = @WHERE_RULES;
+    if($attr->{PAYMENTS}) {
+      my $value = $self->search_expr($attr->{FEES}, 'INT');
+      push @WHERE_RULES, "f.date$value";
+      push @HAVING_RULES, "max(f.date)$value";
+      $self->{SEARCH_FIELDS} .= 'max(f.date), ';
+      $self->{SEARCH_FIELDS_COUNT}++;
+     }
+    elsif($attr->{FEES_DAYS}) {
+      my $value = "curdate() - INTERVAL $attr->{FEES_DAYS} DAY";
+      $value =~ s/([<>=]{1,2})//g;
+      $value = $1 . $value;
+
+      push @WHERE_RULES, "p.date$value";
+      push @HAVING_RULES, "max(f.date)$value";
+      $self->{SEARCH_FIELDS} .= 'max(f.date), ';
+      $self->{SEARCH_FIELDS_COUNT}++;
+     }
+
+    my $HAVING = ($#WHERE_RULES > -1) ?  "HAVING " . join(' and ', @HAVING_RULES) : '';
+   
+    $self->query($db, "SELECT u.id, 
+       pi.fio, 
+       if(company.id IS NULL, b.deposit, cb.deposit), 
+       if(u.company_id=0, u.credit, 
+          if (u.credit=0, company.credit, u.credit)), u.disable, 
+       $self->{SEARCH_FIELDS}
+       u.uid, 
+       u.company_id, 
+       pi.email, 
+       u.activate, 
+       u.expire,
+       u.gid,
+       b.deposit,
+       u.domain_id
+     FROM users u
+     LEFT JOIN fees f ON (u.uid = f.uid)
+     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+     LEFT JOIN bills b ON (u.bill_id = b.id)
+     LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+     $EXT_TABLES
+     GROUP BY u.uid     
+     $HAVING 
+
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+   return $self if($self->{errno});
+
+   my $list = $self->{list};
+
+   if ($self->{TOTAL} > 0) {
+     if ($attr->{FEES}) {
+       $WHERE_RULES[$#WHERE_RULES]=@{ $self->search_expr($attr->{PAYMENTS}, 'INT', 'f.date') };
+      }
+     elsif($attr->{FEES_DAYS}) {
+      my $value = "curdate() - INTERVAL $attr->{FEES_DAYS} DAY";
+      $value =~ s/([<>=]{1,2})//g;
+      $value = $1 . $value;
+      $WHERE_RULES[$#WHERE_RULES]="f.date$value";
+      }
+    
+     $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
+    
+     $self->query($db, "SELECT count(DISTINCT u.uid) FROM users u 
+       LEFT JOIN fees f ON (u.uid = p.uid)
+       LEFT JOIN users_pi pi ON (u.uid = pi.uid)
+       LEFT JOIN bills b ON (u.bill_id = b.id)
+      $WHERE;");
+      if ($self->{TOTAL} > 0) {
+        ($self->{TOTAL}) = @{ $self->{list}->[0] };
+       }
+    }
+
+ 	  return $list
+  }
  
  $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
  $self->query($db, "SELECT u.id, 

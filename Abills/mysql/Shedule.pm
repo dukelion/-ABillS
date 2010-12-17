@@ -65,7 +65,7 @@ sub info {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db, "SELECT s.h, s.d, s.m, s.y, s.counts, s.action, s.date, s.comments, s.uid, s.id, a.id 
+ $self->query($db, "SELECT s.h, s.d, s.m, s.y, s.counts, s.action, s.date, s.comments, s.uid, s.id, a.id, s.admin_action 
     FROM shedule s
     LEFT JOIN admins a ON (a.aid=s.aid) 
     $WHERE;");
@@ -86,7 +86,8 @@ sub info {
    $self->{COMMENTS}, 
    $self->{UID}, 
    $self->{SHEDULE_ID},
-   $self->{ADMIN_NAME}
+   $self->{ADMIN_NAME},
+   $self->{ADMIN_ACTION}
   )= @{ $self->{list}->[0] };
 
 
@@ -145,6 +146,10 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{ACTION}", 'STR', 's.action') };
   }
 
+ if (defined($attr->{ADMIN_ACTION})) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{ADMIN_ACTION}", 'STR', 's.admin_action') };
+  }
+
 
  # Show groups
  if ($attr->{GIDS}) {
@@ -191,19 +196,20 @@ sub add {
  my $self = shift;
  my ($attr) = @_;
 
- my $H=(defined($attr->{H})) ? $attr->{H} : '*';
- my $D=(defined($attr->{D})) ? $attr->{D} : '*';
- my $M=(defined($attr->{M})) ? $attr->{M} : '*';
- my $Y=(defined($attr->{Y})) ? $attr->{Y} : '*';
- my $COUNT=(defined($attr->{COUNT})) ? int($attr->{COUNT}): 0;
- my $UID=(defined($attr->{UID})) ? int($attr->{UID}) : 0;
- my $TYPE=(defined($attr->{TYPE})) ? $attr->{TYPE} : '';
- my $ACTION=(defined($attr->{ACTION})) ? $attr->{ACTION} : '';
- my $MODULE=(defined($attr->{MODULE})) ? $attr->{MODULE} : '';
- my $COMMENTS=(defined($attr->{COMMENTS})) ? $attr->{COMMENTS} : '';
+ my $H           = (defined($attr->{H})) ? $attr->{H} : '*';
+ my $D           = (defined($attr->{D})) ? $attr->{D} : '*';
+ my $M           = (defined($attr->{M})) ? $attr->{M} : '*';
+ my $Y           = (defined($attr->{Y})) ? $attr->{Y} : '*';
+ my $COUNT       = (defined($attr->{COUNT})) ? int($attr->{COUNT}): 0;
+ my $UID         = (defined($attr->{UID})) ? int($attr->{UID}) : 0;
+ my $TYPE        = (defined($attr->{TYPE})) ? $attr->{TYPE} : '';
+ my $ACTION      = (defined($attr->{ACTION})) ? $attr->{ACTION} : '';
+ my $MODULE      = (defined($attr->{MODULE})) ? $attr->{MODULE} : '';
+ my $COMMENTS    = (defined($attr->{COMMENTS})) ? $attr->{COMMENTS} : '';
+ my $ADMIN_ACTION= (defined($attr->{ADMIN_ACTION})) ? $attr->{ADMIN_ACTION} : '';
  
- $self->query($db, "INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date, module, comments) 
-        VALUES ('$H', '$D', '$M', '$Y', '$UID', '$TYPE', '$ACTION', '$admin->{AID}', now(), '$MODULE', '$COMMENTS');", 'do');
+ $self->query($db, "INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date, module, comments, admin_action) 
+        VALUES ('$H', '$D', '$M', '$Y', '$UID', '$TYPE', '$ACTION', '$admin->{AID}', now(), '$MODULE', '$COMMENTS', '$ADMIN_ACTION');", 'do');
 
  if ($self->{errno}) {
      $self->{errno} = 7;
