@@ -823,7 +823,8 @@ sub list {
    push @WHERE_RULES,  @{ $self->search_expr($attr->{EXPIRE}, 'INT', 'u.expire', { EXT_FIELD => 1 })  };
   }
 
- if (! $admin->{permissions}->{0} || ! $admin->{permissions}->{0}->{8}) {
+ if (! $admin->{permissions}->{0} || ! $admin->{permissions}->{0}->{8} || 
+    ($attr->{USER_STATUS} && $attr->{USER_STATUS} < 3 && ! $attr->{DELETED})) {
 	 push @WHERE_RULES,  @{ $self->search_expr(0, 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
   }
  elsif ($attr->{DELETED}) {

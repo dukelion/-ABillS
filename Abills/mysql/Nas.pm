@@ -12,9 +12,13 @@ use main;
 my $CONF;
 my $SECRETKEY = '';
 
+
+
+
 sub new {
   my $class = shift;
   ($db, $CONF) = @_;
+
   $SECRETKEY = (defined($CONF->{secretkey})) ? $CONF->{secretkey}: '';
   my $self = { };
   bless($self, $class);
@@ -305,7 +309,7 @@ sub nas_ip_pools_set {
 #**********************************************************
 sub ip_pools_info {
  my $self = shift;
- my ($id) = @_;
+ my ($id, $attr) = @_;
  
  my $WHERE = '';
 
@@ -361,7 +365,7 @@ sub ip_pools_change {
 		                DATA         => $attr,
 		                EXT_CHANGE_INFO  => "POOL:$attr->{ID}"
 		              } );
-  
+
   return $self;
 }
 

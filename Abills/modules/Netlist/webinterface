@@ -13,8 +13,6 @@ sub netlist_ip_calc {
 
   my $mask = 0b0000000000000000000000000000001;
 
-
-
   if (! $FORM{MASK} && $FORM{MASK_BITS}) {
     $FORM{MASK} = int2ip( 4294967296 - sprintf("%d", $mask << (32  - $FORM{MASK_BITS})) );
    }
@@ -53,22 +51,11 @@ sub netlist_ip_calc {
  	                                        });
 
 
-#  my @ar =  unpack("C2C2C2C2", pack("B32",  $mask ));
-#  my $i = 1;
-#  foreach my $line (@ar) {
-#  	$Netlist->{'IP_D'.$i}=$line;
-#  	print $Netlist->{'IP_D'.$i} .": <br>";
-#    $i++;
-#   }
-  
-#  
-#  
   my @SUBNET_NUMBER = ();
   my @HOSTS_NUMBER  = ();
   my @MASK_BITS     = ();
   
   for(my $i=0; $i<=16; $i++) {
-  	
   	push @SUBNET_NUMBER, ($mask << $i);
   	push @HOSTS_NUMBER, sprintf("%d", 254 / ($mask << $i) - 1);
   	push @MASK_BITS, 32-$i;

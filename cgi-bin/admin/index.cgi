@@ -1658,6 +1658,7 @@ my $i=0;
 my $users_status = 0;
 foreach my $name ( @statuses ) {
 	if (defined($FORM{USERS_STATUS}) && $FORM{USERS_STATUS} == $i && $FORM{USERS_STATUS} ne '') {
+    $LIST_PARAMS{USER_STATUS}=1;
     if ($i == 1) {
       $LIST_PARAMS{DEPOSIT}='<0';
      }
@@ -1676,6 +1677,7 @@ foreach my $name ( @statuses ) {
     $users_status = $i;
 	 }
 	else {
+		$pages_qs =~ s/\&USERS_STATUS=\d//;
 	  $status_bar .= ' '.$html->button("$name", "index=$index&USERS_STATUS=$i$pages_qs");
 	 }
   $i++;
