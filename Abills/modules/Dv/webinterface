@@ -403,6 +403,10 @@ sub dv_user {
      my $user  = $users->info($Dv->{UID}, { SHOW_PASSWORD => $permissions{0}{3} });
      $pi->{ADDRESS_FULL}="$pi->{ADDRESS_STREET} $pi->{ADDRESS_BUILD}, $pi->{ADDRESS_FLAT}";
  
+     my ($y, $m, $d)=split(/-/, (($pi->{CONTRACT_DATE}) ? $pi->{CONTRACT_DATE} : $DATE ) , 3);
+     $pi->{CONTRACT_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
+
+ 
      if ($FORM{pdf}) {
        print "Content-type: application/pdf\n";
        print "Content-disposition: inline; name=".int(rand(32768)).".pdf\n\n";

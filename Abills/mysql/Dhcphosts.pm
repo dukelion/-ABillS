@@ -100,7 +100,8 @@ sub network_defaults {
    IP_RANGE_LAST   => '0.0.0.0',
    COMMENTS        => '',
    DENY_UNKNOWN_CLIENTS => 0,
-   AUTHORITATIVE   => 0
+   AUTHORITATIVE   => 0, 
+   GUEST_VLAN      => 0
   );
 
  
@@ -123,7 +124,7 @@ sub network_add {
 
   $self->query($db,"INSERT INTO dhcphosts_networks 
      (name,network,mask, routers, coordinator, phone, dns, suffix, disable,
-      ip_range_first, ip_range_last, comments,  deny_unknown_clients,  authoritative, net_parent) 
+      ip_range_first, ip_range_last, comments,  deny_unknown_clients,  authoritative, net_parent, guest_vlan) 
      VALUES('$DATA{NAME}', INET_ATON('$DATA{NETWORK}'), INET_ATON('$DATA{MASK}'), INET_ATON('$DATA{ROUTERS}'),
        '$DATA{COORDINATOR}', '$DATA{PHONE}', '$DATA{DNS}', '$DATA{DOMAINNAME}',
        '$DATA{DISABLE}',
@@ -132,7 +133,8 @@ sub network_add {
        '$DATA{COMMENTS}',
        '$DATA{DENY_UNKNOWN_CLIENTS}',
        '$DATA{AUTHORITATIVE}',
-       '$DATA{NET_PARENT}'
+       '$DATA{NET_PARENT}',
+       '$DATA{GUEST_VLAN}'
        )", 'do');
 
   $admin->system_action_add("DHCPHOSTS_NET:$self->{INSERT_ID}", { TYPE => 1 });    
@@ -182,6 +184,7 @@ sub network_change {
    DENY_UNKNOWN_CLIENTS => 'deny_unknown_clients',
    AUTHORITATIVE   => 'authoritative',
    NET_PARENT      => 'net_parent',
+   GUEST_VLAN      => 'guest_vlan'
    );
 
 

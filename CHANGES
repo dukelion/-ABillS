@@ -1,5 +1,35 @@
 =====0.52=====
 
+18.12.2010\\
+  * Только администрартор может удалять расписания присвоенные пользователю
+  * В DHCPhost  добавленно поле гостевой VLAN и возможность не блокировать долников на порту а перебрасывать в гостевой VLAN (Dlink, AgeCore)
+
+MySQL:\\
+  ALTER TABLE shedule ADD COLUMN `admin_action` tinyint(1) unsigned NOT NULL default '0';
+  ALTER TABLE `dhcphosts_networks` ADD COLUMN `guest_vlan` smallint(5) unsigned NOT NULL DEFAULT '0';
+
+
+14.12.2010\\
+  * Добавлен возможность снимать деньги только за дни когда пользователь пользовался интернетом
+  * Обновлён протокол Dr.Web
+  * Добавлено более информативное логирование удалённых онлайн сессий
+  * Обновлён протокол налогового экспорта
+  * Добавлен шейпер по пулам адресов 
+  * Депозит пользователя в личном кабинете уменьшен до 2 знаков после точки, а так же добавлены кнопки быстрого пополнения счёт или выписки счета на оплату
+MySQL:\\
+  
+  ALTER TABLE tarif_plans ADD COLUMN `active_day_fee` tinyint(1) unsigned NOT NULL default '0';
+
+30.11.2010\\
+  * Добавлена возможность скрывать удалённых пользователей, только администратор с спец правами может их удалять полностью
+  * Добавлена платёжная система [[http://abills.net.ua/wiki/doku.php/abills:docs:modules:paysys:ru#flashcheque|flashcheque]]
+
+
+MySQL:\\
+   
+  ALTER TABLE users ADD COLUMN  `deleted` tinyint(1) unsigned NOT NULL default '0';
+  
+ 
 10.11.2010\\
   * Добавлено $conf{DV_USER_CHG_TP_SHEDULE}. Если с пользователя снимается дневная или месячная распределённая абон. плата то следующим учётным периодом будет следующий день.
   * Добавлена поддержка коммутаторов [[http://www.celan.com.tw|CeLan]]
