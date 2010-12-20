@@ -3056,12 +3056,17 @@ if ($FORM{set}) {
      	 ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 86400) )); 
       }
      else {
-       $M++;
-       if ($M == 13) {
-         $M = 1;
-         $Y++;
+     	 if ($user->{ACTIVATE} ne '0000-00-00') {
+     	 	 ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 30* 86400) )); 
+     	  }
+     	 else {
+         $M++;
+         if ($M == 13) {
+           $M = 1;
+           $Y++;
+          }
+         $D='01';
         }
-       $D='01';
       }
 
      $M = sprintf("%02d", $M);

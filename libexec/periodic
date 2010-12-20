@@ -148,7 +148,7 @@ if ($args->{DEBUG}) {
    undef %PERIODIC;
   }
 
-push  @daily_functions, 'sheduler' if (! $args->{MODULES});
+push  @daily_functions, 'sheduler' if ($args->{SHEDULE} || ! $args->{MODULES});
 my($Y, $M, $D);
 
   #Make date asign function
@@ -243,11 +243,15 @@ if ($args->{DEBUG}) {
 # sheduler()
 #**********************************************************
 sub sheduler {
-my %shedule_type = ('tp'      => $_TARIF_PLAN, 
-                    'fees'    => $_FEES,
-                    'message' => $_MESSAGES,
-                    'status'  => $_STATUS
- );
+
+#my %shedule_type = ('tp'      => $_TARIF_PLAN, 
+#                    'fees'    => $_FEES,
+#                    'message' => $_MESSAGES,
+#                    'status'  => $_STATUS,
+#                    'sql'     => 'SQL'
+# );
+
+$DEBUG .= "Shedule\n" if ($debug > 1);
 
 #Change tp
  require Shedule;
@@ -470,10 +474,8 @@ sub logrotate {
   my $rotate_level = 5;
   
   if ($D == 1) {
-
      my $logfile = "$conf{LOGFILE}";
      my $cmd = '';
-
      for (my $i = 5; $i>0; $i--) {
        if ( -f $logfile.'.'. ($i-1) .'.gz') {
          $cmd = 'mv '. $logfile .'.'. ($i-1) .'.gz '. $logfile .'.'. $i .'.gz';
@@ -481,7 +483,6 @@ sub logrotate {
          my $a = `$cmd`;
         }
       }
-
 
      $cmd = '$GZIP -c '. $logfile. ' > '. $logfile . '.1.gz && >'. $logfile ;
      $DEBUG .= $cmd."\n" if ($debug > 3);
