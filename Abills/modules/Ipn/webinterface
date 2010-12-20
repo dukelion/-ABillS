@@ -1278,7 +1278,14 @@ sub ipn_user_activate {
 
       my $Auth = Auth->new($db, \%conf);
       my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $Nas, { SECRETKEY => $conf{secretkey} });
-      $DATA{FILTER_ID} = $RAD_PAIRS->{'Filter-Id'} if ($RAD_PAIRS->{'Filter-Id'});
+      if ($RAD_PAIRS->{'Filter-Id'}) {
+        $DATA{FILTER_ID} = $RAD_PAIRS->{'Filter-Id'} 
+       }
+      else {
+      	while(my($k, $v) = each %$RAD_PAIRS) {
+      	  $DATA{FILTER_ID} .= "$k=$v, "; 
+      	 }
+       }
 
 
       if ($r == 1) {
