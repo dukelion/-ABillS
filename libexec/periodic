@@ -269,9 +269,10 @@ my %shedule_type = ('tp'      => $_TARIF_PLAN,
  $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-12s| %-8s| %-14s|%-14s|\n", "$_LOGIN", "$_MODULES", "$_TYPE", "$_VALUE", "$_ADMIN");
  $ADMIN_REPORT{SHEDULE}.= "---------------------------------------------------------\n";
  foreach my $line (@$list) {
+ 	 my $action = $line->[7];
    if ($line->[6] eq 'fees') {
     	 my $user = $users->info( $line->[13] );
-    	 my ($sum, $descr, $bill_id) = split(/:/, $line->[7]);
+    	 my ($sum, $descr, $bill_id) = split(/:/,  $action);
     	 if ($bill_id) {
     	 	  if($bill_id =~ /(\S+)=(\S+)/) {
     	 	  	$bill_id=$2;
@@ -289,6 +290,12 @@ my %shedule_type = ('tp'      => $_TARIF_PLAN,
         }
     	 $ret = 0;
      }
+   elsif ($line->[6] eq 'sql') {
+   	 if ($debug > 0) {
+   	 	 print "Shedule SQL:  $action\n";
+   	  }
+   	 $ret = 0;
+    }
    #Required modules
    elsif ($line->[8] ne '') {
     	 my $function = lc  $line->[8] . "_sheduler";
@@ -302,7 +309,7 @@ my %shedule_type = ('tp'      => $_TARIF_PLAN,
      $text .= ($err_strs{$ret}) ? $err_strs{$ret} : 'Error '. $ret;
     }
 
-	 $shedule->del({ ID => $line->[14] });
+	 $shedule->del({ ID => $line->[14], RESULT => $ret });
    $DEBUG .= $text ."\n" if ($debug > 1);
    $ADMIN_REPORT{SHEDULE}.=$text ."\n";
   } 

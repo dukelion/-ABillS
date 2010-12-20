@@ -471,50 +471,46 @@ sub list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
-  if ($attr->{NETMASK}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{NETMASK}, 'IP', 'INET_NTOA(dv.netmask)') };
-    $self->{SEARCH_FIELDS} .= 'INET_NTOA(dv.netmask), ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+
+   if (! $admin->{permissions}->{0} || ! $admin->{permissions}->{0}->{8} || 
+     ($attr->{USER_STATUS} && ! $attr->{DELETED})) {
+	   push @WHERE_RULES,  @{ $self->search_expr(0, 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
+   }
+  elsif ($attr->{DELETED}) {
+  	 push @WHERE_RULES,  @{ $self->search_expr("$attr->{DELETED}", 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
    }
 
+
+ if ($attr->{NETMASK}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{NETMASK}, 'IP', 'INET_NTOA(dv.netmask)', { EXT_FIELD => 1 }) };
+  }
+
  if ($attr->{DEPOSIT}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'u.deposit') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'u.deposit') };
   }
 
  if ($attr->{JOIN_SERVICE}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{JOIN_SERVICE}, 'INT', 'dv.join_service') } ;
-   $self->{SEARCH_FIELDS} .= 'dv.join_service, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{JOIN_SERVICE}, 'INT', 'dv.join_service', { EXT_FIELD => 1 }) } ;
   }
 
  if ($attr->{SIMULTANEONSLY}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{SIMULTANEONSLY}, 'INT', 'dv.logins') } ;
-   $self->{SEARCH_FIELDS} .= 'dv.logins, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{SIMULTANEONSLY}, 'INT', 'dv.logins', { EXT_FIELD => 1 }) } ;
   }
 
  if ($attr->{SPEED}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{SPEED}, 'INT', 'dv.speed') };
-   $self->{SEARCH_FIELDS} .= 'dv.speed, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{SPEED}, 'INT', 'dv.speed', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{PORT}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{PORT}, 'INT', 'dv.port') };
-   $self->{SEARCH_FIELDS} .= 'dv.port, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PORT}, 'INT', 'dv.port', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{CID}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'STR', 'dv.cid') };
-   $self->{SEARCH_FIELDS} .= 'dv.cid, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'STR', 'dv.cid', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{FILTER_ID}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{FILTER_ID}, 'STR', 'dv.filter_id') };
-   $self->{SEARCH_FIELDS} .= 'dv.filter_id, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{FILTER_ID}, 'STR', 'dv.filter_id', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{COMMENTS}) {
@@ -535,15 +531,11 @@ sub list {
   }
 
  if (defined($attr->{TP_CREDIT})) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{TP_CREDIT}, 'INT', 'tp.credit') };
-   $self->{SEARCH_FIELDS} .= 'tp.credit, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{TP_CREDIT}, 'INT', 'tp.credit', { EXT_FIELD => 1 }) };
   }
 
  if (defined($attr->{PAYMENT_TYPE})) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_TYPE}, 'INT', 'tp.payment_type') };
-   $self->{SEARCH_FIELDS} .= 'tp.payment_type, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_TYPE}, 'INT', 'tp.payment_type', { EXT_FIELD => 1 }) };
   }
 
  # Show debeters

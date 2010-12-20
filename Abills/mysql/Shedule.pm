@@ -208,8 +208,8 @@ sub add {
  my $COMMENTS    = (defined($attr->{COMMENTS})) ? $attr->{COMMENTS} : '';
  my $ADMIN_ACTION= (defined($attr->{ADMIN_ACTION})) ? $attr->{ADMIN_ACTION} : '';
  
- $self->query($db, "INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date, module, comments, admin_action) 
-        VALUES ('$H', '$D', '$M', '$Y', '$UID', '$TYPE', '$ACTION', '$admin->{AID}', now(), '$MODULE', '$COMMENTS', '$ADMIN_ACTION');", 'do');
+ $self->query($db, "INSERT INTO shedule (h, d, m, y, uid, type, action, aid, date, module, comments, admin_action, counts) 
+        VALUES ('$H', '$D', '$M', '$Y', '$UID', '$TYPE', '$ACTION', '$admin->{AID}', now(), '$MODULE', '$COMMENTS', '$ADMIN_ACTION', '$COUNT');", 'do');
 
  if ($self->{errno}) {
      $self->{errno} = 7;
@@ -231,18 +231,19 @@ sub del {
  my $self = shift;
  my ($attr) = @_;
 
+ my $result = $attr->{RESULT} || 0;
 
  if ($attr->{IDS}) {
    $self->query($db, "DELETE FROM shedule WHERE id IN ( $attr->{IDS} );", 'do');
    $admin->system_action_add("SHEDULE:$attr->{IDS} UID:$self->{UID}", { TYPE => 10 });    
    return $self;	
   }
-
+ 
  $self->info({ ID => $attr->{ID}});
 
  if ($self->{TOTAL} > 0) {
    $self->query($db, "DELETE FROM shedule WHERE id='$attr->{ID}';", 'do');
-   $admin->system_action_add("SHEDULE:$attr->{ID} UID:$self->{UID}", { TYPE => 10 });    
+   $admin->system_action_add("SHEDULE:$attr->{ID} UID:$self->{UID} RESULT: $result", { TYPE => 10 });    
   } 
   
  return $self;	

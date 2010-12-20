@@ -471,7 +471,10 @@ sub form_select {
 
 	  if ($attr->{SORT_KEY}) {
 	  	@H = sort keys %{ $attr->{SEL_HASH} };
-	  }
+	   }
+	  elsif ($attr->{SORT_KEY_NUM}) {
+	  	@H = sort { $a <=> $b } keys %{ $attr->{SEL_HASH} };
+	   }
 	  else {
 	    @H = sort {
              $attr->{SEL_HASH}->{$a} cmp $attr->{SEL_HASH}->{$b}

@@ -1510,7 +1510,6 @@ while(my($k, $v)=each %uf_menus) {
 	$userform_menus{$k}=$v;
 }
 
-#while(my($k, $v)=each (%userform_menus) ) {
 foreach my $k (sort { $b <=> $a } keys %userform_menus) {
 	my $v = $userform_menus{$k};
   my $url =  "index=$k&UID=$user_info->{UID}";
@@ -5454,31 +5453,129 @@ $SEARCH_DATA{SEL_TYPE}.="</tr>
 sub form_shedule {
 
 use Shedule;
-my $shedule = Shedule->new($db, $admin);
+my $Shedule = Shedule->new($db, $admin);
 
-if ($FORM{del} && $FORM{is_js_confirmed}) {
-  $shedule->del({ ID => $FORM{del} });
-  if ($shedule->{errno}) {
-    $html->message('err', $_ERROR, "[$shedule->{errno}] $err_strs{$shedule->{errno}}");
+if ($FORM{add}) {
+	$Shedule->add({ D => $FORM{D},
+		M        => $FORM{M},
+		Y        => $FORM{Y},
+		TYPE     => $FORM{TYPE},
+		ACTION   => $FORM{ACTION},
+		COMMENTS => $FORM{COMMENTS},
+		COUNT    => $FORM{COUNT}
+	 });
+
+  if (! $Shedule->{errno}) {
+    $html->message('info', $_ADDED, "$_ADDED [$Shedules->{INSERT_ID}]");
    }
-  else {
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  $Shedule->del({ ID => $FORM{del} });
+  if (! $Shedule->{errno}) {
     $html->message('info', $_DELETED, "$_DELETED [$FORM{del}]");
    }
 }
 
+  if ($Shedule->{errno}) {
+    $html->message('err', $_ERROR, "[$Shedule->{errno}] $err_strs{$Shedule->{errno}}");
+   }
+
+
+
+$Shedule->{SEL_D} = $html->form_select('D', 
+                                { SELECTED   => $FORM{D},
+ 	                                SEL_HASH   => { '*' => '*', 	                                	
+ 	                                	1 => 1,
+ 	                                	2 => 2,
+ 	                                	3 => 3,
+ 	                                	4 => 4,
+ 	                                	5 => 5,
+ 	                                	6 => 6,
+ 	                                	7 => 7,
+ 	                                	8 => 8,
+ 	                                	9 => 9,
+ 	                                	10 => 10,
+ 	                                	11 => 11,
+ 	                                	12 => 12,
+ 	                                	13 => 13,
+ 	                                	14 => 14,
+ 	                                	15 => 15,
+ 	                                	16 => 16,
+ 	                                	17 => 17,
+ 	                                	18 => 18,
+ 	                                	19 => 19,
+ 	                                	20 => 20,
+ 	                                	21 => 21,
+ 	                                	22 => 22,
+ 	                                	23 => 23,
+ 	                                	24 => 24,
+ 	                                	25 => 25,
+ 	                                	26 => 26,
+ 	                                	27 => 27,
+ 	                                	28 => 28,
+ 	                                	29 => 29,
+ 	                                	30 => 30,
+ 	                                	31 => 31 	                                	
+ 	                                	}, 
+ 	                                NO_ID       => 1,
+ 	                                SORT_KEY_NUM   => 1
+ 	                               });
+
+$Shedule->{SEL_M} = $html->form_select('M', 
+                                { SELECTED   => $FORM{M},
+ 	                                SEL_HASH   => { '*' => '*',
+ 	                                	 1 => $MONTHES[0],
+ 	                                	 2 => $MONTHES[1],
+ 	                                	 3 => $MONTHES[2],
+ 	                                	 4 => $MONTHES[3],
+ 	                                	 5 => $MONTHES[4],
+ 	                                	 6 => $MONTHES[5],
+ 	                                	 7 => $MONTHES[6],
+ 	                                	 8 => $MONTHES[7],
+ 	                                	 9 => $MONTHES[8],
+ 	                                	 10 => $MONTHES[9],
+ 	                                	 11 => $MONTHES[10],
+ 	                                	 12 => $MONTHES[11],
+ 	                                	}, 
+ 	                                NO_ID      => 1,
+ 	                                SORT_KEY_NUM   => 1
+ 	                               });
+
+my ($YEAR, $MONTH, $DAY)=split(/-/, $DATE);
+
+$Shedule->{SEL_Y} = $html->form_select('Y', 
+                                { SELECTED   => $FORM{Y},
+ 	                                SEL_HASH   => { '*' => '*', $YEAR => $YEAR, ($YEAR+1) => ($YEAR+1), ($YEAR+2) => ($YEAR+2) },
+	                                NO_ID      => 1,
+	                                SORT_KEY_NUM   => 1
+ 	                               });
+
+$Shedule->{SEL_TYPE} = $html->form_select('TYPE', 
+                                { SELECTED   => $FORM{TYPE},
+ 	                                SEL_HASH   => { 'sql' => 'SQL' },
+	                                NO_ID      => 1,
+ 	                               }); 	                               
+
+
+
+$html->tpl_show(templates("form_shedule"), { %$Shedule }, );  	
+
+
+
 my %TYPES = ('tp'    => "$_CHANGE $_TARIF_PLAN",
              'fees'  => "$_FEES",
              'status'=> "$_STATUS",
+             'sql'   => 'SQL'
              ); 
 
-my $list = $shedule->list( { %LIST_PARAMS } );
+my $list = $Shedule->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             border     => 1,
                             caption    => "$_SHEDULE",
                             title      => ["$_HOURS", "$_DAY", "$_MONTH", "$_YEAR", "$_COUNT", "$_USER", "$_TYPE", "$_VALUE", "$_MODULES", "$_ADMINS", "$_CREATED", "$_COMMENTS", "-"],
                             cols_align => ['right', 'right', 'right', 'right', 'right', 'left', 'right', 'right', 'right', 'left', 'right', 'center'],
                             qs         => $pages_qs,
-                            pages      => $shedule->{TOTAL},
+                            pages      => $Shedule->{TOTAL},
                             ID         => 'SHEDULE'
                           });
 my ($y, $m, $d)=split(/-/, $DATE, 3);
@@ -5492,7 +5589,8 @@ foreach my $line (@$list) {
   	$value = $html->color_mark($service_status[$line->[7]], $service_status_colors[$line->[7]])
    }
   
-  if (int($line->[3].$line->[2].$line->[1]) <= int($y.$m.$d)) {
+  if (int($line->[3].$line->[2].$line->[1]) <= int($y.$m.$d) && 
+       $line->[3] ne '*' && $line->[2] ne '*'  && $line->[1] ne '*') {
   	$table->{rowcolor}='red';
    }
   else {
@@ -5510,12 +5608,11 @@ foreach my $line (@$list) {
     "$line->[11]", 
     $delete);
 }
-
 print $table->show();
 
 $table = $html->table({ width      => '100%',
                         cols_align => ['right', 'right', 'right', 'right'],
-                        rows       => [ [ "$_TOTAL:", $html->b($shedule->{TOTAL}) ] ]
+                        rows       => [ [ "$_TOTAL:", $html->b($Shedule->{TOTAL}) ] ]
                        });
 print $table->show();
 }

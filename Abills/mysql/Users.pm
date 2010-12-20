@@ -842,9 +842,6 @@ if ($self->{TOTAL} > 0) {
 
         if (defined($attr->{$field_name}) && $type == 4) {
      	    push @WHERE_RULES, 'pi.'. $field_name ."='$attr->{$field_name}'"; 
-  
-          #$self->{SEARCH_FIELDS} .= 'pi.'. $field_name. ', ';
-          #$self->{SEARCH_FIELDS_COUNT}++;
          }
         #Skip for bloab
         elsif ($type == 5) {

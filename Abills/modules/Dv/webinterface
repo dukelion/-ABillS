@@ -21,7 +21,7 @@ my %FORM_BASE = ();
 my %TRAFFIC_NAMES = ();
 
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
-my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT" );
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT");
 
 
 #*******************************************************************
@@ -4642,11 +4642,11 @@ sub dv_users_warning_messages {
 
  my $debug_output = '';
 
- my $debug = $attr->{DEBUG} || 0;
-
-my %LIST_PARAMS = (USERS_WARNINGS => 1 );
+ my $debug       = $attr->{DEBUG} || 0;
+ my %LIST_PARAMS = (USERS_WARNINGS => 1 );
 $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN}); 
-my $list = $Dv->list( { %LIST_PARAMS } );
+my $list            = $Dv->list( { %LIST_PARAMS } );
+
 return 0 if ($Dv->{TOTAL} < 1);
 my %USER_INFO = ();
 

@@ -1278,7 +1278,8 @@ sub ipn_user_activate {
 
       my $Auth = Auth->new($db, \%conf);
       my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $Nas, { SECRETKEY => $conf{secretkey} });
-      $DATA{FILTER_ID} = $RAD_PAIRS{'Filter-Id'} if ($RAD_PAIRS{'Filter-Id'});
+      $DATA{FILTER_ID} = $RAD_PAIRS->{'Filter-Id'} if ($RAD_PAIRS->{'Filter-Id'});
+
 
       if ($r == 1) {
         $html->message('err', $_ERROR, "$RAD_PAIRS->{'Reply-Message'}");
@@ -1519,6 +1520,7 @@ else {
   print "IPN: $cmd\n" if ($DEBUG > 5);
   system($cmd);
 }
+
 
   if ($conf{IPN_FILTER} && ($STATUS ne 'ONLINE_ENABLE' || ($STATUS eq 'ONLINE_ENABLE' && $FILTER_ID ne '') ) ) {
   	$cmd = "$conf{IPN_FILTER}";
