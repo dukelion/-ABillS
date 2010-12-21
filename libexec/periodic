@@ -262,58 +262,84 @@ $DEBUG .= "Shedule\n" if ($debug > 1);
  Fees->import();
  my $fees = Fees->new($db, $admin, \%conf);
 
- my $list = $shedule->list({ Y => $Y,
- 	                           M => $M,
- 	                           D => $D, 
+ my $list = $shedule->list({ Y => "$Y,*",
+ 	                           M => "$M,*",
+ 	                           D => "$D,*", 
  	                           PAGE_ROWS => 100000 
  	                         });
 
- my $ret = 0;
+ 
+ 
 
- $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-12s| %-8s| %-14s|%-14s|\n", "$_LOGIN", "$_MODULES", "$_TYPE", "$_VALUE", "$_ADMIN");
+ $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-12s| %-8s| %-20s|%-14s|\n", "$_LOGIN", "$_MODULES", "$_TYPE", "$_VALUE", "$_ADMIN");
  $ADMIN_REPORT{SHEDULE}.= "---------------------------------------------------------\n";
  foreach my $line (@$list) {
+ 	 my $ret    = 0;
+ 	 my $error_text = '';
+ 	 my $count  = $line->[4] || 0;
+ 	 my $login  = $line->[5] || '-';
+ 	 my $type   = $line->[6];
  	 my $action = $line->[7];
-   if ($line->[6] eq 'fees') {
-    	 my $user = $users->info( $line->[13] );
-    	 my ($sum, $descr, $bill_id) = split(/:/,  $action);
-    	 if ($bill_id) {
-    	 	  if($bill_id =~ /(\S+)=(\S+)/) {
-    	 	  	$bill_id=$2;
-    	 	   }
-    	  }
-    	 $user->{BILL_ID}=$bill_id;
-    	 $fees->take($user, $sum, { DESCRIBE => "$_SHEDULE: $descr" } );
-       if ($fees->{errno}) {
-        	print "Error: [ $user->{UID} ] $user->{LOGIN} SUM: $sum [$fees->{errno}] $fees->{errstr}";
-        	if ($fees->{errno} == 14 ) {
-    	 	    print "  - Don't have money account";
-  	       }
-
-          print "\n";
-        }
-    	 $ret = 0;
-     }
-   elsif ($line->[6] eq 'sql') {
-   	 if ($debug > 0) {
-   	 	 print "Shedule SQL:  $action\n";
+ 	 my $shedule_id = $line->[14];
+ 	 
+	 if ($debug > 0) {
+ 	 	 print "Shedule $type:  $action\n";
+	  }
+ 	 
+   if ($type eq 'fees') {
+   	 my $user = $users->info( $line->[13] );
+   	 my ($sum, $descr, $bill_id) = split(/:/,  $action);
+   	 if ($bill_id) {
+   	 	  if($bill_id =~ /(\S+)=(\S+)/) {
+   	 	  	$bill_id=$2;
+   	 	   }
    	  }
-   	 $ret = 0;
+   	 $user->{BILL_ID}=$bill_id;
+   	 $fees->take($user, $sum, { DESCRIBE => "$_SHEDULE: $descr" } );
+      if ($fees->{errno}) {
+       	$error_text .= "Error: [ $user->{UID} ] $user->{LOGIN} SUM: $sum [$fees->{errno}] $fees->{errstr}";
+       	if ($fees->{errno} == 14 ) {
+   	 	    $error_text .= "  - Don't have money account";
+   	 	    $ret = 2;
+ 	       }
+        $error_text .= "\n";
+       }
+   	  else {
+   	    $ret = 1;
+   	   }
+    }
+   elsif ($type eq 'sql') {
+   	 $action =~ s/\n//g;
+   	 my @sqls = split(/;/, $action);
+   	 $ret = 1;
+   	 foreach my $sql  (@sqls) {
+   	 	 $admin->query($db, "$sql", 'do');
+   	 	 if ($admin->{errno}) {
+   	 	 	 $ret = 2;
+   	 	 	 $error_text = $admin->{errstr}
+   	 	  }
+   	  }
     }
    #Required modules
-   elsif ($line->[8] ne '') {
-    	 my $function = lc  $line->[8] . "_sheduler";
-    	 $ret = $function->($line->[6], "$line->[7]", $line->[13]);
+   elsif ($type ne '') {
+     my $function = lc  $line->[8] . "_sheduler";
+     $ret = $function->($line->[6], "$action", $line->[13]);
     }
 
-   my $text = sprintf("%-14s| %-12s| %-8s| %-14s| %-14s|", 
-	    $line->[5], $line->[8], $line->[6], $line->[7], $line->[9]);
+   my $text = sprintf("%-14s| %-12s| %-8s| %-20s| %-14s|", 
+	    $login, $line->[8], $type, $action, $line->[9]);
 
-   if ($ret > 0) {
-     $text .= ($err_strs{$ret}) ? $err_strs{$ret} : 'Error '. $ret;
+   if ($ret > 1) {
+     $text .= ($err_strs{$ret}) ? $err_strs{$ret} : 'Error: '. $ret. ' ' .$error_text;
     }
 
-	 $shedule->del({ ID => $line->[14], RESULT => $ret });
+   if ($count <= 1) {
+	   $shedule->del({ ID => $shedule_id, RESULT => $ret . $error_text });
+	  }
+   else {
+   	 $shedule->change({ SHEDULE_ID => $shedule_id, COUNTS => $count-1, RESULT=> $ret.$error_text });
+    }
+
    $DEBUG .= $text ."\n" if ($debug > 1);
    $ADMIN_REPORT{SHEDULE}.=$text ."\n";
   } 

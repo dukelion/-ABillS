@@ -4808,7 +4808,7 @@ elsif($attr->{TP}) {
 #***********************************************************
 # dv_Sheduler
 #***********************************************************
-sub dv_Sheduler {
+sub dv_sheduler {
 	my ($type, $action, $uid)=@_;
 
   my $user = $Dv->info($uid);  	
@@ -4831,7 +4831,7 @@ sub dv_Sheduler {
      }
    }
 
-  return 0;
+  return 1;
 }
 
 

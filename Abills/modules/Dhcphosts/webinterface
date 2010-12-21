@@ -1062,6 +1062,8 @@ foreach my $line (@$list) {
 
   #Add static route
   my $list = $Dhcphosts->routes_list({ NET_ID => $NET_ID });  
+  $INFO{NET_ROUTES}='';
+  $INFO{NET_ROUTES_RFC3442}='';
   if ($Dhcphosts->{TOTAL} > 0) {
     my $routes="";
 

@@ -31,11 +31,46 @@ sub new {
   ($db, $admin, $CONF) = @_;
   my $self = { };
 
+  $admin->{MODULE}='';
   bless($self, $class);
   return $self;
 }
 
 
+
+
+#**********************************************************
+# change()
+#**********************************************************
+sub change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %FIELDS = (H          => 'h', 
+                D          => 'd', 
+                M          => 'm', 
+                Y          => 'y', 
+                COUNTS     => 'counts',
+                ACTION     => 'action',
+                DATE       => 'date', 
+                COMMENTS   => 'comments', 
+                UID        => 'uid', 
+                SHEDULE_ID => 'id',
+             );
+  
+  $self->changes($admin, { CHANGE_PARAM => 'SHEDULE_ID',
+                   TABLE        => 'shedule',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $self->info({ ID => $attr->{SHEDULE_ID} }),
+                   DATA         => $attr,
+                   EXT_CHANGE_INFO  => "SHEDULE:$attr->{SHEDULE_ID}, RESULT: $attr->{RESULT}"
+                  } );
+
+
+  $self->info({ ID => $attr->{SHEDULE_ID} });
+
+  return $self;
+}
 
 #**********************************************************
 # info()
@@ -111,31 +146,31 @@ sub list {
  @WHERE_RULES =();
  
  if ($attr->{UID}) {
-    push @WHERE_RULES, "s.uid='$attr->{UID}'";
+   push @WHERE_RULES, "s.uid='$attr->{UID}'";
   }
  
  if ($attr->{AID}) {
-    push @WHERE_RULES, "s.aid='$attr->{AID}'";
+   push @WHERE_RULES, "s.aid='$attr->{AID}'";
   }
 
  if ($attr->{TYPE}) {
-    push @WHERE_RULES, "s.type='$attr->{TYPE}'";
+   push @WHERE_RULES, "s.type='$attr->{TYPE}'";
   }
 
  if ($attr->{Y}) {
-    push @WHERE_RULES, "s.y='$attr->{Y}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{Y}, 'STR', 's.y') };
   }
 
  if ($attr->{M}) {
-    push @WHERE_RULES, "s.m='$attr->{M}'";
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{M}, 'STR', 's.m') };
   }
 
  if ($attr->{D}) {
-    push @WHERE_RULES, "s.d='$attr->{D}'";
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{D}, 'STR', 's.d') };
   }
 
  if ($attr->{MODULE}) {
-    push @WHERE_RULES, "s.module='$attr->{MODULE}'";
+   push @WHERE_RULES, "s.module='$attr->{MODULE}'";
   }
 
  if ($attr->{COMMENTS}) {
