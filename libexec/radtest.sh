@@ -3,7 +3,7 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.5
+VERSION=0.6
 
 USER_NAME=test
 USER_PASSWORD=123456
@@ -58,10 +58,18 @@ for _switch ; do
         -rad)   RADIUS_ACTION=1;
                 shift;
                 ;;
+        -rad_secret)   RADIUS_SECRET=$2;
+                shift; shift;
+                ;;
+        -rad_ip)   RADIUS_IP=$2;
+                shift; shift;
+                ;;
+
         esac
 done
 
 
+# Get user name
 if [ w${ACTION} != whelp ]; then
   echo -n "USER_NAME (${USER_NAME}): "
   read _input
@@ -70,8 +78,27 @@ if [ w${ACTION} != whelp ]; then
   fi;
 fi;
 
-if [ t${ACTION} = 'tauth' ] ; then
 
+# Make direct radius request
+if [ w${RADIUS_ACTION} = w1 ]; then
+  if [ w${RADIUS_SECRET} = w ]; then
+    RADIUS_SECRET=radsecret;
+  fi;
+
+  if [ w${RADIUS_IP} = w ]; then
+    RADIUS_IP=127.0.0.1;
+  fi;
+  
+  echo "Send params to radius: ${RADIUS_IP}:1812"
+  radtest ${USER_NAME} ${USER_PASSWORD} ${RADIUS_IP}:1812 0 ${RADIUS_SECRET} 0 ${NAS_IP_ADDRESS}
+  
+  exit;
+fi;
+
+
+
+#script testing program
+if [ t${ACTION} = 'tauth' ] ; then
   ${RAUTH} \
         SERVICE_TYPE=VPN \
         NAS_IP_ADDRESS=${NAS_IP_ADDRESS}\
@@ -380,6 +407,18 @@ VoIP Functions
        voip acct (Stop|Start|Alive)
 DHCP Function
        dhcp   - test radius dhcp 
+       -u     - User name (Default: test)
+       -p     - Userr password (Default: 123456)
+       -nas   - Nas ip address (Default: 127.0.0.1)
+       -cid   - CALLING_STATION_ID (Default: )
+       -session_id ACCT_SESSION_ID (Default: ${ACCT_SESSION_ID})
+
+       -rad   - Send request to RADIUS
+       -rad_secret - RADIUS secret (Default: radsecret)
+       -rad_ip -  RADIUS IP address (Default: 127.0.0.1)
+
+       -debug - Debug mode
+       -v     - Show version
   "
 fi
 
