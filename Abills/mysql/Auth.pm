@@ -58,7 +58,7 @@ sub dv_auth {
   my ($ret, $RAD_PAIRS) = $self->authentication($RAD, $NAS, $attr);
 
   if ($ret == 1) {
-     return 1, $RAD_PAIRS;
+    return 1, $RAD_PAIRS;
   }
 
   my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 4096;
@@ -1551,6 +1551,9 @@ sub neg_deposit_filter_former () {
 	if ($attr->{RAD_PAIRS}) {
 	  $RAD_PAIRS = $attr->{RAD_PAIRS};
 	 }
+	else {
+		undef $RAD_PAIRS;
+	 }
 		
 	if (! $attr->{USER_FILTER}) {
     # Return radius attr    
@@ -1575,7 +1578,7 @@ sub neg_deposit_filter_former () {
 
    $NEG_DEPOSIT_FILTER_ID =~ s/\%IP\%/$RAD_PAIRS->{'Framed-IP-Address'}/g;
    $NEG_DEPOSIT_FILTER_ID =~ s/\%LOGIN\%/$RAD->{'USER_NAME'}/g;
-	
+
 	 if ($NEG_DEPOSIT_FILTER_ID =~ /RAD:(.+)/) {
       	my $rad_pairs = $1;
         my @p = split(/,/, $rad_pairs);

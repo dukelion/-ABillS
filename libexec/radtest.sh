@@ -19,9 +19,6 @@ RAUTH="./rauth.pl";
 RACCT="./racct.pl";
 echo `pwd -P`;
 
-ACTION=$1
-shift;
-
 # Proccess command-line options
 #
 for _switch ; do
@@ -45,14 +42,21 @@ for _switch ; do
         -nas)   NAS_IP_ADDRESS=$2;
                 shift; shift
                 ;;
-        -acct)  ACCOUNTING_ACTION=$2;
+        acct)   ACCOUNTING_ACTION=$2;
+                ACTION=acct 
                 shift; shift
+                ;;
+        auth)   ACTION=auth;
+                shift;
                 ;;
         -cid)   CALLING_STATION_ID=$2;
                 shift; shift
                 ;;
         -session_id) ACCT_SESSION_ID=$2;
                 shift; shift
+                ;;
+        -rad)   RADIUS_ACTION=1;
+                shift;
                 ;;
         esac
 done
@@ -275,10 +279,7 @@ elif [ t${ACTION} = 'tvoip' ] ; then
      H323_CONF_ID="h323-conf-id=16000 647BEE1D 80F000A F453DBFD"\
      H323_CALL_ORIGIN="h323-call-origin=originate"
 #     HUNTGROUP_NAME="voips" 
-
 #     CHAP_PASSWORD="0x06a8f3fb0ab5f4a8e90a590686c845c456" \
- 
-
   elif [ t${ACCOUNTING_ACTION} = 'tStart' ] ; then
     echo "Start\n";
 
