@@ -3825,10 +3825,8 @@ sub dv_daily_fees {
 
  $debug_output .= "DV: Daily periodic payments\n" if ($debug > 1);
 
-
  $LIST_PARAMS{TP_ID}     = $attr->{TP_ID} if ($attr->{TP_ID});
- $LIST_PARAMS{DOMAIN_ID} = $DOMAIN_ID;
- 
+ $LIST_PARAMS{DOMAIN_ID} = $DOMAIN_ID; 
 
  my %DV_LIST_PARAMS = ();
  $DV_LIST_PARAMS{LOGIN}          = $attr->{LOGIN} if ($attr->{LOGIN});
@@ -3861,6 +3859,7 @@ sub dv_daily_fees {
         }
       }
 
+$Dv->{debug}=1;
  	   my $ulist = $Dv->list({
          ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
          EXPIRE    => ">'$ADMIN_REPORT{DATE}'",
@@ -3878,11 +3877,11 @@ sub dv_daily_fees {
          my %user = (
             LOGIN      => $u->[0],  
             UID        => $u->[8],
-            BILL_ID    => ($line->[14] > 0) ? $u->[16] : $u->[14],
-            REDUCTION  => $u->[15],
-            ACTIVATE   => $u->[12],
+            BILL_ID    => ($line->[12+$Dv->{SEARCH_FIELDS_COUNT}] > 0) ? $u->[14+$Dv->{SEARCH_FIELDS_COUNT}] : $u->[12+$Dv->{SEARCH_FIELDS_COUNT}],
+            REDUCTION  => $u->[13+$Dv->{SEARCH_FIELDS_COUNT}],
+            ACTIVATE   => $u->[10+$Dv->{SEARCH_FIELDS_COUNT}],
             DEPOSIT    => $u->[2],
-            CREDIT     => ($u->[3] > 0) ? $u->[3] : ($CONF->{user_credit_change}) ? 0 : $line->[15]
+            CREDIT     => ($u->[3] > 0) ? $u->[3] : ($CONF->{user_credit_change}) ? 0 : $line->[13]
            );
 
         if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
