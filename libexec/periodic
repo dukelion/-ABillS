@@ -228,6 +228,7 @@ else {
    MODULES=[modules_list,...] - Make periodic process only for this modules
    SKIP_MODULES=[modules_list]- Skip this module in periodic proccess
    NO_ADM_REPORT              - Don't send report to admin via e-mail
+   SHEDULE                    - Make Shedule
    LOGINS                     - Periodic action for some logins
    DEBUG                      - Show debug output\n";
  exit;
@@ -262,9 +263,10 @@ $DEBUG .= "Shedule\n" if ($debug > 1);
  Fees->import();
  my $fees = Fees->new($db, $admin, \%conf);
 
- my $list = $shedule->list({ Y => "$Y,*",
- 	                           M => "$M,*",
- 	                           D => "$D,*", 
+
+ my $list = $shedule->list({ Y => "$Y,\\*",
+ 	                           M => "$M,\\*",
+ 	                           D => "$D,\\*", 
  	                           PAGE_ROWS => 100000 
  	                         });
 

@@ -1144,7 +1144,7 @@ sub docs_account {
 
        if ($conf{DOCS_PDF_PRINT}) {
        	 $html->message('info', "$_ACCOUNT $_ADDED", "$_ACCOUNT $_ADDED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
-       	 $users->pi({ UID => $user->{UID} });
+       	 $user->pi({ UID => $user->{UID} });
        	 
        	 if ( $FORM{SEND_EMAIL} && $users->{EMAIL}) {
          	 my $message  = "$_ACCOUNT:  $Docs->{ACCT_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n";

@@ -293,8 +293,15 @@ sub search_expr {
     	$expr = ' <> ';
      }
     elsif ($type eq 'STR') {
-    	$expr = ' LIKE ';
-    	$v =~ s/\*/\%/g;
+    	$expr = '=';
+        if ($v =~ /\\\*/) {
+          $v = '*';
+         }
+        else {
+       	  if($v =~ s/\*/\%/g) {
+            $expr = ' LIKE ';
+           }
+         }
      }
     elsif ( $v =~ s/^([<>=]{1,2})// ) {
       $expr = $1;
