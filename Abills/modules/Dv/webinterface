@@ -3859,7 +3859,6 @@ sub dv_daily_fees {
         }
       }
 
-$Dv->{debug}=1;
  	   my $ulist = $Dv->list({
          ACTIVATE  => "<='$ADMIN_REPORT{DATE}'",
          EXPIRE    => ">'$ADMIN_REPORT{DATE}'",
@@ -3876,7 +3875,7 @@ $Dv->{debug}=1;
      	  #Check bill id and deposit 
          my %user = (
             LOGIN      => $u->[0],  
-            UID        => $u->[8],
+            UID        => $u->[6+$Dv->{SEARCH_FIELDS_COUNT],
             BILL_ID    => ($line->[12+$Dv->{SEARCH_FIELDS_COUNT}] > 0) ? $u->[14+$Dv->{SEARCH_FIELDS_COUNT}] : $u->[12+$Dv->{SEARCH_FIELDS_COUNT}],
             REDUCTION  => $u->[13+$Dv->{SEARCH_FIELDS_COUNT}],
             ACTIVATE   => $u->[10+$Dv->{SEARCH_FIELDS_COUNT}],
