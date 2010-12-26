@@ -5,6 +5,6 @@
 
 <table width=500>
 <tr><th colspan=2 bgcolor=$_COLORS[0]>$_GUEST_MODE</th></tr>
-<tr><td>MAC: %DHCP_LEASES_MAC%</td><td><input type=submit name=discovery value='$_REGISTRATION'></td></tr>
+<tr><td><b>MAC:</b> %MAC% <b>$_PORT:</b> %PORTS%</td><td><input type=submit name=discovery value='$_REGISTRATION'></td></tr>
 </table>
 </form>

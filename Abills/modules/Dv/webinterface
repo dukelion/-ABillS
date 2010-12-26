@@ -2735,8 +2735,8 @@ $table = $html->table( {  caption     => "$_SUM",
 $sessions->{TOTALS_FULL} = $table->show();
 
 if (-f '../graphics.cgi' || -f 'graphics.cgi') {
-	$sessions->{DAILY_GRAPH}  =$html->button('Daily Graph', '#', { IMG => '/graphics.cgi?LOGIN=$LIST_PARAMS{LOGIN}&DAILY=1&SHOW_GRAPH=1' });
-	$sessions->{WEEKLY_GRAPH} = $html->button('Wheekly Graph', '#', { IMG => '/graphics.cgi?LOGIN=$LIST_PARAMS{LOGIN}&WEEKLY=1&SHOW_GRAPH=1' });
+	$sessions->{DAILY_GRAPH}  =$html->button('Daily Graph', '#', { IMG => '/graphics.cgi?LOGIN='. $LIST_PARAMS{LOGIN}.'&DAILY=1&SHOW_GRAPH=1' });
+	$sessions->{WEEKLY_GRAPH} = $html->button('Wheekly Graph', '#', { IMG => '/graphics.cgi?LOGIN='. $LIST_PARAMS{LOGIN}.'&WEEKLY=1&SHOW_GRAPH=1' });
 	#$sessions->{MONTHLY_GRAPH} = $html->button('Wheekly Graph', '#', { IMG => '/graphics.cgi?UID=9&WEEKLY=1&SHOW_GRAPH=1' });
 }
 
@@ -3310,6 +3310,8 @@ elsif($FORM{del}) {
 sub dv_user_info {
   my $NAS_ID = 0;
 
+  my $DHCP_INFO = undef;
+
   if ($conf{DV_ISG}) {
     #Check deposit and disable STATUS
     my $list = $Dv->list({ LOGIN         => $user->{LOGIN}, 
@@ -3432,7 +3434,8 @@ pROFILRE
     	$html->message('err', $_ERROR, "$_NOT_EXIST ID: '$user->{REMOTE_ADDR}' ", { ID =>  11 });
      }
     elsif ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
-    	$Dv->{ISG_CID_CUR} = dv_dhcp_get_mac($Dv->{ISG_CID_CUR});
+    	$DHCP_INFO = dv_dhcp_get_mac($Dv->{ISG_CID_CUR});
+    	$Dv->{ISG_CID_CUR} = $DHCP_INFO{MAC} || '';
     	if ($Dv->{ISG_CID_CUR} eq '') {
     		$html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC $_NOT_EXIST. DHCP $_ERROR ", { ID => 12 });
         return 0; 
@@ -3493,20 +3496,19 @@ pROFILRE
    }
  }
 elsif ($conf{DV_IP_DISCOVERY}) {
-	$Dv->{DHCP_LEASES_MAC} = dv_dhcp_get_mac($user->{REMOTE_ADDR}, { CHECK_STATIC => 1 });
-
- 	if ($Dv->{DHCP_LEASES_MAC} eq '') {
+	$DHCP_INFO = dv_dhcp_get_mac($user->{REMOTE_ADDR}, { CHECK_STATIC => 1 });
+ 	if (! $DHCP_INFO->{MAC}) {
  		$html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC: $_NOT_EXIST. DHCP $_ERROR ", { ID => 112 });
     return 0; 
  	 }
-  elsif ($Dv->{DHCP_LEASES_MAC} =~ /^static/) {
-  	my (undef, $mac, $ip)=split(/;/, $Dv->{DHCP_LEASES_MAC});
+  elsif ($DHCP_INFO->{STATIC}) {
+  	my (undef, $mac, $ip)=split(/;/, $DHCP_INFO->{MAC});
   	if ($ip ne "$user->{REMOTE_ADDR}") {
   	  $html->message('err', $_ERROR, "IP: '$ip', MAC: $_NOT_EXIST. Address Conflict", { ID => 114 });
   	 }
    }
   else {
-  	$html->tpl_show(_include('dv_guest_mode', 'Dv'), $Dv);  
+  	$html->tpl_show(_include('dv_guest_mode', 'Dv'), { %$Dv, %$DHCP_INFO });  
    }
 }  
 
@@ -3533,11 +3535,11 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   	$html->message('info', $_INFO, "$_LOGON");
    }
   elsif ($FORM{discovery}) {  
-    if(dv_dhcp_get_mac_add($user->{REMOTE_ADDR}, $Dv->{DHCP_LEASES_MAC})) {
-    	$html->message('info', $_INFO, "$_ACTIVATE IP: $Dv->{NEW_IP} CID: $Dv->{DHCP_LEASES_MAC}");
+    if(dv_dhcp_get_mac_add($user->{REMOTE_ADDR}, $DHCP_INFO)) {
+    	$html->message('info', $_INFO, "$_ACTIVATE IP: $Dv->{NEW_IP} CID: $DHCP_INFO->{MAC}");
      }
     else {
-    	$html->message('err', $_ACTIVATE, "$_ERROR IP: $user->{REMOTE_ADDR} CID: $Dv->{DHCP_LEASES_MAC}", { ID => 113 });
+    	$html->message('err', $_ACTIVATE, "$_ERROR IP: $user->{REMOTE_ADDR} CID: $DHCP_INFO->{MAC}", { ID => 113 });
      }
    }
   elsif ($FORM{hangup}) {
@@ -5729,14 +5731,25 @@ sub dv_get_month_fee {
 # Add discovery mac to Dhcphosts
 #**********************************************************
 sub dv_dhcp_get_mac_add {
-	my ($ip, $mac, $attr)=@_;
+	my ($ip, $DHCP_INFO, $attr)=@_;
   
   use Dhcphosts;
   my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
   my @dhcp_nets = split(/;/, $conf{DV_IP_DISCOVERY});
+  my $default_params = "IP,MAC";
 
   foreach my $nets (@dhcp_nets) {
-  	my ($id, $net)=split(/:/, $nets);
+  	my %PARAMS_HASH = ();
+
+  	my ($id, $net, $params)=split(/:/, $nets);
+  	$params =$default_params if ( ! $params );
+  	my @params_arr = split(/,/, $params);
+  	
+  	foreach my $param (@params_arr) {
+  		$PARAMS_HASH{$param}=$DHCP_INFO->{$param};
+  	 }
+ 	
+  	
   	my $start_ip ='0.0.0.0';
   	my $bit_mask =0;
   	($start_ip, $bit_mask)=split(/\//, $net) if ($net);
@@ -5748,10 +5761,13 @@ sub dv_dhcp_get_mac_add {
       	                                  NETWORK   => $id, 
       	                                  SORT      => 3,
       	                                  DESC      => 'DESC',
-      	                                  PAGE_ROWS => 1
-      	                                    });
+      	                                  PAGE_ROWS => 1,
+      	                                  %PARAMS_HASH
+      	                                });
+
+
+
       #make Discovery	                                  
-      my $new_ip;
       if ($Dhcphosts->{errno}) {
       	$html->message('err', $_ACTIVATE, "$_ERROR DHCP get ip error", { ID => 116 });
         return 0;
@@ -5763,24 +5779,22 @@ sub dv_dhcp_get_mac_add {
           return 0;
       	 }
 
-      	$new_ip = int2ip(ip2int($Dhcphosts->{NETWORK}) + 1);
+      	$PARAMS_HASH{IP}=int2ip(ip2int($Dhcphosts->{NETWORK}) + 1) if (defined($PARAMS_HASH{IP}));
        }
       else {
-      	$new_ip = int2ip($list->[0]->[2]+1);
+      	$PARAMS_HASH{IP}=int2ip($list->[0]->[2]+1)  if (defined($PARAMS_HASH{IP}));
        }
 
-      
-
-    	$Dhcphosts->host_add({ NETWORK  => $id,
+     	$Dhcphosts->host_add({ NETWORK  => $id,
     		                     HOSTNAME => "$user->{LOGIN}_$id",
-     		                     MAC      => $mac,
-     		                     IP       => $new_ip,
      		                     UID      => $user->{UID},
+     		                     %PARAMS_HASH
      		                     });
+
 
       if ($Dhcphosts->{errno}) {
         if ($Dhcphosts->{errno} == 7) {
-        	$html->message('err', $_ACTIVATE, "$_ERROR: MAC: '$mac' IP: '$new_ip' $_EXIST", { ID => 118 });
+        	$html->message('err', $_ACTIVATE, "$_ERROR: MAC: '$DHCP_INFO->{MAC}' IP: '$DHCP_INFO->{IP}' $_EXIST", { ID => 118 });
          }
         else {
         	$html->message('err', $_ACTIVATE, "$_ERROR: DHCP add hosts error", { ID => 119 });
@@ -5792,7 +5806,7 @@ sub dv_dhcp_get_mac_add {
       	                   reconfig => 1,
       	                   QUITE    => 1,
       	                  });
-      	$Dv->{NEW_IP}=$new_ip;
+      	$Dv->{NEW_IP}=$PARAMS_HASH->{IP};
       	return 1;
        }
       
@@ -5815,24 +5829,35 @@ sub dv_dhcp_get_mac {
  use Dhcphosts;
  my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
  $Dhcphosts->host_info(0, { IP => $ip });
- my $MAC = '';
- 
+ my $MAC    = '';
+ my %PARAMS = ();
+
  if ($Dhcphosts->{TOTAL} > 0) {
+ 	 %PARAMS = (IP     => $Dhcphosts->{IP},
+  	            MAC    => $Dhcphosts->{MAC},
+  	            NAS_ID => $list->[0]->[11],
+  	            PORTS  => $list->[0]->[12],
+  	            VLAN   => $list->[0]->[13],
+  	           );
+
    if ($attr->{CHECK_STATIC}) {
-   	 return "static;$Dhcphosts->{MAC};$Dhcphosts->{IP}";
+     $PARAMS{STATIC}=1;
     }
-   else {
-  	 return $Dhcphosts->{MAC};
-    }
+	 return \%PARAMS;
   }
 
  if ($conf{DHCPHOSTS_LEASES} eq 'db') {
    my $list = $Dhcphosts->leases_list({ IP => $ip, STATE => 2 });
  
    if ($Dhcphosts->{TOTAL} > 0) {
-  	 return $list->[0]->[3];
+  	 %PARAMS = (IP     => $list->[0]->[1],
+  	            MAC    => $list->[0]->[3],
+  	            NAS_ID => $list->[0]->[11],
+  	            PORTS  => $list->[0]->[12],
+  	            VLAN   => $list->[0]->[13],
+  	           );
     }
-   return '';
+   return \%PARAMS;
   }
  else {
    my $logfile = $conf{DHCPHOSTS_LEASES} || '/var/db/dhcpd/dhcpd.leases';
@@ -5861,7 +5886,9 @@ sub dv_dhcp_get_mac {
    close FILE;
  }
 	
-	 return ($list{$ip}{hardware}) ?  $list{$ip}{hardware} : '';
+	 $PARAMS{MAC} = ($list{$ip}{hardware}) ?  $list{$ip}{hardware} : '';
+	 
+	 return \%PARAMS;
 }
 
 

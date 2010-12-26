@@ -650,7 +650,6 @@ sub hosts_list {
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
-
  if ($attr->{HOSTNAME}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{HOSTNAME}", 'STR', 'h.hostname') };
   }
@@ -920,29 +919,37 @@ sub leases_list {
     }
   }
 
-  if ($attr->{ENDS}) {
+ if ($attr->{ENDS}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{ENDS}", 'INT', 'ends') };
   }
 
-  if ($attr->{STARTS}) {
+ if ($attr->{STARTS}) {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{STARTS}", 'INT', 'starts') };
   }
 
-  if (defined($attr->{STATE})) {
+ if (defined($attr->{STATE})) {
     push @WHERE_RULES, "state='$attr->{STATE}'";
   }
 
-  if (defined($attr->{NEXT_STATE})) {
+ if (defined($attr->{NEXT_STATE})) {
     push @WHERE_RULES, "next_state='$attr->{NEXT_STATE}'";
   }
 
-  if (defined($attr->{NAS_ID})) {
+ if (defined($attr->{NAS_ID})) {
     push @WHERE_RULES, "nas_id='$attr->{NAS_ID}'";
   }
 
+ if ($attr->{PORTS}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{PORTS}", 'INT', 'l.port') };
+  }
+
+ if ($attr->{VID}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{VID}", 'INT', 'l.vlan') };
+  }
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
+ # IP, START, MAC, HOSTNAME, ENDS, STATE, REMOTE_ID, 
  
   $self->query($db,"SELECT '', INET_NTOA(ip), start,  hardware, hostname, 
   ends,
@@ -951,7 +958,9 @@ sub leases_list {
   circuit_id,
   next_state,
   uid,
-  nas_id
+  nas_id,
+  port,
+  vlan
   FROM dhcphosts_leases 
    $WHERE 
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS; ");
@@ -1081,13 +1090,6 @@ sub log_list {
 if ($attr->{FROM_DATE}) {
    push @WHERE_RULES, "(date_format(l.datetime, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(l.datetime, '%Y-%m-%d')<='$attr->{TO_DATE}')";
  }
-
-
- if ($attr->{MESSAGE_TYPE}) {
-   push @WHERE_RULES, @{ $self->search_expr("$attr->{MESSAGE_TYPE}", 'INT', 'l.message_type') };
-  }
-
-
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 

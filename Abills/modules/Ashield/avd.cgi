@@ -287,7 +287,7 @@ if ($status < 4) {
     	  mk_log("Tariff not exists. TP: '$TP_NAME'");
        }
       else {
-		    my $agents_result_hash;
+	    my $agents_result_hash;
 	      if ($drweb_version == 1) {
           my $agents_result_hash=ashield_drweb_request('interfaces/user_agents.php', {
        	    login      => "$users->{LOGIN}",
@@ -310,17 +310,19 @@ if ($status < 4) {
 
         my $agent_count = $#{ $agents_result_hash->{agents}->[0]->{agent} };
         my $sum = $Tariffs->{MONTH_FEE};  
-#        $Tariffs->{PERIOD_ALIGNMENT}=1;
+        $Tariffs->{PERIOD_ALIGNMENT}=1;
         if ($Tariffs->{PERIOD_ALIGNMENT}) {
         	my ($y, $m, $d)=split(/-/, $DATE);
           my $days_in_month=($m!=2?(($m%2)^($m>7))+30:(!($y%400)||!($y%4)&&($y%25)?29:28));
           $conf{START_PERIOD_DAY} = 1;
           $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
          }
+
+my $drweb_ = `echo "// $conf{ASHIELD_DRWEB_FREE_PERIOD} &&  $agent_count == 0 && $status == 1 //" >> /tmp/avd.log `;
       
         if ($conf{ASHIELD_DRWEB_FREE_PERIOD} &&  $agent_count == 0
             && $status == 1) {
-          print "Free Activate\n" if ($debug > 0);    	
+          print "Free Activate\n" if ($debug > 0);
          }
         elsif($status < 4 && ($user->{DEPOSIT} + $user->{CREDIT} > 0 || $Tariffs->{PAYMENT_TYPE})) {
           $Fees->take($users, "$sum", 
