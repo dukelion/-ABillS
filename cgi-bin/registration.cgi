@@ -122,11 +122,11 @@ elsif($#REGISTRATION > -1) {
       Authen::Captcha->import();
      }
     else {
-      print "Can't load 'Authen::Captcha'. Please Install it from http://cpan.org $@";
-      exit; #return 0;
+    	print "Content-Type: text/html\n\n";
+      print "Can't load 'Authen::Captcha'. Please Install it from http://cpan.org";
+      print $html->pre($@);
+      exit; 
      }
-
-    #use Authen::Captcha;
 
     if (! -d $base_dir.'/cgi-bin/captcha/') {
     	if (! mkdir("$base_dir/cgi-bin/captcha/")) {
@@ -209,31 +209,28 @@ print $html->tpl_show(templates('form_client_start'), { %OUTPUT, TITLE_TEXT => $
 # Password recovery
 #**********************************************************
 sub password_recovery {
-  
   if ($FORM{SEND}) {
-    
     if (($FORM{EMAIL} && $FORM{EMAIL} =~ m/\*/) || ($FORM{LOGIN} && $FORM{LOGIN} =~ m/\*/)) {
     	$html->message('err', $_ERROR, "$ERR_WRONG_DATA");
       return 0;
      }
+     
     my $list = $users->list({ %FORM });
 	
   	if ($users->{TOTAL} > 0) {
-  		my @u = @$list;
+  		my @u       = @$list;
 	    my $message = '';
-	    my $email = $FORM{EMAIL} || '';
-      my $uid = $line->[5];
+	    my $email   = $FORM{EMAIL} || '';
+      my $uid     = $list->[0][5+$users->{SEARCH_FIELDS_COUNT}];
       if ($FORM{LOGIN} && ! $FORM{EMAIL}) {
-      	$email = $u[0][7];
+      	$email    = $u[0][7+$users->{SEARCH_FIELDS_COUNT}];
        }
-
-      if ($FORM{EMAIL}) {
-        $uid = $line->[6];
-       }
-     
 
 	    foreach my $line (@u) {
-	       $users->info($line->[($FORM{EMAIL}) ? 6 : 5 ], { SHOW_PASSWORD => 1 });
+         if ($FORM{EMAIL}) {
+           $uid = $line->[5+$users->{SEARCH_FIELDS_COUNT}];
+          }
+	       $users->info($uid, { SHOW_PASSWORD => 1 });
     	   $message .= "$_LOGIN:  $users->{LOGIN}\n".
 	                   "$_PASSWD: $users->{PASSWORD}\n".
 	                   "================================================\n";

@@ -5529,6 +5529,13 @@ sub dv_registration  {
    	  	              });
 
     		if (! $Dv->{errno}) {
+    			if ($conf{REGISTRATION_SHOW_PASSWD}) {
+    				$Dv->{PASSWD}=$password;
+    			 }
+          else {
+          	$Dv->{PASSWD}="E-mail $_SENDED";
+           }
+
 	    	  $html->tpl_show(_include('dv_reg_complete', 'Dv'), { %$Dv, %FORM });
           #Send mail 
   	      my $message = $html->tpl_show(_include('dv_reg_complete_mail', 'Dv'), { %$Dv, %FORM, PASSWORD => "$password" }, { OUTPUT2RETURN => 1 });
