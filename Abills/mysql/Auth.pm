@@ -1292,7 +1292,7 @@ if (defined($trafic_limits{0}) && $trafic_limits{0} > 0  && $trafic_limits{0} < 
     $trafic_limit = ($trafic_limits{0} > $CONF->{MAX_SESSION_TRAFFIC}) ? $CONF->{MAX_SESSION_TRAFFIC} :  $trafic_limits{0};
    }
   $EX_PARAMS{traf_limit} = ($trafic_limit < 1 && $trafic_limit > 0) ? 1 : int($trafic_limit);
-  if ($self->{REDUCTION}) {
+  if ($self->{REDUCTION} && $self->{REDUCTION} < 100) {
     $EX_PARAMS{traf_limit} = $EX_PARAMS{traf_limit} * (100 / (100 - $self->{REDUCTION}));
    }
 }
