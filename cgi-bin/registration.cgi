@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 # Main  registration engine
 #
+#
+
 
 use vars qw($begin_time %FORM %LANG %conf $CHARSET 
   @MODULES

@@ -1,4 +1,4 @@
-# Dialup vpn web functions
+# Dialup/VPN web functions
 #
 #
 use Dv;
@@ -5989,7 +5989,7 @@ $html->tpl_show(_include('dv_compensation', 'Dv'), $Dv);
 #**********************************************************
 # Shedule form for Dv modules
 #**********************************************************
-sub dv_form_Shedule () {
+sub dv_form_shedule () {
 
   my $Shedule = Shedule->new($db, $admin, \%conf);
 
