@@ -3989,7 +3989,6 @@ my $Billing = Billing->new($db, $CONF);
 
          my $extfield_count = $Dv->{SEARCH_FIELDS_COUNT};
          foreach my $u (@$ulist) {
-
            %user = (
               LOGIN      => $u->[0],  
               UID        => $u->[6+ $extfield_count],
@@ -4419,6 +4418,10 @@ sub dv_monthly_fees {
      	             $Dv->change({ UID    => $user{UID}, 
             	                   TP_ID  => $small_deposit_block });
             	    }
+
+                 $users->change($user{UID}, { 
+        	                      UID      => $user{UID},
+        	                      ACTIVATE => $ADMIN_REPORT{DATE} });
 
                  $debug_output .= " SMALL_DEPOSIT_BLOCK" if ($debug > 3);
                  next;
