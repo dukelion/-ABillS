@@ -21,8 +21,10 @@ sub dhcphosts_user_del {
  my ($uid, $attr) = @_;
 
  $Dhcphosts->{UID}=$uid;
- $Dhcphosts->{debug}=1;
  $Dhcphosts->host_del({ UID => $uid });
+
+
+ exit;
 
  return 0;
 }

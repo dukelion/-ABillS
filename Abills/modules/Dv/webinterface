@@ -2986,12 +2986,12 @@ sub dv_user_chg_tp {
  if($LIST_PARAMS{UID}) {
    $Dv = $Dv->info($LIST_PARAMS{UID});
    if($Dv->{TOTAL} < 1) {
- 	   $html->message('info', $_INFO, "$_NOT_ACTIVE");
+ 	   $html->message('info', $_INFO, "$_NOT_ACTIVE", { ID => 22 });
  	   return 0;
     }
   }
  else {
- 	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
+ 	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST", { ID => 19 });
  	 return 0;
   }
 
@@ -3086,12 +3086,12 @@ if ($FORM{set}) {
     else {
  	    $FORM{UID}=$LIST_PARAMS{UID};
       $Dv->change({ %FORM });
-      $user->change({ ACTIVATE => "$DATE",
+      $user->change($LIST_PARAMS{UID}, { ACTIVATE => "$DATE",
       	               UID      => $LIST_PARAMS{UID} 
       	             });
 
       if ($user->{errno}) {
-        $html->message('err', $_ERROR, "[$Dv->{errno}] $err_strs{$Dv->{errno}}");
+        $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}", {ID => 19 });
        }
       else {
         $html->message('info', $_CHANGED, "$_CHANGED");
@@ -3128,7 +3128,7 @@ if ($FORM{set}) {
    }
   else {
     if ($user->{CREDIT} + $user->{DEPOSIT} < 0) {
-    	$html->message('err', "$_ERROR", "$ERR_SMALL_DEPOSIT - $_DEPOSIT: $user->{DEPOSIT} $_CREDIT: $user->{CREDIT}");
+    	$html->message('err', "$_ERROR", "$ERR_SMALL_DEPOSIT - $_DEPOSIT: $user->{DEPOSIT} $_CREDIT: $user->{CREDIT}", { ID => 15 });
     	return 0;
      }
     
@@ -4419,6 +4419,7 @@ sub dv_monthly_fees {
             	                   TP_ID  => $small_deposit_block });
             	    }
 
+                 #Change activation to cure date
                  $users->change($user{UID}, { 
         	                      UID      => $user{UID},
         	                      ACTIVATE => $ADMIN_REPORT{DATE} });
