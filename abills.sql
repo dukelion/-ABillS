@@ -1029,12 +1029,6 @@ CREATE TABLE `voip_log` (
   `terminate_cause` tinyint(4) unsigned NOT NULL default '0'
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `voip_main`
-#
-
 CREATE TABLE `voip_main` (
   `uid` int(11) unsigned NOT NULL default '0',
   `tp_id` smallint(6) unsigned NOT NULL default '0',

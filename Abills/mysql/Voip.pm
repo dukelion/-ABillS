@@ -50,7 +50,6 @@ sub user_info {
   my $self = shift;
   my ($uid, $attr) = @_;
 
-
   my @WHERE_RULES  = ();
   my $WHERE = '';
 
@@ -95,10 +94,11 @@ sub user_info {
    voip.allow_calls,
    voip.cid,
    voip.logins,
-   tarif_plans.tp_id
+   voip.registration,
+   tarif_plans.id
      FROM voip_main voip
      LEFT JOIN voip_tps tp ON (voip.tp_id=tp.id)
-     LEFT JOIN tarif_plans ON (tarif_plans.id=tp.id)
+     LEFT JOIN tarif_plans ON (tarif_plans.tp_id=voip.tp_id)
    $WHERE;");
 
   if ($self->{TOTAL} < 1) {
@@ -162,7 +162,7 @@ sub user_add {
   $self->query($db,  "INSERT INTO voip_main (uid, number, registration, tp_id, 
              disable, ip, cid)
         VALUES ('$DATA{UID}', '$DATA{NUMBER}', now(),
-        '$DATA{TARIF_PLAN}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
+        '$DATA{TP_ID}', '$DATA{DISABLE}', INET_ATON('$DATA{IP}'), 
         LOWER('$DATA{CID}'));", 'do');
   
   return $self if ($self->{errno});
