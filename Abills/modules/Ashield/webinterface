@@ -80,6 +80,7 @@ sub ashield_tp {
 
 if($FORM{ADD_TP}) {
   $FORM{TP_ID} = $FORM{CHG_TP_ID};
+  $Tariffs->{debug}=1;
   $Tariffs->add( { %FORM, MODULE => 'Ashield' });
   if (! $Tariffs->{errno}) {
     $html->message('info', $_ADDED, "$_ADDED $Tariffs->{TP_ID}");
@@ -201,8 +202,8 @@ my $table = $html->table( { width       => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?" }); 
-    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]");
+    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { BUTTON => 1 });
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
@@ -603,7 +604,8 @@ sub ashield_user {
     	               $graceperiod,
     	               (($satus_code) ? "" : $html->button("$_DOWNLOAD", '', { 
     	               	  GLOBAL_URL => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]", 
-    	                  TITLE      => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]" 
+    	                  TITLE      => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]",
+    	                  BUTTON     => 1 
     	                  }))
     	              );
          }
@@ -1148,8 +1150,8 @@ sub ashield_drweb_groups {
         $val->{modifiedtime}->[0],
         $val->{createdtime}->[0],
         $val->{platform}->[0],
-        #$html->button("$_STATS", "index=". ((! $FORM{TP_SHOW}) ? $index + 3 : $index - 9 ) ."&UID=". $line->[6+$Ashield->{SEARCH_FIELDS_COUNT}])
-        ($val->{id}->[0] =~ /^ashield/) ? $html->button($_DEL, "index=$index&del=$val->{id}->[0]", { MESSAGE => "$_DEL $val->{id}->[0]?" }) : '' 
+        #$html->("$_STATS", "index=". ((! $FORM{TP_SHOW}) ? $index + 3 : $index - 9 ) ."&UID=". $line->[6+$Ashield->{SEARCH_FIELDS_COUNT}])
+        ($val->{id}->[0] =~ /^ashield/) ? $html->button($_DEL, "index=$index&del=$val->{id}->[0]", { MESSAGE => "$_DEL $val->{id}->[0]?", BUTTON => 1 }) : '' 
        );
      }
     print $table->show();
@@ -1514,9 +1516,9 @@ if ($drweb_version != 1) {
       	  	});
 
    foreach my $val (@{ $result_hash->{user}->[0]  }) {
-     my $login = $result_hash->{user}->[0]->{login}->[0];
-     $agents_list{$login} = $result_hash->{user}->[0];
-   }
+     my $login = $val->{login};
+     $agents_list{$login} = $val;   
+    }
 }
 
  
@@ -1545,12 +1547,23 @@ if ($drweb_version != 1) {
 
    foreach my $agent (@{ $result_hash->{agents}->[0]->{agent} }) {
    	 my $agent_id = $agent->{uuid}->[0];
-   	 my $tp_name  = $agent->{tariffplancode}->[0];
+   	 my $tp_name  = ($drweb_version == 1) ? $agent->{tariffplancode}->[0] : $agent->{'current-tariff'}->[0];
    	 my $sum      = $TPS_HASH{$tp_name}{MONTH_FEE};
+   	 my $auto_prolongation = ($drweb_version == 1) ? 1 : int($agent->{'auto-prolongation'});
+   	 my $subscription_period = $agent->{'subscription-period'};
    	 my $expire   = 0;
    	 my $blockbeg = 0;
    	 my $blockend = 0;
    	 
+   	 # Free TP
+     if (! $sum) {
+       print "Error: Can't find TP: '$tp_name' UUID: $agent_id. Add it to system\n";
+       next;
+      }
+     elsif ($sum == 0) {
+       next;
+      }   	 
+
    	 if ($drweb_info{$agent_id}{expires} && $drweb_info{$agent_id}{expires} =~ /^(\d{4})(\d{2})(\d{2})/) {
    	 	 $expire="$1$2$3";
    	  }

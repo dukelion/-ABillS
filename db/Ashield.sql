@@ -33,3 +33,10 @@ CREATE TABLE `ashield_tps` (
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
 ) COMMENT='Ashield tarif plans';
+
+# Default Tariff Plans
+INSERT INTO tarif_plans (id, name, module) values ('5001', 'PREMIUM', 'Ashield');
+INSERT INTO tarif_plans (id, name, module) values ('5002', 'STANDART','Ashield');
+INSERT INTO tarif_plans (id, name, module) values ('5003', 'CLASSIC', 'Ashield');
+INSERT INTO tarif_plans (id, name, module) values ('5004', 'PREMIUM_SRV', 'Ashield');
+

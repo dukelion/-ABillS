@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.6;
+VERSION=1.7;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -160,6 +160,8 @@ apache_cert () {
   cert_info server.crt
 
   chmod 400 server.key
+
+  echo "Please restart apache";
 }
 
 
