@@ -1530,6 +1530,7 @@ sub letters_list {
  my ($self, $attr) = @_;
  
  my $pages_qs = $attr->{pages_qs} if (defined($attr->{pages_qs}));
+ $pages_qs =~ s/letter=\S+//g;
  my @alphabet = ('a-z');
 
  if ($attr->{EXPR}) {
