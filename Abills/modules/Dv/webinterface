@@ -3835,12 +3835,13 @@ sub dv_daily_fees {
  $DV_LIST_PARAMS{DOMAIN_ID}      = $DOMAIN_ID;
  #$DV_LIST_PARAMS{ACTIVE_DAY_FEE} = 1;
 
+ $tariffs->{debug}=1 if ($debug > 6);
+
  my $list = $tariffs->list({ %LIST_PARAMS });
  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
  
  foreach my $line (@$list) {
  	 if ($line->[5] > 0) {
- 	   #$LIST_PARAMS{TP}=$line->[0];
      my $TP_ID          = $line->[0];
      my $active_day_fee = $line->[20];
      my %TP_INFO = ();
