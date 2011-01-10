@@ -5,7 +5,7 @@
 use vars  qw(%conf $db $DATE $TIME);
 use strict;
 
-my $version = 0.02;
+my $version = 0.03;
 my $debug = 1;
 
 use FindBin '$Bin';
@@ -53,9 +53,6 @@ Oct => '10',
 Nov => '11',	
 Dec => '12');
 
-my $year = strftime "%Y", localtime(time);
-
-
 add_logs2db();
 
 
@@ -63,6 +60,8 @@ add_logs2db();
 #
 #**********************************************************
 sub add_logs2db {
+	my $year = strftime "%Y", localtime(time);
+
   while (my $line=<>) {
     my ($month_name, $month_day, $time, $hostname, $log_daemon, $message_type, $log)=split(/\s+/, $line, 7);
     if ($DHCP_MESSAGE_TYPES{$message_type}) {

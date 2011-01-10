@@ -13,7 +13,7 @@ CREATE TABLE `sharing_main` (
 
 CREATE TABLE `sharing_log` (
   `virtualhost` text,
-  `remoteip` int(10) unsigned NOT NULL default '0',
+  `remoteip` int(10) unsigned default '0',
   `remoteport` smallint(6) unsigned NOT NULL default '0',
   `serverid` text,
   `connectionstatus` char(3) default NULL,

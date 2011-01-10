@@ -60,7 +60,7 @@ if ($RAD->{NAS_IP_ADDRESS}) {
     exit 0;
    }
   elsif (defined($ARGV[0]) && $ARGV[0] eq 'post_auth') {
-    inc_postauth($RAD, $nas);
+    inc_postauth($db, $RAD, $nas);
     exit 0;
    }
 
