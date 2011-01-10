@@ -3878,11 +3878,12 @@ sub dv_daily_fees {
          my %user = (
             LOGIN      => $u->[0],  
             UID        => $u->[6+$Dv->{SEARCH_FIELDS_COUNT}],
-            BILL_ID    => ($line->[12+$Dv->{SEARCH_FIELDS_COUNT}] > 0) ? $u->[14+$Dv->{SEARCH_FIELDS_COUNT}] : $u->[12+$Dv->{SEARCH_FIELDS_COUNT}],
+            #Check ext deposit
+            BILL_ID    => ($line->[14] > 0) ? $u->[14+$Dv->{SEARCH_FIELDS_COUNT}] : $u->[12+$Dv->{SEARCH_FIELDS_COUNT}],
             REDUCTION  => $u->[13+$Dv->{SEARCH_FIELDS_COUNT}],
             ACTIVATE   => $u->[10+$Dv->{SEARCH_FIELDS_COUNT}],
             DEPOSIT    => $u->[2],
-            CREDIT     => ($u->[3] > 0) ? $u->[3] : ($CONF->{user_credit_change}) ? 0 : $line->[13]
+            CREDIT     => ($u->[3] > 0) ? $u->[3] : ($CONF->{user_credit_change}) ? 0 : $line->[15]
            );
 
         if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {

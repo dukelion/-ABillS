@@ -3349,7 +3349,7 @@ if ($nas->{errno}) {
   $nas->{SEL_AUTH_TYPE} = $html->form_select('NAS_AUTH_TYPE', 
                                 { SELECTED     => $nas->{NAS_AUTH_TYPE},
  	                                SEL_ARRAY    => \@auth_types,
-                                  ARRAY_NUM_ID => 1 	                                
+                                  ARRAY_NUM_ID => 1
  	                               });
 
   $nas->{NAS_EXT_ACCT} = $html->form_select('NAS_EXT_ACCT', 
