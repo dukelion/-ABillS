@@ -1,6 +1,7 @@
 # Dialup/VPN web functions
 #
 #
+
 use Dv;
 use Finance;
 use Fees;
@@ -3810,6 +3811,7 @@ sub dv_periodic_logrotate {
   	                        PERIOD => $conf{DV_LOG_CLEAN_PERIOD} });
    }
 }
+
 
 #**********************************************************
 # daily_fees
