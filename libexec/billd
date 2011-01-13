@@ -1054,7 +1054,8 @@ else {
       #Parce ipfw pipe rules
       if ($line =~ /^(\d+):\s+(\S+)\s+(\w+)/) {
         my $num = int($1);
-        my $speed = $2 * $speeds_rotations{$3};
+        my $fw_speed = $2;
+        my $speed = ($fw_speed eq 'unlimited') ? 0 : $fw_speed * $speeds_rotations{$3};
      	  $pipe_rules{$num}=$speed;
      	 }
 	  }
@@ -1253,10 +1254,10 @@ else {
   	             push @FW_ACTIONS, "$IPFW -q add $pipe_rule_in pipe $pipe_rule_in ip from table\\($users_table_number, $tp_id\\) to $dest_ip $via_if_in";
  	              }
 
-  	           if (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_out) { 
+  	           if (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_out) { 
   	             push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_in config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask src-ip 0xfffffffff";
- 	               print "Change TP: $tp Class: $traf_type IN: ". ( ($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set'  ) ." -> $speed_out\n";
-  	             delete $pipe_rules{$pipe_rule_out};
+ 	               print "Change TP: $tp Class: $traf_type IN: ". ( ($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set'  ) ." -> $speed_out\n";
+  	             delete $pipe_rules{$pipe_rule_in};
                 }
               }
              else{
@@ -1270,11 +1271,11 @@ else {
   	      	  	 push @FW_ACTIONS, "$IPFW -q add $pipe_rule_out pipe $pipe_rule_out ip from $dest_ip to table\\($users_table_number, $tp_id\\) $via_if_out";
                 }
 
-      	       if (! $pipe_rules{$pipe_rule_in} || $pipe_rules{$pipe_rule_in} != $speed_in) {
+      	       if (! $pipe_rules{$pipe_rule_out} || $pipe_rules{$pipe_rule_out} != $speed_in) {
                  push @FW_ACTIONS, "$IPFW -q pipe $pipe_rule_out config bw ". $speed_in ."Kbit/s queue ". (( $speed_out / 10 > 1000) ? 1000 : int( $speed_out / 10 ) ) ."Kbytes mask dst-ip 0xffffffff";
              
-                 print "Change TP: $tp Class: $traf_type OUT: ". ( ($pipe_rules{$pipe_rule_in}) ? $pipe_rules{$pipe_rule_in} : 'Not set'  ) ." -> $speed_in\n";
-                 delete $pipe_rules{$pipe_rule_in};
+                 print "Change TP: $tp Class: $traf_type OUT: ". ( ($pipe_rules{$pipe_rule_out}) ? $pipe_rules{$pipe_rule_out} : 'Not set'  ) ." -> $speed_in\n";
+                 delete $pipe_rules{$pipe_rule_out};
                }
  	      	    }
              else{

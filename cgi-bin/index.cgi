@@ -150,7 +150,7 @@ if ($uid > 0) {
 
   $html->{SID}=$sid;
   
-  if (-f '../Abills/templates/_form_client_custom_menu.tpl') {
+  if (! $FORM{pdf} && -f '../Abills/templates/_form_client_custom_menu.tpl') {
     $OUTPUT{MENU}=$html->tpl_show(templates('form_client_custom_menu'), $user, { OUTPUT2RETURN => 1 });
    }
   else {

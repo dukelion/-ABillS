@@ -506,11 +506,19 @@ mk_log("$payment_system: $ENV{QUERY_STRING}") if ($debug > 0);
 if ($command eq 'check') {
   my $list = $users->list({ $CHECK_FIELD => $FORM{account} });
 
-  if ($users->{errno}) {
+  if (! $conf{PAYSYS_PEGAS} && ! $FORM{sum}) {
+  	$status = 300; 
+   }
+  elsif ($users->{errno}) {
 	  $status = 300; 
    }
   elsif ($users->{TOTAL} < 1) {
-	  $status =  4;
+	  if ($CHECK_FIELD eq 'UID' && $FORM{account} !~ /\d+/) {
+	    $status   =  4;
+	   }
+	  else {
+	  	$status   =  5;
+	   }
 	  $comments = 'User Not Exist';
    }
   else {
@@ -585,6 +593,9 @@ elsif ($command eq 'pay') {
    }
   elsif ($users->{TOTAL} < 1) {
 	  $status =  4;
+   }
+  elsif (! $FORM{sum}) {
+	  $status =  300;
    }
   else {
     #Add payments
