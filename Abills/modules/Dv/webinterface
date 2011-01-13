@@ -3049,7 +3049,11 @@ if ($FORM{set}) {
        ($Y, $M, $D)=split(/-/, $user->{ACTIVATE}, 3);
       }
 
-     if ($Dv->{MONTH_ABON}==0 || $Dv->{ABON_DISTRIBUTION}) {
+
+     if ($Dv->{STATUS} == 5) {
+     	
+      }
+     elsif ($Dv->{MONTH_ABON}==0 || $Dv->{ABON_DISTRIBUTION}) {
      	 my $seltime = POSIX::mktime(0, 0, 0, $D, ($M-1), ($Y - 1900));
      	 if ($seltime < time()) {
      	 	 ($Y, $M, $D)=split(/-/, $DATE, 3);
@@ -3086,10 +3090,13 @@ if ($FORM{set}) {
      }	
     else {
  	    $FORM{UID}=$LIST_PARAMS{UID};
+ 	    $FORM{STATUS} = 0 if ($Dv->{STATUS} == 5);
       $Dv->change({ %FORM });
       $user->change($LIST_PARAMS{UID}, { ACTIVATE => "$DATE",
-      	               UID      => $LIST_PARAMS{UID} 
-      	             });
+      	                                 UID      => $LIST_PARAMS{UID} 
+      	                               });
+
+      
 
       if ($user->{errno}) {
         $html->message('err', $_ERROR, "[$user->{errno}] $err_strs{$user->{errno}}", {ID => 19 });
@@ -3097,6 +3104,7 @@ if ($FORM{set}) {
       else {
         $html->message('info', $_CHANGED, "$_CHANGED");
         $Dv->info($user->{UID});
+        dv_get_month_fee($Dv) if (! $FORM{DV_NO_ABON});
        }
      }
    }
