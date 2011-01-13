@@ -3615,7 +3615,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
       $Dv->{STATUS}  .= ($user->{DISABLE} > 0) ? $html->b("($_ACCOUNT $_DISABLE)") : $html->button($_ACTIVATE, "&index=$index&sid=$sid&activate=1", {   	 ex_params  => ' ID="ACTIVATE"', BUTTON => 1 });
      }
     else {
-    	$html->tpl_show(templates('form_neg_deposit'), $user);
+    	form_neg_deposit($user);
      }
    }  
   else {

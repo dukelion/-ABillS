@@ -216,7 +216,7 @@ if ($uid > 0) {
 
   if (defined($functions{$index})) {
     if (! $FORM{index} && $user->{DEPOSIT} + $user->{CREDIT} < 0) {
-      $html->tpl_show(templates('form_neg_deposit'), $user);
+      form_neg_deposit($user);
       form_info();
      }
     else {
@@ -326,6 +326,7 @@ sub form_info {
   $admin->{SESSION_IP}=$ENV{REMOTE_ADDR}; 
   my $Payments = Finance->payments($db, $admin, \%conf);
   
+  #Credit functions
   if ( $conf{user_credit_change}) {
     my ($sum, $days, $price, $month_changes, $Payments_expr) = split(/:/, $conf{user_credit_change}) ;
     $month_changes = 0 if (!$month_changes);
@@ -1233,6 +1234,29 @@ sub get_function_index  {
    }
 
   return $function_index;
+}
+
+
+#**********************************************************
+# Get function index
+#
+# get_function_index($function_name, $attr) 
+#**********************************************************
+sub form_neg_deposit {
+  my ($user, $attr)=@_;
+	
+  if (in_array('Docs', \@MODULES) ) {
+   	my $fn_index = get_function_index('docs_accounts_list');
+    $user->{DOCS_BUTTON} = $html->button("$_INVOICE_CREATE", "index=$fn_index$pages_qs", { BUTTON => 1} );
+   }
+
+  if (in_array('Paysys', \@MODULES) ) {
+    my $fn_index = get_function_index('paysys_payment');
+    $user->{PAYMENT_BUTTON} = $html->button("$_BALANCE_RECHARCHE", "index=$fn_index$pages_qs", { BUTTON => 1} );
+   }
+
+ 	$html->tpl_show(templates('form_neg_deposit'), $user);
+	
 }
 
 1
