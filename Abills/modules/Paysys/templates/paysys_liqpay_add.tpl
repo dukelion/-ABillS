@@ -1,6 +1,6 @@
 
 <form action='https://liqpay.com/?do=clickNbuy' method='POST' accept-charset='utf-8'>
-    <input type='hidden' name='version' value='1.1' />
+    <input type='hidden' name='version' value='1.2' />
     <input type='hidden' name='merchant_id' value='$conf{PAYSYS_LIQPAY_MERCHANT_ID}' />
     <input type='hidden' name='amount' value='$FORM{SUM}' />
     <input type='hidden' name='currency' value='UAH' />
