@@ -567,7 +567,7 @@ CREATE TABLE `msgs_messages` (
   `gid` smallint(4) unsigned NOT NULL default '0',
   `priority` tinyint(4) unsigned NOT NULL default '0',
   `lock_msg` tinyint(1) unsigned NOT NULL default '0',
-  `closed_date` date NOT NULL default '0000-00-00',
+  `closed_date` datetime NOT NULL default '0000-00-00',
   `done_date` date NOT NULL default '0000-00-00',
   `plan_date` date NOT NULL default '0000-00-00',
   `plan_time` time NOT NULL default '00:00:00', 

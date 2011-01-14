@@ -15,6 +15,7 @@
 <TR><TD><b>$_RESPOSIBLE:</b></td></tr>
 <TR><TD>%RESPOSIBLE%</TD></TR>
 <TR><TD><b>$_INNER:</b> %INNER_MSG_TEXT%</TD></TR>
+<TR><TD><b>$_ADMIN:</b> %A_NAME%</TD></TR>
 <TR><TD><b>$_PHONE:</b> %PHONE%</TD></TR>
 
 <TR><TD>&nbsp;</TD></TR>

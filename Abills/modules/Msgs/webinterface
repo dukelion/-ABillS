@@ -452,7 +452,7 @@ sub msgs_admin {
   elsif ($FORM{change}) {
     if ($FORM{STATE} > 0) {
       $FORM{DONE_DATE}  ="$DATE" if ($FORM{STATE} == 2); 
-      $FORM{CLOSED_DATE}="$DATE";
+      $FORM{CLOSED_DATE}="$DATE $TIME";
      }
 
     $Msgs->message_change({ %FORM, USER_READ => "0000-00-00 00:00:00" });
@@ -506,8 +506,8 @@ sub msgs_admin {
       $params{STATE}       = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
       $params{STATE}       = ($FORM{STATE} == 0) ? 6 : $FORM{STATE} ;
       my $state=$FORM{STATE};
-   	 	$params{CLOSED_DATE} = $DATE       if ($state > 0);
-	   	$params{DONE_DATE}   = $DATE       if ($state > 1);
+   	 	$params{CLOSED_DATE} = "$DATE $TIME" if ($state > 0);
+	   	$params{DONE_DATE}   = $DATE         if ($state > 1);
 	    $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
  	 	                        ID        => $FORM{ID},
  	 	                        USER_READ => "0000-00-00 00:00:00",

@@ -3342,7 +3342,7 @@ sub dv_user_info {
      }
     elsif (($list->[0]->[3] > 0 && ($list->[0]->[2] + $list->[0]->[3] < 0)) || 
            ($list->[0]->[3] == 0 && $list->[0]->[2] + $list->[0]->[6]) < 0 ) {
-      $html->tpl_show(templates('form_neg_deposit'), $user);
+      form_neg_deposit($user);
       return 0;
      }
     elsif ($list->[0]->[5] && $list->[0]->[5] == 1) {
