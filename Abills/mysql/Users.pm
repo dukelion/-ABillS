@@ -2099,7 +2099,13 @@ sub build_info {
    flats,
    added,
    map_x,
-   map_y   
+   map_y,
+   map_x2,
+   map_y2,   
+   map_x3,
+   map_y3,   
+   map_x4,
+   map_y4   
  FROM builds WHERE id='$attr->{ID}';");
 
  return $self if ($self->{errno} || $self->{TOTAL} < 1);
@@ -2113,6 +2119,12 @@ sub build_info {
  	$self->{ADDED},
  	$self->{MAP_X},
  	$self->{MAP_Y},
+ 	$self->{MAP_X2},
+ 	$self->{MAP_Y2},
+ 	$self->{MAP_X3},
+ 	$self->{MAP_Y3},
+ 	$self->{MAP_X4},
+ 	$self->{MAP_Y4}
  	) = @{ $self->{list}->[0] };
 
  return $self;
@@ -2132,7 +2144,13 @@ sub build_change {
                FLATS       => 'flats',
                ENTRANCES   => 'entrances',
                MAP_X       => 'map_x',
-               MAP_Y       => 'map_y'
+               MAP_Y       => 'map_y',
+               MAP_X2      => 'map_x2',
+               MAP_Y2      => 'map_y2',
+               MAP_X3      => 'map_x3',
+               MAP_Y3      => 'map_y3',
+               MAP_X4      => 'map_x4',
+               MAP_Y4      => 'map_y4'
                );
 
  $self->changes($admin, { CHANGE_PARAM => 'ID',
@@ -2154,8 +2172,11 @@ sub build_add {
  my $self = shift;
  my ($attr) = @_;
 
- $self->query($db, "INSERT INTO builds (number, street_id, flors, flats, entrances, map_x, map_y, added) 
- values ('$attr->{NUMBER}', '$attr->{STREET_ID}', '$attr->{FLORS}', '$attr->{FLATS}', '$attr->{ENTRANCES}', '$attr->{MAP_X}', '$attr->{MAP_Y}', now());", 'do');
+ $self->query($db, "INSERT INTO builds (number, street_id, flors, flats, entrances, 
+ map_x, map_y, map_x2, map_y2, map_x3, map_y3, map_x4, map_y4, added) 
+ values ('$attr->{NUMBER}', '$attr->{STREET_ID}', '$attr->{FLORS}', '$attr->{FLATS}', '$attr->{ENTRANCES}', 
+ '$attr->{MAP_X}', '$attr->{MAP_Y}', '$attr->{MAP_X2}', '$attr->{MAP_Y2}', '$attr->{MAP_X3}', '$attr->{MAP_Y3}', '$attr->{MAP_X4}', '$attr->{MAP_Y4}', 
+ now());", 'do');
 
  $admin->system_action_add("BUILD:$self->{INSERT_ID}:$attr->{NAME}", { TYPE => 1 }) if (! $self->{errno});
  return $self;

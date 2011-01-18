@@ -199,7 +199,7 @@ if ($FORM{AWEB_OPTIONS}) {
 
 
 #===========================================================
-my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP, "$_SHOW $_DELETED"],  # Users
+my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTIUSER_OP, "$_SHOW $_DELETED", "$_CREDIT", "$_TARIF_PLANS"],  # Users
                [$_LIST, $_ADD, $_DEL, $_ALL, $_DATE],                         # Payments
                [$_LIST, $_GET, $_DEL, $_ALL],                                 # Fees
                [$_LIST, $_DEL],                                               # reports view
@@ -1423,6 +1423,11 @@ if(defined($attr->{USER})) {
     	return 0;
      }
 
+    if (! $permissions{0}{9} && $user_info->{CREDIT} != $FORM{CREDIT}) {
+    	$html->message('err', $_ERROR, "$_CHANGE $_CREDIT $ERR_ACCESS_DENY");  	
+      $FORM{CREDIT}=undef;
+     }
+
     $user_info->change($user_info->{UID}, { %FORM } );
     if ($user_info->{errno}) {
       $html->message('err', $_ERROR, "[$user_info->{errno}] $err_strs{$user_info->{errno}}");	
@@ -2527,7 +2532,7 @@ if(defined($attr->{TP})) {
      	 my $TI_ID = $line->[0];
      	 #Traffic tariff IN (1 Mb) Traffic tariff OUT (1 Mb) Prepaid (Mb) Speed (Kbits) Describe NETS 
        my $table2 = $html->table({ width       => '100%',
-                                   title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
+                                   title_plain => ["#", "$_TRAFFIC_TARIFF In ", "$_TRAFFIC_TARIFF Out ", "$_PREPAID (Mb)", "$_SPEED IN",  "$_SPEED OUT", "DESCRIBE", "NETS", "-", "-"],
                                    cols_align  => ['center', 'right', 'right', 'right', 'right', 'right', 'left', 'right', 'center', 'center', 'center'],
                                    caption     => "$_TRAFIC_TARIFS"
                                   } );

@@ -1,6 +1,7 @@
 package Abills::HTML;
 #HTML visualisation functions
 
+
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION %h2
    @_COLORS
@@ -365,11 +366,13 @@ sub form_main {
   my $self = shift;
   my ($attr)	= @_;
 	
-	my $METHOD = ($attr->{METHOD}) ? $attr->{METHOD} : 'POST';
-	$self->{FORM} =  "<FORM ";
-	$self->{FORM} .= "name=\"$attr->{NAME}\" " if ($attr->{NAME});
-	$self->{FORM} .= "enctype=\"$attr->{ENCTYPE}\" " if ($attr->{ENCTYPE});
-	$self->{FORM} .= "action=\"$SELF_URL\" METHOD=\"$METHOD\">\n";
+  my $METHOD = ($attr->{METHOD}) ? $attr->{METHOD} : 'POST';
+  $self->{FORM} =  "<FORM ";
+  $self->{FORM} .= "ID=\"$attr->{ID}\" " if ($attr->{ID});
+  $self->{FORM} .= "name=\"$attr->{NAME}\" " if ($attr->{NAME});
+  $self->{FORM} .= "enctype=\"$attr->{ENCTYPE}\" " if ($attr->{ENCTYPE});
+       
+  $self->{FORM} .= "action=\"$SELF_URL\" METHOD=\"$METHOD\">\n";
 
   if (defined($attr->{HIDDEN})) {
   	my $H = $attr->{HIDDEN};
@@ -1049,10 +1052,7 @@ sub show  {
 
   if (defined($self->{pages})) {
  	   $self->{show} =  '<br>'.$self->{pages} . $self->{show} . $self->{pages} .'<br>';
- 	 } 
-
-
-
+ 	 }
 
   if ((defined($self->{NO_PRINT})) && ( !defined($attr->{OUTPUT2RETURN}) )) {
   	$self->{prototype}->{OUTPUT}.= $self->{show};
@@ -1069,8 +1069,7 @@ sub show  {
 sub link_former {
   my ($self) = shift;
   my ($params, $attr) = @_;
-
-
+  
   $params =~ s/ /%20/g if (! $attr->{SKIP_SPACE});
   $params =~ s/&/&amp;/g;
   $params =~ s/>/&gt;/g;
@@ -1093,7 +1092,7 @@ sub button {
   $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
   $params = $self->link_former($params);
   
-  $ex_attr=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
+  $ex_attr.=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
   if ( $attr->{NEW_WINDOW} ) {
     my $x = 640;
     my $y = 480;

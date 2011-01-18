@@ -62,7 +62,8 @@ sub snmputils_nas_ipmac {
      d.vid,
      d.ports,
      d.nas,
-     u.id
+     u.id,
+     d.network
    FROM (users u, dhcphosts_hosts d)
      LEFT JOIN bills ub ON (u.bill_id = ub.id)
      LEFT JOIN companies company ON  (u.company_id=company.id)

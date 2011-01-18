@@ -3,6 +3,7 @@
 # managment snmp devices
 
 
+
 use Nas;
 use Snmputils;
 use Socket;
@@ -432,7 +433,11 @@ sub snmputils_periodic {
                      );
 
     #GET users for this NAS
-    if ($type eq 'dlink_pb') {
+    if ($conf{SNMPUTILS_CHANGE_VLAN}) {
+    	$debug_output .= "Guest VLAN\n" if ($debug > 0);
+    	$debug_output .= snmputils_chg_vlan({ %CONF_HASH });
+     }
+    elsif ($type eq 'dlink_pb') {
     	 $debug_output .= "D-Link Port binding\n" if ($debug > 0);
     	 $debug_output .= snmputils_dlink_pb({ %CONF_HASH });
      } 
@@ -444,7 +449,74 @@ sub snmputils_periodic {
     	$debug_output .= "CeLAN MACs Binding\n" if ($debug > 0);
     	$debug_output .= snmputils_celan_macs({ %CONF_HASH });
      }
-    
+   }
+
+  $DEBUG = $debug_output;
+  return $debug_output;
+}
+
+#**********************************************************
+# Change work and guest vlans 
+#**********************************************************
+sub snmputils_chg_vlan {
+	my ($attr) = @_;
+	
+  my $debug        = $attr->{DEBUG} || 0;
+  my $NAS_ID       = $attr->{NAS_ID};  # line->[0];
+  my $MNG_PASSWORD = $attr->{MNG_PASSWORD}; # line->[11];
+  my $MNG_HOST     = $attr->{MNG_HOST}; # $line->[9];
+  my $RAD_PAIRS    = $attr->{RAD_PAIRS}; #$line->[12];
+  my $SNMP_COMMUNITY = "$MNG_PASSWORD\@$MNG_HOST";
+
+  my $debug_output = '';
+  my $list = $Snmputils->snmputils_nas_ipmac({ NAS_ID    => $NAS_ID, 
+  	                                           PG        => 0, 
+   	                                           PAGE_ROWS => 100000 });
+
+  my @switch_ports = split(//, '000000000000000000000000000000000000000000000000');
+
+  my %VLANS = ();
+  foreach my $line (@$list) {
+    my $user_ports = $ports || '';
+    my $vlan       = $line->[6];
+    my $network_id = $line->[10];
+    if ($line->[7]) {
+      $user_ports = $line->[7];
+ 	   }
+
+ 	  $debug_output .= "USER ALLOW NAS: ". (($line->[0]) ? $line->[0] : '') .
+ 	  " UID: $line->[1] IP: $line->[2] MAC: $line->[3] VID: $vlan PORT: $user_ports NETWORK: $line->[10]\n" if ($debug > 2);
+        
+    if ($line->[4] >= $conf{SNMPUTILS_BINDING_DEPOSIT}) {
+    	if ($vlan) {
+    	  push @{ $VLANS{$vlan} }, $user_ports;
+    	 }
+     }
+    else {
+    	if ($GUEST_VLAN{$network_id}) {
+   	    push @{ $VLANS{$GUEST_VLAN{$network_id}} }, $user_ports;
+   	   }
+     	$debug_output .= " Negative deposit\n" if ($debug > 2);
+     }
+   }
+
+  while(my($vlan, $ports_arr)=each %VLANS) {
+  	if ($debug > 1) {
+  	  $debug_output .= "VLAN: $vlan PORTS: ". join(',', @$ports_arr) ."\n";
+  	  #SNMP COmmands
+ 	  	#UNtaged
+ 	  	
+ 	  	foreach my $port (@$ports_arr) {
+ 	  		$switch_ports[int($port-1)]=1;
+ 	  	 }
+
+ 	  	my $ports_bin         = pack("B64", join("", @switch_ports));
+	    #Untaged
+	    if (snmpset($SNMP_COMMUNITY, "1.3.6.1.2.1.17.7.1.4.3.1.4.30.$vlan", $ports_bin)) {
+	    	
+	     }
+	    #$RESULT->{UNTAGED_PORTS}{$GUEST_VLAN} =snmpget($SNMP_COMMUNITY, "1.3.6.1.2.1.17.7.1.4.3.1.4.$GUEST_VLAN", $ports);
+  	 }
    }
 
   $DEBUG = $debug_output;
@@ -774,7 +846,6 @@ if ($RESULT{version} =~ /DES-3550/ ) {
                     'ACL_IP_MAC'  => '1.1.0' 
                             };
      }
-
     else {
  	    $RESULT{firmware}  = snmpget($SNMP_COMMUNITY, ".1.3.6.1.2.1.16.19.2.0");
       $RESULT{firmware2}  = snmpget($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.12.11.1.9.4.1.8.1");
@@ -1159,7 +1230,18 @@ sub snmputils_dlink_ip_mac_port{
                       acl_ip_mac   => $oid_prefix. ( ( $SWITCH_INFO->{oid_sufix}{ACL_IP_MAC} ) ? $SWITCH_INFO->{oid_sufix}{ACL_IP_MAC} : '6.0')   # ACL IP MAC 
                       );
 
-  print "$SWITCH_INFO->{version}/$SWITCH_INFO->{firmware}/$SWITCH_INFO->{firmware2}";
+
+  $table = $html->table({
+  	                     width      => '400',
+                         cols_align => ['left', 'right'],
+                         rows       => [ ["VERSION:", $html->b($SWITCH_INFO->{version}) ],
+                                         ["FIRMWARE", $SWITCH_INFO->{firmware} ], 
+                                         ["FIRMWARE2", $SWITCH_INFO->{firmware2} ] 
+                                        ],
+                         ID         => 'SNMPUTILS_SWITCH_VERSION'
+                        });
+  print $table->show();
+
   if ($FORM{add}) {
      my $message = snmputils_dlink_pb_add({  
      	    SNMP_COMMUNITY => $SNMP_COMMUNITY,
@@ -1218,7 +1300,7 @@ sub snmputils_dlink_ip_mac_port{
   while(my($key, $value)= each %MAIN_OPTIONS) {
     $MAIN_VALUE{$key} = snmpget("$SNMP_COMMUNITY", "$value") || 0;
     if (! $MAIN_VALUE{$key}) {
-  	  $html->message("info", $_INFO, "'$key':$value  _NOT_SUPPORT");
+  	  $html->message("info", $_INFO, "'$key':$value  $_NOT_SUPPORT");
      }
     else {
       $table->addrow($key, 
@@ -1244,9 +1326,6 @@ sub snmputils_dlink_ip_mac_port{
                           ID          => 'IP-MAC-Port Binding'
                       });
 
-
-
-  
   my @ports = ();
   my %MODES = (0 => 'ARP', 1 => 'ACL' );
   
@@ -1739,7 +1818,16 @@ sub snmputils_zyxel_smf {
 
   my $SWITCH_INFO = snmputils_zyxel_smf_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
 
-  print "$SWITCH_INFO->{version}/$SWITCH_INFO->{firmware}/$SWITCH_INFO->{firmware2}";
+  $table = $html->table({
+  	                     width      => '400',
+                         cols_align => ['left', 'right'],
+                         rows       => [ ["VERSION:", $html->b($SWITCH_INFO->{version}) ],
+                                         ["FIRMWARE", $SWITCH_INFO->{firmware} ],
+                                         ["FIRMWARE2", $SWITCH_INFO->{firmware2} ] 
+                                        ],
+                         ID         => 'SNMPUTILS_SWITCH_VERSION'
+                        });
+  print $table->show();
 
   $Snmputils->{ACTION}='add';
   $Snmputils->{ACTION_LNG}=$_ADD;
