@@ -228,7 +228,8 @@ sub network_info {
    comments,
    deny_unknown_clients,
    authoritative,
-   net_parent
+   net_parent,
+   guest_vlan
   FROM dhcphosts_networks
 
   WHERE id='$id';");
@@ -256,7 +257,8 @@ sub network_info {
    $self->{COMMENTS},
    $self->{DENY_UNKNOWN_CLIENTS},
    $self->{AUTHORITATIVE},
-   $self->{NET_PARENT}
+   $self->{NET_PARENT},
+   $self->{GUEST_VLAN}
    ) = @{ $self->{list}->[0] };
     
   return $self;
@@ -292,7 +294,8 @@ sub networks_list {
      coordinator,
      phone,
      disable,
-     net_parent
+     net_parent,
+     guest_vlan
      FROM dhcphosts_networks
      $WHERE
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");

@@ -35,6 +35,7 @@ else {
 
 
 my $debug=0;
+my %GUEST_VLAN = ();
 $FORM{GET_USERS}=1;
 
 my @association_state = ('initial',
@@ -415,6 +416,15 @@ sub snmputils_periodic {
 	
 	my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
+  
+  if ($conf{SNMPUTILS_CHANGE_VLAN}) {
+  	use Dhcphosts;
+    my $Dhcphosts = Dhcphosts->new($db, $admin, \%conf);
+  	my $list=$Dhcphosts->networks_list({ PAGE_ROWS => 10000, SORT => 2 });
+  	foreach my $line (@$list) {
+  	  $GUEST_VLAN{$line->[0]}=$line->[8];
+  	 }
+   }
   
   #Get nas servers TYPE: dlink_pb
   my $list = $Nas->list({ PAGE_ROWS => 100000, 
