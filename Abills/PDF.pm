@@ -1399,7 +1399,7 @@ for my $key (sort keys %$tpl_describe) {
     $font_size  = $1 if ($pattern =~ /font_size=(\d+)/);
     $font_color = $1 if ($pattern =~ /font_color=(\S+)/);
     $encode     = $1 if ($pattern =~ /encode=(\S+)/);
-    $align      = $1 if ($align   =~ /align=(\S+)/);
+    $align      = ($align   =~ /align=(\S+)/) ? $1 : 'justified' ;
 
     if ($pattern =~ /font_name=(\S+)/) {
     	$font_name  = $1;
