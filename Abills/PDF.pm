@@ -462,9 +462,6 @@ sub setCookie {
 	# be sent through secure connections
 	my $self = shift;
 	my($name, $value, $expiration, $path, $domain, $secure) = @_;
-	
-	#$path = dirname($ENV{SCRIPT_NAME}) if ($path eq '');
-
 
 	print "Set-Cookie: ";
 	print $name, "=$value; expires=\"", $expiration,
@@ -480,8 +477,6 @@ sub setCookie {
 #********************************************************************
 sub getCookies {
   my $self = shift;
-	# cookies are seperated by a semicolon and a space, this will split
-	# them and return a hash of cookies
 	my(%cookies);
 
   if (defined($ENV{'HTTP_COOKIE'})) {
@@ -1259,8 +1254,6 @@ sub multi_tpls {
   $tmp_path        = $attr->{TMP_PATH}       if ($attr->{TMP_PATH});
   $pdf_result_path = $attr->{PDF_RESULT_PATH}if ($attr->{PDF_RESULT_PATH});
 
-
-
   for(my $i=0; $i <= 10; $i++ ) {
     push @{ $MULTI_ARR }, { FIO     => 'fio'.$i,
                        DEPOSIT => '00.00'.$i,
@@ -1289,11 +1282,7 @@ sub multi_tpls {
       my $page = $multi_pdf->importpage($main_tpl, $i);
      }
    }
-
-	#unlink($tmp_path.'/single'.$rand_num.'.pdf');
-
   $multi_pdf->saveas($pdf_result_path.'/'. $tpl.'.pdf');
-  	                                       
 }
 
 
@@ -1457,7 +1446,7 @@ for my $key (sort keys %$tpl_describe) {
     	 }
      }
     else {
-      $txt->text($text);
+      $txt->text($text, -align  => $align || 'justified');
      }
   }
 }
