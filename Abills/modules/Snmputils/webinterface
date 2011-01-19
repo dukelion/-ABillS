@@ -3918,6 +3918,9 @@ sub snmputils_cable_tester {
   	if (&snmpset("$SNMP_COMMUNITY", "1.3.6.1.4.1.171.12.58.1.1.1.12", 'integer', int($FORM{TEST}))) {
   		$html->message('info', $_INFO, "$_PORT: $FORM{TEST} $_TEST Started");
   	 }	
+    else {
+      $html->message('err', $_ERROR, "$_PORT: $FORM{TEST} $_TEST Started / $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
+     }
    }
 	
   my %links_states_hash = ();
@@ -4001,7 +4004,7 @@ sub snmputils_cable_tester {
         $link_types[$type],
         $link_status[$links_states_hash{$port}],
         "$pairs_status[$pairs_status{1}{$port}] $pairs_status[$pairs_status{2}{$port}] $pairs_status[$pairs_status{3}{$port}] $pairs_status[$pairs_status{4}{$port}]",
-        "$pairs_length{1}{$port} $pairs_length{2}{$port}] $pairs_length{3}{$port} $pairs_length{4}{$port}",
+        "$pairs_length{1}{$port} $pairs_length{2}{$port} $pairs_length{3}{$port} $pairs_length{4}{$port}",
         $html->button("$_TEST", "index=$index&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&TEST=$port", { BUTTON => 1 })
        );
      }
