@@ -722,22 +722,8 @@ sub table {
  my $parent = ref($proto)  && $proto;
  my $self;
 
-
-# if (@ISA && $proto->SUPER::can('table')) {
-# 	  $self = $proto->SUPER::table(@_);
-#  }
-# else {
-  $self = {};
-#  bless($self, $proto);
-# }
-
-
-# while(my($k, $v)=each %$proto) {
-#   print "$k, $v <br>";	
-# }
- 
+ $self = {};
  bless($self);
-
 
  $self->{prototype} = $proto;
  $self->{NO_PRINT} = $proto->{NO_PRINT};
@@ -887,8 +873,8 @@ sub addtd {
 sub th {
 	my $self = shift;
 	my ($value, $attr) = @_;
-	
-	return $self->td($value, { TH => 1, ($attr) ? %$attr : undef  } );
+
+	return '';
 }
 
 #*******************************************************************
@@ -898,26 +884,8 @@ sub th {
 sub td {
   my $self = shift;
   my ($value, $attr) = @_;
-  my $extra='';
-  
-  while(my($k, $v)=each %$attr ) {
-    next if ($k eq 'TH');
-    $extra.=" $k=$v";
-   }
-  my $td = '';
 
-  if ($attr->{TH}) {
-  	$td = "<TH $extra>";
-  	$td .= $value if (defined($value));
-  	$td .= "</TH>";
-   }
-  else {
-    $td = "<TD $extra>";
-   	$td .= $value if (defined($value));
-  	$td .= "</TD>";
-   }
-
-  return $td;
+  return '';
 }
 
 
@@ -928,14 +896,7 @@ sub td {
 sub table_title_plain {
   my $self = shift;
   my ($caption)=@_;
-  $self->{table_title} = "<tr bgcolor=\"$_COLORS[0]\">";
-	
-  foreach my $line (@$caption) {
-    $self->{table_title} .= "<th class='table_title'>$line</th>";
-   }
-	
-  $self->{table_title} .= "</TR>\n";
-  return $self->{table_title};
+  return '';
 }
 
 #*******************************************************************
@@ -952,9 +913,6 @@ sub table_title  {
   my ($sort, $desc, $pg, $get_op, $caption, $qs)=@_;
   my ($op);
   my $img='';
-
-  #print "$FORM{sort} // SORT: $sort, DESC: $desc, PAGE: $pg, $op, $caption, $qs--";
-
   $self->{table_title} = "<tr bgcolor=\"$_COLORS[0]\">";
   my $i=1;
   foreach my $line (@$caption) {
@@ -1005,8 +963,7 @@ sub table_title  {
 sub show  {
   my $self = shift;	
   my ($attr) = shift;
-  
-  
+
   $self->{show} = $self->{table};
   $self->{show} .= $self->{rows}; 
   $self->{show} .= "</TABLE></TD></TR></TABLE>\n";
@@ -1014,15 +971,11 @@ sub show  {
   if (defined($self->{pages})) {
  	   $self->{show} =  '<br>'.$self->{pages} . $self->{show} . $self->{pages} .'<br>';
  	 } 
-
-
-
   if ((defined($self->{NO_PRINT})) && ( !defined($attr->{OUTPUT2RETURN}) )) {
   	$self->{prototype}->{OUTPUT}.= $self->{show};
   	#$self->{OUTPUT} .= $self->{show};
   	$self->{show} = '';
   }
-  
 
   return $self->{show};
 }
@@ -1034,14 +987,6 @@ sub link_former {
   my ($self) = shift;
   my ($params, $attr) = @_;
 
-
-  $params =~ s/ /%20/g if (! $attr->{SKIP_SPACE});
-  $params =~ s/&/&amp;/g;
-  $params =~ s/>/&gt;/g;
-  $params =~ s/</&lt;/g;
-  $params =~ s/\"/&quot;/g;
-  $params =~ s/\*/&#42;/g;
- 
   return $params;
 }
 
@@ -1083,44 +1028,8 @@ sub button {
 sub message {
  my $self = shift;
  my ($type, $caption, $message, $head) = @_;
- 
- if ($type eq 'err') {
-   $head = "<tr><th bgcolor=\"#FF0000\">$caption</th></TR>\n";
-  }
- elsif ($type eq 'info') {
-   $head = "<tr><th bgcolor=\"$_COLORS[0]\">$caption</th></TR>\n";
-  }  
- 
-my $output = qq{
-<br>
-<TABLE width="400" border="0" cellpadding="0" cellspacing="0" class="noprint">
-<tr><TD bgcolor="$_COLORS[9]">
-<TABLE width="100%" border=0 cellpadding="2" cellspacing="1">
-<tr><TD bgcolor="$_COLORS[1]">
 
-<TABLE width="100%">
-$head
-<tr><TD bgcolor="$_COLORS[1]">$message</TD></TR>
-</TABLE>
-
-</TD></TR>
-</TABLE>
-</TD></TR>
-</TABLE>
-<br>
-};
-
-
-
-  if (defined($self->{NO_PRINT})) {
-  	$self->{OUTPUT}.=$output;
-  	#print "aaaaaa $self->{OUTPUT}";
-  	return $output;
-   }
-	else { 
- 	  print $output;
-	 }
-
+ return '';
 }
 
 
@@ -1130,22 +1039,8 @@ $head
 sub pre {
  my $self = shift;
  my ($message) = @_;
- 
- 
-my $output = qq{
-<pre>
- $message
-</pre>
-};
-
-  if (defined($self->{NO_PRINT})) {
-  	$self->{OUTPUT}.=$output;
-  	return $output;
-   }
-	else { 
- 	  print $output;
-	 }
-
+  
+ my $output = '';
 }
 
 #*******************************************************************
@@ -1154,7 +1049,6 @@ my $output = qq{
 sub b {
  my $self = shift;
  my ($message) = @_;
- 
  
  my $output = "<b>$message</b>";
 
@@ -1167,8 +1061,8 @@ sub b {
 sub color_mark {
  my $self = shift;
  my ($message, $color) = @_;
- 
- my $output = "<font color=$color>$message</font>";
+
+ my $output = "";
 
  return $output;
 }
@@ -1330,27 +1224,6 @@ sub log_print {
  if($debug < $log_levels{$level}) {
      return 0;	
   }
-
-print << "[END]";
-<TABLE width="640" border="0" cellpadding="0" cellspacing="0">
-<tr><TD bgcolor="#00000">
-<TABLE width="100%" border="0" cellpadding="2" cellspacing="1">
-<tr><TD bgcolor="FFFFFF">
-
-<TABLE width="100%">
-<tr bgcolor="$_COLORS[3]"><th>
-$level
-</th></TR>
-<tr><TD>
-$text
-</TD></TR>
-</TABLE>
-
-</TD></TR>
-</TABLE>
-</TD></TR>
-</TABLE>
-[END]
 }
 
 
@@ -1568,7 +1441,7 @@ for my $key (sort keys %$tpl_describe) {
           my $string_height = 15;
           $txt->lead($string_height);
           my ($idt,$y2)=$txt->paragraph($content , $text_width, $text_height,
-                      -align     => 'justified',
+                      -align     => $align || 'justified',
                       -spillover => 2 ); # ,400,14,@text);
           next;
         }
