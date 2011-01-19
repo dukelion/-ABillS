@@ -2052,12 +2052,19 @@ sub build_list {
 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ENTRANCES}, 'INT', 'b.entrances') };
   }
 
+ my $ext_fields = '';
+ if ($attr->{SHOW_MAPS}) {
+   $ext_fields = ",b.map_x, b.map_y, b.map_x2, b.map_y2, b.map_x3, b.map_y3, b.map_x4, b.map_y4";
+  }
+
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
  my $sql = '';
  if ($attr->{CONNECTIONS}) {
 	 $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name, 
      count(pi.uid),
-	   b.added, b.id  FROM builds b
+	   b.added, b.id $ext_fields	   
+	   
+	    FROM builds b
      LEFT JOIN streets s ON (s.id=b.street_id)
      LEFT JOIN users_pi pi ON (b.id=pi.location_id)
      $WHERE 

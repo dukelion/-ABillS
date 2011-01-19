@@ -3915,7 +3915,14 @@ sub snmputils_cable_tester {
 
 
   if ($FORM{TEST}) {
-  	if (&snmpset("$SNMP_COMMUNITY", "1.3.6.1.4.1.171.12.58.1.1.1.12", 'integer', int($FORM{TEST}))) {
+  	if ($FORM{TEST} =~ /(\d+)\-(\d+)/) {
+  		my $start = $1;
+  		my $stop  = $2;
+  		for($i=$start; $i<=$stop; $i++) {
+  			&snmpset("$SNMP_COMMUNITY", "1.3.6.1.4.1.171.12.58.1.1.1.12.$FORM{TEST}", 'integer', int($FORM{TEST}))
+  		 }
+  	 }
+  	elsif (&snmpset("$SNMP_COMMUNITY", "1.3.6.1.4.1.171.12.58.1.1.1.12.$FORM{TEST}", 'integer', int($FORM{TEST}))) {
   		$html->message('info', $_INFO, "$_PORT: $FORM{TEST} $_TEST Started");
   	 }	
     else {
@@ -3985,7 +3992,7 @@ sub snmputils_cable_tester {
   my $table = $html->table({
   	                     caption    => "Cable tester",
   	                     width      => '100%',
-  	                     title      => ["$_PORTS", "$_TYPE", "$_STATE", "Pairs STATUS", "$_LENGTH", "$_TEST $_STATUS", '-'],
+  	                     title      => ["$_PORTS", "$_TYPE", "$_STATE", "Pairs STATUS", "$_LENGTH", "$_TEST $_STATUS" ],
                          cols_align => ['left', 'right',],
                          ID         => 'SNMPUTILS_CABLE_TESTER'
                         });
@@ -4003,14 +4010,26 @@ sub snmputils_cable_tester {
       $table->addrow($port, 
         $link_types[$type],
         $link_status[$links_states_hash{$port}],
-        "$pairs_status[$pairs_status{1}{$port}] $pairs_status[$pairs_status{2}{$port}] $pairs_status[$pairs_status{3}{$port}] $pairs_status[$pairs_status{4}{$port}]",
-        "$pairs_length{1}{$port} $pairs_length{2}{$port} $pairs_length{3}{$port} $pairs_length{4}{$port}",
-        $html->button("$_TEST", "index=$index&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&TEST=$port", { BUTTON => 1 })
+        "$pair_status[$pairs_status{1}{$port}]". $html->br() ."$pair_status[$pairs_status{2}{$port}]". $html->br() ."$pair_status[$pairs_status{3}{$port}]". $html->br() ."$pair_status[$pairs_status{4}{$port}]",
+        "$pairs_length{1}{$port}". $html->br() ."$pairs_length{2}{$port}". $html->br() ."$pairs_length{3}{$port}". $html->br() ."$pairs_length{4}{$port}",
+        ($test_status{$port} != 3) ? $test_status[$test_status{$port}] : $html->button("$_TEST", "index=$index&NAS_ID=$FORM{NAS_ID}&TYPE=$FORM{TYPE}&SHOW=1&TEST=$port", { BUTTON => 1 })
        );
      }
 	 }
 
 	print $table->show();
+
+  print $html->form_main({ CONTENT => '',
+	                       HIDDEN  => { index =>  "$index",
+	                       	            NAS_ID=>$FORM{NAS_ID},
+	                       	            TYPE  => $FORM{TYPE},
+	                       	            SHOW  => 1,
+	                       	            TEST  => '1-'. ($#result_ports+1) 
+	                       	           },
+                         SUBMIT  => { TEST_ALL   => "$_TEST $_ALL" },
+	                       METHOD  => 'GET'
+                        });
+	
 }
 1
 
