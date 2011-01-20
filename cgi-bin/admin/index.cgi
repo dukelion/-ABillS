@@ -3323,6 +3323,7 @@ if ($nas->{errno}) {
   'lepppd'    => 'Linux PPPD IPv4 zone counters',
   'pppd'      => 'pppd + RADIUS plugin (Linux)',
   'pppd_coa'  => 'pppd + RADIUS plugin + radcoad (Linux)',
+  'accel_pptp'=> 'Linux accel-pptp',
   'gnugk'     => 'GNU GateKeeper',
   'cisco'     => 'Cisco (Experimental)',
   'dell'      => 'Dell Switch',

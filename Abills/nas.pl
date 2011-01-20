@@ -85,6 +85,9 @@ sub hangup {
  elsif ($nas_type eq 'pppd_coa') {
    hangup_pppd_coa($NAS, $PORT, $attr);
   }
+ elsif ($nas_type eq 'accel_pptp') {
+   hangup_radius($NAS, $PORT, "", $attr);
+  }
  else {
    return 1;
   }
@@ -394,7 +397,7 @@ sub hangup_snmp {
 }
 
 #*******************************************************************
-# hangup_hangup_radius
+# hangup_radius
 # 
 # Radius-Disconnect messages
 # rfc2882
@@ -419,7 +422,7 @@ sub hangup_radius {
 
   $r->load_dictionary($conf{'dictionary'});
 
-  $r->add_attributes ({ Name => 'User-Name', Value => "$USER" });
+  $r->add_attributes ({ Name => 'User-Name', Value => "$USER" }) if ($USER);
   $r->add_attributes ({ Name => 'Framed-IP-Address', Value => "$attr->{FRAMED_IP_ADDRESS}"});
   $r->send_packet (POD_REQUEST) and $type = $r->recv_packet;
 

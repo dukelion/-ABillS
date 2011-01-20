@@ -1609,7 +1609,18 @@ sub msgs_new {
 	 	                         ID         => $Msgs->{MSG_ID},
  	 	                         ADMIN_READ => "0000-00-00 00:00:00",
  	 	                       });
-    		  
+
+     	 	  if ($conf{MSGS_REDIRECT_FILTER_DEL}) {
+            require "Dv.pm";
+            my $Dv = Dv->new($db, $admin, \%conf);
+            $Dv->change({ UID => $LIST_PARAMS{UID}, FILTER_ID => '' });	
+            if ($conf{MSGS_REDIRECT_FILTER_DEL} =~ /EXEC:(.+)/) {
+       	      my $cmd = $1;
+       	      $cmd =~ s/\%IP\%/$ENV{REMOTE_ADDR}/g;
+       	      my $res = `$cmd`;
+            }  
+ 	 	       }
+   		  
     		  print "Location: $URL?GID=$user->{GID}&MESSAGE_CHAPTER=$Msgs->{CHAPTER}&MSG_ID=$Msgs->{MSG_ID}", "\n\n";
     		  exit;
     		 }
