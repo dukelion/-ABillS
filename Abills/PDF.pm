@@ -1321,7 +1321,7 @@ sub tpl_show {
         'Title'        => "Account",
         'Subject'      => "Account",
         'Keywords'     => ""
-    ); 
+       ); 
 
 my $multi_doc_count = 0;
 my $page_count      = $pdf->pages;
@@ -1383,12 +1383,12 @@ for my $key (sort keys %$tpl_describe) {
     	  next;
     	 }
      }
-
+    $align      = '';
     $text_file  = $1 if ($pattern =~ /text=([0-9a-zA-Z_\.]+)/);
     $font_size  = $1 if ($pattern =~ /font_size=(\d+)/);
     $font_color = $1 if ($pattern =~ /font_color=(\S+)/);
     $encode     = $1 if ($pattern =~ /encode=(\S+)/);
-    $align      = ($align   =~ /align=(\S+)/) ? $1 : 'justified' ;
+    $align      = $1 if ($pattern =~ /align=([a-z]+)/i);
 
     if ($pattern =~ /font_name=(\S+)/) {
     	$font_name  = $1;
@@ -1446,7 +1446,17 @@ for my $key (sort keys %$tpl_describe) {
     	 }
      }
     else {
-      $txt->text($text, -align  => $align || 'justified');
+    	if ($align) {
+        my $text_height  = ($pattern =~ /text_height=([0-9a-zA-Z_\.]+)/) ? $1 : 100; 
+        my $text_width   = ($pattern =~ /text_width=([0-9a-zA-Z_\.]+)/) ? $1 : 100;
+        my ($idt,$y2)    =  $txt->paragraph($text, $text_width, $text_height,
+                      -align     => $align,
+                      -spillover => 2 ); # ,400,14,@text);
+       }
+      else {
+        $txt->text($text, -align  => $align || 'justified');
+       }
+
      }
   }
 }

@@ -1608,7 +1608,9 @@ sub msgs_new {
       	  $Msgs->message_change({
 	 	                         ID         => $Msgs->{MSG_ID},
  	 	                         ADMIN_READ => "0000-00-00 00:00:00",
- 	 	                       });
+       	                     STATE      => 2, 
+        	                   USER_READ  => "$DATE $TIME",
+ 	 	                         });
 
      	 	  if ($conf{MSGS_REDIRECT_FILTER_DEL}) {
             require "Dv.pm";
@@ -1617,6 +1619,8 @@ sub msgs_new {
             if ($conf{MSGS_REDIRECT_FILTER_DEL} =~ /EXEC:(.+)/) {
        	      my $cmd = $1;
        	      $cmd =~ s/\%IP\%/$ENV{REMOTE_ADDR}/g;
+       	      $cmd =~ s/\%LOGIN\%/$user->{LOGIN}/g;
+       	      $cmd =~ s/\%MSG_ID\%/$Msgs->{MSG_ID}/g;
        	      my $res = `$cmd`;
             }  
  	 	       }
