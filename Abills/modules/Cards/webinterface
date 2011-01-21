@@ -59,8 +59,8 @@ sub cards_card_info {
 #
 #**********************************************************
 sub cards_main {
-  if ($Cards::VERSION < 5.21) {
-  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.15 or higher. http://abills.net.ua/");
+  if ($Cards::VERSION < 5.22) {
+  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.22 or higher. http://abills.net.ua/");
   	return 0;
    }
 
@@ -751,11 +751,11 @@ sub cards_user_payment () {
 
      #Make external script
      if ($conf{CARDS_PAYMENTS_EXTERNAL})  {
-      	_external("$conf{CARDS_PAYMENTS_EXTERNAL}", { %$Cards, %$user  });
+      	_external("$conf{CARDS_PAYMENTS_EXTERNAL}", { %$Cards, %$user });
       }
 
      $user->{DEPOSIT}+=$Cards->{SUM};
-     cross_modules_call('_payments_maked', { USER => $user });
+     cross_modules_call('_payments_maked', { USER => $user, QUITE => 1  });
 
      #Disable universal card after payment
      if ($Cards->{UID} > 0) {

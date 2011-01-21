@@ -1504,14 +1504,15 @@ sub dhcphosts_payments_maked {
  	  	if (scalar(keys %NAS_IDS) > 0) {
   			require "Abills/modules/Snmputils/webinterface";
         my $return = snmputils_periodic({ NAS_IDS => join(',', keys %NAS_IDS), DEBUG => 1 });
-        if ($return ne ''){
-          print $html->message('info', "SNMP", $html->pre($return, { OUTPUT2RETURN => 1 }));
+        if ($return ne '' && ! $attr->{QUITE}){
+          $html->message('info', "SNMP", $html->pre($return, { OUTPUT2RETURN => 1 }));
          }
  	     }
      }
     if (scalar(keys %NETWORKS) > 0) {
       dhcphosts_config({ NETWORKS => join(',', keys %NETWORKS), 
-                       reconfig => 1 });
+                         reconfig => 1,
+                         %$attr });
      }
 	 }
 }

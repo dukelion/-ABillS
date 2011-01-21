@@ -98,7 +98,7 @@ if (defined($FORM{sid})) {
 require Admins;
 Admins->import();
 $admin = Admins->new($db, \%conf);
-$admin->info($conf{SYSTEM_ADMIN_ID}, { DOMAIN_ID => $FORM{DOMAIN_ID} });
+$admin->info($conf{SYSTEM_ADMIN_ID}, { DOMAIN_ID => $FORM{DOMAIN_ID}, IP => $ENV{REMOTE_ADDR} });
 $admin->{SESSION_IP}=$ENV{REMOTE_ADDR};
 $conf{WEB_TITLE} = $admin->{DOMAIN_NAME} if ($admin->{DOMAIN_NAME});
 
@@ -479,6 +479,13 @@ sub form_info {
 #**********************************************************
 sub form_login {
  my %first_page = ();
+
+
+ if ($conf{tech_works}) {
+ 	  $html->message('info', $_INFO, "$conf{tech_works}");
+ 	  return 0;
+  }
+
  
 #Make active lang list
 if ($conf{LANGS}) {
@@ -1208,7 +1215,7 @@ sub cross_modules_call  {
      require "Abills/modules/$mod/webinterface";
      my $function = lc($mod).$funtion_sufix;
      if (defined(&$function)) {
-     	  $function->({ USER => $attr->{USER} });
+     	  $function->( $attr );
       }
    }
 }

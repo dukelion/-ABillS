@@ -468,7 +468,7 @@ else {
      }
 
     if(defined($self->{'STATUS'}) && $self->{'STATUS'} ne '') {
-      $admin->action_add($DATA{UID}, "$self->{'STATUS'}", { TYPE => ($self->{'STATUS'}==3) ? 14 : 4 });
+      $admin->action_add($DATA{UID}, "$self->{'STATUS'}" . (($attr->{EXT_CHANGE_INFO})? ' '. $attr->{EXT_CHANGE_INFO} : ''), { TYPE => ($self->{'STATUS'}==3) ? 14 : 4 });
      }
 
     if($self->{CHG_CREDIT}) {
