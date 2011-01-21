@@ -19,8 +19,8 @@ use Tariffs;
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $payments = Payments->new($db, $admin, \%conf);
 my $Cards    = Cards->new($db, $admin, \%conf);
-my @status   = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED);
-my @status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#0000FF', '#808080', '#FF8000');
+my @status   = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED, '_PROCESSING');
+my @status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#0000FF', '#808080', '#FF8000', '#008040');
 
 $conf{CARDS_PIN_SYMBOLS}='0123456789' if (! $conf{CARDS_PIN_SYMBOLS});
 
@@ -722,6 +722,15 @@ sub cards_user_payment () {
   
  
    $user->info($LIST_PARAMS{UID});
+   
+   $Cards->cards_change({ PIN      => "$FORM{PIN}", 
+     	                    STATUS   => 5, 
+     	                    SERIAL   => $Cards->{SERIAL},
+     	                    NUMBER   => $Cards->{NUMBER},
+     	                    UID      => $user->{UID}
+     	                 });	
+
+   
    $payments->add($user, { SUM          => $Cards->{SUM},
                            METHOD       => 2, 
                            EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
@@ -734,7 +743,7 @@ sub cards_user_payment () {
      $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $Cards->{SUM} $_DEPOSIT: ". ($user->{DEPOSIT} + $Cards->{SUM}));
      $Cards->cards_change({ PIN      => "$FORM{PIN}", 
      	                      STATUS   => 2, 
-     	                      DATETIME => "$DATE $TIME",
+     	                      DATETIME => "$DATE $TIME-",
      	                      SERIAL   => $Cards->{SERIAL},
      	                      NUMBER   => $Cards->{NUMBER},
      	                      UID      => $user->{UID}

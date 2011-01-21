@@ -2074,7 +2074,7 @@ sub build_list {
      ;";
   }
  else {
- 	 $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name, b.added, b.id  FROM builds b
+ 	 $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name, b.added, b.id $ext_fields FROM builds b
      LEFT JOIN streets s ON (s.id=b.street_id)
      $WHERE ORDER BY $SORT $DESC
      LIMIT $PG, $PAGE_ROWS;";
