@@ -1451,7 +1451,7 @@ for my $key (sort keys %$tpl_describe) {
         my $text_width   = ($pattern =~ /text_width=([0-9a-zA-Z_\.]+)/) ? $1 : 100;
         my ($idt,$y2)    =  $txt->paragraph($text, $text_width, $text_height,
                       -align     => $align,
-                      -spillover => 2 ); # ,400,14,@text);
+                      -spillover => 2 );
        }
       else {
         $txt->text($text, -align  => $align || 'justified');

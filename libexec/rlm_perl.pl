@@ -137,9 +137,13 @@ sub post_auth {
 #  my $return = RLM_MODULE_REJECT;
 #  if ( $db ) {
    my $db;
-    if ( inc_postauth($db, \%REQUEST, $nas) == 0 ) {
+   my $return = inc_postauth($db, \%REQUEST, $nas);
+    if ( $return == 0 ) {
 #    	$return = RLM_MODULE_OK;
       return RLM_MODULE_OK;
+     }
+    else {
+    	return $return;
      }
 #     $db->disconnect;
 #   }

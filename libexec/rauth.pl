@@ -295,7 +295,7 @@ sub inc_postauth {
     my $db = sql_connect();
     #Don't find nas exit
     if (! $db ) {
-    	return 0;
+    	return 1;
      }
 
     if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
@@ -315,7 +315,8 @@ sub inc_postauth {
       $log_print->('LOG_INFO', $RAD_PAIRS->{'User-Name'}, $message." ". $RAD_REQUEST{'DHCP-Client-Hardware-Address'} ." $GT", { NAS => $nas, DB => $db});
       $r=0;
      }
-    else {    	
+    else {
+    	$RAD_REPLY{'DHCP-DHCP-Error-Message'} = "$message";
     	access_deny($RAD_PAIRS->{'User-Name'}, "$message$GT", $nas->{NAS_ID});
     	$r=1 if (! $r);
      }
