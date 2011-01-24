@@ -20,6 +20,25 @@ my (%stats, %vars); # SHOW STATUS, SHOW VARIABLES
 # sqlcmd
 #**********************************************************
 sub sqlcmd {
+
+
+if ($FORM{qindex}) {
+  print $html->header();
+
+  $Sqlcmd->query($db, "SHOW CREATE TABLE $FORM{TABLE_INFO}");
+  my $table = $html->table({ width        => '100%',
+                          caption      => 'SQL Dump',
+                          border       => 1,
+                          rows         => [[ $html->pre($Sqlcmd->{list}->[0]->[1], { OUTPUT2RETURN => 1 }) ]]
+                        });
+
+  print $table->show();
+
+  print $html->button("$_INFO", "index=$index&TABLE_INFO=$FORM{TABLE_INFO}", { BUTTON => 1}),
+  exit;
+}
+
+
  if (! sqlcmd_cluster_info() ) {
  	  return 0;
   }
@@ -89,8 +108,8 @@ if ($FORM{WIZARD}) {
 	foreach my $line (@$list) {
 		$table->addrow($line->[0], 
 		$line->[1], 
-		$html->button('QUERY', "index=$index&QUERY_ID=$line->[2]"),
-		$html->button("$_DEL", "index=$index&del=$line->[2]", { MESSAGE => "$_DEL $line->[2]?" }),
+		$html->button('QUERY', "index=$index&QUERY_ID=$line->[2]", { BUTTON => 1 }),
+		$html->button("$_DEL", "index=$index&del=$line->[2]", { MESSAGE => "$_DEL $line->[2]?", BUTTON => 1 }),
 		
 		 );
 	 }
@@ -111,31 +130,49 @@ if ($FORM{QUERY} && ! $FORM{xml}) {
                              } );
 
   #Syntax hightligth
+  my @func =  ('CURDATE', 'NOW', 'DECODE', 'ENCODE', 'CONCAT', 'INET_NTOA', 'INET_ATON');
   my @syntax = ('SELECT', 'FROM', 'WHERE', 'MIN', 'MAX', 'AVG', 'SUM', 'IF',
             'INSERT', 'UPDATE', 'INTO', 'VALUES', 
             'GROUP BY', 'ORDER BY', 'LIMIT',
             'DATE_FORMAT', 'LEFT JOIN', 'INNER JOIN', 'ON', 'AND', 'EXPLAIN', 'ALTER', 'TABLE',
-            'ADD', 'COLUMN', 'UNSIGNED', 'NOT', 'NULL', 'DEFAULT', 'INTERVAL', 'COUNT'
+            'ADD', 'COLUMN', 'UNSIGNED', 'NOT', 'NULL', 'DEFAULT', 'INTERVAL', 
+            'COUNT', 'DESC', 'ASC',
+            @func
             );
  
   my @types = ('INT', 'VARCHAR', 'SMALLINT', 'CHAR', 'TINYINT', 'DOUBLE');
-  my @func =  ('CURDATE()', 'NOW()');
-
   my @division = ('FROM', 'WHERE', 'LEFT JOIN', 'GROUP BY', 'ORDER BY', 'LIMIT');
 
+
+
   foreach my $query ( @{ $Sqlcmd->{EXECUTED_QUERY} } ) {
+    $show_query = $query;
+    $show_query =~ s/</&lt;/g;
+    $show_query =~ s/>/&gt;/g;
+    $show_query =~ s/\"/&quot;/g;
+
     foreach my $s (@division) {
-      $query =~ s/$s | $s / <br>$s /ig;
+      $show_query =~ s/$s | $s / <br>$s /ig;
      }
+
+    #foreach my $s (@func) {
+    #  $show_query =~ s/$s | $s / <br>$s /ig;
+    # }
 
     foreach my $s (@syntax) {
       #Extended
-      $query =~ s/$s | $s / <b>$s<\/b> /ig;
-      $query =~ s/$s\(/ <b>$s<\/b>\(/gi;
-      $query =~ s/'(\S+)'/ <font color=\"#0000FF\">'$1'<\/font> /gi;
-      $query =~ s/ (\d+)|(\d+),/ <font color=\"red\">$1<\/font>/g;
+      $show_query =~ s/$s | $s / <b>$s<\/b> /ig;
+      $show_query =~ s/$s\(/ <b>$s<\/b>\(/gi;
+      $show_query =~ s/'(\S+)'/ <font color=\"#0000FF\">'$1'<\/font> /gi;
+      $show_query =~ s/ (\d+)|(\d+),/ <font color=\"red\">$1<\/font>/g;
      }
-    $table->addrow("$query", "Ok");
+    
+    
+   
+    $show_query =~ s/(FROM[\/<>b]+\s+)(\S+)/\1<a href="#" onclick="window.open('$SELF_URL?qindex=$index&TABLE_INFO=\2', null, 'toolbar=0,location=0,directories=0,status=1,menubar=0,'+'scrollbars=1,resizable=1,'+'width=640, height=600');">\2<\/a>/gi;
+    $show_query =~ s/(JOIN[\/<>b]+\s+)(\S+)/\1<a href="#" onclick="window.open('$SELF_URL?qindex=$index&TABLE_INFO=\2', null, 'toolbar=0,location=0,directories=0,status=1,menubar=0,'+'scrollbars=1,resizable=1,'+'width=640, height=600');">\2<\/a>/gi;
+    
+    $table->addrow("$show_query", "Ok");
   }
 
   print $table->show();
@@ -174,7 +211,7 @@ $pages_qs .= "&QUERY=$FORM{QUERY}";
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", "<b>$Sqlcmd->{TOTAL}</b>" ] ]
+                           rows       => [ [ "$_TOTAL:", $html->b($Sqlcmd->{TOTAL}) ] ]
                         } );
 
   print $table->show();
@@ -378,6 +415,15 @@ my %COLUMN_TYPES = (
 	                          METHOD  => 'GET'
                           });
 
+
+  $Sqlcmd->query($db, "SHOW CREATE TABLE $FORM{TABLE_INFO}");
+  $table = $html->table({ width        => '100%',
+                          caption      => 'SQL Dump',
+                          border       => 1,
+                          rows         => [[ $html->pre($Sqlcmd->{list}->[0]->[1], { OUTPUT2RETURN => 1 }) ]]
+                        });
+
+  print $table->show();
 }
 
 

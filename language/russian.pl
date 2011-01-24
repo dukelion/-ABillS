@@ -35,6 +35,7 @@ $_REGISTRATION='Регистрация';
 $_CARD_SERVICE='Карт сервис';
 $_COMPANY='Компании';
 $_GROUP='Группа';
+$_PROCESSING='Обрабатывается';
 $_RETURN_TO_START_PAGE='Возврат на стртовую страницу';
 $_UPLIMIT='Предупреждение';
 $_TAX_INVOICE='Налоговая накладная';

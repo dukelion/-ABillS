@@ -19,7 +19,7 @@ use Tariffs;
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $payments = Payments->new($db, $admin, \%conf);
 my $Cards    = Cards->new($db, $admin, \%conf);
-my @status   = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED, '_PROCESSING');
+my @status   = ($_ENABLE, $_DISABLE, $_USED, $_DELETED, $_RETURNED, "$_PROCESSING");
 my @status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#0000FF', '#808080', '#FF8000', '#008040');
 
 $conf{CARDS_PIN_SYMBOLS}='0123456789' if (! $conf{CARDS_PIN_SYMBOLS});
@@ -59,8 +59,8 @@ sub cards_card_info {
 #
 #**********************************************************
 sub cards_main {
-  if ($Cards::VERSION < 5.22) {
-  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.22 or higher. http://abills.net.ua/");
+  if ($Cards::VERSION < 5.25) {
+  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.25 or higher. http://abills.net.ua/");
   	return 0;
    }
 
@@ -689,6 +689,9 @@ sub cards_user_payment () {
 	if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_OLDSTYLE})) {
 		my $BRUTE_LIMIT = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
 	  my $brute       = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
+	  
+	  print "Content-Type: text/html\n\n";
+	  $Cards->{debug}=1;
     $Cards->cards_info({ %FORM });
    
     if ($Cards->{error}) {
@@ -716,17 +719,21 @@ sub cards_user_payment () {
 	    return 0;
      }	 
 	  elsif ($Cards->{STATUS} != 0) {
-	    $html->message('err', $_ERROR, "$status[$Cards->{STATUS}]");
+	    if ($Cards->{STATUS} == 5) {
+	    	$html->message('info', $_INFO, "$status[$Cards->{STATUS}]");	
+	     }
+	    else {
+	      $html->message('err', $_ERROR, "$status[$Cards->{STATUS}]");
+	     }
+
 	    return 0;
 	   }
   
  
    $user->info($LIST_PARAMS{UID});
    
-   $Cards->cards_change({ PIN      => "$FORM{PIN}", 
+   $Cards->cards_change({ ID       => "$Cards->{ID}", 
      	                    STATUS   => 5, 
-     	                    SERIAL   => $Cards->{SERIAL},
-     	                    NUMBER   => $Cards->{NUMBER},
      	                    UID      => $user->{UID}
      	                 });	
 
@@ -741,12 +748,9 @@ sub cards_user_payment () {
    
    if (! $payments->{errno}) {
      $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $Cards->{SUM} $_DEPOSIT: ". ($user->{DEPOSIT} + $Cards->{SUM}));
-     $Cards->cards_change({ PIN      => "$FORM{PIN}", 
+     $Cards->cards_change({ ID       => "$Cards->{ID}", 
      	                      STATUS   => 2, 
      	                      DATETIME => "$DATE $TIME-",
-     	                      SERIAL   => $Cards->{SERIAL},
-     	                      NUMBER   => $Cards->{NUMBER},
-     	                      UID      => $user->{UID}
      	                    });	
 
      #Make external script

@@ -372,6 +372,7 @@ $_ZIP='Індекс';
 $_MONTH_ALIGNMENT='Вирівнювання місяця';
 $_BANK='Банк';
 $_ADDRESS_BUILD='Дім';
+$_PROCESSING='Обробляється';
 $_ZAPED='Незакінчені';
 $_TAX_INVOICE='Податкова накладна';
 $_ADDRESS_STREET='Вулиця';
