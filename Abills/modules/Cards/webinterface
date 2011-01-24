@@ -118,7 +118,6 @@ if ($FORM{change}) {
 
   	if(in_array('Docs', \@MODULES) && $FORM{INVOICE}) {
   		 require "Abills/modules/Docs/webinterface";
-  		 $Cards->{debug}=1;
        my $list = $Cards->cards_list({ IDS => $FORM{IDS}, ROWS => 1000000 });
        my %CARDS_GROUPS = ();
        my %DILLERS_LIST = ();
@@ -690,8 +689,6 @@ sub cards_user_payment () {
 		my $BRUTE_LIMIT = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
 	  my $brute       = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
 	  
-	  print "Content-Type: text/html\n\n";
-	  $Cards->{debug}=1;
     $Cards->cards_info({ %FORM });
    
     if ($Cards->{error}) {
