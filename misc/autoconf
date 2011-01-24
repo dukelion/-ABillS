@@ -11,7 +11,7 @@ use vars  qw(%conf $db
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 2.6;
+my $VERSION = 3.0;
 my $config_file = '/usr/abills/libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
@@ -40,7 +40,7 @@ if(! -f $config_file ) {
   my %mk_config = ('dbhost'  => 'localhost',
      'dbname'    => 'abills',
      'dbuser'    => 'abills',
-     'dbpasswd'  => 'sqlpassword',
+     'dbpasswd'  => mk_unique_value(10),
      'dbcharset' => 'cp1251',
      'ADMIN_MAIL'=> '',
      'WEB_TITLE' => ''
