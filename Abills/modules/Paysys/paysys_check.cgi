@@ -140,7 +140,8 @@ if ($ip_num >= ip2int('213.186.115.164') && $ip_num <= ip2int('213.186.115.190')
   require "Ibox.pm";
 	exit;
  }
-elsif( $FORM{sender_phone} && $FORM{pay_way}) {
+#elsif( $FORM{sender_phone} && $FORM{pay_way}) {
+elsif( $FORM{signature} && $FORM{operation_xml}) {
   require "Liqpay.pm";
   liqpay_payments();
 	exit;

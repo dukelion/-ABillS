@@ -10,6 +10,7 @@ my $sessions = Voip_Sessions->new($db, \%conf);
 my $MODULE = ($module{$index}) ? $module{$index} : 'Voip';
 my $debug = 0;
 
+$conf{VOIP_ASTERISK_USERS}='' if (! $conf{VOIP_ASTERISK_USERS});
 
 
 #*******************************************************************
@@ -1281,8 +1282,6 @@ print $table->show();
 sub voip_online {
 
 my $nas = Nas->new($db, \%conf);
-
-
 my $message;
 
 
@@ -1498,7 +1497,7 @@ foreach my $nas_row (@$nas_list) {
 
     $table->addrow($html->button($line->[0], "index=11&UID=$line->[8]", { TITLE => "$user_info"}), 
       $line->[1], $line->[2],  $line->[3],  $line->[4], $line->[5], 
-     "(". $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'Ping'}). ")",
+     $html->button('P', "index=$index&ping=$line->[3]", { TITLE => 'Ping', BUTTON => 1 }),
      "$zap",
      "$hangup");
   }
@@ -1751,8 +1750,6 @@ print $html->form_main({ CONTENT => "$_LOGIN: " . $html->form_input('LOGIN_EXPR'
 	                       SUBMIT  => { show  => "$_SHOW" }
 	                      
 	                      });
-	                                                                   
-
 	                                                                   
 my $table = $html->table( { caption => "$_LOG",
 	                          width   => '100%',
@@ -2188,14 +2185,7 @@ sub voip_daily_fees {
 
  	  }
   }
-
-
-
-
 }
-
-
-
 
 
 #**********************************************************
@@ -2243,7 +2233,7 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
         if ($u->[10] eq '0000-00-00' and $d == 1) {
 #          print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
           if($line->[4] > 0 
-              || $conf{negative_deposit} eq 'yes'
+              || $conf{negative_deposit}
               || $u->[2] + $u->[3] > 0 ) {
             $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );  
            }
@@ -2291,8 +2281,11 @@ foreach my $line (@$list) {
   $USER_INFO{DEPOSIT}=$line->[4];
   $USER_INFO{CREDIT}=$line->[3];
   
-  my $email = ((! defined($line->[1])) || $line->[1] eq '') ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : "$line->[1]";
+  my $email = ((! defined($line->[1])) || $line->[1] eq '') ? (($conf{USERS_MAIL_DOMAIN}) ? "$line->[0]\@$conf{USERS_MAIL_DOMAIN}" : '') : "$line->[1]";
   
+  if ($email eq '') {
+  	next;
+   }
  
   $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
   $USER_INFO{LOGIN}, $USER_INFO{TP_ID}, $USER_INFO{TP_NAME},  $USER_INFO{DEPOSIT}, $USER_INFO{CREDIT});
