@@ -409,8 +409,8 @@ sub rt_billing {
   my ($RAD, $NAS)=@_;
 
   $self->query($db, "SELECT lupdated, UNIX_TIMESTAMP()-lupdated, 
-   if($RAD->{INBYTE} >= acct_input_octets, $RAD->{INBYTE} - acct_input_octets, acct_input_octets),
-   if($RAD->{OUTBYTE} >= acct_output_octets, $RAD->{OUTBYTE}  - acct_output_octets, acct_output_octets),
+   if($RAD->{INBYTE}   >= acct_input_octets, $RAD->{INBYTE} - acct_input_octets, acct_input_octets),
+   if($RAD->{OUTBYTE}  >= acct_output_octets, $RAD->{OUTBYTE}  - acct_output_octets, acct_output_octets),
    if($RAD->{INBYTE2}  >= ex_input_octets, $RAD->{INBYTE2}  - ex_input_octets, ex_input_octets),
    if($RAD->{OUTBYTE2} >= ex_output_octets, $RAD->{OUTBYTE2} - ex_output_octets, ex_output_octets),
    acct_session_id,
@@ -452,10 +452,15 @@ sub rt_billing {
                                                 $RAD->{INTERIUM_SESSION_START}, 
                                                 $RAD->{INTERIUM_ACCT_SESSION_TIME}, 
                                                 {  
-                                                	 OUTBYTE  => $RAD->{OUTBYTE} - $RAD->{INTERIUM_OUTBYTE},
-                                                   INBYTE   => $RAD->{INBYTE} - $RAD->{INTERIUM_INBYTE},
-                                                   OUTBYTE2 => $RAD->{OUTBYTE2} - $RAD->{INTERIUM_OUTBYTE1},
-                                                   INBYTE2  => $RAD->{INBYTE2} - $RAD->{INTERIUM_INBYTE1},
+                                                	 #OUTBYTE  => $RAD->{OUTBYTE}  - $RAD->{INTERIUM_OUTBYTE},
+                                                   #INBYTE   => $RAD->{INBYTE}   - $RAD->{INTERIUM_INBYTE},
+                                                   #OUTBYTE2 => $RAD->{OUTBYTE2} - $RAD->{INTERIUM_OUTBYTE1},
+                                                   #INBYTE2  => $RAD->{INBYTE2}  - $RAD->{INTERIUM_INBYTE1},
+
+                                                	 OUTBYTE  => $RAD->{INTERIUM_OUTBYTE},
+                                                   INBYTE   => $RAD->{INTERIUM_INBYTE},
+                                                   OUTBYTE2 => $RAD->{INTERIUM_OUTBYTE1},
+                                                   INBYTE2  => $RAD->{INTERIUM_INBYTE1},
 
                                                 	 INTERIUM_OUTBYTE  => $RAD->{INTERIUM_OUTBYTE},
                                                    INTERIUM_INBYTE   => $RAD->{INTERIUM_INBYTE},
