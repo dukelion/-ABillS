@@ -249,13 +249,11 @@ elsif($FORM{del}) {
    $tariffs->{LNG_ACTION}=$_CHANGE;
   }
 
-my $tp_index = $index + 6;
-
 $tariffs->{UID}     = $attr->{USER}->{UID};
 $tariffs->{m}       = $m;
 $tariffs->{TP_ID}   = $Dv->{TP_NUM};
 
-$tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$Dv->{TP_NUM}", { TITLE => "$_TP", BUTTON => 1 });
+$tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=". get_function_index('dv_tp') ."&TP_ID=$Dv->{TP_NUM}", { TITLE => "$_TP", BUTTON => 1 });
 print $html->tpl_show(templates('form_chg_tp'), $tariffs);
 }
 
@@ -304,6 +302,23 @@ sub dv_users_list {
  	                                            { OUTPUT2RETURN => 1 })    });
 
 
+my $i=0;
+my $users_status = 0;
+foreach my $name ( @service_status ) {
+	if (defined($FORM{STATUS}) && $FORM{STATUS} == $i && $FORM{STATUS} ne '') {
+    $LIST_PARAMS{STATUS}=$FORM{STATUS};
+    $pages_qs   .= "&STATUS=$i";
+    $status_bar .= ' '.$html->b($name);
+    $users_status = $i;
+	 }
+	else {
+		my $qs = $pages_qs;
+		$qs =~ s/\&STATUS=\d//;
+		$status_bar .= ' '.  $html->button($html->color_mark($name, $service_status_colors[$i]), "index=$index&STATUS=$i$qs");
+	 }
+  $i++;
+}
+
  print $html->letters_list({ pages_qs => $pages_qs  }); 
 
  if ($FORM{letter}) {
@@ -343,6 +358,8 @@ elsif ($Dv->{TOTAL} == 1) {
 	return 0;
 }
 
+
+
 my $table = $html->table( { width      => '100%',
                             caption    => "Internet - $_USERS",
                             border     => 1,
@@ -350,7 +367,8 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $Dv->{TOTAL},
-                            ID         => 'INTERNET_USERS_LIST'
+                            ID         => 'INTERNET_USERS_LIST',
+                            header     => $status_bar
                            });
 
 foreach my $line (@$list) {
@@ -377,10 +395,10 @@ foreach my $line (@$list) {
 print $table->show();
 
 if (! $admin->{MAX_ROWS}) {
-  $table = $html->table( { width      => '100%',
-                         cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($Dv->{TOTAL}) ] ]
-                        } );
+  $table = $html->table({ width      => '100%',
+                          cols_align => ['right', 'right'],
+                          rows       => [ [ "$_TOTAL:", $html->b($Dv->{TOTAL}) ] ]
+                        });
   print $table->show();
  }
 
@@ -534,7 +552,6 @@ sub dv_user {
 	  $Dv->{LNG_ACTION}=$_ACTIVATE;
 	 }
 	else {
-		
     if ($FORM{pay_to}) {
   	  dv_pay_to({ Dv => $Dv });
   	  return 0;
@@ -542,7 +559,7 @@ sub dv_user {
 		
 	  $Dv->{ACTION}='set';
 	  $Dv->{LNG_ACTION}=$_CHANGE;
-	  $Dv->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. ($index + 1), { BUTTON => 1 });
+	  $Dv->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. get_function_index('dv_chg_tp'), { BUTTON => 1 });
 
     # Get next payment period
     if ($Dv->{MONTH_ABON} > 0 &&  ! $Dv->{STATUS} && ! $users->{DISABLE} &&
@@ -579,14 +596,20 @@ sub dv_user {
       
     $Dv->{NETMASK_COLOR} = ($Dv->{NETMASK} ne '255.255.255.255') ? $_COLORS[0] : $_COLORS[1];
     $Dv->{SHEDULE}=$html->button("$_SHEDULE", "UID=$FORM{UID}&Shedule=status&index=". ($index+4), { BUTTON => 1 });
-    
+
     my $list = $sessions->online({ UID => $Dv->{UID} });
+    
     if ($sessions->{TOTAL} > 0) {
+    	 my $online_index = get_function_index('dv_online');
+    	
        my $table = $html->table( { width      => '450',
                                    caption    => "Online",
                                   } );
        foreach my $line (@$list) {
-       	 $table->addrow(int2ip($line->[3]), $line->[4], int2byte($line->[5]), int2byte($line->[6]), "$_NAS: $line->[18]");
+         my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
+       	 $table->addrow(int2ip($line->[3]), $line->[4], int2byte($line->[5]), int2byte($line->[6]), "$_NAS: $line->[18]",
+       	 $html->button('Z', "index=$online_index&zap=$line->[18]+$line->[20]+$line->[21]".$pages_qs, { TITLE => 'Zap', BUTTON => 1 }),
+       	 $html->button('H', "index=$online_index&FRAMED_IP_ADDRESS=$line->[10]&hangup=$line->[18]+$line->[20]+$line->[21]+$line->[19]&$pages_qs", { TITLE => 'Hangup', BUTTON => 1 }));
         }
 
       $Dv->{ONLINE_TABLE}=$table->show();
@@ -3015,17 +3038,18 @@ if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $user->{DISABLE} &&
     }
    else {
      my ($Y, $M, $D)=split(/-/, $DATE, 3);
-     $M++;
-     if ($M == 13) {
-       $M = 1;
-       $Y++;
-      }
 
-     if ($conf{START_PERIOD_DAY}) {
+     if ($conf{START_PERIOD_DAY} && $conf{START_PERIOD_DAY} > $D) {
        $D=$conf{START_PERIOD_DAY}; 
       }
      else {
+       $M++;
        $D='01';
+      }
+
+     if ($M == 13) {
+       $M = 1;
+       $Y++;
       }
 
      $Dv->{ABON_DATE} = sprintf("%d-%02d-%02d", $Y,$M,$D);
@@ -3065,16 +3089,22 @@ if ($FORM{set}) {
      	 	 ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 30* 86400) )); 
      	  }
      	 else {
-         $M++;
-         if ($M == 13) {
-           $M = 1;
-           $Y++;
+         if ($conf{START_PERIOD_DAY} && $conf{START_PERIOD_DAY} > $D) {
+           $D=$conf{START_PERIOD_DAY}; 
           }
-         $D='01';
+         else {
+           $M++;
+           if ($M == 13) {
+             $M = 1;
+             $Y++;
+            }
+           $D='01';
+         }
         }
       }
 
      $M = sprintf("%02d", $M);
+     $D = sprintf("%02d", $D);
      my $seltime = POSIX::mktime(0, 0, 0, $D, ($M-1), ($Y - 1900));
 
     if ($seltime > time()) {
@@ -4669,9 +4699,11 @@ sub dv_users_warning_messages {
    return 0;
   }
 
+ my $debug = $attr->{DEBUG} || 0;
  my $debug_output = '';
+ $debug_output .= "DV: Daily warning messages\n" if ($debug > 1);
 
- my $debug       = $attr->{DEBUG} || 0;
+ 
  my %LIST_PARAMS = (USERS_WARNINGS => 1 );
 $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN}); 
 my $list            = $Dv->list( { %LIST_PARAMS } );
@@ -4693,12 +4725,15 @@ foreach my $line (@$list) {
 
   if ($email eq '') {  next; }
 
-  $ADMIN_REPORT{USERS_WARNINGS} .= sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
+  my $info = sprintf ("%-14s| %4d|%-20s| %9.4f| %8.2f|\n", 
     $USER_INFO{LOGIN}, 
     $USER_INFO{TP_ID}, 
     $USER_INFO{TP_NAME},  
     $USER_INFO{DEPOSIT}, 
     $USER_INFO{CREDIT});
+
+  $ADMIN_REPORT{USERS_WARNINGS} .=  $info;
+  $debug_output .= $info if ($debug > 3);
   
   if ($debug < 5) {
     my $message = $html->tpl_show(_include('dv_users_warning_messages', 'Dv'), \%USER_INFO, { OUTPUT2RETURN => 1 });
@@ -5418,8 +5453,11 @@ else {
 	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { OUTPUT2RETURN => 1, ID => 'FORM_PASSWORD' }),
 	            "3:$_INFO::"     => $html->tpl_show(templates('form_pi'), \%pi_form,            { OUTPUT2RETURN => 1, ID => 'FORM_PI'       }), 
 	            "4:Internet::"   => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults,    { OUTPUT2RETURN => 1, ID => 'DV_USER'       }),
- 	            "5:$_PAYMENTS::" => $html->tpl_show(templates('form_payments'), $payments,      { OUTPUT2RETURN => 1, ID => 'FORM_PAYMENTS' }),
              );
+ 
+ if($permissions{1} & $permissions{1}{0}) {
+ 	 $tpls{"5:$_PAYMENTS::"} = $html->tpl_show(templates('form_payments'), $payments,      { OUTPUT2RETURN => 1, ID => 'FORM_PAYMENTS' });
+  }
  
  #If mail module added
  if (in_array('Mail', \@MODULES)) {

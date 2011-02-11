@@ -375,12 +375,22 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     		  NETS_ID   => undef,
     		  NETS      => \@nets_arr 
     		 });
-     }
+    }
     #Linux shaper
     elsif ($OS eq 'Linux') {
-      my $tc = "/sbin/tc";
-      my $flowid = $speed_in > 0 ? sprintf("%x",$fw_num_out) : '';
-      my $drop = $speed_out > 0 ? "police rate $speed_out"."Kibit burst 12k drop" : '';
+    	my $tc = '/sbin/tc';
+      #my $flowid ) ($speed_in > 0) ? sprintf("%x",$fw_num_out) : '';
+
+      my $prefix=10000;
+      my $flowid = ($speed_in > 0) ? sprintf("%x", $user->{UID} + $prefix * 2) : '';
+      my $drop   = $speed_out > 0 ? "police rate $speed_out"."Kbit burst 12k drop" : '';
+
+      if ($ARGV[0] eq 'pppd') {
+        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE ingress > /dev/null";
+        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE handle ffff: ingress > /dev/null";
+        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root    > /dev/null";
+        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE root handle 1: htb default 20 r2q 1";
+       }
 
       push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent 1: prio $fw_num_out &>/dev/null";
       push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent ffff: prio $fw_num_in &>/dev/null";
@@ -388,14 +398,16 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
       if ($flowid) {
         push @FW_ACTIONS, "$tc class del dev $INTERFACE parent 1: classid 1:$flowid &>/dev/null";
         if ($ACTION eq 'up') {
-          push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:$flowid htb rate $speed_in"."Kibit";
+          push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:$flowid htb rate $speed_in"."Kbit";
          }
        }
  
       if ($ACTION eq 'up') {
         foreach my $ip_full (@nets_arr) {
          if ($ip_full =~ /([!]{0,1})(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/{0,1}(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,2}):{0,1}(\S{0,200})/ ) {
-             push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent 1: prio $fw_num_out u32 match ip src $2/$3 match ip dst $CLIENT_IP flowid 1:$flowid";
+             my $ip = $2;
+             my $mask = $3;
+             push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent 1: prio $fw_num_out u32 match ip src $ip/$mask match ip dst $CLIENT_IP flowid 1:$flowid";
              push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLIENT_IP match ip dst $2/$3 $drop flowid 1:";
            }
          }

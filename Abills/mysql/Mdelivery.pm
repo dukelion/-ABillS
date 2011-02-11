@@ -181,7 +181,7 @@ sub user_list_add {
   my ($attr) = @_;
 
   my @WHERE_RULES = ();
-  my $JOIN_TABLES = '';
+  my $EXT_TABLES = '';
 
   if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
     push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', "u.disable") };  
@@ -193,32 +193,55 @@ sub user_list_add {
 
   if (defined($attr->{DV_STATUS}) && $attr->{DV_STATUS} ne '') {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{DV_STATUS}, 'INT', "dv.disable") };  
-  	$JOIN_TABLES = "LEFT JOIN dv_main dv ON (u.uid=dv.uid)";
+  	$EXT_TABLES = "LEFT JOIN dv_main dv ON (u.uid=dv.uid)";
    }
 
   if ($attr->{TP_ID}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', "dv.tp_id") };  
-  	$JOIN_TABLES = "LEFT JOIN dv_main dv ON (u.uid=dv.uid)";
+  	$EXT_TABLES = "LEFT JOIN dv_main dv ON (u.uid=dv.uid)";
    }
 
- if ($attr->{ADDRESS_STREET}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street') };
-  }
+ if ($CONF->{ADDRESS_REGISTER}) {
+   if ($attr->{LOCATION_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location') };
+    }
+   elsif ($attr->{STREET_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{STREET_ID}, 'INT', 'builds.street_id', { EXT_FIELD => 'streets.name' }) };
+     $EXT_TABLES .= "INNER JOIN builds ON (builds.id=pi.location_id)";
+    }
+   elsif ($attr->{DISTRICT_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name' }) };
+     $EXT_TABLES .= "INNER JOIN builds ON (builds.id=pi.location_id)
+      INNER JOIN streets ON (streets.id=builds.street_id)";
+    }
 
- if ($attr->{ADDRESS_BUILD}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build') };
-  }
 
- if ($attr->{ADDRESS_FLAT}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat') };
+   elsif ($attr->{STREET_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{STREET_ID}, 'STR', 'pi.address_street') };
+    }
+   elsif ($attr->{DISTRICT_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'STR', 'pi.address_street') };
+    }
   }
+ else {
+   if ($attr->{ADDRESS_STREET}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street') };
+    }
 
+   if ($attr->{ADDRESS_BUILD}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build') };
+    }
+
+   if ($attr->{ADDRESS_FLAT}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat') };
+    }
+  }
 
   $WHERE = ($#WHERE_RULES>-1) ? ' WHERE '. join(' AND ', @WHERE_RULES) : '';  
 
   $self->query($db, "INSERT INTO mdelivery_users (uid, mdelivery_id) SELECT u.uid, $attr->{MDELIVERY_ID} FROM users u
      LEFT JOIN users_pi pi ON (u.uid=pi.uid)
-     $JOIN_TABLES
+     $EXT_TABLES
      $WHERE
      ORDER BY $SORT;");
 

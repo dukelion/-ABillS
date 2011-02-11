@@ -351,7 +351,7 @@ sub msgs_admin_add {
   	                                                     MONTHES   => \@MONTHES, 
   	                                                     FORM_NAME => ($FORM{DV_WIZARD})  ? 'add_message' : 'user_form', 
   	                                                     WEEK_DAYS => \@WEEKDAYS });
-  $Msgs->{PLAN_TIME}   = "$TIME";
+  #$Msgs->{PLAN_TIME}   = "";
   $Msgs->{DISPATCH_SEL}= $html->form_select('DISPATCH_ID', 
                                           {
  	                                          SELECTED          => $Msgs->{DISPATCH_ID} || 0,

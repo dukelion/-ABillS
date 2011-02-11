@@ -24,6 +24,34 @@
 
 ===Linux===
 
+
+
+=====ABillS - Установка=====
+Загрузить пакет можно по адресу [http://sourceforge.net/projects/abills/]\\
+
+  # tar zxvf abills-0.5x.tgz
+  # cp -Rf abills /usr/
+  # cp /usr/abills/libexec/config.pl.default /usr/abills/libexec/config.pl
+
+Правим конфигурационный файл системы\\
+**/usr/abills/libexec/config.pl** \\
+
+\\
+  #DB configuration 
+  $conf{dbhost}='localhost';
+  $conf{dbname}='abills'; 
+  $conf{dbuser}='abills';
+  $conf{dbpasswd}='sqlpassword'; 
+  $conf{ADMIN_MAIL}='info@your.domain'; 
+  $conf{USERS_MAIL_DOMAIN}="your.domain";
+  # используется для шифрования паролей администраторов и пользователей.
+  $conf{secretkey}="test12345678901234567890"; 
+\\
+
+**При изменении значения в $conf{secretkey} поменяйте его также в файле abills/abills.sql **
+
+=====Настройка сопутствующего ПО=====
+
 =====MySQL=====
 Загрузить пакет MySQL можно по адресу [http://www.mysql.com]\\
 Пример настройки для MySQL версии 5.1
@@ -334,29 +362,7 @@
    radiusd_enable="YES"
 
 
-=====ABillS=====
-Загрузить пакет можно по адресу [http://sourceforge.net/projects/abills/]\\
-
-  # tar zxvf abills-0.3x.tgz
-  # cp -Rf abills /usr/
-  # cp /usr/abills/libexec/config.pl.default /usr/abills/libexec/config.pl
-
-Правим конфигурационный файл системы\\
-**/usr/abills/libexec/config.pl** \\
-
-\\
-  #DB configuration 
-  $conf{dbhost}='localhost';
-  $conf{dbname}='abills'; 
-  $conf{dbuser}='abills';
-  $conf{dbpasswd}='sqlpassword'; 
-  $conf{ADMIN_MAIL}='info@your.domain'; 
-  $conf{USERS_MAIL_DOMAIN}="your.domain";
-  # используется для шифрования паролей администраторов и пользователей.
-  $conf{secretkey}="test12345678901234567890"; 
-\\
-
-**При изменении значения в $conf{secretkey} поменяйте его также в файле abills.sql **
+=====ABillS - Настройка=====
 
 Вносим в ''cron'' периодические процессы
 **/etc/crontab**
@@ -430,12 +436,12 @@
 **Проверка**\\
 Для проверки правильно ли настроен сервис нужно запустить утилиту radtest указав логин и пароль существующего пользователя. \\ 
 Логин: test Пароль: 123456
-  # radtest testuser testpassword 127.0.0.1:1812 0 radsecret 0 127.0.0.1
+  # radtest test 123456 127.0.0.1:1812 0 radsecret 0 127.0.0.1
 
 Если всё правильно настроено, в журнале ошибок **/Отчёт/Internet/Ошибка/**  должна появиться строка \\
 
  
-  2005-02-23 12:55:55 LOG_INFO: AUTH [testuser] NAS: 1 (xxx.xxx.xxx.xxx) GT: 0.03799
+  2005-02-23 12:55:55 LOG_INFO: AUTH [test] NAS: 1 (xxx.xxx.xxx.xxx) GT: 0.03799
 
 Если Вы увидите другие ошибки смотрите в [[abills:docs:modules:dv:ru#%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D0%B8|список ошибок]]. Если журнал ошибок пуст значит неправильно настроено взаимодействие с RADIUS сервером.
 

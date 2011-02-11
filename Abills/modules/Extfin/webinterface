@@ -511,8 +511,8 @@ $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
-    $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[11]");
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1  }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[11]", { BUTTON => 1  });
    }
 
   $table->addrow($html->b($line->[0]), 
@@ -539,9 +539,6 @@ $table = $html->table( { width      => '100%',
                                            "$_SUM: ", $html->b($Extfin->{SUM})  ] ]
                      } );
 print $table->show();
-
-	
-	
 }
 
 #**********************************************************
@@ -611,13 +608,14 @@ my $table = $html->table( { width      => '100%',
                             border     => 1,
                             title      => ['#', $_NAME,  $_PERIOD, '-', '-'],
                             cols_align => ['right', 'left', 'center', 'center:noprint', 'center:noprint'],
+                            ID         => 'ID'
                          } );
 
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
-    $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]");
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]", { BUTTON => 1 });
    }
 
   $table->addrow($html->b($line->[0]), 
@@ -674,8 +672,6 @@ for(my $i=1; $i<13; $i++) {
 	my $m = sprintf("%02.d", $i);
 	push @MONTH_ARR, sprintf("%d-%.2d", $Y, $m);
 }
-
-
 
 
 if (! $FORM{xml}) {
@@ -829,8 +825,8 @@ if (defined($FORM{DATE}) || defined($FORM{PAYMENT_METHOD})) {
   my ($delete, $change);
   foreach my $line (@$list) {
     if ($permissions{4}{1}) {
-      $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
-      $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[11]");
+      $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
+      $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[11]", { BUTTON => 1 });
      }
 
     $table_sessions->addrow($html->b($line->[0]), 
@@ -904,7 +900,7 @@ else {
         ];
        }
       elsif($FORM{TYPE} eq 'PAYMENT_TYPE') {
-     	  $firth_field = $html->button($CAPTIONS_HASH{"$line->[0]:$line->[0]"}, "index=$index&PAYMENT_TYPE=$line->[0]");   	 	
+     	  $firth_field = $html->button($CAPTIONS_HASH{"$line->[0]:$line->[0]"}, "index=$index&PAYMENT_TYPE=$line->[0]");
        }
       elsif($FORM{TYPE} eq 'ADMINS') {
      	  $firth_field = $line->[0];   	 	
@@ -1098,8 +1094,8 @@ if (defined($FORM{DATE})) {
   my ($delete, $change);
   foreach my $line (@$list) {
     if ($permissions{4}{1}) {
-      $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
-      $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[10]");
+      $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
+      $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]&UID=$line->[10]", { BUTTON => 1  });
      }
 
     $table_sessions->addrow($html->b($line->[0]), 

@@ -5,7 +5,7 @@
 # /etc/crontab
 # 12  9    *   *  *    root   /usr/abills/misc/mysql_clean.sh
 
-VERSION=0.5;
+VERSION=0.6;
 MYSQL_BIN_PREFIX='*-bin.';
 MYSQL=`which mysql`;
 
@@ -37,7 +37,7 @@ PASSWORD=
 MYSQL_VERSION=`${MYSQL} -D mysql -u ${USER} --password=${PASSWORD} -e "SELECT version();"`;
 MYSQL_VERSION=`echo ${MYSQL_VERSION} | sed   's/version() \(.*\)\..*/\1/g'`;
 
-if [ $MYSQL_VERSION = 5.1 ]; then
+if [ w$MYSQL_VERSION = w5.1 ]; then
   #Rotate mysql general_log
   MYSQL_CMD="USE mysql;
    CREATE TABLE IF NOT EXISTS general_log2 LIKE general_log;

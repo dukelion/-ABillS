@@ -311,7 +311,7 @@ sub dhcphosts_monitor {
                      $dhcp_hash->{$line->[2]}{state},
                      $dhcp_hash->{$line->[2]}{remote_id},
                      $dhcp_hash->{$line->[2]}{circuit_id},
-                     "(". $html->button('P', "index=$index&ping=$line->[11]", { TITLE => 'ping' }) .")",
+                     $html->button('P', "index=$index&ping=$line->[11]", { TITLE => 'ping', BUTTON => 1 }),
                      );
 
      delete $dhcp_hash->{$line->[2]};
@@ -335,8 +335,7 @@ sub dhcphosts_monitor {
                      $dhcp_hash->{$ip}{state},
                      $dhcp_hash->{$ip}{remote_id},
                      $dhcp_hash->{$ip}{circuit_id},
-
-                     "(". $html->button('P', "index=$index&ping=$ip", { TITLE => 'ping' }) .")",
+                     $html->button('P', "index=$index&ping=$ip", { TITLE => 'ping', BUTTON => 1 }),
 
                      );
   }
@@ -524,12 +523,11 @@ function CheckAllINBOX() {
 	    $line->[5],
 	    $status[$line->[6]],
 	    ($line->[7]) ? "$_SUBNET: $line->[7]" : "$_NETWORK",
-	    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }),
-	    $html->button($_CHANGE, "index=$index&chg=$line->[0]"),
-	    $html->button("Routes", "index=".($index+1)."&NET_ID=$line->[0]") 	    	    
+	    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }),
+	    $html->button($_CHANGE, "index=$index&chg=$line->[0]", { BUTTON => 1 }),
+	    $html->button("Routes", "index=".($index+1)."&NET_ID=$line->[0]", { BUTTON => 1 })
      );
     };
-
 
    print $html->form_main({ CONTENT => $table->show(),
 	                          HIDDEN  => { index  => $index },
@@ -537,7 +535,6 @@ function CheckAllINBOX() {
                             NAME    => 'dhcp_list'
                           });
 
-  
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
                            rows       => [ [ "$_TOTAL:", $html->b($Dhcphosts->{TOTAL}) ] ]

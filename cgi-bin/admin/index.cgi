@@ -1297,10 +1297,33 @@ sub user_pi {
     	$input = $html->form_input($field_id, 1, { TYPE  => 'checkbox',  
     		                                         STATE => ($user_pi->{INFO_FIELDS_VAL}->[$i]) ? 1 : undef  });
      }
+    #'ICQ', 
+    elsif ($type == 8) {
+    	$input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]", { SIZE => 10 });
+    	if ($user_pi->{INFO_FIELDS_VAL}->[$i] ne '') {
+    		#
+    	  $input .= " <a href=\"http://www.icq.com/people/about_me.php?uin=$user_pi->{INFO_FIELDS_VAL}->[$i]\"><img  src=\"http://status.icq.com/online.gif?icq=$user_pi->{INFO_FIELDS_VAL}->[$i]&img=21\" border=0></a>";
+    	 }
+     }
+    #'URL', 
+    elsif ($type == 9) {
+    	$input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]") . $html->button("$_GO", "", { 
+    		 GLOBAL_URL => "$user_pi->{INFO_FIELDS_VAL}->[$i]",
+    		 ex_params  => ' target=new', 
+    		 BUTTON     =>  1 });
+     }
+    #'PHONE', 
+    #'E-Mail'
+    #'SKYPE'
+    elsif ($type == 12) {
+    	$input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]", { SIZE => 20 }) . qq{  <script type="text/javascript" src="http://download.skype.com/share/skypebuttons/js/skypeCheck.js"></script>  <a href="skype:abills.support?call"><img src="http://mystatus.skype.com/smallclassic/$user_pi->{INFO_FIELDS_VAL}->[$i]" style="border: none;" width="114" height="20"/></a>};
+     }
     else {
     	$input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]", { SIZE => 40 });
      }
-  	$user_pi->{INFO_FIELDS}.= "<tr><td>$name:</td><td>$input</td></tr>\n";
+
+
+  	$user_pi->{INFO_FIELDS}.= "<tr><td>$name:</td><td valign=center>$input</td></tr>\n";
     $i++;
    }
 
@@ -1637,21 +1660,21 @@ if (! $permissions{0}{2}) {
 }
 
 if ($FORM{COMPANY_ID}) {
-  print '<p>'. $html->b("$_COMPANY:") .  $FORM{COMPANY_ID}. "</p>\n";
+  print $html->br($html->b("$_COMPANY:") .  $FORM{COMPANY_ID});
   $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
   $LIST_PARAMS{COMPANY_ID} = $FORM{COMPANY_ID};
  }  
 
-if ($FORM{debs}) {
-  print "<p>$_DEBETERS</p>\n";
-  $pages_qs .= "&debs=$FORM{debs}";
-  $LIST_PARAMS{DEBETERS} = 1;
- }  
+#if ($FORM{debs}) {
+#  print $html->br($_DEBETERS);
+#  $pages_qs .= "&debs=$FORM{debs}";
+#  $LIST_PARAMS{DEBETERS} = 1;
+# }  
 
- if ($FORM{letter}) {
-   $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
-   $pages_qs .= "&letter=$FORM{letter}";
-  } 
+if ($FORM{letter}) {
+  $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
+  $pages_qs .= "&letter=$FORM{letter}";
+ } 
 
 my @statuses = ($_ALL, $_DEBETORS, $_DISABLE, $_EXPIRE);
 if ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8}) {
@@ -1681,8 +1704,9 @@ foreach my $name ( @statuses ) {
     $users_status = $i;
 	 }
 	else {
-		$pages_qs =~ s/\&USERS_STATUS=\d//;
-	  $status_bar .= ' '.$html->button("$name", "index=$index&USERS_STATUS=$i$pages_qs");
+		my $qs = $pages_qs;
+		$qs =~ s/\&USERS_STATUS=\d//;
+	  $status_bar .= ' '.$html->button("$name", "index=$index&USERS_STATUS=$i$qs");
 	 }
   $i++;
 }
@@ -1792,6 +1816,9 @@ foreach my $line (@$list) {
   for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++){
     if ($conf{EXT_BILL_ACCOUNT} && $i == 0) {
       $line->[5] = ($line->[5] < 0) ? $html->color_mark($line->[5], $_COLORS[6]) : $line->[5];
+     }
+    elsif ($EX_TITLE_ARR[$i] eq 'u.deleted') {
+    	$line->[5+$i]=$html->color_mark($bool_vals[$line->[5+$i]], ($line->[5+$i]==1) ? $state_colors[$line->[5+$i]] : '');
      }
     push @fields_array, $table->td($line->[5+$i]);
    }
@@ -3294,7 +3321,6 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
   if (! $nas->{errno}) {
     $html->message('info', $_INFO, "$_DELETED [$FORM{del}]");
    }
-
 }
 
 if ($nas->{errno}) {
@@ -3365,9 +3391,28 @@ if ($nas->{errno}) {
  	                               });
 
   $nas->{NAS_DISABLE}   = ($nas->{NAS_DISABLE} > 0) ? ' checked' : '';
-  $nas->{ADDRESS_TPL}   = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1 });
-  $nas->{NAS_GROUPS_SEL}= sel_nas_groups({ GID => $nas->{GID} });
 
+    if ($conf{ADDRESS_REGISTER}) {
+     	$nas->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $nas, { OUTPUT2RETURN => 1 });
+     }
+    else {
+  	  my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
+  	  my @countries_arr  = split(/\n/, $countries);
+      my %countries_hash = ();
+      foreach my $c (@countries_arr) {
+    	  my ($id, $name)=split(/:/, $c);
+    	  $countries_hash{int($id)}=$name;
+       }
+      $nas->{COUNTRY_SEL} = $html->form_select('COUNTRY_ID', 
+                                { SELECTED   => $FORM{COUNTRY_ID},
+ 	                                SEL_HASH   => {'' => '', %countries_hash },
+ 	                                NO_ID      => 1
+ 	                               });
+
+      $nas->{ADDRESS_TPL}   = $html->tpl_show(templates('form_address'), $nas, { OUTPUT2RETURN => 1 });
+    }
+
+  $nas->{NAS_GROUPS_SEL}= sel_nas_groups({ GID => $nas->{GID} });
   $html->tpl_show(templates('form_nas'), $nas);
 
 
@@ -5629,7 +5674,6 @@ print $table->show();
 #**********************************************************
 sub form_templates {
   
-  my $safe_filename_characters = "a-zA-Z0-9_.-"; 
   my $sys_templates = '../../Abills/modules';
   my $main_templates_dir = '../../Abills/main_tpls/';
   my $template = '';
@@ -5751,19 +5795,7 @@ elsif ($FORM{change}) {
   $info{TEMPLATE} =~ s/\\\@/\@/g;
  }
 elsif ($FORM{FILE_UPLOAD}) {
-  $FORM{FILE_UPLOAD}{filename} =~ tr/ /_/;
-  $FORM{FILE_UPLOAD}{filename} =~ s/[^$safe_filename_characters]//g; 
-  
-  if (-f "$conf{TPL_DIR}/$FORM{FILE_UPLOAD}{filename}") {
-    $html->message('err', $_ERROR, "$_EXIST '$FORM{FILE_UPLOAD}{filename}'");
-   }
-  else {
-    open(FILE, ">$conf{TPL_DIR}/$FORM{FILE_UPLOAD}{filename}") or $html->message('err', $_ERROR, "$_ERROR  '$!'");
-      binmode FILE;
-     	print FILE $FORM{FILE_UPLOAD}{Contents};
-    close(FILE);
-    $html->message('info', $_INFO, "$_ADDED: '$FORM{FILE_UPLOAD}{filename}' $_SIZE: $FORM{FILE_UPLOAD}{Size}");
-   }
+	upload_file($FORM{FILE_UPLOAD});
  }
 elsif ($FORM{file_del} && $FORM{is_js_confirmed} ) {
   $FORM{file_del} =~ s/ |\///g;
@@ -6607,7 +6639,7 @@ sub form_info_fields {
    }
 
 
-  my @fields_types = ('String', 'Integer', $_LIST, $_TEXT, 'Flag', 'Blob', 'PCRE', 'AUTOINCREMENT');
+  my @fields_types = ('String', 'Integer', $_LIST, $_TEXT, 'Flag', 'Blob', 'PCRE', 'AUTOINCREMENT', 'ICQ', 'URL', 'PHONE', 'E-Mail', 'Skype');
 
   my $fields_type_sel = $html->form_select('FIELD_TYPE', 
                                 { SELECTED   => $FORM{field_type},
@@ -6687,7 +6719,7 @@ sub form_info_fields {
    }
 
   $table->addrow($html->form_input('NAME', ''),  
-      $html->form_input('FIELD_ID', ''),  
+      '_'.$html->form_input('FIELD_ID', ''),  
       $fields_type_sel, 
       $html->form_input('POSITION', 0),  
       $html->form_input('COMPANY_ADD', $_ADD, {  TYPE => 'SUBMIT' })
@@ -6825,6 +6857,15 @@ if ($FORM{add}) {
 	$users->district_add({ %FORM });
 
   if (! $users->{errno}) {
+    if ($FORM{FILE_UPLOAD}) {
+    	my $name = '';
+    	if ($FORM{FILE_UPLOAD}{filename} =~ /\.(\S+)$/i) {
+    		$name = $users->{INSERT_ID}.'.'.lc($1);
+    	 }
+
+    	upload_file($FORM{FILE_UPLOAD}, { PREFIX => 'maps', FILE_NAME => $name, REWRITE => 1 });
+     }
+
     $html->message('info', $_DISTRICT, "$_ADDED");
    }
 }
@@ -6833,6 +6874,14 @@ elsif($FORM{change}) {
 
   if (! $users->{errno}) {
     $html->message('info', $_DISTRICTS, "$_CHANGED");
+    if ($FORM{FILE_UPLOAD}) {
+    	my $name = '';
+    	if ($FORM{FILE_UPLOAD}{filename} =~ /\.([a-z0-9]+)$/i) {
+    		$name = $FORM{ID} .'.'.lc($1);
+    	 }
+
+    	upload_file($FORM{FILE_UPLOAD}, { PREFIX => 'maps', FILE_NAME => $name, REWRITE => 1 });
+     }
    }
 }
 elsif($FORM{chg}) {
@@ -6861,11 +6910,18 @@ if ($users->{errno}) {
    }
  }
 
-my %country_hash = ( 0 => 'Unknown' );
+
+my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
+my @countries_arr  = split(/\n/, $countries);
+my %countries_hash = ();
+foreach my $c (@countries_arr) {
+  my ($id, $name)=split(/:/, $c);
+  $countries_hash{int($id)}=$name;
+ }
 
 $users->{COUNTRY_SEL} = $html->form_select('COUNTRY', 
                                 { SELECTED   => $users->{COUNTRY} || $FORM{COUNTRY},
- 	                                SEL_HASH   => \%country_hash,
+ 	                                SEL_HASH   => { '' => '', %country_hash },
  	                                NO_ID      => 1
  	                               });
 
@@ -6873,19 +6929,36 @@ $html->tpl_show(templates('form_district'), $users);
 
 my $table = $html->table({ width      => '100%',
 	                         caption    => $_DISTRICTS,
-                           title      => ["#", "$_NAME", "$_COUNTRY", "$_CITY", "$_ZIP", "$_STREETS", '-', '-'],
+                           title      => ["#", "$_NAME", "$_COUNTRY", "$_CITY", "$_ZIP", "$_STREETS", "$_MAP", '-', '-'],
                            cols_align => ['right', 'left', 'left', 'left', 'left', 'right', 'right', 'center', 'center'],
                            ID         => 'DISTRICTS_LIST'
                           });
 
 my $list = $users->district_list({ %LIST_PARAMS });
 foreach my $line (@$list) {
+  my $map = '';
+  
+  if (-f $conf{TPL_DIR}.'/maps/'.$line->[0].'.gif' || -f $conf{TPL_DIR}.'/maps/'.$line->[0].'.jpg' || -f $conf{TPL_DIR}.'/maps/'.$line->[0].'.png') {
+  	 if (in_array('Maps', \@MODULES)) {
+  	 	 $map = $html->button($bool_vals[1], "DISTRICT_ID=$line->[0]&index=". get_function_index('maps_name'), { BUTTON => 1 });
+  	 	} 
+     else {
+       $map = $html->button($bool_vals[1], '#', { NEW_WINDOW => "index.cgi?MODULE=Maps&qindex=-1", NEW_WINDOW_SIZE => "670:340", BUTTON => 1 });
+      }
+   } 
+  else {
+  	$map = $bool_vals[0];
+   }
+
+  
+  
   $table->addrow($line->[0], 
      $line->[1], 
      $country_hash{$line->[2]}, 
      $line->[3], 
-     $line->[4], 
+     $line->[4],
      $html->button($line->[5], "index=". ($index+1). "&DISTRICT_ID=$line->[0]" ), 
+     $map,
      $html->button($_CHANGE, "index=$index&chg=$line->[0]", { BUTTON => 1 }), 
      $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
 }
@@ -7119,8 +7192,10 @@ sub cross_modules_call  {
 sub get_function_index  {
   my ($function_name, $attr) = @_;
   my $function_index = 0;
-  
-  while(my($k, $v)=each %functions) {
+
+  #while(my($k, $v)=each %functions) {
+  foreach my $k (keys %functions) {
+  	my $v = $functions{$k};
     if ($v eq "$function_name") {
        $function_index = $k;
        if ($attr->{ARGS} && $attr->{ARGS} ne $menu_args{$k}) {
@@ -7174,5 +7249,37 @@ sub form_view  {
   return $html->tpl_show(templates('form_view'), \%info, { OUTPUT2RETURN => 1 });
 }
 
+#**********************************************************
+#
+#**********************************************************
+sub upload_file {
+  my ($file, $attr)= @_;
+	
+
+  my $safe_filename_characters = ($attr->{SAFE_FILENAME_CHARACTERS}) ? $attr->{SAFE_FILENAME_CHARACTERS} : "a-zA-Z0-9_.-"; 
+  my $file_name                = ($attr->{FILE_NAME}) ? $attr->{FILE_NAME} : $file->{filename};
+
+  $file_name =~ tr/ /_/;
+  $file_name =~ s/[^$safe_filename_characters]//g; 
+
+  my $dir = ($attr->{PREFIX}) ? "$conf{TPL_DIR}/".$attr->{PREFIX} : $conf{TPL_DIR};
+
+  if (! -d $conf{TPL_DIR}) {
+  	mkdir($conf{TPL_DIR});
+   }
+  
+  if (! $attr->{REWRITE} && -f "$dir/$file_name") {
+    $html->message('err', $_ERROR, "$_EXIST '$file_name'");
+   }
+  elsif( open(FILE, ">$dir/$file_name") ) { ;
+      binmode FILE;
+     	print FILE $file->{Contents};
+    close(FILE);
+    $html->message('info', $_INFO, "$_ADDED: '$file_name' $_SIZE: $file->{Size}");
+   }
+  else {
+  	$html->message('err', $_ERROR, "$_ERROR  '$!'");
+   }
+}
 
 1

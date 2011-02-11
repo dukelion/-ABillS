@@ -16,6 +16,7 @@ $VERSION = 2.00;
 
 use main;
 @ISA  = ("main");
+my $MODULE='Sqlcmd';
 
 
 #**********************************************************
@@ -24,6 +25,7 @@ use main;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
+  $admin->{MODULE}=$MODULE;
   my $self = { };
   bless($self, $class);
   return $self;

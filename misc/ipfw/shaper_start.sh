@@ -27,7 +27,7 @@ run_rc_command "$1"
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.5
+VERSION=5.6
 
 if [ w${abills_shaper_enable} = w ]; then
   exit;
@@ -156,7 +156,7 @@ fi;
 # options         IPFIREWALL_NAT          #ipfw kernel nat support
 # options         LIBALIAS
 
-if [ w${abills_nat} != w ] ; then
+if [ w"${abills_nat}" != w ] ; then
 #Nat Section
 #if [ w${NAT_IPS} != w  ] ; then
 

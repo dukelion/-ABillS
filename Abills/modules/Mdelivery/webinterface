@@ -7,7 +7,7 @@ my %MAIL_PRIORITY = (2 => 'High',
 
 require "Mdelivery.pm";
 Mdelivery->import();
-my $Mdelivery = Mdelivery->new($db, $admin, $conf);
+my $Mdelivery = Mdelivery->new($db, $admin, \%conf);
 
 my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000');
 my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT" );
@@ -64,7 +64,7 @@ sub mdelivery_main {
 
   }
   
- $Mdelivery->{PERIOD_FORM}=form_period($period);
+ $Mdelivery->{PERIOD_FORM} =form_period($period);
  $Mdelivery->{PRIORITY_SEL}=$html->form_select('PRIORITY', 
                                 { SELECTED  => $FORM{PRIORITY},
  	                                SEL_HASH  => \%MAIL_PRIORITY
@@ -98,7 +98,6 @@ sub mdelivery_main {
 
  if (in_array('Dv', \@MODULES)) {
    use Tariffs;
-   #my $Dv       = Dv->new($db, $admin, \%conf);
    my $tariffs  = Tariffs->new($db, \%conf, $admin);
 
    my $tp_sel = $html->form_select('TP_ID', 
@@ -122,7 +121,7 @@ sub mdelivery_main {
  	                                          	                4  => $service_status[4]    
  	                                          	                },
                                             NO_ID       => 1,
-                                            STYLE        => \@service_status_colors,
+                                            STYLE       => \@service_status_colors,
  	                                        });
 
    
@@ -138,7 +137,15 @@ sub mdelivery_main {
  	 $Mdelivery->{EXTRA2} .= "<tr><th colspan=2>". $table->show() ."</th></tr>\n";
   }
 
-  $Mdelivery->{EXTRA2} .= $html->tpl_show(templates('form_address'), $Mdelivery, { OUTPUT2RETURN => 1 }); 
+
+
+
+  if ($conf{ADDRESS_REGISTER}) {
+  	$Mdelivery->{EXTRA2} .= $html->tpl_show(templates('form_address_sel'), $Mdelivery, { OUTPUT2RETURN => 1 });
+   }
+  else {
+    $Mdelivery->{EXTRA2} .= $html->tpl_show(templates('form_address'), $Mdelivery, { OUTPUT2RETURN => 1 }); 
+   }
   
   $Mdelivery->{EXTRA2} .= "<tr bgcolor=$_COLORS[2]><td colspan=1>$_SEND $_PRE:</td><td><input type=checkbox name=SEND_PREVIEW value=1 checked> $conf{ADMIN_MAIL}</td></tr>\n";
 
@@ -236,7 +243,8 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
                             title      => ["ID", "$_DATE", "$_SUBJECT", "$_FROM", "$_ADMIN",  "$_ADDED", "$_SIZE", "$_STATUS", '-', '-' ],
                             cols_align => ['right', 'right', 'right', 'left', 'left', 'right', 'center', 'center', 'center'],
                             qs         => $pages_qs,
-                            pages      => $Mdelivery->{TOTAL}
+                            pages      => $Mdelivery->{TOTAL},
+                            ID         => 'MDELIVERY_LIST'
                           });
 
  foreach my $line (@$list) {

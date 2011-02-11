@@ -327,7 +327,6 @@ sub online {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'u.domain_id') };
   }
 
-
  if (defined($attr->{FRAMED_IP_ADDRESS})) {
  	 push @WHERE_RULES, "framed_ip_address=INET_ATON('$attr->{FRAMED_IP_ADDRESS}')";
   }
@@ -340,10 +339,18 @@ sub online {
  	 push @WHERE_RULES, "nas_id IN ($attr->{NAS_ID})";
   } 
  
+
  if ($attr->{FILTER}) {
  	 my $filter_field = '';
  	 if ($attr->{FILTER_FIELD} == 3){
  	 	 $filter_field = "INET_NTOA(framed_ip_address)";
+ 	  }
+ 	 elsif($attr->{FILTER_FIELD} == 16 && $CONF->{ADDRESS_REGISTER}) {
+     $EXT_TABLE .= "INNER JOIN builds ON (builds.id=pi.location_id)
+     INNER JOIN streets ON (streets.id=builds.street_id)";
+ 	 	 
+ 	 	 $filter_field = 'concat(streets.name, \', \', builds.number)';
+ 	 	 
  	  }
  	 else {
  	 	 $filter_field = $FIELDS_ALL[$attr->{FILTER_FIELD}];

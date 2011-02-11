@@ -18,6 +18,7 @@ $VERSION = 2.00;
 
 use main;
 @ISA  = ("main");
+my $MODULE='Docs';
 
 
 #**********************************************************
@@ -26,6 +27,7 @@ use main;
 sub new {
   my $class = shift;
   ($db, $admin, $CONF) = @_;
+  $admin->{MODULE}=$MODULE;
   my $self = { };
   bless($self, $class);
   $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD}=30 if (! $CONF->{DOCS_ACCOUNT_EXPIRE_PERIOD});
@@ -602,13 +604,14 @@ sub account_change {
 
   my $old_info =   $self->account_info($attr->{ID});
 
+  $admin->{MODULE}=$MODULE;
   $self->changes($admin,  { CHANGE_PARAM => 'ID',
                    TABLE        => 'docs_acct',
                    FIELDS       => \%FIELDS,
                    OLD_INFO     => $old_info,
-                   DATA         => $attr
+                   DATA         => $attr,
+                   EXT_CHANGE_INFO  => 'ACCT'
                   } );
-
 
   return $self;
 }
@@ -621,7 +624,6 @@ sub account_change {
 sub del {
  my $self = shift;
  my ($attr) = @_;
-
 
  $self->query($db, "DELETE FROM docs_acct_orders WHERE acct_id IN (SELECT id FROM docs_acct WHERE uid='$attr->{UID}')", 'do');
  $self->query($db, "DELETE FROM docs_acct WHERE uid='$attr->{UID}'", 'do');

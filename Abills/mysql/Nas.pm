@@ -39,6 +39,14 @@ sub list {
   my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
   my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
 
+  my $ext_fields = '';
+  my $EXT_TABLES = '';
+  if ($attr->{SHOW_MAPS}) {
+    $ext_fields = ",b.map_x, b.map_y, b.map_x2, b.map_y2, b.map_x3, b.map_y3, b.map_x4, b.map_y4";
+    $EXT_TABLES = "INNER JOIN builds b.id=nas.location_id";
+   }
+
+
   if(defined($attr->{TYPE})) {
   	push @WHERE_RULES, "nas.nas_type='$attr->{TYPE}'";
   }
@@ -80,9 +88,11 @@ sub list {
   DECODE(nas.mng_password, '$SECRETKEY'), 
   nas.rad_pairs, 
   nas.ext_acct,
-  nas.auth_type 
+  nas.auth_type
+  $ext_fields
   FROM nas
   LEFT JOIN nas_groups ng ON (ng.id=nas.gid)
+  $EXT_TABLES
   $WHERE
   ORDER BY $SORT $DESC;");
 
@@ -118,7 +128,7 @@ sub info {
 $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
  DECODE(mng_password, '$SECRETKEY'), rad_pairs, alive, disable, ext_acct, 
  gid, address_build, address_street, address_flat, zip, city, country, domain_id, mac,
- changed
+ changed, location_id
  FROM nas
  WHERE $WHERE
  ORDER BY nas_identifier DESC;");
@@ -155,8 +165,28 @@ $self->query($db, "SELECT id, name, nas_identifier, descr, ip, nas_type, auth_ty
    $self->{COUNTRY},
    $self->{DOMAIN_ID},
    $self->{MAC},
-   $self->{CHANGED}
+   $self->{CHANGED},
+   $self->{LOCATION_ID}
    ) = @{ $self->{list}->[0] };
+
+
+ if ($self->{LOCATION_ID} > 0 ) {
+   $self->query($db, "select d.id, d.city, d.name, s.name, b.number  
+     FROM builds b
+     LEFT JOIN streets s  ON (s.id=b.street_id)
+     LEFT JOIN districts d  ON (d.id=s.district_id)
+     WHERE b.id='$self->{LOCATION_ID}'");
+   
+    if ($self->{TOTAL} > 0) {
+      ($self->{DISTRICT_ID}, 
+       $self->{CITY}, 
+       $self->{ADDRESS_DISTRICT}, 
+       $self->{ADDRESS_STREET}, 
+       $self->{ADDRESS_BUILD}, 
+      )= @{ $self->{list}->[0] };
+     }
+  }
+
 
  return $self;
 }
@@ -195,7 +225,8 @@ sub change {
   DOMAIN_ID           => 'domain_id',
   GID                 => 'gid',
   MAC                 => 'mac',
-  CHANGED             => 'changed'
+  CHANGED             => 'changed',
+  LOCATION_ID         => 'location_id'
   ); 
 
   $attr->{CHANGED}=1;
@@ -225,12 +256,12 @@ sub add {
 
  $self->query($db, "INSERT INTO nas (name, nas_identifier, descr, ip, nas_type, auth_type, mng_host_port, mng_user, 
  mng_password, rad_pairs, alive, disable, ext_acct, 
- address_build, address_street, address_flat, zip, city, country, domain_id, gid, mac)
+ address_build, address_street, address_flat, zip, city, country, domain_id, gid, mac, location_id)
  values ('$DATA{NAS_NAME}', '$DATA{NAS_INDENTIFIER}', '$DATA{NAS_DESCRIBE}', '$DATA{NAS_IP}', '$DATA{NAS_TYPE}', '$DATA{NAS_AUTH_TYPE}',
   '$DATA{NAS_MNG_IP_PORT}', '$DATA{NAS_MNG_USER}', ENCODE('$DATA{NAS_MNG_PASSWORD}', '$SECRETKEY'), '$DATA{NAS_RAD_PAIRS}',
   '$DATA{NAS_ALIVE}', '$DATA{NAS_DISABLE}', '$DATA{NAS_EXT_ACCT}',
   '$DATA{ADDRESS_BUILD}', '$DATA{ADDRESS_STREET}', '$DATA{ADDRESS_FLAT}', '$DATA{ZIP}', '$DATA{CITY}', '$DATA{COUNTRY}', '$DATA{DOMAIN_ID}',
-  '$DATA{GID}', '$DATA{MAC}');", 'do');
+  '$DATA{GID}', '$DATA{MAC}', '$DATA{LOCATION_ID}');", 'do');
 
  $admin->system_action_add("NAS_ID:$self->{INSERT_ID}", { TYPE => 1 });    
  return 0;	

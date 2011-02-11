@@ -694,6 +694,7 @@ CREATE TABLE `nas` (
   `gid` smallint(6) unsigned NOT NULL default 0,
   `mac` varchar(17) NOT NULL default '',
   `changed` datetime NOT NULL default '0000-00-00 00:00:00',
+  `location_id` INTEGER(11) UNSIGNED NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `domain_id` (`domain_id`, `ip`, `nas_identifier`)
 ) COMMENT='Nas servers list';
@@ -1203,7 +1204,8 @@ CREATE TABLE `web_online` (
 
 
 INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('abills','abills','2005-06-16', ENCODE('abills', 'test12345678901234567890'), 0, 1,0,'', '');
-INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('system','System user','2005-07-07', ENCODE('test', 'test12345678901234567890'), 0, 2, 0,'', '');
+INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('system','System user','2005-07-07', ENCODE(ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 2, 0,'', '');
+INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('users_web','Users web portal', '2011-02-01', ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 3, 0,'', '');
 
 
 
@@ -1254,7 +1256,7 @@ INSERT INTO `users_pi` (uid, fio) VALUES (1,'Test user');
 
 INSERT INTO `bills` VALUES (1,0.000000,1,0,'2009-08-03');
 
-INSERT INTO `tarif_plans` (id, name, payment_type) VALUES (100,'Admin',1);
+INSERT INTO `tarif_plans` (id, name, payment_type, module) VALUES (100,'Admin',1, 'Dv');
 
 INSERT INTO `dv_main` VALUES (1,100,0,'2009-08-03',0,'',0,4294967295,'','',0,0,0,0,0);
 

@@ -1,4 +1,4 @@
-<form action='$SELF_URL' METHOD='post'>
+<form action='$SELF_URL' METHOD='post' enctype='multipart/form-data' name=add_district>
 <input type='hidden' name='index' value='$index'/>
 <input type='hidden' name='ID' value='%ID%'/>
 <TABLE>
@@ -7,6 +7,7 @@
 <TR><TD>$_COUNTRY:</TD><TD>%COUNTRY_SEL%</TD></TR>
 <TR><TD>$_CITY:</TD><TD><input type='text' name='CITY' value='%CITY%'/></TD></TR>
 <TR><TD>$_ZIP:</TD><TD><input type='text' name='ZIP' value='%ZIP%'/></TD></TR>
+<tr><td>$_MAP:</td><td><input name='FILE_UPLOAD' type='file' class='fixed'>
 <TR><TH colspan=2>$_COMMENTS</TH></TD></TR>
 <TR><TH colspan=2><textarea name=COMMENTS rows=4 cols=50>%COMMENTS%</textarea></TH></TD></TR>
 </TABLE>

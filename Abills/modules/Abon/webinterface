@@ -292,7 +292,12 @@ sub abon_tariffs {
 	  $Abon->{EXT_BILL_ACCOUNT}='';
    }
 
-  
+  push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
+  $Abon->{FEES_TYPES_SEL} =  $html->form_select('FEES_TYPE', 
+                                { SELECTED      => (defined($FORM{FEES_TYPE}) && $FORM{FEES_TYPE} ne '') ? $FORM{FEES_TYPE} : '1',
+ 	                                SEL_ARRAY     => \@FEES_METHODS,
+ 	                                ARRAY_NUM_ID  => 1
+ 	                               });
   
 
   $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);

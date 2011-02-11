@@ -307,6 +307,7 @@ sub voip_user {
 	  
 	 }
 	else {
+		$user->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$user->{UID}.'&index='.  get_function_index('voip_chg_tp'), { BUTTON => 1 });
 	  $user->{ACTION}='set';
 	  $user->{LNG_ACTION}=$_CHANGE;
 	 }
@@ -2177,7 +2178,7 @@ sub voip_daily_fees {
 #          print " $u->[0] $line->[6] $u->[2] $u->[3]\n"; 	
 
         if($line->[5] > 0
-            || $conf{negative_deposit} eq 'yes'
+            || $conf{negative_deposit}
             || $u->[2] + $u->[3] > 0 ) {
           $fees->take(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE" } );  
          }
@@ -2535,6 +2536,10 @@ foreach my $line (@$list) {
 open(FILE, ">$conf{VOIP_ASTERISK_USERS}") || $html->message('err', $_ERROR, "Can't open file '$conf{VOIP_ASTERISK_USERS}' $!");
   print FILE "$content\n";
 close(FILE);
+
+if ($conf{VOIP_ASTERISK_RESTART}) {
+	system($conf{VOIP_ASTERISK_RESTART});
+}
 
 }
 

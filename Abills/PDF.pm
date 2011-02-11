@@ -759,7 +759,6 @@ sub table {
  
 
  if (defined($attr->{title})) {
-   #print "--- $SORT // | $FORM{sort} | $LIST_PARAMS{SORT} //";
    $SORT = $LIST_PARAMS{SORT};
  	 $self->{table} .= $self->table_title($SORT, $DESC, $PG, $OP, $attr->{title}, $attr->{qs});
   }
@@ -809,26 +808,10 @@ sub addrow {
   my $self = shift;
   my (@row) = @_;
 
-  if ($self->{rowcolor}) {
-    $bg = $self->{rowcolor};
-   }  
-  else {
-  	$bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
-   }
-  
-  my $extra=($self->{extra}) ? $self->{extra} : '';
-
-  $row_number++;
-  
-  $self->{rows} .= "<tr bgcolor=\"$bg\"  onmouseover=\"setPointer(this, $row_number, 'over', '$bg', '$_COLORS[3]', '$_COLORS[0]');\" onmouseout=\"setPointer(this, $row_number, 'out', '$bg', '$_COLORS[3]', '$_COLORS[0]');\" onmousedown=\"setPointer(this, $row_number, 'click', '$bg', '$_COLORS[3]', '$_COLORS[0]');\">";
-  
+  $bg = ($bg eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
   foreach my $val (@row) {
-     $self->{rows} .= "<TD bgcolor=\"$bg\" $extra>";
-     $self->{rows} .= $val if(defined($val));
-     $self->{rows} .= "</TD>";
    }
 
-  $self->{rows} .= "</TR>\n";
   return $self->{rows};
 }
 
@@ -1446,10 +1429,10 @@ for my $key (sort keys %$tpl_describe) {
     	 }
      }
     else {
-    	if ($align) {
+      if ($align) {
         my $text_height  = ($pattern =~ /text_height=([0-9a-zA-Z_\.]+)/) ? $1 : 100; 
         my $text_width   = ($pattern =~ /text_width=([0-9a-zA-Z_\.]+)/) ? $1 : 100;
-        my ($idt,$y2)    =  $txt->paragraph($text, $text_width, $text_height,
+        my ($idt,$y2)    = $txt->paragraph($text, $text_width, $text_height,
                       -align     => $align,
                       -spillover => 2 );
        }

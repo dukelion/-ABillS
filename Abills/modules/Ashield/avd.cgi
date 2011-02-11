@@ -78,13 +78,11 @@ my $Fees      = Fees->new($db, $admin, \%conf);
 
 require "Abills/modules/Ashield/webinterface";
 
-
-
 if ($drweb_version != 1) {
-	drweb_periodic();
-	
+	drweb_periodic();	
 	exit;
 }
+
 
 
 
@@ -159,20 +157,20 @@ while(my($k, $v)=each %FORM) {
 
 print "Content-Type: text/html\n\n";
 
-#$FORM{'__BUFFER'}=qq{xml=<?xml version="1.0" encoding="UTF-8"?>
-#<personal-office timestamp="20100610203403">
-#  <login>test3</login>
-#  <name>test tewtst</name>
-#  <lastname>test</lastname>
-#  <action>
-#    <type>3</type>
-#    <agentuuid>3bccbd92-d21d-b211-8dbc-ea17cb6d883e</agentuuid>
-#    <groupuuid>ebe76ffc-69e1-4757-b2b3-41506832bc9b</groupuuid>
-#    <groupname>AV+AS</groupname>
-#    <datetime>20100610203403</datetime>
-#  </action>
-#</personal-office>
-#&checkword=827ccb0eea8a706c4c34a16891f84e7b};
+$FORM{'__BUFFER'}=qq{xml=<?xml version="1.0" encoding="UTF-8"?>
+<personal-office timestamp="20100610203403">
+  <login>test3</login>
+  <name>test tewtst</name>
+  <lastname>test</lastname>
+  <action>
+    <type>3</type>
+    <agentuuid>3bccbd92-d21d-b211-8dbc-ea17cb6d883e</agentuuid>
+    <groupuuid>ebe76ffc-69e1-4757-b2b3-41506832bc9b</groupuuid>
+    <groupname>AV+AS</groupname>
+    <datetime>20100610203403</datetime>
+  </action>
+</personal-office>
+&checkword=827ccb0eea8a706c4c34a16891f84e7b};
 
 mk_log($FORM{'__BUFFER'});
 
@@ -250,6 +248,7 @@ if ($status < 4) {
   else {
 	  my $user = $users->info($uid);
 	  
+	  # Reactivate subcribe
 	  if ( $status == 3 ) {
        #get TP
 	     my $result_hash;
@@ -287,7 +286,7 @@ if ($status < 4) {
     	  mk_log("Tariff not exists. TP: '$TP_NAME'");
        }
       else {
-	    my $agents_result_hash;
+	      my $agents_result_hash;
 	      if ($drweb_version == 1) {
           my $agents_result_hash=ashield_drweb_request('interfaces/user_agents.php', {
        	    login      => "$users->{LOGIN}",
@@ -318,9 +317,9 @@ if ($status < 4) {
           $sum = sprintf("%.2f", ($sum / $days_in_month) * ($days_in_month - $d + $conf{START_PERIOD_DAY}));
          }
 
-my $drweb_ = `echo "// $conf{ASHIELD_DRWEB_FREE_PERIOD} &&  $agent_count == 0 && $status == 1 //" >> /tmp/avd.log `;
+        my $drweb_ = `echo "ASHIELD_DRWEB_FREE_PERIOD // $conf{ASHIELD_DRWEB_FREE_PERIOD} &&  $agent_count == 0 && $status == 1 //" >> /tmp/avd.log `;
       
-        if ($conf{ASHIELD_DRWEB_FREE_PERIOD} &&  $agent_count == 0
+        if ($conf{ASHIELD_DRWEB_FREE_PERIOD} &&  $agent_count < 0
             && $status == 1) {
           print "Free Activate\n" if ($debug > 0);
          }
@@ -410,7 +409,9 @@ sub mk_log {
 # drweb_periodic
 #**********************************************************
 sub drweb_periodic {
-	  my ($attr) = @_;
+  my ($attr) = @_;
+
+  print "Content-Type: text/html\n\n";
 
 eval { require XML::Simple; };
 if (! $@) {
@@ -541,6 +542,7 @@ my %subcribes = ();
 my %subcribes_info = ();
 my %active_subcribes = ();
 
+#Get subscribe info
 foreach my $user ( @{ $_xml->{user} } ) {
 	my $total_agents = $user->{agents}->[0]->{total};
   my $login = $user->{login};

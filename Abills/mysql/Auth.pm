@@ -61,7 +61,7 @@ sub dv_auth {
     return 1, $RAD_PAIRS;
   }
 
-  my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 4096;
+  my $MAX_SESSION_TRAFFIC = $CONF->{MAX_SESSION_TRAFFIC} || 0;
   my $DOMAIN_ID = ($NAS->{DOMAIN_ID}) ? "AND tp.domain_id='$NAS->{DOMAIN_ID}'" : "AND tp.domain_id='0'";
 
   $self->query($db, "select  if (dv.logins=0, if(tp.logins is null, 0, tp.logins), dv.logins) AS logins,
@@ -650,7 +650,8 @@ elsif ($NAS->{NAS_TYPE} eq 'mpd4' && $RAD_PAIRS->{'Session-Timeout'} > 604800) {
 ###########################################################
 # pppd + RADIUS plugin (Linux) http://samba.org/ppp/
 # lepppd - PPPD IPv4 zone counters 
-elsif ($NAS->{NAS_TYPE} eq 'pppd' or ($NAS->{NAS_TYPE} eq 'lepppd')) {
+elsif ($NAS->{NAS_TYPE} eq 'accel_pptp' or ($NAS->{NAS_TYPE} eq 'lepppd') or
+   ($NAS->{NAS_TYPE} eq 'pppd')) {
   my $EX_PARAMS = $self->ex_traffic_params({ 
   	                                         traf_limit => $traf_limit, 
                                              deposit    => $self->{DEPOSIT},
@@ -676,6 +677,8 @@ elsif ($NAS->{NAS_TYPE} eq 'pppd' or ($NAS->{NAS_TYPE} eq 'lepppd')) {
     	$RAD_PAIRS->{'Octets-Direction'}     = $self->{OCTETS_DIRECTION};
      }
    }
+
+  $RAD_PAIRS->{'User-Name'}=$self->{USER_NAME};
 
   #Speed limit attributes 
   if ($self->{USER_SPEED} > 0) { 

@@ -1265,7 +1265,7 @@ sub docs_account {
    return 0;
   }
  elsif(defined($FORM{change})) {
-   $Docs->account_change({ %FORM });
+   $Docs->account_change({ %FORM, UID => $users->{UID} });
    if(! $Docs->{errno}) {
      $html->message('info', "$_INFO", "$_CHANGED N: [$FORM{DOC_ID}]");
     }
@@ -1868,6 +1868,7 @@ sub docs_payments_maked {
 #Add account number 
 if ($FORM{ACCOUNT_ID}) {
  	$Docs->account_change({ ID         => $FORM{ACCOUNT_ID},
+ 		                      UID        => $FORM{UID},
  		                      PAYMENT_ID => $attr->{PAYMENT_ID}
                        });
 

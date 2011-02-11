@@ -365,13 +365,29 @@ sub pi {
   	$i++;
    }
 
+# if ($self->{LOCATION_ID} > 0 ) {
+#   $self->query($db, "select d.id, d.city, d.name, s.name, b.number  
+#     FROM users_pi pi 
+#     LEFT JOIN builds b ON (b.id=pi.location_id)
+#     LEFT JOIN streets s  ON (s.id=b.street_id)
+#     LEFT JOIN districts d  ON (d.id=s.district_id)
+#     WHERE pi.uid='$UID'");
+#   
+#    if ($self->{TOTAL} > 0) {
+#      ($self->{DISTRICT_ID}, 
+#       $self->{CITY}, 
+#       $self->{ADDRESS_DISTRICT}, 
+#       $self->{ADDRESS_STREET}, 
+#       $self->{ADDRESS_BUILD}, 
+#      )= @{ $self->{list}->[0] };
+#     }
+#  }
  if ($self->{LOCATION_ID} > 0 ) {
    $self->query($db, "select d.id, d.city, d.name, s.name, b.number  
-     FROM users_pi pi 
-     LEFT JOIN builds b ON (b.id=pi.location_id)
+     FROM builds b
      LEFT JOIN streets s  ON (s.id=b.street_id)
      LEFT JOIN districts d  ON (d.id=s.district_id)
-     WHERE pi.uid='$UID'");
+     WHERE b.id='$self->{LOCATION_ID}'");
    
     if ($self->{TOTAL} > 0) {
       ($self->{DISTRICT_ID}, 
@@ -382,6 +398,8 @@ sub pi {
       )= @{ $self->{list}->[0] };
      }
   }
+
+
 
 	return $self;
 }
@@ -673,10 +691,10 @@ sub list {
  	}
 
  if ($attr->{LOCATION_ID}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name, builds.number' }) };
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name, builds.number, builds.id' }) };
    $EXT_TABLES .= "LEFT JOIN builds ON (builds.id=pi.location_id)
    LEFT JOIN streets ON (streets.id=builds.street_id)";
-   $self->{SEARCH_FIELDS_COUNT}++;
+   $self->{SEARCH_FIELDS_COUNT}+=2;
   }
  else {
    if ($attr->{STREET_ID}) {
@@ -1541,6 +1559,11 @@ sub info_field_add {
 	                    " content longblob NOT NULL",
 	                    " varchar(100) not null default ''",
 	                    " int(11) unsigned NOT NULL default '0'",
+	                    " varchar(12) not null default ''",
+	                    " varchar(120) not null default ''",
+	                    " varchar(20) not null default ''",
+	                    " varchar(50) not null default ''",
+	                    " varchar(50) not null default ''",
 	                    );
 	
 	$attr->{FIELD_TYPE} = 0 if (! $attr->{FIELD_TYPE});
@@ -1563,7 +1586,7 @@ sub info_field_add {
        $self->query($db, "CREATE TABLE _$attr->{FIELD_ID}_list (
        id smallint unsigned NOT NULL primary key auto_increment,
        name varchar(120) not null default 0
-       );", 'do');    	
+       )DEFAULT CHARSET=$CONF->{dbcharset};", 'do');    	
      }
       $self->config_add({ PARAM => $field_prefix. "_$attr->{FIELD_ID}", 
   	                      VALUE => "$attr->{POSITION}:$attr->{FIELD_TYPE}:$attr->{NAME}"
@@ -1794,6 +1817,10 @@ sub district_list {
  my $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  my $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  my @WHERE_RULES = ();
+
+ if ($attr->{ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ID}, 'INT', 'd.id') };
+  }
 
  if ($attr->{NAME}) {
  	  push @WHERE_RULES, @{ $self->search_expr($attr->{NAME}, 'STR', 'd.name') };

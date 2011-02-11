@@ -314,7 +314,7 @@ sub check_lines {
        }
       elsif ($NAS{NAS_TYPE} eq 'dhcp') {
       	$NAS{NAS_ALIVE} = 8600 if (! $NAS{NAS_ALIVE});
-        if ($NAS{NAS_ALIVE} < $duration_sec) {
+        if ($NAS{NAS_ALIVE} * $error_alive_count < $last_alive) {
           print "Hangup dhcp sessions/ Login: $user_name, Last Alive: $last_alive, Duration: $duration_sec Session-ID: $acct_session_id NAS: $NAS{NAS_ID}/$NAS{NAS_IP}\n"; # if ( $debug == 1 );
           $sessions->zap($nas_row->[0], $nas_port_id, $acct_session_id);
         	next;
@@ -666,13 +666,13 @@ sub check_speed_linux {
 	my $cmd = 'for if in `/sbin/ifconfig | grep ppp | awk \'{print $1}\'`; do echo $if `tc class show dev $if | grep root`; done;';
 	print "$cmd\n" if ($debug > 5);
   #In  
-  open(PROCS, '$cmd |') || die "Can't open file '$cmd' $!\n";
+  open(PROCS, "$cmd |") || die "Can't open file '$cmd' $!\n";
       while(<PROCS>) {
-		    if (/ppp(\d+)\sclass\shtb\s\d+:\d+\sroot\srate\s(\d+)(\S+)/) {
+		    # ppp0 class htb 1:bb9 root prio 0 rate 2097Kbit ceil 2097Kbit burst 1599b cburst1599b
+		    if (/ppp(\d+)\sclass\shtb\s\d+:[a-f0-9]+\s.+\srate\s(\d+)(\S+)/i) {
           my $iface = $1;
           my $sufix = $3;
           my $speed = ($sufix eq 'bit') ? $2 / 1000 : $2;
-#          print "$iface - $speed - $sufix\n";   
           $PORTS_SPEEDS{$iface}{0}{IN}=$speed;
 		    }
 		  }
@@ -682,8 +682,9 @@ sub check_speed_linux {
   #ppp15 police 0x2e28 rate 2048Kbit burst 12Kb mtu 2Kb action drop 
   $cmd = 'for if in `/sbin/ifconfig | grep ppp | awk \'{print $1}\'`; do echo $if `tc filter show dev $if parent ffff: | grep police`; done;';
   print "$cmd\n" if ($debug > 5);
-  open(PROCS, '$cmd |') || die "Can't open file '$cmd' $!\n";
+  open(PROCS, "$cmd |") || die "Can't open file '$cmd' $!\n";
       while(<PROCS>) {
+		    #
 		    if (/ppp(\d+)\spolice\s[a-fx0-9]+\srate\s(\d+)(\S+)/) {
           my $iface = $1;
           my $sufix = $3;
@@ -711,8 +712,7 @@ sub check_speed_linux {
   my %static_speeds = ();
   my %nets_hash     = ();
  
-  foreach my $line ( @$tp_list ) {
-  	
+  foreach my $line ( @$tp_list ) {  	
   	my $tp_id = $line->[18];
   	my $tp    = $line->[0];
     $TP_HASH{$tp}=$tp_id;
@@ -821,7 +821,6 @@ sub check_speed_linux {
     foreach my $line (@$l) {
        my $duration = time2sec($line->[7]);
        my $started = $line->[8];
-
        #IFACE : TP : SPEED  :IP
        my $tp = 0;
        my $tp_id = 0;
@@ -843,6 +842,12 @@ sub check_speed_linux {
   	 my $changed = 0;
   	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID, $DURATION, $STARTED)=split(/:/, $other, 8);
   	 $debug_outputs = "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE DURATION: $DURATION ($STARTED)\n";
+
+  	 if ( $ARGV->{SHOW_SPEED} ) {
+        print "$user -> IN: $PORTS_SPEEDS{$IFACE}{0}{IN} OUT: $PORTS_SPEEDS{$IFACE}{0}{OUT}\n";
+  	 	  next;
+  	  }
+
 
      if ($JOIN_SERVICE > 0) {
 
@@ -1465,7 +1470,7 @@ else {
   
   my $static_speed_fw_num = $START_FW[0]+5000;
   foreach my $line (@$list) {
-  	$static_speeds{$line->[6]}=1;
+  	$static_speeds{$line->[7]}=1;
    }
 
   #Static speed
@@ -1568,8 +1573,8 @@ sub check_speed_change {
      $cmds = "$Bin/linkupdown mpd down ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;".
              "$Bin/linkupdown mpd up ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;";
    }
-  elsif ($NAS_TYPE =~ /pppd/) {
-     $cmds = "$Bin/linkupdown pppd up ppp$IFACE_ID $USER_NAME $USER_IP;".
+  elsif ($NAS_TYPE =~ /pppd|accel_pptp/) {
+     $cmds = "$Bin/linkupdown pppd down ppp$IFACE_ID $USER_NAME $USER_IP;".
              "$Bin/linkupdown  pppd up ppp$IFACE_ID $USER_NAME $USER_IP;";
    }
   

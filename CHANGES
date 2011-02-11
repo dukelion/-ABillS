@@ -1,5 +1,32 @@
 =====0.52=====
 
+09.02.2011\\
+  * Добавлен системный пользователь для операций пользователя в веб портале
+  * Добавлена возможность ведения журнала адресов для серверов доступа
+
+MySQL\\
+
+  INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('users_web','System user', '2011-02-01', ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 3, 0,'', '');
+  ALTER TABLE nas ADD COLUMN `location_id` INTEGER(11) UNSIGNED NOT NULL default '0';
+  ALTER TABLE dhcphosts_leases ADD COLUMN `flag` tinyint(2) NOT NULL DEFAULT '0';
+
+
+21.01.2011\\
+  *  Добавлена поддержка accel-pptp
+  *  Добавлена возможность устанавливать права администраторов на изменении тарифных планов и кредита
+  *  Добавлена возможность установки скорости на порту коммутатора
+  *  Snmputils перевод должников в гостевой VLAN
+  *  Snmputils добавлен кабельный тестер показывающий состояние порта длину кабеля для коммутаторов D-Link
+
+17.01.2011\\
+MySQL:\\
+  ALTER TABLE builds ADD COLUMN `map_x2` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE builds ADD COLUMN `map_y2` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE builds ADD COLUMN `map_x3` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE builds ADD COLUMN `map_y3` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE builds ADD COLUMN `map_x4` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+  ALTER TABLE builds ADD COLUMN `map_y4` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
+
 18.12.2010\\
   * Только администрартор может удалять расписания присвоенные пользователю
   * В DHCPhost  добавленно поле гостевой VLAN и возможность не блокировать долников на порту а перебрасывать в гостевой VLAN (Dlink, AgeCore)
@@ -275,7 +302,7 @@ MySQL:
   
 29.04.2010\\
   * Добавленна возможность перевода средств между аккаунтами абонентов
-  * Добавленна дата изминения класов трафика
+  * Добавленна дата изменения класов трафика
 MySQL:\\
   ALTER TABLE traffic_classes ADD COLUMN `changed` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00';
 
