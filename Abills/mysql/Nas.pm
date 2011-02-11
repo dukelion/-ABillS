@@ -43,7 +43,7 @@ sub list {
   my $EXT_TABLES = '';
   if ($attr->{SHOW_MAPS}) {
     $ext_fields = ",b.map_x, b.map_y, b.map_x2, b.map_y2, b.map_x3, b.map_y3, b.map_x4, b.map_y4";
-    $EXT_TABLES = "INNER JOIN builds b.id=nas.location_id";
+    $EXT_TABLES = "INNER JOIN builds ON (b.id=nas.location_id)";
    }
 
 
