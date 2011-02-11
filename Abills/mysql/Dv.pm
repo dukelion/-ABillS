@@ -300,6 +300,10 @@ sub change {
        my $EXPITE_DATE = strftime( "%Y-%m-%d", localtime(time + 86400 * $tariffs->{AGE}) );
        $user->change($attr->{UID}, { EXPIRE => $EXPITE_DATE, UID => $attr->{UID} });
      }
+    else {
+       my $user = Users->new($db, $admin, $CONF);
+       $user->change($attr->{UID}, { EXPIRE => "0000-00-00", UID => $attr->{UID} });
+     }
    }
   elsif (($old_info->{STATUS} == 2 && $attr->{STATUS} == 0) || 
          ($old_info->{STATUS} == 4 && $attr->{STATUS} == 0) || 
