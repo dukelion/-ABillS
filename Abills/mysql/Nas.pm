@@ -72,7 +72,7 @@ sub list {
    }
 
   if($attr->{DISTRICT_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DICTRICT_ID}, 'INT', 'nas.location_id') };
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'nas.location_id') };
    }
 
  
