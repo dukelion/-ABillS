@@ -44,6 +44,11 @@ sub list {
   if ($attr->{SHOW_MAPS}) {
     $ext_fields = ",b.map_x, b.map_y, b.map_x2, b.map_y2, b.map_x3, b.map_y3, b.map_x4, b.map_y4";
     $EXT_TABLES = "INNER JOIN builds b ON (b.id=nas.location_id)";
+    if ($attr->{DISTRICT_ID}) {
+     push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'streets.district_id', { EXT_FIELD => 'districts.name' }) };
+     $EXT_TABLES .= "LEFT JOIN streets ON (streets.id=builds.street_id)
+      LEFT JOIN districts ON (districts.id=streets.district_id) ";
+    }    
    }
 
 

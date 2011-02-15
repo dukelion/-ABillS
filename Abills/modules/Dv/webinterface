@@ -5455,7 +5455,7 @@ else {
 	            "4:Internet::"   => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults,    { OUTPUT2RETURN => 1, ID => 'DV_USER'       }),
              );
  
- if($permissions{1} & $permissions{1}{0}) {
+ if($permissions{1} && $permissions{1}{0}) {
  	 $tpls{"5:$_PAYMENTS::"} = $html->tpl_show(templates('form_payments'), $payments,      { OUTPUT2RETURN => 1, ID => 'FORM_PAYMENTS' });
   }
  
