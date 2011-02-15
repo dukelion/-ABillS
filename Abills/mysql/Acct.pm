@@ -408,13 +408,14 @@ sub rt_billing {
 	my $self = shift;
   my ($RAD, $NAS)=@_;
 
+
   $self->query($db, "SELECT lupdated, UNIX_TIMESTAMP()-lupdated, 
    if($RAD->{INBYTE}   >= acct_input_octets AND $RAD->{ACCT_INPUT_GIGAWORDS}=acct_input_gigawords, 
         $RAD->{INBYTE} - acct_input_octets, 
-        4294967296-acct_input_octets+4294967296*$RAD->{ACCT_INPUT_GIGAWORDS}-acct_input_gigawords+$RAD->{INBYTE}),
+        4294967296-acct_input_octets+4294967296*($RAD->{ACCT_INPUT_GIGAWORDS}-acct_input_gigawords-1)+$RAD->{INBYTE}),
    if($RAD->{OUTBYTE}  >= acct_output_octets AND $RAD->{ACCT_OUTPUT_GIGAWORDS}=acct_output_gigawords, 
         $RAD->{OUTBYTE}  - acct_output_octets,
-        4294967296-acct_output_octets+4294967296*$RAD->{ACCT_OUTPUT_GIGAWORDS}-acct_output_gigawords+$RAD->{OUTBYTE}),
+        4294967296-acct_output_octets+4294967296*($RAD->{ACCT_OUTPUT_GIGAWORDS}-acct_output_gigawords-1)+$RAD->{OUTBYTE}),
    if($RAD->{INBYTE2}  >= ex_input_octets, $RAD->{INBYTE2}  - ex_input_octets, ex_input_octets),
    if($RAD->{OUTBYTE2} >= ex_output_octets, $RAD->{OUTBYTE2} - ex_output_octets, ex_output_octets),
    acct_session_id,
@@ -446,6 +447,8 @@ sub rt_billing {
    ) = @{ $self->{list}->[0] };
   
   my $Billing = Billing->new($db, $conf);	
+
+#print "INterim:   $RAD->{INTERIUM_INBYTE},   $RAD->{INTERIUM_OUTBYTE}, \n";
 
   ($self->{UID}, 
    $self->{SUM}, 

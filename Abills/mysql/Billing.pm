@@ -83,6 +83,9 @@ foreach my $line (@$list) {
   #  $sent = $sent + $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296;
   # }
 
+
+#print "Traf Calc: $sent / $recv\n";
+
 if ($prepaid{0} + $prepaid{1} > 0) {
   #Get traffic from begin of month
   $used_traffic = $self->get_traffic({ UID    => $self->{UID},
@@ -168,9 +171,24 @@ if ($prepaid{0} + $prepaid{1} > 0) {
    # 
    elsif ($used_traffic->{TRAFFIC_SUM} + $used_traffic->{ONLINE} / $CONF->{MB_SIZE} > $prepaid{0} 
             && $used_traffic->{TRAFFIC_SUM} < $prepaid{0}) {
+
+#print "   elsif ($used_traffic->{TRAFFIC_SUM} + ". ($used_traffic->{ONLINE} / $CONF->{MB_SIZE}) ." > $prepaid{0} 
+#            && $used_traffic->{TRAFFIC_SUM} < $prepaid{0}) {
+#
+#$sent // $recv
+#
+#";
+
+
      my $not_prepaid = ($used_traffic->{TRAFFIC_SUM} + $used_traffic->{ONLINE} / $CONF->{MB_SIZE} - $prepaid{0}) *  $CONF->{MB_SIZE};
      $sent = ($self->{OCTETS_DIRECTION}==2) ?  $not_prepaid : ($self->{OCTETS_DIRECTION}==1) ? $sent : $not_prepaid / 2;
      $recv = ($self->{OCTETS_DIRECTION}==1) ?  $not_prepaid : ($self->{OCTETS_DIRECTION}==2) ? $recv : $not_prepaid / 2;
+     
+#     print "     my $not_prepaid = ($used_traffic->{TRAFFIC_SUM} + $used_traffic->{ONLINE} / $CONF->{MB_SIZE} - $prepaid{0}) *  $CONF->{MB_SIZE};
+#     $sent = ($self->{OCTETS_DIRECTION}==2) ?  $not_prepaid : ($self->{OCTETS_DIRECTION}==1) ? $sent : $not_prepaid / 2;
+#     $recv = ($self->{OCTETS_DIRECTION}==1) ?  $not_prepaid : ($self->{OCTETS_DIRECTION}==2) ? $recv : $not_prepaid / 2;
+#";
+     
     }
 
    # If left local prepaid traffic set traf price to 0
@@ -217,6 +235,12 @@ elsif (scalar(keys %expr) > 0) {
  my $gl_out = ($traf_price{out}{0}) ? $sent / $CONF->{MB_SIZE} * $traf_price{out}{0} : 0;
  my $lo_in  = (defined($traf_price{in}{1})) ?  $recv2 / $CONF->{MB_SIZE} * $traf_price{in}{1} : 0;
  my $lo_out = (defined($traf_price{out}{1})) ?  $sent2 / $CONF->{MB_SIZE} * $traf_price{out}{1} : 0;
+ 
+# print " my $gl_in  = ($traf_price{in}{0}) ? $recv / $CONF->{MB_SIZE} * $traf_price{in}{0} : 0;
+# my $gl_out = ($traf_price{out}{0}) ? $sent / $CONF->{MB_SIZE} * $traf_price{out}{0} : 0;
+#";
+ 
+ 
  $traf_sum  = $lo_in + $lo_out + $gl_in + $gl_out;
 
  return $traf_sum;
@@ -718,6 +742,7 @@ if(! defined($self->{NO_TPINTERVALS})) {
    }
 }
 
+#print "$sent / $recv - $sum\n";
 
 $sum = $sum * (100 - $self->{REDUCTION}) / 100 if ($self->{REDUCTION} > 0);
 

@@ -950,7 +950,7 @@ foreach my $line (@$list) {
    $line->[7], 
    $line->[8], 
    $line->[9],
-   $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[18]", { BUTTON => 1 }),
+   $html->button($_INTERVALS, "index=". get_function_index('form_intervals') ."&subf=73&TP_ID=$line->[18]", { BUTTON => 1 }),
    $change,
    $delete);
 }
