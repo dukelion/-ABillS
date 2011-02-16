@@ -328,7 +328,7 @@ sub form_info {
   
   #Credit functions
   if ( $conf{user_credit_change}) {
-    my ($sum, $days, $price, $month_changes, $Payments_expr) = split(/:/, $conf{user_credit_change}) ;
+    my ($sum, $days, $price, $month_changes, $payments_expr) = split(/:/, $conf{user_credit_change}) ;
     $month_changes = 0 if (!$month_changes);
     my $credit_date = strftime "%Y-%m-%d", localtime(time + int($days) * 86400);
 
@@ -339,10 +339,11 @@ sub form_info {
         $sum = $Dv->{TP_CREDIT} if ($Dv->{TP_CREDIT} > 0);
      }
 
-    if ($month_changes) {      
+    if ($month_changes) {
       my ($y, $m, $d) = split(/\-/, $DATE);
       $admin->action_list({ UID       => $user->{UID},
       	                    TYPE      => 5,
+      	                    AID	      => $admin->{AID},
       	                    FROM_DATE => "$y-$m-01",
       	                    TO_DATE   => "$y-$m-31"
       	                   });
@@ -353,13 +354,13 @@ sub form_info {
        }
      }
     #PERIOD=days;MAX_CREDIT_SUM=sum;MIN_PAYMENT_SUM=sum;
-    if ($Payments_expr) {
+    if ($payments_expr) {
     	my %params = (PERIOD          => 0,
     	              MAX_CREDIT_SUM  => 1000,
     	              MIN_PAYMENT_SUM => 1,
     	              PERCENT         => 100
     	              );
-    	my @params_arr = split(/;/, $Payments_expr);
+    	my @params_arr = split(/;/, $payments_expr);
     	
     	foreach my $line (@params_arr) {
     		my ($k, $v)=split(/=/, $line);
@@ -385,7 +386,7 @@ sub form_info {
     if ($user->{DISABLE}) {
     	
      }
-    elsif ($user->{CREDIT} < $sum) {
+    elsif ($user->{CREDIT} < sprintf("%.2f", $sum)) {
        if ($FORM{change_credit}) {
          $user->change($user->{UID}, { UID         => $user->{UID},
                                        CREDIT      => $sum,
