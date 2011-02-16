@@ -76,11 +76,7 @@ sub list {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{GID}, 'INT', 'nas.gid') };
    }
 
-  if($attr->{DISTRICT_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DISTRICT_ID}, 'INT', 'nas.location_id') };
-   }
 
- 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  $self->query($db, "SELECT nas.id, 

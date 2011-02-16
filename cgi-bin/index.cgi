@@ -98,7 +98,7 @@ if (defined($FORM{sid})) {
 require Admins;
 Admins->import();
 $admin = Admins->new($db, \%conf);
-$admin->info($conf{SYSTEM_ADMIN_ID}, { DOMAIN_ID => $FORM{DOMAIN_ID}, IP => $ENV{REMOTE_ADDR} });
+$admin->info($conf{USERS_WEB_ADMIN_ID} ? $conf{USERS_WEB_ADMIN_ID} : $conf{SYSTEM_ADMIN_ID}, { DOMAIN_ID => $FORM{DOMAIN_ID}, IP => $ENV{REMOTE_ADDR} });
 $admin->{SESSION_IP}=$ENV{REMOTE_ADDR};
 $conf{WEB_TITLE} = $admin->{DOMAIN_NAME} if ($admin->{DOMAIN_NAME});
 
@@ -108,7 +108,7 @@ $html->{METATAGS}=templates('metatags_client');
 my $uid = 0;
 my $page_qs;
 my %OUTPUT = ();
-my $login = $FORM{user} || '';
+my $login  = $FORM{user} || '';
 my $passwd = $FORM{passwd} || '';
 delete($conf{PASSWORDLESS_ACCESS}) if ($FORM{xml});
 
@@ -354,7 +354,7 @@ sub form_info {
      }
     #PERIOD=days;MAX_CREDIT_SUM=sum;MIN_PAYMENT_SUM=sum;
     if ($Payments_expr) {
-    	my $params = (PERIOD          => 0,
+    	my %params = (PERIOD          => 0,
     	              MAX_CREDIT_SUM  => 1000,
     	              MIN_PAYMENT_SUM => 1,
     	              PERCENT         => 100
