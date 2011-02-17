@@ -1144,8 +1144,8 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
    if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGe => "$_DEL '$line->[0]'?", BUTTON => 1  }); 
-    $change = $html->button($_CHANGE, "index=$index&ROUTE_ID=$line->[5]", { BUTTON => 1 });
+    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGe => "$_DEL '$line->[0]'?", BUTTON => 1  }); 
+    $change = $html->button($_CHANGE, "index=$index&ROUTE_ID=$line->[4]", { BUTTON => 1 });
     #$add   = $html->button($_ADD, "index=$index&add_route=$parent&ROUTE_ID=$parent");
    }
 
