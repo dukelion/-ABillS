@@ -1203,9 +1203,9 @@ CREATE TABLE `web_online` (
     
 
 
-INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('abills','abills','2005-06-16', ENCODE('abills', 'test12345678901234567890'), 0, 1,0,'', '');
-INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('system','System user','2005-07-07', ENCODE(ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 2, 0,'', '');
-INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('users_web','Users web portal', '2011-02-01', ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 3, 0,'', '');
+INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('abills','abills',curdate(), ENCODE('abills', 'test12345678901234567890'), 0, 1,0,'', '');
+INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('system','System user',curdate(), ENCODE(ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 2, 0,'', '');
+INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('users_web','Users web portal', curdate(), ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 3, 0,'', '');
 
 
 

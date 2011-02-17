@@ -67,7 +67,9 @@ $conf{MINIMUM_SESSION_TRAF}=200; # minimum session trafic for push session to db
 
 #System admin id
 #ID for system operation, periodic procces
-$conf{SYSTEM_ADMIN_ID}=1;
+$conf{SYSTEM_ADMIN_ID}=2;
+#ID For users web operations
+$conf{USERS_WEB_ADMIN_ID}=3;
 
 #System Langs
 $conf{LANGS}="english:English;
