@@ -343,7 +343,7 @@ sub inc_postauth {
    }
 # END DHCP SECTION
 
-  if (defined(%RAD_REQUEST)) {
+  if (%RAD_REQUEST) {
     if ($RAD_REPLY{'Reply-Message'}) {
       return 0;
      }

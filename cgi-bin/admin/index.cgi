@@ -6943,7 +6943,7 @@ foreach my $line (@$list) {
   
   if (-f $conf{TPL_DIR}.'/maps/'.$line->[0].'.gif' || -f $conf{TPL_DIR}.'/maps/'.$line->[0].'.jpg' || -f $conf{TPL_DIR}.'/maps/'.$line->[0].'.png') {
   	 if (in_array('Maps', \@MODULES)) {
-  	 	 $map = $html->button($bool_vals[1], "DISTRICT_ID=$line->[0]&index=". get_function_index('maps_name'), { BUTTON => 1 });
+  	 	 $map = $html->button($bool_vals[1], "DISTRICT_ID=$line->[0]&index=". get_function_index('maps_main'), { BUTTON => 1 });
   	 	} 
      else {
        $map = $html->button($bool_vals[1], '#', { NEW_WINDOW => "index.cgi?MODULE=Maps&qindex=-1", NEW_WINDOW_SIZE => "670:340", BUTTON => 1 });

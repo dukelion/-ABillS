@@ -149,7 +149,7 @@ elsif( $FORM{signature} && $FORM{operation_xml}) {
 # IP: 77.120.97.36
 elsif( $FORM{merchantid} ) {
   require "Regulpay.pm";
-	exit;
+  exit;
  }
 elsif( $FORM{txn_id} || $FORM{prv_txn} || defined($FORM{prv_id}) || ( $FORM{command} && $FORM{account}  ) ) {
 	osmp_payments();
