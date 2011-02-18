@@ -27,7 +27,7 @@ run_rc_command "$1"
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.6
+VERSION=5.7
 
 if [ w${abills_shaper_enable} = w ]; then
   exit;

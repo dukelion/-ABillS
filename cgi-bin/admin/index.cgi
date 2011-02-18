@@ -1307,7 +1307,7 @@ sub user_pi {
      }
     #'URL', 
     elsif ($type == 9) {
-    	$input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]") . $html->button("$_GO", "", { 
+    	$input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]", { SIZE => 40 }) . $html->button("$_GO", "", { 
     		 GLOBAL_URL => "$user_pi->{INFO_FIELDS_VAL}->[$i]",
     		 ex_params  => ' target=new', 
     		 BUTTON     =>  1 });
