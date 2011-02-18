@@ -577,7 +577,7 @@ sub sqlcmd_tables {
     
     $table->addrow(
       @table_rows,
-      $html->button($_SHOW, "index=". ($index - 1).  "&TABLE_INFO=$line->{'Name'}&QUERY=SELECT * FROM $line->{'Name'} LIMIT $PAGE_ROWS")
+      $html->button($_SHOW, "index=". ($index - 1).  "&TABLE_INFO=$line->{'Name'}&QUERY=SELECT * FROM $line->{'Name'} LIMIT $PAGE_ROWS", { BUTTON => 1 })
      );
 
     $tables_total++;
@@ -1018,7 +1018,7 @@ sub sqlcmd_procs {
                    $line->[6],
                    $line->[7],
                    $html->button($_DEL, "index=$index&del=$line->[0]", 
-                      { MESSAGE => "$_DEL $line->[0] ?" }) );
+                      { MESSAGE => "$_DEL $line->[0] ?", BUTTON => 1 }) );
    }
 
   print $table->show();

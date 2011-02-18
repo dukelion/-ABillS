@@ -88,6 +88,7 @@ foreach my $line (@$list) {
 
 if ($prepaid{0} + $prepaid{1} > 0) {
   #Get traffic from begin of month
+
   $used_traffic = $self->get_traffic({ UID    => $self->{UID},
   	                                   UIDS   => $self->{UIDS},
  	                                     PERIOD => $traffic_period,
@@ -112,21 +113,24 @@ if ($prepaid{0} + $prepaid{1} > 0) {
     	                                        UIDS     => $self->{UIDS},
                                               INTERVAL => $interval,
                                               TP_ID    => $tp,
+                                              STATS_ONLY => 1
                                             });
-
-     if($self->{OCTETS_DIRECTION} == 1) {
- 	     $prepaid{0} += $prepaid{0} - $transfer_traffic->{TRAFFIC_IN} if ( $prepaid{0} > $transfer_traffic->{TRAFFIC_IN} );
-       $prepaid{1} += $prepaid{1} - $transfer_traffic->{TRAFFIC_IN_2} if ( $prepaid{1} > $transfer_traffic->{TRAFFIC_IN_2} );
-      }
-     #Sent / OUT
-     elsif ($self->{OCTETS_DIRECTION} == 2 ) {
- 	     $prepaid{0} += $prepaid{0} - $transfer_traffic->{TRAFFIC_OUT} if ( $prepaid{0} > $transfer_traffic->{TRAFFIC_OUT} );
-       $prepaid{1} += $prepaid{1} - $transfer_traffic->{TRAFFIC_OUT_2} if ( $prepaid{1} > $transfer_traffic->{TRAFFIC_OUT_2} );
-      }
-     else {
- 	     $prepaid{0} += $prepaid{0} - ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}) if ($prepaid{0} > ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}));
-       $prepaid{1} += $prepaid{1} - ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) if ( $prepaid{1} > ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) );
-      }   
+    #If exist traffic recharge it
+    if ($self->{TOTAL}> 0) {
+      if($self->{OCTETS_DIRECTION} == 1) {
+ 	      $prepaid{0} += $prepaid{0} - $transfer_traffic->{TRAFFIC_IN} if ( $prepaid{0} > $transfer_traffic->{TRAFFIC_IN} );
+        $prepaid{1} += $prepaid{1} - $transfer_traffic->{TRAFFIC_IN_2} if ( $prepaid{1} > $transfer_traffic->{TRAFFIC_IN_2} );
+       }
+      #Sent / OUT
+      elsif ($self->{OCTETS_DIRECTION} == 2 ) {
+ 	      $prepaid{0} += $prepaid{0} - $transfer_traffic->{TRAFFIC_OUT} if ( $prepaid{0} > $transfer_traffic->{TRAFFIC_OUT} );
+        $prepaid{1} += $prepaid{1} - $transfer_traffic->{TRAFFIC_OUT_2} if ( $prepaid{1} > $transfer_traffic->{TRAFFIC_OUT_2} );
+       }
+      else {
+ 	      $prepaid{0} += $prepaid{0} - ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}) if ($prepaid{0} > ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}));
+        $prepaid{1} += $prepaid{1} - ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) if ( $prepaid{1} > ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) );
+       }   
+    }
    }
 
    if ($CONF->{rt_billing}) {
