@@ -8,3 +8,4 @@
 <tr><td>$_SUM:</td><td><input type='text' name='SUM' value='%SUM%' size=8></td></tr>
 <tr><td>$_STATUS:</td><td>%STATUS_SEL%</td></tr>
 <tr><td>$_DOMAIN:</td><td>%DOMAIN_SEL%</td></tr>
+<tr><td>ID:</td><td><input type='text' name='ID' value='%ID%' size=8></td></tr>

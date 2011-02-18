@@ -2371,6 +2371,8 @@ sub form_changes {
                    14 => "$_HOLD_UP",
                    15 => "$_HANGUP",
                    26 => "$_CHANGE $_GROUP",
+                   
+                   31 => "$_CARDS $_USED"
                    );
  
 if ($permissions{4}{3} && $FORM{del} && $FORM{is_js_confirmed}) {

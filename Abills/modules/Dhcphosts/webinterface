@@ -1415,6 +1415,16 @@ my %DHCP_MESSAGE_TYPES_REV = reverse %DHCP_MESSAGE_TYPES;
    	 $LIST_PARAMS{DESC}='desc';
     }
 
+#   if ($FORM{UID})  {
+#   	  my @macs_arr = '';
+#   	  my $list = $Dhcphosts->hosts_list({ UID => $FORM{UID} });
+#   	  foreach my $line  (@$list) {
+#   	  	push @macs_arr, $line->[6];
+#   	   }
+#      $LIST_PARAMS{MESSAGE}=join(';', @macs_arr);
+#    }  
+
+
    $Dhcphosts->{MESSAGE_TYPE_SEL} = $html->form_select('MESSAGE_TYPE', { SELECTED   => $FORM{MESSAGE_TYPE},
  	                                                               SEL_HASH   => {'' => $_ALL, 
  	                                                               	              %DHCP_MESSAGE_TYPES_REV
@@ -1438,7 +1448,7 @@ my %DHCP_MESSAGE_TYPES_REV = reverse %DHCP_MESSAGE_TYPES;
                      			  caption    => "$_LOG",
 				                    title      => ["$_DATE $_TIME", "HOSTNAME", "$_MESSAGE $_TYPE", "$_MESSAGE", "-" ],
 				                    cols_align => ['right', 'left', 'left',  'left', 'center:noprint' ],
-				                    ID         => 'MONITOR_DHCP',
+				                    ID         => 'DHCP_LOG',
                   				  qs         => $pages_qs,
 				                    pages      => $Dhcphosts->{TOTAL},
                           });
