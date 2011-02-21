@@ -1177,6 +1177,7 @@ sub change {
               ACTIVATE    => 'activate',
               EXPIRE      => 'expire',
               CREDIT      => 'credit',
+              CREDIT_DATE => 'credit_date',
               REDUCTION   => 'reduction',
               SIMULTANEONSLY => 'logins',
               COMMENTS    => 'comments',
@@ -1185,8 +1186,7 @@ sub change {
               GID         => 'gid',
               PASSWORD    => 'password',
               BILL_ID     => 'bill_id',
-              EXT_BILL_ID => 'ext_bill_id',
-              CREDIT_DATE => 'credit_date',
+              EXT_BILL_ID => 'ext_bill_id',              
               REDUCTION_DATE => 'reduction_date',
               DOMAIN_ID   => 'domain_id',
               DELETED     => 'deleted'
@@ -1231,9 +1231,11 @@ sub change {
        $attr->{EXT_BILL_ID}=$Bill->{BILL_ID};
    }
  
-  #Make extrafields use
+  if ($attr->{CREDIT} == 0 && $attr->{CREDIT_DATE} ne '0000-00-00') {
+  	$attr->{CREDIT_DATE}='0000-00-00';
+   }
  
-
+  #Make extrafields use
   $admin->{MODULE}='';
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users',
@@ -1241,8 +1243,6 @@ sub change {
 		                OLD_INFO     => $old_info,
 		                DATA         => $attr
 		              } );
-
-
 
   return $self->{result};
 }

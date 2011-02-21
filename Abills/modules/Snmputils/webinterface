@@ -552,7 +552,6 @@ sub snmputils_chg_vlan {
         	print "Error: $SNMP_COMMUNITY $oid$vlan / $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n";
          }
        }
-      #snmpset -c private -v 2c 192.168.1.137 1.3.6.1.2.1.17.7.1.4.5.1.1.3 u<9a>30
      }
     else {
       print "Error: $SNMP_COMMUNITY $oid$vlan / $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n";
@@ -899,9 +898,35 @@ if ($RESULT{version} =~ /DES-3550/ ) {
     elsif ($RESULT{version} =~ /DES-3852/) {
   	  $RESULT{oid_prefix} = '.1.3.6.1.4.1.171.11.69.4.2.7.';
      }
-    elsif ($RESULT{version} =~ /DES-30|DES-32/) {
+    elsif ($RESULT{version} =~ /DES-30/) {
+# snmpset -v 2c -c private 10.234.1.16 
+#1.3.6.1.4.1.171.12.23.4.1.1.2.10.10.65.54 x 000000000001 
+#1.3.6.1.4.1.171.12.23.4.1.1.3.10.10.65.54 i 4 
+#1.3.6.1.4.1.171.12.23.4.1.1.4.10.10.65.54 x 0000000000000000
+#snmpset -v 2c -c private 10.234.1.12 1.3.6.1.4.1.171.12.23.4.1.1.3.10.10.65.55 i 4 #1.3.6.1.4.1.171.12.23.4.1.1.2.10.10.65.55 x 000000000001 #1.3.6.1.4.1.171.12.23.4.1.1.4.10.10.65.55 x 00 00 00 00 00 00 00 00
+
+
+#iso.3.6.1.4.1.171.12.23.4.1.1.2.10.10.65.54 = Hex-STRING: 00 00 00 00 00 01 
+#iso.3.6.1.4.1.171.12.23.4.1.1.3.10.10.65.54 = INTEGER: 4
+#iso.3.6.1.4.1.171.12.23.4.1.1.4.10.10.65.54 = Hex-STRING: 00 00 00 00 00 00 00 00 
   	  $RESULT{oid_prefix} = '.1.3.6.1.4.1.171.12.23.';
   	  $RESULT{oid_sufix} = {'STATE'  => '3.2.1.2',
+  	                        'IP'     => '4.1.1.1',
+                            'MAC'    => '4.1.1.2',
+                            'MAKE'   => '4.1.1.3',
+                            'PORT'   => '4.1.1.4' };
+     }
+    elsif ($RESULT{version} =~ /DES-32/) {
+# snmpset -v 2c -c private 10.234.1.16 
+#1.3.6.1.4.1.171.12.23.4.1.1.2.10.10.65.54 x 000000000001 
+#1.3.6.1.4.1.171.12.23.4.1.1.3.10.10.65.54 i 4 
+#1.3.6.1.4.1.171.12.23.4.1.1.4.10.10.65.54 x 0000000000000000
+#iso.3.6.1.4.1.171.12.23.4.1.1.2.10.10.65.54 = Hex-STRING: 00 00 00 00 00 01 
+#iso.3.6.1.4.1.171.12.23.4.1.1.3.10.10.65.54 = INTEGER: 4
+#iso.3.6.1.4.1.171.12.23.4.1.1.4.10.10.65.54 = Hex-STRING: 00 00 00 00 00 00 00 00 
+  	  $RESULT{oid_prefix} = '.1.3.6.1.4.1.171.12.23.';
+  	  $RESULT{oid_sufix} = {
+  	  	                    #'STATE'  => '3.2.1.2',
   	                        'IP'     => '4.1.1.1',
                             'MAC'    => '4.1.1.2',
                             'MAKE'   => '4.1.1.3',
@@ -966,19 +991,6 @@ sub snmputils_dlink_save_conf {
   return $message; 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 #**********************************************************
 #
 #**********************************************************
@@ -1009,12 +1021,12 @@ sub snmputils_dlink_pb_add {
     $mac .= chr(hex($c));
    }
 
-  $message .= $oid_prefix.$oid_sufix{MAC}.$ip ."=> $mac\n";
+  $message .= "$oid_prefix$oid_sufix{MAC}.$ip => ". unpack("H*",  $mac)."\n";
   if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAC}.".$ip", "string", "$mac")) {
     $message .= "Ok\n";
    }
   else {
-    print "'' $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
+    print "MAC: '' $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
    }
 
   #Шаг 2. Назначить эту связку на порт 1:
@@ -1036,7 +1048,7 @@ sub snmputils_dlink_pb_add {
    	if ($sw_info->{version} =~ /DES-3052/) {
    	  $port_array[$id-1]=1;
    	 }
-   	elsif ($sw_info->{version} =~ /DES-30/) {
+   	elsif ($sw_info->{version} =~ /DES-30|DES-32/) {
    	  $port_array[$port_count+2-$id]=1;
    	 }
    	else {
@@ -1051,6 +1063,10 @@ sub snmputils_dlink_pb_add {
   elsif($sw_info->{version} =~ /3052/) {
   	$unpack_ = "H2H2H2H2H2H2H2H2";
    }
+  elsif($sw_info->{version} =~ /32/) {
+  	$unpack_ = "H2H2H2H2H2H2H2H2";
+   }
+
 
   my @ar = unpack("$unpack_", pack("B48", join("", @port_array)));
 
@@ -1090,7 +1106,7 @@ sub snmputils_dlink_pb_add {
   if($sw_info->{version} =~ /DES-3052/) {
     
    }
-  elsif($sw_info->{version} =~ /DES-30/) {
+  elsif($sw_info->{version} =~ /DES-30|DES-32/) {
   	print "=> $oid\n";
   	if(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
    	  $message .= " Ok\n";
@@ -1193,7 +1209,7 @@ sub snmputils_dlink_pb_list {
    }
   my @result = &snmpwalk("$SNMP_COMMUNITY", $SWITCH_INFO->{oid_prefix});
   if ($SNMP_Session::errmsg) {
-    print "OID: '$SWITCH_INFO->{oid_prefix}'<br>$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n";
+    print "OID: '$SWITCH_INFO->{oid_prefix}'". $html->br() ."$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n";
     return 0;
    }
   
@@ -1203,17 +1219,17 @@ sub snmputils_dlink_pb_list {
   my $unpack_ = ($SWITCH_INFO->{version} =~ /3550/ || $SWITCH_INFO->{version} =~ /3052/) ? "H2H2H2H2H2H2H2" : "H2H2H2H2";
 
   foreach my $line (@result) {
-    print "\n<br>$line => " if ($debug > 0);
+    print $html->br() ."$line => " if ($debug > 0);
 
     #Blocked address
     if($line =~ /^[\d\.]{0,2}\d\.\d\.(\d)\.\d+\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/ ) {
     	#       MAC / 2 -> MAC
     	$BLOCK_HASH{$2}{$1}=$3;
-    	print "Block<br>\n" if ($debug > 0);
+    	print "Block".$html->br() if ($debug > 0);
      }
     #Binding Address
     elsif($line =~ /^[\d\.]{0,2}\d\.\d\.(\d)\.(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}):([$expr_val]+)/g) {
-      print "=> $1 / $2 / $3 <br>\n" if ($debug > 0);
+      print "=> $1 / $2 / $3 ".$html->br() if ($debug > 0);
       #Port
   	  if ($1 == 4) {
   	    my $port   = $3;
@@ -1231,7 +1247,7 @@ sub snmputils_dlink_pb_list {
    	      if ($SWITCH_INFO->{version} =~ /DES-3052/) {
             $port = pos($string);
            }
-   	      elsif ($SWITCH_INFO->{version} =~ /DES-30/) {
+   	      elsif ($SWITCH_INFO->{version} =~ /DES-30|DES-32/) {
             $port = 33 - pos($string);
            }
           else {
@@ -1247,7 +1263,7 @@ sub snmputils_dlink_pb_list {
   	   }
   	  elsif ($1 == 2) {
   	  	if ($debug > 0) {
-  	  		 print "IP: $2 MAC: $3<br>\n";
+  	  		 print "IP: $2 MAC: $3".$html->br();
   	  	 }
   	  	$info{MAC}{$2}=join(':', unpack("H2H2H2H2H2H2", $3));
   	   }
@@ -1477,13 +1493,13 @@ sub snmputils_dlink_ip_mac_port{
 
 
   if ($debug > 4) {
-    print "$sort / $SORT_COLUMNS{$sort} /<br>\n";
+    print "$sort / $SORT_COLUMNS{$sort} /".$html->br();
    }
 
   foreach my $line (sort @entries) {
     my ($value, $ip) = split(/ /, $line, 2);
 
-    print "value: '$value', IP: '$ip' ". $ACTIVE_MAC->{LOGIN}{"$ip"}." <br>" if ($debug > 5);
+    print "value: '$value', IP: '$ip' ". $ACTIVE_MAC->{LOGIN}{"$ip"}.$html->br() if ($debug > 5);
     my @arr = (
              $table->td($ACTIVE_MAC->{LOGIN_URL}{"$ip"}),
              $table->td($ACTIVE_MAC->{MULTIPORTS}{"$ip"},  { colspan => 2 } ),
@@ -1714,7 +1730,7 @@ sub snmputils_smf_list {
   #my $expr_val = chr(0)."-".chr(255);                                            
 
   foreach my $line (@result) {
-    print "$line<br>\n" if ($debug > 0);
+    print "$line".$html->br() if ($debug > 0);
     #Blocked address
     # Get port
     if($line =~ /^3\.(\d{1,3})\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\.0:(.+)/ ) {
@@ -1723,7 +1739,7 @@ sub snmputils_smf_list {
       my $port = $3;
       
  	  	if ($debug > 0) {
-	  		 print "MAC: $mac<br>\n";
+	  		 print "MAC: $mac".$html->br();
  	  	 }
 
       my @mac_arr = split(/\./, $mac, 6);
@@ -2169,9 +2185,9 @@ if ($FORM{Client}) {
 	 	$info{$key} = snmpget("$SNMP_COMMUNITY\@$SNMP_HOST", $fields{$key}. $prefix_id . $FORM{Client});
 
  	  if ($debug  > 0) {
-	 	  print "$key: $fields{$key} / $prefix_id / $FORM{Client} = $info{$key}<br>";
+	 	  print "$key: $fields{$key} / $prefix_id / $FORM{Client} = $info{$key}".$html->br();
       if ($SNMP_Session::errmsg) {
-        print "$SNMP_Session::errmsg<br>";
+        print "$SNMP_Session::errmsg".$html->br();
       }	 	
     }	 	
 
@@ -2234,16 +2250,13 @@ foreach my $line (@$list) {
 
     foreach my $field (@default_fields) {
       my @arr = snmpwalk("$line->[11]\@$line->[3]", $fields{$field});
- 
-      #print "<b>$fields{$field}</b><br>\n" if ($debug == 1);
-
       foreach my $line (@arr) {
         if ('.'.$line =~ /($oid_prefix)\.(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(.+)/) {
           $prefix_id     = $1 if ($prefix_id eq '');
           my $sufix      = $2;
           my $value      = $3;
           $result{$field}{"$sufix"}=$value;
-          print "Line: $line<br>PREFIX: $prefix_id <BR>\nNAME: $field // Sufix: $sufix / Result: $value<br>" if ($debug == 1);
+          print "Line: $line". $html->br() ."PREFIX: $prefix_id <BR>\nNAME: $field // Sufix: $sufix / Result: $value".$html->br() if ($debug == 1);
          }
        }
      }
@@ -2656,18 +2669,18 @@ foreach my $line (@$list) {
         my $oid = "$field - $oid_prefix/$fields->{$field}";
       
         if ($SNMP_Session::errmsg) {
-          print $html->message('err', $_ERROR, "$oid<br>$SNMP_Session::suppress_warnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmsg");
+          print $html->message('err', $_ERROR, "$oid".$html->br()."$SNMP_Session::suppress_warnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmrnings / $SNMP_Session::errmsg");
           last;
          }
         foreach my $line (@arr) {
           if ($line =~ /([\d\.]+):(.+)/) {
             $result{$field}{$1}=$2;
-            print "$field // $line ($1:$2) <br>"if ($debug == 1);
+            print "$field // $line ($1:$2) ". $html->br() if ($debug == 1);
            }
          }
        }
       else {
-        print "- $field - $oid_prefix/$fields->{$field} <br>" if ($debug == 1);
+        print "- $field - $oid_prefix/$fields->{$field} ".$html->br() if ($debug == 1);
         print $html->message('err', $_ERROR, "No response");
         last;
        }
@@ -2728,7 +2741,7 @@ sub snmp_form_footer {
 my $table2 = $html->table({ width => '100%' });
 my @arr = ();
 foreach my $name ( sort keys %$fields) {
-  my $ex_info = ($attr->{OIDS_EXINFO}->{$name}{DESCRIBE}) ?  " ($attr->{OIDS_EXINFO}->{$name}{ACCESS})<br>$attr->{OIDS_EXINFO}->{$name}{DESCRIBE}" : '';
+  my $ex_info = ($attr->{OIDS_EXINFO}->{$name}{DESCRIBE}) ?  " ($attr->{OIDS_EXINFO}->{$name}{ACCESS})". $html->br() ."$attr->{OIDS_EXINFO}->{$name}{DESCRIBE}" : '';
   push @arr, $html->form_input('fields', "$name", { TYPE => 'checkbox', STATE => (in_array($name, $active_fields)) ? 1 : undef  }). ' '.$html->b($name) ."$ex_info";
 
   if ($#arr > 2) {
@@ -2784,7 +2797,6 @@ sub snmputils_load_mibs  {
   foreach my $line (@$mib_array) {
     next if (! -f "../../Abills/MIBs/$line");
     my($ret, $oid_hash, $oid_ex) = snmpMIB_to_OID_extended("../../Abills/MIBs/$line");
-
     $message .= "MIBS: $line Loaded\n" if ($debug == 1);
 
     while(my($k, $v)=each %$oid_hash) {
@@ -2994,7 +3006,7 @@ if ($FORM{SHOW}) {
     my @RES_ARR = sort { $a <=> $b } keys %{ $result{"$CAPTION[0]"} };
 
     if ($SNMP_Session::errmsg) {
-       print $html->message('err', $_ERROR, "$FORM{TYPE}<br>$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
+       print $html->message('err', $_ERROR, "$FORM{TYPE}". $html->br() ."$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
      }
 
     if ($#RES_ARR > 0 && $FORM{TYPE} ne 'system') {
@@ -3192,7 +3204,6 @@ elsif ($buf =~ /FROM (\S+)/) {
    $DESCRIBE_OIDS{'OBJECT-TYPE'}=$1;
   }
  elsif ($buf =~ /SYNTAX (\w+)/) {
- 	 #print "$buf<br>";
  	 $DESCRIBE_OIDS{'SYNTAX'}=$1;
    $buf =~ s/ SYNTAX .*//;
  	 next;
@@ -3263,7 +3274,7 @@ elsif ($buf =~ /FROM (\S+)/) {
 	    if ($pass) {
 	      carp "snmpMIB_to_OID: $arg: \"$strt\" prefix unknown, load the parent MIB first.\n"
 		unless ($SNMP_Session::suppress_warnings > 1);
-		print "snmpMIB_to_OID: $arg: \"$strt\" prefix unknown, load the parent MIB first.<br>\n";
+		print "snmpMIB_to_OID: $arg: \"$strt\" prefix unknown, load the parent MIB first.".$html->br();
 	    } else {
 		$need2pass = 1;
 	    }
@@ -3528,7 +3539,7 @@ sub snmputils_celan_list {
   print '.1.3.6.1.4.1.655.5.15.1.4.2.8.1.2<BR>' if ($debug > 0);
 
   foreach my $line (@result) {
-    print "$line<br>\n" if ($debug > 0);
+    print "$line".$html->br() if ($debug > 0);
     # Get port
     my ($number, $mac_port)=split(/:/, $line);
     my @out_arr = unpack("H2H2H2H2H2H2H2H2H2H2", $mac_port); 
@@ -3536,11 +3547,11 @@ sub snmputils_celan_list {
     next if ($mac eq '00:00:00:00:00:00');
     my $port = join('', @out_arr[6..9]);
  	  if ($debug > 0) {
-	  	print "$number, $mac -> $port / $out /<br>";
+	  	print "$number, $mac -> $port / $out /".$html->br();
  	   }
 
  	  $active{MAC}{$number.'-'.$mac}=$mac;
-    $string = join('.', unpack("B32", pack('H*', $port)))."<br>";
+    $string = join('.', unpack("B32", pack('H*', $port))).$html->br();
     if ( $string =~ m/1/g ) {
       $active{PORT}{$number.'-'.$mac}=32 - pos($string) + 1;
      }
@@ -3553,18 +3564,18 @@ sub snmputils_celan_list {
   print '.1.3.6.1.4.1.655.5.15.1.4.4.1.2<BR>' if ($debug > 0);
 
   foreach my $line (@result) {
-    print "$line<br>\n" if ($debug > 0);
+    print "$line". $html->br() ."\n" if ($debug > 0);
     # Get port
       my ($number, $mac_port)=split(/:/, $line);
       my @out_arr = unpack("H2H2H2H2H2H2H2H2H2H2", $mac_port); 
       my $mac  = join(':', @out_arr[0..5]);
       my $port = join('', @out_arr[6..9]);
  	  	if ($debug > 0) {
-	  		 print "$number, $mac -> $port / $out /<br>";
+	  		 print "$number, $mac -> $port / $out /".$html->br();
  	  	 }
 
  	  	$dynamic{MAC}{$number.'-'.$mac}=$mac;
-      $string = join('.', unpack("B32", pack('H*', $port)))."<br>";
+      $string = join('.', unpack("B32", pack('H*', $port))).$html->br();
       if ( $string =~ m/1/g ) {
      	  $dynamic{PORT}{$number.'-'.$mac}=32 - pos($string) + 1;
      	 }

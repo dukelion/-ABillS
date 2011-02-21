@@ -1854,7 +1854,7 @@ sub br () {
 	my $self = shift;
 	my ($attr) = @_;
 	
-	return '<br/>';
+	return "<br/>\n";
 }
 
 1

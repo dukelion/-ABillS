@@ -350,11 +350,12 @@ sub form_info {
       
       if ($admin->{TOTAL} >= $month_changes) {
         $user->{CREDIT_CHG_BUTTON} = $html->color_mark("$ERR_CREDIT_CHANGE_LIMIT_REACH. $_TOTAL: $admin->{TOTAL}/$month_changes", $_COLORS[6]);
-        $sum = 0;
+        #$FORM{change_credit}=undef;
+        $sum = -1;
        }
      }
     #PERIOD=days;MAX_CREDIT_SUM=sum;MIN_PAYMENT_SUM=sum;
-    if ($payments_expr) {
+    if ($payments_expr && $sum != -1) {
     	my %params = (PERIOD          => 0,
     	              MAX_CREDIT_SUM  => 1000,
     	              MIN_PAYMENT_SUM => 1,
@@ -398,11 +399,11 @@ sub form_info {
               my $Fees = Finance->fees($db, $admin, \%conf);
               $Fees->take($user, $price, { DESCRIBE => "$_CREDIT $_ENABLE" } );              
              }
-            cross_modules_call('_payments_maked', { USER => $user }); 
+            cross_modules_call('_payments_maked', { USER => $user, QUITE => 1 }); 
           }
 
-         $user->{CREDIT}=$sum;
-         $user->{CREDIT_DATE}=$credit_date;
+         $user->{CREDIT}     = $sum;
+         $user->{CREDIT_DATE}= $credit_date;
         }
        else {
          $user->{CREDIT_CHG_BUTTON} =  $html->button("$_SET: ". sprintf("%.2f", $sum) . 
