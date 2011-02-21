@@ -408,7 +408,6 @@ sub rt_billing {
 	my $self = shift;
   my ($RAD, $NAS)=@_;
 
-
   $self->query($db, "SELECT lupdated, UNIX_TIMESTAMP()-lupdated, 
    if($RAD->{INBYTE}   >= acct_input_octets AND $RAD->{ACCT_INPUT_GIGAWORDS}=acct_input_gigawords, 
         $RAD->{INBYTE} - acct_input_octets, 
