@@ -1679,7 +1679,7 @@ if ($FORM{letter}) {
   $pages_qs .= "&letter=$FORM{letter}";
  } 
 
-my @statuses = ($_ALL, $_DEBETORS, $_DISABLE, $_EXPIRE);
+my @statuses = ($_ALL, $_ACTIV, $_DEBETORS, $_DISABLE, $_EXPIRE);
 if ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8}) {
   push @statuses, $_DELETED,
 }
@@ -1690,15 +1690,18 @@ foreach my $name ( @statuses ) {
 	if (defined($FORM{USERS_STATUS}) && $FORM{USERS_STATUS} == $i && $FORM{USERS_STATUS} ne '') {
     $LIST_PARAMS{USER_STATUS}=1;
     if ($i == 1) {
-      $LIST_PARAMS{DEPOSIT}='<0';
+    	$LIST_PARAMS{ACTIVE}=1;
      }
     elsif ($i == 2) {
-    	$LIST_PARAMS{DISABLE}=1;
+      $LIST_PARAMS{DEPOSIT}='<0';
      }
     elsif ($i == 3) {
-    	$LIST_PARAMS{EXPIRE}="<$DATE,>0000-00-00";
+    	$LIST_PARAMS{DISABLE}=1;
      }
     elsif ($i == 4) {
+    	$LIST_PARAMS{EXPIRE}="<$DATE,>0000-00-00";
+     }
+    elsif ($i == 5) {
     	$LIST_PARAMS{DELETED}=1;
      }
 
