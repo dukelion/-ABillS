@@ -458,6 +458,17 @@ sub form_info {
   	$user->{PAYSYS_PAYMENTS} = $html->button("$_BALANCE_RECHARCHE", "index=$fn_index$pages_qs", { BUTTON => 1} );
    }
 
+  #Show users info field
+  my $i=0; 
+  foreach my $field_id ( @{ $user->{INFO_FIELDS_ARR} } ) {
+    my($position, $type, $name, $user_portal)=split(/:/, $user->{INFO_FIELDS_HASH}->{$field_id});
+    
+    next if ($user_portal == 0);
+
+  	$user->{INFO_FIELDS}.= "<tr><td>". ( eval "\"$name\"" ). ":</td><td valign=center>$user->{INFO_FIELDS_VAL}->[$i]</td></tr>\n";
+    $i++;
+   }
+
   $html->tpl_show(templates('form_client_info'), $user);
 
   if ($conf{user_chg_pi}) {

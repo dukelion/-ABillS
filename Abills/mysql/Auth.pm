@@ -622,7 +622,6 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
   if ($EX_PARAMS->{traf_limit} > 0) {
     #Gigaword limit  	
   	if ($EX_PARAMS->{traf_limit} > 4096) {
-  		
   		my $giga_limit = $EX_PARAMS->{traf_limit} / 4096;
   		
   		$RAD_PAIRS->{'Mikrotik-Recv-Limit-Gigawords'}=int($giga_limit);

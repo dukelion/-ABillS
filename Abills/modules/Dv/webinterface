@@ -965,6 +965,69 @@ print $table->show();
 }
 
 
+#*******************************************************************
+# dv_rating_tp
+#*******************************************************************
+sub dv_rating_tp {
+	my ($attr) = @_;
+
+eval { require Bonus_rating; };
+if (! $@) {
+  Bonus_rating->import();
+ }
+else {
+  $html->message('err', $_ERROR, "Can't load 'Bonus_rating'. Purchase this module http://abills.net.ua");
+  return 0;
+ }	
+
+my $Bonus_rating = Bonus_rating->new($db, \%conf, $admin);
+
+
+if(defined($attr->{TP})) {
+  if ($FORM{change}) {
+	  $Bonus_rating->change( { %FORM } );
+	  
+	  if (! $Bonus_rating->{errno}) {
+     $html->message('info', $_INFO, "$_CHANGED");	
+    }
+   } 	
+ }
+elsif (defined($FORM{TP_ID})) {
+  $FORM{subf}=$index;
+  dv_tp();
+  return 0;
+ }
+
+if ($Bonus_rating->{errno}) {
+   $html->message('err', $_ERROR, "[$Bonus_rating->{errno}] $err_strs{$Bonus_rating->{errno}} $Bonus_rating->{errstr}");	
+ }
+	
+$Bonus_rating->info( $FORM{TP_ID} );
+
+my $tp_list = $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $admin->{DOMAIN_ID} });
+
+$Bonus_rating->{TP_SEL} = $html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $Bonus_rating->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tp_list,
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+
+$Bonus_rating->{RATING_ACTION_SEL} = $html->form_select('RATING_ACTION', 
+                                          { 
+ 	                                          SELECTED          => $Bonus_rating->{RATING_ACTION},
+ 	                                          SEL_MULTI_ARRAY   => [['', ''], ['-1', "$_HOLD_UP"], @{ $tp_list	 } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
+	
+	
+$Bonus_rating->{ACTION}='change';
+$Bonus_rating->{LNG_ACTION}="$_CHANGE";
+	
+$html->tpl_show(_include('dv_rating_tp', 'Dv'), $Bonus_rating);
+}
 
 
 #*******************************************************************

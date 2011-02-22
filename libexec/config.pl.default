@@ -87,7 +87,7 @@ $conf{list_max_recs}=25;
 $conf{web_session_timeout} = 1800;
 $conf{user_chg_passwd}=0;
 #Max session traffic Mb
-$conf{MAX_SESSION_TRAFFIC} = 2047; 
+#$conf{MAX_SESSION_TRAFFIC} = 2047; 
 
 
 # Exppp options

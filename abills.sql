@@ -855,6 +855,16 @@ CREATE TABLE `tarif_plans` (
 ) COMMENT='Tarif plans';
 
 
+CREATE TABLE `tp_bonus_rating` (
+  `tp_id` smallint(5) unsigned NOT NULL default '0',
+  `rating_from` int(11) unsigned NOT NULL default '0',
+  `rating_to` int(11) unsigned NOT NULL default '0',
+  `action` smallint(5) unsigned NOT NULL default '0',
+  `comments` text NOT NULL default '',
+  PRIMARY KEY  (`tp_id`)
+) COMMENT='Tarif plans bonus rating';
+
+
 CREATE TABLE `tp_groups` (
   `id` smallint(6) unsigned NOT NULL auto_increment,
   `name` varchar(20) NOT NULL default '',

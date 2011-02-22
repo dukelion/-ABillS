@@ -456,3 +456,5 @@ $_PAY='Pay';
 $_GRAPH='Charts for';
 $_VIEW='View';
 $_PROCESSING='Processing';
+$_RATING='Rating';
+$_USER_PORTAL='User portal';

@@ -1005,7 +1005,7 @@ sub user_form {
     }
 
    if ($permissions{0}{3}) {
-   	 $user_info->{PASSWORD} = ($FORM{SHOW_PASSWORD}) ? "$_PASSWD: '$user_info->{PASSWORD}'" : $html->button("$_SHOW $_PASSWD", "index=$index&UID=$LIST_PARAMS{UID}&SHOW_PASSWORD=1", { BUTTON => 1 });
+   	 $user_info->{PASSWORD} = ($FORM{SHOW_PASSWORD}) ? "$_PASSWD: '$user_info->{PASSWORD}'" : $html->button("$_SHOW $_PASSWD", "index=$index&UID=$LIST_PARAMS{UID}&SHOW_PASSWORD=1", { BUTTON => 1 }). ' '. $html->button("$_CHANGE $_PASSWD", "index=". get_function_index('form_passwd')  ."&UID=$LIST_PARAMS{UID}", { BUTTON => 1 });
     }
   } 
 
@@ -1279,7 +1279,7 @@ sub user_pi {
   #Info fields
   my $i=0; 
   foreach my $field_id ( @{ $user_pi->{INFO_FIELDS_ARR} } ) {
-    my($position, $type, $name)=split(/:/, $user_pi->{INFO_FIELDS_HASH}->{$field_id});
+    my($position, $type, $name, $user_portal)=split(/:/, $user_pi->{INFO_FIELDS_HASH}->{$field_id});
 
     my $input = '';
     if ($type == 2) {
@@ -1326,7 +1326,7 @@ sub user_pi {
      }
 
 
-  	$user_pi->{INFO_FIELDS}.= "<tr><td>$name:</td><td valign=center>$input</td></tr>\n";
+  	$user_pi->{INFO_FIELDS}.= "<tr><td>". ( eval "\"$name\"" ). ":</td><td valign=center>$input</td></tr>\n";
     $i++;
    }
 
@@ -1510,13 +1510,13 @@ if(defined($attr->{USER})) {
    	 	  require "Abills/modules/$module{$service_func_index}/webinterface";
        }
     
-    print "<TABLE width='100%' border=0>
+      print "<TABLE width='100%' border=0>
       <TR bgcolor='$_COLORS[0]'><TH align='right'>$module{$service_func_index}</TH></TR>
       <TR bgcolor='$_COLORS[1]'><TH align='right'><div id='rules'><ul><li class='center'>$service_func_menu</li></ul></div></TH></TR>
     </TABLE>\n";
   
-    $functions{$service_func_index}->({ USER => $user_info });
-}
+      $functions{$service_func_index}->({ USER => $user_info });
+    }
     
     user_pi({ USER => $user_info });
    }
@@ -1770,12 +1770,12 @@ if ($users->{EXTRA_FIELDS}) {
   foreach my $line (@{ $users->{EXTRA_FIELDS} }) {
     if ($line->[0] =~ /ifu(\S+)/) {
       my $field_id = $1;
-      my ($position, $type, $name)=split(/:/, $line->[1]);
+      my ($position, $type, $name, $user_portal)=split(/:/, $line->[1]);
       if ($type == 2) {
-        $SEARCH_TITLES{$field_id.'_list.name'}=$name;
+        $SEARCH_TITLES{$field_id.'_list.name'}=eval "\"$name\"";
        }
       else {
-        $SEARCH_TITLES{'pi.'.$field_id}=$name;
+        $SEARCH_TITLES{'pi.'.$field_id}=eval "\"$name\"";
        }
      }
    }
@@ -5415,7 +5415,7 @@ elsif($search_form{$FORM{type}}) {
     	  $field_id = $1;
        }
 
-      my($position, $type, $name)=split(/:/, $line->[1]);
+      my($position, $type, $name, $user_portal)=split(/:/, $line->[1]);
 
       my $input = '';
       if ($type == 2) {
@@ -5440,7 +5440,7 @@ elsif($search_form{$FORM{type}}) {
     	  $input = $html->form_input($field_id, "$FORM{$field_id}", { SIZE => 40 });
        }
 
-      $info{INFO_FIELDS}.= "<tr><td colspan=2>$name:</td><td>$input</td></tr>\n";
+      $info{INFO_FIELDS}.= "<tr><td colspan=2>". eval "\"$name\"" . ":</td><td>$input</td></tr>\n";
       $i++;
      }
 
@@ -6659,11 +6659,11 @@ sub form_info_fields {
 
 	my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2});
 	
-  my $table = $html->table( { width      => '450',
+  my $table = $html->table( { width      => '500',
                               caption    => "$_INFO_FIELDS - $_USERS",
                               border     => 1,
-                              title      => [$_NAME, 'SQL field', $_TYPE, $_PRIORITY, '-'],
-                              cols_align => ['left', 'left', 'left', 'right', 'center', 'center' ],
+                              title      => [$_NAME, 'SQL field', $_TYPE, $_PRIORITY, "$_USER_PORTAL", '-'],
+                              cols_align => ['left', 'left', 'left', 'right', 'left', 'center', 'center' ],
                               ID         => 'INFO_FIELDS'
                            } );
 
@@ -6675,21 +6675,24 @@ sub form_info_fields {
     	$field_name = $1;
      }
 
-    my($position, $field_type, $name)=split(/:/, $line->[1]);
+    my($position, $field_type, $name, $user_portal)=split(/:/, $line->[1]);
 
     $table->addrow($name,  
       $field_name, 
       ($field_type == 2) ? $html->button($fields_types[$field_type], "index=". ($index + 1) ."&LIST_TABLE=$field_name".'_list') : $fields_types[$field_type],  
       $position,
-      (defined($permissions{4}{3})) ? $html->button($_DEL, "index=$index&del=ifu&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name?", BUTTON => 1 }) : ''
+      $bool_vals[$user_portal],
+      (defined($permissions{4}{3})) ? $html->button($_DEL, "index=$index&del=ifu&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name?", BUTTON => 1 }) : ''      
       );
    }
 
   $table->addrow($html->form_input('NAME', ''),  
-      $html->form_input('FIELD_ID', ''),  
+      $html->form_input('FIELD_ID', '', { SIZE => 12 }),  
       $fields_type_sel, 
-      $html->form_input('POSITION', 0),  
-      $html->form_input('USERS_ADD', $_ADD, {  TYPE => 'SUBMIT' })
+      $html->form_input('POSITION', 0, { SIZE => 10 }),  
+      $html->form_input('USERS_PORTAL', 1, {  TYPE => 'CHECKBOX' }),
+      $html->form_input('USERS_ADD', $_ADD, {  TYPE => 'SUBMIT' }),
+      
       );
 
 
@@ -6701,11 +6704,11 @@ sub form_info_fields {
 
 
   $list = $users->config_list({ PARAM => 'ifc*', SORT => 2 });
-  $table = $html->table( { width      => '450',
+  $table = $html->table( { width      => '500',
                            caption    => "$_INFO_FIELDS - $_COMPANIES",
                            border     => 1,
-                           title      => [$_NAME, 'SQL field', $_TYPE, $_PRIORITY, '-'],
-                           cols_align => ['left', 'left', 'left', 'right', 'center', 'center' ],
+                           title      => [$_NAME, 'SQL field', $_TYPE, $_PRIORITY, "$_USER_PORTAL", '-'],
+                           cols_align => ['left', 'left', 'left', 'right', 'left', 'center', 'center' ],
                            } );
 
 
@@ -6716,20 +6719,23 @@ sub form_info_fields {
     	$field_name = $1;
      }
 
-    my($position, $field_type, $name)=split(/:/, $line->[1]);
+    my($position, $field_type, $name, $user_portal)=split(/:/, $line->[1]);
 
     $table->addrow($name,  
       $field_name, 
       ($field_type == 2) ? $html->button($fields_types[$field_type], "index=". ($index + 1) ."&LIST_TABLE=$field_name".'_list') : $fields_types[$field_type], 
       $position,
-      (defined($permissions{4}{3})) ? $html->button($_DEL, "index=$index&del=ifc&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name ?", BUTTON => 1 }) : ''
+      $bool_vals[$user_portal],
+      (defined($permissions{4}{3})) ? $html->button($_DEL, "index=$index&del=ifc&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name ?", BUTTON => 1 }) : '',
+      
       );
    }
 
   $table->addrow($html->form_input('NAME', ''),  
-      '_'.$html->form_input('FIELD_ID', ''),  
+      $html->form_input('FIELD_ID', '', { SIZE => 12 }),  
       $fields_type_sel, 
-      $html->form_input('POSITION', 0),  
+      $html->form_input('POSITION', 0, { SIZE=> 10 }),  
+      $html->form_input('USERS_PORTAL', 1, {  TYPE => 'CHECKBOX' }),
       $html->form_input('COMPANY_ADD', $_ADD, {  TYPE => 'SUBMIT' })
       );
 

@@ -1,5 +1,5 @@
 package Bonus;
-# Dialup & Vpn  managment functions
+# Bonus modules
 #
 
 
