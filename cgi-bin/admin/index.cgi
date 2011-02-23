@@ -5440,7 +5440,7 @@ elsif($search_form{$FORM{type}}) {
     	  $input = $html->form_input($field_id, "$FORM{$field_id}", { SIZE => 40 });
        }
 
-      $info{INFO_FIELDS}.= "<tr><td colspan=2>". eval "\"$name\"" . ":</td><td>$input</td></tr>\n";
+      $info{INFO_FIELDS}.= "<tr><td colspan=2>". (eval "\"$name\"") . ":</td><td>$input</td></tr>\n";
       $i++;
      }
 

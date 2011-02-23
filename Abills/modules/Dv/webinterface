@@ -1029,6 +1029,31 @@ $Bonus_rating->{LNG_ACTION}="$_CHANGE";
 $html->tpl_show(_include('dv_rating_tp', 'Dv'), $Bonus_rating);
 }
 
+#*******************************************************************
+# dv_rating_periodic
+#*******************************************************************
+sub dv_rating_periodic {
+ my ($attr) = @_;
+
+ my $debug = $attr->{DEBUG} || 0;
+ my $debug_output = '';
+ $debug_output .= "DV: Make ratings\n" if ($debug > 1);
+
+ eval { require Bonus_rating; };
+ if (! $@) {
+   Bonus_rating->import();
+  }
+ else {
+   print "Can't load 'Bonus_rating'. Purchase this module http://abills.net.ua";
+   return 0;
+  } 	
+
+  my $Bonus_rating = Bonus_rating->new($db, \%conf, $admin);
+
+  $Bonus_rating->change_users_rating();
+
+ return $debug_output;
+} 
 
 #*******************************************************************
 # online users

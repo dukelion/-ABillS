@@ -26,10 +26,6 @@
 
 
 
-if ($conf{DV_RATING_SYSTEM}) {
-  $FUNCTIONS_LIST{"16:11:$_BONUS:dv_rating_tp:TP_ID"} = 5;
- }
-
 if ($permissions{0} && $permissions{0}{1}) {
   $FUNCTIONS_LIST{"20:1:$_USERS $_ADD:dv_wizard_user:"} = 11;
   if (in_array('Cards', \@MODULES)) {
@@ -56,5 +52,12 @@ $USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if ($conf{DV_USER_CHG
 %PERIODIC = (daily   => [ 'dv_daily_fees', 'dv_users_warning_messages', 'dv_holdup_fees' ],
              monthly => [ 'dv_monthly_fees', 'dv_periodic_logrotate'  ],
              report  => [ 'dv_report'       ]);
+
+
+if ($conf{DV_RATING_SYSTEM}) {
+  $FUNCTIONS_LIST{"16:11:$_BONUS:dv_rating_tp:TP_ID"} = 5;
+  $PERIODIC{daily} = [ 'dv_rating_periodic', @{ $PERIODIC{daily} } ];
+ }
+
 
 1
