@@ -1183,6 +1183,7 @@ sub change {
               CREDIT      => 'credit',
               CREDIT_DATE => 'credit_date',
               REDUCTION   => 'reduction',
+              REDUCTION_DATE => 'reduction_date',  
               SIMULTANEONSLY => 'logins',
               COMMENTS    => 'comments',
               COMPANY_ID  => 'company_id',
@@ -1191,7 +1192,6 @@ sub change {
               PASSWORD    => 'password',
               BILL_ID     => 'bill_id',
               EXT_BILL_ID => 'ext_bill_id',              
-              REDUCTION_DATE => 'reduction_date',
               DOMAIN_ID   => 'domain_id',
               DELETED     => 'deleted'
              );
@@ -1235,8 +1235,11 @@ sub change {
        $attr->{EXT_BILL_ID}=$Bill->{BILL_ID};
    }
  
-  if ($attr->{CREDIT} == 0 && $attr->{CREDIT_DATE} ne '0000-00-00') {
-  	$attr->{CREDIT_DATE}='0000-00-00';
+  if (defined($attr->{CREDIT}) && $attr->{CREDIT} == 0) {
+     $attr->{CREDIT_DATE}='0000-00-00';
+   }
+  if (defined($attr->{REDUCTION}) && $attr->{REDUCTION} == 0) {
+     $attr->{REDUCTION_DATE} = '0000-00-00';
    }
  
   #Make extrafields use

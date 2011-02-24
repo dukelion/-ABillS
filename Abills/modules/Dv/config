@@ -6,7 +6,7 @@
                    "05:2:$_ERROR:dv_error:UID"                => 11,
                    "06:2:$_SHEDULE:dv_form_shedule:UID"       => 11,
                    "07:2:$_COMPENSATION:dv_compensation:UID"  => 11,
-                   "10:0:Internet:dv_tp:"                       => 5,
+                   "10:0:Internet:null:"                       => 5,
                    "11:10:$_TARIF_PLANS:dv_tp:"                => 5,
                    "12:11:$_ADD:dv_tp:"                        => 5,
                    "13:11:$_INTERVALS:form_intervals:TP_ID"    => 5,

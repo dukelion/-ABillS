@@ -350,7 +350,8 @@ sub changes {
 
 
   if (! $DATA{UNCHANGE_DISABLE} ) {
-    $DATA{DISABLE} = (defined($DATA{DISABLE})) ? $DATA{DISABLE} : undef;
+
+    $DATA{DISABLE} = (defined($DATA{'DISABLE'}) && $DATA{DISABLE} ne '') ? $DATA{DISABLE} : undef;
    }
 
   if(defined($DATA{EMAIL}) && $DATA{EMAIL} ne '') {
@@ -361,7 +362,7 @@ sub changes {
      }
    }
 
-  $OLD_DATA = $attr->{OLD_INFO}; #  $self->info($uid);
+  $OLD_DATA = $attr->{OLD_INFO}; 
   if($OLD_DATA->{errno}) {
      $self->{errno}  = $OLD_DATA->{errno};
      $self->{errstr} = $OLD_DATA->{errstr};
@@ -372,8 +373,7 @@ sub changes {
   my $CHANGES_LOG = "";
 
   while(my($k, $v)=each(%DATA)) {
-  	#print "$k, $v<br>\n";
-    $OLD_DATA->{$k} = '' if (! $OLD_DATA->{$k});
+#  	print "$k, $v ->  $OLD_DATA->{$k}<br>\n";
     if (defined($FIELDS->{$k}) && $OLD_DATA->{$k} ne $DATA{$k}){
         if ($k eq 'PASSWORD' || $k eq 'NAS_MNG_PASSWORD') {
           $CHANGES_LOG .= "$k *->*;";
@@ -391,9 +391,10 @@ sub changes {
           $CHANGES_QUERY .= "$FIELDS->{$k}=now(),";
          }
         else {
-        	if (! $OLD_DATA->{$k} && ($DATA{$k} eq '0' || $DATA{$k} eq '')) {
-        		next;
+          if (! defined($OLD_DATA->{$k}) && ($DATA{$k} eq '0' || $DATA{$k} eq '')) {
+        	next;
            }
+
 
           if ($k eq 'DISABLE') {
             if ($DATA{$k} == 0){
@@ -473,7 +474,8 @@ else {
       $admin->action_add($DATA{UID}, "$self->{CHG_GID}", { TYPE => 26 });
      }
 
-    if(defined($self->{'STATUS'}) && $self->{'STATUS'} ne '') {
+    #if(defined($self->{'STATUS'}) && $self->{'STATUS'} ne '') {
+    if($self->{CHG_STATUS}) {
       $admin->action_add($DATA{UID}, "$self->{'STATUS'}" . (($attr->{EXT_CHANGE_INFO})? ' '. $attr->{EXT_CHANGE_INFO} : ''), { TYPE => ($self->{'STATUS'}==3) ? 14 : 4 });
      }
 

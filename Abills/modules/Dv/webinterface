@@ -544,7 +544,7 @@ sub dv_user {
     $Dv->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
  	                                          SELECTED          => $Dv->{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULES => 'Dv' }),
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Dv' }),
  	                                          MULTI_ARRAY_KEY   => 0,
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
@@ -1005,21 +1005,13 @@ if ($Bonus_rating->{errno}) {
 $Bonus_rating->info( $FORM{TP_ID} );
 
 my $tp_list = $tariffs->list({ MODULE => 'Dv', DOMAIN_ID => $admin->{DOMAIN_ID} });
-
-$Bonus_rating->{TP_SEL} = $html->form_select('TP_ID', 
-                                          { 
- 	                                          SELECTED          => $Bonus_rating->{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $tp_list,
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
- 	                                        });
-
 $Bonus_rating->{RATING_ACTION_SEL} = $html->form_select('RATING_ACTION', 
                                           { 
  	                                          SELECTED          => $Bonus_rating->{RATING_ACTION},
  	                                          SEL_MULTI_ARRAY   => [['', ''], ['-1', "$_HOLD_UP"], @{ $tp_list	 } ],
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MULTI_ARRAY_KEY   => 18,
+ 	                                          MULTI_ARRAY_VALUE => '0,1',
+ 	                                          NO_ID             => 1
  	                                        });
 	
 	
@@ -1048,9 +1040,23 @@ sub dv_rating_periodic {
    return 0;
   } 	
 
-  my $Bonus_rating = Bonus_rating->new($db, \%conf, $admin);
+  my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
 
-  $Bonus_rating->change_users_rating();
+ $Bonus_rating->change_users_rating();
+
+ #Change Tps
+ $Bonus_rating->{debug}=1;
+ my $list = $Bonus_rating->change_users_tps_list();
+
+ foreach my $line  ( @$list ) {
+ 	  my $uid   = $line->[0];
+ 	  my $tp_id = $line->[1];
+ 	  print "UID: $uid TP: $line->[6] -> $tp_id\n";
+    $Dv->change({ UID   => $uid, 
+    	            TP_ID => $tp_id 
+    	          });
+	  
+  }
 
  return $debug_output;
 } 
@@ -1997,7 +2003,7 @@ else {
          }
         elsif ($fields_arr[$i] =~ 'TP') {
  	    	  if (scalar keys %TP_NAMES == 0) {
- 	    	    my $list = $tariffs->list();
+ 	    	    my $list = $tariffs->list({ MODULE => 'Dv' });
     	      foreach my $line (@$list) {
     		      $TP_NAMES{$line->[0]}=$line->[1];
     	       }
@@ -5450,7 +5456,7 @@ sub dv_wizard_user {
   $dv_defaults->{TP_ID} = $html->form_select('TP_ID', 
                                          { 
  	                                         SELECTED  => $user->{TP_ID},
- 	                                         SEL_MULTI_ARRAY   => $tariffs->list(),
+ 	                                         SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Dv' }),
  	                                         MULTI_ARRAY_KEY   => 0,
  	                                         MULTI_ARRAY_VALUE => 1,
  	                                        });
