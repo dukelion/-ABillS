@@ -350,7 +350,6 @@ sub changes {
 
 
   if (! $DATA{UNCHANGE_DISABLE} ) {
-
     $DATA{DISABLE} = (defined($DATA{'DISABLE'}) && $DATA{DISABLE} ne '') ? $DATA{DISABLE} : undef;
    }
 
@@ -373,8 +372,8 @@ sub changes {
   my $CHANGES_LOG = "";
 
   while(my($k, $v)=each(%DATA)) {
-#  	print "$k, $v ->  $OLD_DATA->{$k}<br>\n";
-    if (defined($FIELDS->{$k}) && $OLD_DATA->{$k} ne $DATA{$k}){
+#  	print "$k, $v ->  $OLD_DATA->{$k} / $DATA{$k}<br>\n";
+    if ($FIELDS->{$k} && (! defined($DATA{$k}) || $OLD_DATA->{$k} ne $DATA{$k})) {
         if ($k eq 'PASSWORD' || $k eq 'NAS_MNG_PASSWORD') {
           $CHANGES_LOG .= "$k *->*;";
           $CHANGES_QUERY .= "$FIELDS->{$k}=ENCODE('$DATA{$k}', '$CONF->{secretkey}'),";
@@ -397,7 +396,7 @@ sub changes {
 
 
           if ($k eq 'DISABLE') {
-            if ($DATA{$k} == 0){
+            if (defined($DATA{$k}) && $DATA{$k} == 0 || ! defined($DATA{$k})){
               $self->{ENABLE} = 1;
               $self->{DISABLE}= undef;
              }
@@ -422,7 +421,7 @@ sub changes {
             $CHANGES_LOG .= "$k $OLD_DATA->{$k}->$DATA{$k};";
            }
 
-          $CHANGES_QUERY .= "$FIELDS->{$k}='$DATA{$k}',";
+          $CHANGES_QUERY .= "$FIELDS->{$k}='". ((defined($DATA{$k})) ? $DATA{$k} : '') ."',";
          }
      }
    }

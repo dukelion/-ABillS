@@ -1051,7 +1051,7 @@ sub dv_rating_periodic {
  foreach my $line  ( @$list ) {
  	  my $uid   = $line->[0];
  	  my $tp_id = $line->[1];
- 	  print "UID: $uid TP: $line->[6] -> $tp_id\n";
+ 	  $debug_output .= "UID: $uid TP: $line->[6] -> $tp_id\n" if ($debug > 0);
     $Dv->change({ UID   => $uid, 
     	            TP_ID => $tp_id 
     	          });
