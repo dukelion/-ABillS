@@ -266,7 +266,8 @@ sub change {
      my $user = Users->new($db, $admin, $CONF);
 
      $user->info($attr->{UID});
-     
+
+     #Active TP     
      if ($old_info->{STATUS} == 2 && (defined($attr->{STATUS}) && $attr->{STATUS} == 0) && $tariffs->{ACTIV_PRICE} > 0) {
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0 && $tariffs->{POSTPAID_FEE} == 0) {
          $self->{errno}=15;
@@ -278,8 +279,9 @@ sub change {
 
        $tariffs->{ACTIV_PRICE}=0;
       }
+     # Change TP
      elsif($tariffs->{CHANGE_PRICE} > 0 && 
-       ($self->{TP_INFO_OLD}->{PRIORITY} - $tariffs->{PRIORITY} > 0 || $self->{TP_INFO_OLD}->{PRIORITY} + $tariffs->{PRIORITY} == 0) ) {
+       ($self->{TP_INFO_OLD}->{PRIORITY} - $tariffs->{PRIORITY} > 0 || $self->{TP_INFO_OLD}->{PRIORITY} + $tariffs->{PRIORITY} == 0) && ! $attr->{NO_CHANGE_FEES} ) {
 
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{CHANGE_PRICE}) {
          $self->{errno}=15;

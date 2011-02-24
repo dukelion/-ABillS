@@ -1040,25 +1040,31 @@ sub dv_rating_periodic {
    return 0;
   } 	
 
-  my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
 
- $Bonus_rating->change_users_rating();
+ my %LIST_PARAMS = (PAGE_ROWS => 1000000);
+ $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
+ $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+
+ my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
+
+ $Bonus_rating->change_users_rating({  %LIST_PARAMS });
 
  #Change Tps
- $Bonus_rating->{debug}=1;
- my $list = $Bonus_rating->change_users_tps_list();
+ my $list = $Bonus_rating->change_users_tps_list({ %LIST_PARAMS  });
 
  foreach my $line  ( @$list ) {
  	  my $uid   = $line->[0];
  	  my $tp_id = $line->[1];
  	  $debug_output .= "UID: $uid TP: $line->[6] -> $tp_id\n" if ($debug > 0);
     $Dv->change({ UID   => $uid, 
-    	            TP_ID => $tp_id 
+    	            TP_ID => $tp_id,
+    	            NO_CHANGE_FEES => 1,
     	          });
 	  
   }
 
- return $debug_output;
+  $DEBUG .= $debug_output;
+  return $debug_output;
 } 
 
 #*******************************************************************
