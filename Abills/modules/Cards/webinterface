@@ -688,7 +688,7 @@ sub cards_user_payment () {
 	if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_OLDSTYLE})) {
 		my $BRUTE_LIMIT = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
 	  my $brute       = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
-	  
+    sleep 1;	  
     $Cards->cards_info({ %FORM });
    
     if ($Cards->{error}) {
@@ -730,7 +730,8 @@ sub cards_user_payment () {
    $user->info($LIST_PARAMS{UID});
    
    $Cards->cards_change({ ID       => "$Cards->{ID}", 
-     	                    STATUS   => 5, 
+     	                  STATUS   => 5,
+                          UID      => $user->{UID} 
      	                 });	
 
    

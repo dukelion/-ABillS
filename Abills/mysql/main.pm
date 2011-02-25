@@ -447,7 +447,6 @@ else {
 
   $CHANGES_LOG = $attr->{EXT_CHANGE_INFO}.' '.$CHANGES_LOG if ($attr->{EXT_CHANGE_INFO});
   if (defined($DATA{UID}) && $DATA{UID} > 0 && defined($admin)) {
-
     if ($attr->{'ACTION_ID'}) {
       $admin->action_add($DATA{UID}, $attr->{EXT_CHANGE_INFO}, { TYPE => $attr->{'ACTION_ID'} });
       return $self->{result};
@@ -461,7 +460,7 @@ else {
       $admin->action_add($DATA{UID}, "", { TYPE => 8 });
      }
 
-    if ($CHANGES_LOG ne '') {
+    if ($CHANGES_LOG ne '' && $CHANGES_LOG ne $attr->{EXT_CHANGE_INFO}.' ') {
       $admin->action_add($DATA{UID}, "$CHANGES_LOG", { TYPE => 2});
      }
 
@@ -477,6 +476,7 @@ else {
     if($self->{CHG_STATUS}) {
       $admin->action_add($DATA{UID}, "$self->{'STATUS'}" . (($attr->{EXT_CHANGE_INFO})? ' '. $attr->{EXT_CHANGE_INFO} : ''), { TYPE => ($self->{'STATUS'}==3) ? 14 : 4 });
      }
+
 
     if($self->{CHG_CREDIT}) {
       $admin->action_add($DATA{UID}, "$self->{'CHG_CREDIT'}", { TYPE => 5 });

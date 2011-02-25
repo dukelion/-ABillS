@@ -468,6 +468,8 @@ sub snmputils_periodic {
 
 #**********************************************************
 # Change work and guest vlans 
+#
+# edge-core 3526
 #**********************************************************
 sub snmputils_chg_vlan {
 	my ($attr) = @_;
@@ -502,7 +504,7 @@ sub snmputils_chg_vlan {
       $user_ports = $line->[7];
      }
 
-          $debug_output .= "USER ALLOW NAS: ". (($line->[0]) ? $line->[0] : '').
+    $debug_output .= "USER ALLOW NAS: ". (($line->[0]) ? $line->[0] : '').
           " UID: $line->[1] IP: $line->[2] MAC: $line->[3] VID: $vlan PORT: $user_ports NETWORK: $line->[10]\n" if ($debug > 2);
     if ($line->[4] >= $conf{SNMPUTILS_BINDING_DEPOSIT}) {
         if ($vlan) {
