@@ -746,7 +746,7 @@ if(! defined($self->{NO_TPINTERVALS})) {
    }
 }
 
-print "$sent / $recv - $sum\n";
+#print "$sent / $recv - $sum\n";
 
 $sum = $sum * (100 - $self->{REDUCTION}) / 100 if ($self->{REDUCTION} > 0);
 

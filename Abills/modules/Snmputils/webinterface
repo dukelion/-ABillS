@@ -483,16 +483,11 @@ sub snmputils_chg_vlan {
   $debug = 4;
   my $debug_output = '';
   my $list = $Snmputils->snmputils_nas_ipmac({ NAS_ID    => $NAS_ID,
-                                                   PG        => 0,
-                                                   PAGE_ROWS => 100000 });
+                                               PG        => 0,
+                                               PAGE_ROWS => 1000000 });
 
-
-  if ($attr->{NAS_TYPE} ne 'edge_core') {
-    $DEBUG = $debug_output;
-    return $debug_output;
-   }
-
-
+  
+  #get users for snmp_binding
   my @switch_ports = split(//, '000000000000000000000000000000000000000000000000');
   my %VLANS = ();
   my %REMOVE_VLANS = ();
@@ -524,22 +519,26 @@ sub snmputils_chg_vlan {
    }
 
 
+  my $version = snmpget($SNMP_COMMUNITY, ".1.3.6.1.2.1.1.1.0");
+  print "$version \n" if ($debug> 3);
 
+if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
+  my $ports_map = 'B*';
   #Add ports to Vlans
   while(my($vlan, $ports_arr)=each %VLANS) {
           $debug_output .= "VLAN: $vlan PORTS: ". join(',', @$ports_arr) ."\n";
 
     my $oid = '1.3.6.1.2.1.17.7.1.4.3.1.4.';
     my $cure_ports = snmpget($SNMP_COMMUNITY, "$oid$vlan");
-    @switch_ports = split(//, unpack("B64",  $cure_ports));
+    @switch_ports = split(//, unpack("$ports_map",  $cure_ports));
 
     foreach my $port (@$ports_arr) {
       $switch_ports[int($port-1)]=1;
      }
 
-    my $ports_bin         = pack("B64", join("", @switch_ports));
+    my $ports_bin         = pack("$ports_map", join("", @switch_ports));
     if ($debug > 3) {
-      $debug_output .= "SNMP: $oid$vlan PORTS: ". unpack("B64",  $ports_bin) ."\n";
+      $debug_output .= "SNMP: $oid$vlan PORTS: ". unpack("$ports_map",  $ports_bin) ."\n";
      }
     #Untaged
     if (snmpset($SNMP_COMMUNITY, "$oid$vlan", 'string', $ports_bin)) {
@@ -567,7 +566,7 @@ sub snmputils_chg_vlan {
 
     my $oid = '1.3.6.1.2.1.17.7.1.4.3.1.2.';
     my $cure_ports = snmpget($SNMP_COMMUNITY, "$oid$vlan");
-    @switch_ports = split(//, unpack("B64",  $cure_ports));
+    @switch_ports = split(//, unpack("$ports_map",  $cure_ports));
 
     foreach my $port (@$ports_arr) {
       $switch_ports[int($port-1)]=0;
@@ -592,6 +591,10 @@ sub snmputils_chg_vlan {
      }
           #$RESULT->{UNTAGED_PORTS}{$GUEST_VLAN} =snmpget($SNMP_COMMUNITY, "1.3.6.1.2.1.17.7.1.4.3.1.4.$GUEST_VLAN", $ports);
    }
+}
+elsif ($attr->{NAS_TYPE} eq 'dlink_pb') {
+	
+}
 
 
   $DEBUG = $debug_output;

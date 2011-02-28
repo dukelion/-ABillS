@@ -3414,7 +3414,7 @@ elsif($FORM{del}) {
  	                           });
 
    foreach my $line (@$list) {
-   	 next if ($line->[0] == $Dv->{TP_ID});
+   	 next if ($line->[0] == $Dv->{TP_ID} && $user->{EXPIRE} eq '0000-00-00' );
    	 $table->{rowcolor}=($table->{rowcolor} eq $_COLORS[1]) ? $_COLORS[2] : $_COLORS[1];
    	 my $radio_but = '';
    	 
