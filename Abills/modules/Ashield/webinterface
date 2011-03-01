@@ -1515,7 +1515,7 @@ if ($drweb_version != 1) {
       	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
       	  	});
 
-   foreach my $val (@{ $result_hash->{user}->[0]  }) {
+   foreach my $val (@{ $result_hash->{user}  }) {
      my $login = $val->{login};
      $agents_list{$login} = $val;   
     }
@@ -1549,7 +1549,7 @@ if ($drweb_version != 1) {
    	 my $agent_id = $agent->{uuid}->[0];
    	 my $tp_name  = ($drweb_version == 1) ? $agent->{tariffplancode}->[0] : $agent->{'current-tariff'}->[0];
    	 my $sum      = $TPS_HASH{$tp_name}{MONTH_FEE};
-   	 my $auto_prolongation = ($drweb_version == 1) ? 1 : int($agent->{'auto-prolongation'});
+         my $auto_prolongation = ($drweb_version == 1) ? 1 : (($agent->{'auto-prolongation'}) ? int($agent->{'auto-prolongation'}) : 0);
    	 my $subscription_period = $agent->{'subscription-period'};
    	 my $expire   = 0;
    	 my $blockbeg = 0;
