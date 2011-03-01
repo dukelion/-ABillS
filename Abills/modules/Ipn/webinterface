@@ -2448,6 +2448,7 @@ if ($#nas_ids_arr < 0) {
   return $debug_output;
  }
 
+
 #Get puuls for nas
 my $poll_list = $Nas->nas_ip_pools_list({  });
 
@@ -2466,12 +2467,14 @@ foreach my $line (@$tp_list) {
 }
 
 my $list = $sessions->online({ NAS_ID => join(', ', @nas_ids_arr),
-	                             FIELDS => [ 0, 21, 27, 23, 12, 22, 10 ] });
+	                       FIELDS_NAMES => [ 'UID' ], 
+	                       #FIELDS => [ 0, 21, 27, 23, 12, 22, 10 ] 
+	                       });
 
 my $count = 0;
 my %online_uids = ();
 foreach my $line (@$list)   {
-	$online_uids{$line->[5]}=1;
+	$online_uids{$line->[0]}=1;
 }
 
 $list = $Dv->list({ LOGIN        => $attr->{LOGINS} || undef,
@@ -2480,18 +2483,19 @@ $list = $Dv->list({ LOGIN        => $attr->{LOGINS} || undef,
 	                  LOGIN_STATUS => 0,
 	                  FILTER_ID    => '*',
 	                  PAGE_ROWS    => 1000000,
-	                  TP_ID        => $attr->{NAS_IDS} || '>0',
+	                  TP_ID        => $attr->{TP_IDS} || '>0',
 	                  PORT         => '>=0'
                  });
+
 
 foreach my $line (@$list)   {
   my $filter_id    = $line->[8];
   my $login        = $line->[0];
   my $ip           = $line->[6];
   my $connect_info = '';
-  my $uid          = $line->[10];
+  my $uid          = $line->[6 + $Dv->{SEARCH_FIELDS_COUNT}];
   my $nas_id       = 0;
-  my $tp_id        = $line->[13];
+  my $tp_id        = $line->[9 + $Dv->{SEARCH_FIELDS_COUNT}];
   my $port         = $line->[7];
   my $ip_num       = unpack("N", pack("C4", split( /\./, $ip))); 
 
@@ -2505,7 +2509,7 @@ foreach my $line (@$list)   {
   elsif ($line->[2]+$line->[3] <= 0 && !  $TPS{$tp_id}) {
   	next;
    }
-
+   
   $debug_output .= "LOGIN: $login IP: $ip NAS_ID: $nas_id CONNECT_INFO: $connect_info UID: $uid FILTER_ID: $filter_id\n" if ($debug > 3);
 
   reset %nas_pools_hash;

@@ -1099,62 +1099,67 @@ sub docs_accounts_multi_create {
 	my ($attr) = @_;
 
   if ($FORM{create}) {
-    my @uids_arr = split(/,/, $FORM{UIDS});
-    
+    if ($FORM{SUM} < 0.01) {
+     $html->message('err', "$_ERROR", "$_WRONG_SUM");
+     return 0;
+    }
 
+    my @uids_arr = split(/, /, $FORM{UIDS});
+
+
+    my $count = 0;
+    my $total_sum = 0;
     foreach my $uid (@uids_arr) {      	
+    	$count++;
       $FORM{UID}=$uid;
       $Docs->account_add({ %FORM });
+      delete($FORM{create});
       if(! $Docs->{errno}) {
 
-       if ($conf{DOCS_PDF_PRINT}) {
-       	 $users = $user if ($user->{UID});
-       	 $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
-       	 $users->pi({ UID => $users->{UID} });
+        if ($conf{DOCS_PDF_PRINT}) {
+       	  $users = $user if ($user->{UID});
+       	  $users->pi({ UID => $uid });
        	 
-       	 if ( $FORM{SEND_EMAIL} && $users->{EMAIL}) {
-         	 my $message  = "$_ACCOUNT:  $Docs->{ACCT_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n";
-         	 $FORM{print} = $FORM{ACCOUNT_ID};
-         	 $FORM{pdf}   = 1;
-         	 delete($FORM{create});
-       	   my $html_old = $html;
-           PDF::API2->import();
-           require Abills::PDF;
-           $html = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
-      	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
-      	                              CONF      => $CONF
-	                                  });
+       	  if ( $FORM{SEND_EMAIL} && $users->{EMAIL}) {
+         	  my $message  = "$_ACCOUNT:  $Docs->{ACCT_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n";
+          	$FORM{pdf}   = 1;
+          	$FORM{print} = $Docs->{DOC_ID};
+        	  my $html_old = $html;
+            PDF::API2->import();
+            require Abills::PDF;
+            $html = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
+      	                               NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+      	                               CONF      => $CONF
+	                                   });
        	 
-         	 my $content = docs_account({ OUTPUT2RETURN => 1 });
-       	   sendmail("$conf{ADMIN_MAIL}", "$users->{EMAIL}", "ABillS - $_ACCOUNT", "$message", "$conf{MAIL_CHARSET}",
-         	  '',       	  
-         	  { ATTACHMENTS => [ { CONTENT      => $content,
+         	  my $content = docs_account({ OUTPUT2RETURN => 1 });
+        	  sendmail("$conf{ADMIN_MAIL}", "$users->{EMAIL}", "ABillS - $_ACCOUNT - $Docs->{ACCT_ID}", "$message", "$conf{MAIL_CHARSET}",
+          	  '',       	  
+           	  { ATTACHMENTS => [ { CONTENT      => $content,
        	  	                   CONTENT_TYPE => 'Content-type: application/pdf',
-       	  	                   FILENAME     => 'account.pdf' }
+       	  	                   FILENAME     => 'account_'. $Docs->{ACCT_ID} .'.pdf' }
        	  	                 ] });
 
            $html = $html_old;
-          } 	 
-
-       	 return 0;
+          }
         }
-       else {
-         $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE} ".
-         $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', BUTTON => 1 }) );
-         #return 0;
-        }
-
-
-
+       #else {
+       #  $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE} ");
+       # }
        }
      }
-  	
-  	$html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED $FORM{UIDS}");
+
+  	$total_sum = $count * $FORM{SUM};
+  	$html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED $_COUNT: $count $_TOTAL $_SUM: $total_sum");
+  	return 0;
    }
 
 
+  $FORM{GROUP_SEL}=sel_groups();
   $html->tpl_show(_include('docs_account_multi_sel', 'Docs'), { %FORM	});
   my $list = $users->list( { %LIST_PARAMS, %FORM  } );
+  
+ 
   my $table = $html->table( { width      => '100%',
                             border     => 1,
                             caption    => "$_USERS",
@@ -1166,7 +1171,8 @@ sub docs_accounts_multi_create {
                           });
 
   foreach my $line (@$list) {
-    $table->addrow($html->form_input('UIDS', "$line->[6]", { TYPE => 'checkbox' }) .' '.$line->[0],
+    $table->addrow($html->form_input('UIDS', $line->[5+$users->{SEARCH_FIELDS_COUNT}], { TYPE => 'checkbox' }) .' '.
+      $html->button($line->[0], "index=15&UID=". $line->[5+$users->{SEARCH_FIELDS_COUNT}]),
     $line->[1],
     $line->[2],
     $line->[3],
@@ -1175,8 +1181,12 @@ sub docs_accounts_multi_create {
    }
 	
 	$Docs->{USERS_TABLE}=$table->show();
-	$Docs->{DATE}="$DATE";
-	$Docs->{SUM}=0.00 || $FORM{SUM};
+	$Docs->{DATE}=$html->date_fld2('PASPORT_DATE', { FORM_NAME => 'multi_create',
+  	                                                            WEEK_DAYS => \@WEEKDAYS,
+  	                                                            MONTHES   => \@MONTHES,
+  	                                                            DATE      => $DATE
+  	                                                            });
+	$Docs->{SUM}=$FORM{SUM} || 0.00;
 	
   $html->tpl_show(_include('docs_account_multi_add', 'Docs'), $Docs);
 }
