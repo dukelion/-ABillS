@@ -12,13 +12,14 @@
                    "09:0:$_DOCS:docs_summary:"                  => 5,
                    "10:0:$_DOCS:docs_accounts_list:"            => 8,
                    "11:10:$_ACCOUNTS:docs_accounts_list:"       => 8,
-                   "12:10:$_INVOICE:docs_invoice_list:"         => 8,
-                   "15:0:$_DOCS:docs_reports:"                  => 4,
-                   "16:15:$_TAX_INVOICE:docs_tax_invoice_list:" => 4,
-                   "17:16:Export:docs_tax_exports:"             => 4,
-                   "18:15:$_ACTS:docs_acts_list:"               => 4,
-                   "19:15:$_ACCOUNTS:docs_accounts_list:"       => 4,
-                   "20:15:$_INVOICE:docs_invoice_list:"         => 4,
+                   "12:11:$_CREATE:docs_accounts_multi_create:"       => 8,
+                   "14:10:$_INVOICE:docs_invoice_list:"         => 8,
+                   "21:0:$_DOCS:docs_reports:"                  => 4,
+                   "22:21:$_TAX_INVOICE:docs_tax_invoice_list:" => 4,
+                   "23:22:Export:docs_tax_exports:"             => 4,
+                   "24:21:$_ACTS:docs_acts_list:"               => 4,
+                   "25:21:$_ACCOUNTS:docs_accounts_list:"       => 4,
+                   "26:21:$_INVOICE:docs_invoice_list:"         => 4,
                    
 #                   "13:10:$_CONTRACTS:docs_contractst:"        => 8
 

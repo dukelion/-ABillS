@@ -13,7 +13,7 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
 
 #use strict;
 
-my $version = 0.8;
+my $version = 0.9;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -46,7 +46,16 @@ require Admins;
 Admins->import();
 $admin = Admins->new($db, \%conf);
 
-$admin->{SESSION_ID}='0.0.0.0';
+my $ip = '127.0.0.1';
+if ($ENV{SSH_CLIENT} =~ /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/) {
+  $ip=$1;
+ }  
+else {
+  $ip = `cure_tty=\`tty | sed  's/.*\\(p\\d*\\)/\\1/g'\`; w | grep \${cure_tty} | awk '{ print \$3 }'`;	
+ }
+
+
+$admin->{SESSION_IP}=$ip;
 
 my $ARGV = parse_arguments(\@ARGV);
 my $retries          = 0;
@@ -90,11 +99,13 @@ my $Dv = Dv->new($db, $admin, \%conf);
 my %LIST_PARAMS = ();
 
 $debug=($ARGV->{DEBUG}) ? $ARGV->{DEBUG} : $debug;
-$LIST_PARAMS{PAGE_ROWS}= ($ARGV->{PAGE_ROWS}) ? $ARGV->{PAGE_ROWS} : 1000000;
-$LIST_PARAMS{DATE}=$ARGV->{DATE} || '';
-$LIST_PARAMS{SORT}=$ARGV->{SORT} || 1;
-$LIST_PARAMS{DESC}=$ARGV->{DESC} || undef;
-$LIST_PARAMS{ID}=$ARGV->{ID} || undef;
+$LIST_PARAMS{PAGE_ROWS} = ($ARGV->{PAGE_ROWS}) ? $ARGV->{PAGE_ROWS} : 1000000;
+$LIST_PARAMS{DATE}      = $ARGV->{DATE} || '';
+$LIST_PARAMS{SORT}      = $ARGV->{SORT} || 1;
+$LIST_PARAMS{DESC}      = $ARGV->{DESC} || undef;
+$LIST_PARAMS{ID}        = $ARGV->{ID} || undef;
+
+
 
 #Intercat mode
 my $interact = 0;
@@ -461,12 +472,7 @@ sub check_permissions {
   $password =~ s/"/\\"/g;
   $password =~ s/'/\\'/g;
 
-  my $ip = '127.0.0.1';
-  
-  if ($ENV{SSH_CLIENT} =~ /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/) {
-    $ip=$1;
-  }
-  
+  #my $ip = '127.0.0.1';
 
   my %PARAMS = ( LOGIN     => "$login", 
                  PASSWORD  => "$password",
@@ -475,9 +481,7 @@ sub check_permissions {
                 );
 
 
-  $admin->info(0, { %PARAMS } );
-
-  
+  $admin->info(0, { %PARAMS } );  
 
   if ($admin->{errno}) {
     return 1;
@@ -757,7 +761,7 @@ if ($interact) {
   if ($FORM->{CONFIRM}) {
   	$fees->take($user, $FORM->{SUM}, { %$FORM });
   	if (! $fees->{errno}) {
-  		print "$_ADDED $_SUM: $FORM->{SUM} ID: $fees->{INSERT_ID}\n";
+  		print "$_GETTED $_SUM: $FORM->{SUM} ID: $fees->{INSERT_ID}\n";
   	 }
     else {
       if ($fees->{errno} == 14) {
@@ -806,7 +810,7 @@ foreach my $line (@$list) {
 #**********************************************************
 sub form_payments {
   my ($attr) = @_;
-
+  my $FORM;
 if ($interact) {
   print ">> $_PAYMENTS:\n";
 
@@ -815,25 +819,42 @@ if ($interact) {
                 "$_CONFIRM (y/n):CONFIRM"
                 );
 
-  my $FORM   = form_parse(\@params);
+  $FORM   = form_parse(\@params);
 
   if ($FORM->{CONFIRM}) {
+  	PAYMENTS:
+
   	$payments->add($user, { %$FORM });
   	if (! $payments->{errno}) {
   		print "$_ADDED $_SUM: $FORM->{SUM} ID: $payments->{INSERT_ID}\n";
   	 }
     else {
       if ($payments->{errno} == 14) {
-        print "Error: $_BILLS $_NOT_EXISTS\n";
+        print "$_ERROR: $_BILLS $_NOT_EXIST\n";
        }
       else {
-    	  print "$_ERROR: [$payments->{errno}]\n"; #$err_strs{$payments->{errno}}":      }
+    	  print "$_ERROR: [$payments->{errno}] $payments->{errstr}\n"; #$err_strs{$payments->{errno}}":      }
        }
      }
    }
 
   return 0;
  }
+
+
+if ($ARGV->{ADD}) {
+	$user = $users->info(0, { LOGIN => $ARGV->{PAYMENTS} });
+	
+	if ($users->{TOTAL} < 1) {
+		print "$_ERROR: $_USER '$ARGV->{PAYMENTS}' $_NOT_EXIST\n";
+		return 0;
+	 }
+	$FORM            = $ARGV;
+	$FORM->{SUM}     = $ARGV->{ADD} || $ARGV->{SUM};
+	$FORM->{DESCRIBE}= $ARGV->{DESCRIBE} || '';
+	goto PAYMENTS;
+}
+
 
 my @args = ('ADD', 'DEL', 'METHOD', 'DATE', 'DESCRIBE');
 foreach my $a (@args) {

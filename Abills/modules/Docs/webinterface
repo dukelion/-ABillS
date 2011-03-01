@@ -1091,6 +1091,96 @@ sub docs_reports {
 }
 
 
+
+#**********************************************************
+# docs_accounts_multi_create
+#**********************************************************
+sub docs_accounts_multi_create {
+	my ($attr) = @_;
+
+  if ($FORM{create}) {
+    my @uids_arr = split(/,/, $FORM{UIDS});
+    
+
+    foreach my $uid (@uids_arr) {      	
+      $FORM{UID}=$uid;
+      $Docs->account_add({ %FORM });
+      if(! $Docs->{errno}) {
+
+       if ($conf{DOCS_PDF_PRINT}) {
+       	 $users = $user if ($user->{UID});
+       	 $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
+       	 $users->pi({ UID => $users->{UID} });
+       	 
+       	 if ( $FORM{SEND_EMAIL} && $users->{EMAIL}) {
+         	 my $message  = "$_ACCOUNT:  $Docs->{ACCT_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n";
+         	 $FORM{print} = $FORM{ACCOUNT_ID};
+         	 $FORM{pdf}   = 1;
+         	 delete($FORM{create});
+       	   my $html_old = $html;
+           PDF::API2->import();
+           require Abills::PDF;
+           $html = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
+      	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+      	                              CONF      => $CONF
+	                                  });
+       	 
+         	 my $content = docs_account({ OUTPUT2RETURN => 1 });
+       	   sendmail("$conf{ADMIN_MAIL}", "$users->{EMAIL}", "ABillS - $_ACCOUNT", "$message", "$conf{MAIL_CHARSET}",
+         	  '',       	  
+         	  { ATTACHMENTS => [ { CONTENT      => $content,
+       	  	                   CONTENT_TYPE => 'Content-type: application/pdf',
+       	  	                   FILENAME     => 'account.pdf' }
+       	  	                 ] });
+
+           $html = $html_old;
+          } 	 
+
+       	 return 0;
+        }
+       else {
+         $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE} ".
+         $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', BUTTON => 1 }) );
+         #return 0;
+        }
+
+
+
+       }
+     }
+  	
+  	$html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED $FORM{UIDS}");
+   }
+
+
+  $html->tpl_show(_include('docs_account_multi_sel', 'Docs'), { %FORM	});
+  my $list = $users->list( { %LIST_PARAMS, %FORM  } );
+  my $table = $html->table( { width      => '100%',
+                            border     => 1,
+                            caption    => "$_USERS",
+                            title      => [$_LOGIN, $_FIO, $_DEPOSIT, $_CREDIT, "$_STATUS" ],
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'left', 'right'],
+                            qs         => $pages_qs,
+                            pages      => $users->{TOTAL},
+                            ID         => 'DOCS_ACCOUNT_USERS'
+                          });
+
+  foreach my $line (@$list) {
+    $table->addrow($html->form_input('UIDS', "$line->[6]", { TYPE => 'checkbox' }) .' '.$line->[0],
+    $line->[1],
+    $line->[2],
+    $line->[3],
+    $html->color_mark($status[$line->[4]], $state_colors[$line->[4]]), 
+    );  	
+   }
+	
+	$Docs->{USERS_TABLE}=$table->show();
+	$Docs->{DATE}="$DATE";
+	$Docs->{SUM}=0.00 || $FORM{SUM};
+	
+  $html->tpl_show(_include('docs_account_multi_add', 'Docs'), $Docs);
+}
+
 #**********************************************************
 # docs_account
 #**********************************************************
@@ -1144,7 +1234,7 @@ sub docs_account {
 
        if ($conf{DOCS_PDF_PRINT}) {
        	 $users = $user if ($user->{UID});
-       	 $html->message('info', "$_ACCOUNT $_ADDED", "$_ACCOUNT $_ADDED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
+       	 $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
        	 $users->pi({ UID => $users->{UID} });
        	 
        	 if ( $FORM{SEND_EMAIL} && $users->{EMAIL}) {
@@ -1174,7 +1264,7 @@ sub docs_account {
        	 return 0;
         }
        else {
-         $html->message('info', "$_ACCOUNT $_ADDED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE} ".
+         $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE} ".
          $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', BUTTON => 1 }) );
          #return 0;
         }
