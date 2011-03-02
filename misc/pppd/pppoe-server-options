@@ -1,0 +1,18 @@
+logfile /var/log/pppoe.log
+#name pppoe-server
+#debug
+mtu 1480
+mru 1480
+
+auth
+#login
+default-asyncmap
+#ktune
+#lcp-echo-interval 18
+#lcp-echo-failure 7
+ms-dns %DNS%
+proxyarp
+plugin /usr/lib/pppd/2.4.5/radius.so
+plugin /usr/lib/pppd/2.4.5/radattr.so
+require-chap
+require-mschap-v2

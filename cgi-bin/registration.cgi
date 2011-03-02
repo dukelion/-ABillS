@@ -181,6 +181,7 @@ Fio:      $FORM{FIO}
 DATE:     $DATE $TIME
 IP:       $ENV{REMOTE_ADDR}
 Module:   $m
+E-Mail:   $FORM{EMAIL}
 =========================================
 
 };
