@@ -2314,7 +2314,6 @@ if ($#nas_ids_arr < 0) {
 use Auth;
 my $Auth = Auth->new($db, \%conf);
 my $list = $sessions->online({ NAS_ID => join(', ', @nas_ids_arr),
-	                             #FIELDS => [ 0, 21, 27, 23, 12, 22, 10 ] });
                                FIELDS_NAMES => [ USER_NAME, 
                                  CLIENT_IP,
                                  NAS_ID,
@@ -2528,6 +2527,8 @@ foreach my $line (@$list)   {
   else {
     $debug_output .= "$login $uid $ip -> $nas_id\n" if ($debug > 1);
     $count++;
+
+    next if ($debug > 5);
 
     my %DATA = (ACCT_STATUS_TYPE   => 1, 
                 USER_NAME          => $login, 
