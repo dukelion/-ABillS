@@ -640,7 +640,7 @@ foreach my $ID (@s) {
  my $menu_text = "
  <div class='menu_top'></div>
  <div class='menu_main'>
- <table border='0' width='100%'>\n";
+ <table border='0' width='100%' cellspacing='1'>\n";
 
  	  my $level  = 0;
  	  my $prefix = '';
@@ -667,10 +667,10 @@ foreach my $ID (@s) {
 
        	   my $link = $self->button($name, "index=$ID$ext_args");
     	       if($parent == 0) {
- 	        	   $menu_text .= "<tr><td align=left class=menu_cel_main>$prefix$link</td></tr>\n";
+ 	        	   $menu_text .= "<tr class='odd'><td class=menu_cel_main>$prefix$link</td></tr>\n";
 	            }
  	           elsif(defined($tree{$ID})) {
-   	           $menu_text .= "<tr><td align=left class=menu_cel>$prefix>$link</td></tr>\n";
+   	           $menu_text .= "<tr><td class=menu_cel>$prefix>$link</td></tr>\n";
  	            }
  	           else {
  	             $menu_text .= "<tr><td class=menu_cel>$prefix$link</td></tr>\n";

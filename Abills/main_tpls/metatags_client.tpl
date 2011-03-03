@@ -30,7 +30,8 @@ td.menu_cel_main {
   height: 28;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
   font-size: 14px;
-  background-color: %_COLOR_3%;
+  padding-left:5px;
+  background-color: %_COLOR_1%;
 }
 
 td.menu_cel {
@@ -343,7 +344,7 @@ TABLE.border {
 }
 
 .MENU_BACK {
-  background:%_COLOR_2%;
+  background:%_COLOR_3%;
 }
 
 

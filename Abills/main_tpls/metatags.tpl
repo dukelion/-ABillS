@@ -39,6 +39,7 @@ td.small {
 }
 
 td.menu_cel_main {
+  padding-left:5px;
   color: %_COLOR_9%;
   height: 28;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
