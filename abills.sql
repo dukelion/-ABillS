@@ -860,6 +860,9 @@ CREATE TABLE `tp_bonus_rating` (
   `rating_from` int(11) unsigned NOT NULL default '0',
   `rating_to` int(11) unsigned NOT NULL default '0',
   `action` smallint(5) unsigned NOT NULL default '0',
+  `change_bonus` double(14,2) unsigned NOT NULL default '0.00',
+  `activate_bonus` double(14,2) unsigned NOT NULL default '0.00',
+  `ext_bill_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `comments` text NOT NULL default '',
   PRIMARY KEY  (`tp_id`)
 ) COMMENT='Tarif plans bonus rating';

@@ -1017,6 +1017,7 @@ $Bonus_rating->{RATING_ACTION_SEL} = $html->form_select('RATING_ACTION',
 	
 $Bonus_rating->{ACTION}='change';
 $Bonus_rating->{LNG_ACTION}="$_CHANGE";
+$Bonus_rating->{EXT_BILL_ACCOUNT}="checked" if ($Bonus_rating->{EXT_BILL_ACCOUNT});
 	
 $html->tpl_show(_include('dv_rating_tp', 'Dv'), $Bonus_rating);
 }
@@ -5785,6 +5786,11 @@ sub dv_get_month_fee {
 
   my %total_sum =( ACTIVATE  => 0,
   	               MONTH_FEE => 0 ) ;
+  
+  
+  #Make bonus
+  
+  
   
   #Get active price
   if ($Dv->{TP_INFO}->{ACTIV_PRICE}) {
