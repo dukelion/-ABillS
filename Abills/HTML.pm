@@ -640,7 +640,7 @@ foreach my $ID (@s) {
  my $menu_text = "
  <div class='menu_top'></div>
  <div class='menu_main'>
- <table border='0' width='100%' cellspacing='1'>\n";
+ <table border='0' width='100%' cellspacing='2'>\n";
 
  	  my $level  = 0;
  	  my $prefix = '';
