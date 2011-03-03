@@ -94,7 +94,8 @@ sub info {
    tp.credit,
    tp.tp_id,
    tp.priority,
-   tp.activate_price
+   tp.activate_price,
+   tp.age
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id and tp.domain_id='$admin->{DOMAIN_ID}')
    $WHERE;");
@@ -129,7 +130,8 @@ sub info {
    $self->{TP_CREDIT},
    $self->{TP_NUM},
    $self->{TP_PRIORITY},
-   $self->{TP_ACTIVATION_PRICE}
+   $self->{TP_ACTIVATION_PRICE},
+   $self->{TP_AGE}
   )= @{ $self->{list}->[0] };
   
 
