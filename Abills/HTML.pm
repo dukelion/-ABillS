@@ -667,13 +667,13 @@ foreach my $ID (@s) {
 
        	   my $link = $self->button($name, "index=$ID$ext_args");
     	       if($parent == 0) {
- 	        	   $menu_text .= "<tr><td bgcolor=\"$_COLORS[3]\" align=left class=menu_cel_main>$prefix$link</td></tr>\n";
+ 	        	   $menu_text .= "<tr><td align=left class=menu_cel_main>$prefix$link</td></tr>\n";
 	            }
  	           elsif(defined($tree{$ID})) {
-   	           $menu_text .= "<tr><td bgcolor=\"$_COLORS[2]\" align=left class=menu_cel>$prefix>$link</td></tr>\n";
+   	           $menu_text .= "<tr><td align=left class=menu_cel>$prefix>$link</td></tr>\n";
  	            }
  	           else {
- 	             $menu_text .= "<tr><td bgcolor=\"$_COLORS[1]\" class=menu_cel>$prefix$link</td></tr>\n";
+ 	             $menu_text .= "<tr><td class=menu_cel>$prefix$link</td></tr>\n";
  	            }
          }
         else {

@@ -38,6 +38,22 @@ td.small {
   height: 1;
 }
 
+td.menu_cel_main {
+  color: %_COLOR_9%;
+  height: 28;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 14px;
+  background-color: %_COLOR_3%;
+}
+
+td.menu_cel {
+  color: %_COLOR_9%;
+  height: 20;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+  background-color: %_COLOR_1%;
+}
+
 th, li {
   color: %_COLOR_9%;
   height: 24;

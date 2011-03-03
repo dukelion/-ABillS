@@ -24,6 +24,23 @@ body {
   /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
 }
 
+
+td.menu_cel_main {
+  color: %_COLOR_9%;
+  height: 28;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 14px;
+  background-color: %_COLOR_3%;
+}
+
+td.menu_cel {
+  color: %_COLOR_9%;
+  height: 20;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+  background-color: %_COLOR_1%;
+}
+
 th.small {
   color: %_COLOR_9%;
   font-size: 10px;
