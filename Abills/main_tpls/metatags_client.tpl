@@ -345,6 +345,7 @@ TABLE.border {
 
 .MENU_BACK {
   background:%_COLOR_3%;
+  width:200px;
 }
 
 
