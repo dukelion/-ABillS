@@ -98,9 +98,9 @@ Abills::Base->import();
 my $begin_time = check_time();
 
 require Abills::SQL;
-my $sql = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
-my $db = $sql->{db};
-my $OS = 'FreeBSD';
+my $sql  = Abills::SQL->connect($conf{dbtype}, "$conf{dbhost}", $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
+my $db   = $sql->{db};
+my $OS   = 'FreeBSD';
 my $argv = parse_arguments(\@ARGV);
 
 if  ($argv->{OS}){

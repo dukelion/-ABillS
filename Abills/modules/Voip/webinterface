@@ -1049,7 +1049,6 @@ elsif ($FORM{export}) {
             $line->[3]
    );
   }
-
   return 0;
  }
 elsif($FORM{change}) {
@@ -1058,6 +1057,14 @@ elsif($FORM{change}) {
     $html->message('info', $_INFO, "$_CHANGED");	
    }
  }
+elsif($FORM{change}) {
+  $Voip->route_del($FORM{del});
+  if (! $Voip->{errno}) {
+    $html->message('info', $_INFO, "$_DELETED");	
+   }
+ }
+
+
 
 if($FORM{add_route}) {
 	my $list = $Voip->routes_list({ PAGE_ROWS => 100000 });
@@ -1144,9 +1151,8 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
    if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGe => "$_DEL '$line->[0]'?", BUTTON => 1  }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL '$line->[0]' ?", BUTTON => 1  }); 
     $change = $html->button($_CHANGE, "index=$index&ROUTE_ID=$line->[4]", { BUTTON => 1 });
-    #$add   = $html->button($_ADD, "index=$index&add_route=$parent&ROUTE_ID=$parent");
    }
 
    $table->addrow($line->[0], 

@@ -538,8 +538,6 @@ sub route_del {
   $self->query($db,  "DELETE FROM voip_routes WHERE id='$id';", 'do');
   return $self if ($self->{errno});
 
-#  $admin->action_add($DATA{UID}, "ADDED", { MODULE => 'voip'});
- 
   return $self;
 }
 

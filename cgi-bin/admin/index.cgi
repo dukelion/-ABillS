@@ -446,7 +446,7 @@ print $admin->{QUICK_MENU} if ($admin->{QUICK_MENU});
 
 print "<tr  class='noprint'><td valign='top' width='18%' bgcolor='$_COLORS[2]' rowspan='2' class='MENU_BACK'>
 $menu_text
-</td><td bgcolor='$_COLORS[0]' height='50' class='noprint'>$navigat_menu</td></tr>
+</td><td bgcolor='$_COLORS[0]' style='height: 20px;' class='noprint'>$navigat_menu</td></tr>
 <tr class='CONTENT'><td valign='top' align='center'>";
 
 if ($functions{$index}) {
@@ -505,6 +505,9 @@ print "</td></tr>";
 $html->tpl_show(templates('footer'), $admin);
 print "</table>\n";
 $html->test();
+
+
+
 
 #**********************************************************
 #
