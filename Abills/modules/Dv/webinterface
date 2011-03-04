@@ -5901,6 +5901,9 @@ sub dv_get_month_fee {
         	$message .= " - $_ABON_DISTRIBUTION";
          }
         
+        if ($Dv->{ACTIVATE} ne '0000-00-00' && $Dv->{OLD_STATUS} == 5 && $periods == 1 && $d < $active_d) {
+        	$periods=0;
+         }
         
         $m = $active_m if ($active_m > 0);
         for (my $i=0; $i<=$periods; $i++) {
@@ -5913,7 +5916,7 @@ sub dv_get_month_fee {
 
           if ( $i > 0 ) {
   	        $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
-            $message = "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{TP_ID})";
+            $message = "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{ID})";
             $DATE    = "$active_y-$m-01";
             $TIME    = "00:00:00";
            }
@@ -5940,7 +5943,7 @@ sub dv_get_month_fee {
           	 }
            }
          
-          $fees->take($users, $sum, { DESCRIBE  => $message, 
+          $fees->take($users, $sum, { DESCRIBE  => $message.'!!!!!!!', 
         	                            METHOD    => 1, 
         	                            DATE      => "$DATE $TIME"
         	                           });  
