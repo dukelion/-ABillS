@@ -980,7 +980,7 @@ else {
   return 0;
  }	
 
-my $Bonus_rating = Bonus_rating->new($db, \%conf, $admin);
+my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
 
 
 if(defined($attr->{TP})) {
@@ -5169,8 +5169,7 @@ sub dv_wizard_user {
 	my ($attr) = @_;
 
   my $fees     = Finance->fees($db, $admin, \%conf);
-  my $payments = Finance->payments($db, $admin, \%conf);
-  my $users    = Users->new($db, $admin, \%conf); 
+  #my $users    = Users->new($db, $admin, \%conf); 
 
   if ($FORM{print}) {
     require "Abills/modules/Docs/webinterface";
@@ -5786,10 +5785,44 @@ sub dv_get_month_fee {
 
   my %total_sum =( ACTIVATE  => 0,
   	               MONTH_FEE => 0 ) ;
-  
-  
   #Make bonus
-  
+
+  if ($conf{DV_BONUS}) {
+    eval { require Bonus_rating; };
+    if (! $@) {
+      Bonus_rating->import();
+     }
+    else {
+      $html->message('err', $_ERROR, "Can't load 'Bonus_rating'. Purchase this module http://abills.net.ua");
+      return 0;
+     }	
+
+    my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
+    $Bonus_rating->info($Dv->{TP_INFO}->{TP_ID});
+    
+    if ($Bonus_rating->{TOTAL} > 0) {      
+      my $bonus_sum = 0; 
+      if ($FORM{add} && $Bonus_rating->{ACTIVE_BONUS} > 0) {
+        $bonus_sum = $Bonus_rating->{ACTIVE_BONUS}; 
+       }
+      elsif ($Bonus_rating->{CHANGE_BONUS} > 0)  {
+      	$bonus_sum = $Bonus_rating->{CHANGE_BONUS}; 
+       }
+
+      if ($bonus_sum > 0) {
+        $payments->add({  BILL_ID => ($Bonus_rating->{EXT_BILL_ACCOUNT}) ? $users->{EXT_BILL_ID} : $users->{BILL_ID},
+  	                      UID     => $users->{UID}
+  	                    }, 
+  	             	     { SUM            => $bonus_sum,
+  	             	     	 METHOD         => 4,
+  	                     DESCRIBE       => "$_BONUS: $_TARIF_PLAN: $Dv->{TP_ID}",
+	                      } );
+	      if ($payments->{errno})  {
+	      	$html->message('err', $_ERROR, "$payments->{errstr}");	 
+	       }
+       }  
+     }
+   }
   
   
   #Get active price
@@ -5808,6 +5841,7 @@ sub dv_get_month_fee {
   	  $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN") if ($html);	
      }
    }
+
   #Get month fee
   if ($Dv->{TP_INFO}->{MONTH_FEE} > 0) {
      my $sum   = $Dv->{TP_INFO}->{MONTH_FEE};
@@ -6148,8 +6182,6 @@ if ($FORM{add}) {
   $table->{color}=$_COLORS[3];
   
   $table->addrow($html->b("$_TOTAL:"), $html->b("$days"), $html->b("$sum"));
-  
-  my $payments     = Payments->new($db, $admin, \%conf);
   $payments->add({  BILL_ID => $users->{BILL_ID},
   	                UID     => $users->{UID}
   	                }, 

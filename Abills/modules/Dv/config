@@ -54,7 +54,7 @@ $USER_FUNCTION_LIST{"04:1:$_TARIF_PLAN:dv_user_chg_tp:"}=0 if ($conf{DV_USER_CHG
              report  => [ 'dv_report'       ]);
 
 
-if ($conf{DV_RATING_SYSTEM}) {
+if ($conf{DV_BONUS}) {
   $FUNCTIONS_LIST{"16:11:$_BONUS:dv_rating_tp:TP_ID"} = 5;
   $PERIODIC{daily} = [ 'dv_rating_periodic', @{ $PERIODIC{daily} } ];
  }
