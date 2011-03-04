@@ -51,14 +51,15 @@ td.menu_cel {
   color: %_COLOR_9%;
   height: 20;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   background-color: %_COLOR_1%;
 }
 
 
 td.menu_cel_main a {
   text-decoration:none;
-  font: bold 1em Trebuchet MS;
+  font: 1em Trebuchet MS;
+  letter-spacing: 1;
 }
 
 td.menu_cel_main a:hover {
