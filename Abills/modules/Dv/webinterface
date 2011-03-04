@@ -3120,6 +3120,11 @@ sub dv_user_chg_tp {
  	 return 0;
   }
 
+
+ if($conf{FEES_PRIORITY}=~/bonus/  && $user->{EXT_BILL_DEPOSIT}) {
+   $user->{DEPOSIT}+=$user->{EXT_BILL_DEPOSIT};
+  }
+
  #Get TP groups
  $tariffs->tp_group_info($Dv->{TP_GID});
  if (! $tariffs->{USER_CHG_TP}) {
@@ -3127,6 +3132,7 @@ sub dv_user_chg_tp {
  	  return 0;
   }
 
+#Get next abon day
 if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $user->{DISABLE} &&
         ($user->{DEPOSIT}+$user->{CREDIT} > 0 || 
          $Dv->{POSTPAID_ABON} || 
@@ -3290,6 +3296,7 @@ if ($FORM{set}) {
       $Dv->info($user->{UID});
     }
    }
+  #Imidiatly change TP
   else {
     if ($user->{CREDIT} + $user->{DEPOSIT} < 0) {
     	$html->message('err', "$_ERROR", "$ERR_SMALL_DEPOSIT - $_DEPOSIT: $user->{DEPOSIT} $_CREDIT: $user->{CREDIT}", { ID => 15 });

@@ -186,10 +186,12 @@ sub add {
        my $user = Users->new($db, $admin, $CONF);
        $user->info($DATA{UID});
        
+       if($CONF->{FEES_PRIORITY}=~/bonus/  && $user->{EXT_BILL_DEPOSIT}) {
+         $user->{DEPOSIT}+=$user->{EXT_BILL_DEPOSIT};
+        }
+
+       
        if ($user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE} && $tariffs->{PAYMENT_TYPE} == 0) {
-         
-         #print "$user->{DEPOSIT} + $user->{CREDIT} < $tariffs->{ACTIV_PRICE}";
-         
          $self->{errno}=15;
        	 return $self; 
         }
@@ -270,6 +272,9 @@ sub change {
      my $user = Users->new($db, $admin, $CONF);
 
      $user->info($attr->{UID});
+     if($CONF->{FEES_PRIORITY}=~/bonus/  && $user->{EXT_BILL_DEPOSIT}) {
+       $user->{DEPOSIT}+=$user->{EXT_BILL_DEPOSIT};
+      }
 
      #Active TP     
      if ($old_info->{STATUS} == 2 && (defined($attr->{STATUS}) && $attr->{STATUS} == 0) && $tariffs->{ACTIV_PRICE} > 0) {

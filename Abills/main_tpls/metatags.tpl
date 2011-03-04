@@ -58,7 +58,7 @@ td.menu_cel {
 
 td.menu_cel_main a {
   text-decoration:none;
-  font: bold 0.923em Trebuchet MS;
+  font: bold 1em Trebuchet MS;
 }
 
 td.menu_cel_main a:hover {
