@@ -98,7 +98,7 @@ sub take {
     		$user->info($user->{UID});
     	 }
 
-      if ($CONF->{FEES_PRIORITY}=~/^main/ && $user->{EXT_BILL_DEPOSIT} < $sum) {
+      if ($CONF->{FEES_PRIORITY}=~/main/ && $user->{EXT_BILL_DEPOSIT} < $sum) {
       	$Bill->action('take', $user->{EXT_BILL_ID}, $user->{EXT_BILL_DEPOSIT});
         if($Bill->{errno}) {
           $self->{errno}  = $Bill->{errno};

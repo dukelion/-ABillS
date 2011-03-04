@@ -42,6 +42,23 @@ td.menu_cel {
   background-color: %_COLOR_1%;
 }
 
+td.menu_cel_main a {
+  text-decoration:none;
+  font: bold 0.923em Trebuchet MS;
+}
+
+td.menu_cel_main a:hover {
+  text-decoration:underline;
+}
+
+td.menu_cel a {
+  text-decoration:none;
+}
+
+td.menu_cel a:hover {
+  text-decoration:underline;
+}
+
 th.small {
   color: %_COLOR_9%;
   font-size: 10px;
