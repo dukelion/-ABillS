@@ -834,7 +834,8 @@ sub prepaid_rest {
     u.uid, 
     dv.tp_id, 
     tp.name,
-    tp.traffic_transfer_period,
+    if (PERIOD_DIFF(DATE_FORMAT(curdate(),'%Y%m'),DATE_FORMAT(u.registration, '%Y%m')) < tp.traffic_transfer_period, 
+      PERIOD_DIFF(DATE_FORMAT(curdate(),'%Y%m'),DATE_FORMAT(u.registration, '%Y%m'))+1, tp.traffic_transfer_period), 
     tp.day_traf_limit,
     tp.week_traf_limit,
     tp.month_traf_limit

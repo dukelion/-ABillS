@@ -1790,7 +1790,7 @@ if (! $dates{$date})  {
      	          ((($h-2) / 4 == $h_b) && ($m_b <= 45 && $m_b >= 30)) || 
      	          ((($h-3) / 4 == $h_b) && ($m_b <= 60 && $m_b >= 45))
      	           ) {
-       	   	   #print "$i // $h => $h_b && $h <= $h_e // $color // $time<br> \n";
+
   	   	       $tdcolor = $color;
   	 	         $link = "<acronym title='$_USER: $user_name\n ID: $number\n $_TIME: $time'> ". $html->button("#", "index=". ($index-3) ."&chg=$number&UID=$uid", ) . "</acronym>";
   	 	         last;
@@ -1898,16 +1898,12 @@ if ($table2) {
      	      ($number, $user_name, $uid, $time)=split(/\|/, $chap_periods, 4);
             my ($h_b, $m_b, $s_b) = split(/:/, $time);
             $h_e=$h_b;
-
-            #print "** $h_b, $m_b, $s_b || ($h / 4 >= $h_b) && ($h /4 <= $h_e)<br>";
-
      	      if (
      	          (($h / 4 >= $h_b) && ($h / 4 <= $h_e) && $m_b <= 15) || 
      	          ((($h-1) / 4 == $h_b) && ($m_b <= 30 && $m_b >= 15)) || 
      	          ((($h-2) / 4 == $h_b) && ($m_b <= 45 && $m_b >= 30)) || 
      	          ((($h-3) / 4 == $h_b) && ($m_b <= 60 && $m_b >= 45))
      	           ) {
-       	   	   #print "$i // $h => $h_b && $h <= $h_e // $color // $time<br> \n";
   	   	       $tdcolor = $color;
   	 	         $link = "<acronym title='$_USER: $user_name\n ID: $number\n $_TIME: $time'> ". $html->button("#", "index=". ($index-3) ."&chg=$number&UID=$uid", ) . "</acronym>";
   	 	         last;

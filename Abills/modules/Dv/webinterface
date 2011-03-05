@@ -5950,7 +5950,7 @@ sub dv_get_month_fee {
           	 }
            }
          
-          $fees->take($users, $sum, { DESCRIBE  => $message.'!!!!!!!', 
+          $fees->take($users, $sum, { DESCRIBE  => $message, 
         	                            METHOD    => 1, 
         	                            DATE      => "$DATE $TIME"
         	                           });  

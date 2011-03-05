@@ -1,6 +1,8 @@
 #/usr/bin/perl
 # Voip web functions
 
+
+
 use Voip;
 use Voip_Sessions;
 
@@ -11,6 +13,36 @@ my $MODULE = ($module{$index}) ? $module{$index} : 'Voip';
 my $debug = 0;
 
 $conf{VOIP_ASTERISK_USERS}='' if (! $conf{VOIP_ASTERISK_USERS});
+
+=comments
+h323-disconnect-cause for CISCO of Radius Server
+In case of CISCO router, from the Radius server h323-disconnect-cause with code is returned. Like h323-disconnect-cause=4 or h323-disconnect-cause=7. In the following mini dictionary disconnect cause along description corresponding code is shown which will help instantly to identify disconnect issue if we find any code.
+
+          
+           Local-Clear                    0
+           Local-No-Accept                1
+           Local-Decline                  2
+           Remote-Clear                   3
+           Remote-Refuse                  4
+           Remote-No-Answer               5
+           Remote-Caller-Abort            6
+           Transport-Error                7
+           Transport-Connect-Fail         8
+           Gatekeeper-Clear               9
+           Fail-No-User                   10
+           Fail-No-Bandwidth              11
+           No-Common-Capabilities         12
+           FACILITY-Forward               13
+           Fail-Security-Check            14
+           Local-Busy                     15
+           Local-Congestion               16
+           Remote-Busy                    17
+           Remote-Congestion              18
+           Remote-Unreachable             19
+           Remote-No-Endpoint             20
+           Remote-Off-Line                21
+           Remote-Temporary-Error         22
+=cut
 
 
 #*******************************************************************
