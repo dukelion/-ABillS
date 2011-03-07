@@ -3182,13 +3182,32 @@ if ($FORM{set}) {
       }
 
 
+      # Renew expired accounts
+      if ($user->{EXPIRE} ne '0000-00-00' && $Dv->{TP_AGE} > 0) {
+        ($Y, $M, $D)=split(/-/, $user->{EXPIRE}); 
+        my $seltime = POSIX::mktime(0, 0, 0, $D, ($M-1), ($Y - 1900));
+        # REnew expire tarif
+        if ($seltime < time()) {
+          my $tp_age = $Dv->{TP_INFO}->{AGE};
+          my ($EXPIRE_Y, $EXPIRE_M, $EXPIRE_D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $CUR_D, ($CUR_M), ($CUR_Y-1900), 0, 0, 0) + $tp_age * 86400) )); 
+          $CHANGE_PARAMS{EXPIRE} = "$EXPIRE_Y-$EXPIRE_M-$EXPIRE_D";
+          ($Y, $M, $D)=split(/-/, $DATE, 3);
+          $Dv->{TP_INFO} = $tariffs->info($FORM{TP_ID});
+          goto CHG_TP;
+         }
+        else {
+        	($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $D, ($M), ($Y-1900), 0, 0, 0) + $tp_age * 86400) )); 
+         } 
+       }
+
+
      if ($Dv->{STATUS} == 5) {
      	
       }
      # For daily fees or moth distribution next day fees
      elsif ($Dv->{MONTH_ABON}==0 || $Dv->{ABON_DISTRIBUTION}) {
      	 #my $seltime = POSIX::mktime(0, 0, 0, $D, ($M-1), ($Y - 1900));
-     	 #if ($seltime < POSIX::mktime(0, 0, 0, $D, ($M-1), ($Y - 1900))) {
+     	 #if (time()-$seltime>86400) {
      	 #	 ($Y, $M, $D)=split(/-/, $DATE, 3);
      	 # }
      	 #else {
@@ -3214,11 +3233,10 @@ if ($FORM{set}) {
         }
       }
 
+     CHG_TP:
      $M = sprintf("%02d", $M);
      $D = sprintf("%02d", $D);
      my $seltime = POSIX::mktime(0, 0, 0, $D, ($M-1), ($Y - 1900));
-
-print "/ $seltime > ". time();
 
     if ($seltime > time()) {
       $Shedule->add( {UID     => $LIST_PARAMS{UID},
@@ -3235,21 +3253,6 @@ print "/ $seltime > ". time();
  	    $FORM{UID}=$LIST_PARAMS{UID};
  	    $FORM{STATUS} = 0 if ($Dv->{STATUS} == 5);
       $Dv->change({ %FORM });
-
-      # Renew expired accounts
-      if ($user->{EXPIRE} ne '0000-00-00') {
-        ($Y, $M, $D)=split(/-/, $user->{EXPIRE}); 
-        my $seltime = POSIX::mktime(0, 0, 0, $D, ($M-1), ($Y - 1900));
-        # REnew expire tarif
-        if ($seltime < time()) {
-          if ($Dv->{TP_AGE}) { 
-            my $tp_age = $Dv->{TP_INFO}->{AGE};
-            ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime( (mktime(0, 0, 0, $CUR_D, ($CUR_M), ($CUR_Y-1900), 0, 0, 0) + $tp_age * 86400) )); 
-            $CHANGE_PARAMS{EXPIRE} = "$Y-$M-$M";
-           } 
-          $Dv->{TP_INFO} = $tariffs->info($FORM{TP_ID});
-         }
-       }
 
       $user->change($LIST_PARAMS{UID}, { ACTIVATE => ($user->{ACTIVATE} ne '0000-00-00') ? "$DATE" : undef,
       	                                 UID      => $LIST_PARAMS{UID},
