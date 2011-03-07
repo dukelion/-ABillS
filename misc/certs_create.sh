@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.7;
+VERSION=1.8;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -182,15 +182,25 @@ ssh_key () {
   else
     id_dsa_file=id_dsa.$1;
   fi;
-   
-  ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}${id_dsa_file}"
 
-  chown ${APACHE_USER} ${CERT_PATH}${id_dsa_file}
-  chmod u=r,go= ${CERT_PATH}/${id_dsa_file}.pub
-  echo "Set Cert user: ${CERT_USER}";
+  # If exist only upload
+  if [ -f ${CERT_PATH}${id_dsa_file} ]; then
+     echo "Upload to remote host[Y/n]: "
+     read UPLOAD
+  fi;
 
-  echo -n "Upload file to remote host (y/n): "
-  read UPLOAD
+ 
+  if [ w${UPLOAD} != wy ]; then
+    ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}${id_dsa_file}"
+
+    chown ${APACHE_USER} ${CERT_PATH}${id_dsa_file}
+    chmod u=r,go= ${CERT_PATH}/${id_dsa_file}.pub
+    echo "Set Cert user: ${CERT_USER}";
+
+    echo -n "Upload file to remote host (y/n): "
+    read UPLOAD
+  fi;
+
   if [ w${UPLOAD} = wy ]; then
     echo -n "Enter host: "
     read HOST

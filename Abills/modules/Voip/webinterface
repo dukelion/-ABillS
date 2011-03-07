@@ -370,9 +370,26 @@ sub voip_nas {
 sub voip_tp_routes {
 	my ($attr) = @_;
 
-my $Voip_tp;
+  my $Voip_tp;
+
+  my @caption      = ($_PREFIX, $_ROUTES, "$_STATUS", 'TRUNK');
+  my @aligns       = ('left', 'left', 'center');
+  my @interval_ids = ();
+  my $intervals    = 0;
+
+
 if (defined($attr->{TP})) {
 	$Voip_tp = $attr->{TP};
+
+  #Get time intervals
+  my $list = $Voip_tp->ti_list({ %LIST_PARAMS });
+  foreach my $line (@$list) {
+    push @caption, "$_SUM (Min): $line->[1] / $line->[2]-$line->[3]";
+    push @aligns,  'center';
+    push @interval_ids, $line->[0];
+   }
+  $intervals = $Voip_tp->{TOTAL};
+
 
 	if ($FORM{change}) {
 		 $Voip->rp_add({ %FORM });
@@ -381,17 +398,39 @@ if (defined($attr->{TP})) {
      }
 	 }
   elsif ($FORM{import}) {
-  	
+  	my $list = $Voip->routes_list({ %LIST_PARAMS, PAGE_ROWS => 10000 });	
+  	my %prefix_id = ();
+  	foreach my $line (@$list) {
+  		$prefix_id{$line->[0]}=$line->[4];
+  	 }
+
+    my $content = $FORM{ROUTE_FILE}{Contents};
+    my @rows_arr = split(/\n/, $content);
+    my %FORM2 = ();
+    
+    foreach my $line (@rows_arr) {
+    	chop($line);
+      my($prefix, $trunk, @prices)=split(/\t/, $line);
+      for (my $i=0;  $i<=$#prices; $i++) {
+        $FORM2{'t_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]}=$trunk;
+        $FORM2{'p_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]}=$prices[$i];
+       }
+     }
+
+
+    $Voip->rp_add({ %FORM2 });
+    if (! $Voip->{errno}) {
+  	  $html->message('info', $_INFO, "$_IMPORT $_FILE: $FORM{ROUTE_FILE}{filename}");
+  	 }
    }
 	elsif($FORM{export_rp}) {
 		print "Content-Type: text/plain\n\n";
-	  $LIST_PARAMS{PAGE_ROWS}=100000;
-	
+	  $LIST_PARAMS{PAGE_ROWS}=100000;	
 	 }
 	elsif($FORM{clear}) {
 		
  	 }
-}
+ }
 else {
  	voip_tp({ f => 'voip_tp_routes' });
  	return 0;
@@ -403,20 +442,6 @@ else {
   }
   
   my $pages_qs='';
-
-#  my $Voip_tp = $Voip->tp_info( $FORM{TP_ID} );
-  my $list = $Voip_tp->ti_list({ %LIST_PARAMS });
-  my @caption = ($_PREFIX, $_ROUTES, "$_STATUS", 'TRUNK');
-  my @aligns = ('left', 'left', 'center');
-  my @interval_ids = ();
-  my $intervals=0;
-
-  foreach my $line (@$list) {
-    push @caption, "$_SUM (Min): $line->[1] / $line->[2]-$line->[3]";
-    push @aligns,  'center';
-    push @interval_ids, $line->[0];
-   }
-  $intervals = $Voip_tp->{TOTAL};
 
 $list = $Voip->rp_list({ %LIST_PARAMS });
 my %prices = ();
@@ -478,7 +503,7 @@ foreach my $line (@$list) {
    }
   else {
   	my $trunk_sel = $html->form_select("t_$line->[4]". '_' . "$interval_ids[$i]", 
-                                { SELECTED     => $trunks{"$interval_ids[$i]"}{"$line->[4]"},
+                                { SELECTED          => $trunks{"$interval_ids[$i]"}{"$line->[4]"},
  	                                SEL_MULTI_ARRAY   => [[0, '-'], @{ $TRUNKS_MARR } ],
  	                                MULTI_ARRAY_KEY   => 0,
  	                                MULTI_ARRAY_VALUE => 1,
@@ -602,9 +627,13 @@ my $table2 = $html->table( { width      => '100%',
 
 
 print $html->form_main({ CONTENT => $table->show(). $table2->show(),
+	                       ENCTYPE => 'multipart/form-data',
+	                       NAME    => 'TP_ROUTES',
+	                       ID      => 'TP_ROUTES',
                          HIDDEN  => { TP_ID   => "$FORM{TP_ID}",
 	                                    index   => "$index",
-	                                    routes  => "$FORM{routes}"   },
+	                                    routes  => "$FORM{routes}"   
+	                                   },
 	                      });
 
 $table = $html->table( { width      => '100%',
@@ -676,7 +705,7 @@ if(defined($attr->{TP})) {
                               title      => ['#', $_DAYS, $_BEGIN, $_END, $_HOUR_TARIF, '-', '-', '-',  '-'],
                               cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'center', 'center', 'center', 'center'],
                               qs         => $pages_qs,
-                              caption    => $_INTERVALS
+                              ID         => 'VOIP_INTERVALS',
                          } );
 
   my $color="AAA000";

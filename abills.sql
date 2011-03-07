@@ -1022,11 +1022,6 @@ CREATE TABLE `voip_calls` (
   `reduction` double(6,2) unsigned NOT NULL default '0.00'
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `voip_log`
-#
 
 CREATE TABLE `voip_log` (
   `uid` int(11) unsigned NOT NULL default '0',
