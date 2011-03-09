@@ -136,7 +136,7 @@ if ($FORM{set}) {
       $html->message('err', $_ERROR, "[$Shedule->{errno}] $err_strs{$Shedule->{errno}}");	
      }
     else {
-      $html->message('info', $_CHANGED, "$_CHANGED");
+      $html->message('info', $_CHANGED, "$_TARIF_PLAN $_CHANGED");
       $Dv->info($Dv->{UID});
     }
    }
@@ -148,11 +148,11 @@ if ($FORM{set}) {
      }
     else {
       #Take fees
-      if ($Dv->{TP_INFO}->{MONTH_FEE} > 0 && ! $Dv->{STATUS} && $FORM{GET_ABON}) {
+      if (! $Dv->{STATUS} && $FORM{GET_ABON}) {
         dv_get_month_fee($Dv);
        }
 
-      $html->message('info', $_CHANGED, "$_CHANGED");
+      $html->message('info', $_CHANGED, "$_TARIF_PLAN $_CHANGED");
       $Dv->info($Dv->{UID});
     }
 
@@ -3372,7 +3372,7 @@ if ($FORM{set}) {
        }
       else {
         #Take fees
-        if ($Dv->{TP_INFO}->{MONTH_FEE} > 0 && ! $Dv->{STATUS}) {
+        if (! $Dv->{STATUS}) {
           dv_get_month_fee($Dv) if (! $FORM{DV_NO_ABON});
           $user->change($user->{UID}, { ACTIVATE => "$DATE",
           	                            UID      => $user->{UID} })
@@ -3385,7 +3385,7 @@ if ($FORM{set}) {
 
     $Dv->info($Dv->{UID});
   }
-}
+ }
 elsif($FORM{del}) {
   $Shedule->del( { UID => $LIST_PARAMS{UID},
    	               ID  => $FORM{SHEDULE_ID}  } 
@@ -5795,7 +5795,6 @@ sub dv_get_month_fee {
   my %total_sum =( ACTIVATE  => 0,
   	               MONTH_FEE => 0 ) ;
   #Make bonus
-
   if ($conf{DV_BONUS}) {
     eval { require Bonus_rating; };
     if (! $@) {
@@ -5829,13 +5828,15 @@ sub dv_get_month_fee {
 	      if ($payments->{errno})  {
 	      	$html->message('err', $_ERROR, "$payments->{errstr}");	 
 	       }
+        else {
+        	$html->message('info', $_INFO, "$_BONUS: $bonus_sum");	 
+         }
        }  
      }
    }
   
-  
   #Get active price
-  if ($Dv->{TP_INFO}->{ACTIV_PRICE}) {
+  if ($Dv->{TP_INFO}->{ACTIV_PRICE} > 0) {
     my $users = Users->new($db, $admin, \%conf); 
     my $user  = $users->info($Dv->{UID});
     my $date  = ($user->{ACTIVATE} ne '0000-00-00') ? $user->{ACTIVATE} : $DATE;
@@ -5847,7 +5848,7 @@ sub dv_get_month_fee {
    	                            DATE      => "$date $time"
   	                           });  
       $total_sum{ACTIVATE} = $Dv->{TP_INFO}->{ACTIV_PRICE};
-  	  $html->message('info', $_INFO, "$_ACTIVATE $_TARIF_PLAN") if ($html);	
+  	  $html->message('info', $_INFO, "- $_ACTIVATE $_TARIF_PLAN") if ($html);	
      }
    }
 
