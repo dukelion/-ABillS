@@ -339,6 +339,9 @@ sub change {
                    DATA         => $attr
                   } );
 
+
+  $self->{TP_INFO}->{ACTIV_PRICE}=0;
+
   $self->info($attr->{UID});
 
   return $self;

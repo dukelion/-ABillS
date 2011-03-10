@@ -126,7 +126,10 @@ $users = Users->new($db, $admin, \%conf);
 %PAYSYS_PAYMENTS_METHODS=%{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
 
 #debug =========================================
+
 my $output2 = '';
+#read(STDIN, $output2, $ENV{'CONTENT_LENGTH'});
+#$output2 = '!!';
 if ($debug > 0) {
   while(my($k, $v)=each %FORM) {
  	  $output2 .= "$k -> $v\n"	if ($k ne '__BUFFER');
