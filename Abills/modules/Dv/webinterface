@@ -5020,7 +5020,12 @@ sub dv_sheduler {
     	          });
 
     if ($Dv->{errno} && $Dv->{errno} == 15) {
+                  	
     	return $Dv->{errno};
+     }
+    else {
+    	$Dv->{TP_INFO}->{MONTH_FEE}=0;
+    	dv_get_month_fee($Dv);
      }
    }
 
