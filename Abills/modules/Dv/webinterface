@@ -4645,8 +4645,6 @@ sub dv_monthly_fees {
               elsif (($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib) {
                 #Block small deposit
                 if ($small_deposit_block && $month_fee > $user{DEPOSIT}+$user{CREDIT}) {
-                	print "!!!!!!!!";
-                	
      	            if ($small_deposit_block == -1) {
      	              $Dv->change({ UID    => $user{UID}, 
             	                    STATUS => 5 });
