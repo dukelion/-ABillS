@@ -340,6 +340,16 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   	exit;
    }
 
+  #Create shaper dev for linux
+ 	my $tc = '/sbin/tc';
+  if ($ARGV[0] eq 'pppd') {
+        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE ingress";
+        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE handle ffff: ingress";
+        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root";
+        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE root handle 1: htb default 20 r2q 1";
+   }
+
+
   foreach my $traf_type (sort keys %speeds) {
     my $speed = $speeds{$traf_type};
     if ($inum ne '-' ) {
@@ -378,25 +388,17 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     }
     #Linux shaper
     elsif ($OS eq 'Linux') {
-    	my $tc = '/sbin/tc';
       #my $flowid ) ($speed_in > 0) ? sprintf("%x",$fw_num_out) : '';
 
       my $prefix=10000;
       my $flowid = ($speed_in > 0) ? sprintf("%x", $user->{UID} + $prefix * 2) : '';
       my $drop   = $speed_out > 0 ? "police rate $speed_out"."Kbit burst 12k drop" : '';
 
-      if ($ARGV[0] eq 'pppd') {
-        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE ingress > /dev/null";
-        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE handle ffff: ingress > /dev/null";
-        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root    > /dev/null";
-        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE root handle 1: htb default 20 r2q 1";
-       }
-
-      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent 1: prio $fw_num_out &>/dev/null";
-      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent ffff: prio $fw_num_in &>/dev/null";
+      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent 1: prio $fw_num_out";
+      push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent ffff: prio $fw_num_in";
 
       if ($flowid) {
-        push @FW_ACTIONS, "$tc class del dev $INTERFACE parent 1: classid 1:$flowid &>/dev/null";
+        push @FW_ACTIONS, "$tc class del dev $INTERFACE parent 1: classid 1:$flowid";
         if ($ACTION eq 'up') {
           push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:$flowid htb rate $speed_in"."Kbit";
          }
