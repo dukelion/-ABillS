@@ -59,8 +59,8 @@ use POSIX qw(mktime strftime);
 my $YESTERDAY = (strftime "%Y-%m-%d", localtime(time - 86400));
 
 %ADMIN_REPORT = (DATE => $DATE);
-$admin->{DATE}=$DATE;
-$admin->{TIME}=$TIME;
+$admin->{DATE}= $DATE;
+$admin->{TIME}= $TIME;
 
 my $args = parse_arguments(\@ARGV);
 $ADMIN_REPORT{HOSTNAME}=hostname();
@@ -92,7 +92,6 @@ if ($args->{SKIP_MODULES}) {
 	$args->{SKIP_MODULES}=~s/ //g;
 	@SKIP_MODULES = split(/,/, $args->{SKIP_MODULES});
 }
-
 
 my $debug = 0;
 if ($args->{DEBUG}) {
@@ -269,9 +268,6 @@ $DEBUG .= "Shedule\n" if ($debug > 1);
  	                           D => "$D,\\*", 
  	                           PAGE_ROWS => 100000 
  	                         });
-
- 
- 
 
  $ADMIN_REPORT{SHEDULE}=sprintf("%-14s| %-12s| %-8s| %-20s|%-14s|\n", "$_LOGIN", "$_MODULES", "$_TYPE", "$_VALUE", "$_ADMIN");
  $ADMIN_REPORT{SHEDULE}.= "---------------------------------------------------------\n";

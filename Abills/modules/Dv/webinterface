@@ -4907,8 +4907,6 @@ if (defined($FORM{tt})) {
   $tarif_plan->tt_defaults();
   $tarif_plan->{TI_ID} = $FORM{tt};
 
-
-
   if($FORM{add}) {
     $tarif_plan->tt_add({ %FORM });
     if(! $tarif_plan->{errno}) {
@@ -4938,18 +4936,12 @@ if (defined($FORM{tt})) {
      }
   }
 
-
   if ($tarif_plan->{errno}) {
     my $messages = "($tarif_plan->{errstr})" if($tarif_plan->{errstr});
     $html->message('err', $_ERROR, "[$tarif_plan->{errno}] $err_strs{$tarif_plan->{errno}} $messages");	
    }
-
-
   my $list = $tarif_plan->tt_list({ TI_ID => $FORM{tt}, form => 1 });
   $tarif_plan->{TT_ID}=$tarif_plan->{TOTAL} if (! defined($FORM{chg}));
-  
- 
-   
  }
 elsif($attr->{TP}) {
   $tarif_plan = $attr->{TP};
@@ -4992,9 +4984,6 @@ elsif($attr->{TP}) {
 
    my $list = $tarif_plan->tt_list($FORM{ti});
  }
-  
-
-
 }
 
 
@@ -5003,7 +4992,7 @@ elsif($attr->{TP}) {
 # dv_Sheduler
 #***********************************************************
 sub dv_sheduler {
-	my ($type, $action, $uid)=@_;
+	my ($type, $action, $uid, $attr)=@_;
 
   my $user = $Dv->info($uid);  	
   if ($type eq 'tp') {
@@ -5014,6 +5003,10 @@ sub dv_sheduler {
     if ($Dv->{errno} && $Dv->{errno} == 15) {
     	return $Dv->{errno};
      }
+    else {
+    	$Dv->{TP_INFO}->{MONTH_FEE}=0;
+    	dv_get_month_fee($Dv, { QUITE => 1 });
+     }
    }
   elsif ($type eq 'status') {
     $Dv->change({ UID    => $uid, 
@@ -5021,12 +5014,7 @@ sub dv_sheduler {
     	          });
 
     if ($Dv->{errno} && $Dv->{errno} == 15) {
-                  	
     	return $Dv->{errno};
-     }
-    else {
-    	$Dv->{TP_INFO}->{MONTH_FEE}=0;
-    	dv_get_month_fee($Dv);
      }
    }
 
@@ -5824,6 +5812,10 @@ sub dv_get_month_fee {
        }
 
       if ($bonus_sum > 0) {
+      	if (! $users->{BILL_ID}) {
+      	  $users->info($Dv->{UID});
+      	 }
+
         $payments->add({  BILL_ID => ($Bonus_rating->{EXT_BILL_ACCOUNT}) ? $users->{EXT_BILL_ID} : $users->{BILL_ID},
   	                      UID     => $users->{UID}
   	                    }, 
@@ -5832,10 +5824,10 @@ sub dv_get_month_fee {
   	                     DESCRIBE       => "$_BONUS: $_TARIF_PLAN: $Dv->{TP_ID}",
 	                      } );
 	      if ($payments->{errno})  {
-	      	$html->message('err', $_ERROR, "$payments->{errstr}");	 
+	      	$html->message('err', $_ERROR, "[$payments->{errno}] $payments->{errstr}");	 
 	       }
         else {
-        	$html->message('info', $_INFO, "$_BONUS: $bonus_sum");	 
+        	$html->message('info', $_INFO, "$_BONUS: $bonus_sum") if (! $attr->{QUITE});	 
          }
        }  
      }
