@@ -393,8 +393,10 @@ if ($FORM{print_list}) {
     $D{FIO}           = $line->[2];
     $D{ADDRESS_FULL}  = "$line->[10], $line->[11], $line->[12]";
     $D{TOTAL_SUM}     = sprintf("%.2f", $line->[3]);
-    $D{CONTRACT_ID}   = $line->[13] || '';
-    $D{CONTRACT_DATE} = "$line->[14]" || '0000-00-00';
+    $D{CONTRACT_ID}   = $line->[14] || '';
+    $D{CONTRACT_DATE} = $line->[15] || '0000-00-00';
+    $D{A_FIO}         = $line->[5];
+    $D{PHONE}         = $line->[13];
     
     my $method=$line->[7];
     	if ($conf{DOCS_PAYMENT_METHODS}) {
@@ -418,6 +420,7 @@ if ($FORM{print_list}) {
    	   $D{TOTAL_SUM_VAT}        = sprintf("%.2f", $D{TOTAL_SUM} - $D{TOTAL_SUM_WITHOUT_VAT});
      }
     $D{ORDER_PRICE_WITHOUT_VAT_1}=$D{TOTAL_SUM_WITHOUT_VAT} || 0,00;
+    $D{ORDER_SUM_WITHOUT_VAT_1}=$D{TOTAL_SUM_WITHOUT_VAT} || 0,00;
     $D{ORDER_TOTAL_SUM_VAT}=$D{TOTAL_SUM_VAT} || 0,00;
     push @MULTI_ARR, { %D, 
                        DOC_NUMBER => sprintf("%.6d",  $doc_num),
@@ -568,6 +571,9 @@ if ($FORM{print_list}) {
     $D{CONTRACT_DATE} = "$line->[16]";
     $D{BILL_ID}       = $line->[17];
     $D{UID}           = $line->[9];
+    $D{A_FIO}         = $line->[6];
+    $D{PHONE}         = $line->[14];
+
     
     if ($conf{DOCS_VAT_INCLUDE}) {
    	   $D{ORDER_TOTAL_SUM_VAT}  = sprintf("%.2f", $D{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));

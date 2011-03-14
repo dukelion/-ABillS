@@ -111,6 +111,7 @@ sub docs_invoice_list {
    pi.address_build,
    pi.address_flat,
    if (d.phone<>0, d.phone, pi.phone),
+   pi.contract_id,
    pi.contract_date,
    u.id";
   }
