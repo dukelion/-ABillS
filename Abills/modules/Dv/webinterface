@@ -3205,14 +3205,8 @@ if ($FORM{set}) {
      	
       }
      # For daily fees or moth distribution next day fees
-     elsif ($Dv->{MONTH_ABON}==0 || $Dv->{ABON_DISTRIBUTION}) {
-     	 #my $seltime = POSIX::mktime(0, 0, 0, $D, ($M-1), ($Y - 1900));
-     	 #if (time()-$seltime>86400) {
-     	 #	 ($Y, $M, $D)=split(/-/, $DATE, 3);
-     	 # }
-     	 #else {
+     elsif (! $conf{DV_USER_CHG_TP_NEXT_MONTH} && ($Dv->{MONTH_ABON}==0 || $Dv->{ABON_DISTRIBUTION})) {
      	 ($Y, $M, $D)=split(/-/, strftime "%Y-%m-%d", localtime(  (mktime(0, 0, 0, $D, ($M-1), ($Y-1900), 0, 0, 0) + 86400) )); 
-     	 # }
       }
      else {
      	 if ($user->{ACTIVATE} ne '0000-00-00') {
