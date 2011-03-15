@@ -540,7 +540,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
      }
     else {
       foreach my $port (@$ports_arr) {  
-        $switch_ports[int($port-1)]=1;
+        $switch_ports[int($port-1)]=0;
        }
      }
     my $ports_bin         = pack("$ports_map", join("", @switch_ports));
@@ -571,7 +571,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
 
   #Add ports to Vlans
   while(my($vlan, $ports_arr)=each %VLANS) {
-    $debug_output .= "VLAN: $vlan PORTS: ". join(',', @$ports_arr) ."\n";
+    $debug_output .= "ADD VLAN: $vlan PORTS: ". join(',', @$ports_arr) ."\n";
 
     my $oid = '1.3.6.1.2.1.17.7.1.4.3.1.4.';
     my $cure_ports = snmpget($SNMP_COMMUNITY, "$oid$vlan");
