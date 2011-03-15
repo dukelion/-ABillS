@@ -613,7 +613,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
     if ($attr->{NAS_TYPE} eq 'dlink_pb') {
     	my @reset_ports = ();
     	for(my $i=0; $i<=$#switch_ports; $i++) {
-      	if($RESERVED_PORTS{$port}) {
+      	if($RESERVED_PORTS{$i}) {
           #$reset_ports[$i]=$switch_ports[$i];
           $reset_ports[$i]=0;
           $switch_ports[$i]=0;
