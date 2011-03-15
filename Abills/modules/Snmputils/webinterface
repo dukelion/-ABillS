@@ -513,7 +513,7 @@ sub snmputils_chg_vlan {
         if ($GUEST_VLAN{$network_id}) {
             push @{ $VLANS{$GUEST_VLAN{$network_id}} }, $user_ports;
             push @{ $REMOVE_VLANS{$vlan} }, $user_ports;
-           }
+         }
         $debug_output .= " Negative deposit\n" if ($debug > 2);
      }
    }
@@ -524,24 +524,49 @@ sub snmputils_chg_vlan {
 
 if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
   my $ports_map = 'B*';
+
   #Add ports to Vlans
   while(my($vlan, $ports_arr)=each %VLANS) {
-          $debug_output .= "VLAN: $vlan PORTS: ". join(',', @$ports_arr) ."\n";
+    $debug_output .= "VLAN: $vlan PORTS: ". join(',', @$ports_arr) ."\n";
 
     my $oid = '1.3.6.1.2.1.17.7.1.4.3.1.4.';
     my $cure_ports = snmpget($SNMP_COMMUNITY, "$oid$vlan");
     @switch_ports = split(//, unpack("$ports_map",  $cure_ports));
 
+
     foreach my $port (@$ports_arr) {
       $switch_ports[int($port-1)]=1;
      }
 
+
     my $ports_bin         = pack("$ports_map", join("", @switch_ports));
+    #Dlink pre functions
+    if ($attr->{NAS_TYPE} eq 'dlink_pb') {
+    	my @reset_ports = ();
+    	for(my $i=0; $i<=$#switch_ports; $i++) {
+    		$reset_ports[$i]=0;
+    	 }
+    	if (snmpset($SNMP_COMMUNITY, "$oid$vlan", 'string', pack("$ports_map", join("", @reset_ports)))) {
+    	 }
+      else {
+      	 print "Error: $SNMP_COMMUNITY $oid$vlan / $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n ";
+       }
+      
+      if (snmpset($SNMP_COMMUNITY, "1.3.6.1.2.1.17.7.1.4.3.1.2.$vlan", 'string', $ports_bin)) {
+
+       }
+      else {
+        print "Error: $SNMP_COMMUNITY $oid$vlan / $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n ";  
+       }
+     }
+
+    
     if ($debug > 3) {
       $debug_output .= "SNMP: $oid$vlan PORTS: ". unpack("$ports_map",  $ports_bin) ."\n";
      }
     #Untaged
     if (snmpset($SNMP_COMMUNITY, "$oid$vlan", 'string', $ports_bin)) {
+      #add port for edge core
       if ($attr->{NAS_TYPE} eq 'edge_core') {
         foreach my $port (@$ports_arr) {
           if ($debug > 3) {
@@ -585,6 +610,21 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
     if ($debug > 3) {
       $debug_output .= "SNMP: $oid$vlan PORTS: ". unpack("B24",  $ports_bin) ."\n";
      }
+
+    #Dlink pre functions
+    if ($attr->{NAS_TYPE} eq 'dlink_pb') {
+    	my @reset_ports = ();
+    	for(my $i=0; $i<=$#switch_ports; $i++) {
+    		$reset_ports[$i]=0;
+    	 }
+    	if (snmpset($SNMP_COMMUNITY, "1.3.6.1.2.1.17.7.1.4.3.1.4.$vlan", 'string', $ports_bin)) {
+    	 }
+      else {
+      	 print "Error: $SNMP_COMMUNITY $oid$vlan / $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n ";
+       }
+     }
+
+
 
     if (snmpset($SNMP_COMMUNITY, "$oid$vlan", 'string', $ports_bin)) {
 
