@@ -586,6 +586,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
 
     foreach my $port (@$ports_arr) {
       if($RESERVED_PORTS{$port}) {
+      	$switch_ports[int($port-1)]=0;
       	next;
        }
       $switch_ports[int($port-1)]=1;
