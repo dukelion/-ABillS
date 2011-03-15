@@ -486,6 +486,10 @@ sub snmputils_chg_vlan {
                                                PG        => 0,
                                                PAGE_ROWS => 1000000 });
 
+  #  в случае со свичами эджкор 3526, длинк 3526 - 25-26 порты магистральные; эджкор 3528 длинк 3028, длинк 3528 - 25-28 порты магистральные; длинк 3052 - 49-50, длинк 3550 - 49-50 порты магистральные
+
+  my %RESERVED_PORTS = ( 25 => 1,
+                         26 => 1);
   
   #get users for snmp_binding
   my @switch_ports = split(//, '000000000000000000000000000000000000000000000000');
@@ -534,7 +538,10 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
     @switch_ports = split(//, unpack("$ports_map",  $cure_ports));
 
     if ($attr->{NAS_TYPE} eq 'edge_core') {
-      foreach my $port (@$ports_arr) {  
+      foreach my $port (@$ports_arr) {
+      	if($RESERVED_PORTS{$port}) {
+      		next;
+      	 }
         $switch_ports[int($port-1)]=0;
        }
      }
@@ -578,6 +585,9 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
     @switch_ports = split(//, unpack("$ports_map",  $cure_ports));
 
     foreach my $port (@$ports_arr) {
+      if($RESERVED_PORTS{$port}) {
+      	next;
+       }
       $switch_ports[int($port-1)]=1;
      }
 
@@ -587,7 +597,12 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
     if ($attr->{NAS_TYPE} eq 'dlink_pb') {
     	my @reset_ports = ();
     	for(my $i=0; $i<=$#switch_ports; $i++) {
-    		$reset_ports[$i]=0;
+      	if($RESERVED_PORTS{$port}) {
+          $reset_ports[$i]=$switch_ports[$i];
+      	 }
+      	else {
+    		  $reset_ports[$i]=0;
+    		 }
     	 }
     	if (snmpset($SNMP_COMMUNITY, "$oid$vlan", 'string', pack("$ports_map", join("", @reset_ports)))) {
     	 }
