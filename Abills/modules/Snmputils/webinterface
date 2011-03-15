@@ -617,6 +617,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
           #$reset_ports[$i]=$switch_ports[$i];
           $reset_ports[$i]=0;
           $switch_ports[$i]=0;
+          print "-> $i".$html->br();
       	 }
       	else {
     		  $reset_ports[$i]=0;
@@ -637,7 +638,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
        }
 
      	$ports_bin         = pack("$ports_map", join("", @switch_ports));     
-      print join('', @switch_ports). $html->br();
+      print "////".join('', @switch_ports). $html->br();
      }
 
     
