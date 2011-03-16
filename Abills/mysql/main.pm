@@ -65,6 +65,8 @@ sub connect {
   my $class = shift;
   my $self = { };
   my ($dbhost, $dbname, $dbuser, $dbpasswd, $attr) = @_;
+
+
   bless($self, $class);
   $self->{db} = DBI->connect_cached("DBI:mysql:database=$dbname;host=$dbhost", "$dbuser", "$dbpasswd") or print 
        "Content-Type: text/html\n\nError: Unable connect to DB server '$dbhost:$dbname'\n";

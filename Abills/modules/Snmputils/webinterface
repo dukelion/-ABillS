@@ -536,6 +536,11 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
     my $oid = '1.3.6.1.2.1.17.7.1.4.3.1.2.';
     my $cure_ports = snmpget($SNMP_COMMUNITY, "$oid$vlan");
 
+    if (! $cure_ports) {
+    	$debug_output .= "Not exist\n" if ($debug > 2);
+    	next;
+     }
+
     @switch_ports = split(//, unpack("$ports_map",  $cure_ports));
     my @dlink_ports = @switch_ports;
  
@@ -597,13 +602,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
 
     @switch_ports = split(//, unpack("$ports_map",  $cure_ports));
 
-
     foreach my $port (@$ports_arr) {
-      #Don't add ports to untaged VLAN
-#      if($RESERVED_PORTS{$port}) {
-#      	$switch_ports[int($port-1)]=0;
-#      	next;
-#       }
       $switch_ports[int($port-1)]=1;
      }
 
@@ -611,15 +610,18 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
 
     #Dlink pre functions
     if ($attr->{NAS_TYPE} eq 'dlink_pb') {
+    	#Get dlink ports 
+      my $cure_ports = snmpget($SNMP_COMMUNITY, '1.3.6.1.2.1.17.7.1.4.3.1.2.'.$vlan);
+      my @dlink_all_ports = split(//, unpack("$ports_map",  $cure_ports));
     	my @reset_ports = ();
+
     	for(my $i=0; $i<=$#switch_ports; $i++) {
       	if($RESERVED_PORTS{($i+1)}) {
-          #$reset_ports[$i]=$switch_ports[$i];
           $reset_ports[$i]=0;
-          $switch_ports[$i]=0;
-          print "-> $i".$html->br();
+          #$switch_ports[$i]=0;
       	 }
       	else {
+      		$dlink_all_ports[$i]=$switch_ports[$i];
     		  $reset_ports[$i]=0;
     		 }
     	 }
@@ -630,15 +632,12 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
       	 print "Error: $SNMP_COMMUNITY $oid$vlan / $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n ";
        }
       
-      if (snmpset($SNMP_COMMUNITY, "1.3.6.1.2.1.17.7.1.4.3.1.2.$vlan", 'string', $ports_bin)) {
+      if (snmpset($SNMP_COMMUNITY, "1.3.6.1.2.1.17.7.1.4.3.1.2.$vlan", 'string', pack("$ports_map", join("", @dlink_all_ports)))) {
          $debug_output .= "SNMP DLINK: 1.3.6.1.2.1.17.7.1.4.3.1.2.$vlan PORTS: ". unpack("$ports_map",  $ports_bin) ."/". unpack("H*",  $ports_bin) ."\n";
        }
       else {
         print "Error: $SNMP_COMMUNITY $oid$vlan / $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n ";  
-       }
-
-     	$ports_bin         = pack("$ports_map", join("", @switch_ports));     
-      print "////".join('', @switch_ports). $html->br();
+       }     	
      }
 
     
