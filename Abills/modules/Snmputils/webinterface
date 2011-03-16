@@ -571,7 +571,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
     #Dlink pre functions
     if ($attr->{NAS_TYPE} eq 'dlink_pb') {
     	if (snmpset($SNMP_COMMUNITY, "1.3.6.1.2.1.17.7.1.4.3.1.4.$vlan", 'string', pack("$ports_map", join("", @dlink_ports)))) {
-    		$debug_output .= "Dlink VLAN: $vlan PORTS: ". join(',', @dlink_ports) ."/". unpack("H*",  pack("$ports_map", join("", @dlink_ports))) ."\n" if ($debug > 3);
+    		$debug_output .= "Dlink 1.3.6.1.2.1.17.7.1.4.3.1.4.$vlan PORTS: ". join('', @dlink_ports) ."/". unpack("H*",  pack("$ports_map", join("", @dlink_ports))) ."\n" if ($debug > 3);
     	 }
       else {
       	 print "Error: $SNMP_COMMUNITY $oid$vlan / $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n ";
