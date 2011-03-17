@@ -557,7 +557,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
    }
 
 
-  #DEL:
+  DEL:
   #Remove ports from Vlans
   while(my($vlan, $ports_arr)=each %REMOVE_VLANS) {
     $debug_output .= "REMOVE VLAN: $vlan PORTS: ". join(',', @$ports_arr)."\n";
@@ -644,7 +644,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
     return $debug_output;
    }
 
-  #ADD:
+  ADD:
   #Add ports to Vlans
   while(my($vlan, $ports_arr)=each %VLANS) {
     $debug_output .= "ADD VLAN: $vlan PORTS: ". join(',', @$ports_arr) ."\n";
@@ -722,12 +722,12 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
      }
 
 
+   }
+
     if ($version =~ /ES3528M/) {
        goto DEL;
      }
 
-
-   }
  }
 elsif ($attr->{NAS_TYPE} eq 'dlink_pb') {
 	
