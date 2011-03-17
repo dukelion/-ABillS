@@ -541,7 +541,7 @@ sub snmputils_chg_vlan {
                         52 => 1);
    }
   #3550 (49-50)
-  elsif ($version =~ /3052/) {
+  elsif ($version =~ /3550/) {
   	%RESERVED_PORTS = ( 49 => 1,
   	                    50 => 1,
                        );
