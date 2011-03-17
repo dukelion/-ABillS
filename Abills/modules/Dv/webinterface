@@ -3861,7 +3861,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
 #**********************************************************
 sub dv_holdup_service {
   my ($attr)=@_;
-  my ($hold_up_min_period, $hold_up_max_period, $hold_up_period, $holdup_fees, $hold_fees_deposit)=split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
+  my ($hold_up_min_period, $hold_up_max_period, $hold_up_period, $holdup_fees, $hold_fees_deposit, $active_fees)=split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
 
   my $Shedule = Shedule->new($db, $admin, \%conf);
   
@@ -3891,6 +3891,7 @@ sub dv_holdup_service {
   if($Shedule->{TOTAL} > 0) {
   	$html->message('info', $_INFO, "$_HOLD_UP $Shedule_val{3} -> $Shedule_val{0} " . (($Shedule->{TOTAL} > 1) ? $html->button("$_DEL", "index=$index&del=$del_ids&sid=$sid", { BUTTON => 1 }) : '')
   	);
+        
   	return 0;
    }
 
@@ -3935,7 +3936,13 @@ sub dv_holdup_service {
                     });
 
       if (! $Shedule->{errno}) {
-      	$html->message('info', $_INFO, "$_HOLD_UP $_DATE: $FORM{FROM_DATE} -> $FORM{TO_DATE}   $_DAYS: $block_days");
+      	$html->message('info', $_INFO, "$_HOLD_UP $_DATE: $FORM{FROM_DATE} -> $FORM{TO_DATE}   $_DAYS: ". sprintf("%d", $block_days));
+      	if ($active_fees && $active_fees > 0) {
+      	  $fees->take($user, $active_fees, { DESCRIBE => "$_HOLD_UP" } );
+      	  if ($fees->{errno}) {
+      	  	$html->message('err', $_ERROR, "$fees->{errno} $fees->{errstr}");
+      	   }
+      	 }
   	    return 0;
        }
      }

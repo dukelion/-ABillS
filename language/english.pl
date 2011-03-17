@@ -458,5 +458,6 @@ $_VIEW='View';
 $_PROCESSING='Processing';
 $_RATING='Rating';
 $_USER_PORTAL='User portal';
-$_DEPOT='Depot';
+$_STORAGE='Storage ';
+$_RESTS='Rests';
 $_SUPPLIERS='Suppliers';
