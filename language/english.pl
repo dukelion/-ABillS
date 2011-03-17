@@ -461,3 +461,4 @@ $_USER_PORTAL='User portal';
 $_STORAGE='Storage ';
 $_RESTS='Rests';
 $_SUPPLIERS='Suppliers';
+$_ACCOUNTABILITY="Accountability";
