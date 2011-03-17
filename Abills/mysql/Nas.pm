@@ -420,6 +420,15 @@ sub ip_pools_list {
  
  if (defined($attr->{STATIC})) {
  	 push @WHERE_RULES, "pool.static='$attr->{STATIC}'"; 
+ 	 
+ 	 my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
+   $self->query($db, "SELECT '', pool.name, 
+   pool.ip, pool.ip + pool.counts, pool.counts, pool.priority,
+    INET_NTOA(pool.ip), INET_NTOA(pool.ip + pool.counts), 
+    pool.id, pool.nas
+    FROM ippools pool 
+    WHERE $WHERE  ORDER BY $SORT $DESC");
+   return $self->{list};	 	 
   }
  
  if(defined($self->{NAS_ID})) {
