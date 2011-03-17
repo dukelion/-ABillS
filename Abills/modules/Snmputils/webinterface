@@ -552,9 +552,9 @@ sub snmputils_chg_vlan {
 if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
   my $ports_map = 'B*';
 
-  #if ($version =~ /ES3528M/) {
-  #	goto ADD;
-  # }
+  if ($version =~ /ES3528M/) {
+  	goto ADD;
+   }
 
 
   #DEL:
@@ -593,10 +593,6 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
      }
     my $ports_bin         = pack("$ports_map", join("", @switch_ports));
 
-    if ($debug > 3) {
-      $debug_output .= "SNMP: $oid$vlan PORTS: ". unpack("$ports_map",  $ports_bin)."/". unpack("H*",  $ports_bin) ."\n";
-     }
-
     #Dlink pre functions
     if ($attr->{NAS_TYPE} eq 'dlink_pb') {
     	foreach my $port (keys %RESERVED_PORTS) {
@@ -610,6 +606,29 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
       	 print "Error: $SNMP_COMMUNITY $oid$vlan / $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n ";
        }
      }
+    # Add to native vlan before remove
+#    elsif ($version =~ /ES3528M/) { 
+#    	  my $oid = '1.3.6.1.2.1.17.7.1.4.3.1.4.';
+#
+#        $debug_output .= "SNMP: $oid$vlan PORTS: ". unpack("$ports_map",  $ports_bin) ."/". unpack("H*",  $ports_bin) ."\n" if ($debug > 3);
+#            	
+#        foreach my $port (@$ports_arr) {
+#          if ($debug > 3) {
+#            $debug_output .= "SNMP: 1.3.6.1.2.1.17.7.1.4.5.1.1.$port gauge32 $vlan\n";
+#           }  
+#
+#          if (snmpset($SNMP_COMMUNITY, "1.3.6.1.2.1.17.7.1.4.5.1.1.$port", 'gauge32',$vlan)) {
+#           }
+#          else {
+#        	  print "Error: $SNMP_COMMUNITY $oid$vlan / $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg\n";
+#           }
+#         }
+#
+#     }
+
+    if ($debug > 3) {
+      $debug_output .= "SNMP: $oid$vlan PORTS: ". unpack("$ports_map",  $ports_bin)."/". unpack("H*",  $ports_bin) ."\n";
+     }
 
     if (snmpset($SNMP_COMMUNITY, "$oid$vlan", 'string', $ports_bin)) {
 
@@ -620,10 +639,10 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
           #$RESULT->{UNTAGED_PORTS}{$GUEST_VLAN} =snmpget($SNMP_COMMUNITY, "1.3.6.1.2.1.17.7.1.4.3.1.4.$GUEST_VLAN", $ports);
    }
 
-  #if ($version =~ /ES3528M/) {
-  #  $DEBUG = $debug_output;
-  #  return $debug_output;
-  # }
+  if ($version =~ /ES3528M/) {
+    $DEBUG = $debug_output;
+    return $debug_output;
+   }
 
   #ADD:
   #Add ports to Vlans
@@ -656,7 +675,6 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
     	for(my $i=0; $i<=$#switch_ports; $i++) {
       	if($RESERVED_PORTS{($i+1)}) {
           $reset_ports[$i]=0;
-          #$switch_ports[$i]=0;
       	 }
       	else {
       		$dlink_all_ports[$i]=$switch_ports[$i];
@@ -704,9 +722,9 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
      }
 
 
-    #if ($version =~ /ES3528M/) {
-    #   goto DEL;
-    # }
+    if ($version =~ /ES3528M/) {
+       goto DEL;
+     }
 
 
    }
