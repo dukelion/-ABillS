@@ -1087,13 +1087,8 @@ CREATE TABLE `voip_routes` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `prefix` (`prefix`)
-) ;
+) COMMENT 'Voip routes list';
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `voip_tps`
-#
 
 CREATE TABLE `voip_tps` (
   `id` smallint(5) unsigned NOT NULL default '0',

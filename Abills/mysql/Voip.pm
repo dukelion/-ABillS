@@ -473,17 +473,19 @@ sub route_add {
   my ($attr) = @_;
   
   %DATA = $self->get_data($attr); 
+  my $action = 'INSERT';
+  if ($attr->{REPLACE}) {
+  	$action = 'REPLACE';
+   }
 
-  $self->query($db,  "INSERT INTO voip_routes (prefix, parent, name, disable, date,
+  $self->query($db,  "$action INTO voip_routes (prefix, parent, name, disable, date,
         descr) 
         VALUES ('$DATA{ROUTE_PREFIX}', '$DATA{PARENT_ID}',  '$DATA{ROUTE_NAME}', '$DATA{DISABLE}', now(),
         '$DATA{DESCRIBE}');", 'do');
 
-
   return $self if ($self->{errno});
 
-#  $admin->action_add($DATA{UID}, "ADDED", { MODULE => 'voip'});
- 
+  $admin->system_action_add("ROUTES: $DATA{ROUTE_PREFIX}", { TYPE => 1 });
   return $self;
 }
 
@@ -520,10 +522,7 @@ sub route_info {
    $self->{DATE},
    $self->{DISABLE},
    $self->{DESCRIBE}
-  )= @{ $self->{list}->[0] };
-  
-  
-  
+  )= @{ $self->{list}->[0] };  
   
   return $self;
 }
@@ -533,10 +532,22 @@ sub route_info {
 #**********************************************************
 sub route_del {
   my $self = shift;
-  my ($id) = @_;
+  my ($id, $attr) = @_;
   
-  $self->query($db,  "DELETE FROM voip_routes WHERE id='$id';", 'do');
+  my $WHERE = '';
+  
+  if ($id > 0) {
+  	$WHERE = "id='$id'";
+   }
+  elsif ($attr->{ALL}) {
+  	$WHERE  = "id > '0'";
+  	$id='ALL';
+   }
+  
+  $self->query($db,  "DELETE FROM voip_routes WHERE $WHERE;", 'do');
   return $self if ($self->{errno});
+
+  $admin->system_action_add("ROUTES: $id", { TYPE => 10 });
 
   return $self;
 }
@@ -548,8 +559,8 @@ sub route_change {
   my $self = shift;
   my ($attr) = @_;
   
-  my %FIELDS = (ROUTE_ID        => 'id',
-   							PARENT_ID       => 'parent',
+  my %FIELDS = (ROUTE_ID       => 'id',
+   							PARENT_ID      => 'parent',
                 DISABLE        => 'disable',
                 ROUTE_PREFIX   => 'prefix',
                 ROUTE_NAME     => 'name',

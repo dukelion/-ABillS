@@ -192,7 +192,6 @@ sub ti_info {
      return $self;
    }
 
-
   $self->{TI_ID}=$ti_id;
   ($self->{TI_DAY}, 
    $self->{TI_BEGIN}, 
@@ -321,7 +320,6 @@ sub tp_group_info {
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
-
 
   $self->{GID}=$tp_group_id;
   ($self->{NAME}, 

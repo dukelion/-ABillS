@@ -447,7 +447,6 @@ $list = $Voip->rp_list({ %LIST_PARAMS });
 my %prices = ();
 my %trunks = ();
 foreach my $line (@$list) {
-  #print "-- $line->[0] / $line->[1] / $line->[2] / $line->[3] <br>\n";  
   $prices{"$line->[0]"}{"$line->[1]"}=$line->[3];
   $trunks{"$line->[0]"}{"$line->[1]"}=$line->[4];
 }
@@ -1092,6 +1091,27 @@ if($FORM{add}) {
     $html->message('info', $_ADDED, "$_ADDED $Voip->{ROUTE_ID}");
    }
  }
+elsif ($FORM{import}) {
+  my $content = $FORM{ROUTE_FILE}{Contents};
+  my @rows_arr = split(/\n/, $content);
+
+  my $count = 0;  
+ 
+  foreach my $line (@rows_arr) {
+  	chop($line);
+    my($prefix, $name, $status)=split(/\t/, $line);
+    $Voip->route_add({ ROUTE_PREFIX => $prefix, 
+                       ROUTE_NAME   => $name,
+                       DISABLE      => $status,
+                       REPLACE      => 1
+                   });
+    $count++;
+   }    
+
+   if (! $Voip->{errno}) {
+  	  $html->message('info', $_INFO, "$_IMPORT $_FILE: $FORM{ROUTE_FILE}{filename} ADDED: $count");
+  	}
+ }
 elsif ($FORM{export}) {
 	print "Content-Type: text/plain\n\n";
 	my $list = $Voip->routes_list({ PAGE_ROWS => 100000 });	
@@ -1169,9 +1189,15 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
    }
 }
 
+
 if ($Voip->{errno}) {
-   $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
-   return 0;
+	if ($Voip->{errno} == 7) {
+     $html->message('err', $_ERROR, "$_PREFIX $_EXIST");	
+   }
+  else {	
+    $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
+    return 0;
+   }
  }
 
 $Voip->{DISABLE}=' checked' if($Voip->{DISABLE} == 1);
@@ -1224,19 +1250,28 @@ foreach my $line (@$list) {
             $delete);
 
 }
-print $table->show();
+
+
+my $table2 = $html->table( { width      => '100%',
+                             cols_align => ['right', 'right'],
+                             rows       => [ [  
+	                                              "$_IMPORT $_FILE: ". $html->form_input('ROUTE_FILE', "ROUTE_FILE", { TYPE => 'FILE' }) .
+	                                                $html->form_input('import', $_IMPORT, { TYPE => 'submit' })
+	                                             ] ]
+                         } );
+
+
+print $html->form_main({ CONTENT => $table->show(). $table2->show(),
+	                       ENCTYPE => 'multipart/form-data',
+	                       NAME    => 'TP_ROUTES',
+	                       ID      => 'TP_ROUTES',
+                         HIDDEN  => { 
+	                                    index   => "$index",
+	                                   },
+	                      });
 
 
 
-#if ($FORM{xml} && $FORM{list}) {
-#	print "Content-Type: text/xml\n\n";
-#	print "<?xml version=\"1.0\" encoding=\"windows-1251\"?>\n";
-#  print $table->show()	
-#   return 0;
-# }
-#else {
-#	print $output;
-#}
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
