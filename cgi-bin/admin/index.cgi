@@ -7053,11 +7053,11 @@ $users->{DISTRICTS_SEL} = $html->form_select("DISTRICT_ID",
 
 $LIST_PARAMS{DISTRICT_ID}=$FORM{DISTRICT_ID} if ($FORM{DISTRICT_ID});
 
-my $list = $users->street_list({ %LIST_PARAMS });
+my $list = $users->street_list({ %LIST_PARAMS, USERS_INFO => 1 });
 
 my $table = $html->table({ width      => '640',
 	                         caption    => $_STREETS,
-                           title      => [ "#", "$_NAME", "$_DISTRICTS", $_BUILDS, '-', '-' ],
+                           title      => [ "#", "$_NAME", "$_DISTRICTS", $_BUILDS, $_USERS, '-', '-' ],
                            cols_align => ['right', 'left', 'left', 'right', 'center', 'center', 'center'],
                            pages      => $users->{TOTAL},                           
                            qs         => $pages_qs,
@@ -7069,6 +7069,7 @@ foreach my $line (@$list) {
      $line->[1], 
      $line->[2], 
      $html->button($line->[3], "index=$index&BUILDS=$line->[0]"), 
+     $html->button($line->[4], "&search=1&index=". get_function_index('form_search') ."&STREET_ID=$line->[0]" ), 
      $html->button($_CHANGE, "index=$index&chg=$line->[0]", { BUTTON => 1 }), 
      $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
 }

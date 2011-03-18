@@ -1957,9 +1957,17 @@ sub street_list {
 
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
 
- $self->query($db, "SELECT s.id, s.name, d.name, count(b.id) FROM streets s
+ my $EXT_TABLE = '';
+ my $EXT_FIELDS = '';
+ if ($attr->{USERS_INFO} && ! $admin->{MAX_ROWS}) {
+ 	 $EXT_TABLE = 'LEFT JOIN users_pi pi ON (b.id=pi.location_id)';
+   $EXT_FIELDS = ', count(pi.uid)';
+  }
+
+ $self->query($db, "SELECT s.id, s.name, d.name, count(b.id) $EXT_FIELDS FROM streets s
   LEFT JOIN districts d ON (s.district_id=d.id)
   LEFT JOIN builds b ON (b.street_id=s.id)
+  $EXT_TABLE 
   $WHERE 
   GROUP BY s.id
   ORDER BY $SORT $DESC
