@@ -1968,7 +1968,7 @@ sub street_list {
    $EXT_FIELDS = ', count(pi.uid)';
   }
 
- $self->query($db, "SELECT s.id, s.name, d.name, count(b.id) $EXT_FIELDS FROM streets s
+ $self->query($db, "SELECT s.id, s.name, d.name, count(DISTINCT b.id) $EXT_FIELDS FROM streets s
   LEFT JOIN districts d ON (s.district_id=d.id)
   LEFT JOIN builds b ON (b.street_id=s.id)
   $EXT_TABLE 
