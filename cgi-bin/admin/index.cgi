@@ -1372,20 +1372,8 @@ sub user_pi {
   	                                                              MONTHES   => \@MONTHES,
   	                                                              DATE      => $user_pi->{CONTRACT_DATE} });
 
-  
-#  $user_pi->{ADDRESS_STREET_SEL} = $html->form_select("ADDRESS_STREET", 
-#                                { SELECTED          => $users->{ADDRESS_STREET} || $FORM{ADDRESS_STREET},
-# 	                                SEL_MULTI_ARRAY   => $users->street_list({ PAGE_ROWS => 1000 }), 
-# 	                                MULTI_ARRAY_KEY   => 0,
-# 	                                MULTI_ARRAY_VALUE => 1,
-# 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
-# 	                                NO_ID             => 1
-# 	                               });
-
-  
-  
   if ($conf{ADDRESS_REGISTER}) {
-  	my $add_address_index = get_function_index('form_districts');
+  	my $add_address_index        = get_function_index('form_districts');
   	$user_pi->{ADD_ADDRESS_LINK} = $html->button("$_ADD $_ADDRESS", "index=$add_address_index", { BUTTON => 1 });
   	$user_pi->{ADDRESS_TPL}      = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
    }
@@ -4510,8 +4498,10 @@ my @m = (
  "65:5:$_EXCHANGE_RATE:form_exchange_rate:::",
  
  "66:5:$_LOG:form_changes:::",
- "68:5:$_LOCATIONS:form_districts:::",
- "69:68:$_STREETS:form_streets::",
+
+# "68:5:$_LOCATIONS:form_districts:::",
+# "69:68:$_STREETS:form_streets::",
+
  "75:5:$_HOLIDAYS:form_holidays:::",
  
  "85:5:$_SHEDULE:form_shedule:::",
@@ -4533,6 +4523,17 @@ my @m = (
  #"53:9:$_PROFILE:admin_profile:::",
  "99:9:$_FUNCTIONS_LIST:flist:::",
  );
+
+
+if ($conf{NON_PRIVILEGES_LOCATION_OPERATION}) {
+ push @m, "68:8:$_LOCATIONS:form_districts:::",
+ "69:68:$_STREETS:form_streets::";
+ }
+else {
+ push @m, "68:5:$_LOCATIONS:form_districts:::",
+ "69:68:$_STREETS:form_streets::";
+}
+	
 
 
 if ($permissions{4} && $permissions{4}{4}) {
