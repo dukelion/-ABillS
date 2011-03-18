@@ -690,7 +690,11 @@ sub list {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{EMAIL}, 'STR', 'pi.email', { EXT_FIELD => 1 }) }; 
  	}
 
- if ($attr->{LOCATION_ID}) {
+
+ if($attr->{NOT_FILLED}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr(0, 'INT', 'pi.location_id' ) };
+  }
+ elsif ($attr->{LOCATION_ID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name, builds.number, builds.id' }) };
    $EXT_TABLES .= "LEFT JOIN builds ON (builds.id=pi.location_id)
    LEFT JOIN streets ON (streets.id=builds.street_id)";

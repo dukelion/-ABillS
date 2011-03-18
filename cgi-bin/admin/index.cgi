@@ -5458,6 +5458,7 @@ elsif($search_form{$FORM{type}}) {
 
     if ($conf{ADDRESS_REGISTER}) {
      	$info{ADDRESS_FORM} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
+     	$info{ADDRESS_FORM} .= "<tr><td>$_NO_RECORD</td><td><input type=checkbox name='NOT_FILLED' value='1'></td></tr>";
      }
     else {
   	  my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
@@ -7169,8 +7170,8 @@ foreach my $line (@$list) {
      $line->[2], 
      $line->[3], 
      $line->[4], 
-     $line->[5], 
-     $line->[6], 
+     $html->button($line->[5], "&search=1&index=". get_function_index('form_search') ."&LOCATION_ID=$line->[7]" ),  
+     $line->[6],
      $html->button($_CHANGE, "index=$index&chg=$line->[7]&BUILDS=$FORM{BUILDS}", { BUTTON => 1 }), 
      $html->button($_DEL, "index=$index&del=$line->[7]&BUILDS=$FORM{BUILDS}", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
 }
