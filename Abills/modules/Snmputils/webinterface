@@ -552,7 +552,7 @@ sub snmputils_chg_vlan {
 if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
   my $ports_map = 'B*';
 
-  if ($version =~ /ES3528M/) {
+  if ($version =~ /ES3528M/ || $version =~ /ES3526/) {
   	goto ADD;
    }
 
@@ -639,7 +639,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
           #$RESULT->{UNTAGED_PORTS}{$GUEST_VLAN} =snmpget($SNMP_COMMUNITY, "1.3.6.1.2.1.17.7.1.4.3.1.4.$GUEST_VLAN", $ports);
    }
 
-  if ($version =~ /ES3528M/) {
+  if ($version =~ /ES3528M/ || $version =~ /ES3526/) {
     $DEBUG = $debug_output;
     return $debug_output;
    }
@@ -724,7 +724,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
 
    }
 
-    if ($version =~ /ES3528M/) {
+    if ($version =~ /ES3528M/ || $version =~ /ES3526/) {
        goto DEL;
      }
 
