@@ -62,6 +62,12 @@ sub dv_chg_tp {
  	 return 0;
   }
 
+
+ if (! $permissions{0}{10} ) {
+   $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
+   return 0;
+  }
+
  my $TARIF_PLAN = $FORM{tarif_plan} || $_DEFAULT_TARIF_PLAN;
  my $period = $FORM{period} || 0;
  my $Shedule = Shedule->new($db, $admin, \%conf);
@@ -559,7 +565,10 @@ sub dv_user {
 		
 	  $Dv->{ACTION}='set';
 	  $Dv->{LNG_ACTION}=$_CHANGE;
-	  $Dv->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. get_function_index('dv_chg_tp'), { BUTTON => 1 });
+	  
+    if ($permissions{0}{10} ) {
+      $Dv->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. get_function_index('dv_chg_tp'), { BUTTON => 1 });
+     } 
 
     # Get next payment period
     if ($Dv->{MONTH_ABON} > 0 &&  ! $Dv->{STATUS} && ! $users->{DISABLE} &&
