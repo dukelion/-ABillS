@@ -242,6 +242,11 @@ sub acct {
           if ($class == 1) {
             $RAD->{'INBYTE2'}	= $byte;
            }
+          else {
+            $RAD->{INBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # FROM client
+            $RAD->{OUTBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0; # TO client
+            ($RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = ($RAD->{ACCT_OUTPUT_GIGAWORDS}, $RAD->{ACCT_INPUT_GIGAWORDS}); 
+           }
        }
      }
     elsif ($nas->{NAS_TYPE} eq 'exppp') {
