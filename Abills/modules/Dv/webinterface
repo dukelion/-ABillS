@@ -289,7 +289,7 @@ sub dv_users_list {
  $Dv->{GROUP_SEL}    = sel_groups();
  $Dv->{STATUS_SEL}   = $html->form_select('STATUS', 
                                           { 
- 	                                          SELECTED     => $FORM{STATUS},
+ 	                                          SELECTED     => $FORM{STATUS} || 0,
  	                                          SEL_HASH     => { '' => "$_ALL",
  	                                          	                0  => $service_status[0],
  	                                          	                1  => $service_status[1],
