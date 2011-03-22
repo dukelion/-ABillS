@@ -375,24 +375,35 @@ sub cards_add {
   	  my $added       = 0;
 
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
-          my $pin    = mk_unique_value($pin_length || 8, { SYMBOLS => $pin_symbols || undef });
-  	 	    my $serial = sprintf("%s%.11d", $FORM{SERIAL}, $i);
-          my $sum    = sprintf("%.2f", $FORM{SUM});
+        my $pin    = mk_unique_value($pin_length || 8, { SYMBOLS => $pin_symbols || undef });
+  	 	  my $serial = sprintf("%s%.11d", $FORM{SERIAL}, $i);
+        my $sum    = sprintf("%.2f", $FORM{SUM});
 
-          $Cards->cards_add({ SERIAL    => "$FORM{SERIAL}",
-        	                    NUMBER    => "$i",
-            	                PIN       => "$pin",
-           	                  SUM       => $sum,
-        	                    STATUS    => 0,
-        	                    EXPIRE    => "$FORM{EXPIRE}",
-        	                    DILLER_ID => int($FORM{DILLER_ID})
-        	                  });
+        $Cards->cards_add({ SERIAL    => "$FORM{SERIAL}",
+                            NUMBER    => "$i",
+           	                PIN       => "$pin",
+         	                  SUM       => ($FORM{COMMISSION}>0) ? $sum - $FORM{COMMISSION} : $sum,
+        	                  STATUS    => 0,
+        	                  EXPIRE    => "$FORM{EXPIRE}",
+        	                  DILLER_ID => int($FORM{DILLER_ID})
+        	                });
 
-          if ($Cards->{errno}) {
-       	    $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
-       	    return 0;
-           }
-        $export .= (defined($FORM{EXPORT}) && $FORM{EXPORT} eq 'XML' ) ? "<CARD SERIA='$serial' PIN='$pin' SUM='$sum' EXPIRE='$FORM{EXPIRE}'/>\n" : "$serial\t$pin\t$sum\t$FORM{EXPIRE}\n";
+        if ($Cards->{errno}) {
+       	  $html->message('err', $_ERROR, "[$Cards->{errno}] $err_strs{$Cards->{errno}}");
+       	  return 0;
+         }
+        
+        if (defined($FORM{EXPORT}) && $FORM{EXPORT} eq 'XML' ) {
+        	$export .= "<CARD SERIA='$serial' PIN='$pin' SUM='$sum'";
+          $export .= sprintf(" COMMISSION='%.2f' ", $FORM{COMMISSION})  if ($FORM{COMMISSION});
+        	$export .= "EXPIRE='$FORM{EXPIRE}'/>\n";
+         }
+        else {
+        	$export .= "$serial\t$pin\t$sum\t";
+        	$export .= sprintf("%.2f\t", $FORM{COMMISSION})  if ($FORM{COMMISSION});
+        	$export .= "$FORM{EXPIRE}\n";
+         }
+
   	    $added++;
   	   }
 

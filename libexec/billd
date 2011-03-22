@@ -477,7 +477,7 @@ sub check_lines {
           $Billing->{TIME_TARIF}, 
           $Billing->{TRAF_TARIF}) = $Billing->session_sum("$RAD{USER_NAME}", 
                                                          $RAD{SESSION_START}, 
-                                                         $RAD{ACCT_SESSION_TIME} || 0, 
+                                                         $RAD{ACCT_SESSION_TIME} || 1, 
                                                          \%RAD,
                                                          { UID    => $uid,
                                                          	 TP_NUM => $tp_num});
