@@ -878,7 +878,6 @@ else {
     '1.3.6.1.4.1.259.8.1.5.1.24.1.8.0 integer 2');
  }
 
- my $message = '';
 foreach my $cmd ( @snmp_cmd ) {
 	my ($oid, $type, $value) = split(/ /,$cmd);
 	

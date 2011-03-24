@@ -1077,9 +1077,16 @@ elsif(defined($FORM{GID})){
   return 0;
  }
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed} && $permissions{0}{5}){
-  $users->group_del( $FORM{del} );
-  if (! $users->{errno}) {
-    $html->message('info', $_DELETED, "$_DELETED $users->{GID}");
+  $users->list({ GID => $FORM{del} });
+
+  if ($users->{TOTAL} > 0) {
+    $html->message('info', $_DELETED, "$_USER_EXIST.");
+   }
+  else {
+    $users->group_del( $FORM{del} );
+    if (! $users->{errno}) {
+      $html->message('info', $_DELETED, "$_DELETED GID: $FORM{del}");
+     }
    }
 }
 
@@ -7079,7 +7086,10 @@ print $table->show();
 
 $table = $html->table( { width      => '640',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($users->{TOTAL}) ] ]
+                         rows       => [ [ "$_TOTAL:", "$_STREETS: ". $html->b($users->{TOTAL}), 
+                                                        "$_BUILDS: ". $html->b($users->{TOTAL_BUILDS}),
+                                                        "$_USERS: ".$html->b($users->{TOTAL_USERS}) 
+                                        ] ]
                      } );
 print $table->show();
 

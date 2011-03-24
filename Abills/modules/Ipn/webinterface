@@ -1169,9 +1169,14 @@ sub ipn_user_activate {
 
   if ($Dv->{STATUS} > 0) {
   	my @service_status = ( "$_ENABLE", "$_DISABLE", "$_NOT_ACTIVE", "$_HOLD_UP", "$_DISABLE: $_NON_PAYMENT", "$ERR_SMALL_DEPOSIT" );
-  	#$html->message('err', $_ERROR, "$service_status[$Dv->{STATUS}]", { ID => 162 });
+  	
   	require "modules/Dv/webinterface";
-  	dv_user_info();
+  	if ($user->{UID}) {
+  	  dv_user_info();  	
+  	 }
+  	else {
+  		$html->message('err', $_ERROR, "$service_status[$Dv->{STATUS}]", { ID => 162 });
+  	 }
   	
   	return 0 if (! $FORM{activate});
    }

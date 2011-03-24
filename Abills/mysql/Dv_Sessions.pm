@@ -184,7 +184,7 @@ sub online {
    'dv.speed',   
    'c.sum',
    'c.status',
-   'concat(pi.address_street,\' \', pi.address_build,\'/\', pi.address_flat) AS ADDRESS', 
+   'concat(pi.address_street,\' \', pi.address_build,\'/\', pi.address_flat)', 
    'u.gid',
    'c.turbo_mode',
    'c.join_service',
@@ -301,7 +301,7 @@ sub online {
  	 push @WHERE_RULES, "c.user_name LIKE '$attr->{USER_NAME}'";
   }
  elsif ($attr->{UID}) {
-         push @WHERE_RULES, "c.uid='$attr->{UID}'";
+   push @WHERE_RULES, "c.uid='$attr->{UID}'";
   }
 
  if (defined($attr->{SESSION_ID})) {

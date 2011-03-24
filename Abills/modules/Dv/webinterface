@@ -3946,12 +3946,6 @@ sub dv_holdup_service {
 
       if (! $Shedule->{errno}) {
       	$html->message('info', $_INFO, "$_HOLD_UP $_DATE: $FORM{FROM_DATE} -> $FORM{TO_DATE}   $_DAYS: ". sprintf("%d", $block_days));
-      	if ($active_fees && $active_fees > 0) {
-      	  $fees->take($user, $active_fees, { DESCRIBE => "$_HOLD_UP" } );
-      	  if ($fees->{errno}) {
-      	  	$html->message('err', $_ERROR, "$fees->{errno} $fees->{errstr}");
-      	   }
-      	 }
   	    return 0;
        }
      }
@@ -3980,6 +3974,7 @@ sub dv_holdup_service {
 	                                                WEEK_DAYS => \@WEEKDAYS,
  	                                                MONTHES   => \@MONTHES, 
  	                                             });
+
 
 	$html->tpl_show(_include('dv_hold_up', 'Dv'), $Dv);
 }
@@ -5022,6 +5017,19 @@ sub dv_sheduler {
     $Dv->change({ UID    => $uid, 
     	            STATUS => $action 
     	          });
+    
+    #Get fee for holdup service
+    if ($action == 3) {
+       my ($hold_up_min_period, $hold_up_max_period, $hold_up_period, $holdup_fees, $hold_fees_deposit, $active_fees)=split(/:/, $conf{DV_USER_SERVICE_HOLDUP});
+     	 if ($active_fees && $active_fees > 0) {
+     	 	  my $user = $users->info( $uid );
+      	  $fees->take($user, $active_fees, { DESCRIBE => "$_HOLD_UP",
+      	  	                                 DATE     => "$ADMIN_REPORT{DATE} $TIME", } );
+      	  if ($fees->{errno}) {
+      	  	print "Error: Holdup fees: $fees->{errno} $fees->{errstr}\n";
+      	   }
+      	}
+     }
 
     if ($Dv->{errno} && $Dv->{errno} == 15) {
     	return $Dv->{errno};

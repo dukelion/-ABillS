@@ -692,7 +692,8 @@ sub list {
 
 
  if($attr->{NOT_FILLED}) {
- 	 push @WHERE_RULES, @{ $self->search_expr(0, 'INT', 'pi.location_id' ) };
+ 	 push @WHERE_RULES, "builds.id IS NULL";
+ 	 $EXT_TABLES .= "LEFT JOIN builds ON (builds.id=pi.location_id)";
   }
  elsif ($attr->{LOCATION_ID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{LOCATION_ID}, 'INT', 'pi.location_id', { EXT_FIELD => 'streets.name, builds.number, builds.id' }) };
@@ -711,6 +712,13 @@ sub list {
      $EXT_TABLES .= "LEFT JOIN builds ON (builds.id=pi.location_id)
       LEFT JOIN streets ON (streets.id=builds.street_id)
       LEFT JOIN districts ON (districts.id=streets.district_id) ";
+    }
+   elsif ($CONF->{ADDRESS_REGISTER}) {
+     if ($attr->{ADDRESS_STREET}) {
+       push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'streets.name', { EXT_FIELD => 'streets.name' }) };
+       $EXT_TABLES .= "INNER JOIN builds ON (builds.id=pi.location_id)
+        INNER JOIN streets ON (streets.id=builds.street_id)";
+      }
     }
    elsif ($attr->{ADDRESS_STREET}) {
      push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street', { EXT_FIELD => 1 }) };
@@ -1961,11 +1969,18 @@ sub street_list {
 
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
 
- my $EXT_TABLE = '';
- my $EXT_FIELDS = '';
+ my $EXT_TABLE        = '';
+ my $EXT_FIELDS       = '';
+ my $EXT_TABLE_TOTAL  = '';
+ my $EXT_FIELDS_TOTAL = '';
+
+ 
  if ($attr->{USERS_INFO} && ! $admin->{MAX_ROWS}) {
  	 $EXT_TABLE = 'LEFT JOIN users_pi pi ON (b.id=pi.location_id)';
    $EXT_FIELDS = ', count(pi.uid)';
+   $EXT_TABLE_TOTAL  = 'LEFT JOIN builds b ON (b.street_id=s.id) LEFT JOIN users_pi pi ON (b.id=pi.location_id)';
+   $EXT_FIELDS_TOTAL = ', count(DISTINCT b.id), count(pi.uid)';
+
   }
 
  $self->query($db, "SELECT s.id, s.name, d.name, count(DISTINCT b.id) $EXT_FIELDS FROM streets s
@@ -1980,8 +1995,12 @@ sub street_list {
  my $list = $self->{list};
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*) FROM streets s $WHERE");
-    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+    $self->query($db, "SELECT count(*) $EXT_FIELDS_TOTAL FROM streets s 
+     $EXT_TABLE_TOTAL  $WHERE");
+    ($self->{TOTAL},
+     $self->{TOTAL_BUILDS},
+     $self->{TOTAL_USERS},
+    ) = @{ $self->{list}->[0] };
    }
 
  return $list;
