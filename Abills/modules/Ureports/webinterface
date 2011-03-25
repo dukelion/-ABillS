@@ -31,7 +31,8 @@ my %REPORTS = ( 1 => "$_DEPOSIT_BELOW",
                 6 => "$_DAY: $_DEPOSIT + $_CREDIT + $_TRAFFIC",
               
                 7 => "$_CREDIT $_EXPIRE",
-                8 => "$_LOGIN $_DISABLE "
+                8 => "$_LOGIN $_DISABLE ",
+                9 => "$_DAYS_TO_EXPIRE"
 
              );
 
@@ -131,7 +132,8 @@ my $table = $html->table( { width      => '100%',
                             title      => \@TITLE,
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $Ureports->{TOTAL}
+                            pages      => $Ureports->{TOTAL},
+                            ID         => 'UREPORTS_USERS'
                            });
 
 foreach my $line (@$list) {
@@ -159,7 +161,7 @@ print $table->show();
 
 $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($Ureports->{TOTAL}) ] ]
+                         rows       => [ [ "$_TOTAL: ", $html->b($Ureports->{TOTAL}) ] ]
                         } );
 print $table->show();
 
@@ -267,7 +269,7 @@ sub ureports_user {
                            } );
 
 
-    
+    $Ureports->{debug}=1;
     my $list = $Ureports->tp_user_reports_list({ %LIST_PARAMS, TP_ID => $Ureports->{TP_ID} });
   
     foreach my $line (@$list) {
@@ -853,9 +855,6 @@ $html->make_charts({
 	 TRANSITION => 1,
 
   });
-
-
-
 }
 
 #**********************************************************
@@ -1492,10 +1491,11 @@ my $list = $Turbosms->info({ %LIST_PARAMS });
                               border     => 1,
                               title      => ['id', 'msg_id', 'number', 'sign', 'message', 'wappush', 'cost', 
                                 'credits', 'send_time', 'sended', 'updated', 'status', 'dlr_status' ],
-                              cols_align => ['center', 'left',  'center'],
+                              cols_align => ['center', 'left',  'left', 'left',  'left', 'left',  'left',
+                               'left',  'left', 'left',  'left', 'left',  'left' ],
                               qs         => $pages_qs,
                               ID         => 'REPORTS_TURBOSMS',
-                              pages     => $Turbosms->{TOTAL}
+                              pages      => $Turbosms->{TOTAL}
                            } );
 
 
@@ -1503,12 +1503,17 @@ my $list = $Turbosms->info({ %LIST_PARAMS });
      $table->addrow($line->[0],
      $line->[1],
      $line->[2],
+     $line->[3],
      $line->[4],
      $line->[5],
      $line->[6],
      $line->[7],
      $line->[8],
      $line->[9],
+     $line->[10],
+     convert( substr("$line->[11]", 0, 16), {  utf82win => 1 }).$html->br().
+     convert(convert("Отсутству", {  win2utf8 => 1 }), {  utf82win => 1 }),
+     $line->[12],          
      );
   }
 

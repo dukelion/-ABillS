@@ -220,10 +220,10 @@ sub acct {
     ($RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = ($RAD->{ACCT_OUTPUT_GIGAWORDS}, $RAD->{ACCT_INPUT_GIGAWORDS}); 
 
     if ($nas->{NAS_TYPE} eq 'mpd5' && $RAD->{MPD_INPUT_OCTETS}) {
-  	  ($RAD->{INBYTE}, $RAD->{OUTBYTE},
-      $RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = (0,0,0,0); 
 
    	  if (ref $RAD->{MPD_INPUT_OCTETS} eq 'ARRAY') {
+ 	  	  ($RAD->{INBYTE}, $RAD->{OUTBYTE},
+          $RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = (0,0,0,0); 
         for(my $i=0; $i<=$#{ $RAD->{MPD_INPUT_OCTETS} }; $i++) {
           my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS}->[$i]);
           $class = ($class == 0) ? '' : $class + 1;
@@ -235,6 +235,8 @@ sub acct {
       else {
           my($class, $byte)=split(/:/, $RAD->{MPD_INPUT_OCTETS});
           if ($class == 1) {
+    	  	  ($RAD->{INBYTE}, $RAD->{OUTBYTE},
+              $RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = (0,0,0,0); 
             $RAD->{'OUTBYTE2'}	= $byte;
            }
 
@@ -245,7 +247,6 @@ sub acct {
           else {
             $RAD->{INBYTE} = $RAD->{ACCT_OUTPUT_OCTETS} || 0; # FROM client
             $RAD->{OUTBYTE} = $RAD->{ACCT_INPUT_OCTETS} || 0; # TO client
-            ($RAD->{ACCT_INPUT_GIGAWORDS}, $RAD->{ACCT_OUTPUT_GIGAWORDS}) = ($RAD->{ACCT_OUTPUT_GIGAWORDS}, $RAD->{ACCT_INPUT_GIGAWORDS}); 
            }
        }
      }

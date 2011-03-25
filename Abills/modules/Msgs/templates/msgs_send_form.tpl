@@ -70,6 +70,7 @@ else {
 
 </TD></TR>
 <tr><td>$_SURVEY:</td><td>%SURVEY_SEL%</td></tr>
+%EXTRA_PARAMS%
 <!-- <tr><td>$_LOCK:</td><td><input type=checkbox name=LOCK value=1 %LOCK%></td></tr> -->
 </table>
 <input type=submit name='%ACTION%' value='%ACTION_LNG%'/>

@@ -216,7 +216,7 @@ sub utf82win {
   my $Code='';
   for(@ChArray){
     $Code=ord;
-    if($Code==0x0406) { $Unicode.=chr(0xB2); }
+    if($Code==0x0406)       { $Unicode.=chr(0xB2); }
     elsif($Code==0x0454)    { $Unicode.=chr(0xBA); } #
     elsif($Code==0x0456)    { $Unicode.=chr(0xB3); } # CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I
     elsif($Code==0x0491)    { $Unicode.=chr(0xB4); } # 
@@ -233,6 +233,9 @@ sub utf82win {
     elsif($Code==0xb2+0x350){$Unicode.=chr(0x406-0x350);}
     elsif($Code==0xaf+0x350){$Unicode.=chr(0x407-0x350);}
     elsif($Code==0xbf+0x350){$Unicode.=chr(0x457-0x350);}
+    
+    elsif(($Code>=0x81)&&($Code<=0x200+0x44f)){ $Unicode.=chr($Code - 170); }
+    
     #elsif($Code==0x49){ $Unicode.='I';     	}
     #elsif($Code==0x69){ $Unicode.='i';     	}
     #elsif($Code==0x3F){ $Unicode.='?';     	}
@@ -240,7 +243,8 @@ sub utf82win {
     #elsif($Code==0x2C){ $Unicode.=',';     	}
     #elsif($Code==0x2E){ $Unicode.='.';     	}
     #elsif($Code==0x64){ $Unicode.='d';     	}
-    else{ $Unicode.= $_;  	}
+    else{ $Unicode.= "$Code/";# $_;  	
+    	}
    }
 
   return $Unicode;

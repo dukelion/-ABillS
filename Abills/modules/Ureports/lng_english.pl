@@ -8,3 +8,4 @@ $_MONTH_REPORT='Month using';
 $_ACTIVATED_MSG_SENDED='Activated message sended';
 $_DEPOSIT_CREDIT_BELOW='Deposit + Credit Below';
 $_TRAFFIC_MORE='Traffic more then';
+$_DAYS_TO_EXPIRE='Days To Expire';
