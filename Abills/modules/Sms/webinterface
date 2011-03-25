@@ -1,0 +1,138 @@
+# Sms functions
+#
+#
+
+
+
+
+my $Turbosms;
+eval { require Turbosms; };
+if (! $@) {
+  eval { require Turbosms; };
+  Turbosms->import();
+  $Turbosms  = Turbosms->new($db, $admin, \%conf);
+
+ }
+else {
+  $html->message('err', $_ERROR, "Can't load 'Turbosms'. Purchase this module http://abills.net.ua");
+  exit;
+}
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
+sub sms_send {
+  my ($attr) = @_;
+
+  $Turbosms->send_sms({ NUMBER  => $attr->{NUMBER},
+     	                  MESSAGE => $attr->{MESSAGE},
+                        DEBUG   => $attr->{DEBUG} || 0
+                      });
+
+  if ($Turbosms->{errno}) {
+    if ($attr->{QUITE}) {
+      print "[$Turbosms->{errno}] $err_strs{$Turbosms->{errno}}\n";
+     }
+    else {
+    	$html->message('err', "Turbosms - $_ERROR", "[$Turbosms->{errno}] $err_strs{$Turbosms->{errno}}");
+     }
+   }
+
+  return 0;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub sms_info {
+  my ($id, $attr) = @_;
+
+  $Turbosms->$Turbosms->info({ ID => $id });
+
+  if ($Turbosms->{errno}) {
+    print "[$Turbosms->{errno}] $err_strs{$Turbosms->{errno}}\n";
+   }
+
+  return 0;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub turbosms_reports {
+	
+#eval { require Turbosms; };
+#if (! $@) {
+#  Turbosms->import();
+# }
+#else {
+#  $html->message('err', $_ERROR, "Can't load 'Turbosms'. Purchase this module http://abills.net.ua");
+#  return 0;
+# }	
+
+my $Turbosms = Turbosms->new($db, $admin, \%conf);
+
+
+my $list = $Turbosms->info({ %LIST_PARAMS });
+
+
+  my $table = $html->table( { width      => '100%',
+                              caption    => "$_REPORTS - Turbosms",
+                              border     => 1,
+                              title      => ['id', 'msg_id', 'number', 'sign', 'message', 'wappush', 'cost', 
+                                'credits', 'send_time', 'sended', 'updated', 'status', 'dlr_status' ],
+                              cols_align => ['center', 'left',  'left', 'left',  'left', 'left',  'left',
+                               'left',  'left', 'left',  'left', 'left',  'left' ],
+                              qs         => $pages_qs,
+                              ID         => 'REPORTS_TURBOSMS',
+                              pages      => $Turbosms->{TOTAL}
+                           } );
+
+  use Encode;
+  
+
+
+  foreach my $line (@$list) {
+  	 my $status  = $line->[11];
+     my $message = $line->[4];
+  	 Encode::from_to($status, 'utf-8', 'windows-1251');
+  	 Encode::from_to($message, 'utf-8', 'windows-1251');
+
+     $table->addrow($line->[0],
+     $line->[1],
+     $line->[2],
+     $line->[3],
+     $message,
+     $line->[5],
+     $line->[6],
+     $line->[7],
+     $line->[8],
+     $line->[9],
+     $line->[10],
+     $status,
+     #convert( substr("$line->[11]", 0, 16), {  utf82win => 1 }).$html->br().
+     #convert(convert("Отсутств", {  win2utf8 => 1 })),
+     $line->[12],          
+     );
+  }
+
+print $table->show();
+
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Turbosms->{TOTAL}) ] ]
+                        } );
+print $table->show();
+
+	
+}
+
+
+1
+

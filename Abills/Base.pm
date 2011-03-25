@@ -188,6 +188,7 @@ sub win2utf8 {
   my $Code='';
   for(@ChArray){
     $Code=ord;
+    print "$Code/";
     #return $Code;
     if(($Code>=0xc0)&&($Code<=0xff)){$Unicode.="&#".(0x350+$Code).";";}
     elsif($Code==0xa8){$Unicode.="&#".(0x401).";";}
@@ -234,7 +235,7 @@ sub utf82win {
     elsif($Code==0xaf+0x350){$Unicode.=chr(0x407-0x350);}
     elsif($Code==0xbf+0x350){$Unicode.=chr(0x457-0x350);}
     
-    elsif(($Code>=0x81)&&($Code<=0x200+0x44f)){ $Unicode.=chr($Code - 170); }
+    #elsif(($Code>=0x81)&&($Code<=0x200+0x44f)){ $Unicode.=chr($Code - 170); }
     
     #elsif($Code==0x49){ $Unicode.='I';     	}
     #elsif($Code==0x69){ $Unicode.='i';     	}
@@ -243,7 +244,7 @@ sub utf82win {
     #elsif($Code==0x2C){ $Unicode.=',';     	}
     #elsif($Code==0x2E){ $Unicode.='.';     	}
     #elsif($Code==0x64){ $Unicode.='d';     	}
-    else{ $Unicode.= "$Code/";# $_;  	
+    else{ $Unicode.= "$Code/"; # $_;  	
     	}
    }
 

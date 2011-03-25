@@ -269,7 +269,6 @@ sub ureports_user {
                            } );
 
 
-    $Ureports->{debug}=1;
     my $list = $Ureports->tp_user_reports_list({ %LIST_PARAMS, TP_ID => $Ureports->{TP_ID} });
   
     foreach my $line (@$list) {
@@ -1466,68 +1465,6 @@ if ($tarif_plan->{errno}) {
 
 
 
-#**********************************************************
-#
-#**********************************************************
-sub turbosms_reports {
-	
-eval { require Turbosms; };
-if (! $@) {
-  Turbosms->import();
- }
-else {
-  $html->message('err', $_ERROR, "Can't load 'Bonus_rating'. Purchase this module http://abills.net.ua");
-  return 0;
- }	
-
-my $Turbosms = Turbosms->new($db, $admin, \%conf);
-
-
-my $list = $Turbosms->info({ %LIST_PARAMS });
-
-
-  my $table = $html->table( { width      => '100%',
-                              caption    => "$_REPORTS - Turbosms",
-                              border     => 1,
-                              title      => ['id', 'msg_id', 'number', 'sign', 'message', 'wappush', 'cost', 
-                                'credits', 'send_time', 'sended', 'updated', 'status', 'dlr_status' ],
-                              cols_align => ['center', 'left',  'left', 'left',  'left', 'left',  'left',
-                               'left',  'left', 'left',  'left', 'left',  'left' ],
-                              qs         => $pages_qs,
-                              ID         => 'REPORTS_TURBOSMS',
-                              pages      => $Turbosms->{TOTAL}
-                           } );
-
-
-  foreach my $line (@$list) {
-     $table->addrow($line->[0],
-     $line->[1],
-     $line->[2],
-     $line->[3],
-     $line->[4],
-     $line->[5],
-     $line->[6],
-     $line->[7],
-     $line->[8],
-     $line->[9],
-     $line->[10],
-     convert( substr("$line->[11]", 0, 16), {  utf82win => 1 }).$html->br().
-     convert(convert("Отсутству", {  win2utf8 => 1 }), {  utf82win => 1 }),
-     $line->[12],          
-     );
-  }
-
-print $table->show();
-
-
-$table = $html->table( { width      => '100%',
-                         cols_align => ['right', 'right'],
-                         rows       => [ [ "$_TOTAL:", $html->b($Turbosms->{TOTAL}) ] ]
-                        } );
-print $table->show();
-
-	
-}
 
 1
 

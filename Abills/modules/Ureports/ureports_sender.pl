@@ -63,15 +63,6 @@ my $fees     = Fees->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
 
-my $Turbosms;
-
-if (! $@) {
-  eval { require Turbosms; };
-  Turbosms->import();
-  $Turbosms  = Turbosms->new($db, $admin, \%conf);
- }
-
-
 
 require $Bin ."/../language/$html->{language}.pl";
 require $Bin ."/../Abills/modules/Ureports/lng_$html->{language}.pl";
@@ -127,14 +118,11 @@ sub ureports_send_reports {
    }
   elsif($type == 1) {
   	if ($Turbosms) {
-      $Turbosms->send_sms({ NUMBER  => $destination,
-        	                  MESSAGE => convert($message, { win2utf8 => 1 }),
-                            DEBUG   => $debug
-                            });
-
-      if ($Turbosms->{errno}) {
-        print "[$Turbosms->{errno}] $err_strs{$Turbosms->{errno}}\n";
-       }
+  		require "Sms/webinterface"; 
+  		sms_send_message({ NUMBER  => $destination,
+        	               MESSAGE => $message,
+                         DEBUG   => $debug
+                       });
   	 }
   	elsif ($conf{UREPORTS_SMS_CMD}) {
   	  my $cmd = `$conf{UREPORTS_SMS_CMD} $destination $message`;
@@ -336,8 +324,8 @@ sub ureports_periodic_reports {
                DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
                DATE     => "$ADMIN_REPORT{DATE} $TIME",
                METHOD   => 1,
-               MESSAGE  => "$_TARIF_PLAN $_EXPIRE $_DAYS: $user{TP_EXPIRE}", 
-         	 	   SUBJECT =>  "$_TARIF_PLAN $_EXPIRE"
+               MESSAGE  => "$_DAYS_TO_EXPIRE: $user{TP_EXPIRE}", 
+         	 	   SUBJECT  =>  "$_TARIF_PLAN $_EXPIRE"
               );
          	  }
            else {

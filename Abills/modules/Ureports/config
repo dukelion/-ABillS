@@ -9,8 +9,8 @@
                    "09:7:$_REPORTS:ureports_tp_reports:TP_ID"    => 5,
                    "11:7:$_USERS:ureports_users_list:TP_ID"      => 5,
 
-                   "13:0:$_REPORTS:null:"                        => 4,
-                   "14:13:TurboSMS:turbosms_reports:"            => 4,
+                   #"13:0:$_REPORTS:null:"                        => 4,
+                   #"14:13:TurboSMS:turbosms_reports:"            => 4,
                    );
 
 %USER_FUNCTION_LIST = ("01:0:$_REPORTS:ureports_user_info:"    => 0,

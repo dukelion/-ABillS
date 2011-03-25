@@ -1,0 +1,7 @@
+#Iner_ID : Main or Sub or if -1 user menu func list
+%FUNCTIONS_LIST = (
+                   "1:0:Sms:turbosms_reports:"                   => 4,
+                   );
+
+
+1
