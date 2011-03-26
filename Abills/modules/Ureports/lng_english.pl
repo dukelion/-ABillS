@@ -9,3 +9,4 @@ $_ACTIVATED_MSG_SENDED='Activated message sended';
 $_DEPOSIT_CREDIT_BELOW='Deposit + Credit Below';
 $_TRAFFIC_MORE='Traffic more then';
 $_DAYS_TO_EXPIRE='Days To Expire';
+$_SMALL_DEPOSIT_FOR_NEXT_MONTH='Too small deposit for next month';

@@ -175,6 +175,7 @@ sub ureports_periodic_reports {
          SORT      => 1,
          PAGE_ROWS => 1000000,
          REPORT_ID => '',
+         DV_TP     => 1,
          %SERVICE_LIST_PARAMS
  	   	 });
 
@@ -196,8 +197,10 @@ sub ureports_periodic_reports {
  	      TP_ID            => $TP_ID,
  	      DISABLE          => $u->[10],
  	      CREDIT_EXPIRE    => $u->[11],
- 	      TP_EXPIRE        => $u->[12]
+ 	      TP_EXPIRE        => $u->[12],
+ 	      TP_MONTH_FEE     => $u->[13],
      	 ); 
+
 
        if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
          #Skip action for pay opearation
@@ -328,6 +331,21 @@ sub ureports_periodic_reports {
                METHOD   => 1,
                MESSAGE  => "$_DAYS_TO_EXPIRE: $user{TP_EXPIRE}", 
          	 	   SUBJECT  =>  "$_TARIF_PLAN $_EXPIRE"
+              );
+         	  }
+           else {
+           	  next;
+            }
+         }
+        # 10 - tOO SMALL DEPOSIT FOR NEXT MONTH WORK
+        elsif($user{REPORT_ID} == 10) {
+         	 if ($user{TP_MONTH_FEE} > $user{DEPOSIT} + $user{CREDIT}) {
+         	   %PARAMS = (
+               DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
+               DATE     => "$ADMIN_REPORT{DATE} $TIME",
+               METHOD   => 1,
+               MESSAGE  => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH. $_DEPOSIT: $user{DEPOSIT} $_TARIF_PLAN $user{TP_MONTH_FEE}", 
+         	 	   SUBJECT  => "$ERR_SMALL_DEPOSIT"
               );
          	  }
            else {

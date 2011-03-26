@@ -32,7 +32,8 @@ my %REPORTS = ( 1 => "$_DEPOSIT_BELOW",
               
                 7 => "$_CREDIT $_EXPIRE",
                 8 => "$_LOGIN $_DISABLE ",
-                9 => "$_DAYS_TO_EXPIRE"
+                9 => "$_DAYS_TO_EXPIRE",
+                10 => "$_SMALL_DEPOSIT_FOR_NEXT_MONTH"
 
              );
 
@@ -268,7 +269,6 @@ sub ureports_user {
                               ID         => 'REPORTS_TP'
                            } );
 
-
     my $list = $Ureports->tp_user_reports_list({ %LIST_PARAMS, TP_ID => $Ureports->{TP_ID} });
   
     foreach my $line (@$list) {
@@ -283,6 +283,7 @@ sub ureports_user {
 
     $Ureports->{REPORTS_LIST} = $table->show({ OUTPUT2RETURN => 1 }); 
 	} 
+
 
   $Ureports->{TYPE_SEL}            = $html->form_select('TYPE', 
                                           { 
