@@ -2,8 +2,9 @@
 #
 #
 
-
-
+use Fees;
+my $Fees = Fees->new($db, $admin, \%conf); 
+my $Users = Users->new($db, $admin, \%conf); 
 
 my $Turbosms;
 eval { require Turbosms; };
@@ -14,6 +15,7 @@ if (! $@) {
 
  }
 else {
+	print $@;
   $html->message('err', $_ERROR, "Can't load 'Turbosms'. Purchase this module http://abills.net.ua");
   exit;
 }
@@ -22,12 +24,21 @@ else {
 
 
 #**********************************************************
+# NUMBER   - User number
+# MESSAGE  - Message
+# UID      - User iD 
 #
+# Multi send sms 
+# NUMBERS  - Hash of NUMBER => UID
+#   MOre priority then NUMBER option
 #**********************************************************
 sub sms_send {
   my ($attr) = @_;
 
-  $Turbosms->send_sms({ NUMBER  => $attr->{NUMBER},
+  
+  
+  $Turbosms->send_sms({ NUMBERS => $attr->{NUMBERS},
+  	                    NUMBER  => $attr->{NUMBER},
      	                  MESSAGE => $attr->{MESSAGE},
                         DEBUG   => $attr->{DEBUG} || 0
                       });
@@ -39,9 +50,24 @@ sub sms_send {
     else {
     	$html->message('err', "Turbosms - $_ERROR", "[$Turbosms->{errno}] $err_strs{$Turbosms->{errno}}");
      }
+    return 0;
+   }
+  else {
+    if ($conf{TURBOSMS_SEND_FEES}) {
+      if ($attr->{NUMBERS}) {
+    	  while(my($number, $uid)=each %{ $attr->{NUMBERS} }) {
+          $Users->info($attr->{UID});
+    	    $Fees->take($users, $conf{TURBOSMS_SEND_FEES}, { DESCRIBE => 'Sms '.  $attr->{NUMBER} } );  
+    	   }
+    	 }
+      elsif($attr->{UID}) {
+        $Users->info($attr->{UID});
+  	    $Fees->take($users, $conf{TURBOSMS_SEND_FEES}, { DESCRIBE => 'Sms '.  $attr->{NUMBER} } );  
+  	   }
+     }
    }
 
-  return 0;
+  return 1;
 }
 
 

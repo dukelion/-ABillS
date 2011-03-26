@@ -218,13 +218,14 @@ sub password_recovery {
       return 0;
      }
      
-    my $list = $users->list({ %FORM });
-	
+    my $list = $users->list({ PHONE => '*', %FORM });
   	if ($users->{TOTAL} > 0) {
   		my @u       = @$list;
 	    my $message = '';
 	    my $email   = $FORM{EMAIL} || '';
+      my $phone   = $list->[0][3+$users->{SEARCH_FIELDS_COUNT}];
       my $uid     = $list->[0][5+$users->{SEARCH_FIELDS_COUNT}];
+      
       if ($FORM{LOGIN} && ! $FORM{EMAIL}) {
       	$email    = $u[0][7+$users->{SEARCH_FIELDS_COUNT}];
        }
@@ -239,27 +240,44 @@ sub password_recovery {
 	                   "================================================\n";
 	     }
 
-	   $message = $html->tpl_show(templates('msg_passwd_recovery'), 
+	    $message = $html->tpl_show(templates('msg_passwd_recovery'), 
 	                                                    { MESSAGE => $message }, 
 	                                                    { OUTPUT2RETURN => 1 });
 
-     if ($email ne '') {
-       sendmail("$conf{ADMIN_MAIL}", "$email", "$PROGRAM Password Repair", 
+      if ($email ne '') {
+        sendmail("$conf{ADMIN_MAIL}", "$email", "$PROGRAM Password Repair", 
               "$message", "$conf{MAIL_CHARSET}", "");
- 		   $html->message('info', $_INFO, "$_SENDED");
-      }
-	   else {
-	   	 $html->message('info', $_INFO, "$_NOT_EXIST");
-	    }
+
+ 		    $html->message('info', $_INFO, "$_SENDED");
+       }
+	    else {
+	   	  $html->message('info', $_INFO, "E-Mail $_NOT_EXIST");
+	     }
 	
-		  return 0;
+	
+	
+      if ($FORM{SEND_SMS}) {
+        require "Abills/modules/Sms/webinterface";
+        if(sms_send({ NUMBER  => $phone,
+                   MESSAGE => $message,
+                   UID     => $uid 
+                 })) {
+          $html->message('info', "$_INFO", "SMS $_SENDED");        	
+         }
+       }      
+	    return 0;
 	   }
 	  else {
 		  $html->message('err', $_ERROR, "$_NOT_EXIST");
 	   }
 	}
 	
-	$html->tpl_show(templates('form_forgot_passwd'), undef);
+	my %info = ();
+  if (in_array('Sms', \@MODULES) ) {
+    $info{EXTRA_PARAMS} = $html->tpl_show(_include('sms_check_form', 'Sms'), undef, { OUTPUT2RETURN => 1 });
+   }
+
+	$html->tpl_show(templates('form_forgot_passwd'), \%info);
 }
 
 

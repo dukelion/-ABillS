@@ -969,7 +969,7 @@ sub user_form {
    $user_info->{ACTION}='add';
    $user_info->{LNG_ACTION}=$_ADD;
   }
- else {
+ else { 	
  	 $FORM{UID}=$user_info->{UID};
    $user_info->{COMPANY_NAME}=$html->color_mark("$_NOT_EXIST ID: $user_info->{COMPANY_ID}", $_COLORS[6]) if ($user_info->{COMPANY_ID} && ! $user_info->{COMPANY_NAME}) ;
 
@@ -1010,6 +1010,12 @@ sub user_form {
    if ($permissions{0}{3}) {
    	 $user_info->{PASSWORD} = ($FORM{SHOW_PASSWORD}) ? "$_PASSWD: '$user_info->{PASSWORD}'" : $html->button("$_SHOW $_PASSWD", "index=$index&UID=$LIST_PARAMS{UID}&SHOW_PASSWORD=1", { BUTTON => 1 }). ' '. $html->button("$_CHANGE $_PASSWD", "index=". get_function_index('form_passwd')  ."&UID=$LIST_PARAMS{UID}", { BUTTON => 1 });
     }
+   
+   if (in_array('Sms', \@MODULES) ) {
+     $user_info->{PASSWORD} .= ' '. $html->button("$_SEND $_PASSWD SMS", "index=$index&header=1&UID=$LIST_PARAMS{UID}&SHOW_PASSWORD=1&SEND_SMS_PASSWORD=1", {  BUTTON => 1, MESSAGE => "$_SEND $_PASSWD SMS ?" });
+   }
+
+    
   } 
 
 $html->tpl_show(templates('form_user'), $user_info);
@@ -1414,6 +1420,20 @@ sub form_users {
     docs_contract();
   	return 0;
    }
+ 	elsif ($FORM{SEND_SMS_PASSWORD}) {
+    require "Abills/modules/Sms/webinterface";
+    $users->info($FORM{UID}, { SHOW_PASSWORD => 1 });
+    $users->pi({ UID => $FORM{UID} });
+    if(sms_send({ NUMBER   => $users->{PHONE},,
+                  MESSAGE => "LOGIN: $users->{LOGIN} PASSWORD: $users->{PASSWORD}",
+                  UID     => $users->{UID}
+                })) {
+       $html->message('info', "$_INFO", "$_PASSWD SMS $_SENDED");        	
+      }
+ 	 	return 0;
+ 	 }
+
+
 
 if(defined($attr->{USER})) {
   my $user_info = $attr->{USER};

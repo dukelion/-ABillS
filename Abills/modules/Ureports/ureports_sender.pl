@@ -117,12 +117,14 @@ sub ureports_send_reports {
   	 }
    }
   elsif($type == 1) {
-  	if ($Turbosms) {
-  		require "Sms/webinterface"; 
-  		sms_send_message({ NUMBER  => $destination,
-        	               MESSAGE => $message,
-                         DEBUG   => $debug
-                       });
+  	if (in_array('Sms', \@MODULES) ) {
+  		require "Abills/modules/Sms/webinterface";
+      sms_send({ NUMBER  => $destination,
+     	           MESSAGE => $message,
+                 DEBUG   => $debug,
+                 UID     => $attr->{UID},
+                 PERRIODIC => 1
+               });
   	 }
   	elsif ($conf{UREPORTS_SMS_CMD}) {
   	  my $cmd = `$conf{UREPORTS_SMS_CMD} $destination $message`;
@@ -344,7 +346,10 @@ sub ureports_periodic_reports {
          	 	 ureports_send_reports($user{DESTINATION_TYPE}, 
          	 	                       $user{DESTINATION_ID}, 
          	 	                       $PARAMS{MESSAGE}, 
-         	 	                       { SUBJECT => $PARAMS{SUBJECT}, REPORT_ID => $user{REPORT_ID} });
+         	 	                       { SUBJECT   => $PARAMS{SUBJECT}, 
+         	 	                       	 REPORT_ID => $user{REPORT_ID},
+         	 	                       	 UID       => $user{UID}
+         	 	                       	  });
          	 	 
          	 	 $Ureports->tp_user_reports_update({ UID       => $user{UID},
          	 	 	                                   REPORT_ID => $user{REPORT_ID} 

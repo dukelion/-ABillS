@@ -194,11 +194,20 @@ sub msgs_admin_add {
        $cmd =~ s/EXEC://;
      }
 
+    #Multi send
     if  (! $FORM{INNER_MSG} && (defined($FORM{GID}) || ($FORM{GID} == 0 && $FORM{UID} == 0 ) ) ) {
-       my $list = $users->list({ GID => $FORM{GID}, PAGE_ROWS => 1000000, DISABLE => 0 });
+    	 my %NUMBERS = ();
+       my $list = $users->list({ GID       => $FORM{GID}, 
+       	                         PAGE_ROWS => 1000000, 
+       	                         DISABLE   => 0,
+       	                         PHONE     => '*'
+       	                       });
+
        my @uids = ();
        foreach my $line (@$list) {
           $FORM{UID}=$line->[5+$users->{SEARCH_FIELDS_COUNT}];
+          $NUMBERS{$line->[3+$users->{SEARCH_FIELDS_COUNT}]}=$FORM{UID};
+
           push @uids, $FORM{UID};
           $Msgs->message_add({ %FORM,
           	                   STATE      => ((! $FORM{STATE} || $FORM{STATE} == 0) && ! $FORM{INNER_MSG}) ? 6 : $FORM{STATE}, 
@@ -238,6 +247,18 @@ sub msgs_admin_add {
          	 my $res = `$cmd`;
       	 }
 
+       #Sms Send
+       if ($FORM{SEND_SMS}) {
+         if (! $FORM{INNER_MSG}) {
+           require "Abills/modules/Sms/webinterface";
+           sms_send({ NUMBERS => \%NUMBERS,
+         	            MESSAGE => $FORM{MESSAGE},
+         	            UID     => $users->{UID} || $FORM{UID} 
+        	          });
+          }
+        }      
+
+
        $message = "$_TOTAL: $users->{TOTAL}";
        $LIST_PARAMS{PAGE_ROWS}=25;
        undef $FORM{UID};
@@ -261,6 +282,16 @@ sub msgs_admin_add {
              }
            }       
         }
+
+      if ($FORM{SEND_SMS}) {
+        if (! $FORM{INNER_MSG}) {
+          require "Abills/modules/Sms/webinterface";
+          sms_send({ NUMBER  => $users->{PHONE},
+        	           MESSAGE => $FORM{MESSAGE},
+        	           UID     => $users->{UID} || $FORM{UID} 
+        	         });
+        }
+      }     
      }
 
     if (! $Msgs->{errno}) {
@@ -303,18 +334,6 @@ sub msgs_admin_add {
           undef,
           { MAIL_HEADER => [ "X-ABillS-Msg-ID: $Msgs->{INSERT_ID}" ] });
        }
-     
-     
-      if ($FORM{SEND_SMS}) {
-        if (! $FORM{INNER_MSG}) {
-          require "Abills/modules/Sms/webinterface";
-          sms_send({ NUMBER  => $users->{PHONE},
-        	           MESSAGE => $FORM{MESSAGE} 
-        	         });
-        }
-      }
-
-     
      }
 
     if ($FORM{INNER_MSG} && $FORM{SURVEY_ID}) {
@@ -416,7 +435,7 @@ sub msgs_admin_add {
   $Msgs->{SURVEY_SEL}=msgs_survey_sel();
 
 if (in_array('Sms', \@MODULES) ) {
-  $Msgs->{EXTRA_PARAMS} = "<tr><td>$_SEND SMS:</td><td><input type=checkbox name=SEND_SMS value=1></td></tr>";
+  $Msgs->{EXTRA_PARAMS} = $html->tpl_show(_include('sms_check_form', 'Sms'), $Msgs, { OUTPUT2RETURN => 1 });
 }
 
   my $message_form = $html->tpl_show(_include('msgs_send_form', 'Msgs'), $Msgs, { OUTPUT2RETURN => 1 });
