@@ -1231,7 +1231,6 @@ elsif($FORM{tolog}) {
         else {
         	push @results, "$ACCT_INFO->{USER_NAME} $_ADDED";
          }
-
      }
  	 }
 
@@ -1254,40 +1253,40 @@ elsif($FORM{tolog}) {
                                            ACCT_SESSION_ID => $FORM{tolog}
                                        });
 
-  if ($ACCT_INFO->{TOTAL} < 1) {
-    $html->message('err', $_ERROR, "$_NOT_EXIST");	
-    return 0;
-   }
+    if ($ACCT_INFO->{TOTAL} < 1) {
+      $html->message('err', $_ERROR, "$_NOT_EXIST");	
+      return 0;
+     }
 
-  $ACCT_INFO->{INBYTE}           = $ACCT_INFO->{ACCT_INPUT_OCTETS};
-  $ACCT_INFO->{OUTBYTE}          = $ACCT_INFO->{ACCT_OUTPUT_OCTETS};
-  $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS};
-  $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFO->{ACCT_EX_OUTPUT_OCTETS};
-  $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
-  $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
+    $ACCT_INFO->{INBYTE}           = $ACCT_INFO->{ACCT_INPUT_OCTETS};
+    $ACCT_INFO->{OUTBYTE}          = $ACCT_INFO->{ACCT_OUTPUT_OCTETS};
+    $ACCT_INFO->{INBYTE2}          = $ACCT_INFO->{ACCT_EX_INPUT_OCTETS};
+    $ACCT_INFO->{OUTBYTE2}         = $ACCT_INFO->{ACCT_EX_OUTPUT_OCTETS};
+    $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
+    $ACCT_INFO->{ACCT_TERMINATE_CAUSE} = 3;
 
-  # Exppp VENDOR params           
-  my $r = $Acct->accounting($ACCT_INFO, $Nas);
+    # Exppp VENDOR params           
+    my $r = $Acct->accounting($ACCT_INFO, $Nas);
   
 
-  if ($Acct->{errno}) {
-    $html->message('err', $_ERRNO, "$Acct->{errno} $Acct->{errstr}");	
-   }
-  else {
-  	my $table = $html->table( { width => '100%'} );
-  	foreach my $k (sort keys %$ACCT_INFO) {
- 		  $table->addrow($k, $ACCT_INFO->{$k});
-  	 }
+    if ($Acct->{errno}) {
+      $html->message('err', $_ERRNO, "$Acct->{errno} $Acct->{errstr}");	
+     }
+    else {
+  	  my $table = $html->table( { width => '100%'} );
+  	  foreach my $k (sort keys %$ACCT_INFO) {
+ 		    $table->addrow($k, $ACCT_INFO->{$k});
+  	   }
 
-    $table->addrow('-', '-');
-  	foreach my $k (sort keys %$Acct) {
+      $table->addrow('-', '-');
+  	  foreach my $k (sort keys %$Acct) {
  		    $table->addrow($k, $Acct->{$k});
   	  }
 
-  	$html->message('info', $_ADDED, $table->show());	
-   }
+    	$html->message('info', $_ADDED, $table->show());	
+     }
   
-  $sessions->online_del({ NAS_ID          => $ACCT_INFO->{NAS_ID},
+    $sessions->online_del({ NAS_ID          => $ACCT_INFO->{NAS_ID},
                           NAS_PORT        => $ACCT_INFO->{NAS_PORT},
                           ACCT_SESSION_ID => $ACCT_INFO->{ACCT_SESSION_ID}
                         });
@@ -1372,8 +1371,7 @@ if ($sessions->{TOTAL} > 500)  {
                             title      => [ "NAS ID", "NAS $_NAME", "NAS IP", "$_TYPE", "$_SESSIONS", "$_USERS", "ZAPPED", "$_ERROR", "-"  ],
                             cols_align => ['right', 'left', 'right', 'right', 'right', 'right', 'right', 'right',  'right', 'center:noprint' ],
                             qs         => $pages_qs,
-                            ID         => 'ONLINE'
-                            
+                            ID         => 'ONLINE'                            
                          } );
 
   foreach my $line (@$list) {
@@ -1491,7 +1489,7 @@ foreach my $nas_row (@$nas_list) {
  	  	    if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
     	   }	
     	  # Dub ports color green
-    	  elsif ($nas_row->[4] ne 'ipcad' && $ACTIVE_FIELDS[$i] == 2) {
+    	  elsif ($nas_row->[4] ne 'ipcad' && $nas_row->[4] ne 'dhcp' && $ACTIVE_FIELDS[$i] == 2) {
            if (defined($dub_ports->{$nas_row->[0]}{$line->[$i]}) && $dub_ports->{$nas_row->[0]}{$line->[$i]} > 1) { $table->{rowcolor}='#00FF40';    }
     	   }
     	  elsif ($ACTIVE_FIELDS[$i] == 3) {
