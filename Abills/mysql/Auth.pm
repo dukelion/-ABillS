@@ -532,18 +532,31 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
     my $filter_name = 'flt';
 
     if ($class_id == 0 && $line->[1] && $line->[1] =~ /0.0.0.0/) {
+         my $shapper_type = ($line->[2] > 4048) ? 'rate-limit' : 'shape';
+         
+         
          if ( $line->[2] == 0 || $CONF->{ng_car}) {
             push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all pass";
           } 
          elsif(! $CONF->{ng_car}) {
-           push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all shape ". ($line->[2] * 1024)." 4000";
+         	 #my $cir    = $line->[2] * 1024;
+           #my $nburst = int($cir*1.5/8;
+           #my $eburst = 2*$nburst;
+           #push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all $shapper_type $cid $nburst $eburst";
+
+           push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all $shapper_type ". ($line->[2] * 1024)." 4000";
           }
 
          if ( $line->[3] == 0 || $CONF->{ng_car}) {
            push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all pass";
           } 
          elsif(! $CONF->{ng_car}) {
-           push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all shape ". ($line->[3] * 1024) ." 4000";
+           #my $cir    = $line->[3] * 1024;
+           #my $nburst = int($cir*1.5/8;
+           #my $eburst = 2*$nburst;
+           #push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all $shapper_type $cid $nburst $eburst";
+
+           push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all $shapper_type ". ($line->[3] * 1024) ." 4000";
           }
    	   next ;
      }
