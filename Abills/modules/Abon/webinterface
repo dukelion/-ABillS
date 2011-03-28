@@ -348,7 +348,7 @@ sub abon_periodic {
  $LIST_PARAMS{TP_ID}=$attr->{TP_ID} if ($attr->{TP_ID});
   
   $Abon->{debug}=1 if ($debug > 7);
-  my $list = $Abon->periodic_list({ %LIST_PARAMS });
+  my $list = $Abon->periodic_list({ %LIST_PARAMS, DELETED => 0 });
 
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
   $m--;

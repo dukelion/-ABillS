@@ -4057,6 +4057,7 @@ sub dv_daily_fees {
          SORT      => 1,
          PAGE_ROWS => 1000000,
          TP_CREDIT => '>=0',
+         DELETED      => 0,
          %DV_LIST_PARAMS
  	   	 });
 
@@ -4415,6 +4416,7 @@ sub dv_monthly_fees {
          SORT         => 1,
          PAGE_ROWS    => 1000000,
          TP_CREDIT    => '>=0',
+         DELETED      => 0,
          %DV_LIST_PARAMS
  	   	 });
 

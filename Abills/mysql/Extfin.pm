@@ -282,6 +282,13 @@ sub payment_deed {
  @WHERE_RULES = ();
  my %NAMES=();
 
+ my $LIMIT = '';
+
+ if ($attr->{PAGE_ROWS}) {
+   $LIMIT = " LIMIT $attr->{PAGE_ROWS}";
+  }
+
+
  if ($attr->{DATE_FROM}) {
  	  push @WHERE_RULES, "DATE_FORMAT(f.date, '%Y-%m-%d')>='$attr->{DATE_FROM}' AND DATE_FORMAT(f.date, '%Y-%m-%d')<='$attr->{DATE_TO}'";
  	  push @WHERE_RULES_DV, "DATE_FORMAT(dv.start, '%Y-%m-%d')>='$attr->{DATE_FROM}' AND DATE_FORMAT(dv.start, '%Y-%m-%d')<='$attr->{DATE_TO}'";
@@ -337,7 +344,8 @@ sub payment_deed {
 
      WHERE u.uid=f.uid and $WHERE
      GROUP BY 1
-     ORDER BY $SORT $DESC ;");
+     ORDER BY $SORT $DESC
+     $LIMIT;");
 
   foreach my $line (@{ $self->{list} } ) {
         next if (! $line->[0]);
@@ -367,7 +375,7 @@ sub payment_deed {
      WHERE u.uid=dv.uid and $WHERE_DV
      GROUP BY 1
      ORDER BY 2 DESC
-   ;");
+  $LIMIT;");
 
 
   foreach my $line (@{ $self->{list} } ) {

@@ -284,6 +284,13 @@ sub user_list {
     push @WHERE_RULES, "u.gid='$attr->{GID}'";
   }
 
+ if (! $admin->{permissions}->{0} || ! $admin->{permissions}->{0}->{8} || 
+   ($attr->{USER_STATUS} && ! $attr->{DELETED})) {
+   push @WHERE_RULES,  @{ $self->search_expr(0, 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
+  }
+ elsif ($attr->{DELETED}) {
+   push @WHERE_RULES,  @{ $self->search_expr("$attr->{DELETED}", 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
+  }
 
  if ($attr->{ABON_ID}) {
  	 push @WHERE_RULES, "at.id='$attr->{ABON_ID}'";
@@ -476,6 +483,11 @@ sub periodic_list {
  if ($attr->{TP_ID}) {
  	 push @WHERE_RULES, "ul.tp_id IN (attr->{TP_ID})";
   }
+
+ if (defined($attr->{DELETED})) {
+   push @WHERE_RULES,  @{ $self->search_expr("$attr->{DELETED}", 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
+  }
+
 
  my $WHERE = ($#WHERE_RULES > -1) ? "AND " . join(' and ', @WHERE_RULES)  : '';
  
