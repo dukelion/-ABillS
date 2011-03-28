@@ -4094,7 +4094,8 @@ if (defined($FORM{DATE})) {
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $fees->{TOTAL},
-                            ID         => 'REPORTS_FEES'
+                            ID         => 'REPORTS_FEES',
+                            EXPORT     => $_EXPORT .' XML:&xml=1',
                         } );
 
 
@@ -4154,7 +4155,8 @@ else{
                                title      => \@TITLE,
                                cols_align => ['right', 'right', 'right', 'right'],
                                qs         => $pages_qs,
-                               ID         => 'REPORT_FEES'
+                               ID         => 'REPORT_FEES',
+                               EXPORT     => $_EXPORT .' XML:&xml=1',
                                });
 
   $list = $fees->reports({ %LIST_PARAMS });
@@ -4318,7 +4320,8 @@ if ($FORM{DATE}) {
                            cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                            qs         => $pages_qs,
                            pages      => $payments->{TOTAL},
-                           ID         => 'REPORTS_PAYMENTS'
+                           ID         => 'REPORTS_PAYMENTS',
+                           EXPORT     => $_EXPORT .' XML:&xml=1',
                         } );
 
   my $pages_qs .= "&subf=2" if (! $FORM{subf});
@@ -4380,7 +4383,8 @@ else {
                           title      => \@CAPTION,
                           cols_align => ['right', 'right', 'right', 'right'],
                           qs         => $pages_qs,
-                          ID         => 'REPORT_PAYMENTS'
+                          ID         => 'REPORT_PAYMENTS',
+                          EXPORT     => $_EXPORT .' XML:&xml=1',
                         });
 
   $list = $payments->reports({ %LIST_PARAMS });
@@ -4874,7 +4878,7 @@ if ($permissions{1} && $permissions{1}{1}) {
  	                                MULTI_ARRAY_VALUE => '0,1,3',
  	                                MULTI_ARRAY_VALUE_PREFIX => "$_NUM: ,$_DATE: ,$_SUM:",
  	                                SEL_OPTIONS       => { 0 => '', create => $_CREATE },
- 	                                NO_ID             => 1
+ 	                                NO_ID             => 1,
  	                               });
 
     $payments->{DOCS_ACCOUNT_ELEMENT}="<tr><th colspan=3 class='form_title'>$_DOCS</th></tr>\n".
@@ -4900,7 +4904,9 @@ elsif($FORM{UID}) {
  }	
 elsif($index != 7) {
 	form_search({ HIDDEN_FIELDS => { subf => ($FORM{subf}) ? $FORM{subf} : undef,
-		                               COMPANY_ID => $FORM{COMPANY_ID}  } });
+		                               COMPANY_ID => $FORM{COMPANY_ID}  },
+		            ID            => 'SEARCH_PAYMENTS' 
+		           });
 }
 
 return 0 if (! $permissions{1}{0});
@@ -4921,6 +4927,7 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $payments->{TOTAL},
+                            EXPORT     => $_EXPORT .' XML:&xml=1',
                             ID         => 'PAYMENTS'
                            } );
 
@@ -5229,7 +5236,8 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $fees->{TOTAL},
-                            ID         => 'FEES'
+                            ID         => 'FEES',
+                            EXPORT     => $_EXPORT .' XML:&xml=1',
                         } );
 
 
@@ -5533,7 +5541,7 @@ $SEARCH_DATA{SEL_TYPE}.="</tr>
 </table>\n</td></tr>\n";
 }
 
-  $html->tpl_show(templates('form_search'), \%SEARCH_DATA);
+  $html->tpl_show(templates('form_search'), { %SEARCH_DATA  }, { ID => $attr->{ID} });
 }
 
 }

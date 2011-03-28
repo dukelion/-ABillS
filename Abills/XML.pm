@@ -191,8 +191,15 @@ sub form_input {
 }
 
 
-
+#**********************************************************
+# HTML Input form
+#**********************************************************
 sub form_main {
+	my ($attr) = @_;
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $attr->{ID} ) {
+  	return '';
+   }
+	
   my $self = shift;
   my ($attr)	= @_;
 	
@@ -493,6 +500,7 @@ sub table {
       $self->addrow(@$line);
      }
   }
+ $self->{ID}=$attr->{ID};
 
  $self->{table} = "<TABLE";
 
@@ -513,7 +521,7 @@ sub table {
    $self->{table} .= $self->table_title_plain($attr->{title_plain});
   }
 
- if (defined($attr->{pages})) {
+ if ($attr->{pages} && ! $FORM{EXPORT_CONTENT}) {
  	   my $op;
  	   if($FORM{index}) {
  	   	 $op = "index=$FORM{index}";
@@ -674,6 +682,11 @@ sub table_title  {
 sub show  {
   my $self = shift;	
   my ($attr) = @_;
+  
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $self->{ID} ) {
+  	return '';
+   }
+
   
   $self->{show} = $self->{table};
   $self->{show} .= "<DATA>\n";
@@ -889,7 +902,7 @@ sub log_print {
  my ($level, $text) = @_;	
 
  if($debug < $log_levels{$level}) {
-     return 0;	
+    return 0;	
   }
 
 print << "[END]";
@@ -912,6 +925,10 @@ sub tpl_show {
   my ($tpl, $variables_ref, $attr) = @_;	
   
   my $tpl_name = $attr->{ID} || '';
+  
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $tpl_name ) {
+  	return '';
+   }
   
   my $xml_tpl = "<INFO name=\"$tpl_name\">\n";  
   

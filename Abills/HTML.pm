@@ -366,6 +366,11 @@ sub form_main {
   my $self = shift;
   my ($attr)	= @_;
 	
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $attr->{ID} ) {
+  	return '';
+   }
+
+	
   my $METHOD = ($attr->{METHOD}) ? $attr->{METHOD} : 'POST';
   $self->{FORM} =  "<FORM ";
   $self->{FORM} .= "ID=\"$attr->{ID}\" " if ($attr->{ID});
@@ -745,7 +750,7 @@ sub header {
  $info{CHARSET} = $self->{CHARSET};
  $info{CONTENT_LANGUAGE}=$attr->{CONTENT_LANGUAGE} if ($attr->{CONTENT_LANGUAGE});
 
- $self->{header} .= $self->tpl_show($self->{METATAGS}, \%info, { OUTPUT2RETURN => 1  });
+ $self->{header} .= $self->tpl_show($self->{METATAGS}, \%info, { OUTPUT2RETURN => 1, ID => $FORM{EXPORT_CONTENT}  });
  return $self->{header};
 
  return $self->{header};
@@ -775,16 +780,18 @@ sub table {
  $self->{rows}='';
 
  
- my $width = (defined($attr->{width})) ? "width=\"$attr->{width}\"" : '';
- my $border = (defined($attr->{border})) ? "border=\"$attr->{border}\"" : '';
+ my $width       = (defined($attr->{width})) ? "width=\"$attr->{width}\"" : '';
+ my $border      = (defined($attr->{border})) ? "border=\"$attr->{border}\"" : '';
  my $table_class = (defined($attr->{class})) ? "class=\"$attr->{class}\"" : '';
-
+ 
  if (defined($attr->{rowcolor})) {
     $self->{rowcolor} = $attr->{rowcolor};
    }  
  else {
     $self->{rowcolor} = undef;
   }
+
+ $self->{ID}=$attr->{ID} || '';
 
  if (defined($attr->{rows})) {
     my $rows = $attr->{rows};
@@ -797,6 +804,11 @@ sub table {
  
  if (defined($attr->{caption})) {
    $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\" class=\"tcaption\"><b>$attr->{caption}</b></td></TR>\n";
+  }
+ 
+ if ($attr->{EXPORT} && ! $FORM{EXPORT_CONTENT}) {
+ 	 my($export_name, $params)=split(/:/, $attr->{EXPORT}, 2);
+   $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" class=\"tcaption\">". $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { BUTTON => 1, ex_params => 'target=_export' }) ."</td></TR>\n";
   }
 
  if (defined($attr->{VIEW})) {
@@ -838,7 +850,7 @@ sub table {
    $self->{table} .= "</COLGROUP>\n";
   }
  
- if (defined($attr->{pages})) {
+ if ($attr->{pages} && ! $FORM{EXPORT_CONTENT}) {
  	   my $op;
  	   if($FORM{index}) {
  	   	 $op = "index=$FORM{index}";
@@ -998,24 +1010,20 @@ sub table_title  {
      $self->{table_title} .= "<th class='table_title'>$line ";
      if ($line ne '-') {
          if ($sort != $i) {
-             $img = 'sort_none.png';
-           }
-         elsif ($desc eq 'DESC') {
-             $img = 'down_pointer.png';
-             $desc='';
-           }
-         elsif($sort > 0) {
-             $img = 'up_pointer.png';
-             $desc='DESC';
-           }
-         
-         if ($FORM{index}) {
-         	  $op="index=$FORM{index}";
+           $img = 'sort_none.png';
           }
-         
+         elsif ($desc eq 'DESC') {
+           $img = 'down_pointer.png';
+           $desc='';
+          }
+         elsif($sort > 0) {
+           $img = 'up_pointer.png';
+           $desc='DESC';
+          }
+
          if ($FORM{index}) {
-         	  $op="index=$FORM{index}";
-         	}
+         	 $op="index=$FORM{index}";
+          }
 
          $self->{table_title} .= $self->button("<img src=\"$IMG_PATH/$img\" width=\"12\" height=\"10\" border=\"0\" alt=\"Sort\" title=\"Sort\" class=\"noprint\"/>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
        }
@@ -1040,12 +1048,15 @@ sub show  {
   my $self = shift;	
   my ($attr) = shift;
   
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $self->{ID} ) {
+  	return '';
+   }
   
-  $self->{show} = $self->{table};
-  $self->{show} .= $self->{rows}; 
-  $self->{show} .= "</TABLE></TD></TR></TABLE>\n";
-
-  $self->{show} = "<div class='table_top'></div>\n"
+  $self->{show} = $self->{table}
+  . $self->{rows} 
+  . "</TABLE>\n"
+  . "</TD></TR></TABLE>\n"
+  . "<div class='table_top'></div>\n"
   . "<div class='table_cont'>$self->{show}</div>\n"
   . "<div class='table_bot'></div>\n";
 
@@ -1452,6 +1463,11 @@ $text
 sub tpl_show {
   my $self = shift;
   my ($tpl, $variables_ref, $attr) = @_;	
+
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $attr->{ID} ) {
+  	return '';
+   }
+  
 
   if (! $attr->{SOURCE}) {
   while($tpl =~ /\%(\w+)(\=?)([A-Za-z0-9]{0,50})\%/g) {
