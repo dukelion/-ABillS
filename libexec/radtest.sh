@@ -19,6 +19,31 @@ RAUTH="./rauth.pl";
 RACCT="./racct.pl";
 echo `pwd -P`;
 
+
+
+#**********************************************************
+#
+#**********************************************************
+test_isg {
+
+#User-Name = "123.123.244.194"
+#        User-Password = "ISG"
+#        Framed-IP-Address = 123.123.244.194
+#        Cisco-Account-Info = "S123.123.244.194"
+#        NAS-Port-Type = Virtual
+#        Cisco-NAS-Port = "0/0/1/613"
+#        NAS-Port = 0
+#        NAS-Port-Id = "0/0/1/613"
+#        Service-Type = Dialout-Framed-User
+#        NAS-IP-Address = 172.16.32.117
+#        Acct-Session-Id = "C345F40100004D69"
+	
+	 ${RAUTH} \
+	
+	
+}
+
+
 # Proccess command-line options
 #
 for _switch ; do
@@ -64,7 +89,9 @@ for _switch ; do
         -rad_ip)   RADIUS_IP=$2;
                 shift; shift;
                 ;;
-
+        -isg)  test_isg;
+                shift;
+                ;;
         esac
 done
 

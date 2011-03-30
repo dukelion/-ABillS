@@ -733,9 +733,15 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
 elsif ($attr->{NAS_TYPE} eq 'dlink_pb') {
 	
 }
+
 #save config 
-if($attr->{NAS_TYPE} eq 'edge_core') {
-	$debug_output .= snmputils_edgecore_save_conf({ SNMP_COMMUNITY => $SNMP_COMMUNITY, VERSION => $version });
+if ($conf{SNMPUTILS_SAVE_CONF}) {
+  if($attr->{NAS_TYPE} eq 'edge_core') {
+ 	  $debug_output .= snmputils_edgecore_save_conf({ SNMP_COMMUNITY => $SNMP_COMMUNITY, VERSION => $version });
+   }
+  else {
+  	$debug_output .= snmputils_dlink_save_conf({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
+   }
 }
 
 
