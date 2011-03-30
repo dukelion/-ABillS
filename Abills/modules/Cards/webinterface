@@ -59,7 +59,7 @@ sub cards_card_info {
 #
 #**********************************************************
 sub cards_main {
-  if ($Cards::VERSION < 5.25) {
+  if ($Cards::VERSION < 5.33) {
   	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.25 or higher. http://abills.net.ua/");
   	return 0;
    }
@@ -700,7 +700,7 @@ sub cards_user_payment () {
 		my $BRUTE_LIMIT = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
 	  my $brute       = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
     sleep 1;	  
-    $Cards->cards_info({ %FORM });
+    $Cards->cards_info({ %FORM, UID => $LIST_PARAMS{UID}, PAYMENTS => 1 });
    
     if ($Cards->{error}) {
       $html->message('err', $_ERROR, "$ERR_SUPPORT / $ERR_SUPPORT");	
@@ -736,16 +736,9 @@ sub cards_user_payment () {
 
 	    return 0;
 	   }
-  
+    
  
    $user->info($LIST_PARAMS{UID});
-   
-   $Cards->cards_change({ ID       => "$Cards->{ID}", 
-     	                  STATUS   => 5,
-                          UID      => $user->{UID} 
-     	                 });	
-
-   
    $payments->add($user, { SUM          => $Cards->{SUM},
                            METHOD       => 2, 
                            EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
