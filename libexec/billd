@@ -1457,6 +1457,7 @@ if ($conf{ng_car}) {
 
    print $debug_outputs if ($changed || $debug > 0);
    delete $LOGINS_SPEEDS{$user};
+   delete $fw_ips{$IP};
  }
   
   
@@ -1464,10 +1465,14 @@ if ($conf{ng_car}) {
   while(my($login, $params) = each %LOGINS_SPEEDS) {
   	push @FW_ACTIONS, "/usr/sbin/ngctl shutdown class0_$login:";
    }
- 
+
+  while(my($ip, $params) = each %fw_ips) {
+ 	  push @FW_ACTIONS, "$IPFW -q table 10 delete $ip";
+   }
+
   
   foreach my $line (@FW_ACTIONS) {
-  	print $line."\n" if ($debug > 3);  	
+  	print "Shutdown node $line\n" if ($debug > 3);  	
   	system("$line");
    }
  
