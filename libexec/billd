@@ -1468,6 +1468,7 @@ if ($conf{ng_car}) {
 
   while(my($ip, $params) = each %fw_ips) {
  	  push @FW_ACTIONS, "$IPFW -q table 10 delete $ip";
+          push @FW_ACTIONS, "$IPFW -q table 11 delete $ip";
    }
 
   
