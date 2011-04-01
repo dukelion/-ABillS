@@ -11,6 +11,7 @@ $_LIMIT='Ліміт';
 $_FINANCES='Фінансові операції';
 $_CONFIG='Конфігурація';
 $_IN_PROGRESS='Обробляэться';
+$_INSTALATIONS='Встановлення';
 $_COMPENSATION='Компенсація';
 $_SMALL_DEPOSIT_ACTION='Дія при недостатньому депозиті';
 $_AUTH='Авторизація';

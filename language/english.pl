@@ -466,3 +466,4 @@ $_DISCARDS='Discards';
 $_DISCARD='Discard';
 $_ARTICLES='Articles';
 $_ARTICLE='Article';
+$_INSTALATIONS='Instalations';

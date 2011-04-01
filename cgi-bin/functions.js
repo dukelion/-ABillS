@@ -13,12 +13,12 @@ var confirmMsg  = '';
  */
 function confirmLink(theLink, Message, CustomMsg)
 {
-    if (CustomMsg != undefined ) {
+    //if (CustomMsg != undefined ) {
       confirmMsg = CustomMsg;
-     }
-    else {
-     	confirmMsg = confirmMsg + ' :\n';
-     }
+    // }
+    //else {
+    // 	confirmMsg = confirmMsg + ' :\n';
+    // }
 
     var is_confirmed = confirm(confirmMsg + Message);
     if (is_confirmed) {
