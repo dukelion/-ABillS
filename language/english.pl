@@ -464,3 +464,5 @@ $_SUPPLIERS='Suppliers';
 $_ACCOUNTABILITY="Accountability";
 $_DISCARDS='Discards';
 $_DISCARD='Discard';
+$_ARTICLES='Articles';
+$_ARTICLE='Article';

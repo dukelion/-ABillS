@@ -1130,13 +1130,7 @@ sub button {
   	$attr->{MESSAGE} =~ s/"/\\'/g;
   	$attr->{MESSAGE} =~ s/\n//g;
   	$attr->{MESSAGE} =~ s/\r//g;
-  	my $custom_message = '';
-
-  	if ($attr->{CUSTOM_MESSAGE}) {
-  		$custom_message = $attr->{CUSTOM_MESSAGE};
-  	 }
-
-  	$message = " onclick=\"return confirmLink(this, '$attr->{MESSAGE}', '$custom_message')\"";
+  	$message = " onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"";
    }
 
   my $button = ($attr->{BUTTON}) ? "<a class='link_button' href=\"$params\"$ex_attr$message>$name</a>" : "<a href=\"$params\"$ex_attr$message>$name</a>";
