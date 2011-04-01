@@ -463,10 +463,12 @@ sub form_select {
       if ($value =~ /,/) {
       	my @values = split(/,/, $value);
       	my $key_num = 0;
+      	my @valuesr_arr = ();
       	foreach my $val_keys (@values) {
-      	  $self->{SELECT} .= (($attr->{MULTI_ARRAY_VALUE_PREFIX} && $MULTI_ARRAY_VALUE_PREFIX[$key_num]) ? ' '.$MULTI_ARRAY_VALUE_PREFIX[$key_num] : "; ") . $v->[int($val_keys)];	
+      	  push @valuesr_arr, (($attr->{MULTI_ARRAY_VALUE_PREFIX} && $MULTI_ARRAY_VALUE_PREFIX[$key_num]) ? $MULTI_ARRAY_VALUE_PREFIX[$key_num] : $v->[int($val_keys)]);	
       	  $key_num++;
       	 }
+        $self->{SELECT} .= join(' : ', @valuesr_arr);
        }
       else {
         $self->{SELECT} .= "$v->[$value]";

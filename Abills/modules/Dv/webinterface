@@ -5488,21 +5488,6 @@ sub dv_wizard_user {
  	                                          ARRAY_NUM_ID => 1
  	                                        });
 
-  $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
-                                { SELECTED      => $FORM{METHOD} || undef,
- 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
- 	                                ARRAY_NUM_ID  => 1
- 	                               });
-  $payments->{SUM} = '0.00';
-
-  my $er = $payments->exchange_list();
-  $payments->{SEL_ER} = "<select name=ER>\n";
-  $payments->{SEL_ER} .= "<option value=''>\n";
-  foreach my $line (@$er) {
-    $payments->{SEL_ER} .= "<option value=$line->[4]";
-    $payments->{SEL_ER} .= ">$line->[1] : $line->[2]\n";
-   }
-  $payments->{SEL_ER} .= "</select>\n";
 
   $dv_defaults->{TP_ID} = $html->form_select('TP_ID', 
                                          { 
@@ -5574,10 +5559,10 @@ sub dv_wizard_user {
      }
 
   $pi_form{PASPORT_DATE} = $html->date_fld2('PASPORT_DATE', { FORM_NAME => 'user_form',
-  	                                                            WEEK_DAYS => \@WEEKDAYS,
-  	                                                            MONTHES   => \@MONTHES,
-  	                                                            DATE      => $user_pi->{PASPORT_DATE}
-  	                                                            });
+  	                                                          WEEK_DAYS => \@WEEKDAYS,
+  	                                                          MONTHES   => \@MONTHES,
+  	                                                          DATE      => $user_pi->{PASPORT_DATE}
+  	                                                         });
 
   $pi_form{CONTRACT_DATE} = $html->date_fld2('CONTRACT_DATE', { FORM_NAME => 'user_form',
   	                                                              WEEK_DAYS => \@WEEKDAYS,
@@ -5600,7 +5585,23 @@ else {
 	            "4:Internet::"   => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults,    { OUTPUT2RETURN => 1, ID => 'DV_USER'       }),
              );
  
- if($permissions{1} && $permissions{1}{0}) {
+ #Payments
+ if($permissions{1} && $permissions{1}{1}) {
+ 	 $payments->{SEL_METHOD} =  $html->form_select('METHOD', 
+                                { SELECTED      => $FORM{METHOD} || undef,
+ 	                                SEL_ARRAY     => \@PAYMENT_METHODS,
+ 	                                ARRAY_NUM_ID  => 1
+ 	                               });
+   $payments->{SUM} = '0.00';
+   $payments->{SEL_ER}=$html->form_select('ER', 
+                                { 
+ 	                                SELECTED          => undef,
+ 	                                SEL_MULTI_ARRAY   => $payments->exchange_list(),
+ 	                                MULTI_ARRAY_KEY   => 4,
+ 	                                MULTI_ARRAY_VALUE => '1,2',
+ 	                                NO_ID             => 1
+ 	                               });
+ 	
  	 $tpls{"5:$_PAYMENTS::"} = $html->tpl_show(templates('form_payments'), $payments,      { OUTPUT2RETURN => 1, ID => 'FORM_PAYMENTS' });
   }
  

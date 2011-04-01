@@ -2035,59 +2035,6 @@ print $table->show();
 
 }
 
-#**********************************************************
-# user_services
-#**********************************************************
-sub user_services {
-  my ($attr) = @_;
-  
-  my $user = $attr->{USER};
-if ($FORM{add}) {
-	
-}
-
-
- use Tariffs;
- my $tariffs = Tariffs->new($db, \%conf);
- my $variant_out = '';
- 
- my $tariffs_list = $tariffs->list();
- $variant_out = "<select name='servise'>";
-
- foreach my $line (@$tariffs_list) {
-     $variant_out .= "<option value=$line->[0]";
-#     $variant_out .= ' selected' if ($line->[0] == $user_info->{TARIF_PLAN});
-     $variant_out .=  ">$line->[0]:$line->[1]\n";
-    }
-  $variant_out .= "</select>";
-
-
-
-print << "[END]";
-<FORM action="$SELF_URL">
-<input type="hidden" name="UID" value="$user->{UID}"/>
-<input type="hidden" name="index" value="$index"/>
-<table>
-<tr><td>$_SERVICES:</td><td>$variant_out</td></tr>
-<tr><td>$_DESCRIBE:</td><td><input type=text name=S_DESCRIBE value="%S_DESCRIBE%"/></td></tr>
-</table>
-<input type=submit name=%ACTION% value='%LNG_ACTION%'/>
-</form>
-[END]
-
-
-my $table = $html->table( { width      => '100%',
-                            border     => 1,
-                            title      => [$_SERVISE, $_DATE, $_DESCRIBE, '-', '-'],
-                            cols_align => ['left', 'right', 'left', 'center', 'center'],
-                            qs         => $pages_qs,
-                            pages      => $users->{TOTAL}
-                        } );
-print $table->show();
-
-}
-
-
 #*******************************************************************
 # Users and Variant NAS Servers
 # form_nas_allow()
@@ -4824,16 +4771,15 @@ if (defined($attr->{USER})) {
    }
 
 #exchange rate sel
-my $er = $payments->exchange_list();
-  $payments->{SEL_ER} = "<select name='ER'>\n";
-  $payments->{SEL_ER} .= "<option value=''></option>\n";
+$payments->{SEL_ER}=$html->form_select('ER', 
+                                { 
+ 	                                SELECTED          => undef,
+ 	                                SEL_MULTI_ARRAY   => $payments->exchange_list(),
+ 	                                MULTI_ARRAY_KEY   => 4,
+ 	                                MULTI_ARRAY_VALUE => '1,2',
+ 	                                NO_ID             => 1
+ 	                               });
 
-foreach my $line (@$er) {
-  $payments->{SEL_ER} .= "<option value='$line->[4]'";
-  $payments->{SEL_ER} .= ">$line->[1] : $line->[2]";
-  $payments->{SEL_ER} .= "</option>\n";
-}
-$payments->{SEL_ER} .= "</select>\n";
 
 push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
 
@@ -5174,15 +5120,14 @@ if ($attr->{USER}) {
   $fees->{PERIOD_FORM}=form_period($period, { TD_EXDATA  => 'colspan=2' });
   if ($permissions{2} && $permissions{2}{1}) {
     #exchange rate sel
-    my $er = $fees->exchange_list();
-    $fees->{SEL_ER} = "<select name='ER'>\n";
-    $fees->{SEL_ER} .= "<option value=''></option>\n";
-    foreach my $line (@$er) {
-      $fees->{SEL_ER} .= "<option value='$line->[4]'";
-      $fees->{SEL_ER} .= ">$line->[1] : $line->[2]";
-      $fees->{SEL_ER} .= "</option>\n";
-    }
-    $fees->{SEL_ER} .= "</select>\n";
+    $fees->{SEL_ER}=$html->form_select('ER', 
+                                { 
+ 	                                SELECTED          => undef,
+ 	                                SEL_MULTI_ARRAY   => $fees->exchange_list(),
+ 	                                MULTI_ARRAY_KEY   => 4,
+ 	                                MULTI_ARRAY_VALUE => '1,2',
+ 	                                NO_ID             => 1
+ 	                               });
 
     if ($conf{EXT_BILL_ACCOUNT}) {
        $fees->{EXT_DATA} = "<tr><td colspan=2>$_BILL:</td><td>". $html->form_select('BILL_ID', 
