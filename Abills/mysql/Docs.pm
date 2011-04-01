@@ -303,6 +303,10 @@ sub accounts_list {
 
  @WHERE_RULES = ("d.id=o.acct_id");
 
+ if ($SORT == 1) {
+ 	 $SORT = "2 $DESC, 1 "
+ }
+
  if($attr->{CUSTOMER}) {
    $attr->{CUSTOMER} =~ s/\*/\%/ig;
 	 push @WHERE_RULES, "d.customer LIKE '$attr->{CUSTOMER}'"; 

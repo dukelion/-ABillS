@@ -1,5 +1,6 @@
 var marked_row = new Array;
-var confirmMsg  = 'Do you really want delete';
+//var confirmMsg  = 'Do you really want delete';
+var confirmMsg  = '';
 
 /**
  * Displays an confirmation box beforme to submit a "DROP/DELETE/ALTER" query.
@@ -10,16 +11,16 @@ var confirmMsg  = 'Do you really want delete';
  *
  * @return  boolean  whether to run the query or not
  */
-function confirmLink(theLink, theSqlQuery, CustomMsg)
+function confirmLink(theLink, Message, CustomMsg)
 {
     if (CustomMsg != undefined ) {
-        confirmMsg = CustomMsg;
+      confirmMsg = CustomMsg;
      }
     else {
-    	confirmMsg = confirmMsg + ' :\n';
+     	confirmMsg = confirmMsg + ' :\n';
      }
 
-    var is_confirmed = confirm(confirmMsg + theSqlQuery);
+    var is_confirmed = confirm(confirmMsg + Message);
     if (is_confirmed) {
         theLink.href += '&is_js_confirmed=1';
     }

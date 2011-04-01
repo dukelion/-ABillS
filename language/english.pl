@@ -462,3 +462,5 @@ $_STORAGE='Storage ';
 $_RESTS='Rests';
 $_SUPPLIERS='Suppliers';
 $_ACCOUNTABILITY="Accountability";
+$_DISCARDS='Discards';
+$_DISCARD='Discard';
