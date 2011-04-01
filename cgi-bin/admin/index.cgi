@@ -1199,7 +1199,7 @@ sub user_pi {
      my $list = $users->build_list({ STREET_ID => $FORM{STREET}, PAGE_ROWS => 10000 });
      if ($users->{TOTAL} > 0) {
        foreach my $line (@$list) {
-         $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[6]'>$line->[0]</option>"; 
+         $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[8]'>$line->[0]</option>"; 
         }
       }
      else {
@@ -7139,7 +7139,7 @@ my $list = $users->build_list({ %LIST_PARAMS, STREET_ID => $FORM{BUILDS}, CONNEC
 
 my $table = $html->table({ width      => '100%',
 	                         caption    => $_BUILDS,
-                           title      => ["$_NUM", "$_FLORS", "$_ENTRANCES", "$_FLATS", "$_STREETS", "$_CENNECTED $_USERS", "$_ADDED",   '-', '-'],
+                           title      => ["$_NUM", "$_FLORS", "$_ENTRANCES", "$_FLATS", "$_STREETS", "$_CENNECTED $_USERS", "$_DENSITY_OF_CONNECTIONS", "$_ADDED",   '-', '-'],
                            cols_align => ['right', 'left', 'left', 'right', 'center', 'center'],
                            pages      => $users->{TOTAL},                           
                            qs         => $pages_qs,
@@ -7153,10 +7153,11 @@ foreach my $line (@$list) {
      $line->[2], 
      $line->[3], 
      $line->[4], 
-     $html->button($line->[5], "&search=1&index=". get_function_index('form_search') ."&LOCATION_ID=$line->[7]" ),  
-     $line->[6],
-     $html->button($_CHANGE, "index=$index&chg=$line->[7]&BUILDS=$FORM{BUILDS}", { BUTTON => 1 }), 
-     $html->button($_DEL, "index=$index&del=$line->[7]&BUILDS=$FORM{BUILDS}", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
+     $html->button($line->[5], "&search=1&index=". get_function_index('form_search') ."&LOCATION_ID=$line->[8]" ),  
+     $line->[6].' %',
+     $line->[7],
+     $html->button($_CHANGE, "index=$index&chg=$line->[8]&BUILDS=$FORM{BUILDS}", { BUTTON => 1 }), 
+     $html->button($_DEL, "index=$index&del=$line->[8]&BUILDS=$FORM{BUILDS}", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
 }
 print $table->show();	
 

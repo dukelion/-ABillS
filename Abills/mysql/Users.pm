@@ -2126,7 +2126,7 @@ sub build_list {
  my $sql = '';
  if ($attr->{CONNECTIONS}) {
 	 $sql = "SELECT b.number, b.flors, b.entrances, b.flats, s.name, 
-     count(pi.uid),
+     count(pi.uid), ROUND((count(pi.uid) / b.flats * 100), 0),
 	   b.added, b.id $ext_fields	   
 	   
 	    FROM builds b

@@ -467,3 +467,4 @@ $_DISCARD='Discard';
 $_ARTICLES='Articles';
 $_ARTICLE='Article';
 $_INSTALATIONS='Instalations';
+$_DENSITY_OF_CONNECTIONS='Density Of Connections';

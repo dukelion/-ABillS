@@ -79,6 +79,7 @@ $_TRAFFIC_TRANSFER_PERIOD='Період Переходу Трафіка';
 $_RECORDS='Записи';
 $_SYSTEM='Сиcтема';
 $_VERY_HIGH='Дуже високий';
+$_DENSITY_OF_CONNECTIONS='Густина підключення';
 $_AGE='Термін дії з моменту її активації';
 $_JOIN_SERVICE='Суміжний Сервіс';
 $_NEXT_PERIOD='Наступний обрахунковий період';
