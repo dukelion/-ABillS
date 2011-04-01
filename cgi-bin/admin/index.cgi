@@ -2832,6 +2832,7 @@ if ($FORM{AID}) {
      $_PERMISSION     => "52:AID=$admin_form->{AID}",
      $_PASSWD         => "54:AID=$admin_form->{AID}",
      $_GROUP          => "58:AID=$admin_form->{AID}",
+     IP               => "59:AID=$admin_form->{AID}",
   	 },
   	{
   		f_args => { ADMIN => $admin_form }
@@ -3003,6 +3004,60 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 	                     });
 }
 
+
+#**********************************************************
+# form_admins_ips();
+#**********************************************************
+sub form_admins_ips {
+  my ($attr) = @_; 
+
+  if(! defined($attr->{ADMIN})) {
+    $FORM{subf}=59;
+    form_admins();
+    return 0;	
+   }
+
+my $admin = $attr->{ADMIN};
+if ($FORM{add}) {
+	my $admin = $attr->{ADMIN};
+	$admin->allow_ip_add({ %FORM });
+  if ($admin->{errno}) {
+    $html->message('err', $_ERROR, "[$admin->{errno}] $err_strs{$admin->{errno}}");	
+   }
+  else {
+    $html->message('info', $_ADDED, "$_ADDED $FORM{IP}");
+   }
+ }
+elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+  $admin->allow_ip_del({ %FORM });
+  if (! $nas->{errno}) {
+    $html->message('info', $_INFO, "$_DELETED [$FORM{IP}]");
+   }
+}
+
+$admin->{ACTION}='add';
+$admin->{LNG_ACTION}=$_ADD;
+
+$html->tpl_show(templates('form_admin_allow_ip'), $admin);
+
+my $table = $html->table( { width      => '400',
+                            caption    => "$_ALLOW IP",
+                            border     => 1,
+                            title      => ['IP', '-' ],
+                            cols_align => ['left', 'center' ],
+                        } );
+
+my $list = $admin->allow_ip_list({ AID => $LIST_PARAMS{AID}  });
+foreach my $line (@$list) {
+  $table->addrow(
+     $line->[0],
+     $html->button($_DEL, "index=$index&del=1&IP=$line->[0]&AID=$FORM{AID}", { MESSAGE => "$_DEL IP '$line->[0]'?", BUTTON => 1  }) 
+    );
+}
+
+print $table->show();
+
+}
 
 #**********************************************************
 # permissions();
@@ -4522,6 +4577,8 @@ if ($permissions{4} && $permissions{4}{4}) {
   push @m, "55:50:$_FEES:form_fees:AID::";
   push @m, "56:50:$_PAYMENTS:form_payments:AID::";
   push @m, "57:50:$_CHANGE:form_admins:AID::";
+  push @m, "58:50:$_GROUPS:form_admins_groups:AID::" if ($admin->{GID} == 0);
+  push @m, "59:50:$_ALLOW IP:form_admins_ips:AID::";
 }
 
 if ($permissions{4} && $permissions{4}{5}) {
@@ -4534,7 +4591,7 @@ if ($permissions{0} && $permissions{0}{1}) {
   push @m, "28:27:$_ADD:add_groups:::";
 }
 
-push @m, "58:50:$_GROUPS:form_admins_groups:AID::" if ($admin->{GID} == 0);
+
 
 foreach my $line (@m) {
 	my ($ID, $PARENT, $NAME, $FUNTION_NAME, $ARGS, $OP)=split(/:/, $line);

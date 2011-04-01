@@ -63,6 +63,13 @@ CREATE TABLE `admins` (
   UNIQUE KEY `id` (`id`)
 );
 
+CREATE TABLE `admins_allow_ips` (
+  `aid` smallint(6) unsigned NOT NULL default 0,
+  `ip` int(11) unsigned NOT NULL default 0,
+   UNIQUE KEY `aid` (`aid`, `ip`)
+) ;
+
+
 CREATE TABLE `admins_groups` (
   `gid` smallint(6) unsigned NOT NULL default '0',
   `aid` smallint(5) unsigned NOT NULL default '0',
