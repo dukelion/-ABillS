@@ -309,10 +309,11 @@ sub check_lines {
 #        next;
 #       }
 
-      if ($NAS{NAS_TYPE} eq 'ipcad') {
-      	next
-       }
-      elsif ($NAS{NAS_TYPE} eq 'dhcp') {
+      #if ($NAS{NAS_TYPE} eq 'ipcad') {
+      #	next
+      # }
+      #els
+      if ($NAS{NAS_TYPE} eq 'dhcp') {
 # Default alive for DHCP sessions
 #      	$NAS{NAS_ALIVE} = 8600 if (! $NAS{NAS_ALIVE});
         if ($NAS{NAS_ALIVE} > 0 && $NAS{NAS_ALIVE} * $error_alive_count < $last_alive) {

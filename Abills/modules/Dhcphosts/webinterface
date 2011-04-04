@@ -552,6 +552,14 @@ sub dhcphosts_hosts {
   
   my $nas_list =  $Nas->list();
   if (! $FORM{UID}) {
+ 	  $Dhcphosts->{STATUS_SEL} = $html->form_select('STATUS',
+			                                   {   SELECTED => $FORM{STATUS},
+		                                         SEL_HASH => { 0   => "Not Set",
+                                                           -1  => $_DISABLE,
+                                                           1   => "$_ENABLE" } 
+                                          });
+
+  	
     $Dhcphosts->{NETWORKS_SEL} = dhcphosts_network_sel({ SEARCH  => 1 });
     $Dhcphosts->{SWITCH_SEL} = $html->form_select('NAS_ID',
                                           {
@@ -577,6 +585,7 @@ sub dhcphosts_hosts {
   	foreach my $line (@$nas_list) {
   		$NAS_HASH{$line->[0]}=$line->[1];
   	 }
+  	$pages_qs .= "&VIEW=1";
    }
   
   
@@ -608,15 +617,21 @@ sub dhcphosts_hosts {
     my @arr = ();
 
     if ($FORM{VIEW}) {
-    	$uid = $line->[14+$Dhcphosts->{SEARCH_FIELDS_COUNT}];
+    	$status=$line->[6];
+
+ 		  if ($status == 0)    { $status_color=$_COLORS[9]; }
+   	  elsif($status == 1 ) { $status_color=$_COLORS[6]; }
+	    elsif($status == 2 ) { $status_color=$_COLORS[6]; }
+    	
+    	$uid = $line->[12+$Dhcphosts->{SEARCH_FIELDS_COUNT}];
     	push @arr, $line->[0], 
   	    $html->button($line->[1], "index=15&UID=$uid&MODULE=Dhcphosts"),
-	      $line->[12],
+	      $line->[10],
 	      $line->[3],
-	      $line->[5].": ".$line->[4],
-  	    $line->[6], 
-	      $html->color_mark($status[$line->[7]], $status_color),
-	      $NAS_HASH{$line->[9]}, $line->[10], $line->[11];
+	      $line->[4],
+  	    $line->[5], 
+	      $html->color_mark($status[$line->[6]], $status_color),
+	      $NAS_HASH{$line->[7]}, $line->[8], $line->[9];
      }
     else {
     	$uid = $line->[13+$Dhcphosts->{SEARCH_FIELDS_COUNT}];

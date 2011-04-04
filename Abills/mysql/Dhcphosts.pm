@@ -769,14 +769,13 @@ sub hosts_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
- my $fields = "h.forced,  h.blocktime,";
+ my $fields = "h.id, u.id, h.ip, h.hostname, n.name, h.network, h.mac, h.disable, h.expire, h.forced,  h.blocktime,";
  
  if ($attr->{VIEW}) {
- 	 $fields = "h.nas, h.vid, h.ports,";
+ 	 $fields = "h.id, u.id, h.ip, h.hostname, concat(n.name, ' : ', h.network), h.mac, h.disable, h.nas, h.vid, h.ports,";
   }
  
- $self->query($db, "SELECT h.id, u.id, h.ip, h.hostname, n.name, h.network, h.mac, h.disable, h.expire,
-      $fields INET_NTOA(h.ip), $self->{SEARCH_FIELDS} seen, h.uid,
+ $self->query($db, "SELECT $fields INET_NTOA(h.ip), $self->{SEARCH_FIELDS} seen, h.uid,
       if ((u.expire <> '0000-00-00' && curdate() > u.expire) || (h.expire <> '0000-00-00' && curdate() > h.expire), 1, 0)
       $extra_fields
      FROM (dhcphosts_hosts h)

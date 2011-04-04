@@ -82,8 +82,9 @@ sub in_array {
  my ($value, $array) = @_;
 
  return 0 if (! defined($value)); 
- foreach my $line (@$array) {
- 	 return 1 if ($value eq $line);
+
+ for(my $i=0; $i<=$#{ $array }; $i++) {
+ 	 return 1 if ($value eq $array->[$i]);
   }
 
  return 0;	

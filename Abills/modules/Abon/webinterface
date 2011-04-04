@@ -51,9 +51,11 @@ sub abon_user {
           $Abon->{TP_INFO}->{TP_ID}            = $line->[7];
           $Abon->{TP_INFO}->{NAME}             = $line->[0]; 
           $Abon->{COMMENTS}                    = $FORM{'COMMENTS_'.$line->[7]}; 
+          $Abon->{TP_INFO}->{FEES_TYPE}        = $line->[8] || 1; 
+          $Abon->{TP_INFO}->{CREATE_ACCOUNT}   = $line->[9]; 
  
           my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[7]]" . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
-                         METHOD   => 1  );
+                         METHOD   => $Abon->{TP_INFO}->{FEES_TYPE}  );
           
           if ($line->[2] == 1 && $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} == 1) {
             $Abon->{ACTIVATE}=$users->{ACTIVATE};
@@ -183,10 +185,15 @@ sub abon_tariffs {
   my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
   
   if ($FORM{add}) {
-    $Abon->tariff_add({ %FORM });  
-    if (! $Abon->{errno}){
-    	 $html->message('info', $_INFO, "$_ADDED");
-     }
+  	if ($FORM{SUM} < 0) {
+  		$html->message('err', $_ERROR, "$ERR_WRONG_SUM");	
+  	 }
+  	else {
+      $Abon->tariff_add({ %FORM });  
+      if (! $Abon->{errno}){
+    	  $html->message('info', $_INFO, "$_ADDED");
+       }
+    }
    }
   elsif ($FORM{ABON_ID}) {
     $Abon = $Abon->tariff_info($FORM{ABON_ID});  
@@ -294,11 +301,16 @@ sub abon_tariffs {
 
   push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
   $Abon->{FEES_TYPES_SEL} =  $html->form_select('FEES_TYPE', 
-                                { SELECTED      => (defined($FORM{FEES_TYPE}) && $FORM{FEES_TYPE} ne '') ? $FORM{FEES_TYPE} : '1',
+                                { SELECTED      => $Abon->{FEES_TYPE},
  	                                SEL_ARRAY     => \@FEES_METHODS,
  	                                ARRAY_NUM_ID  => 1
  	                               });
   
+   $Abon->{FEES_TYPE}     = ($Abon->{FEES_TYPE})  ? 'checked' : ''; 
+   $Abon->{NOTIFICATION_ACCOUNT}= ($Abon->{NOTIFICATION_ACCOUNT})  ? 'checked' : '';  
+   $Abon->{ALERT}         = ($Abon->{ALERT})  ? 'checked' : '';  
+   $Abon->{ALERT_ACCOUNT} = ($Abon->{ALERT_ACCOUNT}) ? 'checked' : '';
+   $Abon->{CREATE_ACCOUNT}= ($Abon->{CREATE_ACCOUNT}) ? 'checked' : ''; 
 
   $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);
 
@@ -315,7 +327,7 @@ sub abon_tariffs {
 my $delete = '';
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[7]", { MESSAGE => "$_DEL $line->[0]?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[7]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
    }
 
   $table->addrow($html->button("$line->[0]", "index=$index&ABON_ID=$line->[6]"), 
@@ -324,7 +336,7 @@ foreach my $line (@$list) {
      $Payment_Types[$line->[3]], 
      $line->[4], 
      $html->button("$line->[6]", "index=". ($index-2). "&ABON_ID=$line->[7]"), 
-     $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[7]"), 
+     $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[7]", {  BUTTON => 1 }), 
      $delete
    );
  }
@@ -346,25 +358,48 @@ sub abon_periodic {
 
  $LIST_PARAMS{LOGIN}=$attr->{LOGIN} if ($attr->{LOGIN});
  $LIST_PARAMS{TP_ID}=$attr->{TP_ID} if ($attr->{TP_ID});
+ 
+  #if (in_array('Docs', \@MODULES) ) {
+    $FORM{QUICK}=1;
+  	require "Abills/modules/Docs/webinterface";
+  # }
+
   
-  $Abon->{debug}=1 if ($debug > 7);
-  my $list = $Abon->periodic_list({ %LIST_PARAMS, DELETED => 0 });
+ $Abon->{debug}=1 if ($debug > 7);
+ my $list = $Abon->periodic_list({ %LIST_PARAMS, DELETED => 0 });
 
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
   $m--;
 
  foreach my $line (@$list) {
-  if (defined($line->[7])) {
+ 	 my $sum             = $line->[1];
+ 	 my $deposit         = $line->[7];
+ 	 my $tp_id           = $line->[10];
+   my $fees_type       = $line->[17] || 1;
+   my $create_account  = $line->[18];
+   my $notification1   = $line->[19];
+   my $notification2   = $line->[20];
+   my $notification_account = $line->[21];
+   my $alert           = $line->[22];
+   my $alert_account   = $line->[23];
+   my $email           = $line->[24];
+  
+  
+  
+   if (defined($deposit)) {
   	
-    my %user = (
+  	print "$notification1 /   $notification2
+   ";
+  	
+     my %user = (
        UID     => $line->[2],
        BILL_ID => ($line->[14]) ? $line->[15] : $line->[3]
       );
 
-    my %PARAMS = ( DESCRIBE  => "$_ABON: [$line->[10]] $line->[6]",
-                   METHOD    => 1,
-                   DATE      => $ADMIN_REPORT{DATE}
-                  );
+     my %PARAMS = ( DESCRIBE  => "$_ABON: [$line->[10]] $line->[6]",
+                    METHOD    => $fees_type,
+                    DATE      => $ADMIN_REPORT{DATE}
+                   );
 
     $line->[8] = 0 if (! $line->[8]);
     $PARAMS{DESCRIBE} = "$_ABON: $line->[6]. $line->[12]" if ($line->[12]);
@@ -372,44 +407,168 @@ sub abon_periodic {
      	#Get day fee
      	$line->[13] = $ADMIN_REPORT{DATE} if (! $line->[13] && $line->[0] == 1 && $d == 1);
 
-     	if ($line->[0] == 0) {
-         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+    	if ($ADMIN_REPORT{DATE} eq $line->[13]) {
+         $fees->take(\%user, $sum, { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$line->[2]", 
-         	                           TP_ID => "$line->[10]", 
-         	                           DATE  => $ADMIN_REPORT{DATE} 
-         	                          });
-       }
-    	#Get month fee
-    	elsif ($line->[0] == 1 && $ADMIN_REPORT{DATE} eq $line->[13]) {
-         $fees->take(\%user, $line->[1], { %PARAMS } ); 
-         $Abon->user_tariff_update({ UID   => "$line->[2]", 
-         	                           DATE  => $DATE, 
-         	                           TP_ID => "$line->[10]" });
-       }
-    	#Get quarter fee
-    	elsif ($line->[0] == 2 && $ADMIN_REPORT{DATE} eq $line->[13]) {
-         $fees->take(\%user, $line->[1], { %PARAMS } ); 
-         $Abon->user_tariff_update({ UID   => "$line->[2]", 
-         	                           DATE  => $DATE, 
-         	                           TP_ID => "$line->[10]" });
-       }
-    	#Get six month fee
-    	elsif ($line->[0] == 3 && $ADMIN_REPORT{DATE} eq $line->[13]) {
-         $fees->take(\%user, $line->[1], { %PARAMS } ); 
-         $Abon->user_tariff_update({ UID   => "$line->[2]", 
-         	                           DATE  => $DATE, 
-         	                           TP_ID => "$line->[10]" });
-       }
-  	  # Yesr fee
-  	  elsif ($line->[0] == 4 && $ADMIN_REPORT{DATE} eq $line->[13]) {
-         $fees->take(\%user, $line->[1], { %PARAMS } ); 
-         $Abon->user_tariff_update({ UID   => "$line->[2]", 
-         	                           DATE  => $DATE, 
-         	                           TP_ID => "$line->[10]" 
-         	                           });
-       }
-     }
+         	                           DATE  => $ADMIN_REPORT{DATE}, 
+         	                           TP_ID => "$tp_id" });
 
+
+         if ($create_account) {
+         	 $LIST_PARAMS{UID}= $user{UID};
+         	 $FORM{SUM}       = $sum;
+         	 $FORM{UID}       = $user{UID};
+   	       $FORM{create}    = 1;
+   	       $FORM{CUSTOMER}  = '-';
+   	       $FORM{ORDER}     = "$_ABON: [$tp_id] $line->[6]";
+   	       $FORM{EMAIL}     = $email;
+   	       $FORM{SEND_EMAIL}= 1;
+   	       print "!!!!\n";
+   	       docs_account({ QUITE => 1 });    	
+          }
+
+         $debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $create_account\n" if ($debug > 0);
+       }
+
+
+#     	if ($line->[0] == 0) {
+#         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+#         $Abon->user_tariff_update({ UID   => "$line->[2]", 
+#         	                           TP_ID => "$line->[10]", 
+#         	                           DATE  => $ADMIN_REPORT{DATE} 
+#         	                          });
+#       }
+#    	#Get month fee
+#    	elsif ($line->[0] == 1 && $ADMIN_REPORT{DATE} eq $line->[13]) {
+#         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+#         $Abon->user_tariff_update({ UID   => "$line->[2]", 
+#         	                           DATE  => $ADMIN_REPORT{DATE}, 
+#         	                           TP_ID => "$line->[10]" });
+#       }
+#    	#Get quarter fee
+#    	elsif ($line->[0] == 2 && $ADMIN_REPORT{DATE} eq $line->[13]) {
+#         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+#         $Abon->user_tariff_update({ UID   => "$line->[2]", 
+#         	                           DATE  => $ADMIN_REPORT{DATE}, 
+#         	                           TP_ID => "$line->[10]" });
+#       }
+#    	#Get six month fee
+#    	elsif ($line->[0] == 3 && $ADMIN_REPORT{DATE} eq $line->[13]) {
+#         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+#         $Abon->user_tariff_update({ UID   => "$line->[2]", 
+#         	                           DATE  => $ADMIN_REPORT{DATE}, 
+#         	                           TP_ID => "$line->[10]" });
+#       }
+#  	  # Yesr fee
+#  	  elsif ($line->[0] == 4 && $ADMIN_REPORT{DATE} eq $line->[13]) {
+#         $fees->take(\%user, $line->[1], { %PARAMS } ); 
+#         $Abon->user_tariff_update({ UID   => "$line->[2]", 
+#         	                           DATE  => $ADMIN_REPORT{DATE}, 
+#         	                           TP_ID => "$line->[10]" 
+#         	                           });
+#       }
+     }
+    #Notification Section
+    elsif ($notification1 eq $ADMIN_REPORT{DATE}) {
+    	my $message = $html->tpl_show(_include('abon_notification1', 'Abon'), $Abon, { OUTPUT2RETURN => 1  });
+    	my $attach;
+    	$debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $create_account Notification 1\n" if ($debug > 0);
+    	
+    	if ($notification_account ) {
+        	 $LIST_PARAMS{UID}= $user{UID};
+         	 $FORM{SUM}       = $sum;
+         	 $FORM{UID}       = $user{UID};
+   	       $FORM{create}    = 1;
+   	       $FORM{CUSTOMER}  = '-';
+   	       $FORM{ORDER}     = "$_ABON: [$line->[10]] $line->[6]";
+   	       $FORM{EMAIL}     = $email;
+   	       $FORM{SEND_EMAIL}= 1;
+   	       my $content = docs_account({ QUITE => 1 });
+   	       $attach = [ { CONTENT      => $content,
+       	  	             CONTENT_TYPE => 'Content-type: application/pdf',
+       	  	             FILENAME     => 'account.pdf' }
+	  	                 ];
+    	 
+    	    $Abon->user_tariff_update({ UID   => "$user{UID}",
+    	    	                          NOTIFICATION => 1,
+        	                            DATE  => $ADMIN_REPORT{DATE}, 
+        	                            NOTIFICATION_ACCOUNT_ID => $FORM{ACCOUN_ID},
+         	                            TP_ID => "$line->[10]" 
+        	                           });
+    	 }
+    	
+    	
+ 	    sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON", "$message", "$conf{MAIL_CHARSET}",
+         	  '',       	  
+         	  { ATTACHMENTS => $attach });
+     } 
+    elsif ($notification2 eq $ADMIN_REPORT{DATE}) {
+    	$debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $create_account Notification 2\n" if ($debug > 0);
+    	
+    	my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), $Abon, { OUTPUT2RETURN => 1  });
+    	my $attach;
+    	if ($notification_account ) {
+        	 $LIST_PARAMS{UID}= $user{UID};
+         	 $FORM{SUM}       = $sum;
+         	 $FORM{UID}       = $user{UID};
+   	       $FORM{create}    = 1;
+   	       $FORM{CUSTOMER}  = '-';
+   	       $FORM{ORDER}     = "$_ABON: [$line->[10]] $line->[6]";
+   	       $FORM{EMAIL}     = $email;
+   	       $FORM{SEND_EMAIL}= 1;
+   	       my $content = docs_account({ QUITE => 1 });
+   	       $attach = [ { CONTENT      => $content,
+       	  	             CONTENT_TYPE => 'Content-type: application/pdf',
+       	  	             FILENAME     => 'account.pdf' }
+	  	                 ];
+    	 
+    	    $Abon->user_tariff_update({ UID   => "$user{UID}",
+    	    	                          NOTIFICATION => 1,
+        	                            DATE  => $ADMIN_REPORT{DATE}, 
+        	                            NOTIFICATION_ACCOUNT_ID => $FORM{ACCOUN_ID},
+         	                            TP_ID => "$line->[10]" 
+        	                           });
+    	 }
+    	
+    	
+ 	    sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON", "$message", "$conf{MAIL_CHARSET}",
+         	  '',       	  
+         	  { ATTACHMENTS => $attach });
+     }
+    elsif ($alert eq $ADMIN_REPORT{DATE}) {
+    	$debug_output .= "$user{UID} SUM: TP_ID: $tp_id $sum ACCOUNT: $create_account Alert\n" if ($debug > 0);
+    	
+    	my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), $Abon, { OUTPUT2RETURN => 1  });
+    	my $attach;
+    	if ($alert_account) {
+        	 $LIST_PARAMS{UID}= $user{UID};
+         	 $FORM{SUM}       = $sum;
+         	 $FORM{UID}       = $user{UID};
+   	       $FORM{create}    = 1;
+   	       $FORM{CUSTOMER}  = '-';
+   	       $FORM{ORDER}     = "$_ABON: [$line->[10]] $line->[6]";
+   	       $FORM{EMAIL}     = $email;
+   	       $FORM{SEND_EMAIL}= 1;
+   	       my $content = docs_account({ QUITE => 1 });
+   	       $attach = [ { CONTENT      => $content,
+       	  	             CONTENT_TYPE => 'Content-type: application/pdf',
+       	  	             FILENAME     => 'account.pdf' }
+	  	                 ];
+    	 
+    	    $Abon->user_tariff_update({ UID   => "$user{UID}",
+    	    	                          NOTIFICATION => 1,
+        	                            DATE  => $ADMIN_REPORT{DATE}, 
+        	                            NOTIFICATION_ACCOUNT_ID => $FORM{ACCOUN_ID},
+         	                            TP_ID => "$line->[10]" 
+        	                           });
+    	 }
+    	
+    	
+ 	    sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON", "$message", "$conf{MAIL_CHARSET}",
+         	  '',       	  
+         	  { ATTACHMENTS => $attach });
+     }
+   
    }
   else {
     print "[ $line->[2] ] $line->[4] - Don't have money account\n";
@@ -495,7 +654,7 @@ sub abon_get_month_fee {
            }
          
           $fees->take($users, $sum, { DESCRIBE  => $message, 
-        	                            METHOD    => 1, 
+        	                            METHOD    => $Abon->{TP_INFO}->{FEES_TYPE}, 
         	                            DATE      => "$DATE $TIME"
         	                           });  
         

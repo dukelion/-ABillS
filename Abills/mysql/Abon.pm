@@ -80,6 +80,7 @@ sub tariff_info {
  
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
   
+  
   $self->query($db, "SELECT 
    name,
    period,
@@ -90,7 +91,13 @@ sub tariff_info {
    ext_bill_account,
    id,
    priority,
-   account
+   create_account,
+   fees_type,
+   notification1,
+   notification2,
+   notification_account,
+   alert,
+   alert_account
    
      FROM abon_tariffs
    $WHERE;");
@@ -110,7 +117,13 @@ sub tariff_info {
    $self->{EXT_BILL_ACCOUNT},
    $self->{ABON_ID},
    $self->{PRIORITY},
-   $self->{ACCOUNT}
+   $self->{CREATE_ACCOUNT},
+   $self->{FEES_TYPE},
+   $self->{NOTIFICATION1},
+   $self->{NOTIFICATION2},
+   $self->{NOTIFICATION_ACCOUNT},
+   $self->{ALERT},
+   $self->{ALERT_ACCOUNT}
   )= @{ $self->{list}->[0] };
   
 
@@ -148,11 +161,22 @@ sub tariff_add {
   
   %DATA = $self->get_data($attr); 
 
+
   $self->query($db,  "INSERT INTO abon_tariffs (id, name, period, price, payment_type, period_alignment, nonfix_period, ext_bill_account,
-         priority, account)
+         priority, create_account, 
+           fees_type,
+  notification1,
+  notification2,
+  notification_account,
+  alert_account)
         VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}', '$DATA{PAYMENT_TYPE}', '$DATA{PERIOD_ALIGNMENT}',
         '$DATA{NONFIX_PERIOD}', '$DATA{EXT_BILL_ACCOUNT}',
-        '$DATA{PRIORITY}', '$DATA{ACCOUNT}');", 'do');
+        '$DATA{PRIORITY}', '$DATA{CREATE_ACCOUNT}',
+        '$DATA{FEES_TYPE}', 
+        '$DATA{NOTIFICATION1}', 
+        '$DATA{NOTIFICATION2}', 
+        '$DATA{NOTIFICATION_ACCOUNT}', 
+        '$DATA{ALERT_ACCOUNT}');", 'do');
 
   return $self if ($self->{errno});
   $admin->system_action_add("ABON_ID:$DATA{ID}", { TYPE => 1 });    
@@ -178,10 +202,22 @@ sub tariff_change {
               NONFIX_PERIOD    => 'nonfix_period', 
               EXT_BILL_ACCOUNT => 'ext_bill_account',
               PRIORITY         => 'priority',
-              ACCOUNT          => 'account'
+              CREATE_ACCOUNT   => 'create_account',
+              FEEs_TYPE        => 'fees_type',
+              NOTIFICATION1    => 'notification1',
+              NOTIFICATION2    => 'notification2',
+              NOTIFICATION_ACCOUNT => 'notification_account',
+              ALERT            => 'alert',
+              ALERT_ACCOUNT    => 'alert_account'
              );
 
-  $attr->{PERIOD_ALIGNMENT}=0   if (! $attr->{PERIOD_ALIGNMENT});
+
+  $attr->{CREATE_ACCOUNT}       = 0 if (! $attr->{CREATE_ACCOUNT}); 
+  $attr->{FEES_TYPE}       = 0 if (! $attr->{FEES_TYPE}); 
+  $attr->{NOTIFICATION_ACCOUNT}= 0 if (! $attr->{NOTIFICATION_ACCOUNT});
+  $attr->{ALERT}           = 0 if (! $attr->{ALERT});  
+  $attr->{ALERT_ACCOUNT}   = 0 if (! $attr->{ALERT_ACCOUNT});
+  $attr->{PERIOD_ALIGNMENT}= 0 if (! $attr->{PERIOD_ALIGNMENT});
 
   $self->changes($admin,  { CHANGE_PARAM => 'ABON_ID',
                    TABLE        => 'abon_tariffs',
@@ -237,7 +273,9 @@ sub tariff_list {
      priority,
      period_alignment,
      count(ul.uid),
-     id 
+     id,
+     fees_type,
+     create_account
      FROM abon_tariffs
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
      $WHERE
@@ -387,7 +425,10 @@ sub user_tariff_list {
         )
        )
       ),
-   count(ul.uid)
+   count(ul.uid),
+   ul.notification1,
+   ul.notification1_account_id,
+   ul.notification2
      FROM abon_tariffs at
      LEFT JOIN abon_user_list ul ON (at.id=ul.tp_id and ul.uid='$uid')
      GROUP BY id
@@ -456,9 +497,26 @@ sub user_tariff_update {
  my ($attr) = @_;
 
  my $DATE = ($attr->{DATE}) ? "'$attr->{DATE}'" : "now()"; 
- 
- $self->query($db, "UPDATE abon_user_list SET date=$DATE
-   WHERE uid='$attr->{UID}' and tp_id='$attr->{TP_ID}';", 'do');
+ # 
+ if ($attr->{NOTIFICATION}) {
+   my $set = '';
+   if ($attr->{NOTIFICATION}==1) {
+     $set = "notification1=$DATE";
+     if ($attr->{NOTIFICATION_ACCOUNT_ID}) {
+        $set .= ", notification1_account_id='$attr->{NOTIFICATION_ACCOUNT_ID}'";	
+      }
+    }
+   elsif($attr->{NOTIFICATION}==2) {
+   	 $set = "notification1=$DATE";
+    }
+   
+   $self->query($db, "UPDATE abon_user_list SET $set
+     WHERE uid='$attr->{UID}' and tp_id='$attr->{TP_ID}';", 'do');
+  }
+ else {
+   $self->query($db, "UPDATE abon_user_list SET date=$DATE 
+     WHERE uid='$attr->{UID}' and tp_id='$attr->{TP_ID}';", 'do');
+  }
 
  return $self;
 }
@@ -506,7 +564,7 @@ sub periodic_list {
   at.id,
   at.payment_type,
   ul.comments,
-      if (at.nonfix_period = 1, 
+  \@fees_date := if (at.nonfix_period = 1, 
       if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
        if (at.period = 1, ul.date + INTERVAL 1 MONTH, 
          if (at.period = 2, ul.date + INTERVAL 3 MONTH, 
@@ -529,14 +587,26 @@ sub periodic_list {
           )
         )
        )
-      ),
+      ) AS fees_date,
    at.ext_bill_account,
    if(u.company_id > 0, c.ext_bill_id, u.ext_bill_id) AS ext_bill_id,
-   at.priority
+   at.priority,
+   
+   fees_type,
+   create_account,
+   if (at.notification1>0, \@fees_date - interval at.notification1 day, '0000-00-00') AS notification1,
+   if (at.notification2>0, \@fees_date - interval at.notification2 day, '0000-00-00') AS notification2,
+   at.notification_account,
+   if (at.alert > 0, \@fees_date, '0000-00-00'),
+   at.alert_account,
+   pi.email
+  
+   
   FROM (abon_tariffs at, abon_user_list ul, users u)
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN companies c ON (u.company_id=c.id)
      LEFT JOIN bills cb ON (c.bill_id=cb.id)
+     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
 WHERE
 at.id=ul.tp_id and
 ul.uid=u.uid

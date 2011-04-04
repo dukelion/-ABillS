@@ -642,6 +642,7 @@ if ($attr->{NAS_TYPE} eq 'edge_core' || $attr->{NAS_TYPE} eq 'dlink_pb') {
 
   if ($version =~ /ES3528M/ || $version =~ /ES3526/) {
     $DEBUG = $debug_output;
+    goto SAVE_CONF;
     return $debug_output;
    }
 
@@ -734,6 +735,8 @@ elsif ($attr->{NAS_TYPE} eq 'dlink_pb') {
 	
 }
 
+
+SAVE_CONF:
 #save config 
 if ($conf{SNMPUTILS_SAVE_CONF}) {
   if($attr->{NAS_TYPE} eq 'edge_core') {

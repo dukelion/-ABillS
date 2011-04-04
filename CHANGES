@@ -1,5 +1,38 @@
-=====0.52====
+=====0.53=====
 
+
+04.04.2011
+  * Комиссия за использование карточки оплаты
+  * Добавлена плотность подключения в журнал адресов
+  * Добавлен экспорт в XML журналов платежей и снятий 
+  * Список адресов с которых разрешено подключаться администратору $conf{ADMINS_ALLOW_IP}='';
+  * Создание счёта при активации услуги модулем Abon (периодические платежи)
+  * Периодическое оповещение о завершении услуги и отправка счёта на оплату для модуля Abon
+  * Установка типа снятий для модуля Abon
+
+MySQL:\\
+  ALTER TABLE abon_tariffs ADD COLUMN `fees_type` tinyint(2) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE abon_tariffs ADD COLUMN `notification1` tinyint(1) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE abon_tariffs ADD COLUMN `notification2` tinyint(1) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE abon_tariffs ADD COLUMN `notification_account` tinyint(1) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE abon_tariffs ADD COLUMN `alert` tinyint(1) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE abon_tariffs ADD COLUMN `alert_account` tinyint(1) unsigned NOT NULL DEFAULT '0';
+
+  ALTER TABLE abon_user_list ADD COLUMN `notification1` date NOT NULL default '0000-00-00';
+  ALTER TABLE abon_user_list ADD COLUMN `notification1_account_id` int(11) unsigned NOT NULL DEFAULT 0;
+  ALTER TABLE abon_user_list ADD COLUMN `notification2` date NOT NULL default '0000-00-00';
+
+
+25.03.2011\\
+  * Удаление группы только после полного удаление из неё пользователей
+  * В модуль Ureports (Отчёты пользователя) добавлена функция предупреждения о недостаточности средств на следующий учётный период через sms  или E-mail
+  * Интеграция с системой Turbosms
+  * Добавлен новый отчёт дней до завершения тарифного плана
+  * Добавлено оповещение пользователей через смс и массовый рассылки рекламных акций
+  * Востановление пароля через СМС сообщение
+  * Отправка пользователю СМС с паролем с админ формы
+
+=====0.52====
 18.03.2011\\
   * Добавлена возможность импорта списка цен для Voip  модуля
   * Добавлена возможность импорта списка направлений для Voip  модуля

@@ -46,7 +46,7 @@ sub docs_contract {
     my ($y, $m, $d)=split(/-/, (($users->{CONTRACT_DATE}) ? $users->{CONTRACT_DATE} : $DATE ) , 3);
     $Docs->{CONTRACT_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
 
-		%{ $attr } = %{ Docs }, %{ $user_main_info };
+		%{ $attr } = %{ $user_main_info };
 		my $contract_tpl = 'contract';
 
 		if ($Docs->{CONTRACT_SUFIX}) {
@@ -429,7 +429,6 @@ if ($FORM{print_list}) {
     print "UID: LOGIN: $line->[0] FIO: $line->[1] SUM: $line->[2]\n" if ($debug > 2);
 	 }
 
-  #print "Content-Type: text/html\n\n";
   print $html->header() if ($FORM{qindex});  
   my $invoice_file = ($D{PAYMENT_METHOD}) ?  'docs_invoice_'.$D{PAYMENT_METHOD} : 'docs_invoice';
   my $invoice_content = _include($invoice_file, 'Docs', { pdf => $FORM{pdf} });
@@ -779,12 +778,12 @@ if ($FORM{print_list}) {
      $D{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $D{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $D{TOTAL_SUM} );
      $Docs->{'TOTAL_SUM_VAT'}   = sprintf("%.2f", $D{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
      
-      my $i=0; 
-      foreach my $field_id ( @{ $Company->{INFO_FIELDS_ARR} } ) {
+     $i=0; 
+     foreach my $field_id ( @{ $Company->{INFO_FIELDS_ARR} } ) {
          my($position, $type, $name)=split(/:/, $Company->{INFO_FIELDS_HASH}->{$field_id});
          $Company->{$field_id}=$Company->{INFO_FIELDS_VAL}->[$i];
          $i++;
-       }
+      }
     }
 #-----------------------
    
@@ -992,12 +991,10 @@ sub docs_tax_invoice {
      $Docs->{'TOTAL_SUM_WITHOUT_VAT'}= sprintf("%.2f", ($conf{DOCS_VAT_INCLUDE}) ? $Docs->{TOTAL_SUM} - ($Docs->{TOTAL_SUM}) / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}) : $Docs->{TOTAL_SUM} );
      $Docs->{'TOTAL_SUM_VAT'}        = sprintf("%.2f", $Docs->{TOTAL_SUM}-$Docs->{'TOTAL_SUM_WITHOUT_VAT'});
      
-     my $i=0; 
+     $i=0; 
      foreach my $field_id ( @{ $Company->{INFO_FIELDS_ARR} } ) {
        my($position, $type, $name)=split(/:/, $Company->{INFO_FIELDS_HASH}->{$field_id});
        $Company->{$field_id}=$Company->{INFO_FIELDS_VAL}->[$i];
-       
-       #print "";
        $i++;
      }
      
@@ -1249,10 +1246,15 @@ sub docs_account {
 
        if ($conf{DOCS_PDF_PRINT}) {
        	 $users = $user if ($user->{UID});
-       	 $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
-       	 $users->pi({ UID => $users->{UID} });
        	 
-       	 if ( $FORM{SEND_EMAIL} && $users->{EMAIL}) {
+         if (! $attr->{QUITE}) {
+       	   $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
+       	  }
+       	 
+       	 $users->pi({ UID => $users->{UID} || $FORM{UID} });
+       	 
+       	 if ( $FORM{SEND_EMAIL} && ($users->{EMAIL} || $FORM{EMAIL})) {
+       	 	 my $email    = $FORM{EMAIL} || $users->{EMAIL};
          	 my $message  = "$_ACCOUNT:  $Docs->{ACCT_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n";
          	 $FORM{print} = $FORM{ACCOUNT_ID};
          	 $FORM{pdf}   = 1;
@@ -1266,13 +1268,17 @@ sub docs_account {
 	                                  });
        	 
          	 my $content = docs_account({ OUTPUT2RETURN => 1 });
-       	   sendmail("$conf{ADMIN_MAIL}", "$users->{EMAIL}", "ABillS - $_ACCOUNT", "$message", "$conf{MAIL_CHARSET}",
-         	  '',       	  
-         	  { ATTACHMENTS => [ { CONTENT      => $content,
+         	 if ($attr->{OUTPUT_TO_RETURN}) {
+         	 	  return $content;
+         	  }
+         	 else {
+       	     sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ACCOUNT", "$message", "$conf{MAIL_CHARSET}",
+         	    '',       	  
+           	  { ATTACHMENTS => [ { CONTENT      => $content,
        	  	                   CONTENT_TYPE => 'Content-type: application/pdf',
        	  	                   FILENAME     => 'account.pdf' }
        	  	                 ] });
-
+            }
            $html = $html_old;
           } 	 
 

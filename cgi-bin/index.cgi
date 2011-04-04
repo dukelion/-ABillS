@@ -1002,10 +1002,10 @@ sub form_fees {
 
 my $fees = Finance->fees($db, $admin, \%conf);
 my $list = $fees->list( { %LIST_PARAMS } );
-my $table = $html->table( { width      => '100%',
-                            caption    => "$_FEES",
-                            border     => 1,
-                            title      => ['', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_TYPE, $_BILL],
+my $table = $html->table( { width       => '100%',
+                            caption     => "$_FEES",
+                            border      => 1,
+                            title_plain => ['', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT, $_TYPE, $_BILL],
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'left', 'right', 'right'],
                             qs         => $pages_qs,
                             pages      => $fees->{TOTAL},
@@ -1055,7 +1055,7 @@ my $list  = $Payments->list( { %LIST_PARAMS } );
 my $table = $html->table( { width      => '100%',
                             caption    => "$_PAYMENTS",
                             border     => 1,
-                            title      => ['', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT ], # $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
+                            title_plain      => ['', $_LOGIN, $_DATE, $_DESCRIBE, $_SUM, $_DEPOSIT ], # $_PAYMENT_METHOD, 'EXT ID', "$_BILL"],
                             cols_align => ['right', 'left', 'left', 'right', 'right', 'left', 'right', 'right', 'left', 'left'],
                             qs         => $pages_qs,
                             pages      => $Payments->{TOTAL},

@@ -9,6 +9,13 @@ CREATE TABLE `abon_tariffs` (
   `nonfix_period` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `priority` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `account` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `fees_type` tinyint(2) unsigned NOT NULL DEFAULT '0',
+  `create_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `notification1` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `notification2` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `notification_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `alert` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `alert_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)
@@ -19,5 +26,8 @@ CREATE TABLE `abon_user_list` (
   `tp_id` smallint(6) unsigned NOT NULL default '0',
   `date` date NOT NULL default '0000-00-00',
   `comments` VARCHAR(240) COLLATE cp1251_general_ci NOT NULL DEFAULT '',
+  `notification1` date NOT NULL default '0000-00-00',
+  `notification1_account_id` int(11) unsigned NOT NULL DEFAULT 0, 
+  `notification2` date NOT NULL default '0000-00-00',
   KEY `uid` (`uid`, `tp_id`)
 ) COMMENT='Abon user list';

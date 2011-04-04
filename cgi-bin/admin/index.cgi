@@ -126,6 +126,9 @@ if ($admin->{errno}) {
   if ($admin->{errno} == 2) {
   	$message = "Account $_DISABLED or $admin->{errstr}";
    }
+  elsif ($admin->{errno} == 3) {
+  	$message = "$ERR_UNALLOW_IP";
+   }
   elsif ($admin->{errno} == 4) {
   	$message = "$ERR_WRONG_PASSWD";
    }
@@ -516,6 +519,22 @@ $html->test();
 sub check_permissions {
   my ($login, $password, $attr)=@_;
 
+
+  if ($conf{ADMINS_ALLOW_IP}) {
+  	$conf{ADMINS_ALLOW_IP} =~ s/ //g;
+  	my @allow_ips_arr  = split(/,/, $conf{ADMINS_ALLOW_IP});
+  	my $allow_ips_hash = ();
+  	foreach my $ip (@allow_ips_arr) {
+  		$allow_ips_hash{$ip}=1; 		
+  	 }
+  	if (! $allow_ips_hash{$ENV{REMOTE_ADDR}})  {
+      $admin->system_action_add("$login:$password DENY IP: $ENV{REMOTE_ADDR}", { TYPE => 11 });
+      $admin->{errno} = 3;
+  		return 3;
+  	 }
+   }
+
+
   $login    =~ s/"/\\"/g;
   $login    =~ s/'/\''/g;
   $password =~ s/"/\\"/g;
@@ -542,6 +561,7 @@ sub check_permissions {
   	return 2;
    }
 
+  
   if ($admin->{WEB_OPTIONS}) {
     my @WO_ARR = split(/;/, $admin->{WEB_OPTIONS}	);
     foreach my $line (@WO_ARR) {
@@ -1199,7 +1219,7 @@ sub user_pi {
      my $list = $users->build_list({ STREET_ID => $FORM{STREET}, PAGE_ROWS => 10000 });
      if ($users->{TOTAL} > 0) {
        foreach my $line (@$list) {
-         $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[8]'>$line->[0]</option>"; 
+         $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[6]'>$line->[0]</option>"; 
         }
       }
      else {
@@ -3005,59 +3025,59 @@ print $html->form_main({ CONTENT => $table->show({ OUTPUT2RETURN => 1 }),
 }
 
 
-#**********************************************************
-# form_admins_ips();
-#**********************************************************
-sub form_admins_ips {
-  my ($attr) = @_; 
-
-  if(! defined($attr->{ADMIN})) {
-    $FORM{subf}=59;
-    form_admins();
-    return 0;	
-   }
-
-my $admin = $attr->{ADMIN};
-if ($FORM{add}) {
-	my $admin = $attr->{ADMIN};
-	$admin->allow_ip_add({ %FORM });
-  if ($admin->{errno}) {
-    $html->message('err', $_ERROR, "[$admin->{errno}] $err_strs{$admin->{errno}}");	
-   }
-  else {
-    $html->message('info', $_ADDED, "$_ADDED $FORM{IP}");
-   }
- }
-elsif ($FORM{del} && $FORM{is_js_confirmed}) {
-  $admin->allow_ip_del({ %FORM });
-  if (! $nas->{errno}) {
-    $html->message('info', $_INFO, "$_DELETED [$FORM{IP}]");
-   }
-}
-
-$admin->{ACTION}='add';
-$admin->{LNG_ACTION}=$_ADD;
-
-$html->tpl_show(templates('form_admin_allow_ip'), $admin);
-
-my $table = $html->table( { width      => '400',
-                            caption    => "$_ALLOW IP",
-                            border     => 1,
-                            title      => ['IP', '-' ],
-                            cols_align => ['left', 'center' ],
-                        } );
-
-my $list = $admin->allow_ip_list({ AID => $LIST_PARAMS{AID}  });
-foreach my $line (@$list) {
-  $table->addrow(
-     $line->[0],
-     $html->button($_DEL, "index=$index&del=1&IP=$line->[0]&AID=$FORM{AID}", { MESSAGE => "$_DEL IP '$line->[0]'?", BUTTON => 1  }) 
-    );
-}
-
-print $table->show();
-
-}
+##**********************************************************
+## form_admins_ips();
+##**********************************************************
+#sub form_admins_ips {
+#  my ($attr) = @_; 
+#
+#  if(! defined($attr->{ADMIN})) {
+#    $FORM{subf}=59;
+#    form_admins();
+#    return 0;	
+#   }
+#
+#my $admin = $attr->{ADMIN};
+#if ($FORM{add}) {
+#	my $admin = $attr->{ADMIN};
+#	$admin->allow_ip_add({ %FORM });
+#  if ($admin->{errno}) {
+#    $html->message('err', $_ERROR, "[$admin->{errno}] $err_strs{$admin->{errno}}");	
+#   }
+#  else {
+#    $html->message('info', $_ADDED, "$_ADDED $FORM{IP}");
+#   }
+# }
+#elsif ($FORM{del} && $FORM{is_js_confirmed}) {
+#  $admin->allow_ip_del({ %FORM });
+#  if (! $nas->{errno}) {
+#    $html->message('info', $_INFO, "$_DELETED [$FORM{IP}]");
+#   }
+#}
+#
+#$admin->{ACTION}='add';
+#$admin->{LNG_ACTION}=$_ADD;
+#
+#$html->tpl_show(templates('form_admin_allow_ip'), $admin);
+#
+#my $table = $html->table( { width      => '400',
+#                            caption    => "$_ALLOW IP",
+#                            border     => 1,
+#                            title      => ['IP', '-' ],
+#                            cols_align => ['left', 'center' ],
+#                        } );
+#
+#my $list = $admin->allow_ip_list({ AID => $LIST_PARAMS{AID}  });
+#foreach my $line (@$list) {
+#  $table->addrow(
+#     $line->[0],
+#     $html->button($_DEL, "index=$index&del=1&IP=$line->[0]&AID=$FORM{AID}", { MESSAGE => "$_DEL IP '$line->[0]'?", BUTTON => 1  }) 
+#    );
+#}
+#
+#print $table->show();
+#
+#}
 
 #**********************************************************
 # permissions();
@@ -4578,7 +4598,7 @@ if ($permissions{4} && $permissions{4}{4}) {
   push @m, "56:50:$_PAYMENTS:form_payments:AID::";
   push @m, "57:50:$_CHANGE:form_admins:AID::";
   push @m, "58:50:$_GROUPS:form_admins_groups:AID::" if ($admin->{GID} == 0);
-  push @m, "59:50:$_ALLOW IP:form_admins_ips:AID::";
+  #push @m, "59:50:$_ALLOW IP:form_admins_ips:AID::";
 }
 
 if ($permissions{4} && $permissions{4}{5}) {

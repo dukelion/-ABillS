@@ -661,7 +661,7 @@ sub online {
 
 
 
-
+=comments
 
 #**********************************************************
 # allow_ip_list()
@@ -701,14 +701,14 @@ sub allow_ip_add {
   my ($attr) = @_;
   %DATA = $self->get_data($attr); 
 
-  $self->query($db, "INSERT INTO admins_allow_ips (aid, ip) 
+  $self->query($db, "INSERT INTO admins_allow_ips (ip) 
    VALUES ('$DATA{AID}', INET_ATON('$DATA{IP}'));", 'do');
 
   if ($self->{errno}) {
   	return $self;
    }
 
-  $self->system_action_add("AID:$self->{INSERT_ID} LOGIN:$DATA{A_LOGIN} $DATA{IP}", { TYPE => 1 });  
+  $self->system_action_add("ALLOW IP: $DATA{IP}", { TYPE => 1 });  
   return $self;
 }
 
@@ -720,14 +720,14 @@ sub allow_ip_del {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "DELETE FROM admins_allow_ips WHERE aid='$attr->{AID}' and ip=INET_ATON('$attr->{IP}');", 'do');
+  $self->query($db, "DELETE FROM admins_allow_ips WHERE ip=INET_ATON('$attr->{IP}');", 'do');
   
-  $self->system_action_add("AID:$attr->{AID} IP: $attr->{IP}", { TYPE => 10 });  
+  $self->system_action_add("ALLOW IP: $attr->{IP}", { TYPE => 10 });  
   return $self;
 }
 
 
-
+=cut
 
 
 
