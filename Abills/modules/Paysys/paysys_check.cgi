@@ -2211,9 +2211,9 @@ sub wm_validate {
 #**********************************************************
 sub mk_log {
   my ($message, $attr) = @_;
- 
+  my $paysys = $attr->{PAYSYS_ID} || '';
   if (open(FILE, ">>paysys_check.log")) {
-    print FILE "\n$DATE $TIME $ENV{REMOTE_ADDR}=========================\n";
+    print FILE "\n$DATE $TIME $ENV{REMOTE_ADDR} $paysys =========================\n";
     print FILE $message;
 	  close(FILE);
 	 }

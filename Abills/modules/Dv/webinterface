@@ -5499,7 +5499,9 @@ sub dv_wizard_user {
   $dv_defaults->{CALLBACK} = '';
  	             
  my $password_form;                           
- $password_form->{GEN_PASSWORD}=mk_unique_value(8);
+ $password_form->{GEN_PASSWORD}= mk_unique_value(8);
+ $password_form->{PW_CHARS}    = $conf{PASSWD_SYMBOLS} || "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
+ $password_form->{PW_LENGTH}   = $conf{PASSWD_LENGTH} || 6; 
  
  #Info fields
   my %pi_form = ();

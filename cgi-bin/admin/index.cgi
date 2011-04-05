@@ -3859,8 +3859,8 @@ elsif($FORM{newpassword} ne $FORM{confirm}) {
   $html->message('err', $_ERROR, "$ERR_WRONG_CONFIRM");
 }
 
-$password_form->{PW_CHARS}  = "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
-$password_form->{PW_LENGTH} = $conf{PASSWD_LENGTH};
+$password_form->{PW_CHARS}  = $conf{PASSWD_SYMBOLS} || "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
+$password_form->{PW_LENGTH} = $conf{PASSWD_LENGTH} || 6;
 $password_form->{ACTION}    = 'change';
 $password_form->{LNG_ACTION}= "$_CHANGE";
 $html->tpl_show(templates('form_password'), $password_form);

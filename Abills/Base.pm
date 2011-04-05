@@ -189,7 +189,6 @@ sub win2utf8 {
   my $Code='';
   for(@ChArray){
     $Code=ord;
-    print "$Code/";
     #return $Code;
     if(($Code>=0xc0)&&($Code<=0xff)){$Unicode.="&#".(0x350+$Code).";";}
     elsif($Code==0xa8){$Unicode.="&#".(0x401).";";}
@@ -445,7 +444,7 @@ sub show_log {
 #**********************************************************
 sub mk_unique_value {
    my ($passsize, $attr) = @_;
-   my $symbols = (defined($attr->{SYMBOLS})) ? $attr->{SYMBOLS} : "qwertyupasdfghjikzxcvbnmQWERTYUPASDFGHJKLZXCVBNM23456789";
+   my $symbols = (defined($attr->{SYMBOLS})) ? $attr->{SYMBOLS} : "qwertyupasdfghjikzxcvbnmQWERTYUPASDFGHJKLZXCVBNM123456789";
 
    my $value  = '';
    my $random = '';
