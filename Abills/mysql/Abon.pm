@@ -98,7 +98,8 @@ sub tariff_info {
    notification_account,
    alert,
    alert_account,
-   ext_cmd
+   ext_cmd,
+   activate_notification
    
      FROM abon_tariffs
    $WHERE;");
@@ -125,7 +126,8 @@ sub tariff_info {
    $self->{NOTIFICATION_ACCOUNT},
    $self->{ALERT},
    $self->{ALERT_ACCOUNT},
-   $self->{EXT_CMD}
+   $self->{EXT_CMD},
+   $self->{ACTIVATE_NOTIFICATION}
   )= @{ $self->{list}->[0] };
   
 
@@ -171,7 +173,7 @@ sub tariff_add {
   notification2,
   notification_account,
   alert_account,
-  ext_cmd)
+  ext_cmd, activate_notification)
         VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}', '$DATA{PAYMENT_TYPE}', '$DATA{PERIOD_ALIGNMENT}',
         '$DATA{NONFIX_PERIOD}', '$DATA{EXT_BILL_ACCOUNT}',
         '$DATA{PRIORITY}', '$DATA{CREATE_ACCOUNT}',
@@ -180,7 +182,7 @@ sub tariff_add {
         '$DATA{NOTIFICATION2}', 
         '$DATA{NOTIFICATION_ACCOUNT}', 
         '$DATA{ALERT_ACCOUNT}',
-        '$DATA{EXT_CMD}');", 'do');
+        '$DATA{EXT_CMD}', '$DATA{ACTIVATE_NOTIFICATION}');", 'do');
 
   return $self if ($self->{errno});
   $admin->system_action_add("ABON_ID:$DATA{ID}", { TYPE => 1 });    
@@ -213,7 +215,8 @@ sub tariff_change {
               NOTIFICATION_ACCOUNT => 'notification_account',
               ALERT            => 'alert',
               ALERT_ACCOUNT    => 'alert_account',
-              EXT_CMD          => 'ext_cmd'
+              EXT_CMD          => 'ext_cmd',
+              ACTIVATE_NOTIFICATION => 'activate_notification'
              );
 
 
@@ -223,6 +226,7 @@ sub tariff_change {
   $attr->{ALERT}           = 0 if (! $attr->{ALERT});  
   $attr->{ALERT_ACCOUNT}   = 0 if (! $attr->{ALERT_ACCOUNT});
   $attr->{PERIOD_ALIGNMENT}= 0 if (! $attr->{PERIOD_ALIGNMENT});
+  $attr->{ACTIVATE_NOTIFICATION}= 0 if (! $attr->{ACTIVATE_NOTIFICATION});
 
   $self->changes($admin,  { CHANGE_PARAM => 'ABON_ID',
                    TABLE        => 'abon_tariffs',
@@ -281,7 +285,8 @@ sub tariff_list {
      id,
      fees_type,
      create_account,
-     ext_cmd
+     ext_cmd,
+     activate_notification
      FROM abon_tariffs
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
      $WHERE
@@ -609,7 +614,8 @@ sub periodic_list {
    if (at.alert > 0, \@fees_date, '0000-00-00'),
    at.alert_account,
    pi.email,
-   ul.notification1_account_id
+   ul.notification1_account_id,
+   at.activate_notification
   
    
   FROM (abon_tariffs at, abon_user_list ul, users u)

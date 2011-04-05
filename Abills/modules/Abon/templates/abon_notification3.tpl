@@ -1,0 +1,1 @@
+Service avtivation notification

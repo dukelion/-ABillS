@@ -8,4 +8,5 @@ $_DAYS_TO_END='Днів до кінця';
 $_ENDED='При закінченні';
 $_SEND_ACCOUNT='Вислати рахунок';
 $_EXT_CMD='Зовнішня обробка';
+$_SERVICE_ACTIVATE_NOTIFICATION='Повідомляти про продовження послуги';
 

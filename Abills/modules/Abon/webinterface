@@ -59,6 +59,8 @@ sub abon_user {
           $Abon->{TP_INFO}->{FEES_TYPE}        = $line->[8] || 1; 
           $Abon->{TP_INFO}->{CREATE_ACCOUNT}   = $line->[9]; 
           $ext_cmd                             = $line->[10]; 
+          $activate_notification               = $line->[11];
+
           my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[7]]" . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
                          METHOD   => $Abon->{TP_INFO}->{FEES_TYPE}  );
           
@@ -87,6 +89,13 @@ sub abon_user {
     	      $FORM{SEND_EMAIL}= 1;
     	      print "!!!!\n";
     	      docs_account({ QUITE => 1 });    	
+           }
+
+          if ($activate_notification) {
+         	  my $message = $html->tpl_show(_include('abon_notification3', 'Abon'), $Abon, { OUTPUT2RETURN => 1  });
+ 	          sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON", "$message", "$conf{MAIL_CHARSET}",
+         	   '',       	  
+         	    {  });
            }
 
           #$Abon->user_tariff_update({ UID   => "$users->{UID}", 
@@ -335,6 +344,7 @@ sub abon_tariffs {
    $Abon->{ALERT}         = ($Abon->{ALERT})  ? 'checked' : '';  
    $Abon->{ALERT_ACCOUNT} = ($Abon->{ALERT_ACCOUNT}) ? 'checked' : '';
    $Abon->{CREATE_ACCOUNT}= ($Abon->{CREATE_ACCOUNT}) ? 'checked' : ''; 
+   $Abon->{ACTIVATE_NOTIFICATION} = ($Abon->{ACTIVATE_NOTIFICATION}) ? 'checked' : ''; 
 
   $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);
 
@@ -354,7 +364,7 @@ foreach my $line (@$list) {
     $delete = $html->button($_DEL, "index=$index&del=$line->[7]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
    }
 
-  $table->addrow($html->button("$line->[0]", "index=$index&ABON_ID=$line->[6]"), 
+  $table->addrow($html->button("$line->[0]", "index=$index&ABON_ID=$line->[7]"), 
      "$line->[1]", 
      $PERIODS[$line->[2]], 
      $Payment_Types[$line->[3]], 
@@ -410,6 +420,7 @@ sub abon_periodic {
    my $email           = $line->[24]; 
    my $notification1_account_id = $line->[25]; 
    my $ext_cmd         = $line->[26]; 
+   my $activate_notification = $line->[27]; 
    
    if (defined($deposit)) {
   	
@@ -456,6 +467,13 @@ sub abon_periodic {
         	 my $cmd = $ext_cmd;
          	 $cmd .= " ACTION=ALERT UID=$user{UID} TP_ID=$tp_id COMMENTS=\"$comment\" SUM=$sum";
          	 $ret = system($cmd);
+          }
+
+         if ($activate_notification) {
+         	 my $message = $html->tpl_show(_include('abon_notification3', 'Abon'), $Abon, { OUTPUT2RETURN => 1  });
+ 	         sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON", "$message", "$conf{MAIL_CHARSET}",
+         	  '',       	  
+         	  {  });
           }
 
          $debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $create_account\n" if ($debug > 0);
