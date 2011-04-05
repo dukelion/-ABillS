@@ -19,6 +19,11 @@ sub abon_user {
  my ($attr) = @_;
 
  if ($FORM{change}) {
+    $FORM{QUICK}=1;
+  	require "Abills/modules/Docs/webinterface";
+
+    $users->pi({ UID => $users->{UID} });
+
     my @new_arr  = ();
     my @ids_arr  = split(/, /, $FORM{IDS});
     my %ids_hash = ();
@@ -53,7 +58,7 @@ sub abon_user {
           $Abon->{COMMENTS}                    = $FORM{'COMMENTS_'.$line->[7]}; 
           $Abon->{TP_INFO}->{FEES_TYPE}        = $line->[8] || 1; 
           $Abon->{TP_INFO}->{CREATE_ACCOUNT}   = $line->[9]; 
- 
+          $ext_cmd                             = $line->[10]; 
           my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[7]]" . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
                          METHOD   => $Abon->{TP_INFO}->{FEES_TYPE}  );
           
@@ -63,6 +68,25 @@ sub abon_user {
            }
           else {
             $fees->take($users, $Abon->{TP_INFO}->{MONTH_FEE}, { %PARAMS } ); 
+           }
+
+          if ($ext_cmd) {
+            my $cmd = $ext_cmd;
+        	  $cmd .= " ACTION=ALERT UID=$user{UID} TP_ID=$tp_id COMMENTS=\"$comment\" SUM=$sum";
+      	    $ret = system($cmd);
+           }
+
+          if($Abon->{TP_INFO}->{CREATE_ACCOUNT}) {
+          	$LIST_PARAMS{UID}= $users->{UID};
+          	$FORM{SUM}       = $Abon->{TP_INFO}->{MONTH_FEE};
+          	$FORM{UID}       = $users->{UID};
+   	        $FORM{create}    = 1;
+   	        $FORM{CUSTOMER}  = '-';
+   	        $FORM{ORDER}     = "$_ABON: [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME}";
+    	      $FORM{EMAIL}     = $users->{EMAIL};
+    	      $FORM{SEND_EMAIL}= 1;
+    	      print "!!!!\n";
+    	      docs_account({ QUITE => 1 });    	
            }
 
           #$Abon->user_tariff_update({ UID   => "$users->{UID}", 
@@ -185,7 +209,7 @@ sub abon_tariffs {
   my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
   
   if ($FORM{add}) {
-  	if ($FORM{SUM} < 0) {
+  	if (! $FORM{SUM} || $FORM{SUM} < 0) {
   		$html->message('err', $_ERROR, "$ERR_WRONG_SUM");	
   	 }
   	else {
@@ -375,6 +399,7 @@ sub abon_periodic {
  	 my $sum             = $line->[1];
  	 my $deposit         = $line->[7];
  	 my $tp_id           = $line->[10];
+ 	 my $comment         = $line->[12]; 
    my $fees_type       = $line->[17] || 1;
    my $create_account  = $line->[18];
    my $notification1   = $line->[19];
@@ -382,10 +407,10 @@ sub abon_periodic {
    my $notification_account = $line->[21];
    my $alert           = $line->[22];
    my $alert_account   = $line->[23];
-   my $email           = $line->[24];
-  
-  
-  
+   my $email           = $line->[24]; 
+   my $notification1_account_id = $line->[25]; 
+   my $ext_cmd         = $line->[26]; 
+   
    if (defined($deposit)) {
   	
   	print "$notification1 /   $notification2
@@ -423,8 +448,14 @@ sub abon_periodic {
    	       $FORM{ORDER}     = "$_ABON: [$tp_id] $line->[6]";
    	       $FORM{EMAIL}     = $email;
    	       $FORM{SEND_EMAIL}= 1;
-   	       print "!!!!\n";
+
    	       docs_account({ QUITE => 1 });    	
+          }
+
+         if ($ext_cmd) {
+        	 my $cmd = $ext_cmd;
+         	 $cmd .= " ACTION=ALERT UID=$user{UID} TP_ID=$tp_id COMMENTS=\"$comment\" SUM=$sum";
+         	 $ret = system($cmd);
           }
 
          $debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $create_account\n" if ($debug > 0);
@@ -488,14 +519,15 @@ sub abon_periodic {
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
        	  	             FILENAME     => 'account.pdf' }
 	  	                 ];
-    	 
-    	    $Abon->user_tariff_update({ UID   => "$user{UID}",
-    	    	                          NOTIFICATION => 1,
-        	                            DATE  => $ADMIN_REPORT{DATE}, 
-        	                            NOTIFICATION_ACCOUNT_ID => $FORM{ACCOUN_ID},
-         	                            TP_ID => "$line->[10]" 
-        	                           });
     	 }
+
+
+ 	    $Abon->user_tariff_update({ UID   => "$user{UID}",
+ 	    	                          NOTIFICATION => 1,
+     	                            DATE  => $ADMIN_REPORT{DATE}, 
+     	                            NOTIFICATION_ACCOUNT_ID => $FORM{ACCOUNT_ID},
+     	                            TP_ID => "$line->[10]" 
+    	                           });
     	
     	
  	    sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON", "$message", "$conf{MAIL_CHARSET}",
@@ -503,33 +535,39 @@ sub abon_periodic {
          	  { ATTACHMENTS => $attach });
      } 
     elsif ($notification2 eq $ADMIN_REPORT{DATE}) {
-    	$debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $create_account Notification 2\n" if ($debug > 0);
+    	$debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $notification1_account_id Notification 2\n" if ($debug > 0);
     	
     	my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), $Abon, { OUTPUT2RETURN => 1  });
     	my $attach;
-    	if ($notification_account ) {
-        	 $LIST_PARAMS{UID}= $user{UID};
-         	 $FORM{SUM}       = $sum;
-         	 $FORM{UID}       = $user{UID};
-   	       $FORM{create}    = 1;
-   	       $FORM{CUSTOMER}  = '-';
-   	       $FORM{ORDER}     = "$_ABON: [$line->[10]] $line->[6]";
-   	       $FORM{EMAIL}     = $email;
-   	       $FORM{SEND_EMAIL}= 1;
-   	       my $content = docs_account({ QUITE => 1 });
+    	if ($notification1_account_id) {
+   	     $FORM{print}            = $notification1_account_id;
+   	     $FORM{CHECK_PEYMENT_ID} = 1;
+   	     $FORM{pdf}              = $conf{DOCS_PDF_PRINT};
+      	  my $html_old = $html;
+          PDF::API2->import();
+          require Abills::PDF;
+          $html = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
+     	                               NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+     	                               CONF      => $CONF
+	                                   });
+
+
+   	     my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1  });
+   	     
+   	     if ($content) {
    	       $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
        	  	             FILENAME     => 'account.pdf' }
 	  	                 ];
-    	 
-    	    $Abon->user_tariff_update({ UID   => "$user{UID}",
-    	    	                          NOTIFICATION => 1,
-        	                            DATE  => $ADMIN_REPORT{DATE}, 
-        	                            NOTIFICATION_ACCOUNT_ID => $FORM{ACCOUN_ID},
-         	                            TP_ID => "$line->[10]" 
-        	                           });
+   	      }
+    	  $html=$html_old;
     	 }
-    	
+
+  	   $Abon->user_tariff_update({ UID   => "$user{UID}",
+    	    	                       NOTIFICATION => 2,
+        	                         DATE  => $ADMIN_REPORT{DATE}, 
+         	                         TP_ID => "$line->[10]" 
+        	                       });
     	
  	    sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
@@ -567,6 +605,12 @@ sub abon_periodic {
  	    sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
          	  { ATTACHMENTS => $attach });
+      
+      if ($ext_cmd) {
+      	my $cmd = $ext_cmd;
+      	$cmd .= " ACTION=ALERT UID=$user{UID} TP_ID=$tp_id COMMENTS=\"$comment\" SUM=$sum";
+      	$ret = system($cmd);
+       }
      }
    
    }

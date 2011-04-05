@@ -1307,10 +1307,10 @@ sub docs_account {
        else {
          if ($Docs->{COMPANY_ID}) {
          	 $Company->info($Docs->{COMPANY_ID});
-         	 docs_print('account_company', { %$Docs, %$Company });
+         	 docs_print('account_company', { %$Docs, %$Company, %$attr });
           }
          else {
-           docs_print('account', $Docs) if (! $FORM{QUICK});;
+           docs_print('account', { %$Docs, %$attr }) if (! $FORM{QUICK});;
           }
         }
 
@@ -1327,6 +1327,13 @@ sub docs_account {
    	 $Docs->{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f", $Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
    	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
     }
+  
+  
+   if ($FORM{CHECK_PEYMENT_ID} && $Docs->{PAYMENT_ID}) {
+   	  return 0;
+    }
+
+ 
 
    if ($Docs->{TOTAL} > 0) {
    	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
@@ -1361,7 +1368,7 @@ sub docs_account {
       }
 
      $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
-     
+
      if ($Docs->{COMPANY_ID}) {
        $Company->info($Docs->{COMPANY_ID});
        return docs_print('account_company', { %$Docs, %$Company, %$attr });
@@ -1371,7 +1378,7 @@ sub docs_account {
       }
     }
    else {
-     $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");	
+     $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}") if (! $FORM{QUICK});
     }
    return 0;
   }
@@ -1492,7 +1499,6 @@ sub docs_print {
   #print "// $attr->{ORDER_TOTAL_SUM_VAT_LIT} //";
 
   my $template = $type;
-
   #Make individual templates for paments methods
   if ($attr->{PAYMENT_METHOD_ID} && $FORM{pdf}) {
     my $new_template =  $template.'_'.$attr->{PAYMENT_METHOD_ID};
@@ -1503,7 +1509,6 @@ sub docs_print {
    }
 
   print $html->header() if ($FORM{qindex});
-
   if ($LIST_PARAMS{COMPANY_ID}) {
 
    }
@@ -1526,9 +1531,11 @@ sub docs_print {
 #    print "Content-Type: text/html\n\n";
    }
 
+
 	return $html->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
 	    { pdf           => $FORM{pdf},
-	    	OUTPUT2RETURN => $attr->{OUTPUT2RETURN} }), 
+	    	OUTPUT2RETURN => $attr->{OUTPUT2RETURN} 
+	    	}), 
 	    { %$users, %$attr  });
 }
 

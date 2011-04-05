@@ -7,3 +7,4 @@ $_NOTIFICATION='Notification days';
 $_DAYS_TO_END='Days to end';
 $_ENDED='Finished';
 $_SEND_ACCOUNT='Send account';
+$_EXT_CMD='Extrnal command';

@@ -27,6 +27,7 @@
 <tr><td> 3: $_ENDED:</td><td><input type=checkbox name=ALERT value='1' %ALERT% size=6> $_SEND_ACCOUNT: <input type=checkbox name=ALERT_ACCOUNT value='1' %ALERT_ACCOUNT% size=6></td></tr>
 
 
+<tr><td>$_EXT_CMD:</td><td><input type=text size=60 name=EXT_CMD value='%EXT_CMD%'></td></tr>
 <!-- <tr><td>$_DATE:</td><td></td></tr> -->
 </table>
 

@@ -97,7 +97,8 @@ sub tariff_info {
    notification2,
    notification_account,
    alert,
-   alert_account
+   alert_account,
+   ext_cmd
    
      FROM abon_tariffs
    $WHERE;");
@@ -123,7 +124,8 @@ sub tariff_info {
    $self->{NOTIFICATION2},
    $self->{NOTIFICATION_ACCOUNT},
    $self->{ALERT},
-   $self->{ALERT_ACCOUNT}
+   $self->{ALERT_ACCOUNT},
+   $self->{EXT_CMD}
   )= @{ $self->{list}->[0] };
   
 
@@ -168,7 +170,8 @@ sub tariff_add {
   notification1,
   notification2,
   notification_account,
-  alert_account)
+  alert_account,
+  ext_cmd)
         VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}', '$DATA{PAYMENT_TYPE}', '$DATA{PERIOD_ALIGNMENT}',
         '$DATA{NONFIX_PERIOD}', '$DATA{EXT_BILL_ACCOUNT}',
         '$DATA{PRIORITY}', '$DATA{CREATE_ACCOUNT}',
@@ -176,7 +179,8 @@ sub tariff_add {
         '$DATA{NOTIFICATION1}', 
         '$DATA{NOTIFICATION2}', 
         '$DATA{NOTIFICATION_ACCOUNT}', 
-        '$DATA{ALERT_ACCOUNT}');", 'do');
+        '$DATA{ALERT_ACCOUNT}',
+        '$DATA{EXT_CMD}');", 'do');
 
   return $self if ($self->{errno});
   $admin->system_action_add("ABON_ID:$DATA{ID}", { TYPE => 1 });    
@@ -208,7 +212,8 @@ sub tariff_change {
               NOTIFICATION2    => 'notification2',
               NOTIFICATION_ACCOUNT => 'notification_account',
               ALERT            => 'alert',
-              ALERT_ACCOUNT    => 'alert_account'
+              ALERT_ACCOUNT    => 'alert_account',
+              EXT_CMD          => 'ext_cmd'
              );
 
 
@@ -275,7 +280,8 @@ sub tariff_list {
      count(ul.uid),
      id,
      fees_type,
-     create_account
+     create_account,
+     ext_cmd
      FROM abon_tariffs
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
      $WHERE
@@ -602,7 +608,8 @@ sub periodic_list {
    at.notification_account,
    if (at.alert > 0, \@fees_date, '0000-00-00'),
    at.alert_account,
-   pi.email
+   pi.email,
+   ul.notification1_account_id
   
    
   FROM (abon_tariffs at, abon_user_list ul, users u)

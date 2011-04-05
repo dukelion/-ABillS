@@ -1,26 +1,30 @@
 =====0.53=====
 
 
-04.04.2011
+04.04.2011\\
+  * Добавлен внешний обработчик для модуля Abon. Разрешает запускать внешние программы при активации или блокировании услуги.
   * Комиссия за использование карточки оплаты
   * Добавлена плотность подключения в журнал адресов
   * Добавлен экспорт в XML журналов платежей и снятий 
-  * Список адресов с которых разрешено подключаться администратору $conf{ADMINS_ALLOW_IP}='';
+  * Список адресов с которых разрешено подключаться администратору $conf{ADMINS_ALLOW_IP};
   * Создание счёта при активации услуги модулем Abon (периодические платежи)
   * Периодическое оповещение о завершении услуги и отправка счёта на оплату для модуля Abon
   * Установка типа снятий для модуля Abon
-
 MySQL:\\
+  ALTER TABLE abon_tariffs ADD COLUMN  `ext_cmd` VARCHAR(240) NOT NULL DEFAULT '';
+  ALTER TABLE abon_tariffs ADD COLUMN `create_account` tinyint(1) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN `fees_type` tinyint(2) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN `notification1` tinyint(1) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN `notification2` tinyint(1) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN `notification_account` tinyint(1) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN `alert` tinyint(1) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN `alert_account` tinyint(1) unsigned NOT NULL DEFAULT '0';
-
+  
   ALTER TABLE abon_user_list ADD COLUMN `notification1` date NOT NULL default '0000-00-00';
   ALTER TABLE abon_user_list ADD COLUMN `notification1_account_id` int(11) unsigned NOT NULL DEFAULT 0;
   ALTER TABLE abon_user_list ADD COLUMN `notification2` date NOT NULL default '0000-00-00';
+
+
 
 
 25.03.2011\\
