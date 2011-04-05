@@ -7137,8 +7137,9 @@ print $table->show();
 $table = $html->table( { width      => '640',
                          cols_align => ['right', 'right'],
                          rows       => [ [ "$_TOTAL:", "$_STREETS: ". $html->b($users->{TOTAL}), 
-                                                        "$_BUILDS: ". $html->b($users->{TOTAL_BUILDS}),
-                                                        "$_USERS: ".$html->b($users->{TOTAL_USERS}) 
+                                                       "$_BUILDS: ". $html->b($users->{TOTAL_BUILDS}),
+                                                       "$_USERS: ".$html->b($users->{TOTAL_USERS}),
+                                                       "$_DENSITY_OF_CONNECTIONS: " .  $html->b($users->{DENSITY_OF_CONNECTIONS})
                                         ] ]
                      } );
 print $table->show();

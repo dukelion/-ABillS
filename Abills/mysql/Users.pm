@@ -1979,7 +1979,7 @@ sub street_list {
  	 $EXT_TABLE = 'LEFT JOIN users_pi pi ON (b.id=pi.location_id)';
    $EXT_FIELDS = ', count(pi.uid)';
    $EXT_TABLE_TOTAL  = 'LEFT JOIN builds b ON (b.street_id=s.id) LEFT JOIN users_pi pi ON (b.id=pi.location_id)';
-   $EXT_FIELDS_TOTAL = ', count(DISTINCT b.id), count(pi.uid)';
+   $EXT_FIELDS_TOTAL = ', count(DISTINCT b.id), count(pi.uid), sum(b.flats) / count(pi.uid)';
 
   }
 
@@ -1995,11 +1995,12 @@ sub street_list {
  my $list = $self->{list};
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*) $EXT_FIELDS_TOTAL FROM streets s 
+    $self->query($db, "SELECT count(DISTINCT s.id) $EXT_FIELDS_TOTAL FROM streets s 
      $EXT_TABLE_TOTAL  $WHERE");
     ($self->{TOTAL},
      $self->{TOTAL_BUILDS},
      $self->{TOTAL_USERS},
+     $self->{DENSITY_OF_CONNECTIONS}
     ) = @{ $self->{list}->[0] };
    }
 
@@ -2228,7 +2229,7 @@ sub build_change {
  $self->changes($admin, { CHANGE_PARAM => 'ID',
 		               TABLE        => 'builds',
 		               FIELDS       => \%FIELDS,
-		               OLD_INFO     => $self->street_info({ ID => $id }),
+		               OLD_INFO     => $self->build_info({ ID => $id }),
 		               DATA         => $attr
 		              } );
 

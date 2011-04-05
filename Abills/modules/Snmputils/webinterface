@@ -872,6 +872,8 @@ sub snmputils_edgecore_save_conf {
 
   my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
 
+$SNMP_COMMUNITY .=':161:2:1';
+
 
 my @snmp_cmd  = ();
 if ($attr->{VERSION} =~ /3528/) {
@@ -1175,6 +1177,9 @@ sub snmputils_dlink_save_conf {
 
   my $SNMP_COMMUNITY = $attr->{SNMP_COMMUNITY} || '';
 	my $sw_info   = $attr->{SWITCH_INFO} || snmputils_dlink_pb_version({ SNMP_COMMUNITY => $SNMP_COMMUNITY });
+
+
+$SNMP_COMMUNITY .=':161:2:1';
 	
 	#Save config
 	my $oid = '1.3.6.1.4.1.171.12.1.2.6.0';

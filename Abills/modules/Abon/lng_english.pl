@@ -6,3 +6,4 @@ $_NONFIX_PERIOD='NonFixed Periods';
 $_NOTIFICATION='Notification days';
 $_DAYS_TO_END='Days to end';
 $_ENDED='Finished';
+$_SEND_ACCOUNT='Send account';
