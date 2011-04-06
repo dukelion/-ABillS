@@ -1120,6 +1120,8 @@ sub dv_rating_user {
   	$Bonus_rating->{UP_RATING}=100;
    }
 
+  $Bonus_rating->{ONE_PERCENT_SUM}=$Bonus_rating->{ONE_PERCENT_SUM} * $Bonus_rating->{ONE_PERCENT_COUNT};
+
   $html->tpl_show(_include('dv_user_rating', 'Dv'), $Bonus_rating); 	
 }
 
