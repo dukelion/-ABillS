@@ -305,7 +305,7 @@ sub accounts_list {
 
  if ($SORT == 1) {
  	 $SORT = "2 DESC, 1";
-         $DESC = "$DESC";
+         $DESC = "DESC";
  }
 
  if($attr->{CUSTOMER}) {
