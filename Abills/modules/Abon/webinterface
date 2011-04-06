@@ -53,6 +53,7 @@ sub abon_user {
         if(($users->{CREDIT} + $users->{DEPOSIT}) > $line->[1] || $line->[3]) {
         	$Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->[5] || 0;
         	$Abon->{TP_INFO}->{MONTH_FEE}        = $line->[1];
+
           $Abon->{TP_INFO}->{TP_ID}            = $line->[7];
           $Abon->{TP_INFO}->{NAME}             = $line->[0]; 
           $Abon->{COMMENTS}                    = $FORM{'COMMENTS_'.$line->[7]}; 
@@ -60,6 +61,13 @@ sub abon_user {
           $Abon->{TP_INFO}->{CREATE_ACCOUNT}   = $line->[9]; 
           $ext_cmd                             = $line->[10]; 
           $activate_notification               = $line->[11];
+
+
+          if ($FORM{'DATE_'.$Abon->{TP_INFO}->{TP_ID}}) {
+          	$FORM{'PERIOD_'.$Abon->{TP_INFO}->{TP_ID}} = $line->[2];
+            push @add_arr, $line->[7];
+            next;
+           }
 
           my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[7]]" . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
                          METHOD   => $Abon->{TP_INFO}->{FEES_TYPE}  );
@@ -87,7 +95,6 @@ sub abon_user {
    	        $FORM{ORDER}     = "$_ABON: [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME}";
     	      $FORM{EMAIL}     = $users->{EMAIL};
     	      $FORM{SEND_EMAIL}= 1;
-    	      print "!!!!\n";
     	      docs_account({ QUITE => 1 });    	
            }
 
@@ -143,7 +150,8 @@ foreach my $line (@$list) {
      "$line->[3]", 
      $PERIODS[$line->[4]], 
      "$line->[5]",
-     "$line->[6]"
+     ($line->[6]) ? "$line->[6]" : $html->date_fld2('DATE_'.$line->[0], { FORM_NAME => 'ABON_USER_TPS', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => '0000-00-00' })
+     
    );
  }
 
@@ -151,6 +159,7 @@ print $html->form_main({ CONTENT => $table->show(),
 	                 HIDDEN  => { index  => "$index", 
 	                 	            UID    => $FORM{UID}  
 	                 	            },
+	                 NAME    => 'ABON_USER_TPS',
 	                 SUBMIT  => { change => "$_CHANGE" } 
 	                });
 }
@@ -216,7 +225,7 @@ sub abon_tariffs {
   $Abon->{ACTION}='add';
   $Abon->{ACTION_LNG}=$_ADD;
   my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
-  
+    
   if ($FORM{add}) {
   	if (! $FORM{SUM} || $FORM{SUM} < 0) {
   		$html->message('err', $_ERROR, "$ERR_WRONG_SUM");	
@@ -249,7 +258,7 @@ sub abon_tariffs {
     my %F_ARGS = ( ABON_ID => $Abon );
     $Abon->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('ABON_ID', 
                                           { 
- 	                                          SELECTED  => $FORM{ABON_ID},
+ 	                                          SELECTED          => $FORM{ABON_ID},
  	                                          SEL_MULTI_ARRAY   => $Abon->tariff_list(),
  	                                          MULTI_ARRAY_KEY   => 5,
  	                                          MULTI_ARRAY_VALUE => 0,
@@ -331,6 +340,7 @@ sub abon_tariffs {
   else {
 	  $Abon->{EXT_BILL_ACCOUNT}='';
    }
+
 
   push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
   $Abon->{FEES_TYPES_SEL} =  $html->form_select('FEES_TYPE', 

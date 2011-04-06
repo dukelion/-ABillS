@@ -462,7 +462,7 @@ else {
       $admin->action_add($DATA{UID}, "", { TYPE => 8 });
      }
 
-    if ($CHANGES_LOG ne '' && $CHANGES_LOG ne $attr->{EXT_CHANGE_INFO}.' ') {
+    if ($CHANGES_LOG ne '' && ($attr->{EXT_CHANGE_INFO} && $CHANGES_LOG ne $attr->{EXT_CHANGE_INFO}.' ')) {
       $admin->action_add($DATA{UID}, "$CHANGES_LOG", { TYPE => 2});
      }
 

@@ -1,6 +1,6 @@
 var marked_row = new Array;
-//var confirmMsg  = 'Do you really want delete';
-var confirmMsg  = '';
+var confirmMsg = ''; // 'Do you really want delete';
+var confirmMsg = '';
 
 /**
  * Displays an confirmation box beforme to submit a "DROP/DELETE/ALTER" query.

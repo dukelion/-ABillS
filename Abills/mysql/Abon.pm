@@ -209,7 +209,7 @@ sub tariff_change {
               EXT_BILL_ACCOUNT => 'ext_bill_account',
               PRIORITY         => 'priority',
               CREATE_ACCOUNT   => 'create_account',
-              FEEs_TYPE        => 'fees_type',
+              FEES_TYPE        => 'fees_type',
               NOTIFICATION1    => 'notification1',
               NOTIFICATION2    => 'notification2',
               NOTIFICATION_ACCOUNT => 'notification_account',
@@ -220,7 +220,7 @@ sub tariff_change {
              );
 
 
-  $attr->{CREATE_ACCOUNT}       = 0 if (! $attr->{CREATE_ACCOUNT}); 
+  $attr->{CREATE_ACCOUNT}  = 0 if (! $attr->{CREATE_ACCOUNT}); 
   $attr->{FEES_TYPE}       = 0 if (! $attr->{FEES_TYPE}); 
   $attr->{NOTIFICATION_ACCOUNT}= 0 if (! $attr->{NOTIFICATION_ACCOUNT});
   $attr->{ALERT}           = 0 if (! $attr->{ALERT});  
@@ -466,8 +466,30 @@ sub user_tariff_change {
  my @tp_array = split(/, /, $attr->{IDS});
  my $abon_log = "";
  
+
  foreach my $tp_id (@tp_array) {
-   $self->query($db, "INSERT INTO abon_user_list (uid, tp_id, comments, date) VALUES ('$attr->{UID}', '$tp_id', '". $attr->{'COMMENTS_'. $tp_id} ."', curdate());", 'do');
+ 	 my $date = '';
+ 	 
+ 	 
+ 	 if ($attr->{'DATE_'.$tp_id} && $attr->{'DATE_'.$tp_id} ne '0000-00-00')  {
+ 	   $date = "
+      if (".$attr->{'PERIOD_'.$tp_id} ." = 0, '". $attr->{'DATE_'.$tp_id} ."' -  INTERVAL 1 DAY, 
+       if (".$attr->{'PERIOD_'.$tp_id} ." = 1, '". $attr->{'DATE_'.$tp_id} ."' - INTERVAL 1 MONTH, 
+         if (".$attr->{'PERIOD_'.$tp_id} ." = 2, '". $attr->{'DATE_'.$tp_id} ."' - INTERVAL 3 MONTH, 
+           if (".$attr->{'PERIOD_'.$tp_id} ." = 3, '". $attr->{'DATE_'.$tp_id} ."' - INTERVAL 6 MONTH, 
+             if (".$attr->{'PERIOD_'.$tp_id} ." = 4, '". $attr->{'DATE_'.$tp_id} ."' - INTERVAL 1 YEAR, 
+               curdate()
+              )
+            )
+          )
+        )
+       )";
+ 	  }
+   else {
+   	  $date = 'curdate()';
+    }
+ 	 
+   $self->query($db, "INSERT INTO abon_user_list (uid, tp_id, comments, date) VALUES ('$attr->{UID}', '$tp_id', '". $attr->{'COMMENTS_'. $tp_id} ."', $date);", 'do');
    $abon_log.="$tp_id, ";
   }
 
