@@ -476,7 +476,7 @@ sub abon_periodic {
          	  {  });
           }
 
-         $debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $create_account\n" if ($debug > 0);
+         $debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $create_account ". (($create_account) ? "SEND_EMAIL: $email" : '') ."\n" if ($debug > 0);
        }
 
 
