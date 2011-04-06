@@ -545,7 +545,8 @@ else {
 }
 
 if (! $FORM{sort}) {
-  $LIST_PARAMS{SORT}='2 DESC, 1 DESC';
+  $LIST_PARAMS{SORT}='10';
+  $LIST_PARAMS{DESC}='DESC';
 }
 
 if ($FORM{print_list}) {

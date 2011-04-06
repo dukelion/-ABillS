@@ -528,7 +528,7 @@ sub user_tariff_update {
    $self->query($db, "UPDATE abon_user_list SET date=$DATE, 
      notification1='0000-00-00',
      notification1_account_id='0',
-     notification3='0000-00-00'
+     notification2='0000-00-00'
      WHERE uid='$attr->{UID}' and tp_id='$attr->{TP_ID}';", 'do');
   }
 

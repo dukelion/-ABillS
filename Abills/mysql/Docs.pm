@@ -304,7 +304,8 @@ sub accounts_list {
  @WHERE_RULES = ("d.id=o.acct_id");
 
  if ($SORT == 1) {
- 	 $SORT = "2 $DESC, 1 "
+ 	 $SORT = "10";
+         $DESC = "$DESC";
  }
 
  if($attr->{CUSTOMER}) {
