@@ -542,7 +542,7 @@ sub user_tariff_update {
 #**********************************************************
 sub periodic_list {
   my $self = shift;
-  my ($period, $attr) = @_;
+  my ($attr) = @_;
   
 
  @WHERE_RULES = ();
