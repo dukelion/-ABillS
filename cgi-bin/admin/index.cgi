@@ -4851,7 +4851,7 @@ if (defined($attr->{USER})) {
 $payments->{SEL_ER}=$html->form_select('ER', 
                                 { 
  	                                SELECTED          => undef,
- 	                                SEL_MULTI_ARRAY   => $payments->exchange_list(),
+ 	                                SEL_MULTI_ARRAY   => [ ['', '', '', '', ''], @{ $payments->exchange_list() } ],
  	                                MULTI_ARRAY_KEY   => 4,
  	                                MULTI_ARRAY_VALUE => '1,2',
  	                                NO_ID             => 1
@@ -5200,7 +5200,7 @@ if ($attr->{USER}) {
     $fees->{SEL_ER}=$html->form_select('ER', 
                                 { 
  	                                SELECTED          => undef,
- 	                                SEL_MULTI_ARRAY   => $fees->exchange_list(),
+ 	                                SEL_MULTI_ARRAY   => [ ['', '', '', '', ''], @{ $fees->exchange_list() }],
  	                                MULTI_ARRAY_KEY   => 4,
  	                                MULTI_ARRAY_VALUE => '1,2',
  	                                NO_ID             => 1

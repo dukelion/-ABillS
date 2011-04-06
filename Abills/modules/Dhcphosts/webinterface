@@ -553,7 +553,7 @@ sub dhcphosts_hosts {
   my $nas_list =  $Nas->list();
   if (! $FORM{UID}) {
  	  $Dhcphosts->{STATUS_SEL} = $html->form_select('STATUS',
-			                                   {   SELECTED => $FORM{STATUS},
+			                                   {   SELECTED => $FORM{STATUS} || 0,
 		                                         SEL_HASH => { 0   => "Not Set",
                                                            -1  => $_DISABLE,
                                                            1   => "$_ENABLE" } 
