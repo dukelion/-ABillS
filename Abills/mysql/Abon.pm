@@ -547,13 +547,11 @@ sub periodic_list {
 
  @WHERE_RULES = ();
  if ($attr->{LOGIN}) {
- 	 my @logins_arr = split(/,/, $attr->{LOGIN});
- 	 my $logins = "'" . join("', '", @logins_arr) ."'";
- 	 push @WHERE_RULES, "u.id IN ($logins)";
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'INT', 'u.id')  };
   }
 
  if ($attr->{TP_ID}) {
- 	 push @WHERE_RULES, "ul.tp_id IN (attr->{TP_ID})";
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'ul.tp_id')  };
   }
 
  if (defined($attr->{DELETED})) {
