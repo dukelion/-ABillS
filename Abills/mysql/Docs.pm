@@ -304,7 +304,7 @@ sub accounts_list {
  @WHERE_RULES = ("d.id=o.acct_id");
 
  if ($SORT == 1) {
- 	 $SORT = "10";
+ 	 $SORT = "2 DESC, 1";
          $DESC = "$DESC";
  }
 
@@ -382,7 +382,7 @@ sub accounts_list {
     LEFT JOIN companies c ON (u.company_id=c.id)
     LEFT JOIN payments p ON (d.payment_id=p.id)
     $WHERE
-    GROUP BY d.acct_id 
+    GROUP BY d.id 
     ORDER BY $SORT $DESC
     LIMIT $PG, $PAGE_ROWS;");
 
