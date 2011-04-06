@@ -1058,7 +1058,7 @@ if ($self->{TOTAL} > 0) {
      $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
     
      $self->query($db, "SELECT count(DISTINCT u.uid) FROM users u 
-       LEFT JOIN fees f ON (u.uid = p.uid)
+       LEFT JOIN fees f ON (u.uid = f.uid)
        LEFT JOIN users_pi pi ON (u.uid = pi.uid)
        LEFT JOIN bills b ON (u.bill_id = b.id)
       $WHERE;");
