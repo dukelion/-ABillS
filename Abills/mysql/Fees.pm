@@ -102,19 +102,21 @@ sub take {
     	 }
 
       if ($CONF->{FEES_PRIORITY}=~/main/ && $user->{EXT_BILL_DEPOSIT} < $sum) {
-      	$Bill->action('take', $user->{EXT_BILL_ID}, $user->{EXT_BILL_DEPOSIT});
-        if($Bill->{errno}) {
-          $self->{errno}  = $Bill->{errno};
-          $self->{errstr} =  $Bill->{errstr};
-          return $self;
-         }
+      	if( $user->{EXT_BILL_DEPOSIT} > 0) {
+      	  $Bill->action('take', $user->{EXT_BILL_ID}, $user->{EXT_BILL_DEPOSIT});
+          if($Bill->{errno}) {
+            $self->{errno}  = $Bill->{errno};
+            $self->{errstr} =  $Bill->{errstr};
+            return $self;
+           }
 
-        $self->{SUM}=$self->{EXT_BILL_DEPOSIT};
-        $self->query($db, "INSERT INTO fees (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, vat, inner_describe, method) 
-           values ('$user->{UID}', '$user->{EXT_BILL_ID}', $DATE, '$self->{SUM}', '$DESCRIBE', 
-            INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}',
-            '$user->{COMPANY_VAT}', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do');
-        $sum = $sum - $user->{EXT_BILL_DEPOSIT};
+          $self->{SUM}=$self->{EXT_BILL_DEPOSIT};
+          $self->query($db, "INSERT INTO fees (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, vat, inner_describe, method) 
+             values ('$user->{UID}', '$user->{EXT_BILL_ID}', $DATE, '$self->{SUM}', '$DESCRIBE', 
+              INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}',
+              '$user->{COMPANY_VAT}', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do');
+          $sum = $sum - $user->{EXT_BILL_DEPOSIT};
+        }
        }
       else {
         $user->{BILL_ID} = $user->{EXT_BILL_ID};	
@@ -144,8 +146,7 @@ sub take {
      }
    }
 
-
-  
+ 
 
   if ($user->{BILL_ID} && $user->{BILL_ID} > 0) {
     $Bill->info( { BILL_ID => $user->{BILL_ID} } );

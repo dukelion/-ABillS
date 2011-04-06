@@ -424,8 +424,8 @@ sub abon_periodic {
    
    if (defined($deposit)) {
   	
-  	print "$notification1 /   $notification2
-   ";
+  #	print "$notification1 /   $notification2
+  # ";
   	
      my %user = (
        UID     => $line->[2],

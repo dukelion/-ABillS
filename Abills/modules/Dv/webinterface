@@ -1050,7 +1050,6 @@ sub dv_rating_periodic {
    return 0;
   } 	
 
-
  my %LIST_PARAMS = (PAGE_ROWS => 1000000);
  $LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
@@ -1076,6 +1075,53 @@ sub dv_rating_periodic {
   $DEBUG .= $debug_output;
   return $debug_output;
 } 
+
+
+#*******************************************************************
+#
+#*******************************************************************
+sub dv_rating_user {
+	
+	 eval { require Bonus_rating; };
+ if (! $@) {
+   Bonus_rating->import();
+  }
+ else {
+   print "Can't load 'Bonus_rating'. Purchase this module http://abills.net.ua";
+   return 0;
+  } 	
+ my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
+	
+
+ 	$Bonus_rating->users_rating_info({ UID => $LIST_PARAMS{UID} });
+
+	if ($FORM{UP_RATING}) {
+    my $need_percents = int(($FORM{UP_RATING} - $Bonus_rating->{RATING_PER}));
+    my $need_sum = $percents * $Bonus_rating->{ONE_PERCENT_SUM};
+
+    if ($users->{CREDIT} + $users->{DEPOSIT} < $need_sum) {
+    	$html->message('err', $_ERROR,  "$ERR_SMALL_DEPOSIT");
+     }
+    else {
+    	for(my $i=0; $i<$need_percents * $Bonus_rating->{ONE_PERCENT_COUNT}; $i++) {
+    		$fees->take($users, $Bonus_rating->{ONE_PERCENT_SUM}, { DESCRIBE => "$_RATING_UP" } );
+    		
+    	 }
+    	$Bonus_rating->{RATING_PER}=$FORM{UP_RATING}; 
+    	$html->message('info', $_INFO,  "$_UP_RATING $FORM{UP_RATING}");		
+     }
+    
+    
+	 }
+
+  $Bonus_rating->{UP_RATING} = int(($users->{CREDIT} + $users->{DEPOSIT})  / $Bonus_rating->{ONE_PERCENT_SUM}) + $Bonus_rating->{RATING_PER};
+  
+  if ($Bonus_rating->{UP_RATING} > 100) {
+  	$Bonus_rating->{UP_RATING}=100;
+   }
+
+  $html->tpl_show(_include('dv_user_rating', 'Dv'), $Bonus_rating); 	
+}
 
 #*******************************************************************
 # online users
