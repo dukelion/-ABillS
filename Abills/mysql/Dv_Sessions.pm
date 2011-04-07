@@ -909,9 +909,9 @@ WHERE
 
  	 #Get using traffic
    $self->query($db, "select  
-     if($rest{0} * $traffic_transfert > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0} * $traffic_transfert - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
-     if($rest{1} * $traffic_transfert > sum($octets_direction2) / $CONF->{MB_SIZE}, $rest{1} * $traffic_transfert - sum($octets_direction2) / $CONF->{MB_SIZE}, 0),
-     1
+     if($rest{0}  > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0}  - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
+     if($rest{1}  > sum($octets_direction2) / $CONF->{MB_SIZE}, $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, 0),
+     DATE_FORMAT(start, '%Y-%m')
    FROM dv_log
    WHERE $uid  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
     (  $WHERE
@@ -920,12 +920,20 @@ WHERE
    ;");
 
   if ($self->{TOTAL} > 0) {
+    my $in  = 0;
+    my $out = 0;
 
-    my ($in,
-        $out
-       ) =  @{ $self->{list}->[0] };
-    $rest{0} += $in;
-    $rest{1} += $out;
+    foreach my $line (@{$self->{list}}) {
+      $in       += $line->[0];
+      $out      += $line->[1];
+     }	
+    
+
+#    my ($in,
+#        $out
+#       ) =  @{ $self->{list}->[0] };
+    $rest{0} = $in;
+    $rest{1} = $out;
 
     $self->{INFO_LIST}->[0]->[4] += $in;
     $self->{INFO_LIST}->[0]->[4] += $out;
