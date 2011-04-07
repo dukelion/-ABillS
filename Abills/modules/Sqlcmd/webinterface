@@ -1105,11 +1105,13 @@ if ($FORM{SYNC}) {
                                                   $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_USER'}, 
                                                   $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_PASSWD'},
   { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
+
   my $db_slave = $sql->{db};
-  my $query   = ($id>0) ? "SHOW SLAVE STATUS;" : "SHOW MASTER STATUS;";
-  my $q       = $db_slave->do("stop slave; load data from master; start slave;");
+  my $query    = ($id>0) ? "SHOW SLAVE STATUS;" : "SHOW MASTER STATUS;";
+  my $q        = $db_slave->do("stop slave; load data from master; start slave;");
+
   if ($db_slave->err) {
-    $html->message('err', $_ERROR.' : '. $id .' : '. $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, "$_ERROR: ". $db_slave->err .'/'. $db_slave->errstr);      
+    $html->message('err', $_ERROR.' : DB ID '. $FORM{SYNC} .' : '. $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_HOSTNAME'}, "$_ERROR: ". $db_slave->err .'/'. $db_slave->errstr);      
    }
   else {
     $html->message('info', $_INFO.' : '. $FORM{SYNC} .' : '. $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_HOSTNAME'}, "Rebuilding...");
@@ -1127,7 +1129,7 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
                              });
 
     if ($id && ! $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}) {
-    	$html->message('err', $_ERROR.' : '. $id .' : '. $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, "$_ERROR: $_NOT_EXIST"); 
+    	$html->message('err', $_ERROR.' : BD INFO '. $id .' : '. $host .' / '. $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, "$_ERROR: $_NOT_EXIST"); 
     	$id++;
     	next     
      }
