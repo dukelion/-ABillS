@@ -1094,9 +1094,9 @@ sub sqlcmd_cluster {
 	my(@cluster_hosts) = split(/,/, $conf{SQLCMD_CLUSTER_HOSTS});
 
  
-my $id  = 0;
+my $id          = 0;
 my $active_host = $FORM{HOST_ID} || 0;
-my $ret = 1;
+my $ret         = 1;
 
 my @servers = ();
 if ($FORM{SYNC}) {
@@ -1107,21 +1107,27 @@ if ($FORM{SYNC}) {
   { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
 
   my $db_slave = $sql->{db};
-  my $query    = ($id>0) ? "SHOW SLAVE STATUS;" : "SHOW MASTER STATUS;";
-  my $q        = $db_slave->do("stop slave; load data from master; start slave;");
+  #my $query    = ($id>0) ? "SHOW SLAVE STATUS;" : "SHOW MASTER STATUS;";
+  my @resync_sql = ("stop slave;",  "load data from master;",  "start slave;"); 
+  
+  foreach my $sql_cmd () {
+    my $q        = $db_slave->do($sql_cmd);
 
-  if ($db_slave->err) {
-    $html->message('err', $_ERROR.' : DB ID '. $FORM{SYNC} .' : '. $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_HOSTNAME'}, "$_ERROR: ". $db_slave->err .'/'. $db_slave->errstr);      
+    if ($db_slave->err) {
+      $html->message('err', $_ERROR.' : DB ID '. $FORM{SYNC} .' : '. $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_HOSTNAME'}, "$_ERROR: ". $db_slave->err .'/'. $db_slave->errstr.' / '. $resync_sql);      
+     }
+    else {
+      $html->message('info', $_INFO.' : '. $FORM{SYNC} .' : '. $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_HOSTNAME'}, "Rebuilding...");
+     }
    }
-  else {
-    $html->message('info', $_INFO.' : '. $FORM{SYNC} .' : '. $conf{'SQLCMD_HOST'. $FORM{SYNC} .'_HOSTNAME'}, "Rebuilding...");
-   }
+
   return 0;
  }
 
 foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
     #$Sqlcmd_main = Sqlcmd->new($db, $admin, \%conf);
     my $sql;
+    my $db_host = '';
     my $table = $html->table({ width       => '100%',
     	                         caption     => "$id:$host / " . $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'},
     	                         title       => [ 'key', 'val' ],
@@ -1135,19 +1141,21 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
      }
     elsif ($id == 0) {
       $sql = Abills::SQL->connect($conf{dbtype}, $conf{'dbhost'}, 
-                                                  $conf{'dbname'}, 
-                                                  $conf{'dbuser'}, 
-                                                  $conf{'dbpasswd'},
+                                                 $conf{'dbname'}, 
+                                                 $conf{'dbuser'}, 
+                                                 $conf{'dbpasswd'},
       { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
+      $db_host = $conf{'dbhost'};
      }
     else {
       $sql = Abills::SQL->connect($conf{dbtype}, $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, 
-                                                  $conf{'SQLCMD_HOST'. $id .'_DB'}, 
-                                                  $conf{'SQLCMD_HOST'. $id .'_USER'}, 
-                                                  $conf{'SQLCMD_HOST'. $id .'_PASSWD'},
+                                                 $conf{'SQLCMD_HOST'. $id .'_DB'}, 
+                                                 $conf{'SQLCMD_HOST'. $id .'_USER'}, 
+                                                 $conf{'SQLCMD_HOST'. $id .'_PASSWD'},
       { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
       
       $table->addrow($html->button('RESYNC', "index=$index&SYNC=$id", { BUTTON => 1 }), '-');
+      $db_host = $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'};
      }
 
     if (! $sql->{db}) {
@@ -1164,7 +1172,7 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
     $q->execute(); 
     
     if ($db_slave->err) {
-      $html->message('err', $_ERROR.' : '. $id .' : '. $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, "$_ERROR: ". $db_slave->err .'/'. $db_slave->errstr);      
+      $html->message('err', $_ERROR.' : '. DB_ID: $id .' : '. $db_host .' / '. $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, "$_ERROR: ". $db_slave->err .'/'. $db_slave->errstr);      
      }
     $Sqlcmd->{MYSQL_FIELDS_NAMES} = $q->{NAME};
     
