@@ -1110,7 +1110,7 @@ if ($FORM{SYNC}) {
   #my $query    = ($id>0) ? "SHOW SLAVE STATUS;" : "SHOW MASTER STATUS;";
   my @resync_sql = ("stop slave;",  "load data from master;",  "start slave;"); 
   
-  foreach my $sql_cmd () {
+  foreach my $sql_cmd (@resync_sql) {
     my $q        = $db_slave->do($sql_cmd);
 
     if ($db_slave->err) {
