@@ -1172,7 +1172,7 @@ foreach my $host ( ("$_MAIN",  @cluster_hosts) ) {
     $q->execute(); 
     
     if ($db_slave->err) {
-      $html->message('err', $_ERROR.' : '. DB_ID: $id .' : '. $db_host .' / '. $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, "$_ERROR: ". $db_slave->err .'/'. $db_slave->errstr);      
+      $html->message('err', $_ERROR.' : DB_ID: '. $id .' : '. $db_host .' / '. $conf{'SQLCMD_HOST'. $id .'_HOSTNAME'}, "$_ERROR: ". $db_slave->err .'/'. $db_slave->errstr);      
      }
     $Sqlcmd->{MYSQL_FIELDS_NAMES} = $q->{NAME};
     
