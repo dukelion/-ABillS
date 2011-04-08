@@ -857,15 +857,18 @@ WHERE
  	  return 0;
   }
 
- $self->{INFO_LIST}=$self->{list};
- my $login = $self->{INFO_LIST}->[0]->[5];
+ $self->{INFO_LIST}    = $self->{list};
+ my $login             = $self->{INFO_LIST}->[0]->[5];
  my $traffic_transfert = $self->{INFO_LIST}->[0]->[10];
-
- my %rest = (0 => 0,
-             1 => 0 );
  
- foreach my $line (@{ $self->{list} } ) {
-   $rest{$line->[0]} = $line->[4];
+ my %prepaid_traffic = (0 => 0,
+                        1 => 0 );
+
+ my %rest            = (0 => 0,
+                        1 => 0 );
+ 
+ foreach my $line ( @{ $self->{list} } ) {
+   $prepaid_traffic{$line->[0]} = $line->[4];
   }
 
  return 1 if ($attr->{INFO_ONLY});
@@ -909,8 +912,8 @@ WHERE
 
  	 #Get using traffic
    $self->query($db, "select  
-     if($rest{0}  > sum($octets_direction) / $CONF->{MB_SIZE}, $rest{0}  - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
-     if($rest{1}  > sum($octets_direction2) / $CONF->{MB_SIZE}, $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, 0),
+     if($prepaid_traffic{0}  > sum($octets_direction) / $CONF->{MB_SIZE}, $prepaid_traffic{0}  - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
+     if($prepaid_traffic{1}  > sum($octets_direction2) / $CONF->{MB_SIZE}, $prepaid_traffic{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, 0),
      DATE_FORMAT(start, '%Y-%m')
    FROM dv_log
    WHERE $uid  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
@@ -928,15 +931,13 @@ WHERE
       $out      += $line->[1];
      }	
     
-
-#    my ($in,
-#        $out
-#       ) =  @{ $self->{list}->[0] };
     $rest{0} = $in;
     $rest{1} = $out;
 
-    $self->{INFO_LIST}->[0]->[4] += $in;
-    $self->{INFO_LIST}->[0]->[4] += $out;
+    $self->{INFO_LIST}->[0]->[4] += $prepaid_traffic{0};
+    if ($prepaid_traffic{1}) {
+      $self->{INFO_LIST}->[1]->[4] += $prepaid_traffic{1};
+     }
    }
  }
  
