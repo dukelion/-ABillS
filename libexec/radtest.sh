@@ -26,6 +26,7 @@ echo `pwd -P`;
 #**********************************************************
 test_isg {
 
+#Test user account
 #User-Name = "123.123.244.194"
 #        User-Password = "ISG"
 #        Framed-IP-Address = 123.123.244.194
@@ -37,6 +38,17 @@ test_isg {
 #        Service-Type = Dialout-Framed-User
 #        NAS-IP-Address = 172.16.32.117
 #        Acct-Session-Id = "C345F40100004D69"
+
+# test service activations
+#         User-Name = "TP_100"
+#        User-Password = "cisco"
+#        NAS-Port-Type = Virtual
+#        Cisco-NAS-Port = "0/0/1/40"
+#        NAS-Port = 0
+#        NAS-Port-Id = "0/0/1/40"
+#        Service-Type = Outbound-User
+#        NAS-IP-Address = 62.212.235.187
+#        Acct-Session-Id = "3ED4EBBB0000324C"
 	
 	 ${RAUTH} \
 	

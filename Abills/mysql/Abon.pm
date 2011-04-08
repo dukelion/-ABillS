@@ -41,9 +41,6 @@ sub new {
     $self->del({ UID => $CONF->{DELETE_USER} });
    }
 
-  
-  
-  
   return $self;
 }
 
@@ -635,6 +632,7 @@ sub periodic_list {
    at.alert_account,
    pi.email,
    ul.notification1_account_id,
+   at.ext_cmd,
    at.activate_notification
   
    

@@ -1322,19 +1322,18 @@ sub docs_account {
   }
  elsif($FORM{print}){
    $Docs->account_info($FORM{print}, { UID => $LIST_PARAMS{UID} });
-   
+
    if ($conf{DOCS_VAT_INCLUDE}) {
    	 $Docs->{ORDER_TOTAL_SUM_VAT}  = sprintf("%.2f", $Docs->{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
    	 $Docs->{TOTAL_SUM_WITHOUT_VAT}= sprintf("%.2f", $Docs->{TOTAL_SUM} - $Docs->{ORDER_TOTAL_SUM_VAT});
    	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
     }
-  
-  
+
+
+
    if ($FORM{CHECK_PEYMENT_ID} && $Docs->{PAYMENT_ID}) {
    	  return 0;
-    }
-
- 
+    } 
 
    if ($Docs->{TOTAL} > 0) {
    	 ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
@@ -1494,10 +1493,6 @@ sub docs_print {
      LOCALE           => $conf{LOCALE}
   	  });
    }
-
-
-  #print "Content-Type: text/html\n\n";
-  #print "// $attr->{ORDER_TOTAL_SUM_VAT_LIT} //";
 
   my $template = $type;
   #Make individual templates for paments methods

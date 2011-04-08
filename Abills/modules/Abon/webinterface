@@ -417,9 +417,11 @@ sub abon_periodic {
 
  foreach my $line (@$list) {
  	 my $sum             = $line->[1];
+ 	 my $uid             = $line->[2];
  	 my $deposit         = $line->[7];
  	 my $tp_id           = $line->[10];
  	 my $comment         = $line->[12]; 
+ 	 my $abon_date       = $line->[13];
    my $fees_type       = $line->[17] || 1;
    my $create_account  = $line->[18];
    my $notification1   = $line->[19];
@@ -432,13 +434,17 @@ sub abon_periodic {
    my $ext_cmd         = $line->[26]; 
    my $activate_notification = $line->[27]; 
    
+   if ($debug > 5) {
+   	   $debug_output .= "UID: $uid TP_ID: $tp_id SUM: $sum DEPOSIT: $deposit  NOT1: $notification1 NOT2: $notification2 ABON: $abon_date\n";
+    }
+   
    if (defined($deposit)) {
   	
   #	print "$notification1 /   $notification2
   # ";
-  	
+  	 
      my %user = (
-       UID     => $line->[2],
+       UID     => $uid,
        BILL_ID => ($line->[14]) ? $line->[15] : $line->[3]
       );
 
@@ -451,9 +457,11 @@ sub abon_periodic {
     $PARAMS{DESCRIBE} = "$_ABON: $line->[6]. $line->[12]" if ($line->[12]);
     if($line->[8] && ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
      	#Get day fee
-     	$line->[13] = $ADMIN_REPORT{DATE} if (! $line->[13] && $line->[0] == 1 && $d == 1);
+     	$abon_date = $ADMIN_REPORT{DATE} if (! $abon_date && $line->[0] == 1 && $d == 1);
 
-    	if ($ADMIN_REPORT{DATE} eq $line->[13]) {
+    	if ($ADMIN_REPORT{DATE} eq $abon_date) {
+    		 print "$tp_id, $uid, $sum\n";
+    		 
          $fees->take(\%user, $sum, { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$line->[2]", 
          	                           DATE  => $ADMIN_REPORT{DATE}, 
@@ -470,7 +478,11 @@ sub abon_periodic {
    	       $FORM{EMAIL}     = $email;
    	       $FORM{SEND_EMAIL}= 1;
 
-   	       docs_account({ QUITE => 1 });    	
+   	       docs_account({ QUITE => 1 });
+   	       
+   	       use locale;
+           use POSIX qw(locale_h); # Imports setlocale() and the LC_ constants.
+           setlocale(LC_NUMERIC, "")    	
           }
 
          if ($ext_cmd) {
@@ -486,7 +498,7 @@ sub abon_periodic {
          	  {  });
           }
 
-         $debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $create_account ". (($create_account) ? "SEND_EMAIL: $email" : '') ."\n" if ($debug > 0);
+         $debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: ". (($create_account) ? "ACcOUNT SEND_EMAIL: $email" : '') .(($activate_notification) ? "NOTIFICATION: $email" : '') ."\n" if ($debug > 0);
        }
 
 
@@ -531,7 +543,7 @@ sub abon_periodic {
     elsif ($notification1 eq $ADMIN_REPORT{DATE}) {
     	my $message = $html->tpl_show(_include('abon_notification1', 'Abon'), $Abon, { OUTPUT2RETURN => 1  });
     	my $attach;
-    	$debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $create_account Notification 1\n" if ($debug > 0);
+    	$debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $create_account Notification 1 EMAIL: $email\n" if ($debug > 0);
     	
     	if ($notification_account ) {
         	 $LIST_PARAMS{UID}= $user{UID};
@@ -563,7 +575,7 @@ sub abon_periodic {
          	  { ATTACHMENTS => $attach });
      } 
     elsif ($notification2 eq $ADMIN_REPORT{DATE}) {
-    	$debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $notification1_account_id Notification 2\n" if ($debug > 0);
+    	$debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: $notification1_account_id Notification 2 EMAIL: $email\n" if ($debug > 0);
     	
     	my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), $Abon, { OUTPUT2RETURN => 1  });
     	my $attach;
@@ -602,7 +614,7 @@ sub abon_periodic {
          	  { ATTACHMENTS => $attach });
      }
     elsif ($alert eq $ADMIN_REPORT{DATE}) {
-    	$debug_output .= "$user{UID} SUM: TP_ID: $tp_id $sum ACCOUNT: $create_account Alert\n" if ($debug > 0);
+    	$debug_output .= "$user{UID} SUM: TP_ID: $tp_id $sum ACCOUNT: $create_account Alert EMAIL: $email\n" if ($debug > 0);
     	
     	my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), $Abon, { OUTPUT2RETURN => 1  });
     	my $attach;

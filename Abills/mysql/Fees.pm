@@ -75,9 +75,9 @@ sub take {
   my ($user, $sum, $attr) = @_;
   
   %DATA = $self->get_data($attr, { default => defaults() });
-  my $DESCRIBE = ($attr->{DESCRIBE}) ? $attr->{DESCRIBE} : '';
-  my $DATE  =  ($attr->{DATE}) ? "'$attr->{DATE}'" : 'now()';
-  $DATA{INNER_DESCRIBE} = '' if (! $DATA{INNER_DESCRIBE}) ;
+  my $DATE              =  ($attr->{DATE}) ? "'$attr->{DATE}'" : 'now()';
+  my $DESCRIBE          = ($DATA{DESCRIBE}) ? $DATA{DESCRIBE} : '';
+  $DATA{INNER_DESCRIBE} = '' if (! $DATA{INNER_DESCRIBE});
   
   if ($sum <= 0) {
      $self->{errno} = 12;
@@ -90,6 +90,7 @@ sub take {
      return $self;
    }
 
+ 
   $sum = sprintf("%.6f", $sum);
   
   if ($attr->{BILL_ID}) {
@@ -106,7 +107,7 @@ sub take {
       	  $Bill->action('take', $user->{EXT_BILL_ID}, $user->{EXT_BILL_DEPOSIT});
           if($Bill->{errno}) {
             $self->{errno}  = $Bill->{errno};
-            $self->{errstr} =  $Bill->{errstr};
+            $self->{errstr} = $Bill->{errstr};
             return $self;
            }
 

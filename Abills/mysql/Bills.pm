@@ -79,7 +79,7 @@ sub action {
 	my $self = shift;
 	my ($type, $BILL_ID, $SUM, $attr) = @_;
   my $value = '';
-  
+
   if ($SUM == 0) {
   	$self->{errstr}='Wrong sum 0';
   	return $self;
