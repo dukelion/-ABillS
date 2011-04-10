@@ -869,6 +869,7 @@ WHERE
  
  foreach my $line ( @{ $self->{list} } ) {
    $prepaid_traffic{$line->[0]} = $line->[4];
+   $rest{$line->[0]} = $line->[4];
   }
 
  return 1 if ($attr->{INFO_ONLY});
@@ -923,7 +924,7 @@ WHERE
    ;");
 
   if ($self->{TOTAL} > 0) {
-    my ($class1, class2)  = (0, 0);
+    my ($class1, $class2)  = (0, 0);
 
     foreach my $line (@{$self->{list}}) {
       $class1      += $line->[0] ;

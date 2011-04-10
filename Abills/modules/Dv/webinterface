@@ -3578,11 +3578,14 @@ sub dv_user_info {
     	return 0;
      }
  	
-  	#get  PBHK identifier (IP or MAC) from NAS and account info
-    my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | /usr/local/bin/radclient -x $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}";
-    my $result = `$isg_cmd`;
-
 =comments
+
+  	#get  PBHK identifier (IP or MAC) from NAS and account info
+    #my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=account-status-query\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\"\" | #/usr/local/bin/radclient -x $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}";
+    #my $result = `$isg_cmd`;
+
+
+
 redirect service:
         Cisco-Account-Info=N1SERVICE_406_L4R;12;;0;0;0;0,
         Cisco-Account-Info=N1PBHK_SERVICE;12;;0;0;0;0,
@@ -3625,9 +3628,9 @@ pROFILRE
         NAS-Port = 33555320
         NAS-Port-Id = "nas-port:0.0.0.0:0/0/2/888"
         Framed-IP-Address = 79.124.99.40
+        
 
-=cut
-  	my @arr = split(/\n/, $result);
+	my @arr = split(/\n/, $result);
   	my %RAD_PAIRS = ();
   	foreach my $line (@arr) {
         my($key, $val)=split(/ = /, $line);
@@ -3653,26 +3656,81 @@ pROFILRE
   	      $Dv->{ISG_SESSION_DURATION}=$2;
   	     }
   	 }
+=cut
 
+
+  #Get Active session info  
+  my %RAD_PAIRS = ();
+  my $type;
+  my $r = new Radius(Host   => "$Nas->{NAS_MNG_IP_PORT}",
+                     Secret => "$Nas->{NAS_MNG_PASSWORD}") or return "Can't connect '$Nas->{NAS_MNG_IP_PORT}' $!";
+  $conf{'dictionary'}=$base_dir.'/Abills/dictionary' if (! $conf{'dictionary'});
+  $r->load_dictionary($conf{'dictionary'});
+  $r->add_attributes ({ Name => 'User-Name', Value => "$user->{LOGIN}" }) ;
+  $r->add_attributes ({ Name => 'Cisco-Account-Info',  Value => "S$user->{REMOTE_ADDR}" });
+  $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:command=account-status-query"});
+  $r->send_packet (43) and $type = $r->recv_packet;
+
+
+  if( ! defined $type ) {
+    # No responce from POD server
+    $html->message('err', $_ERROR,  "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / ". $r->get_error());
+   }
+   
+  for my $a ($r->get_attributes) {
+    #print "<br>attr: name=$a->{'Name'} value=$a->{'Value'}\n";
+    if ($a->{'Value'}=~/\$MA(\S+)/) {
+    	$Dv->{ISG_CID_CUR}=$1;
+     }
+    elsif ($a->{'Value'} =~ /^S(\S+)/) {
+    	$Dv->{ISG_CID_CUR}=$1;
+     }
+    elsif ($a->{'Value'} =~ /^N1TURBO_SPEED(\d+);(\d+)/) {
+      $Dv->{TURBO_MODE_RUN}=$2;
+     }
+  	elsif ($a->{'Value'} =~ /^N1(TP_\d+);(\d+)/) {
+  	  $Dv->{CURE_SERVICE}=$1;
+  	  $Dv->{ISG_SESSION_DURATION}=$2;
+  	 }
+    $RAD_PAIRS{$a->{'Name'}}=$a->{'Value'};
+   }  
+
+# name=Cisco-Account-Info value=N1TP_100;3541;test;8657;8149;1781505;2915555
+# name=User-Name value=test
+# name=Cisco-Command-Code value=1
+# name=Cisco-Account-Info value=S85.132.11.5
+# name=Cisco-AVPair value=sg-version=1.0
+# name=Cisco-NAS-Port value=0/0/1/40
+# name=NAS-Port value=0
+# name=NAS-Port-Id value=0/0/1/40
+# name=Framed-IP-Address value=85.132.11.5 Content-Type: text/html
 	
-	  #$Dv->{ISG_CID_CUR} = '192.168.0.1';
-	  #
+	  # If ISG return error push error to log
  	  if ($RAD_PAIRS{'Error-Cause'}) {
- 	  	$html->message('err', $_ERROR, "NAS: $NAS_ID, $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}", { ID => 100 });
+ 	  	my $message = "NAS: $NAS_ID, $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}";
+ 	  	$html->message('err', $_ERROR, $message, { ID => 100 });
+ 	  	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
+                     ACTION   => 'AUTH', 
+                     USER_NAME=> $user->{LOGIN} || '-',
+                     MESSAGE  => "$message",
+                     DB       => 1
+                    });
+ 	  	
       return 0;
  	   }
-    elsif(! $Dv->{ISG_CID_CUR}) {
-    	$html->message('err', $_ERROR, "$_NOT_EXIST ID: '$user->{REMOTE_ADDR}' ", { ID =>  11 });
+    else {
+      if(! $Dv->{ISG_CID_CUR}) {
+    	  $html->message('err', $_ERROR, "$_NOT_EXIST ID: '$user->{REMOTE_ADDR}' ", { ID =>  11 });
+       }
+      elsif ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
+    	  $DHCP_INFO = dv_dhcp_get_mac($Dv->{ISG_CID_CUR});
+    	  $Dv->{ISG_CID_CUR} = $DHCP_INFO{MAC} || '';
+    	  if ($Dv->{ISG_CID_CUR} eq '') {
+    		  $html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC $_NOT_EXIST. DHCP $_ERROR ", { ID => 12 });
+          return 0; 
+    	   }
+       }
      }
-    elsif ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
-    	$DHCP_INFO = dv_dhcp_get_mac($Dv->{ISG_CID_CUR});
-    	$Dv->{ISG_CID_CUR} = $DHCP_INFO{MAC} || '';
-    	if ($Dv->{ISG_CID_CUR} eq '') {
-    		$html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC $_NOT_EXIST. DHCP $_ERROR ", { ID => 12 });
-        return 0; 
-    	 }
-     }
-
 
  if ($Dv->{ISG_CID_CUR}) {
    #change speed (active turbo mode)
@@ -3681,27 +3739,55 @@ pROFILRE
            my $service_name = 'TURBO_SPEED'. $FORM{SPEED};
            #Deactive cure service (TP Service)
            if ($Dv->{CURE_SERVICE} =~ /TP/) {
-             my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=deactivate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$Dv->{CURE_SERVICE}\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}";
-             print "<!-- $isg_cmd -->";
-             my $result = `$isg_cmd`;
+             #Old way ===========
+             #my $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=deactivate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$Dv->{CURE_SERVICE}\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}";
+             #print "<!-- $isg_cmd -->";
+             #my $result = `$isg_cmd`;
+             #END Old way ===========
+
+             # Deactivate cur service
+             $r->clear_attributes();
+             $r->add_attributes ({ Name => 'User-Name', Value => "$user->{LOGIN}" }) ;
+             $r->add_attributes ({ Name => 'Cisco-Account-Info',  Value => "S$user->{REMOTE_ADDR}" });
+             $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:subscriber:command=deactivate-service"});
+             $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:service-name=$Dv->{CURE_SERVICE}"});
+             $r->send_packet (43) and $type = $r->recv_packet;
             }
 
            #Active service (TURBO mode)
-           $isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=activate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$service_name\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}";
-     
+           # Old way
+           #$isg_cmd = "/bin/echo \"User-Name=\\\"$user->{LOGIN}\\\",cisco-avpair=\\\"subscriber:command=activate-service\\\",cisco-avpair+=\\\"subscriber:service-name=$service_name\\\",Cisco-Account-Info=\\\"S$user->{REMOTE_ADDR}\\\",  \" | /usr/local/bin/radclient -x $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}";
            #print "<!-- $isg_cmd -->"; 
-           my $result = `$isg_cmd`;
-           $result = `/bin/echo \`date \"+ %Y-%m-%d %H:%M:%S\"\` \"$user->{LOGIN} $service_name \" >> /usr/abills/var/log/turbo.log`;
+           #my $result = `$isg_cmd`;
+           #$result = `/bin/echo \`date \"+ %Y-%m-%d %H:%M:%S\"\` \"$user->{LOGIN} $service_name \" >> /usr/abills/var/log/turbo.log`;
+           #  my @arr = split(/\n/, $result);
+  	       #  my %RAD_PAIRS = ();
+  	       #   	       foreach my $line (@arr) {
+           #  my($key, $val)=split(/ = /, $line);
+           #  $val =~ s/\"//g;
+           #  $key =~ s/\t//g;
+           #  $key =~ s/ //g;        
+           #  $RAD_PAIRS{$key}=$val;
+           #  #MAC as ID
+           #  if ($val =~ /\$MA(\S+)/) {
+      	   #     $Dv->{ISG_CID_CUR}=$1;
+      	   #   }
+  	       #  #IP user ID
+  	       #  elsif ($val =~ /S(\S+)/) {
+  	    	 #    $Dv->{ISG_CID_CUR}=$1;
+  	       #   }
+  	       # }
 
-           my @arr = split(/\n/, $result);
-  	       my %RAD_PAIRS = ();
+           $r->clear_attributes();
+           $r->add_attributes ({ Name => 'User-Name', Value => "$user->{LOGIN}" }) ;
+           $r->add_attributes ({ Name => 'Cisco-Account-Info',  Value => "S$user->{REMOTE_ADDR}" });
+           $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:command=activate-service"});
+           $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:service-name=$service_name"});
+           $r->send_packet (43) and $type = $r->recv_packet;
 
-  	       foreach my $line (@arr) {
-             my($key, $val)=split(/ = /, $line);
-             $val =~ s/\"//g;
-             $key =~ s/\t//g;
-             $key =~ s/ //g;        
-             $RAD_PAIRS{$key}=$val;
+           %RAD_PAIRS = ();
+           for my $a ($r->get_attributes) {
+             #print "<br>attr: name=$a->{'Name'} value=$a->{'Value'}\n";
              #MAC as ID
              if ($val =~ /\$MA(\S+)/) {
       	        $Dv->{ISG_CID_CUR}=$1;
@@ -3710,13 +3796,27 @@ pROFILRE
   	         elsif ($val =~ /S(\S+)/) {
   	    	     $Dv->{ISG_CID_CUR}=$1;
   	          }
-  	        }
+             $RAD_PAIRS{$a->{'Name'}}=$a->{'Value'};
+            }  
 	  
 	     	  if ($RAD_PAIRS{'Error-Cause'}) {
- 	        	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}", { ID => 101 });
+ 	        	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}", { ID => 101 }); 	        	
+     	 	  	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
+                     ACTION   => 'AUTH', 
+                     USER_NAME=> $user->{LOGIN} || '-',
+                     MESSAGE  => "Service Enable IP: $user->{REMOTE_ADDR} '$service_name' Error: $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}",
+                     DB       => 1
+                    });
  	         }
           else {
       	    $html->message('info', $_INFO, "TURBO $_ENABLE");
+ 	     	  	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
+                     ACTION   => 'AUTH', 
+                     USER_NAME=> $user->{LOGIN} || '-',
+                     MESSAGE  => "Service Enable '$service_name' IP: $user->{REMOTE_ADDR}",
+                     DB       => 1
+                    });
+
             return 0;
            }
        }
@@ -3754,16 +3854,101 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   	  	dv_get_month_fee($Dv) if (! $Dv->{STATUS});
   	   }
   	  else {
-  	  	if ($Dv->{ISG_CID_CUR}) {
-  	  	  my $res = `/bin/echo "User-Name=\"$user->{LOGIN}\",cisco-avpair=\"subscriber:commandmy=account-logon\",Cisco-Account-Info=\"S$user->{REMOTE_ADDR}\"" | /usr/local/bin/radclient -x  $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}`;
-         }
+  	  	#if ($Dv->{ISG_CID_CUR}) {
+  	  	#  my $res = `/bin/echo "User-Name=\"$user->{LOGIN}\",cisco-avpair=\"subscriber:commandmy=account-logon\",Cisco-Account-Info=\"S$user->{REMOTE_ADDR}\"" | /usr/local/bin/radclient -x  $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}`;
+        # }
+
+        $r->clear_attributes();
+        $r->add_attributes ({ Name => 'User-Name', Value => "$user->{LOGIN}" }) ;
+        $r->add_attributes ({ Name => 'Cisco-Account-Info',  Value => "S$user->{REMOTE_ADDR}" });
+        $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:commandmy=account-logon"});
+        $r->send_packet (43) and $type = $r->recv_packet;
+
+        %RAD_PAIRS = ();
+        for my $a ($r->get_attributes) {
+           #print "<br>attr: name=$a->{'Name'} value=$a->{'Value'}\n";
+           #MAC as ID
+           if ($val =~ /\$MA(\S+)/) {
+      	      $Dv->{ISG_CID_CUR}=$1;
+      	    }
+  	       #IP user ID
+  	       elsif ($val =~ /S(\S+)/) {
+  	         $Dv->{ISG_CID_CUR}=$1;
+  	        }
+           $RAD_PAIRS{$a->{'Name'}}=$a->{'Value'};
+          }  
+	  
+	      if ($RAD_PAIRS{'Error-Cause'}) {
+ 	        	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}", { ID => 101 }); 	        	
+     	 	  	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
+                     ACTION   => 'AUTH', 
+                     USER_NAME=> $user->{LOGIN} || '-',
+                     MESSAGE  => "Logon Error: $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}",
+                     DB       => 1
+                    });
+ 	         }
+          else {
+      	    $html->message('info', $_INFO, "TURBO $_ENABLE");
+ 	     	  	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
+                     ACTION   => 'AUTH', 
+                     USER_NAME=> $user->{LOGIN} || '-',
+                     MESSAGE  => "Logon",
+                     DB       => 1
+                    });
+
+            return 0;
+           }
 
   	  	$html->message('err', $_ACTIVATE, "$_ERROR CID: $Dv->{ISG_CID_CUR}", { ID => 102 });
   	   }
    }
   elsif ($FORM{logon}) {
-  	my $res = `/bin/echo "User-Name=\"$user->{LOGIN}\",cisco-avpair=\"subscriber:commandmy=account-logon\",Cisco-Account-Info=\"S$user->{REMOTE_ADDR}\"" | /usr/local/bin/radclient -x  $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}`;
-  	$html->message('info', $_INFO, "$_LOGON");
+  	#my $res = `/bin/echo "User-Name=\"$user->{LOGIN}\",cisco-avpair=\"subscriber:commandmy=account-logon\",Cisco-Account-Info=\"S$user->{REMOTE_ADDR}\"" | /usr/local/bin/radclient -x  $Nas->{NAS_MNG_IP_PORT} coa $Nas->{NAS_MNG_PASSWORD}`;
+
+        $r->clear_attributes();
+        $r->add_attributes ({ Name => 'User-Name', Value => "$user->{LOGIN}" }) ;
+        $r->add_attributes ({ Name => 'Cisco-Account-Info',  Value => "S$user->{REMOTE_ADDR}" });
+        $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:commandmy=account-logon"});
+        $r->send_packet (43) and $type = $r->recv_packet;
+
+        %RAD_PAIRS = ();
+        for my $a ($r->get_attributes) {
+           #print "<br>attr: name=$a->{'Name'} value=$a->{'Value'}\n";
+           #MAC as ID
+           if ($val =~ /\$MA(\S+)/) {
+      	      $Dv->{ISG_CID_CUR}=$1;
+      	    }
+  	       #IP user ID
+  	       elsif ($val =~ /S(\S+)/) {
+  	         $Dv->{ISG_CID_CUR}=$1;
+  	        }
+           $RAD_PAIRS{$a->{'Name'}}=$a->{'Value'};
+          }  
+	  
+	      if ($RAD_PAIRS{'Error-Cause'}) {
+ 	        	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}", { ID => 101 }); 	        	
+     	 	  	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
+                     ACTION   => 'AUTH', 
+                     USER_NAME=> $user->{LOGIN} || '-',
+                     MESSAGE  => "Logon IP: $user->{REMOTE_ADDR} Error: $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}",
+                     DB       => 1
+                    });
+ 	         
+ 	          $html->message('err', $_ACTIVATE, "$_ERROR IP: $user->{REMOTE_ADDR}", { ID => 105 });
+ 	         }
+          else {
+      	    $html->message('info', $_INFO, "TURBO $_ENABLE");
+ 	     	  	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
+                     ACTION   => 'AUTH', 
+                     USER_NAME=> $user->{LOGIN} || '-',
+                     MESSAGE  => "Logon IP: $user->{REMOTE_ADDR}",
+                     DB       => 1
+                    });
+            $html->message('info', $_INFO, "$_LOGON");
+            return 0;
+           }
+
+  	
    }
   elsif ($FORM{discovery}) {  
     if(dv_dhcp_get_mac_add($user->{REMOTE_ADDR}, $DHCP_INFO)) {
