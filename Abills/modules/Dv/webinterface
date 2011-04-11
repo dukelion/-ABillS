@@ -3550,7 +3550,7 @@ sub cisco_isg_cmd {
   if (! $Nas->{NAS_ID}) {
     my $list = $Nas->nas_ip_pools_list();
     foreach my $line (@$list) {
-      if ($line->[3] <= ip2int($user->{REMOTE_ADDR}) && ip2int($user->{REMOTE_ADDR}) <= $line->[4]) {
+      if ($line->[3] <= ip2int($user_ip) && ip2int($user_ip) <= $line->[4]) {
     	  $Nas->info({ NAS_ID => $line->[0] });
     	  next;
        }
@@ -3582,8 +3582,8 @@ if ($command eq 'account-status-query') {
   $r->send_packet (43) and $type = $r->recv_packet;
 
   if( ! defined $type ) {
-    # No responce from POD server
-    $html->message('err', $_ERROR,  "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / ". $r->get_error());
+    $html->message('err', $_ERROR,  "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / ". $r->get_error(), { ID => 106 });
+    return 0;
    }
    
   for my $a ($r->get_attributes) {
@@ -3628,13 +3628,13 @@ if ($command eq 'account-status-query') {
    }
   else {
     if(! $Dv->{ISG_CID_CUR}) {
-  	  $html->message('err', $_ERROR, "$_NOT_EXIST ID: '$user->{REMOTE_ADDR}' ", { ID =>  11 });
+  	  $html->message('err', $_ERROR, "$_NOT_EXIST ID: '$user_ip' ", { ID =>  11 });
      }
     elsif ($Dv->{ISG_CID_CUR} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {
   	  $DHCP_INFO = dv_dhcp_get_mac($Dv->{ISG_CID_CUR});
   	  $Dv->{ISG_CID_CUR} = $DHCP_INFO->{MAC} || '';
   	  if ($Dv->{ISG_CID_CUR} eq '') {
-  		  $html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC $_NOT_EXIST. DHCP $_ERROR ", { ID => 12 });
+  		  $html->message('err', $_ERROR, "IP: '$user_ip', MAC $_NOT_EXIST. DHCP $_ERROR ", { ID => 12 });
         return 0; 
   	   }
      }
@@ -3645,11 +3645,21 @@ elsif ($command eq 'deactivate-service') {
   $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:subscriber:command=deactivate-service"});
   $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:service-name=$attr->{CURE_SERVICE}"});
   $r->send_packet (43) and $type = $r->recv_packet;
+  
+  if( ! defined $type ) {
+    $html->message('err', $_ERROR,  "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / ". $r->get_error(), { ID => 106 });
+    return 0;
+   }
 }
 elsif ($command eq 'activate-service') {
   $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:command=activate-service"});
   $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:service-name=$attr->{SERVICE_NAME}"});
   $r->send_packet (43) and $type = $r->recv_packet;
+
+  if( ! defined $type ) {
+    $html->message('err', $_ERROR,  "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / ". $r->get_error(), { ID => 106 });
+    return 0;
+   }
 
   for my $a ($r->get_attributes) {
      #print "<br>attr: name=$a->{'Name'} value=$a->{'Value'}\n";
@@ -3669,7 +3679,7 @@ elsif ($command eq 'activate-service') {
    	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
                    ACTION   => 'AUTH', 
                    USER_NAME=> $attr->{USER_NAME} || '-',
-                   MESSAGE  => "Service Enable IP: $user->{REMOTE_ADDR} '$service_name' Error: $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}",
+                   MESSAGE  => "Service Enable IP: $user_ip '$service_name' Error: $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}",
                    DB       => 1
                  });
  	 }
@@ -3678,7 +3688,7 @@ elsif ($command eq 'activate-service') {
  		$Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
                    ACTION   => 'AUTH', 
                    USER_NAME=> $attr->{USER_NAME} || '-',
-                   MESSAGE  => "Service Enable '$service_name' IP: $user->{REMOTE_ADDR}",
+                   MESSAGE  => "Service Enable '$service_name' IP: $user_ip",
                    DB       => 1
                  });
     return 0;
@@ -3687,6 +3697,11 @@ elsif ($command eq 'activate-service') {
 elsif ($command eq 'account-logon') {
   $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:commandmy=account-logon"});
   $r->send_packet (43) and $type = $r->recv_packet;
+
+  if( ! defined $type ) {
+    $html->message('err', $_ERROR,  "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / ". $r->get_error(), { ID => 106 });
+    return 0;
+   }
 
   for my $a ($r->get_attributes) {
     #MAC as ID
@@ -3710,10 +3725,10 @@ elsif ($command eq 'account-logon') {
                     });
  	 }
   else {
-    $html->message('info', $_INFO, "TURBO $_ENABLE");
+    $html->message('info', $_INFO, "$_LOGON");
  	 	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
                    ACTION   => 'AUTH', 
-                   USER_NAME=> $user->{USER_NAME} || '-',
+                   USER_NAME=> $attr->{USER_NAME} || '-',
                    MESSAGE  => "Logon",
                    DB       => 1
                  });
