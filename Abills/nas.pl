@@ -1107,7 +1107,8 @@ sub setspeed_pppd_coa {
 
   if( ! defined $type ) {
     # No responce from CoA server
-    log_print('LOG_DEBUG', "No responce from CoA server '$NAS->{NAS_MNG_IP_PORT}'");
+    #log_print('LOG_DEBUG', 
+    print "No responce from CoA server '$NAS->{NAS_MNG_IP_PORT}'";
     return 1;
    }
   
