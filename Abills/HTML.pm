@@ -805,7 +805,7 @@ sub table {
  $self->{table} = "<TABLE $width cellspacing=\"0\" cellpadding=\"0\" border=\"0\"$table_class>\n";
  #Table Caption
  if (defined($attr->{caption})) {
-   $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\" class=\"tcaption\"><b>$attr->{caption}</b></td></TR>\n";
+   $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\" class=\"tcaption\" colspan=\"2\"><b>$attr->{caption}</b></td></TR>\n";
   }
 
  my @header_obj = ();
@@ -813,7 +813,8 @@ sub table {
  #Export object
  if ($attr->{EXPORT} && ! $FORM{EXPORT_CONTENT}) {
  	 my($export_name, $params)=split(/:/, $attr->{EXPORT}, 2);
- 	 push @header_obj, $self->button("<b>$export_name</b>", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { BUTTON => 1, ex_params => 'target=_export' });
+ 	 $self->{EXPORT_OBJ} = $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { BUTTON => 1, ex_params => 'target=_export' });
+ 	 push @header_obj, $self->{EXPORT_OBJ};
   }
 
  if (defined($attr->{VIEW})) {
@@ -825,15 +826,15 @@ sub table {
   }
 
  if ($#header_obj > -1) {
- 	  $self->{table} .= "<tr><td bgcolor=\"$_COLORS[1]\"><div id=\"rules\"><ul><li class=\"center\">";
-    foreach my $obj (@header_obj) {
-       $self->{table} .= $obj. '&nbsp;&nbsp;&nbsp;';   
-     }
-    $self->{table} .= "</li></ul></div></td></tr>\n";
+ 	  $self->{table} .= "<tr><td valign=bottom>$self->{EXPORT_OBJ}</td><td><div id=\"rules\"><ul><li class=\"center\">";
+    #foreach my $obj (@header_obj) {
+    #   $self->{table} .= $obj. '&nbsp;&nbsp;&nbsp;';   
+    # }
+    $self->{table} .= "$attr->{header}</li></ul></div></td></tr>\n";
   } 
 
 
- $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[4]\">
+ $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[4]\" colspan=\"2\">
                <TABLE width=\"100%\" cellspacing=\"1\" cellpadding=\"0\" border=\"0\">\n";
 
  
