@@ -4021,9 +4021,9 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   	 }
     #Self hangup
     elsif ($Dv->{CID} eq $Dv->{ISG_CID_CUR}) {
-      $table = $html->table({ width     => '550',
+      $table = $html->table({ width     => '600',
 	                            rowcolor    => 'row_active',
-                              rows        => [[ "$_DURATION: ". sec2time($Dv->{ISG_SESSION_DURATION}),
+                              rows        => [[ "$_DURATION: ". sec2time($Dv->{ISG_SESSION_DURATION}, { str => 1 }),
                               ($Dv->{CURE_SERVICE} !~ /TP/ && !$Dv->{TURBO_MODE_RUN}) ? $html->form_input('logon', "$_LOGON ", { TYPE => 'submit', OUTPUT2RETURN => 1 }) : '',
                               $html->form_input('hangup', $_HANGUP, { TYPE => 'submit', OUTPUT2RETURN => 1 })
                                         ]],                                   
