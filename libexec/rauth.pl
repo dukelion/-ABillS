@@ -177,7 +177,7 @@ if ($RAD->{DHCP_MESSAGE_TYPE}) {
 	$nas->{NAS_TYPE}='dhcp';
 }
 
-if(defined($AUTH{$nas->{NAS_TYPE}})) {
+if($AUTH{$nas->{NAS_TYPE}}) {
   if (! defined($auth_mod{"$nas->{NAS_TYPE}"})) {
     require $AUTH{$nas->{NAS_TYPE}} . ".pm";
     $AUTH{$nas->{NAS_TYPE}}->import();

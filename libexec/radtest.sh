@@ -24,7 +24,7 @@ echo `pwd -P`;
 #**********************************************************
 #
 #**********************************************************
-test_isg {
+#test_isg {
 
 #Test user account
 #User-Name = "123.123.244.194"
@@ -50,10 +50,10 @@ test_isg {
 #        NAS-IP-Address = 62.212.235.187
 #        Acct-Session-Id = "3ED4EBBB0000324C"
 	
-	 ${RAUTH} \
+#	 ${RAUTH} 
 	
 	
-}
+#}
 
 
 # Proccess command-line options

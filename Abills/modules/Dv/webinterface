@@ -1095,6 +1095,11 @@ sub dv_rating_user {
 
  	$Bonus_rating->users_rating_info({ UID => $LIST_PARAMS{UID} });
 
+if ($Bonus->{TOTAL} == 0) {
+   $html->message('info', $_INFO,  "$_NOT_EXIST");
+   return 0;
+}
+
 	if ($FORM{UP_RATING}) {
     my $need_percents = int(($FORM{UP_RATING} - $Bonus_rating->{RATING_PER}));
     my $need_sum = $percents * $Bonus_rating->{ONE_PERCENT_SUM};

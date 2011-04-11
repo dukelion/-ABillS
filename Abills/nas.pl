@@ -553,7 +553,7 @@ sub hangup_cisco_isg {
 
  my ($ip, $mng_port)=split(/:/, $NAS->{NAS_MNG_IP_PORT}, 2);
 
-#POD Version
+#RSH Version
 if ($NAS->{NAS_MNG_USER}) {
 # имя юзера на циско котрому разрешен rsh и хватает привелегий для сброса
   my $cisco_user=$NAS->{NAS_MNG_USER};
@@ -562,8 +562,31 @@ if ($NAS->{NAS_MNG_USER}) {
   log_print('LOG_DEBUG', "$command");
   $exec = `$command`;
  }
+# RADIUS POD Version
 else {
-  print "Can't find 'NAS_MNG_USER'\n";
+	my $type;
+  my $r = new Radius(Host   => "$NAS->{NAS_MNG_IP_PORT}", 
+                     Secret => "$NAS->{NAS_MNG_PASSWORD}") or return "Can't connect '$NAS->{NAS_MNG_IP_PORT}' $!";
+
+  $conf{'dictionary'}='/usr/abills/Abills/dictionary' if (! $conf{'dictionary'});
+  $r->load_dictionary($conf{'dictionary'});
+
+  $r->add_attributes ({ Name => 'User-Name', Value => "$attr->{USER}" }) ;
+  $r->add_attributes ({ Name => 'Cisco-Account-Info',  Value => "S$attr->{FRAMED_IP_ADDRESS}" });
+  $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:commandmy=account-logoff"});
+
+  $r->send_packet (43) and $type = $r->recv_packet;
+
+  my %RAD_PAIRS = ();
+  for my $a ($r->get_attributes) {
+    $RAD_PAIRS{$a->{'Name'}}=$a->{'Value'};
+   }  
+	
+  if ($RAD_PAIRS{'Error-Cause'}) {
+  	log_print('LOG_WARNING', "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
+   }
+  
+  #print "Can't find 'NAS_MNG_USER'\n";
 }
 
  return $exec;
