@@ -3930,7 +3930,8 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   	require "Abills/nas.pl";
     my $ret = hangup($Nas, "0", "$user->{LOGIN}", { ACCT_SESSION_ID   => '',
   	                                                FRAMED_IP_ADDRESS => $user->{REMOTE_ADDR},
-  	                                                UID               => $user->{UID} });
+  	                                                UID               => $user->{UID},
+  	                                                USER              => $user->{LOGIN} });
    }
   
   $Dv->info($LIST_PARAMS{UID});
