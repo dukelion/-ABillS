@@ -171,6 +171,11 @@ elsif ($FORM{'<OPERATION id'} || $FORM{'%3COPERATION%20id'}) {
 	require "Express-oplata.pm";
 	exit;
  }
+# Privat bank custom interface
+elsif ($conf{PAYSYS_PRIVAT_TERMINAL_IP} && $conf{PAYSYS_PRIVAT_TERMINAL_IP} =~ /$ENV{REMOTE_ADDR}/) {
+	require "Privat_terminal.pm";
+	exit;
+ }
 elsif($FORM{ACT}) {
 	require "24_non_stop.pm";
 	exit;
