@@ -4003,7 +4003,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
 
   #Activate Cisco ISG Account
   if ($conf{DV_ISG}) {
-    if ($user->{DISABLE} && $user->{DISABLE} ne 'ENABLE') {
+    if ($user->{DISABLE} && $user->{DISABLE} =~ /ENABLE/) {
     	$html->message('err', $_ERROR, "$_USER  $_DISABLE", { ID => 16 });
      }
     elsif ($Dv->{CID} ne $Dv->{ISG_CID_CUR} || $Dv->{CID} eq '') {
