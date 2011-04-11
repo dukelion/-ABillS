@@ -355,6 +355,8 @@ sub changes {
     $DATA{DISABLE} = (defined($DATA{'DISABLE'}) && $DATA{DISABLE} ne '') ? $DATA{DISABLE} : undef;
    }
 
+
+
   if(defined($DATA{EMAIL}) && $DATA{EMAIL} ne '') {
     if ($DATA{EMAIL} !~ /(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/) {
       $self->{errno} = 11;
@@ -394,13 +396,15 @@ sub changes {
         else {
           if (! defined($OLD_DATA->{$k}) && ($DATA{$k} eq '0' || $DATA{$k} eq '')) {
         	next;
-           }
+         }
 
 
           if ($k eq 'DISABLE') {
             if (defined($DATA{$k}) && $DATA{$k} == 0 || ! defined($DATA{$k})){
-              $self->{ENABLE} = 1;
-              $self->{DISABLE}= undef;
+            	if ($self->{DISABLE} != 0) {
+                $self->{ENABLE} = 1;
+                $self->{DISABLE}= undef;
+               }
              }
             else {
             	$self->{DISABLE}=1;
@@ -427,8 +431,6 @@ sub changes {
          }
      }
    }
-
-
 
 if ($CHANGES_QUERY eq '') {
   return $self->{result};	
