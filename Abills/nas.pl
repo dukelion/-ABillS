@@ -573,7 +573,7 @@ else {
 
   $r->add_attributes ({ Name => 'User-Name', Value => "$attr->{USER}" }) ;
   $r->add_attributes ({ Name => 'Cisco-Account-Info',  Value => "S$attr->{FRAMED_IP_ADDRESS}" });
-  $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:commandmy=account-logoff"});
+  $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:command=account-logoff"});
 
   $r->send_packet (43) and $type = $r->recv_packet;
 
