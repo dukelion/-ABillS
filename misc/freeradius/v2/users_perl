@@ -4,8 +4,8 @@ DEFAULT Auth-Type = Perl
 
 SERVICE_L4R     User-Password == "cisco", Auth-Type = Accept
                 Cisco-AVPair += "ip:l4redirect=redirect list 197 to group REDIRECT_NOPAY",
-                Cisco-AVpair += "traffic-class=input access-group 197",
-                Cisco-AVpair += "traffic-class=output access-group 197",
+                Cisco-AVpair += "traffic-class=input access-group 198",
+                Cisco-AVpair += "traffic-class=output access-group 198",
                 Cisco-AVPair += "ip:traffic-class=out default drop",
                 Cisco-AVPair += "ip:traffic-class=in default drop",
                 Idle-Timeout =  "600"
