@@ -803,24 +803,35 @@ sub table {
   }
 
  $self->{table} = "<TABLE $width cellspacing=\"0\" cellpadding=\"0\" border=\"0\"$table_class>\n";
- 
+ #Table Caption
  if (defined($attr->{caption})) {
    $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\" class=\"tcaption\"><b>$attr->{caption}</b></td></TR>\n";
   }
+
+ my @header_obj = ();
  
+ #Export object
  if ($attr->{EXPORT} && ! $FORM{EXPORT_CONTENT}) {
  	 my($export_name, $params)=split(/:/, $attr->{EXPORT}, 2);
-   $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" class=\"tcaption\">". $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { BUTTON => 1, ex_params => 'target=_export' }) ."</td></TR>\n";
+ 	 push @header_obj, $self->button("<b>$export_name</b>", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { BUTTON => 1, ex_params => 'target=_export' });
   }
 
  if (defined($attr->{VIEW})) {
    $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\" class=\"tcaption\">$attr->{VIEW}</td></TR>\n";
   }
 
-
  if( $attr->{header}) {
-   $self->{table} .= "<tr><td bgcolor=\"$_COLORS[1]\"><div id=\"rules\"><ul><li class=\"center\"> $attr->{header} </li></ul></div></td></tr>\n";
+   push @header_obj,  $attr->{header};
   }
+
+ if ($#header_obj > -1) {
+ 	  $self->{table} .= "<tr><td bgcolor=\"$_COLORS[1]\"><div id=\"rules\"><ul><li class=\"center\">";
+    foreach my $obj (@header_obj) {
+       $self->{table} .= $obj. '&nbsp;&nbsp;&nbsp;';   
+     }
+    $self->{table} .= "</li></ul></div></td></tr>\n";
+  } 
+
 
  $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[4]\">
                <TABLE width=\"100%\" cellspacing=\"1\" cellpadding=\"0\" border=\"0\">\n";

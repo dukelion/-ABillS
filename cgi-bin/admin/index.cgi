@@ -1846,7 +1846,8 @@ function CheckAllINBOX() {
 }
 //-->
 </script>\n
-<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n$status_bar" : undef
+<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n$status_bar" : undef,           
+#                       EXPORT  =>  $_EXPORT .' XML:&xml=1' 
                          });
 
 

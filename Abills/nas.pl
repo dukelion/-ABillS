@@ -583,7 +583,8 @@ else {
    }  
 	
   if ($RAD_PAIRS{'Error-Cause'}) {
-  	log_print('LOG_WARNING', "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
+  	#log_print('LOG_WARNING', "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}");
+  	print "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}";
    }
   
   #print "Can't find 'NAS_MNG_USER'\n";

@@ -1008,9 +1008,14 @@ sub p {
 #**********************************************************
 sub letters_list {
  my ($self, $attr) = @_;
+
+  if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $attr->{ID} ) {
+      return "<a> $FORM{EXPORT_CONTENT} </a>";
+   }
+
  my $pages_qs = $attr->{pages_qs} if (defined($attr->{pages_qs}));
   
-my $output = $self->button('All ', "index=$index");
+my $output = '<LETTERS>'.$self->button('All ', "index=$index");
 for (my $i=97; $i<123; $i++) {
   my $l = chr($i);
   if ($FORM{letter} && $FORM{letter} eq $l) {
@@ -1020,14 +1025,15 @@ for (my $i=97; $i<123; $i++) {
      $output .= $self->button("$l", "index=$index&letter=$l$pages_qs") . "\n";
    }
  }
+$output .= '</LETTERS>';
 
   if (defined($self->{NO_PRINT})) {
   	$self->{OUTPUT}.=$output;
-  	return '';
+ 	return '';
    }
-	else {
- 	  print $output;
-	 }
+  else {
+     print $output;
+   }
 
 }
 
