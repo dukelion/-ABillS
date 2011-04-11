@@ -3573,7 +3573,7 @@ sub cisco_isg_cmd {
   $r->load_dictionary($conf{'dictionary'});
 
   $r->clear_attributes();
-  $r->add_attributes ({ Name => 'User-Name', Value => "$user->{LOGIN}" }) ;
+  $r->add_attributes ({ Name => 'User-Name', Value => "$attr->{USER_NAME}" }) ;
   $r->add_attributes ({ Name => 'Cisco-Account-Info',  Value => "S$user_ip" });
   
 
@@ -3619,7 +3619,7 @@ if ($command eq 'account-status-query') {
   	$html->message('err', $_ERROR, $message, { ID => 100 });
   	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
                    ACTION   => 'AUTH', 
-                   USER_NAME=> $attr->{LOGIN} || '-',
+                   USER_NAME=> $attr->{USER_NAME} || '-',
                    MESSAGE  => "$message",
                    DB       => 1
                   });
@@ -3668,7 +3668,7 @@ elsif ($command eq 'activate-service') {
  	 	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}", { ID => 101 }); 	        	
    	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
                    ACTION   => 'AUTH', 
-                   USER_NAME=> $user->{LOGIN} || '-',
+                   USER_NAME=> $attr->{USER_NAME} || '-',
                    MESSAGE  => "Service Enable IP: $user->{REMOTE_ADDR} '$service_name' Error: $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}",
                    DB       => 1
                  });
@@ -3677,7 +3677,7 @@ elsif ($command eq 'activate-service') {
     $html->message('info', $_INFO, "TURBO $_ENABLE");
  		$Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
                    ACTION   => 'AUTH', 
-                   USER_NAME=> $user->{LOGIN} || '-',
+                   USER_NAME=> $attr->{USER_NAME} || '-',
                    MESSAGE  => "Service Enable '$service_name' IP: $user->{REMOTE_ADDR}",
                    DB       => 1
                  });
@@ -3701,10 +3701,10 @@ elsif ($command eq 'account-logon') {
    }  
 	  
 	if ($RAD_PAIRS{'Error-Cause'}) {
- 	 	 $html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}", { ID => 101 }); 	        	
+ 	 	 $html->message('err', $_ERROR, "$_LOGON $_ERROR [$RAD_PAIRS{'Error-Cause'}] $RAD_PAIRS{'Reply-Message'}", { ID => 101 }); 	        	
      $Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
                      ACTION   => 'AUTH', 
-                     USER_NAME=> $user->{LOGIN} || '-',
+                     USER_NAME=> $attr->{USER_NAME} || '-',
                      MESSAGE  => "Logon Error: $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}",
                      DB       => 1
                     });
@@ -3713,15 +3713,13 @@ elsif ($command eq 'account-logon') {
     $html->message('info', $_INFO, "TURBO $_ENABLE");
  	 	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
                    ACTION   => 'AUTH', 
-                   USER_NAME=> $user->{LOGIN} || '-',
+                   USER_NAME=> $user->{USER_NAME} || '-',
                    MESSAGE  => "Logon",
                    DB       => 1
                  });
 
    return 0;
   }
-
- 	$html->message('err', $_ACTIVATE, "$_ERROR CID: $Dv->{ISG_CID_CUR}", { ID => 102 });
  }
 #old way 
 #=comments
@@ -3838,7 +3836,7 @@ if ($conf{DV_ISG}) {
        return 0;
      }
 
-  if (! cisco_isg_cmd($user->{REMOTE_ADDR}, "account-status-query", { USER => $user->{LOGIN} })) {
+  if (! cisco_isg_cmd($user->{REMOTE_ADDR}, "account-status-query", { USER_NAME => $user->{LOGIN} })) {
      return 0;
    } 	
 
@@ -3849,12 +3847,12 @@ if ($conf{DV_ISG}) {
            my $service_name = 'TURBO_SPEED'. $FORM{SPEED};
            #Deactive cure service (TP Service)
            if ($Dv->{CURE_SERVICE} =~ /TP/) {
-             if (! cisco_isg_cmd($user->{REMOTE_ADDR}, "deactivate-service", { USER => $user->{LOGIN}, CURE_SERVICE => $Dv->{CURE_SERVICE} })) {
+             if (! cisco_isg_cmd($user->{REMOTE_ADDR}, "deactivate-service", { USER_NAME => $user->{LOGIN}, CURE_SERVICE => $Dv->{CURE_SERVICE} })) {
 
               } 	
             }
           #Activate service
-          if (! cisco_isg_cmd($user->{REMOTE_ADDR}, "deactivate-service", { USER => $user->{LOGIN}, SERVICE_NAME => $service_name })) {
+          if (! cisco_isg_cmd($user->{REMOTE_ADDR}, "deactivate-service", { USER_NAME => $user->{LOGIN}, SERVICE_NAME => $service_name })) {
               return 0;
            } 	
        }
@@ -3891,15 +3889,17 @@ elsif ($conf{DV_IP_DISCOVERY}) {
   	  	$html->message('info', $_INFO, "$_ACTIVATE CID: $Dv->{ISG_CID_CUR}") if ($Dv->{ISG_CID_CUR});
   	  	dv_get_month_fee($Dv) if (! $Dv->{STATUS});
   	   }
-  	
+  	  else {
+ 	  	 	$html->message('err', $_ACTIVATE, "$_ERROR CID: $Dv->{ISG_CID_CUR}", { ID => 102 });
+  	   }
       #Log on
-      if (! cisco_isg_cmd($user->{REMOTE_ADDR}, "account-logon", { USER => $user->{LOGIN} })) {
+      if (! cisco_isg_cmd($user->{REMOTE_ADDR}, "account-logon", { USER_NAME => $user->{LOGIN} })) {
         return 0;
        } 	
    }
   elsif ($FORM{logon}) {
     #Logon
-    if (! cisco_isg_cmd($user->{REMOTE_ADDR}, "account-logon", { USER => $user->{LOGIN} })) {
+    if (! cisco_isg_cmd($user->{REMOTE_ADDR}, "account-logon", { USER_NAME => $user->{LOGIN} })) {
       return 0;
      } 	
    }
