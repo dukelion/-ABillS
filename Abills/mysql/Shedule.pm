@@ -252,7 +252,7 @@ sub add {
      return $self;
    }
 
- $admin->action_add($UID, "SHEDULE:$self->{INSERT_ID}");
+ $admin->action_add($UID, "SHEDULE:$self->{INSERT_ID} $TYPE:$ACTION:$MODULE:$COMMENTS", { TYPE => 27 });
 
  return $self;	
 }
@@ -278,7 +278,7 @@ sub del {
 
  if ($self->{TOTAL} > 0) {
    $self->query($db, "DELETE FROM shedule WHERE id='$attr->{ID}';", 'do');
-   $admin->system_action_add("SHEDULE:$attr->{ID} UID:$self->{UID} RESULT: $result", { TYPE => 10 });    
+   $admin->system_action_add("SHEDULE:$attr->{ID} UID:$self->{UID} RESULT: $result", { TYPE => 28 });    
   } 
   
  return $self;	

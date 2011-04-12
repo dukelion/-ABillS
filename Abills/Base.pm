@@ -244,7 +244,7 @@ sub utf82win {
     #elsif($Code==0x2C){ $Unicode.=',';     	}
     #elsif($Code==0x2E){ $Unicode.='.';     	}
     #elsif($Code==0x64){ $Unicode.='d';     	}
-    else{ $Unicode.= "$Code/"; # $_;  	
+    else{ $Unicode.= $_;  	
     	}
    }
 

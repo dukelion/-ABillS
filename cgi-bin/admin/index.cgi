@@ -2250,6 +2250,8 @@ sub form_system_changes {
                    10 => "$_DELETED",
                    11 => "$ERR_WRONG_PASSWD",
                    13 => "Online $_DEL",
+                   27 => "$_SHEDULE $_ADD",
+                   28 => "$_SHEDULE $_DEL",
                    
                    );
 
@@ -2360,7 +2362,8 @@ sub form_changes {
                    14 => "$_HOLD_UP",
                    15 => "$_HANGUP",
                    26 => "$_CHANGE $_GROUP",
-                   
+                   27 => "$_SHEDULE $_ADD",
+                   28 => "$_SHEDULE $_DEL",
                    31 => "$_CARDS $_USED"
                    );
  

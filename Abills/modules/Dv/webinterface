@@ -3684,7 +3684,7 @@ elsif ($command eq 'activate-service') {
                  });
  	 }
   else {
-    $html->message('info', $_INFO, "TURBO $_ENABLE");
+    $html->message('info', $_INFO, "$_SERVICE $_ENABLE");
  		$Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
                    ACTION   => 'AUTH', 
                    USER_NAME=> $attr->{USER_NAME} || '-',
@@ -3736,6 +3736,48 @@ elsif ($command eq 'account-logon') {
    return 0;
   }
  }
+elsif ($command eq 'account-logoff') {
+  $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:commandmy=account-logon"});
+  $r->send_packet (43) and $type = $r->recv_packet;
+
+  if( ! defined $type ) {
+    $html->message('err', $_ERROR,  "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / ". $r->get_error(), { ID => 106 });
+    return 0;
+   }
+
+  for my $a ($r->get_attributes) {
+    #MAC as ID
+    if ($val =~ /\$MA(\S+)/) {
+      $Dv->{ISG_CID_CUR}=$1;
+     }
+    #IP user ID
+    elsif ($val =~ /S(\S+)/) {
+      $Dv->{ISG_CID_CUR}=$1;
+     }
+    $RAD_PAIRS{$a->{'Name'}}=$a->{'Value'};
+   }  
+	  
+	if ($RAD_PAIRS{'Error-Cause'}) {
+ 	 	 $html->message('err', $_ERROR, "$_LOGON $_ERROR [$RAD_PAIRS{'Error-Cause'}] $RAD_PAIRS{'Reply-Message'}", { ID => 101 }); 	        	
+     $Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
+                     ACTION   => 'AUTH', 
+                     USER_NAME=> $attr->{USER_NAME} || '-',
+                     MESSAGE  => "Logon Error: $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}",
+                     DB       => 1
+                    });
+ 	 }
+  else {
+    $html->message('info', $_INFO, "$_LOGON");
+ 	 	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
+                   ACTION   => 'AUTH', 
+                   USER_NAME=> $attr->{USER_NAME} || '-',
+                   MESSAGE  => "Logon",
+                   DB       => 1
+                 });
+
+   return 0;
+  }
+ } 
 #old way 
 #=comments
 #
