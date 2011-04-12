@@ -974,6 +974,16 @@ sub check_speed {
     exit;
    }
 
+# Только МПД создает их аж 4 штуки =)
+#ng1028:inet.1-0-mi
+#ng1028:inet.0-0-mi
+#ng1028:inet.0-0-m
+#ng1028:inet.1-0-m
+#
+#system("ngctl msg $ng:inet.1-0-mi setconf { upstream={ cbs=$nburst_out ebs=$eburst_out cir=$speed_out greenAction=1 yellowAction=1 redAction=2 mode=2 } 
+#downstream={ cbs=$nburst_in ebs=$eburst_in cir=$speed_in greenAction=1 yellowAction=1 redAction=2 mode=2 } }"); 
+
+
 	my %LOGINS_SPEEDS = ();
   my %rule_speed = ();
   my %pipe_rules = ();

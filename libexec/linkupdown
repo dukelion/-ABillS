@@ -566,17 +566,12 @@ sub ng_car_shape {
   #Cbs -  Committed Burst Size - количество бит, которое может быть передано по логическому каналу за интервал времени. 
   #Ebs – Exceeded/Peak Burst Size -  количество  бит,  на  которое  может  быть  превышено  значение  cbs  за интервал времени.
 
-#$cbs_in = 128000;
-#$ebs_in = 128000;
-#$cbs_out = 256000;
-#$ebs_out = 258000 * 2;
-
-  $speed_in   = 1048576000 if ($speed_in  == 0);
-  $speed_out  = 1048576000 if ($speed_out == 0);
-  my $cbs_in = ($speed_in <= 5242880) ? 64000 : 128000;
-  my $ebs_in = $cbs_in*2;
-  my $cbs_out = ($speed_out <= 5242880) ? 64000 : 256000;
-  my $ebs_out = $cbs_out*2;
+#  $speed_in   = 1048576000 if ($speed_in  == 0);
+# $speed_out  = 1048576000 if ($speed_out == 0);
+#  my $cbs_in = ($speed_in <= 5242880) ? 64000 : 128000;
+#  my $ebs_in = $cbs_in*2;
+#  my $cbs_out = ($speed_out <= 5242880) ? 64000 : 256000;
+#  my $ebs_out = $cbs_out*2;
 
   #New version
 #  my $cbs_in = int($speed_in*3/16);
@@ -589,6 +584,14 @@ sub ng_car_shape {
 #  my $cbs_out = int($speed_out/8);
 #  my $ebs_out = $cbs_out;
 
+# Cisco recomended
+  my $cbs_in = int($speed_in*1.5/8);
+  my $ebs_in = 2*$cbs_in;
+
+  my $cbs_out = int($speed_out*1.5/8);
+  my $ebs_out = 2*$cbs_out;
+
+
   $user =~ s/\./__/g;
   $user =~ s/\@/___/g;
 
@@ -599,7 +602,8 @@ connect %s_%s: ipfw: lower %s
 msg %s_%s: setconf { upstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=1 redAction=2 mode=2 }  downstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=1 redAction=2 mode=2 } }",
             $tablearg_in,
             $tablearg_in,$shape_type,$user,
-            $shape_type,$user,$tablearg_out,
+            $shape_t
+ype,$user,$tablearg_out,
             $shape_type,$user,
             int($cbs_in),int($ebs_in),$speed_in,
             int($cbs_out),int($ebs_out),$speed_out);
