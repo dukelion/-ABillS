@@ -615,7 +615,7 @@ elsif ($command eq 'pay') {
     #Add payments
     $payments->add($user, {SUM          => $FORM{sum},
     	                     DESCRIBE     => "$payment_system", 
-    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{44}) ? 44 : '2', , 
+    	                     METHOD       => ($conf{PAYSYS_PAYMENTS_METHODS} && $PAYSYS_PAYMENTS_METHODS{$payment_system_id}) ? $payment_system_id : '2', , 
   	                       EXT_ID       => "$payment_system:$FORM{txn_id}",
   	                       CHECK_EXT_ID => "$payment_system:$FORM{txn_id}" } );  
 
