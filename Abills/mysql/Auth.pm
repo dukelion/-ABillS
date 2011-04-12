@@ -540,9 +540,9 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
           } 
          elsif(! $CONF->{ng_car}) {
            my $cir    = $line->[2] * 1024;
-           my $nburst = int($cir*1.5/8;
+           my $nburst = int($cir*1.5/8);
            my $eburst = 2*$nburst;
-           push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all $shapper_type $cid $nburst $eburst";
+           push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all $shapper_type $cir $nburst $eburst";
 
            #push @{$RAD_PAIRS->{'mpd-limit'} }, "out#$self->{TOTAL}#0=all $shapper_type ". ($line->[2] * 1024)." 4000";
           }
@@ -552,9 +552,9 @@ if ($NAS->{NAS_TYPE} eq 'mpd5') {
           } 
          elsif(! $CONF->{ng_car}) {
            my $cir    = $line->[3] * 1024;
-           my $nburst = int($cir*1.5/8;
+           my $nburst = int($cir*1.5/8);
            my $eburst = 2*$nburst;
-           push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all $shapper_type $cid $nburst $eburst";
+           push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all $shapper_type $cir $nburst $eburst";
 
            #push @{$RAD_PAIRS->{'mpd-limit'} }, "in#$self->{TOTAL}#0=all $shapper_type ". ($line->[3] * 1024) ." 4000";
           }
