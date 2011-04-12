@@ -629,6 +629,7 @@ elsif ($command eq 'pay') {
       $status = 4;
      }
     else {
+      $payments_id = ($payments->{INSERT_ID}) ? $payments->{INSERT_ID} : 0;
     	$status = 0;
     	$Paysys->add({ SYSTEM_ID   => $payment_system_id, 
  	              DATETIME       => "'$DATE $TIME'", 
@@ -641,7 +642,6 @@ elsif ($command eq 'pay') {
                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
                });
 
-      $payments_id = ($Paysys->{INSERT_ID}) ? $Paysys->{INSERT_ID} : 0;
      }    
 
 
