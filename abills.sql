@@ -830,7 +830,7 @@ CREATE TABLE `tarif_plans` (
   `credit_tresshold` double(8,2) unsigned NOT NULL default '0.00',
   `age` smallint(6) unsigned NOT NULL default '0',
   `octets_direction` tinyint(2) unsigned NOT NULL default '0',
-  `max_session_duration` smallint(6) unsigned NOT NULL default '0',
+  `max_session_duration` mediumint unsigned NOT NULL default '0',
   `filter_id` varchar(15) NOT NULL default '',
   `payment_type` tinyint(1) NOT NULL default '0',
   `min_session_cost` double(14,5) unsigned NOT NULL default '0.00000',

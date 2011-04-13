@@ -14,6 +14,7 @@ $Paysys
 $debug
 %conf
 %PAYSYS_PAYMENTS_METHODS
+$md5
 );
 
 BEGIN {
@@ -118,10 +119,10 @@ if ($conf{PAYSYS_PASSWD}) {
 }
 
 $Paysys   = Paysys->new($db, undef, \%conf);
-$admin = Admins->new($db, \%conf);
+$admin    = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => $ENV{REMOTE_ADDR} });
 $payments = Finance->payments($db, $admin, \%conf);
-$users = Users->new($db, $admin, \%conf); 
+$users    = Users->new($db, $admin, \%conf); 
 
 %PAYSYS_PAYMENTS_METHODS=%{ cfg2hash($conf{PAYSYS_PAYMENTS_METHODS}) };
 
@@ -137,6 +138,20 @@ if ($debug > 0) {
   mk_log($output2);
 }
 #END debug =====================================
+
+eval { require Digest::MD5; };
+if (! $@) {
+   Digest::MD5->import();
+  }
+else {
+   print "Content-Type: text/html\n\n";
+   print "Can't load 'Digest::MD5' check http://www.cpan.org";
+   exit;
+ }
+
+$md5 = new Digest::MD5;
+
+
 
 my $ip_num   = unpack("N", pack("C4", split( /\./, $ENV{REMOTE_ADDR})));
 if ($ip_num >= ip2int('213.186.115.164') && $ip_num <= ip2int('213.186.115.190')) {
@@ -171,8 +186,8 @@ elsif ($FORM{'<OPERATION id'} || $FORM{'%3COPERATION%20id'}) {
 	require "Express-oplata.pm";
 	exit;
  }
-# Privat bank custom interface
-elsif ($conf{PAYSYS_PRIVAT_TERMINAL_IP} && $conf{PAYSYS_PRIVAT_TERMINAL_IP} =~ /$ENV{REMOTE_ADDR}/) {
+# Privat bank terminal interface
+elsif ('75.101.163.115,213.154.214.76' =~ /$ENV{REMOTE_ADDR}/) {
 	require "Privat_terminal.pm";
 	exit;
  }
@@ -205,12 +220,12 @@ elsif ($ENV{REMOTE_ADDR} =~ /^192.168.1.1/) {
  	exit;
  }
 elsif ($ip_num > $first_ip && $ip_num < $last_ip) {
-        print "Content-Type: text/xml\n\n";
-        print "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-        print "<response>\n";
-        print "<result>300</result>\n";
-        print "<result1>$ENV{REMOTE_ADDR}</result1>\n";
-        print " </response>\n";
+  print "Content-Type: text/xml\n\n"
+     . "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+     . "<response>\n"
+     . "<result>300</result>\n"
+     . "<result1>$ENV{REMOTE_ADDR}</result1>\n"
+     . " </response>\n";
         exit;
  } 
 #USMP
@@ -226,18 +241,6 @@ elsif ($FORM{payment} && $FORM{payment}=~/pay_way/) {
 
 
 print "Content-Type: text/html\n\n";
-
-eval { require Digest::MD5; };
-if (! $@) {
-   Digest::MD5->import();
-  }
-else {
-   print "Content-Type: text/html\n\n";
-   print "Can't load 'Digest::MD5' check http://www.cpan.org";
-   exit;
- }
-
-my $md5 = new Digest::MD5;
 
 
 payments();
@@ -276,7 +279,7 @@ sub payments {
 	        $output2 .= "$k -> $v\n"	if ($k ne '__BUFFER');
         }
        }
-    	mk_log($output2);
+    	mk_log($output2, { PAYSYS_ID => 'Unknown' });
     }
    }
 }
@@ -2219,6 +2222,11 @@ sub mk_log {
   my $paysys = $attr->{PAYSYS_ID} || '';
   if (open(FILE, ">>paysys_check.log")) {
     print FILE "\n$DATE $TIME $ENV{REMOTE_ADDR} $paysys =========================\n";
+    
+    if ($attr->{REQUEST}) {
+    	print FILE "$attr->{REQUEST}\n=======\n";
+     }
+    
     print FILE $message;
 	  close(FILE);
 	 }
