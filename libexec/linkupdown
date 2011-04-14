@@ -602,8 +602,7 @@ connect %s_%s: ipfw: lower %s
 msg %s_%s: setconf { upstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=1 redAction=2 mode=2 }  downstream={ cbs=%d ebs=%d cir=%d greenAction=1 yellowAction=1 redAction=2 mode=2 } }",
             $tablearg_in,
             $tablearg_in,$shape_type,$user,
-            $shape_t
-ype,$user,$tablearg_out,
+            $shape_type,$user,$tablearg_out,
             $shape_type,$user,
             int($cbs_in),int($ebs_in),$speed_in,
             int($cbs_out),int($ebs_out),$speed_out);
