@@ -1053,7 +1053,7 @@ foreach my $line (@$list) {
   $INFO{DATETIME}     = "$DATE $TIME / Dhcphosts";
   
   $INFO{NETWORK_ID}   = $Dhcphosts->{ID};
-  $INFO{NETWORK_NAME} = $Dhcphosts->{NAME};
+  $INFO{NETWORK_NAME} = $Dhcphosts->{NAME} || 'NETWORK_NAME';
   $INFO{BLOCK_NETWORK}= $Dhcphosts->{BLOCK_NETWORK};
   $INFO{BLOCK_MASK}   = $Dhcphosts->{BLOCK_MASK};
   $INFO{NETWORK}      = $Dhcphosts->{NETWORK};
@@ -1216,7 +1216,7 @@ $INFO{NETWORKS}='';
 foreach my $id (sort keys %{ $SUBNETS{0} } ) {
 	my $net_content = $SUBNETS{0}{$id};
 	$INFO{NETWORKS} .= "#share network - $id 
-shared-network NETWORK_NAME_$id {	 
+shared-network $INFO{NETWORK_NAME}_$id {	 
 $net_content";
   #Add subnets
   while(my($id_sub, $subnet_content) = each %{ $SUBNETS{$id} }) {
