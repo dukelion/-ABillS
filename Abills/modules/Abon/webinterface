@@ -460,8 +460,6 @@ sub abon_periodic {
      	$abon_date = $ADMIN_REPORT{DATE} if (! $abon_date && $line->[0] == 1 && $d == 1);
 
     	if ($ADMIN_REPORT{DATE} eq $abon_date) {
-    		 print "$tp_id, $uid, $sum\n";
-    		 
          $fees->take(\%user, $sum, { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$line->[2]", 
          	                           DATE  => $ADMIN_REPORT{DATE}, 

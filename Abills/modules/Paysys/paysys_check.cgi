@@ -187,7 +187,7 @@ elsif ($FORM{'<OPERATION id'} || $FORM{'%3COPERATION%20id'}) {
 	exit;
  }
 # Privat bank terminal interface
-elsif ('75.101.163.115,213.154.214.76' =~ /$ENV{REMOTE_ADDR}/) {
+elsif ('75.101.163.115,213.154.214.76,192.168.0.86' =~ /$ENV{REMOTE_ADDR}/) {
 	require "Privat_terminal.pm";
 	exit;
  }

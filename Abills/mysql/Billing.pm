@@ -839,6 +839,7 @@ sub session_splitter {
  
  my $debug = $self->{debug} || 0;
  my @division_time_arr = ();
+ $self->{TIME_DIVISIONS_ARR} = \@division_time_arr;
 
  if ($attr->{TP_ID}) {
    ($time_intervals, $periods_time_tarif, $periods_traf_tarif) = $self->time_intervals($attr->{TP_ID});
@@ -851,7 +852,6 @@ sub session_splitter {
 
 
  if ($time_intervals == 0)  {
-   $self->{TIME_DIVISIONS_ARR} = \@division_time_arr;
    $self->{NO_TPINTERVALS} = 'y';
    $self->{SUM}=0;
    return $self;
