@@ -85,53 +85,130 @@ foreach my $line (@$list) {
 
 
 #print "Traf Calc: $sent / $recv\n";
-
+#
 if ($prepaid{0} + $prepaid{1} > 0) {
-  #Get traffic from begin of month
+  #Traffic transfert function
+  if ($self->{TRAFFIC_TRANSFER_PERIOD}) {
+    my $tp = $self->{TP_NUM};
+##    my $interval = undef;
+##  	if ($self->{ACTIVATE} ne '0000-00-00') {
+##      $interval = "(DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACTIVATE}' - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} * 30 DAY && 
+##       DATE_FORMAT(start, '%Y-%m-%d')<='$self->{ACTIVATE}')";
+##  	 }
+##    else {
+##    	$interval = "(DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate() - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} MONTH, '%Y-%m') AND 
+##    	 DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m') ) ";
+##     }
+##    
+##    # Traffic transfer
+##    my $transfer_traffic=$self->get_traffic({ UID      => $self->{UID},
+##    	                                        UIDS     => $self->{UIDS},
+##                                              INTERVAL => $interval,
+##                                              TP_ID    => $tp,
+##                                              STATS_ONLY => 1
+##                                            });
+##    #If exist traffic recharge it
+##    if ($self->{TOTAL}> 0) {
+##      if($self->{OCTETS_DIRECTION} == 1) {
+## 	      $prepaid{0} += $prepaid{0} - $transfer_traffic->{TRAFFIC_IN} if ( $prepaid{0} > $transfer_traffic->{TRAFFIC_IN} );
+##        $prepaid{1} += $prepaid{1} - $transfer_traffic->{TRAFFIC_IN_2} if ( $prepaid{1} > $transfer_traffic->{TRAFFIC_IN_2} );
+##       }
+##      #Sent / OUT
+##      elsif ($self->{OCTETS_DIRECTION} == 2 ) {
+## 	      $prepaid{0} += $prepaid{0} - $transfer_traffic->{TRAFFIC_OUT} if ( $prepaid{0} > $transfer_traffic->{TRAFFIC_OUT} );
+##        $prepaid{1} += $prepaid{1} - $transfer_traffic->{TRAFFIC_OUT_2} if ( $prepaid{1} > $transfer_traffic->{TRAFFIC_OUT_2} );
+##       }
+##      else {
+## 	      $prepaid{0} += $prepaid{0} - ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}) if ($prepaid{0} > ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}));
+##        $prepaid{1} += $prepaid{1} - ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) if ( $prepaid{1} > ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) );
+##       }   
+##    }
 
+
+ my $octets_direction = "(sent + 4294967296 * acct_output_gigawords) + (recv + 4294967296 * acct_input_gigawords) ";
+ my $octets_direction2 = "sent2 + recv2";
+ my $octets_online_direction = "acct_input_octets + acct_output_octets";
+ my $octets_online_direction2 = "ex_input_octets + ex_output_octets";
+ 
+ if ($self->{INFO_LIST}->[0]->[6] == 1) {
+   $octets_direction = "recv + 4294967296 * acct_input_gigawords ";
+   $octets_direction2 = "recv2";
+   $octets_online_direction = "acct_input_octets + 4294967296 * acct_input_gigawords";
+   $octets_online_direction2 = "ex_input_octets";
+  }
+ elsif ($self->{INFO_LIST}->[0]->[6] == 2) {
+   $octets_direction  = "sent + 4294967296 * acct_output_gigawords ";
+   $octets_direction2 = "sent2";
+   $octets_online_direction = "acct_output_octets + 4294967296 * acct_output_gigawords";
+   $octets_online_direction2 = "ex_output_octets";
+  }
+
+ my $uid="uid='$self->{UID}'";
+ if ($self->{UIDS}) {
+ 	  $uid="uid IN ($self->{UIDS})";
+  }
+ 
+    my $WHERE = '';
+
+
+  	if ($self->{ACTIVATE} ne '0000-00-00') {
+      $WHERE  = "(DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACTIVATE}' - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} * 30 DAY && 
+      DATE_FORMAT(start, '%Y-%m-%d')<='$self->{ACTIVATE}')";
+  	 }
+    else {
+    	$WHERE  = "(DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate() - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} MONTH, '%Y-%m') AND 
+    	 DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m') ) ";
+     }
+
+ 	 #Get using traffic
+   $self->query($db, "select  
+     if($prepaid{0}  > sum($octets_direction) / $CONF->{MB_SIZE}, $prepaid{0}  - sum($octets_direction) / $CONF->{MB_SIZE}, -1),
+     if($prepaid{1}  > sum($octets_direction2) / $CONF->{MB_SIZE}, $prepaid{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, -1),
+     DATE_FORMAT(start, '%Y-%m')
+   FROM dv_log
+   WHERE $uid  and tp_id='$tp' and
+    (  $WHERE
+      ) 
+   GROUP BY 3
+   ;");
+
+  if ($self->{TOTAL} > 0) {
+    my ($class1, $class2)  = (0, 0);
+
+    foreach my $line (@{$self->{list}}) {
+      $class1      += $line->[0] ;
+      $class2      += $line->[1] ;
+     }	
+    $prepaid{0} = $class1;
+    $prepaid{0} = $class2;
+   } 
+
+ #Check online
+ $self->query($db, "select 
+  $prepaid{0} - sum($octets_online_direction) / $CONF->{MB_SIZE},
+  $prepaid{1} - sum($octets_online_direction2) / $CONF->{MB_SIZE},
+  1
+ FROM dv_calls
+ WHERE $uid
+ GROUP BY 3;");
+
+ if ($self->{TOTAL} > 0) {
+   ($prepaid{0}, 
+    $prepaid{1} 
+    ) =  @{ $self->{list}->[0] };
+  }
+
+ }
+else {
+	#Get traffic from begin of month
   $used_traffic = $self->get_traffic({ UID    => $self->{UID},
   	                                   UIDS   => $self->{UIDS},
  	                                     PERIOD => $traffic_period,
  	                                     STATS_ONLY => 1
    	                                  });
+}
 
-  #Traffic transfert function
-  if ($self->{TRAFFIC_TRANSFER_PERIOD}) {
-    my $tp = $self->{TP_NUM};
-    my $interval = undef;
-  	if ($self->{ACTIVATE} ne '0000-00-00') {
-      $interval = "(DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACTIVATE}' - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} * 30 DAY && 
-       DATE_FORMAT(start, '%Y-%m-%d')<='$self->{ACTIVATE}')";
-  	 }
-    else {
-    	$interval = "(DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate() - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} MONTH, '%Y-%m') AND 
-    	 DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m') ) ";
-     }
-    
-    # Traffic transfer
-    my $transfer_traffic=$self->get_traffic({ UID      => $self->{UID},
-    	                                        UIDS     => $self->{UIDS},
-                                              INTERVAL => $interval,
-                                              TP_ID    => $tp,
-                                              STATS_ONLY => 1
-                                            });
-    #If exist traffic recharge it
-    if ($self->{TOTAL}> 0) {
-      if($self->{OCTETS_DIRECTION} == 1) {
- 	      $prepaid{0} += $prepaid{0} - $transfer_traffic->{TRAFFIC_IN} if ( $prepaid{0} > $transfer_traffic->{TRAFFIC_IN} );
-        $prepaid{1} += $prepaid{1} - $transfer_traffic->{TRAFFIC_IN_2} if ( $prepaid{1} > $transfer_traffic->{TRAFFIC_IN_2} );
-       }
-      #Sent / OUT
-      elsif ($self->{OCTETS_DIRECTION} == 2 ) {
- 	      $prepaid{0} += $prepaid{0} - $transfer_traffic->{TRAFFIC_OUT} if ( $prepaid{0} > $transfer_traffic->{TRAFFIC_OUT} );
-        $prepaid{1} += $prepaid{1} - $transfer_traffic->{TRAFFIC_OUT_2} if ( $prepaid{1} > $transfer_traffic->{TRAFFIC_OUT_2} );
-       }
-      else {
- 	      $prepaid{0} += $prepaid{0} - ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}) if ($prepaid{0} > ($transfer_traffic->{TRAFFIC_IN}+$transfer_traffic->{TRAFFIC_OUT}));
-        $prepaid{1} += $prepaid{1} - ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) if ( $prepaid{1} > ($transfer_traffic->{TRAFFIC_IN_2}+$transfer_traffic->{TRAFFIC_OUT_2}) );
-       }   
-    }
-   }
+
 
    if ($CONF->{rt_billing}) {
    	 $used_traffic->{TRAFFIC_IN}     += int($RAD->{INBYTE} / $CONF->{MB_SIZE}); 

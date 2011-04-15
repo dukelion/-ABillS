@@ -900,7 +900,7 @@ WHERE
 
 
  #Traffic transfert
- if ($traffic_transfert > 0) {
+ #if ($traffic_transfert > 0) {
    my $WHERE = '';
 
    if ($attr->{FROM_DATE}) {
@@ -939,26 +939,26 @@ WHERE
       $self->{INFO_LIST}->[1]->[4] += $prepaid_traffic{1};
      }
    }
- }
+# }
  
  #Check sessions
  #Get using traffic
- $self->query($db, "select  
-  $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE},
-  $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE},
-  1
- FROM dv_log
- WHERE $uid ".
- #and tp_id='$self->{INFO_LIST}->[0]->[8]'
-  "AND DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]'
- GROUP BY 3
- ;");
-
- if ($self->{TOTAL} > 0) {
-   ($rest{0}, 
-    $rest{1} 
-    ) =  @{ $self->{list}->[0] };
-  }
+# $self->query($db, "select  
+#  $rest{0} - sum($octets_direction) / $CONF->{MB_SIZE},
+#  $rest{1} - sum($octets_direction2) / $CONF->{MB_SIZE},
+#  1
+# FROM dv_log
+# WHERE $uid ".
+# #and tp_id='$self->{INFO_LIST}->[0]->[8]'
+#  "AND DATE_FORMAT(start, '%Y-%m-%d')>='$self->{INFO_LIST}->[0]->[3]'
+# GROUP BY 3
+# ;");
+#
+# if ($self->{TOTAL} > 0) {
+#   ($rest{0}, 
+#    $rest{1} 
+#    ) =  @{ $self->{list}->[0] };
+#  }
 
  #Check online
  $self->query($db, "select 
