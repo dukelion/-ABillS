@@ -3,7 +3,7 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.6
+VERSION=0.7
 
 USER_NAME=test
 USER_PASSWORD=123456
@@ -127,17 +127,19 @@ if [ w${RADIUS_ACTION} = w1 ]; then
   if [ w${RADIUS_IP} = w ]; then
     RADIUS_IP=127.0.0.1;
   fi;
-  
+
   echo "Send params to radius: ${RADIUS_IP}:1812"
   radtest ${USER_NAME} ${USER_PASSWORD} ${RADIUS_IP}:1812 0 ${RADIUS_SECRET} 0 ${NAS_IP_ADDRESS}
-  
+
   exit;
 fi;
 
 
 
-#script testing program
+#testing program
+# Auth test
 if [ t${ACTION} = 'tauth' ] ; then
+  echo "Auth test Begin"
   ${RAUTH} \
         SERVICE_TYPE=VPN \
         NAS_IP_ADDRESS=${NAS_IP_ADDRESS}\
@@ -145,49 +147,11 @@ if [ t${ACTION} = 'tauth' ] ; then
         USER_NAME="${USER_NAME}"\
         CALLING_STATION_ID="${CALLING_STATION_ID}"
 
-#        CISCO_AVPAIR="client-mac-address=000f.ea3d.92e1"
-#        CHAP_PASSWORD="0x5acd1cc26b6f8bf084fb616925769362af"
-#NAS_IDENTIFIER="vpn1.imperial.net.ua"\
-#        USER_PASSWORD="test12345"\
-#        CISCO_AVPAIR="connect-progress=LAN Ses Up" \
-#        CISCO_AVPAIR="client-mac-address=000f.ea3d.92ef"\
-         CALLING_STATION_ID="00-0D-88-42-87-7E" 
-#        NAS-Port-Type = Virtual \
-#        CALLED_STATION_ID="00-09-E8-62-B3-4D" \
-#        CALLING_STATION_ID="10.10.10.2"
-
-
-#        USER_NAME="aa1" \
-#        USER_PASSWORD="test123" \
-#        CALLED_STATION_ID="00-09-E8-62-B3-4D" \
-#        CALLING_STATION_ID="00-07-E9-19-72-1B" \
-#        SERVICE_TYPE="Login-User"\
-#        NAS_PORT_TYPE=Wireless-802.11 \
-#        NAS_PORT=66\
-#        NAS_IP_ADDRESS=192.168.101.17 \
-#        NAS_IDENTIFIER="ap" \
-#        ACCT_MULTI_SESSION_ID="" 
-
-#     USER_NAME="aa1" \
-#     NAS_IP_ADDRESS=192.168.101.17 \
-#     SERVICE_TYPE=Framed-User \
-#     CALLING_STATION_ID="192.168.101.4" \
-#     MS_CHAP_CHALLENGE=0x36303131333831363438383235383730 \
-#     MS_CHAP2_RESPONSE=0x010043e7c3db656fb14dc7546f9f0e4b9c810000000000000000ae86198b1adcfc9a092469d5073c7595de1b6e784c8b7bc7 \
-#     USER_PASSWORD="4vYE2vKM" \
-
-
-#     CALLING_STATION_ID="00:20:ed:9c:c3:43"\
-#     CALLED_STATION_ID=pppoe\
-#     CHAP_CHALLENGE=0x31323331333337363130353537333539 \
-#     CHAP_PASSWORD=0x01456e3b61d9102cb9985bc4bf995120c2 \
-#     USER_PASSWORD="qPTvEwAE" \
-
    echo "" 
    echo "Auth test end"
-
+#DHCP Freeradius test
 elif [ t${ACTION} = tdhcp ]; then
-
+   echo "DHCP test Begin"
    ${RAUTH} post_auth \
  DHCP-Your-IP-Address="0.0.0.0"\
  DHCP-Message-Type="DHCP-Discover"\
@@ -242,11 +206,13 @@ elif [ t${ACTION} = tdhcp ]; then
  #      NAS_PORT="3232235816"\
  #      DHCP_MESSAGE_TYPE="DHCP-Discover"
 
+
+
 elif [ t${ACTION} = 'tacct' ]; then
-  echo "Accounting test";
+  echo "Accounting test begin";
 
   if [ t${ACCOUNTING_ACTION} = 'tStart' ]; then
-    echo Start;
+    echo "ACCT_STATUS_TYPE: Start";
     ${RACCT} \
         USER_NAME="${USER_NAME}" \
         SERVICE_TYPE=Framed-User \
@@ -263,7 +229,7 @@ elif [ t${ACTION} = 'tacct' ]; then
 #        CALLING_STATION_ID="192.168.101.4" \
 
    elif [ t${ACCOUNTING_ACTION} = 'tAlive' ] ; then
-      echo Alive;
+      echo "ACCT_STATUS_TYPE: Alive/Interim-Update";
       ${RACCT} \
         USER_NAME="${USER_NAME}" \
         SERVICE_TYPE=Framed-User \
@@ -288,7 +254,7 @@ elif [ t${ACTION} = 'tacct' ]; then
         ACCT_SESSION_TIME=100 
 
    elif [ t${ACCOUNTING_ACTION} = 'tStop' ] ; then
-     echo Stop;
+     echo "ACCT_STATUS_TYPE: Stop";
      ${RACCT}  \
         USER_NAME="${USER_NAME}" \
         SERVICE_TYPE=Framed-User \
@@ -312,8 +278,9 @@ elif [ t${ACTION} = 'tacct' ]; then
         ACCT_OUTPUT_PACKETS=1111 \
         ACCT_SESSION_TIME=100 \
 
-   fi
+   fi;
 
+   echo "Accounting test end";
 
 elif [ t${ACTION} = 'tacctgt' ]; then
 

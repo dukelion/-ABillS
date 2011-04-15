@@ -9,6 +9,7 @@ use Dv_Sessions;
 use Shedule;
 use Tariffs;
 use Nas;
+use Log;
 
 
 my $Dv       = Dv->new($db, $admin, \%conf);
@@ -16,7 +17,8 @@ my $fees     = Fees->new($db, $admin, \%conf);
 my $payments = Payments->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
-my $Nas      = Nas->new($db, \%conf);  
+my $Nas      = Nas->new($db, \%conf);
+my $Log      = Log->new($db, \%conf);
 
 my %FORM_BASE = ();
 my %TRAFFIC_NAMES = ();
@@ -34,7 +36,7 @@ sub dv_user_del {
 
  $Dv->{UID}=$uid;
  $Dv->del({ UID => $uid });
- $Nas->log_del({ LOGIN => $attr->{LOGIN} });
+ $Log->log_del({ LOGIN => $attr->{LOGIN} });
 
  return 0;
 }
@@ -2227,11 +2229,11 @@ sub dv_error {
 
 if ($attr->{USER}) {
   my $user = $attr->{USER};
-  $login = $user->{LOGIN};
+  $login   = $user->{LOGIN};
   $LIST_PARAMS{LOGIN_EXPR} = $user->{LOGIN};
 }
 elsif ($FORM{LOGIN_EXPR}) {
-  $login = $FORM{LOGIN_EXPR};
+  $login     = $FORM{LOGIN_EXPR};
   $LIST_PARAMS{LOGIN_EXPR} = $FORM{LOGIN_EXPR};
   $pages_qs .= "&LOGIN_EXPR=$FORM{LOGIN_EXPR}";
  }
@@ -2280,8 +2282,8 @@ if ($conf{ERROR2DB}) {
     $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
    }
 
-
-  $list = $Nas->log_list({ %LIST_PARAMS  });
+  $Log->{debug}=1;
+  my $list = $Log->log_list({ %LIST_PARAMS  });
   my $table = $html->table( { 
   	                    caption    => $_TOTAL,
 	                      width      => '100%',
@@ -2289,7 +2291,7 @@ if ($conf{ERROR2DB}) {
 	                       } );
 
   my $total = 0;
-	foreach my $line (@{ $Nas->{list} }) {
+	foreach my $line (@{ $Log->{list} }) {
 		$table->addrow(
 		$log_levels_rev{$line->[0]},
 		$line->[1]
@@ -3617,7 +3619,7 @@ if ($command eq 'account-status-query') {
   if ($RAD_PAIRS{'Error-Cause'}) {
   	my $message = "NAS: $Nas->{NAS_ID}, $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}";
   	$html->message('err', $_ERROR, $message, { ID => 100 });
-  	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
+  	$Log->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
                    ACTION   => 'AUTH', 
                    USER_NAME=> $attr->{USER_NAME} || '-',
                    MESSAGE  => "$message",
@@ -3676,7 +3678,7 @@ elsif ($command eq 'activate-service') {
 	  
   if ($RAD_PAIRS{'Error-Cause'}) {
  	 	$html->message('err', $_ERROR, "$RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}", { ID => 101 }); 	        	
-   	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
+   	$Log->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
                    ACTION   => 'AUTH', 
                    USER_NAME=> $attr->{USER_NAME} || '-',
                    MESSAGE  => "Service Enable IP: $user_ip '$service_name' Error: $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}",
@@ -3685,7 +3687,7 @@ elsif ($command eq 'activate-service') {
  	 }
   else {
     $html->message('info', $_INFO, "$_SERVICE $_ENABLE");
- 		$Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
+ 		$Log->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
                    ACTION   => 'AUTH', 
                    USER_NAME=> $attr->{USER_NAME} || '-',
                    MESSAGE  => "Service Enable '$service_name' IP: $user_ip",
@@ -3717,7 +3719,7 @@ elsif ($command eq 'account-logon') {
 	  
 	if ($RAD_PAIRS{'Error-Cause'}) {
  	 	 $html->message('err', $_ERROR, "$_LOGON $_ERROR [$RAD_PAIRS{'Error-Cause'}] $RAD_PAIRS{'Reply-Message'}", { ID => 101 }); 	        	
-     $Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
+     $Log->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
                      ACTION   => 'AUTH', 
                      USER_NAME=> $attr->{USER_NAME} || '-',
                      MESSAGE  => "Logon Error: $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}",
@@ -3726,7 +3728,7 @@ elsif ($command eq 'account-logon') {
  	 }
   else {
     $html->message('info', $_INFO, "$_LOGON");
- 	 	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
+ 	 	$Log->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
                    ACTION   => 'AUTH', 
                    USER_NAME=> $attr->{USER_NAME} || '-',
                    MESSAGE  => "Logon",
@@ -3759,7 +3761,7 @@ elsif ($command eq 'account-logoff') {
 	  
 	if ($RAD_PAIRS{'Error-Cause'}) {
  	 	 $html->message('err', $_ERROR, "$_LOGON $_ERROR [$RAD_PAIRS{'Error-Cause'}] $RAD_PAIRS{'Reply-Message'}", { ID => 101 }); 	        	
-     $Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
+     $Log->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
                      ACTION   => 'AUTH', 
                      USER_NAME=> $attr->{USER_NAME} || '-',
                      MESSAGE  => "Logon Error: $RAD_PAIRS{'Error-Cause'} / $RAD_PAIRS{'Reply-Message'}",
@@ -3768,7 +3770,7 @@ elsif ($command eq 'account-logoff') {
  	 }
   else {
     $html->message('info', $_INFO, "$_LOGON");
- 	 	$Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
+ 	 	$Log->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
                    ACTION   => 'AUTH', 
                    USER_NAME=> $attr->{USER_NAME} || '-',
                    MESSAGE  => "Logon",

@@ -37,9 +37,7 @@ $ACCT{gnugk} = 'Voip_aaa';
 #For VoIP GNU Gatekeeper Auth
 $AUTH{gnugk} = 'Voip_aaa';
 
-
-
-#Technical works
+#Technical works banner in admin and user interface
 #$conf{tech_works}='Technical works';
 
 #Periodic functions
@@ -95,34 +93,15 @@ $conf{user_chg_passwd}=0;
 #Auto assigning MAC in first connect
 $conf{MAC_AUTO_ASSIGN}=1;
 $conf{KBYTE_SIZE} = 1024;
-# Check script runnig time
-$conf{time_check}=1;
 
 # Debug mod 
 $conf{debug}=10;
 $conf{foreground}=0;
 $conf{debugmods}='LOG_ALERT LOG_WARNING LOG_ERR LOG_INFO';
-#show auth and accounting time need Time::HiRes module (available from CPAN)
-# Log levels. For details see <syslog.h>
-%log_levels = ('LOG_EMERG' => 0,
-'LOG_ALERT'   => 1,
-'LOG_CRIT'    => 2,
-'LOG_ERR'     => 3,
-'LOG_WARNING' => 4,
-'LOG_NOTICE'  => 5,
-'LOG_INFO'    => 6,
-'LOG_DEBUG'   => 7,
-'LOG_SQL'     => 8);
 
-#Check password from radius or FTP servers for web interface
-#Radius
-#$conf{check_access} = { NAS_IP        => '192.168.101.17:1812',
-#                        NAS_FRAMED_IP => '192.168.101.17',
-#                        NAS_SECRET    => 'test'
-#                       };
-# FTP
-#  $conf{check_access} = { NAS_IP      => '192.168.101.17:21'
-#                         };
+#show auth and accounting time need Time::HiRes module (available from CPAN)
+# Check script runnig time
+$conf{time_check}=1;
 
 #Firewall start rule numbers
 # (GLobal, Class 1, Class 2)
@@ -143,15 +122,10 @@ $conf{SPOOL_DIR}=$base_dir.'var/q';
 # Template folder
 $conf{TPL_DIR}   = $base_dir . 'Abills/templates/';
 $conf{LOG_DEBUG} = $base_dir . 'var/log/abills.debug';
-$conf{WEB_LOGFILE} = 'weblog.log';
 $conf{LOGFILE}   = $base_dir . 'var/log/abills.log';
-$conf{LOG_ACCT}  = $base_dir . 'var/log/acct.log';
 
 #For file auth type allow file
 $conf{extern_acct_dir}=$base_dir.'libexec/ext_acct/';
-
-$conf{MAILBOX_PATH}='/var/mail/';
-# Low bounds
 
 use POSIX qw(strftime);
 $DATE = strftime "%Y-%m-%d", localtime(time);
@@ -161,34 +135,4 @@ $curtime = strftime("%F %H.%M.%S", localtime(time));
 $year = strftime("%Y", localtime(time));
 
 
-
-
-
-
-
-
-
-
-
-#*******************************************************************
-# log_print ($level, $text)
-# 
-#*******************************************************************
-sub log_print  {
- my ($level, $text) = @_;
-
- my $DATE = strftime "%Y-%m-%d", localtime(time);
- my $TIME = strftime "%H:%M:%S", localtime(time);
-
- if ($conf{debugmods} =~ /$level/) {
-   if (defined($conf{foreground}) && $conf{foreground} == 1) {
-     print "$DATE $TIME $level: $text\n";
-    }
-   else {
-     open(FILE, ">>$conf{LOGFILE}") || die "Can't open file '$conf{LOGFILE}' $!\n";
-      print FILE "$DATE $TIME $level: $text\n";
-     close(FILE);
-    }
-  }
-
-}
+1

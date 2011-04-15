@@ -7,14 +7,15 @@ use Dv_Sessions;
 use Nas;
 use Tariffs;
 use Socket;
-
+use Log;
 
 my $Ipn      = Ipn->new($db, \%conf);
 my $Ipn_Collector = Ipn_Collector->new($db, \%conf);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $users    = Users->new($db, $admin, \%conf); 
-my $Nas      = Nas->new($db);;
+my $Nas      = Nas->new($db, \%conf);;
+my $Log      = Log->new($db, \%conf);
 
 my @TT_COLORS = ("$_COLORS[1]", "#80FF80", "#FFFF80", "#BFBFFF");
 
@@ -1295,7 +1296,7 @@ sub ipn_user_activate {
 
       if ($r == 1) {
         $html->message('err', $_ERROR, "$RAD_PAIRS->{'Reply-Message'}");
-        $Nas->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
+        $Log->log_add({LOG_TYPE => $log_levels{'LOG_WARNING'},
                        ACTION   => 'AUTH', 
                        USER_NAME=> $user->{LOGIN} || '-',
                        MESSAGE  => "$RAD_PAIRS->{'Reply-Message'}",
@@ -1467,7 +1468,7 @@ sub ipn_change_status {
                                 STATUS          => 10
                                });
 
-     $Nas->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
+     $Log->log_add({LOG_TYPE => $log_levels{'LOG_INFO'},
                     ACTION   => 'AUTH', 
                     USER_NAME=> $USER_NAME || '-',
                     MESSAGE  => "IP: $ip",

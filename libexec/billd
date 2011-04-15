@@ -16,6 +16,7 @@ use vars  qw(%RAD %conf @MODULES $db $DATE $TIME $GZIP $MYSQLDUMP %ADMIN_REPORT 
  $base_dir
  $admin
  $debug
+ $Log
  );
 
 use strict;
@@ -27,7 +28,7 @@ unshift(@INC, $Bin . "/../Abills/", $Bin . '/../', $Bin . "/../Abills/$conf{dbty
 require "Abills/defs.conf";
 require "Abills/nas.pl";
 require Abills::Base;
-Abills::Base->import();
+Abills::Base->import(qw/check_time parse_arguments int2ip/);
 my $begin_time = check_time();
 
 $debug        = 0;
@@ -110,7 +111,11 @@ require Dv;
 my $Dv = Dv->new($db, $admin, \%conf);
 require Nas;
 my $nas = Nas->new($db, \%conf);
-#my %stats = ();
+
+require Log;
+Log->import('log_add');
+$Log = Log->new($db, \%conf);
+$Log->{PRINT}=1; 
 
 
 $LIST_PARAMS{NAS_IDS}   = $ARGV->{NAS_IDS} || undef;
@@ -276,7 +281,7 @@ sub check_lines {
            #|| ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0 && $bill_priority == 0)
            ) 
            && $online_state != 2 ) {
-        mk_log('LOG_WARNING', "HANGUP: $user_name Change TP DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum SESSION_ID: $acct_session_id");
+        $Log->log_print('LOG_WARNING', $user_name, "Change TP DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum SESSION_ID: $acct_session_id", { ACTION => 'HANGUP' });
         
         my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
        	                                                        FRAMED_IP_ADDRESS    => int2ip($client_ip),
@@ -317,7 +322,7 @@ sub check_lines {
 # Default alive for DHCP sessions
 #      	$NAS{NAS_ALIVE} = 8600 if (! $NAS{NAS_ALIVE});
         if ($NAS{NAS_ALIVE} > 0 && $NAS{NAS_ALIVE} * $error_alive_count < $last_alive) {
-          mk_log('LOG_WARNING', "HANGUP_DHCP $user_name, Last Alive: $last_alive, Duration: $duration_sec Session-ID: $acct_session_id NAS: $NAS{NAS_ID}/$NAS{NAS_IP}");
+          $Log->log_print('LOG_WARNING', "$user_name", "Last Alive: $last_alive, Duration: $duration_sec Session-ID: $acct_session_id", { ACTION => 'HANGUP_DHCP', NAS => \%NAS  });
           $sessions->zap($nas_row->[0], $nas_port_id, $acct_session_id);
         	next;
          }
@@ -368,11 +373,11 @@ sub check_lines {
            	                                                      });
             }
 
-           mk_log('LOG_WARNING', "SESSION_CALCULATION $user_name Last Alive: $last_alive, Session-ID: $acct_session_id\n$info");
+           $Log->log_print('LOG_WARNING', $user_name, "Last Alive: $last_alive, Session-ID: $acct_session_id\n$info", { ACTION => 'SESSION_CALCULATION', NAS => \%NAS });
            next;
           }
          else {
-           mk_log('LOG_WARNING', "LOST_ALIVE $user_name Last Alive: $last_alive, Session-ID: $acct_session_id NAS: $NAS{NAS_ID}/$NAS{NAS_IP}\n");
+           $Log->log_print('LOG_WARNING', "$user_name", "Last Alive: $last_alive, Session-ID: $acct_session_id", { ACTION => 'LOST_ALIVE', NAS=>\%NAS });
            $sessions->zap($nas_row->[0], $nas_port_id, $acct_session_id);
           }
        } 
@@ -524,7 +529,7 @@ sub check_lines {
            if ($ret !~ /^Err/i) {
               $hangup_status = 1;
             }
-           mk_log('LOG_WARNING', "HANGUP:  $RAD{USER_NAME} DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $Billing->{SUM} SESSION_ID: $acct_session_id Status: $hangup_status");
+           $Log->log_print('LOG_WARNING', "$RAD{USER_NAME}", "DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $Billing->{SUM} SESSION_ID: $acct_session_id Status: $hangup_status", { ACTION => 'HANGUP', NAS=>\%NAS });
           }
      }
    }
@@ -2322,33 +2327,6 @@ sub get_result {
 
 
 
-#**********************************************************
-#
-#**********************************************************
-sub mk_log {
-  my ($level, $text) = @_;
-
- use POSIX qw(strftime); 
- my $DATE = strftime "%Y-%m-%d", localtime(time);
- my $TIME = strftime "%H:%M:%S", localtime(time);
-
-
-# if ($conf{debugmods} =~ /$level/) {
-#   if (defined($conf{foreground}) && $conf{foreground} == 1) {
-     print "$DATE $TIME $level: $text\n";
-#    }
-#   else {
-#     if(open(FILE, ">>$conf{LOGFILE}")) {
-#       print FILE "$DATE $TIME $level: $text\n";
-#       close(FILE);
-#      }
-#     else {
-#       print  "Can't open file '$conf{LOGFILE}' $!\n";
-#     }
-#    }
-#  }	
-	
-}
 
 
 
