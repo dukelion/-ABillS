@@ -1515,7 +1515,8 @@ foreach my $nas_row (@$nas_list) {
   my $total = $#{ $l } + 1;  
   $table->{rowcolor}= 'row_active';
   $table->{extra}   = "colspan='". ($#CAPTION + 1 ) . "' class='small'";
-  $table->addrow("$nas_row->[0]:". $html->b($nas_row->[1]) .":$nas_row->[3]:$_TOTAL: $total (". $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->[0]", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->[0]' ?" }) .') '. $html->button("", "#", { IMG => ':chart_16.png', IMG_ALT => "$_GRAPH $_NAS", NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?NAS_ID=$nas_row->[0]&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "670:340" }) );
+  $table->addrow("$nas_row->[0]:". $html->button($html->b($nas_row->[1]), "index=". get_function_index('form_nas') ."&NAS_ID=$nas_row->[0]")  
+  .":$nas_row->[3]:$_TOTAL: $total (". $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->[0]", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->[0]' ?" }) .') '. $html->button("", "#", { IMG => ':chart_16.png', IMG_ALT => "$_GRAPH $_NAS", NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?NAS_ID=$nas_row->[0]&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "670:340" }) );
   
   foreach my $line (@$l) {
     undef($table->{rowcolor});
@@ -2282,8 +2283,8 @@ if ($conf{ERROR2DB}) {
     $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
    }
 
-  $Log->{debug}=1;
-  my $list = $Log->log_list({ %LIST_PARAMS  });
+  
+  $list = $Log->log_list({ %LIST_PARAMS  });
   my $table = $html->table( { 
   	                    caption    => $_TOTAL,
 	                      width      => '100%',

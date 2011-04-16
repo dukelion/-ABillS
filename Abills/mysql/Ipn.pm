@@ -17,7 +17,7 @@ $VERSION = 2.00;
 %EXPORT_TAGS = ();
 
 
-use Abills::Base;
+use Abills::Base qw(ip2int int2ip);
 use main;
 @ISA  = ("main");
 

@@ -26,7 +26,7 @@ my @TT_COLORS = ("$_COLORS[1]", "#80FF80", "#FFFF80", "#BFBFFF");
 sub ipn_detail {
   $FORM{DST_IP_GROUP} = ' checked' if($FORM{DST_IP_GROUP});
   $FORM{SRC_IP_GROUP} = ' checked' if($FORM{SRC_IP_GROUP});
-  $FORM{RESOLVE} = ' checked'       if($FORM{RESOLVE});
+  $FORM{RESOLVE} = ' checked'      if($FORM{RESOLVE});
 
   form_search({ SEARCH_FORM   => $html->tpl_show(_include('ipn_detail_search', 'Ipn'), 
   	                                  { %$Ipn, %FORM }, 

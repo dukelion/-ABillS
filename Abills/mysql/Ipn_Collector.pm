@@ -26,6 +26,9 @@ require Billing;
 Billing->import();
 my $Billing;
 
+require Abills::Base;
+Abills::Base->import(qw( int2ip ip2int check_time));
+
 require Dv;
 Dv->import();
 my $Dv;
@@ -496,9 +499,6 @@ sub get_zone {
 	my $zoneid  = 0;
 	my %zones   = ();
 	my @zoneids = ();
-	
-	require Abills::Base;
-  Abills::Base->import();
 
 	my $begin_time = check_time();
 	

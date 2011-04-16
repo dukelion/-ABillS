@@ -94,7 +94,7 @@ use FindBin '$Bin';
 require $Bin . '/config.pl';
 unshift(@INC, $Bin . '/../', $Bin ."/../Abills/$conf{dbtype}");
 require Abills::Base;
-Abills::Base->import();
+Abills::Base->import(qw{ check_time parse_arguments});
 my $begin_time = check_time();
 
 require Abills::SQL;

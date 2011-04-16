@@ -21,7 +21,7 @@ require "Abills/defs.conf";
 require "Abills/templates.pl";
 
 require Abills::Base;
-Abills::Base->import();
+Abills::Base->import(qw{ check_time parse_arguments in_array});
 my $begin_time = check_time();
 
 
