@@ -40,6 +40,7 @@ CREATE TABLE `cards_users` (
   `domain_id` smallint(6) unsigned not null default 0,
   `created` DATETIME NOT NULL,
   `id` int(11) unsigned NOT NULL auto_increment,
+  `commission` double(10,2) unsigned NOT NULL default '0.00',
   UNIQUE KEY `serial` (`number`,`serial`, `domain_id`),
   KEY `diller_id` (`diller_id`),
   KEY `login` (`login`),

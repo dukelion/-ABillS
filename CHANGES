@@ -1,7 +1,12 @@
 =====0.53=====
 
+17.04.2011\\
+MySQL:\\
+  ALTER TABLE  cards_users ADD COLUMN `commission` double(10,2) unsigned NOT NULL default '0.00';
+
 
 04.04.2011\\
+  * Добавлено уведомление о продлении услуги для модуля Abon
   * Добавлен внешний обработчик для модуля Abon. Разрешает запускать внешние программы при активации или блокировании услуги.
   * Комиссия за использование карточки оплаты
   * Добавлена плотность подключения в журнал адресов
@@ -11,11 +16,13 @@
   * Периодическое оповещение о завершении услуги и отправка счёта на оплату для модуля Abon
   * Установка типа снятий для модуля Abon
 MySQL:\\
+  ALTER TABLE abon_tariffs ADD COLUMN `activate_notification` tinyint(1) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN  `ext_cmd` VARCHAR(240) NOT NULL DEFAULT '';
   ALTER TABLE abon_tariffs ADD COLUMN `create_account` tinyint(1) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN `fees_type` tinyint(2) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN `notification1` tinyint(1) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN `notification2` tinyint(1) unsigned NOT NULL DEFAULT '0';
+  ALTER TABLE abon_tariffs ADD COLUMN `notification3` tinyint(1) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN `notification_account` tinyint(1) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN `alert` tinyint(1) unsigned NOT NULL DEFAULT '0';
   ALTER TABLE abon_tariffs ADD COLUMN `alert_account` tinyint(1) unsigned NOT NULL DEFAULT '0';
@@ -28,6 +35,7 @@ MySQL:\\
 
 
 25.03.2011\\
+
   * Удаление группы только после полного удаление из неё пользователей
   * В модуль Ureports (Отчёты пользователя) добавлена функция предупреждения о недостаточности средств на следующий учётный период через sms  или E-mail
   * Интеграция с системой Turbosms
