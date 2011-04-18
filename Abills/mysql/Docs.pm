@@ -455,9 +455,9 @@ sub account_add {
   $DATA{PAYMENT_ID} = 0 if (!  $DATA{PAYMENT_ID});
   $DATA{PHONE} = '' if (! $DATA{PHONE});
 
-  $self->query($db, "insert into docs_acct (acct_id, date, created, customer, phone, aid, uid, payment_id)
+  $self->query($db, "insert into docs_acct (acct_id, date, created, customer, phone, aid, uid, payment_id, vat)
       values ('$DATA{ACCT_ID}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 
-      \"$admin->{AID}\", \"$DATA{UID}\", '$DATA{PAYMENT_ID}');", 'do');
+      '$admin->{AID}', '$DATA{UID}', '$DATA{PAYMENT_ID}', '$DATA{VAT}');", 'do');
  
   return $self if($self->{errno});
   $self->{DOC_ID}=$self->{INSERT_ID};

@@ -350,6 +350,69 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
    }
 
 
+#проверял на debian'е 6.0 - по классам резало нормально.
+#при неимоверных кол-вах фильтров надо шейпер реорганизовать по 
+#хеш-таблицам. если нужен пример - набросаю чуть позже
+#
+#не знаю, в каком виде надо, но пример вот такой:
+
+
+#######################
+#UPSPEED1=2048
+#UPSPEED2=4096
+#DOWNSPEED1=512
+#DOWNSPEED2=1024
+#######################
+#
+#NET0=0.0.0.0/0          # WORLD (UPSPEED1/DOWNSPEED1)
+#NET1=91.206.218.0/24    # EXAMPLE HOST/NET (UPSPEED2/DOWNSPEED2)
+#NET2=212.66.35.233/32   # CLIENT IP
+#
+#IF1=eth1    # WAN
+#IF2=ppp0    # CLIENT
+#
+### CLEAR
+#/sbin/tc qdisc del dev ${IF1} root #> /dev/null 2>&1
+#/sbin/tc qdisc del dev ${IF2} root #> /dev/null 2>&1
+#
+### UP TO CLIENT
+#/sbin/tc qdisc add dev ${IF2} root handle 1: htb default 5
+#/sbin/tc class add dev ${IF2} parent 1: classid 1:10 htb rate 
+#${UPSPEED1}kbit burst 8k prio 1
+#/sbin/tc class add dev ${IF2} parent 1: classid 1:20 htb rate 
+#${UPSPEED2}kbit burst 8k prio 2
+#/sbin/tc qdisc add dev ${IF2} parent 1:10 handle 10: sfq perturb 10 
+#quantum 1500
+#/sbin/tc qdisc add dev ${IF2} parent 1:20 handle 20: sfq perturb 10 
+#quantum 1500
+#/sbin/tc filter add dev ${IF2} protocol ip parent 1:0 prio 1 u32 match 
+#ip src ${NET1} flowid 1:20
+#/sbin/tc filter add dev ${IF2} protocol ip parent 1:0 prio 1 u32 match 
+#ip src ${NET0} flowid 1:10
+#
+## внешний интерфейс в примере инициализируется здесь,
+## но в жизни надо только добавлять и удалять фильтры при установке 
+#ppp-сессии
+### DOWN FROM CLIENT
+#/sbin/tc qdisc add dev ${IF1} root handle 1: htb default 5
+#/sbin/tc class add dev ${IF1} parent 1: classid 1:10 htb rate 
+#${DOWNSPEED1}kbit burst 8k prio 1
+#/sbin/tc class add dev ${IF1} parent 1: classid 1:20 htb rate 
+#${DOWNSPEED2}kbit burst 8k prio 2
+#/sbin/tc qdisc add dev ${IF1} parent 1:10 handle 10: sfq perturb 10 
+#quantum 1500
+#/sbin/tc qdisc add dev ${IF1} parent 1:20 handle 20: sfq perturb 10 
+#quantum 1500
+##
+#/sbin/tc filter del dev ${IF1} protocol ip parent 1:0 prio 1 u32 match 
+#ip src ${NET2} > /dev/null 2>&1
+#/sbin/tc filter add dev ${IF1} protocol ip parent 1:0 prio 1 u32 match 
+#ip src ${NET2} match ip dst ${NET1} flowid 1:20
+#/sbin/tc filter add dev ${IF1} protocol ip parent 1:0 prio 1 u32 match 
+#ip src ${NET2} match ip dst ${NET0} flowid 1:10
+
+
+
   foreach my $traf_type (sort keys %speeds) {
     my $speed = $speeds{$traf_type};
     if ($inum ne '-' ) {

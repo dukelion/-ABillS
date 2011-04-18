@@ -20,3 +20,4 @@ $ERR_NO_ORDERS='No orders';
 $_PAID='Paid account';
 $_PARTLY_PAID='Partly paid';
 $_UNPAID='UnPaid account';
+$_VAT_INCLUDE='Vat include';

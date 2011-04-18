@@ -9,3 +9,4 @@ $_ENDED='Finished';
 $_SEND_ACCOUNT='Send account';
 $_EXT_CMD='Extrnal command';
 $_SERVICE_ACTIVATE_NOTIFICATION='Service Activate notification';
+$_VAT_INCLUDE='Vat Include';

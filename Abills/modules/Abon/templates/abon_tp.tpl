@@ -20,6 +20,9 @@
 <tr><td>$_FEES $_TYPE:</td><td>%FEES_TYPES_SEL%</td></tr>
 
 <tr><td>$_SEND_ACCOUNT:</td><td><input type=checkbox name=CREATE_ACCOUNT value='1' %CREATE_ACCOUNT%></td></tr>
+<tr><td>$_VAT_INCLUDE:</td><td><input type=checkbox name=VAT value='1' %VAT%></td></tr>
+
+
 <tr><td>$_SERVICE_ACTIVATE_NOTIFICATION</td><td><input type=checkbox name=ACTIVATE_NOTIFICATION value='1' %ACTIVATE_NOTIFICATION%></td></tr>
 <tr><th colspan=2 class=form_title>$_NOTIFICATION (E-mail)</th></tr>
 <tr><td> 1: $_DAYS_TO_END:</td><td><input type=text name=NOTIFICATION1 value='%NOTIFICATION1%' size=6> $_SEND_ACCOUNT: <input type=checkbox name=NOTIFICATION_ACCOUNT value='1' %NOTIFICATION_ACCOUNT% size=6></td></tr>

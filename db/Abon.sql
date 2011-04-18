@@ -11,6 +11,7 @@ CREATE TABLE `abon_tariffs` (
   `account` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `fees_type` tinyint(2) unsigned NOT NULL DEFAULT '0',
   `create_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `vat` tinyint(1) unsigned NOT NULL DEFAULT '0', 
   `notification1` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `notification2` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `notification_account` tinyint(1) unsigned NOT NULL DEFAULT '0',

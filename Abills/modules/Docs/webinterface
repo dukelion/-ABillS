@@ -1222,6 +1222,11 @@ sub docs_account {
     }
    else {
      $FORM{UID}=$LIST_PARAMS{UID} if (! $FORM{UID});
+     
+     if ($FORM{VAT} && $FORM{VAT} == 1) {
+     	 $FORM{VAT} = $conf{DOCS_VAT_INCLUDE};
+      }
+     
      $Docs->account_add({ %FORM });
      if(! $Docs->{errno}) {
        $FORM{ACCOUNT_ID}=$Docs->{DOC_ID};
@@ -1297,7 +1302,7 @@ sub docs_account {
 
          if ($Docs->{COMPANY_ID}) {
          	 $Company->info($Docs->{COMPANY_ID});
-         	 docs_print('account_company', { %$Docs, %$Company });
+         	 docs_print('account_company', { %$Docs, %$Company, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
           }
          else {
            docs_print('account', $Docs);
@@ -1308,7 +1313,7 @@ sub docs_account {
        else {
          if ($Docs->{COMPANY_ID}) {
          	 $Company->info($Docs->{COMPANY_ID});
-         	 docs_print('account_company', { %$Docs, %$Company, %$attr });
+         	 docs_print('account_company', { %$Docs, %$Company, %$attr, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
           }
          else {
            docs_print('account', { %$Docs, %$attr }) if (! $FORM{QUICK});;
@@ -1371,7 +1376,7 @@ sub docs_account {
 
      if ($Docs->{COMPANY_ID}) {
        $Company->info($Docs->{COMPANY_ID});
-       return docs_print('account_company', { %$Docs, %$Company, %$attr });
+       return docs_print('account_company', { %$Docs, %$Company, %$attr, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
       }
      else {
        return docs_print('account', { %$Docs, %$attr });
@@ -1515,7 +1520,7 @@ sub docs_print {
   my $tpl_sufix = '';
   if ($Docs->{UID}) {
     $users->info($Docs->{UID}) if (! $users->{BILL_ID});
-    $users->pi({  UID => $Docs->{UID} }) ;
+    $users->pi({ UID => $Docs->{UID} });
     $users->{ADDRESS_FULL}="$users->{ADDRESS_STREET}, $users->{ADDRESS_BUILD}, $users->{ADDRESS_FLAT}"; 
     
     if ($users->{GID}) {
@@ -1524,9 +1529,11 @@ sub docs_print {
        	 $tpl_sufix = "_$users->{GID}"; 
         }
      }
-#    print "Content-Type: text/html\n\n";
    }
 
+  if ($attr->{SUFIX}) {
+  	$tpl_sufix='_'.$attr->{SUFIX};
+   }
 
 	return $html->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
 	    { pdf           => $FORM{pdf},
@@ -1758,7 +1765,7 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
        $i++;
      }
 
-     docs_print('act', { %$Docs, %$Company });
+     docs_print('act', { %$Docs, %$Company, SUFIX => ($Company->{VAT} > 0) ? 'vat' : '' });
     }
    else {
 

@@ -355,6 +355,7 @@ sub abon_tariffs {
    $Abon->{ALERT_ACCOUNT} = ($Abon->{ALERT_ACCOUNT}) ? 'checked' : '';
    $Abon->{CREATE_ACCOUNT}= ($Abon->{CREATE_ACCOUNT}) ? 'checked' : ''; 
    $Abon->{ACTIVATE_NOTIFICATION} = ($Abon->{ACTIVATE_NOTIFICATION}) ? 'checked' : ''; 
+   $Abon->{VAT}           = ($Abon->{VAT}) ? 'checked' : ''; 
 
   $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);
 
@@ -433,6 +434,8 @@ sub abon_periodic {
    my $notification1_account_id = $line->[25]; 
    my $ext_cmd         = $line->[26]; 
    my $activate_notification = $line->[27]; 
+   my $vat             = $line->[28]; 
+   
    
    if ($debug > 5) {
    	   $debug_output .= "UID: $uid TP_ID: $tp_id SUM: $sum DEPOSIT: $deposit  NOT1: $notification1 NOT2: $notification2 ABON: $abon_date\n";
