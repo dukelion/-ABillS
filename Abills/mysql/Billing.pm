@@ -156,7 +156,7 @@ if ($prepaid{0} + $prepaid{1} > 0) {
       #&& DATE_FORMAT(start, '%Y-%m-%d')<='$self->{ACTIVATE}')";
   	 }
     else {
-    	$WHERE  = "(DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate() - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} MONTH, '%Y-%m'))";
+    	$WHERE  = "(DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(DATE_FORMAT(start, '%Y-%m-01') - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} MONTH, '%Y-%m'))";
     	# AND DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m') ) ";
      }
 
