@@ -130,13 +130,13 @@ if ($prepaid{0} + $prepaid{1} > 0) {
  my $octets_online_direction = "acct_input_octets + acct_output_octets";
  my $octets_online_direction2 = "ex_input_octets + ex_output_octets";
  
- if ($self->{INFO_LIST}->[0]->[6] == 1) {
+ if ($self->{OCTETS_DIRECTION} == 1) {
    $octets_direction = "recv + 4294967296 * acct_input_gigawords ";
    $octets_direction2 = "recv2";
    $octets_online_direction = "acct_input_octets + 4294967296 * acct_input_gigawords";
    $octets_online_direction2 = "ex_input_octets";
   }
- elsif ($self->{INFO_LIST}->[0]->[6] == 2) {
+ elsif ($self->{OCTETS_DIRECTION} == 2) {
    $octets_direction  = "sent + 4294967296 * acct_output_gigawords ";
    $octets_direction2 = "sent2";
    $octets_online_direction = "acct_output_octets + 4294967296 * acct_output_gigawords";
@@ -152,18 +152,18 @@ if ($prepaid{0} + $prepaid{1} > 0) {
 
 
   	if ($self->{ACTIVATE} ne '0000-00-00') {
-      $WHERE  = "(DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACTIVATE}' - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} * 30 DAY && 
-      DATE_FORMAT(start, '%Y-%m-%d')<='$self->{ACTIVATE}')";
+      $WHERE  = "(DATE_FORMAT(start, '%Y-%m-%d')>='$self->{ACTIVATE}' - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD}-1 * 30 DAY )";
+      #&& DATE_FORMAT(start, '%Y-%m-%d')<='$self->{ACTIVATE}')";
   	 }
     else {
-    	$WHERE  = "(DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate() - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} MONTH, '%Y-%m') AND 
-    	 DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m') ) ";
+    	$WHERE  = "(DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate() - INTERVAL $self->{TRAFFIC_TRANSFER_PERIOD} MONTH, '%Y-%m'))";
+    	# AND DATE_FORMAT(start, '%Y-%m')>=DATE_FORMAT(curdate(), '%Y-%m') ) ";
      }
 
  	 #Get using traffic
    $self->query($db, "select  
-     if($prepaid{0}  > sum($octets_direction) / $CONF->{MB_SIZE}, $prepaid{0}  - sum($octets_direction) / $CONF->{MB_SIZE}, -1),
-     if($prepaid{1}  > sum($octets_direction2) / $CONF->{MB_SIZE}, $prepaid{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, -1),
+     if($prepaid{0}  > sum($octets_direction) / $CONF->{MB_SIZE}, $prepaid{0}  - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
+     if($prepaid{1}  > sum($octets_direction2) / $CONF->{MB_SIZE}, $prepaid{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, 0),
      DATE_FORMAT(start, '%Y-%m')
    FROM dv_log
    WHERE $uid  and tp_id='$tp' and
@@ -180,7 +180,7 @@ if ($prepaid{0} + $prepaid{1} > 0) {
       $class2      += $line->[1] ;
      }	
     $prepaid{0} = $class1;
-    $prepaid{0} = $class2;
+    $prepaid{1} = $class2;
    } 
 
  #Check online
