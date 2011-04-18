@@ -87,6 +87,10 @@ my %ACCT_TERMINATE_CAUSES = (
 
 my $access_deny = sub {
     my ($user, $message, $nas_num) = @_;
+    if (! $Log) {
+      $Log = Log->new($db, \%conf);
+      $Log->{ACTION} = 'ACCT';
+     }
     $Log->log_print('LOG_WARNING', $user, "$message", { ACTION => 'ACCT', NAS => { NAS_ID => $nas_num } });
     return 1;
    };
@@ -147,7 +151,6 @@ sub acct {
  $Log = Log->new($db, \%conf);
  $Log->{ACTION} = 'ACCT';
 
- $Log->{debug}=1; 
  my $begin_time = check_time();
 
  if ($RAD->{SERVICE_TYPE} && defined($USER_TYPES{$RAD->{SERVICE_TYPE}}) && $USER_TYPES{$RAD->{SERVICE_TYPE}} == 6) {

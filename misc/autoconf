@@ -21,6 +21,9 @@ my $debug=0;
 require $Bin . '/../Abills/Base.pm';
 Abills::Base->import();
 
+# Default storage engine InnoDB,MyISAM 
+my $db_storage_engine='InnoDB';
+
 my $ARGV = parse_arguments(\@ARGV);
 $ARGV->{OS}=$conf{OS} if (! $ARGV->{OS});
 print "OS: $conf{OS}\n";
@@ -31,7 +34,11 @@ if ($ARGV->{debug}) {
 }
 
 if ($ARGV->{SYSTEM}) {
-	system_conf();
+  system_conf();
+}
+
+if ($ARGV->{db_starage_engine}) {
+  $db_storage_engine=$ARGV->{db_starage_engine};
 }
 
 
@@ -157,7 +164,7 @@ if(! -f $config_file ) {
               $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --password='$mysql_root_passwd' -e "$add_mysql_user"`;
               print $res;
               print "Upload Main Dump and modules\n";
-              $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --default-character-set=$mk_config{dbcharset} --password='$mysql_root_passwd' -D $mk_config{dbname} < ../abills.sql`;
+              $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --default-character-set=$mk_config{dbcharset} --storage_engine=$db_storage_engine --password='$mysql_root_passwd' -D $mk_config{dbname} < ../abills.sql`;
             } 
            elsif(confirm_yn("Show MySQL configure Settings? ", "y")) {
            	 print "----------------------------------------------------------\n".
@@ -232,6 +239,7 @@ elsif ($ARGV->{help}) {
                             2 full debug
                             3 emulate mode
   BACKUP                  - Backup old configuration files (add .bak extention)
+  db_storage_engine=      - Database Storage engine (InnoDB,MyISAM). Default: $db_storage_engine
   INFORMATION:
    OS: $conf{OS}
   \n";

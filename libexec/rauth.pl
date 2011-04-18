@@ -120,7 +120,7 @@ sub auth {
  my ($db, $RAD, $nas, $attr)=@_;
  my ($r, $RAD_PAIRS);
 
- my $Log = Log->new($db, \%conf);
+ $Log = Log->new($db, \%conf);
  $Log->{ACTION} = 'AUTH';
  
  if(defined($conf{tech_works})) {

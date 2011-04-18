@@ -100,94 +100,66 @@ sub customers_list {
   }
  # Login expresion
  elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
   }
  
 
  if ($attr->{PHONE}) {
-    my $value = $self->search_expr($attr->{PHONE}, 'INT');
-    push @WHERE_RULES, "pi.phone$value";
-    $self->{SEARCH_FIELDS} = 'pi.phone, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{PHONE}, 'STR', 'pi.phone', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{ADDRESS_STREET}) {
-    $attr->{ADDRESS_STREET} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.address_street LIKE '$attr->{ADDRESS_STREET}' ";
-    $self->{SEARCH_FIELDS} .= 'pi.address_street, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_STREET}, 'STR', 'pi.address_street', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{ADDRESS_BUILD}) {
-    $attr->{ADDRESS_BUILD} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.address_build LIKE '$attr->{ADDRESS_BUILD}'";
-    $self->{SEARCH_FIELDS} .= 'pi.address_build, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{ADDRESS_FLAT}) {
-    $attr->{ADDRESS_FLAT} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.address_flat LIKE '$attr->{ADDRESS_FLAT}'";
-    $self->{SEARCH_FIELDS} .= 'pi.address_flat, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_FLAT}, 'STR', 'pi.address_flat', { EXT_FIELD => 1 }) };
   }
 
-
-
  if ($attr->{CONTRACT_ID}) {
-    $attr->{CONTRACT_ID} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.contract_id LIKE '$attr->{CONTRACT_ID}'";
-    $self->{SEARCH_FIELDS} .= 'pi.contract_id, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'pi.contract_id', { EXT_FIELD => 1 }) };
   }
 
  if ($attr->{REGISTRATION}) {
-    my $value = $self->search_expr("'$attr->{REGISTRATION}'", 'INT');
-    push @WHERE_RULES, "u.registration LIKE '$attr->{REGISTRATION}'";
-    $self->{SEARCH_FIELDS} .= 'u.registration, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{REGISTRATION}, 'INT', 'u.registration', { EXT_FIELD => 1 }) };
   }
 
-
  if ($attr->{DEPOSIT}) {
-    my $value = $self->search_expr($attr->{DEPOSIT}, 'INT');
-    push @WHERE_RULES, "b.deposit$value";
+ 	push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'STR', 'b.deposit') };
   }
 
  if ($attr->{CREDIT}) {
-    my $value = $self->search_expr($attr->{CREDIT}, 'INT');
-    push @WHERE_RULES, "u.credit$value";
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{CREDIT}, 'STR', 'u.credit') };
   }
 
-
  if ($attr->{COMMENTS}) {
-  	$attr->{COMMENTS} =~ s/\*/\%/ig;
- 	  push @WHERE_RULES, "pi.comments LIKE '$attr->{COMMENTS}'";
-    $self->{SEARCH_FIELDS} .= 'pi.comments, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'STR', 'pi.comments', { EXT_FIELD => 1 }) };
   }    
 
-
  if ($attr->{FIO}) {
-    $attr->{FIO} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "pi.fio LIKE '$attr->{FIO}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{FIO}, 'STR', 'pi.fio' ) };
   }
 
  # Show debeters
  if ($attr->{DEBETERS}) {
-    push @WHERE_RULES, "b.deposit<0";
+   push @WHERE_RULES, "b.deposit<0";
   }
 
  if ($attr->{COMPANY_ID}) {
-    push @WHERE_RULES, "u.company_id='$attr->{COMPANY_ID}'";
+   push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'STR', 'u.company_id') };
   }
 
  # Show groups
  if ($attr->{GIDS}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
    push @WHERE_RULES, "u.gid IN ($attr->{GIDS})"; 
   }
  elsif ($attr->{GID}) {
+ 	push @WHERE_RULES, @{ $self->search_expr($attr->{ADDRESS_BUILD}, 'STR', 'pi.address_build', { EXT_FIELD => 1 }) };
    push @WHERE_RULES, "u.gid='$attr->{GID}'"; 
   }
 
@@ -196,36 +168,23 @@ sub customers_list {
    }
 
 #Activate
- if ($attr->{ACTIVATE}) {
-   my $value = $self->search_expr("$attr->{ACTIVATE}", 'INT');
-   push @WHERE_RULES, "(u.activate$value)"; 
-   
-   #push @WHERE_RULES, "(u.activate='0000-00-00' or u.activate$value)"; 
-   $self->{SEARCH_FIELDS} .= 'u.activate, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
+ if ($attr->{ACTIVATE}) { 	
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ACTIVATE}, 'STR', 'u.activate', { EXT_FIELD => 1 }) };
  }
 
 #Expire
- if ($attr->{EXPIRE}) {
-   my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
-   push @WHERE_RULES, "(u.expire$value)"; 
-   #push @WHERE_RULES, "(u.expire='0000-00-00' or u.expire$value)"; 
-   
-   $self->{SEARCH_FIELDS} .= 'u.expire, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
- }
+ if ($attr->{EXPIRE}) { 	
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{EXPIRE}, 'STR', 'u.expire', { EXT_FIELD => 1 }) };
+  }
 
 #DIsable
- if ($attr->{DISABLE}) {
-   push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
- }
- 
- 
+ if ($attr->{DISABLE}) { 	
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{DISABLE}, 'STR', 'u.disable', { EXT_FIELD => 1 }) }; 	
+  }
  
  $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : '';
- 
+
 #Show last paymenst
- 
        # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
       # номер телефона, ИНН, основной договор, основной счёт, 
 
