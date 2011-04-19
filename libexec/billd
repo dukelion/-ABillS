@@ -28,7 +28,7 @@ unshift(@INC, $Bin . "/../Abills/", $Bin . '/../', $Bin . "/../Abills/$conf{dbty
 require "Abills/defs.conf";
 require "Abills/nas.pl";
 require Abills::Base;
-Abills::Base->import(qw/check_time parse_arguments int2ip/);
+Abills::Base->import(qw/check_time parse_arguments int2ip time2sec/);
 my $begin_time = check_time();
 
 $debug        = 0;
