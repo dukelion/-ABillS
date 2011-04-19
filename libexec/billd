@@ -373,7 +373,7 @@ sub check_lines {
            	                                                      });
             }
 
-           $Log->log_print('LOG_WARNING', $user_name, "Last Alive: $last_alive, Session-ID: $acct_session_id\n$info", { ACTION => 'SESSION_CALCULATION', NAS => \%NAS });
+           $Log->log_print('LOG_WARNING', $user_name, "Last Alive: $last_alive, Session-ID: $acct_session_id\n$info", { ACTION => 'CALCULATION', NAS => \%NAS });
            next;
           }
          else {

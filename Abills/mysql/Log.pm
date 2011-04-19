@@ -83,6 +83,11 @@ sub log_list {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{LOG_TYPE}, 'INT', 'l.log_type') };
    }
 
+  if($attr->{ACTION}) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{ACTION}, 'INT', 'l.action') };
+   }
+
+
   if($attr->{NAS_ID}) {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{NAS_ID}, 'INT', 'l.nas_id') };
    }

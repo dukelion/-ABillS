@@ -18,7 +18,7 @@ my $payments = Payments->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 my $Nas      = Nas->new($db, \%conf);
-$Log      = Log->new($db, \%conf);
+$Log         = Log->new($db, \%conf);
 
 my %FORM_BASE = ();
 my %TRAFFIC_NAMES = ();
@@ -2227,6 +2227,8 @@ sub dv_error {
   my $login  = ''; 
 
   my %log_levels_rev = reverse %log_levels;
+  my @ACTIONS = ('', 'AUTH', 'ACCT', 'HANGUP', 'CALCULATION', 'CMD');
+ 
 
 if ($attr->{USER}) {
   my $user = $attr->{USER};
@@ -2267,6 +2269,14 @@ if ($conf{ERROR2DB}) {
  	                         SEL_HASH  => \%nas_ids,
                            NO_ID     => 1
    	                      }) ;
+
+  
+
+  $Dv->{ACTIONS_SEL} = $html->form_select('ACTION', 
+                                          { 
+ 	                                          SELECTED     => $FORM{ACTION},
+ 	                                          SEL_ARRAY    => \@ACTIONS,
+ 	                                        });
 
 
   form_search({ SEARCH_FORM => $html->tpl_show(_include('dv_errors_search', 'Dv'),
