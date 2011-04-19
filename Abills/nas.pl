@@ -457,6 +457,8 @@ sub hangup_mikrotik_telnet {
 sub hangup_ipcad {
   my ($NAS_IP, $PORT, $USER_NAME, $attr) = @_;
 
+  my $result  = '';
+
   require Ipn;
   Ipn->import();
   my $Ipn      = Ipn->new($db, \%conf);
@@ -500,18 +502,20 @@ sub hangup_ipcad {
     print "IPN FILTER: $cmd\n" if ($attr->{debug} && $attr->{debug} > 5);
    }
 
-  my $cmd     = $conf{IPN_FW_STOP_RULE};
-  $cmd =~ s/\%IP/$ip/g;
-  $cmd =~ s/\%MASK/$netmask/g;
-  $cmd =~ s/\%NUM/$rule_num/g;
-  $cmd =~ s/\%LOGIN/$USER_NAME/g;
+  if ($conf{IPN_FW_STOP_RULE}) {
+    my $cmd     = $conf{IPN_FW_STOP_RULE};
+    $cmd =~ s/\%IP/$ip/g;
+    $cmd =~ s/\%MASK/$netmask/g;
+    $cmd =~ s/\%NUM/$rule_num/g;
+    $cmd =~ s/\%LOGIN/$USER_NAME/g;
 
-  $Log->log_print('LOG_DEBUG', '', "$cmd", { ACTION => 'CMD' });
-  if ($attr->{debug} &&  $attr->{debug} > 4) {
-  	print $cmd."\n";
+    $Log->log_print('LOG_DEBUG', '', "$cmd", { ACTION => 'CMD' });
+    if ($attr->{debug} &&  $attr->{debug} > 4) {
+  	  print $cmd."\n";
+     }
+    print $cmd."\n";
+    $result = system($cmd);
    }
-  print $cmd."\n";
-  my $result = system($cmd);
 
   print $result;
 }

@@ -120,11 +120,13 @@ sub log_list {
 sub log_print  {
   my ($self, $LOG_TYPE, $USER_NAME, $MESSAGE, $attr) = @_;
   my $Nas = $attr->{NAS} || undef;
+
+  my $action = $attr->{'ACTION'} || $self->{ACTION} || '' ;
   
   if ($CONF->{debugmods} =~ /$LOG_TYPE/) {
     if ($CONF->{ERROR2DB}) {
       $self->log_add({LOG_TYPE => $log_levels{$LOG_TYPE},
-                      ACTION   => $attr->{'ACTION'} || $self->{ACTION} || '', 
+                      ACTION   => $action, 
                       USER_NAME=> $USER_NAME || '-',
                       MESSAGE  => "$MESSAGE",
                       NAS_ID   => $Nas->{NAS_ID}
@@ -137,7 +139,7 @@ sub log_print  {
       my $nas  = (defined($Nas->{NAS_ID})) ? "NAS: $Nas->{NAS_ID} ($Nas->{NAS_IP}) " : '';
       
       if(open(FILE, ">>$CONF->{LOGFILE}")) {
-        print FILE "$DATE $TIME $LOG_TYPE: AUTH [$USER_NAME] $nas$MESSAGE\n";
+        print FILE "$DATE $TIME $LOG_TYPE: $action [$USER_NAME] $nas$MESSAGE\n";
         close(FILE);
        }
       else {
@@ -150,7 +152,7 @@ sub log_print  {
     	my $DATE = strftime "%Y-%m-%d", localtime(time);
       my $TIME = strftime "%H:%M:%S", localtime(time);
       my $nas  = (defined($Nas->{NAS_ID})) ? "NAS: $Nas->{NAS_ID} ($Nas->{NAS_IP}) " : '';
-      print "$DATE $TIME $LOG_TYPE: AUTH [$USER_NAME] $nas$MESSAGE\n";
+      print "$DATE $TIME $LOG_TYPE: $action [$USER_NAME] $nas$MESSAGE\n";
     }
    }
 };

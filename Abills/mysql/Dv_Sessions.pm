@@ -933,11 +933,12 @@ WHERE
     
     $rest{0} = $class1;
     $rest{1} = $class2;
-
-    $self->{INFO_LIST}->[0]->[4] += $prepaid_traffic{0};
-    if ($prepaid_traffic{1}) {
-      $self->{INFO_LIST}->[1]->[4] += $prepaid_traffic{1};
-     }
+    if ($traffic_transfert > 0) {
+      $self->{INFO_LIST}->[0]->[4] += $prepaid_traffic{0};
+      if ($prepaid_traffic{1}) {
+        $self->{INFO_LIST}->[1]->[4] += $prepaid_traffic{1};
+       }
+    }
    }
 # }
  

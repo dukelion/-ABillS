@@ -318,15 +318,15 @@ sub check_lines {
       #	next
       # }
       #els
-      if ($NAS{NAS_TYPE} eq 'dhcp') {
-# Default alive for DHCP sessions
-#      	$NAS{NAS_ALIVE} = 8600 if (! $NAS{NAS_ALIVE});
-        if ($NAS{NAS_ALIVE} > 0 && $NAS{NAS_ALIVE} * $error_alive_count < $last_alive) {
-          $Log->log_print('LOG_WARNING', "$user_name", "Last Alive: $last_alive, Duration: $duration_sec Session-ID: $acct_session_id", { ACTION => 'HANGUP_DHCP', NAS => \%NAS  });
-          $sessions->zap($nas_row->[0], $nas_port_id, $acct_session_id);
-        	next;
-         }
-       }
+#      if ($NAS{NAS_TYPE} eq 'dhcp') {
+## Default alive for DHCP sessions
+##      	$NAS{NAS_ALIVE} = 8600 if (! $NAS{NAS_ALIVE});
+#        if ($NAS{NAS_ALIVE} > 0 && $NAS{NAS_ALIVE} * $error_alive_count < $last_alive) {
+#          $Log->log_print('LOG_WARNING', "$user_name", "Last Alive: $last_alive, Duration: $duration_sec Session-ID: $acct_session_id", { ACTION => 'HANGUP_DHCP', NAS => \%NAS  });
+#          $sessions->zap($nas_row->[0], $nas_port_id, $acct_session_id);
+#        	next;
+#         }
+#       }
 
       #Get stats from nas servers which don't support rad Alive
       my $external_stats = get_stats(\%NAS, $nas_port_id);
