@@ -18,7 +18,7 @@ my $payments = Payments->new($db, $admin, \%conf);
 my $tariffs  = Tariffs->new($db, \%conf, $admin);
 my $sessions = Dv_Sessions->new($db, $admin, \%conf);
 my $Nas      = Nas->new($db, \%conf);
-my $Log      = Log->new($db, \%conf);
+$Log      = Log->new($db, \%conf);
 
 my %FORM_BASE = ();
 my %TRAFFIC_NAMES = ();
