@@ -433,7 +433,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     		  NETS_ID   => undef,
     		  NETS      => \@nets_arr 
     		 });
-    }
+     }
     #Linux shaper
     elsif ($OS eq 'Linux') {
       # new linux shapper

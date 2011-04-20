@@ -272,6 +272,11 @@ $ERR_WRONG_SUM="Wrong sum. Enter sum.";
 $ERR_ACCESS_DENY='Access Deny';
 $ERR_UNALLOW_IP='Unallow IP';
 
+#
+$ERR_IP_ADDRESS_CONFLICT='IP Address Conflict.';
+$ERR_HOST_REGISTRED='Host already registred.';
+$_RENEW_IP='Please renew ip. If error not gone please contact administrator';
+
 
 #Mail section
 $_MAILBOXES='Mailboxes';
