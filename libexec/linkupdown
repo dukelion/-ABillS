@@ -6,12 +6,12 @@
 # /etc/ppp/ppp.linkup
 #
 # MYADDR:
-# !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR
+# !bg /usr/abills/libexec/linkupdown up INTERFACE USER CLIENT_IP
 #
 # /etc/ppp/ppp.linkdown
 #
 # MYADDR:
-# !bg /usr/abills/libexec/linkupdown down INTERFACE USER HISADDR
+# !bg /usr/abills/libexec/linkupdown down INTERFACE USER CLIENT_IP
 #
 #-------------------------------------------------------------
 # /usr/local/etc/mpd/mpd.conf
@@ -57,11 +57,11 @@ For IPN
 ----------------------------------------------------------------
  /etc/ppp/ppp.linkup
  MYADDR:
-   !bg /usr/abills/libexec/linkupdown up INTERFACE USER HISADDR
+   !bg /usr/abills/libexec/linkupdown up INTERFACE USER CLIENT_IP
 
  /etc/ppp/ppp.linkdown
  MYADDR:
-   !bg /usr/abills/libexec/linkupdown down INTERFACE USER HISADDR
+   !bg /usr/abills/libexec/linkupdown down INTERFACE USER CLIENT_IP
 
 ----------------------------------------------------------------
  /usr/local/etc/mpd/mpd.conf
@@ -115,7 +115,7 @@ my $IPFW      = '/sbin/ipfw -q';
 my @START_FW = (3000, 2000, 1000);
 
 # Arguments
-my ($ACTION, $INTERFACE, $USER, $HISADDR);
+my ($ACTION, $INTERFACE, $USER, $CLIENT_IP);
 my $inum=0;
 
 #MPD
@@ -123,7 +123,7 @@ if ($ARGV[0] eq 'mpd') {
   $ACTION   = $ARGV[1];
   $INTERFACE= $ARGV[2];
   $USER     = $ARGV[6];
-  $HISADDR  = $ARGV[5];
+  $CLIENT_IP  = $ARGV[5];
   $inum     = $INTERFACE;
   $inum     =~ s/ng//;
 }
@@ -132,19 +132,19 @@ elsif ($ARGV[0] eq 'openvpn') {
   $ACTION    = $ARGV[1];
   $INTERFACE = $ARGV[2];
   $USER      = $ARGV[6];
-  $HISADDR   = $ARGV[5];
+  $CLIENT_IP   = $ARGV[5];
   $inum      = (! ($INTERFACE =~ s/tap//)) ? 100+8 : $INTERFACE+100;
 } 
 elsif ($ARGV[0] eq 'ipn') {
   $ACTION    = $ARGV[1];
   $INTERFACE = $ARGV[2];
   $USER      = $ARGV[3];
-  $HISADDR   = $ARGV[4];
-	my ($n1, $n2, $n3, $n4) = split(/\./, $HISADDR, 4);
+  $CLIENT_IP   = $ARGV[4];
+	my ($n1, $n2, $n3, $n4) = split(/\./, $CLIENT_IP, 4);
   $inum  = $argv->{PORT} || $n4;
 
   if ($INTERFACE eq 'getif') {
-    $INTERFACE = `/sbin/route -n get $HISADDR | /usr/bin/grep interface: | /usr/bin/awk '{print \$2}'`;
+    $INTERFACE = `/sbin/route -n get $CLIENT_IP | /usr/bin/grep interface: | /usr/bin/awk '{print \$2}'`;
    }
 
   if ($INTERFACE =~ /eth/) {
@@ -152,11 +152,11 @@ elsif ($ARGV[0] eq 'ipn') {
    }
 }
 elsif($ARGV[0] eq 'pppd' || $ARGV[0] eq 'mikrotik') {
-  $ACTION   = $ARGV[1];
-  $INTERFACE= $ARGV[2];
-  $USER     = $ARGV[3];
-  $HISADDR  = $ARGV[4];
-  $inum     = $INTERFACE;
+  $ACTION     = $ARGV[1];
+  $INTERFACE  = $ARGV[2];
+  $USER       = $ARGV[3];
+  $CLIENT_IP  = $ARGV[4];
+  $inum       = $INTERFACE;
   if(! ($inum =~ s/ppp//)) {
   	$inum = 0;
    }
@@ -167,13 +167,13 @@ else {
   $ACTION    = $ARGV[0];
   $INTERFACE = $ARGV[1];
   $USER      = $ARGV[2];
-  $HISADDR   = $ARGV[3];
+  $CLIENT_IP   = $ARGV[3];
   $inum      = $INTERFACE;
   $inum      =~ s/^[a-z]+//;
 } 
 
+my $wan_if    = $argv->{WAN_IF};
 
-my $CLIENT_IP = $HISADDR;
 
 $conf{SHAPER_CLASSES}=2 if (! defined($conf{SHAPER_CLASSES}));
 $conf{FW_TABLE_USERS}=10 if (! $conf{FW_TABLE_USERS});
@@ -199,7 +199,7 @@ my $users_table_number = $conf{FW_TABLE_USERS} || 10;
 my($fw_num, $pipe_num, $fw_nums, $pipe_nums);
 
 if ($ARGV[0] eq 'pppd' && $USER eq 'username') {
-	$LIST_PARAMS{IP}=$HISADDR;
+	$LIST_PARAMS{IP}=$CLIENT_IP;
  } 
 else {
   $LIST_PARAMS{LOGIN} = "$USER";
@@ -207,7 +207,7 @@ else {
 
   my $user = $Dv->info(0, { LOGIN => $USER });	  
   if($Dv->{errno}) {
-     print "Error: User not exist '$USER' IP: $HISADDR ([$Dv->{errno}] $Dv->{errstr})\n";
+     print "Error: User not exist '$USER' IP: $CLIENT_IP ([$Dv->{errno}] $Dv->{errstr})\n";
      my $a = `echo "$DATE $TIME / $USER - $Dv->{errno}" >> /tmp/linkupdown`;    
      exit 1;
    }
@@ -340,21 +340,29 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   	exit;
    }
 
+
   #Create shaper dev for linux
  	my $tc = '/sbin/tc';
-  if ($ARGV[0] eq 'pppd') {
-        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE ingress";
-        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE handle ffff: ingress";
-        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root";
-        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE root handle 1: htb default 20 r2q 1";
-   }
-
-
+  if ($argv->{LINUX_NEW_MODEL}) {
 #проверял на debian'е 6.0 - по классам резало нормально.
 #при неимоверных кол-вах фильтров надо шейпер реорганизовать по 
 #хеш-таблицам. если нужен пример - набросаю чуть позже
 #
 #не знаю, в каком виде надо, но пример вот такой:
+  	push @FW_ACTIONS, "$tc qdisc del dev $wan_if root ";
+    push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root ";
+    push @FW_ACTIONS, "$tc add dev $INTERFACE root handle 1: htb default 5";
+    push @FW_ACTIONS, "$tc qdisc add dev $wan_if root handle 1: htb default 5";
+   }
+  else {
+    if ($ARGV[0] eq 'pppd') {
+        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE ingress";
+        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE handle ffff: ingress";
+        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root";
+        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE root handle 1: htb default 20 r2q 1";
+     }
+   }
+
 
 
 #######################
@@ -372,44 +380,21 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 #IF2=ppp0    # CLIENT
 #
 ### CLEAR
-#/sbin/tc qdisc del dev ${IF1} root #> /dev/null 2>&1
-#/sbin/tc qdisc del dev ${IF2} root #> /dev/null 2>&1
 #
 ### UP TO CLIENT
-#/sbin/tc qdisc add dev ${IF2} root handle 1: htb default 5
-#/sbin/tc class add dev ${IF2} parent 1: classid 1:10 htb rate 
-#${UPSPEED1}kbit burst 8k prio 1
-#/sbin/tc class add dev ${IF2} parent 1: classid 1:20 htb rate 
-#${UPSPEED2}kbit burst 8k prio 2
-#/sbin/tc qdisc add dev ${IF2} parent 1:10 handle 10: sfq perturb 10 
-#quantum 1500
-#/sbin/tc qdisc add dev ${IF2} parent 1:20 handle 20: sfq perturb 10 
-#quantum 1500
-#/sbin/tc filter add dev ${IF2} protocol ip parent 1:0 prio 1 u32 match 
-#ip src ${NET1} flowid 1:20
-#/sbin/tc filter add dev ${IF2} protocol ip parent 1:0 prio 1 u32 match 
-#ip src ${NET0} flowid 1:10
-#
 ## внешний интерфейс в примере инициализируется здесь,
 ## но в жизни надо только добавлять и удалять фильтры при установке 
 #ppp-сессии
 ### DOWN FROM CLIENT
-#/sbin/tc qdisc add dev ${IF1} root handle 1: htb default 5
-#/sbin/tc class add dev ${IF1} parent 1: classid 1:10 htb rate 
-#${DOWNSPEED1}kbit burst 8k prio 1
-#/sbin/tc class add dev ${IF1} parent 1: classid 1:20 htb rate 
-#${DOWNSPEED2}kbit burst 8k prio 2
-#/sbin/tc qdisc add dev ${IF1} parent 1:10 handle 10: sfq perturb 10 
-#quantum 1500
-#/sbin/tc qdisc add dev ${IF1} parent 1:20 handle 20: sfq perturb 10 
-#quantum 1500
+
+#/sbin/tc class add dev ${IF1} parent 1: classid 1:10 htb rate ${DOWNSPEED1}kbit burst 8k prio 1
+#/sbin/tc class add dev ${IF1} parent 1: classid 1:20 htb rate ${DOWNSPEED2}kbit burst 8k prio 2
+#/sbin/tc qdisc add dev ${IF1} parent 1:10 handle 10: sfq perturb 10 quantum 1500
+#/sbin/tc qdisc add dev ${IF1} parent 1:20 handle 20: sfq perturb 10 quantum 1500
 ##
-#/sbin/tc filter del dev ${IF1} protocol ip parent 1:0 prio 1 u32 match 
-#ip src ${NET2} > /dev/null 2>&1
-#/sbin/tc filter add dev ${IF1} protocol ip parent 1:0 prio 1 u32 match 
-#ip src ${NET2} match ip dst ${NET1} flowid 1:20
-#/sbin/tc filter add dev ${IF1} protocol ip parent 1:0 prio 1 u32 match 
-#ip src ${NET2} match ip dst ${NET0} flowid 1:10
+#/sbin/tc filter del dev ${IF1} protocol ip parent 1:0 prio 1 u32 match ip src ${NET2} > /dev/null 2>&1
+#/sbin/tc filter add dev ${IF1} protocol ip parent 1:0 prio 1 u32 match ip src ${NET2} match ip dst ${NET1} flowid 1:20
+#/sbin/tc filter add dev ${IF1} protocol ip parent 1:0 prio 1 u32 match ip src ${NET2} match ip dst ${NET0} flowid 1:10
 
 
 
@@ -451,7 +436,19 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     }
     #Linux shaper
     elsif ($OS eq 'Linux') {
-      #my $flowid ) ($speed_in > 0) ? sprintf("%x",$fw_num_out) : '';
+      # new linux shapper
+      if ($argv->{LINUX_NEW_MODEL}) {
+        push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:". (10+10*$traf_type). "htb rate ". $speed_out ."kbit burst 8k prio ". ($traf_type+1);
+        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE parent 1:". (10+10*$traf_type). " handle ". (10+10*$traf_type). ": sfq perturb 10 quantum 1500";
+        push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent 1:0 prio 1 u32 match ip src $nets{$traf_type} flowid 1:". (10+10*$traf_type);
+        push @FW_ACTIONS, "$tc class add dev $wan_if parent 1: classid 1:". (10+10*$traf_type). " htb rate ". $speed_in ."kbit burst 8k prio $traf_type";
+        push @FW_ACTIONS, "$tc qdisc add dev $wan_if parent 1:". (10+10*$traf_type). " handle ". (10+10*$traf_type). ": sfq perturb 10 quantum 1500";
+##
+        push @FW_ACTIONS, "$tc filter del dev $wan_if protocol ip parent 1:0 prio 1 u32 match ip src $nets{$traf_type} > /dev/null 2>&1";
+        push @FW_ACTIONS, "$tc filter add dev $wan_if protocol ip parent 1:0 prio 1 u32 match ip src $nets{$traf_type} match ip dst $nets{$traf_type} flowid 1:".(10+10*$traf_type);
+        next;
+       }
+      
 
       my $prefix=10000;
       my $flowid = ($speed_in > 0) ? sprintf("%x", $user->{UID} + $prefix * 2) : '';
@@ -524,12 +521,6 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
           $speed_out * 1024);
       }
     }
-#------------------------------------------------------------------------------
-#Use IPFW table and dummy net
-#   elsif (! $user->{SPEED}) {
-#   	 push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK $user->{TP_NUM}";
-#    }
-#-----Old------------------------------------------------
 else {
 #      if ($speed_in > 0) {
 #    	  #In;
@@ -593,6 +584,7 @@ elsif ($ACTION eq 'down') {
 }
 
 
+
 FW_ACTION:
 #make firewall actions
 foreach my $line (@FW_ACTIONS) {
@@ -615,6 +607,15 @@ foreach my $line (@FW_ACTIONS) {
      }
    }
 }
+
+
+
+
+
+
+
+
+
 
 
 #**********************************************************
@@ -878,7 +879,7 @@ sub mikrotik_ext {
 #}
 
 if ($conf{linkupdown_external}) {
-  my $res = `$conf{linkupdown_external} "$ACTION" "$INTERFACE" "$USER" "$HISADDR"`;	
+  my $res = `$conf{linkupdown_external} "$ACTION" "$INTERFACE" "$USER" "$CLIENT_IP"`;	
 }
 
 1
