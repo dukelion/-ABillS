@@ -741,14 +741,14 @@ sub cards_user_payment () {
  
    $user->info($LIST_PARAMS{UID});
    
-   my $sum = ($Cards->{COMMISSION}) ? $Cards->{SUM} - $Cards->{COMMISSION} : Cards->{SUM};
+   
    
    if ($conf{CARDS_DEBUG}) {
      my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER}"  >> /tmp/cards_debug`;	
     }
    
    
-   $payments->add($user, { SUM          => $sum,
+   $payments->add($user, { SUM          => $Cards->{SUM},
                            METHOD       => 2, 
                            EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
                            CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
@@ -756,8 +756,9 @@ sub cards_user_payment () {
 
 
    if (! $payments->{errno}) {
-     $user->{DEPOSIT}+=$sum;
-     $html->message('info', $_PAYMENTS, "$_ADDED $_SUM: $sum $_DEPOSIT: $user->{DEPOSIT}");
+     $user->{DEPOSIT}+=$Cards->{SUM}-$Cards->{COMMISSION};
+     $html->message('info', $_PAYMENTS, "$_ADDED\n$_SUM: $Cards->{SUM} \n ". (($Cards->{COMMISSION} > 0) ? "$_COMMISSION $Cards->{COMMISSION}\n": '' )."\n $_DEPOSIT: $user->{DEPOSIT}\n");
+
      $Cards->cards_change({ ID       => "$Cards->{ID}", 
      	                      STATUS   => 2, 
      	                      UID      => $user->{UID},
@@ -771,6 +772,13 @@ sub cards_user_payment () {
       	_external("$conf{CARDS_PAYMENTS_EXTERNAL}", { %$Cards, %$user });
       }
 
+     if ($Cards->{COMMISSION}) {
+     	 my $Fees = Finance->fees($db, $admin, \%conf);        	
+       $Fees->take($user, $Cards->{COMMISSION},
+                               {  DESCRIBE     => "$_ICARDS $_COMMISSION: $Cards->{ID}",
+                                  METHOD       => 0,
+                                });
+     	}
      
      cross_modules_call('_payments_maked', { USER => $user, QUITE => 1  });
      
@@ -789,8 +797,8 @@ sub cards_user_payment () {
   	       my $user_new = Users->new($db, $admin, \%conf);
            $user_new->info( $Cards->{UID} );
 
-           my $fees = Finance->fees($db, $admin, \%conf);        	
-           $fees->take($user_new, $Cards->{OPERATION_PAYMENT},
+           my $Fees = Finance->fees($db, $admin, \%conf);        	
+           $Fees->take($user_new, $Cards->{OPERATION_PAYMENT},
                                {  DESCRIBE     => "Card activate: $Cards->{ID}",
                                   METHOD       => 0,
 #                                  EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",

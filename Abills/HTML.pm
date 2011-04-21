@@ -1170,6 +1170,9 @@ sub message {
    $head = "<tr><th bgcolor=\"$_COLORS[0]\" class=info_message>$caption</th></TR>\n";
   }  
  
+ $message =~ s/\n/<br>/g;
+ 
+ 
 my $output = qq{
 <br>
 <TABLE width="400" border="0" cellpadding="0" cellspacing="0" class="noprint">
