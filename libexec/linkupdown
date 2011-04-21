@@ -353,6 +353,9 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root ";
     push @FW_ACTIONS, "$tc add dev $INTERFACE root handle 1: htb default 5";
     push @FW_ACTIONS, "$tc qdisc add dev $wan_if root handle 1: htb default 5";
+    
+    
+    
    }
   else {
     if ($ARGV[0] eq 'pppd') {
