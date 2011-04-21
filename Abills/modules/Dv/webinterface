@@ -1095,8 +1095,10 @@ sub dv_rating_user {
    print "Can't load 'Bonus_rating'. Purchase this module http://abills.net.ua";
    return 0;
   } 	
- my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
+
+  my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
   $users = $user if (! $users);	
+  
  	$Bonus_rating->users_rating_info({ UID => $LIST_PARAMS{UID} });
 
 if ($Bonus_rating->{TOTAL} == 0) {
@@ -1106,7 +1108,9 @@ if ($Bonus_rating->{TOTAL} == 0) {
 
 	if ($FORM{UP_RATING}) {
     my $need_percents = int(($FORM{UP_RATING} - $Bonus_rating->{RATING_PER}));
-    my $need_sum = $percents * $Bonus_rating->{ONE_PERCENT_SUM};
+    my $need_sum = $need_percents * $Bonus_rating->{ONE_PERCENT_SUM};
+
+print "// $users->{CREDIT} + $users->{DEPOSIT} < $need_sum /";
 
     if ($users->{CREDIT} + $users->{DEPOSIT} < $need_sum) {
     	$html->message('err', $_ERROR,  "$ERR_SMALL_DEPOSIT");
