@@ -775,7 +775,7 @@ sub cards_user_payment () {
      if ($Cards->{COMMISSION}) {
      	 my $Fees = Finance->fees($db, $admin, \%conf);        	
        $Fees->take($user, $Cards->{COMMISSION},
-                               {  DESCRIBE     => "$_ICARDS $_COMMISSION: $Cards->{ID}",
+                               {  DESCRIBE     => "$_COMMISSION $_ICARDS: $Cards->{SERIAL}$Cards->{NUMBER}",
                                   METHOD       => 0,
                                 });
      	}

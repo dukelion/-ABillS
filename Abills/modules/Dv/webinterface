@@ -1141,7 +1141,7 @@ my $message;
 if ($FORM{ping}) {
   if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
     my $res = `$PING -c 5 $FORM{ping}`;
-    $html->message('info', $_INFO,  "Ping  $FORM{ping}". $html->br(). 'Result:' . $html->br(). $html->pre($res));
+    $html->message('info', $_INFO,  "Ping  $FORM{ping} \n Result: \n". $html->pre($res));
    }
   else {
     $html->message('err', $_ERROR,  "$ERR_WRONG_DATA");
@@ -3675,7 +3675,6 @@ elsif ($command eq 'activate-service') {
    }
 
   for my $a ($r->get_attributes) {
-     #print "<br>attr: name=$a->{'Name'} value=$a->{'Value'}\n";
      #MAC as ID
      if ($val =~ /\$MA(\S+)/) {
         $Dv->{ISG_CID_CUR}=$1;
@@ -3936,12 +3935,12 @@ if ($conf{DV_ISG}) {
 elsif ($conf{DV_IP_DISCOVERY}) {
 	$DHCP_INFO = dv_dhcp_get_mac($user->{REMOTE_ADDR}, { CHECK_STATIC => 1 });
  	if (! $DHCP_INFO->{MAC}) {
- 		$html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC: $_NOT_EXIST. DHCP $_ERROR ", { ID => 112 });
+ 		$html->message('err', $_ERROR, "DHCP $_ERROR \n MAC: $_NOT_EXIST \n IP: '$user->{REMOTE_ADDR}'", { ID => 112 });
     return 0; 
  	 }
   elsif ($DHCP_INFO->{STATIC}) {
   	if ($DHCP_INFO->{IP} ne "$user->{REMOTE_ADDR}") {
-  	  $html->message('err', $_ERROR, "IP: '$user->{REMOTE_ADDR}', MAC: $_NOT_EXIST. $ERR_IP_ADDRESS_CONFLICT", { ID => 114 });
+  	  $html->message('err', $_ERROR, "$ERR_IP_ADDRESS_CONFLICT \n MAC: $_NOT_EXIST \n IP: '$user->{REMOTE_ADDR}' ", { ID => 114 });
   	 }
    }
   else {
@@ -3975,7 +3974,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
    }
   elsif ($FORM{discovery}) {  
     if(dv_dhcp_get_mac_add($user->{REMOTE_ADDR}, $DHCP_INFO)) {
-    	$html->message('info', $_INFO, "$_ACTIVATE IP: $Dv->{NEW_IP} CID: $DHCP_INFO->{MAC}");
+    	$html->message('info', $_INFO, "$_ACTIVATE \n\n IP: $Dv->{NEW_IP} \n CID: $DHCP_INFO->{MAC}");
      }
     #else {
     #	#$html->message('err', $_ACTIVATE, "$_ERROR IP: $user->{REMOTE_ADDR} CID: $DHCP_INFO->{MAC}", { ID => 113 });
@@ -4062,7 +4061,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
     	$html->message('err', $_ERROR, "$_USER  $_DISABLE", { ID => 16 });
      }
     elsif ($Dv->{CID} ne $Dv->{ISG_CID_CUR} || $Dv->{CID} eq '') {
-      $html->message('info', $_INFO, "$_NOT_ACTIVE CID: $Dv->{ISG_CID_CUR} IP: $user->{REMOTE_ADDR} ");
+      $html->message('info', $_INFO, "$_NOT_ACTIVE \n\n CID: $Dv->{ISG_CID_CUR} \n IP: $user->{REMOTE_ADDR} ");
       $html->form_main({ CONTENT => '',
   	                     HIDDEN  => { index => "$index",
   	                         	        CID   => "$Dv->{ISG_CID_CUR}",
@@ -4200,7 +4199,7 @@ sub dv_holdup_service {
                     });
 
       if (! $Shedule->{errno}) {
-      	$html->message('info', $_INFO, "$_HOLD_UP $_DATE: $FORM{FROM_DATE} -> $FORM{TO_DATE}   $_DAYS: ". sprintf("%d", $block_days));
+      	$html->message('info', $_INFO, "$_HOLD_UP \n $_DATE: $FORM{FROM_DATE} -> $FORM{TO_DATE} \n  $_DAYS: ". sprintf("%d", $block_days));
   	    return 0;
        }
      }
@@ -5054,7 +5053,7 @@ if ($d == 1) {
                             METHOD   => 0 );  
 
          if ($RESULT->{TRAFFIC_IN}) {
-         	 $FEES_PARAMS{DESCRIBE} = "$_USED $_TRAFFIC: $RESULT->{TRAFFIC_IN} SUM: $RESULT->{PRICE_IN}";
+         	 $FEES_PARAMS{DESCRIBE} = "$_USED \n $_TRAFFIC: $RESULT->{TRAFFIC_IN} \n SUM: $RESULT->{PRICE_IN}";
          	 $sum     = $RESULT->{TRAFFIC_IN} * $RESULT->{PRICE_IN};
           }
 
@@ -5593,7 +5592,7 @@ sub dv_wizard_user {
       if ( $add_values{4}{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ &&  $add_values{4}{IP} ne '0.0.0.0') {
       	my $list = $Dv->list({ IP => $add_values{4}{IP} });
       	if ($Dv->{TOTAL} > 0 && $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}] != $FORM{UID}) {
-      	  $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. $_LOGIN: ". $html->button("$list->[0][0]", "index=15&UID=". $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}]));
+      	  $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. \n $_LOGIN: ". $html->button("$list->[0][0]", "index=15&UID=". $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}]));
         	return 0;
     	   }
        }
@@ -6318,8 +6317,7 @@ sub dv_dhcp_get_mac_add {
       if ($Dhcphosts->{errno}) {
         if ($Dhcphosts->{errno} == 7) {
         	$html->message('err', $_ERROR .' '.$_ACTIVATE, $html->b("$ERR_HOST_REGISTRED"). 
-        	$html->br() . " $_RENEW_IP ".
-        	$html->br() .$html->br() ."MAC: '$DHCP_INFO->{MAC}' ". $html->br() ." IP: '$DHCP_INFO->{IP}' ". $html->br() ." HOST: '$user->{LOGIN}_$id'", { ID => 118 });
+        	"\n $_RENEW_IP \n \n MAC: '$DHCP_INFO->{MAC}' \n IP: '$DHCP_INFO->{IP}' \n HOST: '$user->{LOGIN}_$id'", { ID => 118 });
          }
         else {
         	$html->message('err', $_ACTIVATE, "$_ERROR: DHCP add hosts error", { ID => 119 });
