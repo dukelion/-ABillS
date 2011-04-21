@@ -1087,7 +1087,7 @@ sub dv_rating_periodic {
 #*******************************************************************
 sub dv_rating_user {
 	
-	 eval { require Bonus_rating; };
+ eval { require Bonus_rating; };
  if (! $@) {
    Bonus_rating->import();
   }
@@ -1096,12 +1096,11 @@ sub dv_rating_user {
    return 0;
   } 	
  my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
-	
-
+  $users = $user if (! $users);	
  	$Bonus_rating->users_rating_info({ UID => $LIST_PARAMS{UID} });
 
-if ($Bonus->{TOTAL} == 0) {
-   $html->message('info', $_INFO,  "$_NOT_EXIST");
+if ($Bonus_rating->{TOTAL} == 0) {
+   $html->message('info', $_INFO,  "$_BONUS $_NOT_ACTIVE");
    return 0;
 }
 

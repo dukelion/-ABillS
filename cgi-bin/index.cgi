@@ -459,14 +459,17 @@ sub form_info {
    }
 
   #Show users info field
-  my $i=0; 
+  my $i=-1; 
   foreach my $field_id ( @{ $user->{INFO_FIELDS_ARR} } ) {
     my($position, $type, $name, $user_portal)=split(/:/, $user->{INFO_FIELDS_HASH}->{$field_id});
-    
-    next if ($user_portal == 0);
-
-  	$user->{INFO_FIELDS}.= "<tr><td>". ( eval "\"$name\"" ). ":</td><td valign=center>$user->{INFO_FIELDS_VAL}->[$i]</td></tr>\n";
     $i++;
+    next if ($user_portal == 0);
+      
+    my $extra = '';
+    if ($field_id eq '_rating') {
+      $extra = $html->button($_RATING, "index=". get_function_index('dv_rating_user'), { BUTTON => 1 });
+     }
+  	$user->{INFO_FIELDS}.= "<tr><td>". ( eval "\"$name\"" ). ":</td><td valign=center>$user->{INFO_FIELDS_VAL}->[$i] $extra</td></tr>\n";
    }
 
   $html->tpl_show(templates('form_client_info'), $user);

@@ -4,7 +4,7 @@
 <input type=hidden name=sid value=$sid>
 <input type=hidden name=UID value=$FORM{UID}>
 
-<TABLE width=500 cellspacing=0 cellpadding=0 border=0>
+<TABLE width=600 cellspacing=0 cellpadding=0 border=0>
 <TR><TD bgcolor=#E1E1E1>
 <TABLE width=100% cellspacing=1 cellpadding=0 border=0>
 <TR><TD bgcolor=#FFFFFF>
