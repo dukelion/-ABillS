@@ -1163,14 +1163,19 @@ sub message {
  
  my $head = '';
  $caption .= ': '. $attr->{ID} if ($attr->{ID});
+ my $img = '';
  if ($type eq 'err') {
-   $head = "<tr><th bgcolor=\"#FF0000\" class=err_message>$caption</th></TR>\n";
+   $head = "<tr><th bgcolor=\"#FF0000\" class=err_message valign=center colspan=2>$caption</th></TR>\n";
+   $img = '<img src=/img/attention.png border=0 hspace=10 dir=ltr alt=\'Error\'>';
   }
  elsif ($type eq 'info') {
-   $head = "<tr><th bgcolor=\"$_COLORS[0]\" class=info_message>$caption</th></TR>\n";
+   $head = "<tr><th bgcolor=\"$_COLORS[0]\" class=info_message valign=center colspan=2>$caption</th></TR>\n";
+   $img = '<img src=/img/information.png border=0 hspace=10 dir=ltr alt=\'Information\'>';
   }  
  
  $message =~ s/\n/<br>/g;
+ 
+ 
  
  
 my $output = qq{
@@ -1182,7 +1187,8 @@ my $output = qq{
 
 <TABLE width="100%">
 $head
-<tr><TD bgcolor="$_COLORS[1]">$message</TD></TR>
+<tr><TD bgcolor="$_COLORS[1]" valign=center align=center width=30>$img</TD>
+<TD bgcolor="$_COLORS[1]">$message</TD></TR>
 </TABLE>
 
 </TD></TR>

@@ -846,10 +846,13 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
    }
 }
 
-
-
 if ($tariffs->{errno}) {
+  if ($tariffs->{errno} == 7) {
+    $html->message('err', $_ERROR, "$_TARIF_PLAN $_EXIST");	
+   }
+  else {
     $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+   }
  }
 
 
