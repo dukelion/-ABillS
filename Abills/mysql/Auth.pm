@@ -302,7 +302,7 @@ if ($self->{PORT} > 0 && $self->{PORT} != $RAD->{NAS_PORT}) {
 
 #Check  simultaneously logins if needs
 if ($self->{LOGINS} > 0) {
-  $self->query($db, "SELECT CID, INET_NTOA(framed_ip_address) FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' and (status <> 2 and status < 11);");
+  $self->query($db, "SELECT CID, INET_NTOA(framed_ip_address) FROM dv_calls WHERE user_name='$RAD->{USER_NAME}' nas_id='$NAS->{NAS_ID}' and (status <> 2 and status < 11);");
   my($active_logins) = $self->{TOTAL};
   foreach my $line (@{ $self->{list} }) {
 #  	# Zap session with same CID
