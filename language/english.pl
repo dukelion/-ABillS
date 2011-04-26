@@ -19,15 +19,15 @@ $_CHANGED='Changed';
 $_ROWS='Rows';
 $_FEES='Fees';
 $_SIMULTANEOUSLY='Simultaneously';
-$_MONETARY_UNIT='Monetary unit';
-$_INPAYMENTS ='Inpayments';
-$_BACK_PAY='Return';
+#$_MONETARY_UNIT='Monetary unit';
+#$_INPAYMENTS ='Inpayments';
+#$_BACK_PAY='Return';
 $_BACK_MONEY='Money return';
 $_NOT_EXIST='Not found';
 $_SEND_MAIL='Send e-mail';
 $_MESSAGE='Message';
 $_MESSAGES='Help Desk';
-$_MESSAGES_DESCRIBE='По всіх питаннях які Вас цікавлять можете відправити повідомлення адміністратору.';
+#$_MESSAGES_DESCRIBE='По всіх питаннях які Вас цікавлять можете відправити повідомлення адміністратору.';
 $_SUBJECT='Subject';
 $_DEPOSIT='Deposit';
 $_ACTIVATE='Activation';
@@ -108,7 +108,6 @@ $_LAST_PAYMENT='Late payment';
 $_LAST_LOGIN='Last session';
 $_LAST='Last sessions';
 $_NOT_LOGINED='Not logged in';
-$_WELCOME='Welcome';
 $_SHOW='Show';
 $_SESSIONS='Sessions';
 $_SESSION_ID='Session ID';
@@ -127,7 +126,6 @@ $_END='END';
 
 $_EXIST='Already exists';
 $_COUNT='Count';
-$_CREDITORS='Creditors';
 $_PERMISSION='Permissions';
 
 #Online
@@ -249,7 +247,6 @@ $_ALLOW_ALL = 'Allow all';
 $_DEFAULT='Default';
 $_GO = 'Go';
 $_LANGUAGE='Language';
-$_REVISION='Revision';
 $_LOG='History';
 $_SHEDULE='Schedule';
 

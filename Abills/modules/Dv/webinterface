@@ -1110,8 +1110,6 @@ if ($Bonus_rating->{TOTAL} == 0) {
     my $need_percents = int(($FORM{UP_RATING} - $Bonus_rating->{RATING_PER}));
     my $need_sum = $need_percents * $Bonus_rating->{ONE_PERCENT_SUM};
 
-print "// $users->{CREDIT} + $users->{DEPOSIT} < $need_sum /";
-
     if ($users->{CREDIT} + $users->{DEPOSIT} < $need_sum) {
     	$html->message('err', $_ERROR,  "$ERR_SMALL_DEPOSIT");
      }
