@@ -3,7 +3,7 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.7
+VERSION=0.8
 
 USER_NAME=test
 USER_PASSWORD=123456
@@ -19,6 +19,15 @@ RAUTH="./rauth.pl";
 RACCT="./racct.pl";
 echo `pwd -P`;
 
+
+#Default Alive packes
+ALIVE_COUNT=1;
+#Default Radius params
+ACCT_INPUT_OCTETS=113459811
+ACCT_INPUT_GIGAWORDS=0
+ACCT_OUTPUT_OCTETS=14260000
+ACCT_OUTPUT_GIGAWORDS=0
+ACCT_SESSION_TIME=300
 
 
 #**********************************************************
@@ -98,12 +107,15 @@ for _switch ; do
         -rad_secret)   RADIUS_SECRET=$2;
                 shift; shift;
                 ;;
-        -rad_ip)   RADIUS_IP=$2;
+        -rad_ip)RADIUS_IP=$2;
                 shift; shift;
                 ;;
         -isg)  test_isg;
                 shift;
                 ;;
+        -alive_count) ALIVE_COUNT=$2;
+                shift; shift;
+                ;;       
         esac
 done
 
@@ -229,29 +241,46 @@ elif [ t${ACTION} = 'tacct' ]; then
 #        CALLING_STATION_ID="192.168.101.4" \
 
    elif [ t${ACCOUNTING_ACTION} = 'tAlive' ] ; then
-      echo "ACCT_STATUS_TYPE: Alive/Interim-Update";
-      ${RACCT} \
-        USER_NAME="${USER_NAME}" \
-        SERVICE_TYPE=Framed-User \
-        FRAMED_PROTOCOL=PPP \
-        FRAMED_IP_ADDRESS=10.0.0.1 \
-        FRAMED_IP_NETMASK=0.0.0.0 \
-        CALLING_STATION_ID="${CALLING_STATION_ID}" \
-        NAS_IP_ADDRESS=${NAS_IP_ADDRESS} \
-        NAS_IDENTIFIER="media.intranet" \
-        NAS_PORT_TYPE=Virtual \
-        ACCT_STATUS_TYPE=Interim-Update \
-        ACCT_SESSION_ID="${ACCT_SESSION_ID}" \
-        ACCT_DELAY_TIME=0 \
-        ACCT_INPUT_OCTETS=13459811 \
-        ACCT_INPUT_GIGAWORDS=0 \
-        ACCT_INPUT_PACKETS=1244553 \
-        ACCT_OUTPUT_OCTETS=1460000 \
-        EXPPP_ACCT_LOCALINPUT_OCTETS=12000000 \
-        EXPPP_ACCT_LOCALOUTPUT_OCTETS=13000000 \
-        ACCT_OUTPUT_GIGAWORDS=0 \
-        ACCT_OUTPUT_PACKETS=0 \
-        ACCT_SESSION_TIME=100 
+     echo "ACCT_STATUS_TYPE: Alive/Interim-Update";
+      
+     a=0
+     IN=${ACCT_INPUT_OCTETS}
+     OUT=${ACCT_OUTPUT_OCTETS}
+     TIME=${ACCT_SESSION_TIME};
+
+     while [ "$a" -lt ${ALIVE_COUNT} ]; do
+        ACCT_INPUT_OCTETS=`expr $a \* ${IN} + ${IN}`
+        ACCT_OUTPUT_OCTETS=`expr $a \* ${OUT} + ${OUT}`
+        ACCT_SESSION_TIME=`expr $a \* ${TIME} + ${TIME}`
+
+        echo "IN: ${ACCT_INPUT_OCTETS} OUT: ${ACCT_OUTPUT_OCTETS} TIME: ${ACCT_SESSION_TIME}";
+
+        ${RACCT} \
+          USER_NAME="${USER_NAME}" \
+          SERVICE_TYPE=Framed-User \
+          FRAMED_PROTOCOL=PPP \
+          FRAMED_IP_ADDRESS=10.0.0.1 \
+          FRAMED_IP_NETMASK=0.0.0.0 \
+          CALLING_STATION_ID="${CALLING_STATION_ID}" \
+          NAS_IP_ADDRESS=${NAS_IP_ADDRESS} \
+          NAS_IDENTIFIER="media.intranet" \
+          NAS_PORT_TYPE=Virtual \
+          ACCT_STATUS_TYPE=Interim-Update \
+          ACCT_SESSION_ID="${ACCT_SESSION_ID}" \
+          ACCT_DELAY_TIME=0 \
+          ACCT_INPUT_OCTETS=${ACCT_INPUT_OCTETS} \
+          ACCT_INPUT_GIGAWORDS=0 \
+          ACCT_INPUT_PACKETS=1244553 \
+          ACCT_OUTPUT_OCTETS=${ACCT_OUTPUT_OCTETS} \
+          EXPPP_ACCT_LOCALINPUT_OCTETS=12000000 \
+          EXPPP_ACCT_LOCALOUTPUT_OCTETS=13000000 \
+          ACCT_OUTPUT_GIGAWORDS=0 \
+          ACCT_OUTPUT_PACKETS=0 \
+          ACCT_SESSION_TIME=${ACCT_SESSION_TIME}
+        a=`expr $a + 1`
+        read _input
+     done
+
 
    elif [ t${ACCOUNTING_ACTION} = 'tStop' ] ; then
      echo "ACCT_STATUS_TYPE: Stop";
@@ -268,15 +297,15 @@ elif [ t${ACTION} = 'tacct' ]; then
         ACCT_STATUS_TYPE=Stop \
         ACCT_SESSION_ID="${ACCT_SESSION_ID}" \
         ACCT_DELAY_TIME=0 \
-        ACCT_INPUT_OCTETS=53045900 \
+        ACCT_INPUT_OCTETS=${ACCT_INPUT_OCTETS} \
         ACCT_INPUT_GIGAWORDS=0 \
         ACCT_INPUT_PACKETS=125 \
-        ACCT_OUTPUT_OCTETS=10000 \
+        ACCT_OUTPUT_OCTETS=${ACCT_OUTPUT_OCTETS} \
         EXPPP_ACCT_LOCALINPUT_OCTETS=12000000 \
         EXPPP_ACCT_LOCALOUTPUT_OCTETS=13000000 \
         ACCT_OUTPUT_GIGAWORDS=1 \
         ACCT_OUTPUT_PACKETS=1111 \
-        ACCT_SESSION_TIME=100 \
+        ACCT_SESSION_TIME=${ACCT_SESSION_TIME} \
 
    fi;
 
