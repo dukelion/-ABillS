@@ -15,6 +15,8 @@ $debug
 %conf
 %PAYSYS_PAYMENTS_METHODS
 $md5
+$systems_ips
+%systems_ident_params
 );
 
 BEGIN {
@@ -228,7 +230,7 @@ elsif ($ip_num > $first_ip && $ip_num < $last_ip) {
         exit;
  } 
 #USMP
-elsif('77.222.138.142,195.10.218.120,192.168.1.114' =~ /$ENV{REMOTE_ADDR}/) {
+elsif('77.222.138.142,195.10.218.120' =~ /$ENV{REMOTE_ADDR}/) {
   require "Usmp.pm";
   exit;
  }
@@ -241,6 +243,52 @@ elsif ($FORM{payment} && $FORM{payment}=~/pay_way/) {
 
 print "Content-Type: text/html\n\n";
 
+#New module load method
+#
+#use FindBin '$Bin';
+#my %systems_ips = ();
+#my %systemS_params = ();
+#
+#my $modules_dir = $Bin."/../Abills/modules/Paysys/";
+#$debug = 4;
+#opendir DIR, $modules_dir or die "Can't open dir '$modules_dir' $!\n";
+#    my @paysys_modules = grep  /\.pm$/  , readdir DIR;
+#closedir DIR;
+#
+#for(my $i=0; $i<=$#paysys_modules; $i++) {
+#	my $paysys_module = $paysys_modules[$i];
+#	undef $system_ips;
+#	undef $systems_ident_params;
+#	
+#  print "$paysys_module"; 	  
+#  require "$modules_dir$paysys_module";
+#
+#  my $pay_function = $paysys_module.'_payment';
+#  if (! defined(&$pay_function)) {
+#  	print "Not found" if ($debug > 2);
+#  	next;
+#   }
+#
+#	if ($debug > 3) {
+#  
+#	  if ($system_ips) {
+#	    my @ips = split(/,/, $system_ips);
+#	    foreach my $ip (@ips) {
+#	      $systems_ips{$ip}="$paysys_module"."_payment";
+#	     }
+#	   }
+#	  elsif (defined(%systems_ident_params)) {
+#	    while(my ($param, $function) = %systems_ident_params) {
+#	      $systemS_params{$param}="$paysys_module:$function";;
+#	     }
+#	   }
+#	  
+#	  if (!$@) {
+#	  	print "Loaded";
+#	   }
+#	  print "<br>\n"; 
+#	 }
+#}
 
 payments();
 
