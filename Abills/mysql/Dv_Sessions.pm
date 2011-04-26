@@ -926,7 +926,7 @@ WHERE
   if ($self->{TOTAL} > 0) {
     my ($class1, $class2)  = (0, 0);
     $self->{INFO_LIST}->[0]->[4]  = 0;
-    $self->{INFO_LIST}->[1]->[4]  = 0;
+    if ($prepaid_traffic{1}) { $self->{INFO_LIST}->[1]->[4]  = 0 };
     foreach my $line (@{$self->{list}}) {
       $class1      += $line->[0] ;
       $class2      += $line->[1] ;

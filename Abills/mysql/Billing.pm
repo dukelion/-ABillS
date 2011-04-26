@@ -124,25 +124,6 @@ if ($prepaid{0} + $prepaid{1} > 0) {
 ##       }   
 ##    }
 
-
- my $octets_direction = "(sent + 4294967296 * acct_output_gigawords) + (recv + 4294967296 * acct_input_gigawords) ";
- my $octets_direction2 = "sent2 + recv2";
- my $octets_online_direction = "acct_input_octets + acct_output_octets";
- my $octets_online_direction2 = "ex_input_octets + ex_output_octets";
- 
- if ($self->{OCTETS_DIRECTION} == 1) {
-   $octets_direction = "recv + 4294967296 * acct_input_gigawords ";
-   $octets_direction2 = "recv2";
-   $octets_online_direction = "acct_input_octets + 4294967296 * acct_input_gigawords";
-   $octets_online_direction2 = "ex_input_octets";
-  }
- elsif ($self->{OCTETS_DIRECTION} == 2) {
-   $octets_direction  = "sent + 4294967296 * acct_output_gigawords ";
-   $octets_direction2 = "sent2";
-   $octets_online_direction = "acct_output_octets + 4294967296 * acct_output_gigawords";
-   $octets_online_direction2 = "ex_output_octets";
-  }
-
  my $uid="uid='$self->{UID}'";
  if ($self->{UIDS}) {
  	  $uid="uid IN ($self->{UIDS})";
@@ -161,42 +142,48 @@ if ($prepaid{0} + $prepaid{1} > 0) {
      }
 
  	 #Get using traffic
-   $self->query($db, "select  
-     if($prepaid{0}  > sum($octets_direction) / $CONF->{MB_SIZE}, $prepaid{0}  - sum($octets_direction) / $CONF->{MB_SIZE}, 0),
-     if($prepaid{1}  > sum($octets_direction2) / $CONF->{MB_SIZE}, $prepaid{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, 0),
+   $self->query($db, "select sum(sent / $CONF->{MB_SIZE} + 4092 * acct_output_gigawords), sum(recv  / $CONF->{MB_SIZE} + 4092 * acct_input_gigawords),
+     sum(sent2) / $CONF->{MB_SIZE},  sum(recv2) / $CONF->{MB_SIZE},
      DATE_FORMAT(start, '%Y-%m')
    FROM dv_log
    WHERE $uid  and tp_id='$tp' and
     (  $WHERE
       ) 
-   GROUP BY 3
+   GROUP BY 5
    ;");
 
   if ($self->{TOTAL} > 0) {
     my ($class1, $class2)  = (0, 0);
-
+    my $monthes = 0;
     foreach my $line (@{$self->{list}}) {
-      $class1      += $line->[0] ;
-      $class2      += $line->[1] ;
+      $used_traffic->{TRAFFIC_OUT}  += $line->[0];
+      $used_traffic->{TRAFFIC_IN}   += $line->[1];
+      $used_traffic->{TRAFFIC_IN_2} += $line->[2];
+      $used_traffic->{TRAFFIC_OUT_2}+= $line->[3];
+      $monthes++;
      }	
-    $prepaid{0} = $class1;
-    $prepaid{1} = $class2;
+
+    $prepaid{0} = $prepaid{0} * $monthes;
+    $prepaid{1} = $prepaid{0} * $monthes;
    } 
 
- #Check online
- $self->query($db, "select 
-  $prepaid{0} - sum($octets_online_direction) / $CONF->{MB_SIZE},
-  $prepaid{1} - sum($octets_online_direction2) / $CONF->{MB_SIZE},
-  1
- FROM dv_calls
- WHERE $uid
- GROUP BY 3;");
-
- if ($self->{TOTAL} > 0) {
-   ($prepaid{0}, 
-    $prepaid{1} 
-    ) =  @{ $self->{list}->[0] };
-  }
+# #Check online
+# $self->query($db, "select 
+#  sum(acct_input_octets  / $CONF->{MB_SIZE} + 4092 * acct_input_gigawords),  
+#  sum(acct_output_octets / $CONF->{MB_SIZE} + 4092 * acct_output_gigawords),
+#  sum(ex_input_octets / $CONF->{MB_SIZE}),
+#  sum(ex_output_octets / $CONF->{MB_SIZE}),
+#  1
+# FROM dv_calls
+# WHERE $uid
+# GROUP BY 5;");
+#
+# if ($self->{TOTAL} > 0) {
+#   $used_traffic->{TRAFFIC_OUT}  += $self->{list}->[0]->[0];
+#   $used_traffic->{TRAFFIC_IN}   += $self->{list}->[0]->[1];
+#   $used_traffic->{TRAFFIC_IN_2} += $self->{list}->[0]->[2];
+#   $used_traffic->{TRAFFIC_OUT_2}+= $self->{list}->[0]->[3];
+#  }
 
  }
 else {
@@ -244,6 +231,7 @@ else {
      $used_traffic->{ONLINE2} = $sent2 + $recv2;
     }
 
+   #print "($used_traffic->{TRAFFIC_SUM} + $used_traffic->{ONLINE} / $CONF->{MB_SIZE} < $prepaid{'0'})\n";
    # If left global prepaid traffic set traf price to 0
    if ($used_traffic->{TRAFFIC_SUM} + $used_traffic->{ONLINE} / $CONF->{MB_SIZE} < $prepaid{'0'}) {
      $traf_price{in}{0} = 0;
