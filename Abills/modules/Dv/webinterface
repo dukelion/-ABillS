@@ -6072,6 +6072,8 @@ sub dv_get_month_fee {
 
   my %total_sum =( ACTIVATE  => 0,
   	               MONTH_FEE => 0 ) ;
+  
+  $users = $user if ($user);
   #Make bonus
   if ($conf{DV_BONUS}) {
     eval { require Bonus_rating; };
@@ -6193,8 +6195,14 @@ sub dv_get_month_fee {
         	$message .= " - $_ABON_DISTRIBUTION";
          }
         
-        if ($Dv->{ACTIVATE} ne '0000-00-00' && $Dv->{OLD_STATUS} == 5 && $periods == 1 && $d < $active_d) {
-        	$periods=0;
+        if ($Dv->{ACTIVATE} ne '0000-00-00' && $Dv->{OLD_STATUS} == 5) {
+        	#if activation in cure month curmonth
+        	if($periods == 0 || ( $periods == 1 && $d < $active_d ) ) {
+          	$periods = -1;
+           }
+          else {
+          	$periods = 0;
+           }
          }
         
         $m = $active_m if ($active_m > 0);
@@ -6213,13 +6221,19 @@ sub dv_get_month_fee {
             $TIME    = "00:00:00";
            }
           elsif ($Dv->{ACTIVATE} && $Dv->{ACTIVATE} ne '0000-00-00'){
-            $DATE    = "$active_y-$m-$active_d";
-            $TIME    = "00:00:00";
             
             if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
               $users->change($Dv->{UID}, { ACTIVATE => '0000-00-00',
               	                           UID      => $Dv->{UID} });
              }
+            elsif($Dv->{OLD_STATUS} == 5) {
+              $users->change($Dv->{UID}, { ACTIVATE => "$DATE",
+              	                           UID      => $Dv->{UID} });
+             } 
+
+
+            $DATE    = "$active_y-$m-$active_d";
+            $TIME    = "00:00:00";
            }
           
          

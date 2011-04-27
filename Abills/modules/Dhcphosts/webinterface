@@ -1155,7 +1155,7 @@ foreach my $line (@$list) {
          push @OPTION82_MATCHES, "binary-to-ascii(16, 8, \":\", substring(option agent.remote-id, 2, 6)) = \"$INFO{OPTION82_NAS_MAC}\"";
     	 }
       else {
-      	print "Can't find NAS '$line->[15]' MAC\n";
+      	print "Can't find NAS '$line->[15]' MAC\n" if (! $attr->{QUITE});
       	$INFO{OPTION82_NAS_NAME}='';
       	$INFO{OPTION82_NAS_MAC}='';
        }
