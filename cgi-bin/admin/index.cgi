@@ -212,7 +212,6 @@ my @actions = ([$_INFO, $_ADD, $_LIST, $_PASSWD, $_CHANGE, $_DEL, $_ALL, $_MULTI
                [$_ALL],                                                       # Modules managments               
                [$_PROFILE],
                [$_LIST, $_ADD, $_CHANGE, $_DEL],
-               
                );
 
 
@@ -692,6 +691,7 @@ elsif($FORM{COMPANY_ID}) {
   $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
   $LIST_PARAMS{BILL_ID}=$company->{BILL_ID};
   $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
+  $pages_qs .= "&subf=$FORM{subf}";
   if (in_array('Docs', \@MODULES) ) {
     $company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=$index&COMPANY_ID=$FORM{COMPANY_ID}&PRINT_CONTRACT=$FORM{COMPANY_ID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', BUTTON => 1 }) ;
    }
