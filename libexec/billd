@@ -969,6 +969,64 @@ sub check_speed_linux {
 
 
 #**********************************************************
+# mpd checkspeed
+# sysctl kern.ipc.maxsockbuf=1048576
+# sysctl net.graph.maxdgram=524288
+# sysctl net.graph.recvspace=524288
+# 
+#**********************************************************
+sub check_speed_mpd {
+  #Get ifaces
+  my @ifaces_arr 	= ();
+	open(PROCS, "/usr/sbin/ngctl list |") || die "Can't open file '/usr/sbin/ngctl list' $!\n";
+    while(<PROCS>) {
+     if (/:\s+(ng\d+)\s+/) {
+       push @ifaces_arr, $1;
+      }
+    }
+	close(PROCS);
+
+# Только МПД создает их аж 4 штуки =)
+#ng1028:inet.1-0-mi
+#ng1028:inet.0-0-mi
+#ng1028:inet.0-0-m
+#ng1028:inet.1-0-m
+
+
+  # Get speed
+  my %ifaces_speed = ();
+  foreach my $if (@ifaces_arr) {
+    print "$if" if ($debug > 2);
+    if(open(SUB_NG, "/usr/sbin/ngctl msg $if:inet.1-0-mi getconf|")) {
+      #In
+      while(<SUB_NG>) {
+      	  if(/Args:\s*{ upstream={ cbs=\d+ ebs=\d+ cir=(\d+) greenAction=\d yellowAction=\d redAction=\d mode=\d } downstream={ cbs=\d+ ebs=\d+ cir=(\d+) greenAction=\d yellowAction=\d redAction=\d mode=\d } }/) {
+       		  $ifaces_speed{$if}{IN} = $1 / 1024;
+       		  if ($debug>2)  {
+       			  print "IN: $ifaces_speed{$if}{IN} OUT: $ifaces_speed{$if}{OUT}\n";
+       		   }
+      	   }
+         }
+      close(SUB_NG);
+
+      #Out
+      open(SUB_NG, "/usr/sbin/ngctl msg $if:inet.0-0-mi getconf|")  || die "Can't open '/usr/sbin/ngctl msg ng$if:inet.1-0-mi getconf' $!\n";
+        while(<SUB_NG>) {
+        	if(/Args:\s*{ upstream={ cbs=\d+ ebs=\d+ cir=(\d+) greenAction=\d yellowAction=\d redAction=\d mode=\d } downstream={ cbs=\d+ ebs=\d+ cir=(\d+) greenAction=\d yellowAction=\d redAction=\d mode=\d } }/) {
+       	  	$ifaces_speed{$if}{OUT} = $1 / 1024;
+       		  if ($debug>2)  {
+       			print "IN: $ifaces_speed{$if}{IN} OUT: $ifaces_speed{$if}{OUT}\n";
+       		 }
+      	 }
+       }
+      close(SUB_NG);
+    }
+   }
+
+  return \%ifaces_speed;
+}
+
+#**********************************************************
 # Ceck current speed for exppp
 #**********************************************************
 sub check_speed {
@@ -979,14 +1037,6 @@ sub check_speed {
     exit;
    }
 
-# Только МПД создает их аж 4 штуки =)
-#ng1028:inet.1-0-mi
-#ng1028:inet.0-0-mi
-#ng1028:inet.0-0-m
-#ng1028:inet.1-0-m
-#
-#system("ngctl msg $ng:inet.1-0-mi setconf { upstream={ cbs=$nburst_out ebs=$eburst_out cir=$speed_out greenAction=1 yellowAction=1 redAction=2 mode=2 } 
-#downstream={ cbs=$nburst_in ebs=$eburst_in cir=$speed_in greenAction=1 yellowAction=1 redAction=2 mode=2 } }"); 
 
 
 	my %LOGINS_SPEEDS = ();
@@ -1003,8 +1053,21 @@ sub check_speed {
     check_speed_linux();
     exit;	
   }
+  #elsif ($ARGV->{MPD_FILTER}) {
+  #	check_speed_mpd();
+  #	exit;
+  # } 
 
+  my $users_table_number = $conf{FW_TABLE_USERS} || 10;
+  my $nets_table_number  = 2;
+  my $out_interface      = 'em0';
 
+  my $IFACE_SPEED;
+
+if ($ARGV->{MPD_FILTER}) {
+	$IFACE_SPEED = check_speed_mpd();
+ }
+else {
   # Get global ips
   open(IPFW, "/sbin/ipfw table 10 list |") || die "Can't open file '' $!\n";
     while(<IPFW>) {
@@ -1094,15 +1157,10 @@ else {
   	   }
      }
    }
+  $out_interface = `/sbin/route get default | grep interface: | awk '{ print \$2 }'`;
+ }
 }
 
-  my $users_table_number = $conf{FW_TABLE_USERS} || 10;
-  my $nets_table_number  = 2;
-  my $out_interface      = 'em0';
-
-  if (! $conf{ng_car}) {
-  	$out_interface = `/sbin/route get default | grep interface: | awk '{ print \$2 }'`;
-  }
 
   $conf{FW_DIRECTION_OUT}= $ARGV->{FW_DIRECTION_OUT} if ($ARGV->{FW_DIRECTION_OUT});
   $conf{FW_DIRECTION_IN} = $ARGV->{FW_DIRECTION_IN} if ($ARGV->{FW_DIRECTION_IN});
@@ -1126,7 +1184,8 @@ else {
 		                   	                 'JOIN_SERVICE',
 		                   	                 'CLIENT_IP',
 		                   	                 'DURATION',
-		                   	                 'STARTED'
+		                   	                 'STARTED',
+		                   	                 'CONNECT_INFO'
 		                   	                  ]
 		               } );	
 
@@ -1143,21 +1202,22 @@ else {
     my $l = $online->{$nas_row->[0]};
     foreach my $line (@$l) {
        my $duration = time2sec($line->[7]);
-       my $started = $line->[8];
-
+       my $uid      = $line->[4];
+       my $started  = $line->[8];
+       my $tp       = $line->[2];
+       my $connect_info = $line->[9];
        #IFACE : TP : SPEED  :IP
-       my $tp = 0;
-       my $tp_id = 0;
-       if (int($line->[4]) > 0) {
-          $Dv->info($line->[4]);
-          $tp    = $Dv->{TP_ID};
-          $tp_id = $Dv->{TP_NUM};
-        }
-       else {
-         $tp = $line->[2];
-        }
-       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6] UID:$line->[4] DURATION:$duration STARTED:$started \n" if ($debug > 1);
-       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]:$line->[4]:$duration:$started";
+#       if (int($uid) > 0) {
+#          $Dv->info($uid);
+#          $tp    = $Dv->{TP_ID};
+#          $tp_id = $Dv->{TP_NUM};
+#        }
+#       else {
+#         
+#        }
+
+       print "$line->[0] IF:$line->[1] TP:$tp SPEED:$line->[3] JOIN: $line->[5] IP:$line->[6] UID:$uid DURATION:$duration STARTED:$started \n" if ($debug > 1);
+       $USER_IFACES{$line->[0]}="$line->[1]:$tp:$line->[3]:$line->[5]:$line->[6]:$uid:$duration:$connect_info:$started";
      }
   }
 
@@ -1174,7 +1234,7 @@ else {
   require Billing;
   Billing->import();
   my $Billing = Billing->new($db, \%conf);
-  my $user = $Billing->get_timeinfo();
+  my $user    = $Billing->get_timeinfo();
 
   require Tariffs;
   Tariffs->import();
@@ -1192,7 +1252,7 @@ else {
   	my $tp_id = $line->[18];
   	my $tp    = $line->[0];
     $TP_HASH{$tp}=$tp_id;
-  	print "TP: $tp ($tp_id)\n" if ($debug > 1 || $ARGV->{SHOW_SPEED});
+  	print "TP: $tp ($tp_id)\n" if (($debug > 2 || $ARGV->{SHOW_SPEED}) && ! $ARGV->{MPD_FILTER});
     my ($remaining_time, $ret_attr); 
     ($user->{TIME_INTERVALS},
      $user->{INTERVAL_TIME_TARIF}, 
@@ -1215,7 +1275,7 @@ else {
     if (keys %TT_IDS > 0) {
       #Get intervals
       while(my($k, $interval_id)=each( %TT_IDS)) {
- 	      print " INTERVAL: $k, $interval_id\n" if ($debug > 1);
+ 	      print " INTERVAL: $k, $interval_id\n" if ($debug > 2);
         if (($k eq 'TT' || $k eq 'FIRST_INTERVAL') && ! $speeds{$tp}{IN}) {
  	        my $list = $tariffs->tt_list({ TI_ID => $interval_id, SHOW_NETS => 1 });
  	        foreach my $line (@$list)  {
@@ -1257,8 +1317,11 @@ else {
  	      	  $speeds{$tp}{IN}{$traf_type}=$speed_in;
  	      	  $speeds{$tp}{OUT}{$traf_type}=$speed_out;
 
-#Dummynet table shaper section START
-           if (! $conf{ng_car}) {
+           if ($ARGV->{MPD_FILTER}) {
+           	
+            }
+           #Dummynet table shaper section START
+           elsif (! $conf{ng_car}) {
  	           my $pipe_rule_in  = int($START_FW[$traf_type] + $tp_id * 10);
              my $pipe_rule_out = int($START_FW[$traf_type] + $tp_id * 10 + 1);
              my $dest_ip = ($traf_type == 0) ? 'any' : "table\\($nets_table_number, $traf_type\\)";
@@ -1338,7 +1401,7 @@ if ($ARGV->{RECONFIGURE}) {
 }
 
 
-  if($ARGV->{SHOW_SPEED}) {
+  if($ARGV->{SHOW_SPEED} && ! $ARGV->{MPD_FILTER}) {
   	 return 0;
    }
 
@@ -1349,12 +1412,105 @@ if ($ARGV->{RECONFIGURE}) {
   	$cmd_debug='debug';
    }
 
+
+if ($ARGV->{MPD_FILTER}) {
+  while(my($user, $other)=each %USER_IFACES) {
+  	my $changed = 0;
+  	my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID, $DURATION, $CONNECT_INFO, $STARTED)=split(/:/, $other, 9);
+	   my $in_speed  = $IFACE_SPEED->{$CONNECT_INFO}{IN} || -1;
+	   my $out_speed = $IFACE_SPEED->{$CONNECT_INFO}{OUT} || -1;
+
+     $debug_outputs .= "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE DURATION: $DURATION ($STARTED)\n";
+	   $debug_outputs .= "IN: $in_speed OUT: $out_speed\n";	   
+
+     if ($ARGV->{SHOW_SPEED}) {
+     	 print $debug_outputs;
+     	 $debug_outputs = '';
+      }
+
+	   if ($SPEED > 0 && $in_speed != $SPEED) {
+	   	 $debug_outputs .= "CHANGE STATIC SPEED $in_speed -> $SPEED\n";
+	    }
+     #TP SPEED
+   	 elsif(defined($speeds{$TP})) {
+
+
+       while(my($class_id, $tp_speed_in)=each %{ $speeds{$TP}{IN} }) {
+      	 #Only works with 1 class_id
+      	 next if ($class_id  > 0);
+
+      	 my $tp_speed_out = $speeds{$TP}{OUT}{$class_id} || 0;
+      	 $tp_speed_in     = 0 if (! $tp_speed_in);
+
+         if ($conf{octets_direction} eq 'server') {
+            my $s_in      = $tp_speed_in;
+            my $s_out     = $tp_speed_out;
+            $tp_speed_in  = $s_out;
+            $tp_speed_out = $s_in;
+          } 
+
+         if (defined($tp_exprasions{$TP}) && defined($tp_exprasions{$TP}{$class_id})) {
+     	 	   print "Make exprasion\n" if ($debug > 2);
+     	 	   $Billing->{PERIOD_TRAFFIC}=undef;
+   	 	     my $RESULT = $Billing->expression($UID, $tp_exprasions{$TP}, { #START_PERIOD => '0000-00-00', 
+  	                                                                    debug        => $debug,
+  	                                                                     } );
+
+           if ($RESULT->{SPEED_IN}) {
+             $tp_speed_in=$RESULT->{SPEED_IN};
+             $tp_speed_out=$RESULT->{SPEED_OUT};
+            }
+           elsif($RESULT->{SPEED}) {
+           	 $tp_speed_in=$RESULT->{SPEED};
+             $tp_speed_out=$RESULT->{SPEED};
+            }
+          }
+
+          $LOGINS_SPEEDS{$user}{$class_id}{IN}  = ($in_speed > 0) ? $in_speed : 0;
+          $LOGINS_SPEEDS{$user}{$class_id}{OUT} = ($out_speed > 0) ? $out_speed : 0; ;
+
+  	 	    my $info = "  Class: $class_id ng_car_speed: $LOGINS_SPEEDS{$user}{$class_id}{IN}/".
+  	 	       	  "$LOGINS_SPEEDS{$user}{$class_id}{OUT} Speed: $tp_speed_in/$tp_speed_out\n";
+
+  	 	       	  if ($LOGINS_SPEEDS{$user}{$class_id}{IN} != $tp_speed_in) {
+                  $debug_outputs .= check_speed_change($user, $CONNECT_INFO, $IP, { 
+                  	 NAS_TYPE   => $NAS_TYPE,
+                  	 debug      => ( $debug > 1) ? ' debug' : undef,
+                  	 SPEED_IN   => $tp_speed_in,
+                  	 SPEED_OUT  => $tp_speed_out,
+                  	 });
+                  $changed = 1;
+                  $debug_outputs .= " [Changed] ". $info;
+  	 	           }
+                elsif ($LOGINS_SPEEDS{$user}{$class_id}{OUT} != $tp_speed_out) {
+                  $debug_outputs .= check_speed_change($user, $CONNECT_INFO, $IP, {
+                  	 NAS_TYPE   => $NAS_TYPE,
+                  	 debug      => ( $debug > 1) ? ' debug' : undef,
+                   	 SPEED_IN   => $tp_speed_in,
+                  	 SPEED_OUT  => $tp_speed_out,
+                 	  });
+                  $changed = 1;
+                  $debug_outputs .= " [Changed] ". $info;
+  	 	           }
+              }
+
+      }
+
+
+	   #print qq{system("ngctl msg $ng:inet.1-0-mi setconf { upstream={ cbs=$nburst_out ebs=$eburst_out cir=$speed_out greenAction=1 yellowAction=1 redAction=2 mode=2 } downstream={ cbs=$nburst_in ebs=$eburst_in cir=$speed_in greenAction=1 yellowAction=1 redAction=2 mode=2 } }")}; 
+	 }
+  
+  if ($debug > 0) {
+    print $debug_outputs;
+   }
+  return 0;
+ }
 #----------------------------------------------------------
-# New NG car methods
-if ($conf{ng_car}) {
+# New IPFW + NG car methods
+elsif ($conf{ng_car}) {
   while(my($user, $other)=each %USER_IFACES) {
   	 my $changed = 0;
-  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID, $DURATION, $STARTED)=split(/:/, $other, 8);
+  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID, $DURATION, $CONNECT_INFO, $STARTED)=split(/:/, $other, 9);
   	 $debug_outputs = "$user IF: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE DURATION: $DURATION ($STARTED)\n";
 
      if ($JOIN_SERVICE > 0) {
@@ -1409,7 +1565,6 @@ if ($conf{ng_car}) {
           next;
      	   }
 
-       if ($speeds{$TP}){
   	 	       while(my($class_id, $tp_speed_in)=each %{ $speeds{$TP}{IN} }) {
   	 	       	  my $tp_speed_out = $speeds{$TP}{OUT}{$class_id} || 0;
   	 	       	  $tp_speed_in     = 0 if (! $tp_speed_in);
@@ -1468,7 +1623,6 @@ if ($conf{ng_car}) {
                   $debug_outputs .= " [Changed] ". $info ." lost ip $IP\n";
   	 	           }
               }
-        }
  	  }
 
    print $debug_outputs if ($changed || $debug > 0);
@@ -1538,7 +1692,7 @@ else {
 
   #Make speed 
   while(my($user, $other)=each %USER_IFACES) {
-  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID, $DURATION, $STARTED)=split(/:/, $other, 8);
+  	 my($IFACE, $TP, $SPEED, $JOIN_SERVICE, $IP, $UID, $DURATION, $CONNECT_INFO, $STARTED)=split(/:/, $other, 9);
      my $argument = 0;
      if ($SPEED > 0) {
   	   $argument = ($SPEED > 10000) ? "$SPEED" : "1$SPEED";
@@ -1571,12 +1725,13 @@ else {
   	 print $debug_outputs if ($debug == 2); 
    }
 
+
  foreach my $cmd (@FW_ACTIONS) {
    print $cmd."\n" if ($debug > 2);
    if ($debug < 5) {
    	 system($cmd);
     }
- }
+  }
 }
 
 }
@@ -1605,7 +1760,24 @@ sub check_speed_change {
   my $cmds = "$Bin/linkupdown down tun$IFACE_ID $USER_NAME $USER_IP $cmd_debug;".
              "$Bin/linkupdown up tun$IFACE_ID $USER_NAME $USER_IP $cmd_debug";
 
-  if ($NAS_TYPE =~ /mpd/) {
+  if ($ARGV->{MPD_FILTER}) {
+    my $speed_in  = $attr->{SPEED_IN} * 1024;
+    my $speed_out = $attr->{SPEED_OUT} * 1024;
+    my $cbs_in    = int($speed_in*1.5/8);
+    my $ebs_in    = 2*$cbs_in;
+    my $cbs_out   = int($speed_out*1.5/8);
+    my $ebs_out   = 2*$cbs_out;
+    
+  	$cmds = "/usr/sbin/ngctl msg $IFACE_ID:inet.0-0-mi setconf { upstream={ cbs=$cbs_out ebs=$ebs_out cir=$speed_out greenAction=1 yellowAction=1 redAction=2 mode=2 } downstream={ cbs=$cbs_out ebs=$ebs_out cir=$speed_out greenAction=1 yellowAction=1 redAction=2 mode=2 } };".
+  	"/usr/sbin/ngctl msg $IFACE_ID:inet.1-0-mi setconf { upstream={ cbs=$cbs_in ebs=$ebs_in cir=$speed_in greenAction=1 yellowAction=1 redAction=2 mode=2 } downstream={ cbs=$cbs_in ebs=$ebs_in cir=$speed_in greenAction=1 yellowAction=1 redAction=2 mode=2 } };";
+ 	
+ 	  if ($debug < 5) {
+ 	  	my $cmd=`$cmds`;
+ 	   }
+ 	  return $cmds;
+ 	  return 0;
+   }
+  elsif ($NAS_TYPE =~ /mpd/) {
      $cmds = "$Bin/linkupdown mpd down ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;".
              "$Bin/linkupdown mpd up ng$IFACE_ID proto 0.0.0.0 $USER_IP $USER_NAME $cmd_debug;";
    }

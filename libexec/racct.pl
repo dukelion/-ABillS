@@ -282,6 +282,7 @@ sub acct {
      }
   }
 
+  $RAD->{CONNECT_INFO}  = $RAD->{MPD_IFACE} if  ($RAD->{MPD_IFACE}); 
   $RAD->{LOGOUT}             = time;
   $RAD->{SESSION_START}      = (defined($RAD->{ACCT_SESSION_TIME})) ?  time - $RAD->{ACCT_SESSION_TIME} : 0;
   $RAD->{NAS_PORT}           = 0  if  (! defined($RAD->{NAS_PORT}));

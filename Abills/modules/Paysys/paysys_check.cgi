@@ -559,7 +559,7 @@ my %status_hash = (0	=> 'Success',
 
 my $comments = '';
 my $command = $FORM{command};
-$FORM{account} =~ s/^0+//g if ($FORM{account});
+$FORM{account} =~ s/^0+//g if ($FORM{account} && $CHECK_FIELD eq 'UID');
 my %RESULT_HASH=( result => 300 );
 my $results = '';
 
