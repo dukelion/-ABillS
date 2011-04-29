@@ -1148,7 +1148,7 @@ my $message;
 if ($FORM{ping}) {
   if ($FORM{ping} =~ /^(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}$/) {
     my $res = `$PING -c 5 $FORM{ping}`;
-    $html->message('info', $_INFO,  "Ping  $FORM{ping} \n Result: \n". $html->pre($res));
+    $html->message('info', $_INFO,  "Ping  $FORM{ping} \n Result: \n". $html->pre($res, { OUTPUT2RETURN => 1 }));
    }
   else {
     $html->message('err', $_ERROR,  "$ERR_WRONG_DATA");
@@ -1169,19 +1169,20 @@ elsif ($FORM{hangup}) {
   	                                                     UID               => $FORM{UID} });
 
   if ($ret == 0) {
-    my $table = $html->table( { width   => '100%',
-                                caption => $_HANGUPED,
-                                rows    => [ 
-                                            [ "$_NAS ID",   $nas_id          ],
-                                            [ "$_NAS IP",   $Nas->{NAS_IP}   ],
-                                            [ "$_PORT",     $nas_port_id     ],
-                                            [ "SESSION_ID", $acct_session_id ],
-                                            [ "",           $ret             ] 
-                                           ]
-                               } );
-
-
-     $message = $table->show();
+#    my $table = $html->table( { width   => '100%',
+#                                caption => $_HANGUPED,
+#                                rows    => [ 
+#                                            [ "$_NAS ID",   $nas_id          ],
+#                                            [ "$_NAS IP",   $Nas->{NAS_IP}   ],
+#                                            [ "$_PORT",     $nas_port_id     ],
+#                                            [ "SESSION_ID", $acct_session_id ],
+#                                            [ "",           $ret             ] 
+#                                           ]
+#                               } );
+#
+#
+#     $message = $table->show();
+     $message = "$_NAS ID:  $nas_id\n $_NAS IP: $Nas->{NAS_IP}\n $_PORT: $nas_port_id\n SESSION_ID: $acct_session_id\n\n  $ret";
      sleep 3;
      $admin->action_add("$FORM{UID}", "$user_name", { MODULE => 'Dv', TYPE => 15 });
    }
@@ -1205,17 +1206,20 @@ elsif($FORM{zap}) {
    }
 
   $Nas->info({NAS_ID => $nas_id });
-
-  my $table = $html->table( { width   => '100%',
-                              caption => $_CLOSED,
-                              rows    => [ 
-                                          [ "$_NAS ID",   $nas_id],
-                                          [ "$_NAS IP",   $Nas->{NAS_IP} ],
-                                          [ "$_PORT",     $nas_port_id   ],
-                                          [ "SESSION_ID", $acct_session_id ],
-                                        ]
-                               } );
-  $message = $table->show();
+#
+#  my $table = $html->table( { width   => '100%',
+#                              caption => $_CLOSED,
+#                              rows    => [ 
+#                                          [ "$_NAS ID",   $nas_id],
+#                                          [ "$_NAS IP",   $Nas->{NAS_IP} ],
+#                                          [ "$_PORT",     $nas_port_id   ],
+#                                          [ "SESSION_ID", $acct_session_id ],
+#                                        ]
+#                               } );
+#  $message = $table->show();
+  
+  $message = "\n$_NAS ID:   $nas_id\n $_NAS IP: $Nas->{NAS_IP} \n $_PORT: $nas_port_id\n SESSION_ID: $acct_session_id\n\n";
+  
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
   	                NAS_PORT        => $nas_port_id,
   	                NAS_ID          => $Nas->{NAS_ID} });  
@@ -1349,9 +1353,9 @@ elsif($FORM{tolog}) {
      }
   
     $sessions->online_del({ NAS_ID          => $ACCT_INFO->{NAS_ID},
-                          NAS_PORT        => $ACCT_INFO->{NAS_PORT},
-                          ACCT_SESSION_ID => $ACCT_INFO->{ACCT_SESSION_ID}
-                        });
+                            NAS_PORT        => $ACCT_INFO->{NAS_PORT},
+                            ACCT_SESSION_ID => $ACCT_INFO->{ACCT_SESSION_ID}
+                          });
    }
  }
 elsif($FORM{del} || $FORM{dellist}) {
