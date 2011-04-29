@@ -230,7 +230,7 @@ elsif ($ip_num > $first_ip && $ip_num < $last_ip) {
         exit;
  } 
 #USMP
-elsif('77.222.138.142,195.10.218.120' =~ /$ENV{REMOTE_ADDR}/) {
+elsif('77.222.138.142,78.30.232.14' =~ /$ENV{REMOTE_ADDR}/) {
   require "Usmp.pm";
   exit;
  }
