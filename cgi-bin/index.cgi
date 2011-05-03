@@ -182,6 +182,8 @@ if ($uid > 0) {
   $LIST_PARAMS{LOGIN}= $user->{LOGIN};
 
   $index = $FORM{qindex} if ($FORM{qindex});
+  print $html->header() if ($FORM{header});
+
   my $lang_file = '';
   foreach my $prefix (@INC) {
     my $realfilename = "$prefix/Abills/modules/$module{$index}/lng_$html->{language}.pl";
