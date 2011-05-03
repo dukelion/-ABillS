@@ -343,28 +343,12 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
   #Create shaper dev for linux
  	my $tc = '/sbin/tc';
-  if ($argv->{LINUX_NEW_MODEL}) {
-#проверял на debian'е 6.0 - по классам резало нормально.
-#при неимоверных кол-вах фильтров надо шейпер реорганизовать по 
-#хеш-таблицам. если нужен пример - набросаю чуть позже
-#
-#не знаю, в каком виде надо, но пример вот такой:
-  	push @FW_ACTIONS, "$tc qdisc del dev $wan_if root ";
-    push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root ";
-    push @FW_ACTIONS, "$tc add dev $INTERFACE root handle 1: htb default 5";
-    push @FW_ACTIONS, "$tc qdisc add dev $wan_if root handle 1: htb default 5";
-    
-    
-    
-   }
-  else {
     if ($ARGV[0] eq 'pppd') {
         push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE ingress";
         push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE handle ffff: ingress";
         push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root";
-        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE root handle 1: htb default 20 r2q 1";
+        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE root handle 1: htb default 10 r2q 1";
      }
-   }
 
 
 
@@ -439,23 +423,19 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
      }
     #Linux shaper
     elsif ($OS eq 'Linux') {
-      # new linux shapper
-      if ($argv->{LINUX_NEW_MODEL}) {
-        push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:". (10+10*$traf_type). "htb rate ". $speed_out ."kbit burst 8k prio ". ($traf_type+1);
-        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE parent 1:". (10+10*$traf_type). " handle ". (10+10*$traf_type). ": sfq perturb 10 quantum 1500";
-        push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent 1:0 prio 1 u32 match ip src $nets{$traf_type} flowid 1:". (10+10*$traf_type);
-        push @FW_ACTIONS, "$tc class add dev $wan_if parent 1: classid 1:". (10+10*$traf_type). " htb rate ". $speed_in ."kbit burst 8k prio $traf_type";
-        push @FW_ACTIONS, "$tc qdisc add dev $wan_if parent 1:". (10+10*$traf_type). " handle ". (10+10*$traf_type). ": sfq perturb 10 quantum 1500";
-##
-        push @FW_ACTIONS, "$tc filter del dev $wan_if protocol ip parent 1:0 prio 1 u32 match ip src $nets{$traf_type} > /dev/null 2>&1";
-        push @FW_ACTIONS, "$tc filter add dev $wan_if protocol ip parent 1:0 prio 1 u32 match ip src $nets{$traf_type} match ip dst $nets{$traf_type} flowid 1:".(10+10*$traf_type);
-        next;
-       }
-      
-
+    	
       my $prefix=10000;
       my $flowid = ($speed_in > 0) ? sprintf("%x", $user->{UID} + $prefix * 2) : '';
       my $drop   = $speed_out > 0 ? "police rate $speed_out"."Kbit burst 12k drop" : '';
+    	
+      # new linux shapper
+      if ($argv->{LINUX_NEW_MODEL}) {
+        push @FW_ACTIONS, "$tc class add dev $INTERFACE parent 1: classid 1:".(10+10*$traf_type)." htb rate ".$speed_out."kbit burst 8k prio ".($traf_type+1);
+        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE parent 1:".(10+10*$traf_type)." handle ".(10+10*$traf_type).": sfq perturb 10 quantum 1500";
+        push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent 1:0 prio 1 handle $traf_type fw classid 1:".(10+10*$traf_type);
+        push @FW_ACTIONS, "$tc filter add dev $INTERFACE protocol ip parent ffff: prio $fw_num_in u32 match ip src $CLIENT_IP $drop flowid 1:";
+        next;
+       }
 
       push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent 1: prio $fw_num_out";
       push @FW_ACTIONS, "$tc filter del dev $INTERFACE protocol ip parent ffff: prio $fw_num_in";

@@ -109,6 +109,11 @@ easysoft_cert () {
     EASYSOFT_PUBLIC_KEY=$1;
   fi;
 
+  if [ w${EASYSOFT_PUBLIC_KEY} = w ]; then
+    echo "Enter easysoft public key";
+    exit;
+  fi;
+
   ${OPENSSL} x509 -inform pem -in ${EASYSOFT_PUBLIC_KEY} -pubkey -out ${CERT_PATH}/easysoft_public_key.pem > ${CERT_PATH}/easysoft_server_public.pem
 
 

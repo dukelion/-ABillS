@@ -155,18 +155,24 @@ if ($prepaid{0} + $prepaid{1} > 0) {
   if ($self->{TOTAL} > 0) {
     my ($class1, $class2)  = (0, 0);
     my $monthes = 0;
+    my $prepaid1 = $prepaid{0};
+    my $prepaid2 = $prepaid{1};
+    $prepaid{0}=0;
+    $prepaid{1}=0;
     foreach my $line (@{$self->{list}}) {
-      $used_traffic->{TRAFFIC_OUT}  += $line->[0];
-      $used_traffic->{TRAFFIC_IN}   += $line->[1];
-      $used_traffic->{TRAFFIC_IN_2} += $line->[2];
-      $used_traffic->{TRAFFIC_OUT_2}+= $line->[3];
-      $monthes++;
-     }	
+      if ($prepaid1 > $line->[0] + $line->[1]) {
+        $used_traffic->{TRAFFIC_OUT}  += $line->[0];
+        $used_traffic->{TRAFFIC_IN}   += $line->[1];
+        $prepaid{0} += $prepaid1;
+       }
 
-    $prepaid{0} = $prepaid{0} * $monthes;
-    $prepaid{1} = $prepaid{0} * $monthes;
-   } 
-
+      if ($prepaid2 > $line->[2] + $line->[3]) {
+        $used_traffic->{TRAFFIC_IN_2} += $line->[2];
+        $used_traffic->{TRAFFIC_OUT_2}+= $line->[3];
+        $prepaid{1} += $prepaid2;
+       }
+     }
+  }
 # #Check online
 # $self->query($db, "select 
 #  sum(acct_input_octets  / $CONF->{MB_SIZE} + 4092 * acct_input_gigawords),  

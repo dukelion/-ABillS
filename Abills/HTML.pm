@@ -711,6 +711,131 @@ foreach my $ID (@s) {
  return ($menu_navigator, $menu_text);
 }
 
+
+#**********************************************************
+# 
+#**********************************************************
+sub menu2 () {
+ my $self = shift;
+ my ($menu_items, $menu_args, $permissions, $attr) = @_;
+
+ my $menu_navigator = '';
+ my $root_index = 0;
+ my %tree = ();
+ my %menu = ();
+ my $sub_menu_array;
+ my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
+
+# make navigate line 
+if ($index > 0) {
+  $root_index = $index;	
+  my $h = $menu_items->{$root_index};
+
+  while(my ($par_key, $name) = each ( %$h )) {
+
+    my $ex_params = (defined($menu_args->{$root_index}) && defined($FORM{$menu_args->{$root_index}})) ? '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}" : '';
+
+    $menu_navigator =  " ". $self->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
+    $tree{$root_index}=1;
+    if ($par_key > 0) {
+      $root_index = $par_key;
+      $h = $menu_items->{$par_key};
+     }
+   }
+}
+
+
+$FORM{root_index} = $root_index;
+if ($root_index > 0) {
+  my $ri = $root_index-1;
+  if (defined($permissions) && (! defined($permissions->{$ri}))) {
+	  $self->{ERROR} = "Access deny $ri";
+	  return '', '';
+   }
+}
+
+
+my @s = sort {
+  $b <=> $a
+} keys %$menu_items;
+
+
+foreach my $ID (@s) {
+  my $VALUE_HASH = $menu_items->{$ID};
+  foreach my $parent (keys %$VALUE_HASH) {
+    push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
+   }
+}
+ 
+ my @last_array = ();
+
+ my $menu_text = "
+ <div class='menu_top'></div>
+ <div class='menu_main'>
+ <table border='0' width='100%' cellspacing='2'>\n";
+
+ 	  my $level  = 0;
+ 	  my $prefix = '';
+    
+    my $parent = 0;
+
+ 	  label:
+ 	  $sub_menu_array =  \@{$menu{$parent}};
+ 	  my $m_item='';
+ 	  
+ 	  my %table_items = ();
+ 	  
+ 	  while(my $sm_item = pop @$sub_menu_array) {
+ 	     my($ID, $name)=split(/:/, $sm_item, 2);
+ 	     next if((! defined($attr->{ALL_PERMISSIONS})) && (! defined($permissions->{$ID-1})) && $parent == 0);
+
+ 	     $name = (defined($tree{$ID})) ? $self->b($name) : "$name";
+       if(! defined($menu_args->{$ID}) || (defined($menu_args->{$ID}) && defined($FORM{$menu_args->{$ID}})) ) {
+       	   my $ext_args = "$EX_ARGS";
+       	   if (defined($menu_args->{$ID})) {
+       	     $ext_args = "&$menu_args->{$ID}=$FORM{$menu_args->{$ID}}";
+       	     $name = $self->b($name) if ($name !~ /<b>/);
+       	    }
+
+       	   my $link = $self->button($name, "index=$ID$ext_args");
+    	       if($parent == 0) {
+ 	        	   $menu_text .= "<tr class='odd'><td class=menu_cel_main>$prefix$link</td></tr>\n";
+	            }
+ 	           elsif(defined($tree{$ID})) {
+   	           $menu_text .= "<tr><td class=menu_cel>$prefix>$link</td></tr>\n";
+ 	            }
+ 	           else {
+ 	             $menu_text .= "<tr><td class=menu_cel>$prefix$link</td></tr>\n";
+ 	            }
+         }
+        else {
+          #next;
+          #$link = "<a href='$SELF_URL?index=$ID&$menu_args->{$ID}'>$name</a>";	
+         }
+
+ 	      	     
+ 	     if(defined($tree{$ID})) {
+ 	     	 $level++;
+ 	     	 $prefix .= "&nbsp;&nbsp;&nbsp;";
+         push @last_array, $parent;
+         $parent = $ID;
+ 	     	 $sub_menu_array = \@{$menu{$parent}};
+ 	      }
+ 	   }
+
+    if ($#last_array > -1) {
+      $parent = pop @last_array;	
+      $level--;
+      $prefix = substr($prefix, 0, $level * 6 * 3);
+      goto label;
+     }
+ 
+ $menu_text .= "</table>\n</div>
+ <div class='menu_bot'></div>\n";
+ 
+ return ($menu_navigator, $menu_text);
+}
+
 #*******************************************************************
 # heder off main page
 # header()
