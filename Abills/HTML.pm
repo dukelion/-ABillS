@@ -714,17 +714,67 @@ foreach my $ID (@s) {
 
 #**********************************************************
 # 
+# 
+#<div id="leftNav">
+#<ul id="tmenu0">
+#<li><a href="?id=1" id="info_user_ico">Информация о пользователе</a></li> 
+#<li><a href="?id=2" id="password_ico">Пароль</a></li> 
+#<li><a href="?id=2" id="money_operation_ico">Денежные операции</a></li> 
+#<li><span><a href="?id=2" id="internet_ico">Internet</a></span>
+#<ul>
+#    <li><a href="#">IP Net</a></li>
+#    <li><a href="#" >Статистика</a></li> 
+#    <li><span><a href="?id=222">Тарифы трафика</a></span>
+#<ul>
+#    	<li><a href="?id=22">IP Net</a></li>
+#    	<li><a href="?id=12">Статистика</a></li> 
+#    	<li><span><a href="#">Тарифы трафика</a></span>
+#		<ul>
+#            <li><a href="#">IP Net</a></li>
+#            <li><a href="#">Статистика</a></li> 
+#            <li><span><a href="#">Тарифы трафика</a></span>
+#            <ul>
+#                <li><a href="#">IP Net</a></li>
+#                <li><a href="#">Статистика</a></li> 
+#                <li><span><a href="#">Тарифы трафика</a></span>
+#                <ul>
+#                    <li><a href="#">IP Net</a></li>
+#                    <li><a href="#">Статистика</a></li> 
+#                    <li><a href="#">Тарифы трафика</a></li>
+#                </ul> 
+#            </ul> 
+#		</ul> 
+#	</ul>    
+#    
+#    </li>
+#</ul>
+#
+#</li> 
+#<li><span><a id="payment_card_ico" href="#">Интернет карточки</a><span></li> 
+#<li><a id="drweb_ico"href="#">Антивирус Dr.Web</a></li> 
+#<li><span><a id="voip_ico" href="#">VoIP</a></span>
+#<ul>
+#    <li><a href="#">Статистика</a></li> 
+#    <li><a href="#">Направления</a></li>
+#</ul>
+#
+#</li> 
+#<li><a id="documents_ico" href="#">Документы</a></li>
+#<li><a id="help_desc_ico"href="#">Техническая Поддержка</a></li>  
+#<li><a id="mail_ico" href="#">E-MAIL</a></li>     
+#</ul>
+#</div>
 #**********************************************************
 sub menu2 () {
  my $self = shift;
  my ($menu_items, $menu_args, $permissions, $attr) = @_;
 
  my $menu_navigator = '';
- my $root_index = 0;
- my %tree = ();
- my %menu = ();
- my $sub_menu_array;
- my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
+ my $root_index     = 0;
+ my %tree           = ();
+ my %menu           = ();
+ my $EX_ARGS        = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
+ my $fl             = $attr->{FUNCTION_LIST};
 
 # make navigate line 
 if ($index > 0) {
@@ -732,7 +782,6 @@ if ($index > 0) {
   my $h = $menu_items->{$root_index};
 
   while(my ($par_key, $name) = each ( %$h )) {
-
     my $ex_params = (defined($menu_args->{$root_index}) && defined($FORM{$menu_args->{$root_index}})) ? '&'."$menu_args->{$root_index}=$FORM{$menu_args->{$root_index}}" : '';
 
     $menu_navigator =  " ". $self->button($name, "index=$root_index$ex_params"). '/' . $menu_navigator;
@@ -755,82 +804,87 @@ if ($root_index > 0) {
 }
 
 
-my @s = sort {
-  $b <=> $a
+my @menu_sorted = sort {
+  $a <=> $b
 } keys %$menu_items;
 
 
-foreach my $ID (@s) {
+foreach my $ID (@menu_sorted) {
   my $VALUE_HASH = $menu_items->{$ID};
   foreach my $parent (keys %$VALUE_HASH) {
     push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
    }
 }
  
- my @last_array = ();
+my  %new_hash = ();
+while((my($findex, $hash)=each(%$menu_items))) {
+   while(my($parent, $val)=each %$hash) {
+     $new_hash{$parent}{$findex}=$val;
+    }
+}
+
+my $h = $new_hash{0};
+my @last_array = ();
+
 
  my $menu_text = "
  <div class='menu_top'></div>
  <div class='menu_main'>
- <table border='0' width='100%' cellspacing='2'>\n";
+ <ul id='tmenu0'>\n";
 
- 	  my $level  = 0;
- 	  my $prefix = '';
+for(my $parent=0; $parent<$#menu_sorted + 1; $parent++) { 
+  my $val   = $h->{$menu_sorted[$parent]};
+  my $level = 0;
+  my $ID    = $menu_sorted[$parent]; 
+
+  next if((! defined($attr->{ALL_PERMISSIONS})) && (! $permissions->{$parent-1}) && $parent == 0);
+  my $sub_menu = ''; 
+  
+  if (defined($new_hash{$ID})) {
+    $level++;
+    label:
+      my $mi = $new_hash{$ID};
+
+      while(my($k, $val)=each %$mi) {
+        $sub_menu .= "<li>". $self->button("$val", "index=$k")."</li>\n";
+
+        if (defined($new_hash{$k})) {
+      	   $mi = $new_hash{$k};
+      	   $level++;
+           push @last_array, $ID;
+           $ID = $k;
+         }
+        delete($new_hash{$ID}{$k});
+      }
     
-    my $parent = 0;
-
- 	  label:
- 	  $sub_menu_array =  \@{$menu{$parent}};
- 	  my $m_item='';
- 	  
- 	  my %table_items = ();
- 	  
- 	  while(my $sm_item = pop @$sub_menu_array) {
- 	     my($ID, $name)=split(/:/, $sm_item, 2);
- 	     next if((! defined($attr->{ALL_PERMISSIONS})) && (! defined($permissions->{$ID-1})) && $parent == 0);
-
- 	     $name = (defined($tree{$ID})) ? $self->b($name) : "$name";
-       if(! defined($menu_args->{$ID}) || (defined($menu_args->{$ID}) && defined($FORM{$menu_args->{$ID}})) ) {
-       	   my $ext_args = "$EX_ARGS";
-       	   if (defined($menu_args->{$ID})) {
-       	     $ext_args = "&$menu_args->{$ID}=$FORM{$menu_args->{$ID}}";
-       	     $name = $self->b($name) if ($name !~ /<b>/);
-       	    }
-
-       	   my $link = $self->button($name, "index=$ID$ext_args");
-    	       if($parent == 0) {
- 	        	   $menu_text .= "<tr class='odd'><td class=menu_cel_main>$prefix$link</td></tr>\n";
-	            }
- 	           elsif(defined($tree{$ID})) {
-   	           $menu_text .= "<tr><td class=menu_cel>$prefix>$link</td></tr>\n";
- 	            }
- 	           else {
- 	             $menu_text .= "<tr><td class=menu_cel>$prefix$link</td></tr>\n";
- 	            }
-         }
-        else {
-          #next;
-          #$link = "<a href='$SELF_URL?index=$ID&$menu_args->{$ID}'>$name</a>";	
-         }
-
- 	      	     
- 	     if(defined($tree{$ID})) {
- 	     	 $level++;
- 	     	 $prefix .= "&nbsp;&nbsp;&nbsp;";
-         push @last_array, $parent;
-         $parent = $ID;
- 	     	 $sub_menu_array = \@{$menu{$parent}};
- 	      }
- 	   }
-
     if ($#last_array > -1) {
-      $parent = pop @last_array;	
+      $ID = pop @last_array;	
       $level--;
-      $prefix = substr($prefix, 0, $level * 6 * 3);
       goto label;
+    }
+    delete($new_hash{0}{$parent});
+   }
+  
+  if ($val) {
+    $menu_text .= "<li>";
+
+    if ($sub_menu ne '') {
+      $menu_text .= '<span>'.$self->button("$val", "index=$ID", { ex_params => "id=". $fl->{$ID} }) ."</span>\n";
+  	  $menu_text .= "<ul> $sub_menu </ul>\n";
      }
+    else {
+      $menu_text .= $self->button("$val", "index=$ID", { ex_params => "id=". $fl->{$ID} });
+     }
+    
+    $menu_text .= "</li>\n";
+   }
+
+}
+ 	  
+
+ 	  
  
- $menu_text .= "</table>\n</div>
+ $menu_text .= "</ul></div>\n</div>
  <div class='menu_bot'></div>\n";
  
  return ($menu_navigator, $menu_text);

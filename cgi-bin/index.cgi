@@ -154,11 +154,20 @@ if ($uid > 0) {
     $OUTPUT{MENU}=$html->tpl_show(templates('form_client_custom_menu'), $user, { OUTPUT2RETURN => 1 });
    }
   else {
-   (undef, $OUTPUT{MENU}) = $html->menu(\%menu_items, \%menu_args, undef, 
-     { EX_ARGS         => "&sid=$sid", 
-     	 ALL_PERMISSIONS => 1,
-     	 FUNCTION_LIST   => \%functions
-     });
+    if ($conf{MENU_NEW}) {
+ 	    (undef, $OUTPUT{MENU}) = $html->menu2(\%menu_items, \%menu_args, undef, 
+        { EX_ARGS         => "&sid=$sid", 
+     	    ALL_PERMISSIONS => 1,
+       	  FUNCTION_LIST   => \%functions
+        });
+     }
+    else {
+      (undef, $OUTPUT{MENU}) = $html->menu(\%menu_items, \%menu_args, undef, 
+       { EX_ARGS         => "&sid=$sid", 
+     	   ALL_PERMISSIONS => 1,
+     	  FUNCTION_LIST   => \%functions
+       });
+     }
    }
 
   if ($html->{ERROR}) {
