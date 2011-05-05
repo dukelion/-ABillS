@@ -829,7 +829,7 @@ my @last_array = ();
 
  my $menu_text = "
  <div class='menu_top'></div>
- <div class='menu_main'>
+ <div id='menu_main'>
  <ul id='tmenu0'>\n";
 
 for(my $parent=0; $parent<$#menu_sorted + 1; $parent++) { 
