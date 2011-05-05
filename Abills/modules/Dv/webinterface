@@ -6077,7 +6077,7 @@ sub dv_get_month_fee {
   my %total_sum =( ACTIVATE  => 0,
   	               MONTH_FEE => 0 ) ;
   
-  $users = $user if ($user);
+  $users = $user if ($user->{UID});
   #Make bonus
   if ($conf{DV_BONUS}) {
     eval { require Bonus_rating; };

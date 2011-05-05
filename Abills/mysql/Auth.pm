@@ -938,6 +938,7 @@ sub authentication {
         u.id='$RAD->{USER_NAME}' $WHERE
         AND (u.expire='0000-00-00' or u.expire > CURDATE())
         AND (u.activate='0000-00-00' or u.activate <= CURDATE())
+        AND u.deleted='0'
        GROUP BY u.id;");
 
   if($self->{errno}) {
