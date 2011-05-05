@@ -22,8 +22,8 @@ require "Abills/defs.conf";
 require "Abills/templates.pl";
 
 require Abills::Base;
-Abills::Base->import(qw{ check_time parse_arguments in_array mk_unique_value sen
-dmail });
+Abills::Base->import(qw{ check_time parse_arguments in_array mk_unique_value 
+sendmail int2byte });
 my $begin_time = check_time();
 
 

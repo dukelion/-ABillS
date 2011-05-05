@@ -400,7 +400,7 @@ else {
 # 3 - Month limit
 #my @traf_limits = ();
 my $time_limit  = $self->{TIME_LIMIT}; 
-my $traf_limit  = $MAX_SESSION_TRAFFIC;
+my $traf_limit  = $MAX_SESSION_TRAFFIC || undef;
 
 my @direction_sum = (
   "sum(sent + recv) / $CONF->{MB_SIZE} + sum(acct_output_gigawords) * 4096 + sum(acct_input_gigawords) * 4096",
@@ -447,11 +447,11 @@ foreach my $line (@periods) {
           push (@time_limits, $session_time_limit) if ($self->{$line . '_TIME_LIMIT'} > 0);
          }
 
-        if ($traf_limit > $session_traf_limit && $self->{$line . '_TRAF_LIMIT'} > 0) {
-      	  $traf_limit = $session_traf_limit;
+        if ($self->{$line . '_TRAF_LIMIT'} > 0 && ($traf_limit > $session_traf_limit || ! $traf_limit) ) {
+          $traf_limit = $session_traf_limit;
          }
         
-        if($traf_limit <= 0) {
+        if(defined($traf_limit) && $traf_limit <= 0) {
           $RAD_PAIRS->{'Reply-Message'}="Rejected! $line Traffic limit utilized '$traf_limit Mb'";
           return 1, $RAD_PAIRS;
          }
