@@ -357,6 +357,12 @@ sub getCookies {
 #**********************************************************
 # Functions list
 #**********************************************************
+sub menu2 {
+  my $self = shift;
+  my ($menu_items, $menu_args, $permissions, $attr) = @_;
+  $self->menu($menu_items, $menu_args, $permissions, $attr);
+}
+
 sub menu {
  my $self = shift;
  my ($menu_items, $menu_args, $permissions, $attr) = @_;
