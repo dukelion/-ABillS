@@ -8,5 +8,7 @@
 </TR></TABLE>
 <TABLE border='0' width='100%' style='margin: 0'>
 <TR><TD width='200' valign='top' bgcolor='$_COLORS[2]' class=MENU_BACK >%MENU%</TD><TD align='center'>
+<div id=CONTENT>
 %BODY%
+</div>
 </TD></TR></TABLE>
