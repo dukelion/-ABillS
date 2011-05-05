@@ -796,7 +796,7 @@ for(my $parent=0; $parent<$#menu_sorted + 1; $parent++) {
       my $mi = $new_hash{$ID};
 
       while(my($k, $val)=each %$mi) {
-        $sub_menu .= "<li>". $self->button("$val", "#", { GLOBAL_URL => "javascript:showContent('index.cgi?qindex=$k&header=1$ext_args')" })."</li>\n";
+        $sub_menu .= "<li>". $self->button("$val", "#", { GLOBAL_URL => "javascript:showContent('index.cgi?qindex=$k&header=1$ext_args')", NO_LINK_FORMER => 1 })."</li>\n";
 
         if (defined($new_hash{$k})) {
       	   $mi = $new_hash{$k};
@@ -819,11 +819,11 @@ for(my $parent=0; $parent<$#menu_sorted + 1; $parent++) {
     $menu_text .= "<li>";
 
     if ($sub_menu ne '') {
-      $menu_text .= '<span>'.$self->button("$val", "index=$ID$ext_args", { ex_params => "id=". $fl->{$ID}, GLOBAL_URL => "javascript:showContent('index.cgi?qindex=$ID&header=1$ext_args')" }) ."</span>\n";
+      $menu_text .= '<span>'.$self->button("$val", "index=$ID$ext_args", { ex_params => "id=". $fl->{$ID}, GLOBAL_URL => "javascript:showContent('index.cgi?qindex=$ID&header=1$ext_args')", NO_LINK_FORMER => 1 }) ."</span>\n";
   	  $menu_text .= "<ul> $sub_menu </ul>\n";
      }
     else {
-      $menu_text .= $self->button("$val", "index=$ID$ext_args", { ex_params => "id=". $fl->{$ID}, GLOBAL_URL => "javascript:showContent('index.cgi?qindex=$ID&header=1$ext_args')" });
+      $menu_text .= $self->button("$val", "index=$ID$ext_args", { ex_params => "id=". $fl->{$ID}, GLOBAL_URL => "javascript:showContent('index.cgi?qindex=$ID&header=1$ext_args')", NO_LINK_FORMER => 1 });
      }
     
     $menu_text .= "</li>\n";
@@ -1251,7 +1251,7 @@ sub button {
   my $ex_attr = ($attr->{ex_params}) ? $attr->{ex_params} : '';
   $params = ($attr->{GLOBAL_URL})? $attr->{GLOBAL_URL} : "$SELF_URL?$params";
   $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
-  $params = $self->link_former($params);
+  $params = $self->link_former($params) if (! $attr->{NO_LINK_FORMER});
   
   $ex_attr.=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
   if ( $attr->{NEW_WINDOW} ) {
