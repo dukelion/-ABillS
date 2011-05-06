@@ -10,6 +10,8 @@
 <TR><TD width='200' valign='top' bgcolor='$_COLORS[2]' class=MENU_BACK >%MENU%</TD><TD align='center'>
 <div id=CONTENT>
 %BODY%
+ <div id='contentBody'>  
+    </div>
  <div id='loading' style='display: none'>  
     $_LOADING...
  </div>  
