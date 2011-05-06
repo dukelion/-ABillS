@@ -472,3 +472,4 @@ $_ARTICLE='Article';
 $_INSTALATIONS='Instalations';
 $_DENSITY_OF_CONNECTIONS='Density Of Connections';
 $_UP_RATING='Up rating';
+$_LOADING='Loading';
