@@ -381,20 +381,18 @@ else {
 
 #detalization for Exppp
 if ($conf->{s_detalization}) {
-  if($NAS->{NAS_TYPE} ne 'exppp') {
-    $RAD->{INTERIUM_INBYTE}  = $RAD->{INBYTE};
-    $RAD->{INTERIUM_OUTBYTE} = $RAD->{OUTBYTE};
-    $RAD->{INTERIUM_INBYTE2} = $RAD->{INBYTE2}  || 0;
-    $RAD->{INTERIUM_OUTBYTE2}= $RAD->{OUTBYTE2} || 0;
-   }
+  my $INBYTES = $RAD->{INBYTE} + (($RAD->{ACCT_INPUT_GIGAWORDS}) ? $RAD->{ACCT_INPUT_GIGAWORDS} * 4294967296 : 0);
+  my $OUTBYTES = $RAD->{OUTBYTE} + (($RAD->{ACCT_OUTPUT_GIGAWORDS}) ? $RAD->{ACCT_OUTPUT_GIGAWORDS} * 4294967296 : 0);
+  $RAD->{INTERIUM_INBYTE2} = $RAD->{INBYTE2}  || 0;
+  $RAD->{INTERIUM_OUTBYTE2}= $RAD->{OUTBYTE2} || 0;
 
-  $self->query($db, "INSERT into s_detail (acct_session_id, nas_id, acct_status, last_update, 
-    sent1, recv1, sent2, recv2, id, sum)
-  VALUES ('$RAD->{ACCT_SESSION_ID}', '$NAS->{NAS_ID}',
-   '$acct_status_type', UNIX_TIMESTAMP(),
-   '$RAD->{INTERIUM_INBYTE}', '$RAD->{INTERIUM_OUTBYTE}', 
-   '$RAD->{INTERIUM_INBYTE2}', '$RAD->{INTERIUM_OUTBYTE2}', 
-   '$RAD->{USER_NAME}', '$self->{SUM}');", 'do');
+  $self->query($db, "INSERT into s_detail (acct_session_id, nas_id, acct_status, last_update, sent1, recv1, sent2, recv2, id, sum)
+   VALUES ('$RAD->{ACCT_SESSION_ID}', '$NAS->{NAS_ID}',
+    '$acct_status_type', UNIX_TIMESTAMP(),
+    '$INBYTES', '$OUTBYTES',
+    '$RAD->{INTERIUM_INBYTE2}', '$RAD->{INTERIUM_OUTBYTE2}',
+    '$RAD->{USER_NAME}', '$self->{SUM}');", 'do');
+
 }
 
  return $self;

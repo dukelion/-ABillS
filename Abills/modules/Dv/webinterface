@@ -1098,24 +1098,27 @@ sub dv_rating_user {
 
   my $Bonus_rating = Bonus_rating->new($db, $admin, \%conf);
   $users = $user if (! $users);	
-  
+
  	$Bonus_rating->users_rating_info({ UID => $LIST_PARAMS{UID} });
 
-if ($Bonus_rating->{TOTAL} == 0) {
-   $html->message('info', $_INFO,  "$_BONUS $_NOT_ACTIVE");
-   return 0;
-}
+  if ($Bonus_rating->{TOTAL} == 0) {
+    $html->message('info', $_INFO,  "$_BONUS $_NOT_ACTIVE");
+    return 0;
+   }
+
 
 	if ($FORM{UP_RATING}) {
     my $need_percents = int(($FORM{UP_RATING} - $Bonus_rating->{RATING_PER}));
-    my $need_sum = $need_percents * $Bonus_rating->{ONE_PERCENT_SUM};
+    my $need_sum = $need_percents * ($Bonus_rating->{ONE_PERCENT_SUM} * $Bonus_rating->{ONE_PERCENT_COUNT});
+    
 
     if ($users->{CREDIT} + $users->{DEPOSIT} < $need_sum) {
     	$html->message('err', $_ERROR,  "$ERR_SMALL_DEPOSIT");
      }
     else {
-    	for(my $i=0; $i<$need_percents * $Bonus_rating->{ONE_PERCENT_COUNT}; $i++) {
+    	for(my $i=0; $i<$need_percents * int($Bonus_rating->{ONE_PERCENT_COUNT}); $i++) {
     		$fees->take($users, $Bonus_rating->{ONE_PERCENT_SUM}, { DESCRIBE => "$_RATING_UP" } );
+    		$users->{DEPOSIT} -= $Bonus_rating->{ONE_PERCENT_SUM};
     	 }
     	$Bonus_rating->{RATING_PER}=$FORM{UP_RATING}; 
     	$html->message('info', $_INFO,  "$_UP_RATING $FORM{UP_RATING}");
@@ -1124,8 +1127,8 @@ if ($Bonus_rating->{TOTAL} == 0) {
      }
 	 }
 
-  $Bonus_rating->{UP_RATING} = int(($users->{CREDIT} + $users->{DEPOSIT})  / $Bonus_rating->{ONE_PERCENT_SUM}) + $Bonus_rating->{RATING_PER};
-  
+  $Bonus_rating->{UP_RATING} = int(($users->{CREDIT} + $users->{DEPOSIT})  / ($Bonus_rating->{ONE_PERCENT_SUM} * $Bonus_rating->{ONE_PERCENT_COUNT})) + $Bonus_rating->{RATING_PER};
+
   if ($Bonus_rating->{UP_RATING} > 100) {
   	$Bonus_rating->{UP_RATING}=100;
    }
@@ -1135,7 +1138,7 @@ if ($Bonus_rating->{TOTAL} == 0) {
 
 
   $Bonus_rating->{ONE_PERCENT_SUM}=sprintf("%.2f", $Bonus_rating->{ONE_PERCENT_SUM} * $Bonus_rating->{ONE_PERCENT_COUNT});
-
+  
   $html->tpl_show(_include('dv_user_rating', 'Dv'), $Bonus_rating); 	
 }
 
