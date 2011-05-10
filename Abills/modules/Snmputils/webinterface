@@ -1212,14 +1212,16 @@ sub snmputils_dlink_pb_add {
 	
 	#Шаг 1. Задать IP-адрес связки:
 	
-if($sw_info->{version} !~ /DES-32/) { 
+
 	my $oid = $oid_prefix.$oid_sufix{MAKE}.".$ip";
+if($sw_info->{version} !~ /DES-32/) { 
   $message .= "$oid => 4\n";
   if(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
    	$message .= " Ok\n";
    }
   push @snmp_values, $oid, "integer", "4";
-
+}
+  
   #Шаг 3. Задать MAC-адрес (AA-BB-CC-DD-EE-FF) связки:
   my @mac_arr = split(/:|-/, $mac);
   $mac = '';
@@ -1235,7 +1237,7 @@ if($sw_info->{version} !~ /DES-32/) {
     print "MAC: '' $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
    }
   push @snmp_values, $oid_prefix.$oid_sufix{MAC}.".$ip", "string", "$mac";
-}
+
 
   #Шаг 2. Назначить эту связку на порт 1:
   #Convert to D-Link port value
@@ -1256,7 +1258,7 @@ if($sw_info->{version} !~ /DES-32/) {
    	if ($sw_info->{version} =~ /DES-3052/) {
    	  $port_array[$id-1]=1;
    	 }
-   	elsif ($sw_info->{version} =~ /DES-30|DES-32/) {
+   	elsif ($sw_info->{version} =~ /DES-30/) {
    	  $port_array[$port_count+2-$id]=1;
    	 }
    	else {
