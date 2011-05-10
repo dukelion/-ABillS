@@ -1208,6 +1208,7 @@ sub snmputils_dlink_pb_add {
   my $mac       = $attr->{MAC}  || 0;
 	my $oid_prefix= $sw_info->{oid_prefix};
 	my %oid_sufix = %{ $sw_info->{oid_sufix} } ;
+	my @snmp_values = ();
 	
 	#Шаг 1. Задать IP-адрес связки:
 	my $oid = $oid_prefix.$oid_sufix{MAKE}.".$ip";
@@ -1215,6 +1216,7 @@ sub snmputils_dlink_pb_add {
   if(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
    	$message .= " Ok\n";
    }
+  push @snmp_values, $oid, "integer", "4";
 
   #Шаг 3. Задать MAC-адрес (AA-BB-CC-DD-EE-FF) связки:
   my @mac_arr = split(/:|-/, $mac);
@@ -1231,6 +1233,7 @@ sub snmputils_dlink_pb_add {
     print "MAC: '' $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
    }
 
+  push @snmp_values, $oid_prefix.$oid_sufix{MAC}.".$ip", "string", "$mac";
   #Шаг 2. Назначить эту связку на порт 1:
   #Convert to D-Link port value
   #   my $first_port = 0b10000000000000000000000000000000;
@@ -1285,6 +1288,7 @@ sub snmputils_dlink_pb_add {
     print "PORT: $oid_prefix / $oid_sufix{PORT} / $ip => ". join(':', @ar)."\n";
     print "$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
    }
+  push @snmp_values, $oid_prefix.$oid_sufix{PORT}.".$ip", "string", "$port_binding";
 
   #Шаг 4. Задать режим связки IP MAC Port Binding (ARP / ACL):
   if ($oid_sufix{MODE}) {
@@ -1295,6 +1299,7 @@ sub snmputils_dlink_pb_add {
     if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MODE}.".$ip", "integer", $mode)) {
       $message .= "Ok\n";
      }
+    push @snmp_values, $oid_prefix.$oid_sufix{MODE}.".$ip", "integer", $mode;
    }
 
   #Шаг 5. Включить IP-MAC-Port Binding на этом порту:
@@ -1309,8 +1314,15 @@ sub snmputils_dlink_pb_add {
     
    }
   elsif($sw_info->{version} =~ /DES-30|DES-32/) {
+  	push @snmp_values, $oid, "integer", "4";
+  	
   	print "=> $oid\n";
-  	if(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
+  	if ($sw_info->{version} =~ /DES-30/) {
+      if (snmpset($SNMP_COMMUNITY, @snmp_values)) {
+      	$message .= " Ok\n";
+       }
+  	 }
+  	elsif(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
    	  $message .= " Ok\n";
      }
    }
