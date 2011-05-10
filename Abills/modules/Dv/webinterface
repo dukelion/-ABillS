@@ -1107,16 +1107,22 @@ sub dv_rating_user {
    }
 
 
-	if ($FORM{UP_RATING}) {
+  if ($FORM{UP_RATING_PRE}) {
+  	 my $need_percents = int(($FORM{UP_RATING} - $Bonus_rating->{RATING_PER}));
+  	 $FORM{NEED_SUM} = sprintf("%.2f", $need_percents * ($Bonus_rating->{ONE_PERCENT_SUM} * $Bonus_rating->{ONE_PERCENT_COUNT}));
+  	
+  	 $html->tpl_show(_include('dv_user_rating_pre', 'Dv'), { %$Bonus_rating, %FORM }); 	
+  	 return 0;
+   }
+	elsif ($FORM{UP_RATING}) {
     my $need_percents = int(($FORM{UP_RATING} - $Bonus_rating->{RATING_PER}));
     my $need_sum = $need_percents * ($Bonus_rating->{ONE_PERCENT_SUM} * $Bonus_rating->{ONE_PERCENT_COUNT});
-    
-
+    	
     if ($users->{CREDIT} + $users->{DEPOSIT} < $need_sum) {
     	$html->message('err', $_ERROR,  "$ERR_SMALL_DEPOSIT");
      }
     else {
-    	for(my $i=0; $i<$need_percents * int($Bonus_rating->{ONE_PERCENT_COUNT}); $i++) {
+    	for(my $i=0; $i<int($need_percents * $Bonus_rating->{ONE_PERCENT_COUNT}); $i++) {
     		$fees->take($users, $Bonus_rating->{ONE_PERCENT_SUM}, { DESCRIBE => "$_RATING_UP" } );
     		$users->{DEPOSIT} -= $Bonus_rating->{ONE_PERCENT_SUM};
     	 }

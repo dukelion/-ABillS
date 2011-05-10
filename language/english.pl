@@ -473,3 +473,5 @@ $_INSTALATIONS='Instalations';
 $_DENSITY_OF_CONNECTIONS='Density Of Connections';
 $_UP_RATING='Up rating';
 $_LOADING='Loading';
+$_OPERATION_FEES='From your account will taken ';
+$_CONTINUE='Continue';
