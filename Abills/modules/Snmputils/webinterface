@@ -1211,6 +1211,8 @@ sub snmputils_dlink_pb_add {
 	my @snmp_values = ();
 	
 	#Шаг 1. Задать IP-адрес связки:
+	
+if($sw_info->{version} !~ /DES-32/) { 
 	my $oid = $oid_prefix.$oid_sufix{MAKE}.".$ip";
   $message .= "$oid => 4\n";
   if(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
@@ -1232,8 +1234,9 @@ sub snmputils_dlink_pb_add {
   else {
     print "MAC: '' $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
    }
-
   push @snmp_values, $oid_prefix.$oid_sufix{MAC}.".$ip", "string", "$mac";
+}
+
   #Шаг 2. Назначить эту связку на порт 1:
   #Convert to D-Link port value
   #   my $first_port = 0b10000000000000000000000000000000;
@@ -1317,10 +1320,16 @@ sub snmputils_dlink_pb_add {
   	push @snmp_values, $oid, "integer", "4";
   	
   	print "=> $oid\n";
-  	if ($sw_info->{version} =~ /DES-30/) {
+  	if ($sw_info->{version} =~ /DES-32/) {
+  		#shift @snmp_values;
+  		#shift @snmp_values;
+  		#shift @snmp_values;
       if (snmpset($SNMP_COMMUNITY, @snmp_values)) {
       	$message .= " Ok\n";
        }
+      else {
+      	 print $html->pre("$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
+      }  
   	 }
   	elsif(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
    	  $message .= " Ok\n";
@@ -1430,8 +1439,14 @@ sub snmputils_dlink_pb_list {
   print "OID Prefix: $SWITCH_INFO->{oid_prefix} / $SWITCH_INFO->{oid_sufix}{STATE}\n" if ($debug > 0);
 
   my $expr_val = chr(0)."-".chr(255);                                            
-  my $unpack_ = ($SWITCH_INFO->{version} =~ /3550/ || $SWITCH_INFO->{version} =~ /3052/) ? "H2H2H2H2H2H2H2" : "H2H2H2H2";
-
+  my $unpack_ =  "H2H2H2H2";
+  if ($SWITCH_INFO->{version} =~ /3550/ || $SWITCH_INFO->{version} =~ /3052/) {
+  	 $unpack_ = "H2H2H2H2H2H2H2" ;
+   }
+  elsif($SWITCH_INFO->{version} =~ /3200/) {
+  	$unpack_ = "H2H2H2H2H2H2H2H2" ;
+   }
+   
   foreach my $line (@result) {
     print $html->br() ."$line => " if ($debug > 0);
 
@@ -1461,7 +1476,7 @@ sub snmputils_dlink_pb_list {
    	      if ($SWITCH_INFO->{version} =~ /DES-3052/) {
             $port = pos($string);
            }
-   	      elsif ($SWITCH_INFO->{version} =~ /DES-30|DES-32/) {
+   	      elsif ($SWITCH_INFO->{version} =~ /DES-30/) {
             $port = 33 - pos($string);
            }
           else {
