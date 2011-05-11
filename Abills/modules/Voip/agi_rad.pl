@@ -89,7 +89,8 @@ $data{'calledgateway'}   = '';
 # Default values
 $data{'session_timeout'} = $conf{'VOIP_MAX_SESSION_TIME'} || 10800;
 $data{'update_interval'} = 0 ; #$conf{'aliveinterval'} || 0;
-$data{'remote_ip'}       = $agi ->get_variable('SIPCHANINFO(peerip)');
+#$data{'remote_ip'}       = $agi ->get_variable('SIPCHANINFO(peerip)');
+$data{'remote_ip'}       = $agi ->get_variable('CHANNEL(peerip)');
 #$data{'remote_ip'}       = $agi ->get_variable('SIPRECEIVEDIP');
 $data{'theoretical_ip'}  = $agi ->get_variable('SIPTHEORETICALIP');
 $data{'return_code'}     = 0;

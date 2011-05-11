@@ -647,8 +647,8 @@ sub dhcphosts_hosts {
      }
 
     $table->addrow(@arr,
-	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&MODULE=Dhcphosts&UID=$uid", { BUTTON => 1 }),
-	    $html->button($_DEL, "index=$index&del=$line->[0]&UID=$uid&IP=$line->[11]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
+	    $html->button($_CHANGE, "index=". get_function_index('dhcphosts_user') ."&chg=$line->[0]&MODULE=Dhcphosts&UID=$uid", { BUTTON => 1 }),
+	    $html->button($_DEL, "index=". get_function_index('dhcphosts_user') ."&del=$line->[0]&UID=$uid&IP=$line->[11]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
      );
    };
   print $table->show();	

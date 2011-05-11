@@ -1789,7 +1789,7 @@ foreach my $line (@$list) {
      $line->[10+$sessions->{SEARCH_FIELDS_COUNT}], 
      "$line->[9]", 
      @rows,
-     $html->button("D", "index=$index&UID=". ($line->[12+$sessions->{SEARCH_FIELDS_COUNT}])."&SESSION_ID=". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}]), { TITLE => "$_DETAIL", BUTTON => 1 }), 
+     $html->button("D", "index=". get_function_index('dv_stats') ."&UID=". ($line->[12+$sessions->{SEARCH_FIELDS_COUNT}])."&SESSION_ID=". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}]), { TITLE => "$_DETAIL", BUTTON => 1 }), 
      $delete);
 }
 
