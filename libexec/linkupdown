@@ -724,7 +724,7 @@ sub mikrotik_ext {
   my $proto     = $argv->{PROTO} || 'pptp';
   my $nas_host  = $argv->{NAS_HOST} || '';
   my $nas_admin = $argv->{NAS_ADMIN}|| 'admin';
-  my $SSH       = $argv->{SSH_CMD}  || '/usr/bin/ssh';
+  my $SSH       = $argv->{SSH_CMD}  || '/usr/bin/ssh -i /usr/abills/Certs/id_dsa.'.$nas_admin;
 
 
   my $cmds = "$SSH $nas_admin\@$nas_host '/ppp active print where name=$USER'";

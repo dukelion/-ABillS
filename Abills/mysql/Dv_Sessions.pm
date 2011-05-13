@@ -900,7 +900,11 @@ WHERE
 
 
  #Traffic transfert
- #if ($traffic_transfert > 0) {
+ my $GROUP = '4';
+ if ($traffic_transfert > 0) {
+    $GROUP = '3';
+   }
+
    my $WHERE = '';
 
    if ($attr->{FROM_DATE}) {
@@ -920,7 +924,7 @@ WHERE
    WHERE $uid  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
     (  $WHERE
       ) 
-   GROUP BY 3
+   GROUP BY $GROUP
    ;");
 
   if ($self->{TOTAL} > 0) {

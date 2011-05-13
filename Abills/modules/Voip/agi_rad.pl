@@ -106,7 +106,7 @@ $call_type = "Telephony" if $input{'Channel'} =~ /^(Zap)|(VPB)|(phone)|(Modem)|(
 my $protocol = 'other';
 $protocol = 'sipv2' if $input{'Channel'} =~ /^SIP/i;
 $protocol = 'h323' if $input{'Channel'} =~ /^h323/i;
-
+my $context  = $input{context};
 
 my %rad_attributes = ();
 my %rad_authorize_attributes = ();
@@ -123,12 +123,13 @@ $rad_attributes{'Calling-Station-Id'} = $data{'caller'};
 $rad_attributes{'Called-Station-Id'}  = $data{'called'};
 $rad_attributes{'Service-Type'}       = 'Login-User';
 $rad_attributes{'h323-conf-id'}       = $data{'confid'};
-$rad_attributes{'h323-call-origin'}   = "originate";
+$rad_attributes{'h323-call-origin'}   = ($context eq 'answer') ? 'answer' : 'originate';
 $rad_attributes{'Cisco-Call-Type'}    = "$call_type";
 $rad_attributes{'Cisco-NAS-Port'}     = $data{'channel'};
 $rad_attributes{'Cisco-AVPair'}       = "call-codec=$data{'codec'};";
 $rad_attributes{'Cisco-AVPair'}      .= ($data{'useragent'})? "useragent=$data{'useragent'};" : "";
 $rad_attributes{'Cisco-AVPair'}      .= "session-protocol=$protocol";
+
 
 #Get NAS IP and ID
 if (! exists($conf{'NAS_IP_ADDRESS'}) || ! exists($conf{'VOIP_NAS_ID'})) {
