@@ -6188,6 +6188,8 @@ sub dv_get_month_fee {
        
         return \%total_sum if ($sum == 0);
         
+        print "Content-Type: text/html\n\n";
+        
         my $periods = 0;
         if ($active_m > 0 && $active_m < $m) {
         	$periods = $m - $active_m;
@@ -6231,28 +6233,22 @@ sub dv_get_month_fee {
   	        $sum     = $Dv->{TP_INFO}->{MONTH_FEE};
             $message = "$_MONTH_FEE: $sum ($Dv->{TP_INFO}->{ID})";
             $DATE    = "$active_y-$m-01";
-            $TIME    = "00:00:00";
            }
           elsif ($Dv->{ACTIVATE} && $Dv->{ACTIVATE} ne '0000-00-00'){
-            
             if ($Dv->{TP_INFO}->{PERIOD_ALIGNMENT}) {
               $users->change($Dv->{UID}, { ACTIVATE => '0000-00-00',
               	                           UID      => $Dv->{UID} });
              }
             elsif($Dv->{OLD_STATUS} == 5) {
-            	print "Content-Type: text/html\n\n";
-            	print "!!!! // $Dv->{UID} // $DATE ";
-            	$users->{debug}=1;
               $users->change($Dv->{UID}, { ACTIVATE => "$DATE",
               	                           UID      => $Dv->{UID} });
              } 
-
-
-            $DATE    = "$active_y-$m-$active_d";
-            $TIME    = "00:00:00";
+            else {
+            	$DATE    = "$active_y-$m-$active_d";            
+             }
            }
           
-         
+          $TIME    = "00:00:00";
           if ($conf{EXT_BILL_ACCOUNT}) {
           	if ($user->{EXT_BILL_DEPOSIT} < $sum && $user->{MAIN_BILL_ID}) {
           		$sum = $sum - $user->{EXT_BILL_DEPOSIT};
@@ -6264,7 +6260,7 @@ sub dv_get_month_fee {
         	    $user->{MAIN_BILL_ID}=undef;
           	 }
            }
-          
+
           $fees->take($users, $sum, { DESCRIBE  => $message, 
         	                            METHOD    => 1, 
         	                            DATE      => "$DATE $TIME"
