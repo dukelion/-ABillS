@@ -1307,7 +1307,8 @@ sub ipn_user_activate {
         $DATA{NAS_PORT}   = $Ipn->{PORT} || 0;
         ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
 
-        if ($ENV{HTTP_REFERER} && $html->{SID}) {
+        if ($ENV{HTTP_REFERER} && $ENV{HTTP_REFERER} !~ /index.cgi/ && $html->{SID}) {
+        	print "Content-Type: text/html\n\n";
           print "Location: $ENV{HTTP_REFERER}". "\n\n";
           exit;
          }
@@ -1318,10 +1319,9 @@ sub ipn_user_activate {
   	 my $user = $users->info( $LIST_PARAMS{UID} );
   	 my $list = $sessions->online({ USER_NAME  => $user->{LOGIN},
   	 	                              SESSION_ID => $FORM{SESSION_ID} });
-  	 
- 	 
+
   	 if ($sessions->{TOTAL} < 1) {
-       $html->message('err', $_ERROR, "$_NOT_EXIST");
+       $html->message('err', $_ERROR, "$_NOT_EXIST $_SESSIONS");
        return 0   	 	
   	  }
 
@@ -1493,18 +1493,25 @@ sub ipn_change_status {
      $cmd = $conf{IPN_FW_STOP_RULE};
 
      if (! $attr->{QUICK}) {
-       my $table = $html->table( { width      => '100%',
-                                 caption    => "Hangup",
-                                 border     => 1,
-                                 rows       => [["IP:" ,      int2ip($Ipn->{FRAMED_IP_ADDRESS}) ],
-                                           ["IN:" ,      int2byte($Ipn->{TRAFFIC_IN})      ], 
-                                           ["OUT:",      int2byte($Ipn->{TRAFFIC_OUT})     ], 
-                                           ["$_TOTAL:",  int2byte($Ipn->{TRAFFIC_IN}+$Ipn->{TRAFFIC_OUT})   ], 
-                                           ["DURATION:", sec2time($Ipn->{ACCT_SESSION_TIME}, { str => 1 })   ], 
-                                           ["SUM:",      "$Ipn->{SUM}" ]]
-                            });
+#       my $table = $html->table( { 
+#                                 caption    => "$_HANGUP / $_INFO",
+#                                 border     => 1,
+#                                 rows       => [["IP:" ,      int2ip($Ipn->{FRAMED_IP_ADDRESS}) ],
+#                                           ["$_RECV:" ,      int2byte($Ipn->{TRAFFIC_IN})      ], 
+#                                           ["$_SENT:",      int2byte($Ipn->{TRAFFIC_OUT})     ], 
+#                                           ["$_TOTAL:",  int2byte($Ipn->{TRAFFIC_IN}+$Ipn->{TRAFFIC_OUT})   ], 
+#                                           ["$_DURATION:", sec2time($Ipn->{ACCT_SESSION_TIME}, { str => 1 })   ], 
+#                                           ["$_SUM:",      "$Ipn->{SUM}" ]]
+#                            });
 
-      $html->message('info', $_INFO,  $table->show({ OUTPUT2RETURN => 1 }));
+      $message = "\nIP:  " .      int2ip($Ipn->{FRAMED_IP_ADDRESS}).
+                 "\n$_RECV:  " .      int2byte($Ipn->{TRAFFIC_IN}).
+                 "\n$_SENT:  ".      int2byte($Ipn->{TRAFFIC_OUT}).
+                 "\n$_TOTAL:  ".  int2byte($Ipn->{TRAFFIC_IN}+$Ipn->{TRAFFIC_OUT}).
+                 "\n$_DURATION:  ". sec2time($Ipn->{ACCT_SESSION_TIME}, { str => 1 }).
+                 "\n$_SUM:  ".      "$Ipn->{SUM}";
+
+      $html->message('info', $_INFO, "$message");
      }
    }
 
@@ -2528,7 +2535,7 @@ foreach my $line (@$list)   {
 
   #Activate
   if (int($nas_id) < 1) {
-    $debug_output .= "Unknown NAS\n";  	
+    $debug_output .= "$ERR_ACCESS_DENY\n $_NAS $_NOT_EXIST\n";  	
    }
   else {
     $debug_output .= "$login $uid $ip -> $nas_id\n" if ($debug > 1);

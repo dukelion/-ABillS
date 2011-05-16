@@ -598,6 +598,10 @@ sub msgs_admin {
     	$html->message('info', $_INFO, "$_DELETED [$FORM{reply_del}] ") if (! $Msgs->{errno});  	
      }    
 
+    my $status_bar = msgs_status_bar({ NO_UID => 1 });
+
+    print $status_bar;
+
     $Msgs->message_info($FORM{chg});
     $Msgs->{ACTION}    = 'reply';
     $Msgs->{ACTION_LNG}= $_REPLY;
@@ -829,44 +833,7 @@ sub msgs_admin {
   $LIST_PARAMS{STATE}   = undef if ($FORM{STATE} == 3);
   $LIST_PARAMS{PRIORITY}= undef if ($FORM{PRIORITY} == 5);
 
-  if (! defined($FORM{STATE}) && ! $FORM{ALL_MSGS} && ! $FORM{ALL_OPENED}) {
-     $FORM{STATE}=4;
-   }
-  
-my $i = 0;
-my $status_bar = ''; 
-$pages_qs =~ s/\&ALL_OPENED=1|\&ALL_MSGS=1//;
-$pages_qs =~ s/STATE=\d+//;
-
-foreach my $name ( @msg_status) {
-	if (defined($FORM{STATE}) && $FORM{STATE} == $i && $FORM{STATE} ne '') {
-    $LIST_PARAMS{STATE}=$FORM{STATE};
-    $status_bar .= ' '.$html->b($name);
-	 }
-	else {
-	  $status_bar .= ' '.$html->button("$name", "index=$index&STATE=$i$pages_qs");
-	 }
-  $i++;
-}
-
-
-if ($FORM{CHAPTER}) {
-  $LIST_PARAMS{CHAPTER}=$FORM{CHAPTER};
- }
-
-if ($FORM{ALL_OPENED} || $FORM{STATE} eq '0;3;4;5;6;7') {
-	$status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs").' '.$html->b("$_ACTIVE") .$status_bar;
-	$LIST_PARAMS{STATE} = "0;3;4;5;6;7";
-	$pages_qs.="&ALL_OPENED=1";	
- }
-elsif ($FORM{ALL_MSGS} || $FORM{STATE} eq '' ) {
-	$status_bar = $html->b($_ALL). ' '. $html->button("$_ACTIVE", "index=$index&ALL_OPENED=1$pages_qs") . $status_bar;
-	$pages_qs.="&ALL_MSGS=1";
- }
-else {
-  $status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs").' '.$html->button("$_ACTIVE", "index=$index&ALL_OPENED=1$pages_qs").$status_bar;
-  $pages_qs.="&STATE=$FORM{STATE}";
-}
+my $status_bar = msgs_status_bar();
 
   
   my $list = $Msgs->messages_list({ %LIST_PARAMS, 
@@ -957,6 +924,61 @@ $table = $html->table({ width      => '100%',
                       });
 print $table->show();
 }
+
+
+#**********************************************************
+#
+#**********************************************************
+sub msgs_status_bar {
+	my ($attr) = @_;
+	
+	if (! defined($FORM{STATE}) && ! $FORM{ALL_MSGS} && ! $FORM{ALL_OPENED}) {
+   $FORM{STATE}=4;
+  }
+
+
+  if ($attr->{NO_UID}) {
+  	$pages_qs =~ s/UID=\d+//;
+   }
+
+my $i = 0;
+my $status_bar = ''; 
+$pages_qs =~ s/\&ALL_OPENED=1|\&ALL_MSGS=1//;
+$pages_qs =~ s/STATE=\d+//;
+
+foreach my $name ( @msg_status) {
+	if (defined($FORM{STATE}) && $FORM{STATE} == $i && $FORM{STATE} ne '') {
+    $LIST_PARAMS{STATE}=$FORM{STATE};
+    $status_bar .= ' '.$html->b($name);
+	 }
+	else {
+	  $status_bar .= ' '.$html->button("$name", "index=$index&STATE=$i$pages_qs", { BUTTON => 1 });
+	 }
+  $i++;
+}
+
+
+if ($FORM{CHAPTER}) {
+  $LIST_PARAMS{CHAPTER}=$FORM{CHAPTER};
+ }
+
+if ($FORM{ALL_OPENED} || $FORM{STATE} eq '0;3;4;5;6;7') {
+	$status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs", { BUTTON => 1 }).' '.$html->b("$_ACTIVE") .$status_bar;
+	$LIST_PARAMS{STATE} = "0;3;4;5;6;7";
+	$pages_qs.="&ALL_OPENED=1";	
+ }
+elsif ($FORM{ALL_MSGS} || $FORM{STATE} eq '' ) {
+	$status_bar = $html->b($_ALL). ' '. $html->button("$_ACTIVE", "index=$index&ALL_OPENED=1$pages_qs", { BUTTON => 1 }) . $status_bar;
+	$pages_qs.="&ALL_MSGS=1";
+ }
+else {
+  $status_bar = $html->button("$_ALL", "index=$index&ALL_MSGS=1$pages_qs", { BUTTON => 1 }).' '.$html->button("$_ACTIVE", "index=$index&ALL_OPENED=1$pages_qs", { BUTTON => 1 }).$status_bar;
+  $pages_qs.="&STATE=$FORM{STATE}";
+}
+	
+	return $status_bar;
+}
+
 
 #**********************************************************
 #
