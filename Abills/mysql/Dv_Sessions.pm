@@ -2,6 +2,8 @@ package Dv_Sessions;
 # Dv Stats functions
 #
 
+
+
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
@@ -919,7 +921,7 @@ WHERE
    $self->query($db, "select  
      if($prepaid_traffic{0}  > sum($octets_direction) / $CONF->{MB_SIZE}, $prepaid_traffic{0}  - sum($octets_direction) / $CONF->{MB_SIZE}, -1),
      if($prepaid_traffic{1}  > sum($octets_direction2) / $CONF->{MB_SIZE}, $prepaid_traffic{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, -1),
-     DATE_FORMAT(start, '%Y-%m')
+     DATE_FORMAT(start, '%Y-%m'), 1
    FROM dv_log
    WHERE $uid  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
     (  $WHERE

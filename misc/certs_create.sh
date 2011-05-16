@@ -117,7 +117,7 @@ easysoft_cert () {
   if [ w${EASYSOFT_PUBLIC_KEY} != w ]; then
     cp ${EASYSOFT_PUBLIC_KEY} ${CERT_PATH}/easysoft_server_public.pem
     chown ${APACHE_USER} ${CERT_PATH}/easysoft_server_public.pem
-    echo "Easy soft public key copy to /usr/abills/Certs/easysoft_server_public.pem"
+    echo "Easy soft public key copy to ${CERT_PATH}/easysoft_server_public.pem"
   fi;
 
   ${OPENSSL} x509 -inform pem -in ${EASYSOFT_PUBLIC_KEY} -pubkey -out ${CERT_PATH}/easysoft_public_key.pem > ${CERT_PATH}/easysoft_server_public.pem
