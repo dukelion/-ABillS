@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.8;
+VERSION=1.81;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -113,6 +113,12 @@ easysoft_cert () {
     echo "Enter easysoft public key";
     exit;
   fi;
+ 
+  if [ w${EASYSOFT_PUBLIC_KEY} != w ]; then
+    cp ${EASYSOFT_PUBLIC_KEY} ${CERT_PATH}/easysoft_server_public.pem
+    chown ${APACHE_USER} ${CERT_PATH}/easysoft_server_public.pem
+    echo "Easy soft public key copy to /usr/abills/Certs/easysoft_server_public.pem"
+  fi;
 
   ${OPENSSL} x509 -inform pem -in ${EASYSOFT_PUBLIC_KEY} -pubkey -out ${CERT_PATH}/easysoft_public_key.pem > ${CERT_PATH}/easysoft_server_public.pem
 
@@ -123,7 +129,7 @@ easysoft_cert () {
   ${OPENSSL} req -new -key easysoft_private.ppk -out easysoft.req 
   #${OPENSSL} ca -in easysoft.req -out easysoft.cer 
   ${OPENSSL} x509 -req -days 730 -in easysoft.req -signkey easysoft_private.ppk -out easysoft.cer
-  ${OPENSSL} rsa -in  /usr/abills/Certs/easysoft_private.ppk -out /usr/abills/Certs/easysoft_public.pem -pubout
+  ${OPENSSL} rsa -in  ${CERT_PATH}/easysoft_private.ppk -out ${CERT_PATH}/easysoft_public.pem -pubout
 
   chmod u=r,go= ${CERT_PATH}/easysoft.cer
   chown ${APACHE_USER} ${CERT_PATH}/easysoft.cer ${CERT_PATH}/easysoft_private.ppk ${CERT_PATH}/easysoft_public.pem

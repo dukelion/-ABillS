@@ -11,25 +11,22 @@
 		<PERIOD_MONTH>%MONTH%</PERIOD_MONTH>
 		<PERIOD_TYPE>1</PERIOD_TYPE>
 		<PERIOD_YEAR>%YEAR%</PERIOD_YEAR>
+		<C_STI_ORIG>2659</C_STI_ORIG>
 		<C_DOC_STAN>1</C_DOC_STAN>
+		<LINKED_DOCS xsi:nil=\"true\" />
 		<D_FILL>%FILL_DATE%</D_FILL>
-		<SOFTWARE>OPZ 1.29.2</SOFTWARE>
+		<SOFTWARE>OPZ 1.29.10</SOFTWARE>
     <C_DOC_VER>4</C_DOC_VER> 
 	</DECLARHEAD>
 	<DECLARBODY>
-		<HNUM>1</HNUM>
 		<HZY>%YEAR%</HZY>
-		<HZKV xsi:nil=\"true\"></HZKV>
 		<HZM>%MONTH%</HZM>
 		<HNAME>ТОВ \"Навігатор-Онлайн\"</HNAME>
 		<HLOC>м.Київ, вул. Ванди Василевської, 13, корп.1</HLOC>
 		<HNPDV>253886926129</HNPDV>
 		<HNSPDV>100091816</HNSPDV>
-		<H01G01D>01122009</H01G01D>
-		<H02G01D>31122009</H02G01D>
-    <H03G01S xsi:nil=\"true\"></H03G01S>
-		<HREG xsi:nil=\"true\"></HREG>
-		
+		<HZ>1</HZ>
+    <HNP>1</HNP> 
+
 		%BODY%
-		
-		
+

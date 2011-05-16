@@ -211,8 +211,7 @@ if ($ENV{REMOTE_ADDR} =~ /^92\.125\./) {
  }
 elsif ($ENV{REMOTE_ADDR} =~ /^93\.183\.196\.26$/ || 
        $ENV{REMOTE_ADDR} =~ /^195\.230\.131\.50$/||
-       $ENV{REMOTE_ADDR} =~ /^93\.183\.196\.28$/ ||
-       $ENV{REMOTE_ADDR} =~ /^192.168.1.114$/    
+       $ENV{REMOTE_ADDR} =~ /^93\.183\.196\.28$/ 
         ) {
  	require "Easysoft.pm";
  	exit;

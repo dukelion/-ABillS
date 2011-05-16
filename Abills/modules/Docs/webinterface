@@ -1847,11 +1847,12 @@ sub docs_tax_exports {
 if ($FORM{d}) {
 my ($y, $m, $d)=split(/-/, ($FORM{MONTH}) ? $FORM{MONTH}.'-01' : $DATE);
 
-my $file_prefix = "26590025388695J1201504100000";
+my $file_prefix = "26590025388695J1201505100000";
 my $filename    = $file_prefix. "01$m$y".'.xml';
 
 my ($fill_y, $fill_m, $fill_d)=split(/-/, ($FORM{DATE}) ? $FORM{DATE} : $DATE);
 $Docs->{FILL_DATE}   = "$fill_d$fill_m$fill_y";
+
 $Docs->{YEAR}=$y;
 $Docs->{MONTH}=$m;
 
@@ -1864,39 +1865,39 @@ my %invoice_hash = ();
 
 my $num = 1;
 foreach my $line ( @$list ) {
-	push @{ $invoice_hash{T2RXXXXG1}   }, $num;
-  push @{ $invoice_hash{T2RXXXXG2D}  }, $line->[1];
-  push @{ $invoice_hash{T2RXXXXG3S}  }, $line->[2];
-  push @{ $invoice_hash{T2RXXXXG4S}  }, 'ом';
-  push @{ $invoice_hash{T2RXXXXG5S}  }, $line->[3];
-  push @{ $invoice_hash{T2RXXXXG6}   }, ''; # | $line->[3];
-  push @{ $invoice_hash{T2RXXXXG7}   }, sprintf("%.2f", $line->[5]);
-  push @{ $invoice_hash{T2RXXXXG8}   }, sprintf("%.2f", $line->[6]);
-  push @{ $invoice_hash{T2RXXXXG9}   }, sprintf("%.2f", $line->[7]);
+	push @{ $invoice_hash{T1RXXXXG1}   }, $num;
+  push @{ $invoice_hash{T1RXXXXG2D}  }, $line->[1];
+  push @{ $invoice_hash{T1RXXXXG3S}  }, $line->[2];
+  push @{ $invoice_hash{T1RXXXXG4S}  }, 'ом';
+  push @{ $invoice_hash{T1RXXXXG5S}  }, $line->[3];
+  push @{ $invoice_hash{T1RXXXXG6}   }, ''; # | $line->[3];
+  push @{ $invoice_hash{T1RXXXXG7}   }, sprintf("%.2f", $line->[5]);
+  push @{ $invoice_hash{T1RXXXXG8}   }, sprintf("%.2f", $line->[6]);
+  push @{ $invoice_hash{T1RXXXXG9}   }, sprintf("%.2f", $line->[7]);
 
-  push @{ $invoice_hash{T2RXXXXG10} }, '';
-  push @{ $invoice_hash{T2RXXXXG11} }, '';
-  push @{ $invoice_hash{T2RXXXXG12} }, '';
-  $invoice_hash{T2R01G7} += $line->[5];
-  $invoice_hash{T2R01G8} += $line->[6];
-  $invoice_hash{T2R01G9} += $line->[7];
+  push @{ $invoice_hash{T1RXXXXG10} }, '';
+  push @{ $invoice_hash{T1RXXXXG11} }, '';
+  push @{ $invoice_hash{T1RXXXXG12} }, '';
+  $invoice_hash{T1R01G7} += $line->[5];
+  $invoice_hash{T1R01G8} += $line->[6];
+  $invoice_hash{T1R01G9} += $line->[7];
   $num++;
 }
 
 
 my @arr = (
-  'T2RXXXXG1',
-  'T2RXXXXG2D', 
-  'T2RXXXXG3S',
-  'T2RXXXXG4S',
-  'T2RXXXXG5S',
-  'T2RXXXXG6',
-  'T2RXXXXG7',
-  'T2RXXXXG8',
-  'T2RXXXXG9',
-  'T2RXXXXG10',
-  'T2RXXXXG11',
-  'T2RXXXXG12',
+  'T1RXXXXG1',
+  'T1RXXXXG2D', 
+  'T1RXXXXG3S',
+  'T1RXXXXG4S',
+  'T1RXXXXG5S',
+  'T1RXXXXG6',
+  'T1RXXXXG7',
+  'T1RXXXXG8',
+  'T1RXXXXG9',
+  'T1RXXXXG10',
+  'T1RXXXXG11',
+  'T1RXXXXG12',
   'T1RXXXXG13',
   'T1RXXXXG14',
   'T1RXXXXG15',
@@ -1914,19 +1915,34 @@ foreach my $key (@arr) {
 
 
 $doc .= "
-<T2R01G7>". sprintf("%.2f", $invoice_hash{T2R01G7}). "</T2R01G7>
-<T2R01G8>". sprintf("%.2f", $invoice_hash{T2R01G8}). "</T2R01G8>
-<T2R01G9>". sprintf("%.2f", $invoice_hash{T2R01G9}). "</T2R01G9>
-<T2R01G10 xsi:nil=\"true\" />
-<T2R01G11 xsi:nil=\"true\" />
-<T2R01G12 xsi:nil=\"true\" />
-<T2R02G7 xsi:nil=\"true\" />
-<T2R02G8 xsi:nil=\"true\" />
-<T2R02G9 xsi:nil=\"true\" />
-<T2R02G10 xsi:nil=\"true\" />
-<T2R02G11 xsi:nil=\"true\" />
-<T2R02G12 xsi:nil=\"true\" /> 
-
+<T1R01G7>". sprintf("%.2f", $invoice_hash{T1R01G7}). "</T1R01G7>
+<T1R01G8>". sprintf("%.2f", $invoice_hash{T1R01G8}). "</T1R01G8>
+<T1R01G9>". sprintf("%.2f", $invoice_hash{T1R01G9}). "</T1R01G9>
+<R011G12 xsi:nil=\"true\" />
+<R012G7 xsi:nil=\"true\" />
+<R012G8 xsi:nil=\"true\" />
+<R012G9 xsi:nil=\"true\" />
+<R012G10 xsi:nil=\"true\" />
+<R012G11 xsi:nil=\"true\" />
+<R012G12 xsi:nil=\"true\" />
+<R021G8 xsi:nil=\"true\" />
+<R021G9 xsi:nil=\"true\" />
+<R021G10 xsi:nil=\"true\" />
+<R021G11 xsi:nil=\"true\" />
+<R021G12 xsi:nil=\"true\" />
+<R021G13 xsi:nil=\"true\" />
+<R021G14 xsi:nil=\"true\" />
+<R021G15 xsi:nil=\"true\" />
+<R021G16 xsi:nil=\"true\" />
+<R022G8 xsi:nil=\"true\" />
+<R022G9 xsi:nil=\"true\" />
+<R022G10 xsi:nil=\"true\" />
+<R022G11 xsi:nil=\"true\" />
+<R022G12 xsi:nil=\"true\" />
+<R022G13 xsi:nil=\"true\" />
+<R022G14 xsi:nil=\"true\" />
+<R022G15 xsi:nil=\"true\" />
+<R022G16 xsi:nil=\"true\" />
 	</DECLARBODY>
 </DECLAR>";
 

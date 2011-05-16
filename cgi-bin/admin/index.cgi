@@ -7350,8 +7350,8 @@ sub upload_file {
 
   my $dir = ($attr->{PREFIX}) ? "$conf{TPL_DIR}/".$attr->{PREFIX} : $conf{TPL_DIR};
 
-  if (! -d $conf{TPL_DIR}) {
-  	mkdir($conf{TPL_DIR});
+  if (! -d $dir) {
+  	mkdir($dir);
    }
   
   if (! $attr->{REWRITE} && -f "$dir/$file_name") {

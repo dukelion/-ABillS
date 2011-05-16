@@ -2,6 +2,7 @@ package Voip_aaa;
 # VoIP AAA functions
 #
 
+
 use strict;
 use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
@@ -103,7 +104,13 @@ sub user_info {
   my $self = shift;
   my ($RAD, $NAS) = @_;
 
-  my $WHERE = " and number='$RAD->{USER_NAME}'";
+  my $WHERE = '';
+  if (defined($RAD->{H323_CALL_ORIGIN}) && $RAD->{H323_CALL_ORIGIN}==0) {
+    $WHERE = " and number='$RAD->{CALLED_STATION_ID}'"; 
+   }
+  else {
+    $WHERE = " and number='$RAD->{USER_NAME}'";
+   }
 
   $self->query($db, "SELECT 
    voip.uid, 
@@ -182,6 +189,12 @@ sub auth {
   my $self = shift;
   my ($RAD, $NAS) = @_;
 
+
+  if(defined($RAD->{H323_CONF_ID})){
+    preproces($RAD);
+   }
+
+
   %RAD_PAIRS=();
   $self->user_info($RAD, $NAS);
 
@@ -237,7 +250,7 @@ else {
 #  $self->check_bill_account();
 # if call
   if(defined($RAD->{H323_CONF_ID})){
-     preproces($RAD);
+
    
      if($self->{ALLOW_ANSWER} < 1 && $RAD->{H323_CALL_ORIGIN} == 0){
        $RAD_PAIRS{'Reply-Message'}="Not allow answer";

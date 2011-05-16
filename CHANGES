@@ -1,9 +1,22 @@
 =====0.53=====
+16.05.2011\\
+MySQL:\\
+  ALTER TABLE s_detail CHANGE COLUMN  `sent1` `sent1` int(10) unsigned NOT NULL default '0';
+  ALTER TABLE s_detail CHANGE COLUMN  `recv1` `recv1` int(10) unsigned NOT NULL default '0';
+  ALTER TABLE s_detail CHANGE COLUMN  `sent2` `sent2` int(10) unsigned NOT NULL default '0';
+  ALTER TABLE s_detail CHANGE COLUMN  `recv2` `recv2` int(10) unsigned NOT NULL default '0';
+  
+  ALTER TABLE builds ADD COLUMN `coordx` DOUBLE(20,14) NOT NULL DEFAULT '0';
+  ALTER TABLE builds ADD COLUMN `coordy` DOUBLE(20,14) NOT NULL DEFAULT '0';
+
+
+19.04.2011\\
+  * **После обновления пересоздайте файл config.pl c config.pl.default **
 
 17.04.2011\\
 MySQL:\\
   ALTER TABLE  cards_users ADD COLUMN `commission` double(10,2) unsigned NOT NULL default '0.00';
-
+  ALTER TABLE abon_tariffs ADD COLUMN `vat` tinyint(1) unsigned NOT NULL DEFAULT '0';
 
 04.04.2011\\
   * Добавлено уведомление о продлении услуги для модуля Abon
