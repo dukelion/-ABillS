@@ -398,7 +398,6 @@ sub changes {
         	next;
          }
 
-
           if ($k eq 'DISABLE') {
             if (defined($DATA{$k}) && $DATA{$k} == 0 || ! defined($DATA{$k})){
             	if ($self->{DISABLE} != 0) {
@@ -409,6 +408,8 @@ sub changes {
             else {
             	$self->{DISABLE}=1;
              }
+           }
+          elsif ($k eq 'DOMAIN_ID' && $OLD_DATA->{$k} == 0 && ! $DATA{$k}) {
            }
           elsif($k eq 'STATUS') {
             $self->{CHG_STATUS}=$OLD_DATA->{$k}.'->'.$DATA{$k};
@@ -432,6 +433,7 @@ sub changes {
      }
    }
 
+
 if ($CHANGES_QUERY eq '') {
   return $self->{result};	
  }
@@ -448,8 +450,13 @@ else {
   if($self->{errno}) {
     return $self;
    }
+  if ($attr->{EXT_CHANGE_INFO}) {
+    $CHANGES_LOG = $attr->{EXT_CHANGE_INFO}.' '.$CHANGES_LOG;
+   }
+  else {
+    $attr->{EXT_CHANGE_INFO} = '';
+   }
 
-  $CHANGES_LOG = $attr->{EXT_CHANGE_INFO}.' '.$CHANGES_LOG if ($attr->{EXT_CHANGE_INFO});
   if (defined($DATA{UID}) && $DATA{UID} > 0 && defined($admin)) {
     if ($attr->{'ACTION_ID'}) {
       $admin->action_add($DATA{UID}, $attr->{EXT_CHANGE_INFO}, { TYPE => $attr->{'ACTION_ID'} });
@@ -464,7 +471,8 @@ else {
       $admin->action_add($DATA{UID}, "", { TYPE => 8 });
      }
 
-    if ($CHANGES_LOG ne '' && ($attr->{EXT_CHANGE_INFO} && $CHANGES_LOG ne $attr->{EXT_CHANGE_INFO}.' ')) {
+
+    if ($CHANGES_LOG ne '' && ($CHANGES_LOG ne $attr->{EXT_CHANGE_INFO}.' ')) {
       $admin->action_add($DATA{UID}, "$CHANGES_LOG", { TYPE => 2});
      }
 
