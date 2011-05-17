@@ -31,7 +31,7 @@ body {
 
 td.menu_cel_main {
   color: %_COLOR_9%;
-  height: 36;
+  height: 38;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
   font-size: 14px;
   padding-left:5px;
@@ -55,7 +55,9 @@ td.menu_cel_main a {
 
 td.menu_cel_main a:hover {
   text-decoration:underline;
+  
 }
+
 
 td.menu_cel a {
   text-decoration:none;
@@ -91,6 +93,17 @@ th, li {
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
   font-size: 12px;
 }
+
+
+
+table tr.active_menu td,
+.active_menu {
+  background: %_COLOR_0%;
+  height: 38;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
 
 /* odd items 1,3,5,7,... */
 table tr.odd th,
@@ -220,6 +233,41 @@ a.button_del {
  	text-indent:-9000px;
 }
 
+#rules {
+  float:center;
+  text-align:center;
+  padding: 0 0 6px 0;
+  overflow:hidden;
+  height:32px;
+  line-height:30px;
+}
+
+#rules li{
+  display:inline;
+  padding:0;
+}
+
+#rules .center a {
+  padding:2px 5px;
+  font-weight:100;
+  font-size:11;
+  background:%_COLOR_2%;
+  border:1px solid %_COLOR_4%;
+  color:#000;
+  text-decoration:none;
+  margin:1px 1px;
+}
+
+#rules .center a:hover{
+  background:#ccc;
+  border:1px solid #666;
+}
+
+#rules .center a.active{
+  background:#666;
+  border:1px solid #666;
+  color:#fff;
+}
 
 .link_button {
   font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
@@ -263,7 +311,7 @@ TABLE.border {
 }
 
 .MENU_BACK {
-  background:%_COLOR_1%;
+  background:CECECE;
   width:260px;
 }
 

@@ -665,17 +665,23 @@ foreach my $ID (@s) {
  	     my($ID, $name)=split(/:/, $sm_item, 2);
  	     next if((! defined($attr->{ALL_PERMISSIONS})) && (! defined($permissions->{$ID-1})) && $parent == 0);
 
- 	     $name = (defined($tree{$ID})) ? $self->b($name) : "$name";
+   	   my $active = 'odd';
+   	   if (defined($tree{$ID})) {
+   	     $name = $self->b($name);
+   	     $active = 'active_menu';
+   	    };
+
        if(! defined($menu_args->{$ID}) || (defined($menu_args->{$ID}) && defined($FORM{$menu_args->{$ID}})) ) {
        	   my $ext_args = "$EX_ARGS";
        	   if (defined($menu_args->{$ID})) {
        	     $ext_args = "&$menu_args->{$ID}=$FORM{$menu_args->{$ID}}";
-       	     $name = $self->b($name) if ($name !~ /<b>/);
+       	     $name = $self->b($name).'!!!' if ($name !~ /<b>/);
+       	     $active = 'active';
        	    }
 
        	   my $link = $self->button($name, "index=$ID$ext_args", { ex_params => ($parent == 0) ? " id=". $fl->{$ID} : '' });
     	     if($parent == 0) {
- 	        	 $menu_text .= "<tr class='odd'><td class=menu_cel_main>$prefix$link</td></tr>\n";
+ 	        	 $menu_text .= "<tr class='$active'><td class=menu_cel_main>$prefix$link</td></tr>\n";
 	          }
  	         elsif(defined($tree{$ID})) {
    	         $menu_text .= "<tr><td class=menu_cel>$prefix>$link</td></tr>\n";
