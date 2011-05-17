@@ -16,7 +16,7 @@
 		<LINKED_DOCS xsi:nil=\"true\" />
 		<D_FILL>%FILL_DATE%</D_FILL>
 		<SOFTWARE>OPZ 1.29.10</SOFTWARE>
-    <C_DOC_VER>4</C_DOC_VER> 
+    <C_DOC_VER>5</C_DOC_VER> 
 	</DECLARHEAD>
 	<DECLARBODY>
 		<HZY>%YEAR%</HZY>
