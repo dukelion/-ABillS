@@ -2178,7 +2178,9 @@ sub build_info {
    map_x3,
    map_y3,   
    map_x4,
-   map_y4   
+   map_y4,
+   coordx,
+   coordy   
  FROM builds WHERE id='$attr->{ID}';");
 
  return $self if ($self->{errno} || $self->{TOTAL} < 1);
@@ -2197,7 +2199,9 @@ sub build_info {
  	$self->{MAP_X3},
  	$self->{MAP_Y3},
  	$self->{MAP_X4},
- 	$self->{MAP_Y4}
+ 	$self->{MAP_Y4},
+        $self->{COORDX}, 
+        $self->{COORDY},
  	) = @{ $self->{list}->[0] };
 
  return $self;
@@ -2223,7 +2227,9 @@ sub build_change {
                MAP_X3      => 'map_x3',
                MAP_Y3      => 'map_y3',
                MAP_X4      => 'map_x4',
-               MAP_Y4      => 'map_y4'
+               MAP_Y4      => 'map_y4',
+      	       COORDX 	   => 'coordx',
+	       COORDY 	   => 'coordy',
                );
 
  $self->changes($admin, { CHANGE_PARAM => 'ID',
