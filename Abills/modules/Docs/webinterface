@@ -1938,8 +1938,8 @@ $doc .= "
 <R022G14 xsi:nil=\"true\" />
 <R022G15 xsi:nil=\"true\" />
 <R022G16 xsi:nil=\"true\" />
-	</DECLARBODY>
-</DECLAR>";
+<HFILL>$fill_d$m$y</HFILL>
+";
 
 
 my $filesize = length($doc);
