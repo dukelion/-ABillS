@@ -21,10 +21,19 @@ if ($conf{IPN_DETAIL}) {
 %USER_FUNCTION_LIST = (
                        );
 
+
+  #print "Content-Type: text/html\n\n";
+
+
+
 if ($conf{IPN_USERMENU}) {
-  $USER_FUNCTION_LIST{"01:0:IP Net:ipn_user_activate:defaultindex"} = 0;
-  $USER_FUNCTION_LIST{"02:1:$_STATS:ipn_sessions2:"} = 0;
-  $USER_FUNCTION_LIST{"03:1:$_TRAFIC_TARIFS:ipn_getnet:"}   = 0;
+  my $main_index = 0; #get_get_function_index('dv_user_info');
+
+  #print "// $main_index //";  
+  
+  $USER_FUNCTION_LIST{"01:0:IP Net:ipn_user_activate:defaultindex"} = $main_index;
+  $USER_FUNCTION_LIST{"02:1:$_STATS:ipn_sessions2:"}                = $main_index;
+  $USER_FUNCTION_LIST{"03:1:$_TRAFIC_TARIFS:ipn_getnet:"}           = $main_index;
 }
 
 if ($conf{IPN_CLUBMONITOR}) {

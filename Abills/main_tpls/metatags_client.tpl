@@ -24,10 +24,14 @@ body {
   /* this attribute sets the basis for all the other scrollbar colors (Internet Explorer 5.5+ only) */
 }
 
+#content #dv_user_info {
+	background-image:none;
+	padding:0;	
+}
 
 td.menu_cel_main {
   color: %_COLOR_9%;
-  height: 33;
+  height: 36;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
   font-size: 14px;
   padding-left:5px;
@@ -45,10 +49,6 @@ td.menu_cel {
 td.menu_cel_main a {
   text-decoration:none;
   font: 1em Trebuchet MS;
-  padding-left:30px;
-}
-
-td.menu_cel_main a b {
   padding-left:30px;
 }
 
@@ -340,12 +340,11 @@ div#tcal td:hover {
 }
 
 
-#money_operation_ico {
-	background-image: url(money_operation.png);
+#form_payments {
+	background-image: url(/img/money_operation.png);
 }
 #form_info {
 	background-image:url(/img/user.png);
-	
 }
 #form_passwd {
 	background-image: url(/img/key.png);
@@ -360,7 +359,7 @@ div#tcal td:hover {
 #msgs_user {
 	background-image:url(/img/call_help.png);
 }
-#mail_ico {
+#mail_users_list {
 	background-image:url(/img/mail5.png);
 }
 #docs_accounts_list {
@@ -390,13 +389,13 @@ div#tcal td:hover {
 
 #filearch_user_video,
 #iptv_user_info,
-#money_operation_ico,
+#form_payments,
 #form_info,
 #form_passwd,
 #dv_user_info,
 #ashield_user,
 #msgs_user,
-#mail_ico,
+#mail_users_list,
 #docs_accounts_list,
 #cards_user_payment,
 #voip_user_info,
@@ -405,11 +404,10 @@ div#tcal td:hover {
 #sharing_user_info {
 	background-repeat:no-repeat;
 	background-position:0% 0%;
-	padding:5px 0 5px 5px;
+	padding:8px 0 5px 37px;
 	margin-left:0px;
 	z-index:1;
 }
-
 
 </style>
 
