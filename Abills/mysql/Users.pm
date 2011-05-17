@@ -2124,7 +2124,7 @@ sub build_list {
   }
  elsif($attr->{SHOW_MAPS_GOOGLE}) {
    $ext_fields = ",b.coordx, b.coordy";
-   push @WHERE_RULES, "(b.coodx<>0 and b.coord)";
+   push @WHERE_RULES, "(b.coordx<>0 and b.coordy)";
   }
 
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
