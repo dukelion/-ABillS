@@ -673,7 +673,7 @@ foreach my $ID (@s) {
        	     $name = $self->b($name) if ($name !~ /<b>/);
        	    }
 
-       	   my $link = $self->button($name, "index=$ID$ext_args", { ex_params => " id=". $fl->{$ID} });
+       	   my $link = $self->button($name, "index=$ID$ext_args", { ex_params => ($parent == 0) ? " id=". $fl->{$ID} : '' });
     	     if($parent == 0) {
  	        	 $menu_text .= "<tr class='odd'><td class=menu_cel_main>$prefix$link</td></tr>\n";
 	          }
