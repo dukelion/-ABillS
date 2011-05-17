@@ -27,7 +27,7 @@ body {
 
 td.menu_cel_main {
   color: %_COLOR_9%;
-  height: 28;
+  height: 33;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
   font-size: 14px;
   padding-left:5px;
@@ -45,7 +45,13 @@ td.menu_cel {
 td.menu_cel_main a {
   text-decoration:none;
   font: 1em Trebuchet MS;
+  padding-left:30px;
 }
+
+td.menu_cel_main a b {
+  padding-left:30px;
+}
+
 
 td.menu_cel_main a:hover {
   text-decoration:underline;
@@ -256,113 +262,9 @@ TABLE.border {
   border-width : 1px;
 }
 
-.l_user_menu {
-      width: 100%;
-      border-right: 1px solid #000;
-      padding: 0 0 6px 0;
-      margin-bottom: 1px;
-      font-family: 'Trebuchet MS', 'Lucida Grande',
-      Verdana, Lucida, Geneva, Helvetica, 
-      Arial, sans-serif;
-      background-color: %_COLOR_2%;
-      color: #333;
-      }
-
-.l_user_menu ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      border: none;
-      }
-		
-.l_user_menu li {
-      border-bottom: 1px solid %_COLOR_2%;
-      margin: 0;
-      }
-
-.l_user_menu li a {
-      display: block;
-      padding: 5px 5px 5px 0.5em;
-      border-left: 4px solid %_COLOR_0%;
-      border-right: 5px solid %_COLOR_4%;
-      background-color: %_COLOR_3%;
-      color: %_COLOR_9%;
-      text-decoration: none;
-      width: 100%;
-      }
-
-.l_user_menu li a {
-      width: auto;
-      }
-
-.l_user_menu li a:hover {
-      border-left: 4px solid %_COLOR_9%;
-      border-right: 5px solid %_COLOR_2%;
-      background-color: %_COLOR_0%;
-      color: %_COLOR_9%;
-      }
-
-
-#tabs ul {
-      margin-left: 0;
-      padding-left: 0;
-      display: inline;
-      } 
-
-#tabs ul li {
-      margin-left: 0;
-      margin-bottom: 0;
-      padding: 2px 15px 5px;
-      border: 1px solid %_COLOR_3%;
-      list-style: none;
-      display: inline;
-      }
-		
-#tabs ul li.active {
-      border-bottom: 1px solid %_COLOR_0%;
-      list-style: none;
-      display: inline;
-      }
-
-#rules {
-  float:center;
-  text-align:center;
-  padding: 0 0 6px 0;
-  overflow:hidden;
-  height:32px;
-  line-height:30px;
-}
-
-#rules li{
-  display:inline;
-  padding:0;
-}
-
-#rules .center a {
-  padding:1px 5px;
-  font-weight:100;
-  font-size:11;
-  background:%_COLOR_2%;
-  border:1px solid %_COLOR_4%;
-  color:#000;
-  text-decoration:none;
-  margin:0 1px;
-}
-
-#rules .center a:hover{
-  background:#ccc;
-  border:1px solid #666;
-}
-
-#rules .center a.active{
-  background:#666;
-  border:1px solid #666;
-  color:#fff;
-}
-
 .MENU_BACK {
-  background:%_COLOR_3%;
-  width:200px;
+  background:%_COLOR_1%;
+  width:260px;
 }
 
 
@@ -436,6 +338,78 @@ div#tcal td:hover {
     width: 22px;
     cursor: pointer;
 }
+
+
+#money_operation_ico {
+	background-image: url(money_operation.png);
+}
+#form_info {
+	background-image:url(/img/user.png);
+	
+}
+#form_passwd {
+	background-image: url(/img/key.png);
+}
+
+#dv_user_info {
+	background-image: url(/img/internet3.png);
+}
+#ashield_user {
+	background-image: url(/img/drweb.png);
+}
+#msgs_user {
+	background-image:url(/img/call_help.png);
+}
+#mail_ico {
+	background-image:url(/img/mail5.png);
+}
+#docs_accounts_list {
+	background-image:url(/img/documents.png);
+}
+#cards_user_payment {
+	background-image:url(/img/payment-card.png);
+}
+#voip_user_info {
+	background-image: url(/img/voip.png);
+}
+#logout {
+	background-image: url(/img/logout.png);
+}	
+#ureports_user_info  {
+	background-image: url(/img/ureports_user_info.png);
+}
+#sharing_user_info {
+	background-image: url(/img/sharing_user_info.png);	
+} 
+#iptv_user_info {
+	background-image: url(/img/iptv_user_info.png);	
+} 
+#filearch_user_video {
+	background-image: url(/img/filearch_user_video.png);
+}
+
+#filearch_user_video,
+#iptv_user_info,
+#money_operation_ico,
+#form_info,
+#form_passwd,
+#dv_user_info,
+#ashield_user,
+#msgs_user,
+#mail_ico,
+#docs_accounts_list,
+#cards_user_payment,
+#voip_user_info,
+#logout,
+#ureports_user_info,
+#sharing_user_info {
+	background-repeat:no-repeat;
+	background-position:0% 0%;
+	padding:5px 0 5px 5px;
+	margin-left:0px;
+	z-index:1;
+}
+
 
 </style>
 

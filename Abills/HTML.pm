@@ -600,6 +600,7 @@ sub menu () {
  my %menu = ();
  my $sub_menu_array;
  my $EX_ARGS = (defined($attr->{EX_ARGS})) ? $attr->{EX_ARGS} : '';
+ my $fl             = $attr->{FUNCTION_LIST};
 
 # make navigate line 
 if ($index > 0) {
@@ -672,16 +673,16 @@ foreach my $ID (@s) {
        	     $name = $self->b($name) if ($name !~ /<b>/);
        	    }
 
-       	   my $link = $self->button($name, "index=$ID$ext_args");
-    	       if($parent == 0) {
- 	        	   $menu_text .= "<tr class='odd'><td class=menu_cel_main>$prefix$link</td></tr>\n";
-	            }
- 	           elsif(defined($tree{$ID})) {
-   	           $menu_text .= "<tr><td class=menu_cel>$prefix>$link</td></tr>\n";
- 	            }
- 	           else {
- 	             $menu_text .= "<tr><td class=menu_cel>$prefix$link</td></tr>\n";
- 	            }
+       	   my $link = $self->button($name, "index=$ID$ext_args", { ex_params => " id=". $fl->{$ID} });
+    	     if($parent == 0) {
+ 	        	 $menu_text .= "<tr class='odd'><td class=menu_cel_main>$prefix$link</td></tr>\n";
+	          }
+ 	         elsif(defined($tree{$ID})) {
+   	         $menu_text .= "<tr><td class=menu_cel>$prefix>$link</td></tr>\n";
+ 	          }
+ 	         else {
+ 	           $menu_text .= "<tr><td class=menu_cel>$prefix$link</td></tr>\n";
+ 	          }
          }
         else {
           #next;
