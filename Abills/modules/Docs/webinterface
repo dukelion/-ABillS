@@ -1847,8 +1847,9 @@ sub docs_tax_exports {
 if ($FORM{d}) {
 my ($y, $m, $d)=split(/-/, ($FORM{MONTH}) ? $FORM{MONTH}.'-01' : $DATE);
 
-my $file_prefix = "26590025388695J1201505100000";
-my $filename    = $file_prefix. "01$m$y".'.xml';
+#my $file_prefix = "26590025388695J1201505100000";
+#my $filename    = $file_prefix. "01$m$y".'.xml';
+my $filename = '26590025388695J1201505100000000110420112659.xml';
 
 my ($fill_y, $fill_m, $fill_d)=split(/-/, ($FORM{DATE}) ? $FORM{DATE} : $DATE);
 $Docs->{FILL_DATE}   = "$fill_d$fill_m$fill_y";
@@ -1868,7 +1869,7 @@ foreach my $line ( @$list ) {
 	push @{ $invoice_hash{T1RXXXXG1}   }, $num;
   push @{ $invoice_hash{T1RXXXXG2D}  }, $line->[1];
   push @{ $invoice_hash{T1RXXXXG3S}  }, $line->[2];
-  push @{ $invoice_hash{T1RXXXXG4S}  }, 'ом';
+  push @{ $invoice_hash{T1RXXXXG4S}  }, 'ом02';
   push @{ $invoice_hash{T1RXXXXG5S}  }, $line->[3];
   push @{ $invoice_hash{T1RXXXXG6}   }, ''; # | $line->[3];
   push @{ $invoice_hash{T1RXXXXG7}   }, sprintf("%.2f", $line->[5]);
@@ -1891,13 +1892,9 @@ my @arr = (
   'T1RXXXXG3S',
   'T1RXXXXG4S',
   'T1RXXXXG5S',
-  'T1RXXXXG6',
   'T1RXXXXG7',
   'T1RXXXXG8',
   'T1RXXXXG9',
-  'T1RXXXXG10',
-  'T1RXXXXG11',
-  'T1RXXXXG12',
   'T1RXXXXG13',
   'T1RXXXXG14',
   'T1RXXXXG15',

@@ -750,7 +750,6 @@ if ($index > 0) {
    }
 }
 
-
 $FORM{root_index} = $root_index;
 if ($root_index > 0) {
   my $ri = $root_index-1;
