@@ -1846,10 +1846,8 @@ sub docs_tax_exports {
 
 if ($FORM{d}) {
 my ($y, $m, $d)=split(/-/, ($FORM{MONTH}) ? $FORM{MONTH}.'-01' : $DATE);
-
-#my $file_prefix = "26590025388695J1201505100000";
-#my $filename    = $file_prefix. "01$m$y".'.xml';
-my $filename = '26590025388695J1201505100000000110420112659.xml';
+my $file_prefix = "26590025388695J120150510000000011";
+my $filename    = $file_prefix. "$m$y".'2659.xml';
 
 my ($fill_y, $fill_m, $fill_d)=split(/-/, ($FORM{DATE}) ? $FORM{DATE} : $DATE);
 $Docs->{FILL_DATE}   = "$fill_d$fill_m$fill_y";
@@ -1912,9 +1910,9 @@ foreach my $key (@arr) {
 
 
 $doc .= "
-<T1R01G7>". sprintf("%.2f", $invoice_hash{T1R01G7}). "</T1R01G7>
-<T1R01G8>". sprintf("%.2f", $invoice_hash{T1R01G8}). "</T1R01G8>
-<T1R01G9>". sprintf("%.2f", $invoice_hash{T1R01G9}). "</T1R01G9>
+<R011G7>". sprintf("%.2f", $invoice_hash{R011G7}). "</R011G7>
+<R011G8>". sprintf("%.2f", $invoice_hash{R011G8}). "</R011G8>
+<R011G9>". sprintf("%.2f", $invoice_hash{R011G9}). "</R011G9>
 <R011G12 xsi:nil=\"true\" />
 <R012G7 xsi:nil=\"true\" />
 <R012G8 xsi:nil=\"true\" />
