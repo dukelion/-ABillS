@@ -1555,7 +1555,7 @@ my $dub_logins = $sessions->{dub_logins};
  
 my $table = $html->table( { caption    => "$cure",
 	                          width      => '100%',
-                            title      => ["$_USER", "$_FIO", "CALLING_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
+                            title      => ["$_USER", "$_FIO", "CALLED_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
                             cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                             qs         => $pages_qs,
                            });

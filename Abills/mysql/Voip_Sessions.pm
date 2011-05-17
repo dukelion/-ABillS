@@ -89,7 +89,7 @@ sub online {
                           INET_NTOA(c.client_ip_address),
                           c.status,
                           c.nas_id,
-                          u.uid,
+                          c.uid,
   c.acct_session_id, 
   pi.phone, 
   service.tp_id, 
@@ -98,7 +98,7 @@ sub online {
   if(date_format(c.started, '%Y-%m-%d')=curdate(), date_format(c.started, '%H:%i:%s'), c.started)
 
  FROM voip_calls c
- LEFT JOIN users u     ON u.id=user_name
+ LEFT JOIN users u     ON u.uid=c.uid
  LEFT JOIN voip_main service  ON (service.uid=u.uid)
  LEFT JOIN users_pi pi ON (pi.uid=u.uid)
  WHERE $WHERE
