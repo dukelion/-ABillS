@@ -47,8 +47,7 @@ use Paysys;
 use Finance;
 use Admins;
 
-$debug  = $conf{PAYSYS_DEBUG} || 0;
-
+$debug     = $conf{PAYSYS_DEBUG} || 0;
 my $html   = Abills::HTML->new();
 my $sql    = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser},
     $conf{dbpasswd}, { CHARSET => ($conf{dbcharset}) ? $conf{dbcharset} : undef  });
@@ -733,26 +732,14 @@ exit;
 sub osmp_payments_v4 {
  my $version = '0.2';
  $debug      =  1;
-
  print "Content-Type: text/xml\n\n";
- 
- #my $payment_system    = 'OSMP';
- #my $payment_system_id = 44;
+
  my $payment_system    = 'OSMP';
  my $payment_system_id = 61;
  my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
  $FORM{__BUFFER}='' if (! $FORM{__BUFFER});
  $FORM{__BUFFER}=~s/data=//;
 
-#
-#$FORM{__BUFFER}=qq{<?xml version="1.0" encoding="UTF-8"?><request>
-#<protocol-version>4.00</protocol-version><request-type>10</request-type><terminal-id>1</terminal-id>
-#<extra name="login">login</extra><extra name="password-md5">1a1dc91c907325c69271ddf0c944bc72</extra>
-#<extra name="client-software">Dealer v0</extra><auth count="1" to-amount="1.00"><payment>
-#<transaction-number>155</transaction-number><from><amount>1.00</amount></from><to><amount>1.00</amount>
-#<service-id>1</service-id><account-number>234456</account-number></to><receipt><datetime>20100407155326</datetime>
-#<receipt-number>407155313</receipt-number></receipt></payment></auth></request>
-#};
 
 eval { require XML::Simple; };
 if (! $@) {
@@ -875,7 +862,11 @@ elsif ($request_hash{'request-type'} == 1) {
   my $user;
   my $payments_id = 0;
   
-  if ($CHECK_FIELD eq 'UID') {
+  if ($account_number !~ /$conf{USERNAMEREGEXP}/)  {
+    $status_id   =  4;
+    $result_code =  1;
+   }
+  elsif ($CHECK_FIELD eq 'UID') {
     $user = $users->info($account_number);
     $BALANCE      = sprintf("%2.f", $user->{DEPOSIT});
     $OVERDRAFT    = $user->{CREDIT};
