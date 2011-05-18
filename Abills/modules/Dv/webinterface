@@ -6320,8 +6320,6 @@ sub dv_dhcp_get_mac_add {
       	                                  %PARAMS_HASH
       	                                });
 
-
-
       #make Discovery	                                  
       if ($Dhcphosts->{errno}) {
       	$html->message('err', $_ACTIVATE, "$_ERROR DHCP get ip error", { ID => 116 });

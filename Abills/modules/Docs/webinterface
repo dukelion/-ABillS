@@ -1855,7 +1855,7 @@ $Docs->{FILL_DATE}   = "$fill_d$fill_m$fill_y";
 $Docs->{YEAR}=$y;
 $Docs->{MONTH}=$m;
 
-my $doc = $html->tpl_show(_include('docs_tax_export', 'Docs'), { %$Docs }, { OUTPUT2RETURN => 1 });
+my $doc = ''; 
 
 $LIST_PARAMS{PAGE_ROWS}=1000000;
 $LIST_PARAMS{MONTH} = $FORM{MONTH} || "$y-$m";
@@ -1941,6 +1941,7 @@ $doc .= "
 <HFILL>$fill_d$m$y</HFILL>
 ";
 
+$doc = $html->tpl_show(_include('docs_tax_export', 'Docs'), { %$Docs, BODY => $doc }, { OUTPUT2RETURN => 1 });
 
 my $filesize = length($doc);
 print "Content-Type: text/plain; filename=\"$filename\"\n".
