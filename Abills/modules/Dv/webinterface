@@ -6188,7 +6188,6 @@ sub dv_get_month_fee {
        
         return \%total_sum if ($sum == 0);
         
-        print "Content-Type: text/html\n\n";
         
         my $periods = 0;
         if ($active_m > 0 && $active_m < $m) {

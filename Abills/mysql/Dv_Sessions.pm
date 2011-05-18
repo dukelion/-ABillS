@@ -228,7 +228,7 @@ sub online {
    SPEED           => 'dv.speed',   
    SUM             => 'c.sum',
    STATUS          => 'c.status',
-   ADDRESS_FULL    => 'concat(pi.address_street,\' \', pi.address_build,\'/\', pi.address_flat) AS ADDRESS', 
+   ADDRESS_FULL    => ($CONF->{ADDRESS_REGISTER}) ? 'concat(streets.name,\' \', builds.number, \' \', pi.address_flat) AS ADDRESS'  : 'concat(pi.address_street,\' \', pi.address_build,\'/\', pi.address_flat) AS ADDRESS', 
    GID             => 'u.gid',
    TURBO_MODE      => 'c.turbo_mode',
    JOIN_SERVICE    => 'c.join_service',
@@ -266,6 +266,11 @@ sub online {
   	if ($RES_FIELDS[$i] == 2) {
   		$port_id=$i;
   	 }
+    elsif ($RES_FIELDS[$i] == 16 && $CONF->{ADDRESS_REGISTER}) {
+      $EXT_TABLE .= "INNER JOIN builds ON (builds.id=pi.location_id)
+        INNER JOIN streets ON (streets.id=builds.street_id)";
+  	 }
+    
     $fields .= "$FIELDS_ALL[$RES_FIELDS[$i]], ";
    }
 
@@ -348,9 +353,11 @@ sub online {
  	 	 $filter_field = "INET_NTOA(framed_ip_address)";
  	  }
  	 elsif($attr->{FILTER_FIELD} == 16 && $CONF->{ADDRESS_REGISTER}) {
-     $EXT_TABLE .= "INNER JOIN builds ON (builds.id=pi.location_id)
-     INNER JOIN streets ON (streets.id=builds.street_id)";
- 	 	 
+     if ($EXT_TABLE !~ /builds/) {
+       $EXT_TABLE .= "INNER JOIN builds b ON (builds.id=pi.location_id)
+       INNER JOIN streets s ON (streets.id=builds.street_id)";
+ 	 	  }
+
  	 	 $filter_field = 'concat(streets.name, \', \', builds.number)';
  	 	 
  	  }

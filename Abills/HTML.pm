@@ -675,7 +675,7 @@ foreach my $ID (@s) {
        	   my $ext_args = "$EX_ARGS";
        	   if (defined($menu_args->{$ID})) {
        	     $ext_args = "&$menu_args->{$ID}=$FORM{$menu_args->{$ID}}";
-       	     $name = $self->b($name).'!!!' if ($name !~ /<b>/);
+       	     $name = $self->b($name) if ($name !~ /<b>/);
        	     $active = 'active';
        	    }
 
