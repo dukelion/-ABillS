@@ -375,6 +375,10 @@ if ($NAS->{NAS_TYPE} eq 'asterisk' and $self->{TRUNK_PROTOCOL}) {
     
  }    
        
+}
+else {
+	$RAD->{USER_NAME} = "$RAD->{CALLED_STATION_ID}";
+}
 
   #Make start record in voip_calls
   my $SESSION_START = 'now()';
@@ -405,7 +409,7 @@ if ($NAS->{NAS_TYPE} eq 'asterisk' and $self->{TRUNK_PROTOCOL}) {
       '$self->{TP_ID}',
       '$self->{ROUTE_ID}',
       '$self->{REDUCTION}');", 'do');
-   }
+#   }
  }
 
   
@@ -473,7 +477,8 @@ sub accounting {
 
  my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
  my $SESSION_START = (defined($RAD->{SESSION_START}) && $RAD->{SESSION_START} > 0) ?  "FROM_UNIXTIME($RAD->{SESSION_START})" : 'now()';
- 
+ my $sesssion_sum = 0;
+
 #   print "aaa $acct_status_type '$RAD->{ACCT_STATUS_TYPE}'  /$RAD->{SESSION_START}/"; 
 #my $a=`echo "test $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}}"  >> /tmp/12211 `;
  
@@ -514,7 +519,7 @@ elsif ($acct_status_type == 2) {
     FROM voip_calls 
       WHERE 
       conf_id='$RAD->{H323_CONF_ID}'
-      and call_origin='1';");
+      and call_origin='$RAD->{H323_CALL_ORIGIN}';");
 
     if ($self->{TOTAL} < 1) {
    	  $self->{errno}=1;
@@ -551,6 +556,8 @@ elsif ($acct_status_type == 2) {
     )= @{ $self->{list}->[0] };
   
 
+
+    if ($RAD->{H323_CALL_ORIGIN} == 1) {
        $self->get_intervals();
        if ($self->{TOTAL} < 1) {
          $RAD_PAIRS{'Reply-Message'}="No price for route prefix '$self->{PREFIX}' number '". $RAD->{'CALLED_STATION_ID'} ."'";
@@ -569,15 +576,15 @@ elsif ($acct_status_type == 2) {
           PRICE_UNIT          => 'Min'
          });
   
-  
-    if ($Billing->{errno}) {
-   	  $self->{errno}=$Billing->{errno};
-  	  $self->{errstr}=$Billing->{errstr};
-  	  return $self;
-     }
-  
-    my $filename; 
+      $sesssion_sum = $Billing->{SUM};
+      if ($Billing->{errno}) {
+   	    $self->{errno}=$Billing->{errno};
+  	    $self->{errstr}=$Billing->{errstr};
+  	    return $self;
+       }  
+    }
 
+    my $filename;   
     $self->query($db, "INSERT INTO voip_log (uid, start, duration, calling_station_id, called_station_id,
               nas_id, client_ip_address, acct_session_id, 
               tp_id, bill_id, sum,
@@ -585,7 +592,7 @@ elsif ($acct_status_type == 2) {
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}),  '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', 
         '$NAS->{NAS_ID}', INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'), '$RAD->{ACCT_SESSION_ID}', 
-        '$self->{TP_ID}', '$self->{BILL_ID}', '$Billing->{SUM}',
+        '$self->{TP_ID}', '$self->{BILL_ID}', '$sesssion_sum',
         '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
 
     if ($self->{errno}) {
@@ -604,13 +611,12 @@ elsif ($acct_status_type == 2) {
   	
    }
 
+
   # Delete from session wtmp
   $self->query($db, "DELETE FROM voip_calls 
      WHERE acct_session_id='$RAD->{ACCT_SESSION_ID}' 
-     and user_name='$RAD->{USER_NAME}' 
      and nas_id='$NAS->{NAS_ID}'
      and conf_id='$RAD->{H323_CONF_ID}';", 'do');
- 
 }
 #Alive status 3
 elsif($acct_status_type eq 3) {

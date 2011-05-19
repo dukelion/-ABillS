@@ -1876,8 +1876,8 @@ sub district_info {
  my ($attr) = @_;
  
  $self->query($db, "select id, name, country, 
- city, zip,
- comments FROM districts WHERE id='$attr->{ID}';");
+ city, zip, comments, coordx, coordy, zoom
+  FROM districts WHERE id='$attr->{ID}';");
 
  return $self if ($self->{errno} || $self->{TOTAL} < 1);
 
@@ -1886,7 +1886,11 @@ sub district_info {
   $self->{COUNTRY},
   $self->{CITY},
   $self->{ZIP},
- 	$self->{COMMENTS}) = @{ $self->{list}->[0] };
+ 	$self->{COMMENTS},
+ 	$self->{COORDX},
+ 	$self->{COORDY},
+ 	$self->{ZOOM},
+ 	) = @{ $self->{list}->[0] };
 
  return $self;
 }
@@ -1903,7 +1907,11 @@ sub district_change {
                COUNTRY  => 'country',
                CITY     => 'city',
                ZIP      => 'zip',
-               COMMENTS => 'comments');
+               COMMENTS => 'comments',
+               COORDX   => 'coordx',
+               COORDY   => 'coordy',
+               ZOOM     => 'zoom',               
+               );
 
  $self->changes($admin, { CHANGE_PARAM => 'ID',
 		               TABLE        => 'districts',
@@ -1922,8 +1930,9 @@ sub district_add {
  my $self = shift;
  my ($attr) = @_;
 
- $self->query($db, "INSERT INTO districts (name, country, city, zip, comments) 
-   values ('$attr->{NAME}', '$attr->{COUNTRY}', '$attr->{CITY}', '$attr->{ZIP}',  '$attr->{COMMENTS}');", 'do');
+ $self->query($db, "INSERT INTO districts (name, country, city, zip, comments, coordx, coordy, zoom) 
+   values ('$attr->{NAME}', '$attr->{COUNTRY}', '$attr->{CITY}', '$attr->{ZIP}',  '$attr->{COMMENTS}',
+   '$attr->{COORDX}', '$attr->{COORDY}','$attr->{ZOOM}');", 'do');
 
  $admin->system_action_add("DISTRICT:$self->{INSERT_ID}:$attr->{NAME}", { TYPE => 1 }) if (! $self->{errno});
  return $self;
