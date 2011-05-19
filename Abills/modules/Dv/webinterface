@@ -3620,6 +3620,7 @@ if ($command eq 'account-status-query') {
    }
    
   for my $a ($r->get_attributes) {
+
     if ($a->{'Value'}=~/\$MA(\S+)/) {
     	$Dv->{ISG_CID_CUR}=$1;
      }
@@ -3629,7 +3630,7 @@ if ($command eq 'account-status-query') {
     elsif ($a->{'Value'} =~ /^N1TURBO_SPEED(\d+);(\d+)/) {
       $Dv->{TURBO_MODE_RUN}=$2;
      }
-  	elsif ($a->{'Value'} =~ /^N1(TP_\d+);(\d+)/) {
+  	elsif ($a->{'Value'} =~ /^N1(TP_[0-9\_]+);(\d+)/) {
   	  $Dv->{CURE_SERVICE}=$1;
   	  $Dv->{ISG_SESSION_DURATION}=$2;
   	 }
@@ -3925,7 +3926,10 @@ if ($conf{DV_ISG}) {
        return 0;
      }
 
+
+  	 
   if (! cisco_isg_cmd($user->{REMOTE_ADDR}, "account-status-query", { USER_NAME => $user->{LOGIN} })) {
+
      return 0;
    } 	
 
