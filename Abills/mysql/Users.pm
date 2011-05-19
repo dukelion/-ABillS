@@ -1851,7 +1851,7 @@ sub district_list {
 
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 
  
- $self->query($db, "SELECT d.id, d.name, d.country, d.city, zip, count(s.id) FROM districts d
+ $self->query($db, "SELECT d.id, d.name, d.country, d.city, zip, count(s.id), d.coordx, d.coordy, d.zoom FROM districts d
      LEFT JOIN streets s ON (d.id=s.district_id)
    $WHERE 
    GROUP BY d.id
