@@ -1,4 +1,24 @@
 </div class=noprint id=form_msg_add>
+
+<SCRIPT type='text/javascript'>
+<!--
+	function keyDown(e) { 
+	
+		if(e.keyCode == 17)
+			ctrl = true;
+		
+		else if(e.keyCode == 13 && ctrl)
+			document.getElementById('go').click();
+	}
+
+	function keyUp(e){
+		if(e.keyCode == 17) 
+			ctrl = false;
+	}
+-->
+</SCRIPT>
+
+
 <FORM action='$SELF_URL' METHOD='POST'  enctype='multipart/form-data'>
 <input type='hidden' name='index' value='$index'/>
 <input type='hidden' name='sid' value='$sid'/>
@@ -12,7 +32,7 @@
 <tr><td>$_SUBJECT:</td><td><input type='text' name='SUBJECT' value='%SUBJECT%' size='50'/></td></tr>
 <tr><td>$_CHAPTERS:</td><td>%CHAPTER_SEL%</td></tr>
 <tr><th bgcolor='$_COLORS[0]' colspan='2'>$_MESSAGE</th></tr>
-<tr><th colspan='2'><textarea name='MESSAGE' cols='70' rows='9'>%MESSAGE%</textarea></th></tr>
+<tr><th colspan='2'><textarea name='MESSAGE' cols='70' rows='9' onkeydown='keyDown(event)' onkeyup='keyUp(event)'>%MESSAGE%</textarea></th></tr>
 
 
 %ATTACHMENT%
@@ -20,7 +40,7 @@
                   <!-- <input class='button' type='submit' name='AttachmentUpload' value='$_ADD'> --></td></tr>  
 <tr><td>$_STATE:</td><td>%STATE_SEL%</td></tr>  
 <tr><td>$_PRIORITY:</td><td>%PRIORITY_SEL%</td></tr>
-<tr><th colspan=2><input type='submit' name='send' value='$_SEND'/></th></tr>
+<tr><th colspan=2><input type='submit' name='send' value='$_SEND'/ title='Ctrl+C' id='go'></th></tr>
 </table>
 </td></tr></table>
 </td></tr></table>

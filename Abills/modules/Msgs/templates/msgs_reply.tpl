@@ -1,5 +1,5 @@
 <SCRIPT type='text/javascript'>
-
+<!--
 function samechanged(what) {
   if ( what.value == 2 ) {
     what.form.RUN_TIME.disabled = false;
@@ -9,9 +9,23 @@ function samechanged(what) {
     what.form.RUN_TIME.style.backgroundColor = '$_COLORS[3]';
   }
 }
-
 samechanged('STATE');
 
+	function keyDown(e) { 
+	
+		if(e.keyCode == 17)
+			ctrl = true;
+		
+		else if(e.keyCode == 13 && ctrl)
+			document.getElementById('go').click();
+	}
+
+	function keyUp(e){
+		if(e.keyCode == 17) 
+			ctrl = false;
+	}
+
+-->
 </SCRIPT>
 
 <div class='noprint'>
@@ -19,7 +33,7 @@ samechanged('STATE');
 <tr><th bgcolor='$_COLORS[0]' colspan='2'>$_REPLY</th></tr>
 <input type='hidden' name='SUBJECT' value='%SUBJECT%' size=50/>
 <tr><td>$_SUBJECT:</td><td><input type='text' name='REPLY_SUBJECT' value='%REPLY_SUBJECT%' size=50/></td></tr>
-<tr><th colspan='2'><textarea name='REPLY_TEXT' cols='90' rows='11'>%QUOTING% %REPLY_TEXT%</textarea></th></tr>
+<tr><th colspan='2'><textarea name='REPLY_TEXT' cols='90' rows='11' onkeydown='keyDown(event)' onkeyup='keyUp(event)'>%QUOTING% %REPLY_TEXT%</textarea></th></tr>
 
 %ATTACHMENT%
 <tr><td>$_ATTACHMENT:</td><td><input name='FILE_UPLOAD' type='file' size='40' class='fixed'>
@@ -30,7 +44,7 @@ samechanged('STATE');
 <tr><td>$_SURVEY:</td><td>%SURVEY_SEL%</td></tr>
 </table>
 <input type='hidden' name='sid' value='$sid'/>
-<input type='submit' name='%ACTION%' value='  %ACTION_LNG%  '/>
+<input type='submit' name='%ACTION%' value='  %ACTION_LNG%  ' id='go' title='Ctrl+C'/>
 <br>
 <br>
 </div>

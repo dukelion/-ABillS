@@ -48,8 +48,6 @@ else {
 			ctrl = false;
 	}
 
-
-
 -->
 </SCRIPT>
 
@@ -66,7 +64,7 @@ else {
 <tr><td>$_SUBJECT:</td><td><input type='text' name='SUBJECT' value='%SUBJECT%' size='50'/></td></tr>
 %GROUP_SEND%
 <tr><th bgcolor='$_COLORS[0]' colspan='2'>$_MESSAGE</th></tr>
-<tr><th colspan='2'><textarea name='MESSAGE' cols='70' rows='9' onkeydown='keyDown(event)' onkeyup='keyUp(event)'  >%MESSAGE%</textarea></th></tr>
+<tr><th colspan='2'><textarea name='MESSAGE' cols='70' rows='9' onkeydown='keyDown(event)' onkeyup='keyUp(event)'>%MESSAGE%</textarea></th></tr>
 <tr><td>$_PHONE:</td><td><input type='text' name='PHONE' value='%PHONE%' size='30'/></td></tr>
 %ATTACHMENT%
 <tr><td>$_ATTACHMENT:</td><td><input name='FILE_UPLOAD' type='file' size='40' class='fixed'>
@@ -89,5 +87,5 @@ else {
 %EXTRA_PARAMS%
 <!-- <tr><td>$_LOCK:</td><td><input type=checkbox name=LOCK value=1 %LOCK%></td></tr> -->
 </table>
-<input type=submit name='%ACTION%' value='%ACTION_LNG%' id='go'/>
+<input type=submit name='%ACTION%' value='%ACTION_LNG%' id='go' title='Ctrl+C'/>
 </FORM>
