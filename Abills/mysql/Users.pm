@@ -2163,7 +2163,9 @@ sub build_list {
  my $list = $self->{list};
 
  if ($self->{TOTAL} > 0) {
-    $self->query($db, "SELECT count(*) FROM builds b $WHERE");
+    $self->query($db, "SELECT count(*) FROM builds b 
+    LEFT JOIN streets s ON (s.id=b.street_id)
+    $WHERE");
     ($self->{TOTAL}) = @{ $self->{list}->[0] };
    }
  return $list;
