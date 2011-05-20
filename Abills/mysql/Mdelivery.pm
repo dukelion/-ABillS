@@ -479,7 +479,7 @@ sub reset {
 
 
   $self->query($db, "UPDATE mdelivery_list SET status=0 WHERE id='$attr->{ID}';", 'do');
-  $self->query($db, "UPDATE mdelivery_users SET status=0 WHERE mdelivery='$attr->{ID}';", 'do');
+  $self->query($db, "UPDATE mdelivery_users SET status=0 WHERE mdelivery_id='$attr->{ID}';", 'do');
 
   
   return $self;
