@@ -331,6 +331,10 @@ sub user_list {
   	push @WHERE_RULES, @{ $self->search_expr($attr->{STATUS}, 'INT', "mdl.status") };
    } 
 
+  if (defined($attr->{LOGIN})) {
+  	push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'INT', "u.id") };
+   } 
+
 
   $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 

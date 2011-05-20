@@ -297,6 +297,7 @@ sub mdelivery_periodic {
 use Users;
 my $users = Users->new($db, $admin, \%conf); 
 
+$LIST_PARAMS{LOGIN}  = $attr->{LOGIN} if ($attr->{LOGIN});
 $LIST_PARAMS{STATUS}=0;
 $LIST_PARAMS{DATE}="<=$DATE";
 
@@ -358,8 +359,10 @@ foreach my $mdelivery_id (@ids) {
    }
 
 #exit;
-  $Mdelivery->user_list_change({ MDELIVERY_ID => $mdelivery_id, UID => join(';', @users_ids) });
-  $Mdelivery->change({ ID => $mdelivery_id });
+  if (! $LIST_PARAMS{LOGIN}) {
+    $Mdelivery->user_list_change({ MDELIVERY_ID => $mdelivery_id, UID => join(';', @users_ids) });
+    $Mdelivery->change({ ID => $mdelivery_id });
+   }
 }
 
   $DEBUG .= $debug_output;
