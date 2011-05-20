@@ -339,7 +339,7 @@ foreach my $mdelivery_id (@ids) {
   
   foreach $u (@$user_list) {
   	 my $mail = ($u->[4] && $u->[4] ne '') ? $u->[4] : ($conf{USERS_MAIL_DOMAIN}) ? $u->[0] .'@'. $conf{USERS_MAIL_DOMAIN} : '';
-    if ($email || $email eq '')  {
+    if (! $email || $email eq '')  {
        print "Login: $u->[0] Don't have mail address. Skip...\n";
        next;
      }
