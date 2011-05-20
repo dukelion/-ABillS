@@ -350,7 +350,7 @@ foreach my $mdelivery_id (@ids) {
      push @users_ids, $u->[3];
 
      sendmail("$Mdelivery->{SENDER}", 
-          "$mail", 
+          "$email", 
           "$Mdelivery->{SUBJECT}", 
           "$Mdelivery->{TEXT}", 
           "$conf{MAIL_CHARSET}", 
