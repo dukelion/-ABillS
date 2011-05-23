@@ -576,10 +576,10 @@ if ($command eq 'check') {
 	  $status = 300; 
    }
   elsif ($users->{TOTAL} < 1) {
-	  if ($CHECK_FIELD eq 'UID' && $FORM{account} !~ /\d+/) {
-	    $status   =  4;
-	   }
-    elsif ($CHECK_FIELD !~ /$conf{USERNAMEREGEXP}/)  {
+    if ($CHECK_FIELD eq 'UID' && $FORM{account} !~ /\d+/) {
+      $status   =  4;
+     }
+    elsif ($FORM{account} !~ /$conf{USERNAMEREGEXP}/)  {
       $status   =  4;
      }
 	  else {
