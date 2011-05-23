@@ -4890,9 +4890,10 @@ sub dv_monthly_fees {
             	    }
 
                  #Change activation to cure date
-                 $users->change($user{UID}, { 
-        	                      UID      => $user{UID},
-        	                      ACTIVATE => $ADMIN_REPORT{DATE} });
+                 # !!! We need change activation only if payments add
+#                 $users->change($user{UID}, { 
+#        	                      UID      => $user{UID},
+#        	                      ACTIVATE => $ADMIN_REPORT{DATE} });
 
                  $debug_output .= " SMALL_DEPOSIT_BLOCK." if ($debug > 3);
                  next;
