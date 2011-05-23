@@ -579,6 +579,9 @@ if ($command eq 'check') {
 	  if ($CHECK_FIELD eq 'UID' && $FORM{account} !~ /\d+/) {
 	    $status   =  4;
 	   }
+    elsif ($CHECK_FIELD !~ /$conf{USERNAMEREGEXP}/)  {
+      $status   =  4;
+     }
 	  else {
 	  	$status   =  5;
 	   }
@@ -588,14 +591,14 @@ if ($command eq 'check') {
     $status = 0; 
    }
 
-$RESULT_HASH{result} = $status;
+  $RESULT_HASH{result} = $status;
 
-#For OSMP
-if ($payment_system_id == 44) {
-  $RESULT_HASH{$txn_id}= $FORM{txn_id} ;
-  $RESULT_HASH{prv_txn}= $FORM{prv_txn};
-  $RESULT_HASH{comment}= "Balance: $list->[0]->[2]" if ($status == 0);
- }
+  #For OSMP
+  if ($payment_system_id == 44) {
+    $RESULT_HASH{$txn_id}= $FORM{txn_id} ;
+    $RESULT_HASH{prv_txn}= $FORM{prv_txn};
+    $RESULT_HASH{comment}= "Balance: $list->[0]->[2]" if ($status == 0);
+   }
 }
 #Cancel payments
 elsif ($command eq 'cancel') {
