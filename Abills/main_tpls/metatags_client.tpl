@@ -284,6 +284,7 @@ a.link_button:hover {
   background:#ccc;
   background-color: %_COLOR_3%;
   border:1px solid #666;
+  cursor: pointer;
 }
 
 input, textarea {
