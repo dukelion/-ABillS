@@ -470,7 +470,7 @@ sub abon_periodic {
          	                           TP_ID => "$info{TP_ID}" });
 
 
-         if ($create_account) {
+         if ($info{CREATE_ACCOUNT}) {
          	 $LIST_PARAMS{UID}= $user{UID};
          	 $FORM{SUM}       = $info{SUM};
          	 $FORM{UID}       = $user{UID};
@@ -500,14 +500,14 @@ sub abon_periodic {
          	  {  });
           }
 
-         $debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: ". (($create_account) ? "ACCOUNT SEND_EMAIL: $email" : '') .(($activate_notification) ? "NOTIFICATION: $email" : '') ."\n" if ($debug > 0);
+         $debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: ". (($info{CREATE_ACCOUNT}) ? "ACCOUNT SEND_EMAIL: $email" : '') .(($activate_notification) ? "NOTIFICATION: $email" : '') ."\n" if ($debug > 0);
 
      }
     #Notification Section
     elsif ($notification1 eq $ADMIN_REPORT{DATE}) {
     	my $message = $html->tpl_show(_include('abon_notification1', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
     	my $attach;
-    	$debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: $create_account Notification 1 EMAIL: $email\n" if ($debug > 0);
+    	$debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: $info{CREATE_ACCOUNT} Notification 1 EMAIL: $email\n" if ($debug > 0);
     	
     	if ($notification_account ) {
         	 $LIST_PARAMS{UID}= $user{UID};
@@ -578,7 +578,7 @@ sub abon_periodic {
          	  { ATTACHMENTS => $attach });
      }
     elsif ($info{ALERT} eq $ADMIN_REPORT{DATE}) {
-    	$debug_output .= "$user{UID} SUM: TP_ID: $info{TP_ID} $info{SUM} ACCOUNT: $create_account Alert EMAIL: $email\n" if ($debug > 0);
+    	$debug_output .= "$user{UID} SUM: TP_ID: $info{TP_ID} $info{SUM} ACCOUNT: $info{CREATE_ACCOUNT} Alert EMAIL: $email\n" if ($debug > 0);
     	
     	my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
     	my $attach;
