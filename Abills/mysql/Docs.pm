@@ -454,6 +454,7 @@ sub account_add {
   $DATA{ACCT_ID} = ($attr->{ACCT_ID}) ? $attr->{ACCT_ID}  : $self->docs_nextid({ TYPE => 'ACCOUNT' });
   $DATA{PAYMENT_ID} = 0 if (!  $DATA{PAYMENT_ID});
   $DATA{PHONE} = '' if (! $DATA{PHONE});
+  $DATA{VAT}   = '' if (! $DATA{VAT});
 
   $self->query($db, "insert into docs_acct (acct_id, date, created, customer, phone, aid, uid, payment_id, vat)
       values ('$DATA{ACCT_ID}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 
