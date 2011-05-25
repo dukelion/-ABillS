@@ -454,11 +454,10 @@ sub abon_periodic {
 
     $line->[8] = 0 if (! $line->[8]);
     $PARAMS{DESCRIBE} = "$_ABON: $line->[6]. $line->[12]" if ($line->[12]);
-    if($line->[8] && ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) {
-     	#Get day fee
-     	$abon_date = $ADMIN_REPORT{DATE} if (! $abon_date && $line->[0] == 1 && $d == 1);
+    $abon_date = $ADMIN_REPORT{DATE} if (! $abon_date && $line->[0] == 1 && $d == 1);
+    #Get abon
+    if(($line->[8] && ($line->[7] + $line->[8] > 0 || $line->[11] == 1) && $line->[9] == 0) && ($ADMIN_REPORT{DATE} eq $abon_date)) {
 
-    	if ($ADMIN_REPORT{DATE} eq $abon_date) {
          $fees->take(\%user, $sum, { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$line->[2]", 
          	                           DATE  => $ADMIN_REPORT{DATE}, 
@@ -496,7 +495,7 @@ sub abon_periodic {
           }
 
          $debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: ". (($create_account) ? "ACcOUNT SEND_EMAIL: $email" : '') .(($activate_notification) ? "NOTIFICATION: $email" : '') ."\n" if ($debug > 0);
-       }
+
      }
     #Notification Section
     elsif ($notification1 eq $ADMIN_REPORT{DATE}) {
