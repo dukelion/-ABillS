@@ -306,7 +306,7 @@ if ($self->{LOGINS} > 0) {
   my($active_logins) = $self->{TOTAL};
   foreach my $line (@{ $self->{list} }) {
 #  	# Zap session with same CID
-  	if ($line->[0] ne '' && $line->[0] eq $RAD->{CALLING_STATION_ID}) {
+  	if ($line->[0] ne '' && $line->[0] eq $RAD->{CALLING_STATION_ID} && $NAS->{NAS_TYPE} ne 'ipcad') {
   		$self->query($db, "UPDATE dv_calls SET status=2 WHERE user_name='$RAD->{USER_NAME}' and CID='$RAD->{CALLING_STATION_ID}' and status <> 2;", 'do');
            $self->{IP}=$line->[1];
     	   $active_logins--;

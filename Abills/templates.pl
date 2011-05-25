@@ -78,7 +78,6 @@ sub _include {
     $tpl = $1;
     $tpl =~ s/_$attr->{SUFIX}$//;
     delete $attr->{SUFIX};
-    print "'$tpl'\n";
     goto start;
    }
 
