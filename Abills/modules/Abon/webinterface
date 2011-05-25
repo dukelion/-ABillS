@@ -145,7 +145,7 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
   $table->addrow($line->[0] . $html->form_input('IDS', "$line->[0]", { TYPE => 'CHECKBOX', 
   	                                                      STATE => ($line->[7] == 1) ? 1 : undef   }),
-     "$line->[1]",
+     ($permissions{5}) ? $html->button($line->[1], "index=".get_function_index('abon_tariffs').'&ABON_ID='.$line->[0]) : "$line->[1]",
      $html->form_input('COMMENTS_'.$line->[0], "$line->[2]", { SIZE => 40 }),
      "$line->[3]", 
      $PERIODS[$line->[4]], 
@@ -183,7 +183,7 @@ sub abon_user_list {
 
  my $list = $Abon->user_list({ %LIST_PARAMS });
  my $table = $html->table( { width     => '100%',
-                             caption    => "$_ABON",
+                             caption    => "$_ABON - $_USERS",
                              title      => [$_LOGIN, $_FIO, $_TARIF_PLAN, "$_COMMENTS", $_SUM, $_PERIOD,                              
                                $_LAST_ABON, $_NEXT_ABON],
                              cols_align => ['left', 'right', 'left', 'right'],
@@ -331,7 +331,7 @@ sub abon_tariffs {
  	                               });
 
   $Abon->{PERIOD_ALIGNMENT}  = ($Abon->{PERIOD_ALIGNMENT})  ? 'checked' : ''; 
-  $Abon->{NONFIX_PERIOD}     = ($Abon->{NONFIX_PERIOD})  ? 'checked' : ''; 
+  $Abon->{NONFIX_PERIOD}     = ($Abon->{NONFIX_PERIOD})  ? 'checked' : '';
   
   if ($conf{EXT_BILL_ACCOUNT}) {
     my $checked = ($Abon->{EXT_BILL_ACCOUNT}) ? ' checked' : '';
@@ -380,7 +380,7 @@ foreach my $line (@$list) {
      $PERIODS[$line->[2]], 
      $Payment_Types[$line->[3]], 
      $line->[4], 
-     $html->button("$line->[6]", "index=". ($index-2). "&ABON_ID=$line->[7]"), 
+     $html->button("$line->[6]", "index=". get_function_index('abon_user_list'). "&ABON_ID=$line->[7]"), 
      $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[7]", {  BUTTON => 1 }), 
      $delete
    );
@@ -442,10 +442,6 @@ sub abon_periodic {
     }
    
    if (defined($deposit)) {
-  	
-  #	print "$notification1 /   $notification2
-  # ";
-  	 
      my %user = (
        UID     => $uid,
        BILL_ID => ($line->[14]) ? $line->[15] : $line->[3]
@@ -501,44 +497,6 @@ sub abon_periodic {
 
          $debug_output .= "$user{UID} TP_ID: $tp_id SUM: $sum ACCOUNT: ". (($create_account) ? "ACcOUNT SEND_EMAIL: $email" : '') .(($activate_notification) ? "NOTIFICATION: $email" : '') ."\n" if ($debug > 0);
        }
-
-
-#     	if ($line->[0] == 0) {
-#         $fees->take(\%user, $line->[1], { %PARAMS } ); 
-#         $Abon->user_tariff_update({ UID   => "$line->[2]", 
-#         	                           TP_ID => "$line->[10]", 
-#         	                           DATE  => $ADMIN_REPORT{DATE} 
-#         	                          });
-#       }
-#    	#Get month fee
-#    	elsif ($line->[0] == 1 && $ADMIN_REPORT{DATE} eq $line->[13]) {
-#         $fees->take(\%user, $line->[1], { %PARAMS } ); 
-#         $Abon->user_tariff_update({ UID   => "$line->[2]", 
-#         	                           DATE  => $ADMIN_REPORT{DATE}, 
-#         	                           TP_ID => "$line->[10]" });
-#       }
-#    	#Get quarter fee
-#    	elsif ($line->[0] == 2 && $ADMIN_REPORT{DATE} eq $line->[13]) {
-#         $fees->take(\%user, $line->[1], { %PARAMS } ); 
-#         $Abon->user_tariff_update({ UID   => "$line->[2]", 
-#         	                           DATE  => $ADMIN_REPORT{DATE}, 
-#         	                           TP_ID => "$line->[10]" });
-#       }
-#    	#Get six month fee
-#    	elsif ($line->[0] == 3 && $ADMIN_REPORT{DATE} eq $line->[13]) {
-#         $fees->take(\%user, $line->[1], { %PARAMS } ); 
-#         $Abon->user_tariff_update({ UID   => "$line->[2]", 
-#         	                           DATE  => $ADMIN_REPORT{DATE}, 
-#         	                           TP_ID => "$line->[10]" });
-#       }
-#  	  # Yesr fee
-#  	  elsif ($line->[0] == 4 && $ADMIN_REPORT{DATE} eq $line->[13]) {
-#         $fees->take(\%user, $line->[1], { %PARAMS } ); 
-#         $Abon->user_tariff_update({ UID   => "$line->[2]", 
-#         	                           DATE  => $ADMIN_REPORT{DATE}, 
-#         	                           TP_ID => "$line->[10]" 
-#         	                           });
-#       }
      }
     #Notification Section
     elsif ($notification1 eq $ADMIN_REPORT{DATE}) {

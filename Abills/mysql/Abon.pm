@@ -216,7 +216,8 @@ sub tariff_change {
               ALERT_ACCOUNT    => 'alert_account',
               EXT_CMD          => 'ext_cmd',
               ACTIVATE_NOTIFICATION => 'activate_notification',
-              VAT              => 'vat'
+              VAT              => 'vat',
+              NONFIX_PERIOD    => 'nonfix_period'
              );
 
 
@@ -228,6 +229,7 @@ sub tariff_change {
   $attr->{PERIOD_ALIGNMENT}= 0 if (! $attr->{PERIOD_ALIGNMENT});
   $attr->{ACTIVATE_NOTIFICATION}= 0 if (! $attr->{ACTIVATE_NOTIFICATION});
   $attr->{VAT}             = 0 if (! $attr->{VAT});
+  $attr->{NONFIX_PERIOD}   = 0 if (! $attr->{NONFIX_PERIOD});
 
   $self->changes($admin,  { CHANGE_PARAM => 'ABON_ID',
                    TABLE        => 'abon_tariffs',
