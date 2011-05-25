@@ -1275,7 +1275,7 @@ sub docs_account {
 	                                  });
        	 
          	 my $content = docs_account({ OUTPUT2RETURN => 1 });
-         	 if ($attr->{OUTPUT_TO_RETURN}) {
+         	 if ($attr->{OUTPUT2RETURN}) {
          	 	  return $content;
          	  }
          	 else {

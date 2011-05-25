@@ -518,11 +518,13 @@ sub abon_periodic {
    	       $FORM{ORDER}     = "$_ABON: [$info{SUM}] $info{TP_NAME} $info{COMMENT}";
    	       $FORM{EMAIL}     = $email;
    	       $FORM{SEND_EMAIL}= 1;
-   	       my $content = docs_account({ QUITE => 1 });
+   	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
    	       $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
        	  	             FILENAME     => 'account.pdf' }
 	  	                 ];
+	  	                 
+      	  	                 
     	 }
 
 
@@ -534,7 +536,7 @@ sub abon_periodic {
     	                           });
     	
     	
- 	    sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON", "$message", "$conf{MAIL_CHARSET}",
+ 	    sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
          	  { ATTACHMENTS => $attach });
      } 
@@ -573,7 +575,7 @@ sub abon_periodic {
          	                         TP_ID => "$line->[10]" 
         	                       });
     	
- 	    sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON", "$message", "$conf{MAIL_CHARSET}",
+ 	    sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
          	  { ATTACHMENTS => $attach });
      }
@@ -606,7 +608,7 @@ sub abon_periodic {
     	 }
     	
     	
- 	    sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON", "$message", "$conf{MAIL_CHARSET}",
+ 	    sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ABON $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
          	  { ATTACHMENTS => $attach });
       
