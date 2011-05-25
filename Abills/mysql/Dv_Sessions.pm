@@ -165,7 +165,6 @@ sub online {
     $self->{TOTAL} = $self->{list}->[0][0];
   	return $self;
    }
- 
 
   my @FIELDS_ALL = (
    'c.user_name',
@@ -228,7 +227,7 @@ sub online {
    SPEED           => 'dv.speed',   
    SUM             => 'c.sum',
    STATUS          => 'c.status',
-   ADDRESS_FULL    => ($CONF->{ADDRESS_REGISTER}) ? 'concat(streets.name,\' \', builds.number, \' \', pi.address_flat) AS ADDRESS'  : 'concat(pi.address_street,\' \', pi.address_build,\'/\', pi.address_flat) AS ADDRESS', 
+   ADDRESS_FULL    => ($CONF->{ADDRESS_REGISTER}) ? 'concat(streets.name,\' \', builds.number, \'/\', pi.address_flat) AS ADDRESS'  : 'concat(pi.address_street,\' \', pi.address_build,\'/\', pi.address_flat) AS ADDRESS', 
    GID             => 'u.gid',
    TURBO_MODE      => 'c.turbo_mode',
    JOIN_SERVICE    => 'c.join_service',
@@ -269,6 +268,7 @@ sub online {
     elsif ($RES_FIELDS[$i] == 16 && $CONF->{ADDRESS_REGISTER}) {
       $EXT_TABLE .= "INNER JOIN builds ON (builds.id=pi.location_id)
         INNER JOIN streets ON (streets.id=builds.street_id)";
+      $FIELDS_ALL[16]='concat(streets.name,\' \', builds.number, \'/\', pi.address_flat) AS ADDRESS';  
   	 }
     
     $fields .= "$FIELDS_ALL[$RES_FIELDS[$i]], ";
