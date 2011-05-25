@@ -1537,13 +1537,11 @@ sub docs_print {
      }
    }
 
-  if ($attr->{SUFIX}) {
-  	$tpl_sufix='_'.$attr->{SUFIX};
-   }
 
 	return $html->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
 	    { pdf           => $FORM{pdf},
-	    	OUTPUT2RETURN => $attr->{OUTPUT2RETURN} 
+	    	OUTPUT2RETURN => $attr->{OUTPUT2RETURN},
+	    	SUFIX         => $attr->{SUFIX}
 	    	}), 
 	    { %$users, %$attr  });
 }

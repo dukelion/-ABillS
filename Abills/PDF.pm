@@ -1581,7 +1581,6 @@ sub tpl_describe {
   my %TPL_DESCRIBE = ();
 
   if (! -f $filename) {
-  	
   	return \%TPL_DESCRIBE;
    }
 
