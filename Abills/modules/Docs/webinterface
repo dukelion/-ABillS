@@ -1144,6 +1144,7 @@ sub docs_accounts_multi_create {
        	  	                 ] });
 
            $html = $html_old;
+           delete $FORM{pdf};
           }
         }
        #else {
@@ -1286,6 +1287,7 @@ sub docs_account {
        	  	                 ] });
             }
            $html = $html_old;
+           delete $FORM{pdf};
           } 	 
 
        	 return 0;
@@ -1453,6 +1455,10 @@ sub docs_print {
   if (-f "../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl") {
     require "../language/$conf{DOCS_LANGUAGE}.pl";
     require "../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
+   }
+  elsif (-f $Bin."/../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl") {
+    require $Bin."/../language/$conf{DOCS_LANGUAGE}.pl";
+    require $Bin."/../Abills/modules/Docs/lng_$conf{DOCS_LANGUAGE}.pl";
    }
   else {
     require "../../language/$conf{DOCS_LANGUAGE}.pl";
