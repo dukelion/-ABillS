@@ -74,9 +74,12 @@ sub _include {
    }
 
   if ($attr->{SUFIX}) {
-  	delete $attr->{SUFIX};
-  	$tpl =~ s/_$attr->{SUFIX}$//;
-  	goto start;
+    $tpl =~ /\/([a-z0-9\_\.\-]+)$/i;
+    $tpl = $1;
+    $tpl =~ s/_$attr->{SUFIX}$//;
+    delete $attr->{SUFIX};
+    print "'$tpl'\n";
+    goto start;
    }
 
   return "No such template [$tpl]\n";
