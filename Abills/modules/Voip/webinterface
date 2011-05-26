@@ -372,6 +372,9 @@ sub voip_tp_routes {
 
   my $Voip_tp;
 
+
+
+
   my @caption      = ($_PREFIX, $_ROUTES, "$_STATUS", 'TRUNK');
   my @aligns       = ('left', 'left', 'center');
   my @interval_ids = ();
@@ -441,7 +444,21 @@ else {
    $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");
   }
   
-  my $pages_qs='';
+
+
+ $pages_qs='';
+
+  form_search({ 
+     SIMPLE        => {$_PREFIX   => "ROUTE_PREFIX",
+                       $_NAME     => "ROUTE_NAME",
+                       $_DISABLE  => "DISABLE",
+                       $_DESCRIBE => "DESCRIBE",
+                       $_GATEWAY  => "GATEWAY_SEL",
+                       $_SUM      => "PRICE"},
+
+     HIDDEN_FIELDS => { TP_ID      => $FORM{TP_ID},
+     	                  routes     => $FORM{routes} }
+   });
 
 $list = $Voip->rp_list({ %LIST_PARAMS });
 my %prices = ();
@@ -450,6 +467,8 @@ foreach my $line (@$list) {
   $prices{"$line->[0]"}{"$line->[1]"}=$line->[3];
   $trunks{"$line->[0]"}{"$line->[1]"}=$line->[4];
 }
+
+
 
 
 
@@ -527,93 +546,8 @@ if ($FORM{export_rp}) {
 }
 
 
-  form_search({ 
-     SIMPLE        => {$_PREFIX   => "ROUTE_PREFIX",
-                       $_NAME     => "ROUTE_NAME",
-                       $_DISABLE  => "DISABLE",
-                       $_DESCRIBE => "DESCRIBE",
-                       $_GATEWAY  => "GATEWAY_SEL",
-                       $_SUM      => "PRICE"},
-
-     HIDDEN_FIELDS => { TP_ID      => $FORM{TP_ID},
-     	                  routes     => $FORM{routes} }
-   });
 
 
-###
-#my  %new_hash = ();
-#my  %phone_prefix = ();
-#
-#
-#foreach my $line (@$list) {
-#  $new_hash{$line->[5]}{$line->[0]}="$line->[2]";
-#  $route_info{$line->[0]}="$line->[1]:$line->[3]";
-#}
-#
-#my $h = $new_hash{0};
-#my @last_array = ();
-#
-#my @menu_sorted = sort {
-#   $h->{$b} <=> $h->{$a}
-#     ||
-#   length($a) <=> length($b)
-#     ||
-#   $a cmp $b
-#} keys %$h;
-#
-#
-#
-#foreach my $parent (@menu_sorted) { 
-#  
-#  my @l=();
-#  for(my $i = 0; $i<$intervals; $i++) { 
-#      push @l, "<input type=text name='p_$parent". '_' . "$interval_ids[$i]' value='$parent". '_' . "$interval_ids[$i]' size=5>"; 
-#    }
-#  
-#  my $val = $h->{$parent};
-#  my $level = 0;
-#  my $prefix = '';
-#  my ($phone_prefix, $enable) = split(/:/, $route_info{$parent}, 2);
-#  
-#  $table->addrow("$phone_prefix",  "$val", @l);
-#
-#  if (defined($new_hash{$parent})) {
-#    $level++;
-#    $prefix .= "&nbsp;&nbsp;&nbsp;";
-#    label:
-#      my $mi = $new_hash{$parent};
-#
-#      while(my($k, $val)=each %$mi) {
-#       
-#      my @l=();
-#      for(my $i = 0; $i<$intervals; $i++) { 
-#         push @l, "<input type=text name='p_$k" .'_'. "$interval_ids[$i]' value='$k". "_" . "$interval_ids[$i]' size=5>"; 
-#       }
-#
-#        my ($phone_prefix, $enable) = split(/:/, $route_info{$k}, 2);
-#        $table->addrow("$prefix $phone_prefix", "$prefix $val", @l);
-#
-#        if (defined($new_hash{$k})) {
-#      	   $mi = $new_hash{$k};
-#      	   $level++;
-#           $prefix .= "&nbsp;&nbsp;&nbsp;";
-#           push @last_array, $parent;
-#           $parent = $k;
-#         }
-#        delete($new_hash{$parent}{$k});
-#      }
-#    
-#    if ($#last_array > -1) {
-#      $parent = pop @last_array;	
-##      print "POP/$#last_array/$parent/<br>\n";
-#      $level--;
-#      
-#      $prefix = substr($prefix, 0, $level * 6 * 3);
-#      goto label;
-#    }
-#    delete($new_hash{0}{$parent});
-#   }
-#}
 
 
 my $table2 = $html->table( { width      => '100%',
@@ -2642,6 +2576,8 @@ close(FILE);
 if ($conf{VOIP_ASTERISK_RESTART}) {
 	system($conf{VOIP_ASTERISK_RESTART});
 }
+
+
 
 }
 
