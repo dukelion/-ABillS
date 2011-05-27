@@ -63,7 +63,7 @@ sub abon_user {
           $activate_notification               = $line->[11];
 
 
-          if ($FORM{'DATE_'.$Abon->{TP_INFO}->{TP_ID}}) {
+          if ($FORM{'DATE_'.$Abon->{TP_INFO}->{TP_ID}} && $FORM{'DATE_'.$Abon->{TP_INFO}->{TP_ID}} ne '0000-00-00') {
           	$FORM{'PERIOD_'.$Abon->{TP_INFO}->{TP_ID}} = $line->[2];
             push @add_arr, $line->[7];
             next;
@@ -72,12 +72,21 @@ sub abon_user {
           my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[7]]" . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
                          METHOD   => $Abon->{TP_INFO}->{FEES_TYPE}  );
           
+          
+
           if ($line->[2] == 1 && $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} == 1) {
             $Abon->{ACTIVATE}=$users->{ACTIVATE};
             abon_get_month_fee($Abon);      
            }
           else {
             $fees->take($users, $Abon->{TP_INFO}->{MONTH_FEE}, { %PARAMS } ); 
+            if ($fees->{errno}) {
+        	    $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}");	
+             }
+            else {
+            	my $message = "$_ABON: $sum ($Abon->{TP_INFO}->{TP_ID})";
+              $html->message('info', $_INFO, $message);	
+             }
            }
 
           if ($ext_cmd) {

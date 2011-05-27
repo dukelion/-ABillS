@@ -56,7 +56,7 @@ my $debug;
 my %log_levels;
 my $IMG_PATH;
 my $row_number = 0;
-
+my $CONF;
 
 #**********************************************************
 # Create Object
@@ -66,6 +66,7 @@ sub new {
   my ($attr) = @_;
   
   $IMG_PATH = (defined($attr->{IMG_PATH})) ? $attr->{IMG_PATH} : '../img/';
+  $CONF = $attr->{CONF} if (defined($attr->{CONF}));
 
   my $self = { };
   bless($self, $class);
@@ -113,11 +114,14 @@ sub new {
   $index = $FORM{index} || 0;  
   
   
-  if (defined($COOKIES{language}) && $COOKIES{language} ne '') {
-    $self->{language}=$COOKIES{language};
+  if ($attr->{language}) {
+    $self->{language}=$attr->{language};
+   }
+  elsif ($COOKIES{language}) {
+  	$self->{language}=$COOKIES{language};
    }
   else {
-    $self->{language} = 'english';
+    $self->{language} = $CONF->{default_language} || 'english';
    }
 
   return $self;

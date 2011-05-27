@@ -37,39 +37,6 @@ use Asterisk::AGI;
 my $agi = new Asterisk::AGI;
 my %data = ();
 
-
-
-
-
-#my  $r = new Radius(Host => 'null', Secret => 'testall');
-#
-#  if( ! defined($r) ) {
-#
-#     exit;
-#   }
-#
-#
-#  $r->load_dictionary;
-#  $r->add_attributes (
-#                { Name => 'User-Name',         Value => 'aa1' },
-#                { Name => 'Password',          Value => 'test123123' },
-#                { Name => 'h323-return-code',  Value => '0' }, # Cisco AV pair
-#                { Name => 'Digest-Attributes', Value => { Method => 'REGISTER' } }
-#  );
-#
-#  print $r->get_error();
-#
-#  
-#  
-#  $r->send_packet (1) and my $type = $r->recv_packet;
-#  print "server response type = $type\n";
-#  for my $a ($r->get_attributes) {
-#        print "attr: name=$a->{'Name'} value=$a->{'Value'}\n";
-#  }
-#
-#exit;
-
-
 # Parsing input data
 my %input = $agi->ReadParse();
 
@@ -185,7 +152,8 @@ if ($data{return_code} != 0 && $data{return_code} != 13) {
 	$agi->hangup();
 	exit;
 }
-$agi->set_autohangup($data{'session_timeout'}) if $data{'session_timeout'} > 0;
+
+#$agi->set_autohangup($data{'session_timeout'}) if $data{'session_timeout'} > 0;
 
 
 if ($debug > 0) {
@@ -232,10 +200,10 @@ else {
 # Dial Timeout
 $dialstring .= "|$conf{'VOIP_DEFAULTDIALTIMEOUT'}";
 
-#if ($data{'session_timeout'} > 0){
-#  $dialstring .= "|";
-#  $dialstring .= "S(".$data{'session_timeout'}.")";
-# }
+if ($data{'session_timeout'} > 0){
+  $dialstring .= "|";
+  $dialstring .= "S(".$data{'session_timeout'}.")";
+ }
 
 
 syslog('info', "Start call CHANNEL: $input{'channel'} NUMBER:". $dialstring);
