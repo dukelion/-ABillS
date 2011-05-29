@@ -84,7 +84,7 @@ sub abon_user {
         	    $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}");	
              }
             else {
-            	my $message = "$_ABON: $sum ($Abon->{TP_INFO}->{TP_ID})";
+            	my $message = "$_ABON: $Abon->{TP_INFO}->{MONTH_FEE} ($Abon->{TP_INFO}->{TP_ID})";
               $html->message('info', $_INFO, $message);	
              }
            }

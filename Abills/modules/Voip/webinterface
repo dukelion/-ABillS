@@ -5,9 +5,13 @@
 
 use Voip;
 use Voip_Sessions;
+use Nas;
+use Log;
 
 my $Voip     = Voip->new($db, $admin, \%conf);
 my $sessions = Voip_Sessions->new($db, \%conf);
+my $Nas      = Nas->new($db, \%conf);
+$Log         = Log->new($db, \%conf);
 
 my $MODULE = ($module{$index}) ? $module{$index} : 'Voip';
 my $debug = 0;
@@ -1318,7 +1322,6 @@ print $table->show();
 #*******************************************************************
 sub voip_online {
 
-my $nas = Nas->new($db, \%conf);
 my $message;
 
 
@@ -1333,10 +1336,10 @@ if ($FORM{ping}) {
  }
 elsif ($FORM{hangup}) {
   my ($nas_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
-  $nas->info( { NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
+  $Nas->info( { NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
   
-  if ($nas->{errno}) {
-    $html->message('err', $_NAS, "$nas->{errstr}");
+  if ($Nas->{errno}) {
+    $html->message('err', $_NAS, "$Nas->{errstr}");
   	return 0;
    }
 
@@ -1346,25 +1349,22 @@ elsif ($FORM{hangup}) {
   
   
   if ($ret == 0) {
-     my $table = $html->table( { width => '100%',
-                                caption => $_HANGUPED,
-                                rows => [ [ "$_NAS ID",   $nas_id],
-                                          [ "$_NAS IP",   $nas->{NAS_IP} ],
-                                          [ "$_PORT",     $nas_port_id   ],
-                                          [ "SESSION_ID", $acct_session_id ],
-                                          [ "", $ret ] ]
-                               } );
-     
-     $message = $table->show();
+     $message = "$_NAS ID: $nas_id 
+                 $_NAS IP: $Nas->{NAS_IP}
+                 $_PORT: $nas_port_id
+                 $_SESSION_ID: $acct_session_id
+                 $ret ";
      sleep 3;
-     
-     #weblog('hangup', "$user_name");
    }
   elsif ($ret == 1) {
    	$message = 'NAS NOT supported yet';
    }
 
   $html->message('info', $_INFO, "$message");
+ }
+elsif ($FORM{zapall}) {
+  $sessions->zap(0, 0, 0, { ALL => 1, %FORM });
+  $html->message('info', $_INFO, "Zapped all sessions");
  }
 elsif($FORM{zap}) {
   my  ($nas_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
@@ -1375,18 +1375,13 @@ elsif($FORM{zap}) {
   	 return 0;
    }
 
-  $nas->info({NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
-  $message = "<table width=100%>
-     <tr><th colspan=2 align=left>$_CLOSED</th></tr>
-     <tr><td>$_NAS:</td><td>$nas->{NAS_IP} / $nas->{NAS_INDENTIFIER}</td></tr>
-     <tr><td>$_PORT:</td><td>$nas_port_id</td></tr>
-     <tr><td>SESSION_ID:</td><td>$acct_session_id</td></tr>
-     </table>\n";
-
-  
+  $Nas->info({NAS_ID => $nas_id, SECRETKEY => $conf{secretkey} });
+  $message = "$_NAS: $Nas->{NAS_IP} / $Nas->{NAS_INDENTIFIER}\n".
+     "$_PORT: $nas_port_id\n".
+     "SESSION_ID: $acct_session_id\n";
  
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
-  	                NAS_ID          => $nas->{NAS_ID} });  
+  	                NAS_ID          => $Nas->{NAS_ID} });  
   
   if ($sessions->{TOTAL} < 1) {
     $message .= $html->button('add to log', "index=$index&tolog=$acct_session_id&nas_id=$nas_id", { BUTTON => 1  }). ' '.
@@ -1400,7 +1395,7 @@ elsif($FORM{zap}) {
 
    }
 
-  $html->message('info', $_INFO, $message);
+  $html->message('info', $_CLOSED, $message);
 }
 elsif($FORM{tolog}) {
   my $ACCT_INFO = $sessions->online_info({ NAS_ID          => $FORM{nas_id},
@@ -1408,7 +1403,7 @@ elsif($FORM{tolog}) {
                                          });
 
   if ($ACCT_INFO->{TOTAL} < 1) {
-    $html->message('err', $_ERROR, "$_NOT_EXIST");	
+    $html->message('err', $_ERROR, "$_NOT_EXIST $_SESSION_ID [$FORM{tolog}]");	
     return 0;
    }
 
@@ -1416,7 +1411,7 @@ elsif($FORM{tolog}) {
   $ACCT_INFO->{ACCT_STATUS_TYPE} = 'Stop';
   
 
-  $nas->info({NAS_ID    => $ACCT_INFO->{NAS_ID},
+  $Nas->info({NAS_ID    => $ACCT_INFO->{NAS_ID},
               SECRETKEY => $conf{secretkey}});
 
   Voip_aaa->import();
@@ -1455,13 +1450,7 @@ elsif($FORM{del} || $FORM{dellist}) {
    }
 
   if (! $sessions->{errno}) {
-    my $table = $html->table( { width => '100%',
-                                rows => [ [ "NAS_ID",          $FORM{nas_id}     ],
-                                          [ "ACCT_SESSION_ID", $FORM{del}        ]
-                                        ]
-                               } );
-    
-    $html->message('info', $_DELETED, $table->show());	
+    $html->message('info', $_DELETED, "NAS_ID: $FORM{nas_id}\nACCT_SESSION_ID: $FORM{del}");	
    }
 
 }
@@ -1492,6 +1481,7 @@ my $table = $html->table( { caption    => "$cure",
                             title      => ["$_USER", "$_FIO", "CALLED_STATION_ID", "CALLING_STATION_ID", "$_DURATION", "CLIENT_IP_ADDRESS",  "-", "-", "-"],
                             cols_align => ['left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'center'],
                             qs         => $pages_qs,
+                            
                            });
 
 
@@ -1499,7 +1489,7 @@ my $table = $html->table( { caption    => "$cure",
 my $bg;
 my $online = $sessions->{nas_sorted};
 
-my $nas_list = $nas->list();
+my $nas_list = $Nas->list();
 
 foreach my $nas_row (@$nas_list) {
   next if (! defined($online->{$nas_row->[0]}));
@@ -1744,26 +1734,127 @@ print $table_sessions->show() . $table->show();
 #**********************************************************
 sub voip_error {
 	my ($attr) = @_;
-  my $PAGE_ROWS = 100;
-  $conf{LOGFILE} = "/usr/abills/var/log/abills.voip";
+  my $PAGE_ROWS = 25;
   my $login  = ''; 
 
+  my %log_levels_rev = reverse %log_levels;
+  my @ACTIONS = ('', 'AUTH', 'ACCT', 'HANGUP', 'CALCULATION', 'CMD');
+ 
 
 if ($attr->{USER}) {
   my $user = $attr->{USER};
-  $login = $user->{LOGIN};
+  $login   = $user->{LOGIN};
+  $LIST_PARAMS{LOGIN_EXPR} = $user->{LOGIN};
 }
 elsif ($FORM{LOGIN_EXPR}) {
-  $login = $FORM{LOGIN_EXPR};
+  $login     = $FORM{LOGIN_EXPR};
+  $LIST_PARAMS{LOGIN_EXPR} = $FORM{LOGIN_EXPR};
   $pages_qs .= "&LOGIN_EXPR=$FORM{LOGIN_EXPR}";
  }
 elsif($FORM{UID}) {
-  voip_users();
+  voip_user();
   return 0;
 }
 
+#Sql Part
+if ($conf{ERROR2DB}) {
+  my %nas_ids = ( '' => '',
+                  0  => 'UNKNOWN',
+                 );
+
+  my $list = $Nas->list({ TYPE => 'asterisk,gnugk' });
+  foreach my $line (@$list) {
+    $nas_ids{$line->[0]} = $line->[1];
+   }
+
+  $Voip->{LOG_TYPE_SEL} = $html->form_select('LOG_TYPE', 
+                          { 
+ 	                         SELECTED  => $FORM{LOG_TYPE},
+ 	                         SEL_HASH  => { '' => '', %log_levels_rev},
+                           NO_ID     => 1
+   	                      }) ;
+
+  $Voip->{NAS_ID_SEL} = $html->form_select('NAS_ID', 
+                          { 
+ 	                         SELECTED  => $FORM{NAS_ID},
+ 	                         SEL_HASH  => \%nas_ids,
+                           NO_ID     => 1
+   	                      }) ;
+
+  
+
+  $Voip->{ACTIONS_SEL} = $html->form_select('ACTION', 
+                                          { 
+ 	                                          SELECTED     => $FORM{ACTION},
+ 	                                          SEL_ARRAY    => \@ACTIONS,
+ 	                                        });
 
 
+  form_search({ SEARCH_FORM => $html->tpl_show(_include('voip_errors_search', 'Voip'),
+ 	                                            { %FORM, %$Voip },
+ 	                                            { OUTPUT2RETURN => 1 })    });
+
+  
+	if (! $FORM{sort}) {
+	  $LIST_PARAMS{SORT}=1;
+	  $LIST_PARAMS{DESC}=DESC;
+   }
+
+  if ($FORM{search}) {
+    $LIST_PARAMS{INTERVAL} = "$FORM{FROM_DATE}/$FORM{TO_DATE}";
+   }
+   
+  $LIST_PARAMS{NAS_ID}=join(';', keys %nas_ids);
+
+  $list = $Log->log_list({ %LIST_PARAMS  });
+  my $table = $html->table( { 
+  	                    caption    => $_TOTAL,
+	                      width      => '100%',
+	                      cols_align => ['right', 'right'],
+	                       } );
+
+  my $total = 0;
+	foreach my $line (@{ $Log->{list} }) {
+		$table->addrow(
+		$log_levels_rev{$line->[0]},
+		$line->[1]
+		);
+    $total += $line->[1];
+	 }
+
+	$table->addrow(
+		$_TOTAL, $total
+		);
+
+
+  print $table->show();
+
+
+  $table = $html->table( { caption => "$_ERROR",
+	                         width   => '100%',
+	                         title   => [ $_DATE, "$_TYPE", "$_ACTION", "$_USER", "$_TEXT", "NAS"],
+	                         pages   => $total,
+	                         qs      => $pages_qs,
+	                         ID      => 'DV_ERRORS'
+	                      } );
+
+	foreach my $line (@$list) {
+		$table->addrow($line->[0],
+		$log_levels_rev{$line->[1]},
+		$line->[2],
+		$html->button($line->[3], "index=11&LOGIN=$line->[3]"),
+		($line->[1] < 5) ? $html->color_mark($line->[4], "#FF0000") : $line->[4],
+		$nas_ids{$line->[5]}
+		);
+	 }
+
+  print $table->show();  
+}
+
+
+return 0 if (in_array('Dv', \@MODULES));
+
+#File part
 if (! -f $conf{LOGFILE}) {
 	$html->message('info', $_INFO, "'$conf{LOGFILE}' $_NOT_EXIST");
 	return 0;
@@ -1774,54 +1865,42 @@ if (defined($FORM{LOG_TYPE})) {
 	$pages_qs .= "&LOG_TYPE=$FORM{LOG_TYPE}";
 }
 
-my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      => $FORM{DATE},
-	                                                                   LOG_TYPE  => $FORM{LOG_TYPE},
-	                                                                   PG        => $PG,
-	                                                                   PAGE_ROWS => $PAGE_ROWS });
-	                                                                   
 
-print $html->form_main({ CONTENT => "$_LOGIN: " . $html->form_input('LOGIN_EXPR', "$FORM{LOGIN_EXPR}"),
-	                       HIDDEN  => { sid   => "$sid",
-	                                    index => "$index",
-	                                    UID   => "$UID"   },
-	                       SUBMIT  => { show  => "$_SHOW" }
-	                      
-	                      });
-	                                                                   
-my $table = $html->table( { caption => "$_LOG",
+my ($list, $types, $totals) = show_log("$login", "$conf{LOGFILE}", { DATE      => $FORM{DATE},
+	                                                                   LOG_TYPE  => $log_levels_rev{$FORM{LOG_TYPE}},
+	                                                                   PG        => $PG,
+	                                                                   PAGE_ROWS => 25 #$PAGE_ROWS
+	                                                                 });
+
+my $table = $html->table( { caption => "System $_ERROR",
 	                          width   => '100%',
 	                          pages   => $totals,
-	                          qs      => $pages_qs
+	                          qs      => $pages_qs,
+	                          ID      => 'DV_ERRORS'
 	                         } );
 
 foreach my $line (@$list) {
   if ($line =~ m/LOG_WARNING/i) {
-     $line = "<font color='#FF0000'>$line</font>";
+     $line = $html->color_mark($line, '#FF0000');
    }
-
-#  if ($line =~ m/LOG_WARNING/i) {
-#    $table->{rowcolor}='#FF0000';
-#   } 
-#  else {
-#  	$table->{rowcolor}=undef;
-#   }  
 
   $table->addrow($line);
 }
 print $table->show();
 
 
-$table = $html->table({ 
-                        width      => '100%',
-                        cols_align => ['right', 'right'] 
-                        });
+$table = $html->table( { 
+	                      width      => '100%',
+	                      cols_align => ['right', 'right'] } );
 
-$table->addrow($html->button("$_TOTAL", "index=$index&$pages_qs", { BUTTON => 1 }), $totals);
+$table->addrow($html->button("$_TOTAL", "index=$index&$pages_qs"), $totals);
 while(my($k,$v)=each %$types) {
-  $table->addrow($html->button($k, "index=$index&LOG_TYPE=$k$pages_qs", { BUTTON => 1 }), $v);
+  $table->addrow($html->button($k, "index=$index&LOG_TYPE=$k$pages_qs"), $v);
 }
-print $table->show();
 
+$table->addrow($_SIZE, int2byte((-s $conf{LOGFILE}))) if ($login eq '');
+
+print $table->show();
 }
 
 
@@ -2350,7 +2429,7 @@ my  $nas = Nas->new($db, \%conf);
 
 
 
-my $list = $nas->list({ TYPE => 'gnugk'});
+my $list = $Nas->list({ TYPE => 'gnugk'});
 my $table = $html->table({ caption => "$_NAS",
 	                         width   => '100%',
                            border  => 1,
@@ -2408,16 +2487,16 @@ if ($FORM{NAS_ID}){
 
 
   if(length($FORM{command})>0){
-    $nas->info({ NAS_ID => $FORM{NAS_ID}});
+    $Nas->info({ NAS_ID => $FORM{NAS_ID}});
     my @commands = ();
  
     require 'Abills/nas.pl';
-    push @commands, "login:\t$nas->{NAS_MNG_USER}";
-    push @commands, "assword:\t$nas->{NAS_MNG_PASSWORD}";
+    push @commands, "login:\t$Nas->{NAS_MNG_USER}";
+    push @commands, "assword:\t$Nas->{NAS_MNG_PASSWORD}";
     push @commands, ";\t$FORM{command}";
     push @commands, ";\tquit";
 
-    my $result = telnet_cmd("$nas->{NAS_MNG_IP_PORT}", \@commands, { debug => 1 });
+    my $result = telnet_cmd("$Nas->{NAS_MNG_IP_PORT}", \@commands, { debug => 1 });
     my $total=0;
     my @rows = split(/\n/, $result);
     my @registred = ();

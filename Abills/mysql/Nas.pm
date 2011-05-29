@@ -62,7 +62,7 @@ sub list {
 
 
   if(defined($attr->{TYPE})) {
-  	push @WHERE_RULES, "nas.nas_type='$attr->{TYPE}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{TYPE}, 'STR', 'nas.nas_type') };
   }
 
   if(defined($attr->{DISABLE})) {

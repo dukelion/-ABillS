@@ -1,4 +1,3 @@
-
 $_FIRST_PERIOD='First period';
 $_FIRST_PERIOD_STEP='Step Of first period';
 $_NEXT_PERIOD='Next Period';
