@@ -491,9 +491,25 @@ print $table->show();
 # docs_accounts_list
 #**********************************************************
 sub docs_accounts_list {
+  my ($attr)=@_;
+
 
 my @payments_status = ("$_UNPAID", "$_PAID", "$_PARTLY_PAID");
 push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
+
+
+
+if ($attr->{COMPANY} ) {
+  $LIST_PARAMS{COMPANY_ID}=$FORM{COMPANY_ID};
+  $index=$FORM{index};
+ }
+elsif ($FORM{COMPANY_ID} && ! $attr->{COMPANY} && ! $FORM{qindex}) {
+   $FORM{subf}=$FORM{index};
+   $index2=$FORM{index};
+   form_companies();
+   return 0;
+  }
+
 
 for(my $i=0; $i<=$#PAYMENT_METHODS; $i++) {
   $PAYMENTS_METHODS{$i}=$PAYMENT_METHODS[$i];

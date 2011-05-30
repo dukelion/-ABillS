@@ -329,9 +329,12 @@ sub accounts_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_METHOD}, 'INT', 'p.method') };
   }
 
+ if ($attr->{COMPANY_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
+  }
+
  if ($attr->{DOC_ID}) {
- 	  my $value = $self->search_expr($attr->{DOC_ID}, 'INT');
-    push @WHERE_RULES, "d.acct_id$value";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{DOC_ID}, 'INT', 'd.acct_id') };
   }
 
  if ($attr->{SUM}) {
