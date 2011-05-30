@@ -27,7 +27,7 @@ samechanged('STATE');
 
 -->
 </SCRIPT>
-
+<input type='hidden' name='MAIN_INNER_MESSAGE' value='%MAIN_INNER_MSG%'/>
 <div class='noprint'>
 <table width=100%>
 <tr><th bgcolor='$_COLORS[0]' colspan='2'>$_REPLY</th></tr>

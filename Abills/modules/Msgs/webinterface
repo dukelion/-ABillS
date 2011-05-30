@@ -514,9 +514,9 @@ sub msgs_admin {
       
       if ( $FORM{REPLY_SUBJECT} || $FORM{REPLY_TEXT} || $FORM{FILE_UPLOAD} || $FORM{SURVEY_ID})  {
         $Msgs->message_reply_add({ %FORM, 
-    	                           AID   => $admin->{AID},
-    	                           IP    => $admin->{SESSION_IP},
-    	                         });
+    	                             AID   => $admin->{AID},
+    	                             IP    => $admin->{SESSION_IP},
+    	                           });
 
         my $reply_id =  $Msgs->{INSERT_ID};
         $FORM{REPLY_ID}=$reply_id;
@@ -540,16 +540,15 @@ sub msgs_admin {
       %params = ();
       $params{CHAPTER}     = $FORM{CHAPTER_ID} if ($FORM{CHAPTER_ID});
       $params{STATE}       = $FORM{STATE} if (defined($FORM{STATE}) && $FORM{STATE} ne '');
-      $params{STATE}       = ($FORM{STATE} == 0) ? 6 : $FORM{STATE} ;
-      my $state=$FORM{STATE};
-   	 	$params{CLOSED_DATE} = "$DATE $TIME" if ($state > 0);
-	   	$params{DONE_DATE}   = $DATE         if ($state > 1);
+      $params{STATE}       = ($FORM{STATE} == 0 && ! $FORM{MAIN_INNER_MESSAGE}) ? 6 : $FORM{STATE} ;
+   	 	$params{CLOSED_DATE} = "$DATE $TIME" if ($FORM{STATE} > 0);
+	   	$params{DONE_DATE}   = $DATE         if ($FORM{STATE} > 1);
 	    $Msgs->message_change({ UID       => $LIST_PARAMS{UID},
- 	 	                        ID        => $FORM{ID},
- 	 	                        USER_READ => "0000-00-00 00:00:00",
- 	 	                        ADMIN_READ=> "$DATE $TIME",
- 	 	                        %params
- 	 	                      });
+ 	 	                          ID        => $FORM{ID},
+ 	 	                          USER_READ => "0000-00-00 00:00:00",
+ 	 	                          ADMIN_READ=> "$DATE $TIME",
+ 	 	                          %params
+ 	 	                        });
 
     $FORM{chg} = $FORM{ID};
     $html->message('info', $_INFO, "$_REPLY") if (! $Msgs->{errno});  	
@@ -728,6 +727,7 @@ sub msgs_admin {
       	REPLY_TEXT => "",
       	QUOTING    => "$reply",
      	  RUN_TIME   => "$_RUN_TIME ($_MINS):". $html->form_input('RUN_TIME', "$run_time", { EX_PARAMS => " STYLE='background-color: $_COLORS[3]' DISABLED size=9"} ),
+     	  MAIN_INNER_MSG => $Msgs->{INNER_MSG},
      	  INNER_MSG  => ($FORM{INNER_MSG}) ? ' checked ' : '',
      	  SURVEY_SEL => msgs_survey_sel()
     	 }, { OUTPUT2RETURN => 1 });
