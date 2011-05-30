@@ -37,7 +37,7 @@ fi;
 NEG_DEPOSIT_FWD=
 FWD_WEB_SERVER_IP=127.0.0.1;
 #Your user portal IP (Default: me)
-USER_PORTLA_IP=
+USER_PORTAL_IP=
 
 #Session Limit per IP
 SESSION_LIMIT=${abills_ip_sessions}
@@ -232,8 +232,8 @@ if [ w${NEG_DEPOSIT_FWD} != w ]; then
     DNS_IP=`cat /etc/resolv.conf | grep nameserver | awk '{ print $2 }' | head -1`
   fi;
 
-  if [ w${USER_PORTLA_IP} = w ]; then
-    USER_PORTLA_IP=me
+  if [ w${USER_PORTAL_IP} = w ]; then
+    USER_PORTAL_IP=me
   fi;
 
 FWD_RULE=10014;
@@ -245,7 +245,7 @@ if [ w${ACTION} = wstart ]; then
   #If use proxy
   #${IPFW} add ${FWD_RULE} fwd ${FWD_WEB_SERVER_IP},3128 tcp from table\(32\) to any dst-port 3128 via ${INTERNAL_INTERFACE}
   ${IPFW} add `expr ${FWD_RULE} + 10` allow ip from table\(32\) to ${DNS_IP} dst-port 53 via ${INTERNAL_INTERFACE}
-  ${IPFW} add `expr ${FWD_RULE} + 20` allow tcp from table\(32\) to ${USER_PORTLA_IP} dst-port 9443 via ${INTERNAL_INTERFACE}
+  ${IPFW} add `expr ${FWD_RULE} + 20` allow tcp from table\(32\) to ${USER_PORTAL_IP} dst-port 9443 via ${INTERNAL_INTERFACE}
   ${IPFW} add `expr ${FWD_RULE} + 30` deny ip from table\(32\) to any via ${INTERNAL_INTERFACE}
 else if [ w${ACTION} = wstop ]; then
   echo "Negative Deposit Forward Section - stop:"; 
