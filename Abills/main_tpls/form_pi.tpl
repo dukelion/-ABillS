@@ -1,7 +1,7 @@
 <TABLE width='100%'>
 <tr bgcolor='$_COLORS[0]'><TH align='right'>$_USER_INFO</TH></tr>
 </TABLE>
-<form action='$SELF_URL' method='post' name='users_pi'>
+<form action='$SELF_URL' method='post' name='users_pi' enctype='multipart/form-data'>
 
 <input type=hidden name=index value=$index>
 <input type=hidden name=UID value='%UID%'>

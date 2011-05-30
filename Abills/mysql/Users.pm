@@ -228,7 +228,20 @@ sub pi_add {
     	  my $value = $1;
     	  push @info_fields_arr, $value;
         if (defined($attr->{$value})) {
-    	    $attr->{$value} =~ s/^ +|[ \n]+$//g;
+    	    #attach
+    	    if ($attr->{$value}{filename}) {
+            $self->attachment_add({ 
+            	TABLE        => $value.'_file',
+              CONTENT      => $attr->{$value}{Contents},
+              FILESIZE     => $attr->{$value}{Size},
+              FILENAME     => $attr->{$value}{filename},
+              CONTENT_TYPE => $attr->{$value}{'Content-Type'}
+             });
+            $attr->{$value}=$self->{INSERT_ID};
+           }
+          else {
+          	$attr->{$value} =~ s/^ +|[ \n]+$//g;
+           }
          }
    	    else {
    	    	$attr->{$value} = '';
@@ -245,8 +258,6 @@ sub pi_add {
   my $sufix =''; 
   if ($attr->{CONTRACT_TYPE}) {
   	($prefix, $sufix)=split(/\|/, $attr->{CONTRACT_TYPE});
-  	#$self->query($db,  "SET \@CONTRACT_PREFIX:='$prefix';") if ($prefix);
-  	#$self->query($db,  "SET \@CONTRACT_SUFIX:='$sufix';") if ($sufix);
    }
 
 
@@ -273,6 +284,42 @@ sub pi_add {
   return $self;
 }
 
+
+
+#**********************************************************
+#
+#**********************************************************
+sub attachment_info () {
+  my $self = shift;
+  my ($attr) = @_;
+
+  my $WHERE  ='';
+  
+  if ($attr->{ID}) {
+  	$WHERE .= " id='$attr->{ID}'";
+   }
+ 
+ my $table = $attr->{TABLE};
+ 
+ $self->query($db,  "SELECT id, filename, 
+    content_type, 
+    content_size,
+    content
+   FROM `$table`
+   WHERE $WHERE" );
+
+ return $self if ($self->{TOTAL} < 1);
+
+  ($self->{ATTACHMENT_ID},
+   $self->{FILENAME}, 
+   $self->{CONTENT_TYPE},
+   $self->{FILESIZE},
+   $self->{CONTENT}
+  )= @{ $self->{list}->[0] };
+
+
+  return $self;
+}
 
 
 #**********************************************************
@@ -442,7 +489,23 @@ my %PI_FIELDS = (EMAIL       => 'email',
         my $field_name = $1;
         $PI_FIELDS{$field_name}="$field_name";
         my ($position, $type, $name)=split(/:/, $line->[1]);
-        if ($type == 4) {
+        if ($type == 13) {
+    	    #attach
+    	    if ($attr->{$field_name}{filename}) {
+            $self->attachment_add({
+            	TABLE        => $field_name.'_file',
+              CONTENT      => $attr->{$field_name}{Contents},
+              FILESIZE     => $attr->{$field_name}{Size},
+              FILENAME     => $attr->{$field_name}{filename},
+              CONTENT_TYPE => $attr->{$field_name}{'Content-Type'}
+             });
+            $attr->{$field_name}=$self->{INSERT_ID};
+           }
+          else {
+          	delete $attr->{$field_name};
+           }
+         }
+        elsif ($type == 4) {
         	$attr->{$field_name} = 0 if (! $attr->{$field_name});
          }
       }
@@ -1583,10 +1646,10 @@ sub info_field_add {
 	                    " varchar(20) not null default ''",
 	                    " varchar(50) not null default ''",
 	                    " varchar(50) not null default ''",
+	                    " int unsigned NOT NULL default '0' ",
 	                    );
 	
 	$attr->{FIELD_TYPE} = 0 if (! $attr->{FIELD_TYPE});
-	
 
 	my $column_type = $column_types[$attr->{FIELD_TYPE}];
 	my $field_prefix = 'ifu';
@@ -1607,7 +1670,16 @@ sub info_field_add {
        name varchar(120) not null default 0
        )DEFAULT CHARSET=$CONF->{dbcharset};", 'do');    	
      }
-      $self->config_add({ PARAM => $field_prefix. "_$attr->{FIELD_ID}", 
+    elsif ($attr->{FIELD_TYPE}==13) {
+       $self->query($db, "CREATE TABLE `_$attr->{FIELD_ID}_file` (`id` int(11) unsigned NOT NULL PRIMARY KEY auto_increment,
+         `filename` varchar(250) not null default '',
+         `content_size` varchar(30) not null  default '',
+         `content_type` varchar(250) not null default '',
+         `content` longblob NOT NULL,
+         `create_time` datetime NOT NULL default '0000-00-00 00:00:00') DEFAULT CHARSET=$CONF->{dbcharset};", 'do');    	
+     }
+
+    $self->config_add({ PARAM => $field_prefix. "_$attr->{FIELD_ID}", 
   	                      VALUE => "$attr->{POSITION}:$attr->{FIELD_TYPE}:$attr->{NAME}"
   	                    });
 

@@ -746,12 +746,49 @@ elsif($FORM{COMPANY_ID}) {
     	  $input = $html->form_input($field_id, 1, { TYPE  => 'checkbox',  
     		                                           STATE => ($company->{INFO_FIELDS_VAL}->[$i]) ? 1 : undef  });
        }
+      elsif ($type == 3) {
+        $input = $html->form_textarea($field_id, "$company->{INFO_FIELDS_VAL}->[$i]");
+       }
+      elsif ($type == 13) {
+        $input = $html->form_input($field_id, "$company->{INFO_FIELDS_VAL}->[$i]", { TYPE => 'file' });
+        if ($company->{INFO_FIELDS_VAL}->[$i]) {
+          $input .= ' '. $html->button($_DOWNLOAD, "qindex=". get_function_index('user_pi') ."&ATTACHMENT=$field_id:$company->{INFO_FIELDS_VAL}->[$i]", { BUTTON => 1 });
+         }
+       }
       else {
     	  $input = $html->form_input($field_id, "$company->{INFO_FIELDS_VAL}->[$i]", { SIZE => 40 });
        }
   	  $company->{INFO_FIELDS}.= "<tr><td>$name:</td><td>$input</td></tr>\n";
       $i++;
      }
+
+    $company->{CONTRACT_DATE} = $html->date_fld2('CONTRACT_DATE', { FORM_NAME => 'company',
+  	                                                              WEEK_DAYS => \@WEEKDAYS,
+  	                                                              MONTHES   => \@MONTHES,
+  	                                                              DATE      => $company->{CONTRACT_DATE} });
+
+  if (in_array('Docs', \@MODULES) ) {
+    #$company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', BUTTON => 1 }) ;
+    
+    if ($conf{DOCS_CONTRACT_TYPES}) {
+    	$conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
+      my (@contract_types_list)=split(/;/, $conf{DOCS_CONTRACT_TYPES});
+
+      my %CONTRACTS_LIST_HASH = ();
+      $FORM{CONTRACT_SUFIX}="|$user_pi->{CONTRACT_SUFIX}";
+      foreach my $line (@contract_types_list) {
+      	my ($prefix, $sufix, $name, $tpl_name)=split(/:/, $line);
+      	$prefix =~ s/ //g;
+      	$CONTRACTS_LIST_HASH{"$prefix|$sufix"}=$name;
+       }
+
+      $company->{CONTRACT_TYPE}=" $_TYPE: ".$html->form_select('CONTRACT_TYPE', 
+                                { SELECTED   => $FORM{CONTRACT_SUFIX},
+ 	                                SEL_HASH   => {'' => '', %CONTRACTS_LIST_HASH },
+ 	                                NO_ID      => 1
+ 	                               });
+     }
+   }
 
     $html->tpl_show(templates('form_company'), $company);
   }
@@ -780,7 +817,7 @@ else {
     $table->addrow($line->[0],  
       $line->[1], 
       $line->[2], 
-      $html->button($line->[3], "index=13&COMPANY_ID=$line->[5]"), 
+      $html->button($line->[3], "index=13&COMPANY_ID=$line->[5]&subf=11"), 
       "$status[$line->[4]]",
       $html->button($_INFO, "index=13&COMPANY_ID=$line->[5]", { BUTTON => 1 }), 
       (defined($permissions{0}{5})) ? $html->button($_DEL, "index=13&del=$line->[5]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }) : ''
@@ -904,8 +941,10 @@ sub add_company {
   $company->{ACTION}='add';
   $company->{LNG_ACTION}=$_ADD;
   
-  #$company->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { notprint => 1 });
+  #$company->{EXDATA} =  
+  #print $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { OUTPUT2RETURN => 1 });
   #$company->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
+  $company->{BILL_ID}=$html->form_input('CREATE_BILL', 1, { TYPE => 'checkbox', STATE => 1 }) . ' ' .$_CREATE;
 
   my $list = $users->config_list({ PARAM => 'ifc*', SORT => 2 });
 
@@ -933,12 +972,49 @@ sub add_company {
    	  $input = $html->form_input($field_id, 1, { TYPE  => 'checkbox',  
    		                                           STATE => ($company->{INFO_FIELDS_VAL}->[$i]) ? 1 : undef  });
       }
+     elsif ($type == 3) {
+        $input = $html->form_textarea($field_id, "$company->{INFO_FIELDS_VAL}->[$i]");
+       }
+     elsif ($type == 13) {
+        $input = $html->form_input($field_id, "$company->{INFO_FIELDS_VAL}->[$i]", { TYPE => 'file' });
+       }
      else {
    	   $input = $html->form_input($field_id, "$company->{INFO_FIELDS_VAL}->[$i]", { SIZE => 40 });
       }
     
   	  $company->{INFO_FIELDS}.= "<tr><td>$name:</td><td>$input</td></tr>\n";
    }
+
+
+    $company->{CONTRACT_DATE} = $html->date_fld2('CONTRACT_DATE', { FORM_NAME => 'company',
+  	                                                              WEEK_DAYS => \@WEEKDAYS,
+  	                                                              MONTHES   => \@MONTHES,
+  	                                                              DATE      => $company->{CONTRACT_DATE} });
+
+  if (in_array('Docs', \@MODULES) ) {
+    $company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', BUTTON => 1 }) ;
+    
+    if ($conf{DOCS_CONTRACT_TYPES}) {
+    	$conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
+      my (@contract_types_list)=split(/;/, $conf{DOCS_CONTRACT_TYPES});
+
+      my %CONTRACTS_LIST_HASH = ();
+      $FORM{CONTRACT_SUFIX}="|$user_pi->{CONTRACT_SUFIX}";
+      foreach my $line (@contract_types_list) {
+      	my ($prefix, $sufix, $name, $tpl_name)=split(/:/, $line);
+      	$prefix =~ s/ //g;
+      	$CONTRACTS_LIST_HASH{"$prefix|$sufix"}=$name;
+       }
+
+      $company->{CONTRACT_TYPE}=" $_TYPE: ".$html->form_select('CONTRACT_TYPE', 
+                                { SELECTED   => $FORM{CONTRACT_SUFIX},
+ 	                                SEL_HASH   => {'' => '', %CONTRACTS_LIST_HASH },
+ 	                                NO_ID      => 1
+ 	                               });
+     }
+   }
+
+
   
   $html->tpl_show(templates('form_company'), $company);
 }
@@ -1194,6 +1270,37 @@ sub user_info {
 }
 
 
+
+#**********************************************************
+#
+#**********************************************************
+sub form_show_attach {
+  my ($attr) = @_;
+
+
+  if ($FORM{ATTACHMENT} =~ /(.+):(.+)/) {
+  	$FORM{TABLE}     = $1.'_file';
+  	$FORM{ATTACHMENT}= $2;
+   }
+
+	$users->attachment_info({ ID    => $FORM{ATTACHMENT},
+		                        TABLE => $FORM{TABLE}, 
+				                    UID   => $user->{UID} });
+
+  if ($users->{TOTAL}==0) {
+    print "Content-Type: text/html\n\n";
+  	print "$_ERROR: $_ATTACHMENT $_NOT_EXIST\n";  	
+  	return 0;
+   }
+  	
+  print "Content-Type: $users->{CONTENT_TYPE}; filename=\"$users->{FILENAME}\"\n".
+  "Content-Disposition: attachment; filename=\"$users->{FILENAME};\" size=$users->{FILESIZE};".
+  "\n\n";
+  print "$users->{CONTENT}";
+}
+
+
+
 #**********************************************************
 #
 #**********************************************************
@@ -1208,7 +1315,11 @@ sub user_pi {
   	$user = $users->info( $FORM{UID} );
    }
  
- if ($FORM{address}) {
+ if ($FORM{ATTACHMENT}) {
+ 	  form_show_attach();
+ 	  return 0;
+  }
+ elsif ($FORM{address}) {
    print "Content-Type: text/html\n\n";
    my $js_list = ''; 	
  	 my $id        =   $FORM{'JsHttpRequest'};
@@ -1355,6 +1466,15 @@ sub user_pi {
       $input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]", { SIZE => 20 });
       if ($user_pi->{INFO_FIELDS_VAL}->[$i] ne '') {
         $input .= qq{  <script type="text/javascript" src="http://download.skype.com/share/skypebuttons/js/skypeCheck.js"></script>  <a href="skype:abills.support?call"><img src="http://mystatus.skype.com/smallclassic/$user_pi->{INFO_FIELDS_VAL}->[$i]" style="border: none;" width="114" height="20"/></a>};
+       }
+     }
+    elsif ($type == 3) {
+      $input = $html->form_textarea($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]");
+     }
+    elsif ($type == 13) {
+      $input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]", { TYPE => 'file' });
+      if ($user_pi->{INFO_FIELDS_VAL}->[$i]) {
+        $input .= ' '. $html->button($_DOWNLOAD, "qindex=". get_function_index('user_pi') ."&ATTACHMENT=$field_id:$user_pi->{INFO_FIELDS_VAL}->[$i]", { BUTTON => 1 });
        }
      }
     else {
@@ -6713,7 +6833,7 @@ sub form_info_fields {
    }
 
 
-  my @fields_types = ('String', 'Integer', $_LIST, $_TEXT, 'Flag', 'Blob', 'PCRE', 'AUTOINCREMENT', 'ICQ', 'URL', 'PHONE', 'E-Mail', 'Skype');
+  my @fields_types = ('String', 'Integer', $_LIST, $_TEXT, 'Flag', 'Blob', 'PCRE', 'AUTOINCREMENT', 'ICQ', 'URL', 'PHONE', 'E-Mail', 'Skype', "$_FILE");
 
   my $fields_type_sel = $html->form_select('FIELD_TYPE', 
                                 { SELECTED   => $FORM{field_type},

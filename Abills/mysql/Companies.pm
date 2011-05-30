@@ -96,8 +96,30 @@ sub add {
 
     foreach my $line (@$list) {
       if ($line->[0] =~ /ifc(\S+)/) {
-    	  push @info_fields_arr, $1;
-        push @info_fields_val, "'$attr->{$1}'";
+      	my $value = $1;
+    	  push @info_fields_arr, $value;
+
+        if (defined($attr->{$value})) {
+    	    #attach
+    	    if ($attr->{$value}{filename}) {
+            $self->attachment_add({ 
+            	TABLE        => $value.'_file',
+              CONTENT      => $attr->{$value}{Contents},
+              FILESIZE     => $attr->{$value}{Size},
+              FILENAME     => $attr->{$value}{filename},
+              CONTENT_TYPE => $attr->{$value}{'Content-Type'}
+             });
+            $attr->{$value}=$self->{INSERT_ID};
+           }
+          else {
+          	$attr->{$value} =~ s/^ +|[ \n]+$//g;
+           }
+         }
+   	    else {
+   	    	$attr->{$value} = '';
+   	     }
+
+        push @info_fields_val, "'$attr->{$value}'";
       }
 
      }
@@ -105,17 +127,23 @@ sub add {
     $info_fields_val = ', '. join(', ', @info_fields_val);
    }
 
+  my $prefix='';
+  my $sufix =''; 
+  if ($attr->{CONTRACT_TYPE}) {
+  	($prefix, $sufix)=split(/\|/, $attr->{CONTRACT_TYPE});
+   }
+
 
   my %DATA = $self->get_data($attr, { default => defaults() }); 
   $self->query($db, "INSERT INTO companies (name, tax_number, bank_account, bank_name, cor_bank_account, 
      bank_bic, disable, credit, credit_date, address, phone, vat, contract_id, contract_date,
-     bill_id, ext_bill_id, registration, domain_id, representative
+     bill_id, ext_bill_id, registration, domain_id, representative, contract_sufix
      $info_fields) 
      VALUES ('$DATA{COMPANY_NAME}', '$DATA{TAX_NUMBER}', '$DATA{BANK_ACCOUNT}', '$DATA{BANK_NAME}', '$DATA{COR_BANK_ACCOUNT}', 
       '$DATA{BANK_BIC}', '$DATA{DISABLE}', '$DATA{CREDIT}', '$DATA{CREDIT_DATE}',
       '$DATA{ADDRESS}', '$DATA{PHONE}',
       '$DATA{VAT}', '$DATA{CONTRACT_ID}', '$DATA{CONTRACT_DATE}',
-      '$DATA{BILL_ID}', '$DATA{EXT_BILL_ID}', now(), '$admin->{DOMAIN_ID}', '$DATA{REPRESENTATIVE}'
+      '$DATA{BILL_ID}', '$DATA{EXT_BILL_ID}', now(), '$admin->{DOMAIN_ID}', '$DATA{REPRESENTATIVE}', '$sufix'
       $info_fields_val
       );", 'do');
 
@@ -168,7 +196,6 @@ sub change {
          $self->{errstr} =  $Bill->{errstr};
          return $self;
         }
-       #$DATA{BILL_ID}=$Bill->{BILL_ID};
        $attr->{EXT_BILL_ID}=$Bill->{BILL_ID};
    }
  
@@ -190,9 +217,11 @@ sub change {
    VAT            => 'vat',
    CONTRACT_ID    => 'contract_id',
    CONTRACT_DATE  => 'contract_date',
+   CONTRACT_SUFIX => 'contract_sufix',
    DOMAIN_ID      => 'domain_id',
    REPRESENTATIVE => 'representative'
    );
+
 
 
   $attr->{DOMAIN_ID}=$admin->{DOMAIN_ID};
@@ -204,12 +233,36 @@ sub change {
         my $field_name = $1;
         $FIELDS{$field_name}="$field_name";
         my ($position, $type, $name)=split(/:/, $line->[1]);
-        if ($type == 4) {
+
+        if ($type == 13) {
+    	    #attach
+    	    if ($attr->{$field_name}{filename}) {
+            $self->attachment_add({
+            	TABLE        => $field_name.'_file',
+              CONTENT      => $attr->{$field_name}{Contents},
+              FILESIZE     => $attr->{$field_name}{Size},
+              FILENAME     => $attr->{$field_name}{filename},
+              CONTENT_TYPE => $attr->{$field_name}{'Content-Type'}
+             });
+            $attr->{$field_name}=$self->{INSERT_ID};
+           }
+          else {
+          	delete $attr->{$field_name};
+           }
+         }
+        elsif ($type == 4) {
         	$attr->{$field_name} = 0 if (! $attr->{$field_name});
          }
       }
      }
    }
+
+  my ($prefix, $sufix); 
+  if ($attr->{CONTRACT_TYPE}) {
+  	($prefix, $sufix)=split(/\|/, $attr->{CONTRACT_TYPE});
+  	$attr->{CONTRACT_SUFIX}=$sufix;
+   }
+
 
 	$self->changes($admin, { CHANGE_PARAM => 'COMPANY_ID',
 		               TABLE        => 'companies',
@@ -270,7 +323,8 @@ sub info {
   c.ext_bill_id,
   c.registration,
   c.domain_id,
-  c.representative
+  c.representative,
+  c.contract_sufix
   $info_fields
     FROM companies c
     LEFT JOIN bills b ON (c.bill_id=b.id)
@@ -305,6 +359,7 @@ sub info {
    $self->{REGISTRATION},
    $self->{DOMAIN_ID},
    $self->{REPRESENTATIVE},
+   $self->{CONTRACT_SUFIX},
    @INFO_ARR
    ) = @{ $self->{list}->[0] };
   

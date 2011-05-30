@@ -1216,7 +1216,7 @@ sub msgs_user {
   	 }
   	
   	print "Content-Type: $Msgs->{CONTENT_TYPE}; filename=\"$Msgs->{FILENAME}\"\n".
-  	"Content-Disposition: attachment; filename=\"$Msgs->{FILENAME}; size=$Msgs->{FILESIZE}\"\n\n";
+  	"Content-Disposition: attachment; filename=\"$Msgs->{FILENAME}\"; size=$Msgs->{FILESIZE}\n\n";
   	print "$Msgs->{CONTENT}";
   	return 0;
    }

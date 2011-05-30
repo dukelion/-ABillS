@@ -510,4 +510,21 @@ else {
 }
 
 
+
+#**********************************************************
+#
+#**********************************************************
+sub attachment_add () {
+  my $self = shift;
+  my ($attr) = @_;
+
+ $self->query($db,  "INSERT INTO $attr->{TABLE}
+        (filename, content_type, content_size, content, create_time) 
+        VALUES ('$attr->{FILENAME}', '$attr->{CONTENT_TYPE}', '$attr->{FILESIZE}', ?, now())",  
+        'do', { Bind => [ $attr->{CONTENT}  ] } );
+
+  return $self;
+}
+
+
 1

@@ -5754,10 +5754,6 @@ sub dv_wizard_user {
   if (! $attr->{NO_EXTRADATA}) {
     $users_defaults->{EXDATA}  =  $user_info->{EXDATA} .=  $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { OUTPUT2RETURN => 1 });
     $users_defaults->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { OUTPUT2RETURN => 1 }) if ($conf{EXT_BILL_ACCOUNT});
-    
-#    $html->tpl_show(templates('form_user_exdata'), 
-#       { CREATE_BILL  => ' checked' }, 
-#       { notprint => 1 });
    }
   
   my $dv_defaults = $Dv->defaults();
@@ -5811,6 +5807,12 @@ sub dv_wizard_user {
        }
       elsif ($type == 4) {
       	$input = $html->form_input($field_id, 1, { TYPE  => 'checkbox', STATE => ($FORM{$field_id}) ? 1 : undef  });
+       }
+      elsif ($type == 3) {
+        $input = $html->form_textarea($field_id, "$users->{INFO_FIELDS_VAL}->[$i]");
+       }
+      elsif ($type == 13) {
+        $input = $html->form_input($field_id, "$users->{INFO_FIELDS_VAL}->[$i]", { TYPE => 'file' });
        }
       else {
     	  $input = $html->form_input($field_id, "", { SIZE => 40 });
