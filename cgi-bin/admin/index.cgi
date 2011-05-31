@@ -775,7 +775,7 @@ elsif($FORM{COMPANY_ID}) {
       my (@contract_types_list)=split(/;/, $conf{DOCS_CONTRACT_TYPES});
 
       my %CONTRACTS_LIST_HASH = ();
-      $FORM{CONTRACT_SUFIX}="|$user_pi->{CONTRACT_SUFIX}";
+      $FORM{CONTRACT_SUFIX}="|$company->{CONTRACT_SUFIX}";
       foreach my $line (@contract_types_list) {
       	my ($prefix, $sufix, $name, $tpl_name)=split(/:/, $line);
       	$prefix =~ s/ //g;
@@ -963,7 +963,7 @@ sub add_company {
  	                                SEL_MULTI_ARRAY   => $users->info_lists_list( { LIST_TABLE => $field_id.'_list' }), 
  	                                MULTI_ARRAY_KEY   => 0,
  	                                MULTI_ARRAY_VALUE => 1,
- 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-' },
  	                                NO_ID             => 1
  	                               });
     	
@@ -997,9 +997,8 @@ sub add_company {
     if ($conf{DOCS_CONTRACT_TYPES}) {
     	$conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
       my (@contract_types_list)=split(/;/, $conf{DOCS_CONTRACT_TYPES});
-
       my %CONTRACTS_LIST_HASH = ();
-      $FORM{CONTRACT_SUFIX}="|$user_pi->{CONTRACT_SUFIX}";
+      $FORM{CONTRACT_SUFIX}="|$company->{CONTRACT_SUFIX}";
       foreach my $line (@contract_types_list) {
       	my ($prefix, $sufix, $name, $tpl_name)=split(/:/, $line);
       	$prefix =~ s/ //g;

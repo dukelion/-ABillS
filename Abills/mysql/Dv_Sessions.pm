@@ -1529,13 +1529,18 @@ sub log_rotate {
 	my ($attr)=@_;
 	
   my $version = $self->db_version();
-
+  my @rq = ();
+ 
  if ($version > 4.1) {
-   use POSIX qw(strftime);
+ 	 push @rq, 'CREATE TABLE IF NOT EXISTS errors_log_new LIKE errors_log',
+               'INSERT INTO errors_log_new SELECT max(date), log_type, action, user, message, nas_id FROM errors_log GROUP BY user,message,nas_id;',
+               'RENAME TABLE errors_log TO errors_log_old, errors_log_new TO errors_log',
+               'DROP TABLE errors_log_old';
 
-   my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));
-
- 	 my @rq = (
+   if (! $attr->{DAILY}) {
+     use POSIX qw(strftime);
+     my $DATE = (strftime "%Y_%m_%d", localtime(time - 86400));
+ 	   push @rq,
      'CREATE TABLE IF NOT EXISTS s_detail_new LIKE s_detail;',
      'RENAME TABLE s_detail TO s_detail_'. $DATE .
       ', s_detail_new TO s_detail;',
@@ -1548,24 +1553,23 @@ sub log_rotate {
      'CREATE TABLE IF NOT EXISTS dv_log_intervals_new LIKE dv_log_intervals;',
      'DROP TABLE dv_log_intervals_old',
      'RENAME TABLE dv_log_intervals TO dv_log_intervals_old'.
-      ', dv_log_intervals_new TO dv_log_intervals;',
-      );
-
-   foreach my $query (@rq) {
-     $self->query($db, "$query", 'do'); 
+      ', dv_log_intervals_new TO dv_log_intervals;';
     }
   }
  else {
-   $self->query($db, "DELETE from s_detail
-            WHERE last_update < UNIX_TIMESTAMP()- $attr->{PERIOD} * 24 * 60 * 60;", 'do');
+   push @rq, "DELETE from s_detail
+            WHERE last_update < UNIX_TIMESTAMP()- $attr->{PERIOD} * 24 * 60 * 60;";
   
-
     # LOW_PRIORITY
-    $self->query($db, "DELETE dv_log_intervals from dv_log, dv_log_intervals
+   push @rq, "DELETE dv_log_intervals from dv_log, dv_log_intervals
      WHERE
      dv_log.acct_session_id=dv_log_intervals.acct_session_id
-      and dv_log.start < curdate() - INTERVAL $attr->{PERIOD} DAY;", 'do');
+      and dv_log.start < curdate() - INTERVAL $attr->{PERIOD} DAY;";
   }
+
+  foreach my $query (@rq) {
+    $self->query($db, "$query", 'do'); 
+   }
 
 	return $self;
 }

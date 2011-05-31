@@ -4264,6 +4264,7 @@ sub dv_periodic_logrotate {
 	my ($attr) = @_;
   my $debug = $attr->{DEBUG} || 0;
 
+
   # Clean s_detail table
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
   $conf{DV_LOG_CLEAN_PERIOD}=180 if (! $conf{DV_LOG_CLEAN_PERIOD});
@@ -4273,6 +4274,9 @@ sub dv_periodic_logrotate {
 
     $sessions->log_rotate({ TYPES  => [ 'SESSION_DETAILS', 'SESSION_INTERVALS'],
   	                        PERIOD => $conf{DV_LOG_CLEAN_PERIOD} });
+   }
+  else {
+  	$sessions->log_rotate({ DAILY => 1 });
    }
 }
 
