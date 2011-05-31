@@ -160,7 +160,6 @@ foreach my $line (@$list) {
      $PERIODS[$line->[4]], 
      "$line->[5]",
      ($line->[6]) ? "$line->[6]" : $html->date_fld2('DATE_'.$line->[0], { FORM_NAME => 'ABON_USER_TPS', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => '0000-00-00' })
-     
    );
  }
 

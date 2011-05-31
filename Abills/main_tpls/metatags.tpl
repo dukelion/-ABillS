@@ -3,7 +3,7 @@
 <html>
 <head>
  %REFRESH%
- <META HTTP-EQUIV=\"Cache-Control\" content=\"no-cache,no-cache,no-store,must-revalidate,private,max-age=0\"/>
+ <META HTTP-EQUIV=\"Cache-Control\" content=\"no-cache,no-store,must-revalidate,private,max-age=0\"/>
  <META HTTP-EQUIV=\"Expires\" CONTENT=\"-1\"/>
  <META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\"/>
  <META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=%CHARSET%\"/>

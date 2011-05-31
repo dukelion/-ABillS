@@ -299,12 +299,14 @@ sub attachment_info () {
   	$WHERE .= " id='$attr->{ID}'";
    }
  
- my $table = $attr->{TABLE};
+  my $content = (! $attr->{INFO_ONLY}) ? ',content' : '';
  
- $self->query($db,  "SELECT id, filename, 
+  my $table = $attr->{TABLE};
+ 
+  $self->query($db,  "SELECT id, filename, 
     content_type, 
-    content_size,
-    content
+    content_size
+    $content
    FROM `$table`
    WHERE $WHERE" );
 

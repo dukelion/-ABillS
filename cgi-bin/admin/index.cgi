@@ -752,7 +752,9 @@ elsif($FORM{COMPANY_ID}) {
       elsif ($type == 13) {
         $input = $html->form_input($field_id, "$company->{INFO_FIELDS_VAL}->[$i]", { TYPE => 'file' });
         if ($company->{INFO_FIELDS_VAL}->[$i]) {
-          $input .= ' '. $html->button($_DOWNLOAD, "qindex=". get_function_index('user_pi') ."&ATTACHMENT=$field_id:$company->{INFO_FIELDS_VAL}->[$i]", { BUTTON => 1 });
+        	$users->attachment_info({ ID => $company->{INFO_FIELDS_VAL}->[$i], TABLE => $field_id.'_file' });
+      	
+          $input .= ' '. $html->button("$users->{FILENAME}, ". int2byte($users->{FILESIZE}), "qindex=". get_function_index('user_pi') ."&ATTACHMENT=$field_id:$company->{INFO_FIELDS_VAL}->[$i]", { BUTTON => 1 });
          }
        }
       else {
@@ -1473,7 +1475,9 @@ sub user_pi {
     elsif ($type == 13) {
       $input = $html->form_input($field_id, "$user_pi->{INFO_FIELDS_VAL}->[$i]", { TYPE => 'file' });
       if ($user_pi->{INFO_FIELDS_VAL}->[$i]) {
-        $input .= ' '. $html->button($_DOWNLOAD, "qindex=". get_function_index('user_pi') ."&ATTACHMENT=$field_id:$user_pi->{INFO_FIELDS_VAL}->[$i]", { BUTTON => 1 });
+      	$user_pi->attachment_info({ ID => $user_pi->{INFO_FIELDS_VAL}->[$i], TABLE => $field_id.'_file' });
+      	
+        $input .= ' '. $html->button("$user_pi->{FILENAME}, ". int2byte($user_pi->{FILESIZE}), "qindex=". get_function_index('user_pi') ."&ATTACHMENT=$field_id:$user_pi->{INFO_FIELDS_VAL}->[$i]", { BUTTON => 1 });
        }
      }
     else {
@@ -5541,15 +5545,16 @@ elsif(! $FORM{pdf}) {
   my %search_form = ( 
      2  => 'form_search_payments',
      3  => 'form_search_fees',
-     11 => 'form_search_users'
+     11 => 'form_search_users',
+     13 => 'form_search_companies'
     );
 
-$FORM{type}=11 if ($FORM{type} == 15);
+  $FORM{type}=11 if ($FORM{type} == 15);
 
-if( $FORM{LOGIN_EXPR} && $admin->{MIN_SEARCH_CHARS} && length($FORM{LOGIN_EXPR}) < $admin->{MIN_SEARCH_CHARS}) {
-	$html->message('err', $_ERROR, "$_ERR_SEARCH_VAL_TOSMALL. $_MIN: $admin->{MIN_SEARCH_CHARS}");
-	return 0;
-}
+  if( $FORM{LOGIN_EXPR} && $admin->{MIN_SEARCH_CHARS} && length($FORM{LOGIN_EXPR}) < $admin->{MIN_SEARCH_CHARS}) {
+	  $html->message('err', $_ERROR, "$_ERR_SEARCH_VAL_TOSMALL. $_MIN: $admin->{MIN_SEARCH_CHARS}");
+	  return 0;
+   }
 
 if (defined($attr->{SEARCH_FORM})) {
 	$SEARCH_DATA{SEARCH_FORM} = $attr->{SEARCH_FORM}
@@ -5656,7 +5661,75 @@ elsif($search_form{$FORM{type}}) {
       $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });	
      }
    }
-	
+  elsif ($FORM{type} == 13) {
+    my $i=0; 
+    my $list = $users->config_list({ PARAM => 'ifu*', SORT => 2  });
+    if ($users->{TOTAL} > 0) {
+    	 $info{INFO_FIELDS}.= "<tr><th colspan='3' bgcolor='$_COLORS[0]'>$_INFO_FIELDS</th></tr>\n"
+      }
+    foreach my $line (@$list) {
+      my $field_id       = '';
+      if ($line->[0] =~ /ifu(\S+)/) {
+    	  $field_id = $1;
+       }
+
+      my($position, $type, $name, $user_portal)=split(/:/, $line->[1]);
+
+      my $input = '';
+      if ($type == 2) {
+        $input = $html->form_select("$field_id", 
+                                { SELECTED          => $FORM{$field_id},
+ 	                                SEL_MULTI_ARRAY   => $users->info_lists_list( { LIST_TABLE => $field_id.'_list' }), 
+ 	                                MULTI_ARRAY_KEY   => 0,
+ 	                                MULTI_ARRAY_VALUE => 1,
+ 	                                SEL_OPTIONS       => { 0 => '-N/S-'},
+ 	                                NO_ID             => 1
+ 	                               });
+    	
+       }
+      elsif ($type == 5) {
+      	 next;
+       }
+      elsif ($type == 4) {
+    	  $input = $html->form_input($field_id, 1, { TYPE  => 'checkbox',  
+    		                                           STATE => ($FORM{$field_id}) ? 1 : undef  });
+       }
+      else {
+    	  $input = $html->form_input($field_id, "$FORM{$field_id}", { SIZE => 40 });
+       }
+
+      $info{INFO_FIELDS}.= "<tr><td colspan=2>". (eval "\"$name\"") . ":</td><td>$input</td></tr>\n";
+      $i++;
+     }
+
+
+    $info{CREDIT_DATE}  = $html->date_fld2('CREDIT_DATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 12 });
+    $info{PAYMENTS}     = $html->date_fld2('PAYMENTS', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 14 });
+    $info{REGISTRATION} = $html->date_fld2('REGISTRATION', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 16 });
+    $info{ACTIVATE}     = $html->date_fld2('ACTIVATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 17 });
+    $info{EXPIRE}       = $html->date_fld2('EXPIRE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 18 });
+
+    if ($conf{ADDRESS_REGISTER}) {
+     	$info{ADDRESS_FORM} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
+     	$info{ADDRESS_FORM} .= "<tr><td>$_NO_RECORD</td><td><input type=checkbox name='NOT_FILLED' value='1'></td></tr>";
+     }
+    else {
+  	  my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
+  	  my @countries_arr  = split(/\n/, $countries);
+      my %countries_hash = ();
+      foreach my $c (@countries_arr) {
+    	  my ($id, $name)=split(/:/, $c);
+    	  $countries_hash{int($id)}=$name;
+       }
+      $user_pi->{COUNTRY_SEL} = $html->form_select('COUNTRY_ID', 
+                                { SELECTED   => $FORM{COUNTRY_ID},
+ 	                                SEL_HASH   => {'' => '', %countries_hash },
+ 	                                NO_ID      => 1
+ 	                               });
+      $info{ADDRESS_FORM} = $html->tpl_show(templates('form_address'), $user_pi, { OUTPUT2RETURN => 1 });	
+     }
+   }	
+
 	$SEARCH_DATA{SEARCH_FORM} =  $html->tpl_show(templates($search_form{$FORM{type}}), { %FORM, %info, GROUPS_SEL => $group_sel }, { OUTPUT2RETURN => 1 });
 	$SEARCH_DATA{SEARCH_FORM} .= $html->form_input('type', "$FORM{type}", { TYPE => 'hidden' });
  }
