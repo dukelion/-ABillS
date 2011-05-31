@@ -485,7 +485,7 @@ sub abon_periodic {
          	 $FORM{UID}       = $user{UID};
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
-   	       $FORM{ORDER}     = "$_ABON: [$info{SUM}] $info{TP_NAME} $info{COMMENT}";
+   	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
    	       $FORM{EMAIL}     = $email;
    	       $FORM{SEND_EMAIL}= 1;
 
@@ -524,7 +524,7 @@ sub abon_periodic {
          	 $FORM{UID}       = $user{UID};
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
-   	       $FORM{ORDER}     = "$_ABON: [$info{SUM}] $info{TP_NAME} $info{COMMENT}";
+   	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
    	       $FORM{EMAIL}     = $email;
    	       $FORM{SEND_EMAIL}= 1;
    	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
@@ -558,13 +558,14 @@ sub abon_periodic {
    	     $FORM{print}            = $notification1_account_id;
    	     $FORM{CHECK_PEYMENT_ID} = 1;
    	     $FORM{pdf}              = $conf{DOCS_PDF_PRINT};
-      	  my $html_old = $html;
-          PDF::API2->import();
-          require Abills::PDF;
-          $html = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
-     	                               NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
-     	                               CONF      => $CONF
-	                                   });
+
+      	 my $html_old = $html;
+         PDF::API2->import();
+         require Abills::PDF;
+         $html = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
+     	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+     	                              CONF      => $CONF
+	                                });
 
 
    	     my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1  });
@@ -599,10 +600,10 @@ sub abon_periodic {
          	 $FORM{UID}       = $user{UID};
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
-   	       $FORM{ORDER}     = "$_ABON: [$info{SUM}] $info{TP_NAME} $info{COMMENT}";
+   	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
    	       $FORM{EMAIL}     = $email;
    	       $FORM{SEND_EMAIL}= 1;
-   	       my $content = docs_account({ QUITE => 1 });
+   	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
    	       $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
        	  	             FILENAME     => 'account.pdf' }
