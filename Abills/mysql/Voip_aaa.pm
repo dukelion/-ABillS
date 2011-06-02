@@ -374,7 +374,8 @@ if ($NAS->{NAS_TYPE} eq 'asterisk' and $self->{TRUNK_PROTOCOL}) {
     $RAD_PAIRS{'session-protocol'}=$self->{TRUNK_PROTOCOL};
     
  }    
-       
+ 
+ $self->{INFO}="$RAD->{'CALLED_STATION_ID'}";       
 }
 else {
 	$RAD->{USER_NAME} = "$RAD->{CALLED_STATION_ID}";

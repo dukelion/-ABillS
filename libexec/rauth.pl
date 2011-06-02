@@ -147,7 +147,6 @@ sub auth {
    $r = $auth_mod{$nas_type}->pre_auth($RAD, $nas);
 
    if ($auth_mod{$nas_type}->{errno}) {
-     #$log_print->('LOG_INFO', $RAD->{USER_NAME}, "MS-CHAP PREAUTH FAILED. Wrong password or login$GT", { NAS => $nas, DB => $db });
      $Log->log_print('LOG_INFO', $RAD->{USER_NAME}, "MS-CHAP PREAUTH FAILED. Wrong password or login$GT", { NAS => $nas });
     }
    else {
@@ -169,6 +168,7 @@ if($AUTH{$nas->{NAS_TYPE}}) {
     $AUTH{$nas->{NAS_TYPE}}->import();
    }
 
+  $auth_mod{"$nas->{NAS_TYPE}"}->{INFO}=undef;
   $auth_mod{"$nas->{NAS_TYPE}"} = $AUTH{$nas->{NAS_TYPE}}->new($db, \%conf);
   ($r, $RAD_PAIRS) = $auth_mod{"$nas->{NAS_TYPE}"}->auth($RAD, $nas);
 }
@@ -231,7 +231,6 @@ else {
      }
     }
 
-   #$log_print->('LOG_DEBUG', $RAD->{USER_NAME}, "$rr", { NAS => $nas, DB => $db});
    $Log->log_print('LOG_DEBUG', $RAD->{USER_NAME}, "$rr", { NAS => $nas });
  }
 
@@ -245,9 +244,8 @@ else {
   }
 
   my $CID = ($RAD->{CALLING_STATION_ID}) ? " CID: $RAD->{CALLING_STATION_ID} " : '';
-  #$log_print->('LOG_INFO', $RAD->{USER_NAME}, "$CID$GT", { NAS => $nas, DB => $db});
 
-  $Log->log_print('LOG_INFO', $RAD->{USER_NAME}, "$CID$GT", { NAS => $nas });
+  $Log->log_print('LOG_INFO', $RAD->{USER_NAME}, ($auth_mod{"$nas->{NAS_TYPE}"}->{INFO}) ? ' '.$auth_mod{"$nas->{NAS_TYPE}"}->{INFO} : ''."$CID$GT", { NAS => $nas });
   return $r;
 }
 
@@ -301,7 +299,7 @@ sub inc_postauth {
      }
 
     if ($r == 2) {
-      #$log_print->('LOG_INFO', $RAD_PAIRS->{'User-Name'}, $message." ". $RAD_REQUEST{'DHCP-Client-Hardware-Address'} ." $GT", { NAS => $nas, DB => $db});
+
       $Log->log_print('LOG_INFO', $RAD_PAIRS->{'User-Name'}, $message." ". $RAD_REQUEST{'DHCP-Client-Hardware-Address'} ." $GT", { NAS => $nas });
       $r=0;
      }
@@ -342,7 +340,6 @@ sub inc_postauth {
     if ($RAD_REQUEST{'Calling-Station-Id'}) {
       $reject_info="CID: $RAD_REQUEST{'Calling-Station-Id'}";
      }
-    #$log_print->('LOG_WARNING', $RAD_REQUEST{'User-Name'}, "REJECT Wrong password or account not exists $reject_info$GT", { NAS => $nas, DB => $db });
     $Log->log_print('LOG_WARNING', $RAD_REQUEST{'User-Name'}, "REJECT Wrong password or account not exists $reject_info$GT", { NAS => $nas });
     return 0;
    }
@@ -350,7 +347,7 @@ sub inc_postauth {
     if ($RAD->{CALLING_STATION_ID}) {
       $reject_info="CID: $RAD->{CALLING_STATION_ID}";
      }
-    #$log_print->('LOG_WARNING', $RAD->{USER_NAME}, "REJECT Wrong password or account not exists $reject_info$GT", { NAS => $nas, DB => $db });
+
     $Log->log_print('LOG_WARNING', $RAD->{USER_NAME}, "REJECT Wrong password or account not exists $reject_info$GT", { NAS => $nas });
    }
 }
@@ -363,7 +360,6 @@ sub inc_postauth {
 sub access_deny { 
   my ($user_name, $message, $nas_num, $db) = @_;
 
-  #$log_print->('LOG_WARNING', $user_name, "$message", { NAS => $nas, DB => $db});
   $Log->log_print('LOG_WARNING', $user_name, "$message", { NAS => $nas });
   #External script for error connections
   if ($conf{AUTH_ERROR_CMD}) {

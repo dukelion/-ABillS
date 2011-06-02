@@ -2436,6 +2436,13 @@ sub ipn_start_active {
     return $debug_output;
    }
 
+  my @nas_types = ('ipcad', 'dhcp');
+
+  if ($attr->{NAS_TYPES}) {
+  	@nas_types=split(/,/, $attr->{NAS_TYPES});
+   }
+  
+
 #Get online
 my $Dv  = Dv->new($db, $admin, \%conf);  
 my $nas_list = $Nas->list({ NAS_IDS   => $attr->{NAS_IDS}, 
@@ -2443,7 +2450,7 @@ my $nas_list = $Nas->list({ NAS_IDS   => $attr->{NAS_IDS},
 
 my %nas_info = ();
 foreach my $line (@$nas_list) {
-	if ($line->[4] eq 'ipcad' || $line->[4] eq 'dhcp') {
+	if (in_array($line->[4], \@nas_types)) {
 	  $nas_info{$line->[0]}{NAS_IP}         = $line->[3]; 
 	  $nas_info{$line->[0]}{NAS_ID}         = $line->[0];
 	  $nas_info{$line->[0]}{NAS_TYPE}       = $line->[4];
