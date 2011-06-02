@@ -10,7 +10,7 @@
 	    margin: 0px; 
 	    padding: 0px; 
 	    text-align: left;
-		background: url(pn_klient-bankrot_black.jpg) #232020;
+		background:  #232020;
 		background-position: center top;
 		background-repeat: no-repeat; no-repeat;
 		font-family: Tahoma;

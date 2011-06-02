@@ -2443,7 +2443,7 @@ my $nas_list = $Nas->list({ NAS_IDS   => $attr->{NAS_IDS},
 
 my %nas_info = ();
 foreach my $line (@$nas_list) {
-	if ($line->[4] eq 'ipcad') {
+	if ($line->[4] eq 'ipcad' || $line->[4] eq 'dhcp') {
 	  $nas_info{$line->[0]}{NAS_IP}         = $line->[3]; 
 	  $nas_info{$line->[0]}{NAS_ID}         = $line->[0];
 	  $nas_info{$line->[0]}{NAS_TYPE}       = $line->[4];
