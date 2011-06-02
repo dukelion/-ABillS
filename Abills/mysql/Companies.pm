@@ -101,7 +101,7 @@ sub add {
 
         if (defined($attr->{$value})) {
     	    #attach
-    	    if ($attr->{$value}{filename}) {
+    	    if ( ref $attr->{$value} eq 'HASH' && $attr->{$value}{filename}) {
             $self->attachment_add({ 
             	TABLE        => $value.'_file',
               CONTENT      => $attr->{$value}{Contents},
@@ -236,7 +236,7 @@ sub change {
 
         if ($type == 13) {
     	    #attach
-    	    if ($attr->{$field_name}{filename}) {
+    	    if ( ref $attr->{$field_name} eq 'HASH' && $attr->{$field_name}{filename}) {
             $self->attachment_add({
             	TABLE        => $field_name.'_file',
               CONTENT      => $attr->{$field_name}{Contents},
