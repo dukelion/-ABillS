@@ -27,7 +27,7 @@ run_rc_command "$1"
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.7
+VERSION=5.8
 
 if [ w${abills_shaper_enable} = w ]; then
   exit;
@@ -202,7 +202,7 @@ done;
     done;
 
     #Forward traffic 2 second way
-    ${IPFW} 60015 add fwd ${GW2_IP} ip from ${GW2_IF_IP} to any
+    ${IPFW}  add 60015 fwd ${GW2_IP} ip from ${GW2_IF_IP} to any
     #${IPFW} add 30 add fwd ${ISP_GW2} ip from ${NAT_IPS} to any
   fi;
 

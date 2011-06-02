@@ -1,0 +1,37 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> 
+<title>Доступ запрещен</title> 
+</head>
+<body style="background-color:#232020;">
+
+<div style="
+	    height:100%; 
+	    width:100%; 
+	    position:relative; 
+	    margin: 0px; 
+	    padding: 0px; 
+	    text-align: left;
+		background: url(pn_klient-bankrot_black.jpg) #232020;
+		background-position: center top;
+		background-repeat: no-repeat; no-repeat;
+		font-family: Tahoma;
+  ">
+<br><br><br><br><br><br><br><br><br><br><br><br>
+	    <center>
+<div style="
+        display: block;
+		position: relative;
+		width: 650px; 
+	    height: 300px;
+	    font-size: 20px;">
+    <div style="width: 185px; height: 300px; float: left; display: block;"></div>
+  	<p style="font-size:32px; color: #ffffff; text-align: left;"> На Вашем счету <font color="#FF8000" size=+7>0</font> <font color="#fbb117"> грн</font></p>
+    <p style="color: #9b9a9a; text-align: left; margin-top: 35px;"> Для дальнейшего пользования услугой Интернет, <br>пожалуйста, пополните Ваш счет! </p>
+    <br>
+
+
+</div>
+</center>
+</div>
+
+
+</body></html>
