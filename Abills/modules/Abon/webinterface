@@ -145,7 +145,7 @@ my $list = $Abon->user_tariff_list($FORM{UID});
 my $table = $html->table( { width      => '100%',
                             caption    => "$_ABON",
                             title      => ['-', $_NAME, $_COMMENTS, $_SUM, $_PERIOD, $_LAST_ABON, $_NEXT_ABON ],
-                            cols_align => ['left', 'right', 'left', 'right', 'left', 'right', 'right'],
+                            cols_align => ['left', 'left', 'left', 'right', 'left', 'right', 'right'],
                             qs         => $pages_qs,
                             ID         => 'USER_ABON'
                            });
@@ -472,7 +472,7 @@ sub abon_periodic {
     #Get abon
     if(($line->[8] && ($info{DEPOSIT} + $info{CREDIT} > 0 || $line->[11] == 1) && $line->[9] == 0) && ($ADMIN_REPORT{DATE} eq $info{ABON_DATE})) {
 
-         $fees->take(\%user, $sum, { %PARAMS } ); 
+         $fees->take(\%user, $info{SUM}, { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$info{UID}", 
          	                           DATE  => $ADMIN_REPORT{DATE}, 
          	                           TP_ID => "$info{TP_ID}" });
@@ -526,6 +526,7 @@ sub abon_periodic {
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
    	       $FORM{EMAIL}     = $email;
    	       $FORM{SEND_EMAIL}= 1;
+   	       $FORM{pdf}       = $conf{DOCS_PDF_PRINT};
    	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
    	       $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',

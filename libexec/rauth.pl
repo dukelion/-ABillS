@@ -245,7 +245,7 @@ else {
 
   my $CID = ($RAD->{CALLING_STATION_ID}) ? " CID: $RAD->{CALLING_STATION_ID} " : '';
 
-  $Log->log_print('LOG_INFO', $RAD->{USER_NAME}, ($auth_mod{"$nas->{NAS_TYPE}"}->{INFO}) ? ' '.$auth_mod{"$nas->{NAS_TYPE}"}->{INFO} : ''."$CID$GT", { NAS => $nas });
+  $Log->log_print('LOG_INFO', $RAD->{USER_NAME}, (($auth_mod{"$nas->{NAS_TYPE}"}->{INFO}) ? ' '.$auth_mod{"$nas->{NAS_TYPE}"}->{INFO} : '')."$CID$GT", { NAS => $nas });
   return $r;
 }
 

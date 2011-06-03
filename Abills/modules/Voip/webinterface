@@ -427,7 +427,7 @@ if (defined($attr->{TP})) {
 
     $Voip->rp_add({ %FORM2 });
     if (! $Voip->{errno}) {
-  	  $html->message('info', $_INFO, "$_IMPORT $_FILE: $FORM{ROUTE_FILE}{filename}");
+  	  $html->message('info', $_INFO, "$_IMPORT $_FILE: $FORM{ROUTE_FILE}{filename}\n $_ROWS: $#rows_arr\n $_CHANGED: $Voip->{TOTAL}");
   	 }
    }
 	elsif($FORM{export_rp}) {
@@ -479,6 +479,7 @@ foreach my $line (@$list) {
 
 my ($delete, $change);
 my $price = 0;
+my $trunk = 0;
 my @export_arr = ();
 my $TRUNKS_MARR = $Voip->trunk_list();	
 
@@ -506,6 +507,7 @@ foreach my $line (@$list) {
   	  
   	  if (defined($prices{"$interval_ids[$i]"}{"$line->[4]"})) {
         $price = $prices{$interval_ids[$i]}{$line->[4]};
+        $trunk = $trunks{$interval_ids[$i]}{$line->[4]} || $trunks{$interval_ids[0]}{$line->[4]};
   	   }
       else {
         $price = "0.00";
@@ -516,7 +518,8 @@ foreach my $line (@$list) {
         push @l,  $price;
        }
       else {
-        push @l, $html->form_input("p_$line->[4]". '_' . "$interval_ids[$i]", "$price", {SIZE => 10 });
+        push @l, $html->form_input("p_$line->[4]". '_' . "$interval_ids[$i]", "$price", {SIZE => 10 }).
+          (($i > 0) ? $html->form_input("t_$line->[4]". '_' . "$interval_ids[$i]", "$trunk", {TYPE => 'hidden' }) : '');
        }
    }
 

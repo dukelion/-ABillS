@@ -1256,13 +1256,14 @@ sub docs_account {
 
        foreach my $line (@$list) {
    	     $i++;
+   	     my $sum = sprintf("%.2f", $line->[3]*$line->[4]);
    	     $Docs->{ORDER} .= $html->tpl_show(_include('docs_account_order_row', 'Docs'), 
    	        { NUMBER => $i,
    	        	NAME   => $line->[1],
    	        	COUNT  => $line->[3],
    	        	UNIT   => $line->[2],
    	        	PRICE  => $line->[4],
-   	        	SUM    => sprintf("%.2f", $line->[3]*$line->[4])
+   	        	SUM    => $sum
    	        	}, 
    	         { OUTPUT2RETURN => 1 });
         }
