@@ -470,8 +470,8 @@ sub abon_periodic {
     $PARAMS{DESCRIBE} = "$_ABON: $info{TP_NAME}. $info{COMMENT}" if ($info{COMMENT});
     $abon_date = $ADMIN_REPORT{DATE} if (! $abon_date && $line->[0] == 1 && $d == 1);
     #Get abon
-    if(($line->[8] && ($info{DEPOSIT} + $info{CREDIT} > 0 || $line->[11] == 1) && $line->[9] == 0) && ($ADMIN_REPORT{DATE} eq $info{ABON_DATE})) {
-
+    if($ADMIN_REPORT{DATE} eq $info{ABON_DATE}) {
+      if($line->[8] && ($info{DEPOSIT} + $info{CREDIT} > 0 || $line->[11] == 1) && $line->[9] == 0) {
          $fees->take(\%user, $info{SUM}, { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$info{UID}", 
          	                           DATE  => $ADMIN_REPORT{DATE}, 
@@ -497,7 +497,7 @@ sub abon_periodic {
 
          if ($ext_cmd) {
         	 my $cmd = $ext_cmd;
-         	 $cmd .= " ACTION=ALERT UID=$user{UID} TP_ID=$info{TP_ID} COMMENTS=\"$info{COMMENT}\" SUM=$info{SUM}";
+         	 $cmd .= " ACTION=ACTION UID=$user{UID} TP_ID=$info{TP_ID} COMMENTS=\"$info{COMMENT}\" SUM=$info{SUM}";
          	 $ret = system($cmd);
           }
 
@@ -510,6 +510,47 @@ sub abon_periodic {
 
          $debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: ". (($info{CREATE_ACCOUNT}) ? "ACCOUNT SEND_EMAIL: $email" : '') .(($activate_notification) ? "NOTIFICATION: $email" : '') ."\n" if ($debug > 0);
 
+      }
+     #Send Alert 
+     else {
+    	 $debug_output .= "$user{UID} SUM: TP_ID: $info{TP_ID} $info{SUM} ACCOUNT: $info{CREATE_ACCOUNT} Alert EMAIL: $email\n" if ($debug > 0);
+    	
+    	 my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
+    	 my $attach;
+    	 if ($alert_account) {
+        	 $LIST_PARAMS{UID}= $user{UID};
+         	 $FORM{SUM}       = $info{SUM};
+         	 $FORM{UID}       = $user{UID};
+   	       $FORM{create}    = 1;
+   	       $FORM{CUSTOMER}  = '-';
+   	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
+   	       $FORM{EMAIL}     = $email;
+   	       $FORM{SEND_EMAIL}= 1;
+   	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
+   	       $attach = [ { CONTENT      => $content,
+       	  	             CONTENT_TYPE => 'Content-type: application/pdf',
+       	  	             FILENAME     => 'account.pdf' }
+	  	                 ];
+    	 
+    	    $Abon->user_tariff_update({ UID          => "$user{UID}",
+    	    	                          NOTIFICATION => 1,
+        	                            DATE         => $ADMIN_REPORT{DATE}, 
+        	                            NOTIFICATION_ACCOUNT_ID => $FORM{ACCOUN_ID},
+         	                            TP_ID        => "$info{TP_ID}" 
+        	                           });
+    	  }
+    	
+    	
+ 	     sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $_ABON $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
+         	  '',       	  
+         	  { ATTACHMENTS => $attach });
+      
+       if ($ext_cmd) {
+      	 my $cmd = $ext_cmd;
+      	 $cmd .= " ACTION=ALERT UID=$user{UID} TP_ID=$info{TP_ID} COMMENTS=\"$info{COMMENT}\" SUM=$info{SUM}";
+      	 $ret = system($cmd);
+        }
+       }
      }
     #Notification Section
     elsif ($notification1 eq $ADMIN_REPORT{DATE}) {
@@ -589,45 +630,7 @@ sub abon_periodic {
          	  '',       	  
          	  { ATTACHMENTS => $attach });
      }
-    elsif ($info{ALERT} eq $ADMIN_REPORT{DATE}) {
-    	$debug_output .= "$user{UID} SUM: TP_ID: $info{TP_ID} $info{SUM} ACCOUNT: $info{CREATE_ACCOUNT} Alert EMAIL: $email\n" if ($debug > 0);
-    	
-    	my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
-    	my $attach;
-    	if ($alert_account) {
-        	 $LIST_PARAMS{UID}= $user{UID};
-         	 $FORM{SUM}       = $info{SUM};
-         	 $FORM{UID}       = $user{UID};
-   	       $FORM{create}    = 1;
-   	       $FORM{CUSTOMER}  = '-';
-   	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
-   	       $FORM{EMAIL}     = $email;
-   	       $FORM{SEND_EMAIL}= 1;
-   	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
-   	       $attach = [ { CONTENT      => $content,
-       	  	             CONTENT_TYPE => 'Content-type: application/pdf',
-       	  	             FILENAME     => 'account.pdf' }
-	  	                 ];
-    	 
-    	    $Abon->user_tariff_update({ UID          => "$user{UID}",
-    	    	                          NOTIFICATION => 1,
-        	                            DATE         => $ADMIN_REPORT{DATE}, 
-        	                            NOTIFICATION_ACCOUNT_ID => $FORM{ACCOUN_ID},
-         	                            TP_ID        => "$info{TP_ID}" 
-        	                           });
-    	 }
-    	
-    	
- 	    sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $_ABON $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
-         	  '',       	  
-         	  { ATTACHMENTS => $attach });
-      
-      if ($ext_cmd) {
-      	my $cmd = $ext_cmd;
-      	$cmd .= " ACTION=ALERT UID=$user{UID} TP_ID=$info{TP_ID} COMMENTS=\"$info{COMMENT}\" SUM=$info{SUM}";
-      	$ret = system($cmd);
-       }
-     }
+
    
    }
   else {

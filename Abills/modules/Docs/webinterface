@@ -1248,7 +1248,7 @@ sub docs_account {
      if(! $Docs->{errno}) {
        $FORM{ACCOUNT_ID}=$Docs->{DOC_ID};
        $Docs->account_info($Docs->{DOC_ID}, { UID => $LIST_PARAMS{UID} });
-
+       $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $Docs->{FIO} || '-';
        ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
 
        my $list = $Docs->{ORDERS};
@@ -1354,6 +1354,7 @@ sub docs_account {
     }
 
 
+   $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $Docs->{FIO} || '-';
 
    if ($FORM{CHECK_PEYMENT_ID} && $Docs->{PAYMENT_ID}) {
    	  return 0;
@@ -1442,7 +1443,7 @@ sub docs_account {
 
   $users->pi({ $users->{UID} });
   $Docs->{OP_SID}  = mk_unique_value(16);
-  $Docs->{CUSTOMER}= $users->{FIO} || '-';
+  $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $users->{FIO} || '-';
   $Docs->{CAPTION} = $_ACCOUNT;  
   $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users, %FORM }) if (! $FORM{pdf});
 }
