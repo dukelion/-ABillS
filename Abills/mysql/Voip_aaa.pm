@@ -301,6 +301,7 @@ else {
 
     #Get intervals and prices
     if ($RAD->{H323_CALL_ORIGIN} == 1) {
+        $self->{INFO}="$RAD->{'CALLED_STATION_ID'}";       
        $self->get_intervals();
 
        if ($self->{TOTAL} < 1) {
@@ -322,10 +323,12 @@ else {
     
        if ($session_timeout > 0) {
          $RAD_PAIRS{'Session-Timeout'}=$session_timeout;    	
-
          #$RAD_PAIRS{'h323-credit-time'}=$session_timeout;
-       }
-  
+        }
+       elsif ($self->{PAYMENT_TYPE} == 0 && $session_timeout == 0) {
+         $RAD_PAIRS{'Reply-Message'}="Too small deposit for call'";
+         return 1, \%RAD_PAIRS;
+        }
 
 #Make trunk data for asterisk  
 if ($NAS->{NAS_TYPE} eq 'asterisk' and $self->{TRUNK_PROTOCOL}) {
@@ -374,8 +377,6 @@ if ($NAS->{NAS_TYPE} eq 'asterisk' and $self->{TRUNK_PROTOCOL}) {
     $RAD_PAIRS{'session-protocol'}=$self->{TRUNK_PROTOCOL};
     
  }    
- 
- $self->{INFO}="$RAD->{'CALLED_STATION_ID'}";       
 }
 else {
 	$RAD->{USER_NAME} = "$RAD->{CALLED_STATION_ID}";
