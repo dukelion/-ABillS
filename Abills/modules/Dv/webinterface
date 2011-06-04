@@ -1673,6 +1673,10 @@ my $table = $html->table( { width       => '100%',
 #**********************************************************
 sub dv_sessions {
   my ($list, $sessions, $attr) = @_;
+  
+  
+
+  
   my %ACCT_TERMINATE_CAUSES = (                      '' => '',
                       0  => 'Unknown',
                       1  => 'User-Request',
@@ -1749,6 +1753,7 @@ my @caption = ("$_USER", "$_START", "$_DURATION", "$_TARIF_PLAN",
 if ($sessions->{SEARCH_FIELDS_COUNT}) {
 	push @caption, 'TC';
 }
+
 
 my $table = $html->table( { width      => '100%',
                             caption    => "$_SESSIONS",
@@ -2720,6 +2725,9 @@ return $table->show();
 #**********************************************************
 sub dv_user_stats {
 
+
+
+
  if(defined($FORM{SESSION_ID})) {
   	$pages_qs .= "&SESSION_ID=$FORM{SESSION_ID}";
   	dv_session_detail({ LOGIN => $LIST_PARAMS{LOGIN} });
@@ -2789,10 +2797,13 @@ if ($sessions->{errno})	{
 
 if ($FORM{rows}) {
   $LIST_PARAMS{PAGE_ROWS}=$FORM{rows};
-  $LIST_PARAMS{PG}=$FORM{rows};
+  $LIST_PARAMS{PG}=$FORM{pg};
   $conf{list_max_recs}=$FORM{rows};
   $pages_qs .= "&rows=$conf{list_max_recs}";
  }
+
+
+
 
 #online sessions
 my $list = $sessions->online( { USER_NAME => $LIST_PARAMS{LOGIN}, 

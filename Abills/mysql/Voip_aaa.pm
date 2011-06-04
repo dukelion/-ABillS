@@ -224,7 +224,10 @@ sub auth {
 
 
 #DIsable
-if ($self->{DISABLE} ||  $self->{VOIP_DISABLE} || $self->{USER_DISABLE}) {
+if ($self->{VOIP_DISABLE}) {
+  $RAD_PAIRS{'Reply-Message'}="Service Disable";	
+}
+elsif ($self->{USER_DISABLE}) {
 	#$RAD_PAIRS{'h323-return-code'}=7;
   $RAD_PAIRS{'Reply-Message'}="Account Disable";
   return 1, \%RAD_PAIRS;
@@ -300,6 +303,7 @@ else {
 
 
     #Get intervals and prices
+    #originate
     if ($RAD->{H323_CALL_ORIGIN} == 1) {
         $self->{INFO}="$RAD->{'CALLED_STATION_ID'}";       
        $self->get_intervals();
