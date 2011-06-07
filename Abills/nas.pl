@@ -414,6 +414,7 @@ sub hangup_radius {
   $Log->log_print('LOG_DEBUG', "$USER", " HANGUP: User-Name=$USER NAS_MNG: $ip:$mng_port '$NAS->{NAS_MNG_PASSWORD}'", { ACTION => 'CMD' }); 
 
   my %RAD_PAIRS = ();
+  $mng_port = 1700 if (! $mng_port);
   my $type;
   my $r = new Radius(Host   => "$NAS->{NAS_MNG_IP_PORT}", 
                      Secret => "$NAS->{NAS_MNG_PASSWORD}") or return "Can't connect '$NAS->{NAS_MNG_IP_PORT}' $!";

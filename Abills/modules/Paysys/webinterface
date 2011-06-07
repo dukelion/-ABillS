@@ -178,7 +178,7 @@ sub paysys_import_form {
       #Get data from file
       elsif($FORM{FILE_DATA}) {
 	      my $content = $FORM{"FILE_DATA"}{'Contents'};
-	      ($DATA_ARR, $BINDING_IDS)=paysys_import_parse($content, $import_expr, $BINDING_FIELD);
+	      ($DATA_ARR, $BINDING_IDS)=paysys_import_parse($content, $import_expr, $BINDING_FIELD, { DEBUG => $debug, ENCODE => $FORM{ENCODE} });
         my $table2 = $html->table({ width  => '100%',
                                     rows   => [ [ $_NAME,   $FORM{FILE_DATA}{filename} ],
                                                 [ $_TOTAL,  $#{ $DATA_ARR }+1 ],
@@ -195,7 +195,7 @@ sub paysys_import_form {
        	  if ($id eq '') {
        	  	next;
        	   }
-          $ids .= "$id, ";
+          $ids .= "$id; ";
         }
 
        if ($ids eq '') {
@@ -205,8 +205,7 @@ sub paysys_import_form {
        chop($ids);
        chop($ids);
        my $users = Users->new($db, $admin, \%conf); 
-	     $ids =~ s/, /', '/g;
-	     my $list  = $users->list({ $BINDING_FIELD => "list:'$ids'",
+	     my $list  = $users->list({ $BINDING_FIELD => "$ids",
 	     	                          PAGE_ROWS      => 1000000 
 	     	                        });
 
@@ -397,6 +396,15 @@ function CheckAllINBOX() {
                                        });
 
 
+  $info{ENCODE_SEL} = $html->form_select('ENCODE', 
+                                      { 
+ 	                                      SELECTED     => $FORM{ENCODE},
+ 	                                      SEL_ARRAY    => [ '', 'win2utf8',  'utf82win',  'win2koi', 'koi2win', 'win2iso',  'iso2win', 'win2dos', 'dos2win'
+ 	                                       ],
+                                       });
+
+
+
 	$html->tpl_show(_include('paysys_file_import', 'Paysys'), \%info);
 }
 
@@ -405,26 +413,32 @@ function CheckAllINBOX() {
 # Parce file
 #**********************************************************
 sub paysys_import_parse {
-	my ($content, $import_expr, $BINDING_FIELD) = @_; 
+	my ($content, $import_expr, $BINDING_FIELD, $attr) = @_; 
   my @DATA_ARR = (); 
   my @BINDING_IDS = ();	     
 
-  
+  my $debug = $attr->{DEBUG} || 0;
   $import_expr=~s/ //g;
   $import_expr=~s/\n//g;
   my ($expration, $columns)=split(/:/, $import_expr);
   my @EXPR_IDS = split(/,/, $columns);
   
-  print "Expration: $expration $_INFO_FIELDS: $columns\n";	     
+  print "Expration: $expration ". $html->br() ."$_INFO_FIELDS: $columns".$html->br();
   my @rows = split(/[\r]{0,1}\n/, $content);
   my $line_count = 1;
        
         foreach my $line (@rows) {
+        	
+        	if ($attr->{ENCODE}) {
+        		$line = convert($line, { $attr->{ENCODE} => 1   });
+        	 }
+        	
         	 my %DATA_HASH = ();
            #next if ($#params < $#EXPR_IDS);
            if (my @res = ($line =~ /$expration/)) {
            	 for (my $i=0; $i<=$#res; $i++) {
-           	 	 print "$EXPR_IDS[$i] / $res[$i]<br>" if ($debug > 1);
+           	 	 print "$EXPR_IDS[$i] / $res[$i]". $html->br() if ($debug > 0);
+
                next if ($EXPR_IDS[$i] eq 'UNDEF');
 
                $DATA_HASH{$EXPR_IDS[$i]}=$res[$i];
@@ -451,7 +465,7 @@ sub paysys_import_parse {
              push @BINDING_IDS, $DATA_HASH{$BINDING_FIELD} if ($DATA_HASH{$BINDING_FIELD});
             }
            else {
-             print $html->b("Error: line: $line_count"). " '$line'<br>\n";	
+             print $html->b("Error: line: $line_count"). " '$line'" .$html->br();	
            }
 
           $line_count++;
@@ -1450,15 +1464,15 @@ if ($conf{PAYSYS_P24_MERCHANT_YUR}) {
     
     if ($added_payments{$ID}) {
     	my ($id, $login, $date)=split(/:/, $added_payments{$ID}, 3);
-    	$table_id_col    = $html->button("$_ADDED", "index=2&ID=$added_payments{$ID}").'<br/>'. 
-    	$html->b($login).'<br/>'.
+    	$table_id_col    = $html->button("$_ADDED", "index=2&ID=$added_payments{$ID}").$html->br(). 
+    	$html->b($login).$html->br().
     	$date;
     	$table_login_col = '';
      }
     else {
     	$table_id_col = ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM} && $description ne 'Account Rechards') ? $html->form_input('IDS', "$ID", { TYPE => 'checkbox'}).$ID : '';
 
-    	$table_login_col = (($UID>0) ? $html->button($LOGIN, "index=15&UID=$UID").'<br/>'. $FIO .'<br/>'.$html->form_input('CONTRACT_ID_'.$ID, "$BINDING_IDS{$ID}", ) :  ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM} && $description ne 'Account Rechards') ?  $html->form_input($BINDING_FIELD.'_'. $ID, $FORM{$BINDING_FIELD.'_'.$ID}) : '' ) .
+    	$table_login_col = (($UID>0) ? $html->button($LOGIN, "index=15&UID=$UID").$html->br(). $FIO .$html->br().$html->form_input('CONTRACT_ID_'.$ID, "$BINDING_IDS{$ID}", ) :  ($v->{col}->{BPL_C_ACC}->{content} eq $conf{PAYSYS_P24_CARDNUM} && $description ne 'Account Rechards') ?  $html->form_input($BINDING_FIELD.'_'. $ID, $FORM{$BINDING_FIELD.'_'.$ID}) : '' ) .
 		  $html->form_input('UID_'.$ID, "$UID", { TYPE => 'hidden'})	.
 		  $html->form_input('SUM_'.$ID, "$sum", { TYPE => 'hidden'})	.
 		  $html->form_input('DATE_'.$ID, "$date", { TYPE => 'hidden'})	.
@@ -1525,7 +1539,7 @@ else {
     my $sum  = $line->{'amount'};
     
 		$table->addrow($ID,
-		  (($binding_hash{$BINDING_IDS{$ID}}) ? $html->button($LOGIN, "index=15&UID=$UID").'<br/>'.$BIND.' / '.$CONTRACT_ID : $html->form_input('UID_'. $ID, "$FORM{UID}")).
+		  (($binding_hash{$BINDING_IDS{$ID}}) ? $html->button($LOGIN, "index=15&UID=$UID").$html->br().$BIND.' / '.$CONTRACT_ID : $html->form_input('UID_'. $ID, "$FORM{UID}")).
 		  $html->form_input('IDS', "$ID", { TYPE => 'hidden'}).
 		  $html->form_input('UID_'.$ID, "$UID", { TYPE => 'hidden'})	.
 		  $html->form_input('SUM_'.$ID, "$sum", { TYPE => 'hidden'})	.
