@@ -225,7 +225,14 @@ sub auth {
 
 #DIsable
 if ($self->{VOIP_DISABLE}) {
-  $RAD_PAIRS{'Reply-Message'}="Service Disable";	
+	if ($self->{VOIP_DISABLE} == 2 && $RAD->{H323_CALL_ORIGIN} == 1) {
+    $RAD_PAIRS{'Reply-Message'}="Incoming only";	
+    return 1, \%RAD_PAIRS;
+	 }
+	else {
+    $RAD_PAIRS{'Reply-Message'}="Service Disable";	
+    return 1, \%RAD_PAIRS;
+   }
 }
 elsif ($self->{USER_DISABLE}) {
 	#$RAD_PAIRS{'h323-return-code'}=7;

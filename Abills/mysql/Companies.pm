@@ -149,6 +149,17 @@ sub add {
 
   $self->{COMPANY_ID} = $self->{INSERT_ID};
 
+  if ($attr->{CREATE_BILL}) {
+  	$self->change({ 
+  		 DISABLE     => int($DATA{DISABLE}),
+  		 COMPANY_ID  => $self->{COMPANY_ID},
+  		 CREATE_BILL => 1,
+  		 CREATE_EXT_BILL  => $attr->{CREATE_EXT_BILL}  		 
+  		 });
+   }
+
+
+
   return $self;
 }
 

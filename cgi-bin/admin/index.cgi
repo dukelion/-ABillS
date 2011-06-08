@@ -661,8 +661,50 @@ if ($FORM{add}) {
   $company->add({ %FORM });
  
   if (! $company->{errno}) {
-    $html->message('info', $_ADDED, "$_ADDED");
+    $html->message('info', $_ADDED, "$_ADDED ". $html->button("$FORM{COMPANY_NAME}", 'index=13&COMPANY_ID='.$company->{COMPANY_ID}));
    }
+ }
+elsif ($FORM{import}) {
+  if (! $permissions{0}{1} ) {
+    $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
+    return 0;
+   }
+
+   #Create service cards from file
+   my $imported = 0;
+   my $impoted_named = '';
+   if(defined($FORM{FILE_DATA})) {
+      	my @rows = split(/[\r]{0,1}\n/, $FORM{"FILE_DATA"}{'Contents'});
+
+        foreach my $line (@rows) {
+        	 my @params       = split(/\t/, $line);
+        	 my %USER_HASH = (CREATE_BILL  => 1,
+        	                  COMPANY_NAME => $params[0]);
+
+           next if ($USER_HASH{COMPANY_NAME} eq '');
+            
+           for(my $i=1; $i<=$#params; $i++) {
+           	 my($k, $v)=split(/=/, $params[$i], 2);
+           	 $v =~ s/\"//g;
+           	 $USER_HASH{$k}=$v;
+            }
+          $impoted_named .= "$USER_HASH{COMPANY_NAME}\n";
+          $imported++;
+          
+          $company->add({ %USER_HASH });
+          if ($company->{errno}) {
+            $html->message('err', $_ERROR, "Line:$impoted_named  '$USER_HASH{COMPANY_NAME}' [$company->{errno}] $err_strs{$company->{errno}}");
+            return 0;
+           }
+         }         
+
+      	my $message = "$_FILE $_NAME:  $FORM{FILE_DATA}{filename}\n".
+                   "$_TOTAL:  $imported\n".
+                   "$_SIZE: $FORM{FILE_DATA}{Size}\n".
+                   "$impoted_named\n";
+
+      	$html->message('info', $_INFO, "$message");
+    }
  }
 elsif($FORM{change}) {
   if (! $permissions{0}{4} ) {
@@ -753,7 +795,6 @@ elsif($FORM{COMPANY_ID}) {
         $input = $html->form_input($field_id, "$company->{INFO_FIELDS_VAL}->[$i]", { TYPE => 'file' });
         if ($company->{INFO_FIELDS_VAL}->[$i]) {
         	$users->attachment_info({ ID => $company->{INFO_FIELDS_VAL}->[$i], TABLE => $field_id.'_file' });
-      	
           $input .= ' '. $html->button("$users->{FILENAME}, ". int2byte($users->{FILESIZE}), "qindex=". get_function_index('user_pi') ."&ATTACHMENT=$field_id:$company->{INFO_FIELDS_VAL}->[$i]", { BUTTON => 1 });
          }
        }
@@ -811,7 +852,8 @@ else {
                               cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
                               pages      => $company->{TOTAL},
                               qs         => $pages_qs,
-                              ID         => 'COMPANY_ID'
+                              ID         => 'COMPANY_ID',
+                              EXPORT     =>  $_EXPORT .' XML:&xml=1',
                             } );
 
 
@@ -832,6 +874,15 @@ else {
                            rows       => [ [ "$_TOTAL:", $html->b($company->{TOTAL}) ] ]
                        } );
   print $table->show();
+  
+  print $html->form_main({ CONTENT => "$_FILE: ".$html->form_input('FILE_DATA', '', { TYPE => 'file' }),
+  	                       ENCTYPE => 'multipart/form-data',
+	                         HIDDEN  => { index      => $index, 
+	                       	            },
+	                         SUBMIT  => { import   => "$_IMPORT"
+	                       	           } });
+  
+  
 }
   if ($company->{errno}) {
     $html->message('info', $_ERROR, "[$company->{errno}] $err_strs{$company->{errno}}");

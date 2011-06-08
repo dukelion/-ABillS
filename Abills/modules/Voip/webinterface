@@ -16,6 +16,12 @@ $Log         = Log->new($db, \%conf);
 my $MODULE = ($module{$index}) ? $module{$index} : 'Voip';
 my $debug = 0;
 
+
+my @service_status_colors = ("$_COLORS[9]", "$_COLORS[6]", '#808080', '#0000FF', '#FF8000', '#009999');
+my @service_status = ( "$_ENABLE", "$_DISABLE", "$_ALLOW_ANSWER", "$_DISABLE: $_NON_PAYMENT");
+
+
+
 $conf{VOIP_ASTERISK_USERS}='' if (! $conf{VOIP_ASTERISK_USERS});
 
 =comments
@@ -348,9 +354,23 @@ sub voip_user {
 	  $user->{LNG_ACTION}=$_CHANGE;
 	 }
 
-  $user->{DISABLE}     = ($user->{DISABLE} == 1) ?  ' checked' : '';
+  #$user->{DISABLE}     = ($user->{DISABLE} == 1) ?  ' checked' : '';
   $user->{ALLOW_ANSWER}= ' checked' if($user->{ALLOW_ANSWER} == 1);
   $user->{ALLOW_CALLS} = ' checked' if($user->{ALLOW_CALLS} == 1);
+  
+  $user->{STATUS_SEL}   = $html->form_select('DISABLE', 
+                                          { 
+ 	                                          SELECTED     => $user->{DISABLE} || 0,
+ 	                                          SEL_HASH     => { 
+ 	                                          	                0  => $service_status[0],
+ 	                                          	                1  => $service_status[1],
+ 	                                          	                2  => $service_status[2],
+ 	                                          	                3  => $service_status[3],  
+ 	                                          	                },
+                                            NO_ID       => 1,
+                                            STYLE        => \@service_status_colors,
+ 	                                        });
+
   
   $html->tpl_show(_include('voip_user', 'Voip'), $user);
 }
@@ -2280,9 +2300,9 @@ sub voip_daily_fees {
 
  	   my $ulist = $Dv->list({ 
          ACTIVATE => "<=$DATE",
-         EXPIRE => ">$DATE",
-         DISABLE => '0',
-         TP => $line->[0]
+         EXPIRE   => ">$DATE",
+         DISABLE  => '0',
+         TP       => $line->[0]
  	   	 });
 
 #     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
@@ -2290,15 +2310,15 @@ sub voip_daily_fees {
      foreach my $u (@$ulist) {
         my %user = (
             ACCOUNT_ID => $u->[7],
-            UID => $u->[6],
-            BILL_ID => $u->[12]  
+            UID        => $u->[6],
+            BILL_ID    => $u->[12]  
          );
 #          print " $u->[0] $line->[6] $u->[2] $u->[3]\n"; 	
 
         if($line->[5] > 0
-            || $conf{negative_deposit}
             || $u->[2] + $u->[3] > 0 ) {
-          $fees->take(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE" } );  
+          $fees->take(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE",
+          	                                METHOD   => 1 } );  
          }
       }
 
@@ -2311,50 +2331,58 @@ sub voip_daily_fees {
 # monthly_fees
 #**********************************************************
 sub voip_monthly_fees {
- require Tariffs;
- Tariffs->import();
- my $tariffs = Tariffs->new($db);
+  my ($attr) = @_;
 
- require Fees;
- Fees->import();
- my $fees = Fees->new($db, $admin);
+  my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+  $debug_output .= "DV: Monthly periodic payments\n" if ($debug > 1);
+ 
+  use Users;
+  my $users = Users->new($db, $admin, \%conf); 
+
+  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+  my %VOIP_LIST_PARAMS = ();
+  $VOIP_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
+  $VOIP_LIST_PARAMS{EXT_BILL} = 1 if ($conf{BONUS_EXT_FUNCTIONS});
+  
+  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+ 
+
+
+  require Tariffs;
+  Tariffs->import();
+  my $tariffs = Tariffs->new($db);
+
+  require Fees;
+  Fees->import();
+  my $fees = Fees->new($db, $admin);
 
  my $list = $tariffs->list({ %LIST_PARAMS });
-
- #print "$y, $m, $d\n";
-
- $m--;
- 
-my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
+ my $date_unixtime =  mktime(0, 0, 0, $d, ($m-1), $y - 1900, 0, 0, 0);
  
  foreach my $line (@$list) {
  	 if ($line->[6] > 0) {
-# 	   print "$line->[0] $line->[7]\n";
- 	   $LIST_PARAMS{TP}=$line->[0];
-
- 	   my $ulist = $users->list({ 
+ 	 	 $Voip->{debug}=1;
+ 	   my $ulist = $Voip->user_list({ 
          ACTIVATE => "<=$DATE",
-         EXPIRE => ">$DATE",
-         DISABLE => '0',
-         TP => $line->[0]
+         EXPIRE   => ">$DATE",
+         DISABLE  => '0',
+         TP       => $line->[0],
+         %VOIP_LIST_PARAMS
  	   	 });
-#u.id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
-#      u.uid, u.account_id, u.email, u.tp_id, u.activate, u.expire
-
 
      foreach my $u (@$ulist) {
-          my %user = (
+        my %user = (
             ACCOUNT_ID => $u->[7],
-            UID => $u->[6],
-            BILL_ID => $u->[12]   
+            UID        => $u->[6],
+            BILL_ID    => $u->[12]   
            );
 
         if ($u->[10] eq '0000-00-00' and $d == 1) {
-#          print " $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
           if($line->[4] > 0 
-              || $conf{negative_deposit}
               || $u->[2] + $u->[3] > 0 ) {
-            $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE" } );  
+            $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE", METHOD   => 1 } );  
            }
          }
         elsif($u->[10] ne '0000-00-00') {
@@ -2364,14 +2392,14 @@ my $date_unixtime =  mktime(0, 0, 0, $d, $m, $y - 1900, 0, 0, 0);
 
           if ($date_unixtime - $active_unixtime > 30 * 86400) {
             #my $aa = (strftime "%Y-%m-%d", localtime($active_unixtime));
-            $fees->take(\%user, $line->[7], { DESCRIBE => "$_MONTH_FEE" } );
+            $fees->take(\%user, $line->[7], { DESCRIBE => "$_MONTH_FEE", 
+            	                                METHOD   => 1 
+            	                               } );
             $users->change($u->[6], { ACTIVATE => $DATE } );
            }
-#          print "   $u->[0] $line->[6] $u->[2] $u->[3] $u->[10] - $u->[11]\n"; 	
          }
 
       }
-
  	  }
   }
 }

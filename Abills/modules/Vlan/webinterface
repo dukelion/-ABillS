@@ -197,7 +197,6 @@ sub vlan_user {
     	$html->message('err', $_ERROR, "$ERR_DHCP_SELECT_CORRECT_IP_MASK");  	
      }
     else {
-      $Vlan->{debug}=1;
     	my $list = $Vlan->list({  IP => "$FORM{IP}", UID => "!$FORM{UID}"
     		  #IP => ">=$FORM{IP},<=". (int2ip(ip2int($FORM{IP}) + (ip2int('255.255.255.255') -  ip2int($FORM{NETMASK})))) 
     		 });
