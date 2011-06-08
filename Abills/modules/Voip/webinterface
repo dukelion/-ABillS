@@ -7,11 +7,18 @@ use Voip;
 use Voip_Sessions;
 use Nas;
 use Log;
+use Fees;
+use Tariffs;
 
 my $Voip     = Voip->new($db, $admin, \%conf);
 my $sessions = Voip_Sessions->new($db, \%conf);
+my $fees     = Fees->new($db, $admin, \%conf);
+my $tariffs  = Tariffs->new($db, \%conf, $admin);
+
+
 my $Nas      = Nas->new($db, \%conf);
 $Log         = Log->new($db, \%conf);
+
 
 my $MODULE = ($module{$index}) ? $module{$index} : 'Voip';
 my $debug = 0;
@@ -370,6 +377,10 @@ sub voip_user {
                                             NO_ID       => 1,
                                             STYLE        => \@service_status_colors,
  	                                        });
+
+  if ($user->{DISABLE} > 0) { 
+    $user->{STATUS_COLOR} = $service_status_colors[$user->{DISABLE}] ;
+   }
 
   
   $html->tpl_show(_include('voip_user', 'Voip'), $user);
@@ -2219,19 +2230,6 @@ sub voip_user_routes {
   $intervals = $Voip_tp->{TOTAL};
 
 
-#  form_search({ 
-#     SIMPLE        => {$_PREFIX   => "ROUTE_PREFIX",
-#                       $_NAME     => "ROUTE_NAME",
-#                       $_DISABLE  => "DISABLE",
-#                       $_DESCRIBE => "DESCRIBE",
-#                       $_GATEWAY  => "GATEWAY_SEL",
-#                       $_SUM      => "PRICE"},
-#
-#     HIDDEN_FIELDS => { TP_ID      => $FORM{TP_ID} }
-#   });
-
-
-
 $list = $Voip->rp_list({ %LIST_PARAMS });
 my %prices = ();
 foreach my $line (@$list) {
@@ -2282,48 +2280,78 @@ foreach my $line (@$list) {
 # daily_fees
 #**********************************************************
 sub voip_daily_fees {
+  my ($attr) = @_; 
+
+  my $debug = $attr->{DEBUG} || 0;
+  my $debug_output = '';
+  $debug_output .= "Voip: Daily periodic\n" if ($debug > 1);
  
- require Tariffs;
- Tariffs->import();
- my $tariffs = Tariffs->new($db, $conf);
+  $LIST_PARAMS{TP_ID} = $attr->{TP_ID} if ($attr->{TP_ID});
+  my %VOIP_LIST_PARAMS = ();
+  $VOIP_LIST_PARAMS{LOGIN} = $attr->{LOGIN} if ($attr->{LOGIN});
+  $VOIP_LIST_PARAMS{EXT_BILL} = 1 if ($conf{BONUS_EXT_FUNCTIONS});
+  
+  $ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
+  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
 
- require Fees;
- Fees->import();
- my $fees = Fees->new($db, $admin, $conf);
+ 
+ 
 
- my $list = $tariffs->list({ %LIST_PARAMS });
+ my $list = $tariffs->list({ %LIST_PARAMS, MODULE => 'Voip' });
 
  foreach my $line (@$list) {
- 	 if ($line->[5] > 0) {
-# 	   print "$line->[0] $line->[6]\n";
- 	   $LIST_PARAMS{TP}=$line->[0];
+   my %TP_INFO     = ();
+ 	 my $TP_ID       = $line->[0];
+ 	 my $postpaid    = $line->[4];
+   my $daily_fee   = $line->[5];
 
- 	   my $ulist = $Dv->list({ 
+   $TP_INFO{POSTPAID_MONTHLY} = $line->[13];
+   $TP_INFO{REDUCTION}        = $line->[11];
+   $TP_INFO{TP_NUM}           = $line->[18];
+
+
+   $debug_output .= "TP ID: $line->[0] DF: $daily_fee POSTPAID: $postpaid\n" if ($debug > 1); 	 
+ 	 if ($daily_fee > 0) {
+ 	   $LIST_PARAMS{TP}=$line->[0];
+ 	   my $ulist = $Voip->user_list({ 
          ACTIVATE => "<=$DATE",
          EXPIRE   => ">$DATE",
-         DISABLE  => '0',
-         TP       => $line->[0]
+         STATUS       => '0',
+         LOGIN_STATUS => 0,
+         TP_ID    => $TP_INFO{TP_NUM}
  	   	 });
 
-#     .id, u.fio, if(acct.id IS NULL, u.deposit, acct.deposit), u.credit, tp.name, u.disable, 
-#      u.uid, u.account_id, u.email, u.tp_id
      foreach my $u (@$ulist) {
         my %user = (
-            ACCOUNT_ID => $u->[7],
-            UID        => $u->[6],
-            BILL_ID    => $u->[12]  
-         );
-#          print " $u->[0] $line->[6] $u->[2] $u->[3]\n"; 	
+            LOGIN      => $u->[0],
+            UID        => $u->[7],
+            BILL_ID    => $u->[13],
+            ACTIVATE   => $u->[11],
+            REDUCTION  => 0,
+            DEPOSIT    => $u->[2],
+            CREDIT     => $u->[3],
+            STATUS     => $u->[14],            
+           );
 
-        if($line->[5] > 0
-            || $u->[2] + $u->[3] > 0 ) {
-          $fees->take(\%user, $line->[5], { DESCRIBE => "$_DAY_FEE",
-          	                                METHOD   => 1 } );  
+        $debug_output .= " Login: $user{LOGIN} ($user{UID}) REDUCTION: $user{REDUCTION} DEPOSIT: $u->[2] CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE}\n" if ($debug > 3); 	
+
+        if($postpaid  || $user{DEPOSIT} + $user{CREDIT} > 0 ) {
+ 	        my %FEES_PARAMS = ( 
+               DESCRIBE => "Voip: $_DAY_FEE ($TP_ID)",
+               DATE     => "$ADMIN_REPORT{DATE} $TIME",
+               METHOD   => 1 );
+
+          $fees->take(\%user, $daily_fee, \%FEES_PARAMS );  
          }
       }
 
  	  }
   }
+ 
+ 
+ 
+  $DEBUG .= $debug_output;
+  return $debug_output; 
 }
 
 
@@ -2350,58 +2378,83 @@ sub voip_monthly_fees {
  
 
 
-  require Tariffs;
-  Tariffs->import();
-  my $tariffs = Tariffs->new($db);
-
-  require Fees;
-  Fees->import();
-  my $fees = Fees->new($db, $admin);
-
- my $list = $tariffs->list({ %LIST_PARAMS });
- my $date_unixtime =  mktime(0, 0, 0, $d, ($m-1), $y - 1900, 0, 0, 0);
+  my $list = $tariffs->list({ %LIST_PARAMS, MODULE => 'Voip' });
+  my $date_unixtime =  mktime(0, 0, 0, $d, ($m-1), $y - 1900, 0, 0, 0);
  
  foreach my $line (@$list) {
- 	 if ($line->[6] > 0) {
- 	 	 $Voip->{debug}=1;
+   my %TP_INFO     = ();
+ 	 my $TP_ID       = $line->[0];
+ 	 my $postpaid    = $line->[4];
+   my $month_fee   = $line->[6];
+
+   $TP_INFO{POSTPAID_MONTHLY} = $line->[13];
+   $TP_INFO{REDUCTION}        = $line->[11];
+   $TP_INFO{TP_NUM}           = $line->[18];
+
+   $debug_output .= "TP ID: $line->[0] MF: $month_fee POSTPAID: $postpaid\n" if ($debug > 1); 	 
+ 	 
+ 	 if ($month_fee > 0) {
  	   my $ulist = $Voip->user_list({ 
-         ACTIVATE => "<=$DATE",
-         EXPIRE   => ">$DATE",
-         DISABLE  => '0',
-         TP       => $line->[0],
+         ACTIVATE     => "<=$DATE",
+         EXPIRE       => ">$DATE",
+         STATUS       => '0;2',
+         LOGIN_STATUS => 0,
+         TP_ID        => $TP_INFO{TP_NUM},
+         PAGE_ROWS    => 10000000,
          %VOIP_LIST_PARAMS
  	   	 });
 
      foreach my $u (@$ulist) {
         my %user = (
-            ACCOUNT_ID => $u->[7],
-            UID        => $u->[6],
-            BILL_ID    => $u->[12]   
+            LOGIN      => $u->[0],
+            UID        => $u->[7],
+            BILL_ID    => $u->[13],
+            ACTIVATE   => $u->[11],
+            REDUCTION  => 0,
+            DEPOSIT    => $u->[2],
+            CREDIT     => $u->[3],
+            STATUS     => $u->[14],            
            );
 
-        if ($u->[10] eq '0000-00-00' and $d == 1) {
-          if($line->[4] > 0 
-              || $u->[2] + $u->[3] > 0 ) {
-            $fees->take(\%user, $line->[6], { DESCRIBE => "$_MONTH_FEE", METHOD   => 1 } );  
-           }
-         }
-        elsif($u->[10] ne '0000-00-00') {
-          my ($activate_y, $activate_m, $activate_d)=split(/-/, $u->[10], 3);
-          $activate_m--;
-          my $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
 
-          if ($date_unixtime - $active_unixtime > 30 * 86400) {
-            #my $aa = (strftime "%Y-%m-%d", localtime($active_unixtime));
-            $fees->take(\%user, $line->[7], { DESCRIBE => "$_MONTH_FEE", 
-            	                                METHOD   => 1 
-            	                               } );
-            $users->change($u->[6], { ACTIVATE => $DATE } );
+        $debug_output .= " Login: $user{LOGIN} ($user{UID}) REDUCTION: $user{REDUCTION} DEPOSIT: $u->[2] CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE}\n" if ($debug > 3); 	
+        my %FEES_PARAMS = ( DESCRIBE => "Voip: $_MONTH_FEE ($TP_ID)",
+                            DATE     => $ADMIN_REPORT{DATE},
+                            METHOD   => 1 
+                           );  
+          
+          if ($user{ACTIVATE} eq '0000-00-00' and $d == 1) {
+            if($postpaid > 0 || $user{DEPOSIT} + $user{CREDIT} > 0 ) {
+              $fees->take(\%user, $month_fee, \%FEES_PARAMS );  
+             }
+            elsif  ($conf{VOIP_ONEMONTH_INCOMMING_ALLOW}) {
+              my $change_status = ($user{STATUS} == 0) ? 2 : 1;
+            	$Voip->user_change({ UID => $user{UID}, DISABLE => $change_status });
+            	$debug_output .= " CHANGE STATUS: $user{STATUS} -> $change_status\n" if ($debug > 3); 	
+             }
            }
-         }
+          elsif($user{ACTIVATE} ne '0000-00-00') {
+            if($postpaid > 0 || $user{DEPOSIT} + $user{CREDIT} > 0 ) {
+              my ($activate_y, $activate_m, $activate_d)=split(/-/, $user{ACTIVATE}, 3);
+              my $active_unixtime =  mktime(0, 0, 0, $activate_d, ($activate_m-1), $activate_y - 1900, 0, 0, 0);
 
-      }
+              if ($date_unixtime - $active_unixtime > 30 * 86400) {
+                $fees->take(\%user, $month_fee, \%FEES_PARAMS );
+                $users->change($user{UID}, { ACTIVATE => $DATE, UID => $user{UID} } );
+               }
+             }
+            elsif  ($conf{VOIP_ONEMONTH_INCOMMING_ALLOW}) {
+              my $change_status = ($user{STATUS} == 0) ? 2 : 1;
+            	$Voip->user_change({ UID => $user{UID}, DISABLE => $change_status });
+            	$debug_output .= " CHANGE STATUS: $user{STATUS} -> $change_status\n" if ($debug > 3); 	
+             }
+           }
  	  }
   }
+}
+
+  $DEBUG .= $debug_output;
+  return $debug_output;
 }
 
 

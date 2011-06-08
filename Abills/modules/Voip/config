@@ -28,23 +28,8 @@
                        "03:1:$_ROUTES:voip_user_routes:"     => 0
                       );
 
-%PERIODIC = ( report  => [ 'voip_report' ]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+%PERIODIC = (daily   => [ 'voip_daily_fees'  ],
+             monthly => [ 'voip_monthly_fees' ],
+             report  => [ 'voip_report'       ]);
 
 1

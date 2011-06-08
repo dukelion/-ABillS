@@ -194,17 +194,12 @@ sub user_change {
               FILTER_ID        => 'filter_id'
              );
 
-
-
   $self->changes($admin,  { CHANGE_PARAM => 'UID',
                    TABLE        => 'voip_main',
                    FIELDS       => \%FIELDS,
                    OLD_INFO     => $self->user_info($attr->{UID}),
                    DATA         => $attr
                   } );
-
-
-  $admin->action_add($attr->{UID}, "$self->{result}");
 
   return $self->{result};
 }
@@ -290,7 +285,7 @@ sub user_list {
     push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
   }
  elsif ($attr->{LOGIN}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
+    $attr->{LOGIN} =~ s/\*/\%/ig;
     push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
   }
  # Login expresion
@@ -354,9 +349,6 @@ sub user_list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
-
-
-
  if ($attr->{COMMENTS}) {
    $attr->{COMMENTS} =~ s/\*/\%/ig;
    push @WHERE_RULES, "pi.comments LIKE '$attr->{COMMENTS}'";
@@ -393,13 +385,13 @@ sub user_list {
 
 #Activate
  if ($attr->{ACTIVATE}) {
-   my $value = $self->search_expr("'$attr->{ACTIVATE}'", 'INT');
+   my $value = $self->search_expr("$attr->{ACTIVATE}", 'INT');
    push @WHERE_RULES, "(u.activate='0000-00-00' or u.activate$value)"; 
  }
 
 #Expire
  if ($attr->{EXPIRE}) {
-   my $value = $self->search_expr("'$attr->{EXPIRE}'", 'INT');
+   my $value = $self->search_expr("$attr->{EXPIRE}", 'INT');
    push @WHERE_RULES, "(u.expire='0000-00-00' or u.expire$value)"; 
  }
 
@@ -407,6 +399,14 @@ sub user_list {
  if ($attr->{DISABLE}) {
    push @WHERE_RULES, "u.disable='$attr->{DISABLE}'"; 
  }
+
+ if (defined($attr->{STATUS}) && $attr->{STATUS} ne '') {
+   push @WHERE_RULES,  @{ $self->search_expr($attr->{STATUS}, 'INT', 'service.disable') };
+  }
+ 
+ if (defined($attr->{LOGIN_STATUS})) {
+   push @WHERE_RULES, "u.disable='$attr->{LOGIN_STATUS}'"; 
+  }
 
 
  if ($attr->{NUMBER}) {
@@ -419,23 +419,26 @@ sub user_list {
  
  
  $self->query($db, "SELECT u.id, 
-      pi.fio, if(company.id IS NULL, b.deposit, b.deposit), u.credit, tp.name, 
+      pi.fio, if(u.company_id > 0, cb.deposit, b.deposit),
+      u.credit, tp.name, 
       u.disable, 
       service.number,
       $self->{SEARCH_FIELDS}
-      u.uid, u.company_id, pi.email, service.tp_id, u.activate, u.expire, u.bill_id
+      u.uid, u.company_id, pi.email, service.tp_id, u.activate, u.expire, 
+      if(u.company_id > 0, company.bill_id, u.bill_id) AS bill_id,
+      service.disable
      FROM (users u, voip_main service)
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
      LEFT JOIN bills b ON u.bill_id = b.id
      LEFT JOIN tarif_plans tp ON (tp.id=service.tp_id) 
      LEFT JOIN companies company ON  (u.company_id=company.id) 
+     LEFT JOIN bills cb ON  (company.bill_id=cb.id)
+
      $WHERE 
      GROUP BY u.uid
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  return $self if($self->{errno});
-
-
 
  my $list = $self->{list};
 
@@ -781,6 +784,7 @@ sub tp_add {
   my ($attr) = @_;
 
 
+  $attr->{MODULE}='Voip';
   $tariffs->add({ %$attr });
 
   $tariffs->{TP_ID} = $tariffs->{INSERT_ID};
@@ -791,11 +795,6 @@ sub tp_add {
   }
 
   my $DATA = tp_defaults();
-
-
-#  while(my($k, $v)=each %$DATA) {
-#  	print "$k, $v<br>\n";
-#  }
   
   %DATA = $self->get_data($attr, { default => $DATA }); 
 
@@ -839,15 +838,12 @@ sub tp_change {
   my ($tp_id, $attr) = @_;
 
 
-  $tariffs->change($tp_id, { %$attr });
+  #$attr->{MODULE}='Voip';
+  $tariffs->change($tp_id, { %$attr, MODULE=>'Voip' });
   if (defined($tariffs->{errno})) {
   	$self->{errno} = $tariffs->{errno};
   	return $self;
   }
-
-
- 
-
 
   my %FIELDS = ( TP_ID => 'id', 
             DAY_TIME_LIMIT =>   'day_time_limit',
@@ -863,23 +859,12 @@ sub tp_change {
             FREE_TIME            => 'free_time'
          );   
 
-  #if ($tp_id != $attr->{CHG_TP_ID}) {
-  #	 $FIELDS{CHG_TP_ID}='id';
-  #	 
-  #
-  # }
-
 	$self->changes($admin, { CHANGE_PARAM => 'TP_ID',
 		                TABLE        => 'voip_tps',
 		                FIELDS       => \%FIELDS,
 		                OLD_INFO     => $self->tp_info($tp_id, $attr),
 		                DATA         => $attr
 		              } );
-
-
-  #if ($tp_id != $attr->{CHG_TP_ID}) {
-  #	 $attr->{TP_ID} = $attr->{CHG_TP_ID};
-  # }
 
   
   $self->tp_info($tp_id);
