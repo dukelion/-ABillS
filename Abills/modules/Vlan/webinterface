@@ -136,6 +136,8 @@ print $table->show();
 sub vlan_user {
  	$Vlan->{UID}=$FORM{UID};	  
 
+
+  my $login_button = '';
   if ($FORM{add}) {
     if (! $permissions{0}{1} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
@@ -147,6 +149,7 @@ sub vlan_user {
       if ($FORM{IP} ne $INFO->{IF_IP}) {
         print $html->message('info', $_CHANGE, "IP $FORM{IP} -> $INFO->{IF_IP}");
         $FORM{IP} = $INFO->{IF_IP};
+        
        }
      }
 
@@ -157,10 +160,20 @@ sub vlan_user {
     	$html->message('err', $_ERROR, "$ERR_DHCP_SELECT_CORRECT_IP_MASK");  	
      }
     else {
-      $Vlan->add({ %FORM });
-      if (! $Vlan->{errno}) {
-        $html->message('info', $_INFO, "$_ADDED");	
-        vlan_create({ NAS_IDS => $FORM{NAS_ID} });
+    	#Check dublicate
+    	my $list = $Vlan->list({  IP => "$FORM{IP}"
+    		  #IP => ">=$FORM{IP},<=". (int2ip(ip2int($FORM{IP}) + (ip2int('255.255.255.255') -  ip2int($FORM{NETMASK})))) 
+    		 });
+    	if ($Vlan->{TOTAL} > 0) {
+    		$Vlan->{errno}=8;
+    		$login_button = $html->button($list->[0][0], 'index=15&UID='.$list->[0][11]);
+    	 }
+    	else {
+        $Vlan->add({ %FORM });
+        if (! $Vlan->{errno}) {
+          $html->message('info', $_INFO, "$_ADDED");	
+          vlan_create({ NAS_IDS => $FORM{NAS_ID} });
+         }
        }
      }
    }
@@ -172,7 +185,7 @@ sub vlan_user {
     elsif ($FORM{IP} ne '0.0.0.0') {
       my $INFO = vlan_get_net($FORM{IP}, "$FORM{NETMASK}");
       if ($FORM{IP} ne $INFO->{IF_IP}) {
-        print $html->message('info', $_CHANGE, "IP $FORM{IP} -> $INFO->{IF_IP}");
+        print $html->message('info', $_CHANGE, "$_CHANGE IP $FORM{IP} -> $INFO->{IF_IP}");
         $FORM{IP} = $INFO->{IF_IP};
        }
      }
@@ -184,10 +197,20 @@ sub vlan_user {
     	$html->message('err', $_ERROR, "$ERR_DHCP_SELECT_CORRECT_IP_MASK");  	
      }
     else {
-      $Vlan->change({ %FORM });
-      if (! $Vlan->{errno}) {
-    	  my $message = vlan_create({ DEBUG => 1, NAS_IDS => $FORM{NAS_ID} });
-        $html->message('info', $_CHANGED, $html->pre($message));	
+      $Vlan->{debug}=1;
+    	my $list = $Vlan->list({  IP => "$FORM{IP}", UID => "!$FORM{UID}"
+    		  #IP => ">=$FORM{IP},<=". (int2ip(ip2int($FORM{IP}) + (ip2int('255.255.255.255') -  ip2int($FORM{NETMASK})))) 
+    		 });
+    	if ($Vlan->{TOTAL} > 0) {
+    		$Vlan->{errno}=8;
+    		$login_button = $html->button($list->[0][0], 'index=15&UID='.$list->[0][11]);
+    	 }
+    	else {
+        $Vlan->change({ %FORM });
+        if (! $Vlan->{errno}) {
+      	  my $message = vlan_create({ DEBUG => 1, NAS_IDS => $FORM{NAS_ID} });
+          $html->message('info', $_CHANGED, $html->pre($message, { OUTPUT2RETURN => 1 }));	
+         }  
        }
      }
    }
@@ -199,8 +222,16 @@ sub vlan_user {
      }
 	 }
 
+
+
   if ($Vlan->{errno}) {
-    $html->message('err', $_ERROR, "[$Vlan->{errno}] $err_strs{$Vlan->{errno}}");
+	  if ($Vlan->{errno} == 8) {
+    	my $login = $html->button("$Dhcphosts->{LOGIN}", "index=15&UID=$Vlan->{UID}&MODULE=Vlan");
+     	$html->message('err', $_ERROR, "$_EXIST IP: $FORM{IP} $login_button");
+     }
+    else { 	
+      $html->message('err', $_ERROR, "[$Vlan->{errno}] $err_strs{$Vlan->{errno}}");
+     }
    }
 
   my $user = $Vlan->info($FORM{UID});

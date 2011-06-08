@@ -227,9 +227,12 @@ sub list {
     $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
     push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
   }
+ elsif ($attr->{UID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'vlan.uid') };
+  }
  
 
- if ($attr->{IP}) {
+  if ($attr->{IP}) {
     if ($attr->{IP} =~ m/\*/g) {
       my ($i, $first_ip, $last_ip);
       my @p = split(/\./, $attr->{IP});
@@ -250,9 +253,8 @@ sub list {
        }
       push @WHERE_RULES, "(vlan.ip>=INET_ATON('$first_ip') and vlan.ip<=INET_ATON('$last_ip'))";
      }
-    else {
-      my $value = $self->search_expr($attr->{IP}, 'IP');
-      push @WHERE_RULES, "vlan.ip$value";
+    else {      
+      push @WHERE_RULES, @{ $self->search_expr($attr->{IP}, 'IP', 'vlan.ip') };
     }
 
     $self->{SEARCH_FIELDS} = 'INET_NTOA(vlan.ip), ';
