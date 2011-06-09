@@ -3590,6 +3590,13 @@ elsif($FORM{del}) {
 sub cisco_isg_cmd {
   my ($user_ip, $command, $attr) = @_;  
 
+  my $debug = $conf{ISG_DEBUG} || 0;
+  
+  if ($debug > 0) {
+  	 print "Content-Type: text/html\n\n":
+  	 print "Command: $command". $html->br();
+   }
+
   #Get user NAS server from ip pools
   if (! $Nas->{NAS_ID}) {
     my $list = $Nas->nas_ip_pools_list();
@@ -3631,7 +3638,6 @@ if ($command eq 'account-status-query') {
    }
    
   for my $a ($r->get_attributes) {
-
     if ($a->{'Value'}=~/\$MA(\S+)/) {
     	$Dv->{ISG_CID_CUR}=$1;
      }
@@ -3646,6 +3652,9 @@ if ($command eq 'account-status-query') {
   	  $Dv->{ISG_SESSION_DURATION}=$2;
   	 }
     $RAD_PAIRS{$a->{'Name'}}=$a->{'Value'};
+    if ($debug > 0) {
+    	print "$a->{'Name'} -> $a->{'Value'}".$html->br();
+     }
    }  
 
 # name=Cisco-Account-Info value=N1TP_100;3541;test;8657;8149;1781505;2915555
