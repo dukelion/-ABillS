@@ -18,16 +18,17 @@ if exists agent.circuit-id {
 	log ( info, concat( \"o82 Lease for \", 
 	   binary-to-ascii (10, 8, \".\", leased-address), 
 	\" is connected to interface \",
-	  binary-to-ascii (10, 8, \"/\", suffix ( option agent.circuit-id, 2)), \" (add 1 to port number!),
-	VLAN \",
-	  binary-to-ascii (10, 16, \"\", substring( option agent.circuit-id, 2, 2)),  \" 
-	on switch \", 
-	  binary-to-ascii(16, 8, \":\", substring( option agent.remote-id, 2, 6))));
+	  binary-to-ascii (10, 8, \"/\", suffix ( option agent.circuit-id, 2)), 
+	\" (add 1 to port number!), VLAN: \",
+	  binary-to-ascii (10, 16, \"\", substring( option agent.circuit-id, 2, 2)),  
+	\" raw option-82 info is CID: \", 
+	  binary-to-ascii (16, 8, \":\", substring(hardware, 1, 7))
+	  ));
 
 	log ( info, concat( \"o82 Lease for \", 
 	  binary-to-ascii (10, 8, \".\", leased-address), 
-	\" raw option-82 info is CID: \", 
-	  binary-to-ascii (16, 8, \":\", substring(hardware, 1, 7)), 
+	\" on switch \", 
+	  binary-to-ascii(16, 8, \":\", substring( option agent.remote-id, 2, 6)),
 	\" AID: \",
 	  binary-to-ascii(16, 8, \".\", option agent.remote-id)));
 }

@@ -690,6 +690,7 @@ elsif ($FORM{import}) {
             }
           $impoted_named .= "$USER_HASH{COMPANY_NAME}\n";
           $imported++;
+          $USER_HASH{COMPANY_NAME}=~s/'/\\'/g;
           
           $company->add({ %USER_HASH });
           if ($company->{errno}) {
