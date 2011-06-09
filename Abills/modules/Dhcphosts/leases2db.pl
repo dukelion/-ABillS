@@ -61,6 +61,16 @@ if(defined($ARGV->{'help'})){
 sub mk_log {
   my ($type, $message) = @_;
   
+  %log_levels = ('LOG_EMERG' => 0,
+'LOG_ALERT'   => 1,
+'LOG_CRIT'    => 2,
+'LOG_ERR'     => 3,
+'LOG_WARNING' => 4,
+'LOG_NOTICE'  => 5,
+'LOG_INFO'    => 6,
+'LOG_DEBUG'   => 7,
+'LOG_SQL'     => 8);
+  
   if ($debug < $log_levels{$type}) {
     return 0;
    }

@@ -168,7 +168,7 @@ if(! -f $config_file ) {
               $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --password='$mysql_root_passwd' -e "$add_mysql_user"`;
               print $res;
               print "Upload Main Dump and modules\n";
-              $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --default-character-set=$mk_config{dbcharset} --storage_engine=$db_storage_engine --password='$mysql_root_passwd' -D $mk_config{dbname} < ../db/abills.sql`;
+              $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --password='$mysql_root_passwd' -D $mk_config{dbname} < ../db/abills.sql`;
             } 
            elsif(confirm_yn("Show MySQL configure Settings? ", "y")) {
            	 print "----------------------------------------------------------\n".
