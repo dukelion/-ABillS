@@ -11,7 +11,7 @@ use vars  qw(%conf $db
 use strict;
 use FindBin '$Bin';
 
-my $VERSION = 3.0;
+my $VERSION = 3.1;
 my $config_file = '/usr/abills/libexec/config.pl';
 
 $conf{OS}=uc(`uname`);
@@ -149,13 +149,17 @@ if(! -f $config_file ) {
          print "\nMySQL root password [$mysql_root_passwd]: ";
          chop($read = <STDIN>);
          $mysql_root_passwd = $read if ($read ne '');
+         my $MYSQL_COLLATE =  'cp1251_general_ci';
+         if ($mk_config{dbcharset} eq 'utf8') {
+           $MYSQL_COLLATE = 'utf8_general_ci';
+          }                           
         
          $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --password=$mysql_root_passwd -e "select version();"`; 
          if ($res !~ /Unknown database/) {
            my $add_mysql_user = "USE mysql;".
                  "INSERT INTO user (Host, User, Password) VALUES ('$mk_config{dbhost}','$mk_config{dbuser}', password('$mk_config{dbpasswd}'));".
                  "INSERT INTO db (Host, Db, User, Select_priv, Insert_priv, Update_priv, Delete_priv, Create_priv, Drop_priv, Index_priv, Alter_priv, Lock_tables_priv, Create_tmp_table_priv, Trigger_priv,Create_view_priv, Show_view_priv, Execute_priv, Event_priv) VALUES ('$mk_config{dbhost}', '$mk_config{dbname}', '$mk_config{dbuser}', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'); ".
-                 "CREATE DATABASE $mk_config{dbname} DEFAULT CHARACTER SET $mk_config{dbcharset} COLLATE cp1251_general_ci;".
+                 "CREATE DATABASE $mk_config{dbname} DEFAULT CHARACTER SET $mk_config{dbcharset} COLLATE $MYSQL_COLLATE;".
                  "flush privileges;";
 
            if (confirm_yn("Your DB not configure for ABillS using. Configure? ", "y")) {
@@ -164,7 +168,7 @@ if(! -f $config_file ) {
               $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --password='$mysql_root_passwd' -e "$add_mysql_user"`;
               print $res;
               print "Upload Main Dump and modules\n";
-              $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --default-character-set=$mk_config{dbcharset} --storage_engine=$db_storage_engine --password='$mysql_root_passwd' -D $mk_config{dbname} < ../abills.sql`;
+              $res = `$mysql --default-character-set=$mk_config{dbcharset} -u $mysql_root_user --default-character-set=$mk_config{dbcharset} --storage_engine=$db_storage_engine --password='$mysql_root_passwd' -D $mk_config{dbname} < ../db/abills.sql`;
             } 
            elsif(confirm_yn("Show MySQL configure Settings? ", "y")) {
            	 print "----------------------------------------------------------\n".
