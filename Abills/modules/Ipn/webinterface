@@ -2451,12 +2451,11 @@ my $nas_list = $Nas->list({ NAS_IDS   => $attr->{NAS_IDS},
 my %nas_info = ();
 foreach my $line (@$nas_list) {
 	if (in_array($line->[4], \@nas_types)) {
-	  $nas_info{$line->[0]}{NAS_IP}         = $line->[3]; 
 	  $nas_info{$line->[0]}{NAS_ID}         = $line->[0];
 	  $nas_info{$line->[0]}{NAS_TYPE}       = $line->[4];
-	  $nas_info{$line->[0]}{NAS_IP_ADDRESS} = $line->[9];
+	  $nas_info{$line->[0]}{NAS_IP_ADDRESS} = $line->[3];
 	  $nas_info{$line->[0]}{NAS_MNG_USER}   = $line->[10];
-    $nas_info{$line->[0]}{NAS_MNG_IP_PORT}= $line->[11];
+    $nas_info{$line->[0]}{NAS_MNG_IP_PORT}= $line->[9];
    }
 }
 
@@ -2558,7 +2557,7 @@ foreach my $line (@$list)   {
                 NAS_ID             => $nas_id,
                 NAS_IP_ADDRESS     => $nas_info{$nas_id}{NAS_IP_ADDRESS},
                 NAS_MNG_USER       => $nas_info{$nas_id}{NAS_MNG_USER},
-                NAS_MNG_IP_PORT    => $nas_info{$nas_id}{NAS_MNG_IP_PORT} ,
+                NAS_MNG_IP_PORT    => $nas_info{$nas_id}{NAS_MNG_IP_PORT},
                 TP_ID              => $tp_id,
                 CALLING_STATION_ID => $ip,
                 CONNECT_INFO       => $connect_info,
