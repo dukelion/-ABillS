@@ -875,15 +875,15 @@ else {
                            rows       => [ [ "$_TOTAL:", $html->b($company->{TOTAL}) ] ]
                        } );
   print $table->show();
-  
-  print $html->form_main({ CONTENT => "$_FILE: ".$html->form_input('FILE_DATA', '', { TYPE => 'file' }),
+
+  if (! $FORM{search}  ) {
+    print $html->form_main({ CONTENT => "$_FILE: ".$html->form_input('FILE_DATA', '', { TYPE => 'file' }),
   	                       ENCTYPE => 'multipart/form-data',
 	                         HIDDEN  => { index      => $index, 
 	                       	            },
 	                         SUBMIT  => { import   => "$_IMPORT"
 	                       	           } });
-  
-  
+   }
 }
   if ($company->{errno}) {
     $html->message('info', $_ERROR, "[$company->{errno}] $err_strs{$company->{errno}}");
@@ -5754,7 +5754,6 @@ elsif($search_form{$FORM{type}}) {
       $i++;
      }
 
-
     $info{CREDIT_DATE}  = $html->date_fld2('CREDIT_DATE', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 12 });
     $info{PAYMENTS}     = $html->date_fld2('PAYMENTS', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 14 });
     $info{REGISTRATION} = $html->date_fld2('REGISTRATION', { NO_DEFAULT_DATE => 1, MONTHES => \@MONTHES, FORM_NAME => 'form_search', WEEK_DAYS => \@WEEKDAYS, TABINDEX => 16 });
@@ -5802,7 +5801,7 @@ if ($index == 7) {
 		  $SEARCH_DATA{SEL_TYPE}.= "<th";
 		  $SEARCH_DATA{SEL_TYPE}.= " bgcolor=$_COLORS[0]" if ($FORM{type} eq $k);
 		  $SEARCH_DATA{SEL_TYPE}.= '>';
-		  $SEARCH_DATA{SEL_TYPE}.= $html->button($v, "index=$index&search=1&type=$k");
+		  $SEARCH_DATA{SEL_TYPE}.= $html->button($v, "index=$index&type=$k"); #&search=1");
 		  $SEARCH_DATA{SEL_TYPE}.="</th>\n";
  		 }
 	 }

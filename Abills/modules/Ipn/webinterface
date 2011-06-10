@@ -2508,7 +2508,7 @@ $list = $Dv->list({ LOGIN        => $attr->{LOGINS} || undef,
 
 
 foreach my $line (@$list)   {
-  my $filter_id    = $line->[8];
+  my $filter_id    = $line->[9];
   my $login        = $line->[0];
   my $ip           = $line->[6];
   my $connect_info = '';
@@ -2542,7 +2542,7 @@ foreach my $line (@$list)   {
 
   #Activate
   if (int($nas_id) < 1) {
-    $debug_output .= "$ERR_ACCESS_DENY\n $_NAS $_NOT_EXIST\n";  	
+    $debug_output .= "IP: $ip ERR_ACCESS_DENY: NAS NOT_EXIST\n";  	
    }
   else {
     $debug_output .= "$login $uid $ip -> $nas_id\n" if ($debug > 1);
@@ -2571,6 +2571,8 @@ foreach my $line (@$list)   {
                );
     
       $Ipn->user_status({ %DATA });
+      
+      
       ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
       $debug_output .= "$_ACTIVATE IP: $ip\n" if ($debug > 1);
    }
