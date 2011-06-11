@@ -1152,7 +1152,7 @@ foreach my $line (@$list) {
       #Check swich
     	if ($NAS_MACS{$line->[15]}) {
          ($INFO{OPTION82_NAS_NAME}, $INFO{OPTION82_NAS_MAC})=split(/,/, $NAS_MACS{$line->[15]}, 2);
-    	   if ($INFO{OPTION82_NAS_MAC} =~ //:/) {
+    	   if ($INFO{OPTION82_NAS_MAC} =~ /:/) {
     	     $INFO{OPTION82_NAS_MAC} =~ s/^00/0/;
     	     $INFO{OPTION82_NAS_MAC} =~ s/:0/:/g;
     	    }
