@@ -1028,7 +1028,10 @@ sub dhcphosts_config {
   my $nas_list = $Nas->list();
 
   foreach my $line (@$nas_list) {
-  	if ($line->[12] =~ /Called-Station-Id=[\"\'](.+)[\'\"]/i){
+  	if ($line->[15]) {
+  		$NAS_MACS{$line->[0]}="$line->[1],$line->[15]";
+  	 }
+  	elsif ($line->[12] =~ /Called-Station-Id=[\"\'](.+)[\'\"]/i){
   	 $NAS_MACS{$line->[0]}="$line->[1],$1";
   	}
    }
@@ -1134,8 +1137,10 @@ foreach my $line (@$list) {
 
      }
 
+   	$INFO{LOGIN}      = $line->[1];
     $INFO{CLIENT_MAC} = $line->[6];
     $INFO{CLIENT_IP}  = $line->[11];
+    
     #Option 82
     if ($line->[13]) {
       $INFO{CLIENT_MAC}    =~ s/^00/0/;
@@ -1151,7 +1156,7 @@ foreach my $line (@$list) {
     	   $INFO{OPTION82_NAS_MAC} =~ s/^00/0/;
     	   $INFO{OPTION82_NAS_MAC} =~ s/:0/:/g;
     	   $INFO{OPTION82_NAS_MAC} = lc($INFO{OPTION82_NAS_MAC});
-
+         $INFO{OPTION82_NAS_NAME}=~ s/ /\_/g;
          push @OPTION82_MATCHES, "binary-to-ascii(16, 8, \":\", substring(option agent.remote-id, 2, 6)) = \"$INFO{OPTION82_NAS_MAC}\"";
     	 }
       else {
@@ -1165,23 +1170,25 @@ foreach my $line (@$list) {
 
       #Client MAC
       push @OPTION82_MATCHES, "binary-to-ascii (16, 8, \":\", substring(hardware, 1, 7))=\"$INFO{CLIENT_MAC}\"" if ($INFO{CLIENT_MAC} ne '0:0:0:0:0:0' && $conf{DHCPHOSTS_O82_USE_MAC});
-      #push @OPTION82_MATCHES, "binary-to-ascii(10, 8, \"\", substring(option agent.circuit-id, 6, 1)) = \"-$INFO{CLIENT_MAC}\"" if ($INFO{CLIENT_MAC} ne '0:0:0:0:0:0' );
 
       #Vlan option
       push @OPTION82_MATCHES, "binary-to-ascii (10, 16, \"\", substring( option agent.circuit-id, 2, 2)) = \"$INFO{CLIENT_VLAN}\" " if ($INFO{CLIENT_VLAN} > 0 );
 
       my $matches = join(' and ', @OPTION82_MATCHES);
+      $INFO{DHCPHOSTS_O82_CLASS_NAME}="$INFO{OPTION82_NAS_NAME}-$INFO{OPTION82_NAS_MAC}-port-$INFO{OPTION82_NAS_PORT}";
 
-      $INFO{OPTION82_CLASS} .= "# LOGIN: $line->[1]\nclass \"$INFO{OPTION82_NAS_NAME}-$INFO{OPTION82_NAS_MAC}-port-$INFO{OPTION82_NAS_PORT}";
       if ($conf{DHCPHOSTS_O82_USE_MAC}) {
-      	$INFO{OPTION82_CLASS} .= "-$INFO{CLIENT_MAC}";
+      	$INFO{OPTION82_CLASS_NAME} .= "-$INFO{CLIENT_MAC}";
        }
-      $INFO{OPTION82_CLASS} .= "\" { match if $matches ;  \n}\n\n";
-    	$INFO{OPTION82_POOLS} .= "pool { range $line->[11]; allow members of \"$INFO{OPTION82_NAS_NAME}-$INFO{OPTION82_NAS_MAC}-port-$INFO{OPTION82_NAS_PORT}";
-      if ($conf{DHCPHOSTS_O82_USE_MAC}) {
-      	$INFO{OPTION82_POOLS} .= "-$INFO{CLIENT_MAC}";
+
+      if ($conf{DHCPHOSTS_O82_CLASS_TPL}) {
+      	$INFO{OPTION82_CLASS} .=  $html->tpl_show(_include('dhcphosts_dhcp_conf_o82_class', 'Dhcphosts'), \%INFO, { OUTPUT2RETURN => 1 });
        }
-      $INFO{OPTION82_POOLS} .= "\"; }\n";
+      else {
+        $INFO{OPTION82_CLASS} .= "# LOGIN: $line->[1]\nclass \"$INFO{DHCPHOSTS_O82_CLASS_NAME}\" { match if $matches ;  \n }\n\n";
+       }
+
+    	$INFO{OPTION82_POOLS} .= "pool { range $line->[11]; allow members of \"$INFO{DHCPHOSTS_O82_CLASS_NAME}\"; }\n";
      }
     else {
       #Static hosts

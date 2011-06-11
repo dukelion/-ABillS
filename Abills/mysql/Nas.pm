@@ -103,7 +103,8 @@ sub list {
   nas.rad_pairs, 
   nas.ext_acct,
   nas.auth_type
-  $ext_fields
+  $ext_fields,
+  nas.mac
   FROM nas
   LEFT JOIN nas_groups ng ON (ng.id=nas.gid)
   $EXT_TABLES
