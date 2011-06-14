@@ -17,7 +17,7 @@ sub notepad_new {
   if ($attr->{AID}) {
     $Notepad->notepad_new( $attr );
 
-    if ($Notepad->{TOTAL}) {
+    if ($Notepad->{TOTAL} && $Notepad->{TODAY} + $Notepad->{ACTIVE} > 0) {
       return "(". (($Notepad->{TODAY}) ? $html->color_mark($Notepad->{TODAY}, $_COLORS[6]) : $Notepad->{TODAY} )."/$Notepad->{ACTIVE})";
      }
    }
