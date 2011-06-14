@@ -260,3 +260,17 @@ cc0=document.getElementsByTagName("UL");for(mi=0;mi<cc0.length; mi++){if(cc1=cc0
 
 try { var nl=document.getElementById('menuDiv').getElementsByTagName('a'); var found=-1; var url=document.location.href+'/'; var len=0; for (var i=0;i<nl.length;i++){ if (url.indexOf(nl[i].href)>=0){ if (found==-1 || len<nl[i].href.length){ found=i; len=nl[i].href.length; } } } if (found>=0){ nl[found].className='ma'; } } catch(e){}
 <!-- end javascrip sliding menu-->
+
+
+function keyDown(e) { 
+  if(e.keyCode == 17)
+    ctrl = true;
+  else if(e.keyCode == 13 && ctrl)
+	document.getElementById('go').click();
+}
+
+function keyUp(e){
+  if(e.keyCode == 17) 
+    ctrl = false;
+}
+

@@ -1,21 +1,3 @@
-<SCRIPT type='text/javascript'>
-<!--
-	function keyDown(e) { 
-	
-		if(e.keyCode == 17)
-			ctrl = true;
-		
-		else if(e.keyCode == 13 && ctrl)
-			document.getElementById('go').click();
-	}
-
-	function keyUp(e){
-		if(e.keyCode == 17) 
-			ctrl = false;
-	}
--->
-</SCRIPT>
-
 <form action='$SELF_URL' METHOD=POST>
 <input type=hidden name=index value=$index>
 <input type=hidden name=HOST_ID value='$FORM{HOST_ID}'>

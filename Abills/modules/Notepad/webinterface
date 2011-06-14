@@ -2,12 +2,6 @@
 use Notepad;
 my $Notepad = Notepad->new($db, $admin, \%conf);
 
-#	if ($FORM{message}) {				
-#		$html->message('info', $_INFO, "$FORM{message}");	
-#	}
-
-
-
 #************************************************************
 #
 #************************************************************	
