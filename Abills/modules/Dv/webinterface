@@ -4679,6 +4679,7 @@ sub dv_monthly_fees {
    my $activate_date = "<='$ADMIN_REPORT{DATE}'";
    my $ext_deposit_op = $line->[14];
 
+
    $TP_INFO{POSTPAID_MONTHLY} = $line->[13];
    $TP_INFO{REDUCTION}        = $line->[11];
 
@@ -4725,7 +4726,6 @@ sub dv_monthly_fees {
  	   	 });
 
      my $extfield_count = $Dv->{SEARCH_FIELDS_COUNT};
-
      foreach my $u (@$ulist) {
        my %user = (
             LOGIN      => $u->[0],  
@@ -4742,6 +4742,8 @@ sub dv_monthly_fees {
            );
 
 
+
+
        $debug_output .= " Login: $user{LOGIN} ($user{UID}) TP_ID: ". ($u->[9 +$extfield_count ]  ) ." Fees: $line->[6] REDUCTION: $user{REDUCTION} DEPOSIT: $u->[2] CREDIT $user{CREDIT} ACTIVE: $user{ACTIVATE} TP: $u->[11]\n" if ($debug > 3); 	
        
        if (! $user{BILL_ID} && $user{MAIN_BILL_ID}) {
@@ -4749,6 +4751,8 @@ sub dv_monthly_fees {
        	 $user{MAIN_BILL_ID}=0;
        	 $ext_deposit_op=0;
         }
+
+
        
        if (($user{BILL_ID} && $user{BILL_ID} > 0) && defined($user{DEPOSIT})) {
          my %FEES_PARAMS = (
@@ -4852,7 +4856,7 @@ sub dv_monthly_fees {
              $activate_m--;
              $active_unixtime =  mktime(0, 0, 0, $activate_d, $activate_m, $activate_y - 1900, 0, 0, 0);
             }
-          
+
            #Get 2 time fees from main account and ext account and from main
            if ($conf{BONUS_EXT_FUNCTIONS} && $ext_deposit_op > 0) {
          	  	# Small deposit
@@ -4862,6 +4866,8 @@ sub dv_monthly_fees {
            	  	 }
          	  	 }
            	  elsif ($sum > $user{EXT_DEPOSIT} && $user{EXT_DEPOSIT} > 0) {
+           	  	
+           	  	print "// $sum > $user{EXT_DEPOSIT} //\n";
            	    # Take some sum from ext deposit other from main
            	    if ((($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib) || $user{ACTIVATE} ne '0000-00-00') {
            	  	  if ($date_unixtime - $active_unixtime < 30 * 86400) {
@@ -4885,7 +4891,7 @@ sub dv_monthly_fees {
               	$user{DEPOSIT} = $user{EXT_DEPOSIT};
                }
             } 
-   
+
            #If deposit is above-zero or TARIF PALIN is POST PAID or PERIODIC PAYMENTS is POSTPAID
            if($postpaid == 1 || $user{DEPOSIT} + $user{CREDIT} > 0 || $TP_INFO{POSTPAID_MONTHLY} == 1) {
 	           #***************************************************************

@@ -1,24 +1,5 @@
 </div class=noprint id=form_msg_add>
 
-<SCRIPT type='text/javascript'>
-<!--
-	function keyDown(e) { 
-	
-		if(e.keyCode == 17)
-			ctrl = true;
-		
-		else if(e.keyCode == 13 && ctrl)
-			document.getElementById('go').click();
-	}
-
-	function keyUp(e){
-		if(e.keyCode == 17) 
-			ctrl = false;
-	}
--->
-</SCRIPT>
-
-
 <FORM action='$SELF_URL' METHOD='POST'  enctype='multipart/form-data'>
 <input type='hidden' name='index' value='$index'/>
 <input type='hidden' name='sid' value='$sid'/>

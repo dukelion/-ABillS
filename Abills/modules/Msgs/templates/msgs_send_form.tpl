@@ -34,20 +34,6 @@ else {
  } 
 }
 
-	function keyDown(e) { 
-	
-		if(e.keyCode == 17)
-			ctrl = true;
-		
-		else if(e.keyCode == 13 && ctrl)
-			document.getElementById('go').click();
-	}
-
-	function keyUp(e){
-		if(e.keyCode == 17) 
-			ctrl = false;
-	}
-
 -->
 </SCRIPT>
 
