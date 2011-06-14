@@ -1,0 +1,189 @@
+
+use Notepad;
+my $Notepad = Notepad->new($db, $admin, \%conf);
+
+#	if ($FORM{message}) {				
+#		$html->message('info', $_INFO, "$FORM{message}");	
+#	}
+
+
+
+#************************************************************
+#
+#************************************************************	
+sub notepad_new {
+  my ($attr) = @_;
+
+  if ($attr->{AID}) {
+    $Notepad->notepad_new( $attr );
+
+    if ($Notepad->{TOTAL}) {
+      return "(". (($Notepad->{TODAY}) ? $html->color_mark($Notepad->{TODAY}, $_COLORS[6]) : $Notepad->{TODAY} )."/$Notepad->{ACTIVE})";
+     }
+   }
+
+  return '';	
+}
+
+#************************************************************
+#
+#************************************************************	
+sub notepad_main {
+@STATUS = ("$_ACTIVE", "$_CLOSED", "$_INWORK");
+
+my $status_bar = msgs_status_bar();
+	print $html->br();
+	
+	
+	if(!defined($FORM{NOTE_STATUS})) {
+		
+		$FORM{NOTE_STATUS} = 'ALL';
+		
+	}
+	
+	my $table = $html->table(	{	width      => '100%',
+									caption    => $_NOTEPAD,
+									border     => 1,
+									title      => [$_DATE. '/' . $_TIME, $_ADDED ,$_STATUS, $_SUBJECT, '-', '-'],
+									cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
+									pages      => $Storage->{TOTAL},
+									header		=> 
+	(($FORM{NOTE_STATUS} eq 'ALL') ? $html->b($_ALL) : $html->button($_ALL, "index=$index&NOTE_STATUS=ALL", { BUTTON => 1 })) . ' ' .
+	(($FORM{NOTE_STATUS}==0 and $FORM{NOTE_STATUS} ne 'ALL') ? $html->b($_ACTIVE) : $html->button($_ACTIVE, "index=$index&NOTE_STATUS=0", { BUTTON => 1 })) . ' ' . 
+	(($FORM{NOTE_STATUS}==1) ?	$html->b($_CLOSED) : $html->button($_CLOSED, "index=$index&NOTE_STATUS=1", { BUTTON => 1 })) . ' ' .
+	(($FORM{NOTE_STATUS}==2) ? $html->b($_INWORK) : $html->button($_INWORK, "index=$index&NOTE_STATUS=2", { BUTTON => 1 })),           
+									ID         => 'NOTEPAD_ID'
+								} 
+	);			
+	
+	if ($FORM{NOTE_STATUS} eq 'ALL') {
+			$FORM{NOTE_STATUS} = undef;
+	}
+		
+	$list = $Notepad->notepad_list_notes( { AID => $admin->{AID}, NOTE_STATUS => $FORM{NOTE_STATUS} });
+	foreach my $line ( @$list ) {
+		$table->addrow(	$line->[1],  
+						$line->[2], 
+						$STATUS[$line->[3]],
+						$line->[4],  
+						$html->button($_SHOW, "index=$index&chg=$line->[0]", { BUTTON => 1 }), 
+						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_SUPPLIER $line->[1]?", BUTTON => 1 }) : ''
+		);
+	}
+	print $table->show() . $html->br();
+
+	if ($FORM{chg}) {
+		$Notepad->{ACTION}='change';
+		$Notepad->{ACTION_LNG}=$_CHANGE;
+		$Notepad->notepad_note_info({ ID => $FORM{chg},});
+		$Notepad->{STATUS}=$html->form_select("STATUS", 
+							{	SELECTED        => $Notepad->{STATUS},
+								SEL_ARRAY		=> [ @STATUS ], 
+								ARRAY_NUM_ID 	=> 0,
+								NO_ID			=> 1
+							});	
+		
+		if (! $Notepad->{errno}) {
+			$html->message('info', $_INFO, "$_CHANGING");	
+		}
+	}
+	
+	if (!$FORM{chg}) {
+		
+		if (!$FORM{change}) {
+			$Notepad->{ACTION}='add_main';
+			$Notepad->{ACTION_LNG}=$_ADD;
+		} else {
+			$Notepad->{ACTION}='change';
+			$Notepad->{ACTION_LNG}=$_CHANGE;
+		}
+		
+		$Notepad->{NOTIFIED}='0000-00-00 00:00:00';
+		$Notepad->{STATUS}=$html->form_select("STATUS", 
+							{	SELECTED		=> $Notepad->{STATUS},
+								SEL_ARRAY		=> [ @STATUS ], 
+								ARRAY_NUM_ID 	=> 0,
+								NO_ID			=> 1
+							});
+	}
+
+
+	
+	
+	if(!$FORM{add_main} and  !$FORM{change}) {
+	
+		$html->tpl_show(_include('notepad_main_form', 'Notepad'), {	%$Notepad,
+															  		ALIGN => 'right',														  
+															  	
+															  	});
+	}
+	
+	if ($FORM{add_main}) {
+		
+		if ($FORM{SUBJECT} ne '') {
+		
+			$Notepad->notepad_add_note({ %FORM });
+			if (! $Notepad->{errno}) {
+				$html->tpl_show(_include('notepad_redirect', 'Notepad'), { 
+						SECTION => '',
+						MESSAGE => "$_ADDED",
+					
+					});		
+			}
+		}
+		else {
+			
+			
+			
+			$html->message('info', $_INFO, "$ERR_FIELDS_FOR_NOTIFIED_AND_SUBJECT_ARE_REQUIRED");
+			$FORM{STATUS}=$html->form_select("STATUS", 
+				{	SELECTED		=> $FORM{STATUS},
+					SEL_ARRAY		=> [ @STATUS ], 
+					ARRAY_NUM_ID 	=> 0,
+					NO_ID			=> 1
+				});
+			$html->tpl_show(_include('notepad_main_form', 'Notepad'), {%$Notepad, %FORM});
+		
+		}
+	}
+	elsif ($FORM{change}) {
+		if ($FORM{SUBJECT} ne '') {
+			$Notepad->notepad_note_change({ %FORM });
+			if (! $Notepad->{errno}) {
+	        	$html->tpl_show(_include('notepad_redirect', 'Notepad'), { 
+					SECTION => '&chg=' . $FORM{ID},
+					MESSAGE => "$_CHANGED",
+				});			
+	    	}
+		}
+		else {
+	
+			$html->message('info', $_INFO, "$ERR_FIELDS_FOR_NOTIFIED_AND_SUBJECT_ARE_REQUIRED");
+			$FORM{STATUS}=$html->form_select("STATUS", 
+				{	SELECTED		=> $FORM{STATUS},
+					SEL_ARRAY		=> [ @STATUS ], 
+					ARRAY_NUM_ID 	=> 0,
+					NO_ID			=> 1
+				});
+			$html->tpl_show(_include('notepad_main_form', 'Notepad'), {%$Notepad, 
+																		%FORM,
+																		ALIGN => 'right'} );
+
+		}
+	
+
+	}
+	elsif ($FORM{del}) {
+		
+		$Notepad->notepad_del_note( {ID =>$FORM{del}} );
+		if (! $Notepad->{errno}){
+			$html->tpl_show(_include('notepad_redirect', 'Notepad'), { 
+						SECTION => '',
+						MESSAGE => "$_DELETED",
+			});
+		}	
+	}
+		
+}
+
+1

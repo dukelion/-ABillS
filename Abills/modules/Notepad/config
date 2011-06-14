@@ -1,0 +1,8 @@
+#Iner_ID : Main or Sub or if -1 user menu func list
+
+if(defined($admin->{AID})) {
+  require "Abills/modules/Notepad/webinterface";
+  my $count=notepad_new({ AID => $admin->{AID} });
+  %FUNCTIONS_LIST = ("01:0:$_NOTEPAD $count:notepad_main:"				=> 9,
+  );                 
+}               
