@@ -4859,14 +4859,13 @@ my $table = $html->table({ width      => '100%',
                            ID         => 'PROFILE_FUNCTION_LIST'                           
                          });
 
-for(my $parent=1; $parent<$#menu_sorted; $parent++) { 
+for(my $parent=0; $parent<=$#menu_sorted; $parent++) { 
   my $val    = $h->{$parent};
   my $level  = 0;
   my $prefix = '';
   $table->{rowcolor}='row_active';
 
   next if (! defined($permissions{($parent-1)}));  
-
   $table->addrow("$level:", "$parent >> ". $html->button($html->b($val), "index=$parent"). "<<", '') if ($parent != 0);
 
   if (defined($new_hash{$parent})) {
@@ -5959,7 +5958,7 @@ foreach my $line (@$list) {
   
   if (int($line->[3].$line->[2].$line->[1]) <= int($y.$m.$d) && 
        $line->[3] ne '*' && $line->[2] ne '*'  && $line->[1] ne '*') {
-  	$table->{rowcolor}='red';
+  	$table->{rowcolor}=$_COLORS[6];
    }
   else {
   	$table->{rowcolor}=undef;

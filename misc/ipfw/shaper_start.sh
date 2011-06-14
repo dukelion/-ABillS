@@ -2,7 +2,7 @@
 # Shaper/NAT/Session upper for ABillS 
 #
 # PROVIDE: shaper
-# REQUIRE: NETWORKING mysql vlan_up shaper_up
+# REQUIRE: NETWORKING mysql vlan_up 
 #traffic Class numbers
 
 . /etc/rc.subr

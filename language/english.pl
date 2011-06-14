@@ -475,3 +475,4 @@ $_UP_RATING='Up rating';
 $_LOADING='Loading';
 $_OPERATION_FEES='From your account will taken ';
 $_CONTINUE='Continue';
+$_NOTEPAD='Notepad';

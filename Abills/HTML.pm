@@ -122,7 +122,7 @@ sub new {
             '#dddddd',  # 3 TH.sum, TD.sum
             '#E1E1E1',  # 4 border
             '#FFFFFF',  # 5
-            '#FF0000',  # 6
+            '#FF0000',  # 6 Error
             '#000088',  # 7 vlink
             '#0000A0',  # 8 Link
             '#000000',  # 9 Text
