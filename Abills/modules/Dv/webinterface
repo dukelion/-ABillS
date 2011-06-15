@@ -4285,6 +4285,8 @@ sub dv_periodic_logrotate {
   my $debug = $attr->{DEBUG} || 0;
 
 
+  return '' if ($attr->{SKIP_ROTATE});
+
   # Clean s_detail table
   my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
   $conf{DV_LOG_CLEAN_PERIOD}=180 if (! $conf{DV_LOG_CLEAN_PERIOD});
