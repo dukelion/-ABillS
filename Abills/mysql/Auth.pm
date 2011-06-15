@@ -163,6 +163,9 @@ sub dv_auth {
 
 #DIsable
 if ($self->{DISABLE}) {
+	if ($CONF->{DV_STATUS_NEG_DEPOSIT}) {
+    return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+	 }
   $RAD_PAIRS->{'Reply-Message'}="Service Disabled";
   return 1, $RAD_PAIRS;
  }
@@ -1594,7 +1597,7 @@ sub neg_deposit_filter_former () {
 
    $NEG_DEPOSIT_FILTER_ID =~ s/\%IP\%/$RAD_PAIRS->{'Framed-IP-Address'}/g;
    $NEG_DEPOSIT_FILTER_ID =~ s/\%LOGIN\%/$RAD->{'USER_NAME'}/g;
-
+   $self->{INFO}="Neg filter";
 	 if ($NEG_DEPOSIT_FILTER_ID =~ /RAD:(.+)/) {
       	my $rad_pairs = $1;
         my @p = split(/,/, $rad_pairs);
