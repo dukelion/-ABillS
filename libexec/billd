@@ -1322,6 +1322,10 @@ else {
             }
            #Dummynet table shaper section START
            elsif (! $conf{ng_car}) {
+           	 if (! $START_FW[$traf_type]) {
+           	 	 print "Error: Undefined traf type: $traf_type TP: $tp\n";
+             	}
+           	
  	           my $pipe_rule_in  = int($START_FW[$traf_type] + $tp_id * 10);
              my $pipe_rule_out = int($START_FW[$traf_type] + $tp_id * 10 + 1);
              my $dest_ip = ($traf_type == 0) ? 'any' : "table\\($nets_table_number, $traf_type\\)";

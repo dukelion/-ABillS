@@ -1,7 +1,7 @@
 #!/bin/sh
 # Shaper/NAT/Session upper for ABillS 
 #
-# PROVIDE: shaper
+# PROVIDE: abills_shaper
 # REQUIRE: NETWORKING mysql vlan_up 
 #traffic Class numbers
 
@@ -27,14 +27,14 @@ run_rc_command "$1"
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.8
+VERSION=5.1
 
 if [ w${abills_shaper_enable} = w ]; then
   exit;
 fi;
 
 #Negative deposit forward (default: )
-NEG_DEPOSIT_FWD=
+NEG_DEPOSIT_FWD=${abills_neg_deposit};
 FWD_WEB_SERVER_IP=127.0.0.1;
 #Your user portal IP (Default: me)
 USER_PORTAL_IP=

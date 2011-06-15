@@ -4870,7 +4870,6 @@ sub dv_monthly_fees {
          	  	 }
            	  elsif ($sum > $user{EXT_DEPOSIT} && $user{EXT_DEPOSIT} > 0) {
            	  	
-           	  	print "// $sum > $user{EXT_DEPOSIT} //\n";
            	    # Take some sum from ext deposit other from main
            	    if ((($user{ACTIVATE} eq '0000-00-00' and $d == $START_PERIOD_DAY) || $abon_distrib) || $user{ACTIVATE} ne '0000-00-00') {
            	  	  if ($date_unixtime - $active_unixtime < 30 * 86400) {
