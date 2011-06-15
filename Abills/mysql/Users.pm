@@ -922,7 +922,7 @@ sub list {
  	 push @WHERE_RULES,  "(u.expire<curdate() or u.expire='0000-00-00') and u.credit + if(company.id IS NULL, b.deposit, cb.deposit) > 0 and u.disable=0 ";
   }
 
- if (! $admin->{permissions}->{0} || ! $admin->{permissions}->{0}->{8} || 
+ if ((! $admin->{permissions}->{0} && ! $admin->{permissions}->{0}->{8}) || 
     ($attr->{USER_STATUS} && ! $attr->{DELETED})) {
 	 push @WHERE_RULES,  @{ $self->search_expr(0, 'INT', 'u.deleted', { EXT_FIELD => 1 })  };
   }
