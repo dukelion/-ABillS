@@ -4677,7 +4677,7 @@ sub dv_monthly_fees {
  	 my $postpaid    = $line->[4];
    my $month_fee   = $line->[6];
    my $activate_date = "<='$ADMIN_REPORT{DATE}'";
-   my $ext_deposit_op = $line->[14];
+   my $tp_ext_deposit_op = $line->[14];
 
 
    $TP_INFO{POSTPAID_MONTHLY} = $line->[13];
@@ -4686,7 +4686,7 @@ sub dv_monthly_fees {
    my %used_traffic = ();
    #Monthfee & min use
  	 if ($month_fee > 0 || $min_use_sum > 0) {
- 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $TP_INFO{POSTPAID_MONTHLY} REDUCTION: $TP_INFO{REDUCTION} EXT_BILL_ID: $ext_deposit_op CREDIT: $line->[15] MIN_USE: $min_use_sum ABON_DISTR: $abon_distrib\n" if ($debug > 1);
+ 	   $debug_output .= "TP ID: $line->[0] MF: $line->[6] POSTPAID: $TP_INFO{POSTPAID_MONTHLY} REDUCTION: $TP_INFO{REDUCTION} EXT_BILL_ID: $tp_ext_deposit_op CREDIT: $line->[15] MIN_USE: $min_use_sum ABON_DISTR: $abon_distrib\n" if ($debug > 1);
 
  	   #get used  traffic for min use functions
  	   my %processed_users = ();
@@ -4727,6 +4727,7 @@ sub dv_monthly_fees {
 
      my $extfield_count = $Dv->{SEARCH_FIELDS_COUNT};
      foreach my $u (@$ulist) {
+     	 my $ext_deposit_op = $tp_ext_deposit_op;
        my %user = (
             LOGIN      => $u->[0],  
             UID        => $u->[6+ $extfield_count],
