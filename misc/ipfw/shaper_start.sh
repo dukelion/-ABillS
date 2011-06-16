@@ -19,6 +19,9 @@
 #
 #   abills_nat="EXTERNAL_IP:INTERNAL_IPS:NAT_IF" - Enable abills nat
 #
+#   abills_dhcp_shaper=""  (bool) :  Set to "NO" by default.
+#                                    Enable ipoe_shaper
+#
 
 name="abills_shaper"
 rcvar=`set_rcvar`
@@ -27,7 +30,7 @@ run_rc_command "$1"
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.1
+VERSION=5.2
 
 if [ w${abills_shaper_enable} = w ]; then
   exit;
@@ -142,6 +145,12 @@ else
  fi;
 fi;
 
+
+
+#IPoE Shapper for dhcp connections
+if [ w${abills_dhcp_shaper} != w ]; then
+  /usr/abills/libexec/ipoe_shapper.pl -d
+fi;
 
 
 #ipfw 10 add divert 8668 ip from 3.3.3.0/24 to any

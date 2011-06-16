@@ -266,8 +266,8 @@ sub online {
   		$port_id=$i;
   	 }
     elsif ($RES_FIELDS[$i] == 16 && $CONF->{ADDRESS_REGISTER}) {
-      $EXT_TABLE .= "INNER JOIN builds ON (builds.id=pi.location_id)
-        INNER JOIN streets ON (streets.id=builds.street_id)";
+      $EXT_TABLE .= "LEFT JOIN builds ON (builds.id=pi.location_id)
+        LEFT JOIN streets ON (streets.id=builds.street_id)";
       $FIELDS_ALL[16]='concat(streets.name,\' \', builds.number, \'/\', pi.address_flat) AS ADDRESS';  
   	 }
     
@@ -368,8 +368,6 @@ sub online {
  	 push @WHERE_RULES, ($attr->{FILTER} =~ s/\*/\%/g) ? "$filter_field LIKE '$attr->{FILTER}'" : "$filter_field='$attr->{FILTER}'";
   }
  
- 
-  
  
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  

@@ -357,3 +357,6 @@ sub verify {
 
     return ($ps[0]) ? 1 : 0;
 }
+
+
+1
