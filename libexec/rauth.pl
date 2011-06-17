@@ -264,7 +264,7 @@ sub inc_postauth {
   use constant    L_ERR=>         4;
   use constant    L_PROXY=>       5;
   use constant    L_CONS=>        128;
-
+  $Log->{ACTION} = 'AUTH';
   my $reject_info = '';
 # DHCP Section  
   if ($RAD_REQUEST{'DHCP-Message-Type'}) {
@@ -299,7 +299,6 @@ sub inc_postauth {
      }
 
     if ($r == 2) {
-
       $Log->log_print('LOG_INFO', $RAD_PAIRS->{'User-Name'}, $message." ". $RAD_REQUEST{'DHCP-Client-Hardware-Address'} ." $GT", { NAS => $nas });
       $r=0;
      }
@@ -310,7 +309,6 @@ sub inc_postauth {
      }
  
     delete($RAD_REQUEST{'User-Name'}); 
- 
     while(my ($k, $v) = each %$RAD_PAIRS) {
     	$RAD_REPLY{$k}=$v;
      }
