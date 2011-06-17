@@ -761,10 +761,15 @@ if ($self->{TOTAL_TIME_LIMIT} && $self->{CHECK_SESSION}) {
 
 if ($self->{NEG_DEPOSIT_FILTER}) {
   $self->query($db, "SELECT deposit FROM bills WHERE id='$self->{BILL_ID}';");
+  if ($self->{TOTAL} > 0) {
 	( $self->{DEPOSIT}  ) = @{ $self->{list}->[0] };
 	if ($self->{DEPOSIT} + $self->{CREDIT} < 0) {
 		return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
 	 }
+   }
+  else {
+     return $self->{UID}, 0, $self->{BILL_ID}, $self->{TP_NUM}, 0, 0;
+   }
 }
 
 if ($self->{TOTAL_TRAF_LIMIT} && $self->{CHECK_SESSION}) {
