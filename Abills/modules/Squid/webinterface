@@ -1,7 +1,7 @@
-#!/usr/bin/perl
-# Squid
+# Squid monitor
 
-
+use Log;
+$Log         = Log->new($db, \%conf);
 require "Abills/nas.pl";
 use Abills::Base;
 use Socket;
