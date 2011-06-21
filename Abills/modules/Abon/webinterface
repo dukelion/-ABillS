@@ -50,7 +50,10 @@ sub abon_user {
       my $list = $Abon->tariff_list({ IDS => join(', ', @new_arr) });  
       
       foreach my $line (@$list) {
-        if(($users->{CREDIT} + $users->{DEPOSIT}) > $line->[1] || $line->[3]) {
+        my ($Y, $M, $D)=split(/-/, $FORM{'DATE_'.$line->[7]}, 3);
+        my $seltime = POSIX::mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900));
+      	
+        if(($users->{CREDIT} + $users->{DEPOSIT}) > $line->[1] || $line->[3] || time() < $seltime) {
         	$Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->[5] || 0;
         	$Abon->{TP_INFO}->{MONTH_FEE}        = $line->[1];
 
@@ -71,10 +74,11 @@ sub abon_user {
 
           my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[7]]" . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
                          METHOD   => $Abon->{TP_INFO}->{FEES_TYPE}  );
-          
-          
 
-          if ($line->[2] == 1 && $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} == 1) {
+          if (time() < $seltime) {
+
+           }
+          elsif ($line->[2] == 1 && $Abon->{TP_INFO}->{PERIOD_ALIGNMENT} == 1) {
             $Abon->{ACTIVATE}=$users->{ACTIVATE};
             abon_get_month_fee($Abon);      
            }
@@ -122,7 +126,7 @@ sub abon_user {
           push @add_arr, $line->[7];
          }
         else {
-      	  $html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
+      	  $html->message('err', $_ERROR, "$_TARIF_PLAN: [$line->[7]] $line->[0]\n$ERR_SMALL_DEPOSIT");
          }
        }
      }
@@ -139,6 +143,9 @@ sub abon_user {
       else {
     	  $html->message('err', $_ERROR, "[$Abon->{errno}] $err_strs{$Abon->{errno}}");	
        }
+   
+   return 0 if ($attr->{QUITE});
+  
   }
  
 my $list = $Abon->user_tariff_list($FORM{UID});

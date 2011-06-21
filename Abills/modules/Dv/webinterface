@@ -10,7 +10,7 @@ use Shedule;
 use Tariffs;
 use Nas;
 use Log;
-
+use POSIX;    
 
 my $Dv       = Dv->new($db, $admin, \%conf);
 my $fees     = Fees->new($db, $admin, \%conf);
@@ -117,7 +117,7 @@ if ($FORM{set}) {
     	($year, $month, $day)=split(/-/, $FORM{DATE}, 3);
      }
 
- 	  use POSIX;    
+
     my $seltime = POSIX::mktime(0, 0, 0, $day, ($month - 1), ($year - 1900));
     
     if ($seltime <= time()) {
@@ -3268,8 +3268,6 @@ if ($Dv->{MONTH_ABON}> 0 && ! $Dv->{STATUS} && ! $user->{DISABLE} &&
  }
 
 if ($FORM{set}) {
-	use POSIX;
-
   if (! $FORM{TP_ID} || $FORM{TP_ID} < 1 ) {
   	$html->message('err', "$_ERROR", "$ERR_WRONG_DATA: $_TARIF_PLAN", { ID => 141 });
    }
@@ -3432,8 +3430,6 @@ if ($FORM{set}) {
 
     if ($Dv->{ABON_DATE}) {
       ($year, $month, $day)=split(/-/, $Dv->{ABON_DATE}, 3);
- 	    use POSIX;
-   
       my $seltime = POSIX::mktime(0, 0, 0, $day, ($month-1), ($year - 1900));
 
       if ($seltime <= time()) {
@@ -4184,7 +4180,7 @@ sub dv_holdup_service {
   my $list = $Shedule->list({ UID    => $user->{UID},
                               MODULE => 'Dv',
                               TYPE   => 'status' 
-                              });
+                           });
 
   my %Shedule_val = ();
   my $del_ids = '';
@@ -5468,6 +5464,7 @@ sub dv_cards {
  	 	  	  $FORM{$k}=clearquotes($v);
   	 	   }
 
+
   	 	  $FORM{'1.LOGIN'}      = $line->{LOGIN};
   	 	  $FORM{'1.PASSWORD'}   = $line->{PASSWORD};
   	 	  $FORM{'1.CREATE_BILL'}= 1;        
@@ -5480,7 +5477,7 @@ sub dv_cards {
   	 	  else {
   	 	    #Confim card creation
   	 	    $added_count++;
-  	 	    $table->addrow($html->button($FORM{'1.LOGIN'}, "index=11&UID=$UID"), "$UID", "$FORM{ex_message}");
+  	 	    $table->addrow($html->button($line->{LOGIN}, "index=11&UID=$UID"), "$UID", "$FORM{ex_message}");
   	 	  	if(cards_users_gen_confim({ %$line, SUM => ($FORM{'5.SUM'}) ? $FORM{'5.SUM'} : 0  }) == 0) {
   	 	  		 return 0;
   	 	  		}
@@ -5646,25 +5643,28 @@ sub dv_wizard_user {
        }
 
       #4 Dv
-      if ( $add_values{4}{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ &&  $add_values{4}{IP} ne '0.0.0.0') {
-      	my $list = $Dv->list({ IP => $add_values{4}{IP} });
-      	if ($Dv->{TOTAL} > 0 && $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}] != $FORM{UID}) {
-      	  $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. \n $_LOGIN: ". $html->button("$list->[0][0]", "index=15&UID=". $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}]));
-        	return 0;
-    	   }
-       }
+      # Make Dv service only with TP
+      if ($add_values{4}{TP_ID}) {
+        if ( $add_values{4}{IP} =~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/ &&  $add_values{4}{IP} ne '0.0.0.0') {
+      	  my $list = $Dv->list({ IP => $add_values{4}{IP} });
+      	  if ($Dv->{TOTAL} > 0 && $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}] != $FORM{UID}) {
+      	    $html->message('err', $_ERROR, "IP: $FORM{IP} $_EXIST. \n $_LOGIN: ". $html->button("$list->[0][0]", "index=15&UID=". $list->[0][6+$Dv->{SEARCH_FIELDS_COUNT}]));
+        	  return 0;
+    	     }
+         }
 
-      my $user_fees;
-   	  $Dv->add({ UID => $UID, %{$add_values{4}} });
-      if ($Dv->{errno}) {
-        $html->message('err', "Dv:$_ERROR", "Dv Modules [$Dv->{errno}] $err_strs{$Dv->{errno}}");	
-        return 0;
-       }
-      elsif (! $FORM{SERIAL}) {
-        if (! $add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
-          $Dv->{UID}=$UID;
-          $Dv->{ACTIVATE}=$add_values{1}{ACTIVATE};
-          $user_fees = dv_get_month_fee($Dv);
+        my $user_fees;
+   	    $Dv->add({ UID => $UID, %{$add_values{4}} });
+        if ($Dv->{errno}) {
+          $html->message('err', "Dv:$_ERROR", "Dv Modules [$Dv->{errno}] $err_strs{$Dv->{errno}}");	
+          return 0;
+         }
+        elsif (! $FORM{SERIAL}) {
+          if (! $add_values{4}{STATUS} && $Dv->{TP_INFO}->{MONTH_FEE} > 0) {
+            $Dv->{UID}=$UID;
+            $Dv->{ACTIVATE}=$add_values{1}{ACTIVATE};
+            $user_fees = dv_get_month_fee($Dv);
+           }
          }
        }
 
@@ -5713,15 +5713,14 @@ sub dv_wizard_user {
        }
 
       # Abon
-      if (in_array('Abon', \@MODULES) && $add_values{7} && $FORM{'7.SUBJECT'}) {
-        require "Abills/modules/Msgs/webinterface";
-        $FORM{INNER_MSG}=1;
-        my $Msgs = Msgs->new($db, $admin, \%conf);
+      if (in_array('Abon', \@MODULES) && $add_values{9}) {
+        require "Abills/modules/Abon/webinterface";
+        #my $Msgs = Msgs->new($db, $admin, \%conf);
         
-        %FORM=%{ $add_values{7} };
+        %FORM=%{ $add_values{9} };
         $FORM{UID}=$UID;
-        $FORM{add}=$UID;
-        msgs_admin_add({ SEND_ONLY => 1 });
+        $FORM{change}=$UID;
+        abon_user({ QUITE => 1 });
        }
 
 
@@ -6787,7 +6786,6 @@ sub dv_payments_maked {
     $Dv->{ACTIVATE}=$attr->{USER}->{ACTIVATE} || '0000-00-00';
     
 #    if ($Dv->{ACTIVATE} ne '0000-00-00') {
-#      use POSIX;    
 #      my ($Y, $M, $D)=split(/-/, $Dv->{ACTIVATE}, 3);
 #      my $seltime = POSIX::mktime(0, 0, 0, $D, ($M - 1), ($Y - 1900));
 #

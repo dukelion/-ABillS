@@ -476,7 +476,7 @@ sub user_tariff_change {
  	 my $date = '';
  	 
  	 
- 	 if ($attr->{'DATE_'.$tp_id} && $attr->{'DATE_'.$tp_id} ne '0000-00-00')  {
+ 	 if ($attr->{'DATE_'.$tp_id} && $attr->{'DATE_'.$tp_id} ne '0000-00-00' && $attr->{'PERIOD_'.$tp_id})  {
  	   $date = "
       if (".$attr->{'PERIOD_'.$tp_id} ." = 0, '". $attr->{'DATE_'.$tp_id} ."' -  INTERVAL 1 DAY, 
        if (".$attr->{'PERIOD_'.$tp_id} ." = 1, '". $attr->{'DATE_'.$tp_id} ."' - INTERVAL 1 MONTH, 
@@ -490,6 +490,9 @@ sub user_tariff_change {
         )
        )";
  	  }
+   elsif ($attr->{'DATE_'.$tp_id} && $attr->{'DATE_'.$tp_id} ne '0000-00-00') {
+   	 $date = $attr->{'DATE_'.$tp_id};
+    }
    else {
    	  $date = 'curdate()';
     }
