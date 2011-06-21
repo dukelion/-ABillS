@@ -85,6 +85,10 @@ if ($ARGV->{TYPE}) {
 	elsif ($ARGV->{TYPE} eq  'FEES') {
 		paysys_import_fees();
 	 }
+	elsif ($ARGV->{TYPE} eq  'ERIPT') {
+		eript_202();
+	 }
+
 }
 
 
@@ -457,13 +461,15 @@ else {
 # Import from POP3 mail box
 #**********************************************************
 sub paysys_import_ftp {
+  my ($attr) = @_;
+  
 
  print "FTP check\n" if ($debug > 2);	
  use Net::FTP;
  # Constructors
  my @hosts = split(/;/, $conf{PAYSYS_FTP_CHECK});
 
- if ($ARGV->{FTP_CHECK} ne '') {
+ if ($ARGV->{FTP_CHECK} && $ARGV->{FTP_CHECK} ne '') {
  	 $ARGV->{FTP_CHECK}--;
    if (! $hosts[$ARGV->{FTP_CHECK}]) {
    	 print "Not defined FTP '$ARGV->{FTP_CHECK}'\n";
@@ -482,11 +488,18 @@ foreach my $host_params (@hosts) {
 
 
 if ($ftp->login("$username","$password")) {
-
   if ($dir) {
     $ftp->cwd("$dir")
       or die "Cannot change working directory '$dir' ", $ftp->message;
    }
+
+  if ($attr->{UPLOAD}) {
+    $ftp->put("$attr->{UPLOAD}")
+     or die "Ftp get failed '$attr->{UPLOAD}' ", $ftp->message;
+  	print "Upload: $attr->{UPLOAD}\n" if ($debug > 1);
+  	next;
+   }
+
 
   my $files_arr = $ftp->ls("$files");
   foreach my $filename (@$files_arr) {
@@ -536,7 +549,7 @@ if ($ftp->login("$username","$password")) {
    }
 }
 else {
-  print "POP3 Error: Wrong login or password $!\n";
+  print "FTP Error: Wrong login or password $!\n";
 }
 }
 
@@ -567,7 +580,7 @@ sub help {
 print << "[END]"
 Paysys console interface:
 
-  TYPE=[PAYMENTS|FEES] - Operation TYPE
+  TYPE=[PAYMENTS|FEES|ERIPT] - Operation TYPE
   IMPORT_RULE=         - for payments import type id
 $import_rules    
   EMAIL_CHECK=...      - Check E-mail for documents. E-mail box number. Default read all mailboxes with import rule.
@@ -621,23 +634,25 @@ sub cross_modules_call  {
 }
 
 
-__END__
-
 #***********************************************************
 #
 #***********************************************************
-sub erip_202 {
+sub eript_202 {
 	
 	
 	
 	my $message = '';
 	my $msgs_header  = '';
-	my $msg_num      = time() . '.202';
+	my $msg_num      = time();
+	my $msg_file     = $msg_num	 . '.202';
   
   my $msg_version  = 3;
 	
-	"$DATE$TIME" =~ /(\d{4})\-(\d{2}\-(\d{2}(\d{2}:(\d{2}:(\d{2}/;
+	"$DATE$TIME" =~ /(\d{4})\-(\d{2})\-(\d{2})(\d{2}):(\d{2}):(\d{2})/;
 	my $msg_date      = "$1$2$3$4$5$6";
+	"$DATE$TIME" =~ /(\d{4})\-(\d{2})\-(\d{2})(\d{2}):(\d{2}):(\d{2})/;
+	my $payment_period  = "$3$2.$1";
+	
 	my $record_total_count  = 0;
 
 	# 
@@ -650,22 +665,48 @@ sub erip_202 {
 	my $msg_total_sum             = 0;
 	
 	
+	my $num = 0 ;
+	my $payment_date = "$DATE$TIME";
+	$payment_date =~ s/:|\-//g;
 	
 	
-	$message = "$msg_version;$msg_provider_id;$msg_num;$msg_date;$record_total_count;$msg_provider_num;$msg_provider_bank_id;$msg_provider_bank_account;$msg_provider_service_id;$msg_valuta;$total_sum".
+	$Paysys->query($db, "SELECT u.uid, pi.fio, concat(pi.address_street, ', ', pi.address_build, ', ', pi.address_flat), u.credit FROM users u, 
+	  users_pi pi 
+	  WHERE u.uid=pi.uid AND u.deleted=0");
+	
+	my $list = $Paysys->{list};
+	
+	foreach my $line (@{ $list } ) {
+		$num++;
+		my $uid      = $line->[0];
+		my $fio      = $line->[1];
+		my $address  = $line->[2];
+		my $credit   = $line->[3];
+		my $comments = '';
+		my $ext_info = '';
+		my $tariffs_fields = "";
+		
+		$message .= "$num^$uid^$fio^$address^$payment_period^$credit^$tariffs_fields^$payment_date^$comments^$ext_info^0^0\r\n";
+	 }
+	
+	
+	$message = "$msg_version^$msg_provider_id^$msg_num^$msg_date^$record_total_count^$msg_provider_num^$msg_provider_bank_id^$msg_provider_bank_account^$msg_provider_service_id^$msg_valuta^$msg_total_sum\r\n".
 	 $message;
 	
+	if ($debug > 4) {
+	  print $message 
+	 }
+	else {
+	  my $upload_file = '/tmp/'. $msg_file;
+	
+	  open(FILE, ">$upload_file") or die "Can't create file '$upload_file' $!\n"; 
+	    print FILE $message;
+	  close(FILE);
+	  paysys_import_ftp({ UPLOAD => $upload_file });
+	}
 =comments
 
-ѕри формировании заголовка должны выполн€тьс€ следующие требовани€:
-?	поле 1 должно содержать значение "1", "2" или "3";
-?	поле 2 должно содержать код абонента производител€ услуг;
-?	по пол€м 3 и 4 выполн€етс€ проверка повторности сообщени€;
-?	поле 5 должно содержать количество строк в файле без учета заголовка;
-?	поле 7 должно содержать три последние цифры кода ћ‘ќ банка, в котором открыт расчетный счет производител€ услуги;
-?	поле 9 должно содержать данные, если у производител€ услуг зарегистрировано не-сколько услуг;
-?	поле 10 определ€ет валюту услуги;
-?	поле 11 содержит сумму полей 6 всех записей сообщени€.
+
 «аписи сообщени€ содержат данные одного требовани€ к оплате. —труктура записи приведена в таблице 1.2.
 “аблица 1.2 - —труктура записи сообщени€ 202
 є пол€	¬ерси€ протокола	Ќаименование	ќб€зательность,
