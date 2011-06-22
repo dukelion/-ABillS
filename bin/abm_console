@@ -777,7 +777,7 @@ if ($interact) {
  }
  
 
-my @args = ('ADD', 'DEL', 'METHOD', 'DATE', 'DESCRIBE');
+my @args = ('ADD', 'DEL', 'METHOD', 'DATE', 'DESCRIBE', 'LOGIN', 'UID');
 foreach my $a (@args) {
   if (defined($ARGV->{$a})) {
   	$LIST_PARAMS{$a}=$ARGV->{$a};
