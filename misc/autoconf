@@ -111,7 +111,7 @@ if(! -f $config_file ) {
          print $proc_list if ($debug > 5);
 
          # Check /etc/my.cnf
-         if (  ! -f /etc/my.cnf) {
+         if (! -f '/etc/my.cnf') {
          	 my $res = `cp mysq/my.cfn /etc/`;
           }
 
