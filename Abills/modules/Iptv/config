@@ -11,6 +11,7 @@
                    "11:6:$_CHANNELS:iptv_channels:"          => 5,
                    "13:7:$_USERS:iptv_users_list:TP_ID"      => 5,
                    "14:6:$_CLOSED $_PERIOD:iptv_close_period"=> 5,
+                   "15:6:DVCrypt:dv_crypt:"                  => 5,
                    "20:0:$_TV:iptv_online:"                  => 6,
                    "21:0:$_TV:iptv_report:"                  => 4,
                    );

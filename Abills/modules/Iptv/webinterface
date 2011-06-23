@@ -2414,9 +2414,14 @@ sub iptv_get_month_fee {
 sub dv_crypt {
   my ($attr) = @_;
   my @channels = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
-	
-	
-	
+	my $filename = $conf{IPTV_DVCRYPT_FILENAME} || $conf{TPL_DIR}. '/dvcrypt.conf';
+	my $content  = '';
+
+	open(FILE, ">$filename") or print "Can't create file '$filename' $!\n";
+	  print FILE $content;
+	close(FILE);
+
+
 }
 
 1
