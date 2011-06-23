@@ -11,15 +11,19 @@
 		} catch(err) {
 			alert('Your brownser do not support JS');
 		}
-	}
+   }
+
+  function set_referrer () {
+    document.getElementById('REFERRER').value=location.href;
+	 }
 </script>
 
 <br>
 <br>
 
-
-<form action='$SELF_URL' METHOD='post'>
+<form action='$SELF_URL' METHOD='post' name=form_login>
 <input type=hidden name=DOMAIN_ID value='$FORM{DOMAIN_ID}'>
+<input type=hidden ID=REFERRER name=REFERRER value='$FORM{REFERRER}'>
 <TABLE width='400'  cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='$_COLORS[4]'>
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'><TR><TD bgcolor='$_COLORS[1]'>
 <TABLE width='100%' cellspacing='0' cellpadding='0' border='0'>
@@ -27,7 +31,7 @@
 <TR><TD align=right width=50%>&nbsp;$_LANGUAGE: &nbsp;</TD><TD  width=50%>%SEL_LANGUAGE%</TD></TR>
 <TR><TD align=right>&nbsp;$_LOGIN: &nbsp;</TD><TD><input type='text' name='user'></TD></TR>
 <TR><TD align=right>&nbsp;$_PASSWD: &nbsp;</TD><TD><input type='password' name='passwd'></TD></TR>
-<tr><th colspan='2'><input type='submit' name='logined' value=' $_ENTER '></th></TR>
+<tr><th colspan='2'><input type='submit' name='logined' value=' $_ENTER ' onclick='set_referrer()'></th></TR>
 <TR><TD colspan=2>&nbsp;</TD></TR>
 </TABLE>
 </TD></TR></TABLE>
