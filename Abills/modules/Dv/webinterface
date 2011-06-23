@@ -3700,7 +3700,7 @@ elsif ($command eq 'deactivate-service') {
     $html->message('err', $_ERROR,  "No responce from  CoA server '$Nas->{NAS_MNG_IP_PORT}' $! / ". $r->get_error(), { ID => 106 });
     return 0;
    }
-}
+ }
 elsif ($command eq 'activate-service') {
   $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:command=activate-service"});
   $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:service-name=$attr->{SERVICE_NAME}"});
@@ -3744,7 +3744,7 @@ elsif ($command eq 'activate-service') {
    }
 }
 elsif ($command eq 'account-logon') {
-  $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:commandmy=account-logon"});
+  $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:command=account-logon"});
   $r->send_packet (43) and $type = $r->recv_packet;
 
   if( ! defined $type ) {
@@ -3786,7 +3786,7 @@ elsif ($command eq 'account-logon') {
   }
  }
 elsif ($command eq 'account-logoff') {
-  $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:commandmy=account-logon"});
+  $r->add_attributes ({ Name => 'Cisco-AVPair', Value => "subscriber:command=account-logon"});
   $r->send_packet (43) and $type = $r->recv_packet;
 
   if( ! defined $type ) {
