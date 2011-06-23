@@ -132,7 +132,7 @@ if ($FORM{set}) {
 
       $html->message('info', $_CHANGED, "$_CHANGED");
       $Iptv->user_info($user->{UID});
-      iptv_user_channels({ QUIET => 1 });
+      iptv_user_channels({ QUIET => 1, USER_INFO => $Iptv });
     }
 
   }
@@ -170,10 +170,11 @@ elsif($FORM{del}) {
  else {
    $Tariffs->{TARIF_PLAN_SEL}=$html->form_select('TP_ID', 
                                           { 
- 	                                          SELECTED  => $user->{TP_ID},
+ 	                                          SELECTED          => $user->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Iptv' }),
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MULTI_ARRAY_KEY   => 18,
+ 	                                          MULTI_ARRAY_VALUE => '0,1',
+ 	                                          NO_ID             => 1
  	                                        });
 
    $Tariffs->{PARAMS} .= form_period($period);	
@@ -183,12 +184,11 @@ elsif($FORM{del}) {
 
  
 
-my $tp_index = $index + 4;
-
+my $tp_index = get_function_index('iptv_tp');
 $Tariffs->{UID}=$attr->{USER}->{UID};
 $Tariffs->{m}=$m;
 $Tariffs->{TP_ID} = $user->{TP_ID};
-$Tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME}". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP", BUTTON => 1 } );
+$Tariffs->{TP_NAME} = "$user->{TP_NUM}:$user->{TP_NAME}". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP", BUTTON => 1 } );
 
 print $html->tpl_show(templates('form_chg_tp'), $Tariffs);
 }
@@ -349,8 +349,9 @@ sub iptv_user {
                                          { 
  	                                          SELECTED          => $user->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $Tariffs->list({ MODULE => 'Iptv'}),
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          MULTI_ARRAY_KEY   => 18,
+ 	                                          MULTI_ARRAY_VALUE => '0,1',
+ 	                                          NO_ID             => 1
  	                                        });
 	 }
 	else {
@@ -369,7 +370,7 @@ sub iptv_user {
   $html->tpl_show(_include('iptv_user', 'Iptv'), $user);
   
   if ($user->{TOTAL} > 0) {
-    iptv_user_channels();
+    iptv_user_channels({ USER_INFO => $user });
    }
 }
 
@@ -683,16 +684,10 @@ sub iptv_tp {
 
 if($FORM{ADD_TP}) {
   $FORM{TP_ID} = $FORM{CHG_TP_ID};
-  
-  if ($FORM{TP_ID} < 1) {
-  	$html->message('err', $_ERROR, "$_ERROR ID = 0");
-   }
-  else {
-   $Tariffs->add( { %FORM, MODULE => 'Iptv' });
-   if (! $Tariffs->{errno}) {
+  $Tariffs->add( { %FORM, MODULE => 'Iptv' });
+  if (! $Tariffs->{errno}) {
      $html->message('info', $_ADDED, "$_ADDED $Tariffs->{TP_ID}");
     }
-  }
  }
 elsif (defined($FORM{TP_ID})) {
   $tarif_info = $Tariffs->info( $FORM{TP_ID} );
@@ -823,7 +818,7 @@ foreach my $line (@$list) {
    $line->[7], 
    $line->[8], 
    $line->[9],
-   $html->button($_INTERVALS, "index=". ($index+2) ."&subf=73&TP_ID=$line->[18]", { BUTTON => 1 }),
+   $html->button($_INTERVALS, "index=". get_function_index('iptv_intervals') ."&subf=73&TP_ID=$line->[18]", { BUTTON => 1 }),
    $change,
    $delete);
 }
@@ -1391,16 +1386,14 @@ sub iptv_user_info {
    }
 
   if ($conf{IPTV_USER_CHG_TP}) {
-    $Iptv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. ($index+2).'&sid='.$sid, { BUTTON => 1 });
+    $Iptv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. get_function_index('iptv_user_chg_tp').'&sid='.$sid, { BUTTON => 1 });
    }
 
 
   $Iptv->{DISABLE} = $_ENABLE;
   $html->tpl_show(_include('iptv_user_info', 'Iptv'), $Iptv);
-  
-  
 
-  iptv_user_channels();
+  iptv_user_channels({ USER_INFO => $user });
 }
 
 #**********************************************************
@@ -1470,7 +1463,7 @@ elsif ($FORM{set}) {
     else {
       $html->message('info', $_CHANGED, "$_CHANGED");
       $Iptv->user_info($user->{UID});
-      iptv_user_channels({ QUIET => 1 });
+      iptv_user_channels({ QUIET => 1, USER_INFO => $Iptv });
     }
    }
   else {
@@ -1596,14 +1589,20 @@ sub iptv_user_channels {
 
   use Shedule;
   my $Shedule = Shedule->new($db, $admin);
-
-  my $Iptv = $Iptv->user_info($LIST_PARAMS{UID});
+  my $Iptv;
+  
+  if ($attr->{USER_INFO}) {
+  	$Iptv = $attr->{USER_INFO};
+   }
+  else {
+    $Iptv->user_info($LIST_PARAMS{UID});
+   }
 
   require Tariffs;
   Tariffs->import();
   my $Iptv_tp = Tariffs->new($db, \%conf);
 
-	my $list = $Iptv_tp->ti_list({ TP_ID => $Iptv->{TP_NUM}  });
+	my $list = $Iptv_tp->ti_list({ TP_ID => $Iptv->{TP_ID}  });
   my @interval_ids = ();
 
   if ($Iptv_tp->{TOTAL} < 1) {
@@ -2245,7 +2244,7 @@ sub iptv_sheduler {
   	$LIST_PARAMS{UID}=$uid;
   	$FORM{change_now}=1;
   	$users->info( $uid );
-  	iptv_user_channels({ QUIET  => 1 });
+  	iptv_user_channels({ QUIET  => 1, USER_INFO => $users });
    }
 }
 
@@ -2406,6 +2405,18 @@ sub iptv_get_month_fee {
           $m++;
          }
       }
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub dv_crypt {
+  my ($attr) = @_;
+  my @channels = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+	
+	
+	
 }
 
 1

@@ -78,7 +78,8 @@ sub user_info {
    tp.day_fee,
    tp.postpaid_monthly_fee,
    tp.payment_type,
-   tp.period_alignment
+   tp.period_alignment,
+   tp.id
      FROM iptv_main service
      LEFT JOIN tarif_plans tp ON (service.tp_id=tp.tp_id)
    $WHERE;");
@@ -105,6 +106,7 @@ sub user_info {
    $self->{POSTPAID_ABON}, 
    $self->{PAYMENT_TYPE},
    $self->{PERIOD_ALIGNMENT},
+   $self->{TP_NUM},
   )= @{ $self->{list}->[0] };
   
   

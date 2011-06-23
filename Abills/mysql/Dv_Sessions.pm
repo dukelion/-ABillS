@@ -924,9 +924,10 @@ WHERE
 
  	 #Get using traffic
    $self->query($db, "select  
-     if($prepaid_traffic{0}  > sum($octets_direction) / $CONF->{MB_SIZE}, $prepaid_traffic{0}  - sum($octets_direction) / $CONF->{MB_SIZE}, -1),
-     if($prepaid_traffic{1}  > sum($octets_direction2) / $CONF->{MB_SIZE}, $prepaid_traffic{1} - sum($octets_direction2) / $CONF->{MB_SIZE}, -1),
-     DATE_FORMAT(start, '%Y-%m'), 1
+     sum($octets_direction) / $CONF->{MB_SIZE},
+     sum($octets_direction2) / $CONF->{MB_SIZE},
+     DATE_FORMAT(start, '%Y-%m'), 
+     1
    FROM dv_log
    WHERE $uid  and tp_id='$self->{INFO_LIST}->[0]->[8]' and
     (  $WHERE
@@ -939,8 +940,8 @@ WHERE
     $self->{INFO_LIST}->[0]->[4]  = 0;
     if ($prepaid_traffic{1}) { $self->{INFO_LIST}->[1]->[4]  = 0 };
     foreach my $line (@{$self->{list}}) {
-      $class1      += $line->[0] ;
-      $class2      += $line->[1] ;
+      $class1      = ((($class1>0) ? $class1 : 0) + $prepaid_traffic{0}) - $line->[0];
+      $class2      = ((($class2>0) ? $class2 : 0) + $prepaid_traffic{1}) - $line->[1];
       
       $self->{INFO_LIST}->[0]->[4] += $prepaid_traffic{0};
       if ($prepaid_traffic{1}) {
