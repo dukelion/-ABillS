@@ -79,7 +79,8 @@ sub user_info {
    tp.postpaid_monthly_fee,
    tp.payment_type,
    tp.period_alignment,
-   tp.id
+   tp.id,
+   service.dvcrypt_id
      FROM iptv_main service
      LEFT JOIN tarif_plans tp ON (service.tp_id=tp.tp_id)
    $WHERE;");
@@ -107,6 +108,7 @@ sub user_info {
    $self->{PAYMENT_TYPE},
    $self->{PERIOD_ALIGNMENT},
    $self->{TP_NUM},
+   $self->{DVCRYPT_ID}
   )= @{ $self->{list}->[0] };
   
   
@@ -132,7 +134,8 @@ sub defaults {
    CID            => '',
    CALLBACK       => 0,
    PORT           => 0,
-   PIN            =>
+   PIN            => '',
+   DVCRYPT_ID     => ''
   );
 
   $self = \%DATA ;
@@ -173,13 +176,15 @@ sub user_add {
              disable, 
              filter_id,
              pin,
-             vod
+             vod,
+             dvcrypt_id
              )
         VALUES ('$DATA{UID}', now(),
         '$DATA{TP_ID}', '$DATA{STATUS}',
         '$DATA{FILTER_ID}',
         '$DATA{PIN}',
-        '$DATA{VOD}'
+        '$DATA{VOD}',
+        '$DATA{DVCRYPT_ID}'
          );", 'do');
 
   return $self if ($self->{errno});
@@ -206,6 +211,7 @@ sub user_change {
               FILTER_ID        => 'filter_id',
               PIN              => 'pin',
               VOD              => 'vod',
+              DVCRYPT_ID       => 'dvcrypt_id'
              );
   
   $attr->{VOD} = (! defined($attr->{VOD})) ? 0 : 1;
@@ -374,6 +380,9 @@ sub user_list {
     $self->{SEARCH_FIELDS_COUNT}++;
   }
 
+ if ($attr->{DVCRYPT_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DVCRYPT_ID}, 'INT', 'service.dvcrypt_id', { EXT_FIELD => 1 }) };
+  }
 
  if ($attr->{FIO}) {
     $attr->{FIO} =~ s/\*/\%/ig;
@@ -382,18 +391,12 @@ sub user_list {
 
 
  if ($attr->{COMMENTS}) {
-   $attr->{COMMENTS} =~ s/\*/\%/ig;
-   push @WHERE_RULES, "u.comments LIKE '$attr->{COMMENTS}'";
-   
-   $self->{SEARCH_FIELDS} .= 'service.comments, ';
-   $self->{SEARCH_FIELDS_COUNT}++;
+   push @WHERE_RULES, @{ $self->search_expr($attr->{COMMENTS}, 'INT', 'service.comments', { EXT_FIELD => 1 }) };
   }
 
  # Show users for spec tarifplan 
  if (defined($attr->{TP_ID})) {
-    push @WHERE_RULES, "service.tp_id='$attr->{TP_ID}'";
-    $self->{SEARCH_FIELDS} .= 'tp.name, ';
-    $self->{SEARCH_FIELDS_COUNT}++;
+ 	  push @WHERE_RULES, @{ $self->search_expr($attr->{TP_ID}, 'INT', 'service.tp_id', { EXT_FIELD => 1 }) };
   }
 
  # Show debeters
@@ -462,7 +465,7 @@ if ($attr->{SHOW_CHANNELS}) {
         ti_c.channel_id, 
         c.num,
         c.name,
-        ti_c.month_price 
+        ti_c.month_price        
    from (intervals i, 
      iptv_ti_channels ti_c,
      users u,

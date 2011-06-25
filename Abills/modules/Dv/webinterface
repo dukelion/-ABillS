@@ -5513,6 +5513,10 @@ sub dv_wizard_user {
    return 0;
   }
 
+
+ 
+
+
   my %add_values = ();
 
   if ($FORM{add}) {
@@ -5788,6 +5792,17 @@ sub dv_wizard_user {
    
   } 
 
+	
+	foreach my $k (keys %FORM) {
+  	next if ($k eq '__BUFFER');
+  	my $val = $FORM{$k};
+    if ($k =~ /\d+\.([A-Z0-9\_]+)/ig) {
+    	 my $key=$1;
+    	 $FORM{"$key"}=$val;
+     }
+   }
+   
+ 
 
   my $users_defaults = $users->defaults();
   $users_defaults->{DISABLE}=($users_defaults->{DISABLE} == 1) ? ' checked' : '';
@@ -5812,16 +5827,17 @@ sub dv_wizard_user {
 
   $dv_defaults->{TP_ID} = $html->form_select('TP_ID', 
                                          { 
- 	                                         SELECTED  => $user->{TP_ID},
+ 	                                         SELECTED          => $FORM{TP_ID},
  	                                         SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Dv' }),
  	                                         MULTI_ARRAY_KEY   => 0,
  	                                         MULTI_ARRAY_VALUE => 1,
  	                                        });
+  delete($FORM{TP_ID});
   $dv_defaults->{CALLBACK} = '';
  	             
  my $password_form;                           
  $password_form->{GEN_PASSWORD}= mk_unique_value(8);
- $password_form->{PW_CHARS}    = $conf{PASSWD_SYMBOLS} || "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
+ $password_form->{PW_CHARS}    = $conf{PASSWD_SYMBOLS}|| "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
  $password_form->{PW_LENGTH}   = $conf{PASSWD_LENGTH} || 6; 
  
  #Info fields
@@ -5907,11 +5923,13 @@ else {
  }
 
  $dv_defaults->{JOIN_SERVICE}='';
+ 
+
  my %tpls = (
-	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), $users_defaults,    { OUTPUT2RETURN => 1, ID => 'FORM_USER'     }),  
-	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), $password_form, { OUTPUT2RETURN => 1, ID => 'FORM_PASSWORD' }),
-	            "3:$_INFO::"     => $html->tpl_show(templates('form_pi'), \%pi_form,            { OUTPUT2RETURN => 1, ID => 'FORM_PI'       }), 
-	            "4:Internet::"   => $html->tpl_show(_include('dv_user', 'Dv'), $dv_defaults,    { OUTPUT2RETURN => 1, ID => 'DV_USER'       }),
+	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), { %$users_defaults, %FORM},    { OUTPUT2RETURN => 1, ID => 'FORM_USER'     }),  
+	            "2:$_PASSWD::"   => $html->tpl_show(templates('form_password'), { %$password_form, %FORM}, { OUTPUT2RETURN => 1, ID => 'FORM_PASSWORD' }),
+	            "3:$_INFO::"     => $html->tpl_show(templates('form_pi'), { %pi_form, %FORM},           { OUTPUT2RETURN => 1, ID => 'FORM_PI'       }), 
+	            "4:Internet::"   => $html->tpl_show(_include('dv_user', 'Dv'), { %$dv_defaults, %FORM},    { OUTPUT2RETURN => 1, ID => 'DV_USER'       }),
              );
  
  #Payments
@@ -5992,14 +6010,23 @@ else {
      my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { OUTPUT2RETURN => 1, ID => "$descr" });
      $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
      $sub_tpl =~ s/(<input .*?index.*?>)//gi;
-     $sub_tpl =~ s/name=([A-Z_]+)/name=$n.$1/gi;
-     $sub_tpl =~ s/name="([A-Z_]+)"/name=$n.$1/gi;
-     $sub_tpl =~ s/name='([A-Z_]+)'/name=$n.$1/gi;
-
+     $sub_tpl =~ s/name=[\'\"]?([A-Z_0-9]+)[\'\"]?/name=$n.$1/gi;
+     
+#     while($sub_tpl =~ /name=([A-Z_0-9\.]+)/ig) {     
+#       my $k = $1;
+#       if ($FORM{$k}) {
+#       	 #$sub_tpl =~ s/value=[\'\"]?([A-Z_0-9]+)[\'\"]?/value=\"$FORM{$k}\"/gi;
+#       	 print "$k ----- ".$FORM{$k}.'<br>';
+#        }
+#      }
+     
+     #if ($FORM{$1}) {
+     #	  print "$FORM{$1}<br>";
+     # }
+     #$sub_tpl =~ s/name="([A-Z_0-9]+)"/name=$n.$1/gi;
+     #$sub_tpl =~ s/name='([A-Z_0-9]+)'/name=$n.$1/gi;
      $template .= "<tr><th align=\"center\">". $sub_tpl . "</th></tr>\n";
    }
-
-
 
   $template =~ s/(<form .*?>)//gi;
   $template =~ s/<\/form>//ig;

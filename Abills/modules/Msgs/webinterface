@@ -273,7 +273,6 @@ sub msgs_admin_add {
       if (! $FORM{INNER_MSG}) {
       	$users->pi({ UID => $FORM{UID} });
           if ($conf{MSGS_REDIRECT_FILTER_ADD}) {
-          	print "// $cmd //";
           	if ( $cmd ne '') {
    	          $cmd=tpl_parse($cmd, { ACTION => 'add', UIDS => "UIDS ".$FORM{UID} });
          	    my $res = `$cmd`;

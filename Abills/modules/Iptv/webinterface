@@ -2417,6 +2417,16 @@ sub dv_crypt {
 	my $filename = $conf{IPTV_DVCRYPT_FILENAME} || $conf{TPL_DIR}. '/dvcrypt.conf';
 	my $content  = '';
 
+
+  $Iptv->{debug}=1;
+  my $list = $Iptv->user_list({ PAGE_ROWS => 1000000, DVCRYPT_ID => '>0' });
+  
+  foreach my $line (@$list) {
+  	$content  .= "$line->[6];\n";
+   }
+
+  print $html->pre($content);
+
 	open(FILE, ">$filename") or print "Can't create file '$filename' $!\n";
 	  print FILE $content;
 	close(FILE);
