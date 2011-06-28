@@ -1,0 +1,68 @@
+#!/bin/sh
+#
+#
+# Add the following lines to /etc/rc.conf
+# abills_ng_flow_enable (bool) :   Set to "NO" by default.
+#                             Set it to "YES" to enable ng_flow
+# abills_ng_flow_interfaces (str)  :   Default 0
+#
+# abills_ng_flow_export_ip (str)  :   127.0.0.1:9996
+#                       
+#
+
+# PROVIDE: abills_ng_flow
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+
+name="abills_ng_flow"
+rcvar=`set_rcvar`
+
+
+[ -z "$abills_ng_flow_enable" ]       && abills_ng_flow_enable="NO"
+[ -z "$abills_ng_flow_export_ip" ]    && abills_ng_flow_export_ip="127.0.0.1:9996"
+
+
+
+start_cmd="${name}_start"
+stop_cmd=":"
+
+load_kernel_modules() {
+/sbin/kldload netgraph.ko > /dev/null 2>&1
+/sbin/kldload ng_ether.ko > /dev/null 2>&1
+/sbin/kldload ng_tee.ko > /dev/null 2>&1
+
+if [ x${abills_ng_flow_interfaces} = x ]; then
+  echo "Select collector interfaces / ${abills_ng_flow_interfaces}";
+  exit;
+fi;
+}
+
+abills_ng_flow_start() {
+	load_kernel_modules
+	
+	echo "Interfaces: ${abills_ng_flow_interfaces} ";
+for abills_ng_flow_interface in ${abills_ng_flow_interfaces}; do
+ 
+
+/usr/sbin/ngctl -f - << SEQ
+  mkpeer ${abills_ng_flow_interface}: tee lower left
+  name ${abills_ng_flow_interface}:lower tee
+  connect tee: ${abills_ng_flow_interface}: right upper
+
+  mkpeer tee: netflow left2right iface0
+  name tee:left2right netflow
+  connect tee: netflow: right2left iface1
+
+  mkpeer netflow: ksocket export inet/dgram/udp
+  name netflow:export ksocket
+  msg ksocket: connect inet/${abills_ng_flow_export_ip}
+SEQ
+done;
+}
+
+
+load_rc_config $name
+run_rc_command "$1"

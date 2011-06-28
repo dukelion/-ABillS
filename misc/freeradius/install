@@ -1,5 +1,5 @@
 :DEFAULT:RLM_PERL=1:Configure RLM_PERL
-:DEFAULT:FREERADIUS=1:Radius Version 1 fo 1.xx or 2 for 2.xx
+:DEFAULT:FREERADIUS=2:Radius Version 1 fo 1.xx or 2 for 2.xx
 :FREERADIUS=1,RLM_PERL=0:FILE=users            > [/usr/local/etc/raddb]/users
 :FREERADIUS=1,RLM_PERL=0:FILE=acct_users       > [/usr/local/etc/raddb]/acct_users
 :FREERADIUS=1,RLM_PERL=0:FILE=radiusd.conf     > [/usr/local/etc/raddb]/radiusd.conf 

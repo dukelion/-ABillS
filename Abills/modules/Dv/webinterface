@@ -5513,10 +5513,6 @@ sub dv_wizard_user {
    return 0;
   }
 
-
- 
-
-
   my %add_values = ();
 
   if ($FORM{add}) {
@@ -6004,27 +6000,11 @@ else {
  
  foreach my $key (@sorted_templates) {
      my($n, $descr, $pre, $post)=split(/:/, $key, 4);
-
      $template .= "<tr bgcolor=\"$_COLORS[0]\"><th>$descr</th></tr>\n";
-     #$wizard = $pre;
      my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { OUTPUT2RETURN => 1, ID => "$descr" });
      $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
      $sub_tpl =~ s/(<input .*?index.*?>)//gi;
      $sub_tpl =~ s/name=[\'\"]?([A-Z_0-9]+)[\'\"]?/name=$n.$1/gi;
-     
-#     while($sub_tpl =~ /name=([A-Z_0-9\.]+)/ig) {     
-#       my $k = $1;
-#       if ($FORM{$k}) {
-#       	 #$sub_tpl =~ s/value=[\'\"]?([A-Z_0-9]+)[\'\"]?/value=\"$FORM{$k}\"/gi;
-#       	 print "$k ----- ".$FORM{$k}.'<br>';
-#        }
-#      }
-     
-     #if ($FORM{$1}) {
-     #	  print "$FORM{$1}<br>";
-     # }
-     #$sub_tpl =~ s/name="([A-Z_0-9]+)"/name=$n.$1/gi;
-     #$sub_tpl =~ s/name='([A-Z_0-9]+)'/name=$n.$1/gi;
      $template .= "<tr><th align=\"center\">". $sub_tpl . "</th></tr>\n";
    }
 
