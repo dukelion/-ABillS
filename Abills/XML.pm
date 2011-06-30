@@ -1052,7 +1052,10 @@ $output .= '</LETTERS>';
 #*******************************************************************
 sub color_mark {
  my $self = shift;
- my ($message, $color) = @_;
+ my ($message, $color, $attr) = @_;
+ 
+ return $message if ($attr->{SKIP_XML});
+ 
  my $output = "<color_mark color=\"$color\">$message</color_mark>";
  return $output;
 }

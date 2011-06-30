@@ -21,9 +21,10 @@ name="abills_ng_flow"
 rcvar=`set_rcvar`
 
 
-[ -z "$abills_ng_flow_enable" ]       && abills_ng_flow_enable="NO"
-[ -z "$abills_ng_flow_export_ip" ]    && abills_ng_flow_export_ip="127.0.0.1:9996"
 
+: ${abills_ng_flow_enable="NO"}
+: ${flow_export_interfaces=""}
+: ${abills_ng_flow_export_ip="127.0.0.1:9996"}
 
 
 start_cmd="${name}_start"

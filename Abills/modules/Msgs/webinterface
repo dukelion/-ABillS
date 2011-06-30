@@ -1688,7 +1688,7 @@ sub msgs_new {
     		  exit;
     		 }
     	 }
-      return  '('. (($Msgs->{UNREAD} > 0) ? $html->color_mark($Msgs->{UNREAD}, $_COLORS[6]) : 0) .')';
+      return  '('. (($Msgs->{UNREAD} > 0) ? $html->color_mark($Msgs->{UNREAD}, $_COLORS[6], { SKIP_XML => 1 }) : 0) .')';
      }
 
     return '';
@@ -1713,7 +1713,7 @@ sub msgs_new {
     $Msgs->messages_new({ %SHOW_PARAMS });
 
     if ($Msgs->{OPENED} && $Msgs->{OPENED} > 0) {
-      return '('. (($Msgs->{UNREAD} > 0) ? $html->color_mark($Msgs->{UNREAD}, $_COLORS[6]) : 0) ."/$Msgs->{TODAY}/$Msgs->{OPENED})";
+      return '('. (($Msgs->{UNREAD} > 0) ? $html->color_mark($Msgs->{UNREAD}, $_COLORS[6]) : 0, { SKIP_XML => 1 }) ."/$Msgs->{TODAY}/$Msgs->{OPENED})";
      }
    }
 

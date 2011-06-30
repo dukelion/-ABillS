@@ -1915,6 +1915,9 @@ print $table->show();
 sub paysys_paypal {
 my %info = ();
 	
+	print "Content-Type: text/html\n\n";
+	require "modules/Paysys/Paypal.pm";
+	
 if ($FORM{OrderID}) {
    my $list = $Paysys->list({ TRANSACTION_ID => "$FORM{OrderID}", 
    	                          UID            => $LIST_PARAMS{UID} });
@@ -1961,7 +1964,45 @@ else {
   	$html->message('err', "$_ERROR", "$_ERROR Paysys ID: '$FORM{OPERATION_ID}'");
   	return 0;
    }
-	
+	else {
+		my $ipnNotificationUrl = "https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}/paysys_check.cgi";
+    my $returnUrl  = "https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?OPERATION_ID=$FORM{OPERATION_ID}&amp;PAYMENT_SYSTEM=66&amp;index=$index&amp;finish=1";
+    my $cancelUrl  = "https://$ENV{SERVER_NAME}:$ENV{SERVER_PORT}$ENV{REQUEST_URI}?OPERATION_ID=$FORM{OPERATION_ID}&amp;PAYMENT_SYSTEM=66&amp;index=$index&amp;cancel=1";
+    my $trackingId = $FORM{OPERATION_ID};
+		my $actionType = 'PAY';
+		
+		my $resArray = CallPay ($actionType, $cancelUrl, $returnUrl, 
+		        [ $conf{PAYSYS_PAYPAL_RECIEVER_EMAIL} ],
+						[ $FORM{SUM} ], 
+						$receiverPrimaryArray, 
+						[ $FORM{OPERATION_ID} ],
+						$feesPayer, $ipnNotificationUrl, $memo, $pin, $preapprovalKey,
+						$reverseAllParallelPaymentsOnError, $senderEmail, $trackingId
+      );
+
+    if ($resArray->{'responseEnvelope.ack'} eq 'Success') {
+     	if ("" eq $preapprovalKey)	{
+		    # redirect for web approval flow
+		    my $cmd = "cmd=_ap-payment&paykey=" . urldecode($resArray->{"payKey"});
+		    RedirectToPayPal ( $cmd );
+	     }
+	    else {
+		    # payKey is the key that you can use to identify the payment resulting from the Pay call
+		    my $payKey = urldecode($resArray->{"payKey"});
+		    # paymentExecStatus is the status of the payment
+		    my $paymentExecStatus = urldecode($resArray->{"paymentExecStatus"});
+	     }
+
+
+    	
+    	
+    	
+    	
+     }
+
+
+
+	 }
 } 
 
   $html->setCookie('lastindex', "$index", "Fri, 1-Jan-2038 00:00:01", $web_path, $domain, $secure);

@@ -3,7 +3,6 @@
 #
 # PROVIDE: abills_shaper
 # REQUIRE: NETWORKING mysql vlan_up 
-#traffic Class numbers
 
 . /etc/rc.subr
 
@@ -30,11 +29,22 @@ run_rc_command "$1"
 
 
 CLASSES_NUMS='2 3'
-VERSION=5.2
+VERSION=5.3
 
-if [ w${abills_shaper_enable} = w ]; then
+if [ x${abills_shaper_enable} = x ]; then
   exit;
 fi;
+
+
+: ${abills_shaper_enable="NO"}
+: ${abills_shaper_if=""}
+: ${abills_nas_id=""}
+: ${abills_ip_sessions=""}
+: ${abills_nat=""}
+: ${abills_dhcp_shaper="NO"}
+
+
+
 
 #Negative deposit forward (default: )
 NEG_DEPOSIT_FWD=${abills_neg_deposit};

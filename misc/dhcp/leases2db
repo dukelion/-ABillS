@@ -15,6 +15,9 @@
 . /etc/rc.subr
 
 
+: ${leases2db_enable="NO"}
+: ${leases2db_nas_id="0"}
+
 name="leases2db"
 rcvar=`set_rcvar`
 load_rc_config $name
