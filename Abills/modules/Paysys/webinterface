@@ -69,9 +69,9 @@ my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
                    PAYSYS_OSMP_ACCOUNT_KEY   => 61,
                    PAYSYS_LIQPAY_MERCHANT_ID => 62,
                    PAYSYS_UKRNET_ACCOUNT_KEY => 63,
-                   PAYSYS_REGULPAY_ACCOUNT_KEY => 64,
-                   PAYSYS_PRIVAT_TERMINAL_KEY  => 65,
-                   PAYSYS_PAYPAL_EMAIL     => 66
+                   PAYSYS_REGULPAY_ACCOUNT_KEY  => 64,
+                   PAYSYS_PRIVAT_TERMINAL_KEY   => 65,
+                   PAYSYS_PAYPAL_RECIEVER_EMAIL => 66
                   );
 
 
@@ -534,7 +534,7 @@ sub paysys_payment {
 	                             58 => 'PAYSYS_LR_ACCOUNT_NUMBER',
 	                             59 => 'PAYSYS_QIWI_TERMINAL_ID',
 	                             62 => 'PAYSYS_LIQPAY_MERCHANT_ID',
-	                             66 => 'PAYSYS_PAYPAL_EMAIL', );
+	                             66 => 'PAYSYS_PAYPAL_RECIEVER_EMAIL', );
 	  
 	  while(my($k, $v) = each %PAY_SYSTEMS) {
 	  	delete $PAY_SYSTEMS{$k} if (! $conf{$PAY_SYSTEM_ACCOUNTS{$k}});
