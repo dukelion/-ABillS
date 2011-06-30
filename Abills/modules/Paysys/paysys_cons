@@ -6,7 +6,11 @@
 use vars qw($begin_time %FORM %LANG
 $DATE $TIME
 $CHARSET
-@MODULES);
+@MODULES
+$Paysys
+$debug
+$payments
+);
 
 
 
@@ -48,11 +52,11 @@ my $db = $sql->{db};
 
 my $admin    = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
-my $payments = Finance->payments($db, $admin, \%conf);
+$payments = Finance->payments($db, $admin, \%conf);
 my $fees     = Finance->fees($db, $admin, \%conf);
-my $Paysys   = Paysys->new($db, $admin, \%conf);
+$Paysys   = Paysys->new($db, $admin, \%conf);
 my $status   = '';
-my $debug    = 0;
+$debug    = 0;
 my $error_str= '';
 
 #Arguments
@@ -72,7 +76,15 @@ require "language/$conf{default_language}.pl";
 
 $DATE = $ARGV->{DATE} if ($ARGV->{DATE});
 
-if ($ARGV->{TYPE}) {
+if ($ARGV->{PLUGIN}) {
+	if (-f $Bin.'/plugins/'.$ARGV->{PLUGIN} ) {
+		require $Bin.'/plugins/'.$ARGV->{PLUGIN};
+	 }
+	else {
+		print "Plugin not found: $ARGV->{PLUGIN}\n";
+	 }
+ }
+elsif ($ARGV->{TYPE}) {
   if (defined($ARGV->{EMAIL_CHECK})) {
 	  paysys_import_pop3();
    }
@@ -595,6 +607,7 @@ $import_rules
     iso2win
     win2dos
     dos2win
+  PLUGIN=...           - Run plugin
   help                 - this help
 
 [END]
