@@ -75,7 +75,7 @@ my %CONF_OPTIONS = (PAYSYS_WEBMONEY_ACCOUNTS => 41,
                   );
 
 
-my @status = ('UNKNOWN', 'IN PROCCESS', 'COMLETE', 'CENCELE');
+my @status = ('UNKNOWN', 'IN PROCCESS', 'COMLETE', 'CENCELE', 'EXPIRED');
 
 
 #require "modules/Paysys/paysys_cons";
