@@ -91,6 +91,7 @@ my $access_deny = sub {
       $Log = Log->new($db, \%conf);
       $Log->{ACTION} = 'ACCT';
      }
+
     $Log->log_print('LOG_WARNING', $user, "$message", { ACTION => 'ACCT', NAS => { NAS_ID => $nas_num } });
     return 1;
    };
@@ -127,7 +128,6 @@ if (scalar( %RAD_REQUEST ) < 1) {
     my $acct;
     if ($nas->{errno} || $nas->{TOTAL} < 1) {
       $access_deny->("$RAD->{USER_NAME}", "Unknow server '$RAD->{NAS_IP_ADDRESS}'", 0);
-      #exit 1;
      }
     else {
       $acct = acct($db, $RAD, $nas);
@@ -153,7 +153,8 @@ sub acct {
 
  my $begin_time = check_time();
 
- if ($RAD->{SERVICE_TYPE} && defined($USER_TYPES{$RAD->{SERVICE_TYPE}}) && $USER_TYPES{$RAD->{SERVICE_TYPE}} == 6) {
+ if ($RAD->{SERVICE_TYPE} && $USER_TYPES{$RAD->{SERVICE_TYPE}} 
+    && ($USER_TYPES{$RAD->{SERVICE_TYPE}} == 6 || $USER_TYPES{$RAD->{SERVICE_TYPE}} == 7)) {
    $Log->log_print('LOG_DEBUG', "$RAD->{USER_NAME}", "$RAD->{SERVICE_TYPE}");
    return 0;	
   }
@@ -337,8 +338,9 @@ else {
 	$r = $acct_mod{"default"}->accounting($RAD, $nas);
 }
 
+my $aaaaaaa = `echo "// $r->{errno} //" >> /tmp/12211`;
 
-if ($Acct->{errno}) {
+if ($r->{errno}) {
   $access_deny->("$RAD->{USER_NAME}", "[$r->{errno}] $r->{errstr}", $nas->{NAS_ID});
  }
 

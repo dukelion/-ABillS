@@ -3,7 +3,7 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.9
+VERSION=0.10
 
 USER_NAME=test
 USER_PASSWORD=123456
@@ -104,6 +104,9 @@ for _switch ; do
         -rad)   RADIUS_ACTION=1;
                 shift;
                 ;;
+        -rad_file) RAD_FILE=$2;
+                shift; shift
+                ;;
         -rad_secret)   RADIUS_SECRET=$2;
                 shift; shift;
                 ;;
@@ -131,16 +134,27 @@ fi;
 
 
 # Make direct radius request
-if [ w${RADIUS_ACTION} = w1 ]; then
-  if [ w${RADIUS_SECRET} = w ]; then
+if [ x${RADIUS_ACTION} = x1 ]; then
+  if [ x${RADIUS_SECRET} = x ]; then
     RADIUS_SECRET=radsecret;
   fi;
 
-  if [ w${RADIUS_IP} = w ]; then
+  if [ x${RADIUS_IP} = x ]; then
     RADIUS_IP=127.0.0.1;
   fi;
 
   echo "Send params to radius: ${RADIUS_IP}:1812"
+
+  if [ x${RAD_FILE} != x ]; then
+    COMMAND=acct;
+    PORT=1813;
+    radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT}${COMMAND} ${RADIUS_SECRET}
+    
+    echo "radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${COMMAND} ${RADIUS_SECRET}";
+    exit;
+  fi;
+
+
   radtest ${USER_NAME} ${USER_PASSWORD} ${RADIUS_IP}:1812 0 ${RADIUS_SECRET} 0 ${NAS_IP_ADDRESS}
 
   exit;
@@ -448,9 +462,10 @@ DHCP Function
        -cid   - CALLING_STATION_ID (Default: )
        -session_id ACCT_SESSION_ID (Default: ${ACCT_SESSION_ID})
 
-       -rad   - Send request to RADIUS
+       -rad     -  Send request to RADIUS
        -rad_secret - RADIUS secret (Default: radsecret)
-       -rad_ip -  RADIUS IP address (Default: 127.0.0.1)
+       -rad_ip  -  RADIUS IP address (Default: 127.0.0.1)
+       -rad_file-  Get data from file
 
        -debug - Debug mode
        -v     - Show version

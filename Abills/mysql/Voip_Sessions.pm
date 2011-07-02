@@ -36,8 +36,6 @@ sub new {
     $self->del($CONF->{DELETE_USER}, '', '', '', { DELETE_USER => $CONF->{DELETE_USER} });
    }
 
-  
-  #$self->{debug}=1;
   return $self;
 }
 
@@ -170,7 +168,7 @@ sub online_info {
   
   $self->query($db, "SELECT user_name, 
     UNIX_TIMESTAMP(started), 
-    SEC_TO_TIME(UNIX_TIMESTAMP() - UNIX_TIMESTAMP(started)), 
+    UNIX_TIMESTAMP() - UNIX_TIMESTAMP(started), 
     INET_NTOA(client_ip_address),
     lupdated,
     nas_id,
@@ -178,7 +176,8 @@ sub online_info {
     called_station_id,
     acct_session_id,
     conf_id,
-    INET_NTOA(client_ip_address)
+    INET_NTOA(client_ip_address),
+    call_origin
     FROM voip_calls 
     WHERE nas_id='$NAS_ID'
      and acct_session_id='$ACCT_SESSION_ID'");
@@ -201,7 +200,9 @@ sub online_info {
    $self->{ACCT_SESSION_ID},
    $self->{H323_CONF_ID},
    $self->{CLIENT_IP_ADDRESS},
+   $self->{H323_CALL_ORIGIN},
    $self->{CONNECT_TERM_REASON}, 
+   
     )= @{ $self->{list}->[0] };
 
 
@@ -218,8 +219,8 @@ sub zap {
   my $self=shift;
   my ($nas_id, $acct_session_id, $nas_port_id)=@_;
 
-  $self->query($db, "UPDATE voip_calls SET status=2 WHERE nas_id=INET_ATON('$nas_id')
-       and acct_session_id='$acct_session_id';", 'do');
+  my $WHERE = ($nas_id && $acct_session_id) ? "WHERE nas_id=INET_ATON('$nas_id') and acct_session_id='$acct_session_id'" : '';
+  $self->query($db, "UPDATE voip_calls SET status=2 $WHERE;", 'do');
 
   return $self;
 }

@@ -1450,7 +1450,7 @@ elsif($FORM{tolog}) {
 
   Voip_aaa->import();
   my $Acct = Voip_aaa->new($db, \%conf);
-  my $r = $Acct->accounting($ACCT_INFO, $nas, \%conf);
+  my $r = $Acct->accounting($ACCT_INFO, $Nas, \%conf);
 
   if ($Acct->{errno}) {
     $html->message('err', $_ERROR, "[$Acct->{errno}] $Acct->{errstr}");	
@@ -1458,11 +1458,11 @@ elsif($FORM{tolog}) {
   else {
   	my $table = $html->table( { width => '100%'} );
   	while(my($k, $v)=each %$ACCT_INFO) {
- 		    $table->addrow($k, $v);
+ 		    $table->addrow("$k", $v);
   	  }
-  	while(my($k, $v)=each %$Acct) {
- 		    $table->addrow($k, $v);
-  	  }
+  	#while(my($k, $v)=each %$Acct) {
+ 		#    $table->addrow($k, $v);
+  	#  }
   	$html->message('info', $_ADDED, $table->show());	
    }
   
@@ -1538,7 +1538,6 @@ foreach my $nas_row (@$nas_list) {
   foreach my $line (@$l) {
     undef($table->{rowcolor});
     undef($table->{extra});
-    #print "$line->[0]<br>";
     if (defined($dub_logins->{$line->[0]}))                   { $bg='#FFFF00';    }
 #    elsif (defined($dub_ports->{$nas_row->[4]}{$line->[2]})) { $bg='#00FF40';    }
     elsif ($line->[9] == 3)                                   { $bg='#FF0000';    }
