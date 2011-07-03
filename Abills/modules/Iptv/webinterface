@@ -2487,7 +2487,7 @@ foreach my $line (@$tp_list) {
    }
 
 
-  print $html->pre($content);
+  print $html->pre($content) if($debug > 1);
 
 	open(FILE, ">$filename") or print "Can't create file '$filename' $!\n";
 	  print FILE $content;
