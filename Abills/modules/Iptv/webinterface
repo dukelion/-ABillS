@@ -1,4 +1,3 @@
-#/usr/bin/perl
 # Iptv web functions
 
 use Iptv;
@@ -403,7 +402,7 @@ if (defined($attr->{TP})) {
       $html->message('info', $_INFO, "$_CHANGED");
      }
 	 }
-}
+ }
 else {
  	iptv_tp({ f => 'iptv_ti_channels' });
  	return 0;
@@ -481,9 +480,9 @@ $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
                          rows       => [ [ "$_TOTAL:", $html->b($Iptv->{TOTAL}), "$_ACTIV:", $html->b($Iptv->{ACTIVE}), ] ]
                       } );
+
 print $table->show();
 
-	
 }
 
 #**********************************************************
@@ -2116,15 +2115,15 @@ sub iptv_monthly_fees {
 
 #Channels Fees
      $ulist = $Iptv->user_list({ 
-         ACTIVATE   => "<='$ADMIN_REPORT{DATE}'",
-         EXPIRE     => ">'$ADMIN_REPORT{DATE}'",
-         STATUS     => 0,
-         LOGIN_STATUS => 0,
-         TP_ID      => $TP_ID,
-         SORT       => 1,
-         PAGE_ROWS  => 1000000,
+         ACTIVATE      => "<='$ADMIN_REPORT{DATE}'",
+         EXPIRE        => ">'$ADMIN_REPORT{DATE}'",
+         STATUS        => 0,
+         LOGIN_STATUS  => 0,
+         TP_ID         => $TP_ID,
+         SORT          => 1,
+         PAGE_ROWS     => 1000000,
          SHOW_CHANNELS => 1,
-         MONTH_PRICE => '>0'
+         MONTH_PRICE   > '>0'
  	   	 });
 
      foreach my $u (@$ulist) {
@@ -2418,12 +2417,75 @@ sub dv_crypt {
 	my $content  = '';
 
 
-  $Iptv->{debug}=1;
-  my $list = $Iptv->user_list({ PAGE_ROWS => 1000000, DVCRYPT_ID => '>0' });
+  my %tp_channels_list = ();
+  my %users_channels   = ();
+  
+  my $tp_list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });
+
+foreach my $line (@$tp_list) {
+ 	 my $TP_ID       = $line->[18];
+ 	 my $min_use     = $line->[15];
+ 	 my $postpaid    = $line->[4];
+   my $tp_postpaid = $line->[12];
+   my $month_fee   = $line->[6];
+
+
+   $Tariffs->ti_list({ TP_ID => $TP_ID  });
+   
+   if ($Tariffs->{TOTAL} == 0) {
+   	  next;
+    }
+   
+  my $channels_list = $Iptv->channel_ti_list({ INTERVAL_ID => $Tariffs->{list}->[0]->[0],
+  	                                           MANDATORY   => 1 });
+  foreach my $line (@$channels_list) {
+  	$tp_channels_list{$line->[1]}=$line->[9] ;
+   }
+
+  #Main users list
+  my $ulist = $Iptv->user_list({ 
+                                ACTIVATE      => "<='$DATE'",
+                                EXPIRE        => ">'$DATE'",
+                                DVCRYPT_ID    => '>0',
+                                STATUS     => 0,
+                                LOGIN_STATUS => 0,
+                                TP_ID      => $TP_ID,
+                                SORT       => 1,
+                                PAGE_ROWS  => 1000000,
+ 	   	                      });
+
+  foreach my $line (@$ulist) {
+  	%{ $users_channels{$line->[6]} } = %tp_channels_list;
+   }
+
+  # Custom channels users list
+  my $list = $Iptv->user_list({ PAGE_ROWS     => 1000000, 
+  	                            DVCRYPT_ID    => '>0',
+                                ACTIVATE      => "<='$DATE'",
+                                EXPIRE        => ">'$DATE'",
+                                STATUS        => 0,
+                                LOGIN_STATUS  => 0,
+                                TP_ID         => $TP_ID,
+                                SORT          => 1,
+                                SHOW_CHANNELS => 1,
+	                             });
   
   foreach my $line (@$list) {
-  	$content  .= "$line->[6];\n";
+  	$users_channels{$line->[4]}{$line->[14]} = "$line->[1]";
    }
+
+} 
+
+
+  foreach my $dv_crypt_id (sort { $a <=> $b } keys %users_channels) {
+  	my @arr = ();
+  	for(my $channel_id=1; $channel_id<=127; $channel_id++) {
+		  $arr[$channel_id]=($users_channels{$dv_crypt_id}->{$channel_id}) ? 1 : 0;
+     }
+
+  	$content  .= "$dv_crypt_id;". (join('', @arr)) ."\n";
+   }
+
 
   print $html->pre($content);
 
