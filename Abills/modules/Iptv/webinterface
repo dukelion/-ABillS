@@ -309,12 +309,11 @@ sub iptv_user {
     if (! $Iptv->{errno}) {
     	$Iptv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (! $FORM{STATUS});
-
       $html->message('info', $_INFO, "$_ADDED");	
+      if ($conf{IPTV_DVCRYPT_FILENAME}) {
+      	 dv_crypt();
+       }
      }
-    #if ($conf{VOIP_ASTERISK_USERS}) {
-    #	iptv_mk_users_conf();
-    # }
    }
 	elsif($FORM{set}) {
     $Iptv->user_change({ %FORM });
@@ -323,10 +322,10 @@ sub iptv_user {
     	$Iptv->{ACTIVATE}=$attr->{USER}->{ACTIVATE};
       iptv_get_month_fee($Iptv) if (! $FORM{STATUS});
       $html->message('info', $_INFO, "$_CHANGED");	
+      if ($conf{IPTV_DVCRYPT_FILENAME}) {
+      	 dv_crypt();
+       }
      }
-#    if ($conf{VOIP_ASTERISK_USERS}) {
-#    	iptv_mk_users_conf();
-#     }
    }
 	elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $Iptv->user_del();
