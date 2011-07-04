@@ -500,6 +500,11 @@ sub accounting {
 #Start
 if ($acct_status_type == 1) { 
   if ($NAS->{NAS_TYPE} eq 'cisco_voip') {
+    # For Cisco 
+    if ($RAD->{USER_NAME} =~ /(\S+):(\d+)/) {
+    	$RAD->{USER_NAME} = $2;
+     }
+
     $self->user_info($RAD, $NAS);
   	
   	my $sql = "INSERT INTO voip_calls 

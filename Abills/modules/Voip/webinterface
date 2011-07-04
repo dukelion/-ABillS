@@ -2362,7 +2362,7 @@ sub voip_monthly_fees {
 
   my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
-  $debug_output .= "DV: Monthly periodic payments\n" if ($debug > 1);
+  $debug_output .= "Voip: Monthly periodic payments\n" if ($debug > 1);
  
   use Users;
   my $users = Users->new($db, $admin, \%conf); 
