@@ -1776,9 +1776,11 @@ sub voip_error {
 
 if ($attr->{USER}) {
   my $user = $attr->{USER};
-  $login   = $user->{LOGIN};
-  $LIST_PARAMS{LOGIN_EXPR} = $user->{LOGIN};
-}
+  $Voip->user_info($attr->{USER}->{UID});  
+ 
+  $login   = $Voip->{NUMBER};
+  $LIST_PARAMS{LOGIN_EXPR} = $Voip->{NUMBER};
+ }
 elsif ($FORM{LOGIN_EXPR}) {
   $login     = $FORM{LOGIN_EXPR};
   $LIST_PARAMS{LOGIN_EXPR} = $FORM{LOGIN_EXPR};
@@ -1795,7 +1797,7 @@ if ($conf{ERROR2DB}) {
                   0  => 'UNKNOWN',
                  );
 
-  my $list = $Nas->list({ TYPE => 'asterisk,gnugk' });
+  my $list = $Nas->list({ TYPE => 'asterisk,gnugk,cisco_voip' });
   foreach my $line (@$list) {
     $nas_ids{$line->[0]} = $line->[1];
    }

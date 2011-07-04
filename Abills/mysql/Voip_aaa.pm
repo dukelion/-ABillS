@@ -497,14 +497,24 @@ sub accounting {
 
  preproces($RAD);
 
+ if ($NAS->{NAS_TYPE} eq 'cisco_voip') {
+   if ($RAD->{USER_NAME} =~ /(\S+):(\d+)/) {
+  	 $RAD->{USER_NAME} = $2;
+    }
+   if ($RAD->{H323_CALL_ORIGIN}==0) {
+ 	   $RAD->{H323_CALL_ORIGIN} = 1;
+ 	   $RAD->{USER_NAME}=$RAD->{CALLING_STATION_ID};
+    }
+   else {
+   	 $RAD->{H323_CALL_ORIGIN} = 0;
+   	 $RAD->{USER_NAME}=$RAD->{CALLED_STATION_ID};
+    }
+  }
+
 #Start
 if ($acct_status_type == 1) { 
   if ($NAS->{NAS_TYPE} eq 'cisco_voip') {
     # For Cisco 
-    if ($RAD->{USER_NAME} =~ /(\S+):(\d+)/) {
-    	$RAD->{USER_NAME} = $2;
-     }
-
     $self->user_info($RAD, $NAS);
   	
   	my $sql = "INSERT INTO voip_calls 
@@ -609,8 +619,12 @@ elsif ($acct_status_type == 2) {
     )= @{ $self->{list}->[0] };
   
 
-
-    if ($RAD->{H323_CALL_ORIGIN} == 1) {
+    if ($self->{UID} == 0) {
+  	   $self->{errno}=110;
+	     $self->{errstr}="Number not found '". $RAD->{'USER_NAME'} ."'";
+	     return $self;
+     }
+    elsif ($RAD->{H323_CALL_ORIGIN} == 1) {
        if (! $self->{ROUTE_ID}) {
          $self->get_route_prefix($RAD);
         }
