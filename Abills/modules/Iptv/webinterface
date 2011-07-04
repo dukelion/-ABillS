@@ -2493,6 +2493,8 @@ foreach my $line (@$tp_list) {
 	  print FILE $content;
 	close(FILE);
 
+print "Generated '$filename'\n";
+
 
 }
 
