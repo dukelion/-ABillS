@@ -27,13 +27,12 @@ if ($FORM{qindex}) {
 
   $Sqlcmd->query($db, "SHOW CREATE TABLE $FORM{TABLE_INFO}");
   my $table = $html->table({ width        => '100%',
-                          caption      => 'SQL Dump',
-                          border       => 1,
-                          rows         => [[ $html->pre($Sqlcmd->{list}->[0]->[1], { OUTPUT2RETURN => 1 }) ]]
-                        });
+                             caption      => 'SQL Dump',
+                             border       => 1,
+                             rows         => [[ $html->pre($Sqlcmd->{list}->[0]->[1], { OUTPUT2RETURN => 1 }) ]]
+                           });
 
   print $table->show();
-
   print $html->button("$_INFO", "index=$index&TABLE_INFO=$FORM{TABLE_INFO}", { BUTTON => 1}),
   exit;
 }
@@ -47,7 +46,6 @@ my $FORM2  = ();
 my @pairs = split(/&/, $FORM{__BUFFER});
 
 $LIST_PARAMS{PAGE_ROWS}=15;
-
 
 if ($FORM{QUERY_ID}) {
   $Sqlcmd_main->history_query({ %FORM });
@@ -96,6 +94,7 @@ if ($FORM{WIZARD}) {
   }
 
 
+
   $table = $html->table( { width        => '100%',
                            border       => 1,
                            caption      => $FORM{TABLE_INFO},
@@ -118,8 +117,8 @@ if ($FORM{WIZARD}) {
  
 
 if (! $FORM{FIELD}) {
- $html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, \%FORM }) ;
- my $list = $Sqlcmd->list( { %FORM2 } ) if (defined($FORM2{QUERY}) && length($FORM2{QUERY}) > 10);
+  $html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, %FORM }) ;
+  my $list = $Sqlcmd->list( { %FORM2 } ) if (defined($FORM2{QUERY}) && length($FORM2{QUERY}) > 10);
 
 
 if ($FORM{QUERY} && ! $FORM{xml}) {
@@ -180,7 +179,12 @@ if ($FORM{QUERY} && ! $FORM{xml}) {
 
   print $table->show();
   
-  $Sqlcmd_main->history_add({ %FORM }) if ($FORM{HISTORY});
+  if ($FORM{HISTORY}) {
+  	if (! $FORM{COMMENTS}) {
+  		$FORM{COMMENTS}=substr($FORM{QUERY}, 0,40).'...';
+  	 }
+    $Sqlcmd_main->history_add({ %FORM }) ;
+   }
 }
 
 if ($Sqlcmd->{errno}) {

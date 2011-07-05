@@ -994,10 +994,6 @@ sub add_company {
   my $company;
   $company->{ACTION}='add';
   $company->{LNG_ACTION}=$_ADD;
-  
-  #$company->{EXDATA} =  
-  #print $html->tpl_show(templates('form_user_exdata_add'), { CREATE_BILL => ' checked' }, { OUTPUT2RETURN => 1 });
-  #$company->{EXDATA} .=  $html->tpl_show(templates('form_ext_bill_add'), { CREATE_EXT_BILL => ' checked' }, { notprint => 1 }) if ($conf{EXT_BILL_ACCOUNT});
   $company->{BILL_ID}=$html->form_input('CREATE_BILL', 1, { TYPE => 'checkbox', STATE => 1 }) . ' ' .$_CREATE;
 
   my $list = $users->config_list({ PARAM => 'ifc*', SORT => 2 });
@@ -2207,28 +2203,25 @@ my $table = $html->table( { width      => '100%',
                             title      => ["$_NAME", "$_DEPOSIT",  '-'],
                             cols_align => ['right', 'left', 'center:noprint'],
                             qs         => $pages_qs,
-                            pages      => $company->{TOTAL}
+                            pages      => $company->{TOTAL},
+                            ID         => 'COMPANY_LIST'
                            });
 
   $table->addrow($_DEFAULT,
     '',
-    $html->button("$_ADD", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=0"), 
+    $html->button("$_DEL", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=0", { BUTTON => 1  }), 
     );
 
 
 foreach my $line (@$list) {
   $table->addrow($line->[0],
     $line->[1],
-    $html->button("$_ADD", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=$line->[5]"), 
+    $html->button("$_CHANGE", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=$line->[5]", { BUTTON => 1 }), 
     );
 }
 
 
 print $table->show();
-
-
-
-
 }
 
 #*******************************************************************
