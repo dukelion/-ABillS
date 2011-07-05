@@ -2711,7 +2711,7 @@ sub voip_sheduler {
 sub voip_mk_users_conf {
  my ($attr) = @_;
 
-my $content = "#ABILLS users config\n#DATE: $DATE $TIME\n\n";
+my $content = ''; #";ABILLS users config\n;DATE: $DATE $TIME\n\n";
 
 
 my $list = $Voip->user_list({ PAGE_ROWS => 100000, 
@@ -2726,7 +2726,9 @@ foreach my $line (@$list) {
                NUMBER    => $line->[6],
                CALLER_ID => $line->[$Voip->{SEARCH_FIELDS_COUNT}+5],
                PASSWORD  => $line->[$Voip->{SEARCH_FIELDS_COUNT}+6],
-               HOST      => ($line->[$Voip->{SEARCH_FIELDS_COUNT}+4] eq '0.0.0.0') ? 'dynamic' : $line->[$Voip->{SEARCH_FIELDS_COUNT}+4]         
+               HOST      => ($line->[$Voip->{SEARCH_FIELDS_COUNT}+4] eq '0.0.0.0') ? 'dynamic' : $line->[$Voip->{SEARCH_FIELDS_COUNT}+4],
+               DATE      => $DATE,
+               TIME      => $TIME
                );
 
 
