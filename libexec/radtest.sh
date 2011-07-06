@@ -90,7 +90,7 @@ for _switch ; do
                 ;;
         acct)   ACCOUNTING_ACTION=$2;
                 ACTION=acct 
-                shift; shift
+                shift; 
                 ;;
         auth)   ACTION=auth;
                 shift;
@@ -107,7 +107,7 @@ for _switch ; do
         -rad_file) RAD_FILE=$2;
                 shift; shift
                 ;;
-        -rad_secret)   RADIUS_SECRET=$2;
+        -rad_secret)   RADIUS_SECRET=$1;
                 shift; shift;
                 ;;
         -rad_ip)RADIUS_IP=$2;
@@ -146,11 +146,15 @@ if [ x${RADIUS_ACTION} = x1 ]; then
   echo "Send params to radius: ${RADIUS_IP}:1812"
 
   if [ x${RAD_FILE} != x ]; then
-    COMMAND=acct;
-    PORT=1813;
-    radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT}${COMMAND} ${RADIUS_SECRET}
+    if [ x${ACTION} = x"acct" ]; then
+      PORT=1813;
+    else
+      PORT=1812
+    fi;
+
+    radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}
     
-    echo "radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${COMMAND} ${RADIUS_SECRET}";
+    echo "radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}";
     exit;
   fi;
 
