@@ -441,32 +441,35 @@ sub abon_periodic {
  	   CREDIT          => $line->[8],
  	   TP_ID           => $line->[10],
  	   COMMENT         => $line->[12],
- 	   ABON_DATE       => $line->[13],
-     FEES_TYPE       => $line->[17] || 1,
-     CREATE_ACCOUNT  => $line->[18],
-     EMAIL           => $line->[24],
-     ALERT           => $line->[22],
+ 	   ABON_DATE       => $line->[14],
+ 	   BILL_ID         => ($line->[15]) ? $line->[16] : $line->[3],
+     FEES_TYPE       => $line->[18] || 1,
+     CREATE_ACCOUNT  => $line->[19],
+     EMAIL           => $line->[25],
+     ALERT           => $line->[23],
+     DATETIME        => "$ADMIN_REPORT{DATE} $TIME",
+     NEXT_ABON_FEES  => $line->[30]
     );
 
-   my $notification1   = $line->[19];
-   my $notification2   = $line->[20];
-   my $notification_account = $line->[21];
-   my $alert_account   = $line->[23];
-   my $email           = $line->[24]; 
-   my $notification1_account_id = $line->[25]; 
-   my $ext_cmd         = $line->[26]; 
-   my $activate_notification = $line->[27]; 
-   my $vat             = $line->[28]; 
+   my $notification1   = $line->[20];
+   my $notification2   = $line->[21];
+   my $notification_account = $line->[22];
+   my $alert_account   = $line->[24];
+   my $email           = $line->[25]; 
+   my $notification1_account_id = $line->[26]; 
+   my $ext_cmd         = $line->[27]; 
+   my $activate_notification = $line->[28]; 
+   my $vat             = $line->[29]; 
   
    
    if ($debug > 5) {
-   	   $debug_output .= "UID: $info{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} DEPOSIT: $info{DEPOSIT}  NOT1: $notification1 NOT2: $notification2 ABON: $info{ABON_DATE}\n";
+   	 $debug_output .= "UID: $info{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} DEPOSIT: $info{DEPOSIT}  NOT1: $notification1 NOT2: $notification2 ABON: $info{ABON_DATE}\n";
     }
    
    if (defined($info{DEPOSIT})) {
      my %user = (
        UID     => $info{UID},
-       BILL_ID => ($line->[14]) ? $line->[15] : $line->[3]
+       BILL_ID => $info{BILL_ID}
       );
 
      my %PARAMS = ( DESCRIBE  => "$_ABON: [$info{TP_ID}] $info{TP_NAME}",

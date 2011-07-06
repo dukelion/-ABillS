@@ -584,11 +584,13 @@ if ($FORM{print_list}) {
     $D{TOTAL_SUM}     = sprintf("%.2f", $line->[3]);
     $D{CONTRACT_ID}   = $line->[15];
     $D{CONTRACT_DATE} = "$line->[16]";
-    $D{BILL_ID}       = $line->[17];
+    $D{BILL_ID}         = $line->[17];
+    $D{COMPANY_ID}    = $line->[18];
     $D{UID}           = $line->[9];
     $D{A_FIO}         = $line->[6];
     $D{PHONE}         = $line->[14];
 
+    $FORM{COMPANY_ID}=$D{COMPANY_ID};
     
     if ($conf{DOCS_VAT_INCLUDE}) {
    	   $D{ORDER_TOTAL_SUM_VAT}  = sprintf("%.2f", $D{TOTAL_SUM} / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}));
@@ -640,10 +642,9 @@ if ($FORM{print_list}) {
 	 }
 
   print $html->header() if ($FORM{qindex});  
-  my $single_tpl = $html->tpl_show(_include('docs_account', 'Docs', { pdf => $FORM{pdf} }), undef, 
+  my $tpl = ($FORM{COMPANY_ID}) ? 'docs_account_company' : 'docs_account';
+  my $single_tpl = $html->tpl_show(_include($tpl, 'Docs', { pdf => $FORM{pdf} }), undef, 
                                            { MULTI_DOCS   => \@MULTI_ARR, 
-  	                                         #SAVE_AS      => $save_filename,
-  	                                         #DOCS_IN_FILE => $docs_in_file,
   	                                         debug        => $debug
   	                                       }); 
 	return 0;

@@ -606,23 +606,24 @@ sub periodic_list {
   at.id,
   at.payment_type,
   ul.comments,
+  \@last_fees_date := if(ul.date='0000-00-00', curdate(), ul.date),
   \@fees_date := if (at.nonfix_period = 1, 
-      if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
-       if (at.period = 1, ul.date + INTERVAL 1 MONTH, 
-         if (at.period = 2, ul.date + INTERVAL 3 MONTH, 
-           if (at.period = 3, ul.date + INTERVAL 6 MONTH, 
-             if (at.period = 4, ul.date + INTERVAL 1 YEAR, 
+      if (at.period = 0, \@last_fees_date+ INTERVAL 1 DAY, 
+       if (at.period = 1, \@last_fees_date + INTERVAL 1 MONTH, 
+         if (at.period = 2, \@last_fees_date + INTERVAL 3 MONTH, 
+           if (at.period = 3, \@last_fees_date + INTERVAL 6 MONTH, 
+             if (at.period = 4, \@last_fees_date + INTERVAL 1 YEAR, 
                '-'
               )
             )
           )
         )
        ),
-      if (at.period = 0, ul.date+ INTERVAL 1 DAY, 
-       if (at.period = 1, DATE_FORMAT(ul.date + INTERVAL 1 MONTH, '%Y-%m-01'), 
-         if (at.period = 2, CONCAT(YEAR(ul.date + INTERVAL 3 MONTH), '-' ,(QUARTER((ul.date + INTERVAL 3 MONTH))*3-2), '-01'), 
-           if (at.period = 3, CONCAT(YEAR(ul.date + INTERVAL 6 MONTH), '-', if(MONTH(ul.date + INTERVAL 6 MONTH) > 6, '06', '01'), '-01'), 
-             if (at.period = 4, DATE_FORMAT(ul.date + INTERVAL 1 YEAR, '%Y-01-01'), 
+      if (at.period = 0, \@last_fees_date + INTERVAL 1 DAY, 
+       if (at.period = 1, DATE_FORMAT(\@last_fees_date + INTERVAL 1 MONTH, '%Y-%m-01'), 
+         if (at.period = 2, CONCAT(YEAR(\@last_fees_date + INTERVAL 3 MONTH), '-' ,(QUARTER((\@last_fees_date + INTERVAL 3 MONTH))*3-2), '-01'), 
+           if (at.period = 3, CONCAT(YEAR(\@last_fees_date + INTERVAL 6 MONTH), '-', if(MONTH(\@last_fees_date + INTERVAL 6 MONTH) > 6, '06', '01'), '-01'), 
+             if (at.period = 4, DATE_FORMAT(\@last_fees_date + INTERVAL 1 YEAR, '%Y-01-01'), 
                '-'
               )
             )
@@ -645,8 +646,31 @@ sub periodic_list {
    ul.notification1_account_id,
    at.ext_cmd,
    at.activate_notification,
-   at.vat
-  
+   at.vat,
+   \@nextfees_date := if (at.nonfix_period = 1, 
+      if (at.period = 0, \@last_fees_date+ INTERVAL 2 DAY, 
+       if (at.period = 1, \@last_fees_date + INTERVAL 2 MONTH, 
+         if (at.period = 2, \@last_fees_date + INTERVAL 6 MONTH, 
+           if (at.period = 3, \@last_fees_date + INTERVAL 12 MONTH, 
+             if (at.period = 4, \@last_fees_date + INTERVAL 2 YEAR, 
+               '-'
+              )
+            )
+          )
+        )
+       ),
+      if (at.period = 0, \@last_fees_date+ INTERVAL 1 DAY, 
+       if (at.period = 1, DATE_FORMAT(\@last_fees_date + INTERVAL 2 MONTH, '%Y-%m-01'), 
+         if (at.period = 2, CONCAT(YEAR(\@last_fees_date + INTERVAL 6 MONTH), '-' ,(QUARTER((\@last_fees_date + INTERVAL 6 MONTH))*6-2), '-01'), 
+           if (at.period = 3, CONCAT(YEAR(\@last_fees_date + INTERVAL 12 MONTH), '-', if(MONTH(\@last_fees_date + INTERVAL 12 MONTH) > 12, '06', '01'), '-01'), 
+             if (at.period = 4, DATE_FORMAT(\@last_fees_date + INTERVAL 2 YEAR, '%Y-01-01'), 
+               '-'
+              )
+            )
+          )
+        )
+       )
+      ) AS nextfees_date 
    
   FROM (abon_tariffs at, abon_user_list ul, users u)
      LEFT JOIN bills b ON (u.bill_id=b.id)
@@ -657,7 +681,7 @@ WHERE
 at.id=ul.tp_id and
 ul.uid=u.uid
 
-$WHERE
+AND u.deleted='0'
 ORDER BY at.priority;");
 
  my $list = $self->{list};

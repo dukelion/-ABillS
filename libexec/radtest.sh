@@ -143,14 +143,13 @@ if [ x${RADIUS_ACTION} = x1 ]; then
     RADIUS_IP=127.0.0.1;
   fi;
 
-  echo "Send params to radius: ${RADIUS_IP}:1812"
+  if [ x${ACTION} = x"acct" ]; then
+    PORT=1813;
+  else
+    PORT=1812
+  fi;
 
-  if [ x${RAD_FILE} != x ]; then
-    if [ x${ACTION} = x"acct" ]; then
-      PORT=1813;
-    else
-      PORT=1812
-    fi;
+  echo "Send params to radius: ${RADIUS_IP}:${PORT}"
 
     radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}
     

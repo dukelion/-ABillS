@@ -113,7 +113,8 @@ sub docs_invoice_list {
    if (d.phone<>0, d.phone, pi.phone),
    pi.contract_id,
    pi.contract_date,
-   u.id";
+   u.id,
+   u.company_id";
   }
 
 
@@ -371,7 +372,8 @@ sub accounts_list {
    if (d.phone<>0, d.phone, pi.phone),
    pi.contract_id,
    pi.contract_date,
-   if(u.company_id > 0, c.bill_id, u.bill_id)";
+   if(u.company_id > 0, c.bill_id, u.bill_id),
+   u.company_id";
   }
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
