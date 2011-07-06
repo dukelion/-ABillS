@@ -415,18 +415,13 @@ sub list {
  
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
  @WHERE_RULES = ();
 
  if ($attr->{CONTRACT_ID}) {
    $attr->{CONTRACT_ID} =~ s/\*/\%/ig;
-   push @WHERE_RULES, "c.contract_id LIKE '$attr->{CONTRACT_ID}'";
- }
-
- if ($attr->{COMPANY_NAME}) {
-   $attr->{COMPANY_NAME}=~ s/\*/\%/ig;
-   push @WHERE_RULES, "c.name LIKE '$attr->{COMPANY_NAME}'";
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{CONTRACT_ID}", 'STR', 'c.contract_id') };
  }
 
  if ($admin->{DOMAIN_ID}) {
@@ -438,9 +433,8 @@ sub list {
 
 
  if ($attr->{COMPANY_NAME}) {
-   $attr->{COMPANY_NAME}=~ s/\*/\%/ig;
-   push @WHERE_RULES, "c.name LIKE '$attr->{COMPANY_NAME}'";
- }
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{COMPANY_NAME}", 'STR', 'c.name') };
+  }
 
  if ($attr->{CREDIT_DATE}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{CREDIT_DATE}", 'INT', 'c.credit_date') };
@@ -451,8 +445,7 @@ sub list {
   }
 
  if ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES,  "c.name LIKE '$attr->{LOGIN_EXPR}'";
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{LOGIN_EXPR}", 'STR', 'c.name') };
   }
 
  my $WHERE = ($#WHERE_RULES > -1) ?  "WHERE " . join(' and ', @WHERE_RULES) : ''; 

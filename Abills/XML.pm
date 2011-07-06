@@ -1020,7 +1020,7 @@ sub letters_list {
  my ($self, $attr) = @_;
 
   if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $attr->{ID} ) {
-      return "<a> $FORM{EXPORT_CONTENT} </a>";
+      return ""; #"<a> $FORM{EXPORT_CONTENT} </a>";
    }
 
  my $pages_qs = $attr->{pages_qs} if (defined($attr->{pages_qs}));

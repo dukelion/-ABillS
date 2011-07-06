@@ -812,8 +812,6 @@ elsif($FORM{COMPANY_ID}) {
   	                                                              DATE      => $company->{CONTRACT_DATE} });
 
   if (in_array('Docs', \@MODULES) ) {
-    #$company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', BUTTON => 1 }) ;
-    
     if ($conf{DOCS_CONTRACT_TYPES}) {
     	$conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
       my (@contract_types_list)=split(/;/, $conf{DOCS_CONTRACT_TYPES});
@@ -845,6 +843,13 @@ elsif($FORM{del} && $FORM{is_js_confirmed}  && $permissions{0}{5} ) {
    $html->message('info', $_INFO, "$_DELETED # $FORM{del}");
  }
 else {
+	
+	if ($FORM{letter}) {
+    $LIST_PARAMS{COMPANY_NAME} = "$FORM{letter}*";
+    $pages_qs .= "&letter=$FORM{letter}";
+   }
+	print $html->letters_list({ pages_qs => $pages_qs  }); 
+
   my $list = $company->list( { %LIST_PARAMS } );
   my $table = $html->table( { width      => '100%',
                               caption    => $_COMPANIES,
@@ -854,7 +859,7 @@ else {
                               pages      => $company->{TOTAL},
                               qs         => $pages_qs,
                               ID         => 'COMPANY_ID',
-                              EXPORT     =>  $_EXPORT .' XML:&xml=1',
+                              EXPORT     => ' XML:&xml=1',
                             } );
 
 
@@ -1877,18 +1882,12 @@ if ($FORM{COMPANY_ID}) {
   $LIST_PARAMS{COMPANY_ID} = $FORM{COMPANY_ID};
  }  
 
-#if ($FORM{debs}) {
-#  print $html->br($_DEBETERS);
-#  $pages_qs .= "&debs=$FORM{debs}";
-#  $LIST_PARAMS{DEBETERS} = 1;
-# }  
-
 if ($FORM{letter}) {
   $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
   $pages_qs .= "&letter=$FORM{letter}";
  } 
 
-my @statuses = ($_ALL, $_ACTIV, $_DEBETORS, $_DISABLE, $_EXPIRE);
+my @statuses = ($_ALL, $_ACTIV, $_DEBETORS, $_DISABLE, $_EXPIRE, $_CREDIT);
 if ($admin->{permissions}->{0} && $admin->{permissions}->{0}->{8}) {
   push @statuses, $_DELETED,
 }
@@ -1911,6 +1910,9 @@ foreach my $name ( @statuses ) {
     	$LIST_PARAMS{EXPIRE}="<$DATE,>0000-00-00";
      }
     elsif ($i == 5) {
+    	$LIST_PARAMS{CREDIT}=">0";
+     }
+    elsif ($i == 6) {
     	$LIST_PARAMS{DELETED}=1;
      }
 
@@ -7478,8 +7480,6 @@ foreach my $line (@$list) {
      $html->button($_DEL, "index=$index&del=$line->[8]&BUILDS=$FORM{BUILDS}", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
 }
 print $table->show();	
-
-
 $table = $html->table( { width      => '640',
                          cols_align => ['right', 'right'],
                          rows       => [ [ "$_TOTAL:", $html->b($users->{TOTAL}) ] ]
@@ -7563,7 +7563,6 @@ sub form_view  {
                                 { SELECTED   => $FORM{VIEW} || 0,
  	                                SEL_HASH   => $attr->{VIEW},
  	                                NO_ID      => 1,
- 	                                #EX_PARAMS => 'onChange="selectstype()"'
  	                               });
 
   $info{EX_PARAMS} = '';

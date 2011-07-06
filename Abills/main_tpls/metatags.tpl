@@ -207,6 +207,13 @@ form {
   font-size: 12px;
 }
 
+.export_button {
+  text-decoration: none;
+  font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
+  color: %_COLOR_9%;
+  font-size: 10px;
+}
+
 a.button_change {
 	color: %_COLOR_9%;
  	background:url(/img/button_change.png) no-repeat left;
@@ -220,10 +227,10 @@ a.button_change {
 }
 
 a.button_add { 
- 	background:url(/img/button_add.png) no-repeat left;
+  background:url(/img/button_add.png) no-repeat left;
   display:block;
   overflow:hidden; 
- 	text-indent:-60px;
+  text-indent:-60px;
 }
 
 a.button_del { 

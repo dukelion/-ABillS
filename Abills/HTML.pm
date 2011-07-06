@@ -955,7 +955,7 @@ sub table {
  #Export object
  if ($attr->{EXPORT} && ! $FORM{EXPORT_CONTENT}) {
  	 my($export_name, $params)=split(/:/, $attr->{EXPORT}, 2);
- 	 $self->{EXPORT_OBJ} = $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { BUTTON => 1, ex_params => 'target=_export' });
+ 	 $self->{EXPORT_OBJ} = $self->button("$export_name", "qindex=$index$attr->{qs}&pg=$PG&sort=$SORT&desc=$DESC&EXPORT_CONTENT=$attr->{ID}&header=1$params", { ex_params => 'target=_export class=export_button' });
  	 push @header_obj, $self->{EXPORT_OBJ};
   }
 
