@@ -669,7 +669,7 @@ my $table = $html->table( { width      => '100%',
 my @rows = ();
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[10]&UID=$line->[9]", { MESSAGE => "$_DEL ID $line->[10] ?", BUTTON => 1 }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[10]&UID=$line->[9]", { MESSAGE => "$_DEL ID $line->[10] ?", CLASS => 'del' }) : ''; 
 
   @rows = ( "$line->[0]", 
    $html->button("$line->[1]", "qindex=$index&print=$line->[10]&UID=$line->[9]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new' }), 
@@ -683,7 +683,7 @@ foreach my $line (@$list) {
     "$line->[6]", 
     "$line->[7]", 
     ($PAYMENTS_METHODS{$line->[8]}) ? $PAYMENTS_METHODS{$line->[8]} : $line->[8], 
-    $html->button($_PRINT, "qindex=$index&print=$line->[10]&UID=$line->[9]". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new', BUTTON => 1 }), 
+    $html->button($_PRINT, "qindex=$index&print=$line->[10]&UID=$line->[9]". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new', CLASS => 'print' }), 
     $delete;
    }
 
@@ -1075,7 +1075,6 @@ sub docs_tax_invoice {
   	                          caption     => "$_TAX_INVOICE",
 	                            rowcolor    => $_COLORS[0],
                               rows        => [[ 
-                                                #"$_USER: ", $users_list,
                                                 "$_PERIOD: ", $html->form_select('MONTH', 
                                                            { SELECTED   => $FORM{MONTH},
  	                                                           SEL_ARRAY  => \@MONTH_ARR,

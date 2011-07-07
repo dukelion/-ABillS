@@ -10,6 +10,7 @@
 <tr><td>$_NONFIX_PERIOD:</td><td><input type='checkbox' name='NONFIX_PERIOD' value='1' %NONFIX_PERIOD%></td></tr>
 
 <tr><td>$_MONTH_ALIGNMENT:</td><td><input type=checkbox name=PERIOD_ALIGNMENT value=1 %PERIOD_ALIGNMENT%></td></tr>
+<tr><td>$_REDUCTION:</td><td><input type=checkbox name=DISCOUNT value=1 %DISCOUNT%></td></tr>
 <tr><td>$_PRIORITY:</td><td>%PRIORITY%</td></tr>
 <!-- <tr><td>$_ACCOUNT $_FEES:</td><td>%ACCOUNT_SEL%</td></tr> -->
 

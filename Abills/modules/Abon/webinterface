@@ -11,6 +11,22 @@ my $fees    = Fees->new($db, $admin, \%conf);
 my @PERIODS = ($_DAY, $_MONTH, $_QUARTER, $_SIX_MONTH, $_YEAR);
 
 
+
+#*******************************************************************
+# Delete user from module
+# abon_user_del()
+#*******************************************************************
+sub abon_user_del {
+ my ($uid, $attr) = @_;
+
+ $Abon->{UID}=$uid;
+ $Abon->del({ UID => $uid });
+
+ return 0;
+}
+
+
+
 #*******************************************************************
 # Change user variant form
 # abon_user()
@@ -64,6 +80,7 @@ sub abon_user {
           $Abon->{TP_INFO}->{CREATE_ACCOUNT}   = $line->[9]; 
           $ext_cmd                             = $line->[10]; 
           $activate_notification               = $line->[11];
+          $Abon->{TP_INFO}->{DISCOUNT}   = $line->[13];
 
 
           if ($FORM{'DATE_'.$Abon->{TP_INFO}->{TP_ID}} && $FORM{'DATE_'.$Abon->{TP_INFO}->{TP_ID}} ne '0000-00-00') {
@@ -83,6 +100,7 @@ sub abon_user {
             abon_get_month_fee($Abon);      
            }
           else {
+          	$Abon->{TP_INFO}->{MONTH_FEE} = $Abon->{TP_INFO}->{MONTH_FEE} * (100 - $users->{REDUCTION} / 100) if ($Abon->{TP_INFO}->{DISCOUNT} && $users->{REDUCTION} > 0);          	
             $fees->take($users, $Abon->{TP_INFO}->{MONTH_FEE}, { %PARAMS } ); 
             if ($fees->{errno}) {
         	    $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}");	
@@ -371,8 +389,9 @@ sub abon_tariffs {
    $Abon->{CREATE_ACCOUNT}= ($Abon->{CREATE_ACCOUNT}) ? 'checked' : ''; 
    $Abon->{ACTIVATE_NOTIFICATION} = ($Abon->{ACTIVATE_NOTIFICATION}) ? 'checked' : ''; 
    $Abon->{VAT}           = ($Abon->{VAT}) ? 'checked' : ''; 
+   $Abon->{DISCOUNT}      = ($Abon->{DISCOUNT}) ? 'checked' : ''; 
 
-  $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);
+ $html->tpl_show(_include('abon_tp', 'Abon'), $Abon);
 
  my $list = $Abon->tariff_list({ %LIST_PARAMS });
  my $table = $html->table( { width     => '100%',
@@ -389,7 +408,7 @@ foreach my $line (@$list) {
   if ($permissions{4}{1}) {
     $delete = $html->button($_DEL, "index=$index&del=$line->[7]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
    }
-
+  $table->{rowcolor} = ($FORM{ABON_ID} ==  $line->[7])? $_COLORS[0] : undef;
   $table->addrow($html->button("$line->[0]", "index=$index&ABON_ID=$line->[7]"), 
      "$line->[1]", 
      $PERIODS[$line->[2]], 
@@ -428,8 +447,8 @@ sub abon_periodic {
  $Abon->{debug}=1 if ($debug > 7);
  my $list = $Abon->periodic_list({ %LIST_PARAMS, DELETED => 0 });
 
-  my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
-  $m--;
+ my ($y, $m, $d)=split(/-/, $ADMIN_REPORT{DATE}, 3);
+ $m--;
 
  foreach my $line (@$list) {
    my %info = (
@@ -448,7 +467,8 @@ sub abon_periodic {
      EMAIL           => $line->[25],
      ALERT           => $line->[23],
      DATETIME        => "$ADMIN_REPORT{DATE} $TIME",
-     NEXT_ABON_FEES  => $line->[30]
+     NEXT_ABON_FEES  => $line->[30],
+     DISCOUNT        => $line->[31],
     );
 
    my $notification1   = $line->[20];
@@ -483,6 +503,8 @@ sub abon_periodic {
     #Get abon
     if($ADMIN_REPORT{DATE} eq $info{ABON_DATE} || $info{PERIOD} == 0) {
       if($line->[8] && ($info{DEPOSIT} + $info{CREDIT} > 0 || $line->[11] == 1) && $line->[9] == 0) {
+      	
+      	 $info{SUM} = $info{SUM} * (100 - $info{DISCOUNT}) / 100 if ($info{DISCOUNT} > 0);
          $fees->take(\%user, $info{SUM}, { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$info{UID}", 
          	                           DATE  => $ADMIN_REPORT{DATE}, 

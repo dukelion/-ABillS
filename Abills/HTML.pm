@@ -260,9 +260,6 @@ else {
       else {
 	     ($blankline, $datas) = split(/[\r]\n/, $datas, 2);
         if (grep(/^$name$/, keys(%FORM))) {
-#        	print "Content-Type: text/html\n\n";
-#        	print "/$name // $FORM{$name}<br>";
-        	
           if (defined($FORM{$name})) {
              $FORM{$name} .= ", $datas";
            }   
@@ -553,9 +550,6 @@ sub setCookie {
 	# be sent through secure connections
 	my $self = shift;
 	my($name, $value, $expiration, $path, $domain, $secure) = @_;
-	
-	#$path = dirname($ENV{SCRIPT_NAME}) if ($path eq '');
-
 
 	print "Set-Cookie: ";
 	print $name, "=$value; expires=\"", $expiration,
@@ -679,7 +673,7 @@ foreach my $ID (@s) {
        	     $active = 'active';
        	    }
 
-       	   my $link = $self->button($name, "index=$ID$ext_args", { ex_params => ($parent == 0) ? " id=". $fl->{$ID} : '' });
+       	   my $link = $self->button($name, "index=$ID$ext_args", { ex_params => ($parent == 0) ? (($fl->{$ID} ne 'null') ? " id=". $fl->{$ID} : '') : '' });
     	     if($parent == 0) {
  	        	 $menu_text .= "<tr class='$active'><td class=menu_cel_main>$prefix$link</td></tr>\n";
 	          }
@@ -825,11 +819,11 @@ for(my $parent=0; $parent<$#menu_sorted + 1; $parent++) {
     $menu_text .= "<li>";
 
     if ($sub_menu ne '') {
-      $menu_text .= '<span>'.$self->button("$val", "index=$ID$ext_args", { ex_params => "id=". $fl->{$ID}, GLOBAL_URL => "javascript:showContent('index.cgi?qindex=$ID&header=1$ext_args')", NO_LINK_FORMER => 1 }) ."</span>\n";
+      $menu_text .= '<span>'.$self->button("$val", "index=$ID$ext_args", { ex_params => (($fl->{$ID} ne 'null') ? "id=". $fl->{$ID} : ''), GLOBAL_URL => "javascript:showContent('index.cgi?qindex=$ID&header=1$ext_args')", NO_LINK_FORMER => 1 }) ."</span>\n";
   	  $menu_text .= "<ul> $sub_menu </ul>\n";
      }
     else {
-      $menu_text .= $self->button("$val", "index=$ID$ext_args", { ex_params => "id=". $fl->{$ID}, GLOBAL_URL => "javascript:showContent('index.cgi?qindex=$ID&header=1$ext_args')", NO_LINK_FORMER => 1 });
+      $menu_text .= $self->button("$val", "index=$ID$ext_args", { ex_params => (($fl->{$ID} ne 'null') ? "id=". $fl->{$ID} : ''), GLOBAL_URL => "javascript:showContent('index.cgi?qindex=$ID&header=1$ext_args')", NO_LINK_FORMER => 1 });
      }
     
     $menu_text .= "</li>\n";
@@ -918,11 +912,10 @@ sub table {
  $self->{MAX_ROWS}=$parent->{MAX_ROWS};
 
  $self->{prototype} = $proto;
- $self->{NO_PRINT} = $proto->{NO_PRINT};
+ $self->{NO_PRINT}  = $proto->{NO_PRINT};
 
  my($attr)=@_;
  $self->{rows}='';
-
  
  my $width       = (defined($attr->{width})) ? "width=\"$attr->{width}\"" : '';
  my $border      = (defined($attr->{border})) ? "border=\"$attr->{border}\"" : '';
@@ -944,10 +937,10 @@ sub table {
      }
   }
 
- $self->{table} = "<TABLE $width cellspacing=\"0\" cellpadding=\"0\" border=\"0\"$table_class>\n";
+ $self->{table} = "<TABLE $width cellspacing='0' cellpadding='0' border='0'$table_class>\n";
  #Table Caption
  if (defined($attr->{caption})) {
-   $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\" class=\"tcaption\" colspan=\"2\"><b>$attr->{caption}</b></td></TR>\n";
+   $self->{table} .= "<TR><TD bgcolor='$_COLORS[1]' align='right' class='tcaption' colspan='2'><b>$attr->{caption}</b></td></TR>\n";
   }
 
  my @header_obj = ();
@@ -960,7 +953,7 @@ sub table {
   }
 
  if (defined($attr->{VIEW})) {
-   $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[1]\" align=\"right\" class=\"tcaption\">$attr->{VIEW}</td></TR>\n";
+   $self->{table} .= "<TR><TD bgcolor='$_COLORS[1]' align='right' class='tcaption'>$attr->{VIEW}</td></TR>\n";
   }
 
  if( $attr->{header}) {
@@ -968,39 +961,39 @@ sub table {
   }
 
  if ($#header_obj > -1) {
- 	  $self->{table} .= "<tr><td valign=bottom>$self->{EXPORT_OBJ}</td><td><div id=\"rules\"><ul><li class=\"center\">";
+ 	  $self->{table} .= "<tr><td valign=bottom>$self->{EXPORT_OBJ}</td><td><div id='rules'><ul><li class='center'>";
     #foreach my $obj (@header_obj) {
     #   $self->{table} .= $obj. '&nbsp;&nbsp;&nbsp;';   
     # }
     $self->{table} .= "$attr->{header}</li></ul></div></td></tr>\n";
   } 
 
-
- $self->{table} .= "<TR><TD bgcolor=\"$_COLORS[4]\" colspan=\"2\">
-               <TABLE width=\"100%\" cellspacing=\"1\" cellpadding=\"0\" border=\"0\">\n";
+ $self->{table} .= "<TR><TD bgcolor='$_COLORS[4]' colspan='2'>
+               <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>\n";
 
  
 
  if (defined($attr->{title})) {
    $SORT = $LIST_PARAMS{SORT};
- 	 $self->{table} .= $self->table_title($SORT, $DESC, $PG, $attr->{title}, $attr->{qs});
+   $self->{table} .= $self->table_title($SORT, $DESC, $PG, $attr->{title}, $attr->{qs});
+   $self->{title_arr} = $attr->{title};
   }
  elsif(defined($attr->{title_plain})) {
    $self->{table} .= $self->table_title_plain($attr->{title_plain});
   }
 
  if (defined($attr->{cols_align})) {
-   $self->{table} .= "<COLGROUP>";
+   $self->{table} .= "<COLGROUP>\n";
    my $cols_align = $attr->{cols_align};
    my $i=0;
    foreach my $line (@$cols_align) {
      my $class = '';
      if ($line =~ /:/) {
        ($line, $class) = split(/:/, $line,  2);
-       $class = " class=\"$class\"";
+       $class = " class='$class'";
       }
-     my $width = (defined($attr->{cols_width}) && defined(@{$attr->{cols_width}}[$i])  ) ? " width=\"@{$attr->{cols_width}}[$i]\"" : '';
-     $self->{table} .= " <COL align=\"$line\"$class$width />\n";
+     my $width = (defined($attr->{cols_width}) && defined(@{$attr->{cols_width}}[$i])  ) ? " width='@{$attr->{cols_width}}[$i]'" : '';
+     $self->{table} .= " <COL align='$line'$class$width />\n";
      $i++;
     }
    $self->{table} .= "</COLGROUP>\n";
@@ -1028,9 +1021,10 @@ sub addrow {
   my $self = shift;
   my (@row) = @_;
 
+
   if ($self->{rowcolor}) {
     if ($self->{rowcolor} =~ /^#/) {
-    	$class = "' bgcolor='$self->{rowcolor}'";
+    	$class = "' bgcolor='$self->{rowcolor}";
      }
     else {
       $class = "$self->{rowcolor}";
@@ -1045,7 +1039,9 @@ sub addrow {
   $row_number++;
   $self->{rows} .= "<tr class='$class' id='row_$row_number'>";
   
-  foreach my $val (@row) {
+  for(my $num=0; $num<=$#row; $num++) {
+     my $val = $row[$num];
+     #print $self->{title_arr}." $val /<br>";
      $self->{rows} .= "<TD$extra>";
      $self->{rows} .= $val if(defined($val));
      $self->{rows} .= "</TD>";
@@ -1181,7 +1177,7 @@ sub table_title  {
          	 $op="index=$FORM{index}";
           }
 
-         $self->{table_title} .= $self->button("<img src=\"$IMG_PATH/$img\" width=\"12\" height=\"10\" border=\"0\" alt=\"Sort\" title=\"Sort\" class=\"noprint\"/>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
+         $self->{table_title} .= $self->button("<img src='$IMG_PATH/$img' width='12' height='10' border='0' alt='Sort' title='Sort' class='noprint'/>", "$op$qs&pg=$pg&sort=$i&desc=$desc");
        }
      else {
          $self->{table_title} .= '';
@@ -1218,7 +1214,7 @@ sub show  {
 
 
   if (defined($self->{pages})) {
- 	   $self->{show} =  '<br>'.$self->{pages} . $self->{show} . $self->{pages} .'<br>';
+    $self->{show} =  '<br>'.$self->{pages} . $self->{show} . $self->{pages} .'<br>';
  	 }
 
   if ((defined($self->{NO_PRINT})) && ( !defined($attr->{OUTPUT2RETURN}) )) {
@@ -1289,7 +1285,15 @@ sub button {
   	$message = " onclick=\"return confirmLink(this, '$attr->{MESSAGE}')\"";
    }
 
-  my $button = ($attr->{BUTTON}) ? "<a class='link_button' href=\"$params\"$ex_attr$message>$name</a>" : "<a href=\"$params\"$ex_attr$message>$name</a>";
+  my $class = '';
+  if ($attr->{BUTTON})  {
+    $class = "class='link_button'";
+   }
+  elsif ($attr->{CLASS}) {
+    $class = "class='$attr->{CLASS}'";
+   }
+  my $title = ($name !~ /[<#]/) ? "title='$name'" : '';
+  my $button = "<a $title $class href=\"$params\"$ex_attr$message>$name</a>";
 
   return $button;
 }
@@ -1307,11 +1311,11 @@ sub message {
  $caption .= ': '. $attr->{ID} if ($attr->{ID});
  my $img = '';
  if ($type eq 'err') {
-   $head = "<tr><th bgcolor=\"#FF0000\" class=err_message valign=center colspan=2>$caption</th></TR>\n";
+   $head = "<tr><th class=err_message colspan=2>$caption</th></TR>\n";
    $img = '<img src=/img/attention.png border=0 hspace=10 dir=ltr alt=\'Error\'>';
   }
  elsif ($type eq 'info') {
-   $head = "<tr><th bgcolor=\"$_COLORS[0]\" class=info_message valign=center colspan=2>$caption</th></TR>\n";
+   $head = "<tr><th class=info_message colspan=2>$caption</th></TR>\n";
    $img = '<img src=/img/information.png border=0 hspace=10 dir=ltr alt=\'Information\'>';
   }  
  
@@ -1329,7 +1333,7 @@ my $output = qq{
 
 <TABLE width="100%">
 $head
-<tr><TD bgcolor="$_COLORS[1]" valign=center align=center width=30>$img</TD>
+<tr><TD bgcolor="$_COLORS[1]" align=center width=30>$img</TD>
 <TD bgcolor="$_COLORS[1]">$message</TD></TR>
 </TABLE>
 
@@ -1699,7 +1703,7 @@ sub test {
  while(my($k, $v)=each %COOKIES) {
    $output .= "$k | $v\n";
   }
- print "<a href='#' title='$output' class='noprint'><font color=$_COLORS[1]>Debug</font></a>\n";
+ print "<a href='#' title='$output' class='noprint'><font color='$_COLORS[1]'>Debug</font></a>\n";
 }
 
 #**********************************************************

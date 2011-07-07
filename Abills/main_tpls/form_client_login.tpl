@@ -25,7 +25,7 @@
 <input type=hidden name=DOMAIN_ID value='$FORM{DOMAIN_ID}'>
 <input type=hidden ID=REFERRER name=REFERRER value='$FORM{REFERRER}'>
 <TABLE width='400'  cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#BBBBBB'>
-<TABLE width='100%' cellspacing='1' cellpadding='0' border='0'><TR><TD bgcolor='EFEFEF'>
+<TABLE width='100%' cellspacing='1' cellpadding='0' border='0'><TR><TD bgcolor='#EFEFEF'>
 <TABLE width='100%' cellspacing='0' cellpadding='0' border='0'>
 <TR><TH colspan=2 class=form_title>$_USER_PORTAL&nbsp;</TH></TR>
 <TR><TD colspan=2>&nbsp;</TD></TR>

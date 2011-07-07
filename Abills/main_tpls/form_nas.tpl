@@ -3,7 +3,7 @@
 <input type=hidden name='index' value='61'>
 <input type=hidden name='NAS_ID' value='%NAS_ID%'>
 <TABLE>
-<TR><th align=right bgcolor='$_COLORS[0]' colspan=2>$_NAS</th></TR>
+<TR><th class=form_title colspan=2>$_NAS</th></TR>
 <TR><TD>ID</TD><TD><b>%NAS_ID%</b> <i>%CHANGED%</i></TD></TR>
 <TR><TD>IP</TD><TD><input type=text name=NAS_IP value='%NAS_IP%'></TD></TR>
 <TR><TD>$_NAME (a-ZA-Z0-9_):</TD><TD><input type=text name=NAS_NAME value='%NAS_NAME%'></TD></TR>
@@ -21,7 +21,7 @@
 <TR><TD>$_PASSWD:</TD><TD><input type=password name=NAS_MNG_PASSWORD value='%NAS_MNG_PASSWORD%'></TD></TR>
 <TR><th colspan=2>RADIUS $_PARAMS (,)</th></TR>
 <TR><th colspan=2><textarea cols=50 rows=4 name=NAS_RAD_PAIRS>%NAS_RAD_PAIRS%</textarea></th></TR>
-<TR><td align=right bgcolor='$_COLORS[9]' class=small colspan=2></td></TR>
+<TR><td class=line colspan=2></td></TR>
 <TR><TD>$_GROUP:</TD><TD>%NAS_GROUPS_SEL%</TD></TR>
 %ADDRESS_TPL%
 

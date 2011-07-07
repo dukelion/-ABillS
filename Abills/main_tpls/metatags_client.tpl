@@ -12,7 +12,7 @@
  
  <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" />
  <script src=\"%JAVASCRIPT%\" type=\"text/javascript\" language=\"javascript\"></script>
- <script src='/calendar.js' language='JavaScript'></script>
+ <script src='/calendar.js' type=\"text/javascript\" language='JavaScript'></script>
 
 <style type=\"text/css\">
 
@@ -181,6 +181,24 @@ table tr.hover td {
   font-size: 12px;
   text-align:right;
 }
+
+.err_message {
+  background-color: #FF0000;
+  color: %_COLOR_9%;
+  height: 20;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+.info_message {
+  background-color: %_COLOR_0%;
+  color: %_COLOR_9%;
+  height: 20;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+
 
 td {
   color: %_COLOR_9%;

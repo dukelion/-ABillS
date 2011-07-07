@@ -380,7 +380,7 @@ my $table = $html->table( { width      => '100%',
                            });
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}], { BUTTON => 1 }) : ''; 
+  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}], { CLASS => 'payments' }) : ''; 
   
   my @fields_array  = ();
   for(my $i=0; $i<$Dv->{SEARCH_FIELDS_COUNT}; $i++){
@@ -396,7 +396,7 @@ foreach my $line (@$list) {
    ($line->[5] > 0) ? $html->color_mark($service_status[$line->[5]], $service_status_colors[$line->[5]]) : "$service_status[$line->[5]]",
    @fields_array, 
    $payments, 
-   $html->button("$_STATS", "index=". ((! $FORM{TP_SHOW}) ? $index + 3 : $index - 9 ) ."&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}], { BUTTON => 1 })
+   $html->button("$_STATS", "index=". ((! $FORM{TP_SHOW}) ? $index + 3 : $index - 9 ) ."&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}], { CLASS => 'stats' })
 
    );
 }
@@ -945,8 +945,8 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
-    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { BUTTON => 1 });
+    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }); 
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { CLASS => 'change' });
    }
   
   if($FORM{TP_ID} eq $line->[18]) {
@@ -964,7 +964,7 @@ foreach my $line (@$list) {
    $line->[7], 
    $line->[8], 
    $line->[9],
-   $html->button($_INTERVALS, "index=". get_function_index('form_intervals') ."&subf=73&TP_ID=$line->[18]", { BUTTON => 1 }),
+   $html->button($_INTERVALS, "index=". get_function_index('form_intervals') ."&subf=73&TP_ID=$line->[18]", { CLASS => 'interval' }),
    $change,
    $delete);
 }
@@ -1178,19 +1178,6 @@ elsif ($FORM{hangup}) {
   	                                                     UID               => $FORM{UID} });
 
   if ($ret == 0) {
-#    my $table = $html->table( { width   => '100%',
-#                                caption => $_HANGUPED,
-#                                rows    => [ 
-#                                            [ "$_NAS ID",   $nas_id          ],
-#                                            [ "$_NAS IP",   $Nas->{NAS_IP}   ],
-#                                            [ "$_PORT",     $nas_port_id     ],
-#                                            [ "SESSION_ID", $acct_session_id ],
-#                                            [ "",           $ret             ] 
-#                                           ]
-#                               } );
-#
-#
-#     $message = $table->show();
      $message = "$_NAS ID:  $nas_id\n $_NAS IP: $Nas->{NAS_IP}\n $_PORT: $nas_port_id\n SESSION_ID: $acct_session_id\n\n  $ret";
      sleep 3;
      $admin->action_add("$FORM{UID}", "$user_name", { MODULE => 'Dv', TYPE => 15 });
@@ -1215,18 +1202,6 @@ elsif($FORM{zap}) {
    }
 
   $Nas->info({NAS_ID => $nas_id });
-#
-#  my $table = $html->table( { width   => '100%',
-#                              caption => $_CLOSED,
-#                              rows    => [ 
-#                                          [ "$_NAS ID",   $nas_id],
-#                                          [ "$_NAS IP",   $Nas->{NAS_IP} ],
-#                                          [ "$_PORT",     $nas_port_id   ],
-#                                          [ "SESSION_ID", $acct_session_id ],
-#                                        ]
-#                               } );
-#  $message = $table->show();
-  
   $message = "\n$_NAS ID:   $nas_id\n $_NAS IP: $Nas->{NAS_IP} \n $_PORT: $nas_port_id\n SESSION_ID: $acct_session_id\n\n";
   
   $sessions->list({ ACCT_SESSION_ID => $acct_session_id, 
@@ -1582,7 +1557,7 @@ foreach my $nas_row (@$nas_list) {
      $html->button('P', "index=$index&NAS_ID=$FORM{NAS_ID}&ping=$line->[$#ACTIVE_FIELDS+2]$pages_qs", { TITLE => 'ping', BUTTON => 1 }),
      "$zap",
      "$hangup",
-     $html->button("", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?LOGIN=$line->[0]&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), IMG_ALT => "$_GRAPH $_USER", NEW_WINDOW_SIZE => "670:340" })
+     $html->button("$_GRAPH $_USER", "#", { CLASS => 'stats2', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?LOGIN=$line->[0]&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "670:340" })
      );
   }
 }
@@ -1773,7 +1748,7 @@ my $Billing = Billing->new($db, \%conf);
 foreach my $line (@$list) {
   if ($permissions{3}{1} && $LIST_PARAMS{UID}) {
     $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=". ($line->[12+$sessions->{SEARCH_FIELDS_COUNT}]). "+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", 
-       { MESSAGE => "$_DEL $_SESSION $_SESSION_ID ". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}])."?", BUTTON => 1 }
+       { MESSAGE => "$_DEL $_SESSION $_SESSION_ID ". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}])."?", CLASS => 'del', TEXT => $_DEL }
       );
    }
   my @rows=();
@@ -3567,8 +3542,6 @@ elsif($FORM{del}) {
 
    $tariffs->{PARAMS}   .= form_period($period, { ABON_DATE => $Dv->{ABON_DATE}, TP => $tariffs }) if ($conf{DV_USER_CHG_TP_SHEDULE} && ! $conf{DV_USER_CHG_TP_NPERIOD});	
    $tariffs->{ACTION}    = $html->form_input('set', $_CHANGE, { TYPE => 'submit', OUTPUT2RETURN => 1  } );
-#   $tariffs->{ACTION}    = 'set';
-#   $tariffs->{LNG_ACTION}= $_CHANGE;
   }
 
    $tariffs->{UID}=$attr->{USER}->{UID};
@@ -6678,7 +6651,7 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
                           });
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE =>  "$_DEL [$line->[13]]?", BUTTON => 1 }) : '-'; 
+  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE =>  "$_DEL [$line->[13]]?", CLASS => 'del', TEXT => $_DEL }) : '-'; 
 
 
   $table->addrow($html->b($line->[0]), $line->[1], $line->[2], 
@@ -6768,8 +6741,8 @@ foreach my $line (@$list) {
     "$line->[2]", 
     "$line->[3]",  
     "$line->[4]",  
-    $html->button("$_CHANGE", "index=$index&chg=$line->[0]", { BUTTON => 1 } ),
-    $html->button("$_DEL", "index=$index&del=$line->[0]",  { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
+    $html->button("$_CHANGE", "index=$index&chg=$line->[0]", { CLASS => 'change' } ),
+    $html->button("$_DEL", "index=$index&del=$line->[0]",  { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' })
    );
 }
 print $table->show();

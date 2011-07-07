@@ -56,7 +56,7 @@ sub del {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "DELETE from dv_main WHERE uid='$self->{UID}';", 'do');
+  $self->query($db, "DELETE from abon_user_list WHERE uid='$self->{UID}';", 'do');
 
   $admin->action_add($self->{UID}, "$self->{UID}", { TYPE => 10 });
   return $self->{result};
@@ -97,7 +97,8 @@ sub tariff_info {
    alert_account,
    ext_cmd,
    activate_notification,
-   vat
+   vat,
+   discount
    
      FROM abon_tariffs
    $WHERE;");
@@ -126,10 +127,9 @@ sub tariff_info {
    $self->{ALERT_ACCOUNT},
    $self->{EXT_CMD},
    $self->{ACTIVATE_NOTIFICATION},
-   $self->{VAT}
+   $self->{VAT},
+   $self->{DISCOUNT}
   )= @{ $self->{list}->[0] };
-  
-
   
   return $self;
 }
@@ -143,10 +143,10 @@ sub defaults {
   my $self = shift;
 
   %DATA = (
-   ID     => 0, 
-   PERIOD => 0, 
-   SUM    => '0.00',
-   
+   ID         => 0, 
+   PERIOD     => 0, 
+   SUM        => '0.00',
+   DISCOUNT  => 1
   );
 
  
@@ -172,7 +172,7 @@ sub tariff_add {
   notification2,
   notification_account,
   alert_account,
-  ext_cmd, activate_notification, vat)
+  ext_cmd, activate_notification, vat, discount)
         VALUES ('$DATA{ID}', '$DATA{NAME}', '$DATA{PERIOD}', '$DATA{SUM}', '$DATA{PAYMENT_TYPE}', '$DATA{PERIOD_ALIGNMENT}',
         '$DATA{NONFIX_PERIOD}', '$DATA{EXT_BILL_ACCOUNT}',
         '$DATA{PRIORITY}', '$DATA{CREATE_ACCOUNT}',
@@ -181,7 +181,8 @@ sub tariff_add {
         '$DATA{NOTIFICATION2}', 
         '$DATA{NOTIFICATION_ACCOUNT}', 
         '$DATA{ALERT_ACCOUNT}',
-        '$DATA{EXT_CMD}', '$DATA{ACTIVATE_NOTIFICATION}', '$DATA{VAT}');", 'do');
+        '$DATA{EXT_CMD}', '$DATA{ACTIVATE_NOTIFICATION}', '$DATA{VAT}',
+        '$DATA{DISCOUNT}');", 'do');
 
   return $self if ($self->{errno});
   $admin->system_action_add("ABON_ID:$DATA{ID}", { TYPE => 1 });    
@@ -217,7 +218,8 @@ sub tariff_change {
               EXT_CMD          => 'ext_cmd',
               ACTIVATE_NOTIFICATION => 'activate_notification',
               VAT              => 'vat',
-              NONFIX_PERIOD    => 'nonfix_period'
+              NONFIX_PERIOD    => 'nonfix_period',
+              DISCOUNT        => 'discount'
              );
 
 
@@ -230,6 +232,7 @@ sub tariff_change {
   $attr->{ACTIVATE_NOTIFICATION}= 0 if (! $attr->{ACTIVATE_NOTIFICATION});
   $attr->{VAT}             = 0 if (! $attr->{VAT});
   $attr->{NONFIX_PERIOD}   = 0 if (! $attr->{NONFIX_PERIOD});
+  $attr->{DISCOUNT}       = 0 if (! $attr->{DISCOUNT});
 
   $self->changes($admin,  { CHANGE_PARAM => 'ABON_ID',
                    TABLE        => 'abon_tariffs',
@@ -238,6 +241,7 @@ sub tariff_change {
                    DATA         => $attr,
                    EXT_CHANGE_INFO  => "ABON_ID:$attr->{ABON_ID}"
                   } );
+
   $self->tariff_info($attr->{ABON_ID});
   return $self->{result};
 }
@@ -286,7 +290,8 @@ sub tariff_list {
      create_account,
      ext_cmd,
      activate_notification,
-     vat
+     vat,
+     discount
      FROM abon_tariffs
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
      $WHERE
@@ -670,8 +675,8 @@ sub periodic_list {
           )
         )
        )
-      ) AS nextfees_date 
-   
+      ) AS nextfees_date,
+    if(at.discount=1, u.reduction, 0)
   FROM (abon_tariffs at, abon_user_list ul, users u)
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN companies c ON (u.company_id=c.id)

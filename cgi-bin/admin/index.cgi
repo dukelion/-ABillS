@@ -443,7 +443,7 @@ if ($admin->{WEB_OPTIONS}{qm} && ! $FORM{xml}) {
   $admin->{QUICK_MENU} .= "</tr></table>\n</td></tr>\n";
 }
 
-$html->tpl_show(templates('header'), $admin);
+print $html->tpl_show(templates('header'), $admin, { OUTPUT2RETURN => 1 });
 print $admin->{QUICK_MENU} if ($admin->{QUICK_MENU});
 
 print "<tr  class='noprint'><td valign='top' width='18%' bgcolor='$_COLORS[2]' rowspan='2' class='MENU_BACK'>
@@ -504,7 +504,7 @@ if ($begin_time > 0) {
 }
 
 print "</td></tr>";
-$html->tpl_show(templates('footer'), $admin);
+print $html->tpl_show(templates('footer'), $admin, { OUTPUT2RETURN => 1 });
 print "</table>\n";
 $html->test();
 
@@ -869,8 +869,8 @@ else {
       $line->[2], 
       $html->button($line->[3], "index=13&COMPANY_ID=$line->[5]&subf=11"), 
       "$status[$line->[4]]",
-      $html->button($_INFO, "index=13&COMPANY_ID=$line->[5]", { BUTTON => 1 }), 
-      (defined($permissions{0}{5})) ? $html->button($_DEL, "index=13&del=$line->[5]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }) : ''
+      $html->button($_INFO, "index=13&COMPANY_ID=$line->[5]", { CLASS => 'change' }), 
+      (defined($permissions{0}{5})) ? $html->button($_DEL, "index=13&del=$line->[5]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }) : ''
       );
    }
   print $table->show();
@@ -1263,13 +1263,13 @@ my $table = $html->table( { width      => '100%',
                        } );
 
 foreach my $line (@$list) {
-  my $delete = (defined($permissions{0}{5})) ?  $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 }) : ''; 
+  my $delete = (defined($permissions{0}{5})) ?  $html->button($_DEL, "index=27$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' }) : ''; 
 
   $table->addrow($html->b($line->[0]), 
    "$line->[1]", 
    "$line->[2]", 
    $html->button($line->[3], "index=27&GID=$line->[0]&subf=15"), 
-   $html->button($_INFO, "index=27&GID=$line->[0]", { BUTTON => 1 }),
+   $html->button($_INFO, "index=27&GID=$line->[0]", { CLASS => 'change' }),
    $delete);
 }
 print $table->show();
@@ -2027,8 +2027,8 @@ function CheckAllINBOX() {
 
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { BUTTON => 1 }) : ''; 
-  my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { BUTTON => 1 }) : '';
+  my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { CLASS => 'payments' }) : ''; 
+  my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { CLASS => 'fees' }) : '';
 
   my @fields_array  = ();
   for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++){
@@ -2694,7 +2694,7 @@ if(defined($attr->{TP})) {
   my $color="AAA000";
   foreach my $line (@$list) {
 
-    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 }); 
+    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del', TEXT => $_DEL }); 
     $color = sprintf("%06x", hex('0x'. $color) + 7000);
      
     #day, $hour|$end = color
@@ -2716,8 +2716,8 @@ if(defined($attr->{TP})) {
                   $table->td($line->[2]), 
                   $table->td($line->[3]), 
                   $table->td($line->[4]), 
-                  $table->td($html->button($_TRAFFIC, "index=$index$pages_qs&tt=$line->[0]", { BUTTON => 1 })),
-                  $table->td($html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]", { BUTTON => 1 })),
+                  $table->td($html->button($_TRAFFIC, "index=$index$pages_qs&tt=$line->[0]", { CLASS => 'traffic' })),
+                  $table->td($html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]", { CLASS => 'change' })),
                   $table->td($delete),
                   $table->td("&nbsp;", { bgcolor => '#'.$color, rowspan => ($line->[5] > 0) ? 2 : 1 })
       );
@@ -2742,8 +2742,8 @@ if(defined($attr->{TP})) {
            $line->[5], 
            $line->[6], 
            convert($line->[7], { text2html => 1  }),
-           $html->button($_CHANGE, "index=$index$pages_qs&tt=$TI_ID&chg=$line->[0]", { BUTTON => 1 }),
-           $html->button($_DEL, "index=$index$pages_qs&tt=$TI_ID&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1  } ));
+           $html->button($_CHANGE, "index=$index$pages_qs&tt=$TI_ID&chg=$line->[0]", { CLASS => 'change', TEXT => $_CHANGE }),
+           $html->button($_DEL, "index=$index$pages_qs&tt=$TI_ID&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del'  } ));
         }
 
        my $table_traf = $table2->show();
@@ -3662,7 +3662,7 @@ $table = $html->table( { width      => '100%',
 
 my $list = $nas->list({ %FORM, %LIST_PARAMS, DOMAIN_ID => $admin->{DOMAIN_ID} });
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=61&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?", BUTTON => 1  }); 
+  my $delete = $html->button($_DEL, "index=61&del=$line->[0]", { MESSAGE => "$_DEL NAS '$line->[1]'?", CLASS => 'del', TEXT => $_DEL  }); 
   
   $table->{rowcolor} = ($FORM{NAS_ID} && $FORM{NAS_ID} == $line->[0]) ? 'row_active' : undef ;
   
@@ -3673,7 +3673,7 @@ foreach my $line (@$list) {
     $status[$line->[6]],
     $line->[7],
     $html->button("IP POOLs", "index=62&NAS_ID=$line->[0]", { BUTTON => 1 }),
-    $html->button("$_CHANGE", "index=61&NAS_ID=$line->[0]", { BUTTON => 1 }),
+    $html->button("$_CHANGE", "index=61&NAS_ID=$line->[0]", { CLASS => 'change', TEXT => $_CHANGE  }),
     $delete);
 }
 print $table->show();
@@ -3765,14 +3765,14 @@ my $table = $html->table( { width      => '100%',
                        } );
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 }); 
+  my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' }); 
 
   $table->addrow($html->b($line->[0]), 
    "$line->[1]", 
    "$line->[2]", 
    $html->color_mark($status[$line->[3]], $state_colors[$line->[3]]),
    $html->button($_NAS, "index=". ($index - 3) ."&GID=$line->[0]", { BUTTON => 1 }), 
-   $html->button($_CHANGE, "index=$index&chg=$line->[0]", { BUTTON => 1 }),
+   $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }),
    $delete);
 }
 print $table->show();
@@ -5124,14 +5124,14 @@ my $table = $html->table( { width      => '100%',
                             cols_align => ['right', 'left', 'right', 'right', 'left', 'left', 'right', 'right', 'left', 'left', 'center:noprint'],
                             qs         => $pages_qs,
                             pages      => $payments->{TOTAL},
-                            EXPORT     => $_EXPORT .' XML:&xml=1',
+                            EXPORT     => ' XML:&xml=1',
                             ID         => 'PAYMENTS'
                            } );
 
 
 my $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=2&del=$line->[0]&UID=". $line->[11] ."$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=2&del=$line->[0]&UID=". $line->[11] ."$pages_qs", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' }) : ''; 
 
   $table->addrow($html->b($line->[0]), 
   $html->button($line->[1], "index=15&UID=$line->[11]"), 
@@ -5360,7 +5360,7 @@ if ($attr->{USER}) {
      foreach my $line (@$list) {
      	 my ($sum, undef) = split(/:/, $line->[7]);
      	   my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=85&del=$line->[14]", 
-           { MESSAGE => "$_DEL ID: $line->[13]?", BUTTON => 1 }) : ''; 
+           { MESSAGE => "$_DEL ID: $line->[13]?", CLASS => 'del' }) : ''; 
 
      	 $table2->addrow($line->[13], "$line->[3]-$line->[2]-$line->[1]", sprintf('%.2f', $sum), $delete);
       }
@@ -5440,7 +5440,7 @@ my $table = $html->table( { width      => '100%',
 $pages_qs .= "&subf=2" if (! $FORM{subf});
 foreach my $line (@$list) {
   my $delete = ($permissions{2}{2}) ?  $html->button($_DEL, "index=3&del=$line->[0]&UID=".$line->[10], 
-   { MESSAGE => "$_DEL ID: $line->[0]?", BUTTON => 1 }) : ''; 
+   { MESSAGE => "$_DEL ID: $line->[0]?", CLASS => 'del' }) : ''; 
 
   $table->addrow($html->b($line->[0]), 
   $html->button($line->[1], "index=15&UID=".$line->[10]), 

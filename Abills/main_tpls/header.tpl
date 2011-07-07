@@ -8,6 +8,5 @@
 </table>
 
 </div>
-<tr height=1 class=small><td class=small bgcolor=#000000 colspan=2> </td></tr>
-</td></tr>
+<tr><td class=line colspan=2> </td></tr>
 %TECHWORK%

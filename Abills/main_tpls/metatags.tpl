@@ -3,16 +3,16 @@
 <html>
 <head>
  %REFRESH%
- <META HTTP-EQUIV=\"Cache-Control\" content=\"no-cache,no-store,must-revalidate,private,max-age=0\"/>
- <META HTTP-EQUIV=\"Expires\" CONTENT=\"-1\"/>
- <META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\"/>
- <META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=%CHARSET%\"/>
- <META name=\"Author\" content=\"~AsmodeuS~\"/>
- <META HTTP-EQUIV=\"content-language\" content=\"%CONTENT_LANGUAGE%\"/>
+ <META HTTP-EQUIV=\"Cache-Control\" content=\"no-cache,no-store,must-revalidate,private,max-age=0\" >
+ <META HTTP-EQUIV=\"Expires\" CONTENT=\"-1\">
+ <META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">
+ <META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=%CHARSET%\">
+ <META name=\"Author\" content=\"~AsmodeuS~\">
+ <META HTTP-EQUIV=\"content-language\" content=\"%CONTENT_LANGUAGE%\">
 
- <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" />
+ <link rel=\"stylesheet\" media=\"print\" type=\"text/css\" href=\"%PRINTCSS%\" >
  <script src='%JAVASCRIPT%' type='text/javascript' language='javascript'></script>
- <script src='/calendar.js' language='JavaScript'></script>
+ <script src='/calendar.js' type='text/javascript' language='javascript'></script>
 
 <style type=\"text/css\">
 
@@ -28,13 +28,20 @@ body {
 A:hover {text-decoration: none; color: %_COLOR_9%;}
 
 th.small {
-  color: %_COLOR_9%;
-  font-size: 10px;
+  color: %_COLOR_0%;
+  font-size: 12px;
   height: 10;
 }
 
 td.small {
   color: %_COLOR_9%;
+  font-size: 12px;
+  background-color: %_COLOR_0%;
+  height: 10;
+}
+
+td.line {
+  background-color: %_COLOR_9%;
   height: 1;
 }
 
@@ -187,6 +194,22 @@ table tr.even th,
   text-align:right;
 }
 
+.err_message {
+  background-color: #FF0000;
+  color: %_COLOR_9%;
+  height: 20;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+.info_message {
+  background-color: %_COLOR_0%;
+  color: %_COLOR_9%;
+  height: 20;
+  font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
 td {
   color: %_COLOR_9%;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
@@ -205,18 +228,18 @@ form {
   background-color: %_COLOR_2%;
   color: %_COLOR_9%;
   font-size: 12px;
+  text-align: center;
 }
 
 .export_button {
-  text-decoration: none;
-  font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
-  color: %_COLOR_9%;
-  font-size: 10px;
+	text-decoration: none;
+	font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
+	color: %_COLOR_9%;
+	font-size: 10px;
 }
 
-a.button_change {
-	color: %_COLOR_9%;
- 	background:url(/img/button_change.png) no-repeat left;
+a.change {
+ 	background:url(/img/button_change.png) no-repeat center;
  	padding-left:22px;
 	padding-top:5px;
 	margin:0;
@@ -226,16 +249,15 @@ a.button_change {
  	text-indent:-9000px;
 }
 
-a.button_add { 
-  background:url(/img/button_add.png) no-repeat left;
-  display:block;
-  overflow:hidden; 
-  text-indent:-60px;
+a.add { 
+	background:url(/img/button_add.png) no-repeat center;
+	display:block;
+	overflow:hidden; 
+	text-indent:-60px;
 }
 
-a.button_del { 
-	color: %_COLOR_9%;
- 	background:url(/img/button_del.png) no-repeat left;
+a.del { 
+ 	background:url(/img/button_del.png) no-repeat center;
  	padding-left:22px;
 	padding-top:5px;
 	margin:0;
@@ -243,6 +265,114 @@ a.button_del {
 	text-decoration:none;
 	overflow:hidden; 
  	text-indent:-9000px;
+}
+
+a.del {
+        background:url(/img/button_del.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+a.payments {
+        background:url(/img/button_payments.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        font-size:0px;
+}
+
+a.fees { 
+        background:url(/img/button_fees.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+a.print {
+        background:url(/img/button_print.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+a.stats {
+        background:url(/img/button_stats.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+
+a.stats2 {
+        background:url(/img/chart_16.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+a.traffic {
+        background:url(/img/button_traffic.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+a.interval {
+        background:url(/img/button_interval.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+a.show {
+        background:url(/img/button_show.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
 }
 
 
