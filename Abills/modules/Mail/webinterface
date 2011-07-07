@@ -176,14 +176,14 @@ sub mail_spam_lists {
                           } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL '$line->[0]' ?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL '$line->[0]' ?", CLASS => 'del' }); 
 
     $table->addrow($line->[0], 
      "$line->[1]", 
      "$line->[2]",
      "$line->[3]", 
      "$line->[4]", 
-     $html->button($_CHANGE, "index=$index&chg=$line->[5]"),
+     $html->button($_CHANGE, "index=$index&chg=$line->[5]", { CLASS => 'change' }),
      $delete);
    }
   print $table->show();
@@ -254,13 +254,13 @@ sub mail_spamassassin_conf {
 
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \"$line->[0]\"?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL \"$line->[0]\"?", CLASS => 'del' }); 
     $table->addrow("$line->[0]", 
      "$line->[1]", 
      "$line->[2]",
      "$line->[3]", 
      "$line->[4]", 
-     $html->button($_CHANGE, "index=$index&chg=$line->[5]"),
+     $html->button($_CHANGE, "index=$index&chg=$line->[5]", { CLASS => 'change' }),
      $delete);
    }
   print $table->show();
@@ -524,7 +524,7 @@ elsif ($Mail->{TOTAL} == 1) {
   foreach my $line (@$list) {
     
     if (! $user->{UID} || $conf{MAIL_USER_FULL_CONTROL}) {
-      $delete = $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE => "$_DEL '$line->[0]\@$line->[1] '?" }); 
+      $delete = $html->button($_DEL, "index=$index&del=$line->[14]&UID=$line->[13]", { MESSAGE => "$_DEL '$line->[0]\@$line->[1] '?", CLASS => 'del' }); 
      }
 
     $table->addrow($html->button($line->[0], "index=$index&MBOX_ID=$line->[14]&UID=$line->[13]"), 
@@ -536,7 +536,7 @@ elsif ($Mail->{TOTAL} == 1) {
       "$status[$line->[6]]", 
       "$status[$line->[7]]", 
       "$status[$line->[8]]", 
-      $html->button($_CHANGE, "index=$index&MBOX_ID=$line->[14]&UID=$line->[13]"),
+      $html->button($_CHANGE, "index=$index&MBOX_ID=$line->[14]&UID=$line->[13]", { CLASS => 'change' }),
       $delete);
    }
   print $table->show();
@@ -729,14 +729,14 @@ sub mail_domains {
                            } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[8]", { MESSAGE => "$_DEL '$line->[0]'?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[8]", { MESSAGE => "$_DEL '$line->[0]'?", CLASS => 'del' }); 
     $table->addrow($html->b($line->[0]), "$line->[1]",
      "$status[$line->[2]]", 
      "$bool_vals[$line->[3]]", 
      "$line->[4]",  
      "$line->[5]", 
      "$line->[6]", 
-     $html->button($_CHANGE, "index=$index&MAIL_DOMAIN_ID=$line->[8]"),
+     $html->button($_CHANGE, "index=$index&MAIL_DOMAIN_ID=$line->[8]", { CLASS => 'change' }),
      $delete);
    }
   print $table->show();
@@ -803,10 +803,10 @@ sub mail_aliases {
                                   } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[6]", { MESSAGE => "$_DEL '$line->[0]'?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[6]", { MESSAGE => "$_DEL '$line->[0]'?", CLASS => 'del' }); 
     $table->addrow("$line->[0]", "$line->[1]", "$line->[2]",
      "$status[$line->[3]]", "$line->[4]", "$line->[5]",  
-     $html->button($_CHANGE, "index=$index&MAIL_ALIAS_ID=$line->[6]"),
+     $html->button($_CHANGE, "index=$index&MAIL_ALIAS_ID=$line->[6]", { CLASS => 'change' }),
      $delete);
    }
   print $table->show();
@@ -870,10 +870,10 @@ sub mail_transport {
                           } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL '$line->[0]'?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL '$line->[0]'?", CLASS => 'del' }); 
     $table->addrow("$line->[0]", "$line->[1]", "$line->[2]",
      "$line->[3]", 
-     $html->button($_CHANGE, "index=$index&MAIL_TRANSPORT_ID=$line->[4]"),
+     $html->button($_CHANGE, "index=$index&MAIL_TRANSPORT_ID=$line->[4]", { CLASS => 'change' }),
      $delete);
    }
   print $table->show();
@@ -938,10 +938,10 @@ sub mail_access {
                                   } );
 
   foreach my $line (@$list) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL '$line->[0]'?" }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[5]", { MESSAGE => "$_DEL '$line->[0]'?", CLASS => 'del' }); 
     $table->addrow("$line->[0]", "$line->[1]", "$line->[2]",
      "$line->[3]", 
-     $html->button($_CHANGE, "index=$index&MAIL_ACCESS_ID=$line->[5]"),
+     $html->button($_CHANGE, "index=$index&MAIL_ACCESS_ID=$line->[5]", { CLASS => 'change' }),
      $delete);
    }
   print $table->show();

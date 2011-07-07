@@ -220,7 +220,7 @@ form {
   font-size: 12px;
 }
 
-a.button_change {
+a.change {
 	color: %_COLOR_9%;
  	background:url(/img/button_change.png) no-repeat left;
  	padding-left:22px;
@@ -232,15 +232,14 @@ a.button_change {
  	text-indent:-9000px;
 }
 
-a.button_add { 
- 	background:url(/img/button_add.png) no-repeat left;
-  display:block;
-  overflow:hidden; 
- 	text-indent:-60px;
+a.add { 
+	background:url(/img/button_add.png) no-repeat left;
+	display:block;
+	overflow:hidden; 
+	text-indent:-60px;
 }
 
-a.button_del { 
-	color: %_COLOR_9%;
+a.del { 
  	background:url(/img/button_del.png) no-repeat left;
  	padding-left:22px;
 	padding-top:5px;
@@ -249,6 +248,18 @@ a.button_del {
 	text-decoration:none;
 	overflow:hidden; 
  	text-indent:-9000px;
+}
+
+a.show {
+        background:url(/img/button_show.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
 }
 
 #rules {

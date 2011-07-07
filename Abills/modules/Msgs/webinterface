@@ -1294,7 +1294,7 @@ foreach my $line (@$list) {
     $line->[3],
     $line->[4],
     ($line->[5] == 6) ? "<blink>$msg_status_all[$line->[5]]</blink>" :  $html->color_mark($msg_status_all[$line->[5]], $msgs_status_colors[$line->[5]]),
-    $html->button($_SHOW, "index=$index&ID=$line->[0]&sid=$sid", { CLASS => $_SHOW })
+    $html->button($_SHOW, "index=$index&ID=$line->[0]&sid=$sid", { CLASS => 'show' })
   );
 }
 
@@ -1571,8 +1571,7 @@ foreach my $line (@$list) {
 }
  
     print $table->show();
- 
-    msgs_dispatch_admins();
+     msgs_dispatch_admins();
    }
   
   
