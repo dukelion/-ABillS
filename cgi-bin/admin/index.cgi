@@ -2481,7 +2481,7 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 }) : ''; 
+  my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' }) : ''; 
 
   $table->addrow($html->b($line->[0]),
     $line->[1],
@@ -2591,7 +2591,7 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 }) : ''; 
+  my $delete = ($permissions{4}{3}) ? $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' }) : ''; 
 
   $table->addrow($html->b($line->[0]),
     $html->button($line->[1], "index=15&UID=$line->[8]"), 
@@ -2694,7 +2694,7 @@ if(defined($attr->{TP})) {
   my $color="AAA000";
   foreach my $line (@$list) {
 
-    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del', TEXT => $_DEL }); 
+    my $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del'}); 
     $color = sprintf("%06x", hex('0x'. $color) + 7000);
      
     #day, $hour|$end = color
@@ -2864,7 +2864,7 @@ else {
 # form_hollidays
 #**********************************************************
 sub form_holidays {
-	my $holidays = Tariffs->new($db, \%conf);
+	my $holidays = Tariffs->new($db, \%conf, $admin);
 	
   my %holiday = ();
 
@@ -2903,7 +2903,7 @@ my ($delete);
 foreach my $line (@$list) {
 	my ($m, $d)=split(/-/, $line->[0]);
 	$m--;
-  $delete = $html->button($_DEL, "index=75&del=$line->[0]", { MESSAGE => "$_DEL ?" }); 
+  $delete = $html->button($_DEL, "index=75&del=$line->[0]", { MESSAGE => "$_DEL ?", CLASS => 'del' }); 
   $table->addrow("$d $MONTHES[$m]", $line->[1], $delete);
 }
 
@@ -3128,8 +3128,8 @@ foreach my $line (@$list) {
    $html->button($_PERMISSION, "index=$index&subf=52&AID=$line->[0]", { BUTTON => 1 }),
    $html->button($_LOG, "index=$index&subf=51&AID=$line->[0]", { BUTTON => 1 }),
    $html->button($_PASSWD, "index=$index&subf=54&AID=$line->[0]", { BUTTON => 1 }),
-   $html->button($_INFO, "index=$index&AID=$line->[0]", { BUTTON => 1 }), 
-   $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL ?",  BUTTON => 1 } ));
+   $html->button($_INFO, "index=$index&AID=$line->[0]", { CLASS => 'change' }), 
+   $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL ?",  CLASS => 'del' } ));
 }
 print $table->show();
 
@@ -3892,8 +3892,8 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = $html->button($_DEL, "index=62$pages_qs&del=$line->[10]", { MESSAGE => "$_DEL POOL $line->[10]?", BUTTON => 1 }); 
-  my $change = $html->button($_CHANGE, "index=62$pages_qs&chg=$line->[10]", { BUTTON => 1 }); 
+  my $delete = $html->button($_DEL, "index=62$pages_qs&del=$line->[10]", { MESSAGE => "$_DEL POOL $line->[10]?", CLASS => 'del' }); 
+  my $change = $html->button($_CHANGE, "index=62$pages_qs&chg=$line->[10]", { CLASS => 'change' }); 
   $table->{rowcolor} = ($line->[10] eq $FORM{chg}) ? 'row_active' : undef;
 
   $table->addrow(
@@ -5225,8 +5225,8 @@ foreach my $line (@$list) {
      $line->[1], 
      $line->[2], 
      $line->[3], 
-     $html->button($_CHANGE, "index=65&chg=$line->[4]", { BUTTON => 1 }), 
-     $html->button($_DEL, "index=65&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
+     $html->button($_CHANGE, "index=65&chg=$line->[4]", { CLASS => 'change' }), 
+     $html->button($_DEL, "index=65&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' } ));
 }
 
 print $table->show();
@@ -6545,7 +6545,7 @@ sub form_dictionary {
         else {
     	    undef($table->{rowcolor});
          }
-        $table->addrow("$file", $html->button($_CHANGE, "index=$index&SUB_DICT=$file"));
+        $table->addrow("$file", $html->button($_CHANGE, "index=$index&SUB_DICT=$file", { CLASS => 'change' }));
       }
     }
   }
@@ -6783,7 +6783,7 @@ if(defined($FORM{del}) && $FORM{is_js_confirmed} && $permissions{0}{5} ) {
       $line->[3], 
       $line->[4], 
       $html->button($_INFO, "index=$index&LOGIN=$line->[0]", { BUTTON => 1 }), 
-      (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }) : ''
+      (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }) : ''
       );
    }
   print $table->show();
@@ -6859,8 +6859,8 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
-    $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]", { BUTTON => 1 });
+    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' });
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
@@ -6986,7 +6986,7 @@ sub form_info_fields {
       ($field_type == 2) ? $html->button($fields_types[$field_type], "index=". ($index + 1) ."&LIST_TABLE=$field_name".'_list') : $fields_types[$field_type],  
       $position,
       $bool_vals[$user_portal],
-      (defined($permissions{4}{3})) ? $html->button($_DEL, "index=$index&del=ifu&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name?", BUTTON => 1 }) : ''      
+      (defined($permissions{4}{3})) ? $html->button($_DEL, "index=$index&del=ifu&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name?", CLASS => 'del' }) : ''      
       );
    }
 
@@ -7030,7 +7030,7 @@ sub form_info_fields {
       ($field_type == 2) ? $html->button($fields_types[$field_type], "index=". ($index + 1) ."&LIST_TABLE=$field_name".'_list') : $fields_types[$field_type], 
       $position,
       $bool_vals[$user_portal],
-      (defined($permissions{4}{3})) ? $html->button($_DEL, "index=$index&del=ifc&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name ?", BUTTON => 1 }) : '',
+      (defined($permissions{4}{3})) ? $html->button($_DEL, "index=$index&del=ifc&FIELD_ID=$field_name", { MESSAGE => "$_DEL $field_name ?", CLASS => 'del' }) : '',
       
       );
    }
@@ -7277,8 +7277,8 @@ foreach my $line (@$list) {
      $line->[4],
      $html->button($line->[5], "index=". ($index+1). "&DISTRICT_ID=$line->[0]" ), 
      $map,
-     $html->button($_CHANGE, "index=$index&chg=$line->[0]", { BUTTON => 1 }), 
-     $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
+     $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }), 
+     $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' } ));
 }
 
 print $table->show();	
@@ -7370,8 +7370,8 @@ foreach my $line (@$list) {
      $line->[2], 
      $html->button($line->[3], "index=$index&BUILDS=$line->[0]"), 
      $html->button($line->[4], "&search=1&index=". get_function_index('form_search') ."&STREET_ID=$line->[0]" ), 
-     $html->button($_CHANGE, "index=$index&chg=$line->[0]", { BUTTON => 1 }), 
-     $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
+     $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }), 
+     $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' } ));
 }
 print $table->show();	
 
@@ -7476,8 +7476,8 @@ foreach my $line (@$list) {
      $html->button($line->[5], "&search=1&index=". get_function_index('form_search') ."&LOCATION_ID=$line->[8]" ),  
      $line->[6].' %',
      $line->[7],
-     $html->button($_CHANGE, "index=$index&chg=$line->[8]&BUILDS=$FORM{BUILDS}", { BUTTON => 1 }), 
-     $html->button($_DEL, "index=$index&del=$line->[8]&BUILDS=$FORM{BUILDS}", { MESSAGE => "$_DEL [$line->[0]]?", BUTTON => 1 } ));
+     $html->button($_CHANGE, "index=$index&chg=$line->[8]&BUILDS=$FORM{BUILDS}", { CLASS => 'change' }), 
+     $html->button($_DEL, "index=$index&del=$line->[8]&BUILDS=$FORM{BUILDS}", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del' } ));
 }
 print $table->show();	
 $table = $html->table( { width      => '640',

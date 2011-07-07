@@ -144,7 +144,7 @@ foreach my $admin_id (sort keys %A_PRIVILEGES) {
                   $table->td($msgs), 
                   $table->td($bool_vals[$mail_send]), 
                   $table->td($deligation_level),
-                  $table->td($html->button("$_CHANGE", "index=$index&chg=$aid&AID=$aid"), { rowspan => ($rows > 0) ? $rows+1 : 1, BUTTON => 1 })
+                  $table->td($html->button("$_CHANGE", "index=$index&chg=$aid&AID=$aid"), { rowspan => ($rows > 0) ? $rows+1 : 1, CLASS => 'change' })
                 );
 
   if ($rows > 0) {
@@ -887,8 +887,8 @@ foreach my $line (@$list) {
    $line->[7],      
    $priority,
    $line->[9],
-   $html->button("$_SHOW", "index=$index&chg=$line->[0]&UID=$line->[11]", { BUTTON => 1 }),
-   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?", BUTTON => 1 }): '') 
+   $html->button("$_SHOW", "index=$index&chg=$line->[0]&UID=$line->[11]", { CLASS => 'show' }),
+   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?", CLASS => 'del' }): '') 
   );
 }
 
@@ -1294,7 +1294,7 @@ foreach my $line (@$list) {
     $line->[3],
     $line->[4],
     ($line->[5] == 6) ? "<blink>$msg_status_all[$line->[5]]</blink>" :  $html->color_mark($msg_status_all[$line->[5]], $msgs_status_colors[$line->[5]]),
-    $html->button($_SHOW, "index=$index&ID=$line->[0]&sid=$sid", { BUTTON => 1 })
+    $html->button($_SHOW, "index=$index&ID=$line->[0]&sid=$sid", { CLASS => $_SHOW })
   );
 }
 
@@ -1379,8 +1379,8 @@ foreach my $line (@$list) {
     $line->[1], 
     $bool_vals[$line->[2]], 
     $html->button($line->[3], ""),
-    $html->button("$_CHANGE", "index=$index&chg=$line->[0]", { BUTTON => 1 }),
-    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
+    $html->button("$_CHANGE", "index=$index&chg=$line->[0]", { CLASS => 'change' }),
+    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' })
    );
 }
 
@@ -1565,8 +1565,8 @@ foreach my $line (@$list) {
    $line->[7],      
    $priority,
    $line->[9],
-   $html->button("$_SHOW", "index=". ($index-2) . "&chg=$line->[0]&UID=$line->[11]&DIAPTACH_ID="),
-   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&msg_del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?" }): '') 
+   $html->button("$_SHOW", "index=". ($index-2) . "&chg=$line->[0]&UID=$line->[11]&DIAPTACH_ID=", { CLASS => 'show' }),
+   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&msg_del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?", CLASS => 'del' }): '') 
   );
 }
  
@@ -1624,9 +1624,10 @@ foreach my $line (@$list) {
     $html->button($_PRINT, "#", 
       { NEW_WINDOW      => "$SELF_URL?qindex=$index&print=$line->[0]",
       	NEW_WINDOW_SIZE => "640:600",
+      	CLASS           => 'print'
       	 }),
-    $html->button("$_CHANGE", "index=$index&chg=$line->[0]"),
-    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" })
+    $html->button("$_CHANGE", "index=$index&chg=$line->[0]", { CLASS => 'change' }),
+    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' })
    );
 }
 
@@ -1713,7 +1714,7 @@ sub msgs_new {
     $Msgs->messages_new({ %SHOW_PARAMS });
 
     if ($Msgs->{OPENED} && $Msgs->{OPENED} > 0) {
-      return '('. (($Msgs->{UNREAD} > 0) ? $html->color_mark($Msgs->{UNREAD}, $_COLORS[6]) : 0, { SKIP_XML => 1 }) ."/$Msgs->{TODAY}/$Msgs->{OPENED})";
+      return '('. (($Msgs->{UNREAD} > 0) ? $html->color_mark($Msgs->{UNREAD}, $_COLORS[6], { SKIP_XML => 1 }) : 0) ."/$Msgs->{TODAY}/$Msgs->{OPENED})";
      }
    }
 
@@ -2391,10 +2392,10 @@ foreach my $line (@$list) {
    $html->button($_SHOW, "#", 
       { NEW_WINDOW      => "$SELF_URL?qindex=". (($attr->{LIST_ONLY}) ? $index - 1 : $index ). "&chg=$line->[0]",
       	NEW_WINDOW_SIZE => "640:700",
-      	BUTTON => 1
+      	CLASS => 'show'
       	 }),
 
-   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?", BUTTON => 1 }): '') 
+   ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->button($_DEL, "index=$index&del=$line->[0]$pages_qs", { MESSAGE => "$_DEL '$line->[0]' ?", CLASS => 'del' }): '') 
   );
 }
 
@@ -2640,8 +2641,8 @@ foreach my $line (@$list) {
     $line->[3],
     $line->[4],
     $html->button("$_QUESTIONS", "index=$index&SURVEY=$line->[0]", { BUTTON => 1 }),
-    $html->button("$_CHANGE", "index=$index&chg=$line->[0]", { BUTTON => 1 }),
-    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
+    $html->button("$_CHANGE", "index=$index&chg=$line->[0]", { CLASS => 'change' }),
+    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' })
    );
 }
 
@@ -2716,8 +2717,8 @@ foreach my $line (@$list) {
     $params, 
     ($line->[4]) ? $html->form_input('USER_COMMENTS', '') : '',
     $bool_vals[$line->[5]],
-    $html->button("$_CHANGE", "index=$index&chg=$line->[6]&SURVEY=$FORM{SURVEY}", { BUTTON => 1 }),
-    $html->button($_DEL, "index=$index&del=$line->[6]&SURVEY=$FORM{SURVEY}", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
+    $html->button("$_CHANGE", "index=$index&chg=$line->[6]&SURVEY=$FORM{SURVEY}", { CLASS => 'change' }),
+    $html->button($_DEL, "index=$index&del=$line->[6]&SURVEY=$FORM{SURVEY}", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' })
    );
 }
 
