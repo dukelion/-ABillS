@@ -500,6 +500,7 @@ foreach my $host_params (@hosts) {
 
 
 if ($ftp->login("$username","$password")) {
+  $dir = $attr->{FTP_DIR} if ($attr->{FTP_DIR});
   if ($dir) {
     $ftp->cwd("$dir")
       or die "Cannot change working directory '$dir' ", $ftp->message;
@@ -648,7 +649,7 @@ sub cross_modules_call  {
 
 
 #***********************************************************
-#
+# upload users list
 #***********************************************************
 sub eript_202 {	
 	my $message = '';
@@ -679,12 +680,18 @@ sub eript_202 {
 	my $payment_date = "$DATE$TIME";
 	$payment_date =~ s/:|\-//g;
 	
+	my $WHERE = '';
+	
+	if ($ARGV->{LOGIN}) {
+		$WHERE = "AND u.id='$ARGV->{LOGIN}'";
+	 }
 	
 	$Paysys->query($db, "SELECT u.uid, pi.fio, concat(pi.address_street, ', ', pi.address_build, ', ', pi.address_flat), u.credit, dv.tp_id, tp.month_fee FROM users u, 
 	  users_pi pi, dv_main dv, tarif_plans tp
 	  WHERE u.uid=pi.uid AND u.deleted=0
 	  AND u.uid=dv.uid
 	  AND dv.tp_id=tp.id
+	  $WHERE
 	  ");
 	
 	my $list = $Paysys->{list};
@@ -701,8 +708,11 @@ sub eript_202 {
 		# TP
 		my $tp_id  = $line->[4];
 		my $tarif_1= $line->[5];
-		my $tarif_2=0;
-		
+		my $tarif_2= 0;
+				
+		$record_total_count++;
+		$msg_total_sum += $tarif_1;
+
 		my $tariffs_fields = "1~$tp_id~5~$tarif_1~$tarif_2~0~0~0";
 		
 		$message .= "$num^$uid^$fio^$address^$payment_period^$credit^$tariffs_fields^$payment_date^$comments^$ext_info^0^0\r\n";
@@ -721,8 +731,11 @@ sub eript_202 {
 	  open(FILE, ">$upload_file") or die "Can't create file '$upload_file' $!\n"; 
 	    print FILE $message;
 	  close(FILE);
-	  paysys_import_ftp({ UPLOAD => $upload_file });
+	  paysys_import_ftp({ UPLOAD => $upload_file, FTP_DIR => '/in/' });
 	}
+
+
+
 =comments
 
 
