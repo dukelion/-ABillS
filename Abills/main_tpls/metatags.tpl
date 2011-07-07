@@ -601,6 +601,25 @@ div#tcal td:hover {
 }
 
 
+#pageJumpWindow {
+	border:2px solid black;
+	padding:5px 5px;;
+	width:130px;
+	display:none;
+	position:absolute;
+	background-color:#FFF;
+	z-index:5;
+		
+}
+#pageJumpWindow  h2 {
+	margin:0 0 5px 0;
+	font-size:12px;
+	font-family:Tahoma, Geneva, sans-serif;
+		
+}
+
+
+
 </style>
 
 <title>%title%</title>

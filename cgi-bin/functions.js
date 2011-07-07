@@ -2,6 +2,41 @@ var marked_row = new Array;
 var confirmMsg = '';
 
 
+
+
+function checkval(url) {
+
+  var val;
+  var field = document.getElementById('pagevalue').value;
+  if (field == '')
+      return alert('Как так, вы же ничего не ввели');
+
+  val = parseInt(field);
+  
+
+  
+  if (isNaN(val))
+      return alert('Это не число!');
+
+  if (val != field)
+      return alert('Это не число!');
+
+  if (val <= 0)
+      return alert('Мы - за движение вперед! Введите положительное число');
+
+	window.location = url + val;
+}
+
+function showHidePageJump() {
+	if (document.getElementById('pageJumpWindow').style.display == 'block') {
+		document.getElementById('pageJumpWindow').style.display = 'none';	
+	} else { 
+		document.getElementById('pageJumpWindow').style.display = 'block';	
+	}
+}
+
+
+
 /**
 */
 function keyDown(e) { 
