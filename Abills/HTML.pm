@@ -1443,9 +1443,6 @@ return qq{
     	<input id='pagevalue' type='text'  size='5' maxlength=3/>
     	<button onclick="checkval('index.cgi?index=$index&pg=')">OK</button>
     </div>
-
-
-
 <div id="rules">
 <ul><li class="center"><a onclick="javascript:showHidePageJump()" ><img src='/img/dropdown.png' /></a> $self->{pages}</li></ul>
 </div>

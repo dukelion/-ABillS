@@ -1298,6 +1298,85 @@ sub add_groups {
 }
 
 #**********************************************************
+#
+#**********************************************************
+sub user_ext_menu {
+	my ($UID)=@_;
+	
+my $payments_menu = (defined($permissions{1})) ? '<li>'. $html->button($_PAYMENTS, "UID=$UID&index=2").'</li>' : '';
+my $fees_menu     = (defined($permissions{2})) ? '<li>' .$html->button($_FEES, "UID=$UID&index=3").'</li>' : '';
+my $sendmail_manu = '<li>'. $html->button($_SEND_MAIL, "UID=$UID&index=31"). '</li>';
+
+my $second_menu = '';
+my %userform_menus = (
+             22 =>  $_LOG,
+             21 =>  $_COMPANY,
+             12 =>  $_GROUP,
+             18 =>  $_NAS,
+             20 =>  $_SERVICES,
+             19	=>  $_BILL
+             );
+
+$userform_menus{17}=$_PASSWD if ($permissions{0}{3});
+
+while(my($k, $v)=each %uf_menus) {
+	$userform_menus{$k}=$v;
+}
+
+  #Make service menu
+  my $service_menu       = '';
+  my $service_func_index = 0;
+  my $service_func_menu  = '';
+  foreach my $key ( sort keys %menu_items) {
+	  if (defined($menu_items{$key}{20})) {
+	  	$service_func_index=$key if (($FORM{MODULE} && $FORM{MODULE} eq $module{$key} || ! $FORM{MODULE}) && $service_func_index == 0);
+		  $service_menu .= '<li>'. $html->button($menu_items{$key}{20}, "UID=$UID&index=$key");
+	   }
+  
+   	if ($service_func_index > 0 && $menu_items{$key}{$service_func_index}) {
+	  	 $service_func_menu .= $html->button($menu_items{$key}{$service_func_index}, "UID=$UID&index=$key") .' ';
+ 	 	 }
+   }
+
+
+foreach my $k (sort { $b <=> $a } keys %userform_menus) {
+	my $v = $userform_menus{$k};
+  my $url =  "index=$k&UID=$UID";
+  my $a = (defined($FORM{$k})) ? $html->b($v) : $v;
+  $second_menu .= "<li>" . $html->button($a,  "$url").'</li>';
+}
+
+my $ext_menu = qq{
+<div id=quick_menu>
+<ul id=topNav>
+  <li><a href="#"><img src='/img/user.png' border=0/></a>
+  <ul>
+    $payments_menu
+    $fees_menu
+    $sendmail_manu
+    <li><a href='#'>Service</a>
+      <ul>
+       $service_menu
+      </ul>
+    </li>
+    <li><a href='#'>$_OTHER</a>
+      <ul>
+        $second_menu
+      </ul>
+    </li> 
+   </ul>
+   </li> 
+</ul>
+</div>
+};
+  
+	
+	return $ext_menu;
+}
+
+
+
+#**********************************************************
 # user_info
 #**********************************************************
 sub user_info {
@@ -1306,12 +1385,17 @@ sub user_info {
 	my $user_info = $users->info( $UID , { %FORM });
   
   my $deleted = ($user_info->{DELETED}) ? $html->color_mark($html->b($_DELETED), '#FF0000') : '';
+  my $ext_menu = '';
+  
+
+
+  my $ext_menu = user_ext_menu($UID);
   
   $table = $html->table({ width      => '100%',
   	                      rowcolor   => 'even',
   	                      border     => 0,
                           cols_align => ['left:noprint'],
-                          rows       => [ [ "$_USER: ". $html->button($html->b($user_info->{LOGIN}), "index=15&UID=$user_info->{UID}"). " (UID: $user_info->{UID}) $deleted" ] ]
+                          rows       => [ [ "$ext_menu: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;". $html->button($html->b($user_info->{LOGIN}), "index=15&UID=$user_info->{UID}"). " (UID: $user_info->{UID})  $deleted" ] ]
                         });
 
   $user_info->{TABLE_SHOW} = $table->show();
@@ -2027,8 +2111,9 @@ function CheckAllINBOX() {
 
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { CLASS => 'payments' }) : ''; 
-  my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { CLASS => 'fees' }) : '';
+	my $uid = $line->[5+$users->{SEARCH_FIELDS_COUNT}];
+  my $payments = ($permissions{1}) ? $html->button($_PAYMENTS, "index=2&UID=$uid", { CLASS => 'payments' }) : ''; 
+  my $fees     = ($permissions{2}) ? $html->button($_FEES, "index=3&UID=$uid", { CLASS => 'fees' }) : '';
 
   my @fields_array  = ();
   for(my $i=0; $i<$users->{SEARCH_FIELDS_COUNT}; $i++){
@@ -2041,17 +2126,17 @@ foreach my $line (@$list) {
     push @fields_array, $table->td($line->[5+$i]);
    }
 
-  my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$line->[5+$users->{SEARCH_FIELDS_COUNT}]", { TYPE => 'checkbox', }) : '';
+  my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$uid", { TYPE => 'checkbox', }) : '';
   $table->addtd(
                   $table->td(
-                  $multiuser.$html->button($line->[0], "index=15&UID=$line->[5+$users->{SEARCH_FIELDS_COUNT}]") ), 
+                  $multiuser.user_ext_menu($uid).$html->button($line->[0], "index=15&UID=$uid") ), 
                   $table->td($line->[1]), 
                   $table->td( ($line->[2] + $line->[3] < 0) ? $html->color_mark($line->[2], $_COLORS[6]) : $line->[2] ), 
                   $table->td($line->[3]), 
                   $table->td($status[$line->[4]], { bgcolor => $state_colors[$line->[4]] }), 
                   @fields_array, 
                   $table->td($payments),
-                  $table->td($fees)
+                  $table->td($fees),
          );
 
 }
