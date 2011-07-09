@@ -736,7 +736,7 @@ elsif($FORM{COMPANY_ID}) {
   $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
   $pages_qs .= "&subf=$FORM{subf}";
   if (in_array('Docs', \@MODULES) ) {
-    $company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=$index&COMPANY_ID=$FORM{COMPANY_ID}&PRINT_CONTRACT=$FORM{COMPANY_ID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', BUTTON => 1 }) ;
+    $company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=$index&COMPANY_ID=$FORM{COMPANY_ID}&PRINT_CONTRACT=$FORM{COMPANY_ID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', CLASS => 'print' }) ;
    }
 
   func_menu({ 
@@ -1047,7 +1047,7 @@ sub add_company {
   	                                                              DATE      => $company->{CONTRACT_DATE} });
 
   if (in_array('Docs', \@MODULES) ) {
-    $company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', BUTTON => 1 }) ;
+    $company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', CLASS => 'print' }) ;
     
     if ($conf{DOCS_CONTRACT_TYPES}) {
     	$conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
@@ -1395,15 +1395,13 @@ sub user_info {
   	                      rowcolor   => 'even',
   	                      border     => 0,
                           cols_align => ['left:noprint'],
-                          rows       => [ [ "$ext_menu: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;". $html->button($html->b($user_info->{LOGIN}), "index=15&UID=$user_info->{UID}"). " (UID: $user_info->{UID})  $deleted" ] ]
+                          rows       => [ [ "$ext_menu: ". $html->button($html->b($user_info->{LOGIN}), "index=15&UID=$user_info->{UID}"). " (UID: $user_info->{UID})  $deleted" ] ]
                         });
 
   $user_info->{TABLE_SHOW} = $table->show();
- 
   $LIST_PARAMS{UID}=$user_info->{UID};
   $pages_qs =  "&UID=$user_info->{UID}";
   $pages_qs .= "&subf=$FORM{subf}" if (defined($FORM{subf}));
-  
   return 	$user_info;
 }
 
@@ -1627,7 +1625,7 @@ sub user_pi {
    }
 
   if (in_array('Docs', \@MODULES) ) {
-    $user_pi->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', BUTTON => 1 }) ;
+    $user_pi->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', CLASS => 'print' }) ;
     
     if ($conf{DOCS_CONTRACT_TYPES}) {
     	$conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
@@ -2103,8 +2101,8 @@ function CheckAllINBOX() {
 }
 //-->
 </script>\n
-<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n$status_bar" : undef,           
-#                       EXPORT  =>  $_EXPORT .' XML:&xml=1' 
+<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\" class=export_button>$_SELECT_ALL</a>\n$status_bar" : undef,           
+                            #EXPORT  =>  ' XML:&xml=1' 
                          });
 
 
@@ -2303,7 +2301,7 @@ my $table = $html->table( { width      => '100%',
 foreach my $line (@$list) {
   $table->addrow($line->[0],
     $line->[1],
-    $html->button("$_CHANGE", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=$line->[5]", { BUTTON => 1 }), 
+    $html->button("$_CHANGE", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=$line->[5]", { CLASS => 'change' }), 
     );
 }
 
@@ -2827,7 +2825,7 @@ if(defined($attr->{TP})) {
            $line->[5], 
            $line->[6], 
            convert($line->[7], { text2html => 1  }),
-           $html->button($_CHANGE, "index=$index$pages_qs&tt=$TI_ID&chg=$line->[0]", { CLASS => 'change', TEXT => $_CHANGE }),
+           $html->button($_CHANGE, "index=$index$pages_qs&tt=$TI_ID&chg=$line->[0]", { CLASS => 'change' }),
            $html->button($_DEL, "index=$index$pages_qs&tt=$TI_ID&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]]?", CLASS => 'del'  } ));
         }
 
@@ -6410,7 +6408,7 @@ my $table = $html->table( { width       => '600',
         $mtime = strftime "%Y-%m-%d", localtime($mtime);
 
       $table->addrow("$file", $size, $mtime, $describe,
-         $html->button($_DEL, "index=$index&file_del=$file", { MESSAGE => "$_DEL '$file'", BUTTON => 1 }));
+         $html->button($_DEL, "index=$index&file_del=$file", { MESSAGE => "$_DEL '$file'", CLASS => 'del' }));
      }
 
    }
@@ -7228,7 +7226,7 @@ sub form_info_lists {
        $table->addrow($line->[0],  
          $line->[1],
          $html->button($_CHANGE, "index=$index&LIST_TABLE=$FORM{LIST_TABLE}&chg=$line->[0]"), 
-         (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&LIST_TABLE=$FORM{LIST_TABLE}&del=$line->[0]", { MESSAGE => "$_DEL $line->[0] / $line->[1]?", BUTTON => 1 }) : ''
+         (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&LIST_TABLE=$FORM{LIST_TABLE}&del=$line->[0]", { MESSAGE => "$_DEL $line->[0] / $line->[1]?", CLASS => 'del' }) : ''
         );
       }
 

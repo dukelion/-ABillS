@@ -48,7 +48,7 @@ o_cal.a_tpl.weekdays   = ['Âñ', 'Ïí', 'Âò', 'Ñð', '×ò', 'Ïò', 'Ñóá'];
 $_DATE: <input type=text name='CREDIT_DATE' value='%CREDIT_DATE%' ID='CREDIT_DATE' size=12> 
 <script language='JavaScript'>var o_cal = new tcal ({	'formname': 'user_form',	'controlname': 'CREDIT_DATE'	});</script>
 </TD></TR>
-<TR><TD>$_GROUPS:</TD><TD>%GID%:%G_NAME% <a href='$SELF_URL?index=12&UID=$FORM{UID}' class=link_button>$_CHANGE</a></TD></TR>
+<TR><TD>$_GROUPS:</TD><TD>%GID%:%G_NAME% <a href='$SELF_URL?index=12&UID=$FORM{UID}' class=change>$_CHANGE</a></TD></TR>
 <TR><TD>$_ACTIVATE:</TD><TD><input type=text name=ACTIVATE value='%ACTIVATE%' ID='ACTIVATE' size=12>
 	<script language='JavaScript'>var o_cal = new tcal ({	'formname': 'user_form',	'controlname': 'ACTIVATE'	});</script>
 </TD></TR>

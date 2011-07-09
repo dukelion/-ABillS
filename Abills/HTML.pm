@@ -1437,16 +1437,32 @@ for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
    $self->{pages} .= ($i == $PG) ? $self->b(($i==0) ? 1 : $i).' ' : $self->button(($i==0 ? 1 : $i), "$argument&pg=$i") .' ';
  }
 
+
+
 return qq{
-    <div id='pageJumpWindow'>
-    	<h2>Перейти к странице:</h2>
-    	<input id='pagevalue' type='text'  size='5' maxlength=3/>
-    	<button onclick="checkval('index.cgi?index=$index&pg=')">OK</button>
-    </div>
+
 <div id="rules">
 <ul><li class="center"><a onclick="javascript:showHidePageJump()" ><img src='/img/dropdown.png' /></a> $self->{pages}</li></ul>
 </div>
+<div id="buttonJumpMenu">
+    <div id='pageJumpWindow'>
+    	<h2>Перейти к странице:</h2>
+    	<input id='pagevalue' type='text'  size='5' maxlength=3/>
+    	<button onclick="checkval('index.cgi?$argument&pg=')">OK</button>
+    </div>
+</div>
 };
+
+#return qq{
+#    <div id='pageJumpWindow'>
+#    	<h2>Перейти к странице:</h2>
+#    	<input id='pagevalue' type='text'  size='5' maxlength=3/>
+#    	<button onclick="checkval('index.cgi?index=$index&pg=')">OK</button>
+#    </div>
+#<div id="rules">
+#<ul><li class="center"><a onclick="javascript:showHidePageJump()" ><img src='/img/dropdown.png' /></a> $self->{pages}</li></ul>
+#</div>
+#};
 }
 
 

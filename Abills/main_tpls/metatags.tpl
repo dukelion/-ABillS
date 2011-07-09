@@ -493,6 +493,7 @@ TABLE.border {
   overflow:hidden;
   height:32px;
   line-height:30px;
+  
 }
 
 #rules li{
@@ -605,10 +606,13 @@ div#tcal td:hover {
 	border:2px solid black;
 	padding:5px 5px;;
 	width:130px;
+	height:40px;
 	display:none;
 	position:absolute;
 	background-color:#FFF;
-	z-index:5;
+	z-index:3;
+
+
 		
 }
 #pageJumpWindow  h2 {
@@ -618,27 +622,32 @@ div#tcal td:hover {
 		
 }
 
-
-* {
-  margin: 0;
-  padding: 0;
+#buttonJumpMenu {
+	position:relative;
+	width:1px;
+	height:1px;
 }
 
 
 
+#topNav {
+	margin:0;
+	padding:0;
+}
+
+ 
 
 
 #topNav ul {
 	height:30px;
 }
 
-#topNav ul,li {
-	margin-left:10px;
-/*
-	display:inline-block;
-*/
-  text-decoration: none;
-  position:relative;
+ #topNav ul,li {
+	margin-left:0px;
+	display:block;
+  	text-decoration: none;
+  	position:relative;
+  	z-index:0;
 }
 
 
@@ -659,9 +668,12 @@ div#tcal td:hover {
 
 #topNav li ul {
 	position: absolute; 
-	left: -20px; 
+	left: 0px; 
 	top: 20px;
-	display:none; 
+	display:none;
+	z-index:20;
+	cursor:pointer;
+
 }
 
 
@@ -670,27 +682,40 @@ div#tcal td:hover {
 }
 
 #topNav li:hover ul {
- 	display:block; 
+ 	display:block;
+ 	z-index:25;
+ 	 
 }
 #topNav li:hover ul li ul,
 #topNav li ul li:hover ul li ul,
 #topNav li ul li ul li:hover ul li ul,
 #topNav li ul li ul li ul li:hover ul li ul{
 	position: absolute; 
-	left:130px; 
+	left:110px; 
 	top:0px;
-	display:none; 
+	display:none;
+	
+	 
 }
 #topNav li ul li:hover ul,
 #topNav li ul li ul li:hover ul,
 #topNav li ul li ul li ul li:hover ul, 
 #topNav li ul li ul li ul li ul li:hover ul  {
- display:block; 
+ display:block;  
 }
 
-
-
-
+#quick_menu #topNav li a img {
+	float:left;
+	margin:0 0 0 5px;
+	padding:0;	
+}
+#quick_menu ul #topNav {
+	text-decoration:none;
+	
+}
+#quick_menu {
+	float:left;
+}
 
 </style>
 

@@ -498,7 +498,7 @@ sub list {
   }
 
  if ($attr->{DEPOSIT}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'u.deposit') };
+   push @WHERE_RULES, @{ $self->search_expr($attr->{DEPOSIT}, 'INT', 'b.deposit') }; 
   }
 
  if ($attr->{JOIN_SERVICE}) {
@@ -629,7 +629,7 @@ sub list {
 
  my $list = $self->{list};
 
- if ($self->{TOTAL} >= 0) {
+ if ($self->{TOTAL} >= 0 && ! $attr->{SKIP_TOTAL}) {
     $self->query($db, "SELECT count(u.id) FROM (users u, dv_main dv) 
     LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id) 
     $WHERE");

@@ -102,14 +102,16 @@ sub docs_invoice_add  {
      $Docs->{FROM} = $attr->{FROM} if ($attr->{FROM});
      $Docs->docs_invoice_add({ %$attr });
 
+     my $date = $FORM{DATE} || $DATE;
      if(! $Docs->{errno}) {
        if ($conf{DOCS_PDF_PRINT}) {
-  	     $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $FORM{DATE}\n ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
+  	     $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
    	     return 0;
         }
        else {
-         $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $FORM{DATE} ". 
-           $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', BUTTON => 1 }) );
+       	 
+         $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date". 
+           $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
          $Docs->docs_invoice_info($Docs->{DOC_ID});
         }
       }
@@ -226,11 +228,11 @@ sub docs_invoice {
                                      NO_ID       => 1
  	                                  });
 
-    #$Docs->{COMPANY_VAT}=$user->{COMPANY_VAT}.' %';
     $users->pi({ $users->{UID} });
     $Docs->{OP_SID}  = mk_unique_value(16);
     $Docs->{CUSTOMER}= $users->{FIO} || '-';
     $Docs->{CAPTION} = $_INVOICE;
+    $Docs->{DATE_FIELD}=$html->date_fld2('DATE', { MONTHES => \@MONTHES, FORM_NAME => 'account_add', WEEK_DAYS => \@WEEKDAYS });        
     $html->tpl_show(_include('docs_account_add', 'Docs'), { %$Docs, %$users }) if (! $FORM{pdf});
    }
 
@@ -463,7 +465,7 @@ if ($conf{DOCS_PDF_PRINT}) {
 }
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[9]&UID=$line->[8]", { MESSAGE => "$_DEL ?", BUTTON => 1 }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[9]&UID=$line->[8]", { MESSAGE => "$_DEL ?", CLASS => 'del' }) : ''; 
 
   $table->addrow("$line->[0]", 
    "$line->[1]",
@@ -473,7 +475,7 @@ foreach my $line (@$list) {
    "$line->[5]", 
    "$line->[6]", 
    $PAYMENTS_METHODS{"$line->[7]"}, 
-   $html->button($_PRINT, "qindex=$index&print=$line->[9]&UID=$line->[8]$pages_qs", { ex_params => 'target=_new', BUTTON => 1 }) ,
+   $html->button($_PRINT, "qindex=$index&print=$line->[9]&UID=$line->[8]$pages_qs", { ex_params => 'target=_new', CLASS => 'print' }) ,
    $delete);
 }
 print $table->show();
@@ -552,6 +554,13 @@ else {
  	                                NO_ID        => 1,
  	                                SORT_KEY     => 1
  	                               });
+ 
+  $info{CUSTOMER_TYPE_SEL}      = $html->form_select('CUSTOMER_TYPE', 
+                                { SELECTED     => $FORM{CUSTOMER_TYPE} || '',
+ 	                                SEL_HASH     => { '' => $_ALL, '=0' => $_USERS, ">0" => $_COMPANIES },
+ 	                                NO_ID        => 1,
+ 	                                SORT_KEY     => 1
+ 	                               });
 
 
   form_search({ SEARCH_FORM => ($FORM{pdf}) ? '' : $html->tpl_show(_include('docs_account_search', 'Docs'), 
@@ -559,6 +568,8 @@ else {
   	                                  { notprint => 1 })  
 	            });
 }
+
+$LIST_PARAMS{COMPANY_ID}=$FORM{CUSTOMER_TYPE};
 
 if (! $FORM{sort}) {
   $LIST_PARAMS{SORT}='2 desc, 1';
@@ -836,7 +847,7 @@ my $table = $html->table( { width      => '100%',
 
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&COMPANY_ID=$line->[7]", { MESSAGE => "$_DEL ID '$line->[8]' ?", BUTTON => 1 }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$index&del=$line->[8]&COMPANY_ID=$line->[7]", { MESSAGE => "$_DEL ID '$line->[8]' ?", CLASS => 'del' }) : ''; 
 
   $table->addrow("$line->[0]", 
    "$line->[1]",
@@ -844,7 +855,7 @@ foreach my $line (@$list) {
    "$line->[3]", 
    $html->button($line->[4], "index=11&UID=$line->[7]"),
    "$line->[5]", 
-   $html->button($_PRINT, "qindex=$index&print=$line->[8]&UID=$line->[8]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new', BUTTON => 1 }), 
+   $html->button($_PRINT, "qindex=$index&print=$line->[8]&UID=$line->[8]$pages_qs". ( ($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {  ex_params => 'target=_new', CLASS => 'print' }), 
    $delete);
 }
 print $table->show();
@@ -941,7 +952,7 @@ sub docs_tax_invoice {
         }
 
        if ($conf{DOCS_PDF_PRINT}) {
-       	 $html->message('info', $_ADDED, "$_TAX_INVOICE $_ADDED. \n". $html->button($_PRINT, "qindex=". (($FORM{subf}) ? $FORM{subf} : $index) ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&COMPANY_ID=$FORM{COMPANY_ID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
+       	 $html->message('info', $_ADDED, "$_TAX_INVOICE $_ADDED. \n". $html->button($_PRINT, "qindex=". (($FORM{subf}) ? $FORM{subf} : $index) ."&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&COMPANY_ID=$FORM{COMPANY_ID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
        	 return 0;
         }
       
@@ -1272,7 +1283,7 @@ sub docs_account {
        	 $users = $user if ($user->{UID});
        	 
          if (! $attr->{QUITE}) {
-       	   $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', BUTTON => 1 }));
+       	   $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
        	  }
        	 
        	 $users->pi({ UID => $users->{UID} || $FORM{UID} });
@@ -1311,7 +1322,7 @@ sub docs_account {
         }
        else {
          $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}]\n $_DATE: $FORM{DATE} ".
-         $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', BUTTON => 1 }) );
+         $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
          #return 0;
         }
       
@@ -1659,7 +1670,7 @@ foreach my $line (@$list) {
    "$line->[3]", 
    $html->button($line->[4], "index=11&UID=$line->[7]"),
    "$line->[5]", 
-   $html->button($_PRINT, "qindex=$FORM{index}&print=$line->[8]&COMPANY_ID=$line->[7]". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''). (($pages_qs) ? $pages_qs : ""  ) , { ex_params => 'target=_new', BUTTON => 1 }), 
+   $html->button($_PRINT, "qindex=$FORM{index}&print=$line->[8]&COMPANY_ID=$line->[7]". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : ''). (($pages_qs) ? $pages_qs : ""  ) , { ex_params => 'target=_new', CLASS => 'print' }), 
    $delete);
 }
 print $table->show();
