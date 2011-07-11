@@ -1748,7 +1748,7 @@ my $Billing = Billing->new($db, \%conf);
 foreach my $line (@$list) {
   if ($permissions{3}{1} && $LIST_PARAMS{UID}) {
     $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=". ($line->[12+$sessions->{SEARCH_FIELDS_COUNT}]). "+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", 
-       { MESSAGE => "$_DEL $_SESSION $_SESSION_ID ". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}])."?", CLASS => 'del', TEXT => $_DEL }
+       { MESSAGE => "$_DEL $_SESSION $_SESSION_ID ". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}])."?", CLASS => 'del' }
       );
    }
   my @rows=();
@@ -1769,7 +1769,7 @@ foreach my $line (@$list) {
      $line->[10+$sessions->{SEARCH_FIELDS_COUNT}], 
      "$line->[9]", 
      @rows,
-     $html->button("D", "index=". get_function_index(($user->{UID}) ? 'dv_user_stats' : 'dv_stats') ."&UID=". ($line->[12+$sessions->{SEARCH_FIELDS_COUNT}])."&SESSION_ID=". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}]), { TITLE => "$_DETAIL", BUTTON => 1 }), 
+     $html->button("D", "index=". get_function_index(($user->{UID}) ? 'dv_user_stats' : 'dv_stats') ."&UID=". ($line->[12+$sessions->{SEARCH_FIELDS_COUNT}])."&SESSION_ID=". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}]), { TITLE => "$_DETAIL", CLASS => 'stats' }), 
      $delete);
 }
 
@@ -3544,8 +3544,8 @@ elsif($FORM{del}) {
    $tariffs->{ACTION}    = $html->form_input('set', $_CHANGE, { TYPE => 'submit', OUTPUT2RETURN => 1  } );
   }
 
-   $tariffs->{UID}=$attr->{USER}->{UID};
-   $tariffs->{m}=$m;
+   $tariffs->{UID}     = $attr->{USER}->{UID};
+   $tariffs->{m}       = $m;
    $tariffs->{TP_ID}   = $Dv->{TP_ID};
    $tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME}";
 
@@ -4065,7 +4065,7 @@ elsif ($conf{DV_IP_DISCOVERY}) {
 
   $user->{SERVICE_STATUS} = $Dv->{STATUS};  
   if ($conf{DV_USER_CHG_TP}) {
-    $Dv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. get_function_index('dv_user_chg_tp').'&sid='.$sid, { BUTTON => 1 } );
+    $Dv->{TP_CHANGE} = $html->button("$_CHANGE", 'index='. get_function_index('dv_user_chg_tp').'&sid='.$sid, { CLASS => 'change rightAlignText' } );
    }
 
   #Activate Cisco ISG Account

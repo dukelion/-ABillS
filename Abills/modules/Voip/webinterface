@@ -2210,14 +2210,15 @@ sub voip_user_routes {
   require Tariffs;
   Tariffs->import();
   my $Voip_tp = Tariffs->new($db, \%conf);
-
+  $WEEKDAYS[0]=$_ALL;
 	my $list = $Voip_tp->ti_list({ TP_ID => $user->{TP_ID}  });
   my @caption = ($_PREFIX, $_ROUTES, "$_STATUS");
   my @aligns = ('left', 'left', 'center');
   my @interval_ids = ();
   my $intervals=0;
   foreach my $line (@$list) {
-    push @caption, "$_SUM (Min): $line->[1] / $line->[2]-$line->[3]";
+    #push @caption, "$_SUM (Min): ". $WEEKDAYS[$line->[1]] .$html->br().  sec2time($line->[2], {str => 1}). '-' . sec2time($line->[3], {str => 1});
+    push @caption, $html->b($WEEKDAYS[$line->[1]]) .$html->br().  sec2time($line->[2], {format => 1}). '-' . sec2time($line->[3], {format => 1});
     push @aligns,  'center';
     push @interval_ids, $line->[0];
    }

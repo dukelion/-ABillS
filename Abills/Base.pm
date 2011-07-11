@@ -548,8 +548,11 @@ sub sec2time {
     $b=int(($value % 3600) / 60);
     $c=int(($value % (24*3600)) / 3600);
     $d=int($value / (24 * 3600));
-
- if($attr->{str}) {
+ if($attr->{format}) {
+   $c=int($value / 3600);
+   return sprintf("%.2d:%.2d:%.2d", $c,$b, $a);
+  }
+ elsif($attr->{str}) {
    return sprintf("+%d %.2d:%.2d:%.2d", $d, $c,$b, $a);
   }
  else {

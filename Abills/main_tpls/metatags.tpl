@@ -665,10 +665,8 @@ div#tcal td:hover {
 	position:absolute;
 	background-color:#FFF;
 	z-index:3;
-
-
-		
 }
+
 #pageJumpWindow  h2 {
 	margin:0 0 5px 0;
 	font-size:12px;
@@ -681,7 +679,6 @@ div#tcal td:hover {
 	width:1px;
 	height:1px;
 }
-
 
 
 #topNav {

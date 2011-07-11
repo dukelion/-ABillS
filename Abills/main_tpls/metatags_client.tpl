@@ -220,6 +220,19 @@ form {
   font-size: 12px;
 }
 
+
+a.stats {
+        background:url(/img/button_stats.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
 a.change {
 	color: %_COLOR_9%;
  	background:url(/img/button_change.png) no-repeat left;
@@ -260,6 +273,12 @@ a.show {
         text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
+}
+
+a.rightAlignText {
+        padding-left:15px;
+        padding-top:0px;
+        display:inline-block;
 }
 
 #rules {
@@ -415,6 +434,30 @@ div#tcal td:hover {
     font-size: 11px;
     width: 22px;
     cursor: pointer;
+}
+
+#pageJumpWindow {
+        border:2px solid black;
+        padding:5px 5px;;
+        width:130px;
+        height:40px;
+        display:none;
+        position:absolute;
+        background-color:#FFF;
+        z-index:3;
+}
+
+#pageJumpWindow  h2 {
+        margin:0 0 5px 0;
+        font-size:12px;
+        font-family:Tahoma, Geneva, sans-serif;
+
+}
+
+#buttonJumpMenu {
+        position:relative;
+        width:1px;
+        height:1px;
 }
 
 
