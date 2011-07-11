@@ -260,8 +260,8 @@ sub prepaid_accounts_company {
  $LIST_PARAMS{COMPANY_ID} = $ARGV->{COMPANY_ID} if ($ARGV->{COMPANY_ID});
 
  my $TP_LIST = get_tps();
-
- $Company->{debug}=1;
+ 
+ #$Company->{debug}=1;
  my $list = $Company->list({ 
 		                        DISABLE       => 0,
 #		                        COMPANY_ID    => 0,
@@ -319,10 +319,10 @@ foreach my $line (@$list) {
   my $doc_num = 0;
   foreach my $line (@$list) {
   	my $uid      = $line->[(6+$Dv->{SEARCH_FIELDS_COUNT})];
-    my $tp_id    = $line->[(9+$Dv->{SEARCH_FIELDS_COUNT})];
-
-
- 	  print "UID: $uid LOGIN: $line->[0] FIO: $line->[1] TP: $tp_id\n" if ($debug > 2);
+    my $tp_id    = $line->[(9+$Dv->{SEARCH_FIELDS_COUNT})] || 0;
+    my $fio      = $line->[1] || '';
+    
+ 	  print "UID: $uid LOGIN: $line->[0] FIO: $fio TP: $tp_id\n" if ($debug > 2);
 	  #Add debetor accouns
     if ($TP_LIST->{$tp_id}) {
     	my ($tp_name, $fees_sum)=split(/;/, $TP_LIST->{$tp_id});
@@ -333,6 +333,7 @@ foreach my $line (@$list) {
    }
   # make tps account
   if ($tp_sum > 0) {
+  	print "TP SUM: $tp_sum\n";
     $Docs->account_add({ UID   => $admin_user,
  	  	                   SUM   => abs($tp_sum),
  	   	                   ORDER => "$_TARIF_PLAN"  
