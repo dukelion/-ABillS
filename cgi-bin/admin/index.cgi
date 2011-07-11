@@ -1354,12 +1354,12 @@ my $ext_menu = qq{
     $payments_menu
     $fees_menu
     $sendmail_manu
-    <li><a href='#'>Service</a>
+    <li><a href='#'>Service >> </a>
       <ul>
        $service_menu
       </ul>
     </li>
-    <li><a href='#'>$_OTHER</a>
+    <li><a href='#'>$_OTHER >> </a>
       <ul>
         $second_menu
       </ul>

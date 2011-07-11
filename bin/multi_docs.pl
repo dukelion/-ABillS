@@ -23,6 +23,9 @@ use vars  qw(%RAD %conf @MODULES $db $html $DATE $TIME $GZIP $TAR
   @tens
   @hundred
   @money_unit_names
+
+  $_DEBT
+  $_TARIF_PLAN
   
  );
 
@@ -51,9 +54,10 @@ require Admins;
 Admins->import();
 require Docs;
 Docs->import();
-
 require Tariffs;
 Tariffs->import();
+require Dv;
+Dv->import();
 
 require Abills::HTML;
 Abills::HTML->import();
@@ -71,8 +75,11 @@ Finance->import();
 my $Fees    = Finance->fees($db, $admin, \%conf);
 my $Users   = Users->new($db, $admin, \%conf);
 my $Tariffs = Tariffs->new($db, $admin, \%conf);
+my $Docs    = Docs->new($db, $admin, \%conf);
+my $Dv      = Dv->new($db, $admin, \%conf);
 
 require $Bin ."/../Abills/modules/Docs/lng_$conf{default_language}.pl";
+require "language/$conf{default_language}.pl";
 
 my $ARGV = parse_arguments(\@ARGV);
 if (defined($ARGV->{help})) {
@@ -105,12 +112,14 @@ if (! -d $pdf_result_path) {
 	mkdir ($pdf_result_path);
 }
 
+my %LIST_PARAMS = ();
 
 if ($ARGV->{POSTPAID_ACCOUNT}) {
 	postpaid_accounts();
  }
 elsif ($ARGV->{PREPAID_ACCOUNTS}) {
-	prepaid_accounts();
+	prepaid_accounts() if (! $ARGV->{COMPANY_ID});
+	prepaid_accounts_company() if (! $ARGV->{LOGIN});
  }
 else {
 	help();
@@ -128,9 +137,18 @@ if ($begin_time > 0)  {
 #**********************************************************
 #
 #**********************************************************
+sub send_accounts {
+  my ($attr) = @_;
+
+}
+
+
+
+
+#**********************************************************
+#
+#**********************************************************
 sub prepaid_accounts {
-
-
  # Modules
  #Dv
  my @MODULES = ('Dv');
@@ -139,29 +157,15 @@ sub prepaid_accounts {
  require $MODULES[0].'.pm';
  $MODULES[0]->import();
  my $Module_name = $MODULES[0]->new($db, $admin, \%conf);
- my %LIST_PARAMS = ();
  $LIST_PARAMS{TP_ID} = $ARGV->{TP_ID} if ($ARGV->{TP_ID});
  $LIST_PARAMS{LOGIN} = $ARGV->{LOGIN} if ($ARGV->{LOGIN});
 
- #Get TPS
- my %TP_LIST=();
- $Tariffs->{debug}=1;
- my $tp_list = $Tariffs->list({ %LIST_PARAMS });
- foreach my $line (@$tp_list) {
- 	 print "$line->[6]";
- 	 
- 	 if ($line->[6] > 0) {
- 	   $TP_LIST{$line->[0]}=$line->[6] 
- 	  }
-   elsif ($line->[5] > 0) {
-   	 $TP_LIST{$line->[0]}=$line->[5]*30; 
-    }
-  }
+ my $TP_LIST = get_tps();
 
- $Module_name->{debug}=1;
  my $list = $Module_name->list({ 
  	                          #DEPOSIT       => '<0',
 		                        DISABLE       => 0,
+		                        COMPANY_ID    => 0,
                             CONTRACT_ID   => '*',
                             CONTRACT_DATE => '>=0000-00-00',
                             ADDRESS_STREET=> '*',
@@ -175,106 +179,173 @@ sub prepaid_accounts {
 		                        %LIST_PARAMS,
 		                       });
 
-
-#
-#
-#if ($Users->{EXTRA_FIELDS}) {
-#  foreach my $line (@{ $Users->{EXTRA_FIELDS} }) {
-#    if ($line->[0] =~ /ifu(\S+)/) {
-#      my $field_id = $1;
-#      my ($position, $type, $name)=split(/:/, $line->[1]);
-#     }
-#   }
-#}
-#
-
-
   my @MULTI_ARR = ();
   my $doc_num = 0;
-  
+  my %EXTRA    = ();
 
-
-my $ext_bill = ($conf{EXT_BILL_ACCOUNT}) ? 1 : 0;
-my %EXTRA    = ();
 foreach my $line (@$list) {
-	my $tp_id = $line->[10]+$Module_name->{SEARCH_FIELDS_COUNT};
-	my $fees_sum = $TP_LIST{$tp_id} = 0;
+	my $uid      = $line->[(6+$Module_name->{SEARCH_FIELDS_COUNT})];
+  my $tp_id    = $line->[(9+$Module_name->{SEARCH_FIELDS_COUNT})];
 
- 	print "UID: LOGIN: $line->[0] FIO: $line->[1] TP: $tp_id\n" if ($debug > 2);
+
+ 	print "UID: $uid LOGIN: $line->[0] FIO: $line->[1] TP: $tp_id / $Module_name->{SEARCH_FIELDS_COUNT}\n" if ($debug > 2);
 	#Add debetor accouns
-	if ($line->[2] < 0) {
+  if ($line->[2] && $line->[2] < 0) {
 		print "  DEPOSIT: $line->[2]\n" if ($debug > 2);
+    $Docs->account_add({ UID   => $uid,
+ 	  	                   SUM   => abs($line->[2]),
+ 	   	                   ORDER => "$_DEBT"  });
+		$doc_num++
 	 } 
 	
 	#add  tp account
-  if ($TP_LIST{$tp_id}) {
-    print "  TP_ID: $tp_id FEES: $TP_LIST{$tp_id}\n" if ($debug > 2);
-   }
-
-
-    
-#    my $full_address = '';
-#    
-#    if ($ARGV->{ADDRESS2} && $line->[$Users->{SEARCH_FIELDS_COUNT} + 4 - 2]) {
-#      $full_address  = $line->[$Users->{SEARCH_FIELDS_COUNT} + 4 - 2] || '';
-#      $full_address .= ' ' . $line->[$Users->{SEARCH_FIELDS_COUNT} + 4 - 1] || '';
-#      $full_address .= '/' . $line->[$Users->{SEARCH_FIELDS_COUNT} + 4] || '';
-#     }
-#    else {
-#      $full_address  = $line->[5+$ext_bill] || '';  #/ B: $line->[6] / f: $line->[7]";
-#      $full_address .= ' ' .$line->[6+$ext_bill] || '';
-#      $full_address .= '/' . $line->[7+$ext_bill] || '';
-#     }
-#    
-#    my $month_fee = 0; #($FEES_LIST_HASH{$line->[$Users->{SEARCH_FIELDS_COUNT} + 5]}) ? $FEES_LIST_HASH{$line->[$Users->{SEARCH_FIELDS_COUNT} + 5]} : '0.00';
-#    my $credit = $line->[3];
-#
-#    push @MULTI_ARR, { LOGIN         => $line->[0], 
-#    	                 FIO           => $line->[1], 
-#    	                 DEPOSIT       => sprintf("%.2f", $line->[2] + $month_fee),
-#    	                 CREDIT        => $line->[3],
-#  	                   SUM           => sprintf("%.2f", abs($line->[2])),
-#                       DISABLE       => 0,
-#    	                 ORDER_TOTAL_SUM_VAT => ($conf{DOCS_VAT_INCLUDE}) ? sprintf("%.2f", abs($line->[2] / ((100 + $conf{DOCS_VAT_INCLUDE} ) / $conf{DOCS_VAT_INCLUDE}))) : 0.00,
-#    	                 NUMBER        => $line->[8+$ext_bill]."-$m",
-#                       ACTIVATE      => '>=$DATE',
-#                       EXPIRE        => '0000-00-00',
-#                       MONTH_FEE     => $month_fee,
-#                       TOTAL_SUM     => sprintf("%.2f", abs($line->[2])),
-#                       CONTRACT_ID   => $line->[8+$ext_bill],
-#                       CONTRACT_DATE => $line->[9+$ext_bill],
-#                       DATE          => $DATE, 
-#                       FULL_ADDRESS  => $full_address,
-#                       SUM_LIT       => int2ml(sprintf("%.2f", abs($line->[2])), { 
-#  	 ONES             => \@ones,
-#     TWOS             => \@twos,
-#     FIFTH            => \@fifth,
-#     ONE              => \@one,
-#     ONEST            => \@onest,
-#     TEN              => \@ten,
-#     TENS             => \@tens,
-#     HUNDRED          => \@hundred,
-#     MONEY_UNIT_NAMES => $conf{MONEY_UNIT_NAMES} || \@money_unit_names
-#  	  }),
-#
-#                       DOC_NUMBER => sprintf("%.6d",  $doc_num),
-#    	                };
-
-    
+  if ($TP_LIST->{$tp_id}) {
+  	my ($tp_name, $fees_sum)=split(/;/, $TP_LIST->{$tp_id});
+    print "  TP_ID: $tp_id FEES: $fees_sum\n" if ($debug > 2);
+    $Docs->account_add({ UID   => $uid,
+ 	  	                   SUM   => abs($fees_sum),
+ 	   	                   ORDER => "$_TARIF_PLAN: $tp_name"  
+ 	   	                 });
 
     $doc_num++
-	 }
+   }
 
-
-
-
-print "TOTAL: ".$Module_name->{TOTAL}."\n";
-
-if ($debug < 5) {
-  multi_tpls(_include('docs_multi_invoice', 'Docs'), \@MULTI_ARR );
  }
 
+print "TOTAL USERS: $Module_name->{TOTAL} DOCS: $doc_num\n";
+
+#if ($debug < 5) {
+#  multi_tpls(_include('docs_multi_invoice', 'Docs'), \@MULTI_ARR );
+# }
 }
+
+#**********************************************************
+#
+#**********************************************************
+sub get_tps {
+	my ($attr)=@_;
+	
+  #Get TPS
+  my %TP_LIST=();
+  my $tp_list = $Tariffs->list({ %LIST_PARAMS });
+  foreach my $line (@$tp_list) {
+ 	  if ($line->[6] > 0) {
+ 	    $TP_LIST{$line->[0]}="$line->[2];$line->[6]",
+ 	   }
+    elsif ($line->[5] > 0) {
+   	  $TP_LIST{$line->[0]}="$line->[2];".($line->[5]*30); 
+     }
+   }
+
+	return \%TP_LIST;
+}
+
+
+#**********************************************************
+#
+#**********************************************************
+sub prepaid_accounts_company {
+ # Modules
+ #Dv
+ require Customers;
+ Customers->import();
+ my $customer = Customers->new($db, $admin, \%conf);
+ my $Company = $customer->company();
+
+
+ require $MODULES[0].'.pm';
+ $MODULES[0]->import();
+ $LIST_PARAMS{TP_ID} = $ARGV->{TP_ID} if ($ARGV->{TP_ID});
+ $LIST_PARAMS{LOGIN} = $ARGV->{LOGIN} if ($ARGV->{LOGIN});
+ $LIST_PARAMS{COMPANY_ID} = $ARGV->{COMPANY_ID} if ($ARGV->{COMPANY_ID});
+
+ my $TP_LIST = get_tps();
+
+ $Company->{debug}=1;
+ my $list = $Company->list({ 
+		                        DISABLE       => 0,
+#		                        COMPANY_ID    => 0,
+#                            CONTRACT_ID   => '*',
+#                            CONTRACT_DATE => '>=0000-00-00',
+#                            ADDRESS_STREET=> '*',
+#                            ADDRESS_BUILD => '*',
+#                            ADDRESS_FLAT  => '*',
+                            
+		                        PAGE_ROWS     => 1000000,
+#		                        %INFO_FIELDS_SEARCH,
+		                        SORT          => $sort,
+		                        SKIP_TOTAL    => 1,
+		                        %LIST_PARAMS,
+		                       });
+  my @MULTI_ARR = ();
+  my $doc_num = 0;
+  my %EXTRA    = ();
+
+foreach my $line (@$list) {
+	my $name       = $line->[0];
+	my $deposit    = $line->[1];
+	my $company_id = $line->[5];
+  
+  print "COMPANY: $name CID: $company_id DEPOSIT: $deposit\n" if ($debug > 2);
+
+  #get main user
+  my $admin_user = 0;
+  my $admin_list = $Company->admins_list({ GET_ADMINS => 1 });
+  if ($Company->{TOTAL} < 1) {
+  	print "Company don't have admin user\n";
+  	next;
+   }
+  else {
+  	$admin_user = $admin_list->[0]->[3];
+   }
+  # make debt account
+  if ($deposit < 0) {
+  	$Docs->account_add({ UID   => $admin_user,
+	  	                   SUM   => abs($deposit),
+ 	   	                   ORDER => "$_DEBT"  
+	   	                 });
+   }
+  #Get company users
+  my $list = $Dv->list({ 
+ 		                        DISABLE       => 0,
+		                        COMPANY_ID    => $company_id,
+		                        PAGE_ROWS     => 1000000,
+#		                        %INFO_FIELDS_SEARCH,
+		                        SORT          => $sort,
+		                        SKIP_TOTAL    => 1,
+		                        %LIST_PARAMS,
+		                       });
+  my $tp_sum  = 0;
+  my $doc_num = 0;
+  foreach my $line (@$list) {
+  	my $uid      = $line->[(6+$Dv->{SEARCH_FIELDS_COUNT})];
+    my $tp_id    = $line->[(9+$Dv->{SEARCH_FIELDS_COUNT})];
+
+
+ 	  print "UID: $uid LOGIN: $line->[0] FIO: $line->[1] TP: $tp_id\n" if ($debug > 2);
+	  #Add debetor accouns
+    if ($TP_LIST->{$tp_id}) {
+    	my ($tp_name, $fees_sum)=split(/;/, $TP_LIST->{$tp_id});
+    	$tp_sum += $fees_sum;
+		  print "  DEPOSIT: $line->[2]\n" if ($debug > 2);
+		  $doc_num++
+	   }
+   }
+  # make tps account
+  if ($tp_sum > 0) {
+    $Docs->account_add({ UID   => $admin_user,
+ 	  	                   SUM   => abs($tp_sum),
+ 	   	                   ORDER => "$_TARIF_PLAN"  
+ 	   	                 });
+   }
+  
+ }
+
+print "TOTAL USERS: $Company->{TOTAL} DOCS: $doc_num\n";
+
+}
+
+
 
 #**********************************************************
 #
@@ -329,8 +400,8 @@ if ($Users->{EXTRA_FIELDS}) {
 }
 
 
-  my @MULTI_ARR = ();
-  my $doc_num = 0;
+my @MULTI_ARR = ();
+my $doc_num = 0;
   
 
 
@@ -399,8 +470,6 @@ if ($debug < 5) {
 
 
 
-
-
 #**********************************************************
 #
 #**********************************************************
@@ -426,11 +495,16 @@ print << "[END]";
   POSTPAID_ACCOUNT - Created for previe month debetors
   PREPAID_ACCOUNTS - Create cridit account and next month payments account
   
-  RESULT_DIR=    - Output dir (default: abills/cgi-bin/admin/pdf)
-  DOCS_IN_FILE=  - docs in single file (default: $docs_in_file)
-  ADDRESS2       - User second address (fields: _c_address, _c_build, _c_flat)
-  SORT=          - Sort by 
-  DEBUG=[1..5]   - Debug mode
+  LOGIN            - User login
+  TP_ID            - Tariff Plan
+  COMPANY_ID       - Company id. if defined company id generated only companies accounts. U can use wilde card *
+  
+  RESULT_DIR=      - Output dir (default: abills/cgi-bin/admin/pdf)
+  DOCS_IN_FILE=    - docs in single file (default: $docs_in_file)
+  ADDRESS2         - User second address (fields: _c_address, _c_build, _c_flat)
+  DATE=YYYY-MM-DD  - Accounts create date
+  SORT=            - Sort by 
+  DEBUG=[1..5]     - Debug mode
 [END]
 }
 

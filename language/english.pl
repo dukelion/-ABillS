@@ -398,6 +398,7 @@ $_BILL_INFO='Billing server info';
 $_PRIMARY='Primary';
 $_EXTRA='Extra';
 $_DEBETORS='Debitors';
+$_DEBT='Debt';
 $_NON_PAYMENT='Non Payment';
 
 

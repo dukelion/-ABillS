@@ -330,7 +330,7 @@ sub accounts_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{PAYMENT_METHOD}, 'INT', 'p.method') };
   }
 
- if ($attr->{COMPANY_ID}) {
+ if (defined($attr->{COMPANY_ID}) && $attr->{COMPANY_ID} ne '') {
     push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
   }
 
@@ -454,13 +454,15 @@ sub account_add {
 	my $self = shift;
 	my ($attr) = @_;
  
-  %DATA = $self->get_data($attr, { default => \%DATA }); 
+  %DATA          = $self->get_data($attr, { default => \%DATA }); 
   $DATA{DATE}    = ($attr->{DATE})    ? "'$attr->{DATE}'" : 'now()';
   $DATA{ACCT_ID} = ($attr->{ACCT_ID}) ? $attr->{ACCT_ID}  : $self->docs_nextid({ TYPE => 'ACCOUNT' });
+  $DATA{CUSTOMER}= '' if (! $DATA{CUSTOMER});
+  $DATA{PHONE}   = '' if (! $DATA{PHONE});
+  $DATA{VAT}     = '' if (! $DATA{VAT});
   $DATA{PAYMENT_ID} = 0 if (!  $DATA{PAYMENT_ID});
-  $DATA{PHONE} = '' if (! $DATA{PHONE});
-  $DATA{VAT}   = '' if (! $DATA{VAT});
 
+#  $self->{debug}=1;
   $self->query($db, "insert into docs_acct (acct_id, date, created, customer, phone, aid, uid, payment_id, vat)
       values ('$DATA{ACCT_ID}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 
       '$admin->{AID}', '$DATA{UID}', '$DATA{PAYMENT_ID}', '$DATA{VAT}');", 'do');
@@ -480,8 +482,9 @@ sub account_add {
    }
   else {
     $DATA{COUNTS} = 1 if (! $DATA{COUNTS});
+    $DATA{UNIT}   = 0 if (! $DATA{UNIT}) ;
     $self->query($db, "INSERT INTO docs_acct_orders (acct_id, orders, counts, unit, price)
-       values ($self->{DOC_ID}, \"$DATA{ORDER}\", '$DATA{COUNTS}', '$DATA{UNIT}',
+       values ($self->{DOC_ID}, \"$DATA{ORDER}-\", '$DATA{COUNTS}', '$DATA{UNIT}',
     '$DATA{SUM}')", 'do');
    } 
 
@@ -489,9 +492,6 @@ sub account_add {
   
   $self->{ACCT_ID}=$DATA{ACCT_ID};
   $self->account_info($self->{DOC_ID});
-
-  #push @{$self->{ORDERS}}, "$DATA{ACCT_ID}|$DATA{COUNTS}|$DATA{UNIT}|$DATA{SUM}";
-  
 
 	return $self;
 }

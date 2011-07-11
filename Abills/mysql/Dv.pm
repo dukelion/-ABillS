@@ -555,7 +555,7 @@ sub list {
    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
   }
 
- if ($attr->{COMPANY_ID}) {
+ if (defined($attr->{COMPANY_ID}) && $attr->{COMPANY_ID} ne '') {
    push @WHERE_RULES, @{ $self->search_expr($attr->{COMPANY_ID}, 'INT', 'u.company_id') };
   }
 

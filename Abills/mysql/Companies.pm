@@ -420,7 +420,6 @@ sub list {
  @WHERE_RULES = ();
 
  if ($attr->{CONTRACT_ID}) {
-   $attr->{CONTRACT_ID} =~ s/\*/\%/ig;
    push @WHERE_RULES, @{ $self->search_expr("$attr->{CONTRACT_ID}", 'STR', 'c.contract_id') };
  }
 
@@ -431,10 +430,14 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{DOMAIN_ID}", 'INT', 'c.domain_id', { EXT_FIELD => 1 }) };
   }
 
-
  if ($attr->{COMPANY_NAME}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{COMPANY_NAME}", 'STR', 'c.name') };
   }
+
+ if ($attr->{COMPANY_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{COMPANY_ID}", 'INT', 'c.id') };
+  }
+
 
  if ($attr->{CREDIT_DATE}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{CREDIT_DATE}", 'INT', 'c.credit_date') };
@@ -481,7 +484,7 @@ sub admins_list {
  
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
- $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PG   = ($attr->{PG}) ? $attr->{PG} : 0;
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
  my @WHERE_RULES = ();
  my $WHERE = '';
@@ -491,13 +494,21 @@ sub admins_list {
  	 push @WHERE_RULES, "u.uid='$attr->{UID}'";
   }
 
+ if ($attr->{GET_ADMINS}) {
+ 	 push @WHERE_RULES, "ca.uid>0";
+  }
+
+ if ($attr->{COMPANY_ID}) {
+ 	 push @WHERE_RULES, "c.id='$attr->{COMPANY_ID}'";
+  }
+
  $WHERE = ' AND ' . join(' and ', @WHERE_RULES) if   ($#WHERE_RULES > -1); 
 
  $self->query($db, "SELECT if(ca.uid is null, 0, 1), u.id, pi.fio, u.uid
     FROM (companies  c, users u)
     LEFT JOIN companie_admins ca ON (ca.uid=u.uid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)
-    WHERE u.company_id=c.id AND c.id='$attr->{COMPANY_ID}' $WHERE
+    WHERE u.company_id=c.id $WHERE
     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
  my $list = $self->{list};

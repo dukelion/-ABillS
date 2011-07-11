@@ -4,7 +4,7 @@
 <tr><td>$_GROUP:</td><td>%GROUP_SEL%</td></tr>
 <tr><td>$_DATE:</td><td><TABLE width=100%>
 <tr><td>$_FROM:</td><td>%DATE_FROM%</td></tr> 
-<tr><td>TO:</td><td>%DATE_TO%</td></tr>
+<tr><td>$_TO:</td><td>%DATE_TO%</td></tr>
 </table>
 
 </td></tr>

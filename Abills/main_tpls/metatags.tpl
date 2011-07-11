@@ -375,6 +375,12 @@ a.show {
         text-indent:-9000px;
 }
 
+a.rightAlignText {
+	padding-left:15px;
+	padding-top:1px;
+	display:inline-block;
+}
+
 
 .link_button {
   font-family:  Arial, Tahoma,Verdana, Helvetica, sans-serif;
