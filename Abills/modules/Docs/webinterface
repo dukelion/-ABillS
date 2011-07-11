@@ -108,8 +108,7 @@ sub docs_invoice_add  {
   	     $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date\n ". $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
    	     return 0;
         }
-       else {
-       	 
+       else {       	 
          $html->message('info', "$_INVOICE $_ADDED", "$_INVOICE $_NUM: [$Docs->{DOC_ID}]\n $_DATE: $date". 
            $html->button($_PRINT, "qindex=$index&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}", { ex_params => 'target=_new', CLASS => 'print' }) );
          $Docs->docs_invoice_info($Docs->{DOC_ID});
@@ -1145,34 +1144,17 @@ sub docs_accounts_multi_create {
       $Docs->account_add({ %FORM });
       delete($FORM{create});
       if(! $Docs->{errno}) {
-
         if ($conf{DOCS_PDF_PRINT}) {
-       	  $users = $user if ($user->{UID});
-       	  $users->pi({ UID => $uid });
-       	 
-       	  if ( $FORM{SEND_EMAIL} && $users->{EMAIL}) {
-         	  my $message  = "$_ACCOUNT:  $Docs->{ACCT_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n";
+       	  if ( $FORM{SEND_EMAIL} ) {
           	$FORM{pdf}   = 1;
           	$FORM{print} = $Docs->{DOC_ID};
-        	  my $html_old = $html;
-            PDF::API2->import();
-            require Abills::PDF;
-            $html = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
-      	                               NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
-      	                               CONF      => $CONF
-	                                   });
-       	 
-         	  my $content = docs_account({ OUTPUT2RETURN => 1 });
-        	  sendmail("$conf{ADMIN_MAIL}", "$users->{EMAIL}", "ABillS - $_ACCOUNT - $Docs->{ACCT_ID}", "$message", "$conf{MAIL_CHARSET}",
-          	  '',       	  
-           	  { ATTACHMENTS => [ { CONTENT      => $content,
-       	  	                   CONTENT_TYPE => 'Content-type: application/pdf',
-       	  	                   FILENAME     => 'account_'. $Docs->{ACCT_ID} .'.pdf' }
-       	  	                 ] });
-
-           $html = $html_old;
-           delete $FORM{pdf};
-          }
+          
+            docs_account({ GET_EMAIL_INFO    => 1,
+            	             SEND_EMAIL        => 1,
+            	             EMAIL             => $FORM{EMAIL},
+            	             %$attr
+            	           });
+           }
         }
        #else {
        #  $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}] $_DATE: $FORM{DATE} ");
@@ -1181,7 +1163,7 @@ sub docs_accounts_multi_create {
      }
 
   	$total_sum = $count * $FORM{SUM};
-  	$html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED\n $_COUNT: $count $_TOTAL\n $_SUM: $total_sum");
+  	$html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED\n $_COUNT: $count \n $_SUM: $total_sum");
   	return 0;
    }
 
@@ -1286,36 +1268,15 @@ sub docs_account {
        	   $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
        	  }
        	 
-       	 $users->pi({ UID => $users->{UID} || $FORM{UID} });
-       	 
-       	 if ( $FORM{SEND_EMAIL} && ($users->{EMAIL} || $FORM{EMAIL})) {
-       	 	 my $email    = $FORM{EMAIL} || $users->{EMAIL};
-         	 my $message  = "$_ACCOUNT:  $Docs->{ACCT_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n";
-         	 $FORM{print} = $FORM{ACCOUNT_ID};
-         	 $FORM{pdf}   = 1;
-         	 delete($FORM{create});
-       	   my $html_old = $html;
-           PDF::API2->import();
-           require Abills::PDF;
-           $html = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
-      	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
-      	                              CONF      => $CONF
-	                                  });
-       	 
-         	 my $content = docs_account({ OUTPUT2RETURN => 1 });
-         	 if ($attr->{OUTPUT2RETURN}) {
-         	 	  return $content;
-         	  }
-         	 else {
-       	     sendmail("$conf{ADMIN_MAIL}", "$email", "ABillS - $_ACCOUNT", "$message", "$conf{MAIL_CHARSET}",
-         	    '',       	  
-           	  { ATTACHMENTS => [ { CONTENT      => $content,
-       	  	                       CONTENT_TYPE => 'Content-type: application/pdf',
-       	  	                       FILENAME     => 'account.pdf' }
-       	  	                    ] });
-            }
-           $html = $html_old;
-           delete $FORM{pdf};
+       	 if ( $FORM{SEND_EMAIL}) {
+            $FORM{print} = $FORM{ACCOUNT_ID};
+         	  $FORM{pdf}   = 1;
+          	delete($FORM{create});
+            docs_account({ GET_EMAIL_INFO    => 1,
+            	             SEND_EMAIL        => 1,
+            	             EMAIL             => $FORM{EMAIL}, 
+            	             %$attr
+            	           });
           } 	 
 
        	 return 0;
@@ -1335,7 +1296,7 @@ sub docs_account {
          	 docs_print('account_company', { %$Docs, %$Company, SUFIX => ($Docs->{VAT} > 0) ? 'vat' : '' });
           }
          else {
-           docs_print('account', $Docs);
+           docs_print('account', { %$Docs, %$attr });
           }
 
          exit;
@@ -1404,6 +1365,13 @@ sub docs_account {
       }
 
      $Docs->{TOTAL_SUM} = sprintf("%.2f", $Docs->{TOTAL_SUM});
+
+     if ($attr->{GET_EMAIL_INFO}) {
+        $attr->{EMAIL_MSG_TEXT}        = "$_ACCOUNT:  $Docs->{ACCT_ID}\n $_DATE: $Docs->{DATE}\n $_SUM: $Docs->{TOTAL_SUM}\n" if (! $attr->{EMAIL_MSG_TEXT});
+        $attr->{EMAIL_ATTACH_FILENAME} = 'account_'. $Docs->{ACCT_ID} .'.pdf' if (! $attr->{EMAIL_ATTACH_FILENAME});
+        $attr->{EMAIL_MSG_SUBJECT}     = "ABillS - $_ACCOUNT /$Docs->{ACCT_ID}" if (! $attr->{EMAIL_MSG_SUBJECT});
+      }
+
 
      if ($Docs->{COMPANY_ID}) {
        $Company->info($Docs->{COMPANY_ID});
@@ -1495,8 +1463,8 @@ sub docs_print {
 
 	if (defined(@MONTHES_LIT) && $attr->{DATE}) {
     my ($y, $m, $d)=split(/-/, $attr->{DATE}, 3);
+
     $attr->{FROM_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
-    
     $attr->{DAY}=$d;
     $attr->{MONTH_LIT}=$MONTHES_LIT[int($m)-1];
     $attr->{YEAR}=$y;
@@ -1565,13 +1533,50 @@ sub docs_print {
      }
    }
 
+  if ($attr->{SEND_EMAIL} && ! $attr->{OUTPUT2RETURN}) {
+    # Email not specified
+    if (! $attr->{EMAIL} && ! $users->{EMAIL}) {
+    	return 0;
+     }
+    
+    PDF::API2->import();
+    require Abills::PDF;
+    my $pdf = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
+                                 NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
+                                 CONF      => $CONF
+                               });
 
-	return $html->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
+	  my $content = $pdf->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
 	    { pdf           => $FORM{pdf},
 	    	OUTPUT2RETURN => $attr->{OUTPUT2RETURN},
 	    	SUFIX         => $attr->{SUFIX}
 	    	}), 
 	    { %$users, %$attr  });
+
+  	sendmail("$conf{ADMIN_MAIL}", 
+  	          $attr->{EMAIL} || $users->{EMAIL},
+  	          $attr->{EMAIL_MSG_SUBJECT} || "ABillS", 
+  	          $attr->{EMAIL_MSG_TEXT}, 
+  	          "$conf{MAIL_CHARSET}",
+         	    '',       	  
+           	  { ATTACHMENTS => [ { CONTENT      => $content,
+       	  	                       CONTENT_TYPE => 'Content-type: application/pdf',
+       	  	                       FILENAME     => ($attr->{EMAIL_ATTACH_FILENAME}) ? $attr->{EMAIL_ATTACH_FILENAME} : $template.'.pdf' 
+       	  	                       }
+       	  	                    ],
+       	  	   });
+
+    return 1;
+   }
+  else {
+  	return 	$html->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
+	    { pdf           => $FORM{pdf},
+	    	OUTPUT2RETURN => $attr->{OUTPUT2RETURN},
+	    	SUFIX         => $attr->{SUFIX}
+	    	}), 
+	    { %$users, %$attr  });
+
+   }
 }
 
 
@@ -1587,8 +1592,6 @@ sub docs_summary {
 	my @MULTI_ARR = ();
 
 	foreach my $line (@$list) {
-    #print "-$line->[0], $line->[1], $line->[3], $line->[4]<br>";
-    
     push @MULTI_ARR, { FIO     => $line->[1], 
     	                 DEPOSIT => $line->[2],
     	                 CREDIT  => $line->[3],

@@ -736,7 +736,7 @@ elsif($FORM{COMPANY_ID}) {
   $pages_qs .= "&COMPANY_ID=$FORM{COMPANY_ID}";
   $pages_qs .= "&subf=$FORM{subf}";
   if (in_array('Docs', \@MODULES) ) {
-    $company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=$index&COMPANY_ID=$FORM{COMPANY_ID}&PRINT_CONTRACT=$FORM{COMPANY_ID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', CLASS => 'print' }) ;
+    $company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=$index&COMPANY_ID=$FORM{COMPANY_ID}&PRINT_CONTRACT=$FORM{COMPANY_ID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', CLASS => 'print rightAlignText' }) ;
    }
 
   func_menu({ 
@@ -918,8 +918,8 @@ sub form_companie_admins {
 my $table = $html->table( { width      => '100%',
                             caption    => "$_ADMINS",
                             border     => 1,
-                            title      => ["$_ALLOW", "$_LOGIN", "$_FIO"],
-                            cols_align => ['right', 'left', 'left' ],
+                            title      => ["$_ALLOW", "$_LOGIN", "$_FIO", 'E-mail'],
+                            cols_align => ['right', 'left', 'left', 'left' ],
                             qs         => $pages_qs,
                             ID         => 'COMPANY_ADMINS'
                            });
@@ -938,8 +938,9 @@ foreach my $line (@$list) {
   	                                                 OUTPUT2RETURN => 1,
        	                                             STATE         => ($line->[0]) ? 1 : undef
        	                                          }), 
-    $html->button($line->[1], "index=15&UID=$line->[3]"), 
-    $line->[2]
+    user_ext_menu($line->[4], $line->[1]),
+    $line->[2],
+    $line->[3]
     );
 }
 
@@ -964,12 +965,14 @@ print "<TABLE width=\"100%\" bgcolor=\"$_COLORS[2]\">\n";
 while(my($k, $v)=each %$header) {
   print "<tr><td>$k: </td><td valign=top>$v</td></tr>\n";
 }
-print "<tr bgcolor=\"$_COLORS[3]\"><td colspan=\"2\">\n";
+print "<tr bgcolor=\"$_COLORS[1]\"><td colspan=\"2\">\n";
 
 my $menu;
-while(my($name, $v)=each %$items) {
-  my ($subf, $ext_url)=split(/:/, $v, 2);
-  $menu .= ($FORM{subf} && $FORM{subf} eq $subf) ? ' '. $html->b($name) : ' '. $html->button($name, "index=$index&$ext_url&subf=$subf", { BUTTON => 1 });
+#while(my($name, $v)=each  %$items) {
+foreach my $name (sort {$items->{$a} cmp $items->{$b}} keys %$items) {
+  my $v = $items->{$name};
+  my ($subf, $ext_url, $class)=split(/:/, $v, 3);
+  $menu .= ($FORM{subf} && $FORM{subf} eq $subf) ? ' '. $html->b($name) : ' '. $html->button($name, "index=$index&$ext_url&subf=$subf", { ($class) ? (CLASS => $class)  : (BUTTON => 1)  });
 }
 
 print "$menu</td></tr>
@@ -1047,7 +1050,7 @@ sub add_company {
   	                                                              DATE      => $company->{CONTRACT_DATE} });
 
   if (in_array('Docs', \@MODULES) ) {
-    $company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', CLASS => 'print' }) ;
+    $company->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', CLASS => 'print rightAlignText' }) ;
     
     if ($conf{DOCS_CONTRACT_TYPES}) {
     	$conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
@@ -1154,7 +1157,7 @@ sub user_form {
 
    if ($permissions{5}) {
      my $info_field_index = get_function_index('form_info_fields');
-     $user_info->{ADD_INFO_FIELD}=$html->button("$_ADD $_INFO_FIELDS", "index=$info_field_index", {  BUTTON => 1, ex_params => ' target=_info_fields' });
+     $user_info->{ADD_INFO_FIELD}=$html->button("$_ADD $_INFO_FIELDS", "index=$info_field_index", {  CLASS => 'add', ex_params => ' target=_info_fields' });
     }
 
    if ($permissions{0}{3}) {
@@ -1215,10 +1218,10 @@ elsif(defined($FORM{GID})){
   	         $_NAME => $users->{G_NAME}
   	       }, 
   	{ 
-     $_CHANGE   => ":GID=$users->{GID}",
-     $_USERS    => "11:GID=$users->{GID}",
-     $_PAYMENTS => "2:GID=$users->{GID}",
-     $_FEES     => "3:GID=$users->{GID}",
+     $_CHANGE   => ":GID=$users->{GID}:change rightAlignText",
+     $_USERS    => "11:GID=$users->{GID}:users rightAlignText",
+     $_PAYMENTS => "2:GID=$users->{GID}:payments rightAlignText",
+     $_FEES     => "3:GID=$users->{GID}:fees rightAlignText",
   	 });
   
     if (! $permissions{0}{4} ) {
@@ -1301,7 +1304,7 @@ sub add_groups {
 #
 #**********************************************************
 sub user_ext_menu {
-	my ($UID)=@_;
+	my ($UID, $LOGIN, $attr)=@_;
 	
 my $payments_menu = (defined($permissions{1})) ? '<li>'. $html->button($_PAYMENTS, "UID=$UID&index=2").'</li>' : '';
 my $fees_menu     = (defined($permissions{2})) ? '<li>' .$html->button($_FEES, "UID=$UID&index=3").'</li>' : '';
@@ -1347,7 +1350,7 @@ foreach my $k (sort { $b <=> $a } keys %userform_menus) {
 }
 
 my $ext_menu = qq{
-<div id=quick_menu>
+<div id=quick_menu class=noprint>
 <ul id=topNav>
   <li><a href="#"><img src='/img/user.png' border=0/></a>
   <ul>
@@ -1370,8 +1373,16 @@ my $ext_menu = qq{
 </div>
 };
   
+  
+  my $return = $ext_menu; 
+  if ($attr->{SHOW_UID}) {
+    $return .= ' : '. $html->button($html->b($LOGIN), "index=15&UID=$user_info->{UID}"). " (UID: $UID) ";
+   }
+  else {
+    $return .= ' '. $html->button($LOGIN, "index=15&UID=$UID". (($attr->{EXT_PARAMS}) ? "&$attr->{EXT_PARAMS}" : ''));
+   }
 	
-	return $ext_menu;
+	return $return;
 }
 
 
@@ -1385,17 +1396,14 @@ sub user_info {
 	my $user_info = $users->info( $UID , { %FORM });
   
   my $deleted = ($user_info->{DELETED}) ? $html->color_mark($html->b($_DELETED), '#FF0000') : '';
-  my $ext_menu = '';
-  
 
-
-  my $ext_menu = user_ext_menu($UID);
+  my $ext_menu = user_ext_menu($UID, $user_info->{LOGIN}, { SHOW_UID => 1 });
   
   $table = $html->table({ width      => '100%',
   	                      rowcolor   => 'even',
   	                      border     => 0,
                           cols_align => ['left:noprint'],
-                          rows       => [ [ "$ext_menu: ". $html->button($html->b($user_info->{LOGIN}), "index=15&UID=$user_info->{UID}"). " (UID: $user_info->{UID})  $deleted" ] ]
+                          rows       => [ [ "$ext_menu".  $deleted ] ]
                         });
 
   $user_info->{TABLE_SHOW} = $table->show();
@@ -1625,7 +1633,7 @@ sub user_pi {
    }
 
   if (in_array('Docs', \@MODULES) ) {
-    $user_pi->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', CLASS => 'print' }) ;
+    $user_pi->{PRINT_CONTRACT} = $html->button("$_PRINT", "qindex=15&UID=$user_pi->{UID}&PRINT_CONTRACT=$user_pi->{UID}". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), { ex_params => ' target=new', CLASS => 'print rightAlignText' }) ;
     
     if ($conf{DOCS_CONTRACT_TYPES}) {
     	$conf{DOCS_CONTRACT_TYPES} =~ s/\n//g;
@@ -1665,7 +1673,7 @@ sub user_pi {
 
   if ($conf{ADDRESS_REGISTER}) {
   	my $add_address_index        = get_function_index('form_districts');
-  	$user_pi->{ADD_ADDRESS_LINK} = $html->button("$_ADD $_ADDRESS", "index=$add_address_index", { BUTTON => 1 });
+  	$user_pi->{ADD_ADDRESS_LINK} = $html->button("$_ADD $_ADDRESS", "index=$add_address_index", { CLASS => 'add' });
   	$user_pi->{ADDRESS_TPL}      = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
    }
   else {
@@ -2127,7 +2135,7 @@ foreach my $line (@$list) {
   my $multiuser = ($permissions{0}{7}) ? $html->form_input('IDS', "$uid", { TYPE => 'checkbox', }) : '';
   $table->addtd(
                   $table->td(
-                  $multiuser.user_ext_menu($uid).$html->button($line->[0], "index=15&UID=$uid") ), 
+                  $multiuser.user_ext_menu($uid, $line->[0])), #.$html->button($line->[0], "index=15&UID=$uid") ), 
                   $table->td($line->[1]), 
                   $table->td( ($line->[2] + $line->[3] < 0) ? $html->color_mark($line->[2], $_COLORS[6]) : $line->[2] ), 
                   $table->td($line->[3]), 
@@ -3102,14 +3110,14 @@ if ($FORM{AID}) {
   	         $_NAME => $A_LOGIN
   	       }, 
   	{ 
-  	 $_CHANGE         => ":AID=$admin_form->{AID}",
-     $_LOG            => "51:AID=$admin_form->{AID}",
-     $_FEES           => "3:AID=$admin_form->{AID}",
-     $_PAYMENTS       => "2:AID=$admin_form->{AID}",
-     $_PERMISSION     => "52:AID=$admin_form->{AID}",
-     $_PASSWD         => "54:AID=$admin_form->{AID}",
-     $_GROUP          => "58:AID=$admin_form->{AID}",
-     IP               => "59:AID=$admin_form->{AID}",
+  	 $_CHANGE         => ":AID=$admin_form->{AID}:change rightAlignText",
+     $_LOG            => "51:AID=$admin_form->{AID}:history rightAlignText",
+     $_FEES           => "3:AID=$admin_form->{AID}:fees rightAlignText",
+     $_PAYMENTS       => "2:AID=$admin_form->{AID}:payments rightAlignText",
+     $_PERMISSION     => "52:AID=$admin_form->{AID}:permissions rightAlignText",
+     $_PASSWD         => "54:AID=$admin_form->{AID}:password rightAlignText",
+     $_GROUP          => "58:AID=$admin_form->{AID}:users rightAlignText",
+#     IP               => "59:AID=$admin_form->{AID}:",
   	 },
   	{
   		f_args => { ADMIN => $admin_form }
@@ -3208,9 +3216,9 @@ foreach my $line (@$list) {
     $status[$line->[4]], 
     $line->[5] . $admin_groups{$line->[0]}, 
     $line->[6],
-   $html->button($_PERMISSION, "index=$index&subf=52&AID=$line->[0]", { BUTTON => 1 }),
-   $html->button($_LOG, "index=$index&subf=51&AID=$line->[0]", { BUTTON => 1 }),
-   $html->button($_PASSWD, "index=$index&subf=54&AID=$line->[0]", { BUTTON => 1 }),
+   $html->button($_PERMISSION, "index=$index&subf=52&AID=$line->[0]", { CLASS => 'permissions' }),
+   $html->button($_LOG, "index=$index&subf=51&AID=$line->[0]", { CLASS => 'history' }),
+   $html->button($_PASSWD, "index=$index&subf=54&AID=$line->[0]", { CLASS => 'password' }),
    $html->button($_INFO, "index=$index&AID=$line->[0]", { CLASS => 'change' }), 
    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL ?",  CLASS => 'del' } ));
 }

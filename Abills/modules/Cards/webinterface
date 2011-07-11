@@ -270,7 +270,7 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($
   		  $line->[11],
   		  @pin,
   		  $html->button($_DEL, "index=$index&del=1&ID=$line->[17]". ( (! $FORM{search}) ? "&NUMBER=$line->[1]&SERIA=$line->[0]" :   '' ) .
-  		    "$pages_qs", { MESSAGE => "$_DEL [$line->[0]$line->[1]] ?", BUTTON => 1 })
+  		    "$pages_qs", { MESSAGE => "$_DEL [$line->[0]$line->[1]] ?", CLASS => 'del' })
   		);
     }
 
@@ -324,8 +324,8 @@ else {
   		  $line->[5],
   		  $line->[6],
   		  $line->[7],
-  		  $html->button($_SHOW, "index=$index$pages_qs&SERIA=$line->[0]", { BUTTON => 1 }),
-  		  $html->button($_DEL, "index=$index$pages_qs&del=1&SERIA=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 })
+  		  $html->button($_SHOW, "index=$index$pages_qs&SERIA=$line->[0]", { CLASS => 'show' }),
+  		  $html->button($_DEL, "index=$index$pages_qs&del=1&SERIA=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' })
 	   );
      $total_cards += $line->[3];
      $total_sum   += $line->[2] * $line->[3];
@@ -508,8 +508,8 @@ sub cards_bruteforce () {
  		      $line->[1], 
   		    $line->[2],
   		    $line->[3],
-  		    $html->button("$_SHOW", "index=$index&UID=$line->[4]", { BUTTON => 1 }), 
-  		    $html->button($_DEL, "index=$index$pages_qs&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1  })
+  		    $html->button("$_SHOW", "index=$index&UID=$line->[4]", { CLASS => 'show' }), 
+  		    $html->button($_DEL, "index=$index$pages_qs&del=$line->[4]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del'  })
   		  );
    }
 
@@ -924,9 +924,9 @@ if ($Cards->{errno}) {
   		  $status[$line->[6]],
   		  $line->[7],
   		  $line->[8],
-  		  $html->button($_INFO, "index=$index$pages_qs&info=$line->[0]", { BUTTON => 1 }),
-  		  $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]", { BUTTON => 1 }),
-  		  $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", BUTTON => 1 })
+  		  $html->button($_INFO, "index=$index$pages_qs&info=$line->[0]", { CLASS => 'show' }),
+  		  $html->button($_CHANGE, "index=$index$pages_qs&chg=$line->[0]", { CLASS => 'change' }),
+  		  $html->button($_DEL, "index=$index$pages_qs&del=$line->[0]", { MESSAGE => "$_DEL [$line->[0]] ?", CLASS => 'del' })
 		   );
     }
 
@@ -1796,8 +1796,8 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1  }); 
-    $change = $html->button($_CHANGE, "index=$index&chg=$line->[4]", { BUTTON => 1 });
+    $delete = $html->button($_DEL, "index=$index&del=$line->[4]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del'  }); 
+    $change = $html->button($_CHANGE, "index=$index&chg=$line->[4]", { CLASS => 'change' });
    }
   
   if($FORM{chg} eq $line->[4]) {

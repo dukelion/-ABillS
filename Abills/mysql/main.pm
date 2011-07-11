@@ -375,9 +375,10 @@ sub changes {
   my $CHANGES_QUERY = "";
   my $CHANGES_LOG = "";
 
-  while(my($k, $v)=each(%DATA)) {
+  while(my($k, $v)=each(%$FIELDS)) {
 #  	print "$k, $v ->  $OLD_DATA->{$k} / $DATA{$k}<br>\n";
     if ($FIELDS->{$k} && (! defined($DATA{$k}) || $OLD_DATA->{$k} ne $DATA{$k})) {
+    	  
         if ($k eq 'PASSWORD' || $k eq 'NAS_MNG_PASSWORD') {
           $CHANGES_LOG .= "$k *->*;";
           $CHANGES_QUERY .= "$FIELDS->{$k}=ENCODE('$DATA{$k}', '$CONF->{secretkey}'),";
@@ -394,9 +395,9 @@ sub changes {
           $CHANGES_QUERY .= "$FIELDS->{$k}=now(),";
          }
         else {
-          if (! defined($OLD_DATA->{$k}) && ($DATA{$k} eq '0' || $DATA{$k} eq '')) {
-        	next;
-         }
+          if (! $OLD_DATA->{$k} && ($DATA{$k} eq '0' || $DATA{$k} eq '')) {
+        	  next;
+           }
 
           if ($k eq 'DISABLE') {
             if (defined($DATA{$k}) && $DATA{$k} == 0 || ! defined($DATA{$k})){
@@ -425,6 +426,7 @@ sub changes {
             $self->{CHG_CREDIT}=$OLD_DATA->{$k}.'->'.$DATA{$k};
            }
           else {
+
             $CHANGES_LOG .= "$k $OLD_DATA->{$k}->$DATA{$k};";
            }
 

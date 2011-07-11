@@ -13,6 +13,8 @@ use vars  qw(%RAD %conf @MODULES $db $html $DATE $TIME $GZIP $TAR
   $MYSQLDUMP
   %ADMIN_REPORT
   $DEBUG
+  %FORM
+  $users
 
   @ones
   @twos
@@ -24,9 +26,10 @@ use vars  qw(%RAD %conf @MODULES $db $html $DATE $TIME $GZIP $TAR
   @hundred
   @money_unit_names
 
+
   $_DEBT
   $_TARIF_PLAN
-  
+  $_ACCOUNT
  );
 
 
@@ -74,6 +77,7 @@ require Finance;
 Finance->import();
 my $Fees    = Finance->fees($db, $admin, \%conf);
 my $Users   = Users->new($db, $admin, \%conf);
+$users = $Users;
 my $Tariffs = Tariffs->new($db, $admin, \%conf);
 my $Docs    = Docs->new($db, $admin, \%conf);
 my $Dv      = Dv->new($db, $admin, \%conf);
@@ -140,6 +144,21 @@ if ($begin_time > 0)  {
 sub send_accounts {
   my ($attr) = @_;
 
+  require $Bin ."/../Abills/modules/Docs/webinterface";
+
+  foreach my $id ( @{ $attr->{ACCOUNTS_IDS} } ) {
+   	$FORM{pdf}   = 1;
+   	$FORM{print} = $id;
+
+    docs_account({ GET_EMAIL_INFO    => 1,
+            	     SEND_EMAIL        => 1,
+            	     %$attr
+                 });
+    if ($debug > 3) {
+    	print "ID: $id Sended\n";
+     }
+   }
+
 }
 
 
@@ -159,7 +178,7 @@ sub prepaid_accounts {
  my $Module_name = $MODULES[0]->new($db, $admin, \%conf);
  $LIST_PARAMS{TP_ID} = $ARGV->{TP_ID} if ($ARGV->{TP_ID});
  $LIST_PARAMS{LOGIN} = $ARGV->{LOGIN} if ($ARGV->{LOGIN});
-
+ my @accounts_ids = ();
  my $TP_LIST = get_tps();
 
  my $list = $Module_name->list({ 
@@ -195,6 +214,7 @@ foreach my $line (@$list) {
     $Docs->account_add({ UID   => $uid,
  	  	                   SUM   => abs($line->[2]),
  	   	                   ORDER => "$_DEBT"  });
+		push @accounts_ids, $Docs->{DOC_ID};
 		$doc_num++
 	 } 
 	
@@ -206,17 +226,20 @@ foreach my $line (@$list) {
  	  	                   SUM   => abs($fees_sum),
  	   	                   ORDER => "$_TARIF_PLAN: $tp_name"  
  	   	                 });
-
+    push @accounts_ids, $Docs->{DOC_ID};
     $doc_num++
    }
 
  }
 
+
+
+
 print "TOTAL USERS: $Module_name->{TOTAL} DOCS: $doc_num\n";
 
-#if ($debug < 5) {
-#  multi_tpls(_include('docs_multi_invoice', 'Docs'), \@MULTI_ARR );
-# }
+if ($debug < 5) {
+  send_accounts({ ACCOUNTS_IDS => \@accounts_ids });
+ }
 }
 
 #**********************************************************
@@ -260,7 +283,8 @@ sub prepaid_accounts_company {
  $LIST_PARAMS{COMPANY_ID} = $ARGV->{COMPANY_ID} if ($ARGV->{COMPANY_ID});
 
  my $TP_LIST = get_tps();
- 
+ my @accounts_ids = ();
+
  #$Company->{debug}=1;
  my $list = $Company->list({ 
 		                        DISABLE       => 0,
@@ -290,13 +314,16 @@ foreach my $line (@$list) {
 
   #get main user
   my $admin_user = 0;
+  my $admin_user_email = '';
   my $admin_list = $Company->admins_list({ GET_ADMINS => 1 });
+  
   if ($Company->{TOTAL} < 1) {
   	print "Company don't have admin user\n";
   	next;
    }
   else {
-  	$admin_user = $admin_list->[0]->[3];
+  	$admin_user = $admin_list->[0]->[4];
+  	$admin_user_email = $admin_list->[0]->[3];
    }
   # make debt account
   if ($deposit < 0) {
@@ -304,6 +331,7 @@ foreach my $line (@$list) {
 	  	                   SUM   => abs($deposit),
  	   	                   ORDER => "$_DEBT"  
 	   	                 });
+	  push @accounts_ids, $Docs->{DOC_ID} if ($admin_user_email ne '');
    }
   #Get company users
   my $list = $Dv->list({ 
@@ -328,7 +356,7 @@ foreach my $line (@$list) {
     	my ($tp_name, $fees_sum)=split(/;/, $TP_LIST->{$tp_id});
     	$tp_sum += $fees_sum;
 		  print "  DEPOSIT: $line->[2]\n" if ($debug > 2);
-		  $doc_num++
+		  $doc_num++		  
 	   }
    }
   # make tps account
@@ -338,11 +366,18 @@ foreach my $line (@$list) {
  	  	                   SUM   => abs($tp_sum),
  	   	                   ORDER => "$_TARIF_PLAN"  
  	   	                 });
+ 	  push @accounts_ids, $Docs->{DOC_ID} if ($admin_user_email ne '');
    }
   
  }
 
+
 print "TOTAL USERS: $Company->{TOTAL} DOCS: $doc_num\n";
+
+if ($debug < 5) {
+  send_accounts({ ACCOUNTS_IDS => \@accounts_ids });
+ }
+
 
 }
 
@@ -492,7 +527,8 @@ sub multi_tpls {
 #**********************************************************
 sub help {
 
-print << "[END]";	
+print << "[END]";
+Multi documents creator	
   POSTPAID_ACCOUNT - Created for previe month debetors
   PREPAID_ACCOUNTS - Create cridit account and next month payments account
   
@@ -508,6 +544,7 @@ print << "[END]";
   DEBUG=[1..5]     - Debug mode
 [END]
 }
+
 
 
 

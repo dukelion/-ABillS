@@ -542,9 +542,8 @@ my @s = sort {
 
 
 foreach my $ID (@s) {
- 	my $VALUE_HASH = $menu_items->{$ID};
- 	foreach my $parent (keys %$VALUE_HASH) {
-# 		print "$parent, $ID<br>";
+  my $VALUE_HASH = $menu_items->{$ID};
+  foreach my $parent (keys %$VALUE_HASH) {
     push( @{$menu{$parent}},  "$ID:$VALUE_HASH->{$parent}" );
    }
 }

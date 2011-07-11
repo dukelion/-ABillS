@@ -520,6 +520,8 @@ my %PI_FIELDS = (EMAIL       => 'email',
   	$attr->{CONTRACT_SUFIX}=$sufix;
    }
 
+ $admin->{MODULE}='';
+
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
 		                TABLE        => 'users_pi',
 		                FIELDS       => \%PI_FIELDS,

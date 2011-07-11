@@ -504,7 +504,7 @@ sub admins_list {
 
  $WHERE = ' AND ' . join(' and ', @WHERE_RULES) if   ($#WHERE_RULES > -1); 
 
- $self->query($db, "SELECT if(ca.uid is null, 0, 1), u.id, pi.fio, u.uid
+ $self->query($db, "SELECT if(ca.uid is null, 0, 1), u.id, pi.fio, pi.email, u.uid
     FROM (companies  c, users u)
     LEFT JOIN companie_admins ca ON (ca.uid=u.uid)
     LEFT JOIN users_pi pi ON (pi.uid=u.uid)

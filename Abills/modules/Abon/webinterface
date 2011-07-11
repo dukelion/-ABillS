@@ -227,7 +227,7 @@ sub abon_user_list {
 
 my $delete = '';
 foreach my $line (@$list) {
-  $table->addrow($html->button("$line->[0]", "index=15&UID=$line->[8]"), 
+  $table->addrow(user_ext_menu($line->[8], $line->[0]),
      "$line->[1]", 
      $line->[2], 
      $line->[3], 
@@ -522,10 +522,6 @@ sub abon_periodic {
    	       $FORM{SEND_EMAIL}= 1;
 
    	       docs_account({ QUITE => 1 });
-   	       
-   	       use locale;
-           use POSIX qw(locale_h); # Imports setlocale() and the LC_ constants.
-           setlocale(LC_NUMERIC, "")    	
           }
 
          if ($ext_cmd) {
@@ -542,7 +538,6 @@ sub abon_periodic {
           }
 
          $debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: ". (($info{CREATE_ACCOUNT}) ? "ACCOUNT SEND_EMAIL: $email" : '') .(($activate_notification) ? "NOTIFICATION: $email" : '') ."\n" if ($debug > 0);
-
       }
      #Send Alert 
      elsif($ADMIN_REPORT{DATE} eq $info{ABON_DATE}) {

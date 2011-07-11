@@ -388,7 +388,7 @@ foreach my $line (@$list) {
    }
 
   $table->addrow(
-   $html->button("$line->[0]", "index=15&UID=". $line->[6+$Dv->{SEARCH_FIELDS_COUNT}]), 
+   user_ext_menu($line->[6+$Dv->{SEARCH_FIELDS_COUNT}], $line->[0]),
    "$line->[1]",
    "$line->[2]", 
    "$line->[3]", 
@@ -569,7 +569,7 @@ sub dv_user {
 	  $Dv->{LNG_ACTION}=$_CHANGE;
 	  
     if ($permissions{0}{10} ) {
-      $Dv->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. get_function_index('dv_chg_tp'), { BUTTON => 1 });
+      $Dv->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$Dv->{UID}.'&index='. get_function_index('dv_chg_tp'), { CLASS => 'change rightAlignText' });
      } 
 
     # Get next payment period
@@ -606,7 +606,7 @@ sub dv_user {
       }
       
     $Dv->{NETMASK_COLOR} = ($Dv->{NETMASK} ne '255.255.255.255') ? $_COLORS[0] : $_COLORS[1];
-    $Dv->{SHEDULE}=$html->button("$_SHEDULE", "UID=$FORM{UID}&Shedule=status&index=". ($index+4), { BUTTON => 1 });
+    $Dv->{SHEDULE}=$html->button("$_SHEDULE", "UID=$FORM{UID}&Shedule=status&index=". get_function_index('dv_shedule'), { CLASS => 'shedule rightAlignText' });
 
     my $list = $sessions->online({ UID => $Dv->{UID} });
     
@@ -1535,7 +1535,7 @@ foreach my $nas_row (@$nas_list) {
                            "CONNECT_INFO: \n".
                            "UPDATES: $line->[$#ACTIVE_FIELDS+8]";
 
-    	  	$value = "<acronym title='$user_info'>".$html->button($line->[0], "index=15&UID=$line->[$#ACTIVE_FIELDS+3]")."</acronym>";
+    	  	$value = "<acronym title='$user_info'>".user_ext_menu("index=15&UID=$line->[$#ACTIVE_FIELDS+3]", $line->[0])."</acronym>";
           #Dublicate logins color yelow
  	  	    if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
     	   }	

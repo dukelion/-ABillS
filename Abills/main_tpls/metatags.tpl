@@ -213,7 +213,7 @@ table tr.even th,
 td {
   color: %_COLOR_9%;
   font-family: Arial, Tahoma, Verdana, Helvetica, sans-serif;
-  height: 20;
+  height: 25;
   font-size: 14px;
 }
 
@@ -267,8 +267,8 @@ a.del {
  	text-indent:-9000px;
 }
 
-a.del {
-        background:url(/img/button_del.png) no-repeat center;
+a.users {
+        background:url(/img/button_users.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
         margin:0;
@@ -302,6 +302,54 @@ a.fees {
         text-indent:-9000px;
 }
 
+a.permissions {
+        background:url(/img/button_permissions.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+a.history {
+        background:url(/img/button_history.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+
+a.password {
+        background:url(/img/button_password.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+a.shedule {
+        background:url(/img/button_shedule.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        height: 22px;
+        margin:0;
+        display:block;
+        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
 a.print {
         background:url(/img/button_print.png) no-repeat center;
         padding-left:22px;
@@ -377,7 +425,7 @@ a.show {
 
 a.rightAlignText {
 	padding-left:15px;
-	padding-top:1px;
+	padding-top:0px;
 	display:inline-block;
 }
 

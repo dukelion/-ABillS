@@ -301,12 +301,16 @@ sub parse_arguments {
 # sendmail($from, $to, $subject, $message, $charset, $priority)
 # MAil Priorities:
 #
-#
-#
+# returns
+# 1 - error
+# 2 - reciever email not specified
 #
 #***********************************************************
 sub sendmail {
   my ($from, $to_addresses, $subject, $message, $charset, $priority, $attr) = @_;
+  if($to_addresses eq '') {
+    return 2;
+   }
   my $SENDMAIL = (defined($attr->{SENDMAIL_PATH})) ? $attr->{SENDMAIL_PATH} : '/usr/sbin/sendmail';
   
   my $header = '';
@@ -384,7 +388,7 @@ $message .= "--$boundary"."--\n\n";
      }
   }
 
-  return 0;
+  return 1;
 }
 
 
@@ -748,8 +752,10 @@ if ($second ne '') {
  use POSIX qw(locale_h);
  my $locale = $attr->{LOCALE} || 'ru_RU.CP1251';
  setlocale(LC_ALL, $locale);
+ $ret = ucfirst $ret;
+ setlocale(LC_NUMERIC, "");
  
- return ucfirst $ret;
+ return $ret;
 }
 
 #**********************************************************

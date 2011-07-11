@@ -523,8 +523,8 @@ function CheckAllINBOX() {
 	    $line->[5],
 	    $status[$line->[6]],
 	    ($line->[7]) ? "$_SUBNET: $line->[7]" : "$_NETWORK",
-	    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }),
-	    $html->button($_CHANGE, "index=$index&chg=$line->[0]", { BUTTON => 1 }),
+	    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }),
+	    $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }),
 	    $html->button("$_ROUTES", "index=".get_function_index('dhcphosts_routes')."&NET_ID=$line->[0]", { BUTTON => 1 })
      );
     };
@@ -647,8 +647,8 @@ sub dhcphosts_hosts {
      }
 
     $table->addrow(@arr,
-	    $html->button($_CHANGE, "index=". get_function_index('dhcphosts_user') ."&chg=$line->[0]&MODULE=Dhcphosts&UID=$uid", { BUTTON => 1 }),
-	    $html->button($_DEL, "index=". get_function_index('dhcphosts_user') ."&del=$line->[0]&UID=$uid&IP=$line->[11]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 })
+	    $html->button($_CHANGE, "index=". get_function_index('dhcphosts_user') ."&chg=$line->[0]&MODULE=Dhcphosts&UID=$uid", { CLASS => 'change' }),
+	    $html->button($_DEL, "index=". get_function_index('dhcphosts_user') ."&del=$line->[0]&UID=$uid&IP=$line->[11]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' })
      );
    };
   print $table->show();	
@@ -729,8 +729,8 @@ sub dhcphosts_routes {
 	    $line->[2],
 	    $line->[3],
 	    $line->[4],
-	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&NET_ID=".$FORM{NET_ID}, { BUTTON => 1 } ),
-	    $html->button($_DEL, "index=$index&del=$line->[0]&NET_ID=".$FORM{NET_ID}, { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }),
+	    $html->button($_CHANGE, "index=$index&chg=$line->[0]&NET_ID=".$FORM{NET_ID}, { CLASS => 'change' } ),
+	    $html->button($_DEL, "index=$index&del=$line->[0]&NET_ID=".$FORM{NET_ID}, { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }),
       );
     };
 
