@@ -1435,7 +1435,7 @@ if ($sessions->{TOTAL} > 500)  {
     $line->[5],
     ($line->[6] > 0) ? $html->button("$line->[6]", "index=$index&NAS_ID=$line->[0]&ZAPED=1") : 0,
     $line->[7],
-    $html->button("$_SHOW", "index=$index&NAS_ID=$line->[0]", { BUTTON => 1 })
+    $html->button("$_SHOW", "index=$index&NAS_ID=$line->[0]", { CLASS => 'show' })
    );
   }
   print $table->show();
@@ -1535,7 +1535,7 @@ foreach my $nas_row (@$nas_list) {
                            "CONNECT_INFO: \n".
                            "UPDATES: $line->[$#ACTIVE_FIELDS+8]";
 
-    	  	$value = "<acronym title='$user_info'>".user_ext_menu("index=15&UID=$line->[$#ACTIVE_FIELDS+3]", $line->[0])."</acronym>";
+    	  	$value = "<acronym title='$user_info'>".user_ext_menu("$line->[$#ACTIVE_FIELDS+3]", $line->[0])."</acronym>";
           #Dublicate logins color yelow
  	  	    if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
     	   }	

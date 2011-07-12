@@ -1544,9 +1544,9 @@ sub log_rotate {
      'RENAME TABLE s_detail TO s_detail_'. $DATE .
       ', s_detail_new TO s_detail;',
 
-     'CREATE TABLE IF NOT EXISTS errors_log_new LIKE errors_log;',
-     'RENAME TABLE errors_log TO errors_log_'. $DATE .
-      ', errors_log_new TO errors_log;',
+     #'CREATE TABLE IF NOT EXISTS errors_log_new LIKE errors_log;',
+     #'RENAME TABLE errors_log TO errors_log_'. $DATE .
+     # ', errors_log_new TO errors_log;',
 
 
      'CREATE TABLE IF NOT EXISTS dv_log_intervals_new LIKE dv_log_intervals;',
