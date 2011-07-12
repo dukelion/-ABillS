@@ -60,8 +60,8 @@ my $status_bar = msgs_status_bar();
 						$line->[2], 
 						$STATUS[$line->[3]],
 						$line->[4],  
-						$html->button($_SHOW, "index=$index&chg=$line->[0]", { BUTTON => 1 }), 
-						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_SUPPLIER $line->[1]?", BUTTON => 1 }) : ''
+						$html->button($_SHOW, "index=$index&chg=$line->[0]", { CLASS => 'show' }), 
+						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_SUPPLIER $line->[1]?", CLASS => 'del' }) : ''
 		);
 	}
 	print $table->show() . $html->br();
@@ -112,10 +112,8 @@ my $status_bar = msgs_status_bar();
 															  	});
 	}
 	
-	if ($FORM{add_main}) {
-		
-		if ($FORM{SUBJECT} ne '') {
-		
+	if ($FORM{add_main}) {		
+		if ($FORM{SUBJECT} ne '') {		
 			$Notepad->notepad_add_note({ %FORM });
 			if (! $Notepad->{errno}) {
 				$html->tpl_show(_include('notepad_redirect', 'Notepad'), { 

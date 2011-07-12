@@ -274,6 +274,13 @@ CREATE TABLE `docs_invoice_orders` (
   KEY `invoice_id` (`invoice_id`)
 ) COMMENT='Docs invoices orders';
 
+CREATE TABLE `docs_invoice_orders` (
+  `uid` int(11) unsigned NOT NULL default '0' PRIMARY KEY,
+  `periodic_send_docs` tinyint(1) unsigned NOT NULL default '0',
+  `periodic_create_docs` tinyint(1) unsigned NOT NULL default '0',
+  `email` varchar(200) NOT NULL default '',
+) COMMENT='Docs users settings';
+
 
 CREATE TABLE `docs_tax_invoices` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,

@@ -244,7 +244,6 @@ a.change {
 	padding-top:5px;
 	margin:0;
 	display:block;
-	text-decoration:none;
 	overflow:hidden; 
  	text-indent:-9000px;
 }
@@ -262,7 +261,6 @@ a.del {
 	padding-top:5px;
 	margin:0;
 	display:block;
-	text-decoration:none;
 	overflow:hidden; 
  	text-indent:-9000px;
 }
@@ -273,7 +271,6 @@ a.users {
         padding-top:5px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
 }
@@ -285,7 +282,6 @@ a.payments {
         height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         font-size:0px;
 }
@@ -306,10 +302,8 @@ a.permissions {
         background:url(/img/button_permissions.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
-        height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
 }
@@ -318,10 +312,8 @@ a.history {
         background:url(/img/button_history.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
-        height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
 }
@@ -331,10 +323,8 @@ a.password {
         background:url(/img/button_password.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
-        height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
 }
@@ -343,10 +333,8 @@ a.shedule {
         background:url(/img/button_shedule.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
-        height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
 }
@@ -354,10 +342,8 @@ a.print {
         background:url(/img/button_print.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
-        height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
 }
@@ -366,10 +352,18 @@ a.stats {
         background:url(/img/button_stats.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
-        height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+a.sql {
+        background:url(/img/button_sql.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        margin:0;
+        display:block;
         overflow:hidden;
         text-indent:-9000px;
 }
@@ -379,10 +373,8 @@ a.stats2 {
         background:url(/img/chart_16.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
-        height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
 }
@@ -391,10 +383,8 @@ a.traffic {
         background:url(/img/button_traffic.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
-        height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
 }
@@ -403,10 +393,8 @@ a.interval {
         background:url(/img/button_interval.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
-        height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
 }
@@ -415,10 +403,8 @@ a.show {
         background:url(/img/button_show.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
-        height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
 }

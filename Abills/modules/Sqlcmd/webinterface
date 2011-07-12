@@ -24,7 +24,6 @@ sub sqlcmd {
 
 if ($FORM{qindex}) {
   print $html->header();
-
   $Sqlcmd->query($db, "SHOW CREATE TABLE $FORM{TABLE_INFO}");
   my $table = $html->table({ width        => '100%',
                              caption      => 'SQL Dump',
@@ -33,7 +32,7 @@ if ($FORM{qindex}) {
                            });
 
   print $table->show();
-  print $html->button("$_INFO", "index=$index&TABLE_INFO=$FORM{TABLE_INFO}", { BUTTON => 1}),
+  print $html->button("$_INFO", "index=$index&TABLE_INFO=$FORM{TABLE_INFO}", { CLASS => 'show' }),
   exit;
 }
 
@@ -48,8 +47,7 @@ my @pairs = split(/&/, $FORM{__BUFFER});
 $LIST_PARAMS{PAGE_ROWS}=15;
 
 if ($FORM{QUERY_ID}) {
-  $Sqlcmd_main->history_query({ %FORM });
-  
+  $Sqlcmd_main->history_query({ %FORM });  
   $FORM{QUERY}    = $Sqlcmd_main->{SQL_QUERY};
   $FORM2{QUERY}   = $FORM{QUERY};
   $Sqlcmd->{QUERY}= $FORM{QUERY};
@@ -107,8 +105,8 @@ if ($FORM{WIZARD}) {
 	foreach my $line (@$list) {
 		$table->addrow($line->[0], 
 		$line->[1], 
-		$html->button('QUERY', "index=$index&QUERY_ID=$line->[2]", { BUTTON => 1 }),
-		$html->button("$_DEL", "index=$index&del=$line->[2]", { MESSAGE => "$_DEL $line->[2]?", BUTTON => 1 }),
+		$html->button('QUERY', "index=$index&QUERY_ID=$line->[2]", { CLASS => 'sql' }),
+		$html->button("$_DEL", "index=$index&del=$line->[2]", { MESSAGE => "$_DEL $line->[2]?", CLASS => 'del' }),
 		
 		 );
 	 }
@@ -117,6 +115,7 @@ if ($FORM{WIZARD}) {
  
 
 if (! $FORM{FIELD}) {
+	$FORM{QUERY} =~ s/\\'/\'/g;
   $html->tpl_show(_include('sqlcmd', 'Sqlcmd'), { %$Sqlcmd, %FORM }) ;
   my $list = $Sqlcmd->list( { %FORM2 } ) if (defined($FORM2{QUERY}) && length($FORM2{QUERY}) > 10);
 
@@ -412,7 +411,7 @@ my %COLUMN_TYPES = (
 
   $table2 = $html->table({ width        => '100%',
                            border       => 1,
-                           title_plain  => [ $html->form_input('WIZARD', "$_SHOW", {TYPE => 'SUBMIT'}) ]
+                           title_plain  => [ $html->form_input('WIZARD', "$_SHOW", { TYPE => 'SUBMIT'}) ]
                         });
 	
 	
@@ -581,7 +580,7 @@ sub sqlcmd_tables {
     
     $table->addrow(
       @table_rows,
-      $html->button($_SHOW, "index=". ($index - 1).  "&TABLE_INFO=$line->{'Name'}&QUERY=SELECT * FROM $line->{'Name'} LIMIT $PAGE_ROWS", { BUTTON => 1 })
+      $html->button($_SHOW, "index=". ($index - 1).  "&TABLE_INFO=$line->{'Name'}&QUERY=SELECT * FROM $line->{'Name'} LIMIT $PAGE_ROWS", { CLASS => 'show' })
      );
 
     $tables_total++;
@@ -1022,7 +1021,7 @@ sub sqlcmd_procs {
                    $line->[6],
                    $line->[7],
                    $html->button($_DEL, "index=$index&del=$line->[0]", 
-                      { MESSAGE => "$_DEL $line->[0] ?", BUTTON => 1 }) );
+                      { MESSAGE => "$_DEL $line->[0] ?", CLASS => 'del' }) );
    }
 
   print $table->show();
