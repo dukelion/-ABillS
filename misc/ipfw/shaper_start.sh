@@ -22,18 +22,12 @@
 #                                    Enable ipoe_shaper
 #
 
+CLASSES_NUMS='2 3'
+VERSION=5.4
+
+
 name="abills_shaper"
 rcvar=`set_rcvar`
-load_rc_config $name
-run_rc_command "$1"
-
-
-CLASSES_NUMS='2 3'
-VERSION=5.3
-
-if [ x${abills_shaper_enable} = x ]; then
-  exit;
-fi;
 
 
 : ${abills_shaper_enable="NO"}
@@ -42,7 +36,17 @@ fi;
 : ${abills_ip_sessions=""}
 : ${abills_nat=""}
 : ${abills_dhcp_shaper="NO"}
+: ${abills_neg_deposit=""}
+: ${abills_portal_ip="me"}
 
+load_rc_config $name
+#run_rc_command "$1"
+
+
+if [ x${abills_shaper_enable} = xNO ]; then
+  exit;
+
+fi;
 
 
 
@@ -50,7 +54,7 @@ fi;
 NEG_DEPOSIT_FWD=${abills_neg_deposit};
 FWD_WEB_SERVER_IP=127.0.0.1;
 #Your user portal IP (Default: me)
-USER_PORTAL_IP=
+USER_PORTAL_IP=${abills_portal_ip}
 
 #Session Limit per IP
 SESSION_LIMIT=${abills_ip_sessions}
@@ -105,8 +109,7 @@ if [ w${ACTION} = wstart -a w$2 = w -a w${NG_SHAPPER} != w ]; then
 
 for num in ${CLASSES_NUMS}; do
   #  FW_NUM=`expr  `;
-    echo "Traffic: ${num} "
-
+  echo "Traffic: ${num} "
   #Shaped traffic
   ${IPFW} add ` expr 10000 - ${num} \* 10 ` skipto ` expr 10100 + ${num} \* 10 ` ip from table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2  `\) to table\(${num}\) ${IN_DIRECTION}
   ${IPFW} add ` expr 10000 - ${num} \* 10 + 5 ` skipto ` expr 10100 + ${num} \* 10 + 5 ` ip from table\(${num}\) to table\(` expr ${USER_CLASS_TRAFFIC_NUM} + ${num} \* 2 - 2 + 1 `\) ${OUT_DIRECTION}
@@ -158,7 +161,7 @@ fi;
 
 
 #IPoE Shapper for dhcp connections
-if [ w${abills_dhcp_shaper} != w ]; then
+if [ x${abills_dhcp_shaper} != xNO ]; then
   /usr/abills/libexec/ipoe_shapper.pl -d
 fi;
 
@@ -174,7 +177,6 @@ fi;
 # options         IPFIREWALL_FORWARD
 # options         IPFIREWALL_NAT          #ipfw kernel nat support
 # options         LIBALIAS
-
 #Nat Section
 if [ w"${abills_nat}" != w ] ; then
 # NAT External IP
@@ -249,10 +251,6 @@ if [ w${NEG_DEPOSIT_FWD} != w ]; then
   
   if [ w${DNS_IP} = w ]; then
     DNS_IP=`cat /etc/resolv.conf | grep nameserver | awk '{ print $2 }' | head -1`
-  fi;
-
-  if [ w${USER_PORTAL_IP} = w ]; then
-    USER_PORTAL_IP=me
   fi;
 
 FWD_RULE=10014;

@@ -20,8 +20,6 @@
 name="abills_ng_flow"
 rcvar=`set_rcvar`
 
-
-
 : ${abills_ng_flow_enable="NO"}
 : ${flow_export_interfaces=""}
 : ${abills_ng_flow_export_ip="127.0.0.1:9996"}
