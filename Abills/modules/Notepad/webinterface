@@ -70,7 +70,7 @@ my $status_bar = msgs_status_bar();
 						$STATUS[$line->[3]],
 						$line->[4],  
 						$html->button($_SHOW, "index=$index&chg=$line->[0]", { CLASS => 'show' }), 
-						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_SUPPLIER $line->[4]?", CLASS => 'del' }) : ''
+						$html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_SUPPLIER $line->[4]?", CLASS => 'del' })
 		);
 	}
 	print $table->show() . $html->br();
