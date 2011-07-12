@@ -1306,6 +1306,7 @@ sub add_groups {
 sub user_ext_menu {
 	my ($UID, $LOGIN, $attr)=@_;
 	
+
 my $payments_menu = (defined($permissions{1})) ? '<li>'. $html->button($_PAYMENTS, "UID=$UID&index=2").'</li>' : '';
 my $fees_menu     = (defined($permissions{2})) ? '<li>' .$html->button($_FEES, "UID=$UID&index=3").'</li>' : '';
 my $sendmail_manu = '<li>'. $html->button($_SEND_MAIL, "UID=$UID&index=31"). '</li>';
@@ -1376,7 +1377,7 @@ my $ext_menu = qq{
   
   my $return = $ext_menu; 
   if ($attr->{SHOW_UID}) {
-    $return .= ' : '. $html->button($html->b($LOGIN), "index=15&UID=$user_info->{UID}"). " (UID: $UID) ";
+    $return .= ' : '. $html->button($html->b($LOGIN), "index=15&UID=${UID}"). " (UID: $UID) ";
    }
   else {
     $return .= ' '. $html->button($LOGIN, "index=15&UID=$UID". (($attr->{EXT_PARAMS}) ? "&$attr->{EXT_PARAMS}" : ''));
@@ -1396,6 +1397,8 @@ sub user_info {
 	my $user_info = $users->info( $UID , { %FORM });
   
   my $deleted = ($user_info->{DELETED}) ? $html->color_mark($html->b($_DELETED), '#FF0000') : '';
+
+
 
   my $ext_menu = user_ext_menu($UID, $user_info->{LOGIN}, { SHOW_UID => 1 });
   
@@ -4116,7 +4119,7 @@ if ($FORM{newpassword} eq '') {
 
  }
 elsif (length($FORM{newpassword}) < $conf{PASSWD_LENGTH}) {
-  $html->message('err', $_ERROR,  "$ERR_SHORT_PASSWD");
+  $html->message('err', $_ERROR,  "$ERR_SHORT_PASSWD $conf{PASSWD_LENGTH}");
  }
 elsif ($FORM{newpassword} eq $FORM{confirm}) {
   $FORM{PASSWORD} = $FORM{newpassword};

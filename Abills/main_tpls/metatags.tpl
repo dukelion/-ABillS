@@ -40,6 +40,13 @@ td.small {
   height: 10;
 }
 
+td.medium {
+  color: %_COLOR_9%;
+  font-size: 11px;
+  background-color: %_COLOR_2%;
+  height: 14;
+}
+
 td.line {
   background-color: %_COLOR_9%;
   height: 1;

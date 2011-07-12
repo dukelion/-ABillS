@@ -2,6 +2,10 @@
 use Notepad;
 my $Notepad = Notepad->new($db, $admin, \%conf);
 
+
+
+
+
 #************************************************************
 #
 #************************************************************	
@@ -11,7 +15,7 @@ sub notepad_new {
   if ($attr->{AID}) {
     $Notepad->notepad_new( $attr );
 
-    if ($Notepad->{TOTAL} && ($Notepad->{TODAY} && $Notepad->{ACTIVE} && $Notepad->{TODAY} + $Notepad->{ACTIVE} > 0)) {
+    if ($Notepad->{TOTAL} && $Notepad->{TODAY} + $Notepad->{ACTIVE} > 0) {
       return "(". (($Notepad->{TODAY}) ? $html->color_mark($Notepad->{TODAY}, $_COLORS[6]) : $Notepad->{TODAY} )."/$Notepad->{ACTIVE})";
      }
    }
@@ -24,6 +28,11 @@ sub notepad_new {
 #************************************************************	
 sub notepad_main {
 @STATUS = ("$_ACTIVE", "$_CLOSED", "$_INWORK");
+
+
+	if ($FORM{message}) {				
+		$html->message('info', $_INFO, "$FORM{message}");	
+	}
 
 my $status_bar = msgs_status_bar();
 	print $html->br();
@@ -61,7 +70,7 @@ my $status_bar = msgs_status_bar();
 						$STATUS[$line->[3]],
 						$line->[4],  
 						$html->button($_SHOW, "index=$index&chg=$line->[0]", { CLASS => 'show' }), 
-						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_SUPPLIER $line->[1]?", CLASS => 'del' }) : ''
+						(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $_SUPPLIER $line->[4]?", CLASS => 'del' }) : ''
 		);
 	}
 	print $table->show() . $html->br();
@@ -92,7 +101,7 @@ my $status_bar = msgs_status_bar();
 			$Notepad->{ACTION_LNG}=$_CHANGE;
 		}
 		
-		$Notepad->{NOTIFIED}='0000-00-00 00:00:00';
+		$Notepad->{NOTIFIED}='00:00:00';
 		$Notepad->{STATUS}=$html->form_select("STATUS", 
 							{	SELECTED		=> $Notepad->{STATUS},
 								SEL_ARRAY		=> [ @STATUS ], 
@@ -100,20 +109,25 @@ my $status_bar = msgs_status_bar();
 								NO_ID			=> 1
 							});
 	}
-
+my $date .=	$html->date_fld2('DATE', { FORM_NAME => 'notepad_form', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => $Notepad->{DATE}});
 
 	
 	
 	if(!$FORM{add_main} and  !$FORM{change}) {
 	
 		$html->tpl_show(_include('notepad_main_form', 'Notepad'), {	%$Notepad,
-															  		ALIGN => 'right',														  
+															  		ALIGN => 'right',
+															  		DATE => $date,														  
 															  	
 															  	});
 	}
-	
-	if ($FORM{add_main}) {		
-		if ($FORM{SUBJECT} ne '') {		
+	if ($FORM{add_main}) {
+		
+		if ($FORM{TEXT} ne '') {
+			if (! $FORM{SUBJECT}) {
+	            $FORM{SUBJECT}=substr($FORM{TEXT}, 0,20).'...';
+	     	}
+		
 			$Notepad->notepad_add_note({ %FORM });
 			if (! $Notepad->{errno}) {
 				$html->tpl_show(_include('notepad_redirect', 'Notepad'), { 
@@ -134,12 +148,20 @@ my $status_bar = msgs_status_bar();
 					ARRAY_NUM_ID 	=> 0,
 					NO_ID			=> 1
 				});
-			$html->tpl_show(_include('notepad_main_form', 'Notepad'), {%$Notepad, %FORM});
+			$html->tpl_show(_include('notepad_main_form', 'Notepad'), {%$Notepad, 
+																		%FORM,
+																		DATE => $date
+																		});
 		
 		}
 	}
+
 	elsif ($FORM{change}) {
-		if ($FORM{SUBJECT} ne '') {
+		if ($FORM{TEXT} ne '') {
+			if (! $FORM{SUBJECT}) {
+	            $FORM{SUBJECT}=substr($FORM{TEXT}, 0,20).'...';
+	     	}
+	     	
 			$Notepad->notepad_note_change({ %FORM });
 			if (! $Notepad->{errno}) {
 	        	$html->tpl_show(_include('notepad_redirect', 'Notepad'), { 
@@ -157,8 +179,10 @@ my $status_bar = msgs_status_bar();
 					ARRAY_NUM_ID 	=> 0,
 					NO_ID			=> 1
 				});
+			$FORM{chg}=$FORM{ID};	
 			$html->tpl_show(_include('notepad_main_form', 'Notepad'), {%$Notepad, 
 																		%FORM,
+																		DATE => $date,
 																		ALIGN => 'right'} );
 
 		}

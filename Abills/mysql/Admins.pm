@@ -308,6 +308,10 @@ sub change {
            BIRTHDAY      => 'birthday'           
    );
  
+  if (! $attr->{A_LOGIN}) {
+  	delete $FIELDS{A_LOGIN};
+   }
+ 
   $admin->{MODULE}='';
   $IP   = $admin->{SESSION_IP};
   

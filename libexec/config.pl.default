@@ -16,7 +16,7 @@ $conf{dbcharset}='';
 $conf{ADMIN_MAIL}='admin@yourhost.com';
 $conf{USERS_MAIL_DOMAIN}='yourhost.com';
 $conf{MAIL_CHARSET}='windows-1251';
-$conf{default_language}='english';
+$conf{default_language}='russian';
 $conf{default_charset}='windows-1251';
 $conf{WEB_TITLE}='';
 

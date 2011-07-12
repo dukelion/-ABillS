@@ -25,11 +25,11 @@
 <tr bgcolor=$_COLORS[3]><td colspan=4> 
 <table cellspacing='1' cellpadding='0' border='0' width=100%>
 <tr><th align=left  bgcolor=$_COLORS[0]> %LOGIN% </th></tr>
-<tr><th  bgcolor=$_COLORS[1] class=small align=left><font size=-2>$_DATE: %DATE%</font> </th></tr>
+<tr><td class=medium align=left>$_ADDED: %DATE%</td></tr>
 </table>
 </td></tr>
 <tr><td bgcolor='$_COLORS[1]' colspan='4'>%MESSAGE%</td></tr>
-<tr><td bgcolor='$_COLORS[2]' colspan='4'>%ATTACHMENT%</td></tr>
+<tr><td class=medium  colspan='4'>%ATTACHMENT%</td></tr>
 <tr><td colspan='4' bgcolor='$_COLORS[1]'>%REPLY%</td></tr>
 </TABLE>
 

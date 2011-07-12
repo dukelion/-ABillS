@@ -5,11 +5,19 @@
 <input type=hidden name=ID value=$FORM{chg}>
 
 <table border=\"0\"   >
-
-  <tr>
-    <td align=%ALIGN%>$_DATE/$_TIME:</td>
+ <tr>
+    <td align=%ALIGN%>$_DATE:</td>
     <td>
-    	<input type=text name=NOTIFIED value=\"%NOTIFIED%\" size=25 />
+    	%DATE%
+    </td>
+  </tr>
+ <tr>
+ 
+ 
+  <tr>
+    <td align=%ALIGN%>$_TIME:</td>
+    <td>
+    	<input type=text name=NOTIFIED value=\"%NOTIFIED%\" size=12 />
     </td>
   </tr>
   <tr>

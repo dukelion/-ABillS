@@ -374,14 +374,13 @@ sub changes {
 
   my $CHANGES_QUERY = "";
   my $CHANGES_LOG = "";
-
-  while(my($k, $v)=each(%$FIELDS)) {
-#  	print "$k, $v ->  $OLD_DATA->{$k} / $DATA{$k}<br>\n";
-    if ($FIELDS->{$k} && (! defined($DATA{$k}) || $OLD_DATA->{$k} ne $DATA{$k})) {
-    	  
+  while(my($k, $v)=each(%DATA)) {
+    if ($FIELDS->{$k} && $OLD_DATA->{$k} ne $DATA{$k}) {
         if ($k eq 'PASSWORD' || $k eq 'NAS_MNG_PASSWORD') {
-          $CHANGES_LOG .= "$k *->*;";
-          $CHANGES_QUERY .= "$FIELDS->{$k}=ENCODE('$DATA{$k}', '$CONF->{secretkey}'),";
+          if ($DATA{$k}) {
+            $CHANGES_LOG .= "$k *->*;";
+            $CHANGES_QUERY .= "$FIELDS->{$k}=ENCODE('$DATA{$k}', '$CONF->{secretkey}'),";
+           }
          }
         elsif($k eq 'IP' || $k eq 'NETMASK') {
           if ($DATA{$k} !~ /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/) {

@@ -245,6 +245,7 @@ else {
       next if $firstline =~ /filename=\"\"/;
       $firstline =~ s/^Content-Disposition: form-data; //;
       my (@columns) = split(/;\s+/, $firstline);
+      
       ($name = $columns[0]) =~ s/^name=\"([^\"]+)\"$/$1/g;
       my $blankline;
       if ($#columns > 0) {
@@ -274,7 +275,7 @@ else {
            }
          }
         else {
-	        next if $datas =~ /^\s*$/;
+	        #next if $datas =~ /^\s*$/;
 	        $datas =~ s/"/\\"/g;
           $datas =~ s/'/\\'/g;
           $FORM{"$name"} = $datas;

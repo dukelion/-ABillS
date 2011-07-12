@@ -5,13 +5,13 @@
 
 <table cellspacing='1' cellpadding='0' border='0' width=100%>
 <tr><th  bgcolor=$_COLORS[0] align=left> %PERSON% </th></tr>
-<tr><th  bgcolor=$_COLORS[2] class=small align=left><font size=-2>$_DATE: %DATE%</font> </th></tr>
+<tr><td  class=medium align=left>$_ADDED: %DATE%</td></tr>
 </table>
 
 
 </th></tr>
 <tr><td bgcolor='%COLOR%' colspan='4'>%MESSAGE% <br><p align='right' class='noprint'>%QUOTING% %DELETE%</p></td></tr>
-<tr><td bgcolor='$_COLORS[2]' colspan='4'>%RUN_TIME% %ATTACHMENT%</td></tr>
+<tr><td class=medium colspan='4'>%RUN_TIME% %ATTACHMENT%</td></tr>
 </TABLE>
 </td>
 </TR>

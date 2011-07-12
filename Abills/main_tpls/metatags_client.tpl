@@ -79,6 +79,13 @@ td.small {
   height: 1;
 }
 
+td.medium {
+  color: %_COLOR_9%;
+  font-size: 11px;
+  background-color: %_COLOR_3%;
+  height: 14;
+}
+
 th, li {
   color: %_COLOR_9%;
   height: 24;
