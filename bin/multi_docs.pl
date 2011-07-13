@@ -15,6 +15,7 @@ use vars  qw(%RAD %conf @MODULES $db $html $DATE $TIME $GZIP $TAR
   $DEBUG
   %FORM
   $users
+  $Docs
 
   @ones
   @twos
@@ -79,7 +80,7 @@ my $Fees    = Finance->fees($db, $admin, \%conf);
 my $Users   = Users->new($db, $admin, \%conf);
 $users = $Users;
 my $Tariffs = Tariffs->new($db, $admin, \%conf);
-my $Docs    = Docs->new($db, $admin, \%conf);
+#my $Docs    = Docs->new($db, $admin, \%conf);
 my $Dv      = Dv->new($db, $admin, \%conf);
 
 require $Bin ."/../Abills/modules/Docs/lng_$conf{default_language}.pl";
@@ -206,17 +207,28 @@ foreach my $line (@$list) {
 
 
  	print "UID: $uid LOGIN: $line->[0] FIO: $line->[1] TP: $tp_id / $Module_name->{SEARCH_FIELDS_COUNT}\n" if ($debug > 2);
+
+  $Docs->user_info($uid);
+  if (! $Docs->{PERIODIC_CREATE_DOCS} ) {
+  	print "Skip create docs\n" if ($debug > 2);
+  	next;
+   }
+
+  %FORM = (
+           UID       => $uid,
+ 	         create    => 1,
+ 	         SEND_EMAIL=> $Docs->{SEND_DOCS},
+ 	         pdf       => 1,
+ 	         CUSTOMER  => '-',
+ 	         EMAIL     => $Docs->{EMAIL}
+ 	         );
+
+
 	#Add debetor accouns
   if ($line->[2] && $line->[2] < 0) {
 		print "  DEPOSIT: $line->[2]\n" if ($debug > 2);
-
-    %FORM = (SUM       => abs($line->[2]),
-             UID       => $uid,
-   	         create    => 1,
-           	 ORDER     => "$_DEBT",
-   	         SEND_EMAIL=> 1,
-   	         pdf       => 1,
-   	         CUSTOMER  => '-');
+		$FORM{SUM}  =abs($line->[2]);
+    $FORM{ORDER}="$_DEBT";
     docs_account({ QUITE => 1 });
 	 } 
 	
@@ -224,13 +236,8 @@ foreach my $line (@$list) {
   if ($TP_LIST->{$tp_id}) {
   	my ($tp_name, $fees_sum)=split(/;/, $TP_LIST->{$tp_id});
     print "  TP_ID: $tp_id FEES: $fees_sum\n" if ($debug > 2);
-    %FORM = (SUM       => $fees_sum,
-             UID       => $uid,
-   	         create    => 1,
-           	 ORDER     => "$_TARIF_PLAN",
-   	         SEND_EMAIL=> 1,
-   	         pdf       => 1,
-   	         CUSTOMER  => '-');
+		$FORM{SUM}  =$fees_sum;
+    $FORM{ORDER}="$_TARIF_PLAN";
     docs_account({ QUITE => 1 });	         
    }
 
@@ -284,13 +291,6 @@ sub prepaid_accounts_company {
  #$Company->{debug}=1;
  my $list = $Company->list({ 
 		                        DISABLE       => 0,
-#		                        COMPANY_ID    => 0,
-#                            CONTRACT_ID   => '*',
-#                            CONTRACT_DATE => '>=0000-00-00',
-#                            ADDRESS_STREET=> '*',
-#                            ADDRESS_BUILD => '*',
-#                            ADDRESS_FLAT  => '*',
-                            
 		                        PAGE_ROWS     => 1000000,
 #		                        %INFO_FIELDS_SEARCH,
 		                        SORT          => $sort,
@@ -321,17 +321,30 @@ foreach my $line (@$list) {
   	$admin_user = $admin_list->[0]->[4];
   	$admin_user_email = $admin_list->[0]->[3];
    }
+  #Check month periodic
+  $Docs->user_info($admin_user);
+  if (! $Docs->{PERIODIC_CREATE_DOCS} ) {
+  	print "Skip create docs\n" if ($debug > 2);
+  	next;
+   }
+
+  %FORM = (
+           UID       => $admin_user,
+   	       create    => 1,
+   	       SEND_EMAIL=> $Docs->{SEND_DOCS},
+   	       pdf       => 1,
+   	       CUSTOMER  => '-',
+   	       EMAIL     => $Docs->{EMAIL}
+   	      );
+
+   
   # make debt account
   if ($deposit < 0) {
-    %FORM = (SUM       => abs($deposit),
-             UID       => $admin_user,
-   	         create    => 1,
-           	 ORDER     => "$_DEBT",
-   	         SEND_EMAIL=> 1,
-   	         pdf       => 1,
-   	         CUSTOMER  => '-');
+    $FORM{SUM}= abs($deposit);
+    $FORM{ORDER}="$_DEBT";
     docs_account({ QUITE => 1 });
    }
+
   #Get company users
   my $list = $Dv->list({ 
  		                        DISABLE       => 0,
@@ -361,16 +374,10 @@ foreach my $line (@$list) {
   # make tps account
   if ($tp_sum > 0) {
   	print "TP SUM: $tp_sum\n";
-    %FORM = (SUM       => $tp_sum,
-             UID       => $admin_user,
-   	         create    => 1,
-           	 ORDER     => "$_TARIF_PLAN",
-   	         SEND_EMAIL=> 1,
-   	         pdf       => 1,
-   	         CUSTOMER  => '-');
+    $FORM{SUM}= $tp_sum;
+    $FORM{ORDER}="$_TARIF_PLAN";
     docs_account({ QUITE => 1 });	         
    }
-  
  }
 
 

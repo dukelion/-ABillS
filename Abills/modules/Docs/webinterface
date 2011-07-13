@@ -1237,9 +1237,9 @@ sub docs_account {
       }
      $Docs->account_add({ %FORM });
      if(! $Docs->{errno}) {
-       $FORM{ACCOUNT_ID}=$Docs->{DOC_ID};
+       $FORM{ACCOUNT_ID} =$Docs->{DOC_ID};
        $Docs->account_info($Docs->{DOC_ID}, { UID => $LIST_PARAMS{UID} });
-       $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $Docs->{FIO} || '-';
+       $Docs->{CUSTOMER} = $self->{COMPANY_NAME} || $Docs->{FIO} || '-';
        ($Docs->{SUM_MAIN}, $Docs->{SUM_SUB})=split(/\./, $Docs->{TOTAL_SUM});
 
        my $list = $Docs->{ORDERS};
@@ -1266,10 +1266,10 @@ sub docs_account {
        	 $users = $user if ($user->{UID});
        	 
          if (! $attr->{QUITE}) {
-       	   $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_CREATED. ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
+       	   $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}]\n $_DATE: $FORM{DATE} ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
        	  }
        	 
-       	 if ( $FORM{SEND_EMAIL}) {
+       	 if ($FORM{SEND_EMAIL}) {
             $FORM{print} = $FORM{ACCOUNT_ID};
          	  $FORM{pdf}   = 1;
           	delete($FORM{create});
@@ -1532,6 +1532,12 @@ sub docs_print {
        if ($users->{SEPARATE_DOCS}) {
        	 $tpl_sufix = "_$users->{GID}"; 
         }
+     }
+
+    $Docs->user_info($admin_user);
+    if ($Docs->{TOTAL} > 0) {
+    	$users->{EMAIL}    =$Docs->{EMAIL} if ($Docs->{EMAIL});
+    	$attr->{SEND_EMAIL}=$Docs->{SEND_DOCS} if ($Docs->{SEND_DOCS});
      }
    }
 
