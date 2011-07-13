@@ -416,8 +416,31 @@ a.show {
         text-indent:-9000px;
 }
 
+
+a.help {
+        background:url(/img/button_help.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        margin:0;
+        display:block;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+a.routes {
+        background:url(/img/button_routes.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        margin:0;
+        display:block;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+
+
 a.rightAlignText {
-	padding-left:15px;
+	padding-left:20px;
 	padding-top:0px;
 	display:inline-block;
 }

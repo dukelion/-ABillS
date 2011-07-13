@@ -523,9 +523,9 @@ function CheckAllINBOX() {
 	    $line->[5],
 	    $status[$line->[6]],
 	    ($line->[7]) ? "$_SUBNET: $line->[7]" : "$_NETWORK",
+       $html->button("$_ROUTES", "index=".get_function_index('dhcphosts_routes')."&NET_ID=$line->[0]", { CLASS => 'routes' }),
+        $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }),     
 	    $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }),
-	    $html->button($_CHANGE, "index=$index&chg=$line->[0]", { CLASS => 'change' }),
-	    $html->button("$_ROUTES", "index=".get_function_index('dhcphosts_routes')."&NET_ID=$line->[0]", { BUTTON => 1 })
      );
     };
 

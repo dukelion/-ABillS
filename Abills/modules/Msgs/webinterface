@@ -144,7 +144,7 @@ foreach my $admin_id (sort keys %A_PRIVILEGES) {
                   $table->td($msgs), 
                   $table->td($bool_vals[$mail_send]), 
                   $table->td($deligation_level),
-                  $table->td($html->button("$_CHANGE", "index=$index&chg=$aid&AID=$aid"), { rowspan => ($rows > 0) ? $rows+1 : 1, CLASS => 'change' })
+                  $table->td($html->button("$_CHANGE", "index=$index&chg=$aid&AID=$aid", { CLASS => 'change' }), { rowspan => (($rows > 0) ? $rows+1 : 1) })
                 );
 
   if ($rows > 0) {
@@ -2639,7 +2639,7 @@ foreach my $line (@$list) {
     $line->[2], 
     $line->[3],
     $line->[4],
-    $html->button("$_QUESTIONS", "index=$index&SURVEY=$line->[0]", { BUTTON => 1 }),
+    $html->button("$_QUESTIONS", "index=$index&SURVEY=$line->[0]", { CLASS => 'help'  }),
     $html->button("$_CHANGE", "index=$index&chg=$line->[0]", { CLASS => 'change' }),
     $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' })
    );

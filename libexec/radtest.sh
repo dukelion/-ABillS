@@ -3,7 +3,8 @@
 
 AUTH_LOG=/usr/abills/var/log/abills.log
 ACCT_LOG=/usr/abills/var/log/acct.log
-VERSION=0.10
+VERSION=0.11
+
 
 USER_NAME=test
 USER_PASSWORD=123456
@@ -65,6 +66,7 @@ ACCT_SESSION_TIME=300
 #}
 
 
+
 # Proccess command-line options
 #
 for _switch ; do
@@ -107,7 +109,7 @@ for _switch ; do
         -rad_file) RAD_FILE=$2;
                 shift; shift
                 ;;
-        -rad_secret)   RADIUS_SECRET=$1;
+        -rad_secret)   RADIUS_SECRET=$2;
                 shift; shift;
                 ;;
         -rad_ip)RADIUS_IP=$2;
@@ -132,7 +134,6 @@ if [ w${ACTION} != whelp ]; then
   fi;
 fi;
 
-
 # Make direct radius request
 if [ x${RADIUS_ACTION} = x1 ]; then
   if [ x${RADIUS_SECRET} = x ]; then
@@ -145,21 +146,14 @@ if [ x${RADIUS_ACTION} = x1 ]; then
 
   if [ x${ACTION} = x"acct" ]; then
     PORT=1813;
+    radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}
+    echo "radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}";
   else
     PORT=1812
+    radtest ${USER_NAME} ${USER_PASSWORD} ${RADIUS_IP}:${PORT} 0 ${RADIUS_SECRET} 0 ${NAS_IP_ADDRESS}
   fi;
 
   echo "Send params to radius: ${RADIUS_IP}:${PORT}"
-
-    radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}
-    
-    echo "radclient -f ${RAD_FILE}  ${RADIUS_IP}:${PORT} ${ACTION} ${RADIUS_SECRET}";
-    exit;
-  fi;
-
-
-  radtest ${USER_NAME} ${USER_PASSWORD} ${RADIUS_IP}:1812 0 ${RADIUS_SECRET} 0 ${NAS_IP_ADDRESS}
-
   exit;
 fi;
 

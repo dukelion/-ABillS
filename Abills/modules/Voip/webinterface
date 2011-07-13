@@ -704,7 +704,7 @@ if(defined($attr->{TP})) {
                   $table->td($line->[2]), 
                   $table->td($line->[3]), 
                   $table->td($line->[4]), 
-                  $table->td($html->button("$_ROUTES", "index=$index$pages_qs&routes=$line->[0]", { BUTTON => 1  })),
+                  $table->td($html->button("$_ROUTES", "index=$index$pages_qs&routes=$line->[0]", { CLASS => 'routes'   })),
                   $table->td($html->button("$_CHANGE", "index=$index$pages_qs&chg=$line->[0]", { CLASS => 'change' })),
                   $table->td($delete),
                   $table->td("&nbsp;", { bgcolor => '#'. $color, rowspan => ($line->[5] > 0) ? 2 : 1 })

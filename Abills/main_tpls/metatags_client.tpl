@@ -235,7 +235,6 @@ a.stats {
         height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
 }
@@ -247,7 +246,6 @@ a.change {
 	padding-top:5px;
 	margin:0;
 	display:block;
-	text-decoration:none;
 	overflow:hidden; 
  	text-indent:-9000px;
 }
@@ -265,7 +263,6 @@ a.del {
 	padding-top:5px;
 	margin:0;
 	display:block;
-	text-decoration:none;
 	overflow:hidden; 
  	text-indent:-9000px;
 }
@@ -277,7 +274,6 @@ a.show {
         height: 22px;
         margin:0;
         display:block;
-        text-decoration:none;
         overflow:hidden;
         text-indent:-9000px;
 }
@@ -515,6 +511,10 @@ div#tcal td:hover {
 	background-image: url(/img/filearch_user_video.png);
 }
 
+#ipn_user_activate {
+        background-image: url(/img/ipn_user_activate.png);
+}
+
 #filearch_user_video,
 #iptv_user_info,
 #form_payments,
@@ -529,7 +529,8 @@ div#tcal td:hover {
 #voip_user_info,
 #logout,
 #ureports_user_info,
-#sharing_user_info {
+#sharing_user_info,
+#ipn_user_activate {
 	background-repeat:no-repeat;
 	background-position:0% 0%;
 	padding:8px 0 5px 37px;
