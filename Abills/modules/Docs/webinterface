@@ -2065,4 +2065,65 @@ if ($FORM{CREATE_INVOICE}) {
 }
 
 
+
+#**********************************************************
+# docs_dv
+#**********************************************************
+sub docs_user {
+ 	my ($attr) = @_;
+
+  if ($FORM{add}) {
+    if (! $permissions{0}{1} ) {
+      $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
+    	return 0;
+     }
+
+    $Docs->user_add({ %FORM });
+    if (! $Docs->{errno}) {
+      $html->message('info', $_INFO, "$_ADDED");	
+     }
+   }
+	elsif($FORM{change}) {
+    if (! $permissions{0}{4} ) {
+      $html->message('err', $_ERROR, "$ERR_ACCESS_DENY");  	
+    	return 0;
+     }
+
+    $Docs->user_change({ %FORM });
+
+    if (! $Docs->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+   }
+	elsif($FORM{del}) {
+    $Docs->user_del();
+    if (! $Docs->{errno}) {
+      $html->message('info', $_INFO, "$_DELETED");	
+     }
+	 }
+
+  if ($Docs->{errno}) {
+    $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}");
+   }
+
+  $Docs->user_info($FORM{UID});
+
+  if($Docs->{TOTAL} < 1) {
+	  $html->message('info', $_INFO, $_NOT_ACTIVE);
+	  $Docs->{ACTION}='add';
+	  $Docs->{LNG_ACTION}=$_ACTIVATE;
+	 }
+	else {
+	  $Docs->{ACTION}='change';
+	  $Docs->{LNG_ACTION}=$_CHANGE;
+   }
+
+  $Docs->{PERIODIC_CREATE_DOCS}=($Docs->{PERIODIC_CREATE_DOCS}) ? 'checked' : '';
+	$Docs->{SEND_DOCS}=($Docs->{SEND_DOCS}) ? 'checked' : '';
+  
+  $html->tpl_show(_include('docs_user', 'Docs'), $Docs, {  });
+  return 0; 
+}
+
+
 1
