@@ -98,8 +98,7 @@ sub tariff_info {
    ext_cmd,
    activate_notification,
    vat,
-   discount
-   
+   discount   
      FROM abon_tariffs
    $WHERE;");
 
@@ -291,7 +290,7 @@ sub tariff_list {
      ext_cmd,
      activate_notification,
      vat,
-     discount
+     abon_tariffs.discount
      FROM abon_tariffs
      LEFT JOIN abon_user_list ul ON (abon_tariffs.id=ul.tp_id)
      $WHERE
@@ -446,6 +445,7 @@ sub user_tariff_list {
         )
        )
       ),
+   ul.discount,
    count(ul.uid),
    ul.notification1,
    ul.notification1_account_id,
@@ -502,7 +502,7 @@ sub user_tariff_change {
    	  $date = 'curdate()';
     }
  	 
-   $self->query($db, "INSERT INTO abon_user_list (uid, tp_id, comments, date) VALUES ('$attr->{UID}', '$tp_id', '". $attr->{'COMMENTS_'. $tp_id} ."', $date);", 'do');
+   $self->query($db, "INSERT INTO abon_user_list (uid, tp_id, comments, date, discount) VALUES ('$attr->{UID}', '$tp_id', '". $attr->{'COMMENTS_'. $tp_id} ."', $date, '". $attr->{'DISCOUNT_'. $tp_id} ."');", 'do');
    $abon_log.="$tp_id, ";
   }
 
@@ -676,7 +676,8 @@ sub periodic_list {
         )
        )
       ) AS nextfees_date,
-    if(at.discount=1, u.reduction, 0)
+    if(ul.discount>0, ul.discount,
+     if(at.discount=1, u.reduction, 0))
   FROM (abon_tariffs at, abon_user_list ul, users u)
      LEFT JOIN bills b ON (u.bill_id=b.id)
      LEFT JOIN companies c ON (u.company_id=c.id)

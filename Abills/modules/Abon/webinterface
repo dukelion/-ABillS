@@ -72,7 +72,6 @@ sub abon_user {
         if(($users->{CREDIT} + $users->{DEPOSIT}) > $line->[1] || $line->[3] || time() < $seltime) {
         	$Abon->{TP_INFO}->{PERIOD_ALIGNMENT} = $line->[5] || 0;
         	$Abon->{TP_INFO}->{MONTH_FEE}        = $line->[1];
-
           $Abon->{TP_INFO}->{TP_ID}            = $line->[7];
           $Abon->{TP_INFO}->{NAME}             = $line->[0]; 
           $Abon->{COMMENTS}                    = $FORM{'COMMENTS_'.$line->[7]}; 
@@ -80,7 +79,7 @@ sub abon_user {
           $Abon->{TP_INFO}->{CREATE_ACCOUNT}   = $line->[9]; 
           $ext_cmd                             = $line->[10]; 
           $activate_notification               = $line->[11];
-          $Abon->{TP_INFO}->{DISCOUNT}   = $line->[13];
+          $Abon->{TP_INFO}->{DISCOUNT}         = $line->[13];
 
 
           if ($FORM{'DATE_'.$Abon->{TP_INFO}->{TP_ID}} && $FORM{'DATE_'.$Abon->{TP_INFO}->{TP_ID}} ne '0000-00-00') {
@@ -92,6 +91,13 @@ sub abon_user {
           my %PARAMS = ( DESCRIBE => "$_ABON: [$line->[7]]" . (($FORM{'COMMENTS_'.$line->[7]})? $FORM{'COMMENTS_'.$line->[7]} : "$line->[0]"),
                          METHOD   => $Abon->{TP_INFO}->{FEES_TYPE}  );
 
+          if ($FORM{'DISCOUNT_'.$Abon->{TP_INFO}->{TP_ID}}) {
+          	$Abon->{TP_INFO}->{MONTH_FEE} = $Abon->{TP_INFO}->{MONTH_FEE} * ((100 - $FORM{'DISCOUNT_'.$Abon->{TP_INFO}->{TP_ID}}) / 100);          	
+           }
+          elsif ($Abon->{TP_INFO}->{DISCOUNT} && $users->{REDUCTION} > 0){
+            $Abon->{TP_INFO}->{MONTH_FEE} = $Abon->{TP_INFO}->{MONTH_FEE} * ((100 - $users->{REDUCTION}) / 100);          	
+           }
+
           if (time() < $seltime) {
 
            }
@@ -100,10 +106,9 @@ sub abon_user {
             abon_get_month_fee($Abon);      
            }
           else {
-          	$Abon->{TP_INFO}->{MONTH_FEE} = $Abon->{TP_INFO}->{MONTH_FEE} * (100 - $users->{REDUCTION} / 100) if ($Abon->{TP_INFO}->{DISCOUNT} && $users->{REDUCTION} > 0);          	
             $fees->take($users, $Abon->{TP_INFO}->{MONTH_FEE}, { %PARAMS } ); 
             if ($fees->{errno}) {
-        	    $html->message('err', $_ERROR, "[$fees->{errno}] $fees->{errstr}");	
+        	    $html->message('err', "$_FEES : $_ERROR", "[$fees->{errno}] $fees->{errstr}");	
              }
             else {
             	my $message = "$_ABON: $Abon->{TP_INFO}->{MONTH_FEE} ($Abon->{TP_INFO}->{TP_ID})";
@@ -118,13 +123,12 @@ sub abon_user {
            }
 
           if($Abon->{TP_INFO}->{CREATE_ACCOUNT}) {
-          	$LIST_PARAMS{UID}= $users->{UID};
+          	#$LIST_PARAMS{UID}= $users->{UID};
           	$FORM{SUM}       = $Abon->{TP_INFO}->{MONTH_FEE};
           	$FORM{UID}       = $users->{UID};
    	        $FORM{create}    = 1;
    	        $FORM{CUSTOMER}  = '-';
    	        $FORM{ORDER}     = "$_ABON: [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME}";
-    	      $FORM{EMAIL}     = $users->{EMAIL};
     	      $FORM{SEND_EMAIL}= 1;
     	      docs_account({ QUITE => 1 });    	
            }
@@ -144,7 +148,7 @@ sub abon_user {
           push @add_arr, $line->[7];
          }
         else {
-      	  $html->message('err', $_ERROR, "$_TARIF_PLAN: [$line->[7]] $line->[0]\n$ERR_SMALL_DEPOSIT");
+      	  $html->message('err', "$_ABON : $_ERROR", "$_TARIF_PLAN: [$line->[7]] $line->[0]\n$ERR_SMALL_DEPOSIT");
          }
        }
      }
@@ -169,7 +173,7 @@ sub abon_user {
 my $list = $Abon->user_tariff_list($FORM{UID});
 my $table = $html->table( { width      => '100%',
                             caption    => "$_ABON",
-                            title      => ['-', $_NAME, $_COMMENTS, $_SUM, $_PERIOD, $_LAST_ABON, $_NEXT_ABON ],
+                            title      => ['-', $_NAME, $_COMMENTS, $_SUM, $_PERIOD, $_LAST_ABON, $_NEXT_ABON, "$_REDUCTION (%)" ],
                             cols_align => ['left', 'left', 'left', 'right', 'left', 'right', 'right'],
                             qs         => $pages_qs,
                             ID         => 'USER_ABON'
@@ -178,13 +182,14 @@ my $table = $html->table( { width      => '100%',
 
 foreach my $line (@$list) {
   $table->addrow($line->[0] . $html->form_input('IDS', "$line->[0]", { TYPE => 'CHECKBOX', 
-  	                                                      STATE => ($line->[7] == 1) ? 1 : undef   }),
+  	                                                      STATE => ($line->[8] == 1) ? 1 : undef   }),
      ($permissions{5}) ? $html->button($line->[1], "index=".get_function_index('abon_tariffs').'&ABON_ID='.$line->[0]) : "$line->[1]",
      $html->form_input('COMMENTS_'.$line->[0], "$line->[2]", { SIZE => 40 }),
      "$line->[3]", 
      $PERIODS[$line->[4]], 
      "$line->[5]",
-     ($line->[6]) ? "$line->[6]" : $html->date_fld2('DATE_'.$line->[0], { FORM_NAME => 'ABON_USER_TPS', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => '0000-00-00' })
+     ($line->[6]) ? "$line->[6]" : $html->date_fld2('DATE_'.$line->[0], { FORM_NAME => 'ABON_USER_TPS', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => '0000-00-00' }),
+     $html->form_input('DISCOUNT_'.$line->[0], "$line->[7]", { SIZE => '8'   })
    );
  }
 
@@ -518,7 +523,6 @@ sub abon_periodic {
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
-   	       $FORM{EMAIL}     = $email;
    	       $FORM{SEND_EMAIL}= 1;
 
    	       docs_account({ QUITE => 1 });
@@ -552,7 +556,6 @@ sub abon_periodic {
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
-   	       $FORM{EMAIL}     = $email;
    	       $FORM{SEND_EMAIL}= 1;
    	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
    	       $attach = [ { CONTENT      => $content,
@@ -593,7 +596,6 @@ sub abon_periodic {
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
-   	       $FORM{EMAIL}     = $email;
    	       $FORM{SEND_EMAIL}= 1;
    	       $FORM{pdf}       = $conf{DOCS_PDF_PRINT};
    	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });

@@ -1216,16 +1216,16 @@ sub docs_account {
  if ($FORM{create}) {
    $FORM{SUM} =~ s/\,/\./g;
    if ($FORM{OP_SID} and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
- 	   $html->message('err', $_ERROR, "$_EXIST");
+ 	   $html->message('err', "$_DOCS : $_ERROR", "$_EXIST");
     }
    elsif (! $FORM{SUM_1} && $FORM{SUM} < 0.01) {
-     $html->message('err', "$_ERROR", "$_WRONG_SUM");
+     $html->message('err', "$_DOCS :$_ERROR", "$_WRONG_SUM");
     }
    #elsif(! $LIST_PARAMS{UID}) {
    #  $html->message('err', "$_ERROR", "$_SELECT_USER");
    # }
    elsif(! $FORM{CUSTOMER}) {
-     $html->message('err', "$_ERROR", "$_ORG_NAME");
+     $html->message('err', "$_DOCS : $_ERROR", "$_ORG_NAME");
     }
    elsif($FORM{PREVIEW}) {
      docs_preview('account', { %FORM });
@@ -1382,7 +1382,7 @@ sub docs_account {
       }
     }
    else {
-     $html->message('err', $_ERROR, "[$Docs->{errno}] $err_strs{$Docs->{errno}}") if (! $FORM{QUICK});
+     $html->message('err', "$_DOCS : $_ERROR", "[$Docs->{errno}] $err_strs{$Docs->{errno}}") if (! $FORM{QUICK});
     }
    return 0;
   }
@@ -1534,7 +1534,7 @@ sub docs_print {
         }
      }
 
-    $Docs->user_info($admin_user);
+    $Docs->user_info($Docs->{UID});
     if ($Docs->{TOTAL} > 0) {
     	$users->{EMAIL}    =$Docs->{EMAIL} if ($Docs->{EMAIL});
     	$attr->{SEND_EMAIL}=$Docs->{SEND_DOCS} if ($Docs->{SEND_DOCS});

@@ -32,5 +32,6 @@ CREATE TABLE `abon_user_list` (
   `notification1` date NOT NULL default '0000-00-00',
   `notification1_account_id` int(11) unsigned NOT NULL DEFAULT 0, 
   `notification2` date NOT NULL default '0000-00-00',
+  `discount`  double(6,2) NOT NULL default '0.00',
   KEY `uid` (`uid`, `tp_id`)
 ) COMMENT='Abon user list';
