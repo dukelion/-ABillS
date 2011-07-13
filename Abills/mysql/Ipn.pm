@@ -1007,18 +1007,20 @@ sub recalculate {
 sub online_alive {
   my $self = shift;
 	my ($attr) = @_;
+
+  my $session_id = ($attr->{SESSION_ID}) ? "and acct_session_id='$attr->{SESSION_ID}'" : '';
 	
   $self->query($db, "SELECT CID FROM dv_calls
-   WHERE  user_name = '$attr->{LOGIN}'  
-    and acct_session_id='$attr->{SESSION_ID}'
+   WHERE  user_name = '$attr->{LOGIN}'    
     and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')
     ;");
  
   if ($self->{TOTAL} > 0) {
     my $sql = "UPDATE dv_calls SET  lupdated=UNIX_TIMESTAMP(),
-    CONNECT_INFO='$attr->{CONNECT_INFO}'
+    CONNECT_INFO='$attr->{CONNECT_INFO}',
+    status=3
      WHERE user_name = '$attr->{LOGIN}'  
-    and acct_session_id='$attr->{SESSION_ID}'
+    $session_id
     and framed_ip_address=INET_ATON('$attr->{REMOTE_ADDR}')";
 
     $self->query($db, $sql, 'do' );

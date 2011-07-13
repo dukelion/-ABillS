@@ -606,7 +606,7 @@ sub dv_user {
       }
       
     $Dv->{NETMASK_COLOR} = ($Dv->{NETMASK} ne '255.255.255.255') ? $_COLORS[0] : $_COLORS[1];
-    $Dv->{SHEDULE}=$html->button("$_SHEDULE", "UID=$FORM{UID}&Shedule=status&index=". get_function_index('dv_shedule'), { CLASS => 'shedule rightAlignText' });
+    $Dv->{SHEDULE}=$html->button("$_SHEDULE", "UID=$FORM{UID}&Shedule=status&index=". get_function_index('dv_sheduler'), { CLASS => 'shedule rightAlignText' });
 
     my $list = $sessions->online({ UID => $Dv->{UID} });
     

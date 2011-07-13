@@ -417,7 +417,7 @@ my $table = $html->table( { width        => '100%',
 my $delete = '';
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
-    $delete = $html->button($_DEL, "index=". $index ."&$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?", BUTTON => 1 });
+    $delete = $html->button($_DEL, "index=". $index ."&$pages_qs&del=$line->[12]+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", { MESSAGE => "$_DEL Session SESSION_ID $line->[11]?", CLASS => 'del' });
    }
 
   $table->addrow($line->[0],
@@ -427,7 +427,7 @@ foreach my $line (@$list) {
      $line->[4], 
      $line->[5],
      $line->[6], 
-     $html->button("$_HOSTS", "index=$index$pages_qs", { BUTTON => 1 })
+     $html->button("$_HOSTS", "index=$index$pages_qs", { CLASS => 'host' })
   );
 }
 
@@ -1261,7 +1261,15 @@ sub ipn_user_activate {
       $html->message('err', $_ERROR, "Unknown NAS");  	
      }
     else {
-      my $user  = $users->info( $LIST_PARAMS{UID} );
+    	my $user  = $users->info( $LIST_PARAMS{UID} );
+    	$Ipn->online_alive({ 
+    		LOGIN      => $user->{LOGIN} || $users->{LOGIN}, 
+        REMOTE_ADDR=> $ip,
+  		 });
+    	
+    	
+    	if ($Ipn->{TOTAL} < 1) {
+      
       $Nas->info({ NAS_ID => $nas_id });
       my %DATA = (ACCT_STATUS_TYPE   => 1, 
                   USER_NAME          => $user->{LOGIN}, 
@@ -1314,6 +1322,10 @@ sub ipn_user_activate {
          }
        }
      }
+    else {
+    	$html->message('info', $_INFO, "$_ACTIVATED");
+     }
+    }
    }
   elsif ($FORM{LOGOUT}) {
   	 my $user = $users->info( $LIST_PARAMS{UID} );
@@ -1399,7 +1411,7 @@ sub ipn_user_activate {
        $line->[4], 
        int2byte($line->[5]), 
        int2byte($line->[6]),
-       $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]&REMOTE_ADDR=$online_ip&sid=$html->{SID}", { BUTTON => 1})
+       $html->button("$_HANGUP", "index=$index&UID=$LIST_PARAMS{UID}&LOGOUT=1&SESSION_ID=$line->[21]&REMOTE_ADDR=$online_ip&sid=$html->{SID}", { BUTTON => 1 })
        )  if ($line->[11] == $LIST_PARAMS{UID});
     }
     $online_session = $table->show({ OUTPUT2RETURN => 1 });	
@@ -1657,7 +1669,7 @@ foreach my $nas_row (@$nas_list) {
       int2byte($line->[6]), 
       $line->[7],
      "$status",
-      $html->button("$_DETAIL", "index=$index&DETAIL=$line->[21]", { TITLE => 'Detail', BUTTON => 1 }),
+      $html->button("$_DETAIL", "index=$index&DETAIL=$line->[21]", { TITLE => 'Detail', CLASS => 'stats' }),
       $html->button('P', "index=$index&ping=$ip", { TITLE => 'ping', BUTTON => 1  }),
       $html->button('H', "index=$index&HANGUP=$ip&SESSION_ID=$line->[9]", { TITLE => 'Hangup', BUTTON => 1  })
      );
@@ -1758,8 +1770,8 @@ foreach $line (@$list) {
 	 $line->[1],
 	 $line->[2],
 	 $line->[3],
-	 $html->button($_CHANGE, "index=$index&chg=$line->[4]", { BUTTON => 1 }),
-	 $html->button($_DEL, "index=$index&$pages_qs&del=$line->[4]", { MESSAGE => "$_DEL '$line->[1]?", BUTTON => 1 })
+	 $html->button($_CHANGE, "index=$index&chg=$line->[4]", { CLASS => 'change' }),
+	 $html->button($_DEL, "index=$index&$pages_qs&del=$line->[4]", { MESSAGE => "$_DEL '$line->[1]?", CLASS => 'del' })
 	);
 }
 print $table->show();
