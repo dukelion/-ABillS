@@ -1323,7 +1323,7 @@ sub ipn_user_activate {
        }
      }
     else {
-    	$html->message('info', $_INFO, "$_ACTIVATED");
+    	$html->message('info', $_INFO, "$_ACTIVATE");
      }
     }
    }
