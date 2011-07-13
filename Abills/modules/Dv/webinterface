@@ -4165,7 +4165,7 @@ sub dv_holdup_service {
   chop($del_ids);
 
   if($Shedule->{TOTAL} > 0) {
-  	$html->message('info', $_INFO, "$_HOLD_UP $Shedule_val{3} -> $Shedule_val{0} " . (($Shedule->{TOTAL} > 1) ? $html->button("$_DEL", "index=$index&del=$del_ids&sid=$sid", { BUTTON => 1 }) : '')
+  	$html->message('info', $_INFO, "$_HOLD_UP $Shedule_val{3} -> $Shedule_val{0} " . (($Shedule->{TOTAL} > 1) ? $html->br().$html->button("$_DEL", "index=$index&del=$del_ids&sid=$sid", { BUTTON => 1,  MESSAGE =>  "$_DEL $_HOLD_UP?" }) : '')
   	);
         
   	return 0;

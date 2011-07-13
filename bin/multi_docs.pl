@@ -108,6 +108,7 @@ if (! -d $pdf_result_path) {
   print "Directory no exists '$pdf_result_path'. Created." if ($debug > 0);
  }
 
+require $Bin ."/../Abills/modules/Docs/webinterface";
 
 $docs_in_file    = $ARGV->{DOCS_IN_FILE} || $docs_in_file;
 my $save_filename = $pdf_result_path .'/multidoc_.pdf';
@@ -144,8 +145,6 @@ if ($begin_time > 0)  {
 sub send_accounts {
   my ($attr) = @_;
 
-  require $Bin ."/../Abills/modules/Docs/webinterface";
-
   foreach my $id ( @{ $attr->{ACCOUNTS_IDS} } ) {
    	$FORM{pdf}   = 1;
    	$FORM{print} = $id;
@@ -178,7 +177,6 @@ sub prepaid_accounts {
  my $Module_name = $MODULES[0]->new($db, $admin, \%conf);
  $LIST_PARAMS{TP_ID} = $ARGV->{TP_ID} if ($ARGV->{TP_ID});
  $LIST_PARAMS{LOGIN} = $ARGV->{LOGIN} if ($ARGV->{LOGIN});
- my @accounts_ids = ();
  my $TP_LIST = get_tps();
 
  my $list = $Module_name->list({ 
@@ -199,8 +197,8 @@ sub prepaid_accounts {
 		                       });
 
   my @MULTI_ARR = ();
-  my $doc_num = 0;
   my %EXTRA    = ();
+  my $doc_num = 0;
 
 foreach my $line (@$list) {
 	my $uid      = $line->[(6+$Module_name->{SEARCH_FIELDS_COUNT})];
@@ -211,35 +209,33 @@ foreach my $line (@$list) {
 	#Add debetor accouns
   if ($line->[2] && $line->[2] < 0) {
 		print "  DEPOSIT: $line->[2]\n" if ($debug > 2);
-    $Docs->account_add({ UID   => $uid,
- 	  	                   SUM   => abs($line->[2]),
- 	   	                   ORDER => "$_DEBT"  });
-		push @accounts_ids, $Docs->{DOC_ID};
-		$doc_num++
+
+    %FORM = (SUM       => abs($line->[2]),
+             UID       => $uid,
+   	         create    => 1,
+           	 ORDER     => "$_DEBT",
+   	         SEND_EMAIL=> 1,
+   	         pdf       => 1,
+   	         CUSTOMER  => '-');
+    docs_account({ QUITE => 1 });
 	 } 
 	
 	#add  tp account
   if ($TP_LIST->{$tp_id}) {
   	my ($tp_name, $fees_sum)=split(/;/, $TP_LIST->{$tp_id});
     print "  TP_ID: $tp_id FEES: $fees_sum\n" if ($debug > 2);
-    $Docs->account_add({ UID   => $uid,
- 	  	                   SUM   => abs($fees_sum),
- 	   	                   ORDER => "$_TARIF_PLAN: $tp_name"  
- 	   	                 });
-    push @accounts_ids, $Docs->{DOC_ID};
-    $doc_num++
+    %FORM = (SUM       => $fees_sum,
+             UID       => $uid,
+   	         create    => 1,
+           	 ORDER     => "$_TARIF_PLAN",
+   	         SEND_EMAIL=> 1,
+   	         pdf       => 1,
+   	         CUSTOMER  => '-');
+    docs_account({ QUITE => 1 });	         
    }
 
  }
-
-
-
-
 print "TOTAL USERS: $Module_name->{TOTAL} DOCS: $doc_num\n";
-
-if ($debug < 5) {
-  send_accounts({ ACCOUNTS_IDS => \@accounts_ids });
- }
 }
 
 #**********************************************************
@@ -327,11 +323,14 @@ foreach my $line (@$list) {
    }
   # make debt account
   if ($deposit < 0) {
-  	$Docs->account_add({ UID   => $admin_user,
-	  	                   SUM   => abs($deposit),
- 	   	                   ORDER => "$_DEBT"  
-	   	                 });
-	  push @accounts_ids, $Docs->{DOC_ID} if ($admin_user_email ne '');
+    %FORM = (SUM       => abs($deposit),
+             UID       => $admin_user,
+   	         create    => 1,
+           	 ORDER     => "$_DEBT",
+   	         SEND_EMAIL=> 1,
+   	         pdf       => 1,
+   	         CUSTOMER  => '-');
+    docs_account({ QUITE => 1 });
    }
   #Get company users
   my $list = $Dv->list({ 
@@ -362,23 +361,20 @@ foreach my $line (@$list) {
   # make tps account
   if ($tp_sum > 0) {
   	print "TP SUM: $tp_sum\n";
-    $Docs->account_add({ UID   => $admin_user,
- 	  	                   SUM   => abs($tp_sum),
- 	   	                   ORDER => "$_TARIF_PLAN"  
- 	   	                 });
- 	  push @accounts_ids, $Docs->{DOC_ID} if ($admin_user_email ne '');
+    %FORM = (SUM       => $tp_sum,
+             UID       => $admin_user,
+   	         create    => 1,
+           	 ORDER     => "$_TARIF_PLAN",
+   	         SEND_EMAIL=> 1,
+   	         pdf       => 1,
+   	         CUSTOMER  => '-');
+    docs_account({ QUITE => 1 });	         
    }
   
  }
 
 
 print "TOTAL USERS: $Company->{TOTAL} DOCS: $doc_num\n";
-
-if ($debug < 5) {
-  send_accounts({ ACCOUNTS_IDS => \@accounts_ids });
- }
-
-
 }
 
 

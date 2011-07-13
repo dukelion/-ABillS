@@ -227,7 +227,7 @@ sub docs_invoice {
                                      NO_ID       => 1
  	                                  });
 
-    $users->pi({ $users->{UID} });
+    $users->pi({ UID => $users->{UID} });
     $Docs->{OP_SID}  = mk_unique_value(16);
     $Docs->{CUSTOMER}= $users->{FIO} || '-';
     $Docs->{CAPTION} = $_INVOICE;
@@ -1068,7 +1068,7 @@ sub docs_tax_invoice {
 
   #$Docs->{COMPANY_VAT}=$user->{COMPANY_VAT}.' %';
   $Docs->{OP_SID}  = mk_unique_value(16);
-  $users->pi({  $users->{UID} });
+  $users->pi({  UID => $users->{UID} });
 
   $Docs->{CUSTOMER}=  $users->{FIO} || '-';
   $Docs->{CAPTION} =  $_ACCOUNT;
@@ -1211,7 +1211,8 @@ sub docs_account {
  my ($attr) = @_;
  $Docs->account_defaults();		
  $Docs->{DATE}=$DATE;
-
+ $FORM{UID}=$LIST_PARAMS{UID} if (! $FORM{UID}); 
+  
  if ($FORM{create}) {
    $FORM{SUM} =~ s/\,/\./g;
    if ($FORM{OP_SID} and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
@@ -1220,9 +1221,9 @@ sub docs_account {
    elsif (! $FORM{SUM_1} && $FORM{SUM} < 0.01) {
      $html->message('err', "$_ERROR", "$_WRONG_SUM");
     }
-   elsif(! $LIST_PARAMS{UID}) {
-     $html->message('err', "$_ERROR", "$_SELECT_USER");
-    }
+   #elsif(! $LIST_PARAMS{UID}) {
+   #  $html->message('err', "$_ERROR", "$_SELECT_USER");
+   # }
    elsif(! $FORM{CUSTOMER}) {
      $html->message('err', "$_ERROR", "$_ORG_NAME");
     }
@@ -1231,12 +1232,9 @@ sub docs_account {
      return 0;
     }
    else {
-     $FORM{UID}=$LIST_PARAMS{UID} if (! $FORM{UID});
-     
      if ($FORM{VAT} && $FORM{VAT} == 1) {
      	 $FORM{VAT} = $conf{DOCS_VAT_INCLUDE};
       }
-     
      $Docs->account_add({ %FORM });
      if(! $Docs->{errno}) {
        $FORM{ACCOUNT_ID}=$Docs->{DOC_ID};
@@ -1250,7 +1248,8 @@ sub docs_account {
        foreach my $line (@$list) {
    	     $i++;
    	     my $sum = sprintf("%.2f", $line->[3]*$line->[4]);
-   	     $Docs->{ORDER} .= $html->tpl_show(_include('docs_account_order_row', 'Docs'), 
+   	     if (! $FORM{pdf}) {
+   	       $Docs->{ORDER} .= $html->tpl_show(_include('docs_account_order_row', 'Docs'), 
    	        { NUMBER => $i,
    	        	NAME   => $line->[1],
    	        	COUNT  => $line->[3],
@@ -1258,7 +1257,9 @@ sub docs_account {
    	        	PRICE  => $line->[4],
    	        	SUM    => $sum
    	        	}, 
-   	         { OUTPUT2RETURN => 1 });
+   	         { OUTPUT2RETURN => 1 
+   	         	});
+          }
         }
 
        if ($conf{DOCS_PDF_PRINT}) {
@@ -1278,7 +1279,6 @@ sub docs_account {
             	             %$attr
             	           });
           } 	 
-
        	 return 0;
         }
        else {
@@ -1420,7 +1420,9 @@ sub docs_account {
                                      NO_ID       => 1
  	                                  });
 
-  $users->pi({ $users->{UID} });
+  
+
+  $users->pi({  UID => $users->{UID} || $FORM{UID} });
   $Docs->{OP_SID}  = mk_unique_value(16);
   $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $users->{FIO} || '-';
   $Docs->{CAPTION} = $_ACCOUNT;  
@@ -1835,7 +1837,7 @@ my $Sessions = Dv_Sessions->new($db, $admin, \%conf);
 
   #$Docs->{COMPANY_VAT}=$user->{COMPANY_VAT}.' %';
   
-  $users->pi({  $users->{UID} });
+  $users->pi({  UID => $users->{UID} });
   $Docs->{CUSTOMER}=  $users->{FIO} || '-';
   $Docs->{CAPTION} =  $_ACCOUNT;
   $Docs->{OP_SID}  = mk_unique_value(16);
