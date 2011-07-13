@@ -1558,7 +1558,6 @@ sub user_pi {
     $html->message('err', $_ERROR, "[$user_pi->{errno}] $err_strs{$user_pi->{errno}}");	
    }
 
-  $user->{debug}=1;
   my $user_pi = $user->pi();
 
   if($user_pi->{TOTAL} < 1 && $permissions{0}{1}) {
