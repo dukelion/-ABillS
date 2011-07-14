@@ -5382,7 +5382,7 @@ if ($attr->{USER}) {
           $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
          }
         else {
-        	$html->message('info', $_FEES, "$_TAKE SUM: $fees->{SUM} $_DATE: $FEES_DATE");
+        	$html->message('info', $_FEES, "$_TAKE $_SUM: $fees->{SUM} $_DATE: $FEES_DATE");
          }
        }
       else { 
@@ -5411,7 +5411,7 @@ if ($attr->{USER}) {
         $html->message('err', $_ERROR, "[$fees->{errno}] $err_strs{$fees->{errno}}");	
        }
       else {
-        $html->message('info', $_FEES, "$_TAKE SUM: $fees->{SUM}");
+        $html->message('info', $_FEES, "$_TAKE $_SUM: $fees->{SUM}");
         
         #External script
         if ($conf{external_fees}) {

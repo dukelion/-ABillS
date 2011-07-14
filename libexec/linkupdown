@@ -251,6 +251,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
     if($OS eq 'FreeBSD' && ! $conf{ng_car}) {
     	my $table_class = ($user->{SPEED} > 10000) ? "$user->{SPEED}" : "1$user->{SPEED}";
       push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK $table_class";   	
+      push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $table_class";   	
       goto FW_ACTION;
      }
    }
@@ -328,9 +329,11 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   	if ($user->{SPEED}) {
    	  my $table_class = ($user->{SPEED} > 10000) ? "$user->{SPEED}" : "1$user->{SPEED}";
       push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK $table_class";   	
+      push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $table_class";   	
      } 
     else {
       push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK $user->{TP_NUM}";
+      push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $user->{TP_NUM}";   	
      }
     goto FW_ACTION;
    }
@@ -563,6 +566,7 @@ elsif ($ACTION eq 'down') {
      }
     else {
 	    push @FW_ACTIONS, "$IPFW table $users_table_number delete $CLIENT_IP";
+	    push @FW_ACTIONS, "$IPFW table ".($users_table_number+1). "delete $CLIENT_IP";
 	   }
 	 }
 }

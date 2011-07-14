@@ -15,6 +15,7 @@ CREATE TABLE `abon_tariffs` (
   `notification1` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `notification2` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `notification_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `activate_notification` tinyint(1) UNSIGNED NOT NULL DEFAULT '0', 
   `alert` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `alert_account` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `ext_cmd` VARCHAR(240) NOT NULL DEFAULT '' ,
