@@ -1440,7 +1440,9 @@ sub expression {
              }
   	       }
         }
+
       }
+      $self->{RESULT}{$id}=$RESULT;
     }
   }
 	

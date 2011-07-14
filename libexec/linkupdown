@@ -315,14 +315,14 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   	                                                      debug        => $debug } );
   print "\nEND: =====================================\n" if ($debug > 0);
 
-  if (! $RESULT->{SPEED}) {
-    $speeds{0}{IN}  = $RESULT->{SPEED_IN} if($RESULT->{SPEED_IN});
-    $speeds{0}{OUT} = $RESULT->{SPEED_OUT} if($RESULT->{SPEED_OUT});
+  if (! $Billing->{RESULT}{0}->{SPEED}) {
+    $speeds{0}{IN}  = $Billing->{RESULT}{0}->{SPEED_IN} if($Billing->{RESULT}{0}->{SPEED_IN});
+    $speeds{0}{OUT} = $Billing->{RESULT}{0}->{SPEED_OUT} if($Billing->{RESULT}{0}->{SPEED_OUT});
    }
   else {
-  	$user->{SPEED}  = $RESULT->{SPEED};
-  	$speeds{0}{IN}  = $RESULT->{SPEED};
-  	$speeds{0}{OUT} = $RESULT->{SPEED};
+  	$user->{SPEED}  = $Billing->{RESULT}{0}->{SPEED};
+  	$speeds{0}{IN}  = $Billing->{RESULT}{0}->{SPEED};
+  	$speeds{0}{OUT} = $Billing->{RESULT}{0}->{SPEED};
    }
   
   if($OS eq 'FreeBSD' && ! $conf{ng_car}) {
@@ -390,7 +390,14 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
 
   foreach my $traf_type (sort keys %speeds) {
-    my $speed = $speeds{$traf_type};
+    my $speed ;
+    if ($Billing->{RESULT}{$traf_type}->{SPEED_IN}) {
+      $speed->{IN}  = $Billing->{RESULT}{$traf_type}->{SPEED_IN};
+    	$speed->{OUT} = $Billing->{RESULT}{$traf_type}->{SPEED_OUT};
+     }
+    else {	
+      $speed = $speeds{$traf_type};
+     }
     if ($inum ne '-' ) {
       $fw_num_in    = $START_FW[$traf_type] + $inum * 2;
       $fw_num_out   = $START_FW[$traf_type] + $inum * 2 + 1;
@@ -398,6 +405,8 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
     my $speed_in  = 0;
     my $speed_out = 0;
+    
+    
     if ($conf{octets_direction} eq 'server') {
       $speed_in  = ($speed->{OUT})  ? $speed->{OUT}  : 0;
       $speed_out = ($speed->{IN}) ? $speed->{IN} : 0;
