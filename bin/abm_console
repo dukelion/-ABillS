@@ -13,7 +13,7 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
 
 #use strict;
 
-my $version = 0.10;
+my $version = 0.11;
 my $debug   = 0;
 
 use FindBin '$Bin';
