@@ -508,7 +508,7 @@ sub check_permissions {
 #**********************************************************
 sub help {
 print << "[END]";
-abm_console console ABillS managment
+abm_console console ABillS managment. Version: $version
   PAYMENTS=[login] - Payments: info (default), ADD, DEL 
    Extended:
     DATE           - DATE
