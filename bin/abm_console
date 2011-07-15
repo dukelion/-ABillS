@@ -13,7 +13,7 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
 
 #use strict;
 
-my $version = 0.9;
+my $version = 0.10;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -54,6 +54,7 @@ else {
   $ip = `cure_tty=\`tty | sed  's/.*\\(p\\d*\\)/\\1/g'\`; w | grep \${cure_tty} | awk '{ print \$3 }'`;	
  }
 
+chomp($ip);
 
 $admin->{SESSION_IP}=$ip;
 
@@ -63,11 +64,7 @@ my $max_acccess_rets = 3;
 my $language         = 'english';
 
 %permissions = ();
-
 my $admin_info    = get_admin_info(); 
-my $REMOTE_USER   = $admin_info->{USERNAME} || '';
-my $REMOTE_PASSWD = $admin_info->{PASSWD}   || '';
-
 
 if ($ARGV->{language}) {
 	$language = $ARGV->{language};
@@ -105,31 +102,11 @@ $LIST_PARAMS{SORT}      = $ARGV->{SORT} || 1;
 $LIST_PARAMS{DESC}      = $ARGV->{DESC} || undef;
 $LIST_PARAMS{ID}        = $ARGV->{ID} || undef;
 
-
-
 #Intercat mode
 my $interact = 0;
 
 if ($#ARGV == -1) {
   $interact=1;
-  while($retries < $max_acccess_rets+1) {
-    my $res =  check_permissions("$REMOTE_USER", "$REMOTE_PASSWD");
-    if ($res == 1) {
-  	  print "Wrong Password!!!\n";
-  	  $retries++;
-  	  exit if ($max_acccess_rets < $retries);
-     }
-    else {
-      print "$_ADMIN: $admin->{A_FIO}. $_DATE: $DATE $TIME\n";
-      last;
-     }
-
-    print "$_ADMIN: ";
-	  chop($REMOTE_USER   = <STDIN>);
-	  print "$_PASSWD: ";
-    chop($REMOTE_PASSWD = <STDIN>);
-   }
-
   while(1) {
   	my $input = '';
   	print "$_USER > ";
@@ -149,8 +126,6 @@ if ($#ARGV == -1) {
 
 }
 
-my $res =  check_permissions("$REMOTE_USER", "$REMOTE_PASSWD");
-
 if ($ARGV->{DV_USER}) {
 	dv_users();
  }
@@ -159,6 +134,10 @@ elsif ($ARGV->{PAYMENTS}) {
  }
 elsif ($ARGV->{FEES}) {
   form_fees();
+ }
+elsif ($ARGV->{LOGIN}) {
+  $LIST_PARAMS{LOGIN}=$ARGV->{LOGIN} ;
+  form_users({ %$ARGV });
  }
 elsif ($ARGV->{PI}) {
   $LIST_PARAMS{LOGIN_EXPR}=$ARGV->{PI} ;
@@ -454,8 +433,26 @@ sub get_admin_info {
     $admin_info{$k}=$v;
   }
 
+  while($retries < $max_acccess_rets+1) {
+    my $res =  check_permissions("$admin_info{USERNAME}", "$admin_info{PASSWD}");
+    if ($res == 1) {
+  	  print "Wrong Password!!!\n";
+  	  $retries++;
+  	  exit if ($max_acccess_rets < $retries);
+     }
+    else {
+      print "$_ADMIN: $admin->{A_FIO}. $_DATE: $DATE $TIME\n";
+      return \%admin_info;
+      last;
+     }
 
- return \%admin_info;
+    print "_ADMIN: ";
+	  chop($REMOTE_USER   = <STDIN>);
+	  print "_PASSWD: ";
+    chop($REMOTE_PASSWD = <STDIN>);
+   }
+
+ #return \%admin_info;
 }
 
 
@@ -644,13 +641,10 @@ sub form_users {
   my ($attr)=@_;
 
 
-
-
 if ($interact) {
   my @user_functions = ("<-:help",
                         "EXIT:exit");
                         #"$_INFO:user_pi");
-
 
   push @user_functions, "$_USER_INFO:form_pi";
   push @user_functions, "$_CHANGE:form_users_change" if ($permissions{0});
@@ -759,6 +753,7 @@ if ($interact) {
   my $FORM   = form_parse(\@params);
 
   if ($FORM->{CONFIRM}) {
+  	FEES:
   	$fees->take($user, $FORM->{SUM}, { %$FORM });
   	if (! $fees->{errno}) {
   		print "$_GETTED $_SUM: $FORM->{SUM} ID: $fees->{INSERT_ID}\n";
@@ -775,9 +770,32 @@ if ($interact) {
 
    return 0;
  }
+
+
+
+if ($ARGV->{GET}) {
+  $ARGV->{LOGIN} = $ARGV->{FEES} if (! $ARGV->{LOGIN});
+	delete $ARGV->{FEES};
+	my $list = $users->list({ BILL_ID => '>0', %$ARGV });
+	$FORM->{SUM}     = $ARGV->{GET} || $ARGV->{SUM};
+	$FORM->{DESCRIBE}= $ARGV->{DESCRIBE} || '';
+	if ($users->{TOTAL} > 0) {
+		foreach my $line ( @$list ) {
+		  
+		  my $user = { 
+		  	  UID     => $line->[5+$users->{SEARCH_FIELDS_COUNT}],
+		  	  BILL_ID => $line->[6],
+		  	 };
+		  print "LOGIN: $line->[1] UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug>0);
+		  $fees->{debug}=1;
+		  $fees->take($user, $FORM->{SUM}, { %$FORM, %$ARGV });
+		 }
+	 }
+  return 0;
+}
  
 
-my @args = ('ADD', 'DEL', 'METHOD', 'DATE', 'DESCRIBE', 'LOGIN', 'UID');
+my @args = ('GET', 'DEL', 'METHOD', 'DATE', 'DESCRIBE', 'LOGIN', 'UID');
 foreach my $a (@args) {
   if (defined($ARGV->{$a})) {
   	$LIST_PARAMS{$a}=$ARGV->{$a};
@@ -843,17 +861,41 @@ if ($interact) {
 
 
 if ($ARGV->{ADD}) {
-	$user = $users->info(0, { LOGIN => $ARGV->{PAYMENTS} });
-	
-	if ($users->{TOTAL} < 1) {
-		print "$_ERROR: $_USER '$ARGV->{PAYMENTS}' $_NOT_EXIST\n";
-		return 0;
-	 }
-	$FORM            = $ARGV;
+	$ARGV->{LOGIN} = $ARGV->{PAYMENTS} if (! $ARGV->{LOGIN});
+	delete $ARGV->{PAYMENTS};
+
+	my $list = $users->list({ BILL_ID => '>0', %$ARGV });
 	$FORM->{SUM}     = $ARGV->{ADD} || $ARGV->{SUM};
 	$FORM->{DESCRIBE}= $ARGV->{DESCRIBE} || '';
-	goto PAYMENTS;
+	if ($users->{TOTAL} > 0) {
+		foreach my $line ( @$list ) {
+		  
+		  my $user = { 
+		  	  UID     => $line->[5+$users->{SEARCH_FIELDS_COUNT}],
+		  	  BILL_ID => $line->[6],
+		  	 };
+		  print "LOGIN: $line->[1] UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug>0);
+		  $payments->{debug}=1;
+		  $payments->add($user, { SUM => $FORM->{SUM}, 
+		  	                      %$FORM, 
+		  	                      %$ARGV });
+		 }
+	 }
+  return 0;
 }
+	
+	
+
+	
+#	if ($users->{TOTAL} < 1) {
+#		print "$_ERROR: $_USER '$ARGV->{PAYMENTS}' $_NOT_EXIST\n";
+#		return 0;
+#	 }
+#	$FORM            = $ARGV;
+#	$FORM->{SUM}     = $ARGV->{ADD} || $ARGV->{SUM};
+#	$FORM->{DESCRIBE}= $ARGV->{DESCRIBE} || '';
+#	goto PAYMENTS;
+#}
 
 
 my @args = ('ADD', 'DEL', 'METHOD', 'DATE', 'DESCRIBE');

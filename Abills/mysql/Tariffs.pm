@@ -691,13 +691,17 @@ sub list {
   }
 
  if ($attr->{CHANGE_PRICE}) {
- 	  my $sql = join('', @{ $self->search_expr("$attr->{CHANGE_PRICE}", 'INT', 'tp.change_price') });  	
+ 	  my $sql = '';  	
  	  
  	  if (defined($attr->{PRIORITY})) {
- 	  	$sql = "($sql or (tp.priority > '$attr->{PRIORITY}'))";
+            $sql = "tp.change_price$attr->{CHANGE_PRICE}+tp.credit";
+ 	    $sql = "($sql or (tp.priority > '$attr->{PRIORITY}'))";
             #Old
             # $sql = "($sql or (tp.change_price=0 AND tp.priority > '$attr->{PRIORITY}'))";
  	   }
+           else {
+             $sql = join('', @{ $self->search_expr("$attr->{CHANGE_PRICE}", 'INT', 'tp.change_price') });
+            }
  	  
  	  push @WHERE_RULES, $sql;
   }

@@ -1060,7 +1060,7 @@ if ($self->{TOTAL} > 0) {
  	  return $list
   }
  #Show last fees
- if ($attr->{FEES} || $attr->{FEES_DAYS}) {    
+ if ($attr->{FEES} || $attr->{FEES_DAYS}) {
     my @HAVING_RULES = @WHERE_RULES;
     if($attr->{PAYMENTS}) {
       my $value = $self->search_expr($attr->{FEES}, 'INT');
