@@ -1269,11 +1269,14 @@ sub reports {
 	my ($attr) = @_;
 
 
+  $self->{debug}=1;
+
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  undef @WHERE_RULES;
  my $date = '';
-
+ my $EXT_TABLES = '';
+ my $ext_fields = ', u.company_id';
 
  my @FIELDS_ARR = ('DATE', 
                    'USERS',
@@ -1300,7 +1303,8 @@ sub reports {
                            TRAFFIC_RECV    => 'sum(l.recv + 4294967296 * acct_input_gigawords)',
                            TRAFFIC_SENT    => 'sum(l.sent + 4294967296 * acct_output_gigawords)',
                            USERS_COUNT     => 'count(DISTINCT l.uid)',
-                           TP              => 'l.tp_id'
+                           TP              => 'l.tp_id',
+                           COMPANIES       => 'c.name'
                           };
  
  
@@ -1310,6 +1314,7 @@ sub reports {
  if ($attr->{TP_ID}) {
  	 push @WHERE_RULES, " l.tp_id='$attr->{TP_ID}'";
   }
+
  
  if(defined($attr->{DATE})) {
    push @WHERE_RULES, " date_format(l.start, '%Y-%m-%d')='$attr->{DATE}'";
@@ -1334,7 +1339,11 @@ sub reports {
    	 $date = "l.terminate_cause"
     }
    elsif ($attr->{TYPE} eq 'GID') {
-         $date = "u.gid"
+     $date = "u.gid"
+    }
+   elsif ($attr->{TYPE} eq 'COMPANIES') {
+ 	   $date = "c.name";
+ 	   $EXT_TABLES = "INNER JOIN companies c ON (c.id=u.company_id)";
     }
    else {
      $date = "u.id";   	
@@ -1382,13 +1391,15 @@ if ($attr->{FIELDS}) {
     if ($line eq 'USERS_FIO') {
       $EXT_TABLE = 'users_pi';
       $date = 'u.fio';
+      #$ext_fields = '';
      }
     elsif ($line =~ /^_(\S+)/) {
       #$date = 
       my $f = '_'.$1;
       push @FIELDS_ARR, $f;
       $self->{REPORT_FIELDS}{$f}='u.'.$f;
-      $EXT_TABLE = 'users_pi';
+      $EXT_TABLE  = 'users_pi';
+      #$ext_fields = '';
      }
    }
   
@@ -1407,18 +1418,20 @@ if ($attr->{FIELDS}) {
    	$self->query($db, "select date_format(l.start, '%Y-%m-%d %H')start, '%Y-%m-%d %H')start, '%Y-%m-%d %H'), 
    	count(DISTINCT l.uid), count(l.uid), 
     sum(l.sent + 4294967296 * acct_output_gigawords + l.recv + 4294967296 * acct_input_gigawords), 
-     sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
+     sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid $ext_fields
       FROM dv_log l
       LEFT JOIN $EXT_TABLE u ON (u.uid=l.uid)
+      $EXT_TABLES
       $WHERE 
       GROUP BY 1 
       ORDER BY $SORT $DESC");
     }
    else {
    	$self->query($db, "select date_format(l.start, '%Y-%m-%d'), if(u.id is NULL, CONCAT('> ', l.uid, ' <'), u.id), count(l.uid), 
-    sum(l.sent + 4294967296 * acct_output_gigawords + l.recv + 4294967296 * acct_input_gigawords), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid
+    sum(l.sent + 4294967296 * acct_output_gigawords + l.recv + 4294967296 * acct_input_gigawords), sum(l.sent2 + l.recv2), sec_to_time(sum(l.duration)), sum(l.sum), l.uid ext_fields
       FROM dv_log l
       LEFT JOIN $EXT_TABLE u ON (u.uid=l.uid)
+      $EXT_TABLES
       $WHERE 
       GROUP BY l.uid 
       ORDER BY $SORT $DESC");
@@ -1429,9 +1442,10 @@ if ($attr->{FIELDS}) {
   }
  else {
   $self->query($db, "select $fields,
-      l.uid
+      l.uid $ext_fields
        FROM dv_log l
        LEFT JOIN $EXT_TABLE u ON (u.uid=l.uid)
+       $EXT_TABLES
        $WHERE    
        GROUP BY 1 
        ORDER BY $SORT $DESC;");
@@ -1458,6 +1472,7 @@ if ($attr->{FIELDS}) {
       sum(l.sum)
        FROM dv_log l
        LEFT JOIN $EXT_TABLE u ON (u.uid=l.uid)
+       $EXT_TABLES
        $WHERE;");
 
  

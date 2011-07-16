@@ -406,6 +406,10 @@ sub reports {
    	 $date  = "pi.fio";  
    	 $GROUP = 5; 	
     }
+   elsif($attr->{TYPE} eq 'COMPANIES') {
+   	 $ext_tables = 'LEFT JOIN companies c ON (u.company_id=c.id)';
+   	 $date  = "c.name";  
+    }
    elsif($date eq '') {
      $date = "u.id";   	
     }  
@@ -417,7 +421,7 @@ sub reports {
 
   my $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
-  $self->query($db, "SELECT $date, count(DISTINCT f.uid), count(*),  sum(f.sum), f.uid 
+  $self->query($db, "SELECT $date, count(DISTINCT f.uid), count(*),  sum(f.sum), f.uid, u.company_id 
       FROM fees f
       LEFT JOIN users u ON (u.uid=f.uid)
       LEFT JOIN admins a ON (f.aid=a.aid)

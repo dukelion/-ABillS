@@ -1875,7 +1875,8 @@ my %INFO_LISTS = ();
   	        	                 }, 
   	        EXT_TYPE      => { TP              => "$_TARIF_PLANS",
   	        	                 GID             => "$_GROUPS",
-  	        	                 TERMINATE_CAUSE => 'TERMINATE_CAUSE'
+  	        	                 TERMINATE_CAUSE => 'TERMINATE_CAUSE',
+  	        	                 COMPANIES       => $_COMPANIES
   	        	                 }, 
   	        PERIOD_FORM		=> 1,
   	        FIELDS        => { %CAPTIONS_HASH },
@@ -1919,7 +1920,7 @@ my @CHART_TYPE2 = ('area', 'area');
 my $graph_type='';
 
 #Day reposrt
-if (defined($FORM{DATE})) {
+if ($FORM{DATE}) {
   #Used Traffic
   $table_sessions = $html->table({ width      => '100%',
 	                                 caption    => "$_SESSIONS", 
@@ -2021,6 +2022,10 @@ else {
     	$caption[0]="$_USER";
   	  #$caption[1]="$_LOGINS";
      }
+    if ($FORM{TYPE} eq 'COMPANIES') {
+    	$caption[0]="$_COMPANIES";
+  	  #$caption[1]="$_LOGINS";
+     }
     elsif ($FORM{TYPE} eq 'TERMINATE_CAUSE') {
     	$caption[0]="$_ERROR";
     	@CHART_TYPE=('pie');
@@ -2097,6 +2102,9 @@ else {
     	  }
     	 elsif ($FORM{TYPE} eq 'TP') {
     	 	 $button = $line->[0].'. ' .$html->button($TP_NAMES{$line->[0]}, "index=$index&TP_ID=$line->[0]$pages_qs");
+    	  }
+    	 elsif ($FORM{TYPE} eq 'COMPANIES') {
+    	 	 $button = $html->button("$line->[0]", "index=13&COMPANY_ID=$line->[8]");
     	  }
     	 elsif ($FORM{TYPE} eq 'GID') {
     	 	 $button = $line->[0].'. ' .$html->button($GROUP_NAMES{$line->[0]}, "index=$index&GID=$line->[0]$pages_qs");

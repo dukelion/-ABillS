@@ -4355,7 +4355,9 @@ sub report_fees {
   	        FIELDS      => { %METHODS_HASH },
   	        EXT_TYPE    => { METHOD => $_TYPE,
   	        	               ADMINS => $_ADMINS,
-  	        	               FIO    => $_FIO }
+  	        	               FIO    => $_FIO,
+  	        	               COMPANIES => "$_COMPANIES"
+  	        	                }
 
   	         });
 
@@ -4421,6 +4423,10 @@ else{
   	$index=3;
   	$graph_type='';
    }
+  elsif ($type eq 'COMPANIES') {
+  	$TITLE[0]=$_COMPANIES;
+  	$graph_type='';
+   }
   elsif ($type eq 'ADMINS')  {
     $TITLE[0]=$_ADMINS;
     $graph_type='';
@@ -4452,7 +4458,6 @@ else{
 
   $list = $fees->reports({ %LIST_PARAMS });
   foreach my $line (@$list) {
-
     my $main_column = '';
     if ($type eq 'METHOD') {
     	$main_column = $FEES_METHODS[$line->[0]];
@@ -4467,6 +4472,9 @@ else{
      }
     elsif($line->[0] =~ /^\d{4}-\d{2}$/ ) {
     	$main_column = $html->button($line->[0], "index=$index&MONTH=$line->[0]$pages_qs");
+     }
+    elsif ($type eq 'COMPANIES') {
+    	$main_column = $html->button($line->[0], "index=13&COMPANY_ID=$line->[5]");
      }
     else { 
       $main_column = $html->button($line->[0], "index=$index&$type=$line->[0]$pages_qs");
