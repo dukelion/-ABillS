@@ -218,15 +218,22 @@ sub notepad_new {
 
 
  my $WHERE = ($#WHERE_RULES > -1) ? 'WHERE '. join(' and ', @WHERE_RULES)  : '';
+ $self->{TODAY}=0;
+ $self->{ACTIVE}=0;
 
- $self->query($db,   "SELECT sum(if(DATE_FORMAT(notified, '%Y-%m-%d') = curdate(), 1, 0)), sum(if(status = 0, 1, 0))
+# $self->{debug}=1;
+
+ $self->query($db,   "SELECT sum(if(DATE_FORMAT(notified, '%Y-%m-%d') = curdate(), 1, 0))+0, sum(if(status = 0, 1, 0))+0
     FROM (notepad n)
    $WHERE;");
 
 
 if ($self->{TOTAL}){
   ($self->{TODAY}, $self->{ACTIVE}) = @{ $self->{list}->[0] };
+  $self->{TODAY}=0 if (! $self->{TODAY});
+  $self->{ACTIVE}=0 if (!$self->{ACTIVE});
   return $self->{TODAY}, $self->{ACTIVE};
+
 }
 
   return $self;	

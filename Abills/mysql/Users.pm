@@ -1270,7 +1270,7 @@ sub change {
              );
 
   my $old_info = $self->info($attr->{UID});
-  
+
   if($attr->{CREATE_BILL}) {
   	 use Bills;
   	 my $Bill = Bills->new($db, $admin, $CONF);
@@ -1357,6 +1357,7 @@ sub del {
     $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}", {  TYPE => 12 });
    }
   else {
+  	$self->{debug}=1;
   	$self->change($self->{UID}, { DELETED => 1, UID => $self->{UID}  });
    }
 

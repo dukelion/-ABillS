@@ -2464,10 +2464,10 @@ foreach my $line (@$tp_list) {
   foreach my $dv_crypt_id (sort { $a <=> $b } keys %users_channels) {
   	my @arr = ();
   	for(my $channel_id=1; $channel_id<=127; $channel_id++) {
-		  $arr[$channel_id]=($users_channels{$dv_crypt_id}->{$channel_id}) ? 1 : 0;
+		  $arr[$channel_id-1]=($users_channels{$dv_crypt_id}->{$channel_id}) ? 1 : 0;
      }
 
-  	$content  .= "$dv_crypt_id;". (join('', @arr)) ."\n";
+ 	  $content  .= "$dv_crypt_id;". (join('', @arr)) ."\n";
    }
 
 

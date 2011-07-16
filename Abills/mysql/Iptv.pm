@@ -855,6 +855,7 @@ sub channel_ti_list {
  
  if ($attr->{INTERVAL_ID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{TI}, 'INT', 'ic.interval_id') };
+   $attr->{TI}=$attr->{INTERVAL_ID};
   }
 
  if ($attr->{MANDATORY}) {

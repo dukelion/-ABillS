@@ -1268,9 +1268,6 @@ sub reports {
 	my ($self) = shift;
 	my ($attr) = @_;
 
-
-  $self->{debug}=1;
-
  $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
  $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
  undef @WHERE_RULES;
