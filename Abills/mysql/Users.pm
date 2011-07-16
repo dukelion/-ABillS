@@ -1357,7 +1357,6 @@ sub del {
     $admin->action_add($self->{UID}, "DELETE $self->{UID}:$self->{LOGIN}", {  TYPE => 12 });
    }
   else {
-  	$self->{debug}=1;
   	$self->change($self->{UID}, { DELETED => 1, UID => $self->{UID}  });
    }
 
