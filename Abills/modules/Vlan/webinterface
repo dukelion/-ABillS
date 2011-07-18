@@ -160,13 +160,15 @@ sub vlan_user {
     	$html->message('err', $_ERROR, "$ERR_DHCP_SELECT_CORRECT_IP_MASK");  	
      }
     else {
-    	#Check dublicate
-    	my $list = $Vlan->list({  IP => "$FORM{IP}"
-    		  #IP => ">=$FORM{IP},<=". (int2ip(ip2int($FORM{IP}) + (ip2int('255.255.255.255') -  ip2int($FORM{NETMASK})))) 
-    		 });
+    	$Vlan->{TOTAL} = 0; 
+    	if ($FORM{IP} ne '0.0.0.0') {
+    	  #Check dublicate
+    	  $list = $Vlan->list({ IP => "$FORM{IP}" });
+    	 }
+
     	if ($Vlan->{TOTAL} > 0) {
     		$Vlan->{errno}=8;
-    		$login_button = $html->button($list->[0][0], 'index=15&UID='.$list->[0][11]);
+    		$login_button = $html->button($list->[0][0], 'index=15&UID='.$list->[0][12]);
     	 }
     	else {
         $Vlan->add({ %FORM });
@@ -197,9 +199,12 @@ sub vlan_user {
     	$html->message('err', $_ERROR, "$ERR_DHCP_SELECT_CORRECT_IP_MASK");  	
      }
     else {
-    	my $list = $Vlan->list({  IP => "$FORM{IP}", UID => "!$FORM{UID}"
-    		  #IP => ">=$FORM{IP},<=". (int2ip(ip2int($FORM{IP}) + (ip2int('255.255.255.255') -  ip2int($FORM{NETMASK})))) 
-    		 });
+    	my $list;
+    	$Vlan->{TOTAL} = 0;
+    	if ($FORM{IP} ne '0.0.0.0') {
+    	  $list = $Vlan->list({  IP => "$FORM{IP}", UID => "!$FORM{UID}" });
+    	 }
+
     	if ($Vlan->{TOTAL} > 0) {
     		$Vlan->{errno}=8;
     		$login_button = $html->button($list->[0][0], 'index=15&UID='.$list->[0][11]);

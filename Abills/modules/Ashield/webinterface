@@ -394,29 +394,32 @@ sub ashield_user {
     	$html->message('err', $_ERROR, "$_WRONG_EMAIL");
      }
   	else {
+  		print "Content-Type: text/html\n\n";
     	$Ashield->{ACTIVATE}='0000-00-00'; #$attr->{USER}->{ACTIVATE};
       if (! $FORM{STATUS}) {
         #ashield_get_month_fee($Ashield);
         #ashield_drweb_user();
         my ($fio1, $fio2, $fio3)=split(/ /, $users->{FIO}, 3);
-        
-        my $result_hash=ashield_drweb_request('interfaces/'. $INTERFACES{$drweb_version}{USER_ADD}, {
-      	  login      => "$users->{LOGIN}",
-      	  name       => $fio2 || '-',
-      	  lastname   => $fio1 || '-',
+        #my $result_hash=ashield_drweb_request('interfaces/'. $INTERFACES{$drweb_version}{USER_ADD}, 
+        my $result_hash = ashield_drweb_request('api/3.0/stations/add.ds', 
+          {
+      	  #login      => "$users->{LOGIN}",
+      	  name       => "$users->{LOGIN}" || $fio2 || '-',
+      	  #lastname   => $fio1 || '-',
       	  password   => "$users->{PASSWORD}",
       	  email      => $FORM{EMAIL} || '-',
-      	  contract   => "$users->{CONTRACT_ID}",
-      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD},
+      	  #contract   => "$users->{CONTRACT_ID}",
+      	  #checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD},
       	  #Version 2 params
-     	    billing_id    => $users->{UID},
-     	    billing_login => $users->{LOGIN},
-     	    name          => $fio2 || '-',
-          patronymic    => $fio3 || '-',
-          last_name     => $fio1 || '-',
+     	    #billing_id    => $users->{UID},
+     	    #billing_login => $users->{LOGIN},
+     	    #name          => $fio2 || '-',
+          #patronymic    => $fio3 || '-',
+          #last_name     => $fio1 || '-',
+          # Xml
+          rate          => $FORM{TP_ID}
       	  },
-      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
-      	  	});
+      	  );
       	
   	    if ($result_hash->{error}) {
   	    	my $message = '';
@@ -434,7 +437,16 @@ sub ashield_user {
         else {        	
           $html->message('info', $_INFO, "Dr.Web: $_USER $_ADDED");
           $Ashield->user_add({ %FORM, UID => $LIST_PARAMS{UID} });
-         }
+          #$Ashield->ashield_avd_add({ UID => $LIST_PARAMS{UID},
+          #  STATE      => $result_hash->[0]->{type}->[0],
+          #  AGENTUUID  => $result_hash->[0]->{agentuuid}->[0],
+          #  GROUPUUID  => $result_hash->[0]->{groupuuid}->[0],
+          #  GROUPNAME  => $result_hash->[0]->{groupname}->[0],
+          #  TARIFFPLANCODE  => $TP_NAME,
+          #  TP_ID      => $Tariffs->{TP_ID}
+          #});
+          
+          }
        }
       #$html->message('info', $_INFO, "$_ADDED");	
     }
@@ -474,29 +486,42 @@ sub ashield_user {
 	  return 0;
 	 }
 	else {
+		print "Content-Type: text/html\n\n";
     $Ashield->{STATUS}=$service_status[$Ashield->{STATUS}];
-    my $result_hash=ashield_drweb_request('interfaces/'. $INTERFACES{$drweb_version}{USER_INFO}, {
-      	  login      => "$users->{LOGIN}",
-      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD},
-      	  options    => 1,
-      	  subscribes => 1,
+#    my $result_hash=ashield_drweb_request('interfaces/'. $INTERFACES{$drweb_version}{USER_INFO}, {
+#      	  login      => "$users->{LOGIN}",
+#      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD},
+#      	  options    => 1,
+#      	  subscribes => 1,
+#      	  },
+#      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
+#      	  	});
+
+    #XML 3.0
+    my $result_hash=ashield_drweb_request('api/3.0/stations/info.ds', 
+         {
+      	  id         => "48aada10-d21d-b211-ac54-a0059a9b1a4a",
+      	  components => 'on',
       	  },
-      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
-      	  	});
+      	  );
+
+
+print %{ $result_hash };
 
       if ($result_hash->{error}->[0]->{code}->[0]) {
         $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
         return 0;
        }
 
+
       while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
         $Ashield->{$k}=(ref $v eq 'ARRAY' && ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : (ref $v eq 'ARRAY') ? convert($v->[0], { utf82win => 1 }) : $v;
        }
 
       $Ashield->{agents_total}=%{ $result_hash->{user}->[0]->{agents}->[0] };
-
       $html->tpl_show(_include('ashield_client_info', 'Ashield'), $Ashield);
 
+return 0;
     if ($drweb_version == 1) {
       $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
       	  login      => "$users->{LOGIN}",
@@ -1807,7 +1832,11 @@ if(! $response->is_success() ) {
 	return ;
 }
 
-  return 1, xml_analize( $response->content() );
+  my $xml_content = $response->content();
+  
+#  print "<pre>$content </pre>";
+
+  return 1, xml_analize( $xml_content  );
 }
 
 

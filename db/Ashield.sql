@@ -9,7 +9,7 @@ CREATE TABLE `ashield_main` (
 ) COMMENT='Ashield users';
 
 CREATE TABLE `ashield_avd_log` (
-  `uid` INTEGER(11) UNSIGNED NOT NULL,
+  `uid` INTEGER(11) UNSIGNED NOT NULL DEFAULT '0',
   `state` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
   `agentuuid` VARCHAR(36) NOT NULL DEFAULT '',
   `groupuuid` VARCHAR(36) NOT NULL DEFAULT '',
@@ -20,7 +20,6 @@ CREATE TABLE `ashield_avd_log` (
   `id` INTEGER(11) NOT NULL AUTO_INCREMENT,
   UNIQUE KEY `id` (`id`)
 ) COMMENT='Ashield AV Desc Subscribes';
-
 
 
 CREATE TABLE `ashield_tps` (
