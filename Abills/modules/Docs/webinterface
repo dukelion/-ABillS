@@ -1585,6 +1585,7 @@ sub docs_print {
 	    { %$users, %$attr  });
 
    }
+  delete $FORM{pdf};
 }
 
 
