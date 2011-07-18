@@ -197,6 +197,8 @@ sub messages_list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'm.uid') };
  }
 
+ 
+
  if (defined($attr->{STATE})) {
    if ($attr->{STATE} == 4) {
    	 push @WHERE_RULES, @{ $self->search_expr('0000-00-00 00:00:00', 'INT', 'm.admin_read') };

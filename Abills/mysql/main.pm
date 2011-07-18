@@ -271,13 +271,13 @@ sub search_expr {
     $self->{SEARCH_FIELDS_COUNT}++;
  	 }	
  
-  if ($value && $value =~ s/;/,/g ) {
+  if (defined($value) && $value =~ s/;/,/g ) {
   	my @val_arr     = split(/,/, $value);  
   	$value = "'". join("', '", @val_arr) ."'";
   	return [ "$field IN ($value)" ];
    }
 
-  my @val_arr     = split(/,/, $value) if ($value);  
+  my @val_arr     = split(/,/, $value) if (defined($value));  
   
   my @result_arr  = ();
 

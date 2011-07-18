@@ -833,9 +833,7 @@ sub msgs_admin {
   $LIST_PARAMS{STATE}   = undef if ($FORM{STATE} == 3);
   $LIST_PARAMS{PRIORITY}= undef if ($FORM{PRIORITY} == 5);
 
-my $status_bar = msgs_status_bar();
-
-  
+  my $status_bar = msgs_status_bar();
   my $list = $Msgs->messages_list({ %LIST_PARAMS, 
   	                                DESC => (! $FORM{sort}) ? 'DESC' : $FORM{desc} 
   	                               });
