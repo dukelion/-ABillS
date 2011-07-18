@@ -13,7 +13,7 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
 
 #use strict;
 
-my $version = 0.11;
+my $version = 0.12;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -776,7 +776,7 @@ if ($interact) {
 if ($ARGV->{GET}) {
   $ARGV->{LOGIN} = $ARGV->{FEES} if (! $ARGV->{LOGIN});
 	delete $ARGV->{FEES};
-	my $list = $users->list({ BILL_ID => '>0', %$ARGV });
+	my $list = $users->list({ BILL_ID => '>0', %$ARGV, PAGE_ROWS => 1000000 });
 	$FORM->{SUM}     = $ARGV->{GET} || $ARGV->{SUM};
 	$FORM->{DESCRIBE}= $ARGV->{DESCRIBE} || '';
 	if ($users->{TOTAL} > 0) {
@@ -863,7 +863,7 @@ if ($ARGV->{ADD}) {
 	$ARGV->{LOGIN} = $ARGV->{PAYMENTS} if (! $ARGV->{LOGIN});
 	delete $ARGV->{PAYMENTS};
 
-	my $list = $users->list({ BILL_ID => '>0', %$ARGV });
+	my $list = $users->list({ BILL_ID => '>0', %$ARGV, PAGE_ROWS => 1000000 });
 	$FORM->{SUM}     = $ARGV->{ADD} || $ARGV->{SUM};
 	$FORM->{DESCRIBE}= $ARGV->{DESCRIBE} || '';
 	if ($users->{TOTAL} > 0) {
