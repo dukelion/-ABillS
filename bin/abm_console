@@ -13,7 +13,7 @@ use vars  qw($db %AUTH %conf $sql $DATE $TIME $ENV
 
 #use strict;
 
-my $version = 0.12;
+my $version = 0.13;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -784,10 +784,10 @@ if ($ARGV->{GET}) {
 		  
 		  my $user = { 
 		  	  UID     => $line->[5+$users->{SEARCH_FIELDS_COUNT}],
-		  	  BILL_ID => $line->[6],
+		  	  BILL_ID => $line->[4+$users->{SEARCH_FIELDS_COUNT}],
 		  	 };
 		  print "LOGIN: $line->[1] UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug>0);
-		  $fees->take($user, $FORM->{SUM}, { %$FORM, %$ARGV });
+		  #$fees->take($user, $FORM->{SUM}, { %$FORM, %$ARGV });
 		 }
 	 }
   return 0;
@@ -871,7 +871,7 @@ if ($ARGV->{ADD}) {
 		  
 		  my $user = { 
 		  	  UID     => $line->[5+$users->{SEARCH_FIELDS_COUNT}],
-		  	  BILL_ID => $line->[6],
+		  	  BILL_ID => $line->[4+$users->{SEARCH_FIELDS_COUNT}],
 		  	 };
 		  print "LOGIN: $line->[1] UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug>0);
 		  $payments->add($user, { SUM => $FORM->{SUM}, 
