@@ -8,6 +8,7 @@ $_DRWEB_CABINET='Кабінет Dr.Web';
 $_AGENTS='Агенти';
 $_DOWNLOADED='Скачано';
 $_GRACEPERIOD='Пільговий період';
+$_SUBSCRIBE='Підписка';
 
 $_STATUS_1 = 'создание новой подписки';
 $_STATUS_2 = 'смена тарифного пакета';

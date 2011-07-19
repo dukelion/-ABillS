@@ -8,6 +8,7 @@ $_COMP_NAME='Computer name';
 $_DRWEB_CABINET='Dr.Web Cabinet';
 $_DOWNLOADED='Downloaded';
 $_GRACEPERIOD='Grace Period';
+$_SUBSCRIBE='Subscribe';
 
 $_STATUS_1 = 'создание новой подписки';
 $_STATUS_2 = 'смена тарифного пакета';

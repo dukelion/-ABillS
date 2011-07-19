@@ -5986,7 +5986,7 @@ else {
      my $sub_tpl .= $html->tpl_show($tpls{"$key"}, $wizard, { OUTPUT2RETURN => 1, ID => "$descr" });
      $sub_tpl =~ s/(<input .*?UID.*?>)//gi;
      $sub_tpl =~ s/(<input .*?index.*?>)//gi;
-     $sub_tpl =~ s/name=[\'\"]?([A-Z_0-9]+)[\'\"]?/name=$n.$1/gi;
+     $sub_tpl =~ s/name=[\'\"]?([A-Z_0-9]+)[\'\"]? /name=$n.$1 /g;
      $template .= "<tr><th align=\"center\">". $sub_tpl . "</th></tr>\n";
    }
 

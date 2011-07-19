@@ -735,9 +735,6 @@ sub ashield_user {
   	if ($users->{DEPOSIT}+$users->{CREDIT} < 0) {
   		$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
   	 }
-    if ($FORM{EMAIL} !~ /(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/) {
-    	$html->message('err', $_ERROR, "$_WRONG_EMAIL");
-     }
   	else {
   		print "Content-Type: text/html\n\n";
     	$Ashield->{ACTIVATE}='0000-00-00'; #$attr->{USER}->{ACTIVATE};
@@ -818,17 +815,11 @@ sub ashield_user {
      }
    }
 
-  #my $service = $Ashield->user_info($LIST_PARAMS{UID});
-#  if($service->{TOTAL} < 1) {
-#	  $html->message('info', $_INFO, $_NOT_ACTIVE);
-#	  $service               = $Ashield->defaults();
-#	  $service->{ACTION}     = 'add';
-#	  $service->{LNG_ACTION} = $_REGISTRATION;
-#
-#	  $html->tpl_show(_include('ashield_client_subcribe', 'Ashield'), {%$user,  %$Ashield, %$service });
-#	  return 0;
-#	 }
-#	else {
+	  $service               = $Ashield->defaults();
+	  $service->{ACTION}     = 'add';
+	  $service->{LNG_ACTION} = $_SUBSCRIBE;
+	  $html->tpl_show(_include('ashield_client_subcribe', 'Ashield'), {%$user,  %$Ashield, %$service });
+
 #    $Ashield->{STATUS}=$service_status[$Ashield->{STATUS}];
 #    my $result_hash=ashield_drweb_request('interfaces/'. $INTERFACES{$drweb_version}{USER_INFO}, {
 #      	  login      => "$users->{LOGIN}",
@@ -839,7 +830,7 @@ sub ashield_user {
 #      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
 #      	  	});
 
-#    #XML 3.0
+    #XML 3.0
 #    my $result_hash=ashield_drweb_request('api/3.0/stations/info.ds', 
 #         {
 #      	  id         => "48aada10-d21d-b211-ac54-a0059a9b1a4a",
@@ -980,7 +971,7 @@ sub ashield_user {
  
  
     foreach my $line (@$list) {
-    	  $table->addrow($line->[0],
+    	$table->addrow($line->[0],
     	               $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
     	               $subscribe_state{$line->[2]},
     	               $html->color_mark($line->[3],'code'),
@@ -988,7 +979,27 @@ sub ashield_user {
     	               $line->[5],
     	               $line->[6]    	               
     	              );
-        }
+
+      my $result_hash=ashield_drweb_request('api/3.0/stations/info.ds', 
+         {
+      	  id         => "48aada10-d21d-b211-ac54-a0059a9b1a4a",
+      	  components => 'on',
+      	  },
+      	  );
+
+      if ($result_hash->{error}->[0]->{code}->[0]) {
+        $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+        return 0;
+       }
+
+
+      while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
+        $Ashield->{$k}=(ref $v eq 'ARRAY' && ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : (ref $v eq 'ARRAY') ? convert($v->[0], { utf82win => 1 }) : $v;
+       }
+
+
+
+     }
     print $table->show();
     return 0;
 #	} 
