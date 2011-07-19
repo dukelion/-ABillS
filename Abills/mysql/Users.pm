@@ -1315,6 +1315,10 @@ sub change {
      $attr->{REDUCTION_DATE} = '0000-00-00';
    }
  
+  if (! defined($attr->{DISABLE})) {
+  	$attr->{DISABLE}=0;
+   }
+ 
   #Make extrafields use
   $admin->{MODULE}='';
 	$self->changes($admin, { CHANGE_PARAM => 'UID',
