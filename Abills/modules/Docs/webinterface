@@ -1325,7 +1325,6 @@ sub docs_account {
    	 $Docs->{VAT}                  = sprintf("%.2f", $conf{DOCS_VAT_INCLUDE});
     }
 
-
    $Docs->{CUSTOMER}= $self->{COMPANY_NAME} || $Docs->{FIO} || '-';
 
    if ($FORM{CHECK_PEYMENT_ID} && $Docs->{PAYMENT_ID}) {

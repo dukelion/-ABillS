@@ -122,14 +122,14 @@ sub abon_user {
       	    $ret = system($cmd);
            }
 
-          if($Abon->{TP_INFO}->{CREATE_ACCOUNT}) {
+          if($Abon->{TP_INFO}->{CREATE_ACCOUNT} && $FORM{'CREATE_DOCS_'.$Abon->{TP_INFO}->{TP_ID}}) {
           	#$LIST_PARAMS{UID}= $users->{UID};
           	$FORM{SUM}       = $Abon->{TP_INFO}->{MONTH_FEE};
           	$FORM{UID}       = $users->{UID};
    	        $FORM{create}    = 1;
    	        $FORM{CUSTOMER}  = '-';
    	        $FORM{ORDER}     = "$_ABON: [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME}";
-    	      $FORM{SEND_EMAIL}= 1;
+    	      $FORM{SEND_EMAIL}= $FORM{'SEND_DOCS_'.$Abon->{TP_INFO}->{TP_ID}} || undef;
     	      docs_account({ QUITE => 1 });    	
            }
 
@@ -173,7 +173,8 @@ sub abon_user {
 my $list = $Abon->user_tariff_list($FORM{UID});
 my $table = $html->table( { width      => '100%',
                             caption    => "$_ABON",
-                            title      => ['-', $_NAME, $_COMMENTS, $_SUM, $_PERIOD, $_LAST_ABON, $_NEXT_ABON, "$_REDUCTION (%)" ],
+                            title      => ['-', $_NAME, $_COMMENTS, $_SUM, $_PERIOD, $_LAST_ABON, $_NEXT_ABON, "$_REDUCTION (%)", 
+                              "$_CREATE $_DOCS", "$_SEND $_DOCS"],
                             cols_align => ['left', 'left', 'left', 'right', 'left', 'right', 'right'],
                             qs         => $pages_qs,
                             ID         => 'USER_ABON'
@@ -189,7 +190,12 @@ foreach my $line (@$list) {
      $PERIODS[$line->[4]], 
      "$line->[5]",
      ($line->[6]) ? "$line->[6]" : $html->date_fld2('DATE_'.$line->[0], { FORM_NAME => 'ABON_USER_TPS', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => '0000-00-00' }),
-     $html->form_input('DISCOUNT_'.$line->[0], "$line->[7]", { SIZE => '8'   })
+     $html->form_input('DISCOUNT_'.$line->[0], "$line->[7]", { SIZE => '8'   }),
+     $html->form_input('CREATE_DOCS_'.$line->[0], "$line->[0]", { TYPE => 'CHECKBOX', 
+  	                                                      STATE => ($line->[8] == 1) ? 1 : undef   }),
+     $html->form_input('SEND_DOCS_'.$line->[0], "$line->[0]", { TYPE => 'CHECKBOX', 
+  	                                                      STATE => ($line->[8] == 1) ? 1 : undef   })                                                     
+     
    );
  }
 
@@ -474,6 +480,8 @@ sub abon_periodic {
      DATETIME        => "$ADMIN_REPORT{DATE} $TIME",
      NEXT_ABON_FEES  => $line->[30],
      DISCOUNT        => $line->[31],
+     CREATE_DOCS     => $line->[32],
+     SEND_DOCS       => $line->[33],
     );
 
    my $notification1   = $line->[20];
@@ -485,7 +493,6 @@ sub abon_periodic {
    my $ext_cmd         = $line->[27]; 
    my $activate_notification = $line->[28]; 
    my $vat             = $line->[29]; 
-  
    
    if ($debug > 5) {
    	 $debug_output .= "UID: $info{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} DEPOSIT: $info{DEPOSIT}  NOT1: $notification1 NOT2: $notification2 ABON: $info{ABON_DATE}\n";
@@ -516,14 +523,13 @@ sub abon_periodic {
          	                           TP_ID => "$info{TP_ID}" });
 
 
-         if ($info{CREATE_ACCOUNT}) {
-         	 $LIST_PARAMS{UID}= $user{UID};
+         if ($info{CREATE_ACCOUNT} && $info{CREATE_DOCS}) {
          	 $FORM{SUM}       = $info{SUM};
          	 $FORM{UID}       = $user{UID};
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
-   	       $FORM{SEND_EMAIL}= 1;
+   	       $FORM{SEND_EMAIL}= $info{SEND_DOCS} || undef;
 
    	       docs_account({ QUITE => 1 });
           }
@@ -549,14 +555,13 @@ sub abon_periodic {
     	
     	 my $message = $html->tpl_show(_include('abon_alert', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
     	 my $attach;
-    	 if ($alert_account) {
-        	 $LIST_PARAMS{UID}= $user{UID};
+    	 if ($alert_account && $info{CREATE_DOCS}) {
          	 $FORM{SUM}       = $info{SUM};
          	 $FORM{UID}       = $user{UID};
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
-   	       $FORM{SEND_EMAIL}= 1;
+   	       $FORM{SEND_EMAIL}= $info{SEND_DOCS} || undef;
    	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
    	       $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
@@ -589,16 +594,16 @@ sub abon_periodic {
     	my $attach;
     	$debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: $info{CREATE_ACCOUNT} Notification 1 EMAIL: $email\n" if ($debug > 0);
     	
-    	if ($notification_account ) {
+    	if ($notification_account && $info{CREATE_DOCS}) {
         	 $LIST_PARAMS{UID}= $user{UID};
          	 $FORM{SUM}       = $info{SUM};
          	 $FORM{UID}       = $user{UID};
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
-   	       $FORM{SEND_EMAIL}= 1;
+   	       $FORM{SEND_EMAIL}= $info{SEND_DOCS} || undef;
    	       $FORM{pdf}       = $conf{DOCS_PDF_PRINT};
-   	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
+   	       my $content      = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
    	       $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
        	  	             FILENAME     => 'account.pdf' }
@@ -606,7 +611,6 @@ sub abon_periodic {
 	  	                 
       	  	                 
     	 }
-
 
  	    $Abon->user_tariff_update({ UID   => "$user{UID}",
  	    	                          NOTIFICATION => 1,
@@ -625,7 +629,8 @@ sub abon_periodic {
     	
     	my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
     	my $attach;
-    	if ($notification1_account_id) {
+    	
+    	if ($notification1_account_id && $info{CREATE_DOCS}) {
    	     $FORM{print}            = $notification1_account_id;
    	     $FORM{CHECK_PEYMENT_ID} = 1;
    	     $FORM{pdf}              = $conf{DOCS_PDF_PRINT};
@@ -640,7 +645,6 @@ sub abon_periodic {
 
 
    	     my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1  });
-   	     
    	     if ($content) {
    	       $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
@@ -648,6 +652,7 @@ sub abon_periodic {
 	  	                 ];
    	      }
     	  $html=$html_old;
+    	  delete $FORM{pdf};
     	 }
 
   	   $Abon->user_tariff_update({ UID   => "$user{UID}",

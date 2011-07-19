@@ -933,7 +933,7 @@ my $list = $company->admins_list({ COMPANY_ID => $FORM{COMPANY_ID},
 	                                 PAGE_ROWS  => 10000 });
 
 foreach my $line (@$list) {
-  $table->addrow($html->form_input('IDS', "$line->[3]", 
+  $table->addrow($html->form_input('IDS', "$line->[4]", 
                                                    { TYPE          => 'checkbox',
   	                                                 OUTPUT2RETURN => 1,
        	                                             STATE         => ($line->[0]) ? 1 : undef
