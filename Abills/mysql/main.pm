@@ -375,8 +375,8 @@ sub changes {
   my $CHANGES_QUERY = "";
   my $CHANGES_LOG = "";
   while(my($k, $v)=each(%DATA)) {
-  	#print "$k / $v -> $FIELDS->{$k} && $DATA{"DISABLE"} && $OLD_DATA->{$k} ne $DATA{$k}\n";
-    if ($FIELDS->{$k} && $DATA{$k} && $OLD_DATA->{$k} ne $DATA{$k}) {
+  	#print "$k / $v -> $FIELDS->{$k} && $DATA{$k} && $OLD_DATA->{$k} ne $DATA{$k}<br>\n";
+    if ($FIELDS->{$k} && defined($DATA{$k}) && $OLD_DATA->{$k} ne $DATA{$k}) {
         if ($k eq 'PASSWORD' || $k eq 'NAS_MNG_PASSWORD') {
           if ($DATA{$k}) {
             $CHANGES_LOG .= "$k *->*;";
