@@ -787,7 +787,7 @@ if ($ARGV->{GET}) {
 		  	  BILL_ID => $line->[4+$users->{SEARCH_FIELDS_COUNT}],
 		  	 };
 		  print "LOGIN: $line->[1] UID: $user->{UID} BILL_ID: $user->{BILL_ID} \n" if ($debug>0);
-		  #$fees->take($user, $FORM->{SUM}, { %$FORM, %$ARGV });
+		  $fees->take($user, $FORM->{SUM}, { %$FORM, %$ARGV });
 		 }
 	 }
   return 0;
