@@ -257,9 +257,12 @@ a.change {
 
 a.add { 
 	background:url(/img/button_add.png) no-repeat center;
-	display:block;
-	overflow:hidden; 
-	text-indent:-60px;
+        padding-left:22px;
+        padding-top:5px;
+        margin:0;
+        display:block;
+        overflow:hidden;
+        text-indent:-9000px;
 }
 
 a.del { 
@@ -367,6 +370,26 @@ a.stats {
 
 a.sql {
         background:url(/img/button_sql.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        margin:0;
+        display:block;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+a.download {
+        background:url(/img/button_download.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        margin:0;
+        display:block;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
+a.info {
+        background:url(/img/button_info.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
         margin:0;

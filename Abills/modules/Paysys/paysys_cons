@@ -713,11 +713,11 @@ sub eript_202 {
 		my $tarif_2= '';
 				
 		$record_total_count++;
-		$msg_total_sum += $tarif_1;
+		$msg_total_sum += $tarif_1 || 0;
 
 		my $tariffs_fields = "1~$tp_id~5~$tarif_1~$tarif_2~0~0~0";
 		
-		$message .= "$num^$uid^$fio^$address^$payment_period^$credit^$tariffs_fields^$payment_date^$comments^$ext_info^^\r\n";
+		$message .= "$num^$uid^$fio^$address^$payment_period^$credit^$tariffs_fields^$payment_date^$comments^$ext_info^^^^\r\n";
 	 }
 	
 	

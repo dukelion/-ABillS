@@ -86,18 +86,24 @@ sub ashield_tp {
  $tarif_info->{LNG_ACTION}=$_ADD;
  $tarif_info->{ACTION}='ADD_TP';
 
+ my $ashield_tps_info=ashield_drweb_tps();
+
 if($FORM{ADD_TP}) {
   $FORM{TP_ID} = $FORM{CHG_TP_ID};
-  $Tariffs->{debug}=1;
+  if ($FORM{IMPORT}) {
+  	my $key         = $FORM{IMPORT};
+  	my $id          = $ashield_tps_info->{$key}{ID};
+    $FORM{NAME}     = $key;
+    $FORM{COMMENTS} = convert($ashield_tps_info->{$key}->{COMMENTS}, { utf82win => 1 }),
+   }
+  
   $Tariffs->add( { %FORM, MODULE => 'Ashield' });
   if (! $Tariffs->{errno}) {
     $html->message('info', $_ADDED, "$_ADDED $Tariffs->{TP_ID}");
     if ($FORM{DR_WEB_GROUP}) {
     	 $FORM{add}        = 1;
        $FORM{ID}         = 'ashield_'.$Tariffs->{TP_ID};
-       $FORM{NAME}       = "Tariff Plan: $Tariffs->{TP_ID}";
-       $FORM{DESCRIPTION}= "Ashield Group for TP: $Tariffs->{TP_ID}";
-       ashield_drweb_groups();    	
+       ashield_drweb_tps();
      }
    }
  }
@@ -143,24 +149,29 @@ elsif ($FORM{TP_ID}) {
     if (! $Tariffs->{errno}) {
        $html->message('info', $_CHANGED, "$_CHANGED $Tariffs->{TP_ID}");
        if ($FORM{DR_WEB_GROUP}) {
-      	 $FORM{add}        = 1;
+      	 $FORM{change}     = 1;
          $FORM{ID}         = 'ashield_'.$FORM{TP_ID};
-         $FORM{NAME}       = "Tariff Plan: $FORM{TP_ID}";
-         $FORM{DESCRIPTION}= "Ashield Group for TP: $FORM{TP_ID}";
-         ashield_drweb_groups();    	
+         
+         print "//  $FORM{ID} // ";
+         
+         ashield_drweb_tps();    	
         }
      }
    }
 
   $FORM{info}="ashield_".$tarif_info->{TP_ID};
-  if (ashield_drweb_groups()) {
-    $tarif_info->{DR_WEB_GROUP}    = 'checked'; 
+  if ($ashield_tps_info{$Tariffs->{NAME}}) {
+    $tarif_info->{DR_WEB_GROUP}        = 'checked'; 
+    $tarif_info->{DR_WEB_GRACE_PERIOD} = $ashield_tps_info{$Tariffs->{NAME}}->{GRACE_PERIOD}; 
+    $tarif_info->{DR_WEB_ID}           = $ashield_tps_info{$Tariffs->{NAME}}->{ID}; 
    }
   $tarif_info->{LNG_ACTION}=$_CHANGE;
   $tarif_info->{ACTION}='change';
  }
 elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
   $Tariffs->del($FORM{del});
+
+  ashield_drweb_tps();
   if (! $Tariffs->{errno}) {
     $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
    }
@@ -195,8 +206,7 @@ $tarif_info->{PERIOD_ALIGNMENT}= ($tarif_info->{PERIOD_ALIGNMENT}) ? 'checked' :
 #  $tarif_info->{EXT_BILL_ACCOUNT}="<tr><td>$_EXTRA $_BILL:</td><td><input type='checkbox' name='EXT_BILL_ACCOUNT' value='1' $checked></td></tr>\n";
 #}
 
-
-$html->tpl_show(_include('ashield_tp', 'Ashield'), $tarif_info);
+$html->tpl_show(_include('ashield_tp', 'Ashield'), { %FORM, %$tarif_info });
 
 my $list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Ashield' });	
 my $table = $html->table( { width       => '100%',
@@ -210,8 +220,8 @@ my $table = $html->table( { width       => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
-    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { BUTTON => 1 });
+    $delete = $html->button($_DEL, "index=$index&del=$line->[18]&ID=$ashield_tps_info->{$line->[1]}{ID}", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }); 
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { CLASS => 'change' });
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
@@ -230,6 +240,8 @@ foreach my $line (@$list) {
    $line->[9], 
    $change,
    $delete);
+   
+   delete($ashield_tps_info->{$line->[1]});
 }
 
 print $table->show();
@@ -237,7 +249,45 @@ $table = $html->table( { width      => '100%',
                          cols_align => ['right', 'right'],
                          rows       => [ [ "$_TOTAL:", $html->b($Tariffs->{TOTAL}) ] ]
                      } );
+
 print $table->show();
+
+
+
+
+my $table = $html->table( { width       => '100%',
+                            caption     => "Dr.Web AV Desk $_TARIF_PLANS",
+                            border      => 1,
+                            title_plain => ['#', $_NAME, "$_DESCRIBE", "$_GRACEPERIOD", $_GROUP, '-', '-' ],
+                            cols_align  => ['right', 'left', 'center', 'center', 'center', 'right', 'right', 'right', 'right', 'center:noprint', 'center:noprint', 'center:noprint'],
+                            ID          => 'ASHIELD_DR_WEB_TARIF_PLANS'
+                                  } );
+
+my ($delete, $add);
+foreach my $key (sort keys %{ $ashield_tps_info }) {
+  my $id =  $ashield_tps_info->{$key}->{ID};
+  if ($permissions{4}{1}) {
+    $delete = $html->button($_DEL, "index=$index&del=$key&ID=$id", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }); 
+    $add = $html->button($_ADD, "index=$index&ADD_TP=1&IMPORT=$key", { CLASS => 'add' });
+   }
+
+  $table->addrow($html->color_mark($id, 'code'), 
+   $key,
+   convert($ashield_tps_info->{$key}->{COMMENTS}, { utf82win => 1 }),
+   $ashield_tps_info->{$key}->{GRACE_PERIOD},
+   $ashield_tps_info->{$key}->{PARENT_NAME},
+   $add,
+   $delete);
+   
+   delete($ashield_tps_info->{$line->[1]});
+}
+
+print $table->show();
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Tariffs->{TOTAL}) ] ]
+                     } );
+
 }
 
 ##**********************************************************
@@ -739,12 +789,6 @@ sub ashield_user {
   		print "Content-Type: text/html\n\n";
     	$Ashield->{ACTIVATE}='0000-00-00'; #$attr->{USER}->{ACTIVATE};
       if (! $FORM{STATUS}) {
-        #ashield_get_month_fee($Ashield);
-        #ashield_drweb_user({ 
-        #  LOGIN    => $FORM{LOGIN},
-        #	PASSWORD => $FORM{PASSWORD},
-        #	TP_ID    => $FORM{TP_ID}
-        #	});
         my $result_hash = ashield_drweb_request('api/3.0/stations/add.ds', 
           {
       	  name       => "$users->{LOGIN}" || $fio2 || '-',
@@ -772,8 +816,11 @@ sub ashield_user {
           #$Ashield->user_add({ %FORM, UID => $LIST_PARAMS{UID} });
 
           my %DEFAULT_AVD_TPS_REV = reverse %DEFAULT_AVD_TPS;
-          my ($id)  = keys %{ $result_hash->{stations}->[0]->{station} };
-          my ($rate) = keys %{ $result_hash->{stations}->[0]->{station}->{$id}->{rate} };
+          my ($name)  = keys %{ $result_hash->{stations}->[0]->{station} };
+          my ($rate) = keys %{ $result_hash->{stations}->[0]->{station}->{$name}->{rate} };
+          
+          my $id = $result_hash->{stations}->[0]->{station}->{$name}->{id};
+
           $Ashield->ashield_avd_add({ UID => $LIST_PARAMS{UID},
             STATE      => 0, 
             AGENTUUID  => $id,
@@ -797,12 +844,16 @@ sub ashield_user {
      }
    }
 	elsif($FORM{del} && $FORM{is_js_confirmed}) {
-    $Ashield->user_del();
+    $Ashield->ashield_avd_del({ ID => $FORM{del}  });
+    $Ashield->user_del() if ($FORM{UID});
     if (! $Ashield->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
      }
 	 }
   elsif($FORM{info}) {
+  	ashield_drweb_user();
+   }
+  elsif($FORM{stats}) {
   	ashield_drweb_user();
    }
 
@@ -820,187 +871,131 @@ sub ashield_user {
 	  $service->{LNG_ACTION} = $_SUBSCRIBE;
 	  $html->tpl_show(_include('ashield_client_subcribe', 'Ashield'), {%$user,  %$Ashield, %$service });
 
-#    $Ashield->{STATUS}=$service_status[$Ashield->{STATUS}];
-#    my $result_hash=ashield_drweb_request('interfaces/'. $INTERFACES{$drweb_version}{USER_INFO}, {
-#      	  login      => "$users->{LOGIN}",
-#      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD},
-#      	  options    => 1,
-#      	  subscribes => 1,
-#      	  },
-#      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
-#      	  	});
-
-    #XML 3.0
-#    my $result_hash=ashield_drweb_request('api/3.0/stations/info.ds', 
-#         {
-#      	  id         => "48aada10-d21d-b211-ac54-a0059a9b1a4a",
-#      	  components => 'on',
-#      	  },
-#      	  );
-#
-#      if ($result_hash->{error}->[0]->{code}->[0]) {
-#        $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
-#        return 0;
-#       }
-#
-#
-#      while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
-#        $Ashield->{$k}=(ref $v eq 'ARRAY' && ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : (ref $v eq 'ARRAY') ? convert($v->[0], { utf82win => 1 }) : $v;
-#       }
-#
-#      $Ashield->{agents_total}=%{ $result_hash->{user}->[0]->{agents}->[0] };
-#      $html->tpl_show(_include('ashield_client_info', 'Ashield'), $Ashield);
-#    	$result_hash = $result_hash->{user}->[0];
-#
-#
-#    my ($y, $m, $d)=split(/-/, $DATE, 3);
-#    my $cur_date="$y$m$d"; 
-#  	$table = $html->table({ width      => '100%',
-#  		                      caption    => "$_AGENTS",
-#  		                      title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", "$_ACTIVATE", "Online",
-#  		                        "$_CREATED", "$_STATUS", "$_GRACEPERIOD", "URL"],
-#  		                      cols_align => ['left', 'left'],
-#  		                      ID         => 'DRWEB_AGENTS'
-#                          });
-#
-#      foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) {
-#    	  my $result_hash2 = ashield_drweb_request('api/2.0/get-customer-info.ds', { id => $k->{uuid}->[0] }); 
-#        my $status       = '';
-#    	
-#   	    if ($result_hash2->{error}->[0]->{code}->[0]) {
-#          #$html->message('err', $_ERROR, "'$k->{uuid}->[0]' [$result_hash2->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash2->{error}->[0]->{code}->[0]}");
-#          $status = "$dr_web_errors{$result_hash2->{error}->[0]->{code}->[0]}";
-#         }
-#   	
-#        my $create = $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
-#      
-#        #$result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
-#        if ($create =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
-#          $create     = "$1-$2-$3 $4:$5:$6" || $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
-#         }
-#    	  #$result_hash2->{customers}->[0]->{customer}->[0]->{modifiedtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-#    	  #my $changed = "$1-$2-$3 $4:$5:$6";
-#        my $activated	 = $result_hash2->{customers}->[0]->{customer}->[0]->{activated}->[0];
-#        my $online	   = $result_hash2->{customers}->[0]->{customer}->[0]->{online}->[0];
-#    	  my $name       = $result_hash2->{customers}->[0]->{customer}->[0]->{name}->[0] || $k->{uuid}->[0];
-#    	  my $graceperiod= '-'; # $result_hash2->{customers}->[0]->{customer}->[0]->{graceperiod}->[0] || '';
-#     	  my $expire = 0;
-#     	  if ($result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
-#      	  $expire = "$1$2$3";
-#      	 }
-#
-#      	my $satus_code = 0;
-#      	if ($expire > 0 && $expire > $cur_date) {
-#      		$expire =~ /(\d{4})(\d{2})(\d{2})/;
-#    	  	$status = "$_EXPIRE: $1-$2-$3";
-#    	   } 
-#      	elsif ($expire > 0 && $expire < $cur_date) {
-#      		$expire =~ /(\d{4})(\d{2})(\d{2})/;
-#    	  	$status = "$_EXPIRE: $1-$2-$3";
-#    	  	$satus_code=1;
-#    	   } 
-#    	  else {
-#      	  $blockbeg = $result_hash2->{customers}->[0]->{customer}->[0]->{blocking}->[0]->{begin}->[0];
-#      	  if ($blockbeg > 0 ) {
-#     			  $blockbeg =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-#    		    $blockbeg = "$1$2$3";
-#  	  	   }
-#  
-#      	  $blockend = $result_hash2->{customers}->[0]->{customer}->[0]->{blocking}->[0]->{end}->[0];
-#  	  	  $blockend =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-#   		    $blockend = "$1$2$3";
-#    		  if ($blockbeg > 0 && $blockbeg < $cur_date && $blockend < $cur_date) {
-#    		  	
-#    	     }
-#          else {
-#          	$status_code=1;
-#           }
-#
-#   			  $blockbeg =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
-#   			  $blockend =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
-#
-#          $status = "$_STATUS_4: $blockbeg - $blockend" if ($blockbeg > 0);
-#    	   }
-#
-#        my $tp = $k->{'current-tariff'}->[0] || $k->{tariffplancode}->[0];
-##        current-tariff
-##        subscription-period
-##        uuid
-##        unsubscribed
-##        password
-##        createdtime
-##        auto-prolongation
-##        grace-period
-#        
-#
-#    	  $table->addrow($html->color_mark(convert($name, { utf82win => 1 }), 'code'),
-##    	               $k->{agentuuid}->[0], 
-#    	               $tp,
-#    	               ($activated eq 'no') ? $_NO: $_YES,
-#                     ($online eq 'no') ? $_NO : $_YES,
-#    	               $create,
-#    	               $status,
-#    	               $graceperiod,
-#    	               (($satus_code) ? "" : $html->button("$_DOWNLOAD", '', { 
-#    	               	  GLOBAL_URL => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]", 
-#    	                  TITLE      => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]",
-#    	                  BUTTON     => 1 
-#    	                  }))
-#    	              );
-#         }
-#        print $table->show();
-#
-#
-    return 0 if ($user->{UID});
-
     #show abills log
     if (! $FORM{sort}) {
    	  $LIST_PARAMS{SORT}=1;
    	  $LIST_PARAMS{DESC}='DESC';
      }
 
+    #subscribes
     my $list =  $Ashield->ashield_avd_list({ %LIST_PARAMS  });
   	$table = $html->table({ width      => '100%',
-  		                      caption    => "$_LOG",
-  		                      title      => ["$_DATE", "$_LOGIN", "$_STATE", "$_AGENT ID",
-  		                      "$_GROUP ID", "$_GROUP $_NAME", "$_TARIF_PLAN" ],
-                            cols_align => ['left', 'left', 'left', 'left', 'left'],
-                            pages      => $Ashield->{TOTAL},
-                            qs         => "&UID=$LIST_PARAMS{UID}"
+  		                      caption    => "$_AGENTS",
+  		                      title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", "$_ACTIVATE", "Online",
+  		                        "$_CREATED", "$_STATUS", "$_GRACEPERIOD", '-', "URL"],
+  		                      cols_align => ['left', 'left'],
+  		                      ID         => 'DRWEB_AGENTS'
                           });
- 
+
  
     foreach my $line (@$list) {
-    	$table->addrow($line->[0],
-    	               $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
-    	               $subscribe_state{$line->[2]},
-    	               $html->color_mark($line->[3],'code'),
-    	               $html->color_mark($line->[4],'code'),
-    	               $line->[5],
-    	               $line->[6]    	               
-    	              );
-
+    	if ($permissions{4}{1}) {
+        $delete = $html->button($_DEL, "index=$index&del=$line->[9]&UID=$LIST_PARAMS{UID}", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }); 
+       }
       my $result_hash=ashield_drweb_request('api/3.0/stations/info.ds', 
          {
-      	  id         => "48aada10-d21d-b211-ac54-a0059a9b1a4a",
-      	  components => 'on',
+      	  id                   => $line->[3],
+      	  #components          => 'on',
+      	  'extra-info'         => 'on',
+      	  #installedcomponents => 'on',
+      	  #runningcomponents   => 'on',
+      	  #groupmembership     => 'on'      	  
       	  },
       	  );
 
-      if ($result_hash->{error}->[0]->{code}->[0]) {
-        $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+      if ($result_hash->{error}->[0]->{errno}->[0]) {
+        $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
         return 0;
        }
 
+      my ($id) = keys %{ $result_hash->{stations}->[0]->{station} };
+      my $station_info = $result_hash->{stations}->[0]->{station}->{$id};
 
-      while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
-        $Ashield->{$k}=(ref $v eq 'ARRAY' && ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : (ref $v eq 'ARRAY') ? convert($v->[0], { utf82win => 1 }) : $v;
-       }
+      my %DEFAULT_AVD_TPS_REV = reverse %DEFAULT_AVD_TPS;
+
+    	  my $expire      = $station_info->{expires}->[0];
+        my $name        = $id;
+        my $graceperiod = $station_info->{grace_period};
+        my $create      = localtime($station_info->{created});
+        my $cur_date    = time;
+        
+        my ($rate)      = keys %{ $station_info->{rate} };
+        my $tp          = $DEFAULT_AVD_TPS_REV{$rate};
+
+        #if ($create =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
+        #  $create     = "$1-$2-$3 $4:$5:$6";
+        # }
+        my $status      = '';
+      	my $satus_code  = 0;
+
+        my %statin_state_hash = (
+        0 => 'Станция не залогинена на сервере (не в сети)',
+        1 => 'Станция залогинена на сервере (в сети)',
+        2 => 'Соединение со станцией разорвано',
+        3 => 'Сервер перезагружается/завершает свою работу',
+        5 => 'Время ожидания выполнения команды истекло',
+        6 => 'Антивирусный пакет был удален'
+        );
+
+      	if ($expire > 0 && $expire > $cur_date) {
+      		$expire = localtime($expire);
+    	  	$status = "$_EXPIRE: $1-$2-$3";
+    	   } 
+      	elsif ($expire > 0 && $expire < $cur_date) {
+      		$expire = localtime($expire);
+    	  	$status = "$_EXPIRE: $1-$2-$3";
+    	  	$satus_code=1;
+    	   } 
+    	  else {
+      	  $blockbeg = $station_info->{blocking}->[0]->{begin}->[0];
+      	  if ($blockbeg > 0 ) {
+     			  $blockbeg =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+    		    $blockbeg = "$1$2$3";
+  	  	   }
+  
+      	  $blockend = $station_info->{blocking}->[0]->{end}->[0];
+  	  	  #$blockend =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+   		    #$blockend = "$1$2$3";
+    		  if ($blockbeg > 0 && $blockbeg < $cur_date && $blockend < $cur_date) {
+    		  	
+    	     }
+          else {
+          	$status_code=1;
+           }
+
+   			  $blockbeg =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
+   			  $blockend =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
+          $status = "$_STATUS_4: $blockbeg - $blockend" if ($blockbeg > 0);
+    	   }
+
+        my $installed = ''; #(lastseenat == "" or ( lastseenat != "" and state == 5 ) ) ? 0 : 'installed';
+
+    	  $table->addrow($html->color_mark(convert($name, { utf82win => 1 }), 'code'),
+##    	               $k->{agentuuid}->[0], 
+    	               $tp,
+    	               ($activated eq 'no') ? $_NO: $_YES,
+                     ($online eq 'no') ? $_NO : $_YES,
+    	               $create,
+    	               $installed.
+    	               $html->br().
+    	               $statin_state_hash{$station_info->{state}}.
+    	               $html->br().$status,
+    	               $graceperiod,
+    	               $html->button($_STATS, "index=$index&stats=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'stats' }),
+    	               (($satus_code) ? "" : $html->button("$_DOWNLOAD", '', { 
+    	               	  GLOBAL_URL => "$station_info->{url}->[0]", 
+    	                  TITLE      => "$station_info->{url}->[0]",
+    	                  CLASS      => 'download' 
+    	                  }))
+    	              );
 
 
 
-     }
-    print $table->show();
+ }
+print $table->show();
+
+
+    return 0 if ($user->{UID});
     return 0;
 #	} 
  
@@ -1522,6 +1517,80 @@ sub ashield_drweb_groups {
   }
 }
 
+
+
+#**********************************************************
+#
+#**********************************************************
+sub ashield_drweb_tps {
+
+
+if ($FORM{add}) {
+	$result_hash = ashield_drweb_request('api/3.0/tariffs/add.ds', { 
+		id           => $FORM{ID},
+		name         => convert($FORM{NAME}, { win2uft8 => 1 }),
+		description  => convert($FORM{COMMENTS}, { win2utf8 => 1 }),
+		'grace-period'  => $FORM{DR_WEB_GRACE_PERIOD}, 
+		  }); 
+
+  if ($result_hash->{error}->[0]->{errno}->[0]) {
+     $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+    return 0;
+   }
+}
+elsif ($FORM{change}) {
+	$result_hash = ashield_drweb_request('api/3.0/tariffs/change.ds', { 
+		id           => $FORM{ID},
+		name         => convert($FORM{NAME}, { win2uft8 => 1 }),
+		description  => convert($FORM{COMMENTS}, { win2utf8 => 1 }),
+		'grace-period'  => $FORM{DR_WEB_GRACE_PERIOD}, 
+		  }); 
+
+  if ($result_hash->{error}->[0]->{errno}->[0]) {
+     $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+    return 0;
+   }
+}
+elsif ($FORM{del}) {
+	$result_hash = ashield_drweb_request('api/3.0/tariffs/delete.ds', { 
+		id           => $FORM{ID},
+		  }); 
+
+  if ($result_hash->{error}->[0]->{errno}->[0]) {
+    $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+    return 0;
+   }
+}
+
+	$result_hash = ashield_drweb_request('api/3.0/tariffs/list.ds', { 
+		  }); 
+
+  if ($result_hash->{error}->[0]->{errno}->[0]) {
+     $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+    return 0;
+   }
+
+  my $ashield_tps_info = ();
+
+  foreach my $key (keys %{ $result_hash->{'groups'}->[0]->{group} }) {
+  	my $id = $result_hash->{'groups'}->[0]->{group}->{$key}->{id};
+  	$ashield_tps_info{$key}{ID}=$id;
+
+  	$result_hash2 = ashield_drweb_request('api/3.0/tariffs/info.ds', { 
+  		 id => $id
+		  }); 
+  
+    my $tp_info = $result_hash2->{groups}->[0]->{group}->{$key};
+    $ashield_tps_info{$key}{PARENT_NAME}  = $tp_info->{parent_name};
+    $ashield_tps_info{$key}{COMMENTS}     = $tp_info->{description};
+    $ashield_tps_info{$key}{GRACE_PERIOD} = $tp_info->{grace_period};
+    $ashield_tps_info{$key}{TYPE}         = $tp_info->{type};
+   }
+
+  return \%ashield_tps_info;
+}
+
+
 #**********************************************************
 #
 #**********************************************************
@@ -1565,8 +1634,21 @@ elsif($FORM{del}) {
       return 1;
      }
  }
+elsif ($FORM{stats}) {
+	$result_hash = ashield_drweb_request('api/3.0/stations/statistics.ds', { 
+		  id => $FORM{stats}, 
+		  }); 
+
+  if ($result_hash->{error}->[0]->{errno}->[0]) {
+     $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+    return 0;
+   }
+
+  my ($id) = keys %{ $result_hash->{'stations-statistics'}->[0]->{station} };
+  $station_info = $result_hash->{'stations-statistics'}->[0]->{station}->{$id};
+ }
 elsif ($FORM{info}) {
-	my $result_hash = ashield_drweb_request('api/3.0/stations/info.ds', { 
+	$result_hash = ashield_drweb_request('api/3.0/stations/info.ds', { 
 		  id => $FORM{info}, 
 		  'components' => on,
 		  'extra-info' => on
@@ -1577,17 +1659,19 @@ elsif ($FORM{info}) {
     return 0;
    }
 
+   my ($id) = keys %{ $result_hash->{stations}->[0]->{station} };
+   $station_info = $result_hash->{stations}->[0]->{station}->{$id}
+  }
 
- my @ids = keys %{ $result_hash->{stations}->[0]->{station} };
- my $id = $ids[0];
- #print %{ $result_hash->{stations}->[0]->{station}->{$id} };
+ 
+
 
 $table = $html->table( { width      => '450',
                          border     => 1,
                          caption    => "$_STATS",
                       } );
 
-while (my($k, $v)=each %{ $result_hash->{stations}->[0]->{station}->{$id} }){
+while (my($k, $v)=each %{ $station_info }){
 #  next if ($k =~ /from|till|virus|stations/);
   my $val = $v;
   
@@ -1598,7 +1682,7 @@ while (my($k, $v)=each %{ $result_hash->{stations}->[0]->{station}->{$id} }){
   if(ref $val eq 'HASH') {
   	my $val2 = '';
   	while(my($k, $v)=each %{ $val }) {
-  	  $val2 .= " $k / ";
+  	  $val2 .= $html->b("$k: ");
   	  $val2 .= (ref $v eq 'ARRAY') ? $v->[0] : $v;
   	  $val2 .= $html->br();
   	 }
@@ -1642,7 +1726,7 @@ while (my($k, $v)=each %{ $result_hash->{stations}->[0]->{station}->{$id} }){
 # }
 
 print $table->show();
-}
+
 }
 
 
@@ -1726,7 +1810,20 @@ sub ashield_drweb_report_users {
 
  	 return 0;
   }
+ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
+    my $result_hash=ashield_drweb_request('api/3.0/stations/delete.ds', 
+         {
+      	  id         => $FORM{del},
+      	  });
 
+    if ($result_hash->{error}->[0]->{code}->[0]) {
+      $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+      return 0;
+     }
+ 	  else {
+ 	  	$html->message('info', $_INFO, "$_DELETED");
+ 	   }
+  }
 
  my $result_hash       = ashield_drweb_request('api/2.0/get-customer-info.ds', { }); 
  my $drweb_total_users = $result_hash->{customers}->[0]->{total};
@@ -1740,7 +1837,7 @@ sub ashield_drweb_report_users {
  
  my $table = $html->table({ width       => '100%',
  	                          caption     => "$_AGENTS - $_ACTIVE",
- 	                          title_plain => ["$_LOGIN", "Dr.Web uuid", $_NAME, "$_TARIF_PLAN", $_EXPIRE, "$_DOWNLOADED", $_CREATE, $_CHANGED],
+ 	                          title_plain => ["$_LOGIN", "Dr.Web uuid", $_NAME, "$_TARIF_PLAN", $_EXPIRE, "$_DOWNLOADED", $_CREATE, $_CHANGED, '-'],
  	                        });
 
  my $date = $DATE.'000000000';
@@ -1773,7 +1870,8 @@ sub ashield_drweb_report_users {
  	 $expires,
  	 ((ref $line->{lastseenfrom}->[0] eq 'HASH') ? '-' : "$_DOWNLOADED" ),
  	 $create,
- 	 $changed
+ 	 $changed,
+ 	 $html->button($_DEL, "index=$index&del=$line->{id}->[0]", { MESSAGE => "$_DEL $line->{id}->[0] ?",  CLASS => 'del' })
  	 );
   } 
 
@@ -2211,7 +2309,7 @@ if(! $response->is_success() ) {
 	return ;
 }
 
-#my $test = qq{<?xml version="1.0" encoding="utf-8"?><drweb-avdesk-api api_build='201105101' api_version='3.0.0' local_timestamp='1311062830' operation='stations-add' server='192.168.1.41' srv_branch='REL-600-AV' srv_version='6.00.20.201105180' status='true' timestamp='1311062830'><stations total='1'><station created='1311062830' grace_period='30' id='1a28792c-d21d-b211-9b5a-e30dc611724b' modified='1311062830' name='1a28792c-d21d-b211-9b5a-e30dc611724b' parent_id='20e27d73-d21d-b211-a788-85419c46f0e6' parent_name='Everyone' password='EmtGLShJVSCmzeYH'><rate id='91644cc3-1dc1-42dc-a41e-5ea001f5538d'><![CDATA[AV+AS+PC]]></rate><url><![CDATA[http://necro_new.necro/download/download.ds?id=1a28792c-d21d-b211-9b5a-e30dc611724b]]></url><lastseenat>0</lastseenat><lastseenfrom></lastseenfrom><os code='0'>unknown</os><expires>0</expires><blocking><begin>0</begin><end>0</end></blocking><department><![CDATA[]]></department><description><![CDATA[]]></description><country><![CDATA[]]></country><street><![CDATA[]]></street><room><![CDATA[]]></room><city><![CDATA[]]></city><floor><![CDATA[]]></floor><longitude><![CDATA[0]]></longitude><latitude><![CDATA[0]]></latitude><organization><![CDATA[]]></organization><province><![CDATA[]]></province><rights inherited='true' inherited_group_id='91644cc3-1dc1-42dc-a41e-5ea001f5538d' inherited_group_name='AV+AS+PC'><right code='53' name='Uninstall Dr.Web Agent' value='1'/><right code='43' name='Change Dr.Web for MS Exchange Server configuration' value='1'/><right code='47' name='Run Dr.Web Scanner for Linux' value='1'/><right code='37' name='Run Dr.Web Scanner for Mac OS X' value='1'/><right code='57' name='Change Dr.Web Scanner for Mac OS X Server configuration' value='1'/><right code='27' name='Disable self-protection' value='1'/><right code='17' name='Change SpIDer Guard for Windows Servers configuration' value='1'/><right code='13' name='Change Dr.Web AV-Desk Agent settings' value='0'/><right code='33' name='Change Dr.Web Scanner for Novell NetWare configuration' value='1'/><right code='23' name='Stop Dr.Web Parental Control' value='1'/><right code='42' name='Stop SpIDer Guard for Mac OS X' value='1'/><right code='52' name='Stop SpIDer Guard for Linux' value='1'/><right code='62' name='Standalone mode for Mac OS X Server' value='1'/><right code='36' name='Stop SpIDer Guard for Novell NetWare' value='1'/><right code='46' name='Change Dr.Web Scanner and Dr.Web SpIDer Guard for Windows Mobile configuration' value='1'/><right code='56' name='Run Dr.Web Scnner for Mac OS X' value='1'/><right code='16' name='Start SpIDer Guard for Windows Servers' value='0'/><right code='12' name='Change local policy' value='0'/><right code='22' name='Start Dr.Web Parental Control' value='1'/><right code='32' name='Run Dr.Web Scanner for Novell NetWare' value='1'/><right code='61' name='Stop SpIDer Guard for Mac OS X Server' value='1'/><right code='51' name='Change SpIDer Guard for Linux configuration' value='1'/><right code='41' name='Change SpIDer Guard for Mac OS X configuration' value='1'/><right code='55' name='Standalone mode for Mac OS X' value='1'/><right code='45' name='Stop Dr.Web SpIDer Guard for Windows Mobile' value='1'/><right code='35' name='Change SpIDer Guard for Novell NetWare configuration' value='1'/><right code='59' name='Run SpIDer Guard for Mac OS X Server' value='1'/><right code='49' name='Stop Dr.Web Scanner for Linux' value='1'/><right code='39' name='Stop Dr.Web Scanner for Mac OS X' value='1'/><right code='29' name='Stop plug-in for MS Outlook' value='1'/><right code='1' name='Run Dr.Web Scanner for Windows' value='1'/><right code='3' name='Start SpIDer Guard for Windows ME' value='1'/><right code='2' name='Start SpIDer Guard for Windows XP' value='1'/><right code='19' name='Start SpIDer Gate for Windows Workstations' value='1'/><right code='4' name='Change Dr.Web Scanner for Windows configuration' value='1'/><right code='7' name='Start SpIDer Mail for Windows Workstations' value='1'/><right code='6' name='Change SpIDer Guard for Windows ME configuration' value='1'/><right code='25' name='Disable access to network' value='1'/><right code='15' name='Mobile mode and update from Dr.Web GUS' value='0'/><right code='31' name='Change Dr.Web for IBM Lotus Domino configuration' value='1'/><right code='21' name='Change SpIDer Gate for Windows Workstations configuration' value='1'/><right code='11' name='Create local schedule' value='1'/><right code='60' name='Change SpIDer Guard for Mac OS X Server configuration' value='1'/><right code='40' name='Run SpIDer Guard for Mac OS X' value='1'/><right code='50' name='Run SpIDer Guard for Linux' value='1'/><right code='54' name='Standalone mode for Linux' value='1'/><right code='34' name='Run SpIDer Guard for Novell NetWare' value='1'/><right code='44' name='Disable the system protection' value='1'/><right code='48' name='Change Dr.Web Scanner for Linux configuration' value='1'/><right code='58' name='Stop Dr.Web Scanner for Mac OS X Server' value='1'/><right code='28' name='Run plug-in for MS Outlook' value='1'/><right code='38' name='Change Dr.Web Scanner for Mac OS X configuration' value='1'/><right code='18' name='Stop SpIDer Guard for Windows Servers' value='1'/><right code='14' name='Stop Dr.Web AV-Desk Agent interface' value='0'/><right code='24' name='Change Dr.Web Parental Control configuration' value='1'/><right code='5' name='Change SpIDer Guard for Windows XP configuration' value='1'/><right code='9' name='Stop SpIDer Guard for Windows XP' value='1'/><right code='20' name='Stop SpIDer Gate for Windows Workstations' value='1'/><right code='30' name='Change plug-in for MS Outlook configuration' value='1'/><right code='8' name='Change SpIDer Mail for Windows Workstations configuration' value='1'/><right code='10' name='Stop SpIDer Mail for Windows Workstations' value='1'/></rights><emails total='0'/><group-membership total='0'/></station></stations></drweb-avdesk-api>};
+#my $test = qq{<?xml version="1.0" encoding="utf-8"?><drweb-avdesk-api api_build='201105101' api_version='3.0.0' local_timestamp='1311062830' operation='stations-add' server='192.168.1.41' srv_branch='REL-600-AV' srv_version='6.00.20.201105180' status='true' timestamp='1311062830'><stations total='1'><station created='1311062830' GRACE_PERIOD='30' id='1a28792c-d21d-b211-9b5a-e30dc611724b' modified='1311062830' name='1a28792c-d21d-b211-9b5a-e30dc611724b' parent_id='20e27d73-d21d-b211-a788-85419c46f0e6' parent_name='Everyone' password='EmtGLShJVSCmzeYH'><rate id='91644cc3-1dc1-42dc-a41e-5ea001f5538d'><![CDATA[AV+AS+PC]]></rate><url><![CDATA[http://necro_new.necro/download/download.ds?id=1a28792c-d21d-b211-9b5a-e30dc611724b]]></url><lastseenat>0</lastseenat><lastseenfrom></lastseenfrom><os code='0'>unknown</os><expires>0</expires><blocking><begin>0</begin><end>0</end></blocking><department><![CDATA[]]></department><description><![CDATA[]]></description><country><![CDATA[]]></country><street><![CDATA[]]></street><room><![CDATA[]]></room><city><![CDATA[]]></city><floor><![CDATA[]]></floor><longitude><![CDATA[0]]></longitude><latitude><![CDATA[0]]></latitude><organization><![CDATA[]]></organization><province><![CDATA[]]></province><rights inherited='true' inherited_group_id='91644cc3-1dc1-42dc-a41e-5ea001f5538d' inherited_group_name='AV+AS+PC'><right code='53' name='Uninstall Dr.Web Agent' value='1'/><right code='43' name='Change Dr.Web for MS Exchange Server configuration' value='1'/><right code='47' name='Run Dr.Web Scanner for Linux' value='1'/><right code='37' name='Run Dr.Web Scanner for Mac OS X' value='1'/><right code='57' name='Change Dr.Web Scanner for Mac OS X Server configuration' value='1'/><right code='27' name='Disable self-protection' value='1'/><right code='17' name='Change SpIDer Guard for Windows Servers configuration' value='1'/><right code='13' name='Change Dr.Web AV-Desk Agent settings' value='0'/><right code='33' name='Change Dr.Web Scanner for Novell NetWare configuration' value='1'/><right code='23' name='Stop Dr.Web Parental Control' value='1'/><right code='42' name='Stop SpIDer Guard for Mac OS X' value='1'/><right code='52' name='Stop SpIDer Guard for Linux' value='1'/><right code='62' name='Standalone mode for Mac OS X Server' value='1'/><right code='36' name='Stop SpIDer Guard for Novell NetWare' value='1'/><right code='46' name='Change Dr.Web Scanner and Dr.Web SpIDer Guard for Windows Mobile configuration' value='1'/><right code='56' name='Run Dr.Web Scnner for Mac OS X' value='1'/><right code='16' name='Start SpIDer Guard for Windows Servers' value='0'/><right code='12' name='Change local policy' value='0'/><right code='22' name='Start Dr.Web Parental Control' value='1'/><right code='32' name='Run Dr.Web Scanner for Novell NetWare' value='1'/><right code='61' name='Stop SpIDer Guard for Mac OS X Server' value='1'/><right code='51' name='Change SpIDer Guard for Linux configuration' value='1'/><right code='41' name='Change SpIDer Guard for Mac OS X configuration' value='1'/><right code='55' name='Standalone mode for Mac OS X' value='1'/><right code='45' name='Stop Dr.Web SpIDer Guard for Windows Mobile' value='1'/><right code='35' name='Change SpIDer Guard for Novell NetWare configuration' value='1'/><right code='59' name='Run SpIDer Guard for Mac OS X Server' value='1'/><right code='49' name='Stop Dr.Web Scanner for Linux' value='1'/><right code='39' name='Stop Dr.Web Scanner for Mac OS X' value='1'/><right code='29' name='Stop plug-in for MS Outlook' value='1'/><right code='1' name='Run Dr.Web Scanner for Windows' value='1'/><right code='3' name='Start SpIDer Guard for Windows ME' value='1'/><right code='2' name='Start SpIDer Guard for Windows XP' value='1'/><right code='19' name='Start SpIDer Gate for Windows Workstations' value='1'/><right code='4' name='Change Dr.Web Scanner for Windows configuration' value='1'/><right code='7' name='Start SpIDer Mail for Windows Workstations' value='1'/><right code='6' name='Change SpIDer Guard for Windows ME configuration' value='1'/><right code='25' name='Disable access to network' value='1'/><right code='15' name='Mobile mode and update from Dr.Web GUS' value='0'/><right code='31' name='Change Dr.Web for IBM Lotus Domino configuration' value='1'/><right code='21' name='Change SpIDer Gate for Windows Workstations configuration' value='1'/><right code='11' name='Create local schedule' value='1'/><right code='60' name='Change SpIDer Guard for Mac OS X Server configuration' value='1'/><right code='40' name='Run SpIDer Guard for Mac OS X' value='1'/><right code='50' name='Run SpIDer Guard for Linux' value='1'/><right code='54' name='Standalone mode for Linux' value='1'/><right code='34' name='Run SpIDer Guard for Novell NetWare' value='1'/><right code='44' name='Disable the system protection' value='1'/><right code='48' name='Change Dr.Web Scanner for Linux configuration' value='1'/><right code='58' name='Stop Dr.Web Scanner for Mac OS X Server' value='1'/><right code='28' name='Run plug-in for MS Outlook' value='1'/><right code='38' name='Change Dr.Web Scanner for Mac OS X configuration' value='1'/><right code='18' name='Stop SpIDer Guard for Windows Servers' value='1'/><right code='14' name='Stop Dr.Web AV-Desk Agent interface' value='0'/><right code='24' name='Change Dr.Web Parental Control configuration' value='1'/><right code='5' name='Change SpIDer Guard for Windows XP configuration' value='1'/><right code='9' name='Stop SpIDer Guard for Windows XP' value='1'/><right code='20' name='Stop SpIDer Gate for Windows Workstations' value='1'/><right code='30' name='Change plug-in for MS Outlook configuration' value='1'/><right code='8' name='Change SpIDer Mail for Windows Workstations configuration' value='1'/><right code='10' name='Stop SpIDer Mail for Windows Workstations' value='1'/></rights><emails total='0'/><group-membership total='0'/></station></stations></drweb-avdesk-api>};
 
   my $xml_content = $response->content();
   
@@ -2243,8 +2341,8 @@ else {
 my $_xml = eval { XMLin("$content", forcearray=>1) };
 
 
-print "Content-Type: text/html\n\n";
-print "<textarea cols=60 rows=10>$content</textarea>\n";
+#print "Content-Type: text/html\n\n";
+#print "<textarea cols=60 rows=10>$content</textarea>\n";
 
 
 if($@) {

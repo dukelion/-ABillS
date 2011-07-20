@@ -17,8 +17,13 @@
     <tr><td>$_CHANGE:</td><td><input type=text name=CHANGE_PRICE value='%CHANGE_PRICE%'></td></tr>
 <!--  <tr><td>$_AGE ($_DAYS):</td><td><input type=text name=AGE value='%AGE%'></td></tr> -->
   <tr><td>$_PAYMENT_TYPE:</td><td>%PAYMENT_TYPE_SEL%</td></tr>
-  <tr><th colspan=2 bgcolor=$_COLORS[0]>-</th></tr> 
-  <tr><td>$_GROUP Dr. Web:</td><td><input type=checkbox name=DR_WEB_GROUP value=1 %DR_WEB_GROUP%></td></tr>
+  <tr><th colspan=2 bgcolor=$_COLORS[0]>Dr.Web</th></tr> 
+  <tr><td>$_CREATE $_GROUP Dr. Web:</td><td><input type=checkbox name=DR_WEB_GROUP value=1 %DR_WEB_GROUP%></td></tr>
+  <tr><td>Dr. Web ID:</td><td>%DR_WEB_ID%</td></tr>
+  <tr><td>$_GRACEPERIOD:</td><td><input type=text name=DR_WEB_GRACE_PERIOD value=%DR_WEB_GRACE_PERIOD%></td></tr>
+  <tr><th colspan=2 bgcolor=$_COLORS[2]>$_DESCRIBE</th></tr>
+  <tr><th colspan=2><textarea cols=55 rows=5 name=COMMENTS>%COMMENTS%</textarea></th></tr>
+
 </table>
 <input type=submit name='%ACTION%' value='%LNG_ACTION%'>
 </form>

@@ -29,6 +29,8 @@ CREATE TABLE `ashield_tps` (
   `payment_type` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `daily_payment` double(14,2) unsigned NOT NULL DEFAULT '0.00',
   `monthly_payment` double(14,2) unsigned NOT NULL DEFAULT '0.00',
+  `grace_period` smallint(4) unsigned NOT NULL DEFAULT '0',
+  `drweb_id` VARCHAR(36) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `name` (`name`)

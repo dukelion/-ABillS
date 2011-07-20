@@ -1240,6 +1240,7 @@ sub link_former {
   $params =~ s/</&lt;/g;
   $params =~ s/\"/&quot;/g;
   $params =~ s/\*/&#42;/g;
+  $params =~ s/\+/\%2B/g;
  
   return $params;
 }
