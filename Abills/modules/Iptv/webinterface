@@ -2420,7 +2420,6 @@ foreach my $line (@$tp_list) {
    	  next;
     }
    
-  $Iptv->{debug}=1;  
   my $channels_list = $Iptv->channel_ti_list({ INTERVAL_ID => $Tariffs->{list}->[0]->[0],
   	                                           MANDATORY   => 1 });
   foreach my $line (@$channels_list) {
@@ -2456,9 +2455,8 @@ foreach my $line (@$tp_list) {
 	                             });
   
   foreach my $line (@$list) {
-  	$users_channels{$line->[4]}{$line->[14]} = "$line->[1]";
+  	$users_channels{$line->[4]}{$line->[15]} = "$line->[1]";
    }
-
 } 
 
 
