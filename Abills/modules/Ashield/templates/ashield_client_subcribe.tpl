@@ -2,7 +2,11 @@
 <input type=hidden name=index value=$index>
 <input type=hidden name=UID value='$FORM{UID}'>
 <table cellspacing='0' cellpadding='3' width='450'>
-<tr><td>$_TARIF_PLAN:</td><td>%TARIF_PLAN_SEL%</td></tr>	
+<tr><th colspan=2 class=form_title>$_TARIF_PLAN:</th></tr>	
+<tr><td colspan=2>
+%TARIF_PLAN_TABLE%
+</td></tr>
+
 <!--
 <tr><th colspan=2 class=form_title>$_REGISTRATION - $_ANTIVIRUS Dr.Web</th></tr>	
 <tr><th colspan=2><a href='' target_new>$_INFO</a></th></tr>	

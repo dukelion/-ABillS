@@ -930,7 +930,7 @@ else {
 
 $html->tpl_show(_include('dv_tp', 'Dv'), $tarif_info, { SKIP_VARS => 'IP' });
 
-my $list = $tariffs->list({ %LIST_PARAMS });	
+my $list = $tariffs->list({ %LIST_PARAMS, MODULE => 'Dv' });	
 
 # Time tariff Name Begin END Day fee Month fee Simultaneously - - - 
 my $table = $html->table( { width      => '100%',

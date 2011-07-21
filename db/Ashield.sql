@@ -17,6 +17,7 @@ CREATE TABLE `ashield_avd_log` (
   `tariffplancode` VARCHAR(20) NOT NULL DEFAULT '',
   `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   `date` DATETIME NOT NULL,
+  `work_period_begin` DATE NOT NULL,
   `id` INTEGER(11) NOT NULL AUTO_INCREMENT,
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `station_action` (`uid`, `agentuuid`, `state`)
@@ -36,9 +37,4 @@ CREATE TABLE `ashield_tps` (
   UNIQUE KEY `name` (`name`)
 ) COMMENT='Ashield tarif plans';
 
-# Default Tariff Plans
-INSERT INTO tarif_plans (id, name, module) values ('5001', 'PREMIUM', 'Ashield');
-INSERT INTO tarif_plans (id, name, module) values ('5002', 'STANDART','Ashield');
-INSERT INTO tarif_plans (id, name, module) values ('5003', 'CLASSIC', 'Ashield');
-INSERT INTO tarif_plans (id, name, module) values ('5004', 'PREMIUM_SRV', 'Ashield');
 
