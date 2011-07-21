@@ -307,7 +307,7 @@ if (-d $conf{extern_acct_dir}) {
     foreach my $file (@contents) {
       if (-x "$conf{extern_acct_dir}/$file" && -f "$conf{extern_acct_dir}/$file") {
         # ACCT_STATUS IP_ADDRESS NAS_PORT
-        $res = `$conf{extern_acct_dir}/$file $acct_status_type $RAD->{NAS_IP_ADDRESS} $RAD->{NAS_PORT} $nas->{NAS_TYPE} $RAD->{USER_NAME} $RAD->{FRAMED_IP_ADDRESS}`;
+#        $res = `$conf{extern_acct_dir}/$file $acct_status_type $RAD->{NAS_IP_ADDRESS} $RAD->{NAS_PORT} $nas->{NAS_TYPE} $RAD->{USER_NAME} $RAD->{FRAMED_IP_ADDRESS}`;
         $Log->log_print('LOG_DEBUG', $RAD->{USER_NAME}, "External accounting program '$conf{extern_acct_dir}' / '$file' pairs '$res'");
        }
      }
@@ -338,7 +338,7 @@ else {
 	$r = $acct_mod{"default"}->accounting($RAD, $nas);
 }
 
-my $aaaaaaa = `echo "// $r->{errno} //" >> /tmp/12211`;
+#my $aaaaaaa = `echo "// $r->{errno} //" >> /tmp/12211`;
 
 if ($r->{errno}) {
   $access_deny->("$RAD->{USER_NAME}", "[$r->{errno}] $r->{errstr}", $nas->{NAS_ID});
