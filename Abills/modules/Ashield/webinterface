@@ -841,6 +841,7 @@ sub ashield_user {
     if (! $Ashield->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
      }
+	  return 0;
 	 }
   elsif($FORM{info}) {
   	ashield_drweb_user();
@@ -886,15 +887,18 @@ sub ashield_user {
    
    $table = $html->table( { width      => '100%',
   		                      caption    => "$_TRAFIF_PLANS",
-                            cols_align => ['left', 'left'],
+  		                      title_plain=> ["#", "$_TARIF_PLAN", "$_GRACEPERIOD", "$_PRICE", '-'],
+                            cols_align => ['left', 'left', 'center', 'right', 'center'],
                          } );
 
+
    my $list = $Tariffs->list({ 
- 	                             CHANGE_PRICE => '<='. ($user->{DEPOSIT} + $user->{CREDIT}), 
+ 	                             #CHANGE_PRICE => '<='. ($user->{DEPOSIT} + $user->{CREDIT}), 
  	                             MODULE       => 'Ashield',
  	                             COMMENTS     => '*'
  	                           });
 
+   
    foreach my $line (@$list) {
    	 my $radio_but = '';
    	 if (! $user->{UID} || ($line->[5]+$line->[6] < $user->{DEPOSIT} + $user->{CREDIT} || $line->[17])) {
@@ -904,9 +908,10 @@ sub ashield_user {
    	 else {
    	 	  $radio_but = "$ERR_SMALL_DEPOSIT";
    	  }
-   	 
    	 $table->addrow($line->[0], 
    	   $html->b($line->[1]).$html->br().convert($line->[19], { text2html => 1  }),
+       $ashield_tps_info->{$line->[1]}->{GRACE_PERIOD},
+       $line->[6],
    	   $radio_but
    	   );
     }

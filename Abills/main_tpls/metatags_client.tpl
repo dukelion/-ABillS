@@ -277,6 +277,16 @@ a.print {
         text-indent:-9000px;
 }
 
+a.download {
+        background:url(/img/button_download.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        margin:0;
+        display:block;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
 a.show {
         background:url(/img/button_show.png) no-repeat center;
         padding-left:22px;
