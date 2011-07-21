@@ -2420,6 +2420,7 @@ foreach my $line (@$tp_list) {
    	  next;
     }
    
+  $Iptv->{debug}=1;  
   my $channels_list = $Iptv->channel_ti_list({ INTERVAL_ID => $Tariffs->{list}->[0]->[0],
   	                                           MANDATORY   => 1 });
   foreach my $line (@$channels_list) {
