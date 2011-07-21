@@ -800,7 +800,7 @@ sub ashield_user {
           $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $message");
           return 0; 
          }
-        else {        	
+        else {
           $html->message('info', $_INFO, "Dr.Web: $_USER $_ADDED");
           #$Ashield->user_add({ %FORM, UID => $LIST_PARAMS{UID} });
 
