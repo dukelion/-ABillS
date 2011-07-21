@@ -5529,8 +5529,6 @@ sub dv_wizard_user {
           $html->message('err', "$_PASSWD : $_ERROR", "$err_strs{5}");
          }
 
-        $user->{debug}=1;
-        print "// $add_values{2}{PASSWORD}= $FORM{'2.newpassword'};// ";
         $user->change($UID, { %{$add_values{2}} });
         
         if ($conf{external_useradd}) {
