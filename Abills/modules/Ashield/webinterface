@@ -255,6 +255,8 @@ $table = $html->table( { width       => '100%',
                                   } );
 
 foreach my $key (sort keys %{ $ashield_tps_info }) {
+  next if (! $ashield_tps_info->{$key}->{ID});
+  
   my $id =  $ashield_tps_info->{$key}->{ID};
   if ($permissions{4}{1}) {
     $delete = $html->button($_DEL, "index=$index&del=$key&ID=$id", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }); 
