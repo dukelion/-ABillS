@@ -294,7 +294,7 @@ sub ashield_user {
   $users->info($LIST_PARAMS{UID}, { SHOW_PASSWORD => 1 });
   $users->pi({ ID => $users->{UID} });
   $Ashield->{EMAIL}=($users->{EMAIL}) ? $users->{EMAIL} . $html->form_input('EMAIL', "$users->{EMAIL}", { TYPE => 'hidden', OUTPUT2RETURN => 1 }) : $html->form_input('EMAIL', '', { OUTPUT2RETURN => 1 });
-  my $ashield_tps_info;
+  my $ashield_tps_info=ashield_drweb_tps();
    
   if ($FORM{add}) {
   	if ($users->{DEPOSIT}+$users->{CREDIT} < 0) {
@@ -327,12 +327,19 @@ sub ashield_user {
           return 0; 
          }
         else {
-          $html->message('info', $_INFO, "Dr.Web: $_USER $_ADDED");
           #$Ashield->user_add({ %FORM, UID => $LIST_PARAMS{UID} });
 
           my %AVD_TPS_REV = reverse %AVD_TPS;
           my ($name) = keys %{ $result_hash->{stations}->[0]->{station} };
           my ($rate) = keys %{ $result_hash->{stations}->[0]->{station}->{$name}->{rate} };
+
+        	my $station_info = $result_hash->{stations}->[0]->{station}->{$name};
+          $html->message('info', $_INFO, "Dr.Web: $_USER $_ADDED\n$_DOWNLOAD: ".  $html->button("$_DOWNLOAD", '', { 
+    	               	  GLOBAL_URL => "$station_info->{url}->[0]", 
+    	                  TITLE      => "$station_info->{url}->[0]",
+    	                  CLASS      => 'download' 
+    	                  }));
+
           
           my $id = $result_hash->{stations}->[0]->{station}->{$name}->{id};
 
@@ -383,7 +390,6 @@ sub ashield_user {
 	 $service->{ACTION}     = 'add';
 	 $service->{LNG_ACTION} = $_SUBSCRIBE;
 
-   $ashield_tps_info=ashield_drweb_tps();
    my $list = $Tariffs->list({ 
 	                             CHANGE_PRICE => '<='. ($user->{DEPOSIT} + $user->{CREDIT}), 
  	                             MODULE       => 'Ashield',
