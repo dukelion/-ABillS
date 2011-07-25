@@ -2439,7 +2439,15 @@ foreach my $line (@$tp_list) {
  	   	                      });
 
   foreach my $line (@$ulist) {
-  	%{ $users_channels{$line->[6]} } = %tp_channels_list;
+  	if ($line->[1]+$line->[2] > 0 && $line->[18]+$line->[19]==0) {
+   	  %{ $users_channels{$line->[6]} } = %tp_channels_list;
+   	 }
+  	else {
+  		%{ $users_channels{$line->[6]} } = ();
+  	 }
+
+  	
+  	
    }
 
   # Custom channels users list
@@ -2447,29 +2455,35 @@ foreach my $line (@$tp_list) {
   	                            DVCRYPT_ID    => '>0',
                                 ACTIVATE      => "<='$DATE'",
                                 EXPIRE        => ">'$DATE'",
-                                STATUS        => 0,
-                                LOGIN_STATUS  => 0,
+                                STATUS        => ">=0",
+                                LOGIN_STATUS  => ">=0",
                                 TP_ID         => $TP_ID,
                                 SORT          => 1,
                                 SHOW_CHANNELS => 1,
 	                             });
   
   foreach my $line (@$list) {
-  	$users_channels{$line->[4]}{$line->[15]} = "$line->[1]";
+   	if ($line->[1]+$line->[2] > 0 && $line->[18]+$line->[19]==0) {
+   	  $users_channels{$line->[4]}{$line->[15]} = "$line->[1]";	  
+   	 }
+  	else {
+  		
+  		$users_channels{$line->[4]}{$line->[15]} = 0;	
+  	 }
    }
 } 
 
 
   foreach my $dv_crypt_id (sort { $a <=> $b } keys %users_channels) {
   	my @arr = ();
-  	for(my $channel_id=1; $channel_id<=127; $channel_id++) {
-		  $arr[$channel_id-1]=($users_channels{$dv_crypt_id}->{$channel_id}) ? 1 : 0;
-     }
-
+  	  for(my $channel_id=1; $channel_id<=127; $channel_id++) {
+		    $arr[$channel_id-1]=($users_channels{$dv_crypt_id}->{$channel_id}) ? 1 : 0;
+       }
  	  $content  .= "$dv_crypt_id;". (join('', @arr)) ."\n";
    }
 
 
+  $debug=2;
   print $html->pre($content) if($debug > 1);
 
 	open(FILE, ">$filename") or print "Can't create file '$filename' $!\n";

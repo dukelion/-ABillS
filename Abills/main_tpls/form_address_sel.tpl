@@ -220,18 +220,18 @@ function build (go) {
 
 <TR><TH colspan=2 class=form_title>$_ADDRESS</TH></TR>
 <TR bgcolor='$_COLORS[2]'><TD>$_DISTRICTS:</TD><TD>
-<div><input name=\"ADDRESS_DISTRICT\" id=\"p1\" type=\"text\" class=\"input\" value=\"%ADDRESS_DISTRICT%\" onkeyup=\"district()\" onclick=\"hide_unhide('l1')\"> 
+<div><input name=\"ADDRESS_DISTRICT\" id=\"p1\" type=\"text\" class=\"input\" value=\"%ADDRESS_DISTRICT%\" onkeyup=\"district()\" onclick=\"hide_unhide('l1')\" autocomplete=off > 
 </div>
 <div id=\"l1\" class=\"lists\"></div>
 </TD></TR>
 
 <TR bgcolor='$_COLORS[2]'><TD>$_ADDRESS_STREET:</TD><TD>
 <div><input name=\"ADDRESS_STREET\" id=\"p2\" type=\"text\" class=\"input\" value=\"%ADDRESS_STREET%\" onkeyup=\"street()\" onclick=\"hide_unhide('l2')\"></div>
-<div id=\"l2\" class=\"lists\"></div>
+<div id=\"l2\" class=\"lists\" autocomplete=off></div>
 </TD></TR>
 
 <TR bgcolor='$_COLORS[2]'><TD>$_ADDRESS_BUILD:</TD><TD>
-<div><input id=\"p3\" type=\"text\" class=\"input\" value=\"%ADDRESS_BUILD%\" onkeyup=\"build()\" onclick=\"hide_unhide('l3')\"> 
+<div><input id=\"p3\" type=\"text\" class=\"input\" value=\"%ADDRESS_BUILD%\" onkeyup=\"build()\" onclick=\"hide_unhide('l3')\" autocomplete=off> 
 <!-- <a href=\"javascript:openwindow('$SELF_URL?qindex=68&header=1')\"  class=link_button>$_ADD</a> --> </div> 
 <div id=\"l3\" class=\"lists\"></div>
 </TD></TR> 

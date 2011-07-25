@@ -12,14 +12,15 @@
                    "11:6:$_ROUTES:voip_routes:"              => 5,
                    "12:7:$_ROUTES:voip_tp_routes:TP_ID"      => 5,
                    "13:7:$_USERS:voip_users_list:TP_ID"      => 5,
-                   "14:0:VoIP:null:"                         => 4,
-                   "15:14:$_ERROR:voip_error:"               => 4,
-                   "16:14:$_LAST:voip_sessions:"             => 4,
-                   "17:14:$_USED:voip_use:"                  => 4,
-                   "18:16:$_MONTH:voip_use_allmonthes:"      => 4,
-                   "19:6:Trunks:voip_trunks:"                => 4,
-                   "20:0:VoIP:voip_online:"                  => 6,
-                   "21:20:Gatekeeper:voip_gk_console:"       => 6,
+                   "14:6:$_EXTRA_TARIFICATION:voip_extra_tarification:"=> 5,
+                   "20:0:VoIP:null:"                         => 4,
+                   "21:20:$_ERROR:voip_error:"               => 4,
+                   "22:20:$_LAST:voip_sessions:"             => 4,
+                   "23:20:$_USED:voip_use:"                  => 4,
+                   "24:22:$_MONTH:voip_use_allmonthes:"      => 4,
+                   "20:6:Trunks:voip_trunks:"                => 4,
+                   "30:0:VoIP:voip_online:"                  => 6,
+                   "31:30:Gatekeeper:voip_gk_console:"       => 6,
 
                    );
 

@@ -332,6 +332,7 @@ $_CONTINUE='Продолжить';
 $_ICARDS='Интернет карточки';
 $_RETURNED='Возвращёных';
 $_PER_MONTH='По месяцам';
+$_EXTRA_TARIFICATION='Расширенная тарификация';
 $_CREDIT_TRESSHOLD='Несъёмный минимум';
 $_CUSTOMER='Клиент';
 $_TRAFFIC_TRANSFER_PERIOD='Период перехода трафика';

@@ -26,6 +26,7 @@ $conf{WEB_TITLE}='';
             'Voip',
             'Docs', 
             'Mail',
+            'Msgs',
             'Sqlcmd');
 
 

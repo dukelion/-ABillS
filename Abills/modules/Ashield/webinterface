@@ -9,6 +9,7 @@ my $ua = new LWP::UserAgent();
 use Abills::Base;
 use Ashield;
 use Fees;
+use POSIX;    
 
 my $Ashield = Ashield->new($db, $admin, \%conf);
 my $Tariffs = Tariffs->new($db, \%conf, $admin);
@@ -279,484 +280,6 @@ $table = $html->table( { width      => '100%',
 
 }
 
-##**********************************************************
-##
-##**********************************************************
-#sub ashield_tp {
-# my ($attr) = @_;
-# 
-# my $tarif_info;
-# my @Payment_Types    = ($_PREPAID, $_POSTPAID); 
-# $tarif_info = $Ashield->defaults();
-# $Ashield->{LNG_ACTION}=$_ADD;
-# $Ashield->{ACTION}='ADD_TP';
-#
-#if($FORM{ADD_TP}) {
-#  $Ashield->tp_add( { %FORM, MODULE => 'Ashield' });
-#  if (! $Ashield->{errno}) {
-#    $html->message('info', $_ADDED, "$_ADDED $Ashield->{TP_ID}");
-#    
-#    if ($FORM{CREATE_DR_WEB_GROUP}) {
-#       $FORM{ID}='ashield'.$Ashield->{INSERT_ID};
-#       $FORM{NAME}="$FORM{NAME}";
-#       $FORM{DESCRIPTION}="Ashield Group for TP: $Ashield->{INSERT_ID}";
-#       ashield_drweb_groups();    	
-#      }
-#   }
-# }
-#elsif ($FORM{TP_ID}) {
-#  $Ashield->tp_info( $FORM{TP_ID} );
-#
-#  if ($Ashield->{errno}) {
-#    $html->message('err', $_ERROR, "[$Ashield->{errno}] $err_strs{$Ashield->{errno}}");	
-#    return 0;
-#   }
-#
-#  $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
-#  $LIST_PARAMS{TP} = $FORM{TP_ID};
-#  %F_ARGS = ( TP => $Tariffs );
-#  
-#  $Ashield->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('TP_ID', 
-#                                          { 
-# 	                                          SELECTED          => $FORM{TP_ID},
-# 	                                          SEL_MULTI_ARRAY   => $Ashield->tp_list({ %LIST_PARAMS, MODULE => 'Ashield' }),
-# 	                                          MULTI_ARRAY_KEY   => 0,
-# 	                                          MULTI_ARRAY_VALUE => 1,
-# 	                                        }),
-#	                                          HIDDEN  => { index => "$index" },
-#	                                          SUBMIT  => { show  => "$_SHOW" } 
-#	                        });
-#  
-#  func_menu({ 
-#  	         'ID' =>   $Ashield->{TP_ID}, 
-#  	         $_NAME => $Ashield->{NAME_SEL}
-#  	       }, 
-#  	{ 
-#  	 },
-#  	{
-#  		f_args => { %F_ARGS }
-#  	 });
-#
-#  if ($FORM{subf}) {
-#
-#  	return 0;
-#   }
-#  elsif($FORM{change}) {
-#    $Ashield->tp_change({ %FORM, MODULE => 'Ashield'  });  
-#    if (! $Ashield->{errno}) {
-#       $html->message('info', $_CHANGED, "$_CHANGED $Ashield->{TP_ID}");
-#     }
-#   }
-#  $Ashield->{LNG_ACTION}=$_CHANGE;
-#  $Ashield->{ACTION}='change';
-# }
-#elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
-#  $Ashield->tp_del({ ID => $FORM{del} });
-#  if (! $Ashield->{errno}) {
-#    $html->message('info', $_DELETE, "$_DELETED $FORM{del}");
-#   }
-#}
-#
-#if ($Ashield->{errno}) {
-#    $html->message('err', $_ERROR, "[$Ashield->{errno}] $err_strs{$Ashield->{errno}}");	
-# }
-#
-#$Ashield->{PAYMENT_TYPE_SEL} = $html->form_select('PAYMENT_TYPE', 
-#                                          { 
-# 	                                          SELECTED     => $Ashield->{PAYMENT_TYPE},
-# 	                                          SEL_ARRAY    => \@Payment_Types,
-# 	                                          ARRAY_NUM_ID => 1
-# 	                                        });
-#
-# $Ashield->{TP_ACCESS_TYPE_SEL} = $html->form_select('TP_ACCESS_TYPE', 
-#                                          { 
-# 	                                          SELECTED     => $Ashield->{TP_ACCESS_TYPE},
-# 	                                          SEL_ARRAY    => [$_PUBLIC, $_PRIVATE],
-# 	                                          ARRAY_NUM_ID => 1
-# 	                                        });
-#
-#$html->tpl_show(_include('ashield_tp', 'Ashield'), $Ashield);
-#my $list = $Ashield->tp_list({ %LIST_PARAMS, MODULE => 'Ashield' });	
-#my $table = $html->table({ width      => '100%',
-#                           caption    => "$_TARIF_PLANS",
-#                           border     => 1,
-#                           title      => ['#', $_NAME,  $_DAY_FEE, $_MONTH_FEE,  $_PAYMENT_TYPE, '-', '-'],
-#                           cols_align => ['right', 'left', 'right', 'right', 'left', 'center:noprint', 'center:noprint', 'center:noprint'],
-#                           ID         => 'ASHIELD_TARIF_PLANS'
-#                         });
-#
-#my ($delete, $change);
-#foreach my $line (@$list) {
-#  if ($permissions{4}{1}) {
-#    $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?" }); 
-#    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[0]");
-#   }
-#
-#  if($FORM{TP_ID} eq $line->[0]) {
-#  	$table->{rowcolor}=$_COLORS[0];
-#   }
-#  else {
-#  	undef($table->{rowcolor});
-#   }
-#  
-#  $table->addrow($html->b($line->[0]), 
-#   $line->[1],
-#   $line->[2],
-#   $line->[3],
-#   $Payment_Types[$line->[4]], 
-#   $change,
-#   $delete);
-#}
-#
-#print $table->show();
-#
-#$table = $html->table( { width      => '100%',
-#                         cols_align => ['right', 'right'],
-#                         rows       => [ [ "$_TOTAL:", $html->b($Ashield->{TOTAL}) ] ]
-#                     } );
-#print $table->show();
-#
-#
-#}
-
-
-
-#**********************************************************
-#
-#**********************************************************
-sub ashield_user2 {
- 	my ($attr) = @_;
-
-  my $users = Users->new($db, $admin, \%conf); 
- 	$Ashield->{UID}=$FORM{UID};	  
-  $users->info($LIST_PARAMS{UID}, { SHOW_PASSWORD => 1 });
-  $users->pi({ ID => $users->{UID} });
-  $Ashield->{EMAIL}=($users->{EMAIL}) ? $users->{EMAIL} . $html->form_input('EMAIL', "$users->{EMAIL}", { TYPE => 'hidden', OUTPUT2RETURN => 1 }) : $html->form_input('EMAIL', '', { OUTPUT2RETURN => 1 });
-
-  if ($FORM{add}) {
-  	if ($users->{DEPOSIT}+$users->{CREDIT} < 0) {
-  		$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
-  	 }
-    if ($FORM{EMAIL} !~ /(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/) {
-    	$html->message('err', $_ERROR, "$_WRONG_EMAIL");
-     }
-  	else {
-  		print "Content-Type: text/html\n\n";
-    	$Ashield->{ACTIVATE}='0000-00-00'; #$attr->{USER}->{ACTIVATE};
-      if (! $FORM{STATUS}) {
-        #ashield_get_month_fee($Ashield);
-        #ashield_drweb_user({ 
-        #  LOGIN    => $FORM{LOGIN},
-        #	PASSWORD => $FORM{PASSWORD},
-        #	TP_ID    => $FORM{TP_ID}
-        #	});
-        #my ($fio1, $fio2, $fio3)=split(/ /, $users->{FIO}, 3);
-        my $result_hash = ashield_drweb_request('api/3.0/stations/add.ds', 
-          {
-      	  name       => "$users->{LOGIN}" || $fio2 || '-',
-      	  password   => "$users->{PASSWORD}",
-      	  email      => $FORM{EMAIL} || '-',
-          rate          => $FORM{TP_ID}
-      	  },
-      	  );
-      	
-  	    if ($result_hash->{error}) {
-  	    	my $message = '';
-  	    	if ($dr_web_errors{$result_hash->{error}->[0]->{code}->[0]}) {
-  	    		$message = $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]};
-  	    		if ($result_hash->{error}->[0]->{code}->[0] == 18) {
-  	    			$Ashield->user_add({ %FORM, UID => $LIST_PARAMS{UID} });
-  	    		 }
-  	    	 }
-  	    	else {
-  	    		$message = "$result_hash->{error}->[0]->{message}->[0]";
-  	    	 }
-          $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $message");
-         }
-        else {        	
-          $html->message('info', $_INFO, "Dr.Web: $_USER $_ADDED");
-          #$Ashield->user_add({ %FORM, UID => $LIST_PARAMS{UID} });
-
-          my %AVD_TPS_REV = reverse %AVD_TPS;
-          my ($id)  = keys %{ $result_hash->{stations}->[0]->{station} };
-          my ($rate) = keys %{ $result_hash->{stations}->[0]->{station}->{$id}->{rate} };
-          $Ashield->ashield_avd_add({ UID => $LIST_PARAMS{UID},
-            STATE      => 0, 
-            AGENTUUID  => $id,
-            GROUPUUID  => '',
-            GROUPNAME  => '',
-            TARIFFPLANCODE => $AVD_TPS_REV{$rate},
-            TP_ID      => $Tariffs->{TP_ID}
-           });
-          
-          }
-       }
-      #$html->message('info', $_INFO, "$_ADDED");	
-    }
-   }
-	elsif($FORM{set}) {
-    $Ashield->user_change({ %FORM });
-    if (! $Ashield->{errno}) {
-    	$Ashield->{ACTIVATE}='0000-00-00'; #$attr->{USER}->{ACTIVATE};
-      #ashield_get_month_fee($Ashield) if (! $FORM{STATUS});
-      $html->message('info', $_INFO, "$_CHANGED");	
-     }
-   }
-	elsif($FORM{del} && $FORM{is_js_confirmed}) {
-    $Ashield->user_del();
-    if (! $Ashield->{errno}) {
-      $html->message('info', $_INFO, "$_CHANGED");	
-     }
-	 }
-  elsif($FORM{info}) {
-  	ashield_drweb_user();
-   }
-
-  if ($Ashield->{errno}) {
-    if ($Ashield->{errno} == 15) {
-    	$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
-     }
-    else {
-      $html->message('err', $_ERROR, "[$Ashield->{errno}] $err_strs{$Ashield->{errno}}");
-     }
-   }
-
-  my $service = $Ashield->user_info($LIST_PARAMS{UID});
-  if($service->{TOTAL} < 1) {
-	  $html->message('info', $_INFO, $_NOT_ACTIVE);
-	  $service               = $Ashield->defaults();
-	  $service->{ACTION}     = 'add';
-	  $service->{LNG_ACTION} = $_REGISTRATION;
-
-	  $html->tpl_show(_include('ashield_client_subcribe', 'Ashield'), {%$user,  %$Ashield, %$service });
-	  return 0;
-	 }
-	else {
-    $Ashield->{STATUS}=$service_status[$Ashield->{STATUS}];
-#    my $result_hash=ashield_drweb_request('interfaces/'. $INTERFACES{$drweb_version}{USER_INFO}, {
-#      	  login      => "$users->{LOGIN}",
-#      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD},
-#      	  options    => 1,
-#      	  subscribes => 1,
-#      	  },
-#      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
-#      	  	});
-
-    #XML 3.0
-    my $result_hash=ashield_drweb_request('api/3.0/stations/info.ds', 
-         {
-      	  id         => "48aada10-d21d-b211-ac54-a0059a9b1a4a",
-      	  components => 'on',
-      	  },
-      	  );
-
-      if ($result_hash->{error}->[0]->{code}->[0]) {
-        $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
-        return 0;
-       }
-
-
-      while(my($k, $v) = each %{ $result_hash->{user}->[0] }) {
-        $Ashield->{$k}=(ref $v eq 'ARRAY' && ref $v->[0] eq 'HASH' ) ? %{ $v->[0] }.' ' : (ref $v eq 'ARRAY') ? convert($v->[0], { utf82win => 1 }) : $v;
-       }
-
-      $Ashield->{agents_total}=%{ $result_hash->{user}->[0]->{agents}->[0] };
-      $html->tpl_show(_include('ashield_client_info', 'Ashield'), $Ashield);
-
-    if ($drweb_version == 1) {
-      $result_hash=ashield_drweb_request('interfaces/user_agents.php', {
-      	  login      => "$users->{LOGIN}",
-      	  checkword  => $conf{ASHIELD_DRWEB_CABINET_PASSWD}
-      	  },
-      	  { SERVER_ADDR    => "$conf{ASHIELD_DRWEB_CABINET_HOST}",
-      	  	});
-
-      if ($result_hash->{error}->[0]->{code}->[0]) {
-        $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
-        return 0;
-       }
-     }
-    else {
-    	$result_hash = $result_hash->{user}->[0];
-     }
-
-    my ($y, $m, $d)=split(/-/, $DATE, 3);
-    my $cur_date="$y$m$d"; 
-  	$table = $html->table({ width      => '100%',
-  		                      caption    => "$_AGENTS",
-  		                      title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", "$_ACTIVATE", "Online",
-  		                        "$_CREATED", "$_STATUS", "$_GRACEPERIOD", "URL"],
-  		                      cols_align => ['left', 'left'],
-  		                      ID         => 'DRWEB_AGENTS'
-                          });
-
-      foreach my $k (@{ $result_hash->{agents}->[0]->{agent} }) {
-    	  my $result_hash2 = ashield_drweb_request('api/2.0/get-customer-info.ds', { id => $k->{uuid}->[0] }); 
-        my $status       = '';
-    	
-   	    if ($result_hash2->{error}->[0]->{code}->[0]) {
-          #$html->message('err', $_ERROR, "'$k->{uuid}->[0]' [$result_hash2->{error}->[0]->{code}->[0]] $dr_web_errors{$result_hash2->{error}->[0]->{code}->[0]}");
-          $status = "$dr_web_errors{$result_hash2->{error}->[0]->{code}->[0]}";
-         }
-   	
-        my $create = $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
-      
-        #$result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
-        if ($create =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
-          $create     = "$1-$2-$3 $4:$5:$6" || $result_hash2->{customers}->[0]->{customer}->[0]->{createdtime}->[0];
-         }
-    	  #$result_hash2->{customers}->[0]->{customer}->[0]->{modifiedtime}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-    	  #my $changed = "$1-$2-$3 $4:$5:$6";
-        my $activated	 = $result_hash2->{customers}->[0]->{customer}->[0]->{activated}->[0];
-        my $online	   = $result_hash2->{customers}->[0]->{customer}->[0]->{online}->[0];
-    	  my $name       = $result_hash2->{customers}->[0]->{customer}->[0]->{name}->[0] || $k->{uuid}->[0];
-    	  my $graceperiod= '-'; # $result_hash2->{customers}->[0]->{customer}->[0]->{graceperiod}->[0] || '';
-     	  my $expire = 0;
-     	  if ($result_hash2->{customers}->[0]->{customer}->[0]->{expires}->[0]=~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
-      	  $expire = "$1$2$3";
-      	 }
-
-      	my $satus_code = 0;
-      	if ($expire > 0 && $expire > $cur_date) {
-      		$expire =~ /(\d{4})(\d{2})(\d{2})/;
-    	  	$status = "$_EXPIRE: $1-$2-$3";
-    	   } 
-      	elsif ($expire > 0 && $expire < $cur_date) {
-      		$expire =~ /(\d{4})(\d{2})(\d{2})/;
-    	  	$status = "$_EXPIRE: $1-$2-$3";
-    	  	$satus_code=1;
-    	   } 
-    	  else {
-      	  $blockbeg = $result_hash2->{customers}->[0]->{customer}->[0]->{blocking}->[0]->{begin}->[0];
-      	  if ($blockbeg > 0 ) {
-     			  $blockbeg =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-    		    $blockbeg = "$1$2$3";
-  	  	   }
-  
-      	  $blockend = $result_hash2->{customers}->[0]->{customer}->[0]->{blocking}->[0]->{end}->[0];
-  	  	  $blockend =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-   		    $blockend = "$1$2$3";
-    		  if ($blockbeg > 0 && $blockbeg < $cur_date && $blockend < $cur_date) {
-    		  	
-    	     }
-          else {
-          	$status_code=1;
-           }
-
-   			  $blockbeg =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
-   			  $blockend =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
-
-          $status = "$_STATUS_4: $blockbeg - $blockend" if ($blockbeg > 0);
-    	   }
-
-        my $tp = $k->{'current-tariff'}->[0] || $k->{tariffplancode}->[0];
-#        current-tariff
-#        subscription-period
-#        uuid
-#        unsubscribed
-#        password
-#        createdtime
-#        auto-prolongation
-#        grace-period
-        
-
-    	  $table->addrow($html->color_mark(convert($name, { utf82win => 1 }), 'code'),
-#    	               $k->{agentuuid}->[0], 
-    	               $tp,
-    	               ($activated eq 'no') ? $_NO: $_YES,
-                     ($online eq 'no') ? $_NO : $_YES,
-    	               $create,
-    	               $status,
-    	               $graceperiod,
-    	               (($satus_code) ? "" : $html->button("$_DOWNLOAD", '', { 
-    	               	  GLOBAL_URL => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]", 
-    	                  TITLE      => "$result_hash2->{customers}->[0]->{customer}->[0]->{url}->[0]",
-    	                  BUTTON     => 1 
-    	                  }))
-    	              );
-         }
-        print $table->show();
-
-
-    return 0 if ($user->{UID});
-
-    #show abills log
-    if (! $FORM{sort}) {
-   	  $LIST_PARAMS{SORT}=1;
-   	  $LIST_PARAMS{DESC}='DESC';
-     }
-
-    my $list =  $Ashield->ashield_avd_list({ %LIST_PARAMS  });
-  	$table = $html->table({ width      => '100%',
-  		                      caption    => "$_LOG",
-  		                      title      => ["$_DATE", "$_LOGIN", "$_STATE", "$_AGENT ID",
-  		                      "$_GROUP ID", "$_GROUP $_NAME", "$_TARIF_PLAN" ],
-                            cols_align => ['left', 'left', 'left', 'left', 'left'],
-                            pages      => $Ashield->{TOTAL},
-                            qs         => "&UID=$LIST_PARAMS{UID}"
-                          });
- 
- 
-    foreach my $line (@$list) {
-    	  $table->addrow($line->[0],
-    	               $html->button("$line->[1]", "index=15&UID=$line->[8]"), 
-    	               $subscribe_state{$line->[2]},
-    	               $html->color_mark($line->[3],'code'),
-    	               $html->color_mark($line->[4],'code'),
-    	               $line->[5],
-    	               $line->[6]    	               
-    	              );
-        }
-    print $table->show();
-    return 0;
-	} 
- 
-
-  $Ashield->{STATUS_SEL}          = $html->form_select('STATUS', 
-                                          { 
- 	                                          SELECTED     => $Ashield->{STATUS},
- 	                                          SEL_ARRAY    => \@service_status,
- 	                                          STYLE        => \@service_status_colors,
- 	                                          ARRAY_NUM_ID => 1
- 	                                        });
-  $Ashield->{EMAIL}="EMAIL"; 
-  if ($Ashield->{STATUS} > 0) { 
-    $Ashield->{STATUS_COLOR} = $service_status_colors[$Ashield->{STATUS}] ;
-   }
-
-
- 
-  $html->tpl_show(_include('ashield_user', 'Ashield'), { %$Ashield, %$user, %$service });
-  return 0; 	
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #**********************************************************
 #
@@ -769,6 +292,7 @@ sub ashield_user {
   $users->info($LIST_PARAMS{UID}, { SHOW_PASSWORD => 1 });
   $users->pi({ ID => $users->{UID} });
   $Ashield->{EMAIL}=($users->{EMAIL}) ? $users->{EMAIL} . $html->form_input('EMAIL', "$users->{EMAIL}", { TYPE => 'hidden', OUTPUT2RETURN => 1 }) : $html->form_input('EMAIL', '', { OUTPUT2RETURN => 1 });
+  my $ashield_tps_info;
    
   if ($FORM{add}) {
   	if ($users->{DEPOSIT}+$users->{CREDIT} < 0) {
@@ -805,18 +329,18 @@ sub ashield_user {
           #$Ashield->user_add({ %FORM, UID => $LIST_PARAMS{UID} });
 
           my %AVD_TPS_REV = reverse %AVD_TPS;
-          my ($name)  = keys %{ $result_hash->{stations}->[0]->{station} };
+          my ($name) = keys %{ $result_hash->{stations}->[0]->{station} };
           my ($rate) = keys %{ $result_hash->{stations}->[0]->{station}->{$name}->{rate} };
           
           my $id = $result_hash->{stations}->[0]->{station}->{$name}->{id};
 
           $Ashield->ashield_avd_add({ UID => $LIST_PARAMS{UID},
-            STATE      => 0, 
-            AGENTUUID  => $id,
-            GROUPUUID  => '',
-            GROUPNAME  => '',
+            STATE        => 0, 
+            AGENTUUID    => $id,
+            GROUPUUID    => '',
+            GROUPNAME    => '',
             TARIFFPLANCODE => $AVD_TPS_REV{$rate},
-            TP_ID      => $Tariffs->{TP_ID},
+            TP_ID        => $Tariffs->{TP_ID},
             GRACE_PERIOD => $FORM{DR_WEB_GRACE_PERIOD}
            });
           
@@ -849,41 +373,24 @@ sub ashield_user {
   elsif($FORM{stats}) {
   	ashield_drweb_user();
    }
-
-  if ($Ashield->{errno}) {
-    if ($Ashield->{errno} == 15) {
-    	$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
-     }
-    else {
-      $html->message('err', $_ERROR, "[$Ashield->{errno}] $err_strs{$Ashield->{errno}}");
-     }
+  elsif($FORM{msg}) {
+  	ashield_drweb_send_message();
    }
+  else {
+   $service               = $Ashield->defaults();
+	 $service->{ACTION}     = 'add';
+	 $service->{LNG_ACTION} = $_SUBSCRIBE;
 
-	  $service               = $Ashield->defaults();
-	  $service->{ACTION}     = 'add';
-	  $service->{LNG_ACTION} = $_SUBSCRIBE;
-
-
-
-
-
-
-
-
-
-
-   my $ashield_tps_info=ashield_drweb_tps();
-   
+   $ashield_tps_info=ashield_drweb_tps();
    my $list = $Tariffs->list({ 
 	                             CHANGE_PRICE => '<='. ($user->{DEPOSIT} + $user->{CREDIT}), 
  	                             MODULE       => 'Ashield',
  	                             COMMENTS     => '*'
  	                           });
 
-  foreach my $line (@$list) {
-    $AVD_TPS{$ashield_tps_info->{$line->[1]}->{ID}}=$line->[1];
-   }
-
+   foreach my $line (@$list) {
+     $AVD_TPS{$ashield_tps_info->{$line->[1]}->{ID}}=$line->[1];
+    }
    
    $table = $html->table( { width      => '100%',
   		                      caption    => "$_TRAFIF_PLANS",
@@ -893,7 +400,6 @@ sub ashield_user {
 
 
    my $list = $Tariffs->list({ 
- 	                             #CHANGE_PRICE => '<='. ($user->{DEPOSIT} + $user->{CREDIT}), 
  	                             MODULE       => 'Ashield',
  	                             COMMENTS     => '*'
  	                           });
@@ -918,7 +424,17 @@ sub ashield_user {
 
    $Ashield->{TARIF_PLAN_TABLE}=$table->show({ OUTPUT2RETURN => 1 });
    $html->tpl_show(_include('ashield_client_subcribe', 'Ashield'), {%$user,  %$Ashield, %$service });
+  }
 
+
+  if ($Ashield->{errno}) {
+    if ($Ashield->{errno} == 15) {
+    	$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
+     }
+    else {
+      $html->message('err', $_ERROR, "[$Ashield->{errno}] $err_strs{$Ashield->{errno}}");
+     }
+   }
 
     #show abills log
     if (! $FORM{sort}) {
@@ -931,7 +447,7 @@ sub ashield_user {
   	$table = $html->table({ width      => '100%',
   		                      caption    => "$_AGENTS",
   		                      title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", "$_ACTIVATE", "Online",
-  		                        "$_CREATED", "$_STATUS", "$_GRACEPERIOD", '-', '-', '-'],
+  		                        "$_CREATED", "$_STATUS", "$_GRACEPERIOD", '-', '-', '-', '-', '-'],
   		                      cols_align => ['left', 'left'],
   		                      ID         => 'DRWEB_AGENTS'
                           });
@@ -959,20 +475,16 @@ sub ashield_user {
       my ($id) = keys %{ $result_hash->{stations}->[0]->{station} };
       my $station_info = $result_hash->{stations}->[0]->{station}->{$id};
 
-    	  my $expire      = $station_info->{expires}->[0];
-        my $name        = $id;
-        my $graceperiod = $station_info->{grace_period};
-        my $create      = localtime($station_info->{created});
-        my $cur_date    = time;
-        
-        my ($rate)      = keys %{ $station_info->{rate} };
-        my $tp          = $AVD_TPS{$rate} || $rate;
-
-        #if ($create =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/) {
-        #  $create     = "$1-$2-$3 $4:$5:$6";
-        # }
-        my $status      = '';
-      	my $satus_code  = 0;
+    	my $expire      = $station_info->{expires}->[0];
+      my $name        = $id;
+      my $graceperiod = $station_info->{grace_period};
+      my $create      = val_parser($station_info->{created});
+      my $cur_date    = time;
+      my ($rate)      = keys %{ $station_info->{rate} };
+      my $tp          = $AVD_TPS{$rate} || $rate;
+      $tp             = ($ashield_tps_info->{$tp}) ? $html->b($tp).$html->br().$ashield_tps_info->{$tp}->{COMMENTS} : '';
+      my $status      = '';
+      my $satus_code  = 0;
 
         my %statin_state_hash = (
         0 => 'Станция не залогинена на сервере (не в сети)',
@@ -984,24 +496,19 @@ sub ashield_user {
         );
 
       	if ($expire > 0 && $expire > $cur_date) {
-      		$expire = localtime($expire);
-    	  	$status = "$_EXPIRE: $1-$2-$3";
+    	  	$status = $html->color_mark("$_EXPIRE: ". val_parser($expire), $_COLORS[6]);
     	   } 
       	elsif ($expire > 0 && $expire < $cur_date) {
-      		$expire = localtime($expire);
-    	  	$status = "$_EXPIRE: $1-$2-$3";
+    	  	$status = "$_EXPIRE: ".val_parser($expire);
     	  	$satus_code=1;
     	   } 
     	  else {
       	  $blockbeg = $station_info->{blocking}->[0]->{begin}->[0];
       	  if ($blockbeg > 0 ) {
-     			  $blockbeg =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-    		    $blockbeg = "$1$2$3";
+    		    $blockbeg = val_parser($blockbeg)
   	  	   }
   
       	  $blockend = $station_info->{blocking}->[0]->{end}->[0];
-  	  	  #$blockend =~ /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-   		    #$blockend = "$1$2$3";
     		  if ($blockbeg > 0 && $blockbeg < $cur_date && $blockend < $cur_date) {
     		  	
     	     }
@@ -1009,12 +516,11 @@ sub ashield_user {
           	$status_code=1;
            }
 
-   			  $blockbeg =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
-   			  $blockend =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
-          $status = "$_STATUS_4: $blockbeg - $blockend" if ($blockbeg > 0);
+   			  $blockend = val_parser($blockend);
+          $status = $html->color_mark("$_STATUS_4: $blockbeg - $blockend", $_COLORS[8]) if ($blockbeg > 0);
     	   }
 
-        my $installed = $station_info->{lastseenat}->[0]; #(lastseenat == "" or ( lastseenat != "" and state == 5 ) ) ? 0 : 'installed';
+        my $installed = ($station_info->{lastseenat}->[0]) ? $_INSTALLED : ''; #(lastseenat == "" or ( lastseenat != "" and state == 5 ) ) ? 0 : 'installed';
 
     	  $table->addrow($html->color_mark(convert($name, { utf82win => 1 }), 'code'),
 ##    	               $k->{agentuuid}->[0], 
@@ -1027,12 +533,14 @@ sub ashield_user {
     	               $statin_state_hash{$station_info->{state}}.
     	               $html->br().$status,
     	               $graceperiod,
+    	               $html->button($_CHANGE, "index=$index&info=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'change' }),
     	               $html->button($_STATS, "index=$index&stats=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'stats' }),
     	               (($satus_code) ? "" : $html->button("$_DOWNLOAD", '', { 
     	               	  GLOBAL_URL => "$station_info->{url}->[0]", 
     	                  TITLE      => "$station_info->{url}->[0]",
     	                  CLASS      => 'download' 
     	                  })),
+    	               (! $user->{UID}) ? $html->button($_MESSAGE, "index=$index&msg=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'message' }) : '',
     	               (! $user->{UID}) ? $html->button($_DEL, "index=$index&del=$line->[9]&UID=$LIST_PARAMS{UID}", { MESSAGE => "$_DEL $line->[9] ?",  CLASS => 'del' }) : ''
     	              );
  }
@@ -1628,6 +1136,7 @@ elsif ($FORM{del}) {
     $ashield_tps_info{$key}{COMMENTS}     = $tp_info->{description};
     $ashield_tps_info{$key}{GRACE_PERIOD} = $tp_info->{grace_period};
     $ashield_tps_info{$key}{TYPE}         = $tp_info->{type};
+    $ashield_tps_info{$id}{NAME}          = $key;
    }
 
   return \%ashield_tps_info;
@@ -1640,6 +1149,46 @@ elsif ($FORM{del}) {
 sub ashield_drweb_user {
   my ($attr)=@_;
 
+  my ($Y, $M, $D) = split(/-/, $DATE, 3);
+
+  my %lang_hash = ('total'   => "$_TOTAL",
+                   'deleted' => "$_DELETED",
+                   'size'    => "$_SIZE",
+                   'count'   => "$_COUNT",
+                   'errors'  => "$_ERROR",
+                   'status'  => "$_STATUS",
+                   'file_name' => "$_FILE",
+                   'created'   => "$_CREATED",
+                   'grace_period'=>"$_GRACEPERIOD",
+                   'expires'   => "$_EXPIRE",
+                   'blocking'  => "$_HOLD_UP",
+                   'modified'  => "$_CHANGED",
+                   'code'      => '#',
+                   'viruses'   => "$_VIRUSES",
+                   'virus'     => "$_VIRUSES", 
+                   'lastseenat' => "$_INSTALLED",
+                   'rate'      => "Dr. Web $_TARIF_PLAN",
+                   'begin'     => "$_BEGIN",
+                   'end'       => "$_END",
+                   'bases'     => $_BASES,
+                   'components'=> $_COMPONENTS,
+                   'component' => $_COMPONENTS,
+                   'infected'  => "$_INFECTED",
+                   'moved'     => $_MOVED,
+                   'locked'    => $_LOCKED,
+                   'cured'     => $_CURED,
+                   'renamed'   => $_RENAMED,
+                   'incurable' => $_INNCURABLE,
+                   'scan'      => $_SCAN,
+                   'infections'=> $_INFECTIONS,
+                   'description'=>$_DESCRIBE,
+                   'country'   => $_COUNTRY,
+                   'city'      => $_CITY,
+                   'street'    => $_STREET,
+                   'password'  => $_PASSWD
+                    );
+
+ my @info_keys = ();
 if ($FORM{add}) {
   my $result_hash = ashield_drweb_request('api/3.0/stations/add.ds', 
                            { id          => $attr->{UID} || $FORM{UID},
@@ -1665,7 +1214,41 @@ if ($FORM{add}) {
      }
  }
 elsif($FORM{change}) {
-	
+  my $message = '';
+  if ($FORM{STATUS}) {
+    my %CMD_PARAMS = ();
+    if ($FORM{STATUS} == 1) {
+      $M++;
+      if ($M == 13) {
+        $M = 1;
+        $Y++;
+       }
+      $D='01';
+      $message = "$_EXPIRE: '$Y-$M-$D'";
+      $CMD_PARAMS{expires} = "$Y$M$D".'000000';
+     }
+    elsif ($FORM{STATUS} == 2) {
+      $D='01';
+ 	    $CMD_PARAMS{'block-begin'} = sprintf("%.4d%.2d%.2d000000", $Y,$FORM{DATE_FROM}+1, $D);
+ 	    $CMD_PARAMS{'block-end'}   = sprintf("%.4d%.2d%.2d000000", $Y,$FORM{DATE_TO}+1, $D);
+      $message = "$_HOLD_UP: ". sprintf("'%.4d-%.2d-%.2d' $_TO '%.4d-%.2d-%.2d'", $Y,$FORM{DATE_FROM}+1, $D, $Y,$FORM{DATE_TO}+1, $D);
+     }
+
+    $result_hash = ashield_drweb_request('api/3.0/stations/change.ds', 
+                           { 
+                           	 id          => $FORM{info},
+                             %CMD_PARAMS
+                          	});
+   }
+
+  if (! $result_hash->{error}) {
+    $html->message('info', $_INFO, "$_CHANGED\n$message") if (! $attr->{QUITE});
+    return 1;
+   }
+  else {
+    $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])") if (! $attr->{QUITE});
+    return 0;
+   }
  } 
 elsif($FORM{del}) {
    if ($result_hash->{error}) {
@@ -1707,71 +1290,166 @@ elsif ($FORM{info}) {
    }
 
    my ($id) = keys %{ $result_hash->{stations}->[0]->{station} };
-   $station_info = $result_hash->{stations}->[0]->{station}->{$id}
-  }
+   $station_info = $result_hash->{stations}->[0]->{station}->{$id};
 
- 
+   if ($user->{UID}) {
+     @info_keys = (
+      'grace_period',
+      'lastseenat',
+      'bases',
+      'components',
+      'blocking',
+      'modified',
+      'created',	
+      'expires'
+      );	
+    }
+  
+   $Ashield->{DATE_FROM}= $html->date_fld2('FROM_DATE', { FORM_NAME => 'holdup',
+  	                                                WEEK_DAYS => \@WEEKDAYS,
+  	                                                MONTHES   => \@MONTHES,
+  	                                                NEXT_DAY  => 1 });
+  
+   
+   my %period_array = ('' => '');
+   for(my $i=$M; $i<12; $i++) {
+     $period_array{$i}=$MONTHES[$i];
+    }
+
+  $Ashield->{DATE_FROM} = $html->form_select('DATE_FROM', 
+                                          { 
+ 	                                          SELECTED     => $FORM{DATE_FROM} || 0,
+ 	                                          SEL_HASH     => \%period_array,
+ 	                                          SORT_KEY_NUM => 1,
+                                            NO_ID        => 1,
+ 	                                        });
+
+  $Ashield->{DATE_TO} = $html->form_select('DATE_TO', 
+                                          { 
+ 	                                          SELECTED     => $FORM{DATE_FROM} || 0,
+ 	                                          SEL_HASH     => \%period_array,
+ 	                                          SORT_KEY_NUM => 1,
+                                            NO_ID        => 1,
+ 	                                        });
 
 
-$table = $html->table( { width      => '450',
+   $Ashield->{ACTION}='change';
+   $Ashield->{LNG_ACTION}=$_CHANGE;
+  
+   $html->tpl_show(_include('ashield_user', 'Ashield'), $Ashield);   
+ }
+
+
+
+
+$table = $html->table( { width      => '500',
                          border     => 1,
                          caption    => "$_STATS",
                       } );
 
-while (my($k, $v)=each %{ $station_info }){
-#  next if ($k =~ /from|till|virus|stations/);
-  my $val = $v;
-  
-  if (ref $v eq 'ARRAY') {
-  	$val = $v->[0];
+
+my @components = ();
+
+@info_keys = keys %{ $station_info } if ($#info_keys < 0);
+
+
+#while (my($k, $v)=each %{ $station_info }){
+foreach my $k (sort @info_keys){
+	my $v= $station_info->{$k};
+  my $output = '';
+  my $level = 0;
+  my $level_meter = "";
+  START:
+  if (ref $v eq 'HASH') {
+  	HASH:
+  	$level++; 
+  	while (my($sub_k, $sub_v)=each %$v){
+  		$output .= "$level_meter ". $html->b(($lang_hash{$sub_k}) ? $lang_hash{$sub_k} : $sub_k) .": ";
+  		if (ref $sub_v eq 'HASH') {
+        push @components, $v;  			
+  			$v=$sub_v;
+  			$level++; 
+  			$output .= $html->br();
+  			$level_meter .= ">> ";
+  		 }
+  	  elsif (ref $sub_v eq 'ARRAY') {
+  	  	push @components, $v;
+  	  	$v = $sub_v;
+  	  	#$output .= $html->br();
+  	  	goto ARRAY;
+  	   }
+  	  else {
+  	  	$output .= val_parser($sub_v).$html->br();
+  	   }
+  	 }
+   }
+  elsif (ref $v eq 'ARRAY') {
+   ARRAY:
+   if (ref $v->[0] eq 'HASH')  {
+   	  $v= $v->[0];
+   	  goto HASH;
+    }
+   else {
+   	 foreach my $val (@$v){
+       $output .= val_parser($val) .$html->br();	 	 
+   	  }
+    }
+  }
+  else {
+    $output .= val_parser($v);
    }
 
-  if(ref $val eq 'HASH') {
-  	my $val2 = '';
-  	while(my($k, $v)=each %{ $val }) {
-  	  $val2 .= $html->b("$k: ");
-  	  $val2 .= (ref $v eq 'ARRAY') ? $v->[0] : $v;
-  	  $val2 .= $html->br();
-  	 }
-    $val = $val2;
-   } 
+  if ($#components > -1) {
+  	$v = pop @components;
+  	$level_meter =~ s/>> //;
+  	goto START;
+   }
+  $output =~ s/>> /\&nbsp;/g;
+  $table->addrow(($lang_hash{$k}) ? $lang_hash{$k} : $k, $output);
 
-  $table->addrow($k, 
-   $val
-  );
- }
-
+}
 
 print $table->show();
 
 }
 
+#**********************************************************
+# value analizer and parser
+#**********************************************************
+sub val_parser {
+  my ($val)=@_;
+
+  if ($val =~ /\d{10}/) {
+    return strftime "%Y-%m-%d", localtime($val);
+   }
+  else {
+    return "$val";
+   }
+}
 
 #**********************************************************
-#
-#send-message.ds
-# message Сообщение. Может содержать макрос
-#{link} да
-#logo Изображение, закодированное в base64.
-#Формат BMP нет
-#logo_url Ссылка на веб-страницу, которая будет
-#открыта при нажатии на логотип нет
-#link_url
-#Ссылка, которая будет открыта при
-#нажатии на макрос {link} в
-#сообщении
-#нет
-#link_text Текст, на который будет заменен макрос
-#{link} в сообщении нет
-#customer Идентификатор агента, которому
-#необходимо отправить сообщение да
-#group Название группы, агентам которой
-#необходимо отправить сообщение
-#да
+# send-message.ds
 #**********************************************************
 sub ashield_drweb_send_message {
+  my ($attr) = @_;
 
+if ($FORM{SEND})  {
+ 	$result_hash = ashield_drweb_request('api/3.0/stations/send-message.ds', { 
+  		 id        => $FORM{msg},
+  		 message   => $FORM{MESSAGE}
+		  }); 
+	
 
+  if ($result_hash->{error}->[0]->{errno}->[0]) {
+    $html->message('err', $_ERROR, "Dr.Web: [$result_hash->{error}->[0]->{errno}->[0]] $dr_web_errors{$result_hash->{error}->[0]->{errno}->[0]} ($result_hash->{error}->[0]->{message}->[0])");
+    return 0;
+   }
+
+	
+	$html->message('info', $_INFO, "$_SENDED");
+}
+
+$html->tpl_show(_include('ashield_message', 'Ashield'));
 }
 
 
@@ -2582,5 +2260,3 @@ else {
 
 
 1
-
-

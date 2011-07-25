@@ -662,7 +662,7 @@ sub eript_202 {
 	"$DATE$TIME" =~ /(\d{4})\-(\d{2})\-(\d{2})(\d{2}):(\d{2}):(\d{2})/;
 	my $msg_date      = "$1$2$3$4$5$6";
 	"$DATE$TIME" =~ /(\d{4})\-(\d{2})\-(\d{2})(\d{2}):(\d{2}):(\d{2})/;
-	my $payment_period  = '0'; #"$3$2.$1";
+	my $payment_period  = ''; #"$3$2.$1";
 	
 	my $record_total_count  = 0;
 
@@ -671,8 +671,8 @@ sub eript_202 {
 	my $msg_provider_num          = $conf{PAYSYS_ERIPT_PROVIDER_NUM} || 123456;          # Учетный номер плательщика производителя услуг	M, N9, должно содержать три последние цифры кода МФО банка, в котором открыт расчетный счет производителя услуги;
 	my $msg_provider_bank_id      = $conf{PAYSYS_ERIPT_PROVIDER_BANK_ID} || 123456;      # Код банка производителя услуг	M, N3
 	my $msg_provider_bank_account = $conf{PAYSYS_ERIPT_PROVIDER_BANK_ACCOUNT} || 123456; # Номер услуги у производителя услуг	O, N8
-	my $msg_provider_service_id   = 0;
-	my $msg_valuta                = 1;
+	my $msg_provider_service_id   = 1;
+	my $msg_valuta                = 974;
 	my $msg_total_sum             = 0;
 	
 	
@@ -717,11 +717,11 @@ sub eript_202 {
 
 		my $tariffs_fields = ''; #"1~$tp_id~5~$tarif_1~$tarif_2~0~0~0";
 		
-		$message .= "$num^$uid^$fio^$address^$payment_period^$credit^$tariffs_fields^$payment_date^$comments^$ext_info^^^^\r\n";
+		$message .= "$num^$uid^$fio^$address^$payment_period^$credit^$tariffs_fields^$payment_date^$comments^$ext_info^^\r\n";
 	 }
 	
 	
-	$message = "$msg_version^$msg_provider_id^$msg_num^$msg_date^$record_total_count^$msg_provider_num^$msg_provider_bank_id^$msg_provider_bank_account^$msg_provider_service_id^$msg_valuta^$msg_total_sum\r\n".
+	$message = "$msg_version^$msg_provider_id^$msg_num^$msg_date^$record_total_count^$msg_provider_num^$msg_provider_bank_id^$msg_provider_bank_account^$msg_provider_service_id^$msg_valuta^^\r\n".
 	 $message;
 	
 	if ($debug > 4) {

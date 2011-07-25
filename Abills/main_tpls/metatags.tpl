@@ -388,6 +388,16 @@ a.download {
         text-indent:-9000px;
 }
 
+a.message {
+        background:url(/img/button_message.png) no-repeat center;
+        padding-left:22px;
+        padding-top:5px;
+        margin:0;
+        display:block;
+        overflow:hidden;
+        text-indent:-9000px;
+}
+
 a.info {
         background:url(/img/button_info.png) no-repeat center;
         padding-left:22px;

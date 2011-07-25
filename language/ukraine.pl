@@ -363,6 +363,7 @@ $_NETWORKS='Сітки';
 $CONTENT_LANGUAGE='UK';
 $_LIST='Список';
 $_LAST_PAYMENT='Остання оплата';
+$_EXTRA_TARIFICATION='Розширена тарифікація';
 $_NOT_ALLOW='Недозволена операція';
 $_START='Початок';
 $_TEXT='Пошук';

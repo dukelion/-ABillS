@@ -1135,4 +1135,138 @@ sub trunk_list {
 }
 
 
+
+
+#**********************************************************
+# Extra tarification
+# extra_tarification_info()
+#**********************************************************
+sub extra_tarification_info {
+  my $self = shift;
+  my ($attr) = @_;
+
+  
+  $self->query($db, "SELECT id,
+  name,
+  prepaid_time
+     FROM voip_route_extra_tarification
+  WHERE id='$attr->{ID}';");
+
+  if ($self->{TOTAL} < 1) {
+     $self->{errno} = 2;
+     $self->{errstr} = 'ERROR_NOT_EXIST';
+     return $self;
+   }
+
+
+  ($self->{ID},
+   $self->{NAME},
+   $self->{PREPAID_TIME}
+  )= @{ $self->{list}->[0] };
+  
+  return $self;
+}
+
+
+#**********************************************************
+# extra_tarification_add()
+#**********************************************************
+sub extra_tarification_add {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  %DATA = $self->get_data($attr); 
+
+  $self->query($db,  "INSERT INTO voip_route_extra_tarification (name, date, prepaid_time)
+        VALUES ('$DATA{NAME}', now(), '$DATA{PREPAID_TIME}');", 'do');  
+  return $self if ($self->{errno}); 
+
+
+  return $self;
+}
+
+
+
+
+#**********************************************************
+# extra_tarification_change()
+#**********************************************************
+sub extra_tarification_change {
+  my $self = shift;
+  my ($attr) = @_;
+  
+  my %FIELDS = (ID           => 'id',
+                NAME				 => 'name',
+                PREPAID_TIME => 'prepaid_time',
+               );
+
+  $self->changes($admin,  { CHANGE_PARAM => 'UID',
+                   TABLE        => 'voip_route_extra_tarification',
+                   FIELDS       => \%FIELDS,
+                   OLD_INFO     => $self->extra_tarification_info( $attr ),
+                   DATA         => $attr
+                  } );
+
+  return $self->{result};
+}
+
+
+
+#**********************************************************
+# 
+# extra_tarification_del(attr);
+#**********************************************************
+sub extra_tarification_del {
+  my $self = shift;
+  my ($attr) = @_;
+
+  $self->query($db, "DELETE from voip_route_extra_tarification WHERE id='$self->{UID}';", 'do');
+
+  return $self->{result};
+}
+
+
+#**********************************************************
+# extra_tarification_list()
+#**********************************************************
+sub extra_tarification_list {
+ my $self = shift;
+ my ($attr) = @_;
+ my @list = ();
+
+ $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC = ($attr->{DESC}) ? $attr->{DESC} : '';
+ $PG = ($attr->{PG}) ? $attr->{PG} : 0;
+ $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
+
+ 
+
+ 
+ if ($attr->{NAME}) {
+   push @WHERE_RULES, @{ $self->search_expr("'$attr->{NAME}'", 'STR', 'et.name') }; 
+  }
+
+ if ($attr->{ID}) {
+   push @WHERE_RULES, @{ $self->search_expr("'$attr->{ID}'", 'INT', 'et.id') }; 
+  }
+
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
+ 
+ 
+ $self->query($db, "SELECT id, name, preapaid_time
+     FROM voip_route_extra_tarification
+     $WHERE 
+     ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
+
+ return $self if($self->{errno});
+ my $list = $self->{list};
+
+ if ($self->{TOTAL} >= 0) {
+    $self->query($db, "SELECT count(id) FROM voip_route_extra_tarification $WHERE");
+    ($self->{TOTAL}) = @{ $self->{list}->[0] };
+   }
+
+  return $list;
+}
 1

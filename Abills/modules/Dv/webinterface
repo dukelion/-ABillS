@@ -3426,13 +3426,13 @@ if ($FORM{set}) {
        }
 
       $Shedule->add( {UID     => $LIST_PARAMS{UID},
-                     TYPE     => 'tp',
-                     ACTION   => $FORM{TP_ID},
-    	               D        => $day,
-                     M        => $month,
-                     Y        => $year,
-                     MODULE   => 'Dv',
-                     COMMENTS => "$_FROM: $Dv->{TP_ID}:$Dv->{TP_NAME}"
+                      TYPE     => 'tp',
+                      ACTION   => $FORM{TP_ID},
+    	                D        => $day,
+                      M        => $month,
+                      Y        => $year,
+                      MODULE   => 'Dv',
+                      COMMENTS => "$_FROM: $Dv->{TP_ID}:$Dv->{TP_NAME}"
                     });
 
       if ($Shedule->{errno}) {

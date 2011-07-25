@@ -419,7 +419,9 @@ if ($attr->{SHOW_CHANNELS}) {
         ti_c.channel_id, 
         c.num,
         c.name,
-        ti_c.month_price        
+        ti_c.month_price,
+        u.disable,
+        service.disable
    from (intervals i, 
      iptv_ti_channels ti_c,
      users u,

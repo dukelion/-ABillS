@@ -1069,26 +1069,32 @@ CREATE TABLE `voip_main` (
   KEY `uid` (`uid`)
 ) ;
 
-# --------------------------------------------------------
+CREATE TABLE `voip_route_extra_tarification` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(32) not null default '',
+  `date` date NOT NULL default '0000-00-00',
+  `prepaid_time` INT UNSIGNED NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) COMMENT "Voip extra tarification" ;
 
-#
-# Структура таблиці `voip_route_prices`
-#
+CREATE TABLE `voip_route_groups` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(32) not null default '',
+  PRIMARY KEY (`id`)
+) COMMENT "Voip route groups" ;
+
 
 CREATE TABLE `voip_route_prices` (
   `route_id` int(11) unsigned NOT NULL default '0',
   `interval_id` int(11) unsigned NOT NULL default '0',
   `price` double(15,5) unsigned NOT NULL default '0.00000',
+  `unit_price` double(15,5) unsigned NOT NULL default '0.00000',
+  `extra_tarification` smallint(5) unsigned NOT NULL default 0,
   `date` date NOT NULL default '0000-00-00',
   `trunk` SMALLINT UNSIGNED NOT NULL DEFAULT '0',
   UNIQUE KEY `route_id` (`route_id`,`interval_id`)
 ) ;
 
-# --------------------------------------------------------
-
-#
-# Структура таблиці `voip_routes`
-#
 
 CREATE TABLE `voip_routes` (
   `prefix` varchar(14) NOT NULL default '',

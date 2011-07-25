@@ -9,6 +9,17 @@ $_DRWEB_CABINET='Dr.Web Cabinet';
 $_DOWNLOADED='Downloaded';
 $_GRACEPERIOD='Grace Period';
 $_SUBSCRIBE='Subscribe';
+$_BASES='antivirus Bases';
+$_COMPONENTS='Components';
+$_INFECTED='Infected';
+$_MOVED='Moved';
+$_LOCKED='Locked';
+$_CURED='Cured';
+$_RENAMED='Renamed';
+$_INNCURABLE='incurable';
+$_SCAN='scan';
+$_INSTALLED='Installed';
+$_INFECTIONS='infections';
 
 $_STATUS_1 = 'создание новой подписки';
 $_STATUS_2 = 'смена тарифного пакета';

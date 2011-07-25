@@ -1,4 +1,3 @@
-#/usr/bin/perl
 # Voip web functions
 
 
@@ -2750,6 +2749,53 @@ sub voip_report {
   
   %LIST_PARAMS = %{$attr->{LIST_PARAMS}} if (defined($attr->{LIST_PARAMS}));
 
+ 
+  return $REPORT;
+}
+
+
+#***********************************************************
+# voip_report
+#***********************************************************
+sub voip_extra_tarification {
+	my ($type, $attr)=@_;
+ 
+  %LIST_PARAMS = %{$attr->{LIST_PARAMS}} if (defined($attr->{LIST_PARAMS}));
+	$Voip->{ACTION}='add';
+ 	$Voip->{LNG_ACTION}=$_ADD;
+
+  if ($FORM{add}) {
+  	$Voip->extra_tarification_add({ %FORM });
+    if (! $Voip->{errno}) {
+       $html->message('info', $_INFO, "$_ADDED");	
+     }
+   }
+	elsif($FORM{change}) {
+    $Voip->extra_tarification_change({ %FORM });
+    if (! $Voip->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+   }
+	elsif($FORM{chg}) {
+    $Voip->extra_tarification_info({ %FORM, ID => $FORM{chg} });
+    if (! $Voip->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGING");	
+     }
+   	$Voip->{ACTION}='change';
+  	$Voip->{LNG_ACTION}=$_CHANGE;
+   }
+	elsif($FORM{del}) {
+    $Voip->extra_tarification_del();
+    if (! $Voip->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");	
+     }
+	 }
+
+  if ($Voip->{errno}) {
+    $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");
+   }
+  
+  $html->tpl_show(_include('voip_extra_tarification', 'Voip'), $Voip);
  
   return $REPORT;
 }

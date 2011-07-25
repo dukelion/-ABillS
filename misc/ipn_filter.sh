@@ -4,8 +4,8 @@
 # %STATUS (ONLINE_ENABLE,ONLINE_DISABLE,HANGUP) %LOGIN %IP %FILTER_ID [-debug]
 # $conf{IPN_FILTER}='/home/asmodeus/abills2/misc/ipn_filter.sh %STATUS "%LOGIN" "%IP" "%FILTER_ID" "%UID" debug';
 
-VERSION=0.2
-debug=1;
+VERSION=0.3;
+debug=0;
 
 if [ w$4 = w ]; then
   if [ w${debug} = w0 ]; then
@@ -34,13 +34,13 @@ fi;
 #Forward ip filter
 # filter format: 
 #  fwd:local_ip:external_ip
-function forward_ip {
+forward_ip () {
 
  FILTER_NAME=`echo ${FILTER_ID} | awk -F: '{print $1}'`;
  if [ w${FILTER_NAME} = wfwd ]; then
       echo "Forward filter";
       LOCAL=`echo ${FILTER_ID} | awk -F: '{print $2}'`;
-      REMOTE=`echo ${FILTER_ID} | awk -F: '{print $3}'`;
+      REMOTE=`echo ${FILTER_ID} | sed 's/fwd:\([0-9.]*\):\([0-9.]*\).*/\2/'`;
       if [ w$debug != w0 ]; then
         echo "FWD: ${LOCAL} -> ${REMOTE}"
       fi;
@@ -55,7 +55,7 @@ function forward_ip {
  fi;
 }
 
-forward_ip();
+forward_ip;
 
 
 #Some actions
