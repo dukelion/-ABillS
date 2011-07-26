@@ -338,7 +338,6 @@ sub ashield_user {
          }
         else {
           #$Ashield->user_add({ %FORM, UID => $LIST_PARAMS{UID} });
-
           my %AVD_TPS_REV = reverse %AVD_TPS;
           my ($name) = keys %{ $result_hash->{stations}->[0]->{station} };
           my ($rate) = keys %{ $result_hash->{stations}->[0]->{station}->{$name}->{rate} };
@@ -359,7 +358,7 @@ sub ashield_user {
             GROUPUUID    => '',
             GROUPNAME    => '',
             TARIFFPLANCODE => $AVD_TPS_REV{$rate},
-            TP_ID        => $Tariffs->{TP_ID},
+            TP_ID        => $FORM{TP_ID},
             GRACE_PERIOD => $FORM{DR_WEB_GRACE_PERIOD}
            });
           
