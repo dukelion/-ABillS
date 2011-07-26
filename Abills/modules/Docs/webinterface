@@ -1269,17 +1269,16 @@ sub docs_account {
        	   $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}]\n $_DATE: $FORM{DATE} ". $html->button($_PRINT, "qindex=$index&ACCOUNT_ID=$Docs->{DOC_ID}&print=$Docs->{DOC_ID}&UID=$LIST_PARAMS{UID}&pdf=1", { ex_params => 'target=_new', CLASS => 'print' }));
        	  }
        	 
-       	 if ($FORM{SEND_EMAIL}) {
-            $FORM{print} = $FORM{ACCOUNT_ID};
-         	  $FORM{pdf}   = 1;
-          	delete($FORM{create});
-            docs_account({ GET_EMAIL_INFO    => 1,
-            	             SEND_EMAIL        => 1,
+
+         $FORM{print} = $FORM{ACCOUNT_ID};
+         $FORM{pdf}   = 1;
+         delete($FORM{create});
+         return  docs_account({ GET_EMAIL_INFO    => 1,
+            	             SEND_EMAIL        => $FORM{SEND_EMAIL},
             	             EMAIL             => $FORM{EMAIL}, 
             	             %$attr
             	           });
-          } 	 
-       	 return 0;
+       	 
         }
        else {
          $html->message('info', "$_ACCOUNT $_CREATED", "$_ACCOUNT $_NUM: [$Docs->{ACCT_ID}]\n $_DATE: $FORM{DATE} ".
@@ -1524,7 +1523,7 @@ sub docs_print {
   if ($Docs->{UID}) {
     $users->info($Docs->{UID}) if (! $users->{BILL_ID});
     $users->pi({ UID => $Docs->{UID} });
-    $users->{ADDRESS_FULL}="$users->{ADDRESS_STREET}, $users->{ADDRESS_BUILD}, $users->{ADDRESS_FLAT}"; 
+    $users->{ADDRESS_FULL}="$users->{ADDRESS_STREET}, $users->{ADDRESS_BUILD}, $users->{ADDRESS_FLAT}" if ($users->{ADDRESS_STREET}); 
     
     if ($users->{GID}) {
        $users->group_info($users->{GID});
@@ -1540,25 +1539,32 @@ sub docs_print {
      }
    }
 
-  if ($attr->{SEND_EMAIL} && ! $attr->{OUTPUT2RETURN}) {
-    # Email not specified
-    if (! $attr->{EMAIL} && ! $users->{EMAIL}) {
-    	return 0;
-     }
-    
+  my $html_old; 
+  if ($FORM{pdf} && ! $html->{pdf_output}) {
+  	$html_old = $html; 
     PDF::API2->import();
     require Abills::PDF;
     my $pdf = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
                                  NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
                                  CONF      => $CONF
-                               });
+                                 });
+  	$html = $pdf;
+   }
 
-	  my $content = $pdf->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
+  my $content = $html->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
 	    { pdf           => $FORM{pdf},
 	    	OUTPUT2RETURN => $attr->{OUTPUT2RETURN},
 	    	SUFIX         => $attr->{SUFIX}
 	    	}), 
 	    { %$users, %$attr  });
+
+	$html = $html_old if ($html_old);
+  delete $FORM{pdf};
+  if ($attr->{SEND_EMAIL} && ! $attr->{OUTPUT2RETURN}) {
+    # Email not specified
+    if (! $attr->{EMAIL} && ! $users->{EMAIL}) {
+    	return 0;
+     }
 
   	sendmail("$conf{ADMIN_MAIL}", 
   	          $attr->{EMAIL} || $users->{EMAIL},
@@ -1572,19 +1578,10 @@ sub docs_print {
        	  	                       }
        	  	                    ],
        	  	   });
-
-    return 1;
    }
-  else {
-  	return 	$html->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
-	    { pdf           => $FORM{pdf},
-	    	OUTPUT2RETURN => $attr->{OUTPUT2RETURN},
-	    	SUFIX         => $attr->{SUFIX}
-	    	}), 
-	    { %$users, %$attr  });
-
-   }
-  delete $FORM{pdf};
+	else {
+	  return $content;
+	 }
 }
 
 

@@ -721,7 +721,7 @@ sub eript_202 {
 	 }
 	
 	
-	$message = "$msg_version^$msg_provider_id^$msg_num^$msg_date^$record_total_count^$msg_provider_num^$msg_provider_bank_id^$msg_provider_bank_account^$msg_provider_service_id^$msg_valuta^^\r\n".
+	$message = "$msg_version^$msg_provider_id^$msg_num^$msg_date^$record_total_count^$msg_provider_num^$msg_provider_bank_id^$msg_provider_bank_account^$msg_provider_service_id^\r\n".
 	 $message;
 	
 	if ($debug > 4) {

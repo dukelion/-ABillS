@@ -191,10 +191,10 @@ foreach my $line (@$list) {
      "$line->[5]",
      ($line->[6]) ? "$line->[6]" : $html->date_fld2('DATE_'.$line->[0], { FORM_NAME => 'ABON_USER_TPS', WEEK_DAYS => \@WEEKDAYS, MONTHES => \@MONTHES, DATE => '0000-00-00' }),
      $html->form_input('DISCOUNT_'.$line->[0], "$line->[7]", { SIZE => '8'   }),
-     $html->form_input('CREATE_DOCS_'.$line->[0], "$line->[0]", { TYPE => 'CHECKBOX', 
-  	                                                      STATE => ($line->[8] == 1) ? 1 : undef   }),
-     $html->form_input('SEND_DOCS_'.$line->[0], "$line->[0]", { TYPE => 'CHECKBOX', 
-  	                                                      STATE => ($line->[8] == 1) ? 1 : undef   })                                                     
+     $html->form_input('CREATE_DOCS_'.$line->[0], "1", { TYPE => 'CHECKBOX', 
+  	                                                      STATE => ($line->[12]) ? 1 : undef   }),
+     $html->form_input('SEND_DOCS_'.$line->[0], "1", { TYPE => 'CHECKBOX', 
+  	                                                      STATE => ($line->[13]) ? 1 : undef   })                                                     
      
    );
  }
@@ -495,7 +495,7 @@ sub abon_periodic {
    my $vat             = $line->[29]; 
    
    if ($debug > 5) {
-   	 $debug_output .= "UID: $info{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} DEPOSIT: $info{DEPOSIT}  NOT1: $notification1 NOT2: $notification2 ABON: $info{ABON_DATE}\n";
+   	 $debug_output .= "UID: $info{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} DEPOSIT: ". (($info{DEPOSIT}) ? $info{DEPOSIT} : 'Undefined') ." NOT1: $notification1 NOT2: $notification2 ABON: $info{ABON_DATE}\n";
     }
    
    if (defined($info{DEPOSIT})) {
@@ -512,11 +512,12 @@ sub abon_periodic {
     $line->[8] = 0 if (! $line->[8]);
     $PARAMS{DESCRIBE} = "$_ABON: $info{TP_NAME}. $info{COMMENT}" if ($info{COMMENT});
     $abon_date = $ADMIN_REPORT{DATE} if (! $abon_date && $line->[0] == 1 && $d == 1);
+ 	  $info{SUM} = $info{SUM} * (100 - $info{DISCOUNT}) / 100 if ($info{DISCOUNT} > 0);
     #Get abon
     if($ADMIN_REPORT{DATE} eq $info{ABON_DATE} || $info{PERIOD} == 0) {
       if($line->[8] && ($info{DEPOSIT} + $info{CREDIT} > 0 || $line->[11] == 1) && $line->[9] == 0) {
       	
-      	 $info{SUM} = $info{SUM} * (100 - $info{DISCOUNT}) / 100 if ($info{DISCOUNT} > 0);
+
          $fees->take(\%user, $info{SUM}, { %PARAMS } ); 
          $Abon->user_tariff_update({ UID   => "$info{UID}", 
          	                           DATE  => $ADMIN_REPORT{DATE}, 
@@ -530,7 +531,6 @@ sub abon_periodic {
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
    	       $FORM{SEND_EMAIL}= $info{SEND_DOCS} || undef;
-
    	       docs_account({ QUITE => 1 });
           }
 
@@ -634,10 +634,6 @@ sub abon_periodic {
    	     $FORM{print}            = $notification1_account_id;
    	     $FORM{CHECK_PEYMENT_ID} = 1;
    	     $FORM{pdf}              = $conf{DOCS_PDF_PRINT};
-
-      	 my $html_old = $html;
-         PDF::API2->import();
-         require Abills::PDF;
          $html = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
      	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
      	                              CONF      => $CONF
@@ -651,8 +647,6 @@ sub abon_periodic {
        	  	             FILENAME     => 'account.pdf' }
 	  	                 ];
    	      }
-    	  $html=$html_old;
-    	  delete $FORM{pdf};
     	 }
 
   	   $Abon->user_tariff_update({ UID   => "$user{UID}",

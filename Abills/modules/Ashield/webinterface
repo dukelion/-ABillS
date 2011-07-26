@@ -373,7 +373,6 @@ sub ashield_user {
 
           
           my $id = $result_hash->{stations}->[0]->{station}->{$name}->{id};
-
           $Ashield->ashield_avd_add({ UID => $LIST_PARAMS{UID},
             STATE        => 0, 
             AGENTUUID    => $id,
@@ -381,7 +380,7 @@ sub ashield_user {
             GROUPNAME    => '',
             TARIFFPLANCODE => $AVD_TPS_REV{$rate},
             TP_ID        => $FORM{TP_ID},
-            GRACE_PERIOD => $FORM{DR_WEB_GRACE_PERIOD}
+            GRACE_PERIOD => $station_info->{grace_period}
            });
           
           }
@@ -507,6 +506,7 @@ sub ashield_user {
     	my $expire      = $station_info->{expires}->[0];
       my $name        = $id;
       my $graceperiod = $station_info->{grace_period};
+      my $graceperiod_status = "$_GRACEPERIOD $_TO $line->[10]" if($line->[10]);
       my $create      = val_parser($station_info->{created});
       my $cur_date    = time;
       my ($rate)      = keys %{ $station_info->{rate} };
@@ -561,10 +561,10 @@ sub ashield_user {
     	               ($activated eq 'no' || $error) ? $_NO: $_YES,
                      ($online eq 'no' || $error) ? $_NO : $_YES,
     	               $create,
-    	               $installed.
-    	               $html->br().
-    	               $statin_state_hash{$station_info->{state}}.
-    	               $html->br().$status,
+    	               $graceperiod_status. $html->br().
+    	               $installed.  $html->br().
+    	               $statin_state_hash{$station_info->{state}}. $html->br().
+    	               $status,
     	               $graceperiod,
     	               $html->button($_CHANGE, "index=$index&info=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'change' }),
     	               $html->button($_STATS, "index=$index&stats=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'stats' }),

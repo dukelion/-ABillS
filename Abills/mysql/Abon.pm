@@ -469,7 +469,6 @@ sub user_tariff_change {
  my $self = shift;
  my ($attr) = @_;
 
-
  if ($attr->{DEL}) {
    $self->query($db, "DELETE from abon_user_list WHERE uid='$attr->{UID}' AND  tp_id IN ($attr->{DEL});", 'do');
   }
@@ -692,7 +691,7 @@ sub periodic_list {
 WHERE
 at.id=ul.tp_id and
 ul.uid=u.uid
-
+$WHERE
 AND u.deleted='0'
 ORDER BY at.priority;");
 
