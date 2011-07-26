@@ -360,9 +360,14 @@ sub ashield_user {
           my ($rate) = keys %{ $result_hash->{stations}->[0]->{station}->{$name}->{rate} };
 
         	my $station_info = $result_hash->{stations}->[0]->{station}->{$name};
+	        my $download_url = $station_info->{url}->[0];
+          if ($conf{ASHIELD_DRWEB_DOWNLOAD_PREFIX}) {
+        	  $download_url =~ s/http:\/\/([a-z\.\-0-9\_]+)\//$conf{ASHIELD_DRWEB_DOWNLOAD_PREFIX}/i;
+           }
+
           $html->message('info', $_INFO, "Dr.Web: $_USER $_ADDED\n$_DOWNLOAD: ".  $html->button("$_DOWNLOAD", '', { 
-    	               	  GLOBAL_URL => "$station_info->{url}->[0]", 
-    	                  TITLE      => "$station_info->{url}->[0]",
+    	               	  GLOBAL_URL => "$download_url", 
+    	                  TITLE      => "$download_url",
     	                  CLASS      => 'download' 
     	                  }));
 
@@ -396,9 +401,9 @@ sub ashield_user {
    }
 	elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $Ashield->ashield_avd_del({ ID => $FORM{del}  });
-    $Ashield->user_del() if ($FORM{UID});
+    #$Ashield->user_del() if ($FORM{UID});
     if (! $Ashield->{errno}) {
-      $html->message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_DELETED");	
      }
 	  return 0;
 	 }
