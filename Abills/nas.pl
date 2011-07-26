@@ -18,7 +18,7 @@ my $SUDO = '/usr/local/bin/sudo';
 my $NAS;
 my $nas_type = '';
 my %stats = ();
-
+my $USER_NAME='';
 
 
 #*******************************************************************
@@ -29,7 +29,8 @@ sub hangup {
  my ($Nas, $PORT, $USER, $attr) = @_;
 
  $NAS = $Nas;
- $nas_type = $NAS->{NAS_TYPE};
+ $nas_type  = $NAS->{NAS_TYPE};
+ $USER_NAME = $USER;
 
 
  if ($nas_type eq 'exppp') {
@@ -67,7 +68,7 @@ sub hangup {
    hangup_mpd4($NAS, $PORT, $attr);
   }
  elsif ($nas_type eq 'mpd5') {
-   hangup_mpd5($NAS, $PORT, $attr);
+   hangup_mpd5($NAS, $PORT, { USER => $USER, %$attr });
   }
  elsif ($nas_type eq 'openvpn') {
    hangup_openvpn($NAS, $PORT, $USER);
@@ -156,7 +157,7 @@ sub telnet_cmd {
    return 0;
   }
 
- $Log->log_print('LOG_DEBUG', '', "Connected to $hostname:$port", { ACTION => 'CMD' });
+ $Log->log_print('LOG_DEBUG', "$USER_NAME", "Connected to $hostname:$port", { ACTION => 'CMD' });
 
  my $sock  = \*SH;
  my $MAXBUF= 512;
@@ -179,7 +180,7 @@ foreach my $line (@$commands) {
   
   if ($waitfor eq '-') {
     #send($sock, "$sendtext\r\n", 0, $dest) or die log_print('LOG_INFO', '', "Can't send: '$text' $!");
-    send($sock, "$sendtext\n", 0, $dest) or die $Log->log_print('LOG_INFO', '', "Can't send: '$text' $!", { ACTION => 'CMD' });
+    send($sock, "$sendtext\n", 0, $dest) or die $Log->log_print('LOG_INFO', "$USER_NAME", "Can't send: '$text' $!", { ACTION => 'CMD' });
    }
 
 
@@ -194,14 +195,14 @@ foreach my $line (@$commands) {
 
 
  
-  $Log->log_print('LOG_DEBUG', '', "Get: \"$input\"\nLength: $len", { ACTION => 'CMD' });
-  $Log->log_print('LOG_DEBUG', '', " Wait for: '$waitfor'", { ACTION => 'CMD' });
+  $Log->log_print('LOG_DEBUG', "$USER_NAME", "Get: \"$input\"\nLength: $len", { ACTION => 'CMD' });
+  $Log->log_print('LOG_DEBUG', "$USER_NAME", " Wait for: '$waitfor'", { ACTION => 'CMD' });
 
   if ($input =~ /$waitfor/ig){ # || $waitfor eq '') {
     $text = $sendtext;
-    $Log->log_print('LOG_DEBUG', '', "Send: $text", { ACTION => 'CMD' });
+    $Log->log_print('LOG_DEBUG', "$USER_NAME", "Send: $text", { ACTION => 'CMD' });
     #send($sock, "$text\r\n", 0, $dest) or die log_print('LOG_INFO', "Can't send: '$text' $!");
-    send($sock, "$text\n", 0, $dest) or die $Log->log_print('LOG_INFO', '', "Can't send: '$text' $!", { ACTION => 'CMD' });
+    send($sock, "$text\n", 0, $dest) or die $Log->log_print('LOG_INFO', "$USER_NAME", "Can't send: '$text' $!", { ACTION => 'CMD' });
     #"Can't send: $!\n";
    };
 
@@ -235,7 +236,7 @@ sub telnet_cmd2 {
 				PeerPort => $port,
 				Proto    => 'tcp',
 				TimeOut  => $timeout
-	) or $Log->log_print('LOG_DEBUG', '', "ERR: Can't connect to '$host:$port' $!", { ACTION => 'CMD' });
+	) or $Log->log_print('LOG_DEBUG', "$USER_NAME", "ERR: Can't connect to '$host:$port' $!", { ACTION => 'CMD' });
   $Log->log_print('LOG_DEBUG', '', "Connected to $host:$port"); 
 
 foreach my $line (@$commands) {
@@ -788,7 +789,8 @@ sub hangup_mpd5 {
          }
    }
 
-  $Log->log_print('LOG_DEBUG', " HANGUP: SESSION: $ctl_port NAS_MNG: $NAS->{NAS_MNG_IP_PORT} '$NAS->{NAS_MNG_PASSWORD}'", { ACTION => 'CMD' });
+
+  $Log->log_print('LOG_DEBUG', $USER_NAME, " HANGUP: SESSION: $ctl_port NAS_MNG: $NAS->{NAS_MNG_IP_PORT} '$NAS->{NAS_MNG_PASSWORD}'", { ACTION => 'CMD' });
 
   
   my @commands=("\t",

@@ -1490,7 +1490,7 @@ sub ashield_drweb_send_message {
 
 if ($FORM{SEND})  {
  	$result_hash = ashield_drweb_request('api/3.0/stations/send-message.ds', { 
-  		 id        => $FORM{msg},
+  		 id        => convert($FORM{msg}, { win2utf8 => 1 }),
   		 message   => $FORM{MESSAGE}
 		  }); 
 	

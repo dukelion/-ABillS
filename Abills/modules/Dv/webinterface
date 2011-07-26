@@ -1165,8 +1165,9 @@ if ($FORM{ping}) {
    }
  }
 elsif ($FORM{hangup}) {
-  my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
+  my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ |\+/, $FORM{hangup}, 4);
   $Nas->info({ NAS_ID => $nas_id });
+  
   
   if ($Nas->{errno}) {
     $html->message('err', $_NAS, "$Nas->{errstr}");
