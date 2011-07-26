@@ -6,8 +6,19 @@ use HTTP::Request::Common;
 
 my $ua = new LWP::UserAgent();
 
+
+eval { require Ashield; };
+if (! $@) {
+  Ashield->import();
+ }
+else {
+  print "Content-Type: text/html\n\n" if ($user->{UID});
+  print "Can't load 'Ashield'. Purchase this module http://abills.net.ua";
+  exit; 
+ }
+
+
 use Abills::Base;
-use Ashield;
 use Fees;
 use POSIX;    
 
@@ -289,6 +300,12 @@ $table = $html->table( { width      => '100%',
 sub ashield_user {
  	my ($attr) = @_;
 
+  if ($Ashield::VERSION < 6.0) {
+  	$html->message('info', "UPDATE", "Please update module 'Ashield' to version 6.0 or higher. http://abills.net.ua/");
+  	return 0;
+   }
+
+
   my $users = Users->new($db, $admin, \%conf); 
  	$Ashield->{UID}=$FORM{UID};	  
   $users->info($LIST_PARAMS{UID}, { SHOW_PASSWORD => 1 });
@@ -528,7 +545,11 @@ sub ashield_user {
     	   }
 
         my $installed = ($station_info->{lastseenat}->[0]) ? $_INSTALLED : ''; #(lastseenat == "" or ( lastseenat != "" and state == 5 ) ) ? 0 : 'installed';
-
+        my $download_url = $station_info->{url}->[0];
+        if ($conf{ASHIELD_DRWEB_DOWNLOAD_PREFIX}) {
+        	$download_url =~ s/http:\/\/([a-z\.\-0-9\_]+)\//$conf{ASHIELD_DRWEB_DOWNLOAD_PREFIX}/i;
+         }
+        
     	  $table->addrow($html->color_mark(convert($name, { utf82win => 1 }), 'code'),
 ##    	               $k->{agentuuid}->[0], 
     	               ($error) ? $error : $tp,
@@ -543,8 +564,8 @@ sub ashield_user {
     	               $html->button($_CHANGE, "index=$index&info=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'change' }),
     	               $html->button($_STATS, "index=$index&stats=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'stats' }),
     	               (($satus_code) ? "" : $html->button("$_DOWNLOAD", '', { 
-    	               	  GLOBAL_URL => "$station_info->{url}->[0]", 
-    	                  TITLE      => "$station_info->{url}->[0]",
+    	               	  GLOBAL_URL => "$download_url", 
+    	                  TITLE      => "$download_url",
     	                  CLASS      => 'download' 
     	                  })),
     	               (! $user->{UID}) ? $html->button($_MESSAGE, "index=$index&msg=$station_info->{id}&UID=$LIST_PARAMS{UID}", { CLASS => 'message' }) : '',
