@@ -421,15 +421,15 @@
 
 Создание тарифного плана\\
 Меню\\
-**System configuration->Dialup & VPN->Tarif Plans**\\
+**System configuration->Internet->Tarif Plans**\\
 
 
 Регистрация пользователя\\
 **Customers->Users->Add**\\
 
 
-Заведение сервиса Dialup/VPN на пользователя.\\
-**Customers->Users->Information->Services->Dialup / VPN**\\
+Заведение сервиса Internet на пользователя.\\
+**Customers->Users->Information->Services->Internet**\\
 
 
 

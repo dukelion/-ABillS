@@ -1,5 +1,45 @@
 =====0.53=====
 
+22.07.2011\\
+  * ''abm_console'' добавлена возможность производить массовые оплаты и снятия исходя из параметров логина
+  * добавлены отчёты по работе компаний оплаты, снятия, интернет
+  * ''Ashield'' Обновлен к версии протокола 6.0. Все действия с аккаунтом пользователя теперь производятся через веб интерфейс
+  * В список систем миграции добавлено MikBill, Nodeny, Stargezer, Trafpro
+  * ''Voip'' Добавлена возможность ведения цен телефонии в условных единица. Условные единицы конвертируются в реальный цены исходя из поточного курса. 
+  * ''Voip'' Добавлена программа получения курса НБУ и пересчёта цен исходя из курса условной единицы
+  * ''Voip'' Добавлены группы расширенно тарификации. Возможность устанавливать предоплаченое время для определённой группы направлений
+
+
+MySQL:
+  CREATE TABLE `docs_main` (
+    `uid` int(11) unsigned NOT NULL default '0' PRIMARY KEY,
+    `send_docs` tinyint(1) unsigned NOT NULL default '0',
+    `periodic_create_docs` tinyint(1) unsigned NOT NULL default '0',
+    `email` varchar(200) NOT NULL default '',
+    `comments` text not null
+   ) COMMENT='Docs users settings';
+  
+  
+  ALTER TABLE abon_user_list ADD COLUMN `create_docs` tinyint(1) unsigned NOT NULL DEFAULT 0;
+  ALTER TABLE abon_user_list ADD COLUMN `send_docs` tinyint(1) unsigned NOT NULL DEFAULT 0;
+  ALTER TABLE ashield_avd_log ADD COLUMN `work_period_begin` DATE NOT NULL;
+  ALTER TABLE voip_route_prices ADD COLUMN  `unit_price` double(15,5) unsigned NOT NULL default '0.00000';
+  ALTER TABLE voip_route_prices ADD COLUMN `extra_tarification` smallint(5) unsigned NOT NULL default 0;
+  
+  CREATE TABLE `voip_route_extra_tarification` (
+    `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+    `name` varchar(32) not null default '',
+    `date` date NOT NULL default '0000-00-00',
+    `prepaid_time` INT UNSIGNED NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`)
+  ) COMMENT "Voip extra tarification" ;
+  
+  CREATE TABLE `voip_route_groups` (
+   `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+   `name` varchar(32) not null default '',
+   PRIMARY KEY (`id`)
+  ) COMMENT "Voip route groups" ;
+
 13.07.2011\\
   * ''Docs'' добавлена возможность масового выставления счетов на следующий учётный период
   * ''Docs'' добавлен профайл с возможностью выбора дополнительного емейла для отправки документов и опция генерации месячных документов
@@ -10,7 +50,7 @@ MySQL\\
 
 
 04.07.2011\\
-  * 'Abon' добавлена опция учета скидок
+  * ''Abon'' добавлена опция учета скидок
   * В журнале пользователей добавлен фильтр по кредиторам
 
 MySQL:\\
@@ -43,7 +83,7 @@ MySQL:\\
   * В модуль карт Maps добавлена поддержка Google Maps
   * В модуль карт добавлена возможность отображать сервера доступа
   * Улучшен шейпер для Linux. Добавлена поддержка хешей
-  * Новый модуль складской учёт [[abills:docs:storage:ru|Storage]]
+  * Новый модуль складской учёт [[abills:docs:modules:storage:ru|Storage]]
   * Улучшена производительность авторизации и аккаунтинга модуля Voip
   * Добавлена поддержка платёжной системы PayPal
   * Добавлена поддержка FreeRadius DHCP. Раздача динамических IP исходя из параметров опции 82, гостевой аккаунт
@@ -185,8 +225,8 @@ MySQL:\\
   ALTER TABLE builds ADD COLUMN `map_y4` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0';
 
 18.12.2010\\
-  * Только администратор может удалять расписания присвоенные пользователю
-  * В DHCPhost  добавлено поле гостевой VLAN и возможность не блокировать должников на порту а перебрасывать в гостевой VLAN (Dlink, AgeCore)
+  * Только администрартор может удалять расписания присвоенные пользователю
+  * В DHCPhost  добавленно поле гостевой VLAN и возможность не блокировать долников на порту а перебрасывать в гостевой VLAN (Dlink, AgeCore)
 
 MySQL:\\
   ALTER TABLE shedule ADD COLUMN `admin_action` tinyint(1) unsigned NOT NULL default '0';
