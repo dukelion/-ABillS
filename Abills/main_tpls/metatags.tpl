@@ -31,6 +31,7 @@ th.small {
   color: %_COLOR_0%;
   font-size: 12px;
   height: 10;
+  background-color: %_COLOR_0%;
 }
 
 td.small {
@@ -48,7 +49,7 @@ td.medium {
 }
 
 td.line {
-  background-color: %_COLOR_9%;
+  background-color: %_COLOR_0%;
   height: 1;
 }
 

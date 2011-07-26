@@ -295,7 +295,17 @@ sub ashield_user {
   $users->pi({ ID => $users->{UID} });
   $Ashield->{EMAIL}=($users->{EMAIL}) ? $users->{EMAIL} . $html->form_input('EMAIL', "$users->{EMAIL}", { TYPE => 'hidden', OUTPUT2RETURN => 1 }) : $html->form_input('EMAIL', '', { OUTPUT2RETURN => 1 });
   my $ashield_tps_info=ashield_drweb_tps();
-   
+  my $list = $Tariffs->list({ 
+	                             #CHANGE_PRICE => '<='. ($user->{DEPOSIT} + $user->{CREDIT}), 
+ 	                             MODULE       => 'Ashield',
+ 	                             COMMENTS     => '*'
+ 	                           });
+
+  foreach my $line (@$list) {
+    $AVD_TPS{$ashield_tps_info->{$line->[1]}->{ID}}=$line->[1];
+   }
+
+
   if ($FORM{add}) {
   	if ($users->{DEPOSIT}+$users->{CREDIT} < 0) {
   		$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
@@ -390,16 +400,6 @@ sub ashield_user {
 	 $service->{ACTION}     = 'add';
 	 $service->{LNG_ACTION} = $_SUBSCRIBE;
 
-   my $list = $Tariffs->list({ 
-	                             CHANGE_PRICE => '<='. ($user->{DEPOSIT} + $user->{CREDIT}), 
- 	                             MODULE       => 'Ashield',
- 	                             COMMENTS     => '*'
- 	                           });
-
-   foreach my $line (@$list) {
-     $AVD_TPS{$ashield_tps_info->{$line->[1]}->{ID}}=$line->[1];
-    }
-   
    $table = $html->table( { width      => '100%',
   		                      caption    => "$_TRAFIF_PLANS",
   		                      title_plain=> ["#", "$_TARIF_PLAN", "$_GRACEPERIOD", "$_PRICE", '-'],
@@ -494,7 +494,7 @@ sub ashield_user {
       my $status      = '';
       my $satus_code  = 0;
 
-        my %statin_state_hash = (
+      my %statin_state_hash = (
         0 => '—танци€ не залогинена на сервере (не в сети)',
         1 => '—танци€ залогинена на сервере (в сети)',
         2 => '—оединение со станцией разорвано',
@@ -1084,7 +1084,7 @@ sub ashield_drweb_groups {
 sub ashield_drweb_tps {
 
 
-if ($FORM{add}) {
+if ($FORM{add} && $FORM{ID}) {
 	$result_hash = ashield_drweb_request('api/3.0/tariffs/add.ds', { 
 		id           => $FORM{ID},
 		name         => convert($FORM{NAME}, { win2uft8 => 1 }),
@@ -1097,7 +1097,7 @@ if ($FORM{add}) {
     return 0;
    }
 }
-elsif ($FORM{change}) {
+elsif ($FORM{change} && $FORM{ID}) {
 	$result_hash = ashield_drweb_request('api/3.0/tariffs/change.ds', { 
 		id           => $FORM{ID},
 		name         => convert($FORM{NAME}, { win2uft8 => 1 }),
@@ -1110,7 +1110,7 @@ elsif ($FORM{change}) {
     return 0;
    }
 }
-elsif ($FORM{del}) {
+elsif ($FORM{del} && $FORM{ID}) {
 	$result_hash = ashield_drweb_request('api/3.0/tariffs/delete.ds', { 
 		id           => $FORM{ID},
 		  }); 
@@ -1138,7 +1138,7 @@ elsif ($FORM{del}) {
   	$result_hash2 = ashield_drweb_request('api/3.0/tariffs/info.ds', { 
   		 id => $id
 		  }); 
-  
+    
     my $tp_info = $result_hash2->{groups}->[0]->{group}->{$key};
     $ashield_tps_info{$key}{PARENT_NAME}  = $tp_info->{parent_name};
     $ashield_tps_info{$key}{COMMENTS}     = $tp_info->{description};
@@ -1226,20 +1226,34 @@ elsif($FORM{change}) {
   if ($FORM{STATUS}) {
     my %CMD_PARAMS = ();
     if ($FORM{STATUS} == 1) {
-      $M++;
-      if ($M == 13) {
-        $M = 1;
-        $Y++;
+      if ($FORM{RESET}) {
+      	$CMD_PARAMS{'expires'}=0;
+      	$message = "$_EXPIRE: $_RESETED";
        }
-      $D='01';
-      $message = "$_EXPIRE: '$Y-$M-$D'";
-      $CMD_PARAMS{expires} = "$Y$M$D".'000000';
+      else {
+        $M++;
+        if ($M == 13) {
+          $M = 1;
+          $Y++;
+         }
+        $D='01';
+        $message = "$_EXPIRE: '$Y-$M-$D'";
+        $CMD_PARAMS{expires} = "$Y$M$D".'000000';
+       }
      }
     elsif ($FORM{STATUS} == 2) {
-      $D='01';
- 	    $CMD_PARAMS{'block-begin'} = sprintf("%.4d%.2d%.2d000000", $Y,$FORM{DATE_FROM}+1, $D);
- 	    $CMD_PARAMS{'block-end'}   = sprintf("%.4d%.2d%.2d000000", $Y,$FORM{DATE_TO}+1, $D);
-      $message = "$_HOLD_UP: ". sprintf("'%.4d-%.2d-%.2d' $_TO '%.4d-%.2d-%.2d'", $Y,$FORM{DATE_FROM}+1, $D, $Y,$FORM{DATE_TO}+1, $D);
+      if ($FORM{RESET}) {
+      	$CMD_PARAMS{'block-begin'}=0;
+      	$CMD_PARAMS{'block-end'}=0;
+      	$message = "$_HOLD_UP: $_RESETED";
+       }
+      else {
+      	$D='01';
+ 	      $CMD_PARAMS{'block-begin'} = sprintf("%.4d%.2d%.2d000000", $Y,$FORM{DATE_FROM}+1, $D);
+ 	      $CMD_PARAMS{'block-end'}   = sprintf("%.4d%.2d%.2d000000", $Y,$FORM{DATE_TO}+1, $D);
+ 	      $message = "$_HOLD_UP: ". sprintf("'%.4d-%.2d-%.2d' $_TO '%.4d-%.2d-%.2d'", $Y,$FORM{DATE_FROM}+1, $D, $Y,$FORM{DATE_TO}+1, $D);
+ 	     }
+      
      }
 
     $result_hash = ashield_drweb_request('api/3.0/stations/change.ds', 
@@ -1324,27 +1338,37 @@ elsif ($FORM{info}) {
      $period_array{$i}=$MONTHES[$i];
     }
 
-  $Ashield->{DATE_FROM} = $html->form_select('DATE_FROM', 
-                                          { 
- 	                                          SELECTED     => $FORM{DATE_FROM} || 0,
- 	                                          SEL_HASH     => \%period_array,
- 	                                          SORT_KEY_NUM => 1,
-                                            NO_ID        => 1,
- 	                                        });
-
-  $Ashield->{DATE_TO} = $html->form_select('DATE_TO', 
-                                          { 
- 	                                          SELECTED     => $FORM{DATE_FROM} || 0,
- 	                                          SEL_HASH     => \%period_array,
- 	                                          SORT_KEY_NUM => 1,
-                                            NO_ID        => 1,
- 	                                        });
-
-
-   $Ashield->{ACTION}='change';
-   $Ashield->{LNG_ACTION}=$_CHANGE;
   
-   $html->tpl_show(_include('ashield_user', 'Ashield'), $Ashield);   
+
+  $Ashield->{DATE_FROM} = ($station_info->{blocking}->[0]->{begin}->[0]!=0) ? val_parser($station_info->{blocking}->[0]->{begin}->[0]) : $html->form_select('DATE_FROM', 
+                                          { 
+ 	                                          SELECTED     => $FORM{DATE_FROM} || 0,
+ 	                                          SEL_HASH     => \%period_array,
+ 	                                          SORT_KEY_NUM => 1,
+                                            NO_ID        => 1,
+ 	                                        });
+
+  $Ashield->{DATE_TO}  = ($station_info->{blocking}->[0]->{end}->[0]!=0) ? val_parser($station_info->{blocking}->[0]->{end}->[0]) : $html->form_select('DATE_TO', 
+                                          { 
+ 	                                          SELECTED     => $FORM{DATE_FROM} || 0,
+ 	                                          SEL_HASH     => \%period_array,
+ 	                                          SORT_KEY_NUM => 1,
+                                            NO_ID        => 1,
+ 	                                        });
+  
+  $Ashield->{EXPIRES_DATE} = ($station_info->{expires}->[0]!=0) ? val_parser($station_info->{expires}->[0]) : '';
+  if (! $user->{UID}) {
+    $Ashield->{RESET_BLOCK} = $html->button($_RESET, "index=$index&info=$FORM{info}&change=1&UID=$FORM{UID}&STATUS=2&RESET=2", { MESSAGE => "$_RESET $_HOLD_UP?", CLASS => 'del' }); 
+    $Ashield->{RESET_EXPIRE}= $html->button($_RESET, "index=$index&info=$FORM{info}&change=1&UID=$FORM{UID}&STATUS=1&RESET=1", { MESSAGE => "$_REST $_EXPIRE?", CLASS => 'del' }); 
+   }
+  
+  if($station_info->{blocking}->[0]->{begin}->[0]==0 &&
+     $station_info->{blocking}->[0]->{end}->[0]==0 &&
+     $station_info->{expires}->[0] == 0) {
+     $Ashield->{ACTION}     = $html->form_input('change', $_CHANGE, { TYPE => 'submit', OUTPUT2RETURN => 1});
+
+   }
+  $html->tpl_show(_include('ashield_user', 'Ashield'), $Ashield);   
  }
 
 
@@ -1360,8 +1384,6 @@ my @components = ();
 
 @info_keys = keys %{ $station_info } if ($#info_keys < 0);
 
-
-#while (my($k, $v)=each %{ $station_info }){
 foreach my $k (sort @info_keys){
 	my $v= $station_info->{$k};
   my $output = '';
