@@ -621,8 +621,11 @@ sub dv_user {
          my ($nas_id, $nas_port_id, $acct_session_id, $user_name) = split(/ /, $FORM{hangup}, 4);
        	 $table->addrow(int2ip($line->[3]), $line->[4], int2byte($line->[5]), int2byte($line->[6]), "$_NAS: $line->[18]",
        	 $html->button('Z', "index=$online_index&zap=$line->[18]+$line->[20]+$line->[21]".$pages_qs, { TITLE => 'Zap', BUTTON => 1 }),
-       	 $html->button('H', "index=$online_index&FRAMED_IP_ADDRESS=$line->[10]&hangup=$line->[18]+$line->[20]+$line->[21]+$line->[19]&$pages_qs", { TITLE => 'Hangup', BUTTON => 1 }));
+       	 $html->button('H', "index=$online_index&FRAMED_IP_ADDRESS=$line->[10]&hangup=$line->[18]+$line->[20]+$line->[21]+$line->[19]", { TITLE => 'Hangup', BUTTON => 1, NO_LINK_FORMER => 1 })
+       	        	 );
         }
+
+
 
       $Dv->{ONLINE_TABLE}=$table->show();
      }
