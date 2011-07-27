@@ -918,7 +918,7 @@ foreach my $line (@$list) {
    }
   
   $table->addrow($html->b($line->[0]), 
-  $html->button("$line->[1]", "index=$index&TP_ID=$line->[0]"), 
+  $html->button("$line->[1]", "index=$index&TP_ID=$line->[8]"), 
    $bool_vals[$line->[2]], $Payment_Types[$line->[3]], $line->[4], 
    $line->[5], 
    $line->[6], 
