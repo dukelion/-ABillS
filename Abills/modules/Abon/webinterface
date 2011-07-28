@@ -466,6 +466,7 @@ sub abon_periodic {
      PERIOD          => $line->[0],
  	   SUM             => $line->[1],
  	   UID             => $line->[2],
+ 	   LOGIN           => $line->[4],
      TP_NAME         => $line->[6],
  	   DEPOSIT         => $line->[7], 	   
  	   CREDIT          => $line->[8],
