@@ -471,7 +471,7 @@ sub ashield_user {
      }
 
     #subscribes
-    my $list =  $Ashield->ashield_avd_list({ %LIST_PARAMS  });
+    $list =  $Ashield->ashield_avd_list({ %LIST_PARAMS  });
   	$table = $html->table({ width      => '100%',
   		                      caption    => "$_AGENTS",
   		                      title_plain=> ["$_COMP_NAME", "$_TARIF_PLAN", "$_ACTIVATE", "Online",

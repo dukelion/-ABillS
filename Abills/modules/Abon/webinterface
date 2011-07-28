@@ -530,7 +530,7 @@ sub abon_periodic {
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
-   	       $FORM{SEND_EMAIL}= $info{SEND_DOCS} || undef;
+   	       $FORM{SEND_EMAIL}= $info{SEND_DOCS} || 0;
    	       docs_account({ QUITE => 1 });
           }
 
