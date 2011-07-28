@@ -421,9 +421,11 @@ if (defined($attr->{TP})) {
 	$Voip_tp = $attr->{TP};
 
   #Get time intervals
+ 	@DAY_NAMES = ("$_ALL", 'Sun', 'Mon', 'Tue', 'Wen', 'The', 'Fri', 'Sat', "$_HOLIDAYS");
   my $list = $Voip_tp->ti_list({ %LIST_PARAMS });
   foreach my $line (@$list) {
-    push @caption, "$_SUM (Min): $line->[1] / $line->[2]-$line->[3]";
+
+    push @caption, "$_SUM (Min): ". $DAY_NAMES[$line->[1]] ."/ $line->[2]-$line->[3]";
     push @aligns,  'center';
     push @interval_ids, $line->[0];
    }
