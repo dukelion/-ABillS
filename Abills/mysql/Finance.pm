@@ -94,7 +94,8 @@ sub exchange_add {
   $self->query($db, "INSERT INTO exchange_rate (money, short_name, rate, changed) 
    values ('$money', '$short_name', '$rate', now());", 'do');
 
-  $admin->action_add(0, "$money/$short_name/$rate");
+  $admin->{MODULE}='';
+  $admin->system_action_add("$money/$short_name/$rate", { TYPE => 41 });
 
 	return $self;
 }
@@ -108,6 +109,7 @@ sub exchange_del {
   my ($id) = @_;
   $self->query($db, "DELETE FROM exchange_rate WHERE id='$id';", 'do');
 
+  $admin->system_action_add("$id", { TYPE => 42 });
 	return $self;
 }
 
@@ -131,7 +133,7 @@ sub exchange_change {
     changed=now()
    WHERE id='$id';", 'do');
 
-  $admin->action_add(0, "$money/$short_name/$rate");
+  $admin->system_action_add("$money/$short_name/$rate", { TYPE => 41 });
 
 	return $self;
 }
@@ -153,13 +155,14 @@ sub exchange_info {
   	$WHERE = "id='$id'";
    }
 
-  $self->query($db, "SELECT money, short_name, rate FROM exchange_rate WHERE $WHERE;");
+  $self->query($db, "SELECT money, short_name, rate, changed FROM exchange_rate WHERE $WHERE;");
   
   return $self if ($self->{TOTAL} < 1);
   
   ($self->{ER_NAME}, 
    $self->{ER_SHORT_NAME}, 
-   $self->{ER_RATE})=@{ $self->{list}->[0]};
+   $self->{ER_RATE},
+   $self->{CHANGED})=@{ $self->{list}->[0]};
 
 
 	return $self;

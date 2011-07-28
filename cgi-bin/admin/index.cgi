@@ -2517,6 +2517,8 @@ sub form_system_changes {
                    27 => "$_SHEDULE $_ADD",
                    28 => "$_SHEDULE $_DEL",
                    
+                   41 => "$_CHANGED $_EXCHANGE_RATE",
+                   42 => "$_DELETED $_EXCHANGE_RATE",
                    );
 
  

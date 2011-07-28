@@ -647,16 +647,22 @@ sub rp_add {
  my $value = '';
 		 while(my($k, $v)=each %$attr) {
 		 	  if($k =~ /^p_/) {
-		 	    my($trash, $route, $interval)=split(/_/, $k, 3);
+		 	    my(undef, $route, $interval)=split(/_/, $k, 3);
 
 		 	    my $trunk = $attr->{"t_". $route ."_" . $interval} ||  0;
-		 	    $value .= "('$route', '$interval', '$v', now(), '$trunk'),";
+		 	    my $extra_tarif = $attr->{"et_". $route ."_" . $interval} ||  0;
+		 	    my $unit_price  = 0;
+		 	    if ($CONF->{VOIP_UNIT_TARIFICATION}) {
+		 	      $unit_price = $v;
+		 	      $v  = $v * $attr->{EXCHANGE_RATE} if ($attr->{EXCHANGE_RATE} && $attr->{EXCHANGE_RATE} > 0);
+		 	     }
+		 	    $value .= "('$route', '$interval', '$v', now(), '$trunk', '$extra_tarif', '$unit_price'),";
 		     }
 		  }
 
  chop($value);
 
- $self->query($db, "REPLACE INTO voip_route_prices (route_id, interval_id, price, date, trunk) VALUES
+ $self->query($db, "REPLACE INTO voip_route_prices (route_id, interval_id, price, date, trunk, extra_tarification, unit_price) VALUES
   $value;", 'do');
  return $self if($self->{errno});
 
@@ -664,6 +670,22 @@ sub rp_add {
 }
 
 
+
+#**********************************************************
+# route price change exchange rate
+# rp_change_exhange_rate()
+#**********************************************************
+sub rp_change_exhange_rate {
+ my $self = shift;
+ my ($attr) = @_;
+ 
+ if ($attr->{EXCHANGE_RATE} > 0) {
+   $self->query($db, "UPDATE voip_route_prices SET price = unit_price * $attr->{EXCHANGE_RATE};", 'do');
+   return $self if($self->{errno});
+  }
+
+ return $self;
+}
 
 
 #**********************************************************
@@ -687,7 +709,7 @@ sub rp_list {
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
- $self->query($db, "SELECT rp.interval_id, rp.route_id, rp.date, rp.price, rp.trunk
+ $self->query($db, "SELECT rp.interval_id, rp.route_id, rp.date, rp.price, rp.trunk, rp.extra_tarification, rp.unit_price
      FROM voip_route_prices rp 
      $WHERE 
      ORDER BY $SORT $DESC 
@@ -1200,7 +1222,7 @@ sub extra_tarification_change {
                 PREPAID_TIME => 'prepaid_time',
                );
 
-  $self->changes($admin,  { CHANGE_PARAM => 'UID',
+  $self->changes($admin,  { CHANGE_PARAM => 'ID',
                    TABLE        => 'voip_route_extra_tarification',
                    FIELDS       => \%FIELDS,
                    OLD_INFO     => $self->extra_tarification_info( $attr ),
@@ -1220,7 +1242,7 @@ sub extra_tarification_del {
   my $self = shift;
   my ($attr) = @_;
 
-  $self->query($db, "DELETE from voip_route_extra_tarification WHERE id='$self->{UID}';", 'do');
+  $self->query($db, "DELETE from voip_route_extra_tarification WHERE id='$attr->{ID}';", 'do');
 
   return $self->{result};
 }
@@ -1254,7 +1276,7 @@ sub extra_tarification_list {
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
  
  
- $self->query($db, "SELECT id, name, preapaid_time
+ $self->query($db, "SELECT id, name, prepaid_time
      FROM voip_route_extra_tarification
      $WHERE 
      ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");

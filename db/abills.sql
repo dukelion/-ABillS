@@ -333,7 +333,7 @@ CREATE TABLE `exchange_rate` (
   `money` varchar(30) NOT NULL default '',
   `short_name` varchar(30) NOT NULL default '',
   `rate` double(12,4) NOT NULL default '0.0000',
-  `changed` date default NULL,
+  `changed` date NOT NULL default '0000-00-00',
   `id` smallint(6) unsigned NOT NULL auto_increment,
   UNIQUE KEY `money` (`money`),
   UNIQUE KEY `short_name` (`short_name`),
@@ -1051,6 +1051,7 @@ CREATE TABLE `voip_log` (
   `tp_id` smallint(6) unsigned NOT NULL default '0',
   `bill_id` int(11) unsigned NOT NULL default '0',
   `sum` double(14,6) NOT NULL default '0.000000',
+  `route_id` int(11) unsigned NOT NULL default '0',
   `terminate_cause` tinyint(4) unsigned NOT NULL default '0'
 ) ;
 
@@ -1074,7 +1075,8 @@ CREATE TABLE `voip_route_extra_tarification` (
   `name` varchar(32) not null default '',
   `date` date NOT NULL default '0000-00-00',
   `prepaid_time` INT UNSIGNED NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE(`name`)
 ) COMMENT "Voip extra tarification" ;
 
 CREATE TABLE `voip_route_groups` (

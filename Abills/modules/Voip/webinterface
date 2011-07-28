@@ -137,7 +137,7 @@ if ($FORM{set}) {
 
   }
 }
-elsif($FORM{del}) {
+elsif($FORM{del} && $FORM{is_js_confirmed}) {
   $shedule->del( { UID => $user->{UID},
    	               ID  => $FORM{SHEDULE_ID}  } 
    	            );
@@ -324,7 +324,7 @@ sub voip_user {
     	voip_mk_users_conf();
      }
    }
-	elsif($FORM{del}) {
+	elsif($FORM{del} && $FORM{is_js_confirmed}) {
     $Voip->user_del();
     if (! $Voip->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
@@ -405,15 +405,17 @@ sub voip_tp_routes {
 	my ($attr) = @_;
 
   my $Voip_tp;
-
-
-
-
-  my @caption      = ($_PREFIX, $_ROUTES, "$_STATUS", 'TRUNK');
+  my @caption      = ($_PREFIX, $_ROUTES, "$_STATUS", "$_EXTRA_TARIFICATION", 'TRUNK');
   my @aligns       = ('left', 'left', 'center');
   my @interval_ids = ();
   my $intervals    = 0;
+  my $exchange_rate = 1;
 
+  $users->config_info({ PARAM => 'VOIP_ER' });
+  if ($users->{TOTAL} > 0) {
+  	$exchange_rate = $users->{VALUE};
+   }
+  
 
 if (defined($attr->{TP})) {
 	$Voip_tp = $attr->{TP};
@@ -429,7 +431,7 @@ if (defined($attr->{TP})) {
 
 
 	if ($FORM{change}) {
-		 $Voip->rp_add({ %FORM });
+		 $Voip->rp_add({ %FORM, EXCHANGE_RATE => $exchange_rate  });
      if (! $Voip->{errno}) {
       $html->message('info', $_INFO, "$_ADDED");
      }
@@ -447,15 +449,22 @@ if (defined($attr->{TP})) {
     
     foreach my $line (@rows_arr) {
     	chop($line);
-      my($prefix, $trunk, @prices)=split(/\t/, $line);
+      my($prefix, $trunk, $et, @prices)=split(/\t/, $line);
       for (my $i=0;  $i<=$#prices; $i++) {
-        $FORM2{'t_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]}=$trunk;
-        $FORM2{'p_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]}=$prices[$i];
+        $FORM2{'t_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]} =$trunk;
+        $FORM2{'et_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]}=$et;
+        if ($conf{VOIP_UNIT_TARIFICATION}) {
+          $FORM2{'up_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]}=$prices[$i];
+          $FORM2{'p_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]} =$prices[$i]*$exchange_rate;
+         }
+        else {
+          $FORM2{'p_'.$prefix_id{$prefix}.'_'.$interval_ids[$i]} =$prices[$i];
+         }
        }
      }
 
 
-    $Voip->rp_add({ %FORM2 });
+    $Voip->rp_add({ %FORM2, EXCHANGE_RATE => $exchange_rate });
     if (! $Voip->{errno}) {
   	  $html->message('info', $_INFO, "$_IMPORT $_FILE: $FORM{ROUTE_FILE}{filename}\n $_ROWS: $#rows_arr\n $_CHANGED: $Voip->{TOTAL}");
   	 }
@@ -495,11 +504,15 @@ else {
    });
 
 $list = $Voip->rp_list({ %LIST_PARAMS });
-my %prices = ();
-my %trunks = ();
+my %prices     = ();
+my %trunks     = ();
+my %et         = ();
+my %unit_prices= ();
 foreach my $line (@$list) {
   $prices{"$line->[0]"}{"$line->[1]"}=$line->[3];
   $trunks{"$line->[0]"}{"$line->[1]"}=$line->[4];
+  $et{"$line->[0]"}{"$line->[1]"}=$line->[5];
+  $unit_prices{"$line->[0]"}{"$line->[1]"}=$line->[6];
 }
 
 
@@ -510,8 +523,11 @@ foreach my $line (@$list) {
 my ($delete, $change);
 my $price = 0;
 my $trunk = 0;
+my $unit_price = 0;
 my @export_arr = ();
 my $TRUNKS_MARR = $Voip->trunk_list();	
+
+my $extra_tarification_list = $Voip->extra_tarification_list(  );
 
 
 $pages_qs .= "&routes=$FORM{routes}";
@@ -537,10 +553,12 @@ foreach my $line (@$list) {
   	  
   	  if (defined($prices{"$interval_ids[$i]"}{"$line->[4]"})) {
         $price = $prices{$interval_ids[$i]}{$line->[4]};
+        $unit_price = $unit_prices{$interval_ids[$i]}{$line->[4]};
         $trunk = $trunks{$interval_ids[$i]}{$line->[4]} || $trunks{$interval_ids[0]}{$line->[4]};
   	   }
       else {
-        $price = "0.00";
+        $price = '0.00';
+        $unit_price = '0.00';
         $price .= " $interval_ids[$i] $line->[4] -0" if ($debug > 0);
        }
 
@@ -548,7 +566,7 @@ foreach my $line (@$list) {
         push @l,  $price;
        }
       else {
-        push @l, $html->form_input("p_$line->[4]". '_' . "$interval_ids[$i]", "$price", {SIZE => 10 }).
+        push @l, (($conf{VOIP_UNIT_TARIFICATION}) ? $html->form_input("p_$line->[4]". '_' . "$interval_ids[$i]", "$unit_price", {SIZE => 10 }). $html->br(). $price : $html->form_input("p_$line->[4]". '_' . "$interval_ids[$i]", "$price", {SIZE => 10 }) ).
           (($i > 0) ? $html->form_input("t_$line->[4]". '_' . "$interval_ids[$i]", "$trunk", {TYPE => 'hidden' }) : '');
        }
    }
@@ -565,8 +583,16 @@ foreach my $line (@$list) {
  	                                NO_ID             => 1
  	                               });
 
+   my $ext_tp_sel= $html->form_select("et_$line->[4]". '_' . "$interval_ids[$i]", 
+                                          { 
+ 	                                          SELECTED          => $et{"$interval_ids[$i]"}{"$line->[4]"} || 0,
+ 	                                          SEL_MULTI_ARRAY   => [[0, '-'], @{ $extra_tarification_list } ],
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          NO_ID             => 1
+ 	                                        });
   	
-  	$table->addrow("$line->[0]",  "$line->[1]", $status[$line->[2]], $trunk_sel, @l);
+  	$table->addrow("$line->[0]",  "$line->[1]", $status[$line->[2]], $ext_tp_sel, $trunk_sel, @l);
    }
 }
 
@@ -2784,10 +2810,10 @@ sub voip_extra_tarification {
    	$Voip->{ACTION}='change';
   	$Voip->{LNG_ACTION}=$_CHANGE;
    }
-	elsif($FORM{del}) {
-    $Voip->extra_tarification_del();
+	elsif($FORM{del} && $FORM{is_js_confirmed}) {
+    $Voip->extra_tarification_del({ ID => $FORM{del}  });
     if (! $Voip->{errno}) {
-      $html->message('info', $_INFO, "$_CHANGED");	
+      $html->message('info', $_INFO, "$_DELETED");	
      }
 	 }
 
@@ -2797,7 +2823,100 @@ sub voip_extra_tarification {
   
   $html->tpl_show(_include('voip_extra_tarification', 'Voip'), $Voip);
  
-  return $REPORT;
+ 
+ my $list = $Voip->extra_tarification_list( { %LIST_PARAMS } );
+
+if ($Voip->{errno}) {
+  $html->message('err', $_ERROR, "[$Voip->{errno}] $err_strs{$Voip->{errno}}");	
+  return 0;
+ }
+
+
+
+my $table = $html->table( { width      => '100%',
+                            border     => 1,
+                            title      => ['id', "$_NAME", "$_PREPAID $_TIME", '-', '-'],
+                            cols_align => ['left', 'left', 'right', 'right', 'left', 'center', 'left', 'center', 'center', 'center'],
+                            qs         => $pages_qs,
+                            pages      => $Voip->{TOTAL}
+                         } );
+
+foreach my $line (@$list) {
+  my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]] ?", CLASS => 'del' }); 
+  my $change = $html->button($_DEL, "index=$index&chg=$line->[0]", {  CLASS => 'change' }); 
+  
+  $table->{rowcolor} = ($FORM{chg} && $FORM{chg} == $line->[0]) ? $_COLORS[0] : undef;
+  
+  $table->addrow($line->[0], 
+     "$line->[1]",
+     "$line->[2]", 
+     $change,
+     $delete,
+     
+   );
+}
+print $table->show();
+
+$table = $html->table( { width      => '100%',
+                         cols_align => ['right', 'right'],
+                         rows       => [ [ "$_TOTAL:", $html->b($Voip->{TOTAL}) ] ]
+                     } );
+print $table->show(); 
+}
+
+
+#**********************************************************
+# exchange_rate
+#**********************************************************
+sub voip_exchange_rate {
+  my %info = (ACTION     => 'add',
+              LNG_ACTION => $_ADD); 
+	
+  if ($FORM{add}) {
+	 	 $FORM{VOIP_ER_CHANGED}="$DATE $TIME";
+     while(my($k, $v)=each %FORM) {
+       next if ($k !~ /^VOIP_/) ;
+       $users->config_add({ PARAM => $k, 
+  	                        VALUE => "$v"
+  	                     });
+  	  }
+
+    if (! $users->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");
+     	$admin->{MODULE}='Voip';
+  	  $admin->system_action_add("$FORM{VOIP_ER}", { TYPE => 41 }) ;
+  	  $Voip->rp_change_exhange_rate({ EXCHANGE_RATE => $FORM{VOIP_ER} });
+  	 }
+	 }
+	elsif ($FORM{change}) {
+	 	$FORM{VOIP_ER_CHANGED}="$DATE $TIME";
+    while(my($k, $v)=each %FORM) {
+       next if ($k !~ /^VOIP_/) ;
+       $users->config_change($k, { PARAM => $k, 
+  	                               NAME  => "$v"
+  	                            });
+  	 }
+
+    if (! $users->{errno}) {
+      $html->message('info', $_INFO, "$_CHANGED");
+     	$admin->{MODULE}='Voip';
+  	  $admin->system_action_add("$FORM{VOIP_ER}", { TYPE => 41 }) ;
+  	  $Voip->rp_change_exhange_rate({ EXCHANGE_RATE => $FORM{VOIP_ER} });
+  	 }
+	  
+	 }
+	
+	my $list = $users->config_list({ PARAM => 'VOIP_*', SORT => 2  });
+
+	foreach my $line (@$list) {
+		$info{$line->[0]}=$line->[1];
+	 }
+	if ($info{VOIP_ER}) {
+		$info{ACTION}    = 'change';
+		$info{LNG_ACTION}= $_CHANGE;
+	 }
+
+  $html->tpl_show(_include('voip_er', 'Voip'), \%info);	
 }
 
 

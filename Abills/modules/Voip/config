@@ -13,6 +13,7 @@
                    "12:7:$_ROUTES:voip_tp_routes:TP_ID"      => 5,
                    "13:7:$_USERS:voip_users_list:TP_ID"      => 5,
                    "14:6:$_EXTRA_TARIFICATION:voip_extra_tarification:"=> 5,
+                   "15:6:$_EXCHANGE_RATE:voip_exchange_rate:"=> 5,
                    "20:0:VoIP:null:"                         => 4,
                    "21:20:$_ERROR:voip_error:"               => 4,
                    "22:20:$_LAST:voip_sessions:"             => 4,

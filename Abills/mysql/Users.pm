@@ -1682,7 +1682,7 @@ sub info_field_add {
      }
 
     $self->config_add({ PARAM => $field_prefix. "_$attr->{FIELD_ID}", 
-  	                      VALUE => "$attr->{POSITION}:$attr->{FIELD_TYPE}:$attr->{NAME}"
+  	                    VALUE => "$attr->{POSITION}:$attr->{FIELD_TYPE}:$attr->{NAME}"
   	                    });
 
    }
@@ -1870,7 +1870,8 @@ sub config_change {
 		               TABLE        => 'config',
 		               FIELDS       => \%FIELDS,
 		               OLD_INFO     => $self->config_info({ PARAMS => $param, DOMAIN_ID => $attr->{DOMAIN_ID} }),
-		               DATA         => $attr
+		               DATA         => $attr,
+		               %$attr
 		              } );
 
 
