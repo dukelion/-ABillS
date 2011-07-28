@@ -1535,7 +1535,7 @@ sub docs_print {
     $Docs->user_info($Docs->{UID});
     if ($Docs->{TOTAL} > 0) {
     	$users->{EMAIL}    =$Docs->{EMAIL} if ($Docs->{EMAIL});
-    	$attr->{SEND_EMAIL}=$Docs->{SEND_DOCS} if ($Docs->{SEND_DOCS});
+    	$attr->{SEND_EMAIL}=$Docs->{SEND_DOCS} if (! defined($attr->{SEND_EMAIL}) && $Docs->{SEND_DOCS});
      }
    }
 
@@ -1562,7 +1562,7 @@ sub docs_print {
   delete $FORM{pdf};
   if ($attr->{SEND_EMAIL} && ! $attr->{OUTPUT2RETURN}) {
     # Email not specified
-    if (! $attr->{EMAIL} && ! $users->{EMAIL}) {
+    if (! $attr->{EMAIL}) {
     	return 0;
      }
 
