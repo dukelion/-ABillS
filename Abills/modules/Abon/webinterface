@@ -561,14 +561,16 @@ sub abon_periodic {
    	       $FORM{create}    = 1;
    	       $FORM{CUSTOMER}  = '-';
    	       $FORM{ORDER}     = "$info{TP_NAME} $info{COMMENT}";
-   	       $FORM{SEND_EMAIL}= $info{SEND_DOCS} || undef;
    	       my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1 });
-   	       $attach = [ { CONTENT      => $content,
+   	       
+   	       if ($info{SEND_DOCS}) {
+   	         $attach = [ { CONTENT      => $content,
        	  	             CONTENT_TYPE => 'Content-type: application/pdf',
        	  	             FILENAME     => 'account.pdf' }
 	  	                 ];
-    	 
-    	    $Abon->user_tariff_update({ UID          => "$user{UID}",
+    	      }
+
+    	     $Abon->user_tariff_update({ UID          => "$user{UID}",
     	    	                          NOTIFICATION => 1,
         	                            DATE         => $ADMIN_REPORT{DATE}, 
         	                            NOTIFICATION_ACCOUNT_ID => $FORM{ACCOUN_ID},
