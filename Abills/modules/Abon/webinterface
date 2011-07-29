@@ -541,7 +541,7 @@ sub abon_periodic {
          	 $ret = system($cmd);
           }
 
-         if ($activate_notification) {
+         if ($activate_notification && $info{SEND_DOCS}) {
          	 my $message = $html->tpl_show(_include('abon_notification3', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
  	         sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
@@ -551,7 +551,7 @@ sub abon_periodic {
          $debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: ". (($info{CREATE_ACCOUNT}) ? "ACCOUNT SEND_EMAIL: $email" : '') .(($activate_notification) ? "NOTIFICATION: $email" : '') ."\n" if ($debug > 0);
       }
      #Send Alert 
-     elsif($ADMIN_REPORT{DATE} eq $info{ABON_DATE}) {
+     elsif($ADMIN_REPORT{DATE} eq $info{ABON_DATE} && $info{SEND_DOCS}) {
     	 $debug_output .= "$user{UID} SUM: TP_ID: $info{TP_ID} $info{SUM} ACCOUNT: $info{CREATE_ACCOUNT} Alert EMAIL: $email\n" if ($debug > 0);
     	
     	 my $message = $html->tpl_show(_include('abon_alert', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
@@ -592,7 +592,7 @@ sub abon_periodic {
        }
      }
     #Notification Section
-    elsif ($notification1 eq $ADMIN_REPORT{DATE}) {
+    elsif ($notification1 eq $ADMIN_REPORT{DATE} && $info{SEND_DOCS}) {
     	my $message = $html->tpl_show(_include('abon_notification1', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
     	my $attach;
     	$debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: $info{CREATE_ACCOUNT} Notification 1 EMAIL: $email\n" if ($debug > 0);
@@ -627,7 +627,7 @@ sub abon_periodic {
          	  '',       	  
          	  { ATTACHMENTS => $attach });
      } 
-    elsif ($notification2 eq $ADMIN_REPORT{DATE}) {
+    elsif ($notification2 eq $ADMIN_REPORT{DATE} && $info{SEND_DOCS}) {
     	$debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: $notification1_account_id Notification 2 EMAIL: $email\n" if ($debug > 0);
     	
     	my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
