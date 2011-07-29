@@ -135,7 +135,7 @@ sub abon_user {
 
           if ($activate_notification) {
          	  my $message = $html->tpl_show(_include('abon_notification3', 'Abon'), $Abon, { OUTPUT2RETURN => 1  });
- 	          sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $_ABON $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}", "$message", "$conf{MAIL_CHARSET}",
+ 	          sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}", "$message", "$conf{MAIL_CHARSET}",
          	   '',       	  
          	    {  });
            }
@@ -543,7 +543,7 @@ sub abon_periodic {
 
          if ($activate_notification) {
          	 my $message = $html->tpl_show(_include('abon_notification3', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
- 	         sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $_ABON $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
+ 	         sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
          	  {  });
           }
@@ -580,7 +580,7 @@ sub abon_periodic {
     	  }
     	
     	
- 	     sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $_ABON $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
+ 	     sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
          	  { ATTACHMENTS => $attach });
       
@@ -623,7 +623,7 @@ sub abon_periodic {
     	                           });
     	
     	
- 	    sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $_ABON $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
+ 	    sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
          	  { ATTACHMENTS => $attach });
      } 
@@ -658,7 +658,7 @@ sub abon_periodic {
          	                         TP_ID => "$line->[10]" 
         	                       });
     	
- 	    sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $_ABON $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
+ 	    sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
          	  { ATTACHMENTS => $attach });
      }
