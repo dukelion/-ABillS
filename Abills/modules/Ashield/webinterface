@@ -896,7 +896,6 @@ sub ashield_users_list {
   } 
 
 
-$Ashield->{debug}=1;
 my $list = $Ashield->user_list( { %LIST_PARAMS } );
 
 #if ($drweb_total_users != $Ashield->{TOTAL}) {

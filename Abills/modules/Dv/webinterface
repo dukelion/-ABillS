@@ -1753,7 +1753,7 @@ my $Billing = Billing->new($db, \%conf);
 foreach my $line (@$list) {
   if ($permissions{3}{1} && $LIST_PARAMS{UID}) {
     $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=". ($line->[12+$sessions->{SEARCH_FIELDS_COUNT}]). "+$line->[11]+$line->[7]+$line->[1]+$line->[9]+$line->[0]", 
-       { MESSAGE => "$_DEL $_SESSION $_SESSION_ID ". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}])."?", CLASS => 'del' }
+       { MESSAGE => "$_DEL $_SESSION $_SESSION_ID ". ($line->[11+$sessions->{SEARCH_FIELDS_COUNT}])."?", CLASS => 'del', NO_LINK_FORMER => 1 }
       );
    }
   my @rows=();
