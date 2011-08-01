@@ -300,8 +300,8 @@ $table = $html->table( { width      => '100%',
 sub ashield_user {
  	my ($attr) = @_;
 
-  if ($Ashield::VERSION < 6.3) {
-  	$html->message('info', "UPDATE", "Please update module 'Ashield' to version 6.0 or higher. http://abills.net.ua/");
+  if ($Ashield::VERSION < 6.03) {
+  	$html->message('info', "UPDATE", "Please update module 'Ashield' to version 6.03 or higher. http://abills.net.ua/ (Current Version: $Ashield::VERSION)");
   	return 0;
    }
 
