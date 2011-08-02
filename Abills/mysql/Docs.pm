@@ -484,7 +484,7 @@ sub account_add {
     $DATA{COUNTS} = 1 if (! $DATA{COUNTS});
     $DATA{UNIT}   = 0 if (! $DATA{UNIT}) ;
     $self->query($db, "INSERT INTO docs_acct_orders (acct_id, orders, counts, unit, price)
-       values ($self->{DOC_ID}, \"$DATA{ORDER}-\", '$DATA{COUNTS}', '$DATA{UNIT}',
+       values ($self->{DOC_ID}, \"$DATA{ORDER}\", '$DATA{COUNTS}', '$DATA{UNIT}',
     '$DATA{SUM}')", 'do');
    } 
 

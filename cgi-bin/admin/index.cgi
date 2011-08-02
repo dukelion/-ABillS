@@ -5351,7 +5351,7 @@ sub form_fees  {
  my $fees = Finance->fees($db, $admin, \%conf);
  my %BILL_ACCOUNTS = ();
  
- #push @FEES_METHODS, @EX_FEES_METHODS if (@EX_FEES_METHODS);
+ push @FEES_METHODS, @EX_FEES_METHODS if ($FORM{UID} && @EX_FEES_METHODS);
 
 
 if ($attr->{USER}) {

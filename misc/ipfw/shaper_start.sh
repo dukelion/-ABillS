@@ -162,7 +162,11 @@ fi;
 
 #IPoE Shapper for dhcp connections
 if [ x${abills_dhcp_shaper} != xNO ]; then
-  /usr/abills/libexec/ipoe_shapper.pl -d
+  if [ -f /usr/abills/libexec/ipoe_shapper.pl ]; then
+    /usr/abills/libexec/ipoe_shapper.pl -d
+  else
+    echo "Can't find 'ipoe_shapper.pl' "
+  fi;
 fi;
 
 

@@ -128,7 +128,7 @@ sub abon_user {
           	$FORM{UID}       = $users->{UID};
    	        $FORM{create}    = 1;
    	        $FORM{CUSTOMER}  = '-';
-   	        $FORM{ORDER}     = "$_ABON: [$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME}";
+   	        $FORM{ORDER}     = "[$Abon->{TP_INFO}->{TP_ID}] $Abon->{TP_INFO}->{NAME} $Abon->{COMMENTS}";
     	      $FORM{SEND_EMAIL}= $FORM{'SEND_DOCS_'.$Abon->{TP_INFO}->{TP_ID}} || undef;
     	      docs_account({ QUITE => 1 });    	
            }
@@ -417,7 +417,7 @@ sub abon_tariffs {
 my $delete = '';
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[7]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
+    $delete = $html->button($_DEL, "index=$index&del=$line->[7]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }); 
    }
   $table->{rowcolor} = ($FORM{ABON_ID} ==  $line->[7])? $_COLORS[0] : undef;
   $table->addrow($html->button("$line->[0]", "index=$index&ABON_ID=$line->[7]"), 
@@ -426,7 +426,7 @@ foreach my $line (@$list) {
      $Payment_Types[$line->[3]], 
      $line->[4], 
      $html->button("$line->[6]", "index=". get_function_index('abon_user_list'). "&ABON_ID=$line->[7]"), 
-     $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[7]", {  BUTTON => 1 }), 
+     $html->button("$_CHANGE", "index=$index&ABON_ID=$line->[7]", {  CLASS => 'change' }), 
      $delete
    );
  }
@@ -622,7 +622,6 @@ sub abon_periodic {
      	                            TP_ID => "$info{TP_ID}" 
     	                           });
     	
-    	
  	    sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
          	  { ATTACHMENTS => $attach });
@@ -637,12 +636,6 @@ sub abon_periodic {
    	     $FORM{print}            = $notification1_account_id;
    	     $FORM{CHECK_PEYMENT_ID} = 1;
    	     $FORM{pdf}              = $conf{DOCS_PDF_PRINT};
-         $html = Abills::PDF->new({ IMG_PATH  => $IMG_PATH,
-     	                              NO_PRINT  => defined($attr->{'NO_PRINT'}) ? $attr->{'NO_PRINT'} : 1,
-     	                              CONF      => $CONF
-	                                });
-
-
    	     my $content = docs_account({ QUITE => 1, OUTPUT2RETURN => 1  });
    	     if ($content) {
    	       $attach = [ { CONTENT      => $content,

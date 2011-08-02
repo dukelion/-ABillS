@@ -5,3 +5,4 @@
 :OS=FREEBSD:www   ALL = NOPASSWD: /usr/local/etc/rc.d/isc-dhcpd >> [/usr/local/etc/]/sudoers
 :OS=FREEBSD:exec:touch /usr/local/etc/dhcpd.conf
 :OS=FREEBSD:exec:chown www /usr/local/etc/dhcpd.conf
+:exec:ln -s /usr/abills/Abills/modules/Dhcphosts/dhcp_log2db.pl /usr/abills/libexec/dhcp_log2db.pl 

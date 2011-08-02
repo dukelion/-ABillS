@@ -324,7 +324,7 @@ sub inc_postauth {
     	$out.="$k -> $v\n";
      }
 
-    my $rew = `echo "$out" >> /tmp/rad_dhcp`;
+#    my $rew = `echo "$out" >> /tmp/rad_dhcp`;
     return $r;
    }
 # END DHCP SECTION
