@@ -53,9 +53,9 @@ my $db = $sql->{db};
 my $admin    = Admins->new($db, \%conf);
 $admin->info($conf{SYSTEM_ADMIN_ID}, { IP => '127.0.0.1' });
 $payments = Finance->payments($db, $admin, \%conf);
-my $fees     = Finance->fees($db, $admin, \%conf);
+my $fees  = Finance->fees($db, $admin, \%conf);
 $Paysys   = Paysys->new($db, $admin, \%conf);
-my $status   = '';
+my $status= '';
 $debug    = 0;
 my $error_str= '';
 
@@ -98,9 +98,13 @@ elsif ($ARGV->{TYPE}) {
 		paysys_import_fees();
 	 }
 	elsif ($ARGV->{TYPE} eq  'ERIPT') {
-		eript_202();
+		if (defined($ARGV->{UPLOAD})) {
+		  eript_202();
+		 }
+	  else {
+	  	eript_216();
+	   }
 	 }
-
 }
 
 
@@ -717,11 +721,11 @@ sub eript_202 {
 
 		my $tariffs_fields = ''; #"1~$tp_id~5~$tarif_1~$tarif_2~0~0~0";
 		
-		$message .= "$num^$uid^$fio^$address^$payment_period^$credit^$tariffs_fields^$payment_date^$comments^$ext_info^^\r\n";
+		$message .= "$num^$uid^$fio^$address^$payment_period^$credit^$tariffs_fields^$payment_date^$comments^$ext_info^^^\r\n";
 	 }
 	
 	
-	$message = "$msg_version^$msg_provider_id^$msg_num^$msg_date^$record_total_count^$msg_provider_num^$msg_provider_bank_id^$msg_provider_bank_account^$msg_provider_service_id^\r\n".
+	$message = "$msg_version^$msg_provider_id^$msg_num^$msg_date^$record_total_count^$msg_provider_num^$msg_provider_bank_id^$msg_provider_bank_account^$msg_provider_service_id^$msg_valuta\r\n".
 	 $message;
 	
 	if ($debug > 4) {

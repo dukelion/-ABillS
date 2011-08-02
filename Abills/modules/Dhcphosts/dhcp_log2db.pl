@@ -5,7 +5,7 @@
 use vars  qw(%conf $db $DATE $TIME);
 use strict;
 
-my $version = 0.03;
+my $version = 0.04;
 my $debug = 1;
 
 use FindBin '$Bin';
@@ -64,7 +64,7 @@ sub add_logs2db {
 
   while (my $line=<>) {
     my ($month_name, $month_day, $time, $hostname, $log_daemon, $message_type, $log)=split(/\s+/, $line, 7);
-    if ($DHCP_MESSAGE_TYPES{$message_type}) {
+    if ($message_type && $DHCP_MESSAGE_TYPES{$message_type}) {
       $Dhcphosts->log_add({ DATETIME => sprintf("%s-%s-%.02d %s", $year, $month_names{$month_name}, $month_day, $time),
       	 HOSTNAME     => "$hostname", 
       	 MESSAGE_TYPE => $DHCP_MESSAGE_TYPES{$message_type} || 0, 
