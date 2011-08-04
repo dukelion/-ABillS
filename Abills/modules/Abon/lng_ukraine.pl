@@ -10,3 +10,4 @@ $_SEND_ACCOUNT='Вислати рахунок';
 $_EXT_CMD='Зовнішня обробка';
 $_SERVICE_ACTIVATE_NOTIFICATION='Повідомляти про продовження послуги';
 $_VAT_INCLUDE='З урахуванням податку';
+$_SEND_NOTIFICATION='Відправити повідомлення';

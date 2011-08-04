@@ -22,6 +22,8 @@ BEGIN {
  unshift(@INC, $libpath ."/usr/abills/");
  unshift(@INC, $libpath);
  unshift(@INC, $libpath . 'libexec/');
+ unshift(@INC, '/usr/abills/');
+ unshift(@INC, '/usr/abills/Abills/mysql/');
 
  eval { require Time::HiRes; };
  if (! $@) {

@@ -174,7 +174,7 @@ my $list = $Abon->user_tariff_list($FORM{UID});
 my $table = $html->table( { width      => '100%',
                             caption    => "$_ABON",
                             title      => ['-', $_NAME, $_COMMENTS, $_SUM, $_PERIOD, $_LAST_ABON, $_NEXT_ABON, "$_REDUCTION (%)", 
-                              "$_CREATE $_DOCS", "$_SEND $_DOCS"],
+                              "$_CREATE $_DOCS", "$_SEND_NOTIFICATION"],
                             cols_align => ['left', 'left', 'left', 'right', 'left', 'right', 'right'],
                             qs         => $pages_qs,
                             ID         => 'USER_ABON'
@@ -592,7 +592,7 @@ sub abon_periodic {
        }
      }
     #Notification Section
-    elsif ($notification1 eq $ADMIN_REPORT{DATE} && $info{SEND_DOCS}) {
+    elsif ($notification1 eq $ADMIN_REPORT{DATE}) {
     	my $message = $html->tpl_show(_include('abon_notification1', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
     	my $attach;
     	$debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: $info{CREATE_ACCOUNT} Notification 1 EMAIL: $email\n" if ($debug > 0);
@@ -622,11 +622,13 @@ sub abon_periodic {
      	                            TP_ID => "$info{TP_ID}" 
     	                           });
     	
- 	    sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
+    	if ($info{SEND_DOCS}) {
+ 	      sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
          	  { ATTACHMENTS => $attach });
+      }
      } 
-    elsif ($notification2 eq $ADMIN_REPORT{DATE} && $info{SEND_DOCS}) {
+    elsif ($notification2 eq $ADMIN_REPORT{DATE}) {
     	$debug_output .= "$user{UID} TP_ID: $info{TP_ID} SUM: $info{SUM} ACCOUNT: $notification1_account_id Notification 2 EMAIL: $email\n" if ($debug > 0);
     	
     	my $message = $html->tpl_show(_include('abon_notification2', 'Abon'), { %$Abon, %info }, { OUTPUT2RETURN => 1  });
@@ -650,10 +652,11 @@ sub abon_periodic {
         	                         DATE  => $ADMIN_REPORT{DATE}, 
          	                         TP_ID => "$line->[10]" 
         	                       });
-    	
- 	    sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
+    	if($info{SEND_DOCS}) {
+ 	      sendmail("$conf{ADMIN_MAIL}", "$email", "$conf{WEB_TITLE} - $info{TP_NAME} $info{COMMENT}", "$message", "$conf{MAIL_CHARSET}",
          	  '',       	  
          	  { ATTACHMENTS => $attach });
+       }
      }
 
    

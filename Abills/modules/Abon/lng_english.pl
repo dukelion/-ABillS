@@ -10,3 +10,5 @@ $_SEND_ACCOUNT='Send account';
 $_EXT_CMD='Extrnal command';
 $_SERVICE_ACTIVATE_NOTIFICATION='Service Activate notification';
 $_VAT_INCLUDE='Vat Include';
+
+$_SEND_NOTIFICATION='Send Notification';

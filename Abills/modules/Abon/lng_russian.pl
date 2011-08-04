@@ -10,3 +10,4 @@ $_SEND_ACCOUNT='Выслать счёт';
 $_EXT_CMD='Внешняя обработка';
 $_SERVICE_ACTIVATE_NOTIFICATION='Оповещать о продлении услуги';
 $_VAT_INCLUDE='С учётом НДС';
+$_SEND_NOTIFICATION='Отправить уведомление';
