@@ -115,7 +115,6 @@ sub paysys_import_fees {
 # Import payments from_file
 #**********************************************************
 sub paysys_import_payments {
-
  paysys_import_form({ TYPE          => 'PAYMENTS',
  	                    IMPORT_TYPE   => $FORM{IMPORT_TYPE},
                       IMPORT_RULES  => $conf{PAYSYS_IMPORT_RULES}
@@ -159,7 +158,7 @@ sub paysys_import_form {
        	 	 my $ID = $IDS[$i];
        	 	 my %DATA_HASH = (
        	 	   PAYSYS_EXT_ID  => $ID,
-       	 	   EXT_ID_VAL     => $FORM{'EXT_ID_'.$ID},
+       	 	   EXT_ID         => $FORM{'EXT_ID_'.$ID},
        	 	   PHONE          => $FORM{'PHONE_'.$ID},
        	 	   FIO            => $FORM{'FIO_'.$ID},
        	 	   SUM            => $FORM{'SUM_'.$ID},
@@ -189,21 +188,12 @@ sub paysys_import_form {
        }
 
        push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
-       my $ids = ''; #join(', ', @$BINDING_IDS);
-       
-       foreach my $id (@$BINDING_IDS ) {
-       	  if ($id eq '') {
-       	  	next;
-       	   }
-          $ids .= "$id; ";
-        }
+       my $ids = join('; ', @$BINDING_IDS);
 
        if ($ids eq '') {
        	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");
        	 return 0;
         }
-       chop($ids);
-       chop($ids);
        my $users = Users->new($db, $admin, \%conf); 
 	     my $list  = $users->list({ $BINDING_FIELD => "$ids",
 	     	                          PAGE_ROWS      => 1000000 
@@ -232,7 +222,7 @@ sub paysys_import_form {
              if ($binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})}) {
                 my($uid, $login, $fio)=split(/:/, $binding_hash{lc($DATA_ARR->[$i]->{$BINDING_FIELD})});
                 my $user   = $users->info($uid);
-                my $ext_id = $DATA_ARR->[$i]->{EXT_ID_VAL} || "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID";
+                my $ext_id = $DATA_ARR->[$i]->{EXT_ID} || "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID";
                 $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
  	                     DESCRIBE     => $DATA_ARR->[$i]->{DESCRIBE} || '', 
  	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 1, 
@@ -276,7 +266,7 @@ sub paysys_import_form {
                         } );
 
 
-                if ($payments->{errno} && $payments->{errno} == 7) {
+                if ($fees->{errno} && $fees->{errno} == 7) {
                 	$html->message('err', $_ERROR, "$_EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID");
                  }
                 else {
@@ -292,6 +282,31 @@ sub paysys_import_form {
           print $html->message('info', $_INFO, "$_TOTAL: $total_count $_SUM: $total_sum");
           return 0;
      	  }
+     	 elsif($FORM{CANCEL_PAYMENTS}) {
+     	 	 my @payments_arr = ();
+    	 	 
+     	 	 for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
+         	   my $ID = $DATA_ARR->[$i]->{PAYSYS_EXT_ID} || $i;
+             if ($DATA_ARR->[$i]->{EXT_ID}) {
+                push  @payments_arr, $DATA_ARR->[$i]->{EXT_ID};
+              }
+          }
+
+          my $list = $payments->list({ EXT_ID    => join(';', @payments_arr), 
+          	                           PAGE_ROWS => 1000000 
+          	                          });
+          
+          foreach my $line (@$list) {
+          	$payments->del({UID => $line->[11] }, $line->[0]);
+          	#if ($payments->{TOTAL} > 0) {
+          	  $total_count++;
+          	  $total_sum += $line->[4];
+          	# }
+           }
+          
+          print $html->message('info', $_DELETED, "\n$_TOTAL: $total_count $_SUM: $total_sum");
+          return 0;
+     	  }
      	 else {
 
      	   $table = $html->table( { width      => '100%',
@@ -299,7 +314,7 @@ sub paysys_import_form {
                             border     => 1,
                             title      => ['ID', "$_FIO", "$_PHONE", "$_CONTRACT_ID", "$_SUM", 
                             "$_DATE", "$_BANK $_ACCOUNT", "$_TYPE", "$_ADDRESS", "$_DESCRIBE", 
-                            "$_INNER $_DESCRIBE", "$_BINDING", '-'],
+                            "$_INNER $_DESCRIBE", "$_BINDING", "EXT ID", '-'],
                             cols_align => ['left', 'left', 'right', 'right', 'left', 'right', 'right', 'center:noprint', 'center:noprint'],
                             qs         => $pages_qs,
                             ID         => 'PAYSYS_IMPORT_LIST',
@@ -313,7 +328,7 @@ function CheckAllINBOX() {
   }
 }
 //-->
-</script>\n::<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>::\n"
+</script>\n<a href=\"javascript:void(0)\" onClick=\"CheckAllINBOX();\">$_SELECT_ALL</a>\n"
 
                            });
      	   
@@ -337,6 +352,7 @@ function CheckAllINBOX() {
        	     $table->{rowcolor}=$_COLORS[6];
        	    }
       	
+      	   #print "$DATA_ARR->[$i]->{TERMINAL_ID}, $DATA_ARR->[$i]->{NUM_AGENT}<br>";
       	
            $table->addrow(
               $html->form_input(IDS, $ID, { TYPE => 'checkbox' }) .  $ID,
@@ -350,7 +366,8 @@ function CheckAllINBOX() {
               $DATA_ARR->[$i]->{ADDRESS},
               $html->form_input('DESCRIBE_'.$ID, $DATA_ARR->[$i]->{DESCRIBE} || ''),
               $html->form_input('INNER_DESCRIBE_'.$ID, $DATA_ARR->[$i]->{INNER_DESCRIBE} || ''),
-              $html->form_input($BINDING_FIELD.'_'.$ID, $DATA_ARR->[$i]->{$BINDING_FIELD} || '')
+              $html->form_input($BINDING_FIELD.'_'.$ID, $DATA_ARR->[$i]->{$BINDING_FIELD} || ''),
+              $html->form_input('EXT_ID_'.$ID, $DATA_ARR->[$i]->{EXT_ID} || ''),
              );
           
            $HIDDEN_HASH{'SUM_'.$ID}         = $DATA_ARR->[$i]->{SUM};
@@ -365,7 +382,7 @@ function CheckAllINBOX() {
         }
 
        print $html->form_main({ CONTENT => $table->show() .
-       	                   $html->form_input($attr->{TYPE}, 1, { TYPE => 'checkbox' }) . ( ($attr->{TYPE} && $attr->{TYPE} eq 'FEES' ) ? "$_FEES" : " $_PAYMENTS " ),
+       	                   $html->form_input($attr->{TYPE}, 1, { TYPE => 'radio' }) . ( ($attr->{TYPE} && $attr->{TYPE} eq 'FEES' ) ? "$_FEES" : " $_PAYMENTS ". $html->form_input('CANCEL_PAYMENTS', 1, { TYPE => 'radio' }) . " $_CANCEL_PAYMENTS " ),
   	                       HIDDEN  => { index       => "$index",
   	                       	            OP_SID      => $op_sid,
   	                       	            IMPORT_TYPE => $FORM{IMPORT_TYPE},

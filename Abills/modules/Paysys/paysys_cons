@@ -91,7 +91,7 @@ elsif ($ARGV->{TYPE}) {
   elsif ($ARGV->{FTP_CHECK}) {
 	  paysys_import_ftp();
    }
-	elsif ($ARGV->{TYPE} eq  'PAYMENTS') {
+	elsif ($ARGV->{TYPE} eq  'PAYMENTS' || $ARGV->{TYPE} eq  'CANCEL_PAYMENTS') {
 		paysys_import_payments();
 	 }
 	elsif ($ARGV->{TYPE} eq  'FEES') {
@@ -138,7 +138,7 @@ sub paysys_import_form {
 	my $total_added_count = 0;
   my $total_added_sum   = 0;
 	if (! $ARGV->{FILE} && ! $attr->{CONTENT}) {
-		print "Select file!!!\n";
+		print "Select input file !!!\n";
 		exit;
 	 }
 
@@ -159,10 +159,9 @@ sub paysys_import_form {
   ($DATA_ARR, $BINDING_IDS)=payasys_import_parse($content, $import_expr, $BINDING_FIELD);
 
   #Make users binding hash
-  my $ids = join(', ', @$BINDING_IDS);
+  my $ids   = join('; ', @$BINDING_IDS);
   my $users = Users->new($db, $admin, \%conf); 
-  $ids =~ s/, /', '/g;
-  my $list  = $users->list({ $BINDING_FIELD => "list:'$ids'",  
+  my $list  = $users->list({ $BINDING_FIELD => "$ids",  
  	                           PAGE_ROWS      => 1000000 
 	     	                   });
   $binding_field_id = 5;
@@ -198,22 +197,24 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
         }
 
        if ($ARGV->{TYPE} eq 'PAYMENTS') {
+       	   my $ext_id = '';
        	   if ($debug < 5) {
        	   	  if (! $DATA_ARR->[$i]->{DATE} && $DATA_ARR->[$i]->{DATE_DMY}) {
        	   	  	$DATA_ARR->[$i]->{DATE_DMY}=~/(\d{2})(\d{2})(\d{4})/;
        	   	  	$DATA_ARR->[$i]->{DATE}="$3-$2-$1";
        	   	   }
+       	   	  $ext_id = $DATA_ARR->[$i]->{EXT_ID} || "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"; 
               $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
                        DESCRIBE     => $describe, 
  	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 2, 
  	                     DATE         => $DATA_ARR->[$i]->{DATE}, 
-                       EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$attr->{IMPORT_RULE}.$ID",
-                       CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$attr->{IMPORT_RULE}.$ID",
+                       EXT_ID       => $ext_id,
+                       CHECK_EXT_ID => $ext_id,
                        INNER_DESCRIBE => $inner_describe
                         } );
             }
            if ($payments->{errno} && $payments->{errno} == 7) {
-           	 $error_str = "ERROR: EXIST: EXT_ID: $DATA_ARR->[$i]->{DATE}.$ID\n";
+           	 $error_str = "ERROR: EXIST: EXT_ID: $ext_id\n";
              $error=1;
             }
            else {
@@ -238,6 +239,24 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
            	$error=1;
            }
          }
+     	  elsif($ARGV->{TYPE} eq 'CANCEL_PAYMENTS') {
+     	 	  my @payments_arr = ();
+     	 	  for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
+         	   my $ID = $DATA_ARR->[$i]->{PAYSYS_EXT_ID} || $i;
+             if ($DATA_ARR->[$i]->{EXT_ID}) {
+                push  @payments_arr, $DATA_ARR->[$i]->{EXT_ID};
+              }
+           }
+          $payments->{debug}=1 if ($debug > 5); 
+          my $list = $payments->list({ EXT_ID    => join(';', @payments_arr), 
+          	                           PAGE_ROWS => 1000000 
+          	                          });
+          
+          foreach my $line (@$list) {
+          	 $payments->del({UID => $line->[11] }, $line->[0]);          	 
+             print "ID: $line->[0] SUM: $line->[4]\n" if ($debug > 1);          	 
+           }
+     	   }
 
          if (! $error) {
            $total_added_count++;
@@ -276,7 +295,7 @@ sub paysys_import_fees {
 # Import fees from_file
 #**********************************************************
 sub paysys_import_payments {
-  paysys_import_form({ TYPE          => 'PAYMENTS',
+  paysys_import_form({ TYPE          => $ARGV->{TYPE},
  	                     IMPORT_RULE   => $ARGV->{IMPORT_RULE},
                        IMPORT_RULES  => $conf{PAYSYS_IMPORT_RULES}
                     });
@@ -330,7 +349,7 @@ sub payasys_import_parse {
              push @BINDING_IDS, $DATA_HASH{$BINDING_FIELD} if ($DATA_HASH{$BINDING_FIELD});
             }
            elsif ($line ne '') {
-            print "'$line'<br>\n";	
+             print "'$line'<br>\n" if ($debug > 0);	
            }
         }
 
@@ -497,52 +516,56 @@ sub paysys_import_ftp {
   } 
 
 foreach my $host_params (@hosts) {
- my ($host, $username, $password, $dir, $files) = split(/:/, $host_params, 5);
- 
- my $ftp = Net::FTP->new("$host", Debug => 0)
-   or die "Cannot connect to some.host.name: $@";
+  my ($host, $username, $password, $dir, $files) = split(/:/, $host_params, 5);
+  my $ftp = Net::FTP->new("$host", Debug => 0)
+    or die "Cannot connect to some.host.name: $@";
 
 
-if ($ftp->login("$username","$password")) {
-  $dir = $attr->{FTP_DIR} if ($attr->{FTP_DIR});
-  if ($dir) {
-    $ftp->cwd("$dir")
-      or die "Cannot change working directory '$dir' ", $ftp->message;
-   }
-
-  if ($attr->{UPLOAD}) {
-    $ftp->put("$attr->{UPLOAD}")
-     or die "Ftp get failed '$attr->{UPLOAD}' ", $ftp->message;
-  	print "Upload: $attr->{UPLOAD}\n" if ($debug > 1);
-  	next;
-   }
-
-
-  my $files_arr = $ftp->ls("$files");
-  foreach my $filename (@$files_arr) {
-    my $content = '';
-    $ftp->get("$filename")
-     or die "Ftp get failed '$filename' ", $ftp->message;
-    print $filename."\n" if ($debug > 2);
-
-    $filename =~ /\/([a-zA-Z0-9\.\-\_\?]+)$/;
-    my $local_filename = $1;
-	  open(FILE, "$local_filename") || die "Can't open file '$filename' $!\n";
-	    while(<FILE>) {
-	  	  $content .= $_;
-	     }
-	  close(FILE);
-
-    if ($ARGV->{DECODE}) {
-    	$content = convert($content, { $ARGV->{DECODE} => 1 });
+  if ($ftp->login("$username","$password")) {
+    $dir = $attr->{FTP_DIR} if ($attr->{FTP_DIR});
+    if ($dir) {
+      $ftp->cwd("$dir")
+        or die "Cannot change working directory '$dir' ", $ftp->message;
      }
 
-    if (paysys_import_form({ TYPE          => $ARGV->{TYPE},
+    if ($attr->{UPLOAD}) {
+      $ftp->put("$attr->{UPLOAD}")
+        or die "Ftp get failed '$attr->{UPLOAD}' ", $ftp->message;
+  	  print "Upload: $attr->{UPLOAD}\n" if ($debug > 1);
+  	  next;
+     }
+
+    my $files_arr = $ftp->ls("$files");
+    foreach my $filename (@$files_arr) {
+      my $content = '';
+      $ftp->get("$filename")
+        or die "Ftp get failed '$filename' ", $ftp->message;
+      print $filename."\n" if ($debug > 2);
+
+      $filename =~ /\/?([a-zA-Z0-9\.\-\_\?]+)$/;
+      my $local_filename = $1;
+	    open(FILE, "$local_filename") || die "Can't open file '$filename' $!\n";
+	      while(<FILE>) {
+   	  	  $content .= $_;
+	       }
+	    close(FILE);
+
+      if ($ARGV->{DECODE}) {
+    	  $content = convert($content, { $ARGV->{DECODE} => 1 });
+       }
+
+
+      if (paysys_import_form({ TYPE          => $ARGV->{TYPE},
                              IMPORT_RULE   => $ARGV->{IMPORT_RULE},
                              IMPORT_RULES  => $conf{PAYSYS_IMPORT_RULES},
                              CONTENT       => $content
                            }) ) {
+      
+      if ($ARGV->{BACKUP_FILES} &&  -d $ARGV->{BACKUP_FILES}) {
+         my $a = `cp $local_filename $ARGV->{BACKUP_FILES}`;
+       }
       unlink $local_filename;
+      
       $ftp->delete ("$filename")
         or die "Ftp del failed '$filename'\n", $ftp->message;
       print "Delete LOCAL:$local_filename 'FTP:$filename'\n" if ($debug == 1);
@@ -597,11 +620,12 @@ sub help {
 print << "[END]"
 Paysys console interface:
 
-  TYPE=[PAYMENTS|FEES|ERIPT] - Operation TYPE
+  TYPE=[PAYMENTS|CANCEL_PAYMENTS|FEES|ERIPT] - Operation TYPE
   IMPORT_RULE=         - for payments import type id
 $import_rules    
   EMAIL_CHECK=...      - Check E-mail for documents. E-mail box number. Default read all mailboxes with import rule.
   FTP_CHECK=...        - Check files from ftp. FTP  servers. Default check all servers with import rule.
+  BACKUP_FILES=[DIR]   - Backup ftp files
   FILE=                - Import FILE
   DATE=                - Import Date  
   DEBUG=1,2..5         - Debug Mode  
