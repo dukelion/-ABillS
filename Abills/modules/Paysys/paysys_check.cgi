@@ -795,10 +795,16 @@ $request_hash{'login'}              =  $_xml->{'extra'}->{'login'}->{'content'};
 $request_hash{'password'}           =  $_xml->{'extra'}->{'password'}->{'content'};
 $request_hash{'password-md5'}       =  $_xml->{'extra'}->{'password-md5'}->{'content'};
 $request_hash{'client-software'}    =  $_xml->{'extra'}->{'client-software'}->{'content'};
-
 my $transaction_number              =  $_xml->{'transaction-number'}->[0] || '';
 
 $request_hash{'to'} = $_xml->{to};
+
+if ($request_hash{'password-md5'}) {
+  $md5->reset;
+  $md5->add($conf{PAYSYS_OSMP_PASSWD}); 
+  $conf{PAYSYS_OSMP_PASSWD} = lc($md5->hexdigest());	
+}
+
 
 if ($conf{PAYSYS_OSMP_LOGIN} ne $request_hash{'login'} || 
  ($request_hash{'password'} && $conf{PAYSYS_OSMP_PASSWD} ne $request_hash{'password'})) {

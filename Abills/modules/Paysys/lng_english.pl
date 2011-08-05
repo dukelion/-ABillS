@@ -11,4 +11,4 @@ $_INVOICE_SENDED='Invoice sended';
 $_TEST_PAYMENT='Test payment';
 $_BINDING='Binding';
 $_TARIF_PLAN_SUM='Minimum one month fees';
-$_CANCEL_PAYMENT='Cancel Payments';
+$_CANCEL_PAYMENTS='Cancel Payments';

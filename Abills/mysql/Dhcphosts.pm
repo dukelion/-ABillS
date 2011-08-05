@@ -1085,6 +1085,11 @@ sub log_list {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{MAC}", 'STR', 'l.mac') };
   }
 
+ if ($attr->{MESSAGE_TYPE}) {
+   push @WHERE_RULES, @{ $self->search_expr("$attr->{MESSAGE_TYPE}", 'INT', 'l.message_type') };
+  }
+
+
  if ($attr->{MESSAGE}) {
    push @WHERE_RULES, @{ $self->search_expr("$attr->{MESSAGE}", 'STR', 'l.message') };
   }
