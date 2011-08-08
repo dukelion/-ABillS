@@ -1198,8 +1198,11 @@ if ($FORM{zapall}) {
   $html->message('info', $_INFO, "Zapped all sessions");
  }
 elsif($FORM{zap}) {
+	$sessions->{debug}=1;
   my($nas_id, $nas_port_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
   $sessions->zap($nas_id, $nas_port_id, $acct_session_id, { %FORM });
+
+
 
   if ($sessions->{errno}) {
   	 $html->message('err', $_ERROR, "[$sessions->{errno}] $err_strs{$sessions->{errno}}");
@@ -1555,7 +1558,7 @@ foreach my $nas_row (@$nas_list) {
       }
 
     if ($line->[$#ACTIVE_FIELDS + 9] > 3)  { $table->{rowcolor}='#FF0000';  }
-    my $zap = $html->button('Z', "index=$index&zap=$nas_row->[0]+".$line->[$#ACTIVE_FIELDS + 12]."+". $line->[($#ACTIVE_FIELDS + 13)].$pages_qs, { TITLE => 'Zap', BUTTON => 1 });
+    my $zap = $html->button('Z', "index=$index&zap=$nas_row->[0]+".$line->[$#ACTIVE_FIELDS + 12]."+". $line->[($#ACTIVE_FIELDS + 13)].$pages_qs, { TITLE => 'Zap', BUTTON => 1, NO_LINK_FORMER => 1 });
     my $hangup = ($FORM{ZAPED}) ? $html->form_input('dellist', "$line->[$#ACTIVE_FIELDS + 13]", { TYPE => 'checkbox', BUTTON => 1  } ) : $html->button('H', "index=$index&FRAMED_IP_ADDRESS=$line->[$#ACTIVE_FIELDS+2]&hangup=$nas_row->[0]+$line->[$#ACTIVE_FIELDS + 12]+$line->[$#ACTIVE_FIELDS + 13]+$line->[$#ACTIVE_FIELDS + 11]&UID=$line->[$#ACTIVE_FIELDS+3]$pages_qs", { TITLE => 'Hangup', BUTTON => 1 });
 
     $table->addrow(@rows,

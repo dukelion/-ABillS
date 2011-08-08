@@ -578,8 +578,8 @@ sub paysys_payment {
 #**********************************************************
 sub paysys_log {
  	
-if ($Paysys::VERSION < 3.6) {
- 	$html->message('info', "UPDATE", "Please update module 'Paysys' to version 3.2 or higher. http://abills.net.ua/");
+if ($Paysys::VERSION < 3.8) {
+ 	$html->message('info', "UPDATE", "Please update module 'Paysys' to version 3.8 or higher. http://abills.net.ua/");
  	return 0;
  }
 
@@ -639,6 +639,16 @@ if (! $user->{UID}) {
  	                                          SEL_HASH  => { '' => $_ALL, %ACTIVE_SYSTEMS },
  	                                          NO_ID     => 1
  	                                        });
+
+  $info{STATUS_SEL}=$html->form_select('STATUS', 
+                                          { 
+ 	                                          SELECTED    => $FORM{STATUS},
+ 	                                          SEL_ARRAY   => [@status],
+ 	                                          ARRAY_NUM_ID=> 1,
+ 	                                          SEL_OPTIONS => { '' => $_ALL }
+ 	                                        });
+
+
   form_search({ SEARCH_FORM => $html->tpl_show(_include('paysys_search', 'Paysys'), 
 	                         { %info, %FORM }, 
 	                         { OUTPUT2RETURN => 1 })  
@@ -671,9 +681,9 @@ foreach my $line (@$list) {
     "$PAY_SYSTEMS{$line->[4]}", 
     $html->button("$line->[5]", "index=2&EXT_ID=$line->[5]&search=1"),
     "$line->[6]",
-    "$line->[7]",
-    $html->button($_INFO, "index=$index&info=$line->[0]", { BUTTON => 1 }),
-    ($user) ? '-' : $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?",  BUTTON => 1 })
+    "$line->[7]:$status[$line->[7]]",
+    $html->button($_INFO, "index=$index&info=$line->[0]", { CLASS => 'show' }),
+    ($user->{UID}) ? '-' : $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' })
    );
 }
 print $table->show();
