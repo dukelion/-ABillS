@@ -635,14 +635,14 @@ if (! $user->{UID}) {
 	
   $info{PAY_SYSTEMS_SEL}=$html->form_select('PAYMENT_SYSTEM', 
                                           { 
- 	                                          SELECTED  => $FORM{PAYMENT_SYSTEM},
+ 	                                          SELECTED  => $FORM{PAYMENT_SYSTEM} || '',
  	                                          SEL_HASH  => { '' => $_ALL, %ACTIVE_SYSTEMS },
  	                                          NO_ID     => 1
  	                                        });
 
   $info{STATUS_SEL}=$html->form_select('STATUS', 
                                           { 
- 	                                          SELECTED    => $FORM{STATUS},
+ 	                                          SELECTED    => $FORM{STATUS} || '',
  	                                          SEL_ARRAY   => [@status],
  	                                          ARRAY_NUM_ID=> 1,
  	                                          SEL_OPTIONS => { '' => $_ALL }
@@ -660,6 +660,7 @@ if (! defined($FORM{sort})) {
   $LIST_PARAMS{SORT}=1;
   $LIST_PARAMS{DESC}=DESC;
  }
+
 
 my $list = $Paysys->list( { %LIST_PARAMS } );	
 my $table = $html->table( { width      => '100%',
