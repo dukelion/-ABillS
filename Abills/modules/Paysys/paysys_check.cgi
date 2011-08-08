@@ -1492,6 +1492,8 @@ elsif($FORM{LMI_HASH}) {
 sub ukrpays_payments {
 #Pre request section
 
+my $inner_status = 0;
+
 if($FORM{hash}) {
   my $info = '';
   
@@ -1521,11 +1523,13 @@ if($FORM{hash}) {
     my $checksum = $md5->hexdigest();	
 
 	  if ($FORM{hash} ne $checksum) {
-    	$status = "ERROR: Incorect checksum '$checksum'";
+    	$status       = "ERROR: Incorect checksum '$checksum'";
+    	$inner_status = 5;
      }
     else {
-    	$status = 'ok';
-      $Paysys->add({ SYSTEM_ID      => 46, 
+    	$status       = 'ok';
+    	$inner_status = 2;
+      $Paysys->add({ SYSTEM_ID  => 46, 
   	             DATETIME       => '', 
   	             SUM            => $FORM{amount},
   	             UID            => $FORM{order}, 
@@ -1534,7 +1538,7 @@ if($FORM{hash}) {
                  INFO           => "STATUS: $status\nOPERATION_ID: $operation_id\n$info\nCards buy",
                  PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
                  DOMAIN_ID      => $domain_id,
-                 STATUS         => 1,
+                 STATUS         => $inner_status,
                });
 
       if ($Paysys->{errno}) {
@@ -1567,12 +1571,15 @@ if($FORM{hash}) {
 
   if ($FORM{hash} ne $checksum) {
   	$status = "ERROR: Incorect checksum '$checksum'";
+  	$inner_status=5;
    }
   elsif ($user->{errno}) {
 		$status = "ERROR: $user->{errno}";
+		$inner_status=8;
 	 }
 	elsif ($user->{TOTAL} < 0) {
 		$status = "ERROR: User not exist";
+		$inner_status=9;
 	 }
   else {
     #Add payments
@@ -1588,13 +1595,16 @@ if($FORM{hash}) {
     if ($payments->{errno}) {
       if ($payments->{errno} == 7) {
         $info = "dublicate\n";
+        $inner_status=7;
        }
       else {
         $info = "ERROR: PAYMENT $payments->{errno}\n";
+        $inner_status=6;
        }      
      }
     else {
     	$status = "Added $payments->{INSERT_ID}\n";
+    	$inner_status=2;
      }
    }
   
@@ -1611,7 +1621,8 @@ if($FORM{hash}) {
                  IP             => $FORM{IP} || '0.0.0.0',
                  TRANSACTION_ID => "UKRPAYS:$FORM{id_ups}",
                  INFO           => "STATUS, $status\n$info",
-                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}"
+                 PAYSYS_IP      => "$ENV{'REMOTE_ADDR'}",
+                 STATUS         => $inner_status
                });
 
   if ($Paysys->{errno}) {
