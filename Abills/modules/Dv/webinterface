@@ -1198,7 +1198,6 @@ if ($FORM{zapall}) {
   $html->message('info', $_INFO, "Zapped all sessions");
  }
 elsif($FORM{zap}) {
-	$sessions->{debug}=1;
   my($nas_id, $nas_port_id, $acct_session_id)=split(/ /, $FORM{zap}, 3);
   $sessions->zap($nas_id, $nas_port_id, $acct_session_id, { %FORM });
 
