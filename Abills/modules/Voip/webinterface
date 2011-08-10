@@ -192,7 +192,7 @@ my $tp_index = get_function_index('voip_tp');
 $tariffs->{UID}     = $attr->{USER}->{UID};
 $tariffs->{m}       = $m;
 $tariffs->{TP_ID}   = $user->{TP_NUM};
-$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP", BUTTON => 1 } ). "";
+$tariffs->{TP_NAME} = "$user->{TP_ID}:$user->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=$tp_index&TP_ID=$user->{TP_ID}", { TITLE => "$_TP", CLASS => 'show rightAlignText' } ). "";
 
 print $html->tpl_show(templates('form_chg_tp'), $tariffs);
 }
@@ -355,7 +355,7 @@ sub voip_user {
 	  
 	 }
 	else {
-		$user->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$user->{UID}.'&index='.  get_function_index('voip_chg_tp'), { BUTTON => 1 });
+		$user->{CHANGE_TP_BUTTON}=$html->button($_CHANGE, 'UID='.$user->{UID}.'&index='.  get_function_index('voip_chg_tp'), { CLASS => 'change rightAlignText' });
 	  $user->{ACTION}='set';
 	  $user->{LNG_ACTION}=$_CHANGE;
 	 }
@@ -1690,7 +1690,7 @@ my $Billing = Billing->new($db, \%conf);
 foreach my $line (@$list) {
   if ($permissions{3}{1}) {
     #$UID, $session_id, $nas_id, $session_start_date, $session_start_time, $sum, $login
-    $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[11]+$line->[9]+$line->[6]+$line->[1]+$line->[9]+$line->[0]", { MESSAGE => "$_DEL Session SESSION_ID $line->[9]?", CLASS => 'del' });
+    $delete = $html->button($_DEL, "index=$index$pages_qs&del=$line->[11]+$line->[9]+$line->[6]+$line->[1]+$line->[9]+$line->[0]", { MESSAGE => "$_DEL Session SESSION_ID $line->[9]?", CLASS => 'del', NO_LINK_FORMER => 1 });
    }
 
   $table->addrow($html->button($line->[0], "index=11&UID=$line->[11]"), 

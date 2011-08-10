@@ -560,7 +560,6 @@ if ($acct_status_type == 1) {
 # Stop status
 elsif ($acct_status_type == 2) {
   if ($RAD->{ACCT_SESSION_TIME} > 0) {
-  	$self->{debug}=1;
     $self->query($db, "SELECT 
       UNIX_TIMESTAMP(started),
       lupdated,
