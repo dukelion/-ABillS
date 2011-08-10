@@ -447,7 +447,8 @@ sub get_intervals {
     if (t.protocol IS NULL, '', t.addparameter),
     if (t.protocol IS NULL, '', t.removeprefix),
     if (t.protocol IS NULL, '', t.addprefix),
-    if (t.protocol IS NULL, '', t.failover_trunk)
+    if (t.protocol IS NULL, '', t.failover_trunk),
+    rp.extra_tarification
       from intervals i, voip_route_prices rp
       LEFT JOIN voip_trunks t ON (rp.trunk=t.id)       
       where
@@ -472,6 +473,7 @@ sub get_intervals {
      $self->{REMOVE_PREFIX} = $line->[9];
      $self->{ADDPREFIX}     = $line->[10];
      $self->{FAILOVER_TRUNK}= $line->[11];
+     $self->{EXTRA_TARIFICATION} = $line->[12];
     }
   $self->{TIME_PERIODS}=\%time_periods;
   $self->{PERIODS_TIME_TARIF}=\%periods_time_tarif;
@@ -489,7 +491,7 @@ sub accounting {
  my $self = shift;
  my ($RAD, $NAS)=@_;
  
-
+ 
  my $acct_status_type = $ACCT_TYPES{$RAD->{ACCT_STATUS_TYPE}};
  my $SESSION_START = (defined($RAD->{SESSION_START}) && $RAD->{SESSION_START} > 0) ?  "FROM_UNIXTIME($RAD->{SESSION_START})" : 'now()';
  my $sesssion_sum = 0;
@@ -531,7 +533,8 @@ if ($acct_status_type == 1) {
       bill_id,
       tp_id,
       reduction,
-      acct_session_id
+      acct_session_id,
+      route_id
      )
     values ($acct_status_type, \"$RAD->{USER_NAME}\", $SESSION_START, UNIX_TIMESTAMP(), 
       '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', '$NAS->{NAS_ID}',
@@ -541,7 +544,8 @@ if ($acct_status_type == 1) {
       '$self->{BILL_ID}',
       '$self->{TP_ID}',
       '$self->{REDUCTION}',
-      '$RAD->{ACCT_SESSION_ID}'
+      '$RAD->{ACCT_SESSION_ID}',
+      ''
       );";
   	
   	$self->query($db, $sql, 'do');
@@ -555,10 +559,8 @@ if ($acct_status_type == 1) {
  }
 # Stop status
 elsif ($acct_status_type == 2) {
-
-
-
   if ($RAD->{ACCT_SESSION_TIME} > 0) {
+  	$self->{debug}=1;
     $self->query($db, "SELECT 
       UNIX_TIMESTAMP(started),
       lupdated,
@@ -583,6 +585,9 @@ elsif ($acct_status_type == 2) {
       WHERE 
       conf_id='$RAD->{H323_CONF_ID}'
       and call_origin='$RAD->{H323_CALL_ORIGIN}';");
+
+
+
 
     if ($self->{TOTAL} < 1) {
    	  $self->{errno}=1;
@@ -618,7 +623,6 @@ elsif ($acct_status_type == 2) {
     
     )= @{ $self->{list}->[0] };
   
-
     if ($self->{UID} == 0) {
   	   $self->{errno}=110;
 	     $self->{errstr}="Number not found '". $RAD->{'USER_NAME'} ."'";
@@ -636,36 +640,61 @@ elsif ($acct_status_type == 2) {
   	     return $self;
         }
 
-       $Billing->time_calculation({
-    	    REDUCTION           => $self->{REDUCTION},
-    	    TIME_INTERVALS      => $self->{TIME_PERIODS},
-          PERIODS_TIME_TARIF =>  $self->{PERIODS_TIME_TARIF},
-          SESSION_START       => $self->{SESSION_STOP} - $RAD->{ACCT_SESSION_TIME},
-          ACCT_SESSION_TIME   => $RAD->{ACCT_SESSION_TIME},
-          DAY_BEGIN           => $self->{DAY_BEGIN},
-          DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
-          DAY_OF_YEAR         => $self->{DAY_OF_YEAR},
-          PRICE_UNIT          => 'Min'
-         });
-  
-      $sesssion_sum = $Billing->{SUM};
-      if ($Billing->{errno}) {
-   	    $self->{errno}=$Billing->{errno};
-  	    $self->{errstr}=$Billing->{errstr};
-  	    return $self;
-       }  
+       # Extra tarification  
+       if ($self->{EXTRA_TARIFICATION}) {
+       	 $self->query($db, "SELECT prepaid_time FROM voip_route_extra_tarification WHERE id='$self->{EXTRA_TARIFICATION}';");
+       	 $self->{PREPAID_TIME} = $self->{list}->[0]->[0];
+       	 if ($self->{PREPAID_TIME} > 0) {
+       	 	 $self->{LOG_DURATION} = 0;
+       	 	 my $sql = "SELECT sum(duration) FROM voip_log l, voip_route_prices rp WHERE l.route_id=rp.route_id
+       	 	   AND uid='$self->{UID}' AND rp.extra_tarification='$self->{EXTRA_TARIFICATION}'";
+       	 	 $self->query($db, "$sql");
+       	 	 $self->{LOG_DURATION}=0;
+       	 	 if($self->{TOTAL}>0) {
+       	 	 	 $self->{LOG_DURATION}=$self->{list}->[0]->[0];
+       	 	  }
+       	 	 if ($RAD->{ACCT_SESSION_TIME}+$self->{LOG_DURATION} < $self->{PREPAID_TIME}) {
+       	 	 	 $self->{PERIODS_TIME_TARIF}=undef;
+       	 	  }
+       	   elsif ($self->{LOG_DURATION} < $self->{PREPAID_TIME} && $RAD->{ACCT_SESSION_TIME}+$self->{LOG_DURATION} > $self->{PREPAID_TIME}) {
+       	   	 $self->{PAID_SESSION_TIME} = $RAD->{ACCT_SESSION_TIME}+$self->{LOG_DURATION} - $self->{LOG_DURATION};
+       	    }
+       	  }
+        }  
+
+       #Id defined time tarif
+       if ($self->{PERIODS_TIME_TARIF}) {
+         $Billing->time_calculation({
+    	      REDUCTION           => $self->{REDUCTION},
+    	      TIME_INTERVALS      => $self->{TIME_PERIODS},
+            PERIODS_TIME_TARIF  => $self->{PERIODS_TIME_TARIF},
+            SESSION_START       => $self->{SESSION_STOP} - $RAD->{ACCT_SESSION_TIME},
+            ACCT_SESSION_TIME   => $self->{PAID_SESSION_TIME} || $RAD->{ACCT_SESSION_TIME},
+            DAY_BEGIN           => $self->{DAY_BEGIN},
+            DAY_OF_WEEK         => $self->{DAY_OF_WEEK},
+            DAY_OF_YEAR         => $self->{DAY_OF_YEAR},
+            PRICE_UNIT          => 'Min'
+           });
+
+        $sesssion_sum = $Billing->{SUM};
+        if ($Billing->{errno}) {
+   	      $self->{errno}=$Billing->{errno};
+  	      $self->{errstr}=$Billing->{errstr};
+  	      return $self;
+         }  
+       }
     }
 
     my $filename;   
     $self->query($db, "INSERT INTO voip_log (uid, start, duration, calling_station_id, called_station_id,
               nas_id, client_ip_address, acct_session_id, 
               tp_id, bill_id, sum,
-              terminate_cause) 
+              terminate_cause, route_id) 
         VALUES ('$self->{UID}', FROM_UNIXTIME($RAD->{SESSION_START}),  '$RAD->{ACCT_SESSION_TIME}', 
         '$RAD->{CALLING_STATION_ID}', '$RAD->{CALLED_STATION_ID}', 
         '$NAS->{NAS_ID}', INET_ATON('$RAD->{CLIENT_IP_ADDRESS}'), '$RAD->{ACCT_SESSION_ID}', 
         '$self->{TP_ID}', '$self->{BILL_ID}', '$sesssion_sum',
-        '$RAD->{ACCT_TERMINATE_CAUSE}');", 'do');
+        '$RAD->{ACCT_TERMINATE_CAUSE}', '$self->{ROUTE_ID}');", 'do');
 
     if ($self->{errno}) {
       $filename = "$RAD->{USER_NAME}.$RAD->{ACCT_SESSION_ID}";

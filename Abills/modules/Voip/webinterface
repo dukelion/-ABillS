@@ -1699,7 +1699,7 @@ foreach my $line (@$list) {
      $line->[5], $line->[6],
      $line->[7], 
      "$line->[8] $test", 
-     $html->button('D', "index=$index&UID=$line->[11]&SESSION_ID=$line->[10]", { TITLE => 'Session Detail', CLASS => 'stats' }), 
+     $html->button('D', "index=$index&UID=$line->[11]&SESSION_ID=$line->[9]", { TITLE => 'Session Detail', CLASS => 'stats' }), 
      $delete);
 }
 
@@ -2091,6 +2091,123 @@ $table = $html->table( { width       => '640',
                                } );
 print $table->show();
 voip_sessions($list, $sessions) if ( $sessions->{TOTAL} > 0);
+}
+
+
+#*******************************************************************
+# Session Detail
+# voip_session_detail();
+#*******************************************************************
+sub voip_session_detail {
+	my ($attr) = @_;
+  my $user;
+
+ 
+if (defined($attr->{USER}))	{
+	$user = $attr->{USER};
+	$LIST_PARAMS{LOGIN}=$user->{LOGIN};
+	
+#	if ($FORM{RECALC}) {
+#		$sessions->session_detail({ %FORM });
+#
+#    use Billing;
+#    my $Billing = Billing->new($db, $CONF);
+#
+#    my($UID, 
+#     $SUM, 
+#     $BILL_ID, 
+#     $TARIF_PLAN, 
+#     $TIME_TARIF, 
+#     $TRAF_TARIF) = $Billing->session_sum($sessions->{LOGIN}, 
+#                                          $sessions->{START_UNIXTIME}, 
+#                                          $sessions->{DURATION}, 
+#                                            {  OUTBYTE  =>  $sessions->{SENT},
+#                                               INBYTE   =>  $sessions->{RECV},
+#                                               OUTBYTE2 =>  $sessions->{SENT2},
+#                                               INBYTE2  =>  $sessions->{RECV2}
+#                                             },
+#                                          {
+#                                          	disable_rt_billing => 1,
+#                                          	TP_NUM             => $sessions->{TP_ID}
+#                                           } 
+#                                          );
+#
+#    my $change = '';
+#
+#    if ($sessions->{SUM} != $SUM) {
+#      $change = "$_CHANGE  ". $html->button($_YES, "index=$index&RECALC=1&SESSION_ID=$FORM{SESSION_ID}&UID=$FORM{UID}&change=1", { BUTTON => 1 }). ' ?';
+#    
+#      if ($FORM{change}) {
+#        use Bills;
+#        my $Bill = Bills->new($db);
+#        $Bill->action('add', "$sessions->{BILL_ID}", $sessions->{SUM}) if ($sessions->{SUM});
+#        $Bill->action('take', "$sessions->{BILL_ID}", $SUM) if ($SUM > 0);
+#
+#        $sessions->query($db, "UPDATE dv_log SET sum='$SUM' WHERE acct_session_id='$sessions->{SESSION_ID}';", 'do');
+#
+#        if($bill->{errno}) {
+#          $html->message('err', $_ERROR, "[$bill->{errno}] $err_strs{$bill->{errno}}");
+#         }
+#        else {
+#          $html->message('info', $_INFO, "$_ADDED: SUM $FORM{sum}, BILL_ID: $FORM{BILL_ID}");  	
+#         }
+#      	$change = "$_CHANGED";
+#       }
+#     }
+#
+#		$html->message('info', "$_RECALCULATE", "$_TARIF_PLAN: $TARIF_PLAN, $_SUM: $sessions->{SUM} -> $SUM  $change");
+#	 }
+	
+}
+elsif (defined($LIST_PARAMS{LOGIN}))	{
+
+}
+elsif($FORM{UID}) {
+	voip_user();
+	return 0;
+}	
+
+
+my %ACCT_TERMINATE_CAUSES = (
+                      'Unknown'             =>     0,
+                      'User-Request'        =>     1,
+                      'Lost-Carrier'        =>     2,
+                      'Lost-Service'        =>     3,
+                      'Idle-Timeout'        =>     4,
+                      'Session-Timeout'     =>     5,
+                      'Admin-Reset'         =>     6,
+                      'Admin-Reboot'        =>     7,
+                      'Port-Error'          =>     8,
+                      'NAS-Error'           =>     9,
+                      'NAS-Request'         =>     10,
+                      'NAS-Reboot'          =>     11,
+                      'Port-Unneeded'       =>     12,
+                      'Port-Preempted'      =>     13,
+                      'Port-Suspended'      =>     14,
+                      'Service-Unavailable' =>     15,
+                      'Callback'            =>     16,
+                      'User-Error'          =>     17,
+                      'Host-Request'        =>     18,
+                      'Supplicant-Restart'  =>     19,
+                      'Reauthentication-Failure' => 20,
+                      'Port-Reinit'         =>     21,
+                      'Port-Disabled'       =>     22,
+                      'Lost-Alive/Billd Calculation' => 23      
+                    );
+
+my %ACCT_TERMINATE_CAUSES_VALUE = reverse %ACCT_TERMINATE_CAUSES;
+
+$sessions->session_detail({ %FORM });
+$sessions->{ACCT_TERMINATE_CAUSE} = "$sessions->{ACCT_TERMINATE_CAUSE} : ". $ACCT_TERMINATE_CAUSES_VALUE{$sessions->{ACCT_TERMINATE_CAUSE}};
+$sessions->{RECALC}= $html->button($_RECALCULATE, "index=$index&RECALC=1&SESSION_ID=$FORM{SESSION_ID}&UID=$FORM{UID}", { BUTTON => 1 });
+
+
+$sessions->{ROUTE_ID} = $html->button($sessions->{ROUTE_ID}, "&ROUTE_ID=$sessions->{ROUTE_ID}&index=".get_function_index('voip_routes') );
+
+$html->tpl_show(_include('voip_session_detail', 'Voip'), { %$sessions,
+ });
+
+	
 }
 
 

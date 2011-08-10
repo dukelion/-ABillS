@@ -8,22 +8,20 @@
 <tr bgcolor=$_COLORS[1]><td>$_END:</td><td align=right>%STOP%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>$_DURATION</td><td align=right>%DURATION%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>$_TARIF_PLAN</td><td>[%TP_ID%] %TP_NAME%</td></tr>
-<tr bgcolor=$_COLORS[1]><td>$_SENT:</td><td align=right>%_SENT% (%SENT%)</td></tr>
-<tr bgcolor=$_COLORS[1]><td>$_RECV:</td><td  align=right>%_RECV% (%RECV%)</td></tr>
-<tr bgcolor=$_COLORS[1]><td>$_SENT 2:</td><td align=right>%_SENT2% (%SENT2%)</td></tr>
-<tr bgcolor=$_COLORS[1]><td>$_RECV 2:</td><td align=right>%_RECV2% (%RECV2%)</td></tr>
 <tr bgcolor=$_COLORS[1]><td>IP:</td><td align=right>%IP%</td></tr>
-<tr bgcolor=$_COLORS[1]><td>CID:</td><td align=right>%CID%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>CALLING_STATION_ID ($_FROM):</td><td align=right>%CALLING_STATION_ID%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>CALLED_STATION_ID ($_TO):</td><td align=right>%CALLED_STATION_ID%</td></tr>
 <tr bgcolor=$_COLORS[0]><th colspan=2>$_NAS</th></tr>
 <tr bgcolor=$_COLORS[1]><td>ID:</td><td>%NAS_ID%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>NAME</td><td>%NAS_NAME%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>IP:</td><td>%NAS_IP%</td></tr>
-<tr bgcolor=$_COLORS[1]><td>PORT:</td><td>%NAS_PORT%</td></tr>
 <tr bgcolor=$_COLORS[1]><td colspan=2>&nbsp;</td></tr>
-<tr bgcolor=$_COLORS[1]><td>$_TIME_TARIF:</td><td>%TIME_TARIFF%</td></tr>
-<tr bgcolor=$_COLORS[1]><td>$_TRAF_TARIF:</td><td>%TRAF_TARIFF%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>$_SUM:</td><td>%SUM%</td></tr>
 <tr bgcolor=$_COLORS[1]><td>$_BILL:</td><td>%BILL_ID%</td></tr>
+
+<tr bgcolor=$_COLORS[1]><td>$_ROUTE:</td><td>%ROUTE_ID%</td></tr>
+<tr bgcolor=$_COLORS[1]><td>ACCT_TERMINATE_CAUSE:</td><td>%ACCT_TERMINATE_CAUSE%</td></tr>
+
 
 </td></tr></table>
 </table>

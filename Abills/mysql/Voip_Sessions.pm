@@ -235,37 +235,28 @@ sub session_detail {
 
  $WHERE = " and l.uid='$attr->{UID}'" if ($attr->{UID});
  
-
+ $self->{debug}=1;
  $self->query($db, "SELECT 
   l.start,
   l.start + INTERVAL l.duration SECOND,
   l.duration,
   l.tp_id,
   tp.name,
-
-  l.sent,
-  l.recv,
-  l.sent2,
-  l.recv2,
-
-  INET_NTOA(l.ip),
-  l.CID,
+  INET_NTOA(client_ip_address),
+  l.calling_station_id,
+  l.called_station_id,
   l.nas_id,
   n.name,
   n.ip,
-  l.port_id,
-  
-  l.minp,
-  l.kb,
-  l.sum,
-
   l.bill_id,
   u.id,
-  
   l.uid,
-  l.acct_session_id
+  l.acct_session_id,
+  l.route_id,
+  l.terminate_cause,
+  l.sum
  FROM (voip_log l, users u)
- LEFT JOIN tarif_plans tp ON (l.tp_id=tp.id) 
+ LEFT JOIN tarif_plans tp ON (l.tp_id=tp.tp_id) 
  LEFT JOIN nas n ON (l.nas_id=n.id) 
  WHERE l.uid=u.uid 
  $WHERE
@@ -276,46 +267,27 @@ sub session_detail {
      $self->{errstr} = 'ERROR_NOT_EXIST';
      return $self;
    }
-
-
+ 
   ($self->{START}, 
    $self->{STOP}, 
    $self->{DURATION}, 
    $self->{TP_ID}, 
    $self->{TP_NAME}, 
-   $self->{SENT}, 
-   $self->{RECV}, 
-   $self->{SENT2},   #?
-   $self->{RECV2},   #?
    $self->{IP}, 
-   $self->{CID}, 
+   $self->{CALLING_STATION_ID}, 
+   $self->{CALLED_STATION_ID}, 
    $self->{NAS_ID}, 
    $self->{NAS_NAME},
    $self->{NAS_IP},
-   $self->{NAS_PORT}, 
-
-   $self->{TIME_TARIFF},
-   $self->{TRAF_TARIFF},
-   $self->{SUM}, 
-
    $self->{BILL_ID}, 
    $self->{LOGIN}, 
-
    $self->{UID}, 
-   $self->{SESSION_ID}
+   $self->{SESSION_ID},
+
+   $self->{ROUTE_ID},
+   $self->{ACCT_TERMINATE_CAUSE},
+   $self->{SUM}
     )= @{ $self->{list}->[0] } ;
-
-#   $self->{UID} = $attr->{UID};
-#   $self->{SESSION_ID} = $attr->{SESSION_ID};
-
-#Ext traffic detail
-# $self->query($db, "SELECT 
-#  acct_session_id
-#  traffic_id,
-#  in,
-#  out
-# FROM traffic_details
-# WHERE acct_session_id='$attr->{SESSION_ID}';");
 
  return $self;
 }
