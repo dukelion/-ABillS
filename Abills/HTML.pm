@@ -217,8 +217,9 @@ if (! defined($ENV{CONTENT_TYPE}) || $ENV{CONTENT_TYPE} !~ /boundary/ ) {
       $value =~ s/<([^>]|\n)*>//g;
 
       #Check quotes
+      $value =~ s/\\/\\\\/g;
       $value =~ s/"/\\"/g;
-      $value =~ s/'/\\'/g;
+      $value =~ s/'/\\'/g;      
      }
     else {
       $value = '';

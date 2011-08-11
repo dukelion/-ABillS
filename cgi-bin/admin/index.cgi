@@ -6823,11 +6823,27 @@ sub sel_groups {
 # Make SQL backup
 #*******************************************************************
 sub form_sql_backup {
+ my ($attr)=@_;
+
 if ($FORM{mk_backup}) {
    $conf{dbcharset}='latin1' if (!$conf{dbcharset});
-   print "$MYSQLDUMP --default-character-set=$conf{dbcharset} --host=$conf{dbhost} --user=\"$conf{dbuser}\" --password=\"****\" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/abills-$DATE.sql.gz".$html->br();
-   my $res = `$MYSQLDUMP --default-character-set=$conf{dbcharset} --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} | $GZIP > $conf{BACKUP_DIR}/abills-$DATE.sql.gz`;
-   $html->message('info', $_INFO, "Backup created: $res ($conf{BACKUP_DIR}/abills-$DATE.sql.gz)");
+	 my $tables = '';
+	 my $backup_file = "$conf{BACKUP_DIR}/abills-$DATE.sql.gz"; 
+	 if ($attr->{TABLES}) {
+	 	 my @tables_arr = split(/,/, $attr->{TABLES});
+	 	 $tables = join(' ', @tables_arr);
+	 	 if ($#tables_arr == 0) {
+	 	 	 $backup_file = "$conf{BACKUP_DIR}/abills_$tables-$DATE.sql.gz"; 
+	 	  }
+	 	 else {
+	 	 	 $backup_file = "$conf{BACKUP_DIR}/abills_tables-$DATE.sql.gz"; 
+	 	  }
+	  }
+  
+   my $cmd = qq{ $MYSQLDUMP --default-character-set=$conf{dbcharset} --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} $tables | $GZIP > $backup_file };
+   my $res = `$cmd`;
+   $cmd =~ s/password=\"(.+)\" /password=\"\*\*\*\*\" /g;
+   $html->message('info', $_INFO, "Backup created: $res ($backup_file)\n'$cmd'");
  }
 elsif($FORM{del} && $FORM{is_js_confirmed}) {
   my $status = unlink("$conf{BACKUP_DIR}/$FORM{del}");
@@ -6838,7 +6854,8 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
                               caption    => "$_SQL_BACKUP",
                               border     => 1,
                               title      => ["$_NAME", $_DATE, $_SIZE, '-'],
-                              cols_align => ['left', 'right', 'right', 'center']
+                              cols_align => ['left', 'right', 'right', 'center'],
+                              ID         => 'SQL_BACKUP_LIST'
                           } );
 
 
@@ -6850,7 +6867,7 @@ elsif($FORM{del} && $FORM{is_js_confirmed}) {
   foreach my $filename (@contents) {
     my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)=stat("$conf{BACKUP_DIR}/$filename");
     my $date = strftime "%Y-%m-%d %H:%M:%S", localtime($mtime);
-    $table->addrow($filename,  $date, $size, $html->button($_DEL, "index=$index&del=$filename", { MESSAGE => "$_DEL $filename?",  BUTTON => 1 })
+    $table->addrow($filename,  $date, $size, $html->button($_DEL, "index=$index&del=$filename", { MESSAGE => "$_DEL $filename?",  CLASS => 'del' })
     );
    }
 

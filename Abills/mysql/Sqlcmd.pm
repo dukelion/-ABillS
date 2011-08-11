@@ -50,26 +50,32 @@ sub info {
  my $type = $attr->{TYPE} || '';
  
   if ($type eq 'showtables') {
-    
-    if ($attr->{ACTION} && $attr->{ACTION} eq 'ROTATE') {
-    	$DATE =~ s/-/\_/g;
- 	    # CREATE TABLE LIKE work from version 4.1
+    if ($attr->{ACTION}) { 
+    	if($attr->{ACTION} eq 'ROTATE') {
+    	  $DATE =~ s/-/\_/g;
+ 	      # CREATE TABLE LIKE work from version 4.1
+        my $version = $self->db_version();
+        if ($version < 4.1) {
+      	  $self->{errno}=1;
+      	  $self->{errstr}="MYSQL: $version. Version Lower 4.1 not support RENAME Syntax";
+      	  return $self;
+         }
 
-      my $version = $self->db_version();
-      if ($version < 4.1) {
-      	$self->{errno}=1;
-      	$self->{errstr}="MYSQL: $version. Version Lower 4.1 not support RENAME Syntax";
-      	return $self;
-       }
-
- 	    my @tables_arr = split(/, /, $attr->{TABLES});
-      foreach my $table (@tables_arr) {
-        print "CREATE TABLE IF NOT EXISTS ". $table ."_2 LIKE $table ;".
-        "RENAME TABLE $table TO $table". "_$DATE, $table". "_2 TO $table;";
-        my $sth = $db->do( "CREATE TABLE IF NOT EXISTS ". $table ."_2 LIKE $table ;");
-        $sth = $db->do( "RENAME TABLE $table TO $table". "_$DATE, $table". "_2 TO $table;");
-       }
-     }
+ 	      my @tables_arr = split(/, /, $attr->{TABLES});
+        foreach my $table (@tables_arr) {
+          print "CREATE TABLE IF NOT EXISTS ". $table ."_2 LIKE $table ;".
+          "RENAME TABLE $table TO $table". "_$DATE, $table". "_2 TO $table;";
+          my $sth = $db->do( "CREATE TABLE IF NOT EXISTS ". $table ."_2 LIKE $table ;");
+          $sth = $db->do( "RENAME TABLE $table TO $table". "_$DATE, $table". "_2 TO $table;");
+         }
+       } 
+      #elsif ($attr->{ACTION} eq 'BACKUP') {
+    	#  $DATE =~ s/-/\_/g;
+ 	    #  my @tables_arr = split(/, /, $attr->{TABLES});
+ 	    #  my $table_list = join(',', @tables_arr);
+ 	    #  
+      # }
+      }
     
     
     my $sth = $db->prepare( "SHOW TABLE STATUS FROM $CONF->{dbname}" );

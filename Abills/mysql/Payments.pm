@@ -85,7 +85,6 @@ sub add {
   my ($user, $attr) = @_;
 
   %DATA = $self->get_data($attr, { default => defaults() }); 
- 
   if ($DATA{SUM} <= 0) {
      $self->{errno} = 12;
      $self->{errstr} = 'ERROR_ENTER_SUM';
@@ -120,11 +119,19 @@ sub add {
     
     my $date = ($DATA{DATE}) ? "'$DATA{DATE}'" : 'now()';
     
+    $self->{debug}=1;
     $self->query($db, "INSERT INTO payments (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, method, ext_id,
            inner_describe) 
            values ('$user->{UID}', '$user->{BILL_ID}', $date, '$DATA{SUM}', '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}', '$DATA{METHOD}', 
            '$DATA{EXT_ID}', '$DATA{INNER_DESCRIBE}');", 'do');
-
+    
+#    if (! $self->{errno}){
+#    	$db->commit();
+#     }
+#    else {
+#    	$db->rollback();
+#     } 
+     
     $self->{PAYMENT_ID}=$self->{INSERT_ID};
 
     if ($CONF->{payment_chg_activate} && $user->{ACTIVATE} ne '0000-00-00') {
@@ -139,9 +146,7 @@ sub add {
     $self->{errstr}='No Bill';
   }
   
-  #$db->commit;
-  #$db->rollback;
-  
+
   return $self;
 }
 

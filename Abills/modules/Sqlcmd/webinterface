@@ -457,6 +457,7 @@ sub sqlcmd_triggers {
 
   my @syntax = ('BEGIN', 'END\s+IF\s{0,10};', 'END$', 'IF', 'THEN', 'DECLARE', 
     'SET', 'INTEGER', 'new\.');
+
   my $list = $Sqlcmd->info({ TYPE => 'showtriggers', %LIST_PARAMS, %FORM });
   foreach my $line (@$list) {
 
@@ -466,7 +467,7 @@ sub sqlcmd_triggers {
       #Extended
       $trigger =~ s/($s)/ <b>$1<\/b>/ig;
       $trigger =~ s/$s\(/ <b>$s<\/b>\(/gi;
-      $trigger =~ s/'(\S+)'/ <font color=\"#0000FF\">'$1'<\/font> /gi;
+      $trigger =~ s/\'(\S+)\'/ <font color=\"#0000FF\">\'$1\'<\/font> /gi;
       $trigger =~ s/\s?(\d+)|(\d+),/ <font color=\"red\">$1<\/font>/g;
      }
 
@@ -499,6 +500,11 @@ sub sqlcmd_tables {
   #$table{size} = Index_length + Data_length
   # ALTER TABLE `abon_tariffs` CHANGE `name` `name` VARCHAR( 20 ) CHARACTER SET cp1251 COLLATE cp1251_general_ci NOT NULL DEFAULT ''
   $FORM{sort} = 1 if (! $FORM{sort});
+ 
+  if ($FORM{ACTION} && $FORM{ACTION} eq 'BACKUP') {
+    $FORM{mk_backup}=1;
+    form_sql_backup({ TABLES => $FORM{TABLES} });
+   }
 
   my $list = $Sqlcmd->info({ TYPE => 'showtables', %LIST_PARAMS, %FORM });
 
@@ -508,7 +514,7 @@ sub sqlcmd_tables {
    }  
 
   my @ACTIVE_FIELDS = ('Name', 
-                  'Type',
+                  'Engine',
                   'Row_format',
                   "Comment",
                   'Collation',
@@ -630,7 +636,7 @@ print $html->form_main({ CONTENT => $table->show().
 	                                  $table3->show(),
                               HIDDEN  => { index =>  "$index" },
                               METHOD  => 'GET',
-                              SUBMIT  => { $_SHOW    => "$_SHOW" }
+                              SUBMIT  => { $_SHOW    => "$_ACTION" }
                            });
 }
 
