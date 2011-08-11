@@ -4622,7 +4622,7 @@ if ($FORM{DATE}) {
                            qs         => $pages_qs,
                            pages      => $payments->{TOTAL},
                            ID         => 'REPORTS_PAYMENTS',
-                           EXPORT     => $_EXPORT .' XML:&xml=1',
+                           EXPORT     => ' XML:&xml=1',
                         } );
 
   my $pages_qs .= "&subf=2" if (! $FORM{subf});
@@ -4660,7 +4660,6 @@ else {
   	$CAPTION[0]=$_USERS;
   	$type="search=1&LOGIN_EXPR";
   	$LIST_PARAMS{METHODS}=$FORM{METHODS};
-  	$index=2;
   	$graph_type='';
    }
   elsif ($type eq 'FIO') {
@@ -4685,11 +4684,11 @@ else {
                           cols_align => ['right', 'right', 'right', 'right'],
                           qs         => $pages_qs,
                           ID         => 'REPORT_PAYMENTS',
-                          EXPORT     => $_EXPORT .' XML:&xml=1',
+                          EXPORT     => ' XML:&xml=1',
                         });
 
   $list = $payments->reports({ %LIST_PARAMS });
-
+  $index = 2 if ($type =~ /search/);
   foreach my $line (@$list) {
     my $main_column = '';
 
@@ -4700,7 +4699,7 @@ else {
      }
     elsif($type eq 'FIO' || $type eq 'USER' || $FORM{ADMINS}) {
       if (! $line->[0] || $line->[0] eq '') {
-        $main_column = $html->button($html->color_mark("!!! UNKNOWN", $_COLORS[6]), "index=11&UID=$line->[4]");
+        $main_column = $html->button($html->color_mark("$_UNKNOWN UID:$line->[4]", $_COLORS[6]), "index=11&UID=$line->[4]");
        }
       else {
         $main_column = $html->button($line->[0], "index=11&UID=$line->[4]");

@@ -103,7 +103,7 @@ sub add {
      }
    }
   
-  #$db->{AutoCommit}=0; 
+  $db->{AutoCommit}=0; 
   $user->{BILL_ID} = $attr->{BILL_ID} if ($attr->{BILL_ID});
   
   if ($user->{BILL_ID} > 0) {
@@ -119,28 +119,26 @@ sub add {
     
     my $date = ($DATA{DATE}) ? "'$DATA{DATE}'" : 'now()';
     
-    $self->{debug}=1;
     $self->query($db, "INSERT INTO payments (uid, bill_id, date, sum, dsc, ip, last_deposit, aid, method, ext_id,
            inner_describe) 
            values ('$user->{UID}', '$user->{BILL_ID}', $date, '$DATA{SUM}', '$DATA{DESCRIBE}', INET_ATON('$admin->{SESSION_IP}'), '$Bill->{DEPOSIT}', '$admin->{AID}', '$DATA{METHOD}', 
            '$DATA{EXT_ID}', '$DATA{INNER_DESCRIBE}');", 'do');
     
-#    if (! $self->{errno}){
-#    	$db->commit();
-#     }
-#    else {
-#    	$db->rollback();
-#     } 
+    if (! $self->{errno}){
+ 	    if ($CONF->{payment_chg_activate} && $user->{ACTIVATE} ne '0000-00-00') {
+        $user->change($user->{UID}, { UID      => $user->{UID}, 
+      	                              ACTIVATE => "$admin->{DATE}",
+      	                              EXPIRE   => '0000-00-00' 
+      	                             });
+       }
+      $db->commit(); 
+     }
+    else {
+    	$db->rollback();
+     } 
      
     $self->{PAYMENT_ID}=$self->{INSERT_ID};
-
-    if ($CONF->{payment_chg_activate} && $user->{ACTIVATE} ne '0000-00-00') {
-      $user->change($user->{UID}, { UID      => $user->{UID}, 
-      	                            ACTIVATE => "$admin->{DATE}",
-      	                            EXPIRE   => '0000-00-00' });
-     }
-    
-  }
+   }
   else {
     $self->{errno}=14;
     $self->{errstr}='No Bill';

@@ -92,7 +92,7 @@ sub take {
 
  
   $sum = sprintf("%.6f", $sum);
-  
+  $db->{AutoCommit}=0;
   if ($attr->{BILL_ID}) {
     $user->{BILL_ID} = $attr->{BILL_ID}
    }
@@ -173,7 +173,11 @@ sub take {
             '$user->{COMPANY_VAT}', '$DATA{INNER_DESCRIBE}', '$DATA{METHOD}')", 'do');
 
     if($self->{errno}) {
+      $db->rollback();
       return $self;
+     }
+    else {
+    	$db->commit(); 
      }
    }
   else {

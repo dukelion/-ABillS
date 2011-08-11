@@ -303,16 +303,14 @@ sub accounts_list {
 
  if ($SORT == 1) {
  	 $SORT = "2 DESC, 1";
-         $DESC = "DESC";
- }
+   $DESC = "DESC";
+  }
 
  if($attr->{CUSTOMER}) {
-   $attr->{CUSTOMER} =~ s/\*/\%/ig;
-	 push @WHERE_RULES, "d.customer LIKE '$attr->{CUSTOMER}'"; 
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{CUSTOMER}, 'STR', 'd.customer') };
   }
  elsif($attr->{LOGIN_EXPR}) {
-   $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-	 push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'"; 
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
   }
  
  if ($attr->{FROM_DATE}) {
@@ -376,7 +374,7 @@ sub accounts_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db,   "SELECT d.acct_id, d.date, if(d.customer='-' or d.customer='', pi.fio, d.customer),  sum(o.price * o.counts), 
-     d.payment_id, u.id, a.name, d.created, p.method, d.uid, d.id $self->{EXT_FIELDS}
+     d.payment_id, u.id, a.name, d.created, p.method, d.uid, d.id, u.company_id, c.name $self->{EXT_FIELDS}
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)

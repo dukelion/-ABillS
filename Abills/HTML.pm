@@ -1420,10 +1420,11 @@ sub pages {
  my $self = shift;
  my ($count, $argument, $attr) = @_;
 
+
  return '' if ($self->{MAX_ROWS});
 
  if (defined($attr->{recs_on_page})) {
- 	 $PAGE_ROWS = $attr->{recs_on_page};
+   $PAGE_ROWS = $attr->{recs_on_page};
   }
 
  my $begin=0;   
@@ -1443,7 +1444,6 @@ for(my $i=$begin; ($i<=$count && $i < $PG + $PAGE_ROWS * 10); $i+=$PAGE_ROWS) {
 
 
 return qq{
-
 <div id="rules">
 <ul><li class="center"><a onclick="javascript:showHidePageJump()" ><img src='/img/dropdown.png' /></a> $self->{pages}</li></ul>
 </div>
@@ -1456,16 +1456,7 @@ return qq{
 </div>
 };
 
-#return qq{
-#    <div id='pageJumpWindow'>
-#    	<h2>Перейти к странице:</h2>
-#    	<input id='pagevalue' type='text'  size='5' maxlength=3/>
-#    	<button onclick="checkval('index.cgi?index=$index&pg=')">OK</button>
-#    </div>
-#<div id="rules">
-#<ul><li class="center"><a onclick="javascript:showHidePageJump()" ><img src='/img/dropdown.png' /></a> $self->{pages}</li></ul>
-#</div>
-#};
+
 }
 
 

@@ -698,9 +698,9 @@ sub cards_user_payment () {
  	$user = Users->new($db, $admin, \%conf);
  	
 	if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_OLDSTYLE})) {
-		my $BRUTE_LIMIT = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
-	  my $brute       = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
-    sleep 1;	  
+		$db->{AutoCommit}=0; 
+		my $BRUTE_LIMIT  = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
+	  my $brute        = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
     $Cards->cards_info({ %FORM, UID => $LIST_PARAMS{UID}, PAYMENTS => 1 });
    
     if ($Cards->{error}) {
@@ -740,13 +740,9 @@ sub cards_user_payment () {
     
  
    $user->info($LIST_PARAMS{UID});
-   
-   
-   
    if ($conf{CARDS_DEBUG}) {
      my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER}"  >> /tmp/cards_debug`;	
     }
-   
    
    $payments->add($user, { SUM          => $Cards->{SUM},
                            METHOD       => 2, 
@@ -780,9 +776,7 @@ sub cards_user_payment () {
                                 });
      	}
      
-     cross_modules_call('_payments_maked', { USER => $user, QUITE => 1  });
-     
-
+     cross_modules_call('_payments_maked', { USER => $user, QUITE => 1  });    
 
      #Disable universal card after payment
      if ($Cards->{UID} > 0) {
@@ -806,7 +800,7 @@ sub cards_user_payment () {
                                 });
          }
       }
-     #$db->commit();
+     $db->commit();
      return 0;
     }
    elsif ($payments->{errno}) {
