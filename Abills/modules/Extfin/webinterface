@@ -68,7 +68,7 @@ sub extfin_export_customers {
   	 $pages_qs .= "&INFO_FIELDS=$FORM{INFO_FIELDS}&INFO_FIELDS_COMPANIES=$FORM{INFO_FIELDS_COMPANIES}"
     }
 
-   my $list = $Extfin->customers_list({ %FORM, %LIST_PARAMS });
+   my $list  = $Extfin->customers_list({ %FORM, %LIST_PARAMS });
    my $table = $html->table( { width      => '100%',
                                caption    => "$_USERS",
                                title      => \@TITLE,
