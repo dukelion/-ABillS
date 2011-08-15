@@ -1,0 +1,17 @@
+$_MAPS='Maps';
+$_ANGLE='Angle';
+$_CLEAR='Clear';
+$_STREET='Street';
+$_HOUSE_NUM='House number';
+$_BUILD = 'Build';
+$_FLAT = 'Flat';
+$_DEL_MARKER = 'Marker has been successfully deleted';
+$_DEL_DISTRICT = 'District has been successfully deleted';
+$_ZOOM_IN = 'Zoom in';
+$_ZOOM_OUT = 'Zoom out';
+$_ZOOOM_IN_HERE = 'Zoom in here';
+$_ZOOOM_OUT_HERE = 'Zoom out here';
+$_CENTER_MAP_HERE = 'Center map here';
+$_ROUTES = 'Routes';
+$_ROUTE = 'Route';
+$_FIELDS_FOR_NAME_ARE_REQUIRED = 'Field for \'name\' are required';

@@ -1,0 +1,1243 @@
+ 
+# Зелений -    [online] онлайн
+# Фіолетовий - [offline] оффлайн
+# Жовтий -     [switch] відображення свічів
+# Червоний -   [error] поломки на свічах  
+# Оранжевий -  [inwork] тех. роботи на свічах  
+my %map_colors = ( online   => [0,159,2],
+                   offline  => [131,9,159],
+                   switch   => [247,255,42],
+                   error    => [255,0,0],
+                   inwork   => [255,128,0], 
+                     );
+ 
+use Nas;
+my $Nas = Nas->new($db, $admin, \%conf);
+
+use Maps;
+my $Maps = Maps->new($db, $admin, \%conf);
+
+#use Storage;
+#my $Storage    = Storage->new($db, $admin, \%conf); 
+
+#  check for installed GD
+
+sub check_modules { 
+    if ( eval { require GD }) {
+      GD->import();         # if needed
+     
+     	return 0;
+    
+    } else {
+      print "Content-Type: text/html\n\n";
+      print "Can't load 'GD' ($desc); Please install GD. http://search.cpan.org/dist/GD/";
+      
+      return 1;
+    }
+}
+
+
+#***********************************************************
+# menu: location SYSTEM - > MAPS
+#***********************************************************
+sub maps_add {
+	
+if (check_modules()) {
+  	return 0;
+ }
+elsif ($FORM{MAP_SHOW})  {
+   print generateImage({ DISTRICT_ID => $FORM{DISTRICT_ID}, SHOW_NAS => 1, SHOW_USERS => 1 });
+   return 0;
+}
+
+
+
+#$Maps->{debug}=1;
+my $list = $Maps->districts_list({ PAGE_ROWS => 1500 });
+
+if (!$FORM{district_id}) {
+	my $district_id = 0;	
+
+	
+
+	foreach my $line ( @$list ) {
+		$tpl_option .= "<option value=$line->[0]>$line->[1]</option>";
+	}	
+	
+
+	
+	$html->tpl_show(_include('maps_district_select', 'Maps'), { OPTION => $tpl_option,  });
+
+} else {
+	
+	$district_id = $FORM{district_id};
+	foreach my $line ( @$list ) {
+	  if ($district_id == $line->[0]) {
+	  	$tpl_option .= "<option value=$line->[0] selected=\"selected\">$line->[1]</option>";
+	  } else {
+			$tpl_option .= "<option value=$line->[0]>$line->[1]</option>";
+	  }
+			
+	}
+		$html->tpl_show(_include('maps_district_select', 'Maps'), { OPTION => $tpl_option,  });
+		
+			#print $district_id;
+		$users->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $users, 
+ 		{ OUTPUT2RETURN => 1 });
+ 
+ 
+		$html->tpl_show(_include('maps_add', 'Maps'), $users);
+
+# Javascript show tip' s  **********************************				
+		
+		#$Maps->{debug}=1;
+		my $list = $Maps->districts_list({ ID => $FORM{district_id}, PAGE_ROWS => 100 });
+
+		
+		
+		foreach my $line ( @$list ) {
+			 #print "/// $line->[1] <br>";
+			 maps_map_show({	 DISTRICT_ID => $line->[0], 
+								SHOW_NAS => $show_nas, 
+								SHOW_USERS =>$show_users});
+			 #Function for image show
+			# print "$FORM{SHOW_NAS}";
+		 }
+			
+
+} 	
+####
+
+if ($FORM{change}) {	
+	
+  		#$users->{debug}=1;
+  		#$users->build_change("$FORM{LOCATION_ID}", { %FORM, ID => $FORM{LOCATION_ID} });
+		
+		#$Maps->{debug}=1;
+		$Maps->build_change("$FORM{LOCATION_ID}", { %FORM, ID => $FORM{LOCATION_ID} });
+		
+  		if (! $users->{errno}) {
+    		$html->message('info', $_ADDRESS_BUILD, "$_CHANGED");
+    	}	elsif ($FORM{MAP_SHOW})  {
+   		print generateImage({ DISTRICT_ID => $FORM{DISTRICT_ID} });
+   		return 0;
+		}
+}	
+		
+
+}
+
+
+
+#**********************************************************************************************************
+
+
+#**********************************************************
+# Main map menu. Location: Other - > Maps
+#**********************************************************
+sub maps_main {
+
+if (check_modules()) {
+  	return 0;
+  }
+ elsif ($FORM{MAP_SHOW})  {
+   print generateImage({ DISTRICT_ID => $FORM{DISTRICT_ID}, SHOW_NAS => $FORM{SHOW_NAS}, SHOW_USERS => $FORM{SHOW_USERS}  });
+   return 0;
+ }
+
+
+my $list = $Maps->districts_list({ PAGE_ROWS => 1000 });
+
+foreach my $line (@$list) {
+		$newcheckbox .= "<tr><td>" .$html->form_input('DISTRICT_IDS', $line->[0], { TYPE => 'checkbox', 
+		
+		}, { OUTPUT2RETURN => 1 }). ' '. $line->[1] . "<td></tr>";
+	
+	}	
+	
+
+	
+	$html->tpl_show(_include('maps_view_region', 'Maps'), { DISTRICTS_TABLE => $newcheckbox, 
+	 SHOW_USERS => (defined($FORM{SHOW_USERS})) ? (($FORM{SHOW_USERS}==1) ? 'checked' : undef) : '',  
+	 SHOW_NAS => (defined($FORM{SHOW_NAS})) ? (($FORM{SHOW_NAS}==1) ? 'checked' : undef) : '' 
+	 });
+
+                                         
+	if ($FORM{SHOW}) {
+		if ($FORM{DISTRICT_IDS}) {
+			
+			if ($FORM{SHOW_NAS} and !$FORM{SHOW_USERS} ) {
+					$show_nas = 1;	
+					$show_users = 0;
+			} elsif($FORM{SHOW_USERS} and !$FORM{SHOW_NAS}) {
+					$show_nas = 0;
+					$show_users = 1;
+			} elsif($FORM{SHOW_USERS} and $FORM{SHOW_NAS}) {
+					$show_nas = 1;
+					$show_users = 1;
+			}	
+			
+			#print "///$FORM{SHOW_NAS}<br />";
+			#print "///$FORM{SHOW_USERS}";
+			my @DISTRICTS_ARR = split(/, /, $FORM{DISRICT_IDS});
+			#print (@DISTRICTS_ARR) . "<br />" ;
+		
+		}
+		
+		
+		return 0 if (! $FORM{DISTRICT_IDS});
+		
+		#$users->{debug}=1;
+		my $list = $Maps->districts_list({ ID => $FORM{DISTRICT_IDS} });
+		
+		foreach my $line ( @$list ) {
+			
+			 maps_map_show({	 DISTRICT_ID => $line->[0], 
+								SHOW_NAS => $show_nas, 
+								SHOW_USERS =>$show_users});
+		}
+		
+	}
+}
+
+
+#**************************************************************************************************
+
+
+#***********************************************************	
+# Show map (Javascript tip's)
+#***********************************************************
+sub maps_map_show {
+	my ($attr)=@_;
+	
+	#Select District
+	
+
+#Get users online  *****************************************	
+
+
+#$Maps->{debug}=1;
+my $list = $Maps->users_online_list({ PAGE_ROWS => 4000 });
+
+
+foreach my $line ( @$list ) {
+
+	#print "//// $line->[1]";
+  push @{ $USERS_ONLINE{$line->[2]} }, { 
+  	LOGIN    => $line->[0],
+    UID      => $line->[2],
+    IP       => $line->[1]
+    #DURATION => $line->[9]
+  };
+
+
+}
+	
+#Get all NAS  **********************************************
+#$Nas->{debug}=1;
+#my $list2 = $Nas->list({ SHOW_MAPS => 1,
+#						 DISTRICT_ID => $attr->{DISTRICT_ID},
+#						 PAGE_ROWS => '1000'				 
+#											 });
+my $list2 = $Maps->nas_list({ SHOW_MAPS => 1, PAGE_ROWS => '500', DISTRICT_ID => $attr->{DISTRICT_ID} });											 
+											 
+my %NAS_INFO = ();
+foreach my $line2 ( @$list2 ) {
+
+	push @{ $NAS_INFO{$line2->[15]} }, { 
+		NAS_X    => $line2->[15],
+		NAS_Y    => $line2->[16],
+		IP       => $line2->[3],
+		NAS_ID   => $line2->[0],
+		NAS_NAME => $line2->[1],
+		NAS_TYPE => $line2->[4],
+	};
+
+#print $line2->[0] . " = x <br />";
+#print $line2->[1] . " = y <br />";
+#print "------------";
+
+}	 	
+
+
+#Get all users  ******************************************** 												
+												
+
+
+
+#$Maps->{debug}=1;
+my $list = $Maps->all_users_list({ 	LOCATION_ID => '>0',
+									PAGE_ROWS => '4000'
+						});
+
+my %USERS_INFO = ();
+
+foreach my $line ( @$list ) {
+  push @{ $USERS_INFO{$line->[5]} }, { 
+ 	LOGIN   => $line->[0],
+  	UID     => $line->[7],
+    DEPOSIT => $line->[2],
+    ADDRESS_FLAT => $line-> [6] } ;
+}
+#Get all installations  ******************************************** 	    		
+#$Storage->{debug}=1;
+#my $list5 = $Storage->storage_installation_list({ 
+#													DISTRICTS => $attr->{DISTRICT_ID},
+#													PAGE_ROWS => '2000'
+#												});
+#
+#my %INSTALLATIONS_INFO = ();
+#
+#foreach my $line5 ( @$list5 ) {
+#  push @{ $INSTALLATIONS_INFO{$line5->[2]} }, { 
+# 		LOCATION_ID	=> $line5->[2],
+#  		NAME     	=> $line5->[9],
+#    	COUNT 		=> $line5->[6],
+#    	SUM 		=> $line5-> [22] } ;
+# print $line5->[2] . "<br />";
+# print $line5->[9] . "<br />";
+# print $line5->[6] . "<br />";
+# print $line5->[19] . "<br />";  	
+ 
+ 
+ #}
+
+ 	
+
+
+
+
+#$line->[5+$users->{SEARCH_FIELDS_COUNT}]
+
+#print $line->[0] . "<br />";
+#print $line->[5+$users->{SEARCH_FIELDS_COUNT}] . "<br />";
+#print $line->[2] . "<br />";
+#print $line->[3+$users->{SEARCH_FIELDS_COUNT}] . "<br />";
+	 	
+
+
+
+
+
+#Get builds (javascript)  **********************************
+
+$users->{debug}=1;
+
+$list = $Maps->build_list({ SHOW_MAPS => 1, DISTRICT_ID => $attr->{DISTRICT_ID}, PAGE_ROWS => '2000'  });
+
+my $cnt = 0;
+foreach my $line ( @$list ) {
+	
+	#print "//////////$line->[6]<br />";
+	my $user_info = '';
+	my $user_online = '';
+	#print "$line->[7] ///"; 
+
+	
+	if ($USERS_INFO{$line->[6]}){
+		foreach my $u ( @{ $USERS_INFO{$line->[6]} } ) { 
+		      $user_info .= "<strong><a href=$SELF_URL?index=11&UID=$u->{UID}>$u->{LOGIN}</a></strong> $_FLAT $u->{ADDRESS_FLAT} $_DEPOSIT $u->{DEPOSIT}<br>";
+		      if ($USERS_ONLINE{$u->{UID}}) {
+					 
+		      	  foreach my $uo ( @{ $USERS_ONLINE{ $u->{UID} } } ) {
+		      		
+								$cnt++;   
+		      	    $user_online .= "<strong><a href=$SELF_URL?index=11&UID=$uo->{UID}>$uo->{LOGIN}</a></strong> IP:$uo->{IP}<br>";
+		           }
+		            
+		       }
+		      if ($INSTALLATIONS_INFO{$line->[6]}){
+   				foreach my $install ( @{ $INSTALLATIONS_INFO{$line->[6]} } ) {
+   					$install_info .= "$install->{NAME} $install->{COUNT}" ;
+   			  } 
+  
+  }
+
+    	}
+  } else {
+   	
+   		$user_info = "";
+   		$user_online = "";
+   		$install_info = "";
+  }
+
+#   if ($USERS_ONLINE{$line->[6]}){
+#		foreach my $u ( @{ $USERS_ONLINE{$line->[6]} } ) { 
+#      
+# 
+#      $user_online .= "<strong><a href=$SELF_URL?index=11&UID=$u->{UID}>$u->{LOGIN}</a></strong> IP:$u->{IP}<br>";
+#
+#     }
+#   }
+  # print .'//' . "<br />";
+  $count_offline =   $#{ $USERS_INFO{$line->[6]} }+1;
+	$count_online  =   $cnt;
+	$cnt = 0;
+#***********************************************************
+# template 	(maps_location_info)   +++DISTRICT_ID => $attr->{DISTRICT_ID},
+#***********************************************************
+  $tpl_obj .= $html->tpl_show(_include('maps_location_info', 'Maps'), {
+																				STREET_ID => $line->[4],  
+																				NUMBER => $line->[0],
+																				MAP_X => $line->[7],
+	                                                          					MAP_Y => $line->[8],
+	                                                          					MAP_X2 => $line->[9],
+	                                                          					MAP_Y2 => $line->[10],
+	                                                          					MAP_X3 => $line->[11],
+	                                                          					MAP_Y3 => $line->[12],
+	                                                          					MAP_X4 => $line->[13],
+	                                                          					MAP_Y4 => $line->[14],
+	                                                          					USER_OFFLINE => $user_info,
+	                                                          				  	USERS_ONLINE =>$user_online,
+	                                                          				  	USER_COUNT_OFFLINE => $count_offline,  
+	                                                          					USER_COUNT_ONLINE => $count_online,
+#	                                                          					INSTALL_INFO  => $install_info
+	                                                          					 
+	                                                          					  },
+	                                                          					{ OUTPUT2RETURN => 1 });
+
+# Template switch info and param  ***************************
+#  if $NAS_INFO{MAP_X}
+
+
+	if ($NAS_INFO{$line->[7]}){	
+		
+		foreach my $nas ( @{ $NAS_INFO{$line->[7]} } ) { 
+      $nas_info .= "<strong>IP:</strong> $nas->{IP}<br /><strong>$_NAME:</strong> $nas->{NAS_NAME}<br /><strong>$_TYPE:</strong> $nas->{NAS_TYPE}<br />";
+   	}
+		
+	  $tpl_obj_nas .= $html->tpl_show(_include('maps_nas_info', 'Maps'), {
+  																																		
+  																				MAP_NAS_X => $line->[7],
+	                                                          					MAP_NAS_Y => $line->[8],
+	                                                          					MAP_NAS_X2 =>$line->[7]-9,
+	                                                          					MAP_NAS_Y2 =>$line->[8]-12,
+	                                                          					MAP_NAS_X3 =>$line->[7]+9,
+	                                                          					MAP_NAS_Y3 =>$line->[8]-12,
+																				NAS_INFO   => $nas_info
+
+	                                                          					 
+	                                                          					  },
+	                                                          					{ OUTPUT2RETURN => 1 });	   
+			
+	}
+		$nas_info = '';
+}
+#***********************************************************
+# template 	(maps_show_map)
+#*********************************************************** 
+#print "$attr->{SHOW_USERS}"; 
+#print "$attr->{SHOW_NAS}"; 
+
+ 
+$html->tpl_show(_include('maps_map_show', 'Maps'), { OBJECTS => $tpl_obj, 
+													NAS => $tpl_obj_nas , 
+													DISTRICT_ID => $attr->{DISTRICT_ID}, 
+													SHOW_NAS => $attr->{SHOW_NAS},
+													SHOW_USERS => $attr->{SHOW_USERS} });
+ 	
+ 	
+
+
+}
+
+#*******************************************************************************************************
+	                                       
+
+#**********************************************************
+# Draw image with poligons for builds and nas
+#**********************************************************
+sub generateImage {
+	my ($attr) = @_;
+	#print "Content-Type: text/html\n\n";
+	
+	my $show_nas = $attr->{SHOW_NAS} || 0;
+	my $show_users = $attr->{SHOW_USERS} || 0;
+  my $district_id = $attr->{DISTRICT_ID} || 0;
+  if (!$district_id) { 
+  	
+  	#my $image = '../img/image_not_found.png';
+  	#$im = GD::Image->newFromPng($image,[1]); 
+  	##
+  	$im = new GD::Image(1,1);
+  	$white = $im->colorAllocate(255,255,255);
+  	$im->transparent($white);
+    $im->interlaced('true');
+  	
+  	print "Content-Type: image/png\n\n" ;
+		binmode STDOUT;
+		return $im->png;
+			
+  }
+  if ( 		-f '../../Abills/templates/maps/'.$district_id.'.png' 
+  		or  -f '../../Abills/templates/maps/'.$district_id.'.jpg' 
+  		or  -f '../../Abills/templates/maps/'.$district_id.'.gif'
+  	 ){
+    
+    		if (-f '../../Abills/templates/maps/'.$district_id.'.jpg'){ 
+			 			$image = '../../Abills/templates/maps/'.$district_id.'.jpg';  
+						$im = GD::Image->newFromJpeg($image,[1]);
+    		} elsif(-f '../../Abills/templates/maps/'.$district_id.'.png') {     
+    				 $image = '../../Abills/templates/maps/'.$district_id.'.png';  
+			 			$im = GD::Image->newFromPng($image,[1]);
+				} elsif(-f '../../Abills/templates/maps/'.$district_id.'.gif') { 
+    				$image = '../../Abills/templates/maps/'.$district_id.'.gif';  
+						$im = GD::Image->new($image); 
+				}
+
+# All users show builds  ***********************************		
+		if ($show_users == 1) {	
+			my $list = $Maps->build_list({ SHOW_MAPS   => 1, 
+											DISTRICT_ID => $district_id,
+											PAGE_ROWS => '2000' 
+										});
+
+			foreach my $line ( @$list ) {	
+
+			  $poly_border = new GD::Polygon;
+        $poly_border->addPt($line->[7],$line->[8]);
+        $poly_border->addPt($line->[9],$line->[10]);
+        $poly_border->addPt($line->[11],$line->[12]);
+        $poly_border->addPt($line->[13],$line->[14]);
+        
+        $im->filledPolygon($poly_border, gdTiled);
+
+				$poly = new GD::Polygon;
+        $poly->addPt($line->[7]+2,$line->[8]+2);
+        $poly->addPt($line->[9]-2,$line->[10]+2);
+        $poly->addPt($line->[11]-2,$line->[12]-2);
+        $poly->addPt($line->[13]+2,$line->[14]-2);
+        
+        $im->filledPolygon($poly, $im->colorAllocate(@{ $map_colors{offline} }));
+
+        
+#				$im->line($line->[7],$line->[8],$line->[9],$line->[10],gdTiled);
+			
+#				$poly3 = new GD::Polygon;
+#        $poly3->addPt($line->[7]-20,$line->[8]-40);
+#        $poly3->addPt($line->[9],$line->[10]);
+#        $im->filledPolygon($poly3,$im->colorAllocate(@{ $map_colors{inwork} }));
+			
+#			$im->rectangle($line->[7],$line->[8],$line->[11],$line->[12], gdTiled);
+			
+			}
+
+# Online users show builds**********************************
+				
+			my $list = $Maps->build_online_list({  
+													DISTRICT_ID => $district_id,
+													PAGE_ROWS => '2000' 
+												});
+
+			foreach my $line (@$list) {
+	    		$poly = new GD::Polygon;
+      		$poly->addPt($line->[2]+2,$line->[3]+2);
+      		$poly->addPt($line->[4]-2,$line->[5]+2);
+      		$poly->addPt($line->[6]-2,$line->[7]-2);
+      		$poly->addPt($line->[8]+2,$line->[9]-2);
+        
+      		$im->filledPolygon($poly,$im->colorAllocate(@{ $map_colors{online} }));
+  		}		
+		}	
+		
+		# Show all nas *********************************************		
+		if ($show_nas == 1) {
+		
+			my $list2 = $Nas->list({ SHOW_MAPS => 1,
+									DISTRICT_ID => $district_id,
+									PAGE_ROWS => '1000'			  
+														});
+			foreach my $line2 ( @$list2 ) {
+					$poly2_border = new GD::Polygon;
+    			$poly2_border->addPt($line2->[15],$line2->[16]);
+    			$poly2_border->addPt($line2->[15]-18,$line2->[16]);
+    			$poly2_border->addPt($line2->[15]-9,$line2->[16]-12);
+    	
+					$im->filledPolygon($poly2_border, gdTiled );
+					
+					$poly2 = new GD::Polygon;
+    			$poly2->addPt($line2->[15]-3,$line2->[16]-2);
+    			$poly2->addPt($line2->[15]-15,$line2->[16]-2);
+    			$poly2->addPt($line2->[15]-9,$line2->[16]-9);
+    	
+					$im->filledPolygon($poly2, $im->colorAllocate(@{ $map_colors{switch} }));
+			}
+		}
+		
+					#Debug ----
+					#print $line2->[15] . " = x <br />";
+					#print $line2->[16] . " = y <br />";
+					#print "------------";
+			 			
+
+
+		print "Content-Type: image/png\n\n" ;
+		binmode STDOUT;
+
+		return $im->png;	
+
+	} else {
+		my $image = '../img/image_not_found.png';
+		$im = GD::Image->newFromPng($image,[1]);
+		my $red = $im->colorAllocate(255,0,0); 
+  	$im->string(GD::Font->Large,2,10,"../../Abills/templates/maps/$district_id.png",$red);	
+  	print "Content-Type: image/png\n\n" ;
+		binmode STDOUT;
+		return $im->png;	
+	}
+
+}
+
+
+
+
+
+#***********************************************************
+# menu: Google maps Add
+#***********************************************************
+sub google_maps_add {
+	if ($FORM{message}) {				
+		$html->message('info', $_INFO, "$FORM{message}");	
+	}
+	
+@TYPES = ('Коаксиальный', 'Опто-волоконный');
+@TYPES_COLORS = ('#ff0000', '#000000');
+my $line_size = 10; 
+
+	
+	if ($FORM{change}) {	
+	
+  		#$users->{debug}=1;
+  		$Maps->build_change("$FORM{LOCATION_ID}", { %FORM, ID => $FORM{LOCATION_ID} });
+
+  		if (! $users->{errno}) {
+    		#$html->message('info', $_ADDRESS_BUILD, "$_CHANGED");
+    		$html->tpl_show(_include('maps_redirect', 'Maps'), { 
+						SECTION => '',
+						MESSAGE => "$_CHANGED",
+					
+					});
+    	}	
+    	
+	}
+	elsif($FORM{add}) {	
+	
+  		#$users->{debug}=1;
+  		$Maps->district_change("$FORM{DISTRICT_ID}", { %FORM, ID => $FORM{DISTRICT_ID} });
+
+  		if (! $users->{errno}) {
+    		
+    		$html->tpl_show(_include('maps_redirect', 'Maps'), { 
+						SECTION => '',
+						MESSAGE => "$_ADDED",
+					
+					});
+    	}	
+    	
+	}
+	
+	elsif($FORM{add_route_info}) {	
+	
+  		$Maps->add_route_info({ %FORM });
+
+  		if (! $users->{errno}) {
+    		
+    		$html->tpl_show(_include('maps_redirect', 'Maps'), { 
+						SECTION => '',
+						MESSAGE => "$_ADDED",
+					
+					});
+    	}	
+    	
+	}
+	
+	
+	
+	
+	
+	
+	if ($FORM{chg_route}) {
+		#$Maps->{debug}=1;
+		$Maps->{ACTION}='change_route';
+		$Maps->{ACTION_LNG}=$_CHANGE;
+			
+		$Maps->route_info({ ID => $FORM{chg_route}});
+		$Maps->{TYPES}=$html->form_select("TYPES", 
+							{	SELECTED        => $Maps->{TYPES},
+								SEL_ARRAY		=> [ @TYPES ], 
+								ARRAY_NUM_ID 	=> 0,
+								NO_ID			=> 1
+							});	
+		
+		if (! $Maps->{errno}) {
+			$html->message('info', $_INFO, "$_CHANGING");	
+		}
+		$html->tpl_show(_include('google_add_route', 'Maps'), { %$Maps });
+	}
+	
+	
+		
+	if(defined($FORM{route}) and $FORM{route} eq 'add' and !$FORM{add_route})  {
+		$Maps->{ACTION}='add_route';
+		$Maps->{ACTION_LNG}=$_ADD;
+		
+		$Maps->{TYPES}=$html->form_select("TYPES", 
+					{	SELECTED        => $Maps->{TYPES},
+						SEL_ARRAY		=> [ @TYPES ], 
+						ARRAY_NUM_ID 	=> 0,
+						NO_ID			=> 1
+					});	
+		
+		
+		$html->tpl_show(_include('google_add_route', 'Maps'), { %$Maps });	
+	
+
+	
+	
+	
+	}
+
+
+	
+
+
+	if (defined($FORM{add_route})) {
+	
+		if ($FORM{NAME} ne '') {
+			#$Maps->{debug}=1;
+			$Maps->add_route({ %FORM });
+			if (! $Maps->{errno}) {
+				$html->tpl_show(_include('maps_redirect', 'Maps'), { 
+						SECTION => '&route=add',
+						MESSAGE => "$_ADDED",
+					
+					});		
+			}
+		}
+		else {
+				$Maps->{ACTION}='add_route';
+				$Maps->{ACTION_LNG}=$_ADD;
+			$html->message('info', $_INFO, "$_FIELDS_FOR_NAME_ARE_REQUIRED");
+			$FORM{TYPES}=$html->form_select("TYPES", 
+				{	SELECTED		=> $FORM{TYPES},
+					SEL_ARRAY		=> [ @TYPES ], 
+					ARRAY_NUM_ID 	=> 0,
+					NO_ID			=> 1
+				});
+			$html->tpl_show(_include('google_add_route', 'Maps'), { %$Maps, %FORM });	
+		}
+	}
+	elsif ($FORM{del_route}) {
+		
+		$Maps->del_route( {ID =>$FORM{del_route}} );
+		if (! $Maps->{errno}){
+			$html->tpl_show(_include('maps_redirect', 'Maps'), { 
+						SECTION => '&route=add',
+						MESSAGE => "$_DELETED",
+			});
+		}	
+	}
+	elsif ($FORM{change_route}) {
+		#$Maps->{debug}=1;
+		if ($FORM{NAME} ne '') {
+			$Maps->route_change({ %FORM });
+			if (! $Maps->{errno}) {
+	        	$html->tpl_show(_include('maps_redirect', 'Maps'), { 
+					SECTION => '&route=add',
+					MESSAGE => "$_CHANGED",
+				});			
+	    	}
+		}
+		else {
+			$Maps->{ACTION}='change_route';
+			$Maps->{ACTION_LNG}=$_CHANGE;
+			$FORM{chg_route}=$FORM{ID};
+			$html->message('info', $_INFO, "$_FIELDS_FOR_NAME_ARE_REQUIRED");				
+			$FORM{TYPES}=$html->form_select("TYPES", 
+				{	SELECTED		=> $FORM{TYPES},
+					SEL_ARRAY		=> [ @TYPES ], 
+					ARRAY_NUM_ID 	=> 0,
+					NO_ID			=> 1
+				});
+			$html->tpl_show(_include('google_add_route', 'Maps'), {%$Maps, 
+																	%FORM,
+																   });
+
+		}
+	}
+
+	if(defined($FORM{route}) and $FORM{route} eq 'add' or $FORM{chg_route} or $FORM{add_route} or $FORM{change_route}  ) {
+		
+				my $table = $html->table(	{	width      => '100%',
+												caption    => $_ROUTES,
+												border     => 1,
+												title      => [$_NAME, $_TYPE , $_DESCRIBE, 'NAS1', 'NAS2', 'NAS1 port', 'NAS2 port', $_LENGTH, '-', '-'],
+												cols_align => ['left', 'right', 'right', 'right', 'center', 'center'],
+												pages      => $Maps->{TOTAL}
+											} 
+										);			
+				
+		$list = $Maps->list_routes( { });
+		foreach my $line ( @$list ) {
+			$table->addrow(	$line->[1],  
+							$TYPES[$line->[2]], 
+							$line->[3],
+							$line->[4],
+							$line->[5],
+							$line->[6],
+							$line->[7],
+							$line->[8],   
+							$html->button($_SHOW, "index=$index&chg_route=$line->[0]", { BUTTON => 1 }), 
+							(defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del_route=$line->[0]", { MESSAGE => "$_DEL $line->[1]?", BUTTON => 1 }) : ''
+			);
+		}
+		print $table->show() . $html->br();
+	
+		
+	}
+
+
+
+
+	#-----------google map show --- #
+	if (!$FORM{coordx} and !$FORM{DCOORDX} and !$FORM{route} and !$FORM{add_route} and !$FORM{chg_route} and !$FORM{coordlx} and !$FORM{!$FORM{coordly}}) {
+		
+		
+		$list = $Maps->districts_list({});
+		foreach my $line ( @$list ) {
+			if ($line->[7] == 0 ){
+					next;
+			}
+			$district .= "<a style=\"text-decoration:none; font-weight:bold; color:black; \" href=javascript:chgposition(". $line->[5] . ',' . $line->[6]. ',' . $line->[7]. ")>$line->[1]</a>" . $html->br() . $html->br();	
+			
+		}
+		if (defined($list->[0]->[6]) and defined($list->[0]->[7]) ) {
+		
+			$mapsetcenter = $list->[0]->[5] . ', ' . $list->[0]->[6] . ', ' .  $list->[0]->[7];
+			
+			
+		} else {
+			$mapsetcenter = '';
+		}
+		#$Maps->{debug}=1;
+		
+		#-----------show routes --- #
+		$list_routes = $Maps->list_routes({});
+		foreach my $line2 ( @$list_routes ) {
+			$list_routes_info = $Maps->list_route_info({ ID => $line2->[0] });
+			
+			if(defined($list_routes_info->[0]->[0])) {
+				foreach my $line3 ( @$list_routes_info ) {
+					$route_coords_info .= 'new GLatLng(' . $line3->[3] . ', ' . $line3->[2] . '), '; 
+				}
+				$routes_show .= ' var polyline = new GPolyline([' . $route_coords_info . '], \' '. $TYPES_COLORS[$line2->[2]] .' \', '. $line_size . '); 
+									GEvent.addListener(polyline, \'click\', function(latlng) 
+									{ 
+										     
+        								map.openInfoWindowHtml(latlng, \'<strong>'.$_NAME . '</strong>: '. $line2->[1] . ' <br /><strong>' .$_TYPE . '</strong>: '. $TYPES[$line2->[2]] . ' <br /><strong>' .NAS1 . '</strong>: '. $line2->[4] .'  <br /><strong>' .NAS2 . '</strong>: '. $line2->[5] .'  <br /><strong> NAS1 port </strong>: '. $line2->[6] .'<br /><strong>NAS2 port </strong>: '. $line2->[7] .'<br /><strong>' . $_LENGTH . '</strong>: '. $line2->[8] .'<br /><strong>' . $_DESCRIBE . '</strong>: '. $line2->[3] .'<br /><br /> \'); 
+										
+									}); 
+									map.addOverlay(polyline); ';
+				$route_coords_info = '';
+			}
+			
+		
+		}
+		
+		
+		#print $routes_show;
+		$html->tpl_show(_include('google_map_add', 'Maps'), { DISTRICTS => $district,
+															  MAPSETCENTER => $mapsetcenter,
+															  ROUTES 	   => $routes_show });
+	}
+	
+	#-----------markers info add --- #
+	if (defined($FORM{coordx})) {
+	
+			
+		$users->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $users, 
+ 		{ OUTPUT2RETURN => 1 });
+ 
+ 
+		$html->tpl_show(_include('google_maps_add_form', 'Maps'), { %$users, COORDX =>  $FORM{coordx}, COORDY => $FORM{coordy} });
+		
+			
+	}
+	#-----------districts info add --- #
+	elsif (defined($FORM{DCOORDX})) {	
+		
+			my $DISTRICT_ID = $users->{DISTRICT_ID}=$html->form_select("DISTRICT_ID", 
+									{	SELECTED          => $FORM{DISTRICT_ID},
+										SEL_MULTI_ARRAY   => [ @{ $Maps->districts_list({ }) } ], 
+										MULTI_ARRAY_KEY   => 0,
+										MULTI_ARRAY_VALUE => 1,
+										NO_ID             => 1
+									});
+				
+		
+		$html->tpl_show(_include('google_map_add_district', 'Maps'), { 	DISTRICT_ID => $DISTRICT_ID, 
+																		DCOORDX =>  $FORM{DCOORDX}, 
+																		DCOORDY => $FORM{DCOORDY}, 
+																		ZOOM => $FORM{ZOOM} });
+	}
+	
+	#-----------routes info add --- #
+	elsif (defined($FORM{coordlx})) {	
+		
+			my $ROUTE_ID = $users->{ROUTE_ID}=$html->form_select("ROUTE_ID", 
+									{	SELECTED          => $FORM{ROUTE_ID},
+										SEL_MULTI_ARRAY   => [ @{ $Maps->list_routes({ }) } ], 
+										MULTI_ARRAY_KEY   => 0,
+										MULTI_ARRAY_VALUE => 1,
+										NO_ID             => 1
+									});
+				
+		
+		$html->tpl_show(_include('google_add_route_info', 'Maps'), { 	ROUTE_ID => $ROUTE_ID, 
+																		COORDX =>  $FORM{coordlx}, 
+																		COORDY => $FORM{coordly}, 
+																	 });
+	}
+	
+}
+
+
+#***********************************************************
+# menu: Google maps show
+#***********************************************************
+sub google_maps_show {
+	if ($FORM{message}) {				
+		$html->message('info', $_INFO, "$FORM{message}");	
+	}
+	
+		my ($attr)=@_;
+	
+@TYPES = ('Коаксиальный', 'Опто-волоконный');
+@TYPES_COLORS = ('#ff0000', '#000000');
+my $line_size = 10; 
+
+		if ($FORM{del}) {
+		
+			#$Storage->{debug}=1;
+			$Maps->del_districts({ ID => $FORM{del}});
+			if (! $Maps->{errno}) {
+						$html->tpl_show(_include('maps_redirect', 'Maps'), { 
+						SECTION => '',
+						MESSAGE => "$_DEL_DISTRICT",
+					});		
+				}
+		}
+		elsif($FORM{dcoordx} and $FORM{dcoordy} ) {
+			$Maps->del_build({ DCOORDX => $FORM{dcoordx}, DCOORDY => $FORM{dcoordy}  });
+		if (! $Maps->{errno}) {
+					$html->tpl_show(_include('maps_redirect', 'Maps'), { 
+					SECTION => '',
+					MESSAGE => "$_DEL_MARKER",
+				});		
+			}
+		} 
+
+
+	
+
+#Get users online  *****************************************	
+
+my $list = $Maps->users_online_list({ PAGE_ROWS => 4000 });
+
+
+foreach my $line ( @$list ) {
+
+
+  push @{ $USERS_ONLINE{$line->[2]} }, { 
+  	LOGIN    => $line->[0],
+    UID      => $line->[2],
+    IP       => $line->[1]
+  
+  };
+
+
+}
+	
+#Get all NAS  **********************************************
+#$Nas->{debug}=1;
+my $list2 = $Maps->nas_list({ SHOW_MAPS_GOOGLE => 1, PAGE_ROWS => '500'
+									 
+					 });
+my %NAS_INFO = ();
+foreach my $line2 ( @$list2 ) {
+	
+	push @{ $NAS_INFO{$line2->[15]} }, { 
+		NAS_X    => $line2->[15],
+		NAS_Y    => $line2->[16],
+		IP       => $line2->[3],
+		NAS_ID   => $line2->[0],
+		NAS_NAME => $line2->[1],
+		NAS_TYPE => $line2->[4],
+	};
+
+}	 	
+
+
+#Get all users  ******************************************** 												
+												
+my $list = $Maps->all_users_list({ 	LOCATION_ID => '>0',
+									PAGE_ROWS => '4000'
+						});
+
+my %USERS_INFO = ();
+
+foreach my $line ( @$list ) {
+  push @{ $USERS_INFO{$line->[5]} }, { 
+ 	LOGIN   => $line->[0],
+  	UID     => $line->[7],
+    DEPOSIT => $line->[2],
+    ADDRESS_FLAT => $line-> [6] } ;
+
+}
+#Get all installations  ******************************************** 	    		
+#$Storage->{debug}=1;
+#my $list5 = $Storage->storage_installation_list({ 
+#											DISTRICTS => $attr->{DISTRICT_ID}
+#												});
+#
+#my %INSTALLATIONS_INFO = ();
+#
+#foreach my $line5 ( @$list5 ) {
+#  push @{ $INSTALLATIONS_INFO{$line5->[2]} }, { 
+# 		LOCATION_ID	=> $line5->[2],
+#  		NAME     	=> $line5->[9],
+#    	COUNT 		=> $line5->[6],
+#    	SUM 		=> $line5-> [22] } ;  
+# }
+
+
+#Get builds (javascript)  **********************************
+
+#$users->{debug}=1;
+
+$list = $Maps->build_list({ SHOW_MAPS_GOOGLE => 1, PAGE_ROWS => '3000' });
+
+my $cnt = 0;
+foreach my $line ( @$list ) {
+	
+	#print "//////////$line->[6]<br />";
+	my $user_info = '';
+	my $user_online = '';
+	#print "$line->[7] ///"; 
+
+	
+	if ($USERS_INFO{$line->[6]}){
+		foreach my $u ( @{ $USERS_INFO{$line->[6]} } ) {
+			
+			if ($u->{ADDRESS_FLAT} ne '') {
+				$flat = "$u->{ADDRESS_FLAT}";
+			} else {
+				$flat = '';	
+			}
+			 
+		      $user_info .= "<tr align=center><td><a href=$SELF_URL?index=11&UID=$u->{UID}>$u->{LOGIN}</a></td><td>$u->{DEPOSIT}</td><td>$flat</td></tr>";
+		      #$user_info .= "<strong><a href=$SELF_URL?index=11&UID=$u->{UID}>$u->{LOGIN}</a></strong> $_FLAT: $u->{ADDRESS_FLAT} $_DEPOSIT: $u->{DEPOSIT}<br>";
+		      if ($USERS_ONLINE{$u->{UID}}) {
+					 
+		      	  foreach my $uo ( @{ $USERS_ONLINE{ $u->{UID} } } ) {
+		      		
+								$cnt++;   
+		      	    $user_online .= "<tr align=center><td><a href=$SELF_URL?index=11&UID=$uo->{UID}>$uo->{LOGIN}</a></td><td>$uo->{IP} </td></tr>";
+		           }
+		            
+		       }
+		      if ($INSTALLATIONS_INFO{$line->[6]}){
+   				foreach my $install ( @{ $INSTALLATIONS_INFO{$line->[6]} } ) {
+   					$install_info .= "$install->{NAME} $install->{COUNT}" ;
+   			  } 
+  
+  }
+
+    	}
+  } else {
+   	
+   		$user_info = "";
+   		$user_online = "";
+   		$install_info = "";
+  }
+
+  $count_offline =   $#{ $USERS_INFO{$line->[6]} }+1;
+	$count_online  =   $cnt;
+	$cnt = 0;
+#***********************************************************
+# template 	(maps_location_info)   +++DISTRICT_ID => $attr->{DISTRICT_ID},
+#***********************************************************
+  $tpl_obj .= $html->tpl_show(_include('google_location_info', 'Maps'), {
+																				STREET_ID => $line->[4],  
+																				NUMBER => $line->[0],		
+																				MAP_X => $line->[7],
+	                                                          					MAP_Y => $line->[8],
+	                                                          					MAP_X2 => $line->[9],
+	                                                          					MAP_Y2 => $line->[10],
+	                                                          					MAP_X3 => $line->[11],
+	                                                          					MAP_Y3 => $line->[12],
+	                                                          					MAP_X4 => $line->[13],
+	                                                          					MAP_Y4 => $line->[14],
+	                                                          					USER_OFFLINE => $user_info,
+	                                                          				  	USERS_ONLINE =>$user_online,
+	                                                          				  	USER_COUNT_OFFLINE => $count_offline,  
+	                                                          					USER_COUNT_ONLINE => $count_online,
+#	                                                          					INSTALL_INFO  => $install_info
+	                                                          					 
+	                                                          					  },
+	                                                          					{ OUTPUT2RETURN => 1 });
+
+# Template switch info and param  ***************************
+	
+	
+	if ($NAS_INFO{$line->[7]}){	
+		
+		
+		foreach my $nas ( @{ $NAS_INFO{$line->[7]} } ) { 
+      $nas_info .= "<strong style=font-size:9px; color:green;>$_NAS:</strong><br /><br /><strong>IP:</strong> $nas->{IP}<br /><strong>$_NAME:</strong> $nas->{NAS_NAME}<br /><strong>$_TYPE:</strong> $nas->{NAS_TYPE}<br />";
+   	}
+		
+	  $tpl_obj_nas .= $html->tpl_show(_include('google_nas_info', 'Maps'), {
+  																																		
+														    MAP_NAS_X => $line->[7]+0.0001,
+                                          					MAP_NAS_Y => $line->[8]+0.0001,
+                                          					MAP_NAS_X2 =>$line->[7]-9,
+                                          					MAP_NAS_Y2 =>$line->[8]-12,
+                                          					MAP_NAS_X3 =>$line->[7]+9,
+                                          					MAP_NAS_Y3 =>$line->[8]-12,
+															NAS_INFO   => $nas_info  					 
+	                                                          			  },
+	                                                      { OUTPUT2RETURN => 1 });	   
+			
+	}
+		$nas_info = '';
+}
+#***********************************************************
+# template 	(maps_show_map)
+#*********************************************************** 
+ 		#$users->{debug}=1;
+ 		$list = $Maps->districts_list({});
+		#print $list->[0]->[6];
+		foreach my $line ( @$list ) {
+			if ($line->[7] == 0 ){
+					next;
+			}
+			$deldistrict = (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[1]?", BUTTON => 1 }) : '';
+			$district .=  "<a style=\"text-decoration:none; font-weight:bold; color:black; \" href=javascript:chgposition(". $line->[5] . ',' . $line->[6]. ',' . $line->[7]. ")>$line->[1]</a>" . ' ' . $deldistrict . $html->br() . $html->br();	
+			
+		}
+		if (defined($list->[0]->[6]) and defined($list->[0]->[7]) ) {
+		
+			$mapsetcenter = $list->[0]->[5] . ', ' . $list->[0]->[6] . ', ' .  $list->[0]->[7];
+			
+			
+		} else {
+			$mapsetcenter = '';
+		}
+		
+		#-----------show routes --- #
+		$list_routes = $Maps->list_routes({});
+		foreach my $line2 ( @$list_routes ) {
+			$list_routes_info = $Maps->list_route_info({ ID => $line2->[0] });
+			
+			if(defined($list_routes_info->[0]->[0])) {
+				foreach my $line3 ( @$list_routes_info ) {
+					$route_coords_info .= 'new GLatLng(' . $line3->[3] . ', ' . $line3->[2] . '), '; 
+				}
+				$routes_show .= ' var polyline = new GPolyline([' . $route_coords_info . '], \' '. $TYPES_COLORS[$line2->[2]] .' \', '. $line_size . '); 
+									GEvent.addListener(polyline, \'click\', function(latlng) 
+									{ 
+										     
+        								map.openInfoWindowHtml(latlng, \'<strong>'.$_NAME . '</strong>: '. $line2->[1] . ' <br /><strong>' .$_TYPE . '</strong>: '. $TYPES[$line2->[2]] . ' <br /><strong>' .NAS1 . '</strong>: '. $line2->[4] .'  <br /><strong>' .NAS2 . '</strong>: '. $line2->[5] .'  <br /><strong> NAS1 port </strong>: '. $line2->[6] .'<br /><strong>NAS2 port </strong>: '. $line2->[7] .'<br /><strong>' . $_LENGTH . '</strong>: '. $line2->[8] .'<br /><strong>' . $_DESCRIBE . '</strong>: '. $line2->[3] .'<br /><br /> \'); 
+										
+									}); 
+									map.addOverlay(polyline); ';
+				$route_coords_info = '';
+			}
+			
+		
+		}
+		
+		
+ 
+$html->tpl_show(_include('google_map_show', 'Maps'), { 	OBJECTS => $tpl_obj, 
+														NAS => $tpl_obj_nas , 
+														DISTRICT_ID => $attr->{DISTRICT_ID}, 
+														SHOW_NAS => $attr->{SHOW_NAS},
+														SHOW_USERS => $attr->{SHOW_USERS},
+														DISTRICTS => $district, 
+														DELDISTRICT => $del_district,
+														MAPSETCENTER => $mapsetcenter,
+														ROUTES 	   => $routes_show, });
+
+}
+
+
+
+#***********************************************************
+# menu: Google map show client 
+#***********************************************************
+sub google_maps_show_client {
+	if ($FORM{message}) {				
+		$html->message('info', $_INFO, "$FORM{message}");	
+	}
+	
+		my ($attr)=@_;
+	
+
+#Get builds (javascript)  **********************************
+
+$list = $Maps->build_list({ SHOW_MAPS_GOOGLE => 1, PAGE_ROWS => '3000' });
+
+my $cnt = 0;
+foreach my $line ( @$list ) {
+	
+  $tpl_obj .= $html->tpl_show(_include('google_location_info_client', 'Maps'), {
+																				STREET_ID => $line->[4],  
+																				NUMBER => $line->[0],		
+																				MAP_X => $line->[7],
+	                                                          					MAP_Y => $line->[8],	                                                          					 
+	                                                          					  },
+	                                                          					{ OUTPUT2RETURN => 1 });
+
+
+}
+#***********************************************************
+# template 	(maps_show_map)
+#*********************************************************** 
+ 		#$users->{debug}=1;
+ 		$list = $Maps->districts_list({});
+		#print $list->[0]->[6];
+		foreach my $line ( @$list ) {
+			if ($line->[7] == 0 ){
+					next;
+			}
+			$district .= "<a style=\"text-decoration:none; font-weight:bold; color:black; \" href=javascript:chgposition(". $line->[5] . ',' . $line->[6]. ',' . $line->[7]. ")>$line->[1]</a>" . $html->br() . $html->br();	
+			
+		}
+		if (defined($list->[0]->[6]) and defined($list->[0]->[7]) ) {
+		
+			$mapsetcenter = $list->[0]->[5] . ', ' . $list->[0]->[6] . ', ' .  $list->[0]->[7];
+			
+			
+		} else {
+			$mapsetcenter = '';
+		}
+		
+ 
+$html->tpl_show(_include('google_map_show_client', 'Maps'), { 	OBJECTS => $tpl_obj, 
+														NAS => $tpl_obj_nas , 
+														DISTRICT_ID => $attr->{DISTRICT_ID}, 
+														SHOW_NAS => $attr->{SHOW_NAS},
+														SHOW_USERS => $attr->{SHOW_USERS},
+														DISTRICTS => $district, 
+														MAPSETCENTER => $mapsetcenter, });
+
+}
+
+
+
+
+
+                    
+1
