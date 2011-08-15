@@ -192,6 +192,9 @@ sub customers_list {
 #Show last paymenst
        # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
       # номер телефона, ИНН, основной договор, основной счёт, 
+ #$conf{ADDRESS_REGISTER}=1;
+ 
+ my $ADDRESS_FULL  = ($CONF->{ADDRESS_REGISTER}) ? 'if(u.company_id > 0, company.address, concat(streets.name,\' \', builds.number, \'/\', pi.address_flat)) AS ADDRESS'  : 'if(u.company_id > 0, company.address, concat(pi.address_street,\' \', pi.address_build,\'/\', pi.address_flat)) AS ADDRESS';
  
  $self->query($db, "SELECT  
                          u.uid, 
@@ -202,8 +205,9 @@ sub customers_list {
                          u.gid,
                          g.name,
                          if(company.id IS NULL, 0, 1),
-                         if(u.company_id > 0, company.address, CONCAT(pi.address_street, pi.address_build, pi.address_flat)),
+                         $ADDRESS_FULL,
                          pi.phone,
+                         if(u.company_id > 0, company.contract_sufix, pi.contract_sufix),
                          if(u.company_id > 0, company.contract_id, pi.contract_id),
                          if(u.company_id > 0, company.bill_id, u.bill_id),
                          if(u.company_id > 0, company.bank_account, ''),
@@ -218,6 +222,9 @@ sub customers_list {
      LEFT JOIN bills b ON (u.bill_id = b.id)
      LEFT JOIN bills cb ON  (company.bill_id=cb.id)
      LEFT JOIN groups g ON  (u.gid=g.gid)
+     
+     LEFT JOIN builds ON (builds.id=pi.location_id)
+     LEFT JOIN streets ON (streets.id=builds.street_id)
      
      $WHERE
      GROUP BY 10

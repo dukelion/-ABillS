@@ -61,7 +61,7 @@ sub extfin_export_customers {
      }
 
    my @TITLE = ('ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, 
-                                  $_PHONE, $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT');
+                                  $_PHONE, "$_CONTRACT $_TYPE", $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT');
 
    if ($FORM{INFO_FIELDS} || $FORM{INFO_FIELDS_COMPANIES}) {
   	 push @TITLE, split(/, /, $FORM{INFO_FIELDS}. $FORM{INFO_FIELDS_COMPANIES});
@@ -88,7 +88,7 @@ sub extfin_export_customers {
       my @arr = ();
       if($Extfin->{SEARCH_FIELDS_COUNT}) {
       	for(my $i=0; $i<=$Extfin->{SEARCH_FIELDS_COUNT}; $i++) {
-      		push @arr, $line->[13+$i];
+      		push @arr, $line->[14+$i];
       	 }
        }
       
@@ -105,6 +105,7 @@ sub extfin_export_customers {
     	 $line->[10],
     	 $line->[11],
     	 $line->[12],
+    	 $line->[13],
     	 @arr
     	 );
      }
