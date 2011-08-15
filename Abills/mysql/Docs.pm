@@ -333,6 +333,12 @@ sub accounts_list {
     push @WHERE_RULES, @{ $self->search_expr($attr->{DOC_ID}, 'INT', 'd.acct_id') };
   }
 
+
+ if ($attr->{CONTRACT_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'concat(pi.contract_sufix,pi.contract_id)') };
+  }
+
+
  if ($attr->{SUM}) {
  	  my $value = $self->search_expr($attr->{SUM}, 'INT');
     push @WHERE_RULES, "o.price * o.counts$value";
@@ -370,6 +376,14 @@ sub accounts_list {
    if(u.company_id > 0, c.bill_id, u.bill_id),
    u.company_id";
   }
+
+ $self->{debug}=1;
+ if ($attr->{CONTRACT_ID}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'concat(pi.contract_sufix,pi.contract_id)') };
+    $self->{EXT_FIELDS} .= ",if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id))";
+  }
+
+
 
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
