@@ -378,7 +378,7 @@ sub ashield_user {
             AGENTUUID      => $id,
             GROUPUUID      => $rate,
             GROUPNAME      => '',
-            TARIFFPLANCODE => $rate,
+            TARIFFPLANCODE => $AVD_TPS{$rate},
             TP_ID          => $FORM{TP_ID},
             GRACE_PERIOD   => $station_info->{grace_period}
            });
@@ -1611,7 +1611,7 @@ sub ashield_drweb_report_users {
  my $list              = $Ashield->ashield_avd_list({ PAGE_ROWS => 100000 });
  my %agent_hash        = ();
  foreach my $line (@{ $list }) {
- 	  $agent_hash{$line->[3]}="$line->[8]:$line->[1]:$line->[4]";
+ 	  $agent_hash{$line->[3]}="$line->[8]:$line->[1]:$line->[6]";
   }
  
  my $table = $html->table({ width       => '100%',
@@ -1641,13 +1641,13 @@ sub ashield_drweb_report_users {
 
  	 my ($uid, $login, $tp) = split(/:/, $agent_hash{$line->{id}->[0]});
  	 
- 	 my $tp_name = ($AVD_TPS{$tp}) ? $AVD_TPS{$tp} : $tp; 
+ 	 #my $tp_name = ($AVD_TPS{$tp}) ? $AVD_TPS{$tp} : $tp; 
 
  	 $table->addrow(
  	 $html->button($login, "index=15&UID=$uid"),
  	 $html->color_mark($line->{id}->[0], 'code'), 
  	 convert($line->{name}->[0], { utf82win => 1 }),
- 	 $tp_name,
+ 	 $tp,
  	 $expires,
  	 ((ref $line->{lastseenfrom}->[0] eq 'HASH') ? '-' : "$_DOWNLOADED" ),
  	 $create,
