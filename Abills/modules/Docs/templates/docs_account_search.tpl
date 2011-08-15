@@ -6,5 +6,5 @@
 <tr><td>$_SUM:</td><td><input type=text name=SUM value='%SUM%'></td></tr>
 <tr><td>$_STATUS:</td><td>%PAID_STATUS_SEL%</td></tr>
 <tr><td>$_PAYMENT_METHOD:</td><td>%PAYMENT_METHOD_SEL%</td></tr>
-<tr><td>$_CONTRACT:</td><td><input type=text name=SUM value='%SUM%'></td></tr>
+<tr><td>$_CONTRACT:</td><td><input type=text name=CONTRACT_ID value='%CONTRACT_ID%'></td></tr>
 <input type=hidden name=COMPANY_ID value='$FORM{COMPANY_ID}'>

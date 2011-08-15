@@ -334,11 +334,6 @@ sub accounts_list {
   }
 
 
- if ($attr->{CONTRACT_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'concat(pi.contract_sufix,pi.contract_id)') };
-  }
-
-
  if ($attr->{SUM}) {
  	  my $value = $self->search_expr($attr->{SUM}, 'INT');
     push @WHERE_RULES, "o.price * o.counts$value";
@@ -377,10 +372,12 @@ sub accounts_list {
    u.company_id";
   }
 
- $self->{debug}=1;
  if ($attr->{CONTRACT_ID}) {
-    push @WHERE_RULES, @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'concat(pi.contract_sufix,pi.contract_id)') };
-    $self->{EXT_FIELDS} .= ",if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id))";
+    push @WHERE_RULES, '('. 
+    join('', @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'concat(pi.contract_sufix,pi.contract_id)') } ).  
+    ' OR '.
+    join('', @{ $self->search_expr($attr->{CONTRACT_ID}, 'STR', 'concat(c.contract_sufix,c.contract_id)') } ).  
+    ')';
   }
 
 
@@ -388,7 +385,9 @@ sub accounts_list {
  $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
 
  $self->query($db,   "SELECT d.acct_id, d.date, if(d.customer='-' or d.customer='', pi.fio, d.customer),  sum(o.price * o.counts), 
-     d.payment_id, u.id, a.name, d.created, p.method, d.uid, d.id, u.company_id, c.name $self->{EXT_FIELDS}
+     d.payment_id, u.id, a.name, d.created, p.method, d.uid, d.id, 
+     u.company_id, c.name, if(u.company_id=0, concat(pi.contract_sufix,pi.contract_id), concat(c.contract_sufix,c.contract_id))
+     $self->{EXT_FIELDS}
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN admins a ON (d.aid=a.aid)
@@ -471,7 +470,6 @@ sub account_add {
   $DATA{VAT}     = '' if (! $DATA{VAT});
   $DATA{PAYMENT_ID} = 0 if (!  $DATA{PAYMENT_ID});
 
-#  $self->{debug}=1;
   $self->query($db, "insert into docs_acct (acct_id, date, created, customer, phone, aid, uid, payment_id, vat)
       values ('$DATA{ACCT_ID}', $DATA{DATE}, now(), \"$DATA{CUSTOMER}\", \"$DATA{PHONE}\", 
       '$admin->{AID}', '$DATA{UID}', '$DATA{PAYMENT_ID}', '$DATA{VAT}');", 'do');
