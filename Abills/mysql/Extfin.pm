@@ -91,18 +91,9 @@ sub customers_list {
  
  undef @WHERE_RULES;
 
- # Start letter 
- if ($attr->{FIRST_LETTER}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+ if ($attr->{LOGIN}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
   }
- elsif ($attr->{LOGIN}) {
-    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
-  }
- # Login expresion
- elsif ($attr->{LOGIN_EXPR}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
-  }
- 
 
  if ($attr->{PHONE}) {
  	 push @WHERE_RULES, @{ $self->search_expr($attr->{PHONE}, 'STR', 'pi.phone', { EXT_FIELD => 1 }) };
@@ -143,6 +134,20 @@ sub customers_list {
  if ($attr->{FIO}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{FIO}, 'STR', 'pi.fio' ) };
   }
+
+
+ if ($attr->{INFO_FIELDS}) {
+  	my @info_arr = split(/, /, $attr->{INFO_FIELDS});
+    $self->{SEARCH_FIELDS} .= ', pi.'. join(', pi.', @info_arr);
+    $self->{SEARCH_FIELDS_COUNT} += $#info_arr;
+  }
+
+ if ($attr->{INFO_FIELDS_COMPANIES}) {
+  	my @info_arr = split(/, /, $attr->{INFO_FIELDS_COMPANIES});
+    $self->{SEARCH_FIELDS} .= ', company.'. join(', company.', @info_arr);
+    $self->{SEARCH_FIELDS_COUNT} += $#info_arr;
+  }
+
 
  # Show debeters
  if ($attr->{DEBETERS}) {
@@ -187,9 +192,6 @@ sub customers_list {
 #Show last paymenst
        # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
       # номер телефона, ИНН, основной договор, основной счёт, 
-
-
- #$PAGE_ROWS = 23000;
  
  $self->query($db, "SELECT  
                          u.uid, 
@@ -207,7 +209,7 @@ sub customers_list {
                          if(u.company_id > 0, company.bank_account, ''),
                          if(u.company_id > 0, company.bank_name, ''),
                          if(u.company_id > 0, company.cor_bank_account, '')
-                       
+                       $self->{SEARCH_FIELDS}
                          
      FROM users u
      LEFT JOIN users_pi pi ON (u.uid = pi.uid)
@@ -248,9 +250,9 @@ sub payment_deed {
   }
 
 
- if ($attr->{DATE_FROM}) {
- 	  push @WHERE_RULES, "DATE_FORMAT(f.date, '%Y-%m-%d')>='$attr->{DATE_FROM}' AND DATE_FORMAT(f.date, '%Y-%m-%d')<='$attr->{DATE_TO}'";
- 	  push @WHERE_RULES_DV, "DATE_FORMAT(dv.start, '%Y-%m-%d')>='$attr->{DATE_FROM}' AND DATE_FORMAT(dv.start, '%Y-%m-%d')<='$attr->{DATE_TO}'";
+ if ($attr->{FROM_DATE}) {
+ 	  push @WHERE_RULES, "DATE_FORMAT(f.date, '%Y-%m-%d')>='$attr->{FROM_DATE}' AND DATE_FORMAT(f.date, '%Y-%m-%d')<='$attr->{TO_DATE}'";
+ 	  push @WHERE_RULES_DV, "DATE_FORMAT(dv.start, '%Y-%m-%d')>='$attr->{FROM_DATE}' AND DATE_FORMAT(dv.start, '%Y-%m-%d')<='$attr->{TO_DATE}'";
    }
  elsif ($attr->{MONTH}) {
    push @WHERE_RULES, "DATE_FORMAT(f.date, '%Y-%m')='$attr->{MONTH}'";
@@ -272,8 +274,7 @@ sub payment_deed {
     push @WHERE_RULES_DV, ($attr->{USER_TYPE} == 1) ? "u.company_id>'0'" : "u.company_id='0'"; 
    }
 
- 
-  #Don't use bonus
+
  
  my $WHERE = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES)  : '';
  my $WHERE_DV = ($#WHERE_RULES > -1) ? join(' and ', @WHERE_RULES_DV)  : '';
@@ -282,8 +283,14 @@ sub payment_deed {
  my $info_fields_count = 0;
  if ($attr->{INFO_FIELDS}) {
   	my @info_arr = split(/, /, $attr->{INFO_FIELDS});
-    $info_fields = ', '. join(', ', @info_arr);
+    $info_fields = ', pi.'. join(', pi.', @info_arr);
     $info_fields_count = $#info_arr;
+  }
+
+ if ($attr->{INFO_FIELDS_COMPANIES}) {
+  	my @info_arr = split(/, /, $attr->{INFO_FIELDS});
+    $info_fields .= ', company.'. join(', company.', @info_arr);
+    $info_fields_count += $#info_arr;
   }
 
 
@@ -353,42 +360,6 @@ sub payment_deed {
     	$PAYMENT_DEED{$line->[0]}+=$line->[1];
      }
    }
-  
-#  #Ipn
-#  $self->query($db, "SELECT
-# if(u.company_id > 0, company.bill_id, u.bill_id),
-# sum(dv.sum),
-# if(u.company_id > 0, company.name, if(pi.fio<>'', pi.fio, u.id)),
-# if(u.company_id > 0, company.name, if(pi.fio<>'', pi.fio, u.id)),
-#  if(u.company_id > 0, 1, 0),
-#  if(u.company_id > 0, company.vat, 0),
-#  u.uid $info_fields
-#     FROM (users u, ipn_log dv)
-#     LEFT JOIN users_pi pi ON (u.uid = pi.uid)
-#     LEFT JOIN companies company ON  (u.company_id=company.id)
-#     WHERE u.uid=dv.uid and $WHERE_DV
-#     GROUP BY 1
-#     ORDER BY 2 DESC
-#   ;");
-#
-#
-#  foreach my $line (@{ $self->{list} } ) {
-#    if (! $PAYMENT_DEED{$line->[0]}) {
-#  	  $PAYMENT_DEED{$line->[0]}+=$line->[1];
-#  	  #Name|Type|VAT
-#  	  $NAMES{$line->[0]}="$line->[2]|$line->[4]|$line->[5]";
-#  	  
-#   	  if ($info_fields_count > 0) {
-#  	    for (my $i=0; $i<=$info_fields_count; $i++) {
-#  	       $NAMES{$line->[0]}.="|". $line->[8+$i];
-# 	      }
-# 	     }
-#  	 }
-#    else {
-#    	$PAYMENT_DEED{$line->[0]}+=$line->[1];
-#     }
-#   }
-#  
 
   $self->{PAYMENT_DEED}=\%PAYMENT_DEED;
   $self->{NAMES}=\%NAMES;
@@ -440,8 +411,8 @@ sub extfin_report_deeds {
  if ($attr->{MONTH}) {
    push @WHERE_RULES, "report.period='$attr->{MONTH}'";
   }
- elsif ($attr->{DATE_FROM}) {
- 	 push @WHERE_RULES, "report.period>='$attr->{DATE_FROM}' AND report.period<='$attr->{DATE_TO}'";
+ elsif ($attr->{FROM_DATE}) {
+ 	 push @WHERE_RULES, "report.period>='$attr->{FROM_DATE}' AND report.period<='$attr->{TO_DATE}'";
   }
 
  if ($attr->{GID}) {

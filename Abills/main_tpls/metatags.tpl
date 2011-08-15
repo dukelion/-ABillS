@@ -27,6 +27,11 @@ body {
 
 A:hover {text-decoration: none; color: %_COLOR_9%;}
 
+.small {
+  font-size: 11px;
+  font-style: italic; 
+}
+
 th.small {
   color: %_COLOR_0%;
   font-size: 12px;

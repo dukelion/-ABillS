@@ -1,10 +1,10 @@
-<FORM action=$SELF_URL METHOD=POST > 
-<input type=hidden name=qindex value=$index>
+<FORM action=$SELF_URL METHOD=POST name='extfin'> 
+<input type=hidden name=index value=$index>
 <table width=500 border=0>
 <tr><td>$_GROUP:</td><td>%GROUP_SEL%</td></tr>
 <tr><td>$_DATE:</td><td><TABLE width=100%>
-<tr><td>$_FROM:</td><td>%DATE_FROM%</td></tr> 
-<tr><td>$_TO:</td><td>%DATE_TO%</td></tr>
+<tr><td>$_FROM:</td><td>%FROM_DATE%</td></tr> 
+<tr><td>$_TO:</td><td>%TO_DATE%</td></tr>
 </table>
 
 </td></tr>
@@ -13,7 +13,8 @@
 <tr bgcolor=$_COLORS[2]><td>$_USER $_TYPE:</td><td>%USER_TYPE_SEL%</td></tr>
 <tr bgcolor=$_COLORS[2]><td>$_TOTAL:</td><td><input type=checkbox name=TOTAL_ONLY value=1></td></tr>
 
-<tr><td>$_INFO_FIELDS:</td><td>%INFO_FIELDS%</td></tr>
+<tr><td>$_INFO_FIELDS <br>($_USERS):</td><td>%INFO_FIELDS%</td></tr>
+<tr bgcolor=$_COLORS[2]><td>$_INFO_FIELDS <br>($_COMPANIES):</td><td>%INFO_FIELDS_COMPANIES%</td></tr>
 
 <tr><td>XML:</td><td><input type=checkbox name=xml value=1></td></tr>
 <tr><td>$_ROWS:</td><td><input type=text name=PAGE_ROWS value='$PAGE_ROWS'></td></tr>

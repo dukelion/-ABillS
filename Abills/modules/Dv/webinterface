@@ -2517,9 +2517,9 @@ if (! $LIST_PARAMS{UID} && $FORM{LOGIN_EXPR}) {
   my $users = Users->new($db, $admin, \%conf); 
   my $list = $users->list( { LOGIN_EXPR => $FORM{LOGIN_EXPR} } );
   if ($users->{TOTAL} == 1) {
-	  $LIST_PARAMS{UID}=$list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
-	  $FORM{UID}=$LIST_PARAMS{UID};
-	  $UID = $LIST_PARAMS{UID};
+	  $LIST_PARAMS{UID}= $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
+	  $FORM{UID}       = $LIST_PARAMS{UID};
+	  $UID             = $LIST_PARAMS{UID};
 	  $LIST_PARAMS{ACTIVATE}=$list->[0]->[8+$users->{SEARCH_FIELDS_COUNT}];
    }
   else {

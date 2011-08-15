@@ -18,35 +18,27 @@ my $Extfin = Extfin->new($db, $admin, \%conf);
 # Snyatiya
 sub extfin_export_customers {
 	my ($attr) = @_;
-  
-#  my $aaa = `echo "1C - $ENV{HTTP_USER_AGENT}" >> /tmp/user_agent`;
-  
+
   $Extfin->{ACTION}='get';
   $Extfin->{ACTION_LNG}=$_SHOW;
   
- 
   my ($Y, $M, $D)=split(/-/, $DATE);
   $FORM{MONTH}="$Y-$M" if (! $FORM{MONTH});
-  
-  if ($FORM{xml}) {
-    print "Content-Type: text/xml\n\n";
-    print "<?xml version=\"1.0\"  encoding=\"windows-1251\" ?>\n";
-   }
-  elsif($FORM{qindex}) {
-    print "Content-Type: text/html\n\n";
-   }
- 
+  $pages_qs .= "&TYPE=$FORM{TYPE}"; 
+
   if ($FORM{TYPE} && $FORM{TYPE} eq 'CUSTOMERS') {
     $LIST_PARAMS{PAGE_ROWS} = 1000000;
     $LIST_PARAMS{PG}        = $FORM{PG} || 0;
     $LIST_PARAMS{USER_TYPE} = $FORM{USER_TYPE};
-
+    $pages_qs .= "&USER_TYPE=$FORM{USER_TYPE}";
     if ($LIST_PARAMS{USER_TYPE} == 0 && $FORM{TOTAL_ONLY}) {
+    	$pages_qs .= "&TOTAL_ONLY=$FORM{TOTAL_ONLY}";
       my $table = $html->table( { width      => '100%',
                                 caption    => "$_USERS",
                                 title      => ['ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, 
                                   $_PHONE, $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT' ],
-                                ID         => 'EXTFIN_CUSTOMERS',
+                                ID         => 'EXTFIN_CUSTOMERS',,
+                                qs         => $pages_qs,
                                 rows       => [ [ 10000000,
     	  "$_TOTAL $_USERS" ,
     	  "$_TOTAL $_USERS",
@@ -59,7 +51,8 @@ sub extfin_export_customers {
     	 '',
     	 '',
     	 '',
-    	 '']]
+    	 '']],
+    	                        EXPORT      => 'XML:xml=1'
                                 
                            });
     	
@@ -67,12 +60,21 @@ sub extfin_export_customers {
     	return 0;
      }
 
-    my $list = $Extfin->customers_list({ %LIST_PARAMS });
-    my $table = $html->table( { width      => '100%',
-                                caption    => "$_USERS",
-                                title      => ['ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, 
-                                  $_PHONE, $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT' ],
-                                ID         => 'EXTFIN_CUSTOMERS'
+   my @TITLE = ('ID', $_NAME, $_FIO, "$_GROUP ID", "$_GROUP", $_TYPE, $_ADDRESS, 
+                                  $_PHONE, $_CONTRACT_ID, 'BILL ID', "BANK ACCOUNT", 'BANK NAME', 'COR ACCT');
+
+   if ($FORM{INFO_FIELDS} || $FORM{INFO_FIELDS_COMPANIES}) {
+  	 push @TITLE, split(/, /, $FORM{INFO_FIELDS}. $FORM{INFO_FIELDS_COMPANIES});
+  	 $pages_qs .= "&INFO_FIELDS=$FORM{INFO_FIELDS}&INFO_FIELDS_COMPANIES=$FORM{INFO_FIELDS_COMPANIES}"
+    }
+
+   my $list = $Extfin->customers_list({ %FORM, %LIST_PARAMS });
+   my $table = $html->table( { width      => '100%',
+                               caption    => "$_USERS",
+                               title      => \@TITLE,
+                               ID         => 'EXTFIN_CUSTOMERS',
+                               qs         => $pages_qs,
+                               EXPORT     => ' XML:&xml=1'
                            });
 
 
@@ -81,6 +83,15 @@ sub extfin_export_customers {
       # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
       # номер телефона, ИНН, основной договор, основн 
       # номер телефона, ИНН, основной договор, основной счёт, 
+      
+      #Info fields
+      my @arr = ();
+      if($Extfin->{SEARCH_FIELDS_COUNT}) {
+      	for(my $i=0; $i<=$Extfin->{SEARCH_FIELDS_COUNT}; $i++) {
+      		push @arr, $line->[13+$i];
+      	 }
+       }
+      
     	$table->addrow($line->[0],
     	 $line->[1],
     	 $line->[2],
@@ -93,26 +104,19 @@ sub extfin_export_customers {
     	 $line->[9],
     	 $line->[10],
     	 $line->[11],
-    	 $line->[12]
+    	 $line->[12],
+    	 @arr
     	 );
      }
 
      print $table->show();
-     
-     
      return 0;
    }
   elsif ($FORM{TYPE} && $FORM{TYPE} eq 'PAYMENT_DEED') {
     
     if ($FORM{PERIOD} && $FORM{PERIOD} =~ /(\d{2})\.(\d{2})\.(\d{4})\-(\d{2})\.(\d{2})\.(\d{4})/) {
-      $LIST_PARAMS{DATE_FROM}="$3-$2-$1";
-    	$LIST_PARAMS{DATE_TO}="$6-$5-$4";
-     }
-    elsif ($FORM{FROM_Y}) {
-      $FORM{FROM_M} = sprintf("%.2d", $FORM{FROM_M}+1);
-      $FORM{TO_M}   = sprintf("%.2d", $FORM{TO_M}+1);
-      $LIST_PARAMS{DATE_FROM}="$FORM{FROM_Y}-$FORM{FROM_M}-$FORM{FROM_D}";
-      $LIST_PARAMS{DATE_TO}="$FORM{TO_Y}-$FORM{TO_M}-$FORM{TO_D}";
+      $LIST_PARAMS{FROM_DATE}="$3-$2-$1";
+    	$LIST_PARAMS{TO_DATE}="$6-$5-$4";
      }
     else {
       $LIST_PARAMS{MONTH}=$FORM{MONTH};
@@ -122,12 +126,21 @@ sub extfin_export_customers {
     $LIST_PARAMS{USER_TYPE}   = $FORM{USER_TYPE};
     $LIST_PARAMS{TOTAL_ONLY}  = $FORM{TOTAL_ONLY};
    
-    my $list = $Extfin->payment_deed({ %LIST_PARAMS });
+    my $list = $Extfin->payment_deed({ %FORM, %LIST_PARAMS });
+
+    my @TITLE = ('ID', $_NAME, $_TYPE, "$_SUM", "$_VAT", "$_TOTAL");
+    if ($FORM{INFO_FIELDS} || $FORM{INFO_FIELDS_COMPANIES}) {
+  	 push @TITLE, split(/, /, $FORM{INFO_FIELDS}. $FORM{INFO_FIELDS_COMPANIES});
+  	 $pages_qs .= "&INFO_FIELDS=$FORM{INFO_FIELDS}&INFO_FIELDS_COMPANIES=$FORM{INFO_FIELDS_COMPANIES}"
+    }
+
 
     my $table = $html->table({ width      => '100%',
-                               caption    => "PAYMENT_DEED $_DATE: $LIST_PARAMS{DATE_FROM}/$LIST_PARAMS{DATE_TO}",
-                               title      => ['ID', $_NAME, $_TYPE, "$_SUM", "$_VAT", "$_TOTAL" ],
+                               caption    => "PAYMENT_DEED $_DATE: $FORM{FROM_DATE}/$FORM{TO_DATE}",
+                               title      => \@TITLE,
                                ID         => 'PAYMENT_DEED',
+                               qs         => $pages_qs,
+                               EXPORT     => ' XML:&xml=1'
                              });
 
 
@@ -171,7 +184,7 @@ sub extfin_export_customers {
    }
   elsif ($FORM{get}) {
     print "Content-Type: text/plain\n\n";
-    my $list = $Extfin->customers_list({ %LIST_PARAMS });
+    my $list = $Extfin->customers_list({ %FORM, %LIST_PARAMS });
     my $output = '';
     foreach my $line (@$list) {
       # Group, Kod, Наименование, Вид контрагента, Полное наименование, Юредический адрес, Почтовый адрес, 
@@ -222,10 +235,10 @@ sub extfin_export_customers {
  	                                  });
   
   
-  $Extfin->{DATE_FROM}=$html->date_fld('FROM_', { MONTHES => \@MONTHES} );
-  $Extfin->{DATE_TO}=$html->date_fld('TO_', { MONTHES => \@MONTHES } );
+  $Extfin->{FROM_DATE}=$html->date_fld2('FROM_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'extfin' } );
+  $Extfin->{TO_DATE}=$html->date_fld2('TO_DATE', { MONTHES => \@MONTHES, FORM_NAME => 'extfin' } );
 
-  #Info fields
+  #Users Info fields
   my $if_list = $users->config_list({ PARAM => 'ifu*'  });
   foreach my $line (@$if_list) {
     my $field_id       = '';
@@ -233,16 +246,30 @@ sub extfin_export_customers {
   	  $field_id = $1;
      }
 
-    my($type, $name)=split(/:/, $line->[1]);
+    my($position, $type, $name, $user_portal)=split(/:/, $line->[1]);
 
     my $input = '';
  	  $Extfin->{INFO_FIELDS} .= $html->form_input('INFO_FIELDS', $field_id, { TYPE  => 'checkbox',  
  		                                        STATE => ($FORM{$field_id}) ? 1 : undef  });
-    $Extfin->{INFO_FIELDS} .= " $name<br>\n";
+    $Extfin->{INFO_FIELDS} .= (eval "\"$name\"").$html->br();
    }
   
-    
-  
+  #Companies Info list
+  my $list = $users->config_list({ PARAM => 'ifc*', SORT => 2 });
+  foreach my $line (@$list) {
+    my $field_id       = '';
+
+    if ($line->[0] =~ /ifc(\S+)/) {
+    	$field_id = $1;
+     }
+
+    my($position, $type, $name)=split(/:/, $line->[1]);
+    my $input = '';
+ 	  $Extfin->{INFO_FIELDS_COMPANIES} .= $html->form_input('INFO_FIELDS_COMPANIES', $field_id, { TYPE  => 'checkbox',  
+ 		                                        STATE => ($FORM{$field_id}) ? 1 : undef  });
+    $Extfin->{INFO_FIELDS_COMPANIES} .= (eval "\"$name\"").$html->br();
+   }
+
   $html->tpl_show(_include('extfin_export_customers', 'Extfin'), $Extfin);
 }
 
@@ -263,7 +290,6 @@ sub extfin_monthly_summary {
  $conf{START_PERIOD_DAY} = 1 if (! $conf{START_PERIOD_DAY});
 
  if ($d != $conf{START_PERIOD_DAY}) {
-
    $DEBUG .= $debug_output;
    return $debug_output;
   }
@@ -277,11 +303,8 @@ sub extfin_monthly_summary {
    $m--;
   }
  
- my $period = sprintf("%d-%.2d",  $y, $m);
-
-  
+ my $period = sprintf("%d-%.2d",  $y, $m);  
  $debug_output .= "Extfin make summary. Period: $period\n" if ($debug > 1);
-
  my $list = $Extfin->payment_deed({ MONTH => "$period" });
 
  foreach my $id ( keys %{ $Extfin->{PAYMENT_DEED} } ) {
@@ -365,17 +388,14 @@ sub extfin_paids {
     $Extfin->paid_periodic_add({ %FORM });
     if (! $Extfin->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
-     }
-  	
+     }  	
    }
   elsif ($FORM{add}) {
     if (! $permissions{0}{1} ) {
       $html->message('err', $_ERROR, "Access Deny");  	
     	return 0;
      }
-  	$FORM{DATE_M}++;
-    $Extfin->paid_add({ DATE => "$FORM{DATE_Y}-$FORM{DATE_M}-$FORM{DATE_D}",
-    	                  %FORM });
+    $Extfin->paid_add({ %FORM });
     if (! $Extfin->{errno}) {
       $html->message('info', $_INFO, "$_ADDED");	
      }
@@ -386,10 +406,9 @@ sub extfin_paids {
     	return 0;
      }
 
-    $FORM{DATE_M}++;
     $Extfin->paid_change({ %FORM, 
-    	  DATE => "$FORM{DATE_Y}-$FORM{DATE_M}-$FORM{DATE_D}",
-    	  STATUS_DATE => ($FORM{STATUS} && $FORM{STATUS} > 0) ? $DATE : '' });
+                       	   STATUS_DATE => ($FORM{STATUS} && $FORM{STATUS} > 0) ? $DATE : '' });
+
     if (! $Extfin->{errno}) {
       $html->message('info', $_INFO, "$_CHANGED");	
      }
@@ -437,7 +456,7 @@ sub extfin_paids {
  	                               });
 
 
- $Extfin->{DATE_LIST} = $html->date_fld('DATE_', { MONTHES => \@MONTHES, DATE => $Extfin->{DATE} || $DATE } );
+ $Extfin->{DATE_LIST} = $html->date_fld2('DATE', { MONTHES => \@MONTHES, DATE => $Extfin->{DATE} || $DATE } );
 
 
 
@@ -647,12 +666,12 @@ if ($FORM{show} || $FORM{qindex}) {
   	$LIST_PARAMS{MONTH}=$FORM{MONTH};
    }
   elsif($FORM{PERIOD} && $FORM{PERIOD} =~ /(\d{2})\.(\d{2})\.(\d{4})-(\d{2})\.(\d{2})\.(\d{4})/) {
-    $LIST_PARAMS{DATE_FROM}= "$3-$2";
-    $LIST_PARAMS{DATE_TO}  = "$6-$5";
+    $LIST_PARAMS{FROM_DATE}= "$3-$2";
+    $LIST_PARAMS{TO_DATE}  = "$6-$5";
    }
   elsif ($FORM{FROM_M}) {
-    $LIST_PARAMS{DATE_FROM}="$FORM{FROM_Y}-". sprintf("%.2d", $FORM{FROM_M}+1);
-    $LIST_PARAMS{DATE_TO}="$FORM{TO_Y}-". sprintf("%.2d", $FORM{TO_M}+1);
+    $LIST_PARAMS{FROM_DATE}="$FORM{FROM_Y}-". sprintf("%.2d", $FORM{FROM_M}+1);
+    $LIST_PARAMS{TO_DATE}="$FORM{TO_Y}-". sprintf("%.2d", $FORM{TO_M}+1);
    }
 
   if ($FORM{xml}) {

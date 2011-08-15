@@ -1298,5 +1298,6 @@ INSERT INTO `nas` (id, name, nas_identifier, descr, ip, nas_type, auth_type, mng
 INSERT INTO `ippools` ( id, nas, ip, counts, name, priority) VALUES (1,1,167772161,256,'Main',0);
 
 INSERT INTO `nas_ippools` (pool_id, nas_id) VALUES (1,1);
+INSERT INFO `msgs_chapters` (name) VALUES ('-');
 
 

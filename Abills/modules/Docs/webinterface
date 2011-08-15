@@ -556,7 +556,10 @@ else {
  
   $info{CUSTOMER_TYPE_SEL}      = $html->form_select('CUSTOMER_TYPE', 
                                 { SELECTED     => $FORM{CUSTOMER_TYPE} || '',
- 	                                SEL_HASH     => { '' => $_ALL, '=0' => $_USERS, ">0" => $_COMPANIES },
+ 	                                SEL_HASH     => { ''   => $_ALL, 
+ 	                                	                '=0' => $_USERS, 
+ 	                                	                ">0" => $_COMPANIES 
+ 	                                	               },
  	                                NO_ID        => 1,
  	                                SORT_KEY     => 1
  	                               });
@@ -690,7 +693,8 @@ foreach my $line (@$list) {
    );  
 
   if ( ! $user->{UID}  ) {
-    push @rows, $html->button($line->[5], "index=11&UID=$line->[9]").(($line->[11]) ? $html->br()."$line->[12]" : ''),
+    push @rows, $html->button($line->[5], "index=11&UID=$line->[9]").(($line->[11]) ? $html->br().
+    $html->button(substr($line->[12], 0,30), "index=13&COMPANY_ID=$line->[11]", { CLASS => 'small' }) : ''),
     "$line->[6]", 
     "$line->[7]", 
     ($PAYMENTS_METHODS{$line->[8]}) ? $PAYMENTS_METHODS{$line->[8]} : $line->[8], 
