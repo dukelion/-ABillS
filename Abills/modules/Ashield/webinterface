@@ -344,7 +344,7 @@ sub ashield_user {
   	    	if ($dr_web_errors{$result_hash->{error}->[0]->{code}->[0]}) {
   	    		$message = $dr_web_errors{$result_hash->{error}->[0]->{code}->[0]};
   	    		if ($result_hash->{error}->[0]->{code}->[0] == 18) {
-  	    			$Ashield->user_add({ %FORM, UID => $LIST_PARAMS{UID} });
+  	    			$Ashield->user_add({ %FORM, UID => $LIST_PARAMS{UID}, TARIFFPLANCODE => $FORM{'AVD_TP_ID_'.$FORM{TP_ID}} });
   	    		 }
   	    	 }
   	    	else {
@@ -374,13 +374,13 @@ sub ashield_user {
           
           my $id = $result_hash->{stations}->[0]->{station}->{$name}->{id};
           $Ashield->ashield_avd_add({ UID => $LIST_PARAMS{UID},
-            STATE        => 0, 
-            AGENTUUID    => $id,
-            GROUPUUID    => '',
-            GROUPNAME    => '',
-            TARIFFPLANCODE => $AVD_TPS_REV{$rate},
-            TP_ID        => $FORM{TP_ID},
-            GRACE_PERIOD => $station_info->{grace_period}
+            STATE          => 0, 
+            AGENTUUID      => $id,
+            GROUPUUID      => $rate,
+            GROUPNAME      => '',
+            TARIFFPLANCODE => $rate,
+            TP_ID          => $FORM{TP_ID},
+            GRACE_PERIOD   => $station_info->{grace_period}
            });
           
           }
@@ -1531,7 +1531,6 @@ $html->tpl_show(_include('ashield_message', 'Ashield'));
 #**********************************************************
 sub ashield_drweb_report_users {
 
-
  reports({ DATE          => $FORM{DATE}, 
   	        REPORT        => '',
   	        HIDDEN        => \%HIDDEN,
@@ -1593,14 +1592,26 @@ sub ashield_drweb_report_users {
  	   }
   }
 
+
+  my $ashield_tps_info=ashield_drweb_tps();
+  my $list = $Tariffs->list({ 
+	                             #CHANGE_PRICE => '<='. ($user->{DEPOSIT} + $user->{CREDIT}), 
+ 	                             MODULE       => 'Ashield',
+ 	                             COMMENTS     => '*'
+ 	                           });
+
+  foreach my $line (@$list) {
+    $AVD_TPS{$ashield_tps_info->{$line->[1]}->{ID}}=$line->[1];
+   }
+
+
  my $result_hash       = ashield_drweb_request('api/2.0/get-customer-info.ds', { }); 
  my $drweb_total_users = $result_hash->{customers}->[0]->{total};
  my %drweb_logins      = ();
  my $list              = $Ashield->ashield_avd_list({ PAGE_ROWS => 100000 });
  my %agent_hash        = ();
  foreach my $line (@{ $list }) {
- 	  $agent_hash{$line->[3]}="$line->[8]:$line->[1]:$line->[6]";
- 	  #print "$line->[2]}=$line->[0]";
+ 	  $agent_hash{$line->[3]}="$line->[8]:$line->[1]:$line->[4]";
   }
  
  my $table = $html->table({ width       => '100%',
@@ -1629,12 +1640,14 @@ sub ashield_drweb_report_users {
  	 my $changed = "$1-$2-$3 $4:$5:$6";
 
  	 my ($uid, $login, $tp) = split(/:/, $agent_hash{$line->{id}->[0]});
+ 	 
+ 	 my $tp_name = ($AVD_TPS{$tp}) ? $AVD_TPS{$tp} : $tp; 
 
  	 $table->addrow(
  	 $html->button($login, "index=15&UID=$uid"),
  	 $html->color_mark($line->{id}->[0], 'code'), 
  	 convert($line->{name}->[0], { utf82win => 1 }),
- 	 $tp,
+ 	 $tp_name,
  	 $expires,
  	 ((ref $line->{lastseenfrom}->[0] eq 'HASH') ? '-' : "$_DOWNLOADED" ),
  	 $create,

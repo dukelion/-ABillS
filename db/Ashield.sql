@@ -14,7 +14,7 @@ CREATE TABLE `ashield_avd_log` (
   `agentuuid` VARCHAR(36) NOT NULL DEFAULT '',
   `groupuuid` VARCHAR(36) NOT NULL DEFAULT '',
   `groupname` VARCHAR(20) NOT NULL DEFAULT '',
-  `tariffplancode` VARCHAR(20) NOT NULL DEFAULT '',
+  `tariffplancode` VARCHAR(40) NOT NULL DEFAULT '',
   `tp_id` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
   `date` DATETIME NOT NULL,
   `work_period_begin` DATE NOT NULL,
