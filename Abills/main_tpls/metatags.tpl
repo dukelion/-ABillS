@@ -273,12 +273,12 @@ a.add {
 
 a.del { 
  	background:url(/img/button_del.png) no-repeat center;
- 	padding-left:22px;
-	padding-top:5px;
-	margin:0;
-	display:block;
-	overflow:hidden; 
- 	text-indent:-9000px;
+        padding-left:22px;
+        padding-top:5px;
+        margin:0;
+        display:block;
+        overflow:hidden;
+        text-indent:-9000px;
 }
 
 a.users {

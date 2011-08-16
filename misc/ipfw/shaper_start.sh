@@ -10,7 +10,7 @@
 #
 #   abills_shaper_enable="YES" - Enable abills shapper
 #
-#   abills_shaper_if="" - ABillS shepper interface default ng*
+#   abills_shaper_if="" - ABillS shapper interface default ng*
 #
 #   abills_nas_id="" - ABillS NAS ID default 1
 #

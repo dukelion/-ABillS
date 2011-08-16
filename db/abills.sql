@@ -1233,12 +1233,6 @@ CREATE TABLE `web_online` (
 INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('abills','abills',curdate(), ENCODE('abills', 'test12345678901234567890'), 0, 1,0,'', '');
 INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('system','System user',curdate(), ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 2, 0,'', '');
 INSERT INTO admins (id, name, regdate, password, gid, aid, disable, phone, web_options) VALUES ('users_web','Users web portal', curdate(), ENCODE(md5(RAND()), 'test12345678901234567890'), 0, 3, 0,'', '');
-
-
-
---
--- Dumping data for table `admin_permits`
---
 INSERT INTO `admin_permits` (`aid`, `section`, `actions`, `module`) VALUES 
   (1,0,0,''),
   (1,0,1,''),
@@ -1270,11 +1264,6 @@ INSERT INTO `admin_permits` (`aid`, `section`, `actions`, `module`) VALUES
   (1,6,0,''),
   (1,7,0,''),
   (1,8,0,'');
-
-
---
--- Add test NAS,Tarif_plan,User
---
 
 
 INSERT INTO `users` (`id`, `activate`, `expire`, `credit`, `reduction`, `registration`, `password`, `uid`, `gid`, `disable`, `company_id`, `bill_id`, `ext_bill_id`, `credit_date`, `domain_id`) VALUES ('test','0000-00-00','0000-00-00',0.00,0.00,'2009-08-03', ENCODE('123456','test12345678901234567890'),1,0,0,0,1,0,'0000-00-00',0);

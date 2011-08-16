@@ -231,7 +231,7 @@ elsif($FORM{del}) {
    	    foreach my $line (@$list) {
    	  	  $table->addrow("$line->[3]-$line->[2]-$line->[1]", 
    	  	   "$line->[7] : $TP_HASH{$line->[7]}",
-   	  	   $html->button($_DEL, "index=$index&del_Shedule=$line->[14]&UID=$FORM{UID}", { MESSAGE => "$_DEL $line->[3]-$line->[2]-$line->[1]?", BUTTON => 1 }) 
+   	  	   $html->button($_DEL, "index=$index&del_Shedule=$line->[14]&UID=$FORM{UID}", { MESSAGE => "$_DEL $line->[3]-$line->[2]-$line->[1]?", CLASS => 'del' }) 
    	  	   );
    	     }
    	  
@@ -261,7 +261,7 @@ $tariffs->{UID}     = $attr->{USER}->{UID};
 $tariffs->{m}       = $m;
 $tariffs->{TP_ID}   = $Dv->{TP_NUM};
 
-$tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=". get_function_index('dv_tp') ."&TP_ID=$Dv->{TP_NUM}", { TITLE => "$_TP", BUTTON => 1 });
+$tariffs->{TP_NAME} = "$Dv->{TP_ID}:$Dv->{TP_NAME} ". $html->button("$_TARIF_PLANS", "index=". get_function_index('dv_tp') ."&TP_ID=$Dv->{TP_NUM}", { TITLE => "$_TP", CLASS => 'show rightAlignText' });
 print $html->tpl_show(templates('form_chg_tp'), $tariffs);
 }
 

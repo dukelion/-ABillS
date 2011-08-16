@@ -113,7 +113,7 @@ Billing->import();
 my $Billing   = Billing->new($db, \%conf);
 my $fw_step   = 1000;
 my $IPFW      = '/sbin/ipfw -q';
-my @START_FW = (3000, 2000, 1000);
+my @START_FW  = (5000, 3000, 1000);
 
 # Arguments
 my ($ACTION, $INTERFACE, $USER, $CLIENT_IP);
@@ -168,7 +168,7 @@ else {
   $ACTION    = $ARGV[0];
   $INTERFACE = $ARGV[1];
   $USER      = $ARGV[2];
-  $CLIENT_IP   = $ARGV[3];
+  $CLIENT_IP = $ARGV[3];
   $inum      = $INTERFACE;
   $inum      =~ s/^[a-z]+//;
 } 
@@ -191,9 +191,6 @@ my $Dv = Dv->new($db, $admin, \%conf);
 
 my %LIST_PARAMS = ();
 my @FW_ACTIONS  = ();
-
-my $tp_table_number = 0;
-my $tp_table_first_number = 10;
 my $users_table_number = $conf{FW_TABLE_USERS} || 10;
 
 # Flush rules
@@ -325,20 +322,23 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
   	$speeds{0}{OUT} = $Billing->{RESULT}{0}->{SPEED};
    }
   
+  # Expration for dummynet shapper
   if($OS eq 'FreeBSD' && ! $conf{ng_car}) {
   	if ($user->{SPEED}) {
    	  my $table_class = ($user->{SPEED} > 10000) ? "$user->{SPEED}" : "1$user->{SPEED}";
       push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK $table_class";   	
       push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $table_class";   	
+      goto FW_ACTION;
      } 
-    else {
-      push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK $user->{TP_NUM}";
-      push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $user->{TP_NUM}";   	
-     }
-    goto FW_ACTION;
+#    else {
+#    	# pipe 
+#      push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK ". ( $user->{TP_NUM} );
+#      push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $user->{TP_NUM}";   	
+#     }
+#    goto FW_ACTION;
    }
  
-   if ($ARGV[0] eq 'mikrotik') {
+  if ($ARGV[0] eq 'mikrotik') {
     mikrotik_ext({ SPEEDS => \%speeds,
     	             NETS   => \%nets });
   	exit;
@@ -347,12 +347,12 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
 
   #Create shaper dev for linux
  	my $tc = '/sbin/tc';
-    if ($ARGV[0] eq 'pppd') {
-        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE ingress";
-        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE handle ffff: ingress";
-        push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root";
-        push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE root handle 1: htb default 10 r2q 1";
-     }
+  if ($ARGV[0] eq 'pppd') {
+    push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE ingress";
+    push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE handle ffff: ingress";
+    push @FW_ACTIONS, "$tc qdisc del dev $INTERFACE root";
+    push @FW_ACTIONS, "$tc qdisc add dev $INTERFACE root handle 1: htb default 10 r2q 1";
+   }
 
 
 
@@ -488,95 +488,69 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
        # $dest_ip = "table\\($table_number\\)";
        }
 
-     my $table_debug = 1;
-#------------------------------------------------------------------------------
-#Use ngcar shapper
-   if ($conf{ng_car}) {
-   	 # First out traffic table, second in
-   	 my $tp_table_number = $conf{FW_TABLE_USERS}|| 10;
+      if ( $traf_type > 0 ) {
+        $users_table_number = $users_table_number + $traf_type * 2
+       }
 
-     #Add user to unlime rules
-     if ($speed_in + $speed_out  == 0) {
-       push @FW_ACTIONS, "$IPFW table ".($tp_table_number - 1)." add $CLIENT_IP/$BIT_MASK ";
-      }
-     else {
-       if ( $traf_type > 0 ) {
-      	 $tp_table_number = $tp_table_number + $traf_type * 2
-        }
-
-       my $prefix = 10000;
-       # Delete from unlim table
-  	   push @FW_ACTIONS, "$IPFW table $tp_table_number delete $CLIENT_IP";
-  	   push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1) ." delete $CLIENT_IP";
-       my $tablearg_in  = $user->{UID} + $prefix + $prefix * ($traf_type*2);
-       my $tablearg_out = $user->{UID} + $prefix + $prefix * ($traf_type*2+1);
-    	 push @FW_ACTIONS, "$IPFW table $tp_table_number add $CLIENT_IP/$BIT_MASK ". $tablearg_in;
-       push @FW_ACTIONS, "$IPFW table ". ($tp_table_number+1). " add $CLIENT_IP/$BIT_MASK ". $tablearg_out;
-       ng_car_shape("$USER", $tablearg_in, $tablearg_out, "class$traf_type", 
+#FreeBSD ------------------------------------------------------------------------------
+      #Use ngcar shapper
+      if ($conf{ng_car}) {
+   	  # First out traffic table, second in
+        #Add user to unlime rules
+        if ($speed_in + $speed_out  == 0) {
+          push @FW_ACTIONS, "$IPFW table ".($users_table_number - 1)." add $CLIENT_IP/$BIT_MASK ";
+         }
+        else {
+          my $prefix = 10000;
+          # Delete from unlim table
+  	      push @FW_ACTIONS, "$IPFW table $users_table_number delete $CLIENT_IP";
+  	      push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1) ." delete $CLIENT_IP";
+          my $tablearg_in  = $user->{UID} + $prefix + $prefix * ($traf_type*2);
+          my $tablearg_out = $user->{UID} + $prefix + $prefix * ($traf_type*2+1);
+    	    push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK ". $tablearg_in;
+          push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1). " add $CLIENT_IP/$BIT_MASK ". $tablearg_out;
+          ng_car_shape("$USER", $tablearg_in, $tablearg_out, "class$traf_type", 
           $speed_in * 1024, 
           $speed_out * 1024);
+         }
+       }
+      #Dummynet shapper
+      else {
+        #Join service table arguments start from 20000
+        if ($user->{JOIN_SERVICE}) {
+        	my $tablearg_in  = $conf{JOIN_SERVICE_FW_FIRST_RULE} +$START_FW[$traf_type] + $user->{JOIN_SERVICE};
+      	  my $tablearg_out = $conf{JOIN_SERVICE_FW_FIRST_RULE} +$START_FW[$traf_type] + $fw_step+$user->{JOIN_SERVICE};
+
+       	  push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK $tablearg_in";
+          push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $tablearg_out";
+          
+          push @FW_ACTIONS, "$IPFW pipe $tablearg_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes mask dst-ip 0x00000000";
+          push @FW_ACTIONS, "$IPFW pipe $tablearg_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes mask dst-ip 0x00000000";
+         }
+        else {
+	      	my $tablearg_in  = ($Billing->{RESULT}{$traf_type}->{SPEED_IN}) ? (($speed_in > 10000) ? $speed_in : "1$speed_in"): ($START_FW[$traf_type] + $user->{TP_NUM});
+      	  my $tablearg_out = ($Billing->{RESULT}{$traf_type}->{SPEED_IN}) ? (($speed_out > 10000) ? $speed_in : "1$speed_out") : ($START_FW[$traf_type] + $fw_step + $user->{TP_NUM});
+
+     	    push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK $tablearg_in";
+          push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $tablearg_out";
+         }        
       }
-    }
-else {
-#      if ($speed_in > 0) {
-#    	  #In;
-#        if ($traf_type == 0) {
-#          # In
-#          push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to any $via_if_in";
-#          push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000 ) ? 1000 : int( $speed_in / 10 )) ."Kbytes". (($user->{JOIN_SERVICE}) ? ' mask dst-ip 0x00000000' : ' mask dst-ip 0xfffffffff');
-#         }
-#        else {
-#          push @FW_ACTIONS, "$IPFW add $fw_num_in pipe $pipe_num_in ip from $CLIENT_IP to $dest_ip $via_if_in";
-#          push @FW_ACTIONS, "$IPFW pipe $pipe_num_in config bw ". $speed_in ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
-#         }
-#       }
-#      else {
-#        #if speed 0 (UNlime) make only allow rules
-#        push @FW_ACTIONS, "$IPFW add $fw_num_in allow ip from $CLIENT_IP to $dest_ip $via_if_in";      	
-#       }
-#      
-#      if ($speed_out > 0) {
-#        if ($traf_type == 0) {
-#          push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from any to $CLIENT_IP $via_if_out";
-#          push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes". (($user->{JOIN_SERVICE}) ? ' mask dst-ip 0x00000000' : ' mask dst-ip 0xfffffffff');
-#         }
-#        else {
-#          push @FW_ACTIONS, "$IPFW add $fw_num_out pipe $pipe_num_out ip from $dest_ip to $CLIENT_IP $via_if_out";
-#          push @FW_ACTIONS, "$IPFW pipe $pipe_num_out config bw ". $speed_out ."Kbit/s queue ". (( $speed_in / 10 > 1000) ? 1000 : int( $speed_in / 10 ) ) ."Kbytes";
-#         }
-#       }
-#     	#if speed 0 (UNlime) make only allow rules
-#      else {
-#         push @FW_ACTIONS, "$IPFW add $fw_num_out allow ip from $dest_ip to $CLIENT_IP $via_if_out";
-#       }
-}
 #-----------------------------------------------------
     }
   }
 
  }
 elsif ($ACTION eq 'down') {
-  if ($OS eq 'Linux') {
-  	
-   }
-  else {
-    if ($conf{ng_car}) {
-      my $tp_table_number = $conf{FW_TABLE_USERS} || 10;
-      $USER =~ s/\./__/g;
-      $USER =~ s/\@/___/g;
-      for(my $i=0; $i<=$conf{SHAPER_CLASSES}; $i++) {
-        push @FW_ACTIONS, sprintf("/usr/sbin/ngctl shutdown %s_%s:", 'class'.$i, $USER);
-        
-        push @FW_ACTIONS, "$IPFW table ". ($tp_table_number + $i * 2) ." delete $CLIENT_IP";
-        push @FW_ACTIONS, "$IPFW table ". ($tp_table_number + $i * 2 + 1) ." delete $CLIENT_IP";
-       }
-
-      push @FW_ACTIONS, "$IPFW table ". ($conf{FW_TABLE_USERS} - 1) ." delete $CLIENT_IP";      
+  if ($OS ne 'Linux') {
+    $USER =~ s/\./__/g;
+    $USER =~ s/\@/___/g;
+    for(my $i=0; $i<=$conf{SHAPER_CLASSES}; $i++) {
+      push @FW_ACTIONS, sprintf("/usr/sbin/ngctl shutdown %s_%s:", 'class'.$i, $USER) if ($conf{ng_car});
+       
+      push @FW_ACTIONS, "$IPFW table ". ($users_table_number + $i * 2) ." delete $CLIENT_IP";
+      push @FW_ACTIONS, "$IPFW table ". ($users_table_number + $i * 2 + 1) ." delete $CLIENT_IP";
      }
-    else {
-	    push @FW_ACTIONS, "$IPFW table $users_table_number delete $CLIENT_IP";
-	    push @FW_ACTIONS, "$IPFW table ".($users_table_number+1). "delete $CLIENT_IP";
-	   }
+    push @FW_ACTIONS, "$IPFW table ". ($conf{FW_TABLE_USERS} - 1) ." delete $CLIENT_IP";      
 	 }
 }
 

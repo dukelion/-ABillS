@@ -2305,14 +2305,15 @@ my $table = $html->table( { width      => '100%',
 
   $table->addrow($_DEFAULT,
     '',
-    $html->button("$_DEL", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=0", { BUTTON => 1  }), 
+    $html->button("$_DEL", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=0", { CLASS => 'del'  }), 
     );
 
 
 foreach my $line (@$list) {
-  $table->addrow($line->[0],
+	$table->{rowcolor} = ($user_info->{COMPANY_ID} == $line->[5]) ? $_COLORS[0] : undef;
+  $table->addrow(($user_info->{COMPANY_ID} == $line->[5]) ? $html->b($line->[0]) : $line->[0],
     $line->[1],
-    $html->button("$_CHANGE", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=$line->[5]", { CLASS => 'change' }), 
+    ($user_info->{COMPANY_ID} == $line->[5]) ? ''  : $html->button("$_CHANGE", "index=11&change=1&UID=$FORM{UID}&COMPANY_ID=$line->[5]", { CLASS => 'add' }), 
     );
 }
 
@@ -6047,7 +6048,7 @@ my $table = $html->table( { width      => '100%',
                           });
 my ($y, $m, $d)=split(/-/, $DATE, 3);
 foreach my $line (@$list) {
-  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[14]", { MESSAGE =>  "$_DEL [$line->[14]]?",  BUTTON => 1 }) : '-'; 
+  my $delete = ($permissions{4}{3}) ?  $html->button($_DEL, "index=$index&del=$line->[14]", { MESSAGE =>  "$_DEL [$line->[14]]?",  CLASS => 'del' }) : '-'; 
   my $value = "$line->[7]";
   
   if ($line->[6] eq 'status') {
@@ -6326,16 +6327,16 @@ if (-d $main_templates_dir ) {
       my @rows = (
       "$file", $size, $mtime, 
          (($tpl_describe->{$file}) ? $tpl_describe->{$file} : '' ),
-         $html->button($_SHOW, "#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file", BUTTON => 1, SIZE => 10 }) .$html->br().
-         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name="."_$file", { BUTTON => 1, }) : $html->button($_CREATE, "index=$index&create=:$file", { BUTTON => 1, }) ) .$html->br().
-         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($_DEL, "index=$index&del=". "_$file", { MESSAGE => "$_DEL '$file'", BUTTON => 1, }) : '' )
+         $html->button($_SHOW, "#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file", CLASS => 'show rightAlignText', SIZE => 10 }) .
+         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($_CHANGE, "index=$index&tpl_name="."_$file", { CLASS => 'change rightAlignText', }) : $html->button($_CREATE, "index=$index&create=:$file", { CLASS => 'add rightAlignText' }) ) .
+         ( (-f "$conf{TPL_DIR}/_$file") ? $html->button($_DEL, "index=$index&del=". "_$file", { MESSAGE => "$_DEL '$file'", CLASS => 'del rightAlignText' }) : '' )
       );    
 
       $file =~ s/\.tpl//;
       foreach my $lang (@caption) {
       	 my $f = '_'.$file.'_'.$lang.'.tpl';
-        push @rows,  ((-f "$conf{TPL_DIR}/$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang" , BUTTON => 1}).$html->br(). $html->button($html->b($_CHANGE), "index=$index&tpl_name=$f", { BUTTON => 1 }) : $html->button($_CREATE, "index=$index&create=:$file".'.tpl'.":$lang", { BUTTON => 1 }) ).$html->br().
-         ( (-f "$conf{TPL_DIR}/$f") ? $html->button($_DEL, "index=$index&del=$f", { MESSAGE => "$_DEL '$f'", BUTTON => 1 }) : '' );
+        push @rows,  ((-f "$conf{TPL_DIR}/$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang" , CLASS => 'show rightAlignText' }).$html->br(). $html->button($_CHANGE, "index=$index&tpl_name=$f", { CLASS => 'change rightAlignText' }) : $html->button($_CREATE, "index=$index&create=:$file".'.tpl'.":$lang", { CLASS => 'add rightAlignText' }) ).
+         ( (-f "$conf{TPL_DIR}/$f") ? $html->button($_DEL, "index=$index&del=$f", { MESSAGE => "$_DEL '$f'", CLASS => 'del rightAlignText' }) : '' );
        }
 
       $table->{rowcolor} = ($file.'.tpl' eq $main_tpl_name) ? 'row_active' : undef;
@@ -6382,9 +6383,9 @@ foreach my $module (sort @MODULES) {
       # LANG
       my @rows = ("$file", $size, $mtime, 
          (($tpl_describe->{$file}) ? $tpl_describe->{$file} : '' ),
-         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file", BUTTON => 1 }) .$html->br().
-         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($html->b($_CHANGE), "index=$index&tpl_name=$module"."_$file", { BUTTON => 1 }) : $html->button($_CREATE, "index=$index&create=$module:$file", { BUTTON => 1 }) ). $html->br().
-         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file", BUTTON => 1 }) : '' )
+         $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file", CLASS => 'show rightAlignText' }) .
+         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_CHANGE, "index=$index&tpl_name=$module"."_$file", { CLASS => 'change rightAlignText' }) : $html->button($_CREATE, "index=$index&create=$module:$file", { CLASS => 'add rightAlignText' }) ). 
+         ( (-f "$conf{TPL_DIR}/$module"."_$file") ? $html->button($_DEL, "index=$index&del=$module". "_$file", { MESSAGE => "$_DEL $file", CLASS => 'del rightAlignText' }) : '' )
         );
       
       
@@ -6393,8 +6394,9 @@ foreach my $module (sort @MODULES) {
       foreach my $lang (@caption) {
       	  my $f = '_'.$file.'_'.$lang.'.tpl';
       	
-        push @rows,  ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang", { BUTTON => 1 } }) .$html->br(). $html->button($html->b($_CHANGE), "index=$index&tpl_name=$module"."$f", {  BUTTON => 1 } ) : $html->button($_CREATE, "index=$index&create=$module:$file".'.tpl'.":$lang", { BUTTON => 1 }) ).$html->br().
-         ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_DEL, "index=$index&del=$module". "$f", { MESSAGE => "$_DEL $file", BUTTON => 1 }) : '');
+        push @rows,  ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_SHOW, "index=$index#", { NEW_WINDOW => "$SELF_URL?qindex=$index&SHOW=$module:$file:$lang", { CLASS => 'show rightAlignText' } }) .
+        	$html->button($_CHANGE, "index=$index&tpl_name=$module"."$f", {  CLASS => 'change rightAlignText' } ) : $html->button($_CREATE, "index=$index&create=$module:$file".'.tpl'.":$lang", { CLASS => 'add rightAlignText' }) ).
+         ((-f "$conf{TPL_DIR}/$module"."$f") ? $html->button($_DEL, "index=$index&del=$module". "$f", { MESSAGE => "$_DEL $file", CLASS => 'del rightAlignText' }) : '');
        }
 
       $table->addrow(@rows);
