@@ -1,4 +1,4 @@
-<TABLE width='500' cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1'>
+<TABLE width='600' cellspacing='0' cellpadding='0' border='0'><TR><TD bgcolor='#E1E1E1'>
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
 <TR bgcolor='$_COLORS[0]'><TH ALIGN=RIGHT COLSPAN='2'>$_INFO</TH></TR>
 <TR bgcolor='$_COLORS[1]'><TD>$_LOGIN:</TD><TD><a href='$SELF_URL?index=15&UID=%UID%'>%LOGIN%</a></TD></TR>

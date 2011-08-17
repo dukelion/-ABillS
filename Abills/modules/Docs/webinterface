@@ -1677,7 +1677,7 @@ my $table = $html->table( { width      => '100%',
 $pages_qs = '';
 
 foreach my $line (@$list) {
-  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$FORM{index}&del=$line->[8]&COMPANY_ID=$line->[7]", { MESSAGE => "$_DEL ID '$line->[8]' ?", BUTTON => 1 }) : ''; 
+  my $delete = ($permissions{1}{2}) ?  $html->button($_DEL, "index=$FORM{index}&del=$line->[8]&COMPANY_ID=$line->[7]", { MESSAGE => "$_DEL ID '$line->[8]' ?", CLASS => 'del' }) : ''; 
 
   $table->addrow("$line->[0]", 
    "$line->[1]",

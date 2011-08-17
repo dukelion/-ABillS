@@ -1518,7 +1518,7 @@ foreach my $nas_row (@$nas_list) {
   $table->{rowcolor}= 'row_active';
   $table->{extra}   = "colspan='". ($#CAPTION + 1 ) . "' class='small'";
   $table->addrow("$nas_row->[0]:". $html->button($html->b($nas_row->[1]), "index=". get_function_index('form_nas') ."&NAS_ID=$nas_row->[0]")  
-  .":$nas_row->[3]:$_TOTAL: $total (". $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->[0]", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->[0]' ?" }) .') '. $html->button("", "#", { IMG => ':chart_16.png', IMG_ALT => "$_GRAPH $_NAS", NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?NAS_ID=$nas_row->[0]&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "670:340" }) );
+  .":$nas_row->[3]:$_TOTAL: $total (". $html->button("Zap $_SESSIONS", "index=$index&zapall=1&NAS_ID=$nas_row->[0]", { MESSAGE => "Do you realy want zap all sessions on NAS '$nas_row->[0]' ?" }) .') '. $html->button("", "#", { IMG => ':chart_16.png', IMG_ALT => "$_GRAPH $_NAS", NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?NAS_ID=$nas_row->[0]&DAILY=1&NAS_TYPE=$nas_row->[4]" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "670:340" }) );
   
   foreach my $line (@$l) {
     undef($table->{rowcolor});
@@ -1564,7 +1564,7 @@ foreach my $nas_row (@$nas_list) {
      $html->button('P', "index=$index&NAS_ID=$FORM{NAS_ID}&ping=$line->[$#ACTIVE_FIELDS+2]$pages_qs", { TITLE => 'ping', BUTTON => 1 }),
      "$zap",
      "$hangup",
-     $html->button("$_GRAPH $_USER", "#", { CLASS => 'stats2', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?LOGIN=$line->[0]&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "670:340" })
+     $html->button("$_GRAPH $_USER", "#", { CLASS => 'stats2', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?LOGIN=$line->[0]&DAILY=1&NAS_TYPE=$nas_row->[4]" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "670:340" })
      );
   }
 }
@@ -1588,9 +1588,9 @@ else {
   	                            }); 
 
   $output .= $html->button('Zap All', "index=$index&zapall=1", { IMG => ':tech_work.png', MESSAGE => "Do you realy want ZAP all sessions ?" }).
-  ' '.$html->button("$_GRAPH $_NAS", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?NAS_ID=all&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "675:720" }).
-  ' '.$html->button("$_GRAPH $_TARIF_PLANS", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?TP_ID=all&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1") , NEW_WINDOW_SIZE => "675:720" }).
-  ' '.$html->button("$_GRAPH $_GROUPS", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?GID=all&DAILY=1" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "675:720" })
+  ' '.$html->button("$_GRAPH $_NAS", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?NAS_ID=all&DAILY=1&NAS_TYPE=$nas_row->[4]" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "675:720" }).
+  ' '.$html->button("$_GRAPH $_TARIF_PLANS", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?TP_ID=all&DAILY=1&NAS_TYPE=$nas_row->[4]" : "index.cgi?MODULE=grapher&qindex=-1") , NEW_WINDOW_SIZE => "675:720" }).
+  ' '.$html->button("$_GRAPH $_GROUPS", "#", { IMG => ':chart.png', NEW_WINDOW => ((-f '../graphics.cgi') ? "../graphics.cgi?GID=all&DAILY=1&NAS_TYPE=$nas_row->[4]" : "index.cgi?MODULE=grapher&qindex=-1"), NEW_WINDOW_SIZE => "675:720" })
   ;
  }
  
@@ -5558,7 +5558,7 @@ sub dv_wizard_user {
             return 0;
            }
           else {
-            $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
+            $message = "$_PAYMENTS $_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}\n";
            }
          }
         elsif($FORM{'5.SUM'} + 0 < 0) {
@@ -5570,7 +5570,7 @@ sub dv_wizard_user {
             return 0;
            }
           else {
-            $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
+            $message = "$_FEES $_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}\n";
            }
          }
        }
@@ -5609,7 +5609,7 @@ sub dv_wizard_user {
               return 0;
              }
             else {
-              $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}";
+              $message = "$_SUM: $FORM{'5.SUM'} $er->{ER_SHORT_NAME}\n";
              }
            }
           elsif($FORM{'5.EXT_BILL_DEPOSIT'} + 0 < 0) {
@@ -5624,7 +5624,7 @@ sub dv_wizard_user {
               return 0;
              }
             else {
-              $message = "$_SUM: $FORM{'5.EXT_BILL_DEPOSIT'} $er->{ER_SHORT_NAME}";
+              $message = "$_SUM: $FORM{'5.EXT_BILL_DEPOSIT'} $er->{ER_SHORT_NAME}\n";
              }
            }
          }
@@ -5706,7 +5706,7 @@ sub dv_wizard_user {
         #my $Msgs = Msgs->new($db, $admin, \%conf);
         
         %FORM=%{ $add_values{9} };
-        $FORM{UID}=$UID;
+        $FORM{UID}   =$UID;
         $FORM{change}=$UID;
         abon_user({ QUITE => 1 });
        }
@@ -5720,15 +5720,16 @@ sub dv_wizard_user {
 
       if (! $attr->{SHORT_REPORT}) {
         $FORM{ex_message}=$message;
-        $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN} UID: $UID  $message");
+        if (in_array('Docs', \@MODULES) ) {
+          $message .= "$_CONTRACT: $pi->{CONTRACT_SUFIX}$pi->{CONTRACT_ID}". $html->button("$_PRINT $_CONTRACT", "qindex=$index&UID=$UID&PRINT_CONTRACT=$UID&print=1". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new', CLASS => 'print'  });
+         }
+
+        $html->message('info', $_ADDED, "LOGIN: $add_values{1}{LOGIN}\nUID: $UID\n$message");
         $html->tpl_show(templates('form_user_info'), { %$user, %$pi, DATE => $DATE, TIME => $TIME } );
         $dv->{STATUS}=$service_status[$dv->{STATUS}];
         $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
         $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail) if ($Mail);
 
-        if (in_array('Docs', \@MODULES) ) {
-          $html->message('info', $_INFO, "$_PRINT ". $html->button("$_CONTRACT", "qindex=$index&UID=$UID&PRINT_CONTRACT=$UID&print=1". (($conf{DOCS_PDF_PRINT}) ? '&pdf=1' : '' ), {ex_params => 'target=_new', BUTTON => 1  }) );
-         }
         
         #If docs module enable make account
         if (in_array('Docs', \@MODULES) && $FORM{'4.NO_ACCOUNT'}) {
