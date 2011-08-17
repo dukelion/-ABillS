@@ -5717,7 +5717,6 @@ sub dv_wizard_user {
       my $pi = $user->pi({ UID => $UID });
       $user  = $user->info($UID, { SHOW_PASSWORD => 1 });
 
-
       if (! $attr->{SHORT_REPORT}) {
         $FORM{ex_message}=$message;
         if (in_array('Docs', \@MODULES) ) {
@@ -5730,7 +5729,6 @@ sub dv_wizard_user {
         $html->tpl_show(_include('dv_user_info', 'Dv'), $dv);
         $html->tpl_show(_include('mail_user_info', 'Mail'), $Mail) if ($Mail);
 
-        
         #If docs module enable make account
         if (in_array('Docs', \@MODULES) && $FORM{'4.NO_ACCOUNT'}) {
           $LIST_PARAMS{UID} = $UID;

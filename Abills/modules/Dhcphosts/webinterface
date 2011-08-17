@@ -1527,7 +1527,7 @@ sub dhcphosts_payments_maked {
     my $list = $Dhcphosts->hosts_list({ UID => $attr->{USER}->{UID}, STATUS => 0, NAS_ID => '>0' });
     foreach my $line (@$list) {
       $NETWORKS{$line->[5]}=1;
-      $NAS_IDS{$line->[12]}=1;
+      $NAS_IDS{$line->[13]}=1;
      }
 
     if (in_array('Snmputils', \@MODULES)) {
