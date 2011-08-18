@@ -2242,7 +2242,7 @@ sub dv_error {
   my $login  = ''; 
 
   my %log_levels_rev = reverse %log_levels;
-  my @ACTIONS = ('', 'AUTH', 'ACCT', 'HANGUP', 'CALCULATION', 'CMD');
+  my @ACTIONS = ('', 'AUTH', 'ACCT', 'HANGUP', 'CALCULATION', 'CMD', 'LOST_ALIVE');
  
 
 if ($attr->{USER}) {
