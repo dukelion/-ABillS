@@ -1205,7 +1205,7 @@ foreach my $line ( @$list ) {
 	 }
 	$district .= $html->button($line->[1], '', { JAVASCRIPT => "javascript:chgposition(". $line->[5] . ',' . $line->[6]. ',' . $line->[7]. ")", 
 	                                 	           ex_params  => "style=\"text-decoration:none; font-weight:bold; color:black; \""
-		                                          });
+		                                          }).$html->br().$html->br();
 	#"<a style=\"text-decoration:none; font-weight:bold; color:black; \" href=javascript:chgposition(". $line->[5] . ',' . $line->[6]. ',' . $line->[7]. ")>$line->[1]</a>";	
 }
 
