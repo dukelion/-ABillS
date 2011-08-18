@@ -1050,7 +1050,7 @@ foreach my $line (@$list) {
   
   $INFO{DNS}          = ($Dhcphosts->{DNS}) ? "option domain-name-servers $Dhcphosts->{DNS}" : undef;
   $INFO{DNS}          .= ",$Dhcphosts->{DNS2}" if ($Dhcphosts->{DNS2});
-  $INFO{DNS}          = ';' if ($INFO{DNS});
+  $INFO{DNS}          .= ';' if ($INFO{DNS});
   $INFO{NTP}          = "option ntp-servers $Dhcphosts->{NTP};";
 
   $INFO{DOMAINNAME}   = ($Dhcphosts->{DOMAINNAME}) ? "option domain-name \"$Dhcphosts->{DOMAINNAME}\";" : undef;
