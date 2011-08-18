@@ -1216,8 +1216,8 @@ else {
 	$mapsetcenter = '';
  }
 		
- 
-my $return .= $html->tpl_show(_include('google_map_show_client', 'Maps'), { 	OBJECTS => $tpl_obj, 
+
+my $return = $html->tpl_show(_include('google_map_show_client', 'Maps'), { 	OBJECTS => $tpl_obj, 
 														NAS          => $tpl_obj_nas , 
 														DISTRICT_ID  => $attr->{DISTRICT_ID}, 
 														SHOW_NAS     => $attr->{SHOW_NAS},
@@ -1225,7 +1225,7 @@ my $return .= $html->tpl_show(_include('google_map_show_client', 'Maps'), { 	OBJ
 														DISTRICTS    => $district, 
 														MAPSETCENTER => $mapsetcenter, 
 														%$attr
-														});
+													}, { %$attr });
 
 return $return;
 }
