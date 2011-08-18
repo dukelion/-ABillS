@@ -92,7 +92,7 @@ function chgposition (x, y , zoom) {
     </table>
 
     <br />
-    <div align=center >%DISTRICTS%</div>
+    <div align=center >%DISTRICTS%<br></div>
   </td>
   <td>
     <!-- The frame used to measure the screen size -->

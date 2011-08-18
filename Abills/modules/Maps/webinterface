@@ -261,12 +261,9 @@ foreach my $line2 ( @$list2 ) {
 
 
 #Get all users  ******************************************** 												
-												
-
-
 
 #$Maps->{debug}=1;
-my $list = $Maps->all_users_list({ 	LOCATION_ID => '>0',
+$list = $Maps->all_users_list({ 	LOCATION_ID => '>0',
 									PAGE_ROWS => '4000'
 						});
 
@@ -524,7 +521,7 @@ sub generateImage {
 
 # Online users show builds**********************************
 				
-			my $list = $Maps->build_online_list({  
+			$list = $Maps->build_online_list({  
 													DISTRICT_ID => $district_id,
 													PAGE_ROWS => '2000' 
 												});
@@ -980,7 +977,7 @@ foreach my $line2 ( @$list2 ) {
 
 #Get all users  ******************************************** 												
 												
-my $list = $Maps->all_users_list({ 	LOCATION_ID => '>0',
+$list = $Maps->all_users_list({ 	LOCATION_ID => '>0',
 									PAGE_ROWS => '4000'
 						});
 
@@ -1178,65 +1175,60 @@ $html->tpl_show(_include('google_map_show', 'Maps'), { 	OBJECTS => $tpl_obj,
 # menu: Google map show client 
 #***********************************************************
 sub google_maps_show_client {
+	my ($attr)=@_;
+
 	if ($FORM{message}) {				
 		$html->message('info', $_INFO, "$FORM{message}");	
 	}
-	
-		my ($attr)=@_;
-	
 
 #Get builds (javascript)  **********************************
+$list = $Maps->build_list({ SHOW_MAPS_GOOGLE => 1, PAGE_ROWS => '100000' });
 
-$list = $Maps->build_list({ SHOW_MAPS_GOOGLE => 1, PAGE_ROWS => '3000' });
-
-my $cnt = 0;
 foreach my $line ( @$list ) {
-	
   $tpl_obj .= $html->tpl_show(_include('google_location_info_client', 'Maps'), {
 																				STREET_ID => $line->[4],  
-																				NUMBER => $line->[0],		
-																				MAP_X => $line->[7],
-	                                                          					MAP_Y => $line->[8],	                                                          					 
-	                                                          					  },
-	                                                          					{ OUTPUT2RETURN => 1 });
-
-
+																				NUMBER    => $line->[0],		
+																				MAP_X     => $line->[7],
+	                                      MAP_Y     => $line->[8],	                     
+	                                      },
+	                            { OUTPUT2RETURN => 1 });
 }
+
+
 #***********************************************************
 # template 	(maps_show_map)
-#*********************************************************** 
- 		#$users->{debug}=1;
- 		$list = $Maps->districts_list({});
-		#print $list->[0]->[6];
-		foreach my $line ( @$list ) {
-			if ($line->[7] == 0 ){
-					next;
-			}
-			$district .= "<a style=\"text-decoration:none; font-weight:bold; color:black; \" href=javascript:chgposition(". $line->[5] . ',' . $line->[6]. ',' . $line->[7]. ")>$line->[1]</a>" . $html->br() . $html->br();	
-			
-		}
-		if (defined($list->[0]->[6]) and defined($list->[0]->[7]) ) {
-		
-			$mapsetcenter = $list->[0]->[5] . ', ' . $list->[0]->[6] . ', ' .  $list->[0]->[7];
-			
-			
-		} else {
-			$mapsetcenter = '';
-		}
-		
- 
-$html->tpl_show(_include('google_map_show_client', 'Maps'), { 	OBJECTS => $tpl_obj, 
-														NAS => $tpl_obj_nas , 
-														DISTRICT_ID => $attr->{DISTRICT_ID}, 
-														SHOW_NAS => $attr->{SHOW_NAS},
-														SHOW_USERS => $attr->{SHOW_USERS},
-														DISTRICTS => $district, 
-														MAPSETCENTER => $mapsetcenter, });
+$list = $Maps->districts_list({});
 
+foreach my $line ( @$list ) {
+	if ($line->[7] == 0 ){
+		next;
+	 }
+	$district .= $html->button($line->[1], '', { JAVASCRIPT => "javascript:chgposition(". $line->[5] . ',' . $line->[6]. ',' . $line->[7]. ")", 
+	                                 	           ex_params  => "style=\"text-decoration:none; font-weight:bold; color:black; \""
+		                                          });
+	#"<a style=\"text-decoration:none; font-weight:bold; color:black; \" href=javascript:chgposition(". $line->[5] . ',' . $line->[6]. ',' . $line->[7]. ")>$line->[1]</a>";	
 }
 
+if (defined($list->[0]->[6]) and defined($list->[0]->[7]) ) {
+	$mapsetcenter = $list->[0]->[5] . ', ' . $list->[0]->[6] . ', ' .  $list->[0]->[7];
+ } 
+else {
+	$mapsetcenter = '';
+ }
+		
+ 
+my $return .= $html->tpl_show(_include('google_map_show_client', 'Maps'), { 	OBJECTS => $tpl_obj, 
+														NAS          => $tpl_obj_nas , 
+														DISTRICT_ID  => $attr->{DISTRICT_ID}, 
+														SHOW_NAS     => $attr->{SHOW_NAS},
+														SHOW_USERS   => $attr->{SHOW_USERS},
+														DISTRICTS    => $district, 
+														MAPSETCENTER => $mapsetcenter, 
+														%$attr
+														});
 
-
+return $return;
+}
 
 
                     

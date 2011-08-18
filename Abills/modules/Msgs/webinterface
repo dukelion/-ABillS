@@ -2488,6 +2488,11 @@ sub msgs_unreg_requests {
    }
 
   if ( $FORM{REGISTRATION_REQUEST} ) {
+    if (in_array('Maps', \@MODULES) ) {
+      require "Abills/modules/Maps/webinterface";    	
+      $Msgs->{MAPS} = google_maps_show_client({ OUTPUT2RETURN => 1 });
+     }
+  	
   	$html->tpl_show(_include('msgs_client_reg_request', 'Msgs'), $Msgs);	
    }
   else {
