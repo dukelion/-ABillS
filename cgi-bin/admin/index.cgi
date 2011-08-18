@@ -1157,7 +1157,7 @@ sub user_form {
 
    if ($permissions{5}) {
      my $info_field_index = get_function_index('form_info_fields');
-     $user_info->{ADD_INFO_FIELD}=$html->button("$_ADD $_INFO_FIELDS", "index=$info_field_index", {  CLASS => 'add', ex_params => ' target=_info_fields' });
+     $user_info->{ADD_INFO_FIELD}=$html->button("$_ADD $_INFO_FIELDS", "index=$info_field_index", { CLASS => 'add rightAlignText', ex_params => ' target=_info_fields' });
     }
 
    if ($permissions{0}{3}) {
@@ -1686,7 +1686,7 @@ sub user_pi {
 
   if ($conf{ADDRESS_REGISTER}) {
   	my $add_address_index        = get_function_index('form_districts');
-  	$user_pi->{ADD_ADDRESS_LINK} = $html->button("$_ADD $_ADDRESS", "index=$add_address_index", { CLASS => 'add' });
+  	$user_pi->{ADD_ADDRESS_LINK} = $html->button("$_ADD $_ADDRESS", "index=$add_address_index", { CLASS => 'add rightAlignText' });
   	$user_pi->{ADDRESS_TPL}      = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
    }
   else {

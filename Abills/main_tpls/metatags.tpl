@@ -262,13 +262,15 @@ a.change {
 }
 
 a.add { 
-	background:url(/img/button_add.png) no-repeat center;
+        background:url(/img/button_add.png) no-repeat center;
         padding-left:22px;
         padding-top:5px;
+        height: 24;
         margin:0;
         display:block;
         overflow:hidden;
-        text-indent:-9000px;
+        text-indent:-90000px;
+        font-size: 0px;
 }
 
 a.del { 
