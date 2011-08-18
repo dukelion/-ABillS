@@ -332,13 +332,22 @@ CREATE TABLE `dv_main` (
 CREATE TABLE `exchange_rate` (
   `money` varchar(30) NOT NULL default '',
   `short_name` varchar(30) NOT NULL default '',
+  `iso` smallint unsigned  NOT NULL default 0,
   `rate` double(12,4) NOT NULL default '0.0000',
   `changed` date NOT NULL default '0000-00-00',
   `id` smallint(6) unsigned NOT NULL auto_increment,
   UNIQUE KEY `money` (`money`),
   UNIQUE KEY `short_name` (`short_name`),
   UNIQUE KEY `id` (`id`)
-) COMMENT='Exchange rate' ;;
+) COMMENT='Exchange rate';
+
+
+CREATE TABLE `exchange_rate_log` (
+  `date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `exchange_rate_id` smallint unsigned  NOT NULL default 0,
+  `rate` double(12,4) NOT NULL default '0.0000',
+  KEY `date` (`date`) 
+) COMMENT='Exchange rate log';
 
 
 CREATE TABLE `fees` (

@@ -1,6 +1,7 @@
  #Subnets %DESCRIBE%
  subnet %NETWORK% netmask %NETWORK_MASK% {
    %DNS%
+   %NTP%
    %DOMAINNAME%
    #IP Range
    %RANGE%

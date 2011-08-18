@@ -123,10 +123,12 @@ sub network_add {
 
 
   $self->query($db,"INSERT INTO dhcphosts_networks 
-     (name,network,mask, routers, coordinator, phone, dns, suffix, disable,
+     (name,network,mask, routers, coordinator, phone, dns, dns2, ntp,
+      suffix, disable,
       ip_range_first, ip_range_last, comments,  deny_unknown_clients,  authoritative, net_parent, guest_vlan) 
      VALUES('$DATA{NAME}', INET_ATON('$DATA{NETWORK}'), INET_ATON('$DATA{MASK}'), INET_ATON('$DATA{ROUTERS}'),
-       '$DATA{COORDINATOR}', '$DATA{PHONE}', '$DATA{DNS}', '$DATA{DOMAINNAME}',
+       '$DATA{COORDINATOR}', '$DATA{PHONE}', '$DATA{DNS}', '$DATA{DNS2}',  '$DATA{NTP}', 
+       '$DATA{DOMAINNAME}',
        '$DATA{DISABLE}',
        INET_ATON('$DATA{IP_RANGE_FIRST}'),
        INET_ATON('$DATA{IP_RANGE_LAST}'),
@@ -174,6 +176,8 @@ sub network_change {
    BLOCK_MASK      => 'block_mask',
    DOMAINNAME      => 'suffix',
    DNS             => 'dns',
+   DNS2            => 'dns2',
+   NTP             => 'ntp',
    COORDINATOR     => 'coordinator',
    PHONE           => 'phone',
    ROUTERS         => 'routers',
@@ -189,7 +193,8 @@ sub network_change {
 
 
   $attr->{DENY_UNKNOWN_CLIENTS} = (defined($attr->{DENY_UNKNOWN_CLIENTS})) ? 1 : 0;
-  $attr->{AUTHORITATIVE} = (defined($attr->{AUTHORITATIVE})) ? 1 : 0;
+  $attr->{AUTHORITATIVE}        = (defined($attr->{AUTHORITATIVE})) ? 1 : 0;
+  $attr->{DISABLE}              = (defined($attr->{DISABLE})) ? 1 : 0;
 
 	$self->changes($admin, { CHANGE_PARAM => 'ID',
 		               TABLE        => 'dhcphosts_networks',
@@ -220,6 +225,8 @@ sub network_info {
    INET_NTOA(block_mask),
    suffix,
    dns,
+   dns2,
+   ntp,
    coordinator,
    phone,
    disable,
@@ -249,6 +256,8 @@ sub network_info {
    $self->{BLOCK_MASK}, 
    $self->{DOMAINNAME}, 
    $self->{DNS},
+   $self->{DNS2},
+   $self->{NTP},
    $self->{COORDINATOR},
    $self->{PHONE},
    $self->{DISABLE},
@@ -1120,5 +1129,6 @@ if ($attr->{FROM_DATE}) {
 
 
 1
+
 
 

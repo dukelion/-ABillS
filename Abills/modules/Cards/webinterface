@@ -59,8 +59,8 @@ sub cards_card_info {
 #
 #**********************************************************
 sub cards_main {
-  if ($Cards::VERSION < 5.34) {
-  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.25 or higher. http://abills.net.ua/");
+  if ($Cards::VERSION < 5.40) {
+  	$html->message('info', "UPDATE", "Please update module 'Cards' to version 5.40 or higher. http://abills.net.ua/");
   	return 0;
    }
 
@@ -257,7 +257,7 @@ $html->button("$_PRINT PDF", "qindex=$index&pdf=1&print_cards=1&$pages_qs" . (($
    	@pin = ("$line->[15]") if ($conf{CARDS_SHOW_PINS}) ;
    	$table->addrow(
    	    $html->form_input("IDS", "$line->[0]:$line->[1]", {TYPE => 'checkbox'}). $html->b($line->[0]) , 
-  	    $line->[1],
+  	    ($line->[4] == 2) ? $html->button($line->[1], "index=2&search=1&EXT_ID=$line->[0]$line->[1]") : $line->[1],
   	    (($line->[2]) ? $html->button($line->[2], "&index=11&UID=$line->[14]") : ''),
   		  $line->[3],
   		  $html->color_mark($status[$line->[4]], $status_colors[$line->[4]]),
@@ -697,7 +697,7 @@ sub cards_users_gen_confim {
 sub cards_user_payment () {
  	$user = Users->new($db, $admin, \%conf);
  	
-	if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_OLDSTYLE})) {
+	if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_PIN_ONLY})) {
 		$db->{AutoCommit}=0; 
 		my $BRUTE_LIMIT  = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
 	  my $brute        = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });

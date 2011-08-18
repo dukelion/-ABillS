@@ -1446,32 +1446,16 @@ sub form_show_attach {
   print "$users->{CONTENT}";
 }
 
-
-
 #**********************************************************
-#
+# Ajax address form
 #**********************************************************
-sub user_pi {
-  my ($attr) = @_;
+sub form_address_sel {
 
-  my $user;
-  if ($attr->{USER}) {
-    $user = $attr->{USER};
-   }
-  else {
-  	$user = $users->info( $FORM{UID} );
-   }
- 
- if ($FORM{ATTACHMENT}) {
- 	  form_show_attach();
- 	  return 0;
-  }
- elsif ($FORM{address}) {
    print "Content-Type: text/html\n\n";
    my $js_list = ''; 	
  	 my $id        =   $FORM{'JsHttpRequest'};
    my $jsrequest =   $FORM{'jsrequest'};
-   ($id, undef) = split(/-/,$id);   	
+   ($id, undef)  = split(/-/,$id);   	
 
    if ($FORM{STREET}) {
      my $list = $users->build_list({ STREET_ID => $FORM{STREET}, PAGE_ROWS => 10000 });
@@ -1529,6 +1513,32 @@ sub user_pi {
         "text": "" }) };
     }
  	 exit;
+
+
+
+
+}
+
+#**********************************************************
+#
+#**********************************************************
+sub user_pi {
+  my ($attr) = @_;
+
+  my $user;
+  if ($attr->{USER}) {
+    $user = $attr->{USER};
+   }
+  else {
+  	$user = $users->info( $FORM{UID} );
+   }
+ 
+ if ($FORM{ATTACHMENT}) {
+ 	  form_show_attach();
+ 	  return 0;
+  }
+ elsif ($FORM{address}) {
+   form_address_sel();
   } 
  elsif($FORM{add}) {
    if (! $permissions{0}{1} ) {
@@ -7362,7 +7372,7 @@ foreach my $c (@countries_arr) {
 
 $users->{COUNTRY_SEL} = $html->form_select('COUNTRY', 
                                 { SELECTED   => $users->{COUNTRY} || $FORM{COUNTRY},
- 	                                SEL_HASH   => { '' => '', %country_hash },
+ 	                                SEL_HASH   => { '' => '', %countries_hash },
  	                                NO_ID      => 1
  	                               });
 
@@ -7474,10 +7484,12 @@ $users->{DISTRICTS_SEL} = $html->form_select("DISTRICT_ID",
 
 #$html->tpl_show(templates('form_street_search'), $users);
 
-$LIST_PARAMS{DISTRICT_ID}=$FORM{DISTRICT_ID} if ($FORM{DISTRICT_ID});
+if ($FORM{DISTRICT_ID}) {
+  $LIST_PARAMS{DISTRICT_ID}=$FORM{DISTRICT_ID};
+  $pages_qs.="&DISTRICT_ID=$LIST_PARAMS{DISTRICT_ID}";
+ }
 
 my $list = $users->street_list({ %LIST_PARAMS, USERS_INFO => 1 });
-
 my $table = $html->table({ width      => '640',
 	                         caption    => $_STREETS,
                            title      => [ "#", "$_NAME", "$_DISTRICTS", $_BUILDS, $_USERS, '-', '-' ],

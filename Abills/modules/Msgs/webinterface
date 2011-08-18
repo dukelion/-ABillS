@@ -2202,10 +2202,7 @@ print $table_sessions->show() . $table->show(). $output;
 sub msgs_unreg_requests_list {
 	my ($attr) = @_;
 
-	if ($FORM{qindex}) {
-		print $html->header();
-	 }
-	
+
 	if ($FORM{change}) {
     my %params              = ();
  	 	$params{CLOSED_DATE} = "$DATE $TIME" if ($FORM{STATE} > 0);
@@ -2387,7 +2384,7 @@ foreach my $line (@$list) {
    $html->color_mark($priority[$line->[7]], $priority_colors[$line->[7]]),
    $line->[8],
    $html->button($_SHOW, "#", 
-      { NEW_WINDOW      => "$SELF_URL?qindex=". (($attr->{LIST_ONLY}) ? $index - 1 : $index ). "&chg=$line->[0]",
+      { NEW_WINDOW      => "$SELF_URL?qindex=". (($attr->{LIST_ONLY}) ? $index - 1 : $index ). "&chg=$line->[0]&header=1",
       	NEW_WINDOW_SIZE => "640:700",
       	CLASS => 'show'
       	 }),
@@ -2422,7 +2419,7 @@ sub msgs_unreg_requests {
 
   if ($FORM{add}) {
     $Msgs->unreg_requests_add({ %FORM });
-    $html->message('info', $_INFO, "$_ADDED") if (! $Msgs->{errno}); 
+    $html->message('info', $_INFO, "$_SENDED") if (! $Msgs->{errno}); 
     if ($FORM{REGISTRATION_REQUEST} ) {
     	return 0;
     }
@@ -2433,7 +2430,7 @@ sub msgs_unreg_requests {
    } 
 
   $Msgs->{ACTION}       = 'add';
-  $Msgs->{ACTION_LNG}   = $_ADD;
+  $Msgs->{ACTION_LNG}   = $_SEND;
 
   $Msgs->{PRIORITY_SEL} =  $html->form_select('PRIORITY', 
                                           {
@@ -2467,7 +2464,28 @@ sub msgs_unreg_requests {
  	                                          MULTI_ARRAY_VALUE => 1,
  	                                        });
 
-  $Msgs->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $Msgs, { OUTPUT2RETURN => 1 });
+
+  if ($conf{ADDRESS_REGISTER}) {
+   	$Msgs->{ADDRESS_TPL} = $html->tpl_show(templates('form_address_sel'), $user_pi, { OUTPUT2RETURN => 1 });
+   }
+  else {
+    my $countries = $html->tpl_show(templates('countries'), undef, { OUTPUT2RETURN => 1 });
+    my @countries_arr  = split(/\n/, $countries);
+    my %countries_hash = ();
+  
+    foreach my $c (@countries_arr) {
+      my ($id, $name)=split(/:/, $c);
+      $countries_hash{int($id)}=$name;
+     }
+  
+    $Msgs->{COUNTRY_SEL} = $html->form_select('COUNTRY', 
+                                { SELECTED   => $Msgs->{COUNTRY} || $FORM{COUNTRY},
+ 	                                SEL_HASH   => { '' => '', %countries_hash },
+ 	                                NO_ID      => 1
+ 	                               });
+
+    $Msgs->{ADDRESS_TPL} = $html->tpl_show(templates('form_address'), $Msgs, { OUTPUT2RETURN => 1 });
+   }
 
   if ( $FORM{REGISTRATION_REQUEST} ) {
   	$html->tpl_show(_include('msgs_client_reg_request', 'Msgs'), $Msgs);	

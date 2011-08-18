@@ -102,8 +102,10 @@ $INFO_HASH{SEL_LANGUAGE} = $html->form_select('language',
 if ($FORM{FORGOT_PASSWD}) {
 	password_recovery();
  }
+elsif ($FORM{qindex} && $FORM{qindex}==30) {
+	form_address_sel();
+ }
 elsif($#REGISTRATION > -1) {
-
 	my $m = $REGISTRATION[0];
 	if ($FORM{module}) {
 	  $m = $FORM{module};
@@ -312,3 +314,76 @@ sub _external {
     return 0;
    }
 }
+
+
+
+#**********************************************************
+# Ajax address form
+#**********************************************************
+sub form_address_sel {
+
+   print "Content-Type: text/html\n\n";
+   my $js_list = ''; 	
+ 	 my $id        =   $FORM{'JsHttpRequest'};
+   my $jsrequest =   $FORM{'jsrequest'};
+   ($id, undef)  = split(/-/,$id);   	
+
+   if ($FORM{STREET}) {
+     my $list = $users->build_list({ STREET_ID => $FORM{STREET}, PAGE_ROWS => 10000 });
+     if ($users->{TOTAL} > 0) {
+       foreach my $line (@$list) {
+         $js_list .= "<option class='spisok' value='p3|$line->[0]|l3|$line->[6]'>$line->[0]</option>"; 
+        }
+      }
+     else {
+       $js_list .= "<option class='spisok' value='p3||l3|0'>$_NOT_EXIST</option>"; 
+      }
+
+      my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
+      $size = 2 if ($size < 2); 
+      $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='build'>".
+        $js_list . "</select>";
+
+     print qq{JsHttpRequest.dataReady({ "id": "$id", 
+   	     "js": { "list": "$js_list" }, 
+         "text": "" }) };
+    }
+   elsif ($FORM{DISTRICT_ID}) {
+     my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID}, PAGE_ROWS => 1000 });
+     if ($users->{TOTAL} > 0) {
+       foreach my $line (@$list) {
+         $js_list .= "<option class='spisok' value='p2|$line->[1]|l2|$line->[0]'>$line->[1]</option>"; 
+        }
+      }
+     else {
+       $js_list .= "<option class='spisok' value='p2||l2|0'>$_NOT_EXIST</option>"; 
+      }
+
+     my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
+     $size = 2 if ($size < 2);
+     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='street'>".
+         $js_list . "</select>";
+
+     print qq{JsHttpRequest.dataReady({ "id": "$id", 
+   	    "js": { "list": "$js_list" }, 
+        "text": "" }) };
+    } 	
+   else {
+     my $list = $users->district_list({ %LIST_PARAMS, PAGE_ROWS => 1000 });
+     foreach my $line (@$list) {
+     	 $js_list .= "<option class='spisok' value='p1|$line->[1]|l1|$line->[0]'>$line->[1]</option>"; 
+      }
+
+     my $size = ($users->{TOTAL} > 10) ? 10 : $users->{TOTAL};
+     $size=2 if ($size < 2);
+     $js_list = "<select style='width: inherit;' size='$size' onchange='insert(this)' id='block'>".
+       $js_list . "</select>";
+
+     print qq{JsHttpRequest.dataReady({ "id": "$id", 
+   	    "js": { "list": "$js_list" }, 
+        "text": "" }) };
+    }
+ 	 exit;
+}
+
+1

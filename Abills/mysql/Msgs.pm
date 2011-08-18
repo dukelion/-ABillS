@@ -1649,7 +1649,8 @@ sub unreg_requests_info {
     m.uid,
     m.company,
     m.country_id,
-    m.connection_time
+    m.connection_time,
+    m.location_id
     FROM (msgs_unreg_requests m)
     LEFT JOIN msgs_chapters mc ON (m.chapter=mc.id)
     LEFT JOIN admins ra ON (m.received_admin=ra.aid)
@@ -1686,6 +1687,24 @@ sub unreg_requests_info {
    $self->{CONNECTION_TIME},
    $self->{LOCATION_ID},
   )= @{ $self->{list}->[0] };
+
+ if ($self->{LOCATION_ID} > 0 ) {
+   $self->query($db, "select d.id, d.city, d.name, s.name, b.number  
+     FROM builds b
+     LEFT JOIN streets s  ON (s.id=b.street_id)
+     LEFT JOIN districts d  ON (d.id=s.district_id)
+     WHERE b.id='$self->{LOCATION_ID}'");
+   
+    if ($self->{TOTAL} > 0) {
+      ($self->{DISTRICT_ID}, 
+       $self->{CITY}, 
+       $self->{ADDRESS_DISTRICT}, 
+       $self->{ADDRESS_STREET}, 
+       $self->{ADDRESS_BUILD}, 
+      )= @{ $self->{list}->[0] };
+     }
+  }
+
 	
 	return $self;
 }

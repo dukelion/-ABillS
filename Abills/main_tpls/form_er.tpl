@@ -5,6 +5,7 @@
 <tr><th colspan=2 class=form_title>$_EXCHANGE_RATE</th></tr>
 <tr><td>$_MONEY:</td><td><input type=text name=ER_NAME value='%ER_NAME%'></td></tr>
 <tr><td>$_SHORT_NAME:</td><td><input type=text name=ER_SHORT_NAME value='%ER_SHORT_NAME%'></td></tr>
+<tr><td>ISO:</td><td><input type=text name=ISO value='%ISO%'></td></tr>
 <tr><td>$_EXCHANGE_RATE:</td><td><input type=text name=ER_RATE value='%ER_RATE%'></td></tr>
 <tr><td>$_CHANGED:</td><td>%CHANGED%</td></tr>
 </table>

@@ -14,12 +14,9 @@
 
 
 <table>
-<tr><td>$_DATE:</td><td>%DATE%</td></tr>
-<tr><td>$_CHAPTERS:</td><td>%CHAPTER_SEL%</td></tr>
-<tr><td>$_SUBJECT:</td><td><input type='text' name='SUBJECT' value='%SUBJECT%' size='50'/></td></tr>
-
-<tr><th bgcolor='$_COLORS[0]' colspan='2'>$_COMMENTS</th></tr>
-<tr><th colspan='2'><textarea name='COMMENTS' cols='70' rows='9'>%COMMENTS%</textarea></th></tr>
+<tr><th class=form_title colspan=2>$_REGISTRATION</th></tr>
+<!-- <tr><td>$_DATE:</td><td>%DATE%</td></tr> -->
+%ADDRESS_TPL%
 <tr><td>$_COMPANY:</td><td><input type='text' name='COMPANY_NAME' value='%COMPANY_NAME%' size='45'/></td></tr>
 <tr><td>$_FIO:</td><td><input type='text' name='FIO' value='%FIO%' size='45'/></td></tr>
 <tr><td>$_PHONE:</td><td><input type='text' name='PHONE' value='%PHONE%' size='45'/></td></tr>
@@ -35,17 +32,22 @@
  	o_cal.a_tpl.months     = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 	o_cal.a_tpl.weekdays   = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Суб'];
 </script>
-
-
 </td></tr>
+<tr><td>$_CHAPTERS:</td><td>%CHAPTER_SEL%</td></tr>
+<tr><td>$_SUBJECT:</td><td><input type='text' name='SUBJECT' value='%SUBJECT%' size='50'/></td></tr>
+
+<tr><th bgcolor='$_COLORS[0]' colspan='2'>$_COMMENTS</th></tr>
+<tr><th colspan='2'><textarea name='COMMENTS' cols='70' rows='9'>%COMMENTS%</textarea></th></tr>
+
 
 %CAPTCHA%
-%ADDRESS_TPL%
+
 
 </table>
 </td></tr></table>
 </td></tr></table>
-
-
 <input type='submit' name='%ACTION%' value='%ACTION_LNG%'/>
 </FORM>
+
+
+%MAPS%

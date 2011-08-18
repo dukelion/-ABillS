@@ -91,8 +91,8 @@ sub exchange_add {
   my $short_name = (defined($attr->{ER_SHORT_NAME})) ? $attr->{ER_SHORT_NAME} :  '';
   my $rate = (defined($attr->{ER_RATE})) ? $attr->{ER_RATE} :  '0';
   
-  $self->query($db, "INSERT INTO exchange_rate (money, short_name, rate, changed) 
-   values ('$money', '$short_name', '$rate', now());", 'do');
+  $self->query($db, "INSERT INTO exchange_rate (money, short_name, rate, iso, changed) 
+   values ('$money', '$short_name', '$rate', '$attr->{ISO}', now());", 'do');
 
   $admin->{MODULE}='';
   $admin->system_action_add("$money/$short_name/$rate", { TYPE => 41 });
@@ -130,6 +130,7 @@ sub exchange_change {
     money='$money', 
     short_name='$short_name', 
     rate='$rate',
+    iso='$attr->{ISO}',
     changed=now()
    WHERE id='$id';", 'do');
 
@@ -155,13 +156,14 @@ sub exchange_info {
   	$WHERE = "id='$id'";
    }
 
-  $self->query($db, "SELECT money, short_name, rate, changed FROM exchange_rate WHERE $WHERE;");
+  $self->query($db, "SELECT money, short_name, rate, iso, changed FROM exchange_rate WHERE $WHERE;");
   
   return $self if ($self->{TOTAL} < 1);
   
   ($self->{ER_NAME}, 
    $self->{ER_SHORT_NAME}, 
    $self->{ER_RATE},
+   $self->{ISO},
    $self->{CHANGED})=@{ $self->{list}->[0]};
 
 
