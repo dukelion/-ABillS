@@ -95,7 +95,8 @@ sub info {
    tp.tp_id,
    tp.priority,
    tp.activate_price,
-   tp.age
+   tp.age,
+   tp.filter_id
      FROM dv_main dv
      LEFT JOIN tarif_plans tp ON (dv.tp_id=tp.id and tp.domain_id='$admin->{DOMAIN_ID}')
    $WHERE;");
@@ -131,7 +132,8 @@ sub info {
    $self->{TP_NUM},
    $self->{TP_PRIORITY},
    $self->{TP_ACTIVATION_PRICE},
-   $self->{TP_AGE}
+   $self->{TP_AGE},
+   $self->{TP_FILTER_ID}
   )= @{ $self->{list}->[0] };
   
 
@@ -521,7 +523,10 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{CID}, 'STR', 'dv.cid', { EXT_FIELD => 1 }) };
   }
 
- if ($attr->{FILTER_ID}) {
+ if ($attr->{ALL_FILTER_ID}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{ALL_FILTER_ID}, 'STR', 'if(dv.filter_id<>\'\', dv.filter_id, tp.filter_id)', { EXT_FIELD => 1 }) };
+  }
+ elsif ($attr->{FILTER_ID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{FILTER_ID}, 'STR', 'dv.filter_id', { EXT_FIELD => 1 }) };
   }
 

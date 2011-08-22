@@ -1270,8 +1270,8 @@ sub ipn_user_activate {
     	
     	if ($Ipn->{TOTAL} < 1) {
       
-      $Nas->info({ NAS_ID => $nas_id });
-      my %DATA = (ACCT_STATUS_TYPE   => 1, 
+        $Nas->info({ NAS_ID => $nas_id });
+        my %DATA = (ACCT_STATUS_TYPE   => 1, 
                   USER_NAME          => $user->{LOGIN}, 
                   SESSION_START      => 0, 
                   ACCT_SESSION_ID    => mk_unique_value(10), 
@@ -1284,22 +1284,22 @@ sub ipn_user_activate {
                   TP_ID              => $Dv->{TP_ID},
                   CALLING_STATION_ID => $ip,
                   NAS_PORT           => $Dv->{PORT},
-                  FILTER_ID          => $Dv->{FILTER_ID},
+                  FILTER_ID          => $Dv->{FILTER_ID} || $Dv->{TP_FILTER_ID},
                   CONNECT_INFO       => $FORM{CONNECT_INFO},
                   UID                => $user->{UID}, 
                  );
 
 
-      my $Auth = Auth->new($db, \%conf);
-      my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $Nas, { SECRETKEY => $conf{secretkey} });
-      if ($RAD_PAIRS->{'Filter-Id'}) {
-        $DATA{FILTER_ID} = $RAD_PAIRS->{'Filter-Id'} 
-       }
-      else {
-      	while(my($k, $v) = each %$RAD_PAIRS) {
-      	  $DATA{FILTER_ID} .= "$k=$v, "; 
-      	 }
-       }
+        my $Auth = Auth->new($db, \%conf);
+        my ($r, $RAD_PAIRS) = $Auth->dv_auth(\%DATA, $Nas, { SECRETKEY => $conf{secretkey} });
+        if ($RAD_PAIRS->{'Filter-Id'}) {
+          $DATA{FILTER_ID} = $RAD_PAIRS->{'Filter-Id'} 
+         }
+        else {
+      	  while(my($k, $v) = each %$RAD_PAIRS) {
+      	    $DATA{FILTER_ID} .= "$k=$v, "; 
+      	   }
+         }
 
 
       if ($r == 1) {
@@ -1353,7 +1353,7 @@ sub ipn_user_activate {
   	 	                   FRAMED_IP_ADDRESS     => $ip,
   	 	                   ACCT_TERMINATE_CAUSE  => 1,
   	 	                   UID                   => $LIST_PARAMS{UID},
-  	 	                   FILTER_ID             => $Dv->{FILTER_ID},
+  	 	                   FILTER_ID             => $Dv->{FILTER_ID} || $Dv->{TP_FILTER_ID},
   	 	                   NAS_ID                => $Nas->{NAS_ID},
   	 	                   NAS_IP_ADDRESS        => $Nas->{NAS_IP},
                          NAS_MNG_USER          => $Nas->{NAS_MNG_USER},
@@ -2511,7 +2511,7 @@ $list = $Dv->list({ LOGIN        => $attr->{LOGINS} || undef,
 	                  IP           => '>0.0.0.0',
 	                  DISABLE      => 0,
 	                  LOGIN_STATUS => 0,
-	                  FILTER_ID    => '*',
+	                  ALL_FILTER_ID=> '*',
 	                  PAGE_ROWS    => 1000000,
 	                  TP_ID        => $attr->{TP_IDS} || '>0',
 	                  PORT         => '>=0'

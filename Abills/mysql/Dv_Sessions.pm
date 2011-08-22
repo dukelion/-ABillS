@@ -243,7 +243,7 @@ sub online {
    LAST_ALIVE      => 'UNIX_TIMESTAMP()-c.lupdated',
    ACCT_SESSION_TIME => 'UNIX_TIMESTAMP() - UNIX_TIMESTAMP(c.started)',
    DURATION_SEC    => 'c.lupdated - UNIX_TIMESTAMP(c.started)',
-   FILTER_ID       => 'dv.filter_id',
+   FILTER_ID       => 'if(dv.filter_id<>\'\', dv.filter_id, tp.filter_id)',
    SESSION_START   => 'UNIX_TIMESTAMP(started)',
    DISABLE         => 'u.disable',
    DV_STATUS       => 'dv.disable',
