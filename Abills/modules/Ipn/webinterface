@@ -1555,7 +1555,6 @@ else {
 
 
   if ($conf{IPN_FILTER} && ($STATUS ne 'ONLINE_ENABLE' || ($STATUS eq 'ONLINE_ENABLE' && $FILTER_ID ne '') ) ) {
-  	print "/$FILTER_ID/";
   	$cmd = "$conf{IPN_FILTER}";
     $cmd =~ s/\%STATUS/$STATUS/g;
     $cmd =~ s/\%IP/$ip/g;
