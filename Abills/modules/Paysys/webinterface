@@ -193,7 +193,7 @@ sub paysys_import_form {
        }
 
        push @PAYMENT_METHODS, @EX_PAYMENT_METHODS if (@EX_PAYMENT_METHODS);
-       my $ids = join('; ', @$BINDING_IDS);
+       my $ids = join(';', @$BINDING_IDS);
 
        if ($ids eq '') {
        	 $html->message('err', $_ERROR, "$_USER_NOT_EXIST");

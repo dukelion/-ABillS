@@ -161,7 +161,7 @@ sub paysys_import_form {
   ($DATA_ARR, $BINDING_IDS)=payasys_import_parse($content, $import_expr, $BINDING_FIELD);
 
   #Make users binding hash
-  my $ids   = join('; ', @$BINDING_IDS);
+  my $ids   = join(';', @$BINDING_IDS);
   my $users = Users->new($db, $admin, \%conf); 
   my $list  = $users->list({ $BINDING_FIELD => "$ids",  
  	                           PAGE_ROWS      => 1000000 
@@ -208,7 +208,7 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
        	   	  $ext_id = $DATA_ARR->[$i]->{EXT_ID} || "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"; 
               $payments->add($user, { SUM  => $DATA_ARR->[$i]->{SUM},
                        DESCRIBE     => $describe, 
- 	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || 2, 
+ 	                     METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD} || $ARGV->{METHOD} || 2, 
  	                     DATE         => $DATA_ARR->[$i]->{DATE}, 
                        EXT_ID       => $ext_id,
                        CHECK_EXT_ID => $ext_id,
@@ -226,11 +226,11 @@ for ( my $i = 0; $i<=$#{ $DATA_ARR }; $i++) {
         elsif ($ARGV->{TYPE} eq 'FEES') {
           if ($debug < 5) {
             $fees->take($user,  $DATA_ARR->[$i]->{SUM}, { 
-                                 DESCRIBE      => $describe, 
-                                 INNER_DESRIBE => $DATA_ARR->[$i]->{EXT_ID}, 
-          	                     DATE          => $DATA_ARR->[$i]->{DATE} || undef, 
+                                 DESCRIBE       => $describe, 
+                                 INNER_DESRIBE  => $DATA_ARR->[$i]->{EXT_ID}, 
+          	                     DATE           => $DATA_ARR->[$i]->{DATE} || undef, 
           	                     INNER_DESCRIBE => $inner_describe,
- 	                 #    METHOD       => $DATA_ARR->[$i]->{PAYMENT_METHOD}, 
+ 	                               METHOD         => $DATA_ARR->[$i]->{PAYMENT_METHOD} || $ARGV->{METHOD}, 
                    #    EXT_ID       => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID",
                    #    CHECK_EXT_ID => "$DATA_ARR->[$i]->{DATE}.$FORM{IMPORT_TYPE}.$ID"
                         } );
@@ -628,6 +628,7 @@ $import_rules
   EMAIL_CHECK=...      - Check E-mail for documents. E-mail box number. Default read all mailboxes with import rule.
   FTP_CHECK=...        - Check files from ftp. FTP  servers. Default check all servers with import rule.
   BACKUP_FILES=[DIR]   - Backup ftp files
+  METHOD=[0..]         - Method for fees or payments
   FILE=                - Import FILE
   DATE=                - Import Date  
   DEBUG=1,2..5         - Debug Mode  
