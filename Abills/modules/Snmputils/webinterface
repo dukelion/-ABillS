@@ -533,6 +533,14 @@ sub snmputils_chg_vlan {
   	                    27 => 1,
                         28 => 1);
    }
+  elsif ($version =~ /3200\-28/) {
+  	%RESERVED_PORTS = ( 27 => 1,
+                        28 => 1);
+   }
+  elsif ($version =~ /3200\-18/) {
+  	%RESERVED_PORTS = ( 17 => 1,
+  	                    18 => 1);
+   }
   # 3052 (49-52)
   elsif ($version =~ /3052/) {
   	%RESERVED_PORTS = ( 49 => 1,

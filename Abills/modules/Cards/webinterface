@@ -1198,6 +1198,7 @@ sub cards_reseller_face {
 
 
   if ($user->{DEPOSIT} + $user->{CREDIT} > 0) {
+  	#Generate Cards
   	if (cards_diller_add({ RESELLER => 1 }) > 0) {
   	  return 0;	
   	 }
