@@ -489,8 +489,8 @@ sub check_lines {
                                                          	 TP_NUM => $tp_num});
 
          $Billing->{SUM}=0 if ($conf{rt_billing});
-
-        if ($Billing->{UID} < 1 && ! $Billing->{HANGUP}) {
+        
+         if ($Billing->{UID} < 1 && ! $Billing->{HANGUP} && $NAS{NAS_TYPE} ne 'ipcad') {
         	if ($Billing->{UID} == -1) {
         		print "Less than minimun session trafic and time\n" if ($debug > 2);
         	 }
