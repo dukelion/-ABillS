@@ -278,7 +278,7 @@ sub check_lines {
       
       if (($calls_tp_id ne $tp_num || 
            $state 
-           #|| ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0 && $bill_priority == 0)
+           || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0) # && $bill_priority == 0)
            ) 
            && $online_state != 2 ) {
         $Log->log_print('LOG_WARNING', $user_name, "Change TP DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum SESSION_ID: $acct_session_id", { ACTION => 'HANGUP' });
@@ -490,7 +490,7 @@ sub check_lines {
 
          $Billing->{SUM}=0 if ($conf{rt_billing});
         
-         if ($Billing->{UID} < 1 && ! $Billing->{HANGUP} && $NAS{NAS_TYPE} ne 'ipcad') {
+         if ($Billing->{UID} < 1 && ! $Billing->{HANGUP}) {
         	if ($Billing->{UID} == -1) {
         		print "Less than minimun session trafic and time\n" if ($debug > 2);
         	 }
