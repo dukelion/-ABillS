@@ -2518,7 +2518,7 @@ $list = $Dv->list({ LOGIN        => $attr->{LOGINS} || undef,
                  });
 
 
-foreach my $line (@$list)   {
+foreach my $line (@$list) {
   my $filter_id    = $line->[9];
   my $login        = $line->[0];
   my $ip           = $line->[6];

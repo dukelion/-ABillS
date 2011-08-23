@@ -700,6 +700,11 @@ sub header {
  my $admin_name=$ENV{REMOTE_USER};
  my $admin_ip=$ENV{REMOTE_ADDR};
 
+ if ($FORM{debug}) {
+ 	  $self->{header} = "Content-Type: text/plain\n\n";
+ 	  return $self->{header};
+  }
+
  my $filename = int(rand(32768)).'.pdf';
  $self->{header} = "Content-type: application/pdf; filename=$filename\n";
  $self->{header}.= "Cache-Control: no-cache\n";
@@ -1339,9 +1344,9 @@ for my $key (sort keys %$tpl_describe) {
     next if ($x == 0 && $y == 0);
 
     my $text = '';
-    $doc_page   = ($pattern =~ /page=(\d+)/) ? $1 : 1;
+    $doc_page     = ($pattern =~ /page=(\d+)/) ? $1 : 1;
     my $work_page = ($attr->{DOCS_IN_FILE}) ? $doc_page + $page_count * int($multi_doc_count - 1) - ($page_count * $attr->{DOCS_IN_FILE} * int( ($multi_doc_count - 1) / $attr->{DOCS_IN_FILE})) : $doc_page + (($multi_doc_count) ? $page_count * $multi_doc_count - $page_count : 0);
-    my $page = $pdf->openpage($work_page);
+    my $page      = $pdf->openpage($work_page);
     if (! $page) {
     	print "Content-Type: text/plain\n\n";
     	print "Can't open page: $work_page ($pattern) '$!' / $doc_page + $page_count * $multi_doc_count\n";
@@ -1359,7 +1364,7 @@ for my $key (sort keys %$tpl_describe) {
         my $img_height  = ($pattern =~ /img_height=([0-9a-zA-Z_\.]+)/) ? $1 : 100; 
         my $img_width   = ($pattern =~ /img_width=([0-9a-zA-Z_\.]+)/) ? $1 : 100;
 
-    	  my $gfx=$page->gfx;
+    	  my $gfx = $page->gfx;
     	  my $img = $pdf->image_jpeg("$CONF->{TPL_DIR}/$img_file"); #, 200, 200);
         $gfx->image($img, $x, ($y - $img_height + 10), $img_width, $img_height); #, 596, 842);
         $gfx->close;
@@ -1380,7 +1385,7 @@ for my $key (sort keys %$tpl_describe) {
      }
     #my $font = $pdf->ttfont('arialbold');
     
-    my $txt  = $page->text;
+    my $txt = $page->text;
     $txt->font($font,$font_size);
     if ($font_color) {
       $txt->fillcolor($font_color);
@@ -1390,7 +1395,13 @@ for my $key (sort keys %$tpl_describe) {
     $txt->translate($x,$y);
 
     if (defined($variables_ref->{$key})) {
+    	
     	$text = $variables_ref->{$key};
+    	if($tpl_describe->{$key}->{EXPR}) {
+    		my @expr_arr = split(/\//, $tpl_describe->{$key}->{EXPR}, 2);
+    		print "Expration: $key >> $text=~s/$expr_arr[0]/$expr_arr[1]/;\n" if ($attr->{debug});
+    		$text=~s/$expr_arr[0]/$expr_arr[1]/g;
+    	 }
      }
     #else {
     #	$text = ''; #"'$key: $x/$y'";
@@ -1596,12 +1607,14 @@ sub tpl_describe {
   	if ($line =~ /^#/) {
   		next;
   	 }
-  	elsif($line =~ /^(\S+):(.+):(\S+):(\S{0,500})([:.]{0,20})/) {
+  	elsif($line =~ /^(\S+):([\W ]+):(\w+):([\w \(\);=,]{0,500}):?([\w]{0,200}):?(.{0,200})$/) {
     	my $name    = $1;
     	my $describe= $2;
     	my $lang    = $3;
     	my $params  = $4;
     	my $default = $5;
+    	my $expr    = $6;
+      chop($expr);
 
     	next if ($attr->{LANG} && $attr->{LANG} ne $lang);
 
@@ -1609,6 +1622,8 @@ sub tpl_describe {
     	$TPL_DESCRIBE{$name}{LANG}    =$lang;
     	$TPL_DESCRIBE{$name}{PARAMS}  =$params;
     	$TPL_DESCRIBE{$name}{DEFAULT} =$default;
+    	$TPL_DESCRIBE{$name}{EXPR}    =$expr;
+    	#print "$name Expr '$expr' Def '$default'\n";
      }
    }
 
