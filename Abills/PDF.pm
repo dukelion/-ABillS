@@ -1290,7 +1290,7 @@ sub tpl_show {
 
   $debug = 0;
   $filename        =~ s/\.[a-z]{3}$//;
-  my $tpl_describe = tpl_describe($filename);
+  my $tpl_describe = tpl_describe($filename, { debug => $self->{debug} });
   $filename        = $filename.'.pdf';
   my $pdf          = PDF::API2->open($filename);
   my $tpl;
@@ -1620,7 +1620,7 @@ sub tpl_describe {
     	$TPL_DESCRIBE{$name}{PARAMS}  =$params;
     	$TPL_DESCRIBE{$name}{DEFAULT} =$default;
     	$TPL_DESCRIBE{$name}{EXPR}    =$expr;
-    	print "$name Descr '$describe' Params '$params' Expr '$expr' Def '$default'\n" if ($self->{debug});
+    	print "$name Descr '$describe' Params '$params' Expr '$expr' Def '$default'\n" if ($attr->{debug});
      }
    }
 
