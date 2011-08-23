@@ -702,6 +702,7 @@ sub header {
 
  if ($FORM{debug}) {
  	  $self->{header} = "Content-Type: text/plain\n\n";
+          $self->{debug}=1;
  	  return $self->{header};
   }
 
@@ -1287,10 +1288,6 @@ sub tpl_show {
   my $self = shift;
   my ($filename, $variables_ref, $attr) = @_;	
 
-  if ($attr->{debug}) {
-    print "Content-Type: text/plain\n\n";
-   }
-
   $debug = 0;
   $filename        =~ s/\.[a-z]{3}$//;
   my $tpl_describe = tpl_describe($filename);
@@ -1623,7 +1620,7 @@ sub tpl_describe {
     	$TPL_DESCRIBE{$name}{PARAMS}  =$params;
     	$TPL_DESCRIBE{$name}{DEFAULT} =$default;
     	$TPL_DESCRIBE{$name}{EXPR}    =$expr;
-    	#print "$name Expr '$expr' Def '$default'\n";
+    	print "$name Descr '$describe' Params '$params' Expr '$expr' Def '$default'\n" if ($self->{debug});
      }
    }
 
