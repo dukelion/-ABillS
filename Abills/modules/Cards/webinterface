@@ -376,7 +376,8 @@ sub cards_add {
 
   	  for(my $i=$begin; $i<$begin+$count; $i++) {
         my $pin    = mk_unique_value($pin_length || 8, { SYMBOLS => $pin_symbols || undef });
-  	 	  my $serial = sprintf("%s%.11d", $FORM{SERIAL}, $i);
+        my $cards_number_length = $conf{CARDS_NUMBER_LENGTH} || 11;
+  	 	  my $serial = sprintf("%s%.".$cards_number_length."d", $FORM{SERIAL}, $i);
         my $sum    = sprintf("%.2f", $FORM{SUM});
 
         $Cards->cards_add({ SERIAL     => "$FORM{SERIAL}",

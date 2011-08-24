@@ -1604,13 +1604,10 @@ sub tpl_describe {
   	if ($line =~ /^#/) {
   		next;
   	 }
-  	elsif($line =~ /^(\S+):([\W ]+):(\w+):([\w \(\);=,]{0,500}):?([\w]{0,200}):?(.{0,200})$/) {
-    	my $name    = $1;
-    	my $describe= $2;
-    	my $lang    = $3;
-    	my $params  = $4;
-    	my $default = $5;
-    	my $expr    = $6;
+  	else { #if($line =~ /^(\S+):([\W ]+):(\w+):([\w \(\);=,]{0,500}):?([\w]{0,200}):?(.{0,200})$/) {
+    	chop($line);
+    	my ($name, $describe, $lang, $params, $default, $expr)=split(/:/, $line);
+      
       chop($expr);
 
     	next if ($attr->{LANG} && $attr->{LANG} ne $lang);
