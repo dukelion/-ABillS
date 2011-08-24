@@ -697,13 +697,13 @@ sub cards_users_gen_confim {
 #**********************************************************
 sub cards_user_payment () {
  	$user = Users->new($db, $admin, \%conf);
- 	
 	if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_PIN_ONLY})) {
 		$db->{AutoCommit}=0; 
 		my $BRUTE_LIMIT  = ($conf{CARDS_BRUTE_LIMIT}) ? $conf{CARDS_BRUTE_LIMIT} : 5;
 	  my $brute        = $Cards->bruteforce_list({ UID => $LIST_PARAMS{UID} });
     $Cards->cards_info({ %FORM, UID => $LIST_PARAMS{UID}, PAYMENTS => 1 });
    
+  
     if ($Cards->{error}) {
       $html->message('err', $_ERROR, "$ERR_SUPPORT / $ERR_SUPPORT");	
       return 0;
@@ -717,8 +717,9 @@ sub cards_user_payment () {
       return 0;
 	   }
 	  elsif ($Cards->{TOTAL} < 1) {
-	 	  $html->message('err', $_ERROR, "$_NOT_EXIST");
+	 	  $html->message('err', "$_CARDS:$_ERROR", "$_NOT_EXIST");
 	 	  $Cards->bruteforce_add({ UID => $LIST_PARAMS{UID}, PIN => $FORM{PIN} });
+	 	  $db->commit();
 	   }
 	  elsif ($Cards->{SUM} < 1) {
 	 	  $html->message('err', $_ERROR, "$_SUM: $Cards->{SUM}");
@@ -738,27 +739,26 @@ sub cards_user_payment () {
 
 	    return 0;
 	   }
-    
+    else { 
  
-   $user->info($LIST_PARAMS{UID});
-   if ($conf{CARDS_DEBUG}) {
-     my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER}"  >> /tmp/cards_debug`;	
-    }
+     $user->info($LIST_PARAMS{UID});
+     if ($conf{CARDS_DEBUG}) {
+       my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER}"  >> /tmp/cards_debug`;	
+      }
 
-   my $cards_number_length = $conf{CARDS_NUMBER_LENGTH} || 11;
-   $payments->add($user, { SUM          => $Cards->{SUM},
-                           METHOD       => 2,
-                           DESCRIBE     => sprintf("%s%.".$cards_number_length."d", $Cards->{SERIAL}, $Cards->{NUMBER}),
-                           EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
-                           CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
-                         });  
+     my $cards_number_length = $conf{CARDS_NUMBER_LENGTH} || 11;
+     $payments->add($user, { SUM          => $Cards->{SUM},
+                             METHOD       => 2,
+                             DESCRIBE     => sprintf("%s%.".$cards_number_length."d", $Cards->{SERIAL}, $Cards->{NUMBER}),
+                             EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
+                             CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
+                           });  
 
+     if (! $payments->{errno}) {
+       $user->{DEPOSIT}+=$Cards->{SUM}-$Cards->{COMMISSION};
+       $html->message('info', $_PAYMENTS, "$_ADDED\n$_SUM: $Cards->{SUM} \n ". (($Cards->{COMMISSION} > 0) ? "$_COMMISSION $Cards->{COMMISSION}\n": '' )."\n $_DEPOSIT: $user->{DEPOSIT}\n");
 
-   if (! $payments->{errno}) {
-     $user->{DEPOSIT}+=$Cards->{SUM}-$Cards->{COMMISSION};
-     $html->message('info', $_PAYMENTS, "$_ADDED\n$_SUM: $Cards->{SUM} \n ". (($Cards->{COMMISSION} > 0) ? "$_COMMISSION $Cards->{COMMISSION}\n": '' )."\n $_DEPOSIT: $user->{DEPOSIT}\n");
-
-     $Cards->cards_change({ ID       => "$Cards->{ID}", 
+       $Cards->cards_change({ ID       => "$Cards->{ID}", 
      	                      STATUS   => 2, 
      	                      UID      => $user->{UID},
      	                      DATETIME => "$DATE $TIME",
@@ -766,31 +766,31 @@ sub cards_user_payment () {
 
      
 
-     #Make external script
-     if ($conf{CARDS_PAYMENTS_EXTERNAL})  {
-      	_external("$conf{CARDS_PAYMENTS_EXTERNAL}", { %$Cards, %$user });
-      }
+       #Make external script
+       if ($conf{CARDS_PAYMENTS_EXTERNAL})  {
+      	 _external("$conf{CARDS_PAYMENTS_EXTERNAL}", { %$Cards, %$user });
+        } 
 
-     if ($Cards->{COMMISSION}) {
-     	 my $Fees = Finance->fees($db, $admin, \%conf);        	
-       $Fees->take($user, $Cards->{COMMISSION},
+       if ($Cards->{COMMISSION}) {
+       	 my $Fees = Finance->fees($db, $admin, \%conf);        	
+         $Fees->take($user, $Cards->{COMMISSION},
                                {  DESCRIBE     => "$_COMMISSION $_ICARDS: $Cards->{SERIAL}$Cards->{NUMBER}",
                                   METHOD       => 0,
                                 });
-     	}
+     	  }
      
-     cross_modules_call('_payments_maked', { USER => $user, QUITE => 1  });    
+       cross_modules_call('_payments_maked', { USER => $user, QUITE => 1  });    
 
-     #Disable universal card after payment
-     if ($Cards->{UID} > 0) {
-        my $user_new = Users->new($db, $admin, \%conf);
-        $user_new->info( $Cards->{UID} );
-        $user_new->del();
-      }
+       #Disable universal card after payment
+       if ($Cards->{UID} > 0) {
+         my $user_new = Users->new($db, $admin, \%conf);
+         $user_new->info( $Cards->{UID} );
+         $user_new->del();
+        }
 
-     if ($Cards->{DILLER_ID}) {
-        $Cards->cards_diller_info({ ID => $Cards->{DILLER_ID} });
-        if ($Cards->{PAYMENT_TYPE} == 2 && $Cards->{OPERATION_PAYMENT} > 0) {
+       if ($Cards->{DILLER_ID}) {
+         $Cards->cards_diller_info({ ID => $Cards->{DILLER_ID} });
+         if ($Cards->{PAYMENT_TYPE} == 2 && $Cards->{OPERATION_PAYMENT} > 0) {
   	       my $user_new = Users->new($db, $admin, \%conf);
            $user_new->info( $Cards->{UID} );
 
@@ -802,18 +802,19 @@ sub cards_user_payment () {
 #                                  CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
                                 });
          }
+        }
+       $db->commit();
+       return 0;
       }
-     $db->commit();
-     return 0;
-    }
-   elsif ($payments->{errno}) {
-	   if ($payments->{errno} == 7) {
-       $html->message('err', $_ERROR, "$status[2]");
-	    }
-     else {
-     	 $html->message('err', $_ERROR, "$_ERROR");
+     elsif ($payments->{errno}) {
+	     if ($payments->{errno} == 7) {
+         $html->message('err', $_ERROR, "$status[2]");
+	      }
+       else {
+     	   $html->message('err', $_ERROR, "$_ERROR");
+        }
+       $db->rollback();
       }
-     $db->rollback();
     }
 	 }
 	
