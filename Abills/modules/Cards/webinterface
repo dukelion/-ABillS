@@ -744,9 +744,11 @@ sub cards_user_payment () {
    if ($conf{CARDS_DEBUG}) {
      my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER}"  >> /tmp/cards_debug`;	
     }
-   
+
+   my $cards_number_length = $conf{CARDS_NUMBER_LENGTH} || 11;
    $payments->add($user, { SUM          => $Cards->{SUM},
-                           METHOD       => 2, 
+                           METHOD       => 2,
+                           DESCRIBE     => sprintf("%s%.".$cards_number_length."d", $Cards->{SERIAL}, $Cards->{NUMBER});
                            EXT_ID       => "$Cards->{SERIAL}$Cards->{NUMBER}",
                            CHECK_EXT_ID => "$Cards->{SERIAL}$Cards->{NUMBER}"
                          });  
