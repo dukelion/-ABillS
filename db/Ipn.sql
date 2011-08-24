@@ -23,7 +23,8 @@ CREATE TABLE `ipn_log` (
   `sum` double(15,6) unsigned NOT NULL default '0.000000',
   `session_id` char(25) NOT NULL default '',
   KEY uid_traffic_class (uid, traffic_class),
-  KEY `uid` (`uid`)
+  KEY `uid` (`uid`),
+  KEY `session_id` (`session_id`)
 ) COMMENT='Ipn log traffic class';
 
 

@@ -58,6 +58,7 @@ my $query_count = 0;
 
 use DBI;
 
+
 #**********************************************************
 # Connect to DB
 #**********************************************************
@@ -70,6 +71,10 @@ sub connect {
   bless($self, $class);
   $self->{db} = DBI->connect_cached("DBI:mysql:database=$dbname;host=$dbhost", "$dbuser", "$dbpasswd") or print 
        "Content-Type: text/html\n\nError: Unable connect to DB server '$dbhost:$dbname'\n";
+
+  if (! $self->{db}) {
+    my $a = `echo "/ $DBI::errstr/" >> /tmp/connect_error `;
+   }
 
   #For mysql 5 or highter
   $self->{db}->do("set names ".$attr->{CHARSET}) if ($attr->{CHARSET});
