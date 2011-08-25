@@ -376,12 +376,12 @@ sub msgs_admin_add {
  	                                        });
 
   $Msgs->{DATE}        = $html->date_fld2('DATE', { MONTHES   => \@MONTHES, 
-  	                                                FORM_NAME => ($FORM{DV_WIZARD})  ? 'add_message' : 'user_form', 
+  	                                                FORM_NAME => (! $FORM{DV_WIZARD})  ? 'add_message' : 'user_form', 
   	                                                WEEK_DAYS => \@WEEKDAYS });
   $Msgs->{INNER_MSG}   = ' checked';
   $Msgs->{PLAN_DATE}   = $html->date_fld2('PLAN_DATE', { NO_DEFAULT_DATE=>1, 
   	                                                     MONTHES   => \@MONTHES, 
-  	                                                     FORM_NAME => ($FORM{DV_WIZARD})  ? 'add_message' : 'user_form', 
+  	                                                     FORM_NAME => (! $FORM{DV_WIZARD})  ? 'add_message' : 'user_form', 
   	                                                     WEEK_DAYS => \@WEEKDAYS });
   #$Msgs->{PLAN_TIME}   = "";
   $Msgs->{DISPATCH_SEL}= $html->form_select('DISPATCH_ID', 

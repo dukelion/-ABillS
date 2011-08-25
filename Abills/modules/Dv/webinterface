@@ -5487,8 +5487,8 @@ if ($added_count > 0) {
 sub dv_wizard_user {
 	my ($attr) = @_;
 
-  my $fees     = Finance->fees($db, $admin, \%conf);
-  #my $users    = Users->new($db, $admin, \%conf); 
+  my $fees        = Finance->fees($db, $admin, \%conf);
+  $FORM{DV_WIZARD}= 1;
 
   if ($FORM{print}) {
     require "Abills/modules/Docs/webinterface";
