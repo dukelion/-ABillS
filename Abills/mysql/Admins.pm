@@ -450,27 +450,16 @@ sub action_list {
     push @WHERE_RULES, "aa.aid='$attr->{AID}'";
    }
   elsif($attr->{ADMIN}) {
-  	$attr->{ADMIN} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "a.id LIKE '$attr->{ADMIN}'";
+    push @WHERE_RULES, @{ $self->search_expr($attr->{ADMIN}, 'STR', 'a.id') };
    }
 
  # Start letter 
- if ($attr->{FIRST_LETTER}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
+ if ($attr->{LOGIN}) {
+   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
   }
- elsif ($attr->{LOGIN}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
-  }
- # Login expresion
- elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
-  }
- 
+  
  if ($attr->{ACTION}) {
- 	 $attr->{ACTION} =~ s/\*/\%/ig;
- 	 push @WHERE_RULES, "aa.actions LIKE '$attr->{ACTION}'";
+ 	 push @WHERE_RULES, @{ $self->search_expr($attr->{ACTION}, 'STR', 'aa.actions') };
   }    
 
  if (defined($attr->{TYPE}) && $attr->{TYPE} ne '') {
@@ -482,16 +471,23 @@ sub action_list {
  if ($attr->{FROM_DATE}) {
    push @WHERE_RULES, "(date_format(aa.datetime, '%Y-%m-%d')>='$attr->{FROM_DATE}' and date_format(aa.datetime, '%Y-%m-%d')<='$attr->{TO_DATE}')";
   }
-
+ 
  if ($attr->{MODULE}) {
    push @WHERE_RULES, "aa.module='$attr->{MODULE}'";
   }
 
- if ($attr->{GIDS}) {
-   push @WHERE_RULES, "a.gid IN ($attr->{GIDS})";
-  }
- elsif ($attr->{GID}) {
-   push @WHERE_RULES, "a.gid='$attr->{GID}'";
+
+ if ($attr->{GID} || $attr->{GIDS}) {
+ 	 $attr->{GIDS} = $attr->{GID} if (! $attr->{GIDS});
+ 	 my @system_admins=();
+ 	 push @system_admins, $CONF->{USERS_WEB_ADMIN_ID}, $CONF->{SYSTEM_ADMIN_ID};
+ 	 my $system_admins = ''; 
+ 	 my $users_gid     = ''; 
+ 	 if (! $attr->{ADMIN} && ! $attr->{AID}) {
+ 	   $system_admins = "or a.aid IN (". join(',', @system_admins) .")";
+ 	   $users_gid     = "u.gid IN ($attr->{GIDS}) AND"; 
+ 	  }
+   push @WHERE_RULES, "($users_gid (a.gid IN ($attr->{GIDS}) $system_admins))";
   }
 
 

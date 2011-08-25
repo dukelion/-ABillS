@@ -2685,7 +2685,8 @@ form_search({ HIDDEN_FIELDS => $LIST_PARAMS{AID},
 	           });
 
 
-my $list = $admin->action_list({ %LIST_PARAMS });
+my $list  = $admin->action_list({ %LIST_PARAMS });
+
 my $table = $html->table( { width      => '100%',
                             border     => 1,
                             title      => ['#', 'UID',  $_DATE,  $_CHANGED,  $_ADMIN,   'IP', "$_MODULES", "$_TYPE", '-'],
@@ -6915,7 +6916,7 @@ if(defined($FORM{del}) && $FORM{is_js_confirmed} && $permissions{0}{5} ) {
       $line->[2], 
       $line->[3], 
       $line->[4], 
-      $html->button($_INFO, "index=$index&LOGIN=$line->[0]", { BUTTON => 1 }), 
+      $html->button($_INFO, "index=$index&LOGIN=$line->[0]", { CLASS => 'show' }), 
       (defined($permissions{0}{5})) ? $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }) : ''
       );
    }
