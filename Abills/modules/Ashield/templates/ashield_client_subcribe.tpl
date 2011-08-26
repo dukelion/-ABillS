@@ -1,6 +1,7 @@
 <form action=$SELF_URL method=post NAME=user_form>
 <input type=hidden name=index value=$index>
 <input type=hidden name=UID value='$FORM{UID}'>
+<input type=hidden name=OP_SID value='%OP_SID%'>
 <table cellspacing='0' cellpadding='3' width='500'>
 <tr><th class=form_title colspan=2>Dr.Web </th></tr>
 <tr><td colspan=2>

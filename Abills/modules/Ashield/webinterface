@@ -324,7 +324,10 @@ sub ashield_user {
 
 
   if ($FORM{add}) {
-  	if ($users->{DEPOSIT}+$users->{CREDIT} < 0) {
+  	if (defined($FORM{OP_SID}) and $FORM{OP_SID} eq $COOKIES{OP_SID}) {
+ 	    $html->message('err', $_ERROR, "$_EXIST");
+     }
+  	elsif ($users->{DEPOSIT}+$users->{CREDIT} < 0) {
   		$html->message('err', $_ERROR, "$ERR_SMALL_DEPOSIT");
   	 }
   	else {
@@ -409,7 +412,6 @@ sub ashield_user {
   elsif($FORM{info}) {
   	ashield_drweb_user({ %FORM });
   	if ($FORM{change}) {
-  		print %FORM;
   		$Ashield->ashield_avd_change({ %FORM, AGENTUUID => $FORM{info} });
   	 }
    }
@@ -454,6 +456,7 @@ sub ashield_user {
    	   );
     }
 
+   $Ashield->{OP_SID} = mk_unique_value(16);
    $Ashield->{TARIF_PLAN_TABLE}=$table->show({ OUTPUT2RETURN => 1 });
    $html->tpl_show(_include('ashield_client_subcribe', 'Ashield'), {%$user,  %$Ashield, %$service });
   }
@@ -1342,7 +1345,7 @@ elsif ($attr->{info}) {
   	  #'installedcomponents' => 'on',
       #'runningcomponents'   => 'on',
       #groupmembership     => 'on'      	  
-      'bases' => 'on'
+      'bases'      => 'on'
 		  }); 
 
 	if ($result_hash->{error}) {
