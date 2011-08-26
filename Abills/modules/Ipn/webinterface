@@ -2434,7 +2434,8 @@ foreach my $line (@$list)   {
 
 
 #**********************************************************
-# ipn_periodic_session_restart
+# ipn_start_active
+# Start active users
 #**********************************************************
 sub ipn_start_active {
 	my ($attr) = @_;
@@ -2509,7 +2510,7 @@ foreach my $line (@$list)   {
 
 $list = $Dv->list({ LOGIN        => $attr->{LOGINS} || undef,
 	                  IP           => '>0.0.0.0',
-	                  DISABLE      => 0,
+	                  STATUS       => 0,
 	                  LOGIN_STATUS => 0,
 	                  ALL_FILTER_ID=> '*',
 	                  PAGE_ROWS    => 1000000,
