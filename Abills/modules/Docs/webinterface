@@ -1471,16 +1471,16 @@ sub docs_print {
 	if (defined(@MONTHES_LIT) && $attr->{DATE}) {
     my ($y, $m, $d)=split(/-/, $attr->{DATE}, 3);
 
-    $attr->{FROM_DATE_LIT} = "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
-    $attr->{DAY}=$d;
-    $attr->{MONTH_LIT}=$MONTHES_LIT[int($m)-1];
-    $attr->{YEAR}=$y;
+    $attr->{FROM_DATE_LIT}= "$d ". $MONTHES_LIT[int($m)-1] ." $y $_YEAR";
+    $attr->{DAY}          = $d;
+    $attr->{MONTH_LIT}    = $MONTHES_LIT[int($m)-1];
+    $attr->{YEAR}         = $y;
     $attr->{DATE_EURO_STANDART}="$d.$m.$y";
    }
 
   $attr->{A_FIO} = $admin->{A_FIO};
 
-  $attr->{SUM_LIT} = int2ml("$attr->{TOTAL_SUM}", { 
+  $attr->{SUM_LIT} = int2ml("$attr->{TOTAL_SUM}", {
   	 ONES             => \@ones,
      TWOS             => \@twos,
      FIFTH            => \@fifth,
@@ -1526,7 +1526,6 @@ sub docs_print {
     $users = $user if ($user->{UID});
    }
 
-  my $tpl_sufix = '';
   if ($Docs->{UID}) {
     $users->info($Docs->{UID}) if (! $users->{BILL_ID});
     $users->pi({ UID => $Docs->{UID} });
@@ -1535,7 +1534,7 @@ sub docs_print {
     if ($users->{GID}) {
        $users->group_info($users->{GID});
        if ($users->{SEPARATE_DOCS}) {
-       	 $tpl_sufix = "_$users->{GID}"; 
+       	 $attr->{SUFIX}="_$users->{GID}"; 
         }
      }
 
@@ -1558,7 +1557,7 @@ sub docs_print {
   	$html = $pdf;
    }
 
-  my $content = $html->tpl_show(_include("docs_$template$tpl_sufix", 'Docs', 
+  my $content = $html->tpl_show(_include("docs_$template", 'Docs', 
 	    { pdf           => $FORM{pdf},
 	    	OUTPUT2RETURN => $attr->{OUTPUT2RETURN},
 	    	SUFIX         => $attr->{SUFIX}

@@ -163,11 +163,16 @@ sub dv_auth {
 
 #DIsable
 if ($self->{DISABLE}) {
-	if ($CONF->{DV_STATUS_NEG_DEPOSIT}) {
-    return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+	if ($self->{DISABLE} == 2) {
+		 $self->query($db, "UPDATE dv_main SET disable=0 WHERE uid='$self->{UID}'", 'do');
 	 }
-  $RAD_PAIRS->{'Reply-Message'}="Service Disabled";
-  return 1, $RAD_PAIRS;
+	else {
+	  if ($CONF->{DV_STATUS_NEG_DEPOSIT}) {
+      return $self->neg_deposit_filter_former($RAD, $NAS, $self->{NEG_DEPOSIT_FILTER_ID});
+	   }
+    $RAD_PAIRS->{'Reply-Message'}="Service Disabled";
+    return 1, $RAD_PAIRS;
+  }
  }
 elsif (! $self->{JOIN_SERVICE} && $self->{TP_NUM} < 1) {
   $RAD_PAIRS->{'Reply-Message'}="No Tarif Selected";
