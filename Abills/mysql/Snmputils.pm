@@ -51,7 +51,12 @@ sub snmputils_nas_ipmac {
  $DESC      = (defined($attr->{DESC})) ? $attr->{DESC} : 'DESC';
 
  @WHERE_RULES = ();
- $WHERE = ($#WHERE_RULES > -1) ? 'WHERE ' . join(' and ', @WHERE_RULES)  : '';
+ if (defined($attr->{DISABLE})) {
+ 	 push @WHERE_RULES, "u.disable='$attr->{DISABLE}'";
+  }
+
+ 
+ $WHERE = ($#WHERE_RULES > -1) ? 'AND ' . join(' AND ', @WHERE_RULES)  : '';
 
  $self->query($db,   "SELECT un.nas_id, 
      u.uid, 
@@ -63,7 +68,8 @@ sub snmputils_nas_ipmac {
      d.ports,
      d.nas,
      u.id,
-     d.network
+     d.network,
+     u.disable
    FROM (users u, dhcphosts_hosts d)
      LEFT JOIN bills ub ON (u.bill_id = ub.id)
      LEFT JOIN companies company ON  (u.company_id=company.id)
@@ -71,7 +77,7 @@ sub snmputils_nas_ipmac {
      LEFT JOIN users_nas un ON (u.uid=un.uid)
             WHERE u.uid=d.uid
                and (d.nas='$attr->{NAS_ID}' or un.nas_id='$attr->{NAS_ID}')
-               and u.disable=0
+               $WHERE
             ORDER BY $SORT $DESC
             LIMIT $PG, $PAGE_ROWS;");
 

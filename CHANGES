@@ -1,4 +1,26 @@
+=====0.54=====
+18.08.2011\\
+  * ''Dhcphosts'' добавленны поля DNS2, NTP
+  * в журнал курса валют добавленно поле ISO для синхронизации с банками
+  * ''Cards'' добавлен параметр $conf{CARDS_NUMBER_LENGTH} -  длина номера карты
+  * ''Cards'' Прямой переход с журнала карта на журнал оплат с поиском нужной оплаты
+  * ''Cards'' ДОбавленна возможность пополнять только используя пин $conf{CARDS_PIN_ONLY}=1;
+MySQL:
+  ALTER TABLE dhcphosts_networks ADD COLUMN `dns2` varchar(32) NOT NULL default '';
+  ALTER TABLE dhcphosts_networks ADD COLUMN `ntp` varchar(100) NOT NULL default '';
+  ALTER TABLE `exchange_rate` ADD COLUMN `iso` smallint unsigned  NOT NULL default 0;
+  
+  CREATE TABLE `exchange_rate_log` (
+    `date` datetime NOT NULL default '0000-00-00 00:00:00',
+    `exchange_rate_id` smallint unsigned  NOT NULL default 0,
+    `rate` double(12,4) NOT NULL default '0.0000',
+    KEY `date` (`date`)
+   ) COMMENT='Exchange rate log';
+
+
+
 =====0.53=====
+
 
 22.07.2011\\
   * ''Paysys'' Добавлена возможность отменять массовые платежи
