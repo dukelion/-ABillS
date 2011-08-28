@@ -8,7 +8,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $VERSION
 );
 
 
-@EXPORT_OK = qw(log_add);
+@EXPORT_OK = qw(log_add log_print);
 @EXPORT = qw(%log_levels);
 
 my $db;
@@ -123,8 +123,8 @@ sub log_print  {
 
   my $action = $attr->{'ACTION'} || $self->{ACTION} || '' ;
   
-  if ($CONF->{debugmods} =~ /$LOG_TYPE/) {
-    if ($CONF->{ERROR2DB}) {
+  if (! $CONF->{debugmods} || $CONF->{debugmods} =~ /$LOG_TYPE/) {
+    if ($CONF->{ERROR2DB} && ! $attr->{LOG_FILE}) {
       $self->log_add({LOG_TYPE => $log_levels{$LOG_TYPE},
                       ACTION   => $action, 
                       USER_NAME=> $USER_NAME || '-',
@@ -137,13 +137,13 @@ sub log_print  {
     	my $DATE = strftime "%Y-%m-%d", localtime(time);
       my $TIME = strftime "%H:%M:%S", localtime(time);
       my $nas  = (defined($Nas->{NAS_ID})) ? "NAS: $Nas->{NAS_ID} ($Nas->{NAS_IP}) " : '';
-      
-      if(open(FILE, ">>$CONF->{LOGFILE}")) {
+      my $logfile = ($attr->{LOG_FILE}) ? $attr->{LOG_FILE} : $CONF->{LOGFILE};
+      if(open(FILE, ">>$logfile")) {
         print FILE "$DATE $TIME $LOG_TYPE: $action [$USER_NAME] $nas$MESSAGE\n";
         close(FILE);
        }
       else {
-        print  "Can't open file '$CONF->{LOGFILE}' $!\n";
+        print  "Can't open file '$logfile' $!\n";
        }
      }
 

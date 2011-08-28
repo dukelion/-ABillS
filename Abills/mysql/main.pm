@@ -117,9 +117,7 @@ sub query {
   $self->{errstr}=undef;
   $self->{errno}=undef;
   $self->{TOTAL} = 0;
-  #$self->{debug}=1;
-  print "<p>$query</p>\n" if ($self->{debug});
-
+  print "<p><code>\n$query\n</code></p>\n" if ($self->{debug});
  	 
   if (defined($attr->{test})) {
   	 return $self;
@@ -128,43 +126,20 @@ sub query {
 my $q;
 
 my @Array = ();
-# check bind params
+# check bind params for bin input
 if ($attr->{Bind}) {
-  
   foreach my $Data (@{ $attr->{Bind} }) {
     push(@Array, $Data);
-    #print ref(\$Data);
-#    if (ref($Data) eq 'SCALAR') {
-#      push(@Array, $$Data);
-#     }
-#    else  {
-#      $self->{errno} = 7;
-#      $self->{errstr} = "No SCALAR param in Bind!";
-#      return $self;
-#     }
-
    }
-
  }
 
 if ($type && $type eq 'do') {
-#  print $query;
   $q = $db->do($query, undef, @Array);
   if (defined($db->{'mysql_insertid'})) {
   	 $self->{INSERT_ID} = $db->{'mysql_insertid'};
    }
  }
 else {
-  $q = $db->prepare($query); # || die $db->errstr;
-  if($db->err) {
-     $self->{errno} = 3;
-     $self->{sql_errno}=$db->err;
-     $self->{sql_errstr}=$db->errstr;
-     $self->{errstr}=$db->errstr;
-   
-     return $self->{errno};
-   }
-  
   if ($attr->{MULTI_QUERY}) {
     foreach my $line ( @{ $attr->{MULTI_QUERY} } ) {
       $q->execute( @$line );
@@ -179,33 +154,35 @@ else {
      }
    }
   else {
-    $q->execute();
-    if($db->err) {
-      $self->{errno} = 3;
-
-      $self->{sql_errno}=$db->err;
-      $self->{sql_errstr}=$db->errstr;
-      $self->{errstr}=$db->errstr;
-      return $self->{errno};
+    $q = $db->prepare($query);
+    if(! $db->err) {
+      $q->execute();
      }
     $self->{TOTAL} = $q->rows;
-  }
+   }
   $self->{Q}=$q;
+  $self->{QS}++;
 #  $self->{NUM_OF_FIELDS} = $q->{NUM_OF_FIELDS};
 }
 
 
 
 if($db->err) {
-
   if ($db->err == 1062) {
-    $self->{errno} = 7;
+    $self->{errno}  = 7;
     $self->{errstr} = 'ERROR_DUBLICATE';
-    return $self;
    }
-
-  $self->{errno} = 3;
-  $self->{errstr} = 'SQL_ERROR'; # . ( ($self->{db}->strerr) ? $self->{db}->strerr : '' );
+  else {
+    $self->{sql_errno} = $db->err;
+    $self->{sql_errstr}= $db->errstr;
+    $self->{errno}     = 3;
+    $self->{errstr}    = 'SQL_ERROR'; # . ( ($self->{db}->strerr) ? $self->{db}->strerr : '' );
+    require Log;
+    Log->import('log_print');
+    # #my $Log2 = Log->new($db, undef);
+    log_print(undef, 'LOG_ERR', '', "\n$query\n --$self->{sql_errno}\n --$self->{sql_errstr}\n", { NAS => 0, LOG_FILE => "/tmp/sql_errors" });
+    #my $a = `echo "\n$query\n --$self->{sql_errno}\n --$self->{sql_errstr}\n" >> /tmp/connect_error `;
+   }
   return $self;
  }
 

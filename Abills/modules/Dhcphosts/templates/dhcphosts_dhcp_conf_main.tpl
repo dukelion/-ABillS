@@ -3,6 +3,9 @@
 default-lease-time 86400;
 max-lease-time 172800;
 ddns-update-style none;
+one-lease-per-client true;
+deny duplicates;
+
 lease-file-name \"/var/db/dhcpd/dhcpd.leases\";
 
 

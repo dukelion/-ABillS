@@ -21,13 +21,13 @@ require Abills::SQL;
 my $sql = Abills::SQL->connect($conf{dbtype}, $conf{dbhost}, $conf{dbname}, $conf{dbuser}, $conf{dbpasswd});
 my $db  = $sql->{db};
 require Nas;
-$nas = undef;
+$nas    = undef;
 
 require Auth;
 Auth->import();
 
 require Log;
-Log->import('log_add');
+Log->import('log_print');
 
 my $GT  = '';
 my $rr  = '';
