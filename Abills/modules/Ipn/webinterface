@@ -2351,6 +2351,7 @@ my $list = $sessions->online({ NAS_ID => join(', ', @nas_ids_arr),
                                 ]
                             })  ;
 my $count = 0;
+my %activated_ips = ();
 foreach my $line (@$list)   {
   my $login        = $line->[0];
   my $ip           = $line->[1];
@@ -2383,7 +2384,10 @@ foreach my $line (@$list)   {
   $debug_output .= "$_DISABLE IP: $ip\n" if ($debug > 1);
 
   #Activate
-  if (int($nas_id) < 1) {
+  if ($activated_ips{$ip}) {
+  	next;
+   }
+  elsif (int($nas_id) < 1) {
     $debug_output .= "Unknown NAS\n";  	
    }
   else {
@@ -2421,6 +2425,7 @@ foreach my $line (@$list)   {
       ipn_change_status({ STATUS => 'ONLINE_ENABLE', %DATA });
       $debug_output .= "$_ACTIVATE IP: $ip\n" if ($debug > 1);
      }
+    $activated_ips{$ip}=1;
   }
 
   $count++;
@@ -2509,6 +2514,8 @@ foreach my $line (@$list)   {
 }
 
 $list = $Dv->list({ LOGIN        => $attr->{LOGINS} || undef,
+                    ACTIVATE     => "<='$DATE'",
+                    EXPIRE       => ">'$DATE'",
 	                  IP           => '>0.0.0.0',
 	                  STATUS       => 0,
 	                  LOGIN_STATUS => 0,

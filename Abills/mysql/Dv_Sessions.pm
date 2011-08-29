@@ -14,7 +14,7 @@ $VERSION = 2.00;
 
 @EXPORT = qw();
 
-@EXPORT_OK = ();
+@EXPORT_OK   = ();
 %EXPORT_TAGS = ();
 
 use main;
@@ -85,7 +85,6 @@ sub online_update {
   if (defined($attr->{out})) {
   	push @SET_RULES, "acct_output_octets='$attr->{out}'";
    }
-
 
   if (defined($attr->{STATUS})) {
   	push @SET_RULES, "status='$attr->{STATUS}'";
@@ -281,8 +280,8 @@ sub online {
     $RES_FIELDS_COUNT = 0;
   	foreach my $field ( @{ $attr->{FIELDS_NAMES} } ) {
   	  $fields .= "$FIELDS_NAMES_HASH{$field},\n ";	
-  	  if ($field =~ /TP_BILLS_PRIORITY|TP_NAME/ && $EXT_TABLE !~ /tarif_plans/) {
-  	  	$EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id)";
+  	  if ($field =~ /TP_BILLS_PRIORITY|TP_NAME|FILTER_ID/ && $EXT_TABLE !~ /tarif_plans/) {
+  	  	$EXT_TABLE .= "LEFT JOIN tarif_plans tp ON (tp.id=dv.tp_id AND tp.module='Dv')";
   	   }
   	  $RES_FIELDS_COUNT++;
   	 }
