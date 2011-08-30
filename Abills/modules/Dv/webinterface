@@ -159,7 +159,6 @@ if ($FORM{set}) {
       if (! $Dv->{STATUS} && $FORM{GET_ABON}) {
         dv_get_month_fee($Dv);
        }
-
       $html->message('info', $_CHANGED, "$_TARIF_PLAN $_CHANGED");
       $Dv->info($Dv->{UID});
     }
