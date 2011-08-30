@@ -3,23 +3,30 @@
 #
 
 use Fees;
-my $Fees = Fees->new($db, $admin, \%conf); 
+my $Fees  = Fees->new($db, $admin, \%conf); 
 my $Users = Users->new($db, $admin, \%conf); 
 
+
+
 my $Turbosms;
+
+
+#**********************************************************
+# Connect to torbosms
+#**********************************************************
+sub turbosms_connect {
 eval { require Turbosms; };
 if (! $@) {
   eval { require Turbosms; };
   Turbosms->import();
   $Turbosms  = Turbosms->new($db, $admin, \%conf);
-
  }
 else {
 	print $@;
   $html->message('err', $_ERROR, "Can't load 'Turbosms'. Purchase this module http://abills.net.ua");
   exit;
 }
-
+}
 
 
 
@@ -35,7 +42,7 @@ else {
 sub sms_send {
   my ($attr) = @_;
 
-  
+  turbosms_connect();
   
   $Turbosms->send_sms({ NUMBERS => $attr->{NUMBERS},
   	                    NUMBER  => $attr->{NUMBER},
@@ -76,6 +83,8 @@ sub sms_send {
 #**********************************************************
 sub sms_info {
   my ($id, $attr) = @_;
+  
+  turbosms_connect();
 
   $Turbosms->$Turbosms->info({ ID => $id });
 
@@ -91,7 +100,7 @@ sub sms_info {
 #
 #**********************************************************
 sub turbosms_reports {
-	
+  turbosms_connect();
 #eval { require Turbosms; };
 #if (! $@) {
 #  Turbosms->import();

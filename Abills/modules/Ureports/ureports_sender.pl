@@ -150,8 +150,6 @@ sub ureports_periodic_reports {
  $debug_output .= "Ureports: Daily spool former\n" if ($debug > 1);
  $LIST_PARAMS{MODULE}='Ureports';
  $LIST_PARAMS{TP_ID} = $ARGV->{TP_IDS} if ($ARGV->{TP_IDS});
- $LIST_PARAMS{LOGIN} = $ARGV->{LOGIN}  if ($ARGV->{LOGIN});
-
 
  my %SERVICE_LIST_PARAMS = ();
  $SERVICE_LIST_PARAMS{LOGIN} = $ARGV->{LOGINS} if ($ARGV->{LOGINS});
