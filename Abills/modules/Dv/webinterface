@@ -163,7 +163,6 @@ if ($FORM{set}) {
       $html->message('info', $_CHANGED, "$_TARIF_PLAN $_CHANGED");
       $Dv->info($Dv->{UID});
     }
-
   }
 }
 elsif($FORM{del}) {
