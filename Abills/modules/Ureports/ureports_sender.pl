@@ -11,7 +11,7 @@ $DEBUG
 );
 #use strict;
 
-my $version = 0.5;
+my $version = 0.51;
 my $debug   = 0;
 
 use FindBin '$Bin';
@@ -150,6 +150,7 @@ sub ureports_periodic_reports {
  $debug_output .= "Ureports: Daily spool former\n" if ($debug > 1);
  $LIST_PARAMS{MODULE}='Ureports';
  $LIST_PARAMS{TP_ID} = $ARGV->{TP_IDS} if ($ARGV->{TP_IDS});
+ $LIST_PARAMS{LOGIN} = $ARGV->{LOGIN}  if ($ARGV->{LOGIN});
 
 
  my %SERVICE_LIST_PARAMS = ();
@@ -169,6 +170,7 @@ sub ureports_periodic_reports {
  	   $debug_output .= "TP ID: $TP_ID DF: $line->[5] MF: $line->[6] POSTPAID: $TP_INFO{POSTPAID_DAILY} REDUCTION: $TP_INFO{REDUCTION} EXT_BILL: $line->[13] CREDIT: $line->[14]\n" if ($debug > 1);
 
      #Get users
+     $Ureports->{debug}=1 if ($debug > 5);
  	   my $ulist = $Ureports->tp_user_reports_list({
          DATE      => '0000-00-00',
          TP_ID     => $TP_ID,
@@ -205,8 +207,7 @@ sub ureports_periodic_reports {
        if ($user{BILL_ID} > 0 && defined($user{DEPOSIT})) {
          #Skip action for pay opearation
      	 	 if ($user{MSG_PRICE} > 0 && $user{DEPOSIT} + $user{CREDIT} < 0 && $TP_INFO{POSTPAID}  == 0) {
-     	 	 	  #print "/$TP_ID/$user{UID} / val: $user{VALUE} / report: $user{REPORT_ID} / $user{MSG_PRICE} print !!!!!!!!!!!!; \\ \n ";
-     	 	 	  $debug_output .= "UID: $user{UID} REPORT_ID: $user{REPORT_ID} DEPOSIT: $user{DEPOSIT}/$user{CREDIT} Small Deposit\n" if ($debug > 0);
+     	 	 	  $debug_output .= "UID: $user{UID} REPORT_ID: $user{REPORT_ID} DEPOSIT: $user{DEPOSIT}/$user{CREDIT} Skip action Small Deposit for sending\n" if ($debug > 0);
      	 	 	  next;
      	 	  }
 

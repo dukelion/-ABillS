@@ -138,7 +138,7 @@ my $table = $html->table( { width      => '100%',
                            });
 
 foreach my $line (@$list) {
-  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Ureports->{SEARCH_FIELDS_COUNT}]) : ''; 
+  my $payments = ($permissions{1}) ?  $html->button("$_PAYMENTS", "index=2&UID=". $line->[6+$Ureports->{SEARCH_FIELDS_COUNT}], { CLASS => 'payments'  }) : ''; 
   
   my @fields_array  = ();
   for(my $i=0; $i<$Ureports->{SEARCH_FIELDS_COUNT}; $i++){
@@ -154,8 +154,7 @@ foreach my $line (@$list) {
    "$service_status[$line->[5]]",
    @fields_array, 
    $payments, 
-   $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[6+$Ureports->{SEARCH_FIELDS_COUNT}], { BUTTON => 1 })
-
+   $html->button("$_STATS", "index=". ($index + 3) ."&UID=". $line->[6+$Ureports->{SEARCH_FIELDS_COUNT}], { CLASS => 'stats' })
    );
 }
 print $table->show();
@@ -277,7 +276,7 @@ sub ureports_user {
         $REPORTS{$line->[0]},
         $html->form_input("VALUE_$line->[0]", (($line->[1]) ? $line->[1] : 0), { OUTPUT2RETURN => 1, SIZE => 6 }), 
         (($line->[2]) ? $line->[2] : '0.00'),
-        $line->[3] . ( ($line->[3] && $line->[3] ne '0000-00-00') ?  $html->button($_RESET, "index=$index&UID=$Ureports->{UID}&REPORT_ID=$line->[0]&reset_date=1", { MESSAGE => "$_RESET", BUTTON => 1 } ) : '' )
+        $line->[3] . ( ($line->[3] && $line->[3] ne '0000-00-00') ?  $html->button($_RESET, "index=$index&UID=$Ureports->{UID}&REPORT_ID=$line->[0]&reset_date=1", { MESSAGE => "$_RESET", CLASS => 'del' } ) : '' )
       );
      }
 
@@ -459,8 +458,8 @@ my $table = $html->table( { width      => '100%',
 my ($delete, $change);
 foreach my $line (@$list) {
   if ($permissions{4}{1}) {
-    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", BUTTON => 1 }); 
-    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { BUTTON => 1 });
+    $delete = $html->button($_DEL, "index=$index&del=$line->[18]", { MESSAGE => "$_DEL $line->[0]?", CLASS => 'del' }); 
+    $change = $html->button($_CHANGE, "index=$index&TP_ID=$line->[18]", { CLASS => 'change' });
    }
   
   if($FORM{TP_ID} eq $line->[0]) {
@@ -969,7 +968,7 @@ my $delete = '';
 foreach my $line (@$list) {
   if ($permissions{3}{1} && $LIST_PARAMS{UID}) {
     $delete = $html->button($_DEL, "index=". $index ."$pages_qs&del=$line->[0]&MSG_ID=$line->[0]", 
-       { MESSAGE => "$_DEL Session MSG_ID $line->[0]?", BUTTON => 1  }
+       { MESSAGE => "$_DEL Session MSG_ID $line->[0]?", CLASS => 'del'  }
       );
    }
 
@@ -981,7 +980,7 @@ foreach my $line (@$list) {
      $line->[4], 
      $line->[5], 
      $line->[6], 
-     $html->button("D", "index=$index&UID=$line->[7]&MSG_ID=$line->[0]", { TITLE => "$_DETAIL", BUTTON => 1 } ),
+     $html->button("D", "index=$index&UID=$line->[7]&MSG_ID=$line->[0]", { TITLE => "$_DETAIL", CLASS => 'show' } ),
      $delete);
 }
 
