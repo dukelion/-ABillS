@@ -1139,9 +1139,6 @@ elsif($attr->{DATE}) {
 	 push @WHERE_RULES, "date_format(start, '%Y-%m-%d')='$attr->{DATE}'";
 }
 
-
-
- push @WHERE_RULES, "u.uid=l.uid";
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 
 
@@ -1154,7 +1151,8 @@ elsif($attr->{DATE}) {
   UNIX_TIMESTAMP(l.start),
   l.duration,
   l.recv2, l.sent2
-  FROM (dv_log l, users u)
+  FROM dv_log l
+  INNER JOIN users u ON (u.uid=l.uid)
   $WHERE
   ORDER BY $SORT $DESC LIMIT $PG, $PAGE_ROWS;");
 
@@ -1164,12 +1162,13 @@ elsif($attr->{DATE}) {
 
 
  if ($self->{TOTAL} > 0) {
-    my $users_table = ($WHERE =~ /u\./) ? ", users u" : '' ;
+    my $users_table = ($WHERE =~ /u\./) ? "INNER JOIN users u ON (u.uid=l.uid)" : '' ;
     $self->query($db, "SELECT count(l.uid), SEC_TO_TIME(sum(l.duration)), 
       sum(l.sent + 4294967296 * acct_output_gigawords), sum(l.recv + 4294967296 * acct_input_gigawords), 
       sum(l.sent2), sum(l.recv2), 
       sum(sum)  
-      FROM (dv_log l, $users_table )
+      FROM dv_log l
+      $users_table
      $WHERE;");
 
     ($self->{TOTAL},
