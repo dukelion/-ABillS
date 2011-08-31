@@ -1164,11 +1164,12 @@ elsif($attr->{DATE}) {
 
 
  if ($self->{TOTAL} > 0) {
+    my $users_table = ($WHERE =~ /u\./) ? ", users u" : '' ;
     $self->query($db, "SELECT count(l.uid), SEC_TO_TIME(sum(l.duration)), 
       sum(l.sent + 4294967296 * acct_output_gigawords), sum(l.recv + 4294967296 * acct_input_gigawords), 
       sum(l.sent2), sum(l.recv2), 
       sum(sum)  
-      FROM (dv_log l, users u)
+      FROM (dv_log l, $users_table )
      $WHERE;");
 
     ($self->{TOTAL},
@@ -1542,10 +1543,15 @@ sub log_rotate {
   my @rq = ();
  
  if ($version > 4.1) {
- 	 push @rq, 'CREATE TABLE IF NOT EXISTS errors_log_new LIKE errors_log',
-               'INSERT INTO errors_log_new SELECT max(date), log_type, action, user, message, nas_id FROM errors_log GROUP BY user,message,nas_id;',
-               'RENAME TABLE errors_log TO errors_log_old, errors_log_new TO errors_log',
-               'DROP TABLE errors_log_old';
+ 	 push @rq, 'CREATE TABLE IF NOT EXISTS errors_log_new LIKE errors_log;',
+     'CREATE TABLE IF NOT EXISTS errors_log_new_sorted LIKE errors_log;',
+     'RENAME TABLE errors_log TO errors_log_old, errors_log_new TO errors_log;',
+     'INSERT INTO errors_log_new_sorted SELECT max(date), log_type, action, user, message, nas_id FROM errors_log_old GROUP BY user,message,nas_id;',
+     'INSERT INTO errors_log_new_sorted SELECT max(date), log_type, action, user, message, nas_id FROM errors_log',
+     'GROUP BY user,message,nas_id;',
+     'DROP TABLE errors_log_old;',
+     'RENAME TABLE errors_log TO errors_log_old, errors_log_new_sorted TO errors_log;',
+     'DROP TABLE errors_log_old';
 
    if (! $attr->{DAILY}) {
      use POSIX qw(strftime);
