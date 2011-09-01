@@ -11,7 +11,7 @@ CA_pl='/usr/src/crypto/openssl/apps/CA.pl';
 
 hostname=`hostname`;
 password=whatever;
-VERSION=1.81;
+VERSION=1.82;
 days=730;
 DATE=`date`;
 CERT_TYPE=$1;
@@ -41,6 +41,7 @@ if [ w$1 = w ] ; then
   echo " -DAYS          - Cert period in days (Default: 730)"
   echo " -PASSSWORD     - Password for Certs (Default: whatever)"
   echo " -HOSTNAME      - Hostname for Certs (default: system hostname)"
+  echo " -UPLOAD        - Upload ssh certs to host via ssh (default: )"
   
 
   exit;
@@ -72,6 +73,9 @@ for _switch ; do
                 ;;
         -HOSTNAME) hostname=$3
                 shift; shift
+                ;;
+        -UPLOAD) UPLOAD=y; HOST=$4
+                shift; shift;
                 ;;
         esac
 done
@@ -196,12 +200,14 @@ ssh_key () {
 
   # If exist only upload
   if [ -f ${CERT_PATH}${id_dsa_file} ]; then
-     echo "Upload to remote host[Y/n]: "
-     read UPLOAD
+     if [ x${UPLOAD} = x ]; then
+       echo "Upload to remote host[Y/n]: "
+       read UPLOAD
+     fi;
   fi;
 
  
-  if [ w${UPLOAD} != wy ]; then
+  if [ x${UPLOAD} != xy ]; then
     ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}${id_dsa_file}"
 
     chown ${APACHE_USER} ${CERT_PATH}${id_dsa_file}
@@ -212,11 +218,13 @@ ssh_key () {
     read UPLOAD
   fi;
 
-  if [ w${UPLOAD} = wy ]; then
-    echo -n "Enter host: "
-    read HOST
-    
-    echo "Make upload to: ${HOST} "
+  if [ x${UPLOAD} = xy ]; then
+    if [ x${HOST} = x ]; then
+      echo -n "Enter host: "
+      read HOST
+    fi;
+
+    echo "Make upload to: ${USER}@${HOST} "
     ssh ${USER}@${HOST} "mkdir ~/.ssh"
     scp ${CERT_PATH}${id_dsa_file}.pub ${USER}@${HOST}:~/.ssh/authorized_keys
     
