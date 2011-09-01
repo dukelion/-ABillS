@@ -75,7 +75,7 @@ for _switch ; do
                 shift; shift
                 ;;
         -UPLOAD) UPLOAD=y; HOST=$4
-                shift; shift;
+                #shift; shift;
                 ;;
         esac
 done
