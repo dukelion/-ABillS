@@ -199,7 +199,9 @@ ssh_key () {
   fi;
 
   # If exist only upload
+  
   if [ -f ${CERT_PATH}${id_dsa_file} ]; then
+     echo "Cert exists: ${CERT_PATH}${id_dsa_file}";
      if [ x${UPLOAD} = x ]; then
        echo "Upload to remote host[Y/n]: "
        read UPLOAD
@@ -207,7 +209,7 @@ ssh_key () {
   fi;
 
  
-  if [ x${UPLOAD} != xy ]; then
+  if [ ! -f ${CERT_PATH}${id_dsa_file} ]; then
     ssh-keygen -t dsa -C "ABillS remote machine manage key (${DATE})" -f "${CERT_PATH}${id_dsa_file}"
 
     chown ${APACHE_USER} ${CERT_PATH}${id_dsa_file}
