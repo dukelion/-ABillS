@@ -278,10 +278,10 @@ sub check_lines {
       
       if (($calls_tp_id ne $tp_num || 
            $state 
-           || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0) # && $bill_priority == 0)
+           || ($POSTPAIDS{$tp_num} == 0 && $deposit+$credit <= 0 && ! $Billing->{NEG_DEPOSIT_FILTER}) # && $bill_priority == 0)
            ) 
            && $online_state != 2 ) {
-        $Log->log_print('LOG_WARNING', $user_name, "Change TP DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum SESSION_ID: $acct_session_id", { ACTION => 'HANGUP' });
+        $Log->log_print('LOG_WARNING', $user_name, "Change TP $calls_tp_id -> $tp_num DEPOSIT: $deposit CREDIT: $credit SESSION_SUM: $session_sum SESSION_ID: $acct_session_id", { ACTION => 'HANGUP' });
         
         my $ret = hangup(\%NAS, "$nas_port_id", "$user_name", { ACCT_SESSION_ID      => $acct_session_id,
        	                                                        FRAMED_IP_ADDRESS    => int2ip($client_ip),

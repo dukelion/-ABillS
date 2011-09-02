@@ -1,6 +1,6 @@
 
 
-  <head>
+
 
     <script src=\"http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA-O3c-Om9OcvXMOJXreXHAxQGj0PqsCtxKvarsoS-iqLdqZSKfxS27kJqGZajBjvuzOBLizi931BUow\"
       type=\"text/javascript\"></script>
@@ -71,11 +71,19 @@ function chgposition (x, y , zoom) {
 	}
 
 
-	//chgposition(%MAPSETCENTER%);
+	//chgposition(%MAPSETCENTER%);  
+    //window.onload = initialize; 
+    
+    function start() { 
+	  initialize(%MAPSETCENTER%);
+	  district('0'); 
+	}  
+	window.onload = start;  
+
     </script>
 
-  </head>
-<body onload=\"initialize(%MAPSETCENTER%)\" onunload=\"GUnload\">
+  
+
 
 <br />
 
@@ -102,5 +110,3 @@ function chgposition (x, y , zoom) {
   </td>
 </tr></table>
 
-</body>
-</html>

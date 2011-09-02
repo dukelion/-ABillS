@@ -2878,6 +2878,7 @@ open(FILE, ">$conf{VOIP_ASTERISK_USERS}") || $html->message('err', "Voip:$_ERROR
 close(FILE);
 
 if ($conf{VOIP_ASTERISK_RESTART}) {
+	#$conf{VOIP_ASTERISK_RESTART}=~
 	system($conf{VOIP_ASTERISK_RESTART});
 }
 

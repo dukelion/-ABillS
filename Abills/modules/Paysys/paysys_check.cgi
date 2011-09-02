@@ -531,7 +531,7 @@ sub osmp_payments {
  my $txn_id            = 'osmp_txn_id';
  my $payment_system    = 'OSMP';
  my $payment_system_id = 44;
- my $CHECK_FIELD = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
+ my $CHECK_FIELD       = $conf{PAYSYS_OSMP_ACCOUNT_KEY} || 'UID';
 
 my %status_hash = (0	=> 'Success',
   1   => 'Temporary DB error',

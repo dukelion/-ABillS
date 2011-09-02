@@ -959,7 +959,13 @@ foreach my $line ( @$list ) {
 #$Nas->{debug}=1;
 my $list2 = $Maps->nas_list({ SHOW_MAPS_GOOGLE => 1, PAGE_ROWS => '500'
 									 
-					 });
+});
+
+if ($Maps->{errno}) {
+    $html->message('err', $_ERROR, "[$Maps->{errno}] $err_strs{$Maps->{errno}}");
+}
+
+					 
 my %NAS_INFO = ();
 foreach my $line2 ( @$list2 ) {
 	
@@ -980,6 +986,8 @@ foreach my $line2 ( @$list2 ) {
 $list = $Maps->all_users_list({ 	LOCATION_ID => '>0',
 									PAGE_ROWS => '4000'
 						});
+
+
 
 my %USERS_INFO = ();
 
@@ -1173,6 +1181,7 @@ $html->tpl_show(_include('google_map_show', 'Maps'), { 	OBJECTS => $tpl_obj,
 
 #***********************************************************
 # menu: Google map show client 
+# Функция для формы заявки на подключение (отображает на карте дома для возможного подключения) 
 #***********************************************************
 sub google_maps_show_client {
 	my ($attr)=@_;
@@ -1183,21 +1192,29 @@ sub google_maps_show_client {
 
 #Get builds (javascript)  **********************************
 $list = $Maps->build_list({ SHOW_MAPS_GOOGLE => 1, PAGE_ROWS => '100000' });
+if ($Maps->{errno}) {
+    $html->message('err', $_ERROR, "[$Maps->{errno}] $err_strs{$Maps->{errno}}");
+}
+
 
 foreach my $line ( @$list ) {
   $tpl_obj .= $html->tpl_show(_include('google_location_info_client', 'Maps'), {
 																				STREET_ID => $line->[4],  
 																				NUMBER    => $line->[0],		
 																				MAP_X     => $line->[7],
-	                                      MAP_Y     => $line->[8],	                     
-	                                      },
-	                            { OUTPUT2RETURN => 1 });
+	                                      										MAP_Y     => $line->[8],	                     
+	                                      									},
+	                            											{ OUTPUT2RETURN => 1 });
 }
 
 
 #***********************************************************
 # template 	(maps_show_map)
 $list = $Maps->districts_list({});
+
+if ($Maps->{errno}) {
+    $html->message('err', $_ERROR, "[$Maps->{errno}] $err_strs{$Maps->{errno}}");
+} 
 
 foreach my $line ( @$list ) {
 	if ($line->[7] == 0 ){
