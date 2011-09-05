@@ -546,6 +546,7 @@ my %status_hash = (0	=> 'Success',
   300	=> 'Unknown error',
   );
 
+
  #For pegas
  if ($conf{PAYSYS_PEGAS} && $ENV{REMOTE_ADDR} ne '213.186.115.164') {
  	 $txn_id            = 'txn_id';
