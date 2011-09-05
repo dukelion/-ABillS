@@ -4696,6 +4696,7 @@ sub dv_monthly_fees {
      	 $month_fee = $month_fee / $days_in_month;
       }    
 
+     $Dv->{debug}=1 if ($debug > 5);
 	   my $ulist = $Dv->list({
          ACTIVATE     => $activate_date,
          EXPIRE       => ">'$ADMIN_REPORT{DATE}'",
@@ -5904,7 +5905,16 @@ else {
  }
 
  $dv_defaults->{JOIN_SERVICE}='';
- 
+ $list = $Nas->ip_pools_list({ STATIC => 1 });
+  
+ $dv_defaults->{STATIC_IP_POOL}=$html->form_select('STATIC_IP_POOL', 
+                                          { 
+ 	                                          SELECTED          => $FORM{STATIC_POOL},
+ 	                                          SEL_MULTI_ARRAY   => [['', ''], @$list ],
+ 	                                          MULTI_ARRAY_KEY   => 8,
+ 	                                          MULTI_ARRAY_VALUE => '1',
+ 	                                          NO_ID             => 1
+ 		                                      });
 
  my %tpls = (
 	            "1:$_LOGIN::"    => $html->tpl_show(templates('form_user'), { %$users_defaults, %FORM},    { OUTPUT2RETURN => 1, ID => 'FORM_USER'     }),  

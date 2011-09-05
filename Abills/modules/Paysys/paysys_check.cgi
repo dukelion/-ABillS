@@ -558,7 +558,9 @@ my %status_hash = (0	=> 'Success',
 
 my $comments = '';
 my $command = $FORM{command};
+
 $FORM{account} =~ s/^0+//g if ($FORM{account} && $CHECK_FIELD eq 'UID');
+
 my %RESULT_HASH=( result => 300 );
 my $results = '';
 
@@ -1714,7 +1716,8 @@ sub wm_validate {
 sub mk_log {
   my ($message, $attr) = @_;
   my $paysys = $attr->{PAYSYS_ID} || '';
-  if (open(FILE, ">>paysys_check.log")) {
+  my $paysys_log_file = 'paysys_check.log';
+  if (open(FILE, ">>$paysys_log_file")) {
     print FILE "\n$DATE $TIME $ENV{REMOTE_ADDR} $paysys =========================\n";
     
     if ($attr->{REQUEST}) {
@@ -1725,7 +1728,7 @@ sub mk_log {
 	  close(FILE);
 	 }
   else {
-    print "Can't open file 'paysys_check.log' $! \n";
+    print "Can't open file '$paysys_log_file' $!\n";
    }
 }
 

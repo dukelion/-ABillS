@@ -1546,8 +1546,7 @@ sub log_rotate {
      'CREATE TABLE IF NOT EXISTS errors_log_new_sorted LIKE errors_log;',
      'RENAME TABLE errors_log TO errors_log_old, errors_log_new TO errors_log;',
      'INSERT INTO errors_log_new_sorted SELECT max(date), log_type, action, user, message, nas_id FROM errors_log_old GROUP BY user,message,nas_id;',
-     'INSERT INTO errors_log_new_sorted SELECT max(date), log_type, action, user, message, nas_id FROM errors_log',
-     'GROUP BY user,message,nas_id;',
+     'INSERT INTO errors_log_new_sorted SELECT max(date), log_type, action, user, message, nas_id FROM errors_log GROUP BY user,message,nas_id;',
      'DROP TABLE errors_log_old;',
      'RENAME TABLE errors_log TO errors_log_old, errors_log_new_sorted TO errors_log;',
      'DROP TABLE errors_log_old';
