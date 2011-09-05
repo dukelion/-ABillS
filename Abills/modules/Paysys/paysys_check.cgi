@@ -135,7 +135,7 @@ my $output2 = '';
 if ($debug > 0) {
   while(my($k, $v)=each %FORM) {
  	  $output2 .= "$k -> $v\n"	if ($k ne '__BUFFER');
-  }
+   }
   mk_log($output2);
 }
 #END debug =====================================
@@ -547,7 +547,7 @@ my %status_hash = (0	=> 'Success',
   );
 
  #For pegas
- if ($conf{PAYSYS_PEGAS}) {
+ if ($conf{PAYSYS_PEGAS} && $ENV{REMOTE_ADDR} ne '213.186.115.164') {
  	 $txn_id            = 'txn_id';
  	 $payment_system    = 'PEGAS';
  	 $payment_system_id = 49;
@@ -714,12 +714,20 @@ while(my($k, $v) = each %RESULT_HASH) {
 	$results .= "<$k>$v</$k>\n";
 }
 
-print << "[END]";
-<?xml version="1.0" encoding="UTF-8"?> 
+
+my $response = qq{<?xml version="1.0" encoding="UTF-8"?> 
 <response>
 $results
 </response> 
-[END]
+};
+
+
+print $response;
+if ($debug > 0) {
+  mk_log($response);	
+}
+
+
 
 exit;
 }

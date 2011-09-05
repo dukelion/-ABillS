@@ -2241,6 +2241,7 @@ sub iptv_mk_users_conf {
 my $content = "#ABILLS users config\n#DATE: $DATE $TIME\n\n";
 
 
+
 my $list = $Iptv->user_list({ PAGE_ROWS => 100000, 
 	                            CID       => '*',
 	                            PASSWORD  => 1 
@@ -2400,10 +2401,8 @@ sub dv_crypt {
 	my $filename = $conf{IPTV_DVCRYPT_FILENAME} || $conf{TPL_DIR}. '/dvcrypt.conf';
 	my $content  = '';
 
-
   my %tp_channels_list = ();
-  my %users_channels   = ();
-  
+  my %users_channels   = ();  
   my $tp_list = $Tariffs->list({ %LIST_PARAMS, MODULE => 'Iptv' });
 
 foreach my $line (@$tp_list) {
@@ -2431,23 +2430,20 @@ foreach my $line (@$tp_list) {
                                 ACTIVATE      => "<='$DATE'",
                                 EXPIRE        => ">'$DATE'",
                                 DVCRYPT_ID    => '>0',
-                                STATUS     => 0,
-                                LOGIN_STATUS => 0,
-                                TP_ID      => $TP_ID,
-                                SORT       => 1,
-                                PAGE_ROWS  => 1000000,
+                                STATUS        => ">=0",
+                                LOGIN_STATUS  => ">=0",
+                                TP_ID         => $TP_ID,
+                                SORT          => 1,
+                                PAGE_ROWS     => 1000000,
  	   	                      });
 
   foreach my $line (@$ulist) {
-  	if ($line->[1]+$line->[2] > 0 && $line->[18]+$line->[19]==0) {
+  	if ($line->[2]+$line->[3] > 0 && $line->[5]==0) {
    	  %{ $users_channels{$line->[6]} } = %tp_channels_list;
    	 }
   	else {
   		%{ $users_channels{$line->[6]} } = ();
   	 }
-
-  	
-  	
    }
 
   # Custom channels users list
@@ -2483,16 +2479,13 @@ foreach my $line (@$tp_list) {
    }
 
 
-  $debug=2;
   print $html->pre($content) if($debug > 1);
 
 	open(FILE, ">$filename") or print "Can't create file '$filename' $!\n";
 	  print FILE $content;
 	close(FILE);
 
-print "Generated '$filename'\n";
-
-
+  print "Generated '$filename'\n" if($debug > 1);
 }
 
 1
