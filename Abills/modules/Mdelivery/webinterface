@@ -296,10 +296,10 @@ sub mdelivery_periodic {
  
 use Users;
 my $users = Users->new($db, $admin, \%conf); 
-
+$ADMIN_REPORT{DATE}=$DATE if (! $ADMIN_REPORT{DATE});
 $LIST_PARAMS{LOGIN}  = $attr->{LOGIN} if ($attr->{LOGIN});
-$LIST_PARAMS{STATUS}=0;
-$LIST_PARAMS{DATE}="<=$DATE";
+$LIST_PARAMS{STATUS} = 0;
+$LIST_PARAMS{DATE}   = "<=$ADMIN_REPORT{DATE}";
 
 my $list = $Mdelivery->list({ %LIST_PARAMS });
 my @ids;
