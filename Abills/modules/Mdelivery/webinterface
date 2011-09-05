@@ -216,7 +216,7 @@ rget=_new' }). " $_SIZE: ". int2byte($line->[3]) . ' / ';
                           });
 
   foreach my $line (@$list) {
-    my $delete = $html->button($_DEL, "index=$index&info=$FORM{info}&del_user=$line->[3]", { MESSAGE =>  "$_DEL [$line->[0]]?", BUTTON=>1 });
+    my $delete = $html->button($_DEL, "index=$index&info=$FORM{info}&del_user=$line->[3]", { MESSAGE =>  "$_DEL [$line->[0]]?", CLASS =>'del' });
 
     $table->addrow($html->button($line->[0], "index=15&UID=$line->[3]"), 
       $line->[1], 
@@ -256,7 +256,7 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
                           });
 
  foreach my $line (@$list) {
-   my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]]?", BUTTON=>1 });
+   my $delete = $html->button($_DEL, "index=$index&del=$line->[0]", { MESSAGE =>  "$_DEL [$line->[0]]?", CLASS=>'del' });
 
    $table->{rowcolor} = ($FORM{info} && $FORM{info} == $line->[0]) ? $_COLORS[0] : undef;
 
@@ -269,7 +269,7 @@ elsif ($FORM{del} && $FORM{is_js_confirmed}) {
      $line->[6], 
      ($line->[7]) ? $_SENDED : '',
      $html->button($_RESET, "index=$index&reset=$line->[0]", { BUTTON=>1, MESSAGE =>  "$_RESET  [$line->[0]]?" }), 
-     $html->button($_INFO, "index=$index&info=$line->[0]", { BUTTON=>1 }),
+     $html->button($_INFO, "index=$index&info=$line->[0]", { CLASS=>'show' }),
      $delete);
  }
 print $table->show();
@@ -289,9 +289,9 @@ print $table->show();
 sub mdelivery_periodic {
  my ($attr) = @_;
 
- my $debug = $attr->{DEBUG} || 0;
+ my $debug        = $attr->{DEBUG} || 0;
  my $debug_output = '';
- $debug_output .= "Monthly pariodic payments\n" if ($debug > 1);
+ $debug_output   .= "Mdelivery\n" if ($debug > 1);
 
  
 use Users;
@@ -340,7 +340,7 @@ foreach my $mdelivery_id (@ids) {
   my @users_ids = ();
   
   foreach $u (@$user_list) {
-  	 my $email = ($u->[4] && $u->[4] ne '') ? $u->[4] : ($conf{USERS_MAIL_DOMAIN}) ? $u->[0] .'@'. $conf{USERS_MAIL_DOMAIN} : '';
+  	my $email = ($u->[4] && $u->[4] ne '') ? $u->[4] : ($conf{USERS_MAIL_DOMAIN}) ? $u->[0] .'@'. $conf{USERS_MAIL_DOMAIN} : '';
     if (! $email || $email eq '')  {
        print "Login: $u->[0] Don't have mail address. Skip...\n";
        next;
@@ -359,7 +359,6 @@ foreach my $mdelivery_id (@ids) {
           { ATTACHMENTS => ($#ATTACHMENTS > -1) ? \@ATTACHMENTS : undef });
    }
 
-#exit;
   if (! $LIST_PARAMS{LOGIN}) {
     $Mdelivery->user_list_change({ MDELIVERY_ID => $mdelivery_id, UID => join(';', @users_ids) });
     $Mdelivery->change({ ID => $mdelivery_id });

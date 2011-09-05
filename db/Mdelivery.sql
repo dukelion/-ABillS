@@ -7,7 +7,7 @@ CREATE TABLE `mdelivery_list` (
   `subject` varchar(250) NOT NULL default '',
   `gid` smallint(4) unsigned NOT NULL default '0',
   `uid` int(11) unsigned NOT NULL default '0',
-  `sender` varchar(20) NOT NULL default '',
+  `sender` varchar(32) NOT NULL default '',
   `priority` tinyint(2) unsigned NOT NULL default '0',
   `status` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
