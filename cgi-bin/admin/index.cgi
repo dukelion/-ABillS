@@ -1380,7 +1380,7 @@ my $ext_menu = qq{
     $return .= ' : '. $html->button($html->b($LOGIN), "index=15&UID=${UID}"). " (UID: $UID) ";
    }
   else {
-    $return .= ' '. $html->button($LOGIN, "index=15&UID=$UID". (($attr->{EXT_PARAMS}) ? "&$attr->{EXT_PARAMS}" : ''));
+    $return .= $html->button($LOGIN, "index=15&UID=$UID". (($attr->{EXT_PARAMS}) ? "&$attr->{EXT_PARAMS}" : ''), {  TITLE => $attr->{TITLE}  });
    }
 	
 	return $return;

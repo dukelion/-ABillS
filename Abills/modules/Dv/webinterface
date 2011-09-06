@@ -1540,7 +1540,7 @@ foreach my $nas_row (@$nas_list) {
                            "CONNECT_INFO: \n".
                            "UPDATES: $line->[$#ACTIVE_FIELDS+8]";
 
-    	  	$value = "<acronym title='$user_info'>".user_ext_menu("$line->[$#ACTIVE_FIELDS+3]", $line->[0])."</acronym>";
+    	  	$value = user_ext_menu("$line->[$#ACTIVE_FIELDS+3]", $line->[0],  { TITLE => $user_info });
           #Dublicate logins color yelow
  	  	    if (defined($dub_logins->{$line->[0]}) && $dub_logins->{$line->[0]} > 1) { $table->{rowcolor}='#FFFF00'; }
     	   }	

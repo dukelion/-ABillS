@@ -558,6 +558,62 @@ div#tcal td:hover {
 	z-index:1;
 }
 
+#shadow {
+	position:absolute;
+	top:0px;
+	left:0px;
+	width:100%;
+	height:135%;
+	background-color:black;
+	opacity:0.6;
+	filter:alpha(opacity=60);
+	display:none;
+
+}
+
+#loading {
+	background-image:url('/img/loader.gif');
+	background-repeat:no-repeat;
+	background-position: center center;
+	display:block;
+	z-index:10;
+}
+
+.top_result_baloon {
+  color: #FFF;
+  cursor: pointer;
+  background: url('/img/mv_bg.png');
+  background: rgba(0, 0, 0, 0.75);
+	margin: 0 auto;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+
+  -moz-box-shadow: 0 2px 15px #888;
+   -webkit-box-shadow: 0 2px 15px #888;
+   box-shadow: 0 2px 15px #888;
+
+  padding: 15px 15px;
+  width: 280px;
+  height:90px;
+  text-shadow: 0px 1px 0px #262626;
+  line-height: 160%;
+  position: absolute;
+  top:50%;
+  left:50%;
+  margin-left:-105px;
+  margin-top:-50px;
+  display:none;
+}
+
+.top_result_baloon span {
+	text-align:center;
+	padding-top:60px;
+	font-weight:bold;
+	font-size:20px;
+
+}
+
 </style>
 
 <title>%title%</title>

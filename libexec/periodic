@@ -544,11 +544,12 @@ sub backup {
                           "--ignore-table=\"$conf{dbname}.ipn_log_backup\"",
                           "--ignore-table=\"$conf{dbname}.ipn_unknow_ips\"",
                           "--ignore-table=\"$conf{dbname}.errors_log\"",
+                          "--ignore-table=\"$conf{dbname}.dhcphosts_log\""
                            );
 
  my @tables = ();
  foreach my $table (@{ $admin->{list} }) {
-    if ($table->[0] =~ /(\S+)_\d{4}_\d{2}_\d{2}/){
+    if ($table->[0] =~ /_\d{4}_\d{2}_\d{2}$/){
       if ($table->[1] eq 'MyISAM') {
         push @tables, $table->[0];
        }
@@ -562,7 +563,7 @@ sub backup {
 
  $DEBUG .= "DB backup\n" if ($debug > 1);
  $conf{dbcharset}='latin1' if (!$conf{dbcharset});
- my $cmd = qq{ ( $MYSQLDUMP --default-character-set=$conf{dbcharset} -R -d --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} ;$MYSQLDUMP --no-create-info --default-character-set=$conf{dbcharset} -v $ignore_tables --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname}) | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz };
+ my $cmd = qq{ ( $MYSQLDUMP --default-character-set=$conf{dbcharset} -d --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname} ;$MYSQLDUMP --skip-triggers --no-create-info --default-character-set=$conf{dbcharset} -v $ignore_tables --host=$conf{dbhost} --user="$conf{dbuser}" --password="$conf{dbpasswd}" $conf{dbname}) | $GZIP > $conf{BACKUP_DIR}/stats-$DATE.sql.gz };
   
  $DEBUG .= $cmd."\n" if ($debug > 1);
  if ($debug < 5) {

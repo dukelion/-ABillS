@@ -1258,7 +1258,6 @@ sub button {
   $params = $attr->{JAVASCRIPT} if (defined($attr->{JAVASCRIPT}));
   $params = $self->link_former($params) if (! $attr->{NO_LINK_FORMER});
   
-  $ex_attr.=" TITLE='$attr->{TITLE}'" if (defined($attr->{TITLE}));
   if ( $attr->{NEW_WINDOW} ) {
     my $x = 640;
     my $y = 480;
@@ -1295,8 +1294,14 @@ sub button {
   elsif ($attr->{CLASS}) {
     $class = "class='$attr->{CLASS}'";
    }
-  my $title = ($name !~ /[<#]/) ? "title='$name'" : '';
-  my $button = "<a $title $class href=\"$params\"$ex_attr$message>$name</a>";
+  my $title = '';
+  if ($attr->{TITLE}) {
+    $title = " title='$attr->{TITLE}'";
+   }
+  elsif ($name !~ /[<#]/) {
+    $title = " title='$name'";
+   }
+  my $button = "<a$title $class href=\"$params\"$ex_attr$message>$name</a>";
 
   return $button;
 }
