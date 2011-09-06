@@ -1020,55 +1020,55 @@ foreach my $line ( @$list ) {
 
 #$users->{debug}=1;
 
-$list = $Maps->build_list({ SHOW_MAPS_GOOGLE => 1, PAGE_ROWS => '3000' });
+$list = $Maps->build_list({ SHOW_MAPS_GOOGLE => 1, PAGE_ROWS => '10000' });
 
-my $cnt = 0;
+my $count_online = 0;
+my $total_count  = 0;
+
 foreach my $line ( @$list ) {
 	
 	#print "//////////$line->[6]<br />";
 	my $user_info = '';
 	my $user_online = '';
 	#print "$line->[7] ///"; 
-
+	
 	
 	if ($USERS_INFO{$line->[6]}){
-		foreach my $u ( @{ $USERS_INFO{$line->[6]} } ) {
+		LINE: foreach my $u ( @{ $USERS_INFO{$line->[6]} } ) {
 			
 			if ($u->{ADDRESS_FLAT} ne '') {
 				$flat = "$u->{ADDRESS_FLAT}";
 			} else {
 				$flat = '';	
 			}
-			 
+			
+		    if (! $admin->{MAX_ROWS} || $admin->{MAX_ROWS} > $total_count) { 
 		      $user_info .= "<tr align=center><td><a href=$SELF_URL?index=11&UID=$u->{UID}>$u->{LOGIN}</a></td><td>$u->{DEPOSIT}</td><td>$flat</td></tr>";
-		      #$user_info .= "<strong><a href=$SELF_URL?index=11&UID=$u->{UID}>$u->{LOGIN}</a></strong> $_FLAT: $u->{ADDRESS_FLAT} $_DEPOSIT: $u->{DEPOSIT}<br>";
-		      if ($USERS_ONLINE{$u->{UID}}) {
-					 
-		      	  foreach my $uo ( @{ $USERS_ONLINE{ $u->{UID} } } ) {
-		      		
-								$cnt++;   
+		      $total_count++
+		    }
+
+		    #$user_info .= "<strong><a href=$SELF_URL?index=11&UID=$u->{UID}>$u->{LOGIN}</a></strong> $_FLAT: $u->{ADDRESS_FLAT} $_DEPOSIT: $u->{DEPOSIT}<br>";
+		    if ($USERS_ONLINE{$u->{UID}}) {
+		      	  foreach my $uo ( @{ $USERS_ONLINE{ $u->{UID} } } ) {		      		
+					$count_online++;   
 		      	    $user_online .= "<tr align=center><td><a href=$SELF_URL?index=11&UID=$uo->{UID}>$uo->{LOGIN}</a></td><td>$uo->{IP} </td></tr>";
-		           }
+		          }
 		            
-		       }
-		      if ($INSTALLATIONS_INFO{$line->[6]}){
+		      }
+		     if ($INSTALLATIONS_INFO{$line->[6]}){
    				foreach my $install ( @{ $INSTALLATIONS_INFO{$line->[6]} } ) {
-   					$install_info .= "$install->{NAME} $install->{COUNT}" ;
-   			  } 
-  
-  }
+   				  $install_info .= "$install->{NAME} $install->{COUNT}" ;
+   			 	}   			     
+  			  }
 
     	}
-  } else {
-   	
+  } else {   	
    		$user_info = "";
    		$user_online = "";
    		$install_info = "";
   }
 
   $count_offline =   $#{ $USERS_INFO{$line->[6]} }+1;
-	$count_online  =   $cnt;
-	$cnt = 0;
 #***********************************************************
 # template 	(maps_location_info)   +++DISTRICT_ID => $attr->{DISTRICT_ID},
 #***********************************************************
@@ -1084,26 +1084,24 @@ foreach my $line ( @$list ) {
 	                                                          					MAP_X4 => $line->[13],
 	                                                          					MAP_Y4 => $line->[14],
 	                                                          					USER_OFFLINE => $user_info,
-	                                                          				  	USERS_ONLINE =>$user_online,
+	                                                          				  	USERS_ONLINE => $user_online,
 	                                                          				  	USER_COUNT_OFFLINE => $count_offline,  
-	                                                          					USER_COUNT_ONLINE => $count_online,
+	                                                          					USER_COUNT_ONLINE  => $count_online,
 #	                                                          					INSTALL_INFO  => $install_info
 	                                                          					 
 	                                                          					  },
 	                                                          					{ OUTPUT2RETURN => 1 });
-
+  $count_online  = 0;
+  $total_count = 0;
 # Template switch info and param  ***************************
 	
 	
 	if ($NAS_INFO{$line->[7]}){	
+	   foreach my $nas ( @{ $NAS_INFO{$line->[7]} } ) { 
+          $nas_info .= "<strong style=font-size:9px; color:green;>$_NAS:</strong><br /><br /><strong>IP:</strong> $nas->{IP}<br /><strong>$_NAME:</strong> $nas->{NAS_NAME}<br /><strong>$_TYPE:</strong> $nas->{NAS_TYPE}<br />";
+   	     }
 		
-		
-		foreach my $nas ( @{ $NAS_INFO{$line->[7]} } ) { 
-      $nas_info .= "<strong style=font-size:9px; color:green;>$_NAS:</strong><br /><br /><strong>IP:</strong> $nas->{IP}<br /><strong>$_NAME:</strong> $nas->{NAS_NAME}<br /><strong>$_TYPE:</strong> $nas->{NAS_TYPE}<br />";
-   	}
-		
-	  $tpl_obj_nas .= $html->tpl_show(_include('google_nas_info', 'Maps'), {
-  																																		
+	    $tpl_obj_nas .= $html->tpl_show(_include('google_nas_info', 'Maps'), {  																																		
 														    MAP_NAS_X => $line->[7]+0.0001,
                                           					MAP_NAS_Y => $line->[8]+0.0001,
                                           					MAP_NAS_X2 =>$line->[7]-9,
