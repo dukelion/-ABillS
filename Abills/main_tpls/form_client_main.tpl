@@ -12,8 +12,5 @@
 %BODY%
  <div id='contentBody'>  
     </div>
- <div id='loading' style='display: none'>  
-    $_LOADING...
- </div>  
 </div>
 </TD></TR></TABLE>

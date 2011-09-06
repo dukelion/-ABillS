@@ -1,4 +1,4 @@
-<script language=\"JavaScript\">
+<script type=\"text/javascript\">
 	function showLoading() {
 		var shadow = document.getElementById('shadow');
 		var loading = document.getElementById('load');
