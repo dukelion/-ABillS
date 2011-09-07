@@ -144,6 +144,7 @@ sub add {
     $self->{errstr}='No Bill';
   }
   
+  $db->{AutoCommit}=1  if (! $attr->{NO_AUTOCOMMIT});
 
   return $self;
 }

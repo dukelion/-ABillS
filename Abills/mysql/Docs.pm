@@ -553,7 +553,8 @@ sub account_info {
    u.company_id,
    c.name,
    d.payment_id,
-   p.method
+   p.method,
+   p.ext_id
     FROM (docs_acct d, docs_acct_orders o)
     LEFT JOIN users u ON (d.uid=u.uid)
     LEFT JOIN companies c ON (u.company_id=c.id)
@@ -590,10 +591,11 @@ sub account_info {
    $self->{COMPANY_ID},
    $self->{COMPANY_NAME},
    $self->{PAYMENT_ID},
-   $self->{PAYMENT_METHOD_ID}
+   $self->{PAYMENT_METHOD_ID},
+   $self->{EXT_ID}
   )= @{ $self->{list}->[0] };
-	
-  
+
+
   if ($self->{TOTAL} > 0) {
     $self->{NUMBER}=$self->{ACCT_ID};
  

@@ -2043,9 +2043,11 @@ for (my $year=2009; $year<=$Y; $year++) {
 #**********************************************************
 sub docs_payments_maked {
 	my ($attr) = @_;
-
+  
+  print "$FORM{ACCOUNT_ID}";
 #Add account number 
 if ($FORM{ACCOUNT_ID}) {
+	$Docs->{debug}=1;
  	$Docs->account_change({ ID         => $FORM{ACCOUNT_ID},
  		                      UID        => $FORM{UID},
  		                      PAYMENT_ID => $attr->{PAYMENT_ID}

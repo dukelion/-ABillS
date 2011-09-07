@@ -1657,10 +1657,9 @@ sub tpl_show {
   if ($FORM{EXPORT_CONTENT} && $FORM{EXPORT_CONTENT} ne $attr->{ID} ) {
   	return '';
    }
-  
 
   if (! $attr->{SOURCE}) {
-  while($tpl =~ /\%(\w+)(\=?)([A-Za-z0-9]{0,50})\%/g) {
+  while($tpl =~ /\%(\w+)(\=?)([A-Za-z0-9\_\.\/\\\]\[:\-]{0,50})\%/g) {
     my $var       = $1;
     my $delimiter = $2; 
     my $default   = $3;
@@ -1673,6 +1672,14 @@ sub tpl_show {
 #    els
     
     if ($attr->{SKIP_VARS} && $attr->{SKIP_VARS} =~ /$var/) {
+     }
+    elsif($default && $default =~ /expr:(.*)/) {
+   		my @expr_arr = split(/\//, $1, 2);
+    	$variables_ref->{$var}=~s/$expr_arr[0]/$expr_arr[1]/g;
+    	$default =~ s/\//\\\//g;
+    	$default =~ s/\[/\\\[/g;
+    	$default =~ s/\]/\\\]/g;
+    	$tpl =~ s/\%$var$delimiter$default%/$variables_ref->{$var}/g;
      }
     elsif (defined($variables_ref->{$var})) {
     	$tpl =~ s/\%$var$delimiter$default%/$variables_ref->{$var}/g;
