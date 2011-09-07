@@ -138,7 +138,8 @@ sub mbox_change {
 	              );
 	
   $attr->{ANTIVIRUS} = (defined($attr->{ANTIVIRUS})) ? 0 : 1;
-  $attr->{ANTISPAM} = (defined($attr->{ANTISPAM})) ? 0 : 1;
+  $attr->{ANTISPAM}  = (defined($attr->{ANTISPAM})) ? 0 : 1;
+  $attr->{DISABLE}   = (defined($attr->{DISABLE})) ? 1 : 0;
 	
  	$self->changes($admin, 
  	              { CHANGE_PARAM => 'MBOX_ID',
