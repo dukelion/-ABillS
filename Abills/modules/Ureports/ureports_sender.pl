@@ -816,8 +816,6 @@ if ($d == 1) {
 
          $fees->take(\%user, $sum, { %FEES_PARAMS } );  
         }
-
-
       }
    } 	
   	
@@ -834,7 +832,7 @@ if ($d == 1) {
 sub help () {
 	
 print << "[END]";
-Ureports sender.
+Ureports sender ($version).
 
   DEBUG=0..6           - Debug mode
   DATE="YYYY-MM-DD"    - Send date

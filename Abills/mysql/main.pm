@@ -389,7 +389,7 @@ sub changes {
                }
              }
             else {
-            	$self->{DISABLE}=1;
+            	$self->{DISABLE_ACTION}=1;
              }
            }
           elsif ($k eq 'DOMAIN_ID' && $OLD_DATA->{$k} == 0 && ! $DATA{$k}) {
@@ -447,14 +447,13 @@ else {
       return $self->{result};
      }
     
-    if ($self->{'DISABLE'}) {
+    if ($self->{'DISABLE_ACTION'}) {
       $admin->action_add($DATA{UID}, "", { TYPE => 9, ACTION_COMMENTS => $DATA{ACTION_COMMENTS} });
      }
 
     if ($self->{'ENABLE'}) {
       $admin->action_add($DATA{UID}, "", { TYPE => 8 });
      }
-
 
     if ($CHANGES_LOG ne '' && ($CHANGES_LOG ne $attr->{EXT_CHANGE_INFO}.' ')) {
       $admin->action_add($DATA{UID}, "$CHANGES_LOG", { TYPE => 2});
@@ -472,7 +471,6 @@ else {
     if($self->{CHG_STATUS}) {
       $admin->action_add($DATA{UID}, "$self->{'STATUS'}" . (($attr->{EXT_CHANGE_INFO})? ' '. $attr->{EXT_CHANGE_INFO} : ''), { TYPE => ($self->{'STATUS'}==3) ? 14 : 4 });
      }
-
 
     if($self->{CHG_CREDIT}) {
       $admin->action_add($DATA{UID}, "$self->{'CHG_CREDIT'}", { TYPE => 5 });

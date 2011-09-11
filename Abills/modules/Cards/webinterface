@@ -1191,6 +1191,7 @@ print $table->show();
 #
 #**********************************************************
 sub cards_reseller_face {
+  my ($attr)=@_;
   $Cards->cards_diller_info({ UID => $user->{UID} });
   
   if ($Cards->{TOTAL} < 1) {

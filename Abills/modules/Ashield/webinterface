@@ -99,7 +99,7 @@ if($FORM{ADD_TP}) {
   	my $key         = $FORM{IMPORT};
   	my $id          = $ashield_tps_info->{$key}{ID};
     $FORM{NAME}     = $key;
-    $FORM{COMMENTS} = convert($ashield_tps_info->{$key}->{COMMENTS}, { utf82win => 1 }),
+    $FORM{COMMENTS} = ($conf{dbcharset} eq 'utf8') ? $ashield_tps_info->{$key}->{COMMENTS} : convert($ashield_tps_info->{$key}->{COMMENTS}, { utf82win => 1 }),
    }
   
   $Tariffs->add( { %FORM, MODULE => 'Ashield' });
@@ -276,7 +276,7 @@ foreach my $key (sort keys %{ $ashield_tps_info }) {
 
   $table->addrow($html->color_mark($id, 'code'), 
    $key,
-   convert($ashield_tps_info->{$key}->{COMMENTS}, { utf82win => 1 }),
+   ($conf{dbcharset} eq 'utf8') ? $ashield_tps_info->{$key}->{COMMENTS} : convert($ashield_tps_info->{$key}->{COMMENTS}, { utf82win => 1 }),
    $ashield_tps_info->{$key}->{GRACE_PERIOD},
    $ashield_tps_info->{$key}->{PARENT_NAME},
    $add,
@@ -449,7 +449,7 @@ sub ashield_user {
    	 	  $radio_but = "$ERR_SMALL_DEPOSIT";
    	  }
    	 $table->addrow($line->[0], 
-   	   $html->b($line->[1]).$html->br().convert($line->[19], { text2html => 1  }),
+   	   $html->b($line->[1]).$html->br().( ($conf{dbcharset} eq 'utf8') ? $line->[19] : convert($line->[19], { text2html => 1  }) ),
        $ashield_tps_info->{$line->[1]}->{GRACE_PERIOD},
        $line->[6],
    	   $radio_but
@@ -562,7 +562,7 @@ sub ashield_user {
         	$download_url =~ s/http:\/\/([a-z\.\-0-9\_]+)\//$conf{ASHIELD_DRWEB_DOWNLOAD_PREFIX}/i;
          }
         
-    	  $table->addrow($html->color_mark(convert($name, { utf82win => 1 }), 'code'),
+    	  $table->addrow($html->color_mark( (($conf{dbcharset} eq 'utf8') ? $name : convert($name, { utf82win => 1 })), 'code'),
 ##    	               $k->{agentuuid}->[0], 
     	               ($error) ? $error : $tp,
     	               ($activated eq 'no' || $error) ? $_NO: $_YES,
@@ -858,7 +858,7 @@ sub ashield_users_list {
  
  foreach my $line  (@{ $result_hash->{customers}->[0]->{customer} } ) {
  	 # Computer -> Hash info
- 	 $drweb_logins{convert($line->{name}->[0], { utf82win => 1 })}=keys %{ $line->{group} };
+ 	 $drweb_logins{(($conf{dbcharset} eq 'utf8') ? $line->{name}->[0] : convert($line->{name}->[0], { utf82win => 1 })) }=keys %{ $line->{group} };
   } 
  
 
@@ -1126,8 +1126,8 @@ sub ashield_drweb_tps {
 if ($FORM{add} && $FORM{ID}) {
 	$result_hash = ashield_drweb_request('api/3.0/tariffs/add.ds', { 
 		id           => $FORM{ID},
-		name         => convert($FORM{NAME}, { win2uft8 => 1 }),
-		description  => convert($FORM{COMMENTS}, { win2utf8 => 1 }),
+		name         => ($conf{dbcharset} eq 'utf8') ? $FORM{NAME} : convert($FORM{NAME}, { win2uft8 => 1 }),
+		description  => ($conf{dbcharset} eq 'utf8') ? $FORM{COMMENTS} : convert($FORM{COMMENTS}, { win2utf8 => 1 }),
 		'grace-period'  => $FORM{DR_WEB_GRACE_PERIOD}, 
 		  }); 
 
@@ -1139,8 +1139,8 @@ if ($FORM{add} && $FORM{ID}) {
 elsif ($FORM{change} && $FORM{ID}) {
 	$result_hash = ashield_drweb_request('api/3.0/tariffs/change.ds', { 
 		id           => $FORM{ID},
-		name         => convert($FORM{NAME}, { win2uft8 => 1 }),
-		description  => convert($FORM{COMMENTS}, { win2utf8 => 1 }),
+		name         => ($conf{dbcharset} eq 'utf8') ? $FORM{NAME} : convert($FORM{NAME}, { win2uft8 => 1 }),
+		description  => ($conf{dbcharset} eq 'utf8') ? $FORM{COMMENTS} : convert($FORM{COMMENTS}, { win2utf8 => 1 }),
 		'grace-period'  => $FORM{DR_WEB_GRACE_PERIOD}, 
 		  }); 
 
@@ -1511,7 +1511,7 @@ sub ashield_drweb_send_message {
 
 if ($FORM{SEND})  {
  	$result_hash = ashield_drweb_request('api/3.0/stations/send-message.ds', { 
-  		 id        => convert($FORM{msg}, { win2utf8 => 1 }),
+  		 id        => ($conf{dbcharset} eq 'utf8') ? $FORM{msg} : convert($FORM{msg}, { win2utf8 => 1 }),
   		 message   => $FORM{MESSAGE}
 		  }); 
 	
@@ -1649,7 +1649,7 @@ sub ashield_drweb_report_users {
  	 $table->addrow(
  	 $html->button($login, "index=15&UID=$uid"),
  	 $html->color_mark($line->{id}->[0], 'code'), 
- 	 convert($line->{name}->[0], { utf82win => 1 }),
+ 	 ($conf{dbcharset} eq 'utf8') ? $line->{name}->[0] : convert($line->{name}->[0], { utf82win => 1 }),
  	 $tp,
  	 $expires,
  	 ((ref $line->{lastseenfrom}->[0] eq 'HASH') ? '-' : "$_DOWNLOADED" ),

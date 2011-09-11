@@ -16,6 +16,7 @@ CREATE TABLE `dhcphosts_hosts` (
   `nas` smallint(6) unsigned NOT NULL default '0',
   `option_82` tinyint(1) unsigned NOT NULL default '0',
   `boot_file` VARCHAR( 150 ) NOT NULL default '',
+  `next_server` VARCHAR( 40 ) NOT NULL default '',
   changed datetime not null default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `cid` (`ip`),

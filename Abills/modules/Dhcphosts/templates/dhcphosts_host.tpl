@@ -11,6 +11,7 @@
 <tr><td>IP:</td><td><input type=text name=IP value='%IP%' size=15> $_AUTO: <input type=checkbox name=AUTO_IP value=1></td></tr>			
 <tr><td>$_HOSTS_MAC:<BR>(00:00:00:00:00:00)</td><td><input type=text name=MAC value='%MAC%'></td></tr>
 <tr><td>$_FILE:</td><td><input type=text name=BOOT_FILE value='%BOOT_FILE%'></td></tr>
+<tr><td>NEXT HOST:</td><td><input type=text name=NEXT_SERVER value='%NEXT_SERVER%'></td></tr>
 <tr><td>$_EXPIRE:</td><td><input type=text name=EXPIRE value='%EXPIRE%'></td></tr>
 <tr><td>$_DISABLE:</td><td><input type=checkbox name=DISABLE value='1' %DISABLE%></td></tr>
 <tr><td>$_COMMENTS:</td><td><input type=text name=COMMENTS value='%COMMENTS%'></td></tr>

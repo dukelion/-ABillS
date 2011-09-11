@@ -344,7 +344,8 @@ sub host_defaults {
    DISABLE        => '',
    EXPIRE         => '',
    PORTS          => '',
-   BOOT_FILE      => ''
+   BOOT_FILE      => '',
+   NEXT_SERVER    => ''
   );
 
  
@@ -363,12 +364,14 @@ sub host_add {
   my %DATA = $self->get_data($attr, { default => host_defaults() }); 
 
   $self->query($db, "INSERT INTO dhcphosts_hosts (uid, hostname, network, ip, mac, blocktime, 
-    forced, disable, expire, comments, option_82, vid, nas, ports, boot_file) 
+    forced, disable, expire, comments, option_82, vid, nas, ports, boot_file, next_server) 
     VALUES('$DATA{UID}', '$DATA{HOSTNAME}', '$DATA{NETWORK}',
       INET_ATON('$DATA{IP}'), '$DATA{MAC}', '$DATA{BLOCKTIME}', '$DATA{FORCED}', '$DATA{DISABLE}',
       '$DATA{EXPIRE}',
       '$DATA{COMMENTS}', '$DATA{OPTION_82}', '$DATA{VID}', '$DATA{NAS_ID}', '$DATA{PORTS}',
-      '$DATA{BOOT_FILE}');", 'do');
+      '$DATA{BOOT_FILE}',
+      '$DATA{NEXT_SERVER}'
+      );", 'do');
 
 
   
@@ -378,7 +381,7 @@ sub host_add {
 }
 
 #**********************************************************
-# host_delete()
+# host_del()
 #**********************************************************
 sub host_del {
   my $self=shift;
@@ -459,7 +462,8 @@ sub host_info {
    nas,
    ports,
    boot_file, 
-   changed
+   changed,
+   next_server
   FROM dhcphosts_hosts
   WHERE $WHERE;");
 
@@ -484,6 +488,8 @@ sub host_info {
    $self->{NAS_ID},
    $self->{PORTS},
    $self->{BOOT_FILE},
+   $self->{CHANGED},
+   $self->{NEXT_SERVER},
    ) = @{ $self->{list}->[0] };
 
   return $self;
@@ -514,6 +520,7 @@ sub host_change {
    NAS_ID      => 'nas',
    PORTS       => 'ports',
    BOOT_FILE   => 'boot_file',
+   NEXT_SERVER => 'next_server',
 #   CHANGED     => 'changed'
   );
 

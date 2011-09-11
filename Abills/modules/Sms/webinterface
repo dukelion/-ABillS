@@ -46,7 +46,7 @@ sub sms_send {
   
   $Turbosms->send_sms({ NUMBERS => $attr->{NUMBERS},
   	                    NUMBER  => $attr->{NUMBER},
-     	                  MESSAGE => $attr->{MESSAGE},
+     	                  MESSAGE => (($conf{TURBOSMS_MESSAGE_HEADER}) ? $conf{TURBOSMS_MESSAGE_HEADER} : ''). $attr->{MESSAGE},
                         DEBUG   => $attr->{DEBUG} || 0
                       });
 
