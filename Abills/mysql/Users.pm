@@ -717,15 +717,8 @@ sub list {
  my $search_fields = '';
 
  # Start letter 
- if ($attr->{FIRST_LETTER}) {
-    push @WHERE_RULES, "u.id LIKE '$attr->{FIRST_LETTER}%'";
-  }
- elsif ($attr->{LOGIN}) {
+ if ($attr->{LOGIN}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
-  }
- # Login expresion
- elsif ($attr->{LOGIN_EXPR}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
   }
  elsif ($attr->{UID}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'u.uid', { EXT_FIELD => 1 }) };

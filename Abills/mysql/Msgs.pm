@@ -35,7 +35,7 @@ sub new {
 
 
 #**********************************************************
-# messages_list
+# messages_new
 #**********************************************************
 sub messages_new {
   my $self = shift;
@@ -96,14 +96,14 @@ sub messages_list {
  my ($attr) = @_;
 
  $PAGE_ROWS = ($attr->{PAGE_ROWS}) ? $attr->{PAGE_ROWS} : 25;
- $SORT = ($attr->{SORT}) ? $attr->{SORT} : 1;
- $DESC = (defined($attr->{DESC})) ? $attr->{DESC} : 'DESC';
- $PG = (defined($attr->{PG})) ? $attr->{PG} : 0;
+ $SORT      = ($attr->{SORT}) ? $attr->{SORT} : 1;
+ $DESC      = (defined($attr->{DESC})) ? $attr->{DESC} : 'DESC';
+ $PG        = (defined($attr->{PG})) ? $attr->{PG} : 0;
 
  @WHERE_RULES = ();
  
- if($attr->{LOGIN_EXPR}) {
-	 push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
+ if($attr->{LOGIN}) {
+	 push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
   }
  
  if ($attr->{DATE}) {
@@ -266,6 +266,11 @@ sub messages_list {
 
  if ($attr->{SHOW_TEXT}) {
    $self->{SEARCH_FIELDS} .= 'm.message, ';
+   $self->{SEARCH_FIELDS_COUNT}++;
+  }
+
+ if ($attr->{PASSWORD}) {
+   $self->{SEARCH_FIELDS} .= "DECODE(u.password, '$CONF->{secretkey}'), ";
    $self->{SEARCH_FIELDS_COUNT}++;
   }
  
@@ -866,8 +871,8 @@ sub messages_reply_list {
 
  @WHERE_RULES = ();
  
- if($attr->{LOGIN_EXPR}) {
-	 push @WHERE_RULES, "u.id='$attr->{LOGIN_EXPR}'"; 
+ if($attr->{LOGIN}) {
+	 push @WHERE_RULES, "u.id='$attr->{LOGIN}'"; 
   }
  
  if ($attr->{FROM_DATE}) {
@@ -1058,9 +1063,8 @@ sub messages_reports {
     push @WHERE_RULES, "u.id='$attr->{LOGIN}'";
   }
  # Login expresion
- elsif ($attr->{LOGIN_EXPR}) {
-    $attr->{LOGIN_EXPR} =~ s/\*/\%/ig;
-    push @WHERE_RULES, "u.id LIKE '$attr->{LOGIN_EXPR}'";
+ elsif ($attr->{LOGIN}) {
+    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
   }
  
 

@@ -1447,18 +1447,24 @@ sub msgs_dispatch {
     my $list = $Msgs->messages_list({ DISPATCH_ID  => $FORM{print}, 
                            DESC         => (! $FORM{sort}) ? 'DESC' : $FORM{desc},
                            FULL_ADDRESS => 1,
-                           SHOW_TEXT    => 1
+                           SHOW_TEXT    => 1,
+                           PASSWORD     => 1
   	                       });
 
     my %ORDERS = ();
     my $i=1;
     
     foreach my $line (@$list) {
-    	$ORDERS{'ORDER_NUM_'.$i}          = $i;
-    	$ORDERS{'ORDER_PERSONAL_INFO_'.$i}= "$line->[6], $line->[7], $line->[8]";
-    	$ORDERS{'ORDER_JOB_'.$i}          = $line->[9];
-    	$ORDERS{'ORDER_SUBJECT_'.$i}      = $line->[2];
-    	$ORDERS{'ORDER_CHAPTER_'.$i}      = $line->[3];
+    	$ORDERS{'ORDER_NUM_'.$i}                   = $i;
+    	$ORDERS{'ORDER_PERSONAL_INFO_'.$i}         = "$line->[6], $line->[7], $line->[8]";
+    	$ORDERS{'ORDER_PERSONAL_INFO_LOGIN_'.$i}   = "$line->[1]";
+    	$ORDERS{'ORDER_PERSONAL_INFO_PASSWORD_'.$i}= "$line->[10]";
+    	$ORDERS{'ORDER_PERSONAL_INFO_FIO_'.$i}     = "$line->[6]";
+    	$ORDERS{'ORDER_PERSONAL_INFO_ADDRESS_'.$i} = "$line->[7]";
+    	$ORDERS{'ORDER_PERSONAL_INFO_PHONE_'.$i}   = "$line->[8]";
+    	$ORDERS{'ORDER_JOB_'.$i}                   = $line->[9];
+    	$ORDERS{'ORDER_SUBJECT_'.$i}               = $line->[2];
+    	$ORDERS{'ORDER_CHAPTER_'.$i}               = $line->[3];
     	$i++;
      }
 

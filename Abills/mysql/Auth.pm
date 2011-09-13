@@ -653,7 +653,7 @@ elsif ($NAS->{NAS_TYPE} eq 'mikrotik') {
       $RAD_PAIRS->{'Mikrotik-Total-Limit-Gigawords'}=int($giga_limit);
   		$EX_PARAMS->{traf_limit} = $EX_PARAMS->{traf_limit} - int($giga_limit) * 4096;
   	 }
-  	$RAD_PAIRS->{'Mikrotik-Total-Limit'} = $EX_PARAMS->{traf_limit};
+  	$RAD_PAIRS->{'Mikrotik-Total-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE});
     #$RAD_PAIRS->{'Mikrotik-Recv-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
     #$RAD_PAIRS->{'Mikrotik-Xmit-Limit'} = int($EX_PARAMS->{traf_limit} * $CONF->{KBYTE_SIZE} * $CONF->{KBYTE_SIZE} / 2);
    }

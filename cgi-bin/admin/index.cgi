@@ -425,7 +425,7 @@ if ($admin->{WEB_OPTIONS}{qm} && ! $FORM{xml}) {
     
     $admin->{QUICK_MENU} .= "  <th bgcolor='$color'>";
     if (defined($menu_args{$qm_id})) {
-    	my $args = 'LOGIN_EXPR' if ($menu_args{$qm_id} eq 'UID');
+    	my $args = 'LOGIN' if ($menu_args{$qm_id} eq 'UID');
       $admin->{QUICK_MENU} .= $html->button("$qm_name", '', 
          { JAVASCRIPT => "javascript: Q=prompt('$menu_names{$qm_id}',''); ".
          	               "if (Q != null) {  Q='". "&$args='+Q;  }else{Q = ''; } ".
@@ -1986,7 +1986,7 @@ if ($FORM{COMPANY_ID}) {
  }  
 
 if ($FORM{letter}) {
-  $LIST_PARAMS{FIRST_LETTER} = $FORM{letter};
+  $LIST_PARAMS{LOGIN} = "$FORM{letter}*";
   $pages_qs .= "&letter=$FORM{letter}";
  } 
 
@@ -4433,7 +4433,7 @@ else{
    }
   elsif ($type eq 'USER') {
   	$TITLE[0]=$_USERS;
-  	$type="search=1&LOGIN_EXPR";
+  	$type="search=1&LOGIN";
   	$index=3;
   	$graph_type='';
    }
@@ -4670,7 +4670,7 @@ else {
    }
   elsif ($type eq 'USER') {
   	$CAPTION[0]=$_USERS;
-  	$type="search=1&LOGIN_EXPR";
+  	$type="search=1&LOGIN";
   	$LIST_PARAMS{METHODS}=$FORM{METHODS};
   	$graph_type='';
    }
@@ -5653,7 +5653,7 @@ sub form_search {
   my %SEARCH_DATA = $admin->get_data(\%FORM);  
 
 if ($FORM{search}) {
-	$LIST_PARAMS{LOGIN_EXPR}=$FORM{LOGIN_EXPR};
+	$LIST_PARAMS{LOGIN}=$FORM{LOGIN};
   $pages_qs  = "&search=1";
   $pages_qs .= "&type=$FORM{type}" if ($pages_qs !~ /&type=/);
 	
@@ -5714,7 +5714,7 @@ elsif(! $FORM{pdf}) {
 
   $FORM{type}=11 if ($FORM{type} == 15);
 
-  if( $FORM{LOGIN_EXPR} && $admin->{MIN_SEARCH_CHARS} && length($FORM{LOGIN_EXPR}) < $admin->{MIN_SEARCH_CHARS}) {
+  if( $FORM{LOGIN} && $admin->{MIN_SEARCH_CHARS} && length($FORM{LOGIN}) < $admin->{MIN_SEARCH_CHARS}) {
 	  $html->message('err', $_ERROR, "$_ERR_SEARCH_VAL_TOSMALL. $_MIN: $admin->{MIN_SEARCH_CHARS}");
 	  return 0;
    }

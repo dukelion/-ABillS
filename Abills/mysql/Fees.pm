@@ -241,10 +241,7 @@ sub list {
    push @WHERE_RULES, @{ $self->search_expr($attr->{UID}, 'INT', 'f.uid') };
   }
  # Start letter 
- elsif ($attr->{LOGIN_EXPR}) {
-   push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN_EXPR}, 'STR', 'u.id') };
-  }
- elsif ($attr->{LOGIN}) {
+ if ($attr->{LOGIN}) {
    push @WHERE_RULES, @{ $self->search_expr($attr->{LOGIN}, 'STR', 'u.id') };
   }
 
