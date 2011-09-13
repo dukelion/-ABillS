@@ -1598,7 +1598,7 @@ sub tpl_describe {
 	  	$content .= $_;
 	   }
 	
- 	my @rows = split(/\n/, $content);
+ 	my @rows = split(/[\r]{0,1}\n/, $content);
   
   foreach my $line (@rows) {
   	if ($line =~ /^#/) {

@@ -133,8 +133,7 @@ sub in_array {
 sub convert {
 	my ($text, $attr)=@_;
 	
-	if(defined($attr->{text2html})) {
-		 
+	if(defined($attr->{text2html})) {		 
 		 $text =~ s/</&lt;/g;
      $text =~ s/>/&gt;/g;
      $text =~ s/\"/&quot;/g;
