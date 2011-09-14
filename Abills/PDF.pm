@@ -241,7 +241,7 @@ else {
       next if $firstline =~ /filename=\"\"/;
       $firstline =~ s/^Content-Disposition: form-data; //;
       my (@columns) = split(/;\s+/, $firstline);
-      ($name = $columns[0]) =~ s/^name="([^"]+)"$/$1/g;
+      ($name = $columns[0]) =~ s/^name=\"([^"]+)\"$/$1/g;
       my $blankline;
       if ($#columns > 0) {
 	      if ($datas =~ /^Content-Type:/) {
@@ -1605,13 +1605,8 @@ sub tpl_describe {
   		next;
   	 }
   	else { #if($line =~ /^(\S+):([\W ]+):(\w+):([\w \(\);=,]{0,500}):?([\w]{0,200}):?(.{0,200})$/) {
-    	chop($line);
     	my ($name, $describe, $lang, $params, $default, $expr)=split(/:/, $line);
-      
-      chop($expr);
-
     	next if ($attr->{LANG} && $attr->{LANG} ne $lang);
-
     	$TPL_DESCRIBE{$name}{DESCRIBE}=$describe;
     	$TPL_DESCRIBE{$name}{LANG}    =$lang;
     	$TPL_DESCRIBE{$name}{PARAMS}  =$params;

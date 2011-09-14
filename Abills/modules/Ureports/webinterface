@@ -241,7 +241,6 @@ sub ureports_user {
 
   if($Ureports->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
-	  #$Dv = $Ureports->defaults();
 	  
     $Ureports->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
@@ -993,21 +992,23 @@ print $table->show();
 # ureports_user_info
 #**********************************************************
 sub ureports_user_info {
-  if ($FORM{activate}) {
+
+  if ($FORM{add}) {
     if ($FORM{TYPE} == 0 && $FORM{DESTINATION} !~ /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/) {
     	$html->message('err', $_ERROR, "$_WRONG_EMAIL");
      }
     else {
-      $Ureports->add({ UID    => $LIST_PARAMS{UID}, 
-     	               STATUS => 0,
-          	         CID    => ($Ureports->{ISG_CID_CUR})  ? $Ureports->{ISG_CID_CUR} : undef 
-    	                });
+      $Ureports->user_add({ UID    => $LIST_PARAMS{UID}, 
+     	                      STATUS => 0,
+          	                CID    => ($Ureports->{ISG_CID_CUR})  ? $Ureports->{ISG_CID_CUR} : undef 
+    	                   });
 
   	  if (! $Ureports->{errno}) {
-  	  	$html->message('info', $_INFO, "$_ACTIVATED");
+  	  	my $message = "$_ACTIVATE\n";
         if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_ENABLED")) {
-        	$html->message('info', $_INFO, "$_ACTIVATED_MSG_SENDED");
+        	$message .= "$_ACTIVATED_MSG_SENDED";
          }
+        $html->message('info', $_INFO, $message); 
   	   }
   	 }
    }
@@ -1021,10 +1022,11 @@ sub ureports_user_info {
     	if (! $Ureports->{errno}){
   	    $Ureports->tp_user_reports_change({ %FORM, UID => $user->{UID} });
   	    if (! $Ureports->{errno} ){
-  	  	  $html->message('info', $_INFO, "$_CHANGED");
+  	  	  my $message =  "$_CHANGED\n";
           if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_ENABLED")) {
-          	$html->message('info', $_INFO, "$_ACTIVATED_MSG_SENDED");
+          	$message .= "$_ACTIVATED_MSG_SENDED";
            }
+  	      $html->message('info', $_INFO, $message);
   	     }
        }
       else {
@@ -1038,7 +1040,6 @@ sub ureports_user_info {
  
   if($Ureports->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
-	  
     $Ureports->{TP_ID}=$html->form_select('TP_ID', 
                                          { 
  	                                          SELECTED          => $Ureports->{TP_ID},
@@ -1051,6 +1052,14 @@ sub ureports_user_info {
 	  
 	  $Ureports->{ACTION}='add';
 	  $Ureports->{LNG_ACTION}=$_ACTIVATE;
+    $Ureports->{TP_NAME}='';
+    $Ureports->{TP_ID}=$html->form_select('TP_ID', 
+                                          { 
+ 	                                          SELECTED          => $Ureports->{TP_ID},
+ 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Ureports' }),
+ 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                        });
 	 }
 	else {
 	  if ($Ureports->{STATUS} == 2) {
@@ -1062,26 +1071,7 @@ sub ureports_user_info {
 	  $Ureports->{ACTION}='set';
 	  $Ureports->{LNG_ACTION}=$_CHANGE;
 	  #$Ureports->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$Ureports->{UID}.'&index='. ($index + 1)) .']';
-	} 
 
-  $Ureports->{TYPE_SEL}            = $html->form_select('TYPE', 
-                                          { 
- 	                                          SELECTED     => $Ureports->{TYPE},
- 	                                          SEL_ARRAY    => \@service_type,
- 	                                          ARRAY_NUM_ID => 1
- 	                                        });
-
-  $Ureports->{STATUS_SEL}          = $html->form_select('STATUS', 
-                                          { 
- 	                                          SELECTED     => $Ureports->{STATUS},
- 	                                          SEL_ARRAY    => [ $service_status[0],
- 	                                                            $service_status[1] 
- 	                                                            ],
- 	                                          ARRAY_NUM_ID => 1
- 	                                        });
-
-
-  if ($Ureports->{TP_ID}) { 
     my $table = $html->table( { width      => '100%',
                               caption    => "$_REPORTS",
                               border     => 1,
@@ -1106,21 +1096,24 @@ sub ureports_user_info {
 
     $Ureports->{REPORTS_LIST} = $table->show({ OUTPUT2RETURN => 1 }); 
   }
-                                     
 
-
-  $Ureports->{TP_NAME}='';
-  $Ureports->{TP_ID}=$html->form_select('TP_ID', 
+    $Ureports->{TYPE_SEL}            = $html->form_select('TYPE', 
                                           { 
- 	                                          SELECTED          => $Ureports->{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Ureports' }),
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          SELECTED     => $Ureports->{TYPE},
+ 	                                          SEL_ARRAY    => \@service_type,
+ 	                                          ARRAY_NUM_ID => 1
  	                                        });
 
-
-  
-  $html->tpl_show(_include('ureports_user', 'Ureports'), $Ureports);
+    $Ureports->{STATUS_SEL}          = $html->form_select('STATUS', 
+                                          { 
+ 	                                          SELECTED     => $Ureports->{STATUS},
+ 	                                          SEL_ARRAY    => [ $service_status[0],
+ 	                                                            $service_status[1] 
+ 	                                                            ],
+ 	                                          ARRAY_NUM_ID => 1
+ 	                                        });
+                                     
+   $html->tpl_show(_include('ureports_user', 'Ureports'), $Ureports);
 }
 
 #**********************************************************

@@ -77,6 +77,7 @@
 <div class='noprint' align=center>
 <p>
 <a href=\"javascript:window.print();\" class=linkm1><b>$_PRINT</b></a> :: 
+<a href=\"$SELF_URL?qindex=$FORM{qindex}&print=$FORM{print}&pdf=1\" target=_pdf class=linkm1><b>PDF</b></a> :: 
 <a href=\"javascript:window.close();\" class=linkm1><b>$_CLOSE</b></a>
 </p>
 </div>
