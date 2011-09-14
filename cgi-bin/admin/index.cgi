@@ -349,7 +349,7 @@ if ($conf{LANGS}) {
 
 $html->{METATAGS}=templates('metatags');
 
-if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne '' && ! $FORM{add})) {
+if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} !~ /\*/ && ! $FORM{add})) {
  	$ui = user_info($FORM{UID}, { LOGIN => ($FORM{LOGIN}) ? $FORM{LOGIN} : undef });
  	$html->{WEB_TITLE} = "$conf{WEB_TITLE} [$ui->{LOGIN}]";
  }
@@ -1400,7 +1400,7 @@ sub user_info {
 
 
 
-  my $ext_menu = user_ext_menu($UID, $user_info->{LOGIN}, { SHOW_UID => 1 });
+  my $ext_menu = user_ext_menu($user_info->{UID}, $user_info->{LOGIN}, { SHOW_UID => 1 });
   
   $table = $html->table({ width      => '100%',
   	                      rowcolor   => 'even',
@@ -2040,8 +2040,8 @@ if ($users->{errno}) {
 elsif ($users->{TOTAL} == 1) {
 	$FORM{index} = 15;
 	$FORM{UID}   = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
-	$ui          = user_info($list->[0]->[5 + $users->{SEARCH_FIELDS_COUNT}], { %FORM });
-	print $ui->{TABLE_SHOW};
+	#$ui          = user_info($list->[0]->[5 + $users->{SEARCH_FIELDS_COUNT}], { %FORM });
+	#print $ui->{TABLE_SHOW};
 	form_users({  USER => $ui });
 	return 0;
  }
