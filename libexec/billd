@@ -1220,7 +1220,7 @@ else {
 	  push @FW_ACTIONS, "$IPFW -q table 10 flush";
 	  #Make pipe forward rules for traffic class
     for(my $i=0; $i<=$#START_FW; $i++) {
-      push @FW_ACTIONS, "$IPFW -q add ". (10000 - $i*1000) ." pipe tablearg ip from table\\(". ($users_table_number+$i*2)."\\) to ". (($i==0) ? 'any' : "table\\(2,$i\\)"). "$via_if_in";
+      push @FW_ACTIONS, "$IPFW -q add ". (10000 - $i*1000) ." pipe tablearg ip from table\\(". ($users_table_number+$i*2)."\\) to ". (($i==0) ? 'any' : "table\\(2,$i\\)"). " $via_if_in";
       push @FW_ACTIONS, "$IPFW -q add ". (10000 - $i*1000+10) ." pipe tablearg ip from ". (($i==0) ? 'any' : "table\\(2,$i\\)"). " to table\\(". ($users_table_number+$i*2+1) ."\\) $via_if_out";
      }
     #Unlim rules
