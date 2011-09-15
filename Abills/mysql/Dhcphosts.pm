@@ -782,6 +782,10 @@ sub hosts_list {
     push @WHERE_RULES, @{ $self->search_expr("$attr->{BOOT_FILE}", 'STR', 'h.boot_file', { EXT_FIELD => 1 }) };
    }
 
+  if ($attr->{NEXT_SERVER}) {
+    push @WHERE_RULES, @{ $self->search_expr("$attr->{NEXT_SERVER}", 'STR', 'h.next_server', { EXT_FIELD => 1 }) };
+   }
+
 
  $WHERE = ($#WHERE_RULES > -1) ? "WHERE " . join(' and ', @WHERE_RULES)  : '';
 

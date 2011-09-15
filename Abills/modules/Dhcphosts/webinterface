@@ -1123,7 +1123,8 @@ foreach my $line (@$list) {
   	                               OPTION_82 => '>=0',
   	                               VID       => '>=0',
   	                               BOOT_FILE => '*',
-  	                               DELETED   => 0
+  	                               DELETED   => 0,
+                                       NEXT_SERVER => '*'
   	                             });
 
 
@@ -1209,7 +1210,8 @@ foreach my $line (@$list) {
         ROUTERS   => ($Dhcphosts->{ROUTERS} ne '0.0.0.0') ? $Dhcphosts->{ROUTERS} : convert_ip("0.0.0.1", '', $Dhcphosts),
         LOGIN     => $line->[1],
         HOSTNAME  => $line->[3],
-        BOOT_FILE => ($line->[17]) ? "filename \"". $line->[17]."\";" : ''
+        BOOT_FILE => ($line->[17]) ? "filename \"". $line->[17]."\";" : '',
+        NEXT_SERVER => ($line->[18]) ? "next-server \"". $line->[18]."\";" : '',
     	}, { OUTPUT2RETURN => 1 });
     }
    }  

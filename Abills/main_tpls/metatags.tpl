@@ -638,7 +638,7 @@ TABLE.border {
 
 .MENU_BACK {
   background:%_COLOR_2%;
-  width:220px;
+  width:18%;
 }
 
 
