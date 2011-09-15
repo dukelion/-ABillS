@@ -882,8 +882,6 @@ $table->addrow('Table', make_short($stats{'Created_tmp_tables'}), t($stats{'Crea
 
 $table->addrow('File',  make_short($stats{'Created_tmp_files'}), t($stats{'Created_tmp_files'}).'/s', '', '');
 
-
-
  $table->{rowcolor}=$_COLORS[0];
  $table->{extra}="colspan='6'";
  $table->addrow("Threads");
@@ -913,6 +911,21 @@ $table->addrow($_TOTAL, make_short($stats{'Bytes_received'} + $stats{'Bytes_sent
  make_short(t($stats{'Bytes_received'}+$stats{'Bytes_sent'}, { PERIOD => 'min' } )).'/m',
  make_short(t($stats{'Bytes_received'}+$stats{'Bytes_sent'}, { PERIOD => 'hour' } )).'/h');
 
+
+ $table->{rowcolor}=$_COLORS[0];
+ $table->{extra}="colspan='6'";
+ $table->addrow("Other");
+ undef($table->{extra});
+ undef($table->{rowcolor});
+
+
+ $table->addrow('mysql_hostinfo', $db->{'mysql_hostinfo'});
+ $table->addrow('mysql_info', $db->{'mysql_info'});
+ $table->addrow('mysql_protoinfo',   $db->{'mysql_protoinfo'});
+ $table->addrow('mysql_serverinfo',       $db->{'mysql_serverinfo'});
+ $table->addrow('mysql_stat',       $db->{'mysql_stat'});
+ $table->addrow('mysql_thread_id',      $db->{'mysql_thread_id'});
+ $table->addrow('mysql_dbd_stats',      %{ $db->{'mysql_dbd_stats'} });
 
  print $table->show();
 }

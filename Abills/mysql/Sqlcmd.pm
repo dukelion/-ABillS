@@ -161,27 +161,26 @@ foreach my $query (@QUERY_ARRAY) {
 	next if (length($query) < 5);
 	my $q;
 	
-	if ($query =~ /INSERT |UPDATE |CREATE |DELETE /i) {
+	if ($query =~ /CREATE /i) {
 		$self->{AFFECTED} = $db->do("$query") || print $db->errstr;
-		print $self->{AFFECTED};
 	 }
   else {
     $q = $db->prepare("$query",  { "mysql_use_result" => ($query !~ /!SELECT/gi ) ? 0 : 1   } ) || print $db->errstr;
     if($db->err) {
-      $self->{errno} = 3;
-      $self->{sql_errno}=$db->err;
-      $self->{sql_errstr}=$db->errstr;
-      $self->{errstr}=$db->errstr;
+      $self->{errno}      = 3;
+      $self->{sql_errno}  = $db->err;
+      $self->{sql_errstr} = $db->errstr;
+      $self->{errstr}     = $db->errstr;
       return $self->{errno};
      }
-    $q->execute(); 
+    $self->{AFFECTED} = $q->execute(); 
 
 
     if($db->err) {
-      $self->{errno} = 3;
-      $self->{sql_errno}=$db->err;
-      $self->{sql_errstr}=$db->errstr;
-      $self->{errstr}="$query / ".$db->errstr;
+      $self->{errno}     = 3;
+      $self->{sql_errno} = $db->err;
+      $self->{sql_errstr}= $db->errstr;
+      $self->{errstr}    = "$query / ".$db->errstr;
      
       return $self;
      } 
@@ -195,9 +194,10 @@ foreach my $query (@QUERY_ARRAY) {
     $self->{MYSQL_TYPE_NAME}     = $q->{mysql_type_name};
 
     $self->{TOTAL} = $q->rows;
-
-    while(my @row = $q->fetchrow()) {
-      push @rows, \@row;
+    if ($query !~ /INSERT |UPDATE |CREATE |DELETE /i) {
+      while(my @row = $q->fetchrow()) {
+        push @rows, \@row;
+       }
      }
    }
   
