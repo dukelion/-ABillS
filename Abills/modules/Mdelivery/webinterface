@@ -41,6 +41,10 @@ sub mdelivery_main {
            CONTENT_TYPE => $FORM{'FILE_UPLOAD_'. $i}{'Content-Type'},
           });
 
+         if ($Mdelivery->{errno}) {
+           $html->message('err', $_ERROR, "[$Mdelivery->{errno}] $err_strs{$Mdelivery->{errno}}");
+          }
+
          push @ATTACHMENTS, {
           	ATTACHMENT_ID => $i,
             FILENAME      => $FORM{'FILE_UPLOAD_'. $i}{filename}, 

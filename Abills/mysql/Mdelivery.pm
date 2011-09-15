@@ -419,13 +419,11 @@ sub attachment_add () {
 
  $self->query($db,  "INSERT INTO mdelivery_attachments ".
         " (message_id, filename, content_type, content_size, content, ".
-        " create_time, create_by, change_time, change_by, message_type) " .
+        " create_time, create_by, change_time, change_by) " .
         " VALUES ".
         " ('$attr->{MSG_ID}', '$attr->{FILENAME}', '$attr->{CONTENT_TYPE}', '$attr->{FILESIZE}', ?, ".
-        " current_timestamp, '$attr->{UID}', current_timestamp, '0', '$attr->{MESSAGE_TYPE}')", 
+        " current_timestamp, '$attr->{UID}', current_timestamp, '0')", 
         'do', { Bind => [ $attr->{CONTENT}  ] } );
-        
-        
 
   return $self;
 }
