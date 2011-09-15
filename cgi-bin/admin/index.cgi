@@ -471,14 +471,14 @@ if ($functions{$index}) {
  	 	require "Abills/modules/$module{$index}/webinterface";
    }
  	  
-  if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne '' && ! $FORM{add})) {
+  if(($FORM{UID} && $FORM{UID} > 0) || ($FORM{LOGIN} && $FORM{LOGIN} ne ''  && $FORM{LOGIN} !~ /\*/ && ! $FORM{add})) {
   	print $ui->{TABLE_SHOW};
 
   	if($ui->{errno}==2) {
   		$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST")
   	 }
     elsif ($admin->{GIDS} &&  $admin->{GIDS} !~ /$ui->{GID}/ ) {
-    	$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST $admin->{GIDS} / $ui->{GID}")
+    	$html->message('err', $_ERROR, "[$FORM{UID}] $_USER_NOT_EXIST GID: $admin->{GIDS} / $ui->{GID}")
      }
   	else {
   	  $functions{$index}->({ USER => $ui });
@@ -2076,7 +2076,8 @@ my %SEARCH_TITLES = ('if(company.id IS NULL,ext_b.deposit,ext_cb.deposit)' => "$
                   'builds.number'     => "$_BUILDS",
                   'streets.name'      => "$_STREETS",
                   'districts.name'    => "$_DISTRICTS",
-                  'u.deleted'         => "$_DELETED"
+                  'u.deleted'         => "$_DELETED",
+                  'u.gid'             => "$_GROUP"
                     );
 
 if ($users->{EXTRA_FIELDS}) {
