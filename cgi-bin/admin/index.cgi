@@ -2035,8 +2035,8 @@ if ($users->{errno}) {
 elsif ($users->{TOTAL} == 1) {
 	$FORM{index} = 15;
 	$FORM{UID}   = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
-	if (! $FORM{LOGIN}) {
-	  delete $FORM{LOGIN}; 
+	if ($FORM{LOGIN}=~/\*/ || $FORM{LOGIN} eq '') {
+    delete $FORM{LOGIN}; 
     $ui          = user_info($FORM{UID});
     print $ui->{TABLE_SHOW};
    }
