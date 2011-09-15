@@ -183,11 +183,17 @@ if ($FORM{QUERY} && ! $FORM{xml}) {
   		$FORM{COMMENTS}=substr($FORM{QUERY}, 0,40).'...';
   	 }
     $Sqlcmd_main->history_add({ %FORM }) ;
+
+    if ($Sqlcmd_main->{errno}) {
+      $html->message('err', $_ERROR, "[$Sqlcmd_main->{errno}] $err_strs{$Sqlcmd_main->{errno}}\n $Sqlcmd_main->{errstr}");	
+     }
    }
 }
 
+   
+
 if ($Sqlcmd->{errno}) {
-  $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}} /$Sqlcmd->{errstr}/");	
+  $html->message('err', $_ERROR, "[$Sqlcmd->{errno}] $err_strs{$Sqlcmd->{errno}}\n $Sqlcmd->{errstr}");	
 
   return 0;
  }
@@ -217,7 +223,7 @@ $pages_qs .= "&QUERY=$FORM{QUERY}";
 
   $table = $html->table( { width      => '100%',
                            cols_align => ['right', 'right'],
-                           rows       => [ [ "$_TOTAL:", $html->b($Sqlcmd->{TOTAL}) ] ]
+                           rows       => [ [ "$_TOTAL: ". $html->b($Sqlcmd->{TOTAL}), "AFFECTED: ".  $html->b($Sqlcmd->{AFFECTED}) ] ]
                         } );
 
   print $table->show();

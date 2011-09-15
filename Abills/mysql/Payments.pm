@@ -132,7 +132,7 @@ sub add {
       	                              EXPIRE   => '0000-00-00' 
       	                             });
        }
-      $db->commit(); 
+      $db->commit() if (! $attr->{TRANSACTION}); 
      }
     else {
     	$db->rollback();
@@ -145,7 +145,7 @@ sub add {
     $self->{errstr}='No Bill';
   }
   
-  $db->{AutoCommit}=1  if (! $attr->{NO_AUTOCOMMIT});
+  $db->{AutoCommit}=1  if (! $attr->{NO_AUTOCOMMIT} && ! $attr->{TRANSACTION});
 
   return $self;
 }

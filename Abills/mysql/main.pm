@@ -134,7 +134,7 @@ if ($attr->{Bind}) {
  }
 
 if ($type && $type eq 'do') {
-  $q = $db->do($query, undef, @Array);
+  $self->{AFFECTED} = $db->do($query, undef, @Array);
   if (defined($db->{'mysql_insertid'})) {
   	 $self->{INSERT_ID} = $db->{'mysql_insertid'};
    }
@@ -179,9 +179,7 @@ if($db->err) {
     $self->{errstr}    = 'SQL_ERROR'; # . ( ($self->{db}->strerr) ? $self->{db}->strerr : '' );
     require Log;
     Log->import('log_print');
-    # #my $Log2 = Log->new($db, undef);
     log_print(undef, 'LOG_ERR', '', "\n$query\n --$self->{sql_errno}\n --$self->{sql_errstr}\n", { NAS => 0, LOG_FILE => "/tmp/sql_errors" });
-    #my $a = `echo "\n$query\n --$self->{sql_errno}\n --$self->{sql_errstr}\n" >> /tmp/connect_error `;
    }
   return $self;
  }
@@ -201,7 +199,6 @@ if ($self->{TOTAL} > 0) {
       push @rows, \@row;
      }
 #   }
- 
   $self->{list} = \@rows;
  }
 else {

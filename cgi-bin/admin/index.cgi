@@ -2035,10 +2035,13 @@ if ($users->{errno}) {
 elsif ($users->{TOTAL} == 1) {
 	$FORM{index} = 15;
 	$FORM{UID}   = $list->[0]->[5+$users->{SEARCH_FIELDS_COUNT}];
-	delete $FORM{LOGIN};
-  $ui          = user_info($FORM{UID});
-  print $ui->{TABLE_SHOW};
-	form_users({ USER => $ui });
+	if (! $FORM{LOGIN}) {
+	  delete $FORM{LOGIN}; 
+    $ui          = user_info($FORM{UID});
+    print $ui->{TABLE_SHOW};
+   }
+
+  form_users({ USER => $ui });
 	return 0;
  }
 elsif ($users->{TOTAL} == 0) {

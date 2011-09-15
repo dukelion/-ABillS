@@ -1519,11 +1519,9 @@ sub color_marks {
 #**********************************************************
 sub dhcphosts_payments_maked {
 	my ($attr) = @_;
-
-
   my $deposit = $attr->{USER}->{DEPOSIT} + $attr->{USER}->{CREDIT};
   
-  if ($deposit > 0) {
+#  if ($deposit > 0) {
   	my %NETWORKS=();
   	my %NAS_IDS =();
 
@@ -1547,7 +1545,7 @@ sub dhcphosts_payments_maked {
                          reconfig => 1,
                          %$attr });
      }
-	 }
+#	 }
 }
 
 

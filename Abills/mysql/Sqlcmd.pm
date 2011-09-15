@@ -159,46 +159,54 @@ my @rows = ();
 
 foreach my $query (@QUERY_ARRAY) {
 	next if (length($query) < 5);
-  my $q = $db->prepare("$query",  { "mysql_use_result" => ($query !~ /!SELECT/gi ) ? 0 : 1   } ) || die $db->errstr;
-  if($db->err) {
-     $self->{errno} = 3;
-     $self->{sql_errno}=$db->err;
-     $self->{sql_errstr}=$db->errstr;
-     $self->{errstr}=$db->errstr;
-     return $self->{errno};
-   }
-  $q->execute(); 
+	my $q;
+	
+	if ($query =~ /INSERT |UPDATE |CREATE |DELETE /i) {
+		$self->{AFFECTED} = $db->do("$query") || print $db->errstr;
+		print $self->{AFFECTED};
+	 }
+  else {
+    $q = $db->prepare("$query",  { "mysql_use_result" => ($query !~ /!SELECT/gi ) ? 0 : 1   } ) || print $db->errstr;
+    if($db->err) {
+      $self->{errno} = 3;
+      $self->{sql_errno}=$db->err;
+      $self->{sql_errstr}=$db->errstr;
+      $self->{errstr}=$db->errstr;
+      return $self->{errno};
+     }
+    $q->execute(); 
 
 
-  if($db->err) {
-     $self->{errno} = 3;
-     $self->{sql_errno}=$db->err;
-     $self->{sql_errstr}=$db->errstr;
-     $self->{errstr}="$query / ".$db->errstr;
+    if($db->err) {
+      $self->{errno} = 3;
+      $self->{sql_errno}=$db->err;
+      $self->{sql_errstr}=$db->errstr;
+      $self->{errstr}="$query / ".$db->errstr;
      
-     return $self;
+      return $self;
+     } 
+  
+    $self->{MYSQL_FIELDS_NAMES}  = $q->{NAME};
+    $self->{MYSQL_IS_PRIMARY_KEY}= $q->{mysql_is_pri_key};
+    $self->{MYSQL_IS_NOT_NULL}   = $q->{mysql_is_not_null};
+    $self->{MYSQL_LENGTH}        = $q->{mysql_length};
+    $self->{MYSQL_MAX_LENGTH}    = $q->{mysql_max_length};
+    $self->{MYSQL_IS_KEY}        = $q->{mysql_is_key};
+    $self->{MYSQL_TYPE_NAME}     = $q->{mysql_type_name};
+
+    $self->{TOTAL} = $q->rows;
+
+    while(my @row = $q->fetchrow()) {
+      push @rows, \@row;
+     }
    }
   
-   $self->{MYSQL_FIELDS_NAMES}  = $q->{NAME};
-   $self->{MYSQL_IS_PRIMARY_KEY}= $q->{mysql_is_pri_key};
-   $self->{MYSQL_IS_NOT_NULL}   = $q->{mysql_is_not_null};
-   $self->{MYSQL_LENGTH}        = $q->{mysql_length};
-   $self->{MYSQL_MAX_LENGTH}    = $q->{mysql_max_length};
-   $self->{MYSQL_IS_KEY}        = $q->{mysql_is_key};
-   $self->{MYSQL_TYPE_NAME}     = $q->{mysql_type_name};
-
-
-   $self->{TOTAL} = $q->rows;
-
-   while(my @row = $q->fetchrow()) {
-     push @rows, \@row;
-    }
-
   return $self if($self->{errno});
   
   push @{ $self->{EXECUTED_QUERY} }, $query;
 }
  
+  $attr->{QUERY} =~ s/\'/\\\'/g;
   $admin->system_action_add("SQLCMD:$attr->{QUERY}", { TYPE => 1 });    
   my $list = \@rows;
   return $list;
@@ -265,10 +273,11 @@ sub history_add {
   my $self = shift;
   my ($attr) = @_;
   
+  $attr->{SQL_QUERY} =~ s/\'/\\\'/g;
   $self->query($db,  "INSERT INTO sqlcmd_history (datetime,
                   aid,  sql_query,  db_id,  comments)
-               VALUES (now(), $admin->{AID}, '$attr->{SQL_QUERY}', '$attr->{DB_ID}', '$attr->{COMMENTS}');", 'do');
-
+               VALUES (now(), '$admin->{AID}', '$attr->{SQL_QUERY}', '$attr->{DB_ID}', '$attr->{COMMENTS}');", 'do');
+   
   return $self;
 }
 
