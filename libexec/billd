@@ -1068,7 +1068,7 @@ if ($ARGV->{MPD_FILTER}) {
  }
 else {
   # Get global ips
-  open(IPFW, "/sbin/ipfw table $conf{FW_TABLE_USERS} list |") || die "Can't open file '' $!\n";
+  open(IPFW, "/sbin/ipfw table $users_table_number list |") || die "Can't open file '' $!\n";
     while(<IPFW>) {
     	if (/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/\d+\s?(\d+)/) {
     		$fw_ips{$1}=$2;
@@ -1326,7 +1326,7 @@ else {
            	 if (! $START_FW[$traf_type]) {
            	 	 print "Error: Undefined traf type: $traf_type TP: $tp\n";
              	}
-           	 my $fw_step = 1000;
+           	 $fw_step = 1000;
  	           my $pipe_rule_in  = int($START_FW[$traf_type] + $tp_id);
              my $pipe_rule_out = int($START_FW[$traf_type] + $fw_step + $tp_id);
              my $dest_ip       = ($traf_type == 0) ? 'any' : "table\\($nets_table_number, $traf_type\\)";
@@ -1641,8 +1641,8 @@ elsif ($conf{ng_car}) {
    }
 
   while(my($ip, $params) = each %fw_ips) {
- 	  push @FW_ACTIONS, "$IPFW -q table $conf{FW_TABLE_USERS} delete $ip";
-          push @FW_ACTIONS, "$IPFW -q table ". ($conf{FW_TABLE_USERS}+1) ." delete $ip";
+ 	  push @FW_ACTIONS, "$IPFW -q table $users_table_number delete $ip";
+          push @FW_ACTIONS, "$IPFW -q table ". ($users_table_number+1) ." delete $ip";
    }
 
   
@@ -1719,11 +1719,11 @@ else {
 
      $debug_outputs = '';
   	 if (! $fw_ips{$IP} || $fw_ips{$IP} ne $argument ) {
-   	 	 push @FW_ACTIONS, "$IPFW -q table ". $conf{FW_TABLE_USERS} ." delete $IP";
-   	   push @FW_ACTIONS, "$IPFW -q table ". $conf{FW_TABLE_USERS} ." add $IP $argument";
+   	 	 push @FW_ACTIONS, "$IPFW -q table ". $users_table_number ." delete $IP";
+   	   push @FW_ACTIONS, "$IPFW -q table ". $users_table_number ." add $IP $argument";
    	   
-   	 	 push @FW_ACTIONS, "$IPFW -q table ". ($conf{FW_TABLE_USERS}+1) ." delete $IP";
-   	   push @FW_ACTIONS, "$IPFW -q table ". ($conf{FW_TABLE_USERS}+1) ." add $IP ". ($argument+$fw_step);
+   	 	 push @FW_ACTIONS, "$IPFW -q table ". ($users_table_number+1) ." delete $IP";
+   	   push @FW_ACTIONS, "$IPFW -q table ". ($users_table_number+1) ." add $IP ". ($argument+$fw_step);
    	   
    	   $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
    	  }
