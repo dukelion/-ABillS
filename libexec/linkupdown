@@ -529,7 +529,7 @@ if ($ACTION eq 'up' || $OS eq 'Linux') {
          }
         else {
 	      	my $tablearg_in  = ($Billing->{RESULT}{$traf_type}->{SPEED_IN}) ? (($speed_in > 10000) ? $speed_in : "1$speed_in"): ($START_FW[$traf_type] + $user->{TP_NUM});
-      	  my $tablearg_out = ($Billing->{RESULT}{$traf_type}->{SPEED_IN}) ? (($speed_out > 10000) ? $speed_in : "1$speed_out") : ($START_FW[$traf_type] + $fw_step + $user->{TP_NUM});
+      	  my $tablearg_out = ($Billing->{RESULT}{$traf_type}->{SPEED_IN}) ? (($speed_out > 10000) ? $speed_out : "1$speed_out") : ($START_FW[$traf_type] + $fw_step + $user->{TP_NUM});
 
      	    push @FW_ACTIONS, "$IPFW table $users_table_number add $CLIENT_IP/$BIT_MASK $tablearg_in";
           push @FW_ACTIONS, "$IPFW table ". ($users_table_number+1)." add $CLIENT_IP/$BIT_MASK $tablearg_out";

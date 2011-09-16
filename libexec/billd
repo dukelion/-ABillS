@@ -1043,6 +1043,7 @@ sub check_speed {
   my %fw_ips     = ();
   my $OS  = `uname`;
   my @FW_ACTIONS = ();
+  my $fw_step    = 0;
 
   chop($OS);
   # Check linux shapper
@@ -1067,7 +1068,7 @@ if ($ARGV->{MPD_FILTER}) {
  }
 else {
   # Get global ips
-  open(IPFW, "/sbin/ipfw table 10 list |") || die "Can't open file '' $!\n";
+  open(IPFW, "/sbin/ipfw table $conf{FW_TABLE_USERS} list |") || die "Can't open file '' $!\n";
     while(<IPFW>) {
     	if (/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/\d+\s?(\d+)/) {
     		$fw_ips{$1}=$2;
@@ -1217,7 +1218,7 @@ else {
   	print "Reconfigure: $ARGV->{RECONFIGURE}\n" if ($debug > 1);
  	  push @FW_ACTIONS, "$IPFW -q flush";
 	  push @FW_ACTIONS, "$IPFW -q pipe flush";
-	  push @FW_ACTIONS, "$IPFW -q table 10 flush";
+	  push @FW_ACTIONS, "$IPFW -q table ". $users_table_number ." ". ($users_table_number+1) ." flush";
 	  #Make pipe forward rules for traffic class
     for(my $i=0; $i<=$#START_FW; $i++) {
       push @FW_ACTIONS, "$IPFW -q add ". (10000 - $i*1000) ." pipe tablearg ip from table\\(". ($users_table_number+$i*2)."\\) to ". (($i==0) ? 'any' : "table\\(2,$i\\)"). " $via_if_in";
@@ -1640,8 +1641,8 @@ elsif ($conf{ng_car}) {
    }
 
   while(my($ip, $params) = each %fw_ips) {
- 	  push @FW_ACTIONS, "$IPFW -q table 10 delete $ip";
-          push @FW_ACTIONS, "$IPFW -q table 11 delete $ip";
+ 	  push @FW_ACTIONS, "$IPFW -q table $conf{FW_TABLE_USERS} delete $ip";
+          push @FW_ACTIONS, "$IPFW -q table ". ($conf{FW_TABLE_USERS}+1) ." delete $ip";
    }
 
   
@@ -1703,20 +1704,27 @@ else {
   	                                                                    debug        => $debug,
   	                                                                     } );
          if (! $RESULT->{SPEED}) {
-           $argument=$RESULT->{SPEED_IN} if($RESULT->{SPEED_IN});
+           $argument = $RESULT->{SPEED_IN} if($RESULT->{SPEED_IN});
           }
          else {
          	 $argument = ($RESULT->{SPEED} > 10000) ? "$RESULT->{SPEED}" : "1$RESULT->{SPEED}";
           }
      	  }
 
-   	 	 $argument = $TP_HASH{$TP} if (! $argument);
+       if (! $argument) {
+   	 	   my $traf_type = 0;
+   	 	   $argument     = $START_FW[$traf_type] + $TP_HASH{$TP};
+   	 	  }
       }
 
      $debug_outputs = '';
   	 if (! $fw_ips{$IP} || $fw_ips{$IP} ne $argument ) {
-   	 	 push @FW_ACTIONS, "$IPFW -q table 10 delete $IP";
-   	   push @FW_ACTIONS, "$IPFW -q table 10 add $IP $argument";
+   	 	 push @FW_ACTIONS, "$IPFW -q table ". $conf{FW_TABLE_USERS} ." delete $IP";
+   	   push @FW_ACTIONS, "$IPFW -q table ". $conf{FW_TABLE_USERS} ." add $IP $argument";
+   	   
+   	 	 push @FW_ACTIONS, "$IPFW -q table ". ($conf{FW_TABLE_USERS}+1) ." delete $IP";
+   	   push @FW_ACTIONS, "$IPFW -q table ". ($conf{FW_TABLE_USERS}+1) ." add $IP ". ($argument+$fw_step);
+   	   
    	   $debug_outputs = "$user -> IFACE: $IFACE TP: $TP IP: $IP SPEED: $SPEED JOIN SERVICE: $JOIN_SERVICE\n";
    	  }
 
