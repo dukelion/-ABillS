@@ -1218,7 +1218,7 @@ else {
   	print "Reconfigure: $ARGV->{RECONFIGURE}\n" if ($debug > 1);
  	  push @FW_ACTIONS, "$IPFW -q flush";
 	  push @FW_ACTIONS, "$IPFW -q pipe flush";
-	  push @FW_ACTIONS, "$IPFW -q table ". $users_table_number;
+	  push @FW_ACTIONS, "$IPFW -q table $users_table_number flush";
 	  #Make pipe forward rules for traffic class
     for(my $i=0; $i<=$#START_FW; $i++) {
       push @FW_ACTIONS, "$IPFW -q add ". (10000 - $i*1000) ." pipe tablearg ip from table\\(". ($users_table_number+$i*2)."\\) to ". (($i==0) ? 'any' : "table\\(2,$i\\)"). " $via_if_in";
