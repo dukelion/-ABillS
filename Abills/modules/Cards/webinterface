@@ -696,7 +696,9 @@ sub cards_users_gen_confim {
 #
 #**********************************************************
 sub cards_user_payment () {
-
+  
+  my $begin_time = check_time();
+  
  	$user = Users->new($db, $admin, \%conf);
 	if (($FORM{PIN} && $FORM{SERIAL}) || ($FORM{PIN} && $conf{CARDS_PIN_ONLY})) {
 		$db->{AutoCommit} =0;
@@ -745,7 +747,20 @@ sub cards_user_payment () {
  
      $user->info($LIST_PARAMS{UID});
      if ($conf{CARDS_DEBUG}) {
-       my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR}"  >> /tmp/cards_debug`;	
+     	 my $gt = '';
+     	 if ($begin_time > 0)  {
+         Time::HiRes->import(qw(gettimeofday));
+         my $end_time = gettimeofday();
+         my $gen_time = $end_time - $begin_time;
+         $gt = sprintf(" GT: %2.5f", $gen_time);
+        }
+       
+       my $output = '';
+     	 while(my($k, $v)=each %FORM) {
+     	 	 $output .="$k=$v;" if ($FORM{$k} ne '__BUFFER');
+     	  }
+     	
+       my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} $output  ($gt)"  >> /tmp/cards_debug`;	
       }
 
      my $cards_number_length = $conf{CARDS_NUMBER_LENGTH} || 11;
@@ -772,11 +787,6 @@ sub cards_user_payment () {
        	 $html->message('err', $_ERROR, "$status[$Cards->{STATUS}]", { ID => 607 });
        	 return 0;
         }
-
-       if ($conf{CARDS_DEBUG}) {
-         my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} ADDED"   >> /tmp/cards_debug`;
-        }
-     
 
        #Make external script
        if ($conf{CARDS_PAYMENTS_EXTERNAL})  {
@@ -816,6 +826,17 @@ sub cards_user_payment () {
          }
         }
        $db->commit();
+
+       if ($conf{CARDS_DEBUG}) {
+       	 my $gt = '';
+     	   if ($begin_time > 0)  {
+           Time::HiRes->import(qw(gettimeofday));
+           my $end_time = gettimeofday();
+           my $gen_time = $end_time - $begin_time;
+           $gt = sprintf(" GT: %2.5f", $gen_time);
+          }
+         my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} ADDED ($gt)"   >> /tmp/cards_debug`;
+        }
        return 0;
       }
      elsif ($payments->{errno}) {
