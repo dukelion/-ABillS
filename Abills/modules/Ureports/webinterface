@@ -246,8 +246,9 @@ sub ureports_user {
                                          { 
  	                                          SELECTED          => $Ureports->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Ureports' }),
- 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_KEY   => 18,
  	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          NO_ID => 1
  	                                        });
 
 	  $Ureports->{ACTION}='add';
@@ -256,7 +257,6 @@ sub ureports_user {
 	else {
 	  $Ureports->{ACTION}='set';
 	  $Ureports->{LNG_ACTION}=$_CHANGE;
-	  #$Ureports->{CHANGE_TP_BUTTON}='['. $html->button($_CHANGE, 'UID='.$Ureports->{UID}.'&index='. ($index + 1)) .']';
 	  
     my $table = $html->table( { width      => '100%',
                               caption    => "$_REPORTS",
@@ -267,7 +267,8 @@ sub ureports_user {
                               ID         => 'REPORTS_TP'
                            } );
 
-    my $list = $Ureports->tp_user_reports_list({ %LIST_PARAMS, TP_ID => $Ureports->{TP_ID} });
+    my $list = $Ureports->tp_user_reports_list({ %LIST_PARAMS, TP_ID => $Ureports->{TP_ID} 
+    	                                          });
   
     foreach my $line (@$list) {
       $table->addrow(
@@ -297,13 +298,14 @@ sub ureports_user {
  	                                          ARRAY_NUM_ID => 1
  	                                        });
 
-  $Ureports->{TP_NAME}='';
+  $Ureports->{TP_NAME}=$html->button($_TARIF_PLAN, "TP_ID=$Ureports->{TP_ID}&index=". get_function_index('ureports_tp'), { CLASS => 'change rightAlignText' } );
   $Ureports->{TP_ID}=$html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $Ureports->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Ureports' }),
- 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_KEY   => 18,
  	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          NO_ID => 1
  	                                        });
 
 
@@ -336,8 +338,7 @@ if($FORM{ADD_TP}) {
      $html->message('info', $_ADDED, "$_ADDED $tariffs->{TP_ID}");
     }
  }
-elsif ($FORM{TP_ID}) {
- 
+elsif ($FORM{TP_ID}) { 
   $tarif_info = $Ureports->tp_info( $FORM{TP_ID} );
 
   if ($Ureports->{errno}) {
@@ -345,26 +346,26 @@ elsif ($FORM{TP_ID}) {
     return 0;
    }
 
-  $pages_qs .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
-  $LIST_PARAMS{TP} = $FORM{TP_ID};
+  $pages_qs           .= "&TP_ID=$FORM{TP_ID}&subf=$FORM{subf}";
+  $LIST_PARAMS{TP}     = $FORM{TP_ID};
   $LIST_PARAMS{MODULE} = 'Ureports';
-  %F_ARGS = ( TP => $tariffs );
-  
-  
+  %F_ARGS              = ( TP => $tariffs );
+
   $tariffs->{NAME_SEL} = $html->form_main({ CONTENT => $html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $FORM{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list({ %LIST_PARAMS }),
- 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_KEY   => 18,
  	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          NO_ID => 1
  	                                        }),
 	                                          HIDDEN  => { index => "$index" },
 	                                          SUBMIT  => { show  => "$_SHOW" } 
-	                        });
+	                                        });
   
   func_menu({ 
-  	         'ID' =>   $tariffs->{TP_ID}, 
-  	         $_NAME => $tariffs->{NAME_SEL}
+  	         'ID'     =>   $tariffs->{TP_ID}, 
+  	         "$_NAME" => $tariffs->{NAME_SEL}
   	       }, 
   	{ 
   	 },
@@ -399,7 +400,7 @@ elsif(defined($FORM{del}) && $FORM{is_js_confirmed}) {
 
 
 if ($tariffs->{errno}) {
-    $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
+  $html->message('err', $_ERROR, "[$tariffs->{errno}] $err_strs{$tariffs->{errno}}");	
  }
 
 
@@ -476,7 +477,7 @@ foreach my $line (@$list) {
    $line->[7], 
    $line->[8], 
    $line->[9],
-   $html->button($_REPORTS, "index=". ($index+2) ."&subf=". ($index + 1) ."&TP_ID=$line->[0]", { BUTTON => 1 }),
+   $html->button($_REPORTS, "index=". ($index+2) ."&subf=". ($index + 1) ."&TP_ID=$line->[18]", { BUTTON => 1 }),
    $change,
    $delete);
 }
@@ -998,10 +999,7 @@ sub ureports_user_info {
     	$html->message('err', $_ERROR, "$_WRONG_EMAIL");
      }
     else {
-      $Ureports->user_add({ UID    => $LIST_PARAMS{UID}, 
-     	                      STATUS => 0,
-          	                CID    => ($Ureports->{ISG_CID_CUR})  ? $Ureports->{ISG_CID_CUR} : undef 
-    	                   });
+      $Ureports->user_add({ %FORM });
 
   	  if (! $Ureports->{errno}) {
   	  	my $message = "$_ACTIVATE\n";
@@ -1036,20 +1034,10 @@ sub ureports_user_info {
    }
   
   $Ureports->user_info($LIST_PARAMS{UID});
-  
+  $FORM{UID}=$LIST_PARAMS{UID};
  
   if($Ureports->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
-    $Ureports->{TP_ID}=$html->form_select('TP_ID', 
-                                         { 
- 	                                          SELECTED          => $Ureports->{TP_ID},
- 	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Ureports' }),
- 	                                          MULTI_ARRAY_KEY   => 0,
- 	                                          MULTI_ARRAY_VALUE => 1,
- 	                                        });
-
-	  
-	  
 	  $Ureports->{ACTION}='add';
 	  $Ureports->{LNG_ACTION}=$_ACTIVATE;
     $Ureports->{TP_NAME}='';
@@ -1057,8 +1045,9 @@ sub ureports_user_info {
                                           { 
  	                                          SELECTED          => $Ureports->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Ureports' }),
- 	                                          MULTI_ARRAY_KEY   => 0,
+ 	                                          MULTI_ARRAY_KEY   => 18,
  	                                          MULTI_ARRAY_VALUE => 1,
+ 	                                          NO_ID => 1
  	                                        });
 	 }
 	else {
