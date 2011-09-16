@@ -147,7 +147,7 @@ sub ureports_periodic_reports {
 	my $debug = $attr->{DEBUG} || 0;
   my $debug_output = '';
 
- $debug_output .= "Ureports: Daily spool former\n" if ($debug > 1);
+ $debug_output      .= "Ureports: Daily spool former\n" if ($debug > 1);
  $LIST_PARAMS{MODULE}='Ureports';
  $LIST_PARAMS{TP_ID} = $ARGV->{TP_IDS} if ($ARGV->{TP_IDS});
 
@@ -176,6 +176,8 @@ sub ureports_periodic_reports {
          PAGE_ROWS => 1000000,
          REPORT_ID => '',
          DV_TP     => 1,
+         ACCOUNT_STATUS => 0,
+         STATUS         => 0,
          %SERVICE_LIST_PARAMS
  	   	 });
 

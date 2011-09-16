@@ -802,8 +802,6 @@ sub cards_user_payment () {
                                 });
      	  }
      
-       cross_modules_call('_payments_maked', { USER => $user, QUITE => 1  });    
-
        #Disable universal card after payment
        if ($Cards->{UID} > 0) {
          my $user_new = Users->new($db, $admin, \%conf);
@@ -828,6 +826,8 @@ sub cards_user_payment () {
         }
        $db->commit();
 
+       
+
        if ($conf{CARDS_DEBUG}) {
        	 my $gt = '';
      	   if ($begin_time > 0)  {
@@ -838,6 +838,8 @@ sub cards_user_payment () {
           }
          my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} ADDED ($gt)"   >> /tmp/cards_debug`;
         }
+
+       cross_modules_call('_payments_maked', { USER => $user, QUITE => 1  });     
        return 0;
       }
      elsif ($payments->{errno}) {
