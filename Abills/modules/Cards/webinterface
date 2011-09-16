@@ -759,7 +759,8 @@ sub cards_user_payment () {
      	 while(my($k, $v)=each %FORM) {
      	 	 $output .="$k=$v;" if ($FORM{$k} ne '__BUFFER');
      	  }
-     	
+
+
        my $test = `echo "$DATE $TIME $user->{LOGIN}  $Cards->{SERIAL}$Cards->{NUMBER} A:$ENV{HTTP_USER_AGENT} QS:$ENV{QUERY_STRING} RA:$ENV{REMOTE_ADDR} $output  ($gt)"  >> /tmp/cards_debug`;	
       }
 
