@@ -1313,7 +1313,15 @@ my $multi_doc_count = 0;
 my $page_count      = $pdf->pages;
 my $font_name       = 'Verdana';
 my $encode          = $self->{CHARSET} || 'windows-1251';
-my $font            = $pdf->corefont($font_name, -encode => "$encode");
+my $font;
+
+if ($encode =~ /utf8/) {
+	$font_name  = '/usr/abills/Abills/templates/FreeSerif.ttf';
+  $font       = $pdf->ttfont($font_name, -encode => "$encode");
+ }
+else {
+  $font = $pdf->corefont($font_name, -encode => "$encode");
+ }
 
 MULTIDOC_LABEL:
 
@@ -1378,7 +1386,12 @@ for my $key (sort keys %$tpl_describe) {
 
     if ($pattern =~ /font_name=(\S+)/) {
     	$font_name  = $1;
-      $font = $pdf->corefont($font_name, -encode => "$encode");
+      if($font_name =~ /\.ttf$/) {
+        $font = $pdf->corefont($font_name, -encode => "$encode");
+       }
+      else {
+      	$font = $pdf->ttfont($font_name, -encode => "$encode");
+       } 
      }
     #my $font = $pdf->ttfont('arialbold');
     
