@@ -1312,7 +1312,7 @@ sub tpl_show {
 my $multi_doc_count = 0;
 my $page_count      = $pdf->pages;
 my $font_name       = 'Verdana';
-my $encode          = 'windows-1251';
+my $encode          = $self->{CHARSET} || 'windows-1251';
 my $font            = $pdf->corefont($font_name, -encode => "$encode");
 
 MULTIDOC_LABEL:
