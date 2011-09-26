@@ -2208,8 +2208,10 @@ print $table_sessions->show() . $table->show(). $output;
 sub msgs_unreg_requests_list {
 	my ($attr) = @_;
 
-
 	if ($FORM{change}) {
+    if($FORM{qindex}){
+      print $html->header();
+     }
     my %params              = ();
  	 	$params{CLOSED_DATE} = "$DATE $TIME" if ($FORM{STATE} > 0);
  	 	$params{DONE_DATE}   = "$DATE $TIME" if ($FORM{STATE} > 1);
@@ -2223,9 +2225,7 @@ sub msgs_unreg_requests_list {
     $Msgs->{ACTION_LNG}=$_CHANGE;
    }
   elsif ($FORM{chg}) {
-
     $Msgs->unreg_requests_info($FORM{chg});
-
     $Msgs->{ACTION}='change';
     $Msgs->{ACTION_LNG}=$_CHANGE;
    }
@@ -2379,7 +2379,7 @@ foreach my $line (@$list) {
    $line->[0] . ( ($A_PRIVILEGES{$line->[18]} > 2 || $#A_CHAPTER == -1) ? $html->form_input('del', "$line->[0]", {TYPE => 'checkbox' }) : '' ), 
 
    $html->button($line->[1], "#", 
-      { NEW_WINDOW      => "$SELF_URL?qindex=". (($attr->{LIST_ONLY}) ? $index - 1 : $index ). "&chg=$line->[0]",
+      { NEW_WINDOW      => "$SELF_URL?qindex=". (($attr->{LIST_ONLY}) ? $index - 1 : $index ). "&chg=$line->[0]&header=1",
       	NEW_WINDOW_SIZE => "640:600",
       	 }),
    $line->[2],

@@ -1474,7 +1474,7 @@ sub form_address_sel {
          "text": "" }) };
     }
    elsif ($FORM{DISTRICT_ID}) {
-     my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID}, PAGE_ROWS => 1000 });
+     my $list = $users->street_list({ DISTRICT_ID => $FORM{DISTRICT_ID}, PAGE_ROWS => 1000, SORT => 2 });
      if ($users->{TOTAL} > 0) {
        foreach my $line (@$list) {
          $js_list .= "<option class='spisok' value='p2|$line->[1]|l2|$line->[0]'>$line->[1]</option>"; 
@@ -7489,6 +7489,10 @@ if ($FORM{DISTRICT_ID}) {
   $LIST_PARAMS{DISTRICT_ID}=$FORM{DISTRICT_ID};
   $pages_qs.="&DISTRICT_ID=$LIST_PARAMS{DISTRICT_ID}";
  }
+
+if (! $FORM{sort}) {
+  $LIST_PARAMS{SORT}=2;
+}
 
 my $list = $users->street_list({ %LIST_PARAMS, USERS_INFO => 1 });
 my $table = $html->table({ width      => '640',
