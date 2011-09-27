@@ -235,8 +235,8 @@ sub ureports_user {
     $html->message('err', $_ERROR, "[$Ureports->{errno}] $err_strs{$Ureports->{errno}}");
    }
 
-
   $Ureports->user_info($Ureports->{UID});
+
 
   if($Ureports->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
@@ -1000,7 +1000,7 @@ sub ureports_user_info {
       $Ureports->user_add({ %FORM });
   	  if (! $Ureports->{errno}) {
   	  	my $message = "$_ACTIVATE\n";
-        if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_ENABLE", { UID => $FORM{UID} })) {
+        if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, " $_SERVICE $_REPORTS $_ENABLE", { UID => $FORM{UID} })) {
         	$message .= "$_ACTIVATED_MSG_SENDED";
          }
         $html->message('info', $_INFO, $message); 
@@ -1018,7 +1018,7 @@ sub ureports_user_info {
   	    $Ureports->tp_user_reports_change({ %FORM, UID => $user->{UID} });
   	    if (! $Ureports->{errno} ){
   	  	  my $message =  "$_CHANGED\n";
-          if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_CHANGED", { UID => $user->{UID} })) {
+          if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, " $_SERVICE $_REPORTS $_CHANGED", { UID => $user->{UID} })) {
           	$message .= "$_ACTIVATED_MSG_SENDED";
            }
   	      $html->message('info', $_INFO, $message);
@@ -1035,10 +1035,10 @@ sub ureports_user_info {
  
   if($Ureports->{TOTAL} < 1) {
 	  $html->message('info', $_INFO, $_NOT_ACTIVE);
-	  $Ureports->{ACTION}='add';
+	  $Ureports->{ACTION}    ='add';
 	  $Ureports->{LNG_ACTION}=$_ACTIVATE;
-    $Ureports->{TP_NAME}='';
-    $Ureports->{TP_ID}=$html->form_select('TP_ID', 
+    $Ureports->{TP_NAME}   ='';
+    $Ureports->{TP_ID}     = $html->form_select('TP_ID', 
                                           { 
  	                                          SELECTED          => $Ureports->{TP_ID},
  	                                          SEL_MULTI_ARRAY   => $tariffs->list({ MODULE => 'Ureports' }),
@@ -1083,6 +1083,7 @@ sub ureports_user_info {
     $Ureports->{REPORTS_LIST} = $table->show({ OUTPUT2RETURN => 1 }); 
   }
 
+    $Ureports->{TP_ID}=$Ureports->{TP_NUM};
     $Ureports->{TYPE_SEL}            = $html->form_select('TYPE', 
                                           { 
  	                                          SELECTED     => $Ureports->{TYPE},
@@ -1098,7 +1099,8 @@ sub ureports_user_info {
  	                                                            ],
  	                                          ARRAY_NUM_ID => 1
  	                                        });
-                                     
+
+
    $html->tpl_show(_include('ureports_user', 'Ureports'), $Ureports);
 }
 

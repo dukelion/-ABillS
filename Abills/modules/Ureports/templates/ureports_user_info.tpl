@@ -2,8 +2,8 @@
 <TR><TD bgcolor='#E1E1E1'>
 
 <TABLE width='100%' cellspacing='1' cellpadding='0' border='0'>
-<tr bgcolor='$_COLORS[0]'><th align=right colspan=2>Dialup/VPN $_INFO</th></tr>
-<tr bgcolor='$_COLORS[1]'><td>$_TARIF_PLAN:</td><td>[%TP_ID%] <b>%TP_NAME%</b> %TP_CHANGE%</td></tr>
+<tr bgcolor='$_COLORS[0]'><th align=right colspan=2>$_UREPORTS $_INFO</th></tr>
+<tr bgcolor='$_COLORS[1]'><td>$_TARIF_PLAN:</td><td>[%TP_NUM%] <b>%TP_NAME%</b> %TP_CHANGE%</td></tr>
 <tr bgcolor='$_COLORS[1]'><td>$_SIMULTANEOUSLY:</td><td>%SIMULTANEONSLY%</td></tr>
 <tr bgcolor='$_COLORS[1]'><td>IP:</td><td>%IP%</td></tr>
 <tr bgcolor='$_COLORS[1]'><td>Netmask:</td><td>%NETMASK%</td></tr>
