@@ -299,6 +299,9 @@ sub online {
  elsif ($attr->{ALL}) {
 
   }
+ elsif($attr->{STATUS}) {
+ 	 push @WHERE_RULES, @{ $self->search_expr("$attr->{STATUS}", 'INT', 'c.status') };
+  }
  else {
    push @WHERE_RULES, "((c.status=1 or c.status>=3) AND c.status<11)";
   } 

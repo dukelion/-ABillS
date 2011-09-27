@@ -1052,10 +1052,6 @@ sub check_speed {
     check_speed_linux();
     exit;	
   }
-  #elsif ($ARGV->{MPD_FILTER}) {
-  #	check_speed_mpd();
-  #	exit;
-  # } 
 
   my $users_table_number = $conf{FW_TABLE_USERS} || 10;
   my $nets_table_number  = 2;
@@ -1177,7 +1173,8 @@ else {
 		$LIST_PARAMS{USER_NAME}=$ARGV->{LOGINS};
 	 }
 
-	$sessions->online( { %LIST_PARAMS, 
+	$sessions->online( { %LIST_PARAMS,
+		                   STATUS       => '<11',
 		                   NAS_ID       => $ARGV->{NAS_IDS}, 
 		                   FIELDS_NAMES => [ 'USER_NAME', 
 		                   	                 'NAS_PORT_ID', 

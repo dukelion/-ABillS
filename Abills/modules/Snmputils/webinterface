@@ -1022,7 +1022,6 @@ sub snmputils_dlink_pb {
      	                                      });
        $debug_output .= "$message\n" if ($debug > 1);
       }
-
     }
 
   if ($conf{SNMPUTILS_SAVE_CONF}) {
@@ -1137,6 +1136,19 @@ if ($RESULT{version} =~ /DES-3550/ ) {
                     'ACL_IP_MAC'  => '1.1.0' 
                             };
      }
+    elsif ($RESULT{version} =~ /DES-1210/) {
+          $RESULT{oid_prefix} = '1.3.6.1.4.1.171.10.75.15.14.4.';
+          $RESULT{oid_sufix} = {'STATE'  => '5',
+                    'IP'     => '5.1.5',
+                    #'MAC'    => '4.1.2.2',
+                    'MAKE'   => '5.1.5',
+                    'PORT'   => '5.1.3',
+
+                    'ENABLE_MODE' => '1',
+                    'LOGIN_MODE'  => '2',
+                    'ACL_IP_MAC'  => '3' 
+                            };
+     }
     else {
  	    $RESULT{firmware}  = snmpget($SNMP_COMMUNITY, ".1.3.6.1.2.1.16.19.2.0");
       $RESULT{firmware2}  = snmpget($SNMP_COMMUNITY, ".1.3.6.1.4.1.171.12.11.1.9.4.1.8.1");
@@ -1201,18 +1213,33 @@ sub snmputils_dlink_pb_add {
 	my $oid_prefix= $sw_info->{oid_prefix};
 	my %oid_sufix = %{ $sw_info->{oid_sufix} } ;
 	my @snmp_values = ();
+
+  # 1228
+  if($sw_info->{version} !~ /DES-1228/) { 	
+#	  5.	Create IMP Entry. For example, create a entry for 192.168.100.99 with MAC 02-23-45-67-89-01
+#     1.3.6.1.4.1.171.10.75.15.14.4.5.1.5.192.168.1.1.2.35.69.103.137.1 (ipMacPortBindingRowStatus) set to У5Ф (create and wait)
+#    P.S MAC must transform from hex to interger
+#    C:\>snmpset -v2c -c private 192.168.1.1 1.3.6.1.4.1.171.10.75.15.14.4.5.1.5.192.168.1.1.2.35.69.103.137.1 i 5
+     push @snmp_values, $oid_prefix.$oid_sufix{IP}.".$ip.$mac", "integer", "5";
+     push @snmp_values, $oid_prefix.$oid_sufix{PORT}.".$ip.$mac", "integer", "$ports";
+     push @snmp_values, $oid_prefix.$oid_sufix{MAKE}.".$ip.$mac", "integer", "5";
+#    6.	Add port information. For example, add port 1 for the entry.
+#     1.3.6.1.4.1.171.10.75.15.14.4.5.1.3.192.168.1.1.2.35.69.103.137.1 set to УF0 00 00 00Ф
+#    C:\>snmpset -v2c -c private 192.168.1.1 1.3.6.1.4.1.171.10.75.15.14.4.5.1.3.192.168.1.1.2.35.69.103.137.1 x "F0 00 00 00"
+#    7.	Active.
+#    1.3.6.1.4.1.171.10.75.15.14.4.5.1.5.192.168.1.1.2.35.69.103.137.1 set to У1Ф (active)
+    return $message;
+  }
 	
 	#Ўаг 1. «адать IP-адрес св€зки:
-	
-
 	my $oid = $oid_prefix.$oid_sufix{MAKE}.".$ip";
-if($sw_info->{version} !~ /DES-32/) { 
-  $message .= "$oid => 4\n";
-  if(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
-   	$message .= " Ok\n";
+  if($sw_info->{version} !~ /DES-32/) { 
+    $message .= "$oid => 4\n";
+    if(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
+   	  $message .= " Ok\n";
+     }
+    push @snmp_values, $oid, "integer", "4";
    }
-  push @snmp_values, $oid, "integer", "4";
-}
   
   #Ўаг 3. «адать MAC-адрес (AA-BB-CC-DD-EE-FF) св€зки:
   my @mac_arr = split(/:|-/, $mac);
@@ -1222,25 +1249,20 @@ if($sw_info->{version} !~ /DES-32/) {
    }
 
   $message .= "$oid_prefix$oid_sufix{MAC}.$ip => ". unpack("H*",  $mac)."\n";
-if($sw_info->{version} !~ /DES-32/) { 
-  if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAC}.".$ip", "string", "$mac")) {
-    $message .= "Ok\n";
+  if($sw_info->{version} !~ /DES-32/) { 
+    if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{MAC}.".$ip", "string", "$mac")) {
+      $message .= "Ok\n";
+     }
+    else {
+      print "MAC: '' $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
+     }
    }
-  else {
-    print "MAC: '' $SNMP_Session::suppress_warnings / $SNMP_Session::errmsg";	
-   }
-}
+
   push @snmp_values, $oid_prefix.$oid_sufix{MAC}.".$ip", "string", "$mac";
 
-
-  #Ўаг 2. Ќазначить эту св€зку на порт 1:
+  #Ўаг 2. Ќазначить эту св€зку на порт:
   #Convert to D-Link port value
-  #   my $first_port = 0b10000000000000000000000000000000;
-  #     my $port_binding = ($port > 1) ? $first_port >> $port - 1 : $first_port;
-  #     my @ar =  unpack("A2A2A2A2", sprintf("%.8x",  $port_binding));
-  #     printf("\n%.32b\n",  $port_binding);
   my $port_count = $#{ $sw_info->{PORT_STATE} };
-
   $port_list=~s/ //g;
 
 	my @get_port_arr = split(/,/, $port_list);
@@ -1271,14 +1293,13 @@ if($sw_info->{version} !~ /DES-32/) {
   	$unpack_ = "H2H2H2H2H2H2H2H2";
    }
 
-
   my @ar = unpack("$unpack_", pack("B48", join("", @port_array)));
-
   my $port_binding = '';
   foreach my $c (@ar) {
     $port_binding .= chr(hex($c));
    }
-     
+
+
   $message .= $oid_prefix.$oid_sufix{PORT}.".$ip => ". join(':', @ar)."\n";
 if($sw_info->{version} !~ /DES-32/) {   
   if(snmpset($SNMP_COMMUNITY, $oid_prefix.$oid_sufix{PORT}.".$ip", "string", "$port_binding")) {
@@ -1319,14 +1340,11 @@ if($sw_info->{version} !~ /DES-32/) {
   	
   	print "=> $oid\n";
   	if ($sw_info->{version} =~ /DES-32/) {
-  		#shift @snmp_values;
-  		#shift @snmp_values;
-  		#shift @snmp_values;
       if (snmpset($SNMP_COMMUNITY, @snmp_values)) {
       	$message .= " Ok\n";
        }
       else {
-      	 print $html->pre("$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
+      	print $html->pre("$SNMP_Session::suppress_warnings / $SNMP_Session::errmsg");
       }  
   	 }
   	elsif(snmpset($SNMP_COMMUNITY, $oid, "integer", "4")) {
