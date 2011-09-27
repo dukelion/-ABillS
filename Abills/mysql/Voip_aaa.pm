@@ -171,6 +171,26 @@ if($self->{errno}) {
 
 
 #**********************************************************
+# 
+#**********************************************************
+sub number_expr {
+	my ($RAD)=@_;
+  my @num_expr = split(/;/, $conf->{VOIP_NUMBER_EXPR});
+  my $number = $RAD->{USER_NAME};
+
+for(my $i=0; $i<=$#num_expr; $i++) {
+  my($left, $right)=split(/\//, $num_expr[$i]);
+  my $r = eval "\"$right\"";
+  if($RAD->{USER_NAME} =~ s/$left/$r/) {
+#    print "$i\n";
+    last;
+   }
+}
+	
+	return 0;
+}
+
+#**********************************************************
 # Accounting Work_
 #**********************************************************
 sub auth {
@@ -187,6 +207,9 @@ sub auth {
   	$RAD->{USER_NAME} = $2;
    }
   
+  if($conf->{VOIP_NUMBER_EXPR}) {
+  	number_expr($RAD);
+   }
 
   %RAD_PAIRS=();
   $self->user_info($RAD, $NAS);
