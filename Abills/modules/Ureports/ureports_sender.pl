@@ -74,7 +74,7 @@ my %REPORTS = ( 1 => "$_DEPOSIT_BELOW",
                 2 => "$_PREPAID_TRAFFIC_BELOW",
                 3 => "$_TRAFFIC_BELOW",
                 4 => "$_MONTH_REPORT",
-             );
+               );
 
 use POSIX qw(strftime);
 
@@ -160,7 +160,7 @@ sub ureports_periodic_reports {
   my $reports_type = 0;
 
  foreach my $line (@$list) {
-     my $TP_ID = $line->[0];
+     my $TP_ID   = $line->[18];
      my %TP_INFO = ();
      $TP_INFO{POSTPAID}   = $line->[12];
      $TP_INFO{REDUCTION}  = $line->[11];
