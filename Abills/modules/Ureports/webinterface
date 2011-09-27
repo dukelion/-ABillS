@@ -175,7 +175,6 @@ print $table->show();
 sub ureports_user {
  	my ($attr) = @_;
 
-
  	$Ureports->{UID}=$FORM{UID} || $LIST_PARAMS{UID} ;	  
 
   if ($FORM{add}) {
@@ -1001,7 +1000,7 @@ sub ureports_user_info {
       $Ureports->user_add({ %FORM });
   	  if (! $Ureports->{errno}) {
   	  	my $message = "$_ACTIVATE\n";
-        if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_ENABLED", { UID => $FORM{UID} })) {
+        if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_ENABLE", { UID => $FORM{UID} })) {
         	$message .= "$_ACTIVATED_MSG_SENDED";
          }
         $html->message('info', $_INFO, $message); 
@@ -1019,7 +1018,7 @@ sub ureports_user_info {
   	    $Ureports->tp_user_reports_change({ %FORM, UID => $user->{UID} });
   	    if (! $Ureports->{errno} ){
   	  	  my $message =  "$_CHANGED\n";
-          if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_ENABLED", { UID => $user->{UID} })) {
+          if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_CHANGED", { UID => $user->{UID} })) {
           	$message .= "$_ACTIVATED_MSG_SENDED";
            }
   	      $html->message('info', $_INFO, $message);

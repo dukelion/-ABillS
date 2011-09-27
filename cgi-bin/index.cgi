@@ -114,6 +114,7 @@ delete($conf{PASSWORDLESS_ACCESS}) if ($FORM{xml});
 
 $user=Users->new($db, $admin, \%conf); 
 
+
 ($uid, $sid, $login) = auth("$login", "$passwd", "$sid");
 
 my %uf_menus = ();
@@ -254,7 +255,6 @@ if ($uid > 0) {
 else {
   form_login();
 }
-
 
 print $html->header();
 $OUTPUT{BODY}="$html->{OUTPUT}";
