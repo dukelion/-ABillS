@@ -999,10 +999,9 @@ sub ureports_user_info {
      }
     else {
       $Ureports->user_add({ %FORM });
-
   	  if (! $Ureports->{errno}) {
   	  	my $message = "$_ACTIVATE\n";
-        if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_ENABLED")) {
+        if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_ENABLED", { UID => $FORM{UID} })) {
         	$message .= "$_ACTIVATED_MSG_SENDED";
          }
         $html->message('info', $_INFO, $message); 
@@ -1020,7 +1019,7 @@ sub ureports_user_info {
   	    $Ureports->tp_user_reports_change({ %FORM, UID => $user->{UID} });
   	    if (! $Ureports->{errno} ){
   	  	  my $message =  "$_CHANGED\n";
-          if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_ENABLED")) {
+          if(ureports_send_reports($FORM{TYPE}, $FORM{DESTINATION}, "$_SERVICE $_ENABLED", { UID => $user->{UID} })) {
           	$message .= "$_ACTIVATED_MSG_SENDED";
            }
   	      $html->message('info', $_INFO, $message);
@@ -1117,7 +1116,16 @@ sub ureports_send_reports {
   	 }
    }
   elsif($type == 1) {
-  	if ($conf{UREPORTS_EXT_SENDER}) {
+  	if (in_array('Sms', \@MODULES) ) {
+  		require "Abills/modules/Sms/webinterface";
+      sms_send({ NUMBER  => $destination,
+     	           MESSAGE => $message,
+                 DEBUG   => $debug,
+                 UID     => $attr->{UID},
+                 PERRIODIC => 1
+               });
+  	 }
+  	elsif ($conf{UREPORTS_EXT_SENDER}) {
   	  my $cmd = `$conf{UREPORTS_EXT_SENDER} $destination $message`;
   	 }
    }
@@ -1222,15 +1230,16 @@ sub ureports_periodic_reports {
          	 	 ureports_send_reports($user{DESTINATION_TYPE}, 
          	 	                       $user{DESTINATION_ID}, 
          	 	                       "$_DEPOSIT: $user{DEPOSIT}", 
-         	 	                       { SUBJECT => "$_DEPOSIT_BELOW" });
+         	 	                       { SUBJECT => "$_DEPOSIT_BELOW",
+         	 	                       	 UID     => $user{UID}
+         	 	                       	});
          	 	                       
-         	 	 if ($conf{MSG_PRICE} > 0) {
-         	 	 	
+         	 	 if ($conf{MSG_PRICE} > 0) {         	 	 	
          	 	 	 my %PARAMS = ( 
-               DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
-               DATE     => "$ADMIN_REPORT{DATE} $TIME",
-               METHOD   => 1 );
-
+                 DESCRIBE => "$_REPORTS ($user{REPORT_ID}) ",
+                 DATE     => "$ADMIN_REPORT{DATE} $TIME",
+                 METHOD   => 1 
+                );
 
              if ($debug > 4) {
                 $debug_output .= " UID: $user{UID} SUM: $sum REDUCTION: $user{REDUCTION}\n";
